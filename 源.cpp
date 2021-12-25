@@ -10,29 +10,14 @@ using namespace wjr;
 using namespace std;
 #include <string>
 int main(){	
-	{
-		json w[3];
-		auto vec = get_all_files("test");
-		auto s = mtime();
-		int x = 0;
-		for (auto i : vec) {
-			w[x++] = json::eval(read_file(i));
-		}
-		auto t = mtime();
-		cout << t - s << '\n';
-	}
 
-	{
-		json w[3];
-		auto vec = get_all_files("test");
-		auto s = mtime();
-		int x = 0;
-		for (auto i : vec) {
-			w[x++] = json::eval(read_file(i));
-		}
-		auto t = mtime();
-		cout << t - s << '\n';
-	}
+	String s = "wjrwjr3";
+
+	String g = "wjr";
+
+	skmp_searcher it(g.rbegin(),g.rend());
+
+	cout<<(it(s.rbegin(),s.rend()).first-s.rbegin())<<'\n';
 
 	return 0;
 }
