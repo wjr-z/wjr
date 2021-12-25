@@ -983,7 +983,7 @@ namespace wjr {
 		skmp_searcher_fshift_builder(
 			const RanItPat First, const RanItPat Last, const Pred_eq Eq
 		) : first(First), last(Last) {
-			size = std::distance(first,last);
+			size = last - first;
 			auto al = mallocator<diff_t>();
 			fshift = al.allocate(size + 1);
 			fm = al.allocate(size + 1);
@@ -991,13 +991,15 @@ namespace wjr {
 			diff_t* fnxt = al.allocate(size + 1);
 			diff_t i = 0,j = -1;
 			fnxt[0] = -1;
+
 			while (i < size) {
 				if (j == -1 || Eq(*(last - 1 - i), *(last - 1 - j))) {
-					++i;
-					++j;
+					fnxt[++i] = ++j;
 				}else j = fnxt[j];
 			}
+
 			std::fill_n(fshift,size + 1,static_cast<diff_t>(-1));
+
 			for (i = 1; i <= size; ++i) {
 				while(i < size && fnxt[i + 1] == fnxt[i] + 1)
 					++i;
@@ -1189,228 +1191,254 @@ namespace wjr {
 		std::unordered_map<value_t,diff_t,Hash_ty,Pred_eq> Map;
 	};
 
-	template <class _RanItPat, class _Hash_ty, class _Pred_eq, class _Value_t =
-		typename std::iterator_traits<_RanItPat>::value_type>
-		using sunday_kmp_traits = std::conditional_t<std::is_integral_v<_Value_t> && sizeof(_Value_t) == 1
-		&& (std::is_same_v<std::equal_to<>, _Pred_eq> || std::is_same_v<std::equal_to<_Value_t>, _Pred_eq>),
-		skmp_searcher_char_builder<_RanItPat, _Hash_ty, _Pred_eq>,
-		skmp_searcher_general_builder<_RanItPat, _Hash_ty, _Pred_eq>>;
+	template<typename RanItPat,typename Hash_ty,typename Pred_eq,typename value_t = 
+		typename std::iterator_traits<RanItPat>::value_type>
+		using skmp_searcher_traits = std::conditional_t<std::is_integral_v<value_t> && sizeof(value_t) == 1
+		&& (std::is_same_v<std::equal_to<>,Pred_eq> || std::is_same_v<std::equal_to<value_t>,Pred_eq>),
+		skmp_searcher_char_builder <RanItPat,Hash_ty,Pred_eq>,
+		skmp_searcher_general_builder<RanItPat,Hash_ty,Pred_eq>>;
 
-	template<typename _Container, typename = void>
-	struct _Has_begin_end : std::false_type {};
+	template<typename Container,typename = void>
+	struct Has_begin_end : std::false_type {};
 
-	template<typename _Container>
-	struct _Has_begin_end < _Container, std::void_t<
-		decltype(std::declval<_Container>().begin(), std::declval<_Container>().end()) >>
+	template<typename Container>
+	struct Has_begin_end<Container,std::void_t<
+		decltype(std::declval<Container>().begin(),std::declval<Container>().end())>>
 		: std::true_type{};
+	
+	template<typename Container>
+	using is_Has_begin_end = std::enable_if_t<Has_begin_end<Container>::value,int>;
 
-	template<typename _Container>
-	using HAS_BEGIN_END = std::enable_if_t<_Has_begin_end<_Container>::value, int>;
+	template<typename T,typename = void>
+	struct Has_iterator : std::false_type {};
 
-	template<class U, class = void>
-	struct _Has_Iterator : std::false_type {};
-	template<class U>
-	struct _Has_Iterator<U, std::void_t<decltype(std::declval<U>().begin())>> : std::true_type {};
+	template<typename T>
+	struct Has_iterator<T, std::void_t<decltype(std::declval<T>().begin())>> : std::true_type {};
 
-	template<class U>
-	struct _Iterator_Traits {
-		using type = decltype(std::declval<U>().begin());
+	template<typename T>
+	struct Iterator_traits_begin {
+		using type = decltype(std::declval<T>().begin());
 	};
 
-	template<typename _Container>
-	using container_iterator_type = typename _Iterator_Traits<_Container>::type;
+	template<typename Container>
+	using container_iterator_type = typename Iterator_traits_begin<Container>::type;
 
-	template <class _RanItPat, class _Hash_ty
-		= std::hash<typename std::iterator_traits<_RanItPat>::value_type>,
-		class _Pred_eq = std::equal_to<>>
-		class skmp_searcher {
+	template<typename RanItPat,typename Hash_ty 
+		= std::hash<typename std::iterator_traits<RanItPat>::value_type>,
+		typename Pred_eq = std::equal_to<>>
+	class skmp_searcher {
+	private:
+		using value_t = typename std::iterator_traits<RanItPat>::value_type;
+		using diff_t = typename std::iterator_traits<RanItPat>::difference_type;
+	public:
+		using value_type = value_t;
+		using difference_type = diff_t;
 
-		using _Value_t = typename std::iterator_traits<_RanItPat>::value_type;
-		using _Diff_t = typename std::iterator_traits<_RanItPat>::difference_type;
+		skmp_searcher(
+			const RanItPat First, const RanItPat Last, Hash_ty fn = Hash_ty(), Pred_eq Eq = Pred_eq()
+		) : Searcher(First, Last, fn, Eq) {
 
-		public:
-
-			using value_type = _Value_t;
-			using difference = _Diff_t;
-
-			skmp_searcher(
-				const _RanItPat _First, const _RanItPat _Last, _Hash_ty _Hash_Fn = _Hash_ty(), _Pred_eq _Eq = _Pred_eq()
-			) : _Searcher(_First, _Last, _Hash_Fn, _Eq) {
-
-			}
-
-			template<class _Container, HAS_BEGIN_END<const _Container&> = 0>
-			skmp_searcher(
-				const _Container& _Cont, _Hash_ty _Hash_Fn = _Hash_ty(), _Pred_eq _Eq = _Pred_eq()
-			) : _Searcher(_Cont.cbegin(), _Cont.cend(), _Hash_Fn, _Eq) {
-				// containers that have begin() and end() 
-			}
-
-			skmp_searcher(const _RanItPat _First, const size_t _Length, _Hash_ty _Hash_fn = _Hash_ty(), _Pred_eq _Eq = _Pred_eq())
-				: _Searcher(_First, _First + _Length, _Hash_fn, _Eq) {
-
-			}
-
-			skmp_searcher(const skmp_searcher& other)
-				: _Searcher(other._Searcher) {
-
-			}
-
-			skmp_searcher(skmp_searcher&& other)noexcept
-				: _Searcher(std::move(other._Searcher)) {
-
-			}
-
-			~skmp_searcher() {
-
-			}
-
-			template <class _RanItHaystack>
-			std::pair<_RanItHaystack, _RanItHaystack> operator()(
-				_RanItHaystack _First, _RanItHaystack _Last)const;
-
-		private:
-			using _Traits = sunday_kmp_traits<_RanItPat, _Hash_ty, _Pred_eq>;
-			_Traits _Searcher;
-	};
-
-	template <class _RanItPat, class _Hash_ty, class _Pred_eq>
-	template <class _RanItHaystack>
-	std::pair<_RanItHaystack, _RanItHaystack> skmp_searcher<_RanItPat, _Hash_ty, _Pred_eq>::operator()(
-		_RanItHaystack _First, _RanItHaystack _Last)const {
-
-		const auto _Size = _Searcher.get_size(); // pattern string 's size
-
-		if (_Size == 0) {
-			return { _First,_First };
 		}
 
-		const auto pattern_first = _Searcher.get_first();
-		const auto pattern_last = _Searcher.get_last();
-		const auto pattern_end = pattern_last - 1;
+		template<typename Container,is_Has_begin_end<Container> = 0>
+		skmp_searcher(
+			const Container& cont, Hash_ty fn = Hash_ty(), Pred_eq Eq = Pred_eq()
+		) : Searcher(cont.begin(), cont.end(), fn, Eq) {
 
-		const auto text_first = _First;
-		const auto text_last = _Last;
-		const auto text_end = text_last - 1;
+		}
 
-		const auto _Eq = _Searcher.key_eq();
+		skmp_searcher(
+			const RanItPat First, const size_t length, Hash_ty fn = Hash_ty(), Pred_eq Eq = Pred_eq()
+		) : Searcher(First, First + length, fn, Eq) {
 
-		const auto* _Fshift = _Searcher.get_fshift();
-		const auto* _Fm = _Searcher.get_fm();
+		}
 
-		auto ch = *pattern_end;
+		skmp_searcher(const skmp_searcher& other)
+			: Searcher(other.Searcher) {
 
-		auto text_ptr = text_first + _Size - 1;
-		//sufsearch : last jump distance
-		//alsearch  : last match length
-		_Diff_t sufsearch = 0, alsearch = 0;
-		size_t remain_size = text_end - text_ptr;
+		}
+
+		skmp_searcher(skmp_searcher&& other) noexcept
+			: Searcher(std::move(other.Searcher)) {
+
+		}
+
+		~skmp_searcher() = default;
+
+		template<typename iter>
+		std::pair<iter, iter> operator()(iter First,iter Last)const;
+
+	private:
+
+		using Traits = skmp_searcher_traits<RanItPat, Hash_ty, Pred_eq>;
+		Traits Searcher;
+	};
+
+	template<typename RanItPat,typename Hash_ty,typename Pred_eq>
+	template<typename iter>
+	std::pair<iter, iter> skmp_searcher<RanItPat, Hash_ty, Pred_eq>::operator()(
+		iter First, iter Last
+		)const {
+		const auto size = Searcher.get_size();
+
+		if (size == 0) {
+			return {First,First};
+		}
+
+		const auto pattern_first = Searcher.get_first();
+		const auto pattern_last = pattern_first + size;
+		const auto pattern_back = pattern_last - 1;
+
+		const auto text_first = First;
+		const auto text_last = Last;
+		const auto text_back = text_last - 1;
+
+		if (text_last - text_first < size) {
+			return {Last,Last};
+		}
+
+		const auto Eq = Searcher.key_eq();
+
+		const auto fshift = Searcher.get_fshift();
+		const auto fm = Searcher.get_fm();
+
+		auto& ch = *pattern_back;
+
+		auto text_ptr = text_first + size - 1;
+
+		diff_t sufsearch = 0,alsearch = 0;
+		diff_t res = text_back - text_ptr;
+
 		for (;;) {
+			auto s_text_ptr = text_ptr;
+			auto s_pattern_ptr = pattern_back;
+			const auto s_ptr_mid = text_ptr - sufsearch;
 
-			auto s_text_ptr(text_ptr);
-			auto s_pattern_ptr(pattern_end);
-			const auto s_ptr_mid(text_ptr - sufsearch);
-
-			while (s_text_ptr != s_ptr_mid && _Eq(*s_text_ptr, *s_pattern_ptr)) {
-				--s_text_ptr, --s_pattern_ptr;
+			while (s_text_ptr != s_ptr_mid && Eq(*s_text_ptr, *s_pattern_ptr)) {
+				--s_text_ptr;
+				--s_pattern_ptr;
 			}
 
-			//to avoid matching twice 
 			if (s_text_ptr == s_ptr_mid) {
 
-				auto text_ptr_head = text_ptr - (_Size - 1);
+				if (alsearch + sufsearch != size) {
 
-				if (alsearch + sufsearch == _Size) {
-					return { text_ptr_head ,text_ptr + 1 };
-				}
+					s_text_ptr -= alsearch;
+					s_pattern_ptr -= alsearch;
 
-				s_text_ptr -= alsearch;
-				s_pattern_ptr -= alsearch;
-
-				while (_Eq(*s_text_ptr, *s_pattern_ptr)) {
-					if (s_text_ptr == text_ptr_head) {
-						return { text_ptr_head ,text_ptr + 1 };
+					while (s_pattern_ptr != pattern_first && Eq(*s_text_ptr, *s_pattern_ptr)) {
+						--s_text_ptr;
+						--s_pattern_ptr;
 					}
-					--s_text_ptr;
-					--s_pattern_ptr;
+
+					if (s_pattern_ptr == pattern_first && Eq(*s_text_ptr, *s_pattern_ptr)) {
+						++text_ptr;
+						return { text_ptr - size,text_ptr };
+					}
+				}
+				else {
+					++text_ptr;
+					return { text_ptr - size,text_ptr };
 				}
 			}
 
-			if (text_ptr == text_end)
+			if (text_ptr == text_back) {
 				break;
+			}
 
-			const _Diff_t _Match = text_ptr - s_text_ptr;
-			const auto fs = _Fshift[_Match];
-			const auto sh = _Searcher.get_shift(*(text_ptr + 1));
-			const auto fm = _Fm[_Match];
+			diff_t Match = text_ptr - s_text_ptr;
+			const auto Fs = fshift[Match];
+			const auto Sh = Searcher.get_shift(*(text_ptr + 1));
 
-			if (fs) {
-				if (fs >= sh) {
-					sufsearch = fs - _Match;
-					alsearch = _Match;
+			if (!Fs) {
+				if (Sh >= size) {
+					sufsearch = Sh;
+					alsearch = 0;
 				}
 				else {
-					sufsearch = sh;
-					alsearch = 0;
+					const auto Fm = fm[Match];
+					sufsearch = Fm;
+					alsearch = size - Fm;
 				}
 			}
 			else {
-				if (sh <= _Size) {
-					sufsearch = fm;
-					alsearch = _Size - fm;
+				if (Sh >= Fs) {
+					sufsearch = Sh;
+					alsearch = 0;
 				}
 				else {
-					sufsearch = sh;
-					alsearch = 0;
+					sufsearch = Fs - Match;
+					alsearch = Match;
 				}
 			}
 
-			if (sufsearch > remain_size)
+			if(sufsearch > res)
 				break;
 
-			remain_size -= sufsearch;
 			text_ptr += sufsearch;
+			res -= sufsearch;
 
-			if constexpr (std::is_integral_v<_Value_t> && sizeof(_Value_t) == 1
-				&& std::is_pointer_v<_RanItHaystack>) {
-				//if can use memchr to speed up
+			if constexpr (std::is_pointer_v<iter> && 
+				std::is_same_v<Pred_eq,std::equal_to<>> &&
+				sizeof(value_t) <= sizeof(int) && std::is_integral_v<value_t> ) {
 				const auto l = sufsearch + alsearch;
-				if (l <= 32 && !_Eq(*text_ptr, ch)) {
-					const auto pos = memchr(text_ptr + 1, ch, remain_size);
+				if (l <= 32 && !Eq(*text_ptr, ch)) {
+					void* pos = memchr((void*)(text_ptr + 1), ch, res);
 					if (pos == nullptr)
 						break;
-					const _Diff_t delta = (const _Value_t*)pos - text_ptr;
-					if (delta > l) {
-						remain_size -= delta;
+					const diff_t delta = (const value_t*)pos - text_ptr;
+					if (delta >= l) {
+						res -= delta;
 						text_ptr += delta;
-						sufsearch = 0;
-						alsearch = 0;
+						sufsearch = alsearch = 0;
 					}
 				}
 			}
 
-			if (sufsearch >= _Size) {
-				sufsearch = 0;
-				alsearch = 0;
+			if (sufsearch >= size) {
+				sufsearch = alsearch = 0;
 			}
 
 		}
-
-		return { text_last,text_last };
 	}
 
 	template<typename _Container, typename _Hash, typename _Pred,
-		HAS_BEGIN_END<const _Container&> = 0>
-		skmp_searcher(const _Container&, _Hash, _Pred)
+		is_Has_begin_end<const _Container&> = 0>
+	skmp_searcher(const _Container&, _Hash, _Pred)
 		->skmp_searcher<container_iterator_type<const _Container&>, _Hash, _Pred>;
 
-	template<typename _Container, typename _Hash, HAS_BEGIN_END<const _Container&> = 0>
+	template<typename _Container, typename _Hash, is_Has_begin_end<const _Container&> = 0>
 	skmp_searcher(const _Container&, _Hash)
 		->skmp_searcher<container_iterator_type<const _Container&>, _Hash>;
 
 	template<typename _Container,
-		HAS_BEGIN_END<const _Container&> = 0>
-		skmp_searcher(const _Container&)->skmp_searcher<container_iterator_type<const _Container&>>;
+		is_Has_begin_end<const _Container&> = 0>
+	skmp_searcher(const _Container&)->skmp_searcher<container_iterator_type<const _Container&>>;
+
+	template<typename iter,typename value_type,
+		typename Pred_eq = std::equal_to<>>
+	std::pair<iter, iter> skmp_search(iter first, iter last, value_type ch) {
+		if constexpr (std::is_pointer_v<iter> &&
+			std::is_same_v<Pred_eq, std::equal_to<>> &&
+			sizeof(value_type) <= sizeof(int) && std::is_integral_v<value_type>) {
+			void* pos = memchr((const void*)first, ch, last - first);
+			if (pos == nullptr) {
+				return { last,last };
+			}
+			first  = (iter)pos;
+			return {first,first + 1};
+		}
+		else {
+			if constexpr (is_reverse_iterator<iter>) {
+				using reverse_iter = typename iter::iterator_type;
+				if constexpr (std::is_pointer_v<reverse_iter> &&
+					std::is_same_v<Pred_eq, std::equal_to<>> &&
+					sizeof(value_type) <= sizeof(int) && std::is_integral_v<value_type>) {
+
+				}
+			}
+		}
+	}
 
 	//
 

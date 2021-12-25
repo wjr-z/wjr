@@ -9,15 +9,14 @@
 using namespace wjr;
 using namespace std;
 #include <string>
+
+
 int main(){	
 
-	String s = "wjrwjr3";
+	cout<<is_reverse_iterator<int*>::value<<'\n'<<is_reverse_iterator<String::reverse_iterator>::value;
 
-	String g = "wjr";
-
-	skmp_searcher it(g.rbegin(),g.rend());
-
-	cout<<(it(s.rbegin(),s.rend()).first-s.rbegin())<<'\n';
+	reverse_iterator<int*> g;
+	int*h = g.base();
 
 	return 0;
 }

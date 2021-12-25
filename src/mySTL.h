@@ -37,12 +37,7 @@ namespace wjr {
 		T mt19937_rand(T L, T R) { // return a rand value of [L,R)
 			assert(L < R);
 			T mod = R - L;
-			if constexpr (std::is_unsigned_v<T>) {
-				return (mt19937_rand<T>() % mod) + L;
-			}
-			else {
-				return ((mt19937_rand<T>() % mod) + mod) % mod + L;
-			}
+			return static_cast<T>(mt19937_rand<std::make_unsigned_t<T>>() % mod) + L;
 		}
 
 	}
@@ -66,6 +61,12 @@ namespace wjr {
 
 		template<typename...args>
 		constexpr static bool is_any_of_v = is_any_of<args...>::value;
+
+		template<typename T>
+		struct is_reverse_iterator : std::false_type {};
+
+		template<typename T>
+		struct is_reverse_iterator<std::reverse_iterator<T>> : std::true_type {};
 
 	}
 
