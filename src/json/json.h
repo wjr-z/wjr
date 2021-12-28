@@ -7,6 +7,7 @@
 #include <string.h>
 #include "../mallocator.h"
 #include "../typeInfo.h"
+#include "../String.h"
 
 namespace wjr {
 
@@ -15,7 +16,7 @@ namespace wjr {
     //Use mallocator as default allocator
     typedef bool json_boolean;
     typedef double json_number;
-    typedef std::basic_string<char, std::char_traits<char>, mallocator<char>> json_string;
+    typedef String json_string;
     typedef std::map<json_string, json, std::less<json_string>,
         mallocator<std::pair<const json_string, json>>> json_object;
     typedef std::vector<json, mallocator<json>> json_array;

@@ -2,12 +2,19 @@
 #define WJR_MALLOCATOR_H
 
 #include <cstdlib>
+#include <cassert>
 #include <utility>
 #include <type_traits>
 
 #include <mutex>
 
 namespace wjr {
+
+#define ALLOCATOR_DEBUG
+
+#ifndef _DEBUG
+#undef ALLOCATOR_DEBUG
+#endif
 
 	template <int __inst>
 	class __malloc_alloc_template {
@@ -86,13 +93,17 @@ namespace wjr {
 
 	typedef __malloc_alloc_template<0> malloc_alloc;
 
+	enum {ALLOC_ALIGN = 8};
+	enum {ALLOC_MAX_BYTES = 128};
+	enum {ALLOC_NFRELISTS = ALLOC_MAX_BYTES / ALLOC_ALIGN};
+
 	template <bool threads, int inst>
 	class __default_alloc_template {
 	private:
 
-		enum { __ALIGN = 8 };
-		enum { __MAX_BYTES = 128 };
-		enum { __NFREELISTS = __MAX_BYTES / __ALIGN };
+		enum { __ALIGN = ALLOC_ALIGN };
+		enum { __MAX_BYTES = ALLOC_MAX_BYTES };
+		enum { __NFREELISTS = ALLOC_NFRELISTS };
 
 		static inline size_t ROUND_UP(size_t bytes) {
 			return (((bytes)+__ALIGN - 1) & ~(__ALIGN - 1));
@@ -124,12 +135,32 @@ namespace wjr {
 
 		static std::mutex allocator_mutex;
 
+	#ifdef ALLOCATOR_DEBUG
+		struct allocator_size_count {
+			size_t count;
+			allocator_size_count()
+				: count(0) {
+
+			}
+			~allocator_size_count() {
+				assert(count == 0);
+			}
+		};
+		static allocator_size_count S;
+	#endif
+
 	public:
 		static void* allocate(size_t n) //n must be > 0
 		{
 			if (n > (size_t)__MAX_BYTES) {
+			#ifdef ALLOCATOR_DEBUG
+				S.count += n;
+			#endif
 				return malloc_alloc::allocate(n);
 			}
+		#ifdef ALLOCATOR_DEBUG
+			S.count += ROUND_UP(n);
+		#endif
 			if constexpr (threads) {
 				obj* volatile* my_free_list = free_list + FREELIST_INDEX(n);
 				std::unique_lock<std::mutex> _mutex(allocator_mutex);
@@ -153,6 +184,9 @@ namespace wjr {
 
 		static void deallocate(void* p, size_t n) //p may not be 0
 		{
+		#ifdef ALLOCATOR_DEBUG
+			S.count -= n;
+		#endif
 			obj* q = (obj*)p;
 
 			if (n > (size_t)__MAX_BYTES) {
@@ -293,6 +327,12 @@ namespace wjr {
 
 	template<bool threads, int __inst>
 	using alloc = __default_alloc_template<threads, __inst>;
+
+#ifdef ALLOCATOR_DEBUG
+	template<bool threads,int __inst>
+	typename __default_alloc_template<threads,__inst>::allocator_size_count
+		__default_alloc_template<threads, __inst>::S;
+#endif
 
 	template <typename Ty, bool threads = false>
 	class basic_malloc {

@@ -10,13 +10,18 @@ using namespace wjr;
 using namespace std;
 #include <string>
 
-
 int main(){	
 
-	cout<<is_reverse_iterator<int*>::value<<'\n'<<is_reverse_iterator<String::reverse_iterator>::value;
+	auto vec = get_all_files("test");
+	json w[3];
 
-	reverse_iterator<int*> g;
-	int*h = g.base();
+	auto s = mtime();
+	for (int i = 0; i < 3; ++i) {
+		w[i].parse(read_file(vec[i]));
+	}
+
+	auto t = mtime();
+	cout<<t-s<<'\n';
 
 	return 0;
 }
