@@ -10,6 +10,20 @@ using namespace wjr;
 using namespace std;
 #include <string>
 
+struct t1 {
+	int find() {
+
+	}
+};
+
+struct t2 
+	: private t1{
+
+	void debug() {
+		t1::find();
+	}
+};
+
 int main(){	
 
 	auto vec = get_all_files("test");

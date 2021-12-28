@@ -271,8 +271,476 @@ namespace wjr {
         setCapacity(s);
     }
 
+    template<typename Char,typename Traits>
+    struct basic_String_Traits {
+
+        using value_type = Char;
+        using traits_type = Traits;
+        using size_type = size_t;
+
+        constexpr static size_type npos = static_cast<size_type>(-1);
+
+        static inline size_type traits_length(const value_type* s) {
+            return traits_type::length(s);
+        }
+
+        static inline size_type npos_min(size_type n, const size_type x) {
+            if constexpr (std::is_unsigned_v<size_type>) {
+                return n < x ? n : x;
+            }
+            else {
+                assert(n >= 0 || n == npos);
+                return (n == npos || n > x) ? x : n;
+            }
+        }
+
+        struct Search_Traits {
+            bool operator()(const value_type& a, const value_type& b)const {
+                return traits_type::eq(a, b);
+            }
+            static const value_type* find(const value_type* s, size_type n,
+                const value_type& ch) {
+                return traits_type::find(s, n, ch);
+            }
+        };
+
+        struct rSearch_Traits {
+            bool operator()(const value_type& a, const value_type& b)const {
+                return traits_type::eq(a, b);
+            }
+        };
+
+        static size_type Search(const value_type* s, const size_type n,
+            const size_type off, const value_type ch);
+        static size_type Search(const value_type* s1, const size_type n1,
+            const size_type off, const value_type* s2, const size_type n2);
+
+        static size_type rSearch(const value_type* s, const size_type n,
+            const size_type off, const value_type ch);
+        static size_type rSearch(const value_type* s1, const size_type n1,
+            size_type off, const value_type* s2, const size_type n2);
+
+        static size_type Normal_Search_first_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2);
+        static size_type Map_Search_first_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2);
+        static size_type Search_first_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2);
+
+        static size_type Search_last_of_ch(const value_type* s,
+            const size_type n, size_type off, const value_type ch);
+        static size_type Normal_Search_last_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2);
+        static size_type Map_Search_last_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2);
+        static size_type Search_last_of(const value_type* s1,
+            const size_type n1, size_type off, const value_type* s2, const size_type n2);
+
+        static size_type Search_first_not_of_ch(const value_type* s,
+            const size_type n, const size_type off, const value_type ch);
+        static size_type Normal_Search_first_not_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2);
+
+        static size_type Map_Search_first_not_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2);
+        static size_type Search_first_not_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2);
+
+        static size_type Search_last_not_of_ch(const value_type* s,
+            const size_type n, const size_type off, const value_type ch);
+        static size_type Normal_Search_last_not_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2);
+
+        static size_type Map_Search_last_not_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2);
+        static size_type Search_last_not_of(const value_type* s1,
+            const size_type n1, size_type off, const value_type* s2, const size_type n2);
+
+        static int compare(const value_type* s1, const size_type n1,
+            const value_type* s2, const size_type n2) {
+            const int r = traits_type::compare(s1,s2,std::min(n1,n2));
+            return r != 0 ? r : n1 > n2 ? 1 : n1 < n2 ? -1 : 0;
+        }
+
+        static bool equal(const value_type* s1, const size_type n1,
+            const value_type* s2, const size_type n2) {
+            return (n1 == n2) && (traits_type::compare(s1,s2,n1) == 0);
+        }
+
+    };
+
+    template<typename Char, typename Traits>
+    typename basic_String_Traits<Char, Traits>::size_type
+        basic_String_Traits<Char, Traits>::Search(const value_type* s, const size_type n,
+            const size_type off, const value_type ch) {
+        if (off < n) {
+            const auto pos = traits_type::find(s + off, n - off, ch);
+            if (pos) {
+                return static_cast<size_type>(pos - s);
+            }
+        }
+        return npos;
+    }
+
+    template<typename Char, typename Traits>
+    typename basic_String_Traits<Char, Traits>::size_type
+        basic_String_Traits<Char, Traits>::Search(const value_type* s1, const size_type n1,
+            const size_type off, const value_type* s2, const size_type n2) {
+        if (n2 > n1 || off > n1 - n2) {
+            return npos;
+        }
+
+        if (!n2) {
+            return off;
+        }
+
+        if (n2 > 4) {
+            auto pos = skmp_searcher(s2, s2 + n2, std::hash<value_type>(),
+                Search_Traits())(s1 + off, s1 + n1);
+            auto p = pos.first;
+            if (p == s1 + n1) {
+                return npos;
+            }
+            return p - s1;
+        }
+
+        const auto match_end = s1 + (n1 - n2) + 1;
+        for (auto match_try = s1 + off;; ++match_try) {
+            match_try = traits_type::find(match_try, static_cast<size_type>(match_end - match_try), *s2);
+            if (!match_try) {
+                return npos;
+            }
+            if (traits_type::compare(match_try, s2, n2) == 0) {
+                return static_cast<size_type>(match_try - s1);
+            }
+        }
+    }
+
+    template<typename Char, typename Traits>
+    typename basic_String_Traits<Char, Traits>::size_type
+        basic_String_Traits<Char, Traits>::rSearch(const value_type* s,
+            const size_type n, const size_type off, const value_type ch) {
+        for (auto match_try = s + npos_min(off, n - 1);; --match_try) {
+            if (traits_type::eq(*match_try, ch)) {
+                return static_cast<size_type>(match_try - s);
+            }
+            if (match_try == s) {
+                break;
+            }
+        }
+        return npos;
+    }
+
+    template<typename Char, typename Traits>
+    typename basic_String_Traits<Char, Traits>::size_type
+        basic_String_Traits<Char, Traits>::rSearch(const value_type* s1,
+            const size_type n1, size_type off, const value_type* s2, const size_type n2) {
+        off = npos_min(off, n1 - n2);
+        if (n2 == 0) {
+            return off;
+        }
+
+        if (n2 <= n1) {
+            if (n2 > 4) {
+                auto pos = skmp_searcher(std::reverse_iterator(s2 + n2),
+                    std::reverse_iterator(s2), std::hash<value_type>(), rSearch_Traits())
+                    (std::reverse_iterator(s1 + off + n2), std::reverse_iterator(s1)).second.base();
+                if (pos == s1) {
+                    return npos;
+                }
+                return pos - s1;
+            }
+
+            for (auto match_try = s1 + off;; --match_try) {
+                if (traits_type::eq(*match_try, *s2) && traits_type::compare(match_try, s2, n2) == 0) {
+                    return static_cast<size_type>(match_try - s1);
+                }
+                if (match_try == s1) {
+                    break;
+                }
+            }
+        }
+        return npos;
+    }
+
+    template<typename Char, typename Traits>
+    typename basic_String_Traits<Char, Traits>::size_type
+        basic_String_Traits<Char, Traits>::Normal_Search_first_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
+        const auto end = s1 + n1;
+        for (auto match_try = s1 + off; match_try < end; ++match_try) {
+            if (traits_type::find(s2, n2, *match_try)) {
+                return static_cast<size_type>(match_try - s1);
+            }
+        }
+        return npos;
+    }
+
+    template<typename Char, typename Traits>
+    typename basic_String_Traits<Char, Traits>::size_type
+        basic_String_Traits<Char, Traits>::Map_Search_first_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
+        std::unordered_set<value_type, std::hash<value_type>, Search_Traits, mallocator<value_type>>
+            sl(s2, s2 + n2);
+        const auto end = s1 + n1;
+        for (auto match_try = s1 + off; match_try < end; ++match_try) {
+            if (sl.count(*match_try)) {
+                return static_cast<size_type>(match_try - s1);
+            }
+        }
+        return npos;
+    }
+
+    template<typename Char, typename Traits>
+    typename basic_String_Traits<Char, Traits>::size_type
+        basic_String_Traits<Char, Traits>::Search_first_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
+        if (n2 != 0 && off < n1) {
+            if (n2 < 32) { // only need to use normal search
+                return Normal_Search_first_of(s1, n1, off, s2, n2);
+            }
+            else {
+                // may use Map_Search_first_of
+                // firstly ,use normal search to match no more than length of 32
+
+                const size_type first_to_search = (n1 - off <= 32 ? n1 : off + 32);
+                auto first_to_search_match = Normal_Search_first_of(s1, first_to_search, off, s2, n2);
+                if (first_to_search_match != npos) {
+                    return first_to_search_match;
+                }
+
+                if (first_to_search != n1) {
+                    return Map_Search_first_of(s1, n1, first_to_search, s2, n2);
+                }
+
+            }
+        }
+        return npos;
+    }
+
+    template<typename Char, typename Traits>
+    typename basic_String_Traits<Char, Traits>::size_type
+        basic_String_Traits<Char, Traits>::Search_last_of_ch(const value_type* s,
+            const size_type n, size_type off, const value_type ch) {
+        if (n != 0) {
+            for (auto match_try = s + npos_min(off, n - 1);; --match_try) {
+                if (traits_type::eq(*match_try, ch)) {
+                    return static_cast<size_type>(match_try - s);
+                }
+                if (match_try == s) {
+                    break;
+                }
+            }
+        }
+        return npos;
+    }
+
+    template<typename Char, typename Traits>
+    typename basic_String_Traits<Char, Traits>::size_type
+        basic_String_Traits<Char, Traits>::Normal_Search_last_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
+        assert(off <= n1 - 1);
+        for (auto match_try = s1 + off;; --match_try) {
+            if (traits_type::find(s2, n2, *match_try)) {
+                return static_cast<size_type>(match_try - s1);
+            }
+
+            if (match_try == s1)
+                break;
+        }
+        return npos;
+    }
+
+    template<typename Char, typename Traits>
+    typename basic_String_Traits<Char, Traits>::size_type
+        basic_String_Traits<Char, Traits>::Map_Search_last_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
+        std::unordered_set<value_type, std::hash<value_type>,
+            rSearch_Traits, mallocator<value_type>> sl(s2, s2 + n2);
+        assert(off <= n1 - 1);
+        for (auto match_try = s1 + off;; --match_try) {
+            if (sl.count(*match_try)) {
+                return static_cast<size_type>(match_try - s1);
+            }
+
+            if (match_try == s1)
+                break;
+        }
+        return npos;
+    }
+
+    template<typename Char, typename Traits>
+    typename basic_String_Traits<Char, Traits>::size_type
+        basic_String_Traits<Char, Traits>::Search_last_of(const value_type* s1,
+            const size_type n1, size_type off, const value_type* s2, const size_type n2) {
+        off = npos_min(off, n1 - 1);
+        if (n1 != 0 && n2 != 0) {
+            if (n2 < 32) {
+                return Normal_Search_last_of(s1, n1, off, s2, n2);
+            }
+            else {
+                const size_type first_to_search = off <= 32 ? 0 : off - 32;
+                auto first_to_search_match = Normal_Search_last_of(
+                    s1 + first_to_search, n1 - first_to_search, off - first_to_search, s2, n2);
+                if (first_to_search_match != npos) {
+                    return first_to_search + first_to_search_match;
+                }
+                if (first_to_search != 0) {
+                    return Normal_Search_last_of(s1, n1, first_to_search, s2, n2);
+                }
+            }
+        }
+        return npos;
+    }
+
+    template<typename Char, typename Traits>
+    typename basic_String_Traits<Char, Traits>::size_type
+        basic_String_Traits<Char, Traits>::Search_first_not_of_ch(const value_type* s,
+            const size_type n, const size_type off, const value_type ch) {
+        if (off < n) {
+            auto match_end = s + n;
+            for (auto match_try = s + off; match_try != match_end; ++match_try) {
+                if (!traits_type::eq(*match_try, ch)) {
+                    return static_cast<size_type>(match_try - s);
+                }
+            }
+        }
+        return npos;
+    }
+
+    template<typename Char, typename Traits>
+    typename basic_String_Traits<Char, Traits>::size_type
+        basic_String_Traits<Char, Traits>::Normal_Search_first_not_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
+        const auto end = s1 + n1;
+        for (auto match_try = s1 + off; match_try < end; ++match_try) {
+            if (!traits_type::find(s2, n2, *match_try)) {
+                return static_cast<size_type>(match_try - s1);
+            }
+        }
+        return npos;
+    }
+
+    template<typename Char, typename Traits>
+    typename basic_String_Traits<Char, Traits>::size_type
+        basic_String_Traits<Char, Traits>::Map_Search_first_not_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
+        std::unordered_set<value_type, std::hash<value_type>, Search_Traits, mallocator<value_type>>
+            sl(s2, s2 + n2);
+        const auto end = s1 + n1;
+        for (auto match_try = s1 + off; match_try < end; ++match_try) {
+            if (!sl.count(*match_try)) {
+                return static_cast<size_type>(match_try - s1);
+            }
+        }
+        return npos;
+    }
+
+    template<typename Char, typename Traits>
+    typename basic_String_Traits<Char, Traits>::size_type
+        basic_String_Traits<Char, Traits>::Search_first_not_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
+        if (n2 != 0 && off < n1) {
+            if (n2 < 32) { // only need to use normal search
+                return Normal_Search_first_not_of(s1, n1, off, s2, n2);
+            }
+            else {
+                // may use Map_Search_first_of
+                // firstly ,use normal search to match no more than length of 32
+
+                const size_type first_to_search = (n1 - off <= 32 ? n1 : off + 32);
+                auto first_to_search_match = Normal_Search_first_not_of(s1, first_to_search, off, s2, n2);
+                if (first_to_search_match != npos) {
+                    return first_to_search_match;
+                }
+
+                if (first_to_search != n1) {
+                    return Map_Search_first_not_of(s1, n1, first_to_search, s2, n2);
+                }
+
+            }
+        }
+        return npos;
+    }
+
+    template<typename Char, typename Traits>
+    typename basic_String_Traits<Char, Traits>::size_type
+        basic_String_Traits<Char, Traits>::Search_last_not_of_ch(const value_type* s,
+            const size_type n, const size_type off, const value_type ch) {
+        if (n != 0) {
+            for (auto match_try = s + npos_min(off, n - 1);; --match_try) {
+                if (!traits_type::eq(*match_try, ch)) {
+                    return static_cast<size_type>(match_try - s);
+                }
+                if (match_try == s) {
+                    break;
+                }
+            }
+        }
+        return npos;
+    }
+
+    template<typename Char, typename Traits>
+    typename basic_String_Traits<Char, Traits>::size_type
+        basic_String_Traits<Char, Traits>::Normal_Search_last_not_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
+        assert(off <= n1 - 1);
+        for (auto match_try = s1 + off;; --match_try) {
+            if (!traits_type::find(s2, n2, *match_try)) {
+                return static_cast<size_type>(match_try - s1);
+            }
+
+            if (match_try == s1)
+                break;
+        }
+        return npos;
+    }
+
+    template<typename Char, typename Traits>
+    typename basic_String_Traits<Char, Traits>::size_type
+        basic_String_Traits<Char, Traits>::Map_Search_last_not_of(const value_type* s1,
+            const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
+        std::unordered_set<value_type, std::hash<value_type>,
+            rSearch_Traits, mallocator<value_type>> sl(s2, s2 + n2);
+        assert(off <= n1 - 1);
+        for (auto match_try = s1 + off;; --match_try) {
+            if (!sl.count(*match_try)) {
+                return static_cast<size_type>(match_try - s1);
+            }
+
+            if (match_try == s1)
+                break;
+        }
+        return npos;
+    }
+
+    template<typename Char, typename Traits>
+    typename basic_String_Traits<Char, Traits>::size_type
+        basic_String_Traits<Char, Traits>::Search_last_not_of(const value_type* s1,
+            const size_type n1, size_type off, const value_type* s2, const size_type n2) {
+        off = npos_min(off, n1 - 1);
+        if (n1 != 0 && n2 != 0) {
+            if (n2 < 32) {
+                return Normal_Search_last_not_of(s1, n1, off, s2, n2);
+            }
+            else {
+                const size_type first_to_search = off <= 32 ? 0 : off - 32;
+                auto first_to_search_match = Normal_Search_last_not_of(
+                    s1 + first_to_search, n1 - first_to_search, off - first_to_search, s2, n2);
+                if (first_to_search_match != npos) {
+                    return first_to_search + first_to_search_match;
+                }
+                if (first_to_search != 0) {
+                    return Normal_Search_last_not_of(s1, n1, first_to_search, s2, n2);
+                }
+            }
+        }
+        return npos;
+    }
+
     template<typename Char,typename Traits = std::char_traits<Char>,typename Core = String_core<Char>>
-    class basic_String {
+    class basic_String 
+        : public basic_String_Traits<Char,Traits> {
     private:
 
         using _Elem = Char;
@@ -285,10 +753,16 @@ namespace wjr {
         template<typename iter>
         using is_const_iterator = std::enable_if_t<is_char_ptr<iter>::value,int>;
 
+        using base = basic_String_Traits<Char,Traits>;
+
+        template<typename _Traits>
+        using traits_base = basic_String_Traits<Char,_Traits>;
+
     public:
 
         using traits_type = Traits;
         using allocator_type = mallocator<Char>;
+        using string_traits = base;
 
         using value_type = Char;
         using reference = value_type&;
@@ -305,21 +779,16 @@ namespace wjr {
         using reverse_iterator = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-        constexpr static size_type npos = static_cast<size_type>(-1);
+        constexpr static size_type npos = base::npos;
 
     private:
-        static size_type traits_length(const value_type* s) {
-            return traits_type::length(s);
+
+        size_type traits_length(const value_type* s) {
+            return base::traits_length(s);
         }
 
-        static size_type npos_min(size_type n, const size_type x) {
-            if constexpr (std::is_unsigned_v<size_type>) {
-                return n < x ? n : x;
-            }
-            else {
-                assert(n >=0 || n == npos);
-                return (n == npos || n > x) ? x : n;
-            }
+        size_type npos_min(size_type n, const size_type x) {
+            return base::npos_min(n,x);
         }
 
     public:
@@ -375,7 +844,6 @@ namespace wjr {
 
         }
    
-
         ~basic_String()noexcept {}
 
         basic_String& operator=(const basic_String& other) {
@@ -854,11 +1322,10 @@ namespace wjr {
             return compare(pos1,n1,s,traits_length(s));
         }
 
-        int compare(const size_type pos1, size_type n1,
+        int compare(const size_type pos1, const size_type n1,
             const value_type* s, const size_type n2)const {
             n1 = npos_min(n1,size() - pos1);
-            const int r = traits_type::compare(data() + pos1,s,std::min(n1,n2));
-            return r != 0 ? r : n1 > n2 ? 1 : n1 < n2 ? -1 : 0;
+            return base::compare(data() + pos1,npos_min(n1,size() - pos1),s,n2);
         }
 
         int compare(const size_type pos1, const size_type n1,
@@ -888,8 +1355,7 @@ namespace wjr {
 
         bool equal(const size_type pos1, size_type n1,
             const value_type* s, const size_type n2) const{
-            n1 = npos_min(n1, size() - pos1);
-            return (n1 == n2) && (traits_type::compare(data() + pos1,s,n1) == 0);
+            return base::equal(data() + pos1,npos_min(n1,size() - pos1,s,n2));
         }
 
         bool equal(const value_type* s, const size_type n)const {
@@ -900,178 +1366,100 @@ namespace wjr {
             return equal(s,traits_length(s));
         }
 
-    private:
-
-        struct Search_Traits {
-            bool operator()(const value_type& a, const value_type& b)const {
-                return traits_type::eq(a,b);
-            }
-            static const value_type* find(const value_type* s, size_type n,
-                const value_type& ch) {
-                return traits_type::find(s,n,ch);
-            }
-        };
-
-        struct rSearch_Traits {
-            bool operator()(const value_type& a, const value_type& b)const {
-                return traits_type::eq(a,b);
-            }
-        };
-
-        static size_type Search(const value_type* s, const size_type n,
-            const size_type off, const value_type ch);
-        static size_type Search(const value_type* s1, const size_type n1,
-            const size_type off, const value_type* s2, const size_type n2);
-
-        static size_type rSearch(const value_type* s,const size_type n,
-            const size_type off,const value_type ch);
-        static size_type rSearch(const value_type*s1,const size_type n1,
-            size_type off,const value_type*s2,const size_type n2);
-
-    public:
-
         size_type find(const value_type ch, const size_type off = 0)const {
-            return Search(data(),size(),off,ch);
+            return base::Search(data(),size(),off,ch);
         }
 
         size_type find(const value_type* s, const size_type off = 0)const {
-            return Search(data(),size(),off,s,traits_length(s));
+            return base::Search(data(),size(),off,s,traits_length(s));
         }
 
         size_type find(const value_type* s, const size_type off, const size_type count)const {
-            return Search(data(),size(),off,s,count);
+            return base::Search(data(),size(),off,s,count);
         }
 
         size_type find(const basic_String& other, const size_type off = 0)const {
-            return Search(data(),size(),off,other.data(),other.size());
+            return base::Search(data(),size(),off,other.data(),other.size());
         }
 
         size_type rfind(const value_type ch, const size_type off = npos)const {
-            return rSearch(data(),size(),off,ch);
+            return base::rSearch(data(),size(),off,ch);
         }
 
         size_type rfind(const value_type* s, const size_type off = npos)const {
-            return rSearch(data(),size(),off,s,traits_length(s));
+            return base::rSearch(data(),size(),off,s,traits_length(s));
         }
 
         size_type rfind(const value_type* s, const size_type off, const size_type count)const {
-            return rSearch(data(),size(),off,s,count);
+            return base::rSearch(data(),size(),off,s,count);
         }
 
         size_type rfind(const basic_String& other, const size_type off = npos)const {
-            return rSearch(data(),size(),off,other.data(),other.size());
+            return base::rSearch(data(),size(),off,other.data(),other.size());
         }
 
-    private:
-        static size_type Normal_Search_first_of(const value_type* s1,
-            const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-
-        static size_type Map_Search_first_of(const value_type* s1,
-            const size_type n1, const size_type off, const value_type* s2, const size_type n2) ;
-
-        static size_type Search_first_of(const value_type*s1,
-            const size_type n1,const size_type off,const value_type*s2,const size_type n2) ;
-
-    public:
-
         size_type find_first_of(const value_type ch, const size_type off = 0)const {
-            return find(ch,off);
+            return base::find(ch,off);
         }
 
         size_type find_first_of(const value_type* s, const size_type off, const size_type count)const {
-            return Search_first_of(data(),size(),off,s,count);
+            return base::Search_first_of(data(),size(),off,s,count);
         }
 
         size_type find_first_of(const value_type* s, const size_type off = 0)const {
-            return Search_first_of(data(),size(),off,s,traits_length(s));
+            return base::Search_first_of(data(),size(),off,s,traits_length(s));
         }
 
         size_type find_first_of(const basic_String& s, const size_type off = 0)const {
-            return Search_first_of(data(),size(),off,s.data(),s.size());
+            return base::Search_first_of(data(),size(),off,s.data(),s.size());
         }
 
-    private:
-        static size_type Search_last_of_ch(const value_type* s,
-            const size_type n, size_type off, const value_type ch) ;
-
-        static size_type Normal_Search_last_of(const value_type* s1,
-            const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-
-        static size_type Map_Search_last_of(const value_type* s1,
-            const size_type n1, const size_type off, const value_type* s2, const size_type n2) ;
-
-        static size_type Search_last_of(const value_type* s1,
-            const size_type n1, size_type off, const value_type* s2, const size_type n2);
-    public:
         size_type find_last_of(const value_type ch, const size_type off = npos)const {
-            return Search_last_of_ch(data(), size(), off, ch);
+            return base::Search_last_of_ch(data(), size(), off, ch);
         }
 
         size_type find_last_of(const value_type* s, const size_type off = npos)const {
-            return Search_lsat_of(data(), size(), off, s, traits_length(s));
+            return base::Search_lsat_of(data(), size(), off, s, traits_length(s));
         }
 
         size_type find_last_of(const value_type* s, const size_type off, const size_type count)const {
-            return Search_lsat_of(data(), size(), off, s, count);
+            return base::Search_lsat_of(data(), size(), off, s, count);
         }
 
         size_type find_last_of(const basic_String& other, const size_type off = npos)const {
-            return Search_lsat_of(data(), size(), off, other.data(), other.size());
+            return base::Search_lsat_of(data(), size(), off, other.data(), other.size());
         }
 
-    private:
-        static size_type Search_first_not_of_ch(const value_type*s,
-            const size_type n,const size_type off,const value_type ch);
-        static size_type Normal_Search_first_not_of(const value_type*s1,
-            const size_type n1,const size_type off,const value_type* s2,const size_type n2);
-
-        static size_type Map_Search_first_not_of(const value_type*s1,
-            const size_type n1,const size_type off,const value_type* s2,const size_type n2);
-        static size_type Search_first_not_of(const value_type*s1,
-            const size_type n1,const size_type off,const value_type* s2,const size_type n2);
-
-    public:
         size_type find_first_not_of(const value_type ch, const size_type off = 0)const {
-            return Search_first_not_of_ch(data(),size(),off,ch);
+            return base::Search_first_not_of_ch(data(),size(),off,ch);
         }
 
         size_type find_first_not_of(const value_type* s, const size_type off = 0)const {
-            return Search_first_not_of(data(),size(),off,s,traits_length(s));
+            return base::Search_first_not_of(data(),size(),off,s,traits_length(s));
         }
 
         size_type find_first_not_of(const value_type* s, const size_type off, const size_type count)const {
-            return Search_first_not_of(data(),size(),off,s,count);
+            return base::Search_first_not_of(data(),size(),off,s,count);
         }
 
         size_type find_first_not_of(const basic_String& other, const size_type off = 0)const {
-            return Search_first_not_of(data(),size(),off,other.data(),other.size());
+            return base::Search_first_not_of(data(),size(),off,other.data(),other.size());
         }
 
-    private:
-        static size_type Search_last_not_of_ch(const value_type* s,
-            const size_type n, const size_type off, const value_type ch);
-        static size_type Normal_Search_last_not_of(const value_type* s1,
-            const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-
-        static size_type Map_Search_last_not_of(const value_type* s1,
-            const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-        static size_type Search_last_not_of(const value_type* s1,
-            const size_type n1, size_type off, const value_type* s2, const size_type n2);
-    public:
         size_type find_last_not_of(const value_type ch, const size_type off = npos)const {
-            return Search_last_not_of_ch(data(),size(),off,ch);
+            return base::Search_last_not_of_ch(data(),size(),off,ch);
         }
 
         size_type find_last_not_of(const value_type* s, const size_type off = npos)const {
-            return Search_last_not_of(data(),size(),off,s,traits_length(s));
+            return base::Search_last_not_of(data(),size(),off,s,traits_length(s));
         }
 
         size_type find_last_not_of(const value_type* s, const size_type off, const size_type count)const {
-            return Search_last_not_of(data(),size(),off,s,count);
+            return base::Search_last_not_of(data(),size(),off,s,count);
         }
 
         size_type find_last_not_of(const basic_String& other, const size_type off = npos)const {
-            return Search_last_not_of(data(),size(),off,other.data(),other.size());
+            return base::Search_last_not_of(data(),size(),off,other.data(),other.size());
         }
 
         bool starts_with(const value_type ch)const {
@@ -1728,375 +2116,6 @@ namespace wjr {
     skmp_searcher(const _Container&)->skmp_searcher<container_iterator_type<const _Container&>>;
 
     //
-
-    template<typename Char,typename Traits,typename Core>
-    typename basic_String<Char,Traits,Core>::size_type
-        basic_String<Char,Traits,Core>::Search(const value_type* s, const size_type n,
-        const size_type off, const value_type ch) {
-        if (off < n) {
-            const auto pos = traits_type::find(s + off, n - off, ch);
-            if (pos) {
-                return static_cast<size_type>(pos - s);
-            }
-        }
-        return npos;
-    }
-
-    template<typename Char, typename Traits,typename Core>
-    typename basic_String<Char, Traits,Core>::size_type
-        basic_String<Char, Traits,Core>::Search(const value_type* s1, const size_type n1,
-        const size_type off, const value_type* s2, const size_type n2) {
-        if (n2 > n1 || off > n1 - n2) {
-            return npos;
-        }
-
-        if (!n2) {
-            return off;
-        }
-
-        if (n2 > 4) {
-            auto pos = skmp_searcher(s2, s2 + n2, std::hash<value_type>(),
-                Search_Traits())(s1 + off, s1 + n1);
-            auto p = pos.first;
-            if (p == s1 + n1) {
-                return npos;
-            }
-            return p - s1;
-        }
-
-        const auto match_end = s1 + (n1 - n2) + 1;
-        for (auto match_try = s1 + off;; ++match_try) {
-            match_try = traits_type::find(match_try, static_cast<size_type>(match_end - match_try), *s2);
-            if (!match_try) {
-                return npos;
-            }
-            if (traits_type::compare(match_try, s2, n2) == 0) {
-                return static_cast<size_type>(match_try - s1);
-            }
-        }
-    }
-
-    template<typename Char,typename Traits,typename Core>
-    typename basic_String<Char,Traits,Core>::size_type
-        basic_String<Char,Traits,Core>::rSearch(const value_type* s,
-        const size_type n, const size_type off, const value_type ch) {
-        for (auto match_try = s + npos_min(off, n - 1);; --match_try) {
-            if (traits_type::eq(*match_try, ch)) {
-                return static_cast<size_type>(match_try - s);
-            }
-            if (match_try == s) {
-                break;
-            }
-        }
-        return npos;
-    }
-
-    template<typename Char,typename Traits,typename Core>
-    typename basic_String<Char,Traits,Core>::size_type
-        basic_String<Char,Traits,Core>::rSearch(const value_type* s1,
-        const size_type n1, size_type off, const value_type* s2, const size_type n2) {
-        off = npos_min(off,n1 - n2);
-        if (n2 == 0) {
-            return off;
-        }
-
-        if (n2 <= n1) {
-            if (n2 > 4) {
-                auto pos = skmp_searcher(std::reverse_iterator(s2+n2),
-                    std::reverse_iterator(s2),std::hash<value_type>(), rSearch_Traits())
-                    (std::reverse_iterator(s1 + off + n2), std::reverse_iterator(s1)).second.base();
-                if (pos == s1) {
-                    return npos;
-                }
-                return pos - s1;
-            }
-
-            for (auto match_try = s1 + off;; --match_try) {
-                if (traits_type::eq(*match_try, *s2) && traits_type::compare(match_try, s2, n2) == 0) {
-                    return static_cast<size_type>(match_try - s1);
-                }
-                if (match_try == s1) {
-                    break;
-                }
-            }
-        }
-        return npos;
-    }
-
-    template<typename Char,typename Traits,typename Core>
-    typename basic_String<Char,Traits,Core>::size_type
-        basic_String<Char,Traits,Core>::Normal_Search_first_of(const value_type* s1,
-        const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        const auto end = s1 + n1;
-        for (auto match_try = s1 + off; match_try < end; ++match_try) {
-            if (traits_type::find(s2, n2, *match_try)) {
-                return static_cast<size_type>(match_try - s1);
-            }
-        }
-        return npos;
-    }
-
-    template<typename Char,typename Traits,typename Core>
-    typename basic_String<Char,Traits,Core>::size_type
-        basic_String<Char,Traits,Core>::Map_Search_first_of(const value_type* s1,
-        const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        std::unordered_set<value_type, std::hash<value_type>, Search_Traits, mallocator<value_type>>
-            sl(s2, s2 + n2);
-        const auto end = s1 + n1;
-        for (auto match_try = s1 + off; match_try < end; ++match_try) {
-            if (sl.count(*match_try)) {
-                return static_cast<size_type>(match_try - s1);
-            }
-        }
-        return npos;
-    }
-
-    template<typename Char,typename Traits,typename Core>
-    typename basic_String<Char,Traits,Core>::size_type
-        basic_String<Char,Traits,Core>::Search_first_of(const value_type* s1,
-        const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        if (n2 != 0 && off < n1) {
-            if (n2 < 32) { // only need to use normal search
-                return Normal_Search_first_of(s1, n1, off, s2, n2);
-            }
-            else {
-                // may use Map_Search_first_of
-                // firstly ,use normal search to match no more than length of 32
-
-                const size_type first_to_search = (n1 - off <= 32 ? n1 : off + 32);
-                auto first_to_search_match = Normal_Search_first_of(s1, first_to_search, off, s2, n2);
-                if (first_to_search_match != npos) {
-                    return first_to_search_match;
-                }
-
-                if (first_to_search != n1) {
-                    return Map_Search_first_of(s1, n1, first_to_search, s2, n2);
-                }
-
-            }
-        }
-        return npos;
-    }
-
-    template<typename Char,typename Traits,typename Core>
-    typename basic_String<Char,Traits,Core>::size_type
-        basic_String<Char,Traits,Core>::Search_last_of_ch(const value_type* s,
-        const size_type n, size_type off, const value_type ch) {
-        if (n != 0) {
-            for (auto match_try = s + npos_min(off, n - 1);; --match_try) {
-                if (traits_type::eq(*match_try, ch)) {
-                    return static_cast<size_type>(match_try - s);
-                }
-                if (match_try == s) {
-                    break;
-                }
-            }
-        }
-        return npos;
-    }
-
-    template<typename Char, typename Traits,typename Core>
-    typename basic_String<Char,Traits,Core>::size_type
-        basic_String<Char,Traits,Core>::Normal_Search_last_of(const value_type* s1,
-        const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        assert(off <= n1 - 1);
-        for (auto match_try = s1 + off;; --match_try) {
-            if (traits_type::find(s2, n2, *match_try)) {
-                return static_cast<size_type>(match_try - s1);
-            }
-
-            if (match_try == s1)
-                break;
-        }
-        return npos;
-    }
-
-    template<typename Char, typename Traits,typename Core>
-    typename basic_String<Char,Traits,Core>::size_type
-        basic_String<Char,Traits,Core>::Map_Search_last_of(const value_type* s1,
-        const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        std::unordered_set<value_type, std::hash<value_type>,
-            rSearch_Traits, mallocator<value_type>> sl(s2,s2 + n2);
-        assert(off <= n1 - 1);
-        for (auto match_try = s1 + off;; --match_try) {
-            if (sl.count(*match_try)) {
-                return static_cast<size_type>(match_try - s1);
-            }
-
-            if (match_try == s1)
-                break;
-        }
-        return npos;
-    }
-
-    template<typename Char, typename Traits,typename Core>
-    typename basic_String<Char,Traits,Core>::size_type
-        basic_String<Char,Traits,Core>::Search_last_of(const value_type* s1,
-        const size_type n1, size_type off, const value_type* s2, const size_type n2) {
-        off = npos_min(off, n1 - 1);
-        if (n1 != 0 && n2 != 0) {
-            if (n2 < 32) {
-                return Normal_Search_last_of(s1, n1, off, s2, n2);
-            }
-            else {
-                const size_type first_to_search = off <= 32 ? 0 : off - 32;
-                auto first_to_search_match = Normal_Search_last_of(
-                    s1 + first_to_search, n1 - first_to_search, off - first_to_search, s2, n2);
-                if (first_to_search_match != npos) {
-                    return first_to_search + first_to_search_match;
-                }
-                if (first_to_search != 0) {
-                    return Normal_Search_last_of(s1, n1, first_to_search, s2, n2);
-                }
-            }
-        }
-        return npos;
-    }
-
-    template<typename Char,typename Traits,typename Core>
-    typename basic_String<Char,Traits,Core>::size_type
-        basic_String<Char,Traits,Core>::Search_first_not_of_ch(const value_type* s,
-            const size_type n, const size_type off, const value_type ch) {
-        if (off < n) {
-            auto match_end = s + n;
-            for (auto match_try = s + off; match_try != match_end; ++match_try) {
-                if (!traits_type::eq(*match_try, ch)) {
-                    return static_cast<size_type>(match_try - s);
-                }
-            }
-        }
-        return npos;
-    }
-
-    template<typename Char,typename Traits,typename Core>
-    typename basic_String<Char,Traits,Core>::size_type
-        basic_String<Char,Traits,Core>::Normal_Search_first_not_of(const value_type* s1,
-            const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        const auto end = s1 + n1;
-        for (auto match_try = s1 + off; match_try < end; ++match_try) {
-            if (!traits_type::find(s2, n2, *match_try)) {
-                return static_cast<size_type>(match_try - s1);
-            }
-        }
-        return npos;
-    }
-
-    template<typename Char,typename Traits,typename Core>
-    typename basic_String<Char,Traits,Core>::size_type
-        basic_String<Char,Traits,Core>::Map_Search_first_not_of(const value_type* s1,
-            const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        std::unordered_set<value_type, std::hash<value_type>, Search_Traits, mallocator<value_type>>
-            sl(s2, s2 + n2);
-        const auto end = s1 + n1;
-        for (auto match_try = s1 + off; match_try < end; ++match_try) {
-            if (!sl.count(*match_try)) {
-                return static_cast<size_type>(match_try - s1);
-            }
-        }
-        return npos;
-    }
-
-    template<typename Char,typename Traits,typename Core>
-    typename basic_String<Char,Traits,Core>::size_type
-        basic_String<Char,Traits,Core>::Search_first_not_of(const value_type* s1,
-            const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        if (n2 != 0 && off < n1) {
-            if (n2 < 32) { // only need to use normal search
-                return Normal_Search_first_not_of(s1, n1, off, s2, n2);
-            }
-            else {
-                // may use Map_Search_first_of
-                // firstly ,use normal search to match no more than length of 32
-
-                const size_type first_to_search = (n1 - off <= 32 ? n1 : off + 32);
-                auto first_to_search_match = Normal_Search_first_not_of(s1, first_to_search, off, s2, n2);
-                if (first_to_search_match != npos) {
-                    return first_to_search_match;
-                }
-
-                if (first_to_search != n1) {
-                    return Map_Search_first_not_of(s1, n1, first_to_search, s2, n2);
-                }
-
-            }
-        }
-        return npos;
-    }
-
-    template<typename Char,typename Traits,typename Core>
-    typename basic_String<Char,Traits,Core>::size_type
-        basic_String<Char,Traits,Core>::Search_last_not_of_ch(const value_type* s,
-            const size_type n, const size_type off, const value_type ch) {
-        if (n != 0) {
-            for (auto match_try = s + npos_min(off, n - 1);; --match_try) {
-                if (!traits_type::eq(*match_try, ch)) {
-                    return static_cast<size_type>(match_try - s);
-                }
-                if (match_try == s) {
-                    break;
-                }
-            }
-        }
-        return npos;
-    }
-
-    template<typename Char,typename Traits,typename Core>
-    typename basic_String<Char,Traits,Core>::size_type
-        basic_String<Char,Traits,Core>::Normal_Search_last_not_of(const value_type* s1,
-            const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        assert(off <= n1 - 1);
-        for (auto match_try = s1 + off;; --match_try) {
-            if (!traits_type::find(s2, n2, *match_try)) {
-                return static_cast<size_type>(match_try - s1);
-            }
-
-            if (match_try == s1)
-                break;
-        }
-        return npos;
-    }
-
-    template<typename Char,typename Traits,typename Core>
-    typename basic_String<Char,Traits,Core>::size_type
-        basic_String<Char,Traits,Core>::Map_Search_last_not_of(const value_type* s1,
-            const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        std::unordered_set<value_type, std::hash<value_type>,
-            rSearch_Traits, mallocator<value_type>> sl(s2,s2 + n2);
-        assert(off <= n1 - 1);
-        for (auto match_try = s1 + off;; --match_try) {
-            if (!sl.count(*match_try)) {
-                return static_cast<size_type>(match_try - s1);
-            }
-
-            if (match_try == s1)
-                break;
-        }
-        return npos;
-    }
-
-    template<typename Char,typename Traits,typename Core>
-    typename basic_String<Char,Traits,Core>::size_type
-        basic_String<Char,Traits,Core>::Search_last_not_of(const value_type* s1,
-            const size_type n1, size_type off, const value_type* s2, const size_type n2) {
-        off = npos_min(off, n1 - 1);
-        if (n1 != 0 && n2 != 0) {
-            if (n2 < 32) {
-                return Normal_Search_last_not_of(s1, n1, off, s2, n2);
-            }
-            else {
-                const size_type first_to_search = off <= 32 ? 0 : off - 32;
-                auto first_to_search_match = Normal_Search_last_not_of(
-                    s1 + first_to_search, n1 - first_to_search, off - first_to_search, s2, n2);
-                if (first_to_search_match != npos) {
-                    return first_to_search + first_to_search_match;
-                }
-                if (first_to_search != 0) {
-                    return Normal_Search_last_not_of(s1, n1, first_to_search, s2, n2);
-                }
-            }
-        }
-        return npos;
-    }
 
     template<typename Char,typename Traits,typename Core>
     basic_String<Char,Traits,Core>&
