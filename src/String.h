@@ -477,6 +477,8 @@ namespace wjr {
             }
 
         }
+
+        return { Last,Last };
     }
 
     template<typename _Container, typename _Hash, typename _Pred,
@@ -554,6 +556,8 @@ namespace wjr {
 
         static size_type search(const value_type* s, const size_type n,
             const size_type off, const value_type ch);
+        // only need to search once ,then use this
+        // for this won't initial at first 
         static size_type search(const value_type* s1, const size_type n1,
             const size_type off, const value_type* s2, const size_type n2);
 
@@ -730,7 +734,7 @@ namespace wjr {
     typename basic_String_Traits<Char,Traits>::size_type
         basic_String_Traits<Char, Traits>::search_first_of_ch(const value_type* s,
             const size_type n, const size_type off, const value_type ch) {
-        return Search(s,n,off,ch);
+        return search(s,n,off,ch);
     }
 
     template<typename Char, typename Traits>
@@ -1306,8 +1310,16 @@ namespace wjr {
     * If the core cannot be modified, such as string_view
     * This class can only have const functions and O(1) swap 
     */
-    template<typename Char,typename Traits,typename Core,typename is_const_core = std::true_type>
-    class basic_String_base 
+
+    template<typename Core>
+    using _Is_const_core = std::conditional_t<
+        is_const_string_core<Core>::value, std::true_type, std::false_type>;
+
+    template<typename Char,typename Traits,typename Core,typename is_const_core = _Is_const_core<Core>>
+    class basic_String_base ;
+
+    template<typename Char,typename Traits,typename Core>
+    class basic_String_base<Char,Traits,Core,std::true_type>
         : public basic_String_Traits<Char,Traits> {
     private:
 
@@ -1626,7 +1638,7 @@ namespace wjr {
 
         template<typename T = Traits>
         size_type find_first_of(const value_type ch, const size_type off = 0)const {
-            return traits_base<T>::search_first_of(ch, off);
+            return traits_base<T>::search_first_of_ch(data(),size(), off, ch);
         }
 
         template<typename T = Traits>
@@ -1651,17 +1663,17 @@ namespace wjr {
 
         template<typename T = Traits>
         size_type find_last_of(const value_type* s, const size_type off = npos)const {
-            return traits_base<T>::search_lsat_of(data(), size(), off, s, traits_length(s));
+            return traits_base<T>::search_last_of(data(), size(), off, s, traits_length(s));
         }
 
         template<typename T = Traits>
         size_type find_last_of(const value_type* s, const size_type off, const size_type count)const {
-            return traits_base<T>::search_lsat_of(data(), size(), off, s, count);
+            return traits_base<T>::search_last_of(data(), size(), off, s, count);
         }
 
         template<typename T = Traits>
         size_type find_last_of(const basic_String_base& other, const size_type off = npos)const {
-            return traits_base<T>::search_lsat_of(data(), size(), off, other.data(), other.size());
+            return traits_base<T>::search_last_of(data(), size(), off, other.data(), other.size());
         }
 
         template<typename T = Traits>
@@ -2163,7 +2175,9 @@ namespace wjr {
         }
 
         basic_String_base& trim() {
-            return ltrim(rtrim());
+            ltrim();
+            rtrim();
+            return *this;
         }
 
         basic_String_base trimmed()const& {
@@ -2350,21 +2364,181 @@ namespace wjr {
         return *this;
     }
 
-    template<typename Core>
-    using _Is_const_core = std::conditional_t<
-        is_const_string_core<Core>::value,std::true_type,std::false_type>;
-
     template<typename Char,typename Traits = std::char_traits<Char>,typename Core = String_core<Char>>
     class basic_String 
-        : public basic_String_base<Char,Traits,Core,_Is_const_core<Core>> {
+        : public basic_String_base<Char,Traits,Core> {
     private:
-        using base = basic_String_base<Char,Traits,Core,_Is_const_core<Core>>;
+        using base = basic_String_base<Char,Traits,Core>;
     public:
         using base::base;
+      
+        template<typename T = Traits,typename string_list = std::vector<basic_String>> 
+        string_list split(const typename base::value_type ch,bool keep_empty_parts = true);
+
+        template<typename T = Traits,typename string_list = std::vector<basic_String>>
+        string_list split(const basic_String& other,bool keep_empty_parts = true);
+
+        template<typename T = Traits,typename string_list = std::vector<basic_String>>
+        string_list split(const typename base::value_type* s,bool keep_empty_parts = true);
+
+        template<typename T = Traits,typename string_list = std::vector<basic_String>>
+        string_list split(const typename base::value_type* s,
+            const typename base::size_type n,bool keep_empty_parts = true);
 
     public:
         using base::core;
     };
+
+    template<typename Char,typename Traits,typename Core>
+    template<typename T,typename string_list>
+    string_list basic_String<Char, Traits, Core>::split(
+        const typename base::value_type ch, bool keep_empty_parts
+    ) {
+        using size_type = typename base::size_type;
+        string_list ans ; 
+        size_type off = 0;
+        const auto _data = base::data();
+        const auto _size = base::size();
+        if (keep_empty_parts) {
+            for (;;) {
+                const size_type pos = base::find_first_of(ch,off);
+                if (pos == base::npos) {
+                    ans.emplace_back(_data + off, _data + _size);
+                    break;
+                }
+                ans.emplace_back(_data + off, _data + pos);
+                off = pos + 1;
+            }
+        }
+        else {
+            for (;;) {
+                const size_type pos = base::find_first_of(ch, off);
+                if (pos == base::npos) {
+                    if (off != _size) {
+                        ans.emplace_back(_data + off,_data + _size);
+                    }
+                    break;
+                }
+                if (off != pos) {
+                    ans.emplace_back(_data + off,_data + pos);
+                }
+                off = pos + 1;
+            }
+        }
+        return ans;
+    }
+
+    template<typename Char,typename Traits,typename Core>
+    template<typename T, typename string_list>
+    string_list basic_String<Char,Traits,Core>::split(
+        const basic_String<Char,Traits,Core>& other, bool keep_empty_parts) {
+        return split<T,string_list>(other.data(),other.size(),keep_empty_parts);
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    template<typename T, typename string_list>
+    string_list basic_String<Char, Traits, Core>::split(
+        const typename base::value_type* s,bool keep_empty_parts) {
+        return split<T,string_list>(s,traits_length(s),keep_empty_parts);
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    template<typename T, typename string_list>
+    string_list basic_String<Char, Traits, Core>::split(
+        const typename base::value_type* s, const typename base::size_type n,
+        bool keep_empty_parts) {
+        using size_type = typename base::size_type;
+
+        const auto _data = base::data();
+        const size_type _size = base::size();
+        if (_size < n) {
+            if (_size != 0 || keep_empty_parts) {
+                return {basic_String(_data,_data + _size)};
+            }
+            else {
+                return {};
+            }
+        }
+
+        if (n == 1) {
+            return split<T, string_list>(*s, keep_empty_parts);
+        }
+
+        auto get_hash = [](auto s,size_type n) {
+            size_t xhash = 0;
+            size_t base = 1;
+            const auto e = s + n;
+            while (s != e) {
+                xhash = xhash * _FNV_prime + (*s);
+                base *= _FNV_prime;
+                ++s;
+            }
+            return std::pair{ xhash,base };
+        };
+
+        string_list ans;
+
+        auto [xhash,xbase] = get_hash(s,n);
+        size_t rhash = get_hash(_data,n).first;
+        size_t lhash = 0;
+
+        auto update_hash = [&lhash,&rhash,&n](auto s) {
+            rhash = rhash * _FNV_prime + *s;
+            lhash = lhash * _FNV_prime + *(s - n);
+        };
+
+        auto las = _data;
+        auto tbegin = _data + n;
+        const auto tend = _data + _size;
+        if (keep_empty_parts) {
+            for (;tbegin != tend;) {
+                auto real_begin = tbegin - n;
+                if (((rhash - xbase * lhash) == xhash) 
+                    && (base::traits_type::compare(real_begin,s,n) == 0)) {
+                    ans.emplace_back(las,real_begin);
+                    las = tbegin;
+                    if (static_cast<size_type>(tend - tbegin) < n) {
+                        break;
+                    }
+                    tbegin += n;
+                    lhash = 0;
+                    rhash = get_hash(real_begin + n,n).first;
+                }
+                else {
+                    update_hash(tbegin);
+                    ++tbegin;
+                }
+            }
+            ans.emplace_back(las,tend);
+        }
+        else {
+            for (; tbegin != tend;) {
+                auto real_begin = tbegin - n;
+                if (((rhash - xbase * lhash) == xhash)
+                    && (base::traits_type::compare(real_begin, s, n) == 0)) {
+                    if (las != real_begin) {
+                        ans.emplace_back(las, real_begin);
+                    }
+                    las = tbegin;
+                    if (static_cast<size_type>(tend - tbegin) < n) {
+                        break;
+                    }
+                    tbegin += n;
+                    lhash = 0;
+                    rhash = get_hash(real_begin + n, n).first;
+                }
+                else {
+                    update_hash(tbegin);
+                    ++tbegin;
+                }
+            }
+            if (las != tend) {
+                ans.emplace_back(las, tend);
+            }
+        }
+
+        return ans;
+    }
 
     template<typename Char,typename Traits,typename Core,
         std::enable_if_t<!is_const_string_core_v<Core>,int> = 0>

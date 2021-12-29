@@ -159,7 +159,7 @@ namespace wjr {
 				return malloc_alloc::allocate(n);
 			}
 		#ifdef ALLOCATOR_DEBUG
-			S.count += ROUND_UP(n);
+			S.count += n;
 		#endif
 			if constexpr (threads) {
 				obj* volatile* my_free_list = free_list + FREELIST_INDEX(n);
