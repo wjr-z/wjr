@@ -16,7 +16,7 @@ namespace wjr {
     //Use mallocator as default allocator
     typedef bool json_boolean;
     typedef double json_number;
-    typedef std::basic_string<char,std::char_traits<char>,std::allocator<char>> json_string;
+    typedef String json_string;
     typedef std::map<json_string, json, std::less<json_string>,
         mallocator<std::pair<const json_string, json>>> json_object;
     typedef std::vector<json, mallocator<json>> json_array;

@@ -532,50 +532,72 @@ namespace wjr {
             }
         };
 
-        static size_type Search(const value_type* s, const size_type n,
+        struct bit_map {
+            constexpr static size_t ubit = sizeof(uint32_t);
+            constexpr static size_t size = ubit << 3;
+
+            bit_map(const value_type* s, const value_type* e) {
+                while (s != e) {
+                    auto value = static_cast<std::make_unsigned_t<value_type>>(*s);
+                    c[value / size] |= 1 << (value & (size - 1));
+                    ++s;
+                }
+            }
+
+            bool count(const value_type ch) {
+                auto value = static_cast<std::make_unsigned_t<value_type>>(ch);
+                return (c[value / size] >> (value & (size - 1))) & 1;
+            }
+
+            uint32_t c[256 / size] = {};
+        };
+
+        static size_type search(const value_type* s, const size_type n,
             const size_type off, const value_type ch);
-        static size_type Search(const value_type* s1, const size_type n1,
+        static size_type search(const value_type* s1, const size_type n1,
             const size_type off, const value_type* s2, const size_type n2);
 
-        static size_type rSearch(const value_type* s, const size_type n,
+        static size_type rsearch(const value_type* s, const size_type n,
             const size_type off, const value_type ch);
-        static size_type rSearch(const value_type* s1, const size_type n1,
+        static size_type rsearch(const value_type* s1, const size_type n1,
             size_type off, const value_type* s2, const size_type n2);
 
-        static size_type Normal_Search_first_of(const value_type* s1,
+        static size_type search_first_of_ch(const value_type* s,
+            const size_type n,size_type off,const value_type ch);
+        static size_type normal_search_first_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-        static size_type Map_Search_first_of(const value_type* s1,
+        static size_type map_search_first_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-        static size_type Search_first_of(const value_type* s1,
+        static size_type search_first_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
 
-        static size_type Search_last_of_ch(const value_type* s,
+        static size_type search_last_of_ch(const value_type* s,
             const size_type n, size_type off, const value_type ch);
-        static size_type Normal_Search_last_of(const value_type* s1,
+        static size_type normal_search_last_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-        static size_type Map_Search_last_of(const value_type* s1,
+        static size_type map_search_last_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-        static size_type Search_last_of(const value_type* s1,
+        static size_type search_last_of(const value_type* s1,
             const size_type n1, size_type off, const value_type* s2, const size_type n2);
 
-        static size_type Search_first_not_of_ch(const value_type* s,
+        static size_type search_first_not_of_ch(const value_type* s,
             const size_type n, const size_type off, const value_type ch);
-        static size_type Normal_Search_first_not_of(const value_type* s1,
+        static size_type normal_search_first_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
 
-        static size_type Map_Search_first_not_of(const value_type* s1,
+        static size_type map_search_first_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-        static size_type Search_first_not_of(const value_type* s1,
+        static size_type search_first_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
 
-        static size_type Search_last_not_of_ch(const value_type* s,
+        static size_type search_last_not_of_ch(const value_type* s,
             const size_type n, const size_type off, const value_type ch);
-        static size_type Normal_Search_last_not_of(const value_type* s1,
+        static size_type normal_search_last_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
 
-        static size_type Map_Search_last_not_of(const value_type* s1,
+        static size_type map_search_last_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-        static size_type Search_last_not_of(const value_type* s1,
+        static size_type search_last_not_of(const value_type* s1,
             const size_type n1, size_type off, const value_type* s2, const size_type n2);
 
         static int compare(const value_type* s1, const size_type n1,
@@ -588,12 +610,30 @@ namespace wjr {
             const value_type* s2, const size_type n2) {
             return (n1 == n2) && (traits_type::compare(s1, s2, n1) == 0);
         }
+        
+        static bool starts_with(const value_type*s,const size_type n,const value_type ch) {
+            return (n != 0) && (traits_type::eq(*s,ch));
+        }
+
+        static bool starts_with(const value_type* s1, const size_type n1,
+            const value_type* s2, const size_type n2) {
+            return (n1 >= n2) && (traits_type::compare(s1,s2,n2) == 0);
+        }
+
+        static bool ends_with(const value_type* s, const size_type n, const value_type ch) {
+            return (n != 0) && (traits_type::eq(*s,ch));
+        }
+
+        static bool ends_with(const value_type* s1, const size_type n1,
+            const value_type* s2, const size_type n2) {
+            return (n1 >= n2) && (traits_type::compare(s1 + n1 - n2,s2,n2) == 0);
+        }
 
     };
 
     template<typename Char, typename Traits>
     typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::Search(const value_type* s, const size_type n,
+        basic_String_Traits<Char, Traits>::search(const value_type* s, const size_type n,
             const size_type off, const value_type ch) {
         if (off < n) {
             const auto pos = traits_type::find(s + off, n - off, ch);
@@ -606,8 +646,9 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::Search(const value_type* s1, const size_type n1,
+        basic_String_Traits<Char, Traits>::search(const value_type* s1, const size_type n1,
             const size_type off, const value_type* s2, const size_type n2) {
+
         if (n2 > n1 || off > n1 - n2) {
             return npos;
         }
@@ -640,7 +681,7 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::rSearch(const value_type* s,
+        basic_String_Traits<Char, Traits>::rsearch(const value_type* s,
             const size_type n, const size_type off, const value_type ch) {
         for (auto match_try = s + npos_min(off, n - 1);; --match_try) {
             if (traits_type::eq(*match_try, ch)) {
@@ -655,7 +696,7 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::rSearch(const value_type* s1,
+        basic_String_Traits<Char, Traits>::rsearch(const value_type* s1,
             const size_type n1, size_type off, const value_type* s2, const size_type n2) {
         off = npos_min(off, n1 - n2);
         if (n2 == 0) {
@@ -685,9 +726,16 @@ namespace wjr {
         return npos;
     }
 
+    template<typename Char,typename Traits>
+    typename basic_String_Traits<Char,Traits>::size_type
+        basic_String_Traits<Char, Traits>::search_first_of_ch(const value_type* s,
+            const size_type n, const size_type off, const value_type ch) {
+        return Search(s,n,off,ch);
+    }
+
     template<typename Char, typename Traits>
     typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::Normal_Search_first_of(const value_type* s1,
+        basic_String_Traits<Char, Traits>::normal_search_first_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
         const auto end = s1 + n1;
         for (auto match_try = s1 + off; match_try < end; ++match_try) {
@@ -700,10 +748,16 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::Map_Search_first_of(const value_type* s1,
+        basic_String_Traits<Char, Traits>::map_search_first_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        std::unordered_set<value_type, std::hash<value_type>, Search_Traits, mallocator<value_type>>
-            sl(s2, s2 + n2);
+
+        using Map = std::conditional_t<
+            std::is_integral_v<value_type> && sizeof(value_type) <= 1
+            && std::is_same_v<Traits,std::char_traits<value_type>>,
+            bit_map, 
+            std::unordered_set<value_type, std::hash<value_type>, Search_Traits, mallocator<value_type>>>;
+
+        Map sl(s2, s2 + n2);
         const auto end = s1 + n1;
         for (auto match_try = s1 + off; match_try < end; ++match_try) {
             if (sl.count(*match_try)) {
@@ -715,24 +769,24 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::Search_first_of(const value_type* s1,
+        basic_String_Traits<Char, Traits>::search_first_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
         if (n2 != 0 && off < n1) {
             if (n2 < 32) { // only need to use normal search
-                return Normal_Search_first_of(s1, n1, off, s2, n2);
+                return normal_search_first_of(s1, n1, off, s2, n2);
             }
             else {
                 // may use Map_Search_first_of
                 // firstly ,use normal search to match no more than length of 32
 
                 const size_type first_to_search = (n1 - off <= 32 ? n1 : off + 32);
-                auto first_to_search_match = Normal_Search_first_of(s1, first_to_search, off, s2, n2);
+                auto first_to_search_match = normal_search_first_of(s1, first_to_search, off, s2, n2);
                 if (first_to_search_match != npos) {
                     return first_to_search_match;
                 }
 
                 if (first_to_search != n1) {
-                    return Map_Search_first_of(s1, n1, first_to_search, s2, n2);
+                    return map_search_first_of(s1, n1, first_to_search, s2, n2);
                 }
 
             }
@@ -742,7 +796,7 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::Search_last_of_ch(const value_type* s,
+        basic_String_Traits<Char, Traits>::search_last_of_ch(const value_type* s,
             const size_type n, size_type off, const value_type ch) {
         if (n != 0) {
             for (auto match_try = s + npos_min(off, n - 1);; --match_try) {
@@ -759,7 +813,7 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::Normal_Search_last_of(const value_type* s1,
+        basic_String_Traits<Char, Traits>::normal_search_last_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
         assert(off <= n1 - 1);
         for (auto match_try = s1 + off;; --match_try) {
@@ -775,10 +829,16 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::Map_Search_last_of(const value_type* s1,
+        basic_String_Traits<Char, Traits>::map_search_last_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        std::unordered_set<value_type, std::hash<value_type>,
-            rSearch_Traits, mallocator<value_type>> sl(s2, s2 + n2);
+
+        using Map = std::conditional_t<
+            std::is_integral_v<value_type> && sizeof(value_type) <= 1
+            && std::is_same_v<Traits, std::char_traits<value_type>>,
+            bit_map,
+            std::unordered_set<value_type, std::hash<value_type>, rSearch_Traits, mallocator<value_type>>>;
+
+        Map sl(s2, s2 + n2);
         assert(off <= n1 - 1);
         for (auto match_try = s1 + off;; --match_try) {
             if (sl.count(*match_try)) {
@@ -793,22 +853,22 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::Search_last_of(const value_type* s1,
+        basic_String_Traits<Char, Traits>::search_last_of(const value_type* s1,
             const size_type n1, size_type off, const value_type* s2, const size_type n2) {
         off = npos_min(off, n1 - 1);
         if (n1 != 0 && n2 != 0) {
             if (n2 < 32) {
-                return Normal_Search_last_of(s1, n1, off, s2, n2);
+                return normal_search_last_of(s1, n1, off, s2, n2);
             }
             else {
                 const size_type first_to_search = off <= 32 ? 0 : off - 32;
-                auto first_to_search_match = Normal_Search_last_of(
+                auto first_to_search_match = normal_search_last_of(
                     s1 + first_to_search, n1 - first_to_search, off - first_to_search, s2, n2);
                 if (first_to_search_match != npos) {
                     return first_to_search + first_to_search_match;
                 }
                 if (first_to_search != 0) {
-                    return Normal_Search_last_of(s1, n1, first_to_search, s2, n2);
+                    return normal_search_last_of(s1, n1, first_to_search, s2, n2);
                 }
             }
         }
@@ -817,7 +877,7 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::Search_first_not_of_ch(const value_type* s,
+        basic_String_Traits<Char, Traits>::search_first_not_of_ch(const value_type* s,
             const size_type n, const size_type off, const value_type ch) {
         if (off < n) {
             auto match_end = s + n;
@@ -832,7 +892,7 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::Normal_Search_first_not_of(const value_type* s1,
+        basic_String_Traits<Char, Traits>::normal_search_first_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
         const auto end = s1 + n1;
         for (auto match_try = s1 + off; match_try < end; ++match_try) {
@@ -845,10 +905,16 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::Map_Search_first_not_of(const value_type* s1,
+        basic_String_Traits<Char, Traits>::map_search_first_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        std::unordered_set<value_type, std::hash<value_type>, Search_Traits, mallocator<value_type>>
-            sl(s2, s2 + n2);
+
+        using Map = std::conditional_t<
+            std::is_integral_v<value_type> && sizeof(value_type) <= 1
+            && std::is_same_v<Traits, std::char_traits<value_type>>,
+            bit_map,
+            std::unordered_set<value_type, std::hash<value_type>, Search_Traits, mallocator<value_type>>>;
+
+        Map sl(s2, s2 + n2);
         const auto end = s1 + n1;
         for (auto match_try = s1 + off; match_try < end; ++match_try) {
             if (!sl.count(*match_try)) {
@@ -860,24 +926,24 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::Search_first_not_of(const value_type* s1,
+        basic_String_Traits<Char, Traits>::search_first_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
         if (n2 != 0 && off < n1) {
             if (n2 < 32) { // only need to use normal search
-                return Normal_Search_first_not_of(s1, n1, off, s2, n2);
+                return normal_search_first_not_of(s1, n1, off, s2, n2);
             }
             else {
                 // may use Map_Search_first_of
                 // firstly ,use normal search to match no more than length of 32
 
                 const size_type first_to_search = (n1 - off <= 32 ? n1 : off + 32);
-                auto first_to_search_match = Normal_Search_first_not_of(s1, first_to_search, off, s2, n2);
+                auto first_to_search_match = normal_search_first_not_of(s1, first_to_search, off, s2, n2);
                 if (first_to_search_match != npos) {
                     return first_to_search_match;
                 }
 
                 if (first_to_search != n1) {
-                    return Map_Search_first_not_of(s1, n1, first_to_search, s2, n2);
+                    return map_search_first_not_of(s1, n1, first_to_search, s2, n2);
                 }
 
             }
@@ -887,7 +953,7 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::Search_last_not_of_ch(const value_type* s,
+        basic_String_Traits<Char, Traits>::search_last_not_of_ch(const value_type* s,
             const size_type n, const size_type off, const value_type ch) {
         if (n != 0) {
             for (auto match_try = s + npos_min(off, n - 1);; --match_try) {
@@ -904,7 +970,7 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::Normal_Search_last_not_of(const value_type* s1,
+        basic_String_Traits<Char, Traits>::normal_search_last_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
         assert(off <= n1 - 1);
         for (auto match_try = s1 + off;; --match_try) {
@@ -920,10 +986,16 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::Map_Search_last_not_of(const value_type* s1,
+        basic_String_Traits<Char, Traits>::map_search_last_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        std::unordered_set<value_type, std::hash<value_type>,
-            rSearch_Traits, mallocator<value_type>> sl(s2, s2 + n2);
+
+        using Map = std::conditional_t<
+            std::is_integral_v<value_type> && sizeof(value_type) <= 1
+            && std::is_same_v<Traits, std::char_traits<value_type>>,
+            bit_map,
+            std::unordered_set<value_type, std::hash<value_type>, rSearch_Traits, mallocator<value_type>>>;
+
+        Map sl(s2, s2 + n2);
         assert(off <= n1 - 1);
         for (auto match_try = s1 + off;; --match_try) {
             if (!sl.count(*match_try)) {
@@ -938,22 +1010,22 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::Search_last_not_of(const value_type* s1,
+        basic_String_Traits<Char, Traits>::search_last_not_of(const value_type* s1,
             const size_type n1, size_type off, const value_type* s2, const size_type n2) {
         off = npos_min(off, n1 - 1);
         if (n1 != 0 && n2 != 0) {
             if (n2 < 32) {
-                return Normal_Search_last_not_of(s1, n1, off, s2, n2);
+                return normal_search_last_not_of(s1, n1, off, s2, n2);
             }
             else {
                 const size_type first_to_search = off <= 32 ? 0 : off - 32;
-                auto first_to_search_match = Normal_Search_last_not_of(
+                auto first_to_search_match = normal_search_last_not_of(
                     s1 + first_to_search, n1 - first_to_search, off - first_to_search, s2, n2);
                 if (first_to_search_match != npos) {
                     return first_to_search + first_to_search_match;
                 }
                 if (first_to_search != 0) {
-                    return Normal_Search_last_not_of(s1, n1, first_to_search, s2, n2);
+                    return normal_search_last_not_of(s1, n1, first_to_search, s2, n2);
                 }
             }
         }
@@ -1216,28 +1288,40 @@ namespace wjr {
         setCapacity(s);
     }
 
-    template<typename Char,typename Traits = std::char_traits<Char>,typename Core = String_core<Char>>
-    class basic_String 
+    template<typename Core>
+    struct is_const_string_core : std::false_type {};
+
+    template<typename Char, typename Traits>
+    struct is_const_string_core<std::basic_string_view<Char, Traits>> : std::true_type {};
+
+    template<typename Core>
+    constexpr static bool is_const_string_core_v = is_const_string_core<Core>::value;
+
+    /*
+    * basic_String_Traits<Char,Traits> : only need to focus on Char
+    * and Traits without caring waht the Core is 
+    */
+
+    /*
+    * If the core cannot be modified, such as string_view
+    * This class can only have const functions and O(1) swap 
+    */
+    template<typename Char,typename Traits,typename Core,typename is_const_core = std::true_type>
+    class basic_String_base 
         : public basic_String_Traits<Char,Traits> {
     private:
 
-        using _Elem = Char;
-        // is char pointer
-        template <class iter>
-        using is_char_ptr =
-            std::bool_constant<is_any_of_v<iter,const _Elem*const,const _Elem*,_Elem*const,_Elem*>>;
-
-        // is const iterator -> char pointer
-        template<typename iter>
-        using is_const_iterator = std::enable_if_t<is_char_ptr<iter>::value,int>;
-
-        using base = basic_String_Traits<Char,Traits>;
+        using base = basic_String_Traits<Char, Traits>;
 
         template<typename _Traits>
-        using traits_base = basic_String_Traits<Char,_Traits>;
+        using traits_base = basic_String_Traits<Char, _Traits>;
+
+    protected:
+
+        using base::traits_length;
+        using base::npos_min;
 
     public:
-
         using traits_type = Traits;
         using allocator_type = mallocator<Char>;
         using string_traits = base;
@@ -1249,147 +1333,113 @@ namespace wjr {
         using size_type = size_t;
         using difference_type = size_t;
 
-        using pointer = Char*;
-        using const_pointer = const Char*;
+        using pointer = value_type*;
+        using const_pointer = const value_type*;
 
-        using iterator = Char*;
-        using const_iterator = const Char*;
+        using iterator = value_type*;
+        using const_iterator = const value_type*;
         using reverse_iterator = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-        constexpr static size_type npos = base::npos;
+        using base::npos;
 
-    private:
+        basic_String_base()noexcept {}
 
-        static size_type traits_length(const value_type* s) {
-            return base::traits_length(s);
-        }
-
-        static size_type npos_min(size_type n, const size_type x) {
-            return base::npos_min(n,x);
-        }
-
-    public:
-
-        basic_String()noexcept {}
-
-        basic_String(const basic_String& other)
+        basic_String_base(const basic_String_base& other)
             :core(other.core) {
 
         }
 
-        basic_String(basic_String&& other)
+        basic_String_base(basic_String_base&& other)
             :core(std::move(other.core)) {
 
         }
 
-        basic_String(const basic_String& other, const size_type pos, const size_type n = npos) {
+        basic_String_base(const basic_String_base& other, const size_type pos, const size_type n = npos) {
             assign(other, pos, n);
         }
 
-        basic_String(const value_type* s)
+        basic_String_base(const value_type* s)
             : core(s, traits_length(s)) {
 
         }
 
-        basic_String(const value_type* s, const size_type n)
+        basic_String_base(const value_type* s, const size_type n)
             : core(s, n) {
 
         }
 
-        basic_String(const size_type n, const value_type c) {
-            auto const pData = core.expandNoinit(n);
-            std::fill(pData, pData + n, c);
-        }
-
-        basic_String(const value_type* first, const value_type* last)
-            : core(first,static_cast<size_type>(last - first)) {
+        basic_String_base(const value_type* first, const value_type* last)
+            : core(first, static_cast<size_type>(last - first)) {
 
         }
 
-        template<typename iter>
-        basic_String(iter first, iter last) {
-            assign(first, last, is_char_ptr<iter>{});
-        }
-
-        basic_String(std::initializer_list<value_type> il) {
-            assign(il.begin(),il.end());
-        }
-
-        template<typename Alloc>
-        basic_String(const std::basic_string<Char, Traits, Alloc>& other) 
-            : core(other.data(),other.size()){
+        template<typename T>
+        basic_String_base(const basic_String_base<Char, T, Core>& other)
+            : core(other.core) {
 
         }
-   
-        ~basic_String()noexcept {}
 
-        basic_String& operator=(const basic_String& other) {
+        template<typename T>
+        basic_String_base(basic_String_base<Char, T, Core>&& other)
+            : core(std::move(other.core)) {
+        }
+
+        template<typename T,typename U,typename V>
+        basic_String_base(const basic_String_base<Char, T, U, V>& other) 
+            : core(other.data(),other.size()) {
+
+        }
+
+        template<typename T,typename A>
+        basic_String_base(const std::basic_string<Char, T, A>& other)
+            : core(other.data(), other.size()) {
+
+        }
+
+        operator std::basic_string_view<value_type, traits_type>() const noexcept {
+            return { data(), size() };
+        }
+
+        ~basic_String_base()noexcept {}
+
+        basic_String_base& operator=(const basic_String_base& other) {
             if (this == &other)
                 return *this;
             return assign(other.data(), other.size());
         }
 
-        basic_String& operator=(basic_String&& other) {
+        basic_String_base& operator=(basic_String_base&& other) {
             core.swap(other.core);
             return *this;
         }
 
-        basic_String& operator=(const value_type c) {
-            resize(1);
-            *begin() = c;
-            return *this;
-        }
-
-        basic_String& operator=(const value_type* str) {
+        basic_String_base& operator=(const value_type* str) {
             return assign(str);
         }
 
-        template<typename _Traits,typename _Alloc>
-        basic_String& operator=(const std::basic_string<value_type, _Traits, _Alloc>& str) {
-            return assign(str.data(),str.size());
+        template<typename _Traits, typename _Alloc>
+        basic_String_base& operator=(const std::basic_string<value_type, _Traits, _Alloc>& str) {
+            return assign(str.data(), str.size());
         }
-
-        basic_String& operator=(std::initializer_list<value_type> il) {
-            return assign(il.begin(),il.end());
-        }
-
-        operator std::basic_string_view<Char, Traits>() const noexcept {
-            return {data(),size()};
-        }
-
-        iterator begin() { return core.data(); }
 
         const_iterator begin()const { return core.data(); }
 
         const_iterator cbegin()const { return begin(); }
 
-        iterator end() { return core.data() + core.size(); }
-
         const_iterator end()const { return core.data() + core.size(); }
 
         const_iterator cend()const { return end(); }
 
-        reverse_iterator rbegin(){return reverse_iterator(end()); }
+        const_reverse_iterator rbegin()const { return const_reverse_iterator(end()); }
 
-        const_reverse_iterator rbegin()const{return const_reverse_iterator(end()); }
+        const_reverse_iterator crbegin()const { return const_reverse_iterator(cend()); }
 
-        const_reverse_iterator crbegin()const{return const_reverse_iterator(cend()); }
+        const_reverse_iterator rend()const { return const_reverse_iterator(begin()); }
 
-        reverse_iterator rend(){return reverse_iterator(begin()); }
-
-        const_reverse_iterator rend()const{return const_reverse_iterator(begin()); }
-
-        const_reverse_iterator crend()const{return const_reverse_iterator(begin()); }
-
-        reference front() { return *begin(); }
+        const_reverse_iterator crend()const { return const_reverse_iterator(begin()); }
 
         const_reference front()const { return *begin(); }
-
-        reference back() {
-            assert(!empty());
-            return *(end() - 1);
-        }
 
         const_reference back()const {
             assert(!empty());
@@ -1406,11 +1456,397 @@ namespace wjr {
 
         size_type max_size() const { return std::numeric_limits<size_type>::max(); }
 
-        void resize(const size_type n, const value_type c = value_type()) ;
-
         size_type capacity() const {
             return core.capacity();
         }
+
+        const_reference operator[](const size_type index)const {
+            return *(begin() + index);
+        }
+
+        const_reference at(const size_type index)const {
+            return *(begin() + index);
+        }
+
+        basic_String_base& assign(const basic_String_base& other) {
+            if (this == &other)
+                return *this;
+            return assign(other.data(), other.size());
+        }
+
+        basic_String_base& assign(basic_String_base&& other) {
+            *this = std::move(other);
+            return *this;
+        }
+
+        basic_String_base& assign(const basic_String_base& other, const size_type pos, const size_type n = npos) {
+            return assign(other.data() + pos, npos_min(n, other.size() - pos));
+        }
+
+        // This will be redefined by basic_String<Char,Traits,Core,std::false_type>
+        // Here, just exchange is enough
+        basic_String_base& assign(const value_type* s, const size_type n) {
+            basic_String_base temp(s,n);
+            this->swap(temp);
+            return *this;
+        }
+
+        basic_String_base& assign(const value_type* s, const value_type* e) {
+            return assign(s, static_cast<size_type>(e - s));
+        }
+
+        basic_String_base& assign(const value_type* s) {
+            assign(s, traits_length(s));
+            return *this;
+        }
+
+        void swap(basic_String_base& other) { core.swap(other.core); }
+
+        const value_type* c_str() const { return core.c_str(); }
+
+        const value_type* data() const { return core.data(); }
+
+        bool empty()const { return core.empty(); }
+
+        // This will be redefined by basic_String<Char,Traits,Core,std::false_type>
+        basic_String_base substr(const size_type pos, const size_type n = npos)const {
+            return basic_String_base(data() + pos, npos_min(n, size() - pos));
+        }
+
+        // by using template that you
+        // can compare in different ways
+        // and it will be compared by default traits_type
+        template<typename T = Traits>
+        int compare(const basic_String_base& other)const {
+            return compare<T>(0, size(), other);
+        }
+
+        template<typename T = Traits>
+        int compare(const size_type pos1, const size_type n1, const basic_String_base& other)const {
+            return compare<T>(pos1, n1, other.data(), other.size());
+        }
+
+        template<typename T = Traits>
+        int compare(const size_type pos1, const size_type n1, const value_type* s)const {
+            return compare<T>(pos1, n1, s, traits_length(s));
+        }
+
+        template<typename T = Traits>
+        int compare(const size_type pos1, const size_type n1,
+            const value_type* s, const size_type n2)const {
+            return traits_base<T>::compare(data() + pos1, npos_min(n1, size() - pos1), s, n2);
+        }
+
+        template<typename T = Traits>
+        int compare(const size_type pos1, const size_type n1,
+            const basic_String_base& other, const size_type pos2, const size_type n2 = npos)const {
+            return compare<T>(pos1, n1, other.data() + pos2, npos_min(n2, other.size() - pos2));
+        }
+
+        template<typename T = Traits>
+        int compare(const value_type* s, const size_type n)const {
+            return compare<T>(0, size(), s, n);
+        }
+
+        template<typename T = Traits>
+        int compare(const value_type* s)const {
+            return compare<T>(0, size(), s, traits_length(s));
+        }
+
+        template<typename T = Traits>
+        bool equal(const basic_String_base& other)const {
+            return equal<T>(0, size(), other);
+        }
+
+        template<typename T = Traits>
+        bool equal(const size_type pos1, const size_type n1, const basic_String_base& other)const {
+            return equal<T>(pos1, n1, other.data(), other.size());
+        }
+
+        template<typename T = Traits>
+        bool equal(const size_type pos1, const size_type n1, const value_type* s)const {
+            return equal<T>(pos1, n1, s, traits_length(s));
+        }
+
+        template<typename T = Traits>
+        bool equal(const size_type pos1, const size_type n1,
+            const value_type* s, const size_type n2) const {
+            return traits_base<T>::equal(data() + pos1, npos_min(n1, size() - pos1), s, n2);
+        }
+
+        template<typename T = Traits>
+        bool equal(const value_type* s, const size_type n)const {
+            return equal<T>(0, size(), s, n);
+        }
+
+        template<typename T = Traits>
+        bool equal(const value_type* s)const {
+            return equal<T>(s, traits_length(s));
+        }
+
+        template<typename T = Traits>
+        size_type find(const value_type ch, const size_type off = 0)const {
+            return traits_base<T>::search(data(), size(), off, ch);
+        }
+
+        template<typename T = Traits>
+        size_type find(const value_type* s, const size_type off = 0)const {
+            return traits_base<T>::search(data(), size(), off, s, traits_length(s));
+        }
+
+        template<typename T = Traits>
+        size_type find(const value_type* s, const size_type off, const size_type count)const {
+            return traits_base<T>::search(data(), size(), off, s, count);
+        }
+
+        template<typename T = Traits>
+        size_type find(const basic_String_base& other, const size_type off = 0)const {
+            return traits_base<T>::search(data(), size(), off, other.data(), other.size());
+        }
+
+        template<typename T = Traits>
+        size_type rfind(const value_type ch, const size_type off = npos)const {
+            return traits_base<T>::rsearch(data(), size(), off, ch);
+        }
+
+        template<typename T = Traits>
+        size_type rfind(const value_type* s, const size_type off = npos)const {
+            return traits_base<T>::rsearch(data(), size(), off, s, traits_length(s));
+        }
+
+        template<typename T = Traits>
+        size_type rfind(const value_type* s, const size_type off, const size_type count)const {
+            return traits_base<T>::rsearch(data(), size(), off, s, count);
+        }
+
+        template<typename T = Traits>
+        size_type rfind(const basic_String_base& other, const size_type off = npos)const {
+            return traits_base<T>::rsearch(data(), size(), off, other.data(), other.size());
+        }
+
+        template<typename T = Traits>
+        size_type find_first_of(const value_type ch, const size_type off = 0)const {
+            return traits_base<T>::search_first_of(ch, off);
+        }
+
+        template<typename T = Traits>
+        size_type find_first_of(const value_type* s, const size_type off, const size_type count)const {
+            return traits_base<T>::search_first_of(data(), size(), off, s, count);
+        }
+
+        template<typename T = Traits>
+        size_type find_first_of(const value_type* s, const size_type off = 0)const {
+            return traits_base<T>::search_first_of(data(), size(), off, s, traits_length(s));
+        }
+
+        template<typename T = Traits>
+        size_type find_first_of(const basic_String_base& s, const size_type off = 0)const {
+            return traits_base<T>::search_first_of(data(), size(), off, s.data(), s.size());
+        }
+
+        template<typename T = Traits>
+        size_type find_last_of(const value_type ch, const size_type off = npos)const {
+            return traits_base<T>::search_last_of_ch(data(), size(), off, ch);
+        }
+
+        template<typename T = Traits>
+        size_type find_last_of(const value_type* s, const size_type off = npos)const {
+            return traits_base<T>::search_lsat_of(data(), size(), off, s, traits_length(s));
+        }
+
+        template<typename T = Traits>
+        size_type find_last_of(const value_type* s, const size_type off, const size_type count)const {
+            return traits_base<T>::search_lsat_of(data(), size(), off, s, count);
+        }
+
+        template<typename T = Traits>
+        size_type find_last_of(const basic_String_base& other, const size_type off = npos)const {
+            return traits_base<T>::search_lsat_of(data(), size(), off, other.data(), other.size());
+        }
+
+        template<typename T = Traits>
+        size_type find_first_not_of(const value_type ch, const size_type off = 0)const {
+            return traits_base<T>::search_first_not_of_ch(data(), size(), off, ch);
+        }
+
+        template<typename T = Traits>
+        size_type find_first_not_of(const value_type* s, const size_type off = 0)const {
+            return traits_base<T>::search_first_not_of(data(), size(), off, s, traits_length(s));
+        }
+
+        template<typename T = Traits>
+        size_type find_first_not_of(const value_type* s, const size_type off, const size_type count)const {
+            return traits_base<T>::search_first_not_of(data(), size(), off, s, count);
+        }
+
+        template<typename T = Traits>
+        size_type find_first_not_of(const basic_String_base& other, const size_type off = 0)const {
+            return traits_base<T>::search_first_not_of(data(), size(), off, other.data(), other.size());
+        }
+
+        template<typename T = Traits>
+        size_type find_last_not_of(const value_type ch, const size_type off = npos)const {
+            return traits_base<T>::search_last_not_of_ch(data(), size(), off, ch);
+        }
+
+        template<typename T = Traits>
+        size_type find_last_not_of(const value_type* s, const size_type off = npos)const {
+            return traits_base<T>::search_last_not_of(data(), size(), off, s, traits_length(s));
+        }
+
+        template<typename T = Traits>
+        size_type find_last_not_of(const value_type* s, const size_type off, const size_type count)const {
+            return traits_base<T>::search_last_not_of(data(), size(), off, s, count);
+        }
+
+        template<typename T = Traits>
+        size_type find_last_not_of(const basic_String_base& other, const size_type off = npos)const {
+            return traits_base<T>::search_last_not_of(data(), size(), off, other.data(), other.size());
+        }
+
+        template<typename T = Traits>
+        bool starts_with(const value_type ch)const {
+            return traits_base<T>::starts_with(data(), size(), ch);
+        }
+
+        template<typename T = Traits>
+        bool starts_with(const value_type* s)const {
+            return starts_with<T>(s, traits_length(s));
+        }
+
+        template<typename T = Traits>
+        bool starts_with(const value_type* s, const size_type n)const {
+            return traits_base<T>::starts_with(data(), size(), s, n);
+        }
+
+        template<typename T = Traits>
+        bool starts_with(const basic_String_base& other)const {
+            return starts_with<T>(other.data(), other.size());
+        }
+
+        template<typename T = Traits>
+        bool ends_with(const value_type ch)const {
+            return traits_base<T>::ends_with(data(), size(), ch);
+        }
+
+        template<typename T = Traits>
+        bool ends_with(const value_type* s)const {
+            return ends_with<T>(s, traits_length(s));
+        }
+
+        template<typename T = Traits>
+        bool ends_with(const value_type* s, const size_type n)const {
+            return traits_base<T>::ends_with(data(), size(), s, n);
+        }
+
+    protected:
+        Core core;
+    };
+
+    // If the core can be modified, such as String_core
+    // This class should not contain any const functions
+    // And a part of the original exchange function,copy functions 
+    // and others will be redefined
+    // such as assign and substr
+    template<typename Char,typename Traits,typename Core>
+    class basic_String_base<Char,Traits,Core,std::false_type> 
+        : public basic_String_base<Char,Traits,Core,std::true_type> {
+    private:
+
+        using base = basic_String_base<Char,Traits,Core,std::true_type>;
+
+        using Elem = Char;
+        template <class iter>
+        using is_char_ptr =
+            std::bool_constant<is_any_of_v<iter, const Elem* const, const Elem*, Elem* const, Elem*>>;
+
+        // is const iterator -> char pointer
+        template<typename iter>
+        using is_const_iterator = std::enable_if_t<is_char_ptr<iter>::value, int>;
+
+        template<typename _Traits>
+        using traits_base = basic_String_Traits<Char, _Traits>;
+
+    protected:
+
+        using base::traits_length;
+        using base::npos_min;
+
+    public:
+
+        using traits_type = typename base::traits_type;
+        using allocator_type = typename base::allocator_type;
+        using string_traits = typename base::string_traits;
+
+        using value_type = typename base::value_type;
+        using reference = typename base::reference;
+        using const_reference = typename base::const_reference;
+
+        using size_type = typename base::size_type;
+        using difference_type = typename base::difference_type;
+
+        using pointer = typename base::pointer;
+        using const_pointer = typename base::const_pointer;
+
+        using iterator = typename base::iterator;
+        using const_iterator = typename base::const_iterator;
+        using reverse_iterator = typename base::reverse_iterator;
+        using const_reverse_iterator = typename base::const_reverse_iterator;
+
+        using base::npos;
+
+        using base::base;
+        using base::operator=;
+        using base::begin;
+        using base::end;
+        using base::rbegin;
+        using base::rend;
+        using base::front;
+        using base::back;
+        using base::size;
+        using base::operator[];
+        using base::at;
+        using base::assign;
+        using base::c_str;
+        using base::data;
+        using base::empty;
+
+        basic_String_base(const size_type n, const value_type c) {
+            auto const pData = core.expandNoinit(n);
+            std::fill(pData, pData + n, c);
+        }
+
+        template<typename iter>
+        basic_String_base(iter first, iter last) {
+            assign(first, last, is_char_ptr<iter>{});
+        }
+
+        basic_String_base(std::initializer_list<value_type> il) {
+            assign(il.begin(), il.end());
+        }
+
+        basic_String_base& operator=(const value_type c) {
+            resize(1);
+            *begin() = c;
+            return *this;
+        }
+
+        iterator begin() { return core.data(); }
+
+        iterator end() { return core.data() + core.size(); }
+
+        reverse_iterator rbegin() { return reverse_iterator(end()); }
+
+        reverse_iterator rend() { return reverse_iterator(begin()); }
+
+        reference front() { return *begin(); }
+
+        reference back() {
+            assert(!empty());
+            return *(end() - 1);
+        }
+
+        void resize(const size_type n, const value_type c = value_type());
 
         void reserve(const size_type c) {
             core.reserve(c);
@@ -1422,13 +1858,7 @@ namespace wjr {
 
         void clear() { resize(0); }
 
-        bool empty() { return size() == 0; }
-
         reference operator[](const size_type index) {
-            return *(begin() + index);
-        }
-
-        const_reference operator[](const size_type index)const {
             return *(begin() + index);
         }
 
@@ -1436,66 +1866,61 @@ namespace wjr {
             return *(begin() + index);
         }
 
-        const_reference at(const size_type index)const {
-            return *(begin() + index);
-        }
+        basic_String_base& operator+=(const basic_String_base& other) { return append(other); }
 
-        basic_String& operator+=(const basic_String& other) { return append(other); }
+        basic_String_base& operator+=(const value_type* s) { return append(s); }
 
-        basic_String& operator+=(const value_type* s) { return append(s); }
+        basic_String_base& operator+=(const value_type c) { push_back(c); return *this; }
 
-        basic_String& operator+=(const value_type c) { push_back(c); return *this; }
-
-        basic_String& operator+=(std::initializer_list<value_type> il) {
+        basic_String_base& operator+=(std::initializer_list<value_type> il) {
             append(il);
             return *this;
         }
 
-        basic_String& append(const basic_String& other) {
+        basic_String_base& append(const basic_String_base& other) {
             return append(other.data(), other.size());
         }
 
-        basic_String& append(
-            const basic_String& other, const size_type pos, const size_type n = npos) {
-            return append(other.data() + pos, npos_min(n,other.size()-pos));
+        basic_String_base& append(
+            const basic_String_base& other, const size_type pos, const size_type n = npos) {
+            return append(other.data() + pos, npos_min(n, other.size() - pos));
         }
 
-        basic_String& append(const value_type* s, size_type n) ;
+        basic_String_base& append(const value_type* s, size_type n);
 
-        basic_String& append(const value_type* s) {
+        basic_String_base& append(const value_type* s) {
             return append(s, traits_length(s));
         }
 
-        basic_String& append(const size_type n, const value_type c) {
-            auto pData = core.expandNoinit(n,true);
+        basic_String_base& append(const size_type n, const value_type c) {
+            auto pData = core.expandNoinit(n, true);
             std::fill(pData, pData + n, c);
             return *this;
         }
 
-        basic_String& append(const value_type* s, const value_type* e) {
+        basic_String_base& append(const value_type* s, const value_type* e) {
             return append(s, static_cast<size_type>(e - s));
         }
 
     private:
         template<typename iter>
-        basic_String& append(iter first, iter last,std::true_type) {
-            return append((const value_type*)first,(const value_type*)last);
+        basic_String_base& append(iter first, iter last, std::true_type) {
+            return append((const value_type*)first, (const value_type*)last);
         }
 
         template<typename iter>
-        basic_String& append(iter first, iter last, std::false_type) {
-            return append(basic_String(first,last));
+        basic_String_base& append(iter first, iter last, std::false_type) {
+            return append(basic_String_base(first, last));
         }
     public:
 
-
         template<typename iter>
-        basic_String& append(iter first, iter last) {
-            return append(first,last,is_char_ptr<iter>{});
+        basic_String_base& append(iter first, iter last) {
+            return append(first, last, is_char_ptr<iter>{});
         }
 
-        basic_String& append(std::initializer_list<value_type> il) {
-            return append(il.begin(),il.end());
+        basic_String_base& append(std::initializer_list<value_type> il) {
+            return append(il.begin(), il.end());
         }
 
         void push_back(const value_type c) {
@@ -1507,179 +1932,155 @@ namespace wjr {
             core.shrink(1);
         }
 
-        basic_String& assign(const basic_String& other) {
-            if (this == &other)
-                return *this;
-            assign(other.data(), other.size());
-        }
-
-        basic_String& assign(basic_String&& other) {
-            *this = std::move(other);
-            return *this;
-        }
-
-        basic_String& assign(const basic_String& other, const size_type pos, const size_type n = npos) {
-            return assign(other.data() + pos, npos_min(n,other.size()-pos));
-        }
-
-        basic_String& assign(const value_type* s, const size_type n);
-
-        basic_String& assign(const value_type* s, const value_type* e) {
-            return assign(s , static_cast<size_type>(e - s));
-        }
+        basic_String_base& assign(const value_type* s,const size_type n); // redefining
 
     private:
         template<typename iter>
-        basic_String& assign(iter first, iter last, std::input_iterator_tag) {
+        basic_String_base& assign(iter first, iter last, std::input_iterator_tag) {
             clear();
-            for(;first != last;++first)
+            for (; first != last; ++first)
                 push_back(*first);
             return *this;
         }
 
         template<typename iter>
-        basic_String& assign(iter first, iter last, std::forward_iterator_tag) {
-            resize(static_cast<size_type>(std::distance(first,last)));
+        basic_String_base& assign(iter first, iter last, std::forward_iterator_tag) {
+            resize(static_cast<size_type>(std::distance(first, last)));
             auto _data = data();
-            for (; first != last; ++_data,++first)
+            for (; first != last; ++_data, ++first)
                 *_data = *first;
             return *this;
         }
 
         template<typename iter>
-        basic_String& assign(iter first, iter last, std::true_type) {
-            return assign((const value_type*)first,(const value_type*)last);
+        basic_String_base& assign(iter first, iter last, std::true_type) {
+            return assign(static_cast<const value_type*>(first), static_cast<size_type>(last - first));
         }
 
         template<typename iter>
-        basic_String& assign(iter first, iter last, std::false_type) {
+        basic_String_base& assign(iter first, iter last, std::false_type) {
             return assign(first, last, typename std::iterator_traits<iter>::iterator_category{});
         }
 
     public:
 
         template<typename iter>
-        basic_String& assign(iter first, iter last) {
+        basic_String_base& assign(iter first, iter last) {
             return assign(first, last, is_char_ptr<iter>{});
         }
 
-        basic_String& assign(const value_type* s) {
-            assign(s, traits_length(s));
-            return *this;
-        }
-
-        basic_String& insert(const size_type pos, const basic_String& str) {
+        basic_String_base& insert(const size_type pos, const basic_String_base& str) {
             return insert(pos, str.data(), str.size());
         }
 
-        basic_String& insert(const size_type pos1,
-            const basic_String& s, const size_type pos2, const size_type n = npos) {
-            return insert(pos1,s.data() + pos2,npos_min(n,s.size()-pos2));
+        basic_String_base& insert(const size_type pos1,
+            const basic_String_base& s, const size_type pos2, const size_type n = npos) {
+            return insert(pos1, s.data() + pos2, npos_min(n, s.size() - pos2));
         }
 
-        basic_String& insert(const size_type pos, const value_type* s, const size_type n);
+        basic_String_base& insert(const size_type pos, const value_type* s, const size_type n);
 
-        basic_String& insert(const size_type pos, const value_type* s, const value_type* e) {
-            return insert(pos,s , static_cast<size_type>(e - s));
+        basic_String_base& insert(const size_type pos, const value_type* s, const value_type* e) {
+            return insert(pos, s, static_cast<size_type>(e - s));
         }
 
-        basic_String& insert(const size_type pos, const value_type* str) {
+        basic_String_base& insert(const size_type pos, const value_type* str) {
             return insert(pos, str, traits_length(str));
         }
 
-        basic_String& insert(const size_type pos, const value_type c) {
+        basic_String_base& insert(const size_type pos, const value_type c) {
             return insert(pos, c, 1);
         }
 
-        basic_String& insert(const size_type pos, const size_type n, const value_type c) ;
+        basic_String_base& insert(const size_type pos, const size_type n, const value_type c);
 
     private:
         template<typename iter>
-        basic_String& insert(const size_type pos, iter first, iter last, std::true_type) {
+        basic_String_base& insert(const size_type pos, iter first, iter last, std::true_type) {
             return insert(pos, (const value_type*)first, (const value_type*)last);
         }
         template<typename iter>
-        basic_String& insert(const size_type pos, iter first, iter last, std::false_type) {
-            return insert(pos, basic_String(first, last));
+        basic_String_base& insert(const size_type pos, iter first, iter last, std::false_type) {
+            return insert(pos, basic_String_base(first, last));
         }
     public:
 
         template<typename iter>
-        basic_String& insert(const size_type pos, iter first, iter last) {
+        basic_String_base& insert(const size_type pos, iter first, iter last) {
             return insert(pos, first, last, is_char_ptr<iter>{});
         }
 
-        basic_String& insert(const size_type pos, std::initializer_list<value_type> il) {
-            return insert(pos,il.begin(),il.end());
+        basic_String_base& insert(const size_type pos, std::initializer_list<value_type> il) {
+            return insert(pos, il.begin(), il.end());
         }
 
-        template<typename T,is_const_iterator<T> = 0>
-        iterator insert(T p, const basic_String& str) {
+        template<typename T, is_const_iterator<T> = 0>
+        iterator insert(T p, const basic_String_base& str) {
             const size_type pos = p - data();
-            insert(pos,str);
+            insert(pos, str);
             return data() + pos;
         }
 
-        template<typename T,is_const_iterator<T> = 0>
+        template<typename T, is_const_iterator<T> = 0>
         iterator insert(T p,
-            const basic_String& s, const size_type pos2, const size_type n = npos) {
+            const basic_String_base& s, const size_type pos2, const size_type n = npos) {
             const size_type pos1 = p - data();
-            insert(pos1,s,pos2, n);
+            insert(pos1, s, pos2, n);
             return data() + pos1;
         }
 
-        template<typename T,is_const_iterator<T> = 0>
+        template<typename T, is_const_iterator<T> = 0>
         iterator insert(T p, const value_type* s, const size_type n) {
             const size_type pos = p - data();
-            insert(pos,s,n);
+            insert(pos, s, n);
             return data() + pos;
         }
 
-        template<typename T,is_const_iterator<T> = 0>
+        template<typename T, is_const_iterator<T> = 0>
         iterator insert(T p, const value_type* s, const value_type* e) {
             const size_type pos = p - data();
-            insert(pos,s,e);
+            insert(pos, s, e);
             return data() + pos;
         }
 
-        template<typename T,is_const_iterator<T> = 0>
+        template<typename T, is_const_iterator<T> = 0>
         iterator insert(T p, const value_type* s) {
             const size_type pos = p - data();
-            insert(pos,s);
+            insert(pos, s);
             return data() + pos;
         }
 
-        template<typename T,is_const_iterator<T> = 0>
+        template<typename T, is_const_iterator<T> = 0>
         iterator insert(T p, const value_type c) {
             const size_type pos = p - data();
             insert(pos, c);
             return data() + pos;
         }
 
-        template<typename T,is_const_iterator<T> = 0>
+        template<typename T, is_const_iterator<T> = 0>
         iterator insert(T p, const size_type n, const value_type c) {
             const size_type pos = p - data();
             insert(pos, n, c);
             return data() + pos;
         }
 
-        template<typename T,typename iter,is_const_iterator<T> = 0>
+        template<typename T, typename iter, is_const_iterator<T> = 0>
         iterator insert(T p, iter first, iter last) {
             const size_type pos = p - data();
-            insert(pos,first,last);
+            insert(pos, first, last);
             return data() + pos;
         }
 
-        template<typename T,is_const_iterator<T> = 0>
+        template<typename T, is_const_iterator<T> = 0>
         iterator insert(T p, std::initializer_list<value_type> il) {
             const size_type pos = p - data();
-            insert(pos,il);
+            insert(pos, il);
             return data() + pos;
         }
 
-        basic_String& erase(const size_type pos = 0, size_type n = npos);
+        basic_String_base& erase(const size_type pos = 0, size_type n = npos);
 
-        template<typename T,is_const_iterator<T> = 0>
+        template<typename T, is_const_iterator<T> = 0>
         iterator erase(T p) {
             auto _data = data();
             const size_type pos(p - _data);
@@ -1687,7 +2088,7 @@ namespace wjr {
             return _data + pos;
         }
 
-        template<typename T,is_const_iterator<T> = 0>
+        template<typename T, is_const_iterator<T> = 0>
         iterator erase(T first, T last) {
             const auto _data = begin();
             const size_type pos(first - _data);
@@ -1695,292 +2096,102 @@ namespace wjr {
             return _data + pos;
         }
 
-        basic_String& replace(
-            const size_type pos, const size_type n,const basic_String& s) {
-            return replace(pos,n,s.data(),s.size());
+        basic_String_base& replace(
+            const size_type pos, const size_type n, const basic_String_base& s) {
+            return replace(pos, n, s.data(), s.size());
         }
 
-        basic_String& replace(
+        basic_String_base& replace(
             const size_type pos1, const size_type n1,
-            const basic_String& s, const size_type pos2, const size_type n2 = npos) {
-            return replace(pos1,n1,s.data() + pos2,npos_min(n2,s.size() - pos2));
+            const basic_String_base& s, const size_type pos2, const size_type n2 = npos) {
+            return replace(pos1, n1, s.data() + pos2, npos_min(n2, s.size() - pos2));
         }
 
-        basic_String& replace(const size_type pos,
+        basic_String_base& replace(const size_type pos,
             const size_type n, const value_type* s) {
-            return replace(pos,n,s,traits_length(s));
+            return replace(pos, n, s, traits_length(s));
         }
 
-        basic_String& replace(const size_type pos, const size_type n1
+        basic_String_base& replace(const size_type pos, const size_type n1
             , const value_type* s, const size_type n2);
 
-        template<typename T,is_const_iterator<T> = 0>
-        basic_String& replace(T first, T last, const basic_String& s) {
-            return replace(first - data(),last - first,s);
+        template<typename T, is_const_iterator<T> = 0>
+        basic_String_base& replace(T first, T last, const basic_String_base& s) {
+            return replace(first - data(), last - first, s);
         }
 
-        template<typename T,is_const_iterator<T> = 0>
-        basic_String& replace(T first, T last, const basic_String& s,
-            const size_type pos,const size_type n = npos) {
-            return replace(first - data(),last - first,s,pos,n);
+        template<typename T, is_const_iterator<T> = 0>
+        basic_String_base& replace(T first, T last, const basic_String_base& s,
+            const size_type pos, const size_type n = npos) {
+            return replace(first - data(), last - first, s, pos, n);
         }
 
-        template<typename T,is_const_iterator<T> = 0>
-        basic_String& replace(T first, T last, const value_type* s) {
-            return replace(first - data(),last - first,s);
+        template<typename T, is_const_iterator<T> = 0>
+        basic_String_base& replace(T first, T last, const value_type* s) {
+            return replace(first - data(), last - first, s);
         }
 
-        template<typename T,is_const_iterator<T> = 0>
-        basic_String& replace(T first, T last, const value_type* s, const size_type n) {
-            return replace(first - data(),last - first,s,n);
+        template<typename T, is_const_iterator<T> = 0>
+        basic_String_base& replace(T first, T last, const value_type* s, const size_type n) {
+            return replace(first - data(), last - first, s, n);
         }
-
-        void swap(basic_String& other) { core.swap(other.core); }
-
-        const value_type* c_str() const { return core.c_str(); }
-
-        const value_type* data() const { return core.data(); }
 
         value_type* data() { return core.data(); }
 
-        bool empty()const {
-            return core.empty();
+        basic_String_base substr(const size_type pos, const size_type n = npos)const& {
+            return basic_String_base(data() + pos, npos_min(n, size() - pos));
         }
 
-        basic_String substr(const size_type pos, const size_type n = npos)const& {
-            return basic_String(data() + pos, npos_min(n,size() - pos));
-        }
-
-        basic_String substr(const size_type pos, const size_type n = npos)&& {
-            erase(0,pos);
-            resize(npos_min(n,size()));
+        basic_String_base substr(const size_type pos, const size_type n = npos)&& {
+            erase(0, pos);
+            resize(npos_min(n, size()));
             return std::move(*this);
         }
 
-        basic_String& ltrim() {
-            auto pos = find_first_not_of(' ');
-            return erase(0,pos);
+        basic_String_base& ltrim() {
+            auto pos = base::find_first_not_of(' ');
+            return erase(0, pos);
         }
 
-        basic_String& rtrim() {
-            auto pos = find_last_not_of(' ');
+        basic_String_base& rtrim() {
+            auto pos = base::find_last_not_of(' ');
             if (pos != npos) {
-                return erase(pos + 1,npos);
+                return erase(pos + 1, npos);
             }
             clear();
             return *this;
         }
 
-        basic_String& trim() {
+        basic_String_base& trim() {
             return ltrim(rtrim());
         }
 
-        basic_String trimmed()const& {
-            auto l = find_first_not_of(' ');
+        basic_String_base trimmed()const& {
+            auto l = base::find_first_not_of(' ');
             if (l != npos) {
-                auto r = find_last_not_of(' ');
-                return basic_String(data(),r - l + 1);
+                auto r = base::find_last_not_of(' ');
+                return basic_String_base(data(), r - l + 1);
             }
-            return basic_String();
+            return basic_String_base();
         }
 
-        basic_String trimmed()&& {
+        basic_String_base trimmed()&& {
             return std::move(trim());
         }
 
-        int compare(const basic_String& other)const {
-            return compare(0,size(),other);
-        }
-
-        int compare(const size_type pos1, const size_type n1, const basic_String& other)const {
-            return compare(pos1,n1,other.data(),other.size());
-        }
-
-        int compare(const size_type pos1, const size_type n1, const value_type* s)const {
-            return compare(pos1,n1,s,traits_length(s));
-        }
-
-        int compare(const size_type pos1, const size_type n1,
-            const value_type* s, const size_type n2)const {
-            return base::compare(data() + pos1,npos_min(n1,size() - pos1),s,n2);
-        }
-
-        int compare(const size_type pos1, const size_type n1,
-            const basic_String& other, const size_type pos2, const size_type n2 = npos)const {
-            return compare(pos1,n1,other.data() + pos2, npos_min(n2,other.size() - pos2));
-        }
-
-        int compare(const value_type* s, const size_type n)const {
-            return compare(0,size(),s,n);
-        }
-
-        int compare(const value_type* s)const {
-            return compare(0,size(),s,traits_length(s));
-        }
-
-        bool equal(const basic_String& other)const {
-            return equal(0,size(),other);
-        }
-
-        bool equal(const size_type pos1, const size_type n1, const basic_String& other)const {
-            return equal(pos1,n1,other.data(),other.size());
-        }
-
-        bool equal(const size_type pos1, const size_type n1, const value_type* s)const {
-            return equal(pos1,n1,s,traits_length(s));
-        }
-
-        bool equal(const size_type pos1, const size_type n1,
-            const value_type* s, const size_type n2) const{
-            return base::equal(data() + pos1,npos_min(n1,size() - pos1),s,n2);
-        }
-
-        bool equal(const value_type* s, const size_type n)const {
-            return equal(0,size(),s,n);
-        }
-
-        bool equal(const value_type* s)const {
-            return equal(s,traits_length(s));
-        }
-
-        size_type find(const value_type ch, const size_type off = 0)const {
-            return base::Search(data(),size(),off,ch);
-        }
-
-        size_type find(const value_type* s, const size_type off = 0)const {
-            return base::Search(data(),size(),off,s,traits_length(s));
-        }
-
-        size_type find(const value_type* s, const size_type off, const size_type count)const {
-            return base::Search(data(),size(),off,s,count);
-        }
-
-        size_type find(const basic_String& other, const size_type off = 0)const {
-            return base::Search(data(),size(),off,other.data(),other.size());
-        }
-
-        size_type rfind(const value_type ch, const size_type off = npos)const {
-            return base::rSearch(data(),size(),off,ch);
-        }
-
-        size_type rfind(const value_type* s, const size_type off = npos)const {
-            return base::rSearch(data(),size(),off,s,traits_length(s));
-        }
-
-        size_type rfind(const value_type* s, const size_type off, const size_type count)const {
-            return base::rSearch(data(),size(),off,s,count);
-        }
-
-        size_type rfind(const basic_String& other, const size_type off = npos)const {
-            return base::rSearch(data(),size(),off,other.data(),other.size());
-        }
-
-        size_type find_first_of(const value_type ch, const size_type off = 0)const {
-            return base::find(ch,off);
-        }
-
-        size_type find_first_of(const value_type* s, const size_type off, const size_type count)const {
-            return base::Search_first_of(data(),size(),off,s,count);
-        }
-
-        size_type find_first_of(const value_type* s, const size_type off = 0)const {
-            return base::Search_first_of(data(),size(),off,s,traits_length(s));
-        }
-
-        size_type find_first_of(const basic_String& s, const size_type off = 0)const {
-            return base::Search_first_of(data(),size(),off,s.data(),s.size());
-        }
-
-        size_type find_last_of(const value_type ch, const size_type off = npos)const {
-            return base::Search_last_of_ch(data(), size(), off, ch);
-        }
-
-        size_type find_last_of(const value_type* s, const size_type off = npos)const {
-            return base::Search_lsat_of(data(), size(), off, s, traits_length(s));
-        }
-
-        size_type find_last_of(const value_type* s, const size_type off, const size_type count)const {
-            return base::Search_lsat_of(data(), size(), off, s, count);
-        }
-
-        size_type find_last_of(const basic_String& other, const size_type off = npos)const {
-            return base::Search_lsat_of(data(), size(), off, other.data(), other.size());
-        }
-
-        size_type find_first_not_of(const value_type ch, const size_type off = 0)const {
-            return base::Search_first_not_of_ch(data(),size(),off,ch);
-        }
-
-        size_type find_first_not_of(const value_type* s, const size_type off = 0)const {
-            return base::Search_first_not_of(data(),size(),off,s,traits_length(s));
-        }
-
-        size_type find_first_not_of(const value_type* s, const size_type off, const size_type count)const {
-            return base::Search_first_not_of(data(),size(),off,s,count);
-        }
-
-        size_type find_first_not_of(const basic_String& other, const size_type off = 0)const {
-            return base::Search_first_not_of(data(),size(),off,other.data(),other.size());
-        }
-
-        size_type find_last_not_of(const value_type ch, const size_type off = npos)const {
-            return base::Search_last_not_of_ch(data(),size(),off,ch);
-        }
-
-        size_type find_last_not_of(const value_type* s, const size_type off = npos)const {
-            return base::Search_last_not_of(data(),size(),off,s,traits_length(s));
-        }
-
-        size_type find_last_not_of(const value_type* s, const size_type off, const size_type count)const {
-            return base::Search_last_not_of(data(),size(),off,s,count);
-        }
-
-        size_type find_last_not_of(const basic_String& other, const size_type off = npos)const {
-            return base::Search_last_not_of(data(),size(),off,other.data(),other.size());
-        }
-
-        bool starts_with(const value_type ch)const {
-            return (!empty()) && (traits_type::eq(front(),ch));
-        }
-
-        bool starts_with(const value_type* s)const {
-            return starts_with(s,traits_length(s));
-        }
-
-        bool starts_with(const value_type* s, const size_type n)const {
-            return (size() >= n) && (traits_type::compare(data(),s,n) == 0);
-        }
-
-        bool starts_with(const basic_String& other)const {
-            return starts_with(other.data(),other.size());
-        }
-
-        bool ends_with(const value_type ch)const {
-            return (!empty()) && (traits_type::eq(back(),ch));
-        }
-
-        bool ends_with(const value_type* s)const {
-            return ends_with(s,traits_length(s));
-        }
-
-        bool ends_with(const value_type* s, const size_type n)const {
-            auto _size = size();
-            return (_size >= n) && (traits_type::compare(s + _size - n,s,n) == 0);
-        }
-
         void chop(const size_type n) {
-            core.shrink(std::min(n,size()));
+            core.shrink(std::min(n, size()));
         }
 
-        basic_String& fill(value_type ch, const size_type n = npos);
+        basic_String_base& fill(value_type ch, const size_type n = npos);
 
-    private:
-
-        Core core;
+    protected:
+        using base::core;
     };
 
-    template<typename Char,typename Traits,typename Core>
-    void basic_String<Char,Traits,Core>::resize(const size_type n, const value_type c) {
+    template<typename Char, typename Traits, typename Core>
+    void basic_String_base<Char, Traits, Core,std::false_type>::
+        resize(const size_type n, const value_type c) {
         const size_type sz = size();
 
         if (n < sz) {
@@ -1998,8 +2209,9 @@ namespace wjr {
         assert(size() == n);
     }
 
-    template<typename Char,typename Traits,typename Core>
-    basic_String<Char,Traits,Core>& basic_String<Char,Traits,Core>::append(
+    template<typename Char, typename Traits, typename Core>
+    basic_String_base<Char, Traits, Core,std::false_type>& 
+        basic_String_base<Char, Traits, Core,std::false_type>::append(
         const value_type* s, size_type n) {
 
         const auto oldData = data();
@@ -2017,8 +2229,9 @@ namespace wjr {
         return *this;
     }
 
-    template<typename Char,typename Traits,typename Core>
-    basic_String<Char,Traits,Core>& basic_String<Char,Traits,Core>::assign(
+    template<typename Char, typename Traits, typename Core>
+    basic_String_base<Char, Traits, Core,std::false_type>& 
+        basic_String_base<Char, Traits, Core,std::false_type>::assign(
         const value_type* s, const size_type n) {
         if (!n) {
             resize(0);
@@ -2036,8 +2249,9 @@ namespace wjr {
         return *this;
     }
 
-    template<typename Char,typename Traits,typename Core>
-    basic_String<Char,Traits,Core>& basic_String<Char,Traits,Core>::insert(
+    template<typename Char, typename Traits, typename Core>
+    basic_String_base<Char, Traits, Core,std::false_type>& 
+        basic_String_base<Char, Traits, Core,std::false_type>::insert(
         const size_type pos, const value_type* s, const size_type n) {
 
         if (!n) {
@@ -2074,51 +2288,52 @@ namespace wjr {
         return *this;
     }
 
-    template<typename Char,typename Traits,typename Core>
-    basic_String<Char, Traits,Core>& basic_String<Char, Traits,Core>::insert(
+    template<typename Char, typename Traits, typename Core>
+    basic_String_base<Char, Traits, Core,std::false_type>& 
+        basic_String_base<Char, Traits, Core,std::false_type>::insert(
         const size_type pos, const size_type n, const value_type c
     ) {
         const auto old_size = size();
-        const auto data = core.expandNoinit(n,true);
+        const auto data = core.expandNoinit(n, true);
         auto data_first = data - old_size;
         auto data_pos = data_first + pos;
         auto data_end = data;
-        memmove(data_pos + n,data_pos,sizeof(value_type) * (old_size - pos));
-        std::fill_n(data_pos,n,c);
+        memmove(data_pos + n, data_pos, sizeof(value_type) * (old_size - pos));
+        std::fill_n(data_pos, n, c);
         return *this;
     }
 
-    template<typename Char,typename Traits,typename Core>
-    basic_String<Char,Traits,Core>&
-        basic_String<Char,Traits,Core>::erase(const size_type pos, size_type n) {
+    template<typename Char, typename Traits, typename Core>
+    basic_String_base<Char, Traits, Core,std::false_type>&
+        basic_String_base<Char, Traits, Core,std::false_type>::erase(const size_type pos, size_type n) {
         if (!n) {
             return *this;
         }
         const size_type res = size() - pos;
-        n = npos_min(n,res);
+        n = npos_min(n, res);
         const auto _Data = data();
         memcpy(_Data + pos, _Data + pos + n, sizeof(value_type) * (size() - pos - n));
         core.shrink(n);
         return *this;
     }
 
-    template<typename Char,typename Traits,typename Core>
-    basic_String<Char, Traits,Core>&
-        basic_String<Char, Traits,Core>::replace(
-        const size_type pos1, const size_type n1, const value_type* s, const size_type n2) {
-        std::copy(s,s + std::min(n1,n2),data() + pos1);
+    template<typename Char, typename Traits, typename Core>
+    basic_String_base<Char, Traits, Core,std::false_type>&
+        basic_String_base<Char, Traits, Core,std::false_type>::replace(
+            const size_type pos1, const size_type n1, const value_type* s, const size_type n2) {
+        std::copy(s, s + std::min(n1, n2), data() + pos1);
         if (n1 < n2) {
-            insert(pos1 + n1,s + n1,n2 - n1);
+            insert(pos1 + n1, s + n1, n2 - n1);
         }
         else {
-            erase(pos1 + n2,n1 - n2);
+            erase(pos1 + n2, n1 - n2);
         }
         return *this;
     }
 
-    template<typename Char,typename Traits,typename Core>
-    basic_String<Char,Traits,Core>&
-        basic_String<Char,Traits,Core>::fill(value_type ch, const size_type n) {
+    template<typename Char, typename Traits, typename Core>
+    basic_String_base<Char, Traits, Core,std::false_type>&
+        basic_String_base<Char, Traits, Core,std::false_type>::fill(value_type ch, const size_type n) {
         auto _size = size();
         if (n == npos) {
             std::fill_n(data(), _size, ch);
@@ -2135,7 +2350,24 @@ namespace wjr {
         return *this;
     }
 
-    template<typename Char,typename Traits,typename Core>
+    template<typename Core>
+    using _Is_const_core = std::conditional_t<
+        is_const_string_core<Core>::value,std::true_type,std::false_type>;
+
+    template<typename Char,typename Traits = std::char_traits<Char>,typename Core = String_core<Char>>
+    class basic_String 
+        : public basic_String_base<Char,Traits,Core,_Is_const_core<Core>> {
+    private:
+        using base = basic_String_base<Char,Traits,Core,_Is_const_core<Core>>;
+    public:
+        using base::base;
+
+    public:
+        using base::core;
+    };
+
+    template<typename Char,typename Traits,typename Core,
+        std::enable_if_t<!is_const_string_core_v<Core>,int> = 0>
     basic_String<Char,Traits,Core> operator+(
         const basic_String<Char,Traits,Core>& lhs,
         const basic_String<Char,Traits,Core>& rhs
@@ -2146,7 +2378,8 @@ namespace wjr {
         return result;
     }
 
-    template<typename Char,typename Traits,typename Core>
+    template<typename Char,typename Traits,typename Core,
+        std::enable_if_t<!is_const_string_core_v<Core>, int> = 0>
     basic_String<Char,Traits,Core> operator+(
         basic_String<Char,Traits,Core>&& lhs,
         const basic_String<Char,Traits,Core>& rhs
@@ -2154,7 +2387,8 @@ namespace wjr {
         return std::move(lhs.append(rhs));
     }
 
-    template<typename Char,typename Traits,typename Core>
+    template<typename Char,typename Traits,typename Core,
+        std::enable_if_t<!is_const_string_core_v<Core>, int> = 0>
     basic_String<Char,Traits,Core> operator+(
         const basic_String<Char,Traits,Core>& lhs,
         basic_String<Char,Traits,Core>&& rhs
@@ -2166,7 +2400,8 @@ namespace wjr {
         return lhs + rc;
     }
 
-    template<typename Char,typename Traits,typename Core>
+    template<typename Char,typename Traits,typename Core,
+        std::enable_if_t<!is_const_string_core_v<Core>, int> = 0>
     basic_String<Char,Traits,Core> operator+(
         basic_String<Char,Traits,Core>&& lhs,
         basic_String<Char,Traits,Core>&& rhs
@@ -2174,7 +2409,8 @@ namespace wjr {
         return std::move(lhs.append(rhs));
     }
 
-    template<typename Char,typename Traits,typename Core>
+    template<typename Char,typename Traits,typename Core,
+        std::enable_if_t<!is_const_string_core_v<Core>, int> = 0>
     basic_String<Char,Traits,Core> operator+(
         const Char* lhs,
         const basic_String<Char,Traits,Core>& rhs
@@ -2187,7 +2423,8 @@ namespace wjr {
         return result;
     }
 
-    template<typename Char,typename Traits,typename Core>
+    template<typename Char,typename Traits,typename Core,
+        std::enable_if_t<!is_const_string_core_v<Core>, int> = 0>
     basic_String<Char,Traits,Core> operator+(
         const Char* lhs,
         basic_String<Char,Traits,Core>&& rhs
@@ -2204,7 +2441,8 @@ namespace wjr {
         return result;
     }
 
-    template<typename Char,typename Traits,typename Core>
+    template<typename Char,typename Traits,typename Core,
+        std::enable_if_t<!is_const_string_core_v<Core>, int> = 0>
     basic_String<Char,Traits,Core> operator+(
         const Char ch,
         const basic_String<Char,Traits,Core>& rhs
@@ -2216,7 +2454,8 @@ namespace wjr {
         return result;
     }
 
-    template<typename Char,typename Traits,typename Core>
+    template<typename Char,typename Traits,typename Core,
+        std::enable_if_t<!is_const_string_core_v<Core>, int> = 0>
     basic_String<Char,Traits,Core> operator+(
         const Char ch,
         basic_String<Char,Traits,Core>&& rhs
@@ -2229,7 +2468,8 @@ namespace wjr {
         return ch + rhs;
     }
 
-    template<typename Char,typename Traits,typename Core>
+    template<typename Char,typename Traits,typename Core,
+        std::enable_if_t<!is_const_string_core_v<Core>, int> = 0>
     basic_String<Char,Traits,Core> operator+(
         const basic_String<Char,Traits,Core>& lhs,
         const Char* rhs
@@ -2242,7 +2482,8 @@ namespace wjr {
         return result;
     }
 
-    template<typename Char,typename Traits,typename Core>
+    template<typename Char,typename Traits,typename Core,
+        std::enable_if_t<!is_const_string_core_v<Core>, int> = 0>
     basic_String<Char,Traits,Core> operator+(
         basic_String<Char,Traits,Core>&& lhs,
         const Char* rhs
@@ -2250,7 +2491,8 @@ namespace wjr {
         return std::move(lhs.append(rhs));
     }
 
-    template<typename Char,typename Traits,typename Core>
+    template<typename Char,typename Traits,typename Core,
+        std::enable_if_t<!is_const_string_core_v<Core>, int> = 0>
     basic_String<Char,Traits,Core> operator+(
         const basic_String<Char,Traits,Core>& lhs,
         const Char ch
@@ -2261,7 +2503,8 @@ namespace wjr {
         return result;
     }
 
-    template<typename Char,typename Traits,typename Core>
+    template<typename Char,typename Traits,typename Core,
+        std::enable_if_t<!is_const_string_core_v<Core>, int> = 0>
     basic_String<Char,Traits,Core> operator+(
         basic_String<Char,Traits,Core>&& lhs,
         const Char ch
@@ -2488,6 +2731,16 @@ namespace wjr {
     using u16String = basic_String<char16_t,std::char_traits<char16_t>>;
     using u32String = basic_String<char32_t,std::char_traits<char32_t>>;
 
+    template<typename Char, typename Traits,
+        typename Core = std::basic_string_view<Char, Traits>,
+        std::enable_if_t<is_const_string_core_v<Core>, int> = 0>
+        using basic_String_view = basic_String<Char, Traits, Core>;
+
+    using String_view = basic_String_view<char, std::char_traits<char>>;
+    using wString_view = basic_String_view<wchar_t, std::char_traits<wchar_t>>;
+    using u16String_view = basic_String_view<char16_t, std::char_traits<char16_t>>;
+    using u32String_view = basic_String_view<char32_t, std::char_traits<char32_t>>;
+
 }
 
 #define DEFAULT_STRING_HASH(T)											  \
@@ -2496,6 +2749,12 @@ struct hash<wjr::basic_String<T, char_traits<T>>> {						  \
     size_t operator()(const wjr::basic_String<T,char_traits<T>>& s)const{ \
         return wjr::hash_array_representation(s.data(),s.size());		  \
     }																	  \
+};                                                                        \
+template<>                                                                \
+struct hash<wjr::basic_String_view<T,char_traits<T>>> {                   \
+    size_t operator()(const wjr::basic_String<T,char_traits<T>>& s)const{ \
+        return wjr::hash_array_representation(s.data(),s.size());		  \
+    }                                                                     \
 };
 
 namespace std {

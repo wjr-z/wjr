@@ -10,32 +10,18 @@ using namespace wjr;
 using namespace std;
 #include <string>
 
-struct t1 {
-	int find() {
 
-	}
-};
+int main(){
 
-struct t2 
-	: private t1{
+	//auto vec = get_all_files("test");
 
-	void debug() {
-		t1::find();
-	}
-};
-
-int main(){	
-
-	auto vec = get_all_files("test");
-	json w[3];
-
-	auto s = mtime();
-	for (int i = 0; i < 3; ++i) {
-		w[i].parse(read_file(vec[i]));
-	}
-
-	auto t = mtime();
-	cout<<t-s<<'\n';
-
+	//auto s = mtime();
+	//for (auto i : vec) {
+	//	json w;
+	//	w.parse(read_file(i));
+	//}
+	//auto t = mtime();
+	//cout<<t-s<<'\n';
+	
 	return 0;
 }
