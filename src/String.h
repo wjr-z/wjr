@@ -1113,6 +1113,8 @@ namespace wjr {
 
     template<typename Char>
     class String_core {
+        static_assert(std::is_default_constructible_v<Char>,
+            "Corrupt Char type for String.");
     public:
 
         String_core() {
@@ -1150,7 +1152,9 @@ namespace wjr {
         }
 
         void swap(String_core& other) {
-            std::swap(_Ml, other._Ml);
+            const auto t = _Ml;
+            _Ml = other._Ml;
+            other._Ml = t;
         }
 
         Char* data() {
@@ -1242,7 +1246,8 @@ namespace wjr {
         void reset() { setSmallSize(0); }
 
         void setSmallSize(const size_t s) {
-            _Small[maxSmallSize] = static_cast<Char>(maxSmallSize - s);
+            assert(s <= maxSmallSize);
+            _Byte[lastChar] = static_cast<uint8_t>(maxSmallSize - s);
             _Small[s] = '\0';
         }
 
@@ -1252,7 +1257,7 @@ namespace wjr {
         }
 
         size_t SmallSize()const {
-            return maxSmallSize - _Small[maxSmallSize];
+            return maxSmallSize - _Byte[lastChar];
         }
 
         size_t MediumSize()const {
@@ -1437,7 +1442,7 @@ namespace wjr {
 
         }
 
-        basic_String_base(basic_String_base&& other)
+        basic_String_base(basic_String_base&& other) noexcept
             :core(std::move(other.core)) {
 
         }
@@ -1491,13 +1496,17 @@ namespace wjr {
         ~basic_String_base()noexcept {}
 
         basic_String_base& operator=(const basic_String_base& other) {
-            if (this == &other)
-                return *this;
-            return assign(other.data(), other.size());
+            if (this != std::addressof(other)) {
+                assign(other.data(), other.size());
+            }
+            return *this;
         }
 
-        basic_String_base& operator=(basic_String_base&& other) {
-            core.swap(other.core);
+        basic_String_base& operator=(basic_String_base&& other)noexcept {
+            if (this != std::addressof(other)) {
+                this->~basic_String_base();
+                new (&core) Core(std::move(other.core));
+            }
             return *this;
         }
 
@@ -1556,14 +1565,14 @@ namespace wjr {
         }
 
         basic_String_base& assign(const basic_String_base& other) {
-            if (this == &other)
-                return *this;
-            return assign(other.data(), other.size());
+            if (this != std::addressof(other)) {
+                assign(other.data(), other.size());
+            }
+            return *this;
         }
 
         basic_String_base& assign(basic_String_base&& other) {
-            *this = std::move(other);
-            return *this;
+            return (*this) = std::move(other);
         }
 
         basic_String_base& assign(const basic_String_base& other, const size_type pos, const size_type n = npos) {
@@ -2551,6 +2560,14 @@ namespace wjr {
         string_list split(const typename base::value_type* s,
             const typename base::size_type n,bool keep_empty_parts = true);
 
+        basic_String<Char,Traits,Core> to_lower()const&;
+
+        basic_String<Char,Traits,Core> to_lower()&&;
+
+        basic_String<Char, Traits, Core> to_upper()const&;
+
+        basic_String<Char, Traits, Core> to_upper()&&;
+
     public:
         using base::core;
     };
@@ -2661,6 +2678,34 @@ namespace wjr {
         }
 
         return ans;
+    }
+
+    template<typename Char,typename Traits,typename Core>
+    basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::to_lower()const& {
+        basic_String ans(*this);
+        return std::move(ans).to_lower();
+    }
+
+    template<typename Char,typename Traits,typename Core>
+    basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::to_lower()&& {
+        for (auto& i : (*this)) {
+            i = tolower(i);
+        }
+        return std::move(*this);
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::to_upper()const& {
+        basic_String ans(*this);
+        return std::move(ans).to_upper();
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::to_upper()&& {
+        for (auto& i : (*this)) {
+            i = toupper(i);
+        }
+        return std::move(*this);
     }
 
     template<typename Char,typename Traits,typename Core,

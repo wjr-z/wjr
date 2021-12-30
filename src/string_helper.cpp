@@ -5,50 +5,10 @@
 
 namespace wjr {
 
-	std::tuple<size_t, size_t> split(const char* ptr, const char cl, const char cr, const size_t _MaxCount) {
-		const void* p = memchr(ptr, cl, _MaxCount);
-		size_t pos1 = !p ? -1 : (const char*)p - ptr;
-		size_t pos2 = -1;
-		if (pos1 != _MaxCount) {
-			const void* q = memchr(ptr + pos1 + 1, cr, _MaxCount - pos1);
-			pos2 = !q ? -1 : (const char*)q - ptr;
-		}
-		return std::make_tuple(pos1, pos2);
-	}
-
-	size_t find_first_pos(const char* ptr, const char ch, const size_t _MaxCount) {
-		const void* pos = memchr(ptr, ch, _MaxCount);
-		return !pos ? -1 : (const char*)pos - ptr;
-	}
-
-	size_t get_number_of_char(const char* str, const size_t length, const char ch) {
-		const char* s = str;
-		const char* e = s + length;
-		size_t cnt = 0;
-		do {
-			s = (const char*)memchr(s, ch, e - s);
-			if (s == nullptr)break;
-			++s;
-			++cnt;
-		} while (true);
-		return cnt;
-	}
-
-	size_t get_number_of_char(const char* str, const char ch) {
-		return get_number_of_char(str, strlen(str), ch);
-	}
-
-	size_t get_number_of_char(const std::string& str, const char ch) {
-		return get_number_of_char(str.c_str(), str.length(), ch);
-	}
-
 	inline bool isdigit_or_sign(uint8_t ch) {
-		if(isdigit(ch))return true;
-		switch (ch) {
-		case '+':return true;
-		case '-':return true;
-		default:return false;
-		}
+		static bool Map[256] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+		};
+		return Map[ch];
 	}
 
 	size_t read_uint(const char* str,unsigned int&val) {
