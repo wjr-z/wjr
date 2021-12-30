@@ -11,8 +11,7 @@ using namespace std;
 #include <string>
 
 int main(){
-   
-	String s;
+
 
 	return 0;
 }
