@@ -733,12 +733,14 @@ namespace wjr {
     typename basic_String_Traits<Char, Traits>::size_type
         basic_String_Traits<Char, Traits>::rsearch(const value_type* s,
             const size_type n, const size_type off, const value_type ch) {
-        for (auto match_try = s + npos_min(off, n - 1);; --match_try) {
-            if (traits_type::eq(*match_try, ch)) {
-                return static_cast<size_type>(match_try - s);
-            }
-            if (match_try == s) {
-                break;
+        if (n != 0) {
+            for (auto match_try = s + npos_min(off, n - 1);; --match_try) {
+                if (traits_type::eq(*match_try, ch)) {
+                    return static_cast<size_type>(match_try - s);
+                }
+                if (match_try == s) {
+                    break;
+                }
             }
         }
         return npos;
@@ -872,17 +874,7 @@ namespace wjr {
     typename basic_String_Traits<Char, Traits>::size_type
         basic_String_Traits<Char, Traits>::search_last_of_ch(const value_type* s,
             const size_type n, size_type off, const value_type ch) {
-        if (n != 0) {
-            for (auto match_try = s + npos_min(off, n - 1);; --match_try) {
-                if (traits_type::eq(*match_try, ch)) {
-                    return static_cast<size_type>(match_try - s);
-                }
-                if (match_try == s) {
-                    break;
-                }
-            }
-        }
-        return npos;
+        return rsearch(s,n,off,ch);
     }
 
     template<typename Char, typename Traits>

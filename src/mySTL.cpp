@@ -10,12 +10,14 @@ namespace wjr {
 			31, 27, 13, 23, 21, 19, 16,  7, 26, 12, 18,  6, 11,  5, 10,  9
 		};
 
+	#define MY_QUICK_LOG2(ANS,X)						\
+		if(X >> 16) { ANS |= 16; X>>= 16; } \
+		if(X >> 8) { ANS |= 8; X>>= 8; }	\
+		if(X >> 4) { ANS |= 4; X>>=4; }		\
 
 		size_t qlog2(uint32_t x) {
 			size_t ans = 0;
-			if (x >> 16) { ans |= 16; x >>= 16; }
-			if (x >> 8) { ans |= 8;  x >>= 8; }
-			if (x >> 4) { ans |= 4;  x >>= 4; }
+			MY_QUICK_LOG2(ans,x);
 			return ans | tabel[x];
 		}
 
@@ -26,9 +28,7 @@ namespace wjr {
 		size_t qlog2(uint64_t x) {
 			size_t ans = 0;
 			if (x >> 32) { ans |= 32; x >>= 32; }
-			if (x >> 16) { ans |= 16; x >>= 16; }
-			if (x >> 8) { ans |= 8;  x >>= 8; }
-			if (x >> 4) { ans |= 4;  x >>= 4; }
+			MY_QUICK_LOG2(ans, x);
 			return ans | tabel[x];
 		}
 

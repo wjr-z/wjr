@@ -11,6 +11,6 @@ using namespace std;
 #include <future>
 
 int main(){
-	
+	string;
 	return 0;
 }
