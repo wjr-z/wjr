@@ -500,14 +500,12 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     struct basic_String_Traits {
-
     public:
         using value_type = Char;
         using traits_type = Traits;
         using size_type = size_t;
 
         constexpr static size_type npos = static_cast<size_type>(-1);
-
     private:
         struct bit_map {
             constexpr static size_t ubit = sizeof(uint32_t);
@@ -528,9 +526,7 @@ namespace wjr {
 
             uint32_t c[256 / size] = {};
         };
-
-    protected:
-
+    public:
         using string_search_traits = String_Search_Traits<Char,Traits>;
         using string_rsearch_traits = String_rSearch_Traits<Char,Traits>;
         using string_search_helper = String_find_helper<const value_type*,string_search_traits>;
@@ -1348,12 +1344,13 @@ namespace wjr {
     template<typename Char>
     void String_core<Char>::reserveSmall(const size_t s) {
         if (s <= maxSmallSize)return;
-        const auto _New_Data = Getal().allocate(s + 1);
+        const size_t new_size = std::max(s, 2 * maxSmallSize);
+        const auto _New_Data = Getal().allocate(new_size + 1);
         const auto _Old_Size = SmallSize();
         memcpy(_New_Data, _Small, sizeof(Char) * _Old_Size);
         _Ml._Data = _New_Data;
         setMediumSize(_Old_Size);
-        setCapacity(s);
+        setCapacity(new_size);
     }
 
     template<typename Char>
@@ -1362,19 +1359,25 @@ namespace wjr {
         if (s <= _Old_Capacity)
             return;
 
+        const size_t new_size = std::max(s, 1 + _Old_Capacity + _Old_Capacity / 2);
         auto Al = Getal();
-        const auto _New_Data = Al.allocate(s + 1);
+        const auto _New_Data = Al.allocate(new_size + 1);
         const auto _Old_Size = _Ml._Size;
         memcpy(_New_Data, _Ml._Data, sizeof(Char) * _Old_Size);
         Al.deallocate(_Ml._Data, _Old_Capacity + 1);
         _Ml._Data = _New_Data;
         setMediumSize(_Old_Size);
-        setCapacity(s);
+        setCapacity(new_size);
     }
 
+    template<typename Char,typename Traits>
+    class basic_String_view 
+        : public basic_String_Traits<Char,Traits> {
+
+    };
+
     template<typename Char,typename Traits,typename Core = String_core<Char>>
-    class basic_String
-        : public basic_String_Traits<Char, Traits> {
+    class basic_String  {
 
     private:
         using default_traits = basic_String_Traits<Char, Traits>;
@@ -1389,11 +1392,6 @@ namespace wjr {
         // is const iterator -> char pointer
         template<typename iter>
         using is_const_iterator = std::enable_if_t<is_char_ptr<iter>::value, int>;
-
-    protected:
-
-        using default_traits::traits_length;
-        using default_traits::npos_min;
 
     public:
 
@@ -1416,7 +1414,18 @@ namespace wjr {
         using reverse_iterator = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-        using default_traits::npos;
+        constexpr static size_type npos = default_traits::npos;
+
+    private:
+        constexpr static inline size_type traits_length(const value_type* s) {
+            return default_traits::traits_length(s);
+        }
+
+        constexpr static inline size_type npos_min(size_type n, const size_type x) {
+            return default_traits::npos_min(n,x);
+        }
+
+    public:
 
         basic_String()= default;
 
@@ -1894,6 +1903,10 @@ namespace wjr {
             return _data + pos;
         }
 
+        basic_String& replace(const size_type pos, const size_type n, const value_type ch) {
+            return replace(pos,n,&ch,1);
+        }
+
         basic_String& replace(
             const size_type pos, const size_type n, const basic_String& s) {
             return replace(pos, n, s.data(), s.size());
@@ -1932,6 +1945,23 @@ namespace wjr {
         template<typename T, is_const_iterator<T> = 0>
         basic_String& replace(T first, T last, const value_type* s, const size_type n) {
             return replace(first - data(), last - first, s, n);
+        }
+
+        template<typename T = Traits>
+        basic_String& replace_all(const value_type before,const value_type after);
+
+        template<typename T = Traits>
+        basic_String& replace_all(const value_type*s1,const size_type n1,
+            const value_type* s2,const size_type n2);
+
+        template<typename T = Traits>
+        basic_String& replace_all(const value_type* s1, const value_type* s2) {
+            return replace_all<T>(s1,traits_length(s1),s2,traits_length(s2));
+        }
+
+        template<typename T = Traits>
+        basic_String& replace_all(const basic_String& before, const basic_String& after) {
+            return replace_all<T>(before.data(),before.size(),after.data(),after.size());
         }
 
         void swap(basic_String & other) { core.swap(other.core); }
@@ -2497,6 +2527,55 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits, typename Core>
+    template<typename T>
+    basic_String<Char, Traits, Core>& basic_String<Char, Traits, Core>::replace_all(
+        const value_type before, const value_type after) {
+        auto _data = data();
+        size_type pos = 0;
+        for (;;) {
+            pos = find<T>(before, pos);
+            if (pos == npos) {
+                break;
+            }
+            *(_data + pos) = after;
+            ++pos;
+        }
+        return *this;
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    template<typename T>
+    basic_String<Char, Traits, Core>& basic_String<Char, Traits, Core>::replace_all(
+        const value_type*s1,const size_type n1,const value_type* s2,const size_type n2) {
+        size_type pos = 0;
+        if (n1 == n2) {
+            for (;;) {
+                const size_type fnd = find<T>(s1,pos,n1);
+                if (fnd == npos) {
+                    break;
+                }
+                replace(fnd,n1,s2,n2);
+                pos = fnd + n2;
+            }
+        }
+        else {
+            basic_String temp;
+            for (;;) {
+                const size_type fnd = find<T>(s1,pos,n1);
+                if (fnd == npos) {
+                    temp.append(*this,pos,npos);
+                    break;
+                }
+                temp.append(*this,pos,fnd - pos).append(s2,n2);
+                pos = fnd + n1;
+            }
+            this->~basic_String();
+            new (this) basic_String(std::move(temp));
+        }
+        return *this;
+    }
+
+    template<typename Char, typename Traits, typename Core>
     basic_String<Char, Traits, Core>&
         basic_String<Char, Traits, Core>::fill(value_type ch, const size_type n) {
         auto _size = size();
@@ -2951,6 +3030,7 @@ namespace wjr {
                 if (std::isspace(got)) {
                     break;
                 }
+                printf("%d\n",got);
                 str.push_back(got);
                 got = is.rdbuf()->snextc();
             }
@@ -3002,16 +3082,6 @@ namespace wjr {
     using wString = basic_String<wchar_t,std::char_traits<wchar_t>>;
     using u16String = basic_String<char16_t,std::char_traits<char16_t>>;
     using u32String = basic_String<char32_t,std::char_traits<char32_t>>;
-
-    //template<typename Char, typename Traits = std::char_traits<Char>,
-    //    typename Core = std::basic_string_view<Char, Traits>,
-    //    std::enable_if_t<is_const_string_core_v<Core>, int> = 0>
-    //    using basic_String_view = basic_String<Char, Traits, Core>;
-
-    //using String_view = basic_String_view<char, std::char_traits<char>>;
-    //using wString_view = basic_String_view<wchar_t, std::char_traits<wchar_t>>;
-    //using u16String_view = basic_String_view<char16_t, std::char_traits<char16_t>>;
-    //using u32String_view = basic_String_view<char32_t, std::char_traits<char32_t>>;
 
 }
 

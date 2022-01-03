@@ -84,7 +84,8 @@ namespace wjr {
         using Array = json_array;
 
         // only need to move copy Number when need to copy data of union
-        static_assert(sizeof(Number) >= sizeof(String*));
+        static_assert(sizeof(Number) >= sizeof(String*),"");
+        static_assert((uint8_t)(value_t::undefined) == 0,"");
 
         using size_type = size_t;
 
@@ -282,6 +283,8 @@ namespace wjr {
 
         inline void _Tidy();
 
+        uint8_t _Type;
+
         union {
             Boolean _Boolean;
             Number _Number;
@@ -290,7 +293,6 @@ namespace wjr {
             Array* _Array;
         };
 
-        uint8_t _Type;
     };
 
     template<typename...Args, json::_Is_string_view_ish<Args...>>
