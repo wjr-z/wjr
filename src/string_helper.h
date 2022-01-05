@@ -1,5 +1,5 @@
-#ifndef STRING_TOOL_H
-#define STRING_TOOL_H
+#ifndef STRING_HELPER_H
+#define STRING_HELPER_H
 
 #include "mallocator.h"
 #include <cstdint>

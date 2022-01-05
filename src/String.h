@@ -29,86 +29,19 @@ namespace wjr {
         using difference_type = diff_t;
         using allocator_type = mallocator<diff_t>;
 
-        skmp_searcher_fshift_builder(
-            const RanItPat First, const RanItPat Last, const Pred_eq Eq
-        ) : first(First), last(Last) {
-            size = last - first;
-            auto al = mallocator<diff_t>();
-            fshift = al.allocate(size + 1);
-            fm = al.allocate(size + 1);
+        skmp_searcher_fshift_builder(const RanItPat First, const RanItPat Last, const Pred_eq Eq);
 
-            diff_t* fnxt = al.allocate(size + 1);
-            diff_t i = 0, j = -1;
-            fnxt[0] = -1;
+        skmp_searcher_fshift_builder(const skmp_searcher_fshift_builder& other);
 
-            while (i < size) {
-                if (j == -1 || Eq(*(last - 1 - i), *(last - 1 - j))) {
-                    fnxt[++i] = ++j;
-                }
-                else j = fnxt[j];
-            }
+        skmp_searcher_fshift_builder(skmp_searcher_fshift_builder&& other)noexcept;
 
-            std::fill_n(fshift, size + 1, static_cast<diff_t>(-1));
-
-            for (i = 1; i <= size; ++i) {
-                while (i < size && fnxt[i + 1] == fnxt[i] + 1)
-                    ++i;
-                j = i;
-                while (fnxt[j] != -1 && fshift[fnxt[j]] == -1) {
-                    fshift[fnxt[j]] = i - fnxt[j];
-                    j = fnxt[j];
-                }
-            }
-
-            std::fill_n(fm, size + 1, size);
-
-            i = size;
-
-            while (fnxt[i] != -1) {
-                fm[fnxt[i]] = size - fnxt[i];
-                i = fnxt[i];
-            }
-
-            for (i = 1; i <= size; ++i)
-                fm[i] = fm[i] < fm[i - 1] ? fm[i] : fm[i - 1];
-
-            for (i = 0; i <= size; ++i)
-                fshift[i] = ~fshift[i] ? fshift[i] + i : 0;
-
-            al.deallocate(fnxt, size + 1);
-        }
-
-        skmp_searcher_fshift_builder(const skmp_searcher_fshift_builder& other)
-            : size(other.size), first(other.first), last(other.last) {
-            auto al = mallocator<diff_t>();
-            fshift = al.allocate(size + 1);
-            fm = al.allocate(size + 1);
-            std::copy(other.fshift, other.fshift + size + 1, fshift);
-            std::copy(other.fm, other.fm + size + 1, fm);
-        }
-
-        skmp_searcher_fshift_builder(skmp_searcher_fshift_builder&& other)noexcept
-            : fshift(other.fshift), fm(other.fm), size(other.size),
-            first(other.first), last(other.last) {
-            other.fshift = other.fm = nullptr;
-        }
-
-        ~skmp_searcher_fshift_builder() {
-            auto al = mallocator<diff_t>();
-            if (fshift) {
-                al.deallocate(fshift, size + 1);
-                al.deallocate(fm, size + 1);
-            }
-        }
+        ~skmp_searcher_fshift_builder() ;
 
         RanItPat get_first()const { return first; }
-
         RanItPat get_last()const { return last; }
 
         diff_t* get_fshift()const { return fshift; }
-
         diff_t* get_fm()const { return fm; }
-
         diff_t get_size()const { return size; }
 
     private:
@@ -116,9 +49,88 @@ namespace wjr {
         RanItPat first, last;
     };
 
+    template<typename RanItPat,typename Pred_eq>
+    skmp_searcher_fshift_builder<RanItPat,Pred_eq>::skmp_searcher_fshift_builder(
+        const RanItPat First, const RanItPat Last, const Pred_eq Eq
+    ) : first(First), last(Last) {
+        size = last - first;
+        auto al = mallocator<diff_t>();
+        fshift = al.allocate(size + 1);
+        fm = al.allocate(size + 1);
+
+        diff_t* fnxt = al.allocate(size + 1);
+        diff_t i = 0, j = -1;
+        fnxt[0] = -1;
+
+        while (i < size) {
+            if (j == -1 || Eq(*(last - 1 - i), *(last - 1 - j))) {
+                fnxt[++i] = ++j;
+            }
+            else j = fnxt[j];
+        }
+
+        std::fill_n(fshift, size + 1, static_cast<diff_t>(-1));
+
+        for (i = 1; i <= size; ++i) {
+            while (i < size && fnxt[i + 1] == fnxt[i] + 1)
+                ++i;
+            j = i;
+            while (fnxt[j] != -1 && fshift[fnxt[j]] == -1) {
+                fshift[fnxt[j]] = i - fnxt[j];
+                j = fnxt[j];
+            }
+        }
+
+        std::fill_n(fm, size + 1, size);
+
+        i = size;
+
+        while (fnxt[i] != -1) {
+            fm[fnxt[i]] = size - fnxt[i];
+            i = fnxt[i];
+        }
+
+        for (i = 1; i <= size; ++i)
+            fm[i] = fm[i] < fm[i - 1] ? fm[i] : fm[i - 1];
+
+        for (i = 0; i <= size; ++i)
+            fshift[i] = ~fshift[i] ? fshift[i] + i : 0;
+
+        al.deallocate(fnxt, size + 1);
+    }
+
+    template<typename RanItPat, typename Pred_eq>
+    skmp_searcher_fshift_builder<RanItPat, Pred_eq>::
+        skmp_searcher_fshift_builder(const skmp_searcher_fshift_builder& other)
+        : size(other.size), first(other.first), last(other.last) {
+        auto al = mallocator<diff_t>();
+        fshift = al.allocate(size + 1);
+        fm = al.allocate(size + 1);
+        std::copy(other.fshift, other.fshift + size + 1, fshift);
+        std::copy(other.fm, other.fm + size + 1, fm);
+    }
+
+    template<typename RanItPat, typename Pred_eq>
+    skmp_searcher_fshift_builder<RanItPat, Pred_eq>::
+        skmp_searcher_fshift_builder(skmp_searcher_fshift_builder&& other)noexcept
+        : fshift(other.fshift), fm(other.fm), size(other.size),
+        first(other.first), last(other.last) {
+        other.fshift = other.fm = nullptr;
+    }
+
+    template<typename RanItPat, typename Pred_eq>
+    skmp_searcher_fshift_builder<RanItPat, Pred_eq>::
+        ~skmp_searcher_fshift_builder() {
+        auto al = mallocator<diff_t>();
+        if (fshift) {
+            al.deallocate(fshift, size + 1);
+            al.deallocate(fm, size + 1);
+        }
+    }
+
     template<typename RanItPat, typename Hash_ty =
-        std::hash<typename std::iterator_traits<RanItPat>::value_type>, class Pred_eq = std::equal_to<>>
-        class skmp_searcher_char_builder
+        std::hash<typename std::iterator_traits<RanItPat>::value_type>, typename Pred_eq = std::equal_to<>>
+    class skmp_searcher_char_builder
         : public skmp_searcher_fshift_builder<RanItPat, Pred_eq> {
         private:
 
@@ -132,20 +144,7 @@ namespace wjr {
 
             skmp_searcher_char_builder(
                 RanItPat First, RanItPat Last, Hash_ty fn = Hash_ty(), Pred_eq Eq = Pred_eq()
-            ) : Base(First, Last, Eq) {
-                auto first = Base::get_first();
-                const auto last = Base::get_last();
-                const auto size = Base::get_size();
-                shift = mallocator<diff_t>().allocate(256);
-                std::fill_n(shift, 256, size + 1);
-                diff_t i = size;
-                while (first != last) {
-                    const auto u_value = static_cast<std::make_unsigned_t<value_t>>(*first);
-                    shift[u_value] = i;
-                    ++first;
-                    --i;
-                }
-            }
+            ) ;
 
             skmp_searcher_char_builder(const skmp_searcher_char_builder& other)
                 : Base(other) {
@@ -175,10 +174,28 @@ namespace wjr {
             diff_t* shift;
     };
 
+    template<typename RanItPat, typename Hash_ty, typename Pred_eq>
+    skmp_searcher_char_builder<RanItPat,Hash_ty,Pred_eq>::skmp_searcher_char_builder(
+        RanItPat First, RanItPat Last, Hash_ty fn, Pred_eq Eq
+    ) : Base(First, Last, Eq) {
+        auto first = Base::get_first();
+        const auto last = Base::get_last();
+        const auto size = Base::get_size();
+        shift = mallocator<diff_t>().allocate(256);
+        std::fill_n(shift, 256, size + 1);
+        diff_t i = size;
+        while (first != last) {
+            const auto u_value = static_cast<std::make_unsigned_t<value_t>>(*first);
+            shift[u_value] = i;
+            ++first;
+            --i;
+        }
+    }
+
     template<typename RanItPat, typename Hash_ty =
         std::hash<typename std::iterator_traits<RanItPat>::value_type>,
-        class Pred_eq = std::equal_to<>>
-        class skmp_searcher_general_builder
+        typename Pred_eq = std::equal_to<>>
+    class skmp_searcher_general_builder
         : public skmp_searcher_fshift_builder<RanItPat, Pred_eq> {
         private:
             using Base = skmp_searcher_fshift_builder<RanItPat, Pred_eq>;
@@ -191,17 +208,7 @@ namespace wjr {
 
             skmp_searcher_general_builder(
                 RanItPat First, RanItPat Last, Hash_ty fn = Hash_ty(), Pred_eq Eq = Pred_eq()
-            ) : Base(First, Last, Eq) {
-                auto first = Base::get_first();
-                const auto last = Base::get_last();
-                const auto size = Base::get_size();
-                diff_t i = size;
-                while (first != last) {
-                    Map.insert_or_assign(*first, i);
-                    ++first;
-                    --i;
-                }
-            }
+            ) ;
 
             skmp_searcher_general_builder(const skmp_searcher_general_builder& other)
                 : Base(other), Map(other.Map) {
@@ -226,6 +233,21 @@ namespace wjr {
         private:
             std::unordered_map<value_t, diff_t, Hash_ty, Pred_eq> Map;
     };
+
+    template<typename RanItPat, typename Hash_ty, typename Pred_eq>
+    skmp_searcher_general_builder<RanItPat,Hash_ty,Pred_eq>::skmp_searcher_general_builder(
+        RanItPat First, RanItPat Last, Hash_ty fn, Pred_eq Eq
+    ) : Base(First, Last, Eq) {
+        auto first = Base::get_first();
+        const auto last = Base::get_last();
+        const auto size = Base::get_size();
+        diff_t i = size;
+        while (first != last) {
+            Map.insert_or_assign(*first, i);
+            ++first;
+            --i;
+        }
+    }
 
     template<typename RanItPat, typename Hash_ty, typename Pred_eq, typename value_t =
         typename std::iterator_traits<RanItPat>::value_type>
@@ -451,6 +473,10 @@ namespace wjr {
         return { Last,Last };
     }
 
+    //--------------------------------------------------------------------------------//
+    //--------------------------------------------------------------------------------//
+    //--------------------------------------------------------------------------------//
+
     template<typename RanItPat, typename Traits>
     struct String_find_helper {
     public:
@@ -495,6 +521,56 @@ namespace wjr {
         using traits_type = Traits;
         bool operator()(const value_type& a, const value_type& b)const {
             return traits_type::eq(a, b);
+        }
+    };
+
+    template<typename Traits>
+    struct case_insensitive : public Traits{
+        using base = Traits;
+        using char_type = typename base::char_type;
+
+        static constexpr bool eq(const char_type& lhs, const char_type& rhs) noexcept {
+            return base::eq(tolower(lhs),tolower(rhs));
+        }
+
+        static constexpr bool lt(const char_type& lhs, const char_type& rhs)noexcept {
+            if (isalpha(lhs) && isalpha(rhs)) {
+                return base::lt(tolower(lhs),tolower(rhs));
+            }
+            else {
+                return base::lt(lhs,rhs);
+            }
+        }
+
+        static int compare(const char_type* l, const char_type* r, const size_t count)noexcept {
+            const char_type* e = l + count;
+            while (l != e) {
+                if (isalpha(*l) && isalpha(*r)) {
+                    char_type lc = tolower(*l);
+                    char_type rc = tolower(*r);
+                    if (!base::eq(lc,rc)) {
+                        return base::lt(lc,rc) ? -1 : 1;
+                    }
+                }
+                else {
+                    if (!base::eq(*l,*r)) {
+                        return base::lt(*l,*r) ? -1 : 1;
+                    }
+                }
+                ++l;
+                ++r;
+            }
+            return 0;
+        }
+
+        static constexpr const char_type* find(
+            const char_type* first, size_t count, const char_type& ch) noexcept {
+            for (; 0 < count; --count, ++first) {
+                if (eq(*first, ch)) {
+                    return first;
+                }
+            }
+            return nullptr;
         }
     };
 
@@ -1176,7 +1252,7 @@ namespace wjr {
         // expand size of n without init
         Char* expandNoinit(const size_t n, bool expGrowth = false);
 
-        void push_back(char c) { *expandNoinit(1,true) = c; }
+        void push_back(Char c) { *expandNoinit(1,true) = c; }
 
         size_t size()const {
             return category() ? MediumSize() : SmallSize();
@@ -1412,7 +1488,6 @@ namespace wjr {
         constexpr static inline size_type traits_length(const value_type* s) {
             return default_traits::traits_length(s);
         }
-
         constexpr static inline size_type npos_min(size_type n, const size_type x) {
             return default_traits::npos_min(n,x);
         }
@@ -1558,31 +1633,22 @@ namespace wjr {
         }
 
         iterator begin() { return core.data(); }
-
         const_iterator begin()const { return core.data(); }
-
         const_iterator cbegin()const { return begin(); }
 
         iterator end() { return core.data() + core.size(); }
-
         const_iterator end()const { return core.data() + core.size(); }
-
         const_iterator cend()const { return end(); }
 
         reverse_iterator rbegin() { return reverse_iterator(end()); }
-
         const_reverse_iterator rbegin()const { return const_reverse_iterator(end()); }
-
         const_reverse_iterator crbegin()const { return const_reverse_iterator(cend()); }
 
         reverse_iterator rend() { return reverse_iterator(begin()); }
-
         const_reverse_iterator rend()const { return const_reverse_iterator(begin()); }
-
         const_reverse_iterator crend()const { return const_reverse_iterator(begin()); }
 
         reference front() { return *begin(); }
-
         const_reference front()const { return *begin(); }
 
         reference back() {
@@ -1645,11 +1711,8 @@ namespace wjr {
         }
 
         basic_String& operator+=(const basic_String& other) { return append(other); }
-
         basic_String& operator+=(const value_type* s) { return append(s); }
-
         basic_String& operator+=(const value_type c) { push_back(c); return *this; }
-
         basic_String& operator+=(std::initializer_list<value_type> il) {
             append(il);
             return *this;
@@ -1940,28 +2003,26 @@ namespace wjr {
         }
 
         template<typename T = Traits>
-        basic_String& replace_all(const value_type before,const value_type after);
+        basic_String& replace(const value_type before,const value_type after);
 
         template<typename T = Traits>
-        basic_String& replace_all(const value_type*s1,const size_type n1,
+        basic_String& replace(const value_type*s1,const size_type n1,
             const value_type* s2,const size_type n2);
 
         template<typename T = Traits>
-        basic_String& replace_all(const value_type* s1, const value_type* s2) {
-            return replace_all<T>(s1,traits_length(s1),s2,traits_length(s2));
+        basic_String& replace(const value_type* s1, const value_type* s2) {
+            return replace<T>(s1,traits_length(s1),s2,traits_length(s2));
         }
 
         template<typename T = Traits>
-        basic_String& replace_all(const basic_String& before, const basic_String& after) {
-            return replace_all<T>(before.data(),before.size(),after.data(),after.size());
+        basic_String& replace(const basic_String& before, const basic_String& after) {
+            return replace<T>(before.data(),before.size(),after.data(),after.size());
         }
 
         void swap(basic_String & other) { core.swap(other.core); }
 
         const value_type* c_str() const { return core.c_str(); }
-
         value_type* data() { return core.data(); }
-
         const value_type* data() const { return core.data(); }
 
         bool empty()const { return core.empty(); }
@@ -1971,7 +2032,7 @@ namespace wjr {
         // and it will be compared by default traits_type
         template<typename T = Traits>
         int compare(const basic_String & other)const {
-            return compare<T>(0, size(), other);
+            return compare<T>(0, npos, other);
         }
 
         template<typename T = Traits>
@@ -2365,12 +2426,15 @@ namespace wjr {
             const size_type n, bool keep_empty_parts = true);
 
         basic_String<Char, Traits, Core> to_lower()const&;
-
         basic_String<Char, Traits, Core> to_lower()&&;
-
         basic_String<Char, Traits, Core> to_upper()const&;
-
         basic_String<Char, Traits, Core> to_upper()&&;
+
+        static basic_String<Char, Traits, Core> number(int, int base = 10);
+        static basic_String<Char, Traits, Core> number(unsigned int, int base = 10);
+        static basic_String<Char, Traits, Core> number(long long, int base = 10);
+        static basic_String<Char, Traits, Core> number(unsigned long long, int base = 10);
+        static basic_String<Char, Traits, Core> number(double, char f = 'g', int prec = 6);
 
     private:
         Core core;
@@ -2520,7 +2584,7 @@ namespace wjr {
 
     template<typename Char, typename Traits, typename Core>
     template<typename T>
-    basic_String<Char, Traits, Core>& basic_String<Char, Traits, Core>::replace_all(
+    basic_String<Char, Traits, Core>& basic_String<Char, Traits, Core>::replace(
         const value_type before, const value_type after) {
         auto _data = data();
         size_type pos = 0;
@@ -2537,7 +2601,7 @@ namespace wjr {
 
     template<typename Char, typename Traits, typename Core>
     template<typename T>
-    basic_String<Char, Traits, Core>& basic_String<Char, Traits, Core>::replace_all(
+    basic_String<Char, Traits, Core>& basic_String<Char, Traits, Core>::replace(
         const value_type*s1,const size_type n1,const value_type* s2,const size_type n2) {
         size_type pos = 0;
         if (n1 == n2) {
@@ -2719,6 +2783,144 @@ namespace wjr {
             i = toupper(i);
         }
         return std::move(*this);
+    }
+
+    template<typename Char, typename UVal>
+    Char* get_number_positive(Char* buff, UVal val, int base) {
+        static_assert(std::is_unsigned_v<UVal>, "UVal must be unsigned");
+        assert(base >= 0);
+        do {
+            UVal mod = val % base;
+            *(--buff) = static_cast<Char>(mod < 10 ? '0' + mod : 'a' + (mod -10));
+            val /= base;
+        } while (val != 0);
+        return buff;
+    }
+
+    template<typename Char,typename UVal>
+    Char* get_number_negative(Char* buff, UVal val, bool p, int base) {
+        static_assert(std::is_unsigned_v<UVal>, "UVal must be unsigned");
+        assert(base < 0);
+        bool f = p;
+        unsigned int ubase = static_cast<unsigned int>(-base);
+        do {
+            UVal mod = val % ubase;
+            UVal k = val / ubase;
+            if (mod != 0 && !f) {
+                mod = ubase - mod;
+                if (!f) {
+                    ++k;
+                }
+                else {
+                    --k;
+                }
+            }
+            f = !f;
+            val = k;
+            *(--buff) = static_cast<Char>(mod < 10 ? '0' + mod : 'a' + (mod - 10));
+        }while(val != 0);
+        return buff;
+    }
+
+    template<typename Char,typename Val>
+    Char* get_number_signed_helper(Char* buff, Val val, int base) {
+        static_assert(!std::is_unsigned_v<Val>,"Val must be signed");
+        using uval = std::make_unsigned_t<Val>;
+        if (base >= 0) {
+            if (val < 0) {
+                buff = get_number_positive(buff,static_cast<uval>(0 - val),base);
+                *(--buff) = static_cast<Char>('-');
+            }
+            else {
+                buff = get_number_positive(buff,static_cast<uval>(val),base);
+            }
+        }
+        else {
+            if (val < 0) {
+                buff = get_number_negative(buff,static_cast<uval>(0 - val),false,base);
+            }
+            else {
+                buff = get_number_negative(buff,static_cast<uval>(val),true,base);
+            }
+        }
+        return buff;
+    }
+
+    template<typename Char, typename UVal>
+    Char* get_number_unsigned_helper(Char* buff, UVal val, int base) {
+        static_assert(std::is_unsigned_v<UVal>, "UVal must be unsigned");
+        if (base >= 0) {
+            buff = get_number_positive(buff,val,base);
+        }
+        else {
+            buff = get_number_negative(buff,val,true,base);
+        }
+        return buff;
+    }
+
+    template<typename Char,typename Traits,typename Core>
+    basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::
+        number(int val, int base) {
+        using uval = unsigned int;
+        Char buff[33];
+        Char* const buff_end = std::end(buff);
+        Char* pos = buff_end;
+        pos = get_number_signed_helper(pos,val,base);
+        return basic_String<Char,Traits,Core>(pos,buff_end);
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::
+        number(unsigned int val, int base) {
+        Char buff[33];
+        Char* const buff_end = std::end(buff);
+        Char* pos = buff_end;
+        pos = get_number_unsigned_helper(pos,val,base);
+        return basic_String<Char, Traits, Core>(pos, buff_end);
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::
+        number(long long val, int base) {
+        using uval = unsigned long long;
+        Char buff[65];
+        Char* const buff_end = std::end(buff);
+        Char* pos = buff_end;
+        pos = get_number_signed_helper(pos,val,base);
+        return basic_String<Char, Traits, Core>(pos, buff_end);
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::
+        number(unsigned long long val, int base) {
+        Char buff[65];
+        Char* const buff_end = std::end(buff);
+        Char* pos = buff_end;
+        pos = get_number_unsigned_helper(pos, val, base);
+        return basic_String<Char, Traits, Core>(pos, buff_end);
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::
+        number(double val, char f, int prec) {
+        if(prec > 99){prec = 99;}
+        char form[6];
+        char* pos = form;
+        *(pos++) = static_cast<Char>('%');
+        *(pos++) = static_cast<Char>('.');
+
+        if (prec < 10) {
+            *(pos++) = static_cast<Char>('0' + prec);
+        }
+        else {
+            *(pos++) = static_cast<Char>('0' + (prec / 10));
+            *(pos++) = static_cast<Char>('0' + (prec % 10));
+        }
+        *(pos++) = f;
+        *(pos++) = '\0';
+        char buff[64];
+        const auto len = sprintf(buff,form,val);
+        return basic_String<Char,Traits,Core>(buff,buff + len);
     }
 
     template<typename Char,typename Traits,typename Core>
@@ -3074,6 +3276,14 @@ namespace wjr {
     using wString = basic_String<wchar_t,std::char_traits<wchar_t>>;
     using u16String = basic_String<char16_t,std::char_traits<char16_t>>;
     using u32String = basic_String<char32_t,std::char_traits<char32_t>>;
+
+    template<typename T>
+    struct case_insensitive_String {
+        using type = case_insensitive<typename T::traits_type>;
+    };
+
+    template<typename T>
+    using case_insensitive_String_t = typename case_insensitive_String<T>::type;
 
 }
 

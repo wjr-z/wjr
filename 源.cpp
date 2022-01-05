@@ -8,9 +8,7 @@
 #include "src/String.h"
 using namespace wjr;
 using namespace std;
-#include <future>
 
 int main(){
-	string;
 	return 0;
 }

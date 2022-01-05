@@ -26,20 +26,6 @@ namespace wjr {
 		bool is_power_of_two(long long);
 		bool is_power_of_two(unsigned long long);
 
-		static std::mt19937 basic_mt_rand(std::time(NULL));
-
-		template<typename T>
-		T mt19937_rand() {
-			return static_cast<T>(basic_mt_rand());
-		}
-
-		template<typename T>
-		T mt19937_rand(T L, T R) { // return a rand value of [L,R)
-			assert(L < R);
-			T mod = R - L;
-			return static_cast<T>(mt19937_rand<std::make_unsigned_t<T>>() % mod) + L;
-		}
-
 	}
 
 	inline namespace mt_type_traits{

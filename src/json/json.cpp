@@ -109,17 +109,16 @@ namespace wjr {
             return s != e;
         }
 
+        extern "C" {
+            int fill_double_l(double v, char* buffer);
+        }
+
         json_string to_accurate_string(double val) {
-
-            if ((val < INT64_MAX) && (val > INT64_MIN)) {
-                if (val == static_cast<double>(static_cast<long long>(val)))
-                    return (json_string)std::to_string(static_cast<long long>(val));
-            }
-
-            const auto _Len = static_cast<size_t>(_scprintf("%.17g", val));
-            json_string _Str(_Len, '\0');
-            sprintf_s(&_Str[0], _Len + 1, "%.17g", val);
-            return _Str;
+            char buff[64];
+            int l = fill_double_l(val,buff);
+            assert(l < 64);
+            json_string Str(buff,l);
+            return Str;
         }
 
     }
