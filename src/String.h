@@ -481,10 +481,12 @@ namespace wjr {
     struct String_find_helper {
     public:
         using value_type = typename std::iterator_traits<RanItPat>::value_type;
+        using skmp_searcher_type = skmp_searcher<RanItPat, std::hash<value_type>, Traits>;
+
+    public:
 
         String_find_helper(RanItPat s, RanItPat e)
-            : srch(s, e, std::hash<value_type>()
-                ,Traits()), _size(static_cast<size_t>(e - s)) {
+            : srch(s,e,std::hash<value_type>(),Traits()), _size(static_cast<size_t>(e - s)) {
 
         }
 
@@ -496,31 +498,30 @@ namespace wjr {
         size_t size()const { return _size; }
 
     private:
-        skmp_searcher<RanItPat, std::hash<value_type>, Traits> srch;
+        skmp_searcher_type srch;
         size_t _size;
     };
 
     template<typename Char,typename Traits>
-    struct String_Search_Traits {
+    struct String_find_traits : public Traits{
         using value_type = Char;
         using size_type = size_t;
         using traits_type = Traits;
         bool operator()(const value_type& a, const value_type& b)const {
             return traits_type::eq(a, b);
-        }
-        static const value_type* find(const value_type* s, size_type n,
-            const value_type& ch) {
-            return traits_type::find(s, n, ch);
         }
     };
 
     template<typename Char,typename Traits>
-    struct String_rSearch_Traits { 
+    struct String_rfind_traits { 
         using value_type = Char;
         using size_type = size_t;
         using traits_type = Traits;
         bool operator()(const value_type& a, const value_type& b)const {
             return traits_type::eq(a, b);
+        }
+        static int compare(const value_type* a, const value_type* b, const size_t count) {
+            return Traits::compare(a,b,count);
         }
     };
 
@@ -575,7 +576,7 @@ namespace wjr {
     };
 
     template<typename Char, typename Traits>
-    struct basic_String_Traits {
+    struct basic_String_traits {
     public:
         using value_type = Char;
         using traits_type = Traits;
@@ -603,17 +604,17 @@ namespace wjr {
             uint32_t c[256 / size] = {};
         };
     public:
-        using string_search_traits = String_Search_Traits<Char,Traits>;
-        using string_rsearch_traits = String_rSearch_Traits<Char,Traits>;
-        using string_search_helper = String_find_helper<const value_type*,string_search_traits>;
-        using string_rsearch_helper = String_find_helper<
-            std::reverse_iterator<const value_type*>,string_rsearch_traits>;
+        using string_find_traits = String_find_traits<Char,Traits>;
+        using string_rfind_traits = String_rfind_traits<Char,Traits>;
+        using string_find_helper = String_find_helper<const value_type*,string_find_traits>;
+        using string_rfind_helper = String_find_helper<
+            std::reverse_iterator<const value_type*>,string_rfind_traits>;
 
-        using string_search_of_helper = std::conditional_t<
+        using string_find_of_helper = std::conditional_t<
             std::is_integral_v<value_type> && sizeof(value_type) <= 1
             && std::is_same_v<Traits, std::char_traits<value_type>> ,
             bit_map,
-            std::unordered_set<value_type, std::hash<value_type>, string_search_traits, mallocator<value_type>>>;
+            std::unordered_set<value_type, std::hash<value_type>, string_find_traits, mallocator<value_type>>>;
 
         constexpr static inline size_type traits_length(const value_type* s) {
             return traits_type::length(s);
@@ -629,71 +630,71 @@ namespace wjr {
             }
         }
 
-        static string_search_helper
-            get_search_helper(const value_type*s,const value_type* e);
-        static size_type search(const value_type* s, const size_type n,
+        static string_find_helper
+            get_find_helper(const value_type*s,const value_type* e);
+        static size_type find(const value_type* s, const size_type n,
             const size_type off, const value_type ch);
-        // only need to search once ,then use this
+        // only need to find once ,then use this
         // for this won't initial at first 
-        static size_type search(const value_type* s1, const size_type n1,
+        static size_type find(const value_type* s1, const size_type n1,
             const size_type off, const value_type* s2, const size_type n2);
-        static size_type search(const value_type* s1,const size_type n1,
-            const size_type off,const string_search_helper&srch);
+        static size_type find(const value_type* s1,const size_type n1,
+            const size_type off,const string_find_helper&srch);
 
-        static string_rsearch_helper
-            get_rsearch_helper(const value_type* s, const value_type*e);
-        static size_type rsearch(const value_type* s, const size_type n,
+        static string_rfind_helper
+            get_rfind_helper(const value_type* s, const value_type*e);
+        static size_type rfind(const value_type* s, const size_type n,
             const size_type off, const value_type ch);
-        static size_type rsearch(const value_type* s1, const size_type n1,
+        static size_type rfind(const value_type* s1, const size_type n1,
             size_type off, const value_type* s2, const size_type n2);
-        static size_type rsearch(const value_type* s1,const size_type n1,
-            size_type off,const string_rsearch_helper&srch);
+        static size_type rfind(const value_type* s1,const size_type n1,
+            size_type off,const string_rfind_helper&srch);
 
-        static string_search_of_helper get_search_of_helper(const value_type*s,const value_type* e);
+        static string_find_of_helper get_find_of_helper(const value_type*s,const value_type* e);
 
-        static size_type search_first_of_ch(const value_type* s,
+        static size_type find_first_of_ch(const value_type* s,
             const size_type n,size_type off,const value_type ch);
-        static size_type normal_search_first_of(const value_type* s1,
+        static size_type normal_find_first_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-        static size_type map_search_first_of(const value_type* s1,
+        static size_type map_find_first_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-        static size_type search_first_of(const value_type* s1,
+        static size_type find_first_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-        static size_type search_first_of(const value_type*s1,
-            const size_type n1,const size_type off,const string_search_of_helper& srch);
+        static size_type find_first_of(const value_type*s1,
+            const size_type n1,const size_type off,const string_find_of_helper& srch);
 
-        static size_type search_last_of_ch(const value_type* s,
+        static size_type find_last_of_ch(const value_type* s,
             const size_type n, size_type off, const value_type ch);
-        static size_type normal_search_last_of(const value_type* s1,
+        static size_type normal_find_last_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-        static size_type map_search_last_of(const value_type* s1,
+        static size_type map_find_last_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-        static size_type search_last_of(const value_type* s1,
+        static size_type find_last_of(const value_type* s1,
             const size_type n1, size_type off, const value_type* s2, const size_type n2);
-        static size_type search_last_of(const value_type* s1,
-            const size_type n1, const size_type off, const string_search_of_helper& srch);
+        static size_type find_last_of(const value_type* s1,
+            const size_type n1, const size_type off, const string_find_of_helper& srch);
 
-        static size_type search_first_not_of_ch(const value_type* s,
+        static size_type find_first_not_of_ch(const value_type* s,
             const size_type n, const size_type off, const value_type ch);
-        static size_type normal_search_first_not_of(const value_type* s1,
+        static size_type normal_find_first_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-        static size_type map_search_first_not_of(const value_type* s1,
+        static size_type map_find_first_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-        static size_type search_first_not_of(const value_type* s1,
+        static size_type find_first_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-        static size_type search_first_not_of(const value_type* s1,
-            const size_type n1, const size_type off, const string_search_of_helper& srch);
+        static size_type find_first_not_of(const value_type* s1,
+            const size_type n1, const size_type off, const string_find_of_helper& srch);
 
-        static size_type search_last_not_of_ch(const value_type* s,
+        static size_type find_last_not_of_ch(const value_type* s,
             const size_type n, const size_type off, const value_type ch);
-        static size_type normal_search_last_not_of(const value_type* s1,
+        static size_type normal_find_last_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-        static size_type map_search_last_not_of(const value_type* s1,
+        static size_type map_find_last_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-        static size_type search_last_not_of(const value_type* s1,
+        static size_type find_last_not_of(const value_type* s1,
             const size_type n1, size_type off, const value_type* s2, const size_type n2);
-        static size_type search_last_not_of(const value_type* s1,
-            const size_type n1, const size_type off, const string_search_of_helper& srch);
+        static size_type find_last_not_of(const value_type* s1,
+            const size_type n1, const size_type off, const string_find_of_helper& srch);
 
         static int compare(const value_type* s1, const size_type n1,
             const value_type* s2, const size_type n2) {
@@ -724,18 +725,26 @@ namespace wjr {
             return (n1 >= n2) && (traits_type::compare(s1 + n1 - n2,s2,n2) == 0);
         }
 
+        template<typename string_list>
+        static string_list split(const value_type* s,const size_type n,
+            const value_type ch,bool keep_empty_parts);
+
+        template<typename string_list>
+        static string_list split(const value_type* s1,const size_type n1,
+            const value_type* s2,const size_type n2,bool keep_empty_parts);
+
     };
 
     template<typename Char,typename Traits>
-    typename basic_String_Traits<Char,Traits>::string_search_helper
-        basic_String_Traits<Char, Traits>::get_search_helper(
+    typename basic_String_traits<Char,Traits>::string_find_helper
+        basic_String_traits<Char, Traits>::get_find_helper(
             const value_type* s,const value_type* e) {
-        return string_search_helper(s,e);
+        return string_find_helper(s,e);
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::search(const value_type* s, const size_type n,
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::find(const value_type* s, const size_type n,
             const size_type off, const value_type ch) {
         if (off < n) {
             const auto pos = traits_type::find(s + off, n - off, ch);
@@ -747,8 +756,8 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::search(const value_type* s1, const size_type n1,
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::find(const value_type* s1, const size_type n1,
             const size_type off, const value_type* s2, const size_type n2) {
 
         if (n2 > n1 || off > n1 - n2) {
@@ -760,7 +769,7 @@ namespace wjr {
         }
 
         if (n2 > 4) {
-            return search(s1,n1,off,get_search_helper(s2,s2 + n2));
+            return find(s1,n1,off,get_find_helper(s2,s2 + n2));
         }
 
         const auto match_end = s1 + (n1 - n2) + 1;
@@ -776,9 +785,9 @@ namespace wjr {
     }
 
     template<typename Char,typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type 
-        basic_String_Traits<Char, Traits>::search(const value_type* s1, const size_type n1,
-        const size_type off, const string_search_helper& srch) {
+    typename basic_String_traits<Char, Traits>::size_type 
+        basic_String_traits<Char, Traits>::find(const value_type* s1, const size_type n1,
+        const size_type off, const string_find_helper& srch) {
         const size_type n2 = srch.size();
         if (n2 > n1 || off > n1 - n2) {
             return npos;
@@ -797,17 +806,17 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::string_rsearch_helper
-        basic_String_Traits<Char, Traits>::get_rsearch_helper(
+    typename basic_String_traits<Char, Traits>::string_rfind_helper
+        basic_String_traits<Char, Traits>::get_rfind_helper(
             const value_type* s, const value_type * e) {
-        return string_rsearch_helper(
+        return string_rfind_helper(
             std::reverse_iterator(e),std::reverse_iterator(s)
             );
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::rsearch(const value_type* s,
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::rfind(const value_type* s,
             const size_type n, const size_type off, const value_type ch) {
         if (n != 0) {
             for (auto match_try = s + npos_min(off, n - 1);; --match_try) {
@@ -823,8 +832,8 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::rsearch(const value_type* s1,
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::rfind(const value_type* s1,
             const size_type n1, size_type off, const value_type* s2, const size_type n2) {
         off = npos_min(off, n1 - n2);
         if (n2 == 0) {
@@ -833,7 +842,7 @@ namespace wjr {
 
         if (n2 <= n1) {
             if (n2 > 4) {
-                return rsearch(s1,n1,off,get_rsearch_helper(s2,s2 + n2));
+                return rfind(s1,n1,off,get_rfind_helper(s2,s2 + n2));
             }
 
             for (auto match_try = s1 + off;; --match_try) {
@@ -849,9 +858,9 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::rsearch(const value_type* s1,
-            const size_type n1, size_type off,const string_rsearch_helper& srch) {
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::rfind(const value_type* s1,
+            const size_type n1, size_type off,const string_rfind_helper& srch) {
         const auto n2 = srch.size();
         off = npos_min(off, n1 - n2);
         if (n2 == 0) {
@@ -872,22 +881,22 @@ namespace wjr {
     }
 
     template<typename Char,typename Traits>
-    typename basic_String_Traits<Char,Traits>::string_search_of_helper
-        basic_String_Traits<Char, Traits>::get_search_of_helper(
+    typename basic_String_traits<Char,Traits>::string_find_of_helper
+        basic_String_traits<Char, Traits>::get_find_of_helper(
             const value_type* s, const value_type* e) {
-        return string_search_of_helper(s,e);
+        return string_find_of_helper(s,e);
     }
 
     template<typename Char,typename Traits>
-    typename basic_String_Traits<Char,Traits>::size_type
-        basic_String_Traits<Char, Traits>::search_first_of_ch(const value_type* s,
+    typename basic_String_traits<Char,Traits>::size_type
+        basic_String_traits<Char, Traits>::find_first_of_ch(const value_type* s,
             const size_type n, const size_type off, const value_type ch) {
-        return search(s,n,off,ch);
+        return find(s,n,off,ch);
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::normal_search_first_of(const value_type* s1,
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::normal_find_first_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
         const auto end = s1 + n1;
         for (auto match_try = s1 + off; match_try < end; ++match_try) {
@@ -899,32 +908,32 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::map_search_first_of(const value_type* s1,
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::map_find_first_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        return search_first_of(s1,n1,off,get_search_of_helper(s2,s2+n2));
+        return find_first_of(s1,n1,off,get_find_of_helper(s2,s2+n2));
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::search_first_of(const value_type* s1,
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::find_first_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
         if (n2 != 0 && off < n1) {
-            if (n2 < 32) { // only need to use normal search
-                return normal_search_first_of(s1, n1, off, s2, n2);
+            if (n2 < 32) { // only need to use normal find
+                return normal_find_first_of(s1, n1, off, s2, n2);
             }
             else {
                 // may use Map_Search_first_of
-                // firstly ,use normal search to match no more than length of 32
+                // firstly ,use normal find to match no more than length of 32
 
                 const size_type first_to_search = (n1 - off <= 32 ? n1 : off + 32);
-                auto first_to_search_match = normal_search_first_of(s1, first_to_search, off, s2, n2);
+                auto first_to_search_match = normal_find_first_of(s1, first_to_search, off, s2, n2);
                 if (first_to_search_match != npos) {
                     return first_to_search_match;
                 }
 
                 if (first_to_search != n1) {
-                    return map_search_first_of(s1, n1, first_to_search, s2, n2);
+                    return map_find_first_of(s1, n1, first_to_search, s2, n2);
                 }
 
             }
@@ -933,9 +942,9 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::search_first_of(const value_type* s1,
-            const size_type n1, const size_type off, const string_search_of_helper& srch) {
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::find_first_of(const value_type* s1,
+            const size_type n1, const size_type off, const string_find_of_helper& srch) {
 
         const auto end = s1 + n1;
         for (auto match_try = s1 + off; match_try < end; ++match_try) {
@@ -947,15 +956,15 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::search_last_of_ch(const value_type* s,
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::find_last_of_ch(const value_type* s,
             const size_type n, size_type off, const value_type ch) {
-        return rsearch(s,n,off,ch);
+        return rfind(s,n,off,ch);
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::normal_search_last_of(const value_type* s1,
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::normal_find_last_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
         assert(off <= n1 - 1);
         for (auto match_try = s1 + off;; --match_try) {
@@ -970,30 +979,30 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::map_search_last_of(const value_type* s1,
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::map_find_last_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        return search_last_of(s1,n1,off,get_search_of_helper(s2,s2 + n2));
+        return find_last_of(s1,n1,off,get_find_of_helper(s2,s2 + n2));
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::search_last_of(const value_type* s1,
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::find_last_of(const value_type* s1,
             const size_type n1, size_type off, const value_type* s2, const size_type n2) {
         off = npos_min(off, n1 - 1);
         if (n1 != 0 && n2 != 0) {
             if (n2 < 32) {
-                return normal_search_last_of(s1, n1, off, s2, n2);
+                return normal_find_last_of(s1, n1, off, s2, n2);
             }
             else {
                 const size_type first_to_search = off <= 32 ? 0 : off - 32;
-                auto first_to_search_match = normal_search_last_of(
+                auto first_to_search_match = normal_find_last_of(
                     s1 + first_to_search, n1 - first_to_search, off - first_to_search, s2, n2);
                 if (first_to_search_match != npos) {
                     return first_to_search + first_to_search_match;
                 }
                 if (first_to_search != 0) {
-                    return normal_search_last_of(s1, n1, first_to_search, s2, n2);
+                    return normal_find_last_of(s1, n1, first_to_search, s2, n2);
                 }
             }
         }
@@ -1001,9 +1010,9 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::search_last_of(const value_type* s1,
-            const size_type n1, const size_type off, const string_search_of_helper& srch) {
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::find_last_of(const value_type* s1,
+            const size_type n1, const size_type off, const string_find_of_helper& srch) {
 
         assert(off <= n1 - 1);
         for (auto match_try = s1 + off;; --match_try) {
@@ -1018,8 +1027,8 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::search_first_not_of_ch(const value_type* s,
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::find_first_not_of_ch(const value_type* s,
             const size_type n, const size_type off, const value_type ch) {
         if (off < n) {
             auto match_end = s + n;
@@ -1033,8 +1042,8 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::normal_search_first_not_of(const value_type* s1,
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::normal_find_first_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
         const auto end = s1 + n1;
         for (auto match_try = s1 + off; match_try < end; ++match_try) {
@@ -1046,32 +1055,32 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::map_search_first_not_of(const value_type* s1,
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::map_find_first_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        return search_first_not_of(s1,n1,off,get_search_of_helper(s2,s2+n2));
+        return find_first_not_of(s1,n1,off,get_find_of_helper(s2,s2+n2));
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::search_first_not_of(const value_type* s1,
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::find_first_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
         if (n2 != 0 && off < n1) {
-            if (n2 < 32) { // only need to use normal search
-                return normal_search_first_not_of(s1, n1, off, s2, n2);
+            if (n2 < 32) { // only need to use normal find
+                return normal_find_first_not_of(s1, n1, off, s2, n2);
             }
             else {
                 // may use Map_Search_first_of
-                // firstly ,use normal search to match no more than length of 32
+                // firstly ,use normal find to match no more than length of 32
 
                 const size_type first_to_search = (n1 - off <= 32 ? n1 : off + 32);
-                auto first_to_search_match = normal_search_first_not_of(s1, first_to_search, off, s2, n2);
+                auto first_to_search_match = normal_find_first_not_of(s1, first_to_search, off, s2, n2);
                 if (first_to_search_match != npos) {
                     return first_to_search_match;
                 }
 
                 if (first_to_search != n1) {
-                    return map_search_first_not_of(s1, n1, first_to_search, s2, n2);
+                    return map_find_first_not_of(s1, n1, first_to_search, s2, n2);
                 }
 
             }
@@ -1080,9 +1089,9 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::search_first_not_of(const value_type* s1,
-            const size_type n1, const size_type off, const string_search_of_helper& srch) {
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::find_first_not_of(const value_type* s1,
+            const size_type n1, const size_type off, const string_find_of_helper& srch) {
 
         const auto end = s1 + n1;
         for (auto match_try = s1 + off; match_try < end; ++match_try) {
@@ -1094,8 +1103,8 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::search_last_not_of_ch(const value_type* s,
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::find_last_not_of_ch(const value_type* s,
             const size_type n, const size_type off, const value_type ch) {
         if (n != 0) {
             for (auto match_try = s + npos_min(off, n - 1);; --match_try) {
@@ -1111,8 +1120,8 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::normal_search_last_not_of(const value_type* s1,
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::normal_find_last_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
         assert(off <= n1 - 1);
         for (auto match_try = s1 + off;; --match_try) {
@@ -1127,30 +1136,30 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::map_search_last_not_of(const value_type* s1,
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::map_find_last_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        return search_last_not_of(s1,n1,off,get_search_of_helper(s2,s2+n2));
+        return find_last_not_of(s1,n1,off,get_find_of_helper(s2,s2+n2));
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::search_last_not_of(const value_type* s1,
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::find_last_not_of(const value_type* s1,
             const size_type n1, size_type off, const value_type* s2, const size_type n2) {
         off = npos_min(off, n1 - 1);
         if (n1 != 0 && n2 != 0) {
             if (n2 < 32) {
-                return normal_search_last_not_of(s1, n1, off, s2, n2);
+                return normal_find_last_not_of(s1, n1, off, s2, n2);
             }
             else {
                 const size_type first_to_search = off <= 32 ? 0 : off - 32;
-                auto first_to_search_match = normal_search_last_not_of(
+                auto first_to_search_match = normal_find_last_not_of(
                     s1 + first_to_search, n1 - first_to_search, off - first_to_search, s2, n2);
                 if (first_to_search_match != npos) {
                     return first_to_search + first_to_search_match;
                 }
                 if (first_to_search != 0) {
-                    return normal_search_last_not_of(s1, n1, first_to_search, s2, n2);
+                    return normal_find_last_not_of(s1, n1, first_to_search, s2, n2);
                 }
             }
         }
@@ -1158,9 +1167,9 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    typename basic_String_Traits<Char, Traits>::size_type
-        basic_String_Traits<Char, Traits>::search_last_not_of(const value_type* s1,
-            const size_type n1, const size_type off, const string_search_of_helper& srch) {
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::find_last_not_of(const value_type* s1,
+            const size_type n1, const size_type off, const string_find_of_helper& srch) {
 
         assert(off <= n1 - 1);
         for (auto match_try = s1 + off;; --match_try) {
@@ -1173,6 +1182,91 @@ namespace wjr {
                 break;
         }
         return npos;
+    }
+
+    template<typename Char,typename Traits>
+    template<typename string_list>
+    string_list basic_String_traits<Char, Traits>::split(
+        const value_type* s, const size_type n,
+        const value_type ch, bool keep_empty_parts) {
+        string_list ans;
+        size_type off = 0;
+        if (keep_empty_parts) {
+            for (;;) {
+                const size_type pos = find(s,n,off,ch);
+                if (pos == npos) {
+                    ans.emplace_back(s + off, s + n);
+                    break;
+                }
+                ans.emplace_back(s + off, s + pos);
+                off = pos + 1;
+            }
+        }
+        else {
+            for (;;) {
+                const size_type pos = find(s,n,off,ch);
+                if (pos == npos) {
+                    if (off != n) {
+                        ans.emplace_back(s + off, s + n);
+                    }
+                    break;
+                }
+                if (off != pos) {
+                    ans.emplace_back(s + off, s + pos);
+                }
+                off = pos + 1;
+            }
+        }
+        return ans;
+    }
+
+    template<typename Char,typename Traits>
+    template<typename string_list>
+    string_list basic_String_traits<Char, Traits>::split(
+        const value_type* s1, const size_type n1,
+        const value_type* s2, const size_type n2, bool keep_empty_parts) {
+        string_list ans;
+        if (n1 < n2) {
+            if (n1 != 0 || keep_empty_parts) {
+                ans.emplace_back(s1, s1 + n1);
+            }
+            return ans;
+        }
+
+        if (n2 == 1) {
+            return split<string_list>(s1,n1,*s2,keep_empty_parts);
+        }
+
+        auto srch = get_find_helper(s2 , s2 + n2);
+        size_type off = 0;
+        if (keep_empty_parts) {
+            for (;;) {
+                const size_type pos = find(s1,n1,off,srch);
+                if (pos == npos) {
+                    ans.emplace_back(s1 + off, s1 + n1);
+                    break;
+                }
+                ans.emplace_back(s1 + off, s1 + pos);
+                off = pos + n2;
+            }
+        }
+        else {
+            for (;;) {
+                const size_type pos = find(s1,n1,off,srch);
+                if (pos == npos) {
+                    if (off != n1) {
+                        ans.emplace_back(s1 + off, s1 + n1);
+                    }
+                    break;
+                }
+                if (off != pos) {
+                    ans.emplace_back(s1 + off, s1 + pos);
+                }
+                off = pos + n2;
+            }
+        }
+
+        return ans;
     }
 
     template<typename Char>
@@ -1397,9 +1491,12 @@ namespace wjr {
         if (category()) {
             const size_t _size = MediumSize();
             const size_t _capacity = _Ml.capacity();
+            if (_capacity < _size * 9 / 8) {
+                return ;
+            }
             const Char* _data = _Ml._Data;
             auto& al = Getal();
-            if (size() <= maxSmallSize) {
+            if (_size <= maxSmallSize) {
                 initSmall(_data, _size);
             }
             else {
@@ -1439,18 +1536,11 @@ namespace wjr {
     }
 
     template<typename Char,typename Traits>
-    class basic_String_view 
-        : public basic_String_Traits<Char,Traits> {
-
-    };
-
-    template<typename Char,typename Traits,typename Core = String_core<Char>>
-    class basic_String  {
-
+    class basic_String_view {
     private:
-        using default_traits = basic_String_Traits<Char, Traits>;
+        using default_traits = basic_String_traits<Char, Traits>;
         template<typename T>
-        using non_default_traits = basic_String_Traits<Char, T>;
+        using non_default_traits = basic_String_traits<Char, T>;
 
         using Elem = Char;
         template <class iter>
@@ -1489,6 +1579,413 @@ namespace wjr {
             return default_traits::traits_length(s);
         }
         constexpr static inline size_type npos_min(size_type n, const size_type x) {
+            return default_traits::npos_min(n, x);
+        }
+
+    public:
+
+        constexpr basic_String_view() noexcept = default;
+        constexpr basic_String_view(const basic_String_view&) noexcept = default;
+        constexpr basic_String_view& operator=(const basic_String_view&) noexcept = default;
+
+        template<typename C,typename T,typename A>
+        constexpr basic_String_view(const std::basic_string<C, T, A>& s)
+            : Myfirst(s.data()), Mysize(s.size()) {
+
+        }
+
+        constexpr basic_String_view(const const_pointer s) noexcept
+            : Myfirst(s), Mysize(traits_length(s)) {
+
+        }
+
+        constexpr basic_String_view(const const_pointer s, const size_type n) noexcept
+            : Myfirst(s), Mysize(n) {
+
+        }
+
+        constexpr const_iterator begin()const noexcept{ 
+            return Myfirst;
+        }
+
+        constexpr const_iterator cbegin()const noexcept{ 
+            return Myfirst;
+        }
+
+        constexpr const_iterator end()const noexcept {
+            return Myfirst + Mysize;
+        }
+
+        constexpr const_iterator cend()const noexcept {
+            return Myfirst + Mysize;
+        }
+
+        constexpr const_reverse_iterator rbegin()const noexcept {
+            return const_reverse_iterator(end()); 
+        }
+        
+        constexpr const_reverse_iterator crbegin()const noexcept {
+            return const_reverse_iterator(cend()); 
+        }
+
+        constexpr const_reverse_iterator rend()const noexcept {
+            return const_reverse_iterator(begin()); 
+        }
+        
+        constexpr const_reverse_iterator crend()const noexcept {
+            return const_reverse_iterator(begin()); 
+        }
+
+        constexpr const_reference front()const noexcept {
+            return *begin(); 
+        }
+
+        constexpr const_reference back()const noexcept {
+            assert(!empty());
+            return *(end() - 1);
+        }
+
+        constexpr size_type size() const noexcept {
+            return Mysize;
+        }
+
+        constexpr size_type length() const noexcept {
+            return Mysize;
+        }
+
+        constexpr size_type max_size() const noexcept { return std::numeric_limits<size_type>::max(); }
+
+        constexpr const_reference operator[](const size_type index)const noexcept {
+            assert(0 <= index && index < size());
+            return *(begin() + index);
+        }
+
+        constexpr const_reference at(const size_type index)const noexcept {
+            assert(0 <= index && index < size());
+            return *(begin() + index);
+        }
+
+        constexpr void remove_prefix(const size_type n)noexcept {
+            Myfirst += n;
+            Mysize -= n;
+        }
+
+        constexpr void remove_suffix(const size_type n)noexcept {
+            Mysize -= n;
+        }
+
+        constexpr void swap(basic_String_view & other)noexcept { 
+            const basic_String_view temp(*this);
+            *this = other;
+            other = temp;
+        }
+
+        constexpr const value_type* c_str() const noexcept {
+            return Myfirst;
+        }
+
+        constexpr const value_type* data() const noexcept{ 
+            return Myfirst;
+        }
+
+        constexpr bool empty()const noexcept{ 
+            return !Mysize;
+        }
+
+        template<typename T = Traits>
+        constexpr int compare(const basic_String_view & other)const noexcept{
+            return non_default_traits<T>::compare(data(),size(),other.data(),other.size());
+        }
+
+        template<typename T = Traits>
+        constexpr bool equal(const basic_String_view & other)const noexcept{
+            return non_default_traits<T>::equal(data(),size(),other.data(),other.size());
+        }
+
+        template<typename T = Traits>
+        static typename non_default_traits<T>::string_find_helper
+            get_find_helper(const value_type * s, const value_type * e) {
+            return non_default_traits<T>::get_find_helper(s, e);
+        }
+
+        template<typename T = Traits>
+        static typename non_default_traits<T>::string_find_helper
+            get_find_helper(const value_type * s, const size_type n) {
+            return get_find_helper<T>(s, s + n);
+        }
+
+        template<typename T = Traits>
+        static typename non_default_traits<T>::string_find_helper
+            get_find_helper(const value_type * s) {
+            return get_find_helper<T>(s, s + traits_length(s));
+        }
+
+        template<typename T = Traits>
+        static typename non_default_traits<T>::string_find_helper
+            get_find_helper(const basic_String_view & s) {
+            return get_find_helper<T>(s.data(), s.size());
+        }
+
+        template<typename T = Traits>
+        constexpr size_type find(const value_type ch)const noexcept{
+            return non_default_traits<T>::find(data(), size(), 0, ch);
+        }
+
+        template<typename T = Traits>
+        constexpr size_type find(const basic_String_view & other)const noexcept{
+            return non_default_traits<T>::find(data(),size(),0,other.data(),other.size());
+        }
+
+        template<typename T = Traits>
+        constexpr size_type find(const typename non_default_traits<T>::string_find_helper & srch)const noexcept{
+            return non_default_traits<T>::find(data(), size(), 0, srch);
+        }
+
+        template<typename T = Traits>
+        static typename non_default_traits<T>::string_rfind_helper
+            get_rfind_helper(const value_type * s, const value_type * e) {
+            return non_default_traits<T>::get_rfind_helper(s, e);
+        }
+
+        template<typename T = Traits>
+        static typename non_default_traits<T>::string_rfind_helper
+            get_rfind_helper(const value_type * s, const size_type n) {
+            return get_rfind_helper<T>(s, s + n);
+        }
+
+        template<typename T = Traits>
+        static typename non_default_traits<T>::string_find_helper
+            get_rfind_helper(const value_type * s) {
+            return get_rfind_helper<T>(s, s + traits_length(s));
+        }
+
+        template<typename T = Traits>
+        static typename non_default_traits<T>::string_find_helper
+            get_rfind_helper(const basic_String_view & s) {
+            return get_rfind_helper<T>(s.data(), s.size());
+        }
+
+        template<typename T = Traits>
+        constexpr size_type rfind(const value_type ch)const noexcept{
+            return non_default_traits<T>::rfind(data(), size(), 0, ch);
+        }
+
+        template<typename T = Traits>
+        constexpr size_type rfind(const basic_String_view & other)const noexcept{
+            return non_default_traits<T>::rfind(data(),size(),0,other.data(),other.size());
+        }
+
+        template<typename T = Traits>
+        constexpr size_type rfind(const typename non_default_traits<T>::string_rfind_helper & srch)const noexcept{
+            return non_default_traits<T>::rfind(data(), size(), 0, srch);
+        }
+
+        template<typename T = Traits>
+        static typename non_default_traits<T>::string_find_of_helper get_find_of_helper(
+            const value_type * s, const value_type * e
+        ) {
+            return non_default_traits<T>::get_find_of_helper(s, e);
+        }
+
+        template<typename T = Traits>
+        static typename non_default_traits<T>::string_find_of_helper get_find_of_helper(
+            const value_type * s, const size_type n
+        ) {
+            return get_find_of_helper<T>(s, s + n);
+        }
+
+        template<typename T = Traits>
+        static typename non_default_traits<T>::string_find_of_helper get_find_of_helper(
+            const value_type * s
+        ) {
+            return get_find_of_helper<T>(s, s + traits_length(s));
+        }
+
+        template<typename T = Traits>
+        static typename non_default_traits<T>::string_find_of_helper get_find_of_helper(
+            const basic_String_view & s
+        ) {
+            return get_find_of_helper<T>(s.data(), s.size());
+        }
+
+        template<typename T = Traits>
+        constexpr size_type find_first_of(const value_type ch)const noexcept{
+            return non_default_traits<T>::find_first_of_ch(data(), size(), 0, ch);
+        }
+
+        template<typename T = Traits>
+        constexpr size_type find_first_of(const basic_String_view & other)const noexcept{
+            return non_default_traits<T>::find_first_of(data(),size(),0,other.data(),other.size());
+        }
+
+        template<typename T = Traits>
+        constexpr size_type find_first_of(const typename 
+            non_default_traits<T>::string_find_of_helper & srch)const noexcept{
+            return non_default_traits<T>::find_first_of(data(), size(), 0, srch);
+        }
+
+        template<typename T = Traits>
+        constexpr size_type find_last_of(const value_type ch)const noexcept{
+            return non_default_traits<T>::find_last_of_ch(data(), size(), 0, ch);
+        }
+
+        template<typename T = Traits>
+        constexpr size_type find_last_of(const basic_String_view & other)const noexcept{
+            return non_default_traits<T>::find_last_of(data(),size(),0,other.data(),other.size());
+        }
+
+        template<typename T = Traits>
+        constexpr size_type find_last_of(const typename 
+            non_default_traits<T>::string_find_of_helper & srch)const noexcept{
+            return non_default_traits<T>::find_last_of(data(), size(), 0, srch);
+        }
+
+        template<typename T = Traits>
+        constexpr size_type find_first_not_of(const value_type ch)const noexcept{
+            return non_default_traits<T>::find_first_not_of_ch(data(), size(), 0, ch);
+        }
+
+        template<typename T = Traits>
+        constexpr size_type find_first_not_of(const basic_String_view & other)const noexcept{
+            return non_default_traits<T>::find_first_not_of(data(),size(),0,other.data(),other.size());
+        }
+
+        template<typename T = Traits>
+        constexpr size_type find_first_not_of(const typename 
+            non_default_traits<T>::string_find_of_helper & srch)const noexcept{
+            return non_default_traits<T>::find_first_not_of(data(), size(), 0, srch);
+        }
+
+        template<typename T = Traits>
+        constexpr size_type find_last_not_of(const value_type ch)const noexcept{
+            return non_default_traits<T>::find_last_not_of_ch(data(), size(), 0, ch);
+        }
+
+        template<typename T = Traits>
+        constexpr size_type find_last_not_of(const basic_String_view & other)const noexcept{
+            return non_default_traits<T>::find_last_not_of(data(),size(),0,other.data(),other.size());
+        }
+
+        template<typename T = Traits>
+        constexpr size_type find_last_not_of(const typename 
+            non_default_traits<T>::string_find_of_helper & srch)const noexcept{
+            return non_default_traits<T>::find_last_not_of(data(), size(), 0, srch);
+        }
+
+        template<typename T = Traits>
+        constexpr bool starts_with(const value_type ch)const noexcept{
+            return non_default_traits<T>::starts_with(data(), size(), ch);
+        }
+
+        template<typename T = Traits>
+        constexpr bool starts_with(const basic_String_view & other)const noexcept{
+            return non_default_traits<T>::starts_with(data(),size(),other.data(),other.size());
+        }
+
+        template<typename T = Traits>
+        constexpr bool ends_with(const value_type ch)const noexcept{
+            return non_default_traits<T>::ends_with(data(), size(), ch);
+        }
+
+        template<typename T = Traits>
+        constexpr bool ends_with(const basic_String_view& other)const noexcept {
+            return non_default_traits<T>::ends_with(data(),size(),other.data(),other.size());
+        }
+
+        constexpr basic_String_view substr(const size_type off = 0, const size_type n = npos) {
+            return { Myfirst + off , npos_min(n,size() - off) };
+        }
+
+        template<typename T = Traits, typename string_list = std::vector<basic_String_view>>
+        string_list split(const value_type ch, bool keep_empty_parts = true);
+
+        template<typename T = Traits, typename string_list = std::vector<basic_String_view>>
+        string_list split(const basic_String_view & other, bool keep_empty_parts = true);
+
+        template<typename T = Traits, typename string_list = std::vector<basic_String_view>>
+        string_list split(const value_type * s, bool keep_empty_parts = true);
+
+        template<typename T = Traits, typename string_list = std::vector<basic_String_view>>
+        string_list split(const value_type * s,
+            const size_type n, bool keep_empty_parts = true);
+        
+    private:
+        const_pointer Myfirst;
+        size_type Mysize;
+    };
+
+    template<typename Char,typename Traits>
+    template<typename T, typename string_list>
+    string_list basic_String_view<Char, Traits>::split(const value_type ch, bool keep_empty_parts) {
+        return non_default_traits<T>::template split<string_list>(data(),size(),ch,keep_empty_parts);
+    }
+
+    template<typename Char, typename Traits>
+    template<typename T, typename string_list>
+    string_list basic_String_view<Char, Traits>::split(const basic_String_view& other, bool keep_empty_parts) {
+        return split<T,string_list>(other.data(),other.size(),keep_empty_parts);
+    }
+
+    template<typename Char, typename Traits>
+    template<typename T, typename string_list>
+    string_list basic_String_view<Char, Traits>::split(const value_type* s, bool keep_empty_parts) {
+        return split<T,string_list>(s,traits_length(s),keep_empty_parts);
+    }
+
+    template<typename Char, typename Traits>
+    template<typename T, typename string_list>
+    string_list basic_String_view<Char, Traits>::split(
+        const value_type* s,
+        const size_type n, bool keep_empty_parts) {
+        return non_default_traits<T>::template split<string_list>(data(),size(),s,n,keep_empty_parts);
+    }
+
+    template<typename Char,typename Traits,typename Core = String_core<Char>>
+    class basic_String  {
+    private:
+        using default_traits = basic_String_traits<Char, Traits>;
+        template<typename T>
+        using non_default_traits = basic_String_traits<Char, T>;
+
+        using Elem = Char;
+        template <class iter>
+        using is_char_ptr =
+            std::bool_constant<is_any_of_v<iter, const Elem* const, const Elem*, Elem* const, Elem*>>;
+
+        // is const iterator -> char pointer
+        template<typename iter>
+        using is_const_iterator = std::enable_if_t<is_char_ptr<iter>::value, int>;
+
+    public:
+
+        using traits_type = Traits;
+        using allocator_type = mallocator<Char>;
+        using string_traits = default_traits;
+
+        using value_type = Char;
+        using reference = value_type&;
+        using const_reference = const value_type&;
+
+        using size_type = size_t;
+        using difference_type = size_t;
+
+        using pointer = value_type*;
+        using const_pointer = const value_type*;
+
+        using iterator = value_type*;
+        using const_iterator = const value_type*;
+        using reverse_iterator = std::reverse_iterator<iterator>;
+        using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+        constexpr static size_type npos = default_traits::npos;
+
+    private:
+
+        constexpr static inline size_type traits_length(const value_type* s) {
+            return default_traits::traits_length(s);
+        }
+
+        constexpr static inline size_type npos_min(size_type n, const size_type x) {
             return default_traits::npos_min(n,x);
         }
 
@@ -1511,6 +2008,10 @@ namespace wjr {
         basic_String(const basic_String & other, const size_type pos, const size_type n = npos)
             : core(other.data() + pos, npos_min(n, other.size() - pos)) {
 
+        }
+
+        basic_String(const value_type ch) {
+            push_back(ch);
         }
 
         basic_String(const value_type * s)
@@ -1571,11 +2072,37 @@ namespace wjr {
             assign(il.begin(), il.end());
         }
 
+        basic_String(const basic_String_view<Char,Traits>& s)
+            : core(s.data(), s.size()) {
+
+        }
+
+        basic_String(const std::basic_string_view<Char, Traits>& s)
+            : core(s.data(), s.size()) {
+
+        }
+
         operator std::basic_string_view<value_type, traits_type>() const noexcept {
             return { data(), size() };
         }
 
-        ~basic_String()noexcept = default;
+        operator basic_String_view<value_type, traits_type>() const noexcept {
+            return { data(), size() };
+        }
+
+        ~basic_String() noexcept = default;
+
+        template<typename T,typename fs = std::char_traits<T>>
+        static basic_String from(const T* s) {
+            basic_String it(s, s + basic_String_traits<T, fs>::traits_length(s));
+            return it;
+        }
+
+        template<typename T>
+        static basic_String from(const T* s, const size_type n) {
+            basic_String it(s, s + n);
+            return it;
+        }
 
         basic_String& operator=(const basic_String& other) {
             if (this != std::addressof(other)) {
@@ -1801,7 +2328,7 @@ namespace wjr {
         basic_String& assign(iter first, iter last, std::input_iterator_tag) {
             clear();
             for (; first != last; ++first)
-                push_back(*first);
+                push_back(static_cast<value_type>(*first));
             return *this;
         }
 
@@ -1810,7 +2337,7 @@ namespace wjr {
             resize(static_cast<size_type>(std::distance(first, last)));
             auto _data = data();
             for (; first != last; ++_data, ++first)
-                *_data = *first;
+                *_data = static_cast<value_type>(*first);
             return *this;
         }
 
@@ -1954,8 +2481,31 @@ namespace wjr {
         iterator erase(T first, T last) {
             const auto _data = begin();
             const size_type pos(first - _data);
-            erase(pos, last - first);
+            erase(pos, static_cast<size_t>(last - first));
             return _data + pos;
+        }
+
+        template<typename T = Traits>
+        basic_String& remove(const value_type ch, const size_type off = 0) {
+            return remove(&ch,off,1);
+        }
+
+        template<typename T = Traits>
+        basic_String& remove(const value_type* s,const size_type off,const size_type n);
+
+        template<typename T = Traits>
+        basic_String& remove(const value_type* s, const size_type n) {
+            return remove<T>(s,0,n);
+        }
+
+        template<typename T = Traits>
+        basic_String& remove(const value_type* s) {
+            return remove<T>(s,0,traits_length(s));
+        }
+
+        template<typename T = Traits>
+        basic_String& remove(const basic_String& other,const size_type off = 0) {
+            return remove<T>(other.data(),off,other.size());
         }
 
         basic_String& replace(const size_type pos, const size_type n, const value_type ch) {
@@ -2099,32 +2649,32 @@ namespace wjr {
         }
 
         template<typename T = Traits>
-        static typename non_default_traits<T>::string_search_helper
+        static typename non_default_traits<T>::string_find_helper
             get_find_helper(const value_type * s, const value_type * e) {
-            return non_default_traits<T>::get_search_helper(s, e);
+            return non_default_traits<T>::get_find_helper(s, e);
         }
 
         template<typename T = Traits>
-        static typename non_default_traits<T>::string_search_helper
+        static typename non_default_traits<T>::string_find_helper
             get_find_helper(const value_type * s, const size_type n) {
             return get_find_helper<T>(s, s + n);
         }
 
         template<typename T = Traits>
-        static typename non_default_traits<T>::string_search_helper
+        static typename non_default_traits<T>::string_find_helper
             get_find_helper(const value_type * s) {
             return get_find_helper<T>(s, s + traits_length(s));
         }
 
         template<typename T = Traits>
-        static typename non_default_traits<T>::string_search_helper
+        static typename non_default_traits<T>::string_find_helper
             get_find_helper(const basic_String& s) {
             return get_find_helper<T>(s.data(),s.size());
         }
 
         template<typename T = Traits>
         size_type find(const value_type ch, const size_type off = 0)const {
-            return non_default_traits<T>::search(data(), size(), off, ch);
+            return non_default_traits<T>::find(data(), size(), off, ch);
         }
 
         template<typename T = Traits>
@@ -2134,7 +2684,7 @@ namespace wjr {
 
         template<typename T = Traits>
         size_type find(const value_type * s, const size_type off, const size_type count)const {
-            return non_default_traits<T>::search(data(), size(), off, s, count);
+            return non_default_traits<T>::find(data(), size(), off, s, count);
         }
 
         template<typename T = Traits>
@@ -2143,37 +2693,37 @@ namespace wjr {
         }
 
         template<typename T = Traits>
-        size_type find(const typename non_default_traits<T>::string_search_helper & srch, const size_type off = 0)const {
-            return non_default_traits<T>::search(data(), size(), off, srch);
+        size_type find(const typename non_default_traits<T>::string_find_helper & srch, const size_type off = 0)const {
+            return non_default_traits<T>::find(data(), size(), off, srch);
         }
 
         template<typename T = Traits>
-        static typename non_default_traits<T>::string_rsearch_helper
+        static typename non_default_traits<T>::string_rfind_helper
             get_rfind_helper(const value_type * s, const value_type * e) {
-            return non_default_traits<T>::get_rsearch_helper(s, e);
+            return non_default_traits<T>::get_rfind_helper(s, e);
         }
 
         template<typename T = Traits>
-        static typename non_default_traits<T>::string_rsearch_helper
+        static typename non_default_traits<T>::string_rfind_helper
             get_rfind_helper(const value_type * s, const size_type n) {
             return get_rfind_helper<T>(s, s + n);
         }
 
         template<typename T = Traits>
-        static typename non_default_traits<T>::string_search_helper
+        static typename non_default_traits<T>::string_find_helper
             get_rfind_helper(const value_type * s) {
             return get_rfind_helper<T>(s,s + traits_length(s));
         }
 
         template<typename T = Traits>
-        static typename non_default_traits<T>::string_search_helper
+        static typename non_default_traits<T>::string_find_helper
             get_rfind_helper(const basic_String& s) {
             return get_rfind_helper<T>(s.data(),s.size());
         }
 
         template<typename T = Traits>
         size_type rfind(const value_type ch, const size_type off = npos)const {
-            return non_default_traits<T>::rsearch(data(), size(), off, ch);
+            return non_default_traits<T>::rfind(data(), size(), off, ch);
         }
 
         template<typename T = Traits>
@@ -2183,7 +2733,7 @@ namespace wjr {
 
         template<typename T = Traits>
         size_type rfind(const value_type * s, const size_type off, const size_type count)const {
-            return non_default_traits<T>::rsearch(data(), size(), off, s, count);
+            return non_default_traits<T>::rfind(data(), size(), off, s, count);
         }
 
         template<typename T = Traits>
@@ -2192,33 +2742,33 @@ namespace wjr {
         }
 
         template<typename T = Traits>
-        size_type rfind(const typename non_default_traits<T>::string_rsearch_helper & srch, const size_type off = npos)const {
-            return non_default_traits<T>::rsearch(data(), size(), off, srch);
+        size_type rfind(const typename non_default_traits<T>::string_rfind_helper & srch, const size_type off = npos)const {
+            return non_default_traits<T>::rfind(data(), size(), off, srch);
         }
 
         template<typename T = Traits>
-        static typename non_default_traits<T>::string_search_of_helper get_find_of_helper(
+        static typename non_default_traits<T>::string_find_of_helper get_find_of_helper(
             const value_type * s, const value_type * e
         ) {
-            return non_default_traits<T>::get_search_of_helper(s, e);
+            return non_default_traits<T>::get_find_of_helper(s, e);
         }
 
         template<typename T = Traits>
-        static typename non_default_traits<T>::string_search_of_helper get_find_of_helper(
+        static typename non_default_traits<T>::string_find_of_helper get_find_of_helper(
             const value_type * s, const size_type n
         ) {
             return get_find_of_helper<T>(s,s + n);
         }
 
         template<typename T = Traits>
-        static typename non_default_traits<T>::string_search_of_helper get_find_of_helper(
+        static typename non_default_traits<T>::string_find_of_helper get_find_of_helper(
             const value_type * s
         ) {
             return get_find_of_helper<T>(s,s + traits_length(s));
         }
 
         template<typename T = Traits>
-        static typename non_default_traits<T>::string_search_of_helper get_find_of_helper(
+        static typename non_default_traits<T>::string_find_of_helper get_find_of_helper(
             const basic_String&s
         ) {
             return get_find_of_helper<T>(s.data(),s.size());
@@ -2226,7 +2776,7 @@ namespace wjr {
 
         template<typename T = Traits>
         size_type find_first_of(const value_type ch, const size_type off = 0)const {
-            return non_default_traits<T>::search_first_of_ch(data(), size(), off, ch);
+            return non_default_traits<T>::find_first_of_ch(data(), size(), off, ch);
         }
 
         template<typename T = Traits>
@@ -2236,23 +2786,23 @@ namespace wjr {
 
         template<typename T = Traits>
         size_type find_first_of(const value_type * s, const size_type off, const size_type count)const {
-            return non_default_traits<T>::search_first_of(data(), size(), off, s, count);
+            return non_default_traits<T>::find_first_of(data(), size(), off, s, count);
         }
 
         template<typename T = Traits>
-        size_type find_first_of(const basic_String & s, const size_type off = 0)const {
-            return find_first_of<T>(s.data(),off, s.size());
+        size_type find_first_of(const basic_String & other, const size_type off = 0)const {
+            return find_first_of<T>(other.data(),off, other.size());
         }
 
         template<typename T = Traits>
-        size_type find_first_of(const typename non_default_traits<T>::string_search_of_helper & srch,
+        size_type find_first_of(const typename non_default_traits<T>::string_find_of_helper & srch,
             const size_type off = 0)const {
-            return non_default_traits<T>::search_first_of(data(), size(), off, srch);
+            return non_default_traits<T>::find_first_of(data(), size(), off, srch);
         }
 
         template<typename T = Traits>
         size_type find_last_of(const value_type ch, const size_type off = npos)const {
-            return non_default_traits<T>::search_last_of_ch(data(), size(), off, ch);
+            return non_default_traits<T>::find_last_of_ch(data(), size(), off, ch);
         }
 
         template<typename T = Traits>
@@ -2262,7 +2812,7 @@ namespace wjr {
 
         template<typename T = Traits>
         size_type find_last_of(const value_type * s, const size_type off, const size_type count)const {
-            return non_default_traits<T>::search_last_of(data(), size(), off, s, count);
+            return non_default_traits<T>::find_last_of(data(), size(), off, s, count);
         }
 
         template<typename T = Traits>
@@ -2271,14 +2821,14 @@ namespace wjr {
         }
 
         template<typename T = Traits>
-        size_type find_last_of(const typename non_default_traits<T>::string_search_of_helper & srch,
+        size_type find_last_of(const typename non_default_traits<T>::string_find_of_helper & srch,
             const size_type off = 0)const {
-            return non_default_traits<T>::search_last_of(data(), size(), off, srch);
+            return non_default_traits<T>::find_last_of(data(), size(), off, srch);
         }
 
         template<typename T = Traits>
         size_type find_first_not_of(const value_type ch, const size_type off = 0)const {
-            return non_default_traits<T>::search_first_not_of_ch(data(), size(), off, ch);
+            return non_default_traits<T>::find_first_not_of_ch(data(), size(), off, ch);
         }
 
         template<typename T = Traits>
@@ -2288,7 +2838,7 @@ namespace wjr {
 
         template<typename T = Traits>
         size_type find_first_not_of(const value_type * s, const size_type off, const size_type count)const {
-            return non_default_traits<T>::search_first_not_of(data(), size(), off, s, count);
+            return non_default_traits<T>::find_first_not_of(data(), size(), off, s, count);
         }
 
         template<typename T = Traits>
@@ -2297,14 +2847,14 @@ namespace wjr {
         }
 
         template<typename T = Traits>
-        size_type find_first_not_of(const typename non_default_traits<T>::string_search_of_helper & srch,
+        size_type find_first_not_of(const typename non_default_traits<T>::string_find_of_helper & srch,
             const size_type off = 0)const {
-            return non_default_traits<T>::search_first_not_of(data(), size(), off, srch);
+            return non_default_traits<T>::find_first_not_of(data(), size(), off, srch);
         }
 
         template<typename T = Traits>
         size_type find_last_not_of(const value_type ch, const size_type off = npos)const {
-            return non_default_traits<T>::search_last_not_of_ch(data(), size(), off, ch);
+            return non_default_traits<T>::find_last_not_of_ch(data(), size(), off, ch);
         }
 
         template<typename T = Traits>
@@ -2314,7 +2864,7 @@ namespace wjr {
 
         template<typename T = Traits>
         size_type find_last_not_of(const value_type * s, const size_type off, const size_type count)const {
-            return non_default_traits<T>::search_last_not_of(data(), size(), off, s, count);
+            return non_default_traits<T>::find_last_not_of(data(), size(), off, s, count);
         }
 
         template<typename T = Traits>
@@ -2323,9 +2873,9 @@ namespace wjr {
         }
 
         template<typename T = Traits>
-        size_type find_last_not_of(const typename non_default_traits<T>::string_search_of_helper & srch,
+        size_type find_last_not_of(const typename non_default_traits<T>::string_find_of_helper & srch,
             const size_type off = 0)const {
-            return non_default_traits<T>::search_last_not_of(data(), size(), off, srch);
+            return non_default_traits<T>::find_last_not_of(data(), size(), off, srch);
         }
 
         template<typename T = Traits>
@@ -2363,6 +2913,11 @@ namespace wjr {
             return non_default_traits<T>::ends_with(data(), size(), s, n);
         }
 
+        template<typename T = Traits>
+        bool ends_with(const basic_String& other)const {
+            return ends_with<T>(other.data(),other.size());
+        }
+
         basic_String substr(const size_type pos, const size_type n = npos)const& {
             return basic_String(data() + pos, npos_min(n, size() - pos));
         }
@@ -2373,41 +2928,47 @@ namespace wjr {
             return std::move(*this);
         }
 
-        basic_String& ltrim() {
-            auto pos = find_first_not_of("\t\n\f\v\r ");
-            return erase(0, pos);
+        static basic_String& get_trim_helper() {
+            static basic_String it = from("\t\n\f\v\r ");
+            return it;
         }
 
-        basic_String& rtrim() {
-            auto pos = find_last_not_of("\t\n\f\v\r ");
-            if (pos != npos) {
-                return erase(pos + 1, npos);
-            }
-            clear();
-            return *this;
-        }
-
-        basic_String& trim() {
-            ltrim();
-            rtrim();
-            return *this;
-        }
-
-        basic_String trimmed()const& {
-            auto l = find_first_not_of("\t\n\f\v\r ");
+        basic_String trim()const& {
+            auto l = find_first_not_of(get_trim_helper());
             if (l != npos) {
-                auto r = find_last_not_of("\t\n\f\v\r ");
+                auto r = find_last_not_of(get_trim_helper());
                 return basic_String(data() + l, r - l + 1);
             }
             return basic_String();
         }
 
-        basic_String trimmed()&& {
-            return std::move(trim());
+        basic_String trim()&& {
+            auto l = find_first_not_of(get_trim_helper());
+            erase(0,l);
+            if (l == npos) {
+                return std::move(*this);
+            }
+            auto r = find_last_not_of(get_trim_helper());
+            erase(r,npos);
+            return std::move(*this);
         }
 
         void chop(const size_type n) {
             core.shrink(npos_min(n,size()));
+        }
+
+        void remove_prefix(size_type n) {
+            auto _size = size();
+            n = npos_min(n,_size);
+            if (n != 0) {
+                auto _data = data();
+                memmove(_data,_data + n,sizeof(value_type) * (_size - n));
+                chop(n);
+            }
+        }
+
+        void remove_suffix(const size_type n) {
+            chop(n);
         }
 
         basic_String& fill(value_type ch, const size_type n = npos);
@@ -2425,16 +2986,111 @@ namespace wjr {
         string_list split(const value_type* s,
             const size_type n, bool keep_empty_parts = true);
 
-        basic_String<Char, Traits, Core> to_lower()const&;
-        basic_String<Char, Traits, Core> to_lower()&&;
-        basic_String<Char, Traits, Core> to_upper()const&;
-        basic_String<Char, Traits, Core> to_upper()&&;
+        basic_String to_lower()const&;
+        basic_String to_lower()&&;
+        basic_String to_upper()const&;
+        basic_String to_upper()&&;
 
-        static basic_String<Char, Traits, Core> number(int, int base = 10);
-        static basic_String<Char, Traits, Core> number(unsigned int, int base = 10);
-        static basic_String<Char, Traits, Core> number(long long, int base = 10);
-        static basic_String<Char, Traits, Core> number(unsigned long long, int base = 10);
-        static basic_String<Char, Traits, Core> number(double, char f = 'g', int prec = 6);
+        static basic_String number(int, int base = 10);
+        static basic_String number(unsigned int, int base = 10);
+        static basic_String number(long long, int base = 10);
+        static basic_String number(unsigned long long, int base = 10);
+        static basic_String number(double, char f = 'g', int prec = 6);
+        static basic_String fixed_number(double);
+
+        basic_String& set_number(int,int base = 10);
+        basic_String& set_number(unsigned int ,int base = 10);
+        basic_String& set_number(long long,int base = 10);
+        basic_String& set_number(unsigned long long,int base = 10);
+        basic_String& set_number(double,char f = 'g',int prec = 6);
+
+    private:
+        struct string_connect_helper {
+        public:
+            string_connect_helper(const basic_String& other)
+                : sv(other.data()), count(other.size()) {
+
+            }
+
+            string_connect_helper(basic_String&& other) noexcept
+                : sv(other.data()), count(other.size()) {
+
+            }
+            
+            string_connect_helper(const value_type* s)
+                : sv(s), count(traits_length(s)) {
+
+            }
+
+            template<typename T,typename C>
+            string_connect_helper(const basic_String<Char, T, C>& other)
+                : sv(other.data()), count(other.size()) {
+
+            }
+
+            template<typename T,typename A>
+            string_connect_helper(const std::basic_string<Char, T, A>& other)
+                : sv(other.data()), count(other.size()) {
+
+            }
+
+            string_connect_helper(std::initializer_list<value_type> il)
+                : sv(il.begin()), count(il.size()) {
+
+            }
+
+            string_connect_helper(const basic_String_view<Char, Traits>& s)
+                : sv(s.data()), count(s.size()) {
+
+            }
+
+            string_connect_helper(const std::basic_string_view<Char, Traits>& s)
+                : sv(s.data()), count(s.size()) {
+
+            }
+
+            string_connect_helper(const value_type ch)
+                : ns(ch), count(npos) {
+                
+            }
+
+            const value_type* data()const {
+                return count == npos ? &ns : sv;
+            }
+
+            const size_type size()const {
+                return count == npos ? 1 : count;
+            }
+
+        private:
+            union {
+                const value_type* sv;
+                const value_type ns;
+            };
+            const size_type count;
+        };
+
+        static basic_String _Connect(std::initializer_list<string_connect_helper> il) ;
+
+        static basic_String _Connect_init(basic_String&& init, std::initializer_list<string_connect_helper> il);
+
+    public:
+
+        template<typename...Args>
+        static basic_String connect(Args&&...args) {
+            return _Connect({std::forward<Args>(args)...});
+        }
+
+        template<typename...Args>
+        static basic_String connect(basic_String&&init, Args&&...args) {
+            return _Connect_init(std::move(init),{std::forward<Args>(args)...});
+        }
+
+        template<typename...Args>
+        basic_String& multiple_append(Args&&...args) {
+            *this = _Connect_init(std::move(*this), { std::forward<Args>(args)... });
+            return *this;
+        }
 
     private:
         Core core;
@@ -2568,6 +3224,38 @@ namespace wjr {
         return *this;
     }
 
+    template<typename Char,typename Traits,typename Core>
+    template<typename T>
+    basic_String<Char,Traits,Core>& basic_String<Char,Traits,Core>::
+        remove(const value_type* s, const size_type _off, const size_type n) {
+        auto _data = data();
+        size_type off = _off;
+        auto srch = get_find_helper<T>(s,s + n);
+        size_type appear_time = 0;
+        for (;;) {
+            const auto pos = find<T>(srch,off);
+            if (pos == npos) {
+                break;
+            }
+            if (appear_time) {
+                assert(off >= n * appear_time);
+                memmove(_data + off - n * appear_time,
+                    _data + off,
+                    static_cast<size_type>(pos - off));
+            }
+            ++appear_time;
+            off = pos + n;
+        }
+        if (appear_time) {
+            assert(off >= n * appear_time);
+            memmove(_data + off - n * appear_time,
+                _data + off,
+                static_cast<size_type>(size() - off));
+        }
+        chop(n * appear_time);
+        return *this;
+    }
+
     template<typename Char, typename Traits, typename Core>
     basic_String<Char, Traits, Core>&
         basic_String<Char, Traits, Core>::replace(
@@ -2587,14 +3275,14 @@ namespace wjr {
     basic_String<Char, Traits, Core>& basic_String<Char, Traits, Core>::replace(
         const value_type before, const value_type after) {
         auto _data = data();
-        size_type pos = 0;
+        size_type off = 0;
         for (;;) {
-            pos = find<T>(before, pos);
-            if (pos == npos) {
+            off = find<T>(before,off);
+            if (off == npos) {
                 break;
             }
-            *(_data + pos) = after;
-            ++pos;
+            *(_data + off) = after;
+            ++off;
         }
         return *this;
     }
@@ -2603,27 +3291,28 @@ namespace wjr {
     template<typename T>
     basic_String<Char, Traits, Core>& basic_String<Char, Traits, Core>::replace(
         const value_type*s1,const size_type n1,const value_type* s2,const size_type n2) {
-        size_type pos = 0;
+        size_type off = 0;
+        auto srch = get_find_helper(s1,s1 + n1);
         if (n1 == n2) {
             for (;;) {
-                const size_type fnd = find<T>(s1,pos,n1);
-                if (fnd == npos) {
+                const size_type pos = find<T>(srch,off);
+                if (pos == npos) {
                     break;
                 }
-                replace(fnd,n1,s2,n2);
-                pos = fnd + n2;
+                replace(pos,n1,s2,n2);
+                off = pos + n1;
             }
         }
         else {
             basic_String temp;
             for (;;) {
-                const size_type fnd = find<T>(s1,pos,n1);
-                if (fnd == npos) {
-                    temp.append(*this,pos,npos);
+                const size_type pos = find<T>(srch,off);
+                if (pos == npos) {
+                    temp.append(*this,off,npos);
                     break;
                 }
-                temp.append(*this,pos,fnd - pos).append(s2,n2);
-                pos = fnd + n1;
+                temp.append(*this,pos,pos - off).append(s2,n2);
+                off = pos + n1;
             }
             this->~basic_String();
             new (this) basic_String(std::move(temp));
@@ -2655,38 +3344,7 @@ namespace wjr {
     string_list basic_String<Char, Traits, Core>::split(
         const value_type ch, bool keep_empty_parts
     ) {
-
-        string_list ans ; 
-        size_type off = 0;
-        const auto _data = data();
-        const auto _size = size();
-        if (keep_empty_parts) {
-            for (;;) {
-                const size_type pos = find_first_of<T>(ch,off);
-                if (pos == npos) {
-                    ans.emplace_back(_data + off, _data + _size);
-                    break;
-                }
-                ans.emplace_back(_data + off, _data + pos);
-                off = pos + 1;
-            }
-        }
-        else {
-            for (;;) {
-                const size_type pos = find_first_of<T>(ch, off);
-                if (pos == npos) {
-                    if (off != _size) {
-                        ans.emplace_back(_data + off,_data + _size);
-                    }
-                    break;
-                }
-                if (off != pos) {
-                    ans.emplace_back(_data + off,_data + pos);
-                }
-                off = pos + 1;
-            }
-        }
-        return ans;
+        return non_default_traits<T>::template split<string_list>(data(),size(),ch,keep_empty_parts);
     }
 
     template<typename Char,typename Traits,typename Core>
@@ -2708,53 +3366,7 @@ namespace wjr {
     string_list basic_String<Char, Traits, Core>::split(
         const value_type* s, const size_type n,
         bool keep_empty_parts) {
-
-        const auto _data = data();
-        const size_type _size = size();
-        if (_size < n) {
-            if (_size != 0 || keep_empty_parts) {
-                return {basic_String(_data,_data + _size)};
-            }
-            else {
-                return {};
-            }
-        }
-
-        if (n == 1) {
-            return split<T, string_list>(*s, keep_empty_parts);
-        }
-
-        auto srch = get_find_helper<T>(s,s + n);
-        size_type off = 0;
-        string_list ans;
-        if (keep_empty_parts) {
-            for (;;) {
-                const size_type pos = find<T>(srch,off);
-                if (pos == npos) {
-                    ans.emplace_back(_data + off, _data + _size);
-                    break;
-                }
-                ans.emplace_back(_data + off, _data + pos);
-                off = pos + n;
-            }
-        }
-        else {
-            for (;;) {
-                const size_type pos = find<T>(srch, off);
-                if (pos == npos) {
-                    if (off != _size) {
-                        ans.emplace_back(_data + off, _data + _size);
-                    }
-                    break;
-                }
-                if (off != pos) {
-                    ans.emplace_back(_data + off, _data + pos);
-                }
-                off = pos + n;
-            }
-        }
-
-        return ans;
+        return non_default_traits<T>::template split<string_list>(data(),size(),s,n,keep_empty_parts);
     }
 
     template<typename Char,typename Traits,typename Core>
@@ -2921,6 +3533,89 @@ namespace wjr {
         char buff[64];
         const auto len = sprintf(buff,form,val);
         return basic_String<Char,Traits,Core>(buff,buff + len);
+    }
+
+    extern "C" {
+        bool fill_double(double v, char* buffer);
+    }
+
+    template<typename Char,typename Traits,typename Core>
+    basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::fixed_number(double val) {
+        if (!val) {
+            return basic_String<Char,Traits,Core>(static_cast<value_type>('0'));
+        }
+        char buff[64];
+        fill_double(val, buff);
+        const char* ptr = buff;
+        for (int n = 0;n < 64 && *ptr !='\0'; ++n,++ptr);
+        return basic_String<Char,Traits,Core>(buff,ptr);
+    }
+
+    template<typename Char,typename Traits,typename Core>
+    basic_String<Char,Traits,Core>& basic_String<Char,Traits,Core>::
+        set_number(int val, int base) {
+        *this = std::move(number(val,base));
+        return *this;
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    basic_String<Char, Traits, Core>& basic_String<Char, Traits, Core>::
+        set_number(unsigned int val, int base) {
+        *this = std::move(number(val, base));
+        return *this;
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    basic_String<Char, Traits, Core>& basic_String<Char, Traits, Core>::
+        set_number(long long val, int base) {
+        *this = std::move(number(val,base));
+        return *this;
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    basic_String<Char, Traits, Core>& basic_String<Char, Traits, Core>::
+        set_number(unsigned long long val, int base) {
+        *this = std::move(number(val,base));
+        return *this;
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    basic_String<Char, Traits, Core>& basic_String<Char, Traits, Core>::
+        set_number(double val, char f, int prec) {
+        *this = std::move(number(val,f,prec));
+        return *this;
+    }
+
+    template<typename Char,typename Traits,typename Core>
+    basic_String<Char,Traits,Core> basic_String<Char,Traits,Core>::
+        _Connect(std::initializer_list<string_connect_helper> il) {
+        size_type count = 0;
+        for (auto& i : il) {
+            count += i.size();
+        }
+        basic_String it;
+        auto ptr = it.core.expandNoinit(count);
+        for (auto& i : il) {
+            memcpy(ptr, i.data(), sizeof(value_type) * i.size());
+            ptr += i.size();
+        }
+        return it;
+    }
+
+    template<typename Char,typename Traits,typename Core>
+    basic_String<Char,Traits,Core> basic_String<Char,Traits,Core>::
+        _Connect_init(basic_String&& init, std::initializer_list<string_connect_helper> il) {
+        size_type count = 0;
+        for (auto& i : il) {
+            count += i.size();
+        }
+        basic_String it(std::move(init));
+        auto ptr = it.core.expandNoinit(count);
+        for (auto& i : il) {
+            memcpy(ptr, i.data(), sizeof(value_type) * i.size());
+            ptr += i.size();
+        }
+        return it;
     }
 
     template<typename Char,typename Traits,typename Core>
@@ -3224,7 +3919,6 @@ namespace wjr {
                 if (std::isspace(got)) {
                     break;
                 }
-                printf("%d\n",got);
                 str.push_back(got);
                 got = is.rdbuf()->snextc();
             }
@@ -3276,6 +3970,11 @@ namespace wjr {
     using wString = basic_String<wchar_t,std::char_traits<wchar_t>>;
     using u16String = basic_String<char16_t,std::char_traits<char16_t>>;
     using u32String = basic_String<char32_t,std::char_traits<char32_t>>;
+
+    using String_view = basic_String_view<char,std::char_traits<char>>;
+    using wString_view = basic_String_view<wchar_t,std::char_traits<wchar_t>>;
+    using u16String_view = basic_String_view<char16_t,std::char_traits<char16_t>>;
+    using u32String_view = basic_String_view<char32_t,std::char_traits<char32_t>>;
 
     template<typename T>
     struct case_insensitive_String {

@@ -11,6 +11,7 @@
 namespace wjr {
 
 #define ALLOCATOR_DEBUG
+//#define __USE_THREADS
 
 #ifndef _DEBUG
 #undef ALLOCATOR_DEBUG
@@ -193,6 +194,7 @@ namespace wjr {
 				free(p);
 				return;
 			}
+
 			if constexpr (threads) {
 				obj* volatile* my_free_list = free_list + FREELIST_INDEX(n);
 				std::unique_lock<std::mutex> _mutex(allocator_mutex);
@@ -229,6 +231,7 @@ namespace wjr {
 			start_free += total_bytes;
 			return (result);
 		}
+
 		if (bytes_left >= size) {
 			nobjs = static_cast<int>(bytes_left / size);
 			total_bytes = size * nobjs;
@@ -236,6 +239,7 @@ namespace wjr {
 			start_free += total_bytes;
 			return (result);
 		}
+
 		const size_t bytes_to_get =
 			2 * total_bytes + ROUND_UP(heap_size >> 4);
 		// Try to make use of the left-over piece.

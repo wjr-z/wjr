@@ -109,18 +109,6 @@ namespace wjr {
             return s != e;
         }
 
-        extern "C" {
-            int fill_double_l(double v, char* buffer);
-        }
-
-        json_string to_accurate_string(double val) {
-            char buff[64];
-            int l = fill_double_l(val,buff);
-            assert(l < 64);
-            json_string Str(buff,l);
-            return Str;
-        }
-
     }
 
     // default constructor
@@ -134,17 +122,17 @@ namespace wjr {
         // copy Number firstly
         switch (_Type) {
             case (uint8_t)(value_t::string) : {
-                _String = mallocator<String>().allocate();
+                _String = mallocator<String>().allocate(1);
                 new (_String) String(*other._String);
                 break;
             }
             case (uint8_t)(value_t::object) : {
-                _Object = mallocator<Object>().allocate();
+                _Object = mallocator<Object>().allocate(1);
                 new (_Object) Object(*other._Object);
                 break;
             }
             case (uint8_t)(value_t::array) : {
-                _Array = mallocator<Array>().allocate();
+                _Array = mallocator<Array>().allocate(1);
                 new (_Array) Array(*other._Array);
                 break;
             }
@@ -192,27 +180,27 @@ namespace wjr {
     }
 
     json::json(const Object& v)
-        : _Object(mallocator<Object>().allocate()), _Type((uint8_t)(value_t::object)) {
+        : _Object(mallocator<Object>().allocate(1)), _Type((uint8_t)(value_t::object)) {
         new (_Object) Object(v);
     }
 
     json::json(Object&& v)noexcept
-        : _Object(mallocator<Object>().allocate()), _Type((uint8_t)(value_t::object)) {
+        : _Object(mallocator<Object>().allocate(1)), _Type((uint8_t)(value_t::object)) {
         new (_Object) Object(std::move(v));
     }
 
     json::json(const Array& v)
-        : _Array(mallocator<Array>().allocate()), _Type((uint8_t)(value_t::array)) {
+        : _Array(mallocator<Array>().allocate(1)), _Type((uint8_t)(value_t::array)) {
         new (_Array) Array(v);
     }
 
     json::json(Array&& v)noexcept
-        : _Array(mallocator<Array>().allocate()), _Type((uint8_t)(value_t::array)) {
+        : _Array(mallocator<Array>().allocate(1)), _Type((uint8_t)(value_t::array)) {
         new (_Array) Array(std::move(v));
     }
 
     json::json(const size_type _Count, const json& _Val)
-        : _Array(mallocator<Array>().allocate()), _Type((uint8_t)(value_t::array)) {
+        : _Array(mallocator<Array>().allocate(1)), _Type((uint8_t)(value_t::array)) {
         new (_Array) Array(_Count, _Val);
     }
 
@@ -243,17 +231,17 @@ namespace wjr {
         switch (_Type) {
             case (uint8_t)(value_t::string) : {
                 _String->~String();
-                mallocator<String>().deallocate(_String);
+                mallocator<String>().deallocate(_String,1);
                 break;
             }
             case (uint8_t)(value_t::object) : {
                 _Object->~Object();
-                mallocator<Object>().deallocate(_Object);
+                mallocator<Object>().deallocate(_Object,1);
                 break;
             }
             case (uint8_t)(value_t::array) : {
                 _Array->~Array();
-                mallocator<Array>().deallocate(_Array);
+                mallocator<Array>().deallocate(_Array,1);
                 break;
             }
             default:
@@ -289,17 +277,17 @@ namespace wjr {
             _Type = other._Type;
             switch (_Type) {
                 case (uint8_t)(value_t::string) : {
-                    _String = mallocator<String>().allocate();
+                    _String = mallocator<String>().allocate(1);
                     new (_String) String(*other._String);
                     break;
                 }
                 case (uint8_t)(value_t::object) : {
-                    _Object = mallocator<Object>().allocate();
+                    _Object = mallocator<Object>().allocate(1);
                     new (_Object) Object(*other._Object);
                     break;
                 }
                 case (uint8_t)(value_t::array) : {
-                    _Array = mallocator<Array>().allocate();
+                    _Array = mallocator<Array>().allocate(1);
                     new (_Array) Array(*other._Array);
                     break;
                 }
@@ -391,7 +379,7 @@ namespace wjr {
     json& json::operator=(const Object& v) {
         if (_Type != (uint8_t)(value_t::object)) {
             _Tidy();
-            _Object = mallocator<Object>().allocate();
+            _Object = mallocator<Object>().allocate(1);
             new (_Object) Object(v);
             _Type = (uint8_t)(value_t::object);
         }
@@ -404,7 +392,7 @@ namespace wjr {
     json& json::operator=(Object&& v)noexcept {
         if (_Type != (uint8_t)(value_t::object)) {
             _Tidy();
-            _Object = mallocator<Object>().allocate();
+            _Object = mallocator<Object>().allocate(1);
             new (_Object) Object(std::move(v));
             _Type = (uint8_t)(value_t::object);
         }
@@ -417,7 +405,7 @@ namespace wjr {
     json& json::operator=(const Array& v) {
         if (_Type != (uint8_t)(value_t::array)) {
             _Tidy();
-            _Array = mallocator<Array>().allocate();
+            _Array = mallocator<Array>().allocate(1);
             new (_Array) Array(v);
             _Type = (uint8_t)(value_t::array);
         }
@@ -430,7 +418,7 @@ namespace wjr {
     json& json::operator=(Array&& v)noexcept {
         if (_Type != (uint8_t)(value_t::array)) {
             _Tidy();
-            _Array = mallocator<Array>().allocate();
+            _Array = mallocator<Array>().allocate(1);
             new (_Array) Array(std::move(v));
             _Type = (uint8_t)(value_t::array);
         }
@@ -664,28 +652,28 @@ namespace wjr {
 
     void json::set_object() {
         _Tidy();
-        _Object = mallocator<Object>().allocate();
+        _Object = mallocator<Object>().allocate(1);
         new (_Object) Object();
         _Type = (uint8_t)(value_t::object);
     }
 
     void json::set_object(json_object&& value) {
         _Tidy();
-        _Object = mallocator<Object>().allocate();
+        _Object = mallocator<Object>().allocate(1);
         new (_Object) Object(std::move(value));
         _Type = (uint8_t)(value_t::object);
     }
 
     void json::set_array() {
         _Tidy();
-        _Array = mallocator<Array>().allocate();
+        _Array = mallocator<Array>().allocate(1);
         new (_Array) Array();
         _Type = (uint8_t)(value_t::array);
     }
 
     void json::set_array(json_array&& value) {
         _Tidy();
-        _Array = mallocator<Array>().allocate();
+        _Array = mallocator<Array>().allocate(1);
         new (_Array) Array(std::move(value));
         _Type = (uint8_t)(value_t::array);
     }
@@ -754,15 +742,11 @@ namespace wjr {
                 break;
             }
             case (uint8_t)(value_t::number) : {
-                str.append(to_accurate_string(to_number()));
+                str.append(json_string::fixed_number(to_number()));
                 break;
             }
             case (uint8_t)(value_t::string) : {
-                auto& s = to_string();
-                str.reserve(str.size() + s.size() + 2);
-                str.push_back('"');
-                str.append(s);
-                str.push_back('"');
+                str.multiple_append('"',to_string(),'"');
                 break;
             }
             case (uint8_t)(value_t::object) : {
@@ -773,9 +757,7 @@ namespace wjr {
                     for (auto& i : obj) {
                         if (head) head = false;
                         else str.push_back(',');
-                        str.push_back('"');
-                        str.append(i.first);
-                        str.append("\":");
+                        str.multiple_append('"',i.first,"\":");
                         i.second._minify(str);
                     }
                 }
@@ -950,7 +932,7 @@ namespace wjr {
     json json::array(std::initializer_list<json> il) {
         json x;
         x._Type = (uint8_t)(json::value_t::array);
-        x._Array = mallocator<Array>().allocate();
+        x._Array = mallocator<Array>().allocate(1);
         new (x._Array) Array(il);
         return x;
     }
@@ -958,7 +940,7 @@ namespace wjr {
     json json::object(std::initializer_list<std::pair<const String,json>> il) {
         json x;
         x._Type = (uint8_t)(json::value_t::object);
-        x._Object = mallocator<Object>().allocate();
+        x._Object = mallocator<Object>().allocate(1);
         new (x._Object) Object(il);
         return x;
     }
@@ -1009,16 +991,10 @@ namespace wjr {
                 return to_boolean() ? "true" : "false";
             }
             case (uint8_t)(value_t::number) : {
-                return to_accurate_string(to_number());
+                return json_string::fixed_number(to_number());
             }
             case (uint8_t)(value_t::string) : {
-                json_string str;
-                auto& s = to_string();
-                str.reserve(s.size() + 2);
-                str.push_back('"');
-                str.append(s);
-                str.push_back('"');
-                return str;
+                return json_string::connect('"',to_string(),'"');
             }
             case (uint8_t)(value_t::object) : {
                 json_string str;
@@ -1029,16 +1005,10 @@ namespace wjr {
                     for (auto& i : obj) {
                         if (head) head = false;
                         else str.push_back(',');
-                        str.push_back('\n');
-                        str.append(format_tab(tab + delta));
-                        str.push_back('"');
-                        str.append(i.first);
-                        str.append("\":");
-                        str.push_back(' ');
-                        str.append(i.second.stringify(tab + delta, delta));
+                        str.multiple_append('\n',format_tab(tab + delta),
+                            '"',i.first,"\": ",i.second.stringify(tab + delta,delta));
                     }
-                    str.push_back('\n');
-                    str.append(format_tab(tab));
+                    str.multiple_append('\n',format_tab(tab));
                 }
                 str.push_back('}');
                 return str;
@@ -1052,12 +1022,10 @@ namespace wjr {
                     for (auto& i : umap) {
                         if (head) head = false;
                         else str.push_back(',');
-                        str.push_back('\n');
-                        str.append(format_tab(tab + 2));
-                        str.append(i.stringify(tab + delta, delta));
+                        str.multiple_append('\n',
+                            format_tab(tab + 2),i.stringify(tab + delta,delta));
                     }
-                    str.push_back('\n');
-                    str.append(format_tab(tab));
+                    str.multiple_append('\n',format_tab(tab));
                 }
                 str.push_back(']');
                 return str;
@@ -1096,7 +1064,7 @@ namespace wjr {
         }
         case '{': {
             _Type = (uint8_t)(value_t::object);
-            _Object = mallocator<Object>().allocate();
+            _Object = mallocator<Object>().allocate(1);
             new (_Object) Object();
             auto& obj = *_Object;
             ++s;
@@ -1130,7 +1098,7 @@ namespace wjr {
         }
         case '[': {
             _Type = (uint8_t)(value_t::array);
-            _Array = mallocator<Array>().allocate();
+            _Array = mallocator<Array>().allocate(1);
             new (_Array) Array();
             auto& arr = *_Array;
             ++s;
@@ -1157,7 +1125,7 @@ namespace wjr {
             ++s;
             auto t = skip_string(s,e);
             _Type = (uint8_t)(value_t::string);
-            _String = mallocator<String>().allocate();
+            _String = mallocator<String>().allocate(1);
             new (_String) String((const char*)s, t - s);
             s = t + 1;
             break;

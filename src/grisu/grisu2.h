@@ -37,21 +37,9 @@ bool fill_double(double v, char* buffer) {
     grisu2(v, buffer, &length, &K);
 #ifndef HUMAN_READABLE
     buffer[length] = 'e';
-    fill_exponent(K, &buffer[length+1]);
-#else
-    prettify_string(buffer, 0, length, K);
-#endif
-    return 1;
-}
-
-int fill_double_l(double v, char* buffer) {
-    int length, K;
-    grisu2(v, buffer, &length, &K);
-#ifndef HUMAN_READABLE
-    buffer[length] = 'e';
     fill_exponent(K, &buffer[length + 1]);
 #else
     prettify_string(buffer, 0, length, K);
 #endif
-    return length;
+    return 1;
 }
