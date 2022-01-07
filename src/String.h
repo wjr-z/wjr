@@ -575,6 +575,26 @@ namespace wjr {
         }
     };
 
+    template<typename Char>
+    class String_trim_helper {
+    public:
+        constexpr static const Char* data() {
+            return tr;
+        }
+        constexpr static size_t size() {
+            return 6;
+        }
+    private:
+        constexpr static Char tr[7] = {
+            static_cast<Char>(' '),
+            static_cast<Char>('\r'),
+            static_cast<Char>('\n'),
+            static_cast<Char>('\r'),
+            static_cast<Char>('\f'),
+            static_cast<Char>('\0')
+        };
+    };
+
     template<typename Char, typename Traits>
     struct basic_String_traits {
     public:
@@ -732,6 +752,9 @@ namespace wjr {
         template<typename string_list>
         static string_list split(const value_type* s1,const size_type n1,
             const value_type* s2,const size_type n2,bool keep_empty_parts);
+
+        static size_type left_trim(const value_type* s,const size_type n);
+        static size_type right_trim(const value_type* s,const size_type n);
 
     };
 
@@ -1269,6 +1292,20 @@ namespace wjr {
         return ans;
     }
 
+    template<typename Char,typename Traits>
+    typename basic_String_traits<Char,Traits>::size_type 
+        basic_String_traits<Char, Traits>::left_trim(const value_type* s, const size_type n) {
+        return find_first_not_of(s,n,0,
+            String_trim_helper<Char>::data(),String_trim_helper<Char>::size());
+    }
+
+    template<typename Char, typename Traits>
+    typename basic_String_traits<Char, Traits>::size_type
+        basic_String_traits<Char, Traits>::right_trim(const value_type* s, const size_type n) {
+        return find_last_not_of(s, n, npos, 
+            String_trim_helper<Char>::data(), String_trim_helper<Char>::size());
+    }
+
     template<typename Char>
     class String_core {
         static_assert(std::is_default_constructible_v<Char>,
@@ -1535,7 +1572,7 @@ namespace wjr {
         setCapacity(new_size);
     }
 
-    template<typename Char,typename Traits>
+    template<typename Char,typename Traits = std::char_traits<Char>>
     class basic_String_view {
     private:
         using default_traits = basic_String_traits<Char, Traits>;
@@ -1908,6 +1945,15 @@ namespace wjr {
         template<typename T = Traits, typename string_list = std::vector<basic_String_view>>
         string_list split(const value_type * s,
             const size_type n, bool keep_empty_parts = true);
+
+        basic_String_view trim() {
+            auto l = default_traits::left_trim(Myfirst,Mysize);
+            if (l == npos) {
+                return {Myfirst,0};
+            }
+            auto r = default_traits::right_trim(Myfirst,Mysize);
+            return {Myfirst + l,r - l + 1};
+        }
         
     private:
         const_pointer Myfirst;
@@ -1940,7 +1986,8 @@ namespace wjr {
         return non_default_traits<T>::template split<string_list>(data(),size(),s,n,keep_empty_parts);
     }
 
-    template<typename Char,typename Traits,typename Core = String_core<Char>>
+    template<typename Char,typename Traits = 
+        std::char_traits<Char>,typename Core = String_core<Char>>
     class basic_String  {
     private:
         using default_traits = basic_String_traits<Char, Traits>;
@@ -2289,6 +2336,63 @@ namespace wjr {
 
         basic_String& append(std::initializer_list<value_type> il) {
             return append(il.begin(), il.end());
+        }
+
+        basic_String& append(const value_type c) {
+            push_back(c);
+            return *this;
+        }
+
+        basic_String& prepend(const basic_String& other) {
+            return prepend(other.data(), other.size());
+        }
+
+        basic_String& prepend(const basic_String& other, const size_type pos, const size_type n = npos) {
+            return prepend(other.data() + pos,npos_min(n,other.size() - pos));
+        }
+
+        basic_String& prepend(const value_type* s,size_type n);
+
+        basic_String& prepend(const value_type* s) {
+            return prepend(s,traits_length(s));
+        }
+
+        basic_String& prepend(const size_type n, const value_type c) {
+            auto _size = size();
+            core.expandNoinit(n,true);
+            auto _data = data();
+            memmove(_data + n,_data,sizeof(value_type) * _size);
+            std::fill(_data,_data + n,c);
+            return *this;
+        }
+
+        basic_String& prepend(const value_type* s, const value_type* e) {
+            return prepend(s,static_cast<size_type>(e-s));
+        }
+
+    private:
+        template<typename iter>
+        basic_String& prepend(iter first, iter last, std::true_type) {
+            return prepend((const value_type*)first,(const value_type*)last);
+        }
+
+        template<typename iter>
+        basic_String& prepend(iter first, iter last, std::false_type) {
+            return prepend(basic_String(first,last));
+        }
+
+    public:
+        template<typename iter>
+        basic_String& prepend(iter first, iter last) {
+            return prepend(first, last, is_char_ptr<iter>{});
+        }
+
+        basic_String& prepend(std::initializer_list<value_type> il) {
+            return prepend(il.begin(),il.end());
+        }
+
+        basic_String& prepend(const value_type c) {
+            return prepend(1,c);
         }
 
         void push_back(const value_type c) {
@@ -2928,27 +3032,26 @@ namespace wjr {
             return std::move(*this);
         }
 
-        static basic_String& get_trim_helper() {
-            static basic_String it = from("\t\n\f\v\r ");
-            return it;
-        }
-
         basic_String trim()const& {
-            auto l = find_first_not_of(get_trim_helper());
+            auto _data = data();
+            auto _size = size();
+            auto l = default_traits::left_trim(_data,_size);
             if (l != npos) {
-                auto r = find_last_not_of(get_trim_helper());
+                auto r = default_traits::right_trim(_data,_size);
                 return basic_String(data() + l, r - l + 1);
             }
             return basic_String();
         }
 
         basic_String trim()&& {
-            auto l = find_first_not_of(get_trim_helper());
+            auto _data = data();
+            auto _size = size();
+            auto l = default_traits::left_trim(_data, _size);
             erase(0,l);
             if (l == npos) {
                 return std::move(*this);
             }
-            auto r = find_last_not_of(get_trim_helper());
+            auto r = default_traits::right_trim(_data, _size);
             erase(r,npos);
             return std::move(*this);
         }
@@ -3049,24 +3152,21 @@ namespace wjr {
 
             }
 
-            string_connect_helper(const value_type ch)
-                : ns(ch), count(npos) {
+            string_connect_helper(const value_type&ch)
+                : sv(&ch), count(1) {
                 
             }
 
             const value_type* data()const {
-                return count == npos ? &ns : sv;
+                return sv;
             }
 
             const size_type size()const {
-                return count == npos ? 1 : count;
+                return count;
             }
 
         private:
-            union {
-                const value_type* sv;
-                const value_type ns;
-            };
+            const value_type* sv;
             const size_type count;
         };
 
@@ -3091,6 +3191,8 @@ namespace wjr {
             *this = _Connect_init(std::move(*this), { std::forward<Args>(args)... });
             return *this;
         }
+
+        basic_String repeated(int times);
 
     private:
         Core core;
@@ -3121,17 +3223,38 @@ namespace wjr {
         basic_String<Char, Traits, Core>::append(
         const value_type* s, size_type n) {
 
-        const auto oldData = data();
-        const auto oldSize = size();
-        const auto pData = core.expandNoinit(n, true);
+        const auto old_data = data();
+        const auto old_size = size();
+        const auto ptr = core.expandNoinit(n, true);
 
-        if (oldData <= s && s < oldData + oldSize) {
-            s = (pData - oldSize) + (s - oldData);
-            memmove(pData, s, sizeof(value_type) * n);
+        if (old_data <= s && s < old_data + old_size) {
+            s = (ptr - old_size) + (s - old_data);
         }
-        else {
-            memcpy(pData, s, sizeof(value_type) * n);
+
+        memcpy(ptr,s,sizeof(value_type) * n);
+
+        return *this;
+    }
+
+    template<typename Char,typename Traits,typename Core>
+    basic_String<Char,Traits,Core>&
+        basic_String<Char, Traits, Core>::prepend(
+            const value_type* s, size_type n) {
+        if (!n) {
+            return *this;
         }
+        const auto old_data = data();
+        const auto old_size = size();
+        core.expandNoinit(n, true);
+
+        auto ptr = data();
+        memmove(ptr + n,ptr,sizeof(value_type) * old_size);
+
+        if (old_data <= s && s < old_data + old_size) {
+            s = ptr + (s - old_data) + n;
+        }
+
+        memcpy(ptr,s,sizeof(value_type) * n);
 
         return *this;
     }
@@ -3240,7 +3363,7 @@ namespace wjr {
             if (appear_time) {
                 assert(off >= n * appear_time);
                 memmove(_data + off - n * appear_time,
-                    _data + off,
+                    _data + off, sizeof(value_type) * 
                     static_cast<size_type>(pos - off));
             }
             ++appear_time;
@@ -3249,7 +3372,7 @@ namespace wjr {
         if (appear_time) {
             assert(off >= n * appear_time);
             memmove(_data + off - n * appear_time,
-                _data + off,
+                _data + off, sizeof(value_type) *
                 static_cast<size_type>(size() - off));
         }
         chop(n * appear_time);
@@ -3614,6 +3737,21 @@ namespace wjr {
         for (auto& i : il) {
             memcpy(ptr, i.data(), sizeof(value_type) * i.size());
             ptr += i.size();
+        }
+        return it;
+    }
+
+    template<typename Char,typename Traits,typename Core>
+    basic_String<Char,Traits,Core> basic_String<Char,Traits,Core>::
+        repeated(int times) {
+        if (times <= 0) times = 0;
+        auto _data = data();
+        auto _size = size();
+        basic_String it;
+        auto ptr = it.core.expandNoinit(times * _size);
+        for (; times; --times) {
+            memcpy(ptr, _data, sizeof(value_type) * _size);
+            ptr += _size;
         }
         return it;
     }

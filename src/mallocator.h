@@ -10,11 +10,12 @@
 
 namespace wjr {
 
-#define ALLOCATOR_DEBUG
 //#define __USE_THREADS
 
-#ifndef _DEBUG
-#undef ALLOCATOR_DEBUG
+#ifdef __USE_THREADS
+#define THREAD_LOCAL thread_local
+#else 
+#define THREAD_LOCAL 
 #endif
 
 	template <int __inst>
@@ -116,7 +117,7 @@ namespace wjr {
 			char client_data[1]; 
 		};
 	private:
-		static obj* volatile free_list[__NFREELISTS];
+		THREAD_LOCAL static obj* volatile free_list[__NFREELISTS];
 
 		static inline size_t FREELIST_INDEX(size_t bytes) {
 			return (((bytes)+__ALIGN - 1) / __ALIGN - 1);
@@ -130,64 +131,27 @@ namespace wjr {
 		static char* chunk_alloc(size_t size, int& nobjs);
 
 		// Chunk allocation state.
-		static char* start_free;
-		static char* end_free;
-		static size_t heap_size;
-
-		static std::mutex allocator_mutex;
-
-	#ifdef ALLOCATOR_DEBUG
-		struct allocator_size_count {
-			size_t count;
-			allocator_size_count()
-				: count(0) {
-
-			}
-			~allocator_size_count() {
-				assert(count == 0);
-			}
-		};
-		static allocator_size_count S;
-	#endif
+		THREAD_LOCAL static char* start_free;
+		THREAD_LOCAL static char* end_free;
+		THREAD_LOCAL static size_t heap_size;
 
 	public:
 		static void* allocate(size_t n) //n must be > 0
 		{
 			if (n > (size_t)__MAX_BYTES) {
-			#ifdef ALLOCATOR_DEBUG
-				S.count += n;
-			#endif
 				return malloc_alloc::allocate(n);
 			}
-		#ifdef ALLOCATOR_DEBUG
-			S.count += n;
-		#endif
-			if constexpr (threads) {
-				obj* volatile* my_free_list = free_list + FREELIST_INDEX(n);
-				std::unique_lock<std::mutex> _mutex(allocator_mutex);
-				obj* result = *my_free_list;
-				if (result != nullptr) {
-					*my_free_list = result->free_list_link;
-					return result;
-				}
-				return refill(ROUND_UP(n));
+			obj* volatile* my_free_list = free_list + FREELIST_INDEX(n);
+			obj* result = *my_free_list;
+			if (result != nullptr) {
+				*my_free_list = result->free_list_link;
+				return result;
 			}
-			else {
-				obj* volatile* my_free_list = free_list + FREELIST_INDEX(n);
-				obj* result = *my_free_list;
-				if (result != nullptr) {
-					*my_free_list = result->free_list_link;
-					return result;
-				}
-				return refill(ROUND_UP(n));
-			}
+			return refill(ROUND_UP(n));
 		}
 
 		static void deallocate(void* p, size_t n) //p may not be 0
 		{
-		#ifdef ALLOCATOR_DEBUG
-			S.count -= n;
-		#endif
 			obj* q = (obj*)p;
 
 			if (n > (size_t)__MAX_BYTES) {
@@ -195,17 +159,9 @@ namespace wjr {
 				return;
 			}
 
-			if constexpr (threads) {
-				obj* volatile* my_free_list = free_list + FREELIST_INDEX(n);
-				std::unique_lock<std::mutex> _mutex(allocator_mutex);
-				q->free_list_link = *my_free_list;
-				*my_free_list = q;
-			}
-			else {
-				obj* volatile* my_free_list = free_list + FREELIST_INDEX(n);
-				q->free_list_link = *my_free_list;
-				*my_free_list = q;
-			}
+			obj* volatile* my_free_list = free_list + FREELIST_INDEX(n);
+			q->free_list_link = *my_free_list;
+			*my_free_list = q;
 
 		}
 
@@ -313,30 +269,21 @@ namespace wjr {
 
 	//----------------------------------------------
 	template <bool threads, int inst>
-	char* __default_alloc_template<threads, inst>::start_free = 0;
+	THREAD_LOCAL char* __default_alloc_template<threads, inst>::start_free = 0;
 
 	template <bool threads, int inst>
-	char* __default_alloc_template<threads, inst>::end_free = 0;
+	THREAD_LOCAL char* __default_alloc_template<threads, inst>::end_free = 0;
 
 	template <bool threads, int inst>
-	size_t __default_alloc_template<threads, inst>::heap_size = 0;
+	THREAD_LOCAL size_t __default_alloc_template<threads, inst>::heap_size = 0;
 
 	template <bool threads, int inst>
-	typename __default_alloc_template<threads, inst>::obj* volatile
+	THREAD_LOCAL typename __default_alloc_template<threads, inst>::obj* volatile
 		__default_alloc_template<threads, inst>::free_list[__NFREELISTS]
 		= { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
 
-	template<bool threads, int inst>
-	std::mutex __default_alloc_template<threads, inst>::allocator_mutex;
-
 	template<bool threads, int __inst>
 	using alloc = __default_alloc_template<threads, __inst>;
-
-#ifdef ALLOCATOR_DEBUG
-	template<bool threads,int __inst>
-	typename __default_alloc_template<threads,__inst>::allocator_size_count
-		__default_alloc_template<threads, __inst>::S;
-#endif
 
 	template <typename Ty, bool threads = false>
 	class basic_malloc {
@@ -424,13 +371,10 @@ namespace wjr {
 		return false;
 	}
 
-#ifndef __USE_THREADS
 	template<typename T>
 	using mallocator = basic_malloc<T,false>;
-#else 
-	template<typename T>
-	using mallocator = basic_malloc<T,true>;
-#endif
+
+#undef THREAD_LOCAL
 
 }
 

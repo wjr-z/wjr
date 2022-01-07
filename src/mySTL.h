@@ -107,6 +107,8 @@ namespace wjr {
 		}
 	}
 
+	bool isdigit_or_sign(uint8_t ch);
+
 }
 
 #endif

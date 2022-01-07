@@ -1,7 +1,6 @@
 #ifndef STRING_HELPER_H
 #define STRING_HELPER_H
 
-#include "mallocator.h"
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -12,8 +11,6 @@
 #include "String.h"
 
 namespace wjr {
-
-	bool isdigit_or_sign(uint8_t ch);
 
 	template<typename T>
 	size_t read_integer(const char* str,T& val) {
