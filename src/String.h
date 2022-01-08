@@ -1413,6 +1413,7 @@ namespace wjr {
                 return _Capacity & capacityExtractMask;
             }
         };
+
         constexpr static size_t lastChar = sizeof(_Medium) - 1;
         constexpr static size_t maxSmallSize = lastChar / sizeof(Char);
         constexpr static uint8_t categoryExtractMask = 0x80;
@@ -1442,17 +1443,17 @@ namespace wjr {
 
         void setSmallSize(const size_t s) {
             assert(s <= maxSmallSize);
-            _Byte[lastChar] = static_cast<uint8_t>(maxSmallSize - s);
-            _Small[s] = '\0';
+            _Small[maxSmallSize] = static_cast<Char>(maxSmallSize - s);
+            _Small[s] = static_cast<Char>('\0');
         }
 
         void setMediumSize(const size_t s) {
             _Ml._Size = s;
-            _Ml._Data[s] = '\0';
+            _Ml._Data[s] = static_cast<Char>('\0');
         }
 
         size_t SmallSize()const {
-            return maxSmallSize - _Byte[lastChar];
+            return maxSmallSize - static_cast<size_t>(_Small[maxSmallSize]);
         }
 
         size_t MediumSize()const {
@@ -1985,6 +1986,183 @@ namespace wjr {
         const size_type n, bool keep_empty_parts) {
         return non_default_traits<T>::template split<string_list>(data(),size(),s,n,keep_empty_parts);
     }
+
+    template<typename Char, typename Traits>
+    bool operator==(
+        const basic_String_view<Char, Traits>& lhs,
+        const basic_String_view<Char, Traits>& rhs
+        ) {
+        return lhs.equal(rhs);
+    }
+
+    template<typename Char, typename Traits>
+    bool operator==(
+        const basic_String_view<Char, Traits>& lhs,
+        const Char* rhs
+        ) {
+        return lhs.equal(rhs);
+    }
+
+    template<typename Char, typename Traits>
+    bool operator!=(
+        const basic_String_view<Char, Traits>& lhs,
+        const basic_String_view<Char, Traits>& rhs
+        ) {
+        return !(lhs == rhs);
+    }
+
+    template<typename Char, typename Traits>
+    bool operator!=(
+        const basic_String_view<Char, Traits>& lhs,
+        const Char* rhs
+        ) {
+        return !(lhs == rhs);
+    }
+
+    template<typename Char, typename Traits>
+    bool operator!=(
+        const Char* lhs,
+        const basic_String_view<Char, Traits>& rhs
+        ) {
+        return !(lhs == rhs);
+    }
+
+    template<typename Char, typename Traits>
+    bool operator<(
+        const basic_String_view<Char, Traits>& lhs,
+        const basic_String_view<Char, Traits>& rhs
+        ) {
+        return lhs.compare(rhs) < 0;
+    }
+
+    template<typename Char, typename Traits>
+    bool operator<(
+        const basic_String_view<Char, Traits>& lhs,
+        const Char* rhs
+        ) {
+        return lhs.compare(rhs) < 0;
+    }
+
+    template<typename Char, typename Traits>
+    bool operator<(
+        const Char* lhs,
+        const basic_String_view<Char, Traits>& rhs
+        ) {
+        return rhs.compare(lhs) > 0;
+    }
+
+    template<typename Char, typename Traits>
+    bool operator>(
+        const basic_String_view<Char, Traits>& lhs,
+        const basic_String_view<Char, Traits>& rhs
+        ) {
+        return lhs.compare(rhs) > 0;
+    }
+
+    template<typename Char, typename Traits>
+    bool operator>(
+        const basic_String_view<Char, Traits>& lhs,
+        const Char* rhs
+        ) {
+        return lhs.compare(rhs) > 0;
+    }
+
+    template<typename Char, typename Traits>
+    bool operator>(
+        const Char* lhs,
+        const basic_String_view<Char, Traits>& rhs
+        ) {
+        return rhs.compare(lhs) < 0;
+    }
+
+    template<typename Char, typename Traits>
+    bool operator<=(
+        const basic_String_view<Char, Traits>& lhs,
+        const basic_String_view<Char, Traits>& rhs
+        ) {
+        return lhs.compare(rhs) <= 0;
+    }
+
+    template<typename Char, typename Traits>
+    bool operator<=(
+        const basic_String_view<Char, Traits>& lhs,
+        const Char* rhs
+        ) {
+        return lhs.compare(rhs) <= 0;
+    }
+
+    template<typename Char, typename Traits>
+    bool operator<=(
+        const Char* lhs,
+        const basic_String_view<Char, Traits>& rhs
+        ) {
+        return rhs.compare(lhs) >= 0;
+    }
+
+    template<typename Char, typename Traits>
+    bool operator>=(
+        const basic_String_view<Char, Traits>& lhs,
+        const basic_String_view<Char, Traits>& rhs
+        ) {
+        return lhs.compare(rhs) >= 0;
+    }
+
+    template<typename Char, typename Traits>
+    bool operator>=(
+        const basic_String_view<Char, Traits>& lhs,
+        const Char* rhs
+        ) {
+        return lhs.compare(rhs) >= 0;
+    }
+
+    template<typename Char, typename Traits>
+    bool operator>=(
+        const Char* lhs,
+        const basic_String_view<Char, Traits>& rhs
+        ) {
+        return rhs.compare(lhs) <= 0;
+    }
+
+    template<typename Char, typename Traits>
+    void swap(basic_String_view<Char, Traits>& lhs, 
+        basic_String_view<Char, Traits>& rhs) {
+        lhs.swap(rhs);
+    }
+
+    template <typename Char, typename Traits>
+    inline std::basic_ostream<Char, Traits>&
+        operator<<(
+            std::basic_ostream<Char, Traits>& os,
+            const basic_String_view<Char, Traits>& str) {
+    #ifdef _LIBCPP_VERSION
+        using ostream_type = std::basic_ostream<Char, Traits>;
+        typename ostream_type::sentry _s(os);
+        if (_s) {
+            using _Ip = std::ostreambuf_iterator<Char, Traits>;
+            size_t __len = str.size();
+            bool __left =
+                (os.flags() & ostream_type::adjustfield) == ostream_type::left;
+            if (__pad_and_output(
+                _Ip(os),
+                str.data(),
+                __left ? str.data() + __len : str.data(),
+                str.data() + __len,
+                os,
+                os.fill())
+                .failed()) {
+                os.setstate(ostream_type::badbit | ostream_type::failbit);
+            }
+        }
+    #elif defined(_MSC_VER)
+        typedef decltype(os.precision()) streamsize;
+        // MSVC doesn't define __ostream_insert
+        os.write(str.data(), static_cast<streamsize>(str.size()));
+    #else
+        std::__ostream_insert(os, str.data(), str.size());
+    #endif
+        return os;
+    }
+
 
     template<typename Char,typename Traits = 
         std::char_traits<Char>,typename Core = String_core<Char>>
@@ -3032,6 +3210,26 @@ namespace wjr {
             return std::move(*this);
         }
 
+        basic_String left(const size_type n)const& {
+            return basic_String(data(),npos_min(n,size()));
+        }
+
+        basic_String left(const size_type n)&& {
+            erase(npos_min(n,size()),npos);
+            return std::move(*this);
+        }
+
+        basic_String right(const size_type n)const& {
+            const auto _size = size();
+            return basic_String(data() + _size - npos_min(n,_size),npos);
+        }
+
+        basic_String right(const size_type n)&& {
+            const auto _size = size();
+            erase(0,_size - npos_min(n,_size));
+            return std::move(*this);
+        }
+
         basic_String trim()const& {
             auto _data = data();
             auto _size = size();
@@ -3106,6 +3304,15 @@ namespace wjr {
         basic_String& set_number(long long,int base = 10);
         basic_String& set_number(unsigned long long,int base = 10);
         basic_String& set_number(double,char f = 'g',int prec = 6);
+
+        template<typename...Args>
+        static basic_String asprintf(const char* format, Args&&...args) {
+            const auto len = static_cast<size_t>(_scprintf(format,std::forward<Args>(args)...));
+            basic_String str;
+            str.core.expandNoinit(len);
+            sprintf_s(&str[0],len + 1,format, std::forward<Args>(args)...);
+            return str;
+        }
 
     private:
         struct string_connect_helper {
@@ -4124,13 +4331,19 @@ namespace wjr {
 
 }
 
-#define DEFAULT_STRING_HASH(T)											  \
-template<>																  \
-struct hash<wjr::basic_String<T, char_traits<T>>> {						  \
-    size_t operator()(const wjr::basic_String<T,char_traits<T>>& s)const{ \
-        return wjr::hash_array_representation(s.data(),s.size());		  \
-    }																	  \
-};                                                                        \
+#define DEFAULT_STRING_HASH(T)											        \
+template<>																        \
+struct hash<wjr::basic_String<T, char_traits<T>>> {						        \
+    size_t operator()(const wjr::basic_String<T,char_traits<T>>& s)const{       \
+        return wjr::hash_array_representation(s.data(),s.size());		        \
+    }																	        \
+};                                                                              \
+template<>                                                                      \
+struct hash<wjr::basic_String_view<T,char_traits<T>>> {                         \
+    size_t operator()(const wjr::basic_String_view<T,char_traits<T>>& s)const{  \
+        return wjr::hash_array_representation(s.data(),s.size());               \
+    }                                                                           \
+};                                                                              \
 
 namespace std {
     DEFAULT_STRING_HASH(char) 

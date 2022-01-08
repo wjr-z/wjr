@@ -109,6 +109,8 @@ namespace wjr {
 
 	bool isdigit_or_sign(uint8_t ch);
 
+#define is_little_endian 1
+
 }
 
 #endif
