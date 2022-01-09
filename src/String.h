@@ -595,7 +595,7 @@ namespace wjr {
         };
     };
 
-    template<typename Char, typename Traits>
+    template<typename Char, typename Traits = std::char_traits<Char>>
     struct basic_String_traits {
     public:
         using value_type = Char;
@@ -755,6 +755,14 @@ namespace wjr {
 
         static size_type left_trim(const value_type* s,const size_type n);
         static size_type right_trim(const value_type* s,const size_type n);
+
+        /*
+        static int to_int(const value_type* s,const value_type* e,const value_type*next,bool* ok,int base);
+        static unsigned int to_uint(const value_type* s,const value_type* e,const value_type*next,bool* ok,int base);
+        static long long to_ll(const value_type* s,const value_type* e,const value_type*next,bool* ok,int base);
+        static unsigned long long to_ull(const value_type* s,const value_type* e,const value_type*next,bool* ok,int base);
+        static double to_double(const value_type* s,const value_type* e,const value_type*next,bool* ok,int base);
+        */
 
     };
 
@@ -1389,6 +1397,15 @@ namespace wjr {
             return category() ? MediumSize() : SmallSize();
         }
 
+        void setSize(const size_t s) {
+            if (s <= maxSmallSize) {
+                setSmallSize(s);
+            }
+            else {
+                setMediumSize(s);
+            }
+        }
+
         size_t capacity()const {
             return category() ? _Ml.capacity() : maxSmallSize;
         }
@@ -1398,6 +1415,10 @@ namespace wjr {
         static mallocator<Char>& Getal() {
             static mallocator<Char> _alloc;
             return _alloc;
+        }
+
+        constexpr static size_t max_small_size() {
+            return maxSmallSize;
         }
 
     private:
@@ -1410,13 +1431,18 @@ namespace wjr {
             size_t _Size;
             size_t _Capacity;
             inline size_t capacity()const {
-                return _Capacity & capacityExtractMask;
+                if constexpr (is_little_endian) {
+                    return _Capacity & capacityExtractMask;
+                }
+                else {
+                    return _Capacity >> 1;
+                }
             }
         };
 
         constexpr static size_t lastChar = sizeof(_Medium) - 1;
         constexpr static size_t maxSmallSize = lastChar / sizeof(Char);
-        constexpr static uint8_t categoryExtractMask = 0x80;
+        constexpr static uint8_t categoryExtractMask = is_little_endian ? 0x80 : 0x01;
         constexpr static size_t kShift = (sizeof(size_t) - 1) * 8;
         constexpr static size_t capacityExtractMask = ~((size_t)categoryExtractMask << kShift);
         constexpr static size_t capacityOr = ~capacityExtractMask;
@@ -1432,18 +1458,28 @@ namespace wjr {
         };
 
         inline bool category()const {
-            return _Byte[lastChar] == categoryExtractMask;
+            return (_Byte[lastChar] & categoryExtractMask) != 0;
         }
 
         void setCapacity(const size_t c) {
-            _Ml._Capacity = c | capacityOr;
+            if constexpr (is_little_endian) {
+                _Ml._Capacity = c | capacityOr;
+            }
+            else {
+                _Ml._Capacity = c << 1 | 1;
+            }
         }
 
         void reset() { setSmallSize(0); }
 
         void setSmallSize(const size_t s) {
             assert(s <= maxSmallSize);
-            _Small[maxSmallSize] = static_cast<Char>(maxSmallSize - s);
+            if constexpr (is_little_endian) {
+                _Byte[lastChar] = static_cast<uint8_t>(maxSmallSize - s);
+            }
+            else {
+                _Byte[lastChar] = static_cast<uint8_t>((maxSmallSize - s) << 1);
+            }
             _Small[s] = static_cast<Char>('\0');
         }
 
@@ -1453,7 +1489,12 @@ namespace wjr {
         }
 
         size_t SmallSize()const {
-            return maxSmallSize - static_cast<size_t>(_Small[maxSmallSize]);
+            if constexpr (is_little_endian) {
+                return maxSmallSize - static_cast<size_t>(_Byte[lastChar]);
+            }
+            else {
+                return maxSmallSize - static_cast<size_t>(_Byte[lastChar] >> 1);
+            }
         }
 
         size_t MediumSize()const {
@@ -1532,7 +1573,7 @@ namespace wjr {
             if (_capacity < _size * 9 / 8) {
                 return ;
             }
-            const Char* _data = _Ml._Data;
+            Char* _data = _Ml._Data;
             auto& al = Getal();
             if (_size <= maxSmallSize) {
                 initSmall(_data, _size);
@@ -1963,19 +2004,22 @@ namespace wjr {
 
     template<typename Char,typename Traits>
     template<typename T, typename string_list>
-    string_list basic_String_view<Char, Traits>::split(const value_type ch, bool keep_empty_parts) {
+    string_list basic_String_view<Char, Traits>::split(
+        const value_type ch, bool keep_empty_parts) {
         return non_default_traits<T>::template split<string_list>(data(),size(),ch,keep_empty_parts);
     }
 
     template<typename Char, typename Traits>
     template<typename T, typename string_list>
-    string_list basic_String_view<Char, Traits>::split(const basic_String_view& other, bool keep_empty_parts) {
+    string_list basic_String_view<Char, Traits>::split(
+        const basic_String_view& other, bool keep_empty_parts) {
         return split<T,string_list>(other.data(),other.size(),keep_empty_parts);
     }
 
     template<typename Char, typename Traits>
     template<typename T, typename string_list>
-    string_list basic_String_view<Char, Traits>::split(const value_type* s, bool keep_empty_parts) {
+    string_list basic_String_view<Char, Traits>::split(
+        const value_type* s, bool keep_empty_parts) {
         return split<T,string_list>(s,traits_length(s),keep_empty_parts);
     }
 
@@ -1988,7 +2032,7 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    bool operator==(
+    constexpr bool operator==(
         const basic_String_view<Char, Traits>& lhs,
         const basic_String_view<Char, Traits>& rhs
         ) {
@@ -1996,7 +2040,7 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    bool operator==(
+    constexpr bool operator==(
         const basic_String_view<Char, Traits>& lhs,
         const Char* rhs
         ) {
@@ -2004,7 +2048,7 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    bool operator!=(
+    constexpr bool operator!=(
         const basic_String_view<Char, Traits>& lhs,
         const basic_String_view<Char, Traits>& rhs
         ) {
@@ -2012,7 +2056,7 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    bool operator!=(
+    constexpr bool operator!=(
         const basic_String_view<Char, Traits>& lhs,
         const Char* rhs
         ) {
@@ -2020,7 +2064,7 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    bool operator!=(
+    constexpr bool operator!=(
         const Char* lhs,
         const basic_String_view<Char, Traits>& rhs
         ) {
@@ -2028,7 +2072,7 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    bool operator<(
+    constexpr bool operator<(
         const basic_String_view<Char, Traits>& lhs,
         const basic_String_view<Char, Traits>& rhs
         ) {
@@ -2036,7 +2080,7 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    bool operator<(
+    constexpr bool operator<(
         const basic_String_view<Char, Traits>& lhs,
         const Char* rhs
         ) {
@@ -2044,7 +2088,7 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    bool operator<(
+    constexpr bool operator<(
         const Char* lhs,
         const basic_String_view<Char, Traits>& rhs
         ) {
@@ -2052,7 +2096,7 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    bool operator>(
+    constexpr bool operator>(
         const basic_String_view<Char, Traits>& lhs,
         const basic_String_view<Char, Traits>& rhs
         ) {
@@ -2060,7 +2104,7 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    bool operator>(
+    constexpr bool operator>(
         const basic_String_view<Char, Traits>& lhs,
         const Char* rhs
         ) {
@@ -2068,7 +2112,7 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    bool operator>(
+    constexpr bool operator>(
         const Char* lhs,
         const basic_String_view<Char, Traits>& rhs
         ) {
@@ -2076,7 +2120,7 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    bool operator<=(
+    constexpr bool operator<=(
         const basic_String_view<Char, Traits>& lhs,
         const basic_String_view<Char, Traits>& rhs
         ) {
@@ -2084,7 +2128,7 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    bool operator<=(
+    constexpr bool operator<=(
         const basic_String_view<Char, Traits>& lhs,
         const Char* rhs
         ) {
@@ -2092,7 +2136,7 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    bool operator<=(
+    constexpr bool operator<=(
         const Char* lhs,
         const basic_String_view<Char, Traits>& rhs
         ) {
@@ -2100,7 +2144,7 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    bool operator>=(
+    constexpr bool operator>=(
         const basic_String_view<Char, Traits>& lhs,
         const basic_String_view<Char, Traits>& rhs
         ) {
@@ -2108,7 +2152,7 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    bool operator>=(
+    constexpr bool operator>=(
         const basic_String_view<Char, Traits>& lhs,
         const Char* rhs
         ) {
@@ -2116,7 +2160,7 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    bool operator>=(
+    constexpr bool operator>=(
         const Char* lhs,
         const basic_String_view<Char, Traits>& rhs
         ) {
@@ -2124,7 +2168,7 @@ namespace wjr {
     }
 
     template<typename Char, typename Traits>
-    void swap(basic_String_view<Char, Traits>& lhs, 
+    constexpr void swap(basic_String_view<Char, Traits>& lhs, 
         basic_String_view<Char, Traits>& rhs) {
         lhs.swap(rhs);
     }
@@ -2216,7 +2260,7 @@ namespace wjr {
 
     public:
 
-        basic_String()= default;
+        basic_String() = default;
 
         basic_String(const basic_String & other)
             : core(other.core) {
@@ -2233,10 +2277,6 @@ namespace wjr {
         basic_String(const basic_String & other, const size_type pos, const size_type n = npos)
             : core(other.data() + pos, npos_min(n, other.size() - pos)) {
 
-        }
-
-        basic_String(const value_type ch) {
-            push_back(ch);
         }
 
         basic_String(const value_type * s)
@@ -2283,7 +2323,7 @@ namespace wjr {
 
         }
 
-        basic_String(const size_type n, const value_type c) {
+        basic_String(const size_type n, const value_type c = value_type()) {
             auto const pData = core.expandNoinit(n);
             std::fill(pData, pData + n, c);
         }
@@ -2316,18 +2356,6 @@ namespace wjr {
         }
 
         ~basic_String() noexcept = default;
-
-        template<typename T,typename fs = std::char_traits<T>>
-        static basic_String from(const T* s) {
-            basic_String it(s, s + basic_String_traits<T, fs>::traits_length(s));
-            return it;
-        }
-
-        template<typename T>
-        static basic_String from(const T* s, const size_type n) {
-            basic_String it(s, s + n);
-            return it;
-        }
 
         basic_String& operator=(const basic_String& other) {
             if (this != std::addressof(other)) {
@@ -2430,6 +2458,11 @@ namespace wjr {
 
         size_type size() const {
             return core.size();
+        }
+
+        // set size() without init
+        void set_size(const size_type s) {
+            core.setSize(s);
         }
 
         size_type length() const {
@@ -2610,7 +2643,7 @@ namespace wjr {
         basic_String& assign(iter first, iter last, std::input_iterator_tag) {
             clear();
             for (; first != last; ++first)
-                push_back(static_cast<value_type>(*first));
+                push_back(*first);
             return *this;
         }
 
@@ -2619,7 +2652,7 @@ namespace wjr {
             resize(static_cast<size_type>(std::distance(first, last)));
             auto _data = data();
             for (; first != last; ++_data, ++first)
-                *_data = static_cast<value_type>(*first);
+                *_data = *first;
             return *this;
         }
 
@@ -3368,7 +3401,7 @@ namespace wjr {
                 return sv;
             }
 
-            const size_type size()const {
+            size_type size()const {
                 return count;
             }
 
@@ -3400,6 +3433,9 @@ namespace wjr {
         }
 
         basic_String repeated(int times);
+
+        static basic_String format_time(const char*const format, 
+            struct tm const* date,const size_type l = 0);
 
     private:
         Core core;
@@ -3800,46 +3836,43 @@ namespace wjr {
         return buff;
     }
 
+    template<typename Char,typename Traits,typename Core,typename T>
+    basic_String<Char,Traits,Core> 
+        _Get_number(T val, int base) {
+        Char buff[std::numeric_limits<T>::digits + 1];
+        Char* const buff_end = std::end(buff);
+        Char* pos = buff_end;
+        if constexpr (std::is_unsigned_v<T>) {
+            pos = get_number_unsigned_helper(pos, val, base);
+        }
+        else {
+            pos = get_number_signed_helper(pos, val, base);
+        }
+        return basic_String<Char, Traits, Core>(pos, buff_end);
+    }
+
     template<typename Char,typename Traits,typename Core>
     basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::
         number(int val, int base) {
-        using uval = unsigned int;
-        Char buff[33];
-        Char* const buff_end = std::end(buff);
-        Char* pos = buff_end;
-        pos = get_number_signed_helper(pos,val,base);
-        return basic_String<Char,Traits,Core>(pos,buff_end);
+        return _Get_number<Char,Traits,Core>(val,base);
     }
 
     template<typename Char, typename Traits, typename Core>
     basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::
         number(unsigned int val, int base) {
-        Char buff[33];
-        Char* const buff_end = std::end(buff);
-        Char* pos = buff_end;
-        pos = get_number_unsigned_helper(pos,val,base);
-        return basic_String<Char, Traits, Core>(pos, buff_end);
+        return _Get_number<Char, Traits, Core>(val, base);
     }
 
     template<typename Char, typename Traits, typename Core>
     basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::
         number(long long val, int base) {
-        using uval = unsigned long long;
-        Char buff[65];
-        Char* const buff_end = std::end(buff);
-        Char* pos = buff_end;
-        pos = get_number_signed_helper(pos,val,base);
-        return basic_String<Char, Traits, Core>(pos, buff_end);
+        return _Get_number<Char, Traits, Core>(val, base);
     }
 
     template<typename Char, typename Traits, typename Core>
     basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::
         number(unsigned long long val, int base) {
-        Char buff[65];
-        Char* const buff_end = std::end(buff);
-        Char* pos = buff_end;
-        pos = get_number_unsigned_helper(pos, val, base);
-        return basic_String<Char, Traits, Core>(pos, buff_end);
+        return _Get_number<Char, Traits, Core>(val, base);
     }
 
     template<typename Char, typename Traits, typename Core>
@@ -3960,6 +3993,29 @@ namespace wjr {
             memcpy(ptr, _data, sizeof(value_type) * _size);
             ptr += _size;
         }
+        return it;
+    }
+
+    template<typename Char,typename Traits,typename Core>
+    basic_String<Char,Traits,Core> basic_String<Char, Traits, Core>::
+        format_time(const char*const format, struct tm const* date,const size_type l) {
+        size_t max_len = Core::max_small_size();
+        if (l != 0) {
+            max_len = std::max(max_len,l);
+        }
+        else {
+            max_len = std::max(max_len, 
+                basic_String_traits<char, std::char_traits<char>>::traits_length(format));
+        }
+        size_t len = 0;
+        basic_String it;
+        do {
+            it.reserve(max_len);
+            len = strftime(it.data(),max_len,format,date);
+            max_len <<= 1;
+        }while(len == 0);
+        it.set_size(len);
+        it.shrink_to_fit();
         return it;
     }
 
@@ -4331,19 +4387,19 @@ namespace wjr {
 
 }
 
-#define DEFAULT_STRING_HASH(T)											        \
-template<>																        \
-struct hash<wjr::basic_String<T, char_traits<T>>> {						        \
-    size_t operator()(const wjr::basic_String<T,char_traits<T>>& s)const{       \
-        return wjr::hash_array_representation(s.data(),s.size());		        \
-    }																	        \
-};                                                                              \
-template<>                                                                      \
-struct hash<wjr::basic_String_view<T,char_traits<T>>> {                         \
-    size_t operator()(const wjr::basic_String_view<T,char_traits<T>>& s)const{  \
-        return wjr::hash_array_representation(s.data(),s.size());               \
-    }                                                                           \
-};                                                                              \
+#define DEFAULT_STRING_HASH(T)											                    \
+template<>																                    \
+struct hash<wjr::basic_String<T, char_traits<T>>> {						                    \
+    size_t operator()(const wjr::basic_String<T,char_traits<T>>& s)const{                   \
+        return wjr::hash_array_representation(s.data(),s.size());		                    \
+    }																	                    \
+};                                                                                          \
+template<>                                                                                  \
+struct hash<wjr::basic_String_view<T,char_traits<T>>> {                                     \
+    constexpr size_t operator()(const wjr::basic_String_view<T,char_traits<T>>& s)const{    \
+        return wjr::hash_array_representation(s.data(),s.size());                           \
+    }                                                                                       \
+};                                                                                          \
 
 namespace std {
     DEFAULT_STRING_HASH(char) 

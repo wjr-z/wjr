@@ -52,27 +52,27 @@ namespace wjr {
             if (*s == '+' || *s == '-')
                 ++s;
 
-            if (s == e || !isdigit(*s))
+            if (s == e || !quick_isdigit(*s))
                 return false;
 
             if (*s == '0') {
                 ++s;
             }
             else {
-                for (; s != e && isdigit(*s); ++s);
+                for (; s != e && quick_isdigit(*s); ++s);
             }
 
             if (*s == '.') {
-                for (++s; s != e && isdigit(*s); ++s);
+                for (++s; s != e && quick_isdigit(*s); ++s);
             }
 
             if (*s == 'e' || *s == 'E') {
                 ++s;
                 if (*s == '+' || *s == '-')
                     ++s;
-                if (s == e || !isdigit(*s))
+                if (s == e || !quick_isdigit(*s))
                     return false;
-                for (; s != e && isdigit(*s); ++s);
+                for (; s != e && quick_isdigit(*s); ++s);
             }
 
             return true;

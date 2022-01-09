@@ -51,19 +51,19 @@ namespace wjr {
 		unsigned long long v = 0;
 		int num = 0;
 
-		for (; isdigit(*ptr) && num < 18; ++ptr, ++num) {
+		for (; quick_isdigit(*ptr) && num < 18; ++ptr, ++num) {
 			v = v * 10 + (*ptr - '0');
 		}
 
 		int pw10 = 0;
-		for (; isdigit(*ptr); ++ptr, ++pw10) ;
+		for (; quick_isdigit(*ptr); ++ptr, ++pw10) ;
 
 		if (*ptr == '.') {
 			++ptr;
-			for (; isdigit(*ptr) && num < 18; ++ptr, ++num, --pw10) {
+			for (; quick_isdigit(*ptr) && num < 18; ++ptr, ++num, --pw10) {
 				v = v * 10 + (*ptr - '0');
 			}
-			for(;isdigit(*ptr);++ptr);
+			for(;quick_isdigit(*ptr);++ptr);
 		}
 
 		val = v * power_of_10(pw10);

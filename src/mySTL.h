@@ -6,25 +6,28 @@
 #include <random>
 #include <cassert>
 #include <type_traits>
+#include <locale>
 
 namespace wjr {
 
+#define is_little_endian 1
+
 	inline namespace my_math {
 
-		size_t qlog2(int);
-		size_t qlog2(uint32_t);
-		size_t qlog2(long long);
-		size_t qlog2(uint64_t);
+		constexpr size_t qlog2(int);
+		constexpr size_t qlog2(uint32_t);
+		constexpr size_t qlog2(long long);
+		constexpr size_t qlog2(uint64_t);
 
-		unsigned int find_number(uint32_t n);
-		unsigned int find_number(uint64_t n);
+		constexpr unsigned int find_number(uint32_t n);
+		constexpr unsigned int find_number(uint64_t n);
 
-		unsigned int _minx(uint32_t n); // find the index of the lowest bit
+		constexpr unsigned int _minx(uint32_t n); // find the index of the lowest bit
 
-		bool is_power_of_two(int);
-		bool is_power_of_two(unsigned int);
-		bool is_power_of_two(long long);
-		bool is_power_of_two(unsigned long long);
+		constexpr bool is_power_of_two(int);
+		constexpr bool is_power_of_two(unsigned int);
+		constexpr bool is_power_of_two(long long);
+		constexpr bool is_power_of_two(unsigned long long);
 
 	}
 
@@ -65,51 +68,93 @@ namespace wjr {
 		constexpr static size_t _FNV_prime = 16777619U;
 	#endif // defined(_WIN64)
 
-		inline size_t fnv1a_append_bytes(size_t _Val, const unsigned char* const _First,
+		constexpr size_t normal_fnv1a_append_bytes(size_t _Val, const unsigned char* const _First,
 			const size_t _Count) noexcept { // accumulate range [_First, _First + _Count) into partial FNV-1a hash _Val
 			for (size_t _Idx = 0; _Idx < _Count; ++_Idx) {
 				_Val ^= static_cast<size_t>(_First[_Idx]);
 				_Val *= _FNV_prime;
 			}
-
 			return _Val;
 		}
 
+		template<size_t byte_size,typename const_pointer>
+		constexpr size_t constexpr_fnv1a_append_bytes(size_t _Val, const_pointer _First,
+			const size_t _Count)noexcept {
+			for (size_t _Idx = 0; _Idx < _Count; ++_Idx) {
+				auto val = static_cast<size_t>(_First[_Idx]);
+				if constexpr (is_little_endian) {
+					for (size_t i = 0; i < byte_size; ++i) {
+						_Val ^= (val >> (i << 3)) & 0xFF;
+						_Val *= _FNV_prime;
+					}
+				}
+				else {
+					for (size_t i = byte_size - 1; i > 0; ++i) {
+						_Val ^= (val >> (i << 3)) & 0xFF;
+						_Val *= _FNV_prime;
+					}
+				}
+			}
+			return _Val;
+		}
+
+		template<typename const_pointer>
+		constexpr size_t fnv1a_append_bytes(size_t _Val, const_pointer _First,
+			const size_t _Count)noexcept {
+			using value_type = typename std::iterator_traits<const_pointer>::value_type;
+			constexpr size_t byte_size = sizeof(value_type);
+			if constexpr (byte_size >= 1 && byte_size <= sizeof(size_t)) {
+				return constexpr_fnv1a_append_bytes<byte_size>(_Val,_First,_Count);
+			}
+			else {
+				return normal_fnv1a_append_bytes(_Val, 
+					reinterpret_cast<const unsigned char*>(_First), byte_size * _Count);
+			}
+		}
+
 		template <class _Ty>
-		size_t fnv1a_append_range(const size_t _Val, const _Ty* const _First,
+		constexpr size_t fnv1a_append_range(const size_t _Val, const _Ty* const _First,
 			const _Ty* const _Last) noexcept { // accumulate range [_First, _Last) into partial FNV-1a hash _Val
 			static_assert(std::is_trivial_v<_Ty>, "Only trivial types can be directly hashed.");
-			const auto _Firstb = reinterpret_cast<const unsigned char*>(_First);
-			const auto _Lastb = reinterpret_cast<const unsigned char*>(_Last);
-			return fnv1a_append_bytes(_Val, _Firstb, static_cast<size_t>(_Lastb - _Firstb));
+			return fnv1a_append_bytes(_Val,_First,static_cast<size_t>(_Last - _First));
 		}
 
 		template <class _Kty>
-		size_t fnv1a_append_value(
+		constexpr size_t fnv1a_append_value(
 			const size_t _Val, const _Kty& _Keyval) noexcept { // accumulate _Keyval into partial FNV-1a hash _Val
 			static_assert(std::is_trivial_v<_Kty>, "Only trivial types can be directly hashed.");
-			return fnv1a_append_bytes(_Val, &reinterpret_cast<const unsigned char&>(_Keyval), sizeof(_Kty));
+			return fnv1a_append_bytes(_Val, reinterpret_cast<const _Kty*>(&_Keyval), 1);
 		}
 
 		// FUNCTION TEMPLATE _Hash_representation
 		template <class _Kty>
-		size_t hash_representation(const _Kty& _Keyval) noexcept { // bitwise hashes the representation of a key
+		constexpr size_t hash_representation(const _Kty& _Keyval) noexcept { // bitwise hashes the representation of a key
 			return fnv1a_append_value(_FNV_offset_basis, _Keyval);
 		}
 
 		// FUNCTION TEMPLATE _Hash_array_representation
 		template <class _Kty>
-		size_t hash_array_representation(
+		constexpr size_t hash_array_representation(
 			const _Kty* const _First, const size_t _Count) noexcept { // bitwise hashes the representation of an array
 			static_assert(std::is_trivial_v<_Kty>, "Only trivial types can be directly hashed.");
 			return fnv1a_append_bytes(
-				_FNV_offset_basis, reinterpret_cast<const unsigned char*>(_First), _Count * sizeof(_Kty));
+				_FNV_offset_basis, _First, _Count);
 		}
+	}
+	
+	template<typename T,std::enable_if_t<std::is_integral_v<T>,int> = 0>
+	bool quick_isdigit(T ch) {
+		return (static_cast<T>('0') <= ch) && (ch <= static_cast<T>('9'));
+	}
+
+	template<typename T,std::enable_if_t<!std::is_integral_v<T>,int> = 0>
+	bool quick_isdigit(T ch) {
+		static T zero = static_cast<T>('0'),
+				 nine = static_cast<T>('9');
+		return (zero <= ch) && (ch <= nine);
 	}
 
 	bool isdigit_or_sign(uint8_t ch);
-
-#define is_little_endian 1
 
 }
 

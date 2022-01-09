@@ -25,7 +25,7 @@ namespace wjr {
 		}
 		val = *ptr - '0';
 		++ptr;
-		for (; isdigit(*ptr); ++ptr) {
+		for (; quick_isdigit(*ptr); ++ptr) {
 			val = val * 10 + (*ptr - '0');
 		}
 		if(!neg) val = -val;
