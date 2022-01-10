@@ -59,7 +59,7 @@ namespace wjr {
 
 	}
 
-	inline namespace _hash {
+	inline namespace wjr_hash {
 	#if defined(_WIN64)
 		constexpr static size_t _FNV_offset_basis = 14695981039346656037ULL;
 		constexpr static size_t _FNV_prime = 1099511628211ULL;
@@ -141,20 +141,6 @@ namespace wjr {
 				_FNV_offset_basis, _First, _Count);
 		}
 	}
-	
-	template<typename T,std::enable_if_t<std::is_integral_v<T>,int> = 0>
-	bool quick_isdigit(T ch) {
-		return (static_cast<T>('0') <= ch) && (ch <= static_cast<T>('9'));
-	}
-
-	template<typename T,std::enable_if_t<!std::is_integral_v<T>,int> = 0>
-	bool quick_isdigit(T ch) {
-		static T zero = static_cast<T>('0'),
-				 nine = static_cast<T>('9');
-		return (zero <= ch) && (ch <= nine);
-	}
-
-	bool isdigit_or_sign(uint8_t ch);
 
 }
 

@@ -1134,9 +1134,9 @@ namespace wjr {
         case '+':
         default: {
             _Type = (uint8_t)(value_t::number);
-            double _double;
-            s += read_double((const char*)s,_double);
-            _Number = _double;
+            const char*ptr = (const char*)s;
+            _Number = read_double((const char*)s,(const char*)e,ptr);
+            s = (const uint8_t*)ptr;
             break;
         }
         }

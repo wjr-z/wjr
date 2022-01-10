@@ -575,6 +575,41 @@ namespace wjr {
         }
     };
 
+    template<typename T,char ch>
+    constexpr static T static_charT = static_cast<T>(ch);
+
+    template<typename T>
+    bool quick_isdigit(T ch) {
+        return (static_charT<T,'0'> <= ch) && (ch <= static_charT<T,'9'>);
+    }
+
+    template<typename T>
+    bool quick_islower(T ch) {
+        return (static_charT<T,'a'> <= ch) && (ch <= static_charT<T,'z'>);
+    }
+
+    template<typename T>
+    bool quick_isupper(T ch) {
+        return (static_charT<T,'A'> <= ch) && (ch <= static_charT<T,'Z'>);
+    }
+
+    template<typename T>
+    bool isdigit_or_sign(T ch) {
+        return quick_isdigit(ch) || (ch == static_charT<T,'+'>) || (ch == static_charT<T,'-'>);
+    }
+
+    template<typename T>
+    uint8_t get_digit10(T ch) {
+        return ch - static_charT<T,'0'>;
+    }
+
+    template<typename T>
+    uint8_t get_digit36(T ch) {
+        return quick_isdigit(ch) ? (ch - static_charT<T,'0'>) : 
+            quick_islower(ch) ? (10 + (ch - static_charT<T,'a'>)) : 
+            (10 + (ch - static_charT<T,'A'>));
+    }
+
     template<typename Char>
     class String_trim_helper {
     public:
@@ -586,12 +621,13 @@ namespace wjr {
         }
     private:
         constexpr static Char tr[7] = {
-            static_cast<Char>(' '),
-            static_cast<Char>('\r'),
-            static_cast<Char>('\n'),
-            static_cast<Char>('\r'),
-            static_cast<Char>('\f'),
-            static_cast<Char>('\0')
+            static_charT<Char,' '>,
+            static_charT<Char,'\r'>,
+            static_charT<Char,'\n'>,
+            static_charT<Char,'\t'>,
+            static_charT<Char,'\f'>,
+            static_charT<Char,'\v'>,
+            static_charT<Char,'\0'>
         };
     };
 
@@ -756,15 +792,58 @@ namespace wjr {
         static size_type left_trim(const value_type* s,const size_type n);
         static size_type right_trim(const value_type* s,const size_type n);
 
-        /*
-        static int to_int(const value_type* s,const value_type* e,const value_type*next,bool* ok,int base);
-        static unsigned int to_uint(const value_type* s,const value_type* e,const value_type*next,bool* ok,int base);
-        static long long to_ll(const value_type* s,const value_type* e,const value_type*next,bool* ok,int base);
-        static unsigned long long to_ull(const value_type* s,const value_type* e,const value_type*next,bool* ok,int base);
-        static double to_double(const value_type* s,const value_type* e,const value_type*next,bool* ok,int base);
-        */
+    private:
+        static void set_ok(bool* ok) {
+            if (ok != nullptr) {
+                *ok = true;
+            }
+        }
+        static void set_nok(bool* ok) {
+            if (ok != nullptr) {
+                *ok = false;
+            }
+        }
+        template<typename Val,std::enable_if_t<std::is_signed_v<Val>,int> = 0>
+        static Val to_val_helper(const value_type* s,const value_type* e,
+            const value_type*&next,bool* ok,int base);
+        template<typename UVal,std::enable_if_t<std::is_unsigned_v<UVal>,int> = 0>
+        static UVal to_val_helper(const value_type* s,const value_type* e,
+            const value_type*&next,bool* ok,int base);
 
+        template<typename Val,std::enable_if_t<std::is_signed_v<Val>,int> = 0>
+        static Val unsafe_to_val_helper(const value_type* s,
+            const value_type* e,const value_type*&next,int base);
+        template<typename UVal,std::enable_if_t<std::is_unsigned_v<UVal>,int> = 0>
+        static UVal unsafe_to_val_helper(const value_type* s,
+            const value_type* e,const value_type*&next,int base);
+    public:
+        // safe version
+        static int to_int(const value_type* s,const value_type* e,
+            const value_type*&next,bool* ok = nullptr,int base = 10);
+        static unsigned int to_uint(const value_type* s,const value_type* e,
+            const value_type*&next,bool* ok = nullptr,int base = 10);
+        static long long to_ll(const value_type* s,const value_type* e,
+            const value_type*&next,bool* ok = nullptr,int base = 10);
+        static unsigned long long to_ull(const value_type* s,const value_type* e,
+            const value_type*&next,bool* ok = nullptr,int base = 10);
+        static double to_double(const value_type* s,const value_type* e,
+            const value_type*&next,bool* ok = nullptr);
+
+        // unsafe version,won't check whether is a right integer
+        static int unsafe_to_int(const value_type* s,const value_type* e, 
+            const value_type*& next, int base = 10);
+        static unsigned int unsafe_to_uint(const value_type* s,const value_type* e,
+            const value_type*& next, int base = 10);
+        static long long unsafe_to_ll(const value_type* s,const value_type* e,
+            const value_type*& next, int base = 10);
+        static unsigned long long unsafe_to_ull(const value_type* s,const value_type* e,
+            const value_type*& next, int base = 10);
+        static double unsafe_to_double(const value_type* s,const value_type* e,
+            const value_type*& next);
     };
+
+    template<typename Char,typename Traits = std::char_traits<Char>>
+    using String_traits_helper = basic_String_traits<Char,Traits>;
 
     template<typename Char,typename Traits>
     typename basic_String_traits<Char,Traits>::string_find_helper
@@ -1312,6 +1391,245 @@ namespace wjr {
         basic_String_traits<Char, Traits>::right_trim(const value_type* s, const size_type n) {
         return find_last_not_of(s, n, npos, 
             String_trim_helper<Char>::data(), String_trim_helper<Char>::size());
+    }
+
+    template<typename Char,typename Traits>
+    template<typename Val, std::enable_if_t<std::is_signed_v<Val>, int>>
+    Val basic_String_traits<Char, Traits>::to_val_helper(const value_type* s, const value_type* e,
+        const value_type*& next, bool* ok, int base) {
+        using UVal = std::make_unsigned_t<Val>;
+        if (base > 36) {
+            set_nok(ok);
+            return static_cast<Val>(0);
+        }
+        bool sign = true;
+        next = s;
+        for (;; ++next) {
+            if (next == e) {
+                set_nok(ok);
+                return static_cast<Val>(0);
+            }
+            if (isdigit_or_sign(*next)) {
+                break;
+            }
+        }
+        if (*next == static_charT<Char,'+'>) {
+            ++next;
+        }
+        else if (*next == static_charT<Char,'-'>) {
+            sign = false;
+            ++next;
+        }
+        if (next == e || !quick_isdigit(*next)) {
+            set_nok(ok);
+            return static_cast<Val>(0);
+        }
+        UVal val = get_digit36(*next);
+        ++next;
+        for (; next != e && quick_isdigit(*next); ++next) {
+            UVal digit_val = get_digit36(*next);
+            if (val > (std::numeric_limits<UVal>::max() - digit_val) / base) {
+                set_nok(ok);
+                return static_cast<Val>(0);
+            }
+            val = val * base + digit_val;
+        }
+
+        if (sign) {
+            if (val > std::numeric_limits<Val>::max()) {
+                set_nok(ok);
+                return static_cast<Val>(0);
+            }
+            set_ok(ok);
+            return static_cast<Val>(val);
+        }
+
+        if (val > static_cast<UVal>(0 - std::numeric_limits<Val>::min())) {
+            set_nok(ok);
+            return static_cast<Val>(0);
+        }
+        set_ok(ok);
+        return static_cast<Val>(0 - val);
+    }
+    
+    template<typename Char,typename Traits>
+    template<typename UVal, std::enable_if_t<std::is_unsigned_v<UVal>, int>>
+    UVal basic_String_traits<Char, Traits>::to_val_helper(const value_type* s, const value_type* e,
+        const value_type*& next, bool* ok, int base) {
+        if (base > 36) {
+            set_nok(ok);
+            return static_cast<UVal>(0);
+        }
+        next = s;
+        for (;; ++next) {
+            if (next == e) {
+                set_nok(ok);
+                return static_cast<UVal>(0);
+            }
+            if (isdigit_or_sign(*next)) {
+                break;
+            }
+        }
+        if (*next == static_charT<Char,'+'>) {
+            ++next;
+        }
+        if (next == e || !quick_isdigit(*next)) {
+            set_nok(ok);
+            return static_cast<UVal>(0);
+        }
+        UVal val = get_digit36(*next);
+        ++next;
+        for (; next != e && quick_isdigit(*next); ++next) {
+            UVal digit_val = get_digit36(*next);
+            if (val > (std::numeric_limits<UVal>::max() - digit_val) / base) {
+                set_nok(ok);
+                return static_cast<UVal>(0);
+            }
+            val = val * base + digit_val;
+        }
+
+        set_ok(ok);
+        return val;
+    }
+
+    template<typename Char, typename Traits>
+    int basic_String_traits<Char, Traits>::
+        to_int(const value_type* s, const value_type* e,
+        const value_type*& next, bool* ok, int base) {
+        return to_val_helper<int>(s,e,next,ok,base);
+    }
+
+    template<typename Char, typename Traits>
+    unsigned int basic_String_traits<Char, Traits>::
+        to_uint(const value_type* s, const value_type* e,
+            const value_type*& next, bool* ok, int base) {
+        return to_val_helper<unsigned int>(s,e,next,ok,base);
+    }
+
+    template<typename Char, typename Traits>
+    long long basic_String_traits<Char, Traits>::
+        to_ll(const value_type* s, const value_type* e,
+            const value_type*& next, bool* ok, int base) {
+        return to_val_helper<long long>(s, e, next, ok, base);
+    }
+
+    template<typename Char, typename Traits>
+    unsigned long long basic_String_traits<Char, Traits>::
+        to_ull(const value_type* s, const value_type* e,
+            const value_type*& next, bool* ok, int base) {
+        return to_val_helper<unsigned long long>(s, e, next, ok, base);
+    }
+
+    template<typename Char, typename Traits>
+    double basic_String_traits<Char, Traits>::
+        to_double(const value_type* s, const value_type* e,
+        const value_type*& next, bool* ok) {
+
+    }
+
+    template<typename Char,typename Traits>
+    template<typename Val, std::enable_if_t<std::is_signed_v<Val>, int>>
+    Val basic_String_traits<Char, Traits>::
+        unsafe_to_val_helper(const value_type* s, const value_type* e, const value_type*& next, int base) {
+        using UVal = std::make_unsigned_t<Val>;
+        using UVal = std::make_unsigned_t<Val>;
+        if (base > 36) {
+            return static_cast<Val>(0);
+        }
+        bool sign = true;
+        next = s;
+        for (;; ++next) {
+            if (next == e) {
+                return static_cast<Val>(0);
+            }
+            if (isdigit_or_sign(*next)) {
+                break;
+            }
+        }
+        if (*next == static_charT<Char, '+'>) {
+            ++next;
+        }
+        else if (*next == static_charT<Char, '-'>) {
+            sign = false;
+            ++next;
+        }
+        if (next == e) {
+            return static_cast<Val>(0);
+        }
+        UVal val = get_digit36(*next);
+        ++next;
+        for (; next != e && quick_isdigit(*next); ++next) {
+            UVal digit_val = get_digit36(*next);
+            val = val * base + digit_val;
+        }
+
+        if (sign) {
+            return static_cast<Val>(val);
+        }
+
+        return static_cast<Val>(0 - val);
+    }
+
+    template<typename Char,typename Traits>
+    template<typename UVal, std::enable_if_t<std::is_unsigned_v<UVal>, int>>
+    UVal basic_String_traits<Char, Traits>::
+        unsafe_to_val_helper(const value_type* s, const value_type* e, const value_type*& next, int base) {
+        if (base > 36) {
+            return static_cast<UVal>(0);
+        }
+        next = s;
+        for (;; ++next) {
+            if (next == e) {
+                return static_cast<UVal>(0);
+            }
+            if (isdigit_or_sign(*next)) {
+                break;
+            }
+        }
+        if (*next == static_charT<Char, '+'>) {
+            ++next;
+        }
+        if (next == e) {
+            return static_cast<UVal>(0);
+        }
+        UVal val = get_digit36(*next);
+        ++next;
+        for (; next != e && quick_isdigit(*next); ++next) {
+            UVal digit_val = get_digit36(*next);
+            val = val * base + digit_val;
+        }
+        return val;
+    }
+
+    template<typename Char, typename Traits>
+    int basic_String_traits<Char, Traits>::
+        unsafe_to_int(const value_type* s, const value_type* e, const value_type*& next, int base) {
+        return unsafe_to_val_helper<int>(s,e,next,base);
+    }
+
+    template<typename Char, typename Traits>
+    unsigned int basic_String_traits<Char, Traits>::
+        unsafe_to_uint(const value_type* s, const value_type* e, const value_type*& next, int base) {
+        return unsafe_to_val_helper<unsigned int>(s, e, next, base);
+    }
+
+    template<typename Char, typename Traits>
+    long long basic_String_traits<Char, Traits>::
+        unsafe_to_ll(const value_type* s, const value_type* e, const value_type*& next, int base) {
+        return unsafe_to_val_helper<long long>(s, e, next, base);
+    }
+
+    template<typename Char, typename Traits>
+    unsigned long long basic_String_traits<Char, Traits>::
+        unsafe_to_ull(const value_type* s, const value_type* e, const value_type*& next, int base) {
+        return unsafe_to_val_helper<unsigned long long>(s, e, next, base);
+    }
+
+    template<typename Char, typename Traits>
+    double basic_String_traits<Char, Traits>::
+        unsafe_to_double(const value_type* s, const value_type* e,
+            const value_type*& next) {
+
     }
 
     template<typename Char>
@@ -1971,24 +2289,24 @@ namespace wjr {
             return non_default_traits<T>::ends_with(data(),size(),other.data(),other.size());
         }
 
-        constexpr basic_String_view substr(const size_type off = 0, const size_type n = npos) {
+        constexpr basic_String_view substr(const size_type off = 0, const size_type n = npos)const noexcept {
             return { Myfirst + off , npos_min(n,size() - off) };
         }
 
         template<typename T = Traits, typename string_list = std::vector<basic_String_view>>
-        string_list split(const value_type ch, bool keep_empty_parts = true);
+        string_list split(const value_type ch, bool keep_empty_parts = true)const noexcept;
 
         template<typename T = Traits, typename string_list = std::vector<basic_String_view>>
-        string_list split(const basic_String_view & other, bool keep_empty_parts = true);
+        string_list split(const basic_String_view & other, bool keep_empty_parts = true)const noexcept;
 
         template<typename T = Traits, typename string_list = std::vector<basic_String_view>>
-        string_list split(const value_type * s, bool keep_empty_parts = true);
+        string_list split(const value_type * s, bool keep_empty_parts = true)const noexcept;
 
         template<typename T = Traits, typename string_list = std::vector<basic_String_view>>
         string_list split(const value_type * s,
-            const size_type n, bool keep_empty_parts = true);
+            const size_type n, bool keep_empty_parts = true)const noexcept;
 
-        basic_String_view trim() {
+        basic_String_view trim()const noexcept {
             auto l = default_traits::left_trim(Myfirst,Mysize);
             if (l == npos) {
                 return {Myfirst,0};
@@ -2005,21 +2323,21 @@ namespace wjr {
     template<typename Char,typename Traits>
     template<typename T, typename string_list>
     string_list basic_String_view<Char, Traits>::split(
-        const value_type ch, bool keep_empty_parts) {
+        const value_type ch, bool keep_empty_parts)const noexcept {
         return non_default_traits<T>::template split<string_list>(data(),size(),ch,keep_empty_parts);
     }
 
     template<typename Char, typename Traits>
     template<typename T, typename string_list>
     string_list basic_String_view<Char, Traits>::split(
-        const basic_String_view& other, bool keep_empty_parts) {
+        const basic_String_view& other, bool keep_empty_parts)const noexcept {
         return split<T,string_list>(other.data(),other.size(),keep_empty_parts);
     }
 
     template<typename Char, typename Traits>
     template<typename T, typename string_list>
     string_list basic_String_view<Char, Traits>::split(
-        const value_type* s, bool keep_empty_parts) {
+        const value_type* s, bool keep_empty_parts)const noexcept {
         return split<T,string_list>(s,traits_length(s),keep_empty_parts);
     }
 
@@ -2027,7 +2345,7 @@ namespace wjr {
     template<typename T, typename string_list>
     string_list basic_String_view<Char, Traits>::split(
         const value_type* s,
-        const size_type n, bool keep_empty_parts) {
+        const size_type n, bool keep_empty_parts)const noexcept {
         return non_default_traits<T>::template split<string_list>(data(),size(),s,n,keep_empty_parts);
     }
 
@@ -3308,17 +3626,17 @@ namespace wjr {
         basic_String& fill(value_type ch, const size_type n = npos);
 
         template<typename T = Traits, typename string_list = std::vector<basic_String>>
-        string_list split(const value_type ch, bool keep_empty_parts = true);
+        string_list split(const value_type ch, bool keep_empty_parts = true)const;
 
         template<typename T = Traits, typename string_list = std::vector<basic_String>>
-        string_list split(const basic_String& other, bool keep_empty_parts = true);
+        string_list split(const basic_String& other, bool keep_empty_parts = true)const;
 
         template<typename T = Traits, typename string_list = std::vector<basic_String>>
-        string_list split(const value_type* s, bool keep_empty_parts = true);
+        string_list split(const value_type* s, bool keep_empty_parts = true)const;
 
         template<typename T = Traits, typename string_list = std::vector<basic_String>>
         string_list split(const value_type* s,
-            const size_type n, bool keep_empty_parts = true);
+            const size_type n, bool keep_empty_parts = true)const;
 
         basic_String to_lower()const&;
         basic_String to_lower()&&;
@@ -3432,7 +3750,7 @@ namespace wjr {
             return *this;
         }
 
-        basic_String repeated(int times);
+        basic_String repeated(int times)const;
 
         static basic_String format_time(const char*const format, 
             struct tm const* date,const size_type l = 0);
@@ -3709,21 +4027,21 @@ namespace wjr {
     template<typename T,typename string_list>
     string_list basic_String<Char, Traits, Core>::split(
         const value_type ch, bool keep_empty_parts
-    ) {
+    )const {
         return non_default_traits<T>::template split<string_list>(data(),size(),ch,keep_empty_parts);
     }
 
     template<typename Char,typename Traits,typename Core>
     template<typename T, typename string_list>
     string_list basic_String<Char,Traits,Core>::split(
-        const basic_String<Char,Traits,Core>& other, bool keep_empty_parts) {
+        const basic_String<Char,Traits,Core>& other, bool keep_empty_parts)const {
         return split<T,string_list>(other.data(),other.size(),keep_empty_parts);
     }
 
     template<typename Char, typename Traits, typename Core>
     template<typename T, typename string_list>
     string_list basic_String<Char, Traits, Core>::split(
-        const value_type* s,bool keep_empty_parts) {
+        const value_type* s,bool keep_empty_parts)const {
         return split<T,string_list>(s,traits_length(s),keep_empty_parts);
     }
 
@@ -3731,7 +4049,7 @@ namespace wjr {
     template<typename T, typename string_list>
     string_list basic_String<Char, Traits, Core>::split(
         const value_type* s, const size_type n,
-        bool keep_empty_parts) {
+        bool keep_empty_parts)const {
         return non_default_traits<T>::template split<string_list>(data(),size(),s,n,keep_empty_parts);
     }
 
@@ -3800,8 +4118,8 @@ namespace wjr {
         return buff;
     }
 
-    template<typename Char,typename Val>
-    Char* get_number_signed_helper(Char* buff, Val val, int base) {
+    template<typename Char,typename Val,std::enable_if_t<std::is_signed_v<Val>,int> = 0>
+    Char* get_number_helper(Char* buff, Val val, int base) {
         static_assert(!std::is_unsigned_v<Val>,"Val must be signed");
         using uval = std::make_unsigned_t<Val>;
         if (base >= 0) {
@@ -3824,8 +4142,8 @@ namespace wjr {
         return buff;
     }
 
-    template<typename Char, typename UVal>
-    Char* get_number_unsigned_helper(Char* buff, UVal val, int base) {
+    template<typename Char, typename UVal,std::enable_if_t<std::is_unsigned_v<UVal>,int> = 0>
+    Char* get_number_helper(Char* buff, UVal val, int base) {
         static_assert(std::is_unsigned_v<UVal>, "UVal must be unsigned");
         if (base >= 0) {
             buff = get_number_positive(buff,val,base);
@@ -3842,12 +4160,7 @@ namespace wjr {
         Char buff[std::numeric_limits<T>::digits + 1];
         Char* const buff_end = std::end(buff);
         Char* pos = buff_end;
-        if constexpr (std::is_unsigned_v<T>) {
-            pos = get_number_unsigned_helper(pos, val, base);
-        }
-        else {
-            pos = get_number_signed_helper(pos, val, base);
-        }
+        pos = get_number_helper(pos,val,base);
         return basic_String<Char, Traits, Core>(pos, buff_end);
     }
 
@@ -3983,7 +4296,7 @@ namespace wjr {
 
     template<typename Char,typename Traits,typename Core>
     basic_String<Char,Traits,Core> basic_String<Char,Traits,Core>::
-        repeated(int times) {
+        repeated(int times)const {
         if (times <= 0) times = 0;
         auto _data = data();
         auto _size = size();

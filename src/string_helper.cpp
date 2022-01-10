@@ -5,22 +5,6 @@
 
 namespace wjr {
 
-	size_t read_uint(const char* str,unsigned int&val) {
-		return read_integer<unsigned int>(str,val);
-	}
-
-	size_t read_int(const char* str,int&val) {
-		return read_integer<int>(str,val);
-	}
-
-	size_t read_ull(const char* str,unsigned long long&val) {
-		return read_integer<unsigned long long>(str,val);
-	}
-
-	size_t read_ll(const char* str,long long&val) {
-		return read_integer<long long>(str,val);
-	}
-
 	inline double power_of_10(int index) {
 		struct pw_cache {
 			double pw10[325], npw10[325];
@@ -37,9 +21,9 @@ namespace wjr {
 		return (index >= 0) ? _cache.pw10[index] : _cache.npw10[-index];
 	}
 
-	size_t read_double(const char* str,double&val) {
-		auto* ptr = (const uint8_t*)str;
-		auto* s = ptr;
+	double read_double(const char* s,const char*e,const char*& next) {
+		auto* ptr = (const uint8_t*)s;
+		auto* first = ptr;
 		bool neg = false;
 
 		for(;!isdigit_or_sign(*ptr);++ptr);
@@ -66,15 +50,15 @@ namespace wjr {
 			for(;quick_isdigit(*ptr);++ptr);
 		}
 
-		val = v * power_of_10(pw10);
+		double val = v * power_of_10(pw10);
 		if ((*ptr == 'e') || (*ptr == 'E')) {
 			++ptr;
-			int pw;
-			ptr += read_int((const char*)ptr,pw);
+			int pw = String_traits_helper<uint8_t>::unsafe_to_int(ptr,(const uint8_t*)e,ptr);
 			val *= power_of_10(pw);
 		}
 		if(neg) val = -val;
-		return ptr - s;
+		next = (const char*)ptr;
+		return val;
 	}
 
 }
