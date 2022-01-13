@@ -113,14 +113,14 @@ namespace wjr {
 
     // default constructor
     json::json()
-        : _Type((uint8_t)(value_t::undefined)) {
+        : vtype((uint8_t)(value_t::undefined)) {
 
     }
 
     json::json(const json& other)
-        : _Number(other._Number), _Type(other._Type) {
+        : _Number(other._Number), vtype(other.vtype) {
         // copy Number firstly
-        switch (_Type) {
+        switch (vtype) {
             case (uint8_t)(value_t::string) : {
                 _String = mallocator<String>().allocate(1);
                 new (_String) String(*other._String);
@@ -140,72 +140,72 @@ namespace wjr {
     }
 
     json::json(json&& other)noexcept
-        : _Number(other._Number), _Type(other._Type) {
-        other._Type = (uint8_t)(value_t::undefined);
+        : _Number(other._Number), vtype(other.vtype) {
+        other.vtype = (uint8_t)(value_t::undefined);
     }
 
     json::json(Null)
-        : _Type((uint8_t)(value_t::null)) {
+        : vtype((uint8_t)(value_t::null)) {
 
     }
 
     json::json(Boolean f)
-        : _Boolean(f), _Type((uint8_t)(value_t::boolean)) {
+        : _Boolean(f), vtype((uint8_t)(value_t::boolean)) {
 
     }
 
     json::json(Number v)
-        : _Number(v), _Type((uint8_t)(value_t::number)) {
+        : _Number(v), vtype((uint8_t)(value_t::number)) {
 
     }
 
     json::json(int v)
-        : _Number(v), _Type((uint8_t)(value_t::number)) {
+        : _Number(v), vtype((uint8_t)(value_t::number)) {
 
     }
 
     json::json(unsigned int v)
-        : _Number(v), _Type((uint8_t)(value_t::number)) {
+        : _Number(v), vtype((uint8_t)(value_t::number)) {
 
     }
 
     json::json(long long v)
-        : _Number(v), _Type((uint8_t)(value_t::number)) {
+        : _Number(v), vtype((uint8_t)(value_t::number)) {
 
     }
 
     json::json(unsigned long long v)
-        : _Number(v), _Type((uint8_t)(value_t::number)) {
+        : _Number(v), vtype((uint8_t)(value_t::number)) {
 
     }
 
     json::json(const Object& v)
-        : _Object(mallocator<Object>().allocate(1)), _Type((uint8_t)(value_t::object)) {
+        : _Object(mallocator<Object>().allocate(1)), vtype((uint8_t)(value_t::object)) {
         new (_Object) Object(v);
     }
 
     json::json(Object&& v)noexcept
-        : _Object(mallocator<Object>().allocate(1)), _Type((uint8_t)(value_t::object)) {
+        : _Object(mallocator<Object>().allocate(1)), vtype((uint8_t)(value_t::object)) {
         new (_Object) Object(std::move(v));
     }
 
     json::json(const Array& v)
-        : _Array(mallocator<Array>().allocate(1)), _Type((uint8_t)(value_t::array)) {
+        : _Array(mallocator<Array>().allocate(1)), vtype((uint8_t)(value_t::array)) {
         new (_Array) Array(v);
     }
 
     json::json(Array&& v)noexcept
-        : _Array(mallocator<Array>().allocate(1)), _Type((uint8_t)(value_t::array)) {
+        : _Array(mallocator<Array>().allocate(1)), vtype((uint8_t)(value_t::array)) {
         new (_Array) Array(std::move(v));
     }
 
     json::json(const size_type _Count, const json& _Val)
-        : _Array(mallocator<Array>().allocate(1)), _Type((uint8_t)(value_t::array)) {
+        : _Array(mallocator<Array>().allocate(1)), vtype((uint8_t)(value_t::array)) {
         new (_Array) Array(_Count, _Val);
     }
 
     json::json(std::initializer_list<json> il)
-        : _Number(0), _Type((uint8_t)(value_t::undefined)) {
+        : _Number(0), vtype((uint8_t)(value_t::undefined)) {
         bool is_object = std::all_of(il.begin(), il.end(),
             [](const json& json_ref) {
                 return json_ref.is_array() && json_ref.size() == 2 && json_ref[0].is_string();
@@ -228,7 +228,7 @@ namespace wjr {
     }
 
     void json::_Tidy() {
-        switch (_Type) {
+        switch (vtype) {
             case (uint8_t)(value_t::string) : {
                 _String->~String();
                 mallocator<String>().deallocate(_String,1);
@@ -251,7 +251,7 @@ namespace wjr {
 
     void json::reset() {
         _Tidy();
-        _Type = (uint8_t)(value_t::undefined);
+        vtype = (uint8_t)(value_t::undefined);
     }
 
     void json::clear() {
@@ -260,7 +260,7 @@ namespace wjr {
 
     void json::swap(json& other) {
         std::swap(_Number,other._Number);
-        std::swap(_Type,other._Type);
+        std::swap(vtype,other.vtype);
     }
 
     json::~json() {
@@ -272,10 +272,10 @@ namespace wjr {
             return *this;
         }
         // different type
-        if (_Type != other._Type) {
+        if (vtype != other.vtype) {
             _Tidy();
-            _Type = other._Type;
-            switch (_Type) {
+            vtype = other.vtype;
+            switch (vtype) {
                 case (uint8_t)(value_t::string) : {
                     _String = mallocator<String>().allocate(1);
                     new (_String) String(*other._String);
@@ -298,7 +298,7 @@ namespace wjr {
             }
         }
         else {
-            switch (_Type) {
+            switch (vtype) {
                 case (uint8_t)(value_t::string) : {
                     *_String = *other._String;
                     break;
@@ -323,65 +323,65 @@ namespace wjr {
     json& json::operator=(json&& other)noexcept {
         _Tidy();
         _Number = other._Number;
-        _Type = other._Type;
-        other._Type = (uint8_t)(value_t::undefined);
+        vtype = other.vtype;
+        other.vtype = (uint8_t)(value_t::undefined);
         return *this;
     }
 
     json& json::operator=(Null) {
         _Tidy();
-        _Type = (uint8_t)(value_t::null);
+        vtype = (uint8_t)(value_t::null);
         return *this;
     }
 
     json& json::operator=(Boolean f) {
         _Tidy();
         _Boolean = f;
-        _Type = (uint8_t)(value_t::boolean);
+        vtype = (uint8_t)(value_t::boolean);
         return *this;
     }
 
     json& json::operator=(Number v) {
         _Tidy();
         _Number = v;
-        _Type = (uint8_t)(value_t::number);
+        vtype = (uint8_t)(value_t::number);
         return *this;
     }
 
     json& json::operator=(int v) {
         _Tidy();
         _Number = v;
-        _Type = (uint8_t)(value_t::number);
+        vtype = (uint8_t)(value_t::number);
         return *this;
     }
 
     json& json::operator=(unsigned int v) {
         _Tidy();
         _Number = v;
-        _Type = (uint8_t)(value_t::number);
+        vtype = (uint8_t)(value_t::number);
         return *this;
     }
 
     json& json::operator=(long long v) {
         _Tidy();
         _Number = v;
-        _Type = (uint8_t)(value_t::number);
+        vtype = (uint8_t)(value_t::number);
         return *this;
     }
 
     json& json::operator=(unsigned long long v) {
         _Tidy();
         _Number = v;
-        _Type = (uint8_t)(value_t::number);
+        vtype = (uint8_t)(value_t::number);
         return *this;
     }
 
     json& json::operator=(const Object& v) {
-        if (_Type != (uint8_t)(value_t::object)) {
+        if (vtype != (uint8_t)(value_t::object)) {
             _Tidy();
             _Object = mallocator<Object>().allocate(1);
             new (_Object) Object(v);
-            _Type = (uint8_t)(value_t::object);
+            vtype = (uint8_t)(value_t::object);
         }
         else {
             *_Object = v;
@@ -390,11 +390,11 @@ namespace wjr {
     }
 
     json& json::operator=(Object&& v)noexcept {
-        if (_Type != (uint8_t)(value_t::object)) {
+        if (vtype != (uint8_t)(value_t::object)) {
             _Tidy();
             _Object = mallocator<Object>().allocate(1);
             new (_Object) Object(std::move(v));
-            _Type = (uint8_t)(value_t::object);
+            vtype = (uint8_t)(value_t::object);
         }
         else {
             *_Object = std::move(v);
@@ -403,11 +403,11 @@ namespace wjr {
     }
 
     json& json::operator=(const Array& v) {
-        if (_Type != (uint8_t)(value_t::array)) {
+        if (vtype != (uint8_t)(value_t::array)) {
             _Tidy();
             _Array = mallocator<Array>().allocate(1);
             new (_Array) Array(v);
-            _Type = (uint8_t)(value_t::array);
+            vtype = (uint8_t)(value_t::array);
         }
         else {
             *_Array = v;
@@ -416,11 +416,11 @@ namespace wjr {
     }
 
     json& json::operator=(Array&& v)noexcept {
-        if (_Type != (uint8_t)(value_t::array)) {
+        if (vtype != (uint8_t)(value_t::array)) {
             _Tidy();
             _Array = mallocator<Array>().allocate(1);
             new (_Array) Array(std::move(v));
-            _Type = (uint8_t)(value_t::array);
+            vtype = (uint8_t)(value_t::array);
         }
         else {
             *_Array = std::move(v);
@@ -429,27 +429,27 @@ namespace wjr {
     }
 
     bool json::is_null()const {
-        return _Type == (uint8_t)(value_t::null);
+        return vtype == (uint8_t)(value_t::null);
     }
 
     bool json::is_boolean()const {
-        return _Type == (uint8_t)(value_t::boolean);
+        return vtype == (uint8_t)(value_t::boolean);
     }
 
     bool json::is_number()const {
-        return _Type == (uint8_t)(value_t::number);
+        return vtype == (uint8_t)(value_t::number);
     }
 
     bool json::is_string()const {
-        return _Type == (uint8_t)(value_t::string);
+        return vtype == (uint8_t)(value_t::string);
     }
 
     bool json::is_object()const {
-        return _Type == (uint8_t)(value_t::object);
+        return vtype == (uint8_t)(value_t::object);
     }
 
     bool json::is_array()const {
-        return _Type == (uint8_t)(value_t::array);
+        return vtype == (uint8_t)(value_t::array);
     }
 
     json::Null json::to_null() {
@@ -519,7 +519,7 @@ namespace wjr {
     }
 
     bool json::get_value(Null& v) const {
-        if (_Type != (uint8_t)(value_t::null)) {
+        if (vtype != (uint8_t)(value_t::null)) {
             return false;
         }
         v = nullptr;
@@ -527,7 +527,7 @@ namespace wjr {
     }
 
     bool json::get_value(Boolean& f) const {
-        if (_Type != (uint8_t)(value_t::boolean)) {
+        if (vtype != (uint8_t)(value_t::boolean)) {
             return false;
         }
         f = _Boolean;
@@ -535,7 +535,7 @@ namespace wjr {
     }
 
     bool json::get_value(Number& v) const {
-        if (_Type != (uint8_t)(value_t::number)) {
+        if (vtype != (uint8_t)(value_t::number)) {
             return false;
         }
         v = _Number;
@@ -543,7 +543,7 @@ namespace wjr {
     }
 
     bool json::get_value(int& v) const {
-        if (_Type != (uint8_t)(value_t::number)) {
+        if (vtype != (uint8_t)(value_t::number)) {
             return false;
         }
         v = _Number;
@@ -551,7 +551,7 @@ namespace wjr {
     }
 
     bool json::get_value(unsigned int& v) const {
-        if (_Type != (uint8_t)(value_t::number)) {
+        if (vtype != (uint8_t)(value_t::number)) {
             return false;
         }
         v = _Number;
@@ -559,7 +559,7 @@ namespace wjr {
     }
 
     bool json::get_value(long long& v) const {
-        if (_Type != (uint8_t)(value_t::number)) {
+        if (vtype != (uint8_t)(value_t::number)) {
             return false;
         }
         v = _Number;
@@ -567,7 +567,7 @@ namespace wjr {
     }
 
     bool json::get_value(unsigned long long& v) const {
-        if (_Type != (uint8_t)(value_t::number)) {
+        if (vtype != (uint8_t)(value_t::number)) {
             return false;
         }
         v = _Number;
@@ -575,7 +575,7 @@ namespace wjr {
     }
 
     bool json::get_value(String& v) const {
-        if (_Type != (uint8_t)(value_t::string)) {
+        if (vtype != (uint8_t)(value_t::string)) {
             return false;
         }
         v = *_String;
@@ -583,7 +583,7 @@ namespace wjr {
     }
 
     bool json::get_value(Object& v) const {
-        if (_Type != (uint8_t)(value_t::object)) {
+        if (vtype != (uint8_t)(value_t::object)) {
             return false;
         }
         v = *_Object;
@@ -591,7 +591,7 @@ namespace wjr {
     }
 
     bool json::get_value(Array& v) const {
-        if (_Type != (uint8_t)(value_t::array)) {
+        if (vtype != (uint8_t)(value_t::array)) {
             return false;
         }
         v = *_Array;
@@ -654,28 +654,28 @@ namespace wjr {
         _Tidy();
         _Object = mallocator<Object>().allocate(1);
         new (_Object) Object();
-        _Type = (uint8_t)(value_t::object);
+        vtype = (uint8_t)(value_t::object);
     }
 
     void json::set_object(json_object&& value) {
         _Tidy();
         _Object = mallocator<Object>().allocate(1);
         new (_Object) Object(std::move(value));
-        _Type = (uint8_t)(value_t::object);
+        vtype = (uint8_t)(value_t::object);
     }
 
     void json::set_array() {
         _Tidy();
         _Array = mallocator<Array>().allocate(1);
         new (_Array) Array();
-        _Type = (uint8_t)(value_t::array);
+        vtype = (uint8_t)(value_t::array);
     }
 
     void json::set_array(json_array&& value) {
         _Tidy();
         _Array = mallocator<Array>().allocate(1);
         new (_Array) Array(std::move(value));
-        _Type = (uint8_t)(value_t::array);
+        vtype = (uint8_t)(value_t::array);
     }
 
     size_t json::size()const {
@@ -689,11 +689,11 @@ namespace wjr {
     }
 
     bool json::empty()const {
-        return _Type == (uint8_t)(value_t::undefined);
+        return vtype == (uint8_t)(value_t::undefined);
     }
 
     bool json::has_value()const {
-        return _Type != (uint8_t)(value_t::undefined);
+        return vtype != (uint8_t)(value_t::undefined);
     }
 
     json_string json::stringify(int tab)const {
@@ -730,7 +730,7 @@ namespace wjr {
     }
 
     void json::_minify(json_string& str)const {
-        switch (_Type) {
+        switch (vtype) {
             case (uint8_t)(value_t::null) : {
                 str.append("null");
                 break;
@@ -786,7 +786,7 @@ namespace wjr {
     }
 
     const char* json::type_name()const {
-        switch (_Type) {
+        switch (vtype) {
             case (uint8_t)(value_t::undefined) : {
                 return "undefined";
             }
@@ -855,17 +855,17 @@ namespace wjr {
 
             switch (*s) {
             case 'n':
-                if(memcmp(s,"null",sizeof(char)*4) != 0)
+                if(memcmp(s,"null",sizeof(char) * 4) != 0)
                     return false;
                 s += 4;
                 break;
             case 't':
-                if(memcmp(s,"true",sizeof(char)*4) !=0)
+                if(memcmp(s,"true",sizeof(char) * 4) != 0)
                     return false;
                 s += 4;
                 break;
             case 'f':
-                if(memcmp(s,"false",sizeof(char)*5)!=0)
+                if(memcmp(s,"false",sizeof(char) * 5) != 0)
                     return false;
                 s += 5;
                 break;
@@ -931,7 +931,7 @@ namespace wjr {
 
     json json::array(std::initializer_list<json> il) {
         json x;
-        x._Type = (uint8_t)(json::value_t::array);
+        x.vtype = (uint8_t)(json::value_t::array);
         x._Array = mallocator<Array>().allocate(1);
         new (x._Array) Array(il);
         return x;
@@ -939,15 +939,15 @@ namespace wjr {
 
     json json::object(std::initializer_list<std::pair<const String,json>> il) {
         json x;
-        x._Type = (uint8_t)(json::value_t::object);
+        x.vtype = (uint8_t)(json::value_t::object);
         x._Object = mallocator<Object>().allocate(1);
         new (x._Object) Object(il);
         return x;
     }
 
     bool operator==(const json& lhs, const json& rhs) {
-        if (lhs._Type != rhs._Type)return false;
-        switch (lhs._Type) {
+        if (lhs.vtype != rhs.vtype)return false;
+        switch (lhs.vtype) {
             case (uint8_t)(json::value_t::boolean) : {
                 return lhs._Boolean == rhs._Boolean;
             }
@@ -983,7 +983,7 @@ namespace wjr {
     }
 
     json_string json::stringify(int tab, int delta)const {
-        switch (_Type) {
+        switch (vtype) {
             case (uint8_t)(value_t::null) : {
                 return "null";
             }
@@ -1038,48 +1038,45 @@ namespace wjr {
     }
 
     void json::getValue(const uint8_t*& s,const uint8_t* e) {
-
         s = skip_whitespace(s,e);
-
         switch (*s) {
         case ']':
         case '}':
             break;
         case 'n': {
-            _Type = (uint8_t)(value_t::null);
+            vtype = (uint8_t)(value_t::null);
             s += 4;
             break;
         }
         case 't': {
-            _Type = (uint8_t)(value_t::boolean);
+            vtype = (uint8_t)(value_t::boolean);
             _Boolean = true;
             s += 4;
             break;
         }
         case 'f': {
-            _Type = (uint8_t)(value_t::boolean);
+            vtype = (uint8_t)(value_t::boolean);
             _Boolean = false;
             s += 5;
             break;
         }
         case '{': {
-            _Type = (uint8_t)(value_t::object);
+            vtype = (uint8_t)(value_t::object);
             _Object = mallocator<Object>().allocate(1);
             new (_Object) Object();
             auto& obj = *_Object;
             ++s;
+            s = skip_whitespace(s,e);
+            // if is empty
+            if (*s == '}') {
+                ++s;
+                break;
+            }
             for (;;) {
                 s = skip_whitespace(s,e);
-                if (*s == '}') {
-                    ++s;
-                    break;
-                }
-
                 assert(*s == '"');
-
                 ++s;
                 auto p = skip_string(s, e);
-
                 auto& iter = obj[String((const char*)s,  p - s)] = json();
                 s = p + 1;
                 s = skip_whitespace(s,e);
@@ -1097,19 +1094,19 @@ namespace wjr {
             break;
         }
         case '[': {
-            _Type = (uint8_t)(value_t::array);
+            vtype = (uint8_t)(value_t::array);
             _Array = mallocator<Array>().allocate(1);
             new (_Array) Array();
             auto& arr = *_Array;
             ++s;
+            s = skip_whitespace(s,e);
+            if (*s == ']') {
+                ++s;
+                break;
+            }
             for (;;) {
-                json _value;
-                _value.getValue(s,e);
-                if (!_value.has_value()) {
-                    ++s;
-                    break;
-                }
-                arr.push_back(std::move(_value));
+                arr.push_back(json());
+                arr.back().getValue(s,e);
                 s = skip_whitespace(s,e);
                 if (*s == ']') {
                     ++s;
@@ -1124,7 +1121,7 @@ namespace wjr {
         case '"': {
             ++s;
             auto t = skip_string(s,e);
-            _Type = (uint8_t)(value_t::string);
+            vtype = (uint8_t)(value_t::string);
             _String = mallocator<String>().allocate(1);
             new (_String) String((const char*)s, t - s);
             s = t + 1;
@@ -1133,7 +1130,7 @@ namespace wjr {
         case '-':
         case '+':
         default: {
-            _Type = (uint8_t)(value_t::number);
+            vtype = (uint8_t)(value_t::number);
             const char*ptr = (const char*)s;
             _Number = read_double((const char*)s,(const char*)e,ptr);
             s = (const uint8_t*)ptr;

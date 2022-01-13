@@ -240,7 +240,7 @@ namespace wjr {
         template<typename T, typename...Args>
         bool get_value(T& value, Args&&...args)const;
 
-        uint8_t type()const { return _Type; }
+        uint8_t type()const { return vtype; }
 
         json_string stringify(int tab = 2)const;
         json_string minify()const;
@@ -283,7 +283,7 @@ namespace wjr {
 
         inline void _Tidy();
 
-        uint8_t _Type;
+        uint8_t vtype;
 
         union {
             Boolean _Boolean;
@@ -297,15 +297,15 @@ namespace wjr {
 
     template<typename...Args, json::_Is_string_view_ish<Args...>>
     json::json(Args&&... value)noexcept
-        : _String(mallocator<String>().allocate()), _Type((uint8_t)value_t::string) {
+        : _String(mallocator<String>().allocate()), vtype((uint8_t)value_t::string) {
         new (_String) String(std::forward<Args>(value)...);
     }
 
     template<typename T, json::_Is_constructible_to_json<T> >
     json::json(const T& value)
-        : _Number(0), _Type((uint8_t)(value_t::undefined)) {
-        using _Type = std::decay_t<T>;
-        using _Type_Info = typeInfo<_Type>;
+        : _Number(0), vtype((uint8_t)(value_t::undefined)) {
+        using vtype = std::decay_t<T>;
+        using _Type_Info = typeInfo<vtype>;
         if constexpr (json::_CHECK_TO_JSON<T>::value) {
             toJson(*this, value);
         }
@@ -334,11 +334,11 @@ namespace wjr {
 
     template<typename T, json::_Is_string_view_ish<T> >
     json& json::operator=(T&& value)noexcept {
-        if (_Type != (uint8_t)(value_t::string)) {
+        if (vtype != (uint8_t)(value_t::string)) {
             _Tidy();
             _String = mallocator<String>().allocate();
             new (_String) String((String)(std::forward<T>(value)));
-            _Type = (uint8_t)(value_t::string);
+            vtype = (uint8_t)(value_t::string);
         }
         else *_String = std::forward<T>(value);
         return *this;
@@ -377,8 +377,8 @@ namespace wjr {
 
     template<typename T, json::_Is_constructible_to_T<T> >
     bool json::get_value(T& value) const {
-        using _Type = std::decay_t<T>;
-        using _Type_Info = typeInfo<_Type>;
+        using vtype = std::decay_t<T>;
+        using _Type_Info = typeInfo<vtype>;
         if constexpr (json::_CHECK_FROM_JSON<T>::value) {
             static_assert(std::is_same_v<decltype(fromJson(std::declval<const json&>(), std::declval<T&>())), bool>
                 , "the return value must be bool");
@@ -412,7 +412,7 @@ namespace wjr {
 
     template<typename T, json::_Is_string_view_ish<T> >
     bool json::get_value(T& value) const {
-        if (_Type != (uint8_t)(value_t::string))return false;
+        if (vtype != (uint8_t)(value_t::string))return false;
         value = (T)to_string();
         return true;
     }
@@ -420,7 +420,7 @@ namespace wjr {
     template<typename T, json::_Is_string_view_ish<T> >
     json json::object(std::initializer_list<std::pair<const T, json>> il) {
         json x;
-        x._Type = (uint8_t)(json::value_t::object);
+        x.vtype = (uint8_t)(json::value_t::object);
         x._Object = mallocator<Object>().allocate();
         new (x._Object) Object();
         for (auto i = il.begin(); i != il.end(); ++i) {
