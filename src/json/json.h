@@ -297,7 +297,7 @@ namespace wjr {
 
     template<typename...Args, json::_Is_string_view_ish<Args...>>
     json::json(Args&&... value)noexcept
-        : _String(mallocator<String>().allocate()), vtype((uint8_t)value_t::string) {
+        : _String(mallocator<String>().allocate(1)), vtype((uint8_t)value_t::string) {
         new (_String) String(std::forward<Args>(value)...);
     }
 
@@ -336,7 +336,7 @@ namespace wjr {
     json& json::operator=(T&& value)noexcept {
         if (vtype != (uint8_t)(value_t::string)) {
             _Tidy();
-            _String = mallocator<String>().allocate();
+            _String = mallocator<String>().allocate(1);
             new (_String) String((String)(std::forward<T>(value)));
             vtype = (uint8_t)(value_t::string);
         }
@@ -421,7 +421,7 @@ namespace wjr {
     json json::object(std::initializer_list<std::pair<const T, json>> il) {
         json x;
         x.vtype = (uint8_t)(json::value_t::object);
-        x._Object = mallocator<Object>().allocate();
+        x._Object = mallocator<Object>().allocate(1);
         new (x._Object) Object();
         for (auto i = il.begin(); i != il.end(); ++i) {
             x.insert((String)i->first, i->second);

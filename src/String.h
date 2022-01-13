@@ -777,6 +777,64 @@ namespace wjr {
         setCapacity(new_size);
     }
 
+    template<typename T, char ch>
+    constexpr static T static_charT = static_cast<T>(ch);
+
+    template<typename T>
+    bool qisdigit(T ch) {
+        return (static_charT<T, '0'> <= ch) && (ch <= static_charT<T, '9'>);
+    }
+
+    template<typename T>
+    bool qislower(T ch) {
+        return (static_charT<T, 'a'> <= ch) && (ch <= static_charT<T, 'z'>);
+    }
+
+    template<typename T>
+    bool qisupper(T ch) {
+        return (static_charT<T, 'A'> <= ch) && (ch <= static_charT<T, 'Z'>);
+    }
+
+    template<typename T>
+    bool isdigit_or_sign(T ch) {
+        return qisdigit(ch) || (ch == static_charT<T, '+'>) || (ch == static_charT<T, '-'>);
+    }
+
+    template<typename T>
+    int get_digit(T ch) { // must judge ch at first
+        static int digit_Map[256] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,3,4,5,6,7,8,9,0,0,0,0,0,0,0,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,0,0,0,0,0,0,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+        return digit_Map[static_cast<uint8_t>(ch)];
+    }
+
+    template<typename Char>
+    class String_trim_helper {
+    public:
+        constexpr static const Char* data() {
+            return tr;
+        }
+
+        constexpr static const Char* begin() {
+            return tr;
+        }
+
+        constexpr static const Char* end() {
+            return tr + size();
+        }
+
+        constexpr static size_t size() {
+            return 6;
+        }
+    private:
+        constexpr static Char tr[7] = {
+            static_charT<Char,' ' >,
+            static_charT<Char,'\r'>,
+            static_charT<Char,'\n'>,
+            static_charT<Char,'\t'>,
+            static_charT<Char,'\f'>,
+            static_charT<Char,'\v'>,
+            static_charT<Char,'\0'>
+        };
+    };
 
     template<typename RanItPat, typename Traits>
     struct String_find_helper {
@@ -872,63 +930,24 @@ namespace wjr {
     template<typename T>
     using case_insensitive_String_t = typename case_insensitive_String<T>::type;
 
-    template<typename T,char ch>
-    constexpr static T static_charT = static_cast<T>(ch);
-
-    template<typename T>
-    bool qisdigit(T ch) {
-        return (static_charT<T,'0'> <= ch) && (ch <= static_charT<T,'9'>);
-    }
-
-    template<typename T>
-    bool qislower(T ch) {
-        return (static_charT<T,'a'> <= ch) && (ch <= static_charT<T,'z'>);
-    }
-
-    template<typename T>
-    bool qisupper(T ch) {
-        return (static_charT<T,'A'> <= ch) && (ch <= static_charT<T,'Z'>);
-    }
-
-    template<typename T>
-    bool isdigit_or_sign(T ch) {
-        return qisdigit(ch) || (ch == static_charT<T,'+'>) || (ch == static_charT<T,'-'>);
-    }
-
-    template<typename T>
-    int get_digit(T ch) { // must judge ch at first
-        static int digit_Map[256] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,3,4,5,6,7,8,9,0,0,0,0,0,0,0,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,0,0,0,0,0,0,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-        return digit_Map[static_cast<uint8_t>(ch)];
-    }
+    template<typename Traits>
+    struct String_traits_info {
+        using is_default_eq = std::false_type;
+    };
 
     template<typename Char>
-    class String_trim_helper {
-    public:
-        constexpr static const Char* data() {
-            return tr;
-        }
+    struct String_traits_info<std::char_traits<Char>> {
+        using is_default_eq = std::true_type;
+    };
 
-        constexpr static const Char* begin() {
-            return tr;
-        }
+    template<typename Char,typename Traits>
+    struct String_traits_info<String_find_traits<Char,Traits>> {
+        using is_default_eq = typename String_find_traits<Char,Traits>::is_default_eq;
+    };
 
-        constexpr static const Char* end() {
-            return tr + size();
-        }
-
-        constexpr static size_t size() {
-            return 6;
-        }
-    private:
-        constexpr static Char tr[7] = {
-            static_charT<Char,' ' >,
-            static_charT<Char,'\r'>,
-            static_charT<Char,'\n'>,
-            static_charT<Char,'\t'>,
-            static_charT<Char,'\f'>,
-            static_charT<Char,'\v'>,
-            static_charT<Char,'\0'>
-        };
+    template<typename Char,typename Traits>
+    struct String_traits_info<String_rfind_traits<Char, Traits>> {
+        using is_default_eq = typename String_rfind_traits<Char,Traits>::is_default_eq;
     };
 
     template<typename Char,typename Traits = std::char_traits<Char>>
@@ -1025,9 +1044,10 @@ namespace wjr {
 
         using string_find_of_helper = std::conditional_t<
             std::is_integral_v<value_type> && sizeof(value_type) <= 1
-            && std::is_same_v<Traits, std::char_traits<value_type>> ,
+            && std::conjunction_v<typename String_traits_info<Traits>::is_default_eq> ,
             bit_map,
-            general_map>;
+            std::conditional_t<std::conjunction_v<typename 
+            String_traits_info<Traits>::is_default_eq>,general_map,typename general_map::large_map>>;
 
         static string_find_of_helper trim_map;
 
@@ -1271,7 +1291,7 @@ namespace wjr {
             const size_type off, const value_type ch) {
         if (off < n) {
             const auto pos = traits_type::find(s + off, n - off, ch);
-            if (pos) {
+            if (pos != nullptr) {
                 return static_cast<size_type>(pos - s);
             }
         }
@@ -1441,23 +1461,32 @@ namespace wjr {
         basic_String_traits<Char, Traits>::find_first_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
         if (n2 != 0 && off < n1) {
-            if (n2 < 32) { // only need to use normal find
-                return normal_find_first_of(s1, n1, off, s2, n2);
+            if constexpr (std::is_same_v<string_find_of_helper, bit_map>) {
+                if (n1 <= 8) {
+                    return normal_find_first_of(s1, n1, off, s2, n2);
+                }
+                else {
+                    return map_find_first_of(s1, n1, off, s2, n2);
+                }
             }
             else {
-                // may use Map_Search_first_of
-                // firstly ,use normal find to match no more than length of 32
-
-                const size_type first_to_search = (n1 - off <= 32 ? n1 : off + 32);
-                auto first_to_search_match = normal_find_first_of(s1, first_to_search, off, s2, n2);
-                if (first_to_search_match != npos) {
-                    return first_to_search_match;
+                if (n2 <= 16) { // only need to use normal find
+                    return normal_find_first_of(s1, n1, off, s2, n2);
                 }
+                else {
+                    // may use Map_Search_first_of
+                    // firstly ,use normal find to match no more than length of 1024 / n2
+                    const size_type in = 1024 / n2;
+                    const size_type first_to_search = (n1 - off <= in ? n1 : off + in);
+                    auto first_to_search_match = normal_find_first_of(s1, first_to_search, off, s2, n2);
+                    if (first_to_search_match != npos) {
+                        return first_to_search_match;
+                    }
 
-                if (first_to_search != n1) {
-                    return map_find_first_of(s1, n1, first_to_search, s2, n2);
+                    if (first_to_search != n1) {
+                        return map_find_first_of(s1, n1, first_to_search, s2, n2);
+                    }
                 }
-
             }
         }
         return npos;
@@ -1467,7 +1496,6 @@ namespace wjr {
     typename basic_String_traits<Char, Traits>::size_type
         basic_String_traits<Char, Traits>::find_first_of(const value_type* s1,
             const size_type n1, const size_type off, const string_find_of_helper& srch) {
-
         const auto end = s1 + n1;
         for (auto match_try = s1 + off; match_try < end; ++match_try) {
             if (srch.count(*match_try)) {
@@ -1488,12 +1516,10 @@ namespace wjr {
     typename basic_String_traits<Char, Traits>::size_type
         basic_String_traits<Char, Traits>::normal_find_last_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        assert(off <= n1 - 1);
-        for (auto match_try = s1 + off;; --match_try) {
+        for (auto match_try = s1 + npos_min(off,n1 - 1);; --match_try) {
             if (traits_type::find(s2, n2, *match_try)) {
                 return static_cast<size_type>(match_try - s1);
             }
-
             if (match_try == s1)
                 break;
         }
@@ -1513,18 +1539,29 @@ namespace wjr {
             const size_type n1, size_type off, const value_type* s2, const size_type n2) {
         off = npos_min(off, n1 - 1);
         if (n1 != 0 && n2 != 0) {
-            if (n2 < 32) {
-                return normal_find_last_of(s1, n1, off, s2, n2);
+            if constexpr (std::is_same_v<string_find_of_helper, bit_map>) {
+                if (n1 <= 8) {
+                    return normal_find_last_of(s1,n1,off,s2,n2);
+                }
+                else {
+                    return map_find_last_of(s1,n1,off,s2,n2);
+                }
             }
             else {
-                const size_type first_to_search = off <= 32 ? 0 : off - 32;
-                auto first_to_search_match = normal_find_last_of(
-                    s1 + first_to_search, n1 - first_to_search, off - first_to_search, s2, n2);
-                if (first_to_search_match != npos) {
-                    return first_to_search + first_to_search_match;
+                if (n2 <= 16) {
+                    return normal_find_last_of(s1, n1, off, s2, n2);
                 }
-                if (first_to_search != 0) {
-                    return normal_find_last_of(s1, n1, first_to_search, s2, n2);
+                else {
+                    const size_type in = 1024 / n2;
+                    const size_type first_to_search = off <= in ? 0 : off - in;
+                    auto first_to_search_match = normal_find_last_of(
+                        s1 + first_to_search, n1 - first_to_search, off - first_to_search, s2, n2);
+                    if (first_to_search_match != npos) {
+                        return first_to_search + first_to_search_match;
+                    }
+                    if (first_to_search != 0) {
+                        return normal_find_last_of(s1, n1, first_to_search, s2, n2);
+                    }
                 }
             }
         }
@@ -1587,23 +1624,32 @@ namespace wjr {
         basic_String_traits<Char, Traits>::find_first_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
         if (n2 != 0 && off < n1) {
-            if (n2 < 32) { // only need to use normal find
-                return normal_find_first_not_of(s1, n1, off, s2, n2);
+            if constexpr (std::is_same_v<string_find_of_helper, bit_map>) {
+                if (n1 <= 8) {
+                    return normal_find_first_not_of(s1,n1,off,s2,n2);
+                }
+                else {
+                    return map_find_first_not_of(s1,n1,off,s2,n2);
+                }
             }
             else {
-                // may use Map_Search_first_of
-                // firstly ,use normal find to match no more than length of 32
-
-                const size_type first_to_search = (n1 - off <= 32 ? n1 : off + 32);
-                auto first_to_search_match = normal_find_first_not_of(s1, first_to_search, off, s2, n2);
-                if (first_to_search_match != npos) {
-                    return first_to_search_match;
+                if (n2 <= 16) { // only need to use normal find
+                    return normal_find_first_not_of(s1, n1, off, s2, n2);
                 }
+                else {
+                    // may use Map_Search_first_of
+                    // firstly ,use normal find to match no more than length of 32
+                    const size_type in = 1024 / n2;
+                    const size_type first_to_search = (n1 - off <= in ? n1 : off + in);
+                    auto first_to_search_match = normal_find_first_not_of(s1, first_to_search, off, s2, n2);
+                    if (first_to_search_match != npos) {
+                        return first_to_search_match;
+                    }
 
-                if (first_to_search != n1) {
-                    return map_find_first_not_of(s1, n1, first_to_search, s2, n2);
+                    if (first_to_search != n1) {
+                        return map_find_first_not_of(s1, n1, first_to_search, s2, n2);
+                    }
                 }
-
             }
         }
         return npos;
@@ -1613,7 +1659,6 @@ namespace wjr {
     typename basic_String_traits<Char, Traits>::size_type
         basic_String_traits<Char, Traits>::find_first_not_of(const value_type* s1,
             const size_type n1, const size_type off, const string_find_of_helper& srch) {
-
         const auto end = s1 + n1;
         for (auto match_try = s1 + off; match_try < end; ++match_try) {
             if (!srch.count(*match_try)) {
@@ -1644,8 +1689,7 @@ namespace wjr {
     typename basic_String_traits<Char, Traits>::size_type
         basic_String_traits<Char, Traits>::normal_find_last_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        assert(off <= n1 - 1);
-        for (auto match_try = s1 + off;; --match_try) {
+        for (auto match_try = s1 + npos_min(off,n1-1);; --match_try) {
             if (!traits_type::find(s2, n2, *match_try)) {
                 return static_cast<size_type>(match_try - s1);
             }
@@ -1669,18 +1713,29 @@ namespace wjr {
             const size_type n1, size_type off, const value_type* s2, const size_type n2) {
         off = npos_min(off, n1 - 1);
         if (n1 != 0 && n2 != 0) {
-            if (n2 < 32) {
-                return normal_find_last_not_of(s1, n1, off, s2, n2);
+            if constexpr (std::is_same_v<string_find_of_helper, bit_map>) {
+                if (n1 <= 8) {
+                    return normal_find_last_not_of(s1,n1,off,s2,n2);
+                }
+                else {
+                    return map_find_last_not_of(s1,n1,off,s2,n2);
+                }
             }
             else {
-                const size_type first_to_search = off <= 32 ? 0 : off - 32;
-                auto first_to_search_match = normal_find_last_not_of(
-                    s1 + first_to_search, n1 - first_to_search, off - first_to_search, s2, n2);
-                if (first_to_search_match != npos) {
-                    return first_to_search + first_to_search_match;
+                if (n2 <= 16) {
+                    return normal_find_last_not_of(s1, n1, off, s2, n2);
                 }
-                if (first_to_search != 0) {
-                    return normal_find_last_not_of(s1, n1, first_to_search, s2, n2);
+                else {
+                    const size_type in = 1024 / n2;
+                    const size_type first_to_search = off <= in ? 0 : off - in;
+                    auto first_to_search_match = normal_find_last_not_of(
+                        s1 + first_to_search, n1 - first_to_search, off - first_to_search, s2, n2);
+                    if (first_to_search_match != npos) {
+                        return first_to_search + first_to_search_match;
+                    }
+                    if (first_to_search != 0) {
+                        return normal_find_last_not_of(s1, n1, first_to_search, s2, n2);
+                    }
                 }
             }
         }
@@ -1692,7 +1747,6 @@ namespace wjr {
         basic_String_traits<Char, Traits>::find_last_not_of(const value_type* s1,
             const size_type n1, const size_type off, const string_find_of_helper& srch) {
         for (auto match_try = s1 + npos_min(off,n1 - 1);; --match_try) {
-
             if (!srch.count(*match_try)) {
                 return static_cast<size_type>(match_try - s1);
             }
@@ -1714,10 +1768,10 @@ namespace wjr {
             for (;;) {
                 const size_type pos = find(s,n,off,ch);
                 if (pos == npos) {
-                    ans.emplace_back(s + off, s + n);
+                    ans.emplace_back(s + off, static_cast<size_type>(n - off));
                     break;
                 }
-                ans.emplace_back(s + off, s + pos);
+                ans.emplace_back(s + off, static_cast<size_type>(pos - off));
                 off = pos + 1;
             }
         }
@@ -1726,12 +1780,12 @@ namespace wjr {
                 const size_type pos = find(s,n,off,ch);
                 if (pos == npos) {
                     if (off != n) {
-                        ans.emplace_back(s + off, s + n);
+                        ans.emplace_back(s + off, static_cast<size_type>(n - off));
                     }
                     break;
                 }
                 if (off != pos) {
-                    ans.emplace_back(s + off, s + pos);
+                    ans.emplace_back(s + off, static_cast<size_type>(pos - off));
                 }
                 off = pos + 1;
             }
@@ -1762,10 +1816,10 @@ namespace wjr {
             for (;;) {
                 const size_type pos = find(s1,n1,off,srch);
                 if (pos == npos) {
-                    ans.emplace_back(s1 + off, s1 + n1);
+                    ans.emplace_back(s1 + off, static_cast<size_type>(n1 - off));
                     break;
                 }
-                ans.emplace_back(s1 + off, s1 + pos);
+                ans.emplace_back(s1 + off, static_cast<size_type>(pos - off));
                 off = pos + n2;
             }
         }
@@ -1774,12 +1828,12 @@ namespace wjr {
                 const size_type pos = find(s1,n1,off,srch);
                 if (pos == npos) {
                     if (off != n1) {
-                        ans.emplace_back(s1 + off, s1 + n1);
+                        ans.emplace_back(s1 + off, static_cast<size_type>(n1 - off));
                     }
                     break;
                 }
                 if (off != pos) {
-                    ans.emplace_back(s1 + off, s1 + pos);
+                    ans.emplace_back(s1 + off, static_cast<size_type>(pos - off));
                 }
                 off = pos + n2;
             }
@@ -4072,6 +4126,26 @@ namespace wjr {
         static basic_String format_time(const char*const format, 
             struct tm const* date,const size_type l = 0);
 
+        basic_String simplified()const&;
+
+        basic_String simplified()&&;
+
+        basic_String& left_justified(int width, const value_type fill = value_type(' ')) {
+            const size_type _size = size();
+            if (_size < width) {
+                prepend(width - _size,fill);
+            }
+            return *this;
+        }
+
+        basic_String right_justified(int width, const value_type fill = value_type(' ')) {
+            const size_type _size = size();
+            if (_size < width) {
+                append(width - _size, fill);
+            }
+            return *this;
+        }
+
     private:
         Core core;
     };
@@ -4326,11 +4400,11 @@ namespace wjr {
         auto _data = data();
         auto _size = size();
         auto l = default_traits::left_trim(_data, _size);
-        if (l != npos) {
-            auto r = default_traits::right_trim(_data, _size);
-            return basic_String(data() + l, r - l + 1);
+        if (l == npos) {
+            return basic_String();
         }
-        return basic_String();
+        auto r = default_traits::right_trim(_data, _size);
+        return basic_String(_data+ l, r - l + 1);
     }
 
     template<typename Char, typename Traits, typename Core>
@@ -4338,12 +4412,13 @@ namespace wjr {
         auto _data = data();
         auto _size = size();
         auto l = default_traits::left_trim(_data, _size);
-        erase(0, l);
         if (l == npos) {
+            clear();
             return std::move(*this);
         }
         auto r = default_traits::right_trim(_data, _size);
-        erase(r, npos);
+        memmove(_data,_data + l,sizeof(value_type) * (r - l + 1));
+        set_size(r - l + 1);
         return std::move(*this);
     }
 
@@ -4700,6 +4775,81 @@ namespace wjr {
         it.set_size(len);
         it.shrink_to_fit();
         return it;
+    }
+
+    template<typename Char,typename Traits,typename Core>
+    basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::simplified()const& {
+        const auto _data = data();
+        const auto _size = size();
+        basic_String it;
+        size_type off = default_traits::find_first_not_of(_data, _size, 0, default_traits::trim_map);
+        if (off != npos) {
+            const size_type pos = default_traits::
+                find_first_of(_data, _size, off, default_traits::trim_map);
+            it.append(*this,off,pos - off);
+            off = default_traits::find_first_not_of(_data, _size, pos + 1, default_traits::trim_map);
+            if (off != npos) {
+                for (;;) {
+                    const size_type pos = default_traits::
+                        find_first_of(_data, _size, off, default_traits::trim_map);
+                    if (pos == npos) {
+                        it.append(*this, off, npos);
+                        break;
+                    }
+                    // don't need to use mutiple_append
+                    //it.multiple_append(' ',basic_String_view<Char,Traits>(_data + off,pos - off));
+                    it.reserve(it.size() + 1 + (pos - off));
+                    it.push_back(' ');
+                    it.append(*this, off, pos - off);
+                    off = default_traits::find_first_not_of(_data, _size, pos + 1, default_traits::trim_map);
+                    if (off == npos) {
+                        break;
+                    }
+                }
+            }
+        }
+        return it;
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::simplified()&& {
+        const auto _data = data();
+        const auto _size = size();
+        size_type off = default_traits::find_first_not_of(_data, _size, 0, default_traits::trim_map);
+        size_type used_size = 0;
+        auto ptr = _data;
+        if (off != npos) {
+            const size_type pos = default_traits::
+                find_first_of(_data, _size, off, default_traits::trim_map);
+            used_size += pos - off;
+            memcpy(ptr,_data + off,sizeof(value_type) * (pos - off));
+            ptr += pos - off;
+            off = default_traits::find_first_not_of(_data, _size, pos + 1, default_traits::trim_map);
+            if (off != npos) {
+                for (;;) {
+                    const size_type pos = default_traits::
+                        find_first_of(_data, _size, off, default_traits::trim_map);
+                    if (pos == npos) {
+                        used_size += _size - off;
+                        memcpy(ptr,_data + off,sizeof(value_type) * (_size - off));
+                        break;
+                    }
+                    // don't need to use mutiple_append
+                    //it.multiple_append(' ',basic_String_view<Char,Traits>(_data + off,pos - off));
+                    used_size += 1 + pos - off;
+                    *ptr = static_cast<Char>(' ');
+                    ++ptr;
+                    memcpy(ptr,_data + off,sizeof(value_type) * (pos - off));
+                    ptr += pos - off;
+                    off = default_traits::find_first_not_of(_data, _size, pos + 1, default_traits::trim_map);
+                    if (off == npos) {
+                        break;
+                    }
+                }
+            }
+        }
+        set_size(used_size);
+        return std::move(*this);
     }
 
     template<typename Char,typename Traits,typename Core>
