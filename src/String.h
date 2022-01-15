@@ -647,6 +647,7 @@ namespace wjr {
         }
 
         void setMediumSize(const size_t s) {
+            assert(s <= capacity());
             _Ml._Size = s;
             _Ml._Data[s] = static_cast<Char>('\0');
         }
@@ -949,6 +950,8 @@ namespace wjr {
     struct String_traits_info<String_rfind_traits<Char, Traits>> {
         using is_default_eq = typename String_rfind_traits<Char,Traits>::is_default_eq;
     };
+
+    struct Uninitialized {};
 
     template<typename Char,typename Traits = std::char_traits<Char>>
     class basic_String_view;
@@ -2655,6 +2658,10 @@ namespace wjr {
         long long to_ll(const value_type*& next, bool* ok = nullptr, int base = 10)const;
         unsigned long long to_ull(const value_type*& next, bool* ok = nullptr, int base = 10)const;
 
+        constexpr size_t hash()const {
+            return std::hash<basic_String_view<Char,Traits>>()(*this);
+        }
+
     private:
         const_pointer Myfirst;
         size_type Mysize;
@@ -3067,6 +3074,10 @@ namespace wjr {
         basic_String(const std::basic_string_view<Char, Traits>& s)
             : core(s.data(), s.size()) {
 
+        }
+
+        basic_String(const size_type len, wjr::Uninitialized) {
+            core.expandNoInit(len);
         }
 
         operator std::basic_string_view<value_type, traits_type>() const noexcept {
@@ -4049,11 +4060,19 @@ namespace wjr {
         long long to_ll(bool* ok = nullptr,int base = 10)const;
         unsigned long long to_ull(bool* ok = nullptr,int base = 10)const;
 
+        int to_int(const value_type*& next, bool* ok = nullptr, int base = 10)const;
+        unsigned int to_uint(const value_type*& next, bool* ok = nullptr, int base = 10)const;
+        long long to_ll(const value_type*& next, bool* ok = nullptr, int base = 10)const;
+        unsigned long long to_ull(const value_type*& next, bool* ok = nullptr, int base = 10)const;
+
+        size_t hash()const {
+            return std::hash<basic_String<Char,Traits,Core>>()(*this);
+        }
+
         template<typename...Args>
         static basic_String asprintf(const char* format, Args&&...args) {
             const auto len = static_cast<size_t>(_scprintf(format,std::forward<Args>(args)...));
-            basic_String str;
-            str.core.expandNoinit(len);
+            basic_String str(len,wjr::Uninitialized);
             sprintf_s(&str[0],len + 1,format, std::forward<Args>(args)...);
             return str;
         }
@@ -4133,7 +4152,7 @@ namespace wjr {
         basic_String& left_justified(int width, const value_type fill = value_type(' ')) {
             const size_type _size = size();
             if (_size < width) {
-                prepend(width - _size,fill);
+                append(width - _size,fill);
             }
             return *this;
         }
@@ -4141,7 +4160,7 @@ namespace wjr {
         basic_String right_justified(int width, const value_type fill = value_type(' ')) {
             const size_type _size = size();
             if (_size < width) {
-                append(width - _size, fill);
+                prepend(width - _size, fill);
             }
             return *this;
         }
@@ -4705,6 +4724,30 @@ namespace wjr {
     template<typename Char, typename Traits, typename Core>
     unsigned long long basic_String<Char, Traits, Core>::to_ull(bool* ok, int base)const {
         return basic_String_view<Char, Traits>(data(), size()).to_ull(ok, base);
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    int basic_String<Char, Traits, Core>::to_int(
+        const value_type*& next,bool* ok, int base)const {
+        return basic_String_view<Char,Traits>(data(),size()).to_int(next,ok,base);
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    unsigned int basic_String<Char, Traits, Core>::to_uint(
+        const value_type*& next, bool* ok, int base)const {
+        return basic_String_view<Char, Traits>(data(), size()).to_uint(next,ok, base);
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    long long basic_String<Char, Traits, Core>::to_ll(
+        const value_type*& next, bool* ok, int base)const {
+        return basic_String_view<Char, Traits>(data(), size()).to_ll(next,ok, base);
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    unsigned long long basic_String<Char, Traits, Core>::to_ull(
+        const value_type*& next, bool* ok, int base)const {
+        return basic_String_view<Char, Traits>(data(), size()).to_ull(next,ok, base);
     }
 
     template<typename Char,typename Traits,typename Core>
