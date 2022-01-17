@@ -2309,13 +2309,27 @@ namespace wjr {
 
         constexpr basic_String_view() noexcept = default;
         constexpr basic_String_view(const basic_String_view&) noexcept = default;
-        constexpr basic_String_view& operator=(const basic_String_view&) noexcept = default;
 
-        template<typename C,typename T,typename A>
-        constexpr basic_String_view(const std::basic_string<C, T, A>& s)
+        constexpr basic_String_view(std::basic_string_view<Char, Traits> s) noexcept
             : Myfirst(s.data()), Mysize(s.size()) {
 
         }
+
+        template<typename C, typename T>
+        constexpr basic_String_view(const std::basic_string_view<C, T>& s)
+            : Myfirst(s.data()), Mysize(s.size()) {
+
+        }
+        
+        template<typename...Args,std::enable_if_t<
+            std::is_convertible_v<std::basic_string_view<Char,Traits>,Args...>,int> = 0>
+        constexpr basic_String_view(Args&&...args) noexcept
+            : basic_String_view(std::basic_string_view<Char,Traits>(std::forward<Args>(args)...)){
+
+        }
+
+
+        constexpr basic_String_view& operator=(const basic_String_view&) noexcept = default;
 
         constexpr basic_String_view(const const_pointer s) noexcept
             : Myfirst(s), Mysize(traits_length(s)) {
@@ -2325,6 +2339,10 @@ namespace wjr {
         constexpr basic_String_view(const const_pointer s, const size_type n) noexcept
             : Myfirst(s), Mysize(n) {
 
+        }
+
+        constexpr operator std::basic_string_view<Char, Traits>()const noexcept{
+            return {Myfirst,Mysize};
         }
 
         constexpr const_iterator begin()const noexcept{ 
@@ -3071,20 +3089,15 @@ namespace wjr {
 
         }
 
-        basic_String(const std::basic_string_view<Char, Traits>& s)
-            : core(s.data(), s.size()) {
-
-        }
-
         basic_String(const size_type len, wjr::Uninitialized) {
-            core.expandNoInit(len);
+            core.expandNoinit(len);
         }
 
-        operator std::basic_string_view<value_type, traits_type>() const noexcept {
-            return { data(), size() };
+        operator std::basic_string_view<Char, Traits>() const noexcept {
+            return { data(),size() };
         }
 
-        operator basic_String_view<value_type, traits_type>() const noexcept {
+        operator basic_String_view<Char,Traits>() const noexcept {
             return { data(), size() };
         }
 
@@ -3143,6 +3156,10 @@ namespace wjr {
             resize(1);
             *begin() = c;
             return *this;
+        }
+
+        basic_String& operator=(const basic_String_view<Char, Traits>& s) {
+            return assign(s.data(),s.size());
         }
 
         iterator begin() { return core.data(); }
@@ -3236,6 +3253,10 @@ namespace wjr {
             return *this;
         }
 
+        basic_String& operator+=(const basic_String_view<Char,Traits>& s){
+            return append(s.data(),s.size()); 
+        }
+
         basic_String& append(const basic_String& other) {
             return append(other.data(), other.size());
         }
@@ -3285,6 +3306,10 @@ namespace wjr {
         basic_String& append(const value_type c) {
             push_back(c);
             return *this;
+        }
+
+        basic_String& append(const basic_String_view<Char,Traits>& s) {
+            return append(s.data(),s.size());
         }
 
         basic_String& prepend(const basic_String& other) {
@@ -3337,6 +3362,10 @@ namespace wjr {
 
         basic_String& prepend(const value_type c) {
             return prepend(1,c);
+        }
+
+        basic_String& prepend(const basic_String_view<Char, Traits>& s) {
+            return prepend(s.data(),s.size());
         }
 
         void push_back(const value_type c) {
@@ -3408,6 +3437,10 @@ namespace wjr {
         template<typename iter>
         basic_String& assign(iter first, iter last) {
             return assign(first, last, is_char_ptr<iter>{});
+        }
+
+        basic_String& assign(const basic_String_view<Char, Traits>& s) {
+            return assign(s.data(),s.size());
         }
 
         basic_String& insert(const size_type pos, const basic_String& str) {
@@ -3519,6 +3552,17 @@ namespace wjr {
             return data() + pos;
         }
 
+        basic_String& insert(const size_type pos, const basic_String_view<Char, Traits>& s) {
+            return insert(pos, s.data(), s.size());
+        }
+
+        template<typename T,is_const_iterator<T> = 0>
+        iterator insert(T p, const basic_String_view<Char, Traits>& s) {
+            const size_type pos = p - data();
+            insert(pos,s);
+            return data() + pos;
+        }
+
         basic_String& erase(const size_type pos = 0, size_type n = npos);
 
         template<typename T, is_const_iterator<T> = 0>
@@ -3560,12 +3604,23 @@ namespace wjr {
             return remove<T>(other.data(),off,other.size());
         }
 
+        template<typename T = Traits>
+        basic_String& remove(const basic_String_view<Char, Traits>& other, const size_type off = 0) {
+            return remove<T>(other.data(),off,other.size());
+        }
+
         basic_String& replace(const size_type pos, const size_type n, const value_type ch) {
             return replace(pos,n,&ch,1);
         }
 
         basic_String& replace(
             const size_type pos, const size_type n, const basic_String& s) {
+            return replace(pos, n, s.data(), s.size());
+        }
+
+        basic_String& replace(
+            const size_type pos, const size_type n, const basic_String_view<Char, Traits>& s
+        ) {
             return replace(pos, n, s.data(), s.size());
         }
 
@@ -3585,7 +3640,12 @@ namespace wjr {
 
         template<typename T, is_const_iterator<T> = 0>
         basic_String& replace(T first, T last, const basic_String& s) {
-            return replace(first - data(), last - first, s);
+            return replace(first - data(), last - first, s.data(),s.size());
+        }
+
+        template<typename T ,is_const_iterator<T> = 0>
+        basic_String& replace(T first, T last, const basic_String_view<Char, Traits>& s) {
+            return replace(first - data(),last -first,s.data(),s.size());
         }
 
         template<typename T, is_const_iterator<T> = 0>
@@ -3618,6 +3678,12 @@ namespace wjr {
 
         template<typename T = Traits>
         basic_String& replace(const basic_String& before, const basic_String& after) {
+            return replace<T>(before.data(),before.size(),after.data(),after.size());
+        }
+
+        template<typename T = Traits>
+        basic_String& replace(const basic_String_view<Char,Traits>& before, 
+            const basic_String_view<Char,Traits>& after) {
             return replace<T>(before.data(),before.size(),after.data(),after.size());
         }
 
@@ -3670,6 +3736,17 @@ namespace wjr {
         }
 
         template<typename T = Traits>
+        int compare(const size_type pos1, const size_type n1,
+            const basic_String_view<Char, Traits>& s)const {
+            return compare<T>(pos1,n1,s.data(),s.size());
+        }
+
+        template<typename T = Traits>
+        int compare(const basic_String_view<Char, Traits>& s)const {
+            return compare<T>(0,size(),s.data(),s.size());
+        }
+
+        template<typename T = Traits>
         bool equal(const basic_String & other)const {
             return equal<T>(0, size(), other);
         }
@@ -3698,6 +3775,17 @@ namespace wjr {
         template<typename T = Traits>
         bool equal(const value_type * s)const {
             return equal<T>(s, traits_length(s));
+        }
+
+        template<typename T = Traits>
+        bool equal(const size_type pos1, const size_type n1,
+            const basic_String_view<Char, Traits>& s)const {
+            return equal<T>(pos1,n1,s.data(),s.size());
+        }
+
+        template<typename T = Traits>
+        bool equal(const basic_String_view<Char, Traits>& s)const {
+            return equal<T>(0,size(),s.data(),s.size());
         }
 
         template<typename T = Traits>
@@ -3750,6 +3838,11 @@ namespace wjr {
         }
 
         template<typename T = Traits>
+        size_type find(const basic_String_view<Char, Traits>& s, const size_type off = 0)const {
+            return find<T>(s.data(),off,s.size());
+        }
+
+        template<typename T = Traits>
         static typename non_default_traits<T>::string_rfind_helper
             get_rfind_helper(const value_type * s, const value_type * e) {
             return non_default_traits<T>::get_rfind_helper(s, e);
@@ -3794,8 +3887,14 @@ namespace wjr {
         }
 
         template<typename T = Traits>
-        size_type rfind(const typename non_default_traits<T>::string_rfind_helper & srch, const size_type off = npos)const {
+        size_type rfind(const typename non_default_traits<T>::
+            string_rfind_helper & srch, const size_type off = npos)const {
             return non_default_traits<T>::rfind(data(), size(), off, srch);
+        }
+
+        template<typename T = Traits>
+        size_type rfind(const basic_String_view<Char, Traits>& s, const size_type off = npos)const {
+            return rfind<T>(s.data(),off,s.size());
         }
 
         template<typename T = Traits>
@@ -3851,6 +3950,11 @@ namespace wjr {
             const size_type off = 0)const {
             return non_default_traits<T>::find_first_of(data(), size(), off, srch);
         }
+        
+        template<typename T = Traits>
+        size_type find_first_of(const basic_String_view<Char, Traits>& s, const size_type off = 0)const {
+            return find_first_of<T>(s.data(), off, s.size());
+        }
 
         template<typename T = Traits>
         size_type find_last_of(const value_type ch, const size_type off = npos)const {
@@ -3874,8 +3978,13 @@ namespace wjr {
 
         template<typename T = Traits>
         size_type find_last_of(const typename non_default_traits<T>::string_find_of_helper & srch,
-            const size_type off = 0)const {
+            const size_type off = npos)const {
             return non_default_traits<T>::find_last_of(data(), size(), off, srch);
+        }
+
+        template<typename T = Traits>
+        size_type find_last_of(const basic_String_view<Char, Traits>& s, const size_type off = npos)const {
+            return find_last_of<T>(s.data(),off,s.size());
         }
 
         template<typename T = Traits>
@@ -3905,6 +4014,11 @@ namespace wjr {
         }
 
         template<typename T = Traits>
+        size_type find_first_not_of(const basic_String_view<Char,Traits>& s, const size_type off = 0)const {
+            return find_first_not_of<T>(s.data(),off,s.size());
+        }
+
+        template<typename T = Traits>
         size_type find_last_not_of(const value_type ch, const size_type off = npos)const {
             return non_default_traits<T>::find_last_not_of_ch(data(), size(), off, ch);
         }
@@ -3926,8 +4040,13 @@ namespace wjr {
 
         template<typename T = Traits>
         size_type find_last_not_of(const typename non_default_traits<T>::string_find_of_helper & srch,
-            const size_type off = 0)const {
+            const size_type off = npos)const {
             return non_default_traits<T>::find_last_not_of(data(), size(), off, srch);
+        }
+
+        template<typename  T = Traits>
+        size_type find_last_not_of(const basic_String_view<Char, Traits>& s, const size_type off = npos)const {
+            return find_last_not_of<T>(s.data(),off,s.size());
         }
 
         template<typename T = Traits>
@@ -3951,6 +4070,11 @@ namespace wjr {
         }
 
         template<typename T = Traits>
+        bool starts_with(const basic_String_view<Char, Traits>& s)const {
+            return starts_with<T>(s.data(),s.size());
+        }
+
+        template<typename T = Traits>
         bool ends_with(const value_type ch)const {
             return non_default_traits<T>::ends_with(data(), size(), ch);
         }
@@ -3968,6 +4092,11 @@ namespace wjr {
         template<typename T = Traits>
         bool ends_with(const basic_String& other)const {
             return ends_with<T>(other.data(),other.size());
+        }
+
+        template<typename T = Traits>
+        bool ends_with(const basic_String_view<Char, Traits>& s)const {
+            return ends_with<T>(s.data(),s.size());
         }
 
         basic_String substr(const size_type pos, const size_type n = npos)const& {
@@ -4036,6 +4165,11 @@ namespace wjr {
         template<typename T = Traits, typename string_list = std::vector<basic_String>>
         string_list split(const value_type* s,
             const size_type n, bool keep_empty_parts = true)const;
+
+        template<typename T = Traits,typename string_list = std::vector<basic_String>>
+        string_list split(const basic_String_view<Char, Traits>& s, bool keep_empty_parts = true)const {
+            return split<T,string_list>(s.data(),s.size(),keep_empty_parts);
+        }
 
         basic_String to_lower()const&;
         basic_String to_lower()&&;

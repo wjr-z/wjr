@@ -27,7 +27,7 @@ namespace wjr {
 		return time_ref::testTime(rhs.TimePoint, lhs.TimePoint);
 	}
 
-	void dfs_get_files(std::string& path, std::vector<std::string>& filePath) {
+	void dfs_get_files(String& path, std::vector<String>& file_path) {
 		intptr_t h_file;
 		struct _finddata_t fileinfo {};
 		if ((h_file = _findfirst(path.append("/*").c_str(), &fileinfo)) != -1) {
@@ -39,11 +39,11 @@ namespace wjr {
 				if ((fileinfo.attrib & _A_SUBDIR))
 				{
 					if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0)
-						dfs_get_files(path, filePath);
+						dfs_get_files(path, file_path);
 				}
 				else
 				{
-					filePath.emplace_back(path);
+					file_path.emplace_back(path);
 				}
 				path.resize(l);
 			} while (_findnext(h_file, &fileinfo) == 0);
@@ -51,43 +51,42 @@ namespace wjr {
 		}
 	}
 
-	void get_all_files(const std::string& path, std::vector<std::string>& filePath) {
-		std::string cop(path);
+	void get_all_files(String_view path, std::vector<String>& filePath) {
+		String cop(path);
 		dfs_get_files(cop, filePath);
 	}
 
-	std::vector<std::string> get_all_files(const std::string& path) {
-		std::vector<std::string>filePath;
+	std::vector<String> get_all_files(String_view path) {
+		std::vector<String> file_path;
 		if (!_access(path.c_str(), 0))
-			get_all_files(path, filePath);
+			get_all_files(path, file_path);
 		struct _finddata_t fileinfo {};
 		if ((_findfirst(path.c_str(), &fileinfo)) != -1) {
 			if (!(fileinfo.attrib & _A_SUBDIR)) {
 				if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0) {
-					filePath.push_back(path);
+					file_path.push_back(path);
 				}
 			}
 		}
-		return filePath;
+		return file_path;
 	}
 
-	std::string read_file(const std::string& filename) {
+	String read_file(String_view filename) {
 		if (_access(filename.c_str(), 0) == -1)
-			return std::string();
+			return String();
 		FILE* fp = fopen(filename.c_str(), "rb");
-		if (fp == nullptr)return std::string();
+		if (fp == nullptr)return String();
 		fseek(fp, 0, SEEK_END);
 		size_t size = ftell(fp);
-		std::string buffer;
-		buffer.resize(size);
+		String buffer(size, Uninitialized{});
 		fseek(fp, 0, SEEK_SET);
 		fread((void*)buffer.c_str(), sizeof(char), size, fp);
 		fclose(fp);
 		return buffer;
 	}
 
-	void write_file(const std::string& filename, const std::string& str) {
-		std::ofstream out(filename, std::ios::binary);
+	void write_file(String_view filename, String_view str) {
+		std::ofstream out(filename.c_str(), std::ios::binary);
 		out.write(str.c_str(), static_cast<std::streamsize>(str.length()));
 	}
 

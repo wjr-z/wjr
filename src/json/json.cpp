@@ -610,7 +610,7 @@ namespace wjr {
         reset();
         if(!len)return ;
         auto s = (const uint8_t*) ptr;
-        getValue(s,s + len);
+        dfs_parse(s,s + len);
     }
 
     json& json::operator[](const size_t index) {
@@ -1037,12 +1037,9 @@ namespace wjr {
         }
     }
 
-    void json::getValue(const uint8_t*& s,const uint8_t* e) {
+    void json::dfs_parse(const uint8_t*& s,const uint8_t* e) {
         s = skip_whitespace(s,e);
         switch (*s) {
-        case ']':
-        case '}':
-            break;
         case 'n': {
             vtype = (uint8_t)(value_t::null);
             s += 4;
@@ -1077,12 +1074,13 @@ namespace wjr {
                 assert(*s == '"');
                 ++s;
                 auto p = skip_string(s, e);
+                //auto iter = obj.insert_or_assign(String((const char*)s, p - s),json()).first;
                 auto& iter = obj[String((const char*)s,  p - s)] = json();
                 s = p + 1;
                 s = skip_whitespace(s,e);
                 assert(*s == ':');
                 ++s;
-                iter.getValue(s,e);
+                iter.dfs_parse(s,e);
                 s = skip_whitespace(s,e);
                 if (*s == '}') {
                     ++s;
@@ -1106,7 +1104,7 @@ namespace wjr {
             }
             for (;;) {
                 arr.push_back(json());
-                arr.back().getValue(s,e);
+                arr.back().dfs_parse(s,e);
                 s = skip_whitespace(s,e);
                 if (*s == ']') {
                     ++s;

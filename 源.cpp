@@ -6,7 +6,12 @@
 using namespace wjr;
 using namespace std;
 #include "src/string_helper.h"
-//#pragma GCC optimize(3,"Ofast","inline")
+struct A {
+	operator string_view ()const {
+		const char* s = "sadsdfsdf";
+		return string_view{s,5};
+	}
+};
 int main(){
 	auto vec = get_all_files("test");
 	auto s = mtime();

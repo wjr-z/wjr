@@ -14,12 +14,12 @@ namespace wjr {
     class json;
 
     //Use mallocator as default allocator
-    typedef bool json_boolean;
-    typedef double json_number;
-    typedef String json_string;
-    typedef std::map<json_string, json, std::less<json_string>,
-        mallocator<std::pair<const json_string, json>>> json_object;
-    typedef std::vector<json, mallocator<json>> json_array;
+    using json_boolean = bool;
+    using json_number  = double;
+    using json_string  = String;
+    using json_object  = std::map<json_string, json, std::less<json_string>,
+        mallocator<std::pair<const json_string, json>>>;
+    using json_array   = std::vector<json,mallocator<json>>;
 
     class json {
     private:
@@ -279,7 +279,7 @@ namespace wjr {
 
         json_string stringify(int tab, int delta)const;
 
-        void getValue(const uint8_t*& s, const uint8_t* e);
+        void dfs_parse(const uint8_t*& s, const uint8_t* e);
 
         inline void _Tidy();
 
