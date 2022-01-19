@@ -37,7 +37,6 @@ namespace wjr {
 		struct _finddata_t fileinfo {};
 		if ((h_file = _findfirst(path.append("/*").c_str(), &fileinfo)) != -1) {
 			path.pop_back();
-			path.push_back('/');
 			const size_t l = path.length();
 			do {
 				if ((fileinfo.attrib & _A_SUBDIR))
