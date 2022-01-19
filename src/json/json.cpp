@@ -609,7 +609,7 @@ namespace wjr {
     void json::parse(const char* ptr, size_t len) {
         reset();
         if(!len)return ;
-        auto s = (const uint8_t*) ptr;
+        auto s = (const uint8_t*)ptr;
         dfs_parse(s,s + len);
     }
 
@@ -816,7 +816,7 @@ namespace wjr {
         MergePatch(*this,apply_patch);
     }
 
-    json json::eval(std::string_view str) {
+    json json::eval(String_view str) {
         json x;
         x.parse(str.data(),str.length());
         return x;
@@ -827,7 +827,6 @@ namespace wjr {
         for (;;++s) {
             s = skip_whitespace(s,e);
             if(s == e)return false;
-
             if (state == '}') { // object
                 if (*s == '}') {
                     if(!head) return false;
@@ -900,7 +899,7 @@ namespace wjr {
         }
     }
 
-    bool json::accept(std::string_view str) {
+    bool json::accept(String_view str) {
 
         const uint8_t* s = (const uint8_t*)str.data();
         const uint8_t* e = s + str.length();
@@ -1076,8 +1075,7 @@ namespace wjr {
                 auto p = skip_string(s, e);
                 //auto iter = obj.insert_or_assign(String((const char*)s, p - s),json()).first;
                 auto& iter = obj[String((const char*)s,  p - s)] = json();
-                s = p + 1;
-                s = skip_whitespace(s,e);
+                s = skip_whitespace(p + 1,e);
                 assert(*s == ':');
                 ++s;
                 iter.dfs_parse(s,e);

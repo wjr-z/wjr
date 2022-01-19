@@ -33,6 +33,7 @@
 #include <functional>
 #include <stdexcept>
 #include <iostream>
+#include "mallocator.h"
 
 namespace wjr {
 
@@ -44,10 +45,11 @@ namespace wjr {
             ->std::future<typename std::result_of<F(Args...)>::type>;
         ~thread_pool();
     private:
+        using func = std::function<void()>;
         // need to keep track of threads so we can join them
         std::vector< std::thread > workers;
         // the task queue
-        std::queue< std::function<void()> > tasks;
+        std::queue<func,std::deque<func,mallocator<func>>> tasks;
 
         // synchronization
         std::mutex queue_mutex;

@@ -1,12 +1,16 @@
 #include "mtool.h"
-
+#ifndef __linux__
 #include <io.h>
+#else
+#include <sys/io.h>
+#include <dirent.h>
+#include <unistd.h>
+#endif
 #include <fstream>
 #include <sstream>
 #include <set>
 #include <iostream>
 #include <cassert>
-#include <direct.h>
 
 namespace wjr {
 
@@ -28,52 +32,91 @@ namespace wjr {
 	}
 
 	void dfs_get_files(String& path, std::vector<String>& file_path) {
+	#ifndef __linux__
 		intptr_t h_file;
 		struct _finddata_t fileinfo {};
 		if ((h_file = _findfirst(path.append("/*").c_str(), &fileinfo)) != -1) {
 			path.pop_back();
-			path.push_back('\\');
+			path.push_back('/');
 			const size_t l = path.length();
 			do {
-				path.append(fileinfo.name);
 				if ((fileinfo.attrib & _A_SUBDIR))
 				{
-					if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0)
+					if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0) {
+						path.append(fileinfo.name);
 						dfs_get_files(path, file_path);
+					}
 				}
 				else
 				{
+					path.append(fileinfo.name);
 					file_path.emplace_back(path);
 				}
 				path.resize(l);
 			} while (_findnext(h_file, &fileinfo) == 0);
 			_findclose(h_file);
 		}
+	#else
+		struct dirent* ptr;
+		DIR* dir = opendir(path.c_str());
+		path.push_back('/');
+		const size_t l = path.length();
+		while ((ptr = readdir(dir)) != nullptr) {
+			if(ptr->d_type == DT_DIR){
+				if (strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0) {
+					path.append(ptr->d_name);
+					dfs_get_files(path,file_path);
+				}
+			}else{
+				path.append(ptr->d_name);
+				file_path.emplace_back(path);
+			}
+			path.resize(l);
+		}
+		closedir(dir);
+	#endif
 	}
 
-	void get_all_files(String_view path, std::vector<String>& filePath) {
+	void get_all_files(const String&path, std::vector<String>& filePath) {
 		String cop(path);
 		dfs_get_files(cop, filePath);
 	}
 
-	std::vector<String> get_all_files(String_view path) {
+	std::vector<String> get_all_files(const String&path) {
 		std::vector<String> file_path;
-		if (!_access(path.c_str(), 0))
+	#ifndef __linux__
+		if (!_access(path.c_str(), 0)) {
+			struct _finddata_t fileinfo {};
+			intptr_t h_file = _findfirst(path.c_str(), &fileinfo);
+			_findclose(h_file);
 			get_all_files(path, file_path);
-		struct _finddata_t fileinfo {};
-		if ((_findfirst(path.c_str(), &fileinfo)) != -1) {
-			if (!(fileinfo.attrib & _A_SUBDIR)) {
-				if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0) {
-					file_path.push_back(path);
-				}
+			if(h_file != -1){
+				file_path.push_back((String)path);
 			}
 		}
+	#else
+		if (!access(path.c_str(), F_OK)) {
+			DIR* dir = opendir(path.c_str());
+			if (dir == nullptr) {
+				file_path.push_back((String)path);
+			}
+			else {
+				closedir(dir);
+				get_all_files(path, file_path);
+			}
+		}
+	#endif
 		return file_path;
 	}
 
-	String read_file(String_view filename) {
+	String read_file(const String& filename) {
+	#ifndef __linux
 		if (_access(filename.c_str(), 0) == -1)
 			return String();
+	#else
+		if (access(filename.c_str(), F_OK) == -1)
+			return String();
+	#endif
 		FILE* fp = fopen(filename.c_str(), "rb");
 		if (fp == nullptr)return String();
 		fseek(fp, 0, SEEK_END);
@@ -85,7 +128,7 @@ namespace wjr {
 		return buffer;
 	}
 
-	void write_file(String_view filename, String_view str) {
+	void write_file(const String& filename, String_view str) {
 		std::ofstream out(filename.c_str(), std::ios::binary);
 		out.write(str.c_str(), static_cast<std::streamsize>(str.length()));
 	}

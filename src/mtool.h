@@ -5,7 +5,6 @@
 #include <chrono>
 #include <cstdint>
 #include <type_traits>
-#include <io.h>
 #include "String.h"
 
 namespace wjr {
@@ -35,9 +34,9 @@ namespace wjr {
         friend double operator-(const time_ref& lhs, const time_ref& rhs);
     };
 
-    std::vector<String> get_all_files(String_view path);
-    String read_file(String_view filename);
-    void write_file(String_view filename,String_view str);
+    std::vector<String> get_all_files(const String&path);
+    String read_file(const String&filename);
+    void write_file(const String&filename,String_view str);
 
 }
 #endif

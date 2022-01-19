@@ -23,6 +23,8 @@
   OTHER DEALINGS IN THE SOFTWARE.
   */
 #pragma once
+#ifndef GRISU2_H
+#define GRISU2_H
 #include "prettify.h"
 #include "fast_exponent.h"
 
@@ -32,14 +34,21 @@ void grisu2(double v, char* buffer, int* length, int* K);
 
 void fill_double_init() {}
 
-bool fill_double(double v, char* buffer) {
-    int length, K;
-    grisu2(v, buffer, &length, &K);
-#ifndef HUMAN_READABLE
-    buffer[length] = 'e';
-    fill_exponent(K, &buffer[length + 1]);
-#else
-    prettify_string(buffer, 0, length, K);
+#ifdef __cplusplus
+extern "C" {
 #endif
-    return 1;
+    bool fill_double(double v, char* buffer) {
+        int length, K;
+        grisu2(v, buffer, &length, &K);
+    #ifndef HUMAN_READABLE
+        buffer[length] = 'e';
+        fill_exponent(K, &buffer[length + 1]);
+    #else
+        prettify_string(buffer, 0, length, K);
+    #endif
+        return 1;
+    }
+#ifdef __cplusplus
 }
+#endif 
+#endif // GRISU2_H

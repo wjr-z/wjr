@@ -249,8 +249,8 @@ namespace wjr {
 
         void merge_patch(const json& apply_patch);
 
-        static json eval(std::string_view str);
-        static bool accept(std::string_view str);
+        static json eval(String_view str);
+        static bool accept(String_view str);
 
         static json array(std::initializer_list<json> il = {});
         static json object(std::initializer_list<std::pair<const String, json>> il = {});

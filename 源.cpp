@@ -2,23 +2,20 @@
 #include <vector>
 #include <deque>
 #include "src/mtool.h"
-#include "src/json/json.h"
 using namespace wjr;
 using namespace std;
-#include "src/string_helper.h"
-struct A {
-	operator string_view ()const {
-		const char* s = "sadsdfsdf";
-		return string_view{s,5};
-	}
-};
 int main(){
-	auto vec = get_all_files("test");
+	String path;
+	cin >> path;
+	auto vec = get_all_files(path);
 	auto s = mtime();
 	for (auto& i : vec) {
-		json::eval(read_file(i));
+		i = i.trim();
+		if (i.ends_with(".h")) {
+			cout<<i<<'\n';
+		}
 	}
 	auto t = mtime();
-	cout << t - s << '\n';
+	cout<<"done in " << t - s <<'\n';
 	return 0;
 } 

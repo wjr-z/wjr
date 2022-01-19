@@ -1,12 +1,12 @@
 #ifndef WJR_MALLOCATOR_H
 #define WJR_MALLOCATOR_H
 
+#include <cstdint>
 #include <cstdlib>
 #include <cassert>
 #include <utility>
 #include <type_traits>
-
-#include <mutex>
+#include <cstddef>
 
 namespace wjr {
 
@@ -357,6 +357,10 @@ namespace wjr {
 
 		size_t max_size()const {
 			return static_cast<size_t>(-1) / sizeof(Ty);
+		}
+
+		constexpr static size_t max_small_size(){
+			return static_cast<size_t>(ALLOC_MAX_BYTES) / sizeof(Ty);
 		}
 
 	};
