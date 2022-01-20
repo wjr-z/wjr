@@ -5,9 +5,9 @@
 #include <cstdlib>
 #include <cstdint>
 #include <string.h>
-#include "../mallocator.h"
-#include "../typeInfo.h"
-#include "../String.h"
+#include "mallocator.h"
+#include "typeInfo.h"
+#include "String.h"
 
 namespace wjr {
 

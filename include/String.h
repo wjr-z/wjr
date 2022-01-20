@@ -596,7 +596,7 @@ namespace wjr {
             size_t _Size;
             size_t _Capacity;
             inline size_t capacity()const {
-                if constexpr (is_little_endian) {
+                if constexpr (wis_little_endian) {
                     return _Capacity & capacityExtractMask;
                 }
                 else {
@@ -607,7 +607,7 @@ namespace wjr {
 
         constexpr static size_t lastChar = sizeof(_Medium) - 1;
         constexpr static size_t maxSmallSize = lastChar / sizeof(Char);
-        constexpr static uint8_t categoryExtractMask = is_little_endian ? 0x80 : 0x01;
+        constexpr static uint8_t categoryExtractMask = wis_little_endian ? 0x80 : 0x01;
         constexpr static size_t kShift = (sizeof(size_t) - 1) * 8;
         constexpr static size_t capacityExtractMask = ~((size_t)categoryExtractMask << kShift);
         constexpr static size_t capacityOr = ~capacityExtractMask;
@@ -627,7 +627,7 @@ namespace wjr {
         }
 
         void setCapacity(const size_t c) {
-            if constexpr (is_little_endian) {
+            if constexpr (wis_little_endian) {
                 _Ml._Capacity = c | capacityOr;
             }
             else {
@@ -639,7 +639,7 @@ namespace wjr {
 
         void setSmallSize(const size_t s) {
             assert(s <= maxSmallSize);
-            if constexpr (is_little_endian) {
+            if constexpr (wis_little_endian) {
                 _Byte[lastChar] = static_cast<uint8_t>(maxSmallSize - s);
             }
             else {
@@ -654,7 +654,7 @@ namespace wjr {
         }
 
         size_t SmallSize()const {
-            if constexpr (is_little_endian) {
+            if constexpr (wis_little_endian) {
                 return maxSmallSize - static_cast<size_t>(_Byte[lastChar]);
             }
             else {
@@ -2742,6 +2742,22 @@ namespace wjr {
         string_list split(const value_type * s,
             const size_type n, bool keep_empty_parts = true)const noexcept;
 
+        basic_String_view ltrim()const noexcept {
+            auto l = default_traits::left_trim(Myfirst,Mysize);
+            if (l == npos) {
+                return { Myfirst,0 };
+            }
+            return { Myfirst + l,Mysize - l };
+        }
+
+        basic_String_view rtrim()const noexcept {
+            auto r = default_traits::right_trim(Myfirst,Mysize);
+            if (r == npos) {
+                return { Myfirst,0 };
+            }
+            return { Myfirst,r + 1};
+        }
+
         basic_String_view trim()const noexcept {
             auto l = default_traits::left_trim(Myfirst,Mysize);
             if (l == npos) {
@@ -4248,7 +4264,7 @@ namespace wjr {
             return std::move(*this);
         }
 
-        basic_String trim()const& ;
+        basic_String trim()const&;
 
         basic_String trim()&&;
 

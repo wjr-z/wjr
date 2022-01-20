@@ -10,7 +10,7 @@
 
 namespace wjr {
 
-//#define __USE_THREADS
+#define __USE_THREADS
 
 #ifdef __USE_THREADS
 #define THREAD_LOCAL thread_local

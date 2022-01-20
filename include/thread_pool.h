@@ -26,10 +26,10 @@
 #include <vector>
 #include <queue>
 #include <memory>
-#include <thread>
 #include <mutex>
 #include <condition_variable>
 #include <future>
+#include <thread>
 #include <functional>
 #include <stdexcept>
 #include <iostream>
@@ -117,8 +117,6 @@ namespace wjr {
         for (std::thread& worker : workers)
             worker.join();
     }
-
-
 
 }
 

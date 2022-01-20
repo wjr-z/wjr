@@ -1,6 +1,7 @@
-#include "mtool.h"
+#include "../include/mtool.h"
 #ifndef __linux__
 #include <io.h>
+#include <direct.h>
 #else
 #include <sys/io.h>
 #include <dirent.h>
@@ -11,6 +12,7 @@
 #include <set>
 #include <iostream>
 #include <cassert>
+#include "../include/thread_pool.h"
 
 namespace wjr {
 
@@ -31,7 +33,7 @@ namespace wjr {
 		return time_ref::testTime(rhs.TimePoint, lhs.TimePoint);
 	}
 
-	void dfs_get_files(String& path, std::vector<String>& file_path) {
+	bool dfs_get_files(String& path, std::vector<String>& file_path) {
 	#ifndef __linux__
 		intptr_t h_file;
 		struct _finddata_t fileinfo {};
@@ -54,7 +56,9 @@ namespace wjr {
 				path.resize(l);
 			} while (_findnext(h_file, &fileinfo) == 0);
 			_findclose(h_file);
+			return true;
 		}
+		return false;
 	#else
 		struct dirent* ptr;
 		DIR* dir = opendir(path.c_str());
@@ -73,24 +77,21 @@ namespace wjr {
 			path.resize(l);
 		}
 		closedir(dir);
+		return true;
 	#endif
 	}
 
-	void get_all_files(const String&path, std::vector<String>& filePath) {
+	bool get_all_files(const String&path, std::vector<String>& filePath) {
 		String cop(path);
-		dfs_get_files(cop, filePath);
+		return dfs_get_files(cop, filePath);
 	}
 
 	std::vector<String> get_all_files(const String&path) {
 		std::vector<String> file_path;
 	#ifndef __linux__
 		if (!_access(path.c_str(), 0)) {
-			struct _finddata_t fileinfo {};
-			intptr_t h_file = _findfirst(path.c_str(), &fileinfo);
-			_findclose(h_file);
-			get_all_files(path, file_path);
-			if(h_file != -1){
-				file_path.push_back((String)path);
+			if (!get_all_files(path, file_path)) {
+				file_path.push_back(path);
 			}
 		}
 	#else
@@ -130,6 +131,16 @@ namespace wjr {
 	void write_file(const String& filename, String_view str) {
 		std::ofstream out(filename.c_str(), std::ios::binary);
 		out.write(str.c_str(), static_cast<std::streamsize>(str.length()));
+	}
+
+	void create_file(const String& filename) {
+	#ifndef __linux__
+		if (_access(filename.c_str(), 0) == -1) {
+			mkdir(filename.c_str());
+		}
+	#else
+		assert(false);// can't use this function under linux
+	#endif
 	}
 
 }

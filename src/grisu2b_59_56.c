@@ -22,13 +22,13 @@
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
   OTHER DEALINGS IN THE SOFTWARE.
   */
-#include "diy_fp.h"
-#include "k_comp.h"
-#include "double.h"
-#include "powers.h"
+#include "../include/grisu/diy_fp.h"
+#include "../include/grisu/k_comp.h"
+#include "../include/grisu/double.h"
+#include "../include/grisu/powers.h"
 #include <stdbool.h>
 #include <stdio.h>
-#include "grisu2.h"
+#include "../include/grisu/grisu2.h"
 #include <inttypes.h>
 
 #define TEN9 1000000000

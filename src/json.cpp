@@ -1,9 +1,9 @@
-#include "json.h"
-#include "../string_helper.h"
+#include "../include/json.h"
+#include "../include/string_helper.h"
 #include <cmath>
 #include <string>
 #include <algorithm>
-#if 0 == 1
+#if false
 #include <intrin.h>
 #endif
 
@@ -24,7 +24,7 @@ namespace wjr {
         }
 
         const uint8_t* skip_whitespace(const uint8_t* s,const uint8_t* e) {
-        #if 0 == 1
+        #if false
             if(is_white_space[*s])
                 ++s;
             else return s;
@@ -42,7 +42,7 @@ namespace wjr {
 		}
 
         const uint8_t* skip_string(const uint8_t* s, const uint8_t* e) {
-            while (s != e && string_step[*s]) {
+            while (string_step[*s]) {
                 s += string_step[*s];
             }
             return s;
@@ -798,6 +798,9 @@ namespace wjr {
             }
             case (uint8_t)(value_t::number): {
                 return "number";
+            }
+            case (uint8_t)(value_t::string) : {
+                return "string";
             }
             case (uint8_t)(value_t::object) : {
                 return "object";

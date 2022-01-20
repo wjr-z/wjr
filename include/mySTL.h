@@ -10,7 +10,7 @@
 
 namespace wjr {
 
-#define is_little_endian 1
+#define wis_little_endian true
 
 	inline namespace my_math {
 
@@ -82,7 +82,7 @@ namespace wjr {
 			const size_t _Count)noexcept {
 			for (size_t _Idx = 0; _Idx < _Count; ++_Idx) {
 				auto val = static_cast<size_t>(_First[_Idx]);
-				if constexpr (is_little_endian) {
+				if constexpr (wis_little_endian) {
 					for (size_t i = 0; i < byte_size; ++i) {
 						_Val ^= (val >> (i << 3)) & 0xFF;
 						_Val *= _FNV_prime;

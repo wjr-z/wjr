@@ -37,6 +37,7 @@ namespace wjr {
     std::vector<String> get_all_files(const String&path);
     String read_file(const String&filename);
     void write_file(const String&filename,String_view str);
+    void create_file(const String&filename);
 
 }
 #endif
