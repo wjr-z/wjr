@@ -6,6 +6,8 @@
 #include <sys/io.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #endif
 #include <fstream>
 #include <sstream>
@@ -133,13 +135,15 @@ namespace wjr {
 		out.write(str.c_str(), static_cast<std::streamsize>(str.length()));
 	}
 
-	void create_file(const String& filename) {
+	int create_file(const String& filename
+	#ifdef __linux__
+		,__mode_t __mode
+	#endif
+	) {
 	#ifndef __linux__
-		if (_access(filename.c_str(), 0) == -1) {
-			mkdir(filename.c_str());
-		}
+		return mkdir(filename.c_str());
 	#else
-		assert(false);// can't use this function under linux
+		return mkdir(filename.c_str(),__mode);
 	#endif
 	}
 

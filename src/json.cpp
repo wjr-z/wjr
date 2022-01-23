@@ -1,5 +1,5 @@
 #include "../include/json.h"
-#include "../include/string_helper.h"
+#include "../include/String_helper.h"
 #include <cmath>
 #include <string>
 #include <algorithm>
@@ -113,12 +113,12 @@ namespace wjr {
 
     // default constructor
     json::json()
-        : vtype((uint8_t)(value_t::undefined)) {
+        : vtype((uint8_t)(value_t::undefined)),_Number(0) {
 
     }
 
     json::json(const json& other)
-        : _Number(other._Number), vtype(other.vtype) {
+        : vtype(other.vtype), _Number(other._Number) {
         // copy Number firstly
         switch (vtype) {
             case (uint8_t)(value_t::string) : {
@@ -140,72 +140,72 @@ namespace wjr {
     }
 
     json::json(json&& other)noexcept
-        : _Number(other._Number), vtype(other.vtype) {
+        : vtype(other.vtype), _Number(other._Number) {
         other.vtype = (uint8_t)(value_t::undefined);
     }
 
     json::json(Null)
-        : vtype((uint8_t)(value_t::null)) {
+        : vtype((uint8_t)(value_t::null)),_Number(0) {
 
     }
 
     json::json(Boolean f)
-        : _Boolean(f), vtype((uint8_t)(value_t::boolean)) {
+        : vtype((uint8_t)(value_t::boolean)), _Boolean(f) {
 
     }
 
     json::json(Number v)
-        : _Number(v), vtype((uint8_t)(value_t::number)) {
+        : vtype((uint8_t)(value_t::number)),_Number(v) {
 
     }
 
     json::json(int v)
-        : _Number(v), vtype((uint8_t)(value_t::number)) {
+        : vtype((uint8_t)(value_t::number)),_Number(v) {
 
     }
 
     json::json(unsigned int v)
-        : _Number(v), vtype((uint8_t)(value_t::number)) {
+        : vtype((uint8_t)(value_t::number)),_Number(v) {
 
     }
 
     json::json(long long v)
-        : _Number(v), vtype((uint8_t)(value_t::number)) {
+        : vtype((uint8_t)(value_t::number)),_Number(v) {
 
     }
 
     json::json(unsigned long long v)
-        : _Number(v), vtype((uint8_t)(value_t::number)) {
+        : vtype((uint8_t)(value_t::number)),_Number(v) {
 
     }
 
     json::json(const Object& v)
-        : _Object(mallocator<Object>().allocate(1)), vtype((uint8_t)(value_t::object)) {
+        : vtype((uint8_t)(value_t::object)), _Object(mallocator<Object>().allocate(1)) {
         new (_Object) Object(v);
     }
 
     json::json(Object&& v)noexcept
-        : _Object(mallocator<Object>().allocate(1)), vtype((uint8_t)(value_t::object)) {
+        : vtype((uint8_t)(value_t::object)), _Object(mallocator<Object>().allocate(1)) {
         new (_Object) Object(std::move(v));
     }
 
     json::json(const Array& v)
-        : _Array(mallocator<Array>().allocate(1)), vtype((uint8_t)(value_t::array)) {
+        : vtype((uint8_t)(value_t::array)), _Array(mallocator<Array>().allocate(1)) {
         new (_Array) Array(v);
     }
 
     json::json(Array&& v)noexcept
-        : _Array(mallocator<Array>().allocate(1)), vtype((uint8_t)(value_t::array)) {
+        : vtype((uint8_t)(value_t::array)), _Array(mallocator<Array>().allocate(1)) {
         new (_Array) Array(std::move(v));
     }
 
     json::json(const size_type _Count, const json& _Val)
-        : _Array(mallocator<Array>().allocate(1)), vtype((uint8_t)(value_t::array)) {
+        : vtype((uint8_t)(value_t::array)), _Array(mallocator<Array>().allocate(1)) {
         new (_Array) Array(_Count, _Val);
     }
 
     json::json(std::initializer_list<json> il)
-        : _Number(0), vtype((uint8_t)(value_t::undefined)) {
+        : vtype((uint8_t)(value_t::undefined)), _Number(0) {
         bool is_object = std::all_of(il.begin(), il.end(),
             [](const json& json_ref) {
                 return json_ref.is_array() && json_ref.size() == 2 && json_ref[0].is_string();
@@ -598,21 +598,6 @@ namespace wjr {
         return true;
     }
 
-    void json::parse(std::string_view str) {
-        parse(str.data(),str.length());
-    }
-
-    void json::parse(const char* ptr) {
-        parse(ptr,strlen(ptr));
-    }
-
-    void json::parse(const char* ptr, size_t len) {
-        reset();
-        if(!len)return ;
-        auto s = (const uint8_t*)ptr;
-        dfs_parse(s,s + len);
-    }
-
     json& json::operator[](const size_t index) {
         return to_array()[index];
     }
@@ -819,9 +804,10 @@ namespace wjr {
         MergePatch(*this,apply_patch);
     }
 
-    json json::eval(String_view str) {
+    json json::parse(String_view str) {
         json x;
-        x.parse(str.data(),str.length());
+        const uint8_t* ptr = (const uint8_t*)str.data();
+        x.dfs_parse(ptr, ptr + str.length());
         return x;
     }
 

@@ -10,13 +10,7 @@
 
 namespace wjr {
 
-#define __USE_THREADS
-
-#ifdef __USE_THREADS
-#define THREAD_LOCAL thread_local
-#else 
-#define THREAD_LOCAL 
-#endif
+//#define __USE_THREADS
 
 	template <int __inst>
 	class __malloc_alloc_template {
@@ -100,8 +94,55 @@ namespace wjr {
 	enum {ALLOC_NFRELISTS = ALLOC_MAX_BYTES / ALLOC_ALIGN};
 
 	template <bool threads, int inst>
+	class __default_alloc_template;
+
+	template<bool threads>
+	class __basic_default_alloc_template;
+
+	template<>
+	class __basic_default_alloc_template<true> {
+	private:
+		template<bool,int>
+		friend class __default_alloc_template;
+		enum { __ALIGN = ALLOC_ALIGN };
+		enum { __MAX_BYTES = ALLOC_MAX_BYTES };
+		enum { __NFREELISTS = ALLOC_NFRELISTS };
+		union obj {
+			union obj* free_list_link;
+			char client_data[1];
+		};
+		thread_local static obj* volatile free_list[__NFREELISTS];
+		// Chunk allocation state.
+		thread_local static char* start_free;
+		thread_local static char* end_free;
+		thread_local static size_t heap_size;
+	};
+
+	template<>
+	class __basic_default_alloc_template<false> {
+	private:
+		template<bool, int>
+		friend class __default_alloc_template;
+		enum { __ALIGN = ALLOC_ALIGN };
+		enum { __MAX_BYTES = ALLOC_MAX_BYTES };
+		enum { __NFREELISTS = ALLOC_NFRELISTS };
+		union obj {
+			union obj* free_list_link;
+			char client_data[1];
+		};
+		static obj* volatile free_list[__NFREELISTS];
+		// Chunk allocation state.
+		static char* start_free;
+		static char* end_free;
+		static size_t heap_size;
+	};
+
+	template <bool threads, int inst>
 	class __default_alloc_template {
 	private:
+		using base = __basic_default_alloc_template<threads>;
+		using obj = typename base::obj;
+
 
 		enum { __ALIGN = ALLOC_ALIGN };
 		enum { __MAX_BYTES = ALLOC_MAX_BYTES };
@@ -110,14 +151,6 @@ namespace wjr {
 		static inline size_t ROUND_UP(size_t bytes) {
 			return (((bytes)+__ALIGN - 1) & ~(__ALIGN - 1));
 		}
-
-	private:
-		union obj {
-			union obj* free_list_link; 
-			char client_data[1]; 
-		};
-	private:
-		THREAD_LOCAL static obj* volatile free_list[__NFREELISTS];
 
 		static inline size_t FREELIST_INDEX(size_t bytes) {
 			return (((bytes)+__ALIGN - 1) / __ALIGN - 1);
@@ -130,18 +163,13 @@ namespace wjr {
 		// if it is inconvenient to allocate the requested number.
 		static char* chunk_alloc(size_t size, int& nobjs);
 
-		// Chunk allocation state.
-		THREAD_LOCAL static char* start_free;
-		THREAD_LOCAL static char* end_free;
-		THREAD_LOCAL static size_t heap_size;
-
 	public:
 		static void* allocate(size_t n) //n must be > 0
 		{
 			if (n > (size_t)__MAX_BYTES) {
 				return malloc_alloc::allocate(n);
 			}
-			obj* volatile* my_free_list = free_list + FREELIST_INDEX(n);
+			obj* volatile* my_free_list = base::free_list + FREELIST_INDEX(n);
 			obj* result = *my_free_list;
 			if (result != nullptr) {
 				*my_free_list = result->free_list_link;
@@ -159,12 +187,10 @@ namespace wjr {
 				return;
 			}
 
-			obj* volatile* my_free_list = free_list + FREELIST_INDEX(n);
+			obj* volatile* my_free_list = base::free_list + FREELIST_INDEX(n);
 			q->free_list_link = *my_free_list;
 			*my_free_list = q;
-
 		}
-
 
 	};
 
@@ -180,59 +206,59 @@ namespace wjr {
 		chunk_alloc(size_t size, int& nobjs) {
 		char* result;
 		size_t total_bytes = size * nobjs;
-		const auto bytes_left = static_cast<size_t>(end_free - start_free);
+		const auto bytes_left = static_cast<size_t>(base::end_free - base::start_free);
 
 		if (bytes_left >= total_bytes) { 
-			result = start_free;
-			start_free += total_bytes;
+			result = base::start_free;
+			base::start_free += total_bytes;
 			return (result);
 		}
 
 		if (bytes_left >= size) {
 			nobjs = static_cast<int>(bytes_left / size);
 			total_bytes = size * nobjs;
-			result = start_free;
-			start_free += total_bytes;
+			result = base::start_free;
+			base::start_free += total_bytes;
 			return (result);
 		}
 
 		const size_t bytes_to_get =
-			2 * total_bytes + ROUND_UP(heap_size >> 4);
+			2 * total_bytes + ROUND_UP(base::heap_size >> 4);
 		// Try to make use of the left-over piece.
 		if (bytes_left > 0) {
 			obj* volatile* my_free_list =
-				free_list + FREELIST_INDEX(bytes_left);
+				base::free_list + FREELIST_INDEX(bytes_left);
 
-			((obj*)start_free)->free_list_link = *my_free_list;
-			*my_free_list = (obj*)start_free;
+			((obj*)base::start_free)->free_list_link = *my_free_list;
+			*my_free_list = (obj*)base::start_free;
 		}
-		start_free = (char*)malloc(bytes_to_get);
-		if (0 == start_free) {
+		base::start_free = (char*)malloc(bytes_to_get);
+		if (0 == base::start_free) {
 			obj* volatile* my_free_list, * p;
 
 			//Try to make do with what we have. That can't
 			//hurt. We do not try smaller requests, since that tends
 			//to result in disaster on multi-process machines.
 			for (int i = static_cast<int>(size); i <= __MAX_BYTES; i += __ALIGN) {
-				my_free_list = free_list + FREELIST_INDEX(i);
+				my_free_list = base::free_list + FREELIST_INDEX(i);
 				p = *my_free_list;
 				if (0 != p) {
 					*my_free_list = p->free_list_link;
-					start_free = (char*)p;
-					end_free = start_free + i;
+					base::start_free = (char*)p;
+					base::end_free = base::start_free + i;
 					return (chunk_alloc(size, nobjs));
 					//Any leftover piece will eventually make it to the
 					//right free list.
 				}
 			}
-			end_free = 0; //In case of exception.
-			start_free = (char*)malloc(bytes_to_get);
+			base::end_free = 0; //In case of exception.
+			base::start_free = (char*)malloc(bytes_to_get);
 			//This should either throw an exception or
 			//remedy the situation. Thus we assume it
 			//succeeded.
 		}
-		heap_size += bytes_to_get;
-		end_free = start_free + bytes_to_get;
+		base::heap_size += bytes_to_get;
+		base::end_free = base::start_free + bytes_to_get;
 		return (chunk_alloc(size, nobjs));
 	}
 
@@ -250,7 +276,7 @@ namespace wjr {
 		obj* next_obj;
 
 		if (1 == nobjs) return (chunk);
-		obj* volatile* my_free_list = free_list + FREELIST_INDEX(n);
+		obj* volatile* my_free_list = base::free_list + FREELIST_INDEX(n);
 
 		//Build free list in chunk
 		obj* result = (obj*)chunk;
@@ -267,25 +293,12 @@ namespace wjr {
 		return (result);
 	}
 
-	//----------------------------------------------
-	template <bool threads, int inst>
-	THREAD_LOCAL char* __default_alloc_template<threads, inst>::start_free = 0;
-
-	template <bool threads, int inst>
-	THREAD_LOCAL char* __default_alloc_template<threads, inst>::end_free = 0;
-
-	template <bool threads, int inst>
-	THREAD_LOCAL size_t __default_alloc_template<threads, inst>::heap_size = 0;
-
-	template <bool threads, int inst>
-	THREAD_LOCAL typename __default_alloc_template<threads, inst>::obj* volatile
-		__default_alloc_template<threads, inst>::free_list[__NFREELISTS]
-		= { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
-
 	template<bool threads, int __inst>
 	using alloc = __default_alloc_template<threads, __inst>;
 
-	template <typename Ty, bool threads = false>
+	// threads = false : Share one memory pool
+	// threads = true : Each thread shares one memory pool
+	template <typename Ty, bool threads>
 	class basic_malloc {
 	private:
 		using allocator_type = alloc<threads, 0>;
@@ -299,16 +312,15 @@ namespace wjr {
 		using size_type = size_t;
 		using difference_type = ptrdiff_t;
 
-		template <typename _Other,bool _Threads = threads>
+		template <typename _Other>
 		struct rebind {
-			static_assert(threads == _Threads);
-			using other = basic_malloc<_Other,_Threads>;
+			using other = basic_malloc<_Other,threads>;
 		};
 
 		constexpr basic_malloc() noexcept {}
 		constexpr basic_malloc(const basic_malloc&) noexcept = default;
 		template <class _Other>
-		constexpr basic_malloc(const basic_malloc<_Other>&) noexcept {}
+		constexpr basic_malloc(const basic_malloc<_Other, threads>&) noexcept {}
 		~basic_malloc() = default;
 		basic_malloc& operator=(const basic_malloc&) noexcept = default;
 
@@ -365,20 +377,36 @@ namespace wjr {
 
 	};
 
-	template<typename T, typename U>
-	bool operator==(const basic_malloc<T>&, const basic_malloc<U>&) {
+	template<typename T,typename U,bool t1,bool t2>
+	bool operator==(const basic_malloc<T, t1>&, const basic_malloc<U, t2>&) {
+		return false;
+	}
+
+	template<typename T, typename U,bool threads>
+	bool operator==(const basic_malloc<T,threads>&, const basic_malloc<U,threads>&) {
 		return true;
 	}
 
-	template<typename T, typename U>
-	bool operator!=(const basic_malloc<T>&, const basic_malloc<U>&) {
+	template<typename T, typename U, bool t1, bool t2>
+	bool operator!=(const basic_malloc<T, t1>&, const basic_malloc<U, t2>&) {
+		return true;
+	}
+
+	template<typename T, typename U,bool threads>
+	bool operator!=(const basic_malloc<T,threads>&, const basic_malloc<U,threads>&) {
 		return false;
 	}
 
 	template<typename T>
-	using mallocator = basic_malloc<T,false>;
+	using tallocator = basic_malloc<T,true>;
 
-#undef THREAD_LOCAL
+#ifndef __USE_THREADS
+	template<typename T>
+	using mallocator = basic_malloc<T,false>;
+#else 
+	template<typename T>
+	using mallocator = tallocator<T>;
+#endif
 
 }
 

@@ -7,7 +7,7 @@
 #include <string.h>
 #include "mallocator.h"
 #include "typeInfo.h"
-#include "String.h"
+#include "mString.h"
 
 namespace wjr {
 
@@ -139,12 +139,6 @@ namespace wjr {
         void clear();
         void swap(json&);
 
-        // make sure the format is correct before parsing
-        // can use json::accept to check
-        void parse(std::string_view str);
-        void parse(const char* ptr);
-        void parse(const char* ptr, size_t len);
-
         template<typename T, _Is_string_view_ish<T> = 0>
         json& operator[](T&& name);
 
@@ -249,7 +243,7 @@ namespace wjr {
 
         void merge_patch(const json& apply_patch);
 
-        static json eval(String_view str);
+        static json parse(String_view str);
         static bool accept(String_view str);
 
         static json array(std::initializer_list<json> il = {});

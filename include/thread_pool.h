@@ -37,19 +37,20 @@
 
 namespace wjr {
 
-    class thread_pool {
+    template<typename Alloc>
+    class basic_thread_pool {
     public:
-        thread_pool(size_t);
+        basic_thread_pool(size_t);
         template<class F, class... Args>
         auto enqueue(F&& f, Args&&... args)
-            ->std::future<typename std::result_of<F(Args...)>::type>;
-        ~thread_pool();
+            ->std::future<wjr_result_of_t<F,Args...>>;
+        ~basic_thread_pool();
     private:
         using func = std::function<void()>;
         // need to keep track of threads so we can join them
         std::vector< std::thread > workers;
         // the task queue
-        std::queue<func,std::deque<func,mallocator<func>>> tasks;
+        std::queue<func,std::deque<func,typename Alloc::template rebind<func>::other>> tasks;
 
         // synchronization
         std::mutex queue_mutex;
@@ -58,7 +59,8 @@ namespace wjr {
     };
 
     // the constructor just launches some amount of workers
-    inline thread_pool::thread_pool(size_t threads)
+    template<typename Alloc>
+    inline basic_thread_pool<Alloc>::basic_thread_pool(size_t threads)
         : stop(false) {
         workers.reserve(threads);
         for (size_t i = 0; i < threads; ++i)
@@ -84,12 +86,15 @@ namespace wjr {
     }
 
     // add new work item to the pool
+    template<typename Alloc>
     template<class F, class... Args>
-    auto thread_pool::enqueue(F&& f, Args&&... args)
-        -> std::future<typename std::result_of<F(Args...)>::type> {
-        using return_type = typename std::result_of<F(Args...)>::type;
+    auto basic_thread_pool<Alloc>::enqueue(F&& f, Args&&... args)
+        -> std::future<wjr_result_of_t<F,Args...>> {
+        using return_type = wjr_result_of_t<F, Args...>;
+        using allocator_type = typename Alloc::template rebind<std::packaged_task<return_type()>>::other;
 
-        auto task = std::make_shared< std::packaged_task<return_type()> >(
+        auto task = std::allocate_shared< std::packaged_task<return_type()> >(
+            allocator_type(),
             std::bind(std::forward<F>(f), std::forward<Args>(args)...)
             );
 
@@ -99,7 +104,7 @@ namespace wjr {
 
             // don't allow enqueueing after stopping the pool
             if (stop)
-                throw std::runtime_error("enqueue on stopped thread_pool");
+                throw std::runtime_error("enqueue on stopped basic_thread_pool");
 
             tasks.emplace([task]() { (*task)(); });
         }
@@ -108,7 +113,8 @@ namespace wjr {
     }
 
     // the destructor joins all threads
-    inline thread_pool::~thread_pool() {
+    template<typename Alloc>
+    inline basic_thread_pool<Alloc>::~basic_thread_pool() {
         {
             std::unique_lock<std::mutex> lock(queue_mutex);
             stop = true;
@@ -117,6 +123,8 @@ namespace wjr {
         for (std::thread& worker : workers)
             worker.join();
     }
+
+    using thread_pool = basic_thread_pool<mallocator<int>>;
 
 }
 

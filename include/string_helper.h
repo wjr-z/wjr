@@ -8,10 +8,11 @@
 #include <string.h>
 #include <iostream>
 #include <vector>
-#include "String.h"
+#include "mString.h"
 
 namespace wjr {
 
+	// For performance reasons, there are only simple double reads for the time being
 	inline double power_of_10(int index);
 	double read_double(const char*s,const char*e,const char*&next);
 

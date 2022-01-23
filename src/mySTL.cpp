@@ -17,7 +17,7 @@ namespace wjr {
 
 		constexpr size_t qlog2(uint32_t x) {
 			size_t ans = 0;
-			MY_QUICK_LOG2(ans,x);
+			MY_QUICK_LOG2(ans, x);
 			return ans | tabel[x];
 		}
 
@@ -46,7 +46,7 @@ namespace wjr {
 
 		constexpr unsigned int find_number(uint64_t n) {
 			return find_number(static_cast<uint32_t>(n)) +
-				   find_number(static_cast<uint32_t>(n>>sizeof(uint32_t)));
+				find_number(static_cast<uint32_t>(n >> sizeof(uint32_t)));
 		}
 
 		constexpr unsigned int _minx(uint32_t x) {

@@ -1,24 +1,26 @@
 #ifndef WJR_STRING_H
 #define WJR_STRING_H
 
-#include <iostream>
-#include <string.h>
 #include <cassert>
-#include <string>
+#include <codecvt>
+#include <iostream>
 #include <iterator>
+#include <string>
+#include <string.h>
 #include <string_view>
-#include <unordered_map>
+#include <type_traits>
 #include <unordered_set>
+#include <unordered_map>
 
 #include "mallocator.h"
-#include "mySTL.h"
+#include "mySTL.h" // some type-traits for String
 
 extern "C" bool fill_double(double v, char* buffer);
 
 namespace wjr {
 
-    //skmp searcher
-
+    // skmp-searcher for String
+    // such as find,rfind
     template<typename RanItPat, typename Pred_eq = std::equal_to<>>
     class skmp_searcher_fshift_builder {
     private:
@@ -37,7 +39,7 @@ namespace wjr {
 
         skmp_searcher_fshift_builder(skmp_searcher_fshift_builder&& other)noexcept;
 
-        ~skmp_searcher_fshift_builder() ;
+        ~skmp_searcher_fshift_builder();
 
         RanItPat get_first()const { return first; }
         RanItPat get_last()const { return last; }
@@ -51,8 +53,8 @@ namespace wjr {
         RanItPat first, last;
     };
 
-    template<typename RanItPat,typename Pred_eq>
-    skmp_searcher_fshift_builder<RanItPat,Pred_eq>::skmp_searcher_fshift_builder(
+    template<typename RanItPat, typename Pred_eq>
+    skmp_searcher_fshift_builder<RanItPat, Pred_eq>::skmp_searcher_fshift_builder(
         const RanItPat First, const RanItPat Last, const Pred_eq Eq
     ) : first(First), last(Last) {
         size = last - first;
@@ -132,7 +134,7 @@ namespace wjr {
 
     template<typename RanItPat, typename Hash_ty =
         std::hash<typename std::iterator_traits<RanItPat>::value_type>, typename Pred_eq = std::equal_to<>>
-    class skmp_searcher_char_builder
+        class skmp_searcher_char_builder
         : public skmp_searcher_fshift_builder<RanItPat, Pred_eq> {
         private:
 
@@ -146,7 +148,7 @@ namespace wjr {
 
             skmp_searcher_char_builder(
                 RanItPat First, RanItPat Last, Hash_ty fn = Hash_ty(), Pred_eq Eq = Pred_eq()
-            ) ;
+            );
 
             skmp_searcher_char_builder(const skmp_searcher_char_builder& other)
                 : Base(other) {
@@ -177,7 +179,7 @@ namespace wjr {
     };
 
     template<typename RanItPat, typename Hash_ty, typename Pred_eq>
-    skmp_searcher_char_builder<RanItPat,Hash_ty,Pred_eq>::skmp_searcher_char_builder(
+    skmp_searcher_char_builder<RanItPat, Hash_ty, Pred_eq>::skmp_searcher_char_builder(
         RanItPat First, RanItPat Last, Hash_ty fn, Pred_eq Eq
     ) : Base(First, Last, Eq) {
         auto first = Base::get_first();
@@ -197,7 +199,7 @@ namespace wjr {
     template<typename RanItPat, typename Hash_ty =
         std::hash<typename std::iterator_traits<RanItPat>::value_type>,
         typename Pred_eq = std::equal_to<>>
-    class skmp_searcher_general_builder
+        class skmp_searcher_general_builder
         : public skmp_searcher_fshift_builder<RanItPat, Pred_eq> {
         private:
             using Base = skmp_searcher_fshift_builder<RanItPat, Pred_eq>;
@@ -210,7 +212,7 @@ namespace wjr {
 
             skmp_searcher_general_builder(
                 RanItPat First, RanItPat Last, Hash_ty fn = Hash_ty(), Pred_eq Eq = Pred_eq()
-            ) ;
+            );
 
             skmp_searcher_general_builder(const skmp_searcher_general_builder& other)
                 : Base(other), Map(other.Map) {
@@ -237,7 +239,7 @@ namespace wjr {
     };
 
     template<typename RanItPat, typename Hash_ty, typename Pred_eq>
-    skmp_searcher_general_builder<RanItPat,Hash_ty,Pred_eq>::skmp_searcher_general_builder(
+    skmp_searcher_general_builder<RanItPat, Hash_ty, Pred_eq>::skmp_searcher_general_builder(
         RanItPat First, RanItPat Last, Hash_ty fn, Pred_eq Eq
     ) : Base(First, Last, Eq) {
         auto first = Base::get_first();
@@ -257,31 +259,6 @@ namespace wjr {
         && (std::is_same_v<std::equal_to<>, Pred_eq> || std::is_same_v<std::equal_to<value_t>, Pred_eq>),
         skmp_searcher_char_builder <RanItPat, Hash_ty, Pred_eq>,
         skmp_searcher_general_builder<RanItPat, Hash_ty, Pred_eq>>;
-
-    template<typename Container, typename = void>
-    struct Has_begin_end : std::false_type {};
-
-    template<typename Container>
-    struct Has_begin_end<Container, std::void_t<
-        decltype(std::declval<Container>().begin(), std::declval<Container>().end())>>
-        : std::true_type{};
-
-    template<typename Container>
-    using is_Has_begin_end = std::enable_if_t<Has_begin_end<Container>::value, int>;
-
-    template<typename T, typename = void>
-    struct Has_iterator : std::false_type {};
-
-    template<typename T>
-    struct Has_iterator<T, std::void_t<decltype(std::declval<T>().begin())>> : std::true_type {};
-
-    template<typename T>
-    struct Iterator_traits_begin {
-        using type = decltype(std::declval<T>().begin());
-    };
-
-    template<typename Container>
-    using container_iterator_type = typename Iterator_traits_begin<Container>::type;
 
     template<typename RanItPat, typename Hash_ty
         = std::hash<typename std::iterator_traits<RanItPat>::value_type>,
@@ -475,10 +452,6 @@ namespace wjr {
         return { Last,Last };
     }
 
-    //--------------------------------------------------------------------------------//
-    //--------------------------------------------------------------------------------//
-    //--------------------------------------------------------------------------------//
-
     template<typename Char>
     class String_core {
         static_assert(std::is_default_constructible_v<Char>,
@@ -563,11 +536,11 @@ namespace wjr {
         }
 
         void setSize(const size_t s) {
-            if (s <= maxSmallSize) {
-                setSmallSize(s);
+            if (category()) {
+                setMediumSize(s);
             }
             else {
-                setMediumSize(s);
+                setSmallSize(s);
             }
         }
 
@@ -779,6 +752,10 @@ namespace wjr {
         setCapacity(new_size);
     }
 
+    struct Uninitialized {}; // used for uninitialized String,and will initialize size
+
+    struct Reserved {}; // used for reservers String but won't initialize size
+
     template<typename T, char ch>
     constexpr static T static_charT = static_cast<T>(ch);
 
@@ -839,7 +816,7 @@ namespace wjr {
     };
 
     template<typename RanItPat, typename Traits>
-    struct String_find_helper {
+    struct String_find_helper { // need to simple packge skmp-searcher and size
     public:
         using value_type = typename std::iterator_traits<RanItPat>::value_type;
         using skmp_searcher_type = skmp_searcher<RanItPat, std::hash<value_type>, Traits>;
@@ -847,12 +824,12 @@ namespace wjr {
     public:
 
         String_find_helper(RanItPat s, RanItPat e)
-            : srch(s,e,std::hash<value_type>(),Traits()), _size(static_cast<size_t>(e - s)) {
+            : srch(s, e, std::hash<value_type>(), Traits()), _size(static_cast<size_t>(e - s)) {
 
         }
 
         template<typename iter>
-        std::pair<iter,iter> operator()(iter s, iter e)const {
+        std::pair<iter, iter> operator()(iter s, iter e)const {
             return srch(s, e);
         }
 
@@ -863,8 +840,8 @@ namespace wjr {
         size_t _size;
     };
 
-    template<typename Char,typename Traits>
-    struct String_find_traits : public Traits{
+    template<typename Char, typename Traits>
+    struct simple_String_find_traits : public Traits { // need to simple package char_traits,only for find
         using value_type = Char;
         using size_type = size_t;
         using traits_type = Traits;
@@ -873,8 +850,8 @@ namespace wjr {
         }
     };
 
-    template<typename Char,typename Traits>
-    struct String_rfind_traits { 
+    template<typename Char, typename Traits>
+    struct simple_String_rfind_traits { // need to simple package char_traits,only for rfind
         using value_type = Char;
         using size_type = size_t;
         using traits_type = Traits;
@@ -882,21 +859,21 @@ namespace wjr {
             return traits_type::eq(a, b);
         }
         static int compare(const value_type* a, const value_type* b, const size_t count) {
-            return Traits::compare(a,b,count);
+            return Traits::compare(a, b, count);
         }
     };
 
     template<typename Traits>
-    struct case_insensitive_traits : public Traits{
+    struct case_insensitive_traits : public Traits {
         using base = Traits;
         using char_type = typename base::char_type;
 
         static constexpr bool eq(const char_type& lhs, const char_type& rhs) noexcept {
-            return base::eq(toupper(lhs),toupper(rhs));
+            return base::eq(toupper(lhs), toupper(rhs));
         }
 
         static constexpr bool lt(const char_type& lhs, const char_type& rhs)noexcept {
-            return base::lt(toupper(lhs),toupper(rhs));
+            return base::lt(toupper(lhs), toupper(rhs));
         }
 
         static int compare(const char_type* l, const char_type* r, const size_t count)noexcept {
@@ -904,8 +881,8 @@ namespace wjr {
             while (l != e) {
                 char_type lc = toupper(*l);
                 char_type rc = toupper(*r);
-                if (!base::eq(lc,rc)) {
-                    return base::lt(lc,rc) ? -1 : 1;
+                if (!base::eq(lc, rc)) {
+                    return base::lt(lc, rc) ? -1 : 1;
                 }
                 ++l;
                 ++r;
@@ -933,38 +910,55 @@ namespace wjr {
     using case_insensitive_String_t = typename case_insensitive_String<T>::type;
 
     template<typename Traits>
-    struct String_traits_info {
+    struct basic_String_traits_info {
+        using char_type = typename Traits::char_type;
+        using traits_type = Traits;
         using is_default_eq = std::false_type;
+        using can_make_bitmap = std::false_type;
+    };
+
+    template<typename Traits>
+    struct String_traits_info : basic_String_traits_info<Traits> {
+        using char_type = typename Traits::char_type;
+        using is_default_eq = std::false_type;
+        using can_make_bitmap = std::conditional_t<std::is_integral_v<char_type> && sizeof(char_type) <= 1
+            && std::conjunction_v<is_default_eq>,
+            std::true_type, std::false_type>;
     };
 
     template<typename Char>
-    struct String_traits_info<std::char_traits<Char>> {
+    struct String_traits_info<std::char_traits<Char>> : 
+        basic_String_traits_info<std::char_traits<Char>> {
+        using char_type = typename std::char_traits<Char>::char_type;
         using is_default_eq = std::true_type;
+        using can_make_bitmap = std::conditional_t< std::is_integral_v<char_type> && sizeof(char_type) <= 1
+            && std::conjunction_v<is_default_eq>,
+            std::true_type, std::false_type>;
     };
 
-    template<typename Char,typename Traits>
-    struct String_traits_info<String_find_traits<Char,Traits>> {
-        using is_default_eq = typename String_find_traits<Char,Traits>::is_default_eq;
+    template<typename Char, typename Traits>
+    struct String_traits_info<simple_String_find_traits<Char, Traits>> :
+        basic_String_traits_info< simple_String_find_traits<Char, Traits>> {
+        using is_default_eq = typename String_traits_info<Traits>::is_default_eq;
     };
 
-    template<typename Char,typename Traits>
-    struct String_traits_info<String_rfind_traits<Char, Traits>> {
-        using is_default_eq = typename String_rfind_traits<Char,Traits>::is_default_eq;
+    template<typename Char, typename Traits>
+    struct String_traits_info<simple_String_rfind_traits<Char, Traits>> :
+        basic_String_traits_info< simple_String_rfind_traits<Char, Traits>> {
+        using is_default_eq = typename String_traits_info<Traits>::is_default_eq;
     };
 
-    struct Uninitialized {};
-
-    template<typename Char,typename Traits = std::char_traits<Char>>
+    template<typename Char, typename Traits = std::char_traits<Char>>
     class basic_String_view;
 
-    template<typename Char,typename Traits = std::char_traits<Char>,typename Core = String_core<Char>>
+    template<typename Char, typename Traits = std::char_traits<Char>, typename Core = String_core<Char>>
     class basic_String;
 
     template<typename Char, typename Traits = std::char_traits<Char>>
     struct basic_String_traits {
-        template<typename _Char,typename _Traits>
+        template<typename _Char, typename _Traits>
         friend class basic_String_view;
-        template<typename _Char,typename _Traits,typename _Core>
+        template<typename _Char, typename _Traits, typename _Core>
         class basic_String;
     public:
         using value_type = Char;
@@ -973,14 +967,15 @@ namespace wjr {
 
         constexpr static size_type npos = static_cast<size_type>(-1);
 
-        using string_find_traits = String_find_traits<Char, Traits>;
-        using string_rfind_traits = String_rfind_traits<Char, Traits>;
+        using string_find_traits = simple_String_find_traits<Char, Traits>;
+        using string_rfind_traits = simple_String_rfind_traits<Char, Traits>;
         using string_find_helper = String_find_helper<const value_type*, string_find_traits>;
         using string_rfind_helper = String_find_helper<
             std::reverse_iterator<const value_type*>, string_rfind_traits>;
 
     private:
         struct bit_map {
+            // if Char is char or other possible kind
             constexpr static size_t ubit = sizeof(uint32_t);
             constexpr static size_t size = ubit << 3;
 
@@ -1002,31 +997,31 @@ namespace wjr {
 
         struct general_map {
             using little_map = bit_map;
-            using large_map = std::unordered_set<value_type, 
+            using large_map = std::unordered_set<value_type,
                 std::hash<value_type>, string_find_traits, mallocator<value_type>>;
 
             general_map(const value_type* s, const value_type* e) {
                 const value_type* ptr = s;
                 is_large = false;
                 while (ptr != e) {
-                    if (*ptr > 0xFF) {
+                    if (*ptr > 0xFF || *ptr < 0) {
                         is_large = true;
                     }
                     ++ptr;
                 }
                 if (!is_large) {
                     a = mallocator<little_map>().allocate(1);
-                    new (a) little_map(s,e);
+                    new (a) little_map(s, e);
                 }
                 else {
                     b = mallocator<large_map>().allocate(1);
-                    new (b) large_map(s,e);
+                    new (b) large_map(s, e);
                 }
             }
 
             bool count(const value_type ch)const {
                 if (!is_large) {
-                    if (ch > 0xFF) {
+                    if (ch > 0xFF || ch < 0) {
                         return false;
                     }
                     return a->count(ch);
@@ -1047,11 +1042,10 @@ namespace wjr {
     public:
 
         using string_find_of_helper = std::conditional_t<
-            std::is_integral_v<value_type> && sizeof(value_type) <= 1
-            && std::conjunction_v<typename String_traits_info<Traits>::is_default_eq> ,
+            std::conjunction_v<typename String_traits_info<Traits>::can_make_bitmap>,
             bit_map,
-            std::conditional_t<std::conjunction_v<typename 
-            String_traits_info<Traits>::is_default_eq>,general_map,typename general_map::large_map>>;
+            std::conditional_t<std::conjunction_v<typename
+            String_traits_info<Traits>::is_default_eq>, general_map, typename general_map::large_map>>;
 
         static string_find_of_helper trim_map;
 
@@ -1070,37 +1064,37 @@ namespace wjr {
         }
 
         static string_find_helper
-            get_find_helper(const value_type*s,const value_type* e);
+            get_find_helper(const value_type* s, const value_type* e);
         static size_type find(const value_type* s, const size_type n,
             const size_type off, const value_type ch);
         // only need to find once ,then use this
         // for this won't initial at first 
         static size_type find(const value_type* s1, const size_type n1,
             const size_type off, const value_type* s2, const size_type n2);
-        static size_type find(const value_type* s1,const size_type n1,
-            const size_type off,const string_find_helper&srch);
+        static size_type find(const value_type* s1, const size_type n1,
+            const size_type off, const string_find_helper& srch);
 
         static string_rfind_helper
-            get_rfind_helper(const value_type* s, const value_type*e);
+            get_rfind_helper(const value_type* s, const value_type* e);
         static size_type rfind(const value_type* s, const size_type n,
             const size_type off, const value_type ch);
         static size_type rfind(const value_type* s1, const size_type n1,
             size_type off, const value_type* s2, const size_type n2);
-        static size_type rfind(const value_type* s1,const size_type n1,
-            size_type off,const string_rfind_helper&srch);
+        static size_type rfind(const value_type* s1, const size_type n1,
+            size_type off, const string_rfind_helper& srch);
 
-        static string_find_of_helper get_find_of_helper(const value_type*s,const value_type* e);
+        static string_find_of_helper get_find_of_helper(const value_type* s, const value_type* e);
 
         static size_type find_first_of_ch(const value_type* s,
-            const size_type n,size_type off,const value_type ch);
+            const size_type n, size_type off, const value_type ch);
         static size_type normal_find_first_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
         static size_type map_find_first_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
         static size_type find_first_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2);
-        static size_type find_first_of(const value_type*s1,
-            const size_type n1,const size_type off,const string_find_of_helper& srch);
+        static size_type find_first_of(const value_type* s1,
+            const size_type n1, const size_type off, const string_find_of_helper& srch);
 
         static size_type find_last_of_ch(const value_type* s,
             const size_type n, size_type off, const value_type ch);
@@ -1145,43 +1139,43 @@ namespace wjr {
             const value_type* s2, const size_type n2) {
             return (n1 == n2) && (traits_type::compare(s1, s2, n1) == 0);
         }
-        
-        static bool starts_with(const value_type*s,const size_type n,const value_type ch) {
-            return (n != 0) && (traits_type::eq(*s,ch));
+
+        static bool starts_with(const value_type* s, const size_type n, const value_type ch) {
+            return (n != 0) && (traits_type::eq(*s, ch));
         }
 
         static bool starts_with(const value_type* s1, const size_type n1,
             const value_type* s2, const size_type n2) {
-            return (n1 >= n2) && (traits_type::compare(s1,s2,n2) == 0);
+            return (n1 >= n2) && (traits_type::compare(s1, s2, n2) == 0);
         }
 
         static bool ends_with(const value_type* s, const size_type n, const value_type ch) {
-            return (n != 0) && (traits_type::eq(*s,ch));
+            return (n != 0) && (traits_type::eq(*s, ch));
         }
 
         static bool ends_with(const value_type* s1, const size_type n1,
             const value_type* s2, const size_type n2) {
-            return (n1 >= n2) && (traits_type::compare(s1 + n1 - n2,s2,n2) == 0);
+            return (n1 >= n2) && (traits_type::compare(s1 + n1 - n2, s2, n2) == 0);
         }
 
         template<typename string_list>
-        static string_list split(const value_type* s,const size_type n,
-            const value_type ch,bool keep_empty_parts);
+        static string_list split(const value_type* s, const size_type n,
+            const value_type ch, bool keep_empty_parts);
 
         template<typename string_list>
-        static string_list split(const value_type* s1,const size_type n1,
-            const value_type* s2,const size_type n2,bool keep_empty_parts);
+        static string_list split(const value_type* s1, const size_type n1,
+            const value_type* s2, const size_type n2, bool keep_empty_parts);
 
-        static size_type left_trim(const value_type* s,const size_type n);
-        static size_type right_trim(const value_type* s,const size_type n);
+        static size_type left_trim(const value_type* s, const size_type n);
+        static size_type right_trim(const value_type* s, const size_type n);
 
     private:
-        template<typename Val,std::enable_if_t<std::is_signed_v<Val>,int> = 0>
-        static Val first_to_val_helper(const value_type* s,const value_type* e,
-            const value_type*&next,bool* ok,int base);
-        template<typename UVal,std::enable_if_t<std::is_unsigned_v<UVal>,int> = 0>
-        static UVal first_to_val_helper(const value_type* s,const value_type* e,
-            const value_type*&next,bool* ok,int base);
+        template<typename Val, std::enable_if_t<std::is_signed_v<Val>, int> = 0>
+        static Val first_to_val_helper(const value_type* s, const value_type* e,
+            const value_type*& next, bool* ok, int base);
+        template<typename UVal, std::enable_if_t<std::is_unsigned_v<UVal>, int> = 0>
+        static UVal first_to_val_helper(const value_type* s, const value_type* e,
+            const value_type*& next, bool* ok, int base);
 
         template<typename Val, std::enable_if_t<std::is_signed_v<Val>, int> = 0>
         static Val range_to_val_helper(const value_type* s, const value_type* e,
@@ -1190,12 +1184,12 @@ namespace wjr {
         static UVal range_to_val_helper(const value_type* s, const value_type* e,
             bool* ok, int base);
 
-        template<typename Val,std::enable_if_t<std::is_signed_v<Val>,int> = 0>
+        template<typename Val, std::enable_if_t<std::is_signed_v<Val>, int> = 0>
         static Val unsafe_first_to_val_helper(const value_type* s,
-            const value_type* e,const value_type*&next,int base);
-        template<typename UVal,std::enable_if_t<std::is_unsigned_v<UVal>,int> = 0>
+            const value_type* e, const value_type*& next, int base);
+        template<typename UVal, std::enable_if_t<std::is_unsigned_v<UVal>, int> = 0>
         static UVal unsafe_first_to_val_helper(const value_type* s,
-            const value_type* e,const value_type*&next,int base);
+            const value_type* e, const value_type*& next, int base);
 
         template<typename Val, std::enable_if_t<std::is_signed_v<Val>, int> = 0>
         static Val unsafe_range_to_val_helper(const value_type* s,
@@ -1233,14 +1227,14 @@ namespace wjr {
         // get the first integer of the string 
         // there can only be white space characters before the first integer 
         // the string can contains more than one legal integer
-        static int first_to_int(const value_type* s,const value_type* e,
-            const value_type*&next,bool* ok = nullptr,int base = 10);
-        static unsigned int first_to_uint(const value_type* s,const value_type* e,
-            const value_type*&next,bool* ok = nullptr,int base = 10);
-        static long long first_to_ll(const value_type* s,const value_type* e,
-            const value_type*&next,bool* ok = nullptr,int base = 10);
-        static unsigned long long first_to_ull(const value_type* s,const value_type* e,
-            const value_type*&next,bool* ok = nullptr,int base = 10);
+        static int first_to_int(const value_type* s, const value_type* e,
+            const value_type*& next, bool* ok = nullptr, int base = 10);
+        static unsigned int first_to_uint(const value_type* s, const value_type* e,
+            const value_type*& next, bool* ok = nullptr, int base = 10);
+        static long long first_to_ll(const value_type* s, const value_type* e,
+            const value_type*& next, bool* ok = nullptr, int base = 10);
+        static unsigned long long first_to_ull(const value_type* s, const value_type* e,
+            const value_type*& next, bool* ok = nullptr, int base = 10);
 
         // get the integer of the string
         // if it only has on legal integer then ok is true
@@ -1254,16 +1248,16 @@ namespace wjr {
             bool* ok = nullptr, int base = 10);
 
         // unsafe version,won't check whether is a right integer
-        static int unsafe_first_to_int(const value_type* s,const value_type* e, 
+        // faster than safe version
+        static int unsafe_first_to_int(const value_type* s, const value_type* e,
             const value_type*& next, int base = 10);
-        static unsigned int unsafe_first_to_uint(const value_type* s,const value_type* e,
+        static unsigned int unsafe_first_to_uint(const value_type* s, const value_type* e,
             const value_type*& next, int base = 10);
-        static long long unsafe_first_to_ll(const value_type* s,const value_type* e,
+        static long long unsafe_first_to_ll(const value_type* s, const value_type* e,
             const value_type*& next, int base = 10);
-        static unsigned long long unsafe_first_to_ull(const value_type* s,const value_type* e,
+        static unsigned long long unsafe_first_to_ull(const value_type* s, const value_type* e,
             const value_type*& next, int base = 10);
 
-        // unsafe version,won't check whether is a right integer
         static int unsafe_range_to_int(const value_type* s, const value_type* e,
             int base = 10);
         static unsigned int unsafe_range_to_uint(const value_type* s, const value_type* e,
@@ -1272,21 +1266,23 @@ namespace wjr {
             int base = 10);
         static unsigned long long unsafe_range_to_ull(const value_type* s, const value_type* e,
             int base = 10);
+
+        // because of performance problem,there is no double conversion for the time being
     };
 
-    template<typename Char,typename Traits>
-    typename basic_String_traits<Char,Traits>::string_find_of_helper
-        basic_String_traits<Char,Traits>::trim_map(
-            String_trim_helper<Char>::begin(),String_trim_helper<Char>::end());
+    template<typename Char, typename Traits>
+    typename basic_String_traits<Char, Traits>::string_find_of_helper
+        basic_String_traits<Char, Traits>::trim_map(
+            String_trim_helper<Char>::begin(), String_trim_helper<Char>::end());
 
-    template<typename Char,typename Traits = std::char_traits<Char>>
-    using String_traits_helper = basic_String_traits<Char,Traits>;
+    template<typename Char, typename Traits = std::char_traits<Char>>
+    using String_traits_helper = basic_String_traits<Char, Traits>;
 
-    template<typename Char,typename Traits>
-    typename basic_String_traits<Char,Traits>::string_find_helper
+    template<typename Char, typename Traits>
+    typename basic_String_traits<Char, Traits>::string_find_helper
         basic_String_traits<Char, Traits>::get_find_helper(
-            const value_type* s,const value_type* e) {
-        return string_find_helper(s,e);
+            const value_type* s, const value_type* e) {
+        return string_find_helper(s, e);
     }
 
     template<typename Char, typename Traits>
@@ -1316,7 +1312,7 @@ namespace wjr {
         }
 
         if (n2 > 4) {
-            return find(s1,n1,off,get_find_helper(s2,s2 + n2));
+            return find(s1, n1, off, get_find_helper(s2, s2 + n2));
         }
 
         const auto match_end = s1 + (n1 - n2) + 1;
@@ -1331,10 +1327,10 @@ namespace wjr {
         }
     }
 
-    template<typename Char,typename Traits>
-    typename basic_String_traits<Char, Traits>::size_type 
+    template<typename Char, typename Traits>
+    typename basic_String_traits<Char, Traits>::size_type
         basic_String_traits<Char, Traits>::find(const value_type* s1, const size_type n1,
-        const size_type off, const string_find_helper& srch) {
+            const size_type off, const string_find_helper& srch) {
         const size_type n2 = srch.size();
         if (n2 > n1 || off > n1 - n2) {
             return npos;
@@ -1344,7 +1340,7 @@ namespace wjr {
             return off;
         }
 
-        auto pos = srch(s1 + off,s1 + n1).first;
+        auto pos = srch(s1 + off, s1 + n1).first;
         const size_type diff = pos - s1;
         if (diff == n1) {
             return npos;
@@ -1355,10 +1351,10 @@ namespace wjr {
     template<typename Char, typename Traits>
     typename basic_String_traits<Char, Traits>::string_rfind_helper
         basic_String_traits<Char, Traits>::get_rfind_helper(
-            const value_type* s, const value_type * e) {
+            const value_type* s, const value_type* e) {
         return string_rfind_helper(
-            std::reverse_iterator(e),std::reverse_iterator(s)
-            );
+            std::reverse_iterator(e), std::reverse_iterator(s)
+        );
     }
 
     template<typename Char, typename Traits>
@@ -1389,7 +1385,7 @@ namespace wjr {
 
         if (n2 <= n1) {
             if (n2 > 4) {
-                return rfind(s1,n1,off,get_rfind_helper(s2,s2 + n2));
+                return rfind(s1, n1, off, get_rfind_helper(s2, s2 + n2));
             }
 
             for (auto match_try = s1 + off;; --match_try) {
@@ -1407,7 +1403,7 @@ namespace wjr {
     template<typename Char, typename Traits>
     typename basic_String_traits<Char, Traits>::size_type
         basic_String_traits<Char, Traits>::rfind(const value_type* s1,
-            const size_type n1, size_type off,const string_rfind_helper& srch) {
+            const size_type n1, size_type off, const string_rfind_helper& srch) {
         const auto n2 = srch.size();
         off = npos_min(off, n1 - n2);
         if (n2 == 0) {
@@ -1416,7 +1412,7 @@ namespace wjr {
 
         if (n2 <= n1) {
             auto _end = std::reverse_iterator(s1);
-            auto pos = srch(std::reverse_iterator(s1 + off + n2),_end).first;
+            auto pos = srch(std::reverse_iterator(s1 + off + n2), _end).first;
             auto diff = _end - pos;
             if (!diff) {
                 return npos;
@@ -1426,18 +1422,18 @@ namespace wjr {
         return npos;
     }
 
-    template<typename Char,typename Traits>
-    typename basic_String_traits<Char,Traits>::string_find_of_helper
+    template<typename Char, typename Traits>
+    typename basic_String_traits<Char, Traits>::string_find_of_helper
         basic_String_traits<Char, Traits>::get_find_of_helper(
             const value_type* s, const value_type* e) {
-        return string_find_of_helper(s,e);
+        return string_find_of_helper(s, e);
     }
 
-    template<typename Char,typename Traits>
-    typename basic_String_traits<Char,Traits>::size_type
+    template<typename Char, typename Traits>
+    typename basic_String_traits<Char, Traits>::size_type
         basic_String_traits<Char, Traits>::find_first_of_ch(const value_type* s,
             const size_type n, const size_type off, const value_type ch) {
-        return find(s,n,off,ch);
+        return find(s, n, off, ch);
     }
 
     template<typename Char, typename Traits>
@@ -1457,7 +1453,7 @@ namespace wjr {
     typename basic_String_traits<Char, Traits>::size_type
         basic_String_traits<Char, Traits>::map_find_first_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        return find_first_of(s1,n1,off,get_find_of_helper(s2,s2+n2));
+        return find_first_of(s1, n1, off, get_find_of_helper(s2, s2 + n2));
     }
 
     template<typename Char, typename Traits>
@@ -1513,14 +1509,14 @@ namespace wjr {
     typename basic_String_traits<Char, Traits>::size_type
         basic_String_traits<Char, Traits>::find_last_of_ch(const value_type* s,
             const size_type n, size_type off, const value_type ch) {
-        return rfind(s,n,off,ch);
+        return rfind(s, n, off, ch);
     }
 
     template<typename Char, typename Traits>
     typename basic_String_traits<Char, Traits>::size_type
         basic_String_traits<Char, Traits>::normal_find_last_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        for (auto match_try = s1 + npos_min(off,n1 - 1);; --match_try) {
+        for (auto match_try = s1 + npos_min(off, n1 - 1);; --match_try) {
             if (traits_type::find(s2, n2, *match_try)) {
                 return static_cast<size_type>(match_try - s1);
             }
@@ -1534,7 +1530,7 @@ namespace wjr {
     typename basic_String_traits<Char, Traits>::size_type
         basic_String_traits<Char, Traits>::map_find_last_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        return find_last_of(s1,n1,off,get_find_of_helper(s2,s2 + n2));
+        return find_last_of(s1, n1, off, get_find_of_helper(s2, s2 + n2));
     }
 
     template<typename Char, typename Traits>
@@ -1545,10 +1541,10 @@ namespace wjr {
         if (n1 != 0 && n2 != 0) {
             if constexpr (std::is_same_v<string_find_of_helper, bit_map>) {
                 if (n1 <= 8) {
-                    return normal_find_last_of(s1,n1,off,s2,n2);
+                    return normal_find_last_of(s1, n1, off, s2, n2);
                 }
                 else {
-                    return map_find_last_of(s1,n1,off,s2,n2);
+                    return map_find_last_of(s1, n1, off, s2, n2);
                 }
             }
             else {
@@ -1577,7 +1573,7 @@ namespace wjr {
         basic_String_traits<Char, Traits>::find_last_of(const value_type* s1,
             const size_type n1, const size_type off, const string_find_of_helper& srch) {
 
-        for (auto match_try = s1 + npos_min(off,n1 - 1);; --match_try) {
+        for (auto match_try = s1 + npos_min(off, n1 - 1);; --match_try) {
             if (srch.count(*match_try)) {
                 return static_cast<size_type>(match_try - s1);
             }
@@ -1620,7 +1616,7 @@ namespace wjr {
     typename basic_String_traits<Char, Traits>::size_type
         basic_String_traits<Char, Traits>::map_find_first_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        return find_first_not_of(s1,n1,off,get_find_of_helper(s2,s2+n2));
+        return find_first_not_of(s1, n1, off, get_find_of_helper(s2, s2 + n2));
     }
 
     template<typename Char, typename Traits>
@@ -1630,10 +1626,10 @@ namespace wjr {
         if (n2 != 0 && off < n1) {
             if constexpr (std::is_same_v<string_find_of_helper, bit_map>) {
                 if (n1 <= 8) {
-                    return normal_find_first_not_of(s1,n1,off,s2,n2);
+                    return normal_find_first_not_of(s1, n1, off, s2, n2);
                 }
                 else {
-                    return map_find_first_not_of(s1,n1,off,s2,n2);
+                    return map_find_first_not_of(s1, n1, off, s2, n2);
                 }
             }
             else {
@@ -1693,7 +1689,7 @@ namespace wjr {
     typename basic_String_traits<Char, Traits>::size_type
         basic_String_traits<Char, Traits>::normal_find_last_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        for (auto match_try = s1 + npos_min(off,n1-1);; --match_try) {
+        for (auto match_try = s1 + npos_min(off, n1 - 1);; --match_try) {
             if (!traits_type::find(s2, n2, *match_try)) {
                 return static_cast<size_type>(match_try - s1);
             }
@@ -1708,7 +1704,7 @@ namespace wjr {
     typename basic_String_traits<Char, Traits>::size_type
         basic_String_traits<Char, Traits>::map_find_last_not_of(const value_type* s1,
             const size_type n1, const size_type off, const value_type* s2, const size_type n2) {
-        return find_last_not_of(s1,n1,off,get_find_of_helper(s2,s2+n2));
+        return find_last_not_of(s1, n1, off, get_find_of_helper(s2, s2 + n2));
     }
 
     template<typename Char, typename Traits>
@@ -1719,10 +1715,10 @@ namespace wjr {
         if (n1 != 0 && n2 != 0) {
             if constexpr (std::is_same_v<string_find_of_helper, bit_map>) {
                 if (n1 <= 8) {
-                    return normal_find_last_not_of(s1,n1,off,s2,n2);
+                    return normal_find_last_not_of(s1, n1, off, s2, n2);
                 }
                 else {
-                    return map_find_last_not_of(s1,n1,off,s2,n2);
+                    return map_find_last_not_of(s1, n1, off, s2, n2);
                 }
             }
             else {
@@ -1750,7 +1746,7 @@ namespace wjr {
     typename basic_String_traits<Char, Traits>::size_type
         basic_String_traits<Char, Traits>::find_last_not_of(const value_type* s1,
             const size_type n1, const size_type off, const string_find_of_helper& srch) {
-        for (auto match_try = s1 + npos_min(off,n1 - 1);; --match_try) {
+        for (auto match_try = s1 + npos_min(off, n1 - 1);; --match_try) {
             if (!srch.count(*match_try)) {
                 return static_cast<size_type>(match_try - s1);
             }
@@ -1761,7 +1757,7 @@ namespace wjr {
         return npos;
     }
 
-    template<typename Char,typename Traits>
+    template<typename Char, typename Traits>
     template<typename string_list>
     string_list basic_String_traits<Char, Traits>::split(
         const value_type* s, const size_type n,
@@ -1770,7 +1766,7 @@ namespace wjr {
         size_type off = 0;
         if (keep_empty_parts) {
             for (;;) {
-                const size_type pos = find(s,n,off,ch);
+                const size_type pos = find(s, n, off, ch);
                 if (pos == npos) {
                     ans.emplace_back(s + off, static_cast<size_type>(n - off));
                     break;
@@ -1781,7 +1777,7 @@ namespace wjr {
         }
         else {
             for (;;) {
-                const size_type pos = find(s,n,off,ch);
+                const size_type pos = find(s, n, off, ch);
                 if (pos == npos) {
                     if (off != n) {
                         ans.emplace_back(s + off, static_cast<size_type>(n - off));
@@ -1797,7 +1793,7 @@ namespace wjr {
         return ans;
     }
 
-    template<typename Char,typename Traits>
+    template<typename Char, typename Traits>
     template<typename string_list>
     string_list basic_String_traits<Char, Traits>::split(
         const value_type* s1, const size_type n1,
@@ -1811,14 +1807,14 @@ namespace wjr {
         }
 
         if (n2 == 1) {
-            return split<string_list>(s1,n1,*s2,keep_empty_parts);
+            return split<string_list>(s1, n1, *s2, keep_empty_parts);
         }
 
-        auto srch = get_find_helper(s2 , s2 + n2);
+        auto srch = get_find_helper(s2, s2 + n2);
         size_type off = 0;
         if (keep_empty_parts) {
             for (;;) {
-                const size_type pos = find(s1,n1,off,srch);
+                const size_type pos = find(s1, n1, off, srch);
                 if (pos == npos) {
                     ans.emplace_back(s1 + off, static_cast<size_type>(n1 - off));
                     break;
@@ -1829,7 +1825,7 @@ namespace wjr {
         }
         else {
             for (;;) {
-                const size_type pos = find(s1,n1,off,srch);
+                const size_type pos = find(s1, n1, off, srch);
                 if (pos == npos) {
                     if (off != n1) {
                         ans.emplace_back(s1 + off, static_cast<size_type>(n1 - off));
@@ -1846,10 +1842,10 @@ namespace wjr {
         return ans;
     }
 
-    template<typename Char,typename Traits>
-    typename basic_String_traits<Char,Traits>::size_type 
+    template<typename Char, typename Traits>
+    typename basic_String_traits<Char, Traits>::size_type
         basic_String_traits<Char, Traits>::left_trim(const value_type* s, const size_type n) {
-        return find_first_not_of(s,n,0, trim_map);
+        return find_first_not_of(s, n, 0, trim_map);
     }
 
     template<typename Char, typename Traits>
@@ -1858,7 +1854,7 @@ namespace wjr {
         return find_last_not_of(s, n, npos, trim_map);
     }
 
-    template<typename Char,typename Traits>
+    template<typename Char, typename Traits>
     template<typename Val, std::enable_if_t<std::is_signed_v<Val>, int>>
     Val basic_String_traits<Char, Traits>::first_to_val_helper(const value_type* s, const value_type* e,
         const value_type*& next, bool* ok, int base) {
@@ -1868,16 +1864,16 @@ namespace wjr {
             return static_cast<Val>(0);
         }
         bool sign = true;
-        size_t pos = left_trim(s,static_cast<size_t>(e - s));
+        size_t pos = left_trim(s, static_cast<size_t>(e - s));
         if (pos == npos) {
             set_nok(ok);
             return static_cast<Val>(0);
         }
         next = s + pos;
-        if (*next == static_charT<Char,'+'>) {
+        if (*next == static_charT<Char, '+'>) {
             ++next;
         }
-        else if (*next == static_charT<Char,'-'>) {
+        else if (*next == static_charT<Char, '-'>) {
             sign = false;
             ++next;
         }
@@ -1912,8 +1908,8 @@ namespace wjr {
         set_ok(ok);
         return static_cast<Val>(0 - val);
     }
-    
-    template<typename Char,typename Traits>
+
+    template<typename Char, typename Traits>
     template<typename UVal, std::enable_if_t<std::is_unsigned_v<UVal>, int>>
     UVal basic_String_traits<Char, Traits>::first_to_val_helper(const value_type* s, const value_type* e,
         const value_type*& next, bool* ok, int base) {
@@ -1921,13 +1917,13 @@ namespace wjr {
             set_nok(ok);
             return static_cast<UVal>(0);
         }
-        size_t pos = left_trim(s,static_cast<size_t>(e - s));
+        size_t pos = left_trim(s, static_cast<size_t>(e - s));
         if (pos == npos) {
             set_nok(ok);
             return static_cast<UVal>(0);
         }
         next = s + pos;
-        if (*next == static_charT<Char,'+'>) {
+        if (*next == static_charT<Char, '+'>) {
             ++next;
         }
         if (next == e || !qisdigit(*next)) {
@@ -1952,15 +1948,15 @@ namespace wjr {
     template<typename Char, typename Traits>
     int basic_String_traits<Char, Traits>::
         first_to_int(const value_type* s, const value_type* e,
-        const value_type*& next, bool* ok, int base) {
-        return first_to_val_helper<int>(s,e,next,ok,base);
+            const value_type*& next, bool* ok, int base) {
+        return first_to_val_helper<int>(s, e, next, ok, base);
     }
 
     template<typename Char, typename Traits>
     unsigned int basic_String_traits<Char, Traits>::
         first_to_uint(const value_type* s, const value_type* e,
             const value_type*& next, bool* ok, int base) {
-        return first_to_val_helper<unsigned int>(s,e,next,ok,base);
+        return first_to_val_helper<unsigned int>(s, e, next, ok, base);
     }
 
     template<typename Char, typename Traits>
@@ -2098,7 +2094,7 @@ namespace wjr {
         return range_to_val_helper<unsigned long long>(s, e, ok, base);
     }
 
-    template<typename Char,typename Traits>
+    template<typename Char, typename Traits>
     template<typename Val, std::enable_if_t<std::is_signed_v<Val>, int>>
     Val basic_String_traits<Char, Traits>::
         unsafe_first_to_val_helper(const value_type* s, const value_type* e, const value_type*& next, int base) {
@@ -2107,7 +2103,7 @@ namespace wjr {
             return static_cast<Val>(0);
         }
         bool sign = true;
-        size_t pos = left_trim(s,static_cast<size_t>(e - s));
+        size_t pos = left_trim(s, static_cast<size_t>(e - s));
         next = s + pos;
         if (*next == static_charT<Char, '+'>) {
             ++next;
@@ -2130,14 +2126,14 @@ namespace wjr {
         return static_cast<Val>(0 - val);
     }
 
-    template<typename Char,typename Traits>
+    template<typename Char, typename Traits>
     template<typename UVal, std::enable_if_t<std::is_unsigned_v<UVal>, int>>
     UVal basic_String_traits<Char, Traits>::
         unsafe_first_to_val_helper(const value_type* s, const value_type* e, const value_type*& next, int base) {
         if (base > 36) {
             return static_cast<UVal>(0);
         }
-        size_t pos = left_trim(s,static_cast<size_t>(e - s));
+        size_t pos = left_trim(s, static_cast<size_t>(e - s));
         next = s + pos;
         if (*next == static_charT<Char, '+'>) {
             ++next;
@@ -2154,7 +2150,7 @@ namespace wjr {
     template<typename Char, typename Traits>
     int basic_String_traits<Char, Traits>::
         unsafe_first_to_int(const value_type* s, const value_type* e, const value_type*& next, int base) {
-        return unsafe_first_to_val_helper<int>(s,e,next,base);
+        return unsafe_first_to_val_helper<int>(s, e, next, base);
     }
 
     template<typename Char, typename Traits>
@@ -2184,8 +2180,8 @@ namespace wjr {
             return static_cast<Val>(0);
         }
         bool sign = true;
-        size_t pos = left_trim(s,static_cast<size_t>(e - s));
-        size_t end_pos = right_trim(s,static_cast<size_t>(e - s));
+        size_t pos = left_trim(s, static_cast<size_t>(e - s));
+        size_t end_pos = right_trim(s, static_cast<size_t>(e - s));
         e = s + end_pos + 1;
         s = s + pos;
         if (*s == static_charT<Char, '+'>) {
@@ -2318,16 +2314,9 @@ namespace wjr {
 
         }
 
-        template<typename C, typename T>
-        constexpr basic_String_view(const std::basic_string_view<C, T>& s)
-            : Myfirst(s.data()), Mysize(s.size()) {
-
-        }
-        
-        template<typename...Args,std::enable_if_t<
-            std::is_constructible_v<std::basic_string_view<Char,Traits>,Args...>,int> = 0>
-        constexpr basic_String_view(Args&&...args) noexcept
-            : basic_String_view(std::basic_string_view<Char,Traits>(std::forward<Args>(args)...)){
+        template<typename A>
+        constexpr basic_String_view(const std::basic_string<Char, Traits, A>& s) 
+            : Myfirst(s.data()),Mysize(s.size()){
 
         }
 
@@ -3083,6 +3072,26 @@ namespace wjr {
         return os;
     }
 
+    template<class Codecvt>
+    class valid_codecvt : public Codecvt {
+    public:
+        using base = Codecvt;
+        template<class ...Args>
+        valid_codecvt(Args&& ...args) : Codecvt(std::forward<Args>(args)...) {}
+        ~valid_codecvt() {}
+    };
+
+    template<typename T>
+    struct is_String : std::false_type {};
+
+    template<typename Char,typename Traits,typename Core>
+    struct is_String<basic_String<Char, Traits, Core>> : std::true_type {};
+
+    template<typename T>
+    constexpr static size_t max_SSO_size = 4;
+    
+    template<typename Char,typename Traits,typename Core>
+    constexpr static size_t max_SSO_size<basic_String<Char,Traits,Core>> = Core::max_small_size();
 
     template<typename Char,typename Traits,typename Core>
     class basic_String  {
@@ -3099,6 +3108,27 @@ namespace wjr {
         // is const iterator -> char pointer
         template<typename iter>
         using is_const_iterator = std::enable_if_t<is_char_ptr<iter>::value, int>;
+
+        template<typename _codecvt,typename = void>
+        struct _is_codecvt : std::false_type {};
+
+        template<typename _codecvt>
+        struct _is_codecvt<_codecvt, 
+            std::void_t<decltype(std::declval<_codecvt>().in(
+                std::declval<typename _codecvt::state_type&>(),
+                std::declval<const typename _codecvt::extern_type*>(),
+                std::declval<const typename _codecvt::extern_type*>(),
+                std::declval<const typename _codecvt::extern_type*&>(),
+                std::declval<typename _codecvt::intern_type*>(),
+                std::declval<typename _codecvt::intern_type*>(),
+                std::declval<typename _codecvt::intern_type*&>()
+                ))>> : 
+            std::true_type {};
+
+            template<typename Other,typename _codecvt>
+            using can_convert = std::enable_if_t<
+                _is_codecvt<_codecvt>::value && 
+                ! std::is_same_v<std::decay_t<Other>,Char>,int>;
 
     public:
 
@@ -3124,6 +3154,9 @@ namespace wjr {
         constexpr static size_type npos = default_traits::npos;
 
         using case_insensitive = case_insensitive_traits<Traits>;
+        using core_type = Core;
+        template<typename Other>
+        using default_convert_type = valid_codecvt<std::codecvt<Other,Char,mbstate_t>>;
 
     private:
 
@@ -3205,11 +3238,6 @@ namespace wjr {
             std::fill(pData, pData + n, c);
         }
 
-        template<typename T>
-        basic_String(const T* first) {
-            assign(first,first + basic_String_traits<T>::traits_length(first));
-        }
-
         template<typename iter>
         basic_String(iter first, iter last) {
             assign(first, last, is_char_ptr<iter>{});
@@ -3226,6 +3254,58 @@ namespace wjr {
 
         basic_String(const size_type len, wjr::Uninitialized) {
             core.expandNoinit(len);
+        }
+
+        basic_String(const size_type len, wjr::Reserved) {
+            reserve(len);
+        }
+
+        template<typename Other,typename _codecvt = 
+            default_convert_type<Other>,can_convert<Other,_codecvt> = 0>
+        explicit basic_String(const Other* s,const _codecvt&cvt = _codecvt()){
+            convert_from(s,cvt);
+        }
+
+        template<typename Other,typename _codecvt = 
+            default_convert_type<Other>,can_convert<Other,_codecvt> = 0>
+        explicit basic_String(const Other* s,const Other* e,
+            const _codecvt&cvt = _codecvt()){
+            convert_from(s,e,cvt);
+        }
+
+        template<typename Other,typename _codecvt = 
+            default_convert_type<Other>,can_convert<Other,_codecvt> = 0>
+        explicit basic_String(const Other* s, const size_type len,
+            const _codecvt&cvt = _codecvt()) {
+            convert_from(s,len,cvt);
+        }
+
+        template<typename Other,typename T,typename C,
+            typename _codecvt = default_convert_type<Other>,can_convert<Other,_codecvt> = 0>
+        explicit basic_String(const basic_String<Other, T, C>& other,
+            const _codecvt&cvt = _codecvt()) {
+            convert_from(other,cvt);
+        }
+
+        template<typename Other,typename T,typename _codecvt = 
+            default_convert_type<Other>,can_convert<Other,_codecvt> = 0>
+        explicit basic_String(const basic_String_view<Other, T>& other, 
+            const _codecvt& cvt = _codecvt()) {
+            convert_from(other,cvt);
+        }
+
+        template<typename Other,typename T,typename A, 
+            typename _codecvt = default_convert_type<Other>, can_convert<Other,_codecvt> = 0>
+        explicit basic_String(const std::basic_string<Other, T, A>& other, 
+            const _codecvt& cvt = _codecvt()) {
+            convert_from(other,cvt);
+        }
+
+        template<typename Other,typename T, typename _codecvt = 
+            default_convert_type<Other>, can_convert<Other,_codecvt> = 0>
+        explicit basic_String(const std::basic_string_view<Other, T>& other,
+            const _codecvt& cvt = _codecvt()) {
+            convert_from(other,cvt);
         }
 
         operator std::basic_string_view<Char, Traits>() const noexcept {
@@ -4465,6 +4545,103 @@ namespace wjr {
             return find<T>(s,off,n) != npos;
         }
 
+        template<typename Other, typename _codecvt = 
+            default_convert_type<Other>, can_convert<Other,_codecvt> = 0>
+        basic_String& convert_from(const Other* s,const _codecvt& cvt = _codecvt()) {
+            return convert_from(s,basic_String_traits<Other>::traits_length(s),cvt);
+        }
+
+        template<typename Other, typename _codecvt = 
+            default_convert_type<Other>, can_convert<Other,_codecvt> = 0>
+        basic_String& convert_from(const Other* s, const Other* e, 
+            const _codecvt& cvt = _codecvt()) {
+            return convert_from(s, static_cast<size_type>(e - s),cvt);
+        }
+
+        template<typename Other, typename _codecvt = 
+            default_convert_type<Other>, can_convert<Other,_codecvt> = 0>
+        basic_String& convert_from(const Other* s,const size_type len, 
+            const _codecvt& cvt = _codecvt()) {
+            using codecvt_type = _codecvt;
+            mbstate_t it;
+            size_type Reserved_Capacity = std::max(
+                Core::max_small_size(),
+                len * ((sizeof(Other) + sizeof(Char) - 1) / sizeof(Char)));
+            // reserve possible size
+            const Other* next1;
+            Char* next2;
+            typename codecvt_type::result result;
+            do {
+                resize(Reserved_Capacity);
+                memset(&it, 0, sizeof(it));
+                const auto _data = data();
+                result = cvt.out(it, s, s + len, next1, _data, _data + Reserved_Capacity, next2);
+                Reserved_Capacity <<= 1;
+                assert(result != codecvt_type::error);
+            } while (result == codecvt_type::partial);
+            resize(next2 - data());
+            shrink_to_fit();
+            return *this;
+        }
+
+        template<typename Other, typename T, typename C, 
+            typename _codecvt = default_convert_type<Other>, can_convert<Other,_codecvt> = 0>
+        basic_String& convert_from(const basic_String<Other, T, C>& other,
+            const _codecvt& cvt = _codecvt()) {
+            return convert_from(other.data(),other.size(),cvt);
+        }
+
+        template<typename Other, typename T, typename _codecvt =
+            default_convert_type<Other>, can_convert<Other,_codecvt> = 0>
+        basic_String& convert_from(const basic_String_view<Other, T>& other,
+            const _codecvt& cvt = _codecvt()) {
+            return convert_from(other.data(), other.size(), cvt);
+        }
+
+        template<typename Other, typename T, typename A, 
+            typename _codecvt = default_convert_type<Other>, can_convert<Other,_codecvt> = 0>
+        basic_String& convert_from(const std::basic_string<Other, T, A>& other,
+            const _codecvt& cvt = _codecvt()) {
+            return convert_from(other.data(), other.size(), cvt);
+        }
+
+        template<typename Other, typename T, 
+            typename _codecvt = default_convert_type<Other>, can_convert<Other,_codecvt> = 0>
+        basic_String& convert_from(const std::basic_string_view<Other, T>& other,
+            const _codecvt& cvt = _codecvt()) {
+            return convert_from(other.data(), other.size(), cvt);
+        }
+
+        template<typename OString,typename _codecvt = 
+            default_convert_type<typename OString::value_type>,
+            can_convert<typename OString::value_type,_codecvt> = 0>
+        OString convert_to(const _codecvt& cvt = _codecvt())const {
+            using Other = typename OString::value_type;
+            using codecvt_type = _codecvt;
+            const auto s = data();
+            const auto len = size();
+            mbstate_t it;
+            OString ans;
+            size_type Reserved_Capacity = std::max(
+                max_SSO_size<OString>,
+                len * ((sizeof(Other) + sizeof(Char) - 1) / sizeof(Other)));
+            // reserve possible size
+            const Char* next1;
+            Other* next2;
+            typename codecvt_type::result result;
+            do {
+                ans.resize(Reserved_Capacity);
+                memset(&it, 0, sizeof(it));
+                const auto _data = ans.data();
+                result = cvt.in(it,s,s + len,next1,_data,_data + Reserved_Capacity,next2);
+                assert(result != codecvt_type::error);
+                Reserved_Capacity <<= 1;
+            } while (result == codecvt_type::partial);
+            ans.resize(next2 - ans.data());
+            ans.shrink_to_fit();
+            return ans;
+        }
+
     private:
         Core core;
     };
@@ -4501,9 +4678,7 @@ namespace wjr {
         if (old_data <= s && s < old_data + old_size) {
             s = (ptr - old_size) + (s - old_data);
         }
-
         memcpy(ptr,s,sizeof(value_type) * n);
-
         return *this;
     }
 
@@ -4524,9 +4699,7 @@ namespace wjr {
         if (old_data <= s && s < old_data + old_size) {
             s = ptr + (s - old_data) + n;
         }
-
         memcpy(ptr,s,sizeof(value_type) * n);
-
         return *this;
     }
 
@@ -4585,7 +4758,6 @@ namespace wjr {
         else {
             memcpy(ins_first, s, sizeof(value_type) * n);
         }
-
         return *this;
     }
 
@@ -5107,11 +5279,11 @@ namespace wjr {
         size_t len = 0;
         basic_String it;
         do {
-            it.reserve(max_len);
+            it.resize(max_len);
             len = strftime(it.data(),max_len,format,date);
             max_len <<= 1;
         }while(len == 0);
-        it.set_size(len);
+        it.resize(len);
         it.shrink_to_fit();
         return it;
     }
@@ -5548,6 +5720,24 @@ namespace wjr {
     using wString_view = basic_String_view<wchar_t,std::char_traits<wchar_t>>;
     using u16String_view = basic_String_view<char16_t,std::char_traits<char16_t>>;
     using u32String_view = basic_String_view<char32_t,std::char_traits<char32_t>>;
+
+    inline namespace string_literals {
+        inline String operator""s(const char* s, size_t len) {
+            return String(s, len);
+        }
+
+        inline wString operator""s(const wchar_t* s, size_t len) {
+            return wString(s, len);
+        }
+
+        inline  u16String operator""s(const char16_t* s, size_t len) {
+            return u16String(s, len);
+        }
+
+        inline u32String operator""s(const char32_t* s, size_t len) {
+            return u32String(s, len);
+        }
+    }
 
 }
 

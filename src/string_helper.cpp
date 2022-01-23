@@ -1,4 +1,4 @@
-#include "../include/string_helper.h"
+#include "../include/String_helper.h"
 #include <iostream>
 #include <math.h>
 #include <cassert>
@@ -23,7 +23,6 @@ namespace wjr {
 
 	double read_double(const char* s,const char*e,const char*& next) {
 		auto* ptr = (const uint8_t*)s;
-		auto* first = ptr;
 		bool neg = false;
 
 		for(;!isdigit_or_sign(*ptr);++ptr);

@@ -10,7 +10,15 @@
 
 namespace wjr {
 
+#if defined(__BYTE_ORDER__)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 #define wis_little_endian true
+#else
+#define wis_little_endian false
+#endif
+#else
+#define wis_little_endian true
+#endif
 
 	inline namespace my_math {
 
@@ -31,7 +39,7 @@ namespace wjr {
 
 	}
 
-	inline namespace mt_type_traits{
+	inline namespace mt_type_traits {
 
 		template<typename...>
 		struct is_any_of {
@@ -39,13 +47,13 @@ namespace wjr {
 		};
 
 		template<typename T, typename U>
-		struct is_any_of<T,U> {
-			constexpr static bool value = std::is_same_v<T,U>;
+		struct is_any_of<T, U> {
+			constexpr static bool value = std::is_same_v<T, U>;
 		};
 
 		template<typename T, typename U, typename...args>
-		struct is_any_of<T,U,args...> {
-			constexpr static bool value = std::disjunction_v<is_any_of<T,U>,is_any_of<T,args...>>;
+		struct is_any_of<T, U, args...> {
+			constexpr static bool value = std::disjunction_v<is_any_of<T, U>, is_any_of<T, args...>>;
 		};
 
 		template<typename...args>
@@ -57,6 +65,19 @@ namespace wjr {
 		template<typename T>
 		struct is_reverse_iterator<std::reverse_iterator<T>> : std::true_type {};
 
+	#if (__cplusplus >= 201703L) || (defined(_MSVC_LANG) && (_MSVC_LANG >= 201703L) && (_MSC_VER >= 1913))
+		template<typename F,typename...Args>
+		struct wjr_result_of {
+			using type = std::invoke_result_t<F,Args...>;
+		};
+	#else
+		template<typename F,typename ...Args>
+		struct wjr_result_of {
+			using type = std::result_of_t<F(Args...)>;
+		};
+	#endif
+		template<typename F,typename...Args>
+		using wjr_result_of_t = typename wjr_result_of<F,Args...>::type;
 	}
 
 	inline namespace wjr_hash {
@@ -77,7 +98,7 @@ namespace wjr {
 			return _Val;
 		}
 
-		template<size_t byte_size,typename const_pointer>
+		template<size_t byte_size, typename const_pointer>
 		constexpr size_t constexpr_fnv1a_append_bytes(size_t _Val, const_pointer _First,
 			const size_t _Count)noexcept {
 			for (size_t _Idx = 0; _Idx < _Count; ++_Idx) {
@@ -104,10 +125,10 @@ namespace wjr {
 			using value_type = typename std::iterator_traits<const_pointer>::value_type;
 			constexpr size_t byte_size = sizeof(value_type);
 			if constexpr (byte_size >= 1 && byte_size <= sizeof(size_t)) {
-				return constexpr_fnv1a_append_bytes<byte_size>(_Val,_First,_Count);
+				return constexpr_fnv1a_append_bytes<byte_size>(_Val, _First, _Count);
 			}
 			else {
-				return normal_fnv1a_append_bytes(_Val, 
+				return normal_fnv1a_append_bytes(_Val,
 					reinterpret_cast<const unsigned char*>(_First), byte_size * _Count);
 			}
 		}
@@ -116,7 +137,7 @@ namespace wjr {
 		constexpr size_t fnv1a_append_range(const size_t _Val, const _Ty* const _First,
 			const _Ty* const _Last) noexcept { // accumulate range [_First, _Last) into partial FNV-1a hash _Val
 			static_assert(std::is_trivial_v<_Ty>, "Only trivial types can be directly hashed.");
-			return fnv1a_append_bytes(_Val,_First,static_cast<size_t>(_Last - _First));
+			return fnv1a_append_bytes(_Val, _First, static_cast<size_t>(_Last - _First));
 		}
 
 		template <class _Kty>

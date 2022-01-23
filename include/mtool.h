@@ -5,16 +5,14 @@
 #include <chrono>
 #include <cstdint>
 #include <type_traits>
-#include "String.h"
+#include "mString.h"
 
 namespace wjr {
 
     class time_ref;
-
     time_ref mtime();
     void mtime(time_ref*);
     double operator-(const time_ref& lhs, const time_ref& rhs);
-
     class time_ref {
     private:
 
@@ -37,7 +35,11 @@ namespace wjr {
     std::vector<String> get_all_files(const String&path);
     String read_file(const String&filename);
     void write_file(const String&filename,String_view str);
-    void create_file(const String&filename);
+    int create_file(const String&filename
+    #ifdef __linux__
+        ,__mode_t __mode = 0755
+    #endif
+    );
 
 }
 #endif
