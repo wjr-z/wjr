@@ -1,5 +1,5 @@
-#ifndef WJR_STRING_H
-#define WJR_STRING_H
+#ifndef WJR_MSTRING_H
+#define WJR_MSTRING_H
 
 #include <cassert>
 #include <codecvt>
@@ -199,7 +199,7 @@ namespace wjr {
     template<typename RanItPat, typename Hash_ty =
         std::hash<typename std::iterator_traits<RanItPat>::value_type>,
         typename Pred_eq = std::equal_to<>>
-        class skmp_searcher_general_builder
+    class skmp_searcher_general_builder
         : public skmp_searcher_fshift_builder<RanItPat, Pred_eq> {
         private:
             using Base = skmp_searcher_fshift_builder<RanItPat, Pred_eq>;
@@ -2255,6 +2255,18 @@ namespace wjr {
         return unsafe_range_to_val_helper<unsigned long long>(s, e, base);
     }
 
+    template<typename T>
+    struct is_String : std::false_type {};
+
+    template<typename Char, typename Traits, typename Core>
+    struct is_String<basic_String<Char, Traits, Core>> : std::true_type {};
+
+    template<typename T>
+    constexpr static size_t max_SSO_size = 4;
+
+    template<typename Char, typename Traits, typename Core>
+    constexpr static size_t max_SSO_size<basic_String<Char, Traits, Core>> = Core::max_small_size();
+
     template<typename Char,typename Traits>
     class basic_String_view {
     private:
@@ -2295,6 +2307,8 @@ namespace wjr {
         constexpr static size_type npos = default_traits::npos;
 
         using case_insensitive = case_insensitive_traits<Traits>;
+        template<typename Other>
+        using default_convert_type = std::codecvt<Char,Other, mbstate_t>;
 
     private:
         constexpr static inline size_type traits_length(const value_type* s) {
@@ -2802,6 +2816,36 @@ namespace wjr {
             return find<T>(s, n) != npos;
         }
 
+        template<typename OString,typename _codecvt = 
+            default_convert_type<typename OString::value_type>>
+        OString convert_to(const std::locale&loc = std::locale())const {
+            const _codecvt& cvt = std::use_facet<_codecvt>(loc);
+            using Other = typename OString::value_type;
+            using codecvt_type = _codecvt;
+            const auto s = data();
+            const auto len = size();
+            mbstate_t it;
+            OString ans;
+            size_type Reserved_Capacity = std::max(
+                max_SSO_size<OString>,
+                len * ((sizeof(Other) + sizeof(Char) - 1) / sizeof(Other)));
+            // reserve possible size
+            const Char* next1;
+            Other* next2;
+            typename codecvt_type::result result;
+            do {
+                ans.resize(Reserved_Capacity);
+                memset(&it, 0, sizeof(it));
+                const auto _data = ans.data();
+                result = cvt.out(it,s,s + len,next1,_data,_data + Reserved_Capacity,next2);
+                assert(result != codecvt_type::error);
+                Reserved_Capacity <<= 1;
+            } while (result == codecvt_type::partial);
+            ans.resize(next2 - ans.data());
+            ans.shrink_to_fit();
+            return ans;
+        }
+
     private:
         const_pointer Myfirst;
         size_type Mysize;
@@ -3072,27 +3116,6 @@ namespace wjr {
         return os;
     }
 
-    template<class Codecvt>
-    class valid_codecvt : public Codecvt {
-    public:
-        using base = Codecvt;
-        template<class ...Args>
-        valid_codecvt(Args&& ...args) : Codecvt(std::forward<Args>(args)...) {}
-        ~valid_codecvt() {}
-    };
-
-    template<typename T>
-    struct is_String : std::false_type {};
-
-    template<typename Char,typename Traits,typename Core>
-    struct is_String<basic_String<Char, Traits, Core>> : std::true_type {};
-
-    template<typename T>
-    constexpr static size_t max_SSO_size = 4;
-    
-    template<typename Char,typename Traits,typename Core>
-    constexpr static size_t max_SSO_size<basic_String<Char,Traits,Core>> = Core::max_small_size();
-
     template<typename Char,typename Traits,typename Core>
     class basic_String  {
     private:
@@ -3108,27 +3131,6 @@ namespace wjr {
         // is const iterator -> char pointer
         template<typename iter>
         using is_const_iterator = std::enable_if_t<is_char_ptr<iter>::value, int>;
-
-        template<typename _codecvt,typename = void>
-        struct _is_codecvt : std::false_type {};
-
-        template<typename _codecvt>
-        struct _is_codecvt<_codecvt, 
-            std::void_t<decltype(std::declval<_codecvt>().in(
-                std::declval<typename _codecvt::state_type&>(),
-                std::declval<const typename _codecvt::extern_type*>(),
-                std::declval<const typename _codecvt::extern_type*>(),
-                std::declval<const typename _codecvt::extern_type*&>(),
-                std::declval<typename _codecvt::intern_type*>(),
-                std::declval<typename _codecvt::intern_type*>(),
-                std::declval<typename _codecvt::intern_type*&>()
-                ))>> : 
-            std::true_type {};
-
-            template<typename Other,typename _codecvt>
-            using can_convert = std::enable_if_t<
-                _is_codecvt<_codecvt>::value && 
-                ! std::is_same_v<std::decay_t<Other>,Char>,int>;
 
     public:
 
@@ -3156,7 +3158,7 @@ namespace wjr {
         using case_insensitive = case_insensitive_traits<Traits>;
         using core_type = Core;
         template<typename Other>
-        using default_convert_type = valid_codecvt<std::codecvt<Other,Char,mbstate_t>>;
+        using default_convert_type = std::codecvt<Char, Other, mbstate_t>;
 
     private:
 
@@ -3261,51 +3263,51 @@ namespace wjr {
         }
 
         template<typename Other,typename _codecvt = 
-            default_convert_type<Other>,can_convert<Other,_codecvt> = 0>
-        explicit basic_String(const Other* s,const _codecvt&cvt = _codecvt()){
-            convert_from(s,cvt);
+            default_convert_type<Other>>
+        explicit basic_String(const Other* s,const std::locale&loc = std::locale()){
+            convert_from(s,loc);
         }
 
         template<typename Other,typename _codecvt = 
-            default_convert_type<Other>,can_convert<Other,_codecvt> = 0>
+            default_convert_type<Other>>
         explicit basic_String(const Other* s,const Other* e,
-            const _codecvt&cvt = _codecvt()){
-            convert_from(s,e,cvt);
+            const std::locale&loc = std::locale()) {
+            convert_from(s,e,loc);
         }
 
         template<typename Other,typename _codecvt = 
-            default_convert_type<Other>,can_convert<Other,_codecvt> = 0>
+            default_convert_type<Other>>
         explicit basic_String(const Other* s, const size_type len,
-            const _codecvt&cvt = _codecvt()) {
-            convert_from(s,len,cvt);
+            const std::locale&loc = std::locale()) {
+            convert_from(s,len,loc);
         }
 
         template<typename Other,typename T,typename C,
-            typename _codecvt = default_convert_type<Other>,can_convert<Other,_codecvt> = 0>
+            typename _codecvt = default_convert_type<Other>>
         explicit basic_String(const basic_String<Other, T, C>& other,
-            const _codecvt&cvt = _codecvt()) {
-            convert_from(other,cvt);
+            const std::locale&loc = std::locale()) {
+            convert_from(other,loc);
         }
 
         template<typename Other,typename T,typename _codecvt = 
-            default_convert_type<Other>,can_convert<Other,_codecvt> = 0>
+            default_convert_type<Other>>
         explicit basic_String(const basic_String_view<Other, T>& other, 
-            const _codecvt& cvt = _codecvt()) {
-            convert_from(other,cvt);
+            const std::locale&loc = std::locale()) {
+            convert_from(other,loc);
         }
 
         template<typename Other,typename T,typename A, 
-            typename _codecvt = default_convert_type<Other>, can_convert<Other,_codecvt> = 0>
+            typename _codecvt = default_convert_type<Other>>
         explicit basic_String(const std::basic_string<Other, T, A>& other, 
-            const _codecvt& cvt = _codecvt()) {
-            convert_from(other,cvt);
+            const std::locale&loc = std::locale()) {
+            convert_from(other,loc);
         }
 
         template<typename Other,typename T, typename _codecvt = 
-            default_convert_type<Other>, can_convert<Other,_codecvt> = 0>
+            default_convert_type<Other>>
         explicit basic_String(const std::basic_string_view<Other, T>& other,
-            const _codecvt& cvt = _codecvt()) {
-            convert_from(other,cvt);
+            const std::locale&loc = std::locale()) {
+            convert_from(other,loc);
         }
 
         operator std::basic_string_view<Char, Traits>() const noexcept {
@@ -4546,22 +4548,23 @@ namespace wjr {
         }
 
         template<typename Other, typename _codecvt = 
-            default_convert_type<Other>, can_convert<Other,_codecvt> = 0>
-        basic_String& convert_from(const Other* s,const _codecvt& cvt = _codecvt()) {
-            return convert_from(s,basic_String_traits<Other>::traits_length(s),cvt);
+            default_convert_type<Other>>
+        basic_String& convert_from(const Other* s,const std::locale&loc = std::locale()) {
+            return convert_from(s,basic_String_traits<Other>::traits_length(s),loc);
         }
 
         template<typename Other, typename _codecvt = 
-            default_convert_type<Other>, can_convert<Other,_codecvt> = 0>
+            default_convert_type<Other>>
         basic_String& convert_from(const Other* s, const Other* e, 
-            const _codecvt& cvt = _codecvt()) {
-            return convert_from(s, static_cast<size_type>(e - s),cvt);
+            const std::locale&loc = std::locale()) {
+            return convert_from(s, static_cast<size_type>(e - s),loc);
         }
 
         template<typename Other, typename _codecvt = 
-            default_convert_type<Other>, can_convert<Other,_codecvt> = 0>
+            default_convert_type<Other>>
         basic_String& convert_from(const Other* s,const size_type len, 
-            const _codecvt& cvt = _codecvt()) {
+            const std::locale&loc = std::locale()) {
+            const _codecvt& cvt = std::use_facet<_codecvt>(loc);
             using codecvt_type = _codecvt;
             mbstate_t it;
             size_type Reserved_Capacity = std::max(
@@ -4575,7 +4578,7 @@ namespace wjr {
                 resize(Reserved_Capacity);
                 memset(&it, 0, sizeof(it));
                 const auto _data = data();
-                result = cvt.out(it, s, s + len, next1, _data, _data + Reserved_Capacity, next2);
+                result = cvt.in(it, s, s + len, next1, _data, _data + Reserved_Capacity, next2);
                 Reserved_Capacity <<= 1;
                 assert(result != codecvt_type::error);
             } while (result == codecvt_type::partial);
@@ -4585,61 +4588,38 @@ namespace wjr {
         }
 
         template<typename Other, typename T, typename C, 
-            typename _codecvt = default_convert_type<Other>, can_convert<Other,_codecvt> = 0>
+            typename _codecvt = default_convert_type<Other>>
         basic_String& convert_from(const basic_String<Other, T, C>& other,
-            const _codecvt& cvt = _codecvt()) {
-            return convert_from(other.data(),other.size(),cvt);
+            const std::locale&loc = std::locale()) {
+            return convert_from(other.data(),other.size(),loc);
         }
 
         template<typename Other, typename T, typename _codecvt =
-            default_convert_type<Other>, can_convert<Other,_codecvt> = 0>
+            default_convert_type<Other>>
         basic_String& convert_from(const basic_String_view<Other, T>& other,
-            const _codecvt& cvt = _codecvt()) {
-            return convert_from(other.data(), other.size(), cvt);
+            const std::locale&loc = std::locale()) {
+            return convert_from(other.data(), other.size(), loc);
         }
 
         template<typename Other, typename T, typename A, 
-            typename _codecvt = default_convert_type<Other>, can_convert<Other,_codecvt> = 0>
+            typename _codecvt = default_convert_type<Other>>
         basic_String& convert_from(const std::basic_string<Other, T, A>& other,
-            const _codecvt& cvt = _codecvt()) {
-            return convert_from(other.data(), other.size(), cvt);
+            const std::locale&loc = std::locale()) {
+            return convert_from(other.data(), other.size(), loc);
         }
 
         template<typename Other, typename T, 
-            typename _codecvt = default_convert_type<Other>, can_convert<Other,_codecvt> = 0>
+            typename _codecvt = default_convert_type<Other>>
         basic_String& convert_from(const std::basic_string_view<Other, T>& other,
-            const _codecvt& cvt = _codecvt()) {
-            return convert_from(other.data(), other.size(), cvt);
+            const std::locale&loc = std::locale()) {
+            return convert_from(other.data(), other.size(), loc);
         }
 
         template<typename OString,typename _codecvt = 
-            default_convert_type<typename OString::value_type>,
-            can_convert<typename OString::value_type,_codecvt> = 0>
-        OString convert_to(const _codecvt& cvt = _codecvt())const {
-            using Other = typename OString::value_type;
-            using codecvt_type = _codecvt;
-            const auto s = data();
-            const auto len = size();
-            mbstate_t it;
-            OString ans;
-            size_type Reserved_Capacity = std::max(
-                max_SSO_size<OString>,
-                len * ((sizeof(Other) + sizeof(Char) - 1) / sizeof(Other)));
-            // reserve possible size
-            const Char* next1;
-            Other* next2;
-            typename codecvt_type::result result;
-            do {
-                ans.resize(Reserved_Capacity);
-                memset(&it, 0, sizeof(it));
-                const auto _data = ans.data();
-                result = cvt.in(it,s,s + len,next1,_data,_data + Reserved_Capacity,next2);
-                assert(result != codecvt_type::error);
-                Reserved_Capacity <<= 1;
-            } while (result == codecvt_type::partial);
-            ans.resize(next2 - ans.data());
-            ans.shrink_to_fit();
-            return ans;
+            default_convert_type<typename OString::value_type>>
+        OString convert_to(const std::locale&loc = std::locale())const {
+            return basic_String_view<Char,Traits>(data(),size()).
+                template convert_to<OString,_codecvt>(loc);
         }
 
     private:
@@ -5720,24 +5700,6 @@ namespace wjr {
     using wString_view = basic_String_view<wchar_t,std::char_traits<wchar_t>>;
     using u16String_view = basic_String_view<char16_t,std::char_traits<char16_t>>;
     using u32String_view = basic_String_view<char32_t,std::char_traits<char32_t>>;
-
-    inline namespace string_literals {
-        inline String operator""s(const char* s, size_t len) {
-            return String(s, len);
-        }
-
-        inline wString operator""s(const wchar_t* s, size_t len) {
-            return wString(s, len);
-        }
-
-        inline  u16String operator""s(const char16_t* s, size_t len) {
-            return u16String(s, len);
-        }
-
-        inline u32String operator""s(const char32_t* s, size_t len) {
-            return u32String(s, len);
-        }
-    }
 
 }
 

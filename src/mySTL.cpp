@@ -1,6 +1,7 @@
 #include "../include/mySTL.h"
 
 namespace wjr {
+
 	inline namespace math {
 
 		constexpr static const char* const tabel = "\0\0\1\1\2\2\2\2\3\3\3\3\3\3\3\3";

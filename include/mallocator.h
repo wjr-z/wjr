@@ -13,7 +13,7 @@ namespace wjr {
 //#define __USE_THREADS
 
 	template <int __inst>
-	class __malloc_alloc_template {
+	class __malloc_alloc_template__ {
 
 	private:
 
@@ -55,12 +55,12 @@ namespace wjr {
 
 #ifndef __STL_STATIC_TEMPLATE_MEMBER_BUG
 	template <int __inst>
-	void (*__malloc_alloc_template<__inst>::__malloc_alloc_oom_handler)() = 0;
+	void (*__malloc_alloc_template__<__inst>::__malloc_alloc_oom_handler)() = 0;
 #endif
 
 	template <int __inst>
 	void*
-		__malloc_alloc_template<__inst>::_S_oom_malloc(size_t __n) {
+		__malloc_alloc_template__<__inst>::_S_oom_malloc(size_t __n) {
 		void (*__my_malloc_handler)();
 		void* __result;
 
@@ -74,7 +74,7 @@ namespace wjr {
 	}
 
 	template <int __inst>
-	void* __malloc_alloc_template<__inst>::_S_oom_realloc(void* __p, size_t __n) {
+	void* __malloc_alloc_template__<__inst>::_S_oom_realloc(void* __p, size_t __n) {
 		void (*__my_malloc_handler)();
 		void* __result;
 
@@ -87,23 +87,23 @@ namespace wjr {
 		}
 	}
 
-	typedef __malloc_alloc_template<0> malloc_alloc;
+	typedef __malloc_alloc_template__<0> malloc_alloc;
 
 	enum {ALLOC_ALIGN = 8};
 	enum {ALLOC_MAX_BYTES = 128};
 	enum {ALLOC_NFRELISTS = ALLOC_MAX_BYTES / ALLOC_ALIGN};
 
 	template <bool threads, int inst>
-	class __default_alloc_template;
+	class __default_alloc_template__;
 
 	template<bool threads>
-	class __basic_default_alloc_template;
+	class __basic_default_alloc_template__;
 
 	template<>
-	class __basic_default_alloc_template<true> {
+	class __basic_default_alloc_template__<true> {
 	private:
 		template<bool,int>
-		friend class __default_alloc_template;
+		friend class __default_alloc_template__;
 		enum { __ALIGN = ALLOC_ALIGN };
 		enum { __MAX_BYTES = ALLOC_MAX_BYTES };
 		enum { __NFREELISTS = ALLOC_NFRELISTS };
@@ -119,10 +119,10 @@ namespace wjr {
 	};
 
 	template<>
-	class __basic_default_alloc_template<false> {
+	class __basic_default_alloc_template__<false> {
 	private:
 		template<bool, int>
-		friend class __default_alloc_template;
+		friend class __default_alloc_template__;
 		enum { __ALIGN = ALLOC_ALIGN };
 		enum { __MAX_BYTES = ALLOC_MAX_BYTES };
 		enum { __NFREELISTS = ALLOC_NFRELISTS };
@@ -138,9 +138,9 @@ namespace wjr {
 	};
 
 	template <bool threads, int inst>
-	class __default_alloc_template {
+	class __default_alloc_template__ {
 	private:
-		using base = __basic_default_alloc_template<threads>;
+		using base = __basic_default_alloc_template__<threads>;
 		using obj = typename base::obj;
 
 
@@ -202,7 +202,7 @@ namespace wjr {
 	//----------------------------------------------
 	template <bool threads, int inst>
 	char*
-		__default_alloc_template<threads, inst>::
+		__default_alloc_template__<threads, inst>::
 		chunk_alloc(size_t size, int& nobjs) {
 		char* result;
 		size_t total_bytes = size * nobjs;
@@ -268,7 +268,7 @@ namespace wjr {
 	// We hold the allocation lock.
 	//----------------------------------------------
 	template <bool threads, int inst>
-	void* __default_alloc_template<threads, inst>::
+	void* __default_alloc_template__<threads, inst>::
 		refill(size_t n) {
 		int nobjs = 20;
 		char* chunk = chunk_alloc(n, nobjs);
@@ -293,15 +293,12 @@ namespace wjr {
 		return (result);
 	}
 
-	template<bool threads, int __inst>
-	using alloc = __default_alloc_template<threads, __inst>;
-
 	// threads = false : Share one memory pool
 	// threads = true : Each thread shares one memory pool
 	template <typename Ty, bool threads>
-	class basic_malloc {
+	class basic_mallocator {
 	private:
-		using allocator_type = alloc<threads, 0>;
+		using allocator_type = __default_alloc_template__<threads, 0>;
 	public:
 
 		using value_type = Ty;
@@ -314,15 +311,15 @@ namespace wjr {
 
 		template <typename _Other>
 		struct rebind {
-			using other = basic_malloc<_Other,threads>;
+			using other = basic_mallocator<_Other,threads>;
 		};
 
-		constexpr basic_malloc() noexcept {}
-		constexpr basic_malloc(const basic_malloc&) noexcept = default;
+		constexpr basic_mallocator() noexcept {}
+		constexpr basic_mallocator(const basic_mallocator&) noexcept = default;
 		template <class _Other>
-		constexpr basic_malloc(const basic_malloc<_Other, threads>&) noexcept {}
-		~basic_malloc() = default;
-		basic_malloc& operator=(const basic_malloc&) noexcept = default;
+		constexpr basic_mallocator(const basic_mallocator<_Other, threads>&) noexcept {}
+		~basic_mallocator() = default;
+		basic_mallocator& operator=(const basic_mallocator&) noexcept = default;
 
 		Ty* allocate() {
 			return static_cast<Ty*>(allocator_type::allocate(sizeof(Ty)));
@@ -378,31 +375,31 @@ namespace wjr {
 	};
 
 	template<typename T,typename U,bool t1,bool t2>
-	bool operator==(const basic_malloc<T, t1>&, const basic_malloc<U, t2>&) {
+	bool operator==(const basic_mallocator<T, t1>&, const basic_mallocator<U, t2>&) {
 		return false;
 	}
 
 	template<typename T, typename U,bool threads>
-	bool operator==(const basic_malloc<T,threads>&, const basic_malloc<U,threads>&) {
+	bool operator==(const basic_mallocator<T,threads>&, const basic_mallocator<U,threads>&) {
 		return true;
 	}
 
 	template<typename T, typename U, bool t1, bool t2>
-	bool operator!=(const basic_malloc<T, t1>&, const basic_malloc<U, t2>&) {
+	bool operator!=(const basic_mallocator<T, t1>&, const basic_mallocator<U, t2>&) {
 		return true;
 	}
 
 	template<typename T, typename U,bool threads>
-	bool operator!=(const basic_malloc<T,threads>&, const basic_malloc<U,threads>&) {
+	bool operator!=(const basic_mallocator<T,threads>&, const basic_mallocator<U,threads>&) {
 		return false;
 	}
 
 	template<typename T>
-	using tallocator = basic_malloc<T,true>;
+	using tallocator = basic_mallocator<T,true>;
 
 #ifndef __USE_THREADS
 	template<typename T>
-	using mallocator = basic_malloc<T,false>;
+	using mallocator = basic_mallocator<T,false>;
 #else 
 	template<typename T>
 	using mallocator = tallocator<T>;

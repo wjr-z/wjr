@@ -23,8 +23,8 @@
   OTHER DEALINGS IN THE SOFTWARE.
   */
 #pragma once
-#ifndef GRISU2_H
-#define GRISU2_H
+#ifndef WJR_GRISU2_H
+#define WJR_GRISU2_H
 #include "prettify.h"
 #include "fast_exponent.h"
 

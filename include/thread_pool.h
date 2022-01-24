@@ -20,8 +20,8 @@
 //distribution.
 
 
-#ifndef THREAD_POOL_H
-#define THREAD_POOL_H
+#ifndef WJR_THREAD_POOL_H
+#define WJR_THREAD_POOL_H
 
 #include <vector>
 #include <queue>
