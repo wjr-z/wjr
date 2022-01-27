@@ -1,5 +1,5 @@
-#ifndef WJR_MTOOL_H
-#define WJR_MTOOL_H
+#ifndef __WJR_MTOOL_H
+#define __WJR_MTOOL_H
 
 #include <algorithm>
 #include <chrono>

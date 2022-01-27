@@ -1,5 +1,5 @@
-#ifndef WJR_MSTRING_H
-#define WJR_MSTRING_H
+#ifndef __WJR_MSTRING_H
+#define __WJR_MSTRING_H
 
 #include <cassert>
 #include <codecvt>
@@ -327,22 +327,20 @@ namespace wjr {
             return { First,First };
         }
 
-        const auto pattern_first = Searcher.get_first();
-        const auto pattern_last = pattern_first + size;
-        const auto pattern_back = pattern_last - 1;
-
-        const auto text_first = First;
-        const auto text_last = Last;
-        const auto text_back = text_last - 1;
-
-        if (text_last - text_first < size) {
+        if (Last - First < size) {
             return { Last,Last };
         }
+
+        const auto pattern_first = Searcher.get_first();
+        const auto pattern_back = pattern_first + (size - 1);
+
+        const auto text_first = First;
+        const auto text_back = Last - 1;
 
         const auto Eq = Searcher.key_eq();
         const auto fshift = Searcher.get_fshift();
         const auto fm = Searcher.get_fm();
-        auto& ch = *pattern_back;
+        const auto& ch = *pattern_back;
         auto text_ptr = text_first + size - 1;
 
         diff_t sufsearch = 0, alsearch = 0;
@@ -352,7 +350,7 @@ namespace wjr {
             auto s_text_ptr = text_ptr;
             auto s_pattern_ptr = pattern_back;
             const auto s_ptr_mid = text_ptr - sufsearch;
-
+            
             while (s_text_ptr != s_ptr_mid && Eq(*s_text_ptr, *s_pattern_ptr)) {
                 --s_text_ptr;
                 --s_pattern_ptr;
@@ -378,9 +376,11 @@ namespace wjr {
                     return { text_ptr - size,text_ptr };
                 }
             }
+
             if (text_ptr == text_back) {
                 break;
             }
+
             diff_t Match = text_ptr - s_text_ptr;
             const auto Fs = fshift[Match];
             const auto Sh = Searcher.get_shift(*(text_ptr + 1));
@@ -411,6 +411,7 @@ namespace wjr {
                 break;
             text_ptr += sufsearch;
             res -= sufsearch;
+            
             if constexpr (is_has_find::value) {
                 const auto l = sufsearch + alsearch;
                 if (l <= 32 && !Eq(*text_ptr, ch)) {
@@ -1166,8 +1167,8 @@ namespace wjr {
         static string_list split(const value_type* s1, const size_type n1,
             const value_type* s2, const size_type n2, bool keep_empty_parts);
 
-        static size_type left_trim(const value_type* s, const size_type n);
-        static size_type right_trim(const value_type* s, const size_type n);
+        static size_type trim_left(const value_type* s, const size_type n);
+        static size_type trim_right(const value_type* s, const size_type n);
 
     private:
         template<typename Val, std::enable_if_t<std::is_signed_v<Val>, int> = 0>
@@ -1844,13 +1845,13 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     typename basic_String_traits<Char, Traits>::size_type
-        basic_String_traits<Char, Traits>::left_trim(const value_type* s, const size_type n) {
+        basic_String_traits<Char, Traits>::trim_left(const value_type* s, const size_type n) {
         return find_first_not_of(s, n, 0, trim_map);
     }
 
     template<typename Char, typename Traits>
     typename basic_String_traits<Char, Traits>::size_type
-        basic_String_traits<Char, Traits>::right_trim(const value_type* s, const size_type n) {
+        basic_String_traits<Char, Traits>::trim_right(const value_type* s, const size_type n) {
         return find_last_not_of(s, n, npos, trim_map);
     }
 
@@ -1864,7 +1865,7 @@ namespace wjr {
             return static_cast<Val>(0);
         }
         bool sign = true;
-        size_t pos = left_trim(s, static_cast<size_t>(e - s));
+        size_t pos = trim_left(s, static_cast<size_t>(e - s));
         if (pos == npos) {
             set_nok(ok);
             return static_cast<Val>(0);
@@ -1917,7 +1918,7 @@ namespace wjr {
             set_nok(ok);
             return static_cast<UVal>(0);
         }
-        size_t pos = left_trim(s, static_cast<size_t>(e - s));
+        size_t pos = trim_left(s, static_cast<size_t>(e - s));
         if (pos == npos) {
             set_nok(ok);
             return static_cast<UVal>(0);
@@ -1984,8 +1985,8 @@ namespace wjr {
             return static_cast<Val>(0);
         }
         bool sign = true;
-        size_t pos = left_trim(s, static_cast<size_t>(e - s));
-        size_t end_pos = right_trim(s, static_cast<size_t>(e - s));
+        size_t pos = trim_left(s, static_cast<size_t>(e - s));
+        size_t end_pos = trim_right(s, static_cast<size_t>(e - s));
         e = s + end_pos + 1;
         s = s + pos;
         if (*s == static_charT<Char, '+'>) {
@@ -2036,8 +2037,8 @@ namespace wjr {
             set_nok(ok);
             return static_cast<UVal>(0);
         }
-        size_t pos = left_trim(s, static_cast<size_t>(e - s));
-        size_t end_pos = right_trim(s, static_cast<size_t>(e - s));
+        size_t pos = trim_left(s, static_cast<size_t>(e - s));
+        size_t end_pos = trim_right(s, static_cast<size_t>(e - s));
         e = s + end_pos + 1;
         s = s + pos;
         if (*s == static_charT<Char, '+'>) {
@@ -2103,7 +2104,7 @@ namespace wjr {
             return static_cast<Val>(0);
         }
         bool sign = true;
-        size_t pos = left_trim(s, static_cast<size_t>(e - s));
+        size_t pos = trim_left(s, static_cast<size_t>(e - s));
         next = s + pos;
         if (*next == static_charT<Char, '+'>) {
             ++next;
@@ -2133,7 +2134,7 @@ namespace wjr {
         if (base > 36) {
             return static_cast<UVal>(0);
         }
-        size_t pos = left_trim(s, static_cast<size_t>(e - s));
+        size_t pos = trim_left(s, static_cast<size_t>(e - s));
         next = s + pos;
         if (*next == static_charT<Char, '+'>) {
             ++next;
@@ -2180,8 +2181,8 @@ namespace wjr {
             return static_cast<Val>(0);
         }
         bool sign = true;
-        size_t pos = left_trim(s, static_cast<size_t>(e - s));
-        size_t end_pos = right_trim(s, static_cast<size_t>(e - s));
+        size_t pos = trim_left(s, static_cast<size_t>(e - s));
+        size_t end_pos = trim_right(s, static_cast<size_t>(e - s));
         e = s + end_pos + 1;
         s = s + pos;
         if (*s == static_charT<Char, '+'>) {
@@ -2212,8 +2213,8 @@ namespace wjr {
         if (base > 36) {
             return static_cast<UVal>(0);
         }
-        size_t pos = left_trim(s, static_cast<size_t>(e - s));
-        size_t end_pos = right_trim(s, static_cast<size_t>(e - s));
+        size_t pos = trim_left(s, static_cast<size_t>(e - s));
+        size_t end_pos = trim_right(s, static_cast<size_t>(e - s));
         e = s + end_pos + 1;
         s = s + pos;
         if (*s == static_charT<Char, '+'>) {
@@ -2745,16 +2746,16 @@ namespace wjr {
         string_list split(const value_type * s,
             const size_type n, bool keep_empty_parts = true)const noexcept;
 
-        basic_String_view ltrim()const noexcept {
-            auto l = default_traits::left_trim(Myfirst,Mysize);
+        basic_String_view trim_left()const noexcept {
+            auto l = default_traits::trim_left(Myfirst,Mysize);
             if (l == npos) {
                 return { Myfirst,0 };
             }
             return { Myfirst + l,Mysize - l };
         }
 
-        basic_String_view rtrim()const noexcept {
-            auto r = default_traits::right_trim(Myfirst,Mysize);
+        basic_String_view trim_right()const noexcept {
+            auto r = default_traits::trim_right(Myfirst,Mysize);
             if (r == npos) {
                 return { Myfirst,0 };
             }
@@ -2762,11 +2763,11 @@ namespace wjr {
         }
 
         basic_String_view trim()const noexcept {
-            auto l = default_traits::left_trim(Myfirst,Mysize);
+            auto l = default_traits::trim_left(Myfirst,Mysize);
             if (l == npos) {
                 return {Myfirst,0};
             }
-            auto r = default_traits::right_trim(Myfirst,Mysize);
+            auto r = default_traits::trim_right(Myfirst,Mysize);
             return {Myfirst + l,r - l + 1};
         }
 
@@ -2834,14 +2835,14 @@ namespace wjr {
             Other* next2;
             typename codecvt_type::result result;
             do {
-                ans.resize(Reserved_Capacity);
+                ans.reserve(Reserved_Capacity);
                 memset(&it, 0, sizeof(it));
                 const auto _data = ans.data();
                 result = cvt.out(it,s,s + len,next1,_data,_data + Reserved_Capacity,next2);
                 assert(result != codecvt_type::error);
                 Reserved_Capacity <<= 1;
             } while (result == codecvt_type::partial);
-            ans.resize(next2 - ans.data());
+            ans.set_size(next2 - ans.data());
             ans.shrink_to_fit();
             return ans;
         }
@@ -3904,6 +3905,90 @@ namespace wjr {
             return replace<T>(before.data(),before.size(),after.data(),after.size());
         }
 
+        template<typename T = Traits>
+        basic_String& replace_first(const value_type* s1,const value_type* s2) {
+            return replace_first<T>(s1,traits_length(s1),s2,traits_length(s2));
+        }
+
+        template<typename T = Traits>
+        basic_String& replace_first(const value_type* s1, const size_type n1,
+            const value_type* s2,const size_type n2) {
+            size_type pos = find<T>(s1,0,n1);
+            if (pos != npos) {
+                replace(pos,n1,s2,n2);
+            }
+            return *this;
+        }
+
+        template<typename T = Traits>
+        basic_String& replace_first(const basic_String& s1, const basic_String& s2) {
+            return replace_first<T>(s1.data(),s1.size(),s2.data(),s2.size());
+        }
+
+        template<typename T = Traits>
+        basic_String& replace_first(const typename non_default_traits<T>::string_find_helper&s1,
+            const value_type* s2) {
+            return replace_first<T>(s1,s2,traits_length(s2));
+        }
+
+        template<typename T = Traits>
+        basic_String& replace_first(const typename non_default_traits<T>::string_find_helper& s1,
+            const value_type* s2, const size_type n2) {
+            const size_type pos = find<T>(s1);
+            if (pos != npos) {
+                replace(pos,s1.size(),s2,n2);
+            }
+            return *this;
+        }
+
+        template<typename T = Traits>
+        basic_String& replace_first(const typename non_default_traits<T>::string_find_helper& s1,
+            const basic_String& s2) {
+            return replace<T>(s1,s2.data(),s2.size());
+        }
+
+        template<typename T = Traits>
+        basic_String& replace_last(const value_type* s1, const value_type* s2) {
+            return replace_last<T>(s1, traits_length(s1), s2, traits_length(s2));
+        }
+
+        template<typename T = Traits>
+        basic_String& replace_last(const value_type* s1, const size_type n1,
+            const value_type* s2, const size_type n2) {
+            size_type pos = rfind<T>(s1, npos, n1);
+            if (pos != npos) {
+                replace(pos, n1, s2, n2);
+            }
+            return *this;
+        }
+
+        template<typename T = Traits>
+        basic_String& replace_last(const basic_String& s1, const basic_String& s2) {
+            return replace_last<T>(s1.data(), s1.size(), s2.data(), s2.size());
+        }
+
+        template<typename T = Traits>
+        basic_String& replace_last(const typename non_default_traits<T>::string_find_helper& s1,
+            const value_type* s2) {
+            return replace_last<T>(s1, s2, traits_length(s2));
+        }
+
+        template<typename T = Traits>
+        basic_String& replace_last(const typename non_default_traits<T>::string_find_helper& s1,
+            const value_type* s2, const size_type n2) {
+            const size_type pos = rfind<T>(s1);
+            if (pos != npos) {
+                replace(pos, s1.size(), s2, n2);
+            }
+            return *this;
+        }
+
+        template<typename T = Traits>
+        basic_String& replace_last(const typename non_default_traits<T>::string_find_helper& s1,
+            const basic_String& s2) {
+            return replace<T>(s1, s2.data(), s2.size());
+        }
+
         void swap(basic_String & other) { core.swap(other.core); }
 
         const value_type* c_str() const { return core.c_str(); }
@@ -4072,13 +4157,13 @@ namespace wjr {
         }
 
         template<typename T = Traits>
-        static typename non_default_traits<T>::string_find_helper
+        static typename non_default_traits<T>::string_rfind_helper
             get_rfind_helper(const value_type * s) {
             return get_rfind_helper<T>(s,s + traits_length(s));
         }
 
         template<typename T = Traits>
-        static typename non_default_traits<T>::string_find_helper
+        static typename non_default_traits<T>::string_rfind_helper
             get_rfind_helper(const basic_String& s) {
             return get_rfind_helper<T>(s.data(),s.size());
         }
@@ -4346,6 +4431,14 @@ namespace wjr {
             return std::move(*this);
         }
 
+        basic_String trim_left()const&;
+
+        basic_String trim_left()&&;
+
+        basic_String trim_right()const&;
+
+        basic_String trim_right()&&;
+
         basic_String trim()const&;
 
         basic_String trim()&&;
@@ -4575,14 +4668,14 @@ namespace wjr {
             Char* next2;
             typename codecvt_type::result result;
             do {
-                resize(Reserved_Capacity);
+                reserve(Reserved_Capacity);
                 memset(&it, 0, sizeof(it));
                 const auto _data = data();
                 result = cvt.in(it, s, s + len, next1, _data, _data + Reserved_Capacity, next2);
                 Reserved_Capacity <<= 1;
                 assert(result != codecvt_type::error);
             } while (result == codecvt_type::partial);
-            resize(next2 - data());
+            set_size(next2 - data());
             shrink_to_fit();
             return *this;
         }
@@ -4857,7 +4950,7 @@ namespace wjr {
                     temp.append(*this,off,npos);
                     break;
                 }
-                temp.append(*this,pos,pos - off).append(s2,n2);
+                temp.append(*this,off,pos - off).append(s2,n2);
                 off = pos + n1;
             }
             this->~basic_String();
@@ -4866,15 +4959,64 @@ namespace wjr {
         return *this;
     }
 
+    template<typename Char, typename Traits, typename Core>
+    basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::trim_left()const& {
+        auto _data = data();
+        auto _size = size();
+        auto l = default_traits::trim_left(_data, _size);
+        if (l == npos) {
+            return basic_String();
+        }
+        return basic_String(_data + l,_size - l);
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::trim_left()&& {
+        auto _data = data();
+        auto _size = size();
+        auto l = default_traits::trim_left(_data, _size);
+        if (l == npos) {
+            clear();
+            return std::move(*this);
+        }
+        memmove(_data, _data + l, sizeof(value_type) * (_size - l));
+        set_size(_size - l);
+        return std::move(*this);
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::trim_right()const& {
+        auto _data = data();
+        auto _size = size();
+        auto r = default_traits::trim_right(_data, _size);
+        if (r == npos) {
+            return basic_String();
+        }
+        return basic_String(_data,r + 1);
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::trim_right()&& {
+        auto _data = data();
+        auto _size = size();
+        auto r = default_traits::trim_right(_data,_size);
+        if (r == npos) {
+            clear();
+            return std::move(*this);
+        }
+        set_size(r + 1);
+        return std::move(*this);
+    }
+
     template<typename Char,typename Traits,typename Core>
     basic_String<Char,Traits,Core> basic_String<Char,Traits,Core>::trim()const& {
         auto _data = data();
         auto _size = size();
-        auto l = default_traits::left_trim(_data, _size);
+        auto l = default_traits::trim_left(_data, _size);
         if (l == npos) {
             return basic_String();
         }
-        auto r = default_traits::right_trim(_data, _size);
+        auto r = default_traits::trim_right(_data, _size);
         return basic_String(_data+ l, r - l + 1);
     }
 
@@ -4882,12 +5024,12 @@ namespace wjr {
     basic_String<Char,Traits,Core> basic_String<Char, Traits, Core>::trim()&& {
         auto _data = data();
         auto _size = size();
-        auto l = default_traits::left_trim(_data, _size);
+        auto l = default_traits::trim_left(_data, _size);
         if (l == npos) {
             clear();
             return std::move(*this);
         }
-        auto r = default_traits::right_trim(_data, _size);
+        auto r = default_traits::trim_right(_data, _size);
         memmove(_data,_data + l,sizeof(value_type) * (r - l + 1));
         set_size(r - l + 1);
         return std::move(*this);
@@ -5259,11 +5401,11 @@ namespace wjr {
         size_t len = 0;
         basic_String it;
         do {
-            it.resize(max_len);
+            it.reserve(max_len);
             len = strftime(it.data(),max_len,format,date);
             max_len <<= 1;
         }while(len == 0);
-        it.resize(len);
+        it.set_size(len);
         it.shrink_to_fit();
         return it;
     }
@@ -5693,11 +5835,17 @@ namespace wjr {
 
     using String = basic_String<char,std::char_traits<char>>;
     using wString = basic_String<wchar_t,std::char_traits<wchar_t>>;
+#ifdef __HAS_CXX20
+    using u8String = basic_String<char8_t,std::char_traits<char8_t>>;
+#endif
     using u16String = basic_String<char16_t,std::char_traits<char16_t>>;
     using u32String = basic_String<char32_t,std::char_traits<char32_t>>;
 
     using String_view = basic_String_view<char,std::char_traits<char>>;
     using wString_view = basic_String_view<wchar_t,std::char_traits<wchar_t>>;
+#ifdef __HAS_CXX20
+    using u8String_view = basic_String_view<char8_t,std::char_traits<char8_t>>;
+#endif
     using u16String_view = basic_String_view<char16_t,std::char_traits<char16_t>>;
     using u32String_view = basic_String_view<char32_t,std::char_traits<char32_t>>;
 
@@ -5720,6 +5868,9 @@ struct hash<wjr::basic_String_view<T,char_traits<T>>> {                         
 namespace std {
     DEFAULT_STRING_HASH(char) 
     DEFAULT_STRING_HASH(wchar_t)
+    #ifdef __HAS_CXX20
+    DEFAULT_STRING_HASH(char8_t)
+    #endif
     DEFAULT_STRING_HASH(char16_t)
     DEFAULT_STRING_HASH(char32_t)
 }

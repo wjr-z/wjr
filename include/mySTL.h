@@ -1,5 +1,5 @@
-#ifndef WJR_MY_STL_H
-#define WJR_MY_STL_H
+#ifndef __WJR_MY_STL_H
+#define __WJR_MY_STL_H
 
 #include <cstdint>
 #include <ctime>
@@ -19,25 +19,6 @@ namespace wjr {
 #else
 #define wis_little_endian true
 #endif
-
-	inline namespace my_math {
-
-		constexpr size_t qlog2(int);
-		constexpr size_t qlog2(uint32_t);
-		constexpr size_t qlog2(long long);
-		constexpr size_t qlog2(uint64_t);
-
-		constexpr unsigned int find_number(uint32_t n);
-		constexpr unsigned int find_number(uint64_t n);
-
-		constexpr unsigned int _minx(uint32_t n); // find the index of the lowest bit
-
-		constexpr bool is_power_of_two(int);
-		constexpr bool is_power_of_two(unsigned int);
-		constexpr bool is_power_of_two(long long);
-		constexpr bool is_power_of_two(unsigned long long);
-
-	}
 
 	inline namespace mt_type_traits {
 

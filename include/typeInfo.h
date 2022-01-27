@@ -1,5 +1,5 @@
-#ifndef WJR_TYPEINFO_H
-#define WJR_TYPEINFO_H
+#ifndef __WJR_TYPEINFO_H
+#define __WJR_TYPEINFO_H
 
 #include <tuple>
 #include <string_view>

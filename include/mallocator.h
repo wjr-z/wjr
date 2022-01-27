@@ -1,5 +1,5 @@
-#ifndef WJR_MALLOCATOR_H
-#define WJR_MALLOCATOR_H
+#ifndef __WJR_MALLOCATOR_H
+#define __WJR_MALLOCATOR_H
 
 #include <cstdint>
 #include <cstdlib>

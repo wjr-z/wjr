@@ -84,7 +84,8 @@ namespace wjr {
 	}
 
 	bool get_all_files(const String&path, std::vector<String>& filePath) {
-		String cop(path);
+		String cop(260, wjr::Reserved{});
+		cop.assign(path);
 		return dfs_get_files(cop, filePath);
 	}
 

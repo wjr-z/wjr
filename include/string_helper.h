@@ -1,5 +1,5 @@
-#ifndef WJR_STRING_HELPER_H
-#define WJR_STRING_HELPER_H
+#ifndef __WJR_STRING_HELPER_H
+#define __WJR_STRING_HELPER_H
 
 #include <cstdint>
 #include <functional>

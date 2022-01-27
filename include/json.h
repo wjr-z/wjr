@@ -1,5 +1,5 @@
-#ifndef WJR_JSON_H
-#define WJR_JSON_H
+#ifndef __WJR_JSON_H
+#define __WJR_JSON_H
 
 #include <cassert>
 #include <cstdlib>
