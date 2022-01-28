@@ -16,6 +16,8 @@
 
 namespace wjr {
 
+    // easy reflection
+
     template<typename T>
     struct Field {
     public:

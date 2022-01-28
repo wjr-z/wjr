@@ -1,10 +1,11 @@
 #ifndef __WJR_MY_STL_H
 #define __WJR_MY_STL_H
 
+#include <cassert>
 #include <cstdint>
 #include <ctime>
+#include <functional>
 #include <random>
-#include <cassert>
 #include <type_traits>
 #include <locale>
 
@@ -59,6 +60,13 @@ namespace wjr {
 	#endif
 		template<typename F,typename...Args>
 		using wjr_result_of_t = typename wjr_result_of<F,Args...>::type;
+
+		template<typename Pred_eq>
+		struct is_default_equal : std::false_type {};
+
+		template<>
+		struct is_default_equal<std::equal_to<>> : std::true_type {};
+
 	}
 
 	inline namespace wjr_hash {

@@ -59,8 +59,10 @@ namespace wjr {
     ) : first(First), last(Last) {
         size = last - first;
         auto al = mallocator<diff_t>();
-        fshift = al.allocate(size + 1);
-        fm = al.allocate(size + 1);
+        fshift = al.allocate(2 * (size + 1));
+        fm = fshift + (size + 1);
+        //fshift = al.allocate(size + 1);
+        //fm = al.allocate(size + 1);
 
         diff_t* fnxt = al.allocate(size + 1);
         diff_t i = 0, j = -1;
@@ -108,8 +110,10 @@ namespace wjr {
         skmp_searcher_fshift_builder(const skmp_searcher_fshift_builder& other)
         : size(other.size), first(other.first), last(other.last) {
         auto al = mallocator<diff_t>();
-        fshift = al.allocate(size + 1);
-        fm = al.allocate(size + 1);
+        fshift = al.allocate(2 * (size + 1));
+        fm = fshift + (size + 1);
+        //fshift = al.allocate(size + 1);
+        //fm = al.allocate(size + 1);
         std::copy(other.fshift, other.fshift + size + 1, fshift);
         std::copy(other.fm, other.fm + size + 1, fm);
     }
@@ -127,8 +131,9 @@ namespace wjr {
         ~skmp_searcher_fshift_builder() {
         auto al = mallocator<diff_t>();
         if (fshift) {
-            al.deallocate(fshift, size + 1);
-            al.deallocate(fm, size + 1);
+            al.deallocate(fshift,2 * (size + 1));
+            //al.deallocate(fshift, size + 1);
+            //al.deallocate(fm, size + 1);
         }
     }
 
@@ -168,11 +173,11 @@ namespace wjr {
             }
 
             diff_t get_shift(const value_t value)const {
-                const auto u_value = static_cast<std::make_unsigned_t<value_t>>(value);
-                return shift[u_value];
+                //const auto u_value = static_cast<std::make_unsigned_t<value_t>>(value);
+                return shift[static_cast<std::make_unsigned_t<value_t>>(value)];
             }
 
-            std::equal_to<> key_eq()const { return {}; }
+            Pred_eq key_eq()const { return {}; }
 
         private:
             diff_t* shift;
@@ -253,10 +258,14 @@ namespace wjr {
         }
     }
 
+    template<typename value_type,typename Traits>
+    struct can_make_bit_map : std::conditional_t<
+        std::is_integral_v<value_type> && sizeof(value_type) == 1 &&
+        is_default_equal<Traits>::value,std::true_type,std::false_type>{ };
+
     template<typename RanItPat, typename Hash_ty, typename Pred_eq, typename value_t =
         typename std::iterator_traits<RanItPat>::value_type>
-        using skmp_searcher_traits = std::conditional_t<std::is_integral_v<value_t> && sizeof(value_t) == 1
-        && (std::is_same_v<std::equal_to<>, Pred_eq> || std::is_same_v<std::equal_to<value_t>, Pred_eq>),
+    using skmp_searcher_traits = std::conditional_t<can_make_bit_map<value_t,Pred_eq>::value,
         skmp_searcher_char_builder <RanItPat, Hash_ty, Pred_eq>,
         skmp_searcher_general_builder<RanItPat, Hash_ty, Pred_eq>>;
 
@@ -333,20 +342,38 @@ namespace wjr {
 
         const auto pattern_first = Searcher.get_first();
         const auto pattern_back = pattern_first + (size - 1);
+        const auto& ch = *pattern_back;
 
         const auto text_first = First;
         const auto text_back = Last - 1;
+        auto text_ptr = text_first + (size - 1);
 
         const auto Eq = Searcher.key_eq();
         const auto fshift = Searcher.get_fshift();
         const auto fm = Searcher.get_fm();
-        const auto& ch = *pattern_back;
-        auto text_ptr = text_first + size - 1;
 
-        diff_t sufsearch = 0, alsearch = 0;
+        diff_t sufsearch = size, alsearch = 0;
         diff_t res = text_back - text_ptr;
 
         for (;;) {
+
+            if (!Eq(*text_ptr, ch)) {
+                // find at least one match
+                do {
+                    if (text_ptr == text_back) {
+                        return { Last,Last };
+                    }
+                    const auto def = Searcher.get_shift(*(text_ptr + 1));
+                    if (def > res) {
+                        return { Last,Last };
+                    }
+                    text_ptr += def;
+                    res -= def;
+                } while (!Eq(*text_ptr, ch));
+                sufsearch = size;
+                alsearch = 0;
+            }
+
             auto s_text_ptr = text_ptr;
             auto s_pattern_ptr = pattern_back;
             const auto s_ptr_mid = text_ptr - sufsearch;
@@ -409,9 +436,12 @@ namespace wjr {
 
             if (sufsearch > res)
                 break;
+
             text_ptr += sufsearch;
             res -= sufsearch;
             
+            /*
+        #ifndef STRING_SEARCHER_DISABLE_MEMCHR_TEST
             if constexpr (is_has_find::value) {
                 const auto l = sufsearch + alsearch;
                 if (l <= 32 && !Eq(*text_ptr, ch)) {
@@ -423,7 +453,8 @@ namespace wjr {
                     if (delta >= l) {
                         res -= delta;
                         text_ptr += delta;
-                        sufsearch = alsearch = 0;
+                        sufsearch = size;
+                        alsearch = 0;
                     }
                 }
             }
@@ -440,14 +471,19 @@ namespace wjr {
                         if (delta >= l) {
                             res -= delta;
                             text_ptr += delta;
-                            sufsearch = alsearch = 0;
+                            sufsearch = size;
+                            alsearch = 0;
                         }
                     }
                 }
             }
+        #else
+        #endif
+        */
 
-            if (sufsearch >= size) {
-                sufsearch = alsearch = 0;
+            if (sufsearch > size) {
+                sufsearch = size;
+                //alsearch = 0;
             }
         }
         return { Last,Last };
@@ -864,6 +900,17 @@ namespace wjr {
         }
     };
 
+    template<typename Char>
+    struct is_default_equal<std::char_traits<Char>> : std::true_type {};
+
+    template<typename Char,typename Traits>
+    struct is_default_equal<simple_String_find_traits<Char, Traits>> :
+        is_default_equal<Traits> {};
+
+    template<typename Char,typename Traits>
+    struct is_default_equal<simple_String_rfind_traits<Char,Traits>> : 
+        is_default_equal<Traits> {};
+
     template<typename Traits>
     struct case_insensitive_traits : public Traits {
         using base = Traits;
@@ -909,45 +956,6 @@ namespace wjr {
 
     template<typename T>
     using case_insensitive_String_t = typename case_insensitive_String<T>::type;
-
-    template<typename Traits>
-    struct basic_String_traits_info {
-        using char_type = typename Traits::char_type;
-        using traits_type = Traits;
-        using is_default_eq = std::false_type;
-        using can_make_bitmap = std::false_type;
-    };
-
-    template<typename Traits>
-    struct String_traits_info : basic_String_traits_info<Traits> {
-        using char_type = typename Traits::char_type;
-        using is_default_eq = std::false_type;
-        using can_make_bitmap = std::conditional_t<std::is_integral_v<char_type> && sizeof(char_type) <= 1
-            && std::conjunction_v<is_default_eq>,
-            std::true_type, std::false_type>;
-    };
-
-    template<typename Char>
-    struct String_traits_info<std::char_traits<Char>> : 
-        basic_String_traits_info<std::char_traits<Char>> {
-        using char_type = typename std::char_traits<Char>::char_type;
-        using is_default_eq = std::true_type;
-        using can_make_bitmap = std::conditional_t< std::is_integral_v<char_type> && sizeof(char_type) <= 1
-            && std::conjunction_v<is_default_eq>,
-            std::true_type, std::false_type>;
-    };
-
-    template<typename Char, typename Traits>
-    struct String_traits_info<simple_String_find_traits<Char, Traits>> :
-        basic_String_traits_info< simple_String_find_traits<Char, Traits>> {
-        using is_default_eq = typename String_traits_info<Traits>::is_default_eq;
-    };
-
-    template<typename Char, typename Traits>
-    struct String_traits_info<simple_String_rfind_traits<Char, Traits>> :
-        basic_String_traits_info< simple_String_rfind_traits<Char, Traits>> {
-        using is_default_eq = typename String_traits_info<Traits>::is_default_eq;
-    };
 
     template<typename Char, typename Traits = std::char_traits<Char>>
     class basic_String_view;
@@ -1043,10 +1051,10 @@ namespace wjr {
     public:
 
         using string_find_of_helper = std::conditional_t<
-            std::conjunction_v<typename String_traits_info<Traits>::can_make_bitmap>,
+            can_make_bit_map<value_type,traits_type>::value,
             bit_map,
-            std::conditional_t<std::conjunction_v<typename
-            String_traits_info<Traits>::is_default_eq>, general_map, typename general_map::large_map>>;
+            std::conditional_t<is_default_equal<Traits>::value
+            , general_map, typename general_map::large_map>>;
 
         static string_find_of_helper trim_map;
 
@@ -4111,7 +4119,7 @@ namespace wjr {
         template<typename T = Traits>
         static typename non_default_traits<T>::string_find_helper
             get_find_helper(const basic_String& s) {
-            return get_find_helper<T>(s.data(),s.size());
+            return get_find_helper<T>(s.begin(),s.end());
         }
 
         template<typename T = Traits>

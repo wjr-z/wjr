@@ -12,7 +12,7 @@
 
 namespace wjr {
 
-	// For performance reasons, there are only simple double reads for the time being
+	// For some reasons, there are only simple double reads for the time being
 	inline double power_of_10(int index);
 	double read_double(const char*s,const char*e,const char*&next);
 
