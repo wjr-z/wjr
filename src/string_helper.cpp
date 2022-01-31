@@ -4,7 +4,8 @@
 #include <cassert>
 
 namespace wjr {
-
+	
+	// It will be modified later
 	inline double power_of_10(int index) {
 		struct pw_cache {
 			double pw10[310], npw10[310];
@@ -22,10 +23,8 @@ namespace wjr {
 	}
 
 	double read_double(const char* s,const char*e,const char*& next) {
-		auto* ptr = (const uint8_t*)s;
 		bool neg = false;
-
-		for(;!isdigit_or_sign(*ptr);++ptr);
+		auto*ptr = (const uint8_t*)skip_whitespace(s,e);
 		switch (*ptr) {
 		case '-':neg = true;++ptr;break;
 		case '+':++ptr;break;

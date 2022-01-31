@@ -8,6 +8,9 @@
 #include <random>
 #include <type_traits>
 #include <locale>
+#ifdef __SSE4_2__
+#include <intrin.h>
+#endif
 
 namespace wjr {
 
@@ -21,7 +24,33 @@ namespace wjr {
 #define wis_little_endian true
 #endif
 
-	inline namespace mt_type_traits {
+#if defined(__has_builtin)
+#define whas_builtin(x) __has_builtin(x)
+#else
+#define whas_builtin(x) 0
+#endif
+
+#if whas_builtin(__builtin_expect)
+#ifndef likely
+#define likely(expr) __builtin_expect(!!(expr), 1)
+#endif
+#ifndef unlikely
+#define unlikely(expr) __builtin_expect(!!(expr),0)
+#endif
+#else
+#ifndef likely
+#define likely(expr) expr
+#endif
+#ifndef unlikely
+#define unlikely(expr) expr
+#endif
+#endif
+
+#ifndef USHORT_MAX
+#define USHORT_MAX 0xFFFF
+#endif
+
+	inline namespace wjr_type_traits {
 
 		template<typename...>
 		struct is_any_of {
@@ -150,6 +179,37 @@ namespace wjr {
 			return fnv1a_append_bytes(
 				_FNV_offset_basis, _First, _Count);
 		}
+	}
+
+	inline namespace wjr_mem {
+		// ' ','\n','\r','\t' 
+		constexpr static bool is_white_space_char[256] = { 0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+		};
+
+		constexpr static void* simple_skip_whitespace(const void* _s, const void* _e) {
+			const uint8_t* s = (const uint8_t*)_s,*e = (const uint8_t*)_e;
+			while (s != e && is_white_space_char[*s])++s;
+			return (void*)s;
+		}
+
+		constexpr static void* skip_whitespace(const void* s, const void* e) {
+		#ifdef __SSE4_2__
+			if (is_white_space[*s])
+				++s;
+			else return s;
+
+			static const char whitespace[16] = " \n\r\t";
+			const __m128i w = _mm_load_si128((const __m128i*) & whitespace[0]);
+			for (; s <= e - 16; s += 16) {
+				const __m128i ss = _mm_loadu_si128(reinterpret_cast<const __m128i*>(s));
+				const int r = _mm_cmpistri(w, ss, _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_ANY | _SIDD_LEAST_SIGNIFICANT | _SIDD_NEGATIVE_POLARITY);
+				if (r != 16)
+					return s + r;
+			}
+		#endif
+			return simple_skip_whitespace(s, e);
+		}
+
 	}
 
 }

@@ -61,8 +61,6 @@ namespace wjr {
         auto al = mallocator<diff_t>();
         fshift = al.allocate(2 * (size + 1));
         fm = fshift + (size + 1);
-        //fshift = al.allocate(size + 1);
-        //fm = al.allocate(size + 1);
 
         diff_t* fnxt = al.allocate(size + 1);
         diff_t i = 0, j = -1;
@@ -112,8 +110,6 @@ namespace wjr {
         auto al = mallocator<diff_t>();
         fshift = al.allocate(2 * (size + 1));
         fm = fshift + (size + 1);
-        //fshift = al.allocate(size + 1);
-        //fm = al.allocate(size + 1);
         std::copy(other.fshift, other.fshift + size + 1, fshift);
         std::copy(other.fm, other.fm + size + 1, fm);
     }
@@ -129,11 +125,8 @@ namespace wjr {
     template<typename RanItPat, typename Pred_eq>
     skmp_searcher_fshift_builder<RanItPat, Pred_eq>::
         ~skmp_searcher_fshift_builder() {
-        auto al = mallocator<diff_t>();
-        if (fshift) {
-            al.deallocate(fshift,2 * (size + 1));
-            //al.deallocate(fshift, size + 1);
-            //al.deallocate(fm, size + 1);
+        if (fshift != nullptr) {
+            mallocator<diff_t>().deallocate(fshift,2 * (size + 1));
         }
     }
 
@@ -332,11 +325,11 @@ namespace wjr {
         )const {
         const auto size = Searcher.get_size();
 
-        if (size == 0) {
+        if (unlikely(size == 0)) {
             return { First,First };
         }
 
-        if (Last - First < size) {
+        if (unlikely(Last - First < size)) {
             return { Last,Last };
         }
 
@@ -360,11 +353,11 @@ namespace wjr {
             if (!Eq(*text_ptr, ch)) {
                 // find at least one match
                 do {
-                    if (text_ptr == text_back) {
+                    if (unlikely(text_ptr == text_back)) {
                         return { Last,Last };
                     }
                     const auto def = Searcher.get_shift(*(text_ptr + 1));
-                    if (def > res) {
+                    if (unlikely(def > res)) {
                         return { Last,Last };
                     }
                     text_ptr += def;
@@ -404,7 +397,7 @@ namespace wjr {
                 }
             }
 
-            if (text_ptr == text_back) {
+            if (unlikely(text_ptr == text_back)) {
                 break;
             }
 
@@ -434,58 +427,17 @@ namespace wjr {
                 }
             }
 
-            if (sufsearch > res)
+            if (unlikely(sufsearch > res))
                 break;
 
             text_ptr += sufsearch;
             res -= sufsearch;
-            
-            /*
-        #ifndef STRING_SEARCHER_DISABLE_MEMCHR_TEST
-            if constexpr (is_has_find::value) {
-                const auto l = sufsearch + alsearch;
-                if (l <= 32 && !Eq(*text_ptr, ch)) {
-                    auto pos = Pred_eq::find(text_ptr + 1, res, ch);
-                    if (pos == nullptr) {
-                        break;
-                    }
-                    const diff_t delta = (const value_t*)pos - text_ptr;
-                    if (delta >= l) {
-                        res -= delta;
-                        text_ptr += delta;
-                        sufsearch = size;
-                        alsearch = 0;
-                    }
-                }
-            }
-            else {
-                if constexpr (std::is_pointer_v<iter> &&
-                    std::is_same_v<Pred_eq, std::equal_to<>> &&
-                    sizeof(value_t) <= sizeof(int) && std::is_integral_v<value_t>) {
-                    const auto l = sufsearch + alsearch;
-                    if (l <= 32 && !Eq(*text_ptr, ch)) {
-                        void* pos = memchr((void*)(text_ptr + 1), ch, res);
-                        if (pos == nullptr)
-                            break;
-                        const diff_t delta = (const value_t*)pos - text_ptr;
-                        if (delta >= l) {
-                            res -= delta;
-                            text_ptr += delta;
-                            sufsearch = size;
-                            alsearch = 0;
-                        }
-                    }
-                }
-            }
-        #else
-        #endif
-        */
 
             if (sufsearch > size) {
                 sufsearch = size;
-                //alsearch = 0;
             }
         }
+
         return { Last,Last };
     }
 
@@ -1868,7 +1820,7 @@ namespace wjr {
     Val basic_String_traits<Char, Traits>::first_to_val_helper(const value_type* s, const value_type* e,
         const value_type*& next, bool* ok, int base) {
         using UVal = std::make_unsigned_t<Val>;
-        if (base > 36) {
+        if (unlikely(base > 36)) {
             set_nok(ok);
             return static_cast<Val>(0);
         }
@@ -1922,7 +1874,7 @@ namespace wjr {
     template<typename UVal, std::enable_if_t<std::is_unsigned_v<UVal>, int>>
     UVal basic_String_traits<Char, Traits>::first_to_val_helper(const value_type* s, const value_type* e,
         const value_type*& next, bool* ok, int base) {
-        if (base > 36) {
+        if (unlikely(base > 36)) {
             set_nok(ok);
             return static_cast<UVal>(0);
         }
@@ -1988,7 +1940,7 @@ namespace wjr {
         const value_type* s, const value_type* e,
         bool* ok, int base) {
         using UVal = std::make_unsigned_t<Val>;
-        if (base > 36) {
+        if (unlikely(base > 36)) {
             set_nok(ok);
             return static_cast<Val>(0);
         }
@@ -2041,7 +1993,7 @@ namespace wjr {
     UVal basic_String_traits<Char, Traits>::range_to_val_helper(
         const value_type* s, const value_type* e,
         bool* ok, int base) {
-        if (base > 36) {
+        if (unlikely(base > 36)) {
             set_nok(ok);
             return static_cast<UVal>(0);
         }
@@ -2108,7 +2060,7 @@ namespace wjr {
     Val basic_String_traits<Char, Traits>::
         unsafe_first_to_val_helper(const value_type* s, const value_type* e, const value_type*& next, int base) {
         using UVal = std::make_unsigned_t<Val>;
-        if (base > 36) {
+        if (unlikely(base > 36)) {
             return static_cast<Val>(0);
         }
         bool sign = true;
@@ -2139,7 +2091,7 @@ namespace wjr {
     template<typename UVal, std::enable_if_t<std::is_unsigned_v<UVal>, int>>
     UVal basic_String_traits<Char, Traits>::
         unsafe_first_to_val_helper(const value_type* s, const value_type* e, const value_type*& next, int base) {
-        if (base > 36) {
+        if (unlikely(base > 36)) {
             return static_cast<UVal>(0);
         }
         size_t pos = trim_left(s, static_cast<size_t>(e - s));
@@ -2185,7 +2137,7 @@ namespace wjr {
     Val basic_String_traits<Char, Traits>::
         unsafe_range_to_val_helper(const value_type* s, const value_type* e, int base) {
         using UVal = std::make_unsigned_t<Val>;
-        if (base > 36) {
+        if (unlikely(base > 36)) {
             return static_cast<Val>(0);
         }
         bool sign = true;
@@ -2218,7 +2170,7 @@ namespace wjr {
     template<typename UVal, std::enable_if_t<std::is_unsigned_v<UVal>, int>>
     UVal basic_String_traits<Char, Traits>::
         unsafe_range_to_val_helper(const value_type* s, const value_type* e, int base) {
-        if (base > 36) {
+        if (unlikely(base > 36)) {
             return static_cast<UVal>(0);
         }
         size_t pos = trim_left(s, static_cast<size_t>(e - s));
@@ -3330,42 +3282,44 @@ namespace wjr {
         ~basic_String() noexcept = default;
 
         basic_String& operator=(const basic_String& other) {
-            if (this != std::addressof(other)) {
-                assign(other.data(), other.size());
+            if (unlikely(this == std::addressof(other))) {
+                return *this;
             }
-            return *this;
+            return assign(other.data(),other.size());
         }
 
         basic_String& operator=(basic_String&& other)noexcept {
-            if (this != std::addressof(other)) {
-                this->~basic_String();
-                new (&core) Core(std::move(other.core));
+            if (unlikely(this == std::addressof(other))) {
+                return *this;
             }
+            this->~basic_String();
+            new (&core) Core(std::move(other.core));
             return *this;
         }
 
         template<typename T,typename C>
         basic_String& operator=(const basic_String<Char, T, C>& other) {
-            if (this != std::addressof(other)) {
-                assign(other.data(),other.size());
+            if (unlikely(this == std::addressof(other))) {
+                return *this;
             }
-            return *this;
+            return assign(other.data(),other.size());
         }
 
         template<typename T>
         basic_String& operator=(const basic_String<Char, T, Core>& other) {
-            if (this != std::addressof(other)) {
-                assign(other.data(), other.size());
+            if (unlikely(this == std::addressof(other))) {
+                return *this;
             }
-            return *this;
+            return assign(other.data(),other.size());
         }
 
         template<typename T>
         basic_String& operator=(basic_String<Char, T, Core>&& other) {
-            if (this != std::addressof(other)) {
-                this->~basic_String();
-                new (&core) Core(std::move(other.core));
+            if (unlikely(this == std::addressof(other))) {
+                return *this;
             }
+            this->~basic_String();
+            new (&core) Core(std::move(other.core));
             return *this;
         }
 
@@ -5236,7 +5190,7 @@ namespace wjr {
         if (std::isinf(val)) {
             return basic_String(default_traits::infs);
         }
-        if(prec > 99){prec = 99;}
+        if(unlikely(prec > 99)){prec = 99;}
         char form[6];
         char* pos = form;
         *(pos++) = static_cast<Char>('%');

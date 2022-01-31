@@ -402,7 +402,7 @@ namespace wjr {
 	using mallocator = basic_mallocator<T,false>;
 #else 
 	template<typename T>
-	using mallocator = tallocator<T>;
+	using mallocator = basic_mallocator<T,true>;
 #endif
 
 }

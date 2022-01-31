@@ -17,7 +17,7 @@ namespace wjr {
     using json_number  = double;
     using json_string  = String;
     using json_object  = std::map<json_string, json, std::less<json_string>,
-        mallocator<std::pair<const json_string, json>>>;
+                         mallocator<std::pair<const json_string, json>>>;
     using json_array   = std::vector<json,mallocator<json>>;
 
     class json {
@@ -67,24 +67,23 @@ namespace wjr {
 
         enum class value_t : uint8_t {
             undefined = 0x00,
-            null = 0x01,
-            boolean = 0x02,
-            number = 0x03,
-            string = 0x04,
-            object = 0x05,
-            array = 0x06,
+            null      = 0x01,
+            boolean   = 0x02,
+            number    = 0x03,
+            string    = 0x04,
+            object    = 0x05,
+            array     = 0x06,
         };
 
-        using Null = std::nullptr_t;
+        using Null    = std::nullptr_t;
         using Boolean = json_boolean;
-        using Number = json_number;
-        using String = json_string;
-        using Object = json_object;
-        using Array = json_array;
+        using Number  = json_number;
+        using String  = json_string;
+        using Object  = json_object;
+        using Array   = json_array;
 
         // only need to move copy Number when need to copy data of union
         static_assert(sizeof(Number) >= sizeof(String*),"");
-        static_assert((uint8_t)(value_t::undefined) == 0,"");
 
         using size_type = size_t;
 

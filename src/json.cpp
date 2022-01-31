@@ -3,43 +3,13 @@
 #include <cmath>
 #include <string>
 #include <algorithm>
-#if false
-#include <intrin.h>
-#endif
 
 namespace wjr {
 
     inline namespace json_memory {
-        
-        // ' ','\n','\r','\t' 
-        constexpr static bool is_white_space[256] ={0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-        };
 
         constexpr static size_t string_step[256] = { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
         };
-
-        const uint8_t* simple_skip_whitespace(const uint8_t* s, const uint8_t* e) {
-            while (s != e && is_white_space[*s])++s;
-            return s;
-        }
-
-        const uint8_t* skip_whitespace(const uint8_t* s,const uint8_t* e) {
-        #if false
-            if(is_white_space[*s])
-                ++s;
-            else return s;
-
-			static const char whitespace[16] = " \n\r\t";
-			const __m128i w = _mm_load_si128((const __m128i*)&whitespace[0]);
-			for (; s <= e - 16; s += 16) {
-				const __m128i ss = _mm_loadu_si128(reinterpret_cast<const __m128i*>(s));
-				const int r = _mm_cmpistri(w, ss, _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_ANY | _SIDD_LEAST_SIGNIFICANT | _SIDD_NEGATIVE_POLARITY);
-				if (r != 16)
-					return s + r;
-			}
-        #endif
-			return simple_skip_whitespace(s,e);
-		}
 
         const uint8_t* skip_string(const uint8_t* s, const uint8_t* e) {
             while (string_step[*s]) {
@@ -814,7 +784,7 @@ namespace wjr {
     bool check(const uint8_t*& s, const uint8_t* e,uint8_t state) {
         bool head = true;
         for (;;++s) {
-            s = skip_whitespace(s,e);
+            s = (uint8_t*)skip_whitespace(s,e);
             if(s == e)return false;
             if (state == '}') { // object
                 if (*s == '}') {
@@ -826,10 +796,10 @@ namespace wjr {
                 if(!check_string(s,e))
                     return false;
                 ++s;
-                s = skip_whitespace(s,e);
+                s = (uint8_t*)skip_whitespace(s,e);
                 if (s == e || *s != ':') return false;
                 ++s;
-                s = skip_whitespace(s, e);
+                s = (uint8_t*)skip_whitespace(s, e);
                 if (s == e) return false;
             }
             else {
@@ -878,7 +848,7 @@ namespace wjr {
                 break;
             }
 
-            s = skip_whitespace(s,e);
+            s = (uint8_t*)skip_whitespace(s,e);
             if(*s == ',')
                 continue;
             if(*s != state)
@@ -893,7 +863,7 @@ namespace wjr {
         const uint8_t* s = (const uint8_t*)str.data();
         const uint8_t* e = s + str.length();
 
-        s = skip_whitespace(s,e);
+        s = (uint8_t*)skip_whitespace(s,e);
 
         if(s == e) // empty
             return false;
@@ -903,13 +873,13 @@ namespace wjr {
             ++s;
             if(!check(s,e,']'))
                 return false;
-            s = skip_whitespace(s,e);
+            s = (uint8_t*)skip_whitespace(s,e);
             return s == e;
         case '{':
             ++s;
             if(!check(s,e,'}'))
                 return false;
-            s = skip_whitespace(s, e);
+            s = (uint8_t*)skip_whitespace(s, e);
             return s == e;
         default:
             return false;
@@ -1026,7 +996,7 @@ namespace wjr {
     }
 
     void json::dfs_parse(const uint8_t*& s,const uint8_t* e) {
-        s = skip_whitespace(s,e);
+        s = (uint8_t*)skip_whitespace(s,e);
         switch (*s) {
         case 'n': {
             vtype = (uint8_t)(value_t::null);
@@ -1051,24 +1021,24 @@ namespace wjr {
             new (_Object) Object();
             auto& obj = *_Object;
             ++s;
-            s = skip_whitespace(s,e);
+            s = (uint8_t*)skip_whitespace(s,e);
             // if is empty
             if (*s == '}') {
                 ++s;
                 break;
             }
             for (;;) {
-                s = skip_whitespace(s,e);
+                s = (uint8_t*)skip_whitespace(s,e);
                 assert(*s == '"');
                 ++s;
                 auto p = skip_string(s, e);
                 //auto iter = obj.insert_or_assign(String((const char*)s, p - s),json()).first;
                 auto& iter = obj[String((const char*)s,  p - s)] = json();
-                s = skip_whitespace(p + 1,e);
+                s = (uint8_t*)skip_whitespace(p + 1,e);
                 assert(*s == ':');
                 ++s;
                 iter.dfs_parse(s,e);
-                s = skip_whitespace(s,e);
+                s = (uint8_t*)skip_whitespace(s,e);
                 if (*s == '}') {
                     ++s;
                     break;
@@ -1084,7 +1054,7 @@ namespace wjr {
             new (_Array) Array();
             auto& arr = *_Array;
             ++s;
-            s = skip_whitespace(s,e);
+            s = (uint8_t*)skip_whitespace(s,e);
             if (*s == ']') {
                 ++s;
                 break;
@@ -1092,7 +1062,7 @@ namespace wjr {
             for (;;) {
                 arr.push_back(json());
                 arr.back().dfs_parse(s,e);
-                s = skip_whitespace(s,e);
+                s = (uint8_t*)skip_whitespace(s,e);
                 if (*s == ']') {
                     ++s;
                     break;
