@@ -371,32 +371,55 @@ namespace wjr {
 			return true;
 		};
 		
-		uint8_t buffer = 0 ;
+		unsigned long long buffer = 0;
 		int buffer_length = 0;
 
-		while (res >= (8 - buffer_length)) {
-			buffer = (buffer << (8 - buffer_length))
-					 | get_bit8(in, l, 8 - buffer_length);
-			res -= (8 - buffer_length);
-			if (dn[buffer].l) {
-				if (!dest_append((uint8_t)dn[buffer].next)) {
-					return -1;
+		if (res >= 8) {
+			buffer_length = l;
+			res -= l;
+			buffer = get_bit8(in,l,l);
+			while (res >= 8) {
+				buffer = buffer << 8 | (*in++);
+				buffer_length += 8;
+				res -= 8;
+				while (buffer_length >= 8) {
+					uint8_t ch = (buffer >> (buffer_length - 8)) & 0xFF;
+					if (dn[ch].l) {
+						if (!dest_append(dn[ch].next)) {
+							return -1;
+						}
+						buffer_length -= dn[ch].l;
+					}
+					else {
+						int x = dn[ch].next;
+						buffer_length -= 8 ;
+						while (buffer_length--) {
+							bool c = (buffer >> buffer_length) & 1;
+							x = tr[x].son[c];
+							if (tr[x].son[0] == USHORT_MAX) {
+								if (!dest_append((uint8_t)tr[x].son[1])) {
+									return -1;
+								}
+								break;
+							}
+						}
+						for (;buffer_length == -1;) {
+							buffer = *(in++);
+							res -= 8;
+							for (buffer_length = 7; buffer_length >= 0; --buffer_length) {
+								bool c = (buffer >> buffer_length) & 1;
+								x = tr[x].son[c];
+								if (tr[x].son[0] == USHORT_MAX) {
+									if (!dest_append((uint8_t)tr[x].son[1])) {
+										return -1;
+									}
+									break;
+								}
+							}
+						}
+					}
 				}
-				buffer_length = 8 - dn[buffer].l;
 				buffer &= buffer_mask[buffer_length];
-			}
-			else {
-				int x = dn[buffer].next;
-				do {
-					bool c = get_bit1(in, l);
-					x = tr[x].son[c];
-					--res;
-				}while(tr[x].son[0] != USHORT_MAX);
-				if (!dest_append((uint8_t)tr[x].son[1])) {
-					return -1;
-				}
-				buffer = 0;
-				buffer_length = 0;
 			}
 		}
 
