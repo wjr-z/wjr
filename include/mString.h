@@ -495,6 +495,10 @@ namespace wjr {
             return category() ? _Ml._Data : _Small;
         }
 
+        Char* mutableData() {
+            return data();
+        }
+
         const Char* c_str()const {
             return category() ? _Ml._Data : _Small;
         }
@@ -694,22 +698,15 @@ namespace wjr {
     template<typename Char>
     void String_core<Char>::shrink_to_fit() {
         // if is small then do nothing
-        if (category()) {
-            const size_t _size = MediumSize();
-            const size_t _capacity = _Ml.capacity();
-            if (_capacity < _size * 9 / 8) {
-                return;
-            }
-            Char* _data = _Ml._Data;
-            auto& al = Getal();
-            if (_size <= maxSmallSize) {
-                initSmall(_data, _size);
-            }
-            else {
-                initMedium(_data, _size);
-            }
-            al.deallocate(_data, _capacity + 1);
+        if (!category()) {
+            return;
         }
+        const size_t _size = _Ml._Size;
+        const size_t _capacity = _Ml.capacity();
+        if (_capacity < _size * 9 / 8) {
+            return;
+        }
+        String_core<Char>(data(), _size).swap(*this);
     }
 
     template<typename Char>
@@ -740,6 +737,654 @@ namespace wjr {
         setMediumSize(_Old_Size);
         setCapacity(new_size);
     }
+
+#ifdef TEST_SHARED_STRING
+    template <typename Pod>
+    inline void pod_copy(const Pod* b, const Pod* e, Pod* d) {
+        assert(b != nullptr);
+        assert(e != nullptr);
+        assert(d != nullptr);
+        assert(e >= b);
+        assert(d >= e || d + (e - b) <= b);
+        memcpy(d, b, (e - b) * sizeof(Pod));
+    }
+
+    static void* smart_realloc(void* data, size_t size, size_t capacity, size_t new_size) {
+        void* new_data = mallocator<void>().allocate(new_size);
+        memcpy(new_data,data,size);
+        mallocator<void>().deallocate(data,capacity);
+        return new_data;
+    }
+
+    //the code from facebook/folly/FBString.h
+    template <class Char>
+    class shared_String_core {
+    public:
+        shared_String_core() noexcept { 
+            reset(); 
+        }
+
+        shared_String_core(const shared_String_core& rhs) {
+            assert(&rhs != this);
+            switch (rhs.category()) {
+            case Category::isSmall:
+                copySmall(rhs);
+                break;
+            case Category::isMedium:
+                copyMedium(rhs);
+                break;
+            case Category::isLarge:
+                copyLarge(rhs);
+                break;
+            }
+            assert(size() == rhs.size());
+        }
+
+        shared_String_core& operator=(const shared_String_core& rhs) = delete;
+
+        shared_String_core(shared_String_core&& goner) noexcept {
+            // Take goner's guts
+            ml_ = goner.ml_;
+            // Clean goner's carcass
+            goner.reset();
+        }
+
+        shared_String_core(
+            const Char* const data,
+            const size_t size) {
+            if (size <= maxSmallSize) {
+                initSmall(data, size);
+            }
+            else if (size <= maxMediumSize) {
+                initMedium(data, size);
+            }
+            else {
+                initLarge(data, size);
+            }
+            assert(this->size() == size);
+        }
+
+        ~shared_String_core() noexcept {
+            if (category() == Category::isSmall) {
+                return;
+            }
+            destroyMediumLarge();
+        }
+
+        // swap below doesn't test whether &rhs == this (and instead
+        // potentially does extra work) on the premise that the rarity of
+        // that situation actually makes the check more expensive than is
+        // worth.
+        void swap(shared_String_core& rhs) {
+            auto const t = ml_;
+            ml_ = rhs.ml_;
+            rhs.ml_ = t;
+        }
+
+        // In C++11 data() and c_str() are 100% equivalent.
+        const Char* data() const { return c_str(); }
+
+        Char* data() { return c_str(); }
+
+        Char* mutableData() {
+            switch (category()) {
+            case Category::isSmall:
+                return small_;
+            case Category::isMedium:
+                return ml_.data_;
+            case Category::isLarge:
+                return mutableDataLarge();
+            }
+        }
+
+        const Char* c_str() const {
+            const Char* ptr = ml_.data_;
+            // With this syntax, GCC and Clang generate a CMOV instead of a branch.
+            ptr = (category() == Category::isSmall) ? small_ : ptr;
+            return ptr;
+        }
+
+        void shrink(const size_t delta) {
+            if (category() == Category::isSmall) {
+                shrinkSmall(delta);
+            }
+            else if (
+                category() == Category::isMedium || RefCounted::refs(ml_.data_) == 1) {
+                shrinkMedium(delta);
+            }
+            else {
+                shrinkLarge(delta);
+            }
+        }
+
+        void reserve(size_t minCapacity) {
+            switch (category()) {
+            case Category::isSmall:
+                reserveSmall(minCapacity);
+                break;
+            case Category::isMedium:
+                reserveMedium(minCapacity);
+                break;
+            case Category::isLarge:
+                reserveLarge(minCapacity);
+                break;
+            }
+            assert(capacity() >= minCapacity);
+        }
+
+        Char* expandNoinit(
+            const size_t delta,
+            bool expGrowth = false);
+
+        void push_back(Char c) { *expandNoinit(1, /* expGrowth = */ true) = c; }
+
+        size_t size() const {
+            size_t ret = ml_.size_;
+            if  constexpr  (wis_little_endian) {
+                // We can save a couple instructions, because the category is
+                // small if the last char, as unsigned, is <= maxSmallSize.
+                using UChar = std::make_unsigned_t<Char>;
+                using ssize_t = std::make_signed_t<size_t>;
+                auto maybeSmallSize = size_t(maxSmallSize) -
+                    size_t(static_cast<UChar>(small_[maxSmallSize]));
+                // With this syntax, GCC and Clang generate a CMOV instead of a branch.
+                ret = (static_cast<ssize_t>(maybeSmallSize) >= 0) ? maybeSmallSize : ret;
+            }
+            else {
+                ret = (category() == Category::isSmall) ? smallSize() : ret;
+            }
+            return ret;
+        }
+
+        size_t capacity() const {
+            switch (category()) {
+            case Category::isSmall:
+                return maxSmallSize;
+            case Category::isLarge:
+                // For large-sized strings, a multi-referenced chunk has no
+                // available capacity. This is because any attempt to append
+                // data would trigger a new allocation.
+                if (RefCounted::refs(ml_.data_) > 1) {
+                    return ml_.size_;
+                }
+                break;
+            case Category::isMedium:
+            default:
+                break;
+            }
+            return ml_.capacity();
+        }
+
+        bool isShared() const {
+            return category() == Category::isLarge && RefCounted::refs(ml_.data_) > 1;
+        }
+
+        void setSize(size_t new_size) {
+            if (category() == Category::isSmall) {
+                setSmallSize(new_size);
+            }
+            else {
+                ml_.size_ = new_size;
+                ml_.data_[new_size] = '\0';
+            }
+        }
+
+        void shrink_to_fit();
+
+    private:
+        Char* c_str() {
+            Char* ptr = ml_.data_;
+            // With this syntax, GCC and Clang generate a CMOV instead of a branch.
+            ptr = (category() == Category::isSmall) ? small_ : ptr;
+            return ptr;
+        }
+
+        void reset() { setSmallSize(0); }
+
+        void destroyMediumLarge() noexcept {
+            auto const c = category();
+            assert(c != Category::isSmall);
+            if (c == Category::isMedium) {
+                mallocator<Char>().deallocate(ml_.data_,ml_.capacity_ + 1);
+            }
+            else {
+                RefCounted::decrementRefs(ml_.data_,ml_.capacity_ + 1);
+            }
+        }
+
+        struct RefCounted {
+            std::atomic<size_t> refCount_;
+            Char data_[1];
+
+            constexpr static size_t getDataOffset() {
+                return offsetof(RefCounted, data_);
+            }
+
+            static RefCounted* fromData(Char* p) {
+                return static_cast<RefCounted*>(static_cast<void*>(
+                    static_cast<unsigned char*>(static_cast<void*>(p)) -
+                    getDataOffset()));
+            }
+
+            static size_t refs(Char* p) {
+                return fromData(p)->refCount_.load(std::memory_order_acquire);
+            }
+
+            static void incrementRefs(Char* p) {
+                fromData(p)->refCount_.fetch_add(1, std::memory_order_acq_rel);
+            }
+
+            static void decrementRefs(Char* p,size_t cnt) {
+                auto const dis = fromData(p);
+                size_t oldcnt = dis->refCount_.fetch_sub(1, std::memory_order_acq_rel);
+                assert(oldcnt > 0);
+                if (oldcnt == 1) {
+                    mallocator<void>().deallocate(dis,getDataOffset() + cnt * sizeof(Char));
+                }
+            }
+
+            static RefCounted* create(size_t size) {
+                const size_t allocSize =
+                    getDataOffset() + (size + 1) * sizeof(Char);
+                auto result = static_cast<RefCounted*>(mallocator<void>().allocate(allocSize));
+                result->refCount_.store(1, std::memory_order_release);
+                return result;
+            }
+
+            static RefCounted* create(const Char* data, size_t size) {
+                const size_t effectiveSize = size;
+                auto result = create(size);
+                if (likely(effectiveSize > 0)) {
+                    memcpy(result->data_,data,effectiveSize * sizeof(Char));
+                }
+                return result;
+            }
+
+            static RefCounted* reallocate(
+                Char* const data,
+                const size_t currentSize,
+                const size_t currentCapacity,
+                size_t newCapacity) {
+                assert(newCapacity > 0 && newCapacity > currentSize);
+                const size_t allocNewCapacity = getDataOffset() + (newCapacity + 1) * sizeof(Char);
+                auto const dis = fromData(data);
+                assert(dis->refCount_.load(std::memory_order_acquire) == 1);
+                auto result = static_cast<RefCounted*>(smart_realloc(
+                    dis,
+                    getDataOffset() + (currentSize + 1) * sizeof(Char),
+                    getDataOffset() + (currentCapacity + 1) * sizeof(Char),
+                    allocNewCapacity));
+                assert(result->refCount_.load(std::memory_order_acquire) == 1);
+                return result;
+            }
+        };
+
+        typedef uint8_t category_type;
+
+        enum class Category : category_type {
+            isSmall = 0,
+            isMedium = wis_little_endian ? 0x80 : 0x2,
+            isLarge = wis_little_endian ? 0x40 : 0x1,
+        };
+
+        Category category() const {
+            // works for both big-endian and little-endian
+            return static_cast<Category>(bytes_[lastChar] & categoryExtractMask);
+        }
+
+        struct MediumLarge {
+            Char* data_;
+            size_t size_;
+            size_t capacity_;
+
+            size_t capacity() const {
+                return wis_little_endian ? capacity_ & capacityExtractMask : capacity_ >> 2;
+            }
+
+            void setCapacity(size_t cap, Category cat) {
+                capacity_ = wis_little_endian
+                    ? cap | (static_cast<size_t>(cat) << kCategoryShift)
+                    : (cap << 2) | static_cast<size_t>(cat);
+            }
+        };
+
+        union {
+            uint8_t bytes_[sizeof(MediumLarge)]; // For accessing the last byte.
+            Char small_[sizeof(MediumLarge) / sizeof(Char)];
+            MediumLarge ml_;
+        };
+
+        constexpr static size_t lastChar = sizeof(MediumLarge) - 1;
+        constexpr static size_t maxSmallSize = lastChar / sizeof(Char);
+        constexpr static size_t maxMediumSize = 254 / sizeof(Char);
+        constexpr static uint8_t categoryExtractMask = wis_little_endian ? 0xC0 : 0x3;
+        constexpr static size_t kCategoryShift = (sizeof(size_t) - 1) * 8;
+        constexpr static size_t capacityExtractMask = wis_little_endian
+            ? ~(size_t(categoryExtractMask) << kCategoryShift)
+            : 0x0 /* unused */;
+
+        static_assert(
+            !(sizeof(MediumLarge) % sizeof(Char)),
+            "Corrupt memory layout for fbstring.");
+
+        size_t smallSize() const {
+            assert(category() == Category::isSmall);
+            constexpr auto shift = wis_little_endian ? 0 : 2;
+            auto smallShifted = static_cast<size_t>(small_[maxSmallSize]) >> shift;
+            assert(static_cast<size_t>(maxSmallSize) >= smallShifted);
+            return static_cast<size_t>(maxSmallSize) - smallShifted;
+        }
+
+        void setSmallSize(size_t s) {
+            // Warning: this should work with uninitialized strings too,
+            // so don't assume anything about the previous value of
+            // small_[maxSmallSize].
+            assert(s <= maxSmallSize);
+            constexpr auto shift = wis_little_endian ? 0 : 2;
+            small_[maxSmallSize] = char((maxSmallSize - s) << shift);
+            small_[s] = '\0';
+            assert(category() == Category::isSmall && size() == s);
+        }
+
+        void copySmall(const shared_String_core&);
+        void copyMedium(const shared_String_core&);
+        void copyLarge(const shared_String_core&);
+
+        void initSmall(const Char* data, size_t size);
+        void initMedium(const Char* data, size_t size);
+        void initLarge(const Char* data, size_t size);
+
+        void reserveSmall(size_t minCapacity);
+        void reserveMedium(size_t minCapacity);
+        void reserveLarge(size_t minCapacity);
+
+        void shrinkSmall(size_t delta);
+        void shrinkMedium(size_t delta);
+        void shrinkLarge(size_t delta);
+
+        void unshare(size_t minCapacity = 0);
+        Char* mutableDataLarge();
+    };
+
+    template <class Char>
+    inline void shared_String_core<Char>::copySmall(const shared_String_core& rhs) {
+        static_assert(offsetof(MediumLarge, data_) == 0, "fbstring layout failure");
+        static_assert(
+            offsetof(MediumLarge, size_) == sizeof(ml_.data_),
+            "fbstring layout failure");
+        static_assert(
+            offsetof(MediumLarge, capacity_) == 2 * sizeof(ml_.data_),
+            "fbstring layout failure");
+        // Just write the whole thing, don't look at details. In
+        // particular we need to copy capacity anyway because we want
+        // to set the size (don't forget that the last character,
+        // which stores a short string's length, is shared with the
+        // ml_.capacity field).
+        ml_ = rhs.ml_;
+        assert(category() == Category::isSmall && this->size() == rhs.size());
+    }
+
+    template <class Char>
+    void shared_String_core<Char>::copyMedium(const shared_String_core& rhs) {
+        // Medium strings are copied eagerly. Don't forget to allocate
+        // one extra Char for the null terminator.
+        auto const allocSize = (1 + rhs.ml_.size_) * sizeof(Char);
+        ml_.data_ = static_cast<Char*>(mallocator<void>().allocate(allocSize));
+        // Also copies terminator.
+        pod_copy(
+            rhs.ml_.data_, rhs.ml_.data_ + rhs.ml_.size_ + 1, ml_.data_);
+        ml_.size_ = rhs.ml_.size_;
+        ml_.setCapacity(rhs.ml_.size_, Category::isMedium);
+        assert(category() == Category::isMedium);
+    }
+
+    template <class Char>
+    void shared_String_core<Char>::copyLarge(const shared_String_core& rhs) {
+        // Large strings are just refcounted
+        ml_ = rhs.ml_;
+        RefCounted::incrementRefs(ml_.data_);
+        assert(category() == Category::isLarge && size() == rhs.size());
+    }
+
+    // Small strings are bitblitted
+    template <class Char>
+    inline void shared_String_core<Char>::initSmall(
+        const Char* const data, const size_t size) {
+        // Layout is: Char* data_, size_t size_, size_t capacity_
+        static_assert(
+            sizeof(*this) == sizeof(Char*) + 2 * sizeof(size_t),
+            "fbstring has unexpected size");
+        static_assert(
+            sizeof(Char*) == sizeof(size_t), "fbstring size assumption violation");
+        // sizeof(size_t) must be a power of 2
+        static_assert(
+            (sizeof(size_t) & (sizeof(size_t) - 1)) == 0,
+            "fbstring size assumption violation");
+
+        memcpy(small_,data,size * sizeof(Char));
+        setSmallSize(size);
+    }
+
+    template <class Char>
+    void shared_String_core<Char>::initMedium(
+        const Char* const data, const size_t size) {
+        // Medium strings are allocated normally. Don't forget to
+        // allocate one extra Char for the terminating null.
+        auto const allocSize = (1 + size) * sizeof(Char);
+        ml_.data_ = static_cast<Char*>(mallocator<void>().allocate(allocSize));
+        if (likely(size > 0)) {
+            pod_copy(data, data + size, ml_.data_);
+        }
+        ml_.size_ = size;
+        ml_.setCapacity(size, Category::isMedium);
+        ml_.data_[size] = '\0';
+    }
+
+    template <class Char>
+    void shared_String_core<Char>::initLarge(
+        const Char* const data, const size_t size) {
+        // Large strings are allocated differently
+        size_t effectiveCapacity = size;
+        auto const newRC = RefCounted::create(data, effectiveCapacity);
+        ml_.data_ = newRC->data_;
+        ml_.size_ = size;
+        ml_.setCapacity(effectiveCapacity, Category::isLarge);
+        ml_.data_[size] = '\0';
+    }
+
+    template <class Char>
+    void shared_String_core<Char>::unshare(size_t minCapacity) {
+        assert(category() == Category::isLarge);
+        size_t effectiveCapacity = std::max(minCapacity, ml_.capacity());
+        auto const newRC = RefCounted::create(effectiveCapacity);
+        // If this fails, someone placed the wrong capacity in an
+        // fbstring.
+        assert(effectiveCapacity >= ml_.capacity());
+        // Also copies terminator.
+        pod_copy(ml_.data_, ml_.data_ + ml_.size_ + 1, newRC->data_);
+        RefCounted::decrementRefs(ml_.data_,ml_.capacity_ + 1);
+        ml_.data_ = newRC->data_;
+        ml_.setCapacity(effectiveCapacity, Category::isLarge);
+        // size_ remains unchanged.
+    }
+
+    template <class Char>
+    inline Char* shared_String_core<Char>::mutableDataLarge() {
+        assert(category() == Category::isLarge);
+        if (RefCounted::refs(ml_.data_) > 1) { // Ensure unique.
+            unshare();
+        }
+        return ml_.data_;
+    }
+
+    template <class Char>
+    void shared_String_core<Char>::reserveLarge(size_t minCapacity) {
+        assert(category() == Category::isLarge);
+        if (RefCounted::refs(ml_.data_) > 1) { // Ensure unique
+          // We must make it unique regardless; in-place reallocation is
+          // useless if the string is shared. In order to not surprise
+          // people, reserve the new block at current capacity or
+          // more. That way, a string's capacity never shrinks after a
+          // call to reserve.
+            unshare(minCapacity);
+        }
+        else {
+            // String is not shared, so let's try to realloc (if needed)
+            if (minCapacity > ml_.capacity()) {
+                // Asking for more memory
+                auto const newRC = RefCounted::reallocate(
+                    ml_.data_, ml_.size_, ml_.capacity(), minCapacity);
+                ml_.data_ = newRC->data_;
+                ml_.setCapacity(minCapacity, Category::isLarge);
+            }
+            assert(capacity() >= minCapacity);
+        }
+    }
+
+    template <class Char>
+    void shared_String_core<Char>::reserveMedium(
+        const size_t minCapacity) {
+        assert(category() == Category::isMedium);
+        // String is not shared
+        if (minCapacity <= ml_.capacity()) {
+            return; // nothing to do, there's enough room
+        }
+        if (minCapacity <= maxMediumSize) {
+            // Keep the string at medium size. Don't forget to allocate
+            // one extra Char for the terminating null.
+            size_t capacityBytes = (1 + minCapacity) * sizeof(Char);
+            // Also copies terminator.
+            ml_.data_ = static_cast<Char*>(smart_realloc(
+                ml_.data_,
+                (ml_.size_ + 1) * sizeof(Char),
+                (ml_.capacity() + 1) * sizeof(Char),
+                capacityBytes));
+            ml_.setCapacity(capacityBytes / sizeof(Char) - 1, Category::isMedium);
+        }
+        else {
+            // Conversion from medium to large string
+            shared_String_core nascent;
+            // Will recurse to another branch of this function
+            nascent.reserve(minCapacity);
+            nascent.ml_.size_ = ml_.size_;
+            // Also copies terminator.
+            pod_copy(
+                ml_.data_, ml_.data_ + ml_.size_ + 1, nascent.ml_.data_);
+            nascent.swap(*this);
+            assert(capacity() >= minCapacity);
+        }
+    }
+
+    template <class Char>
+    void shared_String_core<Char>::reserveSmall(
+        size_t minCapacity) {
+        assert(category() == Category::isSmall);
+        if (minCapacity <= maxSmallSize) {
+            // small
+            // Nothing to do, everything stays put
+        }
+        else if (minCapacity <= maxMediumSize) {
+            // medium
+            // Don't forget to allocate one extra Char for the terminating null
+            auto const allocSizeBytes =
+                (1 + minCapacity) * sizeof(Char);
+            auto const pData = static_cast<Char*>(mallocator<void>().allocate(allocSizeBytes));
+            auto const size = smallSize();
+            // Also copies terminator.
+            pod_copy(small_, small_ + size + 1, pData);
+            ml_.data_ = pData;
+            ml_.size_ = size;
+            ml_.setCapacity(allocSizeBytes / sizeof(Char) - 1, Category::isMedium);
+        }
+        else {
+            // large
+            auto const newRC = RefCounted::create(minCapacity);
+            auto const size = smallSize();
+            // Also copies terminator.
+            pod_copy(small_, small_ + size + 1, newRC->data_);
+            ml_.data_ = newRC->data_;
+            ml_.size_ = size;
+            ml_.setCapacity(minCapacity, Category::isLarge);
+            assert(capacity() >= minCapacity);
+        }
+    }
+
+    template <class Char>
+    inline Char* shared_String_core<Char>::expandNoinit(
+        const size_t delta,
+        bool expGrowth /* = false */) {
+        // Strategy is simple: make room, then change size
+        assert(capacity() >= size());
+        size_t sz, newSz;
+        if (category() == Category::isSmall) {
+            sz = smallSize();
+            newSz = sz + delta;
+            if (likely(newSz <= maxSmallSize)) {
+                setSmallSize(newSz);
+                return small_ + sz;
+            }
+            reserveSmall(
+                expGrowth ? std::max(newSz, 2 * maxSmallSize) : newSz);
+        }
+        else {
+            sz = ml_.size_;
+            newSz = sz + delta;
+            if (unlikely(newSz > capacity())) {
+                // ensures not shared
+                reserve(expGrowth ? std::max(newSz, 1 + capacity() * 3 / 2) : newSz);
+            }
+        }
+        assert(capacity() >= newSz);
+        // Category can't be small - we took care of that above
+        assert(category() == Category::isMedium || category() == Category::isLarge);
+        ml_.size_ = newSz;
+        ml_.data_[newSz] = '\0';
+        assert(size() == newSz);
+        return ml_.data_ + sz;
+    }
+
+    template <class Char>
+    inline void shared_String_core<Char>::shrinkSmall(const size_t delta) {
+        // Check for underflow
+        assert(delta <= smallSize());
+        setSmallSize(smallSize() - delta);
+    }
+
+    template <class Char>
+    inline void shared_String_core<Char>::shrinkMedium(const size_t delta) {
+        // Medium strings and unique large strings need no special
+        // handling.
+        assert(ml_.size_ >= delta);
+        ml_.size_ -= delta;
+        ml_.data_[ml_.size_] = '\0';
+    }
+
+    template <class Char>
+    inline void shared_String_core<Char>::shrinkLarge(const size_t delta) {
+        assert(ml_.size_ >= delta);
+        // Shared large string, must make unique. This is because of the
+        // durn terminator must be written, which may trample the shared
+        // data.
+        if (delta) {
+            shared_String_core(ml_.data_, ml_.size_ - delta).swap(*this);
+        }
+        // No need to write the terminator.
+    }
+
+    template<class Char>
+    void shared_String_core<Char>::shrink_to_fit() {
+        if (category() == Category::isSmall) {
+            return ;
+        }
+        const size_t _size = ml_.size_;
+        const size_t _capacity = ml_.capacity();
+        if (_capacity <= _size * 9 / 8) {
+            return;
+        }
+        shared_String_core<Char>(data(),_size).swap(*this);
+    }
+
+#endif // TEST_SHARED_STRING
 
     struct Uninitialized {}; // used for uninitialized String,and will initialize size
 
@@ -3342,11 +3987,11 @@ namespace wjr {
             return assign(s.data(),s.size());
         }
 
-        iterator begin() { return core.data(); }
+        iterator begin() { return core.mutableData()(); }
         const_iterator begin()const { return core.data(); }
         const_iterator cbegin()const { return begin(); }
 
-        iterator end() { return core.data() + core.size(); }
+        iterator end() { return core.mutableData() + core.size(); }
         const_iterator end()const { return core.data() + core.size(); }
         const_iterator cend()const { return end(); }
 
@@ -3957,6 +4602,8 @@ namespace wjr {
         value_type* data() { return core.data(); }
         const value_type* data() const { return core.data(); }
 
+        value_type* mutable_data() { return core.mutableData(); }
+
         bool empty()const { return core.empty(); }
 
         // by using template that you
@@ -4471,7 +5118,7 @@ namespace wjr {
         long long to_ll(const value_type*& next, bool* ok = nullptr, int base = 10)const;
         unsigned long long to_ull(const value_type*& next, bool* ok = nullptr, int base = 10)const;
 
-        size_t hash()const {
+        size_t hash_code()const {
             return std::hash<basic_String<Char,Traits,Core>>()(*this);
         }
 
@@ -4746,7 +5393,7 @@ namespace wjr {
             resize(0);
         }
         else if (size() >= n) {
-            memmove(core.data(), s, sizeof(value_type) * n);
+            memmove(core.mutableData(), s, sizeof(value_type) * n);
             core.shrink(size() - n);
         }
         else {
@@ -5811,7 +6458,32 @@ namespace wjr {
     using u16String_view = basic_String_view<char16_t,std::char_traits<char16_t>>;
     using u32String_view = basic_String_view<char32_t,std::char_traits<char32_t>>;
 
+#ifdef TEST_SHARED_STRING
+
+    using shared_String = basic_String<char, std::char_traits<char>, shared_String_core<char>>;
+    using shared_wString = basic_String<wchar_t, std::char_traits<wchar_t>, shared_String_core<wchar_t>>;
+#ifdef __HAS_CXX20
+    using shared_u8String = basic_String<char8_t, std::char_traits<char8_t>, shared_String_core<char8_t>>;
+#endif
+    using shared_u16String = basic_String<char16_t, std::char_traits<char16_t>, shared_String_core<char16_t>>;
+    using shared_u32String = basic_String<char32_t, std::char_traits<char32_t>, shared_String_core<char32_t>>;
+
+#endif
+
 }
+
+#ifdef TEST_SHARED_STRING
+#define DEFAULT_SHARED_STRING_HASH(T)                                                       \
+template<>                                                                                  \
+struct hash<wjr::basic_String<T, char_traits<T>, wjr::shared_String_core<T>>> {             \
+    size_t operator()(const wjr::basic_String<T,                                            \
+        char_traits<T>, wjr::shared_String_core<T>>& s)const {                              \
+        return wjr::hash_array_representation(s.data(),s.size());                           \
+    }                                                                                       \
+};
+#else 
+#define DEFAULT_SHARED_STRING_HASH(T)
+#endif
 
 #define DEFAULT_STRING_HASH(T)											                    \
 template<>																                    \
@@ -5826,6 +6498,7 @@ struct hash<wjr::basic_String_view<T,char_traits<T>>> {                         
         return wjr::hash_array_representation(s.data(),s.size());                           \
     }                                                                                       \
 };                                                                                          \
+DEFAULT_SHARED_STRING_HASH(T)
 
 namespace std {
     DEFAULT_STRING_HASH(char) 

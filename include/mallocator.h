@@ -1,6 +1,13 @@
 #ifndef __WJR_MALLOCATOR_H
 #define __WJR_MALLOCATOR_H
 
+//#define ALLOCATOR_DEBUG
+//#define __USE_THREADS
+
+#ifdef ALLOCATOR_DEBUG
+#include <cstdio>
+#endif
+
 #include <cstdint>
 #include <cstdlib>
 #include <cassert>
@@ -9,8 +16,6 @@
 #include <cstddef>
 
 namespace wjr {
-
-//#define __USE_THREADS
 
 	template <int __inst>
 	class __malloc_alloc_template__ {
@@ -137,6 +142,28 @@ namespace wjr {
 		static size_t heap_size;
 	};
 
+#ifdef ALLOCATOR_DEBUG
+	struct allocator_debuger {
+		allocator_debuger() 
+			: allocated_size(0){
+
+		}
+		~allocator_debuger() {
+			if (allocated_size == 0) {
+				printf("allocator no problem\n");
+			}
+			if (allocated_size > 0) {
+				printf("Some memory is not recycled\n");
+			}
+			if (allocated_size < 0) {
+				printf("Recycled excess memory\n");
+			}
+		}
+		long long allocated_size;
+	};
+	extern allocator_debuger allocator_debuger_ref;
+#endif
+
 	template <bool threads, int inst>
 	class __default_alloc_template__ {
 	private:
@@ -169,6 +196,9 @@ namespace wjr {
 			if (n > (size_t)__MAX_BYTES) {
 				return malloc_alloc::allocate(n);
 			}
+		#ifdef ALLOCATOR_DEBUG
+			allocator_debuger_ref.allocated_size += n;
+		#endif
 			obj* volatile* my_free_list = base::free_list + FREELIST_INDEX(n);
 			obj* result = *my_free_list;
 			if (result != nullptr) {
@@ -186,6 +216,9 @@ namespace wjr {
 				free(p);
 				return;
 			}
+		#ifdef ALLOCATOR_DEBUG
+			allocator_debuger_ref.allocated_size -= n;
+		#endif
 
 			obj* volatile* my_free_list = base::free_list + FREELIST_INDEX(n);
 			q->free_list_link = *my_free_list;
@@ -309,6 +342,8 @@ namespace wjr {
 		using size_type = size_t;
 		using difference_type = ptrdiff_t;
 
+		using is_always_equal = std::true_type;
+
 		template <typename _Other>
 		struct rebind {
 			using other = basic_mallocator<_Other,threads>;
@@ -372,6 +407,88 @@ namespace wjr {
 			return static_cast<size_t>(ALLOC_MAX_BYTES) / sizeof(Ty);
 		}
 
+	};
+
+	template<bool threads>
+	class basic_mallocator<void,threads> {
+	private:
+		using allocator_type = __default_alloc_template__<threads, 0>;
+	public:
+
+		using value_type = void;
+		//using reference = void&;
+		//using const_reference = const void&;
+		using pointer = void*;
+		using const_pointer = const void*;
+		using size_type = size_t;
+		using difference_type = ptrdiff_t;
+
+		using is_always_equal = std::true_type;
+
+		template <typename _Other>
+		struct rebind {
+			using other = basic_mallocator<_Other, threads>;
+		};
+
+		constexpr basic_mallocator() noexcept {}
+		constexpr basic_mallocator(const basic_mallocator&) noexcept = default;
+		template <class _Other>
+		constexpr basic_mallocator(const basic_mallocator<_Other, threads>&) noexcept {}
+		~basic_mallocator() = default;
+		basic_mallocator& operator=(const basic_mallocator&) noexcept = default;
+
+		void* allocate() {
+			return allocator_type::allocate(1);
+		}
+
+		void* allocate(size_t n) {
+			return !n ? nullptr : allocator_type::allocate(n);
+		}
+
+		void deallocate(void * ptr) {
+			allocator_type::deallocate(ptr, 1);
+		}
+
+		void deallocate(void * ptr, size_t n) {
+			if (n == 0) return;
+			allocator_type::deallocate(ptr, n);
+		}
+
+		/*
+		void construct(void * ptr) {
+			new(ptr)void();
+		}
+
+		void construct(void * ptr, const void & value) {
+			new(ptr)void(value);
+		}
+
+		void construct(void * ptr, void && value) {
+			new(ptr)void(std::forward<void>(value));
+		}
+
+		void destroy(void * ptr) {
+			if constexpr (!std::is_trivially_destructible_v<void>) {
+				ptr->~void();
+			}
+		}
+
+		void destroy(void * first, void * last) {
+			if constexpr (!std::is_trivially_destructible_v<void>) {
+				for (; first != last; ++first) {
+					first->~void();
+				}
+			}
+		}
+		*/
+
+		size_t max_size()const {
+			return static_cast<size_t>(-1);
+		}
+
+		constexpr static size_t max_small_size() {
+			return static_cast<size_t>(ALLOC_MAX_BYTES);
+		}
 	};
 
 	template<typename T,typename U,bool t1,bool t2>

@@ -1,5 +1,5 @@
-#ifndef WJR_HUFFMAN_H
-#define WJR_HUFFMAN_H
+#ifndef __WJR_HUFFMAN_H
+#define __WJR_HUFFMAN_H
 
 #include "mySTL.h"
 

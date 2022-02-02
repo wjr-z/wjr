@@ -1,6 +1,11 @@
 #include "../include/mallocator.h"
 
 namespace wjr {
+
+#ifdef ALLOCATOR_DEBUG
+	allocator_debuger allocator_debuger_ref;
+#endif
+
 	thread_local char* __basic_default_alloc_template__<true>::start_free = 0;
 
 	thread_local char* __basic_default_alloc_template__<true>::end_free = 0;
