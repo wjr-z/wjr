@@ -5,8 +5,17 @@
 
 namespace wjr {
 
-	extern size_t encode(const void* src,void * dest,size_t length);
-	extern size_t decode(const void* src,size_t l1,void * dest,size_t l2);
+	struct node_info {
+		uint8_t ch;
+		unsigned long long cnt;
+		bool operator<(const node_info& other)const {
+			return cnt < other.cnt;
+		}
+	};
+
+	extern void huffman_compress(node_info*arr,int tot);
+	extern size_t huffman_compress(const void* src,size_t length,void * dest);
+	extern size_t huffman_decompress(const void* src,size_t l1,void * dest,size_t l2);
 
 }
 

@@ -33,9 +33,10 @@ namespace wjr {
     };
 
     std::vector<String> get_all_files(const String&path);
-    String read_file(const String&filename);
-    void write_file(const String&filename,String_view str);
-    int create_file(const String&filename
+    size_t get_file_length(String_view file_name);
+    String read_file(String_view file_name);
+    void write_file(String_view file_name,String_view str);
+    int create_file(String_view file_name
     #ifdef __linux__
         ,__mode_t __mode = 0755
     #endif

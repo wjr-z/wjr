@@ -50,6 +50,28 @@ namespace wjr {
 #define USHORT_MAX 0xFFFF
 #endif
 
+#ifdef __USE_THREADS
+#define USE_THREAD_LOCAL thread_local
+#else
+#define USE_THREAD_LOCAL
+#endif
+
+#undef KB
+#define KB *(size_t(1) << 10)
+
+#undef MB
+#define MB *((size_t)(1) << 20)
+
+#undef GB
+#define GB *((size_t)(1) << 30)
+
+	inline namespace wjr_math {
+		constexpr unsigned int quick_log2(int x);
+		constexpr unsigned int quick_log2(unsigned int x);
+		constexpr unsigned int quick_log2(long long x);
+		constexpr unsigned int quick_log2(unsigned long long x) ;
+	}
+
 	inline namespace wjr_type_traits {
 
 		template<typename...>

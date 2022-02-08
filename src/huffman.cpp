@@ -4,22 +4,12 @@
 
 namespace wjr {
 
-	struct node_info { 
-		uint8_t ch;
-		unsigned long long cnt;
-		bool operator<(const node_info& other)const {
-			return cnt < other.cnt;
-		}
-	};
-
 	struct tree_node {
 		unsigned short son[2];
 	};
 
 	struct que_node {
 		short id;
-		uint8_t length; // length of code
-		unsigned long long code;
 	};
 
 	struct unique_mem {
@@ -38,11 +28,11 @@ namespace wjr {
 		0x01,
 		0x03,
 		0x07,
-		0x0f,
-		0x1f,
-		0x3f,
-		0x7f,
-		0xff
+		0x0F,
+		0x1F,
+		0x3F,
+		0x7F,
+		0xFF
 	};
 
 	void build_tree_step1(node_info* arr, tree_node* tr,int tot) {
@@ -118,42 +108,67 @@ namespace wjr {
 		}
 	}
 
-	void build_tree_step2(node_info*arr,tree_node*tr,que_node*que,int tot) {
+	void huffman_compress(node_info* arr, int tot) {
+		if (tot == 1) {
+			uint8_t ch = arr[0].ch;
+			arr[ch].ch = 1;
+			arr[ch].cnt = 0;
+			return ;
+		}
+		std::sort(arr, arr + tot);
+		int Maxn = tot;
+		for (int i = 0; i < tot; ++i) {
+			if (arr[i].ch > Maxn) {
+				Maxn = arr[i].ch;
+			}
+		}
+		Maxn = 2 * Maxn - 1;
+		unique_mem mem((sizeof(tree_node) + sizeof(que_node)) * Maxn);
+		void*mem_block = mem.ptr;
+		tree_node*tr = (tree_node*)mem_block;
+		mem_block = (void*)((char*)(mem_block) + Maxn * sizeof(tree_node));
+		que_node* que = (que_node*)mem_block;
+
+		build_tree_step1(arr, tr, tot);
 		int que_head = 0, que_tail = 1;
 		que[0].id = tot - 2;
-		que[0].length = 0;
-		que[0].code = 0;
+		int dep = 0;
+		int this_dep_cnt = 1;
+		int next_dep_cnt = 0;
+		unsigned long long code = 0;
 		while (que_head < que_tail) {
 			auto& x = que[que_head++];
 			int id = x.id;
-			assert(id < 511 && que_head <= 511 && que_tail <= 511);
 			if (tr[id].son[0] == USHORT_MAX) {
 				uint8_t ch = (uint8_t)tr[id].son[1];
-				arr[ch].ch = x.length;
-				arr[ch].cnt = x.code;
+				arr[ch].ch = dep;
+				arr[ch].cnt = code++;
 			}
 			else {
-				++x.length;
 				que[que_tail].id = tr[id].son[0];
-				que[que_tail].length = x.length;
-				que[que_tail].code = x.code << 1;
 				++que_tail;
 				que[que_tail].id = tr[id].son[1];
-				que[que_tail].length = x.length;
-				que[que_tail].code = x.code << 1 | 1;
 				++que_tail;
+				next_dep_cnt += 2;
+			}
+			if (!(--this_dep_cnt)) {
+				code <<= 1;
+				this_dep_cnt = next_dep_cnt;
+				next_dep_cnt = 0;
+				++dep;
 			}
 		}
 	}
 
-	size_t encode(const void* src, void* dest,size_t length) {
+	size_t huffman_compress(const void* src, size_t length,void* dest) {
 
 		if (length <= 4) {
 			return -1;
 		}
 
-		unique_mem mem(sizeof(node_info) * 256 + (sizeof(tree_node) + sizeof(que_node)) * 511);
-		void* mem_block = mem.ptr;
+		USE_THREAD_LOCAL static void* ptr = 
+			malloc(sizeof(node_info) * 256 + (sizeof(tree_node) + sizeof(que_node)) * 511);
+		void* mem_block = ptr;
 		node_info* arr = (node_info*)mem_block;
 		mem_block = (void*)((char*)(mem_block)+256 * sizeof(node_info));
 		tree_node* tr = (tree_node*)mem_block;
@@ -173,6 +188,7 @@ namespace wjr {
 		for (size_t i = 0; i < length; ++i,++ar) {
 			++arr[*ar].cnt;
 		}
+
 		int tot = 0;
 		for (int i = 0; i < 256; ++i) {
 			if (arr[i].cnt != 0) {
@@ -197,47 +213,72 @@ namespace wjr {
 
 		std::sort(arr,arr + tot);
 
-		unsigned long long buffer = 0;
-		int buffer_length = 0;
+		int buffer_bit = 8;
 
 		auto buffer_append = 
-			[&buffer,&buffer_length,&out,end](unsigned long long v,uint8_t l)->bool{
-			buffer_length += l;
-			buffer = buffer << l | v;
-			if (buffer_length >= 8) {
-				do {
-					if(unlikely(out == end)){
-						return false;
-					}
-					buffer_length -= 8;
-					*(out++) = (uint8_t)((buffer >> buffer_length) & 0xFF);
-				}while(buffer_length >= 8);
-				buffer &= buffer_mask[buffer_length];
+			[&buffer_bit,&out,end](unsigned long long v,uint8_t l)->bool{
+			if (l >= buffer_bit) {
+				l -= buffer_bit;
+				*(out++) |= (uint8_t)((v >> l) & 0xFF);
+				while (l >= 8) {
+					l -= 8;
+					*(out++) = (uint8_t)((v >> l) & 0xFF);
+				}
+				buffer_bit = 8 - l;
+				*out = (uint8_t)((v & buffer_mask[l]) << buffer_bit);
+			}
+			else {
+				buffer_bit -= l;
+				*out |= v << buffer_bit;
 			}
 			return true;
 		};
 
-		unsigned long long bit_number = 2;
-		int bit_length = 1;
-		
 		// 8 bit : last_bit
 		// 8 bit : how many char
 
-		++out;
-		*(out++) = tot & 0xFF;
-
-		for (int i = 0; i < tot; ++i) {
-			while (arr[i].cnt >= bit_number) {
-				++bit_length;
-				bit_number <<= 1;
-			}
-			if(!buffer_append(arr[i].ch,8))return -1;
-			if(!buffer_append(bit_length,6))return -1;
-			if(!buffer_append(arr[i].cnt,bit_length))return -1;
-		}
-
 		build_tree_step1(arr,tr,tot);
-		build_tree_step2(arr,tr,que,tot);
+
+		*(++out) = tot & 0xFF;
+		*(++out) = 0;
+
+		{
+			int que_head = 0, que_tail = 1;
+			que[0].id = tot - 2;
+			int dep = 0;
+			int this_dep_cnt = 1;
+			int next_dep_cnt = 0;
+			unsigned long long code = 0;
+			while (que_head < que_tail) {
+				auto& x = que[que_head++];
+				int id = x.id;
+				assert(id < 511 && que_head <= 511 && que_tail <= 511);
+				if (tr[id].son[0] == USHORT_MAX) {
+					uint8_t ch = (uint8_t)tr[id].son[1];
+					arr[ch].ch = dep;
+					arr[ch].cnt = code++; 
+					if (!buffer_append(ch,8)) {
+						return -1;
+					}
+					if (!buffer_append(dep,6)) {
+						return -1;
+					}
+				}
+				else {
+					que[que_tail].id = tr[id].son[0];
+					++que_tail;
+					que[que_tail].id = tr[id].son[1];
+					++que_tail;
+					next_dep_cnt += 2;
+				}
+				if (!(--this_dep_cnt)) {
+					code <<= 1;
+					this_dep_cnt = next_dep_cnt;
+					next_dep_cnt = 0;
+					++dep;
+				}
+			}
+		}
 
 		ar = in;
 		for (size_t i = 0; i < length; ++i,++ar) {
@@ -248,12 +289,12 @@ namespace wjr {
 		}
 
 		*(uint8_t*)dest = 0;
-		if (buffer_length != 0) {
+		if (buffer_bit != 8) {
 			if (out == end) {
 				return -1;
 			}
-			*(uint8_t*)dest = 8 - buffer_length;
-			*(out++) = buffer << (8 - buffer_length);
+			*(uint8_t*)dest = buffer_bit;
+			++out;
 		}
 		return out - (uint8_t*)dest;
 	}
@@ -303,6 +344,19 @@ namespace wjr {
 		uint8_t l;
 	};
 
+	unsigned short dfs_init_decode_tree(
+		tree_node* tr,node_info*arr, unsigned short&X,int&now,int dep,int tot) {
+		if (arr[now].ch == dep) {
+			++now;
+			return now + tot - 2;
+		}
+		unsigned short l = dfs_init_decode_tree(tr,arr,X,now,dep + 1,tot);
+		unsigned short r = dfs_init_decode_tree(tr,arr,X,now,dep + 1,tot);
+		tr[X].son[0] = l;
+		tr[X].son[1] = r;
+		return X++;
+	}
+
 	void dfs_init_decode_next(tree_node* tr,short x,decode_next*dn, int dep, uint8_t v) {
 		if (tr[x].son[0] == USHORT_MAX) {
 			for (int i = (1<<(dep+1))-1;~i; --i) {
@@ -321,10 +375,10 @@ namespace wjr {
 		dfs_init_decode_next(tr,tr[x].son[1],dn,dep-1,v | (1<<dep));
 	}
 	
-	size_t decode(const void* src, size_t l1, void* dest, size_t l2) {
-
-		unique_mem mem(sizeof(node_info) * 256 + sizeof(tree_node) * 511 + sizeof(decode_next) * 256);
-		void* mem_block = mem.ptr;
+	size_t huffman_decompress(const void* src, size_t l1, void* dest, size_t l2) {
+		USE_THREAD_LOCAL static void* ptr = 
+			malloc(sizeof(node_info) * 256 + sizeof(tree_node) * 511 + sizeof(decode_next) * 256);
+		void* mem_block = ptr;
 		node_info* arr = (node_info*)mem_block;
 		mem_block = (void*)((char*)(mem_block)+256 * sizeof(node_info));
 		tree_node* tr = (tree_node*)mem_block;
@@ -351,16 +405,21 @@ namespace wjr {
 			return out - (uint8_t*)dest;
 		}
 		int l = 8;
+		uint8_t dep = 0;
+		unsigned long long code = 0;
 		for(int i = 0 ;i < tot;++i) {
 			uint8_t ch = get_bit8(in,l,8);
 			uint8_t bit_length = get_bit8(in,l,6);
-			unsigned long long cnt = get_bit64(in,l,bit_length);
-			arr[i].ch = ch;
-			arr[i].cnt = cnt;
-			res -= 14 + bit_length;
+			code <<= (bit_length - dep);
+			arr[i].ch = bit_length;
+			arr[ch].cnt = code++;
+			tr[i + tot - 1].son[0] = -1;
+			tr[i + tot - 1].son[1] = ch;
+			dep = bit_length;
 		}
-
-		build_tree_step1(arr,tr,tot);
+		unsigned short X = 0;
+		int Y = 0;
+		dfs_init_decode_tree(tr,arr,X,Y,0,tot);
 		dfs_init_decode_next(tr,tot-2,dn,7,0);
 		
 		auto dest_append = [&out,&end](uint8_t ch)->bool {
@@ -374,14 +433,12 @@ namespace wjr {
 		unsigned long long buffer = 0;
 		int buffer_length = 0;
 
-		if (res >= 8) {
+		if (in != ib) {
 			buffer_length = l;
-			res -= l;
 			buffer = get_bit8(in,l,l);
-			while (res >= 8) {
+			while (in != ib) {
 				buffer = buffer << 8 | (*in++);
 				buffer_length += 8;
-				res -= 8;
 				while (buffer_length >= 8) {
 					uint8_t ch = (buffer >> (buffer_length - 8)) & 0xFF;
 					if (dn[ch].l) {
@@ -404,8 +461,21 @@ namespace wjr {
 							}
 						}
 						for (;buffer_length == -1;) {
+							if (unlikely(in == ib)) {
+								buffer = (uint8_t)(*(in++) >> (8 - last_bit));
+								for (buffer_length = last_bit - 1; buffer_length >= 0; --buffer_length) {
+									bool c = (buffer >> buffer_length) & 1;
+									x = tr[x].son[c];
+									if (tr[x].son[0] == USHORT_MAX) {
+										if (!dest_append((uint8_t)tr[x].son[1])) {
+											return -1;
+										}
+										break;
+									}
+								}
+								return out - (uint8_t*)dest;
+							}
 							buffer = *(in++);
-							res -= 8;
 							for (buffer_length = 7; buffer_length >= 0; --buffer_length) {
 								bool c = (buffer >> buffer_length) & 1;
 								x = tr[x].son[c];
@@ -439,7 +509,6 @@ namespace wjr {
 				x = tot - 2;
 			}
 		}
-
 		return out - (uint8_t*)dest;
 	}
 

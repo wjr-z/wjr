@@ -83,18 +83,19 @@ namespace wjr {
 	#endif
 	}
 
-	bool get_all_files(const String&path, std::vector<String>& filePath) {
+	bool get_all_files(String_view path, std::vector<String>& filePath) {
 		String cop(260, wjr::Reserved{});
 		cop.assign(path);
 		return dfs_get_files(cop, filePath);
 	}
 
-	std::vector<String> get_all_files(const String&path) {
+	std::vector<String> get_all_files(String_view path) {
+		assert(*path.end() == '\0');
 		std::vector<String> file_path;
 	#ifndef __linux__
 		if (!_access(path.c_str(), 0)) {
 			if (!get_all_files(path, file_path)) {
-				file_path.push_back(path);
+				file_path.push_back((String)path);
 			}
 		}
 	#else
@@ -112,18 +113,51 @@ namespace wjr {
 		return file_path;
 	}
 
-	String read_file(const String& filename) {
+	size_t get_file_length(String_view file_name) {
+		assert(*file_name.end() == '\0');
+	#ifndef __linux__
+		if (_access(file_name.c_str(), 0) == -1) {
+			return 0;
+		}
+	#else
+		if (access(file_name.c_str(), F_OK) == -1)
+			return 0;
+	#endif
+		FILE* fp = fopen(file_name.c_str(), "rb");
+		if (fp == nullptr) {
+			return 0;
+		}
+		fseek(fp, 0, SEEK_END);
 	#ifndef __linux
-		if (_access(filename.c_str(), 0) == -1)
+		size_t size = _ftelli64(fp);
+	#else
+		size_t size = ftello64(fp);
+	#endif
+		fseek(fp, 0, SEEK_SET);
+		fclose(fp);
+		return size;
+	}
+
+	String read_file(String_view filename) {
+		assert(*filename.end() == '\0');
+	#ifndef __linux__
+		if (_access(filename.c_str(), 0) == -1) {
 			return String();
+		}
 	#else
 		if (access(filename.c_str(), F_OK) == -1)
 			return String();
 	#endif
 		FILE* fp = fopen(filename.c_str(), "rb");
-		if (fp == nullptr)return String();
+		if (fp == nullptr) {
+			return String();
+		}
 		fseek(fp, 0, SEEK_END);
-		size_t size = ftell(fp);
+	#ifndef __linux
+		size_t size = _ftelli64(fp);
+	#else
+		size_t size = ftello64(fp);
+	#endif
 		String buffer(size, Uninitialized{});
 		fseek(fp, 0, SEEK_SET);
 		fread((void*)buffer.c_str(), sizeof(char), size, fp);
@@ -131,16 +165,18 @@ namespace wjr {
 		return buffer;
 	}
 
-	void write_file(const String& filename, String_view str) {
+	void write_file(String_view filename, String_view str) {
+		assert(*filename.end() == '\0');
 		std::ofstream out(filename.c_str(), std::ios::binary);
 		out.write(str.c_str(), static_cast<std::streamsize>(str.length()));
 	}
 
-	int create_file(const String& filename
+	int create_file(String_view filename
 	#ifdef __linux__
 		,__mode_t __mode
 	#endif
 	) {
+		assert(*filename.end() == '\0');
 	#ifndef __linux__
 		return mkdir(filename.c_str());
 	#else
