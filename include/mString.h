@@ -562,7 +562,7 @@ namespace wjr {
             size_t _Size;
             size_t _Capacity;
             inline size_t capacity()const {
-                if constexpr (wis_little_endian) {
+                if constexpr (is_little_endian) {
                     return _Capacity & capacityExtractMask;
                 }
                 else {
@@ -573,7 +573,7 @@ namespace wjr {
 
         constexpr static size_t lastChar = sizeof(_Medium) - 1;
         constexpr static size_t maxSmallSize = lastChar / sizeof(Char);
-        constexpr static uint8_t categoryExtractMask = wis_little_endian ? 0x80 : 0x01;
+        constexpr static uint8_t categoryExtractMask = is_little_endian ? 0x80 : 0x01;
         constexpr static size_t kShift = (sizeof(size_t) - 1) * 8;
         constexpr static size_t capacityExtractMask = ~((size_t)categoryExtractMask << kShift);
         constexpr static size_t capacityOr = ~capacityExtractMask;
@@ -593,7 +593,7 @@ namespace wjr {
         }
 
         void setCapacity(const size_t c) {
-            if constexpr (wis_little_endian) {
+            if constexpr (is_little_endian) {
                 _Ml._Capacity = c | capacityOr;
             }
             else {
@@ -605,7 +605,7 @@ namespace wjr {
 
         void setSmallSize(const size_t s) {
             assert(s <= maxSmallSize);
-            if constexpr (wis_little_endian) {
+            if constexpr (is_little_endian) {
                 _Byte[lastChar] = static_cast<uint8_t>(maxSmallSize - s);
             }
             else {
@@ -620,7 +620,7 @@ namespace wjr {
         }
 
         size_t SmallSize()const {
-            if constexpr (wis_little_endian) {
+            if constexpr (is_little_endian) {
                 return maxSmallSize - static_cast<size_t>(_Byte[lastChar]);
             }
             else {
@@ -880,7 +880,7 @@ namespace wjr {
 
         size_t size() const {
             size_t ret = ml_.size_;
-            if  constexpr  (wis_little_endian) {
+            if  constexpr  (is_little_endian) {
                 // We can save a couple instructions, because the category is
                 // small if the last char, as unsigned, is <= maxSmallSize.
                 using UChar = std::make_unsigned_t<Char>;
@@ -1023,8 +1023,8 @@ namespace wjr {
 
         enum class Category : category_type {
             isSmall = 0,
-            isMedium = wis_little_endian ? 0x80 : 0x2,
-            isLarge = wis_little_endian ? 0x40 : 0x1,
+            isMedium = is_little_endian ? 0x80 : 0x2,
+            isLarge = is_little_endian ? 0x40 : 0x1,
         };
 
         Category category() const {
@@ -1038,11 +1038,11 @@ namespace wjr {
             size_t capacity_;
 
             size_t capacity() const {
-                return wis_little_endian ? capacity_ & capacityExtractMask : capacity_ >> 2;
+                return is_little_endian ? capacity_ & capacityExtractMask : capacity_ >> 2;
             }
 
             void setCapacity(size_t cap, Category cat) {
-                capacity_ = wis_little_endian
+                capacity_ = is_little_endian
                     ? cap | (static_cast<size_t>(cat) << kCategoryShift)
                     : (cap << 2) | static_cast<size_t>(cat);
             }
@@ -1057,9 +1057,9 @@ namespace wjr {
         constexpr static size_t lastChar = sizeof(MediumLarge) - 1;
         constexpr static size_t maxSmallSize = lastChar / sizeof(Char);
         constexpr static size_t maxMediumSize = 254 / sizeof(Char);
-        constexpr static uint8_t categoryExtractMask = wis_little_endian ? 0xC0 : 0x3;
+        constexpr static uint8_t categoryExtractMask = is_little_endian ? 0xC0 : 0x3;
         constexpr static size_t kCategoryShift = (sizeof(size_t) - 1) * 8;
-        constexpr static size_t capacityExtractMask = wis_little_endian
+        constexpr static size_t capacityExtractMask = is_little_endian
             ? ~(size_t(categoryExtractMask) << kCategoryShift)
             : 0x0 /* unused */;
 
@@ -1069,7 +1069,7 @@ namespace wjr {
 
         size_t smallSize() const {
             assert(category() == Category::isSmall);
-            constexpr auto shift = wis_little_endian ? 0 : 2;
+            constexpr auto shift = is_little_endian ? 0 : 2;
             auto smallShifted = static_cast<size_t>(small_[maxSmallSize]) >> shift;
             assert(static_cast<size_t>(maxSmallSize) >= smallShifted);
             return static_cast<size_t>(maxSmallSize) - smallShifted;
@@ -1080,7 +1080,7 @@ namespace wjr {
             // so don't assume anything about the previous value of
             // small_[maxSmallSize].
             assert(s <= maxSmallSize);
-            constexpr auto shift = wis_little_endian ? 0 : 2;
+            constexpr auto shift = is_little_endian ? 0 : 2;
             small_[maxSmallSize] = char((maxSmallSize - s) << shift);
             small_[s] = '\0';
             assert(category() == Category::isSmall && size() == s);
@@ -3987,7 +3987,7 @@ namespace wjr {
             return assign(s.data(),s.size());
         }
 
-        iterator begin() { return core.mutableData()(); }
+        iterator begin() { return core.mutableData(); }
         const_iterator begin()const { return core.data(); }
         const_iterator cbegin()const { return begin(); }
 

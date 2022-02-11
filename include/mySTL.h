@@ -14,14 +14,16 @@
 
 namespace wjr {
 
+#ifndef is_little_endian
 #if defined(__BYTE_ORDER__)
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-#define wis_little_endian true
+#define is_little_endian true
 #else
-#define wis_little_endian false
+#define is_little_endian false
 #endif
 #else
-#define wis_little_endian true
+#define is_little_endian true
+#endif
 #endif
 
 #if defined(__has_builtin)
@@ -65,11 +67,82 @@ namespace wjr {
 #undef GB
 #define GB *((size_t)(1) << 30)
 
+	template <typename T>
+	struct default_array_delete { // default deleter for unique_ptr
+		constexpr default_array_delete() noexcept = default;
+
+		template <typename T2, std::enable_if_t<std::is_convertible_v<T2*, T*>, int> = 0>
+		default_array_delete(const default_array_delete<T2>&) noexcept {}
+
+		void operator()(T* _Ptr) const noexcept {
+			static_assert(0 < sizeof(T), "can't delete an incomplete type");
+			delete[] _Ptr;
+		}
+	};
+
+	template<typename T,typename D = default_array_delete<T>>
+	using unique_array_ptr = std::unique_ptr<T,D>;
+
 	inline namespace wjr_math {
-		constexpr unsigned int quick_log2(int x);
-		constexpr unsigned int quick_log2(unsigned int x);
-		constexpr unsigned int quick_log2(long long x);
-		constexpr unsigned int quick_log2(unsigned long long x) ;
+		constexpr static unsigned long long binary_mask[65] = {
+			0x0000000000000000,
+			0x0000000000000001,0x0000000000000003,0x0000000000000007,0x000000000000000f,
+			0x000000000000001f,0x000000000000003f,0x000000000000007f,0x00000000000000ff,
+			0x00000000000001ff,0x00000000000003ff,0x00000000000007ff,0x0000000000000fff,
+			0x0000000000001fff,0x0000000000003fff,0x0000000000007fff,0x000000000000ffff,
+			0x000000000001ffff,0x000000000003ffff,0x000000000007ffff,0x00000000000fffff,
+			0x00000000001fffff,0x00000000003fffff,0x00000000007fffff,0x0000000000ffffff,
+			0x0000000001ffffff,0x0000000003ffffff,0x0000000007ffffff,0x000000000fffffff,
+			0x000000001fffffff,0x000000003fffffff,0x000000007fffffff,0x00000000ffffffff,
+			0x00000001ffffffff,0x00000003ffffffff,0x00000007ffffffff,0x0000000fffffffff,
+			0x0000001fffffffff,0x0000003fffffffff,0x0000007fffffffff,0x000000ffffffffff,
+			0x000001ffffffffff,0x000003ffffffffff,0x000007ffffffffff,0x00000fffffffffff,
+			0x00001fffffffffff,0x00003fffffffffff,0x00007fffffffffff,0x0000ffffffffffff,
+			0x0001ffffffffffff,0x0003ffffffffffff,0x0007ffffffffffff,0x000fffffffffffff,
+			0x001fffffffffffff,0x003fffffffffffff,0x007fffffffffffff,0x00ffffffffffffff,
+			0x01ffffffffffffff,0x03ffffffffffffff,0x07ffffffffffffff,0x0fffffffffffffff,
+			0x1fffffffffffffff,0x3fffffffffffffff,0x7fffffffffffffff,0xffffffffffffffff
+		};
+
+		constexpr static unsigned int quick_log2_tabel[32] =
+		{ 0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3 };
+
+		constexpr unsigned int quick_log2(unsigned int x) {
+			unsigned int ans = 0;
+			if (x >> 16) { ans += 16; x >>= 16; }
+			if (x >> 8) { ans += 8; x >>= 8; }
+			if (x >> 4) { ans += 4; x >>= 4; }
+			return ans + quick_log2_tabel[x];
+		}
+
+		constexpr unsigned int quick_log2(int x) {
+			assert(x >= 0);
+			return quick_log2((unsigned int)x);
+		}
+
+		constexpr unsigned int quick_log2(unsigned long long x) {
+			unsigned int ans = 0;
+			if (x >> 32) { ans += 32; x >>= 32; }
+			if (x >> 16) { ans += 16; x >>= 16; }
+			if (x >> 8) { ans += 8; x >>= 8; }
+			if (x >> 4) { ans += 4; x >>= 4; }
+			return ans + quick_log2_tabel[x];
+		}
+
+		constexpr unsigned int quick_log2(long long x) {
+			assert(x >= 0);
+			return quick_log2((unsigned long long)x);
+		}
+
+		constexpr uint16_t bswap_16(uint16_t x) {
+			return (x >> 8) | (x << 8);
+		}
+
+		constexpr uint32_t bswap_32(uint32_t x) {
+			x = ((x << 8) & 0xFF00FF00) | ((x >> 8) & 0x00FF00FF);
+			return (x >> 16) | (x << 16);
+		}
+
 	}
 
 	inline namespace wjr_type_traits {
@@ -143,7 +216,7 @@ namespace wjr {
 			const size_t _Count)noexcept {
 			for (size_t _Idx = 0; _Idx < _Count; ++_Idx) {
 				auto val = static_cast<size_t>(_First[_Idx]);
-				if constexpr (wis_little_endian) {
+				if constexpr (is_little_endian) {
 					for (size_t i = 0; i < byte_size; ++i) {
 						_Val ^= (val >> (i << 3)) & 0xFF;
 						_Val *= _FNV_prime;
