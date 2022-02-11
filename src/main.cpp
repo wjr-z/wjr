@@ -1,4 +1,5 @@
-﻿#include <functional>
+﻿#define TEST_SHARED_STRING
+#include <functional>
 #include <any>
 #include "../include/mtool.h"
 #include "../include/json.h"
@@ -13,7 +14,6 @@ int main() {
     ios::sync_with_stdio(false);
     cin.tie(0);
     cout.tie(0);
-
     String str = read_file("canada.json");
     String ans(str);
     String str2(str.size() * 1.05, Reserved{});

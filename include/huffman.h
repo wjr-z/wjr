@@ -444,6 +444,20 @@ namespace wjr {
 		unsigned long long buffer = 0;
 		int buffer_length = 0;
 		*(uint8_t*)dest = 0;
+
+		auto buffer_flush = [&buffer, &buffer_length,&tr,&it,tot](int x) {
+			for (buffer_length = buffer_length - 1; ~buffer_length; --buffer_length) {
+				bool c = (buffer >> buffer_length) & 1;
+				x = tr[x].son[c];
+				if (tr[x].son[0] == USHORT_MAX) {
+					if (!it.write(tr[x].son[1])) {
+						return -1;
+					}
+					x = tot - 2;
+				}
+			}
+		};
+
 		if (in != ib) {
 			buffer_length = l;
 			buffer = huffman_get_bit_8(in, l, l);
@@ -476,16 +490,8 @@ namespace wjr {
 								int res = 8 - last_bit;
 								if(!res)res = 8;
 								buffer = (uint8_t)(*(in++) >> (8 - res));
-								for (buffer_length = res - 1; buffer_length >= 0; --buffer_length) {
-									bool c = (buffer >> buffer_length) & 1;
-									x = tr[x].son[c];
-									if (tr[x].son[0] == USHORT_MAX) {
-										if (!it.write(tr[x].son[1])) {
-											return -1;
-										}
-										x = tot - 2;
-									}
-								}
+								buffer_length = res;
+								buffer_flush(x);
 								return (uint8_t*)it.get_ptr() - (uint8_t*)dest;
 							}
 							buffer = *(in++);
@@ -511,17 +517,7 @@ namespace wjr {
 		buffer = buffer << res | huffman_get_bit_8(in, l, res);
 		buffer_length += res;
 
-		int x = tot - 2;
-		for (int i = buffer_length - 1; ~i; --i) {
-			bool c = (buffer >> i) & 1;
-			x = tr[x].son[c];
-			if (tr[x].son[0] == USHORT_MAX) { //leafy
-				if (!it.write(tr[x].son[1])) {
-					return -1;
-				}
-				x = tot - 2;
-			}
-		}
+		buffer_flush(tot - 2);
 		return (uint8_t*)it.get_ptr() - (uint8_t*)dest;
 	}
 

@@ -168,7 +168,7 @@ namespace wjr {
     };
 
     struct write_buffer {
-        write_buffer(void* p) 
+        explicit write_buffer(void* p) 
             : ptr((uint8_t*)p),bit(8) {
             *ptr = 0;
         }
@@ -201,7 +201,7 @@ namespace wjr {
     };
 
     struct read_buffer {
-        read_buffer(void* p)
+        explicit read_buffer(void* p)
             : ptr((uint8_t*)p),bit(8) {
 
         }

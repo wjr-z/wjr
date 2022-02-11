@@ -750,9 +750,9 @@ namespace wjr {
     }
 
     static void* smart_realloc(void* data, size_t size, size_t capacity, size_t new_size) {
-        void* new_data = mallocator<void>().allocate(new_size);
+        void* new_data = (void*)mallocator<char>().allocate(new_size);
         memcpy(new_data,data,size);
-        mallocator<void>().deallocate(data,capacity);
+        mallocator<char>().deallocate((char*)data,capacity);
         return new_data;
     }
 
@@ -979,14 +979,14 @@ namespace wjr {
                 size_t oldcnt = dis->refCount_.fetch_sub(1, std::memory_order_acq_rel);
                 assert(oldcnt > 0);
                 if (oldcnt == 1) {
-                    mallocator<void>().deallocate(dis,getDataOffset() + cnt * sizeof(Char));
+                    mallocator<char>().deallocate((char*)dis,getDataOffset() + cnt * sizeof(Char));
                 }
             }
 
             static RefCounted* create(size_t size) {
                 const size_t allocSize =
                     getDataOffset() + (size + 1) * sizeof(Char);
-                auto result = static_cast<RefCounted*>(mallocator<void>().allocate(allocSize));
+                auto result = static_cast<RefCounted*>((void*)mallocator<char>().allocate(allocSize));
                 result->refCount_.store(1, std::memory_order_release);
                 return result;
             }
@@ -1129,7 +1129,7 @@ namespace wjr {
         // Medium strings are copied eagerly. Don't forget to allocate
         // one extra Char for the null terminator.
         auto const allocSize = (1 + rhs.ml_.size_) * sizeof(Char);
-        ml_.data_ = static_cast<Char*>(mallocator<void>().allocate(allocSize));
+        ml_.data_ = static_cast<Char*>(mallocator<char>().allocate(allocSize));
         // Also copies terminator.
         pod_copy(
             rhs.ml_.data_, rhs.ml_.data_ + rhs.ml_.size_ + 1, ml_.data_);
@@ -1171,7 +1171,7 @@ namespace wjr {
         // Medium strings are allocated normally. Don't forget to
         // allocate one extra Char for the terminating null.
         auto const allocSize = (1 + size) * sizeof(Char);
-        ml_.data_ = static_cast<Char*>(mallocator<void>().allocate(allocSize));
+        ml_.data_ = static_cast<Char*>(mallocator<char>().allocate(allocSize));
         if (likely(size > 0)) {
             pod_copy(data, data + size, ml_.data_);
         }
@@ -1288,7 +1288,7 @@ namespace wjr {
             // Don't forget to allocate one extra Char for the terminating null
             auto const allocSizeBytes =
                 (1 + minCapacity) * sizeof(Char);
-            auto const pData = static_cast<Char*>(mallocator<void>().allocate(allocSizeBytes));
+            auto const pData = static_cast<Char*>(mallocator<char>().allocate(allocSizeBytes));
             auto const size = smallSize();
             // Also copies terminator.
             pod_copy(small_, small_ + size + 1, pData);
