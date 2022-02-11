@@ -391,7 +391,6 @@ namespace wjr {
             return deflate_not_compress_package(src, pos, end, dest, cres, is_last);
         }
         memcpy(out,DIST_2_BUFFER,DIST_2_LENGTH);
-        res -= DIST_2_LENGTH;
         out += DIST_2_LENGTH;
 
         uint8_t* header = (uint8_t*)dest;
@@ -422,8 +421,8 @@ namespace wjr {
         *(out++) = 'K';
         dest = (void*)out;
         l2 -= 2;
-        uint32_t len;
         for (size_t pos = 0;; pos += BUFFER_SIZE) {
+            uint32_t len;
             if (pos + BUFFER_SIZE < l1) {
                 len = deflate_compress_package(src,pos,pos + BUFFER_SIZE,dest,l2,false,level);
                 if (unlikely(len == -1)) {
@@ -546,13 +545,11 @@ namespace wjr {
             return -1;
         }
         src = (void*)(in + 2);
-        l1 -= 2;
 
         size_t cl2 = l2;
         bool is_last = false;
-        uint32_t len ;
         do {
-            len = deflate_decompress_package(src,dest,l2,is_last);
+            uint32_t len = deflate_decompress_package(src,dest,l2,is_last);
             assert(is_last || len == BUFFER_SIZE);
             if (unlikely(len == -1)) {
                 return -1;

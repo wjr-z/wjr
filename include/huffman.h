@@ -19,6 +19,7 @@ namespace wjr {
 		}
 
 		uint8_t read() {
+			assert(ptr != end);
 			return *(ptr++);
 		}
 
