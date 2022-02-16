@@ -1,7 +1,6 @@
 #ifndef __WJR_JSON_H
 #define __WJR_JSON_H
 
-#include <cassert>
 #include <cstdlib>
 #include <cstdint>
 #include <string.h>

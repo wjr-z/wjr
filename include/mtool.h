@@ -32,7 +32,7 @@ namespace wjr {
         friend double operator-(const time_ref& lhs, const time_ref& rhs);
     };
 
-    std::vector<String> get_all_files(const String&path);
+    std::vector<String> get_all_files(String_view path);
     size_t get_file_length(String_view file_name);
     String read_file(String_view file_name);
     void write_file(String_view file_name,String_view str);

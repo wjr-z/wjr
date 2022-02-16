@@ -2,7 +2,6 @@
 #define __WJR_MALLOCATOR_H
 
 //#define ALLOCATOR_DEBUG
-//#define __USE_THREADS
 
 #ifdef ALLOCATOR_DEBUG
 #include <cstdio>
@@ -14,6 +13,7 @@
 #include <utility>
 #include <type_traits>
 #include <cstddef>
+#include "mySTL.h"
 
 namespace wjr {
 

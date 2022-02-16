@@ -1,6 +1,13 @@
 #ifndef __WJR_MY_STL_H
 #define __WJR_MY_STL_H
 
+/*
+#ifndef NDEBUG
+#define NDEBUG
+#endif
+*/
+#define __USE_THREADS
+
 #include <cassert>
 #include <cstdint>
 #include <ctime>
@@ -84,7 +91,7 @@ namespace wjr {
 	using unique_array_ptr = std::unique_ptr<T,D>;
 
 	inline namespace wjr_math {
-		constexpr static unsigned long long binary_mask[65] = {
+		constexpr static uint64_t binary_mask[65] = {
 			0x0000000000000000,
 			0x0000000000000001,0x0000000000000003,0x0000000000000007,0x000000000000000f,
 			0x000000000000001f,0x000000000000003f,0x000000000000007f,0x00000000000000ff,
@@ -104,24 +111,35 @@ namespace wjr {
 			0x1fffffffffffffff,0x3fffffffffffffff,0x7fffffffffffffff,0xffffffffffffffff
 		};
 
-		constexpr static unsigned int quick_log2_tabel[32] =
+		constexpr static uint32_t quick_log2_tabel[32] =
 		{ 0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3 };
 
-		constexpr unsigned int quick_log2(unsigned int x) {
-			unsigned int ans = 0;
+		constexpr uint32_t quick_log2(uint16_t x) {
+			uint32_t ans = 0;
+			if (x >> 8) { ans += 8; x >>= 8; }
+			if (x >> 4) { ans += 4; x >>= 4; }
+			return ans + quick_log2_tabel[x];
+		}
+
+		constexpr uint32_t quick_log2(int16_t x) {
+			return quick_log2((uint16_t)x);
+		}
+
+		constexpr uint32_t quick_log2(uint32_t x) {
+			uint32_t ans = 0;
 			if (x >> 16) { ans += 16; x >>= 16; }
 			if (x >> 8) { ans += 8; x >>= 8; }
 			if (x >> 4) { ans += 4; x >>= 4; }
 			return ans + quick_log2_tabel[x];
 		}
 
-		constexpr unsigned int quick_log2(int x) {
-			assert(x >= 0);
-			return quick_log2((unsigned int)x);
+		constexpr uint32_t quick_log2(int32_t x) {
+			//assert(x >= 0);
+			return quick_log2((uint32_t)x);
 		}
 
-		constexpr unsigned int quick_log2(unsigned long long x) {
-			unsigned int ans = 0;
+		constexpr uint32_t quick_log2(uint64_t x) {
+			uint32_t ans = 0;
 			if (x >> 32) { ans += 32; x >>= 32; }
 			if (x >> 16) { ans += 16; x >>= 16; }
 			if (x >> 8) { ans += 8; x >>= 8; }
@@ -129,9 +147,9 @@ namespace wjr {
 			return ans + quick_log2_tabel[x];
 		}
 
-		constexpr unsigned int quick_log2(long long x) {
-			assert(x >= 0);
-			return quick_log2((unsigned long long)x);
+		constexpr uint32_t quick_log2(int64_t x) {
+			//assert(x >= 0);
+			return quick_log2((uint64_t)x);
 		}
 
 		constexpr uint16_t bswap_16(uint16_t x) {
@@ -141,6 +159,12 @@ namespace wjr {
 		constexpr uint32_t bswap_32(uint32_t x) {
 			x = ((x << 8) & 0xFF00FF00) | ((x >> 8) & 0x00FF00FF);
 			return (x >> 16) | (x << 16);
+		}
+
+		constexpr uint64_t bswap_64(uint64_t x) {
+			x = ((x << 8) & 0xFF00FF00FF00FF00) | ((x >> 8) & 0x00FF00FF00FF00FF);
+			x = ((x << 16) & 0xFFFF0000FFFF0000) | ((x >> 16) & 0x0000FFFF0000FFFF);
+			return (x >> 32) | (x << 32);
 		}
 
 	}

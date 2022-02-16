@@ -1,7 +1,6 @@
 #include "../include/String_helper.h"
 #include <iostream>
 #include <math.h>
-#include <cassert>
 
 namespace wjr {
 	

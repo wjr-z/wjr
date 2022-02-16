@@ -13,7 +13,6 @@
 #include <sstream>
 #include <set>
 #include <iostream>
-#include <cassert>
 #include "../include/thread_pool.h"
 
 namespace wjr {

@@ -1,7 +1,7 @@
 #ifndef __WJR_MSTRING_H
 #define __WJR_MSTRING_H
 
-#include <cassert>
+#include <atomic>
 #include <codecvt>
 #include <iostream>
 #include <iterator>
@@ -13,7 +13,7 @@
 #include <unordered_map>
 
 #include "mallocator.h"
-#include "mySTL.h" // some type-traits for String
+//#include "mySTL.h" // some type-traits for String
 
 extern "C" bool fill_double(double v, char* buffer);
 
@@ -738,7 +738,7 @@ namespace wjr {
         setCapacity(new_size);
     }
 
-#ifdef TEST_SHARED_STRING
+#ifdef USE_SHARED_STRING
     template <typename Pod>
     inline void pod_copy(const Pod* b, const Pod* e, Pod* d) {
         assert(b != nullptr);
@@ -1384,7 +1384,7 @@ namespace wjr {
         shared_String_core<Char>(data(),_size).swap(*this);
     }
 
-#endif // TEST_SHARED_STRING
+#endif // USE_SHARED_STRING
 
     struct Uninitialized {}; // used for uninitialized String,and will initialize size
 
@@ -6458,7 +6458,7 @@ namespace wjr {
     using u16String_view = basic_String_view<char16_t,std::char_traits<char16_t>>;
     using u32String_view = basic_String_view<char32_t,std::char_traits<char32_t>>;
 
-#ifdef TEST_SHARED_STRING
+#ifdef USE_SHARED_STRING
 
     using shared_String = basic_String<char, std::char_traits<char>, shared_String_core<char>>;
     using shared_wString = basic_String<wchar_t, std::char_traits<wchar_t>, shared_String_core<wchar_t>>;
@@ -6472,7 +6472,7 @@ namespace wjr {
 
 }
 
-#ifdef TEST_SHARED_STRING
+#ifdef USE_SHARED_STRING
 #define DEFAULT_SHARED_STRING_HASH(T)                                                       \
 template<>                                                                                  \
 struct hash<wjr::basic_String<T, char_traits<T>, wjr::shared_String_core<T>>> {             \

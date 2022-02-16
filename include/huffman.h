@@ -10,7 +10,7 @@ namespace wjr {
 
 	struct default_huffman_reader {
 	public:
-		constexpr static int max_number = 256;
+		constexpr static uint32_t max_number = 256;
 		using number_type = uint8_t;
 
 		default_huffman_reader(const void* p,const void*e)
@@ -137,11 +137,11 @@ namespace wjr {
 	template<typename reader = default_huffman_reader> 
 	size_t huffman_compress(const void* src, size_t l1, void* dest,size_t l2) {
 
-		constexpr static int max_number = reader::max_number;
-		constexpr static int max_bit = quick_log2(max_number - 1) + 1;
+		constexpr static uint32_t max_number = reader::max_number;
+		constexpr static uint32_t max_bit = quick_log2(max_number - 1) + 1;
 		using number_type = typename reader::number_type;
 
-		if (l1 <= 16) {
+		if (l2 < 12) {
 			return -1;
 		}
 
@@ -284,7 +284,6 @@ namespace wjr {
 				}
 			}
 		}
-
 		reader it2(src,(char*)src + l1);
 		for (size_t i = 0; i < l1;++i) {
 			auto ch = it2.read();
@@ -375,6 +374,9 @@ namespace wjr {
 
 	template<typename reader = default_huffman_reader>
 	size_t huffman_decompress(const void* src, size_t l1, void* dest, size_t l2) {
+		if (!l1) {
+			return 0;
+		}
 		constexpr static int max_number = reader::max_number;
 		constexpr static int max_bit = quick_log2(max_number - 1) + 1;
 		using number_type = typename reader::number_type;
@@ -402,6 +404,7 @@ namespace wjr {
 		tot = bswap_16(*(uint16_t*)in);
 	#endif
 		in += 2;
+		assert(tot < max_number);
 		if (tot == 1) {
 			uint8_t ch = *(in++);
 			size_t length = 0;
@@ -446,16 +449,17 @@ namespace wjr {
 		*(uint8_t*)dest = 0;
 
 		auto buffer_flush = [&buffer, &buffer_length,&tr,&it,tot](int x) {
-			for (buffer_length = buffer_length - 1; ~buffer_length; --buffer_length) {
+			while (buffer_length--) {
 				bool c = (buffer >> buffer_length) & 1;
 				x = tr[x].son[c];
 				if (tr[x].son[0] == USHORT_MAX) {
 					if (!it.write(tr[x].son[1])) {
-						return -1;
+						return false;
 					}
 					x = tot - 2;
 				}
 			}
+			return true;
 		};
 
 		if (in != ib) {
@@ -475,6 +479,7 @@ namespace wjr {
 					else {
 						int x = dn[ch].next;
 						buffer_length -= 8;
+						bool fd = false;
 						while (buffer_length--) {
 							bool c = (buffer >> buffer_length) & 1;
 							x = tr[x].son[c];
@@ -482,26 +487,32 @@ namespace wjr {
 								if (!it.write(tr[x].son[1])) {
 									return -1;
 								}
+								fd = true;
 								break;
 							}
 						}
-						for (; buffer_length == -1;) {
+
+						for (; !fd;) {
 							if (unlikely(in == ib)) {
 								int res = 8 - last_bit;
-								if(!res)res = 8;
-								buffer = (uint8_t)(*(in++) >> (8 - res));
+								if (!res)res = 8;
+								buffer = (uint8_t)(*in >> (8 - res));
 								buffer_length = res;
-								buffer_flush(x);
+								if (!buffer_flush(x)) {
+									return -1;
+								}
 								return (uint8_t*)it.get_ptr() - (uint8_t*)dest;
 							}
 							buffer = *(in++);
-							for (buffer_length = 7; buffer_length >= 0; --buffer_length) {
+							buffer_length = 8;
+							while (buffer_length--) {
 								bool c = (buffer >> buffer_length) & 1;
 								x = tr[x].son[c];
 								if (tr[x].son[0] == USHORT_MAX) {
 									if (!it.write(tr[x].son[1])) {
 										return -1;
 									}
+									fd = true;
 									break;
 								}
 							}
@@ -513,11 +524,12 @@ namespace wjr {
 		}
 
 		int res = 8 - last_bit;
-		if(!res) res = 8;
-		buffer = buffer << res | huffman_get_bit_8(in, l, res);
+		if (!res) res = 8;
+		buffer = buffer << res | (uint8_t)(*in >> (8 - res));
 		buffer_length += res;
-
-		buffer_flush(tot - 2);
+		if (!buffer_flush(tot - 2)) {
+			return -1;
+		}
 		return (uint8_t*)it.get_ptr() - (uint8_t*)dest;
 	}
 
