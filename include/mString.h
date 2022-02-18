@@ -5866,9 +5866,13 @@ namespace wjr {
             return basic_String<Char,Traits,Core>(1,static_charT<Char,'0'>);
         }
         char buff[64];
-        ::fill_double(val, buff);
-        const char* ptr = buff;
-        for (int n = 0;n < 64 && *ptr !='\0'; ++n,++ptr);
+        char* ptr = buff;
+        if (val < 0) {
+            val = -val;
+            *(ptr++) = '-';
+        }
+        ::fill_double(val, ptr);
+        ptr = (char*)memchr(buff,'\0', 64);
         return basic_String<Char,Traits,Core>(buff,ptr);
     }
 

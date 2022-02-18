@@ -910,7 +910,7 @@ namespace wjr {
                 return lhs._Boolean == rhs._Boolean;
             }
             case (uint8_t)(json::value_t::number) : {
-                static double eps = 1e-8;
+                static double eps = 1e-3;
                 return std::fabs(lhs._Number - rhs._Number) < eps;
             }
             case (uint8_t)(json::value_t::string) : {
