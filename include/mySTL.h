@@ -1,11 +1,10 @@
 #ifndef __WJR_MY_STL_H
 #define __WJR_MY_STL_H
 
-/*
 #ifndef NDEBUG
 #define NDEBUG
 #endif
-*/
+
 #define __USE_THREADS
 
 #include <cassert>

@@ -1,6 +1,8 @@
 #ifndef __WJR_MSTRING_H
 #define __WJR_MSTRING_H
 
+//#define TEST_SHARED_STRING
+
 #include <atomic>
 #include <codecvt>
 #include <iostream>
@@ -738,7 +740,7 @@ namespace wjr {
         setCapacity(new_size);
     }
 
-#ifdef USE_SHARED_STRING
+#ifdef TEST_SHARED_STRING
     template <typename Pod>
     inline void pod_copy(const Pod* b, const Pod* e, Pod* d) {
         assert(b != nullptr);
@@ -1384,7 +1386,7 @@ namespace wjr {
         shared_String_core<Char>(data(),_size).swap(*this);
     }
 
-#endif // USE_SHARED_STRING
+#endif // TEST_SHARED_STRING
 
     struct Uninitialized {}; // used for uninitialized String,and will initialize size
 
@@ -6442,6 +6444,69 @@ namespace wjr {
         return os;
     }
 
+    // FUNCTION TEMPLATE getline
+    template <class _Elem, class _Traits>
+    std::basic_istream<_Elem, _Traits>& getline(std::basic_istream<_Elem, _Traits>&& istr,
+        basic_String<_Elem, _Traits>& str,
+        const _Elem _Delim) { // get characters into string, discard delimiter
+        using _Myis = std::basic_istream<_Elem, _Traits>;
+
+        typename _Myis::iostate _State = _Myis::goodbit;
+        bool _Changed = false;
+        const typename _Myis::sentry _Ok(istr, true);
+
+        if (_Ok) { // state okay, extract characters
+            str.clear();
+            const typename _Traits::int_type _Metadelim = _Traits::to_int_type(_Delim);
+            typename _Traits::int_type _Meta = istr.rdbuf()->sgetc();
+
+            for (;; _Meta = istr.rdbuf()->snextc()) {
+                if (_Traits::eq_int_type(_Traits::eof(), _Meta)) { // end of file, quit
+                    _State |= _Myis::eofbit;
+                    break;
+                }
+                else if (_Traits::eq_int_type(_Meta, _Metadelim)) { // got a delimiter, discard it and quit
+                    _Changed = true;
+                    istr.rdbuf()->sbumpc();
+                    break;
+                }
+                else if (str.max_size() <= str.size()) { // string too large, quit
+                    _State |= _Myis::failbit;
+                    break;
+                }
+                else { // got a character, add it to string
+                    str += _Traits::to_char_type(_Meta);
+                    _Changed = true;
+                }
+            }
+        }
+
+        if (!_Changed) {
+            _State |= _Myis::failbit;
+        }
+
+        istr.setstate(_State);
+        return istr;
+}
+
+    template <class _Elem, class _Traits>
+    std::basic_istream<_Elem, _Traits>& getline(std::basic_istream<_Elem, _Traits>&& istr,
+        basic_String<_Elem, _Traits>& str) { // get characters into string, discard newline
+        return getline(istr, str, istr.widen('\n'));
+    }
+
+    template <class _Elem, class _Traits>
+    std::basic_istream<_Elem, _Traits>& getline(std::basic_istream<_Elem, _Traits>& istr, basic_String<_Elem, _Traits>& str,
+        const _Elem _Delim) { // get characters into string, discard delimiter
+        return getline(std::move(istr), str, _Delim);
+    }
+
+    template <class _Elem, class _Traits>
+    std::basic_istream<_Elem, _Traits>& getline(std::basic_istream<_Elem, _Traits>& istr,
+        basic_String<_Elem, _Traits>& str) { // get characters into string, discard newline
+        return getline(std::move(istr), str, istr.widen('\n'));
+    }
+
     using String = basic_String<char,std::char_traits<char>>;
     using wString = basic_String<wchar_t,std::char_traits<wchar_t>>;
 #ifdef __HAS_CXX20
@@ -6458,7 +6523,7 @@ namespace wjr {
     using u16String_view = basic_String_view<char16_t,std::char_traits<char16_t>>;
     using u32String_view = basic_String_view<char32_t,std::char_traits<char32_t>>;
 
-#ifdef USE_SHARED_STRING
+#ifdef TEST_SHARED_STRING
 
     using shared_String = basic_String<char, std::char_traits<char>, shared_String_core<char>>;
     using shared_wString = basic_String<wchar_t, std::char_traits<wchar_t>, shared_String_core<wchar_t>>;
@@ -6472,7 +6537,7 @@ namespace wjr {
 
 }
 
-#ifdef USE_SHARED_STRING
+#ifdef TEST_SHARED_STRING
 #define DEFAULT_SHARED_STRING_HASH(T)                                                       \
 template<>                                                                                  \
 struct hash<wjr::basic_String<T, char_traits<T>, wjr::shared_String_core<T>>> {             \
