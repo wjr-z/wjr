@@ -1,7 +1,7 @@
 #ifndef __WJR_MSTRING_H
 #define __WJR_MSTRING_H
 
-//#define TEST_SHARED_STRING
+#define TEST_SHARED_STRING
 
 #include <atomic>
 #include <codecvt>
@@ -15,7 +15,6 @@
 #include <unordered_map>
 
 #include "mallocator.h"
-//#include "mySTL.h" // some type-traits for String
 
 extern "C" bool fill_double(double v, char* buffer);
 
@@ -3340,6 +3339,16 @@ namespace wjr {
             return { Myfirst + off , npos_min(n,size() - off) };
         }
 
+        basic_String_view left(const size_type n) {
+            return basic_String(data(), npos_min(n, size()));
+        }
+
+        basic_String_view right(size_type n) {
+            const auto _size = size();
+            n = npos_min(n, _size);
+            return basic_String_view(data() + _size - n, n);
+        }
+
         template<typename T = Traits, typename string_list = std::vector<basic_String_view>>
         string_list split(const value_type ch, bool keep_empty_parts = true)const noexcept;
 
@@ -3395,7 +3404,7 @@ namespace wjr {
         long long to_ll(const value_type*& next, bool* ok = nullptr, int base = 10)const;
         unsigned long long to_ull(const value_type*& next, bool* ok = nullptr, int base = 10)const;
 
-        constexpr size_t hash()const {
+        constexpr size_t hash_code()const {
             return std::hash<basic_String_view<Char,Traits>>()(*this);
         }
 
@@ -3550,138 +3559,146 @@ namespace wjr {
 
     template<typename Char, typename Traits>
     constexpr bool operator==(
-        const basic_String_view<Char, Traits>& lhs,
-        const basic_String_view<Char, Traits>& rhs
+        const basic_String_view<Char, Traits> lhs,
+        const basic_String_view<Char, Traits> rhs
         ) {
         return lhs.equal(rhs);
     }
 
     template<typename Char, typename Traits>
     constexpr bool operator==(
-        const basic_String_view<Char, Traits>& lhs,
-        const Char* rhs
+        const basic_String_view<Char, Traits> lhs,
+        const midentity_t<basic_String_view<Char,Traits>> rhs
+        ) {
+        return lhs.equal(rhs);
+    }
+
+    template<typename Char, typename Traits>
+    constexpr bool operator==(
+        const midentity_t<basic_String_view<Char, Traits>> lhs,
+        const basic_String_view<Char,Traits> rhs
         ) {
         return lhs.equal(rhs);
     }
 
     template<typename Char, typename Traits>
     constexpr bool operator!=(
-        const basic_String_view<Char, Traits>& lhs,
-        const basic_String_view<Char, Traits>& rhs
+        const basic_String_view<Char, Traits> lhs,
+        const basic_String_view<Char, Traits> rhs
         ) {
-        return !(lhs == rhs);
+        return !(lhs.equal(rhs));
     }
 
     template<typename Char, typename Traits>
     constexpr bool operator!=(
-        const basic_String_view<Char, Traits>& lhs,
-        const Char* rhs
+        const basic_String_view<Char, Traits> lhs,
+        const midentity_t<basic_String_view<Char, Traits>> rhs
         ) {
-        return !(lhs == rhs);
+        return !(lhs.equal(rhs));
     }
 
     template<typename Char, typename Traits>
     constexpr bool operator!=(
-        const Char* lhs,
-        const basic_String_view<Char, Traits>& rhs
+        const midentity_t<basic_String_view<Char, Traits>> lhs,
+        const basic_String_view<Char, Traits> rhs
         ) {
-        return !(lhs == rhs);
+        return !(lhs.euqal(rhs));
     }
 
     template<typename Char, typename Traits>
     constexpr bool operator<(
-        const basic_String_view<Char, Traits>& lhs,
-        const basic_String_view<Char, Traits>& rhs
+        const basic_String_view<Char, Traits> lhs,
+        const basic_String_view<Char, Traits> rhs
         ) {
         return lhs.compare(rhs) < 0;
     }
 
     template<typename Char, typename Traits>
     constexpr bool operator<(
-        const basic_String_view<Char, Traits>& lhs,
-        const Char* rhs
+        const basic_String_view<Char, Traits> lhs,
+        const midentity_t<basic_String_view<Char, Traits>> rhs
         ) {
         return lhs.compare(rhs) < 0;
     }
 
     template<typename Char, typename Traits>
     constexpr bool operator<(
-        const Char* lhs,
-        const basic_String_view<Char, Traits>& rhs
+        const midentity_t<basic_String_view<Char, Traits>> lhs,
+        const basic_String_view<Char, Traits> rhs
         ) {
-        return rhs.compare(lhs) > 0;
+        return lhs.compare(rhs) < 0;;
     }
 
     template<typename Char, typename Traits>
     constexpr bool operator>(
-        const basic_String_view<Char, Traits>& lhs,
-        const basic_String_view<Char, Traits>& rhs
+        const basic_String_view<Char, Traits> lhs,
+        const basic_String_view<Char, Traits> rhs
         ) {
         return lhs.compare(rhs) > 0;
     }
 
     template<typename Char, typename Traits>
     constexpr bool operator>(
-        const basic_String_view<Char, Traits>& lhs,
-        const Char* rhs
+        const basic_String_view<Char, Traits> lhs,
+        const midentity_t<basic_String_view<Char, Traits>> rhs
         ) {
         return lhs.compare(rhs) > 0;
     }
 
     template<typename Char, typename Traits>
     constexpr bool operator>(
-        const Char* lhs,
-        const basic_String_view<Char, Traits>& rhs
+        const midentity_t<basic_String_view<Char, Traits>> lhs,
+        const basic_String_view<Char, Traits> rhs
         ) {
-        return rhs.compare(lhs) < 0;
+        return lhs.comprare(rhs) > 0;
     }
 
     template<typename Char, typename Traits>
     constexpr bool operator<=(
-        const basic_String_view<Char, Traits>& lhs,
-        const basic_String_view<Char, Traits>& rhs
+        const basic_String_view<Char, Traits> lhs,
+        const basic_String_view<Char, Traits> rhs
         ) {
         return lhs.compare(rhs) <= 0;
     }
 
     template<typename Char, typename Traits>
     constexpr bool operator<=(
-        const basic_String_view<Char, Traits>& lhs,
-        const Char* rhs
+        const basic_String_view<Char, Traits> lhs,
+        const midentity_t<basic_String_view<Char, Traits>> rhs
         ) {
         return lhs.compare(rhs) <= 0;
     }
 
     template<typename Char, typename Traits>
     constexpr bool operator<=(
-        const Char* lhs,
-        const basic_String_view<Char, Traits>& rhs
+        const midentity_t<basic_String_view<Char, Traits>> lhs,
+        const basic_String_view<Char, Traits> rhs
         ) {
-        return rhs.compare(lhs) >= 0;
+        return lhs.compare(rhs) <= 0;
     }
 
     template<typename Char, typename Traits>
     constexpr bool operator>=(
-        const basic_String_view<Char, Traits>& lhs,
-        const basic_String_view<Char, Traits>& rhs
+        const basic_String_view<Char, Traits> lhs,
+        const basic_String_view<Char, Traits> rhs
         ) {
         return lhs.compare(rhs) >= 0;
     }
 
     template<typename Char, typename Traits>
     constexpr bool operator>=(
-        const basic_String_view<Char, Traits>& lhs,
-        const Char* rhs
+        const basic_String_view<Char, Traits> lhs,
+        const midentity_t<basic_String_view<Char, Traits>> rhs
         ) {
         return lhs.compare(rhs) >= 0;
     }
 
     template<typename Char, typename Traits>
     constexpr bool operator>=(
-        const Char* lhs,
+        const midentity_t<basic_String_view<Char, Traits>> lhs,
         const basic_String_view<Char, Traits>& rhs
         ) {
-        return rhs.compare(lhs) <= 0;
+        return lhs.compare(rhs) >= 0;
     }
 
     template<typename Char, typename Traits>
@@ -5031,9 +5048,10 @@ namespace wjr {
             return std::move(*this);
         }
 
-        basic_String right(const size_type n)const& {
+        basic_String right(size_type n)const& {
             const auto _size = size();
-            return basic_String(data() + _size - npos_min(n,_size),npos);
+            n = npos_min(n,_size);
+            return basic_String(data() + _size - n,n);
         }
 
         basic_String right(const size_type n)&& {
@@ -6139,6 +6157,34 @@ namespace wjr {
         return std::move(lhs.append(rhs));
     }
 
+    template<typename Char, typename Traits, typename Core>
+    basic_String<Char, Traits, Core> operator+(
+        const basic_String_view<Char,Traits>& lhs,
+        const basic_String<Char, Traits, Core>& rhs
+        ) {
+        const auto len = lhs.size();
+        basic_String<Char, Traits, Core> result;
+        result.reserve(len + rhs.size());
+        result.append(lhs).append(rhs);
+        return result;
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    basic_String<Char, Traits, Core> operator+(
+        const basic_String_view<Char,Traits>& lhs,
+        basic_String<Char, Traits, Core>&& rhs
+        ) {
+        const auto len = lhs.size();
+        if (rhs.capacity() >= len + rhs.size()) {
+            rhs.insert(0, lhs);
+            return std::move(rhs);
+        }
+        basic_String<Char, Traits, Core> result;
+        result.reserve(len + rhs.size());
+        result.append(lhs).append(rhs);
+        return result;
+    }
+
     template<typename Char,typename Traits,typename Core>
     basic_String<Char,Traits,Core> operator+(
         const Char* lhs,
@@ -6194,12 +6240,32 @@ namespace wjr {
         return ch + rhs;
     }
 
+    template<typename Char, typename Traits, typename Core>
+    basic_String<Char, Traits, Core> operator+(
+        const basic_String<Char, Traits, Core>& lhs,
+        const basic_String_view<Char,Traits>& rhs
+        ) {
+        const auto len = rhs.data();
+        basic_String<Char, Traits, Core> result;
+        result.reserve(lhs.size() + len);
+        result.append(lhs).append(rhs);
+        return result;
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    basic_String<Char, Traits, Core> operator+(
+        basic_String<Char, Traits, Core>&& lhs,
+        const basic_String_view<Char,Traits>& rhs
+        ) {
+        return std::move(lhs.append(rhs));
+    }
+
     template<typename Char,typename Traits,typename Core>
     basic_String<Char,Traits,Core> operator+(
         const basic_String<Char,Traits,Core>& lhs,
         const Char* rhs
         ) {
-        using traits_type = typename basic_String<Char,Traits,Core>::traits_type;
+        using traits_type = typename basic_String<Char, Traits, Core>::traits_type;
         const auto len = traits_type::length(rhs);
         basic_String<Char,Traits,Core> result;
         result.reserve(lhs.size() + len);
@@ -6251,11 +6317,19 @@ namespace wjr {
     }
 
     template<typename Char,typename Traits,typename Core>
+    bool operator==(
+        const Char* lhs,
+        const basic_String<Char, Traits, Core>& rhs
+        ) {
+        return rhs.equal(lhs);
+    }
+
+    template<typename Char,typename Traits,typename Core>
     bool operator!=(
         const basic_String<Char,Traits,Core>& lhs,
         const basic_String<Char,Traits,Core>& rhs
         ) {
-        return !(lhs == rhs);
+        return !(lhs.equal(rhs));
     }
 
     template<typename Char,typename Traits,typename Core>
@@ -6263,7 +6337,7 @@ namespace wjr {
         const basic_String<Char,Traits,Core>& lhs,
         const Char* rhs
         ) {
-        return !(lhs == rhs);
+        return !(lhs.equal(rhs));
     }
 
     template<typename Char,typename Traits,typename Core>
@@ -6271,7 +6345,7 @@ namespace wjr {
         const Char* lhs,
         const basic_String<Char,Traits,Core>& rhs
         ) {
-        return !(lhs == rhs);
+        return !(rhs.equal(lhs));
     }
 
     template<typename Char,typename Traits,typename Core>

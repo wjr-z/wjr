@@ -89,6 +89,14 @@ namespace wjr {
 	template<typename T,typename D = default_array_delete<T>>
 	using unique_array_ptr = std::unique_ptr<T,D>;
 
+	template<typename T>
+	struct midentity {
+		using type = T;
+	};
+
+	template<typename T>
+	using midentity_t = typename midentity<T>::type;
+
 	inline namespace wjr_math {
 		constexpr static uint64_t binary_mask[65] = {
 			0x0000000000000000,
@@ -302,26 +310,28 @@ namespace wjr {
 		// ' ','\n','\r','\t' 
 		constexpr static bool is_white_space_char[256] = { 0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 		};
+		constexpr static char white_space[16] = " \n\r\t";
 
-		constexpr static void* simple_skip_whitespace(const void* _s, const void* _e) {
+		static void* simple_skip_whitespace(const void* _s, const void* _e) {
 			const uint8_t* s = (const uint8_t*)_s,*e = (const uint8_t*)_e;
 			while (s != e && is_white_space_char[*s])++s;
 			return (void*)s;
 		}
 
-		constexpr static void* skip_whitespace(const void* s, const void* e) {
+		static void* skip_whitespace(const void* s, const void* e) {
 		#ifdef __SSE4_2__
-			if (is_white_space[*s])
-				++s;
-			else return s;
+			uint8_t*_s = (uint8_t*)s;
+			uint8_t*_e = (uint8_t*)e;
+			if (is_white_space_char[*_s])
+				++_s;
+			else return _s;
 
-			static const char whitespace[16] = " \n\r\t";
-			const __m128i w = _mm_load_si128((const __m128i*) & whitespace[0]);
-			for (; s <= e - 16; s += 16) {
-				const __m128i ss = _mm_loadu_si128(reinterpret_cast<const __m128i*>(s));
+			const __m128i w = _mm_load_si128((const __m128i*) & white_space[0]);
+			for (; _s <= _e - 16; _s += 16) {
+				const __m128i ss = _mm_loadu_si128(reinterpret_cast<const __m128i*>(_s));
 				const int r = _mm_cmpistri(w, ss, _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_ANY | _SIDD_LEAST_SIGNIFICANT | _SIDD_NEGATIVE_POLARITY);
 				if (r != 16)
-					return s + r;
+					return _s + r;
 			}
 		#endif
 			return simple_skip_whitespace(s, e);
