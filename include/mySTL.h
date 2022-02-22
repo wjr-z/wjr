@@ -32,6 +32,12 @@ namespace wjr {
 #endif
 #endif
 
+	enum wbyte_order {
+		w_little_endian = 0,
+		w_big_endian = 1,
+		w_endian = is_little_endian ? w_little_endian : w_big_endian
+	};
+
 #if defined(__has_builtin)
 #define whas_builtin(x) __has_builtin(x)
 #else
@@ -73,29 +79,87 @@ namespace wjr {
 #undef GB
 #define GB *((size_t)(1) << 30)
 
-	template <typename T>
-	struct default_array_delete { // default deleter for unique_ptr
-		constexpr default_array_delete() noexcept = default;
+	inline namespace wjr_type_traits {
 
-		template <typename T2, std::enable_if_t<std::is_convertible_v<T2*, T*>, int> = 0>
-		default_array_delete(const default_array_delete<T2>&) noexcept {}
+		template <typename T>
+		struct default_array_delete { // default deleter for unique_ptr
+			constexpr default_array_delete() noexcept = default;
 
-		void operator()(T* _Ptr) const noexcept {
-			static_assert(0 < sizeof(T), "can't delete an incomplete type");
-			delete[] _Ptr;
-		}
-	};
+			template <typename T2, std::enable_if_t<std::is_convertible_v<T2*, T*>, int> = 0>
+			default_array_delete(const default_array_delete<T2>&) noexcept {}
 
-	template<typename T,typename D = default_array_delete<T>>
-	using unique_array_ptr = std::unique_ptr<T,D>;
+			void operator()(T* _Ptr) const noexcept {
+				static_assert(0 < sizeof(T), "can't delete an incomplete type");
+				delete[] _Ptr;
+			}
+		};
 
-	template<typename T>
-	struct midentity {
-		using type = T;
-	};
+		template<typename T, typename D = default_array_delete<T>>
+		using unique_array_ptr = std::unique_ptr<T, D>;
 
-	template<typename T>
-	using midentity_t = typename midentity<T>::type;
+		template<typename T>
+		struct midentity {
+			using type = T;
+		};
+
+		template<typename T>
+		using midentity_t = typename midentity<T>::type;
+
+		template<typename...>
+		struct is_any_of {
+			constexpr static bool value = false;
+		};
+
+		template<typename T, typename U>
+		struct is_any_of<T, U> {
+			constexpr static bool value = std::is_same_v<T, U>;
+		};
+
+		template<typename T, typename U, typename...args>
+		struct is_any_of<T, U, args...> {
+			constexpr static bool value = std::disjunction_v<is_any_of<T, U>, is_any_of<T, args...>>;
+		};
+
+		template<typename T, typename...args>
+		constexpr static bool is_any_of_v = is_any_of<T, args...>::value;
+
+		template<typename T,typename = void>
+		struct wjr_is_iterator : std::false_type {};
+
+		template<typename T>
+		struct wjr_is_iterator<T, std::void_t<typename 
+			std::iterator_traits<T>::iterator_category>> : std::true_type {};
+
+		template<typename T>
+		constexpr static bool wjr_is_iterator_v = wjr_is_iterator<T>::value;
+
+		template<typename T>
+		struct is_reverse_iterator : std::false_type {};
+
+		template<typename T>
+		struct is_reverse_iterator<std::reverse_iterator<T>> : std::true_type {};
+
+	#if (__cplusplus >= 201703L) || (defined(_MSVC_LANG) && (_MSVC_LANG >= 201703L) && (_MSC_VER >= 1913))
+		template<typename F, typename...Args>
+		struct wjr_result_of {
+			using type = std::invoke_result_t<F, Args...>;
+		};
+	#else
+		template<typename F, typename ...Args>
+		struct wjr_result_of {
+			using type = std::result_of_t<F(Args...)>;
+		};
+	#endif
+		template<typename F, typename...Args>
+		using wjr_result_of_t = typename wjr_result_of<F, Args...>::type;
+
+		template<typename Pred_eq>
+		struct is_default_equal : std::false_type {};
+
+		template<>
+		struct is_default_equal<std::equal_to<>> : std::true_type {};
+
+	}
 
 	inline namespace wjr_math {
 		constexpr static uint64_t binary_mask[65] = {
@@ -174,53 +238,209 @@ namespace wjr {
 			return (x >> 32) | (x << 32);
 		}
 
-	}
+		template<int w_default_endian>
+		constexpr char basic_auto_bswap(char x) {
+			return x;
+		}
 
-	inline namespace wjr_type_traits {
+		template<int w_default_endian>
+		constexpr uint8_t basic_auto_bswap(uint8_t x) {
+			return x;
+		}
 
-		template<typename...>
-		struct is_any_of {
-			constexpr static bool value = false;
+		template<int w_default_endian>
+		constexpr short basic_auto_bswap(short x) {
+			if constexpr (w_default_endian == w_endian) {
+				return x;
+			}
+			else {
+				return bswap_16(x);
+			}
+		}
+
+		template<int w_default_endian>
+		constexpr uint16_t basic_auto_bswap(uint16_t x) {
+			if constexpr (w_default_endian == w_endian) {
+				return x;
+			}
+			else {
+				return bswap_16(x);
+			}
+		}
+
+		template<int w_default_endian>
+		constexpr int basic_auto_bswap(int x) {
+			if constexpr (w_default_endian == w_endian) {
+				return x;
+			}
+			else {
+				return bswap_32(x);
+			}
+		}
+
+		template<int w_default_endian>
+		constexpr uint32_t basic_auto_bswap(uint32_t x) {
+			if constexpr (w_default_endian == w_endian) {
+				return x;
+			}
+			else {
+				return bswap_32(x);
+			}
+		}
+
+		template<int w_default_endian>
+		constexpr long long basic_auto_bswap(long long x) {
+			if constexpr (w_default_endian == w_endian) {
+				return x;
+			}
+			else {
+				return bswap_64(x);
+			}
+		}
+
+		template<int w_default_endian>
+		constexpr uint64_t basic_auto_bswap(uint64_t x) {
+			if constexpr (w_default_endian == w_endian) {
+				return x;
+			}
+			else {
+				return bswap_64(x);
+			}
+		}
+
+		template<typename T,int w_default_endian = w_big_endian>
+		constexpr T auto_bswap(T x) {
+			return basic_auto_bswap<w_default_endian>(x);
+		}
+
+		template<typename pointer,int w_default_endian = w_big_endian,
+			std::enable_if_t<wjr_is_iterator_v<pointer>,int> = 0>
+		void auto_bswap(pointer first, pointer last) {
+			if constexpr (w_endian != w_default_endian) {
+				while (first != last) {
+					*first = auto_bswap(*first);
+					++first;
+				}
+			}
+		}
+
+		template<typename T,int w_defualt_endian>
+		class byte_order_iterator {
+		public:
+			byte_order_iterator(T* ptr)
+				: ptr(ptr) {
+			}
+			operator T(){
+				return auto_bswap<T,w_defualt_endian>(*ptr);
+			}
+			byte_order_iterator& operator=(T val) {
+				*ptr = auto_bswap<T,w_defualt_endian>(val);
+				return *this;
+			}
+		private:
+			T*ptr;
 		};
 
-		template<typename T, typename U>
-		struct is_any_of<T, U> {
-			constexpr static bool value = std::is_same_v<T, U>;
+		template<typename T,int w_default_endian>
+		class byte_order_const_iterator {
+		public:
+			byte_order_const_iterator(const T* ptr)
+				: ptr(ptr) {
+
+			}
+			operator T()const{
+				return auto_bswap<T,w_default_endian>(ptr);
+			}
+		private:
+			const T* ptr;
 		};
 
-		template<typename T, typename U, typename...args>
-		struct is_any_of<T, U, args...> {
-			constexpr static bool value = std::disjunction_v<is_any_of<T, U>, is_any_of<T, args...>>;
+		template<typename T,int w_default_endian = w_big_endian>
+		class basic_byte_order_ptr {
+		public:
+			using iterator = byte_order_iterator<T,w_default_endian>;
+			using const_iterator = byte_order_const_iterator<T,w_default_endian>;
+			using difference_type = ptrdiff_t;
+			using iterator_category = std::random_access_iterator_tag;
+			basic_byte_order_ptr(T* ptr)
+				: ptr(ptr) {
+			}
+			basic_byte_order_ptr(const basic_byte_order_ptr&other)
+				: ptr(other.ptr) {
+			}
+			basic_byte_order_ptr& operator=(const basic_byte_order_ptr&other) {
+				ptr = other.ptr;
+				return *this;
+			}
+			iterator operator*() {
+				return ptr;
+			}
+			const_iterator operator*()const {
+				return ptr;
+			}
+			basic_byte_order_ptr& operator++() {
+				++ptr;
+				return *this;
+			}
+			basic_byte_order_ptr operator++(int) {
+				basic_byte_order_ptr p(ptr);
+				++ptr;
+				return p;
+			}
+			basic_byte_order_ptr& operator--() {
+				--ptr;
+				return *this;
+			}
+			basic_byte_order_ptr operator--(int) {
+				basic_byte_order_ptr p(ptr);
+				--ptr;
+				return p;
+			}
+			basic_byte_order_ptr& operator+=(difference_type index) {
+				ptr += index;
+				return *this;
+			}
+			friend basic_byte_order_ptr operator+(
+				const basic_byte_order_ptr& a, difference_type index) {
+				return basic_byte_order_ptr(a + index);
+			}
+			basic_byte_order_ptr& operator-=(difference_type index) {
+				ptr -= index;
+				return *this;
+			}
+			friend basic_byte_order_ptr operator-(
+				const basic_byte_order_ptr& a, difference_type index) {
+				return basic_byte_order_ptr(a - index);
+			}
+			friend difference_type operator-(
+				const basic_byte_order_ptr& a, const basic_byte_order_ptr& b) {
+				return a.ptr - b.ptr;
+			}
+			bool operator==(const basic_byte_order_ptr& other)const {
+				return ptr == other.ptr;
+			}
+			bool operator!=(const basic_byte_order_ptr& other)const {
+				return ptr != other.ptr;
+			}
+			operator T* ()const {
+				return ptr;
+			}
+		private:
+			T* ptr;
 		};
 
-		template<typename...args>
-		constexpr static bool is_any_of_v = is_any_of<args...>::value;
+		template<typename T,int w_default_endian = w_big_endian>
+		using byte_order_ptr = std::conditional_t<is_any_of_v<
+			std::decay_t<T>,char,uint8_t> || w_default_endian == w_endian,
+			T*,basic_byte_order_ptr<T,w_default_endian>>;
 
-		template<typename T>
-		struct is_reverse_iterator : std::false_type {};
+		using u8byte_order_ptr = byte_order_ptr<uint8_t,w_big_endian>;
 
-		template<typename T>
-		struct is_reverse_iterator<std::reverse_iterator<T>> : std::true_type {};
+		using u16byte_order_ptr = byte_order_ptr<uint16_t,w_big_endian>;
 
-	#if (__cplusplus >= 201703L) || (defined(_MSVC_LANG) && (_MSVC_LANG >= 201703L) && (_MSC_VER >= 1913))
-		template<typename F,typename...Args>
-		struct wjr_result_of {
-			using type = std::invoke_result_t<F,Args...>;
-		};
-	#else
-		template<typename F,typename ...Args>
-		struct wjr_result_of {
-			using type = std::result_of_t<F(Args...)>;
-		};
-	#endif
-		template<typename F,typename...Args>
-		using wjr_result_of_t = typename wjr_result_of<F,Args...>::type;
+		using u32byte_order_ptr = byte_order_ptr<uint32_t, w_big_endian>;
 
-		template<typename Pred_eq>
-		struct is_default_equal : std::false_type {};
-
-		template<>
-		struct is_default_equal<std::equal_to<>> : std::true_type {};
+		using u64byte_order_ptr = byte_order_ptr<uint64_t, w_big_endian>;
 
 	}
 

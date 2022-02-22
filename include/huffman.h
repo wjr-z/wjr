@@ -4,41 +4,9 @@
 #include <memory>
 #include <algorithm>
 #include <string.h>
-#include "mySTL.h"
+#include "mallocator.h"
 
 namespace wjr {
-
-	struct default_huffman_reader {
-	public:
-		constexpr static uint32_t max_number = 256;
-		using number_type = uint8_t;
-
-		default_huffman_reader(const void* p,const void*e)
-			: ptr((uint8_t*)p),end((uint8_t*)e) {
-
-		}
-
-		uint8_t read() {
-			assert(ptr != end);
-			return *(ptr++);
-		}
-
-		bool write(uint8_t ch) {
-			if (ptr == end) {
-				return false;
-			}
-			*(ptr++) = ch;
-			return true;
-		}
-
-		void* get_ptr()const {
-			return (void*)ptr;
-		}
-
-	private:
-		uint8_t* ptr;
-		uint8_t* end;
-	};
 
 	struct huffman_node {
 		unsigned long long ch;
@@ -134,20 +102,19 @@ namespace wjr {
 		}
 	}
 
-	template<typename reader = default_huffman_reader> 
-	size_t huffman_compress(const void* src, size_t l1, void* dest,size_t l2) {
+	template<typename iter,size_t max_number = 256>
+	size_t huffman_compress(iter src_first,iter src_last, void*dest_first ,void*dest_last) {
 
-		constexpr static uint32_t max_number = reader::max_number;
 		constexpr static uint32_t max_bit = quick_log2(max_number - 1) + 1;
-		using number_type = typename reader::number_type;
-
+		constexpr static uint32_t max_bit_len = (max_bit - 1) / 8 + 1;
+		size_t l2 = (uint8_t*)dest_last - (uint8_t*)dest_first;
 		if (l2 < 12) {
 			return -1;
 		}
 
-		USE_THREAD_LOCAL static void* ptr =
-			malloc(sizeof(huffman_node) * max_number + 
-				(sizeof(huffman_tree_node) + sizeof(huffman_que_node)) * (2 * max_number - 1));
+		void* ptr = static_thread_local_at_once_memory<
+			sizeof(huffman_node)* max_number +
+			(sizeof(huffman_tree_node) + sizeof(huffman_que_node)) * (2 * max_number - 1)>();
 
 		void* mem_block = ptr;
 		huffman_node* arr = (huffman_node*)mem_block;
@@ -156,8 +123,7 @@ namespace wjr {
 		mem_block = (void*)((char*)(mem_block) + sizeof(huffman_tree_node) * (2 * max_number - 1));
 		huffman_que_node* que = (huffman_que_node*)mem_block;
 
-		const uint8_t* in = (const uint8_t*)src;
-		uint8_t* out = (uint8_t*)dest;
+		uint8_t* out = (uint8_t*)dest_first;
 		uint8_t* end = out + l2;
 
 		for (int i = 0; i < max_number; ++i) {
@@ -165,11 +131,12 @@ namespace wjr {
 			arr[i].cnt = 0;
 		}
 
-		reader it1(src,(char*)src + l1);
-		for (size_t i = 0; i < l1; ++i) {
-			auto ch = it1.read();
-			assert(ch < max_number);
+		size_t l1 = 0;
+		for (iter i = src_first; i != src_last; ++i) {
+			auto ch = *i;
 			++arr[ch].cnt;
+			++l1;
+			assert(ch < max_number);
 		}
 
 		int tot = 0;
@@ -180,35 +147,20 @@ namespace wjr {
 		}
 
 		if (tot == 1) {
-			if (l2 < 12) {
+			if (l2 < 12 + max_bit_len) {
 				return -1;
 			}
 			*(out++) = 0;
-		#if is_little_endian
-			*(uint16_t*)out = 1;
-		#else
-			*(uint16_t*)out = bswap_16(1);
-		#endif
+			*(uint16_t*)out = auto_bswap<uint16_t>(1);
 			out += 2;
-			*(out++) = arr[0].ch;
-			if constexpr (sizeof(size_t) == 8) {
-			#if is_little_endian
-				*(uint32_t*)out = (l1 >> 32);
-			#else
-				*(uint32_t*)out = bswap_32(l1 >> 32);
-			#endif
+			*(out++) = max_bit_len;
+			for (int i = 0; i < max_bit_len; ++i) {
+				*(out++) = (uint8_t)(arr[0].ch >> (i << 3));
 			}
-			else {
-				*(uint32_t*)out = 0;
-			}
-			out += 4;
-		#if is_little_endian
-			* (uint32_t*)out = (uint32_t)l1;
-		#else
-			* (uint32_t*)out = bswap_32((uint32_t)l1);
-		#endif
-			out += 4;
-			return out - (uint8_t*)dest;
+
+			*(uint64_t*)out = auto_bswap<uint64_t>(l1);
+			out += 8;
+			return out - (uint8_t*)dest_first;
 		}
 
 		std::sort(arr, arr + tot);
@@ -240,11 +192,7 @@ namespace wjr {
 		build_tree(arr, tr, tot);
 
 		++out;
-	#if is_little_endian
-		*(uint16_t*)out = tot;
-	#else
-		*(uint16_t*)out = bswap_16(tot);
-	#endif
+		*(uint16_t*)out = auto_bswap<uint16_t>(tot);
 		out += 2;
 		*out = 0;
 
@@ -284,23 +232,23 @@ namespace wjr {
 				}
 			}
 		}
-		reader it2(src,(char*)src + l1);
-		for (size_t i = 0; i < l1;++i) {
-			auto ch = it2.read();
+
+		for (iter i = src_first; i != src_last; ++i) {
+			auto ch = *i;
 			if (!buffer_append(arr[ch].cnt, arr[ch].ch)) {
 				return -1;
 			}
 		}
 
-		*(uint8_t*)dest = 0;
+		*(uint8_t*)dest_first = 0;
 		if (buffer_bit != 8) {
 			if (out == end) {
 				return -1;
 			}
-			*(uint8_t*)dest = buffer_bit;
+			*(uint8_t*)dest_first = buffer_bit;
 			++out;
 		}
-		return out - (uint8_t*)dest;
+		return out - (uint8_t*)dest_first;
 	}
 
 	static uint8_t huffman_get_bit_1(uint8_t*& in, int& l) {
@@ -372,18 +320,18 @@ namespace wjr {
 		huffman_init_decode_next(tr, tr[x].son[1], dn, dep - 1, v | (1 << dep));
 	}
 
-	template<typename reader = default_huffman_reader>
-	size_t huffman_decompress(const void* src, size_t l1, void* dest, size_t l2) {
+	template<typename iter,size_t max_number = 256>
+	size_t huffman_uncompress(const void* src_first, const void* src_last, iter dest_first, iter dest_last) {
+		size_t l1 = (uint8_t*)src_last - (uint8_t*)src_first;
 		if (!l1) {
 			return 0;
 		}
-		constexpr static int max_number = reader::max_number;
 		constexpr static int max_bit = quick_log2(max_number - 1) + 1;
-		using number_type = typename reader::number_type;
-		USE_THREAD_LOCAL static void* ptr =
-			malloc(sizeof(huffman_node) * max_number
-				+ sizeof(huffman_tree_node) * (2 * max_number - 1)
-				+ sizeof(huffman_decode_next) * 256);
+		void* ptr = 
+			static_thread_local_at_once_memory<
+			sizeof(huffman_node)* max_number
+			+ sizeof(huffman_tree_node) * (2 * max_number - 1)
+			+ sizeof(huffman_decode_next) * 256>();
 		void* mem_block = ptr;
 		huffman_node* arr = (huffman_node*)mem_block;
 		mem_block = (void*)((char*)(mem_block) + sizeof(huffman_node) * max_number);
@@ -391,38 +339,30 @@ namespace wjr {
 		mem_block = (void*)((char*)(mem_block) + sizeof(huffman_tree_node) * (2 * max_number - 1));
 		huffman_decode_next* dn = (huffman_decode_next*)mem_block;
 
-		reader it(dest,(char*)dest + l2);
-
-		uint8_t* in = (uint8_t*)src;
+		uint8_t* in = (uint8_t*)src_first;
 		uint8_t* ib = in + l1 - 1;
-		uint8_t* end = (uint8_t*)dest + l2;
 		uint8_t last_bit = *(in++);
 		int tot = 0;
-	#if is_little_endian
-		tot = *(uint16_t*)in;
-	#else
-		tot = bswap_16(*(uint16_t*)in);
-	#endif
+		tot = auto_bswap<uint16_t>(*(uint16_t*)in);
 		in += 2;
 		assert(tot < max_number);
 		if (tot == 1) {
-			uint8_t ch = *(in++);
-			size_t length = 0;
-			if constexpr (sizeof(size_t) == 8) {
-			#if is_little_endian
-				length = *(uint32_t*)in;
-			#else
-				length = bswap_32(*(uint32_t*)in);
-			#endif
-				length <<= 32;
+			uint8_t len = *(in++);
+			uint32_t ch = 0;
+			for (int i = 0; i < len; ++i) {
+				ch |= *(in++) << (i << 3);
 			}
-			in += 4;
-		#if is_little_endian
-			length |= *(uint32_t*)in;
-		#else
-			length |= bswap_32(*(uint32_t*)in);
-		#endif
-			memset(dest,ch,length);
+			size_t length = 0;
+			length = auto_bswap<uint64_t>(*(uint64_t*)in);
+			in += 8;
+			if constexpr (is_any_of_v<iter, char*, uint8_t*>) {
+				memset(dest_first, ch, length);
+			}
+			else {
+				for (iter i = dest_first; i != dest_last; ++i) {
+					*i = ch;
+				}
+			}
 			return length;
 			
 		}
@@ -446,14 +386,23 @@ namespace wjr {
 
 		unsigned long long buffer = 0;
 		int buffer_length = 0;
-		*(uint8_t*)dest = 0;
 
-		auto buffer_flush = [&buffer, &buffer_length,&tr,&it,tot](int x) {
+		auto buffer_write = [&dest_first, &dest_last](uint16_t ch)->bool {
+			if (dest_first == dest_last) {
+				return false;
+			}
+			*dest_first = ch;
+			++dest_first;
+			return true;
+		};
+
+		auto buffer_flush = [&buffer, &buffer_length,&tr,
+			&buffer_write,tot](int x) {
 			while (buffer_length--) {
 				bool c = (buffer >> buffer_length) & 1;
 				x = tr[x].son[c];
 				if (tr[x].son[0] == USHORT_MAX) {
-					if (!it.write(tr[x].son[1])) {
+					if (!buffer_write(tr[x].son[1])) {
 						return false;
 					}
 					x = tot - 2;
@@ -462,6 +411,7 @@ namespace wjr {
 			return true;
 		};
 
+		iter c_dest_first(dest_first);
 		if (in != ib) {
 			buffer_length = l;
 			buffer = huffman_get_bit_8(in, l, l);
@@ -471,7 +421,7 @@ namespace wjr {
 				while (buffer_length >= 8) {
 					uint8_t ch = (buffer >> (buffer_length - 8));
 					if (dn[ch].l) {
-						if (!it.write(dn[ch].next)) {
+						if (!buffer_write(dn[ch].next)) {
 							return -1;
 						}
 						buffer_length -= dn[ch].l;
@@ -484,7 +434,7 @@ namespace wjr {
 							bool c = (buffer >> buffer_length) & 1;
 							x = tr[x].son[c];
 							if (tr[x].son[0] == USHORT_MAX) {
-								if (!it.write(tr[x].son[1])) {
+								if (!buffer_write(tr[x].son[1])) {
 									return -1;
 								}
 								fd = true;
@@ -501,7 +451,7 @@ namespace wjr {
 								if (!buffer_flush(x)) {
 									return -1;
 								}
-								return (uint8_t*)it.get_ptr() - (uint8_t*)dest;
+								return std::distance(c_dest_first,dest_first);
 							}
 							buffer = *(in++);
 							buffer_length = 8;
@@ -509,7 +459,7 @@ namespace wjr {
 								bool c = (buffer >> buffer_length) & 1;
 								x = tr[x].son[c];
 								if (tr[x].son[0] == USHORT_MAX) {
-									if (!it.write(tr[x].son[1])) {
+									if (!buffer_write(tr[x].son[1])) {
 										return -1;
 									}
 									fd = true;
@@ -530,7 +480,7 @@ namespace wjr {
 		if (!buffer_flush(tot - 2)) {
 			return -1;
 		}
-		return (uint8_t*)it.get_ptr() - (uint8_t*)dest;
+		return std::distance(c_dest_first,dest_first);
 	}
 
 }

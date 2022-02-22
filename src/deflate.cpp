@@ -9,16 +9,16 @@ namespace wjr {
     constexpr static size_t WINDOW_SIZE =  32  KB;
     constexpr static uint32_t WINDOW_SIZE_BIT = quick_log2(WINDOW_SIZE);
     constexpr static uint32_t ANTI_WINDOW_SIZE_BIT = 32 - WINDOW_SIZE_BIT;
-    constexpr static uint32_t MAX_OFFSET_CODE = 256;
+    constexpr static uint32_t MAX_OFFSET_CODE = 2 * WINDOW_SIZE_BIT;
     constexpr static uint32_t MIN_LENGTH = 3;
     constexpr static uint32_t MAX_LENGTH = 256 + MIN_LENGTH - 1;
     static_assert(!(WINDOW_SIZE & (WINDOW_SIZE - 1)),"WINDOW_SIZE must be power of two");
     static_assert(WINDOW_SIZE <= 256 KB);
 
     struct DEFLATE_CONFIG {
-        int lazy_match_max_length;
-        int lazy_match_max_step;
-        int max_chain;
+        uint32_t lazy_match_max_length;
+        uint32_t lazy_match_max_step;
+        uint32_t max_chain;
     };
 
     constexpr static DEFLATE_CONFIG deflate_config[10] = {
@@ -100,42 +100,6 @@ namespace wjr {
         7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7
     };
 
-    class deflate_lit_reader {
-    public:
-        constexpr static uint32_t max_number = 286;
-        using number_type = uint16_t;
-        deflate_lit_reader(const void* p, const void* e)
-            : ptr((uint8_t*)p) {
-
-        }
-        uint16_t read() {
-            uint16_t ch = *(ptr++) << 8;
-            ch |= *(ptr++);
-            return ch;
-        }
-        bool write(uint16_t ch) {
-            *(ptr++) = (uint8_t)(ch >> 8);
-            *(ptr++) = (uint8_t)(ch);
-            return true;
-        }
-        void* get_ptr()const {
-            return ptr;
-        }
-    private:
-        uint8_t* ptr;
-    };
-
-    class deflate_dist_reader 
-        : public default_huffman_reader {
-    public:
-        constexpr static int max_number = MAX_OFFSET_CODE;
-        using base = default_huffman_reader;
-        deflate_dist_reader(const void* p, const void* e)
-            : base(p,e) {
-
-        }
-    };
-
     struct read_buffer {
         explicit read_buffer(void* p)
             : ptr((uint8_t*)p), bit(8) {
@@ -195,7 +159,7 @@ namespace wjr {
     };
 
     uint32_t longest_match(const uint8_t* ptr, size_t pos, 
-        size_t length, uint32_t& offset,int level,uint32_t min_limit = 2) {
+        size_t length, uint32_t& offset,int level,uint32_t min_limit = MIN_LENGTH - 1) {
         if(pos + min_limit >= length) return 0;
 
         auto max_length = MAX_LENGTH;
@@ -208,6 +172,7 @@ namespace wjr {
         uint32_t hs = get_hash(buffer);
         uint32_t longest = min_limit;
         uint32_t max_chain = deflate_config[level].max_chain;
+
         if(head[hs]){
             for (uint32_t i = head[hs]; max_chain; --max_chain) {
                 const uint8_t* buffer_ptr = buffer;
@@ -234,7 +199,7 @@ namespace wjr {
                     }
 
                     if (buffer_ptr - buffer > longest) {
-                        offset = pos - key[i] - 1;
+                        offset = key[i];
                         longest = buffer_ptr - buffer;
                         if (longest == max_length) {
                             break;
@@ -243,11 +208,12 @@ namespace wjr {
                 }
                 auto j = prev[i];
                 if(key[j] > key[i])break;
-                assert(j != 0);
+                //assert(j != 0);
                 i = j;
             }
         }
 
+        offset = pos - offset - 1;
         return longest != min_limit ? longest : 0;
     }
 
@@ -258,11 +224,7 @@ namespace wjr {
         uint8_t* out = (uint8_t*)dest;
         *(out++) = 'P';
         *(out++) = 'K';
-    #if is_little_endian
-        * (uint64_t*)out = l1;
-    #else
-        * (uint64_t*)out = bswap_64(l1);
-    #endif
+        * (uint64_t*)out = auto_bswap<uint64_t>(l1);
         out += 8;
         dest = (void*)(out);
         l2 -= ZIP_HEADER_SIZE;
@@ -270,7 +232,7 @@ namespace wjr {
         return true;
     }
 
-    size_t deflate_decompress_header(const void*& src, size_t&l1, void* dest, size_t l2) {
+    size_t deflate_uncompress_header(const void*& src, size_t&l1, void* dest, size_t l2) {
         if (l1 < ZIP_HEADER_SIZE) {
             return -1;
         }
@@ -279,11 +241,7 @@ namespace wjr {
             return -1;
         }
         in += 2;
-    #if is_little_endian
-        uint64_t length = *(uint64_t*)in;
-    #else
-        uint64_t length = bswap_64(*(uint64_t*)in);
-    #endif
+        uint64_t length = auto_bswap<uint64_t>(*(uint64_t*)in);
         if (l2 < length) {
             return -1;
         }
@@ -311,7 +269,7 @@ namespace wjr {
         void*& dest,size_t res,bool is_last,int level) {
         uint32_t cl = end - pos;
         uint32_t cres = res;
-        deflate_lit_reader LIT_1(LIT_1_BUFFER,nullptr);
+        u16byte_order_ptr LIT_1((uint16_t*)LIT_1_BUFFER);
         write_buffer LIT_2(LIT_2_BUFFER);
         uint8_t* DIST_1(DIST_1_BUFFER);
         write_buffer DIST_2(DIST_2_BUFFER);
@@ -319,6 +277,38 @@ namespace wjr {
         uint32_t sz1 = 0,sz2 = 0;
 
         uint8_t* ptr = (uint8_t*)src;
+        uint32_t lazy_match_limit = deflate_config[level].lazy_match_max_length;
+        auto push_match_offset = [&sz2,&LIT_1,&LIT_2,&DIST_1,&DIST_2](uint32_t match,uint32_t offset) {
+            ++sz2;
+            match -= MIN_LENGTH;
+            if (match < 8) {
+                *LIT_1 = 257 + match;
+                ++LIT_1;
+            }
+            else {
+                if (match == 255) {
+                    *LIT_1 = 285;
+                    ++LIT_1;
+                }
+                else {
+                    auto LIT_bit = deflate_log[match];
+                    auto LIT_code = 253 + ((LIT_bit << 2) | ((match >> (LIT_bit - 2)) & 3));
+                    assert(LIT_code < 286);
+                    *LIT_1 = LIT_code;
+                    ++LIT_1;
+                    LIT_2.write(match & binary_mask[LIT_bit - 2], LIT_bit - 2);
+                }
+            }
+            if (offset < 4) {
+                *(DIST_1++) = offset;
+            }
+            else {
+                auto DIST_bit = quick_log2(offset);
+                auto DIST_code = (DIST_bit << 1) | ((offset >> (DIST_bit - 1)) & 1);
+                *(DIST_1++) = DIST_code;
+                DIST_2.write(offset & binary_mask[DIST_bit - 1], DIST_bit - 1);
+            }
+        };
         for (size_t i = pos, j; i != end;) {
             j = i;
             uint32_t match = 0;
@@ -330,14 +320,15 @@ namespace wjr {
 
             sz1 += j - i;
             while (i != j) {
-                LIT_1.write(ptr[i]);
+                *LIT_1 = ptr[i];
+                ++LIT_1;
                 ++i;
             }
 
             if(unlikely(!match))continue;
 
-            int lazy_match = deflate_config[level].lazy_match_max_step;
-            int lazy_match_limit = deflate_config[level].lazy_match_max_length;
+            uint32_t lazy_match = deflate_config[level].lazy_match_max_step;
+            uint32_t copy_match_pos = i;
             while( lazy_match-- && match < lazy_match_limit) {
                 deflate_push(ptr, j);
                 ++j;
@@ -348,8 +339,13 @@ namespace wjr {
                 }
                 match = match2;
                 offset = offset2;
-                LIT_1.write(ptr[i++]);
-                ++sz1;
+                ++copy_match_pos;
+            }
+            sz1 += copy_match_pos - i;
+            while (i != copy_match_pos) {
+                *LIT_1 = ptr[i];
+                ++i;
+                ++LIT_1;
             }
 
             i += match;
@@ -357,32 +353,7 @@ namespace wjr {
                 deflate_push(ptr,j);
             }
 
-            ++sz2;
-            match -= MIN_LENGTH;
-            if (match < 8) {
-                LIT_1.write(257 + match);
-            }
-            else {
-                if (match == 255) {
-                    LIT_1.write(285);
-                }
-                else {
-                    auto LIT_bit = deflate_log[match];
-                    auto LIT_code = 253 + ((LIT_bit << 2) | ((match >> (LIT_bit - 2)) & 3));
-                    assert(LIT_code < 286);
-                    LIT_1.write(LIT_code);
-                    LIT_2.write(match & binary_mask[LIT_bit-2],LIT_bit-2);
-                }
-            }
-            if (offset < 4) {
-                *(DIST_1++) = offset;
-            }
-            else {
-                auto DIST_bit = quick_log2(offset);
-                auto DIST_code = (DIST_bit << 1) | ((offset >> (DIST_bit - 1)) & 1);
-                *(DIST_1++) = DIST_code;
-                DIST_2.write(offset & binary_mask[DIST_bit - 1],DIST_bit-1);
-            }
+            push_match_offset(match,offset);
         }
 
         if (is_last) {
@@ -390,11 +361,11 @@ namespace wjr {
                 uint32_t hs = get_hash(ptr + i);
                 head[hs] = 0;
             }
-            //head_ptr = tail_ptr = 0;
         }
 
         ++sz1;
-        LIT_1.write(256);
+        *LIT_1 = 256;
+        ++LIT_1;
         LIT_2.flush();
         DIST_2.flush();
 
@@ -411,9 +382,10 @@ namespace wjr {
         res -= HEADER_SIZE;
         out += HEADER_SIZE;
 
-        uint32_t LIT_1_LENGTH = huffman_compress<deflate_lit_reader>(
-            LIT_1_BUFFER,sz1 + sz2,
-            out,res);
+        uint32_t LIT_1_LENGTH = huffman_compress<u16byte_order_ptr,286>(
+            (u16byte_order_ptr)((uint16_t*)LIT_1_BUFFER),
+            (u16byte_order_ptr)((uint16_t*)LIT_1_BUFFER + (sz1 + sz2)),
+            out,out + res);
         if (LIT_1_LENGTH == -1) {
             return deflate_not_compress_package(src, pos, end, dest, cres, is_last);
         }
@@ -435,8 +407,9 @@ namespace wjr {
         out += LIT_2_LENGTH;
         uint32_t DIST_1_LENGTH = 0;
         if (sz2) {
-            DIST_1_LENGTH = huffman_compress<deflate_dist_reader>(DIST_1_BUFFER, sz2,
-                out, res);
+            DIST_1_LENGTH = huffman_compress<uint8_t*,MAX_OFFSET_CODE>(DIST_1_BUFFER, 
+                DIST_1_BUFFER + sz2,
+                out, out + res);
             if (DIST_1_LENGTH == -1) {
                 return deflate_not_compress_package(src, pos, end, dest, cres, is_last);
             }
@@ -455,22 +428,16 @@ namespace wjr {
             return deflate_not_compress_package(src, pos, end, dest, cres, is_last);
         }
         memcpy(out,DIST_2_BUFFER,DIST_2_LENGTH);
+        res -= DIST_2_LENGTH;
         out += DIST_2_LENGTH;
 
         uint8_t* header = (uint8_t*)dest;
         *(header++) = (uint8_t)(is_last) | 2;
         uint32_t*u32header = (uint32_t*)header;
-    #if is_little_endian
-        *(u32header++) = LIT_1_LENGTH;
-        *(u32header++) = LIT_2_LENGTH;
-        *(u32header++) = DIST_1_LENGTH;
-        *(u32header++) = DIST_2_LENGTH;
-    #else
-        *(u32header++) = bswap_32(LIT_1_LENGTH);
-        *(u32header++) = bswap_32(LIT_2_LENGTH);
-        *(u32header++) = bswap_32(DIST_1_LENGTH);
-        *(u32header++) = bswap_32(DIST_2_LENGTH);
-    #endif
+        *(u32header++) = auto_bswap<uint32_t>(LIT_1_LENGTH);
+        *(u32header++) = auto_bswap<uint32_t>(LIT_2_LENGTH);
+        *(u32header++) = auto_bswap<uint32_t>(DIST_1_LENGTH);
+        *(u32header++) = auto_bswap<uint32_t>(DIST_2_LENGTH);
         dest = (void*)out;
         return TOT_LENGTH;
     }
@@ -506,7 +473,7 @@ namespace wjr {
         return cl2 - l2;
     }
 
-    uint32_t deflate_not_decompress_package(const void*& src, uint64_t length, void*& dest, bool& is_last) {
+    uint32_t deflate_not_uncompress_package(const void*& src, uint64_t length, void*& dest, bool& is_last) {
         uint8_t* in = (uint8_t*)src;
         uint8_t* out = (uint8_t*)dest;
         uint32_t len = 0;
@@ -522,38 +489,31 @@ namespace wjr {
         return len;
     }
 
-    uint32_t deflate_decompress_package(const void*& src, uint64_t length,void*& dest,bool&is_last) {
+    uint32_t deflate_uncompress_package(const void*& src, uint64_t length,void*& dest,bool&is_last) {
         uint8_t* in = (uint8_t*)src;
         uint8_t* out = (uint8_t*)dest;
         is_last = (*in) & 1;
         uint8_t mode = (*in) >> 1;
         if (!mode) {
-            return deflate_not_decompress_package(src,length,dest,is_last);
+            return deflate_not_uncompress_package(src,length,dest,is_last);
         }
         uint32_t* u32in = (uint32_t*)(in+1);
-    #if is_little_endian
-        uint32_t LIT_1_LENGTH = *(u32in++);
-        uint32_t LIT_2_LENGTH = *(u32in++);
-        uint32_t DIST_1_LENGTH = *(u32in++);
-        uint32_t DIST_2_LENGTH = *(u32in++);
-    #else
-        uint32_t LIT_1_LENGTH = bswap_32(*(u32in++));
-        uint32_t LIT_2_LENGTH = bswap_32(*(u32in++));
-        uint32_t DIST_1_LENGTH = bswap_32(*(u32in++));
-        uint32_t DIST_2_LENGTH = bswap_32(*(u32in++));
-    #endif
+        uint32_t LIT_1_LENGTH = auto_bswap<uint32_t>(*(u32in++));
+        uint32_t LIT_2_LENGTH = auto_bswap<uint32_t>(*(u32in++));
+        uint32_t DIST_1_LENGTH = auto_bswap<uint32_t>(*(u32in++));
+        uint32_t DIST_2_LENGTH = auto_bswap<uint32_t>(*(u32in++));
         in += HEADER_SIZE;
-        if (huffman_decompress<deflate_lit_reader>(in, LIT_1_LENGTH, 
-            LIT_1_BUFFER, std::size(LIT_1_BUFFER)) == -1) {
+        if (huffman_uncompress<uint16_t*,286>(in, in + LIT_1_LENGTH, 
+            (uint16_t*)LIT_1_BUFFER, (uint16_t*)(LIT_1_BUFFER + std::size(LIT_1_BUFFER))) == -1) {
             return -1;
         }
-        deflate_lit_reader LIT_1(LIT_1_BUFFER,nullptr);
+        uint16_t* LIT_1((uint16_t*)LIT_1_BUFFER);
         in += LIT_1_LENGTH;
         read_buffer LIT_2(in);
         if (DIST_1_LENGTH != 0) {
             in += LIT_2_LENGTH;
-            if (huffman_decompress<deflate_dist_reader>(in,
-                DIST_1_LENGTH, DIST_1_BUFFER, std::size(DIST_1_BUFFER)) == -1) {
+            if (huffman_uncompress<uint8_t*,MAX_OFFSET_CODE>(in,
+                in + DIST_1_LENGTH, DIST_1_BUFFER, DIST_1_BUFFER + std::size(DIST_1_BUFFER)) == -1) {
                 return -1;
             }
         }
@@ -562,7 +522,7 @@ namespace wjr {
         read_buffer DIST_2(in);
         in += DIST_2_LENGTH;
         src = (void*)in;
-        for (uint16_t ch = LIT_1.read(); ch != 256;ch = LIT_1.read()) {
+        for (uint16_t ch = *(LIT_1++); ch != 256;ch = *(LIT_1++)) {
             if (ch < 256) {
                 *(out++) = (uint8_t)ch;
             }
@@ -603,11 +563,11 @@ namespace wjr {
         return len;
     }
 
-    size_t deflate_decompress(const void* src, size_t l1, void* dest, size_t l2) {
+    size_t deflate_uncompress(const void* src, size_t l1, void* dest, size_t l2) {
         if (l1 < 10) {
             return -1;
         }
-        size_t length = deflate_decompress_header(src,l1,dest,l2);
+        size_t length = deflate_uncompress_header(src,l1,dest,l2);
         if (length == -1) {
             return -1;
         }
@@ -620,7 +580,7 @@ namespace wjr {
         }
         bool is_last = false;
         do {
-            uint32_t len = deflate_decompress_package(src,length,dest,is_last);
+            uint32_t len = deflate_uncompress_package(src,length,dest,is_last);
             if (unlikely(len == -1)) {
                 return -1;
             }
@@ -643,40 +603,32 @@ namespace wjr {
         dest.shrink_to_fit();
     }
 
-    String deflate_decompress(String_view src) {
+    String deflate_uncompress(String_view src) {
         uint8_t*in = (uint8_t*)src.data();
         if (*in != 'P' || *(in + 1) != 'K') {
             return String();
         }
         in += 2;
-    #if is_little_endian
-        uint64_t length = *(uint64_t*)in;
-    #else
-        uint64_t length = bswap_64(*(uint64_t*)in);
-    #endif
+        uint64_t length = auto_bswap<uint64_t>(*(uint64_t*)in);
         in += 8;
         String dest(length, Reserved{});
-        size_t l = deflate_decompress(src.data(), src.size(), dest.data(), dest.capacity());
+        size_t l = deflate_uncompress(src.data(), src.size(), dest.data(), dest.capacity());
         dest.set_size(l);
         dest.shrink_to_fit();
         return dest;
     }
 
-    void deflate_decompress(String_view src, String& dest) {
+    void deflate_uncompress(String_view src, String& dest) {
         dest.clear();
         uint8_t* in = (uint8_t*)src.data();
         if (*in != 'P' || *(in + 1) != 'K') {
             return ;
         }
         in += 2;
-    #if is_little_endian
-        uint64_t length = *(uint64_t*)in;
-    #else
-        uint64_t length = bswap_64(*(uint64_t*)in);
-    #endif
+        uint64_t length = auto_bswap<uint64_t>(*(uint64_t*)in);
         in += 8;
         dest.reserve(length);
-        size_t l = deflate_decompress(src.data(), src.size(), dest.data(), dest.capacity());
+        size_t l = deflate_uncompress(src.data(), src.size(), dest.data(), dest.capacity());
         dest.set_size(l);
         dest.shrink_to_fit();
     }

@@ -440,6 +440,18 @@ namespace wjr {
 	using mallocator = basic_mallocator<T,true>;
 #endif
 
+	template<size_t block>
+	void* basic_static_thread_local_at_once_memory() {
+		USE_THREAD_LOCAL static void*ptr = malloc(block);
+		return ptr;
+	}
+
+	// memory used in one place only
+	template<size_t block>
+	void* static_thread_local_at_once_memory() {
+		return basic_static_thread_local_at_once_memory<(block + 255) & (~255)>();
+	}
+
 }
 
 #endif
