@@ -81,6 +81,8 @@ namespace wjr {
 
 	inline namespace wjr_type_traits {
 
+		struct empty_class {};
+
 		template <typename T>
 		struct default_array_delete { // default deleter for unique_ptr
 			constexpr default_array_delete() noexcept = default;
@@ -358,11 +360,16 @@ namespace wjr {
 		template<typename T,int w_default_endian = w_big_endian>
 		class basic_byte_order_ptr {
 		public:
+			using value_type = T;
+			using reference = T&;
+			using const_reference = const T&;
+			using pointer = T*;
+			using const_pointer = const T*;
 			using iterator = byte_order_iterator<T,w_default_endian>;
 			using const_iterator = byte_order_const_iterator<T,w_default_endian>;
 			using difference_type = ptrdiff_t;
 			using iterator_category = std::random_access_iterator_tag;
-			basic_byte_order_ptr(T* ptr)
+			explicit basic_byte_order_ptr(pointer ptr = nullptr)
 				: ptr(ptr) {
 			}
 			basic_byte_order_ptr(const basic_byte_order_ptr&other)
@@ -370,6 +377,10 @@ namespace wjr {
 			}
 			basic_byte_order_ptr& operator=(const basic_byte_order_ptr&other) {
 				ptr = other.ptr;
+				return *this;
+			}
+			basic_byte_order_ptr& operator=(pointer cptr) {
+				ptr = cptr;
 				return *this;
 			}
 			iterator operator*() {
@@ -422,11 +433,14 @@ namespace wjr {
 			bool operator!=(const basic_byte_order_ptr& other)const {
 				return ptr != other.ptr;
 			}
-			operator T* ()const {
+			operator pointer () {
+				return ptr;
+			}
+			operator const_pointer()const {
 				return ptr;
 			}
 		private:
-			T* ptr;
+			pointer ptr;
 		};
 
 		template<typename T,int w_default_endian = w_big_endian>
@@ -435,11 +449,8 @@ namespace wjr {
 			T*,basic_byte_order_ptr<T,w_default_endian>>;
 
 		using u8byte_order_ptr = byte_order_ptr<uint8_t,w_big_endian>;
-
 		using u16byte_order_ptr = byte_order_ptr<uint16_t,w_big_endian>;
-
 		using u32byte_order_ptr = byte_order_ptr<uint32_t, w_big_endian>;
-
 		using u64byte_order_ptr = byte_order_ptr<uint64_t, w_big_endian>;
 
 	}

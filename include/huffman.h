@@ -199,10 +199,11 @@ namespace wjr {
 		{
 			int que_head = 0, que_tail = 1;
 			que[0].id = tot - 2;
-			int dep = 0;
+			uint32_t dep = 0;
 			int this_dep_cnt = 1;
 			int next_dep_cnt = 0;
 			unsigned long long code = 0;
+			uint32_t last_dep = 0;
 			while (que_head < que_tail) {
 				auto& x = que[que_head++];
 				int id = x.id;
@@ -213,7 +214,14 @@ namespace wjr {
 					if (!buffer_append(ch, max_bit)) {
 						return -1;
 					}
-					if (!buffer_append(dep, 6)) {
+					uint32_t delta = dep - last_dep;
+					last_dep = dep;
+					if (delta) {
+						if (!buffer_append(0, delta)) {
+							return -1;
+						}
+					}
+					if (!buffer_append(1, 1)) {
 						return -1;
 					}
 				}
@@ -367,17 +375,22 @@ namespace wjr {
 			
 		}
 		int l = 8;
-		uint8_t dep = 0;
+		uint32_t dep = 0;
 		unsigned long long code = 0;
 		for (int i = 0; i < tot; ++i) {
 			uint16_t ch = huffman_get_bit_16(in, l, max_bit);
-			uint8_t bit_length = huffman_get_bit_8(in, l, 6);
-			code <<= (bit_length - dep);
-			arr[i].ch = bit_length;
+			uint32_t delta = 0;
+			bool c = huffman_get_bit_1(in,l);
+			while (!c) {
+				c = huffman_get_bit_1(in,l);
+				++delta;
+			}
+			dep += delta;
+			code <<= delta;
+			arr[i].ch = dep;
 			arr[ch].cnt = code++;
 			tr[i + tot - 1].son[0] = USHORT_MAX;
 			tr[i + tot - 1].son[1] = ch;
-			dep = bit_length;
 		}
 		unsigned short X = 0;
 		int Y = 0;

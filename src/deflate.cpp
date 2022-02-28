@@ -22,14 +22,14 @@ namespace wjr {
     };
 
     constexpr static DEFLATE_CONFIG deflate_config[10] = {
-        {0,0,0},
-        {0,0,4},
-        {0,0,8},
-        {0,0,16},
-        {8,16,32},
-        {32,16,64},
-        {32,64,96},
-        {128,64,128},
+        {0  ,0  ,0  },
+        {0  ,0  ,4  },
+        {0  ,0  ,8  },
+        {0  ,0  ,16 },
+        {8  ,16 ,32 },
+        {32 ,16 ,64 },
+        {32 ,64 ,96 },
+        {128,64 ,128},
         {128,256,192},
         {256,256,256}
     };
@@ -56,24 +56,17 @@ namespace wjr {
 
     void deflate_push(const uint8_t* ptr, size_t pos) {
         ptr += pos;
+        uint32_t hs,x = (pos & (WINDOW_SIZE - 1)) + 1;
         if (pos >= WINDOW_SIZE) {
-            uint32_t hs = get_hash(ptr - WINDOW_SIZE);
-            uint32_t x = (pos & (WINDOW_SIZE - 1)) + 1;
+            hs = get_hash(ptr - WINDOW_SIZE);
             if (head[hs] == x) {
                 head[hs] = 0;
             }
-            hs = get_hash(ptr);
-            key[x] = pos;
-            prev[x] = head[hs];
-            head[hs] = x;
         }
-        else {
-            uint32_t hs = get_hash(ptr);
-            uint32_t x = pos + 1;
-            key[x] = pos;
-            prev[x] = head[hs];
-            head[hs] = x;
-        }
+        hs = get_hash(ptr);
+        key[x] = pos;
+        prev[x] = head[hs];
+        head[hs] = x;
     }
 
     USE_THREAD_LOCAL static uint8_t LIT_1_BUFFER[(BUFFER_SIZE + 1) * 2],
@@ -208,7 +201,6 @@ namespace wjr {
                 }
                 auto j = prev[i];
                 if(key[j] > key[i])break;
-                //assert(j != 0);
                 i = j;
             }
         }
@@ -269,7 +261,7 @@ namespace wjr {
         void*& dest,size_t res,bool is_last,int level) {
         uint32_t cl = end - pos;
         uint32_t cres = res;
-        u16byte_order_ptr LIT_1((uint16_t*)LIT_1_BUFFER);
+        uint16_t* LIT_1((uint16_t*)LIT_1_BUFFER);
         write_buffer LIT_2(LIT_2_BUFFER);
         uint8_t* DIST_1(DIST_1_BUFFER);
         write_buffer DIST_2(DIST_2_BUFFER);
@@ -328,7 +320,6 @@ namespace wjr {
             if(unlikely(!match))continue;
 
             uint32_t lazy_match = deflate_config[level].lazy_match_max_step;
-            uint32_t copy_match_pos = i;
             while( lazy_match-- && match < lazy_match_limit) {
                 deflate_push(ptr, j);
                 ++j;
@@ -339,13 +330,9 @@ namespace wjr {
                 }
                 match = match2;
                 offset = offset2;
-                ++copy_match_pos;
-            }
-            sz1 += copy_match_pos - i;
-            while (i != copy_match_pos) {
-                *LIT_1 = ptr[i];
-                ++i;
+                *LIT_1 = ptr[i++];
                 ++LIT_1;
+                ++sz1;
             }
 
             i += match;
@@ -382,9 +369,9 @@ namespace wjr {
         res -= HEADER_SIZE;
         out += HEADER_SIZE;
 
-        uint32_t LIT_1_LENGTH = huffman_compress<u16byte_order_ptr,286>(
-            (u16byte_order_ptr)((uint16_t*)LIT_1_BUFFER),
-            (u16byte_order_ptr)((uint16_t*)LIT_1_BUFFER + (sz1 + sz2)),
+        uint32_t LIT_1_LENGTH = huffman_compress<uint16_t*,286>(
+            ((uint16_t*)LIT_1_BUFFER),
+            ((uint16_t*)LIT_1_BUFFER + (sz1 + sz2)),
             out,out + res);
         if (LIT_1_LENGTH == -1) {
             return deflate_not_compress_package(src, pos, end, dest, cres, is_last);
@@ -498,13 +485,14 @@ namespace wjr {
             return deflate_not_uncompress_package(src,length,dest,is_last);
         }
         uint32_t* u32in = (uint32_t*)(in+1);
-        uint32_t LIT_1_LENGTH = auto_bswap<uint32_t>(*(u32in++));
-        uint32_t LIT_2_LENGTH = auto_bswap<uint32_t>(*(u32in++));
+        uint32_t LIT_1_LENGTH  = auto_bswap<uint32_t>(*(u32in++));
+        uint32_t LIT_2_LENGTH  = auto_bswap<uint32_t>(*(u32in++));
         uint32_t DIST_1_LENGTH = auto_bswap<uint32_t>(*(u32in++));
         uint32_t DIST_2_LENGTH = auto_bswap<uint32_t>(*(u32in++));
         in += HEADER_SIZE;
         if (huffman_uncompress<uint16_t*,286>(in, in + LIT_1_LENGTH, 
-            (uint16_t*)LIT_1_BUFFER, (uint16_t*)(LIT_1_BUFFER + std::size(LIT_1_BUFFER))) == -1) {
+            ((uint16_t*)LIT_1_BUFFER), 
+            ((uint16_t*)(LIT_1_BUFFER + std::size(LIT_1_BUFFER)))) == -1) {
             return -1;
         }
         uint16_t* LIT_1((uint16_t*)LIT_1_BUFFER);
