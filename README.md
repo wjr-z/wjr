@@ -1,8 +1,3 @@
-A library that I wrote myself.
-
-Now there is a relatively complete "String" class.
-
----
 
 Functions & dependencies :
 
