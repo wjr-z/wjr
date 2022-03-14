@@ -13,7 +13,7 @@
 #include <utility>
 #include <type_traits>
 #include <cstddef>
-#include "mySTL.h"
+#include "mtype_traits.h"
 
 namespace wjr {
 
@@ -94,9 +94,9 @@ namespace wjr {
 
 	typedef __malloc_alloc_template__<0> malloc_alloc;
 
-	enum {ALLOC_ALIGN = 8};
-	enum {ALLOC_MAX_BYTES = 128};
-	enum {ALLOC_NFRELISTS = ALLOC_MAX_BYTES / ALLOC_ALIGN};
+	enum { ALLOC_ALIGN = 8 };
+	enum { ALLOC_MAX_BYTES = 128 };
+	enum { ALLOC_NFRELISTS = ALLOC_MAX_BYTES / ALLOC_ALIGN };
 
 	template <bool threads, int inst>
 	class __default_alloc_template__;
@@ -107,7 +107,7 @@ namespace wjr {
 	template<>
 	class __basic_default_alloc_template__<true> {
 	private:
-		template<bool,int>
+		template<bool, int>
 		friend class __default_alloc_template__;
 		enum { __ALIGN = ALLOC_ALIGN };
 		enum { __MAX_BYTES = ALLOC_MAX_BYTES };
@@ -144,19 +144,22 @@ namespace wjr {
 
 #ifdef ALLOCATOR_DEBUG
 	struct allocator_debuger {
-		allocator_debuger() 
-			: allocated_size(0){
+		allocator_debuger()
+			: allocated_size(0) {
 
 		}
 		~allocator_debuger() {
 			if (allocated_size == 0) {
 				printf("allocator no problem\n");
+				return;
 			}
 			if (allocated_size > 0) {
 				printf("Some memory is not recycled\n");
+				printf("size : %lld\n", allocated_size);
 			}
 			if (allocated_size < 0) {
 				printf("Recycled excess memory\n");
+				printf("size : %lld\n", allocated_size);
 			}
 		}
 		long long allocated_size;
@@ -193,12 +196,12 @@ namespace wjr {
 	public:
 		static void* allocate(size_t n) //n must be > 0
 		{
-			if (n > (size_t)__MAX_BYTES) {
-				return malloc_alloc::allocate(n);
-			}
 		#ifdef ALLOCATOR_DEBUG
 			allocator_debuger_ref.allocated_size += n;
 		#endif
+			if (n > (size_t)__MAX_BYTES) {
+				return malloc_alloc::allocate(n);
+			}
 			obj* volatile* my_free_list = base::free_list + FREELIST_INDEX(n);
 			obj* result = *my_free_list;
 			if (result != nullptr) {
@@ -211,14 +214,14 @@ namespace wjr {
 		static void deallocate(void* p, size_t n) //p may not be 0
 		{
 			obj* q = (obj*)p;
+		#ifdef ALLOCATOR_DEBUG
+			allocator_debuger_ref.allocated_size -= n;
+		#endif
 
 			if (n > (size_t)__MAX_BYTES) {
 				free(p);
 				return;
 			}
-		#ifdef ALLOCATOR_DEBUG
-			allocator_debuger_ref.allocated_size -= n;
-		#endif
 
 			obj* volatile* my_free_list = base::free_list + FREELIST_INDEX(n);
 			q->free_list_link = *my_free_list;
@@ -241,7 +244,7 @@ namespace wjr {
 		size_t total_bytes = size * nobjs;
 		const auto bytes_left = static_cast<size_t>(base::end_free - base::start_free);
 
-		if (bytes_left >= total_bytes) { 
+		if (bytes_left >= total_bytes) {
 			result = base::start_free;
 			base::start_free += total_bytes;
 			return (result);
@@ -346,7 +349,7 @@ namespace wjr {
 
 		template <typename _Other>
 		struct rebind {
-			using other = basic_mallocator<_Other,threads>;
+			using other = basic_mallocator<_Other, threads>;
 		};
 
 		constexpr basic_mallocator() noexcept {}
@@ -403,19 +406,19 @@ namespace wjr {
 			return static_cast<size_t>(-1) / sizeof(Ty);
 		}
 
-		constexpr static size_t max_small_size(){
+		constexpr static size_t max_small_size() {
 			return static_cast<size_t>(ALLOC_MAX_BYTES) / sizeof(Ty);
 		}
 
 	};
 
-	template<typename T,typename U,bool t1,bool t2>
+	template<typename T, typename U, bool t1, bool t2>
 	bool operator==(const basic_mallocator<T, t1>&, const basic_mallocator<U, t2>&) {
 		return false;
 	}
 
-	template<typename T, typename U,bool threads>
-	bool operator==(const basic_mallocator<T,threads>&, const basic_mallocator<U,threads>&) {
+	template<typename T, typename U, bool threads>
+	bool operator==(const basic_mallocator<T, threads>&, const basic_mallocator<U, threads>&) {
 		return true;
 	}
 
@@ -424,32 +427,57 @@ namespace wjr {
 		return true;
 	}
 
-	template<typename T, typename U,bool threads>
-	bool operator!=(const basic_mallocator<T,threads>&, const basic_mallocator<U,threads>&) {
+	template<typename T, typename U, bool threads>
+	bool operator!=(const basic_mallocator<T, threads>&, const basic_mallocator<U, threads>&) {
 		return false;
 	}
 
 	template<typename T>
-	using tallocator = basic_mallocator<T,true>;
+	using tallocator = basic_mallocator<T, true>;
 
 #ifndef __USE_THREADS
 	template<typename T>
-	using mallocator = basic_mallocator<T,false>;
+	using mallocator = basic_mallocator<T, false>;
 #else 
 	template<typename T>
-	using mallocator = basic_mallocator<T,true>;
+	using mallocator = basic_mallocator<T, true>;
 #endif
 
 	template<size_t block>
 	void* basic_static_thread_local_at_once_memory() {
-		USE_THREAD_LOCAL static void*ptr = malloc(block);
+		USE_THREAD_LOCAL static void* ptr = malloc(block);
 		return ptr;
 	}
 
 	// memory used in one place only
 	template<size_t block>
 	void* static_thread_local_at_once_memory() {
-		return basic_static_thread_local_at_once_memory<(block + 255) & (~255)>();
+		constexpr size_t cblock = !block ? 0 : (size_t(1) << (quick_log2(block - 1) + 1));
+		return basic_static_thread_local_at_once_memory<cblock>();
+	}
+
+	struct default_mallocator_delete {
+		constexpr default_mallocator_delete() = default;
+
+		template<typename...Args>
+		constexpr default_mallocator_delete(Args&&...args) {
+		}
+
+		template<typename T>
+		void operator()(T* ptr)const {
+			ptr->~T();
+			mallocator<T>().deallocate(ptr, 1);
+		}
+	};
+
+	template<typename T>
+	using mallocator_unique_ptr = std::unique_ptr<T, default_mallocator_delete>;
+
+	template<typename T, typename...Args>
+	mallocator_unique_ptr<T> mallocator_make_unique(Args&&...args) {
+		auto ptr = mallocator<T>().allocate(1);
+		new (ptr) T(std::forward<Args>(args)...);
+		return mallocator_unique_ptr<T>(ptr, default_mallocator_delete());
 	}
 
 }

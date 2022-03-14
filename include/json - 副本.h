@@ -13,22 +13,24 @@ namespace wjr {
 
     //Use mallocator as default allocator
     using json_boolean = bool;
-    using json_number = double;
-    using json_string = String;
-    using json_object = std::map<json_string, json, std::less<json_string>,
-        mallocator<std::pair<const json_string, json>>>;
-    using json_array = std::vector<json, mallocator<json>>;
+    using json_number  = double;
+    using json_string  = String;
+    using json_object  = std::map<json_string, json, std::less<json_string>,
+                         mallocator<std::pair<const json_string, json>>>;
+    using json_array   = std::vector<json,mallocator<json>>;
 
     class json {
     private:
+    public:
+
         template<typename...Args>
         struct CHECK_TO_JSON {
             template<typename...U>
             static auto check(int) ->
-                decltype(to_json(std::declval<json&>(), std::declval<U>()...), std::true_type());
+                decltype(to_json(std::declval<json&>(),std::declval<U>()...),std::true_type());
             template<typename...U>
-            static auto check(...)->std::false_type;
-            constexpr static bool value = std::is_same_v<decltype(check<Args...>(0)), std::true_type>;
+            static auto check(...) -> std::false_type;
+            constexpr static bool value = std::is_same_v<decltype(check<Args...>(0)),std::true_type>;
         };
 
         template<typename...Args>
@@ -38,7 +40,9 @@ namespace wjr {
                 decltype(from_json(std::declval<const json&>(), std::declval<U>()...), std::true_type());
             template<typename...U>
             static auto check(...)->std::false_type;
-            constexpr static bool value = std::is_same_v<decltype(check<Args...>(0)), std::true_type>;
+            constexpr static bool value = 
+                std::conjunction_v<
+                decltype(check<Args...>(0))>;
         };
 
         // container_tag is used to simplify writing
@@ -47,26 +51,26 @@ namespace wjr {
         constexpr static bool is_json_container = false;
 
         template<typename T>
-        constexpr static bool is_json_container<T> =
+        constexpr static bool is_json_container<T> = 
             typeInfo<std::decay_t<T>>::container_tag & 0x0F;
 
         template<typename...Args>
-        constexpr static bool is_constructible_to_json =
-            is_json_container<Args...> ||
+        constexpr static bool is_constructible_to_json = 
+            is_json_container<Args...> || 
             CHECK_TO_JSON<Args...>::value;
 
         template<typename...Args>
-        constexpr static bool is_constructible_from_json =
-            is_json_container<Args...> ||
+        constexpr static bool is_constructible_from_json = 
+            is_json_container<Args...> || 
             CHECK_FROM_JSON<Args...>::value;
 
         template<typename...Args>
-        using _Is_constructible_to_object =
-            std::enable_if_t<std::is_constructible_v<json_object, Args...>, int>;
+        using _Is_constructible_to_object = 
+            std::enable_if_t<std::is_constructible_v<json_object,Args...>,int>;
 
         template<typename...Args>
-        using _Is_constructible_to_array =
-            std::enable_if_t<std::is_constructible_v<json_array, Args...>, int>;
+        using _Is_constructible_to_array = 
+            std::enable_if_t<std::is_constructible_v<json_array,Args...>,int>;
 
         template<typename T>
         using _Is_size_t = std::enable_if_t<
@@ -101,7 +105,7 @@ namespace wjr {
         using Array   = json_array;
 
         // only need to move copy Number when need to copy data of union
-        static_assert(sizeof(Number) >= sizeof(String*), "");
+        static_assert(sizeof(Number) >= sizeof(String*),"");
 
         using size_type = size_t;
 
@@ -121,11 +125,11 @@ namespace wjr {
         json(Array&&)noexcept;
 
         template<typename...Args, _Is_string_view_ish<Args...> = 0>
-        json(Args&&...args)noexcept;
+        explicit json(Args&&...args)noexcept;
 
         // you can customize the constructor by using a to_json function
-        template<typename T, typename...Args, std::enable_if_t<is_constructible_to_json<T, Args...>, int> = 0>
-        json(T&& value, Args&&...args)noexcept;
+        template<typename T, typename...Args, std::enable_if_t<is_constructible_to_json<T,Args...>,int> = 0>
+        explicit json(const T&value, Args&&...args)noexcept;
 
         // construct a array of length _Count with value _Val
         json(const size_type _Count, const json& _Val);
@@ -159,7 +163,7 @@ namespace wjr {
         json& operator[](T&& name);
 
         template<typename T, _Is_string_view_ish<T> = 0>
-        json& at(T&& name);
+        json& at(T&&name);
 
         template<typename T, _Is_string_view_ish<T> = 0>
         const json& at(T&& name)const;
@@ -169,6 +173,9 @@ namespace wjr {
 
         json& at(const size_t inedx);
         const json& at(const size_t index)const;
+
+        void insert(const json& data);
+        void insert(json&& data);
 
         template<typename T, typename U, _Is_string_view_ish<T> = 0,
             std::enable_if_t<std::is_same_v<std::decay_t<U>, json>, int> = 0>
@@ -241,8 +248,8 @@ namespace wjr {
         template<typename T, _Is_string_view_ish<T> = 0>
         bool get_value(T& value)const;
 
-        template<typename T, typename...Args, std::enable_if_t<is_constructible_from_json<T, Args...>, int> = 0>
-        bool get_value(T&& value, Args&&...args)const;
+        template<typename T, typename...Args,std::enable_if_t<is_constructible_from_json<T,Args...>,int> = 0>
+        bool get_value(T&value, Args&&...args)const;
 
         uint8_t type()const { return vtype; }
 
@@ -269,7 +276,7 @@ namespace wjr {
 
     private:
 
-        static void MergePatch(json& Target, const json& Patch);
+        static void MergePatch(json&Target,const json&Patch);
 
         void _minify(json_string&)const;
 
@@ -299,33 +306,33 @@ namespace wjr {
         new (_String) String(std::forward<Args>(args)...);
     }
 
-    template<typename T, typename...Args,
-        std::enable_if_t<json::is_constructible_to_json<T, Args...>, int>>
-        json::json(T&& value, Args&&...args) noexcept
+    template<typename T, typename...Args, 
+        std::enable_if_t<json::is_constructible_to_json<T,Args...>,int>>
+    json::json(const T& value, Args&&...args) noexcept
         : _Number(0), vtype((uint8_t)(value_t::undefined)) {
         using vtype = std::decay_t<T>;
         using _Type_Info = typeInfo<vtype>;
-        if constexpr (json::CHECK_TO_JSON<T, Args...>::value) {
-            to_json(*this, std::forward<T>(value), std::forward<Args>(args)...);
+        if constexpr (json::CHECK_TO_JSON<Args...>::value) {
+            to_json(*this, value, std::forward<Args>(args)...);
         }
         else if constexpr (_Type_Info::container_tag & default_json) {
             auto& it = _Type_Info::fields;
             set_object();
             it.forEach(
                 [this, &value](auto& x) {
-                    insert((json_string)x.name, (json)x.get_value(std::forward<T>(value)));
+                    insert((json_string)x.name, (json)x.get_value(value));
                 }
             );
         }
         else if constexpr (_Type_Info::container_tag & array_json) {
             set_array();
-            for (auto& i : std::forward<T>(value)) {
+            for (auto& i : value) {
                 insert((json)i);
             }
         }
         else if constexpr (_Type_Info::container_tag & object_json) {
             set_object();
-            for (auto& i : std::forward<T>(value)) {
+            for (auto& i : value) {
                 insert((json_string)i.first, (json)i.second);
             }
         }
@@ -348,12 +355,12 @@ namespace wjr {
         return to_object()[(String)std::forward<T>(name)];
     }
 
-    template<typename T, json::_Is_string_view_ish<T> >
+    template<typename T,json::_Is_string_view_ish<T> >
     json& json::at(T&& name) {
         return to_object().at((String)std::forward<T>(name));
     }
 
-    template<typename T, json::_Is_string_view_ish<T> >
+    template<typename T,json::_Is_string_view_ish<T> >
     const json& json::at(T&& name)const {
         return to_object().at((String)std::forward<T>(name));
     }
@@ -375,22 +382,21 @@ namespace wjr {
     }
 
     template<typename T, typename...Args, std::enable_if_t<
-        json::is_constructible_from_json<T, Args...>, int>>
-        bool json::get_value(T&& value, Args&&...args) const {
+        json::is_constructible_from_json<T,Args...>,int>>
+    bool json::get_value(T& value,Args&&...args) const {
         using vtype = std::decay_t<T>;
         using _Type_Info = typeInfo<vtype>;
-        if constexpr (json::CHECK_FROM_JSON<T, Args...>::value) {
-            static_assert(std::is_same_v<decltype(from_json(std::declval<const json&>(),
-                std::declval<T>(), std::declval<Args>()...)), bool>
+        if constexpr (json::CHECK_FROM_JSON<T>::value) {
+            static_assert(std::is_same_v<decltype(from_json(std::declval<const json&>(), 
+                std::declval<T&>(), std::declval<Args>(args)...)), bool>
                 , "the return value must be bool");
-            if (!from_json(*this, std::forward<T>(value), std::forward<Args>(args)...))return false;
+            if (!from_json(*this, value,std::forward<Args>(args)...))return false;
         }
         else if constexpr (_Type_Info::container_tag & default_json) {
             auto& it = _Type_Info::fields;
             it.forEach(
                 [this, &value](auto& x) {
-                    if (!to_object().at(String(x.name)).get_value(
-                        x.get_value(std::forward<T>(value))))return false;
+                    if (!to_object().at(String(x.name)).get_value(x.get_value(value)))return false;
                 }
             );
         }
@@ -398,14 +404,14 @@ namespace wjr {
             auto& arr = to_array();
             using value_type = std::decay_t<decltype(std::declval<T>()[0])>;
             for (auto& it : arr) {
-                std::forward<T>(value).push_back(value_type());
-                if (!it.get_value(std::forward<T>(value).back()))return false;
+                value.push_back(value_type());
+                if (!it.get_value(value.back()))return false;
             }
         }
         else if constexpr (_Type_Info::container_tag & object_json) {
             auto& obj = to_object();
             for (auto& it : obj) {
-                auto& val = (std::forward<T>(value))[String(it.first)];
+                auto& val = value[String(it.first)];
                 if (!it.second.get_value(val))return false;
             }
         }

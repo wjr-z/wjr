@@ -1,54 +1,37 @@
 #ifndef __WJR_GRAPHIC_H
 #define __WJR_GRAPHIC_H
 
+#include <forward_list>
 #include <list>
 #include <vector>
-#include "mallocator.h"
+#include "exist_ptr.h"
 
 namespace wjr {
 
-    template<typename T /*node info*/, typename U /*edge info*/,typename Al = mallocator<int>>
+    template<typename T /*node info*/, typename U /*edge info*/>
     class wnode {
     private:
         class wedge;
         class simple_ptr;
-        using edge_al = typename Al::template rebind<wedge>::other;
-        using uint8_t_al = typename Al::template rebind<uint8_t>::other;
-        using simple_ptr_al = typename Al::template rebind<simple_ptr>::other;
-        using node_al = typename Al::template rebind<T>::other;
+        using node_al = mallocator<T>;
+        using edge_al = mallocator<wedge>;
+        using simple_ptr_al = mallocator<simple_ptr>;
         class wedge {
         private:
             using edge_list = std::list<wedge, edge_al>;
             using iterator = typename edge_list::iterator;
         public:
             template<typename...Args>
-            wedge(uint8_t* _Count, wnode* _Nxt, Args&&...args)
-                : _Count(_Count), _Nxt(_Nxt), _Info(std::forward<Args>(args)...) {
+            wedge(wnode* _Nxt, Args&&...args)
+                : _Nxt(_Nxt), _Info(std::forward<Args>(args)...) {
 
             }
 
             wedge(const wedge&) = delete;
 
-            wedge(wedge&& other)
-                : _Count(other._Count), _Nxt(other._Nxt),
-                _Info(std::move(other._Info)) {
-                other._Count = nullptr;
-            }
-
             wedge& operator=(const wedge&) = delete;
 
-            ~wedge() {
-                if (_Count != nullptr) {
-                    switch (*_Count) {
-                    case 2:
-                        --(*_Count);
-                        break;
-                    default:
-                        assert(false);
-                        break;
-                    }
-                }
-            }
+            ~wedge() = default;
 
             U& info() {
                 return _Info;
@@ -66,7 +49,6 @@ namespace wjr {
                 return _Nxt;
             }
         private:
-            uint8_t* _Count;
             wnode* _Nxt;
             U _Info;
         };
@@ -81,37 +63,26 @@ namespace wjr {
         using const_iterator = typename edge_list::const_iterator;
     private:
         struct simple_ptr {
-            uint8_t* _Count;
-            wnode* _Nxt;
+            exist_ptr _Count;
             iterator _Iter;
-            simple_ptr(uint8_t* _Count, wnode* _Nxt, iterator _Iter)
-                : _Count(_Count), _Nxt(_Nxt), _Iter(_Iter) {
+            simple_ptr(const exist_base& _Count, iterator _Iter)
+                : _Count(_Count), _Iter(_Iter) {
 
             }
 
             simple_ptr(const simple_ptr&) = delete;
 
-            simple_ptr(simple_ptr&& other)
-                : _Count(other._Count), _Nxt(other._Nxt),
+            simple_ptr(simple_ptr&& other) noexcept
+                : _Count(std::move(other._Count)),
                 _Iter(std::move(other._Iter)) {
-                other._Count = nullptr;
+
             }
 
             simple_ptr& operator=(const simple_ptr&) = delete;
 
             ~simple_ptr() {
-                if (_Count != nullptr) {
-                    switch (*_Count) {
-                    case 2:
-                        _Nxt->_Edge.erase(_Iter);
-                        // fallthrough
-                    case 1:
-                        uint8_t_al().deallocate(_Count,1);
-                        break;
-                    default:
-                        assert(false);
-                        break;
-                    }
+                if (_Count.exist()) {
+                    get_wnode(_Count)->_Edge.erase(_Iter);
                 }
             }
         };
@@ -127,20 +98,29 @@ namespace wjr {
         wnode(const wnode&) = delete;
 
         wnode(wnode&& other)
-            : _Info(other._Info), _Edge(std::move(other._Edge)),
+            : _Count(std::move(other._Count)),
+            _Info(other._Info), _Edge(std::move(other._Edge)),
             _Cleaner(std::move(other._Cleaner)) {
             other._Info = nullptr;
         }
 
+        ~wnode() {
+            clear();
+        }
+
         wnode& operator=(const wnode&) = delete;
 
-        ~wnode() {
-            if (_Info != nullptr) {
-                _Info->~T();
-                node_al().deallocate(_Info, 1);
-                _Edge.clear();
-                _Cleaner.clear();
+        wnode& operator=(wnode&& other) noexcept {
+            if (unlikely(this == std::addressof(other))) {
+                return *this;
             }
+            clear();
+            _Count = std::move(other._Count);
+            _Info = other._Info;
+            other._Info = nullptr;
+            _Edge = std::move(other._Edge);
+            _Cleaner = std::move(other._Cleaner);
+            return *this;
         }
 
         iterator begin() {
@@ -176,18 +156,44 @@ namespace wjr {
         }
 
         template<typename...Args>
-        void link(wnode* _Nxt, Args&&...args) {
-            auto ptr = uint8_t_al().allocate(1);
-            new (ptr) (uint8_t)(2);
-            _Edge.emplace_back(ptr, _Nxt, std::forward<Args>(args)...);
-            auto iter = --_Edge.end();
-            _Nxt->_Cleaner.emplace_back(ptr, this, iter);
+        void link(wnode& _Nxt, Args&&...args) {
+            _Edge.emplace_back(&_Nxt, std::forward<Args>(args)...);
+            _Nxt._Cleaner.emplace_front(_Count, --_Edge.end());
+        }
+
+        exist_base& get_exist_base() {
+            return _Count;
+        }
+
+        const exist_base& get_exist_base()const {
+            return _Count;
         }
 
     private:
+
+        void clear() {
+            if (_Info != nullptr) {
+                _Info->~T();
+                node_al().deallocate(_Info, 1);
+                _Edge.clear();
+                _Cleaner.clear();
+            }
+        }
+
+        constexpr static size_t get_count_offset() {
+            return offsetof(wnode,_Count);
+        }
+
+        constexpr static wnode* get_wnode(exist_ptr& ptr) {
+            return static_cast<wnode*>(static_cast<void*>(
+                static_cast<unsigned char*>(static_cast<void*>(ptr.get_base())) - 
+                get_count_offset()));
+        }
+
+        exist_base _Count;
         T* _Info;
         edge_list _Edge;
-        std::vector<simple_ptr, simple_ptr_al> _Cleaner;
+        std::forward_list<simple_ptr, simple_ptr_al> _Cleaner;
     };
 }
 

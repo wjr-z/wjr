@@ -1817,13 +1817,13 @@ namespace wjr {
         }
 
     public:
-        constexpr static Char nans[4] = {
+        constexpr static Char nan[4] = {
             static_cast<Char>('n'),
             static_cast<Char>('a'),
             static_cast<Char>('n'),
             static_cast<Char>('\0')
         };
-        constexpr static Char infs[4] = {
+        constexpr static Char inf[4] = {
             static_cast<Char>('i'),
             static_cast<Char>('n'),
             static_cast<Char>('f'),
@@ -3090,28 +3090,29 @@ namespace wjr {
         }
 
         template<typename T = Traits>
-        constexpr size_type find(const value_type ch)const noexcept{
-            return non_default_traits<T>::find(data(), size(), 0, ch);
+        constexpr size_type find(const value_type ch, size_type off = 0)const noexcept{
+            return non_default_traits<T>::find(data(), size(), off, ch);
         }
 
         template<typename T = Traits>
-        constexpr size_type find(const basic_String_view & other)const noexcept{
-            return non_default_traits<T>::find(data(),size(),0,other.data(),other.size());
+        constexpr size_type find(const basic_String_view & other, size_type off = 0)const noexcept{
+            return non_default_traits<T>::find(data(),size(),off,other.data(),other.size());
         }
 
         template<typename T = Traits>
-        constexpr size_type find(const typename non_default_traits<T>::string_find_helper & srch)const noexcept{
-            return non_default_traits<T>::find(data(), size(), 0, srch);
+        constexpr size_type find(const typename non_default_traits<T>::
+            string_find_helper & srch,size_type off = 0)const noexcept{
+            return non_default_traits<T>::find(data(), size(), off, srch);
         }
 
         template<typename T = Traits>
-        constexpr size_type find(const value_type* s)const noexcept {
-            return find<T>(s,traits_length(s));
+        constexpr size_type find(const value_type* s, size_type off = 0)const noexcept {
+            return find<T>(s,off,traits_length(s));
         }
 
         template<typename T =  Traits>
-        constexpr size_type find(const value_type* s, const size_type n)const noexcept {
-            return non_default_traits<T>::find(data(),size(),0,s,n);
+        constexpr size_type find(const value_type* s, size_type off, const size_type n)const noexcept {
+            return non_default_traits<T>::find(data(),size(),off,s,n);
         }
 
         template<typename T = Traits>
@@ -3139,28 +3140,29 @@ namespace wjr {
         }
 
         template<typename T = Traits>
-        constexpr size_type rfind(const value_type ch)const noexcept{
-            return non_default_traits<T>::rfind(data(), size(), 0, ch);
+        constexpr size_type rfind(const value_type ch, size_type off = npos)const noexcept{
+            return non_default_traits<T>::rfind(data(), size(), off, ch);
         }
 
         template<typename T = Traits>
-        constexpr size_type rfind(const basic_String_view & other)const noexcept{
-            return non_default_traits<T>::rfind(data(),size(),0,other.data(),other.size());
+        constexpr size_type rfind(const basic_String_view & other,size_type off = npos)const noexcept{
+            return non_default_traits<T>::rfind(data(),size(),off,other.data(),other.size());
         }
 
         template<typename T = Traits>
-        constexpr size_type rfind(const typename non_default_traits<T>::string_rfind_helper & srch)const noexcept{
-            return non_default_traits<T>::rfind(data(), size(), 0, srch);
+        constexpr size_type rfind(const typename non_default_traits<T>::
+            string_rfind_helper & srch, size_type off = npos)const noexcept{
+            return non_default_traits<T>::rfind(data(), size(), off, srch);
         }
 
         template<typename T = Traits>
-        constexpr size_type rfind(const value_type* s)const noexcept {
-            return rfind<T>(s, traits_length(s));
+        constexpr size_type rfind(const value_type* s, size_type off = npos)const noexcept {
+            return rfind<T>(s, off, traits_length(s));
         }
 
         template<typename T = Traits>
-        constexpr size_type rfind(const value_type* s, const size_type n)const noexcept {
-            return non_default_traits<T>::rfind(data(),size(),0,s,n);
+        constexpr size_type rfind(const value_type* s, size_type off, const size_type n)const noexcept {
+            return non_default_traits<T>::rfind(data(),size(),off,s,n);
         }
 
         template<typename T = Traits>
@@ -3192,107 +3194,107 @@ namespace wjr {
         }
 
         template<typename T = Traits>
-        constexpr size_type find_first_of(const value_type ch)const noexcept{
-            return non_default_traits<T>::find_first_of_ch(data(), size(), 0, ch);
+        constexpr size_type find_first_of(const value_type ch, size_type off = 0)const noexcept{
+            return non_default_traits<T>::find_first_of_ch(data(), size(), off, ch);
         }
 
         template<typename T = Traits>
-        constexpr size_type find_first_of(const basic_String_view & other)const noexcept{
-            return non_default_traits<T>::find_first_of(data(),size(),0,other.data(),other.size());
+        constexpr size_type find_first_of(const basic_String_view & other, size_type off = 0)const noexcept{
+            return non_default_traits<T>::find_first_of(data(),size(),off,other.data(),other.size());
         }
 
         template<typename T = Traits>
-        constexpr size_type find_first_of(const typename 
-            non_default_traits<T>::string_find_of_helper & srch)const noexcept{
-            return non_default_traits<T>::find_first_of(data(), size(), 0, srch);
+        constexpr size_type find_first_of(const typename non_default_traits<T>::
+            string_find_of_helper & srch, size_type off = 0)const noexcept{
+            return non_default_traits<T>::find_first_of(data(), size(), off, srch);
         }
 
         template<typename T = Traits>
-        constexpr size_type find_first_of(const value_type* s)const noexcept {
-            return find_first_of<T>(s,traits_length(s));
+        constexpr size_type find_first_of(const value_type* s, size_type off = 0)const noexcept {
+            return find_first_of<T>(s,off,traits_length(s));
         }
 
         template<typename T = Traits>
-        constexpr size_type find_first_of(const value_type* s, const size_type n)const noexcept {
-            return non_default_traits<T>::find_first_of(data(),size(),0,s,n);
+        constexpr size_type find_first_of(const value_type* s, size_type off, const size_type n)const noexcept {
+            return non_default_traits<T>::find_first_of(data(),size(),off,s,n);
         }
 
         template<typename T = Traits>
-        constexpr size_type find_last_of(const value_type ch)const noexcept{
-            return non_default_traits<T>::find_last_of_ch(data(), size(), 0, ch);
+        constexpr size_type find_last_of(const value_type ch, size_type off = npos)const noexcept{
+            return non_default_traits<T>::find_last_of_ch(data(), size(), off, ch);
         }
 
         template<typename T = Traits>
-        constexpr size_type find_last_of(const basic_String_view & other)const noexcept{
-            return non_default_traits<T>::find_last_of(data(),size(),0,other.data(),other.size());
+        constexpr size_type find_last_of(const basic_String_view & other, size_type off = npos)const noexcept{
+            return non_default_traits<T>::find_last_of(data(),size(),off,other.data(),other.size());
         }
 
         template<typename T = Traits>
-        constexpr size_type find_last_of(const typename 
-            non_default_traits<T>::string_find_of_helper & srch)const noexcept{
-            return non_default_traits<T>::find_last_of(data(), size(), 0, srch);
+        constexpr size_type find_last_of(const typename non_default_traits<T>::
+            string_find_of_helper & srch, size_type off = npos)const noexcept{
+            return non_default_traits<T>::find_last_of(data(), size(), off, srch);
         }
 
         template<typename T = Traits>
-        constexpr size_type find_last_of(const value_type* s)const noexcept {
-            return find_last_of<T>(s,traits_length(s));
+        constexpr size_type find_last_of(const value_type* s, size_type off = npos)const noexcept {
+            return find_last_of<T>(s,off,traits_length(s));
         }
 
         template<typename T = Traits>
-        constexpr size_type find_last_of(const value_type* s, const size_type n)const noexcept {
-            return non_default_traits<T>::find_last_of(data(), size(), 0, s, n);
+        constexpr size_type find_last_of(const value_type* s, size_type off, const size_type n)const noexcept {
+            return non_default_traits<T>::find_last_of(data(), size(), off, s, n);
         }
 
         template<typename T = Traits>
-        constexpr size_type find_first_not_of(const value_type ch)const noexcept{
-            return non_default_traits<T>::find_first_not_of_ch(data(), size(), 0, ch);
+        constexpr size_type find_first_not_of(const value_type ch, size_type off = 0)const noexcept{
+            return non_default_traits<T>::find_first_not_of_ch(data(), size(), off, ch);
         }
 
         template<typename T = Traits>
-        constexpr size_type find_first_not_of(const basic_String_view & other)const noexcept{
-            return non_default_traits<T>::find_first_not_of(data(),size(),0,other.data(),other.size());
+        constexpr size_type find_first_not_of(const basic_String_view & other, size_type off = 0)const noexcept{
+            return non_default_traits<T>::find_first_not_of(data(),size(),off,other.data(),other.size());
         }
 
         template<typename T = Traits>
-        constexpr size_type find_first_not_of(const typename 
-            non_default_traits<T>::string_find_of_helper & srch)const noexcept{
-            return non_default_traits<T>::find_first_not_of(data(), size(), 0, srch);
+        constexpr size_type find_first_not_of(const typename non_default_traits<T>::
+            string_find_of_helper & srch, size_type off = 0)const noexcept{
+            return non_default_traits<T>::find_first_not_of(data(), size(), off, srch);
         }
 
         template<typename T = Traits>
-        constexpr size_type find_first_not_of(const value_type* s)const noexcept {
-            return find_first_not_of<T>(s, traits_length(s));
+        constexpr size_type find_first_not_of(const value_type* s, size_type off = 0)const noexcept {
+            return find_first_not_of<T>(s, off, traits_length(s));
         }
 
         template<typename T = Traits>
-        constexpr size_type find_first_not_of(const value_type* s, const size_type n)const noexcept {
-            return non_default_traits<T>::find_first_not_of(data(),size(),0,s,n);
+        constexpr size_type find_first_not_of(const value_type* s, size_type off, const size_type n)const noexcept {
+            return non_default_traits<T>::find_first_not_of(data(),size(),off,s,n);
         }
 
         template<typename T = Traits>
-        constexpr size_type find_last_not_of(const value_type ch)const noexcept{
-            return non_default_traits<T>::find_last_not_of_ch(data(), size(), 0, ch);
+        constexpr size_type find_last_not_of(const value_type ch,size_type off = npos)const noexcept{
+            return non_default_traits<T>::find_last_not_of_ch(data(), size(), off, ch);
         }
 
         template<typename T = Traits>
-        constexpr size_type find_last_not_of(const basic_String_view & other)const noexcept{
-            return non_default_traits<T>::find_last_not_of(data(),size(),0,other.data(),other.size());
+        constexpr size_type find_last_not_of(const basic_String_view & other, size_type off = npos)const noexcept{
+            return non_default_traits<T>::find_last_not_of(data(),size(),off,other.data(),other.size());
         }
 
         template<typename T = Traits>
-        constexpr size_type find_last_not_of(const typename 
-            non_default_traits<T>::string_find_of_helper & srch)const noexcept{
-            return non_default_traits<T>::find_last_not_of(data(), size(), 0, srch);
+        constexpr size_type find_last_not_of(const typename non_default_traits<T>::
+            string_find_of_helper & srch, size_type off = npos)const noexcept{
+            return non_default_traits<T>::find_last_not_of(data(), size(), off, srch);
         }
 
         template<typename T = Traits>
-        constexpr size_type find_last_not_of(const value_type* s)const noexcept {
-            return find_last_not_of<T>(s,traits_length(s));
+        constexpr size_type find_last_not_of(const value_type* s, size_type off = npos)const noexcept {
+            return find_last_not_of<T>(s,off,traits_length(s));
         }
 
         template<typename T = Traits>
-        constexpr size_type find_last_not_of(const value_type* s, const size_type n)const noexcept {
-            return non_default_traits<T>::find_last_not_of(data(), size(), 0, s,n);
+        constexpr size_type find_last_not_of(const value_type* s, size_type off, const size_type n)const noexcept {
+            return non_default_traits<T>::find_last_not_of(data(), size(), off, s,n);
         }
 
         template<typename T = Traits>
@@ -3849,7 +3851,7 @@ namespace wjr {
         // for same core and different traits
         // only need to move core,for traits won't affect the core
         template<typename T>
-        explicit basic_String(basic_String<Char, T, Core>&& other)
+        explicit basic_String(basic_String<Char, T, Core>&& other) noexcept
             : core(std::move(other.core)) {
 
         }
@@ -3978,7 +3980,7 @@ namespace wjr {
         }
 
         template<typename T>
-        basic_String& operator=(basic_String<Char, T, Core>&& other) {
+        basic_String& operator=(basic_String<Char, T, Core>&& other) noexcept {
             if (unlikely(this == std::addressof(other))) {
                 return *this;
             }
@@ -4056,6 +4058,7 @@ namespace wjr {
 
         // set size() without init
         void set_size(const size_type s) {
+            assert(s >= 0 && s <= capacity());
             core.setSize(s);
         }
 
@@ -4229,7 +4232,7 @@ namespace wjr {
             return (*this) = other;
         }
 
-        basic_String& assign(basic_String&& other) {
+        basic_String& assign(basic_String&& other) noexcept {
             return (*this) = std::move(other);
         }
 
@@ -4907,8 +4910,8 @@ namespace wjr {
         }
 
         template<typename T = Traits>
-        size_type find_last_of(const typename non_default_traits<T>::string_find_of_helper & srch,
-            const size_type off = npos)const {
+        size_type find_last_of(const typename non_default_traits<T>::
+            string_find_of_helper & srch, const size_type off = npos)const {
             return non_default_traits<T>::find_last_of(data(), size(), off, srch);
         }
 
@@ -5033,7 +5036,7 @@ namespace wjr {
             return basic_String(data() + pos, npos_min(n, size() - pos));
         }
 
-        basic_String substr(const size_type pos, const size_type n = npos)&& {
+        basic_String substr(const size_type pos, const size_type n = npos)&& noexcept{
             erase(0, pos);
             resize(npos_min(n, size()));
             return std::move(*this);
@@ -5043,7 +5046,7 @@ namespace wjr {
             return basic_String(data(),npos_min(n,size()));
         }
 
-        basic_String left(const size_type n)&& {
+        basic_String left(const size_type n)&& noexcept{
             erase(npos_min(n,size()),npos);
             return std::move(*this);
         }
@@ -5054,7 +5057,7 @@ namespace wjr {
             return basic_String(data() + _size - n,n);
         }
 
-        basic_String right(const size_type n)&& {
+        basic_String right(const size_type n)&& noexcept{
             const auto _size = size();
             erase(0,_size - npos_min(n,_size));
             return std::move(*this);
@@ -5122,16 +5125,23 @@ namespace wjr {
         static basic_String number(double, char f = 'g', int prec = 6);
         static basic_String fixed_number(double);
 
-        basic_String& set_number(int,int base = 10);
-        basic_String& set_number(unsigned int ,int base = 10);
-        basic_String& set_number(long long,int base = 10);
-        basic_String& set_number(unsigned long long,int base = 10);
-        basic_String& set_number(double,char f = 'g',int prec = 6);
+        static Char* number(Char*, const Char*, int, int base = 10);
+        static Char* number(Char*, const Char*, unsigned int, int base = 10);
+        static Char* number(Char*, const Char*, long long, int base = 10);
+        static Char* number(Char*, const Char*, unsigned long long, int base = 10);
+        static Char* number(Char*, const Char*, double, char f = 'g', int prec = 6);
+        static Char* fixed_number(Char*, const Char*, double);
 
-        int to_int(bool* ok = nullptr,int base = 10)const;
-        unsigned int to_uint(bool* ok = nullptr,int base = 10)const;
-        long long to_ll(bool* ok = nullptr,int base = 10)const;
-        unsigned long long to_ull(bool* ok = nullptr,int base = 10)const;
+        basic_String& set_number(int, int base = 10);
+        basic_String& set_number(unsigned int , int base = 10);
+        basic_String& set_number(long long, int base = 10);
+        basic_String& set_number(unsigned long long, int base = 10);
+        basic_String& set_number(double, char f = 'g', int prec = 6);
+
+        int to_int(bool* ok = nullptr, int base = 10)const;
+        unsigned int to_uint(bool* ok = nullptr, int base = 10)const;
+        long long to_ll(bool* ok = nullptr, int base = 10)const;
+        unsigned long long to_ull(bool* ok = nullptr, int base = 10)const;
 
         int to_int(const value_type*& next, bool* ok = nullptr, int base = 10)const;
         unsigned int to_uint(const value_type*& next, bool* ok = nullptr, int base = 10)const;
@@ -5208,7 +5218,7 @@ namespace wjr {
         }
 
         template<typename...Args>
-        basic_String& multiple_append(Args&&...args) {
+        basic_String& multiple_append(Args&&...args) noexcept{
             *this = _Connect_init(std::move(*this), { std::forward<Args>(args)... });
             return *this;
         }
@@ -5222,20 +5232,40 @@ namespace wjr {
 
         basic_String simplified()&&;
 
-        basic_String& left_justified(int width, const value_type fill = value_type(' ')) {
+        basic_String left_justified(int width, const value_type fill = value_type(' '))const& {
             const size_type _size = size();
             if (_size < width) {
-                append(width - _size,fill);
+                basic_String str(_size, Reserved{});
+                str.append(*this).append(width-_size,fill);
+                return str;
             }
             return *this;
         }
 
-        basic_String right_justified(int width, const value_type fill = value_type(' ')) {
+        basic_String left_justified(int width, const value_type fill = value_type(' '))&& {
             const size_type _size = size();
             if (_size < width) {
-                prepend(width - _size, fill);
+                append(width - _size, fill);
+            }
+            return std::move(*this);
+        }
+
+        basic_String right_justified(int width, const value_type fill = value_type(' '))const& {
+            const size_type _size = size();
+            if (_size < width) {
+                basic_String str(_size, Reserved{});
+                str.append(width-_size,fill).append(*this);
+                return str;
             }
             return *this;
+        }
+
+        basic_String right_justified(int width, const value_type fill = value_type(' '))&& {
+            const size_type _size = size();
+            if (_size < width) {
+                prepend(width - _size,fill);
+            }
+            return std::move(*this);
         }
 
         template<typename T = Traits>
@@ -5817,11 +5847,26 @@ namespace wjr {
     template<typename Char,typename Traits,typename Core,typename T>
     basic_String<Char,Traits,Core> 
         _Get_number(T val, int base) {
-        Char buff[std::numeric_limits<T>::digits + 1];
+        Char buff[std::numeric_limits<T>::digits + 2];
         Char* const buff_end = std::end(buff);
         Char* pos = buff_end;
         pos = get_number_helper(pos,val,base);
+        assert(pos >= buff);
         return basic_String<Char, Traits, Core>(pos, buff_end);
+    }
+
+    template<typename Char, typename Traits, typename Core, typename T>
+    Char* _Get_number(Char* _First, const Char* _Last, T val, int base) {
+        Char buff[std::numeric_limits<T>::digits + 2];
+        Char* const buff_end = std::end(buff);
+        Char* pos = buff_end;
+        pos = get_number_helper(pos, val, base);
+        size_t len = buff_end - pos;
+        if (_Last - _First < len) {
+            return nullptr;
+        }
+        memcpy(_First, pos, len * sizeof(Char));
+        return _First + len;
     }
 
     template<typename Char,typename Traits,typename Core>
@@ -5852,10 +5897,10 @@ namespace wjr {
     basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::
         number(double val, char f, int prec) {
         if (std::isnan(val)) {
-            return basic_String(default_traits::nans);
+            return basic_String(default_traits::nan);
         }
         if (std::isinf(val)) {
-            return basic_String(default_traits::infs);
+            return basic_String(default_traits::inf);
         }
         if(unlikely(prec > 99)){prec = 99;}
         char form[6];
@@ -5892,6 +5937,98 @@ namespace wjr {
         ::fill_double(val, ptr);
         ptr = (char*)memchr(buff,'\0', 64);
         return basic_String<Char,Traits,Core>(buff,ptr);
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    Char* basic_String<Char, Traits, Core>::
+        number(Char *_First, const Char*_Last, int val, int base) {
+        return _Get_number<Char, Traits, Core>(_First, _Last, val, base);
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    Char* basic_String<Char, Traits, Core>::
+        number(Char* _First, const Char* _Last, unsigned int val, int base) {
+        return _Get_number<Char, Traits, Core>(_First, _Last, val, base);
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    Char* basic_String<Char, Traits, Core>::
+        number(Char* _First, const Char* _Last, long long val, int base) {
+        return _Get_number<Char, Traits, Core>(_First, _Last, val, base);
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    Char* basic_String<Char, Traits, Core>::
+        number(Char* _First, const Char* _Last, unsigned long long val, int base) {
+        return _Get_number<Char, Traits, Core>(_First, _Last, val, base);
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    Char* basic_String<Char, Traits, Core>::
+        number(Char* _First, const Char* _Last, double val, char f, int prec) {
+        size_t str_len = _Last - _First;
+        size_t len;
+        if (std::isnan(val)) {
+            len = std::size(default_traits::nan);
+            if (str_len < len) {
+                return nullptr;
+            }
+            memcpy(_First, default_traits::nan, len * sizeof(Char));
+            return _First + len;
+        }
+        if (std::isinf(val)) {
+            len = std::size(default_traits::inf);
+            memcpy(_First, default_traits::inf, len * sizeof(Char));
+            return _First + len;
+        }
+        if (unlikely(prec > 99)) { prec = 99; }
+        char form[6];
+        char* pos = form;
+        *(pos++) = static_cast<Char>('%');
+        *(pos++) = static_cast<Char>('.');
+
+        if (prec < 10) {
+            *(pos++) = static_cast<Char>('0' + prec);
+        }
+        else {
+            *(pos++) = static_cast<Char>('0' + (prec / 10));
+            *(pos++) = static_cast<Char>('0' + (prec % 10));
+            *(pos++) = static_cast<Char>('0' + (prec % 10));
+        }
+        *(pos++) = f;
+        *(pos++) = '\0';
+        char buff[64];
+        len = sprintf(buff, form, val);
+        if (str_len < len) {
+            return nullptr;
+        }
+        std::copy(buff, buff + len, _First);
+        return _First + len;
+    }
+
+    template<typename Char, typename Traits, typename Core>
+    Char* basic_String<Char, Traits, Core>::fixed_number(Char* _First, const Char* _Last, double val) {
+        size_t str_len = _Last - _First;
+        if (!val) {
+            if (!str_len) {
+                return nullptr;
+            }
+            *_First = '0';
+            return ++_First;
+        }
+        char buff[64];
+        char* p = buff;
+        if (val < 0) {
+            val = -val;
+            *(p++) = '-';
+        }
+        ::fill_double(val, p);
+        p = (char*)memchr(buff, '\0', 64);
+        if (str_len < p - buff) {
+            return nullptr;
+        }
+        std::copy(buff, p, _First);
+        return _First + (p - buff);
     }
 
     template<typename Char,typename Traits,typename Core>
