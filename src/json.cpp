@@ -136,7 +136,7 @@ namespace wjr {
 
     // default constructor
     json::json()
-        : vtype((uint8_t)(value_t::undefined)),_Number(0) {
+        : vtype((uint8_t)(value_t::undefined)), _Number(0) {
 
     }
 
@@ -168,7 +168,7 @@ namespace wjr {
     }
 
     json::json(Null)
-        : vtype((uint8_t)(value_t::null)),_Number(0) {
+        : vtype((uint8_t)(value_t::null)), _Number(0) {
 
     }
 
@@ -178,27 +178,27 @@ namespace wjr {
     }
 
     json::json(Number v)
-        : vtype((uint8_t)(value_t::number)),_Number(v) {
+        : vtype((uint8_t)(value_t::number)), _Number(v) {
 
     }
 
     json::json(int v)
-        : vtype((uint8_t)(value_t::number)),_Number(v) {
+        : vtype((uint8_t)(value_t::number)), _Number(v) {
 
     }
 
     json::json(unsigned int v)
-        : vtype((uint8_t)(value_t::number)),_Number(v) {
+        : vtype((uint8_t)(value_t::number)), _Number(v) {
 
     }
 
     json::json(long long v)
-        : vtype((uint8_t)(value_t::number)),_Number(v) {
+        : vtype((uint8_t)(value_t::number)), _Number(v) {
 
     }
 
     json::json(unsigned long long v)
-        : vtype((uint8_t)(value_t::number)),_Number(v) {
+        : vtype((uint8_t)(value_t::number)), _Number(v) {
 
     }
 
@@ -238,12 +238,12 @@ namespace wjr {
             set_object();
             for (const json* i = il.begin(); i != il.end(); ++i) {
                 json& element = *const_cast<json*>(i);
-                insert(std::move(element[0].to_string()),std::move(element[1]));
+                insert(std::move(element[0].to_string()), std::move(element[1]));
             }
         }
         else {
             set_array();
-            for (const json* i = il.begin(); i!=il.end(); ++i) {
+            for (const json* i = il.begin(); i != il.end(); ++i) {
                 json& element = *const_cast<json*>(i);
                 push_back(std::move(element));
             }
@@ -254,17 +254,17 @@ namespace wjr {
         switch (vtype) {
             case (uint8_t)(value_t::string) : {
                 _String->~String();
-                mallocator<String>().deallocate(_String,1);
+                mallocator<String>().deallocate(_String, 1);
                 break;
             }
             case (uint8_t)(value_t::object) : {
                 _Object->~Object();
-                mallocator<Object>().deallocate(_Object,1);
+                mallocator<Object>().deallocate(_Object, 1);
                 break;
             }
             case (uint8_t)(value_t::array) : {
                 _Array->~Array();
-                mallocator<Array>().deallocate(_Array,1);
+                mallocator<Array>().deallocate(_Array, 1);
                 break;
             }
             default:
@@ -282,8 +282,8 @@ namespace wjr {
     }
 
     void json::swap(json& other) {
-        std::swap(_Number,other._Number);
-        std::swap(vtype,other.vtype);
+        std::swap(_Number, other._Number);
+        std::swap(vtype, other.vtype);
     }
 
     json::~json() {
@@ -650,32 +650,22 @@ namespace wjr {
         _Array->pop_back();
     }
 
-    void json::set_object() {
+    json::Object& json::set_object() {
+        if (vtype == (uint8_t)value_t::object) { return *_Object; }
         _Tidy();
         _Object = mallocator<Object>().allocate(1);
         new (_Object) Object();
         vtype = (uint8_t)(value_t::object);
+        return *_Object;
     }
 
-    void json::set_object(json_object&& value) {
-        _Tidy();
-        _Object = mallocator<Object>().allocate(1);
-        new (_Object) Object(std::move(value));
-        vtype = (uint8_t)(value_t::object);
-    }
-
-    void json::set_array() {
+    json::Array& json::set_array() {
+        if (vtype == (uint8_t)value_t::array) { return *_Array; }
         _Tidy();
         _Array = mallocator<Array>().allocate(1);
         new (_Array) Array();
         vtype = (uint8_t)(value_t::array);
-    }
-
-    void json::set_array(json_array&& value) {
-        _Tidy();
-        _Array = mallocator<Array>().allocate(1);
-        new (_Array) Array(std::move(value));
-        vtype = (uint8_t)(value_t::array);
+        return *_Array;
     }
 
     size_t json::size()const {
@@ -716,11 +706,11 @@ namespace wjr {
             for (auto& Value : rhs_obj) {
                 if (Value.second.is_null()) {
                     auto iter = lhs_obj.find(Value.first);
-                    if(iter != lhs_obj.end())
+                    if (iter != lhs_obj.end())
                         lhs_obj.erase(iter);
                 }
                 else {
-                    MergePatch(lhs_obj[Value.first],Value.second);
+                    MergePatch(lhs_obj[Value.first], Value.second);
                 }
             }
         }
@@ -736,7 +726,7 @@ namespace wjr {
                 break;
             }
             case (uint8_t)(value_t::boolean) : {
-                if(to_boolean())
+                if (to_boolean())
                     str.append("true");
                 else str.append("false");
                 break;
@@ -746,7 +736,7 @@ namespace wjr {
                 break;
             }
             case (uint8_t)(value_t::string) : {
-                str.multiple_append('"',to_string(),'"');
+                str.multiple_append('"', to_string(), '"');
                 break;
             }
             case (uint8_t)(value_t::object) : {
@@ -757,7 +747,7 @@ namespace wjr {
                     for (auto& i : obj) {
                         if (head) head = false;
                         else str.push_back(',');
-                        str.multiple_append('"',i.first,"\":");
+                        str.multiple_append('"', i.first, "\":");
                         i.second._minify(str);
                     }
                 }
@@ -793,10 +783,10 @@ namespace wjr {
             case (uint8_t)(value_t::null) : {
                 return "null";
             }
-            case (uint8_t)(value_t::boolean): {
+            case (uint8_t)(value_t::boolean) : {
                 return "boolean";
             }
-            case (uint8_t)(value_t::number): {
+            case (uint8_t)(value_t::number) : {
                 return "number";
             }
             case (uint8_t)(value_t::string) : {
@@ -816,7 +806,7 @@ namespace wjr {
     }
 
     void json::merge_patch(const json& apply_patch) {
-        MergePatch(*this,apply_patch);
+        MergePatch(*this, apply_patch);
     }
 
     json json::parse(String_view str) {
@@ -827,22 +817,22 @@ namespace wjr {
         return x;
     }
 
-    bool check(const uint8_t*& s, const uint8_t* e,uint8_t state) {
+    bool check(const uint8_t*& s, const uint8_t* e, uint8_t state) {
         bool head = true;
-        for (;;++s) {
-            s = (uint8_t*)skip_whitespace(s,e);
-            if(s == e)return false;
+        for (;; ++s) {
+            s = (uint8_t*)skip_whitespace(s, e);
+            if (s == e)return false;
             if (state == '}') { // object
                 if (*s == '}') {
-                    if(!head) return false;
+                    if (!head) return false;
                     ++s;
                     return true;
                 }
                 if (*s != '"')return false;
-                if(!check_string(s,e))
+                if (!check_string(s, e))
                     return false;
                 ++s;
-                s = (uint8_t*)skip_whitespace(s,e);
+                s = (uint8_t*)skip_whitespace(s, e);
                 if (s == e || *s != ':') return false;
                 ++s;
                 s = (uint8_t*)skip_whitespace(s, e);
@@ -850,7 +840,7 @@ namespace wjr {
             }
             else {
                 if (*s == ']') {
-                    if(!head)return false;
+                    if (!head)return false;
                     ++s;
                     return true;
                 }
@@ -859,45 +849,45 @@ namespace wjr {
 
             switch (*s) {
             case 'n':
-                if(memcmp(s,"null",sizeof(char) * 4) != 0)
+                if (memcmp(s, "null", sizeof(char) * 4) != 0)
                     return false;
                 s += 4;
                 break;
             case 't':
-                if(memcmp(s,"true",sizeof(char) * 4) != 0)
+                if (memcmp(s, "true", sizeof(char) * 4) != 0)
                     return false;
                 s += 4;
                 break;
             case 'f':
-                if(memcmp(s,"false",sizeof(char) * 5) != 0)
+                if (memcmp(s, "false", sizeof(char) * 5) != 0)
                     return false;
                 s += 5;
                 break;
             case '"':
-                if(!check_string(s,e))
+                if (!check_string(s, e))
                     return false;
                 ++s;
                 break;
             case '[':
                 ++s;
-                if(!check(s,e,']'))
+                if (!check(s, e, ']'))
                     return false;
                 break;
             case '{':
                 ++s;
-                if(!check(s,e,'}'))
+                if (!check(s, e, '}'))
                     return false;
                 break;
             default:
-                if(!check_num(s,e))
+                if (!check_num(s, e))
                     return false;
                 break;
             }
 
-            s = (uint8_t*)skip_whitespace(s,e);
-            if(*s == ',')
+            s = (uint8_t*)skip_whitespace(s, e);
+            if (*s == ',')
                 continue;
-            if(*s != state)
+            if (*s != state)
                 return false;
             ++s;
             return true;
@@ -909,21 +899,21 @@ namespace wjr {
         const uint8_t* s = (const uint8_t*)str.data();
         const uint8_t* e = s + str.length();
 
-        s = (uint8_t*)skip_whitespace(s,e);
+        s = (uint8_t*)skip_whitespace(s, e);
 
-        if(s == e) // empty
+        if (s == e) // empty
             return false;
 
         switch (*s) {
         case '[':
             ++s;
-            if(!check(s,e,']'))
+            if (!check(s, e, ']'))
                 return false;
-            s = (uint8_t*)skip_whitespace(s,e);
+            s = (uint8_t*)skip_whitespace(s, e);
             return s == e;
         case '{':
             ++s;
-            if(!check(s,e,'}'))
+            if (!check(s, e, '}'))
                 return false;
             s = (uint8_t*)skip_whitespace(s, e);
             return s == e;
@@ -941,7 +931,7 @@ namespace wjr {
         return x;
     }
 
-    json json::object(std::initializer_list<std::pair<const String,json>> il) {
+    json json::object(std::initializer_list<std::pair<const String, json>> il) {
         json x;
         x.vtype = (uint8_t)(json::value_t::object);
         x._Object = mallocator<Object>().allocate(1);
@@ -956,7 +946,7 @@ namespace wjr {
                 return lhs._Boolean == rhs._Boolean;
             }
             case (uint8_t)(json::value_t::number) : {
-                static double eps = 1e-3;
+                constexpr static double eps = 1e-3;
                 return std::fabs(lhs._Number - rhs._Number) < eps;
             }
             case (uint8_t)(json::value_t::string) : {
@@ -976,6 +966,63 @@ namespace wjr {
 
     bool operator!=(const json& lhs, const json& rhs) {
         return !(lhs == rhs);
+    }
+
+    bool operator<(const json& lhs, const json& rhs) {
+        assert(lhs.vtype == rhs.vtype);
+        switch (lhs.vtype) {
+            case (uint8_t)(json::value_t::boolean) : {
+                return lhs._Boolean < rhs._Boolean;
+            }
+            case (uint8_t)(json::value_t::number) : {
+                return lhs._Number < rhs._Number;
+            }
+            case (uint8_t)(json::value_t::string) : {
+                return lhs.to_string() < rhs.to_string();
+            }
+            case (uint8_t)(json::value_t::array) : {
+                return lhs.to_array() < rhs.to_array();
+            }
+            case (uint8_t)(json::value_t::object) : {
+                return lhs.to_object() < rhs.to_object();
+            }
+            default: {
+                return false;
+            }
+        }
+    }
+
+    bool operator<=(const json& lhs, const json& rhs) {
+        assert(lhs.vtype == rhs.vtype);
+        switch (lhs.vtype) {
+            case (uint8_t)(json::value_t::boolean) : {
+                return lhs._Boolean <= rhs._Boolean;
+            }
+            case (uint8_t)(json::value_t::number) : {
+                constexpr static double eps = 1e-3;
+                return lhs._Number < rhs._Number + eps;
+            }
+            case (uint8_t)(json::value_t::string) : {
+                return lhs.to_string() <= rhs.to_string();
+            }
+            case (uint8_t)(json::value_t::array) : {
+                return lhs.to_array() <= rhs.to_array();
+            }
+            case (uint8_t)(json::value_t::object) : {
+                return lhs.to_object() <= rhs.to_object();
+            }
+            default: {
+                return true;
+            }
+        }
+    }
+
+    bool operator>(const json& lhs, const json& rhs) {
+        return !(rhs <= lhs);
+    }
+
+    bool operator>=(const json& lhs, const json& rhs) {
+        return !(rhs < lhs);
     }
 
     std::ostream& operator<<(std::ostream& out, const json& x) {
@@ -998,7 +1045,7 @@ namespace wjr {
                 return json_string::fixed_number(to_number());
             }
             case (uint8_t)(value_t::string) : {
-                return json_string::connect('"',to_string(),'"');
+                return json_string::connect('"', to_string(), '"');
             }
             case (uint8_t)(value_t::object) : {
                 json_string str;
@@ -1009,10 +1056,10 @@ namespace wjr {
                     for (auto& i : obj) {
                         if (head) head = false;
                         else str.push_back(',');
-                        str.multiple_append('\n',format_tab(tab + delta),
-                            '"',i.first,"\": ",i.second.stringify(tab + delta,delta));
+                        str.multiple_append('\n', format_tab(tab + delta),
+                            '"', i.first, "\": ", i.second.stringify(tab + delta, delta));
                     }
-                    str.multiple_append('\n',format_tab(tab));
+                    str.multiple_append('\n', format_tab(tab));
                 }
                 str.push_back('}');
                 return str;
@@ -1027,9 +1074,9 @@ namespace wjr {
                         if (head) head = false;
                         else str.push_back(',');
                         str.multiple_append('\n',
-                            format_tab(tab + 2),i.stringify(tab + delta,delta));
+                            format_tab(tab + 2), i.stringify(tab + delta, delta));
                     }
-                    str.multiple_append('\n',format_tab(tab));
+                    str.multiple_append('\n', format_tab(tab));
                 }
                 str.push_back(']');
                 return str;
@@ -1041,8 +1088,8 @@ namespace wjr {
         }
     }
 
-    void json::dfs_parse(const uint8_t*& s,const uint8_t* e) {
-        s = (uint8_t*)skip_whitespace(s,e);
+    void json::dfs_parse(const uint8_t*& s, const uint8_t* e) {
+        s = (uint8_t*)skip_whitespace(s, e);
         switch (*s) {
         case 'n': {
             vtype = (uint8_t)(value_t::null);
@@ -1067,24 +1114,24 @@ namespace wjr {
             new (_Object) Object();
             auto& obj = *_Object;
             ++s;
-            s = (uint8_t*)skip_whitespace(s,e);
+            s = (uint8_t*)skip_whitespace(s, e);
             // if is empty
             if (*s == '}') {
                 ++s;
                 break;
             }
             for (;;) {
-                s = (uint8_t*)skip_whitespace(s,e);
+                s = (uint8_t*)skip_whitespace(s, e);
                 assert(*s == '"');
                 ++s;
                 auto p = skip_string(s, e);
                 //auto iter = obj.insert_or_assign(String((const char*)s, p - s),json()).first;
-                auto& iter = obj[String((const char*)s,  p - s)] = json();
-                s = (uint8_t*)skip_whitespace(p + 1,e);
+                auto& iter = obj[String((const char*)s, p - s)] = json();
+                s = (uint8_t*)skip_whitespace(p + 1, e);
                 assert(*s == ':');
                 ++s;
-                iter.dfs_parse(s,e);
-                s = (uint8_t*)skip_whitespace(s,e);
+                iter.dfs_parse(s, e);
+                s = (uint8_t*)skip_whitespace(s, e);
                 if (*s == '}') {
                     ++s;
                     break;
@@ -1100,15 +1147,15 @@ namespace wjr {
             new (_Array) Array();
             auto& arr = *_Array;
             ++s;
-            s = (uint8_t*)skip_whitespace(s,e);
+            s = (uint8_t*)skip_whitespace(s, e);
             if (*s == ']') {
                 ++s;
                 break;
             }
             for (;;) {
                 arr.push_back(json());
-                arr.back().dfs_parse(s,e);
-                s = (uint8_t*)skip_whitespace(s,e);
+                arr.back().dfs_parse(s, e);
+                s = (uint8_t*)skip_whitespace(s, e);
                 if (*s == ']') {
                     ++s;
                     break;
@@ -1121,7 +1168,7 @@ namespace wjr {
         }
         case '"': {
             ++s;
-            auto t = skip_string(s,e);
+            auto t = skip_string(s, e);
             vtype = (uint8_t)(value_t::string);
             _String = mallocator<String>().allocate(1);
             new (_String) String((const char*)s, t - s);
@@ -1132,8 +1179,8 @@ namespace wjr {
         case '+':
         default: {
             vtype = (uint8_t)(value_t::number);
-            const char*ptr = (const char*)s;
-            _Number = read_double((const char*)s,(const char*)e,ptr);
+            const char* ptr = (const char*)s;
+            _Number = read_double((const char*)s, (const char*)e, ptr);
             s = (const uint8_t*)ptr;
             break;
         }

@@ -16,6 +16,10 @@
 
 #include "mallocator.h"
 
+#if defined(WJR_CPP_20)
+#include <concepts>
+#endif
+
 extern "C" bool fill_double(double v, char* buffer);
 
 namespace wjr {
@@ -338,9 +342,8 @@ namespace wjr {
         const auto pattern_back = pattern_first + (size - 1);
         const auto& ch = *pattern_back;
 
-        const auto text_first = First;
+        auto text_ptr = First + (size - 1);
         const auto text_back = Last - 1;
-        auto text_ptr = text_first + (size - 1);
 
         const auto Eq = Searcher.key_eq();
         const auto fshift = Searcher.get_fshift();
@@ -354,7 +357,7 @@ namespace wjr {
             if (!Eq(*text_ptr, ch)) {
                 // find at least one match
                 do {
-                    if (unlikely(text_ptr == text_back)) {
+                    if (unlikely(res == 0)) {
                         return { Last,Last };
                     }
                     const auto def = Searcher.get_shift(*(text_ptr + 1));
@@ -2861,12 +2864,6 @@ namespace wjr {
         unsafe_range_to_ull(const value_type* s, const value_type* e, int base) {
         return unsafe_range_to_val_helper<unsigned long long>(s, e, base);
     }
-
-    template<typename T>
-    struct is_String : std::false_type {};
-
-    template<typename Char, typename Traits, typename Core>
-    struct is_String<basic_String<Char, Traits, Core>> : std::true_type {};
 
     template<typename T>
     constexpr static size_t max_SSO_size = 4;

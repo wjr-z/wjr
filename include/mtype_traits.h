@@ -202,7 +202,95 @@ namespace wjr {
 		constexpr static bool wjr_is_implicitly_default_constructible_v = 
 			wjr_is_implicitly_default_constructible<T>::value;
 
-		template<typename T,typename...Args>
+		template<typename...Args>
+		struct parameter_pack {
+			template<typename U>
+			using pre_bind = parameter_pack<U, Args...>;
+			template<typename U>
+			using nxt_bind = parameter_pack<Args..., U>;
+		};
+
+		template<typename T, typename...Args>
+		struct parameter_pack<T, Args...> {
+			template<typename U>
+			using pre_bind = parameter_pack<U, T, Args...>;
+			template<typename U>
+			using nxt_bind = parameter_pack<T, Args..., U>;
+			using first_type = T;
+			using nxt_parameter = parameter_pack<Args...>;
+			using last_type = typename nxt_parameter::last_type;
+			using pre_parameter = typename nxt_parameter::pre_parameter::template pre_bind<T>;
+		};
+
+		template<typename T>
+		struct parameter_pack<T> {
+			template<typename U>
+			using pre_bind = parameter_pack<U, T>;
+			template<typename U>
+			using nxt_bind = parameter_pack<T, U>;
+			using first_type = T;
+			using nxt_parameter = parameter_pack<>;
+			using last_type = T;
+			using pre_parameter = parameter_pack<>;
+		};
+
+		template<size_t, typename...>
+		struct parameter_split_two;
+
+		template<size_t index, typename T, typename...Args>
+		struct parameter_split_two<index, T, Args...> {
+			using Type = parameter_split_two<index - 1, Args...>;
+			using first = typename Type::first::template pre_bind<T>;
+			using second = typename Type::second;
+			using type = parameter_pack<first, second>;
+		};
+
+		template<typename...Args>
+		struct parameter_split_two<0, Args...> {
+			using first = parameter_pack<>;
+			using second = parameter_pack<Args...>;
+			using type = parameter_pack<first, second>;
+		};
+
+		template<typename T, typename...Args>
+		struct parameter_split;
+
+		template<size_t index, size_t...Args1, typename...Args2>
+		struct parameter_split < std::index_sequence<index, Args1...>, Args2...> {
+			using split_two_type = parameter_split_two<index, Args2...>;
+			template<typename...>
+			struct get_type;
+			template<size_t...T1, typename...T2>
+			struct get_type<std::index_sequence<T1...>, parameter_pack<T2...>> {
+				using type = typename parameter_split<std::index_sequence<T1...>, T2...>::type;
+			};
+			using first = typename split_two_type::first;
+			using second = typename split_two_type::second;
+			using type = typename get_type<std::index_sequence<Args1...>,second>::type::template pre_bind<first>;
+		};
+
+		template<size_t index, typename...Args>
+		struct parameter_split<std::index_sequence<index>, Args...> {
+			using split_two_type = parameter_split_two<index, Args...>;
+			using first = typename split_two_type::first;
+			using second = typename split_two_type::second;
+			using type = typename split_two_type::type;
+		};
+
+		template<typename T, typename...Args>
+		struct parameter_split_helper {
+			using type = wjr_empty_tag;
+		};
+
+		template<size_t...index, typename...Args>
+		struct parameter_split_helper<std::index_sequence<index...>, Args...> {
+			using type = typename parameter_split<std::index_sequence<index...>, Args...>::type;
+		};
+
+		template<typename T, typename...Args>
+		using parameter_split_t = typename parameter_split_helper<T, Args...>::type;
+
+		template<typename T, typename...Args>
 		struct first_parameter {
 			using type = T;
 		};
@@ -213,87 +301,11 @@ namespace wjr {
 		template<typename...Args>
 		struct check_first_parameter : std::false_type {};
 
-		template<typename T,typename...Args>
-		struct check_first_parameter<T,T,Args...> : std::true_type{};
+		template<typename T, typename...Args>
+		struct check_first_parameter<T, T, Args...> : std::true_type {};
 
 		template<typename...Args>
 		constexpr static bool check_first_parameter_v = check_first_parameter<Args...>::value;
-
-		template<typename T1, typename T2, bool = std::is_empty_v<T1> && !std::is_final_v<T1>>
-		class wjr_compressed_pair final : private T1 {
-		public:
-			T2 Myval2;
-			using _Mybase = T1; // for visualization
-
-			template<typename...Args>
-			constexpr explicit wjr_compressed_pair(wjr_empty_tag, Args&&...args)noexcept(
-				std::conjunction_v<std::is_nothrow_default_constructible<T1>, std::is_nothrow_constructible<T2, Args...>>
-				) : T1(), Myval2(std::forward<Args>(args)...) {
-
-			}
-
-			template<typename U, typename...Args>
-			constexpr wjr_compressed_pair(U&& val, Args&&...args)noexcept(
-				std::conjunction_v<std::is_nothrow_constructible<T1, U>, std::is_nothrow_constructible<T2, Args...>>
-				) : T1(std::forward<U>(val)), Myval2(std::forward<Args>(args)...) {
-
-			}
-
-			constexpr T1& first() noexcept {
-				return *this;
-			}
-
-			constexpr const T1& first() const noexcept {
-				return *this;
-			}
-
-			constexpr T2& second() noexcept {
-				return Myval2;
-			}
-
-			constexpr const T2& second() const noexcept {
-				return Myval2;
-			}
-
-		};
-
-		template <typename T1, typename T2>
-		class wjr_compressed_pair<T1, T2, false> final { // store a pair of values, not deriving from first
-		public:
-
-			T1 Myval1;
-			T2 Myval2;
-
-			template<typename...Args>
-			constexpr explicit wjr_compressed_pair(wjr_empty_tag, Args&&...args) noexcept(
-				std::conjunction_v<std::is_nothrow_constructible<T1>, std::is_nothrow_constructible<T2, Args...>>
-				) : Myval1(), Myval2(std::forward<Args>(args)...) {
-
-			}
-
-			template<typename U, typename...Args>
-			constexpr wjr_compressed_pair(U&& val, Args&&...args) noexcept(
-				std::conjunction_v<std::is_nothrow_constructible<T1, U>, std::is_nothrow_constructible<T2, Args...>>
-				) : Myval1(std::forward<U>(val)), Myval2(std::forward<Args>(args)...) {
-
-			}
-
-			constexpr T1& first() noexcept {
-				return Myval1;
-			}
-
-			constexpr const T1& first() const noexcept {
-				return Myval1;
-			}
-
-			constexpr T2& second() noexcept {
-				return Myval2;
-			}
-
-			constexpr const T2& second() const noexcept {
-				return Myval2;
-			}
-		};
 
 	}
 
