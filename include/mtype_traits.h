@@ -15,7 +15,7 @@
 namespace wjr {
 
 #ifndef NDEBUG
-	//#define NDEBUG
+//#define NDEBUG
 #endif
 
 #define __USE_THREADS
@@ -117,8 +117,6 @@ namespace wjr {
 
 		struct wjr_empty_tag {};
 
-		struct wjr_reversed_tag {};
-
 		struct wjr_use_threads 
 			: std::conditional_t<WJR_THREADS, std::true_type, std::false_type> {
 		};
@@ -176,62 +174,40 @@ namespace wjr {
 			using type = std::result_of_t<F(Args...)>;
 		};
 	#endif
+
 		template<typename F, typename...Args>
 		using wjr_result_of_t = typename wjr_result_of<F, Args...>::type;
 
-		template<typename Pred_eq>
-		struct is_default_equal : std::false_type {};
-
-		template<>
-		struct is_default_equal<std::equal_to<>> : std::true_type {};
-
-		// STRUCT TEMPLATE _Is_implicitly_default_constructible
-		template<typename T,typename = void>
-		struct wjr_is_implicitly_default_constructible : std::false_type {
-		};
-
-		template <typename _Ty>
-		void wjr_implicitly_default_construct(const _Ty&);
-
-		template<typename T>
-		struct wjr_is_implicitly_default_constructible < T, 
-			std::void_t<decltype(wjr_implicitly_default_construct<T>({})) >> : std::true_type{
-		};
-
-		template<typename T>
-		constexpr static bool wjr_is_implicitly_default_constructible_v = 
-			wjr_is_implicitly_default_constructible<T>::value;
-
 		template<typename...Args>
-		struct parameter_pack {
+		struct parameter_list {
 			template<typename U>
-			using pre_bind = parameter_pack<U, Args...>;
+			using pre_bind = parameter_list<U, Args...>;
 			template<typename U>
-			using nxt_bind = parameter_pack<Args..., U>;
+			using nxt_bind = parameter_list<Args..., U>;
 		};
 
 		template<typename T, typename...Args>
-		struct parameter_pack<T, Args...> {
+		struct parameter_list<T, Args...> {
 			template<typename U>
-			using pre_bind = parameter_pack<U, T, Args...>;
+			using pre_bind = parameter_list<U, T, Args...>;
 			template<typename U>
-			using nxt_bind = parameter_pack<T, Args..., U>;
+			using nxt_bind = parameter_list<T, Args..., U>;
 			using first_type = T;
-			using nxt_parameter = parameter_pack<Args...>;
+			using nxt_parameter = parameter_list<Args...>;
 			using last_type = typename nxt_parameter::last_type;
 			using pre_parameter = typename nxt_parameter::pre_parameter::template pre_bind<T>;
 		};
 
 		template<typename T>
-		struct parameter_pack<T> {
+		struct parameter_list<T> {
 			template<typename U>
-			using pre_bind = parameter_pack<U, T>;
+			using pre_bind = parameter_list<U, T>;
 			template<typename U>
-			using nxt_bind = parameter_pack<T, U>;
+			using nxt_bind = parameter_list<T, U>;
 			using first_type = T;
-			using nxt_parameter = parameter_pack<>;
+			using nxt_parameter = parameter_list<>;
 			using last_type = T;
-			using pre_parameter = parameter_pack<>;
+			using pre_parameter = parameter_list<>;
 		};
 
 		template<size_t, typename...>
@@ -242,14 +218,14 @@ namespace wjr {
 			using Type = parameter_split_two<index - 1, Args...>;
 			using first = typename Type::first::template pre_bind<T>;
 			using second = typename Type::second;
-			using type = parameter_pack<first, second>;
+			using type = parameter_list<first, second>;
 		};
 
 		template<typename...Args>
 		struct parameter_split_two<0, Args...> {
-			using first = parameter_pack<>;
-			using second = parameter_pack<Args...>;
-			using type = parameter_pack<first, second>;
+			using first = parameter_list<>;
+			using second = parameter_list<Args...>;
+			using type = parameter_list<first, second>;
 		};
 
 		template<typename T, typename...Args>
@@ -261,7 +237,7 @@ namespace wjr {
 			template<typename...>
 			struct get_type;
 			template<size_t...T1, typename...T2>
-			struct get_type<std::index_sequence<T1...>, parameter_pack<T2...>> {
+			struct get_type<std::index_sequence<T1...>, parameter_list<T2...>> {
 				using type = typename parameter_split<std::index_sequence<T1...>, T2...>::type;
 			};
 			using first = typename split_two_type::first;

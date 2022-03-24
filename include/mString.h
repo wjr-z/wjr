@@ -16,17 +16,12 @@
 
 #include "mallocator.h"
 
-#if defined(WJR_CPP_20)
-#include <concepts>
-#endif
-
 extern "C" bool fill_double(double v, char* buffer);
 
 namespace wjr {
 
-    // skmp-searcher for String
-    // such as find,rfind
-    template<typename RanItPat, typename Pred_eq = std::equal_to<>>
+    // skmp-searcher for String such as find,rfind
+    template<typename RanItPat, typename Traits>
     class skmp_searcher_fshift_builder {
     private:
         using value_t = typename std::iterator_traits<RanItPat>::value_type;
@@ -38,7 +33,7 @@ namespace wjr {
         using difference_type = diff_t;
         using allocator_type = mallocator<diff_t>;
 
-        skmp_searcher_fshift_builder(const RanItPat First, const RanItPat Last, const Pred_eq Eq);
+        skmp_searcher_fshift_builder(const RanItPat First, const RanItPat Last);
 
         skmp_searcher_fshift_builder(const skmp_searcher_fshift_builder& other);
 
@@ -58,9 +53,9 @@ namespace wjr {
         RanItPat first, last;
     };
 
-    template<typename RanItPat, typename Pred_eq>
-    skmp_searcher_fshift_builder<RanItPat, Pred_eq>::skmp_searcher_fshift_builder(
-        const RanItPat First, const RanItPat Last, const Pred_eq Eq
+    template<typename RanItPat, typename Traits>
+    skmp_searcher_fshift_builder<RanItPat, Traits>::skmp_searcher_fshift_builder(
+        const RanItPat First, const RanItPat Last
     ) : first(First), last(Last) {
         size = last - first;
         auto al = mallocator<diff_t>();
@@ -72,7 +67,7 @@ namespace wjr {
         fnxt[0] = -1;
 
         while (i < size) {
-            if (j == -1 || Eq(*(last - 1 - i), *(last - 1 - j))) {
+            if (j == -1 || Traits::eq(*(last - 1 - i), *(last - 1 - j))) {
                 fnxt[++i] = ++j;
             }
             else j = fnxt[j];
@@ -108,8 +103,8 @@ namespace wjr {
         al.deallocate(fnxt, size + 1);
     }
 
-    template<typename RanItPat, typename Pred_eq>
-    skmp_searcher_fshift_builder<RanItPat, Pred_eq>::
+    template<typename RanItPat, typename Traits>
+    skmp_searcher_fshift_builder<RanItPat, Traits>::
         skmp_searcher_fshift_builder(const skmp_searcher_fshift_builder& other)
         : size(other.size), first(other.first), last(other.last) {
         auto al = mallocator<diff_t>();
@@ -119,38 +114,57 @@ namespace wjr {
         std::copy(other.fm, other.fm + size + 1, fm);
     }
 
-    template<typename RanItPat, typename Pred_eq>
-    skmp_searcher_fshift_builder<RanItPat, Pred_eq>::
+    template<typename RanItPat, typename Traits>
+    skmp_searcher_fshift_builder<RanItPat, Traits>::
         skmp_searcher_fshift_builder(skmp_searcher_fshift_builder&& other)noexcept
         : fshift(other.fshift), fm(other.fm), size(other.size),
         first(other.first), last(other.last) {
         other.fshift = other.fm = nullptr;
     }
 
-    template<typename RanItPat, typename Pred_eq>
-    skmp_searcher_fshift_builder<RanItPat, Pred_eq>::
+    template<typename RanItPat, typename Traits>
+    skmp_searcher_fshift_builder<RanItPat, Traits>::
         ~skmp_searcher_fshift_builder() {
         if (fshift != nullptr) {
             mallocator<diff_t>().deallocate(fshift,2 * (size + 1));
         }
     }
 
-    template<typename RanItPat, typename Hash_ty =
-        std::hash<typename std::iterator_traits<RanItPat>::value_type>, typename Pred_eq = std::equal_to<>>
+    template<typename Traits>
+    struct base_traits_char_map {
+        using char_type = typename Traits::char_type;
+        using is_default_equal = std::false_type;
+        constexpr static decltype(auto) to(const char_type& value) {
+            return static_cast<std::make_unsigned_t<char_type>>(value);
+        }
+    };
+
+    template<typename Traits>
+    struct traits_char_map : base_traits_char_map<Traits>{
+    };
+
+    template<typename Char>
+    struct traits_char_map<std::char_traits<Char>> 
+        : base_traits_char_map<std::char_traits<Char>>{
+        using is_default_equal = std::true_type;
+    };
+
+    template<typename RanItPat, typename Traits>
         class skmp_searcher_char_builder
-        : public skmp_searcher_fshift_builder<RanItPat, Pred_eq> {
+        : public skmp_searcher_fshift_builder<RanItPat, Traits> {
         private:
 
-            using Base = skmp_searcher_fshift_builder<RanItPat, Pred_eq>;
+            using Base = skmp_searcher_fshift_builder<RanItPat, Traits>;
             using value_t = typename Base::value_type;
             using diff_t = typename Base::difference_type;
+            using char_map = traits_char_map<Traits>;
 
         public:
             using value_type = value_t;
             using difference_type = diff_t;
 
             skmp_searcher_char_builder(
-                RanItPat First, RanItPat Last, Hash_ty fn = Hash_ty(), Pred_eq Eq = Pred_eq()
+                RanItPat First, RanItPat Last
             );
 
             skmp_searcher_char_builder(const skmp_searcher_char_builder& other)
@@ -172,19 +186,17 @@ namespace wjr {
 
             diff_t get_shift(const value_t value)const {
                 //const auto u_value = static_cast<std::make_unsigned_t<value_t>>(value);
-                return shift[static_cast<std::make_unsigned_t<value_t>>(value)];
+                return shift[char_map::to(value)];
             }
-
-            Pred_eq key_eq()const { return {}; }
 
         private:
             diff_t* shift;
     };
 
-    template<typename RanItPat, typename Hash_ty, typename Pred_eq>
-    skmp_searcher_char_builder<RanItPat, Hash_ty, Pred_eq>::skmp_searcher_char_builder(
-        RanItPat First, RanItPat Last, Hash_ty fn, Pred_eq Eq
-    ) : Base(First, Last, Eq) {
+    template<typename RanItPat, typename Traits>
+    skmp_searcher_char_builder<RanItPat, Traits>::skmp_searcher_char_builder(
+        RanItPat First, RanItPat Last
+    ) : Base(First, Last) {
         auto first = Base::get_first();
         const auto last = Base::get_last();
         const auto size = Base::get_size();
@@ -192,20 +204,25 @@ namespace wjr {
         std::fill_n(shift, 256, size + 1);
         diff_t i = size;
         while (first != last) {
-            const auto u_value = static_cast<std::make_unsigned_t<value_t>>(*first);
-            shift[u_value] = i;
+            shift[char_map::to(*first)] = i;
             ++first;
             --i;
         }
     }
 
-    template<typename RanItPat, typename Hash_ty =
-        std::hash<typename std::iterator_traits<RanItPat>::value_type>,
-        typename Pred_eq = std::equal_to<>>
+    template<typename Traits>
+    struct traits_equal {
+        using char_type = typename Traits::char_type;
+        constexpr bool operator()(const char_type&l, const char_type&r)const noexcept {
+            return Traits::eq(l,r);
+        }
+    };
+
+    template<typename RanItPat, typename Traits>
     class skmp_searcher_general_builder
-        : public skmp_searcher_fshift_builder<RanItPat, Pred_eq> {
+        : public skmp_searcher_fshift_builder<RanItPat, Traits> {
         private:
-            using Base = skmp_searcher_fshift_builder<RanItPat, Pred_eq>;
+            using Base = skmp_searcher_fshift_builder<RanItPat, Traits>;
             using value_t = typename Base::value_type;
             using diff_t = typename Base::difference_type;
 
@@ -214,7 +231,7 @@ namespace wjr {
             using difference_type = diff_t;
 
             skmp_searcher_general_builder(
-                RanItPat First, RanItPat Last, Hash_ty fn = Hash_ty(), Pred_eq Eq = Pred_eq()
+                RanItPat First, RanItPat Last
             );
 
             skmp_searcher_general_builder(const skmp_searcher_general_builder& other)
@@ -235,16 +252,15 @@ namespace wjr {
                 return iter->second;
             }
 
-            Pred_eq key_eq()const { return Map.key_eq(); }
-
         private:
-            std::unordered_map<value_t, diff_t, Hash_ty, Pred_eq> Map;
+            std::unordered_map<value_t, diff_t, 
+                std::hash<typename Traits::char_type>, traits_equal<Traits>> Map;
     };
 
-    template<typename RanItPat, typename Hash_ty, typename Pred_eq>
-    skmp_searcher_general_builder<RanItPat, Hash_ty, Pred_eq>::skmp_searcher_general_builder(
-        RanItPat First, RanItPat Last, Hash_ty fn, Pred_eq Eq
-    ) : Base(First, Last, Eq) {
+    template<typename RanItPat, typename Traits>
+    skmp_searcher_general_builder<RanItPat, Traits>::skmp_searcher_general_builder(
+        RanItPat First, RanItPat Last
+    ) : Base(First, Last) {
         auto first = Base::get_first();
         const auto last = Base::get_last();
         const auto size = Base::get_size();
@@ -259,17 +275,15 @@ namespace wjr {
     template<typename value_type,typename Traits>
     struct can_make_bit_map : std::conditional_t<
         std::is_integral_v<value_type> && sizeof(value_type) == 1 &&
-        is_default_equal<Traits>::value,std::true_type,std::false_type>{ };
+        traits_char_map<Traits>::is_default_equal::value,std::true_type,std::false_type>{ };
 
-    template<typename RanItPat, typename Hash_ty, typename Pred_eq, typename value_t =
-        typename std::iterator_traits<RanItPat>::value_type>
-    using skmp_searcher_traits = std::conditional_t<can_make_bit_map<value_t,Pred_eq>::value,
-        skmp_searcher_char_builder <RanItPat, Hash_ty, Pred_eq>,
-        skmp_searcher_general_builder<RanItPat, Hash_ty, Pred_eq>>;
+    template<typename RanItPat, typename Traits, typename value_t =
+        typename Traits::char_type>
+    using skmp_searcher_traits = std::conditional_t<can_make_bit_map<value_t,Traits>::value,
+        skmp_searcher_char_builder <RanItPat, Traits>,
+        skmp_searcher_general_builder<RanItPat, Traits>>;
 
-    template<typename RanItPat, typename Hash_ty
-        = std::hash<typename std::iterator_traits<RanItPat>::value_type>,
-        typename Pred_eq = std::equal_to<>>
+    template<typename RanItPat, typename Traits>
         class skmp_searcher {
         private:
             using value_t = typename std::iterator_traits<RanItPat>::value_type;
@@ -279,14 +293,14 @@ namespace wjr {
             using difference_type = diff_t;
 
             skmp_searcher(
-                const RanItPat First, const RanItPat Last, Hash_ty fn = Hash_ty(), Pred_eq Eq = Pred_eq()
-            ) : Searcher(First, Last, fn, Eq) {
+                const RanItPat First, const RanItPat Last
+            ) : Searcher(First, Last) {
 
             }
 
             skmp_searcher(
-                const RanItPat First, const size_t length, Hash_ty fn = Hash_ty(), Pred_eq Eq = Pred_eq()
-            ) : Searcher(First, First + length, fn, Eq) {
+                const RanItPat First, const size_t length
+            ) : Searcher(First, First + length) {
 
             }
 
@@ -308,24 +322,14 @@ namespace wjr {
             std::pair<iter, iter> operator()(iter First, iter Last)const;
 
         private:
-            template<typename T, typename = void>
-            struct _has_find : std::false_type {};
 
-            template<typename T>
-            struct _has_find<T, std::void_t<decltype(T::find(
-                std::declval<const value_type*>(),
-                std::declval<diff_t>(), std::declval<const value_type&>()))>>
-                : std::true_type{};
-
-            using is_has_find = _has_find<Pred_eq>;
-
-            using Traits = skmp_searcher_traits<RanItPat, Hash_ty, Pred_eq>;
-            Traits Searcher;
+            using searcher_type = skmp_searcher_traits<RanItPat, Traits>;
+            searcher_type Searcher;
     };
 
-    template<typename RanItPat, typename Hash_ty, typename Pred_eq>
+    template<typename RanItPat, typename Traits>
     template<typename iter>
-    std::pair<iter, iter> skmp_searcher<RanItPat, Hash_ty, Pred_eq>::operator()(
+    std::pair<iter, iter> skmp_searcher<RanItPat, Traits>::operator()(
         iter First, iter Last
         )const {
         const auto size = Searcher.get_size();
@@ -345,7 +349,7 @@ namespace wjr {
         auto text_ptr = First + (size - 1);
         const auto text_back = Last - 1;
 
-        const auto Eq = Searcher.key_eq();
+        const auto Eq = traits_equal<Traits>{};
         const auto fshift = Searcher.get_fshift();
         const auto fm = Searcher.get_fm();
 
@@ -353,7 +357,6 @@ namespace wjr {
         diff_t res = text_back - text_ptr;
 
         for (;;) {
-
             if (!Eq(*text_ptr, ch)) {
                 // find at least one match
                 do {
@@ -1457,12 +1460,12 @@ namespace wjr {
     struct String_find_helper { // need to simple packge skmp-searcher and size
     public:
         using value_type = typename std::iterator_traits<RanItPat>::value_type;
-        using skmp_searcher_type = skmp_searcher<RanItPat, std::hash<value_type>, Traits>;
+        using skmp_searcher_type = skmp_searcher<RanItPat, Traits>;
 
     public:
 
         String_find_helper(RanItPat s, RanItPat e)
-            : srch(s, e, std::hash<value_type>(), Traits()), _size(static_cast<size_t>(e - s)) {
+            : srch(s, e), _size(static_cast<size_t>(e - s)) {
 
         }
 
@@ -1477,40 +1480,6 @@ namespace wjr {
         skmp_searcher_type srch;
         size_t _size;
     };
-
-    template<typename Char, typename Traits>
-    struct simple_String_find_traits : public Traits { // need to simple package char_traits,only for find
-        using value_type = Char;
-        using size_type = size_t;
-        using traits_type = Traits;
-        bool operator()(const value_type& a, const value_type& b)const {
-            return traits_type::eq(a, b);
-        }
-    };
-
-    template<typename Char, typename Traits>
-    struct simple_String_rfind_traits { // need to simple package char_traits,only for rfind
-        using value_type = Char;
-        using size_type = size_t;
-        using traits_type = Traits;
-        bool operator()(const value_type& a, const value_type& b)const {
-            return traits_type::eq(a, b);
-        }
-        static int compare(const value_type* a, const value_type* b, const size_t count) {
-            return Traits::compare(a, b, count);
-        }
-    };
-
-    template<typename Char>
-    struct is_default_equal<std::char_traits<Char>> : std::true_type {};
-
-    template<typename Char,typename Traits>
-    struct is_default_equal<simple_String_find_traits<Char, Traits>> :
-        is_default_equal<Traits> {};
-
-    template<typename Char,typename Traits>
-    struct is_default_equal<simple_String_rfind_traits<Char,Traits>> : 
-        is_default_equal<Traits> {};
 
     template<typename Traits>
     struct case_insensitive_traits : public Traits {
@@ -1550,6 +1519,17 @@ namespace wjr {
         }
     };
 
+    template<typename Traits>
+    struct traits_char_map<case_insensitive_traits<Traits>>
+        : base_traits_char_map<case_insensitive_traits<Traits>> {
+        using char_type = typename 
+            base_traits_char_map<case_insensitive_traits<Traits>>::char_type;
+        using is_default_equal = std::true_type;
+        constexpr static decltype(auto) to(const char_type& value) {
+            return toupper(static_cast<std::make_unsigned_t<char_type>>(value));
+        }
+    };
+
     template<typename T>
     struct case_insensitive_String {
         using type = case_insensitive_traits<typename T::traits_type>;
@@ -1577,11 +1557,8 @@ namespace wjr {
 
         constexpr static size_type npos = static_cast<size_type>(-1);
 
-        using string_find_traits = simple_String_find_traits<Char, Traits>;
-        using string_rfind_traits = simple_String_rfind_traits<Char, Traits>;
-        using string_find_helper = String_find_helper<const value_type*, string_find_traits>;
-        using string_rfind_helper = String_find_helper<
-            std::reverse_iterator<const value_type*>, string_rfind_traits>;
+        using string_find_helper = String_find_helper<const value_type*, Traits>;
+        using string_rfind_helper = String_find_helper<std::reverse_iterator<const value_type*>, Traits>;
 
     private:
         struct bit_map {
@@ -1608,7 +1585,7 @@ namespace wjr {
         struct general_map {
             using little_map = bit_map;
             using large_map = std::unordered_set<value_type,
-                std::hash<value_type>, string_find_traits, mallocator<value_type>>;
+                std::hash<value_type>, traits_equal<Traits>, mallocator<value_type>>;
 
             general_map(const value_type* s, const value_type* e) {
                 const value_type* ptr = s;
@@ -1654,7 +1631,7 @@ namespace wjr {
         using string_find_of_helper = std::conditional_t<
             can_make_bit_map<value_type,traits_type>::value,
             bit_map,
-            std::conditional_t<is_default_equal<Traits>::value
+            std::conditional_t<traits_char_map<Traits>::is_default_equal::value
             , general_map, typename general_map::large_map>>;
 
         static string_find_of_helper trim_map;
@@ -3743,6 +3720,8 @@ namespace wjr {
     template<typename Char,typename Traits,typename Core>
     class basic_String  {
     private:
+        friend class basic_String;
+
         using default_traits = basic_String_traits<Char, Traits>;
         template<typename T>
         using non_default_traits = basic_String_traits<Char, T>;
