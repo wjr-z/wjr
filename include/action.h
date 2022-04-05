@@ -207,11 +207,11 @@ namespace wjr {
 		}
 	};
 
-#define REGISTER_STD_ACTION(func)									\
-	struct action_##func : action_tag{								\
+#define REGISTER_STD_ACTION(FUNC)									\
+	struct CONNECT(action_,FUNC) : action_tag{								\
 		template<typename...Args>									\
 		constexpr decltype(auto) operator()(Args&&...args)const {	\
-			return std::##func(std::forward<Args>(args)...);		\
+			return STD_FUNCTION(FUNC)(std::forward<Args>(args)...);		\
 		}															\
 	};
 

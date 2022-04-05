@@ -110,6 +110,9 @@ namespace wjr {
 #undef GB
 #endif
 #define GB *((size_t)(1) << 30)
+
+#define CONNECT(A,B) A##B
+#define STD_FUNCTION(FUNC) std::FUNC
 	
 	enum wbyte_order {
 		w_little_endian = 0,

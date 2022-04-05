@@ -8,6 +8,12 @@
 #include <random>
 using namespace wjr;
 using namespace std;
+	
+#define C(a,b) a##b
+
+
 int main() {
+	vector<int> x;
+	C(std::, begin)(x);
 	return 0;
 }
