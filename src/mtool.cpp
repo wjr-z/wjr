@@ -1,22 +1,21 @@
 #include "../include/mtool.h"
 #ifndef __linux__
-#include <io.h>
 #include <direct.h>
+#include <io.h>
 #else
-#include <sys/io.h>
 #include <dirent.h>
-#include <unistd.h>
-#include <sys/types.h>
+#include <sys/io.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 #endif
 #include <fstream>
-#include <sstream>
-#include <set>
 #include <iostream>
+#include <set>
+#include <sstream>
 #include "../include/thread_pool.h"
 
 namespace wjr {
-
 	time_ref mtime() { return time_ref::now(); }
 
 	void mtime(time_ref* x) { *x = mtime(); }
@@ -35,7 +34,7 @@ namespace wjr {
 	}
 
 	bool dfs_get_files(String& path, std::vector<String>& file_path) {
-	#ifndef __linux__
+#ifndef __linux__
 		intptr_t h_file;
 		struct _finddata_t fileinfo {};
 		if ((h_file = _findfirst(path.append("/*").c_str(), &fileinfo)) != -1) {
@@ -60,18 +59,19 @@ namespace wjr {
 			return true;
 		}
 		return false;
-	#else
+#else
 		struct dirent* ptr;
 		DIR* dir = opendir(path.c_str());
 		path.push_back('/');
 		const size_t l = path.length();
 		while ((ptr = readdir(dir)) != nullptr) {
-			if(ptr->d_type == DT_DIR){
+			if (ptr->d_type == DT_DIR) {
 				if (strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0) {
 					path.append(ptr->d_name);
-					dfs_get_files(path,file_path);
+					dfs_get_files(path, file_path);
 				}
-			}else{
+			}
+			else {
 				path.append(ptr->d_name);
 				file_path.emplace_back(path);
 			}
@@ -79,7 +79,7 @@ namespace wjr {
 		}
 		closedir(dir);
 		return true;
-	#endif
+#endif
 	}
 
 	bool get_all_files(String_view path, std::vector<String>& filePath) {
@@ -91,13 +91,13 @@ namespace wjr {
 	std::vector<String> get_all_files(String_view path) {
 		assert(*path.end() == '\0');
 		std::vector<String> file_path;
-	#ifndef __linux__
+#ifndef __linux__
 		if (!_access(path.c_str(), 0)) {
 			if (!get_all_files(path, file_path)) {
 				file_path.push_back((String)path);
 			}
 		}
-	#else
+#else
 		if (!access(path.c_str(), F_OK)) {
 			DIR* dir = opendir(path.c_str());
 			if (dir == nullptr) {
@@ -108,30 +108,30 @@ namespace wjr {
 				get_all_files(path, file_path);
 			}
 		}
-	#endif
+#endif
 		return file_path;
 	}
 
 	size_t get_file_length(String_view file_name) {
 		assert(*file_name.end() == '\0');
-	#ifndef __linux__
+#ifndef __linux__
 		if (_access(file_name.c_str(), 0) == -1) {
 			return 0;
 		}
-	#else
+#else
 		if (access(file_name.c_str(), F_OK) == -1)
 			return 0;
-	#endif
+#endif
 		FILE* fp = fopen(file_name.c_str(), "rb");
 		if (fp == nullptr) {
 			return 0;
 		}
 		fseek(fp, 0, SEEK_END);
-	#ifndef __linux
+#ifndef __linux
 		size_t size = _ftelli64(fp);
-	#else
+#else
 		size_t size = ftello64(fp);
-	#endif
+#endif
 		fseek(fp, 0, SEEK_SET);
 		fclose(fp);
 		return size;
@@ -139,24 +139,24 @@ namespace wjr {
 
 	String read_file(String_view filename) {
 		assert(*filename.end() == '\0');
-	#ifndef __linux__
+#ifndef __linux__
 		if (_access(filename.c_str(), 0) == -1) {
 			return String();
 		}
-	#else
+#else
 		if (access(filename.c_str(), F_OK) == -1)
 			return String();
-	#endif
+#endif
 		FILE* fp = fopen(filename.c_str(), "rb");
 		if (fp == nullptr) {
 			return String();
 		}
 		fseek(fp, 0, SEEK_END);
-	#ifndef __linux
+#ifndef __linux
 		size_t size = _ftelli64(fp);
-	#else
+#else
 		size_t size = ftello64(fp);
-	#endif
+#endif
 		String buffer(size, Uninitialized{});
 		fseek(fp, 0, SEEK_SET);
 		fread((void*)buffer.c_str(), sizeof(char), size, fp);
@@ -171,16 +171,15 @@ namespace wjr {
 	}
 
 	int create_file(String_view filename
-	#ifdef __linux__
-		,__mode_t __mode
-	#endif
+#ifdef __linux__
+		, __mode_t __mode
+#endif
 	) {
 		assert(*filename.end() == '\0');
-	#ifndef __linux__
+#ifndef __linux__
 		return mkdir(filename.c_str());
-	#else
-		return mkdir(filename.c_str(),__mode);
-	#endif
+#else
+		return mkdir(filename.c_str(), __mode);
+#endif
 	}
-
 }

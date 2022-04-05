@@ -19,107 +19,103 @@
 //3. This notice may not be removed or altered from any source
 //distribution.
 
-
 #ifndef __WJR_THREAD_POOL_H
 #define __WJR_THREAD_POOL_H
 
-#include <vector>
-#include <queue>
+#include <condition_variable>
+#include <functional>
+#include <future>
+#include <iostream>
 #include <memory>
 #include <mutex>
-#include <condition_variable>
-#include <future>
-#include <thread>
-#include <functional>
+#include <queue>
 #include <stdexcept>
-#include <iostream>
+#include <thread>
+#include <vector>
 #include "mallocator.h"
 
 namespace wjr {
+	class thread_pool {
+	public:
+		thread_pool(size_t);
+		template<class F, class... Args>
+		auto enqueue(F&& f, Args&&... args)
+			->std::future<wjr_result_of_t<F, Args...>>;
+		~thread_pool();
+	private:
+		using func = std::function<void()>;
+		// need to keep track of threads so we can join them
+		std::vector< std::thread > workers;
+		// the task queue
+		std::queue<func, std::deque<func, mallocator<func>>> tasks;
 
-    class thread_pool {
-    public:
-        thread_pool(size_t);
-        template<class F, class... Args>
-        auto enqueue(F&& f, Args&&... args)
-            ->std::future<wjr_result_of_t<F,Args...>>;
-        ~thread_pool();
-    private:
-        using func = std::function<void()>;
-        // need to keep track of threads so we can join them
-        std::vector< std::thread > workers;
-        // the task queue
-        std::queue<func,std::deque<func,mallocator<func>>> tasks;
+		// synchronization
+		std::mutex queue_mutex;
+		std::condition_variable condition;
+		bool stop;
+	};
 
-        // synchronization
-        std::mutex queue_mutex;
-        std::condition_variable condition;
-        bool stop;
-    };
+	// the constructor just launches some amount of workers
+	inline thread_pool::thread_pool(size_t threads)
+		: stop(false) {
+		workers.reserve(threads);
+		for (size_t i = 0; i < threads; ++i)
+			workers.emplace_back(
+				[this] {
+					std::function<void()> task;
+					for (;;) {
+						{
+							std::unique_lock<std::mutex> lock(this->queue_mutex);
+							this->condition.wait(lock,
+								[this] { return this->stop || !this->tasks.empty(); });
+							if (this->stop && this->tasks.empty())
+								return;
+							task = std::move(this->tasks.front());
+							this->tasks.pop();
+						}
 
-    // the constructor just launches some amount of workers
-    inline thread_pool::thread_pool(size_t threads)
-        : stop(false) {
-        workers.reserve(threads);
-        for (size_t i = 0; i < threads; ++i)
-            workers.emplace_back(
-                [this] {
-                    std::function<void()> task;
-                    for (;;) {
+						task();
+					}
+				}
+		);
+	}
 
-                        {
-                            std::unique_lock<std::mutex> lock(this->queue_mutex);
-                            this->condition.wait(lock,
-                                [this] { return this->stop || !this->tasks.empty(); });
-                            if (this->stop && this->tasks.empty())
-                                return;
-                            task = std::move(this->tasks.front());
-                            this->tasks.pop();
-                        }
+	// add new work item to the pool
+	template<class F, class... Args>
+	auto thread_pool::enqueue(F&& f, Args&&... args)
+		-> std::future<wjr_result_of_t<F, Args...>> {
+		using return_type = wjr_result_of_t<F, Args...>;
+		using allocator_type = mallocator<std::packaged_task<return_type()>>;
 
-                        task();
-                    }
-                }
-        );
-    }
+		auto task = std::allocate_shared< std::packaged_task<return_type()> >(
+			allocator_type(),
+			std::bind(std::forward<F>(f), std::forward<Args>(args)...)
+			);
 
-    // add new work item to the pool
-    template<class F, class... Args>
-    auto thread_pool::enqueue(F&& f, Args&&... args)
-        -> std::future<wjr_result_of_t<F,Args...>> {
-        using return_type = wjr_result_of_t<F, Args...>;
-        using allocator_type = mallocator<std::packaged_task<return_type()>>;
+		std::future<return_type> res = task->get_future();
+		{
+			std::unique_lock<std::mutex> lock(queue_mutex);
 
-        auto task = std::allocate_shared< std::packaged_task<return_type()> >(
-            allocator_type(),
-            std::bind(std::forward<F>(f), std::forward<Args>(args)...)
-            );
+			// don't allow enqueueing after stopping the pool
+			if (stop)
+				throw std::runtime_error("enqueue on stopped thread_pool");
 
-        std::future<return_type> res = task->get_future();
-        {
-            std::unique_lock<std::mutex> lock(queue_mutex);
+			tasks.emplace([task]() { (*task)(); });
+		}
+		condition.notify_one();
+		return res;
+	}
 
-            // don't allow enqueueing after stopping the pool
-            if (stop)
-                throw std::runtime_error("enqueue on stopped thread_pool");
-
-            tasks.emplace([task]() { (*task)(); });
-        }
-        condition.notify_one();
-        return res;
-    }
-
-    // the destructor joins all threads
-    inline thread_pool::~thread_pool() {
-        {
-            std::unique_lock<std::mutex> lock(queue_mutex);
-            stop = true;
-        }
-        condition.notify_all();
-        for (std::thread& worker : workers)
-            worker.join();
-    }
-
+	// the destructor joins all threads
+	inline thread_pool::~thread_pool() {
+		{
+			std::unique_lock<std::mutex> lock(queue_mutex);
+			stop = true;
+		}
+		condition.notify_all();
+		for (std::thread& worker : workers)
+			worker.join();
+	}
 }
 
 #endif

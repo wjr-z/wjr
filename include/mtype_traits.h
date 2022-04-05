@@ -5,17 +5,16 @@
 #include <cstdint>
 #include <ctime>
 #include <functional>
+#include <locale>
 #include <random>
 #include <type_traits>
-#include <locale>
 #ifdef __SSE4_2__
 #include <intrin.h>
 #endif
 
 namespace wjr {
-
 #ifndef NDEBUG
-//#define NDEBUG
+	//#define NDEBUG
 #endif
 
 #define __USE_THREADS
@@ -23,65 +22,6 @@ namespace wjr {
 #ifndef WJR_DEBUG_LEVEL
 #define WJR_DEBUG_LEVEL 0
 #endif
-
-#ifndef is_little_endian
-#if defined(__BYTE_ORDER__)
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-#define is_little_endian true
-#else
-#define is_little_endian false
-#endif
-#else
-#define is_little_endian true
-#endif
-#endif
-
-#if defined(__has_builtin)
-#define whas_builtin(x) __has_builtin(x)
-#else
-#define whas_builtin(x) 0
-#endif
-
-#if whas_builtin(__builtin_expect)
-#ifndef likely
-#define likely(expr) __builtin_expect(!!(expr), 1)
-#endif
-#ifndef unlikely
-#define unlikely(expr) __builtin_expect(!!(expr),0)
-#endif
-#else
-#ifndef likely
-#define likely(expr) expr
-#endif
-#ifndef unlikely
-#define unlikely(expr) expr
-#endif
-#endif
-
-#ifndef USHORT_MAX
-#define USHORT_MAX 0xFFFF
-#endif
-
-#ifdef __USE_THREADS
-#define WJR_THREADS (true)
-#else 
-#define WJR_THREADS (false)
-#endif
-
-#if WJR_THREADS
-#define USE_THREAD_LOCAL thread_local
-#else
-#define USE_THREAD_LOCAL
-#endif
-
-#undef KB
-#define KB *(size_t(1) << 10)
-
-#undef MB
-#define MB *((size_t)(1) << 20)
-
-#undef GB
-#define GB *((size_t)(1) << 30)
 
 #if defined(__clang__) || defined(__GNUC__)
 #define WJR_CPP_STANDARD __cplusplus
@@ -105,6 +45,72 @@ namespace wjr {
 #define WJR_CPP_20
 #endif
 
+#ifndef is_little_endian
+#if defined(__BYTE_ORDER__)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#define is_little_endian true
+#else
+#define is_little_endian false
+#endif
+#else
+#define is_little_endian true
+#endif
+#endif
+
+#if defined(__has_builtin)
+#define whas_builtin(x) __has_builtin(x)
+#else
+#define whas_builtin(x) 0
+#endif
+
+#if whas_builtin(__builtin_expect) && !defined(WJR_CPP_20)
+#ifndef likely
+#define likely(expr) __builtin_expect(!!(expr), 1)
+#endif
+#ifndef unlikely
+#define unlikely(expr) __builtin_expect(!!(expr),0)
+#endif
+#else
+	
+#ifndef likely
+#define likely(expr) expr
+#endif
+#ifndef unlikely
+#define unlikely(expr) expr
+#endif
+#endif
+
+#ifndef USHORT_MAX
+#define USHORT_MAX 0xFFFF
+#endif
+
+#ifdef __USE_THREADS
+#define WJR_THREADS (true)
+#else
+#define WJR_THREADS (false)
+#endif
+
+#if WJR_THREADS
+#define USE_THREAD_LOCAL thread_local
+#else
+#define USE_THREAD_LOCAL
+#endif
+
+#if defined(KB)
+#undef KB
+#endif
+#define KB *(size_t(1) << 10)
+
+#if defined(MB)
+#undef MB
+#endif
+#define MB *((size_t)(1) << 20)
+
+#if defined(GB)
+#undef GB
+#endif
+#define GB *((size_t)(1) << 30)
+	
 	enum wbyte_order {
 		w_little_endian = 0,
 		w_big_endian = 1,
@@ -112,12 +118,11 @@ namespace wjr {
 	};
 
 	inline namespace wjr_type_traits {
-
 		using wjr_ssize_t = std::make_signed_t<size_t>;
 
 		struct wjr_empty_tag {};
 
-		struct wjr_use_threads 
+		struct wjr_use_threads
 			: std::conditional_t<WJR_THREADS, std::true_type, std::false_type> {
 		};
 
@@ -129,29 +134,37 @@ namespace wjr {
 		template<typename T>
 		using midentity_t = typename midentity<T>::type;
 
-		template<typename...>
+		template<template<typename,typename>typename judger,typename...>
+		struct is_any_of_helper {
+			static constexpr bool value = false;
+		};
+		
+		template<template<typename,typename>typename judger,typename T,typename U>
+		struct is_any_of_helper<judger, T, U> {
+			static constexpr bool value = judger<T, U>::value;
+		};
+		
+		template<template<typename, typename>typename judger, typename T, typename U, typename... Args>
+		struct is_any_of_helper<judger, T, U, Args...> {
+			static constexpr bool value = 
+				std::disjunction_v<
+				is_any_of_helper<judger, T, Args...>
+				,is_any_of_helper<judger, U, Args...>>;
+		};
+
+		template<typename T,typename...Args>
 		struct is_any_of {
-			constexpr static bool value = false;
-		};
-
-		template<typename T, typename U>
-		struct is_any_of<T, U> {
-			constexpr static bool value = std::is_same_v<T, U>;
-		};
-
-		template<typename T, typename U, typename...args>
-		struct is_any_of<T, U, args...> {
-			constexpr static bool value = std::disjunction_v<is_any_of<T, U>, is_any_of<T, args...>>;
+			static constexpr bool value = is_any_of_helper<std::is_same, T, Args...>::value;
 		};
 
 		template<typename T, typename...args>
-		constexpr static bool is_any_of_v = is_any_of<T, args...>::value;
-
-		template<typename T,typename = void>
+		constexpr static bool is_any_of_v = is_any_of_helper<std::is_same,T, args...>::value;
+		
+		template<typename T, typename = void>
 		struct wjr_is_iterator : std::false_type {};
 
 		template<typename T>
-		struct wjr_is_iterator<T, std::void_t<typename 
+		struct wjr_is_iterator<T, std::void_t<typename
 			std::iterator_traits<T>::iterator_category>> : std::true_type {};
 
 		template<typename T>
@@ -163,20 +176,88 @@ namespace wjr {
 		template<typename T>
 		struct is_reverse_iterator<std::reverse_iterator<T>> : std::true_type {};
 
-	#if defined(WJR_CPP_17)
+#if defined(WJR_CPP_17)
 		template<typename F, typename...Args>
 		struct wjr_result_of {
 			using type = std::invoke_result_t<F, Args...>;
 		};
-	#else
+#else
 		template<typename F, typename ...Args>
 		struct wjr_result_of {
 			using type = std::result_of_t<F(Args...)>;
 		};
-	#endif
+#endif
 
 		template<typename F, typename...Args>
 		using wjr_result_of_t = typename wjr_result_of<F, Args...>::type;
+
+		template<size_t index,typename T,typename...Args>
+		constexpr decltype(auto) wjr_kth_val_helper(T&& val, Args&&...args) {
+			if constexpr (index == 0) {
+				return std::forward<T>(val);
+			}
+			else {
+				return wjr_kth_val_helper<index - 1>(std::forward<Args>(args)...);
+			}				
+		}
+
+		template<size_t index,typename...Args,
+			std::enable_if_t<(index < sizeof...(Args)),int> = 0>
+		constexpr decltype(auto) kth_val(Args&&...args) {
+			return wjr_kth_val_helper<index>(std::forward<Args>(args)...);
+		}
+
+		template<size_t index,typename T,typename...Args>
+		struct wjr_kth_type_helper {
+			using type = typename wjr_kth_type_helper<index - 1, Args...>::type;
+		};
+
+		template<typename T,typename...Args>
+		struct wjr_kth_type_helper<0, T, Args...> {
+			using type = T;
+		};
+
+		template<size_t index, typename...Args>
+		using kth_type = typename wjr_kth_type_helper<index, Args...>::type;
+
+		template<size_t index, typename T>
+		struct index_sequence_prepend;
+
+		template<size_t index, size_t...res>
+		struct index_sequence_prepend<index, std::index_sequence<res...>> {
+			using type = std::index_sequence<index, res...>;
+		};
+
+		template<size_t index, typename T>
+		using index_sequence_prepend_t = typename index_sequence_prepend<index, T>::type;
+
+		template<size_t cnt, size_t now, size_t...index>
+		struct _Make_Complement_Index_Sequence_Helper {
+			constexpr decltype(auto) operator()() {
+				if constexpr (now == cnt) {
+					return std::index_sequence<>{};
+				}
+				else  if constexpr (std::disjunction_v<
+					std::is_same<std::in_place_index_t<now>, std::in_place_index_t<index>>...>) {
+					return _Make_Complement_Index_Sequence_Helper<cnt, now + 1, index...>{}();
+				}
+				else {
+					return index_sequence_prepend_t < now,
+						decltype(_Make_Complement_Index_Sequence_Helper<cnt, now + 1, index...>{}()) > {};
+				}
+			}
+		};
+
+		template<size_t cnt, typename T>
+		struct _Make_complement_index_sequence;
+
+		template<size_t cnt, size_t...res>
+		struct _Make_complement_index_sequence<cnt, std::index_sequence<res...>> {
+			using type = decltype(_Make_Complement_Index_Sequence_Helper<cnt, 0, res...>{}());
+		};
+
+		template<size_t cnt, typename T>
+		using make_complement_index_sequence = typename _Make_complement_index_sequence<cnt, T>::type;
 
 		template<typename...Args>
 		struct parameter_list {
@@ -221,12 +302,27 @@ namespace wjr {
 			using type = parameter_list<first, second>;
 		};
 
-		template<typename...Args>
-		struct parameter_split_two<0, Args...> {
+		template<typename T, typename...Args>
+		struct parameter_split_two<0, T, Args...> {
 			using first = parameter_list<>;
-			using second = parameter_list<Args...>;
+			using second = parameter_list<T, Args...>;
 			using type = parameter_list<first, second>;
 		};
+
+		template<>
+		struct parameter_split_two<0> {
+			using first = parameter_list<>;
+			using second = parameter_list<>;
+			using type = parameter_list<first, second>;
+		};
+
+		template<size_t index,typename...Args>
+		using parameter_split_two_first_type =
+			typename parameter_split_two<index, Args...>::first;
+		
+		template<size_t index,typename...Args>
+		using parameter_split_two_second_type =
+			typename parameter_split_two<index, Args...>::second;
 
 		template<typename T, typename...Args>
 		struct parameter_split;
@@ -242,7 +338,7 @@ namespace wjr {
 			};
 			using first = typename split_two_type::first;
 			using second = typename split_two_type::second;
-			using type = typename get_type<std::index_sequence<Args1...>,second>::type::template pre_bind<first>;
+			using type = typename get_type<std::index_sequence<Args1...>, second>::type::template pre_bind<first>;
 		};
 
 		template<size_t index, typename...Args>
@@ -283,6 +379,140 @@ namespace wjr {
 		template<typename...Args>
 		constexpr static bool check_first_parameter_v = check_first_parameter<Args...>::value;
 
+		template<typename T>
+		struct mrun_parameter_helper;
+
+		template<typename...Args>
+		struct mrun_parameter_helper<parameter_list<Args...>> {
+			template<typename Func,typename...Other>
+			constexpr static decltype(auto) run_first(Func&& fn, Args&&...args, Other&&...) {
+				// even if Args... is known,but this place still need to use std::forward
+				return std::forward<Func>(fn)(std::forward<Args>(args)...);
+			}
+			template<typename Func,typename...Other>
+			constexpr static decltype(auto) run_second(Func&& fn, Args&&..., Other&&...args) {
+				return std::forward<Func>(fn)(std::forward<Other>(args)...);
+			}
+		};
+
+		template<size_t index,typename Func,typename...Args>
+		constexpr decltype(auto) run_first_parameter(Func&& fn, Args&&...args) {
+			using first_parameter_list_t = parameter_split_two_first_type<index, Args...>;
+			using run_type = mrun_parameter_helper<first_parameter_list_t>;
+			return run_type::run_first(std::forward<Func>(fn), std::forward<Args>(args)...);
+		}
+		
+		template<size_t index, typename Func, typename...Args>
+		constexpr decltype(auto) run_second_parameter(Func&& fn, Args&&...args) {
+			using first_parameter_list_t = parameter_split_two_first_type<index, Args...>;
+			using run_type = mrun_parameter_helper<first_parameter_list_t>;
+			return run_type::run_second(std::forward<Func>(fn), std::forward<Args>(args)...);
+		}
+
+		template<typename T>
+		struct forward_wrapper {
+			static_assert(!std::is_lvalue_reference_v<T>, "");
+			using type = std::remove_reference_t<T>;
+		};
+
+		template<typename T>
+		struct forward_wrapper<T&> {
+			using type = std::reference_wrapper<T>;
+		};
+
+		template<typename T>
+		using forward_wrapper_t = typename forward_wrapper<T>::type;
+
+		enum class empty_base_optimize {
+			first_empty,
+			second_empty,
+			non_empty,
+			all_empty
+		};
+
+		template<typename T, typename U, empty_base_optimize = empty_base_optimize::non_empty>
+		class base_mcompressed_pair {
+		public:
+			template<typename Other1, typename Other2, std::enable_if_t<
+				std::is_constructible_v<T, Other1>&& std::is_constructible_v<U, Other2>, int> = 0>
+				constexpr base_mcompressed_pair(Other1&& lhs, Other2&& rhs)
+				: Myfirst(std::forward<Other1>(lhs)), Mysecond(std::forward<Other2>(rhs)) {
+			}
+			constexpr T& first() {
+				return Myfirst;
+			}
+			constexpr const T& first()const {
+				return Myfirst;
+			}
+			constexpr U& second() {
+				return Mysecond;
+			}
+			constexpr const U& second()const {
+				return Mysecond;
+			}
+		private:
+			T Myfirst;
+			U Mysecond;
+		};
+
+		template<typename T, typename U>
+		class base_mcompressed_pair<T, U, empty_base_optimize::first_empty>
+			: private T {
+			using base = T;
+		public:
+			template<typename Other1, typename Other2, std::enable_if_t<
+				std::is_constructible_v<T, Other1>&& std::is_constructible_v<U, Other2>, int> = 0>
+			constexpr base_mcompressed_pair(Other1&& lhs, Other2&& rhs)
+				: base(std::forward<Other1>(lhs)), Mysecond(std::forward<Other2>(rhs)) {
+			}
+			constexpr T& first() {
+				return *this;
+			}
+			constexpr const T& first()const {
+				return *this;
+			}
+			constexpr U& second() {
+				return Mysecond;
+			}
+			constexpr const U& second()const {
+				return Mysecond;
+			}
+		private:
+			U Mysecond;
+		};
+
+		template<typename T, typename U>
+		class base_mcompressed_pair<T, U, empty_base_optimize::second_empty>
+			: private U {
+			using base = U;
+		public:
+			template<typename Other1, typename Other2, std::enable_if_t<
+				std::is_constructible_v<T, Other1>&& std::is_constructible_v<U, Other2>, int> = 0>
+			constexpr base_mcompressed_pair(Other1&& lhs, Other2&& rhs)
+				: Myfirst(std::forward<Other1>(lhs)), base(std::forward<Other2>(rhs)) {
+			}
+			constexpr T& first() {
+				return Myfirst;
+			}
+			constexpr const T& first()const {
+				return Myfirst;
+			}
+			constexpr U& second() {
+				return *this;
+			}
+			constexpr const U& second()const {
+				return *this;
+			}
+		private:
+			T Myfirst;
+		};
+
+		template<typename T, typename U>
+		using mcompressed_pair = std::conditional_t<std::is_empty_v<T>,
+			base_mcompressed_pair<T, U, empty_base_optimize::first_empty>,
+			std::conditional_t<std::is_empty_v<U>, base_mcompressed_pair<T, U, empty_base_optimize::second_empty>,
+			base_mcompressed_pair<T, U, empty_base_optimize::non_empty>>>;
+		
 	}
 
 	inline namespace wjr_math {
@@ -306,35 +536,34 @@ namespace wjr {
 			0x1fffffffffffffff,0x3fffffffffffffff,0x7fffffffffffffff,0xffffffffffffffff
 		};
 
-		constexpr static uint32_t quick_log2_tabel[32] =
+		constexpr static size_t quick_log2_tabel[32] =
 		{ 0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3 };
 
-		constexpr uint32_t quick_log2(uint16_t x) {
-			uint32_t ans = 0;
+		constexpr size_t quick_log2(uint16_t x) {
+			size_t ans = 0;
 			if (x >> 8) { ans += 8; x >>= 8; }
 			if (x >> 4) { ans += 4; x >>= 4; }
 			return ans + quick_log2_tabel[x];
 		}
 
-		constexpr uint32_t quick_log2(int16_t x) {
+		constexpr size_t quick_log2(int16_t x) {
 			return quick_log2((uint16_t)x);
 		}
 
-		constexpr uint32_t quick_log2(uint32_t x) {
-			uint32_t ans = 0;
+		constexpr size_t quick_log2(uint32_t x) {
+			size_t ans = 0;
 			if (x >> 16) { ans += 16; x >>= 16; }
 			if (x >> 8) { ans += 8; x >>= 8; }
 			if (x >> 4) { ans += 4; x >>= 4; }
 			return ans + quick_log2_tabel[x];
 		}
 
-		constexpr uint32_t quick_log2(int32_t x) {
-			//assert(x >= 0);
+		constexpr size_t quick_log2(int32_t x) {
 			return quick_log2((uint32_t)x);
 		}
 
-		constexpr uint32_t quick_log2(uint64_t x) {
-			uint32_t ans = 0;
+		constexpr size_t quick_log2(uint64_t x) {
+			size_t ans = 0;
 			if (x >> 32) { ans += 32; x >>= 32; }
 			if (x >> 16) { ans += 16; x >>= 16; }
 			if (x >> 8) { ans += 8; x >>= 8; }
@@ -342,9 +571,21 @@ namespace wjr {
 			return ans + quick_log2_tabel[x];
 		}
 
-		constexpr uint32_t quick_log2(int64_t x) {
-			//assert(x >= 0);
+		constexpr size_t quick_log2(int64_t x) {
 			return quick_log2((uint64_t)x);
+		}
+
+		template<typename T>		
+		constexpr T quick_pow(T a, T b) {
+			T s = 1;
+			while (b) {
+				if (b & 1) {
+					s *= a;
+				}
+				a *= a;
+				b >>= 1;
+			}
+			return s;
 		}
 
 		constexpr uint16_t bswap_16(uint16_t x) {
@@ -432,14 +673,14 @@ namespace wjr {
 			}
 		}
 
-		template<typename T,int w_default_endian = w_big_endian>
+		template<typename T, int w_default_endian = w_big_endian>
 		constexpr T auto_bswap(T x) {
 			return basic_auto_bswap<w_default_endian>(x);
 		}
 
-		template<typename pointer,int w_default_endian = w_big_endian,
-			std::enable_if_t<wjr_is_iterator_v<pointer>,int> = 0>
-		void auto_bswap(pointer first, pointer last) {
+		template<typename pointer, int w_default_endian = w_big_endian,
+			std::enable_if_t<wjr_is_iterator_v<pointer>, int> = 0>
+			void auto_bswap(pointer first, pointer last) {
 			if constexpr (w_endian != w_default_endian) {
 				while (first != last) {
 					*first = auto_bswap(*first);
@@ -448,38 +689,37 @@ namespace wjr {
 			}
 		}
 
-		template<typename T,int w_defualt_endian>
+		template<typename T, int w_defualt_endian>
 		class byte_order_iterator {
 		public:
 			byte_order_iterator(T* ptr)
 				: ptr(ptr) {
 			}
-			operator T(){
-				return auto_bswap<T,w_defualt_endian>(*ptr);
+			operator T() {
+				return auto_bswap<T, w_defualt_endian>(*ptr);
 			}
 			byte_order_iterator& operator=(T val) {
-				*ptr = auto_bswap<T,w_defualt_endian>(val);
+				*ptr = auto_bswap<T, w_defualt_endian>(val);
 				return *this;
 			}
 		private:
-			T*ptr;
+			T* ptr;
 		};
 
-		template<typename T,int w_default_endian>
+		template<typename T, int w_default_endian>
 		class byte_order_const_iterator {
 		public:
 			byte_order_const_iterator(const T* ptr)
 				: ptr(ptr) {
-
 			}
-			operator T()const{
-				return auto_bswap<T,w_default_endian>(ptr);
+			operator T()const {
+				return auto_bswap<T, w_default_endian>(ptr);
 			}
 		private:
 			const T* ptr;
 		};
 
-		template<typename T,int w_default_endian = w_big_endian>
+		template<typename T, int w_default_endian = w_big_endian>
 		class basic_byte_order_ptr {
 		public:
 			using value_type = T;
@@ -487,20 +727,15 @@ namespace wjr {
 			using const_reference = const T&;
 			using pointer = T*;
 			using const_pointer = const T*;
-			using iterator = byte_order_iterator<T,w_default_endian>;
-			using const_iterator = byte_order_const_iterator<T,w_default_endian>;
+			using iterator = byte_order_iterator<T, w_default_endian>;
+			using const_iterator = byte_order_const_iterator<T, w_default_endian>;
 			using difference_type = ptrdiff_t;
 			using iterator_category = std::random_access_iterator_tag;
 			explicit basic_byte_order_ptr(pointer ptr = nullptr)
 				: ptr(ptr) {
 			}
-			basic_byte_order_ptr(const basic_byte_order_ptr&other)
-				: ptr(other.ptr) {
-			}
-			basic_byte_order_ptr& operator=(const basic_byte_order_ptr&other) {
-				ptr = other.ptr;
-				return *this;
-			}
+			basic_byte_order_ptr(const basic_byte_order_ptr& other) = default;
+			basic_byte_order_ptr& operator=(const basic_byte_order_ptr& other) = default;
 			basic_byte_order_ptr& operator=(pointer cptr) {
 				ptr = cptr;
 				return *this;
@@ -565,26 +800,25 @@ namespace wjr {
 			pointer ptr;
 		};
 
-		template<typename T,int w_default_endian = w_big_endian>
+		template<typename T, int w_default_endian = w_big_endian>
 		using byte_order_ptr = std::conditional_t<is_any_of_v<
-			std::decay_t<T>,char,uint8_t> || w_default_endian == w_endian,
-			T*,basic_byte_order_ptr<T,w_default_endian>>;
+			std::decay_t<T>, char, uint8_t> || w_default_endian == w_endian,
+			T*, basic_byte_order_ptr<T, w_default_endian>>;
 
-		using u8byte_order_ptr = byte_order_ptr<uint8_t,w_big_endian>;
-		using u16byte_order_ptr = byte_order_ptr<uint16_t,w_big_endian>;
+		using u8byte_order_ptr = byte_order_ptr<uint8_t, w_big_endian>;
+		using u16byte_order_ptr = byte_order_ptr<uint16_t, w_big_endian>;
 		using u32byte_order_ptr = byte_order_ptr<uint32_t, w_big_endian>;
 		using u64byte_order_ptr = byte_order_ptr<uint64_t, w_big_endian>;
-
 	}
 
 	inline namespace wjr_hash {
-	#if defined(_WIN64)
+#if defined(_WIN64)
 		constexpr static size_t _FNV_offset_basis = 14695981039346656037ULL;
 		constexpr static size_t _FNV_prime = 1099511628211ULL;
-	#else // defined(_WIN64)
+#else // defined(_WIN64)
 		constexpr static size_t _FNV_offset_basis = 2166136261U;
 		constexpr static size_t _FNV_prime = 16777619U;
-	#endif // defined(_WIN64)
+#endif // defined(_WIN64)
 
 		constexpr size_t normal_fnv1a_append_bytes(size_t _Val, const unsigned char* const _First,
 			const size_t _Count) noexcept { // accumulate range [_First, _First + _Count) into partial FNV-1a hash _Val
@@ -600,17 +834,17 @@ namespace wjr {
 			const size_t _Count)noexcept {
 			for (size_t _Idx = 0; _Idx < _Count; ++_Idx) {
 				auto val = static_cast<size_t>(_First[_Idx]);
-			#if is_little_endian
+#if is_little_endian
 				for (size_t i = 0; i < byte_size; ++i) {
 					_Val ^= (val >> (i << 3)) & 0xFF;
 					_Val *= _FNV_prime;
 				}
-			#else
+#else
 				for (size_t i = byte_size - 1; i > 0; ++i) {
 					_Val ^= (val >> (i << 3)) & 0xFF;
 					_Val *= _FNV_prime;
 				}
-			#endif
+#endif
 			}
 			return _Val;
 		}
@@ -660,21 +894,29 @@ namespace wjr {
 	}
 
 	inline namespace wjr_mem {
-		// ' ','\n','\r','\t' 
-		constexpr static bool is_white_space_char[256] = { 0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+		// ' ','\n','\r','\t'
+		constexpr static bool is_white_space_char[256] = { 
+			0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 		};
 		constexpr static char white_space[16] = " \n\r\t";
 
 		static void* simple_skip_whitespace(const void* _s, const void* _e) {
-			const uint8_t* s = (const uint8_t*)_s,*e = (const uint8_t*)_e;
+			const uint8_t* s = (const uint8_t*)_s, * e = (const uint8_t*)_e;
 			while (s != e && is_white_space_char[*s])++s;
 			return (void*)s;
 		}
 
 		static void* skip_whitespace(const void* s, const void* e) {
-		#ifdef __SSE4_2__
-			uint8_t*_s = (uint8_t*)s;
-			uint8_t*_e = (uint8_t*)e;
+#ifdef __SSE4_2__
+			uint8_t* _s = (uint8_t*)s;
+			uint8_t* _e = (uint8_t*)e;
 			if (is_white_space_char[*_s])
 				++_s;
 			else return _s;
@@ -686,12 +928,10 @@ namespace wjr {
 				if (r != 16)
 					return _s + r;
 			}
-		#endif
+#endif
 			return simple_skip_whitespace(s, e);
 		}
-
 	}
-
 }
 
 #endif

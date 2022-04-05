@@ -1,7 +1,6 @@
 #include "../include/mallocator.h"
 
 namespace wjr {
-
 #ifdef ALLOCATOR_DEBUG
 	allocator_debuger allocator_debuger_ref;
 #endif

@@ -1,13 +1,12 @@
 #ifndef __WJR_HUFFMAN_H
 #define __WJR_HUFFMAN_H
 
-#include <memory>
 #include <algorithm>
+#include <memory>
 #include <string.h>
 #include "mallocator.h"
 
 namespace wjr {
-
 	struct huffman_node {
 		unsigned long long ch;
 		unsigned long long cnt;
@@ -102,9 +101,8 @@ namespace wjr {
 		}
 	}
 
-	template<typename iter,size_t max_number = 256>
-	size_t huffman_compress(iter src_first,iter src_last, void*dest_first ,void*dest_last) {
-
+	template<typename iter, size_t max_number = 256>
+	size_t huffman_compress(iter src_first, iter src_last, void* dest_first, void* dest_last) {
 		constexpr static uint32_t max_bit = quick_log2(max_number - 1) + 1;
 		constexpr static uint32_t max_bit_len = (max_bit - 1) / 8 + 1;
 		size_t l2 = (uint8_t*)dest_last - (uint8_t*)dest_first;
@@ -118,9 +116,9 @@ namespace wjr {
 
 		void* mem_block = ptr;
 		huffman_node* arr = (huffman_node*)mem_block;
-		mem_block = (void*)((char*)(mem_block) + sizeof(huffman_node) * max_number);
+		mem_block = (void*)((char*)(mem_block)+sizeof(huffman_node) * max_number);
 		huffman_tree_node* tr = (huffman_tree_node*)mem_block;
-		mem_block = (void*)((char*)(mem_block) + sizeof(huffman_tree_node) * (2 * max_number - 1));
+		mem_block = (void*)((char*)(mem_block)+sizeof(huffman_tree_node) * (2 * max_number - 1));
 		huffman_que_node* que = (huffman_que_node*)mem_block;
 
 		uint8_t* out = (uint8_t*)dest_first;
@@ -216,10 +214,8 @@ namespace wjr {
 					}
 					uint32_t delta = dep - last_dep;
 					last_dep = dep;
-					if (delta) {
-						if (!buffer_append(0, delta)) {
-							return -1;
-						}
+					if (delta && !buffer_append(0,delta)) {
+						return -1;
 					}
 					if (!buffer_append(1, 1)) {
 						return -1;
@@ -271,7 +267,6 @@ namespace wjr {
 	}
 
 	static uint8_t huffman_get_bit_8(uint8_t*& in, int& l, int bit) {
-
 		assert(bit <= 8);
 		if (bit < l) {
 			l -= bit;
@@ -287,12 +282,12 @@ namespace wjr {
 	static uint16_t huffman_get_bit_16(uint8_t*& in, int& l, int bit) {
 		assert(bit <= 16);
 		if (bit <= 8) {
-			return huffman_get_bit_8(in,l,bit);
+			return huffman_get_bit_8(in, l, bit);
 		}
-		uint16_t ch = huffman_get_bit_8(in,l,8);
+		uint16_t ch = huffman_get_bit_8(in, l, 8);
 		bit -= 8;
 		ch <<= bit;
-		ch |= huffman_get_bit_8(in,l,bit);
+		ch |= huffman_get_bit_8(in, l, bit);
 		return ch;
 	}
 
@@ -309,7 +304,7 @@ namespace wjr {
 		return X++;
 	}
 
-	static void huffman_init_decode_next(huffman_tree_node* tr, unsigned short x, 
+	static void huffman_init_decode_next(huffman_tree_node* tr, unsigned short x,
 		huffman_decode_next* dn, int dep, uint8_t v) {
 		if (tr[x].son[0] == USHORT_MAX) {
 			for (int i = (1 << (dep + 1)) - 1; ~i; --i) {
@@ -328,23 +323,23 @@ namespace wjr {
 		huffman_init_decode_next(tr, tr[x].son[1], dn, dep - 1, v | (1 << dep));
 	}
 
-	template<typename iter,size_t max_number = 256>
+	template<typename iter, size_t max_number = 256>
 	size_t huffman_uncompress(const void* src_first, const void* src_last, iter dest_first, iter dest_last) {
 		size_t l1 = (uint8_t*)src_last - (uint8_t*)src_first;
 		if (!l1) {
 			return 0;
 		}
 		constexpr static int max_bit = quick_log2(max_number - 1) + 1;
-		void* ptr = 
+		void* ptr =
 			static_thread_local_at_once_memory<
 			sizeof(huffman_node)* max_number
 			+ sizeof(huffman_tree_node) * (2 * max_number - 1)
 			+ sizeof(huffman_decode_next) * 256>();
 		void* mem_block = ptr;
 		huffman_node* arr = (huffman_node*)mem_block;
-		mem_block = (void*)((char*)(mem_block) + sizeof(huffman_node) * max_number);
+		mem_block = (void*)((char*)(mem_block)+sizeof(huffman_node) * max_number);
 		huffman_tree_node* tr = (huffman_tree_node*)mem_block;
-		mem_block = (void*)((char*)(mem_block) + sizeof(huffman_tree_node) * (2 * max_number - 1));
+		mem_block = (void*)((char*)(mem_block)+sizeof(huffman_tree_node) * (2 * max_number - 1));
 		huffman_decode_next* dn = (huffman_decode_next*)mem_block;
 
 		uint8_t* in = (uint8_t*)src_first;
@@ -372,7 +367,6 @@ namespace wjr {
 				}
 			}
 			return length;
-			
 		}
 		int l = 8;
 		uint32_t dep = 0;
@@ -380,9 +374,9 @@ namespace wjr {
 		for (int i = 0; i < tot; ++i) {
 			uint16_t ch = huffman_get_bit_16(in, l, max_bit);
 			uint32_t delta = 0;
-			bool c = huffman_get_bit_1(in,l);
+			bool c = huffman_get_bit_1(in, l);
 			while (!c) {
-				c = huffman_get_bit_1(in,l);
+				c = huffman_get_bit_1(in, l);
 				++delta;
 			}
 			dep += delta;
@@ -409,8 +403,8 @@ namespace wjr {
 			return true;
 		};
 
-		auto buffer_flush = [&buffer, &buffer_length,&tr,
-			&buffer_write,tot](int x) {
+		auto buffer_flush = [&buffer, &buffer_length, &tr,
+			&buffer_write, tot](int x) {
 			while (buffer_length--) {
 				bool c = (buffer >> buffer_length) & 1;
 				x = tr[x].son[c];
@@ -456,7 +450,7 @@ namespace wjr {
 						}
 
 						for (; !fd;) {
-							if (unlikely(in == ib)) {
+							if (unlikely(in == ib)) [[unlikely]] {
 								int res = 8 - last_bit;
 								if (!res)res = 8;
 								buffer = (uint8_t)(*in >> (8 - res));
@@ -464,7 +458,7 @@ namespace wjr {
 								if (!buffer_flush(x)) {
 									return -1;
 								}
-								return std::distance(c_dest_first,dest_first);
+								return std::distance(c_dest_first, dest_first);
 							}
 							buffer = *(in++);
 							buffer_length = 8;
@@ -493,9 +487,8 @@ namespace wjr {
 		if (!buffer_flush(tot - 2)) {
 			return -1;
 		}
-		return std::distance(c_dest_first,dest_first);
+		return std::distance(c_dest_first, dest_first);
 	}
-
 }
 
 #endif

@@ -37,18 +37,18 @@ void fill_double_init() {}
 #ifdef __cplusplus
 extern "C" {
 #endif
-    bool fill_double(double v, char* buffer) {
-        int length, K;
-        grisu2(v, buffer, &length, &K);
-    #ifndef HUMAN_READABLE
-        buffer[length] = 'e';
-        fill_exponent(K, &buffer[length + 1]);
-    #else
-        prettify_string(buffer, 0, length, K);
-    #endif
-        return 1;
-    }
+	bool fill_double(double v, char* buffer) {
+		int length, K;
+		grisu2(v, buffer, &length, &K);
+#ifndef HUMAN_READABLE
+		buffer[length] = 'e';
+		fill_exponent(K, &buffer[length + 1]);
+#else
+		prettify_string(buffer, 0, length, K);
+#endif
+		return 1;
+	}
 #ifdef __cplusplus
 }
-#endif 
+#endif
 #endif // GRISU2_H

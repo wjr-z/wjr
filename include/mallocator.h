@@ -7,27 +7,25 @@
 #include <cstdio>
 #endif
 
+#include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
-#include <cassert>
-#include <utility>
 #include <type_traits>
-#include <cstddef>
+#include <utility>
 #include "mtype_traits.h"
 
 namespace wjr {
-
 	template <int __inst>
 	class __malloc_alloc_template__ {
-
 	private:
 
 		static void* _S_oom_malloc(size_t);
 		static void* _S_oom_realloc(void*, size_t);
 
-	#ifndef __STL_STATIC_TEMPLATE_MEMBER_BUG
+#ifndef __STL_STATIC_TEMPLATE_MEMBER_BUG
 		static void (*__malloc_alloc_oom_handler)();
-	#endif
+#endif
 
 	public:
 
@@ -53,7 +51,6 @@ namespace wjr {
 			__malloc_alloc_oom_handler = __f;
 			return(__old);
 		}
-
 	};
 
 	// malloc_alloc out-of-memory handling
@@ -146,7 +143,6 @@ namespace wjr {
 	struct allocator_debuger {
 		allocator_debuger()
 			: allocated_size(0) {
-
 		}
 		~allocator_debuger() {
 			if (allocated_size == 0) {
@@ -173,7 +169,6 @@ namespace wjr {
 		using base = __basic_default_alloc_template__<threads>;
 		using obj = typename base::obj;
 
-
 		enum { __ALIGN = ALLOC_ALIGN };
 		enum { __MAX_BYTES = ALLOC_MAX_BYTES };
 		enum { __NFREELISTS = ALLOC_NFRELISTS };
@@ -196,9 +191,9 @@ namespace wjr {
 	public:
 		static void* allocate(size_t n) //n must be > 0
 		{
-		#ifdef ALLOCATOR_DEBUG
+#ifdef ALLOCATOR_DEBUG
 			allocator_debuger_ref.allocated_size += n;
-		#endif
+#endif
 			if (n > (size_t)__MAX_BYTES) {
 				return malloc_alloc::allocate(n);
 			}
@@ -214,9 +209,9 @@ namespace wjr {
 		static void deallocate(void* p, size_t n) //p may not be 0
 		{
 			obj* q = (obj*)p;
-		#ifdef ALLOCATOR_DEBUG
+#ifdef ALLOCATOR_DEBUG
 			allocator_debuger_ref.allocated_size -= n;
-		#endif
+#endif
 
 			if (n > (size_t)__MAX_BYTES) {
 				free(p);
@@ -227,7 +222,6 @@ namespace wjr {
 			q->free_list_link = *my_free_list;
 			*my_free_list = q;
 		}
-
 	};
 
 	//----------------------------------------------
@@ -352,7 +346,7 @@ namespace wjr {
 			using other = basic_mallocator<_Other, threads>;
 		};
 
-		constexpr basic_mallocator() noexcept {}
+		constexpr basic_mallocator() noexcept = default;
 		constexpr basic_mallocator(const basic_mallocator&) noexcept = default;
 		template <class _Other>
 		constexpr basic_mallocator(const basic_mallocator<_Other, threads>&) noexcept {}
@@ -409,7 +403,6 @@ namespace wjr {
 		constexpr static size_t max_small_size() {
 			return static_cast<size_t>(ALLOC_MAX_BYTES) / sizeof(Ty);
 		}
-
 	};
 
 	template<typename T, typename U, bool t1, bool t2>
@@ -438,7 +431,7 @@ namespace wjr {
 #ifndef __USE_THREADS
 	template<typename T>
 	using mallocator = basic_mallocator<T, false>;
-#else 
+#else
 	template<typename T>
 	using mallocator = basic_mallocator<T, true>;
 #endif
@@ -459,9 +452,11 @@ namespace wjr {
 	struct default_mallocator_delete {
 		constexpr default_mallocator_delete() = default;
 
-		template<typename...Args>
-		constexpr default_mallocator_delete(Args&&...args) {
-		}
+		constexpr default_mallocator_delete(const default_mallocator_delete&) = default;
+		
+		default_mallocator_delete& operator=(default_mallocator_delete&) = default;
+
+		~default_mallocator_delete() = default;
 
 		template<typename T>
 		void operator()(T* ptr)const {
@@ -479,7 +474,6 @@ namespace wjr {
 		new (ptr) T(std::forward<Args>(args)...);
 		return mallocator_unique_ptr<T>(ptr, default_mallocator_delete());
 	}
-
 }
 
 #endif

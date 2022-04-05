@@ -4,7 +4,6 @@
 #include "mallocator.h"
 
 namespace wjr {
-
 	class exist_ptr;
 
 	class exist_base {
@@ -16,8 +15,8 @@ namespace wjr {
 		};
 	public:
 
-		exist_base() 
-			: ptr(mallocator<count_ref>().allocate(1)){
+		exist_base()
+			: ptr(mallocator<count_ref>().allocate(1)) {
 			ptr->count = 1;
 			ptr->ptr = this;
 		}
@@ -36,7 +35,7 @@ namespace wjr {
 		exist_base& operator=(const exist_base&) = delete;
 
 		exist_base& operator=(exist_base&& other) noexcept {
-			if (unlikely(this == std::addressof(other))) {
+			if (unlikely(this == std::addressof(other))) [[unlikely]] {
 				return *this;
 			}
 			clear();
@@ -79,17 +78,16 @@ namespace wjr {
 	public:
 		exist_ptr()
 			: ptr(nullptr) {
-
 		}
 
-		exist_ptr(const exist_base& p) 
+		exist_ptr(const exist_base& p)
 			: ptr(nullptr) {
 			store(p);
 		}
-		
+
 		exist_ptr(const exist_ptr&) = delete;
 
-		exist_ptr(exist_ptr&& other) noexcept 
+		exist_ptr(exist_ptr&& other) noexcept
 			: ptr(other.ptr) {
 			other.ptr = nullptr;
 		}
@@ -101,7 +99,7 @@ namespace wjr {
 		exist_ptr& operator=(const exist_ptr&) = delete;
 
 		exist_ptr& operator=(exist_ptr&& other) noexcept {
-			if (unlikely(this == std::addressof(other))) {
+			if (unlikely(this == std::addressof(other))) [[unlikely]] {
 				return *this;
 			}
 			release();
@@ -142,7 +140,6 @@ namespace wjr {
 
 		count_ref* ptr;
 	};
-
 }
 
 #endif
