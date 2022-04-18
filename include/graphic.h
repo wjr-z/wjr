@@ -6,6 +6,7 @@
 #include <vector>
 #include "exist_ptr.h"
 
+// useless
 namespace wjr {
 	template<typename T /*node info*/, typename U /*edge info*/>
 	class wnode {

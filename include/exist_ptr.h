@@ -3,6 +3,7 @@
 
 #include "mallocator.h"
 
+// useless
 namespace wjr {
 	class exist_ptr;
 

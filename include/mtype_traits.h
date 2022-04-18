@@ -8,6 +8,21 @@
 #include <locale>
 #include <random>
 #include <type_traits>
+
+#define USE_LIBDIVIDE
+#ifdef USE_LIBDIVIDE
+#include "libdivide.h"
+#else 
+namespace libdivide {
+	enum Branching {
+		BRANCHFULL,  // use branching algorithms
+		BRANCHFREE   // use branchfree algorithms
+	};
+	template<typename T,Branching ALGO = BRANCHFULL>
+	using divider = T;
+}
+#endif
+
 #ifdef __SSE4_2__
 #include <intrin.h>
 #endif
@@ -18,10 +33,6 @@ namespace wjr {
 #endif
 
 #define __USE_THREADS
-
-#ifndef WJR_DEBUG_LEVEL
-#define WJR_DEBUG_LEVEL 0
-#endif
 
 #if defined(__clang__) || defined(__GNUC__)
 #define WJR_CPP_STANDARD __cplusplus
@@ -113,6 +124,57 @@ namespace wjr {
 
 #define CONNECT(A,B) A##B
 #define STD_FUNCTION(FUNC) std::FUNC
+
+#ifndef _DEBUG
+#define WDEBUG_LEVEL 1
+#else 
+#define WDEBUG_LEVEL 2
+#endif
+
+#define WASSERT_LEVEL_MESSAGE(LEVEL,expression)											\
+	do{																					\
+		if (unlikely(!(expression))) {													\
+				fprintf(stderr,"Assertion failed: %s in %s : %d\nBUG_LEVEL : %d",		\
+				#expression,__FILE__,__LINE__,LEVEL);									\
+				std::abort();															\
+		}																				\
+	}while(0)
+
+// WDEBUG_LEVEL		1
+// The impact on program running time or space is only constant
+// Some small bugs that are not easy to test under a small part or a small range of data
+#if WDEBUG_LEVEL >= 1	
+#define WASSERT_LEVEL_1(expression)	WASSERT_LEVEL_MESSAGE(1,expression)
+#else
+#define WASSERT_LEVEL_1(expression)
+#endif
+
+// WDEBUG_LEVEL		2
+// The impact on program running time or space is only linear or less
+// Some bugs that may be found and fixed in small-scale tests
+#if WDEBUG_LEVEL >= 2
+#define WASSERT_LEVEL_2(expression)	WASSERT_LEVEL_MESSAGE(2,expression)
+#else
+#define WASSERT_LEVEL_2(expression)
+#endif
+
+// WDEBUG_LEVEL		3
+// The impact on program running time or space is O(nlogn),O(n sqrt(n)),O(n^2) or less
+// It can still run in a large range
+#if WDEBUG_LEVEL >= 3
+#define WASSERT_LEVEL_3(expression)	WASSERT_LEVEL_MESSAGE(3,expression)
+#else
+#define WASSERT_LEVEL_3(expression)
+#endif
+
+// WDEBUG_LEVEL		4
+// no limit
+// It can only be tested in a small range
+#if WDEBUG_LEVEL >= 4
+#define WASSERT_LEVEL_4(expression)	WASSERT_LEVEL_MESSAGE(4,expression)
+#else
+#define WASSERT_LEVEL_4(expression)
+#endif
 	
 	enum wbyte_order {
 		w_little_endian = 0,
@@ -178,6 +240,20 @@ namespace wjr {
 
 		template<typename T>
 		struct is_reverse_iterator<std::reverse_iterator<T>> : std::true_type {};
+
+		template<typename T>
+		struct _Is_signed_integeral :
+			std::conjunction<std::is_integral<T>, std::is_signed<T>> {};
+
+		template<typename T>
+		constexpr static bool _Is_signed_integeral_v = _Is_signed_integeral<T>::value;
+
+		template<typename T>
+		struct _Is_unsigned_integeral :
+			std::conjunction<std::is_integral<T>, std::is_unsigned<T>> {};
+
+		template<typename T>
+		constexpr static bool _Is_unsigned_integeral_v = _Is_unsigned_integeral<T>::value;
 
 #if defined(WJR_CPP_17)
 		template<typename F, typename...Args>
@@ -578,7 +654,7 @@ namespace wjr {
 			return quick_log2((uint64_t)x);
 		}
 
-		template<typename T>		
+		template<typename T>
 		constexpr T quick_pow(T a, T b) {
 			T s = 1;
 			while (b) {
@@ -589,6 +665,39 @@ namespace wjr {
 				b >>= 1;
 			}
 			return s;
+		}
+
+		template<size_t base, typename T>
+		constexpr size_t __get_log_length() {
+			size_t S = std::numeric_limits<T>::max();
+			size_t cnt = 0;
+			while (S >= base) {
+				S /= base;
+				++cnt;
+			}
+			return cnt + 1;
+		}
+
+		template<size_t base, typename T>
+		constexpr size_t log_length = __get_log_length<base, T>();
+
+		template<size_t base, size_t index, typename T>
+		constexpr size_t __get_quick_log(T x) {
+			constexpr size_t X = quick_pow(base, (size_t)(1) << index);
+			if constexpr (index == 0) {
+				return x >= X;
+			}
+			else {
+				return x >= X ? (__get_quick_log<base, index - 1, T>(x / X) + ((size_t)(1) << index))
+					: (__get_quick_log<base, index - 1, T>(x));
+			}
+		}
+
+		template<size_t base, typename T>
+		constexpr size_t quick_log(T x) {
+			constexpr size_t length = log_length<base, T>;
+			constexpr size_t l = quick_log2(length - 1);
+			return __get_quick_log<base, l, T>(x);
 		}
 
 		constexpr uint16_t bswap_16(uint16_t x) {
@@ -690,6 +799,32 @@ namespace wjr {
 					++first;
 				}
 			}
+		}
+
+		template<size_t index,typename T>
+		struct auto_split_number {
+			T vec[index];
+		};
+
+		template<size_t kth,size_t index,typename T>
+		constexpr T get(const auto_split_number<index, T>&v) {
+			if constexpr (is_little_endian) {
+				return v.vec[kth];
+			}
+			else {
+				return v.vec[index - kth - 1];
+			}
+		}
+
+		template<size_t index,typename T,typename U>
+		constexpr decltype(auto) split_number(U x) {
+			static_assert(index * sizeof(T) == sizeof(U), "");
+			union {
+				auto_split_number<index, T> a;
+				U b;
+			} c;
+			c.b = x;
+			return c.a;
 		}
 
 		template<typename T, int w_defualt_endian>
