@@ -109,7 +109,7 @@ namespace wjr {
 		wnode& operator=(const wnode&) = delete;
 
 		wnode& operator=(wnode&& other) noexcept {
-			if (unlikely(this == std::addressof(other))) [[unlikely]] {
+			if (unlikely(this == std::addressof(other)))  {
 				return *this;
 			}
 			clear();

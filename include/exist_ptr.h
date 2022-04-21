@@ -36,7 +36,7 @@ namespace wjr {
 		exist_base& operator=(const exist_base&) = delete;
 
 		exist_base& operator=(exist_base&& other) noexcept {
-			if (unlikely(this == std::addressof(other))) [[unlikely]] {
+			if (unlikely(this == std::addressof(other)))  {
 				return *this;
 			}
 			clear();
@@ -100,7 +100,7 @@ namespace wjr {
 		exist_ptr& operator=(const exist_ptr&) = delete;
 
 		exist_ptr& operator=(exist_ptr&& other) noexcept {
-			if (unlikely(this == std::addressof(other))) [[unlikely]] {
+			if (unlikely(this == std::addressof(other)))  {
 				return *this;
 			}
 			release();

@@ -460,8 +460,12 @@ namespace libdivide {
         return result;
 #else
         uint64_t n = ((uint64_t)u1 << 32) | u0;
+#if defined(LIBDIVIDE_VC)
+        uint32_t result = _udiv64(n,v,r);
+#else
         uint32_t result = (uint32_t)(n / v);
         *r = (uint32_t)(n - result * (uint64_t)v);
+#endif
         return result;
 #endif
     }
@@ -478,6 +482,8 @@ namespace libdivide {
         uint64_t result;
         __asm__("divq %[v]" : "=a"(result), "=d"(*r) : [v] "r"(den), "a"(numlo), "d"(numhi));
         return result;
+#elif defined(LIBDIVIDE_VC) && defined(_M_X64)
+        return _udiv128(numhi, numlo, den, r);
 #else
     // We work in base 2**32.
     // A uint32 holds a single digit. A uint64 holds two digits.
@@ -3217,7 +3223,7 @@ namespace libdivide {
         }
 #endif
 
-    private:
+    //private:
         // Storage for the actual divisor
         dispatcher_t div;
     };

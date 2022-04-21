@@ -23,7 +23,8 @@ namespace libdivide {
 }
 #endif
 
-#ifdef __SSE4_2__
+
+#if defined(_MSC_VER)
 #include <intrin.h>
 #endif
 
@@ -91,10 +92,6 @@ namespace wjr {
 #endif
 #endif
 
-#ifndef USHORT_MAX
-#define USHORT_MAX 0xFFFF
-#endif
-
 #ifdef __USE_THREADS
 #define WJR_THREADS (true)
 #else
@@ -126,7 +123,7 @@ namespace wjr {
 #define STD_FUNCTION(FUNC) std::FUNC
 
 #ifndef _DEBUG
-#define WDEBUG_LEVEL 1
+#define WDEBUG_LEVEL 0
 #else 
 #define WDEBUG_LEVEL 2
 #endif
@@ -175,7 +172,7 @@ namespace wjr {
 #else
 #define WASSERT_LEVEL_4(expression)
 #endif
-	
+
 	enum wbyte_order {
 		w_little_endian = 0,
 		w_big_endian = 1,
@@ -242,18 +239,18 @@ namespace wjr {
 		struct is_reverse_iterator<std::reverse_iterator<T>> : std::true_type {};
 
 		template<typename T>
-		struct _Is_signed_integeral :
+		struct _Is_signed_integral :
 			std::conjunction<std::is_integral<T>, std::is_signed<T>> {};
 
 		template<typename T>
-		constexpr static bool _Is_signed_integeral_v = _Is_signed_integeral<T>::value;
+		constexpr static bool _Is_signed_integral_v = _Is_signed_integral<T>::value;
 
 		template<typename T>
-		struct _Is_unsigned_integeral :
+		struct _Is_unsigned_integral :
 			std::conjunction<std::is_integral<T>, std::is_unsigned<T>> {};
 
 		template<typename T>
-		constexpr static bool _Is_unsigned_integeral_v = _Is_unsigned_integeral<T>::value;
+		constexpr static bool _Is_unsigned_integral_v = _Is_unsigned_integral<T>::value;
 
 #if defined(WJR_CPP_17)
 		template<typename F, typename...Args>
@@ -1052,7 +1049,7 @@ namespace wjr {
 		}
 
 		static void* skip_whitespace(const void* s, const void* e) {
-#ifdef __SSE4_2__
+#if defined(_MSC_VER)
 			uint8_t* _s = (uint8_t*)s;
 			uint8_t* _e = (uint8_t*)e;
 			if (is_white_space_char[*_s])
