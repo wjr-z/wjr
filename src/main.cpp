@@ -56,41 +56,54 @@ const char* get_mode(size_t n,size_t m) {
 	}
 }
 
-int T = 1 << 16;
 int main() {
-	freopen("data.out", "w", stdout);
-	using bint = biginteger<2>;
-	for (size_t n = 4; n <= (1 << 10); n <<= 1) {
-		auto a = random_biginteger<2>(n * 32);
-		cout << '\n';
-		cout << "n : " << n << '\n';
-		cout << '\n' << '\n';
-		for (double alpha = 0.1; alpha <= 1; alpha += 0.05) {
-			auto b = random_biginteger<2>(n * 32 * alpha);
-			bint c;
-			double p = 0, q = 0;
-			auto s = mtime();
-			for (int j = 0; j < T / n; ++j) {
+	int cnt = 0;
+	while (true) {
+		biginteger<2> a = random_biginteger<2>(1000);
+		biginteger<2> b = random_biginteger<2>(1000);
+		int c = rand() % 4;
+		if (c & 1) {
+			a.change_signal();
+		}
+		if (c >> 1) {
+			b.change_signal();
+		}
+		if ((a - b) + b != a) {
+			printf("error\n");
+			return 0;
+		}
+		if ((++cnt) % 10000 == 0) {
+			cout << cnt << '\n';
+		}
+	}
+	return 0;
+	//freopen("data.out", "w", stdout);
+	size_t T = (1 << 16) ;
+	for (size_t i = 4; i < (1 << 18); i <<= 1) {
+		size_t n = i * 32;
+		cout << "n : " << n << "\n\n";
+		auto a = random_biginteger<2>(n);
+		for (double alpha = 0.05; alpha <= 1 + 1e-10; alpha += 0.05) {
+			auto b = random_biginteger<2>(n * alpha);
+			auto rd = max(1ull, T / i);
+			double p = 0;
+			biginteger<2> c, d;
+			for (size_t j = 0; j < rd; ++j) {
 				c = a;
-				s = mtime();
-				c.ubint.slow_mul<0>(get_virtual_biginteger<2>(b.ubint));
+				auto s = mtime();
+				c *= b;
 				p += mtime() - s;
 			}
-			cout << alpha << ' ';
-			cout << p << ' ';
-			for (int j = 0; j < T / n; ++j) {
-				c = a;
-				s = mtime();
-				c.ubint.fft_mul<0>(get_virtual_biginteger<2>(b.ubint));
+			double q = 0;
+			for (size_t j = 0; j < rd;++ j) {
+				c = a, d = b;
+				auto s = mtime();
+				c / d;
 				q += mtime() - s;
 			}
-			auto A = get_mode(a.size(), b.size());
-			auto B = (p < q ? "slow mul" : "fft mul");
-			cout << q << ' ' << (p / q) << ' '
-				<< "auto : " << A
-				<< " best : " << B;
-			cout <<" " << (A == B ? "OK" : "FAIL") << '\n';
+			cout << "alpha : " << alpha << " mul : " << p << " divide : " << q << " ratio : " << q / p << '\n';
 		}
+		cout << "\n\n";
 	}
 	return 0;
 }

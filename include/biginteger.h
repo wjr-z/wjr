@@ -6,7 +6,7 @@
 #include "mtool.h"
 
 extern "C" {
-    extern void cdft(int, int, double*);
+    extern void cdft(int, int, double*, int*, double*);
 }
 
 namespace wjr {
@@ -16,11 +16,11 @@ namespace wjr {
 #endif
 
 #if defined(WJR_BIGINTEGER_USE_X64)
-    using biginteger_basic_value_type       = uint64_t;
+    using biginteger_basic_value_type = uint64_t;
     using biginteger_basic_twice_value_type = __uint128_t;
     constexpr static size_t biginteger_basic_bit = 64;
 #else
-    using biginteger_basic_value_type       = uint32_t;
+    using biginteger_basic_value_type = uint32_t;
     using biginteger_basic_twice_value_type = uint64_t;
     constexpr static size_t biginteger_basic_bit = 32;
 #endif
@@ -92,7 +92,7 @@ namespace wjr {
                 // which is why we do it outside of the if statement.
             }
         }
-    //private:
+        //private:
         uint64_t magic;
         uint8_t more;
     };
@@ -148,7 +148,7 @@ namespace wjr {
                     more = (uint8_t)floor_log_2_d;
                 }
                 else {
-                    // We have to use the general 65-bit algorithm.  We need to compute
+                    // We have to use the general 129-bit algorithm.  We need to compute
                     // (2**power) / d. However, we already have (2**(power-1))/d and
                     // its remainder. By doubling both, and then correcting the
                     // remainder, we can compute the larger division.
@@ -172,8 +172,8 @@ namespace wjr {
         uint8_t more;
     };
 
-	static biginteger_basic_twice_value_type 
-        biginteger_libdivide_mullhi_u128(biginteger_basic_twice_value_type x, 
+    static biginteger_basic_twice_value_type
+        biginteger_libdivide_mullhi_u128(biginteger_basic_twice_value_type x,
             biginteger_basic_twice_value_type y) {
         constexpr static uint64_t mask = (uint64_t)(-1);
         uint64_t x0 = (uint64_t)(x & mask);
@@ -197,7 +197,7 @@ namespace wjr {
             return n >> more;
         }
         else {
-            biginteger_basic_twice_value_type q = 
+            biginteger_basic_twice_value_type q =
                 biginteger_libdivide_mullhi_u128(d.magic, n);
             if (more & libdivide::LIBDIVIDE_ADD_MARKER) {
                 biginteger_basic_twice_value_type t = ((n - q) >> 1) + q;
@@ -303,12 +303,12 @@ namespace wjr {
 #endif
         }
 
-        constexpr static unsigned char qcadd(value_type* result,value_type lhs, value_type rhs) {
+        constexpr static unsigned char qcadd(value_type* result, value_type lhs, value_type rhs) {
             *result = lhs + rhs;
             return *result < lhs;
         }
 
-        constexpr static unsigned char quick_add(unsigned char jw,value_type lhs, value_type rhs, value_type* result) {
+        constexpr static unsigned char quick_add(unsigned char jw, value_type lhs, value_type rhs, value_type* result) {
 #if defined(_MSC_VER)
             // use adc to get cf
 #if defined(WJR_BIGINTEGER_USE_X64)
@@ -339,18 +339,18 @@ namespace wjr {
                     jw = qcadd(result, lhs, rhs) | qcadd(result, *result, jw);
                     jw |= _mod <= *result;
                 }
-                return jw ? (*result -= _mod, 1 ): 0;
+                return jw ? (*result -= _mod, 1) : 0;
             }
 #endif
         }
 
-        constexpr static unsigned char qcsub(value_type* result,value_type lhs,value_type rhs){
-			*result = lhs - rhs;
-			return lhs < rhs;
-		}
+        constexpr static unsigned char qcsub(value_type* result, value_type lhs, value_type rhs) {
+            *result = lhs - rhs;
+            return lhs < rhs;
+        }
 
         constexpr static unsigned char quick_sub(
-            unsigned char jw,value_type lhs, value_type rhs, value_type* result) {
+            unsigned char jw, value_type lhs, value_type rhs, value_type* result) {
 #if defined(_MSC_VER)
 #if defined(WJR_BIGINTEGER_USE_X64)
             jw = _subborrow_u64(jw, lhs, rhs, result);
@@ -364,7 +364,7 @@ namespace wjr {
                 return jw ? (*result += _mod, 1) : 0;
             }
 #else
-			
+
             if constexpr (get_mode == mode::is_full) {
                 return qcsub(result, lhs, rhs) | qcsub(result, *result, jw);
             }
@@ -761,7 +761,7 @@ namespace wjr {
             T _Val = 0;
             for (size_t i = _Size; i--;) {
                 WASSERT_LEVEL_2(_Data[i] <= biginteger_integral_max_value<T>
-                    && (_Val <= (biginteger_integral_max_value<T> - _Data[i]) / traits::max_value));
+                    && (_Val <= (biginteger_integral_max_value<T> -_Data[i]) / traits::max_value));
                 _Val = _Val * traits::max_value + _Data[i];
             }
             return _Val;
@@ -946,27 +946,27 @@ namespace wjr {
         }
     }
 
-#define REGISTER_VIRTUAL_BIGINTEGER_FUNCTION(FUNC,...)		        \
-        if constexpr (ir == 1) {					    	        \
+#define REGISTER_VIRTUAL_BIGINTEGER_FUNCTION(index,rt,FUNC,...)		\
+        if constexpr (index == 1) {					    	        \
             return FUNC<1>(__VA_ARGS__);					        \
         }													        \
-        else if constexpr (ir == 2) {				    	        \
-            if (rhs.size() == 1) {							        \
+        else if constexpr (index == 2) {				    	    \
+            if (rt.size() == 1) {							        \
                 return FUNC<1>(__VA_ARGS__);				        \
             }												        \
             else {											        \
                 return FUNC<2>(__VA_ARGS__);				        \
             }												        \
         }													        \
-        else if constexpr (ir == 3) {					            \
-            switch (rhs.size()) {							        \
+        else if constexpr (index == 3) {					        \
+            switch (rt.size()) {							        \
             case 1: return FUNC<1>(__VA_ARGS__);			        \
             case 2: return FUNC<2>(__VA_ARGS__);			        \
             case 3: return FUNC<3>(__VA_ARGS__);			        \
             }												        \
         }													        \
         else {												        \
-            switch (rhs.size()) {							        \
+            switch (rt.size()) {							        \
             case 1: return FUNC<1>(__VA_ARGS__);			        \
             case 2: return FUNC<2>(__VA_ARGS__);			        \
             case 3: return FUNC<3>(__VA_ARGS__);			        \
@@ -975,9 +975,42 @@ namespace wjr {
             }												        \
         }													        \
 
-#define VIRTUAL_UNSIGNED_BIGINTEGER_DECLARATION                                                 \
+#define REGISTER_BETTER_VIRTUAL_BIGINTEGER_FUNCTION(il,ir,FUNC,result,lhs,rhs)                  \
+    if constexpr (il && ir) {                                                                   \
+        if constexpr (il < ir) {                                                                \
+            REGISTER_VIRTUAL_BIGINTEGER_FUNCTION(il, lhs, FUNC, result, rhs, lhs);              \
+        }                                                                                       \
+        else {                                                                                  \
+            REGISTER_VIRTUAL_BIGINTEGER_FUNCTION(ir, rhs, FUNC, result, lhs, rhs);              \
+        }                                                                                       \
+    }                                                                                           \
+    else {                                                                                      \
+        if (lhs.size() < rhs.size()) {                                                          \
+            REGISTER_VIRTUAL_BIGINTEGER_FUNCTION(il, lhs, FUNC, result, rhs, lhs);              \
+        }                                                                                       \
+        else {                                                                                  \
+            REGISTER_VIRTUAL_BIGINTEGER_FUNCTION(ir, rhs, FUNC, result, lhs, rhs);              \
+        }                                                                                       \
+    }                                                                                           \
+
+
+#define VIRTUAL_UNSIGNED_BIGINTEGER_SINGLE_DECLARATION                                          \
+    template<typename T                                                                         \
+    std::enable_if_t<_Is_unsigned_biginteger_base_masks_v<base, T>, int> = 0>                   \
+
+#define VIRTUAL_UNSIGNED_BIGINTEGER_BINARY_DECLARATION                                          \
     template<typename T, typename U,                                                            \
     std::enable_if_t<_Is_unsigned_biginteger_base_masks_v<base, T, U>, int> = 0>                \
+
+    // _dst may be equal to _Src
+    // we needn't to memcpy
+    void* biginteger_ememcpy(
+        void* _Dst,
+        void const* _Src,
+        size_t      _Size
+    ) {
+        return (_Dst != _Src) ? memcpy(_Dst, _Src, _Size) : _Dst;
+    }
 
     template<size_t base>
     class biginteger;
@@ -1013,7 +1046,9 @@ namespace wjr {
         template<size_t length>
         explicit unsigned_biginteger(const virtual_unsigned_biginteger<length>& rhs)
             : vec(rhs.begin(), rhs.end()) {
-            WASSERT_LEVEL_1(vec.size() >= 1);
+            if (unlikely(vec.size() == 0)) {
+                vec.push_back(0);
+            }
         }
         template<typename T, std::enable_if_t<_Is_virtual_unsigned_biginteger_v<T>, int> = 0>
         explicit unsigned_biginteger(const T& val)
@@ -1140,6 +1175,21 @@ namespace wjr {
         }
 
     private:
+
+        template<size_t index,size_t il,size_t ir>
+        static int QCmp(
+            const virtual_unsigned_biginteger<il>& lhs,
+            const virtual_unsigned_biginteger<ir>& rhs
+        );
+
+        template<size_t il,size_t ir>
+        static int Cmp(
+            const virtual_unsigned_biginteger<il>& lhs,
+            const virtual_unsigned_biginteger<ir>& rhs
+        ) {
+            REGISTER_VIRTUAL_BIGINTEGER_FUNCTION(ir, rhs, QCmp, lhs, rhs);
+        }
+
         template<size_t index, size_t il, size_t ir>
         static bool QEqual(
             const virtual_unsigned_biginteger<il>& lhs,
@@ -1148,7 +1198,7 @@ namespace wjr {
         static bool Equal(
             const virtual_unsigned_biginteger<il>& lhs,
             const virtual_unsigned_biginteger<ir>& rhs) {
-            REGISTER_VIRTUAL_BIGINTEGER_FUNCTION(QEqual, lhs, rhs);
+            REGISTER_VIRTUAL_BIGINTEGER_FUNCTION(ir, rhs, QEqual, lhs, rhs);
         }
 
         template<size_t index, size_t il, size_t ir>
@@ -1159,7 +1209,7 @@ namespace wjr {
         static bool Less(
             const virtual_unsigned_biginteger<il>& lhs,
             const virtual_unsigned_biginteger<ir>& rhs) {
-            REGISTER_VIRTUAL_BIGINTEGER_FUNCTION(QLess, lhs, rhs);
+            REGISTER_VIRTUAL_BIGINTEGER_FUNCTION(ir, rhs, QLess, lhs, rhs);
         }
 
         template<size_t index, size_t il, size_t ir>
@@ -1170,139 +1220,190 @@ namespace wjr {
         static bool Less_eq(
             const virtual_unsigned_biginteger<il>& lhs,
             const virtual_unsigned_biginteger<ir>& rhs) {
-            REGISTER_VIRTUAL_BIGINTEGER_FUNCTION(QLess_eq, lhs, rhs);
+            REGISTER_VIRTUAL_BIGINTEGER_FUNCTION(ir, rhs, QLess_eq, lhs, rhs);
         }
 
-        template<size_t index, size_t ir>
-        void QAdd(const virtual_unsigned_biginteger<ir>& rhs);
-        template<size_t ir>
-        void Add(const virtual_unsigned_biginteger<ir>& rhs) {
-            REGISTER_VIRTUAL_BIGINTEGER_FUNCTION(QAdd, rhs);
+        template<size_t index,size_t il,size_t ir>
+        static void QAdd(
+            unsigned_biginteger& result,
+            const virtual_unsigned_biginteger<il>& lhs,
+            const virtual_unsigned_biginteger<ir>& rhs
+        );
+
+        template<size_t il,size_t ir>
+        static void Add(
+            unsigned_biginteger& result,
+            const virtual_unsigned_biginteger<il>& lhs,
+            const virtual_unsigned_biginteger<ir>& rhs
+        ) {
+            REGISTER_BETTER_VIRTUAL_BIGINTEGER_FUNCTION(il, ir, QAdd, result, lhs, rhs);
         }
 
-        template<size_t index, size_t ir>
-        void QSub(const virtual_unsigned_biginteger<ir>& rhs);
-        template<size_t ir>
-        void Sub(const virtual_unsigned_biginteger<ir>& rhs) {
-            REGISTER_VIRTUAL_BIGINTEGER_FUNCTION(QSub, rhs);
+        template<size_t index,size_t il,size_t ir>
+        static void QSub(
+            unsigned_biginteger& result,
+            const virtual_unsigned_biginteger<il>& lhs,
+            const virtual_unsigned_biginteger<ir>& rhs
+        );
+
+        template<size_t il,size_t ir>
+        static void Sub(
+            unsigned_biginteger& result,
+            const virtual_unsigned_biginteger<il>& lhs,
+            const virtual_unsigned_biginteger<ir>& rhs 
+        ) {
+            REGISTER_VIRTUAL_BIGINTEGER_FUNCTION(ir, rhs, QSub, result, lhs, rhs);
         }
 
-        template<size_t index, size_t ir>
-        void QSub_by(const virtual_unsigned_biginteger<ir>& rhs);
-        template<size_t ir>
-        void Sub_by(const virtual_unsigned_biginteger<ir>& rhs) {
-            REGISTER_VIRTUAL_BIGINTEGER_FUNCTION(QSub_by, rhs);
+        template<size_t index,size_t il,size_t ir>
+        static void slow_mul(
+            unsigned_biginteger& result,
+            const virtual_unsigned_biginteger<il>& lhs,
+            const virtual_unsigned_biginteger<ir>& rhs
+        );
+
+        template<size_t il,size_t ir>
+        static void fft_mul(
+            unsigned_biginteger& result,
+            const virtual_unsigned_biginteger<il>& lhs,
+            const virtual_unsigned_biginteger<ir>& rhs
+        );
+		
+        enum mul_mode {
+            slow_mul_mode,
+            fft_mul_mode,
+        };
+        constexpr static mul_mode get_mul_mode(size_t n, size_t m) {
+            size_t _Min = n < m ? n : m;
+            size_t _Max = n > m ? n : m;
+            if (_Min <= 32 ||
+                ((uint64_t)(1) << (std::min(size_t(60), ((_Min - 32) / 2)))) <= _Max) {
+                return slow_mul_mode;
+            }
+            else {
+                return fft_mul_mode;
+            }
         }
+        template<size_t index,size_t il,size_t ir>
+        static void QMul(
+            unsigned_biginteger& result,
+            const virtual_unsigned_biginteger<il>& lhs,
+            const virtual_unsigned_biginteger<ir>& rhs
+        );
+        template<size_t il,size_t ir>
+        static void Mul(
+            unsigned_biginteger& result,
+            const virtual_unsigned_biginteger<il>& lhs,
+            const virtual_unsigned_biginteger<ir>& rhs
+        ) {
+            REGISTER_BETTER_VIRTUAL_BIGINTEGER_FUNCTION(il, ir, QMul, result, lhs, rhs);
+        }
+
     public:
-        template<size_t index, size_t length>
-        void slow_mul(const virtual_unsigned_biginteger<length>& rhs);
-        template<size_t length>
-        void fft_mul(const virtual_unsigned_biginteger<length>& rhs);
-        template<size_t index, size_t length>
-        void QMul(const virtual_unsigned_biginteger<length>& rhs);
-        template<size_t ir>
-        void Mul(const virtual_unsigned_biginteger<ir>& rhs) {
-            REGISTER_VIRTUAL_BIGINTEGER_FUNCTION(QMul, rhs);
+
+        VIRTUAL_UNSIGNED_BIGINTEGER_BINARY_DECLARATION
+        static int cmp(const T&lhs,const U&rhs){
+            return Cmp(
+                get_virtual_unsigned_biginteger<base>(lhs),
+                get_virtual_unsigned_biginteger<base>(rhs)
+            );
         }
 
-    public:
-        template<typename T, std::enable_if_t<_Is_virtual_unsigned_biginteger_v<T>, int> = 0>
-        void add(const T& rhs) {
-            Add(get_virtual_unsigned_biginteger<base>(rhs));
-        }
-
-        template<typename T, std::enable_if_t<_Is_virtual_unsigned_biginteger_v<T>, int> = 0>
-        void sub(const T& rhs) {
-            Sub(get_virtual_unsigned_biginteger<base>(rhs));
-        }
-
-        template<typename T, std::enable_if_t<_Is_virtual_unsigned_biginteger_v<T>, int> = 0>
-        void sub_by(const T& rhs) {
-            Sub_by(get_virtual_unsigned_biginteger<base>(rhs));
-        }
-
-        template<typename T, std::enable_if_t<_Is_virtual_unsigned_biginteger_v<T>, int> = 0>
-        void mul(const T& rhs) {
-            Mul(get_virtual_unsigned_biginteger<base>(rhs));
-        }
-
-        VIRTUAL_UNSIGNED_BIGINTEGER_DECLARATION
-            static bool equal(const T& lhs, const U& rhs) {
+        VIRTUAL_UNSIGNED_BIGINTEGER_BINARY_DECLARATION
+        static bool equal(const T& lhs, const U& rhs) {
             return Equal(
                 get_virtual_unsigned_biginteger<base>(lhs),
                 get_virtual_unsigned_biginteger<base>(rhs)
             );
         }
-        VIRTUAL_UNSIGNED_BIGINTEGER_DECLARATION
-            static bool nequal(const T& lhs, const U& rhs) {
+        VIRTUAL_UNSIGNED_BIGINTEGER_BINARY_DECLARATION
+        static bool nequal(const T& lhs, const U& rhs) {
             return !equal(lhs, rhs);
         }
-        VIRTUAL_UNSIGNED_BIGINTEGER_DECLARATION
-            static bool less(const T& lhs, const U& rhs) {
+        VIRTUAL_UNSIGNED_BIGINTEGER_BINARY_DECLARATION
+        static bool less(const T& lhs, const U& rhs) {
             return Less(
                 get_virtual_unsigned_biginteger<base>(lhs),
                 get_virtual_unsigned_biginteger<base>(rhs)
             );
         }
-        VIRTUAL_UNSIGNED_BIGINTEGER_DECLARATION
-            static bool less_eq(const T& lhs, const U& rhs) {
+        VIRTUAL_UNSIGNED_BIGINTEGER_BINARY_DECLARATION
+        static bool less_eq(const T& lhs, const U& rhs) {
             return Less_eq(
                 get_virtual_unsigned_biginteger<base>(lhs),
                 get_virtual_unsigned_biginteger<base>(rhs)
             );
         }
-        VIRTUAL_UNSIGNED_BIGINTEGER_DECLARATION
-            static unsigned_biginteger add(T&& lhs, U&& rhs) {
-            if constexpr (_Is_rubint_v<T>) {
-                lhs.add(std::forward<U>(rhs));
-                return std::forward<T>(lhs);
-            }
-            else if constexpr (_Is_rubint_v<U>) {
-                rhs.add(std::forward<T>(lhs));
-                return std::forward<U>(rhs);
-            }
-            else {
-                unsigned_biginteger result(std::forward<T>(lhs));
-                result.add(std::forward<U>(rhs));
-                return result;
-            }
+
+        VIRTUAL_UNSIGNED_BIGINTEGER_BINARY_DECLARATION
+        static void add(unsigned_biginteger& result,const T&lhs,const U&rhs){
+            Add(result,
+                get_virtual_unsigned_biginteger<base>(lhs),
+                get_virtual_unsigned_biginteger<base>(rhs));
         }
-        VIRTUAL_UNSIGNED_BIGINTEGER_DECLARATION
-            static unsigned_biginteger sub(T&& lhs, U&& rhs) {
-            if constexpr (_Is_rubint_v<T>) {
-                lhs.sub(std::forward<U>(rhs));
-                return std::forward<T>(lhs);
-            }
-            else if constexpr (_Is_rubint_v<U>) {
-                rhs.sub_by(std::forward<T>(lhs));
-                return std::forward<U>(rhs);
-            }
-            else {
-                unsigned_biginteger result(std::forward<T>(lhs));
-                result.sub(std::forward<U>(rhs));
-                return result;
-            }
+
+        VIRTUAL_UNSIGNED_BIGINTEGER_BINARY_DECLARATION
+        static void sub(unsigned_biginteger& result,const T&lhs,const U&rhs){
+            Sub(result,
+                get_virtual_unsigned_biginteger<base>(lhs),
+                get_virtual_unsigned_biginteger<base>(rhs));
         }
-        VIRTUAL_UNSIGNED_BIGINTEGER_DECLARATION
-            static unsigned_biginteger mul(T&& lhs, U&& rhs) {
-            if constexpr (_Is_rubint_v<T>) {
-                lhs.mul(std::forward<U>(rhs));
-                return std::forward<T>(lhs);
-            }
-            else if constexpr (_Is_rubint_v<U>) {
-                rhs.mul(std::forward<T>(lhs));
-                return std::forward<U>(rhs);
-            }
-            else {
-                unsigned_biginteger result(std::forward<T>(lhs));
-                result.mul(std::forward<U>(rhs));
-                return result;
-            }
+
+        VIRTUAL_UNSIGNED_BIGINTEGER_BINARY_DECLARATION
+        static void mul(unsigned_biginteger& result, const T& lhs, const U& rhs){
+            Mul(result,
+                get_virtual_unsigned_biginteger<base>(lhs),
+                get_virtual_unsigned_biginteger<base>(rhs));
         }
+		
     private:
 
         std::vector<value_type, mallocator<value_type>> vec;
     };
+
+    template<size_t base>
+    template<size_t index,size_t il,size_t ir>
+    int unsigned_biginteger<base>::QCmp(
+		const virtual_unsigned_biginteger<il>& lhs,
+		const virtual_unsigned_biginteger<ir>& rhs
+	) {
+        size_t n = lhs.size();
+        if constexpr (index != 0) {
+			if(n != index) return n < index ? -1 : 1;
+            auto p = lhs.data();
+            auto q = rhs.data();
+            if constexpr (index == 1) {
+                return p[0] != q[0] ? (p[0] < q[0] ? -1 : 1) : 0;
+            }
+            else if constexpr (index == 2) {
+                return (p[1] != q[1]) ? (p[1] < q[1] ? -1 : 1) :
+                    (p[0] != q[0]) ? (p[0] < q[0] ? -1 : 1) : 0;
+            }
+			else if constexpr (index == 3) {
+				return (p[2] != q[2]) ? (p[2] < q[2] ? -1 : 1) :
+					(p[1] != q[1]) ? (p[1] < q[1] ? -1 : 1) :
+					(p[0] != q[0]) ? (p[0] < q[0] ? -1 : 1) : 0;
+			}
+			else {
+				return (p[3] != q[3]) ? (p[3] < q[3] ? -1 : 1) :
+					(p[2] != q[2]) ? (p[2] < q[2] ? -1 : 1) :
+					(p[1] != q[1]) ? (p[1] < q[1] ? -1 : 1) :
+					(p[0] != q[0]) ? (p[0] < q[0] ? -1 : 1) : 0;
+			}
+        }
+        else {
+            size_t m = rhs.size();
+			if (n != m) return n < m ? -1 : 1;
+            auto p = lhs.data() + n;
+            auto q = rhs.data() + n;
+            for (; n--;) {
+                --p;
+                --q;
+                if (*p != *q)return *p < *q ? -1 : 1;
+            }
+            return 0;
+        }
+	}
 
     template<size_t base>
     template<size_t index, size_t il, size_t ir>
@@ -1314,13 +1415,13 @@ namespace wjr {
             if (n != index)return false;
             auto p = lhs.data();
             auto q = rhs.data();
-            if (index == 1) {
+            if constexpr(index == 1) {
                 return p[0] == q[0];
             }
-            else if (index == 2) {
+            else if constexpr(index == 2) {
                 return p[0] == q[0] && p[1] == q[1];
             }
-            else if (index == 3) {
+            else if constexpr(index == 3) {
                 return p[0] == q[0] && p[1] == q[1] && p[2] == q[2];
             }
             else {
@@ -1381,204 +1482,199 @@ namespace wjr {
     }
 
     template<size_t base>
-    template<size_t index, size_t length>
-    void unsigned_biginteger<base>::
-        QAdd(const virtual_unsigned_biginteger<length>& rhs) {
-        auto q = rhs.data();
-        size_t n = size();
-        unsigned char jw = 0;
-        if constexpr (index != 0) {
-            if constexpr (index != 1) {
-                if (n < index) {
-                    vec.reserve(index + 1);
-                    vec.resize(index, 0);
-                    n = index;
-                }
+    template<size_t index, size_t il,size_t ir>
+    void unsigned_biginteger<base>::QAdd(
+        unsigned_biginteger& result,
+        const virtual_unsigned_biginteger<il>& lhs,
+        const virtual_unsigned_biginteger<ir>& rhs) {
+        WASSERT_LEVEL_2(lhs.size() >= rhs.size());
+        WASSERT_LEVEL_2((!index) || (index == rhs.size()));
+        auto lp = lhs.data();
+        auto rp = rhs.data();
+        auto res = result.size();
+        auto ls = lhs.size();
+        auto rs = rhs.size();
+        unsigned char cf = 0;
+        if constexpr (index != 1) {
+            // if res < rs
+            // then lhs or rhs won't be a part of result
+            if (res < rs) {
+                result.vec.reserve(ls + 1);
+                result.vec.resize(rs);
+                res = rs;
             }
-            auto p = data();
+        }
+        // we may need to reserve result
+        // so need to get data() after it
+        auto rep = result.data();
+        if constexpr (index != 0) {
             if constexpr (index >= 1) {
-                jw = traits::quick_add(0, p[0], q[0], &p[0]);
+                cf = traits::quick_add(0, lp[0], rp[0], &rep[0]);
             }
             if constexpr (index >= 2) {
-                jw = traits::quick_add(jw, p[1], q[1], &p[1]);
+                cf = traits::quick_add(cf, lp[1], rp[1], &rep[1]);
             }
             if constexpr (index >= 3) {
-                jw = traits::quick_add(jw, p[2], q[2], &p[2]);
+                cf = traits::quick_add(cf, lp[2], rp[2], &rep[2]);
             }
             if constexpr (index >= 4) {
-                jw = traits::quick_add(jw, p[3], q[3], &p[3]);
-            }
-            if (jw) {
-                size_t pos = index;
-                for (; pos != n && p[pos] == traits::_max; ++pos)p[pos] = 0;
-                if (pos == n)vec.push_back(1);
-                else ++p[pos];
+                cf = traits::quick_add(cf, lp[3], rp[3], &rep[3]);
             }
         }
         else {
-            size_t m = rhs.size();
-            size_t _Min;
-            if (n < m) {
-                _Min = n;
-                vec.reserve(m + 1);
-                vec.insert(vec.end(), rhs.data() + n, rhs.data() + m);
-                n = m;
+            for (size_t i = 0; i < rs; ++i) {
+                cf = traits::quick_add(cf, lp[i], rp[i], &rep[i]);
             }
-            else _Min = m;
-            auto p = data();
-            for (size_t i = 0; i < _Min; ++i) {
-                jw = traits::quick_add(jw, p[i], q[i], &p[i]);
-            }
-            if (jw) {
-                size_t pos = _Min;
-                for (; pos != n && p[pos] == traits::_max; ++pos)p[pos] = 0;
-                if (pos == n)vec.push_back(1);
-                else ++p[pos];
-            }
+        }
+        size_t mid = std::min(ls,res) - rs;
+        // first use memcpy,then append 
+        // if res < ls => lhs isn't a part of result
+        // obviously we can do it correcly
+        // else lhs may ba a part of result
+        // mid = ls - rs
+        // if lhs is a part of result,then we have result.begin() <= lhs.data() < result.end()
+        // so memcpy will work correctly and if rep == lp , then we don't need to memcpy
+        // then the insert won't work,and resize to a corrct size
+        biginteger_ememcpy(rep + rs, lp + rs, sizeof(value_type) * mid);
+        result.vec.insert(result.vec.end(), lp + rs + mid, lp + ls);
+        result.vec.resize(ls);
+        if (cf) {
+            rep = result.data();
+            size_t pos = rs;
+            for (; pos != ls && rep[pos] == traits::_max; ++pos)rep[pos] = 0;
+            if (pos == ls)result.vec.push_back(1);
+            else ++rep[pos];
         }
     }
 
     template<size_t base>
-    template<size_t index, size_t length>
-    void unsigned_biginteger<base>::
-        QSub(const virtual_unsigned_biginteger<length>& rhs) {
-        size_t n = size();
-        auto p = data();
-        auto q = rhs.data();
-        unsigned char jw = 0;
+    template<size_t index,size_t il,size_t ir>
+    void unsigned_biginteger<base>::QSub(
+        unsigned_biginteger& result,
+        const virtual_unsigned_biginteger<il>& lhs,
+        const virtual_unsigned_biginteger<ir>& rhs
+    ) {
+        auto lp = lhs.data();
+        auto rp = rhs.data();
+        auto res = result.size();
+        auto ls = lhs.size();
+        auto rs = rhs.size();
+		unsigned char cf = 0;
+        if constexpr (index != 1) {
+            if (res < rs) {
+				result.vec.reserve(ls + 1);
+				result.vec.resize(rs);
+				res = rs;
+            }
+        }
+        auto rep = result.data();
         if constexpr (index != 0) {
-            if constexpr (index >= 1) {
-                jw = traits::quick_sub(0, p[0], q[0], &p[0]);
-            }
-            if constexpr (index >= 2) {
-                jw = traits::quick_sub(jw, p[1], q[1], &p[1]);
-            }
-            if constexpr (index >= 3) {
-                jw = traits::quick_sub(jw, p[2], q[2], &p[2]);
-            }
-            if constexpr (index >= 4) {
-                jw = traits::quick_sub(jw, p[3], q[3], &p[3]);
-            }
-            if (jw) {
-                size_t pos = index;
-                for (; pos != n && !p[pos]; ++pos)p[pos] = traits::_max;
-                --p[pos];
-            }
+			if constexpr (index >= 1) {
+				cf = traits::quick_sub(0, lp[0], rp[0], &rep[0]);
+			}
+			if constexpr (index >= 2) {
+				cf = traits::quick_sub(cf, lp[1], rp[1], &rep[1]);
+			}
+			if constexpr (index >= 3) {
+				cf = traits::quick_sub(cf, lp[2], rp[2], &rep[2]);
+			}
+			if constexpr (index >= 4) {
+				cf = traits::quick_sub(cf, lp[3], rp[3], &rep[3]);
+			}
+		}
+		else {
+			for (size_t i = 0; i < rs; ++i) {
+				cf = traits::quick_sub(cf, lp[i], rp[i], &rep[i]);
+			}
         }
-        else {
-            size_t m = rhs.size();
-            for (size_t i = 0; i != m; ++i)
-                jw = traits::quick_sub(jw, p[i], q[i], &p[i]);
-            if (jw) {
-                size_t pos = m;
-                for (; pos != n && !p[pos]; ++pos)p[pos] = traits::_max;
-                --p[pos];
-            }
+        // same as above
+        size_t mid = std::min(ls, res) - rs;
+        biginteger_ememcpy(rep + rs, lp + rs, sizeof(value_type) * mid);
+        result.vec.insert(result.vec.end(), lp + rs + mid, lp + ls);
+        result.vec.resize(ls);
+        if (cf) {
+            rep = result.data();
+            size_t pos = rs;
+#if WDEBUG_LEVEL >= 2
+			for (; pos != ls && rep[pos] == 0; ++pos)rep[pos] = traits::_max;
+			WASSERT_LEVEL_2(pos != ls);
+#else
+            for (; rep[pos] == 0; ++pos)rep[pos] = traits::_max;
+#endif
+            --rep[pos];
         }
-        while (n != 1 && !p[n - 1])--n;
-        vec.resize(n);
+        while (ls != 1 && !rep[ls - 1])--ls;
+        result.vec.resize(ls);
     }
 
     template<size_t base>
-    template<size_t index, size_t length>
-    void unsigned_biginteger<base>::
-        QSub_by(const virtual_unsigned_biginteger<length>& rhs) {
-        size_t n = size();
-        auto q = rhs.data();
-        unsigned char jw = 0;
-        if constexpr (index != 0) {
-            this->vec.resize(index, 0);
-            n = index;
-            auto p = data();
-            if constexpr (index >= 1) {
-                jw = traits::quick_sub(0, q[0], p[0], &p[0]);
-            }
-            if constexpr (index >= 2) {
-                jw = traits::quick_sub(jw, q[1], p[1], &p[1]);
-            }
-            if constexpr (index >= 3) {
-                jw = traits::quick_sub(jw, q[2], p[2], &p[2]);
-            }
-            if constexpr (index >= 4) {
-                jw = traits::quick_sub(jw, q[3], p[3], &p[3]);
-            }
-            assert(jw == 0);
-            while (n != 1 && !p[n - 1])--n;
-            this->vec.resize(n);
-        }
-        else {
-            size_t m = rhs.size();
-            this->vec.insert(this->vec.end(), rhs.data() + n, rhs.data() + m);
-            auto p = data();
-            for (size_t i = 0; i != n; ++i) {
-                jw = traits::quick_sub(jw, q[i], p[i], &p[i]);
-            }
-            if (jw) {
-                size_t pos = n;
-                for (; pos != m && !p[pos]; ++pos)p[pos] = traits::_max;
-                --p[pos];
-            }
-            n = m;
-            while (n != 1 && !p[n - 1])--n;
-            this->vec.resize(n);
-        }
-    }
-
-    template<size_t base>
-    template<size_t index, size_t length>
-    void unsigned_biginteger<base>::
-        slow_mul(const virtual_unsigned_biginteger<length>& rhs) {
+    template<size_t index,size_t il,size_t ir>
+    void unsigned_biginteger<base>::slow_mul(
+        unsigned_biginteger& result,
+        const virtual_unsigned_biginteger<il>& lhs,
+        const virtual_unsigned_biginteger<ir>& rhs
+    ) {
         USE_THREAD_LOCAL static twice_value_type static_array[256];
-        size_t n = size();
-        size_t m = rhs.size();
-        size_t len = n + m;
-        auto p = data();
-        auto q = rhs.data();
+		
+        auto lp = lhs.data();
+		auto rp = rhs.data();
+        auto res = result.size();
+        auto ls = lhs.size();
+        auto rs = rhs.size();
+        auto len = ls + rs;
         twice_value_type* temp_array;
         if constexpr (index != 1) {
             if (len <= 256) temp_array = static_array;
             else temp_array = new twice_value_type[len];
             std::fill(temp_array, temp_array + len, 0);
         }
+		
         if constexpr (index != 0) {
             if constexpr (index == 1) {
+                value_type rv = *rp;
                 twice_value_type _Val = 0;
-                for (size_t i = 0; i != n; ++i) {
-                    _Val += traits::quick_mul(*q, p[i]);
-                    WASSERT_LEVEL_2(traits::get_high(_Val) * 
+                if (res < ls) {
+                    result.vec.reserve(ls + 1);
+                }
+                result.vec.resize(ls);
+                auto rep = result.data();
+                for (size_t i = 0; i < ls; ++i) {
+                    _Val += traits::quick_mul(lp[i], rv);
+                    WASSERT_LEVEL_2(traits::get_high(_Val) *
                         traits::max_value + traits::get_low(_Val) == _Val);
-                    p[i] = traits::get_low(_Val);
+                    rep[i] = traits::get_low(_Val);
                     _Val = traits::get_high(_Val);
                 }
                 if (_Val) {
-                    this->vec.push_back(static_cast<value_type>(_Val));
+                    WASSERT_LEVEL_2(_Val < traits::max_value);
+                    result.vec.push_back(static_cast<value_type>(_Val));
                 }
             }
             else {
                 if constexpr (index >= 1) {
-                    for (size_t i = 0; i < n; ++i) {
-                        auto val = traits::quick_mul(p[i], q[0]) + temp_array[i];
+                    for (size_t i = 0; i < ls; ++i) {
+                        auto val = traits::quick_mul(lp[i], rp[0]) + temp_array[i];
                         temp_array[i + 1] += traits::get_high(val);
                         temp_array[i] = traits::get_low(val);
                     }
                 }
                 if constexpr (index >= 2) {
-                    for (size_t i = 0; i < n; ++i) {
-                        auto val = traits::quick_mul(p[i], q[1]) + temp_array[i + 1];
+                    for (size_t i = 0; i < ls; ++i) {
+                        auto val = traits::quick_mul(lp[i], rp[1]) + temp_array[i + 1];
                         temp_array[i + 2] += traits::get_high(val);
                         temp_array[i + 1] = traits::get_low(val);
                     }
                 }
                 if constexpr (index >= 3) {
-                    for (size_t i = 0; i < n; ++i) {
-                        auto val = traits::quick_mul(p[i], q[2]) + temp_array[i + 2];
+                    for (size_t i = 0; i < ls; ++i) {
+                        auto val = traits::quick_mul(lp[i], rp[2]) + temp_array[i + 2];
                         temp_array[i + 3] += traits::get_high(val);
                         temp_array[i + 2] = traits::get_low(val);
                     }
                 }
                 if constexpr (index >= 4) {
-                    for (size_t i = 0; i < n; ++i) {
-                        auto val = traits::quick_mul(p[i], q[3]) + temp_array[i + 3];
+                    for (size_t i = 0; i < ls; ++i) {
+                        auto val = traits::quick_mul(lp[i], rp[3]) + temp_array[i + 3];
                         temp_array[i + 4] += traits::get_high(val);
                         temp_array[i + 3] = traits::get_low(val);
                     }
@@ -1586,9 +1682,9 @@ namespace wjr {
             }
         }
         else {
-            for (size_t i = 0; i < n; ++i) {
-                for (size_t j = 0; j < m; ++j) {
-                    const auto val = traits::quick_mul(p[i], q[j]) + temp_array[i + j];
+            for (size_t i = 0; i < ls; ++i) {
+                for (size_t j = 0; j < rs; ++j) {
+                    const auto val = traits::quick_mul(lp[i], rp[j]) + temp_array[i + j];
                     WASSERT_LEVEL_2(traits::get_high(val) *
                         traits::max_value + traits::get_low(val) == val);
                     temp_array[i + j + 1] += traits::get_high(val);
@@ -1598,22 +1694,54 @@ namespace wjr {
         }
 
         if constexpr (index != 1) {
-            this->vec.reserve(len);
-            this->vec.assign(temp_array, temp_array + len - 1);
+            result.vec.reserve(len);
+            result.vec.assign(temp_array, temp_array + len - 1);
             if (temp_array[len - 1]) {
-                WASSERT_LEVEL_1(temp_array[len - 1] <= traits::_max);
-                this->vec.push_back(static_cast<value_type>(temp_array[len - 1]));
+                WASSERT_LEVEL_2(temp_array[len - 1] < traits::max_value);
+                result.vec.push_back(static_cast<value_type>(temp_array[len - 1]));
             }
-            if (n + m > 256)delete[]temp_array;
+            if (len > 256)delete[]temp_array;
         }
     }
 
+    struct biginteger_fft_cache {
+        biginteger_fft_cache() {
+            ip = (int*)malloc(sizeof(int) * (1 << 16));
+            ip[0] = 0;
+            w = nullptr;
+            sz = 0;
+        }
+        ~biginteger_fft_cache() {
+            free(ip);
+            free(w);
+        }
+        void make(size_t n) {
+            if (sz < n) {
+                size_t c = sz + sz / 2;
+                if (c < n)c = n;
+                double* ne = (double*)malloc(sizeof(double) * c);
+                memcpy(ne, w, sizeof(double) * sz);
+                free(w);
+                w = ne;
+                sz = c;
+            }
+        }
+        int* ip;
+        double* w;
+        size_t sz;
+    };
+    static biginteger_fft_cache __biginteger_fft_cache;
+
     template<size_t base>
-    template<size_t length>
-    void unsigned_biginteger<base>::
-        fft_mul(const virtual_unsigned_biginteger<length>& rhs) {
+    template<size_t il,size_t ir>
+    void unsigned_biginteger<base>::fft_mul(
+        unsigned_biginteger& result,
+        const virtual_unsigned_biginteger<il>& lhs,
+        const virtual_unsigned_biginteger<ir>& rhs
+    ) {
         constexpr uint64_t _Maxn = (uint64_t)(1) << 49;
-        size_t pn = size();
+		
+        size_t pn = lhs.size();
         size_t pm = rhs.size();
         size_t plen = (pn + pm) * traits::bit_length;
         size_t pk = 1;
@@ -1625,7 +1753,6 @@ namespace wjr {
             WASSERT_LEVEL_2(pk <= traits::bit_length);
         }
 
-        virtual_unsigned_biginteger<0> lhs(data(), size());
         auto lhs_iter = lhs.cbegin(pk);
         auto rhs_iter = rhs.cbegin(pk);
         size_t n = (pn * traits::bit_length + pk - 1) / pk;
@@ -1635,6 +1762,7 @@ namespace wjr {
         auto s = ((size_t)1) << bit;
 
         auto a = new double[s << 1];
+        __biginteger_fft_cache.make((s >> 1) + 4);
         for (size_t i = 0; i < n; ++lhs_iter, ++i) {
             value_type val = *lhs_iter;
             a[i << 1] = val * 0.5;
@@ -1649,7 +1777,7 @@ namespace wjr {
             a[i << 1 | 1] -= val * 0.5;
         }
 
-        cdft(s << 1, 1, a);
+        cdft(s << 1, 1, a, __biginteger_fft_cache.ip, __biginteger_fft_cache.w);
         for (size_t i = 0; i < s; ++i) {
             double sa = a[i << 1];
             double sb = a[i << 1 | 1];
@@ -1657,15 +1785,15 @@ namespace wjr {
             a[i << 1 | 1] = 2 * sa * sb;
         }
 
-        cdft(s << 1, -1, a);
+        cdft(s << 1, -1, a, __biginteger_fft_cache.ip, __biginteger_fft_cache.w);
         double invs = 1.0 / static_cast<double>(s);
         for (size_t i = 0; i < s; ++i) {
             a[i << 1] *= invs;
         }
 
-        this->vec.clear();
-        this->vec.resize(pn + pm, 0);
-        virtual_unsigned_biginteger<0> vir(data(), size());
+        result.vec.clear();
+        result.vec.resize(pn + pm, 0);
+        virtual_unsigned_biginteger<0> vir(result.data(), result.size());
         auto write = vir.begin(pk);
         uint64_t val = 0;
         uint32_t Mod = traits::get_base_power(pk);
@@ -1686,40 +1814,43 @@ namespace wjr {
             val = d;
         }
 
-        size_t pos = size();
-        auto p = data();
+        size_t pos = result.size();
+        auto p = result.data();
         while (pos != 1 && !p[pos - 1])--pos;
-        vec.resize(pos, 0);
+        result.vec.resize(pos, 0);
         delete[]a;
     }
 
     template<size_t base>
-    template<size_t index, size_t length>
-    void unsigned_biginteger<base>::
-        QMul(const virtual_unsigned_biginteger<length>& rhs) {
-        size_t n = size();
-        if (zero()) {
+    template<size_t index, size_t il,size_t ir>
+    void unsigned_biginteger<base>::QMul(
+        unsigned_biginteger& result,
+        const virtual_unsigned_biginteger<il>& lhs,
+        const virtual_unsigned_biginteger<ir>& rhs
+    ) {
+        if (lhs.zero()) {
+            result.set_zero();
             return;
         }
         if constexpr (index != 0) {
             if constexpr (index == 1) {
                 if (rhs.zero()) {
-                    this->set_zero();
+                    result.set_zero();
                     return;
                 }
             }
-            slow_mul<index>(rhs);
+            slow_mul<index>(result, lhs, rhs);
         }
         else {
+            size_t n = lhs.size();
             size_t m = rhs.size();
-            size_t _Min = n < m ? n : m;
-            size_t _Max = n > m ? n : m;
-            if (_Min <= 32 ||
-                ((uint64_t)(1) << (std::min(size_t(60), ((_Min - 32) / 2)))) <= _Max) {
-                slow_mul<index>(rhs);
-            }
-            else {
-                fft_mul(rhs);
+            switch (get_mul_mode(n, m)) {
+            case slow_mul_mode:
+                slow_mul<index>(result,lhs,rhs);
+                break;
+            case fft_mul_mode:
+                fft_mul(result, lhs, rhs);
+                break;
             }
         }
     }
@@ -1926,38 +2057,65 @@ namespace wjr {
     constexpr static bool _Is_biginteger_base_masks_v =
         _Is_biginteger_base_masks<base, Args...>::value;
 
-#define VIRTUAL_BIGINTEGER_DECLARATION                                                          \
+#define VIRTUAL_BIGINTEGER_BINARY_DECLARATION                                                   \
+    template<typename T, typename U,                                                            \
+    std::enable_if_t<                                                                           \
+    std::conjunction_v<_Is_biginteger_base_masks<base, T, U>>, int> = 0>                        \
+	
+
+#define VIRTUAL_BIGINTEGER_BINARY_AUTO_DECLARATION                                              \
     template<typename T, typename U, size_t _Base = biginteger_base_mask_v<T, U>,               \
     std::enable_if_t<                                                                           \
     std::conjunction_v<_Is_biginteger_base_masks<_Base, T, U>>, int> = 0>                       \
 
-#define VIRTUAL_BIGINTEGER_DEFINITION                                                           \
+#define VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION                                               \
     template<typename T, typename U, size_t _Base,                                              \
     std::enable_if_t<                                                                           \
     std::conjunction_v<_Is_biginteger_base_masks<_Base, T, U>>, int> >                          \
 
-    VIRTUAL_BIGINTEGER_DECLARATION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DECLARATION
+        int cmp(const T& lhs, const U& rhs);
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DECLARATION
+        void add(
+            biginteger<_Base>& result,
+            const T& lhs,
+            const U& rhs
+        );
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DECLARATION
+        void sub(
+            biginteger<_Base>& result,
+            const T& lhs,
+            const U& rhs
+        );
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DECLARATION
+        void mul(
+            biginteger<_Base>& result,
+            const T& lhs,
+            const U& rhs
+        );
+
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DECLARATION
         bool operator==(const T& lhs, const U& rhs);
-    VIRTUAL_BIGINTEGER_DECLARATION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DECLARATION
         bool operator!=(const T& lhs, const U& rhs);
-    VIRTUAL_BIGINTEGER_DECLARATION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DECLARATION
         bool operator<(const T& lhs, const U& rhs);
-    VIRTUAL_BIGINTEGER_DECLARATION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DECLARATION
         bool operator<=(const T& lhs, const U& rhs);
-    VIRTUAL_BIGINTEGER_DECLARATION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DECLARATION
         bool operator>(const T& lhs, const U& rhs);
-    VIRTUAL_BIGINTEGER_DECLARATION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DECLARATION
         bool operator>=(const T& lhs, const U& rhs);
 
-    VIRTUAL_BIGINTEGER_DECLARATION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DECLARATION
         biginteger<_Base> operator+(T&& lhs, U&& rhs);
-    VIRTUAL_BIGINTEGER_DECLARATION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DECLARATION
         biginteger<_Base> operator-(T&& lhs, U&& rhs);
-    VIRTUAL_BIGINTEGER_DECLARATION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DECLARATION
         biginteger<_Base> operator*(T&& lhs, U&& rhs);
-    VIRTUAL_BIGINTEGER_DECLARATION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DECLARATION
         biginteger<_Base> operator/(T&& lhs, U&& rhs);
-    VIRTUAL_BIGINTEGER_DECLARATION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DECLARATION
         biginteger<_Base> operator%(T&& lhs, U&& rhs);
 
     template<size_t _Base>
@@ -2137,44 +2295,94 @@ namespace wjr {
 
     private:
 
-        template<size_t index>
-        void Unsigned_Add(const virtual_biginteger<index>& rhs) {
-            ubint.add(rhs.get_unsigned());
+        template<size_t il, size_t ir>
+        static int signed_cmp(
+            const virtual_biginteger<il>& lhs,
+            const virtual_biginteger<ir>& rhs) {
+            // if lhs < rhs , return -1
+            // if lhs > rhs , return 1
+            // if lhs == rhs , return 0
+            bool f = lhs.signal() != rhs.signal() ?
+                true : unsigned_traits::cmp(lhs.get_unsigned(), rhs.get_unsigned());
+            return f * (lhs.signal() ? 1 : -1);
         }
-        template<size_t index>
-        void Unsigned_Sub(const virtual_biginteger<index>& rhs) {
-            if (unsigned_traits::less_eq(ubint, rhs.get_unsigned())) {
-                ubint.sub_by(rhs.get_unsigned());
-                change_signal();
+
+        template<size_t il,size_t ir>
+        static void unsigned_add(
+            biginteger& result,
+            const virtual_biginteger<il>& lhs,
+            const virtual_biginteger<ir>& rhs
+        ) {
+            unsigned_traits::add(result.ubint, lhs.get_unsigned(), rhs.get_unsigned());
+            result._Signal = lhs.signal();
+        }
+
+        template<size_t il,size_t ir>
+		static void unsigned_sub(
+			biginteger& result,
+			const virtual_biginteger<il>& lhs,
+			const virtual_biginteger<ir>& rhs
+		) {
+            int _cmp = unsigned_traits::cmp(lhs.get_unsigned(), rhs.get_unsigned());
+            result._Signal = lhs.signal();
+            switch (_cmp) {
+            case -1:
+                unsigned_traits::sub(result.ubint, rhs.get_unsigned(), lhs.get_unsigned());
+                result.change_signal();
+                break;
+            case 0 :
+                result.set_zero();
+                break;
+            case 1:
+				unsigned_traits::sub(result.ubint, lhs.get_unsigned(), rhs.get_unsigned());
+				break;
+			}
+		}
+
+        template<size_t il,size_t ir>
+        static void signed_add(
+            biginteger& result,
+            const virtual_biginteger<il>& lhs,
+            const virtual_biginteger<ir>& rhs
+        ) {
+            if (lhs.signal() != rhs.signal()) {
+                unsigned_sub(result, lhs, rhs);
             }
             else {
-                ubint.sub(rhs.get_unsigned());
+                unsigned_add(result, lhs, rhs);
             }
         }
 
-        template<size_t index>
-        void Signed_Add(const virtual_biginteger<index>& rhs) {
-            if (signal() != rhs.signal()) {
-                Unsigned_Sub(rhs);
+        template<size_t il,size_t ir>
+        static void signed_sub(
+            biginteger& result,
+            const virtual_biginteger<il>& lhs,
+            const virtual_biginteger<ir>& rhs
+        ) {
+            if (lhs.signal() != rhs.signal()) {
+                unsigned_add(result, lhs, rhs);
             }
             else {
-                Unsigned_Add(rhs);
+                unsigned_sub(result, lhs, rhs);
             }
         }
-        template<size_t index>
-        void Signed_Sub(const virtual_biginteger<index>& rhs) {
-            if (signal() != rhs.signal()) {
-                Unsigned_Add(rhs);
-            }
-            else {
-                Unsigned_Sub(rhs);
-            }
+
+        template<size_t il, size_t ir>
+        static void signed_mul(
+            biginteger& result,
+            const virtual_biginteger<il>& lhs,
+            const virtual_biginteger<ir>& rhs
+        ) {
+            unsigned_traits::mul(result.ubint, lhs.get_unsigned(), rhs.get_unsigned());
+            result._Signal = lhs.signal();
+            if (!rhs.signal())result.change_signal();
         }
-        template<size_t index>
-        void Signed_Mul(const virtual_biginteger<index>& rhs) {
-            ubint.mul(rhs.get_unsigned());
-            if (!rhs.signal())change_signal();
-        }
+
+        enum class div_mode {
+            none,
+            lhs_is_power_of_base,
+            //rhs_is_power_of_base
+        };
 
         template<size_t ir>
         static value_type one_divmod(
@@ -2217,13 +2425,25 @@ namespace wjr {
             return static_cast<value_type>(_Val);
         }
 
+        template<div_mode mode>
         static void knuth_divmod(biginteger& lhs, biginteger& rhs) {
             value_type vr = rhs.data()[rhs.size() - 1];
-            auto delta = traits::bit_length - quick_log2(vr) - 1;
-
-            lhs <<= delta;
-            rhs <<= delta;
-
+            auto kth = static_cast<value_type>(((traits::max_value >> 1) + vr - 1) / vr);
+            if (kth != 1) {
+                if constexpr (mode == div_mode::none) {
+                    lhs *= kth;
+                }
+                else {
+                    twice_value_type _Val = traits::quick_mul(lhs.ubint.vec.back(), kth);
+                    auto lo = traits::get_low(_Val);
+                    auto hi = traits::get_high(_Val);
+                    lhs.ubint.vec.back() = lo;
+                    if (hi != 0) {
+                        lhs.ubint.vec.push_back(hi);
+                    }
+                }
+                rhs *= kth;
+            }
             auto pl = lhs.data();
             size_t n = rhs.size();
             size_t m = lhs.size() - rhs.size();
@@ -2254,15 +2474,14 @@ namespace wjr {
                 else q = 0;
                 switch (q) {
                 case 0: break;
-                case 1: 
-                    if (unsigned_biginteger<base>::less_eq(rhs.ubint,r.ubint)) {
-                        r.ubint.sub(rhs.ubint);
+                case 1:
+                    if (unsigned_biginteger<base>::less_eq(rhs.ubint, r.ubint)) {
+                        unsigned_traits::sub(r.ubint, r.ubint, rhs.ubint);
                     }
                     else q = 0;
                     break;
-                default: 
-                    mid_result = rhs;
-                    mid_result *= q;
+                default:
+                    mul(mid_result, rhs, q);
                     r -= mid_result;
                     while (!r.signal()) {
                         --q;
@@ -2282,32 +2501,42 @@ namespace wjr {
             result.ubint.vec.resize(size);
             lhs = std::move(result);
             rhs = std::move(r);
-            rhs >>= delta;
+            if (kth != 1) {
+                one_divmod(rhs, get_virtual_biginteger<base>(kth));
+            }
         }
 
+        template<div_mode mode>
         static void small_divmod(biginteger& lhs, biginteger& rhs) {
             size_t n = lhs.size();
             size_t m = rhs.size();
             size_t mid = (n - m) >> 1;
             biginteger copyA(virtual_biginteger<0>(true, lhs.data() + mid, n - mid));
             biginteger mo(rhs);
-            quick_divmod(copyA, mo);
+            quick_divmod<mode>(copyA, mo);
             copyA <<= (mid * traits::bit_length);
             mo <<= (mid * traits::bit_length);
             if (mo.size() < mid)mo.ubint.vec.resize(mid);
-            memcpy(mo.data(), lhs.data(), sizeof(value_type) * mid);
+            if constexpr (mode == div_mode::none) {
+                memcpy(mo.data(), lhs.data(), sizeof(value_type) * mid);
+            }
+            else {
+#if WDEBUG_LEVEL >= 2
+                for (size_t i = 0; i < mid; ++i)WASSERT_LEVEL_2(lhs.data()[i] == 0);
+#endif
+            }
             lhs = std::move(copyA);
-            quick_divmod(mo, rhs);
+            quick_divmod<div_mode::none>(mo, rhs);
             memcpy(lhs.data(), mo.data(), sizeof(value_type) * mo.size());
         }
 
+        template<div_mode mode>
         static void mid_divmod(biginteger& lhs, biginteger& rhs) {
             size_t n = lhs.size();
             size_t m = rhs.size();
             size_t mid = (n - m) >> 1;
             size_t p = 2 * m - (n - mid) - 2;
             size_t k = n - mid - p;
-            WASSERT_LEVEL_1(p > 0 && k < n);
 
             biginteger E;
             // initialize E as base ^ (k * bit_length)
@@ -2315,19 +2544,25 @@ namespace wjr {
             E.ubint.vec[k + 1] = 1;
 
             biginteger ans1(virtual_biginteger<0>(true, rhs.data() + p, m - p));
-            quick_divmod(E, ans1);
-
-            ans1 = virtual_biginteger<0>(true, lhs.data() + mid + p, k);
-            ++ans1;
-
-            ans1 *= E;
-            ans1 >>= ((k + 1) * traits::bit_length);
+            quick_divmod<div_mode::lhs_is_power_of_base>(E, ans1);
+            if constexpr (mode == div_mode::none) {
+                ans1 = virtual_biginteger<0>(true, lhs.data() + mid + p, k);
+                ++ans1;
+                ans1 *= E;
+                ans1 >>= ((k + 1) * traits::bit_length);
+            }
+            else {
+                size_t bl = lhs.bit_length();
+                ans1 = E;
+                ans1 >>= (2 * traits::bit_length - ((bl - 1) % traits::bit_length));
+            }
 
             biginteger mo1(virtual_biginteger<0>(true, lhs.data() + mid, n - mid));
             mo1 -= ans1 * rhs;
 
 #if WDEBUG_LEVEL >= 1
             size_t step = 0;
+
 #endif
             while (!mo1.signal()) {
                 --ans1;
@@ -2342,8 +2577,17 @@ namespace wjr {
                 mo1 -= rhs;
                 WASSERT_LEVEL_1((++step) <= 2);
             }
+			
             mo1 <<= (mid * traits::bit_length);
-            mo1 += virtual_biginteger<0>(true, lhs.data(), mid).maintain();
+            if constexpr (mode == div_mode::none) {
+                mo1 += virtual_biginteger<0>(true, lhs.data(), mid).maintain();
+            }
+            else {
+#if WDEBUG_LEVEL >= 2
+                for (size_t i = 0; i < mid; ++i)WASSERT_LEVEL_2(lhs.data()[i] == 0);
+#endif
+            }
+
             biginteger ans2(mo1);
             ans2 >>= (p * traits::bit_length);
             ++ans2;
@@ -2374,6 +2618,7 @@ namespace wjr {
             rhs = std::move(mo1);
         }
 
+        template<div_mode mode>
         static void large_divmod(biginteger& lhs, biginteger& rhs) {
             size_t n = lhs.size();
             size_t m = rhs.size();
@@ -2381,7 +2626,7 @@ namespace wjr {
             biginteger copyA(virtual_biginteger<0>(true, lhs.data() + mid, n - mid));
             biginteger copyB(virtual_biginteger<0>(true, rhs.data() + mid, m - mid));
             ++copyA;
-            quick_divmod(copyA, copyB);
+            quick_divmod<div_mode::none>(copyA, copyB);
             --copyB;
 
             if (!copyB.signal()) {
@@ -2413,6 +2658,7 @@ namespace wjr {
             rhs = std::move(copyB);
         }
 
+        template<div_mode mode = div_mode::none>
         static void quick_divmod(biginteger& lhs, biginteger& rhs) {
             WASSERT_LEVEL_1(!rhs.zero() && lhs.signal() && rhs.signal());
             if (unsigned_biginteger<base>::less(lhs.ubint, rhs.ubint)) {
@@ -2429,16 +2675,16 @@ namespace wjr {
                 rhs = one_divmod(lhs, get_virtual_biginteger<base>(rhs));
             }
             else if (m <= 8 || (m <= 64 && ((size_t)(1) << ((m >> 1) - 4)) <= n)) {
-                knuth_divmod(lhs, rhs);
+                knuth_divmod<mode>(lhs, rhs);
             }
             else if (n * 3 <= m * 5) {
-                large_divmod(lhs, rhs);
+                large_divmod<mode>(lhs, rhs);
             }
-            else if(n * 2 >= m * 5) {
-                small_divmod(lhs, rhs);
+            else if (n * 2 >= m * 5) {
+                small_divmod<mode>(lhs, rhs);
             }
             else {
-                mid_divmod(lhs, rhs);
+                mid_divmod<mode>(lhs, rhs);
             }
             WASSERT_LEVEL_3(q * lhs + rhs == p);
         }
@@ -2447,19 +2693,19 @@ namespace wjr {
 
         template<typename T, std::enable_if_t<_Is_virtual_biginteger_v<T>, int> = 0>
         biginteger& operator+=(const T& rhs) {
-            Signed_Add(get_virtual_biginteger<base>(rhs));
+            add(*this, *this, rhs);
             return *this;
         }
 
         template<typename T, std::enable_if_t<_Is_virtual_biginteger_v<T>, int> = 0>
         biginteger& operator-=(const T& rhs) {
-            Signed_Sub(get_virtual_biginteger<base>(rhs));
+            sub(*this, *this, rhs);
             return *this;
         }
 
         template<typename T, std::enable_if_t<_Is_virtual_biginteger_v<T>, int> = 0>
         biginteger& operator*=(const T& rhs) {
-            Signed_Mul(get_virtual_biginteger<base>(rhs));
+            mul(*this, *this, rhs);
             return *this;
         }
 
@@ -2656,28 +2902,49 @@ namespace wjr {
             }
         }
 
-        VIRTUAL_BIGINTEGER_DEFINITION
+        VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION
+            friend int cmp(const T&, const U&);
+        VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION
+            friend void add(
+                biginteger<_Base>& result,
+                const T& lhs,
+                const U& rhs
+            );
+        VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION
+            friend void sub(
+                biginteger<_Base>& result,
+                const T& lhs,
+                const U& rhs
+            );
+        VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION
+            friend void mul(
+                biginteger<_Base>& result,
+                const T& lhs,
+                const U& rhs
+            );
+
+        VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
             friend bool operator==(const T&, const U&);
-        VIRTUAL_BIGINTEGER_DEFINITION
+        VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
             friend bool operator!=(const T&, const U&);
-        VIRTUAL_BIGINTEGER_DEFINITION
+        VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
             friend bool operator<(const T&, const U&);
-        VIRTUAL_BIGINTEGER_DEFINITION
+        VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
             friend bool operator<=(const T&, const U&);
-        VIRTUAL_BIGINTEGER_DEFINITION
+        VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
             friend bool operator>(const T&, const U&);
-        VIRTUAL_BIGINTEGER_DEFINITION
+        VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
             friend bool operator>=(const T&, const U&);
 
-        VIRTUAL_BIGINTEGER_DEFINITION
+        VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION
             friend biginteger<_Base> operator+(T&&, U&&);
-        VIRTUAL_BIGINTEGER_DEFINITION
+        VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
             friend biginteger<_Base> operator-(T&&, U&&);
-        VIRTUAL_BIGINTEGER_DEFINITION
+        VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
             friend biginteger<_Base> operator*(T&&, U&&);
-        VIRTUAL_BIGINTEGER_DEFINITION
+        VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
             friend biginteger<_Base> operator/(T&&, U&&);
-        VIRTUAL_BIGINTEGER_DEFINITION
+        VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
             friend biginteger<_Base> operator%(T&&, U&&);
         template<size_t _Base>
         friend void divmod(biginteger<_Base>& lhs, biginteger<_Base>& rhs);
@@ -2685,46 +2952,92 @@ namespace wjr {
         friend biginteger<toBase> base_conversion(const T&);
         template<size_t _Base>
         friend void random_biginteger(biginteger<_Base>& result, size_t n, bool);
-    public:
         bool _Signal = true;
         unsigned_biginteger<base> ubint;
     };
 
-    VIRTUAL_BIGINTEGER_DEFINITION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION
+        int cmp(const T& lhs, const U& rhs) {
+        return biginteger<_Base>::signed_cmp(
+            get_virtual_biginteger<T>(lhs),
+            get_virtual_biginteger<U>(rhs)
+        );
+    }
+
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION
+        static void add(
+            biginteger<_Base>& result,
+            const T& lhs,
+            const U& rhs
+        ) {
+        biginteger<_Base>::signed_add(
+            result,
+            get_virtual_biginteger<_Base>(lhs),
+            get_virtual_biginteger<_Base>(rhs)
+        );
+    }
+
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION
+        static void sub(
+            biginteger<_Base>& result,
+            const T& lhs,
+            const U& rhs
+        ) {
+        biginteger<_Base>::signed_sub(
+            result,
+            get_virtual_biginteger<_Base>(lhs),
+            get_virtual_biginteger<_Base>(rhs)
+        );
+    }
+
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION
+        static void mul(
+            biginteger<_Base>& result,
+            const T& lhs,
+            const U& rhs
+        ) {
+        biginteger<_Base>::signed_mul(
+            result,
+            get_virtual_biginteger<_Base>(lhs),
+            get_virtual_biginteger<_Base>(rhs)
+        );
+    }
+	
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
         bool operator==(const T& lhs, const U& rhs) {
         return biginteger<_Base>::equal(
             get_virtual_biginteger<_Base>(lhs),
             get_virtual_biginteger<_Base>(rhs)
         );
     }
-    VIRTUAL_BIGINTEGER_DEFINITION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
         bool operator!=(const T& lhs, const U& rhs) {
         return !(lhs == rhs);
     }
-    VIRTUAL_BIGINTEGER_DEFINITION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
         bool operator<(const T& lhs, const U& rhs) {
         return biginteger<_Base>::less(
             get_virtual_biginteger<_Base>(lhs),
             get_virtual_biginteger<_Base>(rhs)
         );
     }
-    VIRTUAL_BIGINTEGER_DEFINITION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
         bool operator<=(const T& lhs, const U& rhs) {
         return biginteger<_Base>::less_eq(
             get_virtual_biginteger<_Base>(lhs),
             get_virtual_biginteger<_Base>(rhs)
         );
     }
-    VIRTUAL_BIGINTEGER_DEFINITION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
         bool operator>(const T& lhs, const U& rhs) {
         return rhs < lhs;
     }
-    VIRTUAL_BIGINTEGER_DEFINITION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
         bool operator>=(const T& lhs, const U& rhs) {
         return rhs <= lhs;
     }
 
-    VIRTUAL_BIGINTEGER_DEFINITION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION
         biginteger<_Base> operator+(T&& lhs, U&& rhs) {
         if constexpr (biginteger<_Base>::template _Is_rbint_v<T>) {
             lhs += std::forward<U>(rhs);
@@ -2735,14 +3048,15 @@ namespace wjr {
             return std::forward<U>(rhs);
         }
         else {
-            biginteger<_Base> result(std::forward<T>(lhs));
-            result += std::forward<U>(rhs);
+            biginteger<_Base> result;
+            add(result, std::forward<T>(lhs), std::forward<U>(rhs));
             return result;
         }
     }
 
-    VIRTUAL_BIGINTEGER_DEFINITION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
         biginteger<_Base> operator-(T&& lhs, U&& rhs) {
+        using unsigned_traits = typename biginteger<_Base>::unsigned_traits;
         if constexpr (biginteger<_Base>::template _Is_rbint_v<T>) {
             lhs -= std::forward<U>(rhs);
             return std::forward<T>(lhs);
@@ -2753,13 +3067,13 @@ namespace wjr {
             return std::forward<U>(rhs);
         }
         else {
-            biginteger<_Base> result(std::forward<T>(lhs));
-            result -= std::forward<U>(rhs);
+            biginteger<_Base> result;
+            sub(result, std::forward<T>(lhs), std::forward<U>(rhs));
             return result;
         }
     }
 
-    VIRTUAL_BIGINTEGER_DEFINITION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
         biginteger<_Base> operator*(T&& lhs, U&& rhs) {
         if constexpr (biginteger<_Base>::template _Is_rbint_v<T>) {
             lhs *= std::forward<U>(rhs);
@@ -2770,20 +3084,20 @@ namespace wjr {
             return std::forward<U>(rhs);
         }
         else {
-            biginteger<_Base> result(std::forward<T>(lhs));
-            result *= std::forward<U>(rhs);
+            biginteger<_Base> result;
+            mul(result, std::forward<T>(lhs), std::forward<U>(rhs));
             return result;
         }
     }
 
-    VIRTUAL_BIGINTEGER_DEFINITION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
         biginteger<_Base> operator/(T&& lhs, U&& rhs) {
         biginteger<_Base> result(std::forward<T>(lhs));
         result /= std::forward<U>(rhs);
         return result;
     }
 
-    VIRTUAL_BIGINTEGER_DEFINITION
+    VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
         biginteger<_Base> operator%(T&& lhs, U&& rhs) {
         biginteger<_Base> result(std::forward<T>(lhs));
         result %= std::forward<U>(rhs);
@@ -2837,8 +3151,8 @@ namespace wjr {
 
 
 #undef GENERATE_BIGINTEGER_OPERATOR
-#undef VIRTUAL_BIGINTEGER_DEFINITION
-#undef VIRTUAL_BIGINTEGER_DECLARATION
+#undef VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION 
+#undef VIRTUAL_BIGINTEGER_BINARY_AUTO_DECLARATION
 #undef REGISTER_VIRTUAL_BIGINTEGER_FUNCTION
 
 }

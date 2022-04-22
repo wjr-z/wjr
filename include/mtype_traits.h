@@ -122,10 +122,10 @@ namespace wjr {
 #define CONNECT(A,B) A##B
 #define STD_FUNCTION(FUNC) std::FUNC
 
-#ifndef _DEBUG
+#ifndef _DEBUG 
 #define WDEBUG_LEVEL 0
 #else 
-#define WDEBUG_LEVEL 2
+#define WDEBUG_LEVEL 3
 #endif
 
 #define WASSERT_LEVEL_MESSAGE(LEVEL,expression)											\
