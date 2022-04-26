@@ -3860,6 +3860,7 @@ namespace wjr {
 	template<typename Char, typename Traits, typename Core>
 	class basic_String {
 	private:
+		template<typename Char2,typename Traits2,typename Core2>
 		friend class basic_String;
 
 		using default_traits = basic_String_traits<Char, Traits>;

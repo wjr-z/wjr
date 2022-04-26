@@ -7,103 +7,197 @@
 #include "../include/biginteger.h"
 #include <random>
 #include <intrin.h>
+
 using namespace wjr;
 using namespace std;
 
-void print(const biginteger<2>& x) {
-	cout << base_conversion<10>(x).tostr() << '\n';
-}
-int l = 22;
-biginteger<2> inv(const biginteger<2> &a,int g) {
-	using traits = biginteger_traits<2>;
-	size_t n = a.size();
-	biginteger<2> b, c;
-	b.resize(1 * 32);
-	b.data()[0] = traits::max_value / a.data()[n-1];
-	biginteger<2> d;  
-	for (int i = 0; i <= l; ++i) {
-		c.resize(0);
-		size_t m = std::min((size_t)1 << i, n);
-		c.resize(m * 32);
-		//b <<= ((1 << i) - b.size()) * 32;
-		for (int j = 0; j < m; ++j) {
-			c.data()[m - j - 1] = a.data()[n - j - 1];
-		}
-		c *= b;
-		d.resize(0);
-		d.resize((b.size() + m) * 32);
-		d.data()[b.size() + m - 1] = 2;
-		c = d - c;
-		b *= c;
-		int C = min(1 << (i + 1), g);
-		if (b.size() >= C) {
-			b >>= (b.size() - C) * 32;
-		}
-	}
 
-	return b;
+void Karatsuba(biginteger<2>&result, 
+	const virtual_biginteger<2,0>& lhs, const virtual_biginteger<2,0>& rhs) {
+	size_t n = lhs.size(), m = rhs.size();
+	if (n <= 32 || m <= 32) {
+		mul(result, lhs, rhs);
+		return;
+	}
+	size_t mid = n >> 1;
+	virtual_biginteger<2, 0> l_high(lhs.data() + mid, n - mid);
+	virtual_biginteger<2, 0> l_low(lhs.data(), mid);
+	virtual_biginteger<2, 0>r_high(rhs.data() + mid, m - mid);
+	virtual_biginteger<2, 0> r_low(rhs.data(), mid);
+	l_low.maintain();
+	r_low.maintain();
+	biginteger<2> A,B,C;
+	add(A, l_high, l_low);
+	add(C, r_high, r_low);
+	Karatsuba(B, get_virtual_biginteger<2>(A), get_virtual_biginteger<2>(C));
+	Karatsuba(A, l_high, r_high);
+	Karatsuba(C, l_low, r_low);
+	B -= A;
+	B -= C;
+	result = std::move(A);
+	result <<= (mid * 32);
+	result += B;
+	result <<= (mid * 32);
+	result += C;
 }
 
-const char* get_mode(size_t n,size_t m) {
-	size_t _Min = n < m ? n : m;
-	size_t _Max = n > m ? n : m;
-	if (_Min <= 32 ||
-		((uint64_t)(1) << (std::min(size_t(60), ((_Min - 32) / 2)))) <= _Max) {
-		return "slow mul";
+using vt = virtual_biginteger<2,0>;
+void toom_cook(biginteger<2>& result,
+	vt lhs,vt rhs) {
+	if (lhs.size() < rhs.size()) {
+		swap(lhs, rhs);
 	}
-	else {
-		return "fft mul";
+	size_t n = lhs.size(), m = rhs.size();
+	if (n <= 512 || m <= 512 /*|| n != m*/) {
+		mul(result, lhs, rhs);
+		return;
+	}
+	size_t m3 = n / 3;
+	vt U0(lhs.signal(), lhs.data(), m3);
+	vt U1(lhs.signal(), lhs.data() + m3, m3);
+	vt U2(lhs.signal(), lhs.data() + 2 * m3, n - 2 * m3);
+	size_t q = m;
+	size_t l = min(q, m3);
+	vt V0(rhs.signal(),rhs.data(), l);
+	q -= l;
+	l = min(q, m3);
+	vt V1(rhs.signal(), rhs.data() + m3, l);
+	q -= l;
+	vt V2(rhs.signal(), rhs.data() + 2 * m3, q);
+	U0.maintain();
+	U1.maintain();
+	U2.maintain();
+	V0.maintain();
+	V1.maintain();
+	V2.maintain();
+	biginteger<2> W0, W1, W2, W3, W4;
+
+	add(W0, U0, U2);
+	sub(W3, W0, U1);
+	add(W0, W0, U1);
+
+	add(W4, V0, V2);
+	sub(W2, W4, V1);
+	add(W4, W4, V1);
+
+	toom_cook(W1, W3.get_virtual(), W2.get_virtual());
+	//mul(W1, W3, W2);
+
+	toom_cook(W2, W0.get_virtual(), W4.get_virtual());
+	//mul(W2, W0, W4);
+
+	W0 += U2;
+	W0 <<= 1;
+	W0 -= U0;
+	//W0 = ((W0 + U2) << 1) - U0;
+	W4 += V2;
+	W4 <<= 1;
+	W4 -= V0;
+	//W4 = ((W4 + V2) << 1) - V0;
+	
+	toom_cook(W3, W0.get_virtual(), W4.get_virtual());
+	//mul(W3, W0, W4);
+	toom_cook(W0, U0, V0);
+	//mul(W0, U0, V0);
+	toom_cook(W4, U2, V2);
+	//mul(W4, U2, V2);
+	
+	W3 -= W1;
+	W3 /= 3;
+	//W3 = (W3 - W1) / 3;
+	W1 -= W2;
+	W1.change_signal();
+	W1 >>= 1;
+	//W1 = (W2 - W1) >> 1;
+	W2 -= W0;
+	//W2 = W2 - W0;
+	W3 -= W2;
+	W3 >>= 1;
+	W3 -= (W4 << 1);
+	//W3 = ((W3 - W2) >> 1) - (W4 << 1);
+	W2 -= W1;
+	//W2 = W2 - W1;
+
+	W3 += (W4 << (32 * m3)) ;
+	W1 += (W2 << (32 * m3)) ;
+	W1 -= W3;
+	result = W3;
+	result <<= 64 * m3;
+	result += W1;
+	result <<= 32 * m3;
+	result += W0;
+}
+
+void test() {
+	String str;
+	struct Q {
+		String* ptr;
+		~Q() {
+			write_file("data2.out", *ptr);
+		}
+	};
+	Q it;
+	it.ptr = &str;
+	for (size_t n = 1 << 5; n <= (1 << 20); n *= 1.5) {
+		size_t T = max((1 << 8) / n, 1ull);
+		biginteger<2> a = random_biginteger<2>(n * 32);
+		String w;
+		w.multiple_append(
+			"n : ",
+			String::number(n).right_justified(8),
+			" 迭代次数 : ",
+			String::number(T).right_justified(8),
+			"\n\n"
+		);
+		for (double alpha = 0.04; alpha <= 1.0 + 1e-10; alpha += 0.04) {
+			biginteger<2> b = random_biginteger<2>(n * 32 * alpha);
+			auto s = mtime();
+			for (int i = 1; i <= T; ++i) {
+				a* b;
+			}
+			double p = mtime() - s;
+			s = mtime();
+			for (int i = 1; i <= T; ++i) {
+				a / b;
+			}
+			double q = mtime() - s;
+			w.multiple_append(
+				"alpha : ",
+				String::number(alpha).right_justified(8),
+				" ",
+				String::number(p).right_justified(8),
+				" ",
+				String::number(q).right_justified(8),
+				" ",
+				String::number(q / p).right_justified(8),
+				" ",
+				String::number(100 * p / T).right_justified(8),
+				" ",
+				String::number(100 * q / T).right_justified(8),
+				"\n"
+			);
+		}
+		w.multiple_append(
+			"\n\n"
+		);
+		cout << w;
+		str.append(w);
 	}
 }
 
 int main() {
-	int cnt = 0;
-	while (true) {
-		biginteger<2> a = random_biginteger<2>(1000);
-		biginteger<2> b = random_biginteger<2>(1000);
-		int c = rand() % 4;
-		if (c & 1) {
-			a.change_signal();
-		}
-		if (c >> 1) {
-			b.change_signal();
-		}
-		if ((a - b) + b != a) {
-			printf("error\n");
-			return 0;
-		}
-		if ((++cnt) % 10000 == 0) {
-			cout << cnt << '\n';
-		}
-	}
-	return 0;
-	//freopen("data.out", "w", stdout);
-	size_t T = (1 << 16) ;
-	for (size_t i = 4; i < (1 << 18); i <<= 1) {
-		size_t n = i * 32;
-		cout << "n : " << n << "\n\n";
-		auto a = random_biginteger<2>(n);
-		for (double alpha = 0.05; alpha <= 1 + 1e-10; alpha += 0.05) {
-			auto b = random_biginteger<2>(n * alpha);
-			auto rd = max(1ull, T / i);
-			double p = 0;
-			biginteger<2> c, d;
-			for (size_t j = 0; j < rd; ++j) {
-				c = a;
-				auto s = mtime();
-				c *= b;
-				p += mtime() - s;
-			}
-			double q = 0;
-			for (size_t j = 0; j < rd;++ j) {
-				c = a, d = b;
-				auto s = mtime();
-				c / d;
-				q += mtime() - s;
-			}
-			cout << "alpha : " << alpha << " mul : " << p << " divide : " << q << " ratio : " << q / p << '\n';
-		}
-		cout << "\n\n";
-	}
+	size_t n = 1e5;
+	auto a = random_biginteger<2>(n * 32);
+	auto b = random_biginteger<2>(n * 32);
+	biginteger<2> c, d;
+	auto s = mtime();
+	c = a * b;
+	auto t = mtime();
+	cout << t - s << '\n';
+	s = mtime();
+	toom_cook(d, a.get_virtual(), b.get_virtual());
+	t = mtime();
+	cout << t - s << '\n';
+	cout << (c == d) << '\n';
 	return 0;
 }

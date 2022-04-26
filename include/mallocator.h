@@ -361,39 +361,13 @@ namespace wjr {
 			return !n ? nullptr : static_cast<Ty*>(allocator_type::allocate(sizeof(Ty) * n));
 		}
 
-		void deallocate(Ty* ptr) {
+		void deallocate(Ty* ptr) const {
 			allocator_type::deallocate(static_cast<void*>(ptr), sizeof(Ty));
 		}
 
-		void deallocate(Ty* ptr, size_t n) {
+		void deallocate(Ty* ptr, size_t n) const {
 			if (n == 0) return;
 			allocator_type::deallocate(static_cast<void*>(ptr), sizeof(Ty) * n);
-		}
-
-		void construct(Ty* ptr) {
-			new(ptr)Ty();
-		}
-
-		void construct(Ty* ptr, const Ty& value) {
-			new(ptr)Ty(value);
-		}
-
-		void construct(Ty* ptr, Ty&& value) {
-			new(ptr)Ty(std::forward<Ty>(value));
-		}
-
-		void destroy(Ty* ptr) {
-			if constexpr (!std::is_trivially_destructible_v<Ty>) {
-				ptr->~Ty();
-			}
-		}
-
-		void destroy(Ty* first, Ty* last) {
-			if constexpr (!std::is_trivially_destructible_v<Ty>) {
-				for (; first != last; ++first) {
-					first->~Ty();
-				}
-			}
 		}
 
 		size_t max_size()const {
