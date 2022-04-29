@@ -745,7 +745,6 @@ void makect(int nc, int *ip, double *c)
 
 /* -------- child routines -------- */
 
-
 #ifdef USE_CDFT_PTHREADS
 #define USE_CDFT_THREADS
 #ifndef CDFT_THREADS_BEGIN_N
@@ -771,7 +770,6 @@ void makect(int nc, int *ip, double *c)
     } \
 }
 #endif /* USE_CDFT_PTHREADS */
-
 
 #ifdef USE_CDFT_WINTHREADS
 #define USE_CDFT_THREADS

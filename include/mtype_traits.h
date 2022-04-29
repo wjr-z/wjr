@@ -123,7 +123,7 @@ namespace wjr {
 #define STD_FUNCTION(FUNC) std::FUNC
 
 #ifndef _DEBUG 
-#define WDEBUG_LEVEL 3
+#define WDEBUG_LEVEL 0
 #else 
 #define WDEBUG_LEVEL 3
 #endif
@@ -695,6 +695,11 @@ namespace wjr {
 			constexpr size_t length = log_length<base, T>;
 			constexpr size_t l = quick_log2(length - 1);
 			return __get_quick_log<base, l, T>(x);
+		}
+
+		template<size_t base, typename T>
+		constexpr bool quick_is_power_of(T x) {
+			return quick_pow(quick_log<base>(x), base) == x;
 		}
 
 		constexpr uint16_t bswap_16(uint16_t x) {
