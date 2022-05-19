@@ -173,6 +173,10 @@ namespace wjr {
 #define WASSERT_LEVEL_4(expression)
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+#define WJR_GCC_STYLE_ASM
+#endif
+
 	enum wbyte_order {
 		w_little_endian = 0,
 		w_big_endian = 1,

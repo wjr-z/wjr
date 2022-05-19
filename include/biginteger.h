@@ -1,11 +1,10 @@
 #ifndef __WJR_BIGINTEGER_H
 #define __WJR_BIGINTEGER_H
 
-#include <array>
-
 #include "mallocator.h"
 #include "mString.h"
 #include "mtool.h"
+#include "masm.h"
 
 extern "C" {
     extern void cdft(int, int, double*, int*, double*);
@@ -175,7 +174,8 @@ namespace wjr {
     };
 
     static biginteger_basic_twice_value_type
-        biginteger_libdivide_mullhi_u128(biginteger_basic_twice_value_type x,
+        biginteger_libdivide_mullhi_u128(
+            biginteger_basic_twice_value_type x,
             biginteger_basic_twice_value_type y) {
         constexpr static uint64_t mask = (uint64_t)(-1);
         uint64_t x0 = (uint64_t)(x & mask);
@@ -311,12 +311,11 @@ namespace wjr {
         }
 
         static unsigned char quick_add(unsigned char jw, value_type lhs, value_type rhs, value_type* result) {
-#if defined(_MSC_VER) || defined(__ICC__)
-            // use adc to get cf
+//#if defined(_MSC_VER) || defined(__ICC__)
 #if defined(WJR_BIGINTEGER_USE_X64)
-            jw = _addcarry_u64(jw, lhs, rhs, result);
+            jw = wjr_addcarry_u64(jw, lhs, rhs, result);
 #else
-            jw = _addcarry_u32(jw, lhs, rhs, result);
+            jw = wjr_addcarry_u32(jw, lhs, rhs, result);
 #endif
             if constexpr (get_mode == mode::is_full) {
                 return jw;
@@ -325,9 +324,10 @@ namespace wjr {
                 jw |= _mod <= *result;
                 return jw ? (*result -= _mod, 1) : 0;
             }
+/*
 #else
             if constexpr (get_mode == mode::is_full) {
-                return qcadd(result, lhs, rhs) | qcadd(result,*result,jw);
+                return qcadd(result, lhs, rhs) | qcadd(result, *result, jw);
             }
             else {
                 if constexpr (get_mode == mode::is_le_mid) {
@@ -344,6 +344,7 @@ namespace wjr {
                 return jw ? (*result -= _mod, 1) : 0;
             }
 #endif
+*/
         }
 
         static unsigned char qcsub(value_type* result, value_type lhs, value_type rhs) {
@@ -353,11 +354,11 @@ namespace wjr {
 
         static unsigned char quick_sub(
             unsigned char jw, value_type lhs, value_type rhs, value_type* result) {
-#if defined(_MSC_VER) || defined(__ICC__)
+//#if defined(_MSC_VER) || defined(__ICC__)
 #if defined(WJR_BIGINTEGER_USE_X64)
-            jw = _subborrow_u64(jw, lhs, rhs, result);
+            jw = wjr_subborrow_u64(jw, lhs, rhs, result);
 #else
-            jw = _subborrow_u32(jw, lhs, rhs, result);
+            jw = wjr_subborrow_u32(jw, lhs, rhs, result);
 #endif
             if constexpr (get_mode == mode::is_full) {
                 return jw;
@@ -365,6 +366,7 @@ namespace wjr {
             else {
                 return jw ? (*result += _mod, 1) : 0;
             }
+/*
 #else
             if constexpr (get_mode == mode::is_full) {
                 return qcsub(result, lhs, rhs) | qcsub(result, *result, jw);
@@ -374,6 +376,7 @@ namespace wjr {
                 return jw ? (*result += _mod, 1) : 0;
             }
 #endif
+*/
         }
 
         struct constexpr_base_power_array {
@@ -392,7 +395,7 @@ namespace wjr {
             WASSERT_LEVEL_2(kth < bit_length);
             return static_base_power_array.arr[kth];
         }
-        constexpr static value_type quick_mul_base_power(value_type val,size_t kth) {
+        constexpr static value_type quick_mul_base_power(value_type val, size_t kth) {
             WASSERT_LEVEL_2(kth < bit_length);
             if constexpr (is_power_of_two) {
                 return val << (quick_log2_base * kth);
@@ -441,13 +444,13 @@ namespace wjr {
     template<size_t base, size_t length>
     class virtual_unsigned_biginteger;
 
-    template<size_t base,size_t length>
+    template<size_t base, size_t length>
     class virtual_unsigned_biginteger_reference;
 
-    template<size_t base,size_t length>
+    template<size_t base, size_t length>
     class virtual_unsigned_biginteger_const_reference {
         using traits = biginteger_traits<base>;
-        template<size_t _Base,size_t _Length>
+        template<size_t _Base, size_t _Length>
         friend class virtual_unsigned_biginteger_reference;
     public:
         using value_type = typename traits::value_type;
@@ -491,9 +494,9 @@ namespace wjr {
 
     template<size_t base, size_t length>
     class virtual_unsigned_biginteger_reference
-        : public virtual_unsigned_biginteger_const_reference<base,length> {
+        : public virtual_unsigned_biginteger_const_reference<base, length> {
         using traits = biginteger_traits<base>;
-        using _Base = virtual_unsigned_biginteger_const_reference<base,length>;
+        using _Base = virtual_unsigned_biginteger_const_reference<base, length>;
     public:
         using value_type = typename traits::value_type;
         constexpr virtual_unsigned_biginteger_reference(
@@ -507,39 +510,41 @@ namespace wjr {
             const virtual_unsigned_biginteger_reference&) = default;
         constexpr virtual_unsigned_biginteger_reference& operator=(value_type val) {
             //static_assert(length == 0, "");
+            WASSERT_LEVEL_1(val >= 0 && val <= traits::_max);
             auto p = _Base::_Data;
             size_t _Pos1 = pos1();
             size_t _Pos2 = pos2();
             value_type low = traits::quick_div_base_power(p[_Pos1], _Pos2);
             size_t low_l = traits::bit_length - _Pos2;
             if (_Base::_K <= low_l || _Pos1 == _Base::_Size - 1) {
-                p[_Pos1] += traits::quick_mul_base_power((val - _Base::get_mod(low)),_Pos2);
+                p[_Pos1] += traits::quick_mul_base_power((val - _Base::get_mod(low)), _Pos2);
             }
             else {
                 size_t high_l = _Base::_K - low_l;
                 value_type high = traits::quick_mod_base_power(p[_Pos1 + 1], high_l);
                 value_type val_high = traits::quick_div_base_power(val, low_l);
-                value_type val_low = val - traits::quick_mul_base_power(val_high,low_l);
-                p[_Pos1] += traits::quick_mul_base_power((val_low - low),_Pos2);
+                value_type val_low = val - traits::quick_mul_base_power(val_high, low_l);
+                p[_Pos1] += traits::quick_mul_base_power((val_low - low), _Pos2);
                 p[_Pos1 + 1] += (val_high - high);
             }
             return *this;
         }
         constexpr virtual_unsigned_biginteger_reference& zero_change(value_type val) {
             //static_assert(length == 0, "");
+            WASSERT_LEVEL_1(val >= 0 && val <= traits::_max);
             WASSERT_LEVEL_2((value_type)(*this) == 0);
             auto p = _Base::_Data;
             size_t _Pos1 = pos1();
             size_t _Pos2 = pos2();
             size_t low_l = traits::bit_length - _Pos2;
             if (_Base::_K <= low_l || _Pos1 == _Base::_Size - 1) {
-                p[_Pos1] += traits::quick_mul_base_power(val,_Pos2);
+                p[_Pos1] += traits::quick_mul_base_power(val, _Pos2);
             }
             else {
                 size_t high_l = _Base::_K - low_l;
                 value_type val_high = traits::quick_div_base_power(val, low_l);
-                value_type val_low = val - traits::quick_mul_base_power(val_high , low_l);
-                p[_Pos1] += traits::quick_mul_base_power(val_low,_Pos2);
+                value_type val_low = val - traits::quick_mul_base_power(val_high, low_l);
+                p[_Pos1] += traits::quick_mul_base_power(val_low, _Pos2);
                 p[_Pos1 + 1] += val_high;
             }
             return *this;
@@ -780,7 +785,7 @@ namespace wjr {
             //return iterator(_Data,_Size, k);
         //}
         constexpr const_iterator begin(size_t k)const {
-            return const_iterator(_Data,_Size, k);
+            return const_iterator(_Data, _Size, k);
         }
         constexpr const_iterator cbegin(size_t k)const {
             return const_iterator(_Data, _Size, k);
@@ -840,10 +845,10 @@ namespace wjr {
             //return iterator(_Data,_Size, k);
         //}
         constexpr const_iterator begin(size_t k)const {
-            return const_iterator(data(),size(), k);
+            return const_iterator(data(), size(), k);
         }
         constexpr const_iterator cbegin(size_t k)const {
-            return const_iterator(data(),size(), k);
+            return const_iterator(data(), size(), k);
         }
         template<typename T>
         constexpr T to()const {
@@ -1327,14 +1332,14 @@ namespace wjr {
     template<size_t base>
     class biginteger;
 
-    template<size_t fromBase,size_t toBase>
+    template<size_t fromBase, size_t toBase>
     struct _Quick_base_conversion {
-        constexpr static bool value =(fromBase != toBase) && 
+        constexpr static bool value = (fromBase != toBase) &&
             (biginteger_traits<fromBase>::_max == biginteger_traits<toBase>::_max);
     };
 
-    template<size_t fromBase,size_t toBase>
-	constexpr static bool _Quick_base_conversion_v = _Quick_base_conversion<fromBase,toBase>::value;
+    template<size_t fromBase, size_t toBase>
+    constexpr static bool _Quick_base_conversion_v = _Quick_base_conversion<fromBase, toBase>::value;
 
     template<size_t base>
     class unsigned_biginteger {
@@ -1367,7 +1372,7 @@ namespace wjr {
         unsigned_biginteger() : vec(1, 0) {}
         unsigned_biginteger(const unsigned_biginteger& other) = default;
         unsigned_biginteger(unsigned_biginteger&& other) noexcept = default;
-        template<size_t fromBase,std::enable_if_t<_Quick_base_conversion_v<fromBase,base>,int> = 0>
+        template<size_t fromBase, std::enable_if_t<_Quick_base_conversion_v<fromBase, base>, int> = 0>
         explicit unsigned_biginteger(const unsigned_biginteger<fromBase>& other)
             : vec(other.vec) {}
         template<size_t fromBase, std::enable_if_t<_Quick_base_conversion_v<fromBase, base>, int> = 0>
@@ -1384,7 +1389,7 @@ namespace wjr {
         explicit unsigned_biginteger(const T& val)
             : unsigned_biginteger(get_virtual_unsigned_biginteger<base>(val)) {}
         template<typename iter, typename Func>
-        unsigned_biginteger(iter first, iter last, Func&&fn) {
+        unsigned_biginteger(iter first, iter last, Func&& fn) {
             WASSERT_LEVEL_2(first <= last);
             if (unlikely(first == last)) {
                 set_zero();
@@ -1393,7 +1398,7 @@ namespace wjr {
             auto n = last - first;
             vec.resize((n - 1) / traits::bit_length + 1);
             virtual_unsigned_biginteger_iterator<base, 0>
-                write(data(),size(), 1, n);
+                write(data(), size(), 1, n);
             while (first != last) {
                 *(--write) = (std::forward<Func>(fn))(*first);
                 ++first;
@@ -1408,10 +1413,10 @@ namespace wjr {
                 set_zero();
                 return;
             }
-            size_t _Size = (n-1) / traits::bit_length + 1;
+            size_t _Size = (n - 1) / traits::bit_length + 1;
             vec.resize(_Size);
             virtual_unsigned_biginteger_iterator<base, 0>
-                write(data(),size(), 1, n);
+                write(data(), size(), 1, n);
             for (auto i : str) {
                 *(--write) = i - '0';
             }
@@ -1433,31 +1438,31 @@ namespace wjr {
             return ((*this) = get_virtual_unsigned_biginteger<base>(val));
         }
 
-        template<size_t fromBase,std::enable_if_t<_Quick_base_conversion_v<fromBase,base>,int> = 0>
+        template<size_t fromBase, std::enable_if_t<_Quick_base_conversion_v<fromBase, base>, int> = 0>
         unsigned_biginteger& operator=(const unsigned_biginteger<fromBase>& other) {
-			vec = other.vec;
+            vec = other.vec;
             return *this;
         }
 
-        template<size_t fromBase,std::enable_if_t<_Quick_base_conversion_v<fromBase,base>,int> = 0>
+        template<size_t fromBase, std::enable_if_t<_Quick_base_conversion_v<fromBase, base>, int> = 0>
         unsigned_biginteger& operator=(unsigned_biginteger<fromBase>&& other) {
             vec = std::move(other.vec);
             return *this;
         }
 
         unsigned_biginteger& operator=(const String_view& str) {
-			size_t n = str.size();
-			if (!n) {
-				set_zero();
-				return *this;
-			}
-			size_t _Size = (n - 1) / traits::bit_length + 1;
-			vec.resize(_Size);
-			virtual_unsigned_biginteger_iterator<base, 0>
-				write(data(),size(), 1, n);
-			for (auto i : str) {
-				*(--write) = i - '0';
-			}
+            size_t n = str.size();
+            if (!n) {
+                set_zero();
+                return *this;
+            }
+            size_t _Size = (n - 1) / traits::bit_length + 1;
+            vec.resize(_Size);
+            virtual_unsigned_biginteger_iterator<base, 0>
+                write(data(), size(), 1, n);
+            for (auto i : str) {
+                *(--write) = i - '0';
+            }
             return *this;
         }
 
@@ -1528,11 +1533,11 @@ namespace wjr {
                 for (size_t i = n - 1; i; --i) {
                     _Low = p[i] - traits::quick_mul_base_power(_High, br);
                     value_type _Nxt_high = traits::quick_div_base_power(p[i - 1], br);
-                    p[i + delta] = traits::quick_mul_base_power(_Low,r) + _Nxt_high;
+                    p[i + delta] = traits::quick_mul_base_power(_Low, r) + _Nxt_high;
                     _High = _Nxt_high;
                 }
                 _Low = p[0] - traits::quick_mul_base_power(_High, br);
-                p[delta] = traits::quick_mul_base_power(_Low,r);
+                p[delta] = traits::quick_mul_base_power(_Low, r);
                 memset(p, 0, sizeof(value_type) * delta);
             }
             return *this;
@@ -1668,6 +1673,20 @@ namespace wjr {
             const virtual_unsigned_biginteger<ir>& rhs
         );
 
+        template<size_t il,size_t ir>
+        static void karatsuba(
+            unsigned_biginteger& result,
+            const virtual_unsigned_biginteger<il>& lhs,
+            const virtual_unsigned_biginteger<ir>& rhs
+        );
+
+        template<size_t il,size_t ir>
+        static void dac_mul(
+            unsigned_biginteger& result,
+            const virtual_unsigned_biginteger<il>& lhs,
+            const virtual_unsigned_biginteger<ir>& rhs
+        );
+
         template<size_t il, size_t ir>
         static void fft_mul(
             unsigned_biginteger& result,
@@ -1675,21 +1694,6 @@ namespace wjr {
             const virtual_unsigned_biginteger<ir>& rhs
         );
 
-        enum mul_mode {
-            slow_mul_mode,
-            fft_mul_mode,
-        };
-        constexpr static mul_mode get_mul_mode(size_t n, size_t m) {
-            size_t _Min = n < m ? n : m;
-            size_t _Max = n > m ? n : m;
-            size_t delta = 874 / _Max;
-            if (_Min <= delta || ((uint64_t)(1) << (std::min((size_t)(60), ((_Min - delta) / 16)))) <= _Max) {
-                return slow_mul_mode;
-            }
-            else {
-                return fft_mul_mode;
-            }
-        }
         template<size_t index, size_t il, size_t ir>
         static void QMul(
             unsigned_biginteger& result,
@@ -1924,7 +1928,7 @@ namespace wjr {
         if constexpr (index != 0) {
             if constexpr (index >= 1) {
                 cf = traits::quick_add(0, lp[0], rp[0], &rep[0]);
-            }
+    }
             if constexpr (index >= 2) {
                 cf = traits::quick_add(cf, lp[1], rp[1], &rep[1]);
             }
@@ -1934,20 +1938,27 @@ namespace wjr {
             if constexpr (index >= 4) {
                 cf = traits::quick_add(cf, lp[3], rp[3], &rep[3]);
             }
-        }
-        else {
-            size_t q = (rs >> 2) << 2;
-            size_t i = 0;
-            while (i != q) {
-                cf = traits::quick_add(cf, lp[i], rp[i], &rep[i]);
-                cf = traits::quick_add(cf, lp[i + 1], rp[i + 1], &rep[i + 1]);
-                cf = traits::quick_add(cf, lp[i + 2], rp[i + 2], &rep[i + 2]);
-                cf = traits::quick_add(cf, lp[i + 3], rp[i + 3], &rep[i + 3]);
-                i += 4;
             }
-            while (i != rs) {
+        else {
+            size_t i = 0;
+            switch (rs & 3) {
+            case 3:
                 cf = traits::quick_add(cf, lp[i], rp[i], &rep[i]);
                 ++i;
+            case 2:
+                cf = traits::quick_add(cf, lp[i], rp[i], &rep[i]);
+                ++i;
+            case 1:
+                cf = traits::quick_add(cf, lp[i], rp[i], &rep[i]);
+                ++i;
+            default:
+                while (i != rs) {
+                    cf = traits::quick_add(cf, lp[i], rp[i], &rep[i]);
+                    cf = traits::quick_add(cf, lp[i + 1], rp[i + 1], &rep[i + 1]);
+                    cf = traits::quick_add(cf, lp[i + 2], rp[i + 2], &rep[i + 2]);
+                    cf = traits::quick_add(cf, lp[i + 3], rp[i + 3], &rep[i + 3]);
+                    i += 4;
+                }
             }
         }
         // first use memcpy,then append
@@ -1982,6 +1993,7 @@ namespace wjr {
         const virtual_unsigned_biginteger<il>& lhs,
         const virtual_unsigned_biginteger<ir>& rhs
     ) {
+        WASSERT_LEVEL_3(less_eq(rhs, lhs));
         auto lp = lhs.data();
         auto rp = rhs.data();
         auto res = result.size();
@@ -1999,7 +2011,7 @@ namespace wjr {
         if constexpr (index != 0) {
             if constexpr (index >= 1) {
                 cf = traits::quick_sub(0, lp[0], rp[0], &rep[0]);
-            }
+    }
             if constexpr (index >= 2) {
                 cf = traits::quick_sub(cf, lp[1], rp[1], &rep[1]);
             }
@@ -2009,20 +2021,27 @@ namespace wjr {
             if constexpr (index >= 4) {
                 cf = traits::quick_sub(cf, lp[3], rp[3], &rep[3]);
             }
-        }
-        else {
-            size_t q = (rs >> 2) << 2;
-            size_t i = 0;
-            while (i != q) {
-                cf = traits::quick_sub(cf, lp[i], rp[i], &rep[i]);
-                cf = traits::quick_sub(cf, lp[i + 1], rp[i + 1], &rep[i + 1]);
-                cf = traits::quick_sub(cf, lp[i + 2], rp[i + 2], &rep[i + 2]);
-                cf = traits::quick_sub(cf, lp[i + 3], rp[i + 3], &rep[i + 3]);
-                i += 4;
             }
-            while (i != rs) {
+        else {
+            size_t i = 0;
+            switch (rs & 3) {
+            case 3:
                 cf = traits::quick_sub(cf, lp[i], rp[i], &rep[i]);
                 ++i;
+            case 2:
+                cf = traits::quick_sub(cf, lp[i], rp[i], &rep[i]);
+                ++i;
+            case 1:
+                cf = traits::quick_sub(cf, lp[i], rp[i], &rep[i]);
+                ++i;
+            default:
+                while (i != rs) {
+                    cf = traits::quick_sub(cf, lp[i], rp[i], &rep[i]);
+                    cf = traits::quick_sub(cf, lp[i + 1], rp[i + 1], &rep[i + 1]);
+                    cf = traits::quick_sub(cf, lp[i + 2], rp[i + 2], &rep[i + 2]);
+                    cf = traits::quick_sub(cf, lp[i + 3], rp[i + 3], &rep[i + 3]);
+                    i += 4;
+                }
             }
         }
         if (ls < res) {
@@ -2055,7 +2074,8 @@ namespace wjr {
         const virtual_unsigned_biginteger<il>& lhs,
         const virtual_unsigned_biginteger<ir>& rhs
     ) {
-        USE_THREAD_LOCAL static twice_value_type static_array[256];
+        constexpr static size_t cache_size = 256;
+        USE_THREAD_LOCAL static twice_value_type static_array[cache_size];
 
         auto lp = lhs.data();
         auto rp = rhs.data();
@@ -2065,9 +2085,9 @@ namespace wjr {
         auto len = ls + rs;
         twice_value_type* temp_array;
         if constexpr (index != 1) {
-            if (len <= 256) temp_array = static_array;
+            if (len <= cache_size) temp_array = static_array;
             else temp_array = new twice_value_type[len];
-            std::fill(temp_array, temp_array + len, 0);
+            memset(temp_array, 0, sizeof(twice_value_type) * len);
         }
 
         if constexpr (index != 0) {
@@ -2141,8 +2161,61 @@ namespace wjr {
                 WASSERT_LEVEL_2(temp_array[len - 1] < traits::max_value);
                 result.vec.push_back(static_cast<value_type>(temp_array[len - 1]));
             }
-            if (len > 256)delete[]temp_array;
+            if (len > cache_size)delete[]temp_array;
         }
+    }
+
+    template<size_t base>
+    template<size_t il, size_t ir>
+    void unsigned_biginteger<base>::karatsuba(
+        unsigned_biginteger& result,
+        const virtual_unsigned_biginteger<il>& lhs,
+        const virtual_unsigned_biginteger<ir>& rhs
+    ) {
+        size_t n = lhs.size();
+        size_t m = rhs.size();
+        size_t mid = n >> 1;
+        virtual_unsigned_biginteger<0> l_high(lhs.data() + mid, n - mid);
+		virtual_unsigned_biginteger<0> l_low(lhs.data(), mid);
+		virtual_unsigned_biginteger<0> r_high(rhs.data() + mid, m < mid ? 0 : m - mid);
+		virtual_unsigned_biginteger<0> r_low(rhs.data(), m < mid ? m : mid);
+        l_low.maintain();
+        r_high.maintain();
+        r_low.maintain();
+        unsigned_biginteger A, B, C;
+        add(A, l_high, l_low);
+        add(C, r_high, r_low);
+        mul(B, A, C);
+        mul(A, l_high, r_high);
+        mul(C, l_low, r_low);
+        result = std::move(A);
+        sub(B, B, result);
+        sub(B, B, C);
+        result.quick_mul_base_power(mid * traits::bit_length);
+        add(result, result, B);
+        result.quick_mul_base_power(mid * traits::bit_length);
+        add(result, result, C);
+    }
+
+    template<size_t base>
+    template<size_t il, size_t ir>
+    void unsigned_biginteger<base>::dac_mul(
+        unsigned_biginteger& result,
+        const virtual_unsigned_biginteger<il>& lhs,
+        const virtual_unsigned_biginteger<ir>& rhs
+    ) {
+        size_t n = lhs.size();
+        size_t m = rhs.size();
+        WASSERT_LEVEL_1(n >= 2 * m);
+        size_t mid = n >> 1;
+        virtual_unsigned_biginteger<0> high(lhs.data() + mid, n - mid);
+        virtual_unsigned_biginteger<0> low(lhs.data(), mid);
+        unsigned_biginteger rhigh, rlow;
+        mul(rhigh, high, rhs);
+        mul(rlow, low, rhs);
+        result = std::move(rhigh);
+        result.quick_mul_base_power(mid * traits::bit_length);
+        add(result, result, rlow);
     }
 
     struct biginteger_fft_cache {
@@ -2206,16 +2279,24 @@ namespace wjr {
         __biginteger_fft_cache.make((s >> 1) + 4);
         for (size_t i = 0; i < n; ++lhs_iter, ++i) {
             value_type val = *lhs_iter;
-            a[i << 1] = val * 0.5;
-            a[i << 1 | 1] = val * 0.5;
+            a[i << 1] = val;
+            a[i << 1 | 1] = val;
         }
         for (size_t i = (n << 1); i < (s << 1); ++i) {
             a[i] = 0;
         }
         for (size_t i = 0; i < m; ++rhs_iter, ++i) {
             value_type val = *rhs_iter;
-            a[i << 1] += val * 0.5;
-            a[i << 1 | 1] -= val * 0.5;
+            a[i << 1] += val;
+            a[i << 1 | 1] -= val;
+        }
+        for (size_t i = 0; i < n; ++i) {
+            a[i << 1] *= 0.5;
+            a[i << 1 | 1] *= 0.5;
+        }
+        for (size_t i = n; i < m; ++i) {
+            a[i << 1] *= 0.5;
+            a[i << 1 | 1] *= 0.5;
         }
 
         cdft(s << 1, 1, a, __biginteger_fft_cache.ip, __biginteger_fft_cache.w);
@@ -2269,13 +2350,9 @@ namespace wjr {
         const virtual_unsigned_biginteger<il>& lhs,
         const virtual_unsigned_biginteger<ir>& rhs
     ) {
-        if (lhs.zero()) {
-            result.set_zero();
-            return;
-        }
         if constexpr (index != 0) {
             if constexpr (index == 1) {
-                if (rhs.zero()) {
+                if (lhs.zero() || rhs.zero()) {
                     result.set_zero();
                     return;
                 }
@@ -2286,16 +2363,42 @@ namespace wjr {
             size_t n = lhs.size();
             size_t m = rhs.size();
             constexpr static size_t alpha = (1 << 10);
-#if defined(WJR_BIGINTEGER_USE_X64)
-            constexpr static size_t beta = 12;
-#else
-            constexpr static size_t beta = 16;
-#endif
+            constexpr static size_t beta = 8;
             size_t delta = alpha / n + 1;
-            if (m <= delta || ((uint64_t)(1) << std::min((size_t)60, ((m - delta) / beta) + 1)) <= n) {
+
+            if (m <= 36) {
                 slow_mul<index>(result, lhs, rhs);
             }
-            else fft_mul(result, lhs, rhs);
+            else {
+                if (n >= 4 * m) {
+                    dac_mul(result, lhs, rhs);
+                }
+                else {
+                    if (n <= 128) {
+                        karatsuba(result, lhs, rhs);
+                    }
+                    else {
+                        fft_mul(result, lhs, rhs);
+                    }
+                }
+            }
+
+           /* if (n >= 4 * m) {
+                dac_mul(result, lhs, rhs);
+            }
+            else {
+                if (m <= delta || ((uint64_t)(1) << std::min((size_t)60, ((m - delta) / beta) + 1)) <= n) {
+                    if (m >= 36) {
+                        karatsuba(result, lhs, rhs);
+                    }
+                    else {
+                        slow_mul<index>(result, lhs, rhs);
+                    }
+                }
+                else {
+                    fft_mul(result, lhs, rhs);
+                }
+            }*/
         }
     }
 
@@ -2589,28 +2692,28 @@ namespace wjr {
     void divmod(biginteger<_Base>& lhs, biginteger<_Base>& rhs);
 
     template<size_t toBase, typename T, size_t fromBase = biginteger_base_v<T>,
-        std::enable_if_t<_Is_biginteger_base_masks_v<fromBase,T>,int> = 0>
-    biginteger<toBase> base_conversion(T&&);
+        std::enable_if_t<_Is_biginteger_base_masks_v<fromBase, T>, int> = 0>
+        biginteger<toBase> base_conversion(T&&);
 
     // generate a biginteger of length n
     template<size_t _Base>
-    void random_biginteger(biginteger<_Base>& result, size_t n, bool _unsigned = true,bool exact = true);
+    void random_biginteger(biginteger<_Base>& result, size_t n, bool _unsigned = true, bool exact = true);
     template<size_t _Base>
-    biginteger<_Base> random_biginteger(size_t n, bool _unsigned = true,bool exact = true);
-	
+    biginteger<_Base> random_biginteger(size_t n, bool _unsigned = true, bool exact = true);
+
     template<size_t _Base, typename T,
         std::enable_if_t<_Is_biginteger_base_masks_v<_Base, T>, int> = 0>
-    void random_biginteger_max(biginteger<_Base>& result,const T& _Max);
-    template<size_t _Base,typename T,typename U,
-        std::enable_if_t<_Is_biginteger_base_masks_v<_Base,T,U>,int> = 0>
-    void random_biginteger_min_max(biginteger<_Base>& result, const T&_Min,const U&_Max);
-	
+        void random_biginteger_max(biginteger<_Base>& result, const T& _Max);
+    template<size_t _Base, typename T, typename U,
+        std::enable_if_t<_Is_biginteger_base_masks_v<_Base, T, U>, int> = 0>
+        void random_biginteger_min_max(biginteger<_Base>& result, const T& _Min, const U& _Max);
+
     template<size_t _Base, typename T,
         std::enable_if_t<_Is_biginteger_base_masks_v<_Base, T>, int> = 0>
-    biginteger<_Base> random_biginteger_max(const T& _Max);
-    template<size_t _Base,typename T,typename U,
-        std::enable_if_t<_Is_biginteger_base_masks_v<_Base,T,U>,int> = 0>
-    biginteger<_Base> random_biginteger_min_max(const T&_Min,const U&_Max);
+        biginteger<_Base> random_biginteger_max(const T& _Max);
+    template<size_t _Base, typename T, typename U,
+        std::enable_if_t<_Is_biginteger_base_masks_v<_Base, T, U>, int> = 0>
+        biginteger<_Base> random_biginteger_min_max(const T& _Min, const U& _Max);
 
     template<size_t base>
     class biginteger {
@@ -2644,12 +2747,12 @@ namespace wjr {
         biginteger() = default;
         biginteger(const biginteger&) = default;
         biginteger(biginteger&&) noexcept = default;
-        template<size_t fromBase, std::enable_if_t<_Quick_base_conversion_v<fromBase,base>,int> = 0>
+        template<size_t fromBase, std::enable_if_t<_Quick_base_conversion_v<fromBase, base>, int> = 0>
         explicit biginteger(const biginteger<fromBase>& other)
-            : _Signal(other.signal()),ubint(other.ubint){}
+            : _Signal(other.signal()), ubint(other.ubint) {}
         template<size_t fromBase, std::enable_if_t<_Quick_base_conversion_v<fromBase, base>, int> = 0>
         explicit biginteger(biginteger<fromBase>&& other)
-            : _Signal(other.signal()),ubint(std::move(other.ubint)){}
+            : _Signal(other.signal()), ubint(std::move(other.ubint)) {}
         template<size_t length>
         explicit biginteger(const virtual_biginteger<length>& rhs)
             : _Signal(rhs.signal()), ubint(rhs.get_unsigned()) {}
@@ -2668,14 +2771,14 @@ namespace wjr {
             : ubint(_Data, _Size) {}
         biginteger(bool _Signal, const value_type* _Data, size_t _Size)
             : _Signal(_Signal), ubint(_Data, _Size) {}
-        biginteger(const String_view& str) {
+        explicit biginteger(const String_view& str) {
             size_t n = str.size();
             if (!n) {
                 set_zero();
                 return;
             }
             auto ptr = str.data();
-            if ((*ptr) == '-' ||  (*ptr) == '+') {
+            if ((*ptr) == '-' || (*ptr) == '+') {
                 _Signal = (*ptr) == '+';
                 --n;
                 ++ptr;
@@ -2703,44 +2806,44 @@ namespace wjr {
             (*this) = get_virtual_biginteger<base>(rhs);
             return *this;
         }
-        template<size_t fromBase,std::enable_if_t<_Quick_base_conversion_v<fromBase,base>,int> = 0>
+        template<size_t fromBase, std::enable_if_t<_Quick_base_conversion_v<fromBase, base>, int> = 0>
         biginteger& operator=(const biginteger& other) {
             _Signal = other.signal();
             ubint = other.ubint;
             return *this;
         }
-        template<size_t fromBase,std::enable_if_t<_Quick_base_conversion_v<fromBase,base>,int> = 0>
+        template<size_t fromBase, std::enable_if_t<_Quick_base_conversion_v<fromBase, base>, int> = 0>
         biginteger& operator=(biginteger&& other) {
             _Signal = other.signal();
             ubint = std::move(other.ubint);
             return *this;
         }
         biginteger& operator=(const String_view& str) {
-			size_t n = str.size();
-			if (!n) {
-				set_zero();
-				return *this;
-			}
-			auto ptr = str.data();
-			if ((*ptr) == '-' ||  (*ptr) == '+') {
-				_Signal = (*ptr) == '+';
-				--n;
-				++ptr;
-			}
+            size_t n = str.size();
+            if (!n) {
+                set_zero();
+                return *this;
+            }
+            auto ptr = str.data();
+            if ((*ptr) == '-' || (*ptr) == '+') {
+                _Signal = (*ptr) == '+';
+                --n;
+                ++ptr;
+            }
             WASSERT_LEVEL_1(n != 0);
-			size_t _Size = (n - 1) / traits::bit_length + 1;
+            size_t _Size = (n - 1) / traits::bit_length + 1;
             ubint.vec.clear();
-			ubint.vec.resize(_Size);
-			virtual_unsigned_biginteger_iterator<base, 0>
-				write(data(), size(), 1, n);
-			while (n--) {
-				*(--write) = (*ptr) - '0';
-				++ptr;
-			}
-			return *this;
+            ubint.vec.resize(_Size);
+            virtual_unsigned_biginteger_iterator<base, 0>
+                write(data(), size(), 1, n);
+            while (n--) {
+                *(--write) = (*ptr) - '0';
+                ++ptr;
+            }
+            return *this;
         }
 
-        template<typename iter,typename Func>
+        template<typename iter, typename Func>
         biginteger& assign(iter first, iter last, Func&& fn) {
             return this->assign(true, first, last, std::forward<Func>(fn));
         }
@@ -2777,8 +2880,21 @@ namespace wjr {
         void maintain_signal() { _Signal = _Signal || ubint.zero(); }
         void change_signal() { _Signal = (!_Signal) || ubint.zero(); }
         void set_signal(bool f) { _Signal = f || ubint.zero(); }
-        void reserve(size_t k) { ubint.vec.reserve((k + traits::bit_length - 1) / traits::bit_length); }
-        void resize(size_t k) { ubint.vec.resize((k + traits::bit_length - 1) / traits::bit_length); }
+        void reserve(size_t k) {
+            ubint.vec.reserve((k + traits::bit_length - 1) / traits::bit_length);
+        }
+        void resize(size_t k) {
+            size_t _Oldsize = size();
+            size_t _Newsize = (k + traits::bit_length - 1) / traits::bit_length;
+            ubint.vec.resize(_Newsize);
+            if (_Oldsize >= _Newsize) {
+                size_t r = k % traits::bit_length;
+                if (r) {
+                    value_type* val = data() + (_Newsize - 1);
+                    *val = traits::quick_mod_base_power(*val, r);
+                }
+            }
+        }
         void abs() { _Signal = true; }
 
         size_t bit_length() const {
@@ -2841,7 +2957,7 @@ namespace wjr {
         }
 
         virtual_biginteger<0> get_virtual()const {
-            return virtual_biginteger<0>(data(),size());
+            return virtual_biginteger<0>(data(), size());
         }
 
         virtual_unsigned_biginteger<base, 0> get_unsigned_virtual()const {
@@ -2955,11 +3071,20 @@ namespace wjr {
             twice_value_type _Val = 0;
             value_type v = *rhs.data();
             WASSERT_LEVEL_1(v != 0);
-            biginteger_libdivider<value_type> _Divider(v);
-            for (size_t i = n; i--;) {
-                _Val = _Val * traits::max_value + p[i];
-                p[i] = static_cast<value_type>(_Val / _Divider);
-                _Val = _Val - traits::quick_mul(p[i], v);
+            if (n >= 8) {
+                biginteger_libdivider<value_type> _Divider(v);
+                for (size_t i = n; i--;) {
+                    _Val = _Val * traits::max_value + p[i];
+                    p[i] = static_cast<value_type>(_Val / _Divider);
+                    _Val = _Val - traits::quick_mul(p[i], v);
+                }
+            }
+            else {
+                for (size_t i = n; i--;) {
+                    _Val = _Val * traits::max_value + p[i];
+                    p[i] = static_cast<value_type>(_Val / v);
+                    _Val = _Val - traits::quick_mul(p[i], v);
+                }
             }
             if (n != 1 && !p[n - 1]) {
                 lhs.ubint.vec.resize(n - 1);
@@ -2991,18 +3116,7 @@ namespace wjr {
             value_type vr = rhs.data()[rhs.size() - 1];
             auto kth = static_cast<value_type>(((traits::max_value >> 1) + vr - 1) / vr);
             if (kth != 1) {
-                if constexpr (mode == div_mode::none) {
-                    lhs *= kth;
-                }
-                else {
-                    twice_value_type _Val = traits::quick_mul(lhs.ubint.vec.back(), kth);
-                    auto lo = traits::get_low(_Val);
-                    auto hi = traits::get_high(_Val);
-                    lhs.ubint.vec.back() = lo;
-                    if (hi != 0) {
-                        lhs.ubint.vec.push_back(hi);
-                    }
-                }
+                lhs *= kth;
                 rhs *= kth;
             }
             auto pl = lhs.data();
@@ -3069,7 +3183,7 @@ namespace wjr {
             E.ubint.vec[k + 1] = 1;
             biginteger mo(rhs);
             quick_divmod<div_mode::lhs_is_power_of_base>(E, mo);
-
+            size_t g = k + 1 - E.size();
             biginteger ans;
             ans.ubint.vec.resize(n - m + 1);
             biginteger mid_result;
@@ -3077,14 +3191,13 @@ namespace wjr {
             while (l) {
                 size_t ml = std::min(l, k - mo.size());
                 mo <<= ml * traits::bit_length;
-                if constexpr (mode != div_mode::lhs_is_power_of_base) {
-                    auto cl = virtual_biginteger<0>(true, lhs.data() + l - ml, ml).maintain();
-                    if (mo.size() < cl.size())mo.ubint.vec.resize(cl.size());
-                    memcpy(mo.data(), cl.data(), sizeof(value_type) * cl.size());
-                }
-                mid_result = mo;
+                auto cl = virtual_biginteger<0>(true, lhs.data() + l - ml, ml).maintain();
+                if (mo.size() < cl.size())mo.ubint.vec.resize(cl.size());
+                memcpy(mo.data(), cl.data(), sizeof(value_type) * cl.size());
+                size_t lc = std::min(mo.size(), g);
+                mid_result = virtual_biginteger<0>(true, mo.data() + lc, mo.size() - lc);
                 mid_result *= E;
-                mid_result >>= (k + 1) * traits::bit_length;
+                mid_result >>= E.size() * traits::bit_length;
                 mo -= mid_result * rhs;
 #if WDEBUG_LEVEL >= 1
                 size_t step = 0;
@@ -3125,11 +3238,11 @@ namespace wjr {
 
             biginteger ans1(virtual_biginteger<0>(true, rhs.data() + p, m - p));
             quick_divmod<div_mode::lhs_is_power_of_base>(E, ans1);
+            size_t g = k + 1 - E.size();
             if constexpr (mode == div_mode::none) {
-                ans1 = virtual_biginteger<0>(true, lhs.data() + mid + p, k);
-                ++ans1;
+                ans1 = virtual_biginteger<0>(true, lhs.data() + mid + p + g, k - g);
                 ans1 *= E;
-                ans1 >>= ((k + 1) * traits::bit_length);
+                ans1 >>= E.size() * traits::bit_length;
             }
             else {
                 size_t bl = lhs.bit_length();
@@ -3159,10 +3272,9 @@ namespace wjr {
 
             mo1 <<= (mid * traits::bit_length);
             if constexpr (mode == div_mode::none) {
-                virtual_biginteger<0> view(true, lhs.data(), mid);
-                view.maintain();
-                if(mo1.size() < view.size())mo1.ubint.vec.resize(view.size());
-				memcpy(mo1.data(), view.data(), sizeof(value_type) * view.size());
+                auto view = virtual_biginteger<0>(true, lhs.data(), mid).maintain();
+                if (mo1.size() < view.size())mo1.ubint.vec.resize(view.size());
+                memcpy(mo1.data(), view.data(), sizeof(value_type) * view.size());
             }
             else {
 #if WDEBUG_LEVEL >= 2
@@ -3170,18 +3282,25 @@ namespace wjr {
 #endif
             }
 
-            biginteger ans2(mo1);
-            ans2 >>= p * traits::bit_length;
-            ++ans2;
+            lhs = std::move(ans1);
+            lhs <<= (mid * traits::bit_length);
+
+            size_t ml = std::min(p + g, mo1.size());
+            auto view = virtual_biginteger<0>(true, mo1.data() + p + g, mo1.size() - ml).maintain();
+            biginteger ans2(view);
             ans2 *= E;
-            ans2 >>= (k + 1) * traits::bit_length;
+            ans2 >>= E.size() * traits::bit_length;
 
             mo1 -= rhs * ans2;
+
+            if (lhs.size() < ans2.size())lhs.ubint.vec.resize(ans2.size());
+            memcpy(lhs.data(), ans2.data(), sizeof(value_type) * ans2.size());
+
 #if WDEBUG_LEVEL >= 1
             step = 0;
 #endif
             while (!mo1.signal()) {
-                --ans2;
+                --lhs;
                 mo1 += rhs;
                 WASSERT_LEVEL_1((++step) <= 2);
             }
@@ -3189,15 +3308,11 @@ namespace wjr {
             step = 0;
 #endif
             while (mo1 >= rhs) {
-                ++ans2;
+                ++lhs;
                 mo1 -= rhs;
                 WASSERT_LEVEL_1((++step) <= 2);
             }
 
-            lhs = std::move(ans1);
-            lhs <<= (mid * traits::bit_length);
-            if (lhs.size() < ans2.size())lhs.ubint.vec.resize(ans2.size());
-            memcpy(lhs.data(), ans2.data(), sizeof(value_type) * ans2.size());
             rhs = std::move(mo1);
         }
 
@@ -3212,23 +3327,15 @@ namespace wjr {
             quick_divmod<div_mode::none>(copyA, copyB);
             --copyB;
 
+            auto view = virtual_biginteger<0>(true, lhs.data(), mid).maintain();
             if (!copyB.signal()) {
                 copyB <<= (mid * traits::bit_length);
-                copyB += virtual_biginteger<0>(true, lhs.data(), mid).maintain();
+                copyB += view;
             }
             else {
-                if (copyB.zero()) {
-                    copyB = virtual_biginteger<0>(true, lhs.data(), mid).maintain();
-                    copyB.ubint.vec.resize(mid);
-                    size_t pos = copyB.size() - 1;
-                    auto p = copyB.data();
-                    while (pos != 1 && !p[pos - 1])--pos;
-                    copyB.ubint.vec.resize(pos);
-                }
-                else {
-                    copyB <<= (mid * traits::bit_length);
-                    memcpy(copyB.data(), lhs.data(), sizeof(value_type) * mid);
-                }
+                copyB <<= (mid * traits::bit_length);
+                if (copyB.size() < view.size())copyB.ubint.vec.resize(view.size());
+                memcpy(copyB.data(), view.data(), sizeof(value_type) * view.size());
             }
 
             copyB -= virtual_biginteger<0>(true, rhs.data(), mid).maintain() * copyA;
@@ -3244,7 +3351,7 @@ namespace wjr {
         template<div_mode mode = div_mode::none>
         static void quick_divmod(biginteger& lhs, biginteger& rhs) {
             WASSERT_LEVEL_1(!rhs.zero() && lhs.signal() && rhs.signal());
-            if (unsigned_biginteger<base>::less(lhs.ubint, rhs.ubint)) {
+             if (unsigned_biginteger<base>::less(lhs.ubint, rhs.ubint)) {
                 lhs.swap(rhs);
                 lhs.set_zero();
                 return;
@@ -3419,10 +3526,10 @@ namespace wjr {
             return lhs.signal() != rhs.signal() ?
                 lhs.signal() < rhs.signal() :
                 lhs.signal() ? unsigned_traits::less_eq(lhs.get_unsigned(), rhs.get_unsigned())
-                : !unsigned_traits::less(lhs.get_unsigned(),rhs.get_unsigned());
+                : !unsigned_traits::less(lhs.get_unsigned(), rhs.get_unsigned());
         }
 
-        template<size_t toBase,size_t length>
+        template<size_t toBase, size_t length>
         static biginteger<toBase> dc_base_conversion_helper(
             const wjr::virtual_unsigned_biginteger<base, length>& v,
             std::vector<std::pair<size_t, biginteger<toBase>>>& cache) {
@@ -3529,14 +3636,14 @@ namespace wjr {
 
         template<size_t _Base>
         friend void divmod(biginteger<_Base>& lhs, biginteger<_Base>& rhs);
-        template<size_t toBase, typename T, size_t fromBase ,
-            std::enable_if_t<_Is_biginteger_base_masks_v<fromBase,T>, int> >
-        friend biginteger<toBase> base_conversion(T&&);
+        template<size_t toBase, typename T, size_t fromBase,
+            std::enable_if_t<_Is_biginteger_base_masks_v<fromBase, T>, int> >
+            friend biginteger<toBase> base_conversion(T&&);
         template<size_t _Base>
         friend void random_biginteger(biginteger<_Base>& result, size_t n, bool, bool);
         template<size_t _Base, typename T,
             std::enable_if_t<_Is_biginteger_base_masks_v<_Base, T>, int> >
-        friend void random_biginteger_max(biginteger<_Base>& result, const T& _Max);
+            friend void random_biginteger_max(biginteger<_Base>& result, const T& _Max);
 
         bool _Signal = true;
         unsigned_biginteger<base> ubint;
@@ -3703,14 +3810,24 @@ namespace wjr {
         return result;
     }
 
+    VIRTUAL_BIGINTEGER_SINGLE_AUTO_DEFINITION
+    bool operator!(T&& x) {
+        if constexpr (std::is_integral_v<T>) {
+            return !x;
+        }
+        else {
+            return std::forward<T>(x).zero();
+        }
+    }
+
     template<size_t _Base>
     void divmod(biginteger<_Base>& lhs, biginteger<_Base>& rhs) {
         biginteger<_Base>::quick_divmod(lhs, rhs);
     }
 
     template<size_t toBase, typename T, size_t fromBase,
-        std::enable_if_t<_Is_biginteger_base_masks_v<fromBase,T>, int> >
-    biginteger<toBase> base_conversion(T&& v) {
+        std::enable_if_t<_Is_biginteger_base_masks_v<fromBase, T>, int> >
+        biginteger<toBase> base_conversion(T&& v) {
 #if WDEBUG_LEVEL >= 3
         biginteger<fromBase> origin(v);
 #endif
@@ -3748,13 +3865,13 @@ namespace wjr {
     }
 
     template<size_t _Base>
-    biginteger<_Base> random_biginteger(size_t n, bool _unsigned,bool exact) {
+    biginteger<_Base> random_biginteger(size_t n, bool _unsigned, bool exact) {
         biginteger<_Base> result;
         random_biginteger(result, n, _unsigned, exact);
         return result;
     }
 
-    template<size_t _Base,typename T,std::enable_if_t<_Is_biginteger_base_masks_v<_Base,T>,int> >
+    template<size_t _Base, typename T, std::enable_if_t<_Is_biginteger_base_masks_v<_Base, T>, int> >
     void random_biginteger_max(biginteger<_Base>& result, const T& _Max) {
         using traits = biginteger_traits<_Base>;
         using value_type = typename traits::value_type;
@@ -3765,8 +3882,8 @@ namespace wjr {
         size_t n = view.size();
         auto p = view.data();
         auto _Head_val = p[n - 1];
-        std::uniform_int_distribution<value_type> head(0,p[n - 1]);
-        std::uniform_int_distribution<value_type> tail(0,traits::_max);
+        std::uniform_int_distribution<value_type> head(0, p[n - 1]);
+        std::uniform_int_distribution<value_type> tail(0, traits::_max);
         result.get_vec().resize(n);
         auto rep = result.data();
         while (true) {
@@ -3785,37 +3902,32 @@ namespace wjr {
             break;
         }
         result.maintain();
-    }
+    } 
 
     template<size_t _Base, typename T, typename U,
         std::enable_if_t<_Is_biginteger_base_masks_v<_Base, T, U>, int> >
-    void random_biginteger_min_max(biginteger<_Base>& result,const T&_Min,const U&_Max){
+        void random_biginteger_min_max(biginteger<_Base>& result, const T& _Min, const U& _Max) {
         random_biginteger_max(result, _Max - _Min);
         result += _Min;
     }
 
     template<size_t _Base, typename T,
         std::enable_if_t<_Is_biginteger_base_masks_v<_Base, T>, int> >
-    biginteger<_Base> random_biginteger_max(const T& _Max) {
+        biginteger<_Base> random_biginteger_max(const T& _Max) {
         biginteger<_Base> result;
         random_biginteger_max(result, _Max);
         return result;
     }
+	
     template<size_t _Base, typename T, typename U,
         std::enable_if_t<_Is_biginteger_base_masks_v<_Base, T, U>, int> >
-    biginteger<_Base> random_biginteger_min_max(const T& _Min, const U& _Max){
+        biginteger<_Base> random_biginteger_min_max(const T& _Min, const U& _Max) {
         biginteger<_Base> result;
         random_biginteger_min_max(result, _Min, _Max);
         return result;
     }
 
-#undef GENERATE_BIGINTEGER_OPERATOR
-#undef VIRTUAL_BIGINTEGER_BINARY_AUTO_DEFINITION
-#undef VIRTUAL_BIGINTEGER_BINARY_AUTO_DECLARATION
-#undef VIRTUAL_UNSIGNED_BIGINTEGER_BINARY_DECLARATION
-#undef VIRTUAL_UNSIGNED_BIGINTEGER_SINGLE_DECLARATION
-#undef REGISTER_BETTER_VIRTUAL_BIGINTEGER_FUNCTION
-#undef REGISTER_VIRTUAL_BIGINTEGER_FUNCTION
+	
 
 }
 
