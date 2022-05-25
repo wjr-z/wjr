@@ -10,14 +10,11 @@
 
 using namespace wjr;
 using namespace std;
-
 void Karatsuba(biginteger<2>& result,
     virtual_biginteger<2, 0> lhs, virtual_biginteger<2, 0> rhs);
-
 using vt = virtual_biginteger<2, 0>;
 void toom_cook(biginteger<2>& result,
     vt lhs, vt rhs);
-
 void qmul(biginteger<2>& result, virtual_biginteger<2, 0> lhs, virtual_biginteger<2, 0> rhs) {
     size_t n = lhs.size();
     size_t m = rhs.size();
@@ -25,14 +22,13 @@ void qmul(biginteger<2>& result, virtual_biginteger<2, 0> lhs, virtual_bigintege
         swap(n, m);
         swap(lhs, rhs);
     }
-    if (n <= 256) {
+    if (n >= 64 && n <= 256) {
         return toom_cook(result, lhs, rhs);
     }
     else {
         return mul(result, lhs, rhs);
     }
 }
-
 void Karatsuba(biginteger<2>& result,
     virtual_biginteger<2, 0> lhs, virtual_biginteger<2, 0> rhs) {
     size_t n = lhs.size();
@@ -50,7 +46,7 @@ void Karatsuba(biginteger<2>& result,
     virtual_biginteger<2, 0> l_high(lhs.data() + mid, n - mid);
     virtual_biginteger<2, 0> l_low(lhs.data(), mid);
     virtual_biginteger<2, 0> r_high(rhs.data() + mid, m < mid ? 0 : m - mid);
-    virtual_biginteger<2, 0> r_low(rhs.data(), mid <= m ?  mid : m);
+    virtual_biginteger<2, 0> r_low(rhs.data(), mid <= m ? mid : m);
     l_low.maintain();
     r_high.maintain();
     r_low.maintain();
@@ -67,7 +63,6 @@ void Karatsuba(biginteger<2>& result,
     result <<= (mid * 32);
     result += C;
 }
-
 void toom_cook(biginteger<2>& result,
     vt lhs, vt rhs) {
     if (lhs.size() < rhs.size()) {
@@ -102,8 +97,8 @@ void toom_cook(biginteger<2>& result,
     sub(W2, W4, V1);
     add(W4, W4, V1);
 
-    qmul(W1, W3.get_virtual(), W2.get_virtual());
-    qmul(W2, W0.get_virtual(), W4.get_virtual());
+    mul(W1, W3.get_virtual(), W2.get_virtual());
+    mul(W2, W0.get_virtual(), W4.get_virtual());
 
     W0 += U2;
     W0 <<= 1;
@@ -112,9 +107,9 @@ void toom_cook(biginteger<2>& result,
     W4 <<= 1;
     W4 -= V0;
 
-    qmul(W3, W0.get_virtual(), W4.get_virtual());
-    qmul(W0, U0, V0);
-    qmul(W4, U2, V2);
+    mul(W3, W0.get_virtual(), W4.get_virtual());
+    mul(W0, U0, V0);
+    mul(W4, U2, V2);
 
     W3 -= W1;
     W3 /= 3;
@@ -159,7 +154,7 @@ void test() {
             String::number(T).right_justified(8),
             "\n\n"
         );
-        for (size_t m = 4; m <= 256;m <<= 1) {
+        for (size_t m = 4; m <= 256; m <<= 1) {
             biginteger<2> b = random_biginteger<2>(m * 32);
             auto s = mtime();
             for (size_t i = 0; i < T; ++i) {
@@ -201,12 +196,12 @@ void test2() {
     struct Q {
         String* ptr;
         ~Q() {
-            write_file("test_2.out", *ptr);
+            write_file("test_5.out", *ptr);
         }
     };
     Q it;
     it.ptr = &str;
-    for (size_t n = 32; n <= (1 << 20); n *= 1.2) {
+    for (size_t n = 32; n <= (1 << 20); n = ceil(n * 1.2)) {
         size_t T = max((1 << 18) / n, 1ull);
         biginteger<2> c, d;
         biginteger<2> a = random_biginteger<2>(n * 32);
@@ -218,11 +213,13 @@ void test2() {
             String::number(T).right_justified(8),
             "\n\n"
         );
-        for (size_t m = 8; m <= 256; m <<= 1) {
+        for (size_t m = 2; m <= n; m = ceil(m * 1.2)) {
             biginteger<2> b = random_biginteger<2>(m * 32);
             auto s = mtime();
             for (size_t i = 0; i < T; ++i) {
-                mul(c, a, b);
+                qmul(c, a.get_virtual(), b.get_virtual());
+                //toom_cook(c, a.get_virtual(), b.get_virtual());
+                //mul(c, a, b);
             }
             double p = mtime() - s;
             w.multiple_append(
@@ -230,8 +227,6 @@ void test2() {
                 String::number(m).right_justified(8),
                 " ",
                 String::number(p).right_justified(8),
-                //" ",
-                //String::number(p * 1.0/ ((n + m) * log2(n + m))).right_justified(8),
                 "\n"
             );
         }
@@ -334,21 +329,55 @@ bool is_prime(const biginteger<2>& x) {
     return miller_robin(x);
 }
 
-int main() {
-    /*auto s = mtime();
-    while (true) {
-        auto a = random_biginteger<2>(2048);
-        bool f = is_prime(a);
-        if (f)break;
+const int N = 1e7;
+uint32_t a[N], b[N];
+
+void testg() {
+    mt19937 mt_rand(time(NULL));
+    for (int i = 0; i < N; ++i) {
+        a[i] = mt_rand();
+        b[i] = mt_rand();
     }
-    cout << mtime() - s << '\n';*/
-    auto a = random_biginteger<2>(1e5 * 32);
-    auto b = random_biginteger<2>(128 * 32);
-    biginteger<2> c;
+    uint64_t c = 0;
     auto s = mtime();
-    mul(c, a, b);
+    for (int i = 0; i < N; ++i) {
+        c += (uint64_t)a[i] * b[i];
+    }
     auto t = mtime();
     cout << t - s << '\n';
+    cout << c << '\n';
+}
+
+
+int main() {
+    
+    //auto g = c * e * d;
+    //g.print();
+    //h.print();
+	
+    /*testg();
+    biginteger<2> c;
+    uint64_t d = 0;
+    auto s = mtime();
+    uint32_t j = 0;
+    for (biginteger<2> i(0); i != N; ++i) {
+        auto j = (uint32_t)i;
+        d += (uint64_t)a[j] * b[j];
+    }
+    auto t = mtime();
+    cout << t - s << '\n';
+    cout << d;*/
     //test2();
+    //return 0;
+    auto a = random_biginteger<2>(1e6 * 32);
+    auto b = random_biginteger<2>(106 * 32);
+    biginteger<2> c;
+    auto s = mtime();
+    for (size_t i = 0; i < 1; ++i) {
+        mul(c, a, b);
+    }
+    auto t = mtime();
+    cout << t - s << '\n';
+    cout << (((a * b) / b) == a) << '\n';
     return 0;
 }

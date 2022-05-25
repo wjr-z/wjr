@@ -419,7 +419,7 @@ namespace wjr {
 	// memory used in one place only
 	template<size_t block>
 	void* static_thread_local_at_once_memory() {
-		constexpr size_t cblock = !block ? 0 : (size_t(1) << (quick_log2(block - 1) + 1));
+		constexpr size_t cblock = !block ? 0 : (size_t(1) << (cqlog2(block - 1) + 1));
 		return basic_static_thread_local_at_once_memory<cblock>();
 	}
 
