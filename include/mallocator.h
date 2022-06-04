@@ -370,6 +370,10 @@ namespace wjr {
 			allocator_type::deallocate(static_cast<void*>(ptr), sizeof(Ty) * n);
 		}
 
+		void construct(Ty* ptr, wjr_do_not_initialize_tag) const{
+			
+		}
+
 		size_t max_size()const {
 			return static_cast<size_t>(-1) / sizeof(Ty);
 		}

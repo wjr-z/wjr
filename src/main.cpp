@@ -1,12 +1,4 @@
-﻿#include <functional>
-#include "../include/exist_ptr.h"
-#include "../include/graphic.h"
-#include "../include/json.h"
-#include "../include/mtool.h"
-#include "../include/thread_pool.h"
-#include "../include/biginteger.h"
-#include <random>
-#include <intrin.h>
+﻿#include "../include/biginteger.h"
 
 using namespace wjr;
 using namespace std;
@@ -22,7 +14,7 @@ void qmul(biginteger<2>& result, virtual_biginteger<2, 0> lhs, virtual_bigintege
         swap(n, m);
         swap(lhs, rhs);
     }
-    if (n >= 64 && n <= 256) {
+    if (m >= 106 && m <= 256) {
         return toom_cook(result, lhs, rhs);
     }
     else {
@@ -38,7 +30,6 @@ void Karatsuba(biginteger<2>& result,
         swap(lhs, rhs);
     }
     if (m <= 36) {
-        //cout << n << '\n';
         mul(result, lhs, rhs);
         return;
     }
@@ -63,7 +54,8 @@ void Karatsuba(biginteger<2>& result,
     result <<= (mid * 32);
     result += C;
 }
-void toom_cook(biginteger<2>& result,
+void toom_cook(
+    biginteger<2>& result,
     vt lhs, vt rhs) {
     if (lhs.size() < rhs.size()) {
         swap(lhs, rhs);
@@ -97,8 +89,8 @@ void toom_cook(biginteger<2>& result,
     sub(W2, W4, V1);
     add(W4, W4, V1);
 
-    mul(W1, W3.get_virtual(), W2.get_virtual());
-    mul(W2, W0.get_virtual(), W4.get_virtual());
+    qmul(W1, W3.get_virtual(), W2.get_virtual());
+    qmul(W2, W0.get_virtual(), W4.get_virtual());
 
     W0 += U2;
     W0 <<= 1;
@@ -107,9 +99,9 @@ void toom_cook(biginteger<2>& result,
     W4 <<= 1;
     W4 -= V0;
 
-    mul(W3, W0.get_virtual(), W4.get_virtual());
-    mul(W0, U0, V0);
-    mul(W4, U2, V2);
+    qmul(W3, W0.get_virtual(), W4.get_virtual());
+    qmul(W0, U0, V0);
+    qmul(W4, U2, V2);
 
     W3 -= W1;
     W3 /= 3;
@@ -329,55 +321,6 @@ bool is_prime(const biginteger<2>& x) {
     return miller_robin(x);
 }
 
-const int N = 1e7;
-uint32_t a[N], b[N];
-
-void testg() {
-    mt19937 mt_rand(time(NULL));
-    for (int i = 0; i < N; ++i) {
-        a[i] = mt_rand();
-        b[i] = mt_rand();
-    }
-    uint64_t c = 0;
-    auto s = mtime();
-    for (int i = 0; i < N; ++i) {
-        c += (uint64_t)a[i] * b[i];
-    }
-    auto t = mtime();
-    cout << t - s << '\n';
-    cout << c << '\n';
-}
-
-
 int main() {
-    
-    //auto g = c * e * d;
-    //g.print();
-    //h.print();
-	
-    /*testg();
-    biginteger<2> c;
-    uint64_t d = 0;
-    auto s = mtime();
-    uint32_t j = 0;
-    for (biginteger<2> i(0); i != N; ++i) {
-        auto j = (uint32_t)i;
-        d += (uint64_t)a[j] * b[j];
-    }
-    auto t = mtime();
-    cout << t - s << '\n';
-    cout << d;*/
-    //test2();
-    //return 0;
-    auto a = random_biginteger<2>(1e6 * 32);
-    auto b = random_biginteger<2>(106 * 32);
-    biginteger<2> c;
-    auto s = mtime();
-    for (size_t i = 0; i < 1; ++i) {
-        mul(c, a, b);
-    }
-    auto t = mtime();
-    cout << t - s << '\n';
-    cout << (((a * b) / b) == a) << '\n';
     return 0;
 }

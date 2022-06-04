@@ -8,12 +8,14 @@
 #include <locale>
 #include <random>
 #include <type_traits>
-#include <smmintrin.h>
+
+#include <immintrin.h>
 
 #define USE_LIBDIVIDE
 #ifdef USE_LIBDIVIDE
 #include "libdivide.h"
 #else
+
 namespace libdivide {
     enum Branching {
         BRANCHFULL,  // use branching algorithms
@@ -22,11 +24,6 @@ namespace libdivide {
     template<typename T, Branching ALGO = BRANCHFULL>
     using divider = T;
 }
-#endif
-
-
-#if defined(_MSC_VER)
-#include <intrin.h>
 #endif
 
 namespace wjr {
@@ -200,6 +197,8 @@ namespace wjr {
         using wjr_ssize_t = std::make_signed_t<size_t>;
 
         struct wjr_empty_tag {};
+
+        struct wjr_do_not_initialize_tag {};
 
         struct wjr_use_threads
             : std::conditional_t<WJR_THREADS, std::true_type, std::false_type> {
@@ -668,66 +667,6 @@ namespace wjr {
             return cqlog2((uint64_t)x);
         }
 
-        /*inline size_t mleading_zero(uint16_t x) {
-#if defined(_MSC_VER)
-            return __lzcnt16(x);
-#else
-            return 15 - cqlog2(x);
-#endif
-        }
-
-        inline size_t mleading_zero(int16_t x) {
-            return mleading_zero((uint16_t)x);
-        }
-
-        inline size_t mleading_zero(uint32_t x) {
-#if defined(_MSC_VER)
-            return __lzcnt(x);
-#else
-            return 31 - cqlog2(x);
-#endif
-        }
-
-        inline size_t mleading_zero(int32_t x) {
-            return mleading_zero((uint32_t)x);
-        }
-
-        inline size_t mleading_zero(uint64_t x) {
-#if defined(_MSC_VER)
-            return __lzcnt64(x);
-#else
-            return 63 - cqlog2(x);
-#endif
-        }
-
-        inline size_t mleading_zero(int64_t x) {
-            return mleading_zero((uint64_t)x);
-        }
-
-        inline size_t qlog2(uint16_t x) {
-            return 15 - mleading_zero(x);
-        }
-
-        inline size_t qlog2(int16_t x) {
-            return qlog2((uint16_t)x);
-        }
-
-        inline size_t qlog2(uint32_t x) {
-            return 31 - mleading_zero(x);
-        }
-
-        inline size_t qlog2(int32_t x) {
-            return qlog2((uint32_t)x);
-        }
-
-        inline size_t qlog2(uint64_t x) {
-            return 63 - mleading_zero(x);
-        }
-
-        inline size_t qlog2(int64_t x) {
-            return qlog2((uint64_t)x);
-        }*/
-
         template<typename T>
         constexpr T quick_pow(T a, T b) {
             T s = 1;
@@ -1131,7 +1070,7 @@ namespace wjr {
         }
 
         static void* skip_whitespace(const void* s, const void* e) {
-#if defined(__SSE4_2__)
+#if defined(__SSE2__)
             uint8_t* _s = (uint8_t*)s;
             uint8_t* _e = (uint8_t*)e;
             if (is_white_space_char[*_s])
@@ -1148,6 +1087,7 @@ namespace wjr {
             return simple_skip_whitespace(s, e);
 #endif
         }
+
     }
 }
 
