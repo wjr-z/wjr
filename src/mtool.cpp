@@ -41,7 +41,7 @@ namespace wjr {
 			path.pop_back();
 			const size_t l = path.length();
 			do {
-				if ((fileinfo.attrib & _A_SUBDIR))
+				if (fileinfo.attrib & _A_SUBDIR)
 				{
 					if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0) {
 						path.append(fileinfo.name);
@@ -92,10 +92,8 @@ namespace wjr {
 		assert(*path.end() == '\0');
 		std::vector<String> file_path;
 #ifndef __linux__
-		if (!_access(path.c_str(), 0)) {
-			if (!get_all_files(path, file_path)) {
-				file_path.push_back((String)path);
-			}
+		if (!_access(path.c_str(), 0) && !get_all_files(path, file_path)) {
+			file_path.push_back((String)path);
 		}
 #else
 		if (!access(path.c_str(), F_OK)) {
@@ -177,7 +175,7 @@ namespace wjr {
 	) {
 		assert(*filename.end() == '\0');
 #ifndef __linux__
-		return mkdir(filename.c_str());
+		return _mkdir(filename.c_str());
 #else
 		return mkdir(filename.c_str(), __mode);
 #endif

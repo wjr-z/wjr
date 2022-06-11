@@ -62,7 +62,7 @@ namespace wjr {
 		constexpr static size_t string_step[256] = { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 		};
 
-		const uint8_t* skip_string(const uint8_t* s, const uint8_t* e) {
+		const uint8_t* skip_string(const uint8_t* s, [[maybe_unused]] const uint8_t* e) {
 			while (string_step[*s]) {
 				s += string_step[*s];
 			}
@@ -801,7 +801,7 @@ namespace wjr {
 	json json::parse(String_view str) {
 		assert(accept(str));
 		json x;
-		const uint8_t* ptr = (const uint8_t*)str.data();
+		auto ptr = (const uint8_t*)str.data();
 		x.dfs_parse(ptr, ptr + str.length());
 		return x;
 	}
@@ -884,8 +884,8 @@ namespace wjr {
 	}
 
 	bool json::accept(String_view str) {
-		const uint8_t* s = (const uint8_t*)str.data();
-		const uint8_t* e = s + str.length();
+		auto s = (const uint8_t*)str.data();
+		auto e = s + str.length();
 
 		s = (uint8_t*)skip_whitespace(s, e);
 
@@ -1165,7 +1165,7 @@ namespace wjr {
 		case '+':
 		default: {
 			vtype = (uint8_t)(value_t::number);
-			const char* ptr = (const char*)s;
+			auto ptr = (const char*)s;
 			_Number = read_double((const char*)s, (const char*)e, ptr);
 			s = (const uint8_t*)ptr;
 			break;

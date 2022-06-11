@@ -369,7 +369,7 @@ namespace wjr {
 		diff_t sufsearch = size, alsearch = 0;
 		diff_t res = text_back - text_ptr;
 
-		for (;;) {
+		while(true) {
 			if (!Eq(*text_ptr, ch)) {
 				// find at least one match
 				do {
@@ -1744,7 +1744,6 @@ namespace wjr {
 
 			general_map(const value_type* s, const value_type* e) {
 				const value_type* ptr = s;
-				is_large = false;
 				while (ptr != e) {
 					if (*ptr > 0xFF || *ptr < 0) {
 						is_large = true;
@@ -1778,7 +1777,7 @@ namespace wjr {
 				large_map* b;
 			};
 
-			bool is_large;
+			bool is_large = false;
 		};
 
 	public:
@@ -5892,7 +5891,7 @@ namespace wjr {
 		static_assert(std::is_unsigned_v<UVal>, "UVal must be unsigned");
 		assert(base < 0);
 		bool f = p;
-		unsigned int ubase = static_cast<unsigned int>(-base);
+		auto ubase = static_cast<unsigned int>(-base);
 		do {
 			UVal mod = val % ubase;
 			UVal k = val / ubase;
@@ -6296,8 +6295,8 @@ namespace wjr {
 			it.append(*this, off, pos - off);
 			off = default_traits::find_first_not_of(_data, _size, pos + 1, default_traits::trim_map);
 			if (off != npos) {
-				for (;;) {
-					const size_type pos = default_traits::
+				while(true) {
+					pos = default_traits::
 						find_first_of(_data, _size, off, default_traits::trim_map);
 					if (pos == npos) {
 						it.append(*this, off, npos);
@@ -6332,8 +6331,8 @@ namespace wjr {
 			ptr += pos - off;
 			off = default_traits::find_first_not_of(_data, _size, pos + 1, default_traits::trim_map);
 			if (off != npos) {
-				for (;;) {
-					const size_type pos = default_traits::
+				while(true) {
+					pos = default_traits::
 						find_first_of(_data, _size, off, default_traits::trim_map);
 					if (pos == npos) {
 						used_size += _size - off;
@@ -6704,7 +6703,7 @@ namespace wjr {
 				n = str.max_size();
 			}
 			str.clear();
-			size_t sn = static_cast<size_t>(n);
+			auto sn = static_cast<size_t>(n);
 			for (auto got = is.rdbuf()->sgetc(); extracted != sn; ++extracted) {
 				if (got == Traits::eof()) {
 					err |= istream_type::eofbit;

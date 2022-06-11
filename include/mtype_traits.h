@@ -200,9 +200,7 @@ namespace wjr {
 
         struct wjr_do_not_initialize_tag {};
 
-        struct wjr_use_threads
-            : std::conditional_t<WJR_THREADS, std::true_type, std::false_type> {
-        };
+        struct wjr_store_tag {};
 
         template<typename T>
         struct midentity {
@@ -715,7 +713,7 @@ namespace wjr {
 
         template<size_t base, typename T>
         constexpr bool quick_is_power_of(T x) {
-            return quick_pow(cqlog<base>(x), base) == x;
+            return quick_pow(base, cqlog<base>(x)) == x;
         }
 
         constexpr uint16_t bswap_16(uint16_t x) {
