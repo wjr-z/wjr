@@ -23,8 +23,8 @@ namespace wjr {
             "adc %[v2], %%eax\n"    \
             "mov %%eax, %[u2]\n"    \
             "setb       %[u1]\n"    \
-            : [u1] "+&g"(c_in), [u2] "+g"(*out)  \
-            : [v1] "g"(in_1), [v2] "g"(in_2)     \
+            : [u1] "+&r"(c_in), [u2] "+r"(*out)  \
+            : [v1] "r"(in_1), [v2] "r"(in_2)     \
         );
         return c_in;
 #elif whas_builtin(__builtin_addcl)
@@ -47,8 +47,8 @@ namespace wjr {
             "adc %[v2], %%rax\n"    \
             "mov %%rax, %[u2]\n"    \
             "setb       %[u1]\n"    \
-            : [u1] "+&g"(c_in), [u2] "+g"(*out)  \
-            : [v1] "g"(in_1), [v2] "g"(in_2)     \
+            : [u1] "+&r"(c_in), [u2] "+r"(*out)  \
+            : [v1] "r"(in_1), [v2] "r"(in_2)     \
         );
         return c_in;
 #elif whas_builtin(__builtin_addcll)
@@ -77,8 +77,8 @@ namespace wjr {
             "sbb %[v2], %%eax\n"    \
             "mov %%eax, %[u2]\n"    \
             "setb       %[u1]\n"    \
-            : [u1] "+&g"(c_in), [u2] "+g"(*out)  \
-            : [v1] "g"(in_1), [v2] "g"(in_2)     \
+            : [u1] "+&r"(c_in), [u2] "+r"(*out)  \
+            : [v1] "r"(in_1), [v2] "r"(in_2)     \
         );
         return c_in;
 #elif whas_builtin(__builtin_subcl)
@@ -101,8 +101,8 @@ namespace wjr {
             "sbb %[v2], %%rax\n"    \
             "mov %%rax, %[u2]\n"    \
             "setb       %[u1]\n"    \
-            : [u1] "+&g"(c_in), [u2] "+g"(*out)  \
-            : [v1] "g"(in_1), [v2] "g"(in_2)     \
+            : [u1] "+&r"(c_in), [u2] "+r"(*out)  \
+            : [v1] "r"(in_1), [v2] "r"(in_2)     \
         );
         return c_in;
 #elif whas_builtin(__builtin_subcll)
@@ -121,8 +121,8 @@ namespace wjr {
         uint32_t v = *(p - 1) >> (32 - imm);
 #if defined(__AVX512F__)
         size_t c = ((n - 1) & 15) + 1;
-        auto g = src + c;
-        while (p != g) {
+        auto r = src + c;
+        while (p != r) {
             p -= 16;
             auto a = _mm512_loadu_si512((const __m512i*)p);
             auto b = _mm512_loadu_si512((const __m512i*)(p - 1));
@@ -133,8 +133,8 @@ namespace wjr {
         }
 #elif defined(__AVX2__)
         size_t c = ((n - 1) & 7) + 1;
-        auto g = src + c;
-        while (p != g) {
+        auto r = src + c;
+        while (p != r) {
             p -= 8;
             auto a = _mm256_loadu_si256((const __m256i*)p);
             auto b = _mm256_loadu_si256((const __m256i*)(p - 1));
@@ -145,8 +145,8 @@ namespace wjr {
         }
 #elif defined(__SSE2__)
         size_t c = ((n - 1) & 3) + 1;
-        auto g = src + c;
-        while (p != g) {
+        auto r = src + c;
+        while (p != r) {
             p -= 4;
             auto a = _mm_loadu_si128((const __m128i*)p);
             auto b = _mm_loadu_si128((const __m128i*)(p - 1));
@@ -173,8 +173,8 @@ namespace wjr {
         uint64_t v = *(p - 1) >> (64 - imm);
 #if defined(__AVX512F__)
         size_t c = ((n - 1) & 7) + 1;
-        auto g = src + c;
-        while (p != g) {
+        auto r = src + c;
+        while (p != r) {
             p -= 8;
             auto a = _mm512_loadu_si512((const __m512i*)p);
             auto b = _mm512_loadu_si512((const __m512i*)(p - 1));
@@ -185,8 +185,8 @@ namespace wjr {
         }
 #elif defined(__AVX2__)
         size_t c = ((n - 1) & 3) + 1;
-        auto g = src + c;
-        while (p != g) {
+        auto r = src + c;
+        while (p != r) {
             p -= 4;
             auto a = _mm256_loadu_si256((const __m256i*)p);
             auto b = _mm256_loadu_si256((const __m256i*)(p - 1));
@@ -197,8 +197,8 @@ namespace wjr {
         }
 #elif defined(__SSE2__)
         size_t c = ((n - 1) & 1) + 1;
-        auto g = src + c;
-        while (p != g) {
+        auto r = src + c;
+        while (p != r) {
             p -= 2;
             auto a = _mm_loadu_si128((const __m128i*)p);
             auto b = _mm_loadu_si128((const __m128i*)(p - 1));
@@ -224,8 +224,8 @@ namespace wjr {
         auto p = src;
 #if defined(__AVX512F__)
         size_t c = ((n - 1) & 15) + 1;
-        auto g = src + n - c;
-        while (p != g) {
+        auto r = src + n - c;
+        while (p != r) {
             auto a = _mm512_loadu_si512((const __m512i*)p);
             auto b = _mm512_loadu_si512((const __m512i*)(p + 1));
             auto x = _mm512_srli_epi32(a, imm);
@@ -236,8 +236,8 @@ namespace wjr {
         }
 #elif defined(__AVX2__)
         size_t c = ((n - 1) & 7) + 1;
-        auto g = src + n - c;
-        while (p != g) {
+        auto r = src + n - c;
+        while (p != r) {
             auto a = _mm256_loadu_si256((const __m256i*)p);
             auto b = _mm256_loadu_si256((const __m256i*)(p + 1));
             auto x = _mm256_srli_epi32(a, imm);
@@ -248,8 +248,8 @@ namespace wjr {
         }
 #elif defined(__SSE2__)
         size_t c = ((n - 1) & 3) + 1;
-        auto g = src + n - c;
-        while (p != g) {
+        auto r = src + n - c;
+        while (p != r) {
             auto a = _mm_loadu_si128((const __m128i*)p);
             auto b = _mm_loadu_si128((const __m128i*)(p + 1));
             auto x = _mm_srli_epi32(a, imm);
@@ -275,8 +275,8 @@ namespace wjr {
         auto p = src;
 #if defined(__AVX512F__)
         size_t c = ((n - 1) & 7) + 1;
-        auto g = src + n - c;
-        while (p != g) {
+        auto r = src + n - c;
+        while (p != r) {
             auto a = _mm512_loadu_si512((const __m512i*)p);
             auto b = _mm512_loadu_si512((const __m512i*)(p + 1));
             auto x = _mm512_srli_epi64(a, imm);
@@ -287,8 +287,8 @@ namespace wjr {
         }
 #elif defined(__AVX2__)
         size_t c = ((n - 1) & 3) + 1;
-        auto g = src + n - c;
-        while (p != g) {
+        auto r = src + n - c;
+        while (p != r) {
             auto a = _mm256_loadu_si256((const __m256i*)p);
             auto b = _mm256_loadu_si256((const __m256i*)(p + 1));
             auto x = _mm256_srli_epi64(a, imm);
@@ -299,8 +299,8 @@ namespace wjr {
         }
 #elif defined(__SSE2__)
         size_t c = ((n - 1) & 1) + 1;
-        auto g = src + n - c;
-        while (p != g) {
+        auto r = src + n - c;
+        while (p != r) {
             auto a = _mm_loadu_si128((const __m128i*)p);
             auto b = _mm_loadu_si128((const __m128i*)(p + 1));
             auto x = _mm_srli_epi64(a, imm);

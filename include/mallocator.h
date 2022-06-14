@@ -353,11 +353,11 @@ namespace wjr {
 		~basic_mallocator() = default;
 		basic_mallocator& operator=(const basic_mallocator&) noexcept = default;
 
-		Ty* allocate() {
+		[[nodiscard]] Ty* allocate() {
 			return static_cast<Ty*>(allocator_type::allocate(sizeof(Ty)));
 		}
 
-		Ty* allocate(size_t n) {
+		[[nodiscard]] Ty* allocate(size_t n) {
 			return !n ? nullptr : static_cast<Ty*>(allocator_type::allocate(sizeof(Ty) * n));
 		}
 
@@ -370,11 +370,11 @@ namespace wjr {
 			allocator_type::deallocate(static_cast<void*>(ptr), sizeof(Ty) * n);
 		}
 
-		void construct(Ty* ptr, wjr_do_not_initialize_tag) const{
+		void construct(Ty* ptr, wjr_uninitialized_tag) const{
 			
 		}
 
-		size_t max_size()const {
+		constexpr size_t max_size()const {
 			return static_cast<size_t>(-1) / sizeof(Ty);
 		}
 
@@ -384,22 +384,22 @@ namespace wjr {
 	};
 
 	template<typename T, typename U, bool t1, bool t2>
-	bool operator==(const basic_mallocator<T, t1>&, const basic_mallocator<U, t2>&) {
+	constexpr bool operator==(const basic_mallocator<T, t1>&, const basic_mallocator<U, t2>&) {
 		return false;
 	}
 
 	template<typename T, typename U, bool threads>
-	bool operator==(const basic_mallocator<T, threads>&, const basic_mallocator<U, threads>&) {
+	constexpr bool operator==(const basic_mallocator<T, threads>&, const basic_mallocator<U, threads>&) {
 		return true;
 	}
 
 	template<typename T, typename U, bool t1, bool t2>
-	bool operator!=(const basic_mallocator<T, t1>&, const basic_mallocator<U, t2>&) {
+	constexpr bool operator!=(const basic_mallocator<T, t1>&, const basic_mallocator<U, t2>&) {
 		return true;
 	}
 
 	template<typename T, typename U, bool threads>
-	bool operator!=(const basic_mallocator<T, threads>&, const basic_mallocator<U, threads>&) {
+	constexpr bool operator!=(const basic_mallocator<T, threads>&, const basic_mallocator<U, threads>&) {
 		return false;
 	}
 
@@ -413,19 +413,6 @@ namespace wjr {
 	template<typename T>
 	using mallocator = basic_mallocator<T, true>;
 #endif
-
-	template<size_t block>
-	void* basic_static_thread_local_at_once_memory() {
-		USE_THREAD_LOCAL static void* ptr = malloc(block);
-		return ptr;
-	}
-
-	// memory used in one place only
-	template<size_t block>
-	void* static_thread_local_at_once_memory() {
-		constexpr size_t cblock = !block ? 0 : (size_t(1) << (cqlog2(block - 1) + 1));
-		return basic_static_thread_local_at_once_memory<cblock>();
-	}
 
 	struct default_mallocator_delete {
 		constexpr default_mallocator_delete() = default;

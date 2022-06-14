@@ -9,7 +9,9 @@
 #include <random>
 #include <type_traits>
 
+#include <intrin.h>
 #include <immintrin.h>
+#include <emmintrin.h>
 
 #define USE_LIBDIVIDE
 #ifdef USE_LIBDIVIDE
@@ -120,6 +122,12 @@ namespace wjr {
 #define CONNECT(A,B) A##B
 #define STD_FUNCTION(FUNC) std::FUNC
 
+#if defined(WJR_CPP_20)
+#define WJR_CONSTEXPR20 constexpr
+#else
+#define WJR_CONSTEXPR20
+#endif
+
 #ifndef _DEBUG
 #define WDEBUG_LEVEL 0
 #else
@@ -198,9 +206,11 @@ namespace wjr {
 
         struct wjr_empty_tag {};
 
-        struct wjr_do_not_initialize_tag {};
+        struct wjr_uninitialized_tag {};
 
         struct wjr_store_tag {};
+
+        struct wjr_reserved_tag {};
 
         template<typename T>
         struct midentity {
@@ -1068,7 +1078,7 @@ namespace wjr {
         }
 
         static void* skip_whitespace(const void* s, const void* e) {
-#if defined(__SSE2__)
+#if defined(__SSE4_2__)
             uint8_t* _s = (uint8_t*)s;
             uint8_t* _e = (uint8_t*)e;
             if (is_white_space_char[*_s])
@@ -1084,6 +1094,35 @@ namespace wjr {
 #else
             return simple_skip_whitespace(s, e);
 #endif
+        }
+
+        template<typename T, char ch>
+        constexpr static T static_charT = static_cast<T>(ch);
+
+        template<typename T>
+        bool qisdigit(T ch) {
+            return (static_charT<T, '0'> <= ch) && (ch <= static_charT<T, '9'>);
+        }
+
+        template<typename T>
+        bool qislower(T ch) {
+            return (static_charT<T, 'a'> <= ch) && (ch <= static_charT<T, 'z'>);
+        }
+
+        template<typename T>
+        bool qisupper(T ch) {
+            return (static_charT<T, 'A'> <= ch) && (ch <= static_charT<T, 'Z'>);
+        }
+
+        template<typename T>
+        bool isdigit_or_sign(T ch) {
+            return qisdigit(ch) || (ch == static_charT<T, '+'>) || (ch == static_charT<T, '-'>);
+        }
+
+        template<typename T>
+        int get_digit(T ch) { // must judge ch at first
+            static int digit_Map[256] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,3,4,5,6,7,8,9,0,0,0,0,0,0,0,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,0,0,0,0,0,0,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+            return digit_Map[static_cast<uint8_t>(ch)];
         }
 
     }

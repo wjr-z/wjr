@@ -1,5 +1,6 @@
 ﻿#include "../include/biginteger.h"
 #include "../include/json.h"
+#include "../include/mtool.h"
 
 using namespace wjr;
 using namespace std;
@@ -14,10 +15,10 @@ void test() {
     };
     Q it;
     it.ptr = &str;
-    for (size_t n = 32; n <= (1 << 20); n *= 1.2) {
+    for (size_t n = 8; n <= (1 << 20); n *= 1.2) {
         size_t T = max((1 << 18) / n, 1ull);
         biginteger<2> c, d;
-        biginteger<2> a = random_biginteger<2>(n * 32);
+        biginteger<2> a = random_biginteger<2>(n * biginteger_basic_bit);
         String w;
         w.multiple_append(
             "n : ",
@@ -26,8 +27,8 @@ void test() {
             String::number(T).right_justified(8),
             "\n\n"
         );
-        for (size_t m = 4; m <= 256; m <<= 1) {
-            biginteger<2> b = random_biginteger<2>(m * 32);
+        for (size_t m = 8; m <= n; m *= 1.2) {
+            biginteger<2> b = random_biginteger<2>(m * biginteger_basic_bit);
             auto s = mtime();
             for (size_t i = 0; i < T; ++i) {
                 mul(c, a, b);
@@ -35,13 +36,14 @@ void test() {
             double p = mtime() - s;
             s = mtime();
             for (size_t i = 0; i < T; ++i) {
-                //a / b;
-                /*Karatsuba(d, a.get_virtual(), b.get_virtual());*/
+                c = a;
+                d = b;
+                divmod(c, d);
             }
             double q = mtime() - s;
             w.multiple_append(
                 "alpha : ",
-                String::number(m * 1.0 / n).right_justified(8),
+                String::number(m).right_justified(8),
                 " ",
                 String::number(p).right_justified(8),
                 " ",
@@ -197,24 +199,21 @@ bool miller_robin(const biginteger<2>& n, const size_t k = 5) {
 bool is_prime(const biginteger<2>& x) {
     return miller_robin(x);
 }
-
-biginteger<2> gcd2(biginteger<2> a, biginteger<2> b) {
-    while (!b.zero()) {
-        a %= b;
-        swap(a, b);
-    }
-    return a;
-}
-
 int main() {
-    while (true) {
-        auto a = random_biginteger<2>(24 * 32);
-        auto b = random_biginteger<2>(24 * 32);
-        biginteger<2> c;
-        auto s = mtime();
-        mul(c, a, b);
-        auto t = mtime();
-        cout << t - s << '\n';
-    }
+    //test();
+    auto a = random_biginteger<2>(1e5 * 32);
+    auto b = random_biginteger<2>(4 * 32);
+    biginteger<2> c;
+    auto s = mtime();
+    mul(c, a, b);
+    auto t = mtime();
+	cout << t - s << endl;
+    biginteger<2> d;
+    c = a;
+    d = b;
+    s = mtime();
+    divmod(c, d);
+    t = mtime();
+    cout << t - s << '\n';
     return 0;
 }

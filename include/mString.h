@@ -1088,7 +1088,7 @@ namespace wjr {
 		}
 
 		void setSmallSize(size_t s) {
-			// Warning: this should work with uninitialized strings too,
+			// Warning: this should work with wjr_uninitialized_tag strings too,
 			// so don't assume anything about the previous value of
 			// small_[maxSmallSize].
 			assert(s <= maxSmallSize);
@@ -1398,44 +1398,11 @@ namespace wjr {
 
 #endif // TEST_SHARED_STRING
 
-	struct Uninitialized {}; // used for uninitialized String,and will initialize size
-
-	struct Reserved {}; // used for reservers String but won't initialize size
-	
 	template<typename Char, typename Traits = std::char_traits<Char>>
 	class basic_String_view;
 
 	template<typename Char, typename Traits = std::char_traits<Char>, typename Core = String_core<Char>>
 	class basic_String;	
-
-	template<typename T, char ch>
-	constexpr static T static_charT = static_cast<T>(ch);
-
-	template<typename T>
-	bool qisdigit(T ch) {
-		return (static_charT<T, '0'> <= ch) && (ch <= static_charT<T, '9'>);
-	}
-
-	template<typename T>
-	bool qislower(T ch) {
-		return (static_charT<T, 'a'> <= ch) && (ch <= static_charT<T, 'z'>);
-	}
-
-	template<typename T>
-	bool qisupper(T ch) {
-		return (static_charT<T, 'A'> <= ch) && (ch <= static_charT<T, 'Z'>);
-	}
-
-	template<typename T>
-	bool isdigit_or_sign(T ch) {
-		return qisdigit(ch) || (ch == static_charT<T, '+'>) || (ch == static_charT<T, '-'>);
-	}
-
-	template<typename T>
-	int get_digit(T ch) { // must judge ch at first
-		static int digit_Map[256] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,3,4,5,6,7,8,9,0,0,0,0,0,0,0,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,0,0,0,0,0,0,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-		return digit_Map[static_cast<uint8_t>(ch)];
-	}
 
 	template<typename Char>
 	class String_trim_helper {
@@ -3986,11 +3953,11 @@ namespace wjr {
 			: core(s.data(), s.size()) {
 		}
 
-		basic_String(const size_type len, wjr::Uninitialized) {
+		basic_String(const size_type len, wjr::wjr_uninitialized_tag) {
 			core.expandNoinit(len);
 		}
 
-		basic_String(const size_type len, wjr::Reserved) {
+		basic_String(const size_type len, wjr::wjr_reserved_tag) {
 			reserve(len);
 		}
 
@@ -5260,7 +5227,7 @@ namespace wjr {
 		template<typename...Args>
 		static basic_String asprintf(const char* format, Args&&...args) {
 			const auto len = static_cast<size_t>(_scprintf(format, std::forward<Args>(args)...));
-			basic_String str(len, wjr::Uninitialized{});
+			basic_String str(len, wjr::wjr_uninitialized_tag{});
 			sprintf_s(&str[0], len + 1, format, std::forward<Args>(args)...);
 			return str;
 		}
@@ -5340,7 +5307,7 @@ namespace wjr {
 		basic_String left_justified(int width, const value_type fill = value_type(' '))const& {
 			const size_type _size = size();
 			if (_size < width) {
-				basic_String str(_size, Reserved{});
+				basic_String str(_size, wjr_reserved_tag{});
 				str.append(*this).append(width - _size, fill);
 				return str;
 			}
@@ -5358,7 +5325,7 @@ namespace wjr {
 		basic_String right_justified(int width, const value_type fill = value_type(' '))const& {
 			const size_type _size = size();
 			if (_size < width) {
-				basic_String str(_size, Reserved{});
+				basic_String str(_size, wjr_reserved_tag{});
 				str.append(width - _size, fill).append(*this);
 				return str;
 			}
@@ -6825,7 +6792,7 @@ namespace wjr {
 
 	using String           = basic_String<char, std::char_traits<char>>;
 	using wString          = basic_String<wchar_t, std::char_traits<wchar_t>>;
-#ifdef __HAS_CXX20
+#if defined(WJR_CPP_20)
 	using u8String         = basic_String<char8_t, std::char_traits<char8_t>>;
 #endif
 	using u16String        = basic_String<char16_t, std::char_traits<char16_t>>;
@@ -6833,7 +6800,7 @@ namespace wjr {
 
 	using String_view      = basic_String_view<char, std::char_traits<char>>;
 	using wString_view     = basic_String_view<wchar_t, std::char_traits<wchar_t>>;
-#ifdef __HAS_CXX20
+#if defined(WJR_CPP_20)
 	using u8String_view    = basic_String_view<char8_t, std::char_traits<char8_t>>;
 #endif
 	using u16String_view   = basic_String_view<char16_t, std::char_traits<char16_t>>;
@@ -6843,7 +6810,7 @@ namespace wjr {
 
 	using shared_String    = basic_String<char, std::char_traits<char>, shared_String_core<char>>;
 	using shared_wString   = basic_String<wchar_t, std::char_traits<wchar_t>, shared_String_core<wchar_t>>;
-#ifdef __HAS_CXX20
+#if defined(WJR_CPP_20)
 	using shared_u8String  = basic_String<char8_t, std::char_traits<char8_t>, shared_String_core<char8_t>>;
 #endif
 	using shared_u16String = basic_String<char16_t, std::char_traits<char16_t>, shared_String_core<char16_t>>;
@@ -6883,7 +6850,7 @@ DEFAULT_SHARED_STRING_HASH(T)
 namespace std {
 	DEFAULT_STRING_HASH(char)
 	DEFAULT_STRING_HASH(wchar_t)
-#ifdef __HAS_CXX20
+#if defined(WJR_CPP_20)
 	DEFAULT_STRING_HASH(char8_t)
 #endif
 	DEFAULT_STRING_HASH(char16_t)
