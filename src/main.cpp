@@ -1,116 +1,11 @@
-﻿#include "../include/biginteger.h"
+﻿#include <fstream>
+#include "../include/biginteger.h"
 #include "../include/json.h"
 #include "../include/mtool.h"
 
 using namespace wjr;
 using namespace std;
 
-void test() {
-    String str;
-    struct Q {
-        String* ptr;
-        ~Q() {
-            write_file("test.out", *ptr);
-        }
-    };
-    Q it;
-    it.ptr = &str;
-    for (size_t n = 8; n <= (1 << 20); n *= 1.2) {
-        size_t T = max((1 << 18) / n, 1ull);
-        biginteger<2> c, d;
-        biginteger<2> a = random_biginteger<2>(n * biginteger_basic_bit);
-        String w;
-        w.multiple_append(
-            "n : ",
-            String::number(n).right_justified(8),
-            " 迭代次数 : ",
-            String::number(T).right_justified(8),
-            "\n\n"
-        );
-        for (size_t m = 8; m <= n; m *= 1.2) {
-            biginteger<2> b = random_biginteger<2>(m * biginteger_basic_bit);
-            auto s = mtime();
-            for (size_t i = 0; i < T; ++i) {
-                mul(c, a, b);
-            }
-            double p = mtime() - s;
-            s = mtime();
-            for (size_t i = 0; i < T; ++i) {
-                c = a;
-                d = b;
-                divmod(c, d);
-            }
-            double q = mtime() - s;
-            w.multiple_append(
-                "alpha : ",
-                String::number(m).right_justified(8),
-                " ",
-                String::number(p).right_justified(8),
-                " ",
-                String::number(q).right_justified(8),
-                " ",
-                String::number(q / p).right_justified(8),
-                " ",
-                String::number(100 * p / T).right_justified(8),
-                " ",
-                String::number(100 * q / T).right_justified(8),
-                "\n"
-            );
-        }
-        w.multiple_append(
-            "\n\n"
-        );
-        cout << w;
-        str.append(w);
-    }
-}
-
-void test2() {
-    String str;
-    struct Q {
-        String* ptr;
-        ~Q() {
-            write_file("test_5.out", *ptr);
-        }
-    };
-    Q it;
-    it.ptr = &str;
-    for (size_t n = 32; n <= (1 << 20); n = ceil(n * 1.2)) {
-        size_t T = max((1 << 18) / n, 1ull);
-        biginteger<2> c, d;
-        biginteger<2> a = random_biginteger<2>(n * 32);
-        String w;
-        w.multiple_append(
-            "n : ",
-            String::number(n).right_justified(8),
-            " 迭代次数 : ",
-            String::number(T).right_justified(8),
-            "\n\n"
-        );
-        for (size_t m = 2; m <= n; m = ceil(m * 1.2)) {
-            biginteger<2> b = random_biginteger<2>(m * 32);
-            auto s = mtime();
-            for (size_t i = 0; i < T; ++i) {
-                //qmul(c, a.get_virtual(), b.get_virtual());
-                //toom_cook(c, a.get_virtual(), b.get_virtual());
-                //mul(c, a, b);
-            }
-            double p = mtime() - s;
-            w.multiple_append(
-                "m : ",
-                String::number(m).right_justified(8),
-                " ",
-                String::number(p).right_justified(8),
-                "\n"
-            );
-        }
-        w.multiple_append(
-            "\n\n"
-        );
-        cout << w;
-        str.append(w);
-    }
-}
 
 biginteger<2> _Quick_Mod(const biginteger<2>& x, const biginteger<2>& mod, const biginteger<2>& mu) {
     if (x < mod)return x;
@@ -199,21 +94,21 @@ bool miller_robin(const biginteger<2>& n, const size_t k = 5) {
 bool is_prime(const biginteger<2>& x) {
     return miller_robin(x);
 }
+
 int main() {
-    //test();
-    auto a = random_biginteger<2>(1e5 * 32);
-    auto b = random_biginteger<2>(4 * 32);
-    biginteger<2> c;
+    auto vec = get_all_files("test");
+    for (auto& i : vec) {
+        i = read_file(i);
+    }
+    using cjson = basic_json<default_json_traits>;
+    vector<cjson> jc;
     auto s = mtime();
-    mul(c, a, b);
+    for (auto i : vec) {
+        jc.push_back(cjson::parse(i.c_str(), i.c_str() + i.size()));
+    }
     auto t = mtime();
-	cout << t - s << endl;
-    biginteger<2> d;
-    c = a;
-    d = b;
-    s = mtime();
-    divmod(c, d);
-    t = mtime();
     cout << t - s << '\n';
+
     return 0;
 }
+												

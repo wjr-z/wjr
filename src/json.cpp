@@ -4,132 +4,7 @@
 #include "../include/json.h"
 
 namespace wjr {
-	// It will be modified later
-	inline double power_of_10(int index) {
-		struct pw_cache {
-			double pw10[310], npw10[310];
-			pw_cache() {
-				pw10[0] = npw10[0] = 1.0;
-				for (int i = 1; i <= 309; ++i) {
-					pw10[i] = pw10[i - 1] * 10.0;
-					npw10[i] = 1.0 / pw10[i];
-				}
-			}
-		};
-		static pw_cache _cache;
-		assert(index > -310 && index < 310);
-		return (index >= 0) ? _cache.pw10[index] : _cache.npw10[-index];
-	}
-
-	double read_double(const char* s, const char* e, const char*& next) {
-		bool neg = false;
-		auto* ptr = (const uint8_t*)skip_whitespace(s, e);
-		switch (*ptr) {
-		case '-':neg = true; ++ptr; break;
-		case '+':++ptr; break;
-		}
-
-		unsigned long long v = 0;
-		int num = 0;
-
-		for (; qisdigit(*ptr) && num < 18; ++ptr, ++num) {
-			v = v * 10 + (*ptr - '0');
-		}
-
-		int pw10 = 0;
-		for (; qisdigit(*ptr); ++ptr, ++pw10);
-
-		if (*ptr == '.') {
-			++ptr;
-			for (; qisdigit(*ptr) && num < 18; ++ptr, ++num, --pw10) {
-				v = v * 10 + (*ptr - '0');
-			}
-			for (; qisdigit(*ptr); ++ptr);
-		}
-
-		double val = v * power_of_10(pw10);
-		if ((*ptr == 'e') || (*ptr == 'E')) {
-			++ptr;
-			int pw = String_traits_helper<uint8_t>::unsafe_first_to_int(ptr, (const uint8_t*)e, ptr);
-			val *= power_of_10(pw);
-		}
-		if (neg) val = -val;
-		next = (const char*)ptr;
-		return val;
-	}
-
-	inline namespace json_memory {
-		constexpr static size_t string_step[256] = { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-		};
-
-		const uint8_t* skip_string(const uint8_t* s, [[maybe_unused]] const uint8_t* e) {
-			while (string_step[*s]) {
-				s += string_step[*s];
-			}
-			return s;
-		}
-
-		bool check_num(const uint8_t*& s, const uint8_t* e) {
-			if (*s == '+' || *s == '-')
-				++s;
-
-			if (s == e || !qisdigit(*s))
-				return false;
-
-			if (*s == '0') {
-				++s;
-			}
-			else {
-				for (; s != e && qisdigit(*s); ++s);
-			}
-
-			if (*s == '.') {
-				for (++s; s != e && qisdigit(*s); ++s);
-			}
-
-			if (*s == 'e' || *s == 'E') {
-				++s;
-				if (*s == '+' || *s == '-')
-					++s;
-				if (s == e || !qisdigit(*s))
-					return false;
-				for (; s != e && qisdigit(*s); ++s);
-			}
-
-			return true;
-		}
-
-		bool check_string(const uint8_t*& s, const uint8_t* e) {
-			if (*s != '"')return false;
-			++s;
-			while (s != e && *s != '"') {
-				if (*s == '\\') {
-					++s;
-					if (s == e)return false;
-					switch (*s) {
-					case '"':
-					case '\\':
-					case '/':
-					case 'b':
-					case 'f':
-					case 'n':
-					case 'r':
-					case 't':
-					case 'u':
-						break;
-					default:
-						return false;
-					}
-				}
-				else {
-					if (*s < 32 || *s == 127)
-						return false;
-				}
-				++s;
-			}
-			return s != e;
-		}
-	}
+	
 
 	// default constructor
 	json::json()
@@ -1166,7 +1041,7 @@ namespace wjr {
 		default: {
 			vtype = (uint8_t)(value_t::number);
 			auto ptr = (const char*)s;
-			_Number = read_double((const char*)s, (const char*)e, ptr);
+			ptr = read_double(ptr, (const char*)e, _Number);
 			s = (const uint8_t*)ptr;
 			break;
 		}

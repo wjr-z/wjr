@@ -616,6 +616,7 @@ namespace wjr {
     }
 
     inline namespace wjr_math {
+
         constexpr static uint64_t binary_mask[65] = {
             0x0000000000000000,
             0x0000000000000001,0x0000000000000003,0x0000000000000007,0x000000000000000f,
@@ -1071,28 +1072,64 @@ namespace wjr {
         };
         constexpr static char white_space[16] = " \n\r\t";
 
-        static void* simple_skip_whitespace(const void* _s, const void* _e) {
-            const uint8_t* s = (const uint8_t*)_s, * e = (const uint8_t*)_e;
-            while (s != e && is_white_space_char[*s])++s;
-            return (void*)s;
+        template<typename T>
+        constexpr decltype(auto) get_unsigned_value(T ch) {
+            return static_cast<std::make_unsigned_t<T>>(ch);
         }
 
-        static void* skip_whitespace(const void* s, const void* e) {
-#if defined(__SSE4_2__)
-            uint8_t* _s = (uint8_t*)s;
-            uint8_t* _e = (uint8_t*)e;
-            if (is_white_space_char[*_s])
-                ++_s;
-            else return _s;
-            const __m128i w = _mm_load_si128((const __m128i*) & white_space[0]);
-            for (; _s <= _e - 16; _s += 16) {
-                const __m128i ss = _mm_loadu_si128(reinterpret_cast<const __m128i*>(_s));
-                const int r = _mm_cmpistri(w, ss, _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_ANY | _SIDD_LEAST_SIGNIFICANT | _SIDD_NEGATIVE_POLARITY);
-                if (r != 16)
-                    return _s + r;
+        template<typename value_t>
+        bool is_whitespace(value_t val) {
+            using uvalue_t = std::make_unsigned_t<value_t>;
+            auto uval = get_unsigned_value(val);
+            if constexpr (std::numeric_limits<uvalue_t>::max() < 256) {
+                return is_white_space_char[uval];
             }
-#else
-            return simple_skip_whitespace(s, e);
+            else if constexpr (std::is_integral_v<uvalue_t>) {
+                // if uval >= 256
+                return (uval >> 8) || is_white_space_char[uval];
+            }
+            else {
+                switch (val) {
+                case ' ' : [[fallthrough]]
+                case '\n': [[fallthrough]]
+                case '\r': [[fallthrough]]
+                case '\t': [[fallthrough]]
+                    return true;
+                default  :
+                    return false;
+                }
+            }
+        }
+
+        template<typename iter, 
+            std::enable_if_t<std::conjunction_v<wjr_is_iterator<iter>>, int> = 0>
+        static iter simple_skip_whitespace(iter first, iter last) {
+            while (first != last && is_whitespace(*first))++first;
+            return first;
+        }
+
+        template<typename iter, std::enable_if_t<wjr_is_iterator_v<iter>, int> = 0>
+        static iter skip_whitespace(iter first, iter last) {
+#if defined(__SSE4_2__)
+            if constexpr (std::is_pointer_v<iter> && sizeof(iter) == 1) {
+                uint8_t* _s = (uint8_t*)first;
+                uint8_t* _e = (uint8_t*)last;
+                if (is_white_space_char[*_s])
+                    ++_s;
+                else return _s;
+                const __m128i w = _mm_loadu_si128((__m128i*) (&white_space[0]));
+                for (; _s <= _e - 16; _s += 16) {
+                    const __m128i ss = _mm_loadu_si128((__m128i*)(_s));
+                    const int r = _mm_cmpistri(w, ss, _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_ANY | _SIDD_LEAST_SIGNIFICANT | _SIDD_NEGATIVE_POLARITY);
+                    if (r != 16)
+                        return _s + r;
+        }
+            }
+            else {
+#endif
+                return simple_skip_whitespace(first, last);
+#if defined(__SSE4_2__)
+            }
 #endif
         }
 

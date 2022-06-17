@@ -4,10 +4,320 @@
 #include <cstdlib>
 #include <cstdint>
 #include <string.h>
+#include <variant>
 #include "typeInfo.h"
 #include "mString.h"
 
 namespace wjr {
+
+	inline namespace json_helper {
+
+		// It will be modified later
+		inline double power_of_10(int index) {
+			struct pw_cache {
+				double pw10[310], npw10[310];
+				pw_cache() {
+					pw10[0] = npw10[0] = 1.0;
+					for (int i = 1; i <= 309; ++i) {
+						pw10[i] = pw10[i - 1] * 10.0;
+						npw10[i] = 1.0 / pw10[i];
+					}
+				}
+			};
+			static pw_cache _cache;
+			assert(index > -310 && index < 310);
+			return (index >= 0) ? _cache.pw10[index] : _cache.npw10[-index];
+		}
+
+		template<typename iter, std::enable_if_t<wjr_is_iterator_v<iter>,int> = 0>
+		inline iter read_double(iter first, [[maybe_unused]] iter last, double& vc) {
+			bool neg = true;
+			switch (*first) {
+			case '+': ++first; break;
+			case '-': neg = false; ++first; break;
+			}
+
+			unsigned long long v = 0;
+			int num = 0;
+
+			for (; qisdigit(*first) && num < 18; ++first, ++num) {
+				v = v * 10 + (*first - '0');
+			}
+
+			int pw10 = 0;
+			for (; qisdigit(*first); ++first, ++pw10);
+
+			if (*first == '.') {
+				++first;
+				for (; qisdigit(*first) && num < 18; ++first, ++num, --pw10) {
+					v = v * 10 + (*first - '0');
+				}
+				for (; qisdigit(*first); ++first);
+			}
+
+			double val = v * power_of_10(pw10);
+
+			if ((*first == 'e') || (*first == 'E')) {
+				++first;
+				unsigned int pw = 0;
+				bool sign = true;
+				switch (*first) {
+				case '+': ++first; break;
+				case '-':sign = false; ++first; break;
+				}
+				for (; qisdigit(*first); ++first) {
+					pw = pw * 10 + (*first - '0');
+				}
+
+				val *= power_of_10(sign ? pw : (int)(0 - pw));
+			}
+			if (neg) val = -val;
+			vc = val;
+			return first;
+		}
+
+		constexpr static size_t string_step[256] = { 
+			1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+			1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+			1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,
+			1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+			1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+			1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+			1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+			1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+		};
+
+		template<typename iter, std::enable_if_t<wjr_is_iterator_v<iter>, int> = 0>
+		inline iter skip_string(iter first, [[maybe_unused]] iter last) {
+			using value_t = typename std::iterator_traits<iter>::value_type;
+			using uvalue_t = std::make_unsigned_t<value_t>;
+			if constexpr (std::numeric_limits<uvalue_t>::max() < 256) {
+				auto u_value = get_unsigned_value(*first);
+				while (string_step[u_value]) {
+					first += string_step[u_value];
+					u_value = get_unsigned_value(*first);
+				}
+			}
+			else {
+				auto u_value = get_unsigned_value(*first);
+				while (u_value >= 256 || string_step[u_value]) {
+					first += u_value >= 256 ? 1 :string_step[*first];
+					u_value = get_unsigned_value(*first);
+				}
+			}
+			return first;
+		}
+
+		inline bool check_num(const uint8_t*& s, const uint8_t* e) {
+			if (*s == '+' || *s == '-')
+				++s;
+
+			if (s == e || !qisdigit(*s))
+				return false;
+
+			if (*s == '0') {
+				++s;
+			}
+			else {
+				for (; s != e && qisdigit(*s); ++s);
+			}
+
+			if (*s == '.') {
+				for (++s; s != e && qisdigit(*s); ++s);
+			}
+
+			if (*s == 'e' || *s == 'E') {
+				++s;
+				if (*s == '+' || *s == '-')
+					++s;
+				if (s == e || !qisdigit(*s))
+					return false;
+				for (; s != e && qisdigit(*s); ++s);
+			}
+
+			return true;
+		}
+
+		inline bool check_string(const uint8_t*& s, const uint8_t* e) {
+			if (*s != '"')return false;
+			++s;
+			while (s != e && *s != '"') {
+				if (*s == '\\') {
+					++s;
+					if (s == e)return false;
+					switch (*s) {
+					case '"':
+					case '\\':
+					case '/':
+					case 'b':
+					case 'f':
+					case 'n':
+					case 'r':
+					case 't':
+					case 'u':
+						break;
+					default:
+						return false;
+					}
+				}
+				else {
+					if (*s < 32 || *s == 127)
+						return false;
+				}
+				++s;
+			}
+			return s != e;
+		}
+	}
+
+	struct default_json_traits;
+
+	template<typename json_traits = default_json_traits>
+	class basic_json;
+
+	struct default_json_traits {
+		using json_type			= basic_json<default_json_traits>;
+		using json_null			= std::nullptr_t;
+		using json_boolean		= bool;
+		using json_number		= double;
+		using json_string		= String;
+		using json_array		= std::vector<json_type, mallocator<json_type>>;
+		using json_object		= std::map<json_string, json_type, std::less<json_string>, 
+								mallocator<std::pair<const json_string, json_type>>>;
+		using json_container	= std::variant<
+								json_null, json_boolean, json_number, 
+								json_string, json_array, json_object>;
+	};
+
+	template<typename json_traits>
+	class basic_json : public json_traits::json_container{
+	private:
+		using Base				= typename json_traits::json_container;
+	public:
+		using traits			= json_traits;
+		using json_type			= typename traits::json_type;
+		using json_null			= typename traits::json_null;
+		using json_boolean		= typename traits::json_boolean;
+		using json_number		= typename traits::json_number;
+		using json_string		= typename traits::json_string;
+		using json_array		= typename traits::json_array;
+		using json_object		= typename traits::json_object;
+
+		using Base::Base;
+		using Base::operator=;
+
+		basic_json() = default;
+		basic_json(const basic_json&) = default;
+		basic_json(basic_json&&) noexcept = default;
+
+		basic_json& operator=(const basic_json&) = default;
+		basic_json& operator=(basic_json&&) noexcept = default;
+
+		template<typename iter, std::enable_if_t<wjr_is_iterator_v<iter>, int> = 0>
+		static basic_json parse(iter first, iter last);
+
+	private:
+
+		template<typename iter, std::enable_if_t<wjr_is_iterator_v<iter>, int> = 0>
+		[[nodiscard]] iter dfs_parse(iter first, iter last);
+
+	};
+
+	template<typename json_traits>
+	template<typename iter, std::enable_if_t<wjr_is_iterator_v<iter>, int> >
+	basic_json<json_traits> basic_json<json_traits>::parse(iter first, iter last) {
+		basic_json x;
+		x.dfs_parse(first, last);
+		return x;
+	}
+
+	template<typename json_traits>
+	template<typename iter, std::enable_if_t<wjr_is_iterator_v<iter>, int>>
+	iter basic_json<json_traits>::dfs_parse(iter first, iter last) {
+		first = skip_whitespace(first, last);
+		switch (*first) {
+		case 'n': {
+			this->template emplace<json_null>(std::nullptr_t{});
+			first += 4;
+			break;
+		}
+		case 't': {
+			this->template emplace<json_boolean>(true);
+			first += 4;
+			break;
+		}
+		case 'f': {
+			this->template emplace<json_boolean>(false);
+			first += 5;
+			break;
+		}
+		case '{': {
+			this->template emplace<json_object>();
+			auto& obj = std::get<json_object>(*this);
+			++first;
+			first = skip_whitespace(first, last);
+			// if is empty
+			if (*first == '}') {
+				++first;
+				break;
+			}
+			for (;;) {
+				first = skip_whitespace(first, last);
+				++first;
+				auto p = skip_string(first, last);
+				auto& item = obj[json_string(first, p)] = basic_json();
+				first = skip_whitespace(p + 1, last);
+				++first;
+				first = item.dfs_parse(first, last);
+				first = skip_whitespace(first, last);
+				if (*first == '}') {
+					++first;
+					break;
+				}
+				++first;
+			}
+			break;
+		}
+		case '[': {
+			this->template emplace<json_array>();
+			auto& arr = std::get<json_array>(*this);
+			++first;
+			first = skip_whitespace(first, last);
+			if (*first == ']') {
+				++first;
+				break;
+			}
+			for (;;) {
+				arr.emplace_back();
+				first = arr.back().dfs_parse(first, last);
+				first = skip_whitespace(first, last);
+				if (*first == ']') {
+					++first;
+					break;
+				}
+				++first;
+			}
+			arr.shrink_to_fit();
+			break;
+		}
+		case '"': {
+			++first;
+			auto t = skip_string(first, last);
+			this->template emplace<json_string>(first, t);
+			first = t + 1;
+			break;
+		}
+		default: {
+			double val;
+			first = read_double(first, last, val);
+			this->template emplace<json_number>(val);
+			break;
+		}
+		}
+		return first;
+	}
+
+
 	class json;
 
 	//Use mallocator as default allocator
