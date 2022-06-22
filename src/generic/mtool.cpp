@@ -1,4 +1,4 @@
-#include "../include/mtool.h"
+#include "mtool.h"
 #ifndef __linux__
 #include <direct.h>
 #include <io.h>
@@ -13,7 +13,7 @@
 #include <iostream>
 #include <set>
 #include <sstream>
-#include "../include/thread_pool.h"
+#include "../network/thread_pool.h"
 
 namespace wjr {
 	time_ref mtime() { return time_ref::now(); }

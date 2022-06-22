@@ -23,10 +23,30 @@
   OTHER DEALINGS IN THE SOFTWARE.
   */
 #pragma once
-#include <math.h>
+#if defined(__cplusplus)
+extern "C"{
+#endif
 
-#define D_1_LOG2_10 0.30102999566398114 //  1 / lg(10)
-
-static int k_comp(int e, int alpha, int gamma) {
-	return ceil((alpha - e + 63) * D_1_LOG2_10);
+static void fill_exponent(int K, char* buffer) {
+	int i = 0;
+	if (K < 0) {
+		buffer[i++] = '-';
+		K = -K;
+	}
+	if (K >= 100) {
+		buffer[i++] = '0' + K / 100; K %= 100;
+		buffer[i++] = '0' + K / 10; K %= 10;
+		buffer[i++] = '0' + K;
+	}
+	else if (K >= 10) {
+		buffer[i++] = '0' + K / 10; K %= 10;
+		buffer[i++] = '0' + K;
+	}
+	else {
+		buffer[i++] = '0' + K;
+	}
+	buffer[i] = '\0';
 }
+#if defined(__cplusplus)
+}
+#endif

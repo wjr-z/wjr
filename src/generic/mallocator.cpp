@@ -1,4 +1,4 @@
-#include "../include/mallocator.h"
+#include "mallocator.h"
 
 namespace wjr {
 #ifdef ALLOCATOR_DEBUG

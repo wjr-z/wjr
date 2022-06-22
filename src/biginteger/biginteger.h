@@ -3,10 +3,10 @@
 
 #include <array>
 
-#include "mallocator.h"
-#include "mString.h"
+#include "../generic/mallocator.h"
+#include "../generic/mString.h"
 //#include "mtool.h"
-#include "masm.h"
+#include "../generic/masm.h"
 
 extern "C" {
     extern void cdft(int, int, double*, int*, double*);

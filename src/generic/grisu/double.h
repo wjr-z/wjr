@@ -24,6 +24,10 @@
   */
 #pragma once
 
+#if defined(__cplusplus)
+extern "C"{
+#endif
+
 #include "diy_fp.h"
 #include "powers.h"
 #include <stdlib.h>
@@ -76,6 +80,42 @@ static diy_fp_t double2diy_fp(double d) {
 	return res;
 }
 
+const static size_t _Log2_Table[] = { 0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3 };
+
+static size_t _Log2_u64(uint64_t x) {
+	size_t ans = 0;
+	if (x >> 32) { ans += 32; x >>= 32; }
+	if (x >> 16) { ans += 16; x >>= 16; }
+	if (x >> 8) { ans += 8; x >>= 8; }
+	if (x >> 4) { ans += 4; x >>= 4; }
+	return ans + _Log2_Table[x];
+}
+
+// IEE754 diy_fp_t to double
+static double diy_fp2double(diy_fp_t in) {
+	if (!in.f) return 0;
+	uint64_t significand = in.f;
+	int biased_e = in.e + DP_EXPONENT_BIAS;
+	size_t l = _Log2_u64(significand);
+	if (l < 52) {
+		significand <<= 52 - l;
+		biased_e -= 52 - l;
+	}
+	else {
+		significand >>= l - 52;
+		biased_e += l - 52;
+	}
+	if (biased_e > 0){
+		significand -= DP_HIDDEN_BIT;
+	}
+	else {
+		significand >>= 1 - biased_e;
+		biased_e = 0;
+	}
+	uint64_t d64 = significand | ((uint64_t)biased_e << DP_SIGNIFICAND_SIZE);
+	return uint64_to_double(d64);
+}
+
 static diy_fp_t normalize_boundary(diy_fp_t in) {
 	diy_fp_t res = in;
 	/* Normalize now */
@@ -121,3 +161,7 @@ static double random_double() {
 	}
 	return uint64_to_double(tmp);
 }
+
+#if defined(__cplusplus)
+}
+#endif

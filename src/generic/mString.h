@@ -173,8 +173,7 @@ namespace wjr {
 		);
 
 		skmp_searcher_char_builder(const skmp_searcher_char_builder& other)
-			: Base(other) {
-			shift = mallocator<diff_t>().allocate(256);
+			: Base(other), shift(mallocator<diff_t>().allocate(256)) {
 			std::copy(other.shift, other.shift + 256, shift);
 		}
 
@@ -204,11 +203,10 @@ namespace wjr {
 	template<typename RanItPat, typename Traits>
 	skmp_searcher_char_builder<RanItPat, Traits>::skmp_searcher_char_builder(
 		RanItPat First, RanItPat Last
-	) : Base(First, Last) {
+	) : Base(First, Last) ,shift(mallocator<diff_t>().allocate(256)) {
 		auto first = Base::get_first();
 		const auto last = Base::get_last();
 		const auto size = Base::get_size();
-		shift = mallocator<diff_t>().allocate(256);
 		std::fill_n(shift, 256, size + 1);
 		diff_t i = size;
 		while (first != last) {
@@ -3892,8 +3890,6 @@ namespace wjr {
 			: core(std::move(other.core)) {
 		}
 
-		// other[pos...pos + n - 1]
-		// if (n == npos || n > other.size() - pos)) then copy other[pos...(other.size() - 1)]
 		basic_String(const basic_String& other, const size_type pos, const size_type n = npos)
 			: core(other.data() + pos, npos_min(n, other.size() - pos)) {
 		}
@@ -5238,9 +5234,6 @@ namespace wjr {
 			string_connect_helper(const basic_String& other)
 				: sv(other.data()), count(other.size()) {
 			}
-			string_connect_helper(basic_String&& other) noexcept
-				: sv(other.data()), count(other.size()) {
-			}
 			string_connect_helper(const value_type* s)
 				: sv(s), count(traits_length(s)) {
 			}
@@ -6198,18 +6191,17 @@ namespace wjr {
 
 	template<typename Char, typename Traits, typename Core>
 	basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::
-		_Connect_init(basic_String&& init, std::initializer_list<string_connect_helper> il) {
+		_Connect_init(basic_String&& it, std::initializer_list<string_connect_helper> il) {
 		size_type count = 0;
 		for (auto& i : il) {
 			count += i.size();
 		}
-		basic_String it(std::move(init));
 		auto ptr = it.core.expandNoinit(count);
 		for (auto& i : il) {
 			memcpy(ptr, i.data(), sizeof(value_type) * i.size());
 			ptr += i.size();
 		}
-		return it;
+		return std::move(it);
 	}
 
 	template<typename Char, typename Traits, typename Core>

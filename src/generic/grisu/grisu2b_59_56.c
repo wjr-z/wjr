@@ -22,13 +22,18 @@
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
   OTHER DEALINGS IN THE SOFTWARE.
   */
-#include "../include/grisu/diy_fp.h"
-#include "../include/grisu/k_comp.h"
-#include "../include/grisu/double.h"
-#include "../include/grisu/powers.h"
+
+#if defined(__cplusplus)
+#extern "C"{
+#endif
+
+#include "diy_fp.h"
+#include "k_comp.h"
+#include "double.h"
+#include "powers.h"
 #include <stdbool.h>
 #include <stdio.h>
-#include "../include/grisu/grisu2.h"
+#include "grisu2.h"
 #include <inttypes.h>
 
 #define TEN9 1000000000
@@ -94,3 +99,7 @@ void grisu2(double v, char* buffer, int* length, int* K) {
 	*K = -mk;
 	digit_gen(W, Wp, delta, buffer, length, K);
 }
+
+#if defined(__cplusplus)
+}
+#endif

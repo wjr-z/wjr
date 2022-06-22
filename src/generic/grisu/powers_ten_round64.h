@@ -22,6 +22,9 @@
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
   OTHER DEALINGS IN THE SOFTWARE.
   */
+#if defined(__cplusplus)
+extern "C"{
+#endif
 #include <stdint.h>
 
 #define DIY_SIGNIFICAND_SIZE 64
@@ -34,3 +37,6 @@ static diy_fp_t cached_power(int k) {
 	res.e = powers_ten_e[index];
 	return res;
 }
+#if defined(__cplusplus)
+}
+#endif

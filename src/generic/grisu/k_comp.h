@@ -23,39 +23,16 @@
   OTHER DEALINGS IN THE SOFTWARE.
   */
 #pragma once
-#include <stdint.h>
-#include <assert.h>
+#if defined(__cplusplus)
+extern "C"{
+#endif
+#include <math.h>
 
-typedef struct diy_fp_t {
-	uint64_t f;
-	int e;
-} diy_fp_t;
+#define D_1_LOG2_10 0.30102999566398114 //  1 / lg(10)
 
-static diy_fp_t minus(diy_fp_t x, diy_fp_t y) {
-	assert(x.e == y.e);
-	assert(x.f >= y.f);
-	diy_fp_t r = { .f = x.f - y.f, .e = x.e };
-	return r;
+static int k_comp(int e, int alpha, int gamma) {
+	return ceil((alpha - e + 63) * D_1_LOG2_10);
 }
-
-/*
-static diy_fp_t minus(diy_fp_t x, diy_fp_t y) {
-  assert(x.e == y.e);
-  assert(x.f >= y.f);
-  diy_fp_t r = {.f = x.f - y.f, .e = x.e};
-  return r;
+#if defined(__cplusplus)
 }
-*/
-
-static diy_fp_t multiply(diy_fp_t x, diy_fp_t y) {
-	uint64_t a, b, c, d, ac, bc, ad, bd, tmp, h;
-	diy_fp_t r; uint64_t M32 = 0xFFFFFFFF;
-	a = x.f >> 32; b = x.f & M32;
-	c = y.f >> 32; d = y.f & M32;
-	ac = a * c; bc = b * c; ad = a * d; bd = b * d;
-	tmp = (bd >> 32) + (ad & M32) + (bc & M32);
-	tmp += 1U << 31; /// mult_round
-	r.f = ac + (ad >> 32) + (bc >> 32) + (tmp >> 32);
-	r.e = x.e + y.e + 64;
-	return r;
-}
+#endif

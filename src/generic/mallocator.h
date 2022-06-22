@@ -68,7 +68,6 @@ namespace wjr {
 
 		for (;;) {
 			__my_malloc_handler = __malloc_alloc_oom_handler;
-			//if (0 == __my_malloc_handler) { __THROW_BAD_ALLOC; }
 			(*__my_malloc_handler)();
 			__result = malloc(__n);
 			if (__result) return(__result);
@@ -82,7 +81,7 @@ namespace wjr {
 
 		for (;;) {
 			__my_malloc_handler = __malloc_alloc_oom_handler;
-			//if (0 == __my_malloc_handler) { __THROW_BAD_ALLOC; }
+
 			(*__my_malloc_handler)();
 			__result = realloc(__p, __n);
 			if (__result) return(__result);
@@ -92,7 +91,7 @@ namespace wjr {
 	typedef __malloc_alloc_template__<0> malloc_alloc;
 
 	enum { ALLOC_ALIGN = 8 };
-	enum { ALLOC_MAX_BYTES = 128 };
+	enum { ALLOC_MAX_BYTES = 256 };
 	enum { ALLOC_NFRELISTS = ALLOC_MAX_BYTES / ALLOC_ALIGN };
 
 	template <bool threads, int inst>
@@ -370,8 +369,8 @@ namespace wjr {
 			allocator_type::deallocate(static_cast<void*>(ptr), sizeof(Ty) * n);
 		}
 
-		void construct(Ty* ptr, wjr_uninitialized_tag) const{
-			
+		void construct([[maybe_unused]]Ty* ptr, wjr_uninitialized_tag) const{
+			// don't do anything
 		}
 
 		constexpr size_t max_size()const {
@@ -414,16 +413,13 @@ namespace wjr {
 	using mallocator = basic_mallocator<T, true>;
 #endif
 
+	template<typename T>
 	struct default_mallocator_delete {
 		constexpr default_mallocator_delete() = default;
-
 		constexpr default_mallocator_delete(const default_mallocator_delete&) = default;
-		
-		default_mallocator_delete& operator=(default_mallocator_delete&) = default;
-
+		constexpr default_mallocator_delete& operator=(const default_mallocator_delete&) = default;
 		~default_mallocator_delete() = default;
 
-		template<typename T>
 		void operator()(T* ptr)const {
 			ptr->~T();
 			mallocator<T>().deallocate(ptr, 1);
@@ -431,13 +427,47 @@ namespace wjr {
 	};
 
 	template<typename T>
-	using mallocator_unique_ptr = std::unique_ptr<T, default_mallocator_delete>;
+	struct default_mallocator_delete<T[]> {
+		constexpr default_mallocator_delete() = default;
+		constexpr default_mallocator_delete(size_t size) : size(size){}
+		constexpr default_mallocator_delete(const default_mallocator_delete&) = default;
+		constexpr default_mallocator_delete& operator=(const default_mallocator_delete&) = default;
+		~default_mallocator_delete() = default;
 
-	template<typename T, typename...Args>
+		void operator()(T* ptr)const {
+			for(size_t i = 0;i< size;++i) {
+				ptr[i].~T();
+			}
+			mallocator<T>().deallocate(ptr, sizeof(T) * size);
+		}
+	private:
+		size_t size;
+	};
+
+	template<typename T>
+	using mallocator_unique_ptr = std::unique_ptr<T, default_mallocator_delete<T>>;
+
+	template<typename T, typename...Args, std::enable_if_t<!std::is_array_v<T>,int> = 0>
 	mallocator_unique_ptr<T> mallocator_make_unique(Args&&...args) {
 		auto ptr = mallocator<T>().allocate(1);
 		new (ptr) T(std::forward<Args>(args)...);
-		return mallocator_unique_ptr<T>(ptr, default_mallocator_delete());
+		return mallocator_unique_ptr<T>(ptr, default_mallocator_delete<T>());
+	}
+
+	template<typename T, std::enable_if_t<std::is_array_v<T> && std::extent_v<T> == 0,int> = 0>
+	mallocator_unique_ptr<T> mallocator_make_unique(size_t size) {
+		using elem = std::remove_extent_t<T>;
+		auto ptr = mallocator<elem>().allocate(size);
+		for (size_t i = 0; i < size; ++i) {
+			new (ptr + i) elem();
+		}
+		return mallocator_unique_ptr<T>(ptr, default_mallocator_delete<T>(size));
+	}
+
+	template<typename T>
+	mallocator_unique_ptr<T> mallocator_make_unique(size_t size, wjr_uninitialized_tag) {
+		auto ptr = mallocator<T>().allocate(size);
+		return mallocator_unique_ptr<T>(ptr, default_mallocator_delete<T>(size));
 	}
 }
 

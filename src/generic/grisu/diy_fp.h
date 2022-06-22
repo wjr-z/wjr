@@ -24,23 +24,51 @@
   */
 #pragma once
 
-static void fill_exponent(int K, char* buffer) {
-	int i = 0;
-	if (K < 0) {
-		buffer[i++] = '-';
-		K = -K;
-	}
-	if (K >= 100) {
-		buffer[i++] = '0' + K / 100; K %= 100;
-		buffer[i++] = '0' + K / 10; K %= 10;
-		buffer[i++] = '0' + K;
-	}
-	else if (K >= 10) {
-		buffer[i++] = '0' + K / 10; K %= 10;
-		buffer[i++] = '0' + K;
-	}
-	else {
-		buffer[i++] = '0' + K;
-	}
-	buffer[i] = '\0';
+#if defined(__cplusplus)
+extern "C"{
+#endif
+#include <stdint.h>
+#include <assert.h>
+
+typedef struct diy_fp_t {
+	uint64_t f;
+	int e;
+} diy_fp_t;
+
+static diy_fp_t minus(diy_fp_t x, diy_fp_t y) {
+	assert(x.e == y.e);
+	assert(x.f >= y.f);
+	diy_fp_t r = {x.f - y.f,x.e };
+	return r;
 }
+
+/*
+static diy_fp_t minus(diy_fp_t x, diy_fp_t y) {
+  assert(x.e == y.e);
+  assert(x.f >= y.f);
+  diy_fp_t r = {.f = x.f - y.f, .e = x.e};
+  return r;
+}
+*/
+
+static diy_fp_t multiply(diy_fp_t x, diy_fp_t y) {
+	uint64_t a, b, c, d, ac, bc, ad, bd, tmp;
+	diy_fp_t r; 
+#if defined(__SIZEOF_INT128__)
+	r.f = ((__uint128_t)(x.f) * (__uint128_t)(y.f)) >> 64;
+#else
+	uint64_t M32 = 0xFFFFFFFF;
+	a = x.f >> 32; b = x.f & M32;
+	c = y.f >> 32; d = y.f & M32;
+	ac = a * c; bc = b * c; ad = a * d; bd = b * d;
+	tmp = (bd >> 32) + (ad & M32) + (bc & M32);
+	tmp += 1U << 31; /// mult_round
+	r.f = ac + (ad >> 32) + (bc >> 32) + (tmp >> 32);
+#endif
+	r.e = x.e + y.e + 64;
+	return r;
+}
+
+#if defined(__cplusplus)
+}
+#endif

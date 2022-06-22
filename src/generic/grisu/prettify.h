@@ -23,6 +23,9 @@
   OTHER DEALINGS IN THE SOFTWARE.
   */
 #pragma once
+#if defined(__cplusplus)
+extern "C"{
+#endif
 #include "fast_exponent.h"
 #include <string.h>
 
@@ -78,3 +81,6 @@ static void prettify_string(char* buffer, int from_pos, int end_pos, int k) {
 		fill_exponent(kk - 1, &buffer[from_pos + nb_digits + 2]);
 	}
 }
+#if defined(__cplusplus)
+}
+#endif

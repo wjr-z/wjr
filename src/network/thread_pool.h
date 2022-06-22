@@ -31,8 +31,9 @@
 #include <queue>
 #include <stdexcept>
 #include <thread>
+#include <tuple>
 #include <vector>
-#include "mallocator.h"
+#include "../generic/mallocator.h"
 
 namespace wjr {
 	class thread_pool {
@@ -45,19 +46,18 @@ namespace wjr {
 	private:
 		using func = std::function<void()>;
 		// need to keep track of threads so we can join them
-		std::vector< std::thread > workers;
+		std::vector<std::thread, mallocator<std::thread>> workers;
 		// the task queue
 		std::queue<func, std::deque<func, mallocator<func>>> tasks;
 
 		// synchronization
 		std::mutex queue_mutex;
 		std::condition_variable condition;
-		bool stop;
+		bool stop = false;
 	};
 
 	// the constructor just launches some amount of workers
-	inline thread_pool::thread_pool(size_t threads)
-		: stop(false) {
+	inline thread_pool::thread_pool(size_t threads) {
 		workers.reserve(threads);
 		for (size_t i = 0; i < threads; ++i)
 			workers.emplace_back(
@@ -73,7 +73,6 @@ namespace wjr {
 							task = std::move(this->tasks.front());
 							this->tasks.pop();
 						}
-
 						task();
 					}
 				}
@@ -87,7 +86,7 @@ namespace wjr {
 		using return_type = wjr_result_of_t<F, Args...>;
 		using allocator_type = mallocator<std::packaged_task<return_type()>>;
 
-		auto task = std::allocate_shared< std::packaged_task<return_type()> >(
+		auto task = std::allocate_shared<std::packaged_task<return_type()> >(
 			allocator_type(),
 			std::bind(std::forward<F>(f), std::forward<Args>(args)...)
 			);

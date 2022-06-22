@@ -1,7 +1,8 @@
 ﻿#include <fstream>
-#include "../include/biginteger.h"
-#include "../include/json.h"
-#include "../include/mtool.h"
+#include "biginteger/biginteger.h"
+#include "json/json.h"
+#include "generic/mtool.h"
+#include "generic/sptr_wrapper.h"
 
 using namespace wjr;
 using namespace std;
@@ -95,20 +96,58 @@ bool is_prime(const biginteger<2>& x) {
     return miller_robin(x);
 }
 
-int main() {
-    auto vec = get_all_files("test");
-    for (auto& i : vec) {
-        i = read_file(i);
-    }
-    using cjson = basic_json<default_json_traits>;
-    vector<cjson> jc;
+void incl(int& x) {
+    ++x;
+}
+
+#include "network/thread_pool.h"
+template<typename F,typename...Args>
+void test1(F&&f,Args&&...args) {
+    auto p = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
     auto s = mtime();
-    for (auto i : vec) {
-        jc.push_back(cjson::parse(i.c_str(), i.c_str() + i.size()));
+    for (int i = 0; i < 1e7; ++i) {
+		p();
     }
     auto t = mtime();
     cout << t - s << '\n';
+}
+template<typename F, typename T>
+void test2(F&& f, T && x) {
+    auto p = [f,&x]() {
+        f(x);
+    };
+    auto s = mtime();
+    for (int i = 0; i < 1e7; ++i) {
+        p();
+    }
+    auto t = mtime();
+    cout << t - s << '\n';
+}
+
+template<typename G>
+struct A {
+    template<typename T, typename U>
+    constexpr static bool mode = true;
+};
+
+int main() {
+    sptr_wrapper<int, sptr_wrapper_mode::shared_ptr> ptr(37);
+    cout << *ptr << '\n';
+    ptr = 369;
+    cout << *ptr << '\n';
+    decltype(ptr) gh;
+    gh = ptr;
+    cout << *gh << '\n';
 
     return 0;
+
+    auto vec = get_all_files("test");
+    for (auto& i : vec) i = read_file(i);
+    auto s = mtime();
+    for (auto& i : vec) {
+        json::parse(i.begin(),i.end());
+    }
+    auto t = mtime();
+    cout << t - s << '\n';
+    return 0;
 }
-												

@@ -1,17 +1,47 @@
 #ifndef __WJR_MY_STL_H
 #define __WJR_MY_STL_H
 
+#if defined(__clang__) || defined(__GNUC__)
+#define WJR_CPP_STANDARD __cplusplus
+#elif defined(_MSC_VER)
+#define WJR_CPP_STANDARD _MSVC_LANG
+#endif
+
+#if WJR_CPP_STANDARD >= 199711L
+#define WJR_CPP_03
+#endif
+#if WJR_CPP_STANDARD >= 201103L
+#define WJR_CPP_11
+#endif
+#if WJR_CPP_STANDARD >= 201402L
+#define WJR_CPP_14
+#endif
+#if WJR_CPP_STANDARD >= 201703L
+#define WJR_CPP_17
+#endif
+#if WJR_CPP_STANDARD >= 202002L
+#define WJR_CPP_20
+#endif
+
+#include <array>
 #include <cassert>
 #include <cstdint>
 #include <ctime>
 #include <functional>
 #include <locale>
+#include <memory>
 #include <random>
 #include <type_traits>
 
 #include <intrin.h>
 #include <immintrin.h>
 #include <emmintrin.h>
+
+#include "../generic/grisu/double.h"
+
+#if defined(WJR_CPP_20)
+#include <concepts>
+#endif
 
 #define USE_LIBDIVIDE
 #ifdef USE_LIBDIVIDE
@@ -34,28 +64,6 @@ namespace wjr {
 #endif
 
 #define __USE_THREADS
-
-#if defined(__clang__) || defined(__GNUC__)
-#define WJR_CPP_STANDARD __cplusplus
-#elif defined(_MSC_VER)
-#define WJR_CPP_STANDARD _MSVC_LANG
-#endif
-
-#if WJR_CPP_STANDARD >= 199711L
-#define WJR_CPP_03
-#endif
-#if WJR_CPP_STANDARD >= 201103L
-#define WJR_CPP_11
-#endif
-#if WJR_CPP_STANDARD >= 201402L
-#define WJR_CPP_14
-#endif
-#if WJR_CPP_STANDARD >= 201703L
-#define WJR_CPP_17
-#endif
-#if WJR_CPP_STANDARD >= 202002L
-#define WJR_CPP_20
-#endif
 
 #ifndef is_little_endian
 #if defined(__BYTE_ORDER__)
@@ -256,11 +264,24 @@ namespace wjr {
         template<typename T>
         constexpr static bool wjr_is_iterator_v = wjr_is_iterator<T>::value;
 
+#if defined(WJR_CPP_20)
+        template<typename T>
+        concept wjr_iterator = wjr_is_iterator_v<T>;
+#endif
+
         template<typename T>
         struct is_reverse_iterator : std::false_type {};
 
         template<typename T>
         struct is_reverse_iterator<std::reverse_iterator<T>> : std::true_type {};
+
+        template<typename T>
+		constexpr static bool is_reverse_iterator_v = is_reverse_iterator<T>::value;
+
+#if defined(WJR_CPP_20)
+		template<typename T>
+		concept wjr_reverse_iterator = is_reverse_iterator_v<T>;
+#endif
 
         template<typename T>
         struct _Is_signed_integral :
@@ -275,6 +296,16 @@ namespace wjr {
 
         template<typename T>
         constexpr static bool _Is_unsigned_integral_v = _Is_unsigned_integral<T>::value;
+
+        template<typename T>
+        struct can_make_unsigned {
+			constexpr static bool value = 
+                (std::is_integral_v<T> && !std::is_same_v<std::remove_cv_t<T>, bool>)
+				|| std::is_enum_v<T>;
+        };
+		
+        template<typename T>
+		constexpr static bool can_make_unsigned_v = can_make_unsigned<T>::value;
 
 #if defined(WJR_CPP_17)
         template<typename F, typename...Args>
@@ -523,6 +554,20 @@ namespace wjr {
         template<typename T>
         using forward_wrapper_t = typename forward_wrapper<T>::type;
 
+        template<typename T>
+        constexpr decltype(auto) get_forward_wrapper(T&& val) {
+            return static_cast<forward_wrapper_t<T>>(std::forward<T>(val));
+        }
+
+        template<typename T, typename = void>
+        struct wjr_has_size : std::false_type {};
+
+		template<typename T>
+        struct wjr_has_size <T, std::void_t<decltype(std::size(std::declval<T>()))>> : std::true_type{};
+
+        template<typename T>
+		constexpr bool wjr_has_size_v = wjr_has_size<T>::value;
+
         enum class empty_base_optimize {
             first_empty,
             second_empty,
@@ -617,7 +662,7 @@ namespace wjr {
 
     inline namespace wjr_math {
 
-        constexpr static uint64_t binary_mask[65] = {
+        constexpr static std::array<uint64_t, 65> binary_mask = {
             0x0000000000000000,
             0x0000000000000001,0x0000000000000003,0x0000000000000007,0x000000000000000f,
             0x000000000000001f,0x000000000000003f,0x000000000000007f,0x00000000000000ff,
@@ -637,14 +682,14 @@ namespace wjr {
             0x1fffffffffffffff,0x3fffffffffffffff,0x7fffffffffffffff,0xffffffffffffffff
         };
 
-        constexpr static size_t cqlog2_tabel[32] =
+        constexpr static std::array<size_t,32> cqlog2_table =
         { 0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3 };
 
         constexpr size_t cqlog2(uint16_t x) {
             size_t ans = 0;
             if (x >> 8) { ans += 8; x >>= 8; }
-            if (x >> 4) { ans += 4; x >>= 4; }
-            return ans + cqlog2_tabel[x];
+            if (x >> 4) {  ans += 4; x >>= 4; }
+            return ans + cqlog2_table[x];
         }
 
         constexpr size_t cqlog2(int16_t x) {
@@ -656,7 +701,7 @@ namespace wjr {
             if (x >> 16) { ans += 16; x >>= 16; }
             if (x >> 8) { ans += 8; x >>= 8; }
             if (x >> 4) { ans += 4; x >>= 4; }
-            return ans + cqlog2_tabel[x];
+            return ans + cqlog2_table[x];
         }
 
         constexpr size_t cqlog2(int32_t x) {
@@ -669,7 +714,7 @@ namespace wjr {
             if (x >> 16) { ans += 16; x >>= 16; }
             if (x >> 8) { ans += 8; x >>= 8; }
             if (x >> 4) { ans += 4; x >>= 4; }
-            return ans + cqlog2_tabel[x];
+            return ans + cqlog2_table[x];
         }
 
         constexpr size_t cqlog2(int64_t x) {
@@ -828,13 +873,8 @@ namespace wjr {
             }
         }
 
-        template<size_t index, typename T>
-        struct auto_split_number {
-            T vec[index];
-        };
-
         template<size_t kth, size_t index, typename T>
-        constexpr T get(const auto_split_number<index, T>& v) {
+        constexpr T get(const std::array<T, index>& v) {
             if constexpr (is_little_endian) {
                 return v.vec[kth];
             }
@@ -847,7 +887,7 @@ namespace wjr {
         constexpr decltype(auto) split_number(U x) {
             static_assert(index * sizeof(T) == sizeof(U), "");
             union {
-                auto_split_number<index, T> a;
+               std::array<T, index> a;
                 U b;
             } c;
             c.b = x;
@@ -1060,7 +1100,7 @@ namespace wjr {
 
     inline namespace wjr_mem {
         // ' ','\n','\r','\t'
-        constexpr static bool is_white_space_char[256] = {
+        constexpr static std::array<bool,256> is_white_space_char = {
             0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
             1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
             0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -1073,31 +1113,35 @@ namespace wjr {
         constexpr static char white_space[16] = " \n\r\t";
 
         template<typename T>
-        constexpr decltype(auto) get_unsigned_value(T ch) {
-            return static_cast<std::make_unsigned_t<T>>(ch);
-        }
-
-        template<typename value_t>
-        bool is_whitespace(value_t val) {
-            using uvalue_t = std::make_unsigned_t<value_t>;
-            auto uval = get_unsigned_value(val);
-            if constexpr (std::numeric_limits<uvalue_t>::max() < 256) {
-                return is_white_space_char[uval];
-            }
-            else if constexpr (std::is_integral_v<uvalue_t>) {
-                // if uval >= 256
-                return (uval >> 8) || is_white_space_char[uval];
+        constexpr decltype(auto) get_unsigned_value(T&& val) {
+            using origin_type = std::decay_t<T&&>;
+            if constexpr (can_make_unsigned_v<origin_type>) {
+                return static_cast<std::make_unsigned_t<origin_type>>(std::forward<T>(val));
             }
             else {
-                switch (val) {
-                case ' ' : [[fallthrough]]
-                case '\n': [[fallthrough]]
-                case '\r': [[fallthrough]]
-                case '\t': [[fallthrough]]
-                    return true;
-                default  :
-                    return false;
+                return std::forward<T>(val);
+            }
+        }
+
+        template<typename T>
+        constexpr bool is_whitespace(T&& val) {
+            using origin_type = std::decay_t<T&&>;
+            auto uval = get_unsigned_value(std::forward<T>(val));
+            if constexpr (can_make_unsigned_v<origin_type>) {
+                using uvalue_t = std::make_unsigned_t<origin_type>;
+                if constexpr (std::numeric_limits<uvalue_t>::max() < 256) {
+                    return is_white_space_char[uval];
                 }
+                else {
+                    // if uval >= 256
+                    return (uval >> 8) || is_white_space_char[uval];
+                }
+            }
+            else {
+                if (uval == ' ' || uval == '\n' || uval == '\r' || uval == '\t') {
+                    return true;
+                }
+                return false;
             }
         }
 
@@ -1137,29 +1181,125 @@ namespace wjr {
         constexpr static T static_charT = static_cast<T>(ch);
 
         template<typename T>
-        bool qisdigit(T ch) {
+        constexpr bool qisdigit(T ch) {
             return (static_charT<T, '0'> <= ch) && (ch <= static_charT<T, '9'>);
         }
 
         template<typename T>
-        bool qislower(T ch) {
+        constexpr bool qis_hex_digit(T ch) {
+			return qisdigit(ch) 
+                || (static_charT<T, 'a'> <= ch && ch <= static_charT<T, 'f'>) 
+                || (static_charT<T, 'A'> <= ch && ch <= static_charT<T, 'F'>);
+        }
+
+        template<typename T>
+        constexpr  bool qislower(T ch) {
             return (static_charT<T, 'a'> <= ch) && (ch <= static_charT<T, 'z'>);
         }
 
         template<typename T>
-        bool qisupper(T ch) {
+        constexpr bool qisupper(T ch) {
             return (static_charT<T, 'A'> <= ch) && (ch <= static_charT<T, 'Z'>);
         }
 
         template<typename T>
-        bool isdigit_or_sign(T ch) {
+        constexpr bool isdigit_or_sign(T ch) {
             return qisdigit(ch) || (ch == static_charT<T, '+'>) || (ch == static_charT<T, '-'>);
         }
 
+        constexpr static std::array<uint32_t, 256> _Digit_Map =
+        {
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,3,4,5,6,7,8,9,0,0,0,0,0,0,0,10,11,12,13,
+            14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,0,0,
+            0,0,0,0,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,
+            31,32,33,34,35,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+        };
+
         template<typename T>
-        int get_digit(T ch) { // must judge ch at first
-            static int digit_Map[256] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,3,4,5,6,7,8,9,0,0,0,0,0,0,0,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,0,0,0,0,0,0,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-            return digit_Map[static_cast<uint8_t>(ch)];
+        constexpr uint32_t get_digit(T ch) { // must judge ch at first
+            return _Digit_Map[static_cast<uint8_t>(ch)];
+        }
+
+        template<typename iter, std::enable_if_t<wjr_is_iterator_v<iter>, int> = 0>
+        constexpr bool check_number(iter& s, iter e) {
+            if (*s == '+' || *s == '-')
+                ++s;
+
+            if (s == e || !qisdigit(*s))
+                return false;
+
+            if (*s == '0') {
+                ++s;
+            }
+            else {
+                for (; s != e && qisdigit(*s); ++s);
+            }
+
+            if (*s == '.') {
+                for (++s; s != e && qisdigit(*s); ++s);
+            }
+
+            if (*s == 'e' || *s == 'E') {
+                ++s;
+                if (*s == '+' || *s == '-')
+                    ++s;
+                if (s == e || !qisdigit(*s))
+                    return false;
+                for (; s != e && qisdigit(*s); ++s);
+            }
+
+            return true;
+        }
+
+        template<typename iter, std::enable_if_t<wjr_is_iterator_v<iter>, int> = 0>
+        inline double read_number(iter& first, [[maybe_unused]] iter last) {
+            bool sgn = true;
+            switch (*first) {
+            case '+': ++first; break;
+            case '-': sgn = false; ++first; break;
+            }
+
+            uint64_t v = 0;
+            int num = 17, pw10 = 0;
+
+            for (; qisdigit(*first) && num; ++first, --num) {
+                v = v * 10 + (*first - '0');
+            }
+
+            for (; qisdigit(*first); ++first, ++pw10);
+
+            if (*first == '.') {
+                ++first;
+                for (; qisdigit(*first) && num; ++first, --num, --pw10) {
+                    v = v * 10 + (*first - '0');
+                }
+                for (; qisdigit(*first); ++first);
+            }
+
+            if ((*first == 'e') || (*first == 'E')) {
+                ++first;
+                int pw = 0;
+                bool _Sgn = true;
+                switch (*first) {
+                case '+': ++first; break;
+                case '-':_Sgn = false; ++first; break;
+                }
+                for (; qisdigit(*first); ++first) {
+                    pw = pw * 10 + (*first - '0');
+                }
+
+                pw10 += _Sgn ? pw : -pw;
+            }
+
+            diy_fp_t U = { v, 0 };
+            diy_fp_t V = cached_power(pw10);
+            auto W = multiply(U, V);
+            double val = diy_fp2double(W);
+            return sgn ? val : -val;
         }
 
     }
