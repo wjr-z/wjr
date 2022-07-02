@@ -80,10 +80,10 @@ static diy_fp_t double2diy_fp(double d) {
 	return res;
 }
 
-const static size_t _Log2_Table[] = { 0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3 };
+const static int _Log2_Table[] = { 0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3 };
 
-static size_t _Log2_u64(uint64_t x) {
-	size_t ans = 0;
+static int _Log2_u64(uint64_t x) {
+	int ans = 0;
 	if (x >> 32) { ans += 32; x >>= 32; }
 	if (x >> 16) { ans += 16; x >>= 16; }
 	if (x >> 8) { ans += 8; x >>= 8; }
@@ -91,22 +91,29 @@ static size_t _Log2_u64(uint64_t x) {
 	return ans + _Log2_Table[x];
 }
 
+static diy_fp_t uint64_t2diy_fp_t(uint64_t in) {
+	int l = 63 - _Log2_u64(in);
+	diy_fp_t res;
+	res.f = in << l;
+	res.e = -l;
+	return res;
+}
+
 // IEE754 diy_fp_t to double
 static double diy_fp2double(diy_fp_t in) {
 	if (!in.f) return 0;
 	uint64_t significand = in.f;
 	int biased_e = in.e + DP_EXPONENT_BIAS;
-	size_t l = _Log2_u64(significand);
+	int l = _Log2_u64(significand);
 	if (l < 52) {
 		significand <<= 52 - l;
-		biased_e -= 52 - l;
 	}
 	else {
 		significand >>= l - 52;
-		biased_e += l - 52;
 	}
+	biased_e += l - 52;
 	if (biased_e > 0){
-		significand -= DP_HIDDEN_BIT;
+		significand ^= DP_HIDDEN_BIT;
 	}
 	else {
 		significand >>= 1 - biased_e;

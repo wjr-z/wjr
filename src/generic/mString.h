@@ -1422,13 +1422,13 @@ namespace wjr {
 		}
 	private:
 		constexpr static Char tr[7] = {
-			static_charT<Char,' ' >,
-			static_charT<Char,'\r'>,
-			static_charT<Char,'\n'>,
-			static_charT<Char,'\t'>,
-			static_charT<Char,'\f'>,
-			static_charT<Char,'\v'>,
-			static_charT<Char,'\0'>
+			std::integral_constant<Char,' ' >(),
+			std::integral_constant<Char,'\r'>(),
+			std::integral_constant<Char,'\n'>(),
+			std::integral_constant<Char,'\t'>(),
+			std::integral_constant<Char,'\f'>(),
+			std::integral_constant<Char,'\v'>(),
+			std::integral_constant<Char,'\0'>()
 		};
 	};
 	
@@ -2564,10 +2564,10 @@ namespace wjr {
 			return static_cast<Val>(0);
 		}
 		next = s + pos;
-		if (*next == static_charT<Char, '+'>) {
+		if (*next == std::integral_constant<Char, '+'>()) {
 			++next;
 		}
-		else if (*next == static_charT<Char, '-'>) {
+		else if (*next == std::integral_constant<Char, '-'>()) {
 			sign = false;
 			++next;
 		}
@@ -2618,7 +2618,7 @@ namespace wjr {
 			return static_cast<UVal>(0);
 		}
 		next = s + pos;
-		if (*next == static_charT<Char, '+'>) {
+		if (*next == std::integral_constant<Char, '+'>()) {
 			++next;
 		}
 		if (next == e || !qisdigit(*next)) {
@@ -2683,10 +2683,10 @@ namespace wjr {
 		size_t end_pos = trim_right(s, static_cast<size_t>(e - s));
 		e = s + end_pos + 1;
 		s = s + pos;
-		if (*s == static_charT<Char, '+'>) {
+		if (*s == std::integral_constant<Char, '+'>()) {
 			++s;
 		}
-		else if (*s == static_charT<Char, '-'>) {
+		else if (*s == std::integral_constant<Char, '-'>()) {
 			sign = false;
 			++s;
 		}
@@ -2735,7 +2735,7 @@ namespace wjr {
 		size_t end_pos = trim_right(s, static_cast<size_t>(e - s));
 		e = s + end_pos + 1;
 		s = s + pos;
-		if (*s == static_charT<Char, '+'>) {
+		if (*s == std::integral_constant<Char, '+'>()) {
 			++s;
 		}
 		if (s == e || !qisdigit(*s)) {
@@ -2800,10 +2800,10 @@ namespace wjr {
 		bool sign = true;
 		size_t pos = trim_left(s, static_cast<size_t>(e - s));
 		next = s + pos;
-		if (*next == static_charT<Char, '+'>) {
+		if (*next == std::integral_constant<Char, '+'>()) {
 			++next;
 		}
-		else if (*next == static_charT<Char, '-'>) {
+		else if (*next == std::integral_constant<Char, '-'>()) {
 			sign = false;
 			++next;
 		}
@@ -2830,7 +2830,7 @@ namespace wjr {
 		}
 		size_t pos = trim_left(s, static_cast<size_t>(e - s));
 		next = s + pos;
-		if (*next == static_charT<Char, '+'>) {
+		if (*next == std::integral_constant<Char, '+'>()) {
 			++next;
 		}
 		UVal val = get_digit(*next);
@@ -2879,10 +2879,10 @@ namespace wjr {
 		size_t end_pos = trim_right(s, static_cast<size_t>(e - s));
 		e = s + end_pos + 1;
 		s = s + pos;
-		if (*s == static_charT<Char, '+'>) {
+		if (*s == std::integral_constant<Char, '+'>()) {
 			++s;
 		}
-		else if (*s == static_charT<Char, '-'>) {
+		else if (*s == std::integral_constant<Char, '-'>()) {
 			sign = false;
 			++s;
 		}
@@ -2911,7 +2911,7 @@ namespace wjr {
 		size_t end_pos = trim_right(s, static_cast<size_t>(e - s));
 		e = s + end_pos + 1;
 		s = s + pos;
-		if (*s == static_charT<Char, '+'>) {
+		if (*s == std::integral_constant<Char, '+'>()) {
 			++s;
 		}
 		if (s == e) {
@@ -5503,7 +5503,7 @@ namespace wjr {
 	basic_String<Char, Traits, Core>&
 		basic_String<Char, Traits, Core>::assign(
 			const value_type* s, const size_type n) {
-		if (!n) {
+		if (unlikely(!n)) {
 			resize(0);
 		}
 		else if (size() >= n) {
@@ -5989,7 +5989,7 @@ namespace wjr {
 	template<typename Char, typename Traits, typename Core>
 	basic_String<Char, Traits, Core> basic_String<Char, Traits, Core>::fixed_number(double val) {
 		if (!val) {
-			return basic_String<Char, Traits, Core>(1, static_charT<Char, '0'>);
+			return basic_String<Char, Traits, Core>(1, std::integral_constant<Char, '0'>());
 		}
 		char buff[64];
 		char* ptr = buff;

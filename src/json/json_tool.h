@@ -4,8 +4,9 @@
 #include "../generic/mtype_traits.h"
 
 namespace wjr {
-	namespace json_tool {
 
+	struct json_func {
+		
 		constexpr static std::array<size_t, 256> string_skip_step = {
 			1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 			1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -18,7 +19,7 @@ namespace wjr {
 		};
 
 		template<typename iter, std::enable_if_t<wjr_is_iterator_v<iter>, int> = 0>
-		inline iter skip_string(iter first, [[maybe_unused]] iter last) {
+		constexpr static iter skip_string(iter first, [[maybe_unused]] iter last) {
 			using value_t = typename std::iterator_traits<iter>::value_type;
 			using uvalue_t = std::make_unsigned_t<value_t>;
 			if constexpr (std::numeric_limits<uvalue_t>::max() < 256) {
@@ -39,7 +40,7 @@ namespace wjr {
 		}
 
 		template<typename iter, std::enable_if_t<wjr_is_iterator_v<iter>, int> = 0>
-		inline bool check_string(iter& s, iter e) {
+		constexpr static bool check_string(iter& s, iter e) {
 			if (*s != '"')return false;
 			++s;
 			while (s != e && *s != '"') {
@@ -89,7 +90,20 @@ namespace wjr {
 			}
 			return s != e;
 		}
-	}
+
+		template<typename iter, std::enable_if_t<wjr_is_iterator_v<iter>, int> = 0>
+		constexpr static iter skip_whitespace(iter first, iter last) {
+			return wjr::skip_whitespace(first, last);
+		}
+
+		template<typename Char, typename Traits>
+		constexpr static void write(basic_String<Char, Traits>& str, double number) {
+			str.reserve(str.size() + 64);
+			basic_String<Char, Traits>::fixed_number(str.end(), str.end() + 64, number);
+		}
+
+	};
+
 }
 
 #endif

@@ -112,6 +112,10 @@ namespace wjr {
 #define USE_THREAD_LOCAL
 #endif
 
+
+#define WJR_EXPLICIT 
+//#define WJR_EXPLICIT 
+
 #if defined(KB)
 #undef KB
 #endif
@@ -136,6 +140,12 @@ namespace wjr {
 #define WJR_CONSTEXPR20
 #endif
 
+#if defined(__GUNC__)
+#define WJR_UNREACHABLE __builtin_unreachable();
+#else 
+#define WJR_UNREACHABLE __assume(0);
+#endif
+
 #ifndef _DEBUG
 #define WDEBUG_LEVEL 0
 #else
@@ -150,6 +160,8 @@ namespace wjr {
                 std::abort();															\
         }																				\
     }while(0)
+
+#define WASSERT_LEVEL_0(expression) WASSERT_LEVEL_MESSAGE(0, expression)
 
 // WDEBUG_LEVEL		1
 // The impact on program running time or space is only constant
@@ -242,8 +254,8 @@ namespace wjr {
         struct is_any_of_helper<judger, T, U, Args...> {
             static constexpr bool value =
                 std::disjunction_v<
-                is_any_of_helper<judger, T, Args...>
-                , is_any_of_helper<judger, U, Args...>>;
+                judger<T, U>,
+                is_any_of_helper<judger, T, Args...>>;
         };
 
         template<typename T, typename...Args>
@@ -563,10 +575,34 @@ namespace wjr {
         struct wjr_has_size : std::false_type {};
 
 		template<typename T>
-        struct wjr_has_size <T, std::void_t<decltype(std::size(std::declval<T>()))>> : std::true_type{};
+        struct wjr_has_size<T, std::void_t<decltype(std::size(std::declval<T>()))>> : std::true_type{};
 
         template<typename T>
-		constexpr bool wjr_has_size_v = wjr_has_size<T>::value;
+		constexpr static bool wjr_has_size_v = wjr_has_size<T>::value;
+
+        template<typename T, typename = void>
+        struct wjr_has_begin : std::false_type {};
+
+        template<typename T>
+        struct wjr_has_begin<T, std::void_t<decltype(std::begin(std::declval<T>()))>> : std::true_type {};
+
+        template<typename T>
+        constexpr static bool wjr_has_begin_v = wjr_has_begin<T>::value;
+
+        template<typename T, typename = void>
+        struct wjr_has_end : std::false_type {};
+
+        template<typename T>
+        struct wjr_has_end<T, std::void_t<decltype(std::end(std::declval<T>()))>> : std::true_type {};
+
+        template<typename T>
+        constexpr static bool wjr_has_end_v = wjr_has_end<T>::value;
+
+        template<typename T>
+        struct wjr_is_container : std::conjunction<wjr_has_begin<T>, wjr_has_end<T>> {};
+
+        template<typename T>
+        constexpr static bool wjr_is_container_v = wjr_is_container<T>::value;
 
         enum class empty_base_optimize {
             first_empty,
@@ -1110,6 +1146,7 @@ namespace wjr {
             0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
             0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
         };
+		
         constexpr static char white_space[16] = " \n\r\t";
 
         template<typename T>
@@ -1147,64 +1184,41 @@ namespace wjr {
 
         template<typename iter, 
             std::enable_if_t<std::conjunction_v<wjr_is_iterator<iter>>, int> = 0>
-        static iter simple_skip_whitespace(iter first, iter last) {
+        constexpr iter simple_skip_whitespace(iter first, iter last) {
             while (first != last && is_whitespace(*first))++first;
             return first;
         }
 
         template<typename iter, std::enable_if_t<wjr_is_iterator_v<iter>, int> = 0>
-        static iter skip_whitespace(iter first, iter last) {
-#if defined(__SSE4_2__)
-            if constexpr (std::is_pointer_v<iter> && sizeof(iter) == 1) {
-                uint8_t* _s = (uint8_t*)first;
-                uint8_t* _e = (uint8_t*)last;
-                if (is_white_space_char[*_s])
-                    ++_s;
-                else return _s;
-                const __m128i w = _mm_loadu_si128((__m128i*) (&white_space[0]));
-                for (; _s <= _e - 16; _s += 16) {
-                    const __m128i ss = _mm_loadu_si128((__m128i*)(_s));
-                    const int r = _mm_cmpistri(w, ss, _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_ANY | _SIDD_LEAST_SIGNIFICANT | _SIDD_NEGATIVE_POLARITY);
-                    if (r != 16)
-                        return _s + r;
+        constexpr iter skip_whitespace(iter first, iter last) {
+            return simple_skip_whitespace(first, last);
         }
-            }
-            else {
-#endif
-                return simple_skip_whitespace(first, last);
-#if defined(__SSE4_2__)
-            }
-#endif
-        }
-
-        template<typename T, char ch>
-        constexpr static T static_charT = static_cast<T>(ch);
 
         template<typename T>
         constexpr bool qisdigit(T ch) {
-            return (static_charT<T, '0'> <= ch) && (ch <= static_charT<T, '9'>);
+            return (std::integral_constant<T, '0'>() <= ch) && (ch <= std::integral_constant<T, '9'>());
         }
 
         template<typename T>
         constexpr bool qis_hex_digit(T ch) {
 			return qisdigit(ch) 
-                || (static_charT<T, 'a'> <= ch && ch <= static_charT<T, 'f'>) 
-                || (static_charT<T, 'A'> <= ch && ch <= static_charT<T, 'F'>);
+                || (std::integral_constant<T, 'a'>() <= ch && ch <= std::integral_constant<T, 'f'>())
+                || (std::integral_constant<T, 'A'>() <= ch && ch <= std::integral_constant<T, 'F'>());
         }
 
         template<typename T>
         constexpr  bool qislower(T ch) {
-            return (static_charT<T, 'a'> <= ch) && (ch <= static_charT<T, 'z'>);
+            return (std::integral_constant<T, 'a'>() <= ch) && (ch <= std::integral_constant<T, 'z'>());
         }
 
         template<typename T>
         constexpr bool qisupper(T ch) {
-            return (static_charT<T, 'A'> <= ch) && (ch <= static_charT<T, 'Z'>);
+            return (std::integral_constant<T, 'A'>() <= ch) && (ch <= std::integral_constant<T, 'Z'>());
         }
 
         template<typename T>
         constexpr bool isdigit_or_sign(T ch) {
-            return qisdigit(ch) || (ch == static_charT<T, '+'>) || (ch == static_charT<T, '-'>);
+            return qisdigit(ch) || (ch == std::integral_constant<T, '+'>()) || (ch == std::integral_constant<T, '-'>());
         }
 
         constexpr static std::array<uint32_t, 256> _Digit_Map =
@@ -1261,10 +1275,12 @@ namespace wjr {
             switch (*first) {
             case '+': ++first; break;
             case '-': sgn = false; ++first; break;
+            default: break;
             }
 
             uint64_t v = 0;
-            int num = 17, pw10 = 0;
+            int num = 17;
+            int pw10 = 0;
 
             for (; qisdigit(*first) && num; ++first, --num) {
                 v = v * 10 + (*first - '0');
@@ -1287,6 +1303,7 @@ namespace wjr {
                 switch (*first) {
                 case '+': ++first; break;
                 case '-':_Sgn = false; ++first; break;
+                default: break;
                 }
                 for (; qisdigit(*first); ++first) {
                     pw = pw * 10 + (*first - '0');
@@ -1295,7 +1312,7 @@ namespace wjr {
                 pw10 += _Sgn ? pw : -pw;
             }
 
-            diy_fp_t U = { v, 0 };
+            diy_fp_t U = uint64_t2diy_fp_t(v);
             diy_fp_t V = cached_power(pw10);
             auto W = multiply(U, V);
             double val = diy_fp2double(W);

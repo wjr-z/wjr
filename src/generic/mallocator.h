@@ -352,25 +352,31 @@ namespace wjr {
 		~basic_mallocator() = default;
 		basic_mallocator& operator=(const basic_mallocator&) noexcept = default;
 
-		[[nodiscard]] Ty* allocate() {
+		[[nodiscard]] Ty* allocate() const noexcept{
 			return static_cast<Ty*>(allocator_type::allocate(sizeof(Ty)));
 		}
 
-		[[nodiscard]] Ty* allocate(size_t n) {
+		[[nodiscard]] Ty* allocate(size_t n) const noexcept {
 			return !n ? nullptr : static_cast<Ty*>(allocator_type::allocate(sizeof(Ty) * n));
 		}
 
-		void deallocate(Ty* ptr) const {
+		void deallocate(Ty* ptr) const noexcept{
 			allocator_type::deallocate(static_cast<void*>(ptr), sizeof(Ty));
 		}
 
-		void deallocate(Ty* ptr, size_t n) const {
+		void deallocate(Ty* ptr, size_t n) const noexcept{
 			if (n == 0) return;
 			allocator_type::deallocate(static_cast<void*>(ptr), sizeof(Ty) * n);
 		}
 
-		void construct([[maybe_unused]]Ty* ptr, wjr_uninitialized_tag) const{
+		constexpr void construct([[maybe_unused]]Ty* ptr, wjr_uninitialized_tag) const{
 			// don't do anything
+		}
+
+		constexpr void destroy(Ty* ptr)const noexcept{
+			if constexpr(!std::is_trivially_destructible_v<Ty>) {
+				ptr->~Ty();
+			}
 		}
 
 		constexpr size_t max_size()const {
@@ -413,62 +419,76 @@ namespace wjr {
 	using mallocator = basic_mallocator<T, true>;
 #endif
 
-	template<typename T>
-	struct default_mallocator_delete {
-		constexpr default_mallocator_delete() = default;
-		constexpr default_mallocator_delete(const default_mallocator_delete&) = default;
-		constexpr default_mallocator_delete& operator=(const default_mallocator_delete&) = default;
-		~default_mallocator_delete() = default;
+	template<typename Enable, typename Alloc, typename T, typename...Args>
+	struct _Has_construct : std::false_type {};
+	template<typename Alloc, typename T, typename...Args>
+	struct _Has_construct<std::void_t<decltype(
+		std::declval<Alloc&>().construct(std::declval<T>(), std::declval<Args>()...))>, T, Alloc, Args...> : std::true_type {};
 
-		void operator()(T* ptr)const {
+	template<typename Alloc, typename T, typename...Args>
+	struct mhas_construct : _Has_construct<void, Alloc, T, Args...> {};
+
+	template<typename Alloc, typename T, typename...Args>
+	constexpr static bool mhas_construct_v = mhas_construct<Alloc, T, Args...>::value;
+
+	template<typename Alloc, typename T, typename = void>
+	struct mhas_destroy : std::false_type {};
+
+	template<typename Alloc, typename T>
+	struct mhas_destroy<Alloc, T, std::void_t<
+		decltype(std::declval<Alloc&>().destroy(std::declval<T>()))>> : std::true_type {};
+
+	template<typename Alloc, typename T, typename...Args>
+	constexpr static bool mhas_destroy_v = mhas_destroy<Alloc, T, Args...>::value;
+
+	template<typename Alloc, typename T, typename...Args>
+	void mconstruct(Alloc& al, T* ptr, Args&&...args) {
+		if constexpr (mhas_construct_v<Alloc, T*, Args...>) {
+			al.construct(ptr, std::forward<Args>(args)...);
+		}
+		else {
+			new (ptr) T(std::forward<Args>(args)...);
+		}
+	}
+
+	template<typename Alloc, typename T>
+	void mdestroy(Alloc& al, T* ptr) {
+		if constexpr (mhas_destroy_v<Alloc, T*>) {
+			al.destroy(ptr);
+		}
+		else {
 			ptr->~T();
-			mallocator<T>().deallocate(ptr, 1);
+		}
+	}
+
+	template<typename T, typename Alloc>
+	struct _Make_allocate_unique : public forward_wrapper_t<Alloc> {
+		using Base = forward_wrapper_t<Alloc>;
+		template<typename...Args>
+		constexpr explicit _Make_allocate_unique(Args&&...args) noexcept(std::is_nothrow_constructible_v<Base, Args...>)
+			: Base(std::forward<Args>(args)...) {}
+		template<typename U>
+		constexpr _Make_allocate_unique& operator=(U&& _Val) noexcept(std::is_nothrow_assignable_v<Base, U&&>) {
+			Base::operator=(std::forward<U>(_Val));
+			return *this;
+		}
+		constexpr void operator()(T* ptr) noexcept {
+			mdestroy(*this, ptr);
+			static_cast<Alloc>(*this).deallocate(ptr, 1);
 		}
 	};
 
-	template<typename T>
-	struct default_mallocator_delete<T[]> {
-		constexpr default_mallocator_delete() = default;
-		constexpr default_mallocator_delete(size_t size) : size(size){}
-		constexpr default_mallocator_delete(const default_mallocator_delete&) = default;
-		constexpr default_mallocator_delete& operator=(const default_mallocator_delete&) = default;
-		~default_mallocator_delete() = default;
+	template<typename T, typename Alloc>
+	using mallocate_unique_ptr_t = std::unique_ptr<T, _Make_allocate_unique<T, Alloc>>;
 
-		void operator()(T* ptr)const {
-			for(size_t i = 0;i< size;++i) {
-				ptr[i].~T();
-			}
-			mallocator<T>().deallocate(ptr, sizeof(T) * size);
-		}
-	private:
-		size_t size;
-	};
-
-	template<typename T>
-	using mallocator_unique_ptr = std::unique_ptr<T, default_mallocator_delete<T>>;
-
-	template<typename T, typename...Args, std::enable_if_t<!std::is_array_v<T>,int> = 0>
-	mallocator_unique_ptr<T> mallocator_make_unique(Args&&...args) {
-		auto ptr = mallocator<T>().allocate(1);
-		new (ptr) T(std::forward<Args>(args)...);
-		return mallocator_unique_ptr<T>(ptr, default_mallocator_delete<T>());
+	template<typename T, typename Alloc, typename...Args>
+	constexpr mallocate_unique_ptr_t<T,Alloc> mallocate_unique(Alloc&& al, Args&&...args) {
+		_Make_allocate_unique<T, Alloc> _Al(std::forward<Alloc>(al));
+		T* ptr = static_cast<Alloc>(_Al).allocate(1);
+		mconstruct(_Al, ptr, std::forward<Args>(args)...);
+		return mallocate_unique_ptr_t<T,Alloc>(ptr, std::move(_Al));
 	}
-
-	template<typename T, std::enable_if_t<std::is_array_v<T> && std::extent_v<T> == 0,int> = 0>
-	mallocator_unique_ptr<T> mallocator_make_unique(size_t size) {
-		using elem = std::remove_extent_t<T>;
-		auto ptr = mallocator<elem>().allocate(size);
-		for (size_t i = 0; i < size; ++i) {
-			new (ptr + i) elem();
-		}
-		return mallocator_unique_ptr<T>(ptr, default_mallocator_delete<T>(size));
-	}
-
-	template<typename T>
-	mallocator_unique_ptr<T> mallocator_make_unique(size_t size, wjr_uninitialized_tag) {
-		auto ptr = mallocator<T>().allocate(size);
-		return mallocator_unique_ptr<T>(ptr, default_mallocator_delete<T>(size));
-	}
+	
 }
 
 #endif

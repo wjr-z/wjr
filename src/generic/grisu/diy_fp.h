@@ -42,21 +42,16 @@ static diy_fp_t minus(diy_fp_t x, diy_fp_t y) {
 	return r;
 }
 
-/*
-static diy_fp_t minus(diy_fp_t x, diy_fp_t y) {
-  assert(x.e == y.e);
-  assert(x.f >= y.f);
-  diy_fp_t r = {.f = x.f - y.f, .e = x.e};
-  return r;
-}
-*/
-
 static diy_fp_t multiply(diy_fp_t x, diy_fp_t y) {
-	uint64_t a, b, c, d, ac, bc, ad, bd, tmp;
-	diy_fp_t r; 
-#if defined(__SIZEOF_INT128__)
+#if defined(_MSC_VER) && (defined(__x86_64__) || defined(_M_X64))
+	diy_fp_t r;
+	r.f = __umulh(x.f, y.f);
+#elif defined(__SIZEOF_INT128__)
+	diy_fp_t r;
 	r.f = ((__uint128_t)(x.f) * (__uint128_t)(y.f)) >> 64;
 #else
+	uint64_t a, b, c, d, ac, bc, ad, bd, tmp;
+	diy_fp_t r;
 	uint64_t M32 = 0xFFFFFFFF;
 	a = x.f >> 32; b = x.f & M32;
 	c = y.f >> 32; d = y.f & M32;
