@@ -1,3 +1,4 @@
+[![Coverage Status](https://coveralls.io/repos/github/wjr-z/wjr/badge.svg?branch=main)](https://coveralls.io/github/wjr-z/wjr?branch=main)
 
 Functions & dependencies :
 
