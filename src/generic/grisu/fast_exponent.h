@@ -23,11 +23,10 @@
   OTHER DEALINGS IN THE SOFTWARE.
   */
 #pragma once
-#if defined(__cplusplus)
-extern "C"{
-#endif
+#ifndef __WJR_FAST_EXPONENT_H
+#define __WJR_FAST_EXPONENT_H
 
-static void fill_exponent(int K, char* buffer) {
+inline void fill_exponent(int K, char* buffer) {
 	int i = 0;
 	if (K < 0) {
 		buffer[i++] = '-';
@@ -47,6 +46,5 @@ static void fill_exponent(int K, char* buffer) {
 	}
 	buffer[i] = '\0';
 }
-#if defined(__cplusplus)
-}
+
 #endif

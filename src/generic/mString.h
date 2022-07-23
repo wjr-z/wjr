@@ -16,7 +16,7 @@
 
 #include "mallocator.h"
 
-extern "C" bool fill_double(double v, char* buffer);
+bool fill_double(double v, char* buffer);
 
 namespace wjr {
 	
@@ -1600,61 +1600,6 @@ namespace wjr {
 		searcher_type srch;
 	};
 
-	template<typename Char,typename Traits,typename searcher>
-	class String_find_iterator {
-	public:
-		using value_type = Char;
-		using traits_type = Traits;
-		using pointer = value_type*;
-		using const_pointer = const value_type*;
-		using iterator_category = std::forward_iterator_tag;
-		using difference_type = std::ptrdiff_t;
-		using reference = value_type&;
-		using const_reference = const value_type&;
-		using pointer_type = pointer;
-		using const_pointer_type = const_pointer;
-		using searcher_type = String_find_wrapper<Char, Traits, searcher>;
-		constexpr static size_t npos = basic_String_view<Char, Traits>::npos;
-		String_find_iterator(const_pointer s, size_t n, const searcher& sr)
-			: match_pos(0), str(s, n), srch(sr) {
-			match_pos = srch(str.begin(), str.end());
-		}
-		String_find_iterator(const String_find_iterator&) = default;
-		String_find_iterator(String_find_iterator&&) noexcept = default;
-		String_find_iterator& operator=(const String_find_iterator&) = default;
-		String_find_iterator& operator=(String_find_iterator&&) noexcept = default;
-		size_t size()const {
-			return srch.size();
-		}			
-		bool vaild()const {
-			return match_pos != npos;
-		}
-		String_find_iterator& operator++() {
-			if (vaild()) {
-				match_pos = srch(str.begin() + match_pos + size(), str.end());
-			}
-			return *this;
-		}
-		String_find_iterator operator++(int) {
-			auto tmp = *this;
-			++(*this);
-			return tmp;
-		}
-		basic_String_view<Char, Traits> operator*()const {
-			if (vaild()) {
-				return basic_String_view<Char, Traits>(str.begin() + match_pos, size());
-			}
-			return basic_String_view<Char, Traits>(str.end(), 0);
-		}
-		size_t pos()const {
-			return match_pos;
-		}
-	private:
-		size_t match_pos;
-		basic_String_view<Char,Traits> str;
-		searcher_type srch;
-	};
-
 	template<typename Char, typename Traits = std::char_traits<Char>>
 	struct basic_String_traits {
 		template<typename _Char, typename _Traits>
@@ -2001,7 +1946,11 @@ namespace wjr {
 		basic_String_traits<Char, Traits>::find(const value_type* s, const size_type n,
 			const size_type off, const value_type ch) {
 		if (off < n) {
-			return string_find_wrapper_char::find(s + off, s + n, ch) + off;
+			auto pos = string_find_wrapper_char::find(s + off, s + n, ch);
+			if (pos == npos) {
+				return npos;
+			}
+			return pos + off;
 		}
 		return npos;
 	}
@@ -2020,11 +1969,19 @@ namespace wjr {
 
 		if (n2 > small_search_size) {
 			auto finder = get_find_helper(s2, s2 + n2);
-			return string_find_wrapper_searcher::find(s1 + off, s1 + n1, finder) + off;
+			auto pos = string_find_wrapper_searcher::find(s1 + off, s1 + n1, finder);
+			if(pos == npos) {
+				return npos;
+			}
+			return pos + off;
 		}
 		
-		return string_find_wrapper_string_view::find(s1 + off, s1 + n1,
-			basic_String_view<Char, Traits>(s2, n2)) + off;
+		auto pos = string_find_wrapper_string_view::find(s1 + off, s1 + n1,
+			basic_String_view<Char, Traits>(s2, n2));
+		if (pos == npos) {
+			return npos;
+		}
+		return pos + off;
 	}
 
 	template<typename Char, typename Traits>
@@ -2040,7 +1997,11 @@ namespace wjr {
 			return off;
 		}
 
-		return string_find_wrapper_searcher::find(s1 + off, s1 + n1, srch);
+		auto pos = string_find_wrapper_searcher::find(s1 + off, s1 + n1, srch);
+		if (pos == npos) {
+			return npos;
+		}
+		return pos + off;
 	}
 
 	template<typename Char, typename Traits>
@@ -2460,7 +2421,7 @@ namespace wjr {
 		size_type off = 0;
 		if (keep_empty_parts) {
 			for (;;) {
-				const size_type pos = find(s, n, off, ch);
+				size_type pos = find(s, n, off, ch);
 				if (pos == npos) {
 					ans.emplace_back(s + off, static_cast<size_type>(n - off));
 					break;
@@ -2966,7 +2927,7 @@ namespace wjr {
 		using Elem               = Char;
 		template <class iter>
 		using is_char_ptr        =
-			std::bool_constant<is_any_of_v<iter, const Elem* const, const Elem*, Elem* const, Elem*>>;
+			std::bool_constant<wjr_is_any_of_v<iter, const Elem* const, const Elem*, Elem* const, Elem*>>;
 
 		// is const iterator -> char pointer
 		template<typename iter>
@@ -3834,7 +3795,7 @@ namespace wjr {
 		using Elem = Char;
 		template <class iter>
 		using is_char_ptr =
-			std::bool_constant<is_any_of_v<iter, const Elem* const, const Elem*, Elem* const, Elem*>>;
+			std::bool_constant<wjr_is_any_of_v<iter, const Elem* const, const Elem*, Elem* const, Elem*>>;
 
 		// is const iterator -> char pointer
 		template<typename iter>

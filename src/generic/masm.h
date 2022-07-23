@@ -2,161 +2,498 @@
 #define WJR_MASM_H
 
 #include <cstdint>
-#include "mtype_traits.h"
+#include "mmacro.h"
 
 namespace wjr {
 
+#if defined(_MSC_VER)
+#define WJR_HAS_QUICK_ADD_OR_SUB
+#elif defined(WJR_GCC_STYLE_ASM)
+#define WJR_HAS_QUICK_ADD_OR_SUB
+#elif whas_builtin(__builtin_addcll)
+#define WJR_HAS_QUICK_ADD_OR_SUB
+#endif
+
     template<typename T>
-    static unsigned char wjr_qaddcarry(T* result, T lhs, T rhs) {
+    WJR_CONSTEXPR20 unsigned char wjr_qaddcarry(T* result, T lhs, T rhs) {
         *result = lhs + rhs;
         return *result < lhs;
     }
 
-    static unsigned char wjr_addcarry_u32(
+    WJR_CONSTEXPR20 unsigned char wjr_addcarry_u32(
         unsigned char c_in, uint32_t in_1, uint32_t in_2, uint32_t* out) {
 #if defined (_MSC_VER)
-        return _addcarry_u32(c_in, in_1, in_2, out);
-#elif defined WJR_GCC_STYLE_ASM
-        __asm__ __volatile__(\
-            "add $255 , %[u1]\n"    \
-            "mov %[v1], %%eax\n"    \
-            "adc %[v2], %%eax\n"    \
-            "mov %%eax, %[u2]\n"    \
-            "setb       %[u1]\n"    \
-            : [u1] "+&r"(c_in), [u2] "+r"(*out)  \
-            : [v1] "r"(in_1), [v2] "r"(in_2)     \
-        );
-        return c_in;
-#elif whas_builtin(__builtin_addcl)
-        unsigned long CF = 0;
-        *out = __builtin_addcl(in_1, in_2, c_in, &CF);
-        return CF;
-#else
-        return wjr_qaddcarry(out, in_1, in_2) | wjr_qaddcarry(out, *out, (uint32_t)c_in);
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
 #endif
+        {
+            return _addcarry_u32(c_in, in_1, in_2, out);
+        }
+#elif defined WJR_GCC_STYLE_ASM
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            uint32_t temp;
+            __asm__ __volatile__(\
+                "add $255 , %[u1]\n"    \
+                "mov %[v1], %[u2]\n"    \
+                "adc %[v2], %[u2]\n"    \
+                "mov %[u2], (%[v3])\n"  \
+                "setb       %[u1]\n"    \
+                : [u1] "+r"(c_in), [u2] "+r"(temp)                    \
+                : [v1] "%r"(in_1), [v2] "r"(in_2), [v3] "r"(out)      \
+            );
+            return c_in;
+        }
+#elif whas_builtin(__builtin_addcl)
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            unsigned long CF = 0;
+            *out = __builtin_addcl(in_1, in_2, c_in, &CF);
+            return CF;
+        }
+#endif
+        return wjr_qaddcarry(out, in_1, in_2) | wjr_qaddcarry(out, *out, (uint32_t)c_in);
     }
 
-    static unsigned char wjr_addcarry_u64(
+    WJR_CONSTEXPR20 unsigned char wjr_addcarry_u32(
+        unsigned char c_in, const uint32_t* in_1, const uint32_t* in_2, uint32_t* out, size_t len) {
+        size_t i = 0;
+#if defined(WJR_GCC_STYLE_ASM)
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            size_t q = (len >> 2) << 2;
+            uint32_t temp;
+            while (i != q) {
+                __asm__ __volatile__(\
+                    "add $255, %[u1]        \n"   \
+                    "mov (%[v1]), %[u2]     \n"   \
+                    "adc (%[v2]), %[u2]     \n"   \
+                    "mov %[u2], (%[v3])     \n"   \
+                    "mov 0x4(%[v1]), %[u2]  \n"   \
+                    "adc 0x4(%[v2]), %[u2]  \n"   \
+                    "mov %[u2], 0x4(%[v3])  \n"   \
+                    "mov 0x08(%[v1]), %[u2] \n"   \
+                    "adc 0x08(%[v2]), %[u2] \n"   \
+                    "mov %[u2], 0x08(%[v3]) \n"   \
+                    "mov 0x0C(%[v1]), %[u2] \n"   \
+                    "adc 0x0C(%[v2]), %[u2] \n"   \
+                    "mov %[u2], 0x0C(%[v3]) \n"   \
+                    "setb %[u1]             \n"   \
+                    : [u1] "+r"(c_in), [u2] "+r"(temp)                  \
+                    : [v1] "%r"(in_1), [v2] "r"(in_2), [v3] "r"(out)    \
+                );
+                in_1 += 4;
+                in_2 += 4;
+                out += 4;
+                i += 4;
+            }
+        }
+#elif defined(WJR_HAS_QUICK_ADD_OR_SUB)
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            size_t q = (len >> 2) << 2;
+            while (i != q) {
+                c_in = wjr_addcarry_u32(c_in, in_1[0], in_2[0], out + 0);
+                c_in = wjr_addcarry_u32(c_in, in_1[1], in_2[1], out + 1);
+                c_in = wjr_addcarry_u32(c_in, in_1[2], in_2[2], out + 2);
+                c_in = wjr_addcarry_u32(c_in, in_1[3], in_2[3], out + 3);
+                in_1 += 4;
+                in_2 += 4;
+                out += 4;
+                i += 4;
+            }
+        }
+#endif
+        while (i != len) {
+            c_in = wjr_addcarry_u32(c_in, *in_1, *in_2, out);
+            ++in_1;
+            ++in_2;
+            ++out;
+            ++i;
+        }
+        return c_in;
+    }
+
+    WJR_CONSTEXPR20 unsigned char wjr_addcarry_u64(
         unsigned char c_in, uint64_t in_1, uint64_t in_2, uint64_t* out) {
 #if defined (_MSC_VER) && (!defined(_M_IX86) || defined(_CHPE_ONLY_))
-        return _addcarry_u64(c_in, in_1, in_2, out);
-#elif defined WJR_GCC_STYLE_ASM && defined(__x86_64__)
-        __asm__ __volatile__(\
-            "add $255 , %[u1]\n"    \
-            "mov %[v1], %%rax\n"    \
-            "adc %[v2], %%rax\n"    \
-            "mov %%rax, %[u2]\n"    \
-            "setb       %[u1]\n"    \
-            : [u1] "+&r"(c_in), [u2] "+r"(*out)  \
-            : [v1] "r"(in_1), [v2] "r"(in_2)     \
-        );
-        return c_in;
-#elif whas_builtin(__builtin_addcll)
-        unsigned long long CF = 0;
-        *out = __builtin_addcll(in_1, in_2, c_in, &CF);
-        return CF;
-#else
-        return wjr_qaddcarry(out, in_1, in_2) | wjr_qaddcarry(out, *out, (uint64_t)c_in);
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
 #endif
+        {
+            return _addcarry_u64(c_in, in_1, in_2, out);
+        }
+#elif defined WJR_GCC_STYLE_ASM && defined(__x86_64__)
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            uint64_t temp;
+            __asm__ __volatile__(\
+                "add $255 , %[u1]\n"    \
+                "mov %[v1], %[u2]\n"    \
+                "adc %[v2], %[u2]\n"    \
+                "mov %[u2], (%[v3])\n"    \
+                "setb       %[u1]\n"    \
+                : [u1] "+r"(c_in), [u2] "+r"(temp)                      \
+                : [v1] "%r"(in_1), [v2] "r"(in_2), [v3] "r"(out)        \
+            );
+            return c_in;
+        }
+#elif whas_builtin(__builtin_addcll)
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            unsigned long long CF = 0;
+            *out = __builtin_addcll(in_1, in_2, c_in, &CF);
+            return CF;
+        }
+#endif
+        return wjr_qaddcarry(out, in_1, in_2) | wjr_qaddcarry(out, *out, (uint64_t)c_in);
+    }
+
+
+    WJR_CONSTEXPR20 unsigned char wjr_addcarry_u64(
+        unsigned char c_in, const uint64_t* in_1, const uint64_t* in_2, uint64_t* out, size_t len) {
+        size_t i = 0;
+#if defined(WJR_GCC_STYLE_ASM)
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            size_t q = (len >> 2) << 2;
+            uint64_t temp;
+            while (i != q) {
+                __asm__ __volatile__(\
+                    "add $255, %[u1]        \n"   \
+                    "mov (%[v1]), %[u2]     \n"   \
+                    "adc (%[v2]), %[u2]     \n"   \
+                    "mov %[u2], (%[v3])     \n"   \
+                    "mov 0x8(%[v1]), %[u2]  \n"   \
+                    "adc 0x8(%[v2]), %[u2]  \n"   \
+                    "mov %[u2], 0x8(%[v3])  \n"   \
+                    "mov 0x10(%[v1]), %[u2] \n"   \
+                    "adc 0x10(%[v2]), %[u2] \n"   \
+                    "mov %[u2], 0x10(%[v3]) \n"   \
+                    "mov 0x18(%[v1]), %[u2] \n"   \
+                    "adc 0x18(%[v2]), %[u2] \n"   \
+                    "mov %[u2], 0x18(%[v3]) \n"   \
+                    "setb %[u1]             \n"   \
+                    : [u1] "+r"(c_in), [u2] "+r"(temp)                      \
+                    : [v1] "%r"(in_1), [v2] "r"(in_2), [v3] "r"(out)        \
+                );
+                in_1 += 4;
+                in_2 += 4;
+                out += 4;
+                i += 4;
+            }
+        }
+#elif defined(WJR_HAS_QUICK_ADD_OR_SUB)
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            size_t q = (len >> 2) << 2;
+            while (i != q) {
+                c_in = wjr_addcarry_u64(c_in, in_1[0], in_2[0], out + 0);
+                c_in = wjr_addcarry_u64(c_in, in_1[1], in_2[1], out + 1);
+                c_in = wjr_addcarry_u64(c_in, in_1[2], in_2[2], out + 2);
+                c_in = wjr_addcarry_u64(c_in, in_1[3], in_2[3], out + 3);
+                in_1 += 4;
+                in_2 += 4;
+                out += 4;
+                i += 4;
+            }
+        }
+#endif
+        while (i != len) {
+            c_in = wjr_addcarry_u64(c_in, *in_1, *in_2, out);
+            ++in_1;
+            ++in_2;
+            ++out;
+            ++i;
+        }
+        return c_in;
     }
 
     template<typename T>
-    static unsigned char wjr_qsubborrow(T* result, T lhs, T rhs) {
+    WJR_CONSTEXPR20 unsigned char wjr_qsubborrow(T* result, T lhs, T rhs) {
         *result = lhs - rhs;
         return lhs < rhs;
     }
 
-    static unsigned char wjr_subborrow_u32(
+    WJR_CONSTEXPR20 unsigned char wjr_subborrow_u32(
         unsigned char c_in, uint32_t in_1, uint32_t in_2, uint32_t* out) {
 #if defined (_MSC_VER)
-        return _subborrow_u32(c_in, in_1, in_2, out);
-#elif defined WJR_GCC_STYLE_ASM
-        __asm__ __volatile__(\
-            "add $255 , %[u1]\n"    \
-            "mov %[v1], %%eax\n"    \
-            "sbb %[v2], %%eax\n"    \
-            "mov %%eax, %[u2]\n"    \
-            "setb       %[u1]\n"    \
-            : [u1] "+&r"(c_in), [u2] "+r"(*out)  \
-            : [v1] "r"(in_1), [v2] "r"(in_2)     \
-        );
-        return c_in;
-#elif whas_builtin(__builtin_subcl)
-        unsigned long CF = 0;
-        *out = __builtin_subcl(in_1, in_2, c_in, &CF);
-        return CF;
-#else
-        return wjr_qsubborrow(out, in_1, in_2) | wjr_qsubborrow(out, *out, (uint32_t)c_in);
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
 #endif
+        {
+            return _subborrow_u32(c_in, in_1, in_2, out);
+        }
+#elif defined WJR_GCC_STYLE_ASM
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            uint32_t temp;
+            __asm__ __volatile__(\
+                "add $255 , %[u1]\n"    \
+                "mov %[v1], %[u2]\n"    \
+                "sbb %[v2], %[u2]\n"    \
+                "mov %[u2], (%[v3])\n"  \
+                "setb       %[u1]\n"    \
+                : [u1] "+r"(c_in), [u2] "+r"(temp)                  \
+                : [v1] "%r"(in_1), [v2] "r"(in_2), [v3] "r"(out)    \
+            );
+            return c_in;
+        }
+#elif whas_builtin(__builtin_subcl)
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            unsigned long CF = 0;
+            *out = __builtin_subcl(in_1, in_2, c_in, &CF);
+            return CF;
+        }
+#endif
+        return wjr_qsubborrow(out, in_1, in_2) | wjr_qsubborrow(out, *out, (uint32_t)c_in);
     }
 
-    static unsigned char wjr_subborrow_u64(
+    WJR_CONSTEXPR20 unsigned char wjr_subborrow_u32(
+        unsigned char c_in, const uint32_t* in_1, const uint32_t* in_2, uint32_t* out, size_t len) {
+        size_t i = 0;
+#if defined(WJR_GCC_STYLE_ASM)
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            size_t q = (len >> 2) << 2;
+            uint32_t temp;
+            while (i != q) {
+                __asm__ __volatile__(\
+                    "add $255, %[u1]        \n"   \
+                    "mov (%[v1]), %[u2]     \n"   \
+                    "sbb (%[v2]), %[u2]     \n"   \
+                    "mov %[u2], (%[v3])     \n"   \
+                    "mov 0x04(%[v1]), %[u2]  \n"   \
+                    "sbb 0x04(%[v2]), %[u2]  \n"   \
+                    "mov %[u2], 0x04(%[v3])  \n"   \
+                    "mov 0x08(%[v1]), %[u2] \n"   \
+                    "sbb 0x08(%[v2]), %[u2] \n"   \
+                    "mov %[u2], 0x08(%[v3]) \n"   \
+                    "mov 0x0C(%[v1]), %[u2] \n"   \
+                    "sbb 0x0C(%[v2]), %[u2] \n"   \
+                    "mov %[u2], 0x0C(%[v3]) \n"   \
+                    "setb %[u1]             \n"   \
+                    : [u1] "+r"(c_in), [u2] "+r"(temp)                  \
+                    : [v1] "%r"(in_1), [v2] "r"(in_2), [v3] "r"(out)    \
+                );
+                in_1 += 4;
+                in_2 += 4;
+                out += 4;
+                i += 4;
+            }
+        }
+#elif defined(WJR_HAS_QUICK_ADD_OR_SUB)
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            size_t q = (len >> 2) << 2;
+            while (i != q) {
+                c_in = wjr_subborrow_u32(c_in, in_1[0], in_2[0], out + 0);
+                c_in = wjr_subborrow_u32(c_in, in_1[1], in_2[1], out + 1);
+                c_in = wjr_subborrow_u32(c_in, in_1[2], in_2[2], out + 2);
+                c_in = wjr_subborrow_u32(c_in, in_1[3], in_2[3], out + 3);
+                in_1 += 4;
+                in_2 += 4;
+                out += 4;
+                i += 4;
+            }
+        }
+#endif
+        while (i != len) {
+            c_in = wjr_subborrow_u32(c_in, *in_1, *in_2, out);
+            ++in_1;
+            ++in_2;
+            ++out;
+            ++i;
+        }
+        return c_in;
+    }
+
+    WJR_CONSTEXPR20 unsigned char wjr_subborrow_u64(
         unsigned char c_in, uint64_t in_1, uint64_t in_2, uint64_t* out) {
 #if defined (_MSC_VER) && (!defined(_M_IX86) || defined(_CHPE_ONLY_))
-        return _subborrow_u64(c_in, in_1, in_2, out);
-#elif defined WJR_GCC_STYLE_ASM && defined(__x86_64__)
-        __asm__ __volatile__(\
-            "add $255 , %[u1]\n"    \
-            "mov %[v1], %%rax\n"    \
-            "sbb %[v2], %%rax\n"    \
-            "mov %%rax, %[u2]\n"    \
-            "setb       %[u1]\n"    \
-            : [u1] "+&r"(c_in), [u2] "+r"(*out)  \
-            : [v1] "r"(in_1), [v2] "r"(in_2)     \
-        );
-        return c_in;
-#elif whas_builtin(__builtin_subcll)
-        unsigned long long CF = 0;
-        *out = __builtin_subcll(in_1, in_2, c_in, &CF);
-        return CF;
-#else
-        return wjr_qsubborrow(out, in_1, in_2) | wjr_qsubborrow(out, *out, (uint64_t)c_in);
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
 #endif
+        {
+            return _subborrow_u64(c_in, in_1, in_2, out);
+        }
+#elif defined WJR_GCC_STYLE_ASM && defined(__x86_64__)
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            uint64_t temp;
+            __asm__ __volatile__(\
+                "add $255 , %[u1]\n"    \
+                "mov %[v1], %[u2]\n"    \
+                "sbb %[v2], %[u2]\n"    \
+                "mov %[u2], (%[v3])\n"    \
+                "setb       %[u1]\n"    \
+                : [u1] "+r"(c_in), [u2] "+r"(temp)  \
+                : [v1] "%r"(in_1), [v2] "r"(in_2), [v3] "r"(out)     \
+            );
+            return c_in;
+        }
+#elif whas_builtin(__builtin_subcll)
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            unsigned long long CF = 0;
+            *out = __builtin_subcll(in_1, in_2, c_in, &CF);
+            return CF;
+        }
+#endif
+        return wjr_qsubborrow(out, in_1, in_2) | wjr_qsubborrow(out, *out, (uint64_t)c_in);
     }
 
-    static uint32_t wjr_shl_epi32(uint32_t* src, size_t n, int imm) {
+    WJR_CONSTEXPR20 unsigned char wjr_subborrow_u64(
+        unsigned char c_in, const uint64_t* in_1, const uint64_t* in_2, uint64_t* out, size_t len) {
+        size_t i = 0;
+#if defined(WJR_GCC_STYLE_ASM)
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            size_t q = (len >> 2) << 2;
+            uint64_t temp;
+            while (i != q) {
+                __asm__ __volatile__(\
+                    "add $255, %[u1]        \n"   \
+                    "mov (%[v1]), %[u2]     \n"   \
+                    "sbb (%[v2]), %[u2]     \n"   \
+                    "mov %[u2], (%[v3])     \n"   \
+                    "mov 0x8(%[v1]), %[u2]  \n"   \
+                    "sbb 0x8(%[v2]), %[u2]  \n"   \
+                    "mov %[u2], 0x8(%[v3])  \n"   \
+                    "mov 0x10(%[v1]), %[u2] \n"   \
+                    "sbb 0x10(%[v2]), %[u2] \n"   \
+                    "mov %[u2], 0x10(%[v3]) \n"   \
+                    "mov 0x18(%[v1]), %[u2] \n"   \
+                    "sbb 0x18(%[v2]), %[u2] \n"   \
+                    "mov %[u2], 0x18(%[v3]) \n"   \
+                    "setb %[u1]             \n"   \
+                    : [u1] "+r"(c_in), [u2] "+r"(temp)                  \
+                    : [v1] "%r"(in_1), [v2] "r"(in_2), [v3] "r"(out)    \
+                );
+                in_1 += 4;
+                in_2 += 4;
+                out += 4;
+                i += 4;
+            }
+        }
+#elif defined(WJR_HAS_QUICK_ADD_OR_SUB)
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            size_t q = (len >> 2) << 2;
+            while (i != q) {
+                c_in = wjr_subborrow_u64(c_in, in_1[0], in_2[0], out + 0);
+                c_in = wjr_subborrow_u64(c_in, in_1[1], in_2[1], out + 1);
+                c_in = wjr_subborrow_u64(c_in, in_1[2], in_2[2], out + 2);
+                c_in = wjr_subborrow_u64(c_in, in_1[3], in_2[3], out + 3);
+                in_1 += 4;
+                in_2 += 4;
+                out += 4;
+                i += 4;
+            }
+        }
+#endif
+        while (i != len) {
+            c_in = wjr_subborrow_u64(c_in, *in_1, *in_2, out);
+            ++in_1;
+            ++in_2;
+            ++out;
+            ++i;
+        }
+        return c_in;
+    }
+
+#undef WJR_HAS_QUICK_ADD_OR_SUB
+
+    WJR_CONSTEXPR20 uint32_t wjr_shl_epi32(uint32_t* src, size_t n, int imm) {
         WASSERT_LEVEL_2(imm < 32);
         if (!imm) return 0;
         auto p = src + n;
         uint32_t v = *(p - 1) >> (32 - imm);
+        size_t c = n;
 #if defined(__AVX512F__)
-        size_t c = ((n - 1) & 15) + 1;
-        auto r = src + c;
-        while (p != r) {
-            p -= 16;
-            auto a = _mm512_loadu_si512((const __m512i*)p);
-            auto b = _mm512_loadu_si512((const __m512i*)(p - 1));
-            auto x = _mm512_slli_epi32(a, imm);
-            auto y = _mm512_srli_epi32(b, 32 - imm);
-            auto z = _mm512_or_si512(x, y);
-            _mm512_storeu_si512((__m512i*)p, z);
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            c = ((n - 1) & 15) + 1;
+            auto r = src + c;
+            while (p != r) {
+                p -= 16;
+                auto a = _mm512_loadu_si512((const __m512i*)p);
+                auto b = _mm512_loadu_si512((const __m512i*)(p - 1));
+                auto x = _mm512_slli_epi32(a, imm);
+                auto y = _mm512_srli_epi32(b, 32 - imm);
+                auto z = _mm512_or_si512(x, y);
+                _mm512_storeu_si512((__m512i*)p, z);
+            }
         }
 #elif defined(__AVX2__)
-        size_t c = ((n - 1) & 7) + 1;
-        auto r = src + c;
-        while (p != r) {
-            p -= 8;
-            auto a = _mm256_loadu_si256((const __m256i*)p);
-            auto b = _mm256_loadu_si256((const __m256i*)(p - 1));
-            auto x = _mm256_slli_epi32(a, imm);
-            auto y = _mm256_srli_epi32(b, 32 - imm);
-            auto z = _mm256_or_si256(x, y);
-            _mm256_storeu_si256((__m256i*)p, z);
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            c = ((n - 1) & 7) + 1;
+            auto r = src + c;
+            while (p != r) {
+                p -= 8;
+                auto a = _mm256_loadu_si256((const __m256i*)p);
+                auto b = _mm256_loadu_si256((const __m256i*)(p - 1));
+                auto x = _mm256_slli_epi32(a, imm);
+                auto y = _mm256_srli_epi32(b, 32 - imm);
+                auto z = _mm256_or_si256(x, y);
+                _mm256_storeu_si256((__m256i*)p, z);
+            }
         }
 #elif defined(__SSE2__)
-        size_t c = ((n - 1) & 3) + 1;
-        auto r = src + c;
-        while (p != r) {
-            p -= 4;
-            auto a = _mm_loadu_si128((const __m128i*)p);
-            auto b = _mm_loadu_si128((const __m128i*)(p - 1));
-            auto x = _mm_slli_epi32(a, imm);
-            auto y = _mm_srli_epi32(b, 32 - imm);
-            auto z = _mm_or_si128(x, y);
-            _mm_storeu_si128((__m128i*)p, z);
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            c = ((n - 1) & 3) + 1;
+            auto r = src + c;
+            while (p != r) {
+                p -= 4;
+                auto a = _mm_loadu_si128((const __m128i*)p);
+                auto b = _mm_loadu_si128((const __m128i*)(p - 1));
+                auto x = _mm_slli_epi32(a, imm);
+                auto y = _mm_srli_epi32(b, 32 - imm);
+                auto z = _mm_or_si128(x, y);
+                _mm_storeu_si128((__m128i*)p, z);
+            }
         }
-#else 
-        size_t c = n;
 #endif
         while (--c) {
             --p;
@@ -166,49 +503,63 @@ namespace wjr {
         return v;
     }
 
-    static uint64_t wjr_shl_epi64(uint64_t* src, size_t n, int imm) {
+    WJR_CONSTEXPR20 uint64_t wjr_shl_epi64(uint64_t* src, size_t n, int imm) {
         WASSERT_LEVEL_2(imm < 64);
         if (!imm) return 0;
         auto p = src + n;
         uint64_t v = *(p - 1) >> (64 - imm);
+        size_t c = n;
 #if defined(__AVX512F__)
-        size_t c = ((n - 1) & 7) + 1;
-        auto r = src + c;
-        while (p != r) {
-            p -= 8;
-            auto a = _mm512_loadu_si512((const __m512i*)p);
-            auto b = _mm512_loadu_si512((const __m512i*)(p - 1));
-            auto x = _mm512_slli_epi64(a, imm);
-            auto y = _mm512_srli_epi64(b, 64 - imm);
-            auto z = _mm512_or_si512(x, y);
-            _mm512_storeu_si512((__m512i*)p, z);
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            c = ((n - 1) & 7) + 1;
+            auto r = src + c;
+            while (p != r) {
+                p -= 8;
+                auto a = _mm512_loadu_si512((const __m512i*)p);
+                auto b = _mm512_loadu_si512((const __m512i*)(p - 1));
+                auto x = _mm512_slli_epi64(a, imm);
+                auto y = _mm512_srli_epi64(b, 64 - imm);
+                auto z = _mm512_or_si512(x, y);
+                _mm512_storeu_si512((__m512i*)p, z);
+            }
         }
 #elif defined(__AVX2__)
-        size_t c = ((n - 1) & 3) + 1;
-        auto r = src + c;
-        while (p != r) {
-            p -= 4;
-            auto a = _mm256_loadu_si256((const __m256i*)p);
-            auto b = _mm256_loadu_si256((const __m256i*)(p - 1));
-            auto x = _mm256_slli_epi64(a, imm);
-            auto y = _mm256_srli_epi64(b, 64 - imm);
-            auto z = _mm256_or_si256(x, y);
-            _mm256_storeu_si256((__m256i*)p, z);
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            c = ((n - 1) & 3) + 1;
+            auto r = src + c;
+            while (p != r) {
+                p -= 4;
+                auto a = _mm256_loadu_si256((const __m256i*)p);
+                auto b = _mm256_loadu_si256((const __m256i*)(p - 1));
+                auto x = _mm256_slli_epi64(a, imm);
+                auto y = _mm256_srli_epi64(b, 64 - imm);
+                auto z = _mm256_or_si256(x, y);
+                _mm256_storeu_si256((__m256i*)p, z);
+            }
         }
 #elif defined(__SSE2__)
-        size_t c = ((n - 1) & 1) + 1;
-        auto r = src + c;
-        while (p != r) {
-            p -= 2;
-            auto a = _mm_loadu_si128((const __m128i*)p);
-            auto b = _mm_loadu_si128((const __m128i*)(p - 1));
-            auto x = _mm_slli_epi64(a, imm);
-            auto y = _mm_srli_epi64(b, 64 - imm);
-            auto z = _mm_or_si128(x, y);
-            _mm_storeu_si128((__m128i*)p, z);
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            c = ((n - 1) & 1) + 1;
+            auto r = src + c;
+            while (p != r) {
+                p -= 2;
+                auto a = _mm_loadu_si128((const __m128i*)p);
+                auto b = _mm_loadu_si128((const __m128i*)(p - 1));
+                auto x = _mm_slli_epi64(a, imm);
+                auto y = _mm_srli_epi64(b, 64 - imm);
+                auto z = _mm_or_si128(x, y);
+                _mm_storeu_si128((__m128i*)p, z);
+            }
         }
-#else
-		size_t c = n;
 #endif
         while (--c) {
             --p;
@@ -218,48 +569,62 @@ namespace wjr {
         return v;
     }
 
-    static void wjr_shr_epi32(uint32_t* src, size_t n, int imm) {
+    WJR_CONSTEXPR20 void wjr_shr_epi32(uint32_t* src, size_t n, int imm) {
         WASSERT_LEVEL_2(imm < 32);
         if (!imm) return;
         auto p = src;
+        size_t c = n;
 #if defined(__AVX512F__)
-        size_t c = ((n - 1) & 15) + 1;
-        auto r = src + n - c;
-        while (p != r) {
-            auto a = _mm512_loadu_si512((const __m512i*)p);
-            auto b = _mm512_loadu_si512((const __m512i*)(p + 1));
-            auto x = _mm512_srli_epi32(a, imm);
-            auto y = _mm512_slli_epi32(b, 32 - imm);
-            auto z = _mm512_or_si512(x, y);
-            _mm512_storeu_si512((__m512i*)p, z);
-            p += 16;
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            c = ((n - 1) & 15) + 1;
+            auto r = src + n - c;
+            while (p != r) {
+                auto a = _mm512_loadu_si512((const __m512i*)p);
+                auto b = _mm512_loadu_si512((const __m512i*)(p + 1));
+                auto x = _mm512_srli_epi32(a, imm);
+                auto y = _mm512_slli_epi32(b, 32 - imm);
+                auto z = _mm512_or_si512(x, y);
+                _mm512_storeu_si512((__m512i*)p, z);
+                p += 16;
+            }
         }
 #elif defined(__AVX2__)
-        size_t c = ((n - 1) & 7) + 1;
-        auto r = src + n - c;
-        while (p != r) {
-            auto a = _mm256_loadu_si256((const __m256i*)p);
-            auto b = _mm256_loadu_si256((const __m256i*)(p + 1));
-            auto x = _mm256_srli_epi32(a, imm);
-            auto y = _mm256_slli_epi32(b, 32 - imm);
-            auto z = _mm256_or_si256(x, y);
-            _mm256_storeu_si256((__m256i*)p, z);
-            p += 8;
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            c = ((n - 1) & 7) + 1;
+            auto r = src + n - c;
+            while (p != r) {
+                auto a = _mm256_loadu_si256((const __m256i*)p);
+                auto b = _mm256_loadu_si256((const __m256i*)(p + 1));
+                auto x = _mm256_srli_epi32(a, imm);
+                auto y = _mm256_slli_epi32(b, 32 - imm);
+                auto z = _mm256_or_si256(x, y);
+                _mm256_storeu_si256((__m256i*)p, z);
+                p += 8;
+            }
         }
 #elif defined(__SSE2__)
-        size_t c = ((n - 1) & 3) + 1;
-        auto r = src + n - c;
-        while (p != r) {
-            auto a = _mm_loadu_si128((const __m128i*)p);
-            auto b = _mm_loadu_si128((const __m128i*)(p + 1));
-            auto x = _mm_srli_epi32(a, imm);
-            auto y = _mm_slli_epi32(b, 32 - imm);
-            auto z = _mm_or_si128(x, y);
-            _mm_storeu_si128((__m128i*)p, z);
-            p += 4;
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            c = ((n - 1) & 3) + 1;
+            auto r = src + n - c;
+            while (p != r) {
+                auto a = _mm_loadu_si128((const __m128i*)p);
+                auto b = _mm_loadu_si128((const __m128i*)(p + 1));
+                auto x = _mm_srli_epi32(a, imm);
+                auto y = _mm_slli_epi32(b, 32 - imm);
+                auto z = _mm_or_si128(x, y);
+                _mm_storeu_si128((__m128i*)p, z);
+                p += 4;
+            }
         }
-#else
-        size_t c = n;
 #endif
         while (--c) {
             *p = (*p) >> imm | (*(p + 1)) << (32 - imm);
@@ -269,48 +634,62 @@ namespace wjr {
     }
 
     // AVX512F or AVX2 or SSE2
-    static void wjr_shr_epi64(uint64_t* src, size_t n, int imm) {
+    WJR_CONSTEXPR20 void wjr_shr_epi64(uint64_t* src, size_t n, int imm) {
         WASSERT_LEVEL_2(imm < 64);
         if (!imm) return;
         auto p = src;
+        size_t c = n;
 #if defined(__AVX512F__)
-        size_t c = ((n - 1) & 7) + 1;
-        auto r = src + n - c;
-        while (p != r) {
-            auto a = _mm512_loadu_si512((const __m512i*)p);
-            auto b = _mm512_loadu_si512((const __m512i*)(p + 1));
-            auto x = _mm512_srli_epi64(a, imm);
-            auto y = _mm512_slli_epi64(b, 64 - imm);
-            auto z = _mm512_or_si512(x, y);
-            _mm512_storeu_si512((__m512i*)p, z);
-            p += 8;
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            c = ((n - 1) & 7) + 1;
+            auto r = src + n - c;
+            while (p != r) {
+                auto a = _mm512_loadu_si512((const __m512i*)p);
+                auto b = _mm512_loadu_si512((const __m512i*)(p + 1));
+                auto x = _mm512_srli_epi64(a, imm);
+                auto y = _mm512_slli_epi64(b, 64 - imm);
+                auto z = _mm512_or_si512(x, y);
+                _mm512_storeu_si512((__m512i*)p, z);
+                p += 8;
+            }
         }
 #elif defined(__AVX2__)
-        size_t c = ((n - 1) & 3) + 1;
-        auto r = src + n - c;
-        while (p != r) {
-            auto a = _mm256_loadu_si256((const __m256i*)p);
-            auto b = _mm256_loadu_si256((const __m256i*)(p + 1));
-            auto x = _mm256_srli_epi64(a, imm);
-            auto y = _mm256_slli_epi64(b, 64 - imm);
-            auto z = _mm256_or_si256(x, y);
-            _mm256_storeu_si256((__m256i*)p, z);
-            p += 4;
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            c = ((n - 1) & 3) + 1;
+            auto r = src + n - c;
+            while (p != r) {
+                auto a = _mm256_loadu_si256((const __m256i*)p);
+                auto b = _mm256_loadu_si256((const __m256i*)(p + 1));
+                auto x = _mm256_srli_epi64(a, imm);
+                auto y = _mm256_slli_epi64(b, 64 - imm);
+                auto z = _mm256_or_si256(x, y);
+                _mm256_storeu_si256((__m256i*)p, z);
+                p += 4;
+            }
         }
 #elif defined(__SSE2__)
-        size_t c = ((n - 1) & 1) + 1;
-        auto r = src + n - c;
-        while (p != r) {
-            auto a = _mm_loadu_si128((const __m128i*)p);
-            auto b = _mm_loadu_si128((const __m128i*)(p + 1));
-            auto x = _mm_srli_epi64(a, imm);
-            auto y = _mm_slli_epi64(b, 64 - imm);
-            auto z = _mm_or_si128(x, y);
-            _mm_storeu_si128((__m128i*)p, z);
-            p += 2;
+#if defined(WJR_CPP_20)
+        if (!std::is_constant_evaluated())
+#endif
+        {
+            c = ((n - 1) & 1) + 1;
+            auto r = src + n - c;
+            while (p != r) {
+                auto a = _mm_loadu_si128((const __m128i*)p);
+                auto b = _mm_loadu_si128((const __m128i*)(p + 1));
+                auto x = _mm_srli_epi64(a, imm);
+                auto y = _mm_slli_epi64(b, 64 - imm);
+                auto z = _mm_or_si128(x, y);
+                _mm_storeu_si128((__m128i*)p, z);
+                p += 2;
+            }
         }
-#else
-        size_t c = n;
 #endif
         while (--c) {
             *p = (*p) >> imm | (*(p + 1)) << (64 - imm);

@@ -23,23 +23,21 @@
   OTHER DEALINGS IN THE SOFTWARE.
   */
 #pragma once
-
-#if defined(__cplusplus)
-extern "C"{
-#endif
+#ifndef __WJR_DOUBLE_H
+#define __WJR_DOUBLE_H
 
 #include "diy_fp.h"
 #include "powers.h"
-#include <stdlib.h>
-#include <stdbool.h>
+#include <cstdlib>
+#include <random>
 
-typedef union {
+union converter_t {
 	double d;
 	uint64_t n;
-} converter_t;
+};
 
-static uint64_t double_to_uint64(double d) { converter_t tmp; tmp.d = d; return tmp.n; }
-static double uint64_to_double(uint64_t d64) { converter_t tmp; tmp.n = d64; return tmp.d; }
+inline uint64_t double_to_uint64(double d) { converter_t tmp; tmp.d = d; return tmp.n; }
+inline double uint64_to_double(uint64_t d64) { converter_t tmp; tmp.n = d64; return tmp.d; }
 
 #define DP_SIGNIFICAND_SIZE 52
 #define DP_EXPONENT_BIAS (0x3FF + DP_SIGNIFICAND_SIZE)
@@ -48,7 +46,22 @@ static double uint64_to_double(uint64_t d64) { converter_t tmp; tmp.n = d64; ret
 #define DP_SIGNIFICAND_MASK 0x000FFFFFFFFFFFFF
 #define DP_HIDDEN_BIT    0x0010000000000000
 
-static diy_fp_t normalize_diy_fp(diy_fp_t in) {
+constexpr static int _Log2_Table[] = { 0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3 };
+
+constexpr int _Log2_u64(uint64_t x) {
+#if defined(WJR_CPP_20)
+	return std::bit_width(x);
+#else
+	int ans = 0;
+	if (x >> 32) { ans += 32; x >>= 32; }
+	if (x >> 16) { ans += 16; x >>= 16; }
+	if (x >> 8) { ans += 8; x >>= 8; }
+	if (x >> 4) { ans += 4; x >>= 4; }
+	return ans + _Log2_Table[x];
+#endif
+}
+
+inline diy_fp_t normalize_diy_fp(diy_fp_t in) {
 	diy_fp_t res = in;
 	/* Normalize now */
 	/* the original number could have been a denormal. */
@@ -63,7 +76,7 @@ static diy_fp_t normalize_diy_fp(diy_fp_t in) {
 	return res;
 }
 
-static diy_fp_t double2diy_fp(double d) {
+inline diy_fp_t double2diy_fp(double d) {
 	uint64_t d64 = double_to_uint64(d);
 	int biased_e = (d64 & DP_EXPONENT_MASK) >> DP_SIGNIFICAND_SIZE;
 	uint64_t significand = (d64 & DP_SIGNIFICAND_MASK);
@@ -80,27 +93,13 @@ static diy_fp_t double2diy_fp(double d) {
 	return res;
 }
 
-const static int _Log2_Table[] = { 0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3 };
-
-static int _Log2_u64(uint64_t x) {
-	int ans = 0;
-	if (x >> 32) { ans += 32; x >>= 32; }
-	if (x >> 16) { ans += 16; x >>= 16; }
-	if (x >> 8) { ans += 8; x >>= 8; }
-	if (x >> 4) { ans += 4; x >>= 4; }
-	return ans + _Log2_Table[x];
-}
-
-static diy_fp_t uint64_t2diy_fp_t(uint64_t in) {
+constexpr diy_fp_t uint64_t2diy_fp_t(uint64_t in) {
 	int l = 63 - _Log2_u64(in);
-	diy_fp_t res;
-	res.f = in << l;
-	res.e = -l;
-	return res;
+	return diy_fp_t{ in << l, -l };
 }
 
 // IEE754 diy_fp_t to double
-static double diy_fp2double(diy_fp_t in) {
+inline double diy_fp2double(diy_fp_t in) {
 	if (!in.f) return 0;
 	uint64_t significand = in.f;
 	int biased_e = in.e + DP_EXPONENT_BIAS;
@@ -123,7 +122,7 @@ static double diy_fp2double(diy_fp_t in) {
 	return uint64_to_double(d64);
 }
 
-static diy_fp_t normalize_boundary(diy_fp_t in) {
+inline diy_fp_t normalize_boundary(diy_fp_t in) {
 	diy_fp_t res = in;
 	/* Normalize now */
 	/* the original number could have been a denormal. */
@@ -138,7 +137,7 @@ static diy_fp_t normalize_boundary(diy_fp_t in) {
 	return res;
 }
 
-static void normalized_boundaries(double d, diy_fp_t* out_m_minus, diy_fp_t* out_m_plus) {
+inline void normalized_boundaries(double d, diy_fp_t* out_m_minus, diy_fp_t* out_m_plus) {
 	diy_fp_t v = double2diy_fp(d);
 	diy_fp_t pl, mi;
 	bool significand_is_zero = v.f == DP_HIDDEN_BIT;
@@ -159,16 +158,9 @@ static void normalized_boundaries(double d, diy_fp_t* out_m_minus, diy_fp_t* out
 	*out_m_minus = mi;
 }
 
-static double random_double() {
-	uint64_t tmp = 0;
-	int i;
-	for (i = 0; i < 8; i++) {
-		tmp <<= 8;
-		tmp += rand() % 256;
-	}
-	return uint64_to_double(tmp);
+inline double random_double() {
+	static std::mt19937_64 mt_rand(std::random_device{}());
+	return uint64_to_double(mt_rand());
 }
 
-#if defined(__cplusplus)
-}
 #endif

@@ -134,6 +134,8 @@ namespace wjr {
 	REGISTER_JSON_INDEX_AND_TYPE_MAP(array, 4);
 	REGISTER_JSON_INDEX_AND_TYPE_MAP(object, 5);
 
+#undef REGISTER_JSON_INDEX_AND_TYPE_MAP
+
 	template<typename T>
 	using _Is_json_number = is_any_of<T, short, unsigned short, int, unsigned int, long,
 		unsigned long, long long, unsigned long long, float, double>;
@@ -153,9 +155,9 @@ namespace wjr {
 
 		constexpr static size_t get_index() {
 			using type = std::decay_t<T>;
-			if constexpr (sizeof...(Args) == 0 && (is_any_of_v<type, null, boolean>
+			if constexpr (sizeof...(Args) == 0 && (wjr_is_any_of_v<type, null, boolean>
 				|| _Is_json_number_v<type>)) {
-				if constexpr (is_any_of_v<type, null, boolean>)
+				if constexpr (wjr_is_any_of_v<type, null, boolean>)
 					return Json::template index_map_v<type>;
 				else return Json::template index_map_v<number>;
 			}
@@ -245,7 +247,7 @@ namespace wjr {
 			constexpr static decltype(auto) get_json_mode() {
 				uint8_t _mode = 0;
 				if constexpr (sizeof...(_Args) == 1) {
-					using T = first_parameter_t<_Args...>;
+					using T = std::tuple_element_t<0, std::tuple<_Args...>>;
 					_mode |= simple_json_info<std::decay_t<T>>::mode;
 				}
 				if constexpr (_Is_to_json<void, json_traits, _Args...>::value) {
@@ -764,7 +766,7 @@ namespace wjr {
 	template<typename json_traits>
 	template<typename iter>
 	void basic_json<json_traits>::dfs_parse(iter& first, iter last) {
-		first = json_func::skip_whitespace(first, last);
+		json_func::skip_whitespace(first, last);
 		switch (*first) {
 		case 'n': {
 			set<null>();
@@ -784,20 +786,21 @@ namespace wjr {
 		case '{': {
 			auto& obj = set<object>();
 			++first;
-			first = json_func::skip_whitespace(first, last);
+			json_func::skip_whitespace(first, last);
 			if (*first == '}') {
 				++first;
 				break;
 			}
 			while (true) {
-				first = json_func::skip_whitespace(first, last);
+				json_func::skip_whitespace(first, last);
 				++first;
 				auto p = json_func::skip_string(first, last);
 				auto& item = obj[string(first, p)];
-				first = json_func::skip_whitespace(p + 1, last);
+				first = p + 1;
+				json_func::skip_whitespace(first, last);
 				++first;
 				item.dfs_parse(first, last);
-				first = json_func::skip_whitespace(first, last);
+				json_func::skip_whitespace(first, last);
 				if (*first == '}') {
 					++first;
 					break;
@@ -809,7 +812,7 @@ namespace wjr {
 		case '[': {
 			auto& arr = set<array>();
 			++first;
-			first = json_func::skip_whitespace(first, last);
+			json_func::skip_whitespace(first, last);
 			if (*first == ']') {
 				++first;
 				break;
@@ -817,7 +820,7 @@ namespace wjr {
 			for (;;) {
 				arr.emplace_back();
 				arr.back().dfs_parse(first, last);
-				first = json_func::skip_whitespace(first, last);
+				json_func::skip_whitespace(first, last);
 				if (*first == ']') {
 					++first;
 					break;
@@ -835,7 +838,7 @@ namespace wjr {
 			break;
 		}
 		default: {
-			double val = read_number(first, last);
+			double val = json_func::read_double(first, last);
 			set<number>(val);
 			break;
 		}
@@ -845,7 +848,9 @@ namespace wjr {
 	template<typename json_traits>
 	template<typename iter, std::enable_if_t<wjr_is_iterator_v<iter>, int>>
 	constexpr bool basic_json<json_traits>::accept(iter first, iter last) {
-		first = json_func::skip_whitespace(first, last);
+		if (!json_func::skip_whitespace(first, last)) {
+			return false;
+		}
 
 		if (first == last)
 			return false;
@@ -855,13 +860,15 @@ namespace wjr {
 			++first;
 			if (!_Accept(first, last, ']'))
 				return false;
-			first = json_func::skip_whitespace(first, last);
+			json_func::skip_whitespace(first, last);
 			return first == last;
 		case '{':
 			++first;
 			if (!_Accept(first, last, '}'))
 				return false;
-			first = json_func::skip_whitespace(first, last);
+			if (!json_func::skip_whitespace(first, last)) {
+				return false;
+			}
 			return first == last;
 		default:
 			return false;
@@ -873,7 +880,9 @@ namespace wjr {
 	constexpr bool basic_json<json_traits>::_Accept(iter& first, iter last, uint8_t state) {
 		bool head = true;
 		for (;; ++first) {
-			first = json_func::skip_whitespace(first, last);
+			if (!json_func::skip_whitespace(first, last)) {
+				return false;
+			}
 			if (first == last)return false;
 
 			if (state == '}') {
@@ -886,10 +895,14 @@ namespace wjr {
 				if (!json_func::check_string(first, last))
 					return false;
 				++first;
-				first = json_func::skip_whitespace(first, last);
+				if (!json_func::skip_whitespace(first, last)) {
+					return false;
+				}
 				if (first == last || *first != ':') return false;
 				++first;
-				first = json_func::skip_whitespace(first, last);
+				if (!json_func::skip_whitespace(first, last)) {
+					return false;
+				}
 				if (first == last) return false;
 			}
 			else {
@@ -937,12 +950,14 @@ namespace wjr {
 					return false;
 				break;
 			default:
-				if (!check_number(first, last))
+				if (!check_double(first, last))
 					return false;
 				break;
 			}
 
-			first = json_func::skip_whitespace(first, last);
+			if (!json_func::skip_whitespace(first, last)) {
+				return false;
+			}
 			if (*first == ',')
 				continue;
 			if (*first != state)
@@ -951,6 +966,8 @@ namespace wjr {
 			return true;
 		}
 	}
+
+#undef JSON_EXPLICIT
 
 	using json = basic_json<default_json_traits<sptr_wrapper_mode::unique>>;
 	using shared_json = basic_json<default_json_traits<sptr_wrapper_mode::shared>>;
@@ -967,20 +984,6 @@ namespace wjr {
 		return std::visit([t = forward_wrapper_t<Func>(std::forward<Func>(fn))](auto&&...x) mutable{
 			return t(std::forward<decltype(x)>(x)...); }, (std::forward<Args>(args).get_variant())...);
 	}
-
-	template<typename traits_1, typename traits_2>
-	struct default_json_less {
-		template<typename T, typename U>
-		bool operator()(const T& lhs, const U& rhs) const {
-			return std::less<>{}(lhs, rhs);
-		}
-		bool operator()(
-			const typename basic_json<traits_1>::number& lhs,
-			const typename basic_json<traits_2>::number& rhs
-			)const {
-			return lhs < rhs - std::numeric_limits<double>::epsilon();
-		}
-	};
 
 	template<typename traits_1, typename traits_2>
 	struct _Json_equal {

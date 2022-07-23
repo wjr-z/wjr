@@ -41,7 +41,7 @@ namespace wjr {
 		thread_pool(size_t);
 		template<class F, class... Args>
 		auto enqueue(F&& f, Args&&... args)
-			->std::future<wjr_result_of_t<F, Args...>>;
+			->std::future<std::invoke_result_t<F, Args...>>;
 		~thread_pool();
 	private:
 		using func = std::function<void()>;
@@ -82,8 +82,8 @@ namespace wjr {
 	// add new work item to the pool
 	template<class F, class... Args>
 	auto thread_pool::enqueue(F&& f, Args&&... args)
-		-> std::future<wjr_result_of_t<F, Args...>> {
-		using return_type = wjr_result_of_t<F, Args...>;
+		-> std::future<std::invoke_result_t<F, Args...>> {
+		using return_type = std::invoke_result_t<F, Args...>;
 		using allocator_type = mallocator<std::packaged_task<return_type()>>;
 
 		auto task = std::allocate_shared<std::packaged_task<return_type()> >(
@@ -112,8 +112,9 @@ namespace wjr {
 			stop = true;
 		}
 		condition.notify_all();
-		for (std::thread& worker : workers)
+		for (auto& worker : workers) {
 			worker.join();
+		}
 	}
 }
 

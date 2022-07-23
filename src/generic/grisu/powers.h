@@ -23,11 +23,10 @@
   OTHER DEALINGS IN THE SOFTWARE.
   */
 #pragma once
-#if defined(__cplusplus)
-extern "C"{
-#endif
+#ifndef __WJR_POWERS_H
+#define __WJR_POWERS_H
+
 #include "diy_fp.h"
 #include "powers_ten_round64.h"
-#if defined(__cplusplus)
-}
+
 #endif

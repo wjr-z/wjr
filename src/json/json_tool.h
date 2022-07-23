@@ -92,14 +92,20 @@ namespace wjr {
 		}
 
 		template<typename iter, std::enable_if_t<wjr_is_iterator_v<iter>, int> = 0>
-		constexpr static iter skip_whitespace(iter first, iter last) {
-			return wjr::skip_whitespace(first, last);
+		constexpr static bool skip_whitespace(iter& first, iter last) {
+			wjr::skip_whitespace(first, last);
+			return true;
+		}
+
+		template<typename iter, std::enable_if_t<wjr_is_iterator_v<iter>, int> = 0>
+		constexpr static double read_double(iter& first, iter last) {
+			return wjr::read_double(first, last);
 		}
 
 		template<typename Char, typename Traits>
 		constexpr static void write(basic_String<Char, Traits>& str, double number) {
 			str.reserve(str.size() + 64);
-			basic_String<Char, Traits>::fixed_number(str.end(), str.end() + 64, number);
+			str.set_size(basic_String<Char, Traits>::fixed_number(str.end(), str.end() + 64, number) - str.begin());
 		}
 
 	};

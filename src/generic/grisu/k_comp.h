@@ -23,16 +23,15 @@
   OTHER DEALINGS IN THE SOFTWARE.
   */
 #pragma once
-#if defined(__cplusplus)
-extern "C"{
-#endif
-#include <math.h>
+#ifndef __WJR_K_COMP_H
+#define __WJR_K_COMP_H
+
+#include <cmath>
 
 #define D_1_LOG2_10 0.30102999566398114 //  1 / lg(10)
 
-static int k_comp(int e, int alpha, int gamma) {
+inline int k_comp(int e, int alpha, int gamma) {
 	return ceil((alpha - e + 63) * D_1_LOG2_10);
 }
-#if defined(__cplusplus)
-}
+
 #endif

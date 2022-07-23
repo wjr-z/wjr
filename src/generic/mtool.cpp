@@ -16,22 +16,6 @@
 #include "../network/thread_pool.h"
 
 namespace wjr {
-	time_ref mtime() { return time_ref::now(); }
-
-	void mtime(time_ref* x) { *x = mtime(); }
-
-	time_ref::m_clock::time_point time_ref::now() {
-		return m_clock::now();
-	}
-	double time_ref::testTime(const m_clock::time_point& start, const m_clock::time_point& end) {
-		return static_cast<double>(std::chrono::duration_cast<m_mis>(end - start).count()) * 0.001;
-	}
-
-	time_ref::time_ref(const m_clock::time_point& TimePoint) :TimePoint(TimePoint) {}
-
-	double operator-(const time_ref& lhs, const time_ref& rhs) {
-		return time_ref::testTime(rhs.TimePoint, lhs.TimePoint);
-	}
 
 	bool dfs_get_files(String& path, std::vector<String>& file_path) {
 #ifndef __linux__

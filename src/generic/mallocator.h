@@ -352,21 +352,45 @@ namespace wjr {
 		~basic_mallocator() = default;
 		basic_mallocator& operator=(const basic_mallocator&) noexcept = default;
 
-		[[nodiscard]] Ty* allocate() const noexcept{
-			return static_cast<Ty*>(allocator_type::allocate(sizeof(Ty)));
+		[[nodiscard]] WJR_CONSTEXPR20 Ty* allocate() const noexcept{
+#if defined(WJR_CPP_20)
+			if (!std::is_constant_evaluated())
+#endif	
+			{
+				return static_cast<Ty*>(allocator_type::allocate(sizeof(Ty)));
+			}
+			return std::allocator<Ty>().allocate(1);
 		}
 
-		[[nodiscard]] Ty* allocate(size_t n) const noexcept {
-			return !n ? nullptr : static_cast<Ty*>(allocator_type::allocate(sizeof(Ty) * n));
+		[[nodiscard]] WJR_CONSTEXPR20 Ty* allocate(size_t n) const noexcept {
+#if defined(WJR_CPP_20)
+			if (!std::is_constant_evaluated())
+#endif
+			{
+				return !n ? nullptr : static_cast<Ty*>(allocator_type::allocate(sizeof(Ty) * n));
+			}
+			return std::allocator<Ty>().allocate(n);
 		}
 
-		void deallocate(Ty* ptr) const noexcept{
-			allocator_type::deallocate(static_cast<void*>(ptr), sizeof(Ty));
+		WJR_CONSTEXPR20 void deallocate(Ty* ptr) const noexcept{
+#if defined(WJR_CPP_20)
+			if (!std::is_constant_evaluated())
+#endif
+			{
+				return allocator_type::deallocate(static_cast<void*>(ptr), sizeof(Ty));
+			}
+			return std::allocator<Ty>().deallocate(ptr, 1);
 		}
 
-		void deallocate(Ty* ptr, size_t n) const noexcept{
-			if (n == 0) return;
-			allocator_type::deallocate(static_cast<void*>(ptr), sizeof(Ty) * n);
+		WJR_CONSTEXPR20 void deallocate(Ty* ptr, size_t n) const noexcept{
+#if defined(WJR_CPP_20)
+			if (!std::is_constant_evaluated())
+#endif
+			{
+				if (n == 0) return;
+				return allocator_type::deallocate(static_cast<void*>(ptr), sizeof(Ty) * n);
+			}
+			return std::allocator<Ty>().deallocate(ptr, n);
 		}
 
 		constexpr void construct([[maybe_unused]]Ty* ptr, wjr_uninitialized_tag) const{

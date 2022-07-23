@@ -1,120 +1,69 @@
-﻿#include <fstream>
-#include "biginteger/biginteger.h"
-#include "json/json.h"
+﻿#include "json/json.h"
+#include "network/thread_pool.h"
 #include "generic/mtool.h"
-#include "generic/sptr_wrapper.h"
-
-using namespace wjr;
+#include "generic/masm.h"
+#include "biginteger/biginteger.h"
 using namespace std;
+using namespace wjr;
 
+using type = biginteger_basic_value_type;
+using btype = biginteger_basic_twice_value_type;
 
-biginteger<2> _Quick_Mod(const biginteger<2>& x, const biginteger<2>& mod, const biginteger<2>& mu) {
-    if (x < mod)return x;
-    const size_t k = mod.size();
-    biginteger<2> r2(virtual_biginteger<2, 0>(true, x.data() + k - 1, x.size() - (k - 1)));
-    r2 *= mu;
-    r2.div_base_power((k + 1) * 32);
-    r2 *= mod;
-    r2.mod_base_power((k + 1) * 32);
-    biginteger<2> r(virtual_biginteger<2, 0>(true, x.data(), min(x.size(), k + 1)).maintain());
-    r -= r2;
-    if (r >= mod)
-        r -= mod;
-    if (!r.signal()) {
-        biginteger<2> G(1);
-        G.mul_base_power((k + 1) * 32);
-        r += G;
+WJR_FORCEINLINE type mul_1(const type* a, type b, type* c, size_t n) {
+    type cf = 0;
+
+    for (size_t i = 0; i < n; ++i) {
+        auto val = a[i] * (uint64_t)b + cf;
+        cf = val >> 32;
+        c[i] = val;
     }
-    return r;
+
+    return cf;
 }
 
-biginteger<2> pow(biginteger<2> a, const biginteger<2>& b,
-    const biginteger<2>& mod, const biginteger<2>& mu) {
-    biginteger<2> ans(1);
-    for (const auto& i : b) {
-        if (i) {
-            ans *= a;
-            ans = _Quick_Mod(ans, mod, mu);
+static void mymul() {
+    const int N = 1e6;
+    int n = 128;
+    biginteger<2> a, b, c;
+    vector<type> d(1e4);
+    a = random_biginteger<2>(biginteger_basic_bit * n);
+    b = random_biginteger<2>(biginteger_basic_bit);
+
+    auto time1 = test_runtime(
+        std::in_place_type_t<std::chrono::nanoseconds>{},
+        [&]() {
+            for (int i = 0; i < N; ++i)
+                mul(c, a, b);
         }
-        a *= a;
-        a = _Quick_Mod(a, mod, mu);
-    }
-    return ans;
-}
+    );
 
-bool witness(const biginteger<2>& n, const biginteger<2>& S,
-    biginteger<2> seed, const biginteger<2>& d, size_t r, const biginteger<2>& mu) {
-    seed = pow(seed, d, n, mu);
-    if (seed == 1)return true;
-    for (size_t i = 0; i < r; ++i) {
-        if (seed == S)return true;
-        seed *= seed;
-        _Quick_Mod(seed, n, mu);
-        if (seed == 1)return false;
-    }
-    return false;
-}
+    cout << time1 << '\n';
 
-bool miller_robin(const biginteger<2>& n, const size_t k = 5) {
-    if (n.size() == 1) {
-        uint32_t val(n);
-        if (val == 2 || val == 3 || val == 5)return true;
-        if (val == 1 || val == 27509653 || val == 74927161)return false;
-    }
-    if (n.data()[0] % 2 == 0) {
-        return false;
+    cout << (time1.count() / N) << '\n';
+
+    auto time2 = test_runtime(
+        std::in_place_type_t<std::chrono::nanoseconds>{},
+        [&]() {
+            for (int i = 0; i < N; ++i)
+                d.data()[n] = mul_1(a.data(), b.data()[0], d.data(), n);
+        }
+    );
+    cout << time2 << '\n';
+    cout << (time2.count() / N) << '\n';
+
+    for (size_t i = 0; i < c.size(); ++i) {
+        if (c.data()[i] != d.data()[i]) {
+            cout << "error at " << i << '\n';
+            exit(0);
+        }
     }
 
-    biginteger<2> mu(1);
-    mu.mul_base_power(n.size() * 64);
-    mu /= n;
-
-    biginteger<2> S(n - 1);
-    size_t r = 0;
-    for (auto i : S) {
-        if (i)break;
-        ++r;
-    }
-    biginteger<2> d(S);
-    d.div_base_power(r);
-    biginteger<2> seed(2);
-    if (!witness(n, S, seed, d, r, mu))return false;
-    seed = 3;
-    if (!witness(n, S, seed, d, r, mu))return false;
-    seed = 61;
-    if (n > 61 && !witness(n, S, seed, d, r, mu))return false;
-    biginteger<2> _Max(n - 6);
-    for (size_t i = 0; i < k; ++i) {
-        random_biginteger_max(seed, _Max);
-        seed += 4;
-        if (!witness(n, S, seed, d, r, mu))return false;
-    }
-    return true;
-}
-
-bool is_prime(const biginteger<2>& x) {
-    return miller_robin(x);
+    cout << boolalpha << equal(c.data(), c.data() + c.size(), d.data()) << '\n';
 }
 
 int main() {
-	
-    auto vec = get_all_files("test");
-    for (auto& i : vec) i = read_file(i);
-    vector<json> vc;
-    auto s = mtime();
-    for (int j = 0; j < 1; ++j) {
-        for (auto& i : vec) {
-            vc.emplace_back(json::parse(i));
-        }
-    }
-    auto t = mtime();
-    cout << t - s << '\n';
-    s = mtime();
-    for (auto& i : vc) {
-        i.minify();
-    }
-    t = mtime();
-    cout << t - s << '\n';
+
+    mymul();
+
     return 0;
 }
-

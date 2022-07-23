@@ -23,18 +23,13 @@
   OTHER DEALINGS IN THE SOFTWARE.
   */
 
-#if defined(__cplusplus)
-#extern "C"{
-#endif
-
 #include "diy_fp.h"
 #include "k_comp.h"
 #include "double.h"
 #include "powers.h"
-#include <stdbool.h>
-#include <stdio.h>
+#include <cstdio>
 #include "grisu2.h"
-#include <inttypes.h>
+#include <cinttypes>
 
 #define TEN9 1000000000
 
@@ -71,7 +66,7 @@ void digit_gen(diy_fp_t W, diy_fp_t Mp, diy_fp_t delta,
 		div /= 10;
 	}
 	uint64_t unit = 1;
-	while (1) {
+	while (true) {
 		p2 *= 10; delta.f *= 10; unit *= 10;
 		d = p2 >> -one.e;
 		if (d || *len) buffer[(*len)++] = '0' + d;
@@ -99,7 +94,3 @@ void grisu2(double v, char* buffer, int* length, int* K) {
 	*K = -mk;
 	digit_gen(W, Wp, delta, buffer, length, K);
 }
-
-#if defined(__cplusplus)
-}
-#endif

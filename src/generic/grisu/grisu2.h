@@ -23,10 +23,8 @@
   OTHER DEALINGS IN THE SOFTWARE.
   */
 #pragma once
-
-#if defined(__cplusplus)
-extern "C" {
-#endif
+#ifndef __WJR_GRISU2_H
+#define __WJR_GRISU2_H
 
 #include "prettify.h"
 #include "fast_exponent.h"
@@ -49,6 +47,4 @@ bool fill_double(double v, char* buffer) {
 	return 1;
 }
 
-#if defined(__cplusplus)
-}
 #endif

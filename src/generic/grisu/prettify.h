@@ -23,13 +23,14 @@
   OTHER DEALINGS IN THE SOFTWARE.
   */
 #pragma once
-#if defined(__cplusplus)
-extern "C"{
-#endif
-#include "fast_exponent.h"
-#include <string.h>
 
-static void prettify_string(char* buffer, int from_pos, int end_pos, int k) {
+#ifndef __WJR_PRETTIFY_H
+#define __WJR_PRETTIFY_H
+
+#include "fast_exponent.h"
+#include <cstring>
+
+inline void prettify_string(char* buffer, int from_pos, int end_pos, int k) {
 	int nb_digits = end_pos - from_pos;
 	int i, offset;
 	/* v = buffer * 10^k
@@ -81,6 +82,5 @@ static void prettify_string(char* buffer, int from_pos, int end_pos, int k) {
 		fill_exponent(kk - 1, &buffer[from_pos + nb_digits + 2]);
 	}
 }
-#if defined(__cplusplus)
-}
+
 #endif
