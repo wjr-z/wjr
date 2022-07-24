@@ -1,8 +1,6 @@
-﻿#include "json/json.h"
-#include "network/thread_pool.h"
-#include "generic/mtool.h"
-#include "generic/masm.h"
+﻿#include "generic/mtool.h"
 #include "biginteger/biginteger.h"
+#include <variant>
 using namespace std;
 using namespace wjr;
 
@@ -13,7 +11,7 @@ WJR_FORCEINLINE type mul_1(const type* a, type b, type* c, size_t n) {
     type cf = 0;
 
     for (size_t i = 0; i < n; ++i) {
-        auto val = a[i] * (uint64_t)b + cf;
+        auto val = a[i] * (btype)b + cf;
         cf = val >> 32;
         c[i] = val;
     }
@@ -21,49 +19,56 @@ WJR_FORCEINLINE type mul_1(const type* a, type b, type* c, size_t n) {
     return cf;
 }
 
-static void mymul() {
-    const int N = 1e6;
-    int n = 128;
+static void mymul(size_t n) {
+    const int N = max((size_t)2e9 / (n * n), size_t(1));
     biginteger<2> a, b, c;
-    vector<type> d(1e4);
     a = random_biginteger<2>(biginteger_basic_bit * n);
-    b = random_biginteger<2>(biginteger_basic_bit);
+    b = random_biginteger<2>(biginteger_basic_bit * n);
 
     auto time1 = test_runtime(
         std::in_place_type_t<std::chrono::nanoseconds>{},
         [&]() {
-            for (int i = 0; i < N; ++i)
-                mul(c, a, b);
+            for (int i = 0; i < N; ++i) {
+                add(c, a, b);
+            }
         }
     );
 
-    cout << time1 << '\n';
-
+    cout << n << '\n';
+    cout << time1 << ' ';
     cout << (time1.count() / N) << '\n';
+   /* vector<uint32_t> d(n + 1);
+
 
     auto time2 = test_runtime(
         std::in_place_type_t<std::chrono::nanoseconds>{},
         [&]() {
-            for (int i = 0; i < N; ++i)
+            for (int i = 0; i < N; ++i) {
                 d.data()[n] = mul_1(a.data(), b.data()[0], d.data(), n);
+            }
         }
     );
-    cout << time2 << '\n';
+
+    cout << time2 << ' ';
     cout << (time2.count() / N) << '\n';
 
     for (size_t i = 0; i < c.size(); ++i) {
         if (c.data()[i] != d.data()[i]) {
-            cout << "error at " << i << '\n';
-            exit(0);
+            cout << "error at " << i << endl;
+            cout << a.data()[i] << ' ' << b.data()[i] << ' ' << c.data()[i] << ' ' << d.data()[i] << endl;
+
+            return;
         }
     }
-
-    cout << boolalpha << equal(c.data(), c.data() + c.size(), d.data()) << '\n';
+    cout << boolalpha << std::equal(c.data(), c.data() + c.size(), d.data()) << '\n';*/
 }
 
-int main() {
 
-    mymul();
+int main() {
+    mymul(128);
+    //    for(int i=1;i<=(1<<20);i<<=1){
+    //        mymul(i);
+    //    }
 
     return 0;
 }

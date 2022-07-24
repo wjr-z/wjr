@@ -222,8 +222,8 @@ namespace wjr {
 #endif
 
 #else
-template<typename T>
-using biginteger_libdivider = T;
+    template<typename T>
+    using biginteger_libdivider = T;
 #endif
 
     template<size_t base>
@@ -301,9 +301,9 @@ using biginteger_libdivider = T;
 
         WJR_CONSTEXPR20 static unsigned char
             quick_add(
-            value_type lhs,
-            value_type rhs,
-            value_type* result) {
+                value_type lhs,
+                value_type rhs,
+                value_type* result) {
             *result = lhs + rhs;
             unsigned char cf = *result < lhs;
             if constexpr (is_full()) {
@@ -343,7 +343,7 @@ using biginteger_libdivider = T;
                 value_type* result,
                 size_t len
             ) {
-            if (is_full()) {
+            if constexpr (is_full()) {
 #if defined(WJR_BIGINTEGER_USE_X64)
                 return wjr_addcarry_u64(cf, lhs, rhs, result, len);
 #else
@@ -353,7 +353,7 @@ using biginteger_libdivider = T;
             else {
                 size_t q = (len >> 2) << 2;
                 for (size_t i = 0; i < q; i += 4) {
-                    cf = quick_add(cf, lhs[i]    , rhs[i]    , &result[i]    );
+                    cf = quick_add(cf, lhs[i], rhs[i], &result[i]);
                     cf = quick_add(cf, lhs[i + 1], rhs[i + 1], &result[i + 1]);
                     cf = quick_add(cf, lhs[i + 2], rhs[i + 2], &result[i + 2]);
                     cf = quick_add(cf, lhs[i + 3], rhs[i + 3], &result[i + 3]);
@@ -407,7 +407,7 @@ using biginteger_libdivider = T;
                 value_type* result,
                 size_t len
             ) {
-            if (is_full()) {
+            if constexpr (is_full()) {
 #if defined(WJR_BIGINTEGER_USE_X64)
                 return wjr_subborrow_u64(cf, lhs, rhs, result, len);
 #else
@@ -417,13 +417,38 @@ using biginteger_libdivider = T;
             else {
                 size_t q = (len >> 2) << 2;
                 for (size_t i = 0; i < q; i += 4) {
-                    cf = quick_sub(cf, lhs[i]    , rhs[i]    , &result[i]    );
+                    cf = quick_sub(cf, lhs[i], rhs[i], &result[i]);
                     cf = quick_sub(cf, lhs[i + 1], rhs[i + 1], &result[i + 1]);
                     cf = quick_sub(cf, lhs[i + 2], rhs[i + 2], &result[i + 2]);
                     cf = quick_sub(cf, lhs[i + 3], rhs[i + 3], &result[i + 3]);
                 }
                 for (size_t i = q; i < len; ++i) {
                     cf = quick_sub(cf, lhs[i], rhs[i], &result[i]);
+                }
+                return cf;
+            }
+        }
+
+        WJR_CONSTEXPR20 static value_type
+            quick_mul_1(
+                value_type* result,
+                const value_type* lp,
+                size_t n,
+                value_type rv
+            ) {
+            if constexpr (is_full()) {
+#if defined(WJR_BIGINTEGER_USE_X64)
+                return wjr_vector_mul_1_u64(result, lp, n, rv);
+#else
+                return wjr_vector_mul_1_u32(result, lp, n, rv);
+#endif
+            }
+            else {
+                value_type cf = 0;
+                for (size_t i = 0; i < n; ++i) {
+                    auto val = quick_mul(lp[i], rv) + cf;
+                    cf = get_high(val);
+                    result[i] = get_low(val);
                 }
                 return cf;
             }
@@ -1116,7 +1141,7 @@ using biginteger_libdivider = T;
 
     template<size_t base, typename T,
         std::enable_if_t<_Is_base_mask_v<base, unsigned_biginteger_base_v<T>>, int> = 0>
-        constexpr static decltype(auto) get_virtual_unsigned_biginteger(const T& t) {
+    constexpr static decltype(auto) get_virtual_unsigned_biginteger(const T& t) {
         using traits = biginteger_traits<base>;
         if constexpr (_Is_unsigned_integral_v<T>) {
             return virtual_unsigned_biginteger<base, traits::template bit_of_t<T>>(t);
@@ -1694,18 +1719,11 @@ using biginteger_libdivider = T;
             REGISTER_VIRTUAL_BIGINTEGER_FUNCTION(ir, rhs, QSub, result, lhs, rhs);
         }
 
-        WJR_CONSTEXPR20 static value_type QMul_1(
-            value_type* result,
-            const value_type* lp,
-            value_type rv,
-            size_t n
-        );
-
         WJR_CONSTEXPR20 static value_type QAddmul_1(
             value_type* result,
             const value_type* lp,
-            value_type rv,
-            size_t n
+            size_t n,
+            value_type rv
         );
 
         template<size_t index, size_t il, size_t ir>
@@ -1872,7 +1890,7 @@ using biginteger_libdivider = T;
             if (n != m) return n < m ? -1 : 1;
             auto p = lhs.data() + n;
             auto q = rhs.data() + n;
-            while(n--) {
+            while (n--) {
                 --p;
                 --q;
                 if (*p != *q)return *p < *q ? -1 : 1;
@@ -1977,7 +1995,7 @@ using biginteger_libdivider = T;
         auto rep = result.data();
         if constexpr (index != 0) {
             if constexpr (index >= 1) {
-                cf = traits::quick_add(    lp[0], rp[0], rep + 0);
+                cf = traits::quick_add(lp[0], rp[0], rep + 0);
             }
             if constexpr (index >= 2) {
                 cf = traits::quick_add(cf, lp[1], rp[1], rep + 1);
@@ -2045,7 +2063,7 @@ using biginteger_libdivider = T;
         auto rep = result.data();
         if constexpr (index != 0) {
             if constexpr (index >= 1) {
-                cf = traits::quick_sub(    lp[0], rp[0], &rep[0]);
+                cf = traits::quick_sub(lp[0], rp[0], &rep[0]);
             }
             if constexpr (index >= 2) {
                 cf = traits::quick_sub(cf, lp[1], rp[1], &rep[1]);
@@ -2088,40 +2106,18 @@ using biginteger_libdivider = T;
 
     template<size_t base>
     WJR_CONSTEXPR20 typename unsigned_biginteger<base>::value_type
-        unsigned_biginteger<base>::QMul_1(
-            value_type* result,
-            const value_type* lp,
-            value_type rv,
-            size_t n
-        ) {
-        value_type cf = 0;
-        size_t i = 0;
-        while (i != n) {
-            auto val = traits::quick_mul(*lp, rv) + cf;
-            cf = traits::get_high(val);
-            *result = traits::get_low(val);
-            ++lp;
-            ++result;
-            ++i;
-        }
-
-        return cf;
-    }
-
-    template<size_t base>
-    WJR_CONSTEXPR20 typename unsigned_biginteger<base>::value_type
         unsigned_biginteger<base>::QAddmul_1(
             value_type* result,
             const value_type* lp,
-            value_type rv,
-            size_t n
+            size_t n,
+            value_type rv
         ) {
         value_type cf = 0;
         for (size_t i = 0; i != n; ++i) {
             auto val = traits::quick_mul(lp[i], rv) + result[i] + cf;
             cf = traits::get_high(val);
             result[i] = traits::get_low(val);
-    }
+        }
         return cf;
     }
 
@@ -2149,7 +2145,7 @@ using biginteger_libdivider = T;
             }
             result.vec.resize(ls);
             auto rep = result.data();
-            auto _Val = QMul_1(rep, lp, rv, ls);
+            auto _Val = traits::quick_mul_1(rep, lp, ls, rv);
             if (_Val) {
                 result.vec.push_back(_Val);
             }
@@ -2175,18 +2171,18 @@ using biginteger_libdivider = T;
             }
 #endif
             auto rep = temp_array;
-            rep[ls] = QMul_1(rep, lp, *rp, ls);
+            rep[ls] = traits::quick_mul_1(rep, lp, ls, *rp);
             ++rep;
             ++rp;
             --rs;
             if constexpr (index >= 2) {
-                rep[ls] = QAddmul_1(rep, lp, *rp, ls);
+                rep[ls] = QAddmul_1(rep, lp, ls, *rp);
                 ++rep;
                 ++rp;
                 --rs;
             }
             if constexpr (index >= 3) {
-                rep[ls] = QAddmul_1(rep, lp, *rp, ls);
+                rep[ls] = QAddmul_1(rep, lp, ls, *rp);
                 ++rep;
                 ++rp;
                 --rs;
@@ -2194,7 +2190,7 @@ using biginteger_libdivider = T;
             if constexpr (!index) {
                 WASSERT_LEVEL_2(rs >= 1);
                 do {
-                    rep[ls] = QAddmul_1(rep, lp, *rp, ls);
+                    rep[ls] = QAddmul_1(rep, lp, ls, *rp);
                     ++rep;
                     ++rp;
                 } while (--rs != 0);
@@ -2534,7 +2530,7 @@ using biginteger_libdivider = T;
                     else {
                         karatsuba(result, lhs, rhs);
                     }
-               }
+                }
                 else {
 #if defined(WJR_CPP_20)
                     if (std::is_constant_evaluated()) {
@@ -2761,7 +2757,7 @@ using biginteger_libdivider = T;
 
     template<size_t base, typename T,
         std::enable_if_t<_Is_base_mask_v<base, biginteger_base_v<T>>, int> = 0>
-        constexpr static decltype(auto) get_virtual_biginteger(const T& t) {
+    constexpr static decltype(auto) get_virtual_biginteger(const T& t) {
         using traits = biginteger_traits<base>;
         if constexpr (std::is_integral_v<T>) {
             return virtual_biginteger<base, traits::template bit_of_t<T>>(t);
@@ -3882,12 +3878,12 @@ using biginteger_libdivider = T;
 
         template<size_t toBase, typename T, size_t fromBase,
             std::enable_if_t<_Is_biginteger_base_masks_v<fromBase, T>, int> >
-            friend WJR_CONSTEXPR20 biginteger<toBase> base_conversion(T&&);
+        friend WJR_CONSTEXPR20 biginteger<toBase> base_conversion(T&&);
         template<size_t _Base>
         friend WJR_CONSTEXPR20 void random_biginteger(biginteger<_Base>& result, size_t n, bool, bool);
         template<size_t _Base, typename T,
             std::enable_if_t<_Is_biginteger_base_masks_v<_Base, T>, int> >
-            friend WJR_CONSTEXPR20 void random_biginteger_max(biginteger<_Base>& result, const T& _Max);
+        friend WJR_CONSTEXPR20 void random_biginteger_max(biginteger<_Base>& result, const T& _Max);
         bool _Signal = true;
         unsigned_biginteger<base> ubint;
     };

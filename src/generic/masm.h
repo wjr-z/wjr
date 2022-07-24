@@ -14,7 +14,7 @@ namespace wjr {
 #define WJR_HAS_QUICK_ADD_OR_SUB
 #endif
 
-    template<typename T>
+    template<typename T, std::enable_if_t<_Is_unsigned_integral_v<T>,int> = 0>
     WJR_CONSTEXPR20 unsigned char wjr_qaddcarry(T* result, T lhs, T rhs) {
         *result = lhs + rhs;
         return *result < lhs;
@@ -34,15 +34,13 @@ namespace wjr {
         if (!std::is_constant_evaluated())
 #endif
         {
-            uint32_t temp;
             __asm__ __volatile__(\
-                "add $255 , %[u1]\n"    \
-                "mov %[v1], %[u2]\n"    \
-                "adc %[v2], %[u2]\n"    \
-                "mov %[u2], (%[v3])\n"  \
+                "add $0xFF , %[u1]\n"    \
+                "adc %[v1], %[u2]\n"    \
+                "mov %[u2], (%[v2])\n"  \
                 "setb       %[u1]\n"    \
-                : [u1] "+r"(c_in), [u2] "+r"(temp)                    \
-                : [v1] "%r"(in_1), [v2] "r"(in_2), [v3] "r"(out)      \
+                : [u1] "+r"(c_in), [u2] "+r"(in_1)   \
+                : [v1] "r"(in_2), [v2] "r"(out)      \
             );
             return c_in;
         }
@@ -60,18 +58,25 @@ namespace wjr {
     }
 
     WJR_CONSTEXPR20 unsigned char wjr_addcarry_u32(
-        unsigned char c_in, const uint32_t* in_1, const uint32_t* in_2, uint32_t* out, size_t len) {
+        unsigned char c_in, const uint32_t* in_1, const uint32_t* in_2, uint32_t* out, size_t n) {
         size_t i = 0;
+        size_t r = n & 3;
+        while (i != r) {
+            c_in = wjr_addcarry_u32(c_in, *in_1, *in_2, out);
+            ++in_1;
+            ++in_2;
+            ++out;
+            ++i;
+        }
 #if defined(WJR_GCC_STYLE_ASM)
 #if defined(WJR_CPP_20)
         if (!std::is_constant_evaluated())
 #endif
         {
-            size_t q = (len >> 2) << 2;
             uint32_t temp;
-            while (i != q) {
+            while (i != n) {
                 __asm__ __volatile__(\
-                    "add $255, %[u1]        \n"   \
+                    "add $0xFF, %[u1]        \n"   \
                     "mov (%[v1]), %[u2]     \n"   \
                     "adc (%[v2]), %[u2]     \n"   \
                     "mov %[u2], (%[v3])     \n"   \
@@ -99,8 +104,7 @@ namespace wjr {
         if (!std::is_constant_evaluated())
 #endif
         {
-            size_t q = (len >> 2) << 2;
-            while (i != q) {
+            while (i != n) {
                 c_in = wjr_addcarry_u32(c_in, in_1[0], in_2[0], out + 0);
                 c_in = wjr_addcarry_u32(c_in, in_1[1], in_2[1], out + 1);
                 c_in = wjr_addcarry_u32(c_in, in_1[2], in_2[2], out + 2);
@@ -112,7 +116,7 @@ namespace wjr {
             }
         }
 #endif
-        while (i != len) {
+        while (i != n) {
             c_in = wjr_addcarry_u32(c_in, *in_1, *in_2, out);
             ++in_1;
             ++in_2;
@@ -136,15 +140,13 @@ namespace wjr {
         if (!std::is_constant_evaluated())
 #endif
         {
-            uint64_t temp;
             __asm__ __volatile__(\
-                "add $255 , %[u1]\n"    \
-                "mov %[v1], %[u2]\n"    \
-                "adc %[v2], %[u2]\n"    \
-                "mov %[u2], (%[v3])\n"    \
+                "add $0xFF , %[u1]\n"    \
+                "adc %[v1], %[u2]\n"    \
+                "mov %[u2], (%[v2])\n"  \
                 "setb       %[u1]\n"    \
-                : [u1] "+r"(c_in), [u2] "+r"(temp)                      \
-                : [v1] "%r"(in_1), [v2] "r"(in_2), [v3] "r"(out)        \
+                : [u1] "+r"(c_in), [u2] "+r"(in_1)     \
+                : [v1] "r"(in_2), [v2] "r"(out)        \
             );
             return c_in;
         }
@@ -163,18 +165,26 @@ namespace wjr {
 
 
     WJR_CONSTEXPR20 unsigned char wjr_addcarry_u64(
-        unsigned char c_in, const uint64_t* in_1, const uint64_t* in_2, uint64_t* out, size_t len) {
+        unsigned char c_in, const uint64_t* in_1, const uint64_t* in_2, uint64_t* out, size_t n) {
         size_t i = 0;
+        size_t r = n & 3;
+        while (i != r) {
+            c_in = wjr_addcarry_u64(c_in, *in_1, *in_2, out);
+            ++in_1;
+            ++in_2;
+            ++out;
+            ++i;
+        }
+
 #if defined(WJR_GCC_STYLE_ASM)
 #if defined(WJR_CPP_20)
         if (!std::is_constant_evaluated())
 #endif
         {
-            size_t q = (len >> 2) << 2;
             uint64_t temp;
-            while (i != q) {
+            while (i != n) {
                 __asm__ __volatile__(\
-                    "add $255, %[u1]        \n"   \
+                    "add $0xFF, %[u1]        \n"   \
                     "mov (%[v1]), %[u2]     \n"   \
                     "adc (%[v2]), %[u2]     \n"   \
                     "mov %[u2], (%[v3])     \n"   \
@@ -202,8 +212,7 @@ namespace wjr {
         if (!std::is_constant_evaluated())
 #endif
         {
-            size_t q = (len >> 2) << 2;
-            while (i != q) {
+            while (i != n) {
                 c_in = wjr_addcarry_u64(c_in, in_1[0], in_2[0], out + 0);
                 c_in = wjr_addcarry_u64(c_in, in_1[1], in_2[1], out + 1);
                 c_in = wjr_addcarry_u64(c_in, in_1[2], in_2[2], out + 2);
@@ -215,7 +224,7 @@ namespace wjr {
             }
         }
 #endif
-        while (i != len) {
+        while (i != n) {
             c_in = wjr_addcarry_u64(c_in, *in_1, *in_2, out);
             ++in_1;
             ++in_2;
@@ -225,7 +234,7 @@ namespace wjr {
         return c_in;
     }
 
-    template<typename T>
+    template<typename T, std::enable_if_t<_Is_unsigned_integral_v<T>, int> = 0>
     WJR_CONSTEXPR20 unsigned char wjr_qsubborrow(T* result, T lhs, T rhs) {
         *result = lhs - rhs;
         return lhs < rhs;
@@ -245,15 +254,13 @@ namespace wjr {
         if (!std::is_constant_evaluated())
 #endif
         {
-            uint32_t temp;
             __asm__ __volatile__(\
-                "add $255 , %[u1]\n"    \
-                "mov %[v1], %[u2]\n"    \
-                "sbb %[v2], %[u2]\n"    \
-                "mov %[u2], (%[v3])\n"  \
+                "add $0xFF , %[u1]\n"    \
+                "sbb %[v1], %[u2]\n"    \
+                "mov %[u2], (%[v2])\n"  \
                 "setb       %[u1]\n"    \
-                : [u1] "+r"(c_in), [u2] "+r"(temp)                  \
-                : [v1] "%r"(in_1), [v2] "r"(in_2), [v3] "r"(out)    \
+                : [u1] "+r"(c_in), [u2] "+r"(in_1) \
+                : [v1] "r"(in_2), [v2] "r"(out)    \
             );
             return c_in;
         }
@@ -271,18 +278,25 @@ namespace wjr {
     }
 
     WJR_CONSTEXPR20 unsigned char wjr_subborrow_u32(
-        unsigned char c_in, const uint32_t* in_1, const uint32_t* in_2, uint32_t* out, size_t len) {
+        unsigned char c_in, const uint32_t* in_1, const uint32_t* in_2, uint32_t* out, size_t n) {
         size_t i = 0;
+        size_t r = n & 3;
+        while (i != r) {
+            c_in = wjr_subborrow_u32(c_in, *in_1, *in_2, out);
+            ++in_1;
+            ++in_2;
+            ++out;
+            ++i;
+        }
 #if defined(WJR_GCC_STYLE_ASM)
 #if defined(WJR_CPP_20)
         if (!std::is_constant_evaluated())
 #endif
         {
-            size_t q = (len >> 2) << 2;
             uint32_t temp;
-            while (i != q) {
+            while (i != n) {
                 __asm__ __volatile__(\
-                    "add $255, %[u1]        \n"   \
+                    "add $0xFF, %[u1]        \n"   \
                     "mov (%[v1]), %[u2]     \n"   \
                     "sbb (%[v2]), %[u2]     \n"   \
                     "mov %[u2], (%[v3])     \n"   \
@@ -310,8 +324,7 @@ namespace wjr {
         if (!std::is_constant_evaluated())
 #endif
         {
-            size_t q = (len >> 2) << 2;
-            while (i != q) {
+            while (i != n) {
                 c_in = wjr_subborrow_u32(c_in, in_1[0], in_2[0], out + 0);
                 c_in = wjr_subborrow_u32(c_in, in_1[1], in_2[1], out + 1);
                 c_in = wjr_subborrow_u32(c_in, in_1[2], in_2[2], out + 2);
@@ -323,7 +336,7 @@ namespace wjr {
             }
         }
 #endif
-        while (i != len) {
+        while (i != n) {
             c_in = wjr_subborrow_u32(c_in, *in_1, *in_2, out);
             ++in_1;
             ++in_2;
@@ -347,15 +360,14 @@ namespace wjr {
         if (!std::is_constant_evaluated())
 #endif
         {
-            uint64_t temp;
+
             __asm__ __volatile__(\
-                "add $255 , %[u1]\n"    \
-                "mov %[v1], %[u2]\n"    \
-                "sbb %[v2], %[u2]\n"    \
-                "mov %[u2], (%[v3])\n"    \
+                "add $0xFF , %[u1]\n"    \
+                "sbb %[v1], %[u2]\n"    \
+                "mov %[u2], (%[v2])\n"  \
                 "setb       %[u1]\n"    \
-                : [u1] "+r"(c_in), [u2] "+r"(temp)  \
-                : [v1] "%r"(in_1), [v2] "r"(in_2), [v3] "r"(out)     \
+                : [u1] "+r"(c_in), [u2] "+r"(in_1)  \
+                : [v1] "r"(in_2), [v2] "r"(out)     \
             );
             return c_in;
         }
@@ -373,18 +385,25 @@ namespace wjr {
     }
 
     WJR_CONSTEXPR20 unsigned char wjr_subborrow_u64(
-        unsigned char c_in, const uint64_t* in_1, const uint64_t* in_2, uint64_t* out, size_t len) {
+        unsigned char c_in, const uint64_t* in_1, const uint64_t* in_2, uint64_t* out, size_t n) {
         size_t i = 0;
+        size_t r = n & 3;
+        while (i != r) {
+            c_in = wjr_subborrow_u64(c_in, *in_1, *in_2, out);
+            ++in_1;
+            ++in_2;
+            ++out;
+            ++i;
+        }
 #if defined(WJR_GCC_STYLE_ASM)
 #if defined(WJR_CPP_20)
         if (!std::is_constant_evaluated())
 #endif
         {
-            size_t q = (len >> 2) << 2;
             uint64_t temp;
-            while (i != q) {
+            while (i != n) {
                 __asm__ __volatile__(\
-                    "add $255, %[u1]        \n"   \
+                    "add $0xFF, %[u1]        \n"   \
                     "mov (%[v1]), %[u2]     \n"   \
                     "sbb (%[v2]), %[u2]     \n"   \
                     "mov %[u2], (%[v3])     \n"   \
@@ -412,8 +431,7 @@ namespace wjr {
         if (!std::is_constant_evaluated())
 #endif
         {
-            size_t q = (len >> 2) << 2;
-            while (i != q) {
+            while (i != n) {
                 c_in = wjr_subborrow_u64(c_in, in_1[0], in_2[0], out + 0);
                 c_in = wjr_subborrow_u64(c_in, in_1[1], in_2[1], out + 1);
                 c_in = wjr_subborrow_u64(c_in, in_1[2], in_2[2], out + 2);
@@ -425,7 +443,7 @@ namespace wjr {
             }
         }
 #endif
-        while (i != len) {
+        while (i != n) {
             c_in = wjr_subborrow_u64(c_in, *in_1, *in_2, out);
             ++in_1;
             ++in_2;
@@ -697,6 +715,114 @@ namespace wjr {
         }
         *p = (*p) >> imm;
     }
+
+    WJR_FORCEINLINE uint32_t wjr_vector_mul_1_u32(
+        uint32_t* result, const uint32_t* lp, size_t n, uint32_t rv) {
+        uint32_t cf = 0;
+        size_t i = 0;
+        size_t r = n & 1;
+        while (i != r) {
+            auto val = (*lp) * (uint64_t)rv + cf;
+            cf = val >> 32;
+            *result = val;
+
+            ++lp;
+            ++result;
+            ++i;
+        }
+#if defined(WJR_GCC_STYLE_ASM)
+        uint32_t l0, h0, l1, h1;
+        while (i != n) {
+            __asm__(\
+                "mov %[v2], %[u2]\n"            \
+                "mull (%[u8])\n"                \
+                "mov %[u2], %[u4]\n"            \
+                "mov %[u3], %[u5]\n"            \
+                "mov %[v2], %[u2]\n"            \
+                "mull 0x04(%[u8])\n"            \
+                "add %[u4], %[u1]\n"            \
+                "mov %[u1], (%[u7])\n"          \
+                "adc %[u5], %[u2]\n"            \
+                "mov %[u2], 0x04(%[u7])\n"      \
+                "mov %[u3], %[u1]\n"            \
+                "adc $0x0,%[u1]\n"              \
+                : [u1] "+r"(cf), [u2] "+a"(l1),
+                [u3] "+d"(h1), [u4] "+r"(l0), [u5] "+r"(h0),
+                [u7] "+r"(result), [u8] "+r"(lp)
+                : [v2] "r"(rv)
+            );
+            lp += 2;
+            result += 2;
+            i += 2;
+        }
+#else
+        while (i != n) {
+            auto val = (*lp) * (uint64_t)rv + cf;
+            cf = val >> 32;
+            *result = val;
+
+            ++lp;
+            ++result;
+            ++i;
+        }
+#endif
+        return cf;
+    }
+
+#if defined(__SIZEOF_INT128__)
+    WJR_FORCEINLINE uint64_t wjr_vector_mul_1_u64(
+        uint64_t* result, const uint64_t* lp, size_t n, uint64_t rv) {
+        uint64_t cf = 0;
+        size_t i = 0;
+        size_t r = n & 1;
+        while (i != r) {
+            auto val = (*lp) * (__uint128_t(rv)) + cf;
+            cf = val >> 64;
+            *result = val;
+            ++lp;
+            ++result;
+            ++i;
+        }
+#if defined(WJR_GCC_STYLE_ASM)
+        uint64_t l0, h0, l1, h1;
+        while (i != n) {
+            __asm__(\
+                "mov %[v2], %[u2]\n"            \
+                "mulq (%[u8])\n"                \
+                "mov %[u2], %[u4]\n"            \
+                "mov %[u3], %[u5]\n"            \
+                "mov %[v2], %[u2]\n"            \
+                "mulq 0x08(%[u8])\n"            \
+                "add %[u4], %[u1]\n"            \
+                "mov %[u1], (%[u7])\n"          \
+                "adc %[u5], %[u2]\n"            \
+                "mov %[u2], 0x08(%[u7])\n"      \
+                "mov %[u3], %[u1]\n"            \
+                "adc $0x0,%[u1]\n"              \
+                : [u1] "+r"(cf), [u2] "+a"(l1),
+                [u3] "+d"(h1), [u4] "+r"(l0), [u5] "+r"(h0),
+                [u7] "+r"(result), [u8] "+r"(lp)
+                : [v2] "r"(rv)
+            );
+            lp += 2;
+            result += 2;
+            i += 2;
+        }
+#else
+        while (i != n) {
+            auto val = (*lp) * (__uint128_t(rv)) + cf;
+            cf = val >> 64;
+            *result = val;
+
+            ++lp;
+            ++result;
+            ++i;
+        }
+#endif
+        return cf;
+    }
+
+#endif
 
 }
 

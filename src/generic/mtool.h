@@ -6,23 +6,19 @@
 #include <cstdint>
 #include <sstream>
 #include <type_traits>
+#include <utility>
 #include "mString.h"
 
 namespace wjr {
 
     template<typename Duration, typename Func, typename...Args>
-    inline decltype(auto) test_runtime(Func&& fn, Args&&...args) {
+    inline decltype(auto) test_runtime(std::in_place_type_t<Duration>, Func&& fn, Args&&...args) {
         static_assert(std::is_void_v<std::invoke_result_t<Func, Args...>>, "test_runtime must return void");
         using namespace std::chrono;
         auto start = high_resolution_clock::now();
         std::forward<Func>(fn)(std::forward<Args>(args)...);
         auto end = high_resolution_clock::now();
         return duration_cast<Duration>(end - start);
-    }
-
-    template<typename Duration, typename Func, typename...Args>
-    inline decltype(auto) test_runtime(std::in_place_type_t<Duration>, Func&& fn, Args&&...args) {
-        return test_runtime<Duration>(std::forward<Func>(fn), std::forward<Args>(args)...);
     }
 
     template<typename Func, typename...Args>
