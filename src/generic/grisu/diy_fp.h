@@ -31,6 +31,7 @@
 #include <type_traits>
 
 #include "../mmacro.h"
+#include "../mmath.h"
 
 struct diy_fp_t {
 	uint64_t f;
@@ -43,17 +44,14 @@ constexpr diy_fp_t minus(diy_fp_t x, diy_fp_t y) {
 	return diy_fp_t{ x.f - y.f, x.e };
 }
 
-WJR_CONSTEXPR20 diy_fp_t multiply(diy_fp_t x, diy_fp_t y) {
+WJR_CONSTEXPR diy_fp_t multiply(diy_fp_t x, diy_fp_t y) {
 #if defined(_MSC_VER) && (defined(__x86_64__) || defined(_M_X64))
-#if defined(WJR_CPP_20)
-	if (!std::is_constant_evaluated())
-#endif
-	{
+WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
 		diy_fp_t r;
 		r.f = __umulh(x.f, y.f);
 		r.e = x.e + y.e + 64;
 		return r;
-	}
+WJR_IS_NOT_CONSTANT_EVALUATED_END
 #elif defined(__SIZEOF_INT128__)
 	{
 		diy_fp_t r;

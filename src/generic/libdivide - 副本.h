@@ -21,9 +21,12 @@
 #include <stdlib.h>
 #endif
 
-#include "mmacro.h"
-#include "mmath.h"
-
+#if defined(LIBDIVIDE_SSE2)
+#include <emmintrin.h>
+#endif
+#if defined(LIBDIVIDE_AVX2) || defined(LIBDIVIDE_AVX512)
+#include <immintrin.h>
+#endif
 #if defined(LIBDIVIDE_NEON)
 #include <arm_neon.h>
 #endif
@@ -42,6 +45,10 @@
 #define LIBDIVIDE_VC
 #endif
 
+#if !defined(__has_builtin)
+#define __has_builtin(x) 0
+#endif
+
 #if defined(__SIZEOF_INT128__)
 #define HAS_INT128_T
 // clang-cl on Windows does not yet support 128-bit division
@@ -50,7 +57,7 @@
 #endif
 #endif
 
-#if defined(WJR_X86_64)
+#if defined(__x86_64__) || defined(_M_X64)
 #define LIBDIVIDE_X86_64
 #endif
 
@@ -58,7 +65,7 @@
 #define LIBDIVIDE_i386
 #endif
 
-#if defined(WJR_GCC_STYLE_ASM)
+#if defined(__GNUC__) || defined(__clang__)
 #define LIBDIVIDE_GCC_STYLE_ASM
 #endif
 
@@ -66,6 +73,40 @@
 #define LIBDIVIDE_FUNCTION __FUNCTION__
 #else
 #define LIBDIVIDE_FUNCTION __func__
+#endif
+
+// Set up forced inlining if possible.
+// We need both the attribute and keyword to avoid "might not be inlineable" warnings.
+#ifdef __has_attribute
+#if __has_attribute(always_inline)
+#define LIBDIVIDE_INLINE __attribute__((always_inline)) inline
+#endif
+#endif
+#ifndef LIBDIVIDE_INLINE
+#define LIBDIVIDE_INLINE inline
+#endif
+
+#if defined(__AVR__)
+#define LIBDIVIDE_ERROR(msg)
+#else
+#define LIBDIVIDE_ERROR(msg)                                                                     \
+    do {                                                                                         \
+        fprintf(stderr, "libdivide.h:%d: %s(): Error: %s\n", __LINE__, LIBDIVIDE_FUNCTION, msg); \
+        abort();                                                                                 \
+    } while (0)
+#endif
+
+#if defined(LIBDIVIDE_ASSERTIONS_ON) && !defined(__AVR__)
+#define LIBDIVIDE_ASSERT(x)                                                           \
+    do {                                                                              \
+        if (!(x)) {                                                                   \
+            fprintf(stderr, "libdivide.h:%d: %s(): Assertion failed: %s\n", __LINE__, \
+                LIBDIVIDE_FUNCTION, #x);                                              \
+            abort();                                                                  \
+        }                                                                             \
+    } while (0)
+#else
+#define LIBDIVIDE_ASSERT(x)
 #endif
 
 #ifdef __cplusplus
@@ -180,108 +221,105 @@ namespace libdivide {
         LIBDIVIDE_NEGATIVE_DIVISOR = 0x80
     };
 
-    static WJR_FORCEINLINE struct libdivide_s16_t libdivide_s16_gen(int16_t d);
-    static WJR_FORCEINLINE struct libdivide_u16_t libdivide_u16_gen(uint16_t d);
-    static WJR_FORCEINLINE struct libdivide_s32_t libdivide_s32_gen(int32_t d);
-    static WJR_FORCEINLINE struct libdivide_u32_t libdivide_u32_gen(uint32_t d);
-    static WJR_FORCEINLINE struct libdivide_s64_t libdivide_s64_gen(int64_t d);
-    static WJR_FORCEINLINE struct libdivide_u64_t libdivide_u64_gen(uint64_t d);
+    static LIBDIVIDE_INLINE struct libdivide_s16_t libdivide_s16_gen(int16_t d);
+    static LIBDIVIDE_INLINE struct libdivide_u16_t libdivide_u16_gen(uint16_t d);
+    static LIBDIVIDE_INLINE struct libdivide_s32_t libdivide_s32_gen(int32_t d);
+    static LIBDIVIDE_INLINE struct libdivide_u32_t libdivide_u32_gen(uint32_t d);
+    static LIBDIVIDE_INLINE struct libdivide_s64_t libdivide_s64_gen(int64_t d);
+    static LIBDIVIDE_INLINE struct libdivide_u64_t libdivide_u64_gen(uint64_t d);
 
-    static WJR_FORCEINLINE struct libdivide_s16_branchfree_t libdivide_s16_branchfree_gen(int16_t d);
-    static WJR_FORCEINLINE struct libdivide_u16_branchfree_t libdivide_u16_branchfree_gen(uint16_t d);
-    static WJR_FORCEINLINE struct libdivide_s32_branchfree_t libdivide_s32_branchfree_gen(int32_t d);
-    static WJR_FORCEINLINE struct libdivide_u32_branchfree_t libdivide_u32_branchfree_gen(uint32_t d);
-    static WJR_FORCEINLINE struct libdivide_s64_branchfree_t libdivide_s64_branchfree_gen(int64_t d);
-    static WJR_FORCEINLINE struct libdivide_u64_branchfree_t libdivide_u64_branchfree_gen(uint64_t d);
+    static LIBDIVIDE_INLINE struct libdivide_s16_branchfree_t libdivide_s16_branchfree_gen(int16_t d);
+    static LIBDIVIDE_INLINE struct libdivide_u16_branchfree_t libdivide_u16_branchfree_gen(uint16_t d);
+    static LIBDIVIDE_INLINE struct libdivide_s32_branchfree_t libdivide_s32_branchfree_gen(int32_t d);
+    static LIBDIVIDE_INLINE struct libdivide_u32_branchfree_t libdivide_u32_branchfree_gen(uint32_t d);
+    static LIBDIVIDE_INLINE struct libdivide_s64_branchfree_t libdivide_s64_branchfree_gen(int64_t d);
+    static LIBDIVIDE_INLINE struct libdivide_u64_branchfree_t libdivide_u64_branchfree_gen(uint64_t d);
 
-    static WJR_FORCEINLINE int16_t libdivide_s16_do_raw(
+    static LIBDIVIDE_INLINE int16_t libdivide_s16_do_raw(
         int16_t numer, int16_t magic, uint8_t more);
-    static WJR_FORCEINLINE int16_t libdivide_s16_do(
+    static LIBDIVIDE_INLINE int16_t libdivide_s16_do(
         int16_t numer, const struct libdivide_s16_t* denom);
-    static WJR_FORCEINLINE uint16_t libdivide_u16_do_raw(
+    static LIBDIVIDE_INLINE uint16_t libdivide_u16_do_raw(
         uint16_t numer, uint16_t magic, uint8_t more);
-    static WJR_FORCEINLINE uint16_t libdivide_u16_do(
+    static LIBDIVIDE_INLINE uint16_t libdivide_u16_do(
         uint16_t numer, const struct libdivide_u16_t* denom);
-    static WJR_FORCEINLINE int32_t libdivide_s32_do(
+    static LIBDIVIDE_INLINE int32_t libdivide_s32_do(
         int32_t numer, const struct libdivide_s32_t* denom);
-    static WJR_FORCEINLINE uint32_t libdivide_u32_do(
+    static LIBDIVIDE_INLINE uint32_t libdivide_u32_do(
         uint32_t numer, const struct libdivide_u32_t* denom);
-    static WJR_FORCEINLINE int64_t libdivide_s64_do(
+    static LIBDIVIDE_INLINE int64_t libdivide_s64_do(
         int64_t numer, const struct libdivide_s64_t* denom);
-    static WJR_FORCEINLINE uint64_t libdivide_u64_do(
+    static LIBDIVIDE_INLINE uint64_t libdivide_u64_do(
         uint64_t numer, const struct libdivide_u64_t* denom);
 
-    static WJR_FORCEINLINE int16_t libdivide_s16_branchfree_do(
+    static LIBDIVIDE_INLINE int16_t libdivide_s16_branchfree_do(
         int16_t numer, const struct libdivide_s16_branchfree_t* denom);
-    static WJR_FORCEINLINE uint16_t libdivide_u16_branchfree_do(
+    static LIBDIVIDE_INLINE uint16_t libdivide_u16_branchfree_do(
         uint16_t numer, const struct libdivide_u16_branchfree_t* denom);
-    static WJR_FORCEINLINE int32_t libdivide_s32_branchfree_do(
+    static LIBDIVIDE_INLINE int32_t libdivide_s32_branchfree_do(
         int32_t numer, const struct libdivide_s32_branchfree_t* denom);
-    static WJR_FORCEINLINE uint32_t libdivide_u32_branchfree_do(
+    static LIBDIVIDE_INLINE uint32_t libdivide_u32_branchfree_do(
         uint32_t numer, const struct libdivide_u32_branchfree_t* denom);
-    static WJR_FORCEINLINE int64_t libdivide_s64_branchfree_do(
+    static LIBDIVIDE_INLINE int64_t libdivide_s64_branchfree_do(
         int64_t numer, const struct libdivide_s64_branchfree_t* denom);
-    static WJR_FORCEINLINE uint64_t libdivide_u64_branchfree_do(
+    static LIBDIVIDE_INLINE uint64_t libdivide_u64_branchfree_do(
         uint64_t numer, const struct libdivide_u64_branchfree_t* denom);
 
-    static WJR_FORCEINLINE int16_t libdivide_s16_recover(const struct libdivide_s16_t* denom);
-    static WJR_FORCEINLINE uint16_t libdivide_u16_recover(const struct libdivide_u16_t* denom);
-    static WJR_FORCEINLINE int32_t libdivide_s32_recover(const struct libdivide_s32_t* denom);
-    static WJR_FORCEINLINE uint32_t libdivide_u32_recover(const struct libdivide_u32_t* denom);
-    static WJR_FORCEINLINE int64_t libdivide_s64_recover(const struct libdivide_s64_t* denom);
-    static WJR_FORCEINLINE uint64_t libdivide_u64_recover(const struct libdivide_u64_t* denom);
+    static LIBDIVIDE_INLINE int16_t libdivide_s16_recover(const struct libdivide_s16_t* denom);
+    static LIBDIVIDE_INLINE uint16_t libdivide_u16_recover(const struct libdivide_u16_t* denom);
+    static LIBDIVIDE_INLINE int32_t libdivide_s32_recover(const struct libdivide_s32_t* denom);
+    static LIBDIVIDE_INLINE uint32_t libdivide_u32_recover(const struct libdivide_u32_t* denom);
+    static LIBDIVIDE_INLINE int64_t libdivide_s64_recover(const struct libdivide_s64_t* denom);
+    static LIBDIVIDE_INLINE uint64_t libdivide_u64_recover(const struct libdivide_u64_t* denom);
 
-    static WJR_FORCEINLINE int16_t libdivide_s16_branchfree_recover(
+    static LIBDIVIDE_INLINE int16_t libdivide_s16_branchfree_recover(
         const struct libdivide_s16_branchfree_t* denom);
-    static WJR_FORCEINLINE uint16_t libdivide_u16_branchfree_recover(
+    static LIBDIVIDE_INLINE uint16_t libdivide_u16_branchfree_recover(
         const struct libdivide_u16_branchfree_t* denom);
-    static WJR_FORCEINLINE int32_t libdivide_s32_branchfree_recover(
+    static LIBDIVIDE_INLINE int32_t libdivide_s32_branchfree_recover(
         const struct libdivide_s32_branchfree_t* denom);
-    static WJR_FORCEINLINE uint32_t libdivide_u32_branchfree_recover(
+    static LIBDIVIDE_INLINE uint32_t libdivide_u32_branchfree_recover(
         const struct libdivide_u32_branchfree_t* denom);
-    static WJR_FORCEINLINE int64_t libdivide_s64_branchfree_recover(
+    static LIBDIVIDE_INLINE int64_t libdivide_s64_branchfree_recover(
         const struct libdivide_s64_branchfree_t* denom);
-    static WJR_FORCEINLINE uint64_t libdivide_u64_branchfree_recover(
+    static LIBDIVIDE_INLINE uint64_t libdivide_u64_branchfree_recover(
         const struct libdivide_u64_branchfree_t* denom);
 
     //////// Internal Utility Functions
 
-    constexpr static WJR_FORCEINLINE uint16_t libdivide_mullhi_u16(uint16_t x, uint16_t y) {
+    constexpr static LIBDIVIDE_INLINE uint16_t libdivide_mullhi_u16(uint16_t x, uint16_t y) {
         uint32_t xl = x, yl = y;
         uint32_t rl = xl * yl;
-        return static_cast<uint16_t>(rl >> 16);
+        return (uint16_t)(rl >> 16);
     }
 
-    constexpr static WJR_FORCEINLINE int16_t libdivide_mullhi_s16(int16_t x, int16_t y) {
+    constexpr static LIBDIVIDE_INLINE int16_t libdivide_mullhi_s16(int16_t x, int16_t y) {
         int32_t xl = x, yl = y;
         int32_t rl = xl * yl;
         // needs to be arithmetic shift
-        return static_cast<int16_t>(rl >> 16);
+        return (int16_t)(rl >> 16);
     }
 
-    constexpr static WJR_FORCEINLINE uint32_t libdivide_mullhi_u32(uint32_t x, uint32_t y) {
+    constexpr static LIBDIVIDE_INLINE uint32_t libdivide_mullhi_u32(uint32_t x, uint32_t y) {
         uint64_t xl = x, yl = y;
         uint64_t rl = xl * yl;
-        return static_cast<uint32_t>(rl >> 32);
+        return (uint32_t)(rl >> 32);
     }
 
-    constexpr static WJR_FORCEINLINE int32_t libdivide_mullhi_s32(int32_t x, int32_t y) {
+    constexpr static LIBDIVIDE_INLINE int32_t libdivide_mullhi_s32(int32_t x, int32_t y) {
         int64_t xl = x, yl = y;
         int64_t rl = xl * yl;
         // needs to be arithmetic shift
-        return static_cast<int32_t>(rl >> 32);
+        return (int32_t)(rl >> 32);
     }
 
-    static WJR_FORCEINLINE uint64_t libdivide_mullhi_u64(uint64_t x, uint64_t y) {
+    static LIBDIVIDE_INLINE uint64_t libdivide_mullhi_u64(uint64_t x, uint64_t y) {
 #if defined(LIBDIVIDE_VC) && defined(LIBDIVIDE_X86_64)
         return __umulh(x, y);
 #elif defined(HAS_INT128_T)
         __uint128_t xl = x, yl = y;
         __uint128_t rl = xl * yl;
         return (uint64_t)(rl >> 64);
-#elif defined(WJR_GCC_STYLE_ASM) && defined(WJR_X64)
-        __asm__("mulq %[u1]" : [u1] "+d"(x) : "a"(y));
-        return x;
 #else
         // full 128 bits are x0 * y0 + (x0 * y1 << 32) + (x1 * y0 << 32) + (x1 * y1 << 64)
         uint32_t mask = 0xFFFFFFFF;
@@ -301,16 +339,13 @@ namespace libdivide {
 #endif
     }
 
-    static WJR_FORCEINLINE int64_t libdivide_mullhi_s64(int64_t x, int64_t y) {
+    static LIBDIVIDE_INLINE int64_t libdivide_mullhi_s64(int64_t x, int64_t y) {
 #if defined(LIBDIVIDE_VC) && defined(LIBDIVIDE_X86_64)
         return __mulh(x, y);
 #elif defined(HAS_INT128_T)
         __int128_t xl = x, yl = y;
         __int128_t rl = xl * yl;
         return (int64_t)(rl >> 64);
-#elif defined(WJR_GCC_STYLE_ASM) && defined(WJR_X64)
-        __asm__("imulq %[u1]" : [u1] "+d"(x) : "a"(y));
-        return x;
 #else
         // full 128 bits are x0 * y0 + (x0 * y1 << 32) + (x1 * y0 << 32) + (x1 * y1 << 64)
         uint32_t mask = 0xFFFFFFFF;
@@ -326,10 +361,87 @@ namespace libdivide {
 #endif
     }
 
+    static LIBDIVIDE_INLINE int16_t libdivide_count_leading_zeros16(uint16_t val) {
+#if defined(__AVR__)
+        // Fast way to count leading zeros
+        // On the AVR 8-bit architecture __builtin_clz() works on a int16_t.
+        return __builtin_clz(val);
+#elif defined(__GNUC__) || __has_builtin(__builtin_clz)
+        // Fast way to count leading zeros
+        return __builtin_clz(val) - 16;
+#elif defined(LIBDIVIDE_VC)
+        unsigned long result;
+        if (_BitScanReverse(&result, (unsigned long)val)) {
+            return (int16_t)(15 - result);
+        }
+        return 0;
+#else
+        if (val == 0) return 16;
+        int16_t result = 4;
+        uint16_t hi = 0xFU << 12;
+        while ((val & hi) == 0) {
+            hi >>= 4;
+            result += 4;
+        }
+        while (val & hi) {
+            result -= 1;
+            hi <<= 1;
+        }
+        return result;
+#endif
+    }
+
+    static LIBDIVIDE_INLINE int32_t libdivide_count_leading_zeros32(uint32_t val) {
+#if defined(__AVR__)
+        // Fast way to count leading zeros
+        return __builtin_clzl(val);
+#elif defined(__GNUC__) || __has_builtin(__builtin_clz)
+        // Fast way to count leading zeros
+        return __builtin_clz(val);
+#elif defined(LIBDIVIDE_VC)
+        unsigned long result;
+        if (_BitScanReverse(&result, val)) {
+            return 31 - result;
+        }
+        return 0;
+#else
+        if (val == 0) return 32;
+        int32_t result = 8;
+        uint32_t hi = 0xFFU << 24;
+        while ((val & hi) == 0) {
+            hi >>= 8;
+            result += 8;
+        }
+        while (val & hi) {
+            result -= 1;
+            hi <<= 1;
+        }
+        return result;
+#endif
+    }
+
+    static LIBDIVIDE_INLINE int32_t libdivide_count_leading_zeros64(uint64_t val) {
+#if defined(__GNUC__) || __has_builtin(__builtin_clzll)
+        // Fast way to count leading zeros
+        return __builtin_clzll(val);
+#elif defined(LIBDIVIDE_VC) && defined(_WIN64)
+        unsigned long result;
+        if (_BitScanReverse64(&result, val)) {
+            return 63 - result;
+        }
+        return 0;
+#else
+        uint32_t hi = val >> 32;
+        uint32_t lo = val & 0xFFFFFFFF;
+        if (hi != 0) return libdivide_count_leading_zeros32(hi);
+        return 32 + libdivide_count_leading_zeros32(lo);
+#endif
+    }
+
     // libdivide_32_div_16_to_16: divides a 32-bit uint {u1, u0} by a 16-bit
     // uint {v}. The result must fit in 16 bits.
     // Returns the quotient directly and the remainder in *r
-    static WJR_FORCEINLINE uint16_t libdivide_32_div_16_to_16(
+    static LIBDIVIDE_INLINE uint16_t libdivide_32_div_16_to_16(
         uint16_t u1, uint16_t u0, uint16_t v, uint16_t* r) {
         uint32_t n = ((uint32_t)u1 << 16) | u0;
         uint16_t result = (uint16_t)(n / v);
@@ -340,7 +452,7 @@ namespace libdivide {
     // libdivide_64_div_32_to_32: divides a 64-bit uint {u1, u0} by a 32-bit
     // uint {v}. The result must fit in 32 bits.
     // Returns the quotient directly and the remainder in *r
-    static WJR_FORCEINLINE uint32_t libdivide_64_div_32_to_32(
+    static LIBDIVIDE_INLINE uint32_t libdivide_64_div_32_to_32(
         uint32_t u1, uint32_t u0, uint32_t v, uint32_t* r) {
 #if (defined(LIBDIVIDE_i386) || defined(LIBDIVIDE_X86_64)) && defined(LIBDIVIDE_GCC_STYLE_ASM)
         uint32_t result;
@@ -349,7 +461,7 @@ namespace libdivide {
 #else
         uint64_t n = ((uint64_t)u1 << 32) | u0;
 #if defined(LIBDIVIDE_VC)
-        uint32_t result = _udiv64(n, v, r);
+        uint32_t result = _udiv64(n,v,r);
 #else
         uint32_t result = (uint32_t)(n / v);
         *r = (uint32_t)(n - result * (uint64_t)v);
@@ -360,7 +472,7 @@ namespace libdivide {
 
     // libdivide_128_div_64_to_64: divides a 128-bit uint {numhi, numlo} by a 64-bit uint {den}. The
     // result must fit in 64 bits. Returns the quotient directly and the remainder in *r
-    static WJR_FORCEINLINE uint64_t libdivide_128_div_64_to_64(
+    static LIBDIVIDE_INLINE uint64_t libdivide_128_div_64_to_64(
         uint64_t numhi, uint64_t numlo, uint64_t den, uint64_t* r) {
         // N.B. resist the temptation to use __uint128_t here.
         // In LLVM compiler-rt, it performs a 128/128 -> 128 division which is many times slower than
@@ -417,7 +529,7 @@ namespace libdivide {
         // The expression (-shift & 63) is the same as (64 - shift), except it avoids the UB of shifting
         // by 64. The funny bitwise 'and' ensures that numlo does not get shifted into numhi if shift is
         // 0. clang 11 has an x86 codegen bug here: see LLVM bug 50118. The sequence below avoids it.
-        shift = wjr::math::countl_zero(den);
+        shift = libdivide_count_leading_zeros64(den);
         den <<= shift;
         numhi <<= shift;
         numhi |= (numlo >> (-shift & 63)) & (-(int64_t)shift >> 63);
@@ -458,7 +570,7 @@ namespace libdivide {
     }
 
     // Bitshift a u128 in place, left (signed_shift > 0) or right (signed_shift < 0)
-    static WJR_FORCEINLINE void libdivide_u128_shift(
+    static LIBDIVIDE_INLINE void libdivide_u128_shift(
         uint64_t* u1, uint64_t* u0, int32_t signed_shift) {
         if (signed_shift > 0) {
             uint32_t shift = signed_shift;
@@ -475,7 +587,7 @@ namespace libdivide {
     }
 
     // Computes a 128 / 128 -> 64 bit division, with a 128 bit remainder.
-    static WJR_FORCEINLINE uint64_t libdivide_128_div_128_to_64(
+    static LIBDIVIDE_INLINE uint64_t libdivide_128_div_128_to_64(
         uint64_t u_hi, uint64_t u_lo, uint64_t v_hi, uint64_t v_lo, uint64_t* r_hi, uint64_t* r_lo) {
 #if defined(HAS_INT128_T) && defined(HAS_INT128_DIV)
         __uint128_t ufull = u_hi;
@@ -508,7 +620,7 @@ namespace libdivide {
         // Here v >= 2**64
         // We know that v.hi != 0, so count leading zeros is OK
         // We have 0 <= n <= 63
-        uint32_t n = wjr::math::countl_zero(v.hi);
+        uint32_t n = libdivide_count_leading_zeros64(v.hi);
 
         // Normalize the divisor so its MSB is 1
         u128_t v1t = v;
@@ -567,19 +679,21 @@ namespace libdivide {
         *r_hi = u_q0v.hi;
         *r_lo = u_q0v.lo;
 
-        WASSERT_LEVEL_2(q0.hi == 0);
+        LIBDIVIDE_ASSERT(q0.hi == 0);
         return q0.lo;
 #endif
     }
 
     ////////// UINT16
 
-    static WJR_FORCEINLINE struct libdivide_u16_t libdivide_internal_u16_gen(
+    static LIBDIVIDE_INLINE struct libdivide_u16_t libdivide_internal_u16_gen(
         uint16_t d, int branchfree) {
-        WASSERT_LEVEL_1(d != 0, "divider must be != 0");
+        if (d == 0) {
+            LIBDIVIDE_ERROR("divider must be != 0");
+        }
 
         struct libdivide_u16_t result;
-        uint8_t floor_log_2_d = (uint8_t)(15 - wjr::math::countl_zero(d));
+        uint8_t floor_log_2_d = (uint8_t)(15 - libdivide_count_leading_zeros16(d));
 
         // Power of 2
         if ((d & (d - 1)) == 0) {
@@ -595,7 +709,7 @@ namespace libdivide {
             uint16_t rem, proposed_m;
             proposed_m = libdivide_32_div_16_to_16((uint16_t)1 << floor_log_2_d, 0, d, &rem);
 
-            WASSERT_LEVEL_2(rem > 0 && rem < d);
+            LIBDIVIDE_ASSERT(rem > 0 && rem < d);
             const uint16_t e = d - rem;
 
             // This power works if e < 2**floor_log_2_d.
@@ -630,7 +744,9 @@ namespace libdivide {
     }
 
     struct libdivide_u16_branchfree_t libdivide_u16_branchfree_gen(uint16_t d) {
-        WASSERT_LEVEL_1(d != 1, "branchfree divider must be != 1");
+        if (d == 1) {
+            LIBDIVIDE_ERROR("branchfree divider must be != 1");
+        }
         struct libdivide_u16_t tmp = libdivide_internal_u16_gen(d, 1);
         struct libdivide_u16_branchfree_t ret = {
             tmp.magic, (uint8_t)(tmp.more & LIBDIVIDE_16_SHIFT_MASK) };
@@ -741,12 +857,14 @@ namespace libdivide {
 
     ////////// UINT32
 
-    static WJR_FORCEINLINE struct libdivide_u32_t libdivide_internal_u32_gen(
+    static LIBDIVIDE_INLINE struct libdivide_u32_t libdivide_internal_u32_gen(
         uint32_t d, int branchfree) {
-        WASSERT_LEVEL_1(d != 0, "divider must be != 0");
+        if (d == 0) {
+            LIBDIVIDE_ERROR("divider must be != 0");
+        }
 
         struct libdivide_u32_t result;
-        uint32_t floor_log_2_d = 31 - wjr::math::countl_zero(d);
+        uint32_t floor_log_2_d = 31 - libdivide_count_leading_zeros32(d);
 
         // Power of 2
         if ((d & (d - 1)) == 0) {
@@ -762,7 +880,7 @@ namespace libdivide {
             uint32_t rem, proposed_m;
             proposed_m = libdivide_64_div_32_to_32((uint32_t)1 << floor_log_2_d, 0, d, &rem);
 
-            WASSERT_LEVEL_2(rem > 0 && rem < d);
+            LIBDIVIDE_ASSERT(rem > 0 && rem < d);
             const uint32_t e = d - rem;
 
             // This power works if e < 2**floor_log_2_d.
@@ -797,7 +915,9 @@ namespace libdivide {
     }
 
     struct libdivide_u32_branchfree_t libdivide_u32_branchfree_gen(uint32_t d) {
-        WASSERT_LEVEL_1(d != 1, "branchfree divider must be != 1");
+        if (d == 1) {
+            LIBDIVIDE_ERROR("branchfree divider must be != 1");
+        }
         struct libdivide_u32_t tmp = libdivide_internal_u32_gen(d, 1);
         struct libdivide_u32_branchfree_t ret = {
             tmp.magic, (uint8_t)(tmp.more & LIBDIVIDE_32_SHIFT_MASK) };
@@ -902,12 +1022,14 @@ namespace libdivide {
 
     /////////// UINT64
 
-    static WJR_FORCEINLINE struct libdivide_u64_t libdivide_internal_u64_gen(
+    static LIBDIVIDE_INLINE struct libdivide_u64_t libdivide_internal_u64_gen(
         uint64_t d, int branchfree) {
-        WASSERT_LEVEL_1(d != 0, "divider must be != 0");
+        if (d == 0) {
+            LIBDIVIDE_ERROR("divider must be != 0");
+        }
 
         struct libdivide_u64_t result;
-        uint32_t floor_log_2_d = 63 - wjr::math::countl_zero(d);
+        uint32_t floor_log_2_d = 63 - libdivide_count_leading_zeros64(d);
 
         // Power of 2
         if ((d & (d - 1)) == 0) {
@@ -924,7 +1046,7 @@ namespace libdivide {
             // (1 << (64 + floor_log_2_d)) / d
             proposed_m = libdivide_128_div_64_to_64((uint64_t)1 << floor_log_2_d, 0, d, &rem);
 
-            WASSERT_LEVEL_2(rem > 0 && rem < d);
+            LIBDIVIDE_ASSERT(rem > 0 && rem < d);
             const uint64_t e = d - rem;
 
             // This power works if e < 2**floor_log_2_d.
@@ -960,7 +1082,9 @@ namespace libdivide {
     }
 
     struct libdivide_u64_branchfree_t libdivide_u64_branchfree_gen(uint64_t d) {
-        WASSERT_LEVEL_1(d != 1, "branchfree divider must be != 1");
+        if (d == 1) {
+            LIBDIVIDE_ERROR("branchfree divider must be != 1");
+        }
         struct libdivide_u64_t tmp = libdivide_internal_u64_gen(d, 1);
         struct libdivide_u64_branchfree_t ret = {
             tmp.magic, (uint8_t)(tmp.more & LIBDIVIDE_64_SHIFT_MASK) };
@@ -1077,9 +1201,11 @@ namespace libdivide {
 
     /////////// SINT16
 
-    static WJR_FORCEINLINE struct libdivide_s16_t libdivide_internal_s16_gen(
+    static LIBDIVIDE_INLINE struct libdivide_s16_t libdivide_internal_s16_gen(
         int16_t d, int branchfree) {
-        WASSERT_LEVEL_1(d != 0, "divider must be != 0");
+        if (d == 0) {
+            LIBDIVIDE_ERROR("divider must be != 0");
+        }
 
         struct libdivide_s16_t result;
 
@@ -1091,7 +1217,7 @@ namespace libdivide {
         // and is a power of 2.
         uint16_t ud = (uint16_t)d;
         uint16_t absD = (d < 0) ? -ud : ud;
-        uint16_t floor_log_2_d = 15 - wjr::math::countl_zero(absD);
+        uint16_t floor_log_2_d = 15 - libdivide_count_leading_zeros16(absD);
         // check if exactly one bit is set,
         // don't care if absD is 0 since that's divide by zero
         if ((absD & (absD - 1)) == 0) {
@@ -1100,7 +1226,7 @@ namespace libdivide {
             result.more = (uint8_t)(floor_log_2_d | (d < 0 ? LIBDIVIDE_NEGATIVE_DIVISOR : 0));
         }
         else {
-            WASSERT_LEVEL_2(floor_log_2_d >= 1);
+            LIBDIVIDE_ASSERT(floor_log_2_d >= 1);
 
             uint8_t more;
             // the dividend here is 2**(floor_log_2_d + 31), so the low 16 bit word
@@ -1254,9 +1380,11 @@ namespace libdivide {
 
     /////////// SINT32
 
-    static WJR_FORCEINLINE struct libdivide_s32_t libdivide_internal_s32_gen(
+    static LIBDIVIDE_INLINE struct libdivide_s32_t libdivide_internal_s32_gen(
         int32_t d, int branchfree) {
-        WASSERT_LEVEL_1(d != 0, "divider must be != 0");
+        if (d == 0) {
+            LIBDIVIDE_ERROR("divider must be != 0");
+        }
 
         struct libdivide_s32_t result;
 
@@ -1268,7 +1396,7 @@ namespace libdivide {
         // and is a power of 2.
         uint32_t ud = (uint32_t)d;
         uint32_t absD = (d < 0) ? -ud : ud;
-        uint32_t floor_log_2_d = 31 - wjr::math::countl_zero(absD);
+        uint32_t floor_log_2_d = 31 - libdivide_count_leading_zeros32(absD);
         // check if exactly one bit is set,
         // don't care if absD is 0 since that's divide by zero
         if ((absD & (absD - 1)) == 0) {
@@ -1277,7 +1405,7 @@ namespace libdivide {
             result.more = (uint8_t)(floor_log_2_d | (d < 0 ? LIBDIVIDE_NEGATIVE_DIVISOR : 0));
         }
         else {
-            WASSERT_LEVEL_2(floor_log_2_d >= 1);
+            LIBDIVIDE_ASSERT(floor_log_2_d >= 1);
 
             uint8_t more;
             // the dividend here is 2**(floor_log_2_d + 31), so the low 32 bit word
@@ -1425,9 +1553,11 @@ namespace libdivide {
 
     ///////////// SINT64
 
-    static WJR_FORCEINLINE struct libdivide_s64_t libdivide_internal_s64_gen(
+    static LIBDIVIDE_INLINE struct libdivide_s64_t libdivide_internal_s64_gen(
         int64_t d, int branchfree) {
-        WASSERT_LEVEL_1(d != 0, "divider must be != 0");
+        if (d == 0) {
+            LIBDIVIDE_ERROR("divider must be != 0");
+        }
 
         struct libdivide_s64_t result;
 
@@ -1439,7 +1569,7 @@ namespace libdivide {
         // and is a power of 2.
         uint64_t ud = (uint64_t)d;
         uint64_t absD = (d < 0) ? -ud : ud;
-        uint32_t floor_log_2_d = 63 - wjr::math::countl_zero(absD);
+        uint32_t floor_log_2_d = 63 - libdivide_count_leading_zeros64(absD);
         // check if exactly one bit is set,
         // don't care if absD is 0 since that's divide by zero
         if ((absD & (absD - 1)) == 0) {
@@ -1607,73 +1737,73 @@ namespace libdivide {
 
 #if defined(LIBDIVIDE_NEON)
 
-    static WJR_FORCEINLINE uint16x8_t libdivide_u16_do_vec128(
+    static LIBDIVIDE_INLINE uint16x8_t libdivide_u16_do_vec128(
         uint16x8_t numers, const struct libdivide_u16_t* denom);
-    static WJR_FORCEINLINE int16x8_t libdivide_s16_do_vec128(
+    static LIBDIVIDE_INLINE int16x8_t libdivide_s16_do_vec128(
         int16x8_t numers, const struct libdivide_s16_t* denom);
-    static WJR_FORCEINLINE uint32x4_t libdivide_u32_do_vec128(
+    static LIBDIVIDE_INLINE uint32x4_t libdivide_u32_do_vec128(
         uint32x4_t numers, const struct libdivide_u32_t* denom);
-    static WJR_FORCEINLINE int32x4_t libdivide_s32_do_vec128(
+    static LIBDIVIDE_INLINE int32x4_t libdivide_s32_do_vec128(
         int32x4_t numers, const struct libdivide_s32_t* denom);
-    static WJR_FORCEINLINE uint64x2_t libdivide_u64_do_vec128(
+    static LIBDIVIDE_INLINE uint64x2_t libdivide_u64_do_vec128(
         uint64x2_t numers, const struct libdivide_u64_t* denom);
-    static WJR_FORCEINLINE int64x2_t libdivide_s64_do_vec128(
+    static LIBDIVIDE_INLINE int64x2_t libdivide_s64_do_vec128(
         int64x2_t numers, const struct libdivide_s64_t* denom);
 
-    static WJR_FORCEINLINE uint16x8_t libdivide_u16_branchfree_do_vec128(
+    static LIBDIVIDE_INLINE uint16x8_t libdivide_u16_branchfree_do_vec128(
         uint16x8_t numers, const struct libdivide_u16_branchfree_t* denom);
-    static WJR_FORCEINLINE int16x8_t libdivide_s16_branchfree_do_vec128(
+    static LIBDIVIDE_INLINE int16x8_t libdivide_s16_branchfree_do_vec128(
         int16x8_t numers, const struct libdivide_s16_branchfree_t* denom);
-    static WJR_FORCEINLINE uint32x4_t libdivide_u32_branchfree_do_vec128(
+    static LIBDIVIDE_INLINE uint32x4_t libdivide_u32_branchfree_do_vec128(
         uint32x4_t numers, const struct libdivide_u32_branchfree_t* denom);
-    static WJR_FORCEINLINE int32x4_t libdivide_s32_branchfree_do_vec128(
+    static LIBDIVIDE_INLINE int32x4_t libdivide_s32_branchfree_do_vec128(
         int32x4_t numers, const struct libdivide_s32_branchfree_t* denom);
-    static WJR_FORCEINLINE uint64x2_t libdivide_u64_branchfree_do_vec128(
+    static LIBDIVIDE_INLINE uint64x2_t libdivide_u64_branchfree_do_vec128(
         uint64x2_t numers, const struct libdivide_u64_branchfree_t* denom);
-    static WJR_FORCEINLINE int64x2_t libdivide_s64_branchfree_do_vec128(
+    static LIBDIVIDE_INLINE int64x2_t libdivide_s64_branchfree_do_vec128(
         int64x2_t numers, const struct libdivide_s64_branchfree_t* denom);
 
     //////// Internal Utility Functions
 
     // Logical right shift by runtime value.
     // NEON implements right shift as left shits by negative values.
-    static WJR_FORCEINLINE uint32x4_t libdivide_u32_neon_srl(uint32x4_t v, uint8_t amt) {
+    static LIBDIVIDE_INLINE uint32x4_t libdivide_u32_neon_srl(uint32x4_t v, uint8_t amt) {
         int32_t wamt = (int32_t)(amt);
         return vshlq_u32(v, vdupq_n_s32(-wamt));
     }
 
-    static WJR_FORCEINLINE uint64x2_t libdivide_u64_neon_srl(uint64x2_t v, uint8_t amt) {
+    static LIBDIVIDE_INLINE uint64x2_t libdivide_u64_neon_srl(uint64x2_t v, uint8_t amt) {
         int64_t wamt = (int64_t)(amt);
         return vshlq_u64(v, vdupq_n_s64(-wamt));
     }
 
     // Arithmetic right shift by runtime value.
-    static WJR_FORCEINLINE int32x4_t libdivide_s32_neon_sra(int32x4_t v, uint8_t amt) {
+    static LIBDIVIDE_INLINE int32x4_t libdivide_s32_neon_sra(int32x4_t v, uint8_t amt) {
         int32_t wamt = (int32_t)(amt);
         return vshlq_s32(v, vdupq_n_s32(-wamt));
     }
 
-    static WJR_FORCEINLINE int64x2_t libdivide_s64_neon_sra(int64x2_t v, uint8_t amt) {
+    static LIBDIVIDE_INLINE int64x2_t libdivide_s64_neon_sra(int64x2_t v, uint8_t amt) {
         int64_t wamt = (int64_t)(amt);
         return vshlq_s64(v, vdupq_n_s64(-wamt));
     }
 
-    static WJR_FORCEINLINE int64x2_t libdivide_s64_signbits(int64x2_t v) { return vshrq_n_s64(v, 63); }
+    static LIBDIVIDE_INLINE int64x2_t libdivide_s64_signbits(int64x2_t v) { return vshrq_n_s64(v, 63); }
 
-    static WJR_FORCEINLINE uint32x4_t libdivide_mullhi_u32_vec128(uint32x4_t a, uint32_t b) {
+    static LIBDIVIDE_INLINE uint32x4_t libdivide_mullhi_u32_vec128(uint32x4_t a, uint32_t b) {
         // Desire is [x0, x1, x2, x3]
         uint32x4_t w1 = vreinterpretq_u32_u64(vmull_n_u32(vget_low_u32(a), b));  // [_, x0, _, x1]
         uint32x4_t w2 = vreinterpretq_u32_u64(vmull_high_n_u32(a, b));           //[_, x2, _, x3]
         return vuzp2q_u32(w1, w2);                                               // [x0, x1, x2, x3]
     }
 
-    static WJR_FORCEINLINE int32x4_t libdivide_mullhi_s32_vec128(int32x4_t a, int32_t b) {
+    static LIBDIVIDE_INLINE int32x4_t libdivide_mullhi_s32_vec128(int32x4_t a, int32_t b) {
         int32x4_t w1 = vreinterpretq_s32_s64(vmull_n_s32(vget_low_s32(a), b));  // [_, x0, _, x1]
         int32x4_t w2 = vreinterpretq_s32_s64(vmull_high_n_s32(a, b));           //[_, x2, _, x3]
         return vuzp2q_s32(w1, w2);                                              // [x0, x1, x2, x3]
     }
 
-    static WJR_FORCEINLINE uint64x2_t libdivide_mullhi_u64_vec128(uint64x2_t x, uint64_t sy) {
+    static LIBDIVIDE_INLINE uint64x2_t libdivide_mullhi_u64_vec128(uint64x2_t x, uint64_t sy) {
         // full 128 bits product is:
         // x0*y0 + (x0*y1 << 32) + (x1*y0 << 32) + (x1*y1 << 64)
         // Note x0,y0,x1,y1 are all conceptually uint32, products are 32x32->64.
@@ -1704,7 +1834,7 @@ namespace libdivide {
         return result;
     }
 
-    static WJR_FORCEINLINE int64x2_t libdivide_mullhi_s64_vec128(int64x2_t x, int64_t sy) {
+    static LIBDIVIDE_INLINE int64x2_t libdivide_mullhi_s64_vec128(int64x2_t x, int64_t sy) {
         int64x2_t p = vreinterpretq_s64_u64(
             libdivide_mullhi_u64_vec128(vreinterpretq_u64_s64(x), (uint64_t)(sy)));
         int64x2_t y = vdupq_n_s64(sy);
@@ -1911,45 +2041,45 @@ namespace libdivide {
 
 #if defined(LIBDIVIDE_AVX512)
 
-    static WJR_FORCEINLINE __m512i libdivide_u16_do_vec512(
+    static LIBDIVIDE_INLINE __m512i libdivide_u16_do_vec512(
         __m512i numers, const struct libdivide_u16_t* denom);
-    static WJR_FORCEINLINE __m512i libdivide_s16_do_vec512(
+    static LIBDIVIDE_INLINE __m512i libdivide_s16_do_vec512(
         __m512i numers, const struct libdivide_s16_t* denom);
-    static WJR_FORCEINLINE __m512i libdivide_u32_do_vec512(
+    static LIBDIVIDE_INLINE __m512i libdivide_u32_do_vec512(
         __m512i numers, const struct libdivide_u32_t* denom);
-    static WJR_FORCEINLINE __m512i libdivide_s32_do_vec512(
+    static LIBDIVIDE_INLINE __m512i libdivide_s32_do_vec512(
         __m512i numers, const struct libdivide_s32_t* denom);
-    static WJR_FORCEINLINE __m512i libdivide_u64_do_vec512(
+    static LIBDIVIDE_INLINE __m512i libdivide_u64_do_vec512(
         __m512i numers, const struct libdivide_u64_t* denom);
-    static WJR_FORCEINLINE __m512i libdivide_s64_do_vec512(
+    static LIBDIVIDE_INLINE __m512i libdivide_s64_do_vec512(
         __m512i numers, const struct libdivide_s64_t* denom);
 
-    static WJR_FORCEINLINE __m512i libdivide_u16_branchfree_do_vec512(
+    static LIBDIVIDE_INLINE __m512i libdivide_u16_branchfree_do_vec512(
         __m512i numers, const struct libdivide_u16_branchfree_t* denom);
-    static WJR_FORCEINLINE __m512i libdivide_s16_branchfree_do_vec512(
+    static LIBDIVIDE_INLINE __m512i libdivide_s16_branchfree_do_vec512(
         __m512i numers, const struct libdivide_s16_branchfree_t* denom);
-    static WJR_FORCEINLINE __m512i libdivide_u32_branchfree_do_vec512(
+    static LIBDIVIDE_INLINE __m512i libdivide_u32_branchfree_do_vec512(
         __m512i numers, const struct libdivide_u32_branchfree_t* denom);
-    static WJR_FORCEINLINE __m512i libdivide_s32_branchfree_do_vec512(
+    static LIBDIVIDE_INLINE __m512i libdivide_s32_branchfree_do_vec512(
         __m512i numers, const struct libdivide_s32_branchfree_t* denom);
-    static WJR_FORCEINLINE __m512i libdivide_u64_branchfree_do_vec512(
+    static LIBDIVIDE_INLINE __m512i libdivide_u64_branchfree_do_vec512(
         __m512i numers, const struct libdivide_u64_branchfree_t* denom);
-    static WJR_FORCEINLINE __m512i libdivide_s64_branchfree_do_vec512(
+    static LIBDIVIDE_INLINE __m512i libdivide_s64_branchfree_do_vec512(
         __m512i numers, const struct libdivide_s64_branchfree_t* denom);
 
     //////// Internal Utility Functions
 
-    static WJR_FORCEINLINE __m512i libdivide_s64_signbits_vec512(__m512i v) {
+    static LIBDIVIDE_INLINE __m512i libdivide_s64_signbits_vec512(__m512i v) {
         ;
         return _mm512_srai_epi64(v, 63);
     }
 
-    static WJR_FORCEINLINE __m512i libdivide_s64_shift_right_vec512(__m512i v, int amt) {
+    static LIBDIVIDE_INLINE __m512i libdivide_s64_shift_right_vec512(__m512i v, int amt) {
         return _mm512_srai_epi64(v, amt);
     }
 
     // Here, b is assumed to contain one 32-bit value repeated.
-    static WJR_FORCEINLINE __m512i libdivide_mullhi_u32_vec512(__m512i a, __m512i b) {
+    static LIBDIVIDE_INLINE __m512i libdivide_mullhi_u32_vec512(__m512i a, __m512i b) {
         __m512i hi_product_0Z2Z = _mm512_srli_epi64(_mm512_mul_epu32(a, b), 32);
         __m512i a1X3X = _mm512_srli_epi64(a, 32);
         __m512i mask = _mm512_set_epi32(-1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0);
@@ -1958,7 +2088,7 @@ namespace libdivide {
     }
 
     // b is one 32-bit value repeated.
-    static WJR_FORCEINLINE __m512i libdivide_mullhi_s32_vec512(__m512i a, __m512i b) {
+    static LIBDIVIDE_INLINE __m512i libdivide_mullhi_s32_vec512(__m512i a, __m512i b) {
         __m512i hi_product_0Z2Z = _mm512_srli_epi64(_mm512_mul_epi32(a, b), 32);
         __m512i a1X3X = _mm512_srli_epi64(a, 32);
         __m512i mask = _mm512_set_epi32(-1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0);
@@ -1967,7 +2097,7 @@ namespace libdivide {
     }
 
     // Here, y is assumed to contain one 64-bit value repeated.
-    static WJR_FORCEINLINE __m512i libdivide_mullhi_u64_vec512(__m512i x, __m512i y) {
+    static LIBDIVIDE_INLINE __m512i libdivide_mullhi_u64_vec512(__m512i x, __m512i y) {
         // see m128i variant for comments.
         __m512i x0y0 = _mm512_mul_epu32(x, y);
         __m512i x0y0_hi = _mm512_srli_epi64(x0y0, 32);
@@ -1990,7 +2120,7 @@ namespace libdivide {
     }
 
     // y is one 64-bit value repeated.
-    static WJR_FORCEINLINE __m512i libdivide_mullhi_s64_vec512(__m512i x, __m512i y) {
+    static LIBDIVIDE_INLINE __m512i libdivide_mullhi_s64_vec512(__m512i x, __m512i y) {
         __m512i p = libdivide_mullhi_u64_vec512(x, y);
         __m512i t1 = _mm512_and_si512(libdivide_s64_signbits_vec512(x), y);
         __m512i t2 = _mm512_and_si512(libdivide_s64_signbits_vec512(y), x);
@@ -2192,43 +2322,43 @@ namespace libdivide {
 
 #if defined(LIBDIVIDE_AVX2)
 
-    static WJR_FORCEINLINE __m256i libdivide_u16_do_vec256(
+    static LIBDIVIDE_INLINE __m256i libdivide_u16_do_vec256(
         __m256i numers, const struct libdivide_u16_t* denom);
-    static WJR_FORCEINLINE __m256i libdivide_s16_do_vec256(
+    static LIBDIVIDE_INLINE __m256i libdivide_s16_do_vec256(
         __m256i numers, const struct libdivide_s16_t* denom);
-    static WJR_FORCEINLINE __m256i libdivide_u32_do_vec256(
+    static LIBDIVIDE_INLINE __m256i libdivide_u32_do_vec256(
         __m256i numers, const struct libdivide_u32_t* denom);
-    static WJR_FORCEINLINE __m256i libdivide_s32_do_vec256(
+    static LIBDIVIDE_INLINE __m256i libdivide_s32_do_vec256(
         __m256i numers, const struct libdivide_s32_t* denom);
-    static WJR_FORCEINLINE __m256i libdivide_u64_do_vec256(
+    static LIBDIVIDE_INLINE __m256i libdivide_u64_do_vec256(
         __m256i numers, const struct libdivide_u64_t* denom);
-    static WJR_FORCEINLINE __m256i libdivide_s64_do_vec256(
+    static LIBDIVIDE_INLINE __m256i libdivide_s64_do_vec256(
         __m256i numers, const struct libdivide_s64_t* denom);
 
-    static WJR_FORCEINLINE __m256i libdivide_u16_branchfree_do_vec256(
+    static LIBDIVIDE_INLINE __m256i libdivide_u16_branchfree_do_vec256(
         __m256i numers, const struct libdivide_u16_branchfree_t* denom);
-    static WJR_FORCEINLINE __m256i libdivide_s16_branchfree_do_vec256(
+    static LIBDIVIDE_INLINE __m256i libdivide_s16_branchfree_do_vec256(
         __m256i numers, const struct libdivide_s16_branchfree_t* denom);
-    static WJR_FORCEINLINE __m256i libdivide_u32_branchfree_do_vec256(
+    static LIBDIVIDE_INLINE __m256i libdivide_u32_branchfree_do_vec256(
         __m256i numers, const struct libdivide_u32_branchfree_t* denom);
-    static WJR_FORCEINLINE __m256i libdivide_s32_branchfree_do_vec256(
+    static LIBDIVIDE_INLINE __m256i libdivide_s32_branchfree_do_vec256(
         __m256i numers, const struct libdivide_s32_branchfree_t* denom);
-    static WJR_FORCEINLINE __m256i libdivide_u64_branchfree_do_vec256(
+    static LIBDIVIDE_INLINE __m256i libdivide_u64_branchfree_do_vec256(
         __m256i numers, const struct libdivide_u64_branchfree_t* denom);
-    static WJR_FORCEINLINE __m256i libdivide_s64_branchfree_do_vec256(
+    static LIBDIVIDE_INLINE __m256i libdivide_s64_branchfree_do_vec256(
         __m256i numers, const struct libdivide_s64_branchfree_t* denom);
 
     //////// Internal Utility Functions
 
     // Implementation of _mm256_srai_epi64(v, 63) (from AVX512).
-    static WJR_FORCEINLINE __m256i libdivide_s64_signbits_vec256(__m256i v) {
+    static LIBDIVIDE_INLINE __m256i libdivide_s64_signbits_vec256(__m256i v) {
         __m256i hiBitsDuped = _mm256_shuffle_epi32(v, _MM_SHUFFLE(3, 3, 1, 1));
         __m256i signBits = _mm256_srai_epi32(hiBitsDuped, 31);
         return signBits;
     }
 
     // Implementation of _mm256_srai_epi64 (from AVX512).
-    static WJR_FORCEINLINE __m256i libdivide_s64_shift_right_vec256(__m256i v, int amt) {
+    static LIBDIVIDE_INLINE __m256i libdivide_s64_shift_right_vec256(__m256i v, int amt) {
         const int b = 64 - amt;
         __m256i m = _mm256_set1_epi64x((uint64_t)1 << (b - 1));
         __m256i x = _mm256_srli_epi64(v, amt);
@@ -2237,7 +2367,7 @@ namespace libdivide {
     }
 
     // Here, b is assumed to contain one 32-bit value repeated.
-    static WJR_FORCEINLINE __m256i libdivide_mullhi_u32_vec256(__m256i a, __m256i b) {
+    static LIBDIVIDE_INLINE __m256i libdivide_mullhi_u32_vec256(__m256i a, __m256i b) {
         __m256i hi_product_0Z2Z = _mm256_srli_epi64(_mm256_mul_epu32(a, b), 32);
         __m256i a1X3X = _mm256_srli_epi64(a, 32);
         __m256i mask = _mm256_set_epi32(-1, 0, -1, 0, -1, 0, -1, 0);
@@ -2246,7 +2376,7 @@ namespace libdivide {
     }
 
     // b is one 32-bit value repeated.
-    static WJR_FORCEINLINE __m256i libdivide_mullhi_s32_vec256(__m256i a, __m256i b) {
+    static LIBDIVIDE_INLINE __m256i libdivide_mullhi_s32_vec256(__m256i a, __m256i b) {
         __m256i hi_product_0Z2Z = _mm256_srli_epi64(_mm256_mul_epi32(a, b), 32);
         __m256i a1X3X = _mm256_srli_epi64(a, 32);
         __m256i mask = _mm256_set_epi32(-1, 0, -1, 0, -1, 0, -1, 0);
@@ -2255,7 +2385,7 @@ namespace libdivide {
     }
 
     // Here, y is assumed to contain one 64-bit value repeated.
-    static WJR_FORCEINLINE __m256i libdivide_mullhi_u64_vec256(__m256i x, __m256i y) {
+    static LIBDIVIDE_INLINE __m256i libdivide_mullhi_u64_vec256(__m256i x, __m256i y) {
         // see m128i variant for comments.
         __m256i x0y0 = _mm256_mul_epu32(x, y);
         __m256i x0y0_hi = _mm256_srli_epi64(x0y0, 32);
@@ -2278,7 +2408,7 @@ namespace libdivide {
     }
 
     // y is one 64-bit value repeated.
-    static WJR_FORCEINLINE __m256i libdivide_mullhi_s64_vec256(__m256i x, __m256i y) {
+    static LIBDIVIDE_INLINE __m256i libdivide_mullhi_s64_vec256(__m256i x, __m256i y) {
         __m256i p = libdivide_mullhi_u64_vec256(x, y);
         __m256i t1 = _mm256_and_si256(libdivide_s64_signbits_vec256(x), y);
         __m256i t2 = _mm256_and_si256(libdivide_s64_signbits_vec256(y), x);
@@ -2538,43 +2668,43 @@ namespace libdivide {
 
 #if defined(LIBDIVIDE_SSE2)
 
-    static WJR_FORCEINLINE __m128i libdivide_u16_do_vec128(
+    static LIBDIVIDE_INLINE __m128i libdivide_u16_do_vec128(
         __m128i numers, const struct libdivide_u16_t* denom);
-    static WJR_FORCEINLINE __m128i libdivide_s16_do_vec128(
+    static LIBDIVIDE_INLINE __m128i libdivide_s16_do_vec128(
         __m128i numers, const struct libdivide_s16_t* denom);
-    static WJR_FORCEINLINE __m128i libdivide_u32_do_vec128(
+    static LIBDIVIDE_INLINE __m128i libdivide_u32_do_vec128(
         __m128i numers, const struct libdivide_u32_t* denom);
-    static WJR_FORCEINLINE __m128i libdivide_s32_do_vec128(
+    static LIBDIVIDE_INLINE __m128i libdivide_s32_do_vec128(
         __m128i numers, const struct libdivide_s32_t* denom);
-    static WJR_FORCEINLINE __m128i libdivide_u64_do_vec128(
+    static LIBDIVIDE_INLINE __m128i libdivide_u64_do_vec128(
         __m128i numers, const struct libdivide_u64_t* denom);
-    static WJR_FORCEINLINE __m128i libdivide_s64_do_vec128(
+    static LIBDIVIDE_INLINE __m128i libdivide_s64_do_vec128(
         __m128i numers, const struct libdivide_s64_t* denom);
 
-    static WJR_FORCEINLINE __m128i libdivide_u16_branchfree_do_vec128(
+    static LIBDIVIDE_INLINE __m128i libdivide_u16_branchfree_do_vec128(
         __m128i numers, const struct libdivide_u16_branchfree_t* denom);
-    static WJR_FORCEINLINE __m128i libdivide_s16_branchfree_do_vec128(
+    static LIBDIVIDE_INLINE __m128i libdivide_s16_branchfree_do_vec128(
         __m128i numers, const struct libdivide_s16_branchfree_t* denom);
-    static WJR_FORCEINLINE __m128i libdivide_u32_branchfree_do_vec128(
+    static LIBDIVIDE_INLINE __m128i libdivide_u32_branchfree_do_vec128(
         __m128i numers, const struct libdivide_u32_branchfree_t* denom);
-    static WJR_FORCEINLINE __m128i libdivide_s32_branchfree_do_vec128(
+    static LIBDIVIDE_INLINE __m128i libdivide_s32_branchfree_do_vec128(
         __m128i numers, const struct libdivide_s32_branchfree_t* denom);
-    static WJR_FORCEINLINE __m128i libdivide_u64_branchfree_do_vec128(
+    static LIBDIVIDE_INLINE __m128i libdivide_u64_branchfree_do_vec128(
         __m128i numers, const struct libdivide_u64_branchfree_t* denom);
-    static WJR_FORCEINLINE __m128i libdivide_s64_branchfree_do_vec128(
+    static LIBDIVIDE_INLINE __m128i libdivide_s64_branchfree_do_vec128(
         __m128i numers, const struct libdivide_s64_branchfree_t* denom);
 
     //////// Internal Utility Functions
 
     // Implementation of _mm_srai_epi64(v, 63) (from AVX512).
-    static WJR_FORCEINLINE __m128i libdivide_s64_signbits_vec128(__m128i v) {
+    static LIBDIVIDE_INLINE __m128i libdivide_s64_signbits_vec128(__m128i v) {
         __m128i hiBitsDuped = _mm_shuffle_epi32(v, _MM_SHUFFLE(3, 3, 1, 1));
         __m128i signBits = _mm_srai_epi32(hiBitsDuped, 31);
         return signBits;
     }
 
     // Implementation of _mm_srai_epi64 (from AVX512).
-    static WJR_FORCEINLINE __m128i libdivide_s64_shift_right_vec128(__m128i v, int amt) {
+    static LIBDIVIDE_INLINE __m128i libdivide_s64_shift_right_vec128(__m128i v, int amt) {
         const int b = 64 - amt;
         __m128i m = _mm_set1_epi64x((uint64_t)1 << (b - 1));
         __m128i x = _mm_srli_epi64(v, amt);
@@ -2583,7 +2713,7 @@ namespace libdivide {
     }
 
     // Here, b is assumed to contain one 32-bit value repeated.
-    static WJR_FORCEINLINE __m128i libdivide_mullhi_u32_vec128(__m128i a, __m128i b) {
+    static LIBDIVIDE_INLINE __m128i libdivide_mullhi_u32_vec128(__m128i a, __m128i b) {
         __m128i hi_product_0Z2Z = _mm_srli_epi64(_mm_mul_epu32(a, b), 32);
         __m128i a1X3X = _mm_srli_epi64(a, 32);
         __m128i mask = _mm_set_epi32(-1, 0, -1, 0);
@@ -2594,7 +2724,7 @@ namespace libdivide {
     // SSE2 does not have a signed multiplication instruction, but we can convert
     // unsigned to signed pretty efficiently. Again, b is just a 32 bit value
     // repeated four times.
-    static WJR_FORCEINLINE __m128i libdivide_mullhi_s32_vec128(__m128i a, __m128i b) {
+    static LIBDIVIDE_INLINE __m128i libdivide_mullhi_s32_vec128(__m128i a, __m128i b) {
         __m128i p = libdivide_mullhi_u32_vec128(a, b);
         // t1 = (a >> 31) & y, arithmetic shift
         __m128i t1 = _mm_and_si128(_mm_srai_epi32(a, 31), b);
@@ -2605,7 +2735,7 @@ namespace libdivide {
     }
 
     // Here, y is assumed to contain one 64-bit value repeated.
-    static WJR_FORCEINLINE __m128i libdivide_mullhi_u64_vec128(__m128i x, __m128i y) {
+    static LIBDIVIDE_INLINE __m128i libdivide_mullhi_u64_vec128(__m128i x, __m128i y) {
         // full 128 bits product is:
         // x0*y0 + (x0*y1 << 32) + (x1*y0 << 32) + (x1*y1 << 64)
         // Note x0,y0,x1,y1 are all conceptually uint32, products are 32x32->64.
@@ -2638,7 +2768,7 @@ namespace libdivide {
     }
 
     // y is one 64-bit value repeated.
-    static WJR_FORCEINLINE __m128i libdivide_mullhi_s64_vec128(__m128i x, __m128i y) {
+    static LIBDIVIDE_INLINE __m128i libdivide_mullhi_s64_vec128(__m128i x, __m128i y) {
         __m128i p = libdivide_mullhi_u64_vec128(x, y);
         __m128i t1 = _mm_and_si128(libdivide_s64_signbits_vec128(x), y);
         __m128i t2 = _mm_and_si128(libdivide_s64_signbits_vec128(y), x);
@@ -2944,7 +3074,7 @@ namespace libdivide {
     // Versions of our algorithms for SIMD.
 #if defined(LIBDIVIDE_NEON)
 #define LIBDIVIDE_DIVIDE_NEON(ALGO, INT_TYPE)                    \
-    WJR_FORCEINLINE typename NeonVecFor<INT_TYPE>::type divide( \
+    LIBDIVIDE_INLINE typename NeonVecFor<INT_TYPE>::type divide( \
         typename NeonVecFor<INT_TYPE>::type n) const {           \
         return libdivide_##ALGO##_do_vec128(n, &denom);          \
     }
@@ -2953,7 +3083,7 @@ namespace libdivide {
 #endif
 #if defined(LIBDIVIDE_SSE2)
 #define LIBDIVIDE_DIVIDE_SSE2(ALGO)                     \
-    WJR_FORCEINLINE __m128i divide(__m128i n) const {  \
+    LIBDIVIDE_INLINE __m128i divide(__m128i n) const {  \
         return libdivide_##ALGO##_do_vec128(n, &denom); \
     }
 #else
@@ -2962,7 +3092,7 @@ namespace libdivide {
 
 #if defined(LIBDIVIDE_AVX2)
 #define LIBDIVIDE_DIVIDE_AVX2(ALGO)                     \
-    WJR_FORCEINLINE __m256i divide(__m256i n) const {  \
+    LIBDIVIDE_INLINE __m256i divide(__m256i n) const {  \
         return libdivide_##ALGO##_do_vec256(n, &denom); \
     }
 #else
@@ -2971,7 +3101,7 @@ namespace libdivide {
 
 #if defined(LIBDIVIDE_AVX512)
 #define LIBDIVIDE_DIVIDE_AVX512(ALGO)                   \
-    WJR_FORCEINLINE __m512i divide(__m512i n) const {  \
+    LIBDIVIDE_INLINE __m512i divide(__m512i n) const {  \
         return libdivide_##ALGO##_do_vec512(n, &denom); \
     }
 #else
@@ -2982,10 +3112,10 @@ namespace libdivide {
 // and algorithm types) that redirect to libdivide's C API.
 #define DISPATCHER_GEN(T, ALGO)                                                       \
     libdivide_##ALGO##_t denom;                                                       \
-    WJR_FORCEINLINE dispatcher() {}                                                  \
-    WJR_FORCEINLINE dispatcher(T d) : denom(libdivide_##ALGO##_gen(d)) {}            \
-    WJR_FORCEINLINE T divide(T n) const { return libdivide_##ALGO##_do(n, &denom); } \
-    WJR_FORCEINLINE T recover() const { return libdivide_##ALGO##_recover(&denom); } \
+    LIBDIVIDE_INLINE dispatcher() {}                                                  \
+    LIBDIVIDE_INLINE dispatcher(T d) : denom(libdivide_##ALGO##_gen(d)) {}            \
+    LIBDIVIDE_INLINE T divide(T n) const { return libdivide_##ALGO##_do(n, &denom); } \
+    LIBDIVIDE_INLINE T recover() const { return libdivide_##ALGO##_recover(&denom); } \
     LIBDIVIDE_DIVIDE_NEON(ALGO, T)                                                    \
     LIBDIVIDE_DIVIDE_SSE2(ALGO)                                                       \
     LIBDIVIDE_DIVIDE_AVX2(ALGO)                                                       \
@@ -3060,10 +3190,10 @@ namespace libdivide {
         divider() = default;
 
         // Constructor that takes the divisor as a parameter
-        WJR_FORCEINLINE divider(T d) : div(d) {}
+        LIBDIVIDE_INLINE divider(T d) : div(d) {}
 
         // Divides n by the divisor
-        WJR_FORCEINLINE T divide(T n) const { return div.divide(n); }
+        LIBDIVIDE_INLINE T divide(T n) const { return div.divide(n); }
 
         // Recovers the divisor, returns the value that was
         // used to initialize this divider object.
@@ -3079,16 +3209,16 @@ namespace libdivide {
         // (e.g. s32, u32, s64, u64) and divides each of them by the divider, returning the packed
         // quotients.
 #if defined(LIBDIVIDE_SSE2)
-        WJR_FORCEINLINE __m128i divide(__m128i n) const { return div.divide(n); }
+        LIBDIVIDE_INLINE __m128i divide(__m128i n) const { return div.divide(n); }
 #endif
 #if defined(LIBDIVIDE_AVX2)
-        WJR_FORCEINLINE __m256i divide(__m256i n) const { return div.divide(n); }
+        LIBDIVIDE_INLINE __m256i divide(__m256i n) const { return div.divide(n); }
 #endif
 #if defined(LIBDIVIDE_AVX512)
-        WJR_FORCEINLINE __m512i divide(__m512i n) const { return div.divide(n); }
+        LIBDIVIDE_INLINE __m512i divide(__m512i n) const { return div.divide(n); }
 #endif
 #if defined(LIBDIVIDE_NEON)
-        WJR_FORCEINLINE typename NeonVecFor<T>::type divide(typename NeonVecFor<T>::type n) const {
+        LIBDIVIDE_INLINE typename NeonVecFor<T>::type divide(typename NeonVecFor<T>::type n) const {
             return div.divide(n);
         }
 #endif
@@ -3100,13 +3230,13 @@ namespace libdivide {
 
     // Overload of operator / for scalar division
     template <typename T, Branching ALGO>
-    WJR_FORCEINLINE T operator/(T n, const divider<T, ALGO>& div) {
+    LIBDIVIDE_INLINE T operator/(T n, const divider<T, ALGO>& div) {
         return div.divide(n);
     }
 
     // Overload of operator /= for scalar division
     template <typename T, Branching ALGO>
-    WJR_FORCEINLINE T& operator/=(T& n, const divider<T, ALGO>& div) {
+    LIBDIVIDE_INLINE T& operator/=(T& n, const divider<T, ALGO>& div) {
         n = div.divide(n);
         return n;
     }
@@ -3114,36 +3244,36 @@ namespace libdivide {
     // Overloads for vector types.
 #if defined(LIBDIVIDE_SSE2)
     template <typename T, Branching ALGO>
-    WJR_FORCEINLINE __m128i operator/(__m128i n, const divider<T, ALGO>& div) {
+    LIBDIVIDE_INLINE __m128i operator/(__m128i n, const divider<T, ALGO>& div) {
         return div.divide(n);
     }
 
     template <typename T, Branching ALGO>
-    WJR_FORCEINLINE __m128i operator/=(__m128i& n, const divider<T, ALGO>& div) {
+    LIBDIVIDE_INLINE __m128i operator/=(__m128i& n, const divider<T, ALGO>& div) {
         n = div.divide(n);
         return n;
     }
 #endif
 #if defined(LIBDIVIDE_AVX2)
     template <typename T, Branching ALGO>
-    WJR_FORCEINLINE __m256i operator/(__m256i n, const divider<T, ALGO>& div) {
+    LIBDIVIDE_INLINE __m256i operator/(__m256i n, const divider<T, ALGO>& div) {
         return div.divide(n);
     }
 
     template <typename T, Branching ALGO>
-    WJR_FORCEINLINE __m256i operator/=(__m256i& n, const divider<T, ALGO>& div) {
+    LIBDIVIDE_INLINE __m256i operator/=(__m256i& n, const divider<T, ALGO>& div) {
         n = div.divide(n);
         return n;
     }
 #endif
 #if defined(LIBDIVIDE_AVX512)
     template <typename T, Branching ALGO>
-    WJR_FORCEINLINE __m512i operator/(__m512i n, const divider<T, ALGO>& div) {
+    LIBDIVIDE_INLINE __m512i operator/(__m512i n, const divider<T, ALGO>& div) {
         return div.divide(n);
     }
 
     template <typename T, Branching ALGO>
-    WJR_FORCEINLINE __m512i operator/=(__m512i& n, const divider<T, ALGO>& div) {
+    LIBDIVIDE_INLINE __m512i operator/=(__m512i& n, const divider<T, ALGO>& div) {
         n = div.divide(n);
         return n;
     }
@@ -3151,12 +3281,12 @@ namespace libdivide {
 
 #if defined(LIBDIVIDE_NEON)
     template <typename T, Branching ALGO>
-    WJR_FORCEINLINE typename NeonVecFor<T>::type operator/(typename NeonVecFor<T>::type n, const divider<T, ALGO>& div) {
+    LIBDIVIDE_INLINE typename NeonVecFor<T>::type operator/(typename NeonVecFor<T>::type n, const divider<T, ALGO>& div) {
         return div.divide(n);
     }
 
     template <typename T, Branching ALGO>
-    WJR_FORCEINLINE typename NeonVecFor<T>::type operator/=(typename NeonVecFor<T>::type& n, const divider<T, ALGO>& div) {
+    LIBDIVIDE_INLINE typename NeonVecFor<T>::type operator/=(typename NeonVecFor<T>::type& n, const divider<T, ALGO>& div) {
         n = div.divide(n);
         return n;
     }

@@ -20,11 +20,9 @@
 #include <concepts>
 #endif
 
-#define USE_LIBDIVIDE
-#ifdef USE_LIBDIVIDE
+#ifdef WJR_USE_LIBDIVIDE
 #include "libdivide.h"
 #else
-
 namespace libdivide {
     enum Branching {
         BRANCHFULL,  // use branching algorithms
@@ -281,111 +279,6 @@ namespace wjr {
             std::conditional_t<std::is_empty_v<U>, base_mcompressed_pair<T, U, empty_base_optimize::second_empty>,
             base_mcompressed_pair<T, U, empty_base_optimize::non_empty>>>;
 
-    }
-
-    inline namespace wjr_math {
-
-        constexpr static std::array<int,32> cqlog2_table =
-        { 0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3 };
-
-        constexpr int cqlog2(uint16_t x) {
-#if defined(WJR_CPP_20)
-            return !x ? 0 : static_cast<int>(std::bit_width(x) - 1);
-#else
-            int ans = 0;
-            if (x >> 8) { ans += 8; x >>= 8; }
-            if (x >> 4) {  ans += 4; x >>= 4; }
-            return ans + cqlog2_table[x];
-#endif
-        }
-
-        constexpr int cqlog2(int16_t x) {
-            return cqlog2((uint16_t)x);
-        }
-
-        constexpr int cqlog2(uint32_t x) {
-#if defined(WJR_CPP_20)
-            return !x ? 0 : static_cast<int>(std::bit_width(x) - 1);
-#else
-            int ans = 0;
-            if (x >> 16) { ans += 16; x >>= 16; }
-            if (x >> 8) { ans += 8; x >>= 8; }
-            if (x >> 4) { ans += 4; x >>= 4; }
-            return ans + cqlog2_table[x];
-#endif
-        }
-
-        constexpr int cqlog2(int32_t x) {
-            return cqlog2((uint32_t)x);
-        }
-
-        constexpr int cqlog2(uint64_t x) {
-#if defined(WJR_CPP_20)
-            return !x ? 0 : static_cast<int>(std::bit_width(x) - 1);
-#else
-            int ans = 0;
-            if (x >> 32) { ans += 32; x >>= 32; }
-            if (x >> 16) { ans += 16; x >>= 16; }
-            if (x >> 8) { ans += 8; x >>= 8; }
-            if (x >> 4) { ans += 4; x >>= 4; }
-            return ans + cqlog2_table[x];
-#endif
-        }
-
-        constexpr int cqlog2(int64_t x) {
-            return cqlog2((uint64_t)x);
-        }
-
-        template<typename T>
-        constexpr T quick_pow(T a, T b) {
-            T s = 1;
-            while (b) {
-                if (b & 1) {
-                    s *= a;
-                }
-                a *= a;
-                b >>= 1;
-            }
-            return s;
-        }
-
-        template<size_t base, typename T>
-        constexpr size_t __get_log_length() {
-            size_t S = std::numeric_limits<T>::max();
-            size_t cnt = 0;
-            while (S >= base) {
-                S /= base;
-                ++cnt;
-            }
-            return cnt + 1;
-        }
-
-        template<size_t base, typename T>
-        constexpr size_t log_length = __get_log_length<base, T>();
-
-        template<size_t base, size_t index, typename T>
-        constexpr size_t __get_cqlog(T x) {
-            constexpr size_t X = quick_pow(base, (size_t)(1) << index);
-            if constexpr (index == 0) {
-                return x >= X;
-            }
-            else {
-                return x >= X ? (__get_cqlog<base, index - 1, T>(x / X) + ((size_t)(1) << index))
-                    : (__get_cqlog<base, index - 1, T>(x));
-            }
-        }
-
-        template<size_t base, typename T>
-        constexpr size_t cqlog(T x) {
-            constexpr size_t length = log_length<base, T>;
-            constexpr size_t l = cqlog2(length - 1);
-            return __get_cqlog<base, l, T>(x);
-        }
-
-        template<size_t base, typename T>
-        constexpr bool quick_is_power_of(T x) {
-            return quick_pow(base, cqlog<base>(x)) == x;
-        }
     }
 
     inline namespace wjr_hash {

@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cstdio>
+#include <type_traits>
 
 #if defined(__clang__) || defined(__GNUC__)
 #define WJR_CPP_STANDARD __cplusplus
@@ -26,10 +27,52 @@
 #define WJR_CPP_20
 #endif
 
-#if defined(WJR_CPP_20)
-#define WJR_CONSTEXPR20 constexpr
+#if defined(__has_builtin)
+#define WJR_HAS_BUILTIN(x) __has_builtin(x)
 #else
+#define WJR_HAS_BUILTIN(x) 0
+#endif
+
+#if defined(__has_attribute)
+#define WJR_HAS_ATTRIBUTE(x) __has_attribute(x)
+#else
+#define WJR_HAS_ATTRIBUTE(x) 0
+#endif
+
+#if defined(WJR_CPP_20)
+#define WJR_IS_CONSTANT_EVALUATED_BEGIN if(std::is_constant_evaluated()) {
+#define WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN if(!std::is_constant_evaluated()) {
+#define WJR_CONSTEXPR constexpr
+#define WJR_CONSTEXPR20 constexpr
+#elif WJR_HAS_BUILTIN(__builtin_is_constant_evaluated)
+#define WJR_IS_CONSTANT_EVALUATED_BEGIN if(__builtin_is_constant_evaluated()){
+#define WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN if(!__builtin_is_constant_evaluated()){
+#define WJR_CONSTEXPR constexpr
 #define WJR_CONSTEXPR20 inline
+#else
+#define WJR_IS_CONSTANT_EVALUATED_BEGIN if constexpr (false){
+#define WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN if constexpr (true){
+#define WJR_CONSTEXPR inline
+#define WJR_CONSTEXPR20 inline
+#endif
+
+#define WJR_IS_CONSTANT_EVALUATED_END }
+#define WJR_IS_NOT_CONSTANT_EVALUATED_END }
+
+#if defined(__clang__)
+#define WJR_UNREACHABLE __builtin_unreachable()
+#elif defined(_MSC_VER) 
+#define WJR_UNREACHABLE __assume(false)
+#else
+#define WJR_UNREACHABLE
+#endif
+
+#if defined(_MSC_VER)
+#define WJR_FORCEINLINE __forceinline
+#elif WJR_HAS_ATTRIBUTE(always_inline)
+#define WJR_FORCEINLINE __inline__ __attribute__((always_inline))
+#else
+#define WJR_FORCEINLINE inline
 #endif
 
 #if defined(_MSC_VER)
@@ -58,13 +101,19 @@
 #endif
 #endif
 
-#if defined(__has_builtin)
-#define whas_builtin(x) __has_builtin(x)
-#else
-#define whas_builtin(x) 0
+#if defined(__x86_64__) || (defined(_M_IX86) || (defined(_M_X64) && !defined(_M_ARM64EC)))
+#define WJR_X86_64
+#elif defined(__arm__) || (defined(_M_ARM) || defined(_M_ARM64))
+#define WJR_ARM
 #endif
 
-#if whas_builtin(__builtin_expect) && !defined(WJR_CPP_20)
+#if SIZE_MAX == 0xffffffffffffffffull
+#define WJR_X64
+#else
+#define WJR_X86
+#endif
+
+#if WJR_HAS_BUILTIN(__builtin_expect) && !defined(WJR_CPP_20)
 #ifndef likely
 #define likely(expr) __builtin_expect(!!(expr), 1)
 #endif
@@ -72,7 +121,6 @@
 #define unlikely(expr) __builtin_expect(!!(expr),0)
 #endif
 #else
-
 #ifndef likely
 #define likely(expr) expr
 #endif
@@ -81,51 +129,11 @@
 #endif
 #endif
 
-#ifdef __USE_THREADS
-#define WJR_THREADS (true)
-#else
-#define WJR_THREADS (false)
-#endif
-
-#if WJR_THREADS
+#if defined(__USE_THREADS)
 #define USE_THREAD_LOCAL thread_local
 #else
 #define USE_THREAD_LOCAL
 #endif
-
-#if defined(__clang__)
-#define WJR_UNREACHABLE __builtin_unreachable()
-#elif defined(_MSC_VER) 
-#define WJR_UNREACHABLE __assume(false)
-#else
-#define WJR_UNREACHABLE
-#endif
-
-#if defined(_MSC_VER)
-#define WJR_FORCEINLINE __forceinline
-#elif defined(__GUNC__)
-#define WJR_FORCEINLINE __inline__ __attribute__((always_inline))
-#else
-#define WJR_FORCEINLINE
-#endif
-
-#if defined(KB)
-#undef KB
-#endif
-#define KB *(size_t(1) << 10)
-
-#if defined(MB)
-#undef MB
-#endif
-#define MB *((size_t)(1) << 20)
-
-#if defined(GB)
-#undef GB
-#endif
-#define GB *((size_t)(1) << 30)
-
-#define CONNECT(A,B) A##B
-#define STD_FUNCTION(FUNC) std::FUNC
 
 #ifndef _DEBUG
 #define WDEBUG_LEVEL 0
@@ -133,51 +141,54 @@
 #define WDEBUG_LEVEL 3
 #endif
 
-#define WASSERT_LEVEL_MESSAGE(LEVEL,expression)											\
+#define __WASSERT_LEVEL_MESSAGE(LEVEL,expression, message, ...)						    \
     do{																					\
         if (unlikely(!(expression))) {													\
-                fprintf(stderr,"Assertion failed: %s in %s : %d\nBUG_LEVEL : %d",		\
-                #expression,__FILE__,__LINE__,LEVEL);									\
+                fprintf(stderr,"DEBUG_LEVEL : %d\nAssertion failed: %s in %s : %d\n"	\
+                "message : %s\n"                                                        \
+                ,LEVEL, #expression,__FILE__,__LINE__, message);						\
                 std::abort();															\
         }																				\
     }while(0)
 
-#define WASSERT_LEVEL_0(expression) WASSERT_LEVEL_MESSAGE(0, expression)
+#define __MSVC_VA_ARGS_EXPAND(x) x
+#define WASSERT_LEVEL_MESSAGE(...) __MSVC_VA_ARGS_EXPAND(__WASSERT_LEVEL_MESSAGE(__VA_ARGS__, "no additional message"))
+#define WASSERT_LEVEL_0(...) __MSVC_VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(0, __VA_ARGS__))
 
 // WDEBUG_LEVEL		1
 // The impact on program running time or space is only constant
 // Some small bugs that are not easy to test under a small part or a small range of data
 #if WDEBUG_LEVEL >= 1
-#define WASSERT_LEVEL_1(expression)	WASSERT_LEVEL_MESSAGE(1,expression)
+#define WASSERT_LEVEL_1(...) __MSVC_VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(1, __VA_ARGS__))
 #else
-#define WASSERT_LEVEL_1(expression)
+#define WASSERT_LEVEL_1(...)
 #endif
 
 // WDEBUG_LEVEL		2
 // The impact on program running time or space is only linear or less
 // Some bugs that may be found and fixed in small-scale tests
 #if WDEBUG_LEVEL >= 2
-#define WASSERT_LEVEL_2(expression)	WASSERT_LEVEL_MESSAGE(2,expression)
+#define WASSERT_LEVEL_2(...) __MSVC_VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(2, __VA_ARGS__))
 #else
-#define WASSERT_LEVEL_2(expression)
+#define WASSERT_LEVEL_2(...)
 #endif
 
 // WDEBUG_LEVEL		3
 // The impact on program running time or space is O(nlogn),O(n sqrt(n)),O(n^2) or less
 // It can still run in a large range
 #if WDEBUG_LEVEL >= 3
-#define WASSERT_LEVEL_3(expression)	WASSERT_LEVEL_MESSAGE(3,expression)
+#define WASSERT_LEVEL_3(...) __MSVC_VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(3, __VA_ARGS__))
 #else
-#define WASSERT_LEVEL_3(expression)
+#define WASSERT_LEVEL_3(...)
 #endif
 
 // WDEBUG_LEVEL		4
 // no limit
 // It can only be tested in a small range
 #if WDEBUG_LEVEL >= 4
-#define WASSERT_LEVEL_4(expression)	WASSERT_LEVEL_MESSAGE(4,expression)
+#define WASSERT_LEVEL_4(...) __MSVC_VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(4, __VA_ARGS__))
 #else
-#define WASSERT_LEVEL_4(expression)
+#define WASSERT_LEVEL_4(...)
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
@@ -211,5 +222,7 @@
 #if defined(_MSC_VER)
 #include <intrin.h>
 #endif
+
+#define WJR_USE_LIBDIVIDE
 
 #endif

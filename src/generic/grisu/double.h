@@ -46,21 +46,6 @@ inline double uint64_to_double(uint64_t d64) { converter_t tmp; tmp.n = d64; ret
 #define DP_SIGNIFICAND_MASK 0x000FFFFFFFFFFFFF
 #define DP_HIDDEN_BIT    0x0010000000000000
 
-constexpr static int _Log2_Table[] = { 0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3 };
-
-constexpr int _Log2_u64(uint64_t x) {
-#if defined(WJR_CPP_20)
-	return std::bit_width(x);
-#else
-	int ans = 0;
-	if (x >> 32) { ans += 32; x >>= 32; }
-	if (x >> 16) { ans += 16; x >>= 16; }
-	if (x >> 8) { ans += 8; x >>= 8; }
-	if (x >> 4) { ans += 4; x >>= 4; }
-	return ans + _Log2_Table[x];
-#endif
-}
-
 inline diy_fp_t normalize_diy_fp(diy_fp_t in) {
 	diy_fp_t res = in;
 	/* Normalize now */
@@ -94,7 +79,7 @@ inline diy_fp_t double2diy_fp(double d) {
 }
 
 constexpr diy_fp_t uint64_t2diy_fp_t(uint64_t in) {
-	int l = 63 - _Log2_u64(in);
+	int l = 63 - wjr::math::bit_width(in);
 	return diy_fp_t{ in << l, -l };
 }
 
@@ -103,7 +88,7 @@ inline double diy_fp2double(diy_fp_t in) {
 	if (!in.f) return 0;
 	uint64_t significand = in.f;
 	int biased_e = in.e + DP_EXPONENT_BIAS;
-	int l = _Log2_u64(significand);
+	int l = wjr::math::bit_width(significand);
 	if (l < 52) {
 		significand <<= 52 - l;
 	}

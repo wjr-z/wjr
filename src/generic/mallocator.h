@@ -31,7 +31,7 @@ namespace wjr {
 
 		static void* allocate(size_t __n) {
 			void* __result = malloc(__n);
-			if (0 == __result) __result = _S_oom_malloc(__n);
+			if (unlikely(0 == __result)) __result = _S_oom_malloc(__n);
 			return __result;
 		}
 
@@ -41,7 +41,7 @@ namespace wjr {
 
 		static void* reallocate(void* __p, size_t /* old_sz */, size_t __new_sz) {
 			void* __result = realloc(__p, __new_sz);
-			if (0 == __result) __result = _S_oom_realloc(__p, __new_sz);
+			if (unlikely(0 == __result)) __result = _S_oom_realloc(__p, __new_sz);
 			return __result;
 		}
 
@@ -144,7 +144,7 @@ namespace wjr {
 			: allocated_size(0) {
 		}
 		~allocator_debuger() {
-			if (allocated_size == 0) {
+			if (0 == allocated_size) {
 				printf("allocator no problem\n");
 				return;
 			}
@@ -207,16 +207,16 @@ namespace wjr {
 
 		static void deallocate(void* p, size_t n) //p may not be 0
 		{
-			obj* q = (obj*)p;
 #ifdef ALLOCATOR_DEBUG
 			allocator_debuger_ref.allocated_size -= n;
 #endif
 
 			if (n > (size_t)__MAX_BYTES) {
-				free(p);
+				malloc_alloc::deallocate(p, n);
 				return;
 			}
-
+			
+			obj* q = (obj*)p;
 			obj* volatile* my_free_list = base::free_list + FREELIST_INDEX(n);
 			q->free_list_link = *my_free_list;
 			*my_free_list = q;
@@ -262,7 +262,7 @@ namespace wjr {
 			*my_free_list = (obj*)base::start_free;
 		}
 		base::start_free = (char*)malloc(bytes_to_get);
-		if (0 == base::start_free) {
+		if (unlikely(0 == base::start_free)) {
 			obj* volatile* my_free_list, * p;
 
 			//Try to make do with what we have. That can't
@@ -309,16 +309,16 @@ namespace wjr {
 
 		//Build free list in chunk
 		obj* result = (obj*)chunk;
-		*my_free_list = next_obj = (obj*)(chunk + n);
-		for (int i = 1; ; ++i) {
-			current_obj = next_obj;
-			next_obj = (obj*)((char*)next_obj + n);
-			if (nobjs - 1 == i) {
-				current_obj->free_list_link = 0;
-				break;
-			}
+
+		* my_free_list = current_obj = (obj*)(chunk + n);
+		nobjs -= 2;
+		while (nobjs) {
+			--nobjs;
+			next_obj = (obj*)((char*)current_obj + n);
 			current_obj->free_list_link = next_obj;
+			current_obj = next_obj;
 		}
+		current_obj->free_list_link = 0;
 		return (result);
 	}
 
@@ -352,44 +352,32 @@ namespace wjr {
 		~basic_mallocator() = default;
 		basic_mallocator& operator=(const basic_mallocator&) noexcept = default;
 
-		[[nodiscard]] WJR_CONSTEXPR20 Ty* allocate() const noexcept{
-#if defined(WJR_CPP_20)
-			if (!std::is_constant_evaluated())
-#endif	
-			{
+		[[nodiscard]] WJR_CONSTEXPR Ty* allocate() const noexcept{
+			WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
 				return static_cast<Ty*>(allocator_type::allocate(sizeof(Ty)));
-			}
+			WJR_IS_NOT_CONSTANT_EVALUATED_END
 			return std::allocator<Ty>().allocate(1);
 		}
 
-		[[nodiscard]] WJR_CONSTEXPR20 Ty* allocate(size_t n) const noexcept {
-#if defined(WJR_CPP_20)
-			if (!std::is_constant_evaluated())
-#endif
-			{
+		[[nodiscard]] WJR_CONSTEXPR Ty* allocate(size_t n) const noexcept {
+			WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
 				return !n ? nullptr : static_cast<Ty*>(allocator_type::allocate(sizeof(Ty) * n));
-			}
+			WJR_IS_NOT_CONSTANT_EVALUATED_END
 			return std::allocator<Ty>().allocate(n);
 		}
 
-		WJR_CONSTEXPR20 void deallocate(Ty* ptr) const noexcept{
-#if defined(WJR_CPP_20)
-			if (!std::is_constant_evaluated())
-#endif
-			{
+		WJR_CONSTEXPR void deallocate(Ty* ptr) const noexcept{
+			WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
 				return allocator_type::deallocate(static_cast<void*>(ptr), sizeof(Ty));
-			}
+			WJR_IS_NOT_CONSTANT_EVALUATED_END
 			return std::allocator<Ty>().deallocate(ptr, 1);
 		}
 
-		WJR_CONSTEXPR20 void deallocate(Ty* ptr, size_t n) const noexcept{
-#if defined(WJR_CPP_20)
-			if (!std::is_constant_evaluated())
-#endif
-			{
-				if (n == 0) return;
+		WJR_CONSTEXPR void deallocate(Ty* ptr, size_t n) const noexcept{
+			WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
+				if (0 == n) return;
 				return allocator_type::deallocate(static_cast<void*>(ptr), sizeof(Ty) * n);
-			}
+			WJR_IS_NOT_CONSTANT_EVALUATED_END
 			return std::allocator<Ty>().deallocate(ptr, n);
 		}
 
