@@ -67,7 +67,7 @@ namespace wjr {
 	}
 
 	bool get_all_files(String_view path, std::vector<String>& filePath) {
-		String cop(260, wjr::wjr_reserved_tag{});
+		String cop(260, tag::reserved_tag);
 		cop.assign(path);
 		return dfs_get_files(cop, filePath);
 	}
@@ -139,7 +139,7 @@ namespace wjr {
 #else
 		size_t size = ftello64(fp);
 #endif
-		String buffer(size, wjr_uninitialized_tag{});
+		String buffer(size, tag::uninitialized_tag);
 		fseek(fp, 0, SEEK_SET);
 		fread((void*)buffer.c_str(), sizeof(char), size, fp);
 		fclose(fp);

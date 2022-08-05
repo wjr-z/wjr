@@ -44,12 +44,6 @@ namespace wjr {
     inline namespace wjr_type_traits {
         using wjr_ssize_t = std::make_signed_t<size_t>;
 
-        struct wjr_empty_tag {};
-
-        struct wjr_uninitialized_tag {};
-
-        struct wjr_reserved_tag {};
-
         template<typename T>
         struct midentity {
             using type = T;
@@ -82,7 +76,7 @@ namespace wjr {
         };
 
         template<typename T, typename...args>
-        constexpr static bool wjr_is_any_of_v = is_any_of_helper<std::is_same, T, args...>::value;
+        constexpr bool wjr_is_any_of_v = is_any_of_helper<std::is_same, T, args...>::value;
 
         template<typename T, typename = void>
         struct wjr_is_iterator : std::false_type {};
@@ -92,40 +86,22 @@ namespace wjr {
             std::iterator_traits<T>::iterator_category>> : std::true_type {};
 
         template<typename T>
-        constexpr static bool wjr_is_iterator_v = wjr_is_iterator<T>::value;
-
-#if defined(WJR_CPP_20)
-        template<typename T>
-        concept wjr_iterator = wjr_is_iterator_v<T>;
-#endif
-
-        template<typename T>
-        struct is_reverse_iterator : std::false_type {};
-
-        template<typename T>
-        struct is_reverse_iterator<std::reverse_iterator<T>> : std::true_type {};
-
-        template<typename T>
-		constexpr static bool is_reverse_iterator_v = is_reverse_iterator<T>::value;
-
-#if defined(WJR_CPP_20)
-		template<typename T>
-		concept wjr_reverse_iterator = is_reverse_iterator_v<T>;
-#endif
+        constexpr bool wjr_is_iterator_v = wjr_is_iterator<T>::value;
 
         template<typename T>
         struct _Is_signed_integral :
             std::conjunction<std::is_integral<T>, std::is_signed<T>> {};
 
         template<typename T>
-        constexpr static bool _Is_signed_integral_v = _Is_signed_integral<T>::value;
+        constexpr bool _Is_signed_integral_v = _Is_signed_integral<T>::value;
 
         template<typename T>
         struct _Is_unsigned_integral :
             std::conjunction<std::is_integral<T>, std::is_unsigned<T>> {};
 
         template<typename T>
-        constexpr static bool _Is_unsigned_integral_v = _Is_unsigned_integral<T>::value;
+        constexpr bool _Is_unsigned_integral_v = _Is_unsigned_integral<T>::value;
+
 
         template<typename T>
         struct can_make_unsigned {
@@ -135,7 +111,7 @@ namespace wjr {
         };
 		
         template<typename T>
-		constexpr static bool can_make_unsigned_v = can_make_unsigned<T>::value;
+		constexpr bool can_make_unsigned_v = can_make_unsigned<T>::value;
 
         template<typename T>
         struct forward_wrapper {
@@ -163,7 +139,7 @@ namespace wjr {
         struct wjr_has_size<T, std::void_t<decltype(std::size(std::declval<T>()))>> : std::true_type{};
 
         template<typename T>
-		constexpr static bool wjr_has_size_v = wjr_has_size<T>::value;
+		constexpr bool wjr_has_size_v = wjr_has_size<T>::value;
 
         template<typename T, typename = void>
         struct wjr_has_begin : std::false_type {};
@@ -172,7 +148,7 @@ namespace wjr {
         struct wjr_has_begin<T, std::void_t<decltype(std::begin(std::declval<T>()))>> : std::true_type {};
 
         template<typename T>
-        constexpr static bool wjr_has_begin_v = wjr_has_begin<T>::value;
+        constexpr bool wjr_has_begin_v = wjr_has_begin<T>::value;
 
         template<typename T, typename = void>
         struct wjr_has_end : std::false_type {};
@@ -181,13 +157,13 @@ namespace wjr {
         struct wjr_has_end<T, std::void_t<decltype(std::end(std::declval<T>()))>> : std::true_type {};
 
         template<typename T>
-        constexpr static bool wjr_has_end_v = wjr_has_end<T>::value;
+        constexpr bool wjr_has_end_v = wjr_has_end<T>::value;
 
         template<typename T>
         struct wjr_is_container : std::conjunction<wjr_has_begin<T>, wjr_has_end<T>> {};
 
         template<typename T>
-        constexpr static bool wjr_is_container_v = wjr_is_container<T>::value;
+        constexpr bool wjr_is_container_v = wjr_is_container<T>::value;
 
         enum class empty_base_optimize {
             first_empty,
@@ -283,11 +259,11 @@ namespace wjr {
 
     inline namespace wjr_hash {
 #if defined(_WIN64)
-        constexpr static size_t _FNV_offset_basis = 14695981039346656037ULL;
-        constexpr static size_t _FNV_prime = 1099511628211ULL;
+        constexpr size_t _FNV_offset_basis = 14695981039346656037ULL;
+        constexpr size_t _FNV_prime = 1099511628211ULL;
 #else // defined(_WIN64)
-        constexpr static size_t _FNV_offset_basis = 2166136261U;
-        constexpr static size_t _FNV_prime = 16777619U;
+        constexpr size_t _FNV_offset_basis = 2166136261U;
+        constexpr size_t _FNV_prime = 16777619U;
 #endif // defined(_WIN64)
 
         constexpr size_t normal_fnv1a_append_bytes(size_t _Val, const unsigned char* const _First,

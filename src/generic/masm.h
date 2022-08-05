@@ -10,12 +10,17 @@ namespace wjr {
 
         template<typename T, std::enable_if_t<
             std::conjunction_v<std::is_integral<T>, std::is_unsigned<T>>, int> = 0>
-        constexpr unsigned char add(T lhs, T rhs, T* result) {
+        constexpr unsigned char add(T* result, T lhs, T rhs) {
             *result = lhs + rhs;
             return *result < lhs;
         }
 
-        WJR_CONSTEXPR unsigned char adc(unsigned char c_in, uint32_t in_1, uint32_t in_2, uint32_t* out) {
+        WJR_CONSTEXPR unsigned char adc(
+            unsigned char c_in,
+            uint32_t* out,
+            uint32_t in_1,
+            uint32_t in_2
+        ) {
             WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
 #if defined (_MSC_VER)
                 return _addcarry_u32(c_in, in_1, in_2, out);
@@ -35,11 +40,15 @@ namespace wjr {
             return c_in;
 #endif
             WJR_IS_NOT_CONSTANT_EVALUATED_END
-                return add(in_1, in_2, out) | add(*out, static_cast<uint32_t>(c_in), out);
+                return add(out, in_1, in_2) | add(out, *out, static_cast<uint32_t>(c_in));
         }
 
-        WJR_CONSTEXPR unsigned char adc(
-            const uint32_t* in_1, const uint32_t* in_2, uint32_t* out, size_t n) {
+        WJR_CONSTEXPR unsigned char add(
+            uint32_t* out,
+            const uint32_t* in_1,
+            const uint32_t* in_2,
+            size_t n
+        ) {
             WASSERT_LEVEL_2(!((in_1 < out&& out < in_1 + n) || (in_2 < out&& out < in_2 + n)));
             // can't handle this situation, it is necessary to
             // manually ensure that this situation does not exist
@@ -48,7 +57,7 @@ namespace wjr {
             size_t i = 0;
             size_t r = n & 3;
             while (i != r) {
-                c_in = adc(c_in, *in_1, *in_2, out);
+                c_in = adc(c_in, out, *in_1, *in_2);
                 ++in_1;
                 ++in_2;
                 ++out;
@@ -84,10 +93,10 @@ namespace wjr {
             WJR_IS_NOT_CONSTANT_EVALUATED_END
 #endif
                 while (i != n) {
-                    c_in = adc(c_in, in_1[0], in_2[0], out + 0);
-                    c_in = adc(c_in, in_1[1], in_2[1], out + 1);
-                    c_in = adc(c_in, in_1[2], in_2[2], out + 2);
-                    c_in = adc(c_in, in_1[3], in_2[3], out + 3);
+                    c_in = adc(c_in, out + 0, in_1[0], in_2[0]);
+                    c_in = adc(c_in, out + 1, in_1[1], in_2[1]);
+                    c_in = adc(c_in, out + 2, in_1[2], in_2[2]);
+                    c_in = adc(c_in, out + 3, in_1[3], in_2[3]);
                     in_1 += 4;
                     in_2 += 4;
                     out += 4;
@@ -97,7 +106,11 @@ namespace wjr {
         }
 
         WJR_CONSTEXPR unsigned char adc(
-            unsigned char c_in, uint64_t in_1, uint64_t in_2, uint64_t* out) {
+            unsigned char c_in,
+            uint64_t* out,
+            uint64_t in_1,
+            uint64_t in_2
+        ) {
             WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
 #if defined (_MSC_VER) && defined(WJR_X64)
                 return _addcarry_u64(c_in, in_1, in_2, out);
@@ -117,62 +130,74 @@ namespace wjr {
             return c_in;
 #endif
             WJR_IS_NOT_CONSTANT_EVALUATED_END
-                return add(in_1, in_2, out) | add(*out, static_cast<uint64_t>(c_in), out);
+                return add(out, in_1, in_2) | add(out, *out, static_cast<uint64_t>(c_in));
         }
 
-        WJR_CONSTEXPR unsigned char adc(
-            const uint64_t* in_1, const uint64_t* in_2, uint64_t* out, size_t n) {
+        WJR_CONSTEXPR unsigned char add(
+            uint64_t* out,
+            const uint64_t* in_1,
+            const uint64_t* in_2,
+            size_t n
+        ) {
             WASSERT_LEVEL_2(!((in_1 < out&& out < in_1 + n) || (in_2 < out&& out < in_2 + n)));
 
             uint64_t cf = 0;
             size_t i = 0;
             size_t r = n & 3;
             for (; i != r; ++i) {
-                cf = adc(cf, in_1[i], in_2[i], out + i);
+                cf = adc(cf, out + i, in_1[i], in_2[i]);
             }
 
 #if !WJR_HAS_BUILTIN(__builtin_addcll) && defined(WJR_GCC_STYLE_ASM) && defined(WJR_X64)
             WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
+                uint64_t temp;
                 for (; i != n; i += 4) {
-                    __asm__(\
-                        "addb $0xFF, %%bl                 \n"   \
-                        "mov (%[v1], %[v4], 8), %[u1]     \n"   \
-                        "adc (%[v2], %[v4], 8), %[u1]     \n"   \
-                        "mov %[u1], (%[v3], %[v4], 8)     \n"   \
-                        "mov 0x8(%[v1], %[v4], 8), %[u1]  \n"   \
-                        "adc 0x8(%[v2], %[v4], 8), %[u1]  \n"   \
-                        "mov %[u1], 0x8(%[v3], %[v4], 8)  \n"   \
-                        "mov 0x10(%[v1], %[v4], 8), %[u1] \n"   \
-                        "adc 0x10(%[v2], %[v4], 8), %[u1] \n"   \
-                        "mov %[u1], 0x10(%[v3], %[v4], 8) \n"   \
-                        "mov 0x18(%[v1], %[v4], 8), %[u1] \n"   \
-                        "adc 0x18(%[v2], %[v4], 8), %[u1] \n"   \
-                        "mov %[u1], 0x18(%[v3], %[v4], 8) \n"   \
-                        "setb %%bl                        \n"   \
-                        : [u1] "+b"(cf)
-                        : [v1] "%r"(in_1), [v2] "r"(in_2), [v3] "r"(out), [v4] "r"(i)
-                    );
-                }
+                    __asm__(
+                        "addb $0xFF, %%bl                 \n"
+                        "mov (%[v1], %[v4], 8), %[u1]     \n"
+                        "mov (%[v2], %[v4], 8), %[u2]     \n"
+                        "adc %[u2], %[u1]                 \n"
+                        "mov %[u1], (%[v3], %[v4], 8)     \n"
+                        "mov 0x8(%[v1], %[v4], 8), %[u1]  \n"
+                        "mov 0x8(%[v2], %[v4], 8), %[u2]  \n"
+                        "adc %[u2], %[u1]                 \n"
+                        "mov %[u1], 0x8(%[v3], %[v4], 8)  \n"
+                        "mov 0x10(%[v1], %[v4], 8), %[u1]  \n"
+                        "mov 0x10(%[v2], %[v4], 8), %[u2]  \n"
+                        "adc %[u2], %[u1]                 \n"
+                        "mov %[u1], 0x10(%[v3], %[v4], 8)  \n"
+                        "mov 0x18(%[v1], %[v4], 8), %[u1]  \n"
+                        "mov 0x18(%[v2], %[v4], 8), %[u2]  \n"
+                        "adc %[u2], %[u1]                 \n"
+                        "mov %[u1], 0x18(%[v3], %[v4], 8)  \n"
+                        "setb %%bl                        \n"
+                        : [u1] "+b"(cf), [u2] "=r"(temp)
+                        : [v1] "%r"(in_1), [v2] "r"(in_2), [v3] "r"(out), [v4] "r"(i));
+        }
             WJR_IS_NOT_CONSTANT_EVALUATED_END
 #endif
                 for (; i != n; i += 4) {
-                    cf = adc(cf, in_1[i + 0], in_2[i + 0], out + i + 0);
-                    cf = adc(cf, in_1[i + 1], in_2[i + 1], out + i + 1);
-                    cf = adc(cf, in_1[i + 2], in_2[i + 2], out + i + 2);
-                    cf = adc(cf, in_1[i + 3], in_2[i + 3], out + i + 3);
+                    cf = adc(cf, out + i + 0, in_1[i + 0], in_2[i + 0]);
+                    cf = adc(cf, out + i + 1, in_1[i + 1], in_2[i + 1]);
+                    cf = adc(cf, out + i + 2, in_1[i + 2], in_2[i + 2]);
+                    cf = adc(cf, out + i + 3, in_1[i + 3], in_2[i + 3]);
                 }
             return cf;
         }
 
         template<typename T, std::enable_if_t<
             std::conjunction_v<std::is_integral<T>, std::is_unsigned<T>>, int> = 0>
-        constexpr unsigned char sub(T lhs, T rhs, T* result) {
+        constexpr unsigned char sub(T* result, T lhs, T rhs) {
             *result = lhs - rhs;
             return lhs < rhs;
         }
 
         WJR_CONSTEXPR unsigned char sbb(
-            unsigned char c_in, uint32_t in_1, uint32_t in_2, uint32_t* out) {
+            unsigned char c_in,
+            uint32_t* out,
+            uint32_t in_1,
+            uint32_t in_2
+        ) {
             WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
 #if defined (_MSC_VER)
                 return _subborrow_u32(c_in, in_1, in_2, out);
@@ -192,18 +217,22 @@ namespace wjr {
             return c_in;
 #endif
             WJR_IS_NOT_CONSTANT_EVALUATED_END
-                return sub(in_1, in_2, out) | sub(*out, static_cast<uint32_t>(c_in), out);
+                return sub(out, in_1, in_2) | sub(out, *out, static_cast<uint32_t>(c_in));
         }
 
-        WJR_CONSTEXPR unsigned char sbb(
-            const uint32_t* in_1, const uint32_t* in_2, uint32_t* out, size_t n) {
+        WJR_CONSTEXPR unsigned char sub(
+            uint32_t* out,
+            const uint32_t* in_1,
+            const uint32_t* in_2,
+            size_t n
+        ) {
             WASSERT_LEVEL_2(!((in_1 < out&& out < in_1 + n) || (in_2 < out&& out < in_2 + n)));
 
             unsigned char c_in = 0;
             size_t i = 0;
             size_t r = n & 3;
             while (i != r) {
-                c_in = sbb(c_in, *in_1, *in_2, out);
+                c_in = sbb(c_in, out, *in_1, *in_2);
                 ++in_1;
                 ++in_2;
                 ++out;
@@ -239,10 +268,10 @@ namespace wjr {
             WJR_IS_NOT_CONSTANT_EVALUATED_END
 #endif
                 while (i != n) {
-                    c_in = sbb(c_in, in_1[0], in_2[0], out + 0);
-                    c_in = sbb(c_in, in_1[1], in_2[1], out + 1);
-                    c_in = sbb(c_in, in_1[2], in_2[2], out + 2);
-                    c_in = sbb(c_in, in_1[3], in_2[3], out + 3);
+                    c_in = sbb(c_in, out + 0, in_1[0], in_2[0]);
+                    c_in = sbb(c_in, out + 1, in_1[1], in_2[1]);
+                    c_in = sbb(c_in, out + 2, in_1[2], in_2[2]);
+                    c_in = sbb(c_in, out + 3, in_1[3], in_2[3]);
                     in_1 += 4;
                     in_2 += 4;
                     out += 4;
@@ -252,7 +281,11 @@ namespace wjr {
         }
 
         WJR_CONSTEXPR unsigned char sbb(
-            unsigned char c_in, uint64_t in_1, uint64_t in_2, uint64_t* out) {
+            unsigned char c_in,
+            uint64_t* out,
+            uint64_t in_1,
+            uint64_t in_2
+        ) {
             WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
 #if defined (_MSC_VER) && (!defined(_M_IX86) || defined(_CHPE_ONLY_))
                 return _subborrow_u64(c_in, in_1, in_2, out);
@@ -272,18 +305,22 @@ namespace wjr {
             return c_in;
 #endif
             WJR_IS_NOT_CONSTANT_EVALUATED_END
-                return sub(in_1, in_2, out) | sub(*out, static_cast<uint64_t>(c_in), out);
+                return sub(out, in_1, in_2) | sub(out, *out, static_cast<uint64_t>(c_in));
         }
 
-        WJR_CONSTEXPR unsigned char sbb(
-            const uint64_t* in_1, const uint64_t* in_2, uint64_t* out, size_t n) {
+        WJR_CONSTEXPR unsigned char sub(
+            uint64_t* out,
+            const uint64_t* in_1,
+            const uint64_t* in_2,
+            size_t n
+        ) {
             WASSERT_LEVEL_2(!((in_1 < out&& out < in_1 + n) || (in_2 < out&& out < in_2 + n)));
 
             uint64_t cf = 0;
             size_t i = 0;
             size_t r = n & 3;
             for (; i != r; ++i) {
-                cf = sbb(cf, in_1[i], in_2[i], out + i);
+                cf = sbb(cf, out + i, in_1[i], in_2[i]);
             }
 #if !WJR_HAS_BUILTIN(__builtin_subcll) && defined(WJR_GCC_STYLE_ASM) && defined(WJR_X64)
             WJR_IS_CONSTANT_EVALUATED_BEGIN
@@ -310,10 +347,10 @@ namespace wjr {
             WJR_IS_NOT_CONSTANT_EVALUATED_END
 #endif
                 for (; i != n; i += 4) {
-                    cf = sbb(cf, in_1[i + 0], in_2[i + 0], out + i + 0);
-                    cf = sbb(cf, in_1[i + 1], in_2[i + 1], out + i + 1);
-                    cf = sbb(cf, in_1[i + 2], in_2[i + 2], out + i + 2);
-                    cf = sbb(cf, in_1[i + 3], in_2[i + 3], out + i + 3);
+                    cf = sbb(cf, out + i + 0, in_1[i + 0], in_2[i + 0]);
+                    cf = sbb(cf, out + i + 1, in_1[i + 1], in_2[i + 1]);
+                    cf = sbb(cf, out + i + 2, in_1[i + 2], in_2[i + 2]);
+                    cf = sbb(cf, out + i + 3, in_1[i + 3], in_2[i + 3]);
                 }
             return cf;
         }
@@ -326,7 +363,7 @@ namespace wjr {
             size_t c = n;
             WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
 #if defined(__AVX512F__)
-            c = ((n - 1) & 15) + 1;
+                c = ((n - 1) & 15) + 1;
             auto r = src + c;
             while (p != r) {
                 p -= 16;
@@ -338,7 +375,7 @@ namespace wjr {
                 _mm512_storeu_si512((__m512i*)p, z);
             }
 #elif defined(__AVX2__)
-            c = ((n - 1) & 7) + 1;
+                c = ((n - 1) & 7) + 1;
             auto r = src + c;
             while (p != r) {
                 p -= 8;
@@ -350,7 +387,7 @@ namespace wjr {
                 _mm256_storeu_si256((__m256i*)p, z);
             }
 #elif defined(__SSE2__)
-            c = ((n - 1) & 3) + 1;
+                c = ((n - 1) & 3) + 1;
             auto r = src + c;
             while (p != r) {
                 p -= 4;
@@ -667,71 +704,52 @@ namespace wjr {
 #if defined(WJR_GCC_STYLE_ASM) && defined(WJR_X64)
             WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
                 uint64_t c_in;
-            uint64_t _high, _low;
+            uint64_t _high0, _low0;
+            uint64_t _high1, _low1;
             for (; i != n; i += 4) {
-                __asm__(\
-                    "mulq (%[v2],%[v3],8)\n"                \
-                    : "=a"(_low), "=d"(_high)
-                    : "a" (rv), [v2] "r"(lp), [v3] "r"(i)
-                );
                 c_in = 0;
-                cf += result[i];
-                c_in = cf < result[i];
-                __asm__(\
-                    "add %[v1], %[u2]\n"                    \
-                    "adc %[v2], %[u1]\n"                    \
-                    "mov %[u2], (%[v3], %[v4], 8)\n"        \
-                    : [u1] "+r"(c_in), [u2] "+r"(cf)
-                    : [v1] "r"(_low), [v2] "r"(_high), [v3] "r"(result), [v4] "r"(i)
-                );
+                __asm__("mulq (%[v1], %[v2], 8)\n"
+                    : "=a"(_low0), "=d"(_high0)
+                    : "a"(rv), [v1] "r"(lp), [v2] "r"(i));
+                __asm__("mulq 0x8(%[v1], %[v2], 8)\n"
+                    : "=a"(_low1), "=d"(_high1)
+                    : "a"(rv), [v1] "r"(lp), [v2] "r"(i));
+                __asm__(
+                    "add %[v1], %[u2]\n"
+                    "mov (%[v3], %[v5], 8), %[v1]\n"
+                    "adc %[v2], %[u1]\n"
+                    "mov 0x8(%[v3], %[v5], 8), %[v2]\n"
+                    "adc %[u3], %[u4]\n"
+                    "add %[v1], %[u2]\n"
+                    "mov %[u2], (%[v3], %[v5], 8)\n"
+                    "adc %[v2], %[u1]\n"
+                    "mov %[u1], 0x8(%[v3], %[v5], 8)\n"
+                    "adc %[u4], %[u3]\n"
+                    : [u1] "+r"(_low1), [u2] "+r"(cf), [u3] "+r"(c_in), [u4] "+r"(_high1)
+                    : [v1] "r"(_low0), [v2] "r"(_high0), [v3] "r"(result), [v4] "r"(lp),
+                    [v5] "r"(i));
 
-                __asm__(\
-                    "mulq 0x8(%[v2],%[v3],8)\n"             \
-                    : "=a"(_low), "=d"(_high)
-                    : "a"(rv), [v2] "r"(lp), [v3] "r"(i)
-                );
                 cf = 0;
-                c_in += result[i + 1];
-                cf = c_in < result[i + 1];
-                __asm__(\
-                    "add %[v1], %[u2]\n"                    \
-                    "adc %[v2], %[u1]\n"                    \
-                    "mov %[u2], 0x8(%[v3], %[v4], 8)\n"        \
-                    : [u1] "+r"(cf), [u2] "+r"(c_in)
-                    : [v1] "r"(_low), [v2] "r"(_high), [v3] "r"(result), [v4] "r"(i)
-                );
-
-                __asm__(\
-                    "mulq 0x10(%[v2],%[v3],8)\n"            \
-                    : "=a"(_low), "=d"(_high)
-                    : "a" (rv), [v2] "r"(lp), [v3] "r"(i)
-                );
-                c_in = 0;
-                cf += result[i + 2];
-                c_in = cf < result[i + 2];
-                __asm__(\
-                    "add %[v1], %[u2]\n"                    \
-                    "adc %[v2], %[u1]\n"                    \
-                    "mov %[u2], 0x10(%[v3], %[v4], 8)\n"        \
-                    : [u1] "+r"(c_in), [u2] "+r"(cf)
-                    : [v1] "r"(_low), [v2] "r"(_high), [v3] "r"(result), [v4] "r"(i)
-                );
-
-                __asm__(\
-                    "mulq 0x18(%[v2],%[v3],8)\n"            \
-                    : "=a"(_low), "=d"(_high)
-                    : "a"(rv), [v2] "r"(lp), [v3] "r"(i)
-                );
-                cf = 0;
-                c_in += result[i + 3];
-                cf = c_in < result[i + 3];
-                __asm__(\
-                    "add %[v1], %[u2]\n"                    \
-                    "adc %[v2], %[u1]\n"                    \
-                    "mov %[u2], 0x18(%[v3], %[v4], 8)\n"        \
-                    : [u1] "+r"(cf), [u2] "+r"(c_in)
-                    : [v1] "r"(_low), [v2] "r"(_high), [v3] "r"(result), [v4] "r"(i)
-                );
+                __asm__("mulq 0x10(%[v1], %[v2], 8)\n"
+                    : "=a"(_low0), "=d"(_high0)
+                    : "a"(rv), [v1] "r"(lp), [v2] "r"(i));
+                __asm__("mulq 0x18(%[v1], %[v2], 8)\n"
+                    : "=a"(_low1), "=d"(_high1)
+                    : "a"(rv), [v1] "r"(lp), [v2] "r"(i));
+                __asm__(
+                    "add %[v1], %[u2]\n"
+                    "mov 0x10(%[v3], %[v5], 8), %[v1]\n"
+                    "adc %[v2], %[u1]\n"
+                    "mov 0x18(%[v3], %[v5], 8), %[v2]\n"
+                    "adc %[u3], %[u4]\n"
+                    "add %[v1], %[u2]\n"
+                    "mov %[u2], 0x10(%[v3], %[v5], 8)\n"
+                    "adc %[v2], %[u1]\n"
+                    "mov %[u1], 0x18(%[v3], %[v5], 8)\n"
+                    "adc %[u4], %[u3]\n"
+                    : [u1] "+r"(_low1), [u2] "+r"(c_in), [u3] "+r"(cf), [u4] "+r"(_high1)
+                    : [v1] "r"(_low0), [v2] "r"(_high0), [v3] "r"(result), [v4] "r"(lp),
+                    [v5] "r"(i));
             }
             WJR_IS_NOT_CONSTANT_EVALUATED_END
 #endif

@@ -13,7 +13,8 @@
 #include <cstdlib>
 #include <type_traits>
 #include <utility>
-#include "mtype_traits.h"
+//#include "mtype_traits.h"
+#include "mtag.h"
 
 namespace wjr {
 	template <int __inst>
@@ -381,7 +382,7 @@ namespace wjr {
 			return std::allocator<Ty>().deallocate(ptr, n);
 		}
 
-		constexpr void construct([[maybe_unused]]Ty* ptr, wjr_uninitialized_tag) const{
+		constexpr void construct([[maybe_unused]]Ty* ptr, tag::uninitialized) const{
 			// don't do anything
 		}
 

@@ -11,6 +11,8 @@
 #ifndef LIBDIVIDE_H
 #define LIBDIVIDE_H
 
+#define LIBDIVIDE_SSE2
+
 #define LIBDIVIDE_VERSION "5.0"
 #define LIBDIVIDE_VERSION_MAJOR 5
 #define LIBDIVIDE_VERSION_MINOR 0
@@ -34,7 +36,7 @@
 // disable warning C4146: unary minus operator applied
 // to unsigned type, result still unsigned
 #pragma warning(disable : 4146)
-// disable warning C4204: nonstandard extension used : non-constant aggregate 
+// disable warning C4204: nonstandard extension used : non-constant aggregate
 // initializer
 //
 // It's valid C99

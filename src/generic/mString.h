@@ -3910,11 +3910,11 @@ namespace wjr {
 			: core(s.data(), s.size()) {
 		}
 
-		basic_String(const size_type len, wjr::wjr_uninitialized_tag) {
+		basic_String(const size_type len, tag::uninitialized) {
 			core.expandNoinit(len);
 		}
 
-		basic_String(const size_type len, wjr::wjr_reserved_tag) {
+		basic_String(const size_type len, tag::reserved) {
 			reserve(len);
 		}
 
@@ -5184,7 +5184,7 @@ namespace wjr {
 		template<typename...Args>
 		static basic_String asprintf(const char* format, Args&&...args) {
 			const auto len = static_cast<size_t>(_scprintf(format, std::forward<Args>(args)...));
-			basic_String str(len, wjr::wjr_uninitialized_tag{});
+			basic_String str(len, tag::uninitialized_tag);
 			sprintf_s(&str[0], len + 1, format, std::forward<Args>(args)...);
 			return str;
 		}
@@ -5261,7 +5261,7 @@ namespace wjr {
 		basic_String left_justified(int width, const value_type fill = value_type(' '))const& {
 			const size_type _size = size();
 			if (_size < width) {
-				basic_String str(_size, wjr_reserved_tag{});
+				basic_String str(_size, tag::reserved_tag);
 				str.append(*this).append(width - _size, fill);
 				return str;
 			}
@@ -5279,7 +5279,7 @@ namespace wjr {
 		basic_String right_justified(int width, const value_type fill = value_type(' '))const& {
 			const size_type _size = size();
 			if (_size < width) {
-				basic_String str(_size, wjr_reserved_tag{});
+				basic_String str(_size, tag::reserved_tag);
 				str.append(width - _size, fill).append(*this);
 				return str;
 			}
