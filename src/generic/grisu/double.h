@@ -78,7 +78,7 @@ inline diy_fp_t double2diy_fp(double d) {
 	return res;
 }
 
-constexpr diy_fp_t uint64_t2diy_fp_t(uint64_t in) {
+WJR_CONSTEXPR diy_fp_t uint64_t2diy_fp_t(uint64_t in) {
 	int l = 63 - wjr::math::bit_width(in);
 	return diy_fp_t{ in << l, -l };
 }

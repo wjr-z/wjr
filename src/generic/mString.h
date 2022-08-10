@@ -615,7 +615,7 @@ namespace wjr {
 		void reset() { setSmallSize(0); }
 
 		void setSmallSize(const size_t s) {
-			assert(s <= maxSmallSize);
+			WASSERT_LEVEL_2(s <= maxSmallSize);
 			if constexpr (is_little_endian) {
 				_Byte[lastChar] = static_cast<uint8_t>(maxSmallSize - s);
 			}
@@ -751,11 +751,11 @@ namespace wjr {
 #ifdef TEST_SHARED_STRING
 	template <typename Pod>
 	inline void pod_copy(const Pod* b, const Pod* e, Pod* d) {
-		assert(b != nullptr);
-		assert(e != nullptr);
-		assert(d != nullptr);
-		assert(e >= b);
-		assert(d >= e || d + (e - b) <= b);
+		WASSERT_LEVEL_2(b != nullptr);
+		WASSERT_LEVEL_2(e != nullptr);
+		WASSERT_LEVEL_2(d != nullptr);
+		WASSERT_LEVEL_2(b <= e);
+		WASSERT_LEVEL_2(d >= e || d + (e - b) <= b);
 		memcpy(d, b, (e - b) * sizeof(Pod));
 	}
 
@@ -775,7 +775,7 @@ namespace wjr {
 		}
 
 		shared_String_core(const shared_String_core& rhs) {
-			assert(&rhs != this);
+			WASSERT_LEVEL_2(this != std::addressof(rhs));
 			switch (rhs.category()) {
 			case Category::isSmall:
 				copySmall(rhs);
@@ -787,7 +787,7 @@ namespace wjr {
 				copyLarge(rhs);
 				break;
 			}
-			assert(size() == rhs.size());
+			WASSERT_LEVEL_2(size() == rhs.size());
 		}
 
 		shared_String_core& operator=(const shared_String_core& rhs) = delete;

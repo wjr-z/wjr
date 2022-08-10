@@ -39,21 +39,35 @@
 #define WJR_HAS_ATTRIBUTE(x) 0
 #endif
 
+#if defined(_MSC_VER)
+#define WJR_FORCEINLINE __forceinline
+#elif WJR_HAS_ATTRIBUTE(always_inline)
+#define WJR_FORCEINLINE __inline__ __attribute__((always_inline))
+#else
+#define WJR_FORCEINLINE inline
+#endif
+
 #if defined(WJR_CPP_20)
 #define WJR_IS_CONSTANT_EVALUATED_BEGIN if(std::is_constant_evaluated()) {
 #define WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN if(!std::is_constant_evaluated()) {
 #define WJR_CONSTEXPR constexpr
 #define WJR_CONSTEXPR20 constexpr
+#define WJR_CONSTEXPR_FORCEINLINE constexpr WJR_FORCEINLINE
+#define WJR_CONSTEXPR20_FORCEINLINE constexpr WJR_FORCEINLINE
 #elif WJR_HAS_BUILTIN(__builtin_is_constant_evaluated)
 #define WJR_IS_CONSTANT_EVALUATED_BEGIN if(__builtin_is_constant_evaluated()){
 #define WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN if(!__builtin_is_constant_evaluated()){
 #define WJR_CONSTEXPR constexpr
 #define WJR_CONSTEXPR20 inline
+#define WJR_CONSTEXPR_FORCEINLINE constexpr WJR_FORCEINLINE
+#define WJR_CONSTEXPR20_FORCEINLINE WJR_FORCEINLINE
 #else
 #define WJR_IS_CONSTANT_EVALUATED_BEGIN if constexpr (false){
 #define WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN if constexpr (true){
 #define WJR_CONSTEXPR inline
 #define WJR_CONSTEXPR20 inline
+#define WJR_CONSTEXPR_FORCEINLINE WJR_FORCEINLINE
+#define WJR_CONSTEXPR20_FORCEINLINE WJR_FORCEINLINE
 #endif
 
 #define WJR_IS_CONSTANT_EVALUATED_END }
@@ -65,14 +79,6 @@
 #define WJR_UNREACHABLE __assume(false)
 #else
 #define WJR_UNREACHABLE
-#endif
-
-#if defined(_MSC_VER)
-#define WJR_FORCEINLINE __forceinline
-#elif WJR_HAS_ATTRIBUTE(always_inline)
-#define WJR_FORCEINLINE __inline__ __attribute__((always_inline))
-#else
-#define WJR_FORCEINLINE inline
 #endif
 
 #if defined(_MSC_VER)

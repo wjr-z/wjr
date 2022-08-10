@@ -137,7 +137,7 @@ namespace wjr {
 #undef REGISTER_JSON_INDEX_AND_TYPE_MAP
 
 	template<typename T>
-	using _Is_json_number = is_any_of<T, short, unsigned short, int, unsigned int, long,
+	using _Is_json_number = wjr_is_any_of<T, short, unsigned short, int, unsigned int, long,
 		unsigned long, long long, unsigned long long, float, double>;
 
 	template<typename T>
@@ -566,7 +566,7 @@ namespace wjr {
 			break;
 		}
 		default: {
-			assert(false);
+			WJR_UNREACHABLE;
 			break;
 		}
 		}
@@ -634,7 +634,7 @@ namespace wjr {
 			break;
 		}
 		default: {
-			assert(false);
+			WJR_UNREACHABLE;
 			break;
 		}
 		}

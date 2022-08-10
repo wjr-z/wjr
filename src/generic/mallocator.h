@@ -182,14 +182,14 @@ namespace wjr {
 		}
 
 		// Returns an object of size n, and optionally adds to size n free list.
-		static void* refill(size_t n);
+		static void* refill(size_t n) noexcept;
 
 		// Allocates a chunk for nobjs of size "size".  nobjs may be reduced
 		// if it is inconvenient to allocate the requested number.
-		static char* chunk_alloc(size_t size, int& nobjs);
+		static char* chunk_alloc(size_t size, int& nobjs) noexcept;
 
 	public:
-		static void* allocate(size_t n) //n must be > 0
+		static void* allocate(size_t n) noexcept //n must be > 0
 		{
 #ifdef ALLOCATOR_DEBUG
 			allocator_debuger_ref.allocated_size += n;
@@ -206,7 +206,7 @@ namespace wjr {
 			return refill(ROUND_UP(n));
 		}
 
-		static void deallocate(void* p, size_t n) //p may not be 0
+		static void deallocate(void* p, size_t n) noexcept //p may not be 0
 		{
 #ifdef ALLOCATOR_DEBUG
 			allocator_debuger_ref.allocated_size -= n;
@@ -231,9 +231,8 @@ namespace wjr {
 	// We hold the allocation lock.
 	//----------------------------------------------
 	template <bool threads, int inst>
-	char*
-		__default_alloc_template__<threads, inst>::
-		chunk_alloc(size_t size, int& nobjs) {
+	char* __default_alloc_template__<threads, inst>::
+		chunk_alloc(size_t size, int& nobjs) noexcept {
 		char* result;
 		size_t total_bytes = size * nobjs;
 		const auto bytes_left = static_cast<size_t>(base::end_free - base::start_free);
@@ -299,7 +298,7 @@ namespace wjr {
 	//----------------------------------------------
 	template <bool threads, int inst>
 	void* __default_alloc_template__<threads, inst>::
-		refill(size_t n) {
+		refill(size_t n) noexcept {
 		int nobjs = 20;
 		char* chunk = chunk_alloc(n, nobjs);
 		obj* current_obj;
@@ -349,11 +348,11 @@ namespace wjr {
 		constexpr basic_mallocator() noexcept = default;
 		constexpr basic_mallocator(const basic_mallocator&) noexcept = default;
 		template <class _Other>
-		constexpr basic_mallocator(const basic_mallocator<_Other, threads>&) noexcept {}
+		constexpr explicit basic_mallocator(const basic_mallocator<_Other, threads>&) noexcept {}
 		~basic_mallocator() = default;
 		basic_mallocator& operator=(const basic_mallocator&) noexcept = default;
 
-		[[nodiscard]] WJR_CONSTEXPR Ty* allocate() const noexcept{
+		[[nodiscard]] WJR_CONSTEXPR Ty* allocate() const noexcept {
 			WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
 				return static_cast<Ty*>(allocator_type::allocate(sizeof(Ty)));
 			WJR_IS_NOT_CONSTANT_EVALUATED_END
@@ -362,7 +361,10 @@ namespace wjr {
 
 		[[nodiscard]] WJR_CONSTEXPR Ty* allocate(size_t n) const noexcept {
 			WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
-				return !n ? nullptr : static_cast<Ty*>(allocator_type::allocate(sizeof(Ty) * n));
+				if (unlikely(0 == n)) {
+					return nullptr;
+				}
+			return static_cast<Ty*>(allocator_type::allocate(sizeof(Ty) * n));
 			WJR_IS_NOT_CONSTANT_EVALUATED_END
 			return std::allocator<Ty>().allocate(n);
 		}
@@ -376,7 +378,7 @@ namespace wjr {
 
 		WJR_CONSTEXPR void deallocate(Ty* ptr, size_t n) const noexcept{
 			WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
-				if (0 == n) return;
+				if (unlikely(0 == n)) return;
 				return allocator_type::deallocate(static_cast<void*>(ptr), sizeof(Ty) * n);
 			WJR_IS_NOT_CONSTANT_EVALUATED_END
 			return std::allocator<Ty>().deallocate(ptr, n);

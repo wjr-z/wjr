@@ -52,31 +52,14 @@ namespace wjr {
         template<typename T>
         using midentity_t = typename midentity<T>::type;
 
-        template<template<typename, typename>typename judger, typename...>
-        struct is_any_of_helper {
-            static constexpr bool value = false;
-        };
-
-        template<template<typename, typename>typename judger, typename T, typename U>
-        struct is_any_of_helper<judger, T, U> {
-            static constexpr bool value = judger<T, U>::value;
-        };
-
-        template<template<typename, typename>typename judger, typename T, typename U, typename... Args>
-        struct is_any_of_helper<judger, T, U, Args...> {
+        template<typename T, typename...Args>
+        struct wjr_is_any_of {
             static constexpr bool value =
-                std::disjunction_v<
-                judger<T, U>,
-                is_any_of_helper<judger, T, Args...>>;
+                std::disjunction_v<std::is_same<T, Args>...>;
         };
 
         template<typename T, typename...Args>
-        struct is_any_of {
-            static constexpr bool value = is_any_of_helper<std::is_same, T, Args...>::value;
-        };
-
-        template<typename T, typename...args>
-        constexpr bool wjr_is_any_of_v = is_any_of_helper<std::is_same, T, args...>::value;
+        constexpr bool wjr_is_any_of_v = wjr_is_any_of<T, Args...>::value;
 
         template<typename T, typename = void>
         struct wjr_is_iterator : std::false_type {};

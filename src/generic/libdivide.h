@@ -11,7 +11,13 @@
 #ifndef LIBDIVIDE_H
 #define LIBDIVIDE_H
 
+#if defined(__SSE2__)
 #define LIBDIVIDE_SSE2
+#endif
+
+#if defined(__AVX_2__)
+#define LIBDIVIDE_AVX2
+#endif
 
 #define LIBDIVIDE_VERSION "5.0"
 #define LIBDIVIDE_VERSION_MAJOR 5
@@ -36,7 +42,7 @@
 // disable warning C4146: unary minus operator applied
 // to unsigned type, result still unsigned
 #pragma warning(disable : 4146)
-// disable warning C4204: nonstandard extension used : non-constant aggregate
+// disable warning C4204: nonstandard extension used : non-constant aggregate 
 // initializer
 //
 // It's valid C99
@@ -248,217 +254,6 @@ namespace libdivide {
 
     //////// Internal Utility Functions
 
-    constexpr static WJR_FORCEINLINE uint16_t libdivide_mullhi_u16(uint16_t x, uint16_t y) {
-        uint32_t xl = x, yl = y;
-        uint32_t rl = xl * yl;
-        return static_cast<uint16_t>(rl >> 16);
-    }
-
-    constexpr static WJR_FORCEINLINE int16_t libdivide_mullhi_s16(int16_t x, int16_t y) {
-        int32_t xl = x, yl = y;
-        int32_t rl = xl * yl;
-        // needs to be arithmetic shift
-        return static_cast<int16_t>(rl >> 16);
-    }
-
-    constexpr static WJR_FORCEINLINE uint32_t libdivide_mullhi_u32(uint32_t x, uint32_t y) {
-        uint64_t xl = x, yl = y;
-        uint64_t rl = xl * yl;
-        return static_cast<uint32_t>(rl >> 32);
-    }
-
-    constexpr static WJR_FORCEINLINE int32_t libdivide_mullhi_s32(int32_t x, int32_t y) {
-        int64_t xl = x, yl = y;
-        int64_t rl = xl * yl;
-        // needs to be arithmetic shift
-        return static_cast<int32_t>(rl >> 32);
-    }
-
-    static WJR_FORCEINLINE uint64_t libdivide_mullhi_u64(uint64_t x, uint64_t y) {
-#if defined(LIBDIVIDE_VC) && defined(LIBDIVIDE_X86_64)
-        return __umulh(x, y);
-#elif defined(HAS_INT128_T)
-        __uint128_t xl = x, yl = y;
-        __uint128_t rl = xl * yl;
-        return (uint64_t)(rl >> 64);
-#elif defined(WJR_GCC_STYLE_ASM) && defined(WJR_X64)
-        __asm__("mulq %[u1]" : [u1] "+d"(x) : "a"(y));
-        return x;
-#else
-        // full 128 bits are x0 * y0 + (x0 * y1 << 32) + (x1 * y0 << 32) + (x1 * y1 << 64)
-        uint32_t mask = 0xFFFFFFFF;
-        uint32_t x0 = (uint32_t)(x & mask);
-        uint32_t x1 = (uint32_t)(x >> 32);
-        uint32_t y0 = (uint32_t)(y & mask);
-        uint32_t y1 = (uint32_t)(y >> 32);
-        uint32_t x0y0_hi = libdivide_mullhi_u32(x0, y0);
-        uint64_t x0y1 = x0 * (uint64_t)y1;
-        uint64_t x1y0 = x1 * (uint64_t)y0;
-        uint64_t x1y1 = x1 * (uint64_t)y1;
-        uint64_t temp = x1y0 + x0y0_hi;
-        uint64_t temp_lo = temp & mask;
-        uint64_t temp_hi = temp >> 32;
-
-        return x1y1 + temp_hi + ((temp_lo + x0y1) >> 32);
-#endif
-    }
-
-    static WJR_FORCEINLINE int64_t libdivide_mullhi_s64(int64_t x, int64_t y) {
-#if defined(LIBDIVIDE_VC) && defined(LIBDIVIDE_X86_64)
-        return __mulh(x, y);
-#elif defined(HAS_INT128_T)
-        __int128_t xl = x, yl = y;
-        __int128_t rl = xl * yl;
-        return (int64_t)(rl >> 64);
-#elif defined(WJR_GCC_STYLE_ASM) && defined(WJR_X64)
-        __asm__("imulq %[u1]" : [u1] "+d"(x) : "a"(y));
-        return x;
-#else
-        // full 128 bits are x0 * y0 + (x0 * y1 << 32) + (x1 * y0 << 32) + (x1 * y1 << 64)
-        uint32_t mask = 0xFFFFFFFF;
-        uint32_t x0 = (uint32_t)(x & mask);
-        uint32_t y0 = (uint32_t)(y & mask);
-        int32_t x1 = (int32_t)(x >> 32);
-        int32_t y1 = (int32_t)(y >> 32);
-        uint32_t x0y0_hi = libdivide_mullhi_u32(x0, y0);
-        int64_t t = x1 * (int64_t)y0 + x0y0_hi;
-        int64_t w1 = x0 * (int64_t)y1 + (t & mask);
-
-        return x1 * (int64_t)y1 + (t >> 32) + (w1 >> 32);
-#endif
-    }
-
-    // libdivide_32_div_16_to_16: divides a 32-bit uint {u1, u0} by a 16-bit
-    // uint {v}. The result must fit in 16 bits.
-    // Returns the quotient directly and the remainder in *r
-    static WJR_FORCEINLINE uint16_t libdivide_32_div_16_to_16(
-        uint16_t u1, uint16_t u0, uint16_t v, uint16_t* r) {
-        uint32_t n = ((uint32_t)u1 << 16) | u0;
-        uint16_t result = (uint16_t)(n / v);
-        *r = (uint16_t)(n - result * (uint32_t)v);
-        return result;
-    }
-
-    // libdivide_64_div_32_to_32: divides a 64-bit uint {u1, u0} by a 32-bit
-    // uint {v}. The result must fit in 32 bits.
-    // Returns the quotient directly and the remainder in *r
-    static WJR_FORCEINLINE uint32_t libdivide_64_div_32_to_32(
-        uint32_t u1, uint32_t u0, uint32_t v, uint32_t* r) {
-#if (defined(LIBDIVIDE_i386) || defined(LIBDIVIDE_X86_64)) && defined(LIBDIVIDE_GCC_STYLE_ASM)
-        uint32_t result;
-        __asm__("divl %[v]" : "=a"(result), "=d"(*r) : [v] "r"(v), "a"(u0), "d"(u1));
-        return result;
-#else
-        uint64_t n = ((uint64_t)u1 << 32) | u0;
-#if defined(LIBDIVIDE_VC)
-        uint32_t result = _udiv64(n, v, r);
-#else
-        uint32_t result = (uint32_t)(n / v);
-        *r = (uint32_t)(n - result * (uint64_t)v);
-#endif
-        return result;
-#endif
-    }
-
-    // libdivide_128_div_64_to_64: divides a 128-bit uint {numhi, numlo} by a 64-bit uint {den}. The
-    // result must fit in 64 bits. Returns the quotient directly and the remainder in *r
-    static WJR_FORCEINLINE uint64_t libdivide_128_div_64_to_64(
-        uint64_t numhi, uint64_t numlo, uint64_t den, uint64_t* r) {
-        // N.B. resist the temptation to use __uint128_t here.
-        // In LLVM compiler-rt, it performs a 128/128 -> 128 division which is many times slower than
-        // necessary. In gcc it's better but still slower than the divlu implementation, perhaps because
-        // it's not LIBDIVIDE_INLINEd.
-#if defined(LIBDIVIDE_X86_64) && defined(LIBDIVIDE_GCC_STYLE_ASM)
-        uint64_t result;
-        __asm__("divq %[v]" : "=a"(result), "=d"(*r) : [v] "r"(den), "a"(numlo), "d"(numhi));
-        return result;
-#elif defined(LIBDIVIDE_VC) && defined(_M_X64)
-        return _udiv128(numhi, numlo, den, r);
-#else
-    // We work in base 2**32.
-    // A uint32 holds a single digit. A uint64 holds two digits.
-    // Our numerator is conceptually [num3, num2, num1, num0].
-    // Our denominator is [den1, den0].
-        const uint64_t b = ((uint64_t)1 << 32);
-
-        // The high and low digits of our computed quotient.
-        uint32_t q1;
-        uint32_t q0;
-
-        // The normalization shift factor.
-        int shift;
-
-        // The high and low digits of our denominator (after normalizing).
-        // Also the low 2 digits of our numerator (after normalizing).
-        uint32_t den1;
-        uint32_t den0;
-        uint32_t num1;
-        uint32_t num0;
-
-        // A partial remainder.
-        uint64_t rem;
-
-        // The estimated quotient, and its corresponding remainder (unrelated to true remainder).
-        uint64_t qhat;
-        uint64_t rhat;
-
-        // Variables used to correct the estimated quotient.
-        uint64_t c1;
-        uint64_t c2;
-
-        // Check for overflow and divide by 0.
-        if (numhi >= den) {
-            if (r != NULL) *r = ~0ull;
-            return ~0ull;
-        }
-
-        // Determine the normalization factor. We multiply den by this, so that its leading digit is at
-        // least half b. In binary this means just shifting left by the number of leading zeros, so that
-        // there's a 1 in the MSB.
-        // We also shift numer by the same amount. This cannot overflow because numhi < den.
-        // The expression (-shift & 63) is the same as (64 - shift), except it avoids the UB of shifting
-        // by 64. The funny bitwise 'and' ensures that numlo does not get shifted into numhi if shift is
-        // 0. clang 11 has an x86 codegen bug here: see LLVM bug 50118. The sequence below avoids it.
-        shift = wjr::math::countl_zero(den);
-        den <<= shift;
-        numhi <<= shift;
-        numhi |= (numlo >> (-shift & 63)) & (-(int64_t)shift >> 63);
-        numlo <<= shift;
-
-        // Extract the low digits of the numerator and both digits of the denominator.
-        num1 = (uint32_t)(numlo >> 32);
-        num0 = (uint32_t)(numlo & 0xFFFFFFFFu);
-        den1 = (uint32_t)(den >> 32);
-        den0 = (uint32_t)(den & 0xFFFFFFFFu);
-
-        // We wish to compute q1 = [n3 n2 n1] / [d1 d0].
-        // Estimate q1 as [n3 n2] / [d1], and then correct it.
-        // Note while qhat may be 2 digits, q1 is always 1 digit.
-        qhat = numhi / den1;
-        rhat = numhi % den1;
-        c1 = qhat * den0;
-        c2 = rhat * b + num1;
-        if (c1 > c2) qhat -= (c1 - c2 > den) ? 2 : 1;
-        q1 = (uint32_t)qhat;
-
-        // Compute the true (partial) remainder.
-        rem = numhi * b + num1 - q1 * den;
-
-        // We wish to compute q0 = [rem1 rem0 n0] / [d1 d0].
-        // Estimate q0 as [rem1 rem0] / [d1] and correct it.
-        qhat = rem / den1;
-        rhat = rem % den1;
-        c1 = qhat * den0;
-        c2 = rhat * b + num0;
-        if (c1 > c2) qhat -= (c1 - c2 > den) ? 2 : 1;
-        q0 = (uint32_t)qhat;
-
-        // Return remainder if requested.
-        if (r != NULL) *r = (rem * b + num0 - q0 * den) >> shift;
-        return ((uint64_t)q1 << 32) | q0;
-#endif
-    }
-
     // Bitshift a u128 in place, left (signed_shift > 0) or right (signed_shift < 0)
     static WJR_FORCEINLINE void libdivide_u128_shift(
         uint64_t* u1, uint64_t* u0, int32_t signed_shift) {
@@ -505,7 +300,7 @@ namespace libdivide {
             // the quotient fits in 64 bits whereas Hacker's Delight demands a full
             // 128 bit quotient
             *r_hi = 0;
-            return libdivide_128_div_64_to_64(u.hi, u.lo, v.lo, r_lo);
+            return wjr::math::u128_div_64_to_64(u.hi, u.lo, v.lo, r_lo);
         }
         // Here v >= 2**64
         // We know that v.hi != 0, so count leading zeros is OK
@@ -523,7 +318,7 @@ namespace libdivide {
 
         // Get quotient from divide unsigned insn.
         uint64_t rem_ignored;
-        uint64_t q1 = libdivide_128_div_64_to_64(u1.hi, u1.lo, v1, &rem_ignored);
+        uint64_t q1 = wjr::math::u128_div_64_to_64(u1.hi, u1.lo, v1, &rem_ignored);
 
         // Undo normalization and division of u by 2.
         u128_t q0 = { 0, q1 };
@@ -545,7 +340,7 @@ namespace libdivide {
         // Each term is 128 bit
         // High half of full product (upper 128 bits!) are dropped
         u128_t q0v = { 0, 0 };
-        q0v.hi = q0.hi * v.lo + q0.lo * v.hi + libdivide_mullhi_u64(q0.lo, v.lo);
+        q0v.hi = q0.hi * v.lo + q0.lo * v.hi + wjr::math::mulhi_u64(q0.lo, v.lo);
         q0v.lo = q0.lo * v.lo;
 
         // Compute u - q0v as u_q0v
@@ -595,7 +390,7 @@ namespace libdivide {
         else {
             uint8_t more;
             uint16_t rem, proposed_m;
-            proposed_m = libdivide_32_div_16_to_16((uint16_t)1 << floor_log_2_d, 0, d, &rem);
+            proposed_m = wjr::math::u32_div_16_to_16((uint16_t)1 << floor_log_2_d, 0, d, &rem);
 
             WASSERT_LEVEL_2(rem > 0 && rem < d);
             const uint16_t e = d - rem;
@@ -647,7 +442,7 @@ namespace libdivide {
             return numer >> more;
         }
         else {
-            uint16_t q = libdivide_mullhi_u16(magic, numer);
+            uint16_t q = wjr::math::mulhi_u16(magic, numer);
             if (more & LIBDIVIDE_ADD_MARKER) {
                 uint16_t t = ((numer - q) >> 1) + q;
                 return t >> (more & LIBDIVIDE_16_SHIFT_MASK);
@@ -666,7 +461,7 @@ namespace libdivide {
 
     uint16_t libdivide_u16_branchfree_do(
         uint16_t numer, const struct libdivide_u16_branchfree_t* denom) {
-        uint16_t q = libdivide_mullhi_u16(denom->magic, numer);
+        uint16_t q = wjr::math::mulhi_u16(denom->magic, numer);
         uint16_t t = ((numer - q) >> 1) + q;
         return t >> denom->more;
     }
@@ -686,7 +481,7 @@ namespace libdivide {
             // so we can just add 1 to the floor
             uint16_t hi_dividend = (uint16_t)1 << shift;
             uint16_t rem_ignored;
-            return 1 + libdivide_32_div_16_to_16(hi_dividend, 0, denom->magic, &rem_ignored);
+            return 1 + wjr::math::u32_div_16_to_16(hi_dividend, 0, denom->magic, &rem_ignored);
         }
         else {
             // Here we wish to compute d = 2^(16+shift+1)/(m+2^16).
@@ -762,7 +557,7 @@ namespace libdivide {
         else {
             uint8_t more;
             uint32_t rem, proposed_m;
-            proposed_m = libdivide_64_div_32_to_32((uint32_t)1 << floor_log_2_d, 0, d, &rem);
+            proposed_m = wjr::math::u64_div_32_to_32((uint32_t)1 << floor_log_2_d, 0, d, &rem);
 
             WASSERT_LEVEL_2(rem > 0 && rem < d);
             const uint32_t e = d - rem;
@@ -812,7 +607,7 @@ namespace libdivide {
             return numer >> more;
         }
         else {
-            uint32_t q = libdivide_mullhi_u32(denom->magic, numer);
+            uint32_t q = wjr::math::mulhi_u32(denom->magic, numer);
             if (more & LIBDIVIDE_ADD_MARKER) {
                 uint32_t t = ((numer - q) >> 1) + q;
                 return t >> (more & LIBDIVIDE_32_SHIFT_MASK);
@@ -827,7 +622,7 @@ namespace libdivide {
 
     uint32_t libdivide_u32_branchfree_do(
         uint32_t numer, const struct libdivide_u32_branchfree_t* denom) {
-        uint32_t q = libdivide_mullhi_u32(denom->magic, numer);
+        uint32_t q = wjr::math::mulhi_u32(denom->magic, numer);
         uint32_t t = ((numer - q) >> 1) + q;
         return t >> denom->more;
     }
@@ -847,7 +642,7 @@ namespace libdivide {
             // so we can just add 1 to the floor
             uint32_t hi_dividend = (uint32_t)1 << shift;
             uint32_t rem_ignored;
-            return 1 + libdivide_64_div_32_to_32(hi_dividend, 0, denom->magic, &rem_ignored);
+            return 1 + wjr::math::u64_div_32_to_32(hi_dividend, 0, denom->magic, &rem_ignored);
         }
         else {
             // Here we wish to compute d = 2^(32+shift+1)/(m+2^32).
@@ -924,7 +719,7 @@ namespace libdivide {
             uint64_t proposed_m, rem;
             uint8_t more;
             // (1 << (64 + floor_log_2_d)) / d
-            proposed_m = libdivide_128_div_64_to_64((uint64_t)1 << floor_log_2_d, 0, d, &rem);
+            proposed_m = wjr::math::u128_div_64_to_64((uint64_t)1 << floor_log_2_d, 0, d, &rem);
 
             WASSERT_LEVEL_2(rem > 0 && rem < d);
             const uint64_t e = d - rem;
@@ -975,7 +770,7 @@ namespace libdivide {
             return numer >> more;
         }
         else {
-            uint64_t q = libdivide_mullhi_u64(denom->magic, numer);
+            uint64_t q = wjr::math::mulhi_u64(denom->magic, numer);
             if (more & LIBDIVIDE_ADD_MARKER) {
                 uint64_t t = ((numer - q) >> 1) + q;
                 return t >> (more & LIBDIVIDE_64_SHIFT_MASK);
@@ -990,7 +785,7 @@ namespace libdivide {
 
     uint64_t libdivide_u64_branchfree_do(
         uint64_t numer, const struct libdivide_u64_branchfree_t* denom) {
-        uint64_t q = libdivide_mullhi_u64(denom->magic, numer);
+        uint64_t q = wjr::math::mulhi_u64(denom->magic, numer);
         uint64_t t = ((numer - q) >> 1) + q;
         return t >> denom->more;
     }
@@ -1010,7 +805,7 @@ namespace libdivide {
             // so we can just add 1 to the floor
             uint64_t hi_dividend = (uint64_t)1 << shift;
             uint64_t rem_ignored;
-            return 1 + libdivide_128_div_64_to_64(hi_dividend, 0, denom->magic, &rem_ignored);
+            return 1 + wjr::math::u128_div_64_to_64(hi_dividend, 0, denom->magic, &rem_ignored);
         }
         else {
             // Here we wish to compute d = 2^(64+shift+1)/(m+2^64).
@@ -1108,7 +903,7 @@ namespace libdivide {
             // the dividend here is 2**(floor_log_2_d + 31), so the low 16 bit word
             // is 0 and the high word is floor_log_2_d - 1
             uint16_t rem, proposed_m;
-            proposed_m = libdivide_32_div_16_to_16((uint16_t)1 << (floor_log_2_d - 1), 0, absD, &rem);
+            proposed_m = wjr::math::u32_div_16_to_16((uint16_t)1 << (floor_log_2_d - 1), 0, absD, &rem);
             const uint16_t e = absD - rem;
 
             // We are going to start with a power of floor_log_2_d - 1.
@@ -1171,7 +966,7 @@ namespace libdivide {
             return q;
         }
         else {
-            uint16_t uq = (uint16_t)libdivide_mullhi_s16(magic, numer);
+            uint16_t uq = (uint16_t)wjr::math::mulhi_s16(magic, numer);
             if (more & LIBDIVIDE_ADD_MARKER) {
                 // must be arithmetic shift and then sign extend
                 int16_t sign = (int8_t)more >> 7;
@@ -1196,7 +991,7 @@ namespace libdivide {
         // must be arithmetic shift and then sign extend
         int16_t sign = (int8_t)more >> 7;
         int16_t magic = denom->magic;
-        int16_t q = libdivide_mullhi_s16(magic, numer);
+        int16_t q = wjr::math::mulhi_s16(magic, numer);
         q += numer;
 
         // If q is non-negative, we have nothing to do
@@ -1285,7 +1080,7 @@ namespace libdivide {
             // the dividend here is 2**(floor_log_2_d + 31), so the low 32 bit word
             // is 0 and the high word is floor_log_2_d - 1
             uint32_t rem, proposed_m;
-            proposed_m = libdivide_64_div_32_to_32((uint32_t)1 << (floor_log_2_d - 1), 0, absD, &rem);
+            proposed_m = wjr::math::u64_div_32_to_32((uint32_t)1 << (floor_log_2_d - 1), 0, absD, &rem);
             const uint32_t e = absD - rem;
 
             // We are going to start with a power of floor_log_2_d - 1.
@@ -1346,7 +1141,7 @@ namespace libdivide {
             return q;
         }
         else {
-            uint32_t uq = (uint32_t)libdivide_mullhi_s32(denom->magic, numer);
+            uint32_t uq = (uint32_t)wjr::math::mulhi_s32(denom->magic, numer);
             if (more & LIBDIVIDE_ADD_MARKER) {
                 // must be arithmetic shift and then sign extend
                 int32_t sign = (int8_t)more >> 7;
@@ -1367,7 +1162,7 @@ namespace libdivide {
         // must be arithmetic shift and then sign extend
         int32_t sign = (int8_t)more >> 7;
         int32_t magic = denom->magic;
-        int32_t q = libdivide_mullhi_s32(magic, numer);
+        int32_t q = wjr::math::mulhi_s32(magic, numer);
         q += numer;
 
         // If q is non-negative, we have nothing to do
@@ -1454,7 +1249,7 @@ namespace libdivide {
             // is 0 and the high word is floor_log_2_d - 1
             uint8_t more;
             uint64_t rem, proposed_m;
-            proposed_m = libdivide_128_div_64_to_64((uint64_t)1 << (floor_log_2_d - 1), 0, absD, &rem);
+            proposed_m = wjr::math::u128_div_64_to_64((uint64_t)1 << (floor_log_2_d - 1), 0, absD, &rem);
             const uint64_t e = absD - rem;
 
             // We are going to start with a power of floor_log_2_d - 1.
@@ -1518,7 +1313,7 @@ namespace libdivide {
             return q;
         }
         else {
-            uint64_t uq = (uint64_t)libdivide_mullhi_s64(denom->magic, numer);
+            uint64_t uq = (uint64_t)wjr::math::mulhi_s64(denom->magic, numer);
             if (more & LIBDIVIDE_ADD_MARKER) {
                 // must be arithmetic shift and then sign extend
                 int64_t sign = (int8_t)more >> 7;
@@ -1539,7 +1334,7 @@ namespace libdivide {
         // must be arithmetic shift and then sign extend
         int64_t sign = (int8_t)more >> 7;
         int64_t magic = denom->magic;
-        int64_t q = libdivide_mullhi_s64(magic, numer);
+        int64_t q = wjr::math::mulhi_s64(magic, numer);
         q += numer;
 
         // If q is non-negative, we have nothing to do.
@@ -1575,7 +1370,7 @@ namespace libdivide {
             uint64_t d = (uint64_t)(magic_was_negated ? -denom->magic : denom->magic);
             uint64_t n_hi = (uint64_t)1 << shift, n_lo = 0;
             uint64_t rem_ignored;
-            uint64_t q = libdivide_128_div_64_to_64(n_hi, n_lo, d, &rem_ignored);
+            uint64_t q = wjr::math::u128_div_64_to_64(n_hi, n_lo, d, &rem_ignored);
             int64_t result = (int64_t)(q + 1);
             if (negative_divisor) {
                 result = -result;
@@ -1893,7 +1688,7 @@ namespace libdivide {
         // must be arithmetic shift
         int64x2_t sign = vdupq_n_s64((int8_t)more >> 7);  // TODO: avoid sign extend
 
-        // libdivide_mullhi_s64(numers, magic);
+        // wjr::math::mulhi_s64(numers, magic);
         int64x2_t q = libdivide_mullhi_s64_vec128(numers, magic);
         q = vaddq_s64(q, numers);  // q += numers
 
@@ -2174,7 +1969,7 @@ namespace libdivide {
         // must be arithmetic shift
         __m512i sign = _mm512_set1_epi32((int8_t)more >> 7);
 
-        // libdivide_mullhi_s64(numers, magic);
+        // wjr::math::mulhi_s64(numers, magic);
         __m512i q = libdivide_mullhi_s64_vec512(numers, _mm512_set1_epi64(magic));
         q = _mm512_add_epi64(q, numers);  // q += numers
 
@@ -2520,7 +2315,7 @@ namespace libdivide {
         // must be arithmetic shift
         __m256i sign = _mm256_set1_epi32((int8_t)more >> 7);
 
-        // libdivide_mullhi_s64(numers, magic);
+        // wjr::math::mulhi_s64(numers, magic);
         __m256i q = libdivide_mullhi_s64_vec256(numers, _mm256_set1_epi64x(magic));
         q = _mm256_add_epi64(q, numers);  // q += numers
 
@@ -2880,7 +2675,7 @@ namespace libdivide {
         // must be arithmetic shift
         __m128i sign = _mm_set1_epi32((int8_t)more >> 7);
 
-        // libdivide_mullhi_s64(numers, magic);
+        // wjr::math::mulhi_s64(numers, magic);
         __m128i q = libdivide_mullhi_s64_vec128(numers, _mm_set1_epi64x(magic));
         q = _mm_add_epi64(q, numers);  // q += numers
 
