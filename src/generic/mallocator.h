@@ -384,7 +384,7 @@ namespace wjr {
 			return std::allocator<Ty>().deallocate(ptr, n);
 		}
 
-		constexpr void construct([[maybe_unused]]Ty* ptr, tag::uninitialized) const{
+		constexpr void construct([[maybe_unused]]Ty* ptr, tag::uninitialized_tag) const{
 			// don't do anything
 		}
 

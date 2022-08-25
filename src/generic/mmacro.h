@@ -52,6 +52,7 @@
 #define WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN if(!std::is_constant_evaluated()) {
 #define WJR_CONSTEXPR constexpr
 #define WJR_CONSTEXPR20 constexpr
+#define WJR_CONSTEVAL20 consteval
 #define WJR_CONSTEXPR_FORCEINLINE constexpr WJR_FORCEINLINE
 #define WJR_CONSTEXPR20_FORCEINLINE constexpr WJR_FORCEINLINE
 #elif WJR_HAS_BUILTIN(__builtin_is_constant_evaluated)
@@ -59,6 +60,7 @@
 #define WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN if(!__builtin_is_constant_evaluated()){
 #define WJR_CONSTEXPR constexpr
 #define WJR_CONSTEXPR20 inline
+#define WJR_CONSTEVAL20 constexpr
 #define WJR_CONSTEXPR_FORCEINLINE constexpr WJR_FORCEINLINE
 #define WJR_CONSTEXPR20_FORCEINLINE WJR_FORCEINLINE
 #else
@@ -66,6 +68,7 @@
 #define WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN if constexpr (true){
 #define WJR_CONSTEXPR inline
 #define WJR_CONSTEXPR20 inline
+#define WJR_CONSTEVAL20 constexpr
 #define WJR_CONSTEXPR_FORCEINLINE WJR_FORCEINLINE
 #define WJR_CONSTEXPR20_FORCEINLINE WJR_FORCEINLINE
 #endif
@@ -201,32 +204,120 @@
 #define WJR_GCC_STYLE_ASM
 #endif
 
-#if defined(__SSE__)
-#include <xmmintrin.h>
+#if defined ( __AVX512VL__ ) && defined ( __AVX512BW__ ) && defined ( __AVX512DQ__ )
+#ifndef __AVX512F__
+#define __AVX512F__
+#endif
+#ifndef __AVX512__
+#define __AVX512__
+#endif
+#ifndef WJR_INSTRSET
+#define WJR_INSTRSET 10
+#endif
 #endif
 
-#if defined(__SSE2__)
-#include <emmintrin.h>
+#if defined(__AVX512__) || defined(__AVX512F__)
+#ifndef __AVX2__
+#define __AVX2__
+#endif
+#ifndef WJR_INSTRSET
+#define WJR_INSTRSET 9
+#endif
 #endif
 
-#if defined(__SSE3__)
-#include <pmmintrin.h>
+#if defined(__AVX2__)
+#ifndef __AVX__
+#define __AVX__
+#endif
+#ifndef WJR_INSTRSET
+#define WJR_INSTRSET 8
+#endif
 #endif
 
-#if defined(__SSE4_1__)
-#include <smmintrin.h>
+#if defined(__AVX__)
+#ifndef __SSE4_2__
+#define __SSE4_2__
+#endif
+#ifndef WJR_INSTRSET
+#define WJR_INSTRSET 7
+#endif
 #endif
 
 #if defined(__SSE4_2__)
-#include <nmmintrin.h>
+#ifndef __SSE4_1__
+#define __SSE4_1__
+#endif
+#ifndef WJR_INSTRSET
+#define WJR_INSTRSET 6
+#endif
 #endif
 
-#if defined(__AVX__) || defined(__AVX2__) || defined(__AVX512F__)
-#include <immintrin.h>
+#if defined(__SSE4_1__)
+#ifndef __SSSE3__
+#define __SSSE3__
+#endif
+#ifndef WJR_INSTRSET
+#define WJR_INSTRSET 5
+#endif
+#endif
+
+#if defined(__SSSE3__)
+#ifndef __SSE3__
+#define __SSE3__
+#endif
+#ifndef WJR_INSTRSET
+#define WJR_INSTRSET 4
+#endif
+#endif
+
+#if defined(__SSE3__)
+#ifndef __SSE2__
+#define __SSE2__
+#endif
+#ifndef WJR_INSTRSET
+#define WJR_INSTRSET 3
+#endif
+#endif
+
+#if defined(__SSE2__)
+#ifndef __SSE__
+#define __SSE__
+#endif
+#ifndef WJR_INSTRSET
+#define WJR_INSTRSET 2
+#endif
+#endif
+
+#if defined(__SSE__)
+#ifndef WJR_INSTRSET
+#define WJR_INSTRSET 1
+#endif
+#endif
+
+#ifndef WJR_INSTRSET
+#define WJR_INSTRSET 0
 #endif
 
 #if defined(_MSC_VER)
 #include <intrin.h>
+#elif defined(__GUNC__) || defined(__clang__)
+#include <x86intrin.h>
+#else
+#if defined(__AVX__)
+#include <immintrin.h>
+#elif defined(__SSE4_2__)
+#include <nmmintrin.h>
+#elif defined(__SSE4_1__)
+#include <smmintrin.h>
+#elif defined(__SSSE3__)
+#include <tmmintrin.h>
+#elif defined(__SSE3__)
+#include <pmmintrin.h>
+#elif defined(__SSE2__)
+#include <emmintrin.h>
+#elif defined(__SSE__)
+#include <xmmintrin.h>
+#endif
 #endif
 
 #define WJR_USE_LIBDIVIDE

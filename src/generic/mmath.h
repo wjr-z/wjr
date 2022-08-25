@@ -167,7 +167,7 @@ namespace wjr::math::force_constexpr {
             return 1;
         }
         auto shift = math::force_constexpr::bit_width(val - 1u);
-        return static_cast<T>(1u << shift);
+        return static_cast<T>(static_cast<T>(1u) << shift);
     }
 
     template<typename T, std::enable_if_t<_Is_unsigned_standard_integral_v<T>, int> = 0>
@@ -176,7 +176,32 @@ namespace wjr::math::force_constexpr {
             return 0;
         }
         auto shift = math::force_constexpr::bit_width(val) - 1;
-        return static_cast<T>(1u << shift);
+        return static_cast<T>(static_cast<T>(1u) << shift);
+    }
+
+# define __POPCOUNT_BIT2(n)       n,       n+1,       n+1,       n+2
+# define __POPCOUNT_BIT4(n) __POPCOUNT_BIT2(n), __POPCOUNT_BIT2(n+1), __POPCOUNT_BIT2(n+1), __POPCOUNT_BIT2(n+2)
+# define __POPCOUNT_BIT6(n) __POPCOUNT_BIT4(n), __POPCOUNT_BIT4(n+1), __POPCOUNT_BIT4(n+1), __POPCOUNT_BIT4(n+2)
+# define __POPCOUNT_BIT8(n) __POPCOUNT_BIT6(n), __POPCOUNT_BIT6(n+1), __POPCOUNT_BIT6(n+1), __POPCOUNT_BIT6(n+2)
+    const inline uint8_t __popcount_table[256] = { __POPCOUNT_BIT8(0) };
+#undef __POPCOUNT_BIT8
+#undef __POPCOUNT_BIT6
+#undef __POPCOUNT_BIT4
+#undef __POPCOUNT_BIT2
+
+    template<typename T, std::enable_if_t<_Is_unsigned_standard_integral_v<T>, int> = 0>
+    constexpr int popcount(const T n) noexcept {
+		constexpr int digits = std::numeric_limits<T>::digits;
+        if constexpr (digits <= 16) {
+            return popcount(static_cast<uint32_t>(n));
+        }
+        else if constexpr (digits == 32) {
+            return __popcount_table[n & 0xFF] + __popcount_table[(n >> 8) & 0xFF] +
+                __popcount_table[(n >> 16) & 0xFF] + __popcount_table[(n >> 24) & 0xFF];
+        }
+        else {
+            return popcount(static_cast<uint32_t>(n)) + popcount(static_cast<uint32_t>(n >> 32));
+        }
     }
 
     constexpr uint16_t mulhi_u16(uint16_t x, uint16_t y) {
@@ -231,6 +256,31 @@ namespace wjr::math::force_constexpr {
 
         return x1 * (int64_t)y1 + (t >> 32) + (w1 >> 32);
 #endif
+    }
+
+    constexpr uint64_t u64_mul_64_to_128(uint64_t x, uint64_t y, uint64_t* hi) {
+        constexpr uint64_t mask = 0xFFFFFFFF;
+        uint32_t x0 = (uint32_t)(x & mask);
+        uint32_t x1 = (uint32_t)(x >> 32);
+        uint32_t y0 = (uint32_t)(y & mask);
+        uint32_t y1 = (uint32_t)(y >> 32);
+        uint64_t x0y0 = (uint64_t)x0 * y0;
+        uint64_t x1y1 = (uint64_t)x1 * y1;
+
+        uint64_t x0y1 = (uint64_t)x0 * y1;
+        uint64_t x0y1_hi = x0y1 >> 32;
+        uint64_t x0y1_lo = x0y1 << 32;
+        x0y0 += x0y1_lo;
+        x1y1 += x0y1_hi + (x0y0 < x0y1_lo);
+
+        uint64_t x1y0 = (uint64_t)x1 * y0;
+        uint64_t x1y0_hi = x1y0 >> 32;
+        uint64_t x1y0_lo = x1y0 << 32;
+        x0y0 += x1y0_lo;
+        x1y1 += x1y0_hi + (x0y0 < x1y0_lo);
+
+        *hi = x1y1;
+        return x0y0;
     }
 
     // divide 32-bit unsigned integer by 16-bit unsigned integer 
@@ -331,10 +381,18 @@ namespace wjr::math {
         constexpr int digits = std::numeric_limits<T>::digits;
 
         if constexpr (digits <= 16) {
+#if defined(__AVX2__)
             return static_cast<int>(__lzcnt16(val) - (16 - digits));
+#else // __LZCNT__
+            return static_cast<int>(_lzcnt_u32(val) - (32 - digits));
+#endif
         }
         else if constexpr (digits == 32) {
+#if defined(__AVX2__)
             return static_cast<int>(__lzcnt(val));
+#else // __LZCNT__
+            return static_cast<int>(_lzcnt_u32(val));
+#endif
         }
         else {
 #if defined(WJR_X86)
@@ -347,7 +405,11 @@ namespace wjr::math {
                 return math::_Countl_zero_lzcnt(high);
             }
 #else
+#if defined(__AVX2__)
             return __lzcnt64(val);
+#else // __LZCNT__
+            return _lzcnt_u64(val);
+#endif
 #endif
         }
     }
@@ -384,10 +446,9 @@ namespace wjr::math {
 
     template<typename T>
     int _X86_64_countl_zero(T val) noexcept {
-#ifdef __AVX2__
+#if defined(__AVX2__) || defined(__LZCNT__)
         return math::_Countl_zero_lzcnt(val);
 #else // __AVX2__
-        
         if (_Definitely_have_avx2) {
             return math::_Countl_zero_lzcnt(val);
         }
@@ -426,6 +487,18 @@ namespace wjr::math {
             constexpr auto diff = ull_d - digits;
 #if defined(__GUNC__) || WJR_HAS_BUILTIN(__builtin_clzll)
             return static_cast<int>(__builtin_clzll(val) - diff);
+#endif
+        }
+        if constexpr (digits <= 32) {
+            constexpr auto diff = 32 - digits;
+#if defined(__LZCNT__)
+            return static_cast<int>(_lzcnt_u32(val) - diff);
+#endif
+        }
+        else {
+            constexpr auto diff = 64 - digits;
+#if defined(__LZCNT__)
+            return static_cast<int>(_lzcnt_u64(val) - diff);
 #endif
         }
 
@@ -629,6 +702,11 @@ namespace wjr::math {
         return math::countr_zero(static_cast<T>(~val));
     }
 
+    template<typename T, std::enable_if_t<_Is_unsigned_standard_integral_v<T>, int> = 0>
+    WJR_CONSTEXPR int popcount(const T n) noexcept {
+        return force_constexpr::popcount(n);
+    }
+
     constexpr uint16_t mulhi_u16(uint16_t x, uint16_t y) {
         return force_constexpr::mulhi_u16(x, y);
     }
@@ -671,6 +749,23 @@ namespace wjr::math {
 #endif
         WJR_IS_NOT_CONSTANT_EVALUATED_END
             return math::force_constexpr::mulhi_s64(x, y);
+    }
+
+    WJR_CONSTEXPR uint64_t u64_mul_64_to_128(uint64_t x, uint64_t y, uint64_t* hi) {
+        WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
+#if defined(_MSC_VER) && defined(WJR_X64)
+        return _umul128(x, y, hi);
+#elif defined(__SIZEOF_INT128__)
+        __uint128_t ans = (__uint128_t)x * y;
+        *hi = static_cast<uint64_t>(ans >> 64);
+        return static_cast<uint64_t>(ans);
+#elif defined(WJR_GCC_STYLE_ASM) && defined(WJR_X64)
+        uint64_t ret;
+        __asm__("mulq %[v]" : "=a"(ret), "=d"(*hi) : "a"(x), [v] "r"(y));
+        return ret;
+#endif
+        WJR_IS_NOT_CONSTANT_EVALUATED_END
+        return math::force_constexpr::u64_mul_64_to_128(x, y, hi);
     }
 
     // divide 32-bit unsigned integer by 16-bit unsigned integer 

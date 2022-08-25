@@ -11,14 +11,6 @@
 #ifndef LIBDIVIDE_H
 #define LIBDIVIDE_H
 
-#if defined(__SSE2__)
-#define LIBDIVIDE_SSE2
-#endif
-
-#if defined(__AVX_2__)
-#define LIBDIVIDE_AVX2
-#endif
-
 #define LIBDIVIDE_VERSION "5.0"
 #define LIBDIVIDE_VERSION_MAJOR 5
 #define LIBDIVIDE_VERSION_MINOR 0

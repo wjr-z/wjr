@@ -3,7 +3,6 @@
 
 #include <array>
 #include <malloc.h>
-//#include <iostream>
 
 #include "../generic/mallocator.h"
 #include "../generic/mString.h"
@@ -16,28 +15,70 @@ extern "C" {
 
 namespace wjr::math::biginteger {
 
-    //#define WJR_BIGINTEGER_USE_REALLOC
-
 #if defined(__SIZEOF_INT128__) && !(defined(__clang__) && defined(_MSC_VER))
 #define WJR_BIGINTEGER_USE_X64
 #endif
 
+    template<typename T>
+    struct __Biginteger_is_unsigned : std::is_unsigned<T> {};
+    template<typename T>
+    constexpr bool __Biginteger_is_unsigned_v = __Biginteger_is_unsigned<T>::value;
+
+    template<typename T>
+    struct __Biginteger_is_singed : std::is_signed<T> {};
+    template<typename T>
+    constexpr bool __Biginteger_is_singed_v = __Biginteger_is_singed<T>::value;
+
+    template<typename T>
+    struct __Biginteger_is_integral : std::is_integral<T> {};
+    template<typename T>
+    constexpr bool __Biginteger_is_integral_v = __Biginteger_is_integral<T>::value;
+
+    template<typename T>
+    struct __Bigintger_is_unsigned_integral : std::conjunction<__Biginteger_is_unsigned<T>,
+        __Biginteger_is_integral<T>> {};
+    template<typename T>
+    constexpr bool __Biginteger_is_unsigned_integral_v = __Bigintger_is_unsigned_integral<T>::value;
+
+    template<typename T>
+    struct __Bigintger_is_signed_integral : std::conjunction<__Biginteger_is_singed<T>,
+        __Biginteger_is_integral<T>> {};
+    template<typename T>
+    constexpr bool __Biginteger_is_signed_integral_v = __Bigintger_is_signed_integral<T>::value;
+
 #if defined WJR_BIGINTEGER_USE_X64
     using limb_t = uint64_t;
     using double_limb_t = __uint128_t;
+    using random_device_type = std::mt19937_64;
     constexpr int limb_bits = 64;
     constexpr int limb_bytes = 8;
+
+    template<>
+    struct __Biginteger_is_unsigned<__uint128_t> : std::true_type {};
+    template<>
+    struct __Biginteger_is_integral<__uint128_t> : std::true_type {};
+
+    template<>
+    struct __Biginteger_is_singed<__int128_t> : std::true_type {};
+    template<>
+    struct __Biginteger_is_integral<__int128_t> : std::true_type {};
+
 #else
     using limb_t = uint32_t;
     using double_limb_t = uint64_t;
+    using random_device_type = std::mt19937;
     constexpr int limb_bits = 32;
     constexpr int limb_bytes = 4;
 #endif
+
     using limb_ptr = limb_t*;
     using double_limb_ptr = double_limb_t*;
     using limb_const_ptr = const limb_t*;
     using double_limb_const_ptr = const double_limb_t*;
     using limb_size_t = size_t;
+
+	inline random_device_type static_random_device = 
+        random_device_type(std::random_device{}());
 
     template<size_t base, typename T>
     constexpr bool __cqis_power_of(T val) noexcept {
@@ -60,7 +101,7 @@ namespace wjr::math::biginteger {
 
     template<>
     struct biginteger_libdivider<uint32_t> {
-        explicit biginteger_libdivider(uint32_t d) {
+       WJR_CONSTEXPR explicit biginteger_libdivider(uint32_t d) {
             WASSERT_LEVEL_2(d != 0);
             auto floor_log_2_d = math::integer_log2(d);
 
@@ -114,7 +155,7 @@ namespace wjr::math::biginteger {
         uint8_t more;
     };
 
-    uint64_t operator/(uint64_t n, const biginteger_libdivider<uint32_t>& d) {
+    WJR_CONSTEXPR uint64_t operator/(uint64_t n, const biginteger_libdivider<uint32_t>& d) {
         uint8_t more = d.more;
         if (!d.magic) {
             return n >> more;
@@ -136,7 +177,7 @@ namespace wjr::math::biginteger {
 #if defined (WJR_BIGINTEGER_USE_X64)
     template<>
     struct biginteger_libdivider<uint64_t> {
-        WJR_CONSTEXPR biginteger_libdivider(uint64_t d) {
+        WJR_CONSTEXPR explicit biginteger_libdivider(uint64_t d) {
             WASSERT_LEVEL_2(d != 0);
             auto floor_log_2_d = math::integer_log2(d);
 
@@ -230,6 +271,83 @@ namespace wjr::math::biginteger {
             }
         }
     }
+
+    struct force_biginteger_libdivider {
+        constexpr explicit force_biginteger_libdivider(uint64_t d) : magic(0), more(0) {
+            auto floor_log_2_d = math::force_constexpr::integer_log2(d);
+
+            // Power of 2
+            if ((d & (d - 1)) == 0) {
+                // We need to subtract 1 from the shift value in case of an unsigned
+                // branchfree divider because there is a hardcoded right shift by 1
+                // in its division algorithm. Because of this we also need to add back
+                // 1 in its recovery algorithm.
+                magic = 0;
+                more = (uint8_t)(floor_log_2_d);
+            }
+            else {
+                double_limb_t proposed_m = 0;
+                uint64_t rem = 0;
+                // (1 << (128 + floor_log_2_d)) / d
+                uint64_t _R = 0;
+                proposed_m = math::force_constexpr::u128_div_64_to_64(
+                    static_cast<uint64_t>(1ull << floor_log_2_d), 0, d, &_R);
+                proposed_m <<= 64;
+                proposed_m |= math::force_constexpr::u128_div_64_to_64(_R, 0, d, &rem);
+                WASSERT_LEVEL_2(rem > 0 && rem < d);
+                const uint64_t e = d - rem;
+                // This power works if e < 2**floor_log_2_d.
+                if (e < (static_cast<uint64_t>(1ull << floor_log_2_d))) {
+                    // This power works
+                    more = (uint8_t)floor_log_2_d;
+                }
+                else {
+                    // We have to use the general 129-bit algorithm.  We need to compute
+                    // (2**power) / d. However, we already have (2**(power-1))/d and
+                    // its remainder. By doubling both, and then correcting the
+                    // remainder, we can compute the larger division.
+                    // don't care about overflow here - in fact, we expect it
+                    proposed_m += proposed_m;
+                    const double_limb_t twice_rem = rem + rem;
+                    if (twice_rem >= d || twice_rem < rem) proposed_m += 1;
+                    more = (uint8_t)(floor_log_2_d | libdivide::LIBDIVIDE_ADD_MARKER);
+                }
+                magic = 1 + proposed_m;
+                // result.more's shift should in general be ceil_log_2_d. But if we
+                // used the smaller power, we subtract one from the shift because we're
+                // using the smaller power. If we're using the larger power, we
+                // subtract one from the shift because it's taken care of by the add
+                // indicator. So floor_log_2_d happens to be correct in both cases,
+                // which is why we do it outside of the if statement.
+            }
+        }
+        //private:
+        double_limb_t magic;
+        uint8_t more;
+    };
+
+    constexpr double_limb_t operator/(
+        double_limb_t n,
+        const force_biginteger_libdivider& d) {
+        uint8_t more = d.more;
+        if (!d.magic) {
+            return n >> more;
+        }
+        else {
+            double_limb_t q =
+                biginteger_libdivide_mullhi_u128(d.magic, n);
+            if (more & libdivide::LIBDIVIDE_ADD_MARKER) {
+                double_limb_t t = ((n - q) >> 1) + q;
+                return t >> (more & libdivide::LIBDIVIDE_64_SHIFT_MASK);
+            }
+            else {
+                // All upper bits are 0,
+                // don't need to mask them off.
+                return q >> more;
+            }
+        }
+    }
+
 #endif
 #else
     template<typename T>
@@ -287,17 +405,7 @@ namespace wjr::math::biginteger {
             return __Is_full;
         }
 
-        template<typename T>
-        constexpr static limb_t get_low(T x) {
-            if constexpr (__get_undefined_max<T>::value <= max() || is_full()) {
-                return static_cast<limb_t>(x);
-            }
-            else {
-                return x % mod();
-            }
-        }
-
-        template<typename T>
+        template<typename T, std::enable_if_t<__Biginteger_is_unsigned_integral_v<T>, int> = 0>
         constexpr static T get_high(T x) {
             if constexpr (__get_undefined_max<T>::value <= max()) {
                 return 0;
@@ -308,8 +416,37 @@ namespace wjr::math::biginteger {
                     return x >> 1;
                 }
                 else {
-                    return static_cast<T>(x / mod());
+#if defined(WJR_BIGINTEGER_USE_X64)
+                    if constexpr (std::is_same_v<T, double_limb_t>) {
+                        constexpr force_biginteger_libdivider div(mod());
+                        return static_cast<T>(x / div);
+                    }
+                    else {
+#endif
+                        return x / mod();
+#if defined(WJR_BIGINTEGER_USE_X64)
+                    }
+#endif
                 }
+            }
+        }
+
+        template<typename T, std::enable_if_t<__Biginteger_is_unsigned_integral_v<T>, int> = 0>
+        constexpr static limb_t get_low(T x) {
+            if constexpr (__get_undefined_max<T>::value <= max() || is_full()) {
+                return static_cast<limb_t>(x);
+            }
+            else {
+#if defined(WJR_BIGINTEGER_USE_X64)
+                if constexpr (std::is_same_v<T, double_limb_t>) {
+                    return x - get_high(x) * mod();
+                }
+                else {
+#endif
+                    return x % mod();
+#if defined(WJR_BIGINTEGER_USE_X64)
+            }
+#endif
             }
         }
 
@@ -323,17 +460,19 @@ namespace wjr::math::biginteger {
                 limb_t lhs,
                 limb_t rhs
             ) {
-            unsigned char cf = math::add(result, lhs, rhs);
             if constexpr (is_full()) {
-                return cf;
+                return math::add(result, lhs, rhs);
             }
             else {
-                cf |= mod() <= *result;
-                return cf ? (*result -= mod(), 1) : 0;
+                lhs += rhs;
+                unsigned char cf = lhs < rhs;
+                cf |= mod() <= lhs;
+                *result = lhs - cf * mod();
+                return cf;
             }
         }
 
-        template<typename C = tag::empty, std::enable_if_t<tag::is_tag_v<C>, int> = 0>
+        template<typename C = tag::empty_tag, std::enable_if_t<tag::is_tag_set_v<C>, int> = 0>
         WJR_CONSTEXPR static unsigned char
             inc(
                 unsigned char cf,
@@ -344,16 +483,20 @@ namespace wjr::math::biginteger {
             ) {
             size_t i = 0;
             if (cf) {
-                for (; i != n && lp[i] == max(); ++i) {
+                for (;;) {
+                    if (i == n) {
+                        return 1;
+                    }
+                    if (lp[i] != max()) {
+                        result[i] = lp[i] + 1;
+                        ++i;
+                        break;
+                    }
                     result[i] = 0;
+                    ++i;
                 }
-                if (i == n)return 1;
-                result[i] = lp[i] + 1;
-                ++i;
             }
-            if constexpr (
-                !tag::same_address_tag(C{})
-                ) {
+            if constexpr (!C{}(tag::same_address)) {
                 if (likely(lp != result)) {
                     std::copy(lp + i, lp + n, result + i);
                 }
@@ -364,7 +507,7 @@ namespace wjr::math::biginteger {
             return 0;
         }
 
-        template<typename C = tag::empty, std::enable_if_t<tag::is_tag_v<C>, int> = 0>
+        template<typename C = tag::empty_tag, std::enable_if_t<tag::is_tag_set_v<C>, int> = 0>
         WJR_CONSTEXPR static unsigned char
             inc(
                 limb_ptr result,
@@ -382,13 +525,16 @@ namespace wjr::math::biginteger {
                 limb_t lhs,
                 limb_t rhs
             ) {
-            cf = math::adc(cf, result, lhs, rhs);
             if constexpr (is_full()) {
-                return cf;
+                return math::adc(cf, result, lhs, rhs);
             }
             else {
-                cf |= mod() <= *result;
-                return cf ? (*result -= mod(), 1) : 0;
+                lhs += cf;
+                lhs += rhs;
+                cf = lhs < rhs;
+                cf |= mod() <= lhs;
+                *result = lhs - cf * mod();
+                return cf;
             }
         }
 
@@ -418,7 +564,7 @@ namespace wjr::math::biginteger {
             }
         }
 
-        template<typename C = tag::empty, std::enable_if_t<tag::is_tag_v<C>, int> = 0>
+        template<typename C = tag::empty_tag, std::enable_if_t<tag::is_tag_set_v<C>, int> = 0>
         WJR_CONSTEXPR static unsigned char
             add(
                 limb_ptr result,
@@ -439,16 +585,18 @@ namespace wjr::math::biginteger {
                 limb_t lhs,
                 limb_t rhs
             ) {
-            unsigned char cf = math::sub(result, lhs, rhs);
+
             if constexpr (is_full()) {
-                return cf;
+                return math::sub(result, lhs, rhs);
             }
             else {
-                return cf ? (*result += mod(), 1) : 0;
+                unsigned char cf = math::sub(result, lhs, rhs);
+                *result += cf * mod();
+                return cf;
             }
         }
 
-        template<typename C = tag::empty, std::enable_if_t<tag::is_tag_v<C>, int> = 0>
+        template<typename C = tag::empty_tag, std::enable_if_t<tag::is_tag_set_v<C>, int> = 0>
         WJR_CONSTEXPR static unsigned char
             dec(
                 unsigned char cf,
@@ -466,9 +614,7 @@ namespace wjr::math::biginteger {
                 result[i] = lp[i] - 1;
                 ++i;
             }
-            if constexpr (
-                !tag::same_address_tag(C{})
-                ) {
+            if constexpr (!C{}(tag::same_address)) {
                 if (likely(lp != result)) {
                     std::copy(lp + i, lp + n, result + i);
                 }
@@ -479,7 +625,7 @@ namespace wjr::math::biginteger {
             return 0;
         }
 
-        template<typename C = tag::empty, std::enable_if_t<tag::is_tag_v<C>, int> = 0>
+        template<typename C = tag::empty_tag, std::enable_if_t<tag::is_tag_set_v<C>, int> = 0>
         WJR_CONSTEXPR static unsigned char
             dec(
                 limb_ptr result,
@@ -497,12 +643,14 @@ namespace wjr::math::biginteger {
                 limb_t lhs,
                 limb_t rhs
             ) {
-            cf = math::sbb(cf, result, lhs, rhs);
             if constexpr (is_full()) {
-                return cf;
+                return math::sbb(cf, result, lhs, rhs);
             }
             else {
-                return cf ? (*result += mod(), 1) : 0;
+                *result = lhs - rhs - cf;
+                cf = lhs < *result;
+                *result += cf * mod();
+                return cf;
             }
         }
 
@@ -614,12 +762,18 @@ namespace wjr::math::biginteger {
                 limb_t rv
             ) {
             WASSERT_LEVEL_1(rv != 0);
+            size_t i = n - 1;
             double_limb_t _Val = 0;
 
             WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
                 if (n >= 4) {
                     biginteger_libdivider<limb_t> _Divider(rv);
-                    for (size_t i = n; i--;) {
+
+                    limb_t _First = lp[i];
+                    result[i] = static_cast<limb_t>(lp[i] / _Divider);
+                    _Val = _First - mul(result[i], rv);
+
+                    for (; i--;) {
                         _Val = _Val * max_value() + lp[i];
                         result[i] = static_cast<limb_t>(_Val / _Divider);
                         _Val = _Val - mul(result[i], rv);
@@ -628,11 +782,14 @@ namespace wjr::math::biginteger {
                 }
             WJR_IS_NOT_CONSTANT_EVALUATED_END
 
-                for (size_t i = n; i--;) {
-                    _Val = _Val * max_value() + lp[i];
-                    result[i] = static_cast<limb_t>(_Val / rv);
-                    _Val = _Val - mul(result[i], rv);
-                }
+                limb_t _First = lp[i];
+            result[i] = static_cast<limb_t>(lp[i] / rv);
+            _Val = _First - mul(result[i], rv);
+            for (; i--;) {
+                _Val = _Val * max_value() + lp[i];
+                result[i] = static_cast<limb_t>(_Val / rv);
+                _Val = _Val - mul(result[i], rv);
+            }
 
             return static_cast<limb_t>(_Val);
         }
@@ -672,6 +829,19 @@ namespace wjr::math::biginteger {
                 }
 
             return static_cast<limb_t>(_Val);
+        }
+
+        WJR_CONSTEXPR static random_device_type& random_device() {
+            return static_random_device;
+        }
+
+        WJR_CONSTEXPR static limb_t random() {
+            std::uniform_int_distribution<limb_t> rt(0, max());
+            return rt(random_device());
+        }
+
+        WJR_CONSTEXPR static bool random_bool() {
+            return random_device()() & 1;
         }
 
         WJR_CONSTEXPR static int bit_size(limb_t v) {
@@ -788,7 +958,6 @@ namespace wjr::math::biginteger {
         };
 
         struct threshold {
-        public:
             constexpr static mul_threshold get_mul_threshold() {
 #if defined(WJR_BIGINTEGER_USE_X64)
                 return {
@@ -835,7 +1004,7 @@ namespace wjr::math::biginteger {
 
     template<typename T>
     struct __Biginteger_base_info {
-        constexpr static size_t value = _Is_unsigned_integral_v<T> ? 0 : -1;
+        constexpr static size_t value = __Biginteger_is_integral_v<T> ? 0 : -1;
     };
 
     template<size_t base, size_t length>
@@ -846,6 +1015,11 @@ namespace wjr::math::biginteger {
     template<size_t base>
     struct __Biginteger_base_info<unsigned_biginteger_view<base>> {
         constexpr static size_t value = base;
+    };
+
+    template<size_t base>
+    struct __Biginteger_base_info<unsigned_biginteger_modifier<base>> {
+		constexpr static size_t value = base;
     };
 
     template<size_t base>
@@ -876,7 +1050,7 @@ namespace wjr::math::biginteger {
     private:
         constexpr static size_t get() {
             constexpr size_t _Now = __Biginteger_base_info<T>::value;
-            constexpr size_t _Next = __Biginteger_base_info<Args...>::value;
+            constexpr size_t _Next = __Merge_biginteger_base_info<Args...>::value;
             if constexpr (_Now == -1 || _Next == -1) {
                 return -1;
             }
@@ -959,7 +1133,7 @@ namespace wjr::math::biginteger {
             }
         }
     public:
-        template<typename T, std::enable_if_t<_Is_unsigned_integral_v<T>, int> = 0>
+        template<typename T, std::enable_if_t<__Biginteger_is_unsigned_integral_v<T>, int> = 0>
         constexpr explicit unsigned_integral_view(const T& val) noexcept {
             _Make<0>(val);
         }
@@ -1045,7 +1219,7 @@ namespace wjr::math::biginteger {
     struct __unsigned_biginteger_view {
         using traits = biginteger_traits<base>;
 
-        template<typename T, std::enable_if_t<_Is_unsigned_integral_v<T>, int> = 0>
+        template<typename T, std::enable_if_t<__Biginteger_is_unsigned_integral_v<T>, int> = 0>
         constexpr decltype(auto) operator()(const T& val) const {
             return unsigned_integral_view<base, traits::template bits_of_t<T>>(val);
         }
@@ -1138,10 +1312,10 @@ namespace wjr::math::biginteger {
         constexpr static size_t max_bit = length;
         constexpr static bool is_unsigned_biginteger = false;
 
-        template<typename T, std::enable_if_t<_Is_unsigned_integral_v<T>, int> = 0>
-        constexpr signed_integral_view(const T& val) : _Base(val) {}
-        template<typename T, std::enable_if_t<_Is_signed_integral_v<T>, int> = 0>
-        constexpr signed_integral_view(const T& val)
+        template<typename T, std::enable_if_t<__Biginteger_is_unsigned_integral_v<T>, int> = 0>
+        constexpr explicit signed_integral_view(const T& val) : _Base(val) {}
+        template<typename T, std::enable_if_t<__Biginteger_is_signed_integral_v<T>, int> = 0>
+        constexpr explicit signed_integral_view(const T& val)
             : m_signal(val >= 0),
             _Base(static_cast<std::make_unsigned_t<T>>(val >= 0 ? val : (0 - val))) {}
         constexpr signed_integral_view(bool _Signal, const unsigned_integral_view<base, length>& val)
@@ -1325,38 +1499,31 @@ namespace wjr::math::biginteger {
     template<size_t base>
     class unsigned_biginteger_modifier {
         template<size_t b>
-        friend class __unsigned_biginteger_view;
+        friend struct __unsigned_biginteger_view;
         template<size_t b>
-        friend class __signed_biginteger_view;
+        friend struct __signed_biginteger_view;
     public:
         using traits = biginteger_traits<base>;
         WJR_CONSTEXPR20 unsigned_biginteger_modifier(
             unsigned_biginteger<base>& it,
             size_t _offset
         ) noexcept : m_ptr(std::addressof(it)), m_offset(_offset) {
-            WASSERT_LEVEL_2(m_offset <= it.size());
         }
         WJR_CONSTEXPR20 unsigned_biginteger_modifier(
-            unsigned_biginteger_modifier& it,
+            unsigned_biginteger_modifier it,
             size_t _offset
         ) noexcept : m_ptr(it.m_ptr), m_offset(_offset) {}
         WJR_CONSTEXPR20 unsigned_biginteger_modifier(const unsigned_biginteger_modifier&) = default;
         WJR_CONSTEXPR20 unsigned_biginteger_modifier& operator=(const unsigned_biginteger_modifier&) = default;
-        WJR_CONSTEXPR20 unsigned_biginteger<base>* get() {
-            return m_ptr;
-        }
-        WJR_CONSTEXPR20 const unsigned_biginteger<base>* get() const {
-            return m_ptr;
-        }
         WJR_CONSTEXPR20 size_t offset() const {
             return m_offset;
         }
         WJR_CONSTEXPR20 limb_ptr data() {
-            WASSERT_LEVEL_2(m_offset < m_ptr->size());
+            WASSERT_LEVEL_2(m_offset < m_ptr->capacity());
             return m_ptr->data() + m_offset;
         }
         WJR_CONSTEXPR20 limb_const_ptr data() const {
-            WASSERT_LEVEL_2(m_offset < m_ptr->size());
+            WASSERT_LEVEL_2(m_offset < m_ptr->capacity());
             return m_ptr->data() + m_offset;
         }
         WJR_CONSTEXPR20 size_t size() const {
@@ -1364,7 +1531,7 @@ namespace wjr::math::biginteger {
             return m_ptr->size() - m_offset;
         }
         WJR_CONSTEXPR20 size_t capacity() const {
-            WASSERT_LEVEL_2(m_offset <= m_ptr->size());
+            WASSERT_LEVEL_2(m_offset <= m_ptr->capacity());
             return m_ptr->capacity() - m_offset;
         }
         WJR_CONSTEXPR20 bool test_byte(limb_t val) const {
@@ -1383,29 +1550,6 @@ namespace wjr::math::biginteger {
             m_ptr->maintain(m_offset + 1);
             return *this;
         }
-        template<size_t length>
-        WJR_CONSTEXPR20 bool is_same_address(const unsigned_integral_view<base, length>&) const {
-            return false;
-        }
-        WJR_CONSTEXPR20 bool is_same_address(const unsigned_biginteger_view<base>& other) const {
-            return m_ptr == other.m_ptr;
-        }
-        template<size_t length>
-        WJR_CONSTEXPR20 bool forwrad_overlap(const unsigned_integral_view<base, length>&) const {
-            return false;
-        }
-        WJR_CONSTEXPR20 bool forwrad_overlap(const unsigned_biginteger_view<base>& other) const {
-            return is_same_address(other) && m_offset <= other.m_offset;
-        }
-        template<size_t length>
-        WJR_CONSTEXPR20 bool backwrad_overlap(const unsigned_integral_view<base, length>&) const {
-            return false;
-        }
-        WJR_CONSTEXPR20 bool backwrad_overlap(const unsigned_biginteger_view<base>& other) const {
-            return is_same_address(other) &&
-                m_offset > other.m_offset &&
-                m_offset < other.m_offset + other.m_size;
-        }
 
     private:
         unsigned_biginteger<base>* m_ptr;
@@ -1420,13 +1564,31 @@ namespace wjr::math::biginteger {
         constexpr decltype(auto) operator()(unsigned_biginteger<base>& val, size_t _Offset) const {
             return unsigned_biginteger_modifier<base>(val, _Offset);
         }
-        constexpr decltype(auto) operator()(unsigned_biginteger_modifier<base>& val, size_t _Offset) const {
+        constexpr decltype(auto) operator()(unsigned_biginteger_modifier<base> val) const {
+            return val;
+        }
+        constexpr decltype(auto) operator()(unsigned_biginteger_modifier<base> val, size_t _Offset) const {
             return unsigned_biginteger_modifier<base>(val, _Offset);
         }
     };
 
     template<size_t base>
     inline constexpr __unsigned_biginteger_modifier<base> unsigned_modifier;
+
+    template<typename _Enable, size_t base, typename...Args>
+    struct __Can_make_unsigned_modifier_helper : std::false_type {};
+
+    template<size_t base, typename...Args>
+    struct __Can_make_unsigned_modifier_helper<
+        std::void_t<decltype(unsigned_modifier<base>(std::declval<Args>()...))>, base, Args...> : std::true_type {};
+
+    template<size_t base, typename...Args>
+    struct __Can_make_unsigned_modifier : std::conjunction<
+        __Can_make_unsigned_modifier_helper<void, base, Args...>> {};
+
+    template<size_t base, typename...Args>
+    constexpr bool __Can_make_unsigned_modifier_v =
+        __Can_make_unsigned_modifier<base, Args...>::value;
 
     template<size_t base>
     class unsigned_biginteger_reference;
@@ -1600,6 +1762,9 @@ namespace wjr::math::biginteger {
             WASSERT_LEVEL_1(vaild());
             return reference(m_data, m_size, m_k, m_index);
         }
+        constexpr reference operator[](const size_t n) const noexcept {
+            return *((*this) + n);
+        }
         constexpr limb_const_ptr operator->()const noexcept {
             return m_data;
         }
@@ -1688,6 +1853,9 @@ namespace wjr::math::biginteger {
         constexpr reference operator*() noexcept {
             return reference(_Base::m_data, _Base::m_size, _Base::m_k, _Base::m_index);
         }
+        constexpr reference operator[](const size_t n) noexcept {
+            return *((*this) + n);
+        }
         constexpr limb_ptr operator->() noexcept {
             return _Base::m_data;
         }
@@ -1713,16 +1881,34 @@ namespace wjr::math::biginteger {
         }
     };
 
+    template<typename T, typename = void>
+    struct __has_data : std::false_type {};
+
+    template<typename T>
+    struct __has_data<T, std::void_t<decltype(std::declval<T>().data())>> : std::true_type {};
+
+    template<typename T, typename = void>
+    struct __has_size : std::false_type {};
+
+    template<typename T>
+    struct __has_size<T, std::void_t<decltype(std::declval<T>().size())>> : std::true_type {};
+
+    template<typename T>
+    struct __has_data_and_size : std::conjunction<__has_data<T>, __has_size<T>> {};
+
+    template<typename T>
+    constexpr bool __has_data_and_size_v = __has_data_and_size<T>::value;
+
     template<size_t base>
     struct __unsigned_iterator {
-        template<typename T, std::enable_if_t<__Can_make_signed_view_v<base, std::decay_t<T>>, int> = 0>
+        template<typename T, std::enable_if_t<__has_data_and_size_v<const T&>, int> = 0>
         constexpr decltype(auto) operator()(
             const T& v, size_t k = 1, size_t index = 0
             ) const {
             return unsigned_biginteger_const_iterator<base>(v.data(), v.size(), k, index);
         }
 
-        template<typename T, std::enable_if_t<__Can_make_signed_view_v<base, std::decay_t<T>>, int> = 0>
+        template<typename T, std::enable_if_t<__has_data_and_size_v<T&>, int> = 0>
         constexpr decltype(auto) operator()(
             T& v, size_t k = 1, size_t index = 0
             ) const {
@@ -1734,7 +1920,6 @@ namespace wjr::math::biginteger {
     template<size_t base>
     inline constexpr __unsigned_iterator<base> unsigned_iterator;
 
-
 #define REGISTER_BIGINTEGER_FUNCTION(index,rt,FUNC,...)		        \
         if constexpr (index == 1) {					    	        \
             return FUNC<1>(__VA_ARGS__);					        \
@@ -1745,7 +1930,7 @@ namespace wjr::math::biginteger {
             }else{                                                  \
                 return FUNC<1>(__VA_ARGS__);                        \
             }                                                       \
-        }													        
+        }
 
 #define REGISTER_BETTER_BIGINTEGER_FUNCTION(il,ir,FUNC,result,lhs,rhs)                              \
         if constexpr(ir == 1){                                                                      \
@@ -1763,7 +1948,7 @@ namespace wjr::math::biginteger {
                     return FUNC(result, rhs, lhs);                                                  \
                 }                                                                                   \
             }                                                                                       \
-        }                                                                                           
+        }
 
 #define REGISTER_BETTER_BIGINTEGER_WITH_TAG_FUNCTION(il,ir,FUNC, result, lhs, rhs, utag, vtag)      \
         if constexpr(ir == 1){                                                                      \
@@ -1781,11 +1966,11 @@ namespace wjr::math::biginteger {
                     return FUNC(result, rhs, lhs, vtag);                                            \
                 }                                                                                   \
             }                                                                                       \
-        }                                                                                           
+        }
 
 #define UNSIGNED_BIGINTEGER_VIEW_SINGLE_DECLARATION                                             \
     template<typename T, std::enable_if_t<                                                      \
-            __Can_make_unsigned_view_v<base, std::dacay_t<T>>, int> = 0>                        
+            __Can_make_unsigned_view_v<base, std::dacay_t<T>>, int> = 0>
 
 #define UNSIGNED_BIGINTEGER_VIEW_BINARY_DECLARATION                                             \
     template<typename T, typename U,std::enable_if_t<                                           \
@@ -1793,16 +1978,17 @@ namespace wjr::math::biginteger {
             __Can_make_unsigned_view<base,std::decay_t<U>>>, int> = 0>
 
 #define UNSIGNED_BIGINTEGER_VIEW_BINARY_AND_TAG_DECLARATION                                     \
-	template<typename T, typename U, typename C = tag::empty, std::enable_if_t<                 \
-            std::conjunction_v<__Can_make_unsigned_view<base, std::decay_t<T>>,                 \
-            __Can_make_unsigned_view<base,std::decay_t<U>>,                                     \
-            tag::is_tag<C>                                                                      \
+    template<typename T, typename U, typename V, typename C = tag::empty_tag, std::enable_if_t< \
+            std::conjunction_v<__Can_make_unsigned_modifier<base, T&&>,                         \
+            __Can_make_unsigned_view<base, std::decay_t<U>>,                                    \
+            __Can_make_unsigned_view<base, std::decay_t<V>>,                                    \
+            tag::is_tag_set<C>                                                                  \
             >, int> = 0>
 
 #define UNSIGNED_BIGINTEGER_VIEW_SINGLE_AND_TAG_DECLARATION                                     \
-	template<typename T, typename C = tag::empty, std::enable_if_t<                             \
-            std::conjunction_v<                                                                 \
-            __Can_make_unsigned_view<base,std::decay_t<T>>, tag::is_tag<C>                      \
+    template<typename T, typename U, typename C = tag::empty_tag, std::enable_if_t<             \
+            std::conjunction_v<__Can_make_unsigned_modifier<base, T&&>,                          \
+            __Can_make_unsigned_view<base,std::decay_t<U>>, tag::is_tag_set<C>                  \
             >, int> = 0>
 
     class __Biginteger_vector {
@@ -1821,13 +2007,13 @@ namespace wjr::math::biginteger {
         using allocator_type = mallocator<value_type>;
 
         WJR_CONSTEXPR20 __Biginteger_vector() = default;
-        WJR_CONSTEXPR20 __Biginteger_vector(pointer ptr, size_t _Size, size_t _Capacity, tag::store)
+        WJR_CONSTEXPR20 __Biginteger_vector(pointer ptr, size_t _Size, size_t _Capacity, tag::store_tag)
             : m_first(ptr), m_last(ptr + _Size), m_end(ptr + _Capacity) {}
         WJR_CONSTEXPR20 __Biginteger_vector(size_type _Count, value_type _Value = value_type())
             : m_first(allocate(_Count)), m_last(m_first + _Count), m_end(m_last) {
             std::fill_n(m_first, _Count, _Value);
         }
-        WJR_CONSTEXPR20 __Biginteger_vector(size_type _Count, tag::uninitialized)
+        WJR_CONSTEXPR20 __Biginteger_vector(size_type _Count, tag::uninitialized_tag)
             : m_first(allocate(_Count)), m_last(m_first + _Count), m_end(m_last) {
             WASSERT_LEVEL_1(_Count >= 1);
         }
@@ -1868,7 +2054,7 @@ namespace wjr::math::biginteger {
             const size_type _Oldcapacity = capacity();
             if (_Newsize > _Oldcapacity) {
                 const size_type _Newcapacity = _Calcuate_growth(_Newsize);
-                m_first = reallocate(m_first, _Oldcapacity, _Newcapacity, tag::uninitialized_tag);
+                m_first = reallocate(m_first, _Oldcapacity, _Newcapacity, tag::uninitialized);
                 m_end = m_first + _Newcapacity;
             }
             std::copy_n(_Right.m_first, _Newsize, m_first);
@@ -1876,7 +2062,7 @@ namespace wjr::math::biginteger {
             return *this;
         }
         WJR_CONSTEXPR20 __Biginteger_vector& operator=(__Biginteger_vector&& _Right) noexcept {
-            if (this == std::addressof(_Right)) {
+            if (unlikely(this == std::addressof(_Right))) {
                 return *this;
             }
             _Tidy();
@@ -1896,11 +2082,18 @@ namespace wjr::math::biginteger {
             std::swap(m_end, _Right.m_end);
         }
 
-        WJR_CONSTEXPR20 __Biginteger_vector& assign(pointer ptr, size_t _Size, size_t _Capacity, tag::store) {
-            _Tidy();
-            m_first = ptr;
-            m_last = ptr + _Size;
-            m_end = ptr + _Capacity;
+        WJR_CONSTEXPR20 __Biginteger_vector& assign(pointer ptr, size_t _Size, size_t _Capacity, tag::store_tag) {
+            if (ptr >= m_first && ptr < m_end) {
+                WASSERT_LEVEL_2(ptr + _Size <= m_end);
+                std::copy_n(ptr, _Size, m_first);
+                m_last = m_first + _Size;
+            }
+            else {
+                _Tidy();
+                m_first = ptr;
+                m_last = ptr + _Size;
+                m_end = ptr + _Capacity;
+            }
             return *this;
         }
 
@@ -1917,7 +2110,7 @@ namespace wjr::math::biginteger {
         template<typename iter, std::enable_if_t<wjr_is_iterator_v<iter>, int> = 0>
         WJR_CONSTEXPR20 __Biginteger_vector& assign(iter _First, iter _Last, std::forward_iterator_tag) {
             size_t _Count = std::distance(_First, _Last);
-            reserve(_Count, tag::uninitialized_tag);
+            reserve(_Count, tag::uninitialized);
             set_size(_Count);
             std::copy_n(_First, _Count, m_first);
             return *this;
@@ -1939,12 +2132,12 @@ namespace wjr::math::biginteger {
             }
         }
 
-        WJR_CONSTEXPR20 void reserve(size_type _Count, tag::uninitialized) noexcept {
+        WJR_CONSTEXPR20 void reserve(size_type _Count, tag::uninitialized_tag) noexcept {
             const size_type _Oldcapacity = capacity();
             if (_Count > _Oldcapacity) {
                 const size_type _Oldsize = size();
                 const size_type _Newcapacity = _Calcuate_growth(_Count);
-                m_first = reallocate(m_first, _Oldcapacity, _Newcapacity, tag::uninitialized_tag);
+                m_first = reallocate(m_first, _Oldcapacity, _Newcapacity, tag::uninitialized);
                 m_last = m_first + _Oldsize;
                 m_end = m_first + _Newcapacity;
             }
@@ -1964,7 +2157,7 @@ namespace wjr::math::biginteger {
             ++m_last;
         }
 
-        WJR_CONSTEXPR void push_back(const value_type _Value, tag::reserved) {
+        WJR_CONSTEXPR void push_back(const value_type _Value, tag::reserved_tag) {
             *m_last = _Value;
             ++m_last;
         }
@@ -2083,7 +2276,7 @@ namespace wjr::math::biginteger {
 
         }
         WJR_CONSTEXPR20 static pointer reallocate(
-            pointer ptr, size_t _Oldcapacity, size_t _Newcapacity, tag::uninitialized) noexcept {
+            pointer ptr, size_t _Oldcapacity, size_t _Newcapacity, tag::uninitialized_tag) noexcept {
             WASSERT_LEVEL_2(_Newcapacity >= _Oldcapacity);
             deallocate(ptr, _Oldcapacity);
             return allocate(_Newcapacity);
@@ -2102,6 +2295,40 @@ namespace wjr::math::biginteger {
         pointer m_first = nullptr;
         pointer m_last = nullptr;
         pointer m_end = nullptr;
+    };
+
+    enum class radix_conversion_type {
+        same,
+        multiple,
+        normal
+
+    };
+
+    template<size_t from_base, size_t to_base>
+    struct __radix_conversion_helper {
+    private:
+        constexpr static radix_conversion_type __get() {
+            if constexpr (from_base == to_base) {
+                return radix_conversion_type::same;
+            }
+            else {
+                if constexpr (from_base > to_base) {
+                    return __radix_conversion_helper<to_base, from_base>::value;
+                }
+                else {
+                    constexpr int q =
+                        math::force_constexpr::integer_log(std::integral_constant<size_t, from_base>{}, to_base);
+                    if constexpr (math::force_constexpr::integer_power(std::integral_constant<size_t, from_base>{}, q) == to_base) {
+                        return radix_conversion_type::multiple;
+                    }
+                    else {
+                        return radix_conversion_type::normal;
+                    }
+                }
+            }
+        }
+    public:
+        constexpr static radix_conversion_type value = __get();
     };
 
     template<size_t base>
@@ -2135,8 +2362,8 @@ namespace wjr::math::biginteger {
         using bit_const_iterator = unsigned_biginteger_const_iterator<base>;
 
         WJR_CONSTEXPR20 unsigned_biginteger() : _Base(1, 0) {}
-        WJR_CONSTEXPR20 unsigned_biginteger(size_t n, tag::uninitialized)
-            : _Base(n, tag::uninitialized_tag) {}
+        WJR_CONSTEXPR20 unsigned_biginteger(size_t n, tag::uninitialized_tag)
+            : _Base(n, tag::uninitialized) {}
         WJR_CONSTEXPR20 unsigned_biginteger(const unsigned_biginteger& other) = default;
         WJR_CONSTEXPR20 unsigned_biginteger(unsigned_biginteger&& other) noexcept = default;
         template<typename iter, std::enable_if_t<wjr_is_iterator_v<iter>, int> = 0>
@@ -2166,7 +2393,7 @@ namespace wjr::math::biginteger {
             }
             else {
                 size_t q = (n + traits::bits - 1) / traits::bits;
-                _Base::reserve(q, tag::uninitialized_tag);
+                _Base::reserve(q, tag::uninitialized);
                 _Base::set_size(q);
                 _Base::back() = 0;
                 auto _Write = unsigned_iterator<base>(*this, 1, n);
@@ -2458,9 +2685,7 @@ namespace wjr::math::biginteger {
             C
         ) {
             constexpr auto utag = C{};
-            constexpr auto vtag = tag::swap(utag,
-                tag::left_tag * tag::same_address_tag,
-                tag::right_tag * tag::same_address_tag);
+            constexpr auto vtag = C{};
             REGISTER_BETTER_BIGINTEGER_WITH_TAG_FUNCTION(T::max_bit, U::max_bit, CAdd, modifier, lhs, rhs, utag, vtag);
         }
 
@@ -2482,9 +2707,9 @@ namespace wjr::math::biginteger {
             REGISTER_BIGINTEGER_FUNCTION(U::max_bit, rhs, QSub, modifier, lhs, rhs, C{});
         }
 
-        template<size_t index, typename T, typename U, typename C = tag::empty>
+        template<size_t index, typename T, typename U, typename C = tag::empty_tag>
         WJR_CONSTEXPR20 static void slow_mul(
-            unsigned_biginteger_modifier<base> result,
+            unsigned_biginteger& result,
             const T& lhs,
             const U& rhs,
             C = C{}
@@ -2550,95 +2775,61 @@ namespace wjr::math::biginteger {
             REGISTER_BETTER_BIGINTEGER_FUNCTION(T::max_bit, U::max_bit, CMul, result, lhs, rhs);
         }
 
+        template<typename C>
+        WJR_CONSTEXPR20 static void Random(
+            unsigned_biginteger_modifier<base> modifier,
+            size_t n,
+            C
+        );
+
+        template<typename T>
+        WJR_CONSTEXPR20 static void Interval_random(
+            unsigned_biginteger_modifier<base> modifier,
+            const T& _Max
+        );
+
+        template<size_t to_base, typename T>
+        WJR_CONSTEXPR20 static void Binary_radix_conversion(
+            unsigned_biginteger<to_base>& dst,
+            const T& src,
+            std::vector<std::pair<size_t, unsigned_biginteger<to_base>>>& cache
+        );
+
+        template<size_t to_base, typename T, typename C>
+        WJR_CONSTEXPR20 static void Radix_conversion(
+            unsigned_biginteger<to_base>& dst,
+            const T& src,
+            C
+        );
+
     public:
 
         UNSIGNED_BIGINTEGER_VIEW_BINARY_AND_TAG_DECLARATION
             WJR_CONSTEXPR20 static void add(
-                unsigned_biginteger_modifier<base> modifier,
-                const T& lhs,
-                const U& rhs,
+                T&& result,
+                const U& lhs,
+                const V& rhs,
                 C = C{}
             ) {
-            Add(modifier,
+            Add(unsigned_modifier<base>(std::forward<T>(result)),
                 unsigned_view<base>(lhs),
                 unsigned_view<base>(rhs),
                 C{}
             );
-        }
-
-        UNSIGNED_BIGINTEGER_VIEW_BINARY_DECLARATION
-            WJR_CONSTEXPR20 static void add(
-                unsigned_biginteger& result,
-                const T& lhs,
-                const U& rhs
-            ) {
-            add(unsigned_modifier<base>(result), lhs, rhs);
         }
 
         UNSIGNED_BIGINTEGER_VIEW_BINARY_AND_TAG_DECLARATION
             WJR_CONSTEXPR20 static void sub(
-                unsigned_biginteger_modifier<base> modifier,
-                const T& lhs,
-                const U& rhs,
+                T&& result,
+                const U& lhs,
+                const V& rhs,
                 C = C{}
             ) {
-            Sub(modifier,
+            Sub(unsigned_modifier<base>(std::forward<T>(result)),
                 unsigned_view<base>(lhs),
                 unsigned_view<base>(rhs),
                 C{}
             );
-        }
-
-        UNSIGNED_BIGINTEGER_VIEW_BINARY_DECLARATION
-            WJR_CONSTEXPR20 static void sub(
-                unsigned_biginteger& result,
-                const T& lhs,
-                const U& rhs
-            ) {
-            sub(unsigned_modifier<base>(result), lhs, rhs);
-        }
-
-        UNSIGNED_BIGINTEGER_VIEW_SINGLE_AND_TAG_DECLARATION
-            WJR_CONSTEXPR20 static void inc(
-                unsigned_biginteger_modifier<base> modifier,
-                const T& u,
-                C = C{}
-            ) {
-            auto view = unsigned_view<base>(u);
-            const size_t n = view.size();
-            if constexpr (!tag::reserved_tag(C{})) {
-                modifier.reserve(n + 1);
-            }
-            auto rep = modifier.data();
-            unsigned char cf = traits::inc(rep, view.data(), n);
-            if (cf) {
-                modifier.set_size(n + 1);
-                rep[n] = 1;
-            }
-            else {
-                modifier.set_size(n);
-            }
-        }
-
-        UNSIGNED_BIGINTEGER_VIEW_SINGLE_AND_TAG_DECLARATION
-            WJR_CONSTEXPR20 static void dec(
-                unsigned_biginteger_modifier<base> modifier,
-                const T& u,
-                C = C{}
-            ) {
-            auto view = unsigned_view<base>(u);
-            const size_t n = view.size();
-            if constexpr (!tag::reserved_tag(C{})) {
-                modifier.reserve(n);
-            }
-            auto rep = modifier.data();
-            traits::dec(rep, view.data(), n);
-            if (n != 1 && !rep[n - 1]) {
-                modifier.set_size(n - 1);
-            }
-            else {
-                modifier.set_size(n);
-            }
         }
 
         UNSIGNED_BIGINTEGER_VIEW_BINARY_DECLARATION
@@ -2650,6 +2841,56 @@ namespace wjr::math::biginteger {
             Mul(result,
                 unsigned_view<base>(lhs),
                 unsigned_view<base>(rhs));
+        }
+
+        template<typename T, typename C = tag::empty_tag,
+            std::enable_if_t<std::conjunction_v<__Can_make_unsigned_modifier<base, T&&>, tag::is_tag_set<C>>, int> = 0>
+        WJR_CONSTEXPR20 static void random(
+            T&& result,
+            size_t n,
+            C = C{}
+        ) {
+            Random(unsigned_modifier<base>(std::forward<T>(result)), n, C{});
+        }
+
+        template<typename T, typename U, std::enable_if_t<
+            std::conjunction_v<
+            __Can_make_unsigned_modifier<base, T&&>,
+            __Can_make_unsigned_view<base, U>>, int> = 0>
+            WJR_CONSTEXPR static void interval_random(
+                T&& result,
+                const U& _Max
+            ) {
+            Interval_random(unsigned_modifier<base>(std::forward<T>(result)), unsigned_view<base>(_Max));
+        }
+
+        template<typename T, typename U, typename V, std::enable_if_t<
+            std::conjunction_v<
+            __Can_make_unsigned_modifier<base, T&&>,
+            __Can_make_unsigned_view<base, U>,
+            __Can_make_unsigned_view<base, V>>, int> = 0>
+            WJR_CONSTEXPR20 static void interval_random(
+                T&& result,
+                const U& _Min,
+                const V& _Max
+            ) {
+            unsigned_biginteger delta;
+            sub(delta, _Max, _Min);
+            interval_random(result, delta);
+            add(result, result, _Min);
+        }
+
+        template<size_t to_base, typename T, typename C = tag::empty_tag,
+            std::enable_if_t<
+            std::conjunction_v<__Can_make_unsigned_view<base, T>
+            , tag::is_tag_set<C>>, int> = 0>
+            WJR_CONSTEXPR20 static void radix_conversion(
+                unsigned_biginteger<to_base>& dst,
+                const T& src,
+                C = C{}
+            ) {
+            constexpr auto tag = C{};
+            Radix_conversion(dst, unsigned_view<base>(src), tag);
         }
 
     };
@@ -2664,9 +2905,7 @@ namespace wjr::math::biginteger {
     ) {
         WASSERT_LEVEL_2(lhs.size() >= rhs.size());
         WASSERT_LEVEL_2((!index) || (index == rhs.size()));
-        if constexpr (
-            !tag::reserved_tag(C{})
-            ) {
+        if constexpr (!C{}(tag::reserved)) {
             modifier.reserve(lhs.size() + 1);
         }
         WASSERT_LEVEL_1(modifier.capacity() >= lhs.size());
@@ -2682,6 +2921,7 @@ namespace wjr::math::biginteger {
         else {
             cf = traits::add(rep, lp, rp, rs);
         }
+
         cf = traits::inc(cf, rep + rs, lp + rs, ls - rs, C{});
         modifier.set_size(ls);
         if (cf)modifier.push_back(1);
@@ -2696,9 +2936,7 @@ namespace wjr::math::biginteger {
         C
     ) {
         WASSERT_LEVEL_3(greater_equal(lhs, rhs));
-        if constexpr (
-            !tag::reserved_tag(C{})
-            ) {
+        if constexpr (!C{}(tag::reserved)) {
             modifier.reserve(lhs.size());
         }
         WASSERT_LEVEL_1(modifier.capacity() >= lhs.size());
@@ -2723,7 +2961,7 @@ namespace wjr::math::biginteger {
     template<size_t base>
     template<size_t index, typename T, typename U, typename C>
     WJR_CONSTEXPR20 void unsigned_biginteger<base>::slow_mul(
-        unsigned_biginteger_modifier<base> modifier,
+        unsigned_biginteger& result,
         const T& lhs,
         const U& rhs,
         C
@@ -2733,25 +2971,23 @@ namespace wjr::math::biginteger {
         const size_t len = lhs.size() + rhs.size();
 
         if constexpr (index == 1) {
-            if constexpr (
-                !tag::reserved_tag(C{})
-                ) {
-                modifier.reserve(len);
+            if constexpr (!C{}(tag::reserved)) {
+                result.reserve(len);
             }
-            auto rep = modifier.data();
-            auto res = modifier.size();
+            auto rep = result.data();
+            auto res = result.size();
             auto lp = lhs.data();
             auto ls = lhs.size();
             auto rv = *rhs.data();
             auto _Val = traits::mul(rep, lp, ls, rv);
-            modifier.set_size(ls);
+            result.set_size(ls);
             if (_Val) {
-                modifier.push_back(_Val);
+                result.push_back(_Val);
             }
         }
         else {
-            auto rep = modifier.data();
-            auto res = modifier.size();
+            auto rep = result.data();
+            auto res = result.size();
             auto lp = lhs.data();
             auto ls = lhs.size();
             auto rp = rhs.data();
@@ -2761,24 +2997,22 @@ namespace wjr::math::biginteger {
             if (len <= 256) {
                 limb_t tar[256];
                 traits::mul(tar, lp, ls, rp, rs);
-                if constexpr (
-                    !tag::reserved_tag(C{})
-                    ) {
-                    modifier.reserve(len);
-                    rep = modifier.data();
+                if constexpr (!C{}(tag::reserved)) {
+                    result.reserve(len);
+                    rep = result.data();
                 }
                 std::copy_n(tar, len, rep);
             }
             else {
                 auto tar = (limb_ptr)malloc(len * sizeof(limb_t));
                 traits::mul(tar, lp, ls, rp, rs);
-                modifier.get()->assign(tar, len, len, tag::store_tag);
+                result.assign(tar, len, len, tag::store);
                 rep = tar;
             }
             if (!rep[len - 1]) {
-                modifier.set_size(len - 1);
+                result.set_size(len - 1);
             }
-            else modifier.set_size(len);
+            else result.set_size(len);
         }
 
     }
@@ -2790,6 +3024,7 @@ namespace wjr::math::biginteger {
         const T& lhs,
         const U& rhs
     ) {
+
         size_t n = lhs.size();
         size_t m = rhs.size();
         size_t mid = n >> 1;
@@ -2800,27 +3035,27 @@ namespace wjr::math::biginteger {
         auto r_low = unsigned_view<base>(rhs, 0, mid);
         l_low.maintain();
         r_low.maintain();
-        unsigned_biginteger A(n + 1, tag::uninitialized_tag);
-        unsigned_biginteger B(n + 3, tag::uninitialized_tag);
-        unsigned_biginteger C(2 * mid, tag::uninitialized_tag);
+        unsigned_biginteger A(n + 1, tag::uninitialized);
+        unsigned_biginteger B(n + 3, tag::uninitialized);
+        unsigned_biginteger C(2 * mid, tag::uninitialized);
         auto ma = unsigned_modifier<base>(A);
         auto mb = unsigned_modifier<base>(B);
         auto mc = unsigned_modifier<base>(C);
 
-        add(ma, l_high, l_low, tag::reserved_tag);
-        add(mc, r_high, r_low, tag::reserved_tag);
+        add(ma, l_high, l_low, tag::reserved);
+        add(mc, r_high, r_low, tag::reserved);
         mul(B, A, C);
         mul(A, l_high, r_high);
         mul(C, l_low, r_low);
-        sub(mb, B, A, tag::reserved_tag);
-        sub(mb, B, C, tag::reserved_tag);
+        sub(mb, B, A, tag::reserved);
+        sub(mb, B, C, tag::reserved);
 
-        result.reserve(n + m, tag::uninitialized_tag);
+        result.reserve(n + m, tag::uninitialized);
         result.set_byte(0);
 
-        add(unsigned_modifier<base>(result, 0), unsigned_view<base>(result, 0), C, tag::reserved_tag);
-        add(unsigned_modifier<base>(result, mid), unsigned_view<base>(result, mid), B, tag::reserved_tag);
-        add(unsigned_modifier<base>(result, 2 * mid), unsigned_view<base>(result, 2 * mid), A, tag::reserved_tag);
+        add(unsigned_modifier<base>(result, 0), unsigned_view<base>(result, 0), C, tag::reserved);
+        add(unsigned_modifier<base>(result, mid), unsigned_view<base>(result, mid), B, tag::reserved);
+        add(unsigned_modifier<base>(result, 2 * mid), unsigned_view<base>(result, 2 * mid), A, tag::reserved);
         result.maintain();
     }
 
@@ -2866,22 +3101,30 @@ namespace wjr::math::biginteger {
     ) {
         size_t n = lhs.size();
         size_t m = rhs.size();
-        unsigned_biginteger temp(n + m, tag::uninitialized_tag);
-        unsigned_biginteger r;
-        std::fill_n(r.data(), n + m, 0);
+        unsigned_biginteger temp(2 * m, tag::uninitialized);
+        unsigned_biginteger r(n + m, tag::uninitialized);
+        r.set_byte(0);
         if constexpr (index != 0) {
             WASSERT_LEVEL_1(n >= index * m);
             dac_mul<0, index>(result, lhs, rhs, temp, r);
         }
         else {
-            size_t idx = (n + m - 1) / m;
-            WASSERT_LEVEL_1(n > (idx - 1) * m && n <= idx * m);
-            for (size_t i = 0; i < idx; ++i) {
-                size_t s = i == idx - 1 ? n - i * m : m;
-                auto g = unsigned_view<base>(lhs, i * m, s).maintain();
-                mul(temp, g, rhs);
-                add(unsigned_modifier<base>(r, i * m), unsigned_view<base>(r, i * m), temp);
+            size_t k = (n / m) / 2 + 1;
+            if ((n - 1) / k + 1 >= 2 * m) {
+                ++k;
             }
+            size_t floor_block = n / k;
+            size_t ceil_block = (n - 1) / k + 1;
+            size_t mid = k - (n % k);
+            size_t pos = 0;
+            for (size_t i = 0; i < k; ++i) {
+                size_t block = i < mid ? floor_block : ceil_block;
+                auto view = unsigned_view<base>(lhs, pos, block).maintain();
+                mul(temp, view, rhs);
+                add(unsigned_modifier<base>(r, pos), unsigned_view<base>(r, pos), temp);
+                pos += block;
+            }
+
             result = std::move(r);
             result.maintain();
         }
@@ -2917,7 +3160,7 @@ namespace wjr::math::biginteger {
         size_t sz = 0;
     };
 
-    static biginteger_fft_cache __biginteger_fft_cache;
+    inline biginteger_fft_cache __biginteger_fft_cache;
 
     template<size_t base>
     template<typename T, typename U>
@@ -2937,7 +3180,7 @@ namespace wjr::math::biginteger {
         uint64_t maxn = _Maxn / G;
         // X * G * plen / (pk + 1) <= Maxn
         for (; X <= maxn / ((plen + pk) / (pk + 1)); ++pk, X *= G) {
-            WASSERT_LEVEL_2(pk <= traits::bits);
+            WASSERT_LEVEL_2(pk <= traits::bits); 
         }
 
         auto lhs_iter = unsigned_iterator<base>(lhs, pk, 0);
@@ -2951,7 +3194,7 @@ namespace wjr::math::biginteger {
         auto a = A.get();
         __biginteger_fft_cache.make(s << 1);
         for (size_t i = 0; i < n; ++lhs_iter, ++i) {
-            auto val = *lhs_iter;
+            auto val = (limb_t)(*lhs_iter);
             a[i << 1] = val;
             a[i << 1 | 1] = val;
         }
@@ -2959,7 +3202,7 @@ namespace wjr::math::biginteger {
             a[i] = 0;
         }
         for (size_t i = 0; i < m; ++rhs_iter, ++i) {
-            auto val = *rhs_iter;
+            auto val = (limb_t)(*rhs_iter);
             a[i << 1] += val;
             a[i << 1 | 1] -= val;
         }
@@ -2986,11 +3229,10 @@ namespace wjr::math::biginteger {
             a[i << 1] *= invs;
         }
 
-        result.reserve(pn + pm, tag::uninitialized_tag);
+        result.reserve(pn + pm, tag::uninitialized);
         result.set_size(pn + pm);
         std::fill_n(result.data(), pn + pm, 0);
-        unsigned_biginteger_iterator<base>
-            write(result.data(), result.size(), pk);
+        auto write = unsigned_iterator<base>(result, pk, 0);
         uint64_t val = 0;
         uint32_t Mod = traits::get_base_power(pk);
         WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
@@ -3039,14 +3281,14 @@ namespace wjr::math::biginteger {
                 result.set_byte(0);
                 return;
             }
-            slow_mul<index>(unsigned_modifier<base>(result), lhs, rhs);
+            slow_mul<index>(result, lhs, rhs);
         }
         else {
             size_t n = lhs.size();
             size_t m = rhs.size();
             constexpr auto mul_info = traits::threshold::get_mul_threshold();
             if (m <= mul_info.slow_threshold) {
-                slow_mul<index>(unsigned_modifier<base>(result), lhs, rhs);
+                slow_mul<index>(result, lhs, rhs);
             }
             else {
                 if (m <= mul_info.karatsuba_threshold) {
@@ -3075,7 +3317,180 @@ namespace wjr::math::biginteger {
     }
 
     template<size_t base>
-    static unsigned_biginteger<base> unsigned_biginteger_zero = unsigned_biginteger<base>(0u);
+    template<typename C>
+    WJR_CONSTEXPR20 void unsigned_biginteger<base>::Random(
+        unsigned_biginteger_modifier<base> modifier,
+        size_t n,
+        C
+    ) {
+        if (!n) {
+            modifier.reserve(1);
+            modifier.set_size(1);
+            *modifier.data() = 0;
+            return;
+        }
+        size_t k = (n - 1) / traits::bits;
+        size_t r = (n - 1) % traits::bits + 1;
+        modifier.reserve(k + 1);
+        modifier.set_size(k + 1);
+        auto p = modifier.data();
+        for (size_t i = 0; i != k; ++i) {
+            p[i] = traits::random();
+        }
+        limb_t _Max;
+        if (r != traits::bits) {
+            _Max = traits::get_base_power(r) - 1;
+        }
+        else {
+            _Max = traits::max();
+        }
+        limb_t _Min;
+        if constexpr (C{}(tag::exact)) {
+            _Min = traits::get_base_power(r - 1);
+        }
+        else {
+            _Min = 0;
+        }
+        std::uniform_int_distribution<limb_t> rt(_Min, _Max);
+        p[k] = rt(traits::random_device());
+        if constexpr (!C{}(tag::exact)) {
+            modifier.maintain();
+        }
+    }
+
+    template<size_t base>
+    template<typename T>
+    WJR_CONSTEXPR20 void unsigned_biginteger<base>::Interval_random(
+        unsigned_biginteger_modifier<base> modifier,
+        const T& _Max
+    ) {
+        auto p = _Max.data();
+        size_t n = _Max.size();
+        std::uniform_int_distribution<limb_t> head(0, p[n - 1]);
+        modifier.reserve(n);
+        modifier.set_size(n);
+        auto rep = modifier.data();
+        while (true) {
+            size_t pos = n - 1;
+            rep[pos] = head(traits::random_device());
+            while (rep[pos] == p[pos] && pos) {
+                --pos;
+                rep[pos] = traits::random();
+            }
+            if (rep[pos] > p[pos])continue;
+            while (pos) {
+                --pos;
+                rep[pos] = traits::random();
+            }
+            break;
+        }
+        modifier.maintain();
+    }
+
+    template<size_t base>
+    template<size_t to_base, typename T>
+    WJR_CONSTEXPR20  void unsigned_biginteger<base>::Binary_radix_conversion(
+        unsigned_biginteger<to_base>& dst,
+        const T& src,
+        std::vector<std::pair<size_t, unsigned_biginteger<to_base>>>& cache
+    ) {
+        size_t n = src.size();
+        if (n == 1) {
+            dst = src.data()[0];
+            return;
+        }
+        constexpr auto use_cache = [](unsigned_biginteger<to_base>& r, auto& chc, size_t k) {
+            constexpr auto single_val = biginteger_traits<base>::max_value();
+            auto first_try = std::lower_bound(chc.begin(), chc.end(), k,
+                [](const auto& x, auto y) {return x.first < y; });
+            if (first_try != chc.end() && first_try->first == k) {
+                unsigned_biginteger<to_base>::mul(r, r, first_try->second);
+            }
+            else {
+                auto second_try = std::lower_bound(chc.begin(), chc.end(), k / 2,
+                    [](const auto& x, auto y) {return x.first < y; });
+                WASSERT_LEVEL_2(second_try != chc.end() && second_try->first == k / 2);
+                unsigned_biginteger<to_base> _Val;
+                unsigned_biginteger<to_base>::mul(_Val, second_try->second, second_try->second);
+                if (k & 1) {
+                    WASSERT_LEVEL_2(chc.size() >= 1 && chc[0].first == 1);
+                    unsigned_biginteger<to_base>::mul(_Val, _Val, chc[0].second);
+                }
+                unsigned_biginteger<to_base>::mul(r, r, _Val);
+                chc.emplace(first_try, std::make_pair(k, std::move(_Val)));
+            }
+        };
+        size_t mid = n >> 1;
+        auto lsrc = unsigned_view<base>(src, mid, n - mid);
+        auto rsrc = unsigned_view<base>(src, 0, mid).maintain();
+        Binary_radix_conversion(dst, lsrc, cache);
+        unsigned_biginteger<to_base> temp;
+        Binary_radix_conversion(temp, rsrc, cache);
+        use_cache(dst, cache, mid);
+        unsigned_biginteger<to_base>::add(dst, dst, temp);
+    }
+
+    template<size_t base>
+    template<size_t to_base, typename T, typename C>
+    WJR_CONSTEXPR20 void unsigned_biginteger<base>::Radix_conversion(
+        unsigned_biginteger<to_base>& dst,
+        const T& src,
+        C
+    ) {
+        constexpr auto type = __radix_conversion_helper<base, to_base>::value;
+        if constexpr (type == radix_conversion_type::same) {
+            dst = src;
+        }
+        else if constexpr (type == radix_conversion_type::multiple) {
+            if constexpr (biginteger_traits<base>::max() == biginteger_traits<to_base>::max()) {
+                dst.assign(src.data(), src.data() + src.size());
+            }
+            else {
+                if constexpr (base < to_base) {
+                    constexpr int k = math::force_constexpr::integer_log(std::integral_constant<size_t, base>{}, to_base);
+                    size_t old_size = src.size();
+                    size_t old_max_bits = old_size * traits::bits;
+                    size_t new_max_bits = (old_max_bits - 1) / k + 1;
+                    size_t new_max_size = (new_max_bits - 1) / biginteger_traits<to_base>::bits + 1;
+                    dst.reserve(new_max_size);
+                    dst.set_size(new_max_size);
+                    auto reader = unsigned_iterator<base>(src, k);
+                    auto write = unsigned_iterator<base>(dst, 1);
+                    while (reader.vaild()) {
+                        *write = *reader;
+                        ++reader;
+                        ++write;
+                    }
+                    dst.maintain();
+                }
+                else {
+                    constexpr int k = math::force_constexpr::integer_log(std::integral_constant<size_t, to_base>{}, base);
+                    size_t old_size = src.size();
+                    size_t new_max_size = old_size * k;
+                    dst.reserve(new_max_size);
+                    dst.set_size(new_max_size);
+                    auto reader = unsigned_iterator<base>(src, 1);
+                    auto write = unsigned_iterator<base>(dst, k);
+                    while (reader.vaild()) {
+                        *write = *reader;
+                        ++reader;
+                        ++write;
+                    }
+                    dst.maintain();
+                }
+            }
+        }
+        else {
+            std::vector<std::pair<size_t, unsigned_biginteger<to_base>>> cache;
+            cache.reserve(30);
+            cache.emplace_back(std::make_pair(1,
+                unsigned_biginteger<to_base>(biginteger_traits<base>::max_value())));
+            Binary_radix_conversion(dst, src, cache);
+        }
+    }
+
+    template<size_t base>
+    const inline unsigned_biginteger<base> unsigned_biginteger_zero = unsigned_biginteger<base>(0u);
 
     template<size_t base>
     WJR_CONSTEXPR20 unsigned_biginteger_view<base>& unsigned_biginteger_view<base>::maintain() {
@@ -3093,11 +3508,11 @@ namespace wjr::math::biginteger {
 #define BIGINTEGER_VIEW_BINARY_AUTO_DECLARATION                                                 \
     template<typename T, typename U, size_t _Base =                                             \
             __biginteger_base<std::decay_t<T>, std::decay_t<U>>,                                \
-            std::enable_if_t<__is_accepted_base_v<_Base>, int> = 0>                             
+            std::enable_if_t<__is_accepted_base_v<_Base>, int> = 0>
 
 #define BIGINTEGER_VIEW_BINARY_AUTO_DEFINITION                                                  \
     template<typename T, typename U, size_t _Base,                                              \
-            std::enable_if_t<__is_accepted_base_v<_Base>, int> >                             
+            std::enable_if_t<__is_accepted_base_v<_Base>, int> >
 
     BIGINTEGER_VIEW_BINARY_AUTO_DECLARATION
         WJR_CONSTEXPR20 int cmp(const T& lhs, const U& rhs);
@@ -3137,21 +3552,60 @@ namespace wjr::math::biginteger {
     WJR_CONSTEXPR20 void divmod(biginteger<_Base>& lhs, biginteger<_Base>& rhs);
 
     // generate a biginteger of length n
-    template<size_t _Base>
-    WJR_CONSTEXPR20 void
-        random_biginteger(
-            biginteger<_Base>& result,
-            size_t n,
-            bool _unsigned = true,
-            bool exact = true
-        );
-    template<size_t _Base>
-    WJR_CONSTEXPR20 biginteger<_Base>
-        random_biginteger(
-            size_t n,
-            bool _unsigned = true,
-            bool exact = true
-        );
+    template<size_t _Base, typename C = tag::empty_tag, std::enable_if_t<tag::is_tag_set_v<C>, int> = 0>
+    WJR_CONSTEXPR20 void random(biginteger<_Base>& result, size_t n, C = C{});
+
+    template<size_t _Base, typename C = tag::empty_tag, std::enable_if_t<tag::is_tag_set_v<C>, int> = 0>
+    WJR_CONSTEXPR20 biginteger<_Base> random(size_t n, C = C{});
+
+    template<size_t _Base, typename T,
+        std::enable_if_t<std::conjunction_v<
+        __Can_make_signed_view<_Base, T>>, int> = 0>
+        WJR_CONSTEXPR20 void interval_random(biginteger<_Base>& result, const T& _Max);
+
+    template<size_t _Base, typename T,
+        std::enable_if_t<std::conjunction_v<
+        __Can_make_signed_view<_Base, T>>, int> = 0>
+        WJR_CONSTEXPR20 biginteger<_Base> interval_random(const T& _Max);
+
+    template<size_t _Base, typename T, typename U,
+        std::enable_if_t<std::conjunction_v<
+        __Can_make_signed_view<_Base, T>,
+        __Can_make_signed_view<_Base, U>>, int> = 0>
+        WJR_CONSTEXPR20 void interval_random(biginteger<_Base>& result, const T& _Min, const U& _Max);
+
+    template<size_t _Base, typename T, typename U,
+        std::enable_if_t<std::conjunction_v<
+        __Can_make_signed_view<_Base, T>,
+        __Can_make_signed_view<_Base, U>>, int> = 0>
+        WJR_CONSTEXPR20 biginteger<_Base> interval_random(const T& _Min, const U& _Max);
+
+    template<size_t to_base, typename T, typename C = tag::empty_tag,
+        size_t base = __biginteger_base<std::decay_t<T>>,
+        std::enable_if_t<
+        std::conjunction_v<
+        __Can_make_signed_view<base, T>,
+        tag::is_tag_set<C>,
+        __is_accepted_base<base>>, int> = 0>
+        WJR_CONSTEXPR20 void radix_conversion(biginteger<to_base>& dst, const T& src, C = C{});
+
+    template<size_t to_base, typename T, typename C = tag::empty_tag,
+        size_t base = __biginteger_base<std::decay_t<T>>,
+        std::enable_if_t<
+        std::conjunction_v<
+        __Can_make_signed_view<base, T>,
+        tag::is_tag_set<C>,
+        __is_accepted_base<base>>, int> = 0>
+        WJR_CONSTEXPR20 biginteger<to_base> radix_conversion(std::in_place_index_t<to_base>, const T& src, C = C{});
+
+    template<size_t to_base, typename T, typename C = tag::empty_tag,
+        size_t base = __biginteger_base<std::decay_t<T>>,
+        std::enable_if_t<
+        std::conjunction_v<
+        __Can_make_signed_view<base, T>,
+        tag::is_tag_set<C>,
+        __is_accepted_base<base>>, int> = 0>
+        WJR_CONSTEXPR20 biginteger<to_base> radix_conversion(const T& src, C = C{});
 
     template<size_t base>
     class biginteger {
@@ -3190,6 +3644,13 @@ namespace wjr::math::biginteger {
         using reverse_iterator = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
+        using bit_iterator = unsigned_biginteger_iterator<base>;
+        using bit_const_iterator = unsigned_biginteger_const_iterator<base>;
+        using bit_reverse_iterator = std::reverse_iterator<bit_iterator>;
+		using bit_const_reverse_iterator = std::reverse_iterator<bit_const_iterator>;
+        using bit_reference = unsigned_biginteger_reference<base>;
+		using bit_const_reference = unsigned_biginteger_const_reference<base>;
+
         WJR_CONSTEXPR20 biginteger() = default;
         WJR_CONSTEXPR20 biginteger(const biginteger&) = default;
         WJR_CONSTEXPR20 biginteger(biginteger&&) noexcept = default;
@@ -3217,6 +3678,11 @@ namespace wjr::math::biginteger {
             __Need_to_make_signed_v<base, std::decay_t<T>>, int> = 0>
         WJR_CONSTEXPR20 explicit biginteger(const T& val)
             : biginteger(signed_view<base>(val)) {}
+
+		WJR_CONSTEXPR20 biginteger(limb_ptr ptr, size_t _Size, size_t _Capacity, tag::store_tag)
+			: ubint(ptr, _Size, _Capacity, tag::store) {}
+        WJR_CONSTEXPR20 biginteger(size_t _Count, tag::uninitialized_tag)
+            : ubint(_Count, tag::uninitialized) {}
 
         template<typename iter, typename Func, std::enable_if_t<wjr_is_iterator_v<iter>, int> = 0>
         WJR_CONSTEXPR20 void in_bits(iter _First, iter _Last, Func&& fn) {
@@ -3278,6 +3744,11 @@ namespace wjr::math::biginteger {
             return *this;
         }
 
+		WJR_CONSTEXPR20 biginteger& assign(limb_ptr ptr, size_t _Size, size_t _Capacity, tag::store_tag) {
+			ubint.assign(ptr, _Size, _Capacity, tag::store);
+			return *this;
+		}
+
         WJR_CONSTEXPR20 void swap(biginteger& other) noexcept {
             std::swap(_Signal, other._Signal);
             ubint.swap(other.ubint);
@@ -3313,12 +3784,57 @@ namespace wjr::math::biginteger {
         WJR_CONSTEXPR20 reference back() noexcept { return ubint.back(); }
         WJR_CONSTEXPR20 const_reference back() const noexcept { return ubint.back(); }
 
+        WJR_CONSTEXPR20 size_t bit_size() const { return ubint.bit_size(); }
+        WJR_CONSTEXPR20 bit_iterator bit_begin() noexcept { 
+            return unsigned_iterator<base>(*this, 1, 0); 
+        }
+		WJR_CONSTEXPR20 bit_const_iterator bit_begin() const noexcept { 
+            return unsigned_iterator<base>(*this, 1, 0); 
+        }
+		WJR_CONSTEXPR20 bit_const_iterator bit_cbegin() const noexcept { 
+            return unsigned_iterator<base>(*this, 1, 0); 
+        }
+		WJR_CONSTEXPR20 bit_iterator bit_end() noexcept { 
+            return unsigned_iterator<base>(*this, 1, bit_size()); 
+        }
+		WJR_CONSTEXPR20 bit_const_iterator bit_end() const noexcept { 
+            return unsigned_iterator<base>(*this, 1, bit_size()); 
+        }
+		WJR_CONSTEXPR20 bit_const_iterator bit_cend() const noexcept { 
+            return unsigned_iterator<base>(*this, 1, bit_size()); 
+        }
+		WJR_CONSTEXPR20 bit_reverse_iterator bit_rbegin() noexcept { 
+            return bit_reverse_iterator(bit_end()); 
+        }
+		WJR_CONSTEXPR20 bit_const_reverse_iterator bit_rbegin() const noexcept { 
+            return bit_const_reverse_iterator(bit_end()); 
+        }
+		WJR_CONSTEXPR20 bit_const_reverse_iterator bit_crbegin() const noexcept { 
+            return bit_const_reverse_iterator(bit_end()); 
+        }
+		WJR_CONSTEXPR20 bit_reverse_iterator bit_rend() noexcept { 
+            return bit_reverse_iterator(bit_begin()); 
+        }
+		WJR_CONSTEXPR20 bit_const_reverse_iterator bit_rend() const noexcept { 
+            return bit_const_reverse_iterator(bit_begin()); 
+        }
+		WJR_CONSTEXPR20 bit_const_reverse_iterator bit_crend() const noexcept { 
+            return bit_const_reverse_iterator(bit_begin()); 
+        }
+		WJR_CONSTEXPR20 bit_reference operator()(const size_type n) { return bit_begin()[n]; }
+		WJR_CONSTEXPR20 bit_const_reference operator()(const size_type n) const { return bit_begin()[n]; }
+		WJR_CONSTEXPR20 bit_reference bit_front() { return *bit_begin(); }
+		WJR_CONSTEXPR20 bit_const_reference bit_front() const { return *bit_begin(); }
+		WJR_CONSTEXPR20 bit_reference bit_back() { return *(--bit_end()); }
+		WJR_CONSTEXPR20 bit_const_reference bit_back() const { return *(--bit_end()); }
+
         WJR_CONSTEXPR20 void reserve(const size_type n) { ubint.reserve(n); }
         WJR_CONSTEXPR20 void bit_reserve(const size_type n) { ubint.reserve((n + traits::bits - 1) / traits::bits); }
         WJR_CONSTEXPR20 bool test_byte(const value_type val) { return ubint.test_byte(val); }
         WJR_CONSTEXPR20 void set_byte(const value_type val) { ubint.set_byte(val); }
         WJR_CONSTEXPR20 bool signal() const noexcept { return _Signal; }
         WJR_CONSTEXPR20 void maintain_signal() { _Signal |= ubint.test_byte(0); }
+        WJR_CONSTEXPR20 void set_size(const size_type n) { ubint.set_size(n); }
         WJR_CONSTEXPR20 biginteger& maintain() {
             ubint.maintain();
             maintain_signal();
@@ -3327,10 +3843,6 @@ namespace wjr::math::biginteger {
         WJR_CONSTEXPR20 void negate() { _Signal = (!_Signal) || ubint.test_byte(0); }
         WJR_CONSTEXPR20 void set_signal(bool f) { _Signal = f || ubint.test_byte(0); }
         WJR_CONSTEXPR20 void abs() { _Signal = true; }
-
-        WJR_CONSTEXPR20 size_t bit_size() const {
-            return ubint.bit_size();
-        }
 
         WJR_CONSTEXPR20 biginteger& mul_base_power(size_t index) {
             ubint.mul_base_power(index);
@@ -3351,10 +3863,11 @@ namespace wjr::math::biginteger {
         WJR_CONSTEXPR20 String tostr() const {
             size_t n = bit_size();
             String str;
-            str.resize(n + 1);
+            str.reserve(n + 1);
+            str.set_size(n + 1);
             auto it = out_bits(str.begin(), str.end(), traits::to_string);
             size_t g = it.value() - str.begin();
-            str.resize(g);
+            str.set_size(g);
             return str;
         }
 
@@ -3520,7 +4033,7 @@ namespace wjr::math::biginteger {
                 else if (r.size() == n) {
                     if (mr.data()[n - 1] > val) {
                         q = 1;
-                        unsigned_traits::sub(mr, mr, rhs.ubint, tag::reserved_tag);
+                        unsigned_traits::sub(mr, mr, rhs.ubint, tag::reserved);
                     }
                     else if (mr.data()[n - 1] == val) {
                         q = 1;
@@ -3840,7 +4353,7 @@ namespace wjr::math::biginteger {
             bool f = signal();
             abs();
             _Rhs.abs();
-            if constexpr (T::max_bit == 1) {
+            if constexpr (decltype(_Rhs)::max_bit == 1) {
                 *this = one_divmod(*this, *_Rhs.data());
             }
             else {
@@ -3862,21 +4375,7 @@ namespace wjr::math::biginteger {
         }
 
         WJR_CONSTEXPR20 biginteger& operator++() {
-            if (_Signal) {
-                unsigned_traits::inc(
-                    unsigned_modifier<base>(ubint),
-                    unsigned_view<base>(ubint),
-                    tag::empty_tag
-                );
-            }
-            else {
-                unsigned_traits::dec(
-                    unsigned_modifier<base>(ubint),
-                    unsigned_view<base>(ubint),
-                    tag::empty_tag
-                );
-                maintain_signal();
-            }
+            (*this) += signed_integral_view<base, 1>(1u);
             return *this;
         }
 
@@ -3887,26 +4386,7 @@ namespace wjr::math::biginteger {
         }
 
         WJR_CONSTEXPR20 biginteger& operator--() {
-            if (!_Signal) {
-                unsigned_traits::inc(
-                    unsigned_modifier<base>(ubint),
-                    unsigned_view<base>(ubint)
-                );
-            }
-            else {
-                auto p = data();
-                if (size() == 1 && *p == 0) {
-                    *p = 1;
-                    _Signal = false;
-                }
-                else {
-                    unsigned_traits::dec(
-                        unsigned_modifier<base>(ubint),
-                        unsigned_view<base>(ubint)
-                    );
-                }
-            }
-
+            (*this) -= signed_integral_view<base, 1>(1u);
             return *this;
         }
 
@@ -3920,8 +4400,24 @@ namespace wjr::math::biginteger {
             return rhs.test_byte(0);
         }
 
-        WJR_CONSTEXPR20 biginteger& random(size_t n, bool _unsigned = true, bool _exact = false) {
-            random_biginteger<base>(*this, n, _unsigned, _exact);
+        template<typename C = tag::empty_tag, std::enable_if_t<tag::is_tag_set_v<C>, int> = 0>
+        WJR_CONSTEXPR20 biginteger& random(size_t n, C = C{}) {
+            random<base>(*this, n, C{});
+            return *this;
+        }
+
+        template<typename T, std::enable_if_t<
+            std::conjunction_v<__Can_make_signed_view<base, T>>, int> = 0>
+        WJR_CONSTEXPR20 biginteger& interval_random(const T& _Max) {
+            interval_random<base>(*this, _Max);
+            return *this;
+        }
+
+        template<typename T, typename U, std::enable_if_t<
+            std::conjunction_v<__Can_make_signed_view<base, T>,
+            __Can_make_signed_view<base, U>>, int> = 0>
+            WJR_CONSTEXPR20 biginteger& interval_random(const T& _Min, const U& _Max) {
+            interval_random<base>(*this, _Min, _Max);
             return *this;
         }
 
@@ -3986,9 +4482,6 @@ namespace wjr::math::biginteger {
 
         template<size_t _Base>
         friend WJR_CONSTEXPR20 void divmod(biginteger<_Base>& lhs, biginteger<_Base>& rhs);
-
-        template<size_t _Base>
-        friend WJR_CONSTEXPR20 void random_biginteger(biginteger<_Base>& result, size_t n, bool, bool);
 
         bool _Signal = true;
         unsigned_biginteger<base> ubint;
@@ -4156,43 +4649,91 @@ namespace wjr::math::biginteger {
         biginteger<_Base>::quick_divmod(lhs, rhs);
     }
 
-    template<size_t _Base>
-    WJR_CONSTEXPR20 void random_biginteger(biginteger<_Base>& result, size_t n, bool _unsigned, bool exact) {
-        using traits = biginteger_traits<_Base>;
-        std::random_device rd;
-#if defined(WJR_BIGINTEGER_USE_X64)
-        USE_THREAD_LOCAL static std::mt19937_64 mt_rand(rd());
-#else
-        USE_THREAD_LOCAL static std::mt19937 mt_rand(rd());
-#endif
-        if (!n)return;
-        if (!_unsigned) {
-            result._Signal = mt_rand() & 1;
+    template<size_t _Base, typename C, std::enable_if_t<tag::is_tag_set_v<C>, int>>
+    WJR_CONSTEXPR20 void random(biginteger<_Base>& result, size_t n, C) {
+        constexpr auto tag = C{} &(tag::exact | tag::_signed);
+        unsigned_biginteger<_Base>::random(result.get_unsigned(), n, tag);
+        if constexpr (tag(tag::_signed)) {
+            result.set_signal(biginteger_traits<_Base>::random_bool());
         }
-        size_t k = (n - 1) / traits::bits + 1;
-        size_t r = (n - 1) % traits::bits + 1;
-        std::uniform_int_distribution<limb_t> r1(0, traits::max());
-        auto& ubint = result.ubint;
-        ubint.reserve(k);
-        ubint.set_size(k);
-        for (size_t i = 0; i < k - 1; ++i) {
-            ubint[i] = r1(mt_rand);
+        else {
+            result.set_signal(true);
         }
-        auto _max = traits::max();
-        if (r != traits::bits)_max = traits::get_base_power(r);
-        std::uniform_int_distribution<limb_t> r2(exact, _max);
-        ubint[k - 1] = r2(mt_rand);
-        result.maintain();
     }
 
-    template<size_t _Base>
-    WJR_CONSTEXPR20 biginteger<_Base> random_biginteger(size_t n, bool _unsigned, bool exact) {
+    template<size_t _Base, typename C, std::enable_if_t<tag::is_tag_set_v<C>, int>>
+    WJR_CONSTEXPR20 biginteger<_Base> random(size_t n, C) {
         biginteger<_Base> result;
-        random_biginteger(result, n, _unsigned, exact);
+        random(result, n, C{});
         return result;
     }
 
-}
+    template<size_t _Base, typename T,
+        std::enable_if_t<std::conjunction_v<
+        __Can_make_signed_view<_Base, T>>, int>>
+        WJR_CONSTEXPR20 void interval_random(biginteger<_Base>& result, const T& _Max) {
+        const auto view = signed_view<_Base>(_Max);
+        WASSERT_LEVEL_1(view.signal());
+        unsigned_biginteger<_Base>::interval_random(result.get_unsigned(), view.get_unsigned());
+        result.set_signal(true);
+    }
 
+    template<size_t _Base, typename T,
+        std::enable_if_t<std::conjunction_v<
+        __Can_make_signed_view<_Base, T>>, int>>
+        WJR_CONSTEXPR20 biginteger<_Base> interval_random(const T& _Max) {
+        biginteger<_Base> result;
+        interval_random(result, _Max);
+        return result;
+    }
+
+    template<size_t _Base, typename T, typename U,
+        std::enable_if_t<std::conjunction_v<
+        __Can_make_signed_view<_Base, T>,
+        __Can_make_signed_view<_Base, U>>, int>>
+        WJR_CONSTEXPR20 biginteger<_Base> interval_random(const T& _Min, const U& _Max) {
+        biginteger<_Base> result;
+        interval_random(result, _Min, _Max);
+        return result;
+    }
+
+    template<size_t to_base, typename T, typename C,
+        size_t base,
+        std::enable_if_t<
+        std::conjunction_v<
+        __Can_make_signed_view<base, T>,
+        tag::is_tag_set<C>,
+        __is_accepted_base<base>>, int>>
+        WJR_CONSTEXPR20 void radix_conversion(biginteger<to_base>& dst, const T& src, C) {
+        auto view = signed_view<base>(src);
+        unsigned_biginteger<base>::radix_conversion(dst.get_unsigned(), src.get_unsigned(), C{});
+        dst.set_signal(view.signal());
+    }
+
+    template<size_t to_base, typename T, typename C,
+        size_t base,
+        std::enable_if_t<
+        std::conjunction_v<
+        __Can_make_signed_view<base, T>,
+        tag::is_tag_set<C>,
+        __is_accepted_base<base>>, int>>
+        WJR_CONSTEXPR20 biginteger<to_base> radix_conversion(std::in_place_index_t<to_base>, const T& src, C) {
+        biginteger<to_base> result;
+        radix_conversion(result, src, C{});
+        return result;
+    }
+
+    template<size_t to_base, typename T, typename C,
+        size_t base,
+        std::enable_if_t<
+        std::conjunction_v<
+        __Can_make_signed_view<base, T>,
+        tag::is_tag_set<C>,
+        __is_accepted_base<base>>, int>>
+        WJR_CONSTEXPR20 biginteger<to_base> radix_conversion(const T& src, C) {
+        return radix_conversion(std::in_place_index_t<to_base>{}, src, C{});
+    }
+
+}
 
 #endif
