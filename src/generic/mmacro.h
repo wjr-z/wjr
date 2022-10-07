@@ -145,7 +145,7 @@
 #endif
 
 #ifndef _DEBUG
-#define WDEBUG_LEVEL 0
+#define WDEBUG_LEVEL 3
 #else
 #define WDEBUG_LEVEL 3
 #endif

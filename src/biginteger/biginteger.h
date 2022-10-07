@@ -872,8 +872,14 @@ namespace wjr::math::biginteger {
 
         constexpr static limb_t get_base_power(size_t kth) noexcept {
             WASSERT_LEVEL_2(kth < bits);
-            return __base_power_array[kth];
+            if constexpr (has_single_bit) {
+                return (limb_t)(1) << (integer_log2 * kth);
+            }
+            else {
+                return __base_power_array[kth];
+            }
         }
+
         constexpr static limb_t mul_base_power(limb_t val, size_t kth) noexcept {
             WASSERT_LEVEL_2(kth < bits);
             if constexpr (has_single_bit) {
@@ -883,43 +889,69 @@ namespace wjr::math::biginteger {
                 return val * get_base_power(kth);
             }
         }
-        struct __magic_divider_of_base_power {
-            using divider_type = libdivide::divider<limb_t>;
-            __magic_divider_of_base_power() {
-                for (size_t i = 0; i < bits; ++i) {
-                    new (&magic_divider[i]) divider_type(get_base_power(i));
+
+        struct __quick_divmod_table {
+            struct __func {
+                constexpr __func() : __val(0) {}
+                constexpr __func(limb_t k) : __val(k) {}
+                template<typename T>
+                constexpr T div(const T n) const {
+                    return n / __val;
+                }
+                template<typename T>
+                constexpr T mod(const T n) const {
+                    return n % __val;
+                }
+                limb_t __val;
+            };
+            template<size_t i, limb_t val>
+            constexpr void make() {
+                if constexpr (i != bits) {
+                    table[i] = __func(val);
+                    make<i + 1, val* base>();
                 }
             }
-            constexpr const divider_type& operator[](size_t i) const {
-                return magic_divider[i];
+            constexpr __quick_divmod_table() : table() {
+                make<0, 1>();
             }
-        private:
-            std::array<divider_type, bits> magic_divider;
+            constexpr __func operator[](size_t k) const {
+                return table[k];
+            }
+            std::array<__func, bits> table;
         };
-        static __magic_divider_of_base_power __magic_divider;
+        constexpr static auto quick_divmod_table = __quick_divmod_table();
 
-        WJR_CONSTEXPR static limb_t div_base_power(limb_t val, size_t kth) noexcept {
+        template<typename T, std::enable_if_t<_Is_unsigned_standard_integral_v<T>, int> = 0>
+        constexpr static T div_base_power(T val, size_t kth) noexcept {
             WASSERT_LEVEL_2(kth < bits);
-            if constexpr (has_single_bit) {
-                return val >> (integer_log2 * kth);
+			constexpr int digits = std::numeric_limits<T>::digits;
+            if constexpr(digits <= 16){
+                return static_cast<T>(div_base_power(static_cast<uint32_t>(val), kth));
             }
             else {
-                WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
-                    return val / __magic_divider[kth];
-                WJR_IS_NOT_CONSTANT_EVALUATED_END
-                    return val / get_base_power(kth);
+                if constexpr (has_single_bit) {
+                    return val >> (integer_log2 * kth);
+                }
+                else {
+                    return quick_divmod_table[kth].div(val);
+                }
             }
         }
-        WJR_CONSTEXPR static limb_t mod_base_power(limb_t val, size_t kth) noexcept {
+
+        template<typename T, std::enable_if_t<_Is_unsigned_standard_integral_v<T>, int> = 0>
+        constexpr static T mod_base_power(T val, size_t kth) noexcept {
             WASSERT_LEVEL_2(kth < bits);
-            if constexpr (has_single_bit) {
-                return val & ((static_cast<limb_t>(1) << (integer_log2 * kth)) - 1);
+            constexpr int digits = std::numeric_limits<T>::digits;
+            if constexpr (digits <= 16) {
+                return static_cast<T>(mod_base_power(static_cast<uint32_t>(val), kth));
             }
             else {
-                WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
-                    return val - div_base_power(val, kth) * get_base_power(kth);
-                WJR_IS_NOT_CONSTANT_EVALUATED_END
-                    return val % get_base_power(kth);
+                if constexpr (has_single_bit) {
+                    return val & ((static_cast<limb_t>(1) << (integer_log2 * kth)) - 1);
+                }
+                else {
+                    return quick_divmod_table[kth].mod(val);
+                }
             }
         }
 
@@ -976,10 +1008,6 @@ namespace wjr::math::biginteger {
         };
 
     };
-
-    template<size_t base>
-    typename biginteger_traits<base>::__magic_divider_of_base_power
-        biginteger_traits<base>::__magic_divider = __magic_divider_of_base_power();
 
     template<size_t base>
     class unsigned_biginteger;
@@ -1545,6 +1573,16 @@ namespace wjr::math::biginteger {
         }
         WJR_CONSTEXPR20 void push_back(limb_t _Val) {
             m_ptr->push_back(_Val);
+        }
+        // fill zero from size to offset
+        WJR_CONSTEXPR20 unsigned_biginteger_modifier& fill_zero() {
+            size_t _Size = m_ptr->size();
+            if (_Size < m_offset) {
+                auto ptr = m_ptr->data();
+                std::fill(ptr + _Size, ptr + m_offset, 0);
+                m_ptr->set_size(m_offset);
+            }
+            return *this;
         }
         WJR_CONSTEXPR20 unsigned_biginteger_modifier& maintain() {
             m_ptr->maintain(m_offset + 1);
@@ -3024,7 +3062,6 @@ namespace wjr::math::biginteger {
         const T& lhs,
         const U& rhs
     ) {
-
         size_t n = lhs.size();
         size_t m = rhs.size();
         size_t mid = n >> 1;
@@ -3038,24 +3075,20 @@ namespace wjr::math::biginteger {
         unsigned_biginteger A(n + 1, tag::uninitialized);
         unsigned_biginteger B(n + 3, tag::uninitialized);
         unsigned_biginteger C(2 * mid, tag::uninitialized);
-        auto ma = unsigned_modifier<base>(A);
-        auto mb = unsigned_modifier<base>(B);
-        auto mc = unsigned_modifier<base>(C);
 
-        add(ma, l_high, l_low, tag::reserved);
-        add(mc, r_high, r_low, tag::reserved);
+        add(A, l_high, l_low, tag::reserved);
+        add(C, r_high, r_low, tag::reserved);
         mul(B, A, C);
         mul(A, l_high, r_high);
         mul(C, l_low, r_low);
-        sub(mb, B, A, tag::reserved);
-        sub(mb, B, C, tag::reserved);
-
+        sub(B, B, A, tag::reserved);
+        sub(B, B, C, tag::reserved);
         result.reserve(n + m, tag::uninitialized);
         result.set_byte(0);
 
         add(unsigned_modifier<base>(result, 0), unsigned_view<base>(result, 0), C, tag::reserved);
-        add(unsigned_modifier<base>(result, mid), unsigned_view<base>(result, mid), B, tag::reserved);
-        add(unsigned_modifier<base>(result, 2 * mid), unsigned_view<base>(result, 2 * mid), A, tag::reserved);
+        add(unsigned_modifier<base>(result, mid).fill_zero(), unsigned_view<base>(result, mid), B, tag::reserved);
+        add(unsigned_modifier<base>(result, 2 * mid).fill_zero(), unsigned_view<base>(result, 2 * mid), A, tag::reserved);
         result.maintain();
     }
 
@@ -3082,7 +3115,7 @@ namespace wjr::math::biginteger {
             g.maintain();
         }
         mul(temp, g, rhs);
-        add(unsigned_modifier<base>(r, i * l), unsigned_view<base>(r, i * l), temp);
+        add(unsigned_modifier<base>(r, i * l).fill_zero(), unsigned_view<base>(r, i * l), temp);
         if constexpr (i == index - 1) {
             result = std::move(r);
             result.maintain();
@@ -3121,7 +3154,7 @@ namespace wjr::math::biginteger {
                 size_t block = i < mid ? floor_block : ceil_block;
                 auto view = unsigned_view<base>(lhs, pos, block).maintain();
                 mul(temp, view, rhs);
-                add(unsigned_modifier<base>(r, pos), unsigned_view<base>(r, pos), temp);
+                add(unsigned_modifier<base>(r, pos).fill_zero(), unsigned_view<base>(r, pos), temp);
                 pos += block;
             }
 
@@ -3234,37 +3267,16 @@ namespace wjr::math::biginteger {
         std::fill_n(result.data(), pn + pm, 0);
         auto write = unsigned_iterator<base>(result, pk, 0);
         uint64_t val = 0;
-        uint32_t Mod = traits::get_base_power(pk);
-        WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
-            biginteger_libdivider<uint32_t> divider(Mod);
         for (size_t i = 0; i < len; ++i, ++write) {
-#if defined(_MSC_VER)
-            val += _cvt_dtoull_fast(a[i << 1] + 0.5);
-#else
             val += static_cast<uint64_t>(a[i << 1] + 0.5);
-#endif
-            uint64_t d = val / divider;
-            (*write).zero_change(val - d * Mod);
+            uint64_t d = traits::div_base_power(val, pk);
+            (*write).zero_change(traits::mod_base_power(val, pk));
             val = d;
         }
         while (val) {
-            uint64_t d = val / divider;
-            (*write).zero_change(val - d * Mod);
+            uint64_t d = traits::div_base_power(val, pk);
+            (*write).zero_change(traits::mod_base_power(val, pk));
             val = d;
-        }
-        WJR_IS_NOT_CONSTANT_EVALUATED_END
-        else {
-        for (size_t i = 0; i < len; ++i, ++write) {
-            val += static_cast<uint64_t>(a[i << 1] + 0.5);
-            uint64_t d = val / Mod;
-            (*write).zero_change(val - d * Mod);
-            val = d;
-        }
-        while (val) {
-            uint64_t d = val / Mod;
-            (*write).zero_change(val - d * Mod);
-            val = d;
-        }
         }
         result.maintain();
     }
@@ -3291,24 +3303,34 @@ namespace wjr::math::biginteger {
                 slow_mul<index>(result, lhs, rhs);
             }
             else {
-                if (m <= mul_info.karatsuba_threshold) {
-                    if (n >= 2 * m) {
+                if (m <= mul_info.toom_cook_3_threshold) {
+                    if (n >= 3 * m) {
                         dac_mul<0>(result, lhs, rhs);
                     }
                     else {
-                        karatsuba(result, lhs, rhs);
+                        toom_cook_3(result, lhs, rhs);
                     }
                 }
                 else {
-                    if (n >= 15 * m) {
-                        dac_mul<4>(result, lhs, rhs);
-                    }
-                    else {
-                        if (n >= 7 * m) {
-                            dac_mul<2>(result, lhs, rhs);
+                    if (m <= mul_info.karatsuba_threshold) {
+                        if (n >= 2 * m) {
+                            dac_mul<0>(result, lhs, rhs);
                         }
                         else {
-                            fft_mul(result, lhs, rhs);
+                            karatsuba(result, lhs, rhs);
+                        }
+                    }
+                    else {
+                        if (n >= 15 * m) {
+                            dac_mul<4>(result, lhs, rhs);
+                        }
+                        else {
+                            if (n >= 7 * m) {
+                                dac_mul<2>(result, lhs, rhs);
+                            }
+                            else {
+                                fft_mul(result, lhs, rhs);
+                            }
                         }
                     }
                 }
@@ -3958,7 +3980,7 @@ namespace wjr::math::biginteger {
             for (size_t i = n; i--;) {
                 _Val = _Val * traits::max_value() + p[i];
                 p[i] = static_cast<limb_t>(_Val / ir);
-                _Val = _Val - p[i] * ir;
+                _Val = static_cast<limb_t>(_Val % ir);
             }
             if (n != 1 && !p[n - 1]) {
                 lhs.ubint.set_size(n - 1);
@@ -4560,8 +4582,8 @@ namespace wjr::math::biginteger {
         result.set_byte(0);
 
         add(unsigned_modifier<base>(result, 0), unsigned_view<base>(result, 0), W0.ubint);
-        add(unsigned_modifier<base>(result, n3), unsigned_view<base>(result, n3), W1.ubint);
-        add(unsigned_modifier<base>(result, 3 * n3), unsigned_view<base>(result, 3 * n3), W3.ubint);
+        add(unsigned_modifier<base>(result, n3).fill_zero(), unsigned_view<base>(result, n3), W1.ubint);
+        add(unsigned_modifier<base>(result, 3 * n3).fill_zero(), unsigned_view<base>(result, 3 * n3), W3.ubint);
         result.maintain();
     }
 

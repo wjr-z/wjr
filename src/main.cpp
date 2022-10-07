@@ -56,6 +56,15 @@ bool witness(const biginteger<2>& n, const biginteger<2>& S,
     return false;
 }
 
+template<int k>
+uint32_t gtk(uint32_t val) {
+    return val >> k;
+}
+
+uint32_t gk(uint32_t val, int k) {
+    using func = uint32_t(*)(uint32_t);
+    constexpr func table[32] = { gtk<0>,gtk<1>,gtk<2>,gtk<3>, };
+}
 bool miller_robin(const biginteger<2>& n, const size_t k = 5) {
     if (n.size() == 1) {
         uint32_t val(n[0]);
@@ -67,7 +76,7 @@ bool miller_robin(const biginteger<2>& n, const size_t k = 5) {
     }
 
     biginteger<2> mu(1);
-    mu.mul_base_power(n.size() * 64);
+    mu.mul_base_power(n.size() * 32 * 2);
     mu /= n;
 
     biginteger<2> S(n);
@@ -102,19 +111,20 @@ bool is_prime(const biginteger<2>& x) {
 }
 void test() {
     while (true) {
-        auto a = random<10>(1e5 * 32);
-        auto b = random<10>(5e4 * 32);
+        biginteger<2> a(1u);
+        a.mul_base_power(1024 * 64);
+        auto b = random<2>(512 * 64);
         a /= b;
         cout << "done\n";
     }
 }
 
 int main() {
+    test();
     int n = 12;
     while (n--) {
         auto a = random<2>(128 * 64);
         cout << test_runtime([&]() {is_prime(a); }) << '\n';
-        //cout << "done\n";
     }
 
 	
