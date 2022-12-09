@@ -53,7 +53,7 @@ template<typename...Args>														\
 constexpr bool has_global_function_##NAME##_v =									\
 	has_global_function_##NAME<Args...>::value;
 
-#define REGISTER_HSA_GLOBAL_BINARY_OPERATOR(OP, NAME)							\
+#define REGISTER_HAS_GLOBAL_BINARY_OPERATOR(OP, NAME)							\
 template<typename Enable, typename T, typename U>								\
 struct __has_global_binary_operator_##NAME : std::false_type {};				\
 template<typename T, typename U>												\
@@ -67,7 +67,7 @@ template<typename T, typename U>												\
 constexpr bool has_global_binary_operator_##NAME##_v =							\
 	has_global_binary_operator_##NAME<T, U>::value;
 
-#define REGISTER_HSA_GLOBAL_UNARY_OPERATOR(OP, NAME)							\
+#define REGISTER_HAS_GLOBAL_UNARY_OPERATOR(OP, NAME)							\
 template<typename Enable, typename T>											\
 struct __has_global_unary_operator_##NAME : std::false_type {};					\
 template<typename T>															\
@@ -84,7 +84,12 @@ constexpr bool has_global_unary_operator_##NAME##_v =							\
 REGISTER_HAS_MEMBER_FUNCTION(operator(), call_operator);
 REGISTER_HAS_MEMBER_FUNCTION(operator[], subscript_operator);
 REGISTER_HAS_MEMBER_FUNCTION(operator->, point_to_operator);
-REGISTER_HSA_GLOBAL_BINARY_OPERATOR(-, minus);
+REGISTER_HAS_GLOBAL_BINARY_OPERATOR(+, add);
+REGISTER_HAS_GLOBAL_BINARY_OPERATOR(-, minus);
+REGISTER_HAS_GLOBAL_BINARY_OPERATOR(&, and);
+REGISTER_HAS_GLOBAL_BINARY_OPERATOR(| , or );
+REGISTER_HAS_GLOBAL_BINARY_OPERATOR(^, xor);
+REGISTER_HAS_GLOBAL_UNARY_OPERATOR(~, not);
 REGISTER_HAS_STATIC_MEMBER_FUNCTION(min, min);
 REGISTER_HAS_STATIC_MEMBER_FUNCTION(max, max);
 

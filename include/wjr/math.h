@@ -8,7 +8,7 @@
 _WJR_BEGIN
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-constexpr bool has_single_bit(T x) {
+constexpr bool has_single_bit(T x) noexcept {
 	return x != 0 && (x & (x - 1)) == 0;
 }
 
@@ -32,7 +32,7 @@ const static int _WJR_LOG_TABLE[256] = {
 };
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-constexpr int _Countl_zero_fallback(T x) {
+constexpr int _Countl_zero_fallback(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if (x == 0) {
 		return _Nd;
@@ -65,7 +65,7 @@ constexpr int _Countl_zero_fallback(T x) {
 #if defined(__GUNC__) || defined(__clang__) || WJR_HAS_BUILTIN(__builtin_clz)
 #define __WJR_HAS_BUILTIN_COUNTL_ZERO
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-int __builtin_countl_zero(T x) {
+int __builtin_countl_zero(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if (x == 0) {
 		return _Nd;
@@ -97,7 +97,7 @@ int __builtin_countl_zero(T x) {
 #if defined(_M_IX86) || (defined(_M_X64) && !defined(_M_ARM64EC))
 #define __WJR_HAS_MSC_X86_64_COUNTL_ZERO
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-int _MSC_x86_64_countl_zero(T x) {
+int _MSC_x86_64_countl_zero(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 #if defined(__AVX2__)
 	if constexpr (_Nd <= 16) {
@@ -149,7 +149,7 @@ int _MSC_x86_64_countl_zero(T x) {
 #elif defined(_M_ARM) || defined(_M_ARM64)
 #define __WJR_HAS_MSC_ARM_COUNTL_ZERO
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-int _MSC_ARM_countl_zero(T x) {
+int _MSC_ARM_countl_zero(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if (x == 0) {
 		return _Nd;
@@ -171,7 +171,7 @@ int _MSC_ARM_countl_zero(T x) {
 #endif 
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_CONSTEXPR int countl_zero(T x) {
+WJR_CONSTEXPR int countl_zero(T x) noexcept {
 
 WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
 #if defined(__WJR_HAS_BUILTIN_COUNTL_ZERO)
@@ -186,14 +186,14 @@ WJR_IS_NOT_CONSTANT_EVALUATED_END
 }
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_CONSTEXPR int countl_one(T x) {
-	return countl_zero(static_cast<uint32_t>(~x));
+WJR_CONSTEXPR int countl_one(T x) noexcept {
+	return countl_zero(static_cast<T>(~x));
 }
 
 #if defined(__GUNC__) || defined(__clang__) || WJR_HAS_BUILTIN(__builtin_ctz)
 #define __WJR_HAS_BUILTIN_COUNTR_ZERO
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-int __builtin_countr_zero(T x) {
+int __builtin_countr_zero(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if (x == 0) {
 		return _Nd;
@@ -226,7 +226,7 @@ int __builtin_countr_zero(T x) {
 #if defined(_MSC_VER) && defined(__WJR_HAS_TZCNT_BSF_INTRINSICS)
 #define __WJR_HAS_MSC_COUNTR_ZERO
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-int _MSC_tzcnt_countr_zero(T x) {
+int _MSC_tzcnt_countr_zero(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	constexpr T _Max = std::numeric_limits<T>::max();
 #if defined(__AVX2__)
@@ -285,7 +285,7 @@ int _MSC_tzcnt_countr_zero(T x) {
 #endif
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_CONSTEXPR int countr_zero(T x) {
+WJR_CONSTEXPR int countr_zero(T x) noexcept {
 
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
@@ -302,8 +302,29 @@ WJR_IS_NOT_CONSTANT_EVALUATED_END
 }
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_CONSTEXPR int countr_one(T x) {
+WJR_CONSTEXPR int countr_one(T x) noexcept {
 	return countr_zero(static_cast<T>(~x));
+}
+
+template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+WJR_CONSTEXPR int bit_width(T x) noexcept {
+	return std::numeric_limits<T>::digits - wjr::countl_zero(x);
+}
+
+template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+WJR_CONSTEXPR T bit_floor(T x) noexcept {
+	if (x != 0) {
+		return static_cast<T>(T{ 1 } << (wjr::bit_width(x) - 1));
+	}
+	return T{ 0 };
+}
+
+template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+WJR_CONSTEXPR T bit_ceil(T x) noexcept {
+	if (x <= 1) {
+		return T{ 1 };
+	}
+	return static_cast<T>(T{ 1 } << wjr::bit_width(x - 1));
 }
 
 template< typename T, typename U >

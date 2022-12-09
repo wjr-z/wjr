@@ -28,7 +28,7 @@ public:
 	uint64_t operator()() {
 		return gen();
 	}
-	std::mt19937_64& get() {
+	std::mt19937_64& engine() {
 		return gen;
 	}
 };
@@ -40,7 +40,7 @@ public:
 	uint32_t operator()() {
 		return gen();
 	}
-	std::mt19937& get() {
+	std::mt19937& engine() {
 		return gen;
 	}
 };
@@ -114,41 +114,30 @@ public:
 		return __static_random_engine<digits>();
 	}
 
-	decltype(auto) get() const {
-		return __static_random_engine<__digits>.get();
+	decltype(auto) engine() const {
+		return __static_random_engine<__digits>.engine();
 	}
 
 	result_type uniform(result_type min, result_type max) const {
-		return std::uniform_int_distribution<__result_type>(min, max)(get());
+		return std::uniform_int_distribution<__result_type>(min, max)(engine());
 	}
 	result_type binomial(result_type n, double p = 0.5) const {
-		return std::binomial_distribution<__result_type>(n, p)(get());
+		return std::binomial_distribution<__result_type>(n, p)(engine());
 	}
 	result_type negative_binomial(result_type n, double p = 0.5) const {
-		return std::negative_binomial_distribution<__result_type>(n, p)(get());
+		return std::negative_binomial_distribution<__result_type>(n, p)(engine());
 	}
 	result_type geometric(double p = 0.5) const {
 		std::uniform_real_distribution<double> dis;
-		return std::geometric_distribution<__result_type>(p)(get());
+		return std::geometric_distribution<__result_type>(p)(engine());
 	}
 	result_type poisson(double mean = 1) const {
-		return std::poisson_distribution<__result_type>(mean)(get());
+		return std::poisson_distribution<__result_type>(mean)(engine());
 	}
-	
-	/*
-	template<typename iter, std::enable_if_t<
-		std::conjunction_v<wjr::is_iterator<iter>, std::is_same<wjr::iter_val_t<iter>, result_type>>, int> = 0>
-	result_type discrete(iter first, iter last) const {
-		return std::discrete_distribution<__result_type>(first, last)(get());
-	}
-	result_type discrete(const std::initializer_list<double>& il) const {
-		return std::discrete_distribution<__result_type>(il)(get());
-	}
-	*/
 
 	template<typename Distribution>
 	result_type distribution(Distribution&& dist) const {
-		return std::forward<Distribution>(dist)(get());
+		return std::forward<Distribution>(dist)(engine());
 	}
 };
 
@@ -162,12 +151,12 @@ public:
 		return __static_random_engine<digits>();
 	}
 	
-	decltype(auto) get() const {
-		return __static_random_engine<32>.get();
+	decltype(auto) engine() const {
+		return __static_random_engine<32>.engine();
 	}
 
 	result_type bernoulli(double p = 0.5) const {
-		return std::bernoulli_distribution(p)(get());
+		return std::bernoulli_distribution(p)(engine());
 	}
 	
 };
@@ -225,57 +214,57 @@ private:
 		std::is_same_v<T, float> ? 32 : 64;
 public:
 
-	decltype(auto) get() const {
-		return __static_random_engine<__digits>.get();
+	decltype(auto) engine() const {
+		return __static_random_engine<__digits>.engine();
 	}
 
 	result_type uniform(result_type min, result_type max) const {
-		return std::uniform_real_distribution<result_type>(min, max)(get());
+		return std::uniform_real_distribution<result_type>(min, max)(engine());
 	}
 
 	result_type exponential(double lambda = 1) const {
-		return std::exponential_distribution<result_type>(lambda)(get());
+		return std::exponential_distribution<result_type>(lambda)(engine());
 	}
 
 	result_type gamma(double alpha = 1, double beta = 1) const {
-		return std::gamma_distribution<result_type>(alpha, beta)(get());
+		return std::gamma_distribution<result_type>(alpha, beta)(engine());
 	}
 
 	result_type weibull(double a = 1, double b = 1) const {
-		return std::weibull_distribution<result_type>(a, b)(get());
+		return std::weibull_distribution<result_type>(a, b)(engine());
 	}
 
 	result_type extreme_value(double a = 0, double b = 1) const {
-		return std::extreme_value_distribution<result_type>(a, b)(get());
+		return std::extreme_value_distribution<result_type>(a, b)(engine());
 	}
 
 	result_type normal(double mean = 0, double stddev = 1) const {
-		return std::normal_distribution<result_type>(mean, stddev)(get());
+		return std::normal_distribution<result_type>(mean, stddev)(engine());
 	}
 
 	result_type lognormal(double mean = 0, double stddev = 1) const {
-		return std::lognormal_distribution<result_type>(mean, stddev)(get());
+		return std::lognormal_distribution<result_type>(mean, stddev)(engine());
 	}
 
 	result_type chi_squared(double n) const {
-		return std::chi_squared_distribution<result_type>(n)(get());
+		return std::chi_squared_distribution<result_type>(n)(engine());
 	}
 
 	result_type cauchy(double a = 0, double b = 1) const {
-		return std::cauchy_distribution<result_type>(a, b)(get());
+		return std::cauchy_distribution<result_type>(a, b)(engine());
 	}
 
 	result_type fisher_f(double m, double n) const {
-		return std::fisher_f_distribution<result_type>(m, n)(get());
+		return std::fisher_f_distribution<result_type>(m, n)(engine());
 	}
 
 	result_type student_t(double n) const {
-		return std::student_t_distribution<result_type>(n)(get());
+		return std::student_t_distribution<result_type>(n)(engine());
 	}
 
 	template<typename Distribution>
 	result_type distribution(Distribution&& dist) const {
-		return std::forward<Distribution>(dist)(get());
+		return std::forward<Distribution>(dist)(engine());
 	}
 };
 
@@ -294,8 +283,5 @@ class __random<long double> : public __random_real_base<long double> {
 
 _WJR_MATH_END
 _WJR_END
-
-#undef _WJR_PRODUCT_BEGIN
-#undef _WJR_PRODUCT_END
 
 #endif // !PRODUCT_H

@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cstddef>
 #include <type_traits>
+#include <cstdint>
 
 #if defined(__clang__) || defined(__GNUC__)
 #define WJR_CPP_STANDARD __cplusplus
@@ -103,6 +104,8 @@
 #define WJR_UNREACHABLE
 #endif
 
+#define WJR_FALLTHROUGH [[fallthrough]]
+
 #if defined(_MSC_VER)
 #if !(defined(__AVX__) || defined(__AVX2__))
 #if (defined(_M_AMD64) || defined(_M_X64))
@@ -142,6 +145,14 @@
 #define unlikely(expr) expr
 #endif
 #endif
+
+#if defined(WJR_CPP_20)
+#define WJR_LIKELY [[likely]]
+#else
+#define WJR_LIKELY
+#endif
+
+#define WJR_CONCAT(x, y) x##y
 
 #ifndef _DEBUG
 #define WDEBUG_LEVEL 0
@@ -203,6 +214,19 @@
 #define WJR_GCC_STYLE_ASM
 #endif
 
+#define __AVX512F__INSTRSET 10
+#define __AVX512__INSTRSET 10
+#define __AVX2__INSTRSET 9
+#define __AVX__INSTRSET 8
+#define __SSE4_2__INSTRSET 7
+#define __SSE4_1__INSTRSET 6
+#define __SSSE3__INSTRSET 5
+#define __SSE3__INSTRSET 4
+#define __SSE2__INSTRSET 3
+#define __SSE__INSTRSET 2
+#define __MMX__INSTRSET 1
+#define __SCALAR__INSTRSET 0
+
 #if defined ( __AVX512VL__ ) && defined ( __AVX512BW__ ) && defined ( __AVX512DQ__ )
 #ifndef __AVX512F__
 #define __AVX512F__
@@ -211,7 +235,7 @@
 #define __AVX512__
 #endif
 #ifndef WJR_INSTRSET
-#define WJR_INSTRSET 10
+#define WJR_INSTRSET __AVX512F__INSTRSET
 #endif
 #endif
 
@@ -220,7 +244,7 @@
 #define __AVX2__
 #endif
 #ifndef WJR_INSTRSET
-#define WJR_INSTRSET 9
+#define WJR_INSTRSET __AVX2__INSTRSET
 #endif
 #endif
 
@@ -229,7 +253,7 @@
 #define __AVX__
 #endif
 #ifndef WJR_INSTRSET
-#define WJR_INSTRSET 8
+#define WJR_INSTRSET __AVX__INSTRSET
 #endif
 #endif
 
@@ -238,7 +262,7 @@
 #define __SSE4_2__
 #endif
 #ifndef WJR_INSTRSET
-#define WJR_INSTRSET 7
+#define WJR_INSTRSET __SSE4_2__INSTRSET
 #endif
 #endif
 
@@ -247,7 +271,7 @@
 #define __SSE4_1__
 #endif
 #ifndef WJR_INSTRSET
-#define WJR_INSTRSET 6
+#define WJR_INSTRSET __SSE4_1__INSTRSET
 #endif
 #endif
 
@@ -256,7 +280,7 @@
 #define __SSSE3__
 #endif
 #ifndef WJR_INSTRSET
-#define WJR_INSTRSET 5
+#define WJR_INSTRSET __SSSE3__INSTRSET
 #endif
 #endif
 
@@ -265,7 +289,7 @@
 #define __SSE3__
 #endif
 #ifndef WJR_INSTRSET
-#define WJR_INSTRSET 4
+#define WJR_INSTRSET __SSE3__INSTRSET
 #endif
 #endif
 
@@ -274,7 +298,7 @@
 #define __SSE2__
 #endif
 #ifndef WJR_INSTRSET
-#define WJR_INSTRSET 3
+#define WJR_INSTRSET __SSE2__INSTRSET
 #endif
 #endif
 
@@ -283,19 +307,76 @@
 #define __SSE__
 #endif
 #ifndef WJR_INSTRSET
-#define WJR_INSTRSET 2
+#define WJR_INSTRSET __SSE__INSTRSET
 #endif
 #endif
 
 #if defined(__SSE__)
+#ifndef __MMX__
+#define __MMX__
+#endif
 #ifndef WJR_INSTRSET
-#define WJR_INSTRSET 1
+#define WJR_INSTRSET __MMX__INSTRSET
 #endif
 #endif
 
 #ifndef WJR_INSTRSET
-#define WJR_INSTRSET 0
+#define WJR_INSTRSET __SCALAR__INSTRSET
 #endif
+
+#if defined(__MMX__)
+#define WJR_HAS_MMX_DEFINE(X) X
+#else
+#define WJR_HAS_MMX_DEFINE(X)
+#endif // __MMX__
+
+#if defined(__SSE__)
+#define WJR_HAS_SSE_DEFINE(X) X
+#else
+#define WJR_HAS_SSE_DEFINE(X)
+#endif // __SSE__
+
+#if defined(__SSE2__)
+#define WJR_HAS_SSE2_DEFINE(X) X
+#else
+#define WJR_HAS_SSE2_DEFINE(X)
+#endif // __SSE2__
+
+#if defined(__SSE3__)
+#define WJR_HAS_SSE3_DEFINE(X) X
+#else
+#define WJR_HAS_SSE3_DEFINE(X)
+#endif // __SSE3__
+
+#if defined(__SSSE3__)
+#define WJR_HAS_SSSE3_DEFINE(X) X
+#else
+#define WJR_HAS_SSSE3_DEFINE(X)
+#endif // __SSSE3__
+
+#if defined(__SSE4_1__)
+#define WJR_HAS_SSE4_1_DEFINE(X) X
+#else
+#define WJR_HAS_SSE4_1_DEFINE(X)
+#endif // __SSE4_1__
+
+#if defined(__SSE4_2__)
+#define WJR_HAS_SSE4_2_DEFINE(X) X
+#else
+#define WJR_HAS_SSE4_2_DEFINE(X)
+#endif // __SSE4_2__
+
+#if defined(__AVX__)
+#define WJR_HAS_AVX_DEFINE(X) X
+#else
+#define WJR_HAS_AVX_DEFINE(X)
+#endif // __AVX__
+
+#if defined(__AVX2__)
+#define WJR_HAS_AVX2_DEFINE(X) X
+#else
+#define WJR_HAS_AVX2_DEFINE(X)
+#endif // __AVX2__
 
 #if defined(_MSC_VER)
 #include <intrin.h>
@@ -321,6 +402,8 @@
 
 #define _WJR_BEGIN namespace wjr{
 #define _WJR_END }
+#define _WJR_SIMD_BEGIN _WJR_BEGIN namespace simd{
+#define _WJR_SIMD_END } _WJR_END
 
 #ifndef _WJR_NOEXCEPTION
 #define _WJR_TRY try{

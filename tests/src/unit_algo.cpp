@@ -8,6 +8,7 @@
 #include <wjr/allocator.h>
 #include <wjr/test_product.h>
 #include <wjr/algorithm.h>
+#include <wjr/simd/simd.h>
 
 template<typename Output, typename iter>
 void op(Output& o, iter _First, iter _Last) {
@@ -76,7 +77,7 @@ TEST(algorithm, find) {
 	auto test1 = [](auto _Type, int n){
 		using type = std::decay_t<decltype(_Type)>;
 		std::vector<type> vec(n);
-		std::generate(std::begin(vec), std::end(vec), wjr::math::random<type>.get());
+		std::generate(std::begin(vec), std::end(vec), wjr::math::random<type>.engine());
 		type val;
 		auto p = wjr::math::random<int>.uniform(0, n);
 		if (p < n) {
@@ -100,6 +101,7 @@ TEST(algorithm, find) {
 				result << "val = " << (int)val << '\n';
 				result << (a - std::begin(vec)) << ' ' << (b - std::begin(vec)) << '\n';
 				EXPECT_TRUE(result);
+				a = wjr::find(std::begin(vec), std::end(vec), val);
 			}
 		}
 		{
@@ -123,6 +125,153 @@ TEST(algorithm, find) {
 				std::make_reverse_iterator(std::rbegin(vec)), val);
 			EXPECT_TRUE(a == b) << "type : " << typeid(type).name()
 				<< "\nerror at reverse<reverse> find. \n" << "n = " << n << '\n';
+		}
+	};
+	auto test2 = [&test1](int n) {
+		test1((char)0, n);
+		test1((short)0, n);
+		test1((int)0, n);
+		test1((long long)0, n);
+	};
+
+	test2(0);
+	for (int i = 0; i < 16; ++i) {
+		test2(3);
+		test2(4);
+	}
+	for (int i = 0; i < 32; ++i) {
+		test2(15);
+		test2(16);
+	}
+	for (int i = 0; i < 64; ++i) {
+		test2(31);
+		test2(32);
+	}
+	for (int i = 0; i < 128; ++i) {
+		test2(63);
+		test2(64);
+	}
+	for (int i = 0; i < 256; ++i) {
+		test2(256);
+		test2(1000);
+		test2(1024);
+	}
+	for (int i = 0; i < 1024; ++i) {
+		test2(wjr::math::random<int>.uniform(1, 256));
+	}
+}
+
+TEST(algorithm, mismatch) {
+	auto test1 = [](auto _Type, int n) {
+		using type = std::decay_t<decltype(_Type)>;
+		std::vector<type> vec1(n);
+		std::vector<type> vec2(n);
+		std::generate(std::begin(vec1), std::end(vec1), wjr::math::random<type>.engine());
+		vec2 = vec1;
+		int pos = n;
+		if (n != 0) {
+			pos = wjr::math::random<int>.uniform(0, n - 1);
+		}
+		if (pos < n) {
+			++vec2[pos];
+		}
+		{
+			auto pr1 = std::mismatch(std::begin(vec1), std::end(vec1), std::begin(vec2));
+			auto pr2 = wjr::mismatch(std::begin(vec1), std::end(vec1), std::begin(vec2));
+			EXPECT_EQ(pr1, pr2) << "type : " << typeid(type).name()
+				<< "\nerror at normal mismatch. \n" << "n = " << n << '\n' << "pos = " << pos << '\n';
+		}
+		{
+			auto pr1 = std::mismatch(std::rbegin(vec1), std::rend(vec1), std::rbegin(vec2));
+			auto pr2 = wjr::mismatch(std::rbegin(vec1), std::rend(vec1), std::rbegin(vec2));
+			EXPECT_EQ(pr1, pr2) << "type : " << typeid(type).name()
+				<< "\nerror at reverse mismatch. \n" << "n = " << n << '\n' << "pos = " << pos << '\n';
+			if (pr1 != pr2) {
+				wjr::mismatch(std::rbegin(vec1), std::rend(vec1), std::rbegin(vec2));
+			}
+		}
+		{
+			auto pr1 = std::mismatch(std::make_reverse_iterator(std::rend(vec1)),
+				std::make_reverse_iterator(std::rbegin(vec1)),
+				std::make_reverse_iterator(std::rend(vec2)));
+			auto pr2 = wjr::mismatch(
+				std::make_reverse_iterator(std::rend(vec1)),
+				std::make_reverse_iterator(std::rbegin(vec1)),
+				std::make_reverse_iterator(std::rend(vec2)));
+			EXPECT_EQ(pr1, pr2) << "type : " << typeid(type).name()
+				<< "\nerror at reverse<reverse> equal. \n" << "n = " << n << '\n' << "pos = " << pos << '\n';
+		}
+	};
+	auto test2 = [&test1](int n) {
+		test1((char)0, n);
+		test1((short)0, n);
+		test1((int)0, n);
+		test1((long long)0, n);
+	};
+
+	test2(0);
+	for (int i = 0; i < 16; ++i) {
+		test2(3);
+		test2(4);
+	}
+	for (int i = 0; i < 32; ++i) {
+		test2(15);
+		test2(16);
+	}
+	for (int i = 0; i < 64; ++i) {
+		test2(31);
+		test2(32);
+	}
+	for (int i = 0; i < 128; ++i) {
+		test2(63);
+		test2(64);
+	}
+	for (int i = 0; i < 256; ++i) {
+		test2(256);
+		test2(1000);
+		test2(1024);
+	}
+	for (int i = 0; i < 1024; ++i) {
+		test2(wjr::math::random<int>.uniform(1, 256));
+	}
+}
+
+TEST(algorithm, equal) {
+	auto test1 = [](auto _Type, int n) {
+		using type = std::decay_t<decltype(_Type)>;
+		std::vector<type> vec1(n);
+		std::vector<type> vec2(n);
+		std::generate(std::begin(vec1), std::end(vec1), wjr::math::random<type>.engine());
+		vec2 = vec1;
+		auto pos = n;
+		if (n != 0) {
+			pos = wjr::math::random<int>.uniform(0, n - 1);
+		}
+		if (pos < n) {
+			++vec2[pos];
+		}
+		bool eq = pos == n;
+		{
+
+			auto x = wjr::equal(std::begin(vec1), std::end(vec1), std::begin(vec2));
+			EXPECT_EQ(x, eq) << "type : " << typeid(type).name()
+				<< "\nerror at normal equal. \n" << "n = " << n << '\n';
+			if (x != eq) {
+				x = wjr::equal(std::begin(vec1), std::end(vec1), std::begin(vec2));
+			}
+		}
+		{
+			auto x = wjr::equal(std::rbegin(vec1), std::rend(vec1), std::rbegin(vec2));
+			EXPECT_EQ(x, eq) << "type : " << typeid(type).name()
+				<< "\nerror at reverse equal. \n" << "n = " << n << '\n';
+		}
+		{
+			auto x = wjr::equal(
+				std::make_reverse_iterator(std::rend(vec1)), 
+				std::make_reverse_iterator(std::rbegin(vec1)),
+				std::make_reverse_iterator(std::rend(vec2)));
+			EXPECT_EQ(x, eq) << "type : " << typeid(type).name()
+				<< "\nerror at reverse<reverse> equal. \n" << "n = " << n << '\n';
 		}
 	};
 	auto test2 = [&test1](int n) {
