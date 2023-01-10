@@ -62,9 +62,9 @@
 #if defined(_MSC_VER)
 #define WJR_FORCEINLINE __forceinline
 #elif WJR_HAS_ATTRIBUTE(always_inline)
-#define WJR_FORCEINLINE __inline__ __attribute__((always_inline))
+#define WJR_FORCEINLINE __attribute__((always_inline))
 #else
-#define WJR_FORCEINLINE inline
+#define WJR_FORCEINLINE
 #endif
 
 #if defined(WJR_CPP_20)
@@ -109,11 +109,17 @@
 #if defined(_MSC_VER)
 #if !(defined(__AVX__) || defined(__AVX2__))
 #if (defined(_M_AMD64) || defined(_M_X64))
+#ifndef __SSE2__
 #define __SSE2__
+#endif // __SSE2__
 #elif _M_IX86_FP == 2
+#ifndef __SSE2__
 #define __SSE2__
+#endif // __SSE2__
 #elif _M_IX86_FP == 1
+#ifndef __SSE__
 #define __SSE__
+#endif // __SSE__
 #endif
 #endif
 #endif
@@ -153,6 +159,16 @@
 #endif
 
 #define WJR_CONCAT(x, y) x##y
+#define WJR_MACRO_CONCAT(x, y) WJR_CONCAT(x, y)
+
+#define VA_ARGS_EXPAND(x) x
+
+#define __WJR_DEFINE_0(x)
+#define __WJR_DEFINE_1(x) x
+#define WJR_DEFINE(x, y) __WJR_DEFINE_##y (x)
+
+#define __WJR_MACRO_STR(x) #x
+#define WJR_MACRO_STR(x) __WJR_MACRO_STR(x)
 
 #ifndef _DEBUG
 #define WDEBUG_LEVEL 0
@@ -170,15 +186,14 @@
         }																				\
     }while(0)
 
-#define MSVC_VA_ARGS_EXPAND(x) x
-#define WASSERT_LEVEL_MESSAGE(...) MSVC_VA_ARGS_EXPAND(__WASSERT_LEVEL_MESSAGE(__VA_ARGS__, "no additional message"))
-#define WASSERT_LEVEL_0(...) MSVC_VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(0, __VA_ARGS__))
+#define WASSERT_LEVEL_MESSAGE(...) VA_ARGS_EXPAND(__WASSERT_LEVEL_MESSAGE(__VA_ARGS__, "no additional message"))
+#define WASSERT_LEVEL_0(...) VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(0, __VA_ARGS__))
 
 // WDEBUG_LEVEL		1
 // The impact on program running time or space is only constant
 // Some small bugs that are not easy to test under a small part or a small range of data
 #if WDEBUG_LEVEL >= 1
-#define WASSERT_LEVEL_1(...) MSVC_VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(1, __VA_ARGS__))
+#define WASSERT_LEVEL_1(...) VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(1, __VA_ARGS__))
 #else
 #define WASSERT_LEVEL_1(...)
 #endif
@@ -187,7 +202,7 @@
 // The impact on program running time or space is only linear or less
 // Some bugs that may be found and fixed in small-scale tests
 #if WDEBUG_LEVEL >= 2
-#define WASSERT_LEVEL_2(...) MSVC_VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(2, __VA_ARGS__))
+#define WASSERT_LEVEL_2(...) VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(2, __VA_ARGS__))
 #else
 #define WASSERT_LEVEL_2(...)
 #endif
@@ -196,7 +211,7 @@
 // The impact on program running time or space is O(nlogn),O(n sqrt(n)),O(n^2) or less
 // It can still run in a large range
 #if WDEBUG_LEVEL >= 3
-#define WASSERT_LEVEL_3(...) MSVC_VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(3, __VA_ARGS__))
+#define WASSERT_LEVEL_3(...) VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(3, __VA_ARGS__))
 #else
 #define WASSERT_LEVEL_3(...)
 #endif
@@ -205,7 +220,7 @@
 // no limit
 // It can only be tested in a small range
 #if WDEBUG_LEVEL >= 4
-#define WASSERT_LEVEL_4(...) MSVC_VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(4, __VA_ARGS__))
+#define WASSERT_LEVEL_4(...) VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(4, __VA_ARGS__))
 #else
 #define WASSERT_LEVEL_4(...)
 #endif
@@ -378,6 +393,12 @@
 #define WJR_HAS_AVX2_DEFINE(X)
 #endif // __AVX2__
 
+#if defined(WJR_FORCEINLINE)
+#define __SIMD_INLINE inline WJR_FORCEINLINE
+#else
+#define __SIMD_INLINE inline
+#endif
+
 #if defined(_MSC_VER)
 #include <intrin.h>
 #elif defined(__GUNC__) || defined(__clang__)
@@ -404,6 +425,8 @@
 #define _WJR_END }
 #define _WJR_SIMD_BEGIN _WJR_BEGIN namespace simd{
 #define _WJR_SIMD_END } _WJR_END
+#define _WJR_MATH_BEGIN _WJR_BEGIN namespace math{
+#define _WJR_MATH_END } _WJR_END
 
 #ifndef _WJR_NOEXCEPTION
 #define _WJR_TRY try{

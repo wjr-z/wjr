@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(CMAKE_C_COMPILER "D:/LLVM/bin/clang.exe")
-set(CMAKE_CXX_COMPILER "D:/LLVM/bin/clang++.exe")
+#set(CMAKE_C_COMPILER "D:/LLVM/bin/clang.exe")
+#set(CMAKE_CXX_COMPILER "D:/LLVM/bin/clang++.exe")
 
 project(wjr2 LANGUAGES CXX)
 
@@ -14,9 +14,9 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 
 if (MSVC)
-set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} /O2 /std:c++17")
+set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} /O2 /std:c++17 /arch:mavx2")
 else()
-set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -O2 -std=c++17")
+set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -O2 -std=c++17 -mavx2")
 endif() 
 
 include(FetchContent)

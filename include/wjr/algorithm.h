@@ -14,16 +14,13 @@ _WJR_BEGIN
 template<typename _Iter, typename _Val,
 	typename _Iter_value = wjr::iter_val_t<_Iter>>
 using __Has_fast_find = std::conjunction<
-	wjr::is_memory_compare<_Iter_value>,
-#if defined(__HAS_SIMD_MEMCHR)
-	std::disjunction<wjr::is_contiguous_iterator<_Iter>,
-	wjr::is_reverse_contiguous_iterator<_Iter>>,
-	wjr::is_any_index_of<sizeof(_Iter_value), 1, 2, 4>,
-#else
+	wjr::is_memory_compare<_Iter_value, _Val>,
 	wjr::is_contiguous_iterator<_Iter>,
-	wjr::is_any_index_of<sizeof(_Iter_value), sizeof(char), sizeof(wchar_t)>,
-#endif
-	std::is_integral<_Val>
+	std::conditional_t<
+	wjr::is_reverse_iterator_v<_Iter>,
+	simd::__has_simd_memrchr<_Iter_value>,
+	simd::__has_simd_memchr<_Iter_value>
+	>
 >;
 
 template<typename _Iter, typename _Val>
@@ -42,45 +39,24 @@ struct _Find_fn {
 			if constexpr (__Has_fast_find_v<_Iter, _Ty>) {
 				using _Iter_value = typename std::iterator_traits<_Iter>::value_type;
 				const auto n = _Last - _First;
-				if (!in_range<std::decay_t<_Iter_value>>(_Val) || n == 0) {
+				if (!__maybe_equal<std::decay_t<_Iter_value>>(_Val) || n == 0) {
 					return _Last;
 				}
-#if defined(__HAS_SIMD_MEMCHR) // use simd::memchr
-				using __value_t = std::conditional_t<
-					sizeof(_Iter_value) == 1,
-					uint8_t,
-					std::conditional_t<
-					sizeof(_Iter_value) == 2,
-					uint16_t,
-					uint32_t
-					>
-				>;
-				if constexpr (wjr::is_contiguous_iterator_v<_Iter>) {
+				using value_type = std::make_unsigned_t<get_memory_t<_Iter_value>>;
+				if constexpr (!wjr::is_reverse_iterator_v<_Iter>) {
 					const auto _Ptr_first = wjr::to_address(_First);
 					const auto _Ptr_last = wjr::to_address(_Last - 1) + 1;
-					auto __s = (const __value_t*)_Ptr_first;
-					auto __e = (const __value_t*)_Ptr_last;
-					return _First + (simd::memchr(__s, static_cast<__value_t>(_Val), n) - __s);
+					auto __s = reinterpret_cast<const value_type*>(_Ptr_first);
+					return _First + (simd::memchr(__s, static_cast<value_type>(_Val), n) - __s);
 				}
+#if defined(__HAS_SIMD_MEMCHR) // use simd::memchr
 				else {
 					const auto _Ptr_first = wjr::to_address(_Last - 1);
 					const auto _Ptr_last = wjr::to_address(_First) + 1;
-					auto __s = (const __value_t*)_Ptr_first;
-					auto __e = (const __value_t*)_Ptr_last;
-					return _Last - (simd::memrchr(__s, static_cast<__value_t>(_Val),n) - __s);
+					auto __s = reinterpret_cast<const value_type*>(_Ptr_first);
+					return _Last - (simd::memrchr(__s, static_cast<value_type>(_Val),n) - __s);
 				}
-#else // use memchr or wmemchr
-				const auto _Ptr_first = wjr::to_address(_First);
-				const auto _Ptr_last = wjr::to_address(_Last - 1) + 1;
-				if constexpr (sizeof(_Iter_value) == sizeof(char)) {
-					return _First + (::memchr((const char*)_Ptr_first,
-						(int)_Val, n) - (const char*)_Ptr_first);
-				}
-				else if constexpr (sizeof(_Iter_value) == sizeof(wchar_t)) {
-					return _First + (::wmemchr((const wchar_t*)_Ptr_first,
-						(wchar_t)_Val, n) - (const wchar_t*)_Ptr_first);
-				}
-#endif
+#endif // __HAS_SIMD_MEMCHR
 			}
 		WJR_IS_NOT_CONSTANT_EVALUATED_END
 		return std::find(_First, _Last, _Val);
@@ -119,6 +95,17 @@ struct _Find_if_not_fn {
 
 constexpr _Find_if_not_fn find_if_not{};
 
+template<typename _Iter, typename _Val,
+	typename _Iter_value = wjr::iter_val_t<_Iter>>
+using __Has_fast_count = std::conjunction<
+	wjr::is_memory_compare<_Iter_value, _Val>,
+	wjr::is_contiguous_iterator<_Iter>,
+	simd::__has_simd_memcnt<_Iter_value>
+>;
+
+template<typename _Iter, typename _Val>
+constexpr bool __Has_fast_count_v = __Has_fast_count<_Iter, _Val>::value;
+
 struct _Count_fn {
 	template<typename ExecutionPolicy, typename ForwardIt, typename T, std::enable_if_t<
 		std::is_execution_policy_v<std::decay_t<ExecutionPolicy>>, int> = 0>
@@ -130,6 +117,31 @@ struct _Count_fn {
 	template<typename _Iter, typename _Ty>
 	WJR_CONSTEXPR typename std::iterator_traits<_Iter>::difference_type
 		operator()(_Iter _First, _Iter _Last, const _Ty& _Val) const {
+		WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
+#if defined(__HAS_SIMD_MEMCNT)
+			if constexpr (__Has_fast_count_v<_Iter, _Ty>) {
+				using _Iter_value = typename std::iterator_traits<_Iter>::value_type;
+				const auto n = _Last - _First;
+				if (!__maybe_equal<std::decay_t<_Iter_value>>(_Val) || n == 0) {
+					return 0;
+				}
+
+				using value_type = std::make_unsigned_t<get_memory_t<_Iter_value>>;
+				if constexpr (!wjr::is_reverse_iterator_v<_Iter>) {
+					const auto _Ptr_first = wjr::to_address(_First);
+					const auto _Ptr_last = wjr::to_address(_Last - 1) + 1;
+					auto __s = reinterpret_cast<const value_type*>(_Ptr_first);
+					return simd::memcnt(__s, static_cast<value_type>(_Val), n);
+				}
+				else {
+					const auto _Ptr_first = wjr::to_address(_Last - 1);
+					const auto _Ptr_last = wjr::to_address(_First) + 1;
+					auto __s = reinterpret_cast<const value_type*>(_Ptr_first);
+					return simd::memcnt(__s, static_cast<value_type>(_Val), n);
+				}
+			}
+#endif // __HAS_SIMD_MEMCNT
+		WJR_IS_NOT_CONSTANT_EVALUATED_END
 		return std::count(_First, _Last, _Val);
 	}
 };
@@ -159,20 +171,14 @@ template<typename _Iter1, typename _Iter2, typename _Pred,
 	typename _Iter_value1 = wjr::iter_val_t<_Iter1>,
 	typename _Iter_value2 = wjr::iter_val_t<_Iter2>>
 using __has_fast_equal_helper = std::conjunction<
-	std::disjunction<
-	std::conjunction<
 	wjr::is_contiguous_iterator<_Iter1>,
-	wjr::is_contiguous_iterator<_Iter2>
-	>,
-	std::conjunction<
-	wjr::is_reverse_contiguous_iterator<_Iter1>,
-	wjr::is_reverse_contiguous_iterator<_Iter2>
+	wjr::is_contiguous_iterator<_Iter2>,
+	std::is_same<wjr::is_reverse_iterator<_Iter1>, wjr::is_reverse_iterator<_Iter2>>,
+	std::conditional_t<
+	wjr::is_reverse_iterator_v<_Iter1>,
+	simd::__has_simd_memrcmp<_Iter_value1, _Iter_value2, _Pred>,
+	simd::__has_simd_memcmp<_Iter_value1, _Iter_value2, _Pred>
 	>
-	>,
-	wjr::is_memory_compare<_Iter_value1>,
-	wjr::is_memory_compare<_Iter_value2>,
-	std::bool_constant<sizeof(_Iter_value1) == sizeof(_Iter_value2)>,
-	std::is_same<_Pred, std::equal_to<>>
 >;
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
@@ -181,15 +187,19 @@ using __has_fast_equal = std::bool_constant<__has_fast_equal_helper<_Iter1, _Ite
 template<typename _Iter1, typename _Iter2, typename _Pred>
 constexpr bool __has_fast_equal_v = __has_fast_equal<_Iter1, _Iter2, _Pred>::value;
 
-// First use simd::memcmpeq
-// Then use simd::memcmp
-template<typename _Iter1, typename _Iter2, typename _Pred>
-using __has_fast_mismatch =
-#if defined(__HAS_SIMD_MEMCMP) // use simd::memcmp
-	std::bool_constant<__has_fast_equal<_Iter1, _Iter2, _Pred>::value>;
-#else // can't use memcmp
-	std::false_type;
-#endif
+template<typename _Iter1, typename _Iter2, typename _Pred,
+	typename _Iter_value1 = wjr::iter_val_t<_Iter1>,
+	typename _Iter_value2 = wjr::iter_val_t<_Iter2>>
+using __has_fast_mismatch = std::conjunction <
+	wjr::is_contiguous_iterator<_Iter1>,
+	wjr::is_contiguous_iterator<_Iter2>,
+	std::is_same<wjr::is_reverse_iterator<_Iter1>, wjr::is_reverse_iterator<_Iter2>>,
+	std::conditional_t<
+	wjr::is_reverse_iterator_v<_Iter1>,
+	simd::__has_simd_memrmis<_Iter_value1, _Iter_value2, _Pred>,
+	simd::__has_simd_memmis<_Iter_value1, _Iter_value2, _Pred>
+	>
+>;
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
 constexpr bool __has_fast_mismatch_v = __has_fast_mismatch<_Iter1, _Iter2, _Pred>::value;
@@ -235,37 +245,30 @@ struct _Mismatch_fn {
 	template<typename _Iter1, typename _Iter2, typename _Pred>
 	WJR_CONSTEXPR std::pair<_Iter1, _Iter2> operator()(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred pred) const {
 		WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
+#if defined(__HAS_SIMD_MEMMIS)
 			if constexpr (__has_fast_mismatch_v<_Iter1, _Iter2, _Pred>) {
-				using _Iter_value = wjr::iter_val_t<_Iter1>;
+				using _Iter_value = get_memory_t<wjr::iter_val_t<_Iter1>>;
 				const auto n = std::distance(_First1, _Last1);
 				if (n == 0) {
 					return std::make_pair(_First1, _First2);
 				}
-				if constexpr (wjr::is_contiguous_iterator_v<_Iter1>) {
+				if constexpr (!wjr::is_reverse_iterator_v<_Iter1>) {
 					const auto _Ptr_first1 = wjr::to_address(_First1);
 					const auto _Ptr_first2 = wjr::to_address(_First2);
 
-					auto __s0 = (const uint8_t*)(_Ptr_first1);
-					auto __s1 = (const uint8_t*)(_Ptr_first2);
-
-					auto p = simd::memcmp(__s0, __s1, n * sizeof(_Iter_value));
-					auto dif = (p - __s0) / sizeof(_Iter_value);
-					return std::make_pair(_First1 + dif, _First2 + dif);
+					auto pos = simd::memmis(_Ptr_first1, _Ptr_first2, n, pred) - _Ptr_first1;
+					return std::make_pair(_First1 + pos, _First2 + pos);
 				}
 				else {
 					const auto _Ptr_first1 = wjr::to_address(_Last1 - 1);
 					const auto _Last2 = _First2 + n;
 					const auto _Ptr_first2 = wjr::to_address(_Last2 - 1);
-					
-					auto __s0 = (const uint8_t*)(_Ptr_first1);
-					auto __e0 = __s0 + n * sizeof(_Iter_value);
-					auto __s1 = (const uint8_t*)(_Ptr_first2);
 
-					auto p = simd::memrcmp(__s0, __s1, n * sizeof(_Iter_value));
-					auto dif = (__e0 - p) / sizeof(_Iter_value);
-					return std::make_pair(_First1 + dif, _First2 + dif);
+					auto pos = (_Ptr_first1 + n) - simd::memrmis(_Ptr_first1, _Ptr_first2, n, pred);
+					return std::make_pair(_First1 + pos, _First2 + pos);
 				}
 			}
+#endif // __HAS_SIMD_MEMMIS
 		WJR_IS_NOT_CONSTANT_EVALUATED_END
 		return std::mismatch(_First1, _Last1, _First2, pred);
 	}
@@ -331,42 +334,18 @@ struct _Equal_fn {
 				if (n == 0) {
 					return true;
 				}
-				if constexpr (wjr::is_contiguous_iterator_v<_Iter1>) {
+				if constexpr (!wjr::is_reverse_iterator_v<_Iter1>) {
 					const auto _Ptr_first1 = wjr::to_address(_First1);
 					const auto _Ptr_last1 = wjr::to_address(_Last1 - 1) + 1;
 					const auto _Ptr_first2 = wjr::to_address(_First2);
-#if defined(__HAS_SIMD_MEMCMP) || defined(__HAS_SIMD_MEMCMPEQ)
-					auto __s0 = (const uint8_t*)_Ptr_first1;
-					auto __e0 = (const uint8_t*)_Ptr_last1;
-					auto __s1 = (const uint8_t*)_Ptr_first2;
-#if defined(__HAS_SIMD_MEMCMPEQ)
-					return simd::memcmpeq(__s0, __s1, n * sizeof(_Iter_value));
-#else
-					return simd::memcmp(__s0, __s1, n * sizeof(_Iter_value)) == __e0;
-#endif
-#else // memcmp
-					return memcmp(_Ptr_first1, _Ptr_first2,
-						n * sizeof(_Iter_value)) == 0;
-#endif
+					return simd::memcmp(_Ptr_first1, _Ptr_first2, n, pred);
 				}
 				else {
 					const auto _Ptr_first1 = wjr::to_address(_Last1 - 1);
 					const auto _Ptr_last1 = _Ptr_first1 + n;
 					const auto _Last2 = _First2 + n;
 					const auto _Ptr_first2 = wjr::to_address(_Last2 - 1);
-#if defined(__HAS_SIMD_MEMCMP)
-					auto __s0 = (const uint8_t*)_Ptr_first1;
-					auto __e0 = (const uint8_t*)_Ptr_last1;
-					auto __s1 = (const uint8_t*)_Ptr_first2;
-#if defined(__HAS_SIMD_MEMCMPEQ)
-					return simd::memcmpeq(__s0, __s1, n * sizeof(_Iter_value));
-#else
-					return simd::memcmp(__s0, __s1, n * sizeof(_Iter_value)) == __e0;
-#endif
-#else
-					return memcmp(_Ptr_first1, _Ptr_first2,
-						n * sizeof(_Iter_value)) == 0;
-#endif
+					return simd::memcmp(_Ptr_first1, _Ptr_first2, n, pred);
 				}
 			}
 		WJR_IS_NOT_CONSTANT_EVALUATED_END
@@ -391,6 +370,58 @@ struct _Equal_fn {
 };
 
 constexpr _Equal_fn equal{};
+
+template<typename _Iter1, typename _Iter2, typename _Pred,
+	typename _Iter_value1 = wjr::iter_val_t<_Iter1>,
+	typename _Iter_value2 = wjr::iter_val_t<_Iter2>>
+using __has_fast_lexicographical_compare = std::conjunction<
+	__has_fast_mismatch<_Iter1, _Iter2, _Pred>,
+	wjr::is_any_of<_Pred, std::less<>, std::not_equal_to<>>
+>;
+
+template<typename _Iter1, typename _Iter2, typename _Pred>
+constexpr bool __has_fast_lexicographical_compare_v = __has_fast_lexicographical_compare<_Iter1, _Iter2, _Pred>::value;
+
+struct _Lexicographical_compare_fn {
+
+	template<typename _ExPolicy, typename _Iter1, typename _Iter2>
+	bool operator()(_ExPolicy&& _Policy, _Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) const {
+		return this->operator()(_Policy, _First1, _Last1, _First2, _Last2, std::less<>{});
+	}
+
+	template<typename _ExPolicy, typename _Iter1, typename _Iter2, typename _Pred>
+	bool operator()(_ExPolicy&& _Policy, _Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) const {
+		return std::lexicographical_compare(_Policy, _First1, _Last1, _First2, _Last2, pred);
+	}
+
+	template<typename _Iter1, typename _Iter2>
+	WJR_CONSTEXPR bool operator()(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) const {
+		return this->operator()(_First1, _Last1, _First2, _Last2, std::less<>{});
+	}
+
+	template<typename _Iter1, typename _Iter2, typename _Pred>
+	WJR_CONSTEXPR bool operator()(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) const {
+		WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
+			if constexpr (__has_fast_lexicographical_compare_v<_Iter1, _Iter2, _Pred>) {
+				const auto n = std::distance(_First1, _Last1);
+				const auto m = std::distance(_First2, _Last2);
+				auto cl = std::min(n, m);
+				auto e = _First1 + cl;
+				auto pos = wjr::mismatch(_First1, e, _First2, std::equal_to<>{}).first - _First1;
+				if (pos != cl) {
+					if (pred(_First1 + pos, _First2 + pos)) {
+						return true;
+					}
+					return false;
+				}
+				return n < m;
+			}
+		WJR_IS_CONSTANT_EVALUATED_END
+		return std::lexicographical_compare(_First1, _Last1, _First2, _Last2, pred);
+	}
+};
+
+constexpr _Lexicographical_compare_fn lexicographical_compare{};
 
 _WJR_END
 

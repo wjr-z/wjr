@@ -5,9 +5,9 @@
 
 #include <wjr/test_product.h>
 #include <wjr/algorithm.h>
-#include <wjr/simd/simd.h>
+#include <wjr/simd/simd_helper.h>
 
-//#define __BENCHMARK_TEST_STD
+#define __BENCHMARK_TEST_STD
 
 #if defined(__AVX2__)
 #define __WIDTH (32)
@@ -76,9 +76,10 @@ static void __memchr(benchmark::State& state) {
 	int n = state.range(0);
 	int m = state.range(1);
 
-	std::vector<uint8_t> vec(n);
+	using value_type = uint8_t;
+	std::vector<value_type> vec(n);
 	for (auto& i : vec) {
-		i = wjr::math::random<uint8_t>.uniform(0, 254);
+		i = wjr::math::random<value_type>.uniform(0, 254);
 	}
 	if (m < n) {
 		vec[m] = 255;
@@ -89,17 +90,26 @@ static void __memchr(benchmark::State& state) {
 	}
 }
 
-inline auto __test_memcmp(const void* s0, const void* s1, size_t n) {
+template<typename T, typename _Pred = std::equal_to<>>
+inline auto __test_memcmp(const T* s0, const T* s1, size_t n, _Pred pred = _Pred{}) {
 #ifndef __BENCHMARK_TEST_STD
-	auto __s0 = (uint8_t*)s0;
-	auto __s1 = (uint8_t*)s1;
-	return wjr::equal(__s0, __s0 + n, __s1);
+	return wjr::equal(s0, s0 + n, s1, pred);
 #else 
-	return memcmp(s0, s1, n) == 0;
+	if constexpr (std::is_same_v<_Pred, std::equal_to<>>) {
+		return memcmp(s0, s1, n * sizeof(T)) == 0;
+	}
+	else {
+		for (int i = 0; i < n; ++i) {
+			if (!pred(s0[i], s1[i])) {
+				return false;
+			}
+		}
+		return true;
+	}
 #endif
 }
 
-static void __memcmp(benchmark::State& state) {
+static void __memcmpeq(benchmark::State& state) {
 	int n = state.range(0);
 	int m = state.range(1);
 
@@ -117,10 +127,80 @@ static void __memcmp(benchmark::State& state) {
 	}
 }
 
+template<typename T, typename _Pred = std::equal_to<>>
+inline auto __test_memmis(const T* s0, const T* s1, size_t n, _Pred pred = _Pred{}) {
+#ifndef __BENCHMARK_TEST_STD
+	return wjr::mismatch(s0, s0 + n, s1, pred);
+#else 
+	for (int i = 0; i < n; ++i) {
+		if (!pred(s0[i], s1[i])) {
+			return s0 + i;
+		}
+	}
+	return s0 + n;
+#endif
+}
+
+static void __memmis(benchmark::State& state) {
+	int n = state.range(0);
+	int m = state.range(1);
+
+	std::vector<uint32_t> vec1(n), vec2(n);
+	for (int i = 0; i < n; ++i) {
+		auto val = wjr::math::random<uint32_t>.uniform(0, 254);
+		vec1[i] = val;
+		vec2[i] = val;
+	}
+	if (m < n) {
+		++vec2[m];
+	}
+	for (auto _ : state) {
+		auto x = __test_memmis(vec1.data(), vec2.data(), vec1.size());
+		benchmark::DoNotOptimize(x);
+	}
+}
+
+template<typename T>
+inline auto __test_memcnt(const T* s, T val, size_t n) {
+#ifndef __BENCHMARK_TEST_STD
+	return wjr::count(s, s + n, val);
+#else 
+	size_t cnt = 0;
+	for (int i = 0; i < n; ++i) {
+		cnt += s[i] == val;
+	}
+	return cnt;
+#endif
+}
+
+static void __memcnt(benchmark::State& state) {
+	int n = state.range(0);
+	int m = state.range(1);
+
+	using value_type = uint32_t;
+	auto val = wjr::math::random<value_type>.uniform(0, 254);
+	std::vector<value_type> vec(n, val);
+	for (int i = 0; i < n; ++i) {
+		if(wjr::math::random<bool>()) {
+			++vec[i];
+		}
+	}
+	for (auto _ : state) {
+		auto x = __test_memcnt(vec.data(), val, vec.size());
+		benchmark::DoNotOptimize(x);
+	}
+}
+
 BENCHMARK(__memchr)
 ->Apply(__product2);
 
-//BENCHMARK(__memcmp)
+//BENCHMARK(__memcmpeq)
 //->Apply(__product2);
 
-//BENCHMARK_MAIN();
+//BENCHMARK(__memmis)
+//->Apply(__product2);
+
+//BENCHMARK(__memcnt)
+//->Apply(__product2);
+
+BENCHMARK_MAIN(); 

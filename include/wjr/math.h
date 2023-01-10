@@ -32,7 +32,7 @@ const static int _WJR_LOG_TABLE[256] = {
 };
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-constexpr int _Countl_zero_fallback(T x) noexcept {
+constexpr int __wjr_fallback_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if (x == 0) {
 		return _Nd;
@@ -63,9 +63,9 @@ constexpr int _Countl_zero_fallback(T x) noexcept {
 }
 
 #if defined(__GUNC__) || defined(__clang__) || WJR_HAS_BUILTIN(__builtin_clz)
-#define __WJR_HAS_BUILTIN_COUNTL_ZERO
+#define __WJR_HAS_BUILTIN_CLZ
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-int __builtin_countl_zero(T x) noexcept {
+int __wjr_builtin_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if (x == 0) {
 		return _Nd;
@@ -95,9 +95,9 @@ int __builtin_countl_zero(T x) noexcept {
 
 #if defined(_MSC_VER)
 #if defined(_M_IX86) || (defined(_M_X64) && !defined(_M_ARM64EC))
-#define __WJR_HAS_MSC_X86_64_COUNTL_ZERO
+#define __WJR_HAS_MSVC_X86_64_CLZ
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-int _MSC_x86_64_countl_zero(T x) noexcept {
+int __wjr_msvc_x86_64_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 #if defined(__AVX2__)
 	if constexpr (_Nd <= 16) {
@@ -147,9 +147,9 @@ int _MSC_x86_64_countl_zero(T x) noexcept {
 #endif 
 }
 #elif defined(_M_ARM) || defined(_M_ARM64)
-#define __WJR_HAS_MSC_ARM_COUNTL_ZERO
+#define __WJR_HAS_MSVC_ARM_CLZ
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-int _MSC_ARM_countl_zero(T x) noexcept {
+int __wjr_msvc_arm_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if (x == 0) {
 		return _Nd;
@@ -164,25 +164,19 @@ int _MSC_ARM_countl_zero(T x) noexcept {
 #endif
 #endif // _MSC_VER
 
-#if defined(__WJR_HAS_BUILTIN_COUNTL_ZERO)		|| \
-	defined(__WJR_HAS_MSC_X86_64_COUNTL_ZERO)	|| \
-	defined(__WJR_HAS_MSC_ARM_COUNTL_ZERO)
-#define __WJR_HAS_FAST_COUNTL_ZERO
-#endif 
-
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
 WJR_CONSTEXPR int countl_zero(T x) noexcept {
 
 WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
-#if defined(__WJR_HAS_BUILTIN_COUNTL_ZERO)
-	return __builtin_countl_zero(x);
-#elif defined(__WJR_HAS_MSC_X86_64_COUNTL_ZERO)
-	return _MSC_x86_64_countl_zero(x);
-#elif defined(__WJR_HAS_MSC_ARM_COUNTL_ZERO)
-	return _MSC_ARM_countl_zero(x);
+#if defined(__WJR_HAS_BUILTIN_CLZ)
+	return __wjr_builtin_clz(x);
+#elif defined(__WJR_HAS_MSVC_X86_64_CLZ)
+	return __wjr_msvc_x86_64_clz(x);
+#elif defined(__WJR_HAS_MSVC_ARM_CLZ)
+	return __wjr_msvc_arm_clz(x);
 #endif
 WJR_IS_NOT_CONSTANT_EVALUATED_END
-	return _Countl_zero_fallback(x);
+	return __wjr_fallback_clz(x);
 }
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
@@ -191,9 +185,9 @@ WJR_CONSTEXPR int countl_one(T x) noexcept {
 }
 
 #if defined(__GUNC__) || defined(__clang__) || WJR_HAS_BUILTIN(__builtin_ctz)
-#define __WJR_HAS_BUILTIN_COUNTR_ZERO
+#define __WJR_HAS_BUILTIN_CTZ
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-int __builtin_countr_zero(T x) noexcept {
+int __wjr_builtin_ctz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if (x == 0) {
 		return _Nd;
@@ -224,9 +218,9 @@ int __builtin_countr_zero(T x) noexcept {
 #endif
 
 #if defined(_MSC_VER) && defined(__WJR_HAS_TZCNT_BSF_INTRINSICS)
-#define __WJR_HAS_MSC_COUNTR_ZERO
+#define __WJR_HAS_MSVC_CTZ
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-int _MSC_tzcnt_countr_zero(T x) noexcept {
+int __wjr_msvc_ctz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	constexpr T _Max = std::numeric_limits<T>::max();
 #if defined(__AVX2__)
@@ -279,26 +273,21 @@ int _MSC_tzcnt_countr_zero(T x) noexcept {
 }
 #endif
 
-#if defined(__WJR_HAS_BUILTIN_COUNTR_ZERO)		|| \
-	defined(__WJR_HAS_MSC_COUNTR_ZERO)
-#define __WJR_HAS_FAST_COUNTR_ZERO
-#endif
-
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
 WJR_CONSTEXPR int countr_zero(T x) noexcept {
 
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
 
-#if defined(__WJR_HAS_BUILTIN_COUNTR_ZERO)
-	return __builtin_countr_zero(x);
-#elif defined(__WJR_HAS_MSC_COUNTR_ZERO)
-	return _MSC_tzcnt_countr_zero(x);
+#if defined(__WJR_HAS_BUILTIN_CTZ)
+	return __wjr_builtin_ctz(x);
+#elif defined(__WJR_HAS_MSVC_CTZ)
+	return __wjr_msvc_ctz(x);
 #endif
 
 WJR_IS_NOT_CONSTANT_EVALUATED_END
 
-	return _Nd - _Countl_zero_fallback(static_cast<T>(static_cast<T>(~x) & static_cast<T>(x - 1)));
+	return _Nd - __wjr_fallback_clz(static_cast<T>(static_cast<T>(~x) & static_cast<T>(x - 1)));
 }
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
@@ -325,6 +314,96 @@ WJR_CONSTEXPR T bit_ceil(T x) noexcept {
 		return T{ 1 };
 	}
 	return static_cast<T>(T{ 1 } << wjr::bit_width(x - 1));
+}
+
+template<typename _Ty, std::enable_if_t<wjr::is_unsigned_integral_v<_Ty>, int> = 0>
+WJR_CONSTEXPR int __wjr_fallback_popcount(_Ty _Val) noexcept {
+	constexpr int _Digits = std::numeric_limits<_Ty>::digits;
+#if defined(_M_IX86) || defined(_M_ARM)
+	if constexpr (_Digits == 64) {
+		// 64-bit bit operations on architectures without 64-bit registers are less efficient,
+		// hence we split the value so that it fits in 32-bit registers
+		return _Popcount_fallback(static_cast<unsigned long>(_Val))
+			+ _Popcount_fallback(static_cast<unsigned long>(_Val >> 32));
+	}
+#endif // defined(_M_IX86) || defined(_M_ARM)
+	// we static_cast these bit patterns in order to truncate them to the correct size
+	_Val = static_cast<_Ty>(_Val - ((_Val >> 1) & static_cast<_Ty>(0x5555'5555'5555'5555ull)));
+	_Val = static_cast<_Ty>((_Val & static_cast<_Ty>(0x3333'3333'3333'3333ull))
+		+ ((_Val >> 2) & static_cast<_Ty>(0x3333'3333'3333'3333ull)));
+	_Val = static_cast<_Ty>((_Val + (_Val >> 4)) & static_cast<_Ty>(0x0F0F'0F0F'0F0F'0F0Full));
+	// Multiply by one in each byte, so that it will have the sum of all source bytes in the highest byte
+	_Val = static_cast<_Ty>(_Val * static_cast<_Ty>(0x0101'0101'0101'0101ull));
+	// Extract highest byte
+	return static_cast<int>(_Val >> (_Digits - 8));
+}
+
+#if defined(__GUNC__) || defined(__clang__) || WJR_HAS_BUILTIN(__builtin_popcount)
+#define __WJR_HAS_BUILTIN_POPCOUNT
+template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+int __wjr_builtin_popcount(T x) noexcept {
+	constexpr auto _Nd = std::numeric_limits<T>::digits;
+
+	constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
+	constexpr auto _Nd_ul = std::numeric_limits<unsigned long>::digits;
+	constexpr auto _Nd_ui = std::numeric_limits<unsigned int>::digits;
+
+	if constexpr (_Nd <= _Nd_ui) {
+		return __builtin_popcount(static_cast<unsigned>(x));
+	}
+	else if constexpr (_Nd <= _Nd_ul) {
+		return __builtin_popcountl(static_cast<unsigned long>(x));
+	}
+	else if constexpr (_Nd <= _Nd_ull) {
+		return __builtin_popcountll(static_cast<unsigned long long>(x));
+	}
+	else {
+		static_assert(_Nd <= _Nd_ull, "unsupported integer type");
+	}
+
+}
+#endif 
+
+#if (defined(_M_IX86) || (defined(_M_X64) && !defined(_M_ARM64EC))) && !defined(_M_CEE_PURE) && !defined(__CUDACC__) \
+    && !defined(__INTEL_COMPILER)
+#define __WJR_HAS_POPCNT_INTRINSICS 1
+#else // ^^^ intrinsics available ^^^ / vvv intrinsics unavailable vvv
+#define __WJR_HAS_POPCNT_INTRINSICS 0
+#endif // ^^^ intrinsics unavailable ^^^
+
+#if defined(_MSC_VER)
+#if __WJR_HAS_POPCNT_INTRINSICS
+#define __WJR_HAS_MSVC_X86_64_popcount
+template <typename T>
+int __wjr_msvc_x86_64_popcount(T x) noexcept {
+	constexpr int _Digits = std::numeric_limits<T>::digits;
+	if constexpr (_Digits <= 16) {
+		return static_cast<int>(__popcnt16(x));
+	}
+	else if constexpr (_Digits == 32) {
+		return static_cast<int>(__popcnt(x));
+	}
+	else {
+#ifdef _M_IX86
+		return static_cast<int>(__popcnt(x >> 32) + __popcnt(static_cast<unsigned int>(x)));
+#else // ^^^ _M_IX86 / !_M_IX86 vvv
+		return static_cast<int>(__popcnt64(x));
+#endif // _M_IX86
+	}
+}
+#endif // __WJR_HAS_POPCNT_INTRINSICS
+#endif // _MSC_VER
+
+template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+WJR_CONSTEXPR int popcount(T x) noexcept {
+WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN
+#if defined(__WJR_HAS_BUILTIN_POPCOUNT)
+	return __wjr_builtin_popcount(x);
+#elif defined(__WJR_HAS_MSVC_X86_64_popcount)
+	return __wjr_msvc_x86_64_popcount(x);
+#endif 
+WJR_IS_NOT_CONSTANT_EVALUATED_END
+	return __wjr_fallback_popcount(x);
 }
 
 template< typename T, typename U >
@@ -376,6 +455,24 @@ template< typename R, typename T>
 constexpr bool in_range(T t) noexcept {
 	return wjr::cmp_greater_equal(t, std::numeric_limits<R>::min()) &&
 		wjr::cmp_less_equal(t, std::numeric_limits<R>::max());
+}
+
+template<typename R, typename T>
+constexpr bool __maybe_equal(T t) noexcept {
+	using type = arithmetic_conversion_t<R, T>;
+	if constexpr (std::is_signed_v<R> && std::is_unsigned_v<type>) {
+		if constexpr (static_cast<R>(-1) == std::numeric_limits<type>::max()) {
+			return (std::numeric_limits<R>::min() <= t) || (t <= std::numeric_limits<R>::max());
+		}
+		else {
+			return (std::numeric_limits<R>::min() <= t && t <= static_cast<R>(-1))
+				|| (t <= std::numeric_limits<R>::max());
+		}
+	}
+	else {
+		return std::numeric_limits<R>::min() <= t &&
+			t <= std::numeric_limits<R>::max();
+	}
 }
 
 _WJR_END

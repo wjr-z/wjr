@@ -99,6 +99,149 @@ struct is_any_of : std::disjunction<std::is_same<T, Args>...> {};
 template<typename T, typename...Args>
 constexpr bool is_any_of_v = is_any_of<T, Args...>::value;
 
+template<typename T>
+struct is_standard_comparator : 
+	is_any_of<T, 
+	std::less<>, 
+	std::less_equal<>, 
+	std::equal_to<>, 
+	std::not_equal_to<>,
+	std::greater<>, 
+	std::greater_equal<>
+	> {};
+
+template<typename T>
+constexpr bool is_standard_comparator_v = is_standard_comparator<T>::value;
+
+template<typename T, typename U>
+struct arithmetic_conversion {
+	using type = decltype(T{} + U{});
+};
+
+template<typename T, typename U>
+using arithmetic_conversion_t = typename arithmetic_conversion<T, U>::type;
+
+template<typename T>
+struct is_no_symbol_integral :
+	std::negation<wjr::is_any_of<std::remove_cv_t<T>,
+	bool, char,
+#ifdef __cpp_char8_t
+	char8_t,
+#endif // __cpp_char8_t
+	char16_t, char32_t, wchar_t>>{};
+
+template<typename T>
+constexpr bool is_no_symbol_integral_v = is_no_symbol_integral<T>::value;
+
+template<typename T>
+struct get_memory {
+	using type = T;
+};
+
+template<size_t n, bool>
+struct __get_memory_helper {
+	using type = void;
+};
+template<bool is>
+struct __get_memory_helper<1, is> {
+	using type = std::conditional_t<is, int8_t, uint8_t>;
+};
+template<bool is>
+struct __get_memory_helper<2, is> {
+	using type = std::conditional_t<is, int16_t, uint16_t>;
+};
+template<bool is>
+struct __get_memory_helper<4, is> {
+	using type = std::conditional_t<is, int32_t, uint32_t>;
+};
+template<bool is>
+struct __get_memory_helper<8, is> {
+	using type = std::conditional_t<is, int64_t, uint64_t>;
+};
+
+#define __REGISTER_GET_MEMORY_TEMPLATE(x)		                                        \
+template<>	                                                                            \
+struct get_memory<x> {									                                \
+	using type = typename __get_memory_helper<sizeof(x), std::is_signed_v<x>>::type;	\
+};	
+
+__REGISTER_GET_MEMORY_TEMPLATE(bool)
+__REGISTER_GET_MEMORY_TEMPLATE(char)
+__REGISTER_GET_MEMORY_TEMPLATE(signed char)
+__REGISTER_GET_MEMORY_TEMPLATE(unsigned char)
+__REGISTER_GET_MEMORY_TEMPLATE(wchar_t)
+#ifdef __cpp_char8_t
+__REGISTER_GET_MEMORY_TEMPLATE(char8_t, int8_t)
+#endif
+__REGISTER_GET_MEMORY_TEMPLATE(char16_t)
+__REGISTER_GET_MEMORY_TEMPLATE(char32_t)
+__REGISTER_GET_MEMORY_TEMPLATE(short)
+__REGISTER_GET_MEMORY_TEMPLATE(unsigned short)
+__REGISTER_GET_MEMORY_TEMPLATE(int)
+__REGISTER_GET_MEMORY_TEMPLATE(unsigned int)
+__REGISTER_GET_MEMORY_TEMPLATE(long)
+__REGISTER_GET_MEMORY_TEMPLATE(unsigned long)
+__REGISTER_GET_MEMORY_TEMPLATE(long long)
+__REGISTER_GET_MEMORY_TEMPLATE(unsigned long long)
+
+#undef __REGISTER_GET_MEMORY_TEMPLATE
+
+template<typename T>
+using get_memory_t = typename get_memory<T>::type;
+
+template<typename T>
+struct is_left_standard_comparator : 
+	is_any_of<T, 
+	std::less<>, 
+	std::less_equal<>
+	> {};
+
+template<typename T>
+constexpr bool is_left_standard_comparator_v = is_left_standard_comparator<T>::value;
+
+template<typename T>
+struct is_right_standard_comparator :
+	is_any_of<T, 
+	std::greater<>, 
+	std::greater_equal<>
+	> {};
+
+template<typename T>
+constexpr bool is_right_standard_comparator_v = is_right_standard_comparator<T>::value;
+
+template<typename T>
+struct swap_standard_comparator {
+	using type = T;
+};
+
+template<>
+struct swap_standard_comparator<std::less<>> {
+	using type = std::greater<>;
+};
+
+template<>
+struct swap_standard_comparator<std::less_equal<>> {
+	using type = std::greater_equal<>;
+};
+
+template<>
+struct swap_standard_comparator<std::greater<>> {
+	using type = std::less<>;
+};
+
+template<>
+struct swap_standard_comparator<std::greater_equal<>> {
+	using type = std::less_equal<>;
+};
+
+template<>
+struct swap_standard_comparator<std::equal_to<>> {
+	using type = std::equal_to<>;
+};
+
+template<typename T>
+using swap_standard_comparator_t = typename swap_standard_comparator<T>::type;
+
 template<size_t i, size_t..._Index>
 struct is_any_index_of : std::disjunction<std::bool_constant<i == _Index>...> {};
 
@@ -123,11 +266,11 @@ struct ref_wrapper<T&&> {
 template<typename T>
 using ref_wrapper_t = typename ref_wrapper<T>::type;
 
-template<typename T>
-struct is_memory_compare : std::is_integral<T> {};
+template<typename T, typename U>
+struct is_memory_compare : std::conjunction<std::is_integral<T>, std::is_integral<U>> {};
 
-template<typename T>
-constexpr bool is_memory_compare_v = is_memory_compare<T>::value;
+template<typename T, typename U>
+constexpr bool is_memory_compare_v = is_memory_compare<T, U>::value;
 
 template<typename T>
 struct is_unsigned_integral : std::conjunction<std::is_integral<T>, std::is_unsigned<T>> {};
@@ -180,20 +323,11 @@ template<typename T>
 struct is_contiguous_iterator : std::is_pointer<T> {};
 #endif
 
-template<typename T>
-struct is_reverse_contiguous_iterator : std::false_type {};
-
 template<typename _Iter>
-struct is_reverse_contiguous_iterator<std::reverse_iterator<_Iter>> : is_contiguous_iterator<_Iter> {};
-
-template<typename _Iter>
-struct is_contiguous_iterator<std::reverse_iterator<_Iter>> : is_reverse_contiguous_iterator<_Iter> {};
+struct is_contiguous_iterator<std::reverse_iterator<_Iter>> : is_contiguous_iterator<_Iter> {};
 
 template<typename T>
 constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<T>::value;
-
-template<typename T>
-constexpr bool is_reverse_contiguous_iterator_v = is_reverse_contiguous_iterator<T>::value;
 
 template<typename T, typename = void>
 struct _Is_default_convertible : std::false_type {};

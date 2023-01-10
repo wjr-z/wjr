@@ -9,10 +9,6 @@
 
 #include <wjr/type_traits.h>
 
-#define _WJR_MATH_BEGIN namespace math{
-#define _WJR_MATH_END }
-
-_WJR_BEGIN
 _WJR_MATH_BEGIN
 
 template<size_t bits>
@@ -161,49 +157,27 @@ public:
 	
 };
 
-template<>
-class __random<unsigned long long> : public __random_int_base<unsigned long long> {
-};
+#define __REGISTER_WJR_RANDOM(x)						\
+template<>	                                            \
+class __random<x> : public __random_int_base<x>{};
 
-template<>
-class __random<unsigned long> : public __random_int_base<unsigned long> {
-};
+__REGISTER_WJR_RANDOM(bool)
+__REGISTER_WJR_RANDOM(char)
+__REGISTER_WJR_RANDOM(signed char)
+__REGISTER_WJR_RANDOM(unsigned char)
+__REGISTER_WJR_RANDOM(wchar_t)
+__REGISTER_WJR_RANDOM(char16_t)
+__REGISTER_WJR_RANDOM(char32_t)
+__REGISTER_WJR_RANDOM(short)
+__REGISTER_WJR_RANDOM(unsigned short)
+__REGISTER_WJR_RANDOM(int)
+__REGISTER_WJR_RANDOM(unsigned int)
+__REGISTER_WJR_RANDOM(long)
+__REGISTER_WJR_RANDOM(unsigned long)
+__REGISTER_WJR_RANDOM(long long)
+__REGISTER_WJR_RANDOM(unsigned long long)
 
-template<>
-class __random<unsigned int> : public __random_int_base<unsigned int> {
-};
-
-template<>
-class __random<unsigned short> : public __random_int_base<unsigned short> {
-};
-
-template<>
-class __random<unsigned char> : public __random_int_base<unsigned char> {
-};
-
-template<>
-class __random<bool> : public __random_int_base<bool> {
-};
-
-template<>
-class __random<long long> : public __random_int_base<long long> {
-};
-
-template<>
-class __random<long> : public __random_int_base<long> {
-};
-
-template<>
-class __random<int> : public __random_int_base<int> {
-};
-
-template<>
-class __random<short> : public __random_int_base<short> {
-};
-
-template<>
-class __random<char> : public __random_int_base<char> {
-};
+#undef __REGISTER_WJR_RANDOM
 
 template<typename T>
 class __random_real_base {
@@ -282,6 +256,5 @@ class __random<long double> : public __random_real_base<long double> {
 };
 
 _WJR_MATH_END
-_WJR_END
 
 #endif // !PRODUCT_H
