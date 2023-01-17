@@ -4,11 +4,8 @@
 #include <random>
 
 #include <gtest/gtest.h>
-#include <wjr/vector.h>
-#include <wjr/allocator.h>
-#include <wjr/test_product.h>
 #include <wjr/algorithm.h>
-#include <wjr/simd/simd_helper.h>
+#include <wjr/random.h>
 
 template<typename Output, typename iter>
 void op(Output& o, iter _First, iter _Last) {
@@ -81,11 +78,11 @@ std::pair<int, int> get_pos(int n, bool __n = false) {
 		return { 0,0 };
 	}
 	int x = n, y = n;
-	x = wjr::math::random<int>.uniform(0, n);
+	x = wjr::Random::get<int>(0, n);
 	if (x == n) {
 		return { n, n };
 	}
-	y = wjr::math::random<int>.uniform(0, n);
+	y = wjr::Random::get<int>(0, n);
 	if (x > y) {
 		std::swap(x, y);
 	}
@@ -121,14 +118,14 @@ TEST(algorithm, find) {
 	auto test1 = [](auto _Type, int n){
 		using type = std::decay_t<decltype(_Type)>;
 		std::vector<type> vec(n);
-		std::generate(__begin(vec), __end(vec), wjr::math::random<type>.engine());
+		std::generate(__begin(vec), __end(vec), wjr::Random::engine());
 		type val;
-		auto p = wjr::math::random<int>.uniform(0, n);
+		auto p = wjr::Random::get<int>(0, n);
 		if (p < n) {
 			val = vec[p];
 		}
 		else {
-			val = wjr::math::random<type>();
+			val = wjr::Random::get<type>();
 		}
 		{
 			auto a = std::find(__begin(vec), __end(vec), val);
@@ -152,6 +149,7 @@ TEST(algorithm, find) {
 
 	test2(0);
 	for (int i = 0; i < 16; ++i) {
+		test2(1);
 		test2(3);
 		test2(4);
 	}
@@ -196,7 +194,7 @@ TEST(algorithm, mismatch) {
 		using type = std::decay_t<decltype(_Type)>;
 		std::vector<type> vec1(n);
 		std::vector<type> vec2(n);
-		std::generate(__begin(vec1), __end(vec1), wjr::math::random<type>.engine());
+		std::generate(__begin(vec1), __end(vec1), wjr::Random::engine());
 		vec2 = vec1;
 		auto [pos1, pos2] = get_pos(n);
 		if (pos1 < n) {
@@ -229,7 +227,7 @@ TEST(algorithm, mismatch) {
 		using type = std::decay_t<decltype(_Type)>;
 		std::vector<type> vec1(n);
 		std::vector<type> vec2(n);
-		std::generate(__begin(vec1), __end(vec1), wjr::math::random<type>.engine());
+		std::generate(__begin(vec1), __end(vec1), wjr::Random::engine());
 		vec2 = vec1;
 		auto __change = [&](int p) {
 			if (vec1[p])--vec1[p];
@@ -274,7 +272,7 @@ TEST(algorithm, mismatch) {
 		using type = std::decay_t<decltype(_Type)>;
 		std::vector<type> vec1(n);
 		std::vector<type> vec2(n);
-		std::generate(__begin(vec1), __end(vec1), wjr::math::random<type>.engine());
+		std::generate(__begin(vec1), __end(vec1), wjr::Random::engine());
 		vec2 = vec1;
 		auto __change = [&](int p) {
 			if (!vec1[p])++vec1[p];
@@ -320,6 +318,7 @@ TEST(algorithm, mismatch) {
 
 	test3(0);
 	for (int i = 0; i < 16; ++i) {
+		test3(1);
 		test3(3);
 		test3(4);
 	}
@@ -366,7 +365,7 @@ TEST(algorithm, equal) {
 		using type = std::decay_t<decltype(_Type)>;
 		std::vector<type> vec1(n);
 		std::vector<type> vec2(n);
-		std::generate(__begin(vec1), __end(vec1), wjr::math::random<type>.engine());
+		std::generate(__begin(vec1), __end(vec1), wjr::Random::engine());
 		vec2 = vec1;
 		auto [pos1, pos2] = get_pos(n);
 		if (pos1 < n) {
@@ -399,7 +398,7 @@ TEST(algorithm, equal) {
 		using type = std::decay_t<decltype(_Type)>;
 		std::vector<type> vec1(n);
 		std::vector<type> vec2(n);
-		std::generate(__begin(vec1), __end(vec1), wjr::math::random<type>.engine());
+		std::generate(__begin(vec1), __end(vec1), wjr::Random::engine());
 		vec2 = vec1;
 		auto __change = [&](int p) {
 			if (vec1[p])--vec1[p];
@@ -444,7 +443,7 @@ TEST(algorithm, equal) {
 		using type = std::decay_t<decltype(_Type)>;
 		std::vector<type> vec1(n);
 		std::vector<type> vec2(n);
-		std::generate(__begin(vec1), __end(vec1), wjr::math::random<type>.engine());
+		std::generate(__begin(vec1), __end(vec1), wjr::Random::engine());
 		vec2 = vec1;
 		auto __change = [&](int p) {
 			if (!vec1[p])++vec1[p];
@@ -490,6 +489,7 @@ TEST(algorithm, equal) {
 
 	test3(0);
 	for (int i = 0; i < 16; ++i) {
+		test3(1);
 		test3(3);
 		test3(4);
 	}
@@ -516,10 +516,10 @@ TEST(algorithm, equal) {
 TEST(algorithm, count) {
 	auto test1 = [](auto _Type, int n) {
 		using type = std::decay_t<decltype(_Type)>;
-		auto val = wjr::math::random<type>();
+		auto val = wjr::Random::get<type>();
 		std::vector<type> vec(n, val);
 		for (int i = 0; i < n; ++i) {
-			if (wjr::math::random<bool>()) {
+			if (wjr::Random::get<bool>()) {
 				++vec[i];
 			}
 		}
@@ -550,6 +550,7 @@ TEST(algorithm, count) {
 
 	test2(0);
 	for (int i = 0; i < 16; ++i) {
+		test2(1);
 		test2(3);
 		test2(4);
 	}
@@ -571,4 +572,12 @@ TEST(algorithm, count) {
 		test2(1023);
 		test2(16384);
 	}
+
+	{
+		const int n = 64;
+		std::vector<int8_t> vec1(n, -1);
+		auto cnt = wjr::count(__begin(vec1), __end(vec1), (uint8_t)255);
+		EXPECT_EQ(cnt, 0);
+	}
+
 }

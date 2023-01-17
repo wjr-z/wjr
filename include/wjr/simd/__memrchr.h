@@ -6,6 +6,7 @@
 
 #if defined(__AVX2__) || defined(__SSE2__)
 #include <wjr/simd/simd_helper.h>
+#include <wjr/math.h>
 
 _WJR_SIMD_BEGIN
 
@@ -61,6 +62,9 @@ const T* __memrchr(const T* s, T val, size_t n) {
 	constexpr int _Mysize = traits::size();
 	constexpr int _Mycor = sizeof(T) / sizeof(uint8_t);
 
+	if (n == 0) { return s; }
+	if (n == 1) { return *s == val ? s + 1 : s; }
+
 	auto q = traits::set1(val);
 
 	s += n;
@@ -69,16 +73,14 @@ const T* __memrchr(const T* s, T val, size_t n) {
 		auto ns = n * sizeof(T);
 		auto ql = ns >> 1;
 		auto sl = ql << 1;
-		if (ql) {
-			s -= sl / sizeof(T);
-			auto x = traits::preload_si16x(s, ql);
-			auto r = traits::cmpeq(x, q);
-			auto z = traits::movemask_epi8(r) & ((1u << sl) - 1);
-			if (z) {
-				return s + _Mysize - wjr::countl_zero(static_cast<value_type>(z)) / _Mycor;
-			}
-			n -= sl / sizeof(T);
+		s -= sl / sizeof(T);
+		auto x = traits::preload_si16x(s, ql);
+		auto r = traits::cmpeq(x, q);
+		auto z = traits::movemask_epi8(r) & ((1u << sl) - 1);
+		if (z) {
+			return s + _Mysize - wjr::countl_zero(static_cast<value_type>(z)) / _Mycor;
 		}
+		n -= sl / sizeof(T);
 		if constexpr (sizeof(T) == 1) {
 			if (ns & 1) {
 				--s;

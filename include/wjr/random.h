@@ -9,252 +9,193 @@
 
 #include <wjr/type_traits.h>
 
-_WJR_MATH_BEGIN
+_WJR_BEGIN
 
-template<size_t bits>
-class __random_engine;
-
-template<size_t bits>
-static __random_engine<bits> __static_random_engine{};
-
-template<>
-class __random_engine<64>{
-	std::mt19937_64 gen{ std::random_device{}() };
-public:
-	uint64_t operator()() {
-		return gen();
-	}
-	std::mt19937_64& engine() {
-		return gen;
+template<typename Engine>
+struct basic_random_static_wrapper {
+	static Engine& engine() {
+		static Engine m_engine(std::random_device{}());
+		return m_engine;
 	}
 };
 
-template<>
-class __random_engine<32> {
-	std::mt19937 gen{ std::random_device{}() };
-public:
-	uint32_t operator()() {
-		return gen();
-	}
-	std::mt19937& engine() {
-		return gen;
+template<typename Engine>
+struct basic_random_thread_local_wrapper {
+	static Engine& engine() {
+		thread_local Engine m_engine(std::random_device{}());
+		return m_engine;
 	}
 };
 
-template<>
-class __random_engine<16> {
-	uint32_t buf = 0;
-	uint32_t siz = 0;
-public:
-	uint16_t operator()() {
-		if (siz == 0) {
-			buf = __static_random_engine<32>();
-			siz = 32;
-		}
-		siz -= 16;
-		return static_cast<uint16_t>(buf >> siz);
-	}
-};
+template<
+	typename Engine,
+	template<typename> typename EngineWrapper,
+	template<typename> typename IntegerDist = std::uniform_int_distribution,
+	template<typename> typename RealDist = std::uniform_real_distribution,
+	typename BoolDist = std::bernoulli_distribution
+>
+class basic_random : public EngineWrapper<Engine>{
 
-template<>
-class __random_engine<8> {
-	uint32_t buf = 0;
-	uint32_t siz = 0;
-public:
-	uint8_t operator()() {
-		if (siz == 0) {
-			buf = __static_random_engine<32>();
-			siz = 32;
-		}
-		siz -= 8;
-		return static_cast<uint8_t>(buf >> siz);
-	}
-};
-
-template<>
-class __random_engine<1>{
-	uint32_t buf = 0;
-	uint32_t siz = 0;
-public:
-	bool operator()() {
-		if (siz == 0) {
-			buf = __static_random_engine<32>();
-			siz = 32;
-		}
-		siz -= 1;
-		return static_cast<bool>(buf >> siz);
-	}
-};
-
-template<typename T>
-class __random;
-
-template<typename T>
-inline static __random<T> random{};
-
-template<typename T>
-class __random_int_base {
-public:
-	using result_type = T;
-private:
-	constexpr static size_t digits = std::numeric_limits<std::make_unsigned_t<T>>::digits;
-	constexpr static size_t __digits = digits <= 32 ? 32 : digits;
-	using __result_type = std::conditional_t<
-		digits <= 8,
-		std::conditional_t<std::is_unsigned_v<T>, unsigned short, short>,
-		result_type
+	template<typename T>
+	using _Is_container = std::conjunction<
+		std::has_global_function_begin<T>,
+		std::has_global_function_end<T>
 	>;
+
+	template<typename T>
+	using _Has_size = std::has_global_function_size<T>;
+
 public:
+	using _Mybase = EngineWrapper<Engine>;
+	
+	using engine_type = Engine;
 
-	result_type operator()() const {
-		return __static_random_engine<digits>();
-	}
+	template<typename T>
+	using integer_dist_t = IntegerDist<T>;
 
-	decltype(auto) engine() const {
-		return __static_random_engine<__digits>.engine();
-	}
+	template<typename T>
+	using real_dist_t = RealDist<T>;
 
-	result_type uniform(result_type min, result_type max) const {
-		return std::uniform_int_distribution<__result_type>(min, max)(engine());
-	}
-	result_type binomial(result_type n, double p = 0.5) const {
-		return std::binomial_distribution<__result_type>(n, p)(engine());
-	}
-	result_type negative_binomial(result_type n, double p = 0.5) const {
-		return std::negative_binomial_distribution<__result_type>(n, p)(engine());
-	}
-	result_type geometric(double p = 0.5) const {
-		std::uniform_real_distribution<double> dis;
-		return std::geometric_distribution<__result_type>(p)(engine());
-	}
-	result_type poisson(double mean = 1) const {
-		return std::poisson_distribution<__result_type>(mean)(engine());
-	}
+	using bool_dist_t = BoolDist;
 
-	template<typename Distribution>
-	result_type distribution(Distribution&& dist) const {
-		return std::forward<Distribution>(dist)(engine());
-	}
-};
+	using common = std::common_type<>;
 
-template<>
-class __random_int_base<bool> {
-public:
-	constexpr static size_t digits = 1;
-	using result_type = bool;
+	using _Mybase::engine;
 
-	result_type operator()() const {
-		return __static_random_engine<digits>();
+	basic_random() = delete;
+
+	constexpr static typename engine_type::result_type min() {
+		return engine_type::min();
 	}
 	
-	decltype(auto) engine() const {
-		return __static_random_engine<32>.engine();
+	constexpr static typename engine_type::result_type max() {
+		return engine_type::max();
 	}
 
-	result_type bernoulli(double p = 0.5) const {
-		return std::bernoulli_distribution(p)(engine());
+	static void discard(size_t n) {
+		engine().discard(n);
 	}
-	
+
+	static void reseed() {
+		engine().seed(std::random_device{}());
+	}
+
+	static void seed(typename engine_type::result_type seed = engine_type::default_seed) {
+		engine().seed(seed);
+	}
+
+	template<typename Seq>
+	static void seed(Seq& seq) {
+		engine().seed(seq);
+	}
+
+	static typename engine_type::result_type get() {
+		return engine()();
+	}
+
+	template<typename T, std::enable_if_t<std::conjunction_v<
+		std::is_arithmetic<T>, std::negation<std::is_same<T, bool>>>, int> = 0>
+	static T get(
+			T __min = std::numeric_limits<T>::min(),
+			T __max = std::numeric_limits<T>::max()) {
+		if constexpr (std::is_integral_v<T>) {
+			if constexpr (sizeof(T) < sizeof(short)) {
+				using short_t = std::conditional_t<std::is_signed<T>::value,
+					short, unsigned short>;
+				return static_cast<T>(integer_dist_t<short_t>{__min, __max}(engine()));
+			}
+			else {
+				using type = integral_normalization_t<T>;
+				return integer_dist_t<type>{__min, __max}(engine());
+			}
+		}
+		else {
+			return real_dist_t<T>{__min, __max}(engine());
+		}
+	}
+
+	template<typename X, typename T, typename U, typename R = std::common_type_t<T, U>,
+		std::enable_if_t<std::conjunction_v<
+		std::is_same<X, common>,
+		std::is_arithmetic<T>,
+		std::is_arithmetic<U>>, int> = 0>
+	static R get(
+			T __min = std::numeric_limits<T>::min(),
+			U __max = std::numeric_limits<U>::max()) {
+		return get<R>(static_cast<R>(__min), static_cast<R>(__max));
+	}
+
+	template<typename T, std::enable_if_t<std::is_same_v<T, bool>, int> = 0>
+	static T get(double p = 0.5) {
+		return bool_dist_t{ p }(engine());
+	}
+
+	template<typename Dist, typename...Args>
+	static typename Dist::result_type get(Args&&...args) {
+		return Dist{ std::forward<Args>(args)... }(engine());
+	}
+
+	template<typename Dist>
+	static typename Dist::result_type get(Dist& dist) {
+		return dist(engine());
+	}
+
+	template<typename _Container, std::enable_if_t<std::conjunction_v<
+		std::has_global_function_begin<_Container>,
+		std::has_global_function_end<_Container>>, int> = 0>
+	static decltype(auto) get(_Container& container) {
+		auto first = std::begin(container);
+		auto last = std::end(container);
+		auto n = wjr::size(container);
+		if (n == 0)return last;
+		using diff_t = wjr::iter_diff_t<decltype(first)>;
+		return std::next(first, get<diff_t>(0, n - 1));
+	}
+
+	template<typename iter, std::enable_if_t<wjr::is_iterator_v<iter>, int> = 0>
+	static iter get(iter first, iter last) {
+		return get(wjr::make_iter_wrapper(first, last));
+	}
+
+	template<typename T>
+	static T get(std::initializer_list<T> il) {
+		return *get(std::begin(il), std::end(il));
+	}
+
+	template<typename _Ty, size_t _Size>
+	static _Ty get(_Ty(&arr)[_Size]) {
+		return *get(std::begin(arr), std::end(arr));
+	}
+
+	template<typename _Container>
+	static void shuffle(_Container& container) {
+		std::shuffle(std::begin(container), std::end(container), engine());
+	}
+
+	template<typename iter>
+	static void shuffle(iter first, iter last) {
+		shuffle(wjr::make_iter_wrapper(first, last));
+	}
+
 };
 
-#define __REGISTER_WJR_RANDOM(x)						\
-template<>	                                            \
-class __random<x> : public __random_int_base<x>{};
+template<typename Engine, 
+	template<typename>typename IntegerDist = std::uniform_int_distribution,
+	template<typename>typename RealDist = std::uniform_real_distribution,
+	typename BoolDist = std::bernoulli_distribution>
+using basic_random_static = basic_random<Engine, basic_random_static_wrapper, IntegerDist, RealDist, BoolDist>;
 
-__REGISTER_WJR_RANDOM(bool)
-__REGISTER_WJR_RANDOM(char)
-__REGISTER_WJR_RANDOM(signed char)
-__REGISTER_WJR_RANDOM(unsigned char)
-__REGISTER_WJR_RANDOM(wchar_t)
-__REGISTER_WJR_RANDOM(char16_t)
-__REGISTER_WJR_RANDOM(char32_t)
-__REGISTER_WJR_RANDOM(short)
-__REGISTER_WJR_RANDOM(unsigned short)
-__REGISTER_WJR_RANDOM(int)
-__REGISTER_WJR_RANDOM(unsigned int)
-__REGISTER_WJR_RANDOM(long)
-__REGISTER_WJR_RANDOM(unsigned long)
-__REGISTER_WJR_RANDOM(long long)
-__REGISTER_WJR_RANDOM(unsigned long long)
+template<typename Engine,
+	template<typename>typename IntegerDist = std::uniform_int_distribution,
+	template<typename>typename RealDist = std::uniform_real_distribution,
+	typename BoolDist = std::bernoulli_distribution>
+using basic_random_thread_local = basic_random<Engine, basic_random_thread_local_wrapper, IntegerDist, RealDist, BoolDist>;
 
-#undef __REGISTER_WJR_RANDOM
+using random_static = basic_random_static<std::mt19937>;
+using random_thread_local = basic_random_thread_local<std::mt19937>;
 
-template<typename T>
-class __random_real_base {
-public:
-	using result_type = T;
-private:
-	constexpr static size_t __digits =
-		std::is_same_v<T, float> ? 32 : 64;
-public:
+using Random = random_static;
 
-	decltype(auto) engine() const {
-		return __static_random_engine<__digits>.engine();
-	}
-
-	result_type uniform(result_type min, result_type max) const {
-		return std::uniform_real_distribution<result_type>(min, max)(engine());
-	}
-
-	result_type exponential(double lambda = 1) const {
-		return std::exponential_distribution<result_type>(lambda)(engine());
-	}
-
-	result_type gamma(double alpha = 1, double beta = 1) const {
-		return std::gamma_distribution<result_type>(alpha, beta)(engine());
-	}
-
-	result_type weibull(double a = 1, double b = 1) const {
-		return std::weibull_distribution<result_type>(a, b)(engine());
-	}
-
-	result_type extreme_value(double a = 0, double b = 1) const {
-		return std::extreme_value_distribution<result_type>(a, b)(engine());
-	}
-
-	result_type normal(double mean = 0, double stddev = 1) const {
-		return std::normal_distribution<result_type>(mean, stddev)(engine());
-	}
-
-	result_type lognormal(double mean = 0, double stddev = 1) const {
-		return std::lognormal_distribution<result_type>(mean, stddev)(engine());
-	}
-
-	result_type chi_squared(double n) const {
-		return std::chi_squared_distribution<result_type>(n)(engine());
-	}
-
-	result_type cauchy(double a = 0, double b = 1) const {
-		return std::cauchy_distribution<result_type>(a, b)(engine());
-	}
-
-	result_type fisher_f(double m, double n) const {
-		return std::fisher_f_distribution<result_type>(m, n)(engine());
-	}
-
-	result_type student_t(double n) const {
-		return std::student_t_distribution<result_type>(n)(engine());
-	}
-
-	template<typename Distribution>
-	result_type distribution(Distribution&& dist) const {
-		return std::forward<Distribution>(dist)(engine());
-	}
-};
-
-
-template<>
-class __random<float> : public __random_real_base<float> {
-};
-
-template<>
-class __random<double> : public __random_real_base<double> {
-};
-
-template<>
-class __random<long double> : public __random_real_base<long double> {
-};
-
-_WJR_MATH_END
+_WJR_END
 
 #endif // !PRODUCT_H

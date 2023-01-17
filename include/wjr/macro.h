@@ -6,10 +6,19 @@
 #include <cstddef>
 #include <type_traits>
 #include <cstdint>
+#include <utility>
 
-#if defined(__clang__) || defined(__GNUC__)
-#define WJR_CPP_STANDARD __cplusplus
+#if defined(__clang__)
+#define WJR_COMPILER_CLANG
+#elif defined(__GNUC__)
+#define WJR_COMPILER_GCC
 #elif defined(_MSC_VER)
+#define WJR_COMPILER_MSVC
+#endif
+
+#if defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC)
+#define WJR_CPP_STANDARD __cplusplus
+#elif defined(WJR_COMPILER_MSVC)
 #define WJR_CPP_STANDARD _MSVC_LANG
 #endif
 
@@ -29,11 +38,43 @@
 #define WJR_CPP_20
 #endif
 
-#if defined(__has_builtin)
+#if defined(__GNUC__)
+#define WJR_HAS_GCC(major, minor, patchlevel)	            \
+((__GNUC__ > (major)) ||					                \
+	(__GNUC__ == (major) && __GNUC_MINOR__ > (minor)) ||	\
+	(__GNUC__ == (major) && __GNUC_MINOR__ == (minor) && __GNUC_PATCHLEVEL__ >= (patchlevel)))
+#else
+#define WJR_HAS_GCC(major, minor, patchlevel) 0
+#endif // __GNUC__
+
+#if defined(__clang__)
+#define WJR_HAS_CLANG(major, minor, patchlevel)	                    \
+((__clang_major__ > (major)) ||					                    \
+	(__clang_major__ == (major) && __clang_minor__ > (minor)) ||	\
+	(__clang_major__ == (major) && __clang_minor__ == (minor) && __clang_patchlevel__ >= (patchlevel)))
+#else
+#define WJR_HAS_CLANG(major, minor, patchlevel) 0
+#endif
+
+#if defined(_MSC_VER)
+#define WJR_HAS_MSVC(minor, level)	\
+(_MSC_VER >= (minor) * 100 + (level))
+#else
+#define WJR_HAS_MSVC(minor, level) 0
+#endif
+
+#if (defined(WJR_COMPILER_GCC) && !WJR_HAS_GCC(7, 1, 0)) ||	\
+	(defined(WJR_COMPILER_CLANG) && !WJR_HAS_CLANG(5, 0, 0))	
+#error "GCC 7.1.0 or Clang 5.0.0 or later is required"
+#endif 
+
+#if (defined(WJR_COMPILER_GCC) && WJR_HAS_GCC(10, 1, 0)) ||	\
+	(defined(WJR_COMPILER_CLANG) && WJR_HAS_CLANG(10, 0, 0))	|| \
+	(!defined(WJR_COMPILER_GCC) && !defined(WJR_COMPILER_CLANG) && defined(__has_builtin))
 #define WJR_HAS_BUILTIN(x) __has_builtin(x)
 #else
 #define WJR_HAS_BUILTIN(x) 0
-#endif
+#endif 
 
 #if defined(__has_attribute)
 #define WJR_HAS_ATTRIBUTE(x) __has_attribute(x)
@@ -51,7 +92,7 @@
 #endif
 #endif
 
-#ifdef WJR_CPP20
+#ifdef WJR_CPP_20
 #define WJR_EXPLICIT(expression) explicit(expression)
 #define WJR_EXPLICIT20(expreesion) explicit(expression)
 #else
@@ -67,44 +108,23 @@
 #define WJR_FORCEINLINE
 #endif
 
+#if defined(WJR_FORCEINLINE)
+#define WJR_INTRINSIC_INLINE inline WJR_FORCEINLINE
+#else
+#define WJR_INTRINSIC_INLINE inline
+#endif
+
 #if defined(WJR_CPP_20)
-#define WJR_IS_CONSTANT_EVALUATED_BEGIN if(std::is_constant_evaluated()) {
-#define WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN if(!std::is_constant_evaluated()) {
-#define WJR_CONSTEXPR constexpr
 #define WJR_CONSTEXPR20 constexpr
+#define WJR_INTRINSIC_CONSTEXPR20 WJR_INTRINSIC_INLINE constexpr
 #define WJR_CONSTEVAL20 consteval
-#define WJR_CONSTEXPR_FORCEINLINE constexpr WJR_FORCEINLINE
-#define WJR_CONSTEXPR20_FORCEINLINE constexpr WJR_FORCEINLINE
-#elif WJR_HAS_BUILTIN(__builtin_is_constant_evaluated)
-#define WJR_IS_CONSTANT_EVALUATED_BEGIN if(__builtin_is_constant_evaluated()){
-#define WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN if(!__builtin_is_constant_evaluated()){
-#define WJR_CONSTEXPR constexpr
-#define WJR_CONSTEXPR20 inline
-#define WJR_CONSTEVAL20 constexpr
-#define WJR_CONSTEXPR_FORCEINLINE constexpr WJR_FORCEINLINE
-#define WJR_CONSTEXPR20_FORCEINLINE WJR_FORCEINLINE
 #else
-#define WJR_IS_CONSTANT_EVALUATED_BEGIN if constexpr (false){
-#define WJR_IS_NOT_CONSTANT_EVALUATED_BEGIN if constexpr (true){
-#define WJR_CONSTEXPR inline
 #define WJR_CONSTEXPR20 inline
+#define WJR_INTRINSIC_CONSTEXPR20 WJR_INTRINSIC_INLINE
 #define WJR_CONSTEVAL20 constexpr
-#define WJR_CONSTEXPR_FORCEINLINE WJR_FORCEINLINE
-#define WJR_CONSTEXPR20_FORCEINLINE WJR_FORCEINLINE
 #endif
 
-#define WJR_IS_CONSTANT_EVALUATED_END }
-#define WJR_IS_NOT_CONSTANT_EVALUATED_END }
-
-#if defined(__clang__)
-#define WJR_UNREACHABLE __builtin_unreachable()
-#elif defined(_MSC_VER) 
-#define WJR_UNREACHABLE __assume(false)
-#else
-#define WJR_UNREACHABLE
-#endif
-
-#define WJR_FALLTHROUGH [[fallthrough]]
+#define WJR_INTRINSIC_CONSTEXPR WJR_INTRINSIC_INLINE constexpr
 
 #if defined(_MSC_VER)
 #if !(defined(__AVX__) || defined(__AVX2__))
@@ -130,103 +150,34 @@
 #define WJR_ARM
 #endif
 
+#if defined(WJR_ARM)
+#error "ARM is not supported"
+#endif
+
 #if SIZE_MAX == 0xffffffffffffffffull
 #define WJR_X64
 #else
 #define WJR_X86
 #endif
 
-#if WJR_HAS_BUILTIN(__builtin_expect) && !defined(WJR_CPP_20)
-#ifndef likely
-#define likely(expr) __builtin_expect(!!(expr), 1)
-#endif
-#ifndef unlikely
-#define unlikely(expr) __builtin_expect(!!(expr),0)
-#endif
-#else
-#ifndef likely
-#define likely(expr) expr
-#endif
-#ifndef unlikely
-#define unlikely(expr) expr
-#endif
-#endif
-
-#if defined(WJR_CPP_20)
-#define WJR_LIKELY [[likely]]
-#else
-#define WJR_LIKELY
-#endif
-
 #define WJR_CONCAT(x, y) x##y
 #define WJR_MACRO_CONCAT(x, y) WJR_CONCAT(x, y)
 
-#define VA_ARGS_EXPAND(x) x
+#define WJR_EXPAND(x) x
 
 #define __WJR_DEFINE_0(x)
 #define __WJR_DEFINE_1(x) x
 #define WJR_DEFINE(x, y) __WJR_DEFINE_##y (x)
 
-#define __WJR_MACRO_STR(x) #x
-#define WJR_MACRO_STR(x) __WJR_MACRO_STR(x)
+#define WJR_STR(x) #x
+#define WJR_MACRO_STR(x) WJR_STR(x)
 
-#ifndef _DEBUG
-#define WDEBUG_LEVEL 0
-#else
-#define WDEBUG_LEVEL 3
-#endif
+#define WJR_LABEL(NAME) __wjr_label_##NAME
+#define WJR_MACRO_LABEL(NAME) WJR_LABEL(NAME)                                            
 
-#define __WASSERT_LEVEL_MESSAGE(LEVEL,expression, message, ...)						    \
-    do{																					\
-        if (unlikely(!(expression))) {													\
-                fprintf(stderr,"DEBUG_LEVEL : %d\nAssertion failed: %s in %s : %d\n"	\
-                "message : %s\n"                                                        \
-                ,LEVEL, #expression,__FILE__,__LINE__, message);						\
-                std::abort();															\
-        }																				\
-    }while(0)
-
-#define WASSERT_LEVEL_MESSAGE(...) VA_ARGS_EXPAND(__WASSERT_LEVEL_MESSAGE(__VA_ARGS__, "no additional message"))
-#define WASSERT_LEVEL_0(...) VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(0, __VA_ARGS__))
-
-// WDEBUG_LEVEL		1
-// The impact on program running time or space is only constant
-// Some small bugs that are not easy to test under a small part or a small range of data
-#if WDEBUG_LEVEL >= 1
-#define WASSERT_LEVEL_1(...) VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(1, __VA_ARGS__))
-#else
-#define WASSERT_LEVEL_1(...)
-#endif
-
-// WDEBUG_LEVEL		2
-// The impact on program running time or space is only linear or less
-// Some bugs that may be found and fixed in small-scale tests
-#if WDEBUG_LEVEL >= 2
-#define WASSERT_LEVEL_2(...) VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(2, __VA_ARGS__))
-#else
-#define WASSERT_LEVEL_2(...)
-#endif
-
-// WDEBUG_LEVEL		3
-// The impact on program running time or space is O(nlogn),O(n sqrt(n)),O(n^2) or less
-// It can still run in a large range
-#if WDEBUG_LEVEL >= 3
-#define WASSERT_LEVEL_3(...) VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(3, __VA_ARGS__))
-#else
-#define WASSERT_LEVEL_3(...)
-#endif
-
-// WDEBUG_LEVEL		4
-// no limit
-// It can only be tested in a small range
-#if WDEBUG_LEVEL >= 4
-#define WASSERT_LEVEL_4(...) VA_ARGS_EXPAND(WASSERT_LEVEL_MESSAGE(4, __VA_ARGS__))
-#else
-#define WASSERT_LEVEL_4(...)
-#endif
-
-#if defined(__GNUC__) || defined(__clang__)
-#define WJR_GCC_STYLE_ASM
+// judge if i can use inline asm
+#if defined(WJR_X86_64) && (defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG))
+#define WJR_INLINE_ASM
 #endif
 
 #define __AVX512F__INSTRSET 10
@@ -393,15 +344,9 @@
 #define WJR_HAS_AVX2_DEFINE(X)
 #endif // __AVX2__
 
-#if defined(WJR_FORCEINLINE)
-#define __SIMD_INLINE inline WJR_FORCEINLINE
-#else
-#define __SIMD_INLINE inline
-#endif
-
-#if defined(_MSC_VER)
+#if defined(WJR_COMPILER_MSVC)
 #include <intrin.h>
-#elif defined(__GUNC__) || defined(__clang__)
+#elif defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG)
 #include <x86intrin.h>
 #else
 #if defined(__AVX__)
@@ -425,8 +370,8 @@
 #define _WJR_END }
 #define _WJR_SIMD_BEGIN _WJR_BEGIN namespace simd{
 #define _WJR_SIMD_END } _WJR_END
-#define _WJR_MATH_BEGIN _WJR_BEGIN namespace math{
-#define _WJR_MATH_END } _WJR_END
+#define _WJR_ASM_BEGIN _WJR_BEGIN namespace masm{
+#define _WJR_ASM_END } _WJR_END
 
 #ifndef _WJR_NOEXCEPTION
 #define _WJR_TRY try{

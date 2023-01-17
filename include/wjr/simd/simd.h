@@ -7,7 +7,16 @@
 #include <wjr/simd/__memrchr.h>
 #include <wjr/simd/__memcmp.h>
 #include <wjr/simd/__memmis.h>
+#include <wjr/simd/__memrmis.h>
 #include <wjr/simd/__memcnt.h>
+
+// Note :
+// 1. When the data volume is very small,
+// the performance of the following simd functions
+// may not be better than some optimized standard library functions
+// 2. Limited by the inability to determine whether the function parameters are compile-time constants,
+// in order to improve dynamic performance, some cases when the parameters are constants,
+// the compiler may not be able to perform enough optimizations, such as inlining, and better optimization
 
 #if defined(__AVX2__) || defined(__SSE2__)
 #define __HAS_SIMD_MEMCHR
@@ -18,10 +27,12 @@
 
 _WJR_SIMD_BEGIN
 
+// Can compare signed and unsigned
+// But non-sign integer exception such as char, unsigned char
 template<typename T, typename U>
 struct __has_simple_memory_equal : std::conjunction<
 	wjr::is_memory_compare<T, U>,
-	std::is_same<std::make_unsigned_t<get_memory_t<T>>, std::make_unsigned_t<get_memory_t<U>>>,
+	std::is_same<std::make_unsigned_t<integral_normalization_t<T>>, std::make_unsigned_t<integral_normalization_t<U>>>,
 	std::conditional_t<
 	std::is_signed_v<T> == std::is_signed_v<U>,
 	std::true_type,
@@ -30,69 +41,78 @@ struct __has_simple_memory_equal : std::conjunction<
 > {};
 
 #if defined(__HAS_SIMD_MEMCHR)
-template<typename T>
+template<typename T, typename U>
 struct __has_simd_memchr : std::conjunction<
-	wjr::is_memory_compare<T, T>,
-	wjr::is_any_of<std::make_unsigned_t<get_memory_t<T>>, uint8_t, uint16_t, uint32_t>
+	wjr::is_memory_compare<T, U>,
+	wjr::is_any_of<std::make_unsigned_t<integral_normalization_t<T>>, uint8_t, uint16_t, uint32_t>
 > {};
 
-template<typename T>
-constexpr bool __has_simd_memchr_v = __has_simd_memchr<T>::value;
+template<typename T, typename U>
+constexpr bool __has_simd_memchr_v = __has_simd_memchr<T, U>::value;
 
-template<typename T>
-struct __has_simd_memrchr : __has_simd_memchr<T> {};
+template<typename T, typename U>
+struct __has_simd_memrchr : __has_simd_memchr<T, U> {};
 
-template<typename T>
-constexpr bool __has_simd_memrchr_v = __has_simd_memrchr<T>::value;
+template<typename T, typename U>
+constexpr bool __has_simd_memrchr_v = __has_simd_memrchr<T, U>::value;
 
-template<typename T, std::enable_if_t<__has_simd_memchr_v<T>, int> = 0>
-const T* memchr(const T* s, T val, size_t n) {
-	using value_type = std::make_unsigned_t<get_memory_t<T>>;
+template<typename T, typename U, std::enable_if_t<__has_simd_memchr_v<T, U>, int> = 0>
+const T* memchr(const T* s, U val, size_t n) {
+	if (!wjr::__maybe_equal<std::decay_t<T>>(val)) {
+		return s + n;
+	}
+	using value_type = std::make_unsigned_t<integral_normalization_t<T>>;
 	auto __s = reinterpret_cast<const value_type*>(s);
 #if defined(__AVX2__)
-	return reinterpret_cast<const T*>(__memchr<simd_type::AVX>(__s, val, n));
+	return reinterpret_cast<const T*>(__memchr<simd_type::AVX>(__s, static_cast<value_type>(val), n));
 #else
-	return reinterpret_cast<const T*>(__memchr<simd_type::SSE>(__s, val, n));
+	return reinterpret_cast<const T*>(__memchr<simd_type::SSE>(__s, static_cast<value_type>(val), n));
 #endif 
 }
-template<typename T, std::enable_if_t<__has_simd_memchr_v<T>, int> = 0>
-const T* memrchr(const T* s, T val, size_t n) {
-	using value_type = std::make_unsigned_t<get_memory_t<T>>;
+template<typename T, typename U, std::enable_if_t<__has_simd_memchr_v<T, U>, int> = 0>
+const T* memrchr(const T* s, U val, size_t n) {
+	if (!wjr::__maybe_equal<std::decay_t<T>>(val)) {
+		return s + n;
+	}
+	using value_type = std::make_unsigned_t<integral_normalization_t<T>>;
 	auto __s = reinterpret_cast<const value_type*>(s);
 #if defined(__AVX2__)
-	return reinterpret_cast<const T*>(__memrchr<simd_type::AVX>(__s, val, n));
+	return reinterpret_cast<const T*>(__memrchr<simd_type::AVX>(__s, static_cast<value_type>(val), n));
 #else
-	return reinterpret_cast<const T*>(__memrchr<simd_type::SSE>(__s, val, n));
+	return reinterpret_cast<const T*>(__memrchr<simd_type::SSE>(__s, static_cast<value_type>(val), n));
 #endif 
 }
 #else
-template<typename T>
+template<typename T, typename U>
 struct __has_simd_memchr : std::conjunction <
-	wjr::is_memory_compare<T, T>,
+	wjr::is_memory_compare<T, U>,
 	wjr::is_any_index_of<sizeof(T), sizeof(char), sizeof(wchar_t)>
 > {};
 
-template<typename T>
-constexpr bool __has_simd_memchr_v = __has_simd_memchr<T>::value;
+template<typename T, typename U>
+constexpr bool __has_simd_memchr_v = __has_simd_memchr<T, U>::value;
 
-template<typename T>
-struct __has_simd_memrchr : __has_simd_memchr<T> {};
+template<typename T, typename U>
+struct __has_simd_memrchr : __has_simd_memchr<T, U> {};
 
-template<typename T>
-constexpr bool __has_simd_memrchr_v = __has_simd_memrchr<T>::value;
+template<typename T, typename U>
+constexpr bool __has_simd_memrchr_v = __has_simd_memrchr<T, typename U>::value;
 
-template<typename T, std::enable_if_t<__has_simd_memchr_v<T>, int> = 0>
-const T* memchr(const T* s, T val, size_t n) {
-	using value_type = std::make_unsigned_t<get_memory_t<T>>;
+template<typename T, typename U, std::enable_if_t<__has_simd_memchr_v<T, U>, int> = 0>
+const T* memchr(const T* s, U val, size_t n) {
+	if (!wjr::__maybe_equal<std::decay_t<T>>(val)) {
+		return s + n;
+	}
+	using value_type = std::make_unsigned_t<integral_normalization_t<T>>;
 	if constexpr (sizeof(T) == sizeof(char)) {
-		auto pos = ::memchr((const char*)s, (char)val, n);
+		auto pos = ::memchr(reinterpret_cast<const char*>(s), static_cast<T>(val), n);
 		if (pos == nullptr) {
 			return s + n;
 		}
 		return reinterpret_cast<const T*>(pos);
 	}
 	else {
-		auto pos = ::wmemchr((const wchar_t*)s, (wchar_t)val, n);
+		auto pos = ::wmemchr(reinterpret_cast<const wchar_t*>(s), static_cast<T>(val), n);
 		if (pos == nullptr) {
 			return s + n;
 		}
@@ -105,8 +125,9 @@ const T* memchr(const T* s, T val, size_t n) {
 #if defined(__HAS_SIMD_MEMCMP)
 template<typename T, typename U, typename _Pred>
 struct __has_simd_memcmp : std::conjunction<
-	std::is_same<get_memory_t<T>, get_memory_t<U>>,
-	wjr::is_any_of<get_memory_t<T>, int8_t, int16_t, int32_t, uint8_t, uint16_t, uint32_t>,
+	wjr::is_memory_compare<T, U>, 
+	std::is_same<integral_normalization_t<T>, integral_normalization_t<U>>,
+	wjr::is_any_of<integral_normalization_t<T>, int8_t, int16_t, int32_t, uint8_t, uint16_t, uint32_t>,
 	wjr::is_standard_comparator<_Pred>
 > {};
 
@@ -123,12 +144,6 @@ struct __has_simd_memcmp<T, U, std::not_equal_to<>> : std::conjunction<
 template<typename T, typename U, typename _Pred>
 constexpr bool __has_simd_memcmp_v = __has_simd_memcmp<T, U, _Pred>::value;
 
-template<typename T, typename U, typename _Pred>
-struct __has_simd_memrcmp : __has_simd_memcmp<T, U, _Pred> {};
-
-template<typename T, typename U, typename _Pred>
-constexpr bool __has_simd_memrcmp_v = __has_simd_memrcmp<T, U, _Pred>::value;
-
 template<typename T, typename U, std::enable_if_t<__has_simd_memcmp_v<T, U, std::equal_to<>>, int> = 0>
 bool memcmpeq(const T* s0, const U* s1, size_t n) {
 	using value_type = uint8_t;
@@ -143,7 +158,7 @@ bool memcmpeq(const T* s0, const U* s1, size_t n) {
 
 template<typename T, typename U, std::enable_if_t<__has_simd_memcmp_v<T, U, std::less<>>, int> = 0>
 bool memcmplt(const T* s0, const U* s1, size_t n) {
-	using value_type = get_memory_t<T>;
+	using value_type = integral_normalization_t<T>;
 	auto __s0 = reinterpret_cast<const value_type*>(s0);
 	auto __s1 = reinterpret_cast<const value_type*>(s1);
 #if defined(__AVX2__)
@@ -155,7 +170,7 @@ bool memcmplt(const T* s0, const U* s1, size_t n) {
 
 template<typename T, typename U, std::enable_if_t<__has_simd_memcmp_v<T, U, std::less_equal<>>, int> = 0>
 bool memcmple(const T* s0, const U* s1, size_t n) {
-	using value_type = get_memory_t<T>;
+	using value_type = integral_normalization_t<T>;
 	auto __s0 = reinterpret_cast<const value_type*>(s0);
 	auto __s1 = reinterpret_cast<const value_type*>(s1);
 #if defined(__AVX2__)
@@ -211,12 +226,6 @@ struct __has_simd_memcmp<T, U, std::equal_to<>> : std::conjunction<
 template<typename T, typename U, typename _Pred>
 inline constexpr bool __has_simd_memcmp_v = __has_simd_memcmp<T, U, _Pred>::type::value;
 
-template<typename T, typename U, typename _Pred>
-struct __has_simd_memrcmp : __has_simd_memcmp<T, U, _Pred> {};
-
-template<typename T, typename U, typename _Pred>
-constexpr bool __has_simd_memrcmp_v = __has_simd_memrcmp<T, U, _Pred>::type::value;
-
 template<typename T, typename U, typename _Pred, std::enable_if_t<__has_simd_memcmp_v<T, U, _Pred>, int> = 0>
 bool memcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
 	return ::memcmp(s0, s1, n * sizeof(T)) == 0;
@@ -227,8 +236,8 @@ bool memcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
 #if defined(__HAS_SIMD_MEMMIS)
 template<typename T, typename U, typename _Pred>
 struct __has_simd_memmis : std::conjunction<
-	std::is_same<get_memory_t<T>, get_memory_t<U>>,
-	wjr::is_any_of<get_memory_t<T>, int8_t, int16_t, int32_t, uint8_t, uint16_t, uint32_t>,
+	std::is_same<integral_normalization_t<T>, integral_normalization_t<U>>,
+	wjr::is_any_of<integral_normalization_t<T>, int8_t, int16_t, int32_t, uint8_t, uint16_t, uint32_t>,
 	wjr::is_standard_comparator<_Pred>
 > {};
 
@@ -268,7 +277,7 @@ const T* memmiseq(const T* s0, const U* s1, size_t n) {
 
 template<typename T, typename U, std::enable_if_t<__has_simd_memmis_v<T, U, std::less<>>, int> = 0>
 const T* memmislt(const T* s0, const U* s1, size_t n) {
-	using value_type = get_memory_t<T>;
+	using value_type = integral_normalization_t<T>;
 	auto __s0 = reinterpret_cast<const value_type*>(s0);
 	auto __s1 = reinterpret_cast<const value_type*>(s1);
 #if defined(__AVX2__)
@@ -280,7 +289,7 @@ const T* memmislt(const T* s0, const U* s1, size_t n) {
 
 template<typename T, typename U, std::enable_if_t<__has_simd_memmis_v<T, U, std::less_equal<>>, int> = 0>
 const T* memmisle(const T* s0, const U* s1, size_t n) {
-	using value_type = get_memory_t<T>;
+	using value_type = integral_normalization_t<T>;
 	auto __s0 = reinterpret_cast<const value_type*>(s0);
 	auto __s1 = reinterpret_cast<const value_type*>(s1);
 #if defined(__AVX2__)
@@ -346,7 +355,7 @@ const T* memrmiseq(const T* s0, const U* s1, size_t n) {
 
 template<typename T, typename U, std::enable_if_t<__has_simd_memmis_v<T, U, std::less<>>, int> = 0>
 const T* memrmislt(const T* s0, const U* s1, size_t n) {
-	using value_type = get_memory_t<T>;
+	using value_type = integral_normalization_t<T>;
 	auto __s0 = reinterpret_cast<const value_type*>(s0);
 	auto __s1 = reinterpret_cast<const value_type*>(s1);
 #if defined(__AVX2__)
@@ -358,7 +367,7 @@ const T* memrmislt(const T* s0, const U* s1, size_t n) {
 
 template<typename T, typename U, std::enable_if_t<__has_simd_memmis_v<T, U, std::less_equal<>>, int> = 0>
 const T* memrmisle(const T* s0, const U* s1, size_t n) {
-	using value_type = get_memory_t<T>;
+	using value_type = integral_normalization_t<T>;
 	auto __s0 = reinterpret_cast<const value_type*>(s0);
 	auto __s1 = reinterpret_cast<const value_type*>(s1);
 #if defined(__AVX2__)
@@ -423,18 +432,21 @@ constexpr bool __has_simd_memrmis_v = __has_simd_memrmis<T, U, _Pred>::value;
 #endif // __HAS_SIMD_MEMMIS
 
 #if defined(__HAS_SIMD_MEMCNT)
-template<typename T>
+template<typename T, typename U>
 struct __has_simd_memcnt : std::conjunction<
-	wjr::is_memory_compare<T, T>,
-	wjr::is_any_of<std::make_unsigned_t<get_memory_t<T>>, uint8_t, uint16_t, uint32_t>
+	wjr::is_memory_compare<T, U>,
+	wjr::is_any_of<std::make_unsigned_t<integral_normalization_t<T>>, uint8_t, uint16_t, uint32_t>
 > {};
 
-template<typename T>
-constexpr bool __has_simd_memcnt_v = __has_simd_memcnt<T>::value;
+template<typename T, typename U>
+constexpr bool __has_simd_memcnt_v = __has_simd_memcnt<T, U>::value;
 
-template<typename T, std::enable_if_t<__has_simd_memcnt_v<T>, int> = 0>
-size_t memcnt(const T* s, T val, size_t n) {
-	using value_type = std::make_unsigned_t<get_memory_t<T>>;
+template<typename T, typename U, std::enable_if_t<__has_simd_memcnt_v<T, U>, int> = 0>
+size_t memcnt(const T* s, U val, size_t n) {
+	if (!wjr::__maybe_equal<std::decay_t<T>>(val)) {
+		return 0;
+	}
+	using value_type = std::make_unsigned_t<integral_normalization_t<T>>;
 	auto __s = reinterpret_cast<const value_type*>(s);
 #if defined(__AVX2__)
 	return __memcnt<simd_type::AVX>(__s, static_cast<value_type>(val), n);
@@ -444,11 +456,11 @@ size_t memcnt(const T* s, T val, size_t n) {
 }
 
 #else
-template<typename T>
+template<typename T, typename U>
 struct __has_simd_memcnt : std::false_type {};
 
-template<typename T>
-constexpr bool __has_simd_memcnt_v = __has_simd_memcnt<T>::value;
+template<typename T, typename U>
+constexpr bool __has_simd_memcnt_v = __has_simd_memcnt<T, U>::value;
 
 #endif // __HAS_SIMD_MEMCNT
 

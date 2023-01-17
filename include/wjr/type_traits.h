@@ -6,8 +6,7 @@
 #include <stdexcept>
 #include <iterator>
 #include <vector>
-
-#include <wjr/tag.h>
+#include <wjr/macro.h>
 
 _WJR_BEGIN
 
@@ -101,7 +100,7 @@ constexpr bool is_any_of_v = is_any_of<T, Args...>::value;
 
 template<typename T>
 struct is_standard_comparator : 
-	is_any_of<T, 
+	is_any_of<std::remove_cv_t<T>, 
 	std::less<>, 
 	std::less_equal<>, 
 	std::equal_to<>, 
@@ -113,85 +112,91 @@ struct is_standard_comparator :
 template<typename T>
 constexpr bool is_standard_comparator_v = is_standard_comparator<T>::value;
 
-template<typename T, typename U>
-struct arithmetic_conversion {
-	using type = decltype(T{} + U{});
-};
-
-template<typename T, typename U>
-using arithmetic_conversion_t = typename arithmetic_conversion<T, U>::type;
-
 template<typename T>
-struct is_no_symbol_integral :
+struct is_no_symbol_integral : std::conjunction<
+	std::is_integral<T>,
 	std::negation<wjr::is_any_of<std::remove_cv_t<T>,
 	bool, char,
 #ifdef __cpp_char8_t
 	char8_t,
 #endif // __cpp_char8_t
-	char16_t, char32_t, wchar_t>>{};
+	char16_t, char32_t, wchar_t>>>{};
 
 template<typename T>
 constexpr bool is_no_symbol_integral_v = is_no_symbol_integral<T>::value;
 
+template<size_t n>
+struct __uint_helper{};
+
+template<>
+struct __uint_helper<8> {
+	using type = unsigned char;
+};
+template<>
+struct __uint_helper<16> {
+	using type = unsigned short;
+};
+template<>
+struct __uint_helper<32> {
+	using type = std::conditional_t<sizeof(unsigned int) == 4, unsigned int, unsigned long>;
+};
+template<>
+struct __uint_helper<64> {
+	using type = unsigned long long;
+};
+
+template<size_t n> 
+using uint_t = typename __uint_helper<n>::type;
+
+template<size_t n>
+struct __int_helper {};
+
+template<>
+struct __int_helper<8> {
+	using type = signed char;
+};
+template<>
+struct __int_helper<16> {
+	using type = signed short;
+};
+template<>
+struct __int_helper<32> {
+	using type = std::conditional_t<sizeof(int) == 4, int, long>;
+};
+template<>
+struct __int_helper<64> {
+	using type = long long;
+};
+
+template<size_t n>
+using int_t = typename __int_helper<n>::type;
+
+using int8_t = int_t<8>;
+using int16_t = int_t<16>;
+using int32_t = int_t<32>;
+using int64_t = int_t<64>;
+
+using uint8_t = uint_t<8>;
+using uint16_t = uint_t<16>;
+using uint32_t = uint_t<32>;
+using uint64_t = uint_t<64>;
+
+template<size_t n, bool __s>
+using __int_or_uint = std::conditional_t<__s, int_t<n>, uint_t<n>>;
+
 template<typename T>
-struct get_memory {
-	using type = T;
+struct integral_normalization {
+	using type = std::conditional_t<std::is_integral_v<T>,
+		__int_or_uint<sizeof(T) * 8, std::is_signed_v<T>>,
+		void>;
 };
-
-template<size_t n, bool>
-struct __get_memory_helper {
-	using type = void;
-};
-template<bool is>
-struct __get_memory_helper<1, is> {
-	using type = std::conditional_t<is, int8_t, uint8_t>;
-};
-template<bool is>
-struct __get_memory_helper<2, is> {
-	using type = std::conditional_t<is, int16_t, uint16_t>;
-};
-template<bool is>
-struct __get_memory_helper<4, is> {
-	using type = std::conditional_t<is, int32_t, uint32_t>;
-};
-template<bool is>
-struct __get_memory_helper<8, is> {
-	using type = std::conditional_t<is, int64_t, uint64_t>;
-};
-
-#define __REGISTER_GET_MEMORY_TEMPLATE(x)		                                        \
-template<>	                                                                            \
-struct get_memory<x> {									                                \
-	using type = typename __get_memory_helper<sizeof(x), std::is_signed_v<x>>::type;	\
-};	
-
-__REGISTER_GET_MEMORY_TEMPLATE(bool)
-__REGISTER_GET_MEMORY_TEMPLATE(char)
-__REGISTER_GET_MEMORY_TEMPLATE(signed char)
-__REGISTER_GET_MEMORY_TEMPLATE(unsigned char)
-__REGISTER_GET_MEMORY_TEMPLATE(wchar_t)
-#ifdef __cpp_char8_t
-__REGISTER_GET_MEMORY_TEMPLATE(char8_t, int8_t)
-#endif
-__REGISTER_GET_MEMORY_TEMPLATE(char16_t)
-__REGISTER_GET_MEMORY_TEMPLATE(char32_t)
-__REGISTER_GET_MEMORY_TEMPLATE(short)
-__REGISTER_GET_MEMORY_TEMPLATE(unsigned short)
-__REGISTER_GET_MEMORY_TEMPLATE(int)
-__REGISTER_GET_MEMORY_TEMPLATE(unsigned int)
-__REGISTER_GET_MEMORY_TEMPLATE(long)
-__REGISTER_GET_MEMORY_TEMPLATE(unsigned long)
-__REGISTER_GET_MEMORY_TEMPLATE(long long)
-__REGISTER_GET_MEMORY_TEMPLATE(unsigned long long)
-
-#undef __REGISTER_GET_MEMORY_TEMPLATE
 
 template<typename T>
-using get_memory_t = typename get_memory<T>::type;
+using integral_normalization_t = typename integral_normalization<T>::type;
 
 template<typename T>
 struct is_left_standard_comparator : 
-	is_any_of<T, 
+	is_any_of<std::remove_cv_t<T>, 
 	std::less<>, 
 	std::less_equal<>
 	> {};
@@ -201,7 +206,7 @@ constexpr bool is_left_standard_comparator_v = is_left_standard_comparator<T>::v
 
 template<typename T>
 struct is_right_standard_comparator :
-	is_any_of<T, 
+	is_any_of<std::remove_cv_t<T>, 
 	std::greater<>, 
 	std::greater_equal<>
 	> {};
@@ -210,33 +215,38 @@ template<typename T>
 constexpr bool is_right_standard_comparator_v = is_right_standard_comparator<T>::value;
 
 template<typename T>
-struct swap_standard_comparator {
+struct swap_standard_comparator_helper {
 	using type = T;
 };
 
 template<>
-struct swap_standard_comparator<std::less<>> {
+struct swap_standard_comparator_helper<std::less<>> {
 	using type = std::greater<>;
 };
 
 template<>
-struct swap_standard_comparator<std::less_equal<>> {
+struct swap_standard_comparator_helper<std::less_equal<>> {
 	using type = std::greater_equal<>;
 };
 
 template<>
-struct swap_standard_comparator<std::greater<>> {
+struct swap_standard_comparator_helper<std::greater<>> {
 	using type = std::less<>;
 };
 
 template<>
-struct swap_standard_comparator<std::greater_equal<>> {
+struct swap_standard_comparator_helper<std::greater_equal<>> {
 	using type = std::less_equal<>;
 };
 
 template<>
-struct swap_standard_comparator<std::equal_to<>> {
+struct swap_standard_comparator_helper<std::equal_to<>> {
 	using type = std::equal_to<>;
+};
+
+template<typename T>
+struct swap_standard_comparator {
+	using type = typename swap_standard_comparator_helper<std::remove_cv_t<T>>::type;
 };
 
 template<typename T>
@@ -279,6 +289,20 @@ template<typename T>
 constexpr bool is_unsigned_integral_v = is_unsigned_integral<T>::value;
 
 template<typename T>
+struct is_signed_integral : std::conjunction<std::is_integral<T>, std::is_signed<T>> {};
+
+template<typename T>
+constexpr bool is_signed_integral_v = is_signed_integral<T>::value;
+
+template<typename T, typename U>
+struct common_arithmetic {
+	using type = decltype(T{} + U{});
+};
+
+template<typename T, typename U>
+using common_arithmetic_t = typename common_arithmetic<T, U>::type;
+
+template<typename T>
 struct is_reverse_iterator : std::false_type {};
 
 template<typename _Iter>
@@ -314,20 +338,6 @@ struct type_identity {
 
 template<typename T>
 using type_identity_t = typename type_identity<T>::type;
-
-#if defined(WJR_CPP_20)
-template<typename T>
-struct is_contiguous_iterator : std::bool_constant<std::contiguous_iterator<T>> {};
-#else
-template<typename T>
-struct is_contiguous_iterator : std::is_pointer<T> {};
-#endif
-
-template<typename _Iter>
-struct is_contiguous_iterator<std::reverse_iterator<_Iter>> : is_contiguous_iterator<_Iter> {};
-
-template<typename T>
-constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<T>::value;
 
 template<typename T, typename = void>
 struct _Is_default_convertible : std::false_type {};
@@ -413,6 +423,20 @@ struct is_iterator<T, std::void_t<iter_cat_t<T>>> : std::true_type {};
 template<typename T>
 constexpr bool is_iterator_v = is_iterator<T>::value;
 
+#if defined(WJR_CPP_20)
+template<typename T>
+struct is_contiguous_iterator : std::bool_constant<std::contiguous_iterator<T>> {};
+#else
+template<typename T>
+struct is_contiguous_iterator : std::is_pointer<T> {};
+#endif
+
+template<typename _Iter>
+struct is_contiguous_iterator<std::reverse_iterator<_Iter>> : is_contiguous_iterator<_Iter> {};
+
+template<typename T>
+constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<T>::value;
+
 template<typename T>
 struct is_input_iter : std::is_convertible<iter_cat_t<T>, std::input_iterator_tag> {};
 
@@ -442,6 +466,26 @@ struct is_random_iter : std::is_convertible<iter_cat_t<T>, std::random_access_it
 
 template<typename T>
 constexpr bool is_random_iter_v = is_random_iter<T>::value;
+
+template<typename iter, std::enable_if_t<is_iterator_v<iter>, int> = 0>
+struct __make_iter_wrapper : public std::tuple<iter, iter>{
+	using _Mybase = std::tuple<iter, iter>;
+	using _Mybase::_Mybase;
+	using _Mybase::operator=;
+
+	constexpr iter begin() const noexcept { return std::get<0>(*this); }
+	constexpr iter end() const noexcept { return std::get<1>(*this); }
+
+	constexpr decltype(auto) size() const noexcept {
+		return std::distance(begin(), end());
+	}
+
+};
+
+template<typename iter>
+constexpr __make_iter_wrapper<iter> make_iter_wrapper(iter first, iter last) {
+	return { first, last };
+}
 
 template<typename T>
 using alloc_pointer_t = typename std::allocator_traits<T>::pointer;
@@ -691,159 +735,6 @@ WJR_CONSTEXPR20 alloc_pointer_t<Alloc> uninitialized_fill_n_a(
 	}
 }
 
-template<typename Tag, typename...Args, std::enable_if_t<wjr::tag::is_set_v<Tag>, int> = 0>
-WJR_CONSTEXPR20 decltype(auto) uninitialized_a(
-	Tag, Args&&...args
-) {
-	if constexpr (Tag{}(wjr::tag::DEFAULT_CONSTRUCT)) {
-		return wjr::uninitialized_default_construct_a(std::forward<Args>(args)...);
-	}
-	else if constexpr (Tag{}(wjr::tag::VALUE_CONSTRUCT)) {
-		return wjr::uninitialized_value_construct_a(std::forward<Args>(args)...);
-	}
-	else if constexpr (Tag{}(wjr::tag::COPY)) {
-		return wjr::uninitialized_copy_a(std::forward<Args>(args)...);
-	}
-	else if constexpr (Tag{}(wjr::tag::MOVE)) {
-		return wjr::uninitialized_move_a(std::forward<Args>(args)...);
-	}
-	else if constexpr (Tag{}(wjr::tag::FILL)) {
-		return wjr::uninitialized_fill_a(std::forward<Args>(args)...);
-	}
-}
-
-template<typename Tag, typename...Args, std::enable_if_t<wjr::tag::is_set_v<Tag>, int> = 0>
-WJR_CONSTEXPR20 decltype(auto) uninitialized_n_a(
-	Tag, Args&&...args
-) {
-	if constexpr (Tag{}(wjr::tag::DEFAULT_CONSTRUCT)) {
-		return wjr::uninitialized_default_construct_n_a(std::forward<Args>(args)...);
-	}
-	else if constexpr (Tag{}(wjr::tag::VALUE_CONSTRUCT)) {
-		return wjr::uninitialized_value_construct_n_a(std::forward<Args>(args)...);
-	}
-	else if constexpr (Tag{}(wjr::tag::COPY)) {
-		return wjr::uninitialized_copy_n_a(std::forward<Args>(args)...);
-	}
-	else if constexpr (Tag{}(wjr::tag::MOVE)) {
-		return wjr::uninitialized_move_n_a(std::forward<Args>(args)...);
-	}
-	else if constexpr (Tag{}(wjr::tag::FILL)) {
-		return wjr::uninitialized_fill_n_a(std::forward<Args>(args)...);
-	}
-}
-
-template<typename Alloc>
-class temporary_allocator_value {
-public:
-	using value_type = alloc_value_t<Alloc>;
-	using traits = std::allocator_traits<Alloc>;
-
-	template<typename...Args>
-	constexpr explicit temporary_allocator_value(Alloc& al, Args&&...args) noexcept
-		: al(al) {
-		traits::construct(al, get_ptr(), std::forward<Args>(args)...);
-	}
-
-	temporary_allocator_value(const temporary_allocator_value&) = delete;
-	temporary_allocator_value& operator=(const temporary_allocator_value&) = delete;
-
-	~temporary_allocator_value() {
-		destroy_at_a(get_ptr(), al);
-	}
-
-	constexpr value_type* get_ptr() {
-		return reinterpret_cast<value_type*>(std::addressof(vl));
-	}
-
-	constexpr const value_type* get_ptr() const {
-		return reinterpret_cast<const value_type*>(std::addressof(vl));
-	}
-
-	constexpr value_type& value() {
-		return *get_ptr();
-	}
-
-	constexpr const value_type& value() const {
-		return *get_ptr();
-	}
-
-private:
-
-	Alloc& al;
-	std::aligned_storage_t<sizeof(value_type), alignof(value_type)> vl;
-};
-
-// 
-
-class allocator_listener {
-public:
-	static int64_t allocated_size;
-	static int64_t constructed_size;
-};
-
-template<typename T, typename Alloc = std::allocator<T>>
-class test_allocator : public Alloc {
-	using _Alty_traits = std::allocator_traits<Alloc>;
-public:
-	using Alloc::Alloc;
-	template<typename Other>
-	struct rebind {
-		using other = test_allocator<Other, typename _Alty_traits::template rebind_alloc<Other>>;
-	};
-
-	test_allocator() = default;
-	test_allocator(const test_allocator&) = default;
-	test_allocator(test_allocator&&) = default;
-	test_allocator& operator=(const test_allocator&) = default;
-	test_allocator& operator=(test_allocator&&) = default;
-	~test_allocator() = default;
-
-	WJR_CONSTEXPR20 decltype(auto) allocate(size_t n) {
-		allocator_listener::allocated_size += n * sizeof(typename _Alty_traits::value_type);
-		__allocated_size += static_cast<int64_t>(n);
-		return _Alty_traits::allocate(*this, n);
-	}
-
-	WJR_CONSTEXPR20 decltype(auto) deallocate(typename _Alty_traits::pointer p, size_t n) {
-		allocator_listener::allocated_size -= n * sizeof(typename _Alty_traits::value_type);
-		__allocated_size -= static_cast<int64_t>(n);
-		return _Alty_traits::deallocate(*this, p, n);
-	}
-
-	template<typename _Ty, typename...Args>
-	WJR_CONSTEXPR20 decltype(auto) construct(_Ty* p, Args&&... args) {
-		allocator_listener::constructed_size++;
-		__constructed_size++;
-		return _Alty_traits::construct(*this, p, std::forward<Args>(args)...);
-	}
-
-	template<typename _Ty>
-	WJR_CONSTEXPR20 decltype(auto) destroy(_Ty* p) {
-		allocator_listener::constructed_size--;
-		__constructed_size--;
-		return _Alty_traits::destroy(*this, p);
-	}
-
-	WJR_CONSTEXPR20 static int64_t allocated_size() {
-		return __allocated_size;
-	}
-
-	WJR_CONSTEXPR20 static int64_t constructed_size() {
-		return __constructed_size;
-	}
-
-private:
-	static int64_t __allocated_size;
-	static int64_t __constructed_size;
-};
-
-template<typename T, typename Alloc>
-int64_t test_allocator<T, Alloc>::__allocated_size = 0;
-
-template<typename T, typename Alloc>
-int64_t test_allocator<T, Alloc>::__constructed_size = 0;
-
 _WJR_END
 
 namespace std {
@@ -857,6 +748,26 @@ namespace std {
 	REGISTER_HAS_GLOBAL_FUNCTION(crend, crend);
 	REGISTER_HAS_GLOBAL_FUNCTION(data, data);
 	REGISTER_HAS_GLOBAL_FUNCTION(size, size);
+	REGISTER_HAS_MEMBER_FUNCTION(size, size);
 }
+
+_WJR_BEGIN
+
+template<typename _Container>
+constexpr auto size(const _Container& c){
+	if constexpr (std::has_member_function_size_v<_Container>) {
+		return c.size();
+	}
+	else {
+		return std::distance(std::begin(c), std::end(c));
+	}
+}
+
+template<typename _Ty, size_t _Size>
+constexpr size_t size(const _Ty(&)[_Size]) noexcept {
+	return _Size;
+}
+
+_WJR_END
 
 #endif

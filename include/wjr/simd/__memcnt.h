@@ -6,6 +6,7 @@
 
 #if defined(__AVX2__) || defined(__SSE2__)
 #include <wjr/simd/simd_helper.h>
+#include <wjr/math.h>
 
 #define __REGISTER_MEMCNT_FUNC_ONE(s)	                                \
 	{	                                                                \
@@ -33,20 +34,25 @@ size_t __memcnt(const T* s, T val, size_t n) {
 	constexpr int _Mysize = traits::size();
 	constexpr int _Mycor = sizeof(T) / sizeof(uint8_t);
 	// Prevent overflow
-	constexpr int _Maxstep_four = std::numeric_limits<T>::max() / _Mysize + 1;
+	constexpr auto _Maxstep_four = std::numeric_limits<T>::max() / _Mysize + 1;
 	static_assert(_Maxstep_four >= 4 && _Maxstep_four % 4 == 0 , "invalid _Maxstep");
-	constexpr int _Maxstep = _Maxstep_four / 4;
+	constexpr auto _Maxstep = _Maxstep_four / 4;
+
+	if (n == 0) { return 0; }
 
 	size_t cnt = 0;
 	auto y = traits::set1(val);
 	
 	if (n >= _Mysize) {
 		auto c = traits::set_all_zeros();
-		size_t step = _Maxstep;
-		while (n >= _Mysize * 4) {
+		auto step = _Maxstep;
+
+		constexpr auto __mask = _Mysize * 4 - 1;
+		auto __s = s + (n & ~__mask);
+		n &= __mask;
+		while (s != __s) {
 			__REGISTER_MEMCNT_FUNC_FOUR(s);
 			s += _Mysize * 4;
-			n -= _Mysize * 4;
 			--step;
 			if (!step) {
 				cnt += traits::add(c);
