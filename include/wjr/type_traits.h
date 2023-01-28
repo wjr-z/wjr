@@ -195,6 +195,14 @@ template<typename T>
 using integral_normalization_t = typename integral_normalization<T>::type;
 
 template<typename T>
+struct _Auto_variable_helper {
+	using type = std::conditional_t<sizeof(T) <= 256 / 8, T, const T&>;
+};
+
+template<typename T>
+using auto_var_t = typename _Auto_variable_helper<T>::type;
+
+template<typename T>
 struct is_left_standard_comparator : 
 	is_any_of<std::remove_cv_t<T>, 
 	std::less<>, 

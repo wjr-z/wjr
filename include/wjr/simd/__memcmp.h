@@ -5,21 +5,20 @@
 #include <wjr/macro.h>
 
 #if defined(__AVX2__) || defined(__SSE2__)
-#include <wjr/simd/simd_helper.h>
-#include <wjr/math.h>
+#include <wjr/simd/simd_intrin.h>
 
 #define __REGISTER_MEMCMP_FUNC_ONE_HELPER__	                                                \
-	auto r = traits::cmp(x, y, pred);	                                                    \
+	auto r = traits::cmp(x, y, pred, T{});	                                                    \
 	auto z = traits::movemask_epi8(r);	                                                    \
 	if(z != __Mask){	                                                                    \
 		return false;	                                                                    \
 	}
 
 #define __REGISTER_MEMCMP_FUNC_FOUR_HELPER__	                                            \
-	auto r0 = traits::cmp(x0, x4, pred);												    \
-	auto r1 = traits::cmp(x1, x5, pred);									                \
-	auto r2 = traits::cmp(x2, x6, pred);									                \
-	auto r3 = traits::cmp(x3, x7, pred);									                \
+	auto r0 = traits::cmp(x0, x4, pred, T{});												    \
+	auto r1 = traits::cmp(x1, x5, pred, T{});									                \
+	auto r2 = traits::cmp(x2, x6, pred, T{});									                \
+	auto r3 = traits::cmp(x3, x7, pred, T{});									                \
 																						    \
 	auto z = traits::movemask_epi8(														    \
 		traits::And(traits::And(r0, r1), traits::And(r2, r3)));							    \
@@ -94,35 +93,20 @@
 
 _WJR_SIMD_BEGIN
 
-WJR_INTRINSIC_INLINE uint8_t __memcmpeq_u8(const void* s0, const void* s1) {
-	return *(reinterpret_cast<const uint8_t*>(s0)) ^ *(reinterpret_cast<const uint8_t*>(s1));
-}
-
-WJR_INTRINSIC_INLINE uint16_t __memcmpeq_u16(const void* s0, const void* s1) {
-	return *(reinterpret_cast<const uint16_t*>(s0)) ^ *(reinterpret_cast<const uint16_t*>(s1));
-}
-
-WJR_INTRINSIC_INLINE uint32_t __memcmpeq_u32(const void* s0, const void* s1) {
-	return *(reinterpret_cast<const uint32_t*>(s0)) ^ *(reinterpret_cast<const uint32_t*>(s1));
-}
-
-WJR_INTRINSIC_INLINE uint64_t __memcmpeq_u64(const void* s0, const void* s1) {
-	return *(reinterpret_cast<const uint64_t*>(s0)) ^ *(reinterpret_cast<const uint64_t*>(s1));
-}
-
-template<typename T, typename U>
-WJR_INTRINSIC_INLINE T __memcmpeq_or(T a, U b) {
-	a |= b;
-	return a;
-}
-
-template<simd_type S, typename T, typename _Pred>
+template<typename T, typename _Pred>
 bool __memcmp(const T* s0, const T* s1, size_t n, _Pred pred) {
-	using traits = traits<T, S>;
-	using simd_type = typename traits::simd_type;
-	
-	constexpr int _Mysize = traits::size();
-	constexpr int __Mask = simd::simd_type::AVX == S ? 0xffffffff : 0xffff;
+	constexpr bool is_avx =
+#if defined(__AVX2__)
+		true;
+#else
+		false;
+#endif
+	using traits = std::conditional_t<is_avx, avx, sse>;
+	using simd_type = std::conditional_t<is_avx, __m256i, __m128i>;
+	using value_type = std::conditional_t<is_avx, uint32_t, uint16_t>;
+	constexpr int _Mysize = traits::width() / (8 * sizeof(T));
+	constexpr int _Mycor = sizeof(T) / sizeof(uint8_t);
+	constexpr int __Mask = is_avx ? 0xffffffff : 0xffff;
 
 	if (n == 0) { return true; }
 	if (n == 1) { return pred(*s0, *s1); }
@@ -133,7 +117,7 @@ bool __memcmp(const T* s0, const T* s1, size_t n, _Pred pred) {
 		auto sl = ql << 1;
 		auto x = traits::preload_si16x(s0, ql);
 		auto y = traits::preload_si16x(s1, ql);
-		auto r = traits::cmp(x, y, pred);
+		auto r = traits::cmp(x, y, pred, T{});
 		auto z = traits::movemask_epi8(r) | (__Mask ^ ((1u << sl) - 1));
 
 		if (z != __Mask) {

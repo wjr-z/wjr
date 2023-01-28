@@ -2,7 +2,7 @@
 #ifndef __WJR_SIMD_SIMD_H
 #define __WJR_SIMD_SIMD_H
 
-#include <wjr/simd/simd_helper.h>
+#include <wjr/simd/simd_intrin.h>
 #include <wjr/simd/__memchr.h>
 #include <wjr/simd/__memrchr.h>
 #include <wjr/simd/__memcmp.h>
@@ -63,11 +63,7 @@ const T* memchr(const T* s, U val, size_t n) {
 	}
 	using value_type = std::make_unsigned_t<integral_normalization_t<T>>;
 	auto __s = reinterpret_cast<const value_type*>(s);
-#if defined(__AVX2__)
-	return reinterpret_cast<const T*>(__memchr<simd_type::AVX>(__s, static_cast<value_type>(val), n));
-#else
-	return reinterpret_cast<const T*>(__memchr<simd_type::SSE>(__s, static_cast<value_type>(val), n));
-#endif 
+	return reinterpret_cast<const T*>(__memchr(__s, static_cast<value_type>(val), n));
 }
 template<typename T, typename U, std::enable_if_t<__has_simd_memchr_v<T, U>, int> = 0>
 const T* memrchr(const T* s, U val, size_t n) {
@@ -76,11 +72,7 @@ const T* memrchr(const T* s, U val, size_t n) {
 	}
 	using value_type = std::make_unsigned_t<integral_normalization_t<T>>;
 	auto __s = reinterpret_cast<const value_type*>(s);
-#if defined(__AVX2__)
-	return reinterpret_cast<const T*>(__memrchr<simd_type::AVX>(__s, static_cast<value_type>(val), n));
-#else
-	return reinterpret_cast<const T*>(__memrchr<simd_type::SSE>(__s, static_cast<value_type>(val), n));
-#endif 
+	return reinterpret_cast<const T*>(__memrchr(__s, static_cast<value_type>(val), n));
 }
 #else
 template<typename T, typename U>
@@ -149,11 +141,7 @@ bool memcmpeq(const T* s0, const U* s1, size_t n) {
 	using value_type = uint8_t;
 	auto __s0 = reinterpret_cast<const value_type*>(s0);
 	auto __s1 = reinterpret_cast<const value_type*>(s1);
-#if defined(__AVX2__)
-	return __memcmp<simd_type::AVX>(__s0, __s1, n * sizeof(T), std::equal_to<>{});
-#else
-	return __memcmp<simd_type::SSE>(__s0, __s1, n * sizeof(T), std::equal_to<>{});
-#endif
+	return __memcmp(__s0, __s1, n * sizeof(T), std::equal_to<>{});
 }
 
 template<typename T, typename U, std::enable_if_t<__has_simd_memcmp_v<T, U, std::less<>>, int> = 0>
@@ -161,11 +149,7 @@ bool memcmplt(const T* s0, const U* s1, size_t n) {
 	using value_type = integral_normalization_t<T>;
 	auto __s0 = reinterpret_cast<const value_type*>(s0);
 	auto __s1 = reinterpret_cast<const value_type*>(s1);
-#if defined(__AVX2__)
-	return __memcmp<simd_type::AVX>(__s0, __s1, n, std::less<>{});
-#else
-	return __memcmp<simd_type::SSE>(__s0, __s1, n, std::less<>{});
-#endif
+	return __memcmp(__s0, __s1, n, std::less<>{});
 }
 
 template<typename T, typename U, std::enable_if_t<__has_simd_memcmp_v<T, U, std::less_equal<>>, int> = 0>
@@ -173,11 +157,7 @@ bool memcmple(const T* s0, const U* s1, size_t n) {
 	using value_type = integral_normalization_t<T>;
 	auto __s0 = reinterpret_cast<const value_type*>(s0);
 	auto __s1 = reinterpret_cast<const value_type*>(s1);
-#if defined(__AVX2__)
-	return __memcmp<simd_type::AVX>(__s0, __s1, n, std::less_equal<>{});
-#else
-	return __memcmp<simd_type::SSE>(__s0, __s1, n, std::less_equal<>{});
-#endif
+	return __memcmp(__s0, __s1, n, std::less_equal<>{});
 }
 
 template<typename T, typename U, std::enable_if_t<__has_simd_memcmp_v<T, U, std::not_equal_to<>>, int> = 0>
@@ -185,11 +165,7 @@ bool memcmpne(const T* s0, const U* s1, size_t n) {
 	using value_type = uint8_t;
 	auto __s0 = reinterpret_cast<const value_type*>(s0);
 	auto __s1 = reinterpret_cast<const value_type*>(s1);
-#if defined(__AVX2__)
-	return __memcmp<simd_type::AVX>(__s0, __s1, n * sizeof(T), std::not_equal_to<>{});
-#else
-	return __memcmp<simd_type::SSE>(__s0, __s1, n * sizeof(T), std::not_equal_to<>{});
-#endif
+	return __memcmp(__s0, __s1, n * sizeof(T), std::not_equal_to<>{});
 }
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<__has_simd_memcmp_v<T, U, _Pred>, int> = 0>
@@ -266,11 +242,7 @@ const T* memmiseq(const T* s0, const U* s1, size_t n) {
 	auto __s0 = reinterpret_cast<const value_type*>(s0);
 	auto __s1 = reinterpret_cast<const value_type*>(s1);
 	auto __pos = 
-#if defined(__AVX2__)
-	__memmis<simd_type::AVX>(__s0, __s1, n * sizeof(T), std::equal_to<>{});
-#else
-	__memmis<simd_type::SSE>(__s0, __s1, n * sizeof(T), std::equal_to<>{});
-#endif
+	__memmis(__s0, __s1, n * sizeof(T), std::equal_to<>{});
 	auto __dif = (__pos - __s0) / sizeof(T);
 	return s0 + __dif;
 }
@@ -280,11 +252,7 @@ const T* memmislt(const T* s0, const U* s1, size_t n) {
 	using value_type = integral_normalization_t<T>;
 	auto __s0 = reinterpret_cast<const value_type*>(s0);
 	auto __s1 = reinterpret_cast<const value_type*>(s1);
-#if defined(__AVX2__)
-	return reinterpret_cast<const T*>(__memmis<simd_type::AVX>(__s0, __s1, n, std::less<>{}));
-#else
-	return reinterpret_cast<const T*>(__memmis<simd_type::SSE>(__s0, __s1, n, std::less<>{}));
-#endif
+	return reinterpret_cast<const T*>(__memmis(__s0, __s1, n, std::less<>{}));
 }
 
 template<typename T, typename U, std::enable_if_t<__has_simd_memmis_v<T, U, std::less_equal<>>, int> = 0>
@@ -292,11 +260,7 @@ const T* memmisle(const T* s0, const U* s1, size_t n) {
 	using value_type = integral_normalization_t<T>;
 	auto __s0 = reinterpret_cast<const value_type*>(s0);
 	auto __s1 = reinterpret_cast<const value_type*>(s1);
-#if defined(__AVX2__)
-	return reinterpret_cast<const T*>(__memmis<simd_type::AVX>(__s0, __s1, n, std::less_equal<>{}));
-#else
-	return reinterpret_cast<const T*>(__memmis<simd_type::SSE>(__s0, __s1, n, std::less_equal<>{}));
-#endif
+	return reinterpret_cast<const T*>(__memmis(__s0, __s1, n, std::less_equal<>{}));
 }
 
 template<typename T, typename U, std::enable_if_t<__has_simd_memmis_v<T, U, std::not_equal_to<>>, int> = 0>
@@ -305,11 +269,7 @@ const T* memmisne(const T* s0, const U* s1, size_t n) {
 	auto __s0 = reinterpret_cast<const value_type*>(s0);
 	auto __s1 = reinterpret_cast<const value_type*>(s1);
 	auto __pos =
-#if defined(__AVX2__)
-		__memmis<simd_type::AVX>(__s0, __s1, n * sizeof(T), std::not_equal_to<>{});
-#else
-		__memmis<simd_type::SSE>(__s0, __s1, n * sizeof(T), std::not_equal_to<>{});
-#endif
+		__memmis(__s0, __s1, n * sizeof(T), std::not_equal_to<>{});
 	auto __dif = (__pos - __s0) / sizeof(T);
 	return s0 + __dif;
 }
@@ -343,11 +303,7 @@ const T* memrmiseq(const T* s0, const U* s1, size_t n) {
 	auto __s0 = reinterpret_cast<const value_type*>(s0);
 	auto __s1 = reinterpret_cast<const value_type*>(s1);
 	auto __pos = 
-#if defined(__AVX2__)
-	__memrmis<simd_type::AVX>(__s0, __s1, n * sizeof(T), std::equal_to<>{});
-#else
-	__memrmis<simd_type::SSE>(__s0, __s1, n * sizeof(T), std::equal_to<>{});
-#endif
+	__memrmis(__s0, __s1, n * sizeof(T), std::equal_to<>{});
 	auto __e0 = __s0 + n * sizeof(T);
 	auto __dif = (__e0 - __pos) / sizeof(T);
 	return (s0 + n) - __dif;
@@ -358,11 +314,7 @@ const T* memrmislt(const T* s0, const U* s1, size_t n) {
 	using value_type = integral_normalization_t<T>;
 	auto __s0 = reinterpret_cast<const value_type*>(s0);
 	auto __s1 = reinterpret_cast<const value_type*>(s1);
-#if defined(__AVX2__)
-	return reinterpret_cast<const T*>(__memrmis<simd_type::AVX>(__s0, __s1, n, std::less<>{}));
-#else
-	return reinterpret_cast<const T*>(__memrmis<simd_type::SSE>(__s0, __s1, n, std::less<>{}));
-#endif
+	return reinterpret_cast<const T*>(__memrmis(__s0, __s1, n, std::less<>{}));
 }
 
 template<typename T, typename U, std::enable_if_t<__has_simd_memmis_v<T, U, std::less_equal<>>, int> = 0>
@@ -370,11 +322,7 @@ const T* memrmisle(const T* s0, const U* s1, size_t n) {
 	using value_type = integral_normalization_t<T>;
 	auto __s0 = reinterpret_cast<const value_type*>(s0);
 	auto __s1 = reinterpret_cast<const value_type*>(s1);
-#if defined(__AVX2__)
-	return reinterpret_cast<const T*>(__memrmis<simd_type::AVX>(__s0, __s1, n, std::less_equal<>{}));
-#else
-	return reinterpret_cast<const T*>(__memrmis<simd_type::SSE>(__s0, __s1, n, std::less_equal<>{}));
-#endif
+	return reinterpret_cast<const T*>(__memrmis(__s0, __s1, n, std::less_equal<>{}));
 }
 
 template<typename T, typename U, std::enable_if_t<__has_simd_memmis_v<T, U, std::not_equal_to<>>, int> = 0>
@@ -383,11 +331,7 @@ const T* memrmisne(const T* s0, const U* s1, size_t n) {
 	auto __s0 = reinterpret_cast<const value_type*>(s0);
 	auto __s1 = reinterpret_cast<const value_type*>(s1);
 	auto __pos =
-#if defined(__AVX2__)
-		__memrmis<simd_type::AVX>(__s0, __s1, n * sizeof(T), std::not_equal_to<>{});
-#else
-		__memrmis<simd_type::SSE>(__s0, __s1, n * sizeof(T), std::not_equal_to<>{});
-#endif
+		__memrmis(__s0, __s1, n * sizeof(T), std::not_equal_to<>{});
 	auto __e0 = __s0 + n * sizeof(T);
 	auto __dif = (__e0 - __pos) / sizeof(T);
 	return (s0 + n) - __dif;
@@ -448,11 +392,7 @@ size_t memcnt(const T* s, U val, size_t n) {
 	}
 	using value_type = std::make_unsigned_t<integral_normalization_t<T>>;
 	auto __s = reinterpret_cast<const value_type*>(s);
-#if defined(__AVX2__)
-	return __memcnt<simd_type::AVX>(__s, static_cast<value_type>(val), n);
-#else
-	return __memcnt<simd_type::SSE>(__s, static_cast<value_type>(val), n);
-#endif
+	return __memcnt(__s, static_cast<value_type>(val), n);
 }
 
 #else

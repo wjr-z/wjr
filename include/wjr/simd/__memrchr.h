@@ -5,15 +5,14 @@
 #include <wjr/macro.h>
 
 #if defined(__AVX2__) || defined(__SSE2__)
-#include <wjr/simd/simd_helper.h>
-#include <wjr/math.h>
+#include <wjr/simd/simd_intrin.h>
 
 _WJR_SIMD_BEGIN
 
 #define __WJR_ONE_MEMRCHR(s, q)																		\
 	{																				                \
 		auto x = traits::loadu(reinterpret_cast<const simd_type*>((s)));			                \
-		auto r = traits::cmpeq(x, (q));										                        \
+		auto r = traits::cmpeq(x, (q), T{});										                        \
 		auto z = traits::movemask_epi8(r);										                    \
 		if(z){																		                \
 			return (s) + _Mysize - wjr::countl_zero(static_cast<value_type>(z)) / _Mycor;	        \
@@ -27,10 +26,10 @@ _WJR_SIMD_BEGIN
 		auto x2 = traits::loadu(reinterpret_cast<const simd_type*>((s) + _Mysize * 2));	            \
 		auto x3 = traits::loadu(reinterpret_cast<const simd_type*>((s) + _Mysize * 3));	            \
 																							        \
-		auto r0 = traits::cmpeq(x0, (q));											                \
-		auto r1 = traits::cmpeq(x1, (q));											                \
-		auto r2 = traits::cmpeq(x2, (q));											                \
-		auto r3 = traits::cmpeq(x3, (q));											                \
+		auto r0 = traits::cmpeq(x0, (q), T{});											                \
+		auto r1 = traits::cmpeq(x1, (q), T{});											                \
+		auto r2 = traits::cmpeq(x2, (q), T{});											                \
+		auto r3 = traits::cmpeq(x3, (q), T{});											                \
 																							        \
 		auto Z = traits::movemask_epi8(traits::Or(traits::Or(r0, r1), traits::Or(r2, r3)));         \
 		if(Z){																				        \
@@ -53,19 +52,24 @@ _WJR_SIMD_BEGIN
 		}																					        \
 	}
 
-template<simd_type S, typename T>
+template<typename T>
 const T* __memrchr(const T* s, T val, size_t n) {
-	using traits = traits<T, S>;
-	using simd_type = typename traits::simd_type;
-	using value_type = std::conditional_t<simd::simd_type::AVX == S, uint32_t, uint16_t>;
-
-	constexpr int _Mysize = traits::size();
+	constexpr bool is_avx =
+#if defined(__AVX2__)
+		true;
+#else
+		false;
+#endif
+	using traits = std::conditional_t<is_avx, avx, sse>;
+	using simd_type = std::conditional_t<is_avx, __m256i, __m128i>;
+	using value_type = std::conditional_t<is_avx, uint32_t, uint16_t>;
+	constexpr int _Mysize = traits::width() / (8 * sizeof(T));
 	constexpr int _Mycor = sizeof(T) / sizeof(uint8_t);
 
 	if (n == 0) { return s; }
 	if (n == 1) { return *s == val ? s + 1 : s; }
 
-	auto q = traits::set1(val);
+	auto q = traits::set1(val, T{});
 
 	s += n;
 
@@ -75,7 +79,7 @@ const T* __memrchr(const T* s, T val, size_t n) {
 		auto sl = ql << 1;
 		s -= sl / sizeof(T);
 		auto x = traits::preload_si16x(s, ql);
-		auto r = traits::cmpeq(x, q);
+		auto r = traits::cmpeq(x, q, T{});
 		auto z = traits::movemask_epi8(r) & ((1u << sl) - 1);
 		if (z) {
 			return s + _Mysize - wjr::countl_zero(static_cast<value_type>(z)) / _Mycor;

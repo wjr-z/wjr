@@ -112,10 +112,8 @@ inline auto __test_memcmp(const T* s0, const T* s1, size_t n, _Pred pred = _Pred
 }
 
 static void __memcmpeq(benchmark::State& state) {
-	//int n = state.range(0);
-	//int m = state.range(1);
-	const int n = 17;
-	const int m = n;
+	int n = state.range(0);
+	int m = state.range(1);
 
 	std::vector<uint8_t> vec1(n), vec2(n);
 	for (auto& i : vec1) {
@@ -197,8 +195,8 @@ static void __memcnt(benchmark::State& state) {
 //BENCHMARK(__memchr)->Repetitions(4);
 //->Apply(__product2)->Repetitions(4);
 
-BENCHMARK(__memcmpeq)->Repetitions(4);
-//->Apply(__product2);
+BENCHMARK(__memcmpeq)
+->Apply(__product2)->Repetitions(2);
 
 //BENCHMARK(__memmis)
 //->Apply(__product2);
@@ -206,4 +204,4 @@ BENCHMARK(__memcmpeq)->Repetitions(4);
 //BENCHMARK(__memcnt)
 //->Apply(__product2);
 
-BENCHMARK_MAIN(); 
+//BENCHMARK_MAIN(); 

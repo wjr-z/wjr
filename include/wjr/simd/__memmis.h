@@ -5,14 +5,13 @@
 #include <wjr/macro.h>
 
 #if defined(__AVX2__) || defined(__SSE2__)
-#include <wjr/simd/simd_helper.h>
-#include <wjr/math.h>
+#include <wjr/simd/simd_intrin.h>
 
 #define __REGISTER_MEMMIS_FUNC_ONE(s0, s1)															\
 	{																			                    \
 		auto x = traits::loadu(reinterpret_cast<const simd_type*>((s0)));			                \
 		auto y = traits::loadu(reinterpret_cast<const simd_type*>((s1)));			                \
-		auto r = traits::cmp(x, y, pred);											                \
+		auto r = traits::cmp(x, y, pred, T{});											                \
 		auto z = traits::movemask_epi8(r);										                    \
 		if (z != __Mask) {														                    \
 			return (s0) + wjr::countr_one(static_cast<value_type>(z)) / _Mycor;	                    \
@@ -31,10 +30,10 @@
 		auto x6 = traits::loadu(reinterpret_cast<const simd_type*>((s1) + _Mysize * 2));	        \
 		auto x7 = traits::loadu(reinterpret_cast<const simd_type*>((s1) + _Mysize * 3));	        \
 																						            \
-		auto r0 = traits::cmp(x0, x4, pred);											            \
-		auto r1 = traits::cmp(x1, x5, pred);											            \
-		auto r2 = traits::cmp(x2, x6, pred);											            \
-		auto r3 = traits::cmp(x3, x7, pred);											            \
+		auto r0 = traits::cmp(x0, x4, pred, T{});											            \
+		auto r1 = traits::cmp(x1, x5, pred, T{});											            \
+		auto r2 = traits::cmp(x2, x6, pred, T{});											            \
+		auto r3 = traits::cmp(x3, x7, pred, T{});											            \
 																							        \
 		auto Z = traits::movemask_epi8(traits::And(traits::And(r0, r1), traits::And(r2, r3)));		\
 																							        \
@@ -60,15 +59,20 @@
 
 _WJR_SIMD_BEGIN
 
-template<simd_type S, typename T, typename _Pred>
+template<typename T, typename _Pred>
 const T* __memmis(const T* s0, const T* s1, size_t n, _Pred pred) {
-	using traits = traits<T, S>;
-	using simd_type = typename traits::simd_type;
-	using value_type = std::conditional_t<simd::simd_type::AVX == S, uint32_t, uint16_t>;
-
-	constexpr int _Mysize = traits::size();
+	constexpr bool is_avx =
+#if defined(__AVX2__)
+		true;
+#else
+		false;
+#endif
+	using traits = std::conditional_t<is_avx, avx, sse>;
+	using simd_type = std::conditional_t<is_avx, __m256i, __m128i>;
+	using value_type = std::conditional_t<is_avx, uint32_t, uint16_t>;
+	constexpr int _Mysize = traits::width() / (8 * sizeof(T));
 	constexpr int _Mycor = sizeof(T) / sizeof(uint8_t);
-	constexpr int __Mask = simd::simd_type::AVX == S ? 0xffffffff : 0x0000ffff;
+	constexpr int __Mask = is_avx ? 0xffffffff : 0x0000ffff;
 
 	if (n == 0) { return s0; }
 	if (n == 1) { return !pred(*s0, *s1) ? s0 : s0 + 1; }
@@ -79,7 +83,7 @@ const T* __memmis(const T* s0, const T* s1, size_t n, _Pred pred) {
 		auto sl = ql << 1;
 		auto x0 = traits::preload_si16x(s0, ql);
 		auto x1 = traits::preload_si16x(s1, ql);
-		auto r = traits::cmp(x0, x1, pred);
+		auto r = traits::cmp(x0, x1, pred, T{});
 		auto z = traits::movemask_epi8(r) | (__Mask ^ ((1u << sl) - 1));
 
 		if (z != __Mask) {

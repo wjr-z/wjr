@@ -78,7 +78,7 @@ const static int _WJR_LOG_TABLE[256] = {
 };
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-constexpr int __wjr_fallback_clz(T x) noexcept {
+WJR_INTRINSIC_CONSTEXPR int __wjr_fallback_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if (x == 0) {
 		return _Nd;
@@ -206,7 +206,7 @@ WJR_INTRINSIC_INLINE int __wjr_msvc_arm_clz(T x) noexcept {
 #endif
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR int clz(T x) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 int clz(T x) noexcept {
 	if (!is_constant_evaluated()) {
 #if WJR_HAS_BUILTIN(__builtin_clz) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
 		return __wjr_builtin_clz(x);
@@ -303,7 +303,7 @@ WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_ctz(T x) noexcept {
 #endif
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR int ctz(T x) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 int ctz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if (!wjr::masm::is_constant_evaluated()) {
 #if WJR_HAS_BUILTIN(__builtin_ctz) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
@@ -317,7 +317,7 @@ WJR_INTRINSIC_CONSTEXPR int ctz(T x) noexcept {
 }
 
 template<typename _Ty>
-constexpr int __wjr_fallback_popcount(_Ty _Val) noexcept {
+WJR_INTRINSIC_CONSTEXPR int __wjr_fallback_popcount(_Ty _Val) noexcept {
 	constexpr int _Digits = std::numeric_limits<_Ty>::digits;
 #if defined(WJR_X86) || defined(WJR_ARM)
 	if constexpr (_Digits == 64) {
@@ -383,7 +383,7 @@ WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_popcount(T x) noexcept {
 #endif
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR int popcnt(T x) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 int popcnt(T x) noexcept {
 	if (!wjr::masm::is_constant_evaluated()) {
 #if WJR_HAS_BUILTIN(__builtin_popcount) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
 		return __wjr_builtin_popcount(x);
@@ -478,7 +478,7 @@ WJR_INTRINSIC_INLINE T __wjr_msvc_adc(T a, T b, T carry_in, T* carry_out) {
 #endif
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR T __adc(T a, T b, T carry_in, T* carry_out) {
+WJR_INTRINSIC_CONSTEXPR20 T __adc(T a, T b, T carry_in, T* carry_out) {
 	if (!(is_constant_p(a) || is_constant_p(b) || is_constant_p(carry_in))) {
 #if defined(WJR_COMPILER_MSVC)
 		return __wjr_msvc_adc(a, b, carry_in, carry_out);
@@ -504,17 +504,17 @@ WJR_INTRINSIC_CONSTEXPR T __adc(T a, T b, T carry_in, T* carry_out) {
 	return a;
 }
 
-WJR_INTRINSIC_CONSTEXPR uint8_t adc(uint8_t a, uint8_t b, uint8_t carry_in, uint8_t* carry_out) {
+WJR_INTRINSIC_CONSTEXPR20 uint8_t adc(uint8_t a, uint8_t b, uint8_t carry_in, uint8_t* carry_out) {
 	return __adc(a, b, carry_in, carry_out);
 }
-WJR_INTRINSIC_CONSTEXPR uint16_t adc(uint16_t a, uint16_t b, uint16_t carry_in, uint16_t* carry_out) {
+WJR_INTRINSIC_CONSTEXPR20 uint16_t adc(uint16_t a, uint16_t b, uint16_t carry_in, uint16_t* carry_out) {
 	return __adc(a, b, carry_in, carry_out);
 }
-WJR_INTRINSIC_CONSTEXPR uint32_t adc(uint32_t a, uint32_t b, uint32_t carry_in, uint32_t* carry_out) {
+WJR_INTRINSIC_CONSTEXPR20 uint32_t adc(uint32_t a, uint32_t b, uint32_t carry_in, uint32_t* carry_out) {
 	return __adc(a, b, carry_in, carry_out);
 }
 #if defined(WJR_X64)
-WJR_INTRINSIC_CONSTEXPR uint64_t adc(uint64_t a, uint64_t b, uint64_t carry_in, uint64_t* carry_out) {
+WJR_INTRINSIC_CONSTEXPR20 uint64_t adc(uint64_t a, uint64_t b, uint64_t carry_in, uint64_t* carry_out) {
 	return __adc(a, b, carry_in, carry_out);
 }
 #endif // WJR_X64
@@ -602,7 +602,7 @@ WJR_INTRINSIC_INLINE T __wjr_msvc_sbb(T a, T b, T carry_in, T* carry_out) {
 #endif
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR T __sbb(T a, T b, T carry_in, T* carry_out) {
+WJR_INTRINSIC_CONSTEXPR20 T __sbb(T a, T b, T carry_in, T* carry_out) {
 	if (!(is_constant_p(a) || is_constant_p(b) || is_constant_p(carry_in))) {
 #if defined(WJR_COMPILER_MSVC)
 		return __wjr_msvc_sbb(a, b, carry_in, carry_out);
@@ -628,17 +628,17 @@ WJR_INTRINSIC_CONSTEXPR T __sbb(T a, T b, T carry_in, T* carry_out) {
 	return a;
 }
 
-WJR_INTRINSIC_CONSTEXPR uint8_t sbb(uint8_t a, uint8_t b, uint8_t carry_in, uint8_t* carry_out) {
+WJR_INTRINSIC_CONSTEXPR20 uint8_t sbb(uint8_t a, uint8_t b, uint8_t carry_in, uint8_t* carry_out) {
 	return __sbb(a, b, carry_in, carry_out);
 }
-WJR_INTRINSIC_CONSTEXPR uint16_t sbb(uint16_t a, uint16_t b, uint16_t carry_in, uint16_t* carry_out) {
+WJR_INTRINSIC_CONSTEXPR20 uint16_t sbb(uint16_t a, uint16_t b, uint16_t carry_in, uint16_t* carry_out) {
 	return __sbb(a, b, carry_in, carry_out);
 }
-WJR_INTRINSIC_CONSTEXPR uint32_t sbb(uint32_t a, uint32_t b, uint32_t carry_in, uint32_t* carry_out) {
+WJR_INTRINSIC_CONSTEXPR20 uint32_t sbb(uint32_t a, uint32_t b, uint32_t carry_in, uint32_t* carry_out) {
 	return __sbb(a, b, carry_in, carry_out);
 }
 #if defined(WJR_X64)
-WJR_INTRINSIC_CONSTEXPR uint64_t sbb(uint64_t a, uint64_t b, uint64_t carry_in, uint64_t* carry_out) {
+WJR_INTRINSIC_CONSTEXPR20 uint64_t sbb(uint64_t a, uint64_t b, uint64_t carry_in, uint64_t* carry_out) {
 	return __sbb(a, b, carry_in, carry_out);
 }
 #endif // WJR_X64
@@ -646,16 +646,16 @@ WJR_INTRINSIC_CONSTEXPR uint64_t sbb(uint64_t a, uint64_t b, uint64_t carry_in, 
 #if defined(WJR_X64)
 
 #if defined(WJR_INLINE_ASM)
-WJR_INTRINSIC_INLINE uint64_t __asm_shld(uint64_t lo, uint64_t hi, unsigned char c) noexcept {
+WJR_INTRINSIC_INLINE uint64_t __asm_shld(uint64_t hi, uint64_t lo, unsigned char c) noexcept {
 	asm("shld %2, %1, %0" : "+r"(hi) : "r"(lo), "ci"(c) : "cc");
 	return hi;
 }
 #endif
 
-WJR_INTRINSIC_CONSTEXPR uint64_t shld(uint64_t lo, uint64_t hi, unsigned char c) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 uint64_t shld(uint64_t hi, uint64_t lo, unsigned char c) noexcept {
 	if (!is_constant_p(lo) && !is_constant_p(hi)) {
 #if defined(WJR_INLINE_ASM)
-		return __asm_shld(lo, hi, c);
+		return __asm_shld(hi, lo, c);
 #elif defined(_MSC_VER)
 		return __shiftleft128(lo, hi, c);
 #endif
@@ -670,7 +670,7 @@ WJR_INTRINSIC_INLINE uint64_t __asm_shrd(uint64_t lo, uint64_t hi, unsigned char
 }
 #endif 
 
-WJR_INTRINSIC_CONSTEXPR uint64_t shrd(uint64_t lo, uint64_t hi, unsigned char c) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 uint64_t shrd(uint64_t lo, uint64_t hi, unsigned char c) noexcept {
 	if (!is_constant_p(lo) && !is_constant_p(hi)) {
 #if defined(WJR_INLINE_ASM)
 		return __asm_shrd(lo, hi, c);

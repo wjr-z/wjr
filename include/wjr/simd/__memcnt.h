@@ -5,14 +5,13 @@
 #include <wjr/macro.h>
 
 #if defined(__AVX2__) || defined(__SSE2__)
-#include <wjr/simd/simd_helper.h>
-#include <wjr/math.h>
+#include <wjr/simd/simd_intrin.h>
 
 #define __REGISTER_MEMCNT_FUNC_ONE(s)	                                \
 	{	                                                                \
 		auto x = traits::loadu(reinterpret_cast<const simd_type*>(s));	\
-		auto r = traits::cmpeq(x, y);	                                \
-		c = traits::sub(c, r);				                            \
+		auto r = traits::cmpeq(x, y, T{});	                            \
+		c = traits::sub(c, r, T{});				                            \
 	}
 
 #define __REGISTER_MEMCNT_FUNC_FOUR(s)		                            \
@@ -25,13 +24,18 @@
 
 _WJR_SIMD_BEGIN
 
-template<simd_type S, typename T>
+template<typename T>
 size_t __memcnt(const T* s, T val, size_t n) {
-	using traits = traits<T, S>;
-	using simd_type = typename traits::simd_type;
-	using value_type = std::conditional_t<simd::simd_type::AVX == S, uint32_t, uint16_t>;
-
-	constexpr int _Mysize = traits::size();
+	constexpr bool is_avx =
+#if defined(__AVX2__)
+		true;
+#else
+		false;
+#endif
+	using traits = std::conditional_t<is_avx, avx, sse>;
+	using simd_type = std::conditional_t<is_avx, __m256i, __m128i>;
+	using value_type = std::conditional_t<is_avx, uint32_t, uint16_t>;
+	constexpr int _Mysize = traits::width() / (8 * sizeof(T));
 	constexpr int _Mycor = sizeof(T) / sizeof(uint8_t);
 	// Prevent overflow
 	constexpr auto _Maxstep_four = std::numeric_limits<T>::max() / _Mysize + 1;
@@ -41,7 +45,7 @@ size_t __memcnt(const T* s, T val, size_t n) {
 	if (n == 0) { return 0; }
 
 	size_t cnt = 0;
-	auto y = traits::set1(val);
+	auto y = traits::set1(val, T{});
 	
 	if (n >= _Mysize) {
 		auto c = traits::set_all_zeros();
@@ -55,7 +59,7 @@ size_t __memcnt(const T* s, T val, size_t n) {
 			s += _Mysize * 4;
 			--step;
 			if (!step) {
-				cnt += traits::add(c);
+				cnt += traits::add(c, T{});
 				c = traits::set_all_zeros();
 				step = _Maxstep;
 			}
@@ -64,7 +68,7 @@ size_t __memcnt(const T* s, T val, size_t n) {
 		case 3: __REGISTER_MEMCNT_FUNC_ONE(s); s += _Mysize; n -= _Mysize;
 		case 2: __REGISTER_MEMCNT_FUNC_ONE(s); s += _Mysize; n -= _Mysize;
 		case 1: __REGISTER_MEMCNT_FUNC_ONE(s); s += _Mysize; n -= _Mysize;
-		default:cnt += traits::add(c);
+		default:cnt += traits::add(c, T{});
 		}
 	}
 
@@ -73,7 +77,7 @@ size_t __memcnt(const T* s, T val, size_t n) {
 	auto sl = ql << 1;
 	if (ql) {
 		auto x = traits::preload_si16x(s, ql);
-		auto r = traits::cmpeq(x, y);
+		auto r = traits::cmpeq(x, y, T{});
 		auto z = traits::movemask_epi8(r) & ((1u << sl) - 1);
 		cnt += wjr::popcount(static_cast<value_type>(z)) / _Mycor;
 		s += sl / sizeof(T);
