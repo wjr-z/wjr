@@ -22,6 +22,30 @@
 #define WJR_CPP_STANDARD _MSVC_LANG
 #endif
 
+#define WJR_OVERLAP_P(p1, s1, p2, s2) \
+	((p1) + (s1) > (p2) && (p2) + (s2) > (p1))
+
+#define WJR_OVERLAP_P_N(p1, p2, n)	\
+	WJR_OVERLAP_P(p1, n, p2, n)
+
+#define WJR_SAME_OR_SEPARATE_P(p1, s1, p2, s2)	\
+	((p1) == (p2) || !WJR_OVERLAP_P(p1, s1, p2, s2))
+
+#define WJR_SAME_OR_SEPARATE_P_N(p1, p2, n)	\
+	WJR_SAME_OR_SEPARATE_P(p1, n, p2, n)
+
+#define WJR_PRE_OR_SEPARATE_P(p1, s1, p2, s2) \
+	((p1) <= (p2) || !WJR_OVERLAP_P(p1, s1, p2, s2))
+
+#define WJR_PRE_OR_SEPARATE_P_N(p1, p2, n)	\
+	WJR_PRE_OR_SEPARATE_P(p1, n, p2, n)
+
+#define WJR_POST_OR_SEPARATE_P(p1, s1, p2, s2) \
+	((p1) >= (p2) || !WJR_OVERLAP_P(p1, s1, p2, s2))
+
+#define WJR_POST_OR_SEPARATE_P_N(p1, p2, n)	\
+	WJR_POST_OR_SEPARATE_P(p1, n, p2, n)
+
 #if WJR_CPP_STANDARD >= 199711L
 #define WJR_CPP_03
 #endif
@@ -78,9 +102,21 @@
 
 #if defined(__has_attribute)
 #define WJR_HAS_ATTRIBUTE(x) __has_attribute(x)
+#elif defined(__has_cpp_attribute)
+#define WJR_HAS_ATTRIBUTE(x) __has_cpp_attribute(x)
 #else
 #define WJR_HAS_ATTRIBUTE(x) 0
 #endif
+
+#if defined(__has_include)
+#define WJR_HAS_INCLUDE(x) __has_include(x)
+#else
+#define WJR_HAS_INCLUDE(x) 0
+#endif // __has_include
+
+#if WJR_HAS_INCLUDE(<execution>)
+#define WJR_HAS_EXECUTION
+#endif // WJR_HAS_INCLUDE(<execution>)
 
 #ifndef WJR_NODISCARD
 #ifndef __has_cpp_attribute
@@ -160,6 +196,12 @@
 #define WJR_X86
 #endif
 
+#if defined(WJR_X64)
+#define WJR_BYTE_WIDTH 8
+#else
+#define WJR_BYTE_WIDTH 4
+#endif 
+
 #define WJR_CONCAT(x, y) x##y
 #define WJR_MACRO_CONCAT(x, y) WJR_CONCAT(x, y)
 
@@ -172,12 +214,16 @@
 #define WJR_STR(x) #x
 #define WJR_MACRO_STR(x) WJR_STR(x)
 
-#define WJR_LABEL(NAME) __wjr_label_##NAME
-#define WJR_MACRO_LABEL(NAME) WJR_LABEL(NAME)                                            
+#define WJR_MACRO_NULL(...)
+
+#define WJR_MACRO_LABEL(NAME) __wjr_label_##NAME
 
 // judge if i can use inline asm
 #if defined(WJR_X86_64) && (defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG))
 #define WJR_INLINE_ASM
+#if defined(WJR_COMPILER_GCC)
+#define WJR_BETTER_INLINE_ASM
+#endif // WJR_COMPILER_GCC
 #endif
 
 #define __AVX512F__INSTRSET 10
@@ -372,6 +418,12 @@
 #define _WJR_SIMD_END } _WJR_END
 #define _WJR_ASM_BEGIN _WJR_BEGIN namespace masm{
 #define _WJR_ASM_END } _WJR_END
+#define _WJR_ALGO_BEGIN _WJR_BEGIN namespace algo{
+#define _WJR_ALGO_END } _WJR_END
+#define _WJR_MP_BEGIN _WJR_BEGIN namespace mp{
+#define _WJR_MP_END } _WJR_END
+#define _WJR_LITERALS_BEGIN _WJR_BEGIN namespace literals{
+#define _WJR_LITERALS_END } _WJR_END
 
 #ifndef _WJR_NOEXCEPTION
 #define _WJR_TRY try{

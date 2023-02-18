@@ -2,13 +2,100 @@
 #ifndef __WJR_TYPE_TRAITS_H
 #define __WJR_TYPE_TRAITS_H
 
+#include <cassert>
 #include <memory>
 #include <stdexcept>
 #include <iterator>
 #include <vector>
-#include <wjr/macro.h>
+#include <functional>
+//#include <wjr/macro.h>
+#include <wjr/literals.h>
 
 _WJR_BEGIN
+
+WJR_INTRINSIC_CONSTEXPR bool is_likely(bool f) noexcept {
+#if WJR_HAS_BUILTIN(__builtin_expect) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
+	return __builtin_expect(f, true);
+#else
+	return f;
+#endif
+}
+
+WJR_INTRINSIC_CONSTEXPR bool is_unlikely(bool f) noexcept {
+#if WJR_HAS_BUILTIN(__builtin_expect) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
+	return __builtin_expect(f, false);
+#else
+	return f;
+#endif
+}
+
+WJR_INTRINSIC_CONSTEXPR bool is_constant_evaluated() noexcept {
+#if defined(__cpp_lib_is_constant_evaluated) 
+	return std::is_constant_evaluated();
+#elif WJR_HAS_BUILTIN(__builtin_is_constant_evaluated) || WJR_HAS_GCC(9,1,0) || WJR_HAS_CLANG(9,0,0)
+	return __builtin_is_constant_evaluated();
+#else
+	return false;
+#endif
+}
+
+WJR_INTRINSIC_INLINE void unreachable() noexcept {
+#if defined(_cpp_lib_unreachable)
+	return std::unreachable();
+#elif WJR_HAS_BUILTIN(__builtin_unreachable) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
+	__builtin_unreachable();
+#elif defined(WJR_COMPILER_MSVC)
+	__assume(0);
+#endif
+}
+
+WJR_INTRINSIC_CONSTEXPR void assume(bool cond) noexcept {
+#if WJR_HAS_BUILTIN(__builtin_assume)
+	__builtin_assume(cond);
+#else
+	if (is_unlikely(!cond)) {
+		unreachable();
+	}
+#endif 
+}
+
+template<typename T>
+WJR_INTRINSIC_CONSTEXPR bool is_constant_p(T x) noexcept {
+#if WJR_HAS_BUILTIN(__builtin_constant_p) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
+	return __builtin_constant_p(x);
+#else
+	return is_constant_evaluated();
+#endif
+}
+
+#if defined(__cpp_lib_is_constant_evaluated) || WJR_HAS_BUILTIN(__builtin_is_constant_evaluated) ||		\
+	WJR_HAS_GCC(9,1,0) || WJR_HAS_CLANG(9,0,0)
+#define WJR_HAS_CONSTANT_EVALUATED
+#endif 
+
+#if WJR_HAS_BUILTIN(__builtin_constant_p) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
+#define WJR_HAS_CONSTANT_P
+#define WJR_HAS_STRONG_CONSTANT_P
+#define WJR_HAS_WEAK_CONSTANT_P
+#elif defined(WJR_HAS_CONSTANT_EVALUATED)
+#define WJR_HAS_WEAK_CONSTANT_P
+#endif
+
+struct move_tag {};
+
+struct power_of_two_tag {
+	unsigned long long value;
+};
+
+struct zero_tag {};
+
+constexpr size_t byte_width = WJR_BYTE_WIDTH;
+
+template<typename T, typename U, typename _Pred>
+struct has_global_binary_operator : std::false_type {};
+
+template<typename T, typename U, typename _Pred>
+constexpr bool has_global_binary_operator_v = has_global_binary_operator<T, U, _Pred>::value;
 
 #define REGISTER_HAS_MEMBER_FUNCTION(FUNC, NAME)								\
 template<typename Enable, typename T, typename...Args>							\
@@ -64,7 +151,10 @@ struct has_global_binary_operator_##NAME :										\
 	__has_global_binary_operator_##NAME<void, T, U> {};							\
 template<typename T, typename U>												\
 constexpr bool has_global_binary_operator_##NAME##_v =							\
-	has_global_binary_operator_##NAME<T, U>::value;
+	has_global_binary_operator_##NAME<T, U>::value;								\
+template<typename T, typename U>												\
+struct has_global_binary_operator<T, U, std:: NAME<>> :							\
+	has_global_binary_operator_##NAME<T, U> {};
 
 #define REGISTER_HAS_GLOBAL_UNARY_OPERATOR(OP, NAME)							\
 template<typename Enable, typename T>											\
@@ -83,12 +173,18 @@ constexpr bool has_global_unary_operator_##NAME##_v =							\
 REGISTER_HAS_MEMBER_FUNCTION(operator(), call_operator);
 REGISTER_HAS_MEMBER_FUNCTION(operator[], subscript_operator);
 REGISTER_HAS_MEMBER_FUNCTION(operator->, point_to_operator);
-REGISTER_HAS_GLOBAL_BINARY_OPERATOR(+, add);
+REGISTER_HAS_GLOBAL_BINARY_OPERATOR(+, plus);
 REGISTER_HAS_GLOBAL_BINARY_OPERATOR(-, minus);
-REGISTER_HAS_GLOBAL_BINARY_OPERATOR(&, and);
-REGISTER_HAS_GLOBAL_BINARY_OPERATOR(| , or );
-REGISTER_HAS_GLOBAL_BINARY_OPERATOR(^, xor);
-REGISTER_HAS_GLOBAL_UNARY_OPERATOR(~, not);
+REGISTER_HAS_GLOBAL_BINARY_OPERATOR(&, bit_and);
+REGISTER_HAS_GLOBAL_BINARY_OPERATOR(| , bit_or);
+REGISTER_HAS_GLOBAL_BINARY_OPERATOR(^, bit_xor);
+REGISTER_HAS_GLOBAL_UNARY_OPERATOR(~, bit_not);
+REGISTER_HAS_GLOBAL_BINARY_OPERATOR(== , equal_to);
+REGISTER_HAS_GLOBAL_BINARY_OPERATOR(!= , not_equal_to);
+REGISTER_HAS_GLOBAL_BINARY_OPERATOR(> , greater);
+REGISTER_HAS_GLOBAL_BINARY_OPERATOR(>= , greater_equal);
+REGISTER_HAS_GLOBAL_BINARY_OPERATOR(< , less);
+REGISTER_HAS_GLOBAL_BINARY_OPERATOR(<= , less_equal);
 REGISTER_HAS_STATIC_MEMBER_FUNCTION(min, min);
 REGISTER_HAS_STATIC_MEMBER_FUNCTION(max, max);
 
@@ -113,17 +209,79 @@ template<typename T>
 constexpr bool is_standard_comparator_v = is_standard_comparator<T>::value;
 
 template<typename T>
-struct is_no_symbol_integral : std::conjunction<
-	std::is_integral<T>,
-	std::negation<wjr::is_any_of<std::remove_cv_t<T>,
-	bool, char,
-#ifdef __cpp_char8_t
-	char8_t,
-#endif // __cpp_char8_t
-	char16_t, char32_t, wchar_t>>>{};
+struct unrefwrap {
+	using type = T;
+};
 
 template<typename T>
-constexpr bool is_no_symbol_integral_v = is_no_symbol_integral<T>::value;
+struct unrefwrap<std::reference_wrapper<T>> {
+	using type = T&;
+};
+
+template<typename T>
+using unrefwrap_t = typename unrefwrap<T>::type;
+
+template<typename T>
+using iter_cat_t = typename std::iterator_traits<T>::iterator_category;
+
+template<typename T>
+using iter_diff_t = typename std::iterator_traits<T>::difference_type;
+
+template<typename T>
+using iter_val_t = typename std::iterator_traits<T>::value_type;
+
+template<typename T, typename = void>
+struct is_iterator : std::false_type {};
+
+template<typename T>
+struct is_iterator<T, std::void_t<iter_cat_t<T>>> : std::true_type {};
+
+template<typename T>
+constexpr bool is_iterator_v = is_iterator<T>::value;
+
+#if defined(WJR_CPP_20)
+template<typename T>
+struct is_contiguous_iterator : std::bool_constant<std::contiguous_iterator<T>> {};
+#else
+template<typename T>
+struct is_contiguous_iterator : std::is_pointer<T> {};
+#endif
+
+template<typename _Iter>
+struct is_contiguous_iterator<std::reverse_iterator<_Iter>> : is_contiguous_iterator<_Iter> {};
+
+template<typename T>
+constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<T>::value;
+
+template<typename T>
+struct is_input_iter : std::is_convertible<iter_cat_t<T>, std::input_iterator_tag> {};
+
+template<typename T>
+constexpr bool is_input_iter_v = is_input_iter<T>::value;
+
+template<typename T>
+struct is_output_iter : std::is_convertible<iter_cat_t<T>, std::output_iterator_tag> {};
+
+template<typename T>
+constexpr bool is_output_iter_v = is_output_iter<T>::value;
+
+template<typename T>
+struct is_forward_iter : std::is_convertible<iter_cat_t<T>, std::forward_iterator_tag> {};
+
+template<typename T>
+constexpr bool is_forward_iter_v = is_forward_iter<T>::value;
+
+template<typename T>
+struct is_bidir_iter : std::is_convertible<iter_cat_t<T>, std::bidirectional_iterator_tag> {};
+
+template<typename T>
+constexpr bool is_bidir_iter_v = is_bidir_iter<T>::value;
+
+template<typename T>
+struct is_random_iter : std::is_convertible<iter_cat_t<T>, std::random_access_iterator_tag> {};
+
+template<typename T>
+constexpr bool is_random_iter_v = is_random_iter<T>::value;
 
 template<size_t n>
 struct __uint_helper{};
@@ -181,18 +339,51 @@ using uint16_t = uint_t<16>;
 using uint32_t = uint_t<32>;
 using uint64_t = uint_t<64>;
 
+using intptr_t = int_t<sizeof(void*) * 8>;
+using uintptr_t = uint_t<sizeof(void*) * 8>;
+
+template<typename T>
+struct is_my_standard_integral : 
+	is_any_of<std::remove_cv_t<T>, int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t> {};
+
+template<typename T>
+constexpr bool is_my_standard_integral_v = is_my_standard_integral<T>::value;
+
 template<size_t n, bool __s>
 using __int_or_uint = std::conditional_t<__s, int_t<n>, uint_t<n>>;
 
+template<typename T, bool = std::is_integral_v<T>>
+struct __integral_normalization_helper {
+	using type = __int_or_uint<sizeof(T) * 8, std::is_signed_v<T>>;
+};
+
+//template<typename T>
+//struct __integral_normalization_helper<T*, false> {
+	//using type = __int_or_uint<sizeof(void*) * 8, std::is_signed_v<iter_diff_t<T*>>>;
+//};
+
+template<typename T>
+struct __integral_normalization_helper<T, false> {
+	using type = T;
+};
+
 template<typename T>
 struct integral_normalization {
-	using type = std::conditional_t<std::is_integral_v<T>,
-		__int_or_uint<sizeof(T) * 8, std::is_signed_v<T>>,
-		void>;
+	using type = typename __integral_normalization_helper<std::remove_cv_t<T>>::type;
 };
 
 template<typename T>
 using integral_normalization_t = typename integral_normalization<T>::type;
+
+template<typename T>
+constexpr integral_normalization_t<T> make_integral_normalization(T t) {
+	return static_cast<integral_normalization_t<T>>(t);
+}
+
+template<typename T>
+constexpr std::make_unsigned_t<T> make_unsigned(T t) {
+	return static_cast<std::make_unsigned_t<T>>(t);
+}
 
 template<typename T>
 struct _Auto_variable_helper {
@@ -284,11 +475,11 @@ struct ref_wrapper<T&&> {
 template<typename T>
 using ref_wrapper_t = typename ref_wrapper<T>::type;
 
-template<typename T, typename U>
-struct is_memory_compare : std::conjunction<std::is_integral<T>, std::is_integral<U>> {};
+template<typename...Args>
+struct is_integrals : std::conjunction<std::is_integral<Args>...> {};
 
-template<typename T, typename U>
-constexpr bool is_memory_compare_v = is_memory_compare<T, U>::value;
+template<typename...Args>
+constexpr bool is_integrals_v = is_integrals<Args...>::value;
 
 template<typename T>
 struct is_unsigned_integral : std::conjunction<std::is_integral<T>, std::is_unsigned<T>> {};
@@ -310,6 +501,28 @@ struct common_arithmetic {
 template<typename T, typename U>
 using common_arithmetic_t = typename common_arithmetic<T, U>::type;
 
+template<typename T, typename U, bool = sizeof(T) == sizeof(U) && std::is_integral_v<T>&& std::is_integral_v<U>>
+constexpr bool __is_memory_comparable_helper_v = 
+std::is_same_v<T, bool> || std::is_same_v<U, bool> || static_cast<T>(-1) == static_cast<U>(-1);
+
+template<typename T, typename U>
+constexpr bool __is_memory_comparable_helper_v<T, U, false> = false;
+
+template<typename T, typename U, typename _Pred>
+struct is_memory_comparable : std::conjunction<
+	is_standard_comparator<_Pred>,
+	has_global_binary_operator<T, U, _Pred>,
+	has_global_binary_operator<U, T, _Pred>,
+	std::bool_constant<__is_memory_comparable_helper_v<integral_normalization_t<T>, integral_normalization_t<U>>>
+> {};
+
+template<typename T, typename U, typename _Pred>
+constexpr bool is_memory_comparable_v = is_memory_comparable<T, U, _Pred>::value;
+
+//template<typename T, typename U, typename _Pred>
+//struct is_memory_copyable : std::conjunction<
+//> {};
+
 template<typename T>
 struct is_reverse_iterator : std::false_type {};
 
@@ -318,6 +531,42 @@ struct is_reverse_iterator<std::reverse_iterator<_Iter>> : std::negation<is_reve
 
 template<typename T>
 constexpr bool is_reverse_iterator_v = is_reverse_iterator<T>::value;
+
+template<typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
+constexpr auto enum_cast(T t) noexcept {
+	return static_cast<std::underlying_type_t<T>>(t);
+}
+
+namespace enum_ops {
+	template<typename T>
+	constexpr std::enable_if_t<std::is_enum_v<T>, T> operator|(T lhs, T rhs) noexcept {
+		return static_cast<T>(enum_cast(lhs) | enum_cast(rhs));
+	}
+	template<typename T>
+	constexpr std::enable_if_t<std::is_enum_v<T>, T> operator&(T lhs, T rhs) noexcept {
+		return static_cast<T>(enum_cast(lhs) & enum_cast(rhs));
+	}
+	template<typename T>
+	constexpr std::enable_if_t<std::is_enum_v<T>, T> operator^(T lhs, T rhs) noexcept {
+		return static_cast<T>(enum_cast(lhs) ^ enum_cast(rhs));
+	}
+	template<typename T>
+	constexpr std::enable_if_t<std::is_enum_v<T>, T> operator~(T t) noexcept {
+		return static_cast<T>(~enum_cast(t));
+	}
+	template<typename T>
+	constexpr std::enable_if_t<std::is_enum_v<T>, T&> operator|=(T& lhs, T rhs) noexcept {
+		return lhs = lhs | rhs;
+	}
+	template<typename T>
+	constexpr std::enable_if_t<std::is_enum_v<T>, T&> operator&=(T& lhs, T rhs) noexcept {
+		return lhs = lhs & rhs;
+	}
+	template<typename T>
+	constexpr std::enable_if_t<std::is_enum_v<T>, T&> operator^=(T& lhs, T rhs) noexcept {
+		return lhs = lhs ^ rhs;
+	}
+}
 
 namespace __To_address {
 	REGISTER_HAS_STATIC_MEMBER_FUNCTION(to_address, to_address);
@@ -399,81 +648,6 @@ struct is_nothrow_swappable :
 
 template<typename T>
 constexpr bool is_nothrow_swappable_v = is_nothrow_swappable<T>::value;
-
-template<typename T>
-struct unrefwrap {
-	using type = T;
-};
-
-template<typename T>
-struct unrefwrap<std::reference_wrapper<T>> {
-	using type = T&;
-};
-
-template<typename T>
-using unrefwrap_t = typename unrefwrap<T>::type;
-
-template<typename T>
-using iter_cat_t = typename std::iterator_traits<T>::iterator_category;
-
-template<typename T>
-using iter_diff_t = typename std::iterator_traits<T>::difference_type;
-
-template<typename T>
-using iter_val_t = typename std::iterator_traits<T>::value_type;
-
-template<typename T, typename = void>
-struct is_iterator : std::false_type {};
-
-template<typename T>
-struct is_iterator<T, std::void_t<iter_cat_t<T>>> : std::true_type {};
-
-template<typename T>
-constexpr bool is_iterator_v = is_iterator<T>::value;
-
-#if defined(WJR_CPP_20)
-template<typename T>
-struct is_contiguous_iterator : std::bool_constant<std::contiguous_iterator<T>> {};
-#else
-template<typename T>
-struct is_contiguous_iterator : std::is_pointer<T> {};
-#endif
-
-template<typename _Iter>
-struct is_contiguous_iterator<std::reverse_iterator<_Iter>> : is_contiguous_iterator<_Iter> {};
-
-template<typename T>
-constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<T>::value;
-
-template<typename T>
-struct is_input_iter : std::is_convertible<iter_cat_t<T>, std::input_iterator_tag> {};
-
-template<typename T>
-constexpr bool is_input_iter_v = is_input_iter<T>::value;
-
-template<typename T>
-struct is_output_iter : std::is_convertible<iter_cat_t<T>, std::output_iterator_tag> {};
-
-template<typename T>
-constexpr bool is_output_iter_v = is_output_iter<T>::value;
-
-template<typename T>
-struct is_forward_iter : std::is_convertible<iter_cat_t<T>, std::forward_iterator_tag> {};
-
-template<typename T>
-constexpr bool is_forward_iter_v = is_forward_iter<T>::value;
-
-template<typename T>
-struct is_bidir_iter : std::is_convertible<iter_cat_t<T>, std::bidirectional_iterator_tag> {};
-
-template<typename T>
-constexpr bool is_bidir_iter_v = is_bidir_iter<T>::value;
-
-template<typename T>
-struct is_random_iter : std::is_convertible<iter_cat_t<T>, std::random_access_iterator_tag> {};
-
-template<typename T>
-constexpr bool is_random_iter_v = is_random_iter<T>::value;
 
 template<typename iter, std::enable_if_t<is_iterator_v<iter>, int> = 0>
 struct __make_iter_wrapper : public std::tuple<iter, iter>{

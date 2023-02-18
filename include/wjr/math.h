@@ -2,7 +2,7 @@
 #ifndef __WJR_MATH_H__
 #define __WJR_MATH_H__
 
-#include <wjr/asm.h>
+#include <wjr/asm/asm.h>
 
 _WJR_BEGIN
 
@@ -139,6 +139,77 @@ constexpr bool __maybe_equal(T t) noexcept {
 		}
 	}
 }
+
+template<typename R, typename T>
+struct _Broadcast;
+
+template<typename R, typename T>
+inline _Broadcast<R, T> broadcast{};
+
+template<>
+struct _Broadcast<uint8_t, uint8_t> {
+	constexpr uint8_t operator()(uint8_t x)const {
+		return x;
+	}
+};
+template<>
+struct _Broadcast<uint16_t, uint16_t> {
+	constexpr uint16_t operator()(uint16_t x)const {
+		return x;
+	}
+};
+template<>
+struct _Broadcast<uint32_t, uint32_t> {
+	constexpr uint32_t operator()(uint32_t x)const {
+		return x;
+	}
+};
+template<>
+struct _Broadcast<uint64_t, uint64_t> {
+	constexpr uint64_t operator()(uint64_t x)const {
+		return x;
+	}
+};
+
+template<>
+struct _Broadcast<uint16_t, uint8_t> {
+	constexpr uint16_t operator()(uint8_t x)const {
+		return x | ((uint16_t)x << 8);
+	}
+};
+
+template<>
+struct _Broadcast<uint32_t, uint16_t> {
+	constexpr uint32_t operator()(uint16_t x)const {
+		return x | ((uint32_t)x << 16);
+	}
+};
+template<>
+struct _Broadcast<uint64_t, uint32_t> {
+	constexpr uint64_t operator()(uint32_t x)const {
+		return x | ((uint64_t)x << 32);
+	}
+};
+
+template<>
+struct _Broadcast<uint32_t, uint8_t> {
+	constexpr uint32_t operator()(uint8_t x)const {
+		return x * (uint32_t)0x01010101;
+	}
+};
+template<>
+struct _Broadcast<uint64_t, uint16_t> {
+	constexpr uint64_t operator()(uint16_t x)const {
+		return x * (uint64_t)0x0001000100010001;
+	}
+};
+
+template<>
+struct _Broadcast<uint64_t, uint8_t> {
+	constexpr uint64_t operator()(uint8_t x)const {
+		return x * (uint64_t)0x0101010101010101;
+	}
+};
 
 _WJR_END
 

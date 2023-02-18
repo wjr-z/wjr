@@ -5,43 +5,136 @@
 #include <wjr/math.h>
 #include <wjr/simd/simd_cast.h>
 
+_WJR_BEGIN
+
+#if defined(__SSE2__)
+template<>
+struct _Broadcast<__m128i, uint8_t> {
+	__m128i operator()(uint8_t v) const {
+		return _mm_set1_epi8(v);
+	}
+};
+template<>
+struct _Broadcast<__m128i, uint16_t> {
+	__m128i operator()(uint16_t v) const {
+		return _mm_set1_epi16(v);
+	}
+};
+template<>
+struct _Broadcast<__m128i, uint32_t> {
+	__m128i operator()(uint32_t v) const {
+		return _mm_set1_epi32(v);
+	}
+};
+template<>
+struct _Broadcast<__m128i, uint64_t> {
+	__m128i operator()(uint64_t v) const {
+		return _mm_set1_epi64x(v);
+	}
+};
+#endif // __SSE2__
+
+#if defined(__AVX__)
+template<>
+struct _Broadcast<__m256i, uint8_t> {
+	__m256i operator()(uint8_t v) const {
+		return _mm256_set1_epi8(v);
+	}
+};
+template<>
+struct _Broadcast<__m256i, uint16_t> {
+	__m256i operator()(uint16_t v) const {
+		return _mm256_set1_epi16(v);
+	}
+};
+template<>
+struct _Broadcast<__m256i, uint32_t> {
+	__m256i operator()(uint32_t v) const {
+		return _mm256_set1_epi32(v);
+	}
+};
+template<>
+struct _Broadcast<__m256i, uint64_t> {
+	__m256i operator()(uint64_t v) const {
+		return _mm256_set1_epi64x(v);
+	}
+};
+template<>
+struct _Broadcast<__m256i, __m128i> {
+	__m256i operator()(__m128i v) const {
+#if defined(__AVX2__)
+		return _mm256_broadcastsi128_si256(v);
+#else
+		return _mm256_insertf128_si256(_mm256_castsi128_si256(v), v, 1);
+#endif // __AVX2__
+	}
+};
+
+#endif // __AVX__
+
+_WJR_END
+
 _WJR_SIMD_BEGIN
 
-/*
-* width()
-* and(simd_type, simd_type)
-* andnot(simd_type, simd_type)
-* or(simd_type, simd_type)
-* xor(simd_type, simd_type)
-* not(simd_type)
-* logical_and(simd_type, simd_type)
-* logical_or(simd_type, simd_type)
-* logical_not(simd_type)
-* add(simd_type, simd_type) 
-* add(simd_type) 
-* sub(simd_type, simd_type)
-* min(simd_type, simd_type)
-* min(simd_type)
-* max(simd_type, simd_type)
-* max(simd_type)
-* blendv(simd_type, simd_type, simd_type)
-* cmpeq(simd_type, simd_type)
-* cmplt(simd_type, simd_type)
-* cmple
-* cmpgt
-* cmpge
-* cmpneq
-* alignl
-* alignr
-*/
+// test simd function
+#define __TEST_SIMD_FUNCTION(NAME) REGISTER_HAS_GLOBAL_FUNCTION(NAME, NAME)
+
+#if defined(__SSE2__)
+__TEST_SIMD_FUNCTION(_mm_loadu_si16)
+__TEST_SIMD_FUNCTION(_mm_loadu_si32)
+__TEST_SIMD_FUNCTION(_mm_loadu_si64)
+
+template<typename T, std::enable_if_t<simd::has_global_function__mm_loadu_si16_v<T>,int> = 0>
+WJR_INTRINSIC_INLINE __m128i mm_loadu_si16(T p) {
+	return _mm_loadu_si16(p);
+}
+
+template<typename T, std::enable_if_t<!simd::has_global_function__mm_loadu_si16_v<T>, int> = 0>
+WJR_INTRINSIC_INLINE __m128i mm_loadu_si16(T p) {
+	return _mm_insert_epi16(_mm_setzero_si128(), *reinterpret_cast<const short*>(p), 0);
+}
+
+template<typename T, std::enable_if_t<simd::has_global_function__mm_loadu_si32_v<T>, int> = 0>
+WJR_INTRINSIC_INLINE __m128i mm_loadu_si32(T p) {
+	return _mm_loadu_si32(p);
+}
+
+template<typename T, std::enable_if_t<!simd::has_global_function__mm_loadu_si32_v<T>, int> = 0>
+WJR_INTRINSIC_INLINE __m128i mm_loadu_si32(T p) {
+	return simd_cast<__m128i>(*reinterpret_cast<const uint32_t*>(p));
+}
+
+template<typename T, std::enable_if_t<simd::has_global_function__mm_loadu_si64_v<T>, int> = 0>
+WJR_INTRINSIC_INLINE __m128i mm_loadu_si64(T p) {
+	return _mm_loadu_si64(p);
+}
+
+template<typename T, std::enable_if_t<!simd::has_global_function__mm_loadu_si64_v<T>, int> = 0>
+WJR_INTRINSIC_INLINE __m128i mm_loadu_si64(T p) {
+	return simd_cast<__m128i>(*reinterpret_cast<const uint64_t*>(p));
+}
+#endif // __SSE2__
+
+#undef __TEST_SIMD_FUNCTION
 
 struct sse {
+	using mask_type = uint16_t;
+#if defined(__SSE__)
+	using float_type = __m128;
+#endif // __SSE__
+#if defined(__SSE2__)
+	using int_type = __m128i;
+	using double_type = __m128d;
+#endif // __SSE2__
+
 	constexpr static int width() { return 128; }
 
 #if defined(__SSE__)
 	WJR_INTRINSIC_INLINE static int movemask_ps(__m128 v) {
 		return _mm_movemask_ps(v);
 	}
+
+	WJR_INTRINSIC_INLINE static void sfence() { return _mm_sfence(); }
 	
 	template<int imm8>
 	WJR_INTRINSIC_INLINE static __m128 shuffle_ps(__m128 a, __m128 b) {
@@ -489,11 +582,15 @@ struct sse {
 	template<int imm8>
 	WJR_INTRINSIC_INLINE static __m128i insert(__m128i a, int i, uint16_t) { return insert_epi16<imm8>(a, i); }
 
+	WJR_INTRINSIC_INLINE static void lfence() {
+		_mm_lfence();
+	}
+
 	WJR_INTRINSIC_INLINE static __m128i load(const __m128i* ptr) { return _mm_load_si128(ptr); }
 	WJR_INTRINSIC_INLINE static __m128i loadu(const __m128i* ptr) { return _mm_loadu_si128(ptr); }
-	WJR_INTRINSIC_INLINE static __m128i loadu_si16(const void* ptr) { return _mm_loadu_si16(ptr); }
-	WJR_INTRINSIC_INLINE static __m128i loadu_si32(const void* ptr) { return _mm_loadu_si32(ptr); }
-	WJR_INTRINSIC_INLINE static __m128i loadu_si64(const void* ptr) { return _mm_loadu_si64(ptr); }
+	WJR_INTRINSIC_INLINE static __m128i loadu_si16(const void* ptr) { return simd::mm_loadu_si16(ptr); }
+	WJR_INTRINSIC_INLINE static __m128i loadu_si32(const void* ptr) { return simd::mm_loadu_si32(ptr); }
+	WJR_INTRINSIC_INLINE static __m128i loadu_si64(const void* ptr) { return simd::mm_loadu_si64(ptr); }
 
 	template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 		uint8_t, uint16_t, uint32_t, uint64_t>, int> = 0>
@@ -511,7 +608,7 @@ struct sse {
 	template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 		uint8_t, uint16_t, uint32_t, uint64_t>, int> = 0>
 	WJR_INTRINSIC_INLINE static __m128i logical_or(__m128i a, __m128i b, T) {
-		return Not(logical_not(Or(a, b)));
+		return Not(logical_not(Or(a, b), T()));
 	}
 
 	WJR_INTRINSIC_INLINE static __m128i madd_epi16(__m128i a, __m128i b) {
@@ -616,6 +713,8 @@ struct sse {
 	WJR_INTRINSIC_INLINE static uint8_t max(__m128i a, uint8_t) { return max_epu8(a); }
 	WJR_INTRINSIC_INLINE static uint16_t max(__m128i a, uint16_t) { return max_epu16(a); }
 	WJR_INTRINSIC_INLINE static uint32_t max(__m128i a, uint32_t) { return max_epu32(a); }
+
+	WJR_INTRINSIC_INLINE static void mfence() { _mm_mfence(); }
 
 	WJR_INTRINSIC_INLINE static __m128i min_epi16(__m128i a, __m128i b) {
 		return _mm_min_epi16(a, b);
@@ -746,6 +845,36 @@ struct sse {
 		return _mm_mullo_epi16(a, b);
 	}
 
+	WJR_INTRINSIC_INLINE static __m128i negate_epi8(__m128i a) {
+#if defined(__SSSE3__)
+		return sign_epi8(ones(), a);
+#else
+		return sub_epi8(zeros(), a);
+#endif // __SSSE3__
+	}
+	WJR_INTRINSIC_INLINE static __m128i negate_epi16(__m128i a) {
+#if defined(__SSSE3__)
+		return sign_epi16(ones(), a);
+#else
+		return sub_epi16(zeros(), a);
+#endif // __SSSE3__
+	}
+	WJR_INTRINSIC_INLINE static __m128i negate_epi32(__m128i a) {
+#if defined(__SSSE3__)
+		return sign_epi32(ones(), a);
+#else
+		return sub_epi32(zeros(), a);
+#endif // __SSSE3__
+	}
+	WJR_INTRINSIC_INLINE static __m128i negate_epi64(__m128i a) {
+		return sub_epi64(zeros(), a);
+	}
+
+	WJR_INTRINSIC_INLINE static __m128i negate(__m128i a, int8_t) { return negate_epi8(a); }
+	WJR_INTRINSIC_INLINE static __m128i negate(__m128i a, int16_t) { return negate_epi16(a); }
+	WJR_INTRINSIC_INLINE static __m128i negate(__m128i a, int32_t) { return negate_epi32(a); }
+	WJR_INTRINSIC_INLINE static __m128i negate(__m128i a, int64_t) { return negate_epi64(a); }
+
 	WJR_INTRINSIC_INLINE static __m128i Not(__m128i v) { return Xor(v, ones()); }
 
 	WJR_INTRINSIC_INLINE static __m128i Or(__m128i a, __m128i b) { return _mm_or_si128(a, b); }
@@ -761,39 +890,39 @@ struct sse {
 		return _mm_packus_epi16(a, b);
 	}
 
-	WJR_INTRINSIC_INLINE static __m128i preload_si16(const void* ptr) { return loadu_si16(ptr); }
-	WJR_INTRINSIC_INLINE static __m128i preload_si32(const void* ptr) { return loadu_si32(ptr); }
-	WJR_INTRINSIC_INLINE static __m128i preload_si48(const void* ptr) {
-		return insert_epi16<2>(preload_si32(ptr), reinterpret_cast<const uint16_t*>(ptr)[2]);
+	WJR_INTRINSIC_INLINE static __m128i preloadu_si16(const void* ptr) { return loadu_si16(ptr); }
+	WJR_INTRINSIC_INLINE static __m128i preloadu_si32(const void* ptr) { return loadu_si32(ptr); }
+	WJR_INTRINSIC_INLINE static __m128i preloadu_si48(const void* ptr) {
+		return insert_epi16<2>(preloadu_si32(ptr), reinterpret_cast<const uint16_t*>(ptr)[2]);
 	}
-	WJR_INTRINSIC_INLINE static __m128i preload_si64(const void* ptr) { return loadu_si64(ptr); }
-	WJR_INTRINSIC_INLINE static __m128i preload_si80(const void* ptr) {
-		return insert_epi16<4>(preload_si64(ptr), reinterpret_cast<const uint16_t*>(ptr)[4]);
+	WJR_INTRINSIC_INLINE static __m128i preloadu_si64(const void* ptr) { return loadu_si64(ptr); }
+	WJR_INTRINSIC_INLINE static __m128i preloadu_si80(const void* ptr) {
+		return insert_epi16<4>(preloadu_si64(ptr), reinterpret_cast<const uint16_t*>(ptr)[4]);
 	}
-	WJR_INTRINSIC_INLINE static __m128i preload_si96(const void* ptr) {
+	WJR_INTRINSIC_INLINE static __m128i preloadu_si96(const void* ptr) {
 #if defined(__SSE4_1__)
-		return insert_epi32<2>(preload_si64(ptr), reinterpret_cast<const uint32_t*>(ptr)[2]);
+		return insert_epi32<2>(preloadu_si64(ptr), reinterpret_cast<const uint32_t*>(ptr)[2]);
 #else
-		return insert_epi16<5>(preload_si80(ptr), reinterpret_cast<const uint16_t*>(ptr)[5]);
+		return insert_epi16<5>(preloadu_si80(ptr), reinterpret_cast<const uint16_t*>(ptr)[5]);
 #endif // __SSE4_1__
 	}
-	WJR_INTRINSIC_INLINE static __m128i preload_si112(const void* ptr) {
-		return insert_epi16<6>(preload_si96(ptr), reinterpret_cast<const uint16_t*>(ptr)[6]);
+	WJR_INTRINSIC_INLINE static __m128i preloadu_si112(const void* ptr) {
+		return insert_epi16<6>(preloadu_si96(ptr), reinterpret_cast<const uint16_t*>(ptr)[6]);
 	}
-	WJR_INTRINSIC_INLINE static __m128i preload_si128(const void* ptr) { return loadu((__m128i*)ptr); }
+	WJR_INTRINSIC_INLINE static __m128i preloadu_si128(const void* ptr) { return loadu((__m128i*)ptr); }
 
-	WJR_INTRINSIC_INLINE static __m128i preload_si16x(const void* ptr, int n) {
-		// preload_si(n * 16)
+	WJR_INTRINSIC_INLINE static __m128i preloadu_si16x(const void* ptr, int n) {
+		// preloadu_si(n * 16)
 		switch (n) {
 		case 0:return zeros();
-		case 1:return preload_si16(ptr);
-		case 2:return preload_si32(ptr);
-		case 3:return preload_si48(ptr);
-		case 4:return preload_si64(ptr);
-		case 5:return preload_si80(ptr);
-		case 6:return preload_si96(ptr);
-		case 7:return preload_si112(ptr);
-		default:return preload_si128(ptr);
+		case 1:return preloadu_si16(ptr);
+		case 2:return preloadu_si32(ptr);
+		case 3:return preloadu_si48(ptr);
+		case 4:return preloadu_si64(ptr);
+		case 5:return preloadu_si80(ptr);
+		case 6:return preloadu_si96(ptr);
+		case 7:return preloadu_si112(ptr);
+		default:return preloadu_si128(ptr);
 		}
 	}
 
@@ -983,11 +1112,17 @@ struct sse {
 	WJR_INTRINSIC_INLINE static __m128i srli(__m128i a, int imm8, uint32_t) { return srli_epi32(a, imm8); }
 	WJR_INTRINSIC_INLINE static __m128i srli(__m128i a, int imm8, uint64_t) { return srli_epi64(a, imm8); }
 
+	WJR_INTRINSIC_INLINE static void stream(__m128i* ptr, __m128i v) {
+		_mm_stream_si128(ptr, v);
+	}
+
 	WJR_INTRINSIC_INLINE static void store(__m128i* ptr, __m128i val) { _mm_store_si128(ptr, val); }
 	WJR_INTRINSIC_INLINE static void storeu(__m128i* ptr, __m128i val) { _mm_storeu_si128(ptr, val); }
+	/*
 	WJR_INTRINSIC_INLINE static void storeu_si16(void* ptr, __m128i val) { _mm_storeu_si16(ptr, val); }
 	WJR_INTRINSIC_INLINE static void storeu_si32(void* ptr, __m128i val) { _mm_storeu_si32(ptr, val); }
 	WJR_INTRINSIC_INLINE static void storeu_si64(void* ptr, __m128i val) { _mm_storeu_si64(ptr, val); }
+	*/
 
 	WJR_INTRINSIC_INLINE static __m128i sub_epi8(__m128i a, __m128i b) {
 		return _mm_sub_epi8(a, b);
@@ -1173,6 +1308,10 @@ struct sse {
 		return _mm_packus_epi32(a, b);
 	}
 
+	WJR_INTRINSIC_INLINE static __m128i stream_load(__m128i* p) {
+		return _mm_stream_load_si128(p);
+	}
+
 	WJR_INTRINSIC_INLINE static int test_all_ones(__m128i a) {
 		return _mm_test_all_ones(a);
 	}
@@ -1202,8 +1341,16 @@ struct sse {
 	}
 #endif // __SSE4_1__
 
-};
+};
+
 struct avx {
+	using mask_type = uint32_t;
+#if defined(__AVX__)
+	using float_type = __m256;
+	using int_type = __m256i;
+	using double_type = __m256d;
+#endif // __AVX__
+
 	constexpr static int width() { return 256; }
 
 #if defined(__AVX__)
@@ -1273,7 +1420,7 @@ struct avx {
 	template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 		uint8_t, uint16_t, uint32_t, uint64_t>, int> = 0>
 	WJR_INTRINSIC_INLINE static __m256i logical_or(__m256i a, __m256i b, T) {
-		return Not(logical_not(Or(a, b)));
+		return Not(logical_not(Or(a, b), T()));
 	}
 
 	WJR_INTRINSIC_INLINE static __m256i zeros() { return _mm256_setzero_si256(); }
@@ -1367,86 +1514,88 @@ struct avx {
 	WJR_INTRINSIC_INLINE static __m256i setmax(int32_t) { return setmax_epi32(); }
 	WJR_INTRINSIC_INLINE static __m256i setmax(int64_t) { return setmax_epi64(); }
 
-	WJR_INTRINSIC_INLINE static __m256i zextsi128_si256(__m128i v) { return _mm256_zextsi128_si256(v); }
+	WJR_INTRINSIC_INLINE static void stream(__m256i* p, __m256i a) { _mm256_stream_si256(p, a); }
+
+	//WJR_INTRINSIC_INLINE static __m256i zextsi128_si256(__m128i v) { return _mm256_zextsi128_si256(v); }
 
 	WJR_INTRINSIC_INLINE static __m256i load(const __m256i* p) { return _mm256_load_si256(p); }
 	WJR_INTRINSIC_INLINE static __m256i loadu(const __m256i* p) { return _mm256_loadu_si256(p); }
 
-	WJR_INTRINSIC_INLINE static __m256i preload_si16(const void* ptr) {
-		return zextsi128_si256(sse::preload_si16(ptr));
+	WJR_INTRINSIC_INLINE static __m256i preloadu_si16(const void* ptr) {
+		return simd_cast<__m256i, __m128i>(sse::preloadu_si16(ptr));
 	}
-	WJR_INTRINSIC_INLINE static __m256i preload_si32(const void* ptr) {
-		return zextsi128_si256(sse::preload_si32(ptr));
+	WJR_INTRINSIC_INLINE static __m256i preloadu_si32(const void* ptr) {
+		return simd_cast<__m256i, __m128i>(sse::preloadu_si32(ptr));
 	}
-	WJR_INTRINSIC_INLINE static __m256i preload_si48(const void* ptr) {
-		return zextsi128_si256(sse::preload_si48(ptr));
+	WJR_INTRINSIC_INLINE static __m256i preloadu_si48(const void* ptr) {
+		return simd_cast<__m256i, __m128i>(sse::preloadu_si48(ptr));
 	}
-	WJR_INTRINSIC_INLINE static __m256i preload_si64(const void* ptr) {
-		return zextsi128_si256(sse::preload_si64(ptr));
+	WJR_INTRINSIC_INLINE static __m256i preloadu_si64(const void* ptr) {
+		return simd_cast<__m256i, __m128i>(sse::preloadu_si64(ptr));
 	}
-	WJR_INTRINSIC_INLINE static __m256i preload_si80(const void* ptr) {
-		return zextsi128_si256(sse::preload_si80(ptr));
+	WJR_INTRINSIC_INLINE static __m256i preloadu_si80(const void* ptr) {
+		return simd_cast<__m256i, __m128i>(sse::preloadu_si80(ptr));
 	}
-	WJR_INTRINSIC_INLINE static __m256i preload_si96(const void* ptr) {
-		return zextsi128_si256(sse::preload_si96(ptr));
+	WJR_INTRINSIC_INLINE static __m256i preloadu_si96(const void* ptr) {
+		return simd_cast<__m256i, __m128i>(sse::preloadu_si96(ptr));
 	}
-	WJR_INTRINSIC_INLINE static __m256i preload_si112(const void* ptr) {
-		return zextsi128_si256(sse::preload_si112(ptr));
+	WJR_INTRINSIC_INLINE static __m256i preloadu_si112(const void* ptr) {
+		return simd_cast<__m256i, __m128i>(sse::preloadu_si112(ptr));
 	}
-	WJR_INTRINSIC_INLINE static __m256i preload_si128(const void* ptr) {
-		return zextsi128_si256(sse::preload_si128(ptr));
+	WJR_INTRINSIC_INLINE static __m256i preloadu_si128(const void* ptr) {
+		return simd_cast<__m256i, __m128i>(sse::preloadu_si128(ptr));
 	}
-	WJR_INTRINSIC_INLINE static __m256i preload_si144(const void* ptr) {
-		return concat(sse::preload_si128(ptr),
-			sse::preload_si16((const char*)ptr + 16));
+	WJR_INTRINSIC_INLINE static __m256i preloadu_si144(const void* ptr) {
+		return concat(sse::preloadu_si128(ptr),
+			sse::preloadu_si16((const char*)ptr + 16));
 	}
-	WJR_INTRINSIC_INLINE static __m256i preload_si160(const void* ptr) {
-		return concat(sse::preload_si128(ptr),
-			sse::preload_si32((const char*)ptr + 16));
+	WJR_INTRINSIC_INLINE static __m256i preloadu_si160(const void* ptr) {
+		return concat(sse::preloadu_si128(ptr),
+			sse::preloadu_si32((const char*)ptr + 16));
 	}
-	WJR_INTRINSIC_INLINE static __m256i preload_si176(const void* ptr) {
-		return concat(sse::preload_si128(ptr),
-			sse::preload_si48((const char*)ptr + 16));
+	WJR_INTRINSIC_INLINE static __m256i preloadu_si176(const void* ptr) {
+		return concat(sse::preloadu_si128(ptr),
+			sse::preloadu_si48((const char*)ptr + 16));
 	}
-	WJR_INTRINSIC_INLINE static __m256i preload_si192(const void* ptr) {
-		return concat(sse::preload_si128(ptr),
-			sse::preload_si64((const char*)ptr + 16));
+	WJR_INTRINSIC_INLINE static __m256i preloadu_si192(const void* ptr) {
+		return concat(sse::preloadu_si128(ptr),
+			sse::preloadu_si64((const char*)ptr + 16));
 	}
-	WJR_INTRINSIC_INLINE static __m256i preload_si208(const void* ptr) {
-		return concat(sse::preload_si128(ptr),
-			sse::preload_si80((const char*)ptr + 16));
+	WJR_INTRINSIC_INLINE static __m256i preloadu_si208(const void* ptr) {
+		return concat(sse::preloadu_si128(ptr),
+			sse::preloadu_si80((const char*)ptr + 16));
 	}
-	WJR_INTRINSIC_INLINE static __m256i preload_si224(const void* ptr) {
-		return concat(sse::preload_si128(ptr),
-			sse::preload_si96((const char*)ptr + 16));
+	WJR_INTRINSIC_INLINE static __m256i preloadu_si224(const void* ptr) {
+		return concat(sse::preloadu_si128(ptr),
+			sse::preloadu_si96((const char*)ptr + 16));
 	}
-	WJR_INTRINSIC_INLINE static __m256i preload_si240(const void* ptr) {
-		return concat(sse::preload_si128(ptr),
-			sse::preload_si112((const char*)ptr + 16));
+	WJR_INTRINSIC_INLINE static __m256i preloadu_si240(const void* ptr) {
+		return concat(sse::preloadu_si128(ptr),
+			sse::preloadu_si112((const char*)ptr + 16));
 	}
-	WJR_INTRINSIC_INLINE static __m256i preload_si256(const void* ptr) {
+	WJR_INTRINSIC_INLINE static __m256i preloadu_si256(const void* ptr) {
 		return loadu((const __m256i*)ptr);
 	}
 
-	WJR_INTRINSIC_INLINE static __m256i preload_si16x(const void* ptr, int n) {
+	WJR_INTRINSIC_INLINE static __m256i preloadu_si16x(const void* ptr, int n) {
 		switch (n) {
 		case 0:return zeros();
-		case 1:return preload_si16(ptr);
-		case 2:return preload_si32(ptr);
-		case 3:return preload_si48(ptr);
-		case 4:return preload_si64(ptr);
-		case 5:return preload_si80(ptr);
-		case 6:return preload_si96(ptr);
-		case 7:return preload_si112(ptr);
-		case 8:return preload_si128(ptr);
-		case 9:return preload_si144(ptr);
-		case 10:return preload_si160(ptr);
-		case 11:return preload_si176(ptr);
-		case 12:return preload_si192(ptr);
-		case 13:return preload_si208(ptr);
-		case 14:return preload_si224(ptr);
-		case 15:return preload_si240(ptr);
-		default:return preload_si256(ptr);
+		case 1:return preloadu_si16(ptr);
+		case 2:return preloadu_si32(ptr);
+		case 3:return preloadu_si48(ptr);
+		case 4:return preloadu_si64(ptr);
+		case 5:return preloadu_si80(ptr);
+		case 6:return preloadu_si96(ptr);
+		case 7:return preloadu_si112(ptr);
+		case 8:return preloadu_si128(ptr);
+		case 9:return preloadu_si144(ptr);
+		case 10:return preloadu_si160(ptr);
+		case 11:return preloadu_si176(ptr);
+		case 12:return preloadu_si192(ptr);
+		case 13:return preloadu_si208(ptr);
+		case 14:return preloadu_si224(ptr);
+		case 15:return preloadu_si240(ptr);
+		default:return preloadu_si256(ptr);
 		}
 	}
 
@@ -1553,6 +1702,64 @@ struct avx {
 	template<int imm8>
 	WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b) { return _mm256_alignr_epi8(a, b, imm8); }
 
+	WJR_INTRINSIC_INLINE static __m256i alignl_epi16(__m256i a, __m256i b, int c) {
+		return Or(slli_epi16(a, c), srli_epi16(b, 16 - c));
+	}
+	WJR_INTRINSIC_INLINE static __m256i alignl_epi32(__m256i a, __m256i b, int c) {
+		return Or(slli_epi32(a, c), srli_epi32(b, 32 - c));
+	}
+	WJR_INTRINSIC_INLINE static __m256i alignl_epi64(__m256i a, __m256i b, int c) {
+		return Or(slli_epi64(a, c), srli_epi64(b, 64 - c));
+	}
+
+	WJR_INTRINSIC_INLINE static __m256i alignl(__m256i a, __m256i b, int c, int16_t) {
+		return alignl_epi16(a, b, c);
+	}
+	WJR_INTRINSIC_INLINE static __m256i alignl(__m256i a, __m256i b, int c, int32_t) {
+		return alignl_epi32(a, b, c);
+	}
+	WJR_INTRINSIC_INLINE static __m256i alignl(__m256i a, __m256i b, int c, int64_t) {
+		return alignl_epi64(a, b, c);
+	}
+	WJR_INTRINSIC_INLINE static __m256i alignl(__m256i a, __m256i b, int c, uint16_t) {
+		return alignl_epi16(a, b, c);
+	}
+	WJR_INTRINSIC_INLINE static __m256i alignl(__m256i a, __m256i b, int c, uint32_t) {
+		return alignl_epi32(a, b, c);
+	}
+	WJR_INTRINSIC_INLINE static __m256i alignl(__m256i a, __m256i b, int c, uint64_t) {
+		return alignl_epi64(a, b, c);
+	}
+
+	WJR_INTRINSIC_INLINE static __m256i alignr_epi16(__m256i a, __m256i b, int c) {
+		return Or(slli_epi16(a, 16 - c), srli_epi16(b, c));
+	}
+	WJR_INTRINSIC_INLINE static __m256i alignr_epi32(__m256i a, __m256i b, int c) {
+		return Or(slli_epi32(a, 32 - c), srli_epi32(b, c));
+	}
+	WJR_INTRINSIC_INLINE static __m256i alignr_epi64(__m256i a, __m256i b, int c) {
+		return Or(slli_epi64(a, 64 - c), srli_epi64(b, c));
+	}
+
+	WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, int16_t) {
+		return alignr_epi16(a, b, c);
+	}
+	WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, int32_t) {
+		return alignr_epi32(a, b, c);
+	}
+	WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, int64_t) {
+		return alignr_epi64(a, b, c);
+	}
+	WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, uint16_t) {
+		return alignr_epi16(a, b, c);
+	}
+	WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, uint32_t) {
+		return alignr_epi32(a, b, c);
+	}
+	WJR_INTRINSIC_INLINE static __m256i alignr(__m256i a, __m256i b, int c, uint64_t) {
+		return alignr_epi64(a, b, c);
+	}
+
 	WJR_INTRINSIC_INLINE static __m256i avg_epu8(__m256i a, __m256i b) { return _mm256_avg_epu8(a, b); }
 	WJR_INTRINSIC_INLINE static __m256i avg_epu16(__m256i a, __m256i b) { return _mm256_avg_epu16(a, b); }
 
@@ -1573,7 +1780,7 @@ struct avx {
 	WJR_INTRINSIC_INLINE static __m256i blendv_epi8(__m256i a, __m256i b, __m256i mask) {
 		return _mm256_blendv_epi8(a, b, mask);
 	}
-	
+
 	template<int imm8>
 	WJR_INTRINSIC_INLINE static __m256i bslli_epi128(__m256i a) { return _mm256_bslli_epi128(a, imm8); }
 
@@ -1628,28 +1835,28 @@ struct avx {
 
 	WJR_INTRINSIC_INLINE static __m256i cmpgt_epu8(__m256i a, __m256i b) {
 #if defined(__XOP__)
-		__REGISTER_AVX_FROM_SSE(sse::cmpgt_epu8, a, b);
+		return concat(sse::cmpgt_epu8(getlow(a), getlow(b)), sse::cmpgt_epu8(gethigh(a), gethigh(b)));
 #else
 		return cmpgt_epi8(Xor(a, setmin_epi8()), Xor(b, setmin_epi8()));
 #endif // __XOP__
 	}
 	WJR_INTRINSIC_INLINE static __m256i cmpgt_epu16(__m256i a, __m256i b) {
 #if defined(__XOP__)
-		__REGISTER_AVX_FROM_SSE(sse::cmpgt_epu16, a, b);
+		return concat(sse::cmpgt_epu16(getlow(a), getlow(b)), sse::cmpgt_epu16(gethigh(a), gethigh(b)));
 #else
 		return cmpgt_epi16(Xor(a, setmin_epi16()), Xor(b, setmin_epi16()));
 #endif // __XOP__
 	}
 	WJR_INTRINSIC_INLINE static __m256i cmpgt_epu32(__m256i a, __m256i b) {
 #if defined(__XOP__)
-		__REGISTER_AVX_FROM_SSE(sse::cmpgt_epu32, a, b);
+		return concat(sse::cmpgt_epu32(getlow(a), getlow(b)), sse::cmpgt_epu32(gethigh(a), gethigh(b)));
 #else
 		return cmpgt_epi32(Xor(a, setmin_epi32()), Xor(b, setmin_epi32()));
 #endif // __XOP__
 	}
 	WJR_INTRINSIC_INLINE static __m256i cmpgt_epu64(__m256i a, __m256i b) {
 #if defined(__XOP__)
-		__REGISTER_AVX_FROM_SSE(sse::cmpgt_epu64, a, b);
+		return concat(sse::cmpgt_epu64(getlow(a), getlow(b)), sse::cmpgt_epu64(gethigh(a), gethigh(b)));
 #else
 		return cmpgt_epi64(Xor(a, setmin_epi64()), Xor(b, setmin_epi64()));
 #endif // __XOP__
@@ -2008,6 +2215,10 @@ struct avx {
 
 	WJR_INTRINSIC_INLINE static __m256i srai(__m256i a, int imm8, int16_t) { return srai_epi16(a, imm8); }
 	WJR_INTRINSIC_INLINE static __m256i srai(__m256i a, int imm8, int32_t) { return srai_epi32(a, imm8); }
+	
+	WJR_INTRINSIC_INLINE static __m256i stream_load(__m256i const* p) {
+		return _mm256_stream_load_si256(p);
+	}
 
 	WJR_INTRINSIC_INLINE static __m256i srl_epi16(__m256i a, __m128i b) {
 		return _mm256_srl_epi16(a, b);
