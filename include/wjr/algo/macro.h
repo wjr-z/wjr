@@ -7,9 +7,9 @@
 
 #if defined(__SSE2__)
 #define __HAS_FAST_MEMCHR
-//#define __HAS_FAST_MEMCMP
-//#define __HAS_FAST_MEMMIS
-//#define __HAS_FAST_MEMCNT
+#define __HAS_FAST_MEMCMP
+#define __HAS_FAST_MEMMIS
+#define __HAS_FAST_MEMCNT
 #define __HAS_FAST_MEMSET
 #endif // __SSE2__
 

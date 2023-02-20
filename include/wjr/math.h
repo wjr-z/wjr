@@ -109,38 +109,6 @@ constexpr bool in_range(T t) noexcept {
 }
 
 template<typename R, typename T>
-constexpr bool __maybe_equal(T t) noexcept {
-	using type = typename wjr::common_arithmetic_t<R, T>;
-	if constexpr (std::is_signed_v<R> && std::is_unsigned_v<type>) {
-		if constexpr (static_cast<R>(-1) == std::numeric_limits<type>::max()) {
-			return (std::numeric_limits<R>::min() <= t) || (t <= std::numeric_limits<R>::max());
-		}
-		else {
-			return (std::numeric_limits<R>::min() <= t && t <= static_cast<R>(-1))
-				|| (t <= std::numeric_limits<R>::max());
-		}
-	}
-	else {
-		if constexpr (std::numeric_limits<R>::min() <= std::numeric_limits<T>::min()) {
-			if constexpr (std::numeric_limits<T>::max() <= std::numeric_limits<R>::max()) {
-				return true;
-			}
-			else {
-				return t <= std::numeric_limits<R>::max();
-			}
-		}
-		else {
-			if constexpr (std::numeric_limits<T>::max() <= std::numeric_limits<R>::max()) {
-				return std::numeric_limits<R>::min() <= t;
-			}
-			else {
-				return std::numeric_limits<R>::min() <= t && t <= std::numeric_limits<R>::max();
-			}
-		}
-	}
-}
-
-template<typename R, typename T>
 struct _Broadcast;
 
 template<typename R, typename T>

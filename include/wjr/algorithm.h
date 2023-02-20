@@ -17,7 +17,7 @@ _WJR_BEGIN
 template<typename _Iter, typename _Val,
 	typename _Iter_value = wjr::iter_val_t<_Iter>>
 struct __has_fast_find : std::conjunction<
-	wjr::is_contiguous_iterator<_Iter>,
+	is_contiguous_iterator<_Iter>,
 	std::conditional_t<
 	wjr::is_reverse_iterator_v<_Iter>,
 	algo::__has_fast_memrchr<_Iter_value, _Val>,
@@ -39,7 +39,8 @@ struct _Find_fn {
 #endif // WJR_HAS_EXECUTION
 
 	template<typename _Iter, typename _Ty>
-	WJR_CONSTEXPR20 _Iter operator()(_Iter _First, _Iter _Last, const _Ty& _Val) const {
+	WJR_CONSTEXPR20 _Iter operator()(
+		_Iter _First, _Iter _Last, const _Ty& _Val) const {
 		if (!wjr::is_constant_evaluated()) {
 			if constexpr (__has_fast_find_v<_Iter, _Ty>) {
 				const auto n = std::distance(_First, _Last);
@@ -57,6 +58,7 @@ struct _Find_fn {
 		}
 		return std::find(_First, _Last, _Val);
 	}
+
 };
 
 constexpr _Find_fn find{};

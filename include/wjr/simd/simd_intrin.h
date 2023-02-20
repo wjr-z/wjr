@@ -84,7 +84,7 @@ __TEST_SIMD_FUNCTION(_mm_loadu_si16)
 __TEST_SIMD_FUNCTION(_mm_loadu_si32)
 __TEST_SIMD_FUNCTION(_mm_loadu_si64)
 
-template<typename T, std::enable_if_t<simd::has_global_function__mm_loadu_si16_v<T>,int> = 0>
+template<typename T, std::enable_if_t<simd::has_global_function__mm_loadu_si16_v<T>, int> = 0>
 WJR_INTRINSIC_INLINE __m128i mm_loadu_si16(T p) {
 	return _mm_loadu_si16(p);
 }
@@ -127,10 +127,12 @@ struct sse {
 	using double_type = __m128d;
 #endif // __SSE2__
 
-	constexpr static int width() { return 128; }
+	constexpr static size_t width() { return 128; }
+
+	constexpr static mask_type mask() { return 0xFFFF; }
 
 #if defined(__SSE__)
-	WJR_INTRINSIC_INLINE static int movemask_ps(__m128 v) {
+	WJR_INTRINSIC_INLINE static mask_type movemask_ps(__m128 v) {
 		return _mm_movemask_ps(v);
 	}
 
@@ -815,19 +817,19 @@ struct sse {
 		return _mm_move_epi64(a);
 	}
 
-	WJR_INTRINSIC_INLINE static int movemask_epi8(__m128i a) {
+	WJR_INTRINSIC_INLINE static mask_type movemask_epi8(__m128i a) {
 		return _mm_movemask_epi8(a);
 	}
-	WJR_INTRINSIC_INLINE static int movemask_pd(__m128d v) {
+	WJR_INTRINSIC_INLINE static mask_type movemask_pd(__m128d v) {
 		return _mm_movemask_pd(v);
 	}
 
-	WJR_INTRINSIC_INLINE static int movemask(__m128i v, int8_t) { return movemask_epi8(v); }
-	WJR_INTRINSIC_INLINE static int movemask(__m128i v, int32_t) { return movemask_ps(simd_cast<__m128>(v)); }
-	WJR_INTRINSIC_INLINE static int movemask(__m128i v, int64_t) { return movemask_pd(simd_cast<__m128d>(v)); }
-	WJR_INTRINSIC_INLINE static int movemask(__m128i v, uint8_t) { return movemask(v, int8_t()); }
-	WJR_INTRINSIC_INLINE static int movemask(__m128i v, uint32_t) { return movemask(v, int32_t()); }
-	WJR_INTRINSIC_INLINE static int movemask(__m128i v, uint64_t) { return movemask(v, int64_t()); }
+	WJR_INTRINSIC_INLINE static mask_type movemask(__m128i v, int8_t) { return movemask_epi8(v); }
+	WJR_INTRINSIC_INLINE static mask_type movemask(__m128i v, int32_t) { return movemask_ps(simd_cast<__m128>(v)); }
+	WJR_INTRINSIC_INLINE static mask_type movemask(__m128i v, int64_t) { return movemask_pd(simd_cast<__m128d>(v)); }
+	WJR_INTRINSIC_INLINE static mask_type movemask(__m128i v, uint8_t) { return movemask(v, int8_t()); }
+	WJR_INTRINSIC_INLINE static mask_type movemask(__m128i v, uint32_t) { return movemask(v, int32_t()); }
+	WJR_INTRINSIC_INLINE static mask_type movemask(__m128i v, uint64_t) { return movemask(v, int64_t()); }
 
 	WJR_INTRINSIC_INLINE static __m128i mul_epu32(__m128i a, __m128i b) {
 		return _mm_mul_epu32(a, b);
@@ -1351,7 +1353,9 @@ struct avx {
 	using double_type = __m256d;
 #endif // __AVX__
 
-	constexpr static int width() { return 256; }
+	constexpr static size_t width() { return 256; }
+
+	constexpr static mask_type mask() { return 0xffffffff; }
 
 #if defined(__AVX__)
 
@@ -2107,7 +2111,7 @@ struct avx {
 	WJR_INTRINSIC_INLINE static uint16_t min(__m256i a, uint16_t) { return min_epu16(a); }
 	WJR_INTRINSIC_INLINE static uint32_t min(__m256i a, uint32_t) { return min_epu32(a); }
 
-	WJR_INTRINSIC_INLINE static int movemask_epi8(__m256i a) {
+	WJR_INTRINSIC_INLINE static mask_type movemask_epi8(__m256i a) {
 		return _mm256_movemask_epi8(a);
 	}
 

@@ -5,157 +5,344 @@
 #include <wjr/algo/macro.h>
 #if defined(__HAS_FAST_MEMCMP)
 
-#define __WJR_MEMCMP_FUNC_ONE_HELPER__	                                                        \
-	auto r = traits::cmp(x, y, pred, T());	                                                    \
-	auto z = traits::movemask_epi8(r);	                                                        \
-	if(z != __Mask){	                                                                        \
-		return false;	                                                                        \
+#define __WJR_MEMCMP_ONE_NORMAL(st)														\
+	auto r = st::cmp(x, y, pred, T());	                                                \
+	st::mask_type z = st::movemask_epi8(r);		                                        \
+	if(z != st::mask()){	                                                            \
+		return false;	                                                                \
 	}
 
-#define __WJR_MEMCMP_FUNC_FOUR_HELPER__	                                                        \
-	auto r0 = traits::cmp(x0, x4, pred, T());												    \
-	auto r1 = traits::cmp(x1, x5, pred, T());									                \
-	auto r2 = traits::cmp(x2, x6, pred, T());									                \
-	auto r3 = traits::cmp(x3, x7, pred, T());									                \
-																						        \
-	auto z = traits::movemask_epi8(														        \
-		traits::And(traits::And(r0, r1), traits::And(r2, r3)));							        \
-																						        \
-	if(z != __Mask){																	        \
-		return false;																	        \
-	}																					        \
+#define __WJR_MEMCMP_FOUR_NORMAL(st)													\
+	auto r0 = st::cmp(x0, y0, pred, T());	                                            \
+	auto r1 = st::cmp(x1, y1, pred, T());	                                            \
+	auto r2 = st::cmp(x2, y2, pred, T());	                                            \
+	auto r3 = st::cmp(x3, y3, pred, T());	                                            \
+		                                                                                \
+	r3 = st::And(st::And(r0, r1), st::And(r2, r3));	                                    \
+	st::mask_type z = st::movemask_epi8(r3);		                                    \
+	if(z != st::mask()){	                                                            \
+		return false;	                                                                \
+	}
+
+#define __WJR_MEMCMP_ONE(st) __WJR_MEMCMP_ONE_NORMAL(st)
+#define __WJR_MEMCMP_FOUR(st) __WJR_MEMCMP_FOUR_NORMAL(st)
 
 #if defined(__SSE4_1__)
-#define __WJR_MEMCMP_FUNC_ONE__SSE4_1__HELPER__	                                                \
-	auto r = traits::Xor(x, y);	                                                                \
-	auto z = traits::test_all_zeros(r);	                                                        \
-	if(!z){	                                                                                    \
-		return false;	                                                                        \
+#undef __WJR_MEMCMP_ONE
+#undef __WJR_MEMCMP_FOUR
+
+#define __WJR_MEMCMP_ONE(st)															\
+	if constexpr(std::is_same_v<_Pred, std::equal_to<>>){	                            \
+		auto r = st::Xor(x, y);	                                                        \
+		auto z = st::test_all_zeros(r);	                                                \
+		if(!z){	                                                                        \
+			return false;	                                                            \
+		}	                                                                            \
+	}	                                                                                \
+	else{	                                                                            \
+		__WJR_MEMCMP_ONE_NORMAL(st)														\
 	}
 
-#define __WJR_MEMCMP_FUNC_FOUR__SSE4_1__HELPER__	                                            \
-	auto r0 = traits::Xor(x0, x4);												                \
-	auto r1 = traits::Xor(x1, x5);									                            \
-	auto r2 = traits::Xor(x2, x6);									                            \
-	auto r3 = traits::Xor(x3, x7);									                            \
-																							    \
-	auto z = traits::test_all_zeros(														    \
-		traits::Or(traits::Or(r0, r1), traits::Or(r2, r3)));							        \
-																							    \
-	if(!z){																	                    \
-		return false;																	        \
-	}																					
-
-#define __WJR_MEMCMP_FUNC_ONE_HELPER	                                                        \
-	if constexpr(std::is_same_v<_Pred, std::equal_to<>>){	                                    \
-		__WJR_MEMCMP_FUNC_ONE__SSE4_1__HELPER__	                                                \
-	}	                                                                                        \
-	else {	                                                                                    \
-		__WJR_MEMCMP_FUNC_ONE_HELPER__	                                                        \
+#define __WJR_MEMCMP_FOUR(st)															\
+	if constexpr(std::is_same_v<_Pred, std::equal_to<>>){	                            \
+		auto r0 = st::Xor(x0, y0);	                                                    \
+		auto r1 = st::Xor(x1, y1);	                                                    \
+		auto r2 = st::Xor(x2, y2);	                                                    \
+		auto r3 = st::Xor(x3, y3);	                                                    \
+				                                                                        \
+		r3 = st::Or(st::Or(r0, r1), st::Or(r2, r3));	                                \
+		auto z = st::test_all_zeros(r3);	                                            \
+		if(!z){	                                                                        \
+			return false;	                                                            \
+		}	                                                                            \
+	}	                                                                                \
+	else{	                                                                            \
+		__WJR_MEMCMP_FOUR_NORMAL(st)													\
 	}
-
-#define __WJR_MEMCMP_FUNC_FOUR_HELPER	                                                        \
-	if constexpr(std::is_same_v<_Pred, std::equal_to<>>){	                                    \
-		__WJR_MEMCMP_FUNC_FOUR__SSE4_1__HELPER__	                                            \
-	}	                                                                                        \
-	else {	                                                                                    \
-		__WJR_MEMCMP_FUNC_FOUR_HELPER__	                                                        \
-	}
-
-#else
-#define __WJR_MEMCMP_FUNC_ONE_HELPER	__WJR_MEMCMP_FUNC_ONE_HELPER__
-#define __WJR_MEMCMP_FUNC_FOUR_HELPER	__WJR_MEMCMP_FUNC_FOUR_HELPER__
-#endif
-
-#define __WJR_MEMCMP_SMALL_INIT_END(...) return true;
-
-#define __WJR_MEMCMP_SMALL_FUNC(s0, s1, i, n)	                                                \
-	{	                                                                                        \
-		if(n <= 4){	                                                                            \
-			for(size_t j = 0;j < n;++j){	                                                    \
-				if(!pred(s0[i + j], s1[i + j])){	                                            \
-					return false;	                                                            \
-				}	                                                                            \
-			}	                                                                                \
-		}	                                                                                    \
-		else{	                                                                                \
-			auto ns = n * sizeof(T);	                                                        \
-			auto ql = ns >> 1;	                                                                \
-			auto sl = ql << 1;	                                                                \
-			auto x = traits::preloadu_si16x(s0 + i, ql);	                                        \
-			auto y = traits::preloadu_si16x(s1 + i, ql);	                                        \
-			auto r = traits::cmp(x, y, pred, T());	                                            \
-			auto z = traits::movemask_epi8(r) | (__Mask ^ ((1u << sl) - 1));	                \
-			                                                                                    \
-			if(z != __Mask){	                                                                \
-				return false;	                                                                \
-			}	                                                                                \
-			if constexpr(sizeof(T) == 1){	                                                    \
-				if(ns & 1){	                                                                    \
-					if(!pred(s0[n - 1], s1[n - 1])){	                                        \
-						return false;	                                                        \
-					}	                                                                        \
-				}	                                                                            \
-			}	                                                                                \
-		}	                                                                                    \
-	}
-
-#define __WJR_MEMCMP_MID_FUNC(s0, s1, i)													    \
-	{																			                \
-		auto x = traits::loadu(reinterpret_cast<const simd_type*>(s0 + i));		                \
-		auto y = traits::loadu(reinterpret_cast<const simd_type*>(s1 + i));		                \
-		__WJR_MEMCMP_FUNC_ONE_HELPER	                                                        \
-	}
-
-#define __WJR_MEMCMP_LARGE_FUNC(s0, s1, i)													    \
-	{																						    \
-		auto x0 = traits::loadu(reinterpret_cast<const simd_type*>(s0 + i));					\
-		auto x1 = traits::loadu(reinterpret_cast<const simd_type*>(s0 + i + _Mysize * 1));	    \
-		auto x2 = traits::loadu(reinterpret_cast<const simd_type*>(s0 + i + _Mysize * 2));	    \
-		auto x3 = traits::loadu(reinterpret_cast<const simd_type*>(s0 + i + _Mysize * 3));	    \
-																							    \
-		auto x4 = traits::loadu(reinterpret_cast<const simd_type*>(s1 + i));					\
-		auto x5 = traits::loadu(reinterpret_cast<const simd_type*>(s1 + i + _Mysize * 1));	    \
-		auto x6 = traits::loadu(reinterpret_cast<const simd_type*>(s1 + i + _Mysize * 2));	    \
-		auto x7 = traits::loadu(reinterpret_cast<const simd_type*>(s1 + i + _Mysize * 3));	    \
-																							    \
-		__WJR_MEMCMP_FUNC_FOUR_HELPER	                                                        \
-	}
+#endif // __SSE4_1__
 
 _WJR_ALGO_BEGIN
 
 template<typename T, typename _Pred>
 bool __memcmp(const T* s0, const T* s1, size_t n, _Pred pred) {
-	constexpr bool is_avx =
+	using namespace wjr::literals;
+	constexpr size_t _Mysize = sizeof(T);
+
 #if defined(__AVX2__)
-		true;
+	using simd_t = simd::avx;
 #else
-		false;
-#endif
-	using traits = std::conditional_t<is_avx, simd::avx, simd::sse>;
-	using simd_type = typename traits::int_type;
-	using value_type = typename traits::mask_type; 
-	constexpr int _Mysize = traits::width() / (8 * sizeof(T));
-	constexpr int _Mycor = sizeof(T) / sizeof(uint8_t);
-	constexpr int __Mask = is_avx ? 0xffffffff : 0xffff;
+	using simd_t = simd::sse;
+#endif // __AVX2__
+	using sint = typename simd_t::int_type;
+	constexpr uintptr_t width = simd_t::width() / (8 * _Mysize);
+	constexpr uintptr_t bound = width * _Mysize;
 
-	using namespace enum_ops;
-	constexpr auto tag =
-		vectorize_t::CanOverlap |
-		GetMidLargeSpeed(1) |
-		GetSmallThreshold(_Mysize) |
-		GetVectorizedLength(_Mysize);
+	if (is_constant_p(n) && n <= 4_KiB) {
+		for (size_t i = 0; i < n; ++i) {
+			if (!pred(s0[i], s1[i])) {
+				return false;
+			}
+		}
+		return true;
+	}
 
-	WJR_AUTO_VECTORIZE(tag, n,
-		__WJR_MEMCMP_SMALL_FUNC, __WJR_MEMCMP_MID_FUNC, __WJR_MEMCMP_LARGE_FUNC,
-		WJR_MACRO_NULL, __WJR_MEMCMP_SMALL_INIT_END,
-		WJR_MACRO_NULL, WJR_MACRO_NULL,
-		s0, s1);
+	if (is_unlikely(n == 0)) return true;
+
+	if (n >= 16 / _Mysize) {
+		if (n >= width * 4) {
+			const T* _lst0;
+			const T* _lst1;
+			
+			auto _off0 = reinterpret_cast<uintptr_t>(s0) % bound;
+			auto _off1 = reinterpret_cast<uintptr_t>(s1) % bound;
+
+			// align 2 pointer
+			if (_off0 == _off1 && 
+				(_Mysize == 1 || _off0 % _Mysize == 0)) {
+				if (is_constant_p(_off0) && _off0 == 0) {
+					// do nothing
+				}
+				else {
+					auto x = simd_t::loadu(reinterpret_cast<const sint*>(s0));
+					auto y = simd_t::loadu(reinterpret_cast<const sint*>(s1));
+
+					__WJR_MEMCMP_ONE(simd_t);
+
+					auto __align_s = bound - _off0;
+					s0 += __align_s / _Mysize;
+					s1 += __align_s / _Mysize;
+					n -= __align_s / _Mysize;
+					if (is_unlikely(n < width * 4)) {
+						_lst0 = s0 + n;
+						_lst1 = s1 + n;
+						goto WJR_MACRO_LABEL(aft_align);
+					}
+				}
+			}
+			// unalign algorithm
+			else {
+				do {
+					auto x0 = simd_t::loadu(reinterpret_cast<const sint*>(s0));
+					auto x1 = simd_t::loadu(reinterpret_cast<const sint*>(s0 + width));
+					auto x2 = simd_t::loadu(reinterpret_cast<const sint*>(s0 + width * 2));
+					auto x3 = simd_t::loadu(reinterpret_cast<const sint*>(s0 + width * 3));
+
+					auto y0 = simd_t::loadu(reinterpret_cast<const sint*>(s1));
+					auto y1 = simd_t::loadu(reinterpret_cast<const sint*>(s1 + width));
+					auto y2 = simd_t::loadu(reinterpret_cast<const sint*>(s1 + width * 2));
+					auto y3 = simd_t::loadu(reinterpret_cast<const sint*>(s1 + width * 3));
+
+					__WJR_MEMCMP_FOUR(simd_t);
+
+					s0 += width * 4;
+					s1 += width * 4;
+					n -= width * 4;
+				} while (n >= width * 4);
+
+				_lst0 = s0 + n;
+				_lst1 = s1 + n;
+
+				if (n != 0) {
+					switch ((n + width - 1) / width) {
+					default: unreachable(); break;
+					case 4: {
+						auto x = simd_t::loadu(reinterpret_cast<const sint*>(s0));
+						auto y = simd_t::loadu(reinterpret_cast<const sint*>(s1));
+
+						__WJR_MEMCMP_ONE(simd_t);
+						s0 += width;
+						s1 += width;
+					}
+					case 3: {
+						auto x = simd_t::loadu(reinterpret_cast<const sint*>(s0));
+						auto y = simd_t::loadu(reinterpret_cast<const sint*>(s1));
+
+						__WJR_MEMCMP_ONE(simd_t);
+						s0 += width;
+						s1 += width;
+					}
+					case 2: {
+						auto x = simd_t::loadu(reinterpret_cast<const sint*>(s0));
+						auto y = simd_t::loadu(reinterpret_cast<const sint*>(s1));
+
+						__WJR_MEMCMP_ONE(simd_t);
+						s0 += width;
+						s1 += width;
+					}
+					case 1: {
+						auto x = simd_t::loadu(reinterpret_cast<const sint*>(_lst0 - width));
+						auto y = simd_t::loadu(reinterpret_cast<const sint*>(_lst1 - width));
+
+						__WJR_MEMCMP_ONE(simd_t);
+					}
+					}
+				}
+				return true;
+			}
+
+			do {
+				auto x0 = simd_t::load(reinterpret_cast<const sint*>(s0));
+				auto x1 = simd_t::load(reinterpret_cast<const sint*>(s0 + width));
+				auto x2 = simd_t::load(reinterpret_cast<const sint*>(s0 + width * 2));
+				auto x3 = simd_t::load(reinterpret_cast<const sint*>(s0 + width * 3));
+
+				auto y0 = simd_t::load(reinterpret_cast<const sint*>(s1));
+				auto y1 = simd_t::load(reinterpret_cast<const sint*>(s1 + width));
+				auto y2 = simd_t::load(reinterpret_cast<const sint*>(s1 + width * 2));
+				auto y3 = simd_t::load(reinterpret_cast<const sint*>(s1 + width * 3));
+
+				__WJR_MEMCMP_FOUR(simd_t);
+
+				s0 += width * 4;
+				s1 += width * 4;
+				n -= width * 4;
+			} while (n >= width * 4);
+
+			_lst0 = s0 + n;
+			_lst1 = s1 + n;
+
+			if (n != 0) {
+				switch ((n + width - 1) / width) {
+				default: unreachable(); break;
+				case 4: {
+					WJR_MACRO_LABEL(aft_align) :
+					auto x = simd_t::load(reinterpret_cast<const sint*>(s0));
+					auto y = simd_t::load(reinterpret_cast<const sint*>(s1));
+
+					__WJR_MEMCMP_ONE(simd_t);
+					s0 += width;
+					s1 += width;
+				}
+				case 3: {
+					auto x = simd_t::load(reinterpret_cast<const sint*>(s0));
+					auto y = simd_t::load(reinterpret_cast<const sint*>(s1));
+
+					__WJR_MEMCMP_ONE(simd_t);
+					s0 += width;
+					s1 += width;
+				}
+				case 2: {
+					auto x = simd_t::load(reinterpret_cast<const sint*>(s0));
+					auto y = simd_t::load(reinterpret_cast<const sint*>(s1));
+
+					__WJR_MEMCMP_ONE(simd_t);
+					s0 += width;
+					s1 += width;
+				}
+				case 1: {
+					auto x = simd_t::loadu(reinterpret_cast<const sint*>(_lst0 - width));
+					auto y = simd_t::loadu(reinterpret_cast<const sint*>(_lst1 - width));
+
+					__WJR_MEMCMP_ONE(simd_t);
+				}
+				}
+			}
+
+			return true;
+		}
+
+#if defined(__AVX2__)
+		static_assert(width * 4 == 128 / _Mysize, "width * 4 == 128 / _Mysize");
+		if (n >= 64 / _Mysize) {
+			auto x0 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s0));
+			auto x1 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s0 + 32 / _Mysize));
+			auto x2 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s0 + n - 64 / _Mysize));
+			auto x3 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s0 + n - 32 / _Mysize));
+
+			auto y0 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s1));
+			auto y1 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s1 + 32 / _Mysize));
+			auto y2 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s1 + n - 64 / _Mysize));
+			auto y3 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s1 + n - 32 / _Mysize));
+
+			__WJR_MEMCMP_FOUR(simd::avx);
+
+			return true;
+		}
+#endif // __AVX2__
+
+		auto delta = (n & (32 / _Mysize)) >> 1;
+
+		auto x0 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s0));
+		auto x1 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s0 + delta));
+		auto x2 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s0 + n - 16 / _Mysize - delta));
+		auto x3 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s0 + n - 16 / _Mysize));
+
+		auto y0 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s1));
+		auto y1 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s1 + delta));
+		auto y2 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s1 + n - 16 / _Mysize - delta));
+		auto y3 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s1 + n - 16 / _Mysize));
+
+		__WJR_MEMCMP_FOUR(simd::sse);
+
+		return true;
+	}
+
+	if constexpr (_Mysize == 8) {
+		// n = [1, 2)
+		return pred(s0[0], s1[0]);
+	}
+
+	if constexpr (_Mysize == 2) {
+		// n = [1, 8)
+		if (n >= 4) {
+			// n = [4, 8)
+			auto A0 = *reinterpret_cast<const uint64_t*>(s0);
+			auto B0 = *reinterpret_cast<const uint64_t*>(s0 + n - 4);
+
+			auto A1 = *reinterpret_cast<const uint64_t*>(s1);
+			auto B1 = *reinterpret_cast<const uint64_t*>(s1 + n - 4);
+
+			auto x = simd::sse::set_epi64x(B0, A0);
+			auto y = simd::sse::set_epi64x(B1, A1);
+
+			__WJR_MEMCMP_ONE(simd::sse);
+
+			return true;
+		}
+	}
+
+	if constexpr (_Mysize == 1) {
+		// n = [1, 16)
+		if (n >= 4) {
+			// n = [4, 16)
+			auto delta = (n & 8) >> 1;
+
+			auto A0 = *reinterpret_cast<const uint32_t*>(s0);
+			auto B0 = *reinterpret_cast<const uint32_t*>(s0 + delta);
+			auto C0 = *reinterpret_cast<const uint32_t*>(s0 + n - 4 - delta);
+			auto D0 = *reinterpret_cast<const uint32_t*>(s0 + n - 4);
+
+			auto A1 = *reinterpret_cast<const uint32_t*>(s1);
+			auto B1 = *reinterpret_cast<const uint32_t*>(s1 + delta);
+			auto C1 = *reinterpret_cast<const uint32_t*>(s1 + n - 4 - delta);
+			auto D1 = *reinterpret_cast<const uint32_t*>(s1 + n - 4);
+
+			auto x = simd::sse::set_epi32(D0, C0, B0, A0);
+			auto y = simd::sse::set_epi32(D1, C1, B1, A1);
+			
+			__WJR_MEMCMP_ONE(simd::sse);
+			
+			return true;
+		}
+	}
+
+	if constexpr (_Mysize <= 4) {
+		// n = [1, 4)
+		if (!pred(s0[0], s1[0])) return false;
+		if (n == 1) return true;
+		if (!pred(s0[1], s1[1])) return false;
+		if (n == 2) return true;
+		return pred(s0[2], s1[2]);
+	}
 }
 
 _WJR_ALGO_END
 
-#endif // __AVX2__ || __SSE2__
+#undef __WJR_MEMCMP_ONE
+#undef __WJR_MEMCMP_FOUR
+#undef __WJR_MEMCMP_ONE_NORMAL
+#undef __WJR_MEMCMP_FOUR_NORMAL
 
+#endif // __AVX2__ || __SSE2__
 
 #endif // __WJR_ALGO_MEMCMP_H

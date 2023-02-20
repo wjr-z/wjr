@@ -6,8 +6,15 @@
 
 _WJR_SIMD_BEGIN
 
+struct lo {};
+struct hi {};
+
 template<typename T, typename U>
 WJR_INTRINSIC_INLINE T simd_cast(U);
+
+/* TODO */
+template<typename T1, typename T2, typename U>
+WJR_INTRINSIC_INLINE U simd_cast(U, T2);
 
 #if defined(__SSE__)
 #endif // __SSE__

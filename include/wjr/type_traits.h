@@ -209,6 +209,64 @@ template<typename T>
 constexpr bool is_standard_comparator_v = is_standard_comparator<T>::value;
 
 template<typename T>
+struct is_left_standard_comparator :
+	is_any_of<std::remove_cv_t<T>,
+	std::less<>,
+	std::less_equal<>
+	> {};
+
+template<typename T>
+constexpr bool is_left_standard_comparator_v = is_left_standard_comparator<T>::value;
+
+template<typename T>
+struct is_right_standard_comparator :
+	is_any_of<std::remove_cv_t<T>,
+	std::greater<>,
+	std::greater_equal<>
+	> {};
+
+template<typename T>
+constexpr bool is_right_standard_comparator_v = is_right_standard_comparator<T>::value;
+
+template<typename T>
+struct swap_standard_comparator_helper {
+	using type = T;
+};
+
+template<>
+struct swap_standard_comparator_helper<std::less<>> {
+	using type = std::greater<>;
+};
+
+template<>
+struct swap_standard_comparator_helper<std::less_equal<>> {
+	using type = std::greater_equal<>;
+};
+
+template<>
+struct swap_standard_comparator_helper<std::greater<>> {
+	using type = std::less<>;
+};
+
+template<>
+struct swap_standard_comparator_helper<std::greater_equal<>> {
+	using type = std::less_equal<>;
+};
+
+template<>
+struct swap_standard_comparator_helper<std::equal_to<>> {
+	using type = std::equal_to<>;
+};
+
+template<typename T>
+struct swap_standard_comparator {
+	using type = typename swap_standard_comparator_helper<std::remove_cv_t<T>>::type;
+};
+
+template<typename T>
+using swap_standard_comparator_t = typename swap_standard_comparator<T>::type;
+
+template<typename T>
 struct unrefwrap {
 	using type = T;
 };
@@ -342,25 +400,18 @@ using uint64_t = uint_t<64>;
 using intptr_t = int_t<sizeof(void*) * 8>;
 using uintptr_t = uint_t<sizeof(void*) * 8>;
 
-template<typename T>
-struct is_my_standard_integral : 
-	is_any_of<std::remove_cv_t<T>, int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t> {};
-
-template<typename T>
-constexpr bool is_my_standard_integral_v = is_my_standard_integral<T>::value;
-
 template<size_t n, bool __s>
-using __int_or_uint = std::conditional_t<__s, int_t<n>, uint_t<n>>;
+using int_or_uint_t = std::conditional_t<__s, int_t<n>, uint_t<n>>;
+
+// Whether the type T can be normalized to an integer type 
+// int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t(in namespace wjr)
+// the type T must be normalized to an integer type,
+// then it can be used in the algorithms in namespace wjr
 
 template<typename T, bool = std::is_integral_v<T>>
 struct __integral_normalization_helper {
-	using type = __int_or_uint<sizeof(T) * 8, std::is_signed_v<T>>;
+	using type = int_or_uint_t<sizeof(T) * 8, std::is_signed_v<T>>;
 };
-
-//template<typename T>
-//struct __integral_normalization_helper<T*, false> {
-	//using type = __int_or_uint<sizeof(void*) * 8, std::is_signed_v<iter_diff_t<T*>>>;
-//};
 
 template<typename T>
 struct __integral_normalization_helper<T, false> {
@@ -376,13 +427,98 @@ template<typename T>
 using integral_normalization_t = typename integral_normalization<T>::type;
 
 template<typename T>
-constexpr integral_normalization_t<T> make_integral_normalization(T t) {
+constexpr integral_normalization_t<T> make_integral_normalization(const T& t) {
 	return static_cast<integral_normalization_t<T>>(t);
 }
 
 template<typename T>
+struct is_normalized_integral :
+	is_any_of<std::remove_cv_t<T>, int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t> {};
+
+template<typename T>
+constexpr bool is_normalized_integral_v = is_normalized_integral<T>::value;
+
+template<typename...Args>
+struct is_normalized_integrals : std::conjunction<is_normalized_integral<Args>...> {};
+
+template<typename...Args>
+constexpr bool is_normalized_integrals_v = is_normalized_integrals<Args...>::value;
+
+template<typename T>
 constexpr std::make_unsigned_t<T> make_unsigned(T t) {
 	return static_cast<std::make_unsigned_t<T>>(t);
+}
+
+template<typename T, typename U, typename _Pred>
+struct is_comparable : std::conjunction<
+	has_global_binary_operator<T, U, _Pred>,
+	has_global_binary_operator<U, T, _Pred>
+> {};
+
+template<typename T, typename U, typename _Pred>
+constexpr bool is_comparable_v = is_comparable<T, U, _Pred>::value;
+
+// Whether the memory comparison algorithm can be used directly
+// The corresponding operator must exist first, 
+// and can be normalized to an integer (T op U , U op T)
+// And the comparison result of the normalized integer 
+// is the same as the original result (It needs to be realized by itself)
+// And the comparison of the normalized integer
+// is the same as the memory comparison result
+
+// note that (int8_t)(-1) != (uint8_t)(-1)
+// but in memory they are the same
+template<typename T, typename U, bool = sizeof(T) == sizeof(U) && std::is_integral_v<T>&& std::is_integral_v<U>>
+constexpr bool __is_memory_comparable_helper_v =
+std::is_same_v<T, bool> || std::is_same_v<U, bool> || static_cast<T>(-1) == static_cast<U>(-1);
+
+template<typename T, typename U>
+constexpr bool __is_memory_comparable_helper_v<T, U, false> = false;
+
+template<typename T, typename U, typename _Pred>
+struct is_memory_comparable : std::conjunction<
+	is_standard_comparator<_Pred>,
+	is_comparable<T, U, _Pred>,
+	std::bool_constant<__is_memory_comparable_helper_v<integral_normalization_t<T>, integral_normalization_t<U>>>
+> {};
+
+template<typename T, typename U, typename _Pred>
+constexpr bool is_memory_comparable_v = is_memory_comparable<T, U, _Pred>::value;
+
+enum class ipmc_result {
+	none,
+	all,
+	exit
+};
+
+template<typename T, typename U, typename _Pred, 
+	std::enable_if_t<is_any_of_v<_Pred, std::equal_to<>, std::not_equal_to<>>, int> = 0>
+constexpr ipmc_result is_possible_memory_comparable(const U& v, _Pred pred) {
+	using nt = integral_normalization_t<T>;
+	using nu = integral_normalization_t<U>;
+	using cat = std::common_type_t<nt, nu>;
+	auto _Val = static_cast<cat>(make_integral_normalization(v));
+	if constexpr (std::is_signed_v<nt> && std::is_unsigned_v<cat>) {
+		static_assert(static_cast<nt>(-1) == std::numeric_limits<cat>::max(), "error");
+		if constexpr (std::is_same_v<_Pred, std::equal_to<>>) {
+			return ((std::numeric_limits<nt>::min() <= _Val && _Val <= static_cast<nt>(-1))
+				|| _Val <= std::numeric_limits<nt>::max()) ? ipmc_result::exit : ipmc_result::none;
+		}
+		else {
+			return (std::numeric_limits<nt>::max() < _Val && _Val < std::numeric_limits<nt>::min()) ? 
+				ipmc_result::all : ipmc_result::exit;
+		}
+	}
+	else {
+		if constexpr (std::is_same_v<_Pred, std::equal_to<>>) {
+			return (std::numeric_limits<nt>::min() <= _Val && _Val <= std::numeric_limits<nt>::max()) ? 
+				ipmc_result::exit : ipmc_result::none;
+		}
+		else {
+			return (std::numeric_limits<nt>::max() < _Val || _Val < std::numeric_limits<nt>::min()) ?
+				ipmc_result::all : ipmc_result::exit;
+		}
+	}
 }
 
 template<typename T>
@@ -392,64 +528,6 @@ struct _Auto_variable_helper {
 
 template<typename T>
 using auto_var_t = typename _Auto_variable_helper<T>::type;
-
-template<typename T>
-struct is_left_standard_comparator : 
-	is_any_of<std::remove_cv_t<T>, 
-	std::less<>, 
-	std::less_equal<>
-	> {};
-
-template<typename T>
-constexpr bool is_left_standard_comparator_v = is_left_standard_comparator<T>::value;
-
-template<typename T>
-struct is_right_standard_comparator :
-	is_any_of<std::remove_cv_t<T>, 
-	std::greater<>, 
-	std::greater_equal<>
-	> {};
-
-template<typename T>
-constexpr bool is_right_standard_comparator_v = is_right_standard_comparator<T>::value;
-
-template<typename T>
-struct swap_standard_comparator_helper {
-	using type = T;
-};
-
-template<>
-struct swap_standard_comparator_helper<std::less<>> {
-	using type = std::greater<>;
-};
-
-template<>
-struct swap_standard_comparator_helper<std::less_equal<>> {
-	using type = std::greater_equal<>;
-};
-
-template<>
-struct swap_standard_comparator_helper<std::greater<>> {
-	using type = std::less<>;
-};
-
-template<>
-struct swap_standard_comparator_helper<std::greater_equal<>> {
-	using type = std::less_equal<>;
-};
-
-template<>
-struct swap_standard_comparator_helper<std::equal_to<>> {
-	using type = std::equal_to<>;
-};
-
-template<typename T>
-struct swap_standard_comparator {
-	using type = typename swap_standard_comparator_helper<std::remove_cv_t<T>>::type;
-};
-
-template<typename T>
-using swap_standard_comparator_t = typename swap_standard_comparator<T>::type;
 
 template<size_t i, size_t..._Index>
 struct is_any_index_of : std::disjunction<std::bool_constant<i == _Index>...> {};
@@ -492,36 +570,6 @@ struct is_signed_integral : std::conjunction<std::is_integral<T>, std::is_signed
 
 template<typename T>
 constexpr bool is_signed_integral_v = is_signed_integral<T>::value;
-
-template<typename T, typename U>
-struct common_arithmetic {
-	using type = decltype(T{} + U{});
-};
-
-template<typename T, typename U>
-using common_arithmetic_t = typename common_arithmetic<T, U>::type;
-
-template<typename T, typename U, bool = sizeof(T) == sizeof(U) && std::is_integral_v<T>&& std::is_integral_v<U>>
-constexpr bool __is_memory_comparable_helper_v = 
-std::is_same_v<T, bool> || std::is_same_v<U, bool> || static_cast<T>(-1) == static_cast<U>(-1);
-
-template<typename T, typename U>
-constexpr bool __is_memory_comparable_helper_v<T, U, false> = false;
-
-template<typename T, typename U, typename _Pred>
-struct is_memory_comparable : std::conjunction<
-	is_standard_comparator<_Pred>,
-	has_global_binary_operator<T, U, _Pred>,
-	has_global_binary_operator<U, T, _Pred>,
-	std::bool_constant<__is_memory_comparable_helper_v<integral_normalization_t<T>, integral_normalization_t<U>>>
-> {};
-
-template<typename T, typename U, typename _Pred>
-constexpr bool is_memory_comparable_v = is_memory_comparable<T, U, _Pred>::value;
-
-//template<typename T, typename U, typename _Pred>
-//struct is_memory_copyable : std::conjunction<
-//> {};
 
 template<typename T>
 struct is_reverse_iterator : std::false_type {};

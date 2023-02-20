@@ -23,8 +23,9 @@ _WJR_ALGO_BEGIN
 #if defined(__HAS_FAST_MEMCHR)
 template<typename T, typename U>
 struct __has_fast_memchr : std::conjunction<
-	wjr::is_integrals<T, U>,
-	wjr::is_any_of<std::make_unsigned_t<integral_normalization_t<T>>, uint8_t, uint16_t, uint32_t>
+	is_comparable<T, U, std::equal_to<>>,
+	is_normalized_integrals<integral_normalization_t<T>, integral_normalization_t<U>>,
+	is_any_of<std::make_unsigned_t<integral_normalization_t<T>>, uint8_t, uint16_t, uint32_t>
 > {};
 
 template<typename T, typename U>
@@ -38,16 +39,25 @@ constexpr bool __has_fast_memrchr_v = __has_fast_memrchr<T, U>::value;
 
 template<typename T, typename U, std::enable_if_t<__has_fast_memchr_v<T, U>, int> = 0>
 const T* memchr(const T* s, U val, size_t n) {
-	if (!wjr::__maybe_equal<std::decay_t<T>>(val)) {
+	auto p = is_possible_memory_comparable<T>(val, std::equal_to<>{});
+	if (p == ipmc_result::none) {
 		return s + n;
+	}
+	if (p == ipmc_result::all) {
+		return s;
 	}
 	using value_type = std::make_unsigned_t<integral_normalization_t<T>>;
 	auto __s = reinterpret_cast<const value_type*>(s);
-	return reinterpret_cast<const T*>(__memchr(__s, static_cast<value_type>(val), n));
+	auto __val = static_cast<value_type>(make_integral_normalization(val));
+	return reinterpret_cast<const T*>(__memchr(__s, __val, n));
 }
 template<typename T, typename U, std::enable_if_t<__has_fast_memchr_v<T, U>, int> = 0>
 const T* memrchr(const T* s, U val, size_t n) {
-	if (!wjr::__maybe_equal<std::decay_t<T>>(val)) {
+	auto p = is_possible_memory_comparable<T>(val, std::equal_to<>{});
+	if (p == ipmc_result::none) {
+		return s;
+	}
+	if (p == ipmc_result::all) {
 		return s + n;
 	}
 	using value_type = std::make_unsigned_t<integral_normalization_t<T>>;
@@ -57,23 +67,28 @@ const T* memrchr(const T* s, U val, size_t n) {
 #else
 template<typename T, typename U>
 struct __has_fast_memchr : std::conjunction<
-	wjr::is_integrals<T, U>,
-	wjr::is_any_index_of<sizeof(T), sizeof(char), sizeof(wchar_t)>
+	is_comparable<T, U, std::equal_to<>>,
+	is_normalized_integrals<T, U>,
+	is_any_index_of<sizeof(T), sizeof(char), sizeof(wchar_t)>
 > {};
 
 template<typename T, typename U>
 constexpr bool __has_fast_memchr_v = __has_fast_memchr<T, U>::value;
 
 template<typename T, typename U>
-struct __has_fast_memrchr : __has_fast_memchr<T, U> {};
+struct __has_fast_memrchr : std::false_type {};
 
 template<typename T, typename U>
 constexpr bool __has_fast_memrchr_v = __has_fast_memrchr<T, U>::value;
 
 template<typename T, typename U, std::enable_if_t<__has_fast_memchr_v<T, U>, int> = 0>
 const T* memchr(const T* s, U val, size_t n) {
-	if (!wjr::__maybe_equal<std::decay_t<T>>(val)) {
+	auto p = is_possible_memory_comparable<T>(val, std::equal_to<>{});
+	if (p == ipmc_result::none) {
 		return s + n;
+	}
+	if (p == ipmc_result::all) {
+		return s;
 	}
 	using value_type = std::make_unsigned_t<integral_normalization_t<T>>;
 	if constexpr (sizeof(T) == sizeof(char)) {
@@ -98,7 +113,7 @@ const T* memchr(const T* s, U val, size_t n) {
 template<typename T, typename U, typename _Pred>
 struct __has_fast_memcmp : std::conjunction<
 	is_memory_comparable<T, U, _Pred>,
-	wjr::is_any_of<std::make_unsigned_t<integral_normalization_t<T>>, uint8_t, uint16_t, uint32_t>
+	is_any_of<std::make_unsigned_t<integral_normalization_t<T>>, uint8_t, uint16_t, uint32_t>
 > {};
 
 template<typename T, typename U>
@@ -153,7 +168,7 @@ bool memcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
 template<typename T, typename U, typename _Pred>
 struct __has_fast_memmis : std::conjunction<
 	is_memory_comparable<T, U, _Pred>,
-	wjr::is_any_of<std::make_unsigned_t<integral_normalization_t<T>>, uint8_t, uint16_t, uint32_t>
+	is_any_of<std::make_unsigned_t<integral_normalization_t<T>>, uint8_t, uint16_t, uint32_t>
 > {};
 
 template<typename T, typename U>
@@ -234,8 +249,9 @@ constexpr bool __has_fast_memrmis_v = __has_fast_memrmis<T, U, _Pred>::value;
 #if defined(__HAS_FAST_MEMCNT)
 template<typename T, typename U>
 struct __has_fast_memcnt : std::conjunction<
-	wjr::is_integrals<T, U>,
-	wjr::is_any_of<std::make_unsigned_t<integral_normalization_t<T>>, uint8_t, uint16_t, uint32_t>
+	is_comparable<T, U, std::equal_to<>>,
+	is_normalized_integrals<integral_normalization_t<T>, integral_normalization_t<U>>,
+	is_any_of<std::make_unsigned_t<integral_normalization_t<T>>, uint8_t, uint16_t, uint32_t>
 > {};
 
 template<typename T, typename U>
@@ -243,12 +259,14 @@ constexpr bool __has_fast_memcnt_v = __has_fast_memcnt<T, U>::value;
 
 template<typename T, typename U, std::enable_if_t<__has_fast_memcnt_v<T, U>, int> = 0>
 size_t memcnt(const T* s, U val, size_t n) {
-	if (!wjr::__maybe_equal<std::decay_t<T>>(val)) {
+	auto p = is_possible_memory_comparable<T>(val, std::equal_to<>{});
+	if (p == ipmc_result::none) {
 		return 0;
 	}
 	using value_type = std::make_unsigned_t<integral_normalization_t<T>>;
 	auto __s = reinterpret_cast<const value_type*>(s);
-	return __memcnt(__s, static_cast<value_type>(val), n);
+	auto __val = static_cast<value_type>(make_integral_normalization(val));
+	return __memcnt(__s, __val, n);
 }
 
 #else
@@ -263,8 +281,8 @@ constexpr bool __has_fast_memcnt_v = __has_fast_memcnt<T, U>::value;
 #if defined(__HAS_FAST_MEMSET)
 template<typename T, typename U>
 struct __has_fast_memset : std::conjunction<
-	wjr::is_integrals<T, U>,
-	wjr::is_any_of<std::make_unsigned_t<integral_normalization_t<T>>, uint8_t, uint16_t, uint32_t, uint64_t>
+	is_normalized_integrals<integral_normalization_t<T>, integral_normalization_t<U>>,
+	is_any_of<std::make_unsigned_t<integral_normalization_t<T>>, uint8_t, uint16_t, uint32_t, uint64_t>
 > {};
 
 template<typename T, typename U>
@@ -274,13 +292,14 @@ template<typename T, typename U, std::enable_if_t<__has_fast_memset_v<T, U>, int
 void memset(T* s, U val, size_t n) {
 	using value_type = std::make_unsigned_t<integral_normalization_t<T>>;
 	auto __s = reinterpret_cast<value_type*>(s);
-	__memset(__s, static_cast<value_type>(val), n);
+	auto __val = static_cast<value_type>(make_integral_normalization(val));
+	__memset(__s, __val, n);
 }
 #else
 template<typename T, typename U>
 struct __has_fast_memset : std::conjunction<
-	wjr::is_integrals<T, U>,
-	wjr::is_any_of<std::make_unsigned_t<integral_normalization_t<T>>, uint8_t>
+	is_normalized_integrals<integral_normalization_t<T>, integral_normalization_t<U>>,
+	is_any_of<std::make_unsigned_t<integral_normalization_t<T>>, uint8_t>
 > {};
 
 template<typename T, typename U>
@@ -290,7 +309,9 @@ template<typename T, typename U, std::enable_if_t<__has_fast_memset_v<T, U>, int
 void memset(T* s, U val, size_t n) {
 	using value_type = std::make_unsigned_t<integral_normalization_t<T>>;
 	auto __s = reinterpret_cast<value_type*>(s);
-	::memset(__s, static_cast<value_type>(val), n);
+	auto __val = static_cast<value_type>(make_integral_normalization(val));
+
+	::memset(__s, __val, n);
 }
 
 #endif // __HAS_FAST_MEMSET
