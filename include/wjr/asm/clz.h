@@ -26,7 +26,7 @@ const static int _WJR_LOG_TABLE[256] = {
 };
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR int __wjr_fallback_clz(T x) noexcept {
+WJR_INTRINSIC_CONSTEXPR static int __wjr_fallback_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if (x == 0) {
 		return _Nd;
@@ -58,7 +58,7 @@ WJR_INTRINSIC_CONSTEXPR int __wjr_fallback_clz(T x) noexcept {
 
 #if WJR_HAS_BUILTIN(__builtin_clz) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
 template<typename T>
-WJR_INTRINSIC_INLINE int __wjr_builtin_clz(T x) noexcept {
+WJR_INTRINSIC_INLINE static int __wjr_builtin_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if (x == 0) {
 		return _Nd;
@@ -87,7 +87,7 @@ WJR_INTRINSIC_INLINE int __wjr_builtin_clz(T x) noexcept {
 #elif defined(WJR_COMPILER_MSVC)
 #if defined(WJR_X86_64)
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_clz(T x) noexcept {
+WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 #if defined(__AVX2__)
 	if constexpr (_Nd <= 16) {
@@ -138,7 +138,7 @@ WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_clz(T x) noexcept {
 }
 #elif defined(WJR_ARM)
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_INLINE int __wjr_msvc_arm_clz(T x) noexcept {
+WJR_INTRINSIC_INLINE static int __wjr_msvc_arm_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if (x == 0) {
 		return _Nd;
@@ -155,7 +155,7 @@ WJR_INTRINSIC_INLINE int __wjr_msvc_arm_clz(T x) noexcept {
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR20 int clz(T x) noexcept {
-	if (!is_constant_evaluated()) {
+	if (!wjr::is_constant_evaluated()) {
 #if WJR_HAS_BUILTIN(__builtin_clz) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
 		return __wjr_builtin_clz(x);
 #elif defined(WJR_COMPILER_MSVC)

@@ -2,45 +2,47 @@
 #ifndef __WJR_ALGO_MEMRCHR_H
 #define __WJR_ALGO_MEMRCHR_H
 
-#include <wjr/algo/macro.h>
+#include <wjr/literals.h>
+#include <wjr/simd/simd_intrin.h>
+
 #if defined(__HAS_FAST_MEMCHR)
 
-#define __WJR_MEMRCHR_ONE(st, _s)	                        \
-	auto r = st::cmpeq(x, y, T());	                        \
-	st::mask_type z = st::movemask_epi8(r);	                \
-	if(z != 0){	                                            \
-		return (_s) - wjr::countl_zero(z) / _Mysize;	    \
+#define __WJR_MEMRCHR_ONE(st, _s)	                            \
+	auto r = st::cmp(x, y, pred, T());	                        \
+	st::mask_type z = st::movemask_epi8(r);	                    \
+	if(z != 0){	                                                \
+		return (_s) - wjr::countl_zero(z) / _Mysize;	        \
 	}
 
-#define __WJR_MEMRCHR_FOUR(st, _s0, _s1, _s2, _s3)	        \
-	auto r0 = st::cmpeq(x0, y, T());	                    \
-	auto r1 = st::cmpeq(x1, y, T());	                    \
-	auto r2 = st::cmpeq(x2, y, T());	                    \
-	auto r3 = st::cmpeq(x3, y, T());	                    \
-	                                                        \
-	r0 = st::Or(st::Or(r0, r1), st::Or(r2, r3));	        \
-	st::mask_type z = st::movemask_epi8(r0);	            \
-	if(z != 0){	                                            \
-		st::mask_type tmp = st::movemask_epi8(r3);	        \
-		if(tmp != 0){	                                    \
-			return (_s3) - wjr::countl_zero(tmp) / _Mysize;	\
-		}	                                                \
-		tmp = st::movemask_epi8(r2);	                    \
-		if(tmp != 0){	                                    \
-			return (_s2) - wjr::countl_zero(tmp) / _Mysize;	\
-		}	                                                \
-		tmp = st::movemask_epi8(r1);	                    \
-		if(tmp != 0){	                                    \
-			return (_s1) - wjr::countl_zero(tmp) / _Mysize;	\
-		}	                                                \
-		tmp = z;	                                        \
-		return (_s0) - wjr::countl_zero(tmp) / _Mysize;	    \
+#define __WJR_MEMRCHR_FOUR(st, _s0, _s1, _s2, _s3)	            \
+	auto r0 = st::cmp(x0, y, pred, T());	                    \
+	auto r1 = st::cmp(x1, y, pred, T());	                    \
+	auto r2 = st::cmp(x2, y, pred, T());	                    \
+	auto r3 = st::cmp(x3, y, pred, T());	                    \
+	                                                            \
+	r0 = st::Or(st::Or(r0, r1), st::Or(r2, r3));	            \
+	st::mask_type z = st::movemask_epi8(r0);	                \
+	if(z != 0){	                                                \
+		st::mask_type tmp = st::movemask_epi8(r3);	            \
+		if(tmp != 0){	                                        \
+			return (_s3) - wjr::countl_zero(tmp) / _Mysize;	    \
+		}	                                                    \
+		tmp = st::movemask_epi8(r2);	                        \
+		if(tmp != 0){	                                        \
+			return (_s2) - wjr::countl_zero(tmp) / _Mysize;	    \
+		}	                                                    \
+		tmp = st::movemask_epi8(r1);	                        \
+		if(tmp != 0){	                                        \
+			return (_s1) - wjr::countl_zero(tmp) / _Mysize;	    \
+		}	                                                    \
+		tmp = z;	                                            \
+		return (_s0) - wjr::countl_zero(tmp) / _Mysize;	        \
 	}
 
 _WJR_ALGO_BEGIN
 
-template<typename T>
-const T* __memrchr(const T* s, T val, size_t n) {
+template<typename T, typename _Pred>
+const T* __memrchr(const T* s, T val, size_t n, _Pred pred) {
 	using namespace wjr::literals;
 	constexpr size_t _Mysize = sizeof(T);
 
@@ -52,15 +54,6 @@ const T* __memrchr(const T* s, T val, size_t n) {
 	using sint = typename simd_t::int_type;
 	constexpr uintptr_t width = simd_t::width() / (8 * _Mysize);
 	constexpr uintptr_t bound = width * _Mysize;
-
-	if (is_constant_p(n) && n <= 4_KiB) {
-		for (size_t i = n; i > 0; --i) {
-			if (s[i - 1] == val) {
-				return s + i;
-			}
-		}
-		return s;
-	}
 
 	if (is_unlikely(n == 0)) return s;
 
@@ -213,7 +206,7 @@ const T* __memrchr(const T* s, T val, size_t n) {
 
 	if constexpr (_Mysize == 8) {
 		// n = [1, 2)
-		return s[-1] == val ? s : s - 1;
+		return pred(s[-1], val) ? s: s - 1;
 	}
 
 	if constexpr (_Mysize == 2) {
@@ -225,7 +218,7 @@ const T* __memrchr(const T* s, T val, size_t n) {
 
 			auto x = simd::sse::set_epi64x(B, A);
 			auto y = simd::sse::set1(val, T());
-			auto r = simd::sse::cmpeq(x, y, T());
+			auto r = simd::sse::cmp(x, y, pred, T());
 			uint16_t z = simd::sse::movemask_epi8(r);
 
 			if (z == 0)return s - n;
@@ -248,7 +241,7 @@ const T* __memrchr(const T* s, T val, size_t n) {
 
 			auto x = simd::sse::set_epi32(D, C, B, A);
 			auto y = simd::sse::set1(val, T());
-			auto r = simd::sse::cmpeq(x, y, T());
+			auto r = simd::sse::cmp(x, y, pred, T());
 			uint16_t z = simd::sse::movemask_epi8(r);
 
 			if (z == 0) return s - n;
@@ -260,11 +253,11 @@ const T* __memrchr(const T* s, T val, size_t n) {
 
 	if constexpr (_Mysize <= 4) {
 		// n = [1, 4)
-		if (s[-1] == val) return s;
+		if (pred(s[-1], val)) return s;
 		if (n == 1) return s - 1;
-		if (s[-2] == val) return s - 1;
+		if (pred(s[-2], val)) return s - 1;
 		if (n == 2) return s - 2;
-		return s[-3] == val ? s - 2 : s - 3;
+		return pred(s[-3], val) ? s - 2 : s - 3;
 	}
 }
 

@@ -2,11 +2,117 @@
 #ifndef __WJR_MMACRO_H
 #define __WJR_MMACRO_H
 
-#include <cassert>
-#include <cstddef>
-#include <type_traits>
 #include <cstdint>
-#include <utility>
+
+#if defined(_MSC_VER)
+/* Microsoft C/C++-compatible compiler */
+#include <intrin.h>
+#elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
+/* GCC-compatible compiler, targeting x86/x86-64 */
+#include <x86intrin.h>
+#elif defined(__GNUC__) && defined(__ARM_NEON__)
+/* GCC-compatible compiler, targeting ARM with NEON */
+#include <arm_neon.h>
+#elif defined(__GNUC__) && defined(__IWMMXT__)
+/* GCC-compatible compiler, targeting ARM with WMMX */
+#include <mmintrin.h>
+#elif (defined(__GNUC__) || defined(__xlC__)) && (defined(__VEC__) || defined(__ALTIVEC__))
+/* XLC or GCC-compatible compiler, targeting PowerPC with VMX/VSX */
+#include <altivec.h>
+#elif defined(__GNUC__) && defined(__SPE__)
+/* GCC-compatible compiler, targeting PowerPC with SPE */
+#include <spe.h>
+#endif
+
+#if defined(_MSC_VER)
+#if !(defined(__AVX__) || defined(__AVX2__))
+#if (defined(_M_AMD64) || defined(_M_X64))
+#ifndef __SSE2__
+#define __SSE2__
+#endif // __SSE2__
+#elif _M_IX86_FP == 2
+#ifndef __SSE2__
+#define __SSE2__
+#endif // __SSE2__
+#elif _M_IX86_FP == 1
+#ifndef __SSE__
+#define __SSE__
+#endif // __SSE__
+#endif
+#endif
+#endif
+
+#if defined ( __AVX512VL__ ) && defined ( __AVX512BW__ ) && defined ( __AVX512DQ__ )
+#ifndef __AVX512F__
+#define __AVX512F__
+#endif
+#ifndef __AVX512__
+#define __AVX512__
+#endif
+#endif
+
+#if defined(__AVX512__) || defined(__AVX512F__)
+#ifndef __AVX2__
+#define __AVX2__
+#endif
+#endif
+
+#if defined(__AVX2__)
+#ifndef __AVX__
+#define __AVX__
+#endif
+#endif
+
+#if defined(__AVX__)
+#ifndef __SSE4_2__
+#define __SSE4_2__
+#endif
+#endif
+
+#if defined(__SSE4_2__)
+#ifndef __SSE4_1__
+#define __SSE4_1__
+#endif
+#endif
+
+#if defined(__SSE4_1__)
+#ifndef __SSSE3__
+#define __SSSE3__
+#endif
+#endif
+
+#if defined(__SSSE3__)
+#ifndef __SSE3__
+#define __SSE3__
+#endif
+#endif
+
+#if defined(__SSE3__)
+#ifndef __SSE2__
+#define __SSE2__
+#endif
+#endif
+
+#if defined(__SSE2__)
+#ifndef __SSE__
+#define __SSE__
+#endif
+#endif
+
+#if defined(__SSE__)
+#ifndef __MMX__
+#define __MMX__
+#endif
+#endif
+
+#if defined(__SSE2__)
+#define __HAS_FAST_MEMCHR
+#define __HAS_FAST_MEMCMP
+#define __HAS_FAST_MEMMIS
+//#define __HAS_FAST_MEMCNT
+#define __HAS_FAST_MEMSET
+//#define __HAS_FAST_MEMCPY
+#endif // __SSE2__
 
 #if defined(__clang__)
 #define WJR_COMPILER_CLANG
@@ -115,7 +221,7 @@
 #endif // __has_include
 
 #if WJR_HAS_INCLUDE(<execution>)
-#define WJR_HAS_EXECUTION
+//#define WJR_HAS_EXECUTION
 #endif // WJR_HAS_INCLUDE(<execution>)
 
 #ifndef WJR_NODISCARD
@@ -136,10 +242,10 @@
 #define WJR_EXPLICIT20(expression)
 #endif
 
-#if defined(_MSC_VER)
-#define WJR_FORCEINLINE __forceinline
-#elif WJR_HAS_ATTRIBUTE(always_inline)
+#if WJR_HAS_ATTRIBUTE(always_inline)
 #define WJR_FORCEINLINE __attribute__((always_inline))
+#elif defined(_MSC_VER)
+#define WJR_FORCEINLINE __forceinline
 #else
 #define WJR_FORCEINLINE
 #endif
@@ -162,24 +268,6 @@
 
 #define WJR_INTRINSIC_CONSTEXPR WJR_INTRINSIC_INLINE constexpr
 
-#if defined(_MSC_VER)
-#if !(defined(__AVX__) || defined(__AVX2__))
-#if (defined(_M_AMD64) || defined(_M_X64))
-#ifndef __SSE2__
-#define __SSE2__
-#endif // __SSE2__
-#elif _M_IX86_FP == 2
-#ifndef __SSE2__
-#define __SSE2__
-#endif // __SSE2__
-#elif _M_IX86_FP == 1
-#ifndef __SSE__
-#define __SSE__
-#endif // __SSE__
-#endif
-#endif
-#endif
-
 #if defined(__x86_64__) || (defined(_M_IX86) || (defined(_M_X64) && !defined(_M_ARM64EC)))
 #define WJR_X86_64
 #elif defined(__arm__) || (defined(_M_ARM) || defined(_M_ARM64))
@@ -188,6 +276,16 @@
 
 #if defined(WJR_ARM)
 #error "ARM is not supported"
+#endif
+
+// judge if CPU is intel
+#if defined(__INTEL_COMPILER) || defined(__ICC) || defined(__ECC) || defined(__ICL)
+#define WJR_INTEL
+#endif
+
+// judge if CPU is AMD
+#if defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64) || defined(_M_X64) || defined(_M_AMD64)
+#define WJR_AMD
 #endif
 
 #if SIZE_MAX == 0xffffffffffffffffull
@@ -226,190 +324,8 @@
 #endif // WJR_COMPILER_GCC
 #endif
 
-#define __AVX512F__INSTRSET 10
-#define __AVX512__INSTRSET 10
-#define __AVX2__INSTRSET 9
-#define __AVX__INSTRSET 8
-#define __SSE4_2__INSTRSET 7
-#define __SSE4_1__INSTRSET 6
-#define __SSSE3__INSTRSET 5
-#define __SSE3__INSTRSET 4
-#define __SSE2__INSTRSET 3
-#define __SSE__INSTRSET 2
-#define __MMX__INSTRSET 1
-#define __SCALAR__INSTRSET 0
-
-#if defined ( __AVX512VL__ ) && defined ( __AVX512BW__ ) && defined ( __AVX512DQ__ )
-#ifndef __AVX512F__
-#define __AVX512F__
-#endif
-#ifndef __AVX512__
-#define __AVX512__
-#endif
-#ifndef WJR_INSTRSET
-#define WJR_INSTRSET __AVX512F__INSTRSET
-#endif
-#endif
-
-#if defined(__AVX512__) || defined(__AVX512F__)
-#ifndef __AVX2__
-#define __AVX2__
-#endif
-#ifndef WJR_INSTRSET
-#define WJR_INSTRSET __AVX2__INSTRSET
-#endif
-#endif
-
-#if defined(__AVX2__)
-#ifndef __AVX__
-#define __AVX__
-#endif
-#ifndef WJR_INSTRSET
-#define WJR_INSTRSET __AVX__INSTRSET
-#endif
-#endif
-
-#if defined(__AVX__)
-#ifndef __SSE4_2__
-#define __SSE4_2__
-#endif
-#ifndef WJR_INSTRSET
-#define WJR_INSTRSET __SSE4_2__INSTRSET
-#endif
-#endif
-
-#if defined(__SSE4_2__)
-#ifndef __SSE4_1__
-#define __SSE4_1__
-#endif
-#ifndef WJR_INSTRSET
-#define WJR_INSTRSET __SSE4_1__INSTRSET
-#endif
-#endif
-
-#if defined(__SSE4_1__)
-#ifndef __SSSE3__
-#define __SSSE3__
-#endif
-#ifndef WJR_INSTRSET
-#define WJR_INSTRSET __SSSE3__INSTRSET
-#endif
-#endif
-
-#if defined(__SSSE3__)
-#ifndef __SSE3__
-#define __SSE3__
-#endif
-#ifndef WJR_INSTRSET
-#define WJR_INSTRSET __SSE3__INSTRSET
-#endif
-#endif
-
-#if defined(__SSE3__)
-#ifndef __SSE2__
-#define __SSE2__
-#endif
-#ifndef WJR_INSTRSET
-#define WJR_INSTRSET __SSE2__INSTRSET
-#endif
-#endif
-
-#if defined(__SSE2__)
-#ifndef __SSE__
-#define __SSE__
-#endif
-#ifndef WJR_INSTRSET
-#define WJR_INSTRSET __SSE__INSTRSET
-#endif
-#endif
-
-#if defined(__SSE__)
-#ifndef __MMX__
-#define __MMX__
-#endif
-#ifndef WJR_INSTRSET
-#define WJR_INSTRSET __MMX__INSTRSET
-#endif
-#endif
-
-#ifndef WJR_INSTRSET
-#define WJR_INSTRSET __SCALAR__INSTRSET
-#endif
-
-#if defined(__MMX__)
-#define WJR_HAS_MMX_DEFINE(X) X
-#else
-#define WJR_HAS_MMX_DEFINE(X)
-#endif // __MMX__
-
-#if defined(__SSE__)
-#define WJR_HAS_SSE_DEFINE(X) X
-#else
-#define WJR_HAS_SSE_DEFINE(X)
-#endif // __SSE__
-
-#if defined(__SSE2__)
-#define WJR_HAS_SSE2_DEFINE(X) X
-#else
-#define WJR_HAS_SSE2_DEFINE(X)
-#endif // __SSE2__
-
-#if defined(__SSE3__)
-#define WJR_HAS_SSE3_DEFINE(X) X
-#else
-#define WJR_HAS_SSE3_DEFINE(X)
-#endif // __SSE3__
-
-#if defined(__SSSE3__)
-#define WJR_HAS_SSSE3_DEFINE(X) X
-#else
-#define WJR_HAS_SSSE3_DEFINE(X)
-#endif // __SSSE3__
-
-#if defined(__SSE4_1__)
-#define WJR_HAS_SSE4_1_DEFINE(X) X
-#else
-#define WJR_HAS_SSE4_1_DEFINE(X)
-#endif // __SSE4_1__
-
-#if defined(__SSE4_2__)
-#define WJR_HAS_SSE4_2_DEFINE(X) X
-#else
-#define WJR_HAS_SSE4_2_DEFINE(X)
-#endif // __SSE4_2__
-
-#if defined(__AVX__)
-#define WJR_HAS_AVX_DEFINE(X) X
-#else
-#define WJR_HAS_AVX_DEFINE(X)
-#endif // __AVX__
-
-#if defined(__AVX2__)
-#define WJR_HAS_AVX2_DEFINE(X) X
-#else
-#define WJR_HAS_AVX2_DEFINE(X)
-#endif // __AVX2__
-
-#if defined(WJR_COMPILER_MSVC)
-#include <intrin.h>
-#elif defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG)
-#include <x86intrin.h>
-#else
-#if defined(__AVX__)
-#include <immintrin.h>
-#elif defined(__SSE4_2__)
-#include <nmmintrin.h>
-#elif defined(__SSE4_1__)
-#include <smmintrin.h>
-#elif defined(__SSSE3__)
-#include <tmmintrin.h>
-#elif defined(__SSE3__)
-#include <pmmintrin.h>
-#elif defined(__SSE2__)
-#include <emmintrin.h>
-#elif defined(__SSE__)
-#include <xmmintrin.h>
-#endif
+#if (defined(WJR_INLINE_ASM) && defined(WJR_INTEL))
+#define WJR_ENHANCED_REP
 #endif
 
 #define _WJR_BEGIN namespace wjr{

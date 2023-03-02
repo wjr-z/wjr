@@ -8,7 +8,7 @@ _WJR_ASM_BEGIN
 
 #if WJR_HAS_BUILTIN(__builtin_subc) || WJR_HAS_CLANG(5, 0, 0)
 template<typename T>
-WJR_INTRINSIC_INLINE T __wjr_builtin_sbb(T a, T b, T carry_in, T* carry_out) {
+WJR_INTRINSIC_INLINE static T __wjr_builtin_sbb(T a, T b, T carry_in, T* carry_out) {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 
 	constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
@@ -53,7 +53,7 @@ WJR_INTRINSIC_INLINE T __wjr_builtin_sbb(T a, T b, T carry_in, T* carry_out) {
 }
 #elif defined(WJR_COMPILER_MSVC)
 template<typename T>
-WJR_INTRINSIC_INLINE T __wjr_msvc_sbb(T a, T b, T carry_in, T* carry_out) {
+WJR_INTRINSIC_INLINE static T __wjr_msvc_sbb(T a, T b, T carry_in, T* carry_out) {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 
 	constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
@@ -89,28 +89,30 @@ WJR_INTRINSIC_INLINE T __wjr_msvc_sbb(T a, T b, T carry_in, T* carry_out) {
 #endif
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 T __sbb(T a, T b, T carry_in, T* carry_out) {
-	if (!((is_constant_p(a) && is_constant_p(b)) || (is_constant_p(carry_in) && carry_in == 0))) {
+WJR_INTRINSIC_CONSTEXPR20 static T __sbb(T a, T b, T carry_in, T* carry_out) {
+	if (!wjr::is_constant_evaluated()) {
+		if (!((is_constant_p(a) && is_constant_p(b)) || (is_constant_p(carry_in) && carry_in == 0))) {
 #if defined(WJR_COMPILER_MSVC)
-		return __wjr_msvc_sbb(a, b, carry_in, carry_out);
+			return __wjr_msvc_sbb(a, b, carry_in, carry_out);
 #elif defined(WJR_INLINE_ASM) // Clang does not need inline assembly
 #if defined(WJR_BETTER_INLINE_ASM)
-		asm("add $255, %b0\n\t"
-			"sbb %3, %2\n\t"
-			"setb %b1"
-			: "+r"(carry_in), "=rm"(*carry_out), "+r"(a)
-			: "rm"(b)
-			: "cc");
+			asm("add $255, %b0\n\t"
+				"sbb %3, %2\n\t"
+				"setb %b1"
+				: "+r"(carry_in), "=rm"(*carry_out), "+r"(a)
+				: "rm"(b)
+				: "cc");
 #else
-		asm("add $255, %b0\n\t"
-			"sbb %3, %2\n\t"
-			"setb %b1"
-			: "+r"(carry_in), "=r"(*carry_out), "+r"(a)
-			: "r"(b)
-			: "cc");
-		return a;
+			asm("add $255, %b0\n\t"
+				"sbb %3, %2\n\t"
+				"setb %b1"
+				: "+r"(carry_in), "=r"(*carry_out), "+r"(a)
+				: "r"(b)
+				: "cc");
+			return a;
 #endif // WJR_BETTER_INLINE_ASM
 #endif
+		}
 	}
 	T c = 0;
 	c = a < b;

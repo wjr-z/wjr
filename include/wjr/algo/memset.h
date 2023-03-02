@@ -2,7 +2,8 @@
 #ifndef __WJR_ALGO_MEMSET_H
 #define __WJR_ALGO_MEMSET_H
 
-#include <wjr/algo/macro.h>
+#include <wjr/literals.h>
+#include <wjr/simd/simd_intrin.h>
 
 #if defined(__HAS_FAST_MEMSET)
 
@@ -22,16 +23,22 @@ void __memset(T* s, T val, size_t n) {
 	constexpr uintptr_t width = simd_t::width() / (8 * _Mysize);
 	constexpr uintptr_t bound = width * _Mysize;
 
-	if (is_constant_p(n) && n <= 4_KiB) {
-		for (size_t i = 0; i < n; ++i)s[i] = val;
-		return;
+	if constexpr (_Mysize != 1) {
+		if (
+			is_constant_p(val) &&
+			broadcast<T, uint8_t>(static_cast<uint8_t>(val)) == val) {
+			return __memset(reinterpret_cast<uint8_t*>(s), static_cast<uint8_t>(val), n * _Mysize);
+		}
 	}
 
-	if constexpr (_Mysize != 1) {
-		if (is_constant_p(val) &&
-			broadcast<T, uint8_t>(static_cast<uint8_t>(val)) == val) {
-			return __memset(reinterpret_cast<uint8_t*>(s), static_cast<uint8_t>(val), n * sizeof(T));
+	constexpr size_t __nt_threshold = 6_MiB / _Mysize;
+	constexpr size_t __rep_threshold = 2_KiB / _Mysize;
+
+	if(is_constant_p(n) && n <= 4_KiB / _Mysize){
+		for (size_t i = 0; i < n; ++i) {
+			s[i] = val;
 		}
+		return;
 	}
 
 	if (n >= 16 / _Mysize) {
@@ -40,9 +47,11 @@ void __memset(T* s, T val, size_t n) {
 
 			// non-temporal algorithm
 			if (_Mysize == 1 || 
-				(is_constant_p(reinterpret_cast<uintptr_t>(s) % _Mysize) &&
-					reinterpret_cast<uintptr_t>(s) % _Mysize == 0)) {
-				if (is_unlikely(n >= 6_MiB)) {
+				(is_likely(reinterpret_cast<uintptr_t>(s) % _Mysize == 0))) {
+
+				if (is_unlikely(n >= __nt_threshold)) {
+					
+					// align(64)
 					if (is_constant_p(reinterpret_cast<uintptr_t>(s) % 64) &&
 						reinterpret_cast<uintptr_t>(s) % 64 == 0) {
 						// do nothing
@@ -81,7 +90,7 @@ void __memset(T* s, T val, size_t n) {
 				// do nothing
 			}
 			else if (_Mysize == 1 ||
-					reinterpret_cast<uintptr_t>(s) % _Mysize == 0) {
+					is_likely(reinterpret_cast<uintptr_t>(s) % _Mysize == 0)) {
 				simd_t::storeu(reinterpret_cast<sint*>(s), q);
 				auto __align_s = bound - reinterpret_cast<uintptr_t>(s) % bound;
 				s += __align_s / _Mysize;

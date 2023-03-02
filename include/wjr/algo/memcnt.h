@@ -2,7 +2,9 @@
 #ifndef __WJR_ALGO_MEMCNT_H
 #define __WJR_ALGO_MEMCNT_H
 
-#include <wjr/algo/macro.h>
+#include <wjr/literals.h>
+#include <wjr/simd/simd_intrin.h>
+
 #if defined(__HAS_FAST_MEMCNT)
 
 #define __WJR_MEMCNT_SMALL_INIT_BEGIN(...)	size_t cnt = 0;

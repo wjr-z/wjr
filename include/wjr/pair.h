@@ -2,8 +2,6 @@
 #ifndef __WJR_PAIR_H
 #define __WJR_PAIR_H
 
-#include <utility>
-
 #include <wjr/type_traits.h>
 
 _WJR_BEGIN
@@ -181,7 +179,7 @@ public:
 
     constexpr pair& 
         operator=(std::conditional_t<std::conjunction_v<std::is_copy_assignable<T>,
-            std::is_copy_assignable<U>>,const pair&, const wjr::tag::DISABLE_TAG&> other)
+            std::is_copy_assignable<U>>,const pair&, const wjr::disable_tag&> other)
         noexcept(std::conjunction_v<std::is_nothrow_copy_assignable<T>, std::is_nothrow_copy_assignable<U>>) {
         first() = other.first();
         second() = other.second();
@@ -190,7 +188,7 @@ public:
 
     constexpr pair& 
         operator=(std::conditional_t<std::conjunction_v<std::is_move_assignable<T>,
-            std::is_move_assignable<U>>, pair&&, wjr::tag::DISABLE_TAG&&> other)
+            std::is_move_assignable<U>>, pair&&, wjr::disable_tag&&> other)
         noexcept(std::conjunction_v<std::is_nothrow_move_assignable<T>, std::is_nothrow_move_assignable<U>>) {
         first() = std::forward<T>(other.first());
         second() = std::forward<U>(other.second());

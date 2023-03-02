@@ -8,7 +8,7 @@ _WJR_ASM_BEGIN
 
 #if WJR_HAS_BUILTIN(__builtin_ctz) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
 template<typename T>
-WJR_INTRINSIC_INLINE int __wjr_builtin_ctz(T x) noexcept {
+WJR_INTRINSIC_INLINE static int __wjr_builtin_ctz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if (x == 0) {
 		return _Nd;
@@ -34,7 +34,7 @@ WJR_INTRINSIC_INLINE int __wjr_builtin_ctz(T x) noexcept {
 #elif defined(WJR_COMPILER_MSVC) && defined(WJR_X86_64) && !defined(_M_CEE_PURE) && !defined(__CUDACC__) \
     && !defined(__INTEL_COMPILER)
 template<typename T>
-WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_ctz(T x) noexcept {
+WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_ctz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	constexpr T _Max = std::numeric_limits<T>::max();
 #if defined(__AVX2__)

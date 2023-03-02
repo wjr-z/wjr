@@ -7,7 +7,7 @@
 _WJR_ASM_BEGIN
 
 template<typename _Ty>
-WJR_INTRINSIC_CONSTEXPR int __wjr_fallback_popcount(_Ty _Val) noexcept {
+WJR_INTRINSIC_CONSTEXPR static int __wjr_fallback_popcount(_Ty _Val) noexcept {
 	constexpr int _Digits = std::numeric_limits<_Ty>::digits;
 #if defined(WJR_X86) || defined(WJR_ARM)
 	if constexpr (_Digits == 64) {
@@ -30,7 +30,7 @@ WJR_INTRINSIC_CONSTEXPR int __wjr_fallback_popcount(_Ty _Val) noexcept {
 
 #if WJR_HAS_BUILTIN(__builtin_popcount) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
 template<typename T>
-WJR_INTRINSIC_INLINE int __wjr_builtin_popcount(T x) noexcept {
+WJR_INTRINSIC_INLINE static int __wjr_builtin_popcount(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 
 	constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
@@ -54,7 +54,7 @@ WJR_INTRINSIC_INLINE int __wjr_builtin_popcount(T x) noexcept {
 #elif defined(WJR_COMPILER_MSVC) && defined(WJR_X86_64) && !defined(_M_CEE_PURE) && !defined(__CUDACC__) \
 	&& !defined(__INTEL_COMPILER)
 template <typename T>
-WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_popcount(T x) noexcept {
+WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_popcount(T x) noexcept {
 	constexpr int _Digits = std::numeric_limits<T>::digits;
 	if constexpr (_Digits <= 16) {
 		return static_cast<int>(__popcnt16(x));

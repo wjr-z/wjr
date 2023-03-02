@@ -18,7 +18,7 @@ WJR_CONSTEXPR20 int countl_zero(T x) noexcept {
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
 WJR_CONSTEXPR20 int countl_one(T x) noexcept {
-	return countl_zero(static_cast<T>(~x));
+	return wjr::countl_zero(static_cast<T>(~x));
 }
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
@@ -28,7 +28,7 @@ WJR_CONSTEXPR20 int countr_zero(T x) noexcept {
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
 WJR_CONSTEXPR20 int countr_one(T x) noexcept {
-	return countr_zero(static_cast<T>(~x));
+	return wjr::countr_zero(static_cast<T>(~x));
 }
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>

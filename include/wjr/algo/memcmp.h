@@ -2,7 +2,9 @@
 #ifndef __WJR_ALGO_MEMCMP_H
 #define __WJR_ALGO_MEMCMP_H
 
-#include <wjr/algo/macro.h>
+#include <wjr/literals.h>
+#include <wjr/simd/simd_intrin.h>
+
 #if defined(__HAS_FAST_MEMCMP)
 
 #define __WJR_MEMCMP_ONE_NORMAL(st)														\
@@ -76,15 +78,6 @@ bool __memcmp(const T* s0, const T* s1, size_t n, _Pred pred) {
 	using sint = typename simd_t::int_type;
 	constexpr uintptr_t width = simd_t::width() / (8 * _Mysize);
 	constexpr uintptr_t bound = width * _Mysize;
-
-	if (is_constant_p(n) && n <= 4_KiB) {
-		for (size_t i = 0; i < n; ++i) {
-			if (!pred(s0[i], s1[i])) {
-				return false;
-			}
-		}
-		return true;
-	}
 
 	if (is_unlikely(n == 0)) return true;
 

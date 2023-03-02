@@ -2,16 +2,112 @@
 #ifndef __WJR_TYPE_TRAITS_H
 #define __WJR_TYPE_TRAITS_H
 
-#include <cassert>
-#include <memory>
-#include <stdexcept>
-#include <iterator>
-#include <vector>
 #include <functional>
-//#include <wjr/macro.h>
-#include <wjr/literals.h>
+#include <limits>
+#include <wjr/macro.h>
 
 _WJR_BEGIN
+
+#define REGISTER_HAS_MEMBER_FUNCTION(FUNC, NAME)								\
+template<typename Enable, typename T, typename...Args>							\
+struct __has_member_function_##NAME : std::false_type {};						\
+template<typename T, typename...Args>											\
+struct __has_member_function_##NAME <std::void_t<decltype(						\
+	std::declval<T>(). FUNC (std::declval<Args>()...))>, T, Args...>			\
+	: std::true_type {};														\
+template<typename T, typename...Args>											\
+struct has_member_function_##NAME :												\
+	__has_member_function_##NAME<void, T, Args...> {};							\
+template<typename T, typename...Args>											\
+constexpr bool has_member_function_##NAME##_v =									\
+	has_member_function_##NAME<T, Args...>::value;
+
+#define REGISTER_HAS_STATIC_MEMBER_FUNCTION(FUNC, NAME)							\
+template<typename Enable, typename T, typename...Args>							\
+struct __has_static_member_function_##NAME : std::false_type {};				\
+template<typename T, typename...Args>											\
+struct __has_static_member_function_##NAME <std::void_t<decltype(				\
+	T:: FUNC (std::declval<Args>()...))>, T, Args...>							\
+	: std::true_type {};														\
+template<typename T, typename...Args>											\
+struct has_static_member_function_##NAME :										\
+	__has_static_member_function_##NAME<void, T, Args...> {};					\
+template<typename T, typename...Args>											\
+constexpr bool has_static_member_function_##NAME##_v =							\
+	has_static_member_function_##NAME<T, Args...>::value;
+
+#define REGISTER_HAS_GLOBAL_FUNCTION(FUNC, NAME)								\
+template<typename Enable, typename...Args>										\
+struct __has_global_function_##NAME : std::false_type {};						\
+template<typename...Args>														\
+struct __has_global_function_##NAME <std::void_t<decltype(						\
+	FUNC (std::declval<Args>()...))>, Args...>									\
+	: std::true_type {};														\
+template<typename...Args>														\
+struct has_global_function_##NAME :												\
+	__has_global_function_##NAME<void, Args...> {};								\
+template<typename...Args>														\
+constexpr bool has_global_function_##NAME##_v =									\
+	has_global_function_##NAME<Args...>::value;
+
+#define REGISTER_HAS_GLOBAL_BINARY_OPERATOR(OP, NAME)							\
+template<typename Enable, typename T, typename U>								\
+struct __has_global_binary_operator_##NAME : std::false_type {};				\
+template<typename T, typename U>												\
+struct __has_global_binary_operator_##NAME <std::void_t<decltype(				\
+	std::declval<T>() OP std::declval<U>())>, T, U>								\
+	: std::true_type {};														\
+template<typename T, typename U>												\
+struct has_global_binary_operator_##NAME :										\
+	__has_global_binary_operator_##NAME<void, T, U> {};							\
+template<typename T, typename U>												\
+constexpr bool has_global_binary_operator_##NAME##_v =							\
+	has_global_binary_operator_##NAME<T, U>::value;								\
+template<typename T, typename U>												\
+struct has_global_binary_operator<T, U, std:: NAME<>> :							\
+	has_global_binary_operator_##NAME<T, U> {};
+
+#define REGISTER_HAS_GLOBAL_UNARY_OPERATOR(OP, NAME)							\
+template<typename Enable, typename T>											\
+struct __has_global_unary_operator_##NAME : std::false_type {};					\
+template<typename T>															\
+struct __has_global_unary_operator_##NAME <std::void_t<decltype(				\
+	OP std::declval<T>())>, T>													\
+	: std::true_type {};														\
+template<typename T>															\
+struct has_global_unary_operator_##NAME :										\
+	__has_global_unary_operator_##NAME<void, T> {};								\
+template<typename T>															\
+constexpr bool has_global_unary_operator_##NAME##_v =							\
+	has_global_unary_operator_##NAME<T>::value;
+
+#define REGISTER_HAS_TYPE(TYPE, NAME)											\
+template<typename Enable, typename T>							                \
+struct __has_type_##NAME : std::false_type {};				                    \
+template<typename T>											                \
+struct __has_type_##NAME <std::void_t<decltype(				                    \
+	std::declval<typename T::TYPE>())>, T>							            \
+	: std::true_type {};														\
+template<typename T>											                \
+struct has_type_##NAME :										                \
+	__has_static_member_function_##NAME<void, T> {};					        \
+template<typename T>											                \
+constexpr bool has_type_##NAME##_v =							                \
+	has_type_##NAME<T>::value;
+
+#define REGISTER_HAS_TYPE_ARGS(TYPE, NAME)										\
+template<typename Enable, typename T, typename...Args>							\
+struct __has_type_##NAME : std::false_type {};				                    \
+template<typename T, typename...Args>											\
+struct __has_type_##NAME <std::void_t<decltype(				                    \
+	std::declval<typename T::template TYPE<Args...>>())>, T, Args...>			\
+	: std::true_type {};														\
+template<typename T, typename...Args>											\
+struct has_type_##NAME :										                \
+	__has_type_##NAME<void, T, Args...> {};					                    \
+template<typename T, typename...Args>											\
+constexpr bool has_type_##NAME##_v =							                \
+	has_type_##NAME<T, Args...>::value;
 
 WJR_INTRINSIC_CONSTEXPR bool is_likely(bool f) noexcept {
 #if WJR_HAS_BUILTIN(__builtin_expect) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
@@ -81,13 +177,10 @@ WJR_INTRINSIC_CONSTEXPR bool is_constant_p(T x) noexcept {
 #define WJR_HAS_WEAK_CONSTANT_P
 #endif
 
-struct move_tag {};
+struct disable_tag {};
 
-struct power_of_two_tag {
-	unsigned long long value;
-};
-
-struct zero_tag {};
+struct default_construct_tag {};
+struct value_construct_tag {};
 
 constexpr size_t byte_width = WJR_BYTE_WIDTH;
 
@@ -96,79 +189,6 @@ struct has_global_binary_operator : std::false_type {};
 
 template<typename T, typename U, typename _Pred>
 constexpr bool has_global_binary_operator_v = has_global_binary_operator<T, U, _Pred>::value;
-
-#define REGISTER_HAS_MEMBER_FUNCTION(FUNC, NAME)								\
-template<typename Enable, typename T, typename...Args>							\
-struct __has_member_function_##NAME : std::false_type {};						\
-template<typename T, typename...Args>											\
-struct __has_member_function_##NAME <std::void_t<decltype(						\
-	std::declval<T>(). FUNC (std::declval<Args>()...))>, T, Args...>			\
-	: std::true_type {};														\
-template<typename T, typename...Args>											\
-struct has_member_function_##NAME :												\
-	__has_member_function_##NAME<void, T, Args...> {};							\
-template<typename T, typename...Args>											\
-constexpr bool has_member_function_##NAME##_v =									\
-	has_member_function_##NAME<T, Args...>::value;
-
-#define REGISTER_HAS_STATIC_MEMBER_FUNCTION(FUNC, NAME)							\
-template<typename Enable, typename T, typename...Args>							\
-struct __has_static_member_function_##NAME : std::false_type {};				\
-template<typename T, typename...Args>											\
-struct __has_static_member_function_##NAME <std::void_t<decltype(				\
-	T:: FUNC (std::declval<Args>()...))>, T, Args...>							\
-	: std::true_type {};														\
-template<typename T, typename...Args>											\
-struct has_static_member_function_##NAME :										\
-	__has_static_member_function_##NAME<void, T, Args...> {};					\
-template<typename T, typename...Args>											\
-constexpr bool has_static_member_function_##NAME##_v =							\
-	has_static_member_function_##NAME<T, Args...>::value;
-
-#define REGISTER_HAS_GLOBAL_FUNCTION(FUNC, NAME)								\
-template<typename Enable, typename...Args>										\
-struct __has_global_function_##NAME : std::false_type {};						\
-template<typename...Args>														\
-struct __has_global_function_##NAME <std::void_t<decltype(						\
-	FUNC(std::declval<Args>()...))>, Args...>									\
-	: std::true_type {};														\
-template<typename...Args>														\
-struct has_global_function_##NAME :												\
-	__has_global_function_##NAME<void, Args...> {};								\
-template<typename...Args>														\
-constexpr bool has_global_function_##NAME##_v =									\
-	has_global_function_##NAME<Args...>::value;
-
-#define REGISTER_HAS_GLOBAL_BINARY_OPERATOR(OP, NAME)							\
-template<typename Enable, typename T, typename U>								\
-struct __has_global_binary_operator_##NAME : std::false_type {};				\
-template<typename T, typename U>												\
-struct __has_global_binary_operator_##NAME <std::void_t<decltype(				\
-	std::declval<T>() OP std::declval<U>())>, T, U>								\
-	: std::true_type {};														\
-template<typename T, typename U>												\
-struct has_global_binary_operator_##NAME :										\
-	__has_global_binary_operator_##NAME<void, T, U> {};							\
-template<typename T, typename U>												\
-constexpr bool has_global_binary_operator_##NAME##_v =							\
-	has_global_binary_operator_##NAME<T, U>::value;								\
-template<typename T, typename U>												\
-struct has_global_binary_operator<T, U, std:: NAME<>> :							\
-	has_global_binary_operator_##NAME<T, U> {};
-
-#define REGISTER_HAS_GLOBAL_UNARY_OPERATOR(OP, NAME)							\
-template<typename Enable, typename T>											\
-struct __has_global_unary_operator_##NAME : std::false_type {};					\
-template<typename T>															\
-struct __has_global_unary_operator_##NAME <std::void_t<decltype(				\
-	OP std::declval<T>())>, T>													\
-	: std::true_type {};														\
-template<typename T>															\
-struct has_global_unary_operator_##NAME :										\
-	__has_global_unary_operator_##NAME<void, T> {};								\
-template<typename T>															\
-constexpr bool has_global_unary_operator_##NAME##_v =							\
-	has_global_unary_operator_##NAME<T>::value;
 
 REGISTER_HAS_MEMBER_FUNCTION(operator(), call_operator);
 REGISTER_HAS_MEMBER_FUNCTION(operator[], subscript_operator);
@@ -195,8 +215,29 @@ template<typename T, typename...Args>
 constexpr bool is_any_of_v = is_any_of<T, Args...>::value;
 
 template<typename T>
+using remove_ref_t = std::remove_reference_t<T>;
+
+template<typename T>
+using remove_cvref_t = std::remove_cv_t<remove_ref_t<T>>;
+
+template<typename T>
+using remove_cref_t = std::remove_const_t<remove_ref_t<T>>;
+
+template<typename T>
+using add_lref_t = std::add_lvalue_reference_t<T>;
+
+template<typename T>
+using add_rref_t = std::add_rvalue_reference_t<T>;
+
+template<typename T>
+using add_cvref_t = add_lref_t<std::add_cv_t<T>>;
+
+template<typename T>
+using add_cref_t = add_lref_t<std::add_const_t<T>>;
+
+template<typename T>
 struct is_standard_comparator : 
-	is_any_of<std::remove_cv_t<T>, 
+	is_any_of<remove_cvref_t<T>, 
 	std::less<>, 
 	std::less_equal<>, 
 	std::equal_to<>, 
@@ -220,51 +261,13 @@ constexpr bool is_left_standard_comparator_v = is_left_standard_comparator<T>::v
 
 template<typename T>
 struct is_right_standard_comparator :
-	is_any_of<std::remove_cv_t<T>,
+	is_any_of<remove_cvref_t<T>,
 	std::greater<>,
 	std::greater_equal<>
 	> {};
 
 template<typename T>
 constexpr bool is_right_standard_comparator_v = is_right_standard_comparator<T>::value;
-
-template<typename T>
-struct swap_standard_comparator_helper {
-	using type = T;
-};
-
-template<>
-struct swap_standard_comparator_helper<std::less<>> {
-	using type = std::greater<>;
-};
-
-template<>
-struct swap_standard_comparator_helper<std::less_equal<>> {
-	using type = std::greater_equal<>;
-};
-
-template<>
-struct swap_standard_comparator_helper<std::greater<>> {
-	using type = std::less<>;
-};
-
-template<>
-struct swap_standard_comparator_helper<std::greater_equal<>> {
-	using type = std::less_equal<>;
-};
-
-template<>
-struct swap_standard_comparator_helper<std::equal_to<>> {
-	using type = std::equal_to<>;
-};
-
-template<typename T>
-struct swap_standard_comparator {
-	using type = typename swap_standard_comparator_helper<std::remove_cv_t<T>>::type;
-};
-
-template<typename T>
-using swap_standard_comparator_t = typename swap_standard_comparator<T>::type;
 
 template<typename T>
 struct unrefwrap {
@@ -288,6 +291,12 @@ using iter_diff_t = typename std::iterator_traits<T>::difference_type;
 template<typename T>
 using iter_val_t = typename std::iterator_traits<T>::value_type;
 
+template<typename T>
+using iter_ref_t = typename std::iterator_traits<T>::reference;
+
+//template<typename T>
+//using iter_ptr_t = typename std::iterator_traits<T>::pointer;
+
 template<typename T, typename = void>
 struct is_iterator : std::false_type {};
 
@@ -297,12 +306,21 @@ struct is_iterator<T, std::void_t<iter_cat_t<T>>> : std::true_type {};
 template<typename T>
 constexpr bool is_iterator_v = is_iterator<T>::value;
 
+template<typename _Iter, typename = void>
+struct _Is_contiguous_iterator_helper : std::false_type {};
+
+template<typename _Iter>
+struct _Is_contiguous_iterator_helper<_Iter, typename _Iter::is_contiguous_iterator> : std::true_type {};
+
+template<typename T>
+struct _Is_contiguous_iterator_helper<T*, void> : std::true_type {};
+
 #if defined(WJR_CPP_20)
 template<typename T>
-struct is_contiguous_iterator : std::bool_constant<std::contiguous_iterator<T>> {};
+struct is_contiguous_iterator : std::bool_constant<std::contiguous_iterator<T> || _Is_contiguous_iterator_helper<T>::value> {};
 #else
 template<typename T>
-struct is_contiguous_iterator : std::is_pointer<T> {};
+struct is_contiguous_iterator : _Is_contiguous_iterator_helper<T> {};
 #endif
 
 template<typename _Iter>
@@ -403,46 +421,14 @@ using uintptr_t = uint_t<sizeof(void*) * 8>;
 template<size_t n, bool __s>
 using int_or_uint_t = std::conditional_t<__s, int_t<n>, uint_t<n>>;
 
-// Whether the type T can be normalized to an integer type 
-// int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t(in namespace wjr)
-// the type T must be normalized to an integer type,
-// then it can be used in the algorithms in namespace wjr
-
-template<typename T, bool = std::is_integral_v<T>>
-struct __integral_normalization_helper {
+template<typename T>
+struct make_integral {
+	static_assert(std::is_integral_v<T>, "T must be an integral type");
 	using type = int_or_uint_t<sizeof(T) * 8, std::is_signed_v<T>>;
 };
 
 template<typename T>
-struct __integral_normalization_helper<T, false> {
-	using type = T;
-};
-
-template<typename T>
-struct integral_normalization {
-	using type = typename __integral_normalization_helper<std::remove_cv_t<T>>::type;
-};
-
-template<typename T>
-using integral_normalization_t = typename integral_normalization<T>::type;
-
-template<typename T>
-constexpr integral_normalization_t<T> make_integral_normalization(const T& t) {
-	return static_cast<integral_normalization_t<T>>(t);
-}
-
-template<typename T>
-struct is_normalized_integral :
-	is_any_of<std::remove_cv_t<T>, int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t> {};
-
-template<typename T>
-constexpr bool is_normalized_integral_v = is_normalized_integral<T>::value;
-
-template<typename...Args>
-struct is_normalized_integrals : std::conjunction<is_normalized_integral<Args>...> {};
-
-template<typename...Args>
-constexpr bool is_normalized_integrals_v = is_normalized_integrals<Args...>::value;
+using make_integral_t = typename make_integral<T>::type;
 
 template<typename T>
 constexpr std::make_unsigned_t<T> make_unsigned(T t) {
@@ -458,14 +444,6 @@ struct is_comparable : std::conjunction<
 template<typename T, typename U, typename _Pred>
 constexpr bool is_comparable_v = is_comparable<T, U, _Pred>::value;
 
-// Whether the memory comparison algorithm can be used directly
-// The corresponding operator must exist first, 
-// and can be normalized to an integer (T op U , U op T)
-// And the comparison result of the normalized integer 
-// is the same as the original result (It needs to be realized by itself)
-// And the comparison of the normalized integer
-// is the same as the memory comparison result
-
 // note that (int8_t)(-1) != (uint8_t)(-1)
 // but in memory they are the same
 template<typename T, typename U, bool = sizeof(T) == sizeof(U) && std::is_integral_v<T>&& std::is_integral_v<U>>
@@ -479,7 +457,7 @@ template<typename T, typename U, typename _Pred>
 struct is_memory_comparable : std::conjunction<
 	is_standard_comparator<_Pred>,
 	is_comparable<T, U, _Pred>,
-	std::bool_constant<__is_memory_comparable_helper_v<integral_normalization_t<T>, integral_normalization_t<U>>>
+	std::bool_constant<__is_memory_comparable_helper_v<T, U>>
 > {};
 
 template<typename T, typename U, typename _Pred>
@@ -494,10 +472,11 @@ enum class ipmc_result {
 template<typename T, typename U, typename _Pred, 
 	std::enable_if_t<is_any_of_v<_Pred, std::equal_to<>, std::not_equal_to<>>, int> = 0>
 constexpr ipmc_result is_possible_memory_comparable(const U& v, _Pred pred) {
-	using nt = integral_normalization_t<T>;
-	using nu = integral_normalization_t<U>;
+	static_assert(std::is_integral_v<T> && std::is_integral_v<U>, "T and U must be integral types");
+	using nt = T;
+	using nu = U;
 	using cat = std::common_type_t<nt, nu>;
-	auto _Val = static_cast<cat>(make_integral_normalization(v));
+	auto _Val = static_cast<cat>(v);
 	if constexpr (std::is_signed_v<nt> && std::is_unsigned_v<cat>) {
 		static_assert(static_cast<nt>(-1) == std::numeric_limits<cat>::max(), "error");
 		if constexpr (std::is_same_v<_Pred, std::equal_to<>>) {
@@ -559,6 +538,18 @@ struct is_integrals : std::conjunction<std::is_integral<Args>...> {};
 template<typename...Args>
 constexpr bool is_integrals_v = is_integrals<Args...>::value;
 
+template<typename...Args>
+struct is_floating_points : std::conjunction<std::is_floating_point<Args>...> {};
+
+template<typename...Args>
+constexpr bool is_floating_points_v = is_floating_points<Args...>::value;
+
+template<typename...Args>
+struct is_arithmetics : std::conjunction<std::is_arithmetic<Args>...> {};
+
+template<typename...Args>
+constexpr bool is_arithmetics_v = is_arithmetics<Args...>::value;
+
 template<typename T>
 struct is_unsigned_integral : std::conjunction<std::is_integral<T>, std::is_unsigned<T>> {};
 
@@ -616,25 +607,51 @@ namespace enum_ops {
 	}
 }
 
-namespace __To_address {
+namespace _To_address_helper {
 	REGISTER_HAS_STATIC_MEMBER_FUNCTION(to_address, to_address);
 }
 
 template<typename T>
-constexpr auto to_address(T&& p) noexcept {
-	if constexpr (__To_address::has_static_member_function_to_address_v<std::pointer_traits<std::decay_t<T&&>>, T&&>) {
-		return std::pointer_traits<std::decay_t<T&&>>::to_address(std::forward<T>(p));
-	}
-	else if constexpr (wjr::has_member_function_point_to_operator_v<T&&>) {
-		return to_address(std::forward<T>(p).operator->());
+constexpr auto to_address(T* p) noexcept {
+	static_assert(!std::is_function_v<T>, "");
+	return p;
+}
+
+template<typename T>
+constexpr auto to_address(const T& p) noexcept {
+	if constexpr (_To_address_helper::has_static_member_function_to_address_v<std::pointer_traits<T>, T>) {
+		return std::pointer_traits<T>::to_address(p);
 	}
 	else {
-		return std::forward<T>(p);
+		return wjr::to_address(p.operator->());
 	}
 }
 
 template<typename T>
-using to_address_t = decltype(to_address(std::declval<T>()));
+constexpr void* voidify(const T* ptr) {
+	return const_cast<void*>(static_cast<const volatile void*>(ptr));
+}
+
+template<typename T>
+constexpr auto get_address(T* p) noexcept {
+	return p;
+}
+
+template<typename T>
+constexpr auto get_address(const T& p) noexcept {
+	if constexpr (_To_address_helper::has_static_member_function_to_address_v<std::pointer_traits<T>, T>) {
+		return std::pointer_traits<T>::to_address(p);
+	}
+	else if constexpr (wjr::has_member_function_point_to_operator_v<add_cref_t<T>>) {
+		return wjr::get_address(p.operator->());
+	}
+	else {
+		return std::addressof(*std::forward<T>(p));
+	}
+}
+
+template<typename iter>
+using iter_address_t = std::add_pointer_t<remove_ref_t<iter_ref_t<iter>>>;
 
 template<typename T>
 struct type_identity {
@@ -718,7 +735,7 @@ constexpr __make_iter_wrapper<iter> make_iter_wrapper(iter first, iter last) {
 }
 
 template<typename T>
-using alloc_pointer_t = typename std::allocator_traits<T>::pointer;
+using alloc_ptr_t = typename std::allocator_traits<T>::pointer;
 
 template<typename T>
 using alloc_value_t = typename std::allocator_traits<T>::value_type;
@@ -745,225 +762,20 @@ REGISTER_HAS_MEMBER_FUNCTION(construct, construct);
 
 // Use the default destructor, which is beneficial for optimization.
 // But if the destructor of the allocator has side effects, then do not use this allocator.
-template<typename Alloc, typename _Ptr>
-struct use_default_allocator_destroy : std::disjunction<is_default_allocator<Alloc>,
-	std::negation<has_member_function_destroy<Alloc, _Ptr>>> {};
 
-template<typename Alloc, typename _Ptr>
-constexpr bool use_default_allocator_destroy_v = use_default_allocator_destroy<Alloc, _Ptr>::value;
+template<typename Alloc, typename Iter, typename...Args>
+struct is_default_allocator_construct : std::disjunction<is_default_allocator<Alloc>,
+	std::negation<has_member_function_construct<Alloc, iter_address_t<Iter>, Args...>>> {};
 
-template<typename Alloc>
-WJR_CONSTEXPR20 void destroy_at_a(alloc_pointer_t<Alloc> _Where, Alloc& al) {
-	using pointer = alloc_pointer_t<Alloc>;
-	if constexpr (use_default_allocator_destroy_v<Alloc, pointer>) {
-		std::destroy_at(_Where);
-	}
-	else {
-		std::allocator_traits<Alloc>::destroy(al, std::addressof(*_Where));
-	}
-}
+template<typename Alloc, typename Iter, typename...Args>
+constexpr bool is_default_allocator_construct_v = is_default_allocator_construct<Alloc, Iter, Args...>::value;
 
-template<typename Alloc>
-WJR_CONSTEXPR20 void destroy_a(alloc_pointer_t<Alloc> _First, alloc_pointer_t<Alloc> _Last, Alloc& al) {
-	using pointer = alloc_pointer_t<Alloc>;
-	using value_type = alloc_value_t<Alloc>;
-	if constexpr (!std::conjunction_v<std::is_trivially_destructible<value_type>, 
-		use_default_allocator_destroy<Alloc, pointer>>) {
-		for (; _First != _Last; ++_First) {
-			destroy_at_a(_First, al);
-		}
-	}
-}
+template<typename Alloc, typename Iter>
+struct is_default_allocator_destroy : std::disjunction<is_default_allocator<Alloc>,
+	std::negation<has_member_function_destroy<Alloc, iter_address_t<Iter>>>> {};
 
-template<typename Alloc>
-WJR_CONSTEXPR20 void destroy_n_a(alloc_pointer_t<Alloc> _First, alloc_size_t<Alloc> n, Alloc& al) {
-	using pointer = alloc_pointer_t<Alloc>;
-	using value_type = alloc_value_t<Alloc>;
-	if constexpr (!std::conjunction_v<std::is_trivially_destructible<value_type>,
-		use_default_allocator_destroy<Alloc, pointer>>) {
-		for (; n > 0; --n, ++_First) {
-			destroy_at_a(_First, al);
-		}
-	}
-}
-
-template<typename Alloc, typename Ptr, typename...Args>
-struct use_default_allocator_construct : std::disjunction<is_default_allocator<Alloc>,
-	std::negation<has_member_function_construct<Alloc, Ptr, Args...>>> {};
-
-template<typename Alloc, typename Ptr, typename...Args>
-constexpr bool use_default_allocator_construct_v = use_default_allocator_construct<Alloc, Ptr, Args...>::value;
-
-template<typename Alloc>
-WJR_CONSTEXPR20 void uninitialized_default_construct_a(
-	alloc_pointer_t<Alloc> _First, alloc_pointer_t<Alloc> _Last, Alloc& al) {
-	using pointer = alloc_pointer_t<Alloc>;
-	using value_type = alloc_value_t<Alloc>;
-	if constexpr (use_default_allocator_construct_v<Alloc, pointer>) {
-		std::uninitialized_default_construct(_First, _Last);
-	}
-	else {
-		if constexpr (!std::is_trivially_default_constructible_v<value_type>) {
-			for (; _First != _Last; ++_First) {
-				std::allocator_traits<Alloc>::construct(al, std::addressof(*_First));
-			}
-		}
-	}
-}
-
-template<typename Alloc>
-WJR_CONSTEXPR20 void uninitialized_default_construct_n_a(
-	alloc_pointer_t<Alloc> _First, alloc_size_t<Alloc> _Count, Alloc& al) {
-	using pointer = alloc_pointer_t<Alloc>;
-	using value_type = alloc_value_t<Alloc>;
-	if constexpr (use_default_allocator_construct_v<Alloc, pointer>) {
-		std::uninitialized_default_construct_n(_First, _Count);
-	}
-	else {
-		if constexpr (!std::is_trivially_default_constructible_v<value_type>) {
-			for (; _Count > 0; --_Count, ++_First) {
-				std::allocator_traits<Alloc>::construct(al, std::addressof(*_First));
-			}
-		}
-	}
-}
-
-template<typename Alloc>
-WJR_CONSTEXPR20 void uninitialized_value_construct_a(
-	alloc_pointer_t<Alloc> _First, alloc_pointer_t<Alloc> _Last, Alloc& al) {
-	using pointer = alloc_pointer_t<Alloc>;
-	if constexpr (use_default_allocator_construct_v<Alloc, pointer>) {
-		std::uninitialized_value_construct(_First, _Last);
-	}
-	else {
-		pointer _Next = _First;
-		for (; _Next != _Last; ++_Next) {
-			std::allocator_traits<Alloc>::construct(al, std::addressof(*_Next));
-		}
-	}
-}
-
-template<typename Alloc>
-WJR_CONSTEXPR20 alloc_pointer_t<Alloc> uninitialized_value_construct_n_a(
-	alloc_pointer_t<Alloc> _First, alloc_size_t<Alloc> _Count, Alloc& al) {
-	using pointer = alloc_pointer_t<Alloc>;
-	if constexpr (use_default_allocator_construct_v<Alloc, pointer>) {
-		return std::uninitialized_value_construct_n(_First, _Count);
-	}
-	else {
-		pointer _Next = _First;
-		for (; _Count > 0; --_Count) {
-			std::allocator_traits<Alloc>::construct(al, std::addressof(*_Next));
-			++_Next;
-		}
-		return _Next;
-	}
-}
-
-template<typename iter, typename Alloc, std::enable_if_t<is_iterator_v<iter>, int> = 0>
-WJR_CONSTEXPR20 alloc_pointer_t<Alloc> uninitialized_copy_a(
-	iter _First, iter _Last, alloc_pointer_t<Alloc> _Dest, Alloc& al) {
-	using pointer = alloc_pointer_t<Alloc>;
-	if constexpr (use_default_allocator_construct_v<Alloc, pointer, decltype(*_First)>) {
-		return std::uninitialized_copy(_First, _Last, _Dest);
-	}
-	else {
-		pointer _Next = _Dest;
-		for (; _First != _Last; ++_First) {
-			std::allocator_traits<Alloc>::construct(al, std::addressof(*_Next), *_First);
-			++_Next;
-		}
-		return _Next;
-	}
-}
-
-template<typename iter, typename Alloc, std::enable_if_t<is_iterator_v<iter>, int> = 0>
-WJR_CONSTEXPR20 alloc_pointer_t<Alloc> uninitialized_copy_n_a(
-	iter _First, size_t _Count, alloc_pointer_t<Alloc> _Dest, Alloc& al) {
-	using pointer = alloc_pointer_t<Alloc>;
-	if constexpr (use_default_allocator_construct_v<Alloc, pointer, decltype(*_First)>) {
-		return std::uninitialized_copy_n(_First, _Count, _Dest);
-	}
-	else {
-		pointer _Next = _Dest;
-		for (; _Count > 0; --_Count) {
-			std::allocator_traits<Alloc>::construct(al, std::addressof(*_Next), *_First);
-			++_Next;
-			++_First;
-		}
-		return _Next;
-	}
-}
-
-template<typename iter, typename Alloc,	std::enable_if_t<is_iterator_v<iter>, int> = 0>
-WJR_CONSTEXPR20 alloc_pointer_t<Alloc> uninitialized_move_a(
-	iter _First, iter _Last, alloc_pointer_t<Alloc> _Dest, Alloc& al) {
-	using pointer = alloc_pointer_t<Alloc>;
-	if constexpr (use_default_allocator_construct_v<Alloc, pointer, decltype(std::move(*_First))>) {
-		return std::uninitialized_move(_First, _Last, _Dest);
-	}
-	else {
-		pointer _Next = _Dest;
-		for (; _First != _Last; ++_First) {
-			std::allocator_traits<Alloc>::construct(al, std::addressof(*_Next), std::move(*_First));
-			++_Next;
-		}
-		return _Next;
-	}
-}
-
-template<typename iter, typename Alloc,	std::enable_if_t<is_iterator_v<iter>, int> = 0>
-WJR_CONSTEXPR20 std::pair<iter, alloc_pointer_t<Alloc>> uninitialized_move_n_a(
-	iter _First, size_t _Count, alloc_pointer_t<Alloc> _Dest, Alloc& al) {
-	using pointer = alloc_pointer_t<Alloc>;
-	if constexpr (use_default_allocator_construct_v<Alloc, pointer, decltype(std::move(*_First))>) {
-		return std::uninitialized_move_n(_First, _Count, _Dest);
-	}
-	else {
-		pointer _Next = _Dest;
-		for (; _Count > 0; --_Count) {
-			std::allocator_traits<Alloc>::construct(al, std::addressof(*_Next), std::move(*_First));
-			++_Next;
-			++_First;
-		}
-		return { _First, _Next };
-	}
-}
-
-template<typename Alloc, typename ValueType>
-WJR_CONSTEXPR20 void uninitialized_fill_a(
-	alloc_pointer_t<Alloc> _First, alloc_pointer_t<Alloc> _Last,
-	const ValueType& _Val, Alloc& al) {
-	using pointer = alloc_pointer_t<Alloc>;
-	if constexpr (use_default_allocator_construct_v<Alloc, pointer, decltype(_Val)>) {
-		std::uninitialized_fill(_First, _Last, _Val);
-	}
-	else {
-		pointer _Next = _First;
-		for (; _Next != _Last; ++_Next) {
-			std::allocator_traits<Alloc>::construct(al, std::addressof(*_Next), _Val);
-		}
-	}
-}
-
-template<typename Alloc, typename ValueType>
-WJR_CONSTEXPR20 alloc_pointer_t<Alloc> uninitialized_fill_n_a(
-	alloc_pointer_t<Alloc> _First,
-	alloc_size_t<Alloc> _Count,
-	const ValueType& _Val, Alloc& al) {
-	using pointer = alloc_pointer_t<Alloc>;
-	if constexpr (use_default_allocator_construct_v<Alloc, pointer, decltype(_Val)>) {
-		return std::uninitialized_fill_n(_First, _Count, _Val);
-	}
-	else {
-		pointer _Next = _First;
-		for (; 0 < _Count; --_Count) {
-			std::allocator_traits<Alloc>::construct(al, std::addressof(*_Next), _Val);
-			++_Next;
-		}
-		return _Next;
-	}
-}
+template<typename Alloc, typename Iter>
+constexpr bool is_default_allocator_destroy_v = is_default_allocator_destroy<Alloc, Iter>::value;
 
 _WJR_END
 
@@ -979,6 +791,7 @@ namespace std {
 	REGISTER_HAS_GLOBAL_FUNCTION(data, data);
 	REGISTER_HAS_GLOBAL_FUNCTION(size, size);
 	REGISTER_HAS_MEMBER_FUNCTION(size, size);
+	REGISTER_HAS_GLOBAL_FUNCTION(swap, swap);
 }
 
 _WJR_BEGIN

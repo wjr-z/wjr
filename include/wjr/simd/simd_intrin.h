@@ -76,43 +76,20 @@ _WJR_END
 
 _WJR_SIMD_BEGIN
 
-// test simd function
-#define __TEST_SIMD_FUNCTION(NAME) REGISTER_HAS_GLOBAL_FUNCTION(NAME, NAME)
-
 #if defined(__SSE2__)
-__TEST_SIMD_FUNCTION(_mm_loadu_si16)
-__TEST_SIMD_FUNCTION(_mm_loadu_si32)
-__TEST_SIMD_FUNCTION(_mm_loadu_si64)
 
-template<typename T, std::enable_if_t<simd::has_global_function__mm_loadu_si16_v<T>, int> = 0>
-WJR_INTRINSIC_INLINE __m128i mm_loadu_si16(T p) {
-	return _mm_loadu_si16(p);
+WJR_INTRINSIC_INLINE static __m128i mm_loadu_si16(void const* p) {
+	return simd_cast<__m128i>(*reinterpret_cast<uint16_t const*>(p));
 }
 
-template<typename T, std::enable_if_t<!simd::has_global_function__mm_loadu_si16_v<T>, int> = 0>
-WJR_INTRINSIC_INLINE __m128i mm_loadu_si16(T p) {
-	return _mm_insert_epi16(_mm_setzero_si128(), *reinterpret_cast<const short*>(p), 0);
+WJR_INTRINSIC_INLINE static __m128i mm_loadu_si32(void const* p) {
+	return simd_cast<__m128i>(*reinterpret_cast<int32_t const*>(p));
 }
 
-template<typename T, std::enable_if_t<simd::has_global_function__mm_loadu_si32_v<T>, int> = 0>
-WJR_INTRINSIC_INLINE __m128i mm_loadu_si32(T p) {
-	return _mm_loadu_si32(p);
+WJR_INTRINSIC_INLINE static __m128i mm_loadu_si64(void const* p) {
+	return simd_cast<__m128i>(*reinterpret_cast<int64_t const*>(p));
 }
 
-template<typename T, std::enable_if_t<!simd::has_global_function__mm_loadu_si32_v<T>, int> = 0>
-WJR_INTRINSIC_INLINE __m128i mm_loadu_si32(T p) {
-	return simd_cast<__m128i>(*reinterpret_cast<const uint32_t*>(p));
-}
-
-template<typename T, std::enable_if_t<simd::has_global_function__mm_loadu_si64_v<T>, int> = 0>
-WJR_INTRINSIC_INLINE __m128i mm_loadu_si64(T p) {
-	return _mm_loadu_si64(p);
-}
-
-template<typename T, std::enable_if_t<!simd::has_global_function__mm_loadu_si64_v<T>, int> = 0>
-WJR_INTRINSIC_INLINE __m128i mm_loadu_si64(T p) {
-	return simd_cast<__m128i>(*reinterpret_cast<const uint64_t*>(p));
-}
 #endif // __SSE2__
 
 #undef __TEST_SIMD_FUNCTION
@@ -502,10 +479,10 @@ struct sse {
 		return _mm_extract_epi8(a, imm8);
 #else
 		if constexpr (imm8 & 1) {
-			return (extract_epi16(a, imm8 >> 1) >> 8;
+			return extract_epi16<imm8 >> 1>(a) >> 8;
 		}
 		else {
-			return extract_epi16(a, imm8 >> 1) & 0xff;
+			return extract_epi16 < imm8 >> 1 > (a) & 0xff;
 		}
 #endif // __SSE4_1__
 	}

@@ -2,10 +2,7 @@
 #ifndef __WJR_PRODUCT_H
 #define __WJR_PRODUCT_H
 
-#include <vector>
-#include <functional>
 #include <random>
-#include <iostream>
 
 #include <wjr/type_traits.h>
 
@@ -105,7 +102,7 @@ public:
 				return static_cast<T>(integer_dist_t<short_t>{__min, __max}(engine()));
 			}
 			else {
-				using type = integral_normalization_t<T>;
+				using type = int_or_uint_t<sizeof(T) * 8, std::is_signed_v<T>>;
 				return integer_dist_t<type>{__min, __max}(engine());
 			}
 		}
