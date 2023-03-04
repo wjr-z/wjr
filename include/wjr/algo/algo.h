@@ -14,7 +14,7 @@
 
 _WJR_ALGO_BEGIN
 
-#if defined(__HAS_FAST_MEMCHR)
+#if defined(_WJR_FAST_MEMCHR)
 template<typename T, typename U, typename _Pred>
 struct __has_fast_memchr : std::conjunction<
 	is_any_of<_Pred, std::equal_to<>, std::not_equal_to<>>,
@@ -109,9 +109,9 @@ const T* memchr(const T* s, U val, size_t n, _Pred pred) {
 	}
 }
 
-#endif // __HAS_FAST_MEMCHR
+#endif // _WJR_FAST_MEMCHR
 
-#if defined(__HAS_FAST_MEMCMP)
+#if defined(_WJR_FAST_MEMCMP)
 template<typename T, typename U, typename _Pred>
 struct __has_fast_memcmp : std::conjunction<
 	is_memory_comparable<T, U, _Pred>,
@@ -165,9 +165,9 @@ bool memcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
 	return ::memcmp(s0, s1, n * sizeof(T)) == 0;
 }
 
-#endif // __HAS_FAST_MEMCMP
+#endif // _WJR_FAST_MEMCMP
 
-#if defined(__HAS_FAST_MEMMIS)
+#if defined(_WJR_FAST_MEMMIS)
 template<typename T, typename U, typename _Pred>
 struct __has_fast_memmis : std::conjunction<
 	is_memory_comparable<T, U, _Pred>,
@@ -248,9 +248,9 @@ struct __has_fast_memrmis : __has_fast_memmis<T, U, _Pred> {};
 template<typename T, typename U, typename _Pred>
 constexpr bool __has_fast_memrmis_v = __has_fast_memrmis<T, U, _Pred>::value;
 
-#endif // __HAS_FAST_MEMMIS
+#endif // _WJR_FAST_MEMMIS
 
-#if defined(__HAS_FAST_MEMCNT)
+#if defined(_WJR_FAST_MEMCNT)
 template<typename T, typename U>
 struct __has_fast_memcnt : std::conjunction<
 	is_comparable<T, U, std::equal_to<>>,
@@ -280,7 +280,7 @@ struct __has_fast_memcnt : std::false_type {};
 template<typename T, typename U>
 constexpr bool __has_fast_memcnt_v = __has_fast_memcnt<T, U>::value;
 
-#endif // __HAS_FAST_MEMCNT
+#endif // _WJR_FAST_MEMCNT
 
 template<template<typename X, typename Y> typename TEST, typename T, typename U>
 struct __has_fast_memset_helper : std::conjunction<
@@ -292,35 +292,39 @@ constexpr bool __has_fast_memset_helper_v = __has_fast_memset_helper<TEST, T, U>
 
 template<template<typename X, typename Y> typename TEST, typename T, typename U>
 static void __memset_helper(T* s, const U& val, size_t n) {
-	auto __byte_array = TEST<T, const U&>::get(val);
-#if defined(__HAS_FAST_MEMSET)
-	constexpr auto _max_bytes_num = _Get_max_bytes_num<sizeof(T)>();
-	auto _bytes_num = _Get_bytes_num(__byte_array);
-
-	if (_bytes_num == 0) {
-		std::fill_n(s, n, val);
-		return;
-	}
 	
-	using value_type = uint_t<_max_bytes_num * 8>;
-	auto __s = reinterpret_cast<value_type*>(s);
-	auto __val = to_uint<_max_bytes_num>(__byte_array);
-	static_assert(std::is_same_v<decltype(__val), value_type>, "type mismatch");
-	__memset(__s, __val, n * (sizeof(T) / _max_bytes_num));
-#else
-	constexpr auto _max_bytes_num = 1;
-	auto _bytes_num = _Get_bytes_num(__byte_array);
-
-	if (_bytes_num != 1) {
+	if (is_constant_p(n) && n <= 4 / sizeof(T)) {
 		std::fill_n(s, n, val);
 		return;
 	}
 
-	using value_type = uint_t<_max_bytes_num * 8>;
+	const auto& _Val = TEST<T, const U&>::get(val);
+
+	auto __bytes_num = _Get_bytes_num<sizeof(T)>(_Val);
+
+#if defined(_WJR_FAST_MEMSET)
+	constexpr auto __max_bytes_num = _Get_max_bytes_num<sizeof(T)>();
+	if (__bytes_num == 0) {
+		std::fill_n(s, n, val);
+		return;
+	}
+#else
+	constexpr auto __max_bytes_num = 1;
+	if (__bytes_num != 1) {
+		std::fill_n(s, n, val);
+		return;
+	}
+#endif 
+
+	using value_type = uint_t<__max_bytes_num * 8>;
 	auto __s = reinterpret_cast<value_type*>(s);
-	auto __val = to_uint<_max_bytes_num>(__byte_array);
+	auto __val = *reinterpret_cast<const value_type*>(&_Val);
 	static_assert(std::is_same_v<decltype(__val), value_type>, "type mismatch");
-	::memset(__s, __val, n * (sizeof(T) / _max_bytes_num));
+	
+#if defined(_WJR_FAST_MEMSET)
+	__memset(__s, __val, n * (sizeof(T) / __max_bytes_num));
+#else
+	::memset(__s, __val, n * (sizeof(T) / __max_bytes_num));
 #endif
 }
 
@@ -357,7 +361,7 @@ constexpr bool __has_fast_memcpy_helper_v = __has_fast_memcpy_helper<TEST, T, U>
 template<template<typename X, typename Y> typename TEST, typename T, typename U>
 static void __memcpy_helper(T* s, const U* t, size_t n) {
 	static_assert(sizeof(T) == sizeof(U), "type mismatch");
-#if defined(__HAS_FAST_MEMCPY)
+#if defined(_WJR_FAST_MEMCPY)
 #else
 	::memcpy(s, t, n * sizeof(T));
 #endif
@@ -366,7 +370,7 @@ static void __memcpy_helper(T* s, const U* t, size_t n) {
 template<template<typename X, typename Y> typename TEST, typename T, typename U>
 static void __memmove_helper(T* s, const U* t, size_t n) {
 	static_assert(sizeof(T) == sizeof(U), "type mismatch");
-#if defined(__HAS_FAST_MEMCPY)
+#if defined(_WJR_FAST_MEMCPY)
 #else
 	::memmove(s, t, n * sizeof(T));
 #endif

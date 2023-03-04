@@ -4,110 +4,9 @@
 
 #include <functional>
 #include <limits>
-#include <wjr/macro.h>
+#include <wjr/cpuinfo.h>
 
 _WJR_BEGIN
-
-#define REGISTER_HAS_MEMBER_FUNCTION(FUNC, NAME)								\
-template<typename Enable, typename T, typename...Args>							\
-struct __has_member_function_##NAME : std::false_type {};						\
-template<typename T, typename...Args>											\
-struct __has_member_function_##NAME <std::void_t<decltype(						\
-	std::declval<T>(). FUNC (std::declval<Args>()...))>, T, Args...>			\
-	: std::true_type {};														\
-template<typename T, typename...Args>											\
-struct has_member_function_##NAME :												\
-	__has_member_function_##NAME<void, T, Args...> {};							\
-template<typename T, typename...Args>											\
-constexpr bool has_member_function_##NAME##_v =									\
-	has_member_function_##NAME<T, Args...>::value;
-
-#define REGISTER_HAS_STATIC_MEMBER_FUNCTION(FUNC, NAME)							\
-template<typename Enable, typename T, typename...Args>							\
-struct __has_static_member_function_##NAME : std::false_type {};				\
-template<typename T, typename...Args>											\
-struct __has_static_member_function_##NAME <std::void_t<decltype(				\
-	T:: FUNC (std::declval<Args>()...))>, T, Args...>							\
-	: std::true_type {};														\
-template<typename T, typename...Args>											\
-struct has_static_member_function_##NAME :										\
-	__has_static_member_function_##NAME<void, T, Args...> {};					\
-template<typename T, typename...Args>											\
-constexpr bool has_static_member_function_##NAME##_v =							\
-	has_static_member_function_##NAME<T, Args...>::value;
-
-#define REGISTER_HAS_GLOBAL_FUNCTION(FUNC, NAME)								\
-template<typename Enable, typename...Args>										\
-struct __has_global_function_##NAME : std::false_type {};						\
-template<typename...Args>														\
-struct __has_global_function_##NAME <std::void_t<decltype(						\
-	FUNC (std::declval<Args>()...))>, Args...>									\
-	: std::true_type {};														\
-template<typename...Args>														\
-struct has_global_function_##NAME :												\
-	__has_global_function_##NAME<void, Args...> {};								\
-template<typename...Args>														\
-constexpr bool has_global_function_##NAME##_v =									\
-	has_global_function_##NAME<Args...>::value;
-
-#define REGISTER_HAS_GLOBAL_BINARY_OPERATOR(OP, NAME)							\
-template<typename Enable, typename T, typename U>								\
-struct __has_global_binary_operator_##NAME : std::false_type {};				\
-template<typename T, typename U>												\
-struct __has_global_binary_operator_##NAME <std::void_t<decltype(				\
-	std::declval<T>() OP std::declval<U>())>, T, U>								\
-	: std::true_type {};														\
-template<typename T, typename U>												\
-struct has_global_binary_operator_##NAME :										\
-	__has_global_binary_operator_##NAME<void, T, U> {};							\
-template<typename T, typename U>												\
-constexpr bool has_global_binary_operator_##NAME##_v =							\
-	has_global_binary_operator_##NAME<T, U>::value;								\
-template<typename T, typename U>												\
-struct has_global_binary_operator<T, U, std:: NAME<>> :							\
-	has_global_binary_operator_##NAME<T, U> {};
-
-#define REGISTER_HAS_GLOBAL_UNARY_OPERATOR(OP, NAME)							\
-template<typename Enable, typename T>											\
-struct __has_global_unary_operator_##NAME : std::false_type {};					\
-template<typename T>															\
-struct __has_global_unary_operator_##NAME <std::void_t<decltype(				\
-	OP std::declval<T>())>, T>													\
-	: std::true_type {};														\
-template<typename T>															\
-struct has_global_unary_operator_##NAME :										\
-	__has_global_unary_operator_##NAME<void, T> {};								\
-template<typename T>															\
-constexpr bool has_global_unary_operator_##NAME##_v =							\
-	has_global_unary_operator_##NAME<T>::value;
-
-#define REGISTER_HAS_TYPE(TYPE, NAME)											\
-template<typename Enable, typename T>							                \
-struct __has_type_##NAME : std::false_type {};				                    \
-template<typename T>											                \
-struct __has_type_##NAME <std::void_t<decltype(				                    \
-	std::declval<typename T::TYPE>())>, T>							            \
-	: std::true_type {};														\
-template<typename T>											                \
-struct has_type_##NAME :										                \
-	__has_static_member_function_##NAME<void, T> {};					        \
-template<typename T>											                \
-constexpr bool has_type_##NAME##_v =							                \
-	has_type_##NAME<T>::value;
-
-#define REGISTER_HAS_TYPE_ARGS(TYPE, NAME)										\
-template<typename Enable, typename T, typename...Args>							\
-struct __has_type_##NAME : std::false_type {};				                    \
-template<typename T, typename...Args>											\
-struct __has_type_##NAME <std::void_t<decltype(				                    \
-	std::declval<typename T::template TYPE<Args...>>())>, T, Args...>			\
-	: std::true_type {};														\
-template<typename T, typename...Args>											\
-struct has_type_##NAME :										                \
-	__has_type_##NAME<void, T, Args...> {};					                    \
-template<typename T, typename...Args>											\
-constexpr bool has_type_##NAME##_v =							                \
-	has_type_##NAME<T, Args...>::value;
 
 WJR_INTRINSIC_CONSTEXPR bool is_likely(bool f) noexcept {
 #if WJR_HAS_BUILTIN(__builtin_expect) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
@@ -179,6 +78,9 @@ WJR_INTRINSIC_CONSTEXPR bool is_constant_p(T x) noexcept {
 
 struct disable_tag {};
 
+struct reduce_tag {};
+struct move_tag {};
+
 struct default_construct_tag {};
 struct value_construct_tag {};
 
@@ -190,23 +92,23 @@ struct has_global_binary_operator : std::false_type {};
 template<typename T, typename U, typename _Pred>
 constexpr bool has_global_binary_operator_v = has_global_binary_operator<T, U, _Pred>::value;
 
-REGISTER_HAS_MEMBER_FUNCTION(operator(), call_operator);
-REGISTER_HAS_MEMBER_FUNCTION(operator[], subscript_operator);
-REGISTER_HAS_MEMBER_FUNCTION(operator->, point_to_operator);
-REGISTER_HAS_GLOBAL_BINARY_OPERATOR(+, plus);
-REGISTER_HAS_GLOBAL_BINARY_OPERATOR(-, minus);
-REGISTER_HAS_GLOBAL_BINARY_OPERATOR(&, bit_and);
-REGISTER_HAS_GLOBAL_BINARY_OPERATOR(| , bit_or);
-REGISTER_HAS_GLOBAL_BINARY_OPERATOR(^, bit_xor);
-REGISTER_HAS_GLOBAL_UNARY_OPERATOR(~, bit_not);
-REGISTER_HAS_GLOBAL_BINARY_OPERATOR(== , equal_to);
-REGISTER_HAS_GLOBAL_BINARY_OPERATOR(!= , not_equal_to);
-REGISTER_HAS_GLOBAL_BINARY_OPERATOR(> , greater);
-REGISTER_HAS_GLOBAL_BINARY_OPERATOR(>= , greater_equal);
-REGISTER_HAS_GLOBAL_BINARY_OPERATOR(< , less);
-REGISTER_HAS_GLOBAL_BINARY_OPERATOR(<= , less_equal);
-REGISTER_HAS_STATIC_MEMBER_FUNCTION(min, min);
-REGISTER_HAS_STATIC_MEMBER_FUNCTION(max, max);
+WJR_REGISTER_HAS_MEMBER_FUNCTION(operator(), call_operator);
+WJR_REGISTER_HAS_MEMBER_FUNCTION(operator[], subscript_operator);
+WJR_REGISTER_HAS_MEMBER_FUNCTION(operator->, point_to_operator);
+WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(+, plus);
+WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(-, minus);
+WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(&, bit_and);
+WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(| , bit_or);
+WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(^, bit_xor);
+WJR_REGISTER_HAS_GLOBAL_UNARY_OPERATOR(~, bit_not);
+WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(== , equal_to);
+WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(!= , not_equal_to);
+WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(> , greater);
+WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(>= , greater_equal);
+WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(< , less);
+WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(<= , less_equal);
+WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(min, min);
+WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(max, max);
 
 template<typename T, typename...Args>
 struct is_any_of : std::disjunction<std::is_same<T, Args>...> {};
@@ -608,7 +510,7 @@ namespace enum_ops {
 }
 
 namespace _To_address_helper {
-	REGISTER_HAS_STATIC_MEMBER_FUNCTION(to_address, to_address);
+	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(to_address, to_address);
 }
 
 template<typename T>
@@ -757,8 +659,8 @@ struct is_default_allocator<std::allocator<T>> : std::true_type {};
 template<typename T>
 constexpr bool is_default_allocator_v = is_default_allocator<T>::value;
 
-REGISTER_HAS_MEMBER_FUNCTION(destroy, destroy);
-REGISTER_HAS_MEMBER_FUNCTION(construct, construct);
+WJR_REGISTER_HAS_MEMBER_FUNCTION(destroy, destroy);
+WJR_REGISTER_HAS_MEMBER_FUNCTION(construct, construct);
 
 // Use the default destructor, which is beneficial for optimization.
 // But if the destructor of the allocator has side effects, then do not use this allocator.
@@ -780,18 +682,18 @@ constexpr bool is_default_allocator_destroy_v = is_default_allocator_destroy<All
 _WJR_END
 
 namespace std {
-	REGISTER_HAS_GLOBAL_FUNCTION(begin, begin);
-	REGISTER_HAS_GLOBAL_FUNCTION(cbegin, cbegin);
-	REGISTER_HAS_GLOBAL_FUNCTION(end, end);
-	REGISTER_HAS_GLOBAL_FUNCTION(cend, cend);
-	REGISTER_HAS_GLOBAL_FUNCTION(rbegin, rbegin);
-	REGISTER_HAS_GLOBAL_FUNCTION(crbegin, crbegin);
-	REGISTER_HAS_GLOBAL_FUNCTION(rend, rend);
-	REGISTER_HAS_GLOBAL_FUNCTION(crend, crend);
-	REGISTER_HAS_GLOBAL_FUNCTION(data, data);
-	REGISTER_HAS_GLOBAL_FUNCTION(size, size);
-	REGISTER_HAS_MEMBER_FUNCTION(size, size);
-	REGISTER_HAS_GLOBAL_FUNCTION(swap, swap);
+	WJR_REGISTER_HAS_GLOBAL_FUNCTION(begin, begin);
+	WJR_REGISTER_HAS_GLOBAL_FUNCTION(cbegin, cbegin);
+	WJR_REGISTER_HAS_GLOBAL_FUNCTION(end, end);
+	WJR_REGISTER_HAS_GLOBAL_FUNCTION(cend, cend);
+	WJR_REGISTER_HAS_GLOBAL_FUNCTION(rbegin, rbegin);
+	WJR_REGISTER_HAS_GLOBAL_FUNCTION(crbegin, crbegin);
+	WJR_REGISTER_HAS_GLOBAL_FUNCTION(rend, rend);
+	WJR_REGISTER_HAS_GLOBAL_FUNCTION(crend, crend);
+	WJR_REGISTER_HAS_GLOBAL_FUNCTION(data, data);
+	WJR_REGISTER_HAS_GLOBAL_FUNCTION(size, size);
+	WJR_REGISTER_HAS_MEMBER_FUNCTION(size, size);
+	WJR_REGISTER_HAS_GLOBAL_FUNCTION(swap, swap);
 }
 
 _WJR_BEGIN

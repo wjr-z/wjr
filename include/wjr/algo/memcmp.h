@@ -5,7 +5,7 @@
 #include <wjr/literals.h>
 #include <wjr/simd/simd_intrin.h>
 
-#if defined(__HAS_FAST_MEMCMP)
+#if defined(_WJR_FAST_MEMCMP)
 
 #define __WJR_MEMCMP_ONE_NORMAL(st)														\
 	auto r = st::cmp(x, y, pred, T());	                                                \

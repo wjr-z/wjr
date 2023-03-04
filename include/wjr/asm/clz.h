@@ -76,20 +76,22 @@ WJR_INTRINSIC_INLINE static int __wjr_builtin_clz(T x) noexcept {
 		constexpr auto __diff = _Nd_ul - _Nd;
 		return __builtin_clzl(x) - __diff;
 	}
+#if defined(WJR_X86_64)
 	else if constexpr (_Nd <= _Nd_ull) {
 		constexpr auto __diff = _Nd_ull - _Nd;
 		return __builtin_clzll(x) - __diff;
 	}
+#endif // WJR_X86_64
 	else {
 		static_assert(_Nd <= _Nd_ull, "countl_zero is not implemented for this type");
 	}
 }
 #elif defined(WJR_COMPILER_MSVC)
-#if defined(WJR_X86_64)
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_clz(T x) noexcept {
+#if defined(WJR_X86)
+
+template<typename T>
+WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_avx2_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
-#if defined(__AVX2__)
 	if constexpr (_Nd <= 16) {
 		return static_cast<int>(__lzcnt16(x) - (16 - _Nd));
 	}
@@ -97,7 +99,7 @@ WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_clz(T x) noexcept {
 		return static_cast<int>(__lzcnt(x));
 	}
 	else {
-#if defined(WJR_X86)
+#if defined(WJR_X86_32)
 		const auto xh = static_cast<unsigned int>(x >> 32);
 		const auto xl = static_cast<unsigned int>(x);
 		if (xh == 0) {
@@ -110,7 +112,11 @@ WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_clz(T x) noexcept {
 		return static_cast<int>(__lzcnt64(x));
 #endif
 	}
-#else
+}
+
+template<typename T>
+WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_normal_clz(T x) noexcept {
+	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	unsigned long _Result;
 	if constexpr (_Nd <= 32) {
 		if (!_BitScanReverse(&_Result, x)) {
@@ -118,7 +124,7 @@ WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_clz(T x) noexcept {
 		}
 	}
 	else {
-#if defined(WJR_X86)
+#if defined(WJR_X86_32)
 		const auto xh = static_cast<unsigned int>(x >> 32);
 		if (_BitScanReverse(&_Result, xh)) {
 			return static_cast<int>(31 - _Result);
@@ -134,7 +140,16 @@ WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_clz(T x) noexcept {
 #endif
 	}
 	return static_cast<int>(_Nd - 1 - _Result);
-#endif 
+}
+
+template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_clz(T x) noexcept {
+	if (is_avx2()) {
+		return __wjr_msvc_x86_64_avx2_clz(x);
+	}
+	else {
+		return __wjr_msvc_x86_64_normal_clz(x);
+	}
 }
 #elif defined(WJR_ARM)
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
@@ -159,7 +174,7 @@ WJR_INTRINSIC_CONSTEXPR20 int clz(T x) noexcept {
 #if WJR_HAS_BUILTIN(__builtin_clz) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
 		return __wjr_builtin_clz(x);
 #elif defined(WJR_COMPILER_MSVC)
-#if defined(WJR_X86_64)
+#if defined(WJR_X86)
 		return __wjr_msvc_x86_64_clz(x);
 #elif defined(WJR_ARM)
 		return __wjr_msvc_arm_clz(x);

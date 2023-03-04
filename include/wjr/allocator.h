@@ -17,12 +17,14 @@ struct __aligned_helper<void> {
 	constexpr static size_t value = 16;
 };
 
-//#define WJR_TEST_ALLOCATOR
+#if defined(_DEBUG)
+#define WJR_TEST_ALLOCATOR
+#endif
 
 #if defined(WJR_TEST_ALLOCATOR)
 struct __test_allocator {
 	~__test_allocator();
-	size_t _Count = 0;
+	long long _Count = 0;
 };
 extern __test_allocator __test_allocator_instance;
 #endif
@@ -53,12 +55,12 @@ public:
 	using propagate_on_container_move_assignment = std::true_type;
 	using is_always_equal = std::true_type;
 
-#if !defined(WJR_CPP_20)
 	template <typename _Other>
 	struct rebind {
 		using other = aligned_allocator<_Other, _Al, _Off>;
 	};
 
+#if !defined(WJR_CPP_20)
 	WJR_NODISCARD _Ty* address(_Ty& _Val) const noexcept {
 		return std::addressof(_Val);
 	}
@@ -78,7 +80,7 @@ public:
 
 	WJR_CONSTEXPR20 void deallocate(_Ty* const _Ptr, const size_t _Count) {
 #if defined(WJR_TEST_ALLOCATOR)
-		__test_allocator_instance._Count -= _Count * sizeof(_Ty);
+		__test_allocator_instance._Count -= _Count * sizeof(_Ty) + _Off;
 #endif
 		assume(reinterpret_cast<uintptr_t>(_Ptr) % _Al == _Off);
 		auto ptr = reinterpret_cast<char*>(_Ptr) - _Off;
@@ -126,21 +128,21 @@ public:
 };
 
 template <typename _Ty, typename _Other, size_t _Al, size_t _Off>
-WJR_NODISCARD WJR_CONSTEXPR20 bool operator==(
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool operator==(
 	const aligned_allocator<_Ty, _Al, _Off>&,
 	const aligned_allocator<_Other, _Al, _Off>&) noexcept {
 	return true;
 }
 
 template <typename _Ty, size_t _Al1, size_t _Off1, typename _Other, size_t _Al2, size_t _Off2>
-WJR_NODISCARD WJR_CONSTEXPR20 bool operator==(
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool operator==(
 	const aligned_allocator<_Ty, _Al1, _Off1>& lhs,
 	const aligned_allocator<_Other, _Al2, _Off2>& rhs) noexcept {
 	return false;
 }
 
 template <typename _Ty, size_t _Al1, size_t _Off1, typename _Other, size_t _Al2, size_t _Off2>
-WJR_NODISCARD WJR_CONSTEXPR20 bool operator!=(
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool operator!=(
 	const aligned_allocator<_Ty, _Al1, _Off1>& lhs,
 	const aligned_allocator<_Other, _Al2, _Off2>& rhs) noexcept {
 	return !(lhs == rhs);

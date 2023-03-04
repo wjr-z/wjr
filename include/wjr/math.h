@@ -12,32 +12,32 @@ constexpr bool has_single_bit(T x) noexcept {
 }
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_CONSTEXPR20 int countl_zero(T x) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 int countl_zero(T x) noexcept {
 	return wjr::masm::clz(x);
 }
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_CONSTEXPR20 int countl_one(T x) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 int countl_one(T x) noexcept {
 	return wjr::countl_zero(static_cast<T>(~x));
 }
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_CONSTEXPR20 int countr_zero(T x) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 int countr_zero(T x) noexcept {
 	return wjr::masm::ctz(x);
 }
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_CONSTEXPR20 int countr_one(T x) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 int countr_one(T x) noexcept {
 	return wjr::countr_zero(static_cast<T>(~x));
 }
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_CONSTEXPR20 int bit_width(T x) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 int bit_width(T x) noexcept {
 	return std::numeric_limits<T>::digits - wjr::countl_zero(x);
 }
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_CONSTEXPR20 T bit_floor(T x) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 T bit_floor(T x) noexcept {
 	if (x != 0) {
 		return static_cast<T>(T{ 1 } << (wjr::bit_width(x) - 1));
 	}
@@ -45,7 +45,7 @@ WJR_CONSTEXPR20 T bit_floor(T x) noexcept {
 }
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_CONSTEXPR20 T bit_ceil(T x) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 T bit_ceil(T x) noexcept {
 	if (x <= 1) {
 		return T{ 1 };
 	}
@@ -53,7 +53,7 @@ WJR_CONSTEXPR20 T bit_ceil(T x) noexcept {
 }
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_CONSTEXPR20 int popcount(T x) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 int popcount(T x) noexcept {
 	return wjr::masm::popcnt(x);
 }
 

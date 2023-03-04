@@ -37,12 +37,12 @@ struct find_fn {
 					const auto first = wjr::get_address(_First);
 					return _First + (algo::memchr(first, _Val, n, pred) - first);
 				}
-#if defined(__HAS_FAST_MEMCHR) // use algo::memchr
+#if defined(_WJR_FAST_MEMCHR) // use algo::memchr
 				else {
 					const auto first = wjr::get_address(_Last - 1);
 					return _Last - (algo::memrchr(first, _Val, n, pred) - first);
 				}
-#endif // __HAS_FAST_MEMCHR
+#endif // _WJR_FAST_MEMCHR
 			}
 		}
 		if constexpr (std::is_same_v<_Pred, std::equal_to<>>) {
@@ -96,7 +96,7 @@ struct count_fn {
 	WJR_CONSTEXPR20 typename std::iterator_traits<_Iter>::difference_type
 		operator()(_Iter _First, _Iter _Last, const _Ty& _Val) const {
 		if (!wjr::is_constant_evaluated()) {
-#if defined(__HAS_FAST_MEMCNT)
+#if defined(_WJR_FAST_MEMCNT)
 			if constexpr (__has_fast_count_v<_Iter, _Ty>) {
 				const auto n = _Last - _First;
 				if constexpr (!wjr::is_reverse_iterator_v<_Iter>) {
@@ -108,7 +108,7 @@ struct count_fn {
 					return algo::memcnt(first, _Val, n);
 				}
 			}
-#endif // __HAS_FAST_MEMCNT
+#endif // _WJR_FAST_MEMCNT
 		}
 		return std::count(_First, _Last, _Val);
 	}
@@ -177,7 +177,7 @@ struct mismatch_fn {
 	template<typename _Iter1, typename _Iter2, typename _Pred>
 	WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> operator()(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred pred) const {
 		if(!wjr::is_constant_evaluated()){
-#if defined(__HAS_FAST_MEMMIS)
+#if defined(_WJR_FAST_MEMMIS)
 			if constexpr (__has_fast_mismatch_v<_Iter1, _Iter2, _Pred>) {
 				const auto n = std::distance(_First1, _Last1);
 				if (is_unlikely(n == 0)) { return std::make_pair(_First1, _First2); }
@@ -197,7 +197,7 @@ struct mismatch_fn {
 					return std::make_pair(_First1 + pos, _First2 + pos);
 				}
 			}
-#endif // __HAS_FAST_MEMMIS
+#endif // _WJR_FAST_MEMMIS
 		}
 		return std::mismatch(_First1, _Last1, _First2, pred);
 	}
@@ -376,7 +376,7 @@ constexpr fill_n_fn fill_n{};
 template<typename _Input, typename _Output,
 	typename _Input_ref = iter_ref_t<_Input>,
 	typename _Output_ref = iter_ref_t<_Output>>
-	struct __has_fast_copy : std::conjunction<
+struct __has_fast_copy : std::conjunction<
 	is_contiguous_iterator<_Input>,
 	is_contiguous_iterator<_Output>,
 	std::bool_constant<wjr::is_reverse_iterator_v<_Input> == wjr::is_reverse_iterator_v<_Output>>,
@@ -398,7 +398,7 @@ struct copy_fn {
 					const auto first1 = wjr::get_address(_First1);
 					const auto first2 = wjr::get_address(_First2);
 
-					algo::assign_memcpy(first2, first1, n);
+					algo::assign_memmove(first2, first1, n);
 				}
 				else {
 					const auto first1 = wjr::get_address(_Last1 - 1);
@@ -657,9 +657,42 @@ struct uninitialized_value_construct_n_fn {
 
 constexpr uninitialized_value_construct_n_fn uninitialized_value_construct_n;
 
+template<typename _Input, typename _Output,
+	typename _Input_ref = iter_ref_t<_Input>,
+	typename _Output_ref = iter_ref_t<_Output>>
+struct __has_fast_uninitialized_copy : std::conjunction<
+	is_contiguous_iterator<_Input>,
+	is_contiguous_iterator<_Output>,
+	std::bool_constant<wjr::is_reverse_iterator_v<_Input> == wjr::is_reverse_iterator_v<_Output>>,
+	algo::__has_fast_construct_memcpy<remove_ref_t<_Output_ref>, _Input_ref>
+	> {};
+
+template<typename _Input, typename _Output>
+constexpr bool __has_fast_uninitialized_copy_v = __has_fast_uninitialized_copy<_Input, _Output>::value;
+
 struct uninitialized_copy_fn {
 	template<typename _Iter1, typename _Iter2>
 	WJR_CONSTEXPR20 _Iter2 operator()(_Iter1 _First, _Iter1 _Last, _Iter2 _Dest) const {
+		if (!wjr::is_constant_evaluated()) {
+			if constexpr (__has_fast_copy_v<_Iter1, _Iter2>) {
+				const auto n = std::distance(_First, _Last);
+				if (is_unlikely(n == 0)) { return _Dest; }
+				if constexpr (!wjr::is_reverse_iterator_v<_Iter1>) {
+					const auto first1 = wjr::get_address(_First);
+					const auto first2 = wjr::get_address(_Dest);
+
+					algo::construct_memmove(first2, first1, n);
+				}
+				else {
+					const auto first1 = wjr::get_address(_Last - 1);
+					const auto _Last2 = _Dest + n;
+					const auto first2 = wjr::get_address(_Last2 - 1);
+
+					algo::construct_memmove(first2, first1, n);
+				}
+				return _Dest + n;
+			}
+		}
 		return std::uninitialized_copy(_First, _Last, _Dest);
 	}
 
@@ -682,6 +715,12 @@ constexpr uninitialized_copy_fn uninitialized_copy;
 struct uninitialized_copy_n_fn {
 	template<typename _Iter1, typename _Diff, typename _Iter2>
 	WJR_CONSTEXPR20 _Iter2 operator()(_Iter1 _First, _Diff n, _Iter2 _Dest) const {
+		if (!wjr::is_constant_evaluated()) {
+			if constexpr (__has_fast_copy_v<_Iter1, _Iter2>) {
+				if (n <= 0) { return _Dest; }
+				return wjr::copy(_First, _First + n, _Dest);
+			}
+		}
 		return std::uninitialized_copy_n(_First, n, _Dest);
 	}
 
@@ -694,16 +733,42 @@ struct uninitialized_copy_n_fn {
 			for (; n > 0; ++_First, (void)++_Dest, --n) {
 				wjr::construct_at(al, _Dest, *_First);
 			}
+			return _Dest;
 		}
 	}
 };
 
 constexpr uninitialized_copy_n_fn uninitialized_copy_n;
 
+template<typename _Iter, typename _Val,
+	typename _Iter_ref = iter_ref_t<_Iter>>
+	struct __has_fast_uninitialized_fill : std::conjunction<
+	is_contiguous_iterator<_Iter>,
+	algo::__has_fast_construct_memset<remove_cref_t<_Iter_ref>, add_cref_t<_Val>>
+	> {};
+
+template<typename _Iter, typename _Val>
+constexpr bool __has_fast_uninitialized_fill_v = __has_fast_uninitialized_fill<_Iter, _Val>::value;
+
 struct uninitialized_fill_fn {
 	template<typename _Iter, typename _Val>
 	WJR_CONSTEXPR20 void operator()(_Iter _First, _Iter _Last, const _Val& val) const {
-		std::uninitialized_fill(_First, _Last, val);
+		if (!wjr::is_constant_evaluated()) {
+			if constexpr (__has_fast_uninitialized_fill_v<_Iter, _Val>) {
+				const auto n = std::distance(_First, _Last);
+				if constexpr (!is_reverse_iterator_v<_Iter>) {
+					const auto first = wjr::get_address(_First);
+					algo::construct_memset(first, val, n);
+				}
+				else {
+					if (is_unlikely(n == 0)) { return; }
+					const auto first = wjr::get_address(_Last - 1);
+					algo::construct_memset(first, val, n);
+				}
+				return;
+			}
+		}
+		return std::uninitialized_fill(_First, _Last, val);
 	}
 
 	template<typename _Iter>
@@ -733,8 +798,15 @@ constexpr uninitialized_fill_fn uninitialized_fill;
 
 struct uninitialized_fill_n_fn {
 	template<typename _Iter, typename _Diff, typename _Val>
-	WJR_CONSTEXPR20 _Iter operator()(_Iter _First, _Diff n, const _Val& val) const {
-		return std::uninitialized_fill_n(_First, n, val);
+	WJR_CONSTEXPR20 _Iter operator()(_Iter _First, _Diff count, const _Val& val) const {
+		if (!wjr::is_constant_evaluated()) {
+			if constexpr (__has_fast_uninitialized_fill_v<_Iter, _Val>) {
+				if (count <= 0) { return _First; }
+				wjr::uninitialized_fill(_First, _First + count, val);
+				return _First + count;
+			}
+		}
+		return std::uninitialized_fill_n(_First, count, val);
 	}
 
 	template<typename _Iter, typename _Diff>

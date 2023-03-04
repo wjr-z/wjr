@@ -5,7 +5,7 @@
 #include <wjr/literals.h>
 #include <wjr/simd/simd_intrin.h>
 
-#if defined(__HAS_FAST_MEMMIS)
+#if defined(_WJR_FAST_MEMMIS)
 
 #define __WJR_MEMRMIS_ONE(st, _s)														\
 	auto r = st::cmp(x, y, pred, T());	                                                \
@@ -316,6 +316,6 @@ _WJR_ALGO_END
 #undef __WJR_MEMRMIS_FOUR
 #undef __WJR_MEMRMIS_ONE
 
-#endif // __HAS_FAST_MEMMIS
+#endif // _WJR_FAST_MEMMIS
 
 #endif // __WJR_ALGO_MEMRMIS_H

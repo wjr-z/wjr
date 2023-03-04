@@ -9,14 +9,14 @@ _WJR_ASM_BEGIN
 template<typename _Ty>
 WJR_INTRINSIC_CONSTEXPR static int __wjr_fallback_popcount(_Ty _Val) noexcept {
 	constexpr int _Digits = std::numeric_limits<_Ty>::digits;
-#if defined(WJR_X86) || defined(WJR_ARM)
+#if defined(WJR_X86_32) || defined(WJR_ARM)
 	if constexpr (_Digits == 64) {
 		// 64-bit bit operations on architectures without 64-bit registers are less efficient,
 		// hence we split the value so that it fits in 32-bit registers
 		return _Popcount_fallback(static_cast<unsigned long>(_Val))
 			+ _Popcount_fallback(static_cast<unsigned long>(_Val >> 32));
 	}
-#endif // defined(WJR_X86) || defined(WJR_ARM)
+#endif // defined(WJR_X86_32) || defined(WJR_ARM)
 	// we static_cast these bit patterns in order to truncate them to the correct size
 	_Val = static_cast<_Ty>(_Val - ((_Val >> 1) & static_cast<_Ty>(0x5555'5555'5555'5555ull)));
 	_Val = static_cast<_Ty>((_Val & static_cast<_Ty>(0x3333'3333'3333'3333ull))
@@ -51,7 +51,7 @@ WJR_INTRINSIC_INLINE static int __wjr_builtin_popcount(T x) noexcept {
 	}
 
 }
-#elif defined(WJR_COMPILER_MSVC) && defined(WJR_X86_64) && !defined(_M_CEE_PURE) && !defined(__CUDACC__) \
+#elif defined(WJR_COMPILER_MSVC) && defined(WJR_X86) && !defined(_M_CEE_PURE) && !defined(__CUDACC__) \
 	&& !defined(__INTEL_COMPILER)
 template <typename T>
 WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_popcount(T x) noexcept {
@@ -63,11 +63,11 @@ WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_popcount(T x) noexcept {
 		return static_cast<int>(__popcnt(x));
 	}
 	else {
-#ifdef WJR_X86
+#ifdef WJR_X86_32
 		return static_cast<int>(__popcnt(x >> 32) + __popcnt(static_cast<unsigned int>(x)));
 #else
 		return static_cast<int>(__popcnt64(x));
-#endif // WJR_X86
+#endif // WJR_X86_32
 	}
 }
 #endif
@@ -77,7 +77,7 @@ WJR_INTRINSIC_CONSTEXPR20 int popcnt(T x) noexcept {
 	if (!wjr::is_constant_evaluated()) {
 #if WJR_HAS_BUILTIN(__builtin_popcount) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
 		return __wjr_builtin_popcount(x);
-#elif defined(_MSC_VER) && defined(WJR_X86_64) && !defined(_M_CEE_PURE) && !defined(__CUDACC__) \
+#elif defined(_MSC_VER) && defined(WJR_X86) && !defined(_M_CEE_PURE) && !defined(__CUDACC__) \
 	&& !defined(__INTEL_COMPILER)
 		return __wjr_msvc_x86_64_popcount(x);
 #endif 

@@ -41,12 +41,14 @@ WJR_INTRINSIC_INLINE static T __wjr_builtin_sbb(T a, T b, T carry_in, T* carry_o
 		*carry_out = CF;
 		return ret;
 	}
+#if defined(WJR_X86_64)
 	else if constexpr (_Nd <= _Nd_ull) {
 		unsigned long long CF = 0;
 		T ret = __builtin_subcll(a, b, carry_in, &CF);
 		*carry_out = CF;
 		return ret;
 	}
+#endif // WJR_X86_64
 	else {
 		static_assert(_Nd <= _Nd_ull, "unsupported integer type");
 	}
@@ -77,11 +79,13 @@ WJR_INTRINSIC_INLINE static T __wjr_msvc_sbb(T a, T b, T carry_in, T* carry_out)
 		*carry_out = _subborrow_u32(carry_in, a, b, &ret);
 		return ret;
 	}
+#if defined(WJR_X86_64)
 	else if constexpr (_Nd <= _Nd_ull) {
 		unsigned long long ret = 0;
 		*carry_out = _subborrow_u64(carry_in, a, b, &ret);
 		return ret;
 	}
+#endif // WJR_X86_64
 	else {
 		static_assert(_Nd <= _Nd_ull, "unsupported integer type");
 	}
@@ -132,11 +136,11 @@ WJR_INTRINSIC_CONSTEXPR20 uint16_t sbb(uint16_t a, uint16_t b, uint16_t carry_in
 WJR_INTRINSIC_CONSTEXPR20 uint32_t sbb(uint32_t a, uint32_t b, uint32_t carry_in, uint32_t* carry_out) {
 	return __sbb(a, b, carry_in, carry_out);
 }
-#if defined(WJR_X64)
+#if defined(WJR_X86_64)
 WJR_INTRINSIC_CONSTEXPR20 uint64_t sbb(uint64_t a, uint64_t b, uint64_t carry_in, uint64_t* carry_out) {
 	return __sbb(a, b, carry_in, carry_out);
 }
-#endif // WJR_X64
+#endif // WJR_X86_64
 
 _WJR_ASM_END
 

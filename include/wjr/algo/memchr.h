@@ -5,7 +5,7 @@
 #include <wjr/literals.h>
 #include <wjr/simd/simd_intrin.h>
 
-#if defined(__HAS_FAST_MEMCHR)
+#if defined(_WJR_FAST_MEMCHR)
 
 #define __WJR_MEMCHR_ONE(st, _s)	                            \
 	auto r = st::cmp(x, y, pred, T());	                        \
@@ -261,6 +261,6 @@ _WJR_ALGO_END
 #undef __WJR_MEMCHR_FOUR
 #undef __WJR_MEMCHR_ONE
 
-#endif // __HAS_FAST_MEMCHR
+#endif // _WJR_FAST_MEMCHR
 
 #endif // WJR_ALGO_MEMCHR_H

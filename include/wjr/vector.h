@@ -16,20 +16,23 @@ _WJR_BEGIN
 
 /*
 * vector_data ->
-* vector_data must be shallow copy in copy constructor and copy assignment operator,
-* but deep copy in copy_construct, move_construct can be shallow copy/deep copy
-* 1.static vector_data Allocate(_Al& al, size_t _Size, size_t _Capacity)
-* 2.static void copyConstruct(_Al& al, const vector_data& _Src, vector_data& _Dest)
-* 3.static void moveConstruct(_Al& al, vector_data&& _Src, vector_data& _Dest)
-* 5.static void Swap(_Al& al, vector_data& _Left, vector_data& _Right) [noexcept] [optional]
-* 7.static void Deallocate(_Al& al, vector_data& _Data)
-* 9.static size_t getGrowthCapacity(const size_t _Oldcapacity, const size_t _Newsize) [optinal]
-* 10.static void shrinkToFit(_Al&al, vector_data& _Data) [optional]
-* 11.size_t size() const;
-* 12.size_t capacity() const;
-* 13.[const] _Ty* data() [const]
-* 14.const _Ty* cdata() const
-* 15._Ty* mutable_data() [TODO]
+* 1.vector_data() 
+* 2.vector_data(_Al&al, const size_t _Newsize, const size_t _Newcapacity)
+* 4.vector_data(const vector_data&) = delete
+* 5.vector_data(vector_data&&) = delete
+* 6.static void copyConstruct(_Al& al, const vector_data& _Src, vector_data& _Dest)
+* 7.static void moveConstruct(_Al& al, vector_data&& _Src, vector_data& _Dest)
+* 6,7均要求_Dest为空，要求无任何数据，并且内存也要已经回收
+* 复杂度要求 O(1) 或者 O(n) ，尽可能的令n = 0
+* 8.static void Swap(_Al& al, vector_data& _Left, vector_data& _Right) [noexcept] [optional]
+* 9.static void Deallocate(_Al& al, vector_data& _Data)
+* 回收_Data的内存
+* 10.static size_t getGrowthCapacity(const size_t _Oldcapacity, const size_t _Newsize) [optinal]
+* 11.static void shrinkToFit(_Al&al, vector_data& _Data) [optional]
+* 12.size_t size() const;
+* 13.size_t capacity() const;
+* 14.[const] _Ty* data() [const]
+* 15.const _Ty* cdata() const
 * 16.void set_size(const size_type);
 * 17.void inc_size(const difference_type);
 */
@@ -44,26 +47,25 @@ _WJR_BEGIN
 * 6.vector_core& operator=(const vector_core&) = delete;
 * 7.vector_core& operator=(vector_core&&) = delete;
 * 8.~vector_core() [noexcept];
-* 9.static vector_core Allocate(_Al& al, size_t _Size, size_t _Capacity);
-* 10.static void copyConstruct(_Al& al, const vector_data& _Src, vector_data& _Dest)
-* 11.static void moveConstruct(_Al& al, vector_data&& _Src, vector_data& _Dest)
-* 14.static void Swap(_Al& al, vector_data& _Left, vector_data& _Right) [noexcept]
-* 15.static void Destroy(_Al& al, vector_data& _Data);
-* 16.static void Deallocate(_Al& al, vector_data& _Data);
-* 17.static void Tidy(_Al& al, vector_data& _Data);
+* 10.static void copyConstruct(_Al& al, const vector_core& _Src, vector_core& _Dest)
+* 11.static void moveConstruct(_Al& al, vector_core&& _Src, vector_core& _Dest)
+* 14.static void Swap(_Al& al, vector_core& _Left, vector_core& _Right) [noexcept]
+* 15.static void Destroy(_Al& al, vector_core& _core);
+* 16.static void Deallocate(_Al& al, vector_core& _core);
+* 17.static void Tidy(_Al& al, vector_core& _core);
 * 18.static size_t getGrowthCapacity(const size_t _Oldcapacity, const size_t _Newsize);
-* 19.static void shrinkToFit(_Al&al, vector_data& _Data);
+* 19.static void shrinkToFit(_Al&al, vector_core& _core);
 * 20.void tidy() [noexcept];
 * 21.void swap(vector_core& other) [noexcept];
 * 22.size_t size() const;
 * 23.size_t capacity() const;
-* 24.[const] _Ty* data() [const]
-* 25.const _Ty* cdata() const
-* 26._Ty* mutable_data() [TODO]
+* 24.[const] _Ty* core() [const]
+* 25.const _Ty* ccore() const
+* 26._Ty* mutable_core() [TODO]
 * 27.void set_size(const size_type);
 * 28.void inc_size(const difference_type);
 * 28.[const] _Al& getAllocator() [const];
-* 29.[const] vector_data& getData() [const];
+* 29.[const] vector_core& getDat() [const];
 */
 
 // support small-size-optimize
@@ -79,19 +81,34 @@ struct vector_data {
 	using size_type = typename _Alty_traits::size_type;
 	using difference_type = typename _Alty_traits::difference_type;
 
-	WJR_CONSTEXPR20 static vector_data Allocate(_Alty& al, size_type _Size, size_type _Capacity) {
-		auto ptr = _Alty_traits::allocate(al, _Capacity);
-		return { ptr, ptr + _Size, ptr + _Capacity };
+	WJR_INTRINSIC_CONSTEXPR20 vector_data() = default;
+	vector_data(const vector_data&) = delete;
+	vector_data& operator=(const vector_data&) = delete;
+	~vector_data() = default;
+
+	WJR_CONSTEXPR20 vector_data(
+		_Alty& al, 
+		const size_type _Newsize,
+		const size_type _Newcapacity)
+		: _Myfirst(_Alty_traits::allocate(al, _Newcapacity)),
+		_Mylast(_Myfirst + _Newsize),
+		_Myend(_Myfirst + _Newcapacity) {
 	}
 
 	WJR_CONSTEXPR20 static void copyConstruct(_Alty& al, const vector_data& _Src, vector_data& _Dest) {
-		auto data = Allocate(al, _Src.size(), _Src.capacity());
-		wjr::uninitialized_copy(al, _Src._Myfirst, _Src._Mylast, data._Myfirst);
-		_Dest = data;
+		{
+			vector_data data(al, _Src.size(), _Src.size());
+			_Dest._Myfirst = data._Myfirst;
+			_Dest._Mylast = data._Mylast;
+			_Dest._Myend = data._Myend;
+		}
+		wjr::uninitialized_copy(al, _Src._Myfirst, _Src._Mylast, _Dest._Myfirst);
 	}
 
-	WJR_CONSTEXPR20 static void moveConstruct(_Alty& al, vector_data&& _Src, vector_data& _Dest) noexcept {
-		_Dest = _Src;
+	WJR_INTRINSIC_CONSTEXPR20 static void moveConstruct(_Alty& al, vector_data&& _Src, vector_data& _Dest) noexcept {
+		_Dest._Myfirst = _Src._Myfirst;
+		_Dest._Mylast = _Src._Mylast;
+		_Dest._Myend = _Src._Myend;
 		_Src._Myfirst = _Src._Mylast = _Src._Myend = nullptr;
 	}
 
@@ -100,31 +117,48 @@ struct vector_data {
 		_Data._Myfirst = _Data._Mylast = _Data._Myend = nullptr;
 	}
 
-	WJR_CONSTEXPR20 size_type size() const noexcept {
+	WJR_CONSTEXPR20 static void shrinkToFit(_Alty& al, vector_data& _Data) noexcept {
+		if (_Data._Mylast != _Data._Myend) {
+			auto _Olddata = _Data._Myfirst;
+			const auto _Oldsize = _Data.size();
+			if (_Oldsize == 0) {
+				Deallocate(al, _Data);
+			}
+			else {
+				vector_data _Newdata(al, _Oldsize, _Oldsize);
+				wjr::uninitialized_move_n(al, _Data.data(), _Oldsize, _Newdata.data());
+				wjr::destroy_n(al, _Olddata, _Oldsize);
+				Deallocate(al, _Data);
+				moveConstruct(al, std::move(_Newdata), _Data);
+			}
+		}
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 size_type size() const noexcept {
 		return static_cast<size_type>(_Mylast - _Myfirst);
 	}
 
-	WJR_CONSTEXPR20 size_type capacity() const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 size_type capacity() const noexcept {
 		return static_cast<size_type>(_Myend - _Myfirst);
 	}
 
-	WJR_CONSTEXPR20 pointer data() noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 pointer data() noexcept {
 		return _Myfirst;
 	}
 
-	WJR_CONSTEXPR20 const_pointer data() const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 const_pointer data() const noexcept {
 		return _Myfirst;
 	}
 
-	WJR_CONSTEXPR20 const_pointer cdata() const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 const_pointer cdata() const noexcept {
 		return _Myfirst;
 	}
 
-	WJR_CONSTEXPR20 void set_size(const size_type _Size) noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 void set_size(const size_type _Size) noexcept {
 		_Mylast = _Myfirst + _Size;
 	}
 
-	WJR_CONSTEXPR20 void inc_size(const difference_type _Size) noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 void inc_size(const difference_type _Size) noexcept {
 		_Mylast += _Size;
 	}
 
@@ -145,21 +179,29 @@ struct vector_static_data {
 
 	static_assert(N > 0, "N must be greater than 0");
 
-private:
-	constexpr static size_t _MaxAlignment = std::max(alignof(T), std::max(alignof(size_type), alignof(max_align_t)));
+	constexpr static size_t _MaxAlignment = std::max(alignof(T), alignof(size_type));
 	constexpr static size_t _MaxMemroy = (sizeof(T) * N + _MaxAlignment - 1) & (~(_MaxAlignment - 1));
 	constexpr static size_t _MaxCapacity = _MaxMemroy / sizeof(T);
 	static_assert(_MaxCapacity >= N, "");
-public:
 
-	WJR_CONSTEXPR20 static vector_static_data Allocate(_Alty& al, size_type _Size, size_type _Capacity) {
+	vector_static_data() {}
+	vector_static_data(const vector_static_data&) = delete;
+	vector_static_data& operator=(const vector_static_data&) = delete;
+	~vector_static_data() = default;
+
+	WJR_CONSTEXPR20 static void _lengthError(const size_type _Newcapacity){
 		std::string str = "vector_static_data is too small to hold the requested data";
 		str += "\n old capacity = " + std::to_string(_MaxCapacity);
-		str += "\n allocate new size = " + std::to_string(_Size);
-		str += "\n allocate new capacity = " + std::to_string(_Capacity);
+		str += "\n allocate new capacity = " + std::to_string(_Newcapacity);
 		throw std::length_error(str);
 		unreachable();
-		return vector_static_data{};
+	}
+
+	WJR_CONSTEXPR20 vector_static_data(
+		_Alty& al, 
+		const size_type _Newsize,
+		const size_type _Newcapacity) {
+		_lengthError(_Newcapacity);
 	}
 
 	WJR_CONSTEXPR20 static void copyConstruct(_Alty& al, const vector_static_data& _Src, vector_static_data& _Dest) {
@@ -177,94 +219,271 @@ public:
 		}
 	}
 
-	WJR_CONSTEXPR20 static void Deallocate(_Alty& al, vector_static_data& _Data) noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 static void Deallocate(_Alty& al, vector_static_data& _Data) noexcept {
+		_Data.set_size(0);
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 static void shrinkToFit(_Alty& al, vector_static_data& _Data) {
 		// do nothing
 	}
 
-	WJR_CONSTEXPR20 static void shrinkToFit(_Alty& al, vector_static_data& _Data) {
-		throw std::logic_error("vector_static_data does not support shrink_to_fit");
-		unreachable();
-	}
-
-	WJR_CONSTEXPR20 size_type size() const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 size_type size() const noexcept {
 		return _M_size;
 	}
 
-	WJR_CONSTEXPR20 size_type capacity() const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 size_type capacity() const noexcept {
 		return _MaxCapacity;
 	}
 
-	WJR_CONSTEXPR20 pointer data() noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 pointer data() noexcept {
 		return reinterpret_cast<pointer>(_M_storage);
 	}
 
-	WJR_CONSTEXPR20 const_pointer data() const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 const_pointer data() const noexcept {
 		return reinterpret_cast<const_pointer>(_M_storage);
 	}
 
-	WJR_CONSTEXPR20 const_pointer cdata() const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 const_pointer cdata() const noexcept {
 		return reinterpret_cast<const_pointer>(_M_storage);
 	}
 
-	WJR_CONSTEXPR20 void set_size(const size_type _Size) noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 void set_size(const size_type _Size) noexcept {
 		_M_size = _Size;
 	}
 
-	WJR_CONSTEXPR20 void inc_size(const difference_type _Size) noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 void inc_size(const difference_type _Size) noexcept {
 		_M_size += _Size;
 	}
 
+	size_type _M_size = 0;
 	alignas(_MaxAlignment) uint8_t _M_storage[_MaxMemroy];
-	alignas(_MaxAlignment) size_type _M_size;
 };
 
+
+template<typename T, typename Alloc, size_t N>
+struct vector_sso_data {
+	using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
+	using _Alty_traits = std::allocator_traits<_Alty>;
+	using value_type = T;
+	using pointer = typename _Alty_traits::pointer;
+	using const_pointer = typename _Alty_traits::const_pointer;
+	using size_type = typename _Alty_traits::size_type;
+	using difference_type = typename _Alty_traits::difference_type;
+
+	static_assert(N > 0, "N must be greater than 0");
+
+	constexpr static size_t _MaxAlignment = std::max(alignof(T), 
+		std::max(alignof(size_type), alignof(pointer)));
+	constexpr static size_t _MaxMemroy = std::max(
+		(sizeof(T) * N + _MaxAlignment - 1) & (~(_MaxAlignment - 1)),
+		sizeof(size_type));
+	constexpr static size_t _MaxCapacity = _MaxMemroy / sizeof(T);
+	static_assert(_MaxCapacity >= N, "");
+
+	WJR_INTRINSIC_CONSTEXPR20 vector_sso_data() {}
+	vector_sso_data(const vector_sso_data&) = delete;
+	vector_sso_data& operator=(const vector_sso_data&) = delete;
+	~vector_sso_data() = default;
+
+	WJR_CONSTEXPR20 vector_sso_data(
+		_Alty& al,
+		const size_type _Newsize,
+		const size_type _Newcapacity)
+		: _M_ptr(_Alty_traits::allocate(al, _Newcapacity)),
+		_M_size(_Newsize), 
+		_M_capacity(_Newcapacity) {
+	}
+
+	WJR_CONSTEXPR20 static void copyConstruct(_Alty& al, const vector_sso_data& _Src, vector_sso_data& _Dest) {
+		const auto _Size = _Src._M_size;
+		if (!_Src.is_small()) {
+			vector_sso_data data(al, _Size, _Size);
+			_Dest._M_ptr = data._M_ptr;
+			_Dest._M_capacity = data._M_capacity;
+		}
+		_Dest._M_size = _Size;
+		wjr::uninitialized_copy_n(al, _Src.data(), _Src.size(), _Dest.data());
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 static void moveConstruct(_Alty& al, vector_sso_data&& _Src, vector_sso_data& _Dest) {
+		const auto _Size = _Src._M_size;
+		if(!_Src.is_small()){
+			_Dest._M_ptr = _Src._M_ptr;
+			_Dest._M_capacity = _Src._M_capacity;
+		}
+		else {
+			wjr::assume(_Size <= _MaxCapacity);
+			wjr::uninitialized_move_n(al, _Src.data(), _Size, _Dest.data());
+			wjr::destroy_n(al, _Src.data(), _Size);
+		}
+		
+		_Dest._M_size = _Size;
+
+		_Src.reset_ptr();
+		_Src._M_size = 0;
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 static void Deallocate(_Alty& al, vector_sso_data& _Data) noexcept {
+		if (!_Data.is_small()) {
+			_Alty_traits::deallocate(al, _Data.data(), _Data.capacity());
+		}
+		_Data.reset_ptr();
+		_Data._M_size = 0;
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 static void shrinkToFit(_Alty& al, vector_sso_data& _Data) {
+		if (!_Data.is_small()) {
+			const auto _Oldsize = _Data.size();
+			const auto _Oldcapacity = _Data.capacity();
+			if (_Oldsize != _Data.capacity()) {
+				if (_Oldsize <= _MaxCapacity) {
+					wjr::uninitialized_move_n(al, _Data.data(), _Oldsize, reinterpret_cast<pointer>(_Data._M_storage));
+					wjr::destroy_n(al, _Data.data(), _Oldsize);
+					_Alty_traits::deallocate(al, _Data.data(), _Oldcapacity);
+					_Data.reset_ptr();
+				}
+				else {
+					auto _Newdata = _Alty_traits::allocate(al, _Oldsize);
+					wjr::uninitialized_move_n(al, _Data.data(), _Oldsize, _Newdata);
+					wjr::destroy_n(al, _Data.data(), _Oldsize);
+					_Alty_traits::deallocate(al, _Data.data(), _Oldcapacity);
+					_Data._M_ptr = _Newdata;
+					_Data._M_capacity = _Oldsize;
+				}
+				_Data._M_size = _Oldsize;
+			}
+		}
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 size_type size() const noexcept {
+		return _M_size;
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 size_type capacity() const noexcept {
+		return is_small() ? _MaxCapacity : _M_capacity;
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 pointer data() noexcept {
+		return _M_ptr;
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 const_pointer data() const noexcept {
+		return _M_ptr;
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 const_pointer cdata() const noexcept {
+		return _M_ptr;
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 void set_size(const size_type _Size) noexcept {
+		_M_size = _Size;
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 void inc_size(const difference_type _Size) noexcept {
+		_M_size += _Size;
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 bool is_small() const noexcept{
+		const bool f = static_cast<const void*>(_M_ptr) == static_cast<const void*>(_M_storage);
+		wjr::assume(!f || _M_size <= _MaxCapacity);
+		return f;
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 void reset_ptr() noexcept {
+		_M_ptr = reinterpret_cast<pointer>(_M_storage);
+	}
+
+	pointer _M_ptr = reinterpret_cast<pointer>(_M_storage);
+	size_type _M_size = 0;
+	union {
+		alignas(_MaxAlignment) uint8_t _M_storage[_MaxMemroy];
+		alignas(_MaxAlignment) size_type _M_capacity;
+	};
+};
+
+
 namespace _Vector_helper {
-	REGISTER_HAS_STATIC_MEMBER_FUNCTION(Swap, Swap);
-	REGISTER_HAS_STATIC_MEMBER_FUNCTION(getGrowthCapacity, getGrowthCapacity);
-	REGISTER_HAS_STATIC_MEMBER_FUNCTION(shrinkToFit, shrinkToFit);
+	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(Swap, Swap);
+	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(getGrowthCapacity, getGrowthCapacity);
 }
 
-template<typename T, typename Alloc, typename Data = vector_data<T, Alloc>>
-struct vector_core {
-public:
-	using _Alty = typename Data::_Alty;
-	using _Alty_traits = typename Data::_Alty_traits;
-	using value_type = typename Data::value_type;
-	using pointer = typename Data::pointer;
-	using const_pointer = typename Data::const_pointer;
-	using size_type = typename Data::size_type;
-	using difference_type = typename Data::difference_type;
+template<typename T, typename Alloc = std::allocator<T>, typename Data = vector_data<T, Alloc>>
+class vector {
 
-	using allocator_type = Alloc;
+	using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
+	using _Alty_traits = std::allocator_traits<_Alty>;
+
+	static_assert(std::is_same_v<typename _Alty_traits::value_type, T>,
+		"Alloc::value_type must be the same as T");
+
+public:
+
+	using value_type = T;
+	using allocator_type = _Alty;
+	using size_type = typename _Alty_traits::size_type;
+	using difference_type = typename _Alty_traits::difference_type;
 	using reference = value_type&;
 	using const_reference = const value_type&;
+	using pointer = typename _Alty_traits::pointer;
+	using const_pointer = typename _Alty_traits::const_pointer;
+	using iterator = pointer;
+	using const_iterator = const_pointer;
+	using reverse_iterator = std::reverse_iterator<iterator>;
+	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 	using data_type = Data;
 
-	WJR_CONSTEXPR20 vector_core() noexcept(std::is_nothrow_default_constructible_v<_Alty>) = default;
+	WJR_CONSTEXPR20 vector() 
+		noexcept(std::is_nothrow_default_constructible_v<_Alty>
+			&& std::is_nothrow_default_constructible_v<data_type>) = default;
 
-	WJR_CONSTEXPR20 vector_core(const allocator_type& al)
-		noexcept(std::is_nothrow_constructible_v<_Alty, const allocator_type&>) :
-		_Myval(std::piecewise_construct_t{},
+	WJR_CONSTEXPR20 explicit vector(const allocator_type& al)
+		noexcept(std::is_nothrow_constructible_v<_Alty, const allocator_type&>
+			&& std::is_nothrow_default_constructible_v<data_type>)
+		: _Myval(std::piecewise_construct_t{},
 			std::forward_as_tuple(al),
 			std::forward_as_tuple()) {}
+
+	WJR_CONSTEXPR20 explicit vector(const size_type _Count, const allocator_type& al = allocator_type())
+		: vector(al) {
+		_M_construct_n(_Count, value_construct_tag{});
+	}
+
+	WJR_CONSTEXPR20 vector(size_type _Count, const value_type& _Val, const allocator_type& al = allocator_type())
+		: vector(al) {
+		_M_construct_n(_Count, _Val);
+	}
+
 private:
-	constexpr static bool _IsNoThrowCopyConstruct = 
-		noexcept(Data::copyConstruct(std::declval<_Alty&>(), std::declval<const data_type&>(), std::declval<data_type&>()));
+	constexpr static bool _IsNoThrowCopyConstruct =
+		noexcept(data_type::copyConstruct(std::declval<_Alty&>(), 
+			std::declval<const data_type&>(), std::declval<data_type&>()));
 	constexpr static bool _IsNoThrowMoveConstruct =
-		noexcept(Data::moveConstruct(std::declval<_Alty&>(), std::declval<data_type&&>(), std::declval<data_type&>()));
+		noexcept(data_type::moveConstruct(std::declval<_Alty&>(), 
+			std::declval<data_type&&>(), std::declval<data_type&>()));
+	struct __vector_copy_tag {};
 public:
+
 	template<typename _Alloc>
-	WJR_CONSTEXPR20 vector_core(const vector_core& other, _Alloc&& al)
-		noexcept(std::is_nothrow_constructible_v<_Alty&, _Alloc&&> && _IsNoThrowCopyConstruct)
+	WJR_CONSTEXPR20 vector(const vector& other, _Alloc&& al, __vector_copy_tag)
+		noexcept(_IsNoThrowCopyConstruct
+			&& std::is_nothrow_constructible_v<_Alty, _Alloc&&>)
 		: _Myval(std::piecewise_construct_t{},
 			std::forward_as_tuple(std::forward<_Alloc>(al)),
 			std::forward_as_tuple()) {
 		copyConstruct(getAllocator(), other.getData(), getData());
 	}
 
-	WJR_CONSTEXPR20 vector_core(vector_core&& other)
-		noexcept(std::is_nothrow_move_constructible_v<_Alty> && _IsNoThrowMoveConstruct)
+	WJR_CONSTEXPR20 vector(const vector& other)
+		: vector(other, _Alty_traits::select_on_container_copy_construction(other.getAllocator()), 
+			__vector_copy_tag{}) {}
+
+	WJR_CONSTEXPR20 vector(const vector& other, const allocator_type& al)
+		: vector(other, al, __vector_copy_tag{}) {}
+
+	WJR_CONSTEXPR20 vector(vector&& other)
+		noexcept(_IsNoThrowMoveConstruct
+			&& std::is_nothrow_move_constructible_v<_Alty>)
 		: _Myval(std::piecewise_construct_t{},
 			std::forward_as_tuple(std::move(other.getAllocator())),
 			std::forward_as_tuple()) {
@@ -272,13 +491,13 @@ public:
 	}
 
 private:
-	WJR_CONSTEXPR20 vector_core(vector_core&& other, const allocator_type& al, std::true_type) noexcept
+	WJR_CONSTEXPR20 vector(vector&& other, const allocator_type& al, std::true_type) noexcept
 		: _Myval(std::piecewise_construct_t{},
 			std::forward_as_tuple(al),
 			std::forward_as_tuple()) {
 		moveConstruct(getAllocator(), std::move(other.getData()), getData());
 	}
-	WJR_CONSTEXPR20 vector_core(vector_core&& other, const allocator_type& _Al, std::false_type)
+	WJR_CONSTEXPR20 vector(vector&& other, const allocator_type& _Al, std::false_type)
 		: _Myval(std::piecewise_construct_t{},
 			std::forward_as_tuple(_Al),
 			std::forward_as_tuple()) {
@@ -288,249 +507,37 @@ private:
 		}
 		else {
 			const auto _Size = other.size();
-			if (is_likely(_Size != 0)) {
-				if (capacity() < _Size) {
-					auto _Data = Allocate(al, _Size, _Size);
+			if (_Size != 0) {
+				const auto _Oldcapacity = capacity();
+				if (_Oldcapacity < _Size) {
+					data_type _Data(al, 0, _Size);
 					moveConstruct(al, std::move(_Data), getData());
 				}
-				else {
-					set_size(_Size);
-				}
+				set_size(_Size);
 				wjr::uninitialized_move_n(al, other.data(), _Size, data());
 			}
 		}
 	}
-
 public:
-	WJR_CONSTEXPR20 vector_core(vector_core&& other, const allocator_type& al)
-		noexcept(noexcept(vector_core(std::declval<vector_core&&>(),
-			std::declval<const allocator_type&>(), std::declval<typename _Alty_traits::is_always_equal>())))
-		: vector_core(std::move(other), al, typename _Alty_traits::is_always_equal{}) {}
-
-	vector_core& operator=(const vector_core&) = delete;
-	vector_core& operator=(vector_core&&) = delete;
-
-	WJR_CONSTEXPR20 ~vector_core() noexcept {
-		tidy();
-	}
-
-	WJR_CONSTEXPR20 static Data Allocate(_Alty& al, size_type _Count, size_type _Capacity)
-		noexcept(noexcept(Data::Allocate(al, _Count, _Capacity))) {
-		return Data::Allocate(al, _Count, _Capacity);
-	}
-
-	WJR_CONSTEXPR20 static void copyConstruct(_Alty& al, const Data& _Src, Data& _Dest)
-		noexcept(_IsNoThrowCopyConstruct) {
-		return Data::copyConstruct(al, _Src, _Dest);
-	}
-
-	WJR_CONSTEXPR20 static void moveConstruct(_Alty& al, Data&& _Src, Data& _Dest)
-		noexcept(_IsNoThrowMoveConstruct) {
-		return Data::moveConstruct(al, std::move(_Src), _Dest);
-	}
-
-	template<typename _D = Data, std::enable_if_t<
-		_Vector_helper::has_static_member_function_Swap_v<_D, _Alty&, _D&, _D&>, int> = 0>
-	WJR_CONSTEXPR20 static void Swap(_Alty& al, _D& _Left, _D& _Right)
-		noexcept(noexcept(Data::Swap(al, _Left, _Right))) {
-		return Data::Swap(al, _Left, _Right);
-	}
-
-	template<typename _D = Data, std::enable_if_t<
-		!_Vector_helper::has_static_member_function_Swap_v<_D, _Alty&, _D&, _D&>, int> = 0>
-	WJR_CONSTEXPR20 static void Swap(_Alty& al, _D& _Left, _D& _Right)
-		noexcept(noexcept(moveConstruct(std::declval<_Alty&>(), std::declval<_D&&>(), std::declval<_D&>()))) {
-		_D _Tmp;
-		moveConstruct(al, std::move(_Left), _Tmp);
-		moveConstruct(al, std::move(_Right), _Left);
-		moveConstruct(al, std::move(_Tmp), _Right);
-	}
-
-	WJR_CONSTEXPR20 static void Destroy(_Alty& al, Data& _Data) noexcept {
-		wjr::destroy_n(al, _Data.data(), _Data.size());
-	}
-
-	WJR_CONSTEXPR20 static void Deallocate(_Alty& al, Data& _Data)
-		noexcept(noexcept(Data::Deallocate(al, _Data))) {
-		Data::Deallocate(al, _Data);
-	}
-
-	WJR_CONSTEXPR20 static void Tidy(_Alty& al, Data& _Data) noexcept {
-		if (_Data.capacity() != 0) {
-			Destroy(al, _Data);
-			Deallocate(al, _Data);
-		}
-	}
-
-	template<typename _D = Data, std::enable_if_t<
-		_Vector_helper::has_static_member_function_getGrowthCapacity_v<_D, const size_type, const size_type>, int> = 0>
-	WJR_CONSTEXPR20 static size_type getGrowthCapacity(const size_type _Oldcapacity, const size_type _Newsize) noexcept {
-		return Data::getGrowthCapacity(_Oldcapacity, _Newsize);
-	}
-	template<typename _D = Data, std::enable_if_t<
-		!_Vector_helper::has_static_member_function_getGrowthCapacity_v<_D, const size_type, const size_type>, int> = 0>
-	WJR_CONSTEXPR20 static size_type getGrowthCapacity(const size_type _Oldcapacity, const size_type _Newsize) noexcept {
-		assume(_Newsize > _Oldcapacity);
-		const auto _Newcapacity = _Oldcapacity + _Oldcapacity / 2;
-		const auto _FixedCapacity = _Newcapacity < _Newsize ? _Newsize : _Newcapacity;
-		return _FixedCapacity < 32 ? ((_FixedCapacity + 3) & (-4)) : 
-			_FixedCapacity < 256 ? ((_FixedCapacity + 15) & (-16)) : 
-			((_FixedCapacity + 63) & (-64));
-	}
-
-	template<typename _D = Data, std::enable_if_t<
-		_Vector_helper::has_static_member_function_shrinkToFit_v<_D, _Alty&, _D&>, int> = 0>
-	WJR_CONSTEXPR20 static void shrinkToFit(_Alty& al, _D& _Data) noexcept {
-		return Data::shrinkToFit(al, _Data);
-	}
-
-	template<typename _D = Data, std::enable_if_t<
-		!_Vector_helper::has_static_member_function_shrinkToFit_v<_D, _Alty&, _D&>, int> = 0>
-	WJR_CONSTEXPR20 static void shrinkToFit(_Alty& al, _D& _Data) noexcept {
-		auto _Oldsize = _Data.size();
-		auto _Oldcapacity = _Data.capacity();
-		if (_Oldsize != _Oldcapacity) {
-			if (_Oldsize == 0) {
-				Tidy(al, _Data);
-			}
-			else {
-				auto _Newdata = Allocate(al, _Oldsize, _Oldsize);
-				wjr::uninitialized_move_n(al, _Data.data(), _Oldsize, _Newdata.data());
-				Tidy(al, _Data);
-				moveConstruct(al, std::move(_Newdata), _Data);
-			}
-		}
-	}
-
-	WJR_CONSTEXPR20 void tidy() noexcept {
-		Tidy(getAllocator(), getData());
-	}
-
-	WJR_CONSTEXPR20 void swap(vector_core& other) noexcept {
-		Swap(getAllocator(), getData(), other.getData());
-		if constexpr (_Alty_traits::propagate_on_container_swap::value) {
-			std::swap(getAllocator(), other.getAllocator());
-		}
-	}
-
-	WJR_CONSTEXPR20 size_type size() const noexcept {
-		return getData().size();
-	}
-
-	WJR_CONSTEXPR20 size_type capacity() const noexcept {
-		return getData().capacity();
-	}
-
-	WJR_CONSTEXPR20 pointer data() noexcept {
-		return getData().data();
-	}
-
-	WJR_CONSTEXPR20 const_pointer data() const noexcept {
-		return getData().data();
-	}
-
-	WJR_CONSTEXPR20 const_pointer cdata() const noexcept {
-		return getData().cdata();
-	}
-
-	WJR_CONSTEXPR20 void set_size(const size_type _Size) noexcept {
-		getData().set_size(_Size);
-	}
-
-	WJR_CONSTEXPR20 void inc_size(const difference_type _Size) noexcept {
-		getData().inc_size(_Size);
-	}
-
-	WJR_CONSTEXPR20 _Alty& getAllocator() noexcept {
-		return _Myval.first();
-	}
-
-	WJR_CONSTEXPR20 const _Alty& getAllocator() const noexcept {
-		return _Myval.first();
-	}
-
-	WJR_CONSTEXPR20 Data& getData() noexcept {
-		return _Myval.second();
-	}
-
-	WJR_CONSTEXPR20 const Data& getData() const noexcept {
-		return _Myval.second();
-	}
-
-	wjr::pair<_Alty, Data> _Myval;
-};
-
-template<typename T, typename Alloc = std::allocator<T>, typename Core = vector_core<T, Alloc>>
-class vector : private Core {
-
-	using _Mybase = Core;
-
-	using _Alty = typename Core::_Alty;
-	using _Alty_traits = typename Core::_Alty_traits;
-
-	static_assert(std::is_same_v<typename _Alty_traits::value_type, T>,
-		"Alloc::value_type must be the same as T");
-
-	static_assert(std::is_same_v<typename Core::allocator_type, _Alty>,
-		"Core::allocator_type must be the same as _Alty");
-
-public:
-
-	using value_type = typename Core::value_type;
-	using allocator_type = typename Core::allocator_type;
-	using size_type = typename Core::size_type;
-	using difference_type = typename Core::difference_type;
-	using reference = typename Core::reference;
-	using const_reference = typename Core::const_reference;
-	using pointer = typename Core::pointer;
-	using const_pointer = typename Core::const_pointer;
-	using iterator = pointer;
-	using const_iterator = const_pointer;
-	using reverse_iterator = std::reverse_iterator<iterator>;
-	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-
-	using core_type = Core;
-	using data_type = typename Core::data_type;
-
-	WJR_CONSTEXPR20 vector() noexcept(std::is_nothrow_constructible_v<core_type>) = default;
-
-	WJR_CONSTEXPR20 explicit vector(const allocator_type& al) noexcept
-		: _Mybase(al) {}
-
-	WJR_CONSTEXPR20 explicit vector(const size_type _Count, const allocator_type& al = allocator_type())
-		: _Mybase(al) {
-		_M_construct_n(_Count, value_construct_tag{});
-	}
-
-	WJR_CONSTEXPR20 vector(size_type _Count, const value_type& _Val, const allocator_type& al = allocator_type())
-		: _Mybase(al) {
-		_M_construct_n(_Count, _Val);
-	}
-
-	WJR_CONSTEXPR20 vector(const vector& other)
-		: _Mybase(other, _Alty_traits::select_on_container_copy_construction(other.getAllocator())) {}
-
-	WJR_CONSTEXPR20 vector(vector&& other) noexcept = default;
-
-	WJR_CONSTEXPR20 vector(const vector& other, const allocator_type& al)
-		: _Mybase(other, al) {}
-
 	WJR_CONSTEXPR20 vector(vector&& other, const allocator_type& al)
-		noexcept(std::is_nothrow_constructible_v<core_type, core_type&&, const allocator_type&>)
-		: _Mybase(std::move(other), al) {}
+		noexcept(noexcept(vector(std::declval<vector&&>(),
+			std::declval<const allocator_type&>(), std::declval<typename _Alty_traits::is_always_equal>())))
+		: vector(std::move(other), al, typename _Alty_traits::is_always_equal{}) {}
 
 	template<typename _Iter, std::enable_if_t<wjr::is_iterator_v<_Iter>, int> = 0>
 	WJR_CONSTEXPR20 vector(_Iter _First, _Iter _Last, const allocator_type& al = allocator_type())
-		: _Mybase(al) {
+		: vector(al) {
 		_M_range_init(_First, _Last, typename std::iterator_traits<_Iter>::iterator_category());
 	}
 
 	WJR_CONSTEXPR20 vector(std::initializer_list<value_type> _Ilist, const allocator_type& al = allocator_type())
-		: _Mybase(al) {
+		: vector(al) {
 		_M_range_init(_Ilist.begin(), _Ilist.end(), std::random_access_iterator_tag());
 	}
 
-	WJR_CONSTEXPR20 ~vector() noexcept = default;
+	WJR_CONSTEXPR20 ~vector() noexcept {
+		tidy();
+	}
 
 	WJR_CONSTEXPR20 vector& operator=(const vector& other) {
 
@@ -591,56 +598,56 @@ public:
 	}
 
 
-	WJR_CONSTEXPR20 iterator begin() noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 iterator begin() noexcept {
 		return data();
 	}
 
-	WJR_CONSTEXPR20 const_iterator begin() const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 const_iterator begin() const noexcept {
 		return data();
 	}
 
-	WJR_CONSTEXPR20 const_iterator cbegin() const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 const_iterator cbegin() const noexcept {
 		return data();
 	}
 
-	WJR_CONSTEXPR20 iterator end() noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 iterator end() noexcept {
 		return begin() + size();
 	}
 
-	WJR_CONSTEXPR20 const_iterator end() const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 const_iterator end() const noexcept {
 		return begin() + size();
 	}
 
-	WJR_CONSTEXPR20 const_iterator cend() const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 const_iterator cend() const noexcept {
 		return cbegin() + size();
 	}
 
-	WJR_CONSTEXPR20 reverse_iterator rbegin() noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 reverse_iterator rbegin() noexcept {
 		return reverse_iterator(end());
 	}
 
-	WJR_CONSTEXPR20 const_reverse_iterator rbegin() const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 const_reverse_iterator rbegin() const noexcept {
 		return const_reverse_iterator(end());
 	}
 
-	WJR_CONSTEXPR20 const_reverse_iterator crbegin() const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 const_reverse_iterator crbegin() const noexcept {
 		return const_reverse_iterator(cend());
 	}
 
-	WJR_CONSTEXPR20 reverse_iterator rend() noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 reverse_iterator rend() noexcept {
 		return reverse_iterator(begin());
 	}
 
-	WJR_CONSTEXPR20 const_reverse_iterator rend() const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 const_reverse_iterator rend() const noexcept {
 		return const_reverse_iterator(begin());
 	}
 
-	WJR_CONSTEXPR20 const_reverse_iterator crend() const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 const_reverse_iterator crend() const noexcept {
 		return const_reverse_iterator(cbegin());
 	}
 
-	WJR_CONSTEXPR20 size_type size() const noexcept {
-		return _Mybase::size();
+	WJR_INTRINSIC_CONSTEXPR20 size_type size() const noexcept {
+		return getData().size();
 	}
 
 	WJR_CONSTEXPR20 void resize(const size_type _Newsize) {
@@ -655,11 +662,11 @@ public:
 		shrinkToFit(getAllocator(), getData());
 	}
 
-	WJR_CONSTEXPR20 size_type capacity() const noexcept {
-		return _Mybase::capacity();
+	WJR_INTRINSIC_CONSTEXPR20 size_type capacity() const noexcept {
+		return getData().capacity();
 	}
 
-	WJR_CONSTEXPR20 bool empty() const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 bool empty() const noexcept {
 		return size() == 0;
 	}
 
@@ -671,7 +678,7 @@ public:
 			const auto _Oldsize = size();
 			const auto _Newcapacity = getGrowthCapacity(_Oldcapacity, n);
 
-			auto _Newdata = Allocate(al, _Oldsize, _Newcapacity);
+			data_type _Newdata(al, _Oldsize, _Newcapacity);
 			wjr::uninitialized_move_n(al, data(), _Oldsize, _Newdata.data());
 
 			tidy();
@@ -679,58 +686,58 @@ public:
 		}
 	}
 
-	WJR_CONSTEXPR20 reference operator[](size_type _Pos) noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 reference operator[](size_type _Pos) noexcept {
 		return *(data() + _Pos);
 	}
 
-	WJR_CONSTEXPR20 const_reference operator[](size_type _Pos) const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 const_reference operator[](size_type _Pos) const noexcept {
 		return *(data() + _Pos);
 	}
 
-	WJR_CONSTEXPR20 reference at(size_type _Pos) {
+	WJR_INTRINSIC_CONSTEXPR20 reference at(size_type _Pos) {
 		if (_Pos >= size()) {
 			throw (std::out_of_range("wjr::vector::at"));
 		}
 		return (*this)[_Pos];
 	}
 
-	WJR_CONSTEXPR20 const_reference at(size_type _Pos) const {
+	WJR_INTRINSIC_CONSTEXPR20 const_reference at(size_type _Pos) const {
 		if (_Pos >= size()) {
 			throw (std::out_of_range("wjr::vector::at"));
 		}
 		return (*this)[_Pos];
 	}
 
-	WJR_CONSTEXPR20 reference front() noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 reference front() noexcept {
 		return *data();
 	}
 
-	WJR_CONSTEXPR20 const_reference front() const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 const_reference front() const noexcept {
 		return *data();
 	}
 
-	WJR_CONSTEXPR20 reference back() noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 reference back() noexcept {
 		return *(data() + size() - 1);
 	}
 
-	WJR_CONSTEXPR20 const_reference back() const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 const_reference back() const noexcept {
 		return *(data() + size() - 1);
 	}
 
-	WJR_CONSTEXPR20 pointer data() noexcept {
-		return _Mybase::data();
+	WJR_INTRINSIC_CONSTEXPR20 pointer data() noexcept {
+		return getData().data();
 	}
 
-	WJR_CONSTEXPR20 const_pointer data() const noexcept {
-		return _Mybase::data();
+	WJR_INTRINSIC_CONSTEXPR20 const_pointer data() const noexcept {
+		return getData().data();
 	}
 
-	WJR_CONSTEXPR20 const_pointer cdata() const noexcept {
-		return _Mybase::cdata();
+	WJR_INTRINSIC_CONSTEXPR20 const_pointer cdata() const noexcept {
+		return getData().cdata();
 	}
 
 	template<typename...Args>
-	WJR_CONSTEXPR20 reference emplace_back(Args&&... args) {
+	WJR_INLINE_CONSTEXPR20 reference emplace_back(Args&&... args) {
 		auto& al = getAllocator();
 		const auto _Myfirst = data();
 		const auto _Mylast = _Myfirst + size();
@@ -753,7 +760,7 @@ public:
 		emplace_back(std::move(_Val));
 	}
 
-	WJR_CONSTEXPR20 void pop_back() noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 void pop_back() noexcept {
 		inc_size(-1);
 		const pointer _Mylast = data() + size();
 		wjr::destroy_at(getAllocator(), _Mylast);
@@ -802,7 +809,10 @@ public:
 	}
 
 	WJR_CONSTEXPR20 void swap(vector& _Right) noexcept {
-		getCore().swap(_Right.getCore());
+		Swap(getAllocator(), getData(), _Right.getData());
+		if constexpr (_Alty_traits::propagate_on_container_swap::value) {
+			std::swap(getAllocator(), _Right.getAllocator());
+		}
 	}
 
 	WJR_CONSTEXPR20 void clear() {
@@ -813,88 +823,121 @@ public:
 		Tidy(getAllocator(), getData());
 	}
 
-	WJR_CONSTEXPR20 allocator_type& get_allocator() noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 allocator_type& get_allocator() noexcept {
 		return getAllocator();
 	}
-	WJR_CONSTEXPR20 const allocator_type& get_allocator() const noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 const allocator_type& get_allocator() const noexcept {
 		return getAllocator();
 	}
 
 	// unstandard functions
 
-	WJR_CONSTEXPR20 static data_type Allocate(_Alty& al, size_type _Newsize, size_type _Newcapacity) {
-		return _Mybase::Allocate(al, _Newsize, _Newcapacity);
+	WJR_CONSTEXPR20 static void copyConstruct(_Alty& al, const data_type& _Src, data_type& _Dest) 
+		noexcept(_IsNoThrowCopyConstruct) {
+		data_type::copyConstruct(al, _Src, _Dest);
 	}
 
-	WJR_CONSTEXPR20 static void copyConstruct(_Alty& al, const data_type& _Src, data_type& _Dest) {
-		_Mybase::copyConstruct(al, _Src, _Dest);
+	WJR_CONSTEXPR20 static void moveConstruct(_Alty& al, data_type&& _Src, data_type& _Dest) 
+		noexcept(_IsNoThrowMoveConstruct) {
+		data_type::moveConstruct(al, std::move(_Src), _Dest);
 	}
 
-	WJR_CONSTEXPR20 static void moveConstruct(_Alty& al, data_type&& _Src, data_type& _Dest) {
-		_Mybase::moveConstruct(al, std::move(_Src), _Dest);
+	template<typename _D = data_type, std::enable_if_t<
+		_Vector_helper::has_static_member_function_Swap_v<_D, _Alty&, _D&, _D&>, int> = 0>
+	WJR_CONSTEXPR20 static void Swap(_Alty& al, _D& _Left, _D& _Right)
+		noexcept(noexcept(_D::Swap(al, _Left, _Right))) {
+		return _D::Swap(al, _Left, _Right);
+	}
+
+	template<typename _D = Data, std::enable_if_t<
+		!_Vector_helper::has_static_member_function_Swap_v<_D, _Alty&, _D&, _D&>, int> = 0>
+	WJR_CONSTEXPR20 static void Swap(_Alty& al, _D& _Left, _D& _Right)
+		noexcept(
+			noexcept(moveConstruct(std::declval<_Alty&>(), std::declval<_D&&>(), std::declval<_D&>()))
+			&& std::is_nothrow_default_constructible_v<_D>) {
+		_D _Tmp;
+		moveConstruct(al, std::move(_Left), _Tmp);
+		moveConstruct(al, std::move(_Right), _Left);
+		moveConstruct(al, std::move(_Tmp), _Right);
 	}
 
 	WJR_CONSTEXPR20 static void Destroy(_Alty& al, data_type& _Data) {
-		_Mybase::Destroy(al, _Data);
+		wjr::destroy_n(al, _Data.data(), _Data.size());
 	}
 
-	WJR_CONSTEXPR20 static void Deallocate(_Alty& al, data_type& _Data) noexcept {
-		_Mybase::Deallocate(al, _Data);
+	WJR_CONSTEXPR20 static void Deallocate(_Alty& al, data_type& _Data) 
+		noexcept(noexcept(data_type::Deallocate(al, _Data))) {
+		data_type::Deallocate(al, _Data);
 		assume(_Data.size() == 0);
 	}
 
 	WJR_CONSTEXPR20 static void Tidy(_Alty& al, data_type& _Data) noexcept {
-		_Mybase::Tidy(al, _Data);
+		assume(_Data.size() <= _Data.capacity());
+		if (_Data.capacity() != 0) {
+			Destroy(al, _Data);
+			Deallocate(al, _Data);
+		}
 		assume(_Data.size() == 0);
 	}
 
-	WJR_CONSTEXPR20 static size_type getGrowthCapacity(const size_type _Oldcapacity, const size_type _Newsize) noexcept {
-		return _Mybase::getGrowthCapacity(_Oldcapacity, _Newsize);
+	template<typename _D = Data, std::enable_if_t<
+		_Vector_helper::has_static_member_function_getGrowthCapacity_v<
+		_D, const size_type, const size_type>, int> = 0>
+	WJR_INTRINSIC_CONSTEXPR20 static size_type getGrowthCapacity(
+		const size_type _Oldcapacity, const size_type _Newsize) noexcept {
+		return Data::getGrowthCapacity(_Oldcapacity, _Newsize);
+	}
+	template<typename _D = Data, std::enable_if_t<
+		!_Vector_helper::has_static_member_function_getGrowthCapacity_v<
+		_D, const size_type, const size_type>, int> = 0>
+	WJR_INTRINSIC_CONSTEXPR20 static size_type getGrowthCapacity(
+		const size_type _Oldcapacity, const size_type _Newsize) noexcept {
+		assume(_Newsize > _Oldcapacity);
+		const auto _Newcapacity = _Oldcapacity + _Oldcapacity / 2;
+		const auto _FixedCapacity = _Newcapacity < _Newsize ? _Newsize : _Newcapacity;
+		const auto ret = _FixedCapacity < 32 ? ((_FixedCapacity + 3) & (-4)) :
+			_FixedCapacity < 256 ? ((_FixedCapacity + 15) & (-16)) :
+			((_FixedCapacity + 63) & (-64));
+		wjr::assume(ret >= _Newsize);
+		return ret;
 	}
 
 	WJR_CONSTEXPR20 static void shrinkToFit(_Alty& al, data_type& _Data) {
-		_Mybase::shrinkToFit(al, _Data);
+		data_type::shrinkToFit(al, _Data);
 	}
 
-	WJR_CONSTEXPR20 core_type& getCore() noexcept {
-		return *this;
+	WJR_INTRINSIC_CONSTEXPR20 _Alty& getAllocator() noexcept {
+		return _Myval.first();
 	}
-	WJR_CONSTEXPR20 const core_type& getCore() const noexcept {
-		return *this;
-	}
-
-	WJR_CONSTEXPR20 _Alty& getAllocator() noexcept {
-		return _Mybase::getAllocator();
-	}
-	WJR_CONSTEXPR20 const _Alty& getAllocator() const noexcept {
-		return _Mybase::getAllocator();
+	WJR_INTRINSIC_CONSTEXPR20 const _Alty& getAllocator() const noexcept {
+		return _Myval.first();
 	}
 
-	WJR_CONSTEXPR20 data_type& getData() noexcept {
-		return _Mybase::getData();
+	WJR_INTRINSIC_CONSTEXPR20 data_type& getData() noexcept {
+		return _Myval.second();
 	}
-	WJR_CONSTEXPR20 const data_type& getData() const noexcept {
-		return _Mybase::getData();
+	WJR_INTRINSIC_CONSTEXPR20 const data_type& getData() const noexcept {
+		return _Myval.second();
 	}
 
 	// 非标准扩展函数
 	// English : non-standard extension functions
 
-	WJR_CONSTEXPR20 void set_size(const size_type _Size) noexcept {
-		_Mybase::set_size(_Size);
+	WJR_INTRINSIC_CONSTEXPR20 void set_size(const size_type _Size) noexcept {
+		getData().set_size(_Size);
 	}
 
-	WJR_CONSTEXPR20 void inc_size(const difference_type _Size) noexcept {
-		_Mybase::inc_size(_Size);
+	WJR_INTRINSIC_CONSTEXPR20 void inc_size(const difference_type _Size) noexcept {
+		getData().inc_size(_Size);
 	}
 
 	WJR_CONSTEXPR20 vector(const size_type _Count, default_construct_tag, const allocator_type& al = allocator_type())
-		: _Mybase(al) {
+		: vector(al) {
 		_M_construct_n(_Count, default_construct_tag{});
 	}
 
 	WJR_CONSTEXPR20 vector(const size_type _Count, value_construct_tag, const allocator_type& al = allocator_type())
-		: _Mybase(al) {
+		: vector(al) {
 		_M_construct_n(_Count, value_construct_tag{});
 	}
 
@@ -912,13 +955,12 @@ private:
 	WJR_CONSTEXPR20 void _M_construct_n(const size_type _Count, Args&&... args) {
 		if (_Count != 0) {
 			auto& al = getAllocator();
-			if (capacity() < _Count) {
-				auto _Newdata = Allocate(al, _Count, _Count);
+			const auto _Oldcapacity = capacity();
+			if (_Oldcapacity < _Count) {
+				data_type _Newdata(al, 0, _Count);
 				moveConstruct(al, std::move(_Newdata), getData());
 			}
-			else {
-				set_size(_Count);
-			}
+			set_size(_Count);
 			const pointer _Ptr = data();
 			if constexpr (sizeof...(Args) == 1) {
 				wjr::uninitialized_fill_n(al, _Ptr, _Count, std::forward<Args>(args)...);
@@ -942,7 +984,7 @@ private:
 		_M_construct_n(_Count, _First, _Last);
 	}
 
-	WJR_CONSTEXPR20 void _M_erase_at_end(pointer _Where) noexcept {
+	WJR_CONSTEXPR20 void _M_erase_at_end(const pointer _Where) noexcept {
 		const auto _Myfirst = data();
 		const pointer _Mylast = _Myfirst + size();
 		wjr::destroy(getAllocator(), _Where, _Mylast);
@@ -1016,7 +1058,7 @@ private:
 				const auto __old_size = static_cast<size_type>(_Mylast - _Myfirst);
 				const auto __old_pos = static_cast<size_type>(_Where - _Myfirst);
 				const auto _Newcapacity = getGrowthCapacity(capacity(), __old_size + n);
-				auto _Newdata = Allocate(al, __old_size + n, _Newcapacity);
+				data_type _Newdata(al, __old_size + n, _Newcapacity);
 				const pointer _Newfirst = _Newdata.data();
 
 				wjr::uninitialized_copy(al, _First, _Last, _Newfirst + __old_pos);
@@ -1055,7 +1097,7 @@ private:
 				const auto __old_size = static_cast<size_type>(_Mylast - _Myfirst);
 				const auto _Newcapacity = getGrowthCapacity(capacity(), __old_size + n);
 
-				auto _Newdata = Allocate(al, __old_size + n, _Newcapacity);
+				data_type _Newdata(al, __old_size + n, _Newcapacity);
 				const pointer _Newfirst = _Newdata.data();
 
 				wjr::uninitialized_copy(al, _First, _Last, _Newfirst + __old_size);
@@ -1090,11 +1132,12 @@ private:
 		auto& al = getAllocator();
 		if (_Count > capacity()) {
 			tidy();
-			auto _Data = Allocate(al, _Count, _Count);
-			moveConstruct(al, std::move(_Data), getData());
+			data_type _Newdata(al, _Count, _Count);
+			moveConstruct(al, std::move(_Newdata), getData());
 			wjr::uninitialized_fill_n(al, data(), _Count, _Val);
+			return;
 		}
-		else if (_Count > size()) {
+		if (_Count > size()) {
 			wjr::fill(begin(), end(), _Val);
 			wjr::uninitialized_fill_n(al, end(), _Count - size(), _Val);
 			set_size(_Count);
@@ -1124,7 +1167,7 @@ private:
 		}
 		else {
 			auto _Newcapacity = getGrowthCapacity(capacity(), _Count);
-			auto _Newdata = Allocate(al, _Count, _Newcapacity);
+			data_type _Newdata(al, _Count, _Newcapacity);
 			const pointer _Newfirst = _Newdata.data();
 			wjr::uninitialized_copy(al, _First, _Last, _Newfirst);
 
@@ -1166,7 +1209,7 @@ private:
 		const auto __new_size = __old_size + 1;
 		const auto _Newcapacity = getGrowthCapacity(__old_size, __new_size);
 
-		auto _Newdata = Allocate(al, __new_size, _Newcapacity);
+		data_type _Newdata(al, __new_size, _Newcapacity);
 
 		const pointer _Newfirst = _Newdata.data();
 		const pointer _Newwhere = _Newfirst + __old_pos;
@@ -1190,7 +1233,7 @@ private:
 		const auto __new_size = __old_size + 1;
 		const auto _Newcapacity = getGrowthCapacity(__old_size, __new_size);
 
-		auto _Newdata = Allocate(al, __new_size, _Newcapacity);
+		data_type _Newdata(al, __new_size, _Newcapacity);
 		const pointer _Newfirst = _Newdata.data();
 
 		const pointer _Newwhere = _Newfirst + __old_size;
@@ -1232,7 +1275,7 @@ private:
 		}
 		else {
 			const auto _Newcapacity = getGrowthCapacity(capacity(), size() + n);
-			auto _Newdata = Allocate(al, size() + n, _Newcapacity);
+			data_type _Newdata(al, size() + n, _Newcapacity);
 			const pointer _Newfirst = _Newdata.data();
 
 			const auto __old_pos = static_cast<size_type>(_Where - _Myfirst);
@@ -1277,7 +1320,7 @@ private:
 		}
 		else {
 			auto _Newcapacity = getGrowthCapacity(_Oldcapacity, _Newsize);
-			auto _Newdata = Allocate(al, _Newsize, _Newcapacity);
+			data_type _Newdata(al, _Newsize, _Newcapacity);
 			const pointer _Newfirst = _Newdata.data();
 
 			wjr::uninitialized_fill_n(al, _Newfirst + _Oldsize, n, _Val);
@@ -1327,70 +1370,75 @@ private:
 		return begin() + __offset;
 	}
 
+private:
+	wjr::pair<_Alty, data_type> _Myval;
 };
 
 template<typename iter,
 	typename v = typename std::iterator_traits<iter>::value_type,
 	typename Alloc = std::allocator<v>,
-	typename Core = vector_core<v, Alloc>,
+	typename Data = vector_data<v, Alloc>,
 	std::enable_if_t<is_iterator_v<iter>, int> = 0>
-vector(iter, iter, Alloc = Alloc()) -> vector<v, Core>;
+vector(iter, iter, Alloc = Alloc()) -> vector<v, Data>;
 
 template<typename T, size_t N, typename Alloc = std::allocator<T>>
-using static_vector = vector<T, Alloc, vector_core<T, Alloc, vector_static_data<T, Alloc, N>>>;
+using static_vector = vector<T, Alloc, vector_static_data<T, Alloc, N>>;
 
-template<typename T, typename Alloc, typename Core>
-bool operator==(const vector<T, Alloc, Core>& lhs, const vector<T, Alloc, Core>& rhs) {
+template<typename T, size_t N, typename Alloc = std::allocator<T>>
+using sso_vector = vector<T, Alloc, vector_sso_data<T, Alloc, N>>;
+
+template<typename T, typename Alloc, typename Data>
+bool operator==(const vector<T, Alloc, Data>& lhs, const vector<T, Alloc, Data>& rhs) {
 	return lhs.size() == rhs.size() && std::equal(lhs.begin(), lhs.end(), rhs.begin());
 }
 
-template<typename T, typename Alloc, typename Core>
-bool operator!=(const vector<T, Alloc, Core>& lhs, const vector<T, Alloc, Core>& rhs) {
+template<typename T, typename Alloc, typename Data>
+bool operator!=(const vector<T, Alloc, Data>& lhs, const vector<T, Alloc, Data>& rhs) {
 	return !(lhs == rhs);
 }
 
-template<typename T, typename Alloc, typename Core>
-bool operator<(const vector<T, Alloc, Core>& lhs, const vector<T, Alloc, Core>& rhs) {
+template<typename T, typename Alloc, typename Data>
+bool operator<(const vector<T, Alloc, Data>& lhs, const vector<T, Alloc, Data>& rhs) {
 	return wjr::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 
-template<typename T, typename Alloc, typename Core>
-bool operator>(const vector<T, Alloc, Core>& lhs, const vector<T, Alloc, Core>& rhs) {
+template<typename T, typename Alloc, typename Data>
+bool operator>(const vector<T, Alloc, Data>& lhs, const vector<T, Alloc, Data>& rhs) {
 	return rhs < lhs;
 }
 
-template<typename T, typename Alloc, typename Core>
-bool operator<=(const vector<T, Alloc, Core>& lhs, const vector<T, Alloc, Core>& rhs) {
+template<typename T, typename Alloc, typename Data>
+bool operator<=(const vector<T, Alloc, Data>& lhs, const vector<T, Alloc, Data>& rhs) {
 	return !(rhs < lhs);
 }
 
-template<typename T, typename Alloc, typename Core>
-bool operator>=(const vector<T, Alloc, Core>& lhs, const vector<T, Alloc, Core>& rhs) {
+template<typename T, typename Alloc, typename Data>
+bool operator>=(const vector<T, Alloc, Data>& lhs, const vector<T, Alloc, Data>& rhs) {
 	return !(lhs < rhs);
 }
 
 //template<typename T, typename Alloc, size_t C = 0>
-//using sso_vector = vector<T, Alloc, vector_sso_core<T, Alloc, C>>;
+//using sso_vector = vector<T, Alloc, vector_sso_Data<T, Alloc, C>>;
 
 _WJR_END
 
 namespace std {
-	template<typename T, typename Alloc, typename Core>
-	WJR_CONSTEXPR20 void swap(wjr::vector<T, Alloc, Core>& lhs, wjr::vector<T, Alloc, Core>& rhs)
+	template<typename T, typename Alloc, typename Data>
+	WJR_CONSTEXPR20 void swap(wjr::vector<T, Alloc, Data>& lhs, wjr::vector<T, Alloc, Data>& rhs)
 		noexcept(noexcept(lhs.swap(rhs))) {
 		lhs.swap(rhs);
 	}
 
-	template<typename T, typename Alloc, typename Core>
-	WJR_CONSTEXPR20 typename wjr::vector<T, Alloc, Core>::size_type erase(wjr::vector<T, Alloc, Core>& c, const T& value) {
+	template<typename T, typename Alloc, typename Data>
+	WJR_CONSTEXPR20 typename wjr::vector<T, Alloc, Data>::size_type erase(wjr::vector<T, Alloc, Data>& c, const T& value) {
 		auto it = std::remove(c.begin(), c.end(), value);
 		const auto n = std::distance(it, c.end());
 		c.erase(it, c.end());
 		return n;
 	}
 
-	template<typename T, typename Alloc, typename Core, typename Pred>
-	WJR_CONSTEXPR20 typename wjr::vector<T, Alloc, Core>::size_type erase_if(wjr::vector<T, Alloc, Core>& c, Pred pred) {
+	template<typename T, typename Alloc, typename Data, typename Pred>
+	WJR_CONSTEXPR20 typename wjr::vector<T, Alloc, Data>::size_type erase_if(wjr::vector<T, Alloc, Data>& c, Pred pred) {
 		auto it = std::remove_if(c.begin(), c.end(), pred);
 		const auto n = std::distance(it, c.end());
 		c.erase(it, c.end());

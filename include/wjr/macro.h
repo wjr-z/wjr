@@ -3,6 +3,7 @@
 #define __WJR_MMACRO_H
 
 #include <cstdint>
+#include <cpu_features_macros.h>
 
 #if defined(_MSC_VER)
 /* Microsoft C/C++-compatible compiler */
@@ -24,21 +25,21 @@
 #include <spe.h>
 #endif
 
-#if defined(_MSC_VER)
-#if !(defined(__AVX__) || defined(__AVX2__))
-#if (defined(_M_AMD64) || defined(_M_X64))
+#if defined(_MSC_VER) && !(defined(__AVX__) || defined(__AVX2__)) && (defined(_M_AMD64) || defined(_M_X64))
 #ifndef __SSE2__
 #define __SSE2__
 #endif // __SSE2__
-#elif _M_IX86_FP == 2
-#ifndef __SSE2__
-#define __SSE2__
-#endif // __SSE2__
-#elif _M_IX86_FP == 1
+#endif
+
+#if _M_IX86_FP >= 1
 #ifndef __SSE__
 #define __SSE__
-#endif // __SSE__
 #endif
+#endif
+
+#if _M_IX86_FP >= 2
+#ifndef __SSE2__
+#define __SSE2__
 #endif
 #endif
 
@@ -106,17 +107,60 @@
 #endif
 
 #if defined(__SSE2__)
-#define __HAS_FAST_MEMCHR
-#define __HAS_FAST_MEMCMP
-#define __HAS_FAST_MEMMIS
-//#define __HAS_FAST_MEMCNT
-#define __HAS_FAST_MEMSET
-//#define __HAS_FAST_MEMCPY
+#define _WJR_FAST_MEMCHR
+#define _WJR_FAST_MEMCMP
+#define _WJR_FAST_MEMMIS
+//#define _WJR_FAST_MEMCNT
+#define _WJR_FAST_MEMSET
+//#define _WJR_FAST_MEMCPY
 #endif // __SSE2__
 
-#if defined(__clang__)
+#define _WJR_ENHANCED_REP
+
+#if defined(NWJR_ENHANCED_REP)
+#undef _WJR_ENHANCED_REP
+#endif
+
+#if defined(NWJR_FAST_MEMCHR)
+#undef _WJR_FAST_MEMCHR
+#endif
+#if defined(NWJR_FAST_MEMCMP)
+#undef _WJR_FAST_MEMCMP
+#endif
+#if defined(NWJR_FAST_MEMMIS)
+#undef _WJR_FAST_MEMMIS
+#endif
+#if defined(NWJR_FAST_MEMCNT)
+#undef _WJR_FAST_MEMCNT
+#endif
+#if defined(NWJR_FAST_MEMSET)
+#udnef _WJR_FAST_MEMSET
+#endif
+#if defined(NWJR_FAST_MEMCPY)
+#endif
+
+#if defined(CPU_FEATURES_ARCH_X86)
+#define WJR_X86
+#endif
+#if defined(CPU_FEATURES_ARCH_X86_32)
+#define WJR_X86_32
+#endif
+#if defined(CPU_FEATURES_ARCH_X86_64)
+#define WJR_X86_64
+#endif
+
+#if defined(CPU_FEATURES_ARCH_ARM)
+#define WJR_ARM
+#endif
+
+#if !defined(WJR_X86)
+#error "ARM is not supported"
+#endif
+
+
+#if defined(CPU_FEATURES_COMPILER_CLANG)
 #define WJR_COMPILER_CLANG
-#elif defined(__GNUC__)
+#elif defined(CPU_FEATURES_COMPILER_GCC)
 #define WJR_COMPILER_GCC
 #elif defined(_MSC_VER)
 #define WJR_COMPILER_MSVC
@@ -258,43 +302,16 @@
 
 #if defined(WJR_CPP_20)
 #define WJR_CONSTEXPR20 constexpr
-#define WJR_INTRINSIC_CONSTEXPR20 WJR_INTRINSIC_INLINE constexpr
-#define WJR_CONSTEVAL20 consteval
 #else
-#define WJR_CONSTEXPR20 inline
-#define WJR_INTRINSIC_CONSTEXPR20 WJR_INTRINSIC_INLINE
-#define WJR_CONSTEVAL20 constexpr
+#define WJR_CONSTEXPR20
 #endif
 
+#define WJR_FORCEINLINE_CONSTEXPR20 WJR_FORCEINLINE WJR_CONSTEXPR20
+#define WJR_INTRINSIC_CONSTEXPR20 WJR_INTRINSIC_INLINE WJR_CONSTEXPR20
+#define WJR_INLINE_CONSTEXPR20 inline WJR_CONSTEXPR20
 #define WJR_INTRINSIC_CONSTEXPR WJR_INTRINSIC_INLINE constexpr
 
-#if defined(__x86_64__) || (defined(_M_IX86) || (defined(_M_X64) && !defined(_M_ARM64EC)))
-#define WJR_X86_64
-#elif defined(__arm__) || (defined(_M_ARM) || defined(_M_ARM64))
-#define WJR_ARM
-#endif
-
-#if defined(WJR_ARM)
-#error "ARM is not supported"
-#endif
-
-// judge if CPU is intel
-#if defined(__INTEL_COMPILER) || defined(__ICC) || defined(__ECC) || defined(__ICL)
-#define WJR_INTEL
-#endif
-
-// judge if CPU is AMD
-#if defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64) || defined(_M_X64) || defined(_M_AMD64)
-#define WJR_AMD
-#endif
-
-#if SIZE_MAX == 0xffffffffffffffffull
-#define WJR_X64
-#else
-#define WJR_X86
-#endif
-
-#if defined(WJR_X64)
+#if defined(WJR_X86_64)
 #define WJR_BYTE_WIDTH 8
 #else
 #define WJR_BYTE_WIDTH 4
@@ -317,15 +334,11 @@
 #define WJR_MACRO_LABEL(NAME) __wjr_label_##NAME
 
 // judge if i can use inline asm
-#if defined(WJR_X86_64) && (defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG))
+#if defined(WJR_X86) && (defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG))
 #define WJR_INLINE_ASM
 #if defined(WJR_COMPILER_GCC)
 #define WJR_BETTER_INLINE_ASM
 #endif // WJR_COMPILER_GCC
-#endif
-
-#if (defined(WJR_INLINE_ASM) && defined(WJR_INTEL))
-#define WJR_ENHANCED_REP
 #endif
 
 #define _WJR_BEGIN namespace wjr{
@@ -356,5 +369,106 @@
 #define _WJR_THROW(x) 
 #define _WJR_RELEASE
 #endif
+
+#define WJR_REGISTER_HAS_MEMBER_FUNCTION(FUNC, NAME)							\
+template<typename Enable, typename T, typename...Args>							\
+struct __has_member_function_##NAME : std::false_type {};						\
+template<typename T, typename...Args>											\
+struct __has_member_function_##NAME <std::void_t<decltype(						\
+	std::declval<T>(). FUNC (std::declval<Args>()...))>, T, Args...>			\
+	: std::true_type {};														\
+template<typename T, typename...Args>											\
+struct has_member_function_##NAME :												\
+	__has_member_function_##NAME<void, T, Args...> {};							\
+template<typename T, typename...Args>											\
+constexpr bool has_member_function_##NAME##_v =									\
+	has_member_function_##NAME<T, Args...>::value;
+
+#define WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(FUNC, NAME)						\
+template<typename Enable, typename T, typename...Args>							\
+struct __has_static_member_function_##NAME : std::false_type {};				\
+template<typename T, typename...Args>											\
+struct __has_static_member_function_##NAME <std::void_t<decltype(				\
+	T:: FUNC (std::declval<Args>()...))>, T, Args...>							\
+	: std::true_type {};														\
+template<typename T, typename...Args>											\
+struct has_static_member_function_##NAME :										\
+	__has_static_member_function_##NAME<void, T, Args...> {};					\
+template<typename T, typename...Args>											\
+constexpr bool has_static_member_function_##NAME##_v =							\
+	has_static_member_function_##NAME<T, Args...>::value;
+
+#define WJR_REGISTER_HAS_GLOBAL_FUNCTION(FUNC, NAME)							\
+template<typename Enable, typename...Args>										\
+struct __has_global_function_##NAME : std::false_type {};						\
+template<typename...Args>														\
+struct __has_global_function_##NAME <std::void_t<decltype(						\
+	FUNC (std::declval<Args>()...))>, Args...>									\
+	: std::true_type {};														\
+template<typename...Args>														\
+struct has_global_function_##NAME :												\
+	__has_global_function_##NAME<void, Args...> {};								\
+template<typename...Args>														\
+constexpr bool has_global_function_##NAME##_v =									\
+	has_global_function_##NAME<Args...>::value;
+
+#define WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(OP, NAME)						\
+template<typename Enable, typename T, typename U>								\
+struct __has_global_binary_operator_##NAME : std::false_type {};				\
+template<typename T, typename U>												\
+struct __has_global_binary_operator_##NAME <std::void_t<decltype(				\
+	std::declval<T>() OP std::declval<U>())>, T, U>								\
+	: std::true_type {};														\
+template<typename T, typename U>												\
+struct has_global_binary_operator_##NAME :										\
+	__has_global_binary_operator_##NAME<void, T, U> {};							\
+template<typename T, typename U>												\
+constexpr bool has_global_binary_operator_##NAME##_v =							\
+	has_global_binary_operator_##NAME<T, U>::value;								\
+template<typename T, typename U>												\
+struct has_global_binary_operator<T, U, std:: NAME<>> :							\
+	has_global_binary_operator_##NAME<T, U> {};
+
+#define WJR_REGISTER_HAS_GLOBAL_UNARY_OPERATOR(OP, NAME)							\
+template<typename Enable, typename T>											\
+struct __has_global_unary_operator_##NAME : std::false_type {};					\
+template<typename T>															\
+struct __has_global_unary_operator_##NAME <std::void_t<decltype(				\
+	OP std::declval<T>())>, T>													\
+	: std::true_type {};														\
+template<typename T>															\
+struct has_global_unary_operator_##NAME :										\
+	__has_global_unary_operator_##NAME<void, T> {};								\
+template<typename T>															\
+constexpr bool has_global_unary_operator_##NAME##_v =							\
+	has_global_unary_operator_##NAME<T>::value;
+
+#define WJR_REGISTER_HAS_TYPE(TYPE, NAME)										\
+template<typename Enable, typename T>							                \
+struct __has_type_##NAME : std::false_type {};				                    \
+template<typename T>											                \
+struct __has_type_##NAME <std::void_t<decltype(				                    \
+	std::declval<typename T::TYPE>())>, T>							            \
+	: std::true_type {};														\
+template<typename T>											                \
+struct has_type_##NAME :										                \
+	__has_static_member_function_##NAME<void, T> {};					        \
+template<typename T>											                \
+constexpr bool has_type_##NAME##_v =							                \
+	has_type_##NAME<T>::value;
+
+#define WJR_REGISTER_HAS_TYPE_ARGS(TYPE, NAME)									\
+template<typename Enable, typename T, typename...Args>							\
+struct __has_type_##NAME : std::false_type {};				                    \
+template<typename T, typename...Args>											\
+struct __has_type_##NAME <std::void_t<decltype(				                    \
+	std::declval<typename T::template TYPE<Args...>>())>, T, Args...>			\
+	: std::true_type {};														\
+template<typename T, typename...Args>											\
+struct has_type_##NAME :										                \
+	__has_type_##NAME<void, T, Args...> {};					                    \
+template<typename T, typename...Args>											\
+constexpr bool has_type_##NAME##_v =							                \
+	has_type_##NAME<T, Args...>::value;
 
 #endif

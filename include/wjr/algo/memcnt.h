@@ -5,7 +5,7 @@
 #include <wjr/literals.h>
 #include <wjr/simd/simd_intrin.h>
 
-#if defined(__HAS_FAST_MEMCNT)
+#if defined(_WJR_FAST_MEMCNT)
 
 #define __WJR_MEMCNT_SMALL_INIT_BEGIN(...)	size_t cnt = 0;
 #define __WJR_MEMCNT_SMALL_INIT_END(...) return cnt;
@@ -95,6 +95,6 @@ size_t __memcnt(const T* s, T val, size_t n) {
 
 _WJR_ALGO_END
 
-#endif // __HAS_FAST_MEMCNT
+#endif // _WJR_FAST_MEMCNT
 
 #endif // __WJR_ALGO_MEMCNT_H
