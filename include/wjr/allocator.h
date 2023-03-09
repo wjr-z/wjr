@@ -8,13 +8,16 @@
 _WJR_BEGIN
 
 template<typename _Ty>
-struct __aligned_helper {
-	constexpr static size_t value = std::max((size_t)alignof(_Ty), (size_t)16ull);
-};
+struct __aligned_helper;
 
 template<>
 struct __aligned_helper<void> {
-	constexpr static size_t value = 16;
+	constexpr static size_t value = std::max((size_t)(16), (size_t)(alignof(max_align_t)));
+};
+
+template<typename _Ty>
+struct __aligned_helper {
+	constexpr static size_t value = std::max((size_t)alignof(_Ty), __aligned_helper<void>::value);
 };
 
 #if defined(_DEBUG)

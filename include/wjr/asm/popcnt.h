@@ -1,8 +1,6 @@
-#pragma once
-#ifndef __WJR_ASM_POPCNT_H__
-#define __WJR_ASM_POPCNT_H__
-
-#include <wjr/type_traits.h>
+#ifndef __WJR_ASM_ASM_H
+#error "This file should not be included directly. Include <wjr/asm.h> instead."
+#endif
 
 _WJR_ASM_BEGIN
 
@@ -86,5 +84,3 @@ WJR_INTRINSIC_CONSTEXPR20 int popcnt(T x) noexcept {
 }
 
 _WJR_ASM_END
-
-#endif // __WJR_ASM_POPCNT_H__

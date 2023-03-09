@@ -16,10 +16,10 @@ WJR_INTRINSIC_INLINE T simd_cast(U);
 template<typename T1, typename T2, typename U>
 WJR_INTRINSIC_INLINE U simd_cast(U, T2);
 
-#if defined(__SSE__)
-#endif // __SSE__
+#if WJR_SSE
+#endif // WJR_SSE
 
-#if defined(__SSE2__)
+#if WJR_SSE2
 
 template<>
 WJR_INTRINSIC_INLINE __m128 simd_cast<__m128>(__m128i v) {
@@ -67,9 +67,9 @@ __WJR_REGISTER_SIMD_CAST_WITH_INTEGER(uint64_t, 64);
 
 #undef __WJR_REGISTER_SIMD_CAST_WITH_INTEGER
 
-#endif // __SSE2__
+#endif // WJR_SSE2
 
-#if defined(__AVX__)
+#if WJR_AVX2
 
 template<>
 WJR_INTRINSIC_INLINE __m256 simd_cast<__m256>(__m256i v) {
@@ -127,7 +127,7 @@ __WJR_REGISTER_SIMD_CAST_WITH_INTEGER(uint64_t, 64);
 
 #undef __WJR_REGISTER_SIMD_CAST_WITH_INTEGER
 
-#endif // __AVX__
+#endif // WJR_AVX
 
 _WJR_SIMD_END
 

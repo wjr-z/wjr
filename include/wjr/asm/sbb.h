@@ -1,8 +1,6 @@
-#pragma once
-#ifndef __WJR_ASM_SBB_H
-#define __WJR_ASM_SBB_H
-
-#include <wjr/type_traits.h>
+#ifndef __WJR_ASM_ASM_H
+#error "This file should not be included directly. Include <wjr/asm.h> instead."
+#endif
 
 _WJR_ASM_BEGIN
 
@@ -35,7 +33,7 @@ WJR_INTRINSIC_INLINE static T __wjr_builtin_sbb(T a, T b, T carry_in, T* carry_o
 		*carry_out = CF;
 		return ret;
 	}
-	else if constexpr (_Nd <= _Nd_ui) {
+	else if constexpr (_Nd <= _Nd_ul) {
 		unsigned long CF = 0;
 		T ret = __builtin_subcl(a, b, carry_in, &CF);
 		*carry_out = CF;
@@ -93,10 +91,12 @@ WJR_INTRINSIC_INLINE static T __wjr_msvc_sbb(T a, T b, T carry_in, T* carry_out)
 #endif
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 static T __sbb(T a, T b, T carry_in, T* carry_out) {
+WJR_INTRINSIC_CONSTEXPR20 T sbb(T a, T b, T carry_in, T* carry_out) {
 	if (!wjr::is_constant_evaluated()) {
 		if (!((is_constant_p(a) && is_constant_p(b)) || (is_constant_p(carry_in) && carry_in == 0))) {
-#if defined(WJR_COMPILER_MSVC)
+#if WJR_HAS_BUILTIN(__builtin_subc) || WJR_HAS_CLANG(5, 0, 0)
+			return __wjr_builtin_sbb(a, b, carry_in, carry_out);
+#elif defined(WJR_COMPILER_MSVC)
 			return __wjr_msvc_sbb(a, b, carry_in, carry_out);
 #elif defined(WJR_INLINE_ASM) // Clang does not need inline assembly
 #if defined(WJR_BETTER_INLINE_ASM)
@@ -127,21 +127,4 @@ WJR_INTRINSIC_CONSTEXPR20 static T __sbb(T a, T b, T carry_in, T* carry_out) {
 	return a;
 }
 
-WJR_INTRINSIC_CONSTEXPR20 uint8_t sbb(uint8_t a, uint8_t b, uint8_t carry_in, uint8_t* carry_out) {
-	return __sbb(a, b, carry_in, carry_out);
-}
-WJR_INTRINSIC_CONSTEXPR20 uint16_t sbb(uint16_t a, uint16_t b, uint16_t carry_in, uint16_t* carry_out) {
-	return __sbb(a, b, carry_in, carry_out);
-}
-WJR_INTRINSIC_CONSTEXPR20 uint32_t sbb(uint32_t a, uint32_t b, uint32_t carry_in, uint32_t* carry_out) {
-	return __sbb(a, b, carry_in, carry_out);
-}
-#if defined(WJR_X86_64)
-WJR_INTRINSIC_CONSTEXPR20 uint64_t sbb(uint64_t a, uint64_t b, uint64_t carry_in, uint64_t* carry_out) {
-	return __sbb(a, b, carry_in, carry_out);
-}
-#endif // WJR_X86_64
-
 _WJR_ASM_END
-
-#endif // __WJR_ASM_SBB_H

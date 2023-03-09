@@ -3,7 +3,6 @@
 #define __WJR_MMACRO_H
 
 #include <cstdint>
-#include <cpu_features_macros.h>
 
 #if defined(_MSC_VER)
 /* Microsoft C/C++-compatible compiler */
@@ -25,131 +24,114 @@
 #include <spe.h>
 #endif
 
-#if defined(_MSC_VER) && !(defined(__AVX__) || defined(__AVX2__)) && (defined(_M_AMD64) || defined(_M_X64))
-#ifndef __SSE2__
-#define __SSE2__
-#endif // __SSE2__
+#if defined(__AVX512VL__)
+#define WJR_AVX512VL 1
+#else
+#define WJR_AVX512VL 0
 #endif
 
-#if _M_IX86_FP >= 1
-#ifndef __SSE__
-#define __SSE__
-#endif
-#endif
-
-#if _M_IX86_FP >= 2
-#ifndef __SSE2__
-#define __SSE2__
-#endif
+#if defined(__AVX512BW__)
+#define WJR_AVX512BW 1
+#else
+#define WJR_AVX512BW 0
 #endif
 
-#if defined ( __AVX512VL__ ) && defined ( __AVX512BW__ ) && defined ( __AVX512DQ__ )
-#ifndef __AVX512F__
-#define __AVX512F__
-#endif
-#ifndef __AVX512__
-#define __AVX512__
-#endif
+#if defined(__AVX512DQ__)
+#define WJR_AVX512DQ 1
+#else
+#define WJR_AVX512DQ 0
 #endif
 
-#if defined(__AVX512__) || defined(__AVX512F__)
-#ifndef __AVX2__
-#define __AVX2__
-#endif
-#endif
-
-#if defined(__AVX2__)
-#ifndef __AVX__
-#define __AVX__
-#endif
+#if defined(__AVX512F__) || (WJR_AVX512F && WJR_AVX512BW && WJR_AVX512DQ)
+#define WJR_AVX512F 1
+#else
+#define WJR_AVX512F 0
 #endif
 
-#if defined(__AVX__)
-#ifndef __SSE4_2__
-#define __SSE4_2__
-#endif
-#endif
-
-#if defined(__SSE4_2__)
-#ifndef __SSE4_1__
-#define __SSE4_1__
-#endif
+#if defined(__AVX512__) || (WJR_AVX512F && WJR_AVX512BW && WJR_AVX512DQ)
+#define WJR_AVX512 1
+#else
+#define WJR_AVX512 0
 #endif
 
-#if defined(__SSE4_1__)
-#ifndef __SSSE3__
-#define __SSSE3__
-#endif
-#endif
-
-#if defined(__SSSE3__)
-#ifndef __SSE3__
-#define __SSE3__
-#endif
+#if defined(__AVX2__) || (WJR_AVX512 || WJR_AVX512F)
+#define WJR_AVX2 1
+#else
+#define WJR_AVX2 0
 #endif
 
-#if defined(__SSE3__)
-#ifndef __SSE2__
-#define __SSE2__
-#endif
-#endif
-
-#if defined(__SSE2__)
-#ifndef __SSE__
-#define __SSE__
-#endif
+#if defined(__AVX__) || WJR_AVX2
+#define WJR_AVX 1
+#else
+#define WJR_AVX 0
 #endif
 
-#if defined(__SSE__)
-#ifndef __MMX__
-#define __MMX__
-#endif
-#endif
-
-#if defined(__SSE2__)
-#define _WJR_FAST_MEMCHR
-#define _WJR_FAST_MEMCMP
-#define _WJR_FAST_MEMMIS
-//#define _WJR_FAST_MEMCNT
-#define _WJR_FAST_MEMSET
-//#define _WJR_FAST_MEMCPY
-#endif // __SSE2__
-
-#define _WJR_ENHANCED_REP
-
-#if defined(NWJR_ENHANCED_REP)
-#undef _WJR_ENHANCED_REP
+#if defined(__SSE4_2__) || WJR_AVX
+#define WJR_SSE4_2 1
+#else
+#define WJR_SSE4_2 0
 #endif
 
-#if defined(NWJR_FAST_MEMCHR)
-#undef _WJR_FAST_MEMCHR
-#endif
-#if defined(NWJR_FAST_MEMCMP)
-#undef _WJR_FAST_MEMCMP
-#endif
-#if defined(NWJR_FAST_MEMMIS)
-#undef _WJR_FAST_MEMMIS
-#endif
-#if defined(NWJR_FAST_MEMCNT)
-#undef _WJR_FAST_MEMCNT
-#endif
-#if defined(NWJR_FAST_MEMSET)
-#udnef _WJR_FAST_MEMSET
-#endif
-#if defined(NWJR_FAST_MEMCPY)
+#if defined(__SSE4_1__) || WJR_SSE4_2
+#define WJR_SSE4_1 1
+#else
+#define WJR_SSE4_1 0
 #endif
 
-#if defined(CPU_FEATURES_ARCH_X86)
-#define WJR_X86
+#if defined(__SSSE3__) || WJR_SSE4_1
+#define WJR_SSSE3 1
+#else 
+#define WJR_SSSE3 0
 #endif
-#if defined(CPU_FEATURES_ARCH_X86_32)
+
+#if defined(__SSE3__) || WJR_SSSE3
+#define WJR_SSE3 1
+#else
+#define WJR_SSE3 0
+#endif
+
+#if defined(__SSE2__) || WJR_SSE3 || _M_IX86_FP >= 2 || \
+	(defined(_MSC_VER) && (defined(_M_AMD64) || defined(_M_X64)))
+#define WJR_SSE2 1
+#else
+#define WJR_SSE2 0
+#endif
+
+#if defined(__SSE__) || WJR_SSE2 ||_M_IX86_FP >= 1
+#define WJR_SSE 1
+#else
+#define WJR_SSE 0
+#endif
+
+#if defined(__MMX__) || WJR_SSE
+#define WJR_MMX 1
+#else
+#define WJR_MMX 0
+#endif
+
+#if defined(__XOP__)
+#define WJR_XOP 1
+#else
+#define WJR_XOP 0
+#endif
+
+#if defined(__pnacl__) || defined(__CLR_VER)
+#define WJR_VM
+#endif
+
+#if (defined(_M_IX86) || defined(__i386__)) && !defined(WJR_VM)
 #define WJR_X86_32
 #endif
-#if defined(CPU_FEATURES_ARCH_X86_64)
+
+#if (defined(_M_X64) || defined(__x86_64__)) && !defined(WJR_VM)
 #define WJR_X86_64
 #endif
 
-#if defined(CPU_FEATURES_ARCH_ARM)
+#if defined(WJR_X86_32) || defined(WJR_X86_64)
+#define WJR_X86
+#endif
+
+#if (defined(__arm__) || defined(_M_ARM))
 #define WJR_ARM
 #endif
 
@@ -157,59 +139,20 @@
 #error "ARM is not supported"
 #endif
 
-
-#if defined(CPU_FEATURES_COMPILER_CLANG)
+#if defined(__clang__)
 #define WJR_COMPILER_CLANG
-#elif defined(CPU_FEATURES_COMPILER_GCC)
+#elif defined(__GNUC__)
 #define WJR_COMPILER_GCC
 #elif defined(_MSC_VER)
 #define WJR_COMPILER_MSVC
 #endif
 
-#if defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC)
-#define WJR_CPP_STANDARD __cplusplus
-#elif defined(WJR_COMPILER_MSVC)
-#define WJR_CPP_STANDARD _MSVC_LANG
-#endif
-
-#define WJR_OVERLAP_P(p1, s1, p2, s2) \
-	((p1) + (s1) > (p2) && (p2) + (s2) > (p1))
-
-#define WJR_OVERLAP_P_N(p1, p2, n)	\
-	WJR_OVERLAP_P(p1, n, p2, n)
-
-#define WJR_SAME_OR_SEPARATE_P(p1, s1, p2, s2)	\
-	((p1) == (p2) || !WJR_OVERLAP_P(p1, s1, p2, s2))
-
-#define WJR_SAME_OR_SEPARATE_P_N(p1, p2, n)	\
-	WJR_SAME_OR_SEPARATE_P(p1, n, p2, n)
-
-#define WJR_PRE_OR_SEPARATE_P(p1, s1, p2, s2) \
-	((p1) <= (p2) || !WJR_OVERLAP_P(p1, s1, p2, s2))
-
-#define WJR_PRE_OR_SEPARATE_P_N(p1, p2, n)	\
-	WJR_PRE_OR_SEPARATE_P(p1, n, p2, n)
-
-#define WJR_POST_OR_SEPARATE_P(p1, s1, p2, s2) \
-	((p1) >= (p2) || !WJR_OVERLAP_P(p1, s1, p2, s2))
-
-#define WJR_POST_OR_SEPARATE_P_N(p1, p2, n)	\
-	WJR_POST_OR_SEPARATE_P(p1, n, p2, n)
-
-#if WJR_CPP_STANDARD >= 199711L
-#define WJR_CPP_03
-#endif
-#if WJR_CPP_STANDARD >= 201103L
-#define WJR_CPP_11
-#endif
-#if WJR_CPP_STANDARD >= 201402L
-#define WJR_CPP_14
-#endif
-#if WJR_CPP_STANDARD >= 201703L
-#define WJR_CPP_17
-#endif
-#if WJR_CPP_STANDARD >= 202002L
-#define WJR_CPP_20
+// judge if i can use inline asm
+#if defined(WJR_X86) && (defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG))
+#define WJR_INLINE_ASM
+#if defined(WJR_COMPILER_GCC)
+#define WJR_BETTER_INLINE_ASM
+#endif // WJR_COMPILER_GCC
 #endif
 
 #if defined(__GNUC__)
@@ -241,6 +184,97 @@
 	(defined(WJR_COMPILER_CLANG) && !WJR_HAS_CLANG(5, 0, 0))	
 #error "GCC 7.1.0 or Clang 5.0.0 or later is required"
 #endif 
+
+#if defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC)
+#define WJR_CPP_STANDARD __cplusplus
+#elif defined(WJR_COMPILER_MSVC)
+#define WJR_CPP_STANDARD _MSVC_LANG
+#endif
+
+#if WJR_CPP_STANDARD >= 199711L
+#define WJR_CPP_03
+#endif
+#if WJR_CPP_STANDARD >= 201103L
+#define WJR_CPP_11
+#endif
+#if WJR_CPP_STANDARD >= 201402L
+#define WJR_CPP_14
+#endif
+#if WJR_CPP_STANDARD >= 201703L
+#define WJR_CPP_17
+#endif
+#if WJR_CPP_STANDARD >= 202002L
+#define WJR_CPP_20
+#endif
+
+#if WJR_SSE2
+#define _WJR_FAST_MEMCHR
+#define _WJR_FAST_MEMCMP
+#define _WJR_FAST_MEMMIS
+//#define _WJR_FAST_MEMCNT
+#define _WJR_FAST_MEMSET
+//#define _WJR_FAST_MEMCPY
+#endif // WJR_SSE2
+
+#if defined(NWJR_FAST_MEMCHR)
+#undef _WJR_FAST_MEMCHR
+#endif
+#if defined(NWJR_FAST_MEMCMP)
+#undef _WJR_FAST_MEMCMP
+#endif
+#if defined(NWJR_FAST_MEMMIS)
+#undef _WJR_FAST_MEMMIS
+#endif
+#if defined(NWJR_FAST_MEMCNT)
+#undef _WJR_FAST_MEMCNT
+#endif
+#if defined(NWJR_FAST_MEMSET)
+#udnef _WJR_FAST_MEMSET
+#endif
+#if defined(NWJR_FAST_MEMCPY)
+#endif
+
+#if defined(WJR_INLINE_ASM) || defined(WJR_COMPILER_MSVC)
+#define _WJR_FAST_REP
+#endif
+
+//#define WJR_MAX_CACHE_SIZE (4096 * 1024)
+//#define NWJR_INTEL
+//#define _WJR_AMD
+
+#if defined(NWJR_FAST_REP) 
+#undef _WJR_FAST_REP
+#endif
+
+#if defined(NWJR_INTEL)
+#undef _WJR_INTEL
+#endif
+
+#if defined(NWJR_AMD)
+#undef _WJR_AMD
+#endif
+
+#if defined(_WJR_INTEL)
+#define _WJR_ENHANCED_REP
+#endif
+
+#if defined(NWJR_ENHANCED_REP)
+#undef _WJR_ENHANCED_REP
+#endif
+
+#define _WJR_CPUINFO
+
+#if defined(NWJR_CPUINFO)
+#undef _WJR_CPUINFO
+#endif
+
+#if defined(WJR_MAX_CACHE_SIZE) || defined(_WJR_CPUINFO)
+#define _WJR_NON_TEMPORARY
+#endif
+
+#if defined(NWJR_NON_TEMPORARY)
+#undef _WJR_NON_TEMPORARY
+#endif
 
 #if (defined(WJR_COMPILER_GCC) && WJR_HAS_GCC(10, 1, 0)) ||	\
 	(defined(WJR_COMPILER_CLANG) && WJR_HAS_CLANG(10, 0, 0))	|| \
@@ -311,36 +345,6 @@
 #define WJR_INLINE_CONSTEXPR20 inline WJR_CONSTEXPR20
 #define WJR_INTRINSIC_CONSTEXPR WJR_INTRINSIC_INLINE constexpr
 
-#if defined(WJR_X86_64)
-#define WJR_BYTE_WIDTH 8
-#else
-#define WJR_BYTE_WIDTH 4
-#endif 
-
-#define WJR_CONCAT(x, y) x##y
-#define WJR_MACRO_CONCAT(x, y) WJR_CONCAT(x, y)
-
-#define WJR_EXPAND(x) x
-
-#define __WJR_DEFINE_0(x)
-#define __WJR_DEFINE_1(x) x
-#define WJR_DEFINE(x, y) __WJR_DEFINE_##y (x)
-
-#define WJR_STR(x) #x
-#define WJR_MACRO_STR(x) WJR_STR(x)
-
-#define WJR_MACRO_NULL(...)
-
-#define WJR_MACRO_LABEL(NAME) __wjr_label_##NAME
-
-// judge if i can use inline asm
-#if defined(WJR_X86) && (defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG))
-#define WJR_INLINE_ASM
-#if defined(WJR_COMPILER_GCC)
-#define WJR_BETTER_INLINE_ASM
-#endif // WJR_COMPILER_GCC
-#endif
-
 #define _WJR_BEGIN namespace wjr{
 #define _WJR_END }
 #define _WJR_SIMD_BEGIN _WJR_BEGIN namespace simd{
@@ -369,6 +373,52 @@
 #define _WJR_THROW(x) 
 #define _WJR_RELEASE
 #endif
+
+#define WJR_MACRO_NULL(...)
+
+#define WJR_MACRO_LABEL(NAME) __wjr_label_##NAME
+
+#if defined(WJR_X86_64)
+#define WJR_BYTE_WIDTH 8
+#else
+#define WJR_BYTE_WIDTH 4
+#endif 
+
+#define WJR_CONCAT(x, y) x##y
+#define WJR_MACRO_CONCAT(x, y) WJR_CONCAT(x, y)
+
+#define WJR_EXPAND(x) x
+
+#define __WJR_DEFINE_0(x)
+#define __WJR_DEFINE_1(x) x
+#define WJR_DEFINE(x, y) __WJR_DEFINE_##y (x)
+
+#define WJR_STR(x) #x
+#define WJR_MACRO_STR(x) WJR_STR(x)
+
+#define WJR_OVERLAP_P(p1, s1, p2, s2) \
+	((p1) + (s1) > (p2) && (p2) + (s2) > (p1))
+
+#define WJR_OVERLAP_P_N(p1, p2, n)	\
+	WJR_OVERLAP_P(p1, n, p2, n)
+
+#define WJR_SAME_OR_SEPARATE_P(p1, s1, p2, s2)	\
+	((p1) == (p2) || !WJR_OVERLAP_P(p1, s1, p2, s2))
+
+#define WJR_SAME_OR_SEPARATE_P_N(p1, p2, n)	\
+	WJR_SAME_OR_SEPARATE_P(p1, n, p2, n)
+
+#define WJR_PRE_OR_SEPARATE_P(p1, s1, p2, s2) \
+	((p1) <= (p2) || !WJR_OVERLAP_P(p1, s1, p2, s2))
+
+#define WJR_PRE_OR_SEPARATE_P_N(p1, p2, n)	\
+	WJR_PRE_OR_SEPARATE_P(p1, n, p2, n)
+
+#define WJR_POST_OR_SEPARATE_P(p1, s1, p2, s2) \
+	((p1) >= (p2) || !WJR_OVERLAP_P(p1, s1, p2, s2))
+
+#define WJR_POST_OR_SEPARATE_P_N(p1, p2, n)	\
+	WJR_POST_OR_SEPARATE_P(p1, n, p2, n)
 
 #define WJR_REGISTER_HAS_MEMBER_FUNCTION(FUNC, NAME)							\
 template<typename Enable, typename T, typename...Args>							\

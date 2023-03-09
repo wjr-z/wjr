@@ -78,11 +78,11 @@ WJR_INTRINSIC_CONSTEXPR bool is_constant_p(T x) noexcept {
 
 struct disable_tag {};
 
-struct reduce_tag {};
-struct move_tag {};
-
 struct default_construct_tag {};
 struct value_construct_tag {};
+
+struct extend_tag {};
+struct reserve_tag {};
 
 constexpr size_t byte_width = WJR_BYTE_WIDTH;
 

@@ -1,9 +1,6 @@
-#pragma once
-#ifndef __WJR_ALGO_MEMCMP_H
-#define __WJR_ALGO_MEMCMP_H
-
-#include <wjr/literals.h>
-#include <wjr/simd/simd_intrin.h>
+#ifndef __WJR_ALGO_ALOG_H
+#error "This file should not be included directly. Include <wjr/algo.h> instead."
+#endif
 
 #if defined(_WJR_FAST_MEMCMP)
 
@@ -29,7 +26,7 @@
 #define __WJR_MEMCMP_ONE(st) __WJR_MEMCMP_ONE_NORMAL(st)
 #define __WJR_MEMCMP_FOUR(st) __WJR_MEMCMP_FOUR_NORMAL(st)
 
-#if defined(__SSE4_1__)
+#if WJR_SSE4_1
 #undef __WJR_MEMCMP_ONE
 #undef __WJR_MEMCMP_FOUR
 
@@ -61,7 +58,7 @@
 	else{	                                                                            \
 		__WJR_MEMCMP_FOUR_NORMAL(st)													\
 	}
-#endif // __SSE4_1__
+#endif // WJR_SSE4_1
 
 _WJR_ALGO_BEGIN
 
@@ -70,11 +67,11 @@ bool __memcmp(const T* s0, const T* s1, size_t n, _Pred pred) {
 	using namespace wjr::literals;
 	constexpr size_t _Mysize = sizeof(T);
 
-#if defined(__AVX2__)
+#if WJR_AVX2
 	using simd_t = simd::avx;
 #else
 	using simd_t = simd::sse;
-#endif // __AVX2__
+#endif // WJR_AVX2
 	using sint = typename simd_t::int_type;
 	constexpr uintptr_t width = simd_t::width() / (8 * _Mysize);
 	constexpr uintptr_t bound = width * _Mysize;
@@ -234,7 +231,7 @@ bool __memcmp(const T* s0, const T* s1, size_t n, _Pred pred) {
 			return true;
 		}
 
-#if defined(__AVX2__)
+#if WJR_AVX2
 		static_assert(width * 4 == 128 / _Mysize, "width * 4 == 128 / _Mysize");
 		if (n >= 64 / _Mysize) {
 			auto x0 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s0));
@@ -251,7 +248,7 @@ bool __memcmp(const T* s0, const T* s1, size_t n, _Pred pred) {
 
 			return true;
 		}
-#endif // __AVX2__
+#endif // WJR_AVX2
 
 		auto delta = (n & (32 / _Mysize)) >> 1;
 
@@ -336,6 +333,4 @@ _WJR_ALGO_END
 #undef __WJR_MEMCMP_ONE_NORMAL
 #undef __WJR_MEMCMP_FOUR_NORMAL
 
-#endif // __AVX2__ || __SSE2__
-
-#endif // __WJR_ALGO_MEMCMP_H
+#endif // _WJR_FAST_MEMCMP

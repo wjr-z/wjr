@@ -1,8 +1,6 @@
-#pragma once
-#ifndef __WJR_ASM_CLZ_H__
-#define __WJR_ASM_CLZ_H__
-
-#include <wjr/type_traits.h>
+#ifndef __WJR_ASM_ASM_H
+#error "This file should not be included directly. Include <wjr/asm.h> instead."
+#endif
 
 _WJR_ASM_BEGIN
 
@@ -144,12 +142,18 @@ WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_normal_clz(T x) noexcept {
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_clz(T x) noexcept {
+#if WJR_AVX2
+	return __wjr_msvc_x86_64_avx2_clz(x);
+#elif defined(_WJR_CPUINFO)
 	if (is_avx2()) {
 		return __wjr_msvc_x86_64_avx2_clz(x);
 	}
 	else {
 		return __wjr_msvc_x86_64_normal_clz(x);
 	}
+#else
+	return __wjr_msvc_x86_64_normal_clz(x);
+#endif // WJR_AVX2
 }
 #elif defined(WJR_ARM)
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
@@ -185,5 +189,3 @@ WJR_INTRINSIC_CONSTEXPR20 int clz(T x) noexcept {
 }
 
 _WJR_ASM_END
-
-#endif // __WJR_ASM_CLZ_H__

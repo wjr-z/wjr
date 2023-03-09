@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __WJR_PRODUCT_H
-#define __WJR_PRODUCT_H
+#ifndef __WJR_RANDOM_H
+#define __WJR_RANDOM_H
 
 #include <random>
 
@@ -10,11 +10,14 @@ _WJR_BEGIN
 
 template<typename Engine>
 struct basic_random_static_wrapper {
+	static Engine m_engine;
 	static Engine& engine() {
-		static Engine m_engine(std::random_device{}());
 		return m_engine;
 	}
 };
+
+template<typename Engine>
+Engine basic_random_static_wrapper<Engine>::m_engine(std::random_device{}());
 
 template<typename Engine>
 struct basic_random_thread_local_wrapper {
@@ -195,4 +198,4 @@ using Random = random_static;
 
 _WJR_END
 
-#endif // !PRODUCT_H
+#endif // __WJR_RANDOM_H

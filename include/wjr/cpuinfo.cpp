@@ -2,10 +2,11 @@
 
 _WJR_BEGIN
 
+#if defined(_WJR_CPUINFO)
 const cpu_features::X86Info cpuinfo = cpu_features::GetX86Info();
 const cpu_features::CacheInfo cacheinfo = cpu_features::GetX86CacheInfo();
 const cpu_features::X86Microarchitecture microarchitecture = cpu_features::GetX86Microarchitecture(&cpuinfo);
-const size_t max_cache_size = []() {
+const size_t __max_cache_size = []() {
 	size_t max_size = 0;
 	for (int i = 0; i < cacheinfo.size; ++i) {
 		if (cacheinfo.levels[i].cache_type != cpu_features::CacheType::CPU_FEATURE_CACHE_NULL) {
@@ -21,5 +22,6 @@ const bool __is_intel = []() {
 const bool __is_amd = []() {
 	return microarchitecture >= cpu_features::AMD_HAMMER && microarchitecture <= cpu_features::AMD_ZEN3;
 }();
+#endif // _WJR_CPUINFO
 
 _WJR_END

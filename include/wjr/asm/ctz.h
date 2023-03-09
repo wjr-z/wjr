@@ -1,8 +1,6 @@
-#pragma once
-#ifndef __WJR_ASM_CTZ_H__
-#define __WJR_ASM_CTZ_H__
-
-#include <wjr/type_traits.h>
+#ifndef __WJR_ASM_ASM_H
+#error "This file should not be included directly. Include <wjr/asm.h> instead."
+#endif
 
 _WJR_ASM_BEGIN
 
@@ -91,12 +89,18 @@ WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_normal_ctz(T x) noexcept {
 
 template<typename T>
 WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_ctz(T x) noexcept {
+#if WJR_AVX2
+	return __wjr_msvc_x86_64_avx2_ctz(x);
+#elif defined(_WJR_CPUINFO)
 	if (is_avx2()) {
 		return __wjr_msvc_x86_64_avx2_ctz(x);
 	}
 	else {
 		return __wjr_msvc_x86_64_normal_ctz(x);
 	}
+#else
+	return __wjr_msvc_x86_64_normal_ctz(x);
+#endif // WJR_AVX2
 }
 #endif
 
@@ -115,5 +119,3 @@ WJR_INTRINSIC_CONSTEXPR20 int ctz(T x) noexcept {
 }
 
 _WJR_ASM_END
-
-#endif // __WJR_ASM_CTZ_H__

@@ -4,6 +4,9 @@
 
 #include <wjr/Optimizer.h>
 
+#include <wjr/literals.h>
+#include <wjr/simd/simd_intrin.h>
+
 #include <wjr/algo/memchr.h>
 #include <wjr/algo/memrchr.h>
 #include <wjr/algo/memcmp.h>

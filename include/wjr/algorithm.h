@@ -674,7 +674,7 @@ struct uninitialized_copy_fn {
 	template<typename _Iter1, typename _Iter2>
 	WJR_CONSTEXPR20 _Iter2 operator()(_Iter1 _First, _Iter1 _Last, _Iter2 _Dest) const {
 		if (!wjr::is_constant_evaluated()) {
-			if constexpr (__has_fast_copy_v<_Iter1, _Iter2>) {
+			if constexpr (__has_fast_uninitialized_copy_v<_Iter1, _Iter2>) {
 				const auto n = std::distance(_First, _Last);
 				if (is_unlikely(n == 0)) { return _Dest; }
 				if constexpr (!wjr::is_reverse_iterator_v<_Iter1>) {
@@ -716,9 +716,9 @@ struct uninitialized_copy_n_fn {
 	template<typename _Iter1, typename _Diff, typename _Iter2>
 	WJR_CONSTEXPR20 _Iter2 operator()(_Iter1 _First, _Diff n, _Iter2 _Dest) const {
 		if (!wjr::is_constant_evaluated()) {
-			if constexpr (__has_fast_copy_v<_Iter1, _Iter2>) {
+			if constexpr (__has_fast_uninitialized_copy_v<_Iter1, _Iter2>) {
 				if (n <= 0) { return _Dest; }
-				return wjr::copy(_First, _First + n, _Dest);
+				return wjr::uninitialized_copy(_First, _First + n, _Dest);
 			}
 		}
 		return std::uninitialized_copy_n(_First, n, _Dest);
@@ -837,6 +837,26 @@ constexpr uninitialized_fill_n_fn uninitialized_fill_n;
 struct uninitialized_move_fn {
 	template<typename _Iter1, typename _Iter2>
 	WJR_CONSTEXPR20 _Iter2 operator()(_Iter1 _First, _Iter1 _Last, _Iter2 _Dest) const {
+		if (!wjr::is_constant_evaluated()) {
+			if constexpr (__has_fast_uninitialized_copy_v<_Iter1, std::move_iterator<_Iter1>>) {
+				const auto n = std::distance(_First, _Last);
+				if (is_unlikely(n == 0)) { return _Dest; }
+				if constexpr (!wjr::is_reverse_iterator_v<_Iter1>) {
+					const auto first1 = wjr::get_address(_First);
+					const auto first2 = wjr::get_address(_Dest);
+
+					algo::construct_memmove(first2, first1, n);
+				}
+				else {
+					const auto first1 = wjr::get_address(_Last - 1);
+					const auto _Last2 = _Dest + n;
+					const auto first2 = wjr::get_address(_Last2 - 1);
+
+					algo::construct_memmove(first2, first1, n);
+				}
+				return _Dest + n;
+			}
+		}
 		return std::uninitialized_move(_First, _Last, _Dest);
 	}
 
@@ -859,6 +879,13 @@ constexpr uninitialized_move_fn uninitialized_move;
 struct uninitialized_move_n_fn {
 	template<typename _Iter1, typename _Diff, typename _Iter2>
 	WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> operator()(_Iter1 _First, _Diff n, _Iter2 _Dest) const {
+		if (!wjr::is_constant_evaluated()) {
+			if constexpr (__has_fast_uninitialized_copy_v<_Iter1, std::move_iterator<_Iter1>>) {
+				if (n <= 0) return std::make_pair(_First, _Dest);
+				wjr::uninitialized_move(_First, _First + n, _Dest);
+				return std::make_pair(_First + n, _Dest + n);
+			}
+		}
 		return std::uninitialized_move_n(_First, n, _Dest);
 	}
 

@@ -1,9 +1,6 @@
-#pragma once
-#ifndef __WJR_ALGO_MEMRCHR_H
-#define __WJR_ALGO_MEMRCHR_H
-
-#include <wjr/literals.h>
-#include <wjr/simd/simd_intrin.h>
+#ifndef __WJR_ALGO_ALOG_H
+#error "This file should not be included directly. Include <wjr/algo.h> instead."
+#endif 
 
 #if defined(_WJR_FAST_MEMCHR)
 
@@ -46,14 +43,25 @@ const T* __memrchr(const T* s, T val, size_t n, _Pred pred) {
 	using namespace wjr::literals;
 	constexpr size_t _Mysize = sizeof(T);
 
-#if defined(__AVX2__)
+#if WJR_AVX2
 	using simd_t = simd::avx;
 #else
 	using simd_t = simd::sse;
-#endif // __AVX2__
+#endif // WJR_AVX2
 	using sint = typename simd_t::int_type;
 	constexpr uintptr_t width = simd_t::width() / (8 * _Mysize);
 	constexpr uintptr_t bound = width * _Mysize;
+
+	constexpr size_t __constant_threshold = 8 / _Mysize;
+
+	if (is_constant_p(n) && n <= __constant_threshold) {
+		for (size_t i = 0; i < n; ++i) {
+			if (pred(s[i], val)) {
+				return s + i;
+			}
+		}
+		return s + n;
+	}
 
 	if (is_unlikely(n == 0)) return s;
 
@@ -175,7 +183,7 @@ const T* __memrchr(const T* s, T val, size_t n, _Pred pred) {
 			return _lst;
 		}
 
-#if defined(__AVX2__)
+#if WJR_AVX2
 		static_assert(width * 4 == 128 / _Mysize, "width * 4 == 128 / _Mysize");
 		if (n >= 64 / _Mysize) {
 			auto y = simd::avx::set1(val, T());
@@ -189,7 +197,7 @@ const T* __memrchr(const T* s, T val, size_t n, _Pred pred) {
 			
 			return s - n;
 		}
-#endif // __AVX2__
+#endif // WJR_AVX2
 
 		auto y = simd::sse::set1(val, T());
 		auto delta = (n & (32 / _Mysize)) >> 1;
@@ -267,5 +275,3 @@ _WJR_ALGO_END
 #undef __WJR_MEMRCHR_ONE
 
 #endif // _WJR_FAST_MEMCHR
-
-#endif // __WJR_ALGO_MEMRCHR_H

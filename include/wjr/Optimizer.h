@@ -1,4 +1,19 @@
 #pragma once
+#ifndef __WJR_OPTIMIZER_H
+#define __WJR_OPTIMIZER_H
+
+// 1. fill dst with val (memset)
+// The minimum cycle section length must be 1, 2, 4, 8 when _WJR_FAST_MEMSET defined
+// and must be 1 when NWJR_FAST_MEMSET defined
+// Get the bytes to be filled through the get function
+// 2. copy src to dst (memcpy)
+
+// TODO 
+// 1. fill a constant value when default-construct (memset)
+// 2. fill a constant value when value-cosntruct (memset)
+// 3. relocate , copy src to dst, and then fill dst with a constant value (memcpy and memset)
+// 4. reloacte , copy src to dst, and then run a function on dst (memcpy and run func(User defined))
+
 #include <wjr/type_traits.h>
 
 _WJR_BEGIN
@@ -167,3 +182,5 @@ template<typename T, typename U>
 struct is_byte_assignable : __is_byte_constructible<std::remove_reference_t<T>, U> {};
 
 _WJR_END
+
+#endif // __WJR_OPTIMIZER_H
