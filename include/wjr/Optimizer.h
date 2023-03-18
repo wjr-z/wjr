@@ -107,8 +107,7 @@ size_t _Get_bytes_num(const _Ty& val) {
 template<typename T, typename U,
 	bool =
 	std::is_same_v<bool, std::remove_reference_t<U>> >= std::is_same_v<bool, T> &&
-	((std::is_integral_v<T> && std::is_integral_v<std::remove_reference_t<U>>) ||
-		(std::is_floating_point_v<T> && std::is_floating_point_v<std::remove_reference_t<U>>)) &&
+	is_arithmetics_v<T, std::remove_reference_t<U>> &&
 	!std::is_volatile_v<T> && 
 	!std::is_volatile_v<std::remove_reference_t<U>>
 >

@@ -24,7 +24,7 @@ WJR_INTRINSIC_INLINE void rep_stosw(uint16_t* s, uint16_t val, size_t n) {
 
 WJR_INTRINSIC_INLINE void rep_stosd(uint32_t* s, uint32_t val, size_t n) {
 #if defined(WJR_COMPILER_MSVC)
-	__stosd(reinterpret_cast<unsigned int*>(s), val, n);
+	__stosd(reinterpret_cast<unsigned long*>(s), val, n);
 #else
 	asm volatile("rep stosd" : "+D"(s), "+c"(n) : "a"(val) : "memory");
 #endif

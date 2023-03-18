@@ -112,17 +112,23 @@ const T* __memchr(const T* s, T val, size_t n, _Pred pred) {
 
 						__WJR_MEMCHR_ONE(simd_t, s);
 						s += width;
+
+						WJR_FALLTHROUGH;
 					}
 					case 3: {
 						auto x = simd_t::loadu(reinterpret_cast<const sint*>(s));
 
 						__WJR_MEMCHR_ONE(simd_t, s);
 						s += width;
+
+						WJR_FALLTHROUGH;
 					}
 					case 2: {
 						auto x = simd_t::loadu(reinterpret_cast<const sint*>(s));
 
 						__WJR_MEMCHR_ONE(simd_t, s);
+						
+						WJR_FALLTHROUGH;
 					}
 					case 1: {
 						auto x = simd_t::loadu(reinterpret_cast<const sint*>(_lst - width));
@@ -156,22 +162,30 @@ const T* __memchr(const T* s, T val, size_t n, _Pred pred) {
 					
 					__WJR_MEMCHR_ONE(simd_t, s);
 					s += width;
+
+					WJR_FALLTHROUGH;
 				}
 				case 3: {
 					auto x = simd_t::load(reinterpret_cast<const sint*>(s));
 
 					__WJR_MEMCHR_ONE(simd_t, s);
 					s += width;
+
+					WJR_FALLTHROUGH;
 				}
 				case 2: {
 					auto x = simd_t::load(reinterpret_cast<const sint*>(s));
 
 					__WJR_MEMCHR_ONE(simd_t, s);
+
+					WJR_FALLTHROUGH;
 				}
 				case 1: {
 					auto x = simd_t::loadu(reinterpret_cast<const sint*>(_lst - width));
 
 					__WJR_MEMCHR_ONE(simd_t, _lst - width);
+
+					break;
 				}
 				}
 			}

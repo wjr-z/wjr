@@ -9,6 +9,7 @@
 #include <wjr/asm/clz.h>
 #include <wjr/asm/ctz.h>
 #include <wjr/asm/popcnt.h>
+#include <wjr/asm/bswap.h>
 #include <wjr/asm/rep.h>
 
 #endif // __WJR_ASM_ASM_H

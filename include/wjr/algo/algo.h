@@ -127,17 +127,12 @@ struct __has_fast_memcmp<T, U, std::equal_to<>> : std::conjunction<
 	is_memory_comparable<T, U, std::equal_to<>>
 > {};
 
-template<typename T, typename U>
-struct __has_fast_memcmp<T, U, std::not_equal_to<>> : std::conjunction<
-	is_memory_comparable<T, U, std::not_equal_to<>>
-> {};
-
 template<typename T, typename U, typename _Pred>
 constexpr bool __has_fast_memcmp_v = __has_fast_memcmp<T, U, _Pred>::value;
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memcmp_v<T, U, _Pred>, int> = 0>
 bool memcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
-	if constexpr (is_any_of_v<_Pred, std::equal_to<>, std::not_equal_to<>>) {
+	if constexpr (is_any_of_v<_Pred, std::equal_to<>>) {
 		using value_type = uint8_t;
 		auto __s0 = reinterpret_cast<const value_type*>(s0);
 		auto __s1 = reinterpret_cast<const value_type*>(s1);
@@ -183,11 +178,6 @@ struct __has_fast_memmis<T, U, std::equal_to<>> : std::conjunction<
 	is_memory_comparable<T, U, std::equal_to<>>
 > {};
 
-template<typename T, typename U>
-struct __has_fast_memmis<T, U, std::not_equal_to<>> : std::conjunction<
-	is_memory_comparable<T, U, std::not_equal_to<>>
-> {};
-
 template<typename T, typename U, typename _Pred>
 constexpr bool __has_fast_memmis_v = __has_fast_memmis<T, U, _Pred>::value;
 
@@ -200,7 +190,7 @@ constexpr bool __has_fast_memrmis_v = __has_fast_memrmis<T, U, _Pred>::value;
 template<typename T, typename U, typename _Pred, std::enable_if_t<
 	__has_fast_memmis_v<T, U, _Pred>, int> = 0>
 const T* memmis(const T* s0, const U* s1, size_t n, _Pred pred) {
-	if constexpr (is_any_of_v<_Pred, std::equal_to<>, std::not_equal_to<>>) {
+	if constexpr (is_any_of_v<_Pred, std::equal_to<>>) {
 		using value_type = uint8_t;
 		auto __s0 = reinterpret_cast<const value_type*>(s0);
 		auto __s1 = reinterpret_cast<const value_type*>(s1);
@@ -220,7 +210,7 @@ const T* memmis(const T* s0, const U* s1, size_t n, _Pred pred) {
 template<typename T, typename U, typename _Pred, std::enable_if_t<
 	__has_fast_memmis_v<T, U, _Pred>, int> = 0>
 const T* memrmis(const T* s0, const U* s1, size_t n, _Pred pred) {
-	if constexpr (is_any_of_v<_Pred, std::equal_to<>, std::not_equal_to<>>) {
+	if constexpr (is_any_of_v<_Pred, std::equal_to<>>) {
 		using value_type = uint8_t;
 		auto __s0 = reinterpret_cast<const value_type*>(s0);
 		auto __s1 = reinterpret_cast<const value_type*>(s1);

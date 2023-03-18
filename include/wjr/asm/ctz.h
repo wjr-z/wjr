@@ -8,26 +8,28 @@ _WJR_ASM_BEGIN
 template<typename T>
 WJR_INTRINSIC_INLINE static int __wjr_builtin_ctz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
-	if (x == 0) {
-		return _Nd;
+
+	if (is_likely(x != 0)) {
+
+		constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
+		constexpr auto _Nd_ul = std::numeric_limits<unsigned long>::digits;
+		constexpr auto _Nd_ui = std::numeric_limits<unsigned int>::digits;
+
+		if constexpr (_Nd <= _Nd_ui) {
+			return __builtin_ctz(x);
+		}
+		else if constexpr (_Nd <= _Nd_ul) {
+			return __builtin_ctzl(x);
+		}
+		else if constexpr (_Nd <= _Nd_ull) {
+			return __builtin_ctzll(x);
+		}
+		else {
+			static_assert(_Nd <= _Nd_ull, "countr_zero is not implemented for this type");
+		}
 	}
 
-	constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
-	constexpr auto _Nd_ul = std::numeric_limits<unsigned long>::digits;
-	constexpr auto _Nd_ui = std::numeric_limits<unsigned int>::digits;
-
-	if constexpr (_Nd <= _Nd_ui) {
-		return __builtin_ctz(x);
-	}
-	else if constexpr (_Nd <= _Nd_ul) {
-		return __builtin_ctzl(x);
-	}
-	else if constexpr (_Nd <= _Nd_ull) {
-		return __builtin_ctzll(x);
-	}
-	else {
-		static_assert(_Nd <= _Nd_ull, "countr_zero is not implemented for this type");
-	}
+	return _Nd;
 }
 #elif defined(WJR_COMPILER_MSVC) && defined(WJR_X86) && !defined(_M_CEE_PURE) && !defined(__CUDACC__) \
     && !defined(__INTEL_COMPILER)

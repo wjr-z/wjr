@@ -33,6 +33,7 @@ void __memset(T* s, T val, size_t n) {
 	constexpr uintptr_t bound = width * _Mysize;
 
 	static_assert(bound >= 16, "");
+	static_assert(std::is_same_v<T, make_integral_t<T>>, "");
 
 	if constexpr (_Mysize != 1) {
 		if (
@@ -74,7 +75,7 @@ void __memset(T* s, T val, size_t n) {
 #if WJR_AVX2
 
 		if (n < 128 / _Mysize) {
-			auto qy = wjr::broadcast<__m256i, __m128i>(qx);
+			auto qy = broadcast<simd::__m256i_tag, simd::__m128i_tag>(qx);
 			auto delta = (n & (64 / _Mysize)) >> 1;
 			simd::avx::storeu(reinterpret_cast<__m256i*>(s), qy);
 			simd::avx::storeu(reinterpret_cast<__m256i*>(s + delta), qy);
@@ -101,7 +102,7 @@ void __memset(T* s, T val, size_t n) {
 #endif // WJR_AVX2
 
 		// [128, ...)
-		auto q = broadcast<sint, __m128i>(qx);
+		auto q = broadcast<simd::__simd_wrapper_t<sint>, simd::__m128i_tag>(qx);
 
 		if (is_likely(reinterpret_cast<uintptr_t>(s) % _Mysize == 0)) {
 
@@ -121,8 +122,13 @@ void __memset(T* s, T val, size_t n) {
 					}
 					*reinterpret_cast<uint64_t*>(s + n - 8 / _Mysize) = u64v;
 					n &= -(8 / _Mysize);
-					n /= (8 / _Mysize);
-					wjr::masm::rep_stosq(reinterpret_cast<unsigned long long*>(s), u64v, n);
+					if constexpr (_Mysize == 1) {
+						wjr::masm::rep_stosb(reinterpret_cast<uint8_t*>(s), val, n);
+					}
+					else {
+						n /= (8 / _Mysize);
+						wjr::masm::rep_stosq(reinterpret_cast<uint64_t*>(s), u64v, n);
+					}
 					return;
 				}
 
@@ -146,9 +152,14 @@ void __memset(T* s, T val, size_t n) {
 					__WJR_ALIGN64byte(s + n - (64 / _Mysize));
 
 					n = (n - 1) & (-(64 / _Mysize));
-					n /= (8 / _Mysize);
-					auto u64v = broadcast<uint64_t, T>(val);
-					wjr::masm::rep_stosq(reinterpret_cast<unsigned long long*>(s), u64v, n);
+					if constexpr (_Mysize == 1) {
+						wjr::masm::rep_stosb(reinterpret_cast<uint8_t*>(s), val, n);
+					}
+					else {
+						n /= (8 / _Mysize);
+						auto u64v = broadcast<uint64_t, T>(val);
+						wjr::masm::rep_stosq(reinterpret_cast<uint64_t*>(s), u64v, n);
+					}
 					return;
 
 #if defined(_WJR_NON_TEMPORARY)
@@ -221,7 +232,7 @@ void __memset(T* s, T val, size_t n) {
 
 			WJR_MACRO_LABEL(last_store) :
 
-				s += n;
+			s += n;
 			auto ptr = reinterpret_cast<T*>(
 				(reinterpret_cast<uintptr_t>(s - width * 3)) & (~(bound - 1)));
 			simd_t::store(reinterpret_cast<sint*>(ptr), q);

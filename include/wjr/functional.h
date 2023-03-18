@@ -2,6 +2,7 @@
 #ifndef __WJR_FUNCTIONAL_H
 #define __WJR_FUNCTIONAL_H
 
+#include <functional>
 #include <wjr/macro.h>
 
 _WJR_BEGIN

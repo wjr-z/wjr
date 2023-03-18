@@ -55,12 +55,12 @@ const T* __memrchr(const T* s, T val, size_t n, _Pred pred) {
 	constexpr size_t __constant_threshold = 8 / _Mysize;
 
 	if (is_constant_p(n) && n <= __constant_threshold) {
-		for (size_t i = 0; i < n; ++i) {
-			if (pred(s[i], val)) {
+		for (size_t i = n; i > 0; --i) {
+			if (pred(s[i - 1], val)) {
 				return s + i;
 			}
 		}
-		return s + n;
+		return s;
 	}
 
 	if (is_unlikely(n == 0)) return s;
@@ -115,23 +115,31 @@ const T* __memrchr(const T* s, T val, size_t n, _Pred pred) {
 						auto x = simd_t::loadu(reinterpret_cast<const sint*>(s));
 
 						__WJR_MEMRCHR_ONE(simd_t, s + width);
+
+						WJR_FALLTHROUGH;
 					}
 					case 3: {
 						s -= width;
 						auto x = simd_t::loadu(reinterpret_cast<const sint*>(s));
 
 						__WJR_MEMRCHR_ONE(simd_t, s + width);
+
+						WJR_FALLTHROUGH;
 					}
 					case 2: {
 						s -= width;
 						auto x = simd_t::loadu(reinterpret_cast<const sint*>(s));
 
 						__WJR_MEMRCHR_ONE(simd_t, s + width);
+
+						WJR_FALLTHROUGH;
 					}
 					case 1: {
 						auto x = simd_t::loadu(reinterpret_cast<const sint*>(_lst));
 
 						__WJR_MEMRCHR_ONE(simd_t, _lst + width);
+
+						break;
 					}
 					}
 				}
@@ -160,23 +168,31 @@ const T* __memrchr(const T* s, T val, size_t n, _Pred pred) {
 					auto x = simd_t::load(reinterpret_cast<const sint*>(s));
 
 					__WJR_MEMRCHR_ONE(simd_t, s + width);
+
+					WJR_FALLTHROUGH;
 				}
 				case 3: {
 					s -= width;
 					auto x = simd_t::load(reinterpret_cast<const sint*>(s));
 
 					__WJR_MEMRCHR_ONE(simd_t, s + width);
+					
+					WJR_FALLTHROUGH;
 				}
 				case 2: {
 					s -= width;
 					auto x = simd_t::load(reinterpret_cast<const sint*>(s));
 
 					__WJR_MEMRCHR_ONE(simd_t, s + width);
+					
+					WJR_FALLTHROUGH;
 				}
 				case 1: {
 					auto x = simd_t::loadu(reinterpret_cast<const sint*>(_lst));
 
 					__WJR_MEMRCHR_ONE(simd_t, _lst + width);
+
+					break;
 				}
 				}
 			}
@@ -231,7 +247,7 @@ const T* __memrchr(const T* s, T val, size_t n, _Pred pred) {
 
 			if (z == 0)return s - n;
 			auto i = wjr::countl_zero(z) / _Mysize;
-			auto q = i >= 4 ? i + n - 4 : i;
+			auto q = i >= 4 ? i + n - 8 : i;
 			return s - q;
 		}
 	}

@@ -26,63 +26,66 @@ const static int _WJR_LOG_TABLE[256] = {
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR static int __wjr_fallback_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
-	if (x == 0) {
-		return _Nd;
+
+	if (is_likely(x != 0)) {
+		int n = 0;
+		// use _Table
+
+		if constexpr (_Nd > 32) {
+			if (x >> 32) {
+				n += 32;
+				x >>= 32;
+			}
+		}
+		if constexpr (_Nd > 16) {
+			if (x >> 16) {
+				n += 16;
+				x >>= 16;
+			}
+		}
+		if constexpr (_Nd > 8) {
+			if (x >> 8) {
+				n += 8;
+				x >>= 8;
+			}
+		}
+		return  _Nd - (n + _WJR_LOG_TABLE[x]);
 	}
 
-	int n = 0;
-	// use _Table
-
-	if constexpr (_Nd > 32) {
-		if (x >> 32) {
-			n += 32;
-			x >>= 32;
-		}
-	}
-	if constexpr (_Nd > 16) {
-		if (x >> 16) {
-			n += 16;
-			x >>= 16;
-		}
-	}
-	if constexpr (_Nd > 8) {
-		if (x >> 8) {
-			n += 8;
-			x >>= 8;
-		}
-	}
-	return  _Nd - (n + _WJR_LOG_TABLE[x]);
+	return _Nd;
 }
 
 #if WJR_HAS_BUILTIN(__builtin_clz) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
 template<typename T>
 WJR_INTRINSIC_INLINE static int __wjr_builtin_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
-	if (x == 0) {
-		return _Nd;
-	}
 
-	constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
-	constexpr auto _Nd_ul = std::numeric_limits<unsigned long>::digits;
-	constexpr auto _Nd_ui = std::numeric_limits<unsigned int>::digits;
+	if (is_likely(x != 0)) {
 
-	if constexpr (_Nd <= _Nd_ui) {
-		constexpr auto __diff = _Nd_ui - _Nd;
-		return __builtin_clz(x) - __diff;
-	}
-	else if constexpr (_Nd <= _Nd_ul) {
-		constexpr auto __diff = _Nd_ul - _Nd;
-		return __builtin_clzl(x) - __diff;
-	}
+		constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
+		constexpr auto _Nd_ul = std::numeric_limits<unsigned long>::digits;
+		constexpr auto _Nd_ui = std::numeric_limits<unsigned int>::digits;
+
+		if constexpr (_Nd <= _Nd_ui) {
+			constexpr auto __diff = _Nd_ui - _Nd;
+			return __builtin_clz(x) - __diff;
+		}
+		else if constexpr (_Nd <= _Nd_ul) {
+			constexpr auto __diff = _Nd_ul - _Nd;
+			return __builtin_clzl(x) - __diff;
+		}
 #if defined(WJR_X86_64)
-	else if constexpr (_Nd <= _Nd_ull) {
-		constexpr auto __diff = _Nd_ull - _Nd;
-		return __builtin_clzll(x) - __diff;
-	}
+		else if constexpr (_Nd <= _Nd_ull) {
+			constexpr auto __diff = _Nd_ull - _Nd;
+			return __builtin_clzll(x) - __diff;
+		}
 #endif // WJR_X86_64
-	else {
-		static_assert(_Nd <= _Nd_ull, "countl_zero is not implemented for this type");
+		else {
+			static_assert(_Nd <= _Nd_ull, "countl_zero is not implemented for this type");
+		}
 	}
+
+	return _Nd;
 }
 #elif defined(WJR_COMPILER_MSVC)
 #if defined(WJR_X86)

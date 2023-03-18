@@ -6,6 +6,32 @@
 
 _WJR_BEGIN
 
+#ifdef __cpp_lib_bit_cast
+using std::bit_cast;
+#else
+template <
+	typename To,
+	typename From,
+	std::enable_if_t<
+	sizeof(From) == sizeof(To) && std::is_trivially_copyable<To>::value&&
+	std::is_trivially_copyable<From>::value,
+	int> = 0>
+WJR_INTRINSIC_CONSTEXPR20 To bit_cast(const From & src) noexcept {
+	static_assert(std::is_trivially_constructible_v<To>,
+		"This implementation additionally requires destination type to be trivially constructible");
+	To storage;
+	if constexpr (is_any_index_of_v<sizeof(From), 1, 2, 4, 8>) {
+		using value_type = uint_t<8 * sizeof(From)>;
+		*reinterpret_cast<value_type*>(&storage) = *reinterpret_cast<const value_type*>(&src);
+	}
+	else {
+		std::memcpy(&storage, &src, sizeof(From));
+	}
+	return storage;
+}
+
+#endif
+
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
 constexpr bool has_single_bit(T x) noexcept {
 	return x != 0 && (x & (x - 1)) == 0;
@@ -55,6 +81,38 @@ WJR_INTRINSIC_CONSTEXPR20 T bit_ceil(T x) noexcept {
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR20 int popcount(T x) noexcept {
 	return wjr::masm::popcnt(x);
+}
+
+template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR20 T byteswap(T x) noexcept {
+	using value_type = uint_t<8 * sizeof(T)>;
+	return bit_cast<T>(wjr::masm::bswap(bit_cast<value_type>(x)));
+}
+
+template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR20 T from_big_endian(T x) noexcept {
+	if (is_little_endian()) {
+		return byteswap(x);
+	}
+	return x;
+}
+
+template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR20 T to_big_endian(T x) noexcept {
+	return from_big_endian(x);
+}
+
+template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR20 T from_little_endian(T x) noexcept {
+	if (is_little_endian()) {
+		return x;
+	}
+	return byteswap(x);
+}
+
+template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR20 T to_little_endian(T x) noexcept {
+	return to_little_endian(x);
 }
 
 template< typename T, typename U >
@@ -109,72 +167,72 @@ constexpr bool in_range(T t) noexcept {
 }
 
 template<typename R, typename T>
-struct _Broadcast;
+struct broadcast_fn;
 
 template<typename R, typename T>
-inline _Broadcast<R, T> broadcast{};
+constexpr broadcast_fn<R, T> broadcast{};
 
 template<>
-struct _Broadcast<uint8_t, uint8_t> {
-	constexpr uint8_t operator()(uint8_t x)const {
+struct broadcast_fn<uint8_t, uint8_t> {
+	WJR_INTRINSIC_CONSTEXPR uint8_t operator()(uint8_t x)const {
 		return x;
 	}
 };
 template<>
-struct _Broadcast<uint16_t, uint16_t> {
-	constexpr uint16_t operator()(uint16_t x)const {
+struct broadcast_fn<uint16_t, uint16_t> {
+	WJR_INTRINSIC_CONSTEXPR uint16_t operator()(uint16_t x)const {
 		return x;
 	}
 };
 template<>
-struct _Broadcast<uint32_t, uint32_t> {
-	constexpr uint32_t operator()(uint32_t x)const {
+struct broadcast_fn<uint32_t, uint32_t> {
+	WJR_INTRINSIC_CONSTEXPR uint32_t operator()(uint32_t x)const {
 		return x;
 	}
 };
 template<>
-struct _Broadcast<uint64_t, uint64_t> {
-	constexpr uint64_t operator()(uint64_t x)const {
+struct broadcast_fn<uint64_t, uint64_t> {
+	WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint64_t x)const {
 		return x;
 	}
 };
 
 template<>
-struct _Broadcast<uint16_t, uint8_t> {
-	constexpr uint16_t operator()(uint8_t x)const {
+struct broadcast_fn<uint16_t, uint8_t> {
+	WJR_INTRINSIC_CONSTEXPR uint16_t operator()(uint8_t x)const {
 		return x | ((uint16_t)x << 8);
 	}
 };
 
 template<>
-struct _Broadcast<uint32_t, uint16_t> {
-	constexpr uint32_t operator()(uint16_t x)const {
+struct broadcast_fn<uint32_t, uint16_t> {
+	WJR_INTRINSIC_CONSTEXPR uint32_t operator()(uint16_t x)const {
 		return x | ((uint32_t)x << 16);
 	}
 };
 template<>
-struct _Broadcast<uint64_t, uint32_t> {
-	constexpr uint64_t operator()(uint32_t x)const {
+struct broadcast_fn<uint64_t, uint32_t> {
+	WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint32_t x)const {
 		return x | ((uint64_t)x << 32);
 	}
 };
 
 template<>
-struct _Broadcast<uint32_t, uint8_t> {
-	constexpr uint32_t operator()(uint8_t x)const {
+struct broadcast_fn<uint32_t, uint8_t> {
+	WJR_INTRINSIC_CONSTEXPR uint32_t operator()(uint8_t x)const {
 		return x * (uint32_t)0x01010101;
 	}
 };
 template<>
-struct _Broadcast<uint64_t, uint16_t> {
-	constexpr uint64_t operator()(uint16_t x)const {
+struct broadcast_fn<uint64_t, uint16_t> {
+	WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint16_t x)const {
 		return x * (uint64_t)0x0001000100010001;
 	}
 };
 
 template<>
-struct _Broadcast<uint64_t, uint8_t> {
-	constexpr uint64_t operator()(uint8_t x)const {
+struct broadcast_fn<uint64_t, uint8_t> {
+	WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint8_t x)const {
 		return x * (uint64_t)0x0101010101010101;
 	}
 };

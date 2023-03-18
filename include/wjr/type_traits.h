@@ -4,6 +4,7 @@
 
 #include <functional>
 #include <limits>
+
 #include <wjr/cpuinfo.h>
 
 _WJR_BEGIN
@@ -34,24 +35,8 @@ WJR_INTRINSIC_CONSTEXPR bool is_constant_evaluated() noexcept {
 #endif
 }
 
-WJR_INTRINSIC_INLINE void unreachable() noexcept {
-#if defined(_cpp_lib_unreachable)
-	return std::unreachable();
-#elif WJR_HAS_BUILTIN(__builtin_unreachable) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
-	__builtin_unreachable();
-#elif defined(WJR_COMPILER_MSVC)
-	__assume(0);
-#endif
-}
-
-WJR_INTRINSIC_CONSTEXPR void assume(bool cond) noexcept {
-#if WJR_HAS_BUILTIN(__builtin_assume)
-	__builtin_assume(cond);
-#else
-	if (is_unlikely(!cond)) {
-		unreachable();
-	}
-#endif 
+WJR_NORETURN WJR_INTRINSIC_INLINE void unreachable() noexcept {
+	WJR_UNREACHABLE;
 }
 
 template<typename T>
@@ -63,18 +48,16 @@ WJR_INTRINSIC_CONSTEXPR bool is_constant_p(T x) noexcept {
 #endif
 }
 
-#if defined(__cpp_lib_is_constant_evaluated) || WJR_HAS_BUILTIN(__builtin_is_constant_evaluated) ||		\
-	WJR_HAS_GCC(9,1,0) || WJR_HAS_CLANG(9,0,0)
-#define WJR_HAS_CONSTANT_EVALUATED
-#endif 
+template<typename T>
+WJR_INTRINSIC_CONSTEXPR void assume_no_add_overflow(T a, T b) noexcept {
+	constexpr T _Max = std::numeric_limits<T>::max();
+	WJR_ASSUME(a <= _Max - b);
+}
 
-#if WJR_HAS_BUILTIN(__builtin_constant_p) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
-#define WJR_HAS_CONSTANT_P
-#define WJR_HAS_STRONG_CONSTANT_P
-#define WJR_HAS_WEAK_CONSTANT_P
-#elif defined(WJR_HAS_CONSTANT_EVALUATED)
-#define WJR_HAS_WEAK_CONSTANT_P
-#endif
+template<typename T>
+WJR_INTRINSIC_CONSTEXPR void assume_no_sub_overflow(T a, T b) noexcept {
+	WJR_ASSUME(a >= b);
+}
 
 struct disable_tag {};
 
@@ -84,7 +67,7 @@ struct value_construct_tag {};
 struct extend_tag {};
 struct reserve_tag {};
 
-constexpr size_t byte_width = WJR_BYTE_WIDTH;
+struct defer_tag {};
 
 template<typename T, typename U, typename _Pred>
 struct has_global_binary_operator : std::false_type {};
@@ -109,6 +92,9 @@ WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(< , less);
 WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(<= , less_equal);
 WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(min, min);
 WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(max, max);
+
+template<typename T>
+using aligned_storage_for_t = std::aligned_storage_t<sizeof(T), alignof(T)>;
 
 template<typename T, typename...Args>
 struct is_any_of : std::disjunction<std::is_same<T, Args>...> {};
@@ -208,29 +194,6 @@ struct is_iterator<T, std::void_t<iter_cat_t<T>>> : std::true_type {};
 template<typename T>
 constexpr bool is_iterator_v = is_iterator<T>::value;
 
-template<typename _Iter, typename = void>
-struct _Is_contiguous_iterator_helper : std::false_type {};
-
-template<typename _Iter>
-struct _Is_contiguous_iterator_helper<_Iter, typename _Iter::is_contiguous_iterator> : std::true_type {};
-
-template<typename T>
-struct _Is_contiguous_iterator_helper<T*, void> : std::true_type {};
-
-#if defined(WJR_CPP_20)
-template<typename T>
-struct is_contiguous_iterator : std::bool_constant<std::contiguous_iterator<T> || _Is_contiguous_iterator_helper<T>::value> {};
-#else
-template<typename T>
-struct is_contiguous_iterator : _Is_contiguous_iterator_helper<T> {};
-#endif
-
-template<typename _Iter>
-struct is_contiguous_iterator<std::reverse_iterator<_Iter>> : is_contiguous_iterator<_Iter> {};
-
-template<typename T>
-constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<T>::value;
-
 template<typename T>
 struct is_input_iter : std::is_convertible<iter_cat_t<T>, std::input_iterator_tag> {};
 
@@ -260,6 +223,29 @@ struct is_random_iter : std::is_convertible<iter_cat_t<T>, std::random_access_it
 
 template<typename T>
 constexpr bool is_random_iter_v = is_random_iter<T>::value;
+
+template<typename _Iter, typename = void>
+struct _is_contiguous_iter_helper : std::false_type {};
+
+template<typename _Iter>
+struct _is_contiguous_iter_helper<_Iter, typename _Iter::is_contiguous_iter> : std::true_type {};
+
+template<typename T>
+struct _is_contiguous_iter_helper<T*, void> : std::true_type {};
+
+#if defined(WJR_CPP_20)
+template<typename T>
+struct is_contiguous_iter : std::bool_constant<std::contiguous_iterator<T> || _is_contiguous_iter_helper<T>::value> {};
+#else
+template<typename T>
+struct is_contiguous_iter : _is_contiguous_iter_helper<T> {};
+#endif
+
+template<typename _Iter>
+struct is_contiguous_iter<std::reverse_iterator<_Iter>> : is_contiguous_iter<_Iter> {};
+
+template<typename T>
+constexpr bool is_contiguous_iter_v = is_contiguous_iter<T>::value;
 
 template<size_t n>
 struct __uint_helper{};
@@ -348,7 +334,7 @@ constexpr bool is_comparable_v = is_comparable<T, U, _Pred>::value;
 
 // note that (int8_t)(-1) != (uint8_t)(-1)
 // but in memory they are the same
-template<typename T, typename U, bool = sizeof(T) == sizeof(U) && std::is_integral_v<T>&& std::is_integral_v<U>>
+template<typename T, typename U, bool = sizeof(T) == sizeof(U) && std::is_integral_v<T> && std::is_integral_v<U>>
 constexpr bool __is_memory_comparable_helper_v =
 std::is_same_v<T, bool> || std::is_same_v<U, bool> || static_cast<T>(-1) == static_cast<U>(-1);
 
@@ -373,30 +359,38 @@ enum class ipmc_result {
 
 template<typename T, typename U, typename _Pred, 
 	std::enable_if_t<is_any_of_v<_Pred, std::equal_to<>, std::not_equal_to<>>, int> = 0>
-constexpr ipmc_result is_possible_memory_comparable(const U& v, _Pred pred) {
+constexpr ipmc_result is_possible_memory_comparable(const U& v, _Pred) {
 	static_assert(std::is_integral_v<T> && std::is_integral_v<U>, "T and U must be integral types");
 	using nt = T;
 	using nu = U;
 	using cat = std::common_type_t<nt, nu>;
 	auto _Val = static_cast<cat>(v);
+	
+	constexpr auto __nt_min = static_cast<cat>(std::numeric_limits<nt>::min());
+	constexpr auto __nt_max = static_cast<cat>(std::numeric_limits<nt>::max());
+	constexpr auto __nt_negone = static_cast<cat>(static_cast<nt>(-1));
+
 	if constexpr (std::is_signed_v<nt> && std::is_unsigned_v<cat>) {
-		static_assert(static_cast<nt>(-1) == std::numeric_limits<cat>::max(), "error");
+		static_assert(__nt_negone == std::numeric_limits<cat>::max(), "error");
+		static_assert(__nt_min <= __nt_negone, "error");
+		static_assert(__nt_max < __nt_min, "error");
 		if constexpr (std::is_same_v<_Pred, std::equal_to<>>) {
-			return ((std::numeric_limits<nt>::min() <= _Val && _Val <= static_cast<nt>(-1))
-				|| _Val <= std::numeric_limits<nt>::max()) ? ipmc_result::exit : ipmc_result::none;
+			return ((__nt_min <= _Val && _Val <= __nt_negone)
+				|| _Val <= __nt_max) ? ipmc_result::exit : ipmc_result::none;
 		}
 		else {
-			return (std::numeric_limits<nt>::max() < _Val && _Val < std::numeric_limits<nt>::min()) ? 
+			return (__nt_max < _Val && _Val < __nt_min) ? 
 				ipmc_result::all : ipmc_result::exit;
 		}
 	}
 	else {
+		static_assert(__nt_min <= __nt_max, "error");
 		if constexpr (std::is_same_v<_Pred, std::equal_to<>>) {
-			return (std::numeric_limits<nt>::min() <= _Val && _Val <= std::numeric_limits<nt>::max()) ? 
+			return (__nt_min <= _Val && _Val <= __nt_max) ? 
 				ipmc_result::exit : ipmc_result::none;
 		}
 		else {
-			return (std::numeric_limits<nt>::max() < _Val || _Val < std::numeric_limits<nt>::min()) ?
+			return (__nt_max < _Val || _Val < __nt_min) ?
 				ipmc_result::all : ipmc_result::exit;
 		}
 	}
@@ -463,6 +457,13 @@ struct is_signed_integral : std::conjunction<std::is_integral<T>, std::is_signed
 
 template<typename T>
 constexpr bool is_signed_integral_v = is_signed_integral<T>::value;
+
+template<typename T>
+struct is_standard_numer : std::conjunction<std::is_arithmetic<T>, 
+	std::negation<std::is_same<std::remove_cv_t<T>, bool>>> {};
+
+template<typename T>
+constexpr bool is_standard_numer_v = is_standard_numer<T>::value;
 
 template<typename T>
 struct is_reverse_iterator : std::false_type {};

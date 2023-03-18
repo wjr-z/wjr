@@ -3,6 +3,7 @@
 #define __WJR_MMACRO_H
 
 #include <cstdint>
+//#define WJR_ENABLE_TESTING
 
 #if defined(_MSC_VER)
 /* Microsoft C/C++-compatible compiler */
@@ -207,6 +208,27 @@
 #define WJR_CPP_20
 #endif
 
+#if defined(__cpp_char8_t)
+#define WJR_CHAR8_T
+#endif // __cpp_char8_t
+
+#if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN || \
+    defined(__BIG_ENDIAN__) || \
+    defined(__ARMEB__) || \
+    defined(__THUMBEB__) || \
+    defined(__AARCH64EB__) || \
+    defined(_MIBSEB) || defined(__MIBSEB) || defined(__MIBSEB__)
+#define WJR_BIG_ENDIAN
+// It's a big-endian target architecture
+#elif defined(__BYTE_ORDER) && __BYTE_ORDER == __LITTLE_ENDIAN || \
+    defined(__LITTLE_ENDIAN__) || \
+    defined(__ARMEL__) || \
+    defined(__THUMBEL__) || \
+    defined(__AARCH64EL__) || \
+    defined(_MIPSEL) || defined(__MIPSEL) || defined(__MIPSEL__)
+#define WJR_LITTLE_ENDIAN
+#endif
+
 #if WJR_SSE2
 #define _WJR_FAST_MEMCHR
 #define _WJR_FAST_MEMCMP
@@ -276,6 +298,32 @@
 #undef _WJR_NON_TEMPORARY
 #endif
 
+#if defined(_DEBUG) || defined(WJR_ENABLE_TESTING)
+#define _WJR_EXCEPTION
+#endif 
+
+#if defined(NWJR_EXCEPTION)
+#undef _WJR_EXCEPTION
+#endif // NWJR_EXCEPTION
+
+#ifdef _WJR_EXCEPTION
+#define _WJR_TRY try{
+#define _WJR_CATCH(x) }catch(x){
+#define _WJR_CATCH_ALL }catch(...){
+#define _WJR_END_CATCH }
+#define _WJR_THROW(x) throw x
+#define _WJR_RELEASE throw
+#define WJR_NOEXCEPT
+#else
+#define _WJR_TRY { if constexpr(true){
+#define _WJR_CATCH(x) } if constexpr(false){
+#define _WJR_CATCH_ALL } if constexpr(false){
+#define _WJR_END_CATCH }}
+#define _WJR_THROW(x) 
+#define _WJR_RELEASE
+#define WJR_NOEXCEPT noexcept
+#endif
+
 #if (defined(WJR_COMPILER_GCC) && WJR_HAS_GCC(10, 1, 0)) ||	\
 	(defined(WJR_COMPILER_CLANG) && WJR_HAS_CLANG(10, 0, 0))	|| \
 	(!defined(WJR_COMPILER_GCC) && !defined(WJR_COMPILER_CLANG) && defined(__has_builtin))
@@ -283,14 +331,6 @@
 #else
 #define WJR_HAS_BUILTIN(x) 0
 #endif 
-
-#if defined(__has_attribute)
-#define WJR_HAS_ATTRIBUTE(x) __has_attribute(x)
-#elif defined(__has_cpp_attribute)
-#define WJR_HAS_ATTRIBUTE(x) __has_cpp_attribute(x)
-#else
-#define WJR_HAS_ATTRIBUTE(x) 0
-#endif
 
 #if defined(__has_include)
 #define WJR_HAS_INCLUDE(x) __has_include(x)
@@ -302,22 +342,66 @@
 //#define WJR_HAS_EXECUTION
 #endif // WJR_HAS_INCLUDE(<execution>)
 
-#ifndef WJR_NODISCARD
-#ifndef __has_cpp_attribute
-#define WJR_NODISCARD
-#elif __has_cpp_attribute(nodiscard) >= 201603L // TRANSITION, VSO#939899 (need toolset update)
-#define WJR_NODISCARD [[nodiscard]]
+#if defined(__has_attribute)
+#define WJR_HAS_ATTRIBUTE(x) __has_attribute(x)
 #else
-#define WJR_NODISCARD
-#endif
+#define WJR_HAS_ATTRIBUTE(x) 0
 #endif
 
-#ifdef WJR_CPP_20
-#define WJR_EXPLICIT(expression) explicit(expression)
-#define WJR_EXPLICIT20(expreesion) explicit(expression)
+#if defined(__has_cpp_attribute)
+#define WJR_HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
 #else
-#define WJR_EXPLICIT(expression) explicit
-#define WJR_EXPLICIT20(expression)
+#define WJR_HAS_CPP_ATTRIBUTE(x) 0
+#endif
+
+#if WJR_HAS_CPP_ATTRIBUTE(fallthrough)
+#define WJR_FALLTHROUGH [[fallthrough]]
+#elif WJR_HAS_ATTRIBUTE(fallthrough)
+#define WJR_FALLTHROUGH __attribute__((fallthrough))
+#elif defined(_MSC_VER) && defined(__fallthrough)
+#define WJR_FALLTHROUGH __fallthrough
+#else
+#define WJR_FALLTHROUGH 
+#endif
+
+#if WJR_HAS_CPP_ATTRIBUTE(noreturn)
+#define WJR_NORETURN [[noreturn]]
+#elif WJR_HAS_ATTRIBUTE(noreturn)
+#define WJR_NORETURN __attribute__((noreturn))
+#elif defined(_MSC_VER)
+#define WJR_NORETURN __declspec(noreturn)
+#else
+#define WJR_NORETURN
+#endif
+
+#if WJR_HAS_CPP_ATTRIBUTE(nodiscard)
+#define WJR_NODISCARD [[nodiscard]]
+#elif WJR_HAS_ATTRIBUTE(nodiscard)
+#define WJR_NODISCARD __attribute__((nodiscard))
+#elif defined(_MSC_VER)
+#define WJR_NODISCARD _Check_return_
+#else
+#define WJR_NODISCARD
+#endif
+
+#if WJR_HAS_CPP_ATTRIBUTE(deprecated)
+#define WJR_DEPRECATED [[deprecated]]
+#elif WJR_HAS_ATTRIBUTE(deprecated)
+#define WJR_DEPRECATED __attribute__((deprecated))
+#elif defined(_MSC_VER)
+#define WJR_DEPRECATED __declspec(deprecated)
+#else
+#define WJR_DEPRECATED
+#endif
+
+#if WJR_HAS_CPP_ATTRIBUTE(maybe_unused)
+#define WJR_UNUSED [[maybe_unused]]
+#elif WJR_HAS_ATTRIBUTE(maybe_unused)
+#define WJR_UNUSED __attribute__((maybe_unused))
+#elif defined(_MSC_VER)
+#define WJR_UNUSED
+#else
+#define WJR_UNUSED
 #endif
 
 #if WJR_HAS_ATTRIBUTE(always_inline)
@@ -326,6 +410,37 @@
 #define WJR_FORCEINLINE __forceinline
 #else
 #define WJR_FORCEINLINE
+#endif
+
+#if defined(__cpp_lib_unreachable)
+#define WJR_UNREACHABLE std::unreachable()
+#elif WJR_HAS_BUILTIN(__builtin_unreachable) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
+#define WJR_UNREACHABLE __builtin_unreachable()
+#elif defined(WJR_COMPILER_MSVC)
+#define WJR_UNREACHABLE __assume(0)
+#else
+#define WJR_UNREACHABLE 
+#endif
+
+#if WJR_HAS_BUILTIN(__builtin_assume)
+#define WJR_ASSUME(x) __builtin_assume(x)
+#elif defined(WJR_COMPILER_MSVC)
+#define WJR_ASSUME(x) __assume(x)
+#else
+#define WJR_ASSUME(x)	    \
+do{                         \
+	if (!(x)) {	            \
+		WJR_UNREACHABLE;	\
+	}	                    \
+} while (0)
+#endif
+
+#ifdef WJR_CPP_20
+#define WJR_EXPLICIT(expression) explicit(expression)
+#define WJR_EXPLICIT20(expreesion) explicit(expression)
+#else
+#define WJR_EXPLICIT(expression) explicit
+#define WJR_EXPLICIT20(expression)
 #endif
 
 #if defined(WJR_FORCEINLINE)
@@ -340,10 +455,14 @@
 #define WJR_CONSTEXPR20
 #endif
 
+#define WJR_FORCEINLINE_CONSTEXPR WJR_FORCEINLINE constexpr
 #define WJR_FORCEINLINE_CONSTEXPR20 WJR_FORCEINLINE WJR_CONSTEXPR20
-#define WJR_INTRINSIC_CONSTEXPR20 WJR_INTRINSIC_INLINE WJR_CONSTEXPR20
-#define WJR_INLINE_CONSTEXPR20 inline WJR_CONSTEXPR20
+
 #define WJR_INTRINSIC_CONSTEXPR WJR_INTRINSIC_INLINE constexpr
+#define WJR_INTRINSIC_CONSTEXPR20 WJR_INTRINSIC_INLINE WJR_CONSTEXPR20
+
+#define WJR_INLINE_CONSTEXPR inline constexpr
+#define WJR_INLINE_CONSTEXPR20 inline WJR_CONSTEXPR20
 
 #define _WJR_BEGIN namespace wjr{
 #define _WJR_END }
@@ -355,24 +474,9 @@
 #define _WJR_ALGO_END } _WJR_END
 #define _WJR_MP_BEGIN _WJR_BEGIN namespace mp{
 #define _WJR_MP_END } _WJR_END
+
 #define _WJR_LITERALS_BEGIN _WJR_BEGIN namespace literals{
 #define _WJR_LITERALS_END } _WJR_END
-
-#ifndef _WJR_NOEXCEPTION
-#define _WJR_TRY try{
-#define _WJR_CATCH(x) }catch(x){
-#define _WJR_CATCH_ALL }catch(...){
-#define _WJR_END_CATCH }
-#define _WJR_THROW(x) throw x
-#define _WJR_RELEASE throw
-#else
-#define _WJR_TRY { if constexpr(true){
-#define _WJR_CATCH(x) } if constexpr(false){
-#define _WJR_CATCH_ALL } if constexpr(false){
-#define _WJR_END_CATCH }}
-#define _WJR_THROW(x) 
-#define _WJR_RELEASE
-#endif
 
 #define WJR_MACRO_NULL(...)
 

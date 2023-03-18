@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <string>
 
-#include <wjr/pair.h>
+#include <wjr/compressed_pair.h>
 #include <wjr/algorithm.h>
 
 _WJR_BEGIN
@@ -80,16 +80,27 @@ struct vector_data {
 		wjr::uninitialized_copy(al, _Src._Myfirst, _Src._Mylast, _Dest._Myfirst);
 	}
 
-	WJR_INTRINSIC_CONSTEXPR20 static void moveConstruct(_Alty& al, vector_data&& _Src, vector_data& _Dest) noexcept {
+	WJR_INTRINSIC_CONSTEXPR20 static void moveConstruct(_Alty&, vector_data&& _Src, vector_data& _Dest) noexcept {
 		_Dest._Myfirst = _Src._Myfirst;
 		_Dest._Mylast = _Src._Mylast;
 		_Dest._Myend = _Src._Myend;
 		_Src._Myfirst = _Src._Mylast = _Src._Myend = nullptr;
 	}
 
+	WJR_CONSTEXPR20 static void Destroy(_Alty& al, vector_data& _Data) {
+		wjr::destroy(al, _Data.data(), _Data.lastPtr());
+	}
+
 	WJR_CONSTEXPR20 static void Deallocate(_Alty& al, vector_data& _Data) {
 		_Alty_traits::deallocate(al, _Data._Myfirst, _Data.capacity());
 		_Data._Myfirst = _Data._Mylast = _Data._Myend = nullptr;
+	}
+
+	WJR_CONSTEXPR20 static void Tidy(_Alty& al, vector_data& _Data) {
+		if (_Data._Myfirst != nullptr) {
+			Destroy(al, _Data);
+			Deallocate(al, _Data);
+		}
 	}
 
 	WJR_CONSTEXPR20 static void shrinkToFit(_Alty& al, vector_data& _Data) noexcept {
@@ -154,6 +165,8 @@ struct vector_data {
 	pointer _Myend = nullptr;
 };
 
+// Not tested
+
 template<typename T, size_t N, typename Alloc>
 struct vector_static_data {
 	using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
@@ -168,8 +181,8 @@ struct vector_static_data {
 
 	constexpr static size_t _MaxAlignment = std::max(alignof(T), alignof(size_type));
 	constexpr static size_t _MaxMemroy = (sizeof(T) * N + _MaxAlignment - 1) & (~(_MaxAlignment - 1));
-	constexpr static size_t _MaxCapacity = _MaxMemroy / sizeof(T);
-	static_assert(_MaxCapacity >= N, "");
+	constexpr static size_t max_capacity = _MaxMemroy / sizeof(T);
+	static_assert(max_capacity >= N, "");
 
 	vector_static_data() {}
 	vector_static_data(const vector_static_data&) = delete;
@@ -177,10 +190,12 @@ struct vector_static_data {
 	~vector_static_data() = default;
 
 	WJR_CONSTEXPR20 static void _lengthError(const size_type _Newcapacity){
+#if defined(_WJR_EXCEPTION)
 		std::string str = "vector_static_data is too small to hold the requested data";
-		str += "\n old capacity = " + std::to_string(_MaxCapacity);
+		str += "\n old capacity = " + std::to_string(max_capacity);
 		str += "\n allocate new capacity = " + std::to_string(_Newcapacity);
 		throw std::length_error(str);
+#endif // _WJR_EXCEPTION
 		unreachable();
 	}
 
@@ -196,7 +211,7 @@ struct vector_static_data {
 		_Alty& al,
 		const size_type _Newsize,
 		const size_type _Newcapacity) : _M_size(_Newsize) {
-		if (_Newcapacity > _MaxCapacity) {
+		if (_Newcapacity > max_capacity) {
 			_lengthError(_Newcapacity);
 		}
 	}
@@ -216,8 +231,17 @@ struct vector_static_data {
 		}
 	}
 
+	WJR_CONSTEXPR20 static void Destroy(_Alty& al, vector_static_data& _Data) {
+		wjr::destroy_n(al, _Data.data(), _Data.size());
+	}
+
 	WJR_INTRINSIC_CONSTEXPR20 static void Deallocate(_Alty& al, vector_static_data& _Data) noexcept {
 		_Data.set_size(0);
+	}
+
+	WJR_CONSTEXPR20 static void Tidy(_Alty& al, vector_static_data& _Data) {
+		Destroy(al, _Data);
+		Deallocate(al, _Data);
 	}
 
 	WJR_INTRINSIC_CONSTEXPR20 static void shrinkToFit(_Alty& al, vector_static_data& _Data) {
@@ -229,7 +253,7 @@ struct vector_static_data {
 	}
 
 	WJR_INTRINSIC_CONSTEXPR20 size_type capacity() const noexcept {
-		return _MaxCapacity;
+		return max_capacity;
 	}
 
 	WJR_INTRINSIC_CONSTEXPR20 pointer data() noexcept {
@@ -286,8 +310,8 @@ struct vector_sso_data {
 	constexpr static size_t _MaxMemroy = std::max(
 		(sizeof(T) * N + _MaxAlignment - 1) & (~(_MaxAlignment - 1)),
 		sizeof(size_type));
-	constexpr static size_t _MaxCapacity = _MaxMemroy / sizeof(T);
-	static_assert(_MaxCapacity >= N, "");
+	constexpr static size_t max_capacity = _MaxMemroy / sizeof(T);
+	static_assert(max_capacity >= N, "");
 
 	WJR_INTRINSIC_CONSTEXPR20 vector_sso_data() {}
 	vector_sso_data(const vector_sso_data&) = delete;
@@ -302,7 +326,7 @@ struct vector_sso_data {
 		: _M_ptr(_Alty_traits::allocate(al, _Newcapacity)),
 		_M_size(_Newsize), 
 		_M_capacity(_Newcapacity) {
-		wjr::assume(_Newcapacity > _MaxCapacity);
+		WJR_ASSUME(_Newcapacity > max_capacity);
 	}
 
 	WJR_CONSTEXPR20 vector_sso_data(
@@ -310,7 +334,7 @@ struct vector_sso_data {
 		const size_type _Newsize,
 		const size_type _Newcapacity)
 		: _M_size(_Newsize){
-		if (_Newcapacity > _MaxCapacity) {
+		if (_Newcapacity > max_capacity) {
 			_M_ptr = _Alty_traits::allocate(al, _Newcapacity);
 			_M_capacity = _Newcapacity;
 		}
@@ -328,14 +352,13 @@ struct vector_sso_data {
 	}
 
 	WJR_INTRINSIC_CONSTEXPR20 static void moveConstruct(_Alty& al, vector_sso_data&& _Src, vector_sso_data& _Dest) {
-		wjr::assume(_Dest.is_small());
 		const auto _Size = _Src._M_size;
 		if(!_Src.is_small()){
 			_Dest._M_ptr = _Src._M_ptr;
 			_Dest._M_capacity = _Src._M_capacity;
 		}
 		else {
-			wjr::assume(_Size <= _MaxCapacity);
+			WJR_ASSUME(_Size <= max_capacity);
 			wjr::uninitialized_move_n(al, _Src.data(), _Size, _Dest.data());
 			wjr::destroy_n(al, _Src.data(), _Size);
 		}
@@ -346,20 +369,29 @@ struct vector_sso_data {
 		_Src._M_size = 0;
 	}
 
-	WJR_INTRINSIC_CONSTEXPR20 static void Deallocate(_Alty& al, vector_sso_data& _Data) noexcept {
+	WJR_CONSTEXPR20 static void Destroy(_Alty& al, vector_sso_data& _Data) {
+		wjr::destroy_n(al, _Data.data(), _Data.size());
+	}
+
+	WJR_CONSTEXPR20 static void Deallocate(_Alty& al, vector_sso_data& _Data) {
 		if (!_Data.is_small()) {
 			_Alty_traits::deallocate(al, _Data.data(), _Data.capacity());
 		}
 		_Data.reset_ptr();
 		_Data._M_size = 0;
 	}
+	
+	WJR_CONSTEXPR20 static void Tidy(_Alty& al, vector_sso_data& _Data) {
+		Destroy(al, _Data);
+		Deallocate(al, _Data);
+	}
 
 	WJR_INTRINSIC_CONSTEXPR20 static void shrinkToFit(_Alty& al, vector_sso_data& _Data) {
 		if (!_Data.is_small()) {
 			const auto _Oldsize = _Data.size();
 			const auto _Oldcapacity = _Data.capacity();
-			if (_Oldsize != _Data.capacity()) {
-				if (_Oldsize <= _MaxCapacity) {
+			if (_Oldsize != _Oldcapacity) {
+				if (_Oldsize <= max_capacity) {
 					wjr::uninitialized_move_n(al, _Data.data(), _Oldsize, reinterpret_cast<pointer>(_Data._M_storage));
 					wjr::destroy_n(al, _Data.data(), _Oldsize);
 					_Alty_traits::deallocate(al, _Data.data(), _Oldcapacity);
@@ -383,7 +415,7 @@ struct vector_sso_data {
 	}
 
 	WJR_INTRINSIC_CONSTEXPR20 size_type capacity() const noexcept {
-		return is_small() ? _MaxCapacity : _M_capacity;
+		return is_small() ? max_capacity : _M_capacity;
 	}
 
 	WJR_INTRINSIC_CONSTEXPR20 pointer data() noexcept {
@@ -435,6 +467,177 @@ struct vector_sso_data {
 	};
 };
 
+template<typename Char, size_t N, typename Alloc>
+struct string_static_data : public vector_static_data<Char, N, Alloc> {
+	using _Mybase = vector_static_data<Char, N, Alloc>;
+
+	using _Alty = typename _Mybase::_Alty;
+	using _Alty_traits = typename _Mybase::_Alty_traits;
+	using value_type = typename _Mybase::value_type;
+	using pointer = typename _Mybase::pointer;
+	using const_pointer = typename _Mybase::const_pointer;
+	using size_type = typename _Mybase::size_type;
+	using difference_type = typename _Mybase::difference_type;
+
+	// virtual max capacity = max capacity - 1
+	constexpr static size_t max_capacity = _Mybase::max_capacity - 1;
+
+	WJR_INTRINSIC_CONSTEXPR20 string_static_data() : _Mybase() {}
+	string_static_data(const string_static_data&) = delete;
+	string_static_data& operator=(const string_static_data&) = delete;
+	~string_static_data() = default;
+
+	WJR_CONSTEXPR20 string_static_data(
+		_Alty& al,
+		const size_type _Newsize,
+		const size_type _Newcapacity,
+		extend_tag)
+		: _Mybase(al, _Newsize, _Newcapacity + 1, extend_tag{}) {
+	}
+
+	WJR_CONSTEXPR20 string_static_data(
+		_Alty& al,
+		const size_type _Newsize,
+		const size_type _Newcapacity)
+		: _Mybase(al, _Newsize, _Newcapacity + 1) {
+	}
+
+	WJR_CONSTEXPR20 static void copyConstruct(_Alty& al, const string_static_data& _Src, string_static_data& _Dest) {
+		return _Mybase::copyConstruct(al, std::move(_Src), _Dest);
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 static void moveConstruct(_Alty& al, 
+		string_static_data&& _Src, string_static_data& _Dest) {
+		return _Mybase::moveConstruct(al, std::move(_Src), _Dest);
+	}
+
+	WJR_CONSTEXPR20 static void Destroy(_Alty& al, string_static_data& _Data) {
+		return _Mybase::Destroy(al, _Data);
+	}
+
+	WJR_CONSTEXPR20 static void Deallocate(_Alty& al, string_static_data& _Data) {
+		return _Mybase::Deallocate(al, _Data);
+	}
+
+	WJR_CONSTEXPR20 static void Tidy(_Alty& al, string_static_data& _Data) {
+		return _Mybase::Tidy(al, _Data);
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 static void shrinkToFit(_Alty& al, string_static_data& _Data) {
+		return _Mybase::shrinkToFit(al, _Data);
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 size_type capacity() const noexcept {
+		return _Mybase::capacity() - 1;
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 pointer endPtr() noexcept {
+		return _Mybase::data() + capacity();
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 const_pointer endPtr() const noexcept {
+		return _Mybase::data() + capacity();
+	}
+};
+
+template<typename Char, size_t N, typename Alloc>
+struct string_sso_data : public vector_sso_data<Char, N, Alloc> {
+	using _Mybase = vector_sso_data<Char, N, Alloc>;
+
+	using _Alty = typename _Mybase::_Alty;
+	using _Alty_traits = typename _Mybase::_Alty_traits;
+	using value_type = typename _Mybase::value_type;
+	using pointer = typename _Mybase::pointer;
+	using const_pointer = typename _Mybase::const_pointer;
+	using size_type = typename _Mybase::size_type;
+	using difference_type = typename _Mybase::difference_type;
+
+	// virtual max capacity = max capacity - 1
+	constexpr static size_t max_capacity = _Mybase::max_capacity - 1;
+
+	WJR_INTRINSIC_CONSTEXPR20 string_sso_data() : _Mybase() {}
+	string_sso_data(const string_sso_data&) = delete;
+	string_sso_data& operator=(const string_sso_data&) = delete;
+	~string_sso_data() = default;
+
+	WJR_CONSTEXPR20 string_sso_data(
+		_Alty& al,
+		const size_type _Newsize,
+		const size_type _Newcapacity,
+		extend_tag)
+		: _Mybase(al, _Newsize, _Newcapacity + 1, extend_tag{}) {
+	}
+
+	WJR_CONSTEXPR20 string_sso_data(
+		_Alty& al,
+		const size_type _Newsize,
+		const size_type _Newcapacity)
+		: _Mybase(al, _Newsize, _Newcapacity + 1) {
+	}
+
+	WJR_CONSTEXPR20 static void copyConstruct(_Alty& al, const string_sso_data& _Src, string_sso_data& _Dest) {
+		const auto _Size = _Src._M_size;
+		if (!_Src.is_small()) {
+			string_sso_data data(al, _Size, _Size, extend_tag{});
+			_Dest._M_ptr = data._M_ptr;
+			_Dest._M_capacity = data._M_capacity;
+		}
+		_Dest._M_size = _Size;
+		wjr::uninitialized_copy_n(al, _Src.data(), _Src.size(), _Dest.data());
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 static void moveConstruct(_Alty& al, string_sso_data&& _Src, string_sso_data& _Dest) {
+		return _Mybase::moveConstruct(al, std::move(_Src), _Dest);
+	}
+
+	WJR_CONSTEXPR20 static void Destroy(_Alty& al, string_sso_data& _Data) {
+		return _Mybase::Destroy(al, _Data);
+	}
+
+	WJR_CONSTEXPR20 static void Deallocate(_Alty& al, string_sso_data& _Data) {
+		return _Mybase::Deallocate(al, _Data);
+	}
+
+	WJR_CONSTEXPR20 static void Tidy(_Alty& al, string_sso_data& _Data) {
+		return _Mybase::Tidy(al, _Data);
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 static void shrinkToFit(_Alty& al, string_sso_data& _Data) {
+		if (!_Data.is_small()) {
+			const auto _Oldsize = _Data.size();
+			const auto _Oldcapacity = _Data.capacity();
+			if (_Oldsize != _Oldcapacity) {
+				if (_Oldsize <= max_capacity) {
+					wjr::uninitialized_move_n(al, _Data.data(), _Oldsize, reinterpret_cast<pointer>(_Data._M_storage));
+					wjr::destroy_n(al, _Data.data(), _Oldsize);
+					_Alty_traits::deallocate(al, _Data.data(), _Oldcapacity + 1);
+					_Data.reset_ptr();
+				}
+				else {
+					auto _Newdata = _Alty_traits::allocate(al, _Oldsize + 1);
+					wjr::uninitialized_move_n(al, _Data.data(), _Oldsize, _Newdata);
+					wjr::destroy_n(al, _Data.data(), _Oldsize);
+					_Alty_traits::deallocate(al, _Data.data(), _Oldcapacity + 1);
+					_Data._M_ptr = _Newdata;
+					_Data._M_capacity = _Oldsize + 1;
+				}
+				_Data._M_size = _Oldsize;
+			}
+		}
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 size_type capacity() const noexcept {
+		return _Mybase::capacity() - 1;
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 pointer endPtr() noexcept {
+		return _Mybase::data() + capacity();
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 const_pointer endPtr() const noexcept {
+		return _Mybase::data() + capacity();
+	}
+};
 
 namespace _Vector_helper {
 	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(Swap, Swap);
@@ -444,13 +647,13 @@ namespace _Vector_helper {
 template<typename T, typename Alloc = std::allocator<T>, typename Data = vector_data<T, Alloc>>
 class vector {
 
+public:
+
 	using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
 	using _Alty_traits = std::allocator_traits<_Alty>;
 
 	static_assert(std::is_same_v<typename _Alty_traits::value_type, T>,
 		"Alloc::value_type must be the same as T");
-
-public:
 
 	using value_type = T;
 	using allocator_type = _Alty;
@@ -467,6 +670,9 @@ public:
 
 	using data_type = Data;
 
+	static_assert(std::is_pointer_v<pointer>, "");
+	static_assert(std::is_pointer_v<const_pointer>, "");
+
 	WJR_CONSTEXPR20 vector()
 		noexcept(std::is_nothrow_default_constructible_v<_Alty>
 			&& std::is_nothrow_default_constructible_v<data_type>) : _Myval() {}
@@ -480,7 +686,7 @@ public:
 
 	WJR_CONSTEXPR20 explicit vector(const size_type _Count, const allocator_type& al = allocator_type())
 		: vector(al) {
-		_M_construct_n(_Count, value_construct_tag{});
+		_M_construct_n(_Count, value_construct_tag());
 	}
 
 	WJR_CONSTEXPR20 vector(size_type _Count, const value_type& _Val, const allocator_type& al = allocator_type())
@@ -495,11 +701,10 @@ private:
 	constexpr static bool _IsNoThrowMoveConstruct =
 		noexcept(data_type::moveConstruct(std::declval<_Alty&>(), 
 			std::declval<data_type&&>(), std::declval<data_type&>()));
-	struct __vector_copy_tag {};
 public:
 
 	template<typename _Alloc>
-	WJR_CONSTEXPR20 vector(const vector& other, _Alloc&& al, __vector_copy_tag)
+	WJR_CONSTEXPR20 vector(const vector& other, _Alloc&& al, disable_tag)
 		noexcept(_IsNoThrowCopyConstruct
 			&& std::is_nothrow_constructible_v<_Alty, _Alloc&&>)
 		: _Myval(std::piecewise_construct_t{},
@@ -510,10 +715,10 @@ public:
 
 	WJR_CONSTEXPR20 vector(const vector& other)
 		: vector(other, _Alty_traits::select_on_container_copy_construction(other.getAllocator()), 
-			__vector_copy_tag{}) {}
+			disable_tag{}) {}
 
 	WJR_CONSTEXPR20 vector(const vector& other, const allocator_type& al)
-		: vector(other, al, __vector_copy_tag{}) {}
+		: vector(other, al, disable_tag{}) {}
 
 	WJR_CONSTEXPR20 vector(vector&& other)
 		noexcept(_IsNoThrowMoveConstruct
@@ -564,10 +769,8 @@ public:
 		_M_range_init(_First, _Last, typename std::iterator_traits<_Iter>::iterator_category());
 	}
 
-	WJR_CONSTEXPR20 vector(std::initializer_list<value_type> _Ilist, const allocator_type& al = allocator_type())
-		: vector(al) {
-		_M_range_init(_Ilist.begin(), _Ilist.end(), std::random_access_iterator_tag());
-	}
+	WJR_CONSTEXPR20 vector(std::initializer_list<value_type> il, const allocator_type& al = allocator_type())
+		: vector(il.begin(), il.end(), al) { }
 
 	WJR_CONSTEXPR20 ~vector() noexcept {
 		tidy();
@@ -604,15 +807,14 @@ public:
 			typename _Alty_traits::is_always_equal>;
 
 		if (is_likely(this != std::addressof(other))) {
-			_M_move_assign(std::move(other), type{});
+			_M_move_assign(std::move(other), type());
 		}
 
 		return *this;
 	}
 
-	WJR_CONSTEXPR20 vector& operator=(std::initializer_list<value_type> _Ilist) {
-		_M_assign_aux(_Ilist.begin(), _Ilist.end(), std::random_access_iterator_tag());
-		return *this;
+	WJR_CONSTEXPR20 vector& operator=(std::initializer_list<value_type> il) {
+		return assign(il);
 	}
 
 	WJR_CONSTEXPR20 vector& assign(size_type _Count, const value_type& _Val) {
@@ -622,13 +824,12 @@ public:
 
 	template<typename iter, std::enable_if_t<is_iterator_v<iter>, int> = 0>
 	WJR_CONSTEXPR20 vector& assign(iter _First, iter _Last) {
-		_M_assign_aux(_First, _Last, typename std::iterator_traits<iter>::iterator_category());
+		_M_range_assign(_First, _Last, typename std::iterator_traits<iter>::iterator_category());
 		return *this;
 	}
 
-	WJR_CONSTEXPR20 vector& assign(std::initializer_list<value_type> _Ilist) {
-		_M_assign_aux(_Ilist.begin(), _Ilist.end(), std::random_access_iterator_tag());
-		return *this;
+	WJR_CONSTEXPR20 vector& assign(std::initializer_list<value_type> il) {
+		return assign(il.begin(), il.end());
 	}
 
 	WJR_INTRINSIC_CONSTEXPR20 iterator begin() noexcept {
@@ -684,7 +885,7 @@ public:
 	}
 
 	WJR_CONSTEXPR20 void resize(const size_type _Newsize) {
-		_M_resize(_Newsize, value_construct_tag{});
+		_M_resize(_Newsize, value_construct_tag());
 	}
 
 	WJR_CONSTEXPR20 void resize(const size_type _Newsize, const value_type& _Val) {
@@ -772,7 +973,6 @@ public:
 	template<typename...Args>
 	WJR_INLINE_CONSTEXPR20 reference emplace_back(Args&&... args) {
 		auto& al = getAllocator();
-		const auto _Myfirst = data();
 		const auto _Mylast = lastPtr();
 		const auto _Myend = endPtr();
 		if (_Mylast != _Myend) {
@@ -812,10 +1012,8 @@ public:
 		return emplace(_Where, std::move(_Val));
 	}
 
-	WJR_CONSTEXPR20 iterator insert(const_iterator _Where, std::initializer_list<value_type> _Ilist) {
-		const auto __old_pos = _Where - cbegin();
-		_M_range_insert(begin() + __old_pos, _Ilist.begin(), _Ilist.end(), std::random_access_iterator_tag());
-		return begin() + __old_pos;
+	WJR_CONSTEXPR20 iterator insert(const_iterator _Where, std::initializer_list<value_type> il) {
+		return insert(_Where, il.begin(), il.end());
 	}
 
 	WJR_CONSTEXPR20 iterator insert(const_iterator _Where, size_type _Count, const value_type& _Val) {
@@ -831,17 +1029,17 @@ public:
 		return begin() + __old_pos;
 	}
 
-	WJR_CONSTEXPR20 iterator erase(const_iterator _Where) {
+	WJR_INLINE_CONSTEXPR20 iterator erase(const_iterator _Where) {
 		return _M_erase(begin() + (_Where - cbegin()));
 	}
 
-	WJR_CONSTEXPR20 iterator erase(const_iterator _First, const_iterator _Last) {
+	WJR_INLINE_CONSTEXPR20 iterator erase(const_iterator _First, const_iterator _Last) {
 		const auto __beg = begin();
 		const auto __cbeg = cbegin();
 		return _M_erase(__beg + (_First - __cbeg), __beg + (_Last - __cbeg));
 	}
 
-	WJR_CONSTEXPR20 void swap(vector& _Right) noexcept {
+	WJR_INLINE_CONSTEXPR20 void swap(vector& _Right) noexcept {
 		Swap(getAllocator(), getData(), _Right.getData());
 		if constexpr (_Alty_traits::propagate_on_container_swap::value) {
 			std::swap(getAllocator(), _Right.getAllocator());
@@ -863,28 +1061,30 @@ public:
 		return getAllocator();
 	}
 
-	// unstandard functions
+	// non-standard extension functions
+
+	/*------Internal management function------*/
 
 	WJR_CONSTEXPR20 static void copyConstruct(_Alty& al, const data_type& _Src, data_type& _Dest) 
 		noexcept(_IsNoThrowCopyConstruct) {
 		data_type::copyConstruct(al, _Src, _Dest);
 	}
 
-	WJR_CONSTEXPR20 static void moveConstruct(_Alty& al, data_type&& _Src, data_type& _Dest) 
+	WJR_INLINE_CONSTEXPR20 static void moveConstruct(_Alty& al, data_type&& _Src, data_type& _Dest)
 		noexcept(_IsNoThrowMoveConstruct) {
 		data_type::moveConstruct(al, std::move(_Src), _Dest);
 	}
 
 	template<typename _D = data_type, std::enable_if_t<
 		_Vector_helper::has_static_member_function_Swap_v<_D, _Alty&, _D&, _D&>, int> = 0>
-	WJR_CONSTEXPR20 static void Swap(_Alty& al, _D& _Left, _D& _Right)
+	WJR_INLINE_CONSTEXPR20 static void Swap(_Alty& al, _D& _Left, _D& _Right)
 		noexcept(noexcept(_D::Swap(al, _Left, _Right))) {
 		return _D::Swap(al, _Left, _Right);
 	}
 
 	template<typename _D = Data, std::enable_if_t<
 		!_Vector_helper::has_static_member_function_Swap_v<_D, _Alty&, _D&, _D&>, int> = 0>
-	WJR_CONSTEXPR20 static void Swap(_Alty& al, _D& _Left, _D& _Right)
+	WJR_INLINE_CONSTEXPR20 static void Swap(_Alty& al, _D& _Left, _D& _Right)
 		noexcept(
 			noexcept(moveConstruct(std::declval<_Alty&>(), std::declval<_D&&>(), std::declval<_D&>()))
 			&& std::is_nothrow_default_constructible_v<_D>) {
@@ -894,23 +1094,19 @@ public:
 		moveConstruct(al, std::move(_Tmp), _Right);
 	}
 
-	WJR_CONSTEXPR20 static void Destroy(_Alty& al, data_type& _Data) {
-		wjr::destroy_n(al, _Data.data(), _Data.size());
+	WJR_INLINE_CONSTEXPR20 static void Destroy(_Alty& al, data_type& _Data) {
+		data_type::Destroy(al, _Data);
 	}
 
 	WJR_CONSTEXPR20 static void Deallocate(_Alty& al, data_type& _Data) 
 		noexcept(noexcept(data_type::Deallocate(al, _Data))) {
 		data_type::Deallocate(al, _Data);
-		assume(_Data.size() == 0);
+		WJR_ASSUME(_Data.size() == 0);
 	}
 
-	WJR_CONSTEXPR20 static void Tidy(_Alty& al, data_type& _Data) noexcept {
-		assume(_Data.size() <= _Data.capacity());
-		if (_Data.capacity() != 0) {
-			Destroy(al, _Data);
-			Deallocate(al, _Data);
-		}
-		assume(_Data.size() == 0);
+	WJR_CONSTEXPR20 static void Tidy(_Alty& al, data_type& _Data) {
+		data_type::Tidy(al, _Data);
+		WJR_ASSUME(_Data.size() == 0);
 	}
 
 	template<typename _D = Data, std::enable_if_t<
@@ -925,13 +1121,13 @@ public:
 		_D, const size_type, const size_type>, int> = 0>
 	WJR_INTRINSIC_CONSTEXPR20 static size_type getGrowthCapacity(
 		const size_type _Oldcapacity, const size_type _Newsize) noexcept {
-		wjr::assume(_Newsize > _Oldcapacity);
+		WJR_ASSUME(_Newsize > _Oldcapacity);
 		const auto _Newcapacity = _Oldcapacity + _Oldcapacity / 2;
 		const auto _FixedCapacity = _Newcapacity < _Newsize ? _Newsize : _Newcapacity;
 		const auto ret = _FixedCapacity < 32 ? ((_FixedCapacity + 3) & (-4)) :
 			_FixedCapacity < 256 ? ((_FixedCapacity + 15) & (-16)) :
 			((_FixedCapacity + 63) & (-64));
-		wjr::assume(ret >= _Newsize);
+		WJR_ASSUME(ret >= _Newsize);
 		return ret;
 	}
 
@@ -967,8 +1163,6 @@ public:
 		return getData().endPtr();
 	}
 
-	// non-standard extension functions
-
 	WJR_INTRINSIC_CONSTEXPR20 void set_size(const size_type _Size) noexcept {
 		getData().set_size(_Size);
 	}
@@ -977,43 +1171,104 @@ public:
 		getData().inc_size(_Size);
 	}
 
+	/*------External extension function------*/
+
+	// n must less or equal 
+	WJR_INLINE_CONSTEXPR20 vector& chop(size_t n) {
+		_M_erase_at_end(end() - n);
+		return *this;
+	}
+
+	// n <= size()
+	WJR_INLINE_CONSTEXPR20 vector& truncate(size_t n) {
+		return chop(size() - n);
+	}
+	
+	/*------default construct/value_construct------*/
+	
 	WJR_CONSTEXPR20 vector(const size_type _Count, default_construct_tag, const allocator_type& al = allocator_type())
 		: vector(al) {
-		_M_construct_n(_Count, default_construct_tag{});
+		_M_construct_n(_Count, default_construct_tag());
 	}
 
 	WJR_CONSTEXPR20 vector(const size_type _Count, value_construct_tag, const allocator_type& al = allocator_type())
 		: vector(al) {
-		_M_construct_n(_Count, value_construct_tag{});
+		_M_construct_n(_Count, value_construct_tag());
 	}
 
 	WJR_CONSTEXPR20 void resize(const size_type _Newsize, default_construct_tag) {
-		_M_resize(_Newsize, default_construct_tag{});
+		_M_resize(_Newsize, default_construct_tag());
 	}
 
 	WJR_CONSTEXPR20 void resize(const size_type _Newsize, value_construct_tag) {
-		_M_resize(_Newsize, value_construct_tag{});
+		_M_resize(_Newsize, value_construct_tag());
 	}
 
-	WJR_CONSTEXPR20 void append(size_t n, const T& val) {
-		_M_append(n, val);
+	WJR_CONSTEXPR20 void push_back(default_construct_tag) {
+		emplace_back(default_construct_tag());
 	}
 
-	WJR_CONSTEXPR20 void append(size_t n, default_construct_tag) {
-		_M_append(n, default_construct_tag{});
+	WJR_CONSTEXPR20 void push_back(value_construct_tag) {
+		emplace_back(value_construct_tag());
 	}
 
-	WJR_CONSTEXPR20 void append(size_t n, value_construct_tag) {
-		_M_append(n, value_construct_tag{});
+	WJR_CONSTEXPR20 vector& append(size_t n, default_construct_tag) {
+		_M_append(n, default_construct_tag());
+		return *this;
+	}
+
+	WJR_CONSTEXPR20 vector& append(size_t n, value_construct_tag) {
+		_M_append(n, value_construct_tag());
+		return *this;
+	}
+
+	/*------------------------------------------------------------*/
+
+	WJR_INLINE_CONSTEXPR20 vector& append(const T& val) {
+		emplace_back(val);
+		return *this;
+	}
+
+	WJR_INLINE_CONSTEXPR20 vector& append(T&& val) {
+		emplace_back(std::move(val));
+		return *this;
 	}
 
 	template<typename _Iter, std::enable_if_t<is_iterator_v<_Iter>, int> = 0>
-	WJR_CONSTEXPR20 void append(_Iter _First, _Iter _Last) {
+	WJR_CONSTEXPR20 vector& append(_Iter _First, _Iter _Last) {
 		_M_range_append(_First, _Last, typename std::iterator_traits<_Iter>::iterator_category());
+		return *this;
 	}
 
-	WJR_CONSTEXPR20 void chop(size_t n) {
-		_M_erase_at_end(end() - n);
+	WJR_CONSTEXPR20 vector& append(size_t n, const T& val) {
+		_M_append(n, val);
+		return *this;
+	}
+
+	WJR_CONSTEXPR20 vector& append(std::initializer_list<value_type> il) {
+		return append(il.begin(), il.end());
+	}
+
+	template<typename iter, std::enable_if_t<is_iterator_v<iter>, int> = 0>
+	WJR_CONSTEXPR20 vector& replace(
+		const_iterator _Oldfirst, const_iterator _Oldlast,
+		iter _Newfirst, iter _Newlast) {
+		const auto __offset1 = static_cast<size_type>(_Oldfirst - cbegin());
+		const auto __offset2 = static_cast<size_type>(_Oldlast - cbegin());
+		_M_range_replace(begin() + __offset1, begin() + __offset2, 
+			_Newfirst, _Newlast, typename std::iterator_traits<iter>::iterator_category());
+		return *this;
+	}
+
+	WJR_CONSTEXPR20 vector& replace(
+		const_iterator _Oldfirst, const_iterator _Oldlast,
+		const size_type _Count, const value_type& _Val
+	) {
+		const auto __offset1 = static_cast<size_type>(_Oldfirst - cbegin());
+		const auto __offset2 = static_cast<size_type>(_Oldlast - cbegin());
+		_M_fill_replace(begin() + __offset1, begin() + __offset2,
+			_Count, _Val);
+		return *this;
 	}
 
 private:
@@ -1060,7 +1315,6 @@ private:
 	}
 
 	WJR_CONSTEXPR20 iterator _M_erase(iterator _Where) noexcept {
-		const pointer _Myfirst = data();
 		const pointer _Mylast = lastPtr();
 		if (_Where + 1 != _Mylast) {
 			wjr::move(_Where + 1, _Mylast, _Where);
@@ -1071,7 +1325,6 @@ private:
 	}
 
 	WJR_CONSTEXPR20 iterator _M_erase(iterator _First, iterator _Last) noexcept {
-		const pointer _Myfirst = data();
 		const pointer _Mylast = lastPtr();
 		if (_First != _Last) {
 			if (_Last != _Mylast) {
@@ -1177,7 +1430,7 @@ private:
 	}
 
 	template<typename iter>
-	WJR_CONSTEXPR20 void _M_assign_aux(iter _First, iter _Last, std::input_iterator_tag) {
+	WJR_CONSTEXPR20 void _M_range_assign(iter _First, iter _Last, std::input_iterator_tag) {
 		const pointer _Myfirst = data();
 		const pointer _Mylast = lastPtr();
 
@@ -1195,27 +1448,8 @@ private:
 		}
 	}
 
-	WJR_CONSTEXPR20 void _M_fill_assign(size_type _Count, const value_type& _Val) {
-		auto& al = getAllocator();
-		if (_Count > capacity()) {
-			tidy();
-			data_type _Newdata(al, _Count, _Count, extend_tag{});
-			moveConstruct(al, std::move(_Newdata), getData());
-			wjr::uninitialized_fill_n(al, data(), _Count, _Val);
-			return;
-		}
-		if (_Count > size()) {
-			wjr::fill(begin(), end(), _Val);
-			wjr::uninitialized_fill_n(al, end(), _Count - size(), _Val);
-			set_size(_Count);
-		}
-		else {
-			_M_erase_at_end(wjr::fill_n(begin(), _Count, _Val));
-		}
-	}
-
 	template<typename iter>
-	WJR_CONSTEXPR20 void _M_assign_aux(iter _First, iter _Last, std::forward_iterator_tag) {
+	WJR_CONSTEXPR20 void _M_range_assign(iter _First, iter _Last, std::forward_iterator_tag) {
 		auto _Count = static_cast<size_type>(std::distance(_First, _Last));
 		auto& al = getAllocator();
 		const pointer _Myfirst = data();
@@ -1243,6 +1477,25 @@ private:
 		}
 	}
 
+	WJR_CONSTEXPR20 void _M_fill_assign(size_type _Count, const value_type& _Val) {
+		auto& al = getAllocator();
+		if (_Count > capacity()) {
+			tidy();
+			data_type _Newdata(al, _Count, _Count, extend_tag{});
+			moveConstruct(al, std::move(_Newdata), getData());
+			wjr::uninitialized_fill_n(al, data(), _Count, _Val);
+			return;
+		}
+		if (_Count > size()) {
+			wjr::fill(begin(), end(), _Val);
+			wjr::uninitialized_fill_n(al, end(), _Count - size(), _Val);
+			set_size(_Count);
+		}
+		else {
+			_M_erase_at_end(wjr::fill_n(begin(), _Count, _Val));
+		}
+	}
+
 	WJR_CONSTEXPR20 void _M_move_assign(vector&& other, std::true_type) {
 		auto& al = getAllocator();
 		tidy();
@@ -1257,7 +1510,7 @@ private:
 			_M_move_assign(std::move(other), std::true_type{});
 		}
 		else {
-			_M_assign_aux(
+			_M_range_assign(
 				std::make_move_iterator(other.begin()),
 				std::make_move_iterator(other.end()),
 				std::random_access_iterator_tag{});
@@ -1325,8 +1578,8 @@ private:
 		const auto __rest = static_cast<size_type>(_Myend - _Mylast);
 
 		if (__rest >= n) {
-			temporary_allocator_value<Alloc> _Tmp(al, _Val);
-			auto& _Copy = _Tmp.value();
+			const temporary_allocator_value<Alloc> _Tmp(al, _Val);
+			const auto& _Copy = _Tmp.value();
 			const auto __elements_after = static_cast<size_type>(_Mylast - _Where);
 			if (__elements_after > n) {
 				wjr::uninitialized_move(al, _Mylast - n, _Mylast, _Mylast);
@@ -1376,7 +1629,6 @@ private:
 
 		const pointer _Myfirst = data();
 		const pointer _Mylast = _Myfirst + _Oldsize;
-		const pointer _Myend = _Myfirst + _Oldcapacity;
 
 		const auto __rest = _Oldcapacity - _Oldsize;
 		const auto _Newsize = _Oldsize + n;
@@ -1416,9 +1668,8 @@ private:
 		const auto __offset = _Where - cbegin();
 
 		auto& al = getAllocator();
-		const pointer _Myfirst = data();
 		const pointer _Mylast = lastPtr();
-		const pointer _Myend = lastPtr();
+		const pointer _Myend = endPtr();
 
 		if (_Mylast != _Myend) {
 			if (_Where == _Mylast) {
@@ -1437,8 +1688,131 @@ private:
 		return begin() + __offset;
 	}
 
+	template<typename iter>
+	WJR_CONSTEXPR20 void _M_range_replace(
+		iterator _Oldfirst, iterator _Oldlast,
+		iter _Newfirst, iter _Newlast, std::input_iterator_tag
+	) {
+		for (; _Oldfirst != _Oldlast && _Newfirst != _Newlast; ++_Oldfirst, ++_Newfirst) {
+			*_Oldfirst = *_Newfirst;
+		}
+
+		if (_Newfirst == _Newlast) {
+			_M_erase_at_end(_Oldfirst, _Oldlast);
+		}
+		else {
+			_M_range_insert(_Oldlast, _Newfirst, _Newlast, std::input_iterator_tag());
+		}
+	}
+
+	template<typename iter>
+	WJR_CONSTEXPR20 void _M_range_replace(
+		iterator _Oldfirst, iterator _Oldlast,
+		iter _Newfirst, iter _Newlast, std::forward_iterator_tag
+	) {
+		const auto __n = static_cast<size_type>(_Oldlast - _Oldfirst);
+		const auto __m = static_cast<size_type>(std::distance(_Newfirst, _Newlast));
+
+		if (__m <= __n) {
+			erase(wjr::copy_n(_Newfirst, __m, _Oldfirst), _Oldlast);
+		}
+		else {
+			const auto __delta = __m - __n;
+
+			auto& al = getAllocator();
+			const auto _Myfirst = data();
+			const auto _Mylast = lastPtr();
+			const auto _Myend = endPtr();
+			
+			const auto __rest = static_cast<size_type>(_Myend - _Mylast);
+
+			if (__rest >= __delta) {
+				const auto __elements_after = static_cast<size_type>(_Mylast - _Oldfirst);
+				if (__elements_after > __m) {
+					wjr::uninitialized_move(al, _Mylast - __delta, _Mylast, _Mylast);
+					wjr::move_backward(_Oldlast, _Mylast - __delta, _Mylast);
+					wjr::copy(_Newfirst, _Newlast, _Oldfirst);
+				}
+				else {
+					auto _Mid = _Newfirst;
+					std::advance(_Mid, __elements_after);
+					wjr::uninitialized_copy(al, _Mid, _Newlast, _Mylast);
+					wjr::uninitialized_move(al, _Oldlast, _Mylast, _Oldfirst + __m);
+					wjr::copy(_Newfirst, _Mid, _Oldfirst);
+				}
+				inc_size(__delta);
+			}
+			else {
+				const auto __old_size = static_cast<size_type>(_Mylast - _Myfirst);
+				const auto __old_pos = static_cast<size_type>(_Oldfirst - _Myfirst);
+				const auto _Newcapacity = getGrowthCapacity(capacity(), __old_size + __delta);
+				data_type _Newdata(al, __old_size + __delta, _Newcapacity, extend_tag{});
+				const pointer _Ptr = _Newdata.data();
+
+				wjr::uninitialized_copy(al, _Newfirst, _Newlast, _Ptr + __old_pos);
+				wjr::uninitialized_move(al, _Myfirst, _Oldfirst, _Ptr);
+				wjr::uninitialized_move(al, _Oldlast, _Mylast, _Ptr + __old_pos + __m);
+
+				tidy();
+				moveConstruct(al, std::move(_Newdata), getData());
+			}
+		}
+	}
+
+	WJR_CONSTEXPR20 void _M_fill_replace(
+		iterator _Oldfirst, iterator _Oldlast, 
+		size_type __m, const value_type& _Val) {
+
+		const auto __n = static_cast<size_type>(_Oldlast - _Oldfirst);
+
+		if (__m <= __n) {
+			erase(wjr::fill_n(_Oldfirst, __m, _Val), _Oldlast);
+		}
+		else {
+			const auto __delta = __m - __n;
+
+			auto& al = getAllocator();
+			const auto _Myfirst = data();
+			const auto _Mylast = lastPtr();
+			const auto _Myend = endPtr();
+
+			const auto __rest = static_cast<size_type>(_Myend - _Mylast);
+
+			if (__rest >= __delta) {
+				const temporary_allocator_value<Alloc> _Tmp(al, _Val);
+				const auto& _Copy = _Tmp.value();
+				const auto __elements_after = static_cast<size_type>(_Mylast - _Oldfirst);
+				if (__elements_after > __m) {
+					wjr::uninitialized_move(al, _Mylast - __delta, _Mylast, _Mylast);
+					wjr::move_backward(_Oldlast, _Mylast - __delta, _Mylast);
+					wjr::fill_n(_Oldfirst, __m, _Copy);
+				}
+				else {
+					wjr::uninitialized_fill_n(al, _Mylast, __m - __elements_after, _Copy);
+					wjr::uninitialized_move(al, _Oldlast, _Mylast, _Oldfirst + __m);
+					wjr::fill(_Oldfirst, _Mylast, _Copy);
+				}
+				inc_size(__delta);
+			}
+			else {
+				const auto __old_size = static_cast<size_type>(_Mylast - _Myfirst);
+				const auto __old_pos = static_cast<size_type>(_Oldfirst - _Myfirst);
+				const auto _Newcapacity = getGrowthCapacity(capacity(), __old_size + __delta);
+				data_type _Newdata(al, __old_size + __delta, _Newcapacity, extend_tag{});
+				const pointer _Ptr = _Newdata.data();
+
+				wjr::uninitialized_fill_n(al, _Ptr + __old_pos, __m, _Val);
+				wjr::uninitialized_move(al, _Myfirst, _Oldfirst, _Ptr);
+				wjr::uninitialized_move(al, _Oldlast, _Mylast, _Ptr + __old_pos + __m);
+
+				tidy();
+				moveConstruct(al, std::move(_Newdata), getData());
+			}
+		}
+	}
+
 private:
-	wjr::pair<_Alty, data_type> _Myval;
+	wjr::compressed_pair<_Alty, data_type> _Myval;
 };
 
 template<typename iter,

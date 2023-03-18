@@ -7,33 +7,34 @@
 _WJR_BEGIN
 
 #if WJR_SSE2
+
 template<>
-struct _Broadcast<__m128i, uint8_t> {
-	__m128i operator()(uint8_t v) const {
+struct broadcast_fn<simd::__m128i_tag, uint8_t> {
+	WJR_INTRINSIC_INLINE __m128i operator()(uint8_t v) const {
 		return _mm_set1_epi8(v);
 	}
 };
 template<>
-struct _Broadcast<__m128i, uint16_t> {
-	__m128i operator()(uint16_t v) const {
+struct broadcast_fn<simd::__m128i_tag, uint16_t> {
+	WJR_INTRINSIC_INLINE __m128i operator()(uint16_t v) const {
 		return _mm_set1_epi16(v);
 	}
 };
 template<>
-struct _Broadcast<__m128i, uint32_t> {
-	__m128i operator()(uint32_t v) const {
+struct broadcast_fn<simd::__m128i_tag, uint32_t> {
+	WJR_INTRINSIC_INLINE __m128i operator()(uint32_t v) const {
 		return _mm_set1_epi32(v);
 	}
 };
 template<>
-struct _Broadcast<__m128i, uint64_t> {
-	__m128i operator()(uint64_t v) const {
+struct broadcast_fn<simd::__m128i_tag, uint64_t> {
+	WJR_INTRINSIC_INLINE __m128i operator()(uint64_t v) const {
 		return _mm_set1_epi64x(v);
 	}
 };
 template<>
-struct _Broadcast<__m128i, __m128i> {
-	__m128i operator()(__m128i v) const {
+struct broadcast_fn<simd::__m128i_tag, simd::__m128i_tag> {
+	WJR_INTRINSIC_INLINE __m128i operator()(__m128i v) const {
 		return v;
 	}
 };
@@ -41,38 +42,38 @@ struct _Broadcast<__m128i, __m128i> {
 
 #if WJR_AVX
 template<>
-struct _Broadcast<__m256i, uint8_t> {
-	__m256i operator()(uint8_t v) const {
+struct broadcast_fn<simd::__m256i_tag, uint8_t> {
+	WJR_INTRINSIC_INLINE __m256i operator()(uint8_t v) const {
 		return _mm256_set1_epi8(v);
 	}
 };
 template<>
-struct _Broadcast<__m256i, uint16_t> {
-	__m256i operator()(uint16_t v) const {
+struct broadcast_fn<simd::__m256i_tag, uint16_t> {
+	WJR_INTRINSIC_INLINE __m256i operator()(uint16_t v) const {
 		return _mm256_set1_epi16(v);
 	}
 };
 template<>
-struct _Broadcast<__m256i, uint32_t> {
-	__m256i operator()(uint32_t v) const {
+struct broadcast_fn<simd::__m256i_tag, uint32_t> {
+	WJR_INTRINSIC_INLINE __m256i operator()(uint32_t v) const {
 		return _mm256_set1_epi32(v);
 	}
 };
 template<>
-struct _Broadcast<__m256i, uint64_t> {
-	__m256i operator()(uint64_t v) const {
+struct broadcast_fn<simd::__m256i_tag, uint64_t> {
+	WJR_INTRINSIC_INLINE __m256i operator()(uint64_t v) const {
 		return _mm256_set1_epi64x(v);
 	}
 };
 template<>
-struct _Broadcast<__m256i, __m256i> {
-	__m256i operator()(__m256i v) const {
+struct broadcast_fn<simd::__m256i_tag, simd::__m256i_tag> {
+	WJR_INTRINSIC_INLINE __m256i operator()(__m256i v) const {
 		return v;
 	}
 };
 template<>
-struct _Broadcast<__m256i, __m128i> {
-	__m256i operator()(__m128i v) const {
+struct broadcast_fn<simd::__m256i_tag, simd::__m128i_tag> {
+	WJR_INTRINSIC_INLINE __m256i operator()(__m128i v) const {
 #if WJR_AVX2
 		return _mm256_broadcastsi128_si256(v);
 #else
@@ -90,15 +91,15 @@ _WJR_SIMD_BEGIN
 #if WJR_SSE2
 
 __m128i mm_loadu_si16(void const* p) {
-	return simd_cast<__m128i>(*reinterpret_cast<uint16_t const*>(p));
+	return simd_cast<__m128i_tag, uint16_t>(*reinterpret_cast<uint16_t const*>(p));
 }
 
 __m128i mm_loadu_si32(void const* p) {
-	return simd_cast<__m128i>(*reinterpret_cast<int32_t const*>(p));
+	return simd_cast<__m128i_tag, uint32_t>(*reinterpret_cast<int32_t const*>(p));
 }
 
 __m128i mm_loadu_si64(void const* p) {
-	return simd_cast<__m128i>(*reinterpret_cast<int64_t const*>(p));
+	return simd_cast<__m128i_tag, uint64_t>(*reinterpret_cast<int64_t const*>(p));
 }
 
 #endif // WJR_SSE2
@@ -149,25 +150,25 @@ uint8_t sse::add_epu8(__m128i a) {
 	a = add(a, b, uint8_t());
 	b = zeros();
 	a = sad_epu8(a, b);
-	return simd_cast<uint8_t>(a);
+	return simd_cast<uint8_t, __m128i_tag>(a);
 }
 
 uint16_t sse::add_epu16(__m128i a) {
 	a = add(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a), uint16_t());
 	a = add(a, shuffle_epi32<_MM_SHUFFLE(1, 1, 1, 1)>(a), uint16_t());
 	a = add(a, srli<2>(a), uint16_t());
-	return simd_cast<uint16_t>(a);
+	return simd_cast<uint16_t, __m128i_tag>(a);
 }
 
 uint32_t sse::add_epu32(__m128i a) {
 	a = add(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a), uint32_t());
 	a = add(a, shuffle_epi32<_MM_SHUFFLE(1, 1, 1, 1)>(a), uint32_t());
-	return simd_cast<uint32_t>(a);
+	return simd_cast<uint32_t, __m128i_tag>(a);
 }
 
 uint64_t sse::add_epu64(__m128i a) {
 	a = add(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a), uint64_t());
-	return simd_cast<uint64_t>(a);
+	return simd_cast<uint64_t, __m128i_tag>(a);
 }
 
 int8_t sse::add(__m128i a, int8_t) { return add_epi8(a); }
@@ -485,16 +486,16 @@ int sse::extract_epi32(__m128i a) {
 	return _mm_extract_epi32(a, imm8);
 #else
 	if constexpr (imm8 == 0) {
-		return simd_cast<uint32_t>(a);
+		return simd_cast<uint32_t, __m128i_tag>(a);
 	}
 	else if constexpr (imm8 == 1) {
-		return static_cast<uint32_t>(simd_cast<uint64_t>(a) >> 32);
+		return static_cast<uint32_t>(simd_cast<uint64_t, __m128i_tag>(a) >> 32);
 	}
 	else if constexpr (imm8 == 2) {
-		return simd_cast<uint32_t>(shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
+		return simd_cast<uint32_t, __m128i_tag>(shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
 	}
 	else {
-		return simd_cast<uint32_t>(shuffle_epi32<_MM_SHUFFLE(3, 3, 3, 3)>(a));
+		return simd_cast<uint32_t, __m128i_tag>(shuffle_epi32<_MM_SHUFFLE(3, 3, 3, 3)>(a));
 	}
 #endif // WJR_SSE4_1
 }
@@ -506,10 +507,10 @@ int64_t sse::extract_epi64(__m128i a) {
 	return _mm_extract_epi64(a, imm8);
 #else
 	if constexpr (imm8 == 0) {
-		return simd_cast<uint64_t>(a);
+		return simd_cast<uint64_t, __m128i_tag>(a);
 	}
 	else {
-		return simd_cast<uint64_t>(shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
+		return simd_cast<uint64_t, __m128i_tag>(shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
 	}
 #endif // WJR_SSE4_1
 }
@@ -531,7 +532,7 @@ int sse::extract(__m128i a, uint32_t) { return extract_epi32<imm8>(a); }
 template<int imm8>
 int64_t sse::extract(__m128i a, uint64_t) { return extract_epi64<imm8>(a); }
 
-uint64_t sse::getlow(__m128i v) { return simd_cast<uint64_t>(v); }
+uint64_t sse::getlow(__m128i v) { return simd_cast<uint64_t, __m128i_tag>(v); }
 uint64_t sse::gethigh(__m128i v) { return extract_epi64<1>(v); }
 
 template<int imm8>
@@ -633,14 +634,14 @@ int16_t sse::max_epi16(__m128i a) {
 	a = max_epi16(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
 	a = max_epi16(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 3, 2)>(a));
 	a = max_epi16(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 1, 0)>(a));
-	return simd_cast<int16_t>(a);
+	return simd_cast<int16_t, __m128i_tag>(a);
 #endif // WJR_SSE4_1
 }
 
 int32_t sse::max_epi32(__m128i a) {
 	a = max_epi32(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
 	a = max_epi32(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 3, 2)>(a));
-	return simd_cast<int32_t>(a);
+	return simd_cast<int32_t, __m128i_tag>(a);
 }
 
 uint8_t sse::max_epu8(__m128i a) {
@@ -650,7 +651,7 @@ uint8_t sse::max_epu8(__m128i a) {
 	a = max_epu8(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
 	a = max_epu8(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 3, 2)>(a));
 	a = max_epu8(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 1, 0)>(a));
-	auto X = simd_cast<uint32_t>(a);
+	auto X = simd_cast<uint32_t, __m128i_tag>(a);
 	return std::max((uint8_t)X, (uint8_t)(X >> 8));
 #endif // WJR_SSE4_1
 }
@@ -662,14 +663,14 @@ uint16_t sse::max_epu16(__m128i a) {
 	a = max_epu16(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
 	a = max_epu16(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 3, 2)>(a));
 	a = max_epu16(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 1, 0)>(a));
-	return simd_cast<uint16_t>(a);
+	return simd_cast<uint16_t, __m128i_tag>(a);
 #endif // WJR_SSE4_1
 }
 
 uint32_t sse::max_epu32(__m128i a) {
 	a = max_epu32(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
 	a = max_epu32(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 3, 2)>(a));
-	return simd_cast<uint32_t>(a);
+	return simd_cast<uint32_t, __m128i_tag>(a);
 }
 
 int8_t sse::max(__m128i a, int8_t) { return max_epi8(a); }
@@ -735,45 +736,45 @@ int16_t sse::min_epi16(__m128i a) {
 	a = min_epi16(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
 	a = min_epi16(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 3, 2)>(a));
 	a = min_epi16(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 1, 0)>(a));
-	return simd_cast<int16_t>(a);
+	return simd_cast<int16_t, __m128i_tag>(a);
 #endif // WJR_SSE4_1
 }
 
 int32_t sse::min_epi32(__m128i a) {
 	a = min_epi32(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
 	a = min_epi32(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 3, 2)>(a));
-	return simd_cast<int32_t>(a);
+	return simd_cast<int32_t, __m128i_tag>(a);
 }
 
 uint8_t sse::min_epu8(__m128i a) {
 #if WJR_SSE4_1
 	a = min_epu8(a, srli_epi16(a, 8));
 	a = _mm_minpos_epu16(a);
-	return simd_cast<uint8_t>(a);
+	return simd_cast<uint8_t, __m128i_tag>(a);
 #else
 	a = min_epu8(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
 	a = min_epu8(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 3, 2)>(a));
 	a = min_epu8(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 1, 0)>(a));
-	auto X = simd_cast<uint32_t>(a);
+	auto X = simd_cast<uint32_t, __m128i_tag>(a);
 	return std::min((uint8_t)X, (uint8_t)(X >> 8));
 #endif // WJR_SSE4_1
 }
 
 uint16_t sse::min_epu16(__m128i a) {
 #if WJR_SSE4_1
-	return simd_cast<uint16_t>(_mm_minpos_epu16(a));
+	return simd_cast<uint16_t, __m128i_tag>(_mm_minpos_epu16(a));
 #else
 	a = min_epu16(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
 	a = min_epu16(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 3, 2)>(a));
 	a = min_epu16(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 1, 0)>(a));
-	return simd_cast<uint16_t>(a);
+	return simd_cast<uint16_t, __m128i_tag>(a);
 #endif // WJR_SSE4_1
 }
 
 uint32_t sse::min_epu32(__m128i a) {
 	a = min_epu32(a, shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a));
 	a = min_epu32(a, shufflelo_epi16<_MM_SHUFFLE(1, 0, 3, 2)>(a));
-	return simd_cast<uint32_t>(a);
+	return simd_cast<uint32_t, __m128i_tag>(a);
 }
 
 int8_t sse::min(__m128i a, int8_t) { return min_epi8(a); }
@@ -789,8 +790,8 @@ sse::mask_type sse::movemask_epi8(__m128i a) { return _mm_movemask_epi8(a); }
 sse::mask_type sse::movemask_pd(__m128d v) { return _mm_movemask_pd(v); }
 
 sse::mask_type sse::movemask(__m128i v, int8_t) { return movemask_epi8(v); }
-sse::mask_type sse::movemask(__m128i v, int32_t) { return movemask_ps(simd_cast<__m128>(v)); }
-sse::mask_type sse::movemask(__m128i v, int64_t) { return movemask_pd(simd_cast<__m128d>(v)); }
+sse::mask_type sse::movemask(__m128i v, int32_t) { return movemask_ps(simd_cast<__m128_tag, __m128i_tag>(v)); }
+sse::mask_type sse::movemask(__m128i v, int64_t) { return movemask_pd(simd_cast<__m128d_tag, __m128i_tag>(v)); }
 sse::mask_type sse::movemask(__m128i v, uint8_t) { return movemask(v, int8_t()); }
 sse::mask_type sse::movemask(__m128i v, uint32_t) { return movemask(v, int32_t()); }
 sse::mask_type sse::movemask(__m128i v, uint64_t) { return movemask(v, int64_t()); }
@@ -1233,7 +1234,7 @@ constexpr avx::mask_type avx::mask() { return 0xffffffff; }
 #if WJR_AVX
 
 __m256i avx::concat(__m128i a, __m128i b) {
-	return insert_si128<1>(simd_cast<__m256i>(a), b);
+	return insert_si128<1>(simd_cast<__m256i_tag, __m128i_tag>(a), b);
 }
 
 template<int imm8>
@@ -1256,7 +1257,7 @@ __m128i avx::extract_si128(__m256i v) {
 }
 
 __m128i avx::getlow(__m256i a) {
-	return simd_cast<__m128i>(a);
+	return simd_cast<__m128i_tag, __m256i_tag>(a);
 }
 
 __m128i avx::gethigh(__m256i a) {
@@ -1287,35 +1288,35 @@ __m256i avx::loadu(const __m256i* p) { return _mm256_loadu_si256(p); }
 __m256i avx::ones() { return _mm256_set1_epi32(-1); }
 
 __m256i avx::preloadu_si16(const void* ptr) {
-	return simd_cast<__m256i, __m128i>(sse::preloadu_si16(ptr));
+	return simd_cast<__m256i_tag, __m128i_tag>(sse::preloadu_si16(ptr));
 }
 
 __m256i avx::preloadu_si32(const void* ptr) {
-	return simd_cast<__m256i, __m128i>(sse::preloadu_si32(ptr));
+	return simd_cast<__m256i_tag, __m128i_tag>(sse::preloadu_si32(ptr));
 }
 
 __m256i avx::preloadu_si48(const void* ptr) {
-	return simd_cast<__m256i, __m128i>(sse::preloadu_si48(ptr));
+	return simd_cast<__m256i_tag, __m128i_tag>(sse::preloadu_si48(ptr));
 }
 
 __m256i avx::preloadu_si64(const void* ptr) {
-	return simd_cast<__m256i, __m128i>(sse::preloadu_si64(ptr));
+	return simd_cast<__m256i_tag, __m128i_tag>(sse::preloadu_si64(ptr));
 }
 
 __m256i avx::preloadu_si80(const void* ptr) {
-	return simd_cast<__m256i, __m128i>(sse::preloadu_si80(ptr));
+	return simd_cast<__m256i_tag, __m128i_tag>(sse::preloadu_si80(ptr));
 }
 
 __m256i avx::preloadu_si96(const void* ptr) {
-	return simd_cast<__m256i, __m128i>(sse::preloadu_si96(ptr));
+	return simd_cast<__m256i_tag, __m128i_tag>(sse::preloadu_si96(ptr));
 }
 
 __m256i avx::preloadu_si112(const void* ptr) {
-	return simd_cast<__m256i, __m128i>(sse::preloadu_si112(ptr));
+	return simd_cast<__m256i_tag, __m128i_tag>(sse::preloadu_si112(ptr));
 }
 
 __m256i avx::preloadu_si128(const void* ptr) {
-	return simd_cast<__m256i, __m128i>(sse::preloadu_si128(ptr));
+	return simd_cast<__m256i_tag, __m128i_tag>(sse::preloadu_si128(ptr));
 }
 
 __m256i avx::preloadu_si144(const void* ptr) {
