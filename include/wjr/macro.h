@@ -136,6 +136,14 @@
 #define WJR_ARM
 #endif
 
+#if defined(__aarch64__)
+#define WJR_AARCH64
+#endif 
+
+#if defined(__powerpc64__)
+#define WJR_PPC64 
+#endif
+
 #if !defined(WJR_X86)
 #error "ARM is not supported"
 #endif
@@ -147,6 +155,10 @@
 #elif defined(_MSC_VER)
 #define WJR_COMPILER_MSVC
 #endif
+
+#if defined(_MSC_VER)
+#define WJR_MSVC
+#endif // _MSC_VER
 
 // judge if i can use inline asm
 #if defined(WJR_X86) && (defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG))

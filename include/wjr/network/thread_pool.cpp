@@ -3,41 +3,33 @@
 _WJR_BEGIN
 
 thread_pool::thread_pool(
-	unsigned int core_threads_size,
-	size_t task_limit,
-	unsigned int max_threads_size)
-	: thread_pool(core_threads_size, task_limit, max_threads_size, std::chrono::nanoseconds(0)) {}
+	unsigned int core_threads_size){
+	create_all_threads(core_threads_size);
+}
 
 thread_pool::~thread_pool() {
 	flush();
 	{
-		std::unique_lock slow_task_lock(m_slow_task_mutex);
+		std::unique_lock fast_task_lock(m_fast_task_mutex);
 		m_valid = false;
 	}
-	m_task_cv.notify_all();
 	for (auto& i : m_core_threads) i.join();
 }
 
-void thread_pool::start(
-	unsigned int core_threads_size,
-	size_t task_limit,
-	unsigned int max_threads_size) {
-	start(core_threads_size, task_limit, max_threads_size, std::chrono::nanoseconds(0));
-}
-
 void thread_pool::pause() {
-	m_pause.store(true);
+	m_pause.store(true, std::memory_order_relaxed);
 }
 
 void thread_pool::unpause() {
-	m_pause.store(false);
+	m_pause.store(false, std::memory_order_relaxed);
 }
 
 void thread_pool::flush() {
-	std::unique_lock fast_flush_lock(m_fast_flush_mutex);
-	std::unique_lock slow_task_lock(m_slow_task_mutex);
-	m_flush_cv.wait(slow_task_lock, [this] {
-		return (m_real_tasks.load(std::memory_order_relaxed) == (m_pause ? m_task_queue.size() : 0));
+	waiter it;
+	std::unique_lock fast_task_lock(m_fast_task_mutex);
+	wjr::wait(fast_task_lock, it, [this] {
+		return (m_real_tasks.load(std::memory_order_relaxed) 
+			== (m_pause.load(std::memory_order_relaxed) ? m_task_queue.size() : 0));
 		});
 }
 
@@ -46,7 +38,7 @@ bool thread_pool::is_valid() const {
 }
 
 bool thread_pool::is_paused() const {
-	return m_pause;
+	return m_pause.load(std::memory_order_relaxed);
 }
 
 unsigned int thread_pool::get_threads_size() const {
@@ -59,28 +51,20 @@ void thread_pool::core_work() {
 		std::function<void()> task;
 
 		{
-			std::unique_lock slow_task_lock(m_slow_task_mutex);
-			m_task_cv.wait(slow_task_lock, [this] {
+			waiter it;
+			std::unique_lock fast_task_lock(m_fast_task_mutex);
+			wjr::wait(fast_task_lock, it, [this] {
 				return !m_task_queue.empty()
 					|| !m_valid;
 				});
 
 			if (is_likely(m_valid)) {
-				if (!m_pause) {
+				if (!m_pause.load(std::memory_order_relaxed)) {
 					task = std::move(m_task_queue.front());
 					m_task_queue.pop_front();
-					slow_task_lock.unlock();
+					fast_task_lock.unlock();
 					task();
-					if (is_likely(m_fast_flush_mutex.try_lock())) {
-						m_real_tasks.fetch_sub(1, std::memory_order_relaxed);
-						m_fast_flush_mutex.unlock();
-					}
-					else {
-						slow_task_lock.lock();
-						m_real_tasks.fetch_sub(1, std::memory_order_relaxed);
-						slow_task_lock.unlock();
-						m_flush_cv.notify_one();
-					}
+					m_real_tasks.fetch_sub(1, std::memory_order_relaxed);
 				}
 				continue;
 			}
@@ -92,19 +76,12 @@ void thread_pool::core_work() {
 }
 
 void thread_pool::create_all_threads(
-	unsigned int core_threads_size,
-	size_t task_limit,
-	unsigned int max_threads_size,
-	std::chrono::nanoseconds alive_limit
-) {
+	unsigned int core_threads_size) {
 #if defined(_WJR_EXCEPTION)
 	if (!core_threads_size) {
 		throw std::invalid_argument("!core_threads_size");
 	}
 #endif // _WJR_EXCEPTION
-
-	m_task_limit = task_limit;
-	m_alive_limit = alive_limit;
 
 	m_core_threads.reserve(core_threads_size);
 

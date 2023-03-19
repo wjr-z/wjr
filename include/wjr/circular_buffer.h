@@ -364,14 +364,14 @@ public:
 			std::forward_as_tuple()) {}
 
 	template<typename _Alloc>
-	WJR_CONSTEXPR20 circular_buffer(const circular_buffer& other, _Alloc&& al, disable_tag)
+	WJR_CONSTEXPR20 circular_buffer(const circular_buffer& other, _Alloc&& _Al, disable_tag)
 		noexcept(std::is_nothrow_constructible_v<_Alty, _Alloc&&>)
 		: _Myval(std::piecewise_construct_t{},
-			std::forward_as_tuple(al),
+			std::forward_as_tuple(_Al),
 			std::forward_as_tuple()){
 		auto& al = getAllocator();
 		auto& _Mydata = getData();
-		const auto& _Otherdata = otehr.getData();
+		const auto& _Otherdata = other.getData();
 		if (_Otherdata._Mysize != 0) {
 			const auto _Newcapacity = getGrowthCapacity(0, _Otherdata._Mysize);
 			_Mydata._Myptr = _Alty_traits::allocate(al, _Newcapacity);
@@ -403,26 +403,26 @@ public:
 	WJR_CONSTEXPR20 circular_buffer& operator=(circular_buffer&&) = delete;
 
 	template<typename...Args>
-	WJR_CONSTEXPR20 decltype(auto) emplace_back(Args&&...args) {
+	WJR_INLINE_CONSTEXPR20 decltype(auto) emplace_back(Args&&...args) {
 		auto& al = getAllocator();
 		auto& _Mydata = getData();
-		//if (is_likely(_Mydata._Mysize != _Mydata._Mycapacity)) {
+		if (is_likely(_Mydata._Mysize != _Mydata._Mycapacity)) {
 			wjr::construct_at(al, _Mydata._Myptr + _Mydata._Mytail, std::forward<Args>(args)...);
 			++_Mydata._Mytail;
 			_Mydata._Mytail = _Mydata._Mytail == _Mydata._Mycapacity ? 0 : _Mydata._Mytail;
 			++_Mydata._Mysize;
-		//}
-		//else {
-			//_M_realloc_insert_at_end(std::forward<Args>(args)...);
-		//}
+		}
+		else {
+			_M_realloc_insert_at_end(std::forward<Args>(args)...);
+		}
 		return back();
 	}
 
-	WJR_CONSTEXPR20 void push_back(const value_type& val) { emplace_back(val); }
-	WJR_CONSTEXPR20 void push_back(value_type&& val) { emplace_back(std::move(val)); }
+	WJR_INLINE_CONSTEXPR20 void push_back(const value_type& val) { emplace_back(val); }
+	WJR_INLINE_CONSTEXPR20 void push_back(value_type&& val) { emplace_back(std::move(val)); }
 
 	template<typename...Args>
-	WJR_CONSTEXPR20 decltype(auto) emplac_front(Args&&...args) {
+	WJR_INLINE_CONSTEXPR20 decltype(auto) emplac_front(Args&&...args) {
 		auto& al = getAllocator();
 		auto& _Mydata = getData();
 		if (is_likely(_Mydata._Mysize != _Mydata._Mycapacity)) {
@@ -437,8 +437,8 @@ public:
 		return back();
 	}
 
-	WJR_CONSTEXPR20 void push_front(const value_type& val) { emplace_front(val); }
-	WJR_CONSTEXPR20 void push_front(value_type&& val) { emplace_front(std::move(val)); }
+	WJR_INLINE_CONSTEXPR20 void push_front(const value_type& val) { emplace_front(val); }
+	WJR_INLINE_CONSTEXPR20 void push_front(value_type&& val) { emplace_front(std::move(val)); }
 
 	WJR_INTRINSIC_CONSTEXPR20 void pop_front() noexcept {
 		auto& al = getAllocator();

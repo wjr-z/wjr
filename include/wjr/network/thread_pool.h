@@ -20,15 +20,7 @@ class thread_pool {
 public:
 
     thread_pool(
-        unsigned int core_threads_size = default_threads_size(),
-        size_t task_limit = -1,
-        unsigned int max_threads_size = default_threads_size() * 2); 
-    template<typename Rep, typename Period>
-    thread_pool(
-        unsigned int core_threads_size,
-        size_t task_limit,
-        unsigned int max_threads_size,
-        const std::chrono::duration<Rep, Period>& alive_limit);
+        unsigned int core_threads_size = default_threads_size()); 
     ~thread_pool();
 
     void pause();
@@ -49,76 +41,25 @@ public:
     static size_t default_threads_size();
 
 private:
-
-    void start(
-        unsigned int core_threads_size = default_threads_size(),
-        size_t task_limit = -1,
-        unsigned int max_threads_size = default_threads_size() * 2);
-
-    template<typename Rep, typename Period>
-    void start(
-        unsigned int core_threads_size,
-        size_t task_limit,
-        unsigned int max_threads_size,
-        const std::chrono::duration<Rep, Period>& alive_limit);
-
+public:
     void core_work();
 
-    void create_all_threads(
-        unsigned int core_threads_size, 
-        size_t task_limit, 
-        unsigned int max_threads_size,
-        std::chrono::nanoseconds alive_limit);
+    void create_all_threads(unsigned int core_threads_size);
 
-    wjr::vector<std::thread> m_core_threads;
+    alignas(8) spin_mutex m_fast_task_mutex;
+    alignas(8) circular_buffer<std::function<void()>> m_task_queue;
+    alignas(8) bool m_valid = true;
+    alignas(8) std::atomic_bool m_pause = false;
 
-    circular_buffer<std::function<void()>> m_task_queue;
-
-    std::mutex m_slow_task_mutex;
-
-    spin_mutex m_fast_flush_mutex = {};
-
-    std::condition_variable m_task_cv;
-    std::condition_variable m_flush_cv;
-    std::condition_variable m_done_cv;
-
-    size_t m_task_limit;
-    std::chrono::nanoseconds m_alive_limit;
-
-    bool m_valid = false;
-    std::atomic_bool m_pause = false;
-    std::atomic<size_t> m_real_tasks = 0;
-
+    alignas(16) std::atomic<size_t> m_real_tasks = 0;
+    alignas(16) wjr::vector<std::thread> m_core_threads;
 };
-
-template<typename Rep, typename Period>
-thread_pool::thread_pool(
-    unsigned int core_threads_size,
-    size_t task_limit,
-    unsigned int max_threads_size,
-    const std::chrono::duration<Rep, Period>& alive_limit) {
-    start(core_threads_size, task_limit, max_threads_size, alive_limit);
-}
-
-template<typename Rep, typename Period>
-void thread_pool::start(
-    unsigned int core_threads_size,
-    size_t task_limit,
-    unsigned int max_threads_size,
-    const std::chrono::duration<Rep, Period>& alive_limit){
-    create_all_threads(
-        core_threads_size, 
-        task_limit, 
-        max_threads_size, 
-        std::chrono::duration_cast<std::chrono::nanoseconds>(alive_limit)
-    );
-}
 
 template<typename Func, typename...Args>
 void thread_pool::push(Func&& func, Args&&...args) {
     std::function<void()> function = std::bind(std::forward<Func>(func), std::forward<Args>(args)...);
     {
-        std::unique_lock slow_task_lock(m_slow_task_mutex);
+        std::unique_lock slow_task_lock(m_fast_task_mutex);
         m_task_queue.push_back(std::move(function));
 #if defined(_WJR_EXCEPTION)
         if (is_unlikely(!m_valid)) {
@@ -127,8 +68,6 @@ void thread_pool::push(Func&& func, Args&&...args) {
 #endif // _WJR_EXCEPTION
     }
     m_real_tasks.fetch_add(1, std::memory_order_relaxed);
-    // No need to protect
-    m_task_cv.notify_one();
 }
 
 template<typename Func, typename...Args, typename R>
