@@ -3,16 +3,17 @@
 _WJR_BEGIN
 
 thread_pool::thread_pool(
-	unsigned int core_threads_size){
+	unsigned int core_threads_size) {
 	create_all_threads(core_threads_size);
 }
 
 thread_pool::~thread_pool() {
 	flush();
 	{
-		std::unique_lock fast_task_lock(m_fast_task_mutex);
+		std::unique_lock fast_task_lock(m_task_mutex);
 		m_valid = false;
 	}
+	m_task_cv.notify_all();
 	for (auto& i : m_core_threads) i.join();
 }
 
@@ -25,12 +26,13 @@ void thread_pool::unpause() {
 }
 
 void thread_pool::flush() {
-	waiter it;
-	std::unique_lock fast_task_lock(m_fast_task_mutex);
-	wjr::wait(fast_task_lock, it, [this] {
-		return (m_real_tasks.load(std::memory_order_relaxed) 
+	std::unique_lock fast_task_lock(m_task_mutex);
+	m_flush = true;
+	m_flush_cv.wait(fast_task_lock, [this] {
+		return (m_real_tasks.load(std::memory_order_relaxed)
 			== (m_pause.load(std::memory_order_relaxed) ? m_task_queue.size() : 0));
 		});
+	m_flush = false;
 }
 
 bool thread_pool::is_valid() const {
@@ -51,11 +53,9 @@ void thread_pool::core_work() {
 		std::function<void()> task;
 
 		{
-			waiter it;
-			std::unique_lock fast_task_lock(m_fast_task_mutex);
-			wjr::wait(fast_task_lock, it, [this] {
-				return !m_task_queue.empty()
-					|| !m_valid;
+			std::unique_lock fast_task_lock(m_task_mutex);
+			m_task_cv.wait(fast_task_lock, [this] {
+				return !m_task_queue.empty() || !m_valid;
 				});
 
 			if (is_likely(m_valid)) {
@@ -64,7 +64,11 @@ void thread_pool::core_work() {
 					m_task_queue.pop_front();
 					fast_task_lock.unlock();
 					task();
+					fast_task_lock.lock();
 					m_real_tasks.fetch_sub(1, std::memory_order_relaxed);
+					if (m_flush) {
+						m_flush_cv.notify_one();
+					}
 				}
 				continue;
 			}

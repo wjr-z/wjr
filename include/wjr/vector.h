@@ -715,11 +715,11 @@ public:
 	}
 
 	WJR_CONSTEXPR20 void reserve(size_type n) {
+		const auto _Oldsize = size();
 		const auto _Oldcapacity = capacity();
 		if (_Oldcapacity < n) {
 			auto& al = getAllocator();
 
-			const auto _Oldsize = size();
 			const auto _Newcapacity = getGrowthCapacity(_Oldcapacity, n);
 
 			data_type _Newdata(al, _Oldsize, _Newcapacity, extend_tag());
@@ -728,6 +728,7 @@ public:
 			tidy();
 			moveConstruct(al, std::move(_Newdata), getData());
 		}
+		WJR_ASSUME(size() == _Oldsize);
 	}
 
 	WJR_INTRINSIC_CONSTEXPR20 reference operator[](size_type _Pos) noexcept {
@@ -858,10 +859,7 @@ public:
 
 	WJR_CONSTEXPR20 void clear() {
 		_M_erase_at_end(data());
-	}
-
-	WJR_CONSTEXPR20 void tidy() noexcept {
-		Tidy(getAllocator(), getData());
+		WJR_ASSUME(size() == 0);
 	}
 
 	WJR_INTRINSIC_CONSTEXPR20 allocator_type& get_allocator() noexcept {
@@ -971,24 +969,21 @@ public:
 
 	WJR_INTRINSIC_CONSTEXPR20 void set_size(const size_type _Size) noexcept {
 		getData().set_size(_Size);
+		WJR_ASSUME(size() == _Size);
 	}
 
 	WJR_INTRINSIC_CONSTEXPR20 void inc_size(const difference_type _Size) noexcept {
+		const auto _Oldsize = size();
 		getData().inc_size(_Size);
+		WJR_ASSUME(_Oldsize + _Size == size());
+	}
+
+	WJR_CONSTEXPR20 void tidy() noexcept {
+		Tidy(getAllocator(), getData());
+		WJR_ASSUME(size() == 0);
 	}
 
 	/*------External extension function------*/
-
-	// n must less or equal 
-	WJR_INLINE_CONSTEXPR20 vector& chop(size_t n) {
-		_M_erase_at_end(end() - n);
-		return *this;
-	}
-
-	// n <= size()
-	WJR_INLINE_CONSTEXPR20 vector& truncate(size_t n) {
-		return chop(size() - n);
-	}
 	
 	/*------default construct/value_construct------*/
 	
@@ -1002,13 +997,18 @@ public:
 		_M_construct_n(_Count, value_construct_tag());
 	}
 
+	WJR_CONSTEXPR20 vector(data_type&& _Data, const allocator_type& al = allocator_type())
+		: vector(al) {
+		moveConstruct(getAllocator(), std::move(_Data), getData());
+	}
+
 	WJR_CONSTEXPR20 void resize(const size_type _Newsize, default_construct_tag) {
 		_M_resize(_Newsize, default_construct_tag());
 	}
 
 	WJR_CONSTEXPR20 void resize(const size_type _Newsize, value_construct_tag) {
 		_M_resize(_Newsize, value_construct_tag());
-	}
+	}              
 
 	WJR_CONSTEXPR20 void push_back(default_construct_tag) {
 		emplace_back(default_construct_tag());
@@ -1027,8 +1027,19 @@ public:
 		_M_append(n, value_construct_tag());
 		return *this;
 	}
-
+	
 	/*------------------------------------------------------------*/
+
+		// n must less or equal 
+	WJR_INLINE_CONSTEXPR20 vector& chop(size_t n) {
+		_M_erase_at_end(end() - n);
+		return *this;
+	}
+
+	// n <= size()
+	WJR_INLINE_CONSTEXPR20 vector& truncate(size_t n) {
+		return chop(size() - n);
+	}
 
 	WJR_INLINE_CONSTEXPR20 vector& append(const T& val) {
 		emplace_back(val);
@@ -1075,6 +1086,16 @@ public:
 		_M_fill_replace(begin() + __offset1, begin() + __offset2,
 			_Count, _Val);
 		return *this;
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 void assume_total_capacity(const size_type n) const noexcept {
+		WJR_ASSUME(endPtr() - data() >= n);
+		WJR_ASSUME(capacity() >= n);
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 void assume_rest_capacity(const size_type n) const noexcept {
+		WJR_ASSUME(endPtr() - lastPtr() >= n);
+		WJR_ASSUME(capacity() - size() >= n);
 	}
 
 private:

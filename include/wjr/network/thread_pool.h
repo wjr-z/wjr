@@ -11,7 +11,6 @@
 #include <chrono>
 
 #include <wjr/vector.h>
-#include <wjr/network/spin_mutex.h>
 #include <wjr/circular_buffer.h>
 
 _WJR_BEGIN
@@ -20,7 +19,7 @@ class thread_pool {
 public:
 
     thread_pool(
-        unsigned int core_threads_size = default_threads_size()); 
+        unsigned int core_threads_size = default_threads_size());
     ~thread_pool();
 
     void pause();
@@ -46,20 +45,25 @@ public:
 
     void create_all_threads(unsigned int core_threads_size);
 
-    alignas(8) spin_mutex m_fast_task_mutex;
+    alignas(8) std::mutex m_task_mutex;
     alignas(8) circular_buffer<std::function<void()>> m_task_queue;
     alignas(8) bool m_valid = true;
+	
+    alignas(64) std::condition_variable m_task_cv;
     alignas(8) std::atomic_bool m_pause = false;
+    alignas(8) std::atomic<size_t> m_real_tasks = 0;
+    // padding
+    alignas(8) wjr::vector<std::thread> m_core_threads;
 
-    alignas(16) std::atomic<size_t> m_real_tasks = 0;
-    alignas(16) wjr::vector<std::thread> m_core_threads;
+    alignas(64) bool m_flush;
+    alignas(8) std::condition_variable m_flush_cv;
 };
 
 template<typename Func, typename...Args>
 void thread_pool::push(Func&& func, Args&&...args) {
     std::function<void()> function = std::bind(std::forward<Func>(func), std::forward<Args>(args)...);
     {
-        std::unique_lock slow_task_lock(m_fast_task_mutex);
+        std::unique_lock lock(m_task_mutex);
         m_task_queue.push_back(std::move(function));
 #if defined(_WJR_EXCEPTION)
         if (is_unlikely(!m_valid)) {
@@ -68,6 +72,7 @@ void thread_pool::push(Func&& func, Args&&...args) {
 #endif // _WJR_EXCEPTION
     }
     m_real_tasks.fetch_add(1, std::memory_order_relaxed);
+    m_task_cv.notify_one();
 }
 
 template<typename Func, typename...Args, typename R>

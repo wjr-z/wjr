@@ -818,6 +818,12 @@ WJR_NODISCARD WJR_CONSTEXPR20 bool operator>=(
 	return !(lhs < rhs);
 }
 
+template<typename Char>
+std::basic_ostream<Char, std::char_traits<Char>>& operator<<(
+	std::basic_ostream<Char, std::char_traits<Char>>& os, wjr::basic_string_view<Char> sv) {
+	return (os << (std::basic_string_view<Char, std::char_traits<Char>>)(sv));
+}
+
 using string_view = basic_string_view<char>;
 #if defined(WJR_CHAR8_T)
 using u8string_view = basic_string_view<char8_t>;
@@ -825,32 +831,6 @@ using u8string_view = basic_string_view<char8_t>;
 using u16string_view = basic_string_view<char16_t>;
 using u32string_view = basic_string_view<char32_t>;
 using wstring_view = basic_string_view<wchar_t>;
-
-namespace literals {
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR string_view operator""_sv(const char* str, size_t len) noexcept {
-		return string_view(str, len);
-	}
-#if defined(WJR_CHAR8_T)
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR u8string_view operator""_sv(const char8_t* str, size_t len) noexcept {
-		return u8string_view(str, len);
-	}
-#endif // WJR_CHAR8_T
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR u16string_view operator""_sv(const char16_t* str, size_t len) noexcept {
-		return u16string_view(str, len);
-	}
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR u32string_view operator""_sv(const char32_t* str, size_t len) noexcept {
-		return u32string_view(str, len);
-	}
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR wstring_view operator""_sv(const wchar_t* str, size_t len) noexcept {
-		return wstring_view(str, len);
-	}
-}
-
-template<typename Char>
-std::basic_ostream<Char, std::char_traits<Char>>& operator<<(
-	std::basic_ostream<Char, std::char_traits<Char>>& os, wjr::basic_string_view<Char> sv) {
-	return (os << (std::basic_string_view<Char, std::char_traits<Char>>)(sv));
-}
 
 template<typename Char, typename Alloc = std::allocator<Char>, 
 	typename Data = string_sso_data<Char, std::max(size_t(1), size_t(16 / sizeof(Char))), Alloc>>
@@ -1847,9 +1827,145 @@ public:
 		return view().equal(off1, n1, ptr, n2);
 	}
 
+	WJR_INTRINSIC_CONSTEXPR20 void assume_total_capacity(const size_type n) const noexcept {
+		m_core.assume_total_capacity(n);
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 void assume_rest_capacity(const size_type n) const noexcept {
+		m_core.assume_rest_capacity(n);
+	}
+
 private:
 	vector_type m_core;
 };
+
+template<typename Char, typename Alloc, typename Data>
+WJR_NODISCARD WJR_CONSTEXPR20 basic_string<Char, Alloc, Data> operator+(
+	const basic_string<Char, Alloc, Data>& lhs,
+	const basic_string<Char, Alloc, Data>& rhs
+	) {
+	basic_string<Char, Alloc, Data> ans;
+	ans.reserve(lhs.size() + rhs.size());
+	ans.assume_rest_capacity(lhs.size());
+	ans.append(lhs);
+	ans.assume_rest_capacity(rhs.size());
+	ans.append(rhs);
+	return ans;
+}
+
+template<typename Char, typename Alloc, typename Data>
+WJR_NODISCARD WJR_CONSTEXPR20 basic_string<Char, Alloc, Data> operator+(
+	const basic_string<Char, Alloc, Data>& lhs,
+	const Char* const rhs
+	) {
+	basic_string<Char, Alloc, Data> ans;
+	const auto rhs_size = std::char_traits<Char>::length(rhs);
+	ans.reserve(lhs.size() + rhs_size);
+	ans.assume_rest_capacity(lhs.size());
+	ans.append(lhs);
+	ans.assume_rest_capacity(rhs_size);
+	ans.append(rhs, rhs_size);
+	return ans;
+}
+
+template<typename Char, typename Alloc, typename Data>
+WJR_NODISCARD WJR_CONSTEXPR20 basic_string<Char, Alloc, Data> operator+(
+	const basic_string<Char, Alloc, Data>& lhs,
+	const Char rhs
+	) {
+	basic_string<Char, Alloc, Data> ans;
+	ans.reserve(lhs.size() + 1);
+	ans.assume_rest_capacity(lhs.size());
+	ans.append(lhs);
+	ans.assume_rest_capacity(1);
+	ans.append(rhs);
+	return ans;
+}
+
+template<typename Char, typename Alloc, typename Data>
+WJR_NODISCARD WJR_CONSTEXPR20 basic_string<Char, Alloc, Data> operator+(
+	const Char* const lhs,
+	const basic_string<Char, Alloc, Data>& rhs
+	) {
+	basic_string<Char, Alloc, Data> ans;
+	const auto lhs_size = std::char_traits<Char>::length(lhs);
+	ans.reserve(lhs_size + rhs.size());
+	ans.assume_rest_capacity(lhs_size);
+	ans.append(lhs, lhs_size);
+	ans.assume_rest_capacity(rhs.size());
+	ans.append(rhs);
+	return ans;
+}
+
+template<typename Char, typename Alloc, typename Data>
+WJR_NODISCARD WJR_CONSTEXPR20 basic_string<Char, Alloc, Data> operator+(
+	const Char lhs,
+	const basic_string<Char, Alloc, Data>& rhs
+	) {
+	basic_string<Char, Alloc, Data> ans;
+	ans.reserve(rhs.size() + 1);
+	ans.assume_rest_capacity(1);
+	ans.append(lhs);
+	ans.assume_rest_capacity(rhs.size());
+	ans.append(rhs);
+	return ans;
+}
+
+template<typename Char, typename Alloc, typename Data>
+WJR_NODISCARD WJR_CONSTEXPR20 basic_string<Char, Alloc, Data> operator+(
+	basic_string<Char, Alloc, Data>&& lhs,
+	basic_string<Char, Alloc, Data>&& rhs
+	) {
+	return std::move(lhs.append(rhs));
+}
+
+template<typename Char, typename Alloc, typename Data>
+WJR_NODISCARD WJR_CONSTEXPR20 basic_string<Char, Alloc, Data> operator+(
+	basic_string<Char, Alloc, Data>&& lhs,
+	const basic_string<Char, Alloc, Data>& rhs
+	) {
+	return std::move(lhs.append(rhs));
+}
+
+template<typename Char, typename Alloc, typename Data>
+WJR_NODISCARD WJR_CONSTEXPR20 basic_string<Char, Alloc, Data> operator+(
+	const basic_string<Char, Alloc, Data>& lhs,
+	basic_string<Char, Alloc, Data>&& rhs
+	) {
+	return std::move(rhs.prepend(lhs));
+}
+
+template<typename Char, typename Alloc, typename Data>
+WJR_NODISCARD WJR_CONSTEXPR20 basic_string<Char, Alloc, Data> operator+(
+	basic_string<Char, Alloc, Data>&& lhs,
+	const Char* const rhs
+	) {
+	return std::move(lhs.append(rhs));
+}
+
+template<typename Char, typename Alloc, typename Data>
+WJR_NODISCARD WJR_CONSTEXPR20 basic_string<Char, Alloc, Data> operator+(
+	const Char* const lhs,
+	basic_string<Char, Alloc, Data>&& rhs
+	) {
+	return std::move(rhs.prepend(lhs));
+}
+
+template<typename Char, typename Alloc, typename Data>
+WJR_NODISCARD WJR_CONSTEXPR20 basic_string<Char, Alloc, Data> operator+(
+	basic_string<Char, Alloc, Data>&& lhs,
+	const Char rhs
+	) {
+	return std::move(lhs.append(rhs));
+}
+
+template<typename Char, typename Alloc, typename Data>
+WJR_NODISCARD WJR_CONSTEXPR20 basic_string<Char, Alloc, Data> operator+(
+	const Char lhs,
+	basic_string<Char, Alloc, Data>&& rhs
+	) {
+	return std::move(rhs.prepend(lhs));
+}
 
 template<typename Char, typename Alloc, typename Data>
 WJR_NODISCARD WJR_CONSTEXPR20 bool operator==(
@@ -1977,17 +2093,63 @@ WJR_NODISCARD WJR_CONSTEXPR20 bool operator>=(
 	return !(lhs < rhs);
 }
 
-template<typename Char>
+template<typename Char, typename Alloc, typename Data>
 std::basic_ostream<Char, std::char_traits<Char>>& operator<<(
 	std::basic_ostream<Char, std::char_traits<Char>>& os,
-	const basic_string<Char>& str) {
+	const basic_string<Char, Alloc, Data>& str) {
 	return os << str.view();
 }
 
-template<typename Char>
+template<typename Char, typename Alloc, typename Data>
 std::basic_istream<Char, std::char_traits<Char>>& operator>>(
 	std::basic_istream<Char, std::char_traits<Char>>& is,
-	basic_string<Char>& str) {
+	basic_string<Char, Alloc, Data>& str) {
+	using traits = std::char_traits<Char>;
+	using IS = std::basic_istream<Char, traits>;
+	using size_type = typename basic_string<Char, Alloc, Data>::size_type;
+
+	typename IS::iostate state = IS::goodbit;
+	const typename IS::sentry sentry(is);
+
+	bool changed = false;
+
+	if (sentry) { // state okay, extract characters
+
+		str.clear();
+
+		size_type _Size;
+
+		if (is.width() && static_cast<size_type>(is.width()) < str.max_size()) {
+			_Size = static_cast<size_type>(is.width());
+		}
+		else {
+			_Size = str.max_size();
+		}
+
+		typename traits::int_type _Meta = is.rdbuf()->sgetc();
+
+		for (; 0 < _Size; --_Size, _Meta = is.rdbuf()->snextc()) {
+			if (traits::eq_int_type(traits::eof(), _Meta)) {
+				state |= IS::eofbit;
+				break;
+			}
+			if (isspace(traits::to_char_type(_Meta))) {
+				break;
+			}
+			str.push_back(traits::to_char_type(_Meta));
+			changed = true;
+		}
+
+	}
+
+	is.width(0);
+
+	if (!changed) {
+		state |= IS::failbit;
+	}
+
+	is.setstate(state);
+
 	return is;
 }
 
@@ -2014,6 +2176,116 @@ template<size_t N>
 using static_u32string = static_basic_string<char32_t, N>;
 template<size_t N>
 using static_wstring = static_basic_string<wchar_t, N>;
+
+namespace literals {
+	
+	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR string_view operator""_sv(const char* str, size_t len) noexcept {
+		return string_view(str, len);
+	}
+#if defined(WJR_CHAR8_T)
+	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR u8string_view operator""_sv(const char8_t* str, size_t len) noexcept {
+		return u8string_view(str, len);
+	}
+#endif // WJR_CHAR8_T
+	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR u16string_view operator""_sv(const char16_t* str, size_t len) noexcept {
+		return u16string_view(str, len);
+	}
+	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR u32string_view operator""_sv(const char32_t* str, size_t len) noexcept {
+		return u32string_view(str, len);
+	}
+	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR wstring_view operator""_sv(const wchar_t* str, size_t len) noexcept {
+		return wstring_view(str, len);
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 string operator""_s(const char* str, size_t len) noexcept {
+		return string(str, len);
+	}
+#if defined(WJR_CHAR8_T)
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 u8string operator""_s(const char8_t* str, size_t len) noexcept {
+		return u8string(str, len);
+	}
+#endif // WJR_CHAR8_T
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 u16string operator""_s(const char16_t* str, size_t len) noexcept {
+		return u16string(str, len);
+	}
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 u32string operator""_s(const char32_t* str, size_t len) noexcept {
+		return u32string(str, len);
+	}
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 wstring_view operator""_s(const wchar_t* str, size_t len) noexcept {
+		return wstring(str, len);
+	}
+
+}
+
+/*---------string elated function---------*/
+template <typename Char, typename Alloc, typename Data>
+std::basic_istream<Char, std::char_traits<Char>>& getline(
+	std::basic_istream<Char, std::char_traits<Char>>&& is, 
+	basic_string<Char, Alloc, Data>& str, const Char delim) {
+	// get characters into string, discard delimiter
+	using traits = std::char_traits<Char>;
+	using IS = std::basic_istream<Char, traits>;
+	using size_type = typename basic_string<Char, Alloc, Data>::size_type;
+
+	typename IS::iostate state = IS::goodbit;
+	const typename IS::sentry sentry(is, true);
+
+	bool changed = false;
+
+	if (sentry) {
+		str.clear();
+		const typename traits::int_type _Metadelim = traits::to_int_type(delim);
+		typename traits::int_type _Meta = is.rdbuf()->sgetc();
+
+		for (;; _Meta = is.rdbuf()->snextc()) {
+			if (traits::eq_int_type(traits::eof(), _Meta)) { // end of file, quit
+				state |= IS::eofbit;
+				break;
+			}
+			else if (traits::eq_int_type(_Meta, _Metadelim)) { // got a delimiter, discard it and quit
+				changed = true;
+				is.rdbuf()->sbumpc();
+				break;
+			}
+			else if (str.max_size() <= str.size()) { // string too large, quit
+				state |= IS::failbit;
+				break;
+			}
+			else { // got a character, add it to string
+				str.append(traits::to_char_type(_Meta));
+				changed = true;
+			}
+		}
+	}
+
+	if (!changed) {
+		state |= IS::failbit;
+	}
+
+	is.setstate(state);
+	return static_cast<std::basic_istream<Char, traits>&>(is);
+}
+
+template <typename Char, typename Alloc, typename Data>
+std::basic_istream<Char, std::char_traits<Char>>& getline(
+	std::basic_istream<Char, std::char_traits<Char>>&& is, basic_string<Char, Alloc, Data>& str) {
+	// get characters into string, discard newline
+	return getline(std::move(is), str, is.widen('\n'));
+}
+
+template <typename Char, typename Alloc, typename Data>
+std::basic_istream<Char, std::char_traits<Char>>& getline(
+	std::basic_istream<Char, std::char_traits<Char>>& is, basic_string<Char, Alloc, Data>& str, const Char delim) {
+	// get characters into string, discard delimiter
+	return getline(std::move(is), str, delim);
+}
+
+template <typename Char, typename Alloc, typename Data>
+std::basic_istream<Char, std::char_traits<Char>>& getline(
+	std::basic_istream<Char, std::char_traits<Char>>& is, basic_string<Char, Alloc, Data>& str) {
+	// get characters into string, discard newline
+	return getline(std::move(is), str, is.widen('\n'));
+}
 
 _WJR_END
 
