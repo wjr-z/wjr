@@ -557,7 +557,6 @@ private:
 		else {
 			const auto _Size = other.size();
 			if (_Size != 0) {
-				const auto _Oldcapacity = capacity();
 				{
 					data_type _Data(al, 0, _Size);
 					moveConstruct(al, std::move(_Data), getData());
@@ -1104,7 +1103,6 @@ private:
 	WJR_CONSTEXPR20 void _M_construct_n(const size_type _Count, Args&&... args) {
 		if (_Count != 0) {
 			auto& al = getAllocator();
-			const auto _Oldcapacity = capacity();
 			{
 				data_type _Newdata(al, 0, _Count);
 				moveConstruct(al, std::move(_Newdata), getData());

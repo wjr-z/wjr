@@ -89,17 +89,19 @@ const T* __memmis(const T* s0, const T* s1, size_t n, _Pred pred) {
 			const auto negdelta = m - 32 / _Mysize;
 
 #if WJR_AVX2
-			auto x0 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s0));
-			auto x1 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s0 + delta));
-			auto x2 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s0 + negdelta - delta));
-			auto x3 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s0 + negdelta));
+			{
+				auto x0 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s0));
+				auto x1 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s0 + delta));
+				auto x2 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s0 + negdelta - delta));
+				auto x3 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s0 + negdelta));
 
-			auto y0 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s1));
-			auto y1 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s1 + delta));
-			auto y2 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s1 + negdelta - delta));
-			auto y3 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s1 + negdelta));
+				auto y0 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s1));
+				auto y1 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s1 + delta));
+				auto y2 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s1 + negdelta - delta));
+				auto y3 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s1 + negdelta));
 
-			__WJR_MEMMIS_FOUR(simd::avx, s0, s0 + delta, s0 + negdelta - delta, s0 + negdelta);
+				__WJR_MEMMIS_FOUR(simd::avx, s0, s0 + delta, s0 + negdelta - delta, s0 + negdelta);
+			}
 #else
 			{
 				auto x0 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s0));

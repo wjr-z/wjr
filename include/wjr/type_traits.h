@@ -74,7 +74,7 @@ template<typename T, typename U, typename _Pred>
 struct has_global_binary_operator : std::false_type {};
 
 template<typename T, typename U, typename _Pred>
-constexpr bool has_global_binary_operator_v = has_global_binary_operator<T, U, _Pred>::value;
+inline constexpr bool has_global_binary_operator_v = has_global_binary_operator<T, U, _Pred>::value;
 
 WJR_REGISTER_HAS_MEMBER_FUNCTION(operator(), call_operator);
 WJR_REGISTER_HAS_MEMBER_FUNCTION(operator[], subscript_operator);
@@ -101,7 +101,7 @@ template<typename T, typename...Args>
 struct is_any_of : std::disjunction<std::is_same<T, Args>...> {};
 
 template<typename T, typename...Args>
-constexpr bool is_any_of_v = is_any_of<T, Args...>::value;
+inline constexpr bool is_any_of_v = is_any_of<T, Args...>::value;
 
 template<typename T>
 using remove_ref_t = std::remove_reference_t<T>;
@@ -136,7 +136,7 @@ struct is_standard_comparator :
 	> {};
 
 template<typename T>
-constexpr bool is_standard_comparator_v = is_standard_comparator<T>::value;
+inline constexpr bool is_standard_comparator_v = is_standard_comparator<T>::value;
 
 template<typename T>
 struct is_left_standard_comparator :
@@ -146,7 +146,7 @@ struct is_left_standard_comparator :
 	> {};
 
 template<typename T>
-constexpr bool is_left_standard_comparator_v = is_left_standard_comparator<T>::value;
+inline constexpr bool is_left_standard_comparator_v = is_left_standard_comparator<T>::value;
 
 template<typename T>
 struct is_right_standard_comparator :
@@ -156,7 +156,7 @@ struct is_right_standard_comparator :
 	> {};
 
 template<typename T>
-constexpr bool is_right_standard_comparator_v = is_right_standard_comparator<T>::value;
+inline constexpr bool is_right_standard_comparator_v = is_right_standard_comparator<T>::value;
 
 template<typename T>
 struct unrefwrap {
@@ -183,9 +183,6 @@ using iter_val_t = typename std::iterator_traits<T>::value_type;
 template<typename T>
 using iter_ref_t = typename std::iterator_traits<T>::reference;
 
-//template<typename T>
-//using iter_ptr_t = typename std::iterator_traits<T>::pointer;
-
 template<typename T, typename = void>
 struct is_iterator : std::false_type {};
 
@@ -193,37 +190,37 @@ template<typename T>
 struct is_iterator<T, std::void_t<iter_cat_t<T>>> : std::true_type {};
 
 template<typename T>
-constexpr bool is_iterator_v = is_iterator<T>::value;
+inline constexpr bool is_iterator_v = is_iterator<T>::value;
 
 template<typename T>
 struct is_input_iter : std::is_convertible<iter_cat_t<T>, std::input_iterator_tag> {};
 
 template<typename T>
-constexpr bool is_input_iter_v = is_input_iter<T>::value;
+inline constexpr bool is_input_iter_v = is_input_iter<T>::value;
 
 template<typename T>
 struct is_output_iter : std::is_convertible<iter_cat_t<T>, std::output_iterator_tag> {};
 
 template<typename T>
-constexpr bool is_output_iter_v = is_output_iter<T>::value;
+inline constexpr bool is_output_iter_v = is_output_iter<T>::value;
 
 template<typename T>
 struct is_forward_iter : std::is_convertible<iter_cat_t<T>, std::forward_iterator_tag> {};
 
 template<typename T>
-constexpr bool is_forward_iter_v = is_forward_iter<T>::value;
+inline constexpr bool is_forward_iter_v = is_forward_iter<T>::value;
 
 template<typename T>
 struct is_bidir_iter : std::is_convertible<iter_cat_t<T>, std::bidirectional_iterator_tag> {};
 
 template<typename T>
-constexpr bool is_bidir_iter_v = is_bidir_iter<T>::value;
+inline constexpr bool is_bidir_iter_v = is_bidir_iter<T>::value;
 
 template<typename T>
 struct is_random_iter : std::is_convertible<iter_cat_t<T>, std::random_access_iterator_tag> {};
 
 template<typename T>
-constexpr bool is_random_iter_v = is_random_iter<T>::value;
+inline constexpr bool is_random_iter_v = is_random_iter<T>::value;
 
 template<typename _Iter, typename = void>
 struct _is_contiguous_iter_helper : std::false_type {};
@@ -246,7 +243,7 @@ template<typename _Iter>
 struct is_contiguous_iter<std::reverse_iterator<_Iter>> : is_contiguous_iter<_Iter> {};
 
 template<typename T>
-constexpr bool is_contiguous_iter_v = is_contiguous_iter<T>::value;
+inline constexpr bool is_contiguous_iter_v = is_contiguous_iter<T>::value;
 
 template<size_t n>
 struct __uint_helper{};
@@ -307,6 +304,19 @@ using uint64_t = uint_t<64>;
 using intptr_t = int_t<sizeof(void*) * 8>;
 using uintptr_t = uint_t<sizeof(void*) * 8>;
 
+using std_int8_t = std::int8_t;
+using std_int16_t = std::int16_t;
+using std_int32_t = std::int32_t;
+using std_int64_t = std::int64_t;
+
+using std_uint8_t = std::uint8_t;
+using std_uint16_t = std::uint16_t;
+using std_uint32_t = std::uint32_t;
+using std_uint64_t = std::uint64_t;
+
+using std_intptr_t = std::intptr_t;
+using std_uintptr_t = std::uintptr_t;
+
 template<size_t n, bool __s>
 using int_or_uint_t = std::conditional_t<__s, int_t<n>, uint_t<n>>;
 
@@ -336,11 +346,11 @@ constexpr bool is_comparable_v = is_comparable<T, U, _Pred>::value;
 // note that (int8_t)(-1) != (uint8_t)(-1)
 // but in memory they are the same
 template<typename T, typename U, bool = sizeof(T) == sizeof(U) && std::is_integral_v<T> && std::is_integral_v<U>>
-constexpr bool __is_memory_comparable_helper_v =
+inline constexpr bool __is_memory_comparable_helper_v =
 std::is_same_v<T, bool> || std::is_same_v<U, bool> || static_cast<T>(-1) == static_cast<U>(-1);
 
 template<typename T, typename U>
-constexpr bool __is_memory_comparable_helper_v<T, U, false> = false;
+inline constexpr bool __is_memory_comparable_helper_v<T, U, false> = false;
 
 template<typename T, typename U, typename _Pred>
 struct is_memory_comparable : std::conjunction<
@@ -350,7 +360,7 @@ struct is_memory_comparable : std::conjunction<
 > {};
 
 template<typename T, typename U, typename _Pred>
-constexpr bool is_memory_comparable_v = is_memory_comparable<T, U, _Pred>::value;
+inline constexpr bool is_memory_comparable_v = is_memory_comparable<T, U, _Pred>::value;
 
 enum class ipmc_result {
 	none,
@@ -409,7 +419,7 @@ template<size_t i, size_t..._Index>
 struct is_any_index_of : std::disjunction<std::bool_constant<i == _Index>...> {};
 
 template<size_t i, size_t..._Index>
-constexpr bool is_any_index_of_v = is_any_index_of<i, _Index...>::value;
+inline constexpr bool is_any_index_of_v = is_any_index_of<i, _Index...>::value;
 
 template<typename T>
 struct ref_wrapper {
@@ -433,38 +443,38 @@ template<typename...Args>
 struct is_integrals : std::conjunction<std::is_integral<Args>...> {};
 
 template<typename...Args>
-constexpr bool is_integrals_v = is_integrals<Args...>::value;
+inline constexpr bool is_integrals_v = is_integrals<Args...>::value;
 
 template<typename...Args>
 struct is_floating_points : std::conjunction<std::is_floating_point<Args>...> {};
 
 template<typename...Args>
-constexpr bool is_floating_points_v = is_floating_points<Args...>::value;
+inline constexpr bool is_floating_points_v = is_floating_points<Args...>::value;
 
 template<typename...Args>
 struct is_arithmetics : std::conjunction<std::is_arithmetic<Args>...> {};
 
 template<typename...Args>
-constexpr bool is_arithmetics_v = is_arithmetics<Args...>::value;
+inline constexpr bool is_arithmetics_v = is_arithmetics<Args...>::value;
 
 template<typename T>
 struct is_unsigned_integral : std::conjunction<std::is_integral<T>, std::is_unsigned<T>> {};
 
 template<typename T>
-constexpr bool is_unsigned_integral_v = is_unsigned_integral<T>::value;
+inline constexpr bool is_unsigned_integral_v = is_unsigned_integral<T>::value;
 
 template<typename T>
 struct is_signed_integral : std::conjunction<std::is_integral<T>, std::is_signed<T>> {};
 
 template<typename T>
-constexpr bool is_signed_integral_v = is_signed_integral<T>::value;
+inline constexpr bool is_signed_integral_v = is_signed_integral<T>::value;
 
 template<typename T>
 struct is_standard_numer : std::conjunction<std::is_arithmetic<T>, 
 	std::negation<std::is_same<std::remove_cv_t<T>, bool>>> {};
 
 template<typename T>
-constexpr bool is_standard_numer_v = is_standard_numer<T>::value;
+inline constexpr bool is_standard_numer_v = is_standard_numer<T>::value;
 
 template<typename T>
 struct is_reverse_iterator : std::false_type {};
@@ -473,7 +483,7 @@ template<typename _Iter>
 struct is_reverse_iterator<std::reverse_iterator<_Iter>> : std::negation<is_reverse_iterator<_Iter>> {};
 
 template<typename T>
-constexpr bool is_reverse_iterator_v = is_reverse_iterator<T>::value;
+inline constexpr bool is_reverse_iterator_v = is_reverse_iterator<T>::value;
 
 template<typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
 constexpr auto enum_cast(T t) noexcept {
@@ -510,6 +520,19 @@ namespace enum_ops {
 		return lhs = lhs ^ rhs;
 	}
 }
+
+class __is_little_endian_helper {
+	constexpr static std::uint32_t	u4 = 1;
+	constexpr static std::uint8_t	u1 = (const std::uint8_t&)u4;
+public:
+	constexpr static bool value = u1;
+};
+
+enum class endian {
+	little = 0,
+	big = 1,
+	native = __is_little_endian_helper::value ? little : big
+};
 
 namespace _To_address_helper {
 	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(to_address, to_address);
@@ -578,7 +601,7 @@ template<typename T>
 using is_default_convertible = _Is_default_convertible<T>;
 
 template<typename T>
-constexpr bool is_default_convertible_v = is_default_convertible<T>::value;
+inline constexpr bool is_default_convertible_v = is_default_convertible<T>::value;
 
 template<typename T, typename U, typename = void>
 struct _Is_swappable_with : std::false_type {};
@@ -592,13 +615,13 @@ struct is_swappable_with :
 	std::conjunction<_Is_swappable_with<T, U>, _Is_swappable_with<U, T>> {};
 
 template<typename T, typename U>
-constexpr bool is_swappable_with_v = is_swappable_with<T, U>::value;
+inline constexpr bool is_swappable_with_v = is_swappable_with<T, U>::value;
 
 template<typename T>
 struct is_swappable : is_swappable_with<std::add_lvalue_reference_t<T>, std::add_lvalue_reference_t<T>> {};
 
 template<typename T>
-constexpr bool is_swappable_v = is_swappable<T>::value;
+inline constexpr bool is_swappable_v = is_swappable<T>::value;
 
 template<typename T, typename U>
 struct _Is_nothrow_swappable_with : std::bool_constant<noexcept(std::swap(std::declval<T>(), std::declval<U>()))
@@ -609,14 +632,14 @@ struct is_nothrow_swappable_with :
 	std::conjunction<is_swappable_with<T, U>, _Is_nothrow_swappable_with<T, U>> {};
 
 template<typename T, typename U>
-constexpr bool is_nothrow_swappable_with_v = is_nothrow_swappable_with<T, U>::value;
+inline constexpr bool is_nothrow_swappable_with_v = is_nothrow_swappable_with<T, U>::value;
 
 template<typename T>
 struct is_nothrow_swappable : 
 	is_nothrow_swappable_with<std::add_lvalue_reference_t<T>, std::add_lvalue_reference_t<T>> {};
 
 template<typename T>
-constexpr bool is_nothrow_swappable_v = is_nothrow_swappable<T>::value;
+inline constexpr bool is_nothrow_swappable_v = is_nothrow_swappable<T>::value;
 
 template<typename iter, std::enable_if_t<is_iterator_v<iter>, int> = 0>
 struct __make_iter_wrapper : public std::tuple<iter, iter>{
@@ -659,7 +682,7 @@ template<typename T>
 struct is_default_allocator<std::allocator<T>> : std::true_type {};
 
 template<typename T>
-constexpr bool is_default_allocator_v = is_default_allocator<T>::value;
+inline constexpr bool is_default_allocator_v = is_default_allocator<T>::value;
 
 WJR_REGISTER_HAS_MEMBER_FUNCTION(destroy, destroy);
 WJR_REGISTER_HAS_MEMBER_FUNCTION(construct, construct);
@@ -672,7 +695,7 @@ struct is_default_allocator_construct : std::disjunction<is_default_allocator<Al
 	std::negation<has_member_function_construct<Alloc, iter_address_t<Iter>, Args...>>> {};
 
 template<typename Alloc, typename Iter, typename...Args>
-constexpr bool is_default_allocator_construct_v = is_default_allocator_construct<Alloc, Iter, Args...>::value;
+inline constexpr bool is_default_allocator_construct_v = is_default_allocator_construct<Alloc, Iter, Args...>::value;
 
 template<typename Alloc, typename Iter>
 struct is_default_allocator_destroy : std::disjunction<is_default_allocator<Alloc>,

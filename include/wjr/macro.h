@@ -478,14 +478,18 @@ do{                         \
 
 #define _WJR_BEGIN namespace wjr{
 #define _WJR_END }
+
 #define _WJR_SIMD_BEGIN _WJR_BEGIN namespace simd{
 #define _WJR_SIMD_END } _WJR_END
+
 #define _WJR_ASM_BEGIN _WJR_BEGIN namespace masm{
 #define _WJR_ASM_END } _WJR_END
+
 #define _WJR_ALGO_BEGIN _WJR_BEGIN namespace algo{
 #define _WJR_ALGO_END } _WJR_END
-#define _WJR_MP_BEGIN _WJR_BEGIN namespace mp{
-#define _WJR_MP_END } _WJR_END
+
+#define _WJR_RANGES_BEGIN _WJR_BEGIN namespace ranges{
+#define _WJR_RANGES_END } _WJR_END
 
 #define _WJR_LITERALS_BEGIN _WJR_BEGIN namespace literals{
 #define _WJR_LITERALS_END } _WJR_END

@@ -91,22 +91,6 @@ inline bool is_enhanced_rep() {
 #endif
 }
 
-extern const bool __is_little_endian;
-
-inline bool is_little_endian() {
-#if defined(WJR_LITTLE_ENDIAN)
-	return true;
-#elif defined(WJR_BIG_ENDIAN)
-	return false;
-#else
-	return __is_little_endian;
-#endif
-}
-
-inline bool is_big_endian() {
-	return !is_little_endian();
-}
-
 _WJR_END
 
 #endif // __WJR_CPUINFO_H

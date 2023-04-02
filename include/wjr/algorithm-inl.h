@@ -1,6 +1,6 @@
-#ifndef __WJR_ALGORITHM_H__
+#ifndef __WJR_ALGORITHM_H
 #error  "This file should not be included directly. Include <wjr/algorithm.h> instead."
-#endif //__WJR_ALGORITHM_H__
+#endif //__WJR_ALGORITHM_H
 
 #include <wjr/compressed_pair.h>
 #include <wjr/algo/algo.h>
@@ -884,6 +884,20 @@ WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> uninitialized_move_n(
 			wjr::construct_at(al, _Dest, std::move(*_First));
 		}
 		return std::make_pair(_First, _Dest);
+	}
+}
+
+template<typename _Iter, typename _Func>
+WJR_CONSTEXPR20 void for_each(_Iter _First, _Iter _Last, _Func fn) {
+	for (; _First != _Last; ++_First) {
+		fn(*_First);
+	}
+}
+
+template<typename _Iter, typename _SizeT, typename _Func>
+WJR_CONSTEXPR20 void for_each_n(_Iter _First, _SizeT n, _Func fn) {
+	for (_SizeT i = 0; i < n; (void)++_First, ++i) {
+		fn(*_First);
 	}
 }
 

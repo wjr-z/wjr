@@ -25,24 +25,4 @@ const bool __is_amd = []() {
 }();
 #endif // _WJR_CPUINFO
 
-const bool __is_little_endian = []() {
-	union C{
-		uint32_t a;
-		uint8_t b;
-	};
-	C x;
-	x.a = 0x01020304;
-	bool f = x.b == 0x04;
-#if defined(WJR_BIG_ENDIAN)
-	if (!f) {
-		fprintf(stderr, "WJR_BIG_ENDIAN is defined, but the current platform is little endian.");
-	}
-#elif defined(WJR_LITTLE_ENDIAN)
-	if (!f) {
-		fprintf(stderr, "WJR_LITTLE_ENDIAN is defined, but the current platform is big endian.");
-	}
-#endif
-	return f;
-}();
-
 _WJR_END

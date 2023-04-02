@@ -143,7 +143,7 @@ public:
 	}
 
 	WJR_CONSTEXPR20 size_t offset() const noexcept {
-		return m_pos >= m_capacity ? m_pos - m_capacity : m_pos;
+		return m_pos < m_capacity ? m_pos : m_pos - m_capacity;
 	}
 
 	WJR_CONSTEXPR20 size_t capacity() const noexcept {
@@ -566,6 +566,12 @@ public:
 	WJR_INTRINSIC_CONSTEXPR20 __data& getData() noexcept { return _Myval.second(); }
 	WJR_INTRINSIC_CONSTEXPR20 const __data& getData() const noexcept { return _Myval.second(); }
 
+	template<typename _Iter, std::enable_if_t<is_iterator_v<_Iter>, int> = 0>
+	WJR_CONSTEXPR20 circular_buffer& append(_Iter _First, _Iter _Last) {
+		_M_range_append(_First, _Last, typename std::iterator_traits<_Iter>::iterator_category());
+		return *this;
+	}
+
 private:
 
 	WJR_CONSTEXPR20 static size_type getGrowthCapacity(
@@ -624,6 +630,68 @@ private:
 		_Mydata._Myhead = 0;
 		_Mydata._Mytail = _Mydata._Mysize = _Newsize;
 		_Mydata._Mycapacity = _Newcapacity;
+	}
+
+	template<typename iter>
+	WJR_CONSTEXPR20 void _M_range_append(iter _First, iter _Last, std::input_iterator_tag) {
+		for (; _First != _Last; ++_First) {
+			emplace_back(*_First);
+		}
+	}
+
+	template<typename iter>
+	WJR_CONSTEXPR20 void _M_range_append(iter _First, iter _Last, std::forward_iterator_tag) {
+		if (_First != _Last) {
+			auto& al = getAllocator();
+			auto& _Mydata = getData();
+			auto& _Myptr = _Mydata._Myptr;
+			auto& _Myhead = _Mydata._Myhead;
+			auto& _Mytail = _Mydata._Mytail;
+			auto& _Mysize = _Mydata._Mysize;
+			auto& _Mycapacity = _Mydata._Mycapacity;
+
+			const auto n = static_cast<size_type>(std::distance(_First, _Last));
+			const auto __rest = static_cast<size_type>(_Mycapacity - _Mysize);
+
+			if (__rest >= n) {
+				const auto __tail_rest = static_cast<size_type>(_Mycapacity - _Mytail);
+				if (__tail_rest >= n) {
+					wjr::uninitialized_copy(al, _First, _Last, _Myptr + _Mytail);
+					_Mytail += n;
+				}
+				else {
+					auto _Mid = _First;
+					std::advance(_Mid, __tail_rest);
+					wjr::uninitialized_copy_n(al, 
+						_First, 
+						__tail_rest, 
+						_Myptr + _Mytail
+					);
+					wjr::uninitialized_copy(al,
+						_Mid,
+						_Last,
+						_Myptr
+					);
+					_Mytail = n - __tail_rest;
+				}
+				_Mysize += n;
+			}
+			else {
+				const auto _Newsize = _Mysize + n;
+				const auto _Newcapacity = getGrowthCapacity(capacity(), _Newsize);
+
+				auto _Newptr = _Alty_traits::allocate(al, _Newcapacity);
+
+				wjr::uninitialized_copy(al, _First, _Last, _Newptr + _Mysize);
+				wjr::uninitialized_move(al, begin(), end(), _Newptr);
+
+				tidy();
+				_Mydata._Myptr = _Newptr;
+				_Mydata._Myhead = 0;
+				_Mydata._Mytail = _Mydata._Mysize = _Newsize;
+				_Mydata._Mycapacity = _Newcapacity;
+			}
+		}
 	}
 
 	compressed_pair<_Alty, __data> _Myval;

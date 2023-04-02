@@ -18,16 +18,28 @@ _WJR_BEGIN
 class thread_pool {
 public:
 
+    static size_t default_threads_size();
+
     thread_pool(
         unsigned int core_threads_size = default_threads_size());
     ~thread_pool();
+
+    std::mutex& get_mutex();
 
     void pause();
     void unpause();
     void flush();
 
-    bool is_valid() const;
-    bool is_paused() const;
+    // if is pause, only flush active tasks
+    // else flush all tasks
+    // then destroy threads
+    void shutdown();
+    // if is pause, only flush active tasks
+    // else flush all tasks
+    // then destroy threads
+    // return tasks that not done
+    // notice that it will return nothing if not in a paused state
+    circular_buffer<std::function<void()>> shutdown(bool);
 
     template<typename Func, typename...Args>
     void push(Func&& func, Args&&...args);
@@ -35,12 +47,12 @@ public:
     template<typename Func, typename...Args, typename R = std::invoke_result_t<Func&&, Args&&...>>
     WJR_NODISCARD std::future<R> submit(Func&& func, Args&&... args);
 
+    template<typename iter, std::enable_if_t<is_iterator_v<iter>, int> = 0>
+    void append(iter _First, iter _Last);
+
     unsigned int get_threads_size() const;
 
-    static size_t default_threads_size();
-
 private:
-public:
     void core_work();
 
     void create_all_threads(unsigned int core_threads_size);
@@ -50,12 +62,13 @@ public:
     alignas(8) bool m_valid = true;
 	
     alignas(64) std::condition_variable m_task_cv;
-    alignas(8) std::atomic_bool m_pause = false;
+    // Not used frequently, so average consumption is reduced through mutual exclusion protection
+    alignas(8) bool m_pause = false;
     alignas(8) std::atomic<size_t> m_real_tasks = 0;
     // padding
     alignas(8) wjr::vector<std::thread> m_core_threads;
 
-    alignas(64) bool m_flush;
+    alignas(64) bool m_flush = false;
     alignas(8) std::condition_variable m_flush_cv;
 };
 
@@ -63,7 +76,7 @@ template<typename Func, typename...Args>
 void thread_pool::push(Func&& func, Args&&...args) {
     std::function<void()> function = std::bind(std::forward<Func>(func), std::forward<Args>(args)...);
     {
-        std::unique_lock lock(m_task_mutex);
+        std::unique_lock task_lock(m_task_mutex);
         m_task_queue.push_back(std::move(function));
 #if defined(_WJR_EXCEPTION)
         if (is_unlikely(!m_valid)) {
@@ -104,6 +117,31 @@ WJR_NODISCARD std::future<R> thread_pool::submit(Func&& func, Args&&... args) {
 #endif // _WJR_EXCEPTION
         });
     return task_promise->get_future();
+}
+
+template<typename iter, std::enable_if_t<is_iterator_v<iter>, int>>
+void thread_pool::append(iter _First, iter _Last) {
+    std::unique_lock task_lock(m_task_mutex);
+    const auto _Oldsize = m_task_queue.size();
+    m_task_queue.append(_First, _Last);
+    const auto _Newsize = m_task_queue.size();
+    task_lock.unlock();
+    size_t n;
+    if constexpr (is_random_iter_v<iter>) {
+        n = std::distance(_First, _Last);
+    }
+    else {
+        n = _Newsize - _Oldsize;
+    }
+    m_real_tasks.fetch_add(n, std::memory_order_relaxed);
+    if (n > get_threads_size()) {
+        m_task_cv.notify_all();
+    }
+    else {
+        for (size_t i = 0; i < n; ++i) {
+            m_task_cv.notify_one();
+        }
+    }
 }
 
 _WJR_END

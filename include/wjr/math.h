@@ -89,43 +89,27 @@ WJR_INTRINSIC_CONSTEXPR20 T byteswap(T x) noexcept {
 	return bit_cast<T>(wjr::masm::bswap(bit_cast<value_type>(x)));
 }
 
-template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 T from_big_endian(T x) noexcept {
-	if (is_little_endian()) {
+template<endian to = endian::native, typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR20 T endian_convert(T x, endian from = endian::native) noexcept {
+	if (from != to) {
 		return byteswap(x);
 	}
 	return x;
 }
 
-template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 T to_big_endian(T x) noexcept {
-	return from_big_endian(x);
-}
-
-template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 T from_little_endian(T x) noexcept {
-	if (is_little_endian()) {
-		return x;
-	}
-	return byteswap(x);
-}
-
-template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 T to_little_endian(T x) noexcept {
-	return to_little_endian(x);
-}
-
 template< typename T, typename U >
-constexpr bool cmp_equal(T t, U u) noexcept
-{
+constexpr bool cmp_equal(T t, U u) noexcept {
 	using UT = std::make_unsigned_t<T>;
 	using UU = std::make_unsigned_t<U>;
-	if constexpr (std::is_signed_v<T> == std::is_signed_v<U>)
+	if constexpr (std::is_signed_v<T> == std::is_signed_v<U>) {
 		return t == u;
-	else if constexpr (std::is_signed_v<T>)
+	}
+	else if constexpr (std::is_signed_v<T>) {
 		return t < 0 ? false : UT(t) == u;
-	else
+	}
+	else {
 		return u < 0 ? false : t == UU(u);
+	}
 }
 
 template< typename T, typename U >
@@ -137,12 +121,15 @@ template< typename T, typename U >
 constexpr bool cmp_less(T t, U u) noexcept {
 	using UT = std::make_unsigned_t<T>;
 	using UU = std::make_unsigned_t<U>;
-	if constexpr (std::is_signed_v<T> == std::is_signed_v<U>)
+	if constexpr (std::is_signed_v<T> == std::is_signed_v<U>) {
 		return t < u;
-	else if constexpr (std::is_signed_v<T>)
+	}
+	else if constexpr (std::is_signed_v<T>) {
 		return t < 0 ? true : UT(t) < u;
-	else
+	}
+	else {
 		return u < 0 ? false : t < UU(u);
+	}
 }
 
 template< typename T, typename U >
@@ -167,10 +154,10 @@ constexpr bool in_range(T t) noexcept {
 }
 
 template<typename R, typename T>
-struct broadcast_fn;
+struct broadcast_fn {};
 
 template<typename R, typename T>
-constexpr broadcast_fn<R, T> broadcast{};
+inline constexpr broadcast_fn<R, T> broadcast{};
 
 template<>
 struct broadcast_fn<uint8_t, uint8_t> {

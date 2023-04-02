@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __WJR_ALGORITHM_H__
-#define __WJR_ALGORITHM_H__
+#ifndef __WJR_ALGORITHM_H
+#define __WJR_ALGORITHM_H
 
 #include <algorithm>
 #include <memory>
@@ -216,6 +216,12 @@ template<typename Alloc, typename _Iter1, typename _Diff, typename _Iter2>
 WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> uninitialized_move_n(
 	Alloc& al, _Iter1 _First, _Diff n, _Iter2 _Dest);
 
+template<typename _Iter, typename _Func>
+WJR_CONSTEXPR20 void for_each(_Iter _First, _Iter _Last, _Func fn);
+
+template<typename _Iter, typename _SizeT, typename _Func>
+WJR_CONSTEXPR20 void for_each_n(_Iter _First, _SizeT n, _Func fn);
+
 template<typename Alloc>
 class temporary_allocator_value;
 
@@ -223,4 +229,4 @@ _WJR_END
 
 #include <wjr/algorithm-inl.h>
 
-#endif // __WJR_ALGORITHM_H__
+#endif // __WJR_ALGORITHM_H
