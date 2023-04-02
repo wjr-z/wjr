@@ -1007,7 +1007,7 @@ public:
 
 	WJR_CONSTEXPR20 void resize(const size_type _Newsize, value_construct_tag) {
 		_M_resize(_Newsize, value_construct_tag());
-	}              
+	}
 
 	WJR_CONSTEXPR20 void push_back(default_construct_tag) {
 		emplace_back(default_construct_tag());
@@ -1017,12 +1017,12 @@ public:
 		emplace_back(value_construct_tag());
 	}
 
-	WJR_CONSTEXPR20 vector& append(size_t n, default_construct_tag) {
+	WJR_CONSTEXPR20 vector& append(const size_type n, default_construct_tag) {
 		_M_append(n, default_construct_tag());
 		return *this;
 	}
 
-	WJR_CONSTEXPR20 vector& append(size_t n, value_construct_tag) {
+	WJR_CONSTEXPR20 vector& append(const size_type n, value_construct_tag) {
 		_M_append(n, value_construct_tag());
 		return *this;
 	}
@@ -1030,13 +1030,13 @@ public:
 	/*------------------------------------------------------------*/
 
 		// n must less or equal 
-	WJR_INLINE_CONSTEXPR20 vector& chop(size_t n) {
+	WJR_INLINE_CONSTEXPR20 vector& chop(const size_type n) noexcept {
 		_M_erase_at_end(end() - n);
 		return *this;
 	}
 
 	// n <= size()
-	WJR_INLINE_CONSTEXPR20 vector& truncate(size_t n) {
+	WJR_INLINE_CONSTEXPR20 vector& truncate(const size_type n) noexcept {
 		return chop(size() - n);
 	}
 
@@ -1056,7 +1056,7 @@ public:
 		return *this;
 	}
 
-	WJR_CONSTEXPR20 vector& append(size_t n, const T& val) {
+	WJR_CONSTEXPR20 vector& append(const size_type n, const T& val) {
 		_M_append(n, val);
 		return *this;
 	}
@@ -1084,6 +1084,18 @@ public:
 		const auto __offset2 = static_cast<size_type>(_Oldlast - cbegin());
 		_M_fill_replace(begin() + __offset1, begin() + __offset2,
 			_Count, _Val);
+		return *this;
+	}
+
+	WJR_CONSTEXPR20 vector& assign_self(const_iterator _First, const_iterator _Last) WJR_NOEXCEPT {
+#if defined(_WJR_EXCEPTION)
+		if (_First < cbegin() || _Last > cend() || _First > _Last) {
+			throw std::invalid_argument("invalid vector::assign_self argument");
+		}
+#endif // _WJR_EXCEPTION
+		const auto __offset1 = _First - cbegin();
+		const auto __offset2 = _Last - cbegin();
+		chop(size() - __offset2).erase(cbegin(), cbegin() + __offset1);
 		return *this;
 	}
 

@@ -186,7 +186,7 @@ const T* __memchr(const T* s, T val, size_t n, _Pred pred) {
 				n -= __align_s / _Mysize;
 
 				if (is_unlikely(n < width * 4)) {
-					goto WJR_MACRO_LABEL(last_solve_align_0_1);
+					goto WJR_MACRO_LABEL(last_solve_align);
 				}
 			}
 
@@ -209,7 +209,7 @@ const T* __memchr(const T* s, T val, size_t n, _Pred pred) {
 
 			if (n != 0) {
 
-				WJR_MACRO_LABEL(last_solve_align_0_1) :
+				WJR_MACRO_LABEL(last_solve_align) :
 
 				s += n;
 
@@ -294,6 +294,7 @@ const T* __memchr(const T* s, T val, size_t n, _Pred pred) {
 
 			auto x = simd::sse::set_epi32(D, C, B, A);
 			auto y = simd::sse::set1(val, T());
+			
 			auto r = simd::sse::cmp(x, y, pred, T());
 			uint16_t z = simd::sse::movemask_epi8(r);
 

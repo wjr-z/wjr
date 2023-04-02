@@ -198,6 +198,7 @@ struct __traits_helper {
 	using base_traits = Traits;
 	using has_trim = std::false_type;
 	using has_toggle_case = std::false_type;
+	using has_conv = std::false_type;
 };
 
 template<typename Char>
@@ -208,6 +209,7 @@ struct __traits_helper<std::char_traits<Char>> {
 	using base_traits = std::char_traits<Char>;
 	using has_trim = std::false_type;
 	using has_toggle_case = std::false_type;
+	using has_conv = std::false_type;
 };
 
 struct ascii_traits : public std::char_traits<char> {
@@ -216,6 +218,9 @@ struct ascii_traits : public std::char_traits<char> {
 	// found the last character that is not whitespace
 	WJR_INLINE_CONSTEXPR20 static const char* rtrim(const char* s, size_t n);
 	WJR_INLINE_CONSTEXPR20 static std::pair<const char*, const char*> trim(const char* s, size_t n);
+
+	WJR_CONSTEXPR20 static void tolower(char* s, size_t n);
+	WJR_CONSTEXPR20 static void toupper(char* s, size_t n);
 };
 
 template<>
@@ -225,7 +230,8 @@ struct __traits_helper<ascii_traits> {
 
 	using base_traits = std::char_traits<char>;
 	using has_trim = std::true_type;
-	using has_toggle_case = std::false_type;
+	using has_toggle_case = std::true_type;
+	using has_conv = std::false_type;
 };
 
 template<typename Char, typename Traits = std::char_traits<Char>>
@@ -320,10 +326,11 @@ public:
 		typename _Traits = typename _Type::traits_type,
 		std::enable_if_t<
 		std::is_same_v<typename __traits_helper<_Traits>::base_traits, base_traits_type>
+		&& std::is_same_v<_Type, basic_string_view<Char, _Traits>>
 		&& !std::is_same_v<_Type, basic_string_view>
 		&& !_Is_noptr_std_string_view_like_v<_Type>
 		&& !std::is_pointer_v<_Type>, int> = 0>
-	WJR_INTRINSIC_CONSTEXPR basic_string_view(_Type v) noexcept
+	WJR_INTRINSIC_CONSTEXPR basic_string_view(const _Type& v) noexcept
 		: basic_string_view(v.data(), v.size()) {}
 
 	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR operator _Std_view_type() const noexcept {
@@ -841,6 +848,19 @@ public:
 		return basic_string_view(lr.first, lr.second - lr.first);
 	}
 
+	// notice that this function will changes the original string
+	template<typename _Traits = Traits, std::enable_if_t<__traits_helper<_Traits>::has_toggle_case::value, int> = 0>
+	WJR_NODISCARD WJR_CONSTEXPR20 basic_string_view& tolower() {
+		_Traits::tolower(const_cast<pointer>(begin()), size());
+		return *this;
+	}
+
+	template<typename _Traits = Traits, std::enable_if_t<__traits_helper<_Traits>::has_toggle_case::value, int> = 0>
+	WJR_NODISCARD WJR_CONSTEXPR20 basic_string_view& toupper() {
+		_Traits::toupper(const_cast<pointer>(begin()), size());
+		return *this;
+	}
+
 private:
 
 	const_pointer _Mydata;
@@ -1123,10 +1143,6 @@ template<
 			const value_type c = value_type(), const allocator_type& al = allocator_type())
 			: m_core(n, c, al) {
 			set_end();
-		}
-
-		WJR_CONSTEXPR20 operator wjr::basic_string_view<Char, traits_type>() const noexcept {
-			return { data(), size() };
 		}
 
 		WJR_CONSTEXPR20 operator std::basic_string_view<Char, traits_type>() const noexcept {
@@ -1978,6 +1994,75 @@ template<
 		WJR_NODISCARD WJR_CONSTEXPR20 bool equal(const size_type off1, const size_type n1,
 			const Char* const ptr, const size_type n2) const {
 			return view().equal(off1, n1, ptr, n2);
+		}
+
+		WJR_CONSTEXPR20 basic_string(const size_type _Count, default_construct_tag, const allocator_type& al = allocator_type())
+			: m_core(_Count, default_construct_tag(), al) {
+			set_end();
+		}
+
+		WJR_CONSTEXPR20 basic_string(const size_type _Count, value_construct_tag, const allocator_type& al = allocator_type())
+			: m_core(_Count, value_construct_tag(), al) {
+			set_end();
+		}
+
+		WJR_CONSTEXPR20 void resize(const size_type _Newsize, default_construct_tag) {
+			m_core.resize(_Newsize, default_construct_tag());
+			set_end();
+		}
+
+		WJR_CONSTEXPR20 void resize(const size_type _Newsize, value_construct_tag) {
+			m_core.resize(_Newsize, value_construct_tag());
+			set_end();
+		}
+
+		WJR_CONSTEXPR20 void push_back(default_construct_tag) {
+			m_core.push_back(default_construct_tag());
+			set_end();
+		}
+
+		WJR_CONSTEXPR20 void push_back(value_construct_tag) {
+			m_core.push_back(value_construct_tag());
+			set_end();
+		}
+
+		WJR_CONSTEXPR20 basic_string& append(const size_type n, default_construct_tag) {
+			m_core.append(n, default_construct_tag());
+			set_end();
+			return *this;
+		}
+
+		WJR_CONSTEXPR20 basic_string& append(const size_type n, value_construct_tag) {
+			m_core.append(n, value_construct_tag());
+			set_end();
+			return *this;
+		}
+
+		WJR_CONSTEXPR20 basic_string& chop(const size_type n) noexcept {
+			m_core.chop(n);
+			set_end();
+			return *this;
+		}
+
+		WJR_CONSTEXPR20 basic_string& truncate(const size_type n) noexcept {
+			m_core.truncate(n);
+			set_end();
+			return *this;
+		}
+
+		// assign a string view that points to itself
+		WJR_CONSTEXPR20 basic_string& assign_self(const_iterator _First, const_iterator _Last) WJR_NOEXCEPT {
+			m_core.assign_self(_First, _Last);
+			set_end();
+			return *this;
+		}
+
+		WJR_CONSTEXPR20 basic_string& assign_self(const size_type off, const size_type n = npos) WJR_NOEXCEPT {
+			return assign_self(view(*this, off, n));
+		}
+
+		WJR_CONSTEXPR20 basic_string& assign_self(view_type sv) WJR_NOEXCEPT {
+			return assign_self(sv.begin(), sv.end());
 		}
 
 		WJR_INTRINSIC_CONSTEXPR20 void assume_total_capacity(const size_type n) const noexcept {
@@ -2974,7 +3059,7 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 WJR_INLINE_CONSTEXPR20 const char* ascii_traits::ltrim(const char* s, size_t n) {
 	const char* e = s + n;
 	while (s != e) {
-		if (!ascii::isspace(*s)) break;
+		if (!ascii::sisspace(*s)) break;
 		++s;
 	}
 	return s;
@@ -2983,7 +3068,7 @@ WJR_INLINE_CONSTEXPR20 const char* ascii_traits::ltrim(const char* s, size_t n) 
 WJR_INLINE_CONSTEXPR20 const char* ascii_traits::rtrim(const char* s, size_t n) {
 	const char* e = s + n;
 	while (s != e) {
-		if (!ascii::isspace(e[-1])) break;
+		if (!ascii::sisspace(e[-1])) break;
 		--e;
 	}
 	return e;
@@ -2992,9 +3077,20 @@ WJR_INLINE_CONSTEXPR20 const char* ascii_traits::rtrim(const char* s, size_t n) 
 WJR_INLINE_CONSTEXPR20 std::pair<const char*, const char*> 
 	ascii_traits::trim(const char* s, size_t n) {
 	const auto l = ltrim(s, n);
-	const auto m = n - (s - l);
+	const auto m = n - (l - s);
 	const auto r = rtrim(l, m);
 	return std::make_pair(l, r);
+}
+
+WJR_CONSTEXPR20 void ascii_traits::tolower(char* s, size_t n) {
+	for (size_t i = 0; i < n; ++i) {
+		s[i] = ascii::tolower(s[i]);
+	}
+}
+WJR_CONSTEXPR20 void ascii_traits::toupper(char* s, size_t n) {
+	for (size_t i = 0; i < n; ++i) {
+		s[i] = ascii::toupper(s[i]);
+	}
 }
 
 namespace utf8 {
