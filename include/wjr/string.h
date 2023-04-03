@@ -40,7 +40,7 @@ struct string_static_data : public vector_static_data<Char, N, Alloc> {
 	// virtual max capacity = max capacity - 1
 	constexpr static size_t max_capacity = _Mybase::max_capacity - 1;
 
-	WJR_INTRINSIC_CONSTEXPR20 string_static_data() : _Mybase() {}
+	WJR_INLINE_CONSTEXPR20 string_static_data() : _Mybase() {}
 	string_static_data(const string_static_data&) = delete;
 	string_static_data& operator=(const string_static_data&) = delete;
 	~string_static_data() = default;
@@ -64,7 +64,7 @@ struct string_static_data : public vector_static_data<Char, N, Alloc> {
 		return _Mybase::copyConstruct(al, std::move(_Src), _Dest);
 	}
 
-	WJR_INTRINSIC_CONSTEXPR20 static void moveConstruct(_Alty& al,
+	WJR_INLINE_CONSTEXPR20 static void moveConstruct(_Alty& al,
 		string_static_data&& _Src, string_static_data& _Dest) {
 		return _Mybase::moveConstruct(al, std::move(_Src), _Dest);
 	}
@@ -77,19 +77,19 @@ struct string_static_data : public vector_static_data<Char, N, Alloc> {
 		return _Mybase::Tidy(al, _Data);
 	}
 
-	WJR_INTRINSIC_CONSTEXPR20 static void shrinkToFit(_Alty& al, string_static_data& _Data) {
+	WJR_INLINE_CONSTEXPR20 static void shrinkToFit(_Alty& al, string_static_data& _Data) {
 		return _Mybase::shrinkToFit(al, _Data);
 	}
 
-	WJR_INTRINSIC_CONSTEXPR20 size_type capacity() const noexcept {
+	WJR_INLINE_CONSTEXPR20 size_type capacity() const noexcept {
 		return _Mybase::capacity() - 1;
 	}
 
-	WJR_INTRINSIC_CONSTEXPR20 pointer endPtr() noexcept {
+	WJR_INLINE_CONSTEXPR20 pointer endPtr() noexcept {
 		return _Mybase::data() + capacity();
 	}
 
-	WJR_INTRINSIC_CONSTEXPR20 const_pointer endPtr() const noexcept {
+	WJR_INLINE_CONSTEXPR20 const_pointer endPtr() const noexcept {
 		return _Mybase::data() + capacity();
 	}
 };
@@ -109,7 +109,7 @@ struct string_sso_data : public vector_sso_data<Char, N, Alloc> {
 	// virtual max capacity = max capacity - 1
 	constexpr static size_t max_capacity = _Mybase::max_capacity - 1;
 
-	WJR_INTRINSIC_CONSTEXPR20 string_sso_data() : _Mybase() {}
+	WJR_INLINE_CONSTEXPR20 string_sso_data() : _Mybase() {}
 	string_sso_data(const string_sso_data&) = delete;
 	string_sso_data& operator=(const string_sso_data&) = delete;
 	~string_sso_data() = default;
@@ -140,7 +140,7 @@ struct string_sso_data : public vector_sso_data<Char, N, Alloc> {
 		wjr::uninitialized_copy_n(al, _Src.data(), _Src.size(), _Dest.data());
 	}
 
-	WJR_INTRINSIC_CONSTEXPR20 static void moveConstruct(_Alty& al, string_sso_data&& _Src, string_sso_data& _Dest) {
+	WJR_INLINE_CONSTEXPR20 static void moveConstruct(_Alty& al, string_sso_data&& _Src, string_sso_data& _Dest) {
 		return _Mybase::moveConstruct(al, std::move(_Src), _Dest);
 	}
 
@@ -152,7 +152,7 @@ struct string_sso_data : public vector_sso_data<Char, N, Alloc> {
 		return _Mybase::Tidy(al, _Data);
 	}
 
-	WJR_INTRINSIC_CONSTEXPR20 static void shrinkToFit(_Alty& al, string_sso_data& _Data) {
+	WJR_INLINE_CONSTEXPR20 static void shrinkToFit(_Alty& al, string_sso_data& _Data) {
 		if (!_Data.is_small()) {
 			const auto _Oldsize = _Data.size();
 			const auto _Oldcapacity = _Data.capacity();
@@ -176,15 +176,15 @@ struct string_sso_data : public vector_sso_data<Char, N, Alloc> {
 		}
 	}
 
-	WJR_INTRINSIC_CONSTEXPR20 size_type capacity() const noexcept {
+	WJR_INLINE_CONSTEXPR20 size_type capacity() const noexcept {
 		return _Mybase::capacity() - 1;
 	}
 
-	WJR_INTRINSIC_CONSTEXPR20 pointer endPtr() noexcept {
+	WJR_INLINE_CONSTEXPR20 pointer endPtr() noexcept {
 		return _Mybase::data() + capacity();
 	}
 
-	WJR_INTRINSIC_CONSTEXPR20 const_pointer endPtr() const noexcept {
+	WJR_INLINE_CONSTEXPR20 const_pointer endPtr() const noexcept {
 		return _Mybase::data() + capacity();
 	}
 };
@@ -193,48 +193,33 @@ template<typename Traits>
 struct __traits_helper {
 	using is_default_equal = std::false_type;
 	using is_default_less = std::false_type;
-
-	// extension
-	using base_traits = Traits;
-	using has_trim = std::false_type;
-	using has_toggle_case = std::false_type;
-	using has_conv = std::false_type;
 };
 
 template<typename Char>
 struct __traits_helper<std::char_traits<Char>> {
 	using is_default_equal = std::true_type;
 	using is_default_less = std::true_type;
-
-	using base_traits = std::char_traits<Char>;
-	using has_trim = std::false_type;
-	using has_toggle_case = std::false_type;
-	using has_conv = std::false_type;
 };
 
-struct ascii_traits : public std::char_traits<char> {
-	// found the first character that is not whitespace
-	WJR_INLINE_CONSTEXPR20 static const char* ltrim(const char* s, size_t n);
-	// found the last character that is not whitespace
-	WJR_INLINE_CONSTEXPR20 static const char* rtrim(const char* s, size_t n);
-	WJR_INLINE_CONSTEXPR20 static std::pair<const char*, const char*> trim(const char* s, size_t n);
+template<typename Traits = std::char_traits<char>>
+struct ascii_traits : public Traits {};
 
-	WJR_CONSTEXPR20 static void tolower(char* s, size_t n);
-	WJR_CONSTEXPR20 static void toupper(char* s, size_t n);
-};
+template<typename Traits>
+struct __traits_helper<ascii_traits<Traits>> : __traits_helper<Traits> {};
 
-template<>
-struct __traits_helper<ascii_traits> {
-	using is_default_equal = std::true_type;
-	using is_default_less = std::true_type;
+template<typename Traits>
+struct ref_traits : public Traits {};
 
-	using base_traits = std::char_traits<char>;
-	using has_trim = std::true_type;
-	using has_toggle_case = std::true_type;
-	using has_conv = std::false_type;
-};
+template<typename Traits>
+struct __traits_helper<ref_traits<Traits>> : __traits_helper<Traits> {};
 
 template<typename Char, typename Traits = std::char_traits<Char>>
+class basic_string_view;
+
+template<typename Char, typename Traits = std::char_traits<Char>>
+using basic_string_ref_view = basic_string_view<Char, ref_traits<Traits>>;
+
+template<typename Char, typename Traits>
 class basic_string_view {
 
 	using _Traits_helper = __traits_helper<Traits>;
@@ -290,9 +275,6 @@ public:
 	using size_type = size_t;
 	using difference_type = ptrdiff_t;
 
-	using base_traits_type = typename _Traits_helper::base_traits;
-	using base_view_type = basic_string_view<Char, base_traits_type>;
-
 	static constexpr auto npos = static_cast<size_type>(-1);
 private:
 
@@ -301,133 +283,118 @@ private:
 	}
 public:
 
-	WJR_INTRINSIC_CONSTEXPR basic_string_view() noexcept : _Mydata(), _Mysize(0) {}
+	WJR_INLINE_CONSTEXPR basic_string_view() noexcept : _Mydata(), _Mysize(0) {}
 
-	WJR_INTRINSIC_CONSTEXPR basic_string_view(const basic_string_view&) noexcept = default;
-	WJR_INTRINSIC_CONSTEXPR basic_string_view& operator=(const basic_string_view&) noexcept = default;
+	WJR_INLINE_CONSTEXPR basic_string_view(const basic_string_view&) noexcept = default;
+	WJR_INLINE_CONSTEXPR basic_string_view& operator=(const basic_string_view&) noexcept = default;
 
 	WJR_INLINE_CONSTEXPR basic_string_view(const const_pointer ptr)
 		: _Mydata(ptr), _Mysize(traits_length(ptr)) {}
 
-	WJR_INTRINSIC_CONSTEXPR basic_string_view(
+	WJR_INLINE_CONSTEXPR basic_string_view(
 		const const_pointer ptr, const size_type n)
 		: _Mydata(ptr), _Mysize(n) {}
 
 private:
-	WJR_INTRINSIC_CONSTEXPR basic_string_view(_Std_view_type s, disable_tag) noexcept
+	WJR_INLINE_CONSTEXPR basic_string_view(_Std_view_type s, disable_tag) noexcept
 		: _Mydata(s.data()), _Mysize(s.size()) {}
 public:
 
 	template<typename StringView, std::enable_if_t<_Is_noptr_std_string_view_like_v<StringView>, int> = 0>
-	WJR_INTRINSIC_CONSTEXPR basic_string_view(const StringView& t) noexcept
+	WJR_INLINE_CONSTEXPR basic_string_view(const StringView& t) noexcept
 		: basic_string_view(_Std_view_type(t), disable_tag{}) {}
 
-	template<typename _Type,
-		typename _Traits = typename _Type::traits_type,
-		std::enable_if_t<
-		std::is_same_v<typename __traits_helper<_Traits>::base_traits, base_traits_type>
-		&& std::is_same_v<_Type, basic_string_view<Char, _Traits>>
-		&& !std::is_same_v<_Type, basic_string_view>
-		&& !_Is_noptr_std_string_view_like_v<_Type>
-		&& !std::is_pointer_v<_Type>, int> = 0>
-	WJR_INTRINSIC_CONSTEXPR basic_string_view(const _Type& v) noexcept
-		: basic_string_view(v.data(), v.size()) {}
-
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR operator _Std_view_type() const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR operator _Std_view_type() const noexcept {
 		return { data(), size() };
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR base_view_type base_view() const noexcept {
-		return { data(), size() };
-	}
-
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR const_iterator begin() const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR const_iterator begin() const noexcept {
 		return const_iterator(_Mydata);
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR const_iterator end() const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR const_iterator end() const noexcept {
 		return const_iterator(_Mydata + _Mysize);
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR const_iterator cbegin() const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR const_iterator cbegin() const noexcept {
 		return begin();
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR const_iterator cend() const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR const_iterator cend() const noexcept {
 		return end();
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR const_reverse_iterator rbegin() const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR const_reverse_iterator rbegin() const noexcept {
 		return const_reverse_iterator{ end() };
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR const_reverse_iterator rend() const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR const_reverse_iterator rend() const noexcept {
 		return const_reverse_iterator{ begin() };
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR const_reverse_iterator crbegin() const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR const_reverse_iterator crbegin() const noexcept {
 		return rbegin();
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR const_reverse_iterator crend() const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR const_reverse_iterator crend() const noexcept {
 		return rend();
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR size_type size() const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR size_type size() const noexcept {
 		return _Mysize;
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR size_type length() const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR size_type length() const noexcept {
 		return _Mysize;
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR bool empty() const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR bool empty() const noexcept {
 		return _Mysize == 0;
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR const_pointer data() const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR const_pointer data() const noexcept {
 		return _Mydata;
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR size_type max_size() const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR size_type max_size() const noexcept {
 		return std::min(static_cast<size_t>(PTRDIFF_MAX), static_cast<size_t>(-1) / sizeof(Char));
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR const_reference operator[](const size_type off) const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR const_reference operator[](const size_type off) const noexcept {
 		return _Mydata[off];
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR const_reference at(const size_type off) const {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR const_reference at(const size_type off) const {
 		if (off >= size()) {
 			throw std::out_of_range("error at basic_string_view::at");
 		}
 		return _Mydata[off];
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR const_reference front() const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR const_reference front() const noexcept {
 		return _Mydata[0];
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR const_reference back() const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR const_reference back() const noexcept {
 		return _Mydata[_Mysize - 1];
 	}
 
-	WJR_INTRINSIC_CONSTEXPR void remove_prefix(const size_type n) noexcept {
+	WJR_INLINE_CONSTEXPR void remove_prefix(const size_type n) noexcept {
 		_Mydata += n;
 		_Mysize -= n;
 	}
 
-	WJR_INTRINSIC_CONSTEXPR void remove_suffix(const size_type n) noexcept {
+	WJR_INLINE_CONSTEXPR void remove_suffix(const size_type n) noexcept {
 		_Mysize -= n;
 	}
 
-	WJR_INTRINSIC_CONSTEXPR void swap(basic_string_view& other) noexcept {
+	WJR_INLINE_CONSTEXPR void swap(basic_string_view& other) noexcept {
 		const basic_string_view tmp{ other };
 		other = *this;
 		*this = tmp;
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR basic_string_view substr(
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view substr(
 		const size_type off = 0, size_type n = npos) const WJR_NOEXCEPT {
 #if defined(_WJR_EXCEPTION)
 		if (is_likely(off <= size())) {
@@ -740,7 +707,7 @@ public:
 	/*------External extension function------*/
 
 	// no exception
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR basic_string_view
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view
 		nesubstr(const size_type off = 0, size_type n = npos) const noexcept {
 		n = std::min(n, _Mysize - off);
 		return basic_string_view(_Mydata + off, n);
@@ -748,48 +715,52 @@ public:
 
 	// no exception view
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static basic_string_view view(
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(
 		const value_type* s, const size_type n) noexcept {
 		return basic_string_view(s, n);
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static basic_string_view view(
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(
 		const value_type* s) noexcept {
 		return basic_string_view(s);
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static basic_string_view view(
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(
 		std::initializer_list<value_type> il) noexcept {
 		return view(il.begin(), il.size());
 	}
 
 	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static basic_string_view view(const StringView& t) noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(const StringView& t) noexcept {
 		return basic_string_view(t);
 	}
 
 	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static basic_string_view view(const StringView& t,
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(const StringView& t,
 		const size_type off, const size_type n = npos) noexcept {
 		return view(t).nesubstr(off, n);
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR basic_string_view view() const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view view() const noexcept {
 		return *this;
 	}
 
 	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static basic_string_view eview(const StringView& t,
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view eview(const StringView& t,
 		const size_type off, const size_type n = npos) WJR_NOEXCEPT {
 		return view(t).substr(off, n);
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR basic_string_view prefix(size_type n) const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_ref_view<Char, Traits> ref_view() const noexcept {
+		return basic_string_ref_view<Char, Traits>(data(), size());
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view prefix(size_type n) const noexcept {
 		n = std::min(n, size());
 		return basic_string_view(begin(), n);
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR basic_string_view suffix(size_type n) const noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view suffix(size_type n) const noexcept {
 		n = std::min(n, size());
 		return basic_string_view(end() - n, n);
 	}
@@ -830,162 +801,219 @@ public:
 		return equal(off1, n1, view(ptr, n2));
 	}
 
-	template<typename _Traits = Traits, std::enable_if_t<__traits_helper<_Traits>::has_trim::value, int> = 0>
-	WJR_NODISCARD WJR_CONSTEXPR20 basic_string_view ltrim() const {
-		const auto l = _Traits::ltrim(begin(), size());
-		return remove_prefix(l - begin());
-	}
-
-	template<typename _Traits = Traits, std::enable_if_t<__traits_helper<_Traits>::has_trim::value, int> = 0>
-	WJR_NODISCARD WJR_CONSTEXPR20 basic_string_view rtrim() const {
-		const auto l = _Traits::rtrim(begin(), size());
-		return remove_suffix(end() - l);
-	}
-
-	template<typename _Traits = Traits, std::enable_if_t<__traits_helper<_Traits>::has_trim::value, int> = 0>
-	WJR_NODISCARD WJR_CONSTEXPR20 basic_string_view trim() const {
-		const auto lr = _Traits::trim(begin(), size());
-		return basic_string_view(lr.first, lr.second - lr.first);
-	}
-
-	// notice that this function will changes the original string
-	template<typename _Traits = Traits, std::enable_if_t<__traits_helper<_Traits>::has_toggle_case::value, int> = 0>
-	WJR_NODISCARD WJR_CONSTEXPR20 basic_string_view& tolower() {
-		_Traits::tolower(const_cast<pointer>(begin()), size());
-		return *this;
-	}
-
-	template<typename _Traits = Traits, std::enable_if_t<__traits_helper<_Traits>::has_toggle_case::value, int> = 0>
-	WJR_NODISCARD WJR_CONSTEXPR20 basic_string_view& toupper() {
-		_Traits::toupper(const_cast<pointer>(begin()), size());
-		return *this;
-	}
-
 private:
 
 	const_pointer _Mydata;
 	size_type _Mysize;
 };
 
-template<typename Char>
-WJR_NODISCARD WJR_CONSTEXPR20 bool operator==(const basic_string_view<Char> lhs, const basic_string_view<Char> rhs) noexcept {
-	return lhs.equal(rhs);
-}
+template<typename Traits>
+class basic_string_view<char, ascii_traits<Traits>> : public basic_string_view<char, Traits> {
+public:
+	using _Mybase = basic_string_view<char, Traits>;
+	using _Mybase::_Mybase;
+	using _Mybase::operator=;
+	using _Mybase::begin;
+	using _Mybase::end;
 
-template<typename Char, int = 1>
+	using traits_type = ascii_traits<Traits>;
+	using size_type = typename _Mybase::size_type;
+
+	basic_string_view(const _Mybase& base) : _Mybase(base) {}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 _Mybase base() const { return *this; }
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 basic_string_view ltrim() const;
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 basic_string_view rtrim() const;
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 basic_string_view trim() const;
+
+};
+
+template<typename Char, typename Traits>
+class __string_ref_view_helper : public basic_string_view<Char, Traits> {
+public:
+	using _Mybase = basic_string_view<Char, Traits>;
+	using _Mybase::_Mybase;
+	using _Mybase::operator=;
+
+	using traits_type = ref_traits<Traits>;
+	using pointer = typename _Mybase::pointer;
+	using iterator = pointer;
+
+	WJR_INLINE_CONSTEXPR20 pointer ref_data() const { return const_cast<pointer>(_Mybase::data()); }
+	WJR_INLINE_CONSTEXPR20 iterator ref_begin() const { return const_cast<iterator>(_Mybase::begin()); }
+	WJR_INLINE_CONSTEXPR20 iterator ref_end() const { return const_cast<iterator>(_Mybase::end()); }
+
+private:
+	using _Mybase::ref_view;
+};
+
+template<typename Char, typename Traits>
+class basic_string_view<Char, ref_traits<Traits>> : public __string_ref_view_helper<Char, Traits> {
+public:
+	using _Mybase = __string_ref_view_helper<Char, Traits>;
+	using _Mybase::_Mybase;
+	using _Mybase::operator=;
+	using _Mybase::begin;
+	using _Mybase::end;
+
+	using size_type = typename _Mybase::size_type;
+	using pointer = typename _Mybase::pointer;
+	using const_pointer = typename _Mybase::const_pointer;
+};
+
+template<typename Traits>
+class basic_string_view<char, ref_traits<ascii_traits<Traits>>> 
+	: public __string_ref_view_helper<char, ascii_traits<Traits>> {
+public:
+	using _Mybase = __string_ref_view_helper<char, ascii_traits<Traits>>;
+	using _Mybase::_Mybase;
+	using _Mybase::operator=;
+	using _Mybase::begin;
+	using _Mybase::end;
+	using _Mybase::ref_begin;
+	using _Mybase::ref_end;
+
+	using traits_type = typename _Mybase::traits_type;
+	using size_type = typename _Mybase::size_type;
+	using pointer = typename _Mybase::pointer;
+	using const_pointer = typename _Mybase::const_pointer;
+
+	WJR_CONSTEXPR20 basic_string_view& tolower();
+	WJR_CONSTEXPR20 basic_string_view& toupper();
+
+};
+
+template<typename Char, typename Traits>
 WJR_NODISCARD WJR_CONSTEXPR20 bool operator==(
-	const type_identity_t<basic_string_view<Char>> lhs,
-	const basic_string_view<Char> rhs) noexcept {
+	const basic_string_view<Char, Traits> lhs, 
+	const basic_string_view<Char, Traits> rhs) noexcept {
 	return lhs.equal(rhs);
 }
 
-template<typename Char, int = 2>
+template<typename Char, typename Traits, int = 1>
 WJR_NODISCARD WJR_CONSTEXPR20 bool operator==(
-	const basic_string_view<Char> lhs,
-	const type_identity_t<basic_string_view<Char>> rhs) noexcept {
+	const type_identity_t<basic_string_view<Char, Traits>> lhs,
+	const basic_string_view<Char, Traits> rhs) noexcept {
 	return lhs.equal(rhs);
 }
 
-template<typename Char>
-WJR_NODISCARD WJR_CONSTEXPR20 bool operator!=(const basic_string_view<Char> lhs, const basic_string_view<Char> rhs) noexcept {
-	return !(lhs == rhs);
+template<typename Char, typename Traits, int = 2>
+WJR_NODISCARD WJR_CONSTEXPR20 bool operator==(
+	const basic_string_view<Char, Traits> lhs,
+	const type_identity_t<basic_string_view<Char, Traits>> rhs) noexcept {
+	return lhs.equal(rhs);
 }
 
-template<typename Char, int = 1>
+template<typename Char, typename Traits>
 WJR_NODISCARD WJR_CONSTEXPR20 bool operator!=(
-	const type_identity_t<basic_string_view<Char>> lhs,
-	const basic_string_view<Char> rhs) noexcept {
+	const basic_string_view<Char, Traits> lhs, 
+	const basic_string_view<Char, Traits> rhs) noexcept {
 	return !(lhs == rhs);
 }
 
-template<typename Char, int = 2>
+template<typename Char, typename Traits, int = 1>
 WJR_NODISCARD WJR_CONSTEXPR20 bool operator!=(
-	const basic_string_view<Char> lhs,
-	const type_identity_t<basic_string_view<Char>> rhs) noexcept {
+	const type_identity_t<basic_string_view<Char, Traits>> lhs,
+	const basic_string_view<Char, Traits> rhs) noexcept {
 	return !(lhs == rhs);
 }
 
-template<typename Char>
-WJR_NODISCARD WJR_CONSTEXPR20 bool operator<(const basic_string_view<Char> lhs, const basic_string_view<Char> rhs) noexcept {
-	return lhs.compare(rhs) < 0;
+template<typename Char, typename Traits, int = 2>
+WJR_NODISCARD WJR_CONSTEXPR20 bool operator!=(
+	const basic_string_view<Char, Traits> lhs,
+	const type_identity_t<basic_string_view<Char, Traits>> rhs) noexcept {
+	return !(lhs == rhs);
 }
 
-template<typename Char, int = 1>
+template<typename Char, typename Traits>
 WJR_NODISCARD WJR_CONSTEXPR20 bool operator<(
-	const type_identity_t<basic_string_view<Char>> lhs,
-	const basic_string_view<Char> rhs) noexcept {
+	const basic_string_view<Char, Traits> lhs, 
+	const basic_string_view<Char, Traits> rhs) noexcept {
 	return lhs.compare(rhs) < 0;
 }
 
-template<typename Char, int = 2>
+template<typename Char, typename Traits, int = 1>
 WJR_NODISCARD WJR_CONSTEXPR20 bool operator<(
-	const basic_string_view<Char> lhs,
-	const type_identity_t<basic_string_view<Char>> rhs) noexcept {
+	const type_identity_t<basic_string_view<Char, Traits>> lhs,
+	const basic_string_view<Char, Traits> rhs) noexcept {
 	return lhs.compare(rhs) < 0;
 }
 
-
-template<typename Char>
-WJR_NODISCARD WJR_CONSTEXPR20 bool operator>(const basic_string_view<Char> lhs, const basic_string_view<Char> rhs) noexcept {
-	return rhs < lhs;
+template<typename Char, typename Traits, int = 2>
+WJR_NODISCARD WJR_CONSTEXPR20 bool operator<(
+	const basic_string_view<Char, Traits> lhs,
+	const type_identity_t<basic_string_view<Char, Traits>> rhs) noexcept {
+	return lhs.compare(rhs) < 0;
 }
 
-template<typename Char, int = 1>
+template<typename Char, typename Traits>
 WJR_NODISCARD WJR_CONSTEXPR20 bool operator>(
-	const type_identity_t<basic_string_view<Char>> lhs,
-	const basic_string_view<Char> rhs) noexcept {
+	const basic_string_view<Char, Traits> lhs, 
+	const basic_string_view<Char, Traits> rhs) noexcept {
 	return rhs < lhs;
 }
 
-template<typename Char, int = 2>
+template<typename Char, typename Traits, int = 1>
 WJR_NODISCARD WJR_CONSTEXPR20 bool operator>(
-	const basic_string_view<Char> lhs,
-	const type_identity_t<basic_string_view<Char>> rhs) noexcept {
+	const type_identity_t<basic_string_view<Char, Traits>> lhs,
+	const basic_string_view<Char, Traits> rhs) noexcept {
 	return rhs < lhs;
 }
 
-template<typename Char>
-WJR_NODISCARD WJR_CONSTEXPR20 bool operator<=(const basic_string_view<Char> lhs, const basic_string_view<Char> rhs) noexcept {
-	return !(rhs < lhs);
+template<typename Char, typename Traits, int = 2>
+WJR_NODISCARD WJR_CONSTEXPR20 bool operator>(
+	const basic_string_view<Char, Traits> lhs,
+	const type_identity_t<basic_string_view<Char, Traits>> rhs) noexcept {
+	return rhs < lhs;
 }
 
-template<typename Char, int = 1>
+template<typename Char, typename Traits>
 WJR_NODISCARD WJR_CONSTEXPR20 bool operator<=(
-	const type_identity_t<basic_string_view<Char>> lhs,
-	const basic_string_view<Char> rhs) noexcept {
+	const basic_string_view<Char, Traits> lhs, 
+	const basic_string_view<Char, Traits> rhs) noexcept {
 	return !(rhs < lhs);
 }
 
-template<typename Char, int = 2>
+template<typename Char, typename Traits, int = 1>
 WJR_NODISCARD WJR_CONSTEXPR20 bool operator<=(
-	const basic_string_view<Char> lhs,
-	const type_identity_t<basic_string_view<Char>> rhs) noexcept {
+	const type_identity_t<basic_string_view<Char, Traits>> lhs,
+	const basic_string_view<Char, Traits> rhs) noexcept {
 	return !(rhs < lhs);
 }
 
-template<typename Char>
-WJR_NODISCARD WJR_CONSTEXPR20 bool operator>=(const basic_string_view<Char> lhs, const basic_string_view<Char> rhs) noexcept {
+template<typename Char, typename Traits, int = 2>
+WJR_NODISCARD WJR_CONSTEXPR20 bool operator<=(
+	const basic_string_view<Char, Traits> lhs,
+	const type_identity_t<basic_string_view<Char, Traits>> rhs) noexcept {
+	return !(rhs < lhs);
+}
+
+template<typename Char, typename Traits>
+WJR_NODISCARD WJR_CONSTEXPR20 bool operator>=(
+	const basic_string_view<Char, Traits> lhs, 
+	const basic_string_view<Char, Traits> rhs) noexcept {
 	return !(lhs < rhs);
 }
 
-template<typename Char, int = 1>
+template<typename Char, typename Traits, int = 1>
 WJR_NODISCARD WJR_CONSTEXPR20 bool operator>=(
-	const type_identity_t<basic_string_view<Char>> lhs,
+	const type_identity_t<basic_string_view<Char, Traits>> lhs,
 	const basic_string_view<Char> rhs) noexcept {
 	return !(lhs < rhs);
 }
 
-template<typename Char, int = 2>
+template<typename Char, typename Traits, int = 2>
 WJR_NODISCARD WJR_CONSTEXPR20 bool operator>=(
-	const basic_string_view<Char> lhs,
-	const type_identity_t<basic_string_view<Char>> rhs) noexcept {
+	const basic_string_view<Char, Traits> lhs,
+	const type_identity_t<basic_string_view<Char, Traits>> rhs) noexcept {
 	return !(lhs < rhs);
 }
 
-template<typename Char>
-std::basic_ostream<Char, std::char_traits<Char>>& operator<<(
-	std::basic_ostream<Char, std::char_traits<Char>>& os, wjr::basic_string_view<Char> sv) {
-	return (os << (std::basic_string_view<Char, std::char_traits<Char>>)(sv));
+template<typename Char, typename Traits>
+std::basic_ostream<Char, Traits>& operator<<(
+	std::basic_ostream<Char, Traits>& os, wjr::basic_string_view<Char, Traits> sv) {
+	return (os << (std::basic_string_view<Char, Traits>)(sv));
 }
 
 using string_view = basic_string_view<char>;
@@ -996,7 +1024,8 @@ using u16string_view = basic_string_view<char16_t>;
 using u32string_view = basic_string_view<char32_t>;
 using wstring_view = basic_string_view<wchar_t>;
 
-using ascii_view = basic_string_view<char, ascii_traits>;
+using ascii_view = basic_string_view<char, ascii_traits<>>;
+using ascii_ref_view = basic_string_view<char, ref_traits<ascii_traits<>>>;
 
 template<
 	typename Char,
@@ -1191,30 +1220,30 @@ template<
 			return *this;
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 iterator begin() { return m_core.begin(); }
-		WJR_INTRINSIC_CONSTEXPR20 const_iterator begin()const { return m_core.begin(); }
-		WJR_INTRINSIC_CONSTEXPR20 const_iterator cbegin()const { return m_core.cbegin(); }
+		WJR_INLINE_CONSTEXPR20 iterator begin() { return m_core.begin(); }
+		WJR_INLINE_CONSTEXPR20 const_iterator begin()const { return m_core.begin(); }
+		WJR_INLINE_CONSTEXPR20 const_iterator cbegin()const { return m_core.cbegin(); }
 
-		WJR_INTRINSIC_CONSTEXPR20 iterator end() { return m_core.end(); }
-		WJR_INTRINSIC_CONSTEXPR20 const_iterator end()const { return m_core.end(); }
-		WJR_INTRINSIC_CONSTEXPR20 const_iterator cend()const { return m_core.end(); }
+		WJR_INLINE_CONSTEXPR20 iterator end() { return m_core.end(); }
+		WJR_INLINE_CONSTEXPR20 const_iterator end()const { return m_core.end(); }
+		WJR_INLINE_CONSTEXPR20 const_iterator cend()const { return m_core.end(); }
 
-		WJR_INTRINSIC_CONSTEXPR20 reverse_iterator rbegin() { return reverse_iterator(end()); }
-		WJR_INTRINSIC_CONSTEXPR20 const_reverse_iterator rbegin()const { return const_reverse_iterator(end()); }
-		WJR_INTRINSIC_CONSTEXPR20 const_reverse_iterator crbegin()const { return const_reverse_iterator(cend()); }
+		WJR_INLINE_CONSTEXPR20 reverse_iterator rbegin() { return reverse_iterator(end()); }
+		WJR_INLINE_CONSTEXPR20 const_reverse_iterator rbegin()const { return const_reverse_iterator(end()); }
+		WJR_INLINE_CONSTEXPR20 const_reverse_iterator crbegin()const { return const_reverse_iterator(cend()); }
 
-		WJR_INTRINSIC_CONSTEXPR20 reverse_iterator rend() { return reverse_iterator(begin()); }
-		WJR_INTRINSIC_CONSTEXPR20 const_reverse_iterator rend()const { return const_reverse_iterator(begin()); }
-		WJR_INTRINSIC_CONSTEXPR20 const_reverse_iterator crend()const { return const_reverse_iterator(begin()); }
+		WJR_INLINE_CONSTEXPR20 reverse_iterator rend() { return reverse_iterator(begin()); }
+		WJR_INLINE_CONSTEXPR20 const_reverse_iterator rend()const { return const_reverse_iterator(begin()); }
+		WJR_INLINE_CONSTEXPR20 const_reverse_iterator crend()const { return const_reverse_iterator(begin()); }
 
-		WJR_INTRINSIC_CONSTEXPR20 reference front() { return m_core.front(); }
-		WJR_INTRINSIC_CONSTEXPR20 const_reference front()const { return m_core.front(); }
+		WJR_INLINE_CONSTEXPR20 reference front() { return m_core.front(); }
+		WJR_INLINE_CONSTEXPR20 const_reference front()const { return m_core.front(); }
 
-		WJR_INTRINSIC_CONSTEXPR20 reference back() {
+		WJR_INLINE_CONSTEXPR20 reference back() {
 			return m_core.back();
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 const_reference back()const {
+		WJR_INLINE_CONSTEXPR20 const_reference back()const {
 			return m_core.back();
 		}
 
@@ -1242,33 +1271,33 @@ template<
 			resize(0);
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 size_type size() const {
+		WJR_INLINE_CONSTEXPR20 size_type size() const {
 			return m_core.size();
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 size_type length() const {
+		WJR_INLINE_CONSTEXPR20 size_type length() const {
 			return size();
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 size_type max_size() const { return std::numeric_limits<size_type>::max(); }
+		WJR_INLINE_CONSTEXPR20 size_type max_size() const { return std::numeric_limits<size_type>::max(); }
 
-		WJR_INTRINSIC_CONSTEXPR20 size_type capacity() const {
+		WJR_INLINE_CONSTEXPR20 size_type capacity() const {
 			return m_core.capacity();
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 reference operator[](const size_type index) {
+		WJR_INLINE_CONSTEXPR20 reference operator[](const size_type index) {
 			return m_core[index];
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 const_reference operator[](const size_type index)const {
+		WJR_INLINE_CONSTEXPR20 const_reference operator[](const size_type index)const {
 			return m_core[index];
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 reference at(const size_type index) {
+		WJR_INLINE_CONSTEXPR20 reference at(const size_type index) {
 			return m_core.at(index);
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 const_reference at(const size_type index)const {
+		WJR_INLINE_CONSTEXPR20 const_reference at(const size_type index)const {
 			return m_core.at(index);
 		}
 
@@ -1488,11 +1517,11 @@ template<
 			other.set_end();
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 const value_type* c_str() const { return m_core.data(); }
-		WJR_INTRINSIC_CONSTEXPR20 value_type* data() { return m_core.data(); }
-		WJR_INTRINSIC_CONSTEXPR20 const value_type* data() const { return m_core.data(); }
+		WJR_INLINE_CONSTEXPR20 const value_type* c_str() const { return m_core.data(); }
+		WJR_INLINE_CONSTEXPR20 value_type* data() { return m_core.data(); }
+		WJR_INLINE_CONSTEXPR20 const value_type* data() const { return m_core.data(); }
 
-		WJR_INTRINSIC_CONSTEXPR20 bool empty()const { return m_core.empty(); }
+		WJR_INLINE_CONSTEXPR20 bool empty()const { return m_core.empty(); }
 
 		WJR_NODISCARD WJR_CONSTEXPR20 int compare(const basic_string& other) const noexcept {
 			return compare(view(other));
@@ -1819,7 +1848,7 @@ template<
 			vector_type::Tidy(al, _Data);
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 static size_type getGrowthCapacity(
+		WJR_INLINE_CONSTEXPR20 static size_type getGrowthCapacity(
 			const size_type _Oldcapacity, const size_type _Newsize) noexcept {
 			return vector_type::getGrowthCapacity(_Oldcapacity, _Newsize);
 		}
@@ -1828,43 +1857,43 @@ template<
 			vector_type::shrinkToFit(al, _Data);
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 _Alty& getAllocator() noexcept {
+		WJR_INLINE_CONSTEXPR20 _Alty& getAllocator() noexcept {
 			return m_core.getAllocator();
 		}
-		WJR_INTRINSIC_CONSTEXPR20 const _Alty& getAllocator() const noexcept {
+		WJR_INLINE_CONSTEXPR20 const _Alty& getAllocator() const noexcept {
 			return m_core.getAllocator();
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 data_type& getData() noexcept {
+		WJR_INLINE_CONSTEXPR20 data_type& getData() noexcept {
 			return m_core.getData();
 		}
-		WJR_INTRINSIC_CONSTEXPR20 const data_type& getData() const noexcept {
+		WJR_INLINE_CONSTEXPR20 const data_type& getData() const noexcept {
 			return m_core.getData();
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 pointer lastPtr() noexcept {
+		WJR_INLINE_CONSTEXPR20 pointer lastPtr() noexcept {
 			return getData().lastPtr();
 		}
-		WJR_INTRINSIC_CONSTEXPR20 const_pointer lastPtr() const noexcept {
+		WJR_INLINE_CONSTEXPR20 const_pointer lastPtr() const noexcept {
 			return getData().lastPtr();
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 pointer endPtr() noexcept {
+		WJR_INLINE_CONSTEXPR20 pointer endPtr() noexcept {
 			return getData().endPtr();
 		}
-		WJR_INTRINSIC_CONSTEXPR20 const_pointer endPtr() const noexcept {
+		WJR_INLINE_CONSTEXPR20 const_pointer endPtr() const noexcept {
 			return getData().endPtr();
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 void set_size(const size_type _Size) noexcept {
+		WJR_INLINE_CONSTEXPR20 void set_size(const size_type _Size) noexcept {
 			getData().set_size(_Size);
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 void inc_size(const difference_type _Size) noexcept {
+		WJR_INLINE_CONSTEXPR20 void inc_size(const difference_type _Size) noexcept {
 			getData().inc_size(_Size);
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 void set_end() {
+		WJR_INLINE_CONSTEXPR20 void set_end() {
 			wjr::construct_at(getAllocator(), lastPtr());
 		}
 
@@ -1875,44 +1904,44 @@ template<
 			return basic_string(view(*this, off, n));
 		}
 
-		WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 static view_type view(const basic_string& str) noexcept {
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static view_type view(const basic_string& str) noexcept {
 			return view_type::view(str);
 		}
 
-		WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 static view_type view(const basic_string& str,
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static view_type view(const basic_string& str,
 			const size_type off, const size_type n = npos) noexcept {
 			return view_type::view(str, off, n);
 		}
 
-		WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 static view_type view(const value_type* s, const size_type n) noexcept {
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static view_type view(const value_type* s, const size_type n) noexcept {
 			return view_type::view(s, n);
 		}
 
-		WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 static view_type view(const value_type* s) noexcept {
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static view_type view(const value_type* s) noexcept {
 			return view_type::view(s);
 		}
 
-		WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 static view_type view(std::initializer_list<value_type> il) noexcept {
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static view_type view(std::initializer_list<value_type> il) noexcept {
 			return view_type::view(il);
 		}
 
 		template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-		WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 static view_type view(const StringView& t) noexcept {
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static view_type view(const StringView& t) noexcept {
 			return view_type::view(t);
 		}
 
 		template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-		WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 static view_type view(const StringView& t,
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static view_type view(const StringView& t,
 			const size_type off, const size_type n = npos) noexcept {
 			return view_type::view(t, off, n);
 		}
 
-		WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 view_type view() const noexcept {
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR20 view_type view() const noexcept {
 			return view(*this);
 		}
 
 		template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-		WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 static view_type eview(const StringView& t,
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static view_type eview(const StringView& t,
 			const size_type off, const size_type n = npos) WJR_NOEXCEPT {
 			return view_type::eview(t, off, n);
 		}
@@ -2065,11 +2094,11 @@ template<
 			return assign_self(sv.begin(), sv.end());
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 void assume_total_capacity(const size_type n) const noexcept {
+		WJR_INLINE_CONSTEXPR20 void assume_total_capacity(const size_type n) const noexcept {
 			m_core.assume_total_capacity(n);
 		}
 
-		WJR_INTRINSIC_CONSTEXPR20 void assume_rest_capacity(const size_type n) const noexcept {
+		WJR_INLINE_CONSTEXPR20 void assume_rest_capacity(const size_type n) const noexcept {
 			m_core.assume_rest_capacity(n);
 		}
 
@@ -2416,21 +2445,21 @@ using static_wstring = static_basic_string<wchar_t, N>;
 
 namespace literals {
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR string_view operator""_sv(const char* str, size_t len) noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR string_view operator""_sv(const char* str, size_t len) noexcept {
 		return string_view(str, len);
 	}
 #if defined(WJR_CHAR8_T)
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR u8string_view operator""_sv(const char8_t* str, size_t len) noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR u8string_view operator""_sv(const char8_t* str, size_t len) noexcept {
 		return u8string_view(str, len);
 	}
 #endif // WJR_CHAR8_T
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR u16string_view operator""_sv(const char16_t* str, size_t len) noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR u16string_view operator""_sv(const char16_t* str, size_t len) noexcept {
 		return u16string_view(str, len);
 	}
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR u32string_view operator""_sv(const char32_t* str, size_t len) noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR u32string_view operator""_sv(const char32_t* str, size_t len) noexcept {
 		return u32string_view(str, len);
 	}
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR wstring_view operator""_sv(const wchar_t* str, size_t len) noexcept {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR wstring_view operator""_sv(const wchar_t* str, size_t len) noexcept {
 		return wstring_view(str, len);
 	}
 
@@ -2461,7 +2490,6 @@ std::basic_istream<Char, Traits>& getline(
 	basic_string<Char, Traits, Alloc, Data>& str, const Char delim) {
 	// get characters into string, discard delimiter
 	using IS = std::basic_istream<Char, Traits>;
-	using size_type = typename basic_string<Char, Traits, Alloc, Data>::size_type;
 
 	typename IS::iostate state = IS::goodbit;
 	const typename IS::sentry sentry(is, true);
@@ -2527,7 +2555,7 @@ std::basic_istream<Char, Traits>& getline(
 
 
 template<typename To, typename Char, typename From>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 To str2i_helper(const Char* str, Char** str_end, From ans) {
+WJR_NODISCARD inline To str2i_helper(const Char* str, Char** str_end, From ans) {
 	constexpr auto _Max = std::numeric_limits<To>::max();
 	constexpr auto _Min = std::numeric_limits<To>::min();
 
@@ -2554,7 +2582,7 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 To str2i_helper(const Char* str, Char** 
 }
 
 template<typename To, std::enable_if_t<std::is_integral_v<To>, int> = 0>
-WJR_NODISCARD WJR_CONSTEXPR20 To str2i(const char* str, char** str_end, int base) {
+WJR_NODISCARD inline To str2i(const char* str, char** str_end, int base) {
 	constexpr auto _Nd = std::numeric_limits<To>::digits;
 	constexpr auto _Max = std::numeric_limits<To>::max();
 	constexpr auto _Min = std::numeric_limits<To>::min();
@@ -2580,7 +2608,7 @@ WJR_NODISCARD WJR_CONSTEXPR20 To str2i(const char* str, char** str_end, int base
 }
 
 template<typename To, std::enable_if_t<std::is_floating_point_v<To>, int> = 0>
-WJR_NODISCARD WJR_CONSTEXPR20 To str2f(const char* str, char** str_end) {
+WJR_NODISCARD inline To str2f(const char* str, char** str_end) {
 	if constexpr (std::is_same_v<To, float>) {
 		return std::strtof(str, str_end);
 	}
@@ -2593,7 +2621,7 @@ WJR_NODISCARD WJR_CONSTEXPR20 To str2f(const char* str, char** str_end) {
 }
 
 template<typename To, std::enable_if_t<std::is_integral_v<To>, int> = 0>
-WJR_NODISCARD WJR_CONSTEXPR20 To str2i(const wchar_t* str, wchar_t** str_end, int base) {
+WJR_NODISCARD inline To str2i(const wchar_t* str, wchar_t** str_end, int base) {
 	constexpr auto _Nd = std::numeric_limits<To>::digits;
 	constexpr auto _Max = std::numeric_limits<To>::max();
 	constexpr auto _Min = std::numeric_limits<To>::min();
@@ -2619,7 +2647,7 @@ WJR_NODISCARD WJR_CONSTEXPR20 To str2i(const wchar_t* str, wchar_t** str_end, in
 }
 
 template<typename To, std::enable_if_t<std::is_floating_point_v<To>, int> = 0>
-WJR_NODISCARD WJR_CONSTEXPR20 To str2f(const wchar_t* str, wchar_t** str_end) {
+WJR_NODISCARD inline To str2f(const wchar_t* str, wchar_t** str_end) {
 	if constexpr (std::is_same_v<To, float>) {
 		return std::wcstof(str, str_end);
 	}
@@ -2632,7 +2660,7 @@ WJR_NODISCARD WJR_CONSTEXPR20 To str2f(const wchar_t* str, wchar_t** str_end) {
 }
 
 template<typename Char>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 int stoi(const basic_string<Char>& str, size_t* pos = nullptr, int base = 10) {
+WJR_NODISCARD inline int stoi(const basic_string<Char>& str, size_t* pos = nullptr, int base = 10) {
 	int& errno_ref = errno;
 	errno_ref = 0;
 	const Char* ptr = str.data();
@@ -2659,7 +2687,7 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR20 int stoi(const basic_string<Char>& str, siz
 }
 
 template<typename Char>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 long stol(const basic_string<Char>& str, size_t* pos = nullptr, int base = 10) {
+WJR_NODISCARD inline long stol(const basic_string<Char>& str, size_t* pos = nullptr, int base = 10) {
 	int& errno_ref = errno;
 	errno_ref = 0;
 	const Char* ptr = str.data();
@@ -2686,7 +2714,7 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR20 long stol(const basic_string<Char>& str, si
 }
 
 template<typename Char>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 long long stoll(const basic_string<Char>& str, size_t* pos = nullptr, int base = 10) {
+WJR_NODISCARD inline long long stoll(const basic_string<Char>& str, size_t* pos = nullptr, int base = 10) {
 	int& errno_ref = errno;
 	errno_ref = 0;
 	const Char* ptr = str.data();
@@ -2713,7 +2741,7 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR20 long long stoll(const basic_string<Char>& s
 }
 
 template<typename Char>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 unsigned long stoul(const basic_string<Char>& str, size_t* pos = nullptr, int base = 10) {
+WJR_NODISCARD inline unsigned long stoul(const basic_string<Char>& str, size_t* pos = nullptr, int base = 10) {
 	int& errno_ref = errno;
 	errno_ref = 0;
 	const Char* ptr = str.data();
@@ -2740,7 +2768,7 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR20 unsigned long stoul(const basic_string<Char
 }
 
 template<typename Char>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 unsigned long long stoull(const basic_string<Char>& str, size_t* pos = nullptr, int base = 10) {
+WJR_NODISCARD inline unsigned long long stoull(const basic_string<Char>& str, size_t* pos = nullptr, int base = 10) {
 	int& errno_ref = errno;
 	errno_ref = 0;
 	const Char* ptr = str.data();
@@ -2767,7 +2795,7 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR20 unsigned long long stoull(const basic_strin
 }
 
 template<typename Char>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 float stof(const basic_string<Char>& str, size_t* pos = nullptr) {
+WJR_NODISCARD inline float stof(const basic_string<Char>& str, size_t* pos = nullptr) {
 	int& errno_ref = errno;
 	errno_ref = 0;
 	const Char* ptr = str.data();
@@ -2794,7 +2822,7 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR20 float stof(const basic_string<Char>& str, s
 }
 
 template<typename Char>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 double stod(const basic_string<Char>& str, size_t* pos = nullptr) {
+WJR_NODISCARD inline double stod(const basic_string<Char>& str, size_t* pos = nullptr) {
 	int& errno_ref = errno;
 	errno_ref = 0;
 	const Char* ptr = str.data();
@@ -2821,7 +2849,7 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR20 double stod(const basic_string<Char>& str, 
 }
 
 template<typename Char>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 long double stold(const basic_string<Char>& str, size_t* pos = nullptr) {
+WJR_NODISCARD inline long double stold(const basic_string<Char>& str, size_t* pos = nullptr) {
 	int& errno_ref = errno;
 	errno_ref = 0;
 	const Char* ptr = str.data();
@@ -2847,55 +2875,55 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR20 long double stold(const basic_string<Char>&
 	return ans;
 }
 
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 string to_string(int val) {
+WJR_NODISCARD inline string to_string(int val) {
 	char buf[12];
 	const int len = snprintf(buf, sizeof(buf), "%d", val);
 	return string(buf, static_cast<size_t>(len));
 }
 
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 string to_string(long val) {
+WJR_NODISCARD inline string to_string(long val) {
 	char buf[24];
 	const int len = snprintf(buf, sizeof(buf), "%ld", val);
 	return string(buf, static_cast<size_t>(len));
 }
 
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 string to_string(long long val) {
+WJR_NODISCARD inline string to_string(long long val) {
 	char buf[24];
 	const int len = snprintf(buf, sizeof(buf), "%lld", val);
 	return string(buf, static_cast<size_t>(len));
 }
 
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 string to_string(unsigned val) {
+WJR_NODISCARD inline string to_string(unsigned val) {
 	char buf[12];
 	const int len = snprintf(buf, sizeof(buf), "%u", val);
 	return string(buf, static_cast<size_t>(len));
 }
 
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 string to_string(unsigned long val) {
+WJR_NODISCARD inline string to_string(unsigned long val) {
 	char buf[24];
 	const int len = snprintf(buf, sizeof(buf), "%lu", val);
 	return string(buf, static_cast<size_t>(len));
 }
 
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 string to_string(unsigned long long val) {
+WJR_NODISCARD inline string to_string(unsigned long long val) {
 	char buf[24];
 	const int len = snprintf(buf, sizeof(buf), "%llu", val);
 	return string(buf, static_cast<size_t>(len));
 }
 
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 string to_string(float val) {
+WJR_NODISCARD inline string to_string(float val) {
 	char buf[24];
 	const int len = snprintf(buf, sizeof(buf), "%f", val);
 	return string(buf, static_cast<size_t>(len));
 }
 
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 string to_string(double val) {
+WJR_NODISCARD inline string to_string(double val) {
 	char buf[24];
 	const int len = snprintf(buf, sizeof(buf), "%f", val);
 	return string(buf, static_cast<size_t>(len));
 }
 
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 string to_string(long double val) {
+WJR_NODISCARD inline string to_string(long double val) {
 	char buf[24];
 	const int len = snprintf(buf, sizeof(buf), "%Lf", val);
 	return string(buf, static_cast<size_t>(len));
@@ -2979,117 +3007,126 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 		  __none,          __none,          __none,          __none
 	};
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool sisalnum(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool sisalnum(char ch) {
 		return __char_code_table[make_unsigned(ch)] & (__lower | __upper | __digit);
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool sisalpha(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool sisalpha(char ch) {
 		return __char_code_table[make_unsigned(ch)] & (__lower | __upper);
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool sislower(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool sislower(char ch) {
 		return __char_code_table[make_unsigned(ch)] & __lower;
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool sisupper(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool sisupper(char ch) {
 		return __char_code_table[make_unsigned(ch)] & __upper;
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool sisdigit(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool sisdigit(char ch) {
 		return __char_code_table[make_unsigned(ch)] & __digit;
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool sisxdigit(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool sisxdigit(char ch) {
 		return __char_code_table[make_unsigned(ch)] & __xdigit;
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool sisspace(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool sisspace(char ch) {
 		return __char_code_table[make_unsigned(ch)] & __white;
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 char stolower(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 char stolower(char ch) {
 		return sisupper(ch) ? ch + 'a' - 'A' : ch;
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 char stoupper(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 char stoupper(char ch) {
 		return sislower(ch) ? ch + 'A' - 'a' : ch;
 	}
 
 	// notice that table lookup may be faster for individual arrays, 
 	// but for arrays, it inhibits vectorization
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool islower(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool islower(char ch) {
 		return ch >= 'a' && ch <= 'z';
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool isupper(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool isupper(char ch) {
 		return ch >= 'A' && ch <= 'Z';
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool isdigit(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool isdigit(char ch) {
 		return ch >= '0' && ch <= '9';
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool isalpha(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool isalpha(char ch) {
 		return islower(ch) || isupper(ch);
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool isalnum(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool isalnum(char ch) {
 		return isalpha(ch) || isdigit(ch);
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool isxdigit(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool isxdigit(char ch) {
 		return (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F') || isdigit(ch);
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool isspace(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool isspace(char ch) {
 		return (ch >= '\t' && ch <= '\r') || (ch == ' ');
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 char tolower(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 char tolower(char ch) {
 		return isupper(ch) ? ch + 'a' - 'A' : ch;
 	}
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 char toupper(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 char toupper(char ch) {
 		return islower(ch) ? ch + 'A' - 'a' : ch;
 	}
 
 }
 
-WJR_INLINE_CONSTEXPR20 const char* ascii_traits::ltrim(const char* s, size_t n) {
-	const char* e = s + n;
+template<typename Traits>
+WJR_INLINE_CONSTEXPR20 basic_string_view<char, ascii_traits<Traits>> 
+	basic_string_view<char, ascii_traits<Traits>>::ltrim() const {
+	const char* s = begin();
+	const char* e = end();
 	while (s != e) {
 		if (!ascii::sisspace(*s)) break;
 		++s;
 	}
-	return s;
+	return basic_string_view(s, e - s);
 }
 
-WJR_INLINE_CONSTEXPR20 const char* ascii_traits::rtrim(const char* s, size_t n) {
-	const char* e = s + n;
+template<typename Traits>
+WJR_INLINE_CONSTEXPR20 basic_string_view<char, ascii_traits<Traits>> 
+basic_string_view<char, ascii_traits<Traits>>::rtrim() const {
+	const char* s = begin();
+	const char* e = end();
 	while (s != e) {
 		if (!ascii::sisspace(e[-1])) break;
 		--e;
 	}
-	return e;
+	return basic_string_view(s, e - s);
 }
 
-WJR_INLINE_CONSTEXPR20 std::pair<const char*, const char*> 
-	ascii_traits::trim(const char* s, size_t n) {
-	const auto l = ltrim(s, n);
-	const auto m = n - (l - s);
-	const auto r = rtrim(l, m);
-	return std::make_pair(l, r);
+template<typename Traits>
+WJR_INLINE_CONSTEXPR20 basic_string_view<char, ascii_traits<Traits>>
+basic_string_view<char, ascii_traits<Traits>>::trim() const {
+	return ltrim().rtrim();
 }
 
-WJR_CONSTEXPR20 void ascii_traits::tolower(char* s, size_t n) {
-	for (size_t i = 0; i < n; ++i) {
-		s[i] = ascii::tolower(s[i]);
+template<typename Traits>
+WJR_CONSTEXPR20 basic_string_view<char, ref_traits<ascii_traits<Traits>>>& 
+	basic_string_view<char, ref_traits<ascii_traits<Traits>>>::tolower() {
+	for (auto i = ref_begin(); i != ref_end(); ++i) {
+		*i = ascii::tolower(*i);
 	}
 }
-WJR_CONSTEXPR20 void ascii_traits::toupper(char* s, size_t n) {
-	for (size_t i = 0; i < n; ++i) {
-		s[i] = ascii::toupper(s[i]);
+
+template<typename Traits>
+WJR_CONSTEXPR20 basic_string_view<char, ref_traits<ascii_traits<Traits>>>&
+	basic_string_view<char, ref_traits<ascii_traits<Traits>>>::toupper() {
+	for (auto i = ref_begin(); i != ref_end(); ++i) {
+		*i = ascii::toupper(*i);
 	}
 }
 
@@ -3145,7 +3182,7 @@ namespace utf8 {
 		__invalid_byte, __invalid_byte, __invalid_byte, __invalid_byte,
 	};
 
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 int get_code(uint8_t c) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 int get_code(uint8_t c) {
 		return __char_code_table[c];
 	}
 
@@ -3352,7 +3389,7 @@ namespace utf8 {
 	// return - 2 if illegal
 	// return 0 if legal
 	template<typename iter>
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 uint32_t encode(uint32_t c, iter& _First) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 uint32_t encode(uint32_t c, iter& _First) {
 		if (c > 0x10ffff)return -2;
 		if (c < 0x80) {
 			*_First = static_cast<uint8_t>(c);

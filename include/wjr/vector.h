@@ -49,7 +49,7 @@ struct vector_data {
 	WJR_INTRINSIC_CONSTEXPR20 vector_data() = default;
 	vector_data(const vector_data&) = delete;
 	vector_data& operator=(const vector_data&) = delete;
-	~vector_data() = default;
+	WJR_CONSTEXPR20 ~vector_data() = default;
 
 	WJR_CONSTEXPR20 vector_data(
 		_Alty& al,
@@ -714,12 +714,12 @@ public:
 	}
 
 	WJR_CONSTEXPR20 void reserve(size_type n) {
-		const auto _Oldsize = size();
-		const auto _Oldcapacity = capacity();
+		const size_type _Oldsize = size();
+		const size_type _Oldcapacity = capacity();
 		if (_Oldcapacity < n) {
 			auto& al = getAllocator();
 
-			const auto _Newcapacity = getGrowthCapacity(_Oldcapacity, n);
+			const size_type _Newcapacity = getGrowthCapacity(_Oldcapacity, n);
 
 			data_type _Newdata(al, _Oldsize, _Newcapacity, extend_tag());
 			wjr::uninitialized_move_n(al, data(), _Oldsize, _Newdata.data());
@@ -783,8 +783,8 @@ public:
 	template<typename...Args>
 	WJR_INLINE_CONSTEXPR20 reference emplace_back(Args&&... args) {
 		auto& al = getAllocator();
-		const auto _Mylast = lastPtr();
-		const auto _Myend = endPtr();
+		const pointer _Mylast = lastPtr();
+		const pointer _Myend = endPtr();
 		if (_Mylast != _Myend) {
 			wjr::construct_at(al, _Mylast, std::forward<Args>(args)...);
 			inc_size(1);
@@ -827,14 +827,14 @@ public:
 	}
 
 	WJR_CONSTEXPR20 iterator insert(const_iterator _Where, size_type _Count, const value_type& _Val) {
-		const auto __old_pos = _Where - cbegin();
+		const auto __old_pos = static_cast<size_type>(_Where - cbegin());
 		_M_fill_insert(begin() + __old_pos, _Count, _Val);
 		return begin() + __old_pos;
 	}
 
 	template<typename iter, std::enable_if_t<is_iterator_v<iter>, int> = 0>
 	WJR_CONSTEXPR20 iterator insert(const_iterator _Where, iter _First, iter _Last) {
-		const auto __old_pos = _Where - cbegin();
+		const auto __old_pos = static_cast<size_type>(_Where - cbegin());
 		_M_range_insert(begin() + __old_pos, _First, _Last, typename std::iterator_traits<iter>::iterator_category());
 		return begin() + __old_pos;
 	}
@@ -844,8 +844,8 @@ public:
 	}
 
 	WJR_INLINE_CONSTEXPR20 iterator erase(const_iterator _First, const_iterator _Last) {
-		const auto __beg = begin();
-		const auto __cbeg = cbegin();
+		const iterator __beg = begin();
+		const const_iterator __cbeg = cbegin();
 		return _M_erase(__beg + (_First - __cbeg), __beg + (_Last - __cbeg));
 	}
 
@@ -1069,9 +1069,11 @@ public:
 	WJR_CONSTEXPR20 vector& replace(
 		const_iterator _Oldfirst, const_iterator _Oldlast,
 		iter _Newfirst, iter _Newlast) {
-		const auto __offset1 = static_cast<size_type>(_Oldfirst - cbegin());
-		const auto __offset2 = static_cast<size_type>(_Oldlast - cbegin());
-		_M_range_replace(begin() + __offset1, begin() + __offset2, 
+		const pointer __beg = begin();
+		const const_iterator __cbeg = cbegin();
+		const auto __offset1 = static_cast<size_type>(_Oldfirst - __cbeg);
+		const auto __offset2 = static_cast<size_type>(_Oldlast - __cbeg);
+		_M_range_replace(__beg + __offset1, __beg + __offset2, 
 			_Newfirst, _Newlast, typename std::iterator_traits<iter>::iterator_category());
 		return *this;
 	}
@@ -1080,9 +1082,11 @@ public:
 		const_iterator _Oldfirst, const_iterator _Oldlast,
 		const size_type _Count, const value_type& _Val
 	) {
-		const auto __offset1 = static_cast<size_type>(_Oldfirst - cbegin());
-		const auto __offset2 = static_cast<size_type>(_Oldlast - cbegin());
-		_M_fill_replace(begin() + __offset1, begin() + __offset2,
+		const pointer __beg = begin();
+		const const_iterator __cbeg = cbegin();
+		const auto __offset1 = static_cast<size_type>(_Oldfirst - __cbeg);
+		const auto __offset2 = static_cast<size_type>(_Oldlast - __cbeg);
+		_M_fill_replace(__beg + __offset1, __beg + __offset2,
 			_Count, _Val);
 		return *this;
 	}
@@ -1093,9 +1097,10 @@ public:
 			throw std::invalid_argument("invalid vector::assign_self argument");
 		}
 #endif // _WJR_EXCEPTION
-		const auto __offset1 = _First - cbegin();
-		const auto __offset2 = _Last - cbegin();
-		chop(size() - __offset2).erase(cbegin(), cbegin() + __offset1);
+		const const_iterator __cbeg = cbegin();
+		const auto __offset1 = _First - __cbeg;
+		const auto __offset2 = _Last - __cbeg;
+		chop(size() - __offset2).erase(__cbeg, __cbeg + __offset1);
 		return *this;
 	}
 
@@ -1143,11 +1148,11 @@ private:
 		_M_construct_n(_Count, _First, _Last);
 	}
 
-	WJR_CONSTEXPR20 void _M_erase_at_end(const pointer _Where) noexcept {
-		const auto _Myfirst = data();
+	WJR_CONSTEXPR20 void _M_erase_at_end(const_pointer _Where) noexcept {
+		const pointer _Myfirst = data();
 		const pointer _Mylast = lastPtr();
-		wjr::destroy(getAllocator(), _Where, _Mylast);
 		const auto __new_size = static_cast<size_type>(_Where - _Myfirst);
+		wjr::destroy(getAllocator(), _Myfirst + __new_size, _Mylast);
 		set_size(__new_size);
 	}
 
@@ -1214,7 +1219,7 @@ private:
 			else {
 				const auto __old_size = static_cast<size_type>(_Mylast - _Myfirst);
 				const auto __old_pos = static_cast<size_type>(_Where - _Myfirst);
-				const auto _Newcapacity = getGrowthCapacity(capacity(), __old_size + n);
+				const size_type _Newcapacity = getGrowthCapacity(capacity(), __old_size + n);
 				data_type _Newdata(al, __old_size + n, _Newcapacity, extend_tag());
 				const pointer _Newfirst = _Newdata.data();
 
@@ -1252,7 +1257,7 @@ private:
 			}
 			else {
 				const auto __old_size = static_cast<size_type>(_Mylast - _Myfirst);
-				const auto _Newcapacity = getGrowthCapacity(capacity(), __old_size + n);
+				const size_type _Newcapacity = getGrowthCapacity(capacity(), __old_size + n);
 
 				data_type _Newdata(al, __old_size + n, _Newcapacity, extend_tag());
 				const pointer _Newfirst = _Newdata.data();
@@ -1304,7 +1309,7 @@ private:
 			set_size(_Count);
 		}
 		else {
-			auto _Newcapacity = getGrowthCapacity(capacity(), _Count);
+			size_type _Newcapacity = getGrowthCapacity(capacity(), _Count);
 			data_type _Newdata(al, _Count, _Newcapacity, extend_tag());
 			const pointer _Newfirst = _Newdata.data();
 			wjr::uninitialized_copy(al, _First, _Last, _Newfirst);
@@ -1363,8 +1368,8 @@ private:
 
 		const auto __old_pos = static_cast<size_type>(_Where - _Myfirst);
 		const auto __old_size = static_cast<size_type>(_Mylast - _Myfirst);
-		const auto __new_size = __old_size + 1;
-		const auto _Newcapacity = getGrowthCapacity(__old_size, __new_size);
+		const size_type __new_size = __old_size + 1;
+		const size_type _Newcapacity = getGrowthCapacity(__old_size, __new_size);
 
 		data_type _Newdata(al, __new_size, _Newcapacity, extend_tag());
 
@@ -1388,7 +1393,7 @@ private:
 
 		const auto __old_size = static_cast<size_type>(_Mylast - _Myfirst);
 		const auto __new_size = __old_size + 1;
-		const auto _Newcapacity = getGrowthCapacity(__old_size, __new_size);
+		const size_type _Newcapacity = getGrowthCapacity(__old_size, __new_size);
 
 		data_type _Newdata(al, __new_size, _Newcapacity, extend_tag());
 		const pointer _Newfirst = _Newdata.data();

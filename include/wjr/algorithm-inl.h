@@ -520,24 +520,26 @@ WJR_CONSTEXPR20 _Iter search(_Iter _First, _Iter _Last, const _Searcher& _Srch) 
 	return _Srch(_First, _Last).first;
 }
 
-template<typename _Iter, typename...Args, std::enable_if_t<is_iterator_v<_Iter>, int>>
+template<typename _Iter, typename...Args, 
+	std::enable_if_t<is_iterator_v<wjr::remove_cvref_t<_Iter>>, int>>
 WJR_CONSTEXPR20 void construct_at(_Iter iter, Args&&... args) {
 	using value_type = iter_val_t<_Iter>;
 	::new (voidify(get_address(iter))) value_type(std::forward<Args>(args)...);
 }
 
-template<typename _Iter, std::enable_if_t<is_iterator_v<_Iter>, int>>
+template<typename _Iter, std::enable_if_t<is_iterator_v<wjr::remove_cvref_t<_Iter>>, int>>
 WJR_CONSTEXPR20 void construct_at(_Iter iter, default_construct_tag) {
 	using value_type = iter_val_t<_Iter>;
 	::new (voidify(get_address(iter))) value_type;
 }
 
-template<typename _Iter, std::enable_if_t<is_iterator_v<_Iter>, int>>
+template<typename _Iter, std::enable_if_t<is_iterator_v<wjr::remove_cvref_t<_Iter>>, int>>
 WJR_CONSTEXPR20 void construct_at(_Iter iter, value_construct_tag) {
 	wjr::construct_at(iter);
 }
 
-template<typename Alloc, typename _Iter, typename...Args, std::enable_if_t<!is_iterator_v<Alloc>, int>>
+template<typename Alloc, typename _Iter, typename...Args, 
+	std::enable_if_t<!is_iterator_v<wjr::remove_cvref_t<Alloc>>, int>>
 WJR_CONSTEXPR20 void construct_at(Alloc& al, _Iter iter, Args&&...args) {
 	using pointer = iter_address_t<_Iter>;
 	if constexpr (is_default_allocator_construct_v<Alloc, pointer, Args...>) {

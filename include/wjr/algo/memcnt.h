@@ -8,7 +8,7 @@ _WJR_ALGO_BEGIN
 
 template<typename T>
 size_t __memcnt(const T* s, T val, size_t n) {
-	using namespace wjr::literals;
+	
 	constexpr size_t _Mysize = sizeof(T);
 
 #if WJR_AVX2

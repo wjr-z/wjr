@@ -44,7 +44,7 @@ _WJR_ALGO_BEGIN
 
 template<typename T, typename _Pred>
 const T* __memchr(const T* s, T val, size_t n, _Pred pred) {
-	using namespace wjr::literals;	
+		
 	constexpr size_t _Mysize = sizeof(T);
 
 #if WJR_AVX2
@@ -55,8 +55,6 @@ const T* __memchr(const T* s, T val, size_t n, _Pred pred) {
 	using sint = typename simd_t::int_type;
 	constexpr uintptr_t width = simd_t::width() / (8 * _Mysize);
 	constexpr uintptr_t bound = width * _Mysize;
-
-	constexpr size_t __constant_threshold = 8 / _Mysize;
 
 	if (is_unlikely(n == 0)) return s;
 

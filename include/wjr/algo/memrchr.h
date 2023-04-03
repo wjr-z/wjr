@@ -44,7 +44,7 @@ _WJR_ALGO_BEGIN
 
 template<typename T, typename _Pred>
 const T* __memrchr(const T* s, T val, size_t n, _Pred pred) {
-	using namespace wjr::literals;
+	
 	constexpr size_t _Mysize = sizeof(T);
 
 #if WJR_AVX2

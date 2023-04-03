@@ -133,13 +133,17 @@ void thread_pool::append(iter _First, iter _Last) {
     else {
         n = _Newsize - _Oldsize;
     }
-    m_real_tasks.fetch_add(n, std::memory_order_relaxed);
-    if (n > get_threads_size()) {
-        m_task_cv.notify_all();
+    if (n == 0) {
     }
     else {
-        for (size_t i = 0; i < n; ++i) {
-            m_task_cv.notify_one();
+        m_real_tasks.fetch_add(n, std::memory_order_relaxed);
+        if (n > get_threads_size()) {
+            m_task_cv.notify_all();
+        }
+        else {
+            for (; n != 0; --n) {
+                m_task_cv.notify_one();
+            }
         }
     }
 }

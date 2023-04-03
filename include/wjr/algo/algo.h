@@ -2,9 +2,6 @@
 #ifndef __WJR_ALGO_ALOG_H
 #define __WJR_ALGO_ALOG_H
 
-#include <wjr/Optimizer.h>
-
-#include <wjr/literals.h>
 #include <wjr/simd/simd_intrin.h>
 
 #include <wjr/algo/memchr.h>
@@ -14,6 +11,8 @@
 #include <wjr/algo/memrmis.h>
 #include <wjr/algo/memcnt.h>
 #include <wjr/algo/memset.h>
+
+#include <wjr/Optimizer.h>
 
 _WJR_ALGO_BEGIN
 

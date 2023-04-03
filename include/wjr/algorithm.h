@@ -107,16 +107,18 @@ WJR_CONSTEXPR20 _Iter1 search(_Iter1 _First1, _Iter1 _Last1,
 template<typename _Iter, typename _Searcher>
 WJR_CONSTEXPR20 _Iter search(_Iter _First, _Iter _Last, const _Searcher& _Srch);
 
-template<typename _Iter, typename...Args, std::enable_if_t<is_iterator_v<_Iter>, int> = 0>
+template<typename _Iter, typename...Args, 
+	std::enable_if_t<is_iterator_v<wjr::remove_cvref_t<_Iter>>, int> = 0>
 WJR_CONSTEXPR20 void construct_at(_Iter iter, Args&&... args);
 
-template<typename _Iter, std::enable_if_t<is_iterator_v<_Iter>, int> = 0>
+template<typename _Iter, std::enable_if_t<is_iterator_v<wjr::remove_cvref_t<_Iter>>, int> = 0>
 WJR_CONSTEXPR20 void construct_at(_Iter iter, default_construct_tag);
 
-template<typename _Iter, std::enable_if_t<is_iterator_v<_Iter>, int> = 0>
+template<typename _Iter, std::enable_if_t<is_iterator_v<wjr::remove_cvref_t<_Iter>>, int> = 0>
 WJR_CONSTEXPR20 void construct_at(_Iter iter, value_construct_tag);
 
-template<typename Alloc, typename _Iter, typename...Args, std::enable_if_t<!is_iterator_v<Alloc>, int> = 0>
+template<typename Alloc, typename _Iter, typename...Args, 
+	std::enable_if_t<!is_iterator_v<wjr::remove_cvref_t<Alloc>>, int> = 0>
 WJR_CONSTEXPR20 void construct_at(Alloc& al, _Iter iter, Args&&...args);
 
 template<typename _Iter>
