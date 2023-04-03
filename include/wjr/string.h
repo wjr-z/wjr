@@ -213,6 +213,11 @@ struct ref_traits : public Traits {};
 template<typename Traits>
 struct __traits_helper<ref_traits<Traits>> : __traits_helper<Traits> {};
 
+// CRTP
+template<typename Derived>
+class __base_string_view {
+};
+
 template<typename Char, typename Traits = std::char_traits<Char>>
 class basic_string_view;
 

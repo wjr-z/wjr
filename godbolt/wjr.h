@@ -12832,6 +12832,11 @@ struct ref_traits : public Traits {};
 template<typename Traits>
 struct __traits_helper<ref_traits<Traits>> : __traits_helper<Traits> {};
 
+// CRTP
+template<typename Derived>
+class __base_string_view {
+};
+
 template<typename Char, typename Traits = std::char_traits<Char>>
 class basic_string_view;
 
@@ -13490,6 +13495,8 @@ using _Mybase::_Mybase;
 using _Mybase::operator=;
 using _Mybase::begin;
 using _Mybase::end;
+using _Mybase::ref_begin;
+using _Mybase::ref_end;
 
 using traits_type = typename _Mybase::traits_type;
 using size_type = typename _Mybase::size_type;
@@ -15107,7 +15114,6 @@ std::basic_istream<Char, Traits>&& is,
 basic_string<Char, Traits, Alloc, Data>& str, const Char delim) {
 // get characters into string, discard delimiter
 using IS = std::basic_istream<Char, Traits>;
-using size_type = typename basic_string<Char, Traits, Alloc, Data>::size_type;
 
 typename IS::iostate state = IS::goodbit;
 const typename IS::sentry sentry(is, true);
@@ -17504,12 +17510,3 @@ using Random = random_static;
 _WJR_END
 
 #endif // __WJR_RANDOM_H
-
-int main() {
-wjr::string str = "  abc";
-wjr::ascii_view rv(str);
-auto x = rv.trim().prefix(3);
-std::cout << typeid(x).name() << '\n';
-std::cout << str << '\n';
-return 0;
-}
