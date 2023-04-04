@@ -43,7 +43,7 @@ struct string_static_data : public vector_static_data<Char, N, Alloc> {
 	WJR_INLINE_CONSTEXPR20 string_static_data() : _Mybase() {}
 	string_static_data(const string_static_data&) = delete;
 	string_static_data& operator=(const string_static_data&) = delete;
-	~string_static_data() = default;
+	WJR_CONSTEXPR20 ~string_static_data() = default;
 
 	WJR_CONSTEXPR20 string_static_data(
 		_Alty& al,
@@ -112,7 +112,7 @@ struct string_sso_data : public vector_sso_data<Char, N, Alloc> {
 	WJR_INLINE_CONSTEXPR20 string_sso_data() : _Mybase() {}
 	string_sso_data(const string_sso_data&) = delete;
 	string_sso_data& operator=(const string_sso_data&) = delete;
-	~string_sso_data() = default;
+	WJR_CONSTEXPR20 ~string_sso_data() = default;
 
 	WJR_CONSTEXPR20 string_sso_data(
 		_Alty& al,
@@ -207,25 +207,17 @@ struct ascii_traits : public Traits {};
 template<typename Traits>
 struct __traits_helper<ascii_traits<Traits>> : __traits_helper<Traits> {};
 
-template<typename Traits>
-struct ref_traits : public Traits {};
-
-template<typename Traits>
-struct __traits_helper<ref_traits<Traits>> : __traits_helper<Traits> {};
-
-// CRTP
 template<typename Derived>
-class __base_string_view {
-};
+struct __base_string_view_traits;
 
 template<typename Char, typename Traits = std::char_traits<Char>>
 class basic_string_view;
 
-template<typename Char, typename Traits = std::char_traits<Char>>
-using basic_string_ref_view = basic_string_view<Char, ref_traits<Traits>>;
+enum class conv_code;
 
 template<typename Char, typename Traits>
-class basic_string_view {
+struct __base_string_view_traits<basic_string_view<Char, Traits>> {
+	using _Derived = basic_string_view<Char, Traits>;
 
 	using _Traits_helper = __traits_helper<Traits>;
 
@@ -233,7 +225,7 @@ class basic_string_view {
 
 	template<typename T>
 	struct _Is_string_view_like : std::conjunction<
-		std::is_convertible<const T&, basic_string_view>
+		std::is_convertible<const T&, _Derived>
 	> {};
 
 	template<typename T>
@@ -257,16 +249,6 @@ class basic_string_view {
 	template<typename T>
 	constexpr static bool _Is_noptr_string_view_like_v = _Is_noptr_string_view_like<T>::value;
 
-	template<typename T>
-	using _Preset_char_type = std::enable_if_t<is_any_of_v<T, char, wchar_t>, T>;
-
-public:
-	static_assert(!std::is_array_v<Char>&& std::is_trivial_v<Char>&& std::is_standard_layout_v<Char>,
-		"The character type of basic_string_view must be a non-array trivial standard-layout type. See N4910 "
-		"23.1 [strings.general]/1.");
-
-	static_assert(std::is_same_v<Char, typename Traits::char_type>, "");
-
 	using traits_type = Traits;
 	using value_type = Char;
 	using pointer = Char*;
@@ -281,6 +263,145 @@ public:
 	using difference_type = ptrdiff_t;
 
 	static constexpr auto npos = static_cast<size_type>(-1);
+};
+
+template<typename Derived>
+class __base_string_view : public __base_string_view_traits<Derived> {
+public:
+	using _Mybase = __base_string_view_traits<Derived>;
+	template<typename T>
+	constexpr static bool _Is_noptr_string_view_like_v = _Mybase::template _Is_noptr_string_view_like_v<T>;
+
+	using value_type = typename _Mybase::value_type;
+	using size_type = typename _Mybase::size_type;
+
+	constexpr static size_type npos = _Mybase::npos;
+	
+	WJR_INLINE_CONSTEXPR void swap(Derived& other) noexcept {
+		const Derived tmp{ other };
+		other = this->derived();
+		this->derived() = tmp;
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived substr(
+		const size_type off = 0, size_type n = npos) const WJR_NOEXCEPT {
+#if defined(_WJR_EXCEPTION)
+		if (is_likely(off <= derived().size())) {
+#endif // _WJR_EXCEPTION
+			return nesubstr(off, n);
+#if defined(_WJR_EXCEPTION)
+		}
+		throw std::out_of_range("out of range at basic_string_view::substr");
+#endif // _WJR_EXCEPTION
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived
+		nesubstr(const size_type off = 0, size_type n = npos) const noexcept {
+		n = std::min(n, this->derived().size() - off);
+		return Derived(this->derived().data() + off, n);
+	}
+
+	// no exception view
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(
+		const value_type* s, const size_type n) noexcept {
+		return Derived(s, n);
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(
+		const value_type* s) noexcept {
+		return Derived(s);
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(
+		std::initializer_list<value_type> il) noexcept {
+		return view(il.begin(), il.size());
+	}
+
+	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(const StringView& t) noexcept {
+		return Derived(t);
+	}
+
+	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(const StringView& t,
+		const size_type off, const size_type n = npos) noexcept {
+		return view(t).nesubstr(off, n);
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived view() const noexcept {
+		return this->derived();
+	}
+
+	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived eview(const StringView& t,
+		const size_type off, const size_type n = npos) WJR_NOEXCEPT {
+		return view(t).substr(off, n);
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived prefix(size_type n) const noexcept {
+		n = std::min(n, this->derived().size());
+		return Derived(this->derived().begin(), n);
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived suffix(size_type n) const noexcept {
+		n = std::min(n, this->derived().size());
+		return Derived(this->derived().end() - n, n);
+	}
+private:
+	Derived& derived() { return static_cast<Derived&>(*this); }
+	const Derived& derived() const { return static_cast<const Derived&>(*this); }
+
+};
+
+template<typename Char, typename Traits>
+class basic_string_view : public __base_string_view<basic_string_view<Char, Traits>> {
+public:
+	using _Mybase = __base_string_view<basic_string_view<Char, Traits>>;
+private:
+
+	using _Traits_helper = typename _Mybase::_Traits_helper;
+
+	using _Std_view_type = typename _Mybase::_Std_view_type;
+
+	template<typename T>
+	constexpr static bool _Is_string_view_like_v = _Mybase::template _Is_string_view_like_v<T>;
+
+	template<typename T>
+	constexpr static bool _Is_noptr_std_string_view_like_v = _Mybase::template _Is_noptr_std_string_view_like_v<T>;
+
+	template<typename T>
+	constexpr static bool _Is_noptr_string_view_like_v = _Mybase::template _Is_noptr_string_view_like_v<T>;
+
+public:
+	static_assert(!std::is_array_v<Char>&& std::is_trivial_v<Char>&& std::is_standard_layout_v<Char>,
+		"The character type of basic_string_view must be a non-array trivial standard-layout type. See N4910 "
+		"23.1 [strings.general]/1.");
+
+	static_assert(std::is_same_v<Char, typename Traits::char_type>, "");
+
+	using traits_type = typename _Mybase::traits_type;
+	using value_type = typename _Mybase::value_type;
+	using pointer = typename _Mybase::pointer;
+	using const_pointer = typename _Mybase::const_pointer;
+	using reference = typename _Mybase::reference;
+	using const_reference = typename _Mybase::const_reference;
+	using const_iterator = typename _Mybase::const_iterator;
+	using iterator = typename _Mybase::iterator;
+	using const_reverse_iterator = typename _Mybase::const_reverse_iterator;
+	using reverse_iterator = typename _Mybase::reverse_iterator;
+	using size_type = typename _Mybase::size_type;
+	using difference_type = typename _Mybase::difference_type;
+
+	constexpr static size_type npos = _Mybase::npos;
+
+	using _Mybase::swap;
+	using _Mybase::substr;
+	using _Mybase::view;
+	using _Mybase::eview;
+	using _Mybase::prefix;
+	using _Mybase::suffix;
+
 private:
 
 	constexpr static size_type traits_length(const value_type* s) {
@@ -393,24 +514,6 @@ public:
 		_Mysize -= n;
 	}
 
-	WJR_INLINE_CONSTEXPR void swap(basic_string_view& other) noexcept {
-		const basic_string_view tmp{ other };
-		other = *this;
-		*this = tmp;
-	}
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view substr(
-		const size_type off = 0, size_type n = npos) const WJR_NOEXCEPT {
-#if defined(_WJR_EXCEPTION)
-		if (is_likely(off <= size())) {
-#endif // _WJR_EXCEPTION
-			return nesubstr(off, n);
-#if defined(_WJR_EXCEPTION)
-		}
-		throw std::out_of_range("out of range at basic_string_view::substr");
-#endif // _WJR_EXCEPTION
-	}
-
 	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
 	WJR_NODISCARD WJR_CONSTEXPR20 int compare(const StringView& t) const noexcept {
 		const auto sv = view(t);
@@ -457,7 +560,7 @@ public:
 	WJR_NODISCARD WJR_CONSTEXPR20 int compare(const size_type off1, const size_type n1,
 		const Char* const ptr, const size_type n2) const {
 		return eview(*this, off1, n1).compare(eview(ptr, n2));
-	}
+	}       
 
 	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
 	WJR_NODISCARD WJR_CONSTEXPR20 bool starts_with(const StringView& t) const noexcept {
@@ -711,65 +814,6 @@ public:
 
 	/*------External extension function------*/
 
-	// no exception
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view
-		nesubstr(const size_type off = 0, size_type n = npos) const noexcept {
-		n = std::min(n, _Mysize - off);
-		return basic_string_view(_Mydata + off, n);
-	}
-
-	// no exception view
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(
-		const value_type* s, const size_type n) noexcept {
-		return basic_string_view(s, n);
-	}
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(
-		const value_type* s) noexcept {
-		return basic_string_view(s);
-	}
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(
-		std::initializer_list<value_type> il) noexcept {
-		return view(il.begin(), il.size());
-	}
-
-	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(const StringView& t) noexcept {
-		return basic_string_view(t);
-	}
-
-	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(const StringView& t,
-		const size_type off, const size_type n = npos) noexcept {
-		return view(t).nesubstr(off, n);
-	}
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view view() const noexcept {
-		return *this;
-	}
-
-	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view eview(const StringView& t,
-		const size_type off, const size_type n = npos) WJR_NOEXCEPT {
-		return view(t).substr(off, n);
-	}
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_ref_view<Char, Traits> ref_view() const noexcept {
-		return basic_string_ref_view<Char, Traits>(data(), size());
-	}
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view prefix(size_type n) const noexcept {
-		n = std::min(n, size());
-		return basic_string_view(begin(), n);
-	}
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view suffix(size_type n) const noexcept {
-		n = std::min(n, size());
-		return basic_string_view(end() - n, n);
-	}
-
 	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
 	WJR_NODISCARD WJR_CONSTEXPR20 bool equal(const StringView& t) const noexcept {
 		const auto sv = view(t);
@@ -813,79 +857,74 @@ private:
 };
 
 template<typename Traits>
-class basic_string_view<char, ascii_traits<Traits>> : public basic_string_view<char, Traits> {
+class basic_string_view<char, ascii_traits<Traits>> 
+	: public basic_string_view<char, Traits>, 
+	public __base_string_view<basic_string_view<char, ascii_traits<Traits>>> {
+private:
+	using _Mybase1 = basic_string_view<char, Traits>;
+	using _Mybase2 = __base_string_view<basic_string_view<char, ascii_traits<Traits>>>;
 public:
-	using _Mybase = basic_string_view<char, Traits>;
-	using _Mybase::_Mybase;
-	using _Mybase::operator=;
-	using _Mybase::begin;
-	using _Mybase::end;
+	using _Mybase1::_Mybase1;
+	using _Mybase1::operator=;
+	using _Mybase1::begin;
+	using _Mybase1::end;
+
+	using _Mybase2::swap;
+	using _Mybase2::substr;
+	using _Mybase2::view;
+	using _Mybase2::eview;
+	using _Mybase2::prefix;
+	using _Mybase2::suffix;
 
 	using traits_type = ascii_traits<Traits>;
-	using size_type = typename _Mybase::size_type;
+	using size_type = typename _Mybase1::size_type;
 
-	basic_string_view(const _Mybase& base) : _Mybase(base) {}
+	basic_string_view(const _Mybase1& base) : _Mybase1(base) {}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 _Mybase base() const { return *this; }
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static bool isalnum(char ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static bool isalpha(char ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static bool islower(char ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static bool isupper(char ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static bool isdigit(char ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static bool isxdigit(char ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static bool isspace(char ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static char tolower(char ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static char toupper(char ch);
 
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 basic_string_view ltrim() const;
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 basic_string_view rtrim() const;
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 basic_string_view trim() const;
 
-};
+	template<typename T>
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 T to_integral(
+		conv_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
-template<typename Char, typename Traits>
-class __string_ref_view_helper : public basic_string_view<Char, Traits> {
-public:
-	using _Mybase = basic_string_view<Char, Traits>;
-	using _Mybase::_Mybase;
-	using _Mybase::operator=;
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 int toi(
+		conv_code* err = nullptr,size_type* pos = nullptr, int base = 10) const;
 
-	using traits_type = ref_traits<Traits>;
-	using pointer = typename _Mybase::pointer;
-	using iterator = pointer;
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 long tol(
+		conv_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
-	WJR_INLINE_CONSTEXPR20 pointer ref_data() const { return const_cast<pointer>(_Mybase::data()); }
-	WJR_INLINE_CONSTEXPR20 iterator ref_begin() const { return const_cast<iterator>(_Mybase::begin()); }
-	WJR_INLINE_CONSTEXPR20 iterator ref_end() const { return const_cast<iterator>(_Mybase::end()); }
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 long long toll(
+		conv_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
-private:
-	using _Mybase::ref_view;
-};
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 unsigned int toui(
+		conv_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
-template<typename Char, typename Traits>
-class basic_string_view<Char, ref_traits<Traits>> : public __string_ref_view_helper<Char, Traits> {
-public:
-	using _Mybase = __string_ref_view_helper<Char, Traits>;
-	using _Mybase::_Mybase;
-	using _Mybase::operator=;
-	using _Mybase::begin;
-	using _Mybase::end;
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 unsigned long toul(
+		conv_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
-	using size_type = typename _Mybase::size_type;
-	using pointer = typename _Mybase::pointer;
-	using const_pointer = typename _Mybase::const_pointer;
-};
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 unsigned long long toull(
+		conv_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
-template<typename Traits>
-class basic_string_view<char, ref_traits<ascii_traits<Traits>>> 
-	: public __string_ref_view_helper<char, ascii_traits<Traits>> {
-public:
-	using _Mybase = __string_ref_view_helper<char, ascii_traits<Traits>>;
-	using _Mybase::_Mybase;
-	using _Mybase::operator=;
-	using _Mybase::begin;
-	using _Mybase::end;
-	using _Mybase::ref_begin;
-	using _Mybase::ref_end;
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 float tof(
+		conv_code* err = nullptr, size_type* pos = nullptr) const;
 
-	using traits_type = typename _Mybase::traits_type;
-	using size_type = typename _Mybase::size_type;
-	using pointer = typename _Mybase::pointer;
-	using const_pointer = typename _Mybase::const_pointer;
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 double tod(
+		conv_code* err = nullptr, size_type* pos = nullptr) const;
 
-	WJR_CONSTEXPR20 basic_string_view& tolower();
-	WJR_CONSTEXPR20 basic_string_view& toupper();
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 long double told(
+		conv_code* err = nullptr, size_type* pos = nullptr) const;
 
 };
 
@@ -1030,7 +1069,6 @@ using u32string_view = basic_string_view<char32_t>;
 using wstring_view = basic_string_view<wchar_t>;
 
 using ascii_view = basic_string_view<char, ascii_traits<>>;
-using ascii_ref_view = basic_string_view<char, ref_traits<ascii_traits<>>>;
 
 template<
 	typename Char,
@@ -1466,7 +1504,7 @@ template<
 		}
 
 		WJR_CONSTEXPR20 basic_string& insert(const size_type off, const size_type n, const value_type c) {
-			WJR_UNUSED const auto __ck = eview(*this, off);
+			WJR_MAYBE_UNUSED const auto __ck = eview(*this, off);
 			insert(cbegin() + off, n, c);
 			return *this;
 		}
@@ -1484,7 +1522,7 @@ template<
 
 		template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
 		WJR_CONSTEXPR20 basic_string& insert(const size_type off, const StringView& t) {
-			WJR_UNUSED const auto __ck = eview(*this, off);
+			WJR_MAYBE_UNUSED const auto __ck = eview(*this, off);
 			const auto sv = view(t);
 			insert(cbegin() + off, sv.data(), sv.data() + sv.size());
 			return *this;
@@ -2082,21 +2120,6 @@ template<
 			m_core.truncate(n);
 			set_end();
 			return *this;
-		}
-
-		// assign a string view that points to itself
-		WJR_CONSTEXPR20 basic_string& assign_self(const_iterator _First, const_iterator _Last) WJR_NOEXCEPT {
-			m_core.assign_self(_First, _Last);
-			set_end();
-			return *this;
-		}
-
-		WJR_CONSTEXPR20 basic_string& assign_self(const size_type off, const size_type n = npos) WJR_NOEXCEPT {
-			return assign_self(view(*this, off, n));
-		}
-
-		WJR_CONSTEXPR20 basic_string& assign_self(view_type sv) WJR_NOEXCEPT {
-			return assign_self(sv.begin(), sv.end());
 		}
 
 		WJR_INLINE_CONSTEXPR20 void assume_total_capacity(const size_type n) const noexcept {
@@ -2934,6 +2957,13 @@ WJR_NODISCARD inline string to_string(long double val) {
 	return string(buf, static_cast<size_t>(len));
 }
 
+enum class conv_code {
+	ok,
+	overflow,
+	underflow,
+	noconv
+};
+
 namespace ascii {
 
 	enum __char_code {
@@ -3012,80 +3042,637 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 		  __none,          __none,          __none,          __none
 	};
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool sisalnum(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR bool isalnum(char ch) {
 		return __char_code_table[make_unsigned(ch)] & (__lower | __upper | __digit);
 	}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool sisalpha(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR bool isalpha(char ch) {
 		return __char_code_table[make_unsigned(ch)] & (__lower | __upper);
 	}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool sislower(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR bool islower(char ch) {
 		return __char_code_table[make_unsigned(ch)] & __lower;
 	}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool sisupper(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR bool isupper(char ch) {
 		return __char_code_table[make_unsigned(ch)] & __upper;
 	}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool sisdigit(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR bool isdigit(char ch) {
 		return __char_code_table[make_unsigned(ch)] & __digit;
 	}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool sisxdigit(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR bool isxdigit(char ch) {
 		return __char_code_table[make_unsigned(ch)] & __xdigit;
 	}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool sisspace(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR bool isspace(char ch) {
 		return __char_code_table[make_unsigned(ch)] & __white;
 	}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 char stolower(char ch) {
-		return sisupper(ch) ? ch + 'a' - 'A' : ch;
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR char tolower(char ch) {
+		return isupper(ch) ? ch + 'a' - 'A' : ch;
 	}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 char stoupper(char ch) {
-		return sislower(ch) ? ch + 'A' - 'a' : ch;
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR char toupper(char ch) {
+		return islower(ch) ? ch + 'A' - 'a' : ch;
 	}
 
 	// notice that table lookup may be faster for individual arrays, 
 	// but for arrays, it inhibits vectorization
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool islower(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR bool __islower(char ch) {
 		return ch >= 'a' && ch <= 'z';
 	}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool isupper(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR bool __isupper(char ch) {
 		return ch >= 'A' && ch <= 'Z';
 	}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool isdigit(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR bool __isdigit(char ch) {
 		return ch >= '0' && ch <= '9';
 	}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool isalpha(char ch) {
-		return islower(ch) || isupper(ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR bool __isalpha(char ch) {
+		return __islower(ch) || __isupper(ch);
 	}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool isalnum(char ch) {
-		return isalpha(ch) || isdigit(ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR bool __isalnum(char ch) {
+		return __isalpha(ch) || __isdigit(ch);
 	}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool isxdigit(char ch) {
-		return (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F') || isdigit(ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR bool __isxdigit(char ch) {
+		return (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F') || __isdigit(ch);
 	}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool isspace(char ch) {
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR bool __isspace(char ch) {
 		return (ch >= '\t' && ch <= '\r') || (ch == ' ');
 	}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 char tolower(char ch) {
-		return isupper(ch) ? ch + 'a' - 'A' : ch;
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR char __tolower(char ch) {
+		return __isupper(ch) ? ch + 'a' - 'A' : ch;
 	}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 char toupper(char ch) {
-		return islower(ch) ? ch + 'A' - 'a' : ch;
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR char __toupper(char ch) {
+		return __islower(ch) ? ch + 'A' - 'a' : ch;
 	}
+
+	// skip white space charactor
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR const char* skipw(const char* s, const char*const e) {
+		while (s != e && isspace(*s))++s;
+		return s;
+	}
+
+	// skip non-(white space) charactor
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR const char* rskipw(const char*const s, const char* e) {
+		while (s != e && isspace(e[-1]))--e;
+		return e;
+	}
+
+	WJR_INLINE_CONSTEXPR void tolower(const char* s, const char* const e, char* dest) {
+		while (s != e) {
+			*dest = __tolower(*s);
+			++s;
+			++dest;
+		}
+	}
+
+	WJR_INLINE_CONSTEXPR void toupper(const char* s, const char* const e, char* dest) {
+		while (s != e) {
+			*dest = __toupper(*s);
+			++s;
+			++dest;
+		}
+	}
+
+	template<int Base, int idx = 0>
+	struct __to_integral_table_helper {
+
+		constexpr static uint32_t invalid = 1u << 24;
+		constexpr static uint32_t multi = cpower_v<uint32_t, Base, idx>;
+
+		static_assert(Base >= 2 && Base <= 36, "");
+		static_assert(idx >= 0 && idx < 4, "");
+
+		constexpr __to_integral_table_helper() : table() {
+			for (int i = 0; i < 256; ++i) {
+				table[i] = invalid;
+			}
+
+			{
+				constexpr int _Max = '0' + (Base >= 10 ? 10 : Base) - 1;
+				for (int i = '0'; i <= _Max; ++i) {
+					table[i] = (i - '0') * multi;
+				}
+			}
+
+			if constexpr (Base > 10) {
+				constexpr int _Maxl = 'a' + (Base - 10) - 1;
+				constexpr int _Maxu = _Maxl + ('A' - 'a');
+				for (int i = 'a'; i <= _Maxl; ++i) {
+					table[i] = ((i - 'a') + 10) * multi;
+				}
+
+				for (int i = 'A'; i <= _Maxu; ++i) {
+					table[i] = ((i - 'A') + 10) * multi;
+				}
+			}
+
+		}
+
+		constexpr uint32_t operator[](uint8_t ch) const { return table[ch]; }
+
+	private:
+		uint32_t table[256];
+	};
+
+	template<int Base, int idx = 0>
+	constexpr static __to_integral_table_helper<Base, idx> __to_integral_table_helper_v;
+
+	// transfrom ch to digit
+	// if ch is a valid digit, return digit(ch) * (Base ^ idx)
+	// else return 2 ^ 
+	template<int Base = 10, int idx = 0>
+	WJR_NODISCARD inline constexpr uint32_t to_digit(char ch) {
+		return __to_integral_table_helper_v<Base, idx>[ch];
+	}
+
+	// skip digit charactor
+	template<int Base = 10>
+	WJR_NODISCARD inline constexpr const char* skipd(const char* s, const char* const e) {
+		constexpr const auto& helper = __to_integral_table_helper_v<Base>;
+		while (s != e && to_digit<Base>(*s) != helper.invalid) ++s;
+		return s;
+	}
+
+	// skip non-digit charactor
+	template<int Base = 10>
+	WJR_NODISCARD inline constexpr const char* skipnd(const char* s, const char* const e) {
+		constexpr const auto& helper = __to_integral_table_helper_v<Base>;
+		while (s != e && to_digit<Base>(*s) == helper.invalid) ++s;
+		return s;
+	}
+
+	template<int Base = 10>
+	WJR_NODISCARD inline constexpr char to_lowchar(uint8_t x) {
+		if constexpr (Base <= 10) {
+			return '0' + x;
+		}
+		else {
+			return x < 10 ? ('0' + x) : ('a' + (x - 10));
+		}
+	}
+
+	template<int Base = 10>
+	WJR_NODISCARD inline constexpr char to_hichar(uint8_t x) {
+		if constexpr (Base <= 10) {
+			return '0' + x;
+		}
+		else {
+			return x < 10 ? ('0' + x) : ('A' + (x - 10));
+		}
+	}
+
+	template<typename T, T Val, int Base>
+	constexpr int __to_integral_length_helper() {
+		unsigned int __Base = Base;
+		T __Val = Val;
+		int length = 0;
+		do {
+			__Val /= __Base;
+			++length;
+		} while (__Val != 0);
+		return length;
+	}
+
+	template<typename T, int Base>
+	struct __to_integral_check_helper {
+	public:
+		constexpr static T min() { return std::numeric_limits<T>::min(); }
+		constexpr static T max() { return std::numeric_limits<T>::max(); }
+
+		using unsigned_type = std::make_unsigned_t<T>;
+
+		constexpr static unsigned_type umax() {
+			return std::max(make_unsigned(min()), make_unsigned(max()));
+		}
+
+		using __power_type = std::conditional_t<
+			sizeof(unsigned_type) <= sizeof(uint32_t), uint32_t, unsigned_type>;
+
+		template<int idx>
+		using __power = cpower<__power_type, Base, idx>;
+
+		constexpr static int digits = __to_integral_length_helper<unsigned_type, umax(), Base>();
+		static_assert(digits > 0, "");
+
+		constexpr __to_integral_check_helper() : m_num() {
+			unsigned int __Base = Base;
+			{
+				auto __Min = umax();
+				for (int i = digits; i--;) {
+					auto ret = __Min % __Base;
+					m_num[i] = to_lowchar<Base>(ret);
+					__Min /= __Base;
+				}
+			}
+		}
+
+		constexpr const char* s() const { return m_num; }
+
+		// s must in range, for example
+		// base = 10, s[i] \in ['0', '9']
+		// base = 16, s[i] \in ['0', '9'] || s \in ['a', 'f']
+		WJR_INLINE_CONSTEXPR std::pair<int, unsigned_type> compare(const char* s) const {
+			unsigned_type ret = 0;
+			int op = compare<digits>(s, ret);
+			return std::make_pair(op, ret);
+		}
+
+	private:
+		template<size_t idx>
+		WJR_INTRINSIC_CONSTEXPR int compare(const char* s, unsigned_type& ret) const {
+			if constexpr (idx >= 4) {
+				constexpr auto _Val = (umax() / __power<idx - 4>::value)
+					% __power<4>::value;
+				auto r0 = to_digit<Base, 3>(s[0]);
+				auto r1 = to_digit<Base, 2>(s[1]);
+				auto r2 = to_digit<Base, 1>(s[2]);
+				auto r3 = to_digit<Base, 0>(s[3]);
+				auto sum = r0 + r1 + r2 + r3;
+				if (sum > _Val) {
+					return -1;
+				}
+				if (sum == _Val) {
+					return compare<idx - 4>(s + 4, ret);
+				}
+				
+				ret = (umax() / __power<idx>::value) * __power<4>::value + sum;
+				comparel<idx - 4>(s + 4, ret);
+				return 1;
+			}
+			else if constexpr (idx == 3) {
+				constexpr auto _Val = umax() % __power<3>::value;
+				auto r0 = to_digit<Base, 2>(s[0]);
+				auto r1 = to_digit<Base, 1>(s[1]);
+				auto r2 = to_digit<Base, 0>(s[2]);
+				auto sum = r0 + r1 + r2;
+				if (sum > _Val) {
+					return -1;
+				}
+
+				ret = (umax() / __power<idx>::value) * __power<3>::value + sum;
+				return sum == _Val ? 0 : 1;
+			}
+			else if constexpr (idx == 2) {
+				constexpr auto _Val = umax() % __power<2>::value;
+				auto r0 = to_digit<Base, 1>(s[0]);
+				auto r1 = to_digit<Base, 0>(s[1]);
+				auto sum = r0 + r1;
+				if (sum > _Val) {
+					return -1;
+				}
+
+				ret = (umax() / __power<idx>::value) * __power<2>::value + sum;
+				return sum == _Val ? 0 : 1;
+			}
+			else if constexpr (idx == 1) {
+				constexpr auto _Val = umax() % __power<1>::value;
+				auto r0 = to_digit<Base, 0>(s[0]);
+				auto sum = r0;
+				if (sum > _Val) {
+					return -1;
+				}
+
+				ret = (umax() / __power<idx>::value) * __power<1>::value + sum;
+				return sum == _Val ? 0 : 1;
+			}
+			else {
+				ret = umax();
+				return 0;
+			}
+		}
+
+		template<size_t idx>
+		WJR_INTRINSIC_CONSTEXPR void comparel(const char* s, unsigned_type& ret) const {
+			if constexpr (idx >= 4) {
+				ret *= __power<4>::value;
+				auto r0 = to_digit<Base, 3>(s[0]);
+				auto r1 = to_digit<Base, 2>(s[1]);
+				auto r2 = to_digit<Base, 1>(s[2]);
+				auto r3 = to_digit<Base, 0>(s[3]);
+				auto sum = r0 + r1 + r2 + r3;
+				ret += sum;
+				comparel<idx - 4>(s + 4, ret);
+			}
+			else {
+				switch (idx) {
+				case 3: {
+					ret *= __power<3>::value;
+					auto r0 = to_digit<Base, 2>(s[0]);
+					auto r1 = to_digit<Base, 1>(s[1]);
+					auto r2 = to_digit<Base, 0>(s[2]);
+					auto sum = r0 + r1 + r2;
+					ret += sum;
+					break;
+				}
+				case 2: {
+					ret *= __power<2>::value;
+					auto r0 = to_digit<Base, 1>(s[0]);
+					auto r1 = to_digit<Base, 0>(s[1]);
+					auto sum = r0 + r1;
+					ret += sum;
+					break;
+				}
+				case 1: {
+					ret *= __power<1>::value;
+					auto r0 = to_digit<Base, 0>(s[0]);
+					auto sum = r0;
+					ret += sum;
+					break;
+				}
+				}
+			}
+		}
+
+		char m_num[digits];
+	};
+
+	template<typename T, int Base>
+	static constexpr __to_integral_check_helper<T, Base> __to_integral_check_helper_v;
+
+	// if return noconv, end_ptr won't be set
+	template<typename T, int Base>
+	WJR_NODISCARD WJR_CONSTEXPR20 T to_integral(const char* s, const char* e, conv_code& err,
+		char** end_ptr = nullptr) noexcept {
+
+#define __CONV_OK_RET(ptr, ret)					\
+		if(end_ptr != nullptr){					\
+			*end_ptr = const_cast<char*>(ptr);	\
+		}										\
+		return ret;
+#define __CONV_EMPTY_RET				        \
+		err = conv_code::noconv;				\
+		return static_cast<T>(0);
+#define __CONV_NEXT	                            \
+		if(is_unlikely(++i == e)){	            \
+			__CONV_EMPTY_RET					\
+		}
+#define __CONV_OVERFLOW_RET	                    \
+		err = conv_code::overflow;				\
+		return std::numeric_limits<T>::max();
+#define __CONV_UNDERFLOW_RET	                \
+		err = conv_code::underflow;				\
+		return std::numeric_limits<T>::min();
+#define __CONV_FLOW_RET	                        \
+		if constexpr (std::is_unsigned_v<T>) {	\
+			__CONV_OVERFLOW_RET;	            \
+		}	                                    \
+		else {	                                \
+			if (is_p) {	                        \
+				__CONV_OVERFLOW_RET;	        \
+			}	                                \
+			else {	                            \
+				__CONV_UNDERFLOW_RET;	        \
+			}	                                \
+		}
+
+		err = conv_code::ok;
+
+		const char* i = skipw(s, e);
+
+		// empty string
+		if (is_unlikely(i == e)) {
+			__CONV_EMPTY_RET;
+		}
+
+		bool is_p = true;
+		
+		if (*i == '+') {
+			__CONV_NEXT;
+		}
+		else if (*i == '-') {
+			is_p = false;
+			__CONV_NEXT;
+		}
+
+		bool have_prefix = false;
+
+		// Base = 0, 8 : prefix : 0
+		// Base = 0, 16: prefix : 0x/0X
+		// base = 0 is not incomplete support
+		if constexpr (Base == 0 || Base == 8 || Base == 16) {
+			if constexpr (Base == 0) {
+				if (*i == '0') {
+					if (is_unlikely(++i == e)) {
+						// treat 0 as a number instead of a prefix
+						__CONV_OK_RET(e, 0);
+					}
+					if (*i == 'x' || *i == 'X') {
+						if (is_unlikely(++i == e)) {
+							// treat 0 as a number instead of a prefix
+							__CONV_OK_RET(e, 0);
+						}
+						return to_integral<T, 16>(i, e, err, end_ptr);
+					}
+					return to_integral<T, 8>(i, e, err, end_ptr);
+				}
+				else {
+					// base = 10
+					return to_integral<T, 10>(i, e, err, end_ptr);
+				}
+			}
+			else if constexpr (Base == 8) {
+				if (*i == '0') {
+					if (is_unlikely(++i == e)) {
+						// treat 0 as a number instead of a prefix
+						__CONV_OK_RET(e, 0);
+					}
+					// 0 maybe is a prefix or just number 0
+					// if there's no more digits after it, it wil be treat as number 0
+					have_prefix = true;
+				}
+			}
+			else if constexpr (Base == 16) {
+				if (*i == '0') {
+					if (is_unlikely(++i == e)) {
+						// treat 0 as a number instead of a prefix
+						__CONV_OK_RET(e, 0);
+					}
+					if (*i == 'x' || *i == 'X') {
+						have_prefix = true;
+						if (is_unlikely(++i == e)) {
+							// treat 0 as a number instead of a prefix
+							// ignore 'x'/'X'
+							__CONV_OK_RET(i - 1, 0);
+						}
+					}
+					else {
+						// treat 0 as a number instead of a prefix
+						__CONV_OK_RET(i, 0);
+					}
+				}
+			}
+		}
+		
+		if constexpr (Base != 0) {
+			const char* j = skipd<Base>(i, e);
+
+			// no digits
+			if (i == j) {
+				// have a prefix 0
+				if (have_prefix) {
+					// treat 0 as a number instead of a prefix
+					if constexpr (Base == 8) {
+						if (end_ptr != nullptr) {
+							*end_ptr = const_cast<char*>(i);
+						}
+					}
+					else if constexpr(Base == 16) {
+						if (end_ptr != nullptr) {
+							// ignore 'x'/'X'
+							*end_ptr = const_cast<char*>(i - 1);
+						}
+					}
+					return static_cast<T>(0);
+				}
+				// invalid digits
+				__CONV_EMPTY_RET;
+			}
+
+			if (end_ptr != nullptr) {
+				*end_ptr = const_cast<char*>(j);
+			}
+
+			// remove leading zeros
+			while (i != j && *i == '0') ++i;
+
+			auto n = static_cast<size_t>(j - i);
+
+			// check flow
+			constexpr const auto& helper = __to_integral_check_helper_v<T, Base>;
+
+			// must flow
+			if (n > helper.digits) {
+				__CONV_FLOW_RET;
+			}
+
+			// maybe flow, further testing
+			if (n == helper.digits) {
+
+				auto __ret = helper.compare(i);
+				int ret = __ret.first;
+
+				if constexpr (std::is_unsigned_v<T>) {
+
+					if (ret < 0) {
+						__CONV_FLOW_RET;
+					}
+
+					if (ret == 0) {
+						if (is_p) {
+							return static_cast<T>(helper.umax());
+						}
+						return static_cast<T>(-helper.umax());
+					}
+
+					return static_cast<T>(__ret.second);
+				}
+				else {
+
+					if (ret < 0) {
+						__CONV_FLOW_RET;
+					}
+
+					if (ret == 0) {
+						if (is_p) {
+							__CONV_OVERFLOW_RET;
+						}
+						return helper.min();
+					}
+
+					if (is_p) {
+						return static_cast<T>(__ret.second);
+					}
+
+					return static_cast<T>(-__ret.second);
+				}
+			}
+
+			// the result won't have error
+
+			std::make_unsigned_t<T> uret = 0;
+
+			constexpr auto multi4 = cpower_v<uint32_t, Base, 4>;
+			constexpr auto multi3 = cpower_v<uint32_t, Base, 3>;
+			constexpr auto multi2 = cpower_v<uint32_t, Base, 2>;
+			constexpr auto multi1 = cpower_v<uint32_t, Base, 1>;
+
+			for (; n >= 4; n -= 4, i += 4) {
+				uret *= multi4;
+				auto r0 = to_digit<Base, 3>(i[0]);
+				auto r1 = to_digit<Base, 2>(i[1]);
+				auto r2 = to_digit<Base, 1>(i[2]);
+				auto r3 = to_digit<Base, 0>(i[3]);
+				uret += r0 + r1 + r2 + r3;
+			}
+
+			switch (n) {
+			case 3: {
+				uret *= multi3;
+				auto r0 = to_digit<Base, 2>(i[0]);
+				auto r1 = to_digit<Base, 1>(i[1]);
+				auto r2 = to_digit<Base, 0>(i[2]);
+				uret += r0 + r1 + r2;
+				break;
+			}
+			case 2: {
+				uret *= multi2;
+				auto r0 = to_digit<Base, 1>(i[0]);
+				auto r1 = to_digit<Base, 0>(i[1]);
+				uret += r0 + r1;
+				break;
+			}
+			case 1: {
+				uret *= multi1;
+				auto r0 = to_digit<Base, 0>(i[0]);
+				uret += r0;
+				break;
+			}
+			}
+
+			if (is_p) {
+				return static_cast<T>(uret);
+			}
+
+			return static_cast<T>(-uret);
+		}
+
+#undef __CONV_OK_RET
+#undef __CONV_EMPTY_RET
+#undef __CONV_NEXT
+#undef __CONV_OVERFLOW_RET
+#undef __CONV_UNDERFLOW_RET
+#undef __CONV_FLOW_RET
+	}
+
+	// support base = 2/4/8/10/16
+	template<typename T>
+	WJR_NODISCARD WJR_CONSTEXPR20 T to_integral(const char* s, const char* e, conv_code& err,
+		char** end_ptr = nullptr, int base = 10) noexcept {
+		switch (base) {
+		case 0: return to_integral<T, 0>(s, e, err, end_ptr);
+		case 2: return to_integral<T, 2>(s, e, err, end_ptr);
+		case 8: return to_integral<T, 8>(s, e, err, end_ptr);
+		case 10: return to_integral<T, 10>(s, e, err, end_ptr);
+		case 16: return to_integral<T, 16>(s, e, err, end_ptr);
+		default: return to_integral<T, 10>(s, e, err, end_ptr);
+		}
+	}
+
+	template<typename T>
+	WJR_NODISCARD WJR_CONSTEXPR20 T to_floating_point(const char* s, const char* e, conv_code&err,
+		char** end_ptr = nullptr, int base = 10) noexcept;
 
 }
 
@@ -3094,10 +3681,7 @@ WJR_INLINE_CONSTEXPR20 basic_string_view<char, ascii_traits<Traits>>
 	basic_string_view<char, ascii_traits<Traits>>::ltrim() const {
 	const char* s = begin();
 	const char* e = end();
-	while (s != e) {
-		if (!ascii::sisspace(*s)) break;
-		++s;
-	}
+	s = ascii::skipw(s, e);
 	return basic_string_view(s, e - s);
 }
 
@@ -3106,10 +3690,7 @@ WJR_INLINE_CONSTEXPR20 basic_string_view<char, ascii_traits<Traits>>
 basic_string_view<char, ascii_traits<Traits>>::rtrim() const {
 	const char* s = begin();
 	const char* e = end();
-	while (s != e) {
-		if (!ascii::sisspace(e[-1])) break;
-		--e;
-	}
+	e = ascii::rskipw(s, e);
 	return basic_string_view(s, e - s);
 }
 
@@ -3120,19 +3701,107 @@ basic_string_view<char, ascii_traits<Traits>>::trim() const {
 }
 
 template<typename Traits>
-WJR_CONSTEXPR20 basic_string_view<char, ref_traits<ascii_traits<Traits>>>& 
-	basic_string_view<char, ref_traits<ascii_traits<Traits>>>::tolower() {
-	for (auto i = ref_begin(); i != ref_end(); ++i) {
-		*i = ascii::tolower(*i);
-	}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool basic_string_view<char, ascii_traits<Traits>>::isalnum(char ch) {
+	return ascii::isalnum(ch);
 }
 
 template<typename Traits>
-WJR_CONSTEXPR20 basic_string_view<char, ref_traits<ascii_traits<Traits>>>&
-	basic_string_view<char, ref_traits<ascii_traits<Traits>>>::toupper() {
-	for (auto i = ref_begin(); i != ref_end(); ++i) {
-		*i = ascii::toupper(*i);
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool basic_string_view<char, ascii_traits<Traits>>::isalpha(char ch) {
+	return ascii::isalpha(ch);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool basic_string_view<char, ascii_traits<Traits>>::islower(char ch) {
+	return ascii::islower(ch);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool basic_string_view<char, ascii_traits<Traits>>::isupper(char ch) {
+	return ascii::isupper(ch);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool basic_string_view<char, ascii_traits<Traits>>::isdigit(char ch) {
+	return ascii::isdigit(ch);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool basic_string_view<char, ascii_traits<Traits>>::isxdigit(char ch) {
+	return ascii::isxdigit(ch);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool basic_string_view<char, ascii_traits<Traits>>::isspace(char ch) {
+	return ascii::isspace(ch);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 char basic_string_view<char, ascii_traits<Traits>>::tolower(char ch) {
+	return ascii::tolower(ch);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 char basic_string_view<char, ascii_traits<Traits>>::toupper(char ch) {
+	return ascii::toupper(ch);
+}
+
+template<typename Traits>
+template<typename T>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 T basic_string_view<char, ascii_traits<Traits>>::to_integral(
+	conv_code* err, size_type* pos, int base) const {
+	conv_code cc;
+	char* end_ptr;
+	T ret = ascii::to_integral<T>(begin(), end(), cc, &end_ptr, base);
+
+	if (cc == conv_code::noconv) {
+		end_ptr = const_cast<char*>(begin());
 	}
+
+	if (err != nullptr) {
+		*err = cc;
+	}
+	
+	if (pos != nullptr) {
+		*pos = static_cast<size_type>(end_ptr - begin());
+	}
+
+	return ret;
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 int basic_string_view<char, ascii_traits<Traits>>::toi(
+	conv_code* err, size_type* pos, int base) const {
+	return to_integral<int>(err, pos, base);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 long basic_string_view<char, ascii_traits<Traits>>::tol(
+	conv_code* err, size_type* pos, int base) const {
+	return to_integral<long>(err, pos, base);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 long long basic_string_view<char, ascii_traits<Traits>>::toll(
+	conv_code* err, size_type* pos, int base) const {
+	return to_integral<long long>(err, pos, base);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 unsigned int basic_string_view<char, ascii_traits<Traits>>::toui(
+	conv_code* err, size_type* pos, int base) const {
+	return to_integral<unsigned int>(err, pos, base);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 unsigned long basic_string_view<char, ascii_traits<Traits>>::toul(
+	conv_code* err, size_type* pos, int base) const {
+	return to_integral<unsigned long>(err, pos, base);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 unsigned long long basic_string_view<char, ascii_traits<Traits>>::toull(
+	conv_code* err, size_type* pos, int base) const {
+	return to_integral<unsigned long long>(err, pos, base);
 }
 
 namespace utf8 {

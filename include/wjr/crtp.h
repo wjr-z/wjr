@@ -6,55 +6,62 @@
 
 _WJR_BEGIN
 
+// testing
+
+// TODO ...
+
 template<typename Derived>
-class operator_complement {
+class explicit_operator_complement {
 public:
+	static_assert(has_global_binary_operator_equal_to_v<const Derived&, const Derived&>
+		&& has_global_binary_operator_less_v<const Derived&, const Derived&>, 
+		"must have operator== and operator <");
 	Derived& derived() { return static_cast<Derived&>(*this); }
 	const Derived& derived() const { return static_cast<const Derived&>(*this); }
 private:
-	WJR_CONSTEXPR20 operator_complement() {}
+	WJR_CONSTEXPR20 explicit_operator_complement() {}
 	friend Derived;
 };
 
 template<typename Derived>
-WJR_INLINE_CONSTEXPR20 bool operator==(
-	const operator_complement<Derived>& lhs,
-	const operator_complement<Derived>& rhs) {
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool operator==(
+	const explicit_operator_complement<Derived>& lhs,
+	const explicit_operator_complement<Derived>& rhs) {
 	return (lhs.derived() == rhs.derived());
 }
 
 template<typename Derived>
-WJR_INLINE_CONSTEXPR20 bool operator!=(
-	const operator_complement<Derived>& lhs,
-	const operator_complement<Derived>& rhs) {
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool operator!=(
+	const explicit_operator_complement<Derived>& lhs,
+	const explicit_operator_complement<Derived>& rhs) {
 	return !(lhs.derived() == rhs.derived());
 }
 
 template<typename Derived>
-WJR_INLINE_CONSTEXPR20 bool operator<(
-	const operator_complement<Derived>& lhs,
-	const operator_complement<Derived>& rhs) {
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool operator<(
+	const explicit_operator_complement<Derived>& lhs,
+	const explicit_operator_complement<Derived>& rhs) {
 	return (lhs.derived() < rhs.derived());
 }
 
 template<typename Derived>
-WJR_INLINE_CONSTEXPR20 bool operator<=(
-	const operator_complement<Derived>& lhs,
-	const operator_complement<Derived>& rhs) {
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool operator<=(
+	const explicit_operator_complement<Derived>& lhs,
+	const explicit_operator_complement<Derived>& rhs) {
 	return !(rhs.derived() < lhs.derived());
 }
 
 template<typename Derived>
-WJR_INLINE_CONSTEXPR20 bool operator>(
-	const operator_complement<Derived>& lhs,
-	const operator_complement<Derived>& rhs) {
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool operator>(
+	const explicit_operator_complement<Derived>& lhs,
+	const explicit_operator_complement<Derived>& rhs) {
 	return (rhs.derived() < lhs.derived());
 }
 
 template<typename Derived>
-WJR_INLINE_CONSTEXPR20 bool operator>=(
-	const operator_complement<Derived>& lhs,
-	const operator_complement<Derived>& rhs) {
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool operator>=(
+	const explicit_operator_complement<Derived>& lhs,
+	const explicit_operator_complement<Derived>& rhs) {
 	return !(lhs.derived() < rhs.derived());
 }
 

@@ -407,13 +407,13 @@
 #endif
 
 #if WJR_HAS_CPP_ATTRIBUTE(maybe_unused)
-#define WJR_UNUSED [[maybe_unused]]
+#define WJR_MAYBE_UNUSED [[maybe_unused]]
 #elif WJR_HAS_ATTRIBUTE(maybe_unused)
-#define WJR_UNUSED __attribute__((maybe_unused))
+#define WJR_MAYBE_UNUSED __attribute__((maybe_unused))
 #elif defined(_MSC_VER)
-#define WJR_UNUSED
+#define WJR_MAYBE_UNUSED
 #else
-#define WJR_UNUSED
+#define WJR_MAYBE_UNUSED
 #endif
 
 #if WJR_HAS_ATTRIBUTE(always_inline)

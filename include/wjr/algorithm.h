@@ -147,7 +147,7 @@ WJR_CONSTEXPR20 void uninitialized_default_construct(
 	Alloc& al, _Iter _First, _Iter _Last);
 
 template<typename _Iter, typename _Diff>
-WJR_CONSTEXPR20 _Iter uninitialized_default_construct_n(_Iter _First, const _Diff n);
+WJR_CONSTEXPR20 _Iter uninitialized_default_construct_n(_Iter _First, _Diff n);
 
 template<typename Alloc, typename _Iter, typename _Diff>
 WJR_CONSTEXPR20 _Iter uninitialized_default_construct_n(

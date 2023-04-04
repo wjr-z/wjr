@@ -153,6 +153,19 @@ constexpr bool in_range(T t) noexcept {
 		wjr::cmp_less_equal(t, std::numeric_limits<R>::max());
 }
 
+template<typename T, T base, int idx>
+struct cpower {
+	constexpr static T value = cpower<T, base, idx - 1>::value * base;
+};
+
+template<typename T, T base>
+struct cpower<T, base, 0> {
+	constexpr static T value = 1;
+};
+
+template<typename T, T base, int idx>
+constexpr static T cpower_v = cpower<T, base, idx>::value;
+
 template<typename R, typename T>
 struct broadcast_fn {};
 
