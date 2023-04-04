@@ -3291,8 +3291,8 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 
 	private:
 
-		template<int idx, typename T>
-		WJR_INTRINSIC_CONSTEXPR static T __mod(T val) {
+		template<int idx, typename _Ty>
+		WJR_INTRINSIC_CONSTEXPR static _Ty __mod(_Ty val) {
 			if constexpr (idx < digits) {
 				return val % __power<idx>::value;
 			}
@@ -3301,8 +3301,8 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 			}
 		}
 
-		template<int idx, typename T>
-		WJR_INTRINSIC_CONSTEXPR static T __div(T val) {
+		template<int idx, typename _Ty>
+		WJR_INTRINSIC_CONSTEXPR static _Ty __div(_Ty val) {
 			if constexpr (idx < digits) {
 				return val / __power<idx>::value;
 			}
