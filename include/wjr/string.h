@@ -881,49 +881,49 @@ public:
 
 	basic_string_view(const _Mybase1& base) : _Mybase1(base) {}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static bool isalnum(char ch);
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static bool isalpha(char ch);
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static bool islower(char ch);
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static bool isupper(char ch);
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static bool isdigit(char ch);
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static bool isxdigit(char ch);
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static bool isspace(char ch);
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static char tolower(char ch);
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 static char toupper(char ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isalnum(char ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isalpha(char ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool islower(char ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isupper(char ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isdigit(char ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isxdigit(char ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isspace(char ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static char tolower(char ch);
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static char toupper(char ch);
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 basic_string_view ltrim() const;
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 basic_string_view rtrim() const;
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 basic_string_view trim() const;
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view ltrim() const;
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view rtrim() const;
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view trim() const;
 
 	template<typename T>
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 T to_integral(
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_integral(
 		conv_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 int toi(
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR int toi(
 		conv_code* err = nullptr,size_type* pos = nullptr, int base = 10) const;
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 long tol(
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR long tol(
 		conv_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 long long toll(
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR long long toll(
 		conv_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 unsigned int toui(
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned int toui(
 		conv_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 unsigned long toul(
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long toul(
 		conv_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 unsigned long long toull(
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long long toull(
 		conv_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 float tof(
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR float tof(
 		conv_code* err = nullptr, size_type* pos = nullptr) const;
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 double tod(
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR double tod(
 		conv_code* err = nullptr, size_type* pos = nullptr) const;
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 long double told(
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR long double told(
 		conv_code* err = nullptr, size_type* pos = nullptr) const;
 
 };
@@ -3290,11 +3290,31 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 		}
 
 	private:
+
+		template<int idx, typename T>
+		WJR_INTRINSIC_CONSTEXPR static T __mod(T val) {
+			if constexpr (idx < digits) {
+				return val % __power<idx>::value;
+			}
+			else {
+				return val;
+			}
+		}
+
+		template<int idx, typename T>
+		WJR_INTRINSIC_CONSTEXPR static T __div(T val) {
+			if constexpr (idx < digits) {
+				return val / __power<idx>::value;
+			}
+			else {
+				return 0;
+			}
+		}
+
 		template<size_t idx>
 		WJR_INTRINSIC_CONSTEXPR int compare(const char* s, unsigned_type& ret) const {
 			if constexpr (idx >= 4) {
-				constexpr auto _Val = (umax() / __power<idx - 4>::value)
-					% __power<4>::value;
+				constexpr auto _Val = __mod<4>(__div<idx - 4>(umax()));
 				auto r0 = to_digit<Base, 3>(s[0]);
 				auto r1 = to_digit<Base, 2>(s[1]);
 				auto r2 = to_digit<Base, 1>(s[2]);
@@ -3307,12 +3327,12 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 					return compare<idx - 4>(s + 4, ret);
 				}
 				
-				ret = (umax() / __power<idx>::value) * __power<4>::value + sum;
+				ret =  __div<idx>(umax()) * __power<4>::value + sum;
 				comparel<idx - 4>(s + 4, ret);
 				return 1;
 			}
 			else if constexpr (idx == 3) {
-				constexpr auto _Val = umax() % __power<3>::value;
+				constexpr auto _Val = __mod<3>(umax());
 				auto r0 = to_digit<Base, 2>(s[0]);
 				auto r1 = to_digit<Base, 1>(s[1]);
 				auto r2 = to_digit<Base, 0>(s[2]);
@@ -3321,11 +3341,11 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 					return -1;
 				}
 
-				ret = (umax() / __power<idx>::value) * __power<3>::value + sum;
+				ret = __div<idx>(umax()) * __power<3>::value + sum;
 				return sum == _Val ? 0 : 1;
 			}
 			else if constexpr (idx == 2) {
-				constexpr auto _Val = umax() % __power<2>::value;
+				constexpr auto _Val = __mod<2>(umax());
 				auto r0 = to_digit<Base, 1>(s[0]);
 				auto r1 = to_digit<Base, 0>(s[1]);
 				auto sum = r0 + r1;
@@ -3333,18 +3353,18 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 					return -1;
 				}
 
-				ret = (umax() / __power<idx>::value) * __power<2>::value + sum;
+				ret = __div<idx>(umax()) * __power<2>::value + sum;
 				return sum == _Val ? 0 : 1;
 			}
 			else if constexpr (idx == 1) {
-				constexpr auto _Val = umax() % __power<1>::value;
+				constexpr auto _Val = __mod<1>(umax());
 				auto r0 = to_digit<Base, 0>(s[0]);
 				auto sum = r0;
 				if (sum > _Val) {
 					return -1;
 				}
 
-				ret = (umax() / __power<idx>::value) * __power<1>::value + sum;
+				ret = __div<idx>(umax()) * __power<1>::value + sum;
 				return sum == _Val ? 0 : 1;
 			}
 			else {
@@ -3403,7 +3423,7 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 
 	// if return noconv, end_ptr won't be set
 	template<typename T, int Base>
-	WJR_NODISCARD WJR_CONSTEXPR20 T to_integral(const char* s, const char* e, conv_code& err,
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_integral(const char* s, const char* e, conv_code& err,
 		char** end_ptr = nullptr) noexcept {
 
 #define __CONV_OK_RET(ptr, ret)					\
@@ -3560,7 +3580,7 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 			// maybe flow, further testing
 			if (n == helper.digits) {
 
-				auto __ret = helper.compare(i);
+				const auto __ret = helper.compare(i);
 				int ret = __ret.first;
 
 				if constexpr (std::is_unsigned_v<T>) {
@@ -3658,7 +3678,7 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 
 	// support base = 2/4/8/10/16
 	template<typename T>
-	WJR_NODISCARD WJR_CONSTEXPR20 T to_integral(const char* s, const char* e, conv_code& err,
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_integral(const char* s, const char* e, conv_code& err,
 		char** end_ptr = nullptr, int base = 10) noexcept {
 		switch (base) {
 		case 0: return to_integral<T, 0>(s, e, err, end_ptr);
@@ -3671,13 +3691,58 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 	}
 
 	template<typename T>
-	WJR_NODISCARD WJR_CONSTEXPR20 T to_floating_point(const char* s, const char* e, conv_code&err,
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_floating_point(const char* s, const char* e, conv_code&err,
 		char** end_ptr = nullptr, int base = 10) noexcept;
 
 }
 
 template<typename Traits>
-WJR_INLINE_CONSTEXPR20 basic_string_view<char, ascii_traits<Traits>> 
+WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::isalnum(char ch) {
+	return ascii::isalnum(ch);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::isalpha(char ch) {
+	return ascii::isalpha(ch);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::islower(char ch) {
+	return ascii::islower(ch);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::isupper(char ch) {
+	return ascii::isupper(ch);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::isdigit(char ch) {
+	return ascii::isdigit(ch);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::isxdigit(char ch) {
+	return ascii::isxdigit(ch);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::isspace(char ch) {
+	return ascii::isspace(ch);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR char basic_string_view<char, ascii_traits<Traits>>::tolower(char ch) {
+	return ascii::tolower(ch);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR char basic_string_view<char, ascii_traits<Traits>>::toupper(char ch) {
+	return ascii::toupper(ch);
+}
+
+template<typename Traits>
+WJR_INLINE_CONSTEXPR basic_string_view<char, ascii_traits<Traits>>
 	basic_string_view<char, ascii_traits<Traits>>::ltrim() const {
 	const char* s = begin();
 	const char* e = end();
@@ -3686,7 +3751,7 @@ WJR_INLINE_CONSTEXPR20 basic_string_view<char, ascii_traits<Traits>>
 }
 
 template<typename Traits>
-WJR_INLINE_CONSTEXPR20 basic_string_view<char, ascii_traits<Traits>> 
+WJR_INLINE_CONSTEXPR basic_string_view<char, ascii_traits<Traits>>
 basic_string_view<char, ascii_traits<Traits>>::rtrim() const {
 	const char* s = begin();
 	const char* e = end();
@@ -3695,62 +3760,17 @@ basic_string_view<char, ascii_traits<Traits>>::rtrim() const {
 }
 
 template<typename Traits>
-WJR_INLINE_CONSTEXPR20 basic_string_view<char, ascii_traits<Traits>>
+WJR_INLINE_CONSTEXPR basic_string_view<char, ascii_traits<Traits>>
 basic_string_view<char, ascii_traits<Traits>>::trim() const {
 	return ltrim().rtrim();
 }
 
 template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool basic_string_view<char, ascii_traits<Traits>>::isalnum(char ch) {
-	return ascii::isalnum(ch);
-}
-
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool basic_string_view<char, ascii_traits<Traits>>::isalpha(char ch) {
-	return ascii::isalpha(ch);
-}
-
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool basic_string_view<char, ascii_traits<Traits>>::islower(char ch) {
-	return ascii::islower(ch);
-}
-
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool basic_string_view<char, ascii_traits<Traits>>::isupper(char ch) {
-	return ascii::isupper(ch);
-}
-
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool basic_string_view<char, ascii_traits<Traits>>::isdigit(char ch) {
-	return ascii::isdigit(ch);
-}
-
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool basic_string_view<char, ascii_traits<Traits>>::isxdigit(char ch) {
-	return ascii::isxdigit(ch);
-}
-
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool basic_string_view<char, ascii_traits<Traits>>::isspace(char ch) {
-	return ascii::isspace(ch);
-}
-
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 char basic_string_view<char, ascii_traits<Traits>>::tolower(char ch) {
-	return ascii::tolower(ch);
-}
-
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 char basic_string_view<char, ascii_traits<Traits>>::toupper(char ch) {
-	return ascii::toupper(ch);
-}
-
-template<typename Traits>
 template<typename T>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 T basic_string_view<char, ascii_traits<Traits>>::to_integral(
+WJR_NODISCARD WJR_INLINE_CONSTEXPR T basic_string_view<char, ascii_traits<Traits>>::to_integral(
 	conv_code* err, size_type* pos, int base) const {
-	conv_code cc;
-	char* end_ptr;
+	conv_code cc = {};
+	char* end_ptr = nullptr;
 	T ret = ascii::to_integral<T>(begin(), end(), cc, &end_ptr, base);
 
 	if (cc == conv_code::noconv) {
@@ -3769,37 +3789,37 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR20 T basic_string_view<char, ascii_traits<Trai
 }
 
 template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 int basic_string_view<char, ascii_traits<Traits>>::toi(
+WJR_NODISCARD WJR_INLINE_CONSTEXPR int basic_string_view<char, ascii_traits<Traits>>::toi(
 	conv_code* err, size_type* pos, int base) const {
 	return to_integral<int>(err, pos, base);
 }
 
 template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 long basic_string_view<char, ascii_traits<Traits>>::tol(
+WJR_NODISCARD WJR_INLINE_CONSTEXPR long basic_string_view<char, ascii_traits<Traits>>::tol(
 	conv_code* err, size_type* pos, int base) const {
 	return to_integral<long>(err, pos, base);
 }
 
 template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 long long basic_string_view<char, ascii_traits<Traits>>::toll(
+WJR_NODISCARD WJR_INLINE_CONSTEXPR long long basic_string_view<char, ascii_traits<Traits>>::toll(
 	conv_code* err, size_type* pos, int base) const {
 	return to_integral<long long>(err, pos, base);
 }
 
 template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 unsigned int basic_string_view<char, ascii_traits<Traits>>::toui(
+WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned int basic_string_view<char, ascii_traits<Traits>>::toui(
 	conv_code* err, size_type* pos, int base) const {
 	return to_integral<unsigned int>(err, pos, base);
 }
 
 template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 unsigned long basic_string_view<char, ascii_traits<Traits>>::toul(
+WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long basic_string_view<char, ascii_traits<Traits>>::toul(
 	conv_code* err, size_type* pos, int base) const {
 	return to_integral<unsigned long>(err, pos, base);
 }
 
 template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR20 unsigned long long basic_string_view<char, ascii_traits<Traits>>::toull(
+WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long long basic_string_view<char, ascii_traits<Traits>>::toull(
 	conv_code* err, size_type* pos, int base) const {
 	return to_integral<unsigned long long>(err, pos, base);
 }
