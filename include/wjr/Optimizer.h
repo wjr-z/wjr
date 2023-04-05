@@ -30,7 +30,7 @@ constexpr size_t _Get_max_bytes_num() {
 }
 
 template<size_t C, typename _Ty>
-size_t _Get_bytes_num(const _Ty& val) {
+inline size_t _Get_bytes_num(const _Ty& val) {
 	constexpr size_t N = sizeof(_Ty);
 	constexpr size_t M = _Get_max_bytes_num<C>();
 	const auto ptr = reinterpret_cast<const uint8_t*>(&val);

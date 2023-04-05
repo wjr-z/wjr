@@ -498,6 +498,20 @@ WJR_UNREACHABLE;	\
 #define WJR_INTRINSIC_INLINE inline
 #endif
 
+// Compiler support for constexpr
+#if defined(__cpp_lib_is_constant_evaluated) || WJR_HAS_BUILTIN(__builtin_is_constant_evaluated) \
+|| WJR_HAS_GCC(9,1,0) || WJR_HAS_CLANG(9,0,0)
+#define WJR_ENABLE_CONSTEXPR 1
+#else
+#define WJR_ENABLE_CONSTEXPR 0
+#endif
+
+#if WJR_ENABLE_CONSTEXPR
+#define WJR_E_CONSTEXPR constexpr
+#else
+#define WJR_E_CONSTEXPR
+#endif
+
 #if defined(WJR_CPP_20)
 #define WJR_CONSTEXPR20 constexpr
 #else
@@ -506,12 +520,15 @@ WJR_UNREACHABLE;	\
 
 #define WJR_FORCEINLINE_CONSTEXPR WJR_FORCEINLINE constexpr
 #define WJR_FORCEINLINE_CONSTEXPR20 WJR_FORCEINLINE WJR_CONSTEXPR20
+#define WJR_FORCEINLINE_E_CONSTEXPR WJR_FORCEINLINE WJR_E_CONSTEXPR
 
 #define WJR_INTRINSIC_CONSTEXPR WJR_INTRINSIC_INLINE constexpr
 #define WJR_INTRINSIC_CONSTEXPR20 WJR_INTRINSIC_INLINE WJR_CONSTEXPR20
+#define WJR_INTRINSIC_E_CONSTEXPR WJR_INTRINSIC_INLINE WJR_E_CONSTEXPR
 
 #define WJR_INLINE_CONSTEXPR inline constexpr
 #define WJR_INLINE_CONSTEXPR20 inline WJR_CONSTEXPR20
+#define WJR_INLINE_E_CONSTEXPR inline WJR_E_CONSTEXPR
 
 #define _WJR_BEGIN namespace wjr{
 #define _WJR_END }
@@ -534,6 +551,12 @@ WJR_UNREACHABLE;	\
 #define WJR_MACRO_NULL(...)
 
 #define WJR_MACRO_LABEL(NAME) __wjr_label_##NAME
+
+#if defined(WJR_MSVC)
+#define WJR_COUNTER __COUNTER__
+#else
+#define WJR_COUNTER __LINE__
+#endif
 
 #if defined(WJR_X86_64)
 #define WJR_BYTE_WIDTH 8
@@ -850,12 +873,16 @@ WJR_INTRINSIC_CONSTEXPR void assume_no_sub_overflow(T a, T b) noexcept {
 WJR_ASSUME(a >= b);
 }
 
+// disable tag, for example, used in enable_if_t
 struct disable_tag {};
 
+// used in construct_at, use default construct instead of value construct
 struct default_construct_tag {};
 struct value_construct_tag {};
 
+// used in string
 struct extend_tag {};
+// used if the memory is reserved for optimize
 struct reserve_tag {};
 
 struct defer_tag {};
@@ -870,6 +897,7 @@ inline constexpr bool has_global_binary_operator_v = has_global_binary_operator<
 WJR_REGISTER_HAS_MEMBER_FUNCTION(operator(), call_operator);
 WJR_REGISTER_HAS_MEMBER_FUNCTION(operator[], subscript_operator);
 WJR_REGISTER_HAS_MEMBER_FUNCTION(operator->, point_to_operator);
+
 WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(+, plus);
 WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(-, minus);
 WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(&, bit_and);
@@ -882,26 +910,35 @@ WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(> , greater);
 WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(>= , greater_equal);
 WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(< , less);
 WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(<= , less_equal);
+
 WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(min, min);
 WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(max, max);
 
 template<typename T>
 using aligned_storage_for_t = std::aligned_storage_t<sizeof(T), alignof(T)>;
 
+// find if T is in Args...
 template<typename T, typename...Args>
 struct is_any_of : std::disjunction<std::is_same<T, Args>...> {};
 
 template<typename T, typename...Args>
 inline constexpr bool is_any_of_v = is_any_of<T, Args...>::value;
 
+// find if i is in _Index...
+template<size_t i, size_t..._Index>
+struct is_any_index_of : std::disjunction<std::bool_constant<i == _Index>...> {};
+
+template<size_t i, size_t..._Index>
+inline constexpr bool is_any_index_of_v = is_any_index_of<i, _Index...>::value;
+
 template<typename T>
 using remove_ref_t = std::remove_reference_t<T>;
 
 template<typename T>
-using remove_cvref_t = std::remove_cv_t<remove_ref_t<T>>;
+using remove_cref_t = std::remove_const_t<remove_ref_t<T>>;
 
 template<typename T>
-using remove_cref_t = std::remove_const_t<remove_ref_t<T>>;
+using remove_cvref_t = std::remove_cv_t<remove_ref_t<T>>;
 
 template<typename T>
 using add_lref_t = std::add_lvalue_reference_t<T>;
@@ -915,6 +952,8 @@ using add_cvref_t = add_lref_t<std::add_cv_t<T>>;
 template<typename T>
 using add_cref_t = add_lref_t<std::add_const_t<T>>;
 
+// default comparator
+// can be used for optimize, such as find, compare...
 template<typename T>
 struct is_standard_comparator :
 is_any_of<remove_cvref_t<T>,
@@ -929,26 +968,7 @@ std::greater_equal<>
 template<typename T>
 inline constexpr bool is_standard_comparator_v = is_standard_comparator<T>::value;
 
-template<typename T>
-struct is_left_standard_comparator :
-is_any_of<std::remove_cv_t<T>,
-std::less<>,
-std::less_equal<>
-> {};
-
-template<typename T>
-inline constexpr bool is_left_standard_comparator_v = is_left_standard_comparator<T>::value;
-
-template<typename T>
-struct is_right_standard_comparator :
-is_any_of<remove_cvref_t<T>,
-std::greater<>,
-std::greater_equal<>
-> {};
-
-template<typename T>
-inline constexpr bool is_right_standard_comparator_v = is_right_standard_comparator<T>::value;
-
+// used to unwrap std::reference_wrapper
 template<typename T>
 struct unrefwrap {
 using type = T;
@@ -974,6 +994,7 @@ using iter_val_t = typename std::iterator_traits<T>::value_type;
 template<typename T>
 using iter_ref_t = typename std::iterator_traits<T>::reference;
 
+// weak judgment for iterator type
 template<typename T, typename = void>
 struct is_iterator : std::false_type {};
 
@@ -1035,6 +1056,8 @@ struct is_contiguous_iter<std::reverse_iterator<_Iter>> : is_contiguous_iter<_It
 
 template<typename T>
 inline constexpr bool is_contiguous_iter_v = is_contiguous_iter<T>::value;
+
+// dont't support int128 / uint128 yet
 
 template<size_t n>
 struct __uint_helper{};
@@ -1111,6 +1134,9 @@ using std_uintptr_t = std::uintptr_t;
 template<size_t n, bool __s>
 using int_or_uint_t = std::conditional_t<__s, int_t<n>, uint_t<n>>;
 
+// make T (must be integral) to my int/uint type
+// for example, bool/char/signed char/unsigne char will be normalized to uint8_t
+
 template<typename T>
 struct make_integral {
 static_assert(std::is_integral_v<T>, "T must be an integral type");
@@ -1121,7 +1147,12 @@ template<typename T>
 using make_integral_t = typename make_integral<T>::type;
 
 template<typename T>
-constexpr std::make_unsigned_t<T> make_unsigned(T t) {
+constexpr make_integral_t<T> make_integral_v(T t) {
+return static_cast<make_integral_t<T>>(t);
+}
+
+template<typename T>
+constexpr std::make_unsigned_t<T> make_unsigned_v(T t) {
 return static_cast<std::make_unsigned_t<T>>(t);
 }
 
@@ -1198,19 +1229,21 @@ ipmc_result::all : ipmc_result::exit;
 }
 }
 
-template<typename T>
+template<typename T, size_t threshold>
 struct _Auto_variable_helper {
-using type = std::conditional_t<sizeof(T) <= 256 / 8, T, const T&>;
+using type = std::conditional_t<sizeof(T) <= threshold, T, const T&>;
 };
 
-template<typename T>
-using auto_var_t = typename _Auto_variable_helper<T>::type;
-
-template<size_t i, size_t..._Index>
-struct is_any_index_of : std::disjunction<std::bool_constant<i == _Index>...> {};
-
-template<size_t i, size_t..._Index>
-inline constexpr bool is_any_index_of_v = is_any_index_of<i, _Index...>::value;
+template<typename T, size_t threshold =
+#if WJR_AVX
+32
+#elif WJR_SSE
+16
+#else
+8
+#endif
+>
+using auto_var_t = typename _Auto_variable_helper<T, threshold>::type;
 
 template<typename T>
 struct ref_wrapper {
@@ -1260,6 +1293,7 @@ struct is_signed_integral : std::conjunction<std::is_integral<T>, std::is_signed
 template<typename T>
 inline constexpr bool is_signed_integral_v = is_signed_integral<T>::value;
 
+// non-bool integral
 template<typename T>
 struct is_standard_numer : std::conjunction<std::is_arithmetic<T>,
 std::negation<std::is_same<std::remove_cv_t<T>, bool>>> {};
@@ -1267,6 +1301,8 @@ std::negation<std::is_same<std::remove_cv_t<T>, bool>>> {};
 template<typename T>
 inline constexpr bool is_standard_numer_v = is_standard_numer<T>::value;
 
+// reverse<iter> is
+// but reverse<reverse<iter>> is not
 template<typename T>
 struct is_reverse_iterator : std::false_type {};
 
@@ -1281,6 +1317,7 @@ constexpr auto enum_cast(T t) noexcept {
 return static_cast<std::underlying_type_t<T>>(t);
 }
 
+// enum ops
 namespace enum_ops {
 template<typename T>
 constexpr std::enable_if_t<std::is_enum_v<T>, T> operator|(T lhs, T rhs) noexcept {
@@ -1319,13 +1356,20 @@ public:
 constexpr static bool value = u1;
 };
 
+// constexpr endian
 enum class endian {
 little = 0,
 big = 1,
 native = __is_little_endian_helper::value ? little : big
 };
 
-namespace _To_address_helper {
+// make ptr to void*
+template<typename T>
+constexpr void* voidify(const T* ptr) {
+return const_cast<void*>(static_cast<const volatile void*>(ptr));
+}
+
+namespace __toAddressHelper {
 WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(to_address, to_address);
 }
 
@@ -1337,7 +1381,7 @@ return p;
 
 template<typename T>
 constexpr auto to_address(const T& p) noexcept {
-if constexpr (_To_address_helper::has_static_member_function_to_address_v<std::pointer_traits<T>, T>) {
+if constexpr (__toAddressHelper::has_static_member_function_to_address_v<std::pointer_traits<T>, T>) {
 return std::pointer_traits<T>::to_address(p);
 }
 else {
@@ -1345,11 +1389,11 @@ return wjr::to_address(p.operator->());
 }
 }
 
-template<typename T>
-constexpr void* voidify(const T* ptr) {
-return const_cast<void*>(static_cast<const volatile void*>(ptr));
-}
-
+// when the iterator is not a pointer and there is no operator->() and
+// no pointer_traits<T>::to_address, but there is operator*()
+// use get_address instead of to_address
+// notice that if the object pointed to by the pointer does not exist,
+// an error may occur, but this cannot be avoided unless the to_address related functions are provided
 template<typename T>
 constexpr auto get_address(T* p) noexcept {
 return p;
@@ -1357,7 +1401,7 @@ return p;
 
 template<typename T>
 constexpr auto get_address(const T& p) noexcept {
-if constexpr (_To_address_helper::has_static_member_function_to_address_v<std::pointer_traits<T>, T>) {
+if constexpr (__toAddressHelper::has_static_member_function_to_address_v<std::pointer_traits<T>, T>) {
 return std::pointer_traits<T>::to_address(p);
 }
 else if constexpr (wjr::has_member_function_point_to_operator_v<add_cref_t<T>>) {
@@ -1371,6 +1415,7 @@ return std::addressof(*std::forward<T>(p));
 template<typename iter>
 using iter_address_t = std::add_pointer_t<remove_ref_t<iter_ref_t<iter>>>;
 
+// type identity
 template<typename T>
 struct type_identity {
 using type = T;
@@ -1383,10 +1428,10 @@ template<typename T, typename = void>
 struct _Is_default_convertible : std::false_type {};
 
 template<typename T>
-void _Test_default_convertible(const T&);
+void __testDefaultConvertible(const T&);
 
 template<typename T>
-struct _Is_default_convertible<T, std::void_t<decltype(_Test_default_convertible<T>({}))>> : std::true_type{};
+struct _Is_default_convertible<T, std::void_t<decltype(__testDefaultConvertible<T>({}))>> : std::true_type{};
 
 template<typename T>
 using is_default_convertible = _Is_default_convertible<T>;
@@ -1495,29 +1540,22 @@ std::negation<has_member_function_destroy<Alloc, iter_address_t<Iter>>>> {};
 template<typename Alloc, typename Iter>
 constexpr bool is_default_allocator_destroy_v = is_default_allocator_destroy<Alloc, Iter>::value;
 
-_WJR_END
-
-namespace std {
-WJR_REGISTER_HAS_GLOBAL_FUNCTION(begin, begin);
-WJR_REGISTER_HAS_GLOBAL_FUNCTION(cbegin, cbegin);
-WJR_REGISTER_HAS_GLOBAL_FUNCTION(end, end);
-WJR_REGISTER_HAS_GLOBAL_FUNCTION(cend, cend);
-WJR_REGISTER_HAS_GLOBAL_FUNCTION(rbegin, rbegin);
-WJR_REGISTER_HAS_GLOBAL_FUNCTION(crbegin, crbegin);
-WJR_REGISTER_HAS_GLOBAL_FUNCTION(rend, rend);
-WJR_REGISTER_HAS_GLOBAL_FUNCTION(crend, crend);
-WJR_REGISTER_HAS_GLOBAL_FUNCTION(data, data);
-WJR_REGISTER_HAS_GLOBAL_FUNCTION(size, size);
-WJR_REGISTER_HAS_MEMBER_FUNCTION(size, size);
-WJR_REGISTER_HAS_GLOBAL_FUNCTION(swap, swap);
-}
-
-_WJR_BEGIN
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::begin, std_begin);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::cbegin, std_cbegin);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::end, std_end);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::cend, std_cend);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::rbegin, std_rbegin);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::crbegin, std_crbegin);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::rend, std_rend);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::crend, std_crend);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::data, std_data);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::size, std_size);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::swap, std_swap);
 
 template<typename _Container>
 constexpr auto size(const _Container& c){
-if constexpr (std::has_member_function_size_v<_Container>) {
-return c.size();
+if constexpr (has_global_function_std_size_v<_Container>) {
+return std::size(c);
 }
 else {
 return std::distance(std::begin(c), std::end(c));
@@ -3681,7 +3719,7 @@ static_assert(_Nd <= _Nd_ull, "unsupported integer type");
 }
 #endif
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR20 T adc(T a, T b, T carry_in, T* carry_out) {
 if (!wjr::is_constant_evaluated()) {
 if (!((is_constant_p(a) && is_constant_p(b)) || (is_constant_p(carry_in) && carry_in == 0))) {
@@ -3811,7 +3849,7 @@ static_assert(_Nd <= _Nd_ull, "unsupported integer type");
 }
 #endif
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR20 T sbb(T a, T b, T carry_in, T* carry_out) {
 if (!wjr::is_constant_evaluated()) {
 if (!((is_constant_p(a) && is_constant_p(b)) || (is_constant_p(carry_in) && carry_in == 0))) {
@@ -3874,7 +3912,7 @@ const static int _WJR_LOG_TABLE[256] = {
 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
 };
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR static int __wjr_fallback_clz(T x) noexcept {
 constexpr auto _Nd = std::numeric_limits<T>::digits;
 
@@ -3994,7 +4032,7 @@ return _Nd;
 return static_cast<int>(_Nd - 1 - _Result);
 }
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_clz(T x) noexcept {
 #if WJR_AVX2
 return __wjr_msvc_x86_64_avx2_clz(x);
@@ -4010,7 +4048,7 @@ return __wjr_msvc_x86_64_normal_clz(x);
 #endif // WJR_AVX2
 }
 #elif defined(WJR_ARM)
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_INLINE static int __wjr_msvc_arm_clz(T x) noexcept {
 constexpr auto _Nd = std::numeric_limits<T>::digits;
 if (x == 0) {
@@ -4026,8 +4064,8 @@ return static_cast<int>(_CountLeadingZeros64(x));
 #endif
 #endif
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 int clz(T x) noexcept {
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_E_CONSTEXPR int clz(T x) noexcept {
 if (!wjr::is_constant_evaluated()) {
 #if WJR_HAS_BUILTIN(__builtin_clz) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
 return __wjr_builtin_clz(x);
@@ -4151,8 +4189,8 @@ return __wjr_msvc_x86_64_normal_ctz(x);
 }
 #endif
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 int ctz(T x) noexcept {
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_E_CONSTEXPR int ctz(T x) noexcept {
 constexpr auto _Nd = std::numeric_limits<T>::digits;
 if (!wjr::is_constant_evaluated()) {
 #if WJR_HAS_BUILTIN(__builtin_ctz) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
@@ -4238,7 +4276,7 @@ return static_cast<int>(__popcnt64(x));
 }
 #endif
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR20 int popcnt(T x) noexcept {
 if (!wjr::is_constant_evaluated()) {
 #if WJR_HAS_BUILTIN(__builtin_popcount) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
@@ -4357,7 +4395,7 @@ static_assert(_Nd <= _Nd, "unsupported integer type");
 }
 #endif // WJR_HAS_BUILTIN(__builtin_bswap16) || WJR_HAS_CLANG(3, 2, 0)
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_INLINE static T bswap(T x) {
 if (!wjr::is_constant_evaluated()) {
 #if WJR_HAS_BUILTIN(__builtin_bswap16) || WJR_HAS_GCC(10, 1, 0) || WJR_HAS_CLANG(15, 0, 0)
@@ -4472,54 +4510,54 @@ return storage;
 
 #endif
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 constexpr bool has_single_bit(T x) noexcept {
 return x != 0 && (x & (x - 1)) == 0;
 }
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 int countl_zero(T x) noexcept {
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_E_CONSTEXPR int countl_zero(T x) noexcept {
 return wjr::masm::clz(x);
 }
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 int countl_one(T x) noexcept {
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_E_CONSTEXPR int countl_one(T x) noexcept {
 return wjr::countl_zero(static_cast<T>(~x));
 }
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 int countr_zero(T x) noexcept {
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_E_CONSTEXPR int countr_zero(T x) noexcept {
 return wjr::masm::ctz(x);
 }
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 int countr_one(T x) noexcept {
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_E_CONSTEXPR int countr_one(T x) noexcept {
 return wjr::countr_zero(static_cast<T>(~x));
 }
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 int bit_width(T x) noexcept {
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_E_CONSTEXPR int bit_width(T x) noexcept {
 return std::numeric_limits<T>::digits - wjr::countl_zero(x);
 }
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 T bit_floor(T x) noexcept {
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_E_CONSTEXPR T bit_floor(T x) noexcept {
 if (x != 0) {
 return static_cast<T>(T{ 1 } << (wjr::bit_width(x) - 1));
 }
 return T{ 0 };
 }
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 T bit_ceil(T x) noexcept {
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_E_CONSTEXPR T bit_ceil(T x) noexcept {
 if (x <= 1) {
 return T{ 1 };
 }
 return static_cast<T>(T{ 1 } << wjr::bit_width(x - 1));
 }
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 int popcount(T x) noexcept {
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_E_CONSTEXPR int popcount(T x) noexcept {
 return wjr::masm::popcnt(x);
 }
 
@@ -4593,18 +4631,346 @@ return wjr::cmp_greater_equal(t, std::numeric_limits<R>::min()) &&
 wjr::cmp_less_equal(t, std::numeric_limits<R>::max());
 }
 
-template<typename T, T base, int idx>
-struct cpower {
-constexpr static T value = cpower<T, base, idx - 1>::value * base;
+// calc a ^ b
+// O(log2 b)
+template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
+inline constexpr T power(T a, unsigned int b) {
+T ret = 1;
+while (b) {
+if (b & 1)ret *= a;
+a *= a;
+b >>= 1;
+}
+return ret;
+}
+
+template<typename T, unsigned int base>
+struct base_digits {
+static_assert(std::is_integral_v<T>, "");
+constexpr static unsigned int value = []() {
+unsigned int ret = 0;
+auto _Max = std::numeric_limits<T>::max();
+while (_Max) {
+++ret;
+_Max /= base;
+}
+return ret;
+}();
 };
 
-template<typename T, T base>
-struct cpower<T, base, 0> {
-constexpr static T value = 1;
+template<typename T, unsigned int base>
+inline constexpr unsigned int base_digits_v = base_digits<T, base>::value;
+
+template<unsigned int base, unsigned int SIZE>
+struct __width_table {
+constexpr static unsigned int max_size = SIZE;
+static_assert(SIZE <= 2048, "");
+constexpr __width_table() : m_table() {
+m_table[0] = 0;
+for (unsigned int i = 1; i < SIZE; ++i) {
+m_table[i] = m_table[i / base] + 1;
+}
+}
+inline constexpr uint8_t operator[](unsigned int idx) const { return m_table[idx]; }
+private:
+uint8_t m_table[SIZE];
 };
 
-template<typename T, T base, int idx>
-constexpr static T cpower_v = cpower<T, base, idx>::value;
+template<unsigned int base>
+struct __get_width_table_size {
+constexpr static unsigned int value = 0;
+};
+
+template<unsigned int base>
+static constexpr __width_table<base, __get_width_table_size<base>::value> __width_table_v;
+
+template<>
+struct __get_width_table_size<2> {
+constexpr static unsigned int value = 512;
+};
+
+template<>
+struct __get_width_table_size<3> {
+constexpr static unsigned int value = 729;
+};
+
+template<>
+struct __get_width_table_size<5> {
+constexpr static unsigned int value = 625;
+};
+
+template<>
+struct __get_width_table_size<6> {
+constexpr static unsigned int value = 1296;
+};
+
+template<>
+struct __get_width_table_size<7> {
+constexpr static unsigned int value = 343;
+};
+
+template<>
+struct __get_width_table_size<10> {
+constexpr static unsigned int value = 1000;
+};
+
+template<>
+struct __get_width_table_size<11> {
+constexpr static unsigned int value = 121;
+};
+
+template<>
+struct __get_width_table_size<12> {
+constexpr static unsigned int value = 144;
+};
+
+template<>
+struct __get_width_table_size<13> {
+constexpr static unsigned int value = 169;
+};
+
+template<>
+struct __get_width_table_size<14> {
+constexpr static unsigned int value = 196;
+};
+
+template<>
+struct __get_width_table_size<15> {
+constexpr static unsigned int value = 225;
+};
+
+template<>
+struct __get_width_table_size<17> {
+constexpr static unsigned int value = 289;
+};
+
+template<>
+struct __get_width_table_size<18> {
+constexpr static unsigned int value = 324;
+};
+
+template<>
+struct __get_width_table_size<19> {
+constexpr static unsigned int value = 361;
+};
+
+template<>
+struct __get_width_table_size<20> {
+constexpr static unsigned int value = 400;
+};
+
+template<>
+struct __get_width_table_size<21> {
+constexpr static unsigned int value = 441;
+};
+
+template<>
+struct __get_width_table_size<22> {
+constexpr static unsigned int value = 484;
+};
+
+template<unsigned int base>
+struct __get_width_table {
+constexpr static unsigned int value = -1;
+};
+
+template<>
+struct __get_width_table<2> {
+constexpr static unsigned int value = 2;
+};
+
+template<>
+struct __get_width_table<3> {
+constexpr static unsigned int value = 3;
+};
+
+template<>
+struct __get_width_table<4> {
+constexpr static unsigned int value = 2;
+};
+
+template<>
+struct __get_width_table<5> {
+constexpr static unsigned int value = 5;
+};
+
+template<>
+struct __get_width_table<6> {
+constexpr static unsigned int value = 6;
+};
+
+template<>
+struct __get_width_table<7> {
+constexpr static unsigned int value = 7;
+};
+
+template<>
+struct __get_width_table<8> {
+constexpr static unsigned int value = 2;
+};
+
+template<>
+struct __get_width_table<9> {
+constexpr static unsigned int value = 3;
+};
+
+template<>
+struct __get_width_table<10> {
+constexpr static unsigned int value = 10;
+};
+
+template<>
+struct __get_width_table<11> {
+constexpr static unsigned int value = 11;
+};
+
+template<>
+struct __get_width_table<12> {
+constexpr static unsigned int value = 12;
+};
+
+template<>
+struct __get_width_table<13> {
+constexpr static unsigned int value = 13;
+};
+
+template<>
+struct __get_width_table<14> {
+constexpr static unsigned int value = 14;
+};
+
+template<>
+struct __get_width_table<15> {
+constexpr static unsigned int value = 15;
+};
+
+template<>
+struct __get_width_table<16> {
+constexpr static unsigned int value = 2;
+};
+
+template<>
+struct __get_width_table<17> {
+constexpr static unsigned int value = 17;
+};
+
+template<>
+struct __get_width_table<18> {
+constexpr static unsigned int value = 18;
+};
+
+template<>
+struct __get_width_table<19> {
+constexpr static unsigned int value = 19;
+};
+
+template<>
+struct __get_width_table<20> {
+constexpr static unsigned int value = 20;
+};
+
+template<>
+struct __get_width_table<21> {
+constexpr static unsigned int value = 21;
+};
+
+template<>
+struct __get_width_table<22> {
+constexpr static unsigned int value = 22;
+};
+
+template<>
+struct __get_width_table<25> {
+constexpr static unsigned int value = 5;
+};
+
+template<unsigned int base>
+inline constexpr unsigned int __get_width_table_v = __get_width_table<base>::value;
+
+template<unsigned int base, typename T, unsigned int digits>
+inline constexpr void __width(T a, unsigned int& ret) {
+if constexpr (digits == 1) {
+if (a >= base) {
+++ret;
+}
+}
+else {
+constexpr auto mid_digits = (digits + 1) / 2;
+constexpr auto MID = power(base, mid_digits);
+if (a >= MID) {
+ret += mid_digits;
+a /= MID;
+}
+constexpr auto __table_index = __get_width_table_v<base>;
+if constexpr (__table_index != -1) {
+constexpr auto SIZE = __get_width_table_size<__table_index>::value;
+if constexpr (MID < SIZE) {
+ret += __width_table_v<__table_index>[static_cast<T>(a)];
+}
+else {
+__width<base, T, mid_digits>(a, ret);
+}
+}
+else {
+__width<base, T, mid_digits>(a, ret);
+}
+}
+}
+
+// calc ceil(log(a)) / log(base)
+// for a = 0, return 0
+// for a = (1, base), return 1
+// force constexpr, so when base is power of 2, the performance may be worse
+template<unsigned int base, typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+inline constexpr unsigned int base_width(T a) {
+#if WJR_ENABLE_CONSTEXPR
+if (!is_constant_evaluated()) {
+if constexpr (has_single_bit(base)) {
+return bit_width(a) / base;
+}
+}
+#endif // WJR_ENABLE_CONSTEXPR
+unsigned int ret = 0;
+__width<base, T, base_digits_v<T, base>>(a, ret);
+return ret;
+}
+
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+inline constexpr unsigned int base2_width(T a) {
+return base_width<2>(a);
+}
+
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+inline constexpr unsigned int base10_width(T a) {
+return base_width<10>(a);
+}
+
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+inline constexpr unsigned int base_width(unsigned int b, T a) {
+// optimize for common cases
+switch (b) {
+case 2: return base_width<2>(a);
+case 3: return base_width<3>(a);
+case 4: return base_width<4>(a);
+case 5: return base_width<5>(a);
+case 6: return base_width<6>(a);
+case 7: return base_width<7>(a);
+case 8: return base_width<8>(a);
+case 9: return base_width<9>(a);
+case 10: return base_width<10>(a);
+case 16: return base_width<16>(a);
+case 25: return base_width<25>(a);
+default: {
+WJR_ASSUME(b != 0 && b != 1);
+unsigned int ret = 0;
+while (a) {
+++ret;
+a /= b;
+}
+return ret;
+}
+}
+}
 
 template<typename R, typename T>
 struct broadcast_fn {};
@@ -9437,7 +9803,7 @@ else return 1;
 }
 
 template<size_t C, typename _Ty>
-size_t _Get_bytes_num(const _Ty& val) {
+inline size_t _Get_bytes_num(const _Ty& val) {
 constexpr size_t N = sizeof(_Ty);
 constexpr size_t M = _Get_max_bytes_num<C>();
 const auto ptr = reinterpret_cast<const uint8_t*>(&val);
@@ -13082,10 +13448,9 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived suffix(size_type n) const noexcept {
 n = std::min(n, this->derived().size());
 return Derived(this->derived().end() - n, n);
 }
-private:
+protected:
 Derived& derived() { return static_cast<Derived&>(*this); }
 const Derived& derived() const { return static_cast<const Derived&>(*this); }
-
 };
 
 template<typename Char, typename Traits>
@@ -13629,6 +13994,7 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view ltrim() const;
 WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view rtrim() const;
 WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view trim() const;
 
+// support constexpr if str is constexpr
 template<typename T>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_integral(
 conv_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
@@ -13650,6 +14016,10 @@ conv_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long long toull(
 conv_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+
+template<typename T>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_floating(
+conv_code* err = nullptr, size_type* pos = nullptr) const;
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR float tof(
 conv_code* err = nullptr, size_type* pos = nullptr) const;
@@ -15777,31 +16147,31 @@ __none,          __none,          __none,          __none
 };
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool isalnum(char ch) {
-return __char_code_table[make_unsigned(ch)] & (__lower | __upper | __digit);
+return __char_code_table[make_unsigned_v(ch)] & (__lower | __upper | __digit);
 }
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool isalpha(char ch) {
-return __char_code_table[make_unsigned(ch)] & (__lower | __upper);
+return __char_code_table[make_unsigned_v(ch)] & (__lower | __upper);
 }
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool islower(char ch) {
-return __char_code_table[make_unsigned(ch)] & __lower;
+return __char_code_table[make_unsigned_v(ch)] & __lower;
 }
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool isupper(char ch) {
-return __char_code_table[make_unsigned(ch)] & __upper;
+return __char_code_table[make_unsigned_v(ch)] & __upper;
 }
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool isdigit(char ch) {
-return __char_code_table[make_unsigned(ch)] & __digit;
+return __char_code_table[make_unsigned_v(ch)] & __digit;
 }
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool isxdigit(char ch) {
-return __char_code_table[make_unsigned(ch)] & __xdigit;
+return __char_code_table[make_unsigned_v(ch)] & __xdigit;
 }
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool isspace(char ch) {
-return __char_code_table[make_unsigned(ch)] & __white;
+return __char_code_table[make_unsigned_v(ch)] & __white;
 }
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR char tolower(char ch) {
@@ -15883,7 +16253,7 @@ template<int Base, int idx = 0>
 struct __to_integral_table_helper {
 
 constexpr static uint32_t invalid = 1u << 24;
-constexpr static uint32_t multi = cpower_v<uint32_t, Base, idx>;
+constexpr static uint32_t multi = power<uint32_t>(Base, idx);
 
 static_assert(Base >= 2 && Base <= 36, "");
 static_assert(idx >= 0 && idx < 4, "");
@@ -15988,26 +16358,22 @@ constexpr static T max() { return std::numeric_limits<T>::max(); }
 using unsigned_type = std::make_unsigned_t<T>;
 
 constexpr static unsigned_type umax() {
-return std::max(make_unsigned(min()), make_unsigned(max()));
+return std::max(make_unsigned_v(min()), make_unsigned_v(max()));
 }
 
 using __power_type = std::conditional_t<
 sizeof(unsigned_type) <= sizeof(uint32_t), uint32_t, unsigned_type>;
 
-template<int idx>
-using __power = cpower<__power_type, Base, idx>;
-
 constexpr static int digits = __to_integral_length_helper<unsigned_type, umax(), Base>();
 static_assert(digits > 0, "");
 
 constexpr __to_integral_check_helper() : m_num() {
-unsigned int __Base = Base;
 {
-auto __Min = umax();
+auto __Max = umax();
 for (int i = digits; i--;) {
-auto ret = __Min % __Base;
+auto ret = __mod<1>(__Max);
 m_num[i] = to_lowchar<Base>(ret);
-__Min /= __Base;
+__Max = __div<1>(__Max);
 }
 }
 }
@@ -16028,7 +16394,7 @@ private:
 template<int idx, typename _Ty>
 WJR_INTRINSIC_CONSTEXPR static _Ty __mod(_Ty val) {
 if constexpr (idx < digits) {
-return val % __power<idx>::value;
+return val % power<__power_type>(Base, idx);
 }
 else {
 return val;
@@ -16038,7 +16404,7 @@ return val;
 template<int idx, typename _Ty>
 WJR_INTRINSIC_CONSTEXPR static _Ty __div(_Ty val) {
 if constexpr (idx < digits) {
-return val / __power<idx>::value;
+return val / power<__power_type>(Base, idx);
 }
 else {
 return 0;
@@ -16061,7 +16427,7 @@ if (sum == _Val) {
 return compare<idx - 4>(s + 4, ret);
 }
 
-ret =  __div<idx>(umax()) * __power<4>::value + sum;
+ret =  __div<idx>(umax()) * power<__power_type>(Base, 4) + sum;
 comparel<idx - 4>(s + 4, ret);
 return 1;
 }
@@ -16075,7 +16441,7 @@ if (sum > _Val) {
 return -1;
 }
 
-ret = __div<idx>(umax()) * __power<3>::value + sum;
+ret = __div<idx>(umax()) * power<__power_type>(Base, 3) + sum;
 return sum == _Val ? 0 : 1;
 }
 else if constexpr (idx == 2) {
@@ -16087,7 +16453,7 @@ if (sum > _Val) {
 return -1;
 }
 
-ret = __div<idx>(umax()) * __power<2>::value + sum;
+ret = __div<idx>(umax()) * power<__power_type>(Base, 2) + sum;
 return sum == _Val ? 0 : 1;
 }
 else if constexpr (idx == 1) {
@@ -16098,7 +16464,7 @@ if (sum > _Val) {
 return -1;
 }
 
-ret = __div<idx>(umax()) * __power<1>::value + sum;
+ret = __div<idx>(umax()) * power<__power_type>(Base, 1) + sum;
 return sum == _Val ? 0 : 1;
 }
 else {
@@ -16110,7 +16476,7 @@ return 0;
 template<size_t idx>
 WJR_INTRINSIC_CONSTEXPR void comparel(const char* s, unsigned_type& ret) const {
 if constexpr (idx >= 4) {
-ret *= __power<4>::value;
+ret *= power<__power_type>(Base, 4);
 auto r0 = to_digit<Base, 3>(s[0]);
 auto r1 = to_digit<Base, 2>(s[1]);
 auto r2 = to_digit<Base, 1>(s[2]);
@@ -16122,7 +16488,7 @@ comparel<idx - 4>(s + 4, ret);
 else {
 switch (idx) {
 case 3: {
-ret *= __power<3>::value;
+ret *= power<__power_type>(Base, 3);
 auto r0 = to_digit<Base, 2>(s[0]);
 auto r1 = to_digit<Base, 1>(s[1]);
 auto r2 = to_digit<Base, 0>(s[2]);
@@ -16131,7 +16497,7 @@ ret += sum;
 break;
 }
 case 2: {
-ret *= __power<2>::value;
+ret *= power<__power_type>(Base, 2);
 auto r0 = to_digit<Base, 1>(s[0]);
 auto r1 = to_digit<Base, 0>(s[1]);
 auto sum = r0 + r1;
@@ -16139,7 +16505,7 @@ ret += sum;
 break;
 }
 case 1: {
-ret *= __power<1>::value;
+ret *= power<__power_type>(Base, 1);
 auto r0 = to_digit<Base, 0>(s[0]);
 auto sum = r0;
 ret += sum;
@@ -16155,11 +16521,6 @@ char m_num[digits];
 template<typename T, int Base>
 static constexpr __to_integral_check_helper<T, Base> __to_integral_check_helper_v;
 
-// if return noconv, end_ptr won't be set
-template<typename T, int Base>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_integral(const char* s, const char* e, conv_code& err,
-char** end_ptr = nullptr) noexcept {
-
 #define __CONV_OK_RET(ptr, ret)					\
 if(end_ptr != nullptr){					\
 *end_ptr = const_cast<char*>(ptr);	\
@@ -16169,7 +16530,7 @@ return ret;
 err = conv_code::noconv;				\
 return static_cast<T>(0);
 #define __CONV_NEXT	                            \
-if(is_unlikely(++i == e)){	            \
+if(is_unlikely(++s == e)){	            \
 __CONV_EMPTY_RET					\
 }
 #define __CONV_OVERFLOW_RET	                    \
@@ -16191,117 +16552,51 @@ __CONV_UNDERFLOW_RET;	        \
 }	                                \
 }
 
-err = conv_code::ok;
+// eat prefix, and sign
+template<typename T, int Base>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR T __to_integral(
+bool is_p, WJR_MAYBE_UNUSED int prefix,
+const char* s, const char* e, conv_code& err,
+char** end_ptr = nullptr) noexcept {
 
-const char* i = skipw(s, e);
-
-// empty string
-if (is_unlikely(i == e)) {
-__CONV_EMPTY_RET;
-}
-
-bool is_p = true;
-
-if (*i == '+') {
-__CONV_NEXT;
-}
-else if (*i == '-') {
-is_p = false;
-__CONV_NEXT;
-}
-
-bool have_prefix = false;
-
-// Base = 0, 8 : prefix : 0
-// Base = 0, 16: prefix : 0x/0X
-// base = 0 is not incomplete support
-if constexpr (Base == 0 || Base == 8 || Base == 16) {
-if constexpr (Base == 0) {
-if (*i == '0') {
-if (is_unlikely(++i == e)) {
-// treat 0 as a number instead of a prefix
-__CONV_OK_RET(e, 0);
-}
-if (*i == 'x' || *i == 'X') {
-if (is_unlikely(++i == e)) {
-// treat 0 as a number instead of a prefix
-__CONV_OK_RET(e, 0);
-}
-return to_integral<T, 16>(i, e, err, end_ptr);
-}
-return to_integral<T, 8>(i, e, err, end_ptr);
-}
-else {
-// base = 10
-return to_integral<T, 10>(i, e, err, end_ptr);
-}
-}
-else if constexpr (Base == 8) {
-if (*i == '0') {
-if (is_unlikely(++i == e)) {
-// treat 0 as a number instead of a prefix
-__CONV_OK_RET(e, 0);
-}
-// 0 maybe is a prefix or just number 0
-// if there's no more digits after it, it wil be treat as number 0
-have_prefix = true;
-}
-}
-else if constexpr (Base == 16) {
-if (*i == '0') {
-if (is_unlikely(++i == e)) {
-// treat 0 as a number instead of a prefix
-__CONV_OK_RET(e, 0);
-}
-if (*i == 'x' || *i == 'X') {
-have_prefix = true;
-if (is_unlikely(++i == e)) {
-// treat 0 as a number instead of a prefix
-// ignore 'x'/'X'
-__CONV_OK_RET(i - 1, 0);
-}
-}
-else {
-// treat 0 as a number instead of a prefix
-__CONV_OK_RET(i, 0);
-}
-}
-}
-}
-
-if constexpr (Base != 0) {
-const char* j = skipd<Base>(i, e);
+e = skipd<Base>(s, e);
 
 // no digits
-if (i == j) {
+if (s == e) {
 // have a prefix 0
-if (have_prefix) {
+if constexpr (Base == 2 || Base == 8 || Base == 16) {
+if (prefix != -1) {
 // treat 0 as a number instead of a prefix
-if constexpr (Base == 8) {
+// for prefix = 0, we eat a '0'
+// for prefix = 0*, we need to set end_ptr = i - 1
 if (end_ptr != nullptr) {
-*end_ptr = const_cast<char*>(i);
-}
-}
-else if constexpr(Base == 16) {
-if (end_ptr != nullptr) {
-// ignore 'x'/'X'
-*end_ptr = const_cast<char*>(i - 1);
-}
+// ignore 'b'/'B'
+*end_ptr = const_cast<char*>(s - prefix);
 }
 return static_cast<T>(0);
+}
 }
 // invalid digits
 __CONV_EMPTY_RET;
 }
 
+// s != e
+
 if (end_ptr != nullptr) {
-*end_ptr = const_cast<char*>(j);
+*end_ptr = const_cast<char*>(e);
 }
 
 // remove leading zeros
-while (i != j && *i == '0') ++i;
+do {
+if (*s != '0') break;
+++s;
+} while (s != e);
 
-auto n = static_cast<size_t>(j - i);
+auto n = static_cast<size_t>(e - s);
+
+if (!n) {
+return static_cast<T>(0);
+}
 
 // check flow
 constexpr const auto& helper = __to_integral_check_helper_v<T, Base>;
@@ -16314,7 +16609,7 @@ __CONV_FLOW_RET;
 // maybe flow, further testing
 if (n == helper.digits) {
 
-const auto __ret = helper.compare(i);
+const auto __ret = helper.compare(s);
 int ret = __ret.first;
 
 if constexpr (std::is_unsigned_v<T>) {
@@ -16353,43 +16648,45 @@ return static_cast<T>(-__ret.second);
 }
 }
 
+WJR_ASSUME(n < helper.digits);
+
 // the result won't have error
 
 std::make_unsigned_t<T> uret = 0;
 
-constexpr auto multi4 = cpower_v<uint32_t, Base, 4>;
-constexpr auto multi3 = cpower_v<uint32_t, Base, 3>;
-constexpr auto multi2 = cpower_v<uint32_t, Base, 2>;
-constexpr auto multi1 = cpower_v<uint32_t, Base, 1>;
+constexpr auto multi4 = power<uint32_t>(Base, 4);
+constexpr auto multi3 = power<uint32_t>(Base, 3);
+constexpr auto multi2 = power<uint32_t>(Base, 2);
+constexpr auto multi1 = power<uint32_t>(Base, 1);
 
-for (; n >= 4; n -= 4, i += 4) {
+for (; n >= 4; n -= 4, s += 4) {
 uret *= multi4;
-auto r0 = to_digit<Base, 3>(i[0]);
-auto r1 = to_digit<Base, 2>(i[1]);
-auto r2 = to_digit<Base, 1>(i[2]);
-auto r3 = to_digit<Base, 0>(i[3]);
+auto r0 = to_digit<Base, 3>(s[0]);
+auto r1 = to_digit<Base, 2>(s[1]);
+auto r2 = to_digit<Base, 1>(s[2]);
+auto r3 = to_digit<Base, 0>(s[3]);
 uret += r0 + r1 + r2 + r3;
 }
 
 switch (n) {
 case 3: {
 uret *= multi3;
-auto r0 = to_digit<Base, 2>(i[0]);
-auto r1 = to_digit<Base, 1>(i[1]);
-auto r2 = to_digit<Base, 0>(i[2]);
+auto r0 = to_digit<Base, 2>(s[0]);
+auto r1 = to_digit<Base, 1>(s[1]);
+auto r2 = to_digit<Base, 0>(s[2]);
 uret += r0 + r1 + r2;
 break;
 }
 case 2: {
 uret *= multi2;
-auto r0 = to_digit<Base, 1>(i[0]);
-auto r1 = to_digit<Base, 0>(i[1]);
+auto r0 = to_digit<Base, 1>(s[0]);
+auto r1 = to_digit<Base, 0>(s[1]);
 uret += r0 + r1;
 break;
 }
 case 1: {
 uret *= multi1;
-auto r0 = to_digit<Base, 0>(i[0]);
+auto r0 = to_digit<Base, 0>(s[0]);
 uret += r0;
 break;
 }
@@ -16400,6 +16697,145 @@ return static_cast<T>(uret);
 }
 
 return static_cast<T>(-uret);
+
+}
+
+template<typename T, int Base>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_integral(const char* s, const char* e, conv_code& err,
+char** end_ptr = nullptr) noexcept {
+
+err = conv_code::ok;
+
+s = skipw(s, e);
+
+// empty string
+if (is_unlikely(s == e)) {
+__CONV_EMPTY_RET;
+}
+
+bool is_p = true;
+
+if (*s == '+') {
+__CONV_NEXT;
+}
+else if (*s == '-') {
+is_p = false;
+__CONV_NEXT;
+}
+
+// -1 : no prefix
+// 0 : length of prefix is 1
+// 1 : length of prefix is 2
+// notice that for base = 2, 0b is prefix, 0 is not prefix
+// but we will eat first 0, if the second char is not 'b'/'B'
+// we also set prefix = 0
+int prefix = -1;
+
+// Base = 0, 8 : prefix : 0
+// Base = 0, 16: prefix : 0x/0X
+// base = 0 is not incomplete support yet, don't use it
+if constexpr (Base == 0 || Base == 2 || Base == 8 || Base == 16) {
+if constexpr (Base == 0) {
+if (*s == '0') {
+if (is_unlikely(++s == e)) {
+// treat 0 as a number instead of a prefix
+__CONV_OK_RET(s, 0);
+}
+switch (*s) {
+case 'x':
+case 'X': {
+if (is_unlikely(++s == e)) {
+// treat 0 as a number instead of a prefix
+__CONV_OK_RET(s - 1, 0);
+}
+return __to_integral<T, 16>(is_p, 1, s, e, err, end_ptr);
+}
+case 'b':
+case 'B': {
+if (is_unlikely(++s == e)) {
+// treat 0 as a number instead of a prefix
+__CONV_OK_RET(s - 1, 0);
+}
+return __to_integral<T, 2>(is_p, 1, s, e, err, end_ptr);
+}
+default: {
+return __to_integral<T, 8>(is_p, 0, s, e, err, end_ptr);
+}
+}
+}
+else {
+// base = 10
+return __to_integral<T, 10>(is_p, -1, s, e, err, end_ptr);
+}
+}
+else if constexpr (Base == 2) {
+if (*s == '0') {
+if (is_unlikely(++s == e)) {
+// treat 0 as a number instead of a prefix
+__CONV_OK_RET(s, 0);
+}
+
+switch (*s) {
+case 'b':
+case 'B': {
+if (is_unlikely(++s == e)) {
+// treat 0 as a number instead of a prefix
+// ignore 'x'/'X'
+__CONV_OK_RET(s - 1, 0);
+}
+prefix = 1;
+break;
+}
+default: {
+prefix = 0;
+break;
+}
+}
+}
+}
+else if constexpr (Base == 8) {
+if (*s == '0') {
+if (is_unlikely(++s == e)) {
+// treat 0 as a number instead of a prefix
+__CONV_OK_RET(s, 0);
+}
+// 0 maybe is a prefix or just number 0
+// if there's no more digits after it, it wil be treat as number 0
+prefix = 0;
+}
+}
+else if constexpr (Base == 16) {
+if (*s == '0') {
+if (is_unlikely(++s == e)) {
+// treat 0 as a number instead of a prefix
+__CONV_OK_RET(s, 0);
+}
+switch (*s) {
+case 'x':
+case 'X': {
+if (is_unlikely(++s == e)) {
+// treat 0 as a number instead of a prefix
+// ignore 'x'/'X'
+__CONV_OK_RET(s - 1, 0);
+}
+prefix = 1;
+break;
+}
+default: {
+prefix = 0;
+break;
+}
+}
+}
+}
+}
+
+if constexpr (Base != 0) {
+return __to_integral<T, Base>(is_p, prefix, s, e, err, end_ptr);
+}
+else {
+unreachable();
+}
 }
 
 #undef __CONV_OK_RET
@@ -16408,19 +16844,23 @@ return static_cast<T>(-uret);
 #undef __CONV_OVERFLOW_RET
 #undef __CONV_UNDERFLOW_RET
 #undef __CONV_FLOW_RET
-}
 
 // support base = 2/4/8/10/16
 template<typename T>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_integral(const char* s, const char* e, conv_code& err,
+WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_integral(
+const char* s, const char* e, conv_code& err,
 char** end_ptr = nullptr, int base = 10) noexcept {
 switch (base) {
-case 0: return to_integral<T, 0>(s, e, err, end_ptr);
+// dont't use base = 0
+//case 0: return to_integral<T, 0>(s, e, err, end_ptr);
 case 2: return to_integral<T, 2>(s, e, err, end_ptr);
 case 8: return to_integral<T, 8>(s, e, err, end_ptr);
 case 10: return to_integral<T, 10>(s, e, err, end_ptr);
 case 16: return to_integral<T, 16>(s, e, err, end_ptr);
-default: return to_integral<T, 10>(s, e, err, end_ptr);
+default: {
+unreachable();
+return static_cast<T>(0);
+}
 }
 }
 
@@ -17685,265 +18125,94 @@ return wjr::uninitialized_move(al, _First.base(), _Last.base(), _Dest);
 _WJR_END
 
 #endif // __WJR_CIRCULAR_BUFFER_H
+#pragma once
+#ifndef __WJR_CRTP_H
+#define __WJR_CRTP_H
+
 
 _WJR_BEGIN
 
-class thread_pool {
-public:
-
-static size_t default_threads_size();
-
-thread_pool(
-unsigned int core_threads_size = default_threads_size());
-~thread_pool();
-
-std::mutex& get_mutex();
-
-void pause();
-void unpause();
-void flush();
-
-// if is pause, only flush active tasks
-// else flush all tasks
-// then destroy threads
-void shutdown();
-// if is pause, only flush active tasks
-// else flush all tasks
-// then destroy threads
-// return tasks that not done
-// notice that it will return nothing if not in a paused state
-circular_buffer<std::function<void()>> shutdown(bool);
-
-template<typename Func, typename...Args>
-void push(Func&& func, Args&&...args);
-
-template<typename Func, typename...Args, typename R = std::invoke_result_t<Func&&, Args&&...>>
-WJR_NODISCARD std::future<R> submit(Func&& func, Args&&... args);
-
-template<typename iter, std::enable_if_t<is_iterator_v<iter>, int> = 0>
-void append(iter _First, iter _Last);
-
-unsigned int get_threads_size() const;
-
+class nocopyable {
+protected:
+nocopyable() {}
+~nocopyable() {}
 private:
-void core_work();
-
-void create_all_threads(unsigned int core_threads_size);
-
-alignas(8) std::mutex m_task_mutex;
-alignas(8) circular_buffer<std::function<void()>> m_task_queue;
-alignas(8) bool m_valid = true;
-
-alignas(64) std::condition_variable m_task_cv;
-// Not used frequently, so average consumption is reduced through mutual exclusion protection
-alignas(8) bool m_pause = false;
-alignas(8) std::atomic<size_t> m_real_tasks = 0;
-// padding
-alignas(8) wjr::vector<std::thread> m_core_threads;
-
-alignas(64) bool m_flush = false;
-alignas(8) std::condition_variable m_flush_cv;
+nocopyable(const nocopyable&);
+const nocopyable& operator=(const nocopyable&);
 };
 
-template<typename Func, typename...Args>
-void thread_pool::push(Func&& func, Args&&...args) {
-std::function<void()> function = std::bind(std::forward<Func>(func), std::forward<Args>(args)...);
-{
-std::unique_lock task_lock(m_task_mutex);
-m_task_queue.push_back(std::move(function));
-#if defined(_WJR_EXCEPTION)
-if (is_unlikely(!m_valid)) {
-throw std::runtime_error("can't put task into invalid thread_pool");
-}
-#endif // _WJR_EXCEPTION
-}
-m_real_tasks.fetch_add(1, std::memory_order_relaxed);
-m_task_cv.notify_one();
+class nomoveable {
+protected:
+nomoveable() {}
+~nomoveable() {}
+nomoveable(const nomoveable&) = default;
+nomoveable& operator=(const nomoveable&) = default;
+private:
+nomoveable(nomoveable&&);
+nomoveable& operator=(nomoveable&&);
+};
+
+class nocopy_and_moveable : public nocopyable, public nomoveable { };
+
+// testing, don't use this
+template<typename Derived>
+class explicit_operator_complement {
+public:
+static_assert(has_global_binary_operator_equal_to_v<const Derived&, const Derived&>
+&& has_global_binary_operator_less_v<const Derived&, const Derived&>,
+"must have operator== and operator <");
+Derived& derived() { return static_cast<Derived&>(*this); }
+const Derived& derived() const { return static_cast<const Derived&>(*this); }
+private:
+WJR_CONSTEXPR20 explicit_operator_complement() {}
+friend Derived;
+};
+
+template<typename Derived>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool operator==(
+const explicit_operator_complement<Derived>& lhs,
+const explicit_operator_complement<Derived>& rhs) {
+return (lhs.derived() == rhs.derived());
 }
 
-template<typename Func, typename...Args, typename R>
-WJR_NODISCARD std::future<R> thread_pool::submit(Func&& func, Args&&... args) {
-
-std::function<R()> task_function = std::bind(std::forward<Func>(func), std::forward<Args>(args)...);
-std::shared_ptr<std::promise<R>> task_promise = std::make_shared<std::promise<R>>();
-push(
-[func = std::move(task_function), task_promise]() {
-#if defined(_WJR_EXCEPTION)
-try {
-#endif // _WJR_EXCEPTION
-if constexpr (std::is_void_v<R>) {
-std::invoke(func);
-task_promise->set_value();
-}
-else {
-task_promise->set_value(std::invoke(func));
-}
-#if defined(_WJR_EXCEPTION)
-}
-catch (...) {
-try {
-task_promise->set_exception(std::current_exception());
-}
-catch (...) {
-}
-}
-#endif // _WJR_EXCEPTION
-});
-return task_promise->get_future();
+template<typename Derived>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool operator!=(
+const explicit_operator_complement<Derived>& lhs,
+const explicit_operator_complement<Derived>& rhs) {
+return !(lhs.derived() == rhs.derived());
 }
 
-template<typename iter, std::enable_if_t<is_iterator_v<iter>, int>>
-void thread_pool::append(iter _First, iter _Last) {
-std::unique_lock task_lock(m_task_mutex);
-const auto _Oldsize = m_task_queue.size();
-m_task_queue.append(_First, _Last);
-const auto _Newsize = m_task_queue.size();
-task_lock.unlock();
-size_t n;
-if constexpr (is_random_iter_v<iter>) {
-n = std::distance(_First, _Last);
+template<typename Derived>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool operator<(
+const explicit_operator_complement<Derived>& lhs,
+const explicit_operator_complement<Derived>& rhs) {
+return (lhs.derived() < rhs.derived());
 }
-else {
-n = _Newsize - _Oldsize;
+
+template<typename Derived>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool operator<=(
+const explicit_operator_complement<Derived>& lhs,
+const explicit_operator_complement<Derived>& rhs) {
+return !(rhs.derived() < lhs.derived());
 }
-if (n == 0) {
+
+template<typename Derived>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool operator>(
+const explicit_operator_complement<Derived>& lhs,
+const explicit_operator_complement<Derived>& rhs) {
+return (rhs.derived() < lhs.derived());
 }
-else {
-m_real_tasks.fetch_add(n, std::memory_order_relaxed);
-if (n > get_threads_size()) {
-m_task_cv.notify_all();
-}
-else {
-for (; n != 0; --n) {
-m_task_cv.notify_one();
-}
-}
-}
+
+template<typename Derived>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR20 bool operator>=(
+const explicit_operator_complement<Derived>& lhs,
+const explicit_operator_complement<Derived>& rhs) {
+return !(lhs.derived() < rhs.derived());
 }
 
 _WJR_END
 
-#endif // __WJR_NETWORK_THREAD_POOL_H
-
-_WJR_BEGIN
-
-size_t thread_pool::default_threads_size() {
-return std::max(static_cast<size_t>(1), static_cast<size_t>(std::thread::hardware_concurrency()));
-}
-
-thread_pool::thread_pool(
-unsigned int core_threads_size) {
-create_all_threads(core_threads_size);
-}
-
-thread_pool::~thread_pool() {
-if (m_valid) {
-shutdown();
-}
-}
-
-std::mutex& thread_pool::get_mutex() {
-return m_task_mutex;
-}
-
-void thread_pool::pause() {
-std::unique_lock task_lock(m_task_mutex);
-m_pause = true;
-}
-
-void thread_pool::unpause() {
-std::unique_lock task_lock(m_task_mutex);
-m_pause = false;
-}
-
-void thread_pool::flush() {
-std::unique_lock task_lock(m_task_mutex);
-// can't flush multiple times
-if (m_flush) return;
-m_flush = true;
-m_flush_cv.wait(task_lock, [this] {
-return (m_real_tasks.load(std::memory_order_relaxed)
-== (m_pause ? m_task_queue.size() : 0));
-});
-m_flush = false;
-}
-
-void thread_pool::shutdown() {
-#if defined(_WJR_EXCEPTION)
-if (!m_valid) {
-throw std::runtime_error("can't shutdown thread pool more than once");
-}
-#endif // _WJR_EXCEPTION
-flush();
-{
-std::unique_lock task_lock(m_task_mutex);
-m_valid = false;
-}
-m_task_cv.notify_all();
-for (auto& i : m_core_threads) i.join();
-}
-
-circular_buffer<std::function<void()>> thread_pool::shutdown(bool) {
-shutdown();
-std::unique_lock task_lock(m_task_mutex);
-return std::move(m_task_queue);
-}
-
-unsigned int thread_pool::get_threads_size() const {
-return m_core_threads.size();
-}
-
-void thread_pool::core_work() {
-
-for (;;) {
-std::function<void()> task;
-
-{
-using namespace wjr::enum_ops;
-std::unique_lock task_lock(m_task_mutex);
-m_task_cv.wait(task_lock, [this] {
-return !m_task_queue.empty() || !m_valid;
-});
-
-if (is_likely(m_valid)) {
-if (!m_pause) {
-task = std::move(m_task_queue.front());
-m_task_queue.pop_front();
-task_lock.unlock();
-task();
-task_lock.lock();
-m_real_tasks.fetch_sub(1, std::memory_order_relaxed);
-if (m_flush) {
-task_lock.unlock();
-m_flush_cv.notify_one();
-}
-}
-continue;
-}
-
-break;
-}
-}
-
-}
-
-void thread_pool::create_all_threads(
-unsigned int core_threads_size) {
-#if defined(_WJR_EXCEPTION)
-if (!core_threads_size) {
-throw std::invalid_argument("!core_threads_size");
-}
-#endif // _WJR_EXCEPTION
-
-m_core_threads.reserve(core_threads_size);
-
-for (unsigned int i = 0; i < core_threads_size; ++i) {
-m_core_threads.emplace_back(&thread_pool::core_work, this);
-}
-}
-
-
-_WJR_END
+#endif // __WJR_CRTP_H
 #pragma once
 #ifndef __WJR_ALLOCATOR_H
 #define __WJR_ALLOCATOR_H
@@ -18114,6 +18383,267 @@ printf("memory leak: %lld bytes", _Count);
 __test_allocator __test_allocator_instance;
 #endif
 _WJR_END
+
+_WJR_BEGIN
+
+class thread_pool : public nocopy_and_moveable {
+public:
+using queue_type = circular_buffer<std::function<void()>,
+aligned_allocator<std::function<void()>>>;
+
+static size_t default_threads_size();
+
+thread_pool(
+unsigned int core_threads_size = default_threads_size());
+~thread_pool();
+
+std::mutex& get_mutex();
+
+void pause();
+void unpause();
+void flush();
+
+// if is pause, only flush active tasks
+// else flush all tasks
+// then destroy threads
+void shutdown();
+// if is pause, only flush active tasks
+// else flush all tasks
+// then destroy threads
+// return tasks that not done
+// notice that it will return nothing if not in a paused state
+queue_type shutdown(bool);
+
+template<typename Func, typename...Args>
+void push(Func&& func, Args&&...args);
+
+template<typename Func, typename...Args, typename R = std::invoke_result_t<Func&&, Args&&...>>
+WJR_NODISCARD std::future<R> submit(Func&& func, Args&&... args);
+
+template<typename iter, std::enable_if_t<is_iterator_v<iter>, int> = 0>
+void append(iter _First, iter _Last);
+
+unsigned int get_threads_size() const;
+
+private:
+void core_work();
+
+void create_all_threads(unsigned int core_threads_size);
+
+alignas(8) std::mutex m_task_mutex;
+alignas(8) queue_type m_task_queue;
+alignas(8) bool m_valid = true;
+
+alignas(64) std::condition_variable m_task_cv;
+// Not used frequently, so average consumption is reduced through mutual exclusion protection
+alignas(8) bool m_pause = false;
+alignas(8) std::atomic<size_t> m_real_tasks = 0;
+// padding
+alignas(8) wjr::vector<std::thread> m_core_threads;
+
+alignas(64) bool m_flush = false;
+alignas(8) std::condition_variable m_flush_cv;
+};
+
+template<typename Func, typename...Args>
+void thread_pool::push(Func&& func, Args&&...args) {
+std::function<void()> function = std::bind(std::forward<Func>(func), std::forward<Args>(args)...);
+{
+std::unique_lock task_lock(m_task_mutex);
+m_task_queue.push_back(std::move(function));
+#if defined(_WJR_EXCEPTION)
+if (is_unlikely(!m_valid)) {
+throw std::runtime_error("can't put task into invalid thread_pool");
+}
+#endif // _WJR_EXCEPTION
+}
+m_real_tasks.fetch_add(1, std::memory_order_relaxed);
+m_task_cv.notify_one();
+}
+
+template<typename Func, typename...Args, typename R>
+WJR_NODISCARD std::future<R> thread_pool::submit(Func&& func, Args&&... args) {
+
+std::function<R()> task_function = std::bind(std::forward<Func>(func), std::forward<Args>(args)...);
+std::shared_ptr<std::promise<R>> task_promise = std::make_shared<std::promise<R>>();
+push(
+[func = std::move(task_function), task_promise]() {
+#if defined(_WJR_EXCEPTION)
+try {
+#endif // _WJR_EXCEPTION
+if constexpr (std::is_void_v<R>) {
+std::invoke(func);
+task_promise->set_value();
+}
+else {
+task_promise->set_value(std::invoke(func));
+}
+#if defined(_WJR_EXCEPTION)
+}
+catch (...) {
+try {
+task_promise->set_exception(std::current_exception());
+}
+catch (...) {
+}
+}
+#endif // _WJR_EXCEPTION
+});
+return task_promise->get_future();
+}
+
+template<typename iter, std::enable_if_t<is_iterator_v<iter>, int>>
+void thread_pool::append(iter _First, iter _Last) {
+std::unique_lock task_lock(m_task_mutex);
+const auto _Oldsize = m_task_queue.size();
+m_task_queue.append(_First, _Last);
+const auto _Newsize = m_task_queue.size();
+task_lock.unlock();
+size_t n;
+if constexpr (is_random_iter_v<iter>) {
+n = std::distance(_First, _Last);
+}
+else {
+n = _Newsize - _Oldsize;
+}
+if (n == 0) {
+}
+else {
+m_real_tasks.fetch_add(n, std::memory_order_relaxed);
+if (n > get_threads_size()) {
+m_task_cv.notify_all();
+}
+else {
+for (; n != 0; --n) {
+m_task_cv.notify_one();
+}
+}
+}
+}
+
+_WJR_END
+
+#endif // __WJR_NETWORK_THREAD_POOL_H
+
+_WJR_BEGIN
+
+size_t thread_pool::default_threads_size() {
+return std::max(static_cast<size_t>(1), static_cast<size_t>(std::thread::hardware_concurrency()));
+}
+
+thread_pool::thread_pool(
+unsigned int core_threads_size) {
+create_all_threads(core_threads_size);
+}
+
+thread_pool::~thread_pool() {
+if (m_valid) {
+shutdown();
+}
+}
+
+std::mutex& thread_pool::get_mutex() {
+return m_task_mutex;
+}
+
+void thread_pool::pause() {
+std::unique_lock task_lock(m_task_mutex);
+m_pause = true;
+}
+
+void thread_pool::unpause() {
+std::unique_lock task_lock(m_task_mutex);
+m_pause = false;
+}
+
+void thread_pool::flush() {
+std::unique_lock task_lock(m_task_mutex);
+// can't flush multiple times
+if (m_flush) return;
+m_flush = true;
+m_flush_cv.wait(task_lock, [this] {
+return (m_real_tasks.load(std::memory_order_relaxed)
+== (m_pause ? m_task_queue.size() : 0));
+});
+m_flush = false;
+}
+
+void thread_pool::shutdown() {
+#if defined(_WJR_EXCEPTION)
+if (!m_valid) {
+throw std::runtime_error("can't shutdown thread pool more than once");
+}
+#endif // _WJR_EXCEPTION
+flush();
+{
+std::unique_lock task_lock(m_task_mutex);
+m_valid = false;
+}
+m_task_cv.notify_all();
+for (auto& i : m_core_threads) i.join();
+}
+
+typename thread_pool::queue_type thread_pool::shutdown(bool) {
+shutdown();
+std::unique_lock task_lock(m_task_mutex);
+return std::move(m_task_queue);
+}
+
+unsigned int thread_pool::get_threads_size() const {
+return m_core_threads.size();
+}
+
+void thread_pool::core_work() {
+
+for (;;) {
+std::function<void()> task;
+
+{
+using namespace wjr::enum_ops;
+std::unique_lock task_lock(m_task_mutex);
+m_task_cv.wait(task_lock, [this] {
+return !m_task_queue.empty() || !m_valid;
+});
+
+if (is_likely(m_valid)) {
+if (!m_pause) {
+task = std::move(m_task_queue.front());
+m_task_queue.pop_front();
+task_lock.unlock();
+task();
+task_lock.lock();
+m_real_tasks.fetch_sub(1, std::memory_order_relaxed);
+if (m_flush) {
+task_lock.unlock();
+m_flush_cv.notify_one();
+}
+}
+continue;
+}
+
+break;
+}
+}
+
+}
+
+void thread_pool::create_all_threads(
+unsigned int core_threads_size) {
+#if defined(_WJR_EXCEPTION)
+if (!core_threads_size) {
+throw std::invalid_argument("!core_threads_size");
+}
+#endif // _WJR_EXCEPTION
+
+m_core_threads.reserve(core_threads_size);
+
+for (unsigned int i = 0; i < core_threads_size; ++i) {
+m_core_threads.emplace_back(&thread_pool::core_work, this);
+}
+}
+
+
+_WJR_END
 #pragma once
 #ifndef __WJR_RANDOM_H
 #define __WJR_RANDOM_H
@@ -18153,12 +18683,12 @@ class basic_random : public EngineWrapper<Engine>{
 
 template<typename T>
 using _Is_container = std::conjunction<
-std::has_global_function_begin<T>,
-std::has_global_function_end<T>
+has_global_function_std_begin<T>,
+has_global_function_std_end<T>
 >;
 
 template<typename T>
-using _Has_size = std::has_global_function_size<T>;
+using _Has_size = has_global_function_std_size<T>;
 
 public:
 using _Mybase = EngineWrapper<Engine>;
@@ -18256,8 +18786,8 @@ return dist(engine());
 }
 
 template<typename _Container, std::enable_if_t<std::conjunction_v<
-std::has_global_function_begin<_Container>,
-std::has_global_function_end<_Container>>, int> = 0>
+has_global_function_std_begin<_Container>,
+has_global_function_std_end<_Container>>, int> = 0>
 static decltype(auto) get(_Container& container) {
 auto first = std::begin(container);
 auto last = std::end(container);
@@ -18314,3 +18844,4 @@ using Random = random_static;
 _WJR_END
 
 #endif // __WJR_RANDOM_H
+

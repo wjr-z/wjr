@@ -58,7 +58,7 @@ void thread_pool::shutdown() {
 	for (auto& i : m_core_threads) i.join();
 }
 
-circular_buffer<std::function<void()>> thread_pool::shutdown(bool) {
+typename thread_pool::queue_type thread_pool::shutdown(bool) {
 	shutdown();
 	std::unique_lock task_lock(m_task_mutex);
 	return std::move(m_task_queue);

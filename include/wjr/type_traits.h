@@ -59,12 +59,16 @@ WJR_INTRINSIC_CONSTEXPR void assume_no_sub_overflow(T a, T b) noexcept {
 	WJR_ASSUME(a >= b);
 }
 
+// disable tag, for example, used in enable_if_t
 struct disable_tag {};
 
+// used in construct_at, use default construct instead of value construct
 struct default_construct_tag {};
 struct value_construct_tag {};
 
+// used in string
 struct extend_tag {};
+// used if the memory is reserved for optimize
 struct reserve_tag {};
 
 struct defer_tag {};
@@ -79,6 +83,7 @@ inline constexpr bool has_global_binary_operator_v = has_global_binary_operator<
 WJR_REGISTER_HAS_MEMBER_FUNCTION(operator(), call_operator);
 WJR_REGISTER_HAS_MEMBER_FUNCTION(operator[], subscript_operator);
 WJR_REGISTER_HAS_MEMBER_FUNCTION(operator->, point_to_operator);
+
 WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(+, plus);
 WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(-, minus);
 WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(&, bit_and);
@@ -91,26 +96,35 @@ WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(> , greater);
 WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(>= , greater_equal);
 WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(< , less);
 WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(<= , less_equal);
+
 WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(min, min);
 WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(max, max);
 
 template<typename T>
 using aligned_storage_for_t = std::aligned_storage_t<sizeof(T), alignof(T)>;
 
+// find if T is in Args...
 template<typename T, typename...Args>
 struct is_any_of : std::disjunction<std::is_same<T, Args>...> {};
 
 template<typename T, typename...Args>
 inline constexpr bool is_any_of_v = is_any_of<T, Args...>::value;
 
+// find if i is in _Index...
+template<size_t i, size_t..._Index>
+struct is_any_index_of : std::disjunction<std::bool_constant<i == _Index>...> {};
+
+template<size_t i, size_t..._Index>
+inline constexpr bool is_any_index_of_v = is_any_index_of<i, _Index...>::value;
+
 template<typename T>
 using remove_ref_t = std::remove_reference_t<T>;
 
 template<typename T>
-using remove_cvref_t = std::remove_cv_t<remove_ref_t<T>>;
+using remove_cref_t = std::remove_const_t<remove_ref_t<T>>;
 
 template<typename T>
-using remove_cref_t = std::remove_const_t<remove_ref_t<T>>;
+using remove_cvref_t = std::remove_cv_t<remove_ref_t<T>>;
 
 template<typename T>
 using add_lref_t = std::add_lvalue_reference_t<T>;
@@ -124,6 +138,8 @@ using add_cvref_t = add_lref_t<std::add_cv_t<T>>;
 template<typename T>
 using add_cref_t = add_lref_t<std::add_const_t<T>>;
 
+// default comparator
+// can be used for optimize, such as find, compare...
 template<typename T>
 struct is_standard_comparator : 
 	is_any_of<remove_cvref_t<T>, 
@@ -138,26 +154,7 @@ struct is_standard_comparator :
 template<typename T>
 inline constexpr bool is_standard_comparator_v = is_standard_comparator<T>::value;
 
-template<typename T>
-struct is_left_standard_comparator :
-	is_any_of<std::remove_cv_t<T>,
-	std::less<>,
-	std::less_equal<>
-	> {};
-
-template<typename T>
-inline constexpr bool is_left_standard_comparator_v = is_left_standard_comparator<T>::value;
-
-template<typename T>
-struct is_right_standard_comparator :
-	is_any_of<remove_cvref_t<T>,
-	std::greater<>,
-	std::greater_equal<>
-	> {};
-
-template<typename T>
-inline constexpr bool is_right_standard_comparator_v = is_right_standard_comparator<T>::value;
-
+// used to unwrap std::reference_wrapper
 template<typename T>
 struct unrefwrap {
 	using type = T;
@@ -183,6 +180,7 @@ using iter_val_t = typename std::iterator_traits<T>::value_type;
 template<typename T>
 using iter_ref_t = typename std::iterator_traits<T>::reference;
 
+// weak judgment for iterator type
 template<typename T, typename = void>
 struct is_iterator : std::false_type {};
 
@@ -244,6 +242,8 @@ struct is_contiguous_iter<std::reverse_iterator<_Iter>> : is_contiguous_iter<_It
 
 template<typename T>
 inline constexpr bool is_contiguous_iter_v = is_contiguous_iter<T>::value;
+
+// dont't support int128 / uint128 yet
 
 template<size_t n>
 struct __uint_helper{};
@@ -320,6 +320,9 @@ using std_uintptr_t = std::uintptr_t;
 template<size_t n, bool __s>
 using int_or_uint_t = std::conditional_t<__s, int_t<n>, uint_t<n>>;
 
+// make T (must be integral) to my int/uint type
+// for example, bool/char/signed char/unsigne char will be normalized to uint8_t
+
 template<typename T>
 struct make_integral {
 	static_assert(std::is_integral_v<T>, "T must be an integral type");
@@ -330,7 +333,12 @@ template<typename T>
 using make_integral_t = typename make_integral<T>::type;
 
 template<typename T>
-constexpr std::make_unsigned_t<T> make_unsigned(T t) {
+constexpr make_integral_t<T> make_integral_v(T t) {
+	return static_cast<make_integral_t<T>>(t);
+}
+
+template<typename T>
+constexpr std::make_unsigned_t<T> make_unsigned_v(T t) {
 	return static_cast<std::make_unsigned_t<T>>(t);
 }
 
@@ -407,19 +415,21 @@ constexpr ipmc_result is_possible_memory_comparable(const U& v, _Pred) {
 	}
 }
 
-template<typename T>
+template<typename T, size_t threshold>
 struct _Auto_variable_helper {
-	using type = std::conditional_t<sizeof(T) <= 256 / 8, T, const T&>;
+	using type = std::conditional_t<sizeof(T) <= threshold, T, const T&>;
 };
 
-template<typename T>
-using auto_var_t = typename _Auto_variable_helper<T>::type;
-
-template<size_t i, size_t..._Index>
-struct is_any_index_of : std::disjunction<std::bool_constant<i == _Index>...> {};
-
-template<size_t i, size_t..._Index>
-inline constexpr bool is_any_index_of_v = is_any_index_of<i, _Index...>::value;
+template<typename T, size_t threshold = 
+#if WJR_AVX
+	32
+#elif WJR_SSE
+	16
+#else
+	8
+#endif
+>
+using auto_var_t = typename _Auto_variable_helper<T, threshold>::type;
 
 template<typename T>
 struct ref_wrapper {
@@ -469,6 +479,7 @@ struct is_signed_integral : std::conjunction<std::is_integral<T>, std::is_signed
 template<typename T>
 inline constexpr bool is_signed_integral_v = is_signed_integral<T>::value;
 
+// non-bool integral
 template<typename T>
 struct is_standard_numer : std::conjunction<std::is_arithmetic<T>, 
 	std::negation<std::is_same<std::remove_cv_t<T>, bool>>> {};
@@ -476,6 +487,8 @@ struct is_standard_numer : std::conjunction<std::is_arithmetic<T>,
 template<typename T>
 inline constexpr bool is_standard_numer_v = is_standard_numer<T>::value;
 
+// reverse<iter> is 
+// but reverse<reverse<iter>> is not
 template<typename T>
 struct is_reverse_iterator : std::false_type {};
 
@@ -490,6 +503,7 @@ constexpr auto enum_cast(T t) noexcept {
 	return static_cast<std::underlying_type_t<T>>(t);
 }
 
+// enum ops
 namespace enum_ops {
 	template<typename T>
 	constexpr std::enable_if_t<std::is_enum_v<T>, T> operator|(T lhs, T rhs) noexcept {
@@ -528,13 +542,20 @@ public:
 	constexpr static bool value = u1;
 };
 
+// constexpr endian
 enum class endian {
 	little = 0,
 	big = 1,
 	native = __is_little_endian_helper::value ? little : big
 };
 
-namespace _To_address_helper {
+// make ptr to void*
+template<typename T>
+constexpr void* voidify(const T* ptr) {
+	return const_cast<void*>(static_cast<const volatile void*>(ptr));
+}
+
+namespace __toAddressHelper {
 	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(to_address, to_address);
 }
 
@@ -546,7 +567,7 @@ constexpr auto to_address(T* p) noexcept {
 
 template<typename T>
 constexpr auto to_address(const T& p) noexcept {
-	if constexpr (_To_address_helper::has_static_member_function_to_address_v<std::pointer_traits<T>, T>) {
+	if constexpr (__toAddressHelper::has_static_member_function_to_address_v<std::pointer_traits<T>, T>) {
 		return std::pointer_traits<T>::to_address(p);
 	}
 	else {
@@ -554,11 +575,11 @@ constexpr auto to_address(const T& p) noexcept {
 	}
 }
 
-template<typename T>
-constexpr void* voidify(const T* ptr) {
-	return const_cast<void*>(static_cast<const volatile void*>(ptr));
-}
-
+// when the iterator is not a pointer and there is no operator->() and 
+// no pointer_traits<T>::to_address, but there is operator*()
+// use get_address instead of to_address
+// notice that if the object pointed to by the pointer does not exist,
+// an error may occur, but this cannot be avoided unless the to_address related functions are provided
 template<typename T>
 constexpr auto get_address(T* p) noexcept {
 	return p;
@@ -566,7 +587,7 @@ constexpr auto get_address(T* p) noexcept {
 
 template<typename T>
 constexpr auto get_address(const T& p) noexcept {
-	if constexpr (_To_address_helper::has_static_member_function_to_address_v<std::pointer_traits<T>, T>) {
+	if constexpr (__toAddressHelper::has_static_member_function_to_address_v<std::pointer_traits<T>, T>) {
 		return std::pointer_traits<T>::to_address(p);
 	}
 	else if constexpr (wjr::has_member_function_point_to_operator_v<add_cref_t<T>>) {
@@ -580,6 +601,7 @@ constexpr auto get_address(const T& p) noexcept {
 template<typename iter>
 using iter_address_t = std::add_pointer_t<remove_ref_t<iter_ref_t<iter>>>;
 
+// type identity
 template<typename T>
 struct type_identity {
 	using type = T;
@@ -592,10 +614,10 @@ template<typename T, typename = void>
 struct _Is_default_convertible : std::false_type {};
 
 template<typename T>
-void _Test_default_convertible(const T&);
+void __testDefaultConvertible(const T&);
 
 template<typename T>
-struct _Is_default_convertible<T, std::void_t<decltype(_Test_default_convertible<T>({}))>> : std::true_type{};
+struct _Is_default_convertible<T, std::void_t<decltype(__testDefaultConvertible<T>({}))>> : std::true_type{};
 
 template<typename T>
 using is_default_convertible = _Is_default_convertible<T>;
@@ -704,29 +726,22 @@ struct is_default_allocator_destroy : std::disjunction<is_default_allocator<Allo
 template<typename Alloc, typename Iter>
 constexpr bool is_default_allocator_destroy_v = is_default_allocator_destroy<Alloc, Iter>::value;
 
-_WJR_END
-
-namespace std {
-	WJR_REGISTER_HAS_GLOBAL_FUNCTION(begin, begin);
-	WJR_REGISTER_HAS_GLOBAL_FUNCTION(cbegin, cbegin);
-	WJR_REGISTER_HAS_GLOBAL_FUNCTION(end, end);
-	WJR_REGISTER_HAS_GLOBAL_FUNCTION(cend, cend);
-	WJR_REGISTER_HAS_GLOBAL_FUNCTION(rbegin, rbegin);
-	WJR_REGISTER_HAS_GLOBAL_FUNCTION(crbegin, crbegin);
-	WJR_REGISTER_HAS_GLOBAL_FUNCTION(rend, rend);
-	WJR_REGISTER_HAS_GLOBAL_FUNCTION(crend, crend);
-	WJR_REGISTER_HAS_GLOBAL_FUNCTION(data, data);
-	WJR_REGISTER_HAS_GLOBAL_FUNCTION(size, size);
-	WJR_REGISTER_HAS_MEMBER_FUNCTION(size, size);
-	WJR_REGISTER_HAS_GLOBAL_FUNCTION(swap, swap);
-}
-
-_WJR_BEGIN
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::begin, std_begin);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::cbegin, std_cbegin);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::end, std_end);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::cend, std_cend);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::rbegin, std_rbegin);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::crbegin, std_crbegin);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::rend, std_rend);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::crend, std_crend);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::data, std_data);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::size, std_size);
+WJR_REGISTER_HAS_GLOBAL_FUNCTION(std::swap, std_swap);
 
 template<typename _Container>
 constexpr auto size(const _Container& c){
-	if constexpr (std::has_member_function_size_v<_Container>) {
-		return c.size();
+	if constexpr (has_global_function_std_size_v<_Container>) {
+		return std::size(c); 
 	}
 	else {
 		return std::distance(std::begin(c), std::end(c));

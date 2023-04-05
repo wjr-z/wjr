@@ -103,7 +103,7 @@ WJR_INTRINSIC_INLINE static T __wjr_msvc_bswap(T x) {
 }
 #endif // WJR_HAS_BUILTIN(__builtin_bswap16) || WJR_HAS_CLANG(3, 2, 0)
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_INLINE static T bswap(T x) {
 	if (!wjr::is_constant_evaluated()) {
 #if WJR_HAS_BUILTIN(__builtin_bswap16) || WJR_HAS_GCC(10, 1, 0) || WJR_HAS_CLANG(15, 0, 0)

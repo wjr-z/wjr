@@ -6,10 +6,29 @@
 
 _WJR_BEGIN
 
-// testing
+class nocopyable {
+protected:
+	nocopyable() {}
+	~nocopyable() {}
+private:
+	nocopyable(const nocopyable&);
+	const nocopyable& operator=(const nocopyable&);
+};
 
-// TODO ...
+class nomoveable {
+protected:
+	nomoveable() {}
+	~nomoveable() {}
+	nomoveable(const nomoveable&) = default;
+	nomoveable& operator=(const nomoveable&) = default;
+private:
+	nomoveable(nomoveable&&);
+	nomoveable& operator=(nomoveable&&);
+};
 
+class nocopy_and_moveable : public nocopyable, public nomoveable { };
+
+// testing, don't use this
 template<typename Derived>
 class explicit_operator_complement {
 public:

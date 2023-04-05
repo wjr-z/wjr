@@ -106,8 +106,8 @@ WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_ctz(T x) noexcept {
 }
 #endif
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 int ctz(T x) noexcept {
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_E_CONSTEXPR int ctz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if (!wjr::is_constant_evaluated()) {
 #if WJR_HAS_BUILTIN(__builtin_ctz) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)

@@ -461,6 +461,20 @@ do{                         \
 #define WJR_INTRINSIC_INLINE inline
 #endif
 
+// Compiler support for constexpr
+#if defined(__cpp_lib_is_constant_evaluated) || WJR_HAS_BUILTIN(__builtin_is_constant_evaluated) \
+	|| WJR_HAS_GCC(9,1,0) || WJR_HAS_CLANG(9,0,0)
+#define WJR_ENABLE_CONSTEXPR 1
+#else
+#define WJR_ENABLE_CONSTEXPR 0
+#endif 
+
+#if WJR_ENABLE_CONSTEXPR
+#define WJR_E_CONSTEXPR constexpr
+#else
+#define WJR_E_CONSTEXPR
+#endif
+
 #if defined(WJR_CPP_20)
 #define WJR_CONSTEXPR20 constexpr
 #else
@@ -469,12 +483,15 @@ do{                         \
 
 #define WJR_FORCEINLINE_CONSTEXPR WJR_FORCEINLINE constexpr
 #define WJR_FORCEINLINE_CONSTEXPR20 WJR_FORCEINLINE WJR_CONSTEXPR20
+#define WJR_FORCEINLINE_E_CONSTEXPR WJR_FORCEINLINE WJR_E_CONSTEXPR
 
 #define WJR_INTRINSIC_CONSTEXPR WJR_INTRINSIC_INLINE constexpr
 #define WJR_INTRINSIC_CONSTEXPR20 WJR_INTRINSIC_INLINE WJR_CONSTEXPR20
+#define WJR_INTRINSIC_E_CONSTEXPR WJR_INTRINSIC_INLINE WJR_E_CONSTEXPR
 
 #define WJR_INLINE_CONSTEXPR inline constexpr
 #define WJR_INLINE_CONSTEXPR20 inline WJR_CONSTEXPR20
+#define WJR_INLINE_E_CONSTEXPR inline WJR_E_CONSTEXPR
 
 #define _WJR_BEGIN namespace wjr{
 #define _WJR_END }
@@ -497,6 +514,12 @@ do{                         \
 #define WJR_MACRO_NULL(...)
 
 #define WJR_MACRO_LABEL(NAME) __wjr_label_##NAME
+
+#if defined(WJR_MSVC)
+#define WJR_COUNTER __COUNTER__
+#else
+#define WJR_COUNTER __LINE__
+#endif 
 
 #if defined(WJR_X86_64)
 #define WJR_BYTE_WIDTH 8

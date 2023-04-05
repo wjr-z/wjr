@@ -12,11 +12,15 @@
 
 #include <wjr/vector.h>
 #include <wjr/circular_buffer.h>
+#include <wjr/crtp.h>
+#include <wjr/allocator.h>
 
 _WJR_BEGIN
 
-class thread_pool {
+class thread_pool : public nocopy_and_moveable {
 public:
+    using queue_type = circular_buffer<std::function<void()>,
+        aligned_allocator<std::function<void()>>>;
 
     static size_t default_threads_size();
 
@@ -39,7 +43,7 @@ public:
     // then destroy threads
     // return tasks that not done
     // notice that it will return nothing if not in a paused state
-    circular_buffer<std::function<void()>> shutdown(bool);
+    queue_type shutdown(bool);
 
     template<typename Func, typename...Args>
     void push(Func&& func, Args&&...args);
@@ -58,7 +62,7 @@ private:
     void create_all_threads(unsigned int core_threads_size);
 
     alignas(8) std::mutex m_task_mutex;
-    alignas(8) circular_buffer<std::function<void()>> m_task_queue;
+    alignas(8) queue_type m_task_queue;
     alignas(8) bool m_valid = true;
 	
     alignas(64) std::condition_variable m_task_cv;

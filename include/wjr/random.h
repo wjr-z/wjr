@@ -38,12 +38,12 @@ class basic_random : public EngineWrapper<Engine>{
 
 	template<typename T>
 	using _Is_container = std::conjunction<
-		std::has_global_function_begin<T>,
-		std::has_global_function_end<T>
+		has_global_function_std_begin<T>,
+		has_global_function_std_end<T>
 	>;
 
 	template<typename T>
-	using _Has_size = std::has_global_function_size<T>;
+	using _Has_size = has_global_function_std_size<T>;
 
 public:
 	using _Mybase = EngineWrapper<Engine>;
@@ -141,8 +141,8 @@ public:
 	}
 
 	template<typename _Container, std::enable_if_t<std::conjunction_v<
-		std::has_global_function_begin<_Container>,
-		std::has_global_function_end<_Container>>, int> = 0>
+		has_global_function_std_begin<_Container>,
+		has_global_function_std_end<_Container>>, int> = 0>
 	static decltype(auto) get(_Container& container) {
 		auto first = std::begin(container);
 		auto last = std::end(container);

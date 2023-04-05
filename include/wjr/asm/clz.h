@@ -23,7 +23,7 @@ const static int _WJR_LOG_TABLE[256] = {
 		8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
 };
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR static int __wjr_fallback_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 
@@ -143,7 +143,7 @@ WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_normal_clz(T x) noexcept {
 	return static_cast<int>(_Nd - 1 - _Result);
 }
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_clz(T x) noexcept {
 #if WJR_AVX2
 	return __wjr_msvc_x86_64_avx2_clz(x);
@@ -159,7 +159,7 @@ WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_clz(T x) noexcept {
 #endif // WJR_AVX2
 }
 #elif defined(WJR_ARM)
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_INLINE static int __wjr_msvc_arm_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if (x == 0) {
@@ -175,8 +175,8 @@ WJR_INTRINSIC_INLINE static int __wjr_msvc_arm_clz(T x) noexcept {
 #endif
 #endif
 
-template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 int clz(T x) noexcept {
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_E_CONSTEXPR int clz(T x) noexcept {
 	if (!wjr::is_constant_evaluated()) {
 #if WJR_HAS_BUILTIN(__builtin_clz) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
 		return __wjr_builtin_clz(x);
