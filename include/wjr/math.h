@@ -427,7 +427,16 @@ inline constexpr void __width(T a, unsigned int& ret) {
 		if constexpr (__table_index != -1) {
 			constexpr auto SIZE = __get_width_table_size<__table_index>::value;
 			if constexpr (MID < SIZE) {
-				ret += __width_table_v<__table_index>[static_cast<T>(a)];
+				constexpr auto p = []() {
+					unsigned int ret = 0;
+					unsigned int idx = base;
+					while (idx != 1) {
+						++ret;
+						idx /= __table_index;
+					}
+					return ret;
+				}();
+				ret += (__width_table_v<__table_index>[static_cast<unsigned int>(a)] + p - 1) / p;
 			}
 			else {
 				__width<base, T, mid_digits>(a, ret);
@@ -448,7 +457,16 @@ inline constexpr unsigned int base_width(T a) {
 #if WJR_ENABLE_CONSTEXPR
 	if (!is_constant_evaluated()) {
 		if constexpr (has_single_bit(base)) {
-			return bit_width(a) / base;
+			constexpr auto p = []() {
+				unsigned int ret = 0;
+				unsigned int idx = base;
+				while (idx != 1) {
+					++ret;
+					idx /= 2;
+				}
+				return ret;
+			}();
+			return (bit_width(a) + p - 1) / p;
 		}
 	}
 #endif // WJR_ENABLE_CONSTEXPR

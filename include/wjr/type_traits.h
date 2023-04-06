@@ -74,6 +74,7 @@ struct reserve_tag {};
 struct defer_tag {};
 struct adopt_tag {};
 
+
 template<typename T, typename U, typename _Pred>
 struct has_global_binary_operator : std::false_type {};
 

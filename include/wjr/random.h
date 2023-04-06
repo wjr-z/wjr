@@ -11,7 +11,7 @@ _WJR_BEGIN
 template<typename Engine>
 struct basic_random_static_wrapper {
 	static Engine m_engine;
-	static Engine& engine() {
+	Engine& engine() const {
 		return m_engine;
 	}
 };
@@ -21,7 +21,7 @@ Engine basic_random_static_wrapper<Engine>::m_engine(std::random_device{}());
 
 template<typename Engine>
 struct basic_random_thread_local_wrapper {
-	static Engine& engine() {
+	Engine& engine() const {
 		thread_local Engine m_engine(std::random_device{}());
 		return m_engine;
 	}
@@ -34,7 +34,7 @@ template<
 	template<typename> typename RealDist = std::uniform_real_distribution,
 	typename BoolDist = std::bernoulli_distribution
 >
-class basic_random : public EngineWrapper<Engine>{
+class __basic_random : public EngineWrapper<Engine> {
 
 	template<typename T>
 	using _Is_container = std::conjunction<
@@ -42,12 +42,9 @@ class basic_random : public EngineWrapper<Engine>{
 		has_global_function_std_end<T>
 	>;
 
-	template<typename T>
-	using _Has_size = has_global_function_std_size<T>;
-
 public:
 	using _Mybase = EngineWrapper<Engine>;
-	
+
 	using engine_type = Engine;
 
 	template<typename T>
@@ -60,44 +57,58 @@ public:
 
 	using common = std::common_type<>;
 
+	using result_type = typename engine_type::result_type;
+
 	using _Mybase::engine;
 
-	basic_random() = delete;
+private:
 
-	constexpr static typename engine_type::result_type min() {
+	template<typename _Seq>
+	struct _Is_seed_seq : std::bool_constant<
+		!std::is_convertible_v<_Seq, result_type>
+		&& !std::is_same_v<remove_cvref_t<_Seq>, engine_type>
+		&& !std::is_same_v<remove_cvref_t<_Seq>, __basic_random>
+	> {};
+
+	template<typename _Seq>
+	constexpr static bool _Is_seed_seq_v = _Is_seed_seq<_Seq>::value;
+
+public:
+
+	constexpr static result_type min() {
 		return engine_type::min();
 	}
-	
-	constexpr static typename engine_type::result_type max() {
+
+	constexpr static result_type max() {
 		return engine_type::max();
 	}
 
-	static void discard(size_t n) {
+	void discard(size_t n) const {
 		engine().discard(n);
 	}
 
-	static void reseed() {
+	void reseed() const {
 		engine().seed(std::random_device{}());
 	}
 
-	static void seed(typename engine_type::result_type seed = engine_type::default_seed) {
+	void seed(result_type seed = engine_type::default_seed) const {
 		engine().seed(seed);
 	}
 
-	template<typename Seq>
-	static void seed(Seq& seq) {
+	template<typename _Seq, std::enable_if_t<_Is_seed_seq_v<_Seq>, int> = 0>
+	void seed(_Seq& seq) const {
 		engine().seed(seq);
 	}
 
-	static typename engine_type::result_type get() {
+	result_type get() const {
 		return engine()();
 	}
 
 	template<typename T, std::enable_if_t<std::conjunction_v<
 		std::is_arithmetic<T>, std::negation<std::is_same<T, bool>>>, int> = 0>
-	static T get(
-			T __min = std::numeric_limits<T>::min(),
-			T __max = std::numeric_limits<T>::max()) {
+	T get(
+		T __min = std::numeric_limits<T>::min(),
+		T __max = std::numeric_limits<T>::max()) const {
 		if constexpr (std::is_integral_v<T>) {
 			if constexpr (sizeof(T) < sizeof(short)) {
 				using short_t = std::conditional_t<std::is_signed<T>::value,
@@ -119,31 +130,31 @@ public:
 		std::is_same<X, common>,
 		std::is_arithmetic<T>,
 		std::is_arithmetic<U>>, int> = 0>
-	static R get(
+	 R get(
 			T __min = std::numeric_limits<T>::min(),
-			U __max = std::numeric_limits<U>::max()) {
+			U __max = std::numeric_limits<U>::max()) const {
 		return get<R>(static_cast<R>(__min), static_cast<R>(__max));
 	}
 
 	template<typename T, std::enable_if_t<std::is_same_v<T, bool>, int> = 0>
-	static T get(double p = 0.5) {
+	T get(double p = 0.5) const {
 		return bool_dist_t{ p }(engine());
 	}
 
 	template<typename Dist, typename...Args>
-	static typename Dist::result_type get(Args&&...args) {
+	typename Dist::result_type get(Args&&...args) const {
 		return Dist{ std::forward<Args>(args)... }(engine());
 	}
 
 	template<typename Dist>
-	static typename Dist::result_type get(Dist& dist) {
+	typename Dist::result_type get(Dist& dist) const {
 		return dist(engine());
 	}
 
 	template<typename _Container, std::enable_if_t<std::conjunction_v<
 		has_global_function_std_begin<_Container>,
 		has_global_function_std_end<_Container>>, int> = 0>
-	static decltype(auto) get(_Container& container) {
+	decltype(auto) get(_Container& container) const {
 		auto first = std::begin(container);
 		auto last = std::end(container);
 		auto n = wjr::size(container);
@@ -153,48 +164,58 @@ public:
 	}
 
 	template<typename iter, std::enable_if_t<wjr::is_iterator_v<iter>, int> = 0>
-	static iter get(iter first, iter last) {
+	iter get(iter first, iter last) const {
 		return get(wjr::make_iter_wrapper(first, last));
 	}
 
 	template<typename T>
-	static T get(std::initializer_list<T> il) {
+	T get(std::initializer_list<T> il) const {
 		return *get(std::begin(il), std::end(il));
 	}
 
 	template<typename _Ty, size_t _Size>
-	static _Ty get(_Ty(&arr)[_Size]) {
+	_Ty get(_Ty(&arr)[_Size]) const {
 		return *get(std::begin(arr), std::end(arr));
 	}
 
 	template<typename _Container>
-	static void shuffle(_Container& container) {
+	void shuffle(_Container& container) const {
 		std::shuffle(std::begin(container), std::end(container), engine());
 	}
 
 	template<typename iter>
-	static void shuffle(iter first, iter last) {
+	void shuffle(iter first, iter last) const {
 		shuffle(wjr::make_iter_wrapper(first, last));
 	}
 
 };
 
-template<typename Engine, 
+template<typename Engine,
 	template<typename>typename IntegerDist = std::uniform_int_distribution,
 	template<typename>typename RealDist = std::uniform_real_distribution,
 	typename BoolDist = std::bernoulli_distribution>
-using basic_random_static = basic_random<Engine, basic_random_static_wrapper, IntegerDist, RealDist, BoolDist>;
+using basic_random = __basic_random<Engine, basic_random_static_wrapper, IntegerDist, RealDist, BoolDist>;
 
 template<typename Engine,
 	template<typename>typename IntegerDist = std::uniform_int_distribution,
 	template<typename>typename RealDist = std::uniform_real_distribution,
 	typename BoolDist = std::bernoulli_distribution>
-using basic_random_thread_local = basic_random<Engine, basic_random_thread_local_wrapper, IntegerDist, RealDist, BoolDist>;
+using basic_random_thread_local = __basic_random<Engine, basic_random_thread_local_wrapper, IntegerDist, RealDist, BoolDist>;
 
-using random_static = basic_random_static<std::mt19937>;
-using random_thread_local = basic_random_thread_local<std::mt19937>;
+template<
+	template<typename>typename IntegerDist = std::uniform_int_distribution,
+	template<typename>typename RealDist = std::uniform_real_distribution,
+	typename BoolDist = std::bernoulli_distribution>
+using default_random = basic_random<std::mt19937, IntegerDist, RealDist, BoolDist>;
 
-using Random = random_static;
+template<
+	template<typename>typename IntegerDist = std::uniform_int_distribution,
+	template<typename>typename RealDist = std::uniform_real_distribution,
+	typename BoolDist = std::bernoulli_distribution>
+using default_random_thread_local = basic_random_thread_local<std::mt19937, IntegerDist, RealDist, BoolDist>;
+
+inline constexpr default_random<> random;
+inline constexpr default_random_thread_local<> random_thread_local;
 
 _WJR_END
 
