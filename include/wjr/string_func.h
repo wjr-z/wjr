@@ -658,7 +658,6 @@ public:
 
 		const auto& helper = __integral_conversion_details_table_v<T, func_type>[base];
 
-		constexpr auto _Min = helper.min();
 		// check flow
 		auto digits = helper.get_digits();
 
@@ -695,7 +694,7 @@ public:
 					if (_Is_p) {
 						__CONV_OVERFLOW_RET;
 					}
-					return _Min;
+					return helper.min();
 				}
 
 				if (_Is_p) {

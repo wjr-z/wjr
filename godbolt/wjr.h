@@ -13804,7 +13804,6 @@ WJR_ASSUME(base != 2 && base != 8 && base != 10 && base != 16);
 
 const auto& helper = __integral_conversion_details_table_v<T, func_type>[base];
 
-constexpr auto _Min = helper.min();
 // check flow
 auto digits = helper.get_digits();
 
@@ -13841,7 +13840,7 @@ if (ret == 0) {
 if (_Is_p) {
 __CONV_OVERFLOW_RET;
 }
-return _Min;
+return helper.min();
 }
 
 if (_Is_p) {
@@ -19435,13 +19434,12 @@ _WJR_END
 
 #endif // __WJR_RANDOM_H
 
-//#include <benchmark/benchmark.h>
-//#include <range/v3/all.hpp>
-//
-//#include <wjr/string_func.h>
-//
-//using namespace std::chrono;
-//
-//auto now() { return high_resolution_clock::now(); }
-//template<typename T>
-//auto get(T a, T b) { return duration_cast<nanoseconds>(b - a).count(); }
+#include <benchmark/benchmark.h>
+#include <range/v3/all.hpp>
+
+
+using namespace std::chrono;
+
+auto now() { return high_resolution_clock::now(); }
+template<typename T>
+auto get(T a, T b) { return duration_cast<nanoseconds>(b - a).count(); }
