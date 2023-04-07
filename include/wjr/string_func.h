@@ -9,33 +9,6 @@
 
 _WJR_BEGIN
 
-
-// NO_FLAGS :
-// ALLOW_PREFIX :
-//	ignore prefix
-//	prefix :
-//		base = 0  : 0[bBxX]?
-//		base = 2  : 0[bB]
-//		base = 8  : 0
-//		base = 10 : 0[xX]
-// ALLOW_LEADING_SPACE :
-//	ignore leading space of string
-//	disable this option would be faster
-// ALLOW_TRAILING_SPACE
-//	ignore space after sign
-// ALLOW_LEADING_ZEROS
-//	ignore leading zeros of digit
-// It is best to know all flags during compilation 
-// for optimization during compilation
-/*
-enum class conv_flags {
-	NO_FLAGS = 0x00,
-	ALLOW_PREFIX = 0x01,
-	ALLOW_LEADING_SPACE = 0x02,
-	ALLOW_TRAILING_SPACE = 0x04
-};
-*/
-
 // fast integer conversion of strings with different encodings
 // requires :
 // 1. forward iterator
@@ -103,10 +76,19 @@ public:
 	template<typename _Iter>
 	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static _Iter skipd(_Iter _First, _Iter _Last, int Base);
 
+	enum class flags {
+		no = 0,
+		ignore_prefix = 0x01,
+		ignore_suffix = 0x02,
+		ignore_leading_space = 0x04,
+		ignore_trailing_space = 0x08,
+		ensure_no_error = 0x10
+	};
+
 	template<typename T, typename _Iter>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR static T to_integral(
 		_Iter _First, _Iter _Last,
-		_Iter& _Pos, error_code& _Err, int base);
+		error_code& _Err, _Iter& _Pos, int base);
 
 };
 
@@ -622,11 +604,11 @@ class __integral_conversion_details_table {
 public:
 	using helper_type = __integral_conversion_details_table_helper<T, Func>;
 	constexpr __integral_conversion_details_table() : m_table() {
-		for (int i = 2; i < 36; ++i)m_table[i - 2].init(i);
+		for (int i = 2; i <= 36; ++i)m_table[i - 2].init(i);
 	}
 	constexpr const helper_type& operator[](int idx) const { return m_table[idx - 2]; }
 private:
-	helper_type m_table[34];
+	helper_type m_table[35];
 };
 
 template<typename T, typename Func>
@@ -783,19 +765,20 @@ public:
 	template<typename _Iter>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR static T work(
 		_Iter _First, _Iter _Last,
-		_Iter& _Pos, error_code& _Err, int base) {
+		error_code& _Err, _Iter& _Pos, int base) {
 		switch (base) {
-		case 0: return __constexpr_work<0>(_First, _Last, _Pos, _Err);
-		case 2: return __constexpr_work<2>(_First, _Last, _Pos, _Err);
-		case 8: return __constexpr_work<8>(_First, _Last, _Pos, _Err);
-		case 10: return __constexpr_work<10>(_First, _Last, _Pos, _Err);
-		case 16: return __constexpr_work<16>(_First, _Last, _Pos, _Err);
+		case 0: return __constexpr_work<0>(_First, _Last, _Err, _Pos);
+		case 2: return __constexpr_work<2>(_First, _Last, _Err, _Pos);
+		case 8: return __constexpr_work<8>(_First, _Last, _Err, _Pos);
+		case 10: return __constexpr_work<10>(_First, _Last, _Err, _Pos);
+		case 16: return __constexpr_work<16>(_First, _Last, _Err, _Pos);
+		case 36: return __constexpr_work<36>(_First, _Last, _Err, _Pos);
 		default: {
 			if (is_unlikely(base < 2 || base > 36)) {
 				_Err = error_code::noconv;
 				return static_cast<T>(0);
 			}
-			return __runtime_work(_First, _Last, _Pos, _Err, base);
+			return __runtime_work(_First, _Last, _Err, _Pos, base);
 		}
 		}
 	}
@@ -805,7 +788,7 @@ private:
 	template<unsigned int Base, typename _Iter>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR static T __constexpr_work(
 		_Iter _First, _Iter _Last,
-		_Iter& _Pos, error_code& _Err) {
+		error_code& _Err, _Iter& _Pos) {
 
 		_Err = error_code::ok;
 
@@ -851,7 +834,7 @@ private:
 							// treat 0 as a number instead of a prefix
 							__CONV_OK_RET(_First - 1, 0);
 						}
-						return __work<16>(_First, _Last, _Pos, _Err, _Is_p, 1);
+						return __work<16>(_First, _Last, _Err, _Pos, _Is_p, 1);
 					}
 					case 'b':
 					case 'B': {
@@ -859,16 +842,16 @@ private:
 							// treat 0 as a number instead of a prefix
 							__CONV_OK_RET(_First - 1, 0);
 						}
-						return __work<2>(_First, _Last, _Pos, _Err, _Is_p, 1);
+						return __work<2>(_First, _Last, _Err, _Pos, _Is_p, 1);
 					}
 					default: {
-						return __work<8>(_First, _Last, _Pos, _Err, _Is_p, 0);
+						return __work<8>(_First, _Last, _Err, _Pos, _Is_p, 0);
 					}
 					}
 				}
 				else {
 					// base = 10
-					return __work<10>(_First, _Last, _Pos, _Err, _Is_p, -1);
+					return __work<10>(_First, _Last, _Err, _Pos, _Is_p, -1);
 				}
 			}
 			else if constexpr (Base == 2) {
@@ -934,7 +917,7 @@ private:
 		}
 
 		if constexpr (Base != 0) {
-			return __work<Base>(_First, _Last, _Pos, _Err, _Is_p, prefix);
+			return __work<Base>(_First, _Last, _Err, _Pos, _Is_p, prefix);
 		}
 		else {
 			unreachable();
@@ -945,7 +928,7 @@ private:
 	template<typename _Iter>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR static T __runtime_work(
 		_Iter _First, _Iter _Last,
-		_Iter& _Pos, error_code& _Err, int base) {
+		error_code& _Err, _Iter& _Pos, int base) {
 
 		_Err = error_code::ok;
 
@@ -967,13 +950,13 @@ private:
 			__CONV_NEXT;
 		}
 
-		return __work(_First, _Last, _Pos, _Err, base, _Is_p);
+		return __work(_First, _Last, _Err, _Pos, base, _Is_p);
 	}
 
 	template<unsigned int Base, typename _Iter>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR static T __work(
 		_Iter _First, _Iter _Last,
-		_Iter& _Pos, error_code& _Err, bool _Is_p, int prefix) {
+		error_code& _Err, _Iter& _Pos, bool _Is_p, int prefix) {
 
 		_Last = func_type::template skipd<Base>(_First, _Last);
 
@@ -1013,7 +996,7 @@ private:
 	template<typename _Iter>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR static T __work(
 		_Iter _First, _Iter _Last,
-		_Iter& _Pos, error_code& _Err, int base, bool _Is_p) {
+		error_code& _Err, _Iter& _Pos, int base, bool _Is_p) {
 
 		_Last = func_type::template skipd(_First, _Last, base);
 
@@ -1156,9 +1139,9 @@ template<typename Traits>
 template<typename T, typename _Iter>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR T string_func<Traits>::to_integral(
 	_Iter _First, _Iter _Last,
-	_Iter& _Pos, error_code& _Err, int base) {
+	error_code& _Err, _Iter& _Pos, int base) {
 	return integral_conversion_details<T, string_func<Traits>>
-		::template work(_First, _Last, _Pos, _Err, base);
+		::template work(_First, _Last, _Err, _Pos, base);
 }
 
 _WJR_END

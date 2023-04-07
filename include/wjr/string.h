@@ -3217,7 +3217,7 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR T basic_string_view<char, ascii_traits<Traits
 	error_code* err, size_type* pos, int base) const {
 	error_code cc = {};
 	const char* end_ptr = nullptr;
-	T ret = func_type::to_integral<T>(begin(), end(), end_ptr, cc, base);
+	T ret = func_type::to_integral<T>(begin(), end(), cc, end_ptr, base);
 
 	if (cc == error_code::noconv) {
 		end_ptr = begin();
