@@ -3,11 +3,14 @@
 #define __WJR_ERROR_HANDLE_H
 
 namespace wjr {
-	enum class error_code {
-		ok = 0,
-		overflow,
-		underflow,
-		noconv,
+	// TODO :
+
+	enum class errc {
+		ok           = 0x00,
+		overflow     = 0x01,
+		underflow    = 0x02,
+		out_of_range = overflow | underflow,
+		noconv       = 0x04,
 	};
 }
 

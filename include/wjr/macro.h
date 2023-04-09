@@ -3,7 +3,6 @@
 #define __WJR_MMACRO_H
 
 #include <cstdint>
-//#define WJR_ENABLE_TESTING
 
 #if defined(_MSC_VER)
 /* Microsoft C/C++-compatible compiler */
@@ -511,6 +510,9 @@ do{                         \
 #define _WJR_LITERALS_BEGIN _WJR_BEGIN namespace literals{
 #define _WJR_LITERALS_END } _WJR_END
 
+#define _WJR_TP_BEGIN _WJR_BEGIN namespace tp{
+#define _WJR_TP_END } _WJR_END
+
 #define WJR_MACRO_NULL(...)
 
 #define WJR_MACRO_LABEL(NAME) __wjr_label_##NAME
@@ -519,12 +521,6 @@ do{                         \
 #define WJR_COUNTER __COUNTER__
 #else
 #define WJR_COUNTER __LINE__
-#endif 
-
-#if defined(WJR_X86_64)
-#define WJR_BYTE_WIDTH 8
-#else
-#define WJR_BYTE_WIDTH 4
 #endif 
 
 #define WJR_CONCAT(x, y) x##y

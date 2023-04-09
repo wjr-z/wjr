@@ -40,7 +40,6 @@
 #define __WJR_MMACRO_H
 
 #include <cstdint>
-//#define WJR_ENABLE_TESTING
 
 #if defined(_MSC_VER)
 /* Microsoft C/C++-compatible compiler */
@@ -548,6 +547,9 @@ WJR_UNREACHABLE;	\
 #define _WJR_LITERALS_BEGIN _WJR_BEGIN namespace literals{
 #define _WJR_LITERALS_END } _WJR_END
 
+#define _WJR_TP_BEGIN _WJR_BEGIN namespace tp{
+#define _WJR_TP_END } _WJR_END
+
 #define WJR_MACRO_NULL(...)
 
 #define WJR_MACRO_LABEL(NAME) __wjr_label_##NAME
@@ -556,12 +558,6 @@ WJR_UNREACHABLE;	\
 #define WJR_COUNTER __COUNTER__
 #else
 #define WJR_COUNTER __LINE__
-#endif
-
-#if defined(WJR_X86_64)
-#define WJR_BYTE_WIDTH 8
-#else
-#define WJR_BYTE_WIDTH 4
 #endif
 
 #define WJR_CONCAT(x, y) x##y
@@ -887,7 +883,6 @@ struct reserve_tag {};
 
 struct defer_tag {};
 struct adopt_tag {};
-
 
 template<typename T, typename U, typename _Pred>
 struct has_global_binary_operator : std::false_type {};
@@ -4933,22 +4928,6 @@ __width<base, T, mid_digits>(a, ret);
 // force constexpr, so when base is power of 2, the performance may be worse
 template<unsigned int base, typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 inline constexpr unsigned int base_width(T a) {
-#if WJR_ENABLE_CONSTEXPR
-if (!is_constant_evaluated()) {
-if constexpr (has_single_bit(base)) {
-constexpr auto p = []() {
-unsigned int ret = 0;
-unsigned int idx = base;
-while (idx != 1) {
-++ret;
-idx /= 2;
-}
-return ret;
-}();
-return (bit_width(a) + p - 1) / p;
-}
-}
-#endif // WJR_ENABLE_CONSTEXPR
 unsigned int ret = 0;
 __width<base, T, base_digits_v<T, base>>(a, ret);
 return ret;
@@ -13138,20 +13117,148 @@ return n;
 
 // functions for string encode
 
+#include <optional>
+
 #pragma once
 #ifndef __WJR_ERROR_HANDLE_H
 #define __WJR_ERROR_HANDLE_H
 
 namespace wjr {
-enum class error_code {
-ok = 0,
-overflow,
-underflow,
-noconv,
+// TODO :
+
+enum class errc {
+ok           = 0x00,
+overflow     = 0x01,
+underflow    = 0x02,
+out_of_range = overflow | underflow,
+noconv       = 0x04,
 };
 }
 
 #endif // __WJR_ERROR_HANDLE_H
+#pragma once
+#ifndef __WJR_RTC_VAR_H
+#define __WJR_RTC_VAR_H
+
+
+_WJR_BEGIN
+
+// TODO :
+// 1. supports lazy combination of runtime and compile time variables
+//	For example, a runtime iterator,
+// but the distance between two iterators is known at compile time
+
+// can store runtime variables and compile time constants (represented by integral_constant)
+// Although there are some methods for determining constants,
+// such as __builtin_constant_p and is_evaluated_constant, however,
+// often the number determined by this method cannot be used as a constant for the template
+// It can also be used to force the compiler to optimize constants
+template<typename T>
+class cvar;
+
+template<typename T, T val>
+class cvar<std::integral_constant<T, val>> {
+public:
+using value_type = T;
+constexpr static value_type value = val;
+};
+
+template<typename T>
+struct __is_cvar_helper : std::false_type {};
+
+template<typename T>
+struct __is_cvar_helper<cvar<T>> : std::true_type {};
+
+template<typename T>
+struct is_cvar : __is_cvar_helper<remove_cvref_t<T>> {};
+
+template<typename T>
+inline constexpr bool is_cvar_v = is_cvar<T>::value;
+
+template<typename V, typename T>
+struct __is_cvar_of_t : std::is_same<V, T> {};
+
+template<typename V,typename T>
+struct __is_cvar_of_t<cvar<V>, T> : std::is_same<typename V::value_type, T> {};
+
+// if V is T or constexpr var of T
+template<typename V, typename T>
+inline constexpr bool __is_cvar_of_t_v = __is_cvar_of_t<V, T>::value;
+
+template<typename T>
+struct __to_cvar {
+using type = T;
+constexpr static auto holder_value(T value) { return value; }
+constexpr static auto args_value(T value) { return value; }
+};
+
+template<typename T>
+struct __to_cvar<cvar<T>> {
+using type = cvar<T>;
+constexpr static auto holder_value(T) { return static_cast<int>(0); }
+constexpr static auto args_value(T value) { return value; }
+};
+
+template<auto val, typename U>
+constexpr auto __make_cvar(U u) {
+using T = decltype(val);
+if constexpr (std::is_same_v<T, U>) {
+return cvar<std::integral_constant<T, val>>();
+}
+else {
+return u;
+}
+}
+
+#define __WJR_MAKE_CVAR(val, helper) \
+wjr::__make_cvar<helper::holder_value(val)>(helper::args_value(val))
+// make constexpr var or cvar<T> to cvar
+#define WJR_MAKE_CVAR(val) __WJR_MAKE_CVAR(val, wjr::__to_cvar<decltype(val)>)
+
+template<typename T>
+constexpr decltype(auto) get_cvar(T&& value) { return std::forward<T>(value); }
+
+template<typename T>
+constexpr auto get_cvar(cvar<T> value) { return get_cvar(value.value); }
+
+// ensure fn is constexpr
+template<typename Func, typename...Args>
+constexpr auto invoke_cvar(Func fn, Args&&...args) {
+return fn(get_cvar(std::forward<Args>(args))...);
+}
+
+// ensure fn is constexpr
+// if all args is constexpr and fn is constexpr
+// we should get a constexpr var
+template<typename Func, typename...Args>
+constexpr auto invoke_cvar(Func fn, cvar<Args>...) {
+constexpr auto ret = fn(get_cvar(Args{})...);
+return WJR_MAKE_CVAR(ret);
+}
+
+// vector for cvar
+template<typename...Args>
+class cvar_vector {
+template<size_t idx>
+using value_type = std::tuple_element_t<idx, std::tuple<Args...>>;
+};
+
+template<typename...Args>
+class cvar<cvar_vector<cvar<Args>...>> {
+public:
+using value_type = cvar_vector<cvar<Args>...>;
+constexpr value_type value() const { return {}; }
+};
+
+template<size_t idx, typename...Args>
+constexpr auto get_cvar(cvar_vector<Args...>) {
+using value_type = typename cvar_vector<Args...>::template value_type<idx>;
+return get_cvar(value_type());
+}
+
+_WJR_END
+
+#endif // __WJR_RTC_VAR_H
 
 _WJR_BEGIN
 
@@ -13196,11 +13303,9 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static bool isdigit(value_type ch);
 
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static bool isdigit(value_type ch, int Base);
 
-template<unsigned int Base = 10, int idx = 0>
+template<unsigned int Base = 10>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static uint32_t todigit(value_type ch);
 
-// return todigit<36, idx>(ch)
-template<int idx = 0>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static uint32_t toalnum(value_type ch);
 
 // skip whit space
@@ -13222,961 +13327,265 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static _Iter skipd(_Iter _First, _Iter _La
 template<typename _Iter>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static _Iter skipd(_Iter _First, _Iter _Last, int Base);
 
-enum class flags {
-no = 0,
-ignore_prefix = 0x01,
-ignore_suffix = 0x02,
-ignore_leading_space = 0x04,
-ignore_trailing_space = 0x08,
-ensure_no_error = 0x10
+enum flags {
+NO_FLAGS                   = 0,
+ALLOW_PREFIX               = 0x01,
+ALLOW_TAIL                 = 0x02,
+ALLOW_SIGN                 = 0x04,
+ALLOW_LEADING_SPACE        = 0x08,
+ALLOW_TRAILING_SPACE       = 0x10,
+ALLOW_LEADING_ZEROS        = 0x20,
 };
 
-template<typename T, typename _Iter>
+template<typename T, typename _Iter, typename F>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR static T to_integral(
+F f,
 _Iter _First, _Iter _Last,
-error_code& _Err, _Iter& _Pos, int base);
+errc& _Err, _Iter& _Pos, int base);
 
 };
 
-#define __CONV_OK_RET(ptr, ret)					\
-_Pos = ptr;								\
-return ret;
 #define __CONV_EMPTY_RET				        \
-_Err = error_code::noconv;				\
+_Err = errc::noconv;					\
 return static_cast<T>(0);
 #define __CONV_NEXT								\
 if(is_unlikely(++_First == _Last)){	    \
 __CONV_EMPTY_RET					\
 }
-#define __CONV_OVERFLOW_RET	                    \
-_Err = error_code::overflow;			\
-return max();
-#define __CONV_UNDERFLOW_RET	                \
-_Err = error_code::underflow;			\
-return min();
-#define __CONV_FLOW_RET	                        \
-if constexpr (std::is_unsigned_v<T>) {	\
-__CONV_OVERFLOW_RET;	            \
-}	                                    \
-else {	                                \
-if (_Is_p) {	                    \
-__CONV_OVERFLOW_RET;	        \
-}	                                \
-else {	                            \
-__CONV_UNDERFLOW_RET;	        \
-}	                                \
-}
-
-// details of integral converison
-template<typename T, typename Func, unsigned int base>
-class __integral_conversion_details_helper {
-public:
-using func_type = Func;
-using value_type = typename func_type::value_type;
-static_assert(base >= 2 && base <= 36 && sizeof(value_type) == 1, "");
-
-constexpr static unsigned int base0 = 1;
-constexpr static unsigned int base1 = base;
-constexpr static unsigned int base2 = base1 * base;
-constexpr static unsigned int base3 = base2 * base;
-constexpr static unsigned int base4 = base3 * base;
-
-constexpr static T min() { return std::numeric_limits<T>::min(); }
-constexpr static T max() { return std::numeric_limits<T>::max(); }
-
-using uT = std::make_unsigned_t<T>;
-
-constexpr static uT umax() { return std::max(make_unsigned_v(min()), make_unsigned_v(max())); }
-
-constexpr static unsigned int digits = base_width<base>(umax());
-
-template<int idx>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static unsigned int todigit(value_type ch) {
-return func_type::template todigit<base, idx>(ch);
-}
-
-template<typename _Iter>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static T work(
-_Iter _First, size_t n,
-error_code& _Err, bool _Is_p) {
-if (n > digits) {
-__CONV_FLOW_RET;
-}
-
-if (n == digits) {
-const auto __ret = check(_First);
-int ret = __ret.first;
-
-if constexpr (std::is_unsigned_v<T>) {
-
-if (ret < 0) {
-__CONV_FLOW_RET;
-}
-
-// if ret == 0
-// __ret.second == umax()
-// we can merge ret==0 and ret<0
-
-if (_Is_p) {
-return static_cast<T>(__ret.second);
-}
-
-return static_cast<T>(-__ret.second);
-}
-else {
-
-if (ret < 0) {
-__CONV_FLOW_RET;
-}
-
-// signed number, further judgment is needed
-// if is positive, and ret == 0
-// it's to say num == -min(), we know that -min() == max() + 1
-// so num is overflow
-
-if (ret == 0) {
-if (_Is_p) {
-__CONV_OVERFLOW_RET;
-}
-return min();
-}
-
-if (_Is_p) {
-return static_cast<T>(__ret.second);
-}
-
-return static_cast<T>(-__ret.second);
-}
-}
-
-uT uret = 0;
-
-if (n >= 4) {
-auto r0 = todigit<3>(*_First);
-++_First;
-auto r1 = todigit<2>(*_First);
-++_First;
-auto r2 = todigit<1>(*_First);
-++_First;
-auto r3 = todigit<0>(*_First);
-++_First;
-
-uret = r0 + r1 + r2 + r3;
-n -= 4;
-
-while (n >= 4) {
-uret *= base4;
-auto r0 = todigit<3>(*_First);
-++_First;
-auto r1 = todigit<2>(*_First);
-++_First;
-auto r2 = todigit<1>(*_First);
-++_First;
-auto r3 = todigit<0>(*_First);
-++_First;
-
-uret += r0 + r1 + r2 + r3;
-n -= 4;
-} while (n >= 4);
-
-switch (n) {
-case 3: {
-uret *= base3;
-auto r0 = todigit<2>(*_First);
-++_First;
-auto r1 = todigit<1>(*_First);
-++_First;
-auto r2 = todigit<0>(*_First);
-uret += r0 + r1 + r2;
-break;
-}
-case 2: {
-uret *= base2;
-auto r0 = todigit<1>(*_First);
-++_First;
-auto r1 = todigit<0>(*_First);
-uret += r0 + r1;
-break;
-}
-case 1: {
-uret *= base1;
-auto r0 = todigit<0>(*_First);
-uret += r0;
-break;
-}
-default: break;
-}
-}
-else {
-switch (n) {
-case 3: {
-auto r0 = todigit<2>(*_First);
-++_First;
-auto r1 = todigit<1>(*_First);
-++_First;
-auto r2 = todigit<0>(*_First);
-uret = r0 + r1 + r2;
-break;
-}
-case 2: {
-auto r0 = todigit<1>(*_First);
-++_First;
-auto r1 = todigit<0>(*_First);
-uret = r0 + r1;
-break;
-}
-case 1: {
-auto r0 = todigit<0>(*_First);
-uret = r0;
-break;
-}
-default: break;
-}
-}
-
-if (_Is_p) {
-return static_cast<T>(uret);
-}
-return static_cast<T>(-uret);
-}
-
-private:
-
-using __power_type = std::conditional_t<
-sizeof(uT) <= sizeof(uint32_t), uint32_t, uT>;
-
-template<int idx, typename _Ty>
-WJR_INTRINSIC_CONSTEXPR static _Ty __mod(_Ty val) {
-if constexpr (idx < digits) {
-constexpr auto _Div = power<__power_type>(base, idx);
-return val % _Div;
-}
-else {
-return val;
-}
-}
-
-template<int idx, typename _Ty>
-WJR_INTRINSIC_CONSTEXPR static _Ty __div(_Ty val) {
-if constexpr (idx < digits) {
-constexpr auto _Div = power<__power_type>(base, idx);
-return val / _Div;
-}
-else {
-return 0;
-}
-}
-
-template<typename _Iter>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static std::pair<int, uT> check(_Iter _First) {
-uT ret = 0;
-int op = __check<digits, false>(_First, ret);
-return std::make_pair(op, ret);
-}
-
-template<size_t idx, bool below, typename _Iter>
-WJR_INTRINSIC_CONSTEXPR static int __check(_Iter _First, uT& ret) {
-
-if constexpr (idx >= 4) {
-constexpr auto _Val = __mod<4>(__div<idx - 4>(umax()));
-
-if constexpr (below && idx != digits) {
-ret *= base4;
-}
-
-auto r0 = todigit<3>(*_First);
-++_First;
-auto r1 = todigit<2>(*_First);
-++_First;
-auto r2 = todigit<1>(*_First);
-++_First;
-auto r3 = todigit<0>(*_First);
-++_First;
-
-auto sum = r0 + r1 + r2 + r3;
-
-if constexpr (!below) {
-if (sum > _Val) {
-return -1;
-}
-
-if (sum < _Val) {
-constexpr auto _Num = __div<idx>(umax()) * base4;
-ret = _Num + sum;
-__check<idx - 4, true>(_First, ret);
-return 1;
-}
-
-return __check<idx - 4, false>(_First, ret);
-}
-else {
-ret += sum;
-return 1;
-}
-}
-else if constexpr (idx == 3) {
-constexpr auto _Val = __mod<3>(umax());
-
-if constexpr (below) {
-ret *= base3;
-}
-
-auto r0 = todigit<2>(*_First);
-++_First;
-auto r1 = todigit<1>(*_First);
-++_First;
-auto r2 = todigit<0>(*_First);
-
-auto sum = r0 + r1 + r2;
-
-if constexpr (!below) {
-if (sum > _Val) {
-return -1;
-}
-
-constexpr auto _Num = __div<idx>(umax()) * base3;
-
-ret = _Num + sum;
-return sum == _Val ? 0 : 1;
-}
-else {
-ret += sum;
-return 1;
-}
-}
-else if constexpr (idx == 2) {
-constexpr auto _Val = __mod<2>(umax());
-
-if constexpr (below) {
-ret *= base2;
-}
-
-auto r0 = todigit<1>(*_First);
-++_First;
-auto r1 = todigit<0>(*_First);
-
-auto sum = r0 + r1;
-
-if constexpr (!below) {
-if (sum > _Val) {
-return -1;
-}
-
-constexpr auto _Num = __div<idx>(umax()) * base2;
-
-ret = _Num + sum;
-return sum == _Val ? 0 : 1;
-}
-else {
-ret += sum;
-return 1;
-}
-}
-else if constexpr (idx == 1) {
-constexpr auto _Val = __mod<1>(umax());
-
-if constexpr (below) {
-ret *= base1;
-}
-
-auto r0 = todigit<0>(*_First);
-
-auto sum = r0;
-
-if constexpr (!below) {
-if (sum > _Val) {
-return -1;
-}
-
-constexpr auto _Num = __div<idx>(umax()) * base1;
-
-ret = _Num + sum;
-return sum == _Val ? 0 : 1;
-}
-else {
-ret += sum;
-return 1;
-}
-}
-else {
-ret = umax();
-return 0;
-}
-}
-
-};
-
-template<typename T, typename Func>
-class __integral_conversion_details_table_helper {
-public:
-using func_type = Func;
-using value_type = typename func_type::value_type;
-
-constexpr static T min() { return std::numeric_limits<T>::min(); }
-constexpr static T max() { return std::numeric_limits<T>::max(); }
-
-using uT = std::make_unsigned_t<T>;
-
-constexpr static uT umax() { return std::max(make_unsigned_v(min()), make_unsigned_v(max())); }
-
-constexpr static unsigned int max_digits = base_width<2>(umax());
-
-template<unsigned int Base>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static unsigned int todigit(value_type ch) {
-return func_type::template todigit<Base, 0>(ch);
-}
-
-constexpr __integral_conversion_details_table_helper()
-: m_base(), m_digits(0), m_max() {}
-
-constexpr void init(int _Base) {
-m_digits = base_width(_Base, umax());
-
-m_base[0] = _Base;
-m_base[1] = m_base[0] * _Base;
-m_base[2] = m_base[1] * _Base;
-m_base[3] = m_base[2] * _Base;
-
-auto B = umax();
-auto i = m_digits;
-if (i >= 4) {
-auto P = power(static_cast<uT>(m_base[0]), i - 4);
-do {
-auto q = B / P;
-B -= q * P;
-P /= m_base[3];
-m_max[i / 4] = q;
-i -= 4;
-} while (i >= 4);
-}
-
-m_max[0] = B;
-}
-
-WJR_INLINE_CONSTEXPR unsigned int get_digits() const { return m_digits; }
-
-template<int idx>
-WJR_INLINE_CONSTEXPR unsigned int get_base() const { return m_base[idx]; }
-
-// *_First must in range
-template<typename _Iter>
-WJR_INLINE_CONSTEXPR std::pair<int, uT> operator()(_Iter _First) const {
-bool below = false;
-auto i = m_digits;
-uT ret = 0;
-if (i >= 4) {
-do {
-auto r0 = todigit<36>(*_First) * m_base[2];
-++_First;
-auto r1 = todigit<36>(*_First) * m_base[1];
-++_First;
-auto r2 = todigit<36>(*_First) * m_base[0];
-++_First;
-auto r3 = todigit<36>(*_First);
-++_First;
-auto sum = r0 + r1 + r2 + r3;
-if (!below) {
-auto _Val = m_max[i / 4];
-if (sum > _Val) return std::make_pair(-1, 0);
-if (sum < _Val) below = true;
-}
-ret *= m_base[3];
-ret += sum;
-i -= 4;
-} while (i >= 4);
-}
-switch (i) {
-case 3: {
-auto r0 = todigit<36>(*_First) * m_base[1];
-++_First;
-auto r1 = todigit<36>(*_First) * m_base[0];
-++_First;
-auto r2 = todigit<36>(*_First);
-auto sum = r0 + r1 + r2;
-if (!below) {
-auto _Val = m_max[0];
-if (sum > _Val) return std::make_pair(-1, 0);
-if (sum < _Val) below = true;
-}
-ret *= m_base[2];
-ret += sum;
-return std::make_pair(below ? 1 : 0, ret);
-}
-case 2: {
-auto r0 = todigit<36>(*_First) * m_base[0];
-++_First;
-auto r1 = todigit<36>(*_First);
-auto sum = r0 + r1;
-if (!below) {
-auto _Val = m_max[0];
-if (sum > _Val) return std::make_pair(-1, 0);
-if (sum < _Val) below = true;
-}
-ret *= m_base[1];
-ret += sum;
-return std::make_pair(below ? 1 : 0, ret);
-}
-case 1: {
-auto r0 = todigit<36>(*_First);
-auto sum = r0;
-if (!below) {
-auto _Val = m_max[0];
-if (sum > _Val) return std::make_pair(-1, 0);
-if (sum < _Val) below = true;
-}
-ret *= m_base[0];
-ret += sum;
-return std::make_pair(below ? 1 : 0, ret);
-}
-case 0: {
-return std::make_pair(0, ret);
-}
-default: {
-unreachable();
-return std::make_pair(0, 0);
-}
-}
-}
-
-private:
-
-unsigned int m_base[4];
-unsigned int m_digits;
-unsigned int m_max[max_digits / 4 + 1];
-};
-
-template<typename T, typename Func>
-class __integral_conversion_details_table {
-public:
-using helper_type = __integral_conversion_details_table_helper<T, Func>;
-constexpr __integral_conversion_details_table() : m_table() {
-for (int i = 2; i <= 36; ++i)m_table[i - 2].init(i);
-}
-constexpr const helper_type& operator[](int idx) const { return m_table[idx - 2]; }
-private:
-helper_type m_table[35];
-};
-
-template<typename T, typename Func>
-constexpr static __integral_conversion_details_table<T, Func> __integral_conversion_details_table_v;
-
-template<typename T, typename Func>
-class __integral_conversion_details_helper<T, Func, -1u> {
-public:
-using func_type = Func;
-using value_type = typename func_type::value_type;
-
-constexpr static T min() { return std::numeric_limits<T>::min(); }
-constexpr static T max() { return std::numeric_limits<T>::max(); }
-
-using uT = std::make_unsigned_t<T>;
-
-constexpr static uT umax() { return std::max(make_unsigned_v(min()), make_unsigned_v(max())); }
-
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static unsigned int todigit(value_type ch) {
-return func_type::template todigit<36, 0>(ch);
-}
-
-template<typename _Iter>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static T work(
-_Iter _First, size_t n,
-error_code& _Err, int base, bool _Is_p) {
-
-WJR_ASSUME(base != 2 && base != 8 && base != 10 && base != 16);
-
-const auto& helper = __integral_conversion_details_table_v<T, func_type>[base];
-
-// check flow
-auto digits = helper.get_digits();
-
-// must flow
-if (n > digits) {
-__CONV_FLOW_RET;
-}
-
-// maybe flow, further testing
-if (n == digits) {
-
-const auto __ret = helper(_First);
-int ret = __ret.first;
-
-if constexpr (std::is_unsigned_v<T>) {
-
-if (ret < 0) {
-__CONV_FLOW_RET;
-}
-
-if (_Is_p) {
-return static_cast<T>(__ret.second);
-}
-
-return static_cast<T>(-__ret.second);
-}
-else {
-
-if (ret < 0) {
-__CONV_FLOW_RET;
-}
-
-if (ret == 0) {
-if (_Is_p) {
-__CONV_OVERFLOW_RET;
-}
-return helper.min();
-}
-
-if (_Is_p) {
-return static_cast<T>(__ret.second);
-}
-
-return static_cast<T>(-__ret.second);
-}
-}
-
-WJR_ASSUME(n < digits);
-
-// the result won't have error
-
-std::make_unsigned_t<T> uret = 0;
-
-auto multi1 = helper.template get_base<0>();
-auto multi2 = helper.template get_base<1>();
-auto multi3 = helper.template get_base<2>();
-auto multi4 = helper.template get_base<3>();
-
-for (; n >= 4; n -= 4) {
-uret *= multi4;
-auto r0 = todigit(*_First) * multi3;
-++_First;
-auto r1 = todigit(*_First) * multi2;
-++_First;
-auto r2 = todigit(*_First) * multi1;
-++_First;
-auto r3 = todigit(*_First);
-++_First;
-uret += r0 + r1 + r2 + r3;
-}
-
-switch (n) {
-case 3: {
-uret *= multi3;
-auto r0 = todigit(*_First) * multi2;
-++_First;
-auto r1 = todigit(*_First) * multi1;
-++_First;
-auto r2 = todigit(*_First);
-uret += r0 + r1 + r2;
-break;
-}
-case 2: {
-uret *= multi2;
-auto r0 = todigit(*_First) * multi1;
-++_First;
-auto r1 = todigit(*_First);
-uret += r0 + r1;
-break;
-}
-case 1: {
-uret *= multi1;
-auto r0 = todigit(*_First);
-uret += r0;
-break;
-}
-}
-
-if (_Is_p) {
-return static_cast<T>(uret);
-}
-
-return static_cast<T>(-uret);
-}
-};
 
 template<typename T, typename Func>
 class integral_conversion_details {
 public:
 using func_type = Func;
 using value_type = typename func_type::value_type;
+using flags = typename func_type::flags;
 
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static bool isspace(value_type ch) {
-return func_type::isspace(ch);
-}
-
-template<unsigned int Base, int idx>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static uint32_t todigit(value_type ch) {
-static_assert(Base >= 2 && Base <= 36 && idx >= 0 && idx < 4, "");
-return func_type::template todigit<Base, idx>(ch);
-}
-
-template<typename _Iter>
+template<typename _Iter, typename F>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR static T work(
+F f,
 _Iter _First, _Iter _Last,
-error_code& _Err, _Iter& _Pos, int base) {
+errc& _Err, _Iter& _Pos, int base) {
+const auto _Flags = get_cvar(f);
+
+_Err = errc::ok;
+
+// skip white space
+if (_Flags & flags::ALLOW_LEADING_SPACE) {
+_First = func_type::skipw(_First, _Last);
+}
+
+if (is_unlikely(_First == _Last)) {
+__CONV_EMPTY_RET;
+}
+
+bool _Is_minus = false;
+
+// eat sign
+if (_Flags & flags::ALLOW_SIGN) {
+auto ch = *_First;
+switch (ch) {
+case '+': {
+__CONV_NEXT;
+break;
+}
+case '-': {
+_Is_minus = true;
+__CONV_NEXT;
+break;
+}
+}
+}
+
+if (_Flags & flags::ALLOW_TRAILING_SPACE) {
+_First = func_type::skipw(_First, _Last);
+}
+
+constexpr auto _B = func_type::toalnum('B');
+constexpr auto _X = func_type::toalnum('X');
+
+WJR_MAYBE_UNUSED auto _Zero = _Last;
+
+if (_Flags & flags::ALLOW_PREFIX) {
 switch (base) {
-case 0: return __constexpr_work<0>(_First, _Last, _Err, _Pos);
-case 2: return __constexpr_work<2>(_First, _Last, _Err, _Pos);
-case 8: return __constexpr_work<8>(_First, _Last, _Err, _Pos);
-case 10: return __constexpr_work<10>(_First, _Last, _Err, _Pos);
-case 16: return __constexpr_work<16>(_First, _Last, _Err, _Pos);
-case 36: return __constexpr_work<36>(_First, _Last, _Err, _Pos);
-default: {
-if (is_unlikely(base < 2 || base > 36)) {
-_Err = error_code::noconv;
+case 0: {
+if (*_First == '0') {
+// eat '0'
+if (is_unlikely(++_First == _Last)) {
+_Pos = _First;
 return static_cast<T>(0);
 }
-return __runtime_work(_First, _Last, _Err, _Pos, base);
+_Zero = _First;
+auto ch = func_type::toalnum(*_First);
+switch (ch) {
+case _B: {
+// eat 'b'/'B'
+if (is_unlikely(++_First == _Last)) {
+_Pos = _First;
+return static_cast<T>(0);
+}
+return __work(f, _First, _Last, _Err, _Pos, 2, _Zero, _Is_minus);
+}
+case _X: {
+// eat 'x'/'X'
+if (is_unlikely(++_First == _Last)) {
+_Pos = _First;
+return static_cast<T>(0);
+}
+return __work(f, _First, _Last, _Err, _Pos, 16, _Zero, _Is_minus);
+}
+default: {
+return __work(f, _First, _Last, _Err, _Pos, 8, _Zero, _Is_minus);
 }
 }
+}
+return __work(f, _First, _Last, _Err, _Pos, 10, _Last, _Is_minus);
+}
+case 2: {
+if (*_First == '0') {
+if (is_unlikely(++_First == _Last)) {
+_Pos = _First;
+return static_cast<T>(0);
+}
+_Zero = _First;
+if (func_type::toalnum(*_First) == _B) {
+if (is_unlikely(++_First == _Last)) {
+_Pos = _Zero;
+return static_cast<T>(0);
+}
+}
+}
+break;
+}
+case 8: {
+if (*_First == '0') {
+if (is_unlikely(++_First == _Last)) {
+_Pos = _First;
+return static_cast<T>(0);
+}
+_Zero = _First;
+}
+break;
+}
+case 16: {
+if (*_First == '0') {
+if (is_unlikely(++_First == _Last)) {
+_Pos = _First;
+return static_cast<T>(0);
+}
+_Zero = _First;
+if (func_type::toalnum(*_First) == _X) {
+if (is_unlikely(++_First == _Last)) {
+_Pos = _Zero;
+return static_cast<T>(0);
+}
+}
+}
+break;
+}
+default: {
+break;
+}
+}
+}
+
+return __work(f, _First, _Last, _Err, _Pos, base, _Zero, _Is_minus);
 }
 
 private:
 
-template<unsigned int Base, typename _Iter>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static T __constexpr_work(
+using uT = std::make_unsigned_t<T>;
+
+constexpr static T min() { return std::numeric_limits<T>::min(); }
+constexpr static T max() { return std::numeric_limits<T>::max(); }
+
+constexpr static uT umax() { return std::max(make_unsigned_v(min()), make_unsigned_v(max())); }
+
+template<typename _Iter, typename F>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static T __work(
+F f,
 _Iter _First, _Iter _Last,
-error_code& _Err, _Iter& _Pos) {
+errc& _Err, WJR_MAYBE_UNUSED _Iter& _Pos,
+int base, _Iter _Zero, bool _Is_minus) {
 
-_Err = error_code::ok;
+const auto _Flags = get_cvar(f);
 
-// skip white space
-_First = func_type::skipw(_First, _Last);
+auto _Next = _First;
 
-if (is_unlikely(_First == _Last)) {
-__CONV_EMPTY_RET;
-}
-
-bool _Is_p = true;
-
-// eat sign
-if (*_First == '+') {
-__CONV_NEXT;
-}
-else if (*_First == '-') {
-_Is_p = false;
-__CONV_NEXT;
+if (_Flags & flags::ALLOW_LEADING_ZEROS) {
+_Next = func_type::skipz(_First, _Last);
 }
 
-// -1 : no prefix
-// 0 : length of prefix is 1
-// 1 : length of prefix is 2
-// notice that for base = 2, 0b is prefix, 0 is not prefix
-// but we will eat first 0, if the second char is not 'b'/'B'
-// we also set prefix = 0
-int prefix = -1;
+uT _Max1 = 0;
+uT _Max2 = 0;
 
-// Base = 0 prefix : 0[bBxX]?
-// base = 0 is not testing yet
-if constexpr (Base == 0 || Base == 2 || Base == 8 || Base == 16) {
-if constexpr (Base == 0) {
-if (*_First == '0') {
-if (is_unlikely(++_First == _Last)) {
-// treat 0 as a number instead of a prefix
-__CONV_OK_RET(_First, 0);
-}
-switch (*_First) {
-case 'x':
-case 'X': {
-if (is_unlikely(++_First == _Last)) {
-// treat 0 as a number instead of a prefix
-__CONV_OK_RET(_First - 1, 0);
-}
-return __work<16>(_First, _Last, _Err, _Pos, _Is_p, 1);
-}
-case 'b':
-case 'B': {
-if (is_unlikely(++_First == _Last)) {
-// treat 0 as a number instead of a prefix
-__CONV_OK_RET(_First - 1, 0);
-}
-return __work<2>(_First, _Last, _Err, _Pos, _Is_p, 1);
-}
-default: {
-return __work<8>(_First, _Last, _Err, _Pos, _Is_p, 0);
-}
-}
+if constexpr (std::is_unsigned_v<T>) {
+_Max1 = umax() / base;
+_Max2 = umax() % base;
 }
 else {
-// base = 10
-return __work<10>(_First, _Last, _Err, _Pos, _Is_p, -1);
-}
-}
-else if constexpr (Base == 2) {
-if (*_First == '0') {
-if (is_unlikely(++_First == _Last)) {
-// treat 0 as a number instead of a prefix
-__CONV_OK_RET(_First, 0);
-}
-
-switch (*_First) {
-case 'b':
-case 'B': {
-if (is_unlikely(++_First == _Last)) {
-// treat 0 as a number instead of a prefix
-// ignore 'x'/'X'
-__CONV_OK_RET(_First - 1, 0);
-}
-prefix = 1;
-break;
-}
-default: {
-prefix = 0;
-break;
-}
-}
-}
-}
-else if constexpr (Base == 8) {
-if (*_First == '0') {
-if (is_unlikely(++_First == _Last)) {
-// treat 0 as a number instead of a prefix
-__CONV_OK_RET(_First, 0);
-}
-// 0 maybe is a prefix or just number 0
-// if there's no more digits after it, it wil be treat as number 0
-prefix = 0;
-}
-}
-else if constexpr (Base == 16) {
-if (*_First == '0') {
-if (is_unlikely(++_First == _Last)) {
-// treat 0 as a number instead of a prefix
-__CONV_OK_RET(_First, 0);
-}
-switch (*_First) {
-case 'x':
-case 'X': {
-if (is_unlikely(++_First == _Last)) {
-// treat 0 as a number instead of a prefix
-// ignore 'x'/'X'
-__CONV_OK_RET(_First - 1, 0);
-}
-prefix = 1;
-break;
-}
-default: {
-prefix = 0;
-break;
-}
-}
-}
-}
-}
-
-if constexpr (Base != 0) {
-return __work<Base>(_First, _Last, _Err, _Pos, _Is_p, prefix);
+if (_Is_minus) {
+_Max1 = umax() / base;
+_Max2 = umax() % base;
 }
 else {
-unreachable();
-}
-
-}
-
-template<typename _Iter>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static T __runtime_work(
-_Iter _First, _Iter _Last,
-error_code& _Err, _Iter& _Pos, int base) {
-
-_Err = error_code::ok;
-
-// skip white space
-_First = func_type::skipw(_First, _Last);
-
-if (is_unlikely(_First == _Last)) {
-__CONV_EMPTY_RET;
-}
-
-bool _Is_p = true;
-
-// eat sign
-if (*_First == '+') {
-__CONV_NEXT;
-}
-else if (*_First == '-') {
-_Is_p = false;
-__CONV_NEXT;
-}
-
-return __work(_First, _Last, _Err, _Pos, base, _Is_p);
-}
-
-template<unsigned int Base, typename _Iter>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static T __work(
-_Iter _First, _Iter _Last,
-error_code& _Err, _Iter& _Pos, bool _Is_p, int prefix) {
-
-_Last = func_type::template skipd<Base>(_First, _Last);
-
-// no digits
-if (_First == _Last) {
-// have a prefix 0
-if constexpr (Base == 2 || Base == 8 || Base == 16) {
-if (prefix != -1) {
-// treat 0 as a number instead of a prefix
-// for prefix = 0, we eat a '0'
-// for prefix = 0*, we need to set end_ptr = i - 1
-_Pos = _First - prefix;
-return static_cast<T>(0);
+constexpr auto __umax2 = umax() - 1;
+_Max1 = __umax2 / base;
+_Max2 = __umax2 % base;
 }
 }
-// invalid digits
-__CONV_EMPTY_RET;
+
+uT uret = 0;
+bool overflowed = false;
+
+for (; _Next != _Last; ++_Next) {
+auto ch = func_type::toalnum(*_Next);
+
+if (ch >= base) break;
+
+if (uret < _Max1 || (uret == _Max1 && ch <= _Max2)) {
+uret *= base;
+uret += ch;
+}
+else overflowed = true;
 }
 
-// _First != _Last
-
-_Pos = _Last;
-
-// remove leading zeros
-_First = func_type::skipz(_First, _Last);
-
-auto n = std::distance(_First, _Last);
-
-if (!n) {
+if (_First == _Next) {
+if (_Zero != _Last) {
+_Pos = _Zero;
+return static_cast<T>(uret);
+}
+_Err = errc::noconv;
 return static_cast<T>(0);
 }
 
-return __integral_conversion_details_helper<T, func_type, Base>
-::work(_First, n, _Err, _Is_p);
+_Pos = _Next;
+
+if (overflowed) {
+if constexpr (std::is_unsigned_v<T>) {
+_Err = errc::overflow;
 }
-
-template<typename _Iter>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static T __work(
-_Iter _First, _Iter _Last,
-error_code& _Err, _Iter& _Pos, int base, bool _Is_p) {
-
-_Last = func_type::template skipd(_First, _Last, base);
-
-// no digits
-if (_First == _Last) {
-// invalid digits
-__CONV_EMPTY_RET;
+else {
+if (_Is_minus) {
+_Err = errc::underflow;
 }
-
-// _First != _Last
-
-_Pos = _Last;
-
-// remove leading zeros
-_First = func_type::skipz(_First, _Last);
-
-auto n = std::distance(_First, _Last);
-
-if (!n) {
+else {
+_Err = errc::overflow;
+}
+}
 return static_cast<T>(0);
 }
 
-return __integral_conversion_details_helper<T, func_type, -1u>
-::work(_First, n, _Err, base, _Is_p);
+if (_Is_minus) {
+uret = static_cast<uT>(0 - uret);
+}
+
+return static_cast<T>(uret);
 }
 
 };
 
-#undef __CONV_OK_RET
 #undef __CONV_EMPTY_RET
 #undef __CONV_NEXT
-#undef __CONV_OVERFLOW_RET
-#undef __CONV_UNDERFLOW_RET
-#undef __CONV_FLOW_RET
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool string_func<Traits>::isalnum(value_type ch) {
@@ -14232,15 +13641,14 @@ return toalnum(ch) < Base;
 }
 
 template<typename Traits>
-template<unsigned int Base, int idx>
+template<unsigned int Base>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR uint32_t string_func<Traits>::todigit(value_type ch) {
-return traits_type::template todigit<Base, idx>(ch);
+return traits_type::template todigit<Base>(ch);
 }
 
 template<typename Traits>
-template<int idx>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR uint32_t string_func<Traits>::toalnum(value_type ch) {
-return todigit<36u, idx>(ch);
+return todigit<36>(ch);
 }
 
 template<typename Traits>
@@ -14282,12 +13690,13 @@ return _First;
 }
 
 template<typename Traits>
-template<typename T, typename _Iter>
+template<typename T, typename _Iter, typename F>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR T string_func<Traits>::to_integral(
+F f,
 _Iter _First, _Iter _Last,
-error_code& _Err, _Iter& _Pos, int base) {
+errc& _Err, _Iter& _Pos, int base) {
 return integral_conversion_details<T, string_func<Traits>>
-::template work(_First, _Last, _Err, _Pos, base);
+::template work(f, _First, _Last, _Err, _Pos, base);
 }
 
 _WJR_END
@@ -17364,6 +16773,7 @@ using _Mybase2::suffix;
 using traits_type = ascii_traits<Traits>;
 using size_type = typename _Mybase1::size_type;
 using func_type = string_func<typename ascii::encode>;
+using flags = typename func_type::flags;
 
 basic_string_view(const _Mybase1& base) : _Mybase1(base) {}
 
@@ -17384,38 +16794,38 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view trim() const;
 // support constexpr if str is constexpr
 template<typename T>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_integral(
-error_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR int toi(
-error_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR long tol(
-error_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR long long toll(
-error_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned int toui(
-error_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long toul(
-error_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long long toull(
-error_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
 template<typename T>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_floating(
-error_code* err = nullptr, size_type* pos = nullptr) const;
+errc* err = nullptr, size_type* pos = nullptr) const;
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR float tof(
-error_code* err = nullptr, size_type* pos = nullptr) const;
+errc* err = nullptr, size_type* pos = nullptr) const;
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR double tod(
-error_code* err = nullptr, size_type* pos = nullptr) const;
+errc* err = nullptr, size_type* pos = nullptr) const;
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR long double told(
-error_code* err = nullptr, size_type* pos = nullptr) const;
+errc* err = nullptr, size_type* pos = nullptr) const;
 
 };
 
@@ -17493,12 +16903,22 @@ return ltrim().rtrim();
 template<typename Traits>
 template<typename T>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR T basic_string_view<char, ascii_traits<Traits>>::to_integral(
-error_code* err, size_type* pos, int base) const {
-error_code cc = {};
-const char* end_ptr = nullptr;
-T ret = func_type::to_integral<T>(begin(), end(), cc, end_ptr, base);
+errc* err, size_type* pos, int base) const {
+using namespace enum_ops;
+constexpr auto _Flags =
+flags::ALLOW_PREFIX
+| flags::ALLOW_SIGN
+| flags::ALLOW_LEADING_SPACE
+| flags::ALLOW_LEADING_ZEROS
+;
 
-if (cc == error_code::noconv) {
+errc cc = {};
+const char* end_ptr = nullptr;
+T ret = func_type::to_integral<T>(
+WJR_MAKE_CVAR(_Flags),
+begin(), end(), cc, end_ptr, base);
+
+if (cc == errc::noconv) {
 end_ptr = begin();
 }
 
@@ -17515,37 +16935,37 @@ return ret;
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR int basic_string_view<char, ascii_traits<Traits>>::toi(
-error_code* err, size_type* pos, int base) const {
+errc* err, size_type* pos, int base) const {
 return to_integral<int>(err, pos, base);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR long basic_string_view<char, ascii_traits<Traits>>::tol(
-error_code* err, size_type* pos, int base) const {
+errc* err, size_type* pos, int base) const {
 return to_integral<long>(err, pos, base);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR long long basic_string_view<char, ascii_traits<Traits>>::toll(
-error_code* err, size_type* pos, int base) const {
+errc* err, size_type* pos, int base) const {
 return to_integral<long long>(err, pos, base);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned int basic_string_view<char, ascii_traits<Traits>>::toui(
-error_code* err, size_type* pos, int base) const {
+errc* err, size_type* pos, int base) const {
 return to_integral<unsigned int>(err, pos, base);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long basic_string_view<char, ascii_traits<Traits>>::toul(
-error_code* err, size_type* pos, int base) const {
+errc* err, size_type* pos, int base) const {
 return to_integral<unsigned long>(err, pos, base);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long long basic_string_view<char, ascii_traits<Traits>>::toull(
-error_code* err, size_type* pos, int base) const {
+errc* err, size_type* pos, int base) const {
 return to_integral<unsigned long long>(err, pos, base);
 }
 
@@ -17847,6 +17267,1308 @@ return 0;
 _WJR_END
 
 #endif // __WJR_STRING_H
+#pragma once
+#ifndef __WJR_TP_LIST_H
+#define __WJR_TP_LIST_H
+
+#include <type_traits>
+
+
+// comply with STD naming standards as much as possible
+// try to place the containers that need to be processed in the first parameter as much as possible
+// when it is possible to operate on multiple containers,
+// the operation should be placed before the container disaster
+
+// Try to make each function only work on one container as much as possible.
+// If you need to work on multiple containers, you can usually use tp_zip or tp_product,
+// the former compresses the same bit of multiple containers into a container,
+// and then throws each bit of container into container C (user-defined),
+// while the latter generates a Cartesian product
+// for example ,
+// tp_zip<tp_list, tp_list<int, double, float>, tp_list<int, float, double>>
+// will generate tp_list<tp_list<int, int>, tp_list<double, float>, tp_list<float, double>>
+// tp_product<tp_list, tp_list<int, double>, tp_list<int, float, double>>
+// will generate tp_list<tp_list<int, int>, tp_list<int, float>, tp_list<int, double>,
+// tp_list<double, int>, tp_list<double, float>, tp_list<double, double>>
+
+_WJR_BEGIN
+
+struct tp_null {};
+
+template<typename...Args>
+struct tp_list {};
+
+template<typename T, T I>
+using tp_c = std::integral_constant<T, I>;
+
+template<typename T, T...I>
+struct tp_list_c {
+using type = tp_list<tp_c<T, I>...>;
+};
+
+// L<std::integral_constant<T, I>...>
+template<typename T, T... I>
+using tp_list_c_t = typename tp_list_c<T, I...>::type;
+
+template<typename T>
+struct tp_is_list : std::false_type {};
+
+template<typename...Args>
+struct tp_is_list<tp_list<Args...>> : std::true_type {};
+
+template<typename T>
+struct tp_size;
+
+template<template<typename...>typename C, typename...Args>
+struct tp_size<C<Args...>> {
+constexpr static size_t value = sizeof...(Args);
+};
+
+// get size of L<Args...>
+template<typename T>
+inline constexpr size_t tp_size_v = tp_size<T>::value;
+
+template<size_t idx>
+using tp_size_t = tp_c<size_t, idx>;
+
+template<typename T, typename U>
+struct tp_equal_c : std::bool_constant<(T::value == U::value)> {};
+
+template<typename T, typename U>
+struct tp_not_equal_c : std::bool_constant<(T::value != U::value)> {};
+
+template<typename T, typename U>
+struct tp_less_c : std::bool_constant<(T::value < U::value)>{};
+
+template<typename T, typename U>
+struct tp_less_equal_c : std::bool_constant < (T::value <= U::value)> {};
+
+template<typename T, typename U>
+struct tp_greater_c : std::bool_constant < (T::value > U::value)> {};
+
+template<typename T, typename U>
+struct tp_greater_equalv : std::bool_constant < (T::value >= U::value)>{};
+
+
+// check if is tp_list
+template<typename T>
+inline constexpr bool tp_is_list_v = tp_is_list<T>::value;
+
+template<typename T>
+struct tp_is_fn : std::false_type {};
+
+template<typename T>
+inline constexpr bool tp_is_fn_v = tp_is_fn<T>::value;
+
+template<typename _Enable, template<typename...>typename F, typename...Args>
+struct __tp_valid_helper : std::false_type {};
+
+template<template<typename...>typename F, typename...Args>
+struct __tp_valid_helper<std::void_t<F<Args...>>, F, Args...> : std::true_type {};
+
+template<template<typename...>typename F, typename...Args>
+struct tp_valid : __tp_valid_helper<void, F, Args...> {};
+
+template<template<typename...>typename F, typename...Args>
+inline constexpr bool tp_valid_v = tp_valid<F, Args...>::value;
+
+template<typename F, typename...Args>
+inline constexpr bool tp_valid_f = tp_valid_v<F::template fn, Args...>;
+
+template<template<typename...>typename F, typename...Args>
+struct __tp_defer_helper {
+using type = F<Args...>;
+};
+
+template<template<typename...>typename F, typename...Args>
+struct tp_defer {
+using type = std::enable_if_t<tp_valid_v<F, Args...>, typename __tp_defer_helper<F, Args...>::type>;
+};
+
+// use std::enable_if_t to defer the instantiation of F<Args...>
+template<template<typename...>typename F, typename...Args>
+using tp_defer_t = typename tp_defer<F, Args...>::type;
+
+template<typename F, typename...Args>
+using tp_defer_f = tp_defer_t<F::template fn, Args...>;
+
+template<typename T>
+struct tp_identity {
+using type = T;
+};
+
+template<typename T>
+using tp_identity_t = typename tp_identity<T>::type;
+
+// F1<F2<Args...>>
+template<template<typename...>typename F1, template<typename...>typename F2>
+struct tp_bind_fn {
+template<typename...Args>
+using fn = tp_defer_t<F1, tp_defer_t<F2, Args...>>;
+};
+
+// make F can be used as fn
+template<template<typename...>typename F>
+struct tp_make_fn {
+template<typename...Args>
+using fn = tp_defer_t<F, Args...>;
+};
+
+// std::negation<F<Args...>>
+template<template<typename...>typename F>
+struct tp_not_fn {
+template<typename...Args>
+using fn = typename tp_bind_fn<std::negation, F>::template fn<Args...>;
+};
+
+template<typename...Args>
+struct tp_always_true : std::true_type {};
+
+template<typename...Args>
+struct tp_always_false : std::false_type {};
+
+template<typename T>
+struct tp_is_empty : std::bool_constant<tp_size_v<T> == 0> {};
+
+template<typename T>
+inline constexpr bool tp_is_empty_v = tp_is_empty<T>::value;
+
+template<typename T, typename U>
+struct tp_assign;
+
+template<typename...Args1, template<typename...>typename T1,
+typename...Args2, template<typename...>typename T2>
+struct tp_assign<T1<Args1...>, T2<Args2...>> {
+using type = T1<Args2...>;
+};
+
+// f(L1<Args1...>, L2<Args2...>) -> L1<Args2...>
+template<typename T, typename U>
+using tp_assign_t = typename tp_assign<T, U>::type;
+
+template<typename T>
+struct tp_clear;
+
+template<template<typename...>typename T, typename...Args>
+struct tp_clear<T<Args...>> {
+using type = T<>;
+};
+
+// f(L<Args...>) -> L<>
+template<typename T>
+using tp_clear_t = typename tp_clear<T>::type;
+
+template<typename T, typename...Args>
+struct tp_push_front;
+
+template<template<typename...>typename C, typename...Args1, typename...Args2>
+struct tp_push_front<C<Args1...>, Args2...> {
+using type = C<Args2..., Args1...>;
+};
+
+// f(L<Args1...>, Args2...) -> L<Args1..., Args2...)
+template<typename T, typename...Args>
+using tp_push_front_t = typename tp_push_front<T, Args...>::type;
+
+template<typename T, typename...Args>
+struct tp_push_back;
+
+template<template<typename...>typename C, typename...Args1, typename...Args2>
+struct tp_push_back<C<Args1...>, Args2...> {
+using type = C<Args1..., Args2...>;
+};
+
+// f(L<Args1...>, Args2...) -> L<Args2..., Args1...)
+template<typename T, typename...Args>
+using tp_push_back_t = typename tp_push_back<T, Args...>::type;
+
+template<typename _Enable, size_t I, size_t N, typename...Args>
+struct __tp_cut_helper;
+
+template<size_t I, size_t N, typename T, typename...Args>
+struct __tp_cut_helper<std::enable_if_t<N != 0, void>, I, N, T, Args...> {
+using type = typename __tp_cut_helper<void, I - 1, N, Args...>::type;
+};
+
+template<size_t I, size_t N, typename T, typename...Args>
+struct __tp_cut_helper<std::enable_if_t<N == 0, void>, I, N, T, Args...> {
+using type = tp_list<>;
+};
+
+template<size_t N, typename...Args2>
+struct __tp_cut_helper2;
+
+template<size_t N, typename T, typename...Args>
+struct __tp_cut_helper2<N, T, Args...> {
+using type = tp_push_front_t<typename __tp_cut_helper2<N - 1, Args...>::type, T>;
+};
+
+template<typename...Args>
+struct __tp_cut_helper2<0, Args...> {
+using type = tp_list<>;
+};
+
+template<typename T, typename...Args>
+struct __tp_cut_helper2<0, T, Args...> {
+using type = tp_list<>;
+};
+
+template<size_t N, typename...Args>
+struct __tp_cut_helper<std::enable_if_t<N != 0>, 0, N, Args...> {
+using type = typename __tp_cut_helper2<N, Args...>::type;
+};
+
+template<size_t N, typename T, typename...Args>
+struct __tp_cut_helper<std::enable_if_t<N != 0>, 0, N, T, Args...> {
+using type = typename __tp_cut_helper2<N, T, Args...>::type;
+};
+
+template<typename T, template<typename...>typename U>
+struct tp_rename;
+
+template<template<typename...>typename C, typename...Args, template<typename...>typename U>
+struct tp_rename<C<Args...>, U> {
+using type = U<Args...>;
+};
+
+// f(L1<Args1...>, L2<Args2...>) -> L2<Args1...>
+template<typename T, template<typename...>typename U>
+using tp_rename_t = typename tp_rename<T, U>::type;
+
+template<typename T, size_t I, size_t N>
+struct tp_cut;
+
+template<template<typename...>typename C, typename...Args, size_t I, size_t N>
+struct tp_cut<C<Args...>, I, N> {
+static_assert(N <= sizeof...(Args) && I <= (sizeof...(Args) - N), "tp_cut: invalid index");
+using type = tp_rename_t<typename __tp_cut_helper<void, I, N, Args...>::type, C>;
+};
+
+// f(L<Args...>, I, N) -> L<Args(0 ~ max(0, I - 1)), Args(I + 1 ~ N - 1)>
+template<typename T, size_t I, size_t N>
+using tp_cut_t = typename tp_cut<T, I, N>::type;
+
+template<typename T>
+struct tp_pop_front : tp_cut<T, 1, tp_size_v<T> - 1> {};
+
+// f(L<T, Args...>) -> L<Args...>
+template<typename T>
+using tp_pop_front_t = typename tp_pop_front<T>::type;
+
+template<typename T>
+struct tp_pop_back : tp_cut<T, 0, tp_size_v<T> -1> {};
+
+// f(L<Args..., T>) -> L<Args...>
+template<typename T>
+using tp_pop_back_t = typename tp_pop_back<T>::type;
+
+template<size_t index, typename...Args>
+struct __tp_at_helper;
+
+template<size_t index, typename T, typename...Args>
+struct __tp_at_helper<index, T, Args...> {
+using type = typename __tp_at_helper<index - 1, Args...>::type;
+};
+
+template<typename T, typename...Args>
+struct __tp_at_helper<0, T, Args...> {
+using type = T;
+};
+
+template<typename T, size_t index>
+struct tp_at;
+
+template<template<typename...Args>typename C, typename...Args, size_t index>
+struct tp_at<C<Args...>, index> {
+static_assert(index < sizeof...(Args), "tp_at: invalid index");
+using type = typename __tp_at_helper<index, Args...>::type;
+};
+
+// f(L<Args...>, index) - > Args(index)
+template<typename T, size_t index>
+using tp_at_t = typename tp_at<T, index>::type;
+
+template<typename T>
+struct tp_front {
+using type = tp_at_t<T, 0>;
+};
+
+// tp_at_t(T, 0)
+template<typename T>
+using tp_front_t = typename tp_front<T>::type;
+
+template<typename T>
+struct tp_back {
+using type = tp_at_t<T, tp_size_v<T> -1>;
+};
+
+// tp_at_t(T, tp_size_v<T> - 1)
+template<typename T>
+using tp_back_t = typename tp_back<T>::type;
+
+template<typename T, size_t idx>
+struct tp_prefix {
+using type = tp_cut_t<T, 0, idx>;
+};
+
+template<typename T, size_t idx>
+using tp_prefix_t = typename tp_prefix<T, idx>::type;
+
+template<typename T, size_t idx>
+struct tp_suffix {
+using type = tp_cut_t<T, tp_size_v<T> - idx, idx>;
+};
+
+template<typename T, size_t idx>
+using tp_suffix_t = typename tp_suffix<T, idx>::type;
+
+template<typename T, size_t idx>
+struct tp_remove_prefix {
+using type = tp_suffix_t<T, tp_size_v<T> - idx>;
+};
+
+template<typename T, size_t idx>
+using tp_remove_prefix_t = typename tp_remove_prefix<T, idx>::type;
+
+template<typename T, size_t idx>
+struct tp_remove_suffix {
+using type = tp_prefix_t<T, tp_size_v<T> - idx>;
+};
+
+template<typename T, size_t idx>
+using tp_remove_suffix_t = typename tp_remove_suffix<T, idx>::type;
+
+template<typename...Args>
+struct tp_concat;
+
+template<typename T>
+struct tp_concat<T> {
+using type = T;
+};
+
+template<
+template<typename...>typename C1, typename...Args1,
+template<typename...>typename C2, typename...Args2>
+struct tp_concat<C1<Args1...>, C2<Args2...>> {
+using type = C1<Args1..., Args2...>;
+};
+
+template<
+typename T,
+typename U,
+typename...Args3>
+struct tp_concat<T, U, Args3...> {
+using type = typename tp_concat<typename tp_concat<T, U>::type, Args3...>::type;
+};
+
+// f(L1<Args...>, L2<Args2...>, ... Ln<Argsn...>) -> L1<Args..., Args2..., Argsn...>
+template<typename...Args>
+using tp_concat_t = typename tp_concat<Args...>::type;
+
+template<typename T, size_t idx, typename U>
+struct tp_replace_at {
+using type = tp_concat_t<tp_push_back_t<tp_cut_t<T, 0, idx - 1>, U>, tp_cut_t<T, idx, tp_size_v<T> -idx>>;
+};
+
+template<typename T, typename U>
+struct tp_replace_at<T, 0, U> {
+using type = tp_push_front_t<tp_pop_front_t<T>, U>;
+};
+
+template<typename T, size_t idx, typename U>
+using tp_replace_at_t = typename tp_replace_at<T, idx, U>::type;
+
+template<typename T, typename U>
+struct tp_replace_front_at {
+using type = tp_replace_at_t<T, 0, U>;
+};
+
+template<typename T, typename U>
+using tp_replace_front_at_t = typename tp_replace_front_at<T, U>::type;
+
+template<typename T, typename U>
+struct tp_replace_back_at {
+using type = tp_replace_at_t<T, tp_size_v<T> -1, U>;
+};
+
+template<typename T, typename U>
+using tp_replace_back_at_t = typename tp_replace_back_at<T, U>::type;
+
+template<typename V, typename T, typename...Args>
+struct tp_conditional {
+using type = std::conditional_t<V::value, T, typename tp_conditional<Args...>::type>;
+};
+
+template<typename V, typename T1, typename T2>
+struct tp_conditional<V, T1, T2> {
+using type = std::conditional_t<V::value, T1, T2>;
+};
+
+template<typename V, typename T, typename...Args>
+using tp_conditional_t = typename tp_conditional<V, T, Args...>::type;
+
+template<size_t idx>
+struct tp_arg;
+
+template<template<typename...>typename F, typename...Args>
+struct tp_bind;
+
+template<template<typename...>typename F, typename...Args>
+struct tp_bind_front;
+
+template<template<typename...>typename F, typename...Args>
+struct tp_bind_back;
+
+template<size_t idx>
+struct tp_is_fn<tp_arg<idx>> : std::true_type {};
+
+template<template<typename...>typename F, typename...Args>
+struct tp_is_fn<tp_bind<F, Args...>> : std::true_type {};
+
+template<template<typename...>typename F, typename...Args>
+struct tp_is_fn<tp_bind_front<F, Args...>> : std::true_type {};
+
+template<template<typename...>typename F, typename...Args>
+struct tp_is_fn<tp_bind_back<F, Args...>> : std::true_type {};
+
+template<size_t idx>
+struct tp_arg {
+template<typename...Args>
+using fn = tp_at_t<tp_list<Args...>, idx>;
+};
+
+template<template<typename...>typename F,
+typename T>
+struct tp_apply {
+using type = tp_rename_t<T, F>;
+};
+
+// f(L<Args...>) -> f(Args...)
+template<template<typename...>typename F,
+typename T>
+using tp_apply_t = typename tp_apply<F, T>::type;
+
+template<typename F, typename T>
+using tp_apply_f = tp_apply_t<F::template fn, T>;
+
+template<typename _Enable, typename T, typename...Args>
+struct __tp_bind_helper {
+using type = T;
+};
+
+template<typename F, typename...Args>
+struct __tp_bind_helper<std::enable_if_t<tp_is_fn_v<F>, void>, F, Args...> {
+using type = typename F::template fn<Args...>;
+};
+
+template<template<typename...>typename F, typename...Args>
+struct tp_bind {
+template<typename...Args2>
+using fn = F<typename __tp_bind_helper<void, Args, Args2...>::type...>;
+};
+
+template<typename F, typename...Args>
+using tp_bind_f = tp_bind<F::template fn, Args...>;
+
+template<template<typename...>typename F, typename...Args>
+struct tp_bind_front {
+template<typename...Args2>
+using fn = tp_defer_t<F, Args..., Args2...>;
+};
+
+template<typename F, typename...Args>
+using tp_bind_front_f = tp_bind_front<F::template fn, Args...>;
+
+template<template<typename...>typename F, typename...Args>
+struct tp_bind_back {
+template<typename...Args2>
+using fn = tp_defer_t<F, Args2..., Args...>;
+};
+
+template<typename F, typename...Args>
+using tp_bind_back_f = tp_bind_back<F::template fn, Args...>;
+
+template<typename T, template<typename...>typename F>
+struct tp_transform;
+
+template<template<typename...>typename C, typename...Args, template<typename...>typename F>
+struct tp_transform<C<Args...>, F> {
+using type = C<F<Args>...>;
+};
+
+// f(L<Args...>, Fn) -> L<Fn(Args)...>
+// use with apply, bind, bind_front, bind_back...
+// for example:
+// tp_transform_f<tp_bind_front<tp_apply_f, tp_bind_front<std::is_same>>,
+// tp_list<tp_list<int, float>, tp_list<float, float>, tp_list<int, double>>>
+// -> tp_list<std::is_same<int, float>, std::is_same<float, float>, std::is_same<int, double>>
+template<typename T, template<typename...>typename F>
+using tp_transform_t = typename tp_transform<T, F>::type;
+
+template<typename T, typename F>
+using tp_transform_f = typename tp_transform<T, F::template fn>::type;
+
+template<template<typename...>typename C, typename...Args>
+struct tp_zip;
+
+template<template<typename...>typename C, typename T>
+struct __tp_zip_helper;
+
+template<template<typename...>typename C, size_t...idx>
+struct __tp_zip_helper<C, std::index_sequence<idx...>> {
+template<size_t I, typename...Args>
+using __type = C<tp_at_t<Args, I>...>;
+template<typename...Args>
+using type = tp_list<__type<idx, Args...>...>;
+};
+
+template<template<typename...>typename C>
+struct tp_zip<C> {
+using type = tp_list<>;
+};
+
+template<template<typename...>typename C, typename T>
+struct tp_zip<C, T> {
+using type = tp_list<T>;
+};
+
+template<template<typename...>typename C, typename T, typename...Args>
+struct tp_zip<C, T, Args...> {
+constexpr static size_t size = tp_size_v<T>;
+static_assert(((size == tp_size_v<Args>) && ...),
+"tp_zip arguments must have same size, \
+you can make all arguments have same size by tp_");
+using type = typename __tp_zip_helper<C, std::make_index_sequence<tp_size_v<T>>>::template type<T, Args...>;
+};
+
+template<template<typename...>typename C, typename...Args>
+using tp_zip_t = typename tp_zip<C, Args...>::type;
+
+template<typename...Args>
+struct __tp_max_size_helper;
+
+template<typename T>
+struct __tp_max_size_helper<T> {
+constexpr static size_t value = tp_size_v<T>;
+};
+
+template<typename T, typename...Args>
+struct __tp_max_size_helper<T, Args...> {
+constexpr static size_t value = std::max(tp_size_v<T>, __tp_max_size_helper<Args...>::value);
+};
+
+template<typename T, typename...Args>
+struct tp_max_size {
+constexpr static size_t value = __tp_max_size_helper<T, Args...>::value;
+};
+
+template<typename T, typename...Args>
+inline constexpr size_t tp_max_size_v = tp_max_size<T, Args...>::value;
+
+template<typename T>
+struct tp_wrap {
+using type = tp_list<T>;
+};
+
+template<typename T>
+using tp_wrap_t = typename tp_wrap<T>::type;
+
+template<typename T>
+struct tp_unwrap;
+
+template<template<typename...>typename C, typename T>
+struct tp_unwrap<C<T>> {
+using type = T;
+};
+
+template<typename T>
+using tp_unwrap_t = typename tp_unwrap<T>::type;
+
+template<typename T, template<typename...>typename P, typename U>
+struct tp_replace_if;
+
+template<template<typename...>typename C, typename...Args, template<typename...>typename P, typename U>
+struct tp_replace_if<C<Args...>, P, U> {
+using type = C<tp_conditional_t<P<Args>, U, Args>...>;
+};
+
+// f(L<Args...>, P, U) -> L<if P(Args)::value then U else Args...>
+template<typename T, template<typename...>typename P, typename U>
+using tp_replace_if_t = typename tp_replace_if<T, P, U>::type;
+
+template<typename T, typename P, typename U>
+using tp_replace_if_f = tp_replace_if_t<T, P::template fn, U>;
+
+template<typename T, typename U>
+struct tp_replace_if_true {
+using type = tp_replace_if_t<T, tp_identity_t, U>;
+};
+
+template<typename T, typename U>
+using tp_replace_if_true_t = typename tp_replace_if_true<T, U>::type;
+
+template<typename T, typename U>
+struct tp_replace_if_false {
+using type = tp_replace_if_f<T, tp_not_fn<tp_identity_t>, U>;
+};
+
+template<typename T, typename U>
+using tp_replace_if_false_t = typename tp_replace_if_false<T, U>::type;
+
+template<typename T, typename O, typename N>
+struct tp_replace {
+using type = tp_replace_if_f<T, tp_bind_front<std::is_same, O>, N>;
+};
+
+template<typename T, typename O, typename N>
+using tp_replace_t = typename tp_replace<T, O, N>::type;
+
+template<typename T, typename U>
+struct tp_fill {
+using type = tp_replace_if_t<T, tp_always_true, U>;
+};
+
+template<typename T, typename U>
+using tp_fill_t = typename tp_fill<T, U>::type;
+
+template<typename T, template<typename...>typename P>
+struct tp_count_if;
+
+template<template<typename...>typename C, template<typename...>typename P>
+struct tp_count_if<C<>, P> {
+static constexpr size_t value = 0;
+};
+
+template<template<typename...>typename C, typename...Args, template<typename...>typename P>
+struct tp_count_if<C<Args...>, P> {
+static constexpr size_t value = (P<Args>::value + ...);
+};
+
+// f(L<Args...>, P) -> count(P(Args)::value)
+template<typename T, template<typename...>typename P>
+constexpr size_t tp_count_if_v = tp_count_if<T, P>::value;
+
+template<typename T, typename P>
+constexpr size_t tp_count_if_f_v = tp_count_if_v<T, P::template fn>;
+
+template<typename T, typename V>
+struct tp_count {
+static constexpr size_t value = tp_count_if_f_v<T, tp_bind_front<std::is_same, V>>;
+};
+
+template<typename T, typename V>
+constexpr size_t tp_count_v = tp_count<T, V>::value;
+
+template<typename T, typename V>
+struct tp_contains {
+static constexpr bool value = tp_count_v<T, V> != 0;
+};
+
+template<typename T, typename V>
+constexpr bool tp_contains_v = tp_contains<T, V>::value;
+
+template<typename T, template<typename...>typename P>
+struct tp_remove_if;
+
+template<template<typename...>typename C, typename...Args, template<typename...>typename P>
+struct tp_remove_if<C<Args...>, P> {
+using type = tp_concat_t<C<>, tp_conditional<P<Args>, C<>, C<Args>>...>;
+};
+
+// f(L<Args...>, P) -> L<if P(Args)::value then L<> else L<Args>...>
+template<typename T, template<typename...>typename P>
+using tp_remove_if_t = typename tp_remove_if<T, P>::type;
+
+template<typename T, typename P>
+using tp_remove_if_f = tp_remove_if_t<T, P::template fn>;
+
+template<typename T, typename V>
+struct tp_remove {
+using type = tp_remove_if_f<T, tp_bind_front<std::is_same, V>>;
+};
+
+template<typename T, typename V>
+using tp_remove_t = typename tp_remove<T, V>::type;
+
+template<typename T, template<typename...>typename P>
+struct tp_filter {
+using type = tp_remove_if_f<T, tp_not_fn<P>>;
+};
+
+template<typename T, template<typename...>typename P>
+using tp_filter_t = typename tp_filter<T, P>::type;
+
+template<typename T, typename P>
+using tp_filter_f = tp_filter_t<T, P::template fn>;
+
+template<typename T, typename U>
+struct tp_equal;
+
+template<typename _Enable, typename T, typename U>
+struct __tp_equal_helper : std::false_type{};
+
+template<template<typename...>typename C, typename...Args, template<typename...>typename D, typename...Args2>
+struct __tp_equal_helper<std::enable_if_t<sizeof...(Args) == sizeof...(Args2), void>, C<Args...>, D<Args2...>>
+: std::conjunction<std::is_same<Args, Args2>...> {};
+
+template<typename T, typename U>
+struct tp_equal : __tp_equal_helper<void, T, U> {};
+
+template<typename T, typename U>
+inline constexpr bool tp_equal_v = tp_equal<T, U>::value;
+
+template<typename T, size_t N>
+struct tp_repeat {
+using type = tp_concat<T, typename tp_repeat<T, N - 1>::type>;
+};
+
+template<typename T>
+struct tp_repeat<T, 0> {
+using type = T;
+};
+
+template<typename C, size_t N>
+using tp_repeat_t = typename tp_repeat<C, N>::type;
+
+template<typename _Enable, typename C, size_t N, typename V>
+struct __tp_resize_helper {
+using type = tp_cut_t<C, 0, N>;
+};
+
+template<typename C, size_t N, typename V>
+struct __tp_resize_helper<std::enable_if_t<N >= tp_size_v<C>, void>, C, N, V> {
+using type = tp_concat_t<C, tp_repeat_t<V, N - tp_size_v<C>>>;
+};
+
+template<typename C, size_t N, typename V>
+struct tp_resize {
+using tyep = typename __tp_resize_helper<void, C, N, V>::type;
+};
+
+template<typename C, size_t N, typename V>
+using tp_resize_t = typename tp_resize<C, N, V>::type;
+
+template<template<typename...>typename C, typename...Args>
+struct tp_product;
+
+template<typename _Enable, template<typename...>typename C, typename...Args>
+struct __tp_product_helper{
+using type = tp_list<>;
+};
+
+template<typename _Enable, template<typename...>typename C, typename T>
+struct __tp_product_helper<_Enable, C, T> {
+using type = tp_list<tp_rename_t<T, C>>;
+};
+
+template<
+template<typename...>typename C,
+typename T,
+template<typename...>typename C1,
+typename...Args1,
+typename...Args>
+struct __tp_product_helper<std::enable_if_t<sizeof...(Args1) != 0, void>, C, T, C1<Args1...>, Args...> {
+using type = tp_concat_t<typename __tp_product_helper<void, C, tp_push_back_t<T, Args1>, Args...>::type...>;
+};
+
+template<template<typename...>typename C, typename...Args>
+struct tp_product {
+using type = typename __tp_product_helper<void, C, tp_list<>, Args...>::type;
+};
+
+template<template<typename...>typename C, typename...Args>
+using tp_product_t = typename tp_product<C, Args...>::type;
+
+template<typename C, size_t I, typename...Args>
+struct tp_insert {
+static_assert(I <= tp_size_v<C>, "tp insert index out of range");
+using type = tp_concat_t<tp_push_back_t<tp_prefix_t<C, I>, Args...>, tp_suffix_t<C, tp_size_v<C> -I>>;
+};
+
+template<typename C, size_t I, typename...Args>
+using tp_insert_t = typename tp_insert<C, I, Args...>::type;
+
+template<typename C, size_t I, size_t N>
+struct tp_erase {
+static_assert(N <= tp_size_v<C> && I <= tp_size_v<C> -N, "tp erase index out of range");
+using type = tp_concat_t<tp_prefix_t<C, I>, tp_suffix_t<C, tp_size_v<C> -I - N>>;
+};
+
+template<typename C, size_t I, size_t N>
+using tp_erase_t = typename tp_erase<C, I, N>::type;
+
+template<typename C>
+struct tp_reverse;
+
+template<template<typename...>typename C>
+struct tp_reverse<C<>> {
+using type = C<>;
+};
+
+template<template<typename...>typename C, typename T, typename...Args>
+struct tp_reverse<C<T, Args...>> {
+using type = tp_push_back_t<typename tp_reverse<C<Args...>>::type, T>;
+};
+
+template<typename C>
+using tp_reverse_t = typename tp_reverse<C>::type;
+
+template<typename _Enable, size_t idx, typename C, template<typename...>typename P>
+struct __tp_find_if_helper;
+
+template<typename _Enable, size_t idx,
+template<typename...>typename C,
+typename T,
+typename...Args,
+template<typename...>typename P>
+struct __tp_find_if_helper<_Enable, idx, C<T, Args...>, P> {
+constexpr static size_t value = __tp_find_if_helper<void, idx + 1, C<Args...>, P>::value;
+};
+
+template<typename _Enable, size_t idx,
+template<typename...>typename C,
+template<typename...>typename P>
+struct __tp_find_if_helper<_Enable, idx, C<>, P> {
+constexpr static size_t value = -1;
+};
+
+template<size_t idx,
+template<typename...>typename C,
+typename T,
+typename...Args,
+template<typename...>typename P>
+struct __tp_find_if_helper<std::enable_if_t<P<T>::value, void>, idx, C<T, Args...>, P> {
+constexpr static size_t value = idx;
+};
+
+template<typename C, template<typename...>typename P>
+struct tp_find_if {
+constexpr static size_t value = __tp_find_if_helper<void, 0, C, P>::value;
+};
+
+template<typename C, template<typename...>typename P>
+inline constexpr size_t tp_find_if_v = tp_find_if<C, P>::value;
+
+template<typename C, typename P>
+inline constexpr size_t tp_find_if_f = tp_find_if<C, P::template fn>::value;
+
+template<typename C, template<typename...>typename P>
+struct tp_find_if_not {
+constexpr static size_t value = tp_find_if_f<C, tp_not_fn<P>>;
+};
+
+template<typename C, template<typename...>typename P>
+inline constexpr size_t tp_find_if_not_v = tp_find_if_not<C, P>::value;
+
+template<typename C, typename P>
+inline constexpr size_t tp_find_if_not_f = tp_find_if_not<C, P::template fn>::value;
+
+template<typename C, typename V>
+struct tp_find{
+constexpr static size_t value = tp_find_if_f<C, tp_bind_front<std::is_same, V>>;
+};
+
+template<typename C, typename V>
+inline constexpr size_t tp_find_v = tp_find<C, V>::value;
+
+template<typename C, typename E, template<typename...>typename F>
+struct tp_left_fold;
+
+template<
+template<typename...>typename C,
+typename E,
+template<typename...>typename F>
+struct tp_left_fold<C<>, E, F> {
+using type = E;
+};
+
+template<
+template<typename...>typename C,
+typename T,
+typename...Args,
+typename E,
+template<typename...>typename F>
+struct tp_left_fold<C<T, Args...>, E, F> {
+using type = typename tp_left_fold<C<Args...>, F<E, T>, F>::type;
+};
+
+template<typename C, typename E, template<typename...>typename F>
+using tp_left_fold_t = typename tp_left_fold<C, E, F>::type;
+
+template<typename C, typename E, typename F>
+using tp_left_fold_f = typename tp_left_fold<C, E, F::template fn>::type;
+
+template<typename C, typename E, template<typename...>typename F>
+struct tp_right_fold;
+
+template<
+template<typename...>typename C,
+typename E,
+template<typename...>typename F>
+struct tp_right_fold<C<>, E, F> {
+using type = E;
+};
+
+template<
+template<typename...>typename C,
+typename T,
+typename...Args,
+typename E,
+template<typename...>typename F>
+struct tp_right_fold<C<T, Args...>, E, F> {
+using next_type = typename tp_right_fold<C<Args...>, E, F>::type;
+using type = F<T, next_type>;
+};
+
+template<typename C, typename E, template<typename...>typename F>
+using tp_right_fold_t = typename tp_right_fold<C, E, F>::type;
+
+template<typename C, typename E, typename F>
+using tp_right_fold_f = typename tp_right_fold<C, E, F::template fn>::type;
+
+template<typename C, template<typename...>typename P>
+struct tp_unique_if {
+using type = tp_left_fold_f<C, tp_clear_t<C>, tp_bind<tp_conditional_t, tp_bind_front<P>, tp_arg<0>,
+tp_bind_front<tp_push_back_t>>>;
+};
+
+template<typename C, template<typename...>typename P>
+using tp_unique_if_t = typename tp_unique_if<C, P>::type;
+
+template<typename C, typename P>
+using tp_unique_if_f = typename tp_unique_if<C, P::template fn>::type;
+
+template<typename C>
+struct tp_unique{
+using type = tp_unique_if<C, tp_contains>;
+};
+
+template<typename C>
+using tp_unique_t = typename tp_unique<C>::type;
+
+template<typename _Enable, typename C, typename C1, typename C2, template<typename...>typename P>
+struct __tp_merge_helper;
+
+template<
+typename _Enable,
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename C1,
+template<typename...>typename C2,
+typename...Args2,
+template<typename...>typename P>
+struct __tp_merge_helper<_Enable, C<Args...>, C1<>, C2<Args2...>, P> {
+using type = tp_list<Args..., Args2...>;
+};
+
+template<
+typename _Enable,
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename C1,
+typename...Args1,
+template<typename...>typename C2,
+template<typename...>typename P>
+struct __tp_merge_helper<_Enable, C<Args...>, C1<Args1...>, C2<>, P> {
+using type = tp_list<Args..., Args1...>;
+};
+
+template<
+typename _Enable,
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename C1,
+template<typename...>typename C2,
+template<typename...>typename P>
+struct __tp_merge_helper<_Enable, C<Args...>, C1<>, C2<>, P> {
+using type = tp_list<Args...>;
+};
+
+template<
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename C1,
+typename T1, typename...Args1,
+template<typename...>typename C2,
+typename T2, typename...Args2,
+template<typename...>typename P>
+struct __tp_merge_helper<std::enable_if_t<P<T1, T2>::value, void>, C<Args...>, C1<T1, Args1...>, C2<T2, Args2...>, P> {
+using type = typename __tp_merge_helper<void, C<Args..., T1>, C1<Args1...>, C2<T2, Args2...>, P>::type;
+};
+
+template<
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename C1,
+typename T1, typename...Args1,
+template<typename...>typename C2,
+typename T2, typename...Args2,
+template<typename...>typename P>
+struct __tp_merge_helper<std::enable_if_t<!P<T1, T2>::value, void>, C<Args...>, C1<T1, Args1...>, C2<T2, Args2...>, P> {
+using type = typename __tp_merge_helper<void, C<Args..., T2>, C1<T1, Args1...>, C2<Args2...>, P>::type;
+};
+
+template<typename C1, typename C2, template<typename...>typename P>
+struct tp_merge {
+using type = typename __tp_merge_helper<void, tp_list<>, C1, C2, P>::type;
+};
+
+template<typename C1, typename C2, template<typename...>typename P>
+using tp_merge_t = typename tp_merge<C1, C2, P>::type;
+
+template<typename C1, typename C2, typename P>
+using tp_merge_f = typename tp_merge<C1, C2, P::template fn>::type;
+
+template<typename C, template<typename...>typename P>
+struct tp_sort;
+
+template<
+typename C,
+template<typename...>typename P>
+struct __tp_sort_helper;
+
+template<
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename P>
+struct __tp_sort_helper<C<Args...>, P> {
+using _Container = C<Args...>;
+constexpr static size_t size = tp_size_v<_Container>;
+constexpr static size_t mid = size / 2;
+using type1 = typename __tp_sort_helper<tp_prefix_t<_Container, mid>, P>::type;
+using type2 = typename __tp_sort_helper<tp_suffix_t<_Container, size - mid>, P>::type;
+using type = tp_merge_t<type1, type2, P>;
+};
+
+template<
+template<typename...>typename C,
+typename T,
+template<typename...>typename P>
+struct __tp_sort_helper<C<T>, P> {
+using type = C<T>;
+};
+
+template<
+template<typename...>typename C,
+template<typename...>typename P>
+struct __tp_sort_helper<C<>, P> {
+using type = C<>;
+};
+
+template<
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename P>
+struct tp_sort<C<Args...>, P> {
+using type = tp_rename_t<typename __tp_sort_helper<C<Args...>, P>::type, C>;
+};
+
+template<typename C, template<typename...>typename P>
+using tp_sort_t = typename tp_sort<C, P>::type;
+
+template<typename C, typename P>
+using tp_sort_f = typename tp_sort<C, P::template fn>::type;
+
+template<size_t I, typename T>
+struct __tp_iota_helper;
+
+template<size_t I, size_t...Idx>
+struct __tp_iota_helper<I, std::index_sequence<Idx...>> {
+using type = tp_list<tp_size_t<I + Idx>...>;
+};
+
+template<size_t I, size_t N>
+struct tp_iota {
+using type = typename __tp_iota_helper<I, std::make_index_sequence<N>>::type;
+};
+
+template<size_t I, size_t N>
+using tp_iota_t = typename tp_iota<I, N>::type;
+
+template<typename...Args, typename F>
+constexpr F __tp_for_each_helper(tp_list<Args...>, F&& f) {
+int dummy[] = { (f(Args()), 0)... };
+return std::forward<F>(f);
+}
+
+template<typename C, typename F>
+constexpr F tp_for_each(F&& f) {
+return __tp_for_each_helper(tp_rename_t<C, tp_list>(), std::forward<F>(f));
+}
+
+_WJR_END
+
+#endif // __WJR_TP_LIST_H
+#pragma once
+#ifndef __WJR_ALLOCATOR_H
+#define __WJR_ALLOCATOR_H
+
+#include <new>
+
+_WJR_BEGIN
+
+template<typename _Ty>
+struct __aligned_helper;
+
+template<>
+struct __aligned_helper<void> {
+constexpr static size_t value = std::max((size_t)(16), (size_t)(alignof(max_align_t)));
+};
+
+template<typename _Ty>
+struct __aligned_helper {
+constexpr static size_t value = std::max((size_t)alignof(_Ty), __aligned_helper<void>::value);
+};
+
+#if defined(_DEBUG)
+#define WJR_TEST_ALLOCATOR
+#endif
+
+#if defined(WJR_TEST_ALLOCATOR)
+struct __test_allocator {
+~__test_allocator();
+long long _Count = 0;
+};
+extern __test_allocator __test_allocator_instance;
+#endif
+
+template<typename _Ty, size_t _Al = __aligned_helper<_Ty>::value, size_t _Off = 0>
+class aligned_allocator {
+public:
+static_assert(!std::is_const_v<_Ty>, "The C++ Standard forbids containers of const elements "
+"because allocator<const T> is ill-formed.");
+static_assert(_Al >= 8, "The alignment must be greater than or equal to 8.");
+static_assert(_Off >= 0 && _Off < _Al,
+"The offset must be greater than or equal to 0 and less than the alignment.");
+static_assert((_Al & (_Al - 1)) == 0, "The alignment must be a power of 2.");
+
+using value_type = _Ty;
+
+#if !defined(WJR_CPP_20)
+using pointer = _Ty*;
+using const_pointer = const _Ty*;
+
+using reference = _Ty&;
+using const_reference = const _Ty&;
+#endif // !WJR_CPP_20
+
+using size_type = size_t;
+using difference_type = ptrdiff_t;
+
+using propagate_on_container_move_assignment = std::true_type;
+using is_always_equal = std::true_type;
+
+template <typename _Other>
+struct rebind {
+using other = aligned_allocator<_Other, _Al, _Off>;
+};
+
+#if !defined(WJR_CPP_20)
+WJR_NODISCARD _Ty* address(_Ty& _Val) const noexcept {
+return std::addressof(_Val);
+}
+
+WJR_NODISCARD const _Ty* address(const _Ty& _Val) const noexcept {
+return std::addressof(_Val);
+}
+#endif // !WJR_CPP_20
+
+constexpr aligned_allocator() noexcept {}
+
+constexpr aligned_allocator(const aligned_allocator&) noexcept = default;
+template <typename _Other>
+constexpr aligned_allocator(const aligned_allocator<_Other, _Al, _Off>&) noexcept {}
+WJR_CONSTEXPR20 ~aligned_allocator() = default;
+WJR_CONSTEXPR20 aligned_allocator& operator=(const aligned_allocator&) = default;
+
+WJR_CONSTEXPR20 void deallocate(_Ty* const _Ptr, const size_t _Count) {
+#if defined(WJR_TEST_ALLOCATOR)
+__test_allocator_instance._Count -= _Count * sizeof(_Ty) + _Off;
+#endif
+WJR_ASSUME(reinterpret_cast<uintptr_t>(_Ptr) % _Al == _Off);
+auto ptr = reinterpret_cast<char*>(_Ptr) - _Off;
+::operator delete(ptr, _Count * sizeof(_Ty) + _Off, static_cast<std::align_val_t>(_Al));
+}
+
+WJR_NODISCARD WJR_CONSTEXPR20 _Ty* allocate(const size_t _Count) {
+#if defined(WJR_TEST_ALLOCATOR)
+__test_allocator_instance._Count += _Count * sizeof(_Ty) + _Off;
+#endif
+auto ptr = static_cast<char*>(::operator new(_Count * sizeof(_Ty) + _Off,
+static_cast<std::align_val_t>(_Al))) + _Off;
+WJR_ASSUME(reinterpret_cast<uintptr_t>(ptr) % _Al == _Off);
+return reinterpret_cast<_Ty*>(ptr);
+}
+
+#if !defined(WJR_CPP_20)
+WJR_NODISCARD size_t max_size() const noexcept {
+return static_cast<size_t>(-1) / sizeof(_Ty);
+}
+#endif // !WJR_CPP_20
+};
+
+template <size_t _Al, size_t _Off>
+class aligned_allocator<void, _Al, _Off> {
+public:
+using value_type = void;
+#if !defined(WJR_CPP_20)
+using pointer = void*;
+using const_pointer = const void*;
+#endif // !WJR_CPP_20
+
+using size_type = size_t;
+using difference_type = ptrdiff_t;
+
+using propagate_on_container_move_assignment = std::true_type;
+using is_always_equal = std::true_type;
+
+#if !defined(WJR_CPP_20)
+template <class _Other>
+struct rebind {
+using other = aligned_allocator<_Other>;
+};
+#endif // !WJR_CPP_20
+};
+
+template <typename _Ty, typename _Other, size_t _Al, size_t _Off>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool operator==(
+const aligned_allocator<_Ty, _Al, _Off>&,
+const aligned_allocator<_Other, _Al, _Off>&) noexcept {
+return true;
+}
+
+template <typename _Ty, size_t _Al1, size_t _Off1, typename _Other, size_t _Al2, size_t _Off2>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool operator==(
+const aligned_allocator<_Ty, _Al1, _Off1>& lhs,
+const aligned_allocator<_Other, _Al2, _Off2>& rhs) noexcept {
+return false;
+}
+
+template <typename _Ty, size_t _Al1, size_t _Off1, typename _Other, size_t _Al2, size_t _Off2>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool operator!=(
+const aligned_allocator<_Ty, _Al1, _Off1>& lhs,
+const aligned_allocator<_Other, _Al2, _Off2>& rhs) noexcept {
+return !(lhs == rhs);
+}
+
+template<typename T, size_t _Al, size_t _Off>
+struct is_default_allocator<aligned_allocator<T, _Al, _Off>> : std::true_type {};
+
+_WJR_END
+
+#endif // __WJR_ALLOCATOR_H
+#include <stdio.h>
+
+_WJR_BEGIN
+#if defined(WJR_TEST_ALLOCATOR)
+__test_allocator::~__test_allocator() {
+if (_Count != 0) {
+printf("memory leak: %lld bytes", _Count);
+}
+}
+__test_allocator __test_allocator_instance;
+#endif
+_WJR_END
 #pragma once
 #ifndef __WJR_NETWORK_THREAD_POOL_H
 #define __WJR_NETWORK_THREAD_POOL_H
@@ -18764,176 +19486,6 @@ return !(lhs.derived() < rhs.derived());
 _WJR_END
 
 #endif // __WJR_CRTP_H
-#pragma once
-#ifndef __WJR_ALLOCATOR_H
-#define __WJR_ALLOCATOR_H
-
-#include <new>
-
-_WJR_BEGIN
-
-template<typename _Ty>
-struct __aligned_helper;
-
-template<>
-struct __aligned_helper<void> {
-constexpr static size_t value = std::max((size_t)(16), (size_t)(alignof(max_align_t)));
-};
-
-template<typename _Ty>
-struct __aligned_helper {
-constexpr static size_t value = std::max((size_t)alignof(_Ty), __aligned_helper<void>::value);
-};
-
-#if defined(_DEBUG)
-#define WJR_TEST_ALLOCATOR
-#endif
-
-#if defined(WJR_TEST_ALLOCATOR)
-struct __test_allocator {
-~__test_allocator();
-long long _Count = 0;
-};
-extern __test_allocator __test_allocator_instance;
-#endif
-
-template<typename _Ty, size_t _Al = __aligned_helper<_Ty>::value, size_t _Off = 0>
-class aligned_allocator {
-public:
-static_assert(!std::is_const_v<_Ty>, "The C++ Standard forbids containers of const elements "
-"because allocator<const T> is ill-formed.");
-static_assert(_Al >= 8, "The alignment must be greater than or equal to 8.");
-static_assert(_Off >= 0 && _Off < _Al,
-"The offset must be greater than or equal to 0 and less than the alignment.");
-static_assert((_Al & (_Al - 1)) == 0, "The alignment must be a power of 2.");
-
-using value_type = _Ty;
-
-#if !defined(WJR_CPP_20)
-using pointer = _Ty*;
-using const_pointer = const _Ty*;
-
-using reference = _Ty&;
-using const_reference = const _Ty&;
-#endif // !WJR_CPP_20
-
-using size_type = size_t;
-using difference_type = ptrdiff_t;
-
-using propagate_on_container_move_assignment = std::true_type;
-using is_always_equal = std::true_type;
-
-template <typename _Other>
-struct rebind {
-using other = aligned_allocator<_Other, _Al, _Off>;
-};
-
-#if !defined(WJR_CPP_20)
-WJR_NODISCARD _Ty* address(_Ty& _Val) const noexcept {
-return std::addressof(_Val);
-}
-
-WJR_NODISCARD const _Ty* address(const _Ty& _Val) const noexcept {
-return std::addressof(_Val);
-}
-#endif // !WJR_CPP_20
-
-constexpr aligned_allocator() noexcept {}
-
-constexpr aligned_allocator(const aligned_allocator&) noexcept = default;
-template <typename _Other>
-constexpr aligned_allocator(const aligned_allocator<_Other, _Al, _Off>&) noexcept {}
-WJR_CONSTEXPR20 ~aligned_allocator() = default;
-WJR_CONSTEXPR20 aligned_allocator& operator=(const aligned_allocator&) = default;
-
-WJR_CONSTEXPR20 void deallocate(_Ty* const _Ptr, const size_t _Count) {
-#if defined(WJR_TEST_ALLOCATOR)
-__test_allocator_instance._Count -= _Count * sizeof(_Ty) + _Off;
-#endif
-WJR_ASSUME(reinterpret_cast<uintptr_t>(_Ptr) % _Al == _Off);
-auto ptr = reinterpret_cast<char*>(_Ptr) - _Off;
-::operator delete(ptr, _Count * sizeof(_Ty) + _Off, static_cast<std::align_val_t>(_Al));
-}
-
-WJR_NODISCARD WJR_CONSTEXPR20 _Ty* allocate(const size_t _Count) {
-#if defined(WJR_TEST_ALLOCATOR)
-__test_allocator_instance._Count += _Count * sizeof(_Ty) + _Off;
-#endif
-auto ptr = static_cast<char*>(::operator new(_Count * sizeof(_Ty) + _Off,
-static_cast<std::align_val_t>(_Al))) + _Off;
-WJR_ASSUME(reinterpret_cast<uintptr_t>(ptr) % _Al == _Off);
-return reinterpret_cast<_Ty*>(ptr);
-}
-
-#if !defined(WJR_CPP_20)
-WJR_NODISCARD size_t max_size() const noexcept {
-return static_cast<size_t>(-1) / sizeof(_Ty);
-}
-#endif // !WJR_CPP_20
-};
-
-template <size_t _Al, size_t _Off>
-class aligned_allocator<void, _Al, _Off> {
-public:
-using value_type = void;
-#if !defined(WJR_CPP_20)
-using pointer = void*;
-using const_pointer = const void*;
-#endif // !WJR_CPP_20
-
-using size_type = size_t;
-using difference_type = ptrdiff_t;
-
-using propagate_on_container_move_assignment = std::true_type;
-using is_always_equal = std::true_type;
-
-#if !defined(WJR_CPP_20)
-template <class _Other>
-struct rebind {
-using other = aligned_allocator<_Other>;
-};
-#endif // !WJR_CPP_20
-};
-
-template <typename _Ty, typename _Other, size_t _Al, size_t _Off>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool operator==(
-const aligned_allocator<_Ty, _Al, _Off>&,
-const aligned_allocator<_Other, _Al, _Off>&) noexcept {
-return true;
-}
-
-template <typename _Ty, size_t _Al1, size_t _Off1, typename _Other, size_t _Al2, size_t _Off2>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool operator==(
-const aligned_allocator<_Ty, _Al1, _Off1>& lhs,
-const aligned_allocator<_Other, _Al2, _Off2>& rhs) noexcept {
-return false;
-}
-
-template <typename _Ty, size_t _Al1, size_t _Off1, typename _Other, size_t _Al2, size_t _Off2>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool operator!=(
-const aligned_allocator<_Ty, _Al1, _Off1>& lhs,
-const aligned_allocator<_Other, _Al2, _Off2>& rhs) noexcept {
-return !(lhs == rhs);
-}
-
-template<typename T, size_t _Al, size_t _Off>
-struct is_default_allocator<aligned_allocator<T, _Al, _Off>> : std::true_type {};
-
-_WJR_END
-
-#endif // __WJR_ALLOCATOR_H
-#include <stdio.h>
-
-_WJR_BEGIN
-#if defined(WJR_TEST_ALLOCATOR)
-__test_allocator::~__test_allocator() {
-if (_Count != 0) {
-printf("memory leak: %lld bytes", _Count);
-}
-}
-__test_allocator __test_allocator_instance;
-#endif
-_WJR_END
 
 _WJR_BEGIN
 
@@ -19195,224 +19747,3 @@ m_core_threads.emplace_back(&thread_pool::core_work, this);
 
 
 _WJR_END
-#pragma once
-#ifndef __WJR_RANDOM_H
-#define __WJR_RANDOM_H
-
-#include <random>
-
-
-_WJR_BEGIN
-
-template<typename Engine>
-struct basic_random_static_wrapper {
-static Engine m_engine;
-Engine& engine() const {
-return m_engine;
-}
-};
-
-template<typename Engine>
-Engine basic_random_static_wrapper<Engine>::m_engine(std::random_device{}());
-
-template<typename Engine>
-struct basic_random_thread_local_wrapper {
-Engine& engine() const {
-thread_local Engine m_engine(std::random_device{}());
-return m_engine;
-}
-};
-
-template<
-typename Engine,
-template<typename> typename EngineWrapper,
-template<typename> typename IntegerDist = std::uniform_int_distribution,
-template<typename> typename RealDist = std::uniform_real_distribution,
-typename BoolDist = std::bernoulli_distribution
->
-class __basic_random : public EngineWrapper<Engine> {
-
-template<typename T>
-using _Is_container = std::conjunction<
-has_global_function_std_begin<T>,
-has_global_function_std_end<T>
->;
-
-public:
-using _Mybase = EngineWrapper<Engine>;
-
-using engine_type = Engine;
-
-template<typename T>
-using integer_dist_t = IntegerDist<T>;
-
-template<typename T>
-using real_dist_t = RealDist<T>;
-
-using bool_dist_t = BoolDist;
-
-using common = std::common_type<>;
-
-using result_type = typename engine_type::result_type;
-
-using _Mybase::engine;
-
-private:
-
-template<typename _Seq>
-struct _Is_seed_seq : std::bool_constant<
-!std::is_convertible_v<_Seq, result_type>
-&& !std::is_same_v<remove_cvref_t<_Seq>, engine_type>
-&& !std::is_same_v<remove_cvref_t<_Seq>, __basic_random>
-> {};
-
-template<typename _Seq>
-constexpr static bool _Is_seed_seq_v = _Is_seed_seq<_Seq>::value;
-
-public:
-
-constexpr static result_type min() {
-return engine_type::min();
-}
-
-constexpr static result_type max() {
-return engine_type::max();
-}
-
-void discard(size_t n) const {
-engine().discard(n);
-}
-
-void reseed() const {
-engine().seed(std::random_device{}());
-}
-
-void seed(result_type seed = engine_type::default_seed) const {
-engine().seed(seed);
-}
-
-template<typename _Seq, std::enable_if_t<_Is_seed_seq_v<_Seq>, int> = 0>
-void seed(_Seq& seq) const {
-engine().seed(seq);
-}
-
-result_type get() const {
-return engine()();
-}
-
-template<typename T, std::enable_if_t<std::conjunction_v<
-std::is_arithmetic<T>, std::negation<std::is_same<T, bool>>>, int> = 0>
-T get(
-T __min = std::numeric_limits<T>::min(),
-T __max = std::numeric_limits<T>::max()) const {
-if constexpr (std::is_integral_v<T>) {
-if constexpr (sizeof(T) < sizeof(short)) {
-using short_t = std::conditional_t<std::is_signed<T>::value,
-short, unsigned short>;
-return static_cast<T>(integer_dist_t<short_t>{__min, __max}(engine()));
-}
-else {
-using type = int_or_uint_t<sizeof(T) * 8, std::is_signed_v<T>>;
-return integer_dist_t<type>{__min, __max}(engine());
-}
-}
-else {
-return real_dist_t<T>{__min, __max}(engine());
-}
-}
-
-template<typename X, typename T, typename U, typename R = std::common_type_t<T, U>,
-std::enable_if_t<std::conjunction_v<
-std::is_same<X, common>,
-std::is_arithmetic<T>,
-std::is_arithmetic<U>>, int> = 0>
-R get(
-T __min = std::numeric_limits<T>::min(),
-U __max = std::numeric_limits<U>::max()) const {
-return get<R>(static_cast<R>(__min), static_cast<R>(__max));
-}
-
-template<typename T, std::enable_if_t<std::is_same_v<T, bool>, int> = 0>
-T get(double p = 0.5) const {
-return bool_dist_t{ p }(engine());
-}
-
-template<typename Dist, typename...Args>
-typename Dist::result_type get(Args&&...args) const {
-return Dist{ std::forward<Args>(args)... }(engine());
-}
-
-template<typename Dist>
-typename Dist::result_type get(Dist& dist) const {
-return dist(engine());
-}
-
-template<typename _Container, std::enable_if_t<std::conjunction_v<
-has_global_function_std_begin<_Container>,
-has_global_function_std_end<_Container>>, int> = 0>
-decltype(auto) get(_Container& container) const {
-auto first = std::begin(container);
-auto last = std::end(container);
-auto n = wjr::size(container);
-if (n == 0)return last;
-using diff_t = wjr::iter_diff_t<decltype(first)>;
-return std::next(first, get<diff_t>(0, n - 1));
-}
-
-template<typename iter, std::enable_if_t<wjr::is_iterator_v<iter>, int> = 0>
-iter get(iter first, iter last) const {
-return get(wjr::make_iter_wrapper(first, last));
-}
-
-template<typename T>
-T get(std::initializer_list<T> il) const {
-return *get(std::begin(il), std::end(il));
-}
-
-template<typename _Ty, size_t _Size>
-_Ty get(_Ty(&arr)[_Size]) const {
-return *get(std::begin(arr), std::end(arr));
-}
-
-template<typename _Container>
-void shuffle(_Container& container) const {
-std::shuffle(std::begin(container), std::end(container), engine());
-}
-
-template<typename iter>
-void shuffle(iter first, iter last) const {
-shuffle(wjr::make_iter_wrapper(first, last));
-}
-
-};
-
-template<typename Engine,
-template<typename>typename IntegerDist = std::uniform_int_distribution,
-template<typename>typename RealDist = std::uniform_real_distribution,
-typename BoolDist = std::bernoulli_distribution>
-using basic_random = __basic_random<Engine, basic_random_static_wrapper, IntegerDist, RealDist, BoolDist>;
-
-template<typename Engine,
-template<typename>typename IntegerDist = std::uniform_int_distribution,
-template<typename>typename RealDist = std::uniform_real_distribution,
-typename BoolDist = std::bernoulli_distribution>
-using basic_random_thread_local = __basic_random<Engine, basic_random_thread_local_wrapper, IntegerDist, RealDist, BoolDist>;
-
-template<
-template<typename>typename IntegerDist = std::uniform_int_distribution,
-template<typename>typename RealDist = std::uniform_real_distribution,
-typename BoolDist = std::bernoulli_distribution>
-using default_random = basic_random<std::mt19937, IntegerDist, RealDist, BoolDist>;
-
-template<
-template<typename>typename IntegerDist = std::uniform_int_distribution,
-template<typename>typename RealDist = std::uniform_real_distribution,
-typename BoolDist = std::bernoulli_distribution>
-using default_random_thread_local = basic_random_thread_local<std::mt19937, IntegerDist, RealDist, BoolDist>;
-
-inline constexpr default_random<> random;
-inline constexpr default_random_thread_local<> random_thread_local;
-
-_WJR_END
-
-#endif // __WJR_RANDOM_H

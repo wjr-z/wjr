@@ -454,22 +454,6 @@ inline constexpr void __width(T a, unsigned int& ret) {
 // force constexpr, so when base is power of 2, the performance may be worse
 template<unsigned int base, typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 inline constexpr unsigned int base_width(T a) {
-#if WJR_ENABLE_CONSTEXPR
-	if (!is_constant_evaluated()) {
-		if constexpr (has_single_bit(base)) {
-			constexpr auto p = []() {
-				unsigned int ret = 0;
-				unsigned int idx = base;
-				while (idx != 1) {
-					++ret;
-					idx /= 2;
-				}
-				return ret;
-			}();
-			return (bit_width(a) + p - 1) / p;
-		}
-	}
-#endif // WJR_ENABLE_CONSTEXPR
 	unsigned int ret = 0;
 	__width<base, T, base_digits_v<T, base>>(a, ret);
 	return ret;

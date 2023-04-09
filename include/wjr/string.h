@@ -3085,6 +3085,7 @@ public:
 	using traits_type = ascii_traits<Traits>;
 	using size_type = typename _Mybase1::size_type;
 	using func_type = string_func<typename ascii::encode>;
+	using flags = typename func_type::flags;
 
 	basic_string_view(const _Mybase1& base) : _Mybase1(base) {}
 
@@ -3105,38 +3106,38 @@ public:
 	// support constexpr if str is constexpr
 	template<typename T>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_integral(
-		error_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR int toi(
-		error_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR long tol(
-		error_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR long long toll(
-		error_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned int toui(
-		error_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long toul(
-		error_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long long toull(
-		error_code* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
 	template<typename T>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_floating(
-		error_code* err = nullptr, size_type* pos = nullptr) const;
+		errc* err = nullptr, size_type* pos = nullptr) const;
 
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR float tof(
-		error_code* err = nullptr, size_type* pos = nullptr) const;
+		errc* err = nullptr, size_type* pos = nullptr) const;
 
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR double tod(
-		error_code* err = nullptr, size_type* pos = nullptr) const;
+		errc* err = nullptr, size_type* pos = nullptr) const;
 
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR long double told(
-		error_code* err = nullptr, size_type* pos = nullptr) const;
+		errc* err = nullptr, size_type* pos = nullptr) const;
 
 };
 
@@ -3214,12 +3215,22 @@ basic_string_view<char, ascii_traits<Traits>>::trim() const {
 template<typename Traits>
 template<typename T>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR T basic_string_view<char, ascii_traits<Traits>>::to_integral(
-	error_code* err, size_type* pos, int base) const {
-	error_code cc = {};
-	const char* end_ptr = nullptr;
-	T ret = func_type::to_integral<T>(begin(), end(), cc, end_ptr, base);
+	errc* err, size_type* pos, int base) const {
+	using namespace enum_ops;
+	constexpr auto _Flags =
+		flags::ALLOW_PREFIX
+		| flags::ALLOW_SIGN
+		| flags::ALLOW_LEADING_SPACE
+		| flags::ALLOW_LEADING_ZEROS
+		;
 
-	if (cc == error_code::noconv) {
+	errc cc = {};
+	const char* end_ptr = nullptr;
+	T ret = func_type::to_integral<T>(
+		WJR_MAKE_CVAR(_Flags),
+		begin(), end(), cc, end_ptr, base);
+
+	if (cc == errc::noconv) {
 		end_ptr = begin();
 	}
 
@@ -3236,37 +3247,37 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR T basic_string_view<char, ascii_traits<Traits
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR int basic_string_view<char, ascii_traits<Traits>>::toi(
-	error_code* err, size_type* pos, int base) const {
+	errc* err, size_type* pos, int base) const {
 	return to_integral<int>(err, pos, base);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR long basic_string_view<char, ascii_traits<Traits>>::tol(
-	error_code* err, size_type* pos, int base) const {
+	errc* err, size_type* pos, int base) const {
 	return to_integral<long>(err, pos, base);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR long long basic_string_view<char, ascii_traits<Traits>>::toll(
-	error_code* err, size_type* pos, int base) const {
+	errc* err, size_type* pos, int base) const {
 	return to_integral<long long>(err, pos, base);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned int basic_string_view<char, ascii_traits<Traits>>::toui(
-	error_code* err, size_type* pos, int base) const {
+	errc* err, size_type* pos, int base) const {
 	return to_integral<unsigned int>(err, pos, base);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long basic_string_view<char, ascii_traits<Traits>>::toul(
-	error_code* err, size_type* pos, int base) const {
+	errc* err, size_type* pos, int base) const {
 	return to_integral<unsigned long>(err, pos, base);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long long basic_string_view<char, ascii_traits<Traits>>::toull(
-	error_code* err, size_type* pos, int base) const {
+	errc* err, size_type* pos, int base) const {
 	return to_integral<unsigned long long>(err, pos, base);
 }
 
