@@ -3,8 +3,9 @@
 #define __WJR_TP_LIST_H
 
 #include <type_traits>
+#include <variant>
 
-#include <wjr/macro.h>
+#include <wjr/type_traits.h>
 
 // comply with STD naming standards as much as possible
 // try to place the containers that need to be processed in the first parameter as much as possible
@@ -48,6 +49,21 @@ struct tp_is_list : std::false_type {};
 template<typename...Args>
 struct tp_is_list<tp_list<Args...>> : std::true_type {};
 
+// check if is tp_list
+template<typename T>
+inline constexpr bool tp_is_list_v = tp_is_list<T>::value;
+
+template<typename T>
+struct tp_is_container : std::false_type {};
+
+template<
+	template<typename...>typename C,
+	typename...Args>
+struct tp_is_container<C<Args...>> : std::true_type {};
+
+template<typename T>
+inline constexpr bool tp_is_container_v = tp_is_container<T>::value;
+
 template<typename T>
 struct tp_size;
 
@@ -80,11 +96,6 @@ struct tp_greater_c : std::bool_constant < (T::value > U::value)> {};
 
 template<typename T, typename U>
 struct tp_greater_equalv : std::bool_constant < (T::value >= U::value)>{};
-
-
-// check if is tp_list
-template<typename T>
-inline constexpr bool tp_is_list_v = tp_is_list<T>::value;
 
 template<typename T>
 struct tp_is_fn : std::false_type {};
@@ -606,7 +617,9 @@ template<typename T>
 using tp_wrap_t = typename tp_wrap<T>::type;
 
 template<typename T>
-struct tp_unwrap;
+struct tp_unwrap {
+	static_assert(tp_size_v<T> == 1, "only container that size = 1 can use unwrap");
+};
 
 template<template<typename...>typename C, typename T>
 struct tp_unwrap<C<T>> {
@@ -704,7 +717,7 @@ struct tp_remove_if;
 
 template<template<typename...>typename C, typename...Args, template<typename...>typename P>
 struct tp_remove_if<C<Args...>, P> {
-	using type = tp_concat_t<C<>, tp_conditional<P<Args>, C<>, C<Args>>...>;
+	using type = tp_concat_t<C<>, tp_conditional_t<P<Args>, C<>, C<Args>>...>;
 };
 
 // f(L<Args...>, P) -> L<if P(Args)::value then L<> else L<Args>...>
@@ -972,7 +985,7 @@ using tp_unique_if_f = typename tp_unique_if<C, P::template fn>::type;
 
 template<typename C>
 struct tp_unique{
-	using type = tp_unique_if<C, tp_contains>;
+	using type = tp_unique_if_t<C, tp_contains>;
 };
 
 template<typename C>
@@ -1126,6 +1139,81 @@ constexpr F __tp_for_each_helper(tp_list<Args...>, F&& f) {
 template<typename C, typename F>
 constexpr F tp_for_each(F&& f) {
 	return __tp_for_each_helper(tp_rename_t<C, tp_list>(), std::forward<F>(f));
+}
+
+template<typename...Args>
+using tp_unique_variant = tp_unique_t<std::variant<Args...>>;
+
+template<typename Func, typename Var>
+WJR_NODISCARD constexpr decltype(auto) tp_visit(Func&& fn, Var&& v) {
+	using var_type = remove_cvref_t<Var>;
+	if constexpr (tp_is_container_v<var_type>) {
+		using remove_if_unreachable_pred = tp_bind<std::is_same, std::monostate, tp_bind_front<std::decay_t>>;
+
+		using trivial_func_type = tp_rename_t<var_type, tp_list>;
+		using trivial_result_type = tp_transform_f<trivial_func_type,
+			tp_bind<std::invoke_result_t, Func&&, tp_arg<0>>>;
+
+		using reachable_result_type = tp_remove_if_f<trivial_result_type, remove_if_unreachable_pred>;
+		using unique_result_type = tp_unique_t<reachable_result_type>;
+
+		using has_unreachable_result_type = std::bool_constant<tp_size_v<trivial_result_type>
+			!= tp_size_v<reachable_result_type>>;
+		
+		// all function is reachable
+		if constexpr (!has_unreachable_result_type::value) {
+			// only have one return type
+			if constexpr (tp_size_v<unique_result_type> == 1) {
+				return std::visit(std::forward<Func>(fn), std::forward<Var>(v));
+			}
+			// have many return type
+			else {
+				using final_result_type = tp_rename_t<unique_result_type, std::variant>;
+				return std::visit([_Fn = std::forward<Func>(fn)](auto&& x) {
+					return static_cast<final_result_type>(_Fn(std::forward<decltype(x)>(x)));
+					}, std::forward<Var>(v));
+			}
+		}
+		// some functions is unreachable
+		// optimize for them
+		else {
+			// all functions is unreachable
+			if constexpr(tp_size_v<unique_result_type> == 0){
+				(void)(0);
+			}
+			else {
+				using front_type = tp_front_t<unique_result_type>;
+				if constexpr (tp_size_v<unique_result_type> == 1 
+					&& std::is_same_v<front_type, void>) {
+					// TODO, optimize for this
+					return std::visit([_Fn = std::forward<Func>(fn)](auto&& x) {
+						if constexpr (remove_if_unreachable_pred::template fn<decltype(x)>::value) {
+							WJR_UNREACHABLE;
+						}
+						else {
+							_Fn(std::forward<decltype(x)>(x));
+						}
+						}, std::forward<Var>(v));
+				}
+				else {
+					using final_result_type = tp_rename_t<tp_push_front_t<unique_result_type, std::monostate>, std::variant>;
+					return std::visit([_Fn = std::forward<Func>(fn)](auto&& x) {
+						if constexpr (remove_if_unreachable_pred::template fn<decltype(x)>::value) {
+							WJR_UNREACHABLE;
+							return static_cast<final_result_type>(std::monostate());
+						}
+						else {
+							return static_cast<final_result_type>(_Fn(std::forward<decltype(x)>(x)));
+						}
+						}, std::forward<Var>(v));
+				}
+			}
+		}
+	}
+	else {
+		static_assert(has_global_in_operator_call_operator_v<Func&&, Var&&>);
+		return std::forward<Func>(fn)(std::forward<Var>(v));
+	}
 }
 
 _WJR_END

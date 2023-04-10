@@ -85,23 +85,22 @@ public:
 		ALLOW_LEADING_SPACE        = 0x08,
 		ALLOW_TRAILING_SPACE       = 0x10,
 		ALLOW_LEADING_ZEROS        = 0x20,
+		ALLOW_ONLY_LOWERCASE	   = 0x40,
+		ALLOW_ONLY_UPPERCASE	   = 0x80
 	};
 
 	template<typename T, typename _Iter, typename F>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR static T to_integral(
 		F f,
 		_Iter _First, _Iter _Last,
-		errc& _Err, _Iter& _Pos, int base);
+		errc& _Err, _Iter& _Pos, int base) noexcept;
+
+	template<typename T, typename _Iter>
+	WJR_INLINE_CONSTEXPR20 static void from_integral(
+		T _Val, _Iter _First, _Iter _Last,
+		errc& _Err, _Iter& _Pos, int base) noexcept;
 
 };
-
-#define __CONV_EMPTY_RET				        \
-		_Err = errc::noconv;					\
-		return static_cast<T>(0);
-#define __CONV_NEXT								\
-		if(is_unlikely(++_First == _Last)){	    \
-			__CONV_EMPTY_RET					\
-		}
 
 template<typename T, typename Func>
 class integral_conversion_details {
@@ -114,134 +113,25 @@ public:
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR static T work(
 		F f,
 		_Iter _First, _Iter _Last,
-		errc& _Err, _Iter& _Pos, int base) {
-		const auto _Flags = get_cvar(f);
+		errc& _Err, _Iter& _Pos, int base) noexcept;
 
-		_Err = errc::ok;
-
-		// skip white space
-		if (_Flags & flags::ALLOW_LEADING_SPACE) {
-			_First = func_type::skipw(_First, _Last);
-		}
-
-		if (is_unlikely(_First == _Last)) {
-			__CONV_EMPTY_RET;
-		}
-
-		bool _Is_minus = false;
-
-		// eat sign
-		if (_Flags & flags::ALLOW_SIGN) {
-			auto ch = *_First;
-			switch (ch) {
-			case '+': {
-				__CONV_NEXT;
-				break;
-			}
-			case '-': {
-				_Is_minus = true;
-				__CONV_NEXT;
-				break;
-			}
-			}
-		}
-
-		if (_Flags & flags::ALLOW_TRAILING_SPACE) {
-			_First = func_type::skipw(_First, _Last);
-		}
-
-		constexpr auto _B = func_type::toalnum('B');
-		constexpr auto _X = func_type::toalnum('X');
-
-		WJR_MAYBE_UNUSED auto _Zero = _Last;
-
-		if (_Flags & flags::ALLOW_PREFIX) {
-			switch (base) {
-			case 0: {
-				if (*_First == '0') {
-					// eat '0'
-					if (is_unlikely(++_First == _Last)) {
-						_Pos = _First;
-						return static_cast<T>(0);
-					}
-					_Zero = _First;
-					auto ch = func_type::toalnum(*_First);
-					switch (ch) {
-					case _B: {
-						// eat 'b'/'B'
-						if (is_unlikely(++_First == _Last)) {
-							_Pos = _First;
-							return static_cast<T>(0);
-						}
-						return __work(f, _First, _Last, _Err, _Pos, 2, _Zero, _Is_minus);
-					}
-					case _X: {
-						// eat 'x'/'X'
-						if (is_unlikely(++_First == _Last)) {
-							_Pos = _First;
-							return static_cast<T>(0);
-						}
-						return __work(f, _First, _Last, _Err, _Pos, 16, _Zero, _Is_minus);
-					}
-					default: {
-						return __work(f, _First, _Last, _Err, _Pos, 8, _Zero, _Is_minus);
-					}
-					}
-				}
-				return __work(f, _First, _Last, _Err, _Pos, 10, _Last, _Is_minus);
-			}
-			case 2: {
-				if (*_First == '0') {
-					if (is_unlikely(++_First == _Last)) {
-						_Pos = _First;
-						return static_cast<T>(0);
-					}
-					_Zero = _First;
-					if (func_type::toalnum(*_First) == _B) {
-						if (is_unlikely(++_First == _Last)) {
-							_Pos = _Zero;
-							return static_cast<T>(0);
-						}
-					}
-				}
-				break;
-			}
-			case 8: {
-				if (*_First == '0') {
-					if (is_unlikely(++_First == _Last)) {
-						_Pos = _First;
-						return static_cast<T>(0);
-					}
-					_Zero = _First;
-				}
-				break;
-			}
-			case 16: {
-				if (*_First == '0') {
-					if (is_unlikely(++_First == _Last)) {
-						_Pos = _First;
-						return static_cast<T>(0);
-					}
-					_Zero = _First;
-					if (func_type::toalnum(*_First) == _X) {
-						if (is_unlikely(++_First == _Last)) {
-							_Pos = _Zero;
-							return static_cast<T>(0);
-						}
-					}
-				}
-				break;
-			}
-			default: {
-				break;
-			}
-			}
-		}
-
-		return __work(f, _First, _Last, _Err, _Pos, base, _Zero, _Is_minus);
-	}
+	// copy of std::to_chars
+	template <typename _Iter>
+	WJR_INLINE_CONSTEXPR20 static void work(
+		T _Val, _Iter _First, _Iter _Last,
+		errc& _Err, _Iter& _Pos, int base) noexcept;
 
 private:
+
+	inline constexpr static char charconv_lower[] = 
+	{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
+	'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 
+	'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
+
+	inline constexpr static char charconv_upper[] =
+	{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E',
+	'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
+	'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
 
 	using uT = std::make_unsigned_t<T>;
 
@@ -254,88 +144,370 @@ private:
 	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static T __work(
 		F f,
 		_Iter _First, _Iter _Last,
-		errc& _Err, WJR_MAYBE_UNUSED _Iter& _Pos, 
-		int base, _Iter _Zero, bool _Is_minus) {
+		errc& _Err, WJR_MAYBE_UNUSED _Iter& _Pos,
+		int base, _Iter _Zero, bool _Is_minus) noexcept;
 
-		const auto _Flags = get_cvar(f);
+};
 
-		auto _Next = _First;
-
-		if (_Flags & flags::ALLOW_LEADING_ZEROS) {
-			_Next = func_type::skipz(_First, _Last);
+#define __CONV_EMPTY_RET				        \
+		_Err = errc::noconv;					\
+		return static_cast<T>(0);
+#define __CONV_NEXT								\
+		if(is_unlikely(++_First == _Last)){	    \
+			__CONV_EMPTY_RET					\
 		}
 
-		uT _Max1 = 0;
-		uT _Max2 = 0;
+template<typename T, typename Func>
+template<typename _Iter, typename F>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::work(
+	F f,
+	_Iter _First, _Iter _Last,
+	errc& _Err, _Iter& _Pos, int base) noexcept {
+	const auto _Flags = get_cvar(f);
 
-		if constexpr (std::is_unsigned_v<T>) {
+	// skip white space
+	if (_Flags & flags::ALLOW_LEADING_SPACE) {
+		_First = func_type::skipw(_First, _Last);
+	}
+
+	if (is_unlikely(_First == _Last)) {
+		__CONV_EMPTY_RET;
+	}
+
+	bool _Is_minus = false;
+
+	// eat sign
+	if (_Flags & flags::ALLOW_SIGN) {
+		auto ch = *_First;
+		switch (ch) {
+		case '+': {
+			__CONV_NEXT;
+			break;
+		}
+		case '-': {
+			_Is_minus = true;
+			__CONV_NEXT;
+			break;
+		}
+		}
+	}
+
+	if (_Flags & flags::ALLOW_TRAILING_SPACE) {
+		_First = func_type::skipw(_First, _Last);
+	}
+
+	constexpr auto _B = func_type::toalnum('B');
+	constexpr auto _X = func_type::toalnum('X');
+
+	WJR_MAYBE_UNUSED auto _Zero = _Last;
+
+	if (_Flags & flags::ALLOW_PREFIX) {
+		switch (base) {
+		case 0: {
+			if (*_First == '0') {
+				// eat '0'
+				if (is_unlikely(++_First == _Last)) {
+					_Pos = _First;
+					return static_cast<T>(0);
+				}
+				_Zero = _First;
+				auto ch = func_type::toalnum(*_First);
+				switch (ch) {
+				case _B: {
+					// eat 'b'/'B'
+					if (is_unlikely(++_First == _Last)) {
+						_Pos = _First;
+						return static_cast<T>(0);
+					}
+					return __work(f, _First, _Last, _Err, _Pos, 2, _Zero, _Is_minus);
+				}
+				case _X: {
+					// eat 'x'/'X'
+					if (is_unlikely(++_First == _Last)) {
+						_Pos = _First;
+						return static_cast<T>(0);
+					}
+					return __work(f, _First, _Last, _Err, _Pos, 16, _Zero, _Is_minus);
+				}
+				default: {
+					return __work(f, _First, _Last, _Err, _Pos, 8, _Zero, _Is_minus);
+				}
+				}
+			}
+			return __work(f, _First, _Last, _Err, _Pos, 10, _Last, _Is_minus);
+		}
+		case 2: {
+			if (*_First == '0') {
+				if (is_unlikely(++_First == _Last)) {
+					_Pos = _First;
+					return static_cast<T>(0);
+				}
+				_Zero = _First;
+				if (func_type::toalnum(*_First) == _B) {
+					if (is_unlikely(++_First == _Last)) {
+						_Pos = _Zero;
+						return static_cast<T>(0);
+					}
+				}
+			}
+			break;
+		}
+		case 8: {
+			if (*_First == '0') {
+				if (is_unlikely(++_First == _Last)) {
+					_Pos = _First;
+					return static_cast<T>(0);
+				}
+				_Zero = _First;
+			}
+			break;
+		}
+		case 16: {
+			if (*_First == '0') {
+				if (is_unlikely(++_First == _Last)) {
+					_Pos = _First;
+					return static_cast<T>(0);
+				}
+				_Zero = _First;
+				if (func_type::toalnum(*_First) == _X) {
+					if (is_unlikely(++_First == _Last)) {
+						_Pos = _Zero;
+						return static_cast<T>(0);
+					}
+				}
+			}
+			break;
+		}
+		default: {
+			break;
+		}
+		}
+	}
+
+	return __work(f, _First, _Last, _Err, _Pos, base, _Zero, _Is_minus);
+}
+
+template<typename T, typename Func>
+template<typename _Iter, typename F>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR T integral_conversion_details<T, Func>::__work(
+	F f,
+	_Iter _First, _Iter _Last,
+	errc& _Err, WJR_MAYBE_UNUSED _Iter& _Pos,
+	int base, _Iter _Zero, bool _Is_minus) noexcept {
+
+	const auto _Flags = get_cvar(f);
+
+	auto _Next = _First;
+
+	if (_Flags & flags::ALLOW_LEADING_ZEROS) {
+		_Next = func_type::skipz(_First, _Last);
+	}
+
+	uT _Max1 = 0;
+	uT _Max2 = 0;
+
+	if constexpr (std::is_unsigned_v<T>) {
+		_Max1 = umax() / base;
+		_Max2 = umax() % base;
+	}
+	else {
+		if (_Is_minus) {
 			_Max1 = umax() / base;
 			_Max2 = umax() % base;
 		}
 		else {
-			if (_Is_minus) {
-				_Max1 = umax() / base;
-				_Max2 = umax() % base;
-			}
-			else {
-				constexpr auto __umax2 = umax() - 1;
-				_Max1 = __umax2 / base;
-				_Max2 = __umax2 % base;
-			}
+			constexpr auto __umax2 = umax() - 1;
+			_Max1 = __umax2 / base;
+			_Max2 = __umax2 % base;
 		}
-
-		uT uret = 0;
-		bool overflowed = false;
-
-		for (; _Next != _Last; ++_Next) {
-			auto ch = func_type::toalnum(*_Next);
-
-			if (ch >= base) break;
-
-			if (uret < _Max1 || (uret == _Max1 && ch <= _Max2)) {
-				uret *= base;
-				uret += ch;
-			}
-			else overflowed = true;
-		}
-
-		if (_First == _Next) {
-			if (_Zero != _Last) {
-				_Pos = _Zero;
-				return static_cast<T>(uret);
-			}
-			_Err = errc::noconv;
-			return static_cast<T>(0);
-		}
-
-		_Pos = _Next;
-
-		if (overflowed) {
-			if constexpr (std::is_unsigned_v<T>) {
-				_Err = errc::overflow;
-			}
-			else {
-				if (_Is_minus) {
-					_Err = errc::underflow;
-				}
-				else {
-					_Err = errc::overflow;
-				}
-			}
-			return static_cast<T>(0);
-		}
-
-		if (_Is_minus) {
-			uret = static_cast<uT>(0 - uret);
-		}
-
-		return static_cast<T>(uret);
 	}
 
-};
+	uT uret = 0;
+	bool overflowed = false;
+
+	for (; _Next != _Last; ++_Next) {
+		auto ch = func_type::toalnum(*_Next);
+
+		if (ch >= base) break;
+
+		if (uret < _Max1 || (uret == _Max1 && ch <= _Max2)) {
+			uret *= base;
+			uret += ch;
+		}
+		else overflowed = true;
+	}
+
+	if (_First == _Next) {
+		if (_Zero != _Last) {
+			_Pos = _Zero;
+			return static_cast<T>(uret);
+		}
+		__CONV_EMPTY_RET;
+	}
+
+	_Pos = _Next;
+
+	if (overflowed) {
+		if constexpr (std::is_unsigned_v<T>) {
+			_Err = errc::overflow;
+		}
+		else {
+			if (_Is_minus) {
+				_Err = errc::underflow;
+			}
+			else {
+				_Err = errc::overflow;
+			}
+		}
+		return static_cast<T>(0);
+	}
+
+	_Err = errc::ok;
+
+	if (_Is_minus) {
+		uret = static_cast<uT>(0 - uret);
+	}
+
+	return static_cast<T>(uret);
+}
 
 #undef __CONV_EMPTY_RET
 #undef __CONV_NEXT
+
+template<typename T, typename Func>
+template <typename _Iter>
+WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::work(
+	T _Val, _Iter _First, _Iter _Last,
+	errc& _Err, _Iter& _Pos, int base) noexcept {
+
+	auto uval = make_unsigned_v(_Val);
+
+	if constexpr (std::is_signed_v<T>) {
+		if (_Val < 0) {
+			if (_First == _Last) {
+				_Err = errc::buffer_too_small;
+				return;
+			}
+			*_First = '-';
+			++_First;
+			uval = static_cast<uT>(0 - uval);
+		}
+	}
+
+	constexpr size_t _Buff_size = sizeof(uT) * 8;
+	value_type _Buff[_Buff_size];
+	char* const _Buff_end = _Buff + _Buff_size;
+	char* _RNext = _Buff_end;
+
+	switch (base) {
+	case 10:
+	{ // Derived from _UIntegral_to_buff()
+		// Performance note: Ryu's digit table should be faster here.
+		constexpr bool _Use_chunks = sizeof(uT) > sizeof(size_t);
+
+		if constexpr (_Use_chunks) { // For 64-bit numbers on 32-bit platforms, work in chunks to avoid 64-bit
+			// divisions.
+			while (uval > 0xFFFF'FFFFU) {
+				// Performance note: Ryu's division workaround would be faster here.
+				unsigned long _Chunk = static_cast<unsigned long>(uval % 1'000'000'000);
+				uval = static_cast<uT>(uval / 1'000'000'000);
+
+				for (int _Idx = 0; _Idx != 9; ++_Idx) {
+					*--_RNext = static_cast<char>('0' + _Chunk % 10);
+					_Chunk /= 10;
+				}
+			}
+		}
+
+		using _Truncated = std::conditional_t<_Use_chunks, unsigned long, uT>;
+
+		_Truncated _Trunc = static_cast<_Truncated>(uval);
+
+		do {
+			*--_RNext = static_cast<char>('0' + _Trunc % 10);
+			_Trunc /= 10;
+		} while (_Trunc != 0);
+		break;
+	}
+
+	case 2:
+		do {
+			*--_RNext = static_cast<char>('0' + (uval & 0b1));
+			uval >>= 1;
+		} while (uval != 0);
+		break;
+
+	case 4:
+		do {
+			*--_RNext = static_cast<char>('0' + (uval & 0b11));
+			uval >>= 2;
+		} while (uval != 0);
+		break;
+
+	case 8:
+		do {
+			*--_RNext = static_cast<char>('0' + (uval & 0b111));
+			uval >>= 3;
+		} while (uval != 0);
+		break;
+
+	case 16:
+		do {
+			*--_RNext = charconv_lower[uval & 0b1111];
+			uval >>= 4;
+		} while (uval != 0);
+		break;
+
+	case 32:
+		do {
+			*--_RNext = charconv_lower[uval & 0b11111];
+			uval >>= 5;
+		} while (uval != 0);
+		break;
+
+	case 3:
+	case 5:
+	case 6:
+	case 7:
+	case 9:
+		do {
+			*--_RNext = static_cast<char>('0' + uval % base);
+			uval = static_cast<uT>(uval / base);
+		} while (uval != 0);
+		break;
+
+	default:
+		do {
+			*--_RNext = charconv_lower[uval % vase];
+			uval = static_cast<uT>(uval / vase);
+		} while (uval != 0);
+		break;
+	}
+
+	const ptrdiff_t _Digits_written = _Buff_end - _RNext;
+
+	if constexpr (is_random_iterator_v<_Iter>) {
+		const auto _Size = std::distance(_First, _Last);
+		if (_Size < _Digits_written) {
+			_Err = errc::buffer_too_small;
+			return;
+		}
+		_Fisrt = wjr::copy_n(_RNext, _Digits_written, _First);
+	}
+	else {
+		for (; _Digits_written && _First != _Last; ++_RNext, ++_First, --_Digits_written) {
+			*_First = *_RNext;
+		}
+		if (_Digits_written) {
+			_Err = errc::buffer_too_small;
+			return;
+		}
+	}
+
+	_Pos = _First;
+	_Err = errc::ok;
+	return;
+}
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool string_func<Traits>::isalnum(value_type ch) {
@@ -444,9 +616,18 @@ template<typename T, typename _Iter, typename F>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR T string_func<Traits>::to_integral(
 	F f,
 	_Iter _First, _Iter _Last,
-	errc& _Err, _Iter& _Pos, int base) {
+	errc& _Err, _Iter& _Pos, int base) noexcept {
 	return integral_conversion_details<T, string_func<Traits>>
 		::template work(f, _First, _Last, _Err, _Pos, base);
+}
+
+template<typename Traits>
+template<typename T, typename _Iter>
+WJR_INLINE_CONSTEXPR20 void string_func<Traits>::from_integral(
+	T _Val, _Iter _First, _Iter _Last,
+	errc& _Err, _Iter& _Pos, int base) noexcept {
+	return integral_conversion_details<T, string_func<Traits>>
+		::template work(_Val, _First, _Last, _Err, _Pos, base);
 }
 
 _WJR_END

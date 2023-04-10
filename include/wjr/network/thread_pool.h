@@ -131,7 +131,7 @@ void thread_pool::append(iter _First, iter _Last) {
     const auto _Newsize = m_task_queue.size();
     task_lock.unlock();
     size_t n;
-    if constexpr (is_random_iter_v<iter>) {
+    if constexpr (is_random_iterator_v<iter>) {
         n = std::distance(_First, _Last);
     }
     else {

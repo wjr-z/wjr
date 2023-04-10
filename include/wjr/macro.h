@@ -618,7 +618,7 @@ template<typename T, typename U>												\
 struct has_global_binary_operator<T, U, std:: NAME<>> :							\
 	has_global_binary_operator_##NAME<T, U> {};
 
-#define WJR_REGISTER_HAS_GLOBAL_UNARY_OPERATOR(OP, NAME)							\
+#define WJR_REGISTER_HAS_GLOBAL_UNARY_OPERATOR(OP, NAME)						\
 template<typename Enable, typename T>											\
 struct __has_global_unary_operator_##NAME : std::false_type {};					\
 template<typename T>															\
@@ -631,6 +631,20 @@ struct has_global_unary_operator_##NAME :										\
 template<typename T>															\
 constexpr bool has_global_unary_operator_##NAME##_v =							\
 	has_global_unary_operator_##NAME<T>::value;
+
+#define WJR_REGISTER_HAS_GLOBAL_IN_OPERATOR(OP, NAME)							\
+template<typename Enable, typename T, typename...Args>							\
+struct __has_global_in_operator_##NAME : std::false_type {};					\
+template<typename T, typename...Args>											\
+struct __has_global_in_operator_##NAME <std::void_t<decltype(					\
+	std::declval<T>() OP ( std::declval<Args>()... ))>, T, Args...>				\
+	: std::true_type {};														\
+template<typename T, typename...Args>											\
+struct has_global_in_operator_##NAME :											\
+	__has_global_in_operator_##NAME<void, T, Args...> {};						\
+template<typename T, typename...Args>											\
+constexpr bool has_global_in_operator_##NAME##_v =								\
+	has_global_in_operator_##NAME<T, Args...>::value;
 
 #define WJR_REGISTER_HAS_TYPE(TYPE, NAME)										\
 template<typename Enable, typename T>							                \

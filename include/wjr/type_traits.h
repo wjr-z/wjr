@@ -7,6 +7,36 @@
 
 #include <wjr/cpuinfo.h>
 
+namespace std {
+	template <typename _Ty = void>
+	struct plus_assign {
+		WJR_NODISCARD constexpr _Ty& operator()(_Ty& _Left, const _Ty& _Right) const {
+			return _Left += _Right;
+		}
+	};
+	template <>
+	struct plus_assign<> {
+		template<typename _Ty1, typename _Ty2>
+		WJR_NODISCARD constexpr decltype(auto) operator()(_Ty1& _Left, const _Ty2& _Right) const {
+			return _Left += _Right;
+		}
+	};
+
+	template <typename _Ty = void>
+	struct minus_assign {
+		WJR_NODISCARD constexpr _Ty& operator()(_Ty& _Left, const _Ty& _Right) const {
+			return _Left -= _Right;
+		}
+	};
+	template <>
+	struct minus_assign<> {
+		template<typename _Ty1, typename _Ty2>
+		WJR_NODISCARD constexpr decltype(auto) operator()(_Ty1& _Left, const _Ty2& _Right) const {
+			return _Left -= _Right;
+		}
+	};
+}
+
 _WJR_BEGIN
 
 WJR_INTRINSIC_CONSTEXPR bool is_likely(bool f) noexcept {
@@ -80,12 +110,14 @@ struct has_global_binary_operator : std::false_type {};
 template<typename T, typename U, typename _Pred>
 inline constexpr bool has_global_binary_operator_v = has_global_binary_operator<T, U, _Pred>::value;
 
-WJR_REGISTER_HAS_MEMBER_FUNCTION(operator(), call_operator);
+WJR_REGISTER_HAS_GLOBAL_IN_OPERATOR( , call_operator);
 WJR_REGISTER_HAS_MEMBER_FUNCTION(operator[], subscript_operator);
 WJR_REGISTER_HAS_MEMBER_FUNCTION(operator->, point_to_operator);
 
 WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(+, plus);
+WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(+=, plus_assign);
 WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(-, minus);
+WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(-=, minus_assign);
 WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(&, bit_and);
 WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(| , bit_or);
 WJR_REGISTER_HAS_GLOBAL_BINARY_OPERATOR(^, bit_xor);
@@ -191,34 +223,34 @@ template<typename T>
 inline constexpr bool is_iterator_v = is_iterator<T>::value;
 
 template<typename T>
-struct is_input_iter : std::is_convertible<iter_cat_t<T>, std::input_iterator_tag> {};
+struct is_input_iterator : std::is_convertible<iter_cat_t<T>, std::input_iterator_tag> {};
 
 template<typename T>
-inline constexpr bool is_input_iter_v = is_input_iter<T>::value;
+inline constexpr bool is_input_iterator_v = is_input_iterator<T>::value;
 
 template<typename T>
-struct is_output_iter : std::is_convertible<iter_cat_t<T>, std::output_iterator_tag> {};
+struct is_output_iterator : std::is_convertible<iter_cat_t<T>, std::output_iterator_tag> {};
 
 template<typename T>
-inline constexpr bool is_output_iter_v = is_output_iter<T>::value;
+inline constexpr bool is_output_iterator_v = is_output_iterator<T>::value;
 
 template<typename T>
-struct is_forward_iter : std::is_convertible<iter_cat_t<T>, std::forward_iterator_tag> {};
+struct is_forward_iterator : std::is_convertible<iter_cat_t<T>, std::forward_iterator_tag> {};
 
 template<typename T>
-inline constexpr bool is_forward_iter_v = is_forward_iter<T>::value;
+inline constexpr bool is_forward_iterator_v = is_forward_iterator<T>::value;
 
 template<typename T>
-struct is_bidir_iter : std::is_convertible<iter_cat_t<T>, std::bidirectional_iterator_tag> {};
+struct is_bidir_iterator : std::is_convertible<iter_cat_t<T>, std::bidirectional_iterator_tag> {};
 
 template<typename T>
-inline constexpr bool is_bidir_iter_v = is_bidir_iter<T>::value;
+inline constexpr bool is_bidir_iterator_v = is_bidir_iterator<T>::value;
 
 template<typename T>
-struct is_random_iter : std::is_convertible<iter_cat_t<T>, std::random_access_iterator_tag> {};
+struct is_random_iterator : std::is_convertible<iter_cat_t<T>, std::random_access_iterator_tag> {};
 
 template<typename T>
-inline constexpr bool is_random_iter_v = is_random_iter<T>::value;
+inline constexpr bool is_random_iterator_v = is_random_iterator<T>::value;
 
 template<typename _Iter, typename = void>
 struct _is_contiguous_iter_helper : std::false_type {};

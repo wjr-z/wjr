@@ -459,7 +459,7 @@ public:
 		auto& pred = m_pair.first();
 		auto _Myfirst = m_pair.second().first;
 		auto _Mylast = m_pair.second().second;
-		if constexpr (is_random_iter_v<_Iter> && is_random_iter_v<_Iter2>) {
+		if constexpr (is_random_iterator_v<_Iter> && is_random_iterator_v<_Iter2>) {
 			const auto n = std::distance(_First, _Last);
 			const auto m = std::distance(_Myfirst, _Mylast);
 			if (m == 0) {

@@ -6,11 +6,12 @@ namespace wjr {
 	// TODO :
 
 	enum class errc {
-		ok           = 0x00,
-		overflow     = 0x01,
-		underflow    = 0x02,
-		out_of_range = overflow | underflow,
-		noconv       = 0x04,
+		ok               = 0x00,
+		overflow         = 0x01,
+		underflow        = 0x02,
+		out_of_range     = overflow | underflow,
+		noconv           = 0x04,
+		buffer_too_small = 0x05,
 	};
 }
 

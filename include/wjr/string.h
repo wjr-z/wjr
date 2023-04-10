@@ -3054,6 +3054,8 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 
 	};
 
+	using func_type = string_func<encode>;
+
 }
 
 template<typename Traits = std::char_traits<char>>
@@ -3108,6 +3110,13 @@ public:
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_integral(
 		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
+	/*
+	template<typename T>
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_integral(
+		flags _Flags,
+		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+	*/
+
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR int toi(
 		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
@@ -3126,6 +3135,7 @@ public:
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long long toull(
 		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
+	/*
 	template<typename T>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_floating(
 		errc* err = nullptr, size_type* pos = nullptr) const;
@@ -3138,6 +3148,7 @@ public:
 
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR long double told(
 		errc* err = nullptr, size_type* pos = nullptr) const;
+	*/
 
 };
 
@@ -3217,29 +3228,30 @@ template<typename T>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR T basic_string_view<char, ascii_traits<Traits>>::to_integral(
 	errc* err, size_type* pos, int base) const {
 	using namespace enum_ops;
+
 	constexpr auto _Flags =
 		flags::ALLOW_PREFIX
 		| flags::ALLOW_SIGN
 		| flags::ALLOW_LEADING_SPACE
-		| flags::ALLOW_LEADING_ZEROS
-		;
+		| flags::ALLOW_LEADING_ZEROS;
 
-	errc cc = {};
+	errc cc;
 	const char* end_ptr = nullptr;
 	T ret = func_type::to_integral<T>(
-		WJR_MAKE_CVAR(_Flags),
+		std::integral_constant<flags, _Flags>(),
 		begin(), end(), cc, end_ptr, base);
-
-	if (cc == errc::noconv) {
-		end_ptr = begin();
-	}
 
 	if (err != nullptr) {
 		*err = cc;
 	}
-	
+
 	if (pos != nullptr) {
-		*pos = static_cast<size_type>(end_ptr - begin());
+		if (cc == errc::noconv) {
+			*pos = static_cast<size_type>(0);
+		}
+		else {
+			*pos = static_cast<size_type>(end_ptr - begin());
+		}
 	}
 
 	return ret;
