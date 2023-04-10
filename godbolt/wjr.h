@@ -13669,13 +13669,13 @@ break;
 
 default:
 do {
-*--_RNext = charconv_lower[uval % vase];
-uval = static_cast<uT>(uval / vase);
+*--_RNext = charconv_lower[uval % base];
+uval = static_cast<uT>(uval / base);
 } while (uval != 0);
 break;
 }
 
-const ptrdiff_t _Digits_written = _Buff_end - _RNext;
+ptrdiff_t _Digits_written = _Buff_end - _RNext;
 
 if constexpr (is_random_iterator_v<_Iter>) {
 const auto _Size = std::distance(_First, _Last);
@@ -13683,7 +13683,7 @@ if (_Size < _Digits_written) {
 _Err = errc::buffer_too_small;
 return;
 }
-_Fisrt = wjr::copy_n(_RNext, _Digits_written, _First);
+_First = wjr::copy_n(_RNext, _Digits_written, _First);
 }
 else {
 for (; _Digits_written && _First != _Last; ++_RNext, ++_First, --_Digits_written) {
@@ -18543,9 +18543,6 @@ constexpr F tp_for_each(F&& f) {
 return __tp_for_each_helper(tp_rename_t<C, tp_list>(), std::forward<F>(f));
 }
 
-template<typename...Args>
-using tp_unique_variant = tp_unique_t<std::variant<Args...>>;
-
 template<typename Func, typename Var>
 WJR_NODISCARD constexpr decltype(auto) tp_visit(Func&& fn, Var&& v) {
 using var_type = remove_cvref_t<Var>;
@@ -19969,3 +19966,79 @@ m_core_threads.emplace_back(&thread_pool::core_work, this);
 
 
 _WJR_END
+
+#include <benchmark/benchmark.h>
+
+#include <chrono>
+
+struct A {
+int a() const { return 1; }
+int b() const { return 2; }
+int c() const { return 3; }
+int d() const { return 4; }
+};
+
+using var = std::variant<int(A::*)()const>;
+const int N = 1e3;
+const int M = 1e5;
+
+using namespace std::chrono;
+auto now() { return high_resolution_clock::now(); }
+template<typename T>
+auto get(T s, T t) {
+return duration_cast<nanoseconds>(t - s).count();
+}
+
+wjr::vector<var> vec;
+
+int main() {
+vec.reserve(N);
+for (int i = 0; i < N; ++i) {
+switch (i % 4) {
+case 0:{
+vec.push_back(&A::a);
+break;
+}
+case 1: {
+vec.push_back(&A::b);
+break;
+}
+case 2: {
+vec.push_back(&A::c);
+break;
+}
+case 3: {
+vec.push_back(&A::d);
+break;
+}
+}
+}
+A it;
+{
+auto s = now();
+for (int i = 0; i < M; ++i) {
+for (const auto& j : vec) {
+benchmark::DoNotOptimize(wjr::tp_visit([it](auto x) {
+return (it.*x)();
+}, j));
+}
+}
+auto t = now();
+std::cout << get(s, t) << '\n';
+}
+{
+auto s = now();
+for (int i = 0; i < M; ++i) {
+for (const auto& j : vec) {
+benchmark::DoNotOptimize(
+[&j, it]() {
+auto x = std::get<0>(j);
+return (it.*x)();
+}()
+);
+}
+}
+auto t = now();
+std::cout << get(s, t) << '\n';
+}
+}

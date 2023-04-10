@@ -1141,9 +1141,6 @@ constexpr F tp_for_each(F&& f) {
 	return __tp_for_each_helper(tp_rename_t<C, tp_list>(), std::forward<F>(f));
 }
 
-template<typename...Args>
-using tp_unique_variant = tp_unique_t<std::variant<Args...>>;
-
 template<typename Func, typename Var>
 WJR_NODISCARD constexpr decltype(auto) tp_visit(Func&& fn, Var&& v) {
 	using var_type = remove_cvref_t<Var>;

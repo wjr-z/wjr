@@ -478,13 +478,13 @@ WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::work(
 
 	default:
 		do {
-			*--_RNext = charconv_lower[uval % vase];
-			uval = static_cast<uT>(uval / vase);
+			*--_RNext = charconv_lower[uval % base];
+			uval = static_cast<uT>(uval / base);
 		} while (uval != 0);
 		break;
 	}
 
-	const ptrdiff_t _Digits_written = _Buff_end - _RNext;
+	ptrdiff_t _Digits_written = _Buff_end - _RNext;
 
 	if constexpr (is_random_iterator_v<_Iter>) {
 		const auto _Size = std::distance(_First, _Last);
@@ -492,7 +492,7 @@ WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::work(
 			_Err = errc::buffer_too_small;
 			return;
 		}
-		_Fisrt = wjr::copy_n(_RNext, _Digits_written, _First);
+		_First = wjr::copy_n(_RNext, _Digits_written, _First);
 	}
 	else {
 		for (; _Digits_written && _First != _Last; ++_RNext, ++_First, --_Digits_written) {
