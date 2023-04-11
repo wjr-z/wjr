@@ -512,12 +512,27 @@ public:
 		const auto sv = view(t);
 		if constexpr (_Traits_helper::is_default_equal::value) {
 			if constexpr (std::is_same_v<Char, char>) {
-				return wjr::compare(
-					reinterpret_cast<const uint8_t*>(begin()),
-					reinterpret_cast<const uint8_t*>(end()),
-					reinterpret_cast<const uint8_t*>(sv.begin()),
-					reinterpret_cast<const uint8_t*>(sv.end())
-				);
+				if (!wjr::is_constant_evaluated()) {
+					return wjr::compare(
+						reinterpret_cast<const uint8_t*>(begin()),
+						reinterpret_cast<const uint8_t*>(end()),
+						reinterpret_cast<const uint8_t*>(sv.begin()),
+						reinterpret_cast<const uint8_t*>(sv.end())
+					);
+				}
+				auto _First1 = begin();
+				auto _Last1 = end();
+				auto _First2 = sv.begin();
+				auto _Last2 = sv.end();
+				for (; _First1 != _Last1 && _First2 != _Last2; ++_First1, ++_First2) {
+					if (*_First1 < *_First2) {
+						return -1;
+					}
+					if (*_First2 < *_First1) {
+						return 1;
+					}
+				}
+				return _First1 == _Last1 ? (_First2 == _Last2 ? 0 : -1) : 1;
 			}
 			else {
 				return wjr::compare(begin(), end(), sv.begin(), sv.end());
@@ -3235,7 +3250,7 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR T basic_string_view<char, ascii_traits<Traits
 		| flags::ALLOW_LEADING_SPACE
 		| flags::ALLOW_LEADING_ZEROS;
 
-	errc cc;
+	errc cc = errc::ok;
 	const char* end_ptr = nullptr;
 	T ret = func_type::to_integral<T>(
 		std::integral_constant<flags, _Flags>(),

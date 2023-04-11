@@ -632,19 +632,19 @@ template<typename T>															\
 constexpr bool has_global_unary_operator_##NAME##_v =							\
 	has_global_unary_operator_##NAME<T>::value;
 
-#define WJR_REGISTER_HAS_GLOBAL_IN_OPERATOR(OP, NAME)							\
+#define WJR_REGISTER_HAS_STD_INVOKE												\
 template<typename Enable, typename T, typename...Args>							\
-struct __has_global_in_operator_##NAME : std::false_type {};					\
+struct __has_std_invoke : std::false_type {};					                \
 template<typename T, typename...Args>											\
-struct __has_global_in_operator_##NAME <std::void_t<decltype(					\
-	std::declval<T>() OP ( std::declval<Args>()... ))>, T, Args...>				\
+struct __has_std_invoke <std::void_t<std::invoke_result_t<			            \
+	T, Args...>>, T, Args...>													\
 	: std::true_type {};														\
 template<typename T, typename...Args>											\
-struct has_global_in_operator_##NAME :											\
-	__has_global_in_operator_##NAME<void, T, Args...> {};						\
+struct has_std_invoke :											                \
+	__has_std_invoke<void, T, Args...> {};						                \
 template<typename T, typename...Args>											\
-constexpr bool has_global_in_operator_##NAME##_v =								\
-	has_global_in_operator_##NAME<T, Args...>::value;
+constexpr bool has_std_invoke##_v =								                \
+	has_std_invoke<T, Args...>::value;
 
 #define WJR_REGISTER_HAS_TYPE(TYPE, NAME)										\
 template<typename Enable, typename T>							                \

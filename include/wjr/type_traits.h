@@ -110,7 +110,7 @@ struct has_global_binary_operator : std::false_type {};
 template<typename T, typename U, typename _Pred>
 inline constexpr bool has_global_binary_operator_v = has_global_binary_operator<T, U, _Pred>::value;
 
-WJR_REGISTER_HAS_GLOBAL_IN_OPERATOR( , call_operator);
+WJR_REGISTER_HAS_STD_INVOKE;
 WJR_REGISTER_HAS_MEMBER_FUNCTION(operator[], subscript_operator);
 WJR_REGISTER_HAS_MEMBER_FUNCTION(operator->, point_to_operator);
 

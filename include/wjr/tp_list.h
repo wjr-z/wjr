@@ -1141,6 +1141,7 @@ constexpr F tp_for_each(F&& f) {
 	return __tp_for_each_helper(tp_rename_t<C, tp_list>(), std::forward<F>(f));
 }
 
+// this visit only apply 1 std::variant
 template<typename Func, typename Var>
 WJR_NODISCARD constexpr decltype(auto) tp_visit(Func&& fn, Var&& v) {
 	using var_type = remove_cvref_t<Var>;
@@ -1167,7 +1168,8 @@ WJR_NODISCARD constexpr decltype(auto) tp_visit(Func&& fn, Var&& v) {
 			else {
 				using final_result_type = tp_rename_t<unique_result_type, std::variant>;
 				return std::visit([_Fn = std::forward<Func>(fn)](auto&& x) {
-					return static_cast<final_result_type>(_Fn(std::forward<decltype(x)>(x)));
+					return static_cast<final_result_type>(
+						std::invoke(_Fn, std::forward<decltype(x)>(x)));
 					}, std::forward<Var>(v));
 			}
 		}
@@ -1188,7 +1190,7 @@ WJR_NODISCARD constexpr decltype(auto) tp_visit(Func&& fn, Var&& v) {
 							WJR_UNREACHABLE;
 						}
 						else {
-							_Fn(std::forward<decltype(x)>(x));
+							std::invoke(_Fn, std::forward<decltype(x)>(x));
 						}
 						}, std::forward<Var>(v));
 				}
@@ -1200,7 +1202,8 @@ WJR_NODISCARD constexpr decltype(auto) tp_visit(Func&& fn, Var&& v) {
 							return static_cast<final_result_type>(std::monostate());
 						}
 						else {
-							return static_cast<final_result_type>(_Fn(std::forward<decltype(x)>(x)));
+							return static_cast<final_result_type>(
+								std::invoke(_Fn, std::forward<decltype(x)>(x)));
 						}
 						}, std::forward<Var>(v));
 				}
@@ -1208,8 +1211,8 @@ WJR_NODISCARD constexpr decltype(auto) tp_visit(Func&& fn, Var&& v) {
 		}
 	}
 	else {
-		static_assert(has_global_in_operator_call_operator_v<Func&&, Var&&>);
-		return std::forward<Func>(fn)(std::forward<Var>(v));
+		static_assert(has_std_invoke_v<Func&&, Var&&>, "");
+		return std::invoke(std::forward<Func>(fn), std::forward<Var>(v));
 	}
 }
 

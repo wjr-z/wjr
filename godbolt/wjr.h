@@ -669,19 +669,19 @@ template<typename T>															\
 constexpr bool has_global_unary_operator_##NAME##_v =							\
 has_global_unary_operator_##NAME<T>::value;
 
-#define WJR_REGISTER_HAS_GLOBAL_IN_OPERATOR(OP, NAME)							\
+#define WJR_REGISTER_HAS_STD_INVOKE												\
 template<typename Enable, typename T, typename...Args>							\
-struct __has_global_in_operator_##NAME : std::false_type {};					\
+struct __has_std_invoke : std::false_type {};					                \
 template<typename T, typename...Args>											\
-struct __has_global_in_operator_##NAME <std::void_t<decltype(					\
-std::declval<T>() OP ( std::declval<Args>()... ))>, T, Args...>				\
+struct __has_std_invoke <std::void_t<std::invoke_result_t<			            \
+T, Args...>>, T, Args...>													\
 : std::true_type {};														\
 template<typename T, typename...Args>											\
-struct has_global_in_operator_##NAME :											\
-__has_global_in_operator_##NAME<void, T, Args...> {};						\
+struct has_std_invoke :											                \
+__has_std_invoke<void, T, Args...> {};						                \
 template<typename T, typename...Args>											\
-constexpr bool has_global_in_operator_##NAME##_v =								\
-has_global_in_operator_##NAME<T, Args...>::value;
+constexpr bool has_std_invoke##_v =								                \
+has_std_invoke<T, Args...>::value;
 
 #define WJR_REGISTER_HAS_TYPE(TYPE, NAME)										\
 template<typename Enable, typename T>							                \
@@ -934,7 +934,7 @@ struct has_global_binary_operator : std::false_type {};
 template<typename T, typename U, typename _Pred>
 inline constexpr bool has_global_binary_operator_v = has_global_binary_operator<T, U, _Pred>::value;
 
-WJR_REGISTER_HAS_GLOBAL_IN_OPERATOR( , call_operator);
+WJR_REGISTER_HAS_STD_INVOKE;
 WJR_REGISTER_HAS_MEMBER_FUNCTION(operator[], subscript_operator);
 WJR_REGISTER_HAS_MEMBER_FUNCTION(operator->, point_to_operator);
 
@@ -14322,12 +14322,27 @@ WJR_NODISCARD WJR_CONSTEXPR20 int compare(const StringView& t) const noexcept {
 const auto sv = view(t);
 if constexpr (_Traits_helper::is_default_equal::value) {
 if constexpr (std::is_same_v<Char, char>) {
+if (!wjr::is_constant_evaluated()) {
 return wjr::compare(
 reinterpret_cast<const uint8_t*>(begin()),
 reinterpret_cast<const uint8_t*>(end()),
 reinterpret_cast<const uint8_t*>(sv.begin()),
 reinterpret_cast<const uint8_t*>(sv.end())
 );
+}
+auto _First1 = begin();
+auto _Last1 = end();
+auto _First2 = sv.begin();
+auto _Last2 = sv.end();
+for (; _First1 != _Last1 && _First2 != _Last2; ++_First1, ++_First2) {
+if (*_First1 < *_First2) {
+return -1;
+}
+if (*_First2 < *_First1) {
+return 1;
+}
+}
+return _First1 == _Last1 ? (_First2 == _Last2 ? 0 : -1) : 1;
 }
 else {
 return wjr::compare(begin(), end(), sv.begin(), sv.end());
@@ -17045,7 +17060,7 @@ flags::ALLOW_PREFIX
 | flags::ALLOW_LEADING_SPACE
 | flags::ALLOW_LEADING_ZEROS;
 
-errc cc;
+errc cc = errc::ok;
 const char* end_ptr = nullptr;
 T ret = func_type::to_integral<T>(
 std::integral_constant<flags, _Flags>(),
@@ -18543,6 +18558,7 @@ constexpr F tp_for_each(F&& f) {
 return __tp_for_each_helper(tp_rename_t<C, tp_list>(), std::forward<F>(f));
 }
 
+// this visit only apply 1 std::variant
 template<typename Func, typename Var>
 WJR_NODISCARD constexpr decltype(auto) tp_visit(Func&& fn, Var&& v) {
 using var_type = remove_cvref_t<Var>;
@@ -18569,7 +18585,8 @@ return std::visit(std::forward<Func>(fn), std::forward<Var>(v));
 else {
 using final_result_type = tp_rename_t<unique_result_type, std::variant>;
 return std::visit([_Fn = std::forward<Func>(fn)](auto&& x) {
-return static_cast<final_result_type>(_Fn(std::forward<decltype(x)>(x)));
+return static_cast<final_result_type>(
+std::invoke(_Fn, std::forward<decltype(x)>(x)));
 }, std::forward<Var>(v));
 }
 }
@@ -18590,7 +18607,7 @@ if constexpr (remove_if_unreachable_pred::template fn<decltype(x)>::value) {
 WJR_UNREACHABLE;
 }
 else {
-_Fn(std::forward<decltype(x)>(x));
+std::invoke(_Fn, std::forward<decltype(x)>(x));
 }
 }, std::forward<Var>(v));
 }
@@ -18602,7 +18619,8 @@ WJR_UNREACHABLE;
 return static_cast<final_result_type>(std::monostate());
 }
 else {
-return static_cast<final_result_type>(_Fn(std::forward<decltype(x)>(x)));
+return static_cast<final_result_type>(
+std::invoke(_Fn, std::forward<decltype(x)>(x)));
 }
 }, std::forward<Var>(v));
 }
@@ -18610,8 +18628,8 @@ return static_cast<final_result_type>(_Fn(std::forward<decltype(x)>(x)));
 }
 }
 else {
-static_assert(has_global_in_operator_call_operator_v<Func&&, Var&&>);
-return std::forward<Func>(fn)(std::forward<Var>(v));
+static_assert(has_std_invoke_v<Func&&, Var&&>, "");
+return std::invoke(std::forward<Func>(fn), std::forward<Var>(v));
 }
 }
 
@@ -18788,6 +18806,7 @@ printf("memory leak: %lld bytes", _Count);
 __test_allocator __test_allocator_instance;
 #endif
 _WJR_END
+
 #pragma once
 #ifndef __WJR_NETWORK_THREAD_POOL_H
 #define __WJR_NETWORK_THREAD_POOL_H
