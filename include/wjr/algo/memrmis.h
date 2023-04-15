@@ -475,8 +475,8 @@ const T* __memrmis(const T* s0, const T* s1, size_t n, _Pred pred) {
 		// n = [1, 4)
 		if (!pred(s0[-1], s1[-1])) return s0;
 		if (n == 1) return s0 - 1;
-		const bool f = pred(s0[1 - n], s1[1 - n]);
-		const bool g = pred(s0[-n], s1[-n]);
+		const bool f = pred(s0[static_cast<size_t>(1 - n)], s1[static_cast<size_t>(1 - n)]);
+		const bool g = pred(s0[static_cast<size_t>(0 - n)], s1[static_cast<size_t>(0 - n)]);
 		const size_t i1 = g ? -n : 1 - n;
 		const size_t i2 = f ? i1 : 2 - n;
 		return s0 + i2;

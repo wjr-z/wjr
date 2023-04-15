@@ -33,7 +33,7 @@ struct simd_cast_fn<TO##_tag, FROM>{	                                           
 template<>	                                                                                                \
 struct simd_cast_fn<FROM, TO##_tag>{	                                                                    \
 	FROM operator()(TO v) const{		                                                                    \
-		return func2(v);	                                                                                \
+		return static_cast<FROM>(func2(v));	                                                                \
 	}	                                                                                                    \
 };              
 

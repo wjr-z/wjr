@@ -139,8 +139,8 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool operator==(
 
 template <typename _Ty, size_t _Al1, size_t _Off1, typename _Other, size_t _Al2, size_t _Off2>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool operator==(
-	const aligned_allocator<_Ty, _Al1, _Off1>& lhs,
-	const aligned_allocator<_Other, _Al2, _Off2>& rhs) noexcept {
+	const aligned_allocator<_Ty, _Al1, _Off1>&,
+	const aligned_allocator<_Other, _Al2, _Off2>&) noexcept {
 	return false;
 }
 

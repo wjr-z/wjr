@@ -60,10 +60,8 @@ inline size_t max_cache_size() {
 #endif // _WJR_NON_TEMPORARY
 
 inline bool is_intel() { 
-#if defined(_WJR_INTEL)
+#if defined(WJR_INTEL)
 	return true;
-#elif defined(NWJR_INTEL)
-	return false;
 #elif defined(_WJR_CPUINFO)
 	return __is_intel;
 #else
@@ -72,10 +70,8 @@ inline bool is_intel() {
 }
 
 inline bool is_amd() { 
-#if defined(_WJR_AMD)
+#if defined(WJR_AMD)
 	return true;
-#elif defined(NWJR_AMD)
-	return false;
 #elif defined(_WJR_CPUINFO)
 	return __is_amd;
 #else
@@ -84,7 +80,7 @@ inline bool is_amd() {
 }
 
 inline bool is_enhanced_rep() {
-#if defined(_WJR_ENHNACED_REP)
+#if defined(_WJR_ENHANCED_REP)
 	return true;
 #else
 	return is_intel();

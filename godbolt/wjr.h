@@ -79,7 +79,7 @@
 #define WJR_AVX512DQ 0
 #endif
 
-#if defined(__AVX512F__) || (WJR_AVX512F && WJR_AVX512BW && WJR_AVX512DQ)
+#if defined(__AVX512F__) || (WJR_AVX512VL && WJR_AVX512BW && WJR_AVX512DQ)
 #define WJR_AVX512F 1
 #else
 #define WJR_AVX512F 0
@@ -279,6 +279,7 @@ defined(_MIPSEL) || defined(__MIPSEL) || defined(__MIPSEL__)
 
 #if WJR_SSE2
 #define _WJR_FAST_MEMCHR
+#define _WJR_FAST_MEMSKIPW
 #define _WJR_FAST_MEMCMP
 #define _WJR_FAST_MEMMIS
 //#define _WJR_FAST_MEMCNT
@@ -308,34 +309,24 @@ defined(_MIPSEL) || defined(__MIPSEL) || defined(__MIPSEL__)
 #define _WJR_FAST_REP
 #endif
 
-//#define WJR_MAX_CACHE_SIZE (4096 * 1024)
-//#define NWJR_INTEL
-//#define _WJR_AMD
+#define _WJR_CPUINFO
 
-#if defined(NWJR_FAST_REP)
-#undef _WJR_FAST_REP
+#if defined(WJR_X86_64)
+#if defined(__i386__) || defined(_M_IX86) || defined(_X86_)
+#define CPU_INTEL
+#elif defined(_M_AMD64)
+#define CPU_AMD
+#endif
+#else
+#define CPU_UNKNOWN
 #endif
 
-#if defined(NWJR_INTEL)
-#undef _WJR_INTEL
-#endif
-
-#if defined(NWJR_AMD)
-#undef _WJR_AMD
-#endif
-
-#if defined(_WJR_INTEL)
+#if defined(WJR_INTEL)
 #define _WJR_ENHANCED_REP
 #endif
 
 #if defined(NWJR_ENHANCED_REP)
 #undef _WJR_ENHANCED_REP
-#endif
-
-#define _WJR_CPUINFO
-
-#if defined(NWJR_CPUINFO)
-#undef _WJR_CPUINFO
 #endif
 
 #if defined(WJR_MAX_CACHE_SIZE) || defined(_WJR_CPUINFO)
@@ -460,6 +451,15 @@ defined(_MIPSEL) || defined(__MIPSEL) || defined(__MIPSEL__)
 #define WJR_FORCEINLINE
 #endif
 
+// NOINLINE for MSVC/GCC/CLANG ...
+#if WJR_HAS_ATTRIBUTE(noinline)
+#define WJR_NOINLINE __attribute__((noinline))
+#elif defined(_MSC_VER)
+#define WJR_NOINLINE __declspec(noinline)
+#else
+#define WJR_NOINLINE
+#endif
+
 #if defined(__cpp_lib_unreachable)
 #define WJR_UNREACHABLE std::unreachable()
 #elif WJR_HAS_BUILTIN(__builtin_unreachable) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
@@ -496,6 +496,7 @@ WJR_UNREACHABLE;	\
 #else
 #define WJR_INTRINSIC_INLINE inline
 #endif
+
 
 // Compiler support for constexpr
 #if defined(__cpp_lib_is_constant_evaluated) || WJR_HAS_BUILTIN(__builtin_is_constant_evaluated) \
@@ -547,9 +548,6 @@ WJR_UNREACHABLE;	\
 #define _WJR_LITERALS_BEGIN _WJR_BEGIN namespace literals{
 #define _WJR_LITERALS_END } _WJR_END
 
-#define _WJR_TP_BEGIN _WJR_BEGIN namespace tp{
-#define _WJR_TP_END } _WJR_END
-
 #define WJR_MACRO_NULL(...)
 
 #define WJR_MACRO_LABEL(NAME) __wjr_label_##NAME
@@ -571,6 +569,225 @@ WJR_UNREACHABLE;	\
 
 #define WJR_STR(x) #x
 #define WJR_MACRO_STR(x) WJR_STR(x)
+
+#define WJR_MACRO_IOTA(N) WJR_MACRO_IOTA_##N
+#define WJR_MACRO_IOTA_0
+#define WJR_MACRO_IOTA_1 1
+#define WJR_MACRO_IOTA_2 WJR_MACRO_IOTA_1, 2
+#define WJR_MACRO_IOTA_3 WJR_MACRO_IOTA_2, 3
+#define WJR_MACRO_IOTA_4 WJR_MACRO_IOTA_3, 4
+#define WJR_MACRO_IOTA_5 WJR_MACRO_IOTA_4, 5
+#define WJR_MACRO_IOTA_6 WJR_MACRO_IOTA_5, 6
+#define WJR_MACRO_IOTA_7 WJR_MACRO_IOTA_6, 7
+#define WJR_MACRO_IOTA_8 WJR_MACRO_IOTA_7, 8
+#define WJR_MACRO_IOTA_9 WJR_MACRO_IOTA_8, 9
+#define WJR_MACRO_IOTA_10 WJR_MACRO_IOTA_9, 10
+#define WJR_MACRO_IOTA_11 WJR_MACRO_IOTA_10, 11
+#define WJR_MACRO_IOTA_12 WJR_MACRO_IOTA_11, 12
+#define WJR_MACRO_IOTA_13 WJR_MACRO_IOTA_12, 13
+#define WJR_MACRO_IOTA_14 WJR_MACRO_IOTA_13, 14
+#define WJR_MACRO_IOTA_15 WJR_MACRO_IOTA_14, 15
+#define WJR_MACRO_IOTA_16 WJR_MACRO_IOTA_15, 16
+#define WJR_MACRO_IOTA_17 WJR_MACRO_IOTA_16, 17
+#define WJR_MACRO_IOTA_18 WJR_MACRO_IOTA_17, 18
+#define WJR_MACRO_IOTA_19 WJR_MACRO_IOTA_18, 19
+#define WJR_MACRO_IOTA_20 WJR_MACRO_IOTA_19, 20
+#define WJR_MACRO_IOTA_21 WJR_MACRO_IOTA_20, 21
+#define WJR_MACRO_IOTA_22 WJR_MACRO_IOTA_21, 22
+#define WJR_MACRO_IOTA_23 WJR_MACRO_IOTA_22, 23
+#define WJR_MACRO_IOTA_24 WJR_MACRO_IOTA_23, 24
+#define WJR_MACRO_IOTA_25 WJR_MACRO_IOTA_24, 25
+#define WJR_MACRO_IOTA_26 WJR_MACRO_IOTA_25, 26
+#define WJR_MACRO_IOTA_27 WJR_MACRO_IOTA_26, 27
+#define WJR_MACRO_IOTA_28 WJR_MACRO_IOTA_27, 28
+#define WJR_MACRO_IOTA_29 WJR_MACRO_IOTA_28, 29
+#define WJR_MACRO_IOTA_30 WJR_MACRO_IOTA_29, 30
+#define WJR_MACRO_IOTA_31 WJR_MACRO_IOTA_30, 31
+#define WJR_MACRO_IOTA_32 WJR_MACRO_IOTA_31, 32
+#define WJR_MACRO_IOTA_33 WJR_MACRO_IOTA_32, 33
+#define WJR_MACRO_IOTA_34 WJR_MACRO_IOTA_33, 34
+#define WJR_MACRO_IOTA_35 WJR_MACRO_IOTA_34, 35
+#define WJR_MACRO_IOTA_36 WJR_MACRO_IOTA_35, 36
+#define WJR_MACRO_IOTA_37 WJR_MACRO_IOTA_36, 37
+#define WJR_MACRO_IOTA_38 WJR_MACRO_IOTA_37, 38
+#define WJR_MACRO_IOTA_39 WJR_MACRO_IOTA_38, 39
+#define WJR_MACRO_IOTA_40 WJR_MACRO_IOTA_39, 40
+#define WJR_MACRO_IOTA_41 WJR_MACRO_IOTA_40, 41
+#define WJR_MACRO_IOTA_42 WJR_MACRO_IOTA_41, 42
+#define WJR_MACRO_IOTA_43 WJR_MACRO_IOTA_42, 43
+#define WJR_MACRO_IOTA_44 WJR_MACRO_IOTA_43, 44
+#define WJR_MACRO_IOTA_45 WJR_MACRO_IOTA_44, 45
+#define WJR_MACRO_IOTA_46 WJR_MACRO_IOTA_45, 46
+#define WJR_MACRO_IOTA_47 WJR_MACRO_IOTA_46, 47
+#define WJR_MACRO_IOTA_48 WJR_MACRO_IOTA_47, 48
+#define WJR_MACRO_IOTA_49 WJR_MACRO_IOTA_48, 49
+#define WJR_MACRO_IOTA_50 WJR_MACRO_IOTA_49, 50
+#define WJR_MACRO_IOTA_51 WJR_MACRO_IOTA_50, 51
+#define WJR_MACRO_IOTA_52 WJR_MACRO_IOTA_51, 52
+#define WJR_MACRO_IOTA_53 WJR_MACRO_IOTA_52, 53
+#define WJR_MACRO_IOTA_54 WJR_MACRO_IOTA_53, 54
+#define WJR_MACRO_IOTA_55 WJR_MACRO_IOTA_54, 55
+#define WJR_MACRO_IOTA_56 WJR_MACRO_IOTA_55, 56
+#define WJR_MACRO_IOTA_57 WJR_MACRO_IOTA_56, 57
+#define WJR_MACRO_IOTA_58 WJR_MACRO_IOTA_57, 58
+#define WJR_MACRO_IOTA_59 WJR_MACRO_IOTA_58, 59
+#define WJR_MACRO_IOTA_60 WJR_MACRO_IOTA_59, 60
+#define WJR_MACRO_IOTA_61 WJR_MACRO_IOTA_60, 61
+#define WJR_MACRO_IOTA_62 WJR_MACRO_IOTA_61, 62
+#define WJR_MACRO_IOTA_63 WJR_MACRO_IOTA_62, 63
+#define WJR_MACRO_IOTA_64 WJR_MACRO_IOTA_63, 64
+
+// don't support 0 agument
+#define WJR_MACRO_ARG_LEN(...) WJR_EXPAND(WJR_MACRO_ARG_LEN_(0, ##__VA_ARGS__ , WJR_MACRO_ARG_LEN_RSEQ_N()))
+#define WJR_MACRO_ARG_LEN_RSEQ_N()                                                   \
+64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48,                  \
+47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32,                      \
+31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16,                      \
+15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
+#define WJR_MACRO_ARG_LEN_(...) WJR_EXPAND(WJR_MACRO_ARG_LEN_N(__VA_ARGS__))
+#define WJR_MACRO_ARG_LEN_N(	                                                     \
+_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16,               \
+_17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32,      \
+_33, _34, _35, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48,      \
+_49, _50, _51, _52, _53, _54, _55, _56, _57, _58, _59, _60, _61, _62, _63, _64, _65, \
+N, ...) N
+
+// WJR_MACRO_CALL(Func, OP, ...) -> Func(Args) OP ...
+#define WJR_MACRO_CALL(Func, OP, ...) WJR_EXPAND(WJR_MACRO_CALL_(Func, OP, WJR_MACRO_ARG_LEN(__VA_ARGS__), __VA_ARGS__))
+#define WJR_MACRO_CALL_(Func, OP, N, ...) WJR_EXPAND(WJR_MACRO_CALL_N(Func, OP, N, __VA_ARGS__))
+#define WJR_MACRO_CALL_N(Func, OP, N, ...) WJR_EXPAND(WJR_MACRO_CALL_##N(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_1(Func, OP, x) Func(x)
+#define WJR_MACRO_CALL_2(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_1(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_3(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_2(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_4(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_3(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_5(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_4(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_6(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_5(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_7(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_6(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_8(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_7(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_9(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_8(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_10(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_9(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_11(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_10(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_12(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_11(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_13(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_12(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_14(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_13(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_15(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_14(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_16(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_15(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_17(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_16(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_18(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_17(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_19(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_18(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_20(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_19(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_21(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_20(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_22(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_21(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_23(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_22(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_24(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_23(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_25(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_24(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_26(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_25(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_27(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_26(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_28(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_27(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_29(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_28(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_30(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_29(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_31(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_30(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_32(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_31(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_33(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_32(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_34(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_33(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_35(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_34(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_36(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_35(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_37(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_36(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_38(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_37(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_39(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_38(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_40(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_39(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_41(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_40(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_42(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_41(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_43(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_42(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_44(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_43(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_45(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_44(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_46(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_45(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_47(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_46(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_48(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_47(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_49(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_48(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_50(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_49(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_51(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_50(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_52(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_51(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_53(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_52(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_54(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_53(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_55(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_54(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_56(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_55(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_57(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_56(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_58(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_57(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_59(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_58(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_60(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_59(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_61(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_60(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_62(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_61(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_63(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_62(Func, OP, __VA_ARGS__))
+#define WJR_MACRO_CALL_64(Func, OP, x, ...) Func(x) OP WJR_EXPAND(WJR_MACRO_CALL_63(Func, OP, __VA_ARGS__))
+
+#define WJR_MACRO_CALL_COMMA(Func,  ...) WJR_EXPAND(WJR_MACRO_CALL_COMMA_(Func,  WJR_MACRO_ARG_LEN(__VA_ARGS__), __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_(Func,  N, ...) WJR_EXPAND(WJR_MACRO_CALL_COMMA_N(Func,  N, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_N(Func,  N, ...) WJR_EXPAND(WJR_MACRO_CALL_COMMA_##N(Func,  __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_1(Func,  x) Func(x)
+#define WJR_MACRO_CALL_COMMA_2(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_1(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_3(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_2(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_4(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_3(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_5(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_4(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_6(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_5(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_7(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_6(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_8(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_7(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_9(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_8(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_10(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_9(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_11(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_10(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_12(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_11(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_13(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_12(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_14(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_13(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_15(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_14(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_16(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_15(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_17(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_16(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_18(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_17(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_19(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_18(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_20(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_19(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_21(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_20(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_22(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_21(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_23(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_22(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_24(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_23(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_25(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_24(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_26(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_25(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_27(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_26(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_28(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_27(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_29(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_28(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_30(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_29(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_31(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_30(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_32(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_31(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_33(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_32(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_34(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_33(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_35(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_34(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_36(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_35(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_37(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_36(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_38(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_37(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_39(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_38(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_40(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_39(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_41(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_40(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_42(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_41(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_43(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_42(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_44(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_43(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_45(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_44(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_46(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_45(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_47(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_46(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_48(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_47(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_49(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_48(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_50(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_49(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_51(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_50(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_52(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_51(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_53(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_52(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_54(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_53(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_55(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_54(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_56(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_55(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_57(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_56(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_58(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_57(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_59(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_58(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_60(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_59(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_61(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_60(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_62(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_61(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_63(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_62(Func, __VA_ARGS__))
+#define WJR_MACRO_CALL_COMMA_64(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_63(Func, __VA_ARGS__))
 
 #define WJR_OVERLAP_P(p1, s1, p2, s2) \
 ((p1) + (s1) > (p2) && (p2) + (s2) > (p1))
@@ -769,10 +986,8 @@ return __max_cache_size;
 #endif // _WJR_NON_TEMPORARY
 
 inline bool is_intel() {
-#if defined(_WJR_INTEL)
+#if defined(WJR_INTEL)
 return true;
-#elif defined(NWJR_INTEL)
-return false;
 #elif defined(_WJR_CPUINFO)
 return __is_intel;
 #else
@@ -781,10 +996,8 @@ return false;
 }
 
 inline bool is_amd() {
-#if defined(_WJR_AMD)
+#if defined(WJR_AMD)
 return true;
-#elif defined(NWJR_AMD)
-return false;
 #elif defined(_WJR_CPUINFO)
 return __is_amd;
 #else
@@ -793,7 +1006,7 @@ return false;
 }
 
 inline bool is_enhanced_rep() {
-#if defined(_WJR_ENHNACED_REP)
+#if defined(_WJR_ENHANCED_REP)
 return true;
 #else
 return is_intel();
@@ -898,6 +1111,7 @@ WJR_INTRINSIC_CONSTEXPR bool is_constant_p(T x) noexcept {
 #if WJR_HAS_BUILTIN(__builtin_constant_p) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
 return __builtin_constant_p(x);
 #else
+(void)(x);
 return is_constant_evaluated();
 #endif
 }
@@ -928,13 +1142,14 @@ struct reserve_tag {};
 struct defer_tag {};
 struct adopt_tag {};
 
+struct unreachable_tag {};
+
 template<typename T, typename U, typename _Pred>
 struct has_global_binary_operator : std::false_type {};
 
 template<typename T, typename U, typename _Pred>
 inline constexpr bool has_global_binary_operator_v = has_global_binary_operator<T, U, _Pred>::value;
 
-WJR_REGISTER_HAS_STD_INVOKE;
 WJR_REGISTER_HAS_MEMBER_FUNCTION(operator[], subscript_operator);
 WJR_REGISTER_HAS_MEMBER_FUNCTION(operator->, point_to_operator);
 
@@ -1393,9 +1608,9 @@ return lhs = lhs ^ rhs;
 
 class __is_little_endian_helper {
 constexpr static std::uint32_t	u4 = 1;
-constexpr static std::uint8_t	u1 = (const std::uint8_t&)u4;
+constexpr static std::uint8_t	u1 = static_cast<const std::uint8_t&>(u4);
 public:
-constexpr static bool value = u1;
+constexpr static bool value = u1 != 0;
 };
 
 // constexpr endian
@@ -1990,11 +2205,6 @@ return get<1>(move(p));
 #ifndef __WJR_ALGORITHM_H
 #define __WJR_ALGORITHM_H
 
-#include <algorithm>
-#include <memory>
-#include <limits>
-#include <cstring>
-
 
 _WJR_BEGIN
 
@@ -2220,6 +2430,11 @@ _WJR_END
 #error  "This file should not be included directly. Include <wjr/algorithm.h> instead."
 #endif //__WJR_ALGORITHM_H
 
+#include <algorithm>
+#include <memory>
+#include <limits>
+#include <cstring>
+
 #pragma once
 #ifndef __WJR_ALGO_ALOG_H
 #define __WJR_ALGO_ALOG_H
@@ -2262,7 +2477,7 @@ return func1(v);	                                                               
 template<>	                                                                                                \
 struct simd_cast_fn<FROM, TO##_tag>{	                                                                    \
 FROM operator()(TO v) const{		                                                                    \
-return func2(v);	                                                                                \
+return static_cast<FROM>(func2(v));	                                                                \
 }	                                                                                                    \
 };
 
@@ -2646,15 +2861,15 @@ WJR_INTRINSIC_INLINE static __m128i loadu_si16(const void* ptr);
 WJR_INTRINSIC_INLINE static __m128i loadu_si32(const void* ptr);
 WJR_INTRINSIC_INLINE static __m128i loadu_si64(const void* ptr);
 
-template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
+template<typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 uint8_t, uint16_t, uint32_t, uint64_t>, int> = 0>
 WJR_INTRINSIC_INLINE static __m128i logical_and(__m128i a, __m128i b, T);
 
-template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
+template<typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 uint8_t, uint16_t, uint32_t, uint64_t>, int> = 0>
 WJR_INTRINSIC_INLINE static __m128i logical_not(__m128i v, T);
 
-template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
+template<typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 uint8_t, uint16_t, uint32_t, uint64_t>, int> = 0>
 WJR_INTRINSIC_INLINE static __m128i logical_or(__m128i a, __m128i b, T);
 
@@ -3438,15 +3653,15 @@ WJR_INTRINSIC_INLINE static __m256i hsub(__m256i a, __m256i b, int32_t);
 
 WJR_INTRINSIC_INLINE static __m256i hsubs_epi16(__m256i a, __m256i b);
 
-template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
+template<typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 uint8_t, uint16_t, uint32_t, uint64_t>, int> = 0>
 WJR_INTRINSIC_INLINE static __m256i logical_and(__m256i a, __m256i b, T);
 
-template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
+template<typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 uint8_t, uint16_t, uint32_t, uint64_t>, int> = 0>
 WJR_INTRINSIC_INLINE static __m256i logical_not(__m256i v, T);
 
-template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
+template<typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 uint8_t, uint16_t, uint32_t, uint64_t>, int> = 0>
 WJR_INTRINSIC_INLINE static __m256i logical_or(__m256i a, __m256i b, T);
 
@@ -3653,6 +3868,130 @@ WJR_INTRINSIC_INLINE static __m256i unpacklo(__m256i a, __m256i b, uint32_t);
 #endif // WJR_AVX2
 
 };
+
+#define WJR_SIMD_WIDTH(simd_t) simd_t::width()
+#define WJR_SIMD_VALUE_SIZE(ptr) sizeof(decltype(*(ptr)))
+#define WJR_SIMD_OFFSET(simd_t, ptr) (WJR_SIMD_WIDTH(simd_t) / (8 * WJR_SIMD_VALUE_SIZE(ptr)))
+#define WJR_SIMD_ALIGNMENT(simd_t, ptr) (WJR_SIMD_WIDTH(simd_t) / (WJR_SIMD_VALUE_SIZE(ptr)))
+#define WJR_SIMD_UINTPTR(ptr) reinterpret_cast<uintptr_t>(ptr)
+
+#define WJR_SIMD_SUFFIX_0 _FORWARD
+#define WJR_SIMD_SUFFIX_1 _BACKWARD
+
+// use this to control if is forward of backward
+//#define WJR_SIMD_IS_BACKWARD 0
+
+#define WJR_SIMD_SUFFIX WJR_MACRO_CONCAT(WJR_SIMD_SUFFIX_, WJR_SIMD_IS_BACKWARD)
+#define _WJR_SIMD_USE_SUFFIX(MACRO, SUFFIX) WJR_MACRO_CONCAT(MACRO, SUFFIX)
+#define WJR_SIMD_USE_SUFFIX(MACRO) _WJR_SIMD_USE_SUFFIX(MACRO, WJR_SIMD_SUFFIX)
+
+#define WJR_SIMD_LEFT_PTR_N_FORWARD(ptr, N) (ptr)
+#define WJR_SIMD_RIGHT_PTR_N_FORWARD(ptr, N) (ptr + (N))
+#define WJR_SIMD_LEFT_PTR_N_BACKWARD(ptr, N) (ptr - (N))
+#define WJR_SIMD_RIGHT_PTR_N_BACKWARD(ptr, N) (ptr)
+
+#define WJR_SIMD_LEFT_PTR_N(ptr, N) WJR_SIMD_USE_SUFFIX(WJR_SIMD_LEFT_PTR_N)(ptr, N)
+#define WJR_SIMD_RIGHT_PTR_N(ptr, N) WJR_SIMD_USE_SUFFIX(WJR_SIMD_RIGHT_PTR_N)(ptr, N)
+
+#define WJR_SIMD_PTR(ptr) WJR_SIMD_LEFT_PTR_N(ptr, 1)
+
+#define WJR_SIMD_LEFT_PTR(simd_t, ptr) WJR_SIMD_LEFT_PTR_N(ptr, WJR_SIMD_OFFSET(simd_t, ptr))
+#define WJR_SIMD_RIGHT_PTR(simd_t, ptr) WJR_SIMD_RIGHT_PTR_N(ptr, WJR_SIMD_OFFSET(simd_t, ptr))
+
+// do nothing
+#define WJR_SIMD_INIT_PTR_FORWARD(ptr, n)
+#define WJR_SIMD_INIT_PTR_BACKWARD(ptr, n) (ptr += n)
+
+#define WJR_SIMD_INIT_PTR(ptr, n) WJR_SIMD_USE_SUFFIX(WJR_SIMD_INIT_PTR)(ptr, n)
+
+#define WJR_SIMD_ADD_PTR_FORWARD(ptr, n) (ptr + (n))
+#define WJR_SIMD_SUB_PTR_FORWARD(ptr, n) (ptr - (n))
+#define WJR_SIMD_ADD_PTR_BACKWARD(ptr, n) WJR_SIMD_SUB_PTR_FORWARD(ptr, n)
+#define WJR_SIMD_SUB_PTR_BACKWARD(ptr, n) WJR_SIMD_ADD_PTR_FORWARD(ptr, n)
+
+#define WJR_SIMD_ADD_PTR(ptr, n) WJR_SIMD_USE_SUFFIX(WJR_SIMD_ADD_PTR)(ptr, n)
+#define WJR_SIMD_SUB_PTR(ptr, n) WJR_SIMD_USE_SUFFIX(WJR_SIMD_SUB_PTR)(ptr, n)
+
+#define WJR_SIMD_INC_PTR_FORWARD(ptr, n)	(ptr += n)
+#define WJR_SIMD_DEC_PTR_FORWARD(ptr, n)	(ptr -= n)
+#define WJR_SIMD_INC_PTR_BACKWARD(ptr, n)	WJR_SIMD_DEC_PTR_FORWARD(ptr, n)
+#define WJR_SIMD_DEC_PTR_BACKWARD(ptr, n)	WJR_SIMD_INC_PTR_FORWARD(ptr, n)
+
+#define WJR_SIMD_INC_PTR(ptr, n) WJR_SIMD_USE_SUFFIX(WJR_SIMD_INC_PTR)(ptr, n)
+#define WJR_SIMD_DEC_PTR(ptr, n) WJR_SIMD_USE_SUFFIX(WJR_SIMD_DEC_PTR)(ptr, n)
+
+#define WJR_SIMD_CHECK_ALIGN(W) static_assert(wjr::has_single_bit(W), "invalid align");
+
+#define WJR_SIMD_FLOOR_ALIGN_OFFSET_FORWARD(ptr, W) (WJR_SIMD_UINTPTR(ptr) & ((W) - 1))
+#define WJR_SIMD_CEIL_ALIGN_OFFSET_FORWARD(ptr, W) ((-WJR_SIMD_UINTPTR(ptr)) & ((W) - 1))
+#define WJR_SIMD_FLOOR_ALIGN_OFFSET_BACKWARD(ptr, W) WJR_SIMD_CEIL_ALIGN_OFFSET_FORWARD(ptr, W)
+#define WJR_SIMD_CEIL_ALIGN_OFFSET_BACKWARD(ptr, W) WJR_SIMD_FLOOR_ALIGN_OFFSET_FORWARD(ptr, W)
+
+#define WJR_SIMD_FLOOR_ALIGN_OFFSET(ptr, W) WJR_SIMD_USE_SUFFIX(WJR_SIMD_FLOOR_ALIGN_OFFSET)(ptr, W)
+#define WJR_SIMD_CEIL_ALIGN_OFFSET(ptr, W) WJR_SIMD_USE_SUFFIX(WJR_SIMD_CEIL_ALIGN_OFFSET)(ptr, W)
+
+#define WJR_SIMD_FLOOR_ALIGN_PTR_FORWARD(ptr, W) reinterpret_cast<decltype(ptr)>(WJR_SIMD_UINTPTR(ptr) & (~((W) - 1)))
+#define WJR_SIMD_CEIL_ALIGN_PTR_FORWARD(ptr, W) reinterpret_cast<decltype(ptr)>((WJR_SIMD_UINTPTR(ptr) + (W) - 1) & (~((W) - 1)))
+#define WJR_SIMD_FLOOR_ALIGN_PTR_BACKWARD(ptr, W) WJR_SIMD_CEIL_ALIGN_PTR_FORWARD(ptr, W)
+#define WJR_SIMD_CEIL_ALIGN_PTR_BACKWARD(ptr, W) WJR_SIMD_FLOOR_ALIGN_PTR_FORWARD(ptr, W)
+
+#define WJR_SIMD_FLOOR_ALIGN_PTR(ptr, W) WJR_SIMD_USE_SUFFIX(WJR_SIMD_FLOOR_ALIGN_PTR)(ptr, W)
+#define WJR_SIMD_CEIL_ALIGN_PTR(ptr, W) WJR_SIMD_USE_SUFFIX(WJR_SIMD_CEIL_ALIGN_PTR)(ptr, W)
+
+#define WJR_SIMD_FIRST_ZERO_FORWARD(x) wjr::countr_one(x)
+#define WJR_SIMD_LAST_ZERO_FORWARD(x) wjr::countl_one(x)
+#define WJR_SIMD_FIRST_ONE_FORWARD(x) wjr::countr_zero(x)
+#define WJR_SIMD_LAST_ONE_FORWARD(x) wjr::countl_zero(x)
+#define WJR_SIMD_FIRST_ZERO_BACKWARD(x) WJR_SIMD_LAST_ZERO_FORWARD(x)
+#define WJR_SIMD_LAST_ZERO_BACKWARD(x) WJR_SIMD_FIRST_ZERO_FORWARD(x)
+#define WJR_SIMD_FIRST_ONE_BACKWARD(x) WJR_SIMD_LAST_ONE_FORWARD(x)
+#define WJR_SIMD_LAST_ONE_BACKWARD(x) WJR_SIMD_FIRST_ONE_FORWARD(x)
+
+#define WJR_SIMD_FIRST_ZERO(x) WJR_SIMD_USE_SUFFIX(WJR_SIMD_FIRST_ZERO)(x)
+#define WJR_SIMD_LAST_ZERO(x) WJR_SIMD_USE_SUFFIX(WJR_SIMD_LAST_ZERO)(x)
+#define WJR_SIMD_FIRST_ONE(x) WJR_SIMD_USE_SUFFIX(WJR_SIMD_FIRST_ONE)(x)
+#define WJR_SIMD_LAST_ONE(x) WJR_SIMD_USE_SUFFIX(WJR_SIMD_LAST_ONE)(x)
+
+#define _WJR_SIMD_FIRST_OR_ZERO_PTR(ptr, x, FUNC, SUFFIX) \
+_WJR_SIMD_USE_SUFFIX(WJR_SIMD_ADD_PTR, SUFFIX)(ptr, FUNC(x) / WJR_SIMD_VALUE_SIZE(ptr))
+
+#define WJR_SIMD_FIRST_ZERO_PTR_FORWARD(ptr, x) _WJR_SIMD_FIRST_OR_ZERO_PTR(ptr, x, WJR_SIMD_FIRST_ZERO, WJR_SIMD_FORWARD_SUFFIX)
+#define WJR_SIMD_LAST_ZERO_PTR_FORWARD(ptr, x) _WJR_SIMD_FIRST_OR_ZERO_PTR(ptr, x, WJR_SIMD_LAST_ZERO, WJR_SIMD_FORWARD_SUFFIX)
+#define WJR_SIMD_FIRST_ONE_PTR_FORWARD(ptr, x) _WJR_SIMD_FIRST_OR_ZERO_PTR(ptr, x, WJR_SIMD_FIRST_ONE, WJR_SIMD_FORWARD_SUFFIX)
+#define WJR_SIMD_LAST_ONE_PTR_FORWARD(ptr, x) _WJR_SIMD_FIRST_OR_ZERO_PTR(ptr, x, WJR_SIMD_LAST_ONE, WJR_SIMD_FORWARD_SUFFIX)
+
+#define WJR_SIMD_FIRST_ZERO_PTR_BACKWARD(ptr, x) _WJR_SIMD_FIRST_OR_ZERO_PTR(ptr, x, WJR_SIMD_FIRST_ZERO, WJR_SIMD_BACKWARD_SUFFIX)
+#define WJR_SIMD_LAST_ZERO_PTR_BACKWARD(ptr, x) _WJR_SIMD_FIRST_OR_ZERO_PTR(ptr, x, WJR_SIMD_LAST_ZERO, WJR_SIMD_BACKWARD_SUFFIX)
+#define WJR_SIMD_FIRST_ONE_PTR_BACKWARD(ptr, x) _WJR_SIMD_FIRST_OR_ZERO_PTR(ptr, x, WJR_SIMD_FIRST_ONE, WJR_SIMD_BACKWARD_SUFFIX)
+#define WJR_SIMD_LAST_ONE_PTR_BACKWARD(ptr, x) _WJR_SIMD_FIRST_OR_ZERO_PTR(ptr, x, WJR_SIMD_LAST_ONE, WJR_SIMD_BACKWARD_SUFFIX)
+
+#define WJR_SIMD_FIRST_ZERO_PTR(ptr, x) WJR_SIMD_ADD_PTR(ptr, WJR_SIMD_FIRST_ZERO(x) / WJR_SIMD_VALUE_SIZE(ptr))
+#define WJR_SIMD_LAST_ZERO_PTR(ptr, x) WJR_SIMD_ADD_PTR(ptr, WJR_SIMD_LAST_ZERO(x) / WJR_SIMD_VALUE_SIZE(ptr))
+#define WJR_SIMD_FIRST_ONE_PTR(ptr, x) WJR_SIMD_ADD_PTR(ptr, WJR_SIMD_FIRST_ONE(x) / WJR_SIMD_VALUE_SIZE(ptr))
+#define WJR_SIMD_LAST_ONE_PTR(ptr, x) WJR_SIMD_ADD_PTR(ptr, WJR_SIMD_LAST_ONE(x) / WJR_SIMD_VALUE_SIZE(ptr))
+
+#define _WJR_SIMD_LOAD(simd_t, PREFIX, ptr, LOAD, J)	                                                                        \
+auto PREFIX = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(J(simd_t, ptr)));
+#define _WJR_SIMD_LOAD2(simd_t, PREFIX, ptr0, ptr1, LOAD, J)	                                                                \
+auto PREFIX##0 = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(J(simd_t, ptr0)));	                        \
+auto PREFIX##1 = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(J(simd_t, ptr1)));
+#define _WJR_SIMD_LOAD4(simd_t, PREFIX, ptr0, ptr1, ptr2, ptr3 , LOAD, J)	                                                    \
+auto PREFIX##0 = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(J(simd_t, ptr0)));	                        \
+auto PREFIX##1 = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(J(simd_t, ptr1)));	                        \
+auto PREFIX##2 = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(J(simd_t, ptr2)));	                        \
+auto PREFIX##3 = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(J(simd_t, ptr3)));
+
+#define WJR_SIMD_LOADU(simd_t, PREFIX, ptr) _WJR_SIMD_LOAD(simd_t, PREFIX, ptr, loadu, WJR_SIMD_LEFT_PTR)
+#define WJR_SIMD_LOADU2(simd_t, PREFIX, ptr0, ptr1)             \
+_WJR_SIMD_LOAD2(simd_t, PREFIX, ptr0, ptr1, loadu, WJR_SIMD_LEFT_PTR)
+#define WJR_SIMD_LOADU4(simd_t, PREFIX, ptr0, ptr1, ptr2, ptr3) \
+_WJR_SIMD_LOAD4(simd_t, PREFIX, ptr0, ptr1, ptr2, ptr3, loadu, WJR_SIMD_LEFT_PTR)
+
+#define WJR_SIMD_LOAD(simd_t, PREFIX, ptr)	_WJR_SIMD_LOAD(simd_t, PREFIX, ptr, load, WJR_SIMD_LEFT_PTR)
+#define WJR_SIMD_LOAD2(simd_t, PREFIX, ptr0, ptr1)              \
+_WJR_SIMD_LOAD2(simd_t, PREFIX, ptr0, ptr1, load, WJR_SIMD_LEFT_PTR)
+#define WJR_SIMD_LOAD4(simd_t, PREFIX, ptr0, ptr1, ptr2, ptr3)  \
+_WJR_SIMD_LOAD4(simd_t, PREFIX, ptr0, ptr1, ptr2, ptr3, load, WJR_SIMD_LEFT_PTR)
 
 _WJR_SIMD_END
 
@@ -4343,7 +4682,7 @@ return x;
 }
 
 WJR_INTRINSIC_CONSTEXPR static uint16_t __wjr_fallback_bswap16(uint16_t x) {
-return (x >> 8) | (x << 8);
+return static_cast<uint16_t>(x >> 8) | static_cast<uint16_t>(x << 8);
 }
 
 WJR_INTRINSIC_CONSTEXPR static uint32_t __wjr_fallback_bswap32(uint32_t x) {
@@ -4458,7 +4797,9 @@ _WJR_ASM_BEGIN
 
 #if defined(_WJR_FAST_REP)
 
-WJR_INTRINSIC_INLINE void rep_stosb(uint8_t* s, uint8_t val, size_t n) {
+// rep stos
+
+WJR_INTRINSIC_INLINE void rep_stos(uint8_t* s, uint8_t val, size_t n) {
 #if defined(WJR_COMPILER_MSVC)
 __stosb(reinterpret_cast<unsigned char*>(s), val, n);
 #else
@@ -4466,7 +4807,7 @@ asm volatile("rep stosb" : "+D"(s), "+c"(n) : "a"(val) : "memory");
 #endif
 }
 
-WJR_INTRINSIC_INLINE void rep_stosw(uint16_t* s, uint16_t val, size_t n) {
+WJR_INTRINSIC_INLINE void rep_stos(uint16_t* s, uint16_t val, size_t n) {
 #if defined(WJR_COMPILER_MSVC)
 __stosw(reinterpret_cast<unsigned short*>(s), val, n);
 #else
@@ -4474,7 +4815,7 @@ asm volatile("rep stosw" : "+D"(s), "+c"(n) : "a"(val) : "memory");
 #endif
 }
 
-WJR_INTRINSIC_INLINE void rep_stosd(uint32_t* s, uint32_t val, size_t n) {
+WJR_INTRINSIC_INLINE void rep_stos(uint32_t* s, uint32_t val, size_t n) {
 #if defined(WJR_COMPILER_MSVC)
 __stosd(reinterpret_cast<unsigned long*>(s), val, n);
 #else
@@ -4482,7 +4823,7 @@ asm volatile("rep stosd" : "+D"(s), "+c"(n) : "a"(val) : "memory");
 #endif
 }
 
-WJR_INTRINSIC_INLINE void rep_stosq(uint64_t* s, uint64_t val, size_t n) {
+WJR_INTRINSIC_INLINE void rep_stos(uint64_t* s, uint64_t val, size_t n) {
 #if defined(WJR_COMPILER_MSVC)
 __stosq(reinterpret_cast<unsigned long long*>(s), val, n);
 #else
@@ -4708,7 +5049,7 @@ struct __width_table {
 constexpr static unsigned int max_size = SIZE;
 static_assert(SIZE <= 2048, "");
 constexpr __width_table() : m_table() {
-m_table[0] = 0;
+m_table[0] = -1;
 for (unsigned int i = 1; i < SIZE; ++i) {
 m_table[i] = m_table[i / base] + 1;
 }
@@ -4929,24 +5270,86 @@ constexpr static unsigned int value = 5;
 template<unsigned int base>
 inline constexpr unsigned int __get_width_table_v = __get_width_table<base>::value;
 
+// calc depth of __width
 template<unsigned int base, typename T, unsigned int digits>
-inline constexpr void __width(T a, unsigned int& ret) {
-if constexpr (digits == 1) {
-if (a >= base) {
-++ret;
-}
+inline constexpr unsigned int __width_depth() {
+// digits = 2, that's to say value < base ^ 2
+// we can just test if val >= base
+if constexpr (digits <= 2) {
+return 1;
 }
 else {
 constexpr auto mid_digits = (digits + 1) / 2;
-constexpr auto MID = power(base, mid_digits);
-if (a >= MID) {
-ret += mid_digits;
-a /= MID;
-}
 constexpr auto __table_index = __get_width_table_v<base>;
 if constexpr (__table_index != -1) {
-constexpr auto SIZE = __get_width_table_size<__table_index>::value;
-if constexpr (MID < SIZE) {
+constexpr auto __table_size = __get_width_table_size<__table_index>::value;
+constexpr auto mid = power<T>(base, mid_digits);
+if constexpr (mid <= __table_size) {
+return 1;
+}
+else {
+return 1 + __width_depth<base, T, mid_digits>();
+}
+}
+else {
+return 1 + __width_depth<base, T, mid_digits>();
+}
+}
+}
+
+template<unsigned int base, typename T, unsigned int digits>
+inline constexpr bool __width_end_with_table() {
+if constexpr (digits <= 2) {
+return false;
+}
+else {
+constexpr auto mid_digits = (digits + 1) / 2;
+constexpr auto __table_index = __get_width_table_v<base>;
+if constexpr (__table_index != -1) {
+constexpr auto __table_size = __get_width_table_size<__table_index>::value;
+constexpr auto mid = power<T>(base, mid_digits);
+if constexpr (mid <= __table_size) {
+return true;
+}
+else {
+return __width_end_with_table<base, T, mid_digits>();
+}
+}
+else {
+return __width_end_with_table<base, T, mid_digits>();
+}
+}
+}
+
+#define __WIDTH_WORK_GEN(x)	                                \
+if constexpr(depth >= x){	                                \
+constexpr auto mid_digits##x = get_mid_digits(x);	    \
+constexpr auto mid##x = power<T>(base, mid_digits##x);	\
+if(a >= mid##x){	                                    \
+ret += mid_digits##x;	                            \
+a /= mid##x;		                                \
+}	                                                    \
+}
+
+// optimized
+template<unsigned int base, typename T, unsigned int digits, unsigned int depth, bool use_table>
+inline constexpr void __width(T a, unsigned int& ret) {
+constexpr auto get_mid_digits = [](int x) {
+unsigned int D = digits;
+while (x) {
+D = (D + 1) / 2;
+--x;
+}
+return D;
+};
+if constexpr (depth <= 4) {
+WJR_MACRO_CALL(__WIDTH_WORK_GEN, , 1, 2, 3, 4);
+if constexpr (use_table) {
+constexpr auto __mid_digits = get_mid_digits(depth);
+constexpr auto __mid = power<T>(base, __mid_digits);
+constexpr auto __table_index = __get_width_table_v<base>;
+constexpr auto __table_size = __get_width_table_size<__table_index>::value;
+//static_assert(__mid <= __table_size, "");
 constexpr auto p = []() {
 unsigned int ret = 0;
 unsigned int idx = base;
@@ -4958,24 +5361,27 @@ return ret;
 }();
 ret += (__width_table_v<__table_index>[static_cast<unsigned int>(a)] + p - 1) / p;
 }
-else {
-__width<base, T, mid_digits>(a, ret);
-}
 }
 else {
-__width<base, T, mid_digits>(a, ret);
-}
+WJR_MACRO_CALL(__WIDTH_WORK_GEN, , 1, 2, 3, 4);
+__width<base, T, get_mid_digits(4), depth - 4, use_table>(a, ret);
 }
 }
 
-// calc ceil(log(a)) / log(base)
+#undef __WIDTH_WORK_GEN
+
+// calc ceil(log(a) / log(base))
 // for a = 0, return 0
 // for a = (1, base), return 1
 // force constexpr, so when base is power of 2, the performance may be worse
 template<unsigned int base, typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 inline constexpr unsigned int base_width(T a) {
-unsigned int ret = 0;
-__width<base, T, base_digits_v<T, base>>(a, ret);
+constexpr auto __digits = base_digits_v<T, base>;
+constexpr auto __depth = __width_depth<base, T, __digits>();
+constexpr auto __use_table = __width_end_with_table<base, T, __digits>();
+if (is_unlikely(!a)) return 0;
+unsigned int ret = 1;
+__width<base, T, __digits, __depth, __use_table>(a, ret);
 return ret;
 }
 
@@ -5050,40 +5456,40 @@ return x;
 template<>
 struct broadcast_fn<uint16_t, uint8_t> {
 WJR_INTRINSIC_CONSTEXPR uint16_t operator()(uint8_t x)const {
-return x | ((uint16_t)x << 8);
+return static_cast<uint16_t>(static_cast<uint32_t>(x) | (static_cast<uint16_t>(x) << 8));
 }
 };
 
 template<>
 struct broadcast_fn<uint32_t, uint16_t> {
 WJR_INTRINSIC_CONSTEXPR uint32_t operator()(uint16_t x)const {
-return x | ((uint32_t)x << 16);
+return x | (static_cast<uint32_t>(x) << 16);
 }
 };
 template<>
 struct broadcast_fn<uint64_t, uint32_t> {
 WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint32_t x)const {
-return x | ((uint64_t)x << 32);
+return static_cast<uint64_t>(x) | (static_cast<uint64_t>(x) << 32);
 }
 };
 
 template<>
 struct broadcast_fn<uint32_t, uint8_t> {
 WJR_INTRINSIC_CONSTEXPR uint32_t operator()(uint8_t x)const {
-return x * (uint32_t)0x01010101;
+return x * static_cast<uint32_t>(0x01010101u);
 }
 };
 template<>
 struct broadcast_fn<uint64_t, uint16_t> {
 WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint16_t x)const {
-return x * (uint64_t)0x0001000100010001;
+return x * static_cast<uint64_t>(0x0001000100010001ull);
 }
 };
 
 template<>
 struct broadcast_fn<uint64_t, uint8_t> {
 WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint8_t x)const {
-return x * (uint64_t)0x0101010101010101;
+return x * static_cast<uint64_t>(0x0101010101010101ull);
 }
 };
 
@@ -5182,11 +5588,11 @@ return simd_cast<__m128i_tag, uint16_t>(*reinterpret_cast<uint16_t const*>(p));
 }
 
 __m128i mm_loadu_si32(void const* p) {
-return simd_cast<__m128i_tag, uint32_t>(*reinterpret_cast<int32_t const*>(p));
+return simd_cast<__m128i_tag, uint32_t>(*reinterpret_cast<uint32_t const*>(p));
 }
 
 __m128i mm_loadu_si64(void const* p) {
-return simd_cast<__m128i_tag, uint64_t>(*reinterpret_cast<int64_t const*>(p));
+return simd_cast<__m128i_tag, uint64_t>(*reinterpret_cast<uint64_t const*>(p));
 }
 
 #endif // WJR_SSE2
@@ -5199,7 +5605,7 @@ constexpr sse::mask_type sse::mask() { return 0xFFFF; }
 
 #if WJR_SSE
 sse::mask_type sse::movemask_ps(__m128 v) {
-return _mm_movemask_ps(v);
+return static_cast<sse::mask_type>(_mm_movemask_ps(v));
 }
 
 void sse::sfence() { return _mm_sfence(); }
@@ -5227,10 +5633,10 @@ __m128i sse::add(__m128i a, __m128i b, uint16_t) { return add_epi16(a, b); }
 __m128i sse::add(__m128i a, __m128i b, uint32_t) { return add_epi32(a, b); }
 __m128i sse::add(__m128i a, __m128i b, uint64_t) { return add_epi64(a, b); }
 
-int8_t sse::add_epi8(__m128i a) { return add_epu8(a); }
-int16_t sse::add_epi16(__m128i a) { return add_epu16(a); }
-int32_t sse::add_epi32(__m128i a) { return add_epu32(a); }
-int64_t sse::add_epi64(__m128i a) { return add_epu64(a); }
+int8_t sse::add_epi8(__m128i a) { return static_cast<int8_t>(add_epu8(a)); }
+int16_t sse::add_epi16(__m128i a) { return static_cast<int16_t>(add_epu16(a)); }
+int32_t sse::add_epi32(__m128i a) { return static_cast<int32_t>(add_epu32(a)); }
+int64_t sse::add_epi64(__m128i a) { return static_cast<int64_t>(add_epu64(a)); }
 
 uint8_t sse::add_epu8(__m128i a) {
 auto b = shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a);
@@ -5640,20 +6046,20 @@ __m128i sse::loadu_si16(const void* ptr) { return simd::mm_loadu_si16(ptr); }
 __m128i sse::loadu_si32(const void* ptr) { return simd::mm_loadu_si32(ptr); }
 __m128i sse::loadu_si64(const void* ptr) { return simd::mm_loadu_si64(ptr); }
 
-template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
+template<typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 uint8_t, uint16_t, uint32_t, uint64_t>, int>>
 __m128i sse::logical_and(__m128i a, __m128i b, T) {
 return Not(Or(logical_not(a, T()), logical_not(b, T())));
 }
 
-template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
+template<typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 uint8_t, uint16_t, uint32_t, uint64_t>, int>>
 __m128i sse::logical_not(__m128i v, T) {
 auto Zero = zeros();
 return cmpeq(v, Zero, T());
 }
 
-template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
+template<typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 uint8_t, uint16_t, uint32_t, uint64_t>, int>>
 __m128i sse::logical_or(__m128i a, __m128i b, T) {
 return Not(logical_not(Or(a, b), T()));
@@ -6904,20 +7310,20 @@ __m256i avx::hsub(__m256i a, __m256i b, int32_t) { return hsub_epi32(a, b); }
 
 __m256i avx::hsubs_epi16(__m256i a, __m256i b) { return _mm256_hsubs_epi16(a, b); }
 
-template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
+template<typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 uint8_t, uint16_t, uint32_t, uint64_t>, int>>
 __m256i avx::logical_and(__m256i a, __m256i b, T) {
 return Not(Or(logical_not(a, T()), logical_not(b, T())));
 }
 
-template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
+template<typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 uint8_t, uint16_t, uint32_t, uint64_t>, int>>
 __m256i avx::logical_not(__m256i v, T) {
 auto Zero = zeros();
 return cmpeq(v, Zero, T());
 }
 
-template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
+template<typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 uint8_t, uint16_t, uint32_t, uint64_t>, int>>
 __m256i avx::logical_or(__m256i a, __m256i b, T) {
 return Not(logical_not(Or(a, b), T()));
@@ -7174,46 +7580,56 @@ _WJR_SIMD_END
 
 #if defined(_WJR_FAST_MEMCHR)
 
-#define __WJR_MEMCHR_ONE(st, _s, _q)	                            \
-{	                                                            \
-auto r = st::cmp(x, _q, pred, T());	                        \
-st::mask_type z = st::movemask_epi8(r);	                    \
-if(z != 0){	                                                \
-return (_s) + wjr::countr_zero(z) / _Mysize;	        \
-}	                                                        \
+#define __WJR_MEMCHR_ONE(st, q, ptr)												\
+{	                                                                            \
+auto r = st::cmp(x, q, pred, T());	                                        \
+st::mask_type z = st::movemask_epi8(r);	                                    \
+if(z != 0){	                                                                \
+return WJR_SIMD_FIRST_ONE_PTR(ptr, z);	                                \
+}	                                                                        \
 }
 
-#define __WJR_MEMCHR_FOUR(st, _s0, _s1, _s2, _s3, _q)	            \
-{	                                                            \
-auto r0 = st::cmp(x0, _q, pred, T());	                    \
-auto r1 = st::cmp(x1, _q, pred, T());	                    \
-auto r2 = st::cmp(x2, _q, pred, T());	                    \
-auto r3 = st::cmp(x3, _q, pred, T());	                    \
+#define __WJR_MEMCHR_FOUR(st, q, ptr0, ptr1, ptr2, ptr3)							\
+{	                                                                            \
+auto r0 = st::cmp(x0, q, pred, T());	                                    \
+auto r1 = st::cmp(x1, q, pred, T());	                                    \
+auto r2 = st::cmp(x2, q, pred, T());	                                    \
+auto r3 = st::cmp(x3, q, pred, T());	                                    \
 \
-r3 = st::Or(st::Or(r0, r1), st::Or(r2, r3));	            \
-st::mask_type z = st::movemask_epi8(r3);	                \
-if(z != 0){	                                                \
-st::mask_type tmp = st::movemask_epi8(r0);	            \
-if(tmp != 0){	                                        \
-return (_s0) + wjr::countr_zero(tmp) / _Mysize;	    \
-}	                                                    \
-tmp = st::movemask_epi8(r1);	                        \
-if(tmp != 0){	                                        \
-return (_s1) + wjr::countr_zero(tmp) / _Mysize;	    \
-}	                                                    \
-tmp = st::movemask_epi8(r2);	                        \
-if(tmp != 0){	                                        \
-return (_s2) + wjr::countr_zero(tmp) / _Mysize;	    \
-}	                                                    \
-tmp = z;	                                            \
-return (_s3) + wjr::countr_zero(tmp) / _Mysize;	        \
-}	                                                        \
+r3 = st::Or(st::Or(r0, r1), st::Or(r2, r3));	                            \
+st::mask_type z = st::movemask_epi8(r3);	                                \
+if(z != 0){	                                                                \
+st::mask_type tmp = st::movemask_epi8(r0);	                            \
+if(tmp != 0){	                                                        \
+return WJR_SIMD_FIRST_ONE_PTR(ptr0, tmp);	                        \
+}	                                                                    \
+tmp = st::movemask_epi8(r1);	                                        \
+if(tmp != 0){	                                                        \
+return WJR_SIMD_FIRST_ONE_PTR(ptr1, tmp);	                        \
+}	                                                                    \
+tmp = st::movemask_epi8(r2);	                                        \
+if(tmp != 0){	                                                        \
+return WJR_SIMD_FIRST_ONE_PTR(ptr2, tmp);	                        \
+}	                                                                    \
+tmp = z;	                                                            \
+return WJR_SIMD_FIRST_ONE_PTR(ptr3, tmp);	                            \
+}	                                                                        \
 }
+
+#define WJR_SIMD_IS_BACKWARD 0
+#define __WJR_MEMCHR_NAME __memchr
+#ifndef __WJR_ALGO_ALOG_H
+#error "This file should not be included directly. Include <wjr/algo.h> instead."
+#endif
+
+// __WJR_MEMCHR_ONE
+// __WJR_MEMCHR_FOUR
+// __WJR_MEMCHR_NAME
 
 _WJR_ALGO_BEGIN
 
 template<typename T, typename _Pred>
-const T* __memchr(const T* s, T val, size_t n, _Pred pred) {
+WJR_NODISCARD WJR_NOINLINE const T* WJR_MACRO_CONCAT(__large, __WJR_MEMCHR_NAME)(const T* s, T val, size_t n, _Pred pred) noexcept {
 
 constexpr size_t _Mysize = sizeof(T);
 
@@ -7222,34 +7638,11 @@ using simd_t = simd::avx;
 #else
 using simd_t = simd::sse;
 #endif // WJR_AVX2
-using sint = typename simd_t::int_type;
+
 constexpr uintptr_t width = simd_t::width() / (8 * _Mysize);
 constexpr uintptr_t bound = width * _Mysize;
 
-if (is_unlikely(n == 0)) return s;
-
-if (n >= 16 / _Mysize) {
-auto qx = simd::sse::set1(val, T());
-
-if (n <= 32 / _Mysize) {
-// solve first 16 bytes
-auto x = simd::sse::loadu(reinterpret_cast<const __m128i*>(s));
-
-__WJR_MEMCHR_ONE(simd::sse, s, qx);
-
-// solve last 16 bytes
-
-s += n - 16 / _Mysize;
-
-x = simd::sse::loadu(reinterpret_cast<const __m128i*>(s));
-
-__WJR_MEMCHR_ONE(simd::sse, s, qx);
-
-return s + 16 / _Mysize;
-}
-
-// solve first min(n, 128 / _Mysize) bytes
-// no branch algorithm
+auto q = simd_t::set1(val, T());
 
 {
 const auto m = n <= 128 / _Mysize ? n : 128 / _Mysize;
@@ -7257,100 +7650,98 @@ const auto delta = ((m - 1) & (64 / _Mysize)) >> 1;
 const auto negdelta = m - 32 / _Mysize;
 
 #if WJR_AVX2
-{
-auto qy = broadcast<simd::__m256i_tag, simd::__m128i_tag>(qx);
-auto x0 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s));
-auto x1 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s + delta));
-auto x2 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s + negdelta - delta));
-auto x3 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s + negdelta));
+static_assert(std::is_same_v<simd_t, simd::avx>, "");
 
-__WJR_MEMCHR_FOUR(simd::avx,
-s,
-s + delta,
-s + negdelta - delta,
-s + negdelta,
-qy);
+{
+{
+WJR_SIMD_LOADU(simd::avx, x, WJR_SIMD_ADD_PTR(s, delta));
+__WJR_MEMCHR_ONE(simd::avx, q, WJR_SIMD_ADD_PTR(s, delta));
+}
+{
+WJR_SIMD_LOADU(simd::avx, x, WJR_SIMD_ADD_PTR(s, negdelta - delta));
+__WJR_MEMCHR_ONE(simd::avx, q, WJR_SIMD_ADD_PTR(s, negdelta - delta));
+}
+{
+WJR_SIMD_LOADU(simd::avx, x, WJR_SIMD_ADD_PTR(s, negdelta));
+__WJR_MEMCHR_ONE(simd::avx, q, WJR_SIMD_ADD_PTR(s, negdelta));
+}
+
 }
 #else
-{
-auto x0 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s));
-auto x1 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s + 16 / _Mysize));
-auto x2 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s + delta));
-auto x3 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s + delta + 16 / _Mysize));
+static_assert(std::is_same_v<simd_t, simd::sse>, "");
 
-__WJR_MEMCHR_FOUR(simd::sse,
-s,
-s + 16 / _Mysize,
-s + delta,
-s + delta + 16 / _Mysize,
-qx);
+{
+{
+WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s, delta));
+__WJR_MEMCHR_ONE(simd::sse, q, WJR_SIMD_ADD_PTR(s, delta));
+}
+{
+WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s, delta + 16 / _Mysize));
+__WJR_MEMCHR_ONE(simd::sse, q, WJR_SIMD_ADD_PTR(s, delta + 16 / _Mysize));
+}
 }
 
 {
-auto x0 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s + negdelta - delta));
-auto x1 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s + negdelta - delta + 16 / _Mysize));
-auto x2 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s + negdelta));
-auto x3 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s + negdelta + 16 / _Mysize));
+WJR_SIMD_LOADU4(simd::sse, x, WJR_SIMD_ADD_PTR(s, negdelta - delta),
+WJR_SIMD_ADD_PTR(s, negdelta - delta + 16 / _Mysize),
+WJR_SIMD_ADD_PTR(s, negdelta),
+WJR_SIMD_ADD_PTR(s, negdelta + 16 / _Mysize));
 
-__WJR_MEMCHR_FOUR(simd::sse,
-s + negdelta - delta,
-s + negdelta - delta + 16 / _Mysize,
-s + negdelta,
-s + negdelta + 16 / _Mysize,
-qx);
+__WJR_MEMCHR_FOUR(simd::sse, q,
+WJR_SIMD_ADD_PTR(s, negdelta - delta),
+WJR_SIMD_ADD_PTR(s, negdelta - delta + 16 / _Mysize),
+WJR_SIMD_ADD_PTR(s, negdelta),
+WJR_SIMD_ADD_PTR(s, negdelta + 16 / _Mysize));
 }
 #endif // WJR_AVX2
 
 // m = std::min(n, 128 / _Mysize)
 // m == n -> n <= 128 / _Mysize
 if (m == n) {
-return s + n;
+return WJR_SIMD_ADD_PTR(s, n);
 }
 }
-
-auto q = broadcast<simd::__simd_wrapper_t<sint>, simd::__m128i_tag>(qx);
 
 if (n <= 128 / _Mysize + width * 4) {
 
 WJR_MACRO_LABEL(unaligned_last_4vec) :
 
-s += n;
+WJR_SIMD_INC_PTR(s, n);
 
-auto x0 = simd_t::loadu(reinterpret_cast<const sint*>(s - width * 4));
-auto x1 = simd_t::loadu(reinterpret_cast<const sint*>(s - width * 3));
-auto x2 = simd_t::loadu(reinterpret_cast<const sint*>(s - width * 2));
-auto x3 = simd_t::loadu(reinterpret_cast<const sint*>(s - width));
+WJR_SIMD_LOADU4(simd_t, x,
+WJR_SIMD_SUB_PTR(s, width * 4),
+WJR_SIMD_SUB_PTR(s, width * 3),
+WJR_SIMD_SUB_PTR(s, width * 2),
+WJR_SIMD_SUB_PTR(s, width));
 
-__WJR_MEMCHR_FOUR(simd_t,
-s - width * 4,
-s - width * 3,
-s - width * 2,
-s - width,
-q);
+__WJR_MEMCHR_FOUR(simd_t, q,
+WJR_SIMD_SUB_PTR(s, width * 4),
+WJR_SIMD_SUB_PTR(s, width * 3),
+WJR_SIMD_SUB_PTR(s, width * 2),
+WJR_SIMD_SUB_PTR(s, width));
 
 return s;
 }
 
-s += 128 / _Mysize;
+WJR_SIMD_INC_PTR(s, 128 / _Mysize);
 n -= 128 / _Mysize;
 
 // align
 
-if (is_likely(reinterpret_cast<uintptr_t>(s) % _Mysize == 0)) {
+if (is_likely(WJR_SIMD_UINTPTR(s) % _Mysize == 0)) {
 
-const auto off0 = reinterpret_cast<uintptr_t>(s) % bound;
+const auto __align_s = WJR_SIMD_CEIL_ALIGN_OFFSET(s, bound);
 
-// align two pointers
-if (is_constant_p(off0) && off0 == 0) {
+// align
+if (is_constant_p(__align_s) && __align_s == 0) {
 // do nothing
 }
 else {
-auto x = simd_t::loadu(reinterpret_cast<const sint*>(s));
+WJR_SIMD_LOADU(simd_t, x, s);
 
-__WJR_MEMCHR_ONE(simd_t, s, q);
+__WJR_MEMCHR_ONE(simd_t, q, s);
 
-const auto __align_s = bound - off0;
-s += __align_s / _Mysize;
+WJR_SIMD_INC_PTR(s, __align_s / _Mysize);
 n -= __align_s / _Mysize;
 
 if (is_unlikely(n < width * 4)) {
@@ -7359,19 +7750,19 @@ goto WJR_MACRO_LABEL(last_solve_align);
 }
 
 do {
-auto x0 = simd_t::load(reinterpret_cast<const sint*>(s));
-auto x1 = simd_t::load(reinterpret_cast<const sint*>(s + width));
-auto x2 = simd_t::load(reinterpret_cast<const sint*>(s + width * 2));
-auto x3 = simd_t::load(reinterpret_cast<const sint*>(s + width * 3));
-
-__WJR_MEMCHR_FOUR(simd_t,
+WJR_SIMD_LOAD4(simd_t, x,
 s,
-s + width,
-s + width * 2,
-s + width * 3,
-q);
+WJR_SIMD_ADD_PTR(s, width),
+WJR_SIMD_ADD_PTR(s, width * 2),
+WJR_SIMD_ADD_PTR(s, width * 3));
 
-s += width * 4;
+__WJR_MEMCHR_FOUR(simd_t, q,
+s,
+WJR_SIMD_ADD_PTR(s, width),
+WJR_SIMD_ADD_PTR(s, width * 2),
+WJR_SIMD_ADD_PTR(s, width * 3));
+
+WJR_SIMD_INC_PTR(s, width * 4);
 n -= width * 4;
 } while (n >= width * 4);
 
@@ -7379,22 +7770,20 @@ if (n != 0) {
 
 WJR_MACRO_LABEL(last_solve_align) :
 
-s += n;
+WJR_SIMD_INC_PTR(s, n);
 
-auto ptr0 = reinterpret_cast<T*>(
-(reinterpret_cast<uintptr_t>(s - width * 3)) & (~(bound - 1)));
+auto ptr0 = WJR_SIMD_SUB_PTR(WJR_SIMD_CEIL_ALIGN_PTR(s, bound), width * 4);
 
-auto x0 = simd_t::load(reinterpret_cast<const sint*>(ptr0));
-auto x1 = simd_t::load(reinterpret_cast<const sint*>(ptr0 + width));
-auto x2 = simd_t::load(reinterpret_cast<const sint*>(ptr0 + width * 2));
-auto x3 = simd_t::loadu(reinterpret_cast<const sint*>(s - width));
+WJR_SIMD_LOAD(simd_t, x0, ptr0);
+WJR_SIMD_LOAD(simd_t, x1, WJR_SIMD_ADD_PTR(ptr0, width));
+WJR_SIMD_LOAD(simd_t, x2, WJR_SIMD_ADD_PTR(ptr0, width * 2));
+WJR_SIMD_LOADU(simd_t, x3, WJR_SIMD_SUB_PTR(s, width));
 
-__WJR_MEMCHR_FOUR(simd_t,
+__WJR_MEMCHR_FOUR(simd_t, q,
 ptr0,
-ptr0 + width,
-ptr0 + width * 2,
-s - width,
-q);
+WJR_SIMD_ADD_PTR(ptr0, width),
+WJR_SIMD_ADD_PTR(ptr0, width * 2),
+WJR_SIMD_SUB_PTR(s, width));
 }
 
 return s;
@@ -7402,29 +7791,73 @@ return s;
 
 // unaligned algorithm
 do {
-auto x0 = simd_t::loadu(reinterpret_cast<const sint*>(s));
-auto x1 = simd_t::loadu(reinterpret_cast<const sint*>(s + width));
-auto x2 = simd_t::loadu(reinterpret_cast<const sint*>(s + width * 2));
-auto x3 = simd_t::loadu(reinterpret_cast<const sint*>(s + width * 3));
 
-__WJR_MEMCHR_FOUR(simd_t,
+WJR_SIMD_LOADU4(simd_t, x,
 s,
-s + width,
-s + width * 2,
-s + width * 3,
-q);
+WJR_SIMD_ADD_PTR(s, width),
+WJR_SIMD_ADD_PTR(s, width * 2),
+WJR_SIMD_ADD_PTR(s, width * 3));
 
-s += width * 4;
+__WJR_MEMCHR_FOUR(simd_t, q,
+s,
+WJR_SIMD_ADD_PTR(s, width),
+WJR_SIMD_ADD_PTR(s, width * 2),
+WJR_SIMD_ADD_PTR(s, width * 3));
+
+WJR_SIMD_INC_PTR(s, width * 4);
 n -= width * 4;
 } while (n >= width * 4);
 
-if (n == 0) {
+if (n != 0) {
+goto WJR_MACRO_LABEL(unaligned_last_4vec);
+
+}
+
 return s;
 }
 
-goto WJR_MACRO_LABEL(unaligned_last_4vec);
+// inline this function, and call __large_memchr for ans pos > 32
+// Doing so does not cause the code to become overly bloated, while also balancing performance
+// But what's awkward is that MSVC doesn't inline it
+template<typename T, typename _Pred>
+WJR_NODISCARD inline const T* (__WJR_MEMCHR_NAME)(const T* s, T val, size_t n, _Pred pred) noexcept {
+
+constexpr size_t _Mysize = sizeof(T);
+
+if (is_unlikely(n == 0)) return s;
+
+WJR_SIMD_INIT_PTR(s, n);
+
+if (n >= 16 / _Mysize) {
+auto qx = simd::sse::set1(val, T());
+
+{
+// solve first 16 bytes
+WJR_SIMD_LOADU(simd::sse, x, s);
+__WJR_MEMCHR_ONE(simd::sse, qx, s);
 }
 
+if (n <= 32 / _Mysize) {
+// solve last 16 bytes
+
+WJR_SIMD_INC_PTR(s, n - 16 / _Mysize);
+
+WJR_SIMD_LOADU(simd::sse, x, s);
+__WJR_MEMCHR_ONE(simd::sse, qx, s);
+
+return WJR_SIMD_ADD_PTR(s, 16 / _Mysize);
+}
+
+{
+// solve first 16 bytes
+WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s, 16 / _Mysize));
+__WJR_MEMCHR_ONE(simd::sse, qx, WJR_SIMD_ADD_PTR(s, 16 / _Mysize));
+}
+
+return WJR_MACRO_CONCAT(__large, __WJR_MEMCHR_NAME)(s, val, n, pred);
+}
+
+#if !WJR_SIMD_IS_BACKWARD
 if constexpr (_Mysize == 8) {
 // n = [1, 2)
 return pred(*s, val) ? s : s + 1;
@@ -7435,7 +7868,7 @@ if constexpr (_Mysize == 2) {
 if (n >= 4) {
 // n = [4, 8)
 auto A = *reinterpret_cast<const uint64_t*>(s);
-auto B = *reinterpret_cast<const uint64_t*>(s + n - 4);
+auto B = *reinterpret_cast<const uint64_t*>(s + (n - 4u));
 
 auto x = simd::sse::set_epi64x(B, A);
 auto y = simd::sse::set1(val, T());
@@ -7457,8 +7890,8 @@ auto delta = (n & 8) >> 1;
 
 auto A = *reinterpret_cast<const uint32_t*>(s);
 auto B = *reinterpret_cast<const uint32_t*>(s + delta);
-auto C = *reinterpret_cast<const uint32_t*>(s + n - 4 - delta);
-auto D = *reinterpret_cast<const uint32_t*>(s + n - 4);
+auto C = *reinterpret_cast<const uint32_t*>(s + (n - 4u - delta));
+auto D = *reinterpret_cast<const uint32_t*>(s + (n - 4u));
 
 auto x = simd::sse::set_epi32(D, C, B, A);
 auto y = simd::sse::set1(val, T());
@@ -7483,269 +7916,7 @@ const size_t i1 = g ? n - 1 : n;
 const size_t i2 = f ? n - 2 : i1;
 return s + i2;
 }
-
-}
-
-_WJR_ALGO_END
-
-#undef __WJR_MEMCHR_FOUR
-#undef __WJR_MEMCHR_ONE
-
-#endif // _WJR_FAST_MEMCHR
-#ifndef __WJR_ALGO_ALOG_H
-#error "This file should not be included directly. Include <wjr/algo.h> instead."
-#endif
-
-#if defined(_WJR_FAST_MEMCHR)
-
-#define __WJR_MEMRCHR_ONE(st, _s, _q)	                            \
-{	                                                            \
-auto r = st::cmp(x, _q, pred, T());	                        \
-st::mask_type z = st::movemask_epi8(r);	                    \
-if(z != 0){	                                                \
-return (_s) - wjr::countl_zero(z) / _Mysize;	        \
-}	                                                        \
-}
-
-#define __WJR_MEMRCHR_FOUR(st, _s0, _s1, _s2, _s3, _q)	            \
-{	                                                            \
-auto r0 = st::cmp(x0, _q, pred, T());	                    \
-auto r1 = st::cmp(x1, _q, pred, T());	                    \
-auto r2 = st::cmp(x2, _q, pred, T());	                    \
-auto r3 = st::cmp(x3, _q, pred, T());	                    \
-\
-r0 = st::Or(st::Or(r0, r1), st::Or(r2, r3));	            \
-st::mask_type z = st::movemask_epi8(r0);	                \
-if(z != 0){	                                                \
-st::mask_type tmp = st::movemask_epi8(r3);	            \
-if(tmp != 0){	                                        \
-return (_s3) - wjr::countl_zero(tmp) / _Mysize;	    \
-}	                                                    \
-tmp = st::movemask_epi8(r2);	                        \
-if(tmp != 0){	                                        \
-return (_s2) - wjr::countl_zero(tmp) / _Mysize;	    \
-}	                                                    \
-tmp = st::movemask_epi8(r1);	                        \
-if(tmp != 0){	                                        \
-return (_s1) - wjr::countl_zero(tmp) / _Mysize;	    \
-}	                                                    \
-tmp = z;	                                            \
-return (_s0) - wjr::countl_zero(tmp) / _Mysize;	        \
-}	                                                        \
-}
-
-_WJR_ALGO_BEGIN
-
-template<typename T, typename _Pred>
-const T* __memrchr(const T* s, T val, size_t n, _Pred pred) {
-
-constexpr size_t _Mysize = sizeof(T);
-
-#if WJR_AVX2
-using simd_t = simd::avx;
 #else
-using simd_t = simd::sse;
-#endif // WJR_AVX2
-using sint = typename simd_t::int_type;
-constexpr uintptr_t width = simd_t::width() / (8 * _Mysize);
-constexpr uintptr_t bound = width * _Mysize;
-
-if (is_unlikely(n == 0)) return s;
-
-s += n;
-
-if (n >= 16 / _Mysize) {
-auto qx = simd::sse::set1(val, T());
-
-if (n <= 32 / _Mysize) {
-// solve first 16 bytes
-auto x = simd::sse::loadu(reinterpret_cast<const __m128i*>(s - (16 / _Mysize)));
-
-__WJR_MEMRCHR_ONE(simd::sse, s, qx);
-
-// solve last 16 bytes
-
-s -= n;
-
-x = simd::sse::loadu(reinterpret_cast<const __m128i*>(s));
-
-__WJR_MEMRCHR_ONE(simd::sse, s + (16 / _Mysize), qx);
-
-return s;
-}
-
-// solve first min(n, 128 / _Mysize) bytes
-// no branch algorithm
-
-{
-const auto m = n <= 128 / _Mysize ? n : 128 / _Mysize;
-const auto delta = ((m - 1) & (64 / _Mysize)) >> 1;
-
-#if WJR_AVX2
-{
-auto qy = broadcast<simd::__m256i_tag, simd::__m128i_tag>(qx);
-auto x0 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s - m));
-auto x1 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s - m + delta));
-auto x2 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s - (32 / _Mysize) - delta));
-auto x3 = simd::avx::loadu(reinterpret_cast<const __m256i*>(s - (32 / _Mysize)));
-
-__WJR_MEMRCHR_FOUR(simd::avx,
-s - m + 32 / _Mysize,
-s - m + delta + 32 / _Mysize,
-s - delta,
-s,
-qy);
-}
-#else
-{
-auto x0 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s - (32 / _Mysize) - delta));
-auto x1 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s - (16 / _Mysize) - delta));
-auto x2 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s - (32 / _Mysize)));
-auto x3 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s - (16 / _Mysize)));
-
-__WJR_MEMRCHR_FOUR(simd::sse,
-s - (16 / _Mysize) - delta,
-s - delta,
-s - (16 / _Mysize),
-s,
-qx);
-}
-
-{
-auto x0 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s - m));
-auto x1 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s - m + 16 / _Mysize));
-auto x2 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s - m + delta));
-auto x3 = simd::sse::loadu(reinterpret_cast<const __m128i*>(s - m + delta + 16 / _Mysize));
-
-__WJR_MEMRCHR_FOUR(simd::sse,
-s - m + 16 / _Mysize,
-s - m + 32 / _Mysize,
-s - m + delta + 16 / _Mysize,
-s - m + delta + 32 / _Mysize,
-qx);
-}
-#endif // WJR_AVX2
-
-// m = std::min(n, 128 / _Mysize)
-// m == n -> n <= 128 / _Mysize
-if (m == n) {
-return s - n;
-}
-}
-
-auto q = broadcast<simd::__simd_wrapper_t<sint>, simd::__m128i_tag>(qx);
-
-if (n <= 128 / _Mysize + width * 4) {
-
-WJR_MACRO_LABEL(unaligned_last_4vec) :
-
-s -= n;
-
-auto x0 = simd_t::loadu(reinterpret_cast<const sint*>(s));
-auto x1 = simd_t::loadu(reinterpret_cast<const sint*>(s + width));
-auto x2 = simd_t::loadu(reinterpret_cast<const sint*>(s + width * 2));
-auto x3 = simd_t::loadu(reinterpret_cast<const sint*>(s + width * 3));
-
-__WJR_MEMRCHR_FOUR(simd_t,
-s + width,
-s + width * 2,
-s + width * 3,
-s + width * 4,
-q);
-
-return s;
-}
-
-s -= 128 / _Mysize;
-n -= 128 / _Mysize;
-
-// align
-
-if (is_likely(reinterpret_cast<uintptr_t>(s) % _Mysize == 0)) {
-
-const auto off0 = reinterpret_cast<uintptr_t>(s) % bound;
-
-// align two pointers
-if (is_constant_p(off0) && off0 == 0) {
-// do nothing
-}
-else {
-auto x = simd_t::loadu(reinterpret_cast<const sint*>(s - width));
-
-__WJR_MEMRCHR_ONE(simd_t, s, q);
-
-const auto __align_s = off0;
-s -= __align_s / _Mysize;
-n -= __align_s / _Mysize;
-
-if (is_unlikely(n < width * 4)) {
-goto WJR_MACRO_LABEL(last_solve_align);
-}
-}
-
-do {
-auto x0 = simd_t::load(reinterpret_cast<const sint*>(s - width * 4));
-auto x1 = simd_t::load(reinterpret_cast<const sint*>(s - width * 3));
-auto x2 = simd_t::load(reinterpret_cast<const sint*>(s - width * 2));
-auto x3 = simd_t::load(reinterpret_cast<const sint*>(s - width));
-
-__WJR_MEMRCHR_FOUR(simd_t, s - width * 3, s - width * 2, s - width, s, q);
-
-s -= width * 4;
-n -= width * 4;
-} while (n >= width * 4);
-
-if (n != 0) {
-
-WJR_MACRO_LABEL(last_solve_align) :
-
-s -= n;
-
-const auto ptr0 = reinterpret_cast<T*>(
-(reinterpret_cast<uintptr_t>(s + width * 4)) & (~(bound - 1)));
-
-auto x0 = simd_t::loadu(reinterpret_cast<const sint*>(s));
-auto x1 = simd_t::load(reinterpret_cast<const sint*>(ptr0 - width * 3));
-auto x2 = simd_t::load(reinterpret_cast<const sint*>(ptr0 - width * 2));
-auto x3 = simd_t::load(reinterpret_cast<const sint*>(ptr0 - width));
-
-__WJR_MEMRCHR_FOUR(simd_t,
-s + width,
-ptr0 - width * 2,
-ptr0 - width,
-ptr0,
-q);
-
-}
-
-return s;
-}
-
-// unaligned algorithm
-do {
-auto x0 = simd_t::loadu(reinterpret_cast<const sint*>(s - width * 4));
-auto x1 = simd_t::loadu(reinterpret_cast<const sint*>(s - width * 3));
-auto x2 = simd_t::loadu(reinterpret_cast<const sint*>(s - width * 2));
-auto x3 = simd_t::loadu(reinterpret_cast<const sint*>(s - width));
-
-__WJR_MEMRCHR_FOUR(simd_t,
-s - width * 3,
-s - width * 2,
-s - width,
-s,
-q);
-
-s -= width * 4;
-n -= width * 4;
-} while (n >= width * 4);
-
-if (n == 0) {
-return s;
-}
-
-goto WJR_MACRO_LABEL(unaligned_last_4vec);
-}
-
 if constexpr (_Mysize == 8) {
 // n = [1, 2)
 return pred(s[-1], val) ? s : s - 1;
@@ -7798,20 +7969,172 @@ if constexpr (_Mysize <= 4) {
 // n = [1, 4)
 if (pred(s[-1], val)) return s;
 if (n == 1) return s - 1;
-const bool f = pred(s[1 - n], val);
-const bool g = pred(s[-n], val);
+const bool f = pred(s[static_cast<size_t>(1 - n)], val);
+const bool g = pred(s[static_cast<size_t>(0 - n)], val);
 const size_t i1 = g ? 1 - n : -n;
 const size_t i2 = f ? 2 - n : i1;
 return s + i2;
 }
+#endif //
+
 }
 
 _WJR_ALGO_END
+#undef __WJR_MEMCHR_NAME
+#undef WJR_SIMD_IS_BACKWARD
 
-#undef __WJR_MEMRCHR_FOUR
-#undef __WJR_MEMRCHR_ONE
+#define WJR_SIMD_IS_BACKWARD 1
+#define __WJR_MEMCHR_NAME __memrchr
+#undef __WJR_MEMCHR_NAME
+#undef WJR_SIMD_IS_BACKWARD
+
+_WJR_ALGO_BEGIN
+
+extern template const uint8_t* __large__memchr(
+const uint8_t*, uint8_t, size_t, std::equal_to<>) noexcept;
+
+extern template const uint8_t* __large__memrchr(
+const uint8_t*, uint8_t, size_t, std::equal_to<>) noexcept;
+
+_WJR_ALGO_END
+
+#undef __WJR_MEMCHR_ONE
+#undef __WJR_MEMCHR_FOUR
 
 #endif // _WJR_FAST_MEMCHR
+#ifndef __WJR_ALGO_ALOG_H
+#error "This file should not be included directly. Include <wjr/algo.h> instead."
+#endif
+
+#if defined(_WJR_FAST_MEMSKIPW)
+
+_WJR_ALGO_BEGIN
+
+static inline const bool __memskipw_table[] = {
+false,false,false,false,false,false,false,false,false, true, true, true, true, true,false,false,
+false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
+true,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
+false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
+false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
+false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
+false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
+false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
+false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
+false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
+false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
+false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
+false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
+false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
+false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
+false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false
+};
+
+_WJR_ALGO_END
+
+#define __WJR_MEMSKIPW_ONE(st, ptr)
+
+#define WJR_SIMD_IS_BACKWARD 0
+
+#define __WJR_MEMSKIPW_NAME __memskipw
+#define __WJR_MEMSKIPW_PRED(x) (!__memskipw_table[x])
+#ifndef __WJR_ALGO_ALOG_H
+#error "This file should not be included directly. Include <wjr/algo.h> instead."
+#endif // __WJR_ALGO_ALOG_H
+
+// __WJR_MEMSKIPW_ONE
+// __WJR_MEMSKIPW_FOUR
+// __WJR_MEMSKIPW_NAME
+// __WJR_MEMSKIPW_PRED
+
+_WJR_ALGO_BEGIN
+
+WJR_NODISCARD inline const uint8_t* (__WJR_MEMSKIPW_NAME)(const uint8_t* s, size_t n) noexcept {
+if (is_unlikely(n == 0)) return s;
+
+WJR_SIMD_INIT_PTR(s, n);
+
+if (n >= 4) {
+
+// for most cases, it is possible to quickly find non whitespace characters
+// at this time, using simd can actually reduce performance
+
+// solve first 4 bytes
+
+{
+const auto u = WJR_SIMD_PTR(s);
+if (__WJR_MEMSKIPW_PRED(*u)) {
+return s;
+}
+}
+
+{
+const auto u = WJR_SIMD_PTR(WJR_SIMD_ADD_PTR(s, 1));
+if (__WJR_MEMSKIPW_PRED(*u)) {
+return WJR_SIMD_ADD_PTR(s, 1);
+}
+}
+
+{
+const auto u = WJR_SIMD_PTR(WJR_SIMD_ADD_PTR(s, 2));
+if (__WJR_MEMSKIPW_PRED(*u)) {
+return WJR_SIMD_ADD_PTR(s, 2);
+}
+}
+
+{
+const auto u = WJR_SIMD_PTR(WJR_SIMD_ADD_PTR(s, 3));
+if (__WJR_MEMSKIPW_PRED(*u)) {
+return WJR_SIMD_ADD_PTR(s, 3);
+}
+}
+
+WJR_SIMD_INC_PTR(s, 4);
+n -= 4;
+}
+
+// n = [1, 2, 3]
+{
+if (__WJR_MEMSKIPW_PRED(*WJR_SIMD_PTR(s))) { return s; }
+if (n == 1) { return WJR_SIMD_ADD_PTR(s, 1); }
+if (__WJR_MEMSKIPW_PRED(*WJR_SIMD_PTR(WJR_SIMD_ADD_PTR(s, 1)))) {
+return WJR_SIMD_ADD_PTR(s, 1);
+}
+if (n == 2) { return WJR_SIMD_ADD_PTR(s, 2); }
+if (__WJR_MEMSKIPW_PRED(*WJR_SIMD_PTR(WJR_SIMD_ADD_PTR(s, 2)))) {
+return WJR_SIMD_ADD_PTR(s, 2);
+}
+return WJR_SIMD_ADD_PTR(s, 3);
+}
+
+const auto e = WJR_SIMD_ADD_PTR(s, n);
+
+for (; s != e; WJR_SIMD_INC_PTR(s, 1)) {
+auto u = WJR_SIMD_PTR(s);
+if (__WJR_MEMSKIPW_PRED(*u)) {
+break;
+}
+}
+
+return s;
+}
+
+_WJR_ALGO_END
+#undef __WJR_MEMSKIPW_NAME
+
+#undef WJR_SIMD_IS_BACKWARD
+
+#define WJR_SIMD_IS_BACKWARD 0
+
+#define __WJR_MEMSKIPW_NAME __memskipnw
+#define __WJR_MEMSKIPW_PRED(x) (__memskipw_table[x])
+#undef __WJR_MEMSKIPW_NAME
+
+#undef WJR_SIMD_IS_BACKWARD
+
+#undef __WJR_MEMSKIPW_ONE
+#undef __WJR_MEMSKIPW_FOUR
+
+#endif // _WJR_FAST_MEMSKIPW
 #ifndef __WJR_ALGO_ALOG_H
 #error "This file should not be included directly. Include <wjr/algo.h> instead."
 #endif
@@ -7892,6 +8215,10 @@ using simd_t = simd::sse;
 using sint = typename simd_t::int_type;
 constexpr uintptr_t width = simd_t::width() / (8 * _Mysize);
 constexpr uintptr_t bound = width * _Mysize;
+
+if (is_constant_p(n) && n <= 64 / _Mysize) {
+return ::memcmp(s0, s1, n * _Mysize) == 0;
+}
 
 if (is_unlikely(n == 0)) return true;
 
@@ -9263,8 +9590,8 @@ if constexpr (_Mysize <= 4) {
 // n = [1, 4)
 if (!pred(s0[-1], s1[-1])) return s0;
 if (n == 1) return s0 - 1;
-const bool f = pred(s0[1 - n], s1[1 - n]);
-const bool g = pred(s0[-n], s1[-n]);
+const bool f = pred(s0[static_cast<size_t>(1 - n)], s1[static_cast<size_t>(1 - n)]);
+const bool g = pred(s0[static_cast<size_t>(0 - n)], s1[static_cast<size_t>(0 - n)]);
 const size_t i1 = g ? -n : 1 - n;
 const size_t i2 = f ? i1 : 2 - n;
 return s0 + i2;
@@ -9552,7 +9879,7 @@ return __memset(reinterpret_cast<uint8_t*>(s), static_cast<uint8_t>(val), n * _M
 }
 }
 
-constexpr size_t __constant_threshold = 2048 / _Mysize;
+constexpr size_t __constant_threshold = 256 / _Mysize;
 // threshold for enhanced rep
 // enhanced rep will be faster when 64-byte memory is aligned
 // but it will be slower when 64-byte memory is not aligned
@@ -9630,13 +9957,13 @@ s += __align_s / _Mysize;
 n -= __align_s / _Mysize;
 }
 *reinterpret_cast<uint64_t*>(s + n - 8 / _Mysize) = u64v;
-n &= -(8 / _Mysize);
+n &= static_cast<size_t>(0 - 8 / _Mysize);
 if constexpr (_Mysize == 1) {
-wjr::masm::rep_stosb(reinterpret_cast<uint8_t*>(s), val, n);
+wjr::masm::rep_stos(reinterpret_cast<uint8_t*>(s), val, n);
 }
 else {
 n /= (8 / _Mysize);
-wjr::masm::rep_stosq(reinterpret_cast<uint64_t*>(s), u64v, n);
+wjr::masm::rep_stos(reinterpret_cast<uint64_t*>(s), u64v, n);
 }
 return;
 }
@@ -9660,14 +9987,14 @@ if (n < __nt_threshold) {
 
 __WJR_ALIGN64byte(s + n - (64 / _Mysize));
 
-n = (n - 1) & (-(64 / _Mysize));
+n = (n - 1u) & static_cast<size_t>(0 - (64 / _Mysize));
 if constexpr (_Mysize == 1) {
-wjr::masm::rep_stosb(reinterpret_cast<uint8_t*>(s), val, n);
+wjr::masm::rep_stos(reinterpret_cast<uint8_t*>(s), val, n);
 }
 else {
 n /= (8 / _Mysize);
 auto u64v = broadcast<uint64_t, T>(val);
-wjr::masm::rep_stosq(reinterpret_cast<uint64_t*>(s), u64v, n);
+wjr::masm::rep_stos(reinterpret_cast<uint64_t*>(s), u64v, n);
 }
 return;
 
@@ -9853,41 +10180,41 @@ constexpr size_t M = _Get_max_bytes_num<C>();
 const auto ptr = reinterpret_cast<const uint8_t*>(&val);
 if constexpr (N == C) {
 if constexpr (N == 1) {
-return 1;
+return 1u;
 }
 else if constexpr (N == 2) {
-return (ptr[0] == ptr[1]) ? 1 : 2;
+return (ptr[0] == ptr[1]) ? 1u : 2u;
 }
 else if constexpr (N == 3) {
-return (*reinterpret_cast<const uint16_t*>(ptr) == *reinterpret_cast<const uint16_t*>(ptr + 1)) ? 1 : 0;
+return (*reinterpret_cast<const uint16_t*>(ptr) == *reinterpret_cast<const uint16_t*>(ptr + 1)) ? 1u : 0u;
 }
 else if constexpr (N == 4) {
 auto x = *reinterpret_cast<const uint32_t*>(ptr);
-return ((x >> 8) == (x & 0x00FFFFFF)) ? 1 : 4;
+return ((x >> 8) == (x & 0x00FFFFFF)) ? 1u : 4u;
 }
 else if constexpr (N == 5) {
-return (*reinterpret_cast<const uint32_t*>(ptr) == *reinterpret_cast<const uint32_t*>(ptr + 1)) ? 1 : 0;
+return (*reinterpret_cast<const uint32_t*>(ptr) == *reinterpret_cast<const uint32_t*>(ptr + 1)) ? 1u : 0u;
 }
 else if constexpr (N == 6) {
-return (*reinterpret_cast<const uint32_t*>(ptr) == *reinterpret_cast<const uint32_t*>(ptr + 2)) ? 2 : 6;
+return (*reinterpret_cast<const uint32_t*>(ptr) == *reinterpret_cast<const uint32_t*>(ptr + 2)) ? 2u : 6u;
 }
 else if constexpr (N == 7) {
 auto x = *reinterpret_cast<const uint32_t*>(ptr);
 auto y = *reinterpret_cast<const uint32_t*>(ptr + 4);
-return ((x >> 8) == (x & 0x00FFFFFF)) && ((y >> 8) == (y & 0x00FFFFFF)) ? 1 : 0;
+return ((x >> 8) == (x & 0x00FFFFFF)) && ((y >> 8) == (y & 0x00FFFFFF)) ? 1u : 0u;
 }
 else if constexpr (N == 8) {
 auto x = *reinterpret_cast<const uint64_t*>(ptr);
-return ((x >> 8) == (x & 0x00FFFFFFFFFFFFFF)) ? 1 : 8;
+return ((x >> 8) == (x & 0x00FFFFFFFFFFFFFF)) ? 1u : 8u;
 }
 else {
 if (!is_constant_p(val)) {
-return 0;
+return 0u;
 }
 else {
 for (size_t i = 0; i < N - M; ++i) {
 if (ptr[i] != ptr[i + M]) {
-return 0;
+return 0u;
 }
 }
 for (size_t i = 0; i < M - 1; ++i) {
@@ -10022,7 +10349,7 @@ template<typename T, typename U, typename _Pred>
 constexpr bool __has_fast_memrchr_v = __has_fast_memrchr<T, U, _Pred>::value;
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memchr_v<T, U, _Pred>, int> = 0>
-const T* memchr(const T* s, U val, size_t n, _Pred pred) {
+WJR_NODISCARD WJR_INTRINSIC_INLINE const T* memchr(const T* s, U val, size_t n, _Pred pred) noexcept {
 auto p = is_possible_memory_comparable<T>(val, pred);
 if (p == ipmc_result::none) {
 return s + n;
@@ -10036,7 +10363,7 @@ auto __val = static_cast<value_type>(static_cast<T>(val));
 return reinterpret_cast<const T*>(__memchr(__s, __val, n, pred));
 }
 template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memchr_v<T, U, _Pred>, int> = 0>
-const T* memrchr(const T* s, U val, size_t n, _Pred pred) {
+WJR_NODISCARD const T* memrchr(const T* s, U val, size_t n, _Pred pred) {
 auto p = is_possible_memory_comparable<T>(val, pred);
 if (p == ipmc_result::none) {
 return s;
@@ -10068,7 +10395,7 @@ template<typename T, typename U, typename _Pred>
 constexpr bool __has_fast_memrchr_v = __has_fast_memrchr<T, U, _Pred>::value;
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memchr_v<T, U, _Pred>, int> = 0>
-const T* memchr(const T* s, U val, size_t n, _Pred pred) {
+WJR_NODISCARD const T* memchr(const T* s, U val, size_t n, _Pred pred) {
 auto p = is_possible_memory_comparable<T>(val, pred);
 if (p == ipmc_result::none) {
 return s + n;
@@ -10117,7 +10444,7 @@ template<typename T, typename U, typename _Pred>
 constexpr bool __has_fast_memcmp_v = __has_fast_memcmp<T, U, _Pred>::value;
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memcmp_v<T, U, _Pred>, int> = 0>
-bool memcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
+WJR_NODISCARD bool memcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
 if constexpr (is_any_of_v<_Pred, std::equal_to<>>) {
 using value_type = uint8_t;
 auto __s0 = reinterpret_cast<const value_type*>(s0);
@@ -10145,7 +10472,7 @@ template<typename T, typename U, typename _Pred>
 inline constexpr bool __has_fast_memcmp_v = __has_fast_memcmp<T, U, _Pred>::type::value;
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memcmp_v<T, U, _Pred>, int> = 0>
-bool memcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
+WJR_NODISCARD bool memcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
 return ::memcmp(s0, s1, n * sizeof(T)) == 0;
 }
 
@@ -10175,7 +10502,7 @@ constexpr bool __has_fast_memrmis_v = __has_fast_memrmis<T, U, _Pred>::value;
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<
 __has_fast_memmis_v<T, U, _Pred>, int> = 0>
-const T* memmis(const T* s0, const U* s1, size_t n, _Pred pred) {
+WJR_NODISCARD const T* memmis(const T* s0, const U* s1, size_t n, _Pred pred) {
 if constexpr (is_any_of_v<_Pred, std::equal_to<>>) {
 using value_type = uint8_t;
 auto __s0 = reinterpret_cast<const value_type*>(s0);
@@ -10195,7 +10522,7 @@ return reinterpret_cast<const T*>(__memmis(__s0, __s1, n, pred));
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<
 __has_fast_memmis_v<T, U, _Pred>, int> = 0>
-const T* memrmis(const T* s0, const U* s1, size_t n, _Pred pred) {
+WJR_NODISCARD const T* memrmis(const T* s0, const U* s1, size_t n, _Pred pred) {
 if constexpr (is_any_of_v<_Pred, std::equal_to<>>) {
 using value_type = uint8_t;
 auto __s0 = reinterpret_cast<const value_type*>(s0);
@@ -10241,7 +10568,7 @@ template<typename T, typename U>
 constexpr bool __has_fast_memcnt_v = __has_fast_memcnt<T, U>::value;
 
 template<typename T, typename U, std::enable_if_t<__has_fast_memcnt_v<T, U>, int> = 0>
-size_t memcnt(const T* s, U val, size_t n) {
+WJR_NODISCARD size_t memcnt(const T* s, U val, size_t n) {
 auto p = is_possible_memory_comparable<T>(val, std::equal_to<>{});
 if (p == ipmc_result::none) {
 return 0;
@@ -10390,6 +10717,16 @@ __memmove_helper<is_byte_assignable>(s, t, n);
 _WJR_ALGO_END
 
 #endif // __WJR_ALGO_ALOG_H
+
+_WJR_ALGO_BEGIN
+
+template const uint8_t* __large__memchr(
+const uint8_t*, uint8_t, size_t, std::equal_to<>)noexcept;
+
+template const uint8_t* __large__memrchr(
+const uint8_t*, uint8_t, size_t, std::equal_to<>)noexcept;
+
+_WJR_ALGO_END
 
 _WJR_BEGIN
 
@@ -10909,10 +11246,10 @@ return _Srch(_First, _Last).first;
 template<typename _Iter, typename...Args,
 std::enable_if_t<is_iterator_v<wjr::remove_cvref_t<_Iter>>, int>>
 WJR_CONSTEXPR20 void construct_at(_Iter iter, Args&&... args) {
-using value_type = iter_val_t<_Iter>;
 #if defined(WJR_CPP_20)
 std::construct_at(get_address(iter), std::forward<Args>(args)...);
 #else
+using value_type = iter_val_t<_Iter>;
 (void)(::new (voidify(get_address(iter))) value_type(std::forward<Args>(args)...));
 #endif // WJR_CPP_20
 }
@@ -11244,7 +11581,7 @@ template<typename _Iter, typename _Val>
 WJR_CONSTEXPR20 void uninitialized_fill(_Iter _First, _Iter _Last, const _Val& val) {
 if (!wjr::is_constant_evaluated()) {
 if constexpr (__has_fast_uninitialized_fill_v<_Iter, _Val>) {
-const auto n = std::distance(_First, _Last);
+const auto n = static_cast<size_t>(std::distance(_First, _Last));
 if constexpr (!is_reverse_iterator_v<_Iter>) {
 const auto first = wjr::get_address(_First);
 algo::construct_memset(first, val, n);
@@ -11617,7 +11954,7 @@ vector_static_data(const vector_static_data&) = delete;
 vector_static_data& operator=(const vector_static_data&) = delete;
 WJR_CONSTEXPR20 ~vector_static_data() = default;
 
-WJR_CONSTEXPR20 static void _lengthError(const size_type _Newcapacity){
+WJR_CONSTEXPR20 static void _lengthError(WJR_MAYBE_UNUSED const size_type _Newcapacity){
 #if defined(_WJR_EXCEPTION)
 std::string str = "vector_static_data is too small to hold the requested data";
 str += "\n old capacity = " + std::to_string(max_capacity);
@@ -11628,15 +11965,15 @@ unreachable();
 }
 
 WJR_CONSTEXPR20 vector_static_data(
-_Alty& al,
-const size_type _Newsize,
+_Alty&,
+const size_type,
 const size_type _Newcapacity,
 extend_tag) {
 _lengthError(_Newcapacity);
 }
 
 WJR_CONSTEXPR20 vector_static_data(
-_Alty& al,
+_Alty&,
 const size_type _Newsize,
 const size_type _Newcapacity) : _M_size(_Newsize) {
 if (_Newcapacity > max_capacity) {
@@ -11659,7 +11996,7 @@ _Dest.set_size(n);
 }
 }
 
-WJR_INLINE_CONSTEXPR20 static void Deallocate(_Alty& al, vector_static_data& _Data) noexcept {
+WJR_INLINE_CONSTEXPR20 static void Deallocate(_Alty&, vector_static_data& _Data) noexcept {
 _Data.set_size(0);
 }
 
@@ -11668,7 +12005,7 @@ wjr::destroy_n(al, _Data.data(), _Data.size());
 Deallocate(al, _Data);
 }
 
-WJR_INLINE_CONSTEXPR20 static void shrinkToFit(_Alty& al, vector_static_data& _Data) {
+WJR_INLINE_CONSTEXPR20 static void shrinkToFit(_Alty&, vector_static_data&) {
 // do nothing
 }
 
@@ -13203,6 +13540,13 @@ _WJR_END
 
 _WJR_BEGIN
 
+namespace __string_func_traits {
+WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(skipw, skipw);
+WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(rskipw, rskipw);
+WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(skipz, skipz);
+WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(skipd, skipd);
+}
+
 // fast integer conversion of strings with different encodings
 // requires :
 // 1. forward iterator
@@ -13767,23 +14111,38 @@ return todigit<36>(ch);
 template<typename Traits>
 template<typename _Iter>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::skipw(_Iter _First, _Iter _Last) {
+if constexpr (__string_func_traits::has_static_member_function_skipw_v<traits_type, _Iter, _Iter>) {
+return traits_type::skipw(_First, _Last);
+}
+else {
 while (_First != _Last && isspace(*_First)) ++_First;
 return _First;
+}
 }
 
 // skip whit space at end
 template<typename Traits>
 template<typename _Iter>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::rskipw(_Iter _First, _Iter _Last) {
+if constexpr (__string_func_traits::has_static_member_function_rskipw_v<traits_type, _Iter, _Iter>) {
+return traits_type::rskipw(_First, _Last);
+}
+else {
 while (_First != _Last && isspace(*(_Last - 1))) --_Last;
 return _Last;
+}
 }
 
 template<typename Traits>
 template<typename _Iter>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::skipz(_Iter _First, _Iter _Last) {
+if constexpr (__string_func_traits::has_static_member_function_skipz_v<traits_type, _Iter, _Iter>) {
+return traits_type::skipz(_First, _Last);
+}
+else {
 while (_First != _Last && *_First == '0') ++_First;
 return _First;
+}
 }
 
 // skip digit
@@ -13798,8 +14157,13 @@ template<typename Traits>
 template<typename _Iter>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>
 ::skipd(_Iter _First, _Iter _Last, int Base) {
+if constexpr (__string_func_traits::has_static_member_function_skipz_v<traits_type, _Iter, _Iter, int>) {
+return traits_type::skipz(_First, _Last, Base);
+}
+else {
 while (_First != _Last && isdigit(*_First, Base)) ++_First;
 return _First;
+}
 }
 
 template<typename Traits>
@@ -15248,7 +15612,7 @@ return begin() + __old_pos;
 }
 
 WJR_CONSTEXPR20 basic_string& insert(const size_type off, const size_type n, const value_type c) {
-WJR_MAYBE_UNUSED const auto __ck = eview(*this, off);
+(void)(eview(*this, off));
 insert(cbegin() + off, n, c);
 return *this;
 }
@@ -15266,7 +15630,7 @@ return insert(_Where, il.begin(), il.end());
 
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
 WJR_CONSTEXPR20 basic_string& insert(const size_type off, const StringView& t) {
-WJR_MAYBE_UNUSED const auto __ck = eview(*this, off);
+(void)(eview(*this, off));
 const auto sv = view(t);
 insert(cbegin() + off, sv.data(), sv.data() + sv.size());
 return *this;
@@ -16701,6 +17065,25 @@ const int len = snprintf(buf, sizeof(buf), "%Lf", val);
 return string(buf, static_cast<size_t>(len));
 }
 
+_WJR_END
+
+namespace std {
+template<typename Char, typename Traits>
+struct hash<wjr::basic_string_view<Char, Traits>> {
+constexpr decltype(auto) operator()(const wjr::basic_string_view<Char, Traits>& str) const noexcept {
+return std::hash<std::string_view>(str);
+}
+};
+template<typename Char, typename Traits, typename Alloc, typename Data>
+struct hash<wjr::basic_string<Char, Traits, Alloc, Data>> {
+constexpr decltype(auto) operator()(const wjr::basic_string<Char, Traits, Alloc, Data>& str) const noexcept {
+return std::hash<wjr::string_view>(str);
+}
+};
+}
+
+_WJR_BEGIN
+
 // encode functions
 // the code writing specification is related to the function namespace,
 // which requires encoding auxiliary functions and auxiliary classes,
@@ -16935,13 +17318,6 @@ template<typename T>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_integral(
 errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
-/*
-template<typename T>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_integral(
-flags _Flags,
-errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
-*/
-
 WJR_NODISCARD WJR_INLINE_CONSTEXPR int toi(
 errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
@@ -16959,21 +17335,6 @@ errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
 WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long long toull(
 errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
-
-/*
-template<typename T>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_floating(
-errc* err = nullptr, size_type* pos = nullptr) const;
-
-WJR_NODISCARD WJR_INLINE_CONSTEXPR float tof(
-errc* err = nullptr, size_type* pos = nullptr) const;
-
-WJR_NODISCARD WJR_INLINE_CONSTEXPR double tod(
-errc* err = nullptr, size_type* pos = nullptr) const;
-
-WJR_NODISCARD WJR_INLINE_CONSTEXPR long double told(
-errc* err = nullptr, size_type* pos = nullptr) const;
-*/
 
 };
 
@@ -17417,1225 +17778,226 @@ _WJR_END
 
 #endif // __WJR_STRING_H
 #pragma once
-#ifndef __WJR_TP_LIST_H
-#define __WJR_TP_LIST_H
+#ifndef __WJR_RANDOM_H
+#define __WJR_RANDOM_H
 
-#include <type_traits>
-#include <variant>
+#include <random>
 
-
-// comply with STD naming standards as much as possible
-// try to place the containers that need to be processed in the first parameter as much as possible
-// when it is possible to operate on multiple containers,
-// the operation should be placed before the container disaster
-
-// Try to make each function only work on one container as much as possible.
-// If you need to work on multiple containers, you can usually use tp_zip or tp_product,
-// the former compresses the same bit of multiple containers into a container,
-// and then throws each bit of container into container C (user-defined),
-// while the latter generates a Cartesian product
-// for example ,
-// tp_zip<tp_list, tp_list<int, double, float>, tp_list<int, float, double>>
-// will generate tp_list<tp_list<int, int>, tp_list<double, float>, tp_list<float, double>>
-// tp_product<tp_list, tp_list<int, double>, tp_list<int, float, double>>
-// will generate tp_list<tp_list<int, int>, tp_list<int, float>, tp_list<int, double>,
-// tp_list<double, int>, tp_list<double, float>, tp_list<double, double>>
 
 _WJR_BEGIN
 
-struct tp_null {};
-
-template<typename...Args>
-struct tp_list {};
-
-template<typename T, T I>
-using tp_c = std::integral_constant<T, I>;
-
-template<typename T, T...I>
-struct tp_list_c {
-using type = tp_list<tp_c<T, I>...>;
+template<typename Engine>
+struct basic_random_static_wrapper {
+static Engine m_engine;
+Engine& engine() const {
+return m_engine;
+}
 };
 
-// L<std::integral_constant<T, I>...>
-template<typename T, T... I>
-using tp_list_c_t = typename tp_list_c<T, I...>::type;
-
-template<typename T>
-struct tp_is_list : std::false_type {};
-
-template<typename...Args>
-struct tp_is_list<tp_list<Args...>> : std::true_type {};
-
-// check if is tp_list
-template<typename T>
-inline constexpr bool tp_is_list_v = tp_is_list<T>::value;
-
-template<typename T>
-struct tp_is_container : std::false_type {};
-
-template<
-template<typename...>typename C,
-typename...Args>
-struct tp_is_container<C<Args...>> : std::true_type {};
-
-template<typename T>
-inline constexpr bool tp_is_container_v = tp_is_container<T>::value;
-
-template<typename T>
-struct tp_size;
-
-template<template<typename...>typename C, typename...Args>
-struct tp_size<C<Args...>> {
-constexpr static size_t value = sizeof...(Args);
-};
-
-// get size of L<Args...>
-template<typename T>
-inline constexpr size_t tp_size_v = tp_size<T>::value;
-
-template<size_t idx>
-using tp_size_t = tp_c<size_t, idx>;
-
-template<typename T, typename U>
-struct tp_equal_c : std::bool_constant<(T::value == U::value)> {};
-
-template<typename T, typename U>
-struct tp_not_equal_c : std::bool_constant<(T::value != U::value)> {};
-
-template<typename T, typename U>
-struct tp_less_c : std::bool_constant<(T::value < U::value)>{};
-
-template<typename T, typename U>
-struct tp_less_equal_c : std::bool_constant < (T::value <= U::value)> {};
-
-template<typename T, typename U>
-struct tp_greater_c : std::bool_constant < (T::value > U::value)> {};
-
-template<typename T, typename U>
-struct tp_greater_equalv : std::bool_constant < (T::value >= U::value)>{};
-
-template<typename T>
-struct tp_is_fn : std::false_type {};
-
-template<typename T>
-inline constexpr bool tp_is_fn_v = tp_is_fn<T>::value;
-
-template<typename _Enable, template<typename...>typename F, typename...Args>
-struct __tp_valid_helper : std::false_type {};
-
-template<template<typename...>typename F, typename...Args>
-struct __tp_valid_helper<std::void_t<F<Args...>>, F, Args...> : std::true_type {};
-
-template<template<typename...>typename F, typename...Args>
-struct tp_valid : __tp_valid_helper<void, F, Args...> {};
-
-template<template<typename...>typename F, typename...Args>
-inline constexpr bool tp_valid_v = tp_valid<F, Args...>::value;
-
-template<typename F, typename...Args>
-inline constexpr bool tp_valid_f = tp_valid_v<F::template fn, Args...>;
-
-template<template<typename...>typename F, typename...Args>
-struct __tp_defer_helper {
-using type = F<Args...>;
-};
-
-template<template<typename...>typename F, typename...Args>
-struct tp_defer {
-using type = std::enable_if_t<tp_valid_v<F, Args...>, typename __tp_defer_helper<F, Args...>::type>;
-};
-
-// use std::enable_if_t to defer the instantiation of F<Args...>
-template<template<typename...>typename F, typename...Args>
-using tp_defer_t = typename tp_defer<F, Args...>::type;
-
-template<typename F, typename...Args>
-using tp_defer_f = tp_defer_t<F::template fn, Args...>;
-
-template<typename T>
-struct tp_identity {
-using type = T;
-};
-
-template<typename T>
-using tp_identity_t = typename tp_identity<T>::type;
-
-// F1<F2<Args...>>
-template<template<typename...>typename F1, template<typename...>typename F2>
-struct tp_bind_fn {
-template<typename...Args>
-using fn = tp_defer_t<F1, tp_defer_t<F2, Args...>>;
-};
-
-// make F can be used as fn
-template<template<typename...>typename F>
-struct tp_make_fn {
-template<typename...Args>
-using fn = tp_defer_t<F, Args...>;
-};
-
-// std::negation<F<Args...>>
-template<template<typename...>typename F>
-struct tp_not_fn {
-template<typename...Args>
-using fn = typename tp_bind_fn<std::negation, F>::template fn<Args...>;
-};
-
-template<typename...Args>
-struct tp_always_true : std::true_type {};
-
-template<typename...Args>
-struct tp_always_false : std::false_type {};
-
-template<typename T>
-struct tp_is_empty : std::bool_constant<tp_size_v<T> == 0> {};
-
-template<typename T>
-inline constexpr bool tp_is_empty_v = tp_is_empty<T>::value;
-
-template<typename T, typename U>
-struct tp_assign;
-
-template<typename...Args1, template<typename...>typename T1,
-typename...Args2, template<typename...>typename T2>
-struct tp_assign<T1<Args1...>, T2<Args2...>> {
-using type = T1<Args2...>;
-};
-
-// f(L1<Args1...>, L2<Args2...>) -> L1<Args2...>
-template<typename T, typename U>
-using tp_assign_t = typename tp_assign<T, U>::type;
-
-template<typename T>
-struct tp_clear;
-
-template<template<typename...>typename T, typename...Args>
-struct tp_clear<T<Args...>> {
-using type = T<>;
-};
-
-// f(L<Args...>) -> L<>
-template<typename T>
-using tp_clear_t = typename tp_clear<T>::type;
-
-template<typename T, typename...Args>
-struct tp_push_front;
-
-template<template<typename...>typename C, typename...Args1, typename...Args2>
-struct tp_push_front<C<Args1...>, Args2...> {
-using type = C<Args2..., Args1...>;
-};
-
-// f(L<Args1...>, Args2...) -> L<Args1..., Args2...)
-template<typename T, typename...Args>
-using tp_push_front_t = typename tp_push_front<T, Args...>::type;
-
-template<typename T, typename...Args>
-struct tp_push_back;
-
-template<template<typename...>typename C, typename...Args1, typename...Args2>
-struct tp_push_back<C<Args1...>, Args2...> {
-using type = C<Args1..., Args2...>;
-};
-
-// f(L<Args1...>, Args2...) -> L<Args2..., Args1...)
-template<typename T, typename...Args>
-using tp_push_back_t = typename tp_push_back<T, Args...>::type;
-
-template<typename _Enable, size_t I, size_t N, typename...Args>
-struct __tp_cut_helper;
-
-template<size_t I, size_t N, typename T, typename...Args>
-struct __tp_cut_helper<std::enable_if_t<N != 0, void>, I, N, T, Args...> {
-using type = typename __tp_cut_helper<void, I - 1, N, Args...>::type;
-};
-
-template<size_t I, size_t N, typename T, typename...Args>
-struct __tp_cut_helper<std::enable_if_t<N == 0, void>, I, N, T, Args...> {
-using type = tp_list<>;
-};
-
-template<size_t N, typename...Args2>
-struct __tp_cut_helper2;
-
-template<size_t N, typename T, typename...Args>
-struct __tp_cut_helper2<N, T, Args...> {
-using type = tp_push_front_t<typename __tp_cut_helper2<N - 1, Args...>::type, T>;
-};
-
-template<typename...Args>
-struct __tp_cut_helper2<0, Args...> {
-using type = tp_list<>;
-};
-
-template<typename T, typename...Args>
-struct __tp_cut_helper2<0, T, Args...> {
-using type = tp_list<>;
-};
-
-template<size_t N, typename...Args>
-struct __tp_cut_helper<std::enable_if_t<N != 0>, 0, N, Args...> {
-using type = typename __tp_cut_helper2<N, Args...>::type;
-};
-
-template<size_t N, typename T, typename...Args>
-struct __tp_cut_helper<std::enable_if_t<N != 0>, 0, N, T, Args...> {
-using type = typename __tp_cut_helper2<N, T, Args...>::type;
-};
-
-template<typename T, template<typename...>typename U>
-struct tp_rename;
-
-template<template<typename...>typename C, typename...Args, template<typename...>typename U>
-struct tp_rename<C<Args...>, U> {
-using type = U<Args...>;
-};
-
-// f(L1<Args1...>, L2<Args2...>) -> L2<Args1...>
-template<typename T, template<typename...>typename U>
-using tp_rename_t = typename tp_rename<T, U>::type;
-
-template<typename T, size_t I, size_t N>
-struct tp_cut;
-
-template<template<typename...>typename C, typename...Args, size_t I, size_t N>
-struct tp_cut<C<Args...>, I, N> {
-static_assert(N <= sizeof...(Args) && I <= (sizeof...(Args) - N), "tp_cut: invalid index");
-using type = tp_rename_t<typename __tp_cut_helper<void, I, N, Args...>::type, C>;
-};
-
-// f(L<Args...>, I, N) -> L<Args(0 ~ max(0, I - 1)), Args(I + 1 ~ N - 1)>
-template<typename T, size_t I, size_t N>
-using tp_cut_t = typename tp_cut<T, I, N>::type;
-
-template<typename T>
-struct tp_pop_front : tp_cut<T, 1, tp_size_v<T> - 1> {};
-
-// f(L<T, Args...>) -> L<Args...>
-template<typename T>
-using tp_pop_front_t = typename tp_pop_front<T>::type;
-
-template<typename T>
-struct tp_pop_back : tp_cut<T, 0, tp_size_v<T> -1> {};
-
-// f(L<Args..., T>) -> L<Args...>
-template<typename T>
-using tp_pop_back_t = typename tp_pop_back<T>::type;
-
-template<size_t index, typename...Args>
-struct __tp_at_helper;
-
-template<size_t index, typename T, typename...Args>
-struct __tp_at_helper<index, T, Args...> {
-using type = typename __tp_at_helper<index - 1, Args...>::type;
-};
-
-template<typename T, typename...Args>
-struct __tp_at_helper<0, T, Args...> {
-using type = T;
-};
-
-template<typename T, size_t index>
-struct tp_at;
-
-template<template<typename...Args>typename C, typename...Args, size_t index>
-struct tp_at<C<Args...>, index> {
-static_assert(index < sizeof...(Args), "tp_at: invalid index");
-using type = typename __tp_at_helper<index, Args...>::type;
-};
-
-// f(L<Args...>, index) - > Args(index)
-template<typename T, size_t index>
-using tp_at_t = typename tp_at<T, index>::type;
-
-template<typename T>
-struct tp_front {
-using type = tp_at_t<T, 0>;
-};
-
-// tp_at_t(T, 0)
-template<typename T>
-using tp_front_t = typename tp_front<T>::type;
-
-template<typename T>
-struct tp_back {
-using type = tp_at_t<T, tp_size_v<T> -1>;
-};
-
-// tp_at_t(T, tp_size_v<T> - 1)
-template<typename T>
-using tp_back_t = typename tp_back<T>::type;
-
-template<typename T, size_t idx>
-struct tp_prefix {
-using type = tp_cut_t<T, 0, idx>;
-};
-
-template<typename T, size_t idx>
-using tp_prefix_t = typename tp_prefix<T, idx>::type;
-
-template<typename T, size_t idx>
-struct tp_suffix {
-using type = tp_cut_t<T, tp_size_v<T> - idx, idx>;
-};
-
-template<typename T, size_t idx>
-using tp_suffix_t = typename tp_suffix<T, idx>::type;
-
-template<typename T, size_t idx>
-struct tp_remove_prefix {
-using type = tp_suffix_t<T, tp_size_v<T> - idx>;
-};
-
-template<typename T, size_t idx>
-using tp_remove_prefix_t = typename tp_remove_prefix<T, idx>::type;
-
-template<typename T, size_t idx>
-struct tp_remove_suffix {
-using type = tp_prefix_t<T, tp_size_v<T> - idx>;
-};
-
-template<typename T, size_t idx>
-using tp_remove_suffix_t = typename tp_remove_suffix<T, idx>::type;
-
-template<typename...Args>
-struct tp_concat;
-
-template<typename T>
-struct tp_concat<T> {
-using type = T;
+template<typename Engine>
+Engine basic_random_static_wrapper<Engine>::m_engine(std::random_device{}());
+
+template<typename Engine>
+struct basic_random_thread_local_wrapper {
+Engine& engine() const {
+thread_local Engine m_engine(std::random_device{}());
+return m_engine;
+}
 };
 
 template<
-template<typename...>typename C1, typename...Args1,
-template<typename...>typename C2, typename...Args2>
-struct tp_concat<C1<Args1...>, C2<Args2...>> {
-using type = C1<Args1..., Args2...>;
-};
-
-template<
-typename T,
-typename U,
-typename...Args3>
-struct tp_concat<T, U, Args3...> {
-using type = typename tp_concat<typename tp_concat<T, U>::type, Args3...>::type;
-};
-
-// f(L1<Args...>, L2<Args2...>, ... Ln<Argsn...>) -> L1<Args..., Args2..., Argsn...>
-template<typename...Args>
-using tp_concat_t = typename tp_concat<Args...>::type;
-
-template<typename T, size_t idx, typename U>
-struct tp_replace_at {
-using type = tp_concat_t<tp_push_back_t<tp_cut_t<T, 0, idx - 1>, U>, tp_cut_t<T, idx, tp_size_v<T> -idx>>;
-};
-
-template<typename T, typename U>
-struct tp_replace_at<T, 0, U> {
-using type = tp_push_front_t<tp_pop_front_t<T>, U>;
-};
-
-template<typename T, size_t idx, typename U>
-using tp_replace_at_t = typename tp_replace_at<T, idx, U>::type;
-
-template<typename T, typename U>
-struct tp_replace_front_at {
-using type = tp_replace_at_t<T, 0, U>;
-};
-
-template<typename T, typename U>
-using tp_replace_front_at_t = typename tp_replace_front_at<T, U>::type;
-
-template<typename T, typename U>
-struct tp_replace_back_at {
-using type = tp_replace_at_t<T, tp_size_v<T> -1, U>;
-};
-
-template<typename T, typename U>
-using tp_replace_back_at_t = typename tp_replace_back_at<T, U>::type;
-
-template<typename V, typename T, typename...Args>
-struct tp_conditional {
-using type = std::conditional_t<V::value, T, typename tp_conditional<Args...>::type>;
-};
-
-template<typename V, typename T1, typename T2>
-struct tp_conditional<V, T1, T2> {
-using type = std::conditional_t<V::value, T1, T2>;
-};
-
-template<typename V, typename T, typename...Args>
-using tp_conditional_t = typename tp_conditional<V, T, Args...>::type;
-
-template<size_t idx>
-struct tp_arg;
-
-template<template<typename...>typename F, typename...Args>
-struct tp_bind;
-
-template<template<typename...>typename F, typename...Args>
-struct tp_bind_front;
-
-template<template<typename...>typename F, typename...Args>
-struct tp_bind_back;
-
-template<size_t idx>
-struct tp_is_fn<tp_arg<idx>> : std::true_type {};
-
-template<template<typename...>typename F, typename...Args>
-struct tp_is_fn<tp_bind<F, Args...>> : std::true_type {};
-
-template<template<typename...>typename F, typename...Args>
-struct tp_is_fn<tp_bind_front<F, Args...>> : std::true_type {};
-
-template<template<typename...>typename F, typename...Args>
-struct tp_is_fn<tp_bind_back<F, Args...>> : std::true_type {};
-
-template<size_t idx>
-struct tp_arg {
-template<typename...Args>
-using fn = tp_at_t<tp_list<Args...>, idx>;
-};
-
-template<template<typename...>typename F,
-typename T>
-struct tp_apply {
-using type = tp_rename_t<T, F>;
-};
-
-// f(L<Args...>) -> f(Args...)
-template<template<typename...>typename F,
-typename T>
-using tp_apply_t = typename tp_apply<F, T>::type;
-
-template<typename F, typename T>
-using tp_apply_f = tp_apply_t<F::template fn, T>;
-
-template<typename _Enable, typename T, typename...Args>
-struct __tp_bind_helper {
-using type = T;
-};
-
-template<typename F, typename...Args>
-struct __tp_bind_helper<std::enable_if_t<tp_is_fn_v<F>, void>, F, Args...> {
-using type = typename F::template fn<Args...>;
-};
-
-template<template<typename...>typename F, typename...Args>
-struct tp_bind {
-template<typename...Args2>
-using fn = F<typename __tp_bind_helper<void, Args, Args2...>::type...>;
-};
-
-template<typename F, typename...Args>
-using tp_bind_f = tp_bind<F::template fn, Args...>;
-
-template<template<typename...>typename F, typename...Args>
-struct tp_bind_front {
-template<typename...Args2>
-using fn = tp_defer_t<F, Args..., Args2...>;
-};
-
-template<typename F, typename...Args>
-using tp_bind_front_f = tp_bind_front<F::template fn, Args...>;
-
-template<template<typename...>typename F, typename...Args>
-struct tp_bind_back {
-template<typename...Args2>
-using fn = tp_defer_t<F, Args2..., Args...>;
-};
-
-template<typename F, typename...Args>
-using tp_bind_back_f = tp_bind_back<F::template fn, Args...>;
-
-template<typename T, template<typename...>typename F>
-struct tp_transform;
-
-template<template<typename...>typename C, typename...Args, template<typename...>typename F>
-struct tp_transform<C<Args...>, F> {
-using type = C<F<Args>...>;
-};
-
-// f(L<Args...>, Fn) -> L<Fn(Args)...>
-// use with apply, bind, bind_front, bind_back...
-// for example:
-// tp_transform_f<tp_bind_front<tp_apply_f, tp_bind_front<std::is_same>>,
-// tp_list<tp_list<int, float>, tp_list<float, float>, tp_list<int, double>>>
-// -> tp_list<std::is_same<int, float>, std::is_same<float, float>, std::is_same<int, double>>
-template<typename T, template<typename...>typename F>
-using tp_transform_t = typename tp_transform<T, F>::type;
-
-template<typename T, typename F>
-using tp_transform_f = typename tp_transform<T, F::template fn>::type;
-
-template<template<typename...>typename C, typename...Args>
-struct tp_zip;
-
-template<template<typename...>typename C, typename T>
-struct __tp_zip_helper;
-
-template<template<typename...>typename C, size_t...idx>
-struct __tp_zip_helper<C, std::index_sequence<idx...>> {
-template<size_t I, typename...Args>
-using __type = C<tp_at_t<Args, I>...>;
-template<typename...Args>
-using type = tp_list<__type<idx, Args...>...>;
-};
-
-template<template<typename...>typename C>
-struct tp_zip<C> {
-using type = tp_list<>;
-};
-
-template<template<typename...>typename C, typename T>
-struct tp_zip<C, T> {
-using type = tp_list<T>;
-};
-
-template<template<typename...>typename C, typename T, typename...Args>
-struct tp_zip<C, T, Args...> {
-constexpr static size_t size = tp_size_v<T>;
-static_assert(((size == tp_size_v<Args>) && ...),
-"tp_zip arguments must have same size, \
-you can make all arguments have same size by tp_");
-using type = typename __tp_zip_helper<C, std::make_index_sequence<tp_size_v<T>>>::template type<T, Args...>;
-};
-
-template<template<typename...>typename C, typename...Args>
-using tp_zip_t = typename tp_zip<C, Args...>::type;
-
-template<typename...Args>
-struct __tp_max_size_helper;
+typename Engine,
+template<typename> typename EngineWrapper,
+template<typename> typename IntegerDist = std::uniform_int_distribution,
+template<typename> typename RealDist = std::uniform_real_distribution,
+typename BoolDist = std::bernoulli_distribution
+>
+class __basic_random : public EngineWrapper<Engine> {
 
 template<typename T>
-struct __tp_max_size_helper<T> {
-constexpr static size_t value = tp_size_v<T>;
-};
+using _Is_container = std::conjunction<
+has_global_function_std_begin<T>,
+has_global_function_std_end<T>
+>;
 
-template<typename T, typename...Args>
-struct __tp_max_size_helper<T, Args...> {
-constexpr static size_t value = std::max(tp_size_v<T>, __tp_max_size_helper<Args...>::value);
-};
+public:
+using _Mybase = EngineWrapper<Engine>;
 
-template<typename T, typename...Args>
-struct tp_max_size {
-constexpr static size_t value = __tp_max_size_helper<T, Args...>::value;
-};
-
-template<typename T, typename...Args>
-inline constexpr size_t tp_max_size_v = tp_max_size<T, Args...>::value;
+using engine_type = Engine;
 
 template<typename T>
-struct tp_wrap {
-using type = tp_list<T>;
-};
+using integer_dist_t = IntegerDist<T>;
 
 template<typename T>
-using tp_wrap_t = typename tp_wrap<T>::type;
+using real_dist_t = RealDist<T>;
 
-template<typename T>
-struct tp_unwrap {
-static_assert(tp_size_v<T> == 1, "only container that size = 1 can use unwrap");
-};
+using bool_dist_t = BoolDist;
 
-template<template<typename...>typename C, typename T>
-struct tp_unwrap<C<T>> {
-using type = T;
-};
+using common = std::common_type<>;
 
-template<typename T>
-using tp_unwrap_t = typename tp_unwrap<T>::type;
+using result_type = typename engine_type::result_type;
 
-template<typename T, template<typename...>typename P, typename U>
-struct tp_replace_if;
+using _Mybase::engine;
 
-template<template<typename...>typename C, typename...Args, template<typename...>typename P, typename U>
-struct tp_replace_if<C<Args...>, P, U> {
-using type = C<tp_conditional_t<P<Args>, U, Args>...>;
-};
+private:
 
-// f(L<Args...>, P, U) -> L<if P(Args)::value then U else Args...>
-template<typename T, template<typename...>typename P, typename U>
-using tp_replace_if_t = typename tp_replace_if<T, P, U>::type;
+template<typename _Seq>
+struct _Is_seed_seq : std::bool_constant<
+!std::is_convertible_v<_Seq, result_type>
+&& !std::is_same_v<remove_cvref_t<_Seq>, engine_type>
+&& !std::is_same_v<remove_cvref_t<_Seq>, __basic_random>
+> {};
 
-template<typename T, typename P, typename U>
-using tp_replace_if_f = tp_replace_if_t<T, P::template fn, U>;
+template<typename _Seq>
+constexpr static bool _Is_seed_seq_v = _Is_seed_seq<_Seq>::value;
 
-template<typename T, typename U>
-struct tp_replace_if_true {
-using type = tp_replace_if_t<T, tp_identity_t, U>;
-};
+public:
 
-template<typename T, typename U>
-using tp_replace_if_true_t = typename tp_replace_if_true<T, U>::type;
-
-template<typename T, typename U>
-struct tp_replace_if_false {
-using type = tp_replace_if_f<T, tp_not_fn<tp_identity_t>, U>;
-};
-
-template<typename T, typename U>
-using tp_replace_if_false_t = typename tp_replace_if_false<T, U>::type;
-
-template<typename T, typename O, typename N>
-struct tp_replace {
-using type = tp_replace_if_f<T, tp_bind_front<std::is_same, O>, N>;
-};
-
-template<typename T, typename O, typename N>
-using tp_replace_t = typename tp_replace<T, O, N>::type;
-
-template<typename T, typename U>
-struct tp_fill {
-using type = tp_replace_if_t<T, tp_always_true, U>;
-};
-
-template<typename T, typename U>
-using tp_fill_t = typename tp_fill<T, U>::type;
-
-template<typename T, template<typename...>typename P>
-struct tp_count_if;
-
-template<template<typename...>typename C, template<typename...>typename P>
-struct tp_count_if<C<>, P> {
-static constexpr size_t value = 0;
-};
-
-template<template<typename...>typename C, typename...Args, template<typename...>typename P>
-struct tp_count_if<C<Args...>, P> {
-static constexpr size_t value = (P<Args>::value + ...);
-};
-
-// f(L<Args...>, P) -> count(P(Args)::value)
-template<typename T, template<typename...>typename P>
-constexpr size_t tp_count_if_v = tp_count_if<T, P>::value;
-
-template<typename T, typename P>
-constexpr size_t tp_count_if_f_v = tp_count_if_v<T, P::template fn>;
-
-template<typename T, typename V>
-struct tp_count {
-static constexpr size_t value = tp_count_if_f_v<T, tp_bind_front<std::is_same, V>>;
-};
-
-template<typename T, typename V>
-constexpr size_t tp_count_v = tp_count<T, V>::value;
-
-template<typename T, typename V>
-struct tp_contains {
-static constexpr bool value = tp_count_v<T, V> != 0;
-};
-
-template<typename T, typename V>
-constexpr bool tp_contains_v = tp_contains<T, V>::value;
-
-template<typename T, template<typename...>typename P>
-struct tp_remove_if;
-
-template<template<typename...>typename C, typename...Args, template<typename...>typename P>
-struct tp_remove_if<C<Args...>, P> {
-using type = tp_concat_t<C<>, tp_conditional_t<P<Args>, C<>, C<Args>>...>;
-};
-
-// f(L<Args...>, P) -> L<if P(Args)::value then L<> else L<Args>...>
-template<typename T, template<typename...>typename P>
-using tp_remove_if_t = typename tp_remove_if<T, P>::type;
-
-template<typename T, typename P>
-using tp_remove_if_f = tp_remove_if_t<T, P::template fn>;
-
-template<typename T, typename V>
-struct tp_remove {
-using type = tp_remove_if_f<T, tp_bind_front<std::is_same, V>>;
-};
-
-template<typename T, typename V>
-using tp_remove_t = typename tp_remove<T, V>::type;
-
-template<typename T, template<typename...>typename P>
-struct tp_filter {
-using type = tp_remove_if_f<T, tp_not_fn<P>>;
-};
-
-template<typename T, template<typename...>typename P>
-using tp_filter_t = typename tp_filter<T, P>::type;
-
-template<typename T, typename P>
-using tp_filter_f = tp_filter_t<T, P::template fn>;
-
-template<typename T, typename U>
-struct tp_equal;
-
-template<typename _Enable, typename T, typename U>
-struct __tp_equal_helper : std::false_type{};
-
-template<template<typename...>typename C, typename...Args, template<typename...>typename D, typename...Args2>
-struct __tp_equal_helper<std::enable_if_t<sizeof...(Args) == sizeof...(Args2), void>, C<Args...>, D<Args2...>>
-: std::conjunction<std::is_same<Args, Args2>...> {};
-
-template<typename T, typename U>
-struct tp_equal : __tp_equal_helper<void, T, U> {};
-
-template<typename T, typename U>
-inline constexpr bool tp_equal_v = tp_equal<T, U>::value;
-
-template<typename T, size_t N>
-struct tp_repeat {
-using type = tp_concat<T, typename tp_repeat<T, N - 1>::type>;
-};
-
-template<typename T>
-struct tp_repeat<T, 0> {
-using type = T;
-};
-
-template<typename C, size_t N>
-using tp_repeat_t = typename tp_repeat<C, N>::type;
-
-template<typename _Enable, typename C, size_t N, typename V>
-struct __tp_resize_helper {
-using type = tp_cut_t<C, 0, N>;
-};
-
-template<typename C, size_t N, typename V>
-struct __tp_resize_helper<std::enable_if_t<N >= tp_size_v<C>, void>, C, N, V> {
-using type = tp_concat_t<C, tp_repeat_t<V, N - tp_size_v<C>>>;
-};
-
-template<typename C, size_t N, typename V>
-struct tp_resize {
-using tyep = typename __tp_resize_helper<void, C, N, V>::type;
-};
-
-template<typename C, size_t N, typename V>
-using tp_resize_t = typename tp_resize<C, N, V>::type;
-
-template<template<typename...>typename C, typename...Args>
-struct tp_product;
-
-template<typename _Enable, template<typename...>typename C, typename...Args>
-struct __tp_product_helper{
-using type = tp_list<>;
-};
-
-template<typename _Enable, template<typename...>typename C, typename T>
-struct __tp_product_helper<_Enable, C, T> {
-using type = tp_list<tp_rename_t<T, C>>;
-};
-
-template<
-template<typename...>typename C,
-typename T,
-template<typename...>typename C1,
-typename...Args1,
-typename...Args>
-struct __tp_product_helper<std::enable_if_t<sizeof...(Args1) != 0, void>, C, T, C1<Args1...>, Args...> {
-using type = tp_concat_t<typename __tp_product_helper<void, C, tp_push_back_t<T, Args1>, Args...>::type...>;
-};
-
-template<template<typename...>typename C, typename...Args>
-struct tp_product {
-using type = typename __tp_product_helper<void, C, tp_list<>, Args...>::type;
-};
-
-template<template<typename...>typename C, typename...Args>
-using tp_product_t = typename tp_product<C, Args...>::type;
-
-template<typename C, size_t I, typename...Args>
-struct tp_insert {
-static_assert(I <= tp_size_v<C>, "tp insert index out of range");
-using type = tp_concat_t<tp_push_back_t<tp_prefix_t<C, I>, Args...>, tp_suffix_t<C, tp_size_v<C> -I>>;
-};
-
-template<typename C, size_t I, typename...Args>
-using tp_insert_t = typename tp_insert<C, I, Args...>::type;
-
-template<typename C, size_t I, size_t N>
-struct tp_erase {
-static_assert(N <= tp_size_v<C> && I <= tp_size_v<C> -N, "tp erase index out of range");
-using type = tp_concat_t<tp_prefix_t<C, I>, tp_suffix_t<C, tp_size_v<C> -I - N>>;
-};
-
-template<typename C, size_t I, size_t N>
-using tp_erase_t = typename tp_erase<C, I, N>::type;
-
-template<typename C>
-struct tp_reverse;
-
-template<template<typename...>typename C>
-struct tp_reverse<C<>> {
-using type = C<>;
-};
-
-template<template<typename...>typename C, typename T, typename...Args>
-struct tp_reverse<C<T, Args...>> {
-using type = tp_push_back_t<typename tp_reverse<C<Args...>>::type, T>;
-};
-
-template<typename C>
-using tp_reverse_t = typename tp_reverse<C>::type;
-
-template<typename _Enable, size_t idx, typename C, template<typename...>typename P>
-struct __tp_find_if_helper;
-
-template<typename _Enable, size_t idx,
-template<typename...>typename C,
-typename T,
-typename...Args,
-template<typename...>typename P>
-struct __tp_find_if_helper<_Enable, idx, C<T, Args...>, P> {
-constexpr static size_t value = __tp_find_if_helper<void, idx + 1, C<Args...>, P>::value;
-};
-
-template<typename _Enable, size_t idx,
-template<typename...>typename C,
-template<typename...>typename P>
-struct __tp_find_if_helper<_Enable, idx, C<>, P> {
-constexpr static size_t value = -1;
-};
-
-template<size_t idx,
-template<typename...>typename C,
-typename T,
-typename...Args,
-template<typename...>typename P>
-struct __tp_find_if_helper<std::enable_if_t<P<T>::value, void>, idx, C<T, Args...>, P> {
-constexpr static size_t value = idx;
-};
-
-template<typename C, template<typename...>typename P>
-struct tp_find_if {
-constexpr static size_t value = __tp_find_if_helper<void, 0, C, P>::value;
-};
-
-template<typename C, template<typename...>typename P>
-inline constexpr size_t tp_find_if_v = tp_find_if<C, P>::value;
-
-template<typename C, typename P>
-inline constexpr size_t tp_find_if_f = tp_find_if<C, P::template fn>::value;
-
-template<typename C, template<typename...>typename P>
-struct tp_find_if_not {
-constexpr static size_t value = tp_find_if_f<C, tp_not_fn<P>>;
-};
-
-template<typename C, template<typename...>typename P>
-inline constexpr size_t tp_find_if_not_v = tp_find_if_not<C, P>::value;
-
-template<typename C, typename P>
-inline constexpr size_t tp_find_if_not_f = tp_find_if_not<C, P::template fn>::value;
-
-template<typename C, typename V>
-struct tp_find{
-constexpr static size_t value = tp_find_if_f<C, tp_bind_front<std::is_same, V>>;
-};
-
-template<typename C, typename V>
-inline constexpr size_t tp_find_v = tp_find<C, V>::value;
-
-template<typename C, typename E, template<typename...>typename F>
-struct tp_left_fold;
-
-template<
-template<typename...>typename C,
-typename E,
-template<typename...>typename F>
-struct tp_left_fold<C<>, E, F> {
-using type = E;
-};
-
-template<
-template<typename...>typename C,
-typename T,
-typename...Args,
-typename E,
-template<typename...>typename F>
-struct tp_left_fold<C<T, Args...>, E, F> {
-using type = typename tp_left_fold<C<Args...>, F<E, T>, F>::type;
-};
-
-template<typename C, typename E, template<typename...>typename F>
-using tp_left_fold_t = typename tp_left_fold<C, E, F>::type;
-
-template<typename C, typename E, typename F>
-using tp_left_fold_f = typename tp_left_fold<C, E, F::template fn>::type;
-
-template<typename C, typename E, template<typename...>typename F>
-struct tp_right_fold;
-
-template<
-template<typename...>typename C,
-typename E,
-template<typename...>typename F>
-struct tp_right_fold<C<>, E, F> {
-using type = E;
-};
-
-template<
-template<typename...>typename C,
-typename T,
-typename...Args,
-typename E,
-template<typename...>typename F>
-struct tp_right_fold<C<T, Args...>, E, F> {
-using next_type = typename tp_right_fold<C<Args...>, E, F>::type;
-using type = F<T, next_type>;
-};
-
-template<typename C, typename E, template<typename...>typename F>
-using tp_right_fold_t = typename tp_right_fold<C, E, F>::type;
-
-template<typename C, typename E, typename F>
-using tp_right_fold_f = typename tp_right_fold<C, E, F::template fn>::type;
-
-template<typename C, template<typename...>typename P>
-struct tp_unique_if {
-using type = tp_left_fold_f<C, tp_clear_t<C>, tp_bind<tp_conditional_t, tp_bind_front<P>, tp_arg<0>,
-tp_bind_front<tp_push_back_t>>>;
-};
-
-template<typename C, template<typename...>typename P>
-using tp_unique_if_t = typename tp_unique_if<C, P>::type;
-
-template<typename C, typename P>
-using tp_unique_if_f = typename tp_unique_if<C, P::template fn>::type;
-
-template<typename C>
-struct tp_unique{
-using type = tp_unique_if_t<C, tp_contains>;
-};
-
-template<typename C>
-using tp_unique_t = typename tp_unique<C>::type;
-
-template<typename _Enable, typename C, typename C1, typename C2, template<typename...>typename P>
-struct __tp_merge_helper;
-
-template<
-typename _Enable,
-template<typename...>typename C,
-typename...Args,
-template<typename...>typename C1,
-template<typename...>typename C2,
-typename...Args2,
-template<typename...>typename P>
-struct __tp_merge_helper<_Enable, C<Args...>, C1<>, C2<Args2...>, P> {
-using type = tp_list<Args..., Args2...>;
-};
-
-template<
-typename _Enable,
-template<typename...>typename C,
-typename...Args,
-template<typename...>typename C1,
-typename...Args1,
-template<typename...>typename C2,
-template<typename...>typename P>
-struct __tp_merge_helper<_Enable, C<Args...>, C1<Args1...>, C2<>, P> {
-using type = tp_list<Args..., Args1...>;
-};
-
-template<
-typename _Enable,
-template<typename...>typename C,
-typename...Args,
-template<typename...>typename C1,
-template<typename...>typename C2,
-template<typename...>typename P>
-struct __tp_merge_helper<_Enable, C<Args...>, C1<>, C2<>, P> {
-using type = tp_list<Args...>;
-};
-
-template<
-template<typename...>typename C,
-typename...Args,
-template<typename...>typename C1,
-typename T1, typename...Args1,
-template<typename...>typename C2,
-typename T2, typename...Args2,
-template<typename...>typename P>
-struct __tp_merge_helper<std::enable_if_t<P<T1, T2>::value, void>, C<Args...>, C1<T1, Args1...>, C2<T2, Args2...>, P> {
-using type = typename __tp_merge_helper<void, C<Args..., T1>, C1<Args1...>, C2<T2, Args2...>, P>::type;
-};
-
-template<
-template<typename...>typename C,
-typename...Args,
-template<typename...>typename C1,
-typename T1, typename...Args1,
-template<typename...>typename C2,
-typename T2, typename...Args2,
-template<typename...>typename P>
-struct __tp_merge_helper<std::enable_if_t<!P<T1, T2>::value, void>, C<Args...>, C1<T1, Args1...>, C2<T2, Args2...>, P> {
-using type = typename __tp_merge_helper<void, C<Args..., T2>, C1<T1, Args1...>, C2<Args2...>, P>::type;
-};
-
-template<typename C1, typename C2, template<typename...>typename P>
-struct tp_merge {
-using type = typename __tp_merge_helper<void, tp_list<>, C1, C2, P>::type;
-};
-
-template<typename C1, typename C2, template<typename...>typename P>
-using tp_merge_t = typename tp_merge<C1, C2, P>::type;
-
-template<typename C1, typename C2, typename P>
-using tp_merge_f = typename tp_merge<C1, C2, P::template fn>::type;
-
-template<typename C, template<typename...>typename P>
-struct tp_sort;
-
-template<
-typename C,
-template<typename...>typename P>
-struct __tp_sort_helper;
-
-template<
-template<typename...>typename C,
-typename...Args,
-template<typename...>typename P>
-struct __tp_sort_helper<C<Args...>, P> {
-using _Container = C<Args...>;
-constexpr static size_t size = tp_size_v<_Container>;
-constexpr static size_t mid = size / 2;
-using type1 = typename __tp_sort_helper<tp_prefix_t<_Container, mid>, P>::type;
-using type2 = typename __tp_sort_helper<tp_suffix_t<_Container, size - mid>, P>::type;
-using type = tp_merge_t<type1, type2, P>;
-};
-
-template<
-template<typename...>typename C,
-typename T,
-template<typename...>typename P>
-struct __tp_sort_helper<C<T>, P> {
-using type = C<T>;
-};
-
-template<
-template<typename...>typename C,
-template<typename...>typename P>
-struct __tp_sort_helper<C<>, P> {
-using type = C<>;
-};
-
-template<
-template<typename...>typename C,
-typename...Args,
-template<typename...>typename P>
-struct tp_sort<C<Args...>, P> {
-using type = tp_rename_t<typename __tp_sort_helper<C<Args...>, P>::type, C>;
-};
-
-template<typename C, template<typename...>typename P>
-using tp_sort_t = typename tp_sort<C, P>::type;
-
-template<typename C, typename P>
-using tp_sort_f = typename tp_sort<C, P::template fn>::type;
-
-template<size_t I, typename T>
-struct __tp_iota_helper;
-
-template<size_t I, size_t...Idx>
-struct __tp_iota_helper<I, std::index_sequence<Idx...>> {
-using type = tp_list<tp_size_t<I + Idx>...>;
-};
-
-template<size_t I, size_t N>
-struct tp_iota {
-using type = typename __tp_iota_helper<I, std::make_index_sequence<N>>::type;
-};
-
-template<size_t I, size_t N>
-using tp_iota_t = typename tp_iota<I, N>::type;
-
-template<typename...Args, typename F>
-constexpr F __tp_for_each_helper(tp_list<Args...>, F&& f) {
-int dummy[] = { (f(Args()), 0)... };
-return std::forward<F>(f);
+constexpr static result_type min() {
+return engine_type::min();
 }
 
-template<typename C, typename F>
-constexpr F tp_for_each(F&& f) {
-return __tp_for_each_helper(tp_rename_t<C, tp_list>(), std::forward<F>(f));
+constexpr static result_type max() {
+return engine_type::max();
 }
 
-// this visit only apply 1 std::variant
-template<typename Func, typename Var>
-WJR_NODISCARD constexpr decltype(auto) tp_visit(Func&& fn, Var&& v) {
-using var_type = remove_cvref_t<Var>;
-if constexpr (tp_is_container_v<var_type>) {
-using remove_if_unreachable_pred = tp_bind<std::is_same, std::monostate, tp_bind_front<std::decay_t>>;
-
-using trivial_func_type = tp_rename_t<var_type, tp_list>;
-using trivial_result_type = tp_transform_f<trivial_func_type,
-tp_bind<std::invoke_result_t, Func&&, tp_arg<0>>>;
-
-using reachable_result_type = tp_remove_if_f<trivial_result_type, remove_if_unreachable_pred>;
-using unique_result_type = tp_unique_t<reachable_result_type>;
-
-using has_unreachable_result_type = std::bool_constant<tp_size_v<trivial_result_type>
-!= tp_size_v<reachable_result_type>>;
-
-// all function is reachable
-if constexpr (!has_unreachable_result_type::value) {
-// only have one return type
-if constexpr (tp_size_v<unique_result_type> == 1) {
-return std::visit(std::forward<Func>(fn), std::forward<Var>(v));
+void discard(size_t n) const {
+engine().discard(n);
 }
-// have many return type
-else {
-using final_result_type = tp_rename_t<unique_result_type, std::variant>;
-return std::visit([_Fn = std::forward<Func>(fn)](auto&& x) {
-return static_cast<final_result_type>(
-std::invoke(_Fn, std::forward<decltype(x)>(x)));
-}, std::forward<Var>(v));
+
+void reseed() const {
+engine().seed(std::random_device{}());
 }
+
+void seed(result_type seed = engine_type::default_seed) const {
+engine().seed(seed);
 }
-// some functions is unreachable
-// optimize for them
-else {
-// all functions is unreachable
-if constexpr(tp_size_v<unique_result_type> == 0){
-(void)(0);
+
+template<typename _Seq, std::enable_if_t<_Is_seed_seq_v<_Seq>, int> = 0>
+void seed(_Seq& seq) const {
+engine().seed(seq);
+}
+
+result_type get() const {
+return engine()();
+}
+
+template<typename T, std::enable_if_t<std::conjunction_v<
+std::is_arithmetic<T>, std::negation<std::is_same<T, bool>>>, int> = 0>
+T get(
+T __min = std::numeric_limits<T>::min(),
+T __max = std::numeric_limits<T>::max()) const {
+if constexpr (std::is_integral_v<T>) {
+if constexpr (sizeof(T) < sizeof(short)) {
+using short_t = std::conditional_t<std::is_signed<T>::value,
+short, unsigned short>;
+return static_cast<T>(integer_dist_t<short_t>{__min, __max}(engine()));
 }
 else {
-using front_type = tp_front_t<unique_result_type>;
-if constexpr (tp_size_v<unique_result_type> == 1
-&& std::is_same_v<front_type, void>) {
-// TODO, optimize for this
-return std::visit([_Fn = std::forward<Func>(fn)](auto&& x) {
-if constexpr (remove_if_unreachable_pred::template fn<decltype(x)>::value) {
-WJR_UNREACHABLE;
-}
-else {
-std::invoke(_Fn, std::forward<decltype(x)>(x));
-}
-}, std::forward<Var>(v));
-}
-else {
-using final_result_type = tp_rename_t<tp_push_front_t<unique_result_type, std::monostate>, std::variant>;
-return std::visit([_Fn = std::forward<Func>(fn)](auto&& x) {
-if constexpr (remove_if_unreachable_pred::template fn<decltype(x)>::value) {
-WJR_UNREACHABLE;
-return static_cast<final_result_type>(std::monostate());
-}
-else {
-return static_cast<final_result_type>(
-std::invoke(_Fn, std::forward<decltype(x)>(x)));
-}
-}, std::forward<Var>(v));
-}
-}
+using type = int_or_uint_t<sizeof(T) * 8, std::is_signed_v<T>>;
+return integer_dist_t<type>{__min, __max}(engine());
 }
 }
 else {
-static_assert(has_std_invoke_v<Func&&, Var&&>, "");
-return std::invoke(std::forward<Func>(fn), std::forward<Var>(v));
+return real_dist_t<T>{__min, __max}(engine());
 }
 }
+
+template<typename X, typename T, typename U, typename R = std::common_type_t<T, U>,
+std::enable_if_t<std::conjunction_v<
+std::is_same<X, common>,
+std::is_arithmetic<T>,
+std::is_arithmetic<U>>, int> = 0>
+R get(
+T __min = std::numeric_limits<T>::min(),
+U __max = std::numeric_limits<U>::max()) const {
+return get<R>(static_cast<R>(__min), static_cast<R>(__max));
+}
+
+template<typename T, std::enable_if_t<std::is_same_v<T, bool>, int> = 0>
+T get(double p = 0.5) const {
+return bool_dist_t{ p }(engine());
+}
+
+template<typename Dist, typename...Args>
+typename Dist::result_type get(Args&&...args) const {
+return Dist{ std::forward<Args>(args)... }(engine());
+}
+
+template<typename Dist>
+typename Dist::result_type get(Dist& dist) const {
+return dist(engine());
+}
+
+template<typename _Container, std::enable_if_t<std::conjunction_v<
+has_global_function_std_begin<_Container>,
+has_global_function_std_end<_Container>>, int> = 0>
+decltype(auto) get(_Container& container) const {
+auto first = std::begin(container);
+auto last = std::end(container);
+auto n = wjr::size(container);
+if (n == 0)return last;
+using diff_t = wjr::iter_diff_t<decltype(first)>;
+return std::next(first, get<diff_t>(0, n - 1));
+}
+
+template<typename iter, std::enable_if_t<wjr::is_iterator_v<iter>, int> = 0>
+iter get(iter first, iter last) const {
+return get(wjr::make_iter_wrapper(first, last));
+}
+
+template<typename T>
+T get(std::initializer_list<T> il) const {
+return *get(std::begin(il), std::end(il));
+}
+
+template<typename _Ty, size_t _Size>
+_Ty get(_Ty(&arr)[_Size]) const {
+return *get(std::begin(arr), std::end(arr));
+}
+
+template<typename _Container>
+void shuffle(_Container& container) const {
+std::shuffle(std::begin(container), std::end(container), engine());
+}
+
+template<typename iter>
+void shuffle(iter first, iter last) const {
+shuffle(wjr::make_iter_wrapper(first, last));
+}
+
+};
+
+template<typename Engine,
+template<typename>typename IntegerDist = std::uniform_int_distribution,
+template<typename>typename RealDist = std::uniform_real_distribution,
+typename BoolDist = std::bernoulli_distribution>
+using basic_random = __basic_random<Engine, basic_random_static_wrapper, IntegerDist, RealDist, BoolDist>;
+
+template<typename Engine,
+template<typename>typename IntegerDist = std::uniform_int_distribution,
+template<typename>typename RealDist = std::uniform_real_distribution,
+typename BoolDist = std::bernoulli_distribution>
+using basic_random_thread_local = __basic_random<Engine, basic_random_thread_local_wrapper, IntegerDist, RealDist, BoolDist>;
+
+template<
+template<typename>typename IntegerDist = std::uniform_int_distribution,
+template<typename>typename RealDist = std::uniform_real_distribution,
+typename BoolDist = std::bernoulli_distribution>
+using default_random = basic_random<std::mt19937, IntegerDist, RealDist, BoolDist>;
+
+template<
+template<typename>typename IntegerDist = std::uniform_int_distribution,
+template<typename>typename RealDist = std::uniform_real_distribution,
+typename BoolDist = std::bernoulli_distribution>
+using default_random_thread_local = basic_random_thread_local<std::mt19937, IntegerDist, RealDist, BoolDist>;
+
+inline constexpr default_random<> random;
+inline constexpr default_random_thread_local<> random_thread_local;
 
 _WJR_END
 
-#endif // __WJR_TP_LIST_H
+#endif // __WJR_RANDOM_H
 #pragma once
 #ifndef __WJR_ALLOCATOR_H
 #define __WJR_ALLOCATOR_H
@@ -18776,8 +18138,8 @@ return true;
 
 template <typename _Ty, size_t _Al1, size_t _Off1, typename _Other, size_t _Al2, size_t _Off2>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 bool operator==(
-const aligned_allocator<_Ty, _Al1, _Off1>& lhs,
-const aligned_allocator<_Other, _Al2, _Off2>& rhs) noexcept {
+const aligned_allocator<_Ty, _Al1, _Off1>&,
+const aligned_allocator<_Other, _Al2, _Off2>&) noexcept {
 return false;
 }
 
@@ -18806,7 +18168,6 @@ printf("memory leak: %lld bytes", _Count);
 __test_allocator __test_allocator_instance;
 #endif
 _WJR_END
-
 #pragma once
 #ifndef __WJR_NETWORK_THREAD_POOL_H
 #define __WJR_NETWORK_THREAD_POOL_H
@@ -19985,3 +19346,1154 @@ m_core_threads.emplace_back(&thread_pool::core_work, this);
 
 
 _WJR_END
+#pragma once
+#ifndef __WJR_TP_LIST_H
+#define __WJR_TP_LIST_H
+
+#include <type_traits>
+#include <variant>
+
+
+// comply with STD naming standards as much as possible
+// try to place the containers that need to be processed in the first parameter as much as possible
+// when it is possible to operate on multiple containers,
+// the operation should be placed before the container disaster
+
+// Try to make each function only work on one container as much as possible.
+// If you need to work on multiple containers, you can usually use tp_zip or tp_product,
+// the former compresses the same bit of multiple containers into a container,
+// and then throws each bit of container into container C (user-defined),
+// while the latter generates a Cartesian product
+// for example ,
+// tp_zip<tp_list, tp_list<int, double, float>, tp_list<int, float, double>>
+// will generate tp_list<tp_list<int, int>, tp_list<double, float>, tp_list<float, double>>
+// tp_product<tp_list, tp_list<int, double>, tp_list<int, float, double>>
+// will generate tp_list<tp_list<int, int>, tp_list<int, float>, tp_list<int, double>,
+// tp_list<double, int>, tp_list<double, float>, tp_list<double, double>>
+
+_WJR_BEGIN
+
+struct tp_null {};
+
+template<typename...Args>
+struct tp_list {};
+
+template<typename T, T I>
+using tp_c = std::integral_constant<T, I>;
+
+template<typename T, T...I>
+struct tp_list_c {
+using type = tp_list<tp_c<T, I>...>;
+};
+
+// L<std::integral_constant<T, I>...>
+template<typename T, T... I>
+using tp_list_c_t = typename tp_list_c<T, I...>::type;
+
+template<typename T>
+struct tp_is_list : std::false_type {};
+
+template<typename...Args>
+struct tp_is_list<tp_list<Args...>> : std::true_type {};
+
+// check if is tp_list
+template<typename T>
+inline constexpr bool tp_is_list_v = tp_is_list<T>::value;
+
+template<typename T>
+struct tp_is_container : std::false_type {};
+
+template<
+template<typename...>typename C,
+typename...Args>
+struct tp_is_container<C<Args...>> : std::true_type {};
+
+template<typename T>
+inline constexpr bool tp_is_container_v = tp_is_container<T>::value;
+
+template<typename T>
+struct tp_size;
+
+template<template<typename...>typename C, typename...Args>
+struct tp_size<C<Args...>> {
+constexpr static size_t value = sizeof...(Args);
+};
+
+// get size of L<Args...>
+template<typename T>
+inline constexpr size_t tp_size_v = tp_size<T>::value;
+
+template<size_t idx>
+using tp_size_t = tp_c<size_t, idx>;
+
+template<typename T, typename U>
+struct tp_equal_c : std::bool_constant<(T::value == U::value)> {};
+
+template<typename T, typename U>
+struct tp_not_equal_c : std::bool_constant<(T::value != U::value)> {};
+
+template<typename T, typename U>
+struct tp_less_c : std::bool_constant<(T::value < U::value)>{};
+
+template<typename T, typename U>
+struct tp_less_equal_c : std::bool_constant < (T::value <= U::value)> {};
+
+template<typename T, typename U>
+struct tp_greater_c : std::bool_constant < (T::value > U::value)> {};
+
+template<typename T, typename U>
+struct tp_greater_equalv : std::bool_constant < (T::value >= U::value)>{};
+
+template<typename T>
+struct tp_is_fn : std::false_type {};
+
+template<typename T>
+inline constexpr bool tp_is_fn_v = tp_is_fn<T>::value;
+
+template<typename _Enable, template<typename...>typename F, typename...Args>
+struct __tp_valid_helper : std::false_type {};
+
+template<template<typename...>typename F, typename...Args>
+struct __tp_valid_helper<std::void_t<F<Args...>>, F, Args...> : std::true_type {};
+
+template<template<typename...>typename F, typename...Args>
+struct tp_valid : __tp_valid_helper<void, F, Args...> {};
+
+template<template<typename...>typename F, typename...Args>
+inline constexpr bool tp_valid_v = tp_valid<F, Args...>::value;
+
+template<typename F, typename...Args>
+inline constexpr bool tp_valid_f = tp_valid_v<F::template fn, Args...>;
+
+template<template<typename...>typename F, typename...Args>
+struct __tp_defer_helper {
+using type = F<Args...>;
+};
+
+template<template<typename...>typename F, typename...Args>
+struct tp_defer {
+using type = std::enable_if_t<tp_valid_v<F, Args...>, typename __tp_defer_helper<F, Args...>::type>;
+};
+
+// use std::enable_if_t to defer the instantiation of F<Args...>
+template<template<typename...>typename F, typename...Args>
+using tp_defer_t = typename tp_defer<F, Args...>::type;
+
+template<typename F, typename...Args>
+using tp_defer_f = tp_defer_t<F::template fn, Args...>;
+
+template<typename T>
+struct tp_identity {
+using type = T;
+};
+
+template<typename T>
+using tp_identity_t = typename tp_identity<T>::type;
+
+// F1<F2<Args...>>
+template<template<typename...>typename F1, template<typename...>typename F2>
+struct tp_bind_fn {
+template<typename...Args>
+using fn = tp_defer_t<F1, tp_defer_t<F2, Args...>>;
+};
+
+// make F can be used as fn
+template<template<typename...>typename F>
+struct tp_make_fn {
+template<typename...Args>
+using fn = tp_defer_t<F, Args...>;
+};
+
+// std::negation<F<Args...>>
+template<template<typename...>typename F>
+struct tp_not_fn {
+template<typename...Args>
+using fn = typename tp_bind_fn<std::negation, F>::template fn<Args...>;
+};
+
+template<typename...Args>
+struct tp_always_true : std::true_type {};
+
+template<typename...Args>
+struct tp_always_false : std::false_type {};
+
+template<typename T>
+struct tp_is_empty : std::bool_constant<tp_size_v<T> == 0> {};
+
+template<typename T>
+inline constexpr bool tp_is_empty_v = tp_is_empty<T>::value;
+
+template<typename T, typename U>
+struct tp_assign;
+
+template<typename...Args1, template<typename...>typename T1,
+typename...Args2, template<typename...>typename T2>
+struct tp_assign<T1<Args1...>, T2<Args2...>> {
+using type = T1<Args2...>;
+};
+
+// f(L1<Args1...>, L2<Args2...>) -> L1<Args2...>
+template<typename T, typename U>
+using tp_assign_t = typename tp_assign<T, U>::type;
+
+template<typename T>
+struct tp_clear;
+
+template<template<typename...>typename T, typename...Args>
+struct tp_clear<T<Args...>> {
+using type = T<>;
+};
+
+// f(L<Args...>) -> L<>
+template<typename T>
+using tp_clear_t = typename tp_clear<T>::type;
+
+template<typename T, typename...Args>
+struct tp_push_front;
+
+template<template<typename...>typename C, typename...Args1, typename...Args2>
+struct tp_push_front<C<Args1...>, Args2...> {
+using type = C<Args2..., Args1...>;
+};
+
+// f(L<Args1...>, Args2...) -> L<Args1..., Args2...)
+template<typename T, typename...Args>
+using tp_push_front_t = typename tp_push_front<T, Args...>::type;
+
+template<typename T, typename...Args>
+struct tp_push_back;
+
+template<template<typename...>typename C, typename...Args1, typename...Args2>
+struct tp_push_back<C<Args1...>, Args2...> {
+using type = C<Args1..., Args2...>;
+};
+
+// f(L<Args1...>, Args2...) -> L<Args2..., Args1...)
+template<typename T, typename...Args>
+using tp_push_back_t = typename tp_push_back<T, Args...>::type;
+
+template<typename _Enable, size_t I, size_t N, typename...Args>
+struct __tp_cut_helper;
+
+template<size_t I, size_t N, typename T, typename...Args>
+struct __tp_cut_helper<std::enable_if_t<N != 0, void>, I, N, T, Args...> {
+using type = typename __tp_cut_helper<void, I - 1, N, Args...>::type;
+};
+
+template<size_t I, size_t N, typename T, typename...Args>
+struct __tp_cut_helper<std::enable_if_t<N == 0, void>, I, N, T, Args...> {
+using type = tp_list<>;
+};
+
+template<size_t N, typename...Args2>
+struct __tp_cut_helper2;
+
+template<size_t N, typename T, typename...Args>
+struct __tp_cut_helper2<N, T, Args...> {
+using type = tp_push_front_t<typename __tp_cut_helper2<N - 1, Args...>::type, T>;
+};
+
+template<typename...Args>
+struct __tp_cut_helper2<0, Args...> {
+using type = tp_list<>;
+};
+
+template<typename T, typename...Args>
+struct __tp_cut_helper2<0, T, Args...> {
+using type = tp_list<>;
+};
+
+template<size_t N, typename...Args>
+struct __tp_cut_helper<std::enable_if_t<N != 0>, 0, N, Args...> {
+using type = typename __tp_cut_helper2<N, Args...>::type;
+};
+
+template<size_t N, typename T, typename...Args>
+struct __tp_cut_helper<std::enable_if_t<N != 0>, 0, N, T, Args...> {
+using type = typename __tp_cut_helper2<N, T, Args...>::type;
+};
+
+template<typename T, template<typename...>typename U>
+struct tp_rename;
+
+template<template<typename...>typename C, typename...Args, template<typename...>typename U>
+struct tp_rename<C<Args...>, U> {
+using type = U<Args...>;
+};
+
+// f(L1<Args1...>, L2<Args2...>) -> L2<Args1...>
+template<typename T, template<typename...>typename U>
+using tp_rename_t = typename tp_rename<T, U>::type;
+
+template<typename T, size_t I, size_t N>
+struct tp_cut;
+
+template<template<typename...>typename C, typename...Args, size_t I, size_t N>
+struct tp_cut<C<Args...>, I, N> {
+static_assert(N <= sizeof...(Args) && I <= (sizeof...(Args) - N), "tp_cut: invalid index");
+using type = tp_rename_t<typename __tp_cut_helper<void, I, N, Args...>::type, C>;
+};
+
+// f(L<Args...>, I, N) -> L<Args(0 ~ max(0, I - 1)), Args(I + 1 ~ N - 1)>
+template<typename T, size_t I, size_t N>
+using tp_cut_t = typename tp_cut<T, I, N>::type;
+
+template<typename T>
+struct tp_pop_front : tp_cut<T, 1, tp_size_v<T> - 1> {};
+
+// f(L<T, Args...>) -> L<Args...>
+template<typename T>
+using tp_pop_front_t = typename tp_pop_front<T>::type;
+
+template<typename T>
+struct tp_pop_back : tp_cut<T, 0, tp_size_v<T> -1> {};
+
+// f(L<Args..., T>) -> L<Args...>
+template<typename T>
+using tp_pop_back_t = typename tp_pop_back<T>::type;
+
+template<size_t index, typename...Args>
+struct __tp_at_helper;
+
+template<size_t index, typename T, typename...Args>
+struct __tp_at_helper<index, T, Args...> {
+using type = typename __tp_at_helper<index - 1, Args...>::type;
+};
+
+template<typename T, typename...Args>
+struct __tp_at_helper<0, T, Args...> {
+using type = T;
+};
+
+template<typename T, size_t index>
+struct tp_at;
+
+template<template<typename...Args>typename C, typename...Args, size_t index>
+struct tp_at<C<Args...>, index> {
+static_assert(index < sizeof...(Args), "tp_at: invalid index");
+using type = typename __tp_at_helper<index, Args...>::type;
+};
+
+// f(L<Args...>, index) - > Args(index)
+template<typename T, size_t index>
+using tp_at_t = typename tp_at<T, index>::type;
+
+template<typename T>
+struct tp_front {
+using type = tp_at_t<T, 0>;
+};
+
+// tp_at_t(T, 0)
+template<typename T>
+using tp_front_t = typename tp_front<T>::type;
+
+template<typename T>
+struct tp_back {
+using type = tp_at_t<T, tp_size_v<T> -1>;
+};
+
+// tp_at_t(T, tp_size_v<T> - 1)
+template<typename T>
+using tp_back_t = typename tp_back<T>::type;
+
+template<typename T, size_t idx>
+struct tp_prefix {
+using type = tp_cut_t<T, 0, idx>;
+};
+
+template<typename T, size_t idx>
+using tp_prefix_t = typename tp_prefix<T, idx>::type;
+
+template<typename T, size_t idx>
+struct tp_suffix {
+using type = tp_cut_t<T, tp_size_v<T> - idx, idx>;
+};
+
+template<typename T, size_t idx>
+using tp_suffix_t = typename tp_suffix<T, idx>::type;
+
+template<typename T, size_t idx>
+struct tp_remove_prefix {
+using type = tp_suffix_t<T, tp_size_v<T> - idx>;
+};
+
+template<typename T, size_t idx>
+using tp_remove_prefix_t = typename tp_remove_prefix<T, idx>::type;
+
+template<typename T, size_t idx>
+struct tp_remove_suffix {
+using type = tp_prefix_t<T, tp_size_v<T> - idx>;
+};
+
+template<typename T, size_t idx>
+using tp_remove_suffix_t = typename tp_remove_suffix<T, idx>::type;
+
+template<typename...Args>
+struct tp_concat;
+
+template<typename T>
+struct tp_concat<T> {
+using type = T;
+};
+
+template<
+template<typename...>typename C1, typename...Args1,
+template<typename...>typename C2, typename...Args2>
+struct tp_concat<C1<Args1...>, C2<Args2...>> {
+using type = C1<Args1..., Args2...>;
+};
+
+template<
+typename T,
+typename U,
+typename...Args3>
+struct tp_concat<T, U, Args3...> {
+using type = typename tp_concat<typename tp_concat<T, U>::type, Args3...>::type;
+};
+
+// f(L1<Args...>, L2<Args2...>, ... Ln<Argsn...>) -> L1<Args..., Args2..., Argsn...>
+template<typename...Args>
+using tp_concat_t = typename tp_concat<Args...>::type;
+
+template<typename T, size_t idx, typename U>
+struct tp_replace_at {
+using type = tp_concat_t<tp_push_back_t<tp_cut_t<T, 0, idx - 1>, U>, tp_cut_t<T, idx, tp_size_v<T> -idx>>;
+};
+
+template<typename T, typename U>
+struct tp_replace_at<T, 0, U> {
+using type = tp_push_front_t<tp_pop_front_t<T>, U>;
+};
+
+template<typename T, size_t idx, typename U>
+using tp_replace_at_t = typename tp_replace_at<T, idx, U>::type;
+
+template<typename T, typename U>
+struct tp_replace_front_at {
+using type = tp_replace_at_t<T, 0, U>;
+};
+
+template<typename T, typename U>
+using tp_replace_front_at_t = typename tp_replace_front_at<T, U>::type;
+
+template<typename T, typename U>
+struct tp_replace_back_at {
+using type = tp_replace_at_t<T, tp_size_v<T> -1, U>;
+};
+
+template<typename T, typename U>
+using tp_replace_back_at_t = typename tp_replace_back_at<T, U>::type;
+
+template<typename V, typename T, typename...Args>
+struct tp_conditional {
+using type = std::conditional_t<V::value, T, typename tp_conditional<Args...>::type>;
+};
+
+template<typename V, typename T1, typename T2>
+struct tp_conditional<V, T1, T2> {
+using type = std::conditional_t<V::value, T1, T2>;
+};
+
+template<typename V, typename T, typename...Args>
+using tp_conditional_t = typename tp_conditional<V, T, Args...>::type;
+
+template<size_t idx>
+struct tp_arg;
+
+template<template<typename...>typename F, typename...Args>
+struct tp_bind;
+
+template<template<typename...>typename F, typename...Args>
+struct tp_bind_front;
+
+template<template<typename...>typename F, typename...Args>
+struct tp_bind_back;
+
+template<size_t idx>
+struct tp_is_fn<tp_arg<idx>> : std::true_type {};
+
+template<template<typename...>typename F, typename...Args>
+struct tp_is_fn<tp_bind<F, Args...>> : std::true_type {};
+
+template<template<typename...>typename F, typename...Args>
+struct tp_is_fn<tp_bind_front<F, Args...>> : std::true_type {};
+
+template<template<typename...>typename F, typename...Args>
+struct tp_is_fn<tp_bind_back<F, Args...>> : std::true_type {};
+
+template<size_t idx>
+struct tp_arg {
+template<typename...Args>
+using fn = tp_at_t<tp_list<Args...>, idx>;
+};
+
+template<template<typename...>typename F,
+typename T>
+struct tp_apply {
+using type = tp_rename_t<T, F>;
+};
+
+// f(L<Args...>) -> f(Args...)
+template<template<typename...>typename F,
+typename T>
+using tp_apply_t = typename tp_apply<F, T>::type;
+
+template<typename F, typename T>
+using tp_apply_f = tp_apply_t<F::template fn, T>;
+
+template<typename _Enable, typename T, typename...Args>
+struct __tp_bind_helper {
+using type = T;
+};
+
+template<typename F, typename...Args>
+struct __tp_bind_helper<std::enable_if_t<tp_is_fn_v<F>, void>, F, Args...> {
+using type = typename F::template fn<Args...>;
+};
+
+template<template<typename...>typename F, typename...Args>
+struct tp_bind {
+template<typename...Args2>
+using fn = F<typename __tp_bind_helper<void, Args, Args2...>::type...>;
+};
+
+template<typename F, typename...Args>
+using tp_bind_f = tp_bind<F::template fn, Args...>;
+
+template<template<typename...>typename F, typename...Args>
+struct tp_bind_front {
+template<typename...Args2>
+using fn = tp_defer_t<F, Args..., Args2...>;
+};
+
+template<typename F, typename...Args>
+using tp_bind_front_f = tp_bind_front<F::template fn, Args...>;
+
+template<template<typename...>typename F, typename...Args>
+struct tp_bind_back {
+template<typename...Args2>
+using fn = tp_defer_t<F, Args2..., Args...>;
+};
+
+template<typename F, typename...Args>
+using tp_bind_back_f = tp_bind_back<F::template fn, Args...>;
+
+template<typename T, template<typename...>typename F>
+struct tp_transform;
+
+template<template<typename...>typename C, typename...Args, template<typename...>typename F>
+struct tp_transform<C<Args...>, F> {
+using type = C<F<Args>...>;
+};
+
+// f(L<Args...>, Fn) -> L<Fn(Args)...>
+// use with apply, bind, bind_front, bind_back...
+// for example:
+// tp_transform_f<tp_bind_front<tp_apply_f, tp_bind_front<std::is_same>>,
+// tp_list<tp_list<int, float>, tp_list<float, float>, tp_list<int, double>>>
+// -> tp_list<std::is_same<int, float>, std::is_same<float, float>, std::is_same<int, double>>
+template<typename T, template<typename...>typename F>
+using tp_transform_t = typename tp_transform<T, F>::type;
+
+template<typename T, typename F>
+using tp_transform_f = typename tp_transform<T, F::template fn>::type;
+
+template<template<typename...>typename C, typename...Args>
+struct tp_zip;
+
+template<template<typename...>typename C, typename T>
+struct __tp_zip_helper;
+
+template<template<typename...>typename C, size_t...idx>
+struct __tp_zip_helper<C, std::index_sequence<idx...>> {
+template<size_t I, typename...Args>
+using __type = C<tp_at_t<Args, I>...>;
+template<typename...Args>
+using type = tp_list<__type<idx, Args...>...>;
+};
+
+template<template<typename...>typename C>
+struct tp_zip<C> {
+using type = tp_list<>;
+};
+
+template<template<typename...>typename C, typename T>
+struct tp_zip<C, T> {
+using type = tp_list<T>;
+};
+
+template<template<typename...>typename C, typename T, typename...Args>
+struct tp_zip<C, T, Args...> {
+constexpr static size_t size = tp_size_v<T>;
+static_assert(((size == tp_size_v<Args>) && ...),
+"tp_zip arguments must have same size, \
+you can make all arguments have same size by tp_");
+using type = typename __tp_zip_helper<C, std::make_index_sequence<tp_size_v<T>>>::template type<T, Args...>;
+};
+
+template<template<typename...>typename C, typename...Args>
+using tp_zip_t = typename tp_zip<C, Args...>::type;
+
+template<typename...Args>
+struct __tp_max_size_helper;
+
+template<typename T>
+struct __tp_max_size_helper<T> {
+constexpr static size_t value = tp_size_v<T>;
+};
+
+template<typename T, typename...Args>
+struct __tp_max_size_helper<T, Args...> {
+constexpr static size_t value = std::max(tp_size_v<T>, __tp_max_size_helper<Args...>::value);
+};
+
+template<typename T, typename...Args>
+struct tp_max_size {
+constexpr static size_t value = __tp_max_size_helper<T, Args...>::value;
+};
+
+template<typename T, typename...Args>
+inline constexpr size_t tp_max_size_v = tp_max_size<T, Args...>::value;
+
+template<typename T>
+struct tp_wrap {
+using type = tp_list<T>;
+};
+
+template<typename T>
+using tp_wrap_t = typename tp_wrap<T>::type;
+
+template<typename T>
+struct tp_unwrap {
+static_assert(tp_size_v<T> == 1, "only container that size = 1 can use unwrap");
+};
+
+template<template<typename...>typename C, typename T>
+struct tp_unwrap<C<T>> {
+using type = T;
+};
+
+template<typename T>
+using tp_unwrap_t = typename tp_unwrap<T>::type;
+
+template<typename T, template<typename...>typename P, typename U>
+struct tp_replace_if;
+
+template<template<typename...>typename C, typename...Args, template<typename...>typename P, typename U>
+struct tp_replace_if<C<Args...>, P, U> {
+using type = C<tp_conditional_t<P<Args>, U, Args>...>;
+};
+
+// f(L<Args...>, P, U) -> L<if P(Args)::value then U else Args...>
+template<typename T, template<typename...>typename P, typename U>
+using tp_replace_if_t = typename tp_replace_if<T, P, U>::type;
+
+template<typename T, typename P, typename U>
+using tp_replace_if_f = tp_replace_if_t<T, P::template fn, U>;
+
+template<typename T, typename U>
+struct tp_replace_if_true {
+using type = tp_replace_if_t<T, tp_identity_t, U>;
+};
+
+template<typename T, typename U>
+using tp_replace_if_true_t = typename tp_replace_if_true<T, U>::type;
+
+template<typename T, typename U>
+struct tp_replace_if_false {
+using type = tp_replace_if_f<T, tp_not_fn<tp_identity_t>, U>;
+};
+
+template<typename T, typename U>
+using tp_replace_if_false_t = typename tp_replace_if_false<T, U>::type;
+
+template<typename T, typename O, typename N>
+struct tp_replace {
+using type = tp_replace_if_f<T, tp_bind_front<std::is_same, O>, N>;
+};
+
+template<typename T, typename O, typename N>
+using tp_replace_t = typename tp_replace<T, O, N>::type;
+
+template<typename T, typename U>
+struct tp_fill {
+using type = tp_replace_if_t<T, tp_always_true, U>;
+};
+
+template<typename T, typename U>
+using tp_fill_t = typename tp_fill<T, U>::type;
+
+template<typename T, template<typename...>typename P>
+struct tp_count_if;
+
+template<template<typename...>typename C, template<typename...>typename P>
+struct tp_count_if<C<>, P> {
+static constexpr size_t value = 0;
+};
+
+template<template<typename...>typename C, typename...Args, template<typename...>typename P>
+struct tp_count_if<C<Args...>, P> {
+static constexpr size_t value = (P<Args>::value + ...);
+};
+
+// f(L<Args...>, P) -> count(P(Args)::value)
+template<typename T, template<typename...>typename P>
+constexpr size_t tp_count_if_v = tp_count_if<T, P>::value;
+
+template<typename T, typename P>
+constexpr size_t tp_count_if_f_v = tp_count_if_v<T, P::template fn>;
+
+template<typename T, typename V>
+struct tp_count {
+static constexpr size_t value = tp_count_if_f_v<T, tp_bind_front<std::is_same, V>>;
+};
+
+template<typename T, typename V>
+constexpr size_t tp_count_v = tp_count<T, V>::value;
+
+template<typename T, typename V>
+struct tp_contains {
+static constexpr bool value = tp_count_v<T, V> != 0;
+};
+
+template<typename T, typename V>
+constexpr bool tp_contains_v = tp_contains<T, V>::value;
+
+template<typename T, template<typename...>typename P>
+struct tp_remove_if;
+
+template<template<typename...>typename C, typename...Args, template<typename...>typename P>
+struct tp_remove_if<C<Args...>, P> {
+using type = tp_concat_t<C<>, tp_conditional_t<P<Args>, C<>, C<Args>>...>;
+};
+
+// f(L<Args...>, P) -> L<if P(Args)::value then L<> else L<Args>...>
+template<typename T, template<typename...>typename P>
+using tp_remove_if_t = typename tp_remove_if<T, P>::type;
+
+template<typename T, typename P>
+using tp_remove_if_f = tp_remove_if_t<T, P::template fn>;
+
+template<typename T, typename V>
+struct tp_remove {
+using type = tp_remove_if_f<T, tp_bind_front<std::is_same, V>>;
+};
+
+template<typename T, typename V>
+using tp_remove_t = typename tp_remove<T, V>::type;
+
+template<typename T, template<typename...>typename P>
+struct tp_filter {
+using type = tp_remove_if_f<T, tp_not_fn<P>>;
+};
+
+template<typename T, template<typename...>typename P>
+using tp_filter_t = typename tp_filter<T, P>::type;
+
+template<typename T, typename P>
+using tp_filter_f = tp_filter_t<T, P::template fn>;
+
+template<typename T, typename U>
+struct tp_equal;
+
+template<typename _Enable, typename T, typename U>
+struct __tp_equal_helper : std::false_type{};
+
+template<template<typename...>typename C, typename...Args, template<typename...>typename D, typename...Args2>
+struct __tp_equal_helper<std::enable_if_t<sizeof...(Args) == sizeof...(Args2), void>, C<Args...>, D<Args2...>>
+: std::conjunction<std::is_same<Args, Args2>...> {};
+
+template<typename T, typename U>
+struct tp_equal : __tp_equal_helper<void, T, U> {};
+
+template<typename T, typename U>
+inline constexpr bool tp_equal_v = tp_equal<T, U>::value;
+
+template<typename T, size_t N>
+struct tp_repeat {
+using type = tp_concat<T, typename tp_repeat<T, N - 1>::type>;
+};
+
+template<typename T>
+struct tp_repeat<T, 0> {
+using type = T;
+};
+
+template<typename C, size_t N>
+using tp_repeat_t = typename tp_repeat<C, N>::type;
+
+template<typename _Enable, typename C, size_t N, typename V>
+struct __tp_resize_helper {
+using type = tp_cut_t<C, 0, N>;
+};
+
+template<typename C, size_t N, typename V>
+struct __tp_resize_helper<std::enable_if_t<N >= tp_size_v<C>, void>, C, N, V> {
+using type = tp_concat_t<C, tp_repeat_t<V, N - tp_size_v<C>>>;
+};
+
+template<typename C, size_t N, typename V>
+struct tp_resize {
+using tyep = typename __tp_resize_helper<void, C, N, V>::type;
+};
+
+template<typename C, size_t N, typename V>
+using tp_resize_t = typename tp_resize<C, N, V>::type;
+
+template<template<typename...>typename C, typename...Args>
+struct tp_product;
+
+template<typename _Enable, template<typename...>typename C, typename...Args>
+struct __tp_product_helper{
+using type = tp_list<>;
+};
+
+template<typename _Enable, template<typename...>typename C, typename T>
+struct __tp_product_helper<_Enable, C, T> {
+using type = tp_list<tp_rename_t<T, C>>;
+};
+
+template<
+template<typename...>typename C,
+typename T,
+template<typename...>typename C1,
+typename...Args1,
+typename...Args>
+struct __tp_product_helper<std::enable_if_t<sizeof...(Args1) != 0, void>, C, T, C1<Args1...>, Args...> {
+using type = tp_concat_t<typename __tp_product_helper<void, C, tp_push_back_t<T, Args1>, Args...>::type...>;
+};
+
+template<template<typename...>typename C, typename...Args>
+struct tp_product {
+using type = typename __tp_product_helper<void, C, tp_list<>, Args...>::type;
+};
+
+template<template<typename...>typename C, typename...Args>
+using tp_product_t = typename tp_product<C, Args...>::type;
+
+template<typename C, size_t I, typename...Args>
+struct tp_insert {
+static_assert(I <= tp_size_v<C>, "tp insert index out of range");
+using type = tp_concat_t<tp_push_back_t<tp_prefix_t<C, I>, Args...>, tp_suffix_t<C, tp_size_v<C> -I>>;
+};
+
+template<typename C, size_t I, typename...Args>
+using tp_insert_t = typename tp_insert<C, I, Args...>::type;
+
+template<typename C, size_t I, size_t N>
+struct tp_erase {
+static_assert(N <= tp_size_v<C> && I <= tp_size_v<C> -N, "tp erase index out of range");
+using type = tp_concat_t<tp_prefix_t<C, I>, tp_suffix_t<C, tp_size_v<C> -I - N>>;
+};
+
+template<typename C, size_t I, size_t N>
+using tp_erase_t = typename tp_erase<C, I, N>::type;
+
+template<typename C>
+struct tp_reverse;
+
+template<template<typename...>typename C>
+struct tp_reverse<C<>> {
+using type = C<>;
+};
+
+template<template<typename...>typename C, typename T, typename...Args>
+struct tp_reverse<C<T, Args...>> {
+using type = tp_push_back_t<typename tp_reverse<C<Args...>>::type, T>;
+};
+
+template<typename C>
+using tp_reverse_t = typename tp_reverse<C>::type;
+
+template<typename _Enable, size_t idx, typename C, template<typename...>typename P>
+struct __tp_find_if_helper;
+
+template<typename _Enable, size_t idx,
+template<typename...>typename C,
+typename T,
+typename...Args,
+template<typename...>typename P>
+struct __tp_find_if_helper<_Enable, idx, C<T, Args...>, P> {
+constexpr static size_t value = __tp_find_if_helper<void, idx + 1, C<Args...>, P>::value;
+};
+
+template<typename _Enable, size_t idx,
+template<typename...>typename C,
+template<typename...>typename P>
+struct __tp_find_if_helper<_Enable, idx, C<>, P> {
+constexpr static size_t value = -1;
+};
+
+template<size_t idx,
+template<typename...>typename C,
+typename T,
+typename...Args,
+template<typename...>typename P>
+struct __tp_find_if_helper<std::enable_if_t<P<T>::value, void>, idx, C<T, Args...>, P> {
+constexpr static size_t value = idx;
+};
+
+template<typename C, template<typename...>typename P>
+struct tp_find_if {
+constexpr static size_t value = __tp_find_if_helper<void, 0, C, P>::value;
+};
+
+template<typename C, template<typename...>typename P>
+inline constexpr size_t tp_find_if_v = tp_find_if<C, P>::value;
+
+template<typename C, typename P>
+inline constexpr size_t tp_find_if_f = tp_find_if<C, P::template fn>::value;
+
+template<typename C, template<typename...>typename P>
+struct tp_find_if_not {
+constexpr static size_t value = tp_find_if_f<C, tp_not_fn<P>>;
+};
+
+template<typename C, template<typename...>typename P>
+inline constexpr size_t tp_find_if_not_v = tp_find_if_not<C, P>::value;
+
+template<typename C, typename P>
+inline constexpr size_t tp_find_if_not_f = tp_find_if_not<C, P::template fn>::value;
+
+template<typename C, typename V>
+struct tp_find{
+constexpr static size_t value = tp_find_if_f<C, tp_bind_front<std::is_same, V>>;
+};
+
+template<typename C, typename V>
+inline constexpr size_t tp_find_v = tp_find<C, V>::value;
+
+template<typename C, typename E, template<typename...>typename F>
+struct tp_left_fold;
+
+template<
+template<typename...>typename C,
+typename E,
+template<typename...>typename F>
+struct tp_left_fold<C<>, E, F> {
+using type = E;
+};
+
+template<
+template<typename...>typename C,
+typename T,
+typename...Args,
+typename E,
+template<typename...>typename F>
+struct tp_left_fold<C<T, Args...>, E, F> {
+using type = typename tp_left_fold<C<Args...>, F<E, T>, F>::type;
+};
+
+template<typename C, typename E, template<typename...>typename F>
+using tp_left_fold_t = typename tp_left_fold<C, E, F>::type;
+
+template<typename C, typename E, typename F>
+using tp_left_fold_f = typename tp_left_fold<C, E, F::template fn>::type;
+
+template<typename C, typename E, template<typename...>typename F>
+struct tp_right_fold;
+
+template<
+template<typename...>typename C,
+typename E,
+template<typename...>typename F>
+struct tp_right_fold<C<>, E, F> {
+using type = E;
+};
+
+template<
+template<typename...>typename C,
+typename T,
+typename...Args,
+typename E,
+template<typename...>typename F>
+struct tp_right_fold<C<T, Args...>, E, F> {
+using next_type = typename tp_right_fold<C<Args...>, E, F>::type;
+using type = F<T, next_type>;
+};
+
+template<typename C, typename E, template<typename...>typename F>
+using tp_right_fold_t = typename tp_right_fold<C, E, F>::type;
+
+template<typename C, typename E, typename F>
+using tp_right_fold_f = typename tp_right_fold<C, E, F::template fn>::type;
+
+template<typename C, template<typename...>typename P>
+struct tp_unique_if {
+using type = tp_left_fold_f<C, tp_clear_t<C>, tp_bind<tp_conditional_t, tp_bind_front<P>, tp_arg<0>,
+tp_bind_front<tp_push_back_t>>>;
+};
+
+template<typename C, template<typename...>typename P>
+using tp_unique_if_t = typename tp_unique_if<C, P>::type;
+
+template<typename C, typename P>
+using tp_unique_if_f = typename tp_unique_if<C, P::template fn>::type;
+
+template<typename C>
+struct tp_unique{
+using type = tp_unique_if_t<C, tp_contains>;
+};
+
+template<typename C>
+using tp_unique_t = typename tp_unique<C>::type;
+
+template<typename _Enable, typename C, typename C1, typename C2, template<typename...>typename P>
+struct __tp_merge_helper;
+
+template<
+typename _Enable,
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename C1,
+template<typename...>typename C2,
+typename...Args2,
+template<typename...>typename P>
+struct __tp_merge_helper<_Enable, C<Args...>, C1<>, C2<Args2...>, P> {
+using type = tp_list<Args..., Args2...>;
+};
+
+template<
+typename _Enable,
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename C1,
+typename...Args1,
+template<typename...>typename C2,
+template<typename...>typename P>
+struct __tp_merge_helper<_Enable, C<Args...>, C1<Args1...>, C2<>, P> {
+using type = tp_list<Args..., Args1...>;
+};
+
+template<
+typename _Enable,
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename C1,
+template<typename...>typename C2,
+template<typename...>typename P>
+struct __tp_merge_helper<_Enable, C<Args...>, C1<>, C2<>, P> {
+using type = tp_list<Args...>;
+};
+
+template<
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename C1,
+typename T1, typename...Args1,
+template<typename...>typename C2,
+typename T2, typename...Args2,
+template<typename...>typename P>
+struct __tp_merge_helper<std::enable_if_t<P<T1, T2>::value, void>, C<Args...>, C1<T1, Args1...>, C2<T2, Args2...>, P> {
+using type = typename __tp_merge_helper<void, C<Args..., T1>, C1<Args1...>, C2<T2, Args2...>, P>::type;
+};
+
+template<
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename C1,
+typename T1, typename...Args1,
+template<typename...>typename C2,
+typename T2, typename...Args2,
+template<typename...>typename P>
+struct __tp_merge_helper<std::enable_if_t<!P<T1, T2>::value, void>, C<Args...>, C1<T1, Args1...>, C2<T2, Args2...>, P> {
+using type = typename __tp_merge_helper<void, C<Args..., T2>, C1<T1, Args1...>, C2<Args2...>, P>::type;
+};
+
+template<typename C1, typename C2, template<typename...>typename P>
+struct tp_merge {
+using type = typename __tp_merge_helper<void, tp_list<>, C1, C2, P>::type;
+};
+
+template<typename C1, typename C2, template<typename...>typename P>
+using tp_merge_t = typename tp_merge<C1, C2, P>::type;
+
+template<typename C1, typename C2, typename P>
+using tp_merge_f = typename tp_merge<C1, C2, P::template fn>::type;
+
+template<typename C, template<typename...>typename P>
+struct tp_sort;
+
+template<
+typename C,
+template<typename...>typename P>
+struct __tp_sort_helper;
+
+template<
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename P>
+struct __tp_sort_helper<C<Args...>, P> {
+using _Container = C<Args...>;
+constexpr static size_t size = tp_size_v<_Container>;
+constexpr static size_t mid = size / 2;
+using type1 = typename __tp_sort_helper<tp_prefix_t<_Container, mid>, P>::type;
+using type2 = typename __tp_sort_helper<tp_suffix_t<_Container, size - mid>, P>::type;
+using type = tp_merge_t<type1, type2, P>;
+};
+
+template<
+template<typename...>typename C,
+typename T,
+template<typename...>typename P>
+struct __tp_sort_helper<C<T>, P> {
+using type = C<T>;
+};
+
+template<
+template<typename...>typename C,
+template<typename...>typename P>
+struct __tp_sort_helper<C<>, P> {
+using type = C<>;
+};
+
+template<
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename P>
+struct tp_sort<C<Args...>, P> {
+using type = tp_rename_t<typename __tp_sort_helper<C<Args...>, P>::type, C>;
+};
+
+template<typename C, template<typename...>typename P>
+using tp_sort_t = typename tp_sort<C, P>::type;
+
+template<typename C, typename P>
+using tp_sort_f = typename tp_sort<C, P::template fn>::type;
+
+template<size_t I, typename T>
+struct __tp_iota_helper;
+
+template<size_t I, size_t...Idx>
+struct __tp_iota_helper<I, std::index_sequence<Idx...>> {
+using type = tp_list<tp_size_t<I + Idx>...>;
+};
+
+template<size_t I, size_t N>
+struct tp_iota {
+using type = typename __tp_iota_helper<I, std::make_index_sequence<N>>::type;
+};
+
+template<size_t I, size_t N>
+using tp_iota_t = typename tp_iota<I, N>::type;
+
+class tp_fn {
+public:
+template<typename C, typename F>
+constexpr static F for_each(F&& f) {
+return __for_each_helper(std::forward<F>(f), tp_rename_t<C, tp_list>());
+}
+
+private:
+template<typename F, typename...Args>
+constexpr static F __for_each_helper(F&& f, tp_list<Args...>) {
+int dummy[] = { (f(Args()), 0)... };
+return std::forward<F>(f);
+}
+};
+
+inline constexpr tp_fn tp;
+
+_WJR_END
+
+#endif // __WJR_TP_LIST_H

@@ -2,11 +2,6 @@
 #ifndef __WJR_ALGORITHM_H
 #define __WJR_ALGORITHM_H
 
-#include <algorithm>
-#include <memory>
-#include <limits>
-#include <cstring>
-
 #include <wjr/type_traits.h>
 
 _WJR_BEGIN

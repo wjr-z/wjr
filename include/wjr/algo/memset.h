@@ -43,7 +43,7 @@ void __memset(T* s, T val, size_t n) {
 		}
 	}
 
-	constexpr size_t __constant_threshold = 2048 / _Mysize;
+	constexpr size_t __constant_threshold = 256 / _Mysize;
 	// threshold for enhanced rep
 	// enhanced rep will be faster when 64-byte memory is aligned
 	// but it will be slower when 64-byte memory is not aligned
@@ -121,13 +121,13 @@ void __memset(T* s, T val, size_t n) {
 						n -= __align_s / _Mysize;
 					}
 					*reinterpret_cast<uint64_t*>(s + n - 8 / _Mysize) = u64v;
-					n &= -(8 / _Mysize);
+					n &= static_cast<size_t>(0 - 8 / _Mysize);
 					if constexpr (_Mysize == 1) {
-						wjr::masm::rep_stosb(reinterpret_cast<uint8_t*>(s), val, n);
+						wjr::masm::rep_stos(reinterpret_cast<uint8_t*>(s), val, n);
 					}
 					else {
 						n /= (8 / _Mysize);
-						wjr::masm::rep_stosq(reinterpret_cast<uint64_t*>(s), u64v, n);
+						wjr::masm::rep_stos(reinterpret_cast<uint64_t*>(s), u64v, n);
 					}
 					return;
 				}
@@ -151,14 +151,14 @@ void __memset(T* s, T val, size_t n) {
 
 					__WJR_ALIGN64byte(s + n - (64 / _Mysize));
 
-					n = (n - 1) & (-(64 / _Mysize));
+					n = (n - 1u) & static_cast<size_t>(0 - (64 / _Mysize));
 					if constexpr (_Mysize == 1) {
-						wjr::masm::rep_stosb(reinterpret_cast<uint8_t*>(s), val, n);
+						wjr::masm::rep_stos(reinterpret_cast<uint8_t*>(s), val, n);
 					}
 					else {
 						n /= (8 / _Mysize);
 						auto u64v = broadcast<uint64_t, T>(val);
-						wjr::masm::rep_stosq(reinterpret_cast<uint64_t*>(s), u64v, n);
+						wjr::masm::rep_stos(reinterpret_cast<uint64_t*>(s), u64v, n);
 					}
 					return;
 

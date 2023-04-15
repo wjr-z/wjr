@@ -79,6 +79,10 @@ bool __memcmp(const T* s0, const T* s1, size_t n, _Pred pred) {
 	constexpr uintptr_t width = simd_t::width() / (8 * _Mysize);
 	constexpr uintptr_t bound = width * _Mysize;
 
+	if (is_constant_p(n) && n <= 64 / _Mysize) {
+		return ::memcmp(s0, s1, n * _Mysize) == 0;
+	}
+
 	if (is_unlikely(n == 0)) return true;
 
 	if (n >= 16 / _Mysize) {

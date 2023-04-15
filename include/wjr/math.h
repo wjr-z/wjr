@@ -188,7 +188,7 @@ struct __width_table {
 	constexpr static unsigned int max_size = SIZE;
 	static_assert(SIZE <= 2048, "");
 	constexpr __width_table() : m_table() {
-		m_table[0] = 0;
+		m_table[0] = -1;
 		for (unsigned int i = 1; i < SIZE; ++i) {
 			m_table[i] = m_table[i / base] + 1;
 		}
@@ -409,53 +409,118 @@ struct __get_width_table<25> {
 template<unsigned int base>
 inline constexpr unsigned int __get_width_table_v = __get_width_table<base>::value;
 
+// calc depth of __width
 template<unsigned int base, typename T, unsigned int digits>
-inline constexpr void __width(T a, unsigned int& ret) {
-	if constexpr (digits == 1) {
-		if (a >= base) {
-			++ret;
-		}
+inline constexpr unsigned int __width_depth() {
+	// digits = 2, that's to say value < base ^ 2
+	// we can just test if val >= base
+	if constexpr (digits <= 2) {
+		return 1;
 	}
 	else {
 		constexpr auto mid_digits = (digits + 1) / 2;
-		constexpr auto MID = power(base, mid_digits);
-		if (a >= MID) {
-			ret += mid_digits;
-			a /= MID;
-		}
 		constexpr auto __table_index = __get_width_table_v<base>;
 		if constexpr (__table_index != -1) {
-			constexpr auto SIZE = __get_width_table_size<__table_index>::value;
-			if constexpr (MID < SIZE) {
-				constexpr auto p = []() {
-					unsigned int ret = 0;
-					unsigned int idx = base;
-					while (idx != 1) {
-						++ret;
-						idx /= __table_index;
-					}
-					return ret;
-				}();
-				ret += (__width_table_v<__table_index>[static_cast<unsigned int>(a)] + p - 1) / p;
+			constexpr auto __table_size = __get_width_table_size<__table_index>::value;
+			constexpr auto mid = power<T>(base, mid_digits);
+			if constexpr (mid <= __table_size) {
+				return 1;
 			}
 			else {
-				__width<base, T, mid_digits>(a, ret);
+				return 1 + __width_depth<base, T, mid_digits>();
 			}
 		}
 		else {
-			__width<base, T, mid_digits>(a, ret);
+			return 1 + __width_depth<base, T, mid_digits>();
 		}
 	}
 }
 
-// calc ceil(log(a)) / log(base)
+template<unsigned int base, typename T, unsigned int digits>
+inline constexpr bool __width_end_with_table() {
+	if constexpr (digits <= 2) {
+		return false;
+	}
+	else {
+		constexpr auto mid_digits = (digits + 1) / 2;
+		constexpr auto __table_index = __get_width_table_v<base>;
+		if constexpr (__table_index != -1) {
+			constexpr auto __table_size = __get_width_table_size<__table_index>::value;
+			constexpr auto mid = power<T>(base, mid_digits);
+			if constexpr (mid <= __table_size) {
+				return true;
+			}
+			else {
+				return __width_end_with_table<base, T, mid_digits>();
+			}
+		}
+		else {
+			return __width_end_with_table<base, T, mid_digits>();
+		}
+	}
+}
+
+#define __WIDTH_WORK_GEN(x)	                                \
+if constexpr(depth >= x){	                                \
+	constexpr auto mid_digits##x = get_mid_digits(x);	    \
+	constexpr auto mid##x = power<T>(base, mid_digits##x);	\
+	if(a >= mid##x){	                                    \
+		ret += mid_digits##x;	                            \
+		a /= mid##x;		                                \
+	}	                                                    \
+}
+
+// optimized
+template<unsigned int base, typename T, unsigned int digits, unsigned int depth, bool use_table>
+inline constexpr void __width(T a, unsigned int& ret) {
+	constexpr auto get_mid_digits = [](int x) {
+		unsigned int D = digits;
+		while (x) {
+			D = (D + 1) / 2;
+			--x;
+		}
+		return D;
+	};
+	if constexpr (depth <= 4) {
+		WJR_MACRO_CALL(__WIDTH_WORK_GEN, , 1, 2, 3, 4);
+		if constexpr (use_table) {
+			constexpr auto __mid_digits = get_mid_digits(depth);
+			constexpr auto __mid = power<T>(base, __mid_digits);
+			constexpr auto __table_index = __get_width_table_v<base>;
+			constexpr auto __table_size = __get_width_table_size<__table_index>::value;
+			//static_assert(__mid <= __table_size, "");
+			constexpr auto p = []() {
+				unsigned int ret = 0;
+				unsigned int idx = base;
+				while (idx != 1) {
+					++ret;
+					idx /= __table_index;
+				}
+				return ret;
+			}();
+			ret += (__width_table_v<__table_index>[static_cast<unsigned int>(a)] + p - 1) / p;
+		}
+	}
+	else {
+		WJR_MACRO_CALL(__WIDTH_WORK_GEN, , 1, 2, 3, 4);
+		__width<base, T, get_mid_digits(4), depth - 4, use_table>(a, ret);
+	}
+}
+
+#undef __WIDTH_WORK_GEN
+
+// calc ceil(log(a) / log(base))
 // for a = 0, return 0
 // for a = (1, base), return 1
 // force constexpr, so when base is power of 2, the performance may be worse
 template<unsigned int base, typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 inline constexpr unsigned int base_width(T a) {
-	unsigned int ret = 0;
-	__width<base, T, base_digits_v<T, base>>(a, ret);
+	constexpr auto __digits = base_digits_v<T, base>;
+	constexpr auto __depth = __width_depth<base, T, __digits>();
+	constexpr auto __use_table = __width_end_with_table<base, T, __digits>();
+	if (is_unlikely(!a)) return 0;
+	unsigned int ret = 1;
+	__width<base, T, __digits, __depth, __use_table>(a, ret);
 	return ret;
 }
 
@@ -530,40 +595,40 @@ struct broadcast_fn<uint64_t, uint64_t> {
 template<>
 struct broadcast_fn<uint16_t, uint8_t> {
 	WJR_INTRINSIC_CONSTEXPR uint16_t operator()(uint8_t x)const {
-		return x | ((uint16_t)x << 8);
+		return static_cast<uint16_t>(static_cast<uint32_t>(x) | (static_cast<uint16_t>(x) << 8));
 	}
 };
 
 template<>
 struct broadcast_fn<uint32_t, uint16_t> {
 	WJR_INTRINSIC_CONSTEXPR uint32_t operator()(uint16_t x)const {
-		return x | ((uint32_t)x << 16);
+		return x | (static_cast<uint32_t>(x) << 16);
 	}
 };
 template<>
 struct broadcast_fn<uint64_t, uint32_t> {
 	WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint32_t x)const {
-		return x | ((uint64_t)x << 32);
+		return static_cast<uint64_t>(x) | (static_cast<uint64_t>(x) << 32);
 	}
 };
 
 template<>
 struct broadcast_fn<uint32_t, uint8_t> {
 	WJR_INTRINSIC_CONSTEXPR uint32_t operator()(uint8_t x)const {
-		return x * (uint32_t)0x01010101;
+		return x * static_cast<uint32_t>(0x01010101u);
 	}
 };
 template<>
 struct broadcast_fn<uint64_t, uint16_t> {
 	WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint16_t x)const {
-		return x * (uint64_t)0x0001000100010001;
+		return x * static_cast<uint64_t>(0x0001000100010001ull);
 	}
 };
 
 template<>
 struct broadcast_fn<uint64_t, uint8_t> {
 	WJR_INTRINSIC_CONSTEXPR uint64_t operator()(uint8_t x)const {
-		return x * (uint64_t)0x0101010101010101;
+		return x * static_cast<uint64_t>(0x0101010101010101ull);
 	}
 };
 

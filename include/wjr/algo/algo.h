@@ -5,7 +5,7 @@
 #include <wjr/simd/simd_intrin.h>
 
 #include <wjr/algo/memchr.h>
-#include <wjr/algo/memrchr.h>
+#include <wjr/algo/memskipw.h>
 #include <wjr/algo/memcmp.h>
 #include <wjr/algo/memmis.h>
 #include <wjr/algo/memrmis.h>
@@ -35,7 +35,7 @@ template<typename T, typename U, typename _Pred>
 constexpr bool __has_fast_memrchr_v = __has_fast_memrchr<T, U, _Pred>::value;
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memchr_v<T, U, _Pred>, int> = 0>
-const T* memchr(const T* s, U val, size_t n, _Pred pred) {
+WJR_NODISCARD WJR_INTRINSIC_INLINE const T* memchr(const T* s, U val, size_t n, _Pred pred) noexcept {
 	auto p = is_possible_memory_comparable<T>(val, pred);
 	if (p == ipmc_result::none) {
 		return s + n;
@@ -49,7 +49,7 @@ const T* memchr(const T* s, U val, size_t n, _Pred pred) {
 	return reinterpret_cast<const T*>(__memchr(__s, __val, n, pred));
 }
 template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memchr_v<T, U, _Pred>, int> = 0>
-const T* memrchr(const T* s, U val, size_t n, _Pred pred) {
+WJR_NODISCARD const T* memrchr(const T* s, U val, size_t n, _Pred pred) {
 	auto p = is_possible_memory_comparable<T>(val, pred);
 	if (p == ipmc_result::none) {
 		return s;
@@ -81,7 +81,7 @@ template<typename T, typename U, typename _Pred>
 constexpr bool __has_fast_memrchr_v = __has_fast_memrchr<T, U, _Pred>::value;
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memchr_v<T, U, _Pred>, int> = 0>
-const T* memchr(const T* s, U val, size_t n, _Pred pred) {
+WJR_NODISCARD const T* memchr(const T* s, U val, size_t n, _Pred pred) {
 	auto p = is_possible_memory_comparable<T>(val, pred);
 	if (p == ipmc_result::none) {
 		return s + n;
@@ -130,7 +130,7 @@ template<typename T, typename U, typename _Pred>
 constexpr bool __has_fast_memcmp_v = __has_fast_memcmp<T, U, _Pred>::value;
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memcmp_v<T, U, _Pred>, int> = 0>
-bool memcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
+WJR_NODISCARD bool memcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
 	if constexpr (is_any_of_v<_Pred, std::equal_to<>>) {
 		using value_type = uint8_t;
 		auto __s0 = reinterpret_cast<const value_type*>(s0);
@@ -158,7 +158,7 @@ template<typename T, typename U, typename _Pred>
 inline constexpr bool __has_fast_memcmp_v = __has_fast_memcmp<T, U, _Pred>::type::value;
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memcmp_v<T, U, _Pred>, int> = 0>
-bool memcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
+WJR_NODISCARD bool memcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
 	return ::memcmp(s0, s1, n * sizeof(T)) == 0;
 }
 
@@ -188,7 +188,7 @@ constexpr bool __has_fast_memrmis_v = __has_fast_memrmis<T, U, _Pred>::value;
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<
 	__has_fast_memmis_v<T, U, _Pred>, int> = 0>
-const T* memmis(const T* s0, const U* s1, size_t n, _Pred pred) {
+WJR_NODISCARD const T* memmis(const T* s0, const U* s1, size_t n, _Pred pred) {
 	if constexpr (is_any_of_v<_Pred, std::equal_to<>>) {
 		using value_type = uint8_t;
 		auto __s0 = reinterpret_cast<const value_type*>(s0);
@@ -208,7 +208,7 @@ const T* memmis(const T* s0, const U* s1, size_t n, _Pred pred) {
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<
 	__has_fast_memmis_v<T, U, _Pred>, int> = 0>
-const T* memrmis(const T* s0, const U* s1, size_t n, _Pred pred) {
+WJR_NODISCARD const T* memrmis(const T* s0, const U* s1, size_t n, _Pred pred) {
 	if constexpr (is_any_of_v<_Pred, std::equal_to<>>) {
 		using value_type = uint8_t;
 		auto __s0 = reinterpret_cast<const value_type*>(s0);
@@ -254,7 +254,7 @@ template<typename T, typename U>
 constexpr bool __has_fast_memcnt_v = __has_fast_memcnt<T, U>::value;
 
 template<typename T, typename U, std::enable_if_t<__has_fast_memcnt_v<T, U>, int> = 0>
-size_t memcnt(const T* s, U val, size_t n) {
+WJR_NODISCARD size_t memcnt(const T* s, U val, size_t n) {
 	auto p = is_possible_memory_comparable<T>(val, std::equal_to<>{});
 	if (p == ipmc_result::none) {
 		return 0;

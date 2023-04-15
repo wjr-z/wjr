@@ -9,7 +9,7 @@ WJR_INTRINSIC_CONSTEXPR static uint8_t __wjr_fallback_bswap8(uint8_t x) {
 }
 
 WJR_INTRINSIC_CONSTEXPR static uint16_t __wjr_fallback_bswap16(uint16_t x) {
-	return (x >> 8) | (x << 8);
+	return static_cast<uint16_t>(x >> 8) | static_cast<uint16_t>(x << 8);
 }
 
 WJR_INTRINSIC_CONSTEXPR static uint32_t __wjr_fallback_bswap32(uint32_t x) {

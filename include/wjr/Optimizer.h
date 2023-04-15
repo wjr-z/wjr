@@ -36,41 +36,41 @@ inline size_t _Get_bytes_num(const _Ty& val) {
 	const auto ptr = reinterpret_cast<const uint8_t*>(&val);
 	if constexpr (N == C) {
 		if constexpr (N == 1) {
-			return 1;
+			return 1u;
 		}
 		else if constexpr (N == 2) {
-			return (ptr[0] == ptr[1]) ? 1 : 2;
+			return (ptr[0] == ptr[1]) ? 1u : 2u;
 		}
 		else if constexpr (N == 3) {
-			return (*reinterpret_cast<const uint16_t*>(ptr) == *reinterpret_cast<const uint16_t*>(ptr + 1)) ? 1 : 0;
+			return (*reinterpret_cast<const uint16_t*>(ptr) == *reinterpret_cast<const uint16_t*>(ptr + 1)) ? 1u : 0u;
 		}
 		else if constexpr (N == 4) {
 			auto x = *reinterpret_cast<const uint32_t*>(ptr);
-			return ((x >> 8) == (x & 0x00FFFFFF)) ? 1 : 4;
+			return ((x >> 8) == (x & 0x00FFFFFF)) ? 1u : 4u;
 		}
 		else if constexpr (N == 5) {
-			return (*reinterpret_cast<const uint32_t*>(ptr) == *reinterpret_cast<const uint32_t*>(ptr + 1)) ? 1 : 0;
+			return (*reinterpret_cast<const uint32_t*>(ptr) == *reinterpret_cast<const uint32_t*>(ptr + 1)) ? 1u : 0u;
 		}
 		else if constexpr (N == 6) {
-			return (*reinterpret_cast<const uint32_t*>(ptr) == *reinterpret_cast<const uint32_t*>(ptr + 2)) ? 2 : 6;
+			return (*reinterpret_cast<const uint32_t*>(ptr) == *reinterpret_cast<const uint32_t*>(ptr + 2)) ? 2u : 6u;
 		}
 		else if constexpr (N == 7) {
 			auto x = *reinterpret_cast<const uint32_t*>(ptr);
 			auto y = *reinterpret_cast<const uint32_t*>(ptr + 4);
-			return ((x >> 8) == (x & 0x00FFFFFF)) && ((y >> 8) == (y & 0x00FFFFFF)) ? 1 : 0;
+			return ((x >> 8) == (x & 0x00FFFFFF)) && ((y >> 8) == (y & 0x00FFFFFF)) ? 1u : 0u;
 		}
 		else if constexpr (N == 8) {
 			auto x = *reinterpret_cast<const uint64_t*>(ptr);
-			return ((x >> 8) == (x & 0x00FFFFFFFFFFFFFF)) ? 1 : 8;
+			return ((x >> 8) == (x & 0x00FFFFFFFFFFFFFF)) ? 1u : 8u;
 		}
 		else {
 			if (!is_constant_p(val)) {
-				return 0;
+				return 0u;
 			}
 			else {
 				for (size_t i = 0; i < N - M; ++i) {
 					if (ptr[i] != ptr[i + M]) {
-						return 0;
+						return 0u;
 					}
 				}
 				for (size_t i = 0; i < M - 1; ++i) {

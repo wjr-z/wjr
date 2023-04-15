@@ -1130,91 +1130,22 @@ struct tp_iota {
 template<size_t I, size_t N>
 using tp_iota_t = typename tp_iota<I, N>::type;
 
-template<typename...Args, typename F>
-constexpr F __tp_for_each_helper(tp_list<Args...>, F&& f) {
-	int dummy[] = { (f(Args()), 0)... };
-	return std::forward<F>(f);
-}
-
-template<typename C, typename F>
-constexpr F tp_for_each(F&& f) {
-	return __tp_for_each_helper(tp_rename_t<C, tp_list>(), std::forward<F>(f));
-}
-
-// this visit only apply 1 std::variant
-template<typename Func, typename Var>
-WJR_NODISCARD constexpr decltype(auto) tp_visit(Func&& fn, Var&& v) {
-	using var_type = remove_cvref_t<Var>;
-	if constexpr (tp_is_container_v<var_type>) {
-		using remove_if_unreachable_pred = tp_bind<std::is_same, std::monostate, tp_bind_front<std::decay_t>>;
-
-		using trivial_func_type = tp_rename_t<var_type, tp_list>;
-		using trivial_result_type = tp_transform_f<trivial_func_type,
-			tp_bind<std::invoke_result_t, Func&&, tp_arg<0>>>;
-
-		using reachable_result_type = tp_remove_if_f<trivial_result_type, remove_if_unreachable_pred>;
-		using unique_result_type = tp_unique_t<reachable_result_type>;
-
-		using has_unreachable_result_type = std::bool_constant<tp_size_v<trivial_result_type>
-			!= tp_size_v<reachable_result_type>>;
-		
-		// all function is reachable
-		if constexpr (!has_unreachable_result_type::value) {
-			// only have one return type
-			if constexpr (tp_size_v<unique_result_type> == 1) {
-				return std::visit(std::forward<Func>(fn), std::forward<Var>(v));
-			}
-			// have many return type
-			else {
-				using final_result_type = tp_rename_t<unique_result_type, std::variant>;
-				return std::visit([_Fn = std::forward<Func>(fn)](auto&& x) {
-					return static_cast<final_result_type>(
-						std::invoke(_Fn, std::forward<decltype(x)>(x)));
-					}, std::forward<Var>(v));
-			}
-		}
-		// some functions is unreachable
-		// optimize for them
-		else {
-			// all functions is unreachable
-			if constexpr(tp_size_v<unique_result_type> == 0){
-				(void)(0);
-			}
-			else {
-				using front_type = tp_front_t<unique_result_type>;
-				if constexpr (tp_size_v<unique_result_type> == 1 
-					&& std::is_same_v<front_type, void>) {
-					// TODO, optimize for this
-					return std::visit([_Fn = std::forward<Func>(fn)](auto&& x) {
-						if constexpr (remove_if_unreachable_pred::template fn<decltype(x)>::value) {
-							WJR_UNREACHABLE;
-						}
-						else {
-							std::invoke(_Fn, std::forward<decltype(x)>(x));
-						}
-						}, std::forward<Var>(v));
-				}
-				else {
-					using final_result_type = tp_rename_t<tp_push_front_t<unique_result_type, std::monostate>, std::variant>;
-					return std::visit([_Fn = std::forward<Func>(fn)](auto&& x) {
-						if constexpr (remove_if_unreachable_pred::template fn<decltype(x)>::value) {
-							WJR_UNREACHABLE;
-							return static_cast<final_result_type>(std::monostate());
-						}
-						else {
-							return static_cast<final_result_type>(
-								std::invoke(_Fn, std::forward<decltype(x)>(x)));
-						}
-						}, std::forward<Var>(v));
-				}
-			}
-		}
+class tp_fn {
+public:
+	template<typename C, typename F>
+	constexpr static F for_each(F&& f) {
+		return __for_each_helper(std::forward<F>(f), tp_rename_t<C, tp_list>());
 	}
-	else {
-		static_assert(has_std_invoke_v<Func&&, Var&&>, "");
-		return std::invoke(std::forward<Func>(fn), std::forward<Var>(v));
+
+private:
+	template<typename F, typename...Args>
+	constexpr static F __for_each_helper(F&& f, tp_list<Args...>) {
+		int dummy[] = { (f(Args()), 0)... };
+		return std::forward<F>(f);
 	}
-}
+};
+
+inline constexpr tp_fn tp;
 
 _WJR_END
 

@@ -74,6 +74,7 @@ WJR_INTRINSIC_CONSTEXPR bool is_constant_p(T x) noexcept {
 #if WJR_HAS_BUILTIN(__builtin_constant_p) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
 	return __builtin_constant_p(x);
 #else
+	(void)(x);
 	return is_constant_evaluated();
 #endif
 }
@@ -104,13 +105,14 @@ struct reserve_tag {};
 struct defer_tag {};
 struct adopt_tag {};
 
+struct unreachable_tag {};
+
 template<typename T, typename U, typename _Pred>
 struct has_global_binary_operator : std::false_type {};
 
 template<typename T, typename U, typename _Pred>
 inline constexpr bool has_global_binary_operator_v = has_global_binary_operator<T, U, _Pred>::value;
 
-WJR_REGISTER_HAS_STD_INVOKE;
 WJR_REGISTER_HAS_MEMBER_FUNCTION(operator[], subscript_operator);
 WJR_REGISTER_HAS_MEMBER_FUNCTION(operator->, point_to_operator);
 
@@ -569,9 +571,9 @@ namespace enum_ops {
 
 class __is_little_endian_helper {
 	constexpr static std::uint32_t	u4 = 1;
-	constexpr static std::uint8_t	u1 = (const std::uint8_t&)u4;
+	constexpr static std::uint8_t	u1 = static_cast<const std::uint8_t&>(u4);
 public:
-	constexpr static bool value = u1;
+	constexpr static bool value = u1 != 0;
 };
 
 // constexpr endian

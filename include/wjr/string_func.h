@@ -12,6 +12,13 @@
 
 _WJR_BEGIN
 
+namespace __string_func_traits {
+	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(skipw, skipw);
+	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(rskipw, rskipw);
+	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(skipz, skipz);
+	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(skipd, skipd);
+}
+
 // fast integer conversion of strings with different encodings
 // requires :
 // 1. forward iterator
@@ -576,23 +583,38 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR uint32_t string_func<Traits>::toalnum(valu
 template<typename Traits>
 template<typename _Iter>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::skipw(_Iter _First, _Iter _Last) {
-	while (_First != _Last && isspace(*_First)) ++_First;
-	return _First;
+	if constexpr (__string_func_traits::has_static_member_function_skipw_v<traits_type, _Iter, _Iter>) {
+		return traits_type::skipw(_First, _Last);
+	}
+	else {
+		while (_First != _Last && isspace(*_First)) ++_First;
+		return _First;
+	}
 }
 
 // skip whit space at end
 template<typename Traits>
 template<typename _Iter>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::rskipw(_Iter _First, _Iter _Last) {
-	while (_First != _Last && isspace(*(_Last - 1))) --_Last;
-	return _Last;
+	if constexpr (__string_func_traits::has_static_member_function_rskipw_v<traits_type, _Iter, _Iter>) {
+		return traits_type::rskipw(_First, _Last);
+	}
+	else {
+		while (_First != _Last && isspace(*(_Last - 1))) --_Last;
+		return _Last;
+	}
 }
 
 template<typename Traits>
 template<typename _Iter>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::skipz(_Iter _First, _Iter _Last) {
-	while (_First != _Last && *_First == '0') ++_First;
-	return _First;
+	if constexpr (__string_func_traits::has_static_member_function_skipz_v<traits_type, _Iter, _Iter>) {
+		return traits_type::skipz(_First, _Last);
+	}
+	else {
+		while (_First != _Last && *_First == '0') ++_First;
+		return _First;
+	}
 }
 
 // skip digit
@@ -607,8 +629,13 @@ template<typename Traits>
 template<typename _Iter>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>
 ::skipd(_Iter _First, _Iter _Last, int Base) {
-	while (_First != _Last && isdigit(*_First, Base)) ++_First;
-	return _First;
+	if constexpr (__string_func_traits::has_static_member_function_skipz_v<traits_type, _Iter, _Iter, int>) {
+		return traits_type::skipz(_First, _Last, Base);
+	}
+	else {
+		while (_First != _Last && isdigit(*_First, Base)) ++_First;
+		return _First;
+	}
 }
 
 template<typename Traits>

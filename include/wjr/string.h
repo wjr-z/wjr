@@ -1438,7 +1438,7 @@ template<
 		}
 
 		WJR_CONSTEXPR20 basic_string& insert(const size_type off, const size_type n, const value_type c) {
-			WJR_MAYBE_UNUSED const auto __ck = eview(*this, off);
+			(void)(eview(*this, off));
 			insert(cbegin() + off, n, c);
 			return *this;
 		}
@@ -1456,7 +1456,7 @@ template<
 
 		template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
 		WJR_CONSTEXPR20 basic_string& insert(const size_type off, const StringView& t) {
-			WJR_MAYBE_UNUSED const auto __ck = eview(*this, off);
+			(void)(eview(*this, off));
 			const auto sv = view(t);
 			insert(cbegin() + off, sv.data(), sv.data() + sv.size());
 			return *this;
@@ -2891,11 +2891,30 @@ WJR_NODISCARD inline string to_string(long double val) {
 	return string(buf, static_cast<size_t>(len));
 }
 
+_WJR_END
+
+namespace std {
+	template<typename Char, typename Traits>
+	struct hash<wjr::basic_string_view<Char, Traits>> {
+		constexpr decltype(auto) operator()(const wjr::basic_string_view<Char, Traits>& str) const noexcept {
+			return std::hash<std::string_view>(str);
+		}
+	};
+	template<typename Char, typename Traits, typename Alloc, typename Data>
+	struct hash<wjr::basic_string<Char, Traits, Alloc, Data>> {
+		constexpr decltype(auto) operator()(const wjr::basic_string<Char, Traits, Alloc, Data>& str) const noexcept {
+			return std::hash<wjr::string_view>(str);
+		}
+	};
+}
+
+_WJR_BEGIN
+
 // encode functions
 // the code writing specification is related to the function namespace, 
 // which requires encoding auxiliary functions and auxiliary classes, 
 // followed by defining corresponding traits and basic_string_view, implemented after all
-
+ 
 namespace ascii {
 
 	template<int Base, int idx = 0>
@@ -3125,13 +3144,6 @@ public:
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_integral(
 		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
-	/*
-	template<typename T>
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_integral(
-		flags _Flags,
-		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
-	*/
-
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR int toi(
 		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
 
@@ -3149,21 +3161,6 @@ public:
 
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long long toull(
 		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
-
-	/*
-	template<typename T>
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_floating(
-		errc* err = nullptr, size_type* pos = nullptr) const;
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR float tof(
-		errc* err = nullptr, size_type* pos = nullptr) const;
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR double tod(
-		errc* err = nullptr, size_type* pos = nullptr) const;
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR long double told(
-		errc* err = nullptr, size_type* pos = nullptr) const;
-	*/
 
 };
 

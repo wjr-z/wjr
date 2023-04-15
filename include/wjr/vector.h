@@ -180,7 +180,7 @@ struct vector_static_data {
 	vector_static_data& operator=(const vector_static_data&) = delete;
 	WJR_CONSTEXPR20 ~vector_static_data() = default;
 
-	WJR_CONSTEXPR20 static void _lengthError(const size_type _Newcapacity){
+	WJR_CONSTEXPR20 static void _lengthError(WJR_MAYBE_UNUSED const size_type _Newcapacity){
 #if defined(_WJR_EXCEPTION)
 		std::string str = "vector_static_data is too small to hold the requested data";
 		str += "\n old capacity = " + std::to_string(max_capacity);
@@ -191,15 +191,15 @@ struct vector_static_data {
 	}
 
 	WJR_CONSTEXPR20 vector_static_data(
-		_Alty& al, 
-		const size_type _Newsize,
+		_Alty&, 
+		const size_type,
 		const size_type _Newcapacity,
 		extend_tag) {
 		_lengthError(_Newcapacity);
 	}
 
 	WJR_CONSTEXPR20 vector_static_data(
-		_Alty& al,
+		_Alty&,
 		const size_type _Newsize,
 		const size_type _Newcapacity) : _M_size(_Newsize) {
 		if (_Newcapacity > max_capacity) {
@@ -222,7 +222,7 @@ struct vector_static_data {
 		}
 	}
 
-	WJR_INLINE_CONSTEXPR20 static void Deallocate(_Alty& al, vector_static_data& _Data) noexcept {
+	WJR_INLINE_CONSTEXPR20 static void Deallocate(_Alty&, vector_static_data& _Data) noexcept {
 		_Data.set_size(0);
 	}
 
@@ -231,7 +231,7 @@ struct vector_static_data {
 		Deallocate(al, _Data);
 	}
 
-	WJR_INLINE_CONSTEXPR20 static void shrinkToFit(_Alty& al, vector_static_data& _Data) {
+	WJR_INLINE_CONSTEXPR20 static void shrinkToFit(_Alty&, vector_static_data&) {
 		// do nothing
 	}
 

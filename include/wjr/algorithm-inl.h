@@ -2,6 +2,11 @@
 #error  "This file should not be included directly. Include <wjr/algorithm.h> instead."
 #endif //__WJR_ALGORITHM_H
 
+#include <algorithm>
+#include <memory>
+#include <limits>
+#include <cstring>
+
 #include <wjr/compressed_pair.h>
 #include <wjr/algo/algo.h>
 
@@ -523,10 +528,10 @@ WJR_CONSTEXPR20 _Iter search(_Iter _First, _Iter _Last, const _Searcher& _Srch) 
 template<typename _Iter, typename...Args, 
 	std::enable_if_t<is_iterator_v<wjr::remove_cvref_t<_Iter>>, int>>
 WJR_CONSTEXPR20 void construct_at(_Iter iter, Args&&... args) {
-	using value_type = iter_val_t<_Iter>;
 #if defined(WJR_CPP_20)
 	std::construct_at(get_address(iter), std::forward<Args>(args)...);
 #else
+	using value_type = iter_val_t<_Iter>;
 	(void)(::new (voidify(get_address(iter))) value_type(std::forward<Args>(args)...));
 #endif // WJR_CPP_20
 }
@@ -858,7 +863,7 @@ template<typename _Iter, typename _Val>
 WJR_CONSTEXPR20 void uninitialized_fill(_Iter _First, _Iter _Last, const _Val& val) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_uninitialized_fill_v<_Iter, _Val>) {
-			const auto n = std::distance(_First, _Last);
+			const auto n = static_cast<size_t>(std::distance(_First, _Last));
 			if constexpr (!is_reverse_iterator_v<_Iter>) {
 				const auto first = wjr::get_address(_First);
 				algo::construct_memset(first, val, n);

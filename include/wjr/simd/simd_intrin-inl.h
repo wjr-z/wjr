@@ -95,11 +95,11 @@ __m128i mm_loadu_si16(void const* p) {
 }
 
 __m128i mm_loadu_si32(void const* p) {
-	return simd_cast<__m128i_tag, uint32_t>(*reinterpret_cast<int32_t const*>(p));
+	return simd_cast<__m128i_tag, uint32_t>(*reinterpret_cast<uint32_t const*>(p));
 }
 
 __m128i mm_loadu_si64(void const* p) {
-	return simd_cast<__m128i_tag, uint64_t>(*reinterpret_cast<int64_t const*>(p));
+	return simd_cast<__m128i_tag, uint64_t>(*reinterpret_cast<uint64_t const*>(p));
 }
 
 #endif // WJR_SSE2
@@ -112,7 +112,7 @@ constexpr sse::mask_type sse::mask() { return 0xFFFF; }
 
 #if WJR_SSE
 sse::mask_type sse::movemask_ps(__m128 v) {
-	return _mm_movemask_ps(v);
+	return static_cast<sse::mask_type>(_mm_movemask_ps(v));
 }
 
 void sse::sfence() { return _mm_sfence(); }
@@ -140,10 +140,10 @@ __m128i sse::add(__m128i a, __m128i b, uint16_t) { return add_epi16(a, b); }
 __m128i sse::add(__m128i a, __m128i b, uint32_t) { return add_epi32(a, b); }
 __m128i sse::add(__m128i a, __m128i b, uint64_t) { return add_epi64(a, b); }
 
-int8_t sse::add_epi8(__m128i a) { return add_epu8(a); }
-int16_t sse::add_epi16(__m128i a) { return add_epu16(a); }
-int32_t sse::add_epi32(__m128i a) { return add_epu32(a); }
-int64_t sse::add_epi64(__m128i a) { return add_epu64(a); }
+int8_t sse::add_epi8(__m128i a) { return static_cast<int8_t>(add_epu8(a)); }
+int16_t sse::add_epi16(__m128i a) { return static_cast<int16_t>(add_epu16(a)); }
+int32_t sse::add_epi32(__m128i a) { return static_cast<int32_t>(add_epu32(a)); }
+int64_t sse::add_epi64(__m128i a) { return static_cast<int64_t>(add_epu64(a)); }
 
 uint8_t sse::add_epu8(__m128i a) {
 	auto b = shuffle_epi32<_MM_SHUFFLE(3, 2, 3, 2)>(a);
@@ -553,20 +553,20 @@ __m128i sse::loadu_si16(const void* ptr) { return simd::mm_loadu_si16(ptr); }
 __m128i sse::loadu_si32(const void* ptr) { return simd::mm_loadu_si32(ptr); }
 __m128i sse::loadu_si64(const void* ptr) { return simd::mm_loadu_si64(ptr); }
 
-template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
+template<typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 	uint8_t, uint16_t, uint32_t, uint64_t>, int>>
 	__m128i sse::logical_and(__m128i a, __m128i b, T) {
 	return Not(Or(logical_not(a, T()), logical_not(b, T())));
 }
 
-template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
+template<typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 	uint8_t, uint16_t, uint32_t, uint64_t>, int>>
 	__m128i sse::logical_not(__m128i v, T) {
 	auto Zero = zeros();
 	return cmpeq(v, Zero, T());
 }
 
-template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
+template<typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 	uint8_t, uint16_t, uint32_t, uint64_t>, int>>
 	__m128i sse::logical_or(__m128i a, __m128i b, T) {
 	return Not(logical_not(Or(a, b), T()));
@@ -1817,20 +1817,20 @@ __m256i avx::hsub(__m256i a, __m256i b, int32_t) { return hsub_epi32(a, b); }
 
 __m256i avx::hsubs_epi16(__m256i a, __m256i b) { return _mm256_hsubs_epi16(a, b); }
 
-template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
+template<typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 	uint8_t, uint16_t, uint32_t, uint64_t>, int>>
 	__m256i avx::logical_and(__m256i a, __m256i b, T) {
 	return Not(Or(logical_not(a, T()), logical_not(b, T())));
 }
 
-template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
+template<typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 	uint8_t, uint16_t, uint32_t, uint64_t>, int>>
 	__m256i avx::logical_not(__m256i v, T) {
 	auto Zero = zeros();
 	return cmpeq(v, Zero, T());
 }
 
-template<typename T, std::enable_if_t<wjr::is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
+template<typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
 	uint8_t, uint16_t, uint32_t, uint64_t>, int>>
 	__m256i avx::logical_or(__m256i a, __m256i b, T) {
 	return Not(logical_not(Or(a, b), T()));

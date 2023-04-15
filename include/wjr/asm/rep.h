@@ -6,7 +6,9 @@ _WJR_ASM_BEGIN
 
 #if defined(_WJR_FAST_REP)
 
-WJR_INTRINSIC_INLINE void rep_stosb(uint8_t* s, uint8_t val, size_t n) {
+// rep stos
+
+WJR_INTRINSIC_INLINE void rep_stos(uint8_t* s, uint8_t val, size_t n) {
 #if defined(WJR_COMPILER_MSVC)
 	__stosb(reinterpret_cast<unsigned char*>(s), val, n);
 #else
@@ -14,7 +16,7 @@ WJR_INTRINSIC_INLINE void rep_stosb(uint8_t* s, uint8_t val, size_t n) {
 #endif
 }
 
-WJR_INTRINSIC_INLINE void rep_stosw(uint16_t* s, uint16_t val, size_t n) {
+WJR_INTRINSIC_INLINE void rep_stos(uint16_t* s, uint16_t val, size_t n) {
 #if defined(WJR_COMPILER_MSVC)
 	__stosw(reinterpret_cast<unsigned short*>(s), val, n);
 #else
@@ -22,7 +24,7 @@ WJR_INTRINSIC_INLINE void rep_stosw(uint16_t* s, uint16_t val, size_t n) {
 #endif
 }
 
-WJR_INTRINSIC_INLINE void rep_stosd(uint32_t* s, uint32_t val, size_t n) {
+WJR_INTRINSIC_INLINE void rep_stos(uint32_t* s, uint32_t val, size_t n) {
 #if defined(WJR_COMPILER_MSVC)
 	__stosd(reinterpret_cast<unsigned long*>(s), val, n);
 #else
@@ -30,7 +32,7 @@ WJR_INTRINSIC_INLINE void rep_stosd(uint32_t* s, uint32_t val, size_t n) {
 #endif
 }
 
-WJR_INTRINSIC_INLINE void rep_stosq(uint64_t* s, uint64_t val, size_t n) {
+WJR_INTRINSIC_INLINE void rep_stos(uint64_t* s, uint64_t val, size_t n) {
 #if defined(WJR_COMPILER_MSVC)
 	__stosq(reinterpret_cast<unsigned long long*>(s), val, n);
 #else
