@@ -274,6 +274,10 @@
 
 #define _WJR_CPUINFO
 
+#if defined(NWJR_CPUINFO)
+#undef _WJR_CPUINFO
+#endif // NWJR_CPUINFO
+
 #if defined(WJR_X86_64)
 #if defined(__i386__) || defined(_M_IX86) || defined(_X86_)
 #define CPU_INTEL
