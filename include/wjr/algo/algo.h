@@ -2,15 +2,9 @@
 #ifndef __WJR_ALGO_ALOG_H
 #define __WJR_ALGO_ALOG_H
 
-#include <wjr/simd/simd_intrin.h>
+#include <string.h>
 
-#include <wjr/algo/memchr.h>
-#include <wjr/algo/memskipw.h>
-#include <wjr/algo/memcmp.h>
-#include <wjr/algo/memmis.h>
-#include <wjr/algo/memrmis.h>
-#include <wjr/algo/memcnt.h>
-#include <wjr/algo/memset.h>
+#include <wjr/algo/mem-all.h>
 
 #include <wjr/Optimizer.h>
 
@@ -158,7 +152,8 @@ template<typename T, typename U, typename _Pred>
 inline constexpr bool __has_fast_memcmp_v = __has_fast_memcmp<T, U, _Pred>::type::value;
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memcmp_v<T, U, _Pred>, int> = 0>
-WJR_NODISCARD bool memcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
+WJR_NODISCARD bool memcmp(const T* s0, const U* s1, size_t n, WJR_MAYBE_UNUSED _Pred pred) {
+	(void)(pred);
 	return ::memcmp(s0, s1, n * sizeof(T)) == 0;
 }
 

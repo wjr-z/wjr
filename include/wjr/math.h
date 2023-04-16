@@ -2,6 +2,8 @@
 #ifndef __WJR_MATH_H__
 #define __WJR_MATH_H__
 
+#include <string.h>
+
 #include <wjr/asm/asm.h>
 
 _WJR_BEGIN
@@ -25,7 +27,7 @@ WJR_INTRINSIC_CONSTEXPR20 To bit_cast(const From & src) noexcept {
 		*reinterpret_cast<value_type*>(&storage) = *reinterpret_cast<const value_type*>(&src);
 	}
 	else {
-		std::memcpy(&storage, &src, sizeof(From));
+		::memcpy(&storage, &src, sizeof(From));
 	}
 	return storage;
 }

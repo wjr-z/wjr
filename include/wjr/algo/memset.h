@@ -1,6 +1,6 @@
-#ifndef __WJR_ALGO_ALOG_H
-#error "This file should not be included directly. Include <wjr/algo.h> instead."
-#endif // __WJR_ALGO_ALOG_H
+#ifndef __WJR_ALGO_MEM_ALL_H
+#error "This file should not be included directly. Include <wjr/algo/mem-all.h> instead."
+#endif // __WJR_ALGO_MEM_ALL_H
 
 #if defined(_WJR_FAST_MEMSET)
 

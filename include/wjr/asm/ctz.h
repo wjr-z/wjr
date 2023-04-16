@@ -6,7 +6,7 @@ _WJR_ASM_BEGIN
 
 #if WJR_HAS_BUILTIN(__builtin_ctz) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
 template<typename T>
-WJR_INTRINSIC_INLINE static int __wjr_builtin_ctz(T x) noexcept {
+WJR_INTRINSIC_INLINE int __wjr_builtin_ctz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 
 	if (is_likely(x != 0)) {
@@ -34,7 +34,7 @@ WJR_INTRINSIC_INLINE static int __wjr_builtin_ctz(T x) noexcept {
 #elif defined(WJR_COMPILER_MSVC) && defined(WJR_X86) && !defined(_M_CEE_PURE) && !defined(__CUDACC__) \
     && !defined(__INTEL_COMPILER)
 template<typename T>
-WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_avx2_ctz(T x) noexcept {
+WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_avx2_ctz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	constexpr T _Max = std::numeric_limits<T>::max();
 	if constexpr (_Nd <= 32) {
@@ -57,7 +57,7 @@ WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_avx2_ctz(T x) noexcept {
 }
 
 template<typename T>
-WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_normal_ctz(T x) noexcept {
+WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_normal_ctz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	constexpr T _Max = std::numeric_limits<T>::max();
 	unsigned long _Result;
@@ -90,7 +90,7 @@ WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_normal_ctz(T x) noexcept {
 }
 
 template<typename T>
-WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_ctz(T x) noexcept {
+WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_ctz(T x) noexcept {
 #if WJR_AVX2
 	return __wjr_msvc_x86_64_avx2_ctz(x);
 #elif defined(_WJR_CPUINFO)
@@ -107,7 +107,7 @@ WJR_INTRINSIC_INLINE static int __wjr_msvc_x86_64_ctz(T x) noexcept {
 #endif
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_E_CONSTEXPR int ctz(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_E_CONSTEXPR int ctz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if (!wjr::is_constant_evaluated()) {
 #if WJR_HAS_BUILTIN(__builtin_ctz) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)

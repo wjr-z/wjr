@@ -9,6 +9,7 @@
 #include <locale>
 #include <cstring>
 #include <charconv>
+#include <functional>
 
 #include <wjr/vector.h>
 #include <wjr/math.h>
@@ -2088,7 +2089,7 @@ WJR_NODISCARD WJR_CONSTEXPR20 basic_string<Char, Traits, Alloc, Data> operator+(
 	const Char* const rhs
 	) {
 	basic_string<Char, Traits, Alloc, Data> ans;
-	const auto rhs_size = traits_length(rhs);
+	const auto rhs_size = Traits::length(rhs);
 	ans.reserve(lhs.size() + rhs_size);
 	ans.assume_rest_capacity(lhs.size());
 	ans.append(lhs);
@@ -2117,7 +2118,7 @@ WJR_NODISCARD WJR_CONSTEXPR20 basic_string<Char, Traits, Alloc, Data> operator+(
 	const basic_string<Char, Traits, Alloc, Data>& rhs
 	) {
 	basic_string<Char, Traits, Alloc, Data> ans;
-	const auto lhs_size = traits_length(lhs);
+	const auto lhs_size = Traits::length(lhs);
 	ans.reserve(lhs_size + rhs.size());
 	ans.assume_rest_capacity(lhs_size);
 	ans.append(lhs, lhs_size);
@@ -2897,13 +2898,13 @@ namespace std {
 	template<typename Char, typename Traits>
 	struct hash<wjr::basic_string_view<Char, Traits>> {
 		constexpr decltype(auto) operator()(const wjr::basic_string_view<Char, Traits>& str) const noexcept {
-			return std::hash<std::string_view>(str);
+			return std::hash<std::basic_string_view<Char, Traits>>()(str);
 		}
 	};
 	template<typename Char, typename Traits, typename Alloc, typename Data>
 	struct hash<wjr::basic_string<Char, Traits, Alloc, Data>> {
 		constexpr decltype(auto) operator()(const wjr::basic_string<Char, Traits, Alloc, Data>& str) const noexcept {
-			return std::hash<wjr::string_view>(str);
+			return std::hash<std::basic_string_view<Char, Traits>>()(str);
 		}
 	};
 }

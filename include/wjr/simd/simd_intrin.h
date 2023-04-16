@@ -1284,7 +1284,7 @@ struct avx {
 #define WJR_SIMD_WIDTH(simd_t) simd_t::width()
 #define WJR_SIMD_VALUE_SIZE(ptr) sizeof(decltype(*(ptr)))
 #define WJR_SIMD_OFFSET(simd_t, ptr) (WJR_SIMD_WIDTH(simd_t) / (8 * WJR_SIMD_VALUE_SIZE(ptr)))
-#define WJR_SIMD_ALIGNMENT(simd_t, ptr) (WJR_SIMD_WIDTH(simd_t) / (WJR_SIMD_VALUE_SIZE(ptr)))
+#define WJR_SIMD_ALIGNMENT(simd_t, ptr) (WJR_SIMD_WIDTH(simd_t) / WJR_SIMD_VALUE_SIZE(ptr))
 #define WJR_SIMD_UINTPTR(ptr) reinterpret_cast<uintptr_t>(ptr)
 
 #define WJR_SIMD_SUFFIX_0 _FORWARD
@@ -1307,8 +1307,8 @@ struct avx {
 
 #define WJR_SIMD_PTR(ptr) WJR_SIMD_LEFT_PTR_N(ptr, 1)
 
-#define WJR_SIMD_LEFT_PTR(simd_t, ptr) WJR_SIMD_LEFT_PTR_N(ptr, WJR_SIMD_OFFSET(simd_t, ptr))
-#define WJR_SIMD_RIGHT_PTR(simd_t, ptr) WJR_SIMD_RIGHT_PTR_N(ptr, WJR_SIMD_OFFSET(simd_t, ptr))
+#define WJR_SIMD_LEFT_PTR(simd_t, ptr) WJR_SIMD_LEFT_PTR_N(ptr, WJR_MACRO_ESC(WJR_SIMD_OFFSET(simd_t, ptr)))
+#define WJR_SIMD_RIGHT_PTR(simd_t, ptr) WJR_SIMD_RIGHT_PTR_N(ptr, WJR_MACRO_ESC(WJR_SIMD_OFFSET(simd_t, ptr)))
 
 // do nothing
 #define WJR_SIMD_INIT_PTR_FORWARD(ptr, n) 
@@ -1335,7 +1335,7 @@ struct avx {
 #define WJR_SIMD_CHECK_ALIGN(W) static_assert(wjr::has_single_bit(W), "invalid align");
 
 #define WJR_SIMD_FLOOR_ALIGN_OFFSET_FORWARD(ptr, W) (WJR_SIMD_UINTPTR(ptr) & ((W) - 1))
-#define WJR_SIMD_CEIL_ALIGN_OFFSET_FORWARD(ptr, W) ((-WJR_SIMD_UINTPTR(ptr)) & ((W) - 1))
+#define WJR_SIMD_CEIL_ALIGN_OFFSET_FORWARD(ptr, W) (static_cast<uintptr_t>(0 - WJR_SIMD_UINTPTR(ptr)) & ((W) - 1))
 #define WJR_SIMD_FLOOR_ALIGN_OFFSET_BACKWARD(ptr, W) WJR_SIMD_CEIL_ALIGN_OFFSET_FORWARD(ptr, W)
 #define WJR_SIMD_CEIL_ALIGN_OFFSET_BACKWARD(ptr, W) WJR_SIMD_FLOOR_ALIGN_OFFSET_FORWARD(ptr, W)
 
@@ -1364,34 +1364,21 @@ struct avx {
 #define WJR_SIMD_FIRST_ONE(x) WJR_SIMD_USE_SUFFIX(WJR_SIMD_FIRST_ONE)(x)
 #define WJR_SIMD_LAST_ONE(x) WJR_SIMD_USE_SUFFIX(WJR_SIMD_LAST_ONE)(x)
 
-#define _WJR_SIMD_FIRST_OR_ZERO_PTR(ptr, x, FUNC, SUFFIX) \
-_WJR_SIMD_USE_SUFFIX(WJR_SIMD_ADD_PTR, SUFFIX)(ptr, FUNC(x) / WJR_SIMD_VALUE_SIZE(ptr))
-
-#define WJR_SIMD_FIRST_ZERO_PTR_FORWARD(ptr, x) _WJR_SIMD_FIRST_OR_ZERO_PTR(ptr, x, WJR_SIMD_FIRST_ZERO, WJR_SIMD_FORWARD_SUFFIX)
-#define WJR_SIMD_LAST_ZERO_PTR_FORWARD(ptr, x) _WJR_SIMD_FIRST_OR_ZERO_PTR(ptr, x, WJR_SIMD_LAST_ZERO, WJR_SIMD_FORWARD_SUFFIX)
-#define WJR_SIMD_FIRST_ONE_PTR_FORWARD(ptr, x) _WJR_SIMD_FIRST_OR_ZERO_PTR(ptr, x, WJR_SIMD_FIRST_ONE, WJR_SIMD_FORWARD_SUFFIX)
-#define WJR_SIMD_LAST_ONE_PTR_FORWARD(ptr, x) _WJR_SIMD_FIRST_OR_ZERO_PTR(ptr, x, WJR_SIMD_LAST_ONE, WJR_SIMD_FORWARD_SUFFIX)
-
-#define WJR_SIMD_FIRST_ZERO_PTR_BACKWARD(ptr, x) _WJR_SIMD_FIRST_OR_ZERO_PTR(ptr, x, WJR_SIMD_FIRST_ZERO, WJR_SIMD_BACKWARD_SUFFIX)
-#define WJR_SIMD_LAST_ZERO_PTR_BACKWARD(ptr, x) _WJR_SIMD_FIRST_OR_ZERO_PTR(ptr, x, WJR_SIMD_LAST_ZERO, WJR_SIMD_BACKWARD_SUFFIX)
-#define WJR_SIMD_FIRST_ONE_PTR_BACKWARD(ptr, x) _WJR_SIMD_FIRST_OR_ZERO_PTR(ptr, x, WJR_SIMD_FIRST_ONE, WJR_SIMD_BACKWARD_SUFFIX)
-#define WJR_SIMD_LAST_ONE_PTR_BACKWARD(ptr, x) _WJR_SIMD_FIRST_OR_ZERO_PTR(ptr, x, WJR_SIMD_LAST_ONE, WJR_SIMD_BACKWARD_SUFFIX)
-
 #define WJR_SIMD_FIRST_ZERO_PTR(ptr, x) WJR_SIMD_ADD_PTR(ptr, WJR_SIMD_FIRST_ZERO(x) / WJR_SIMD_VALUE_SIZE(ptr))
 #define WJR_SIMD_LAST_ZERO_PTR(ptr, x) WJR_SIMD_ADD_PTR(ptr, WJR_SIMD_LAST_ZERO(x) / WJR_SIMD_VALUE_SIZE(ptr))
 #define WJR_SIMD_FIRST_ONE_PTR(ptr, x) WJR_SIMD_ADD_PTR(ptr, WJR_SIMD_FIRST_ONE(x) / WJR_SIMD_VALUE_SIZE(ptr))
 #define WJR_SIMD_LAST_ONE_PTR(ptr, x) WJR_SIMD_ADD_PTR(ptr, WJR_SIMD_LAST_ONE(x) / WJR_SIMD_VALUE_SIZE(ptr))
 
 #define _WJR_SIMD_LOAD(simd_t, PREFIX, ptr, LOAD, J)	                                                                        \
-	auto PREFIX = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(J(simd_t, ptr)));
+	auto PREFIX = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(WJR_MACRO_ESC(J(simd_t, ptr))))
 #define _WJR_SIMD_LOAD2(simd_t, PREFIX, ptr0, ptr1, LOAD, J)	                                                                \
-	auto PREFIX##0 = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(J(simd_t, ptr0)));	                        \
-	auto PREFIX##1 = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(J(simd_t, ptr1)));
+	auto PREFIX##0 = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(WJR_MACRO_ESC(J(simd_t, ptr0))));	        \
+	auto PREFIX##1 = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(WJR_MACRO_ESC(J(simd_t, ptr1))))
 #define _WJR_SIMD_LOAD4(simd_t, PREFIX, ptr0, ptr1, ptr2, ptr3 , LOAD, J)	                                                    \
-	auto PREFIX##0 = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(J(simd_t, ptr0)));	                        \
-	auto PREFIX##1 = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(J(simd_t, ptr1)));	                        \
-	auto PREFIX##2 = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(J(simd_t, ptr2)));	                        \
-	auto PREFIX##3 = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(J(simd_t, ptr3)));
+	auto PREFIX##0 = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(WJR_MACRO_ESC(J(simd_t, ptr0))));	        \
+	auto PREFIX##1 = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(WJR_MACRO_ESC(J(simd_t, ptr1))));	        \
+	auto PREFIX##2 = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(WJR_MACRO_ESC(J(simd_t, ptr2))));	        \
+	auto PREFIX##3 = simd_t::LOAD(reinterpret_cast<const typename simd_t::int_type*>(WJR_MACRO_ESC(J(simd_t, ptr3))))
 
 #define WJR_SIMD_LOADU(simd_t, PREFIX, ptr) _WJR_SIMD_LOAD(simd_t, PREFIX, ptr, loadu, WJR_SIMD_LEFT_PTR)
 #define WJR_SIMD_LOADU2(simd_t, PREFIX, ptr0, ptr1)             \

@@ -6,7 +6,7 @@ _WJR_ASM_BEGIN
 
 #if WJR_HAS_BUILTIN(__builtin_subc) || WJR_HAS_CLANG(5, 0, 0)
 template<typename T>
-WJR_INTRINSIC_INLINE static T __wjr_builtin_sbb(T a, T b, T carry_in, T* carry_out) {
+WJR_INTRINSIC_INLINE T __wjr_builtin_sbb(T a, T b, T carry_in, T* carry_out) {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 
 	constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
@@ -53,7 +53,7 @@ WJR_INTRINSIC_INLINE static T __wjr_builtin_sbb(T a, T b, T carry_in, T* carry_o
 }
 #elif defined(WJR_COMPILER_MSVC)
 template<typename T>
-WJR_INTRINSIC_INLINE static T __wjr_msvc_sbb(T a, T b, T carry_in, T* carry_out) {
+WJR_INTRINSIC_INLINE T __wjr_msvc_sbb(T a, T b, T carry_in, T* carry_out) {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 
 	constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
@@ -91,7 +91,7 @@ WJR_INTRINSIC_INLINE static T __wjr_msvc_sbb(T a, T b, T carry_in, T* carry_out)
 #endif
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 T sbb(T a, T b, T carry_in, T* carry_out) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T sbb(T a, T b, T carry_in, T* carry_out) {
 	if (!wjr::is_constant_evaluated()) {
 		if (!((is_constant_p(a) && is_constant_p(b)) || (is_constant_p(carry_in) && carry_in == 0))) {
 #if WJR_HAS_BUILTIN(__builtin_subc) || WJR_HAS_CLANG(5, 0, 0)

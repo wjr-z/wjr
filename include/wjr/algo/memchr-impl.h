@@ -1,6 +1,4 @@
-#ifndef __WJR_ALGO_ALOG_H
-#error "This file should not be included directly. Include <wjr/algo.h> instead."
-#endif 
+// @WJR_MULTIPLE
 
 // __WJR_MEMCHR_ONE
 // __WJR_MEMCHR_FOUR
@@ -9,7 +7,8 @@
 _WJR_ALGO_BEGIN
 
 template<typename T, typename _Pred>
-WJR_NODISCARD WJR_NOINLINE const T* WJR_MACRO_CONCAT(__large, __WJR_MEMCHR_NAME)(const T* s, T val, size_t n, _Pred pred) noexcept {
+WJR_NODISCARD WJR_PURE const T*
+	WJR_MACRO_CONCAT(__large, __WJR_MEMCHR_NAME)(const T* s, T val, size_t n, _Pred pred) noexcept {
 
 	constexpr size_t _Mysize = sizeof(T);
 
@@ -62,7 +61,8 @@ WJR_NODISCARD WJR_NOINLINE const T* WJR_MACRO_CONCAT(__large, __WJR_MEMCHR_NAME)
 		}
 
 		{
-			WJR_SIMD_LOADU4(simd::sse, x, WJR_SIMD_ADD_PTR(s, negdelta - delta),
+			WJR_SIMD_LOADU4(simd::sse, x, 
+				WJR_SIMD_ADD_PTR(s, negdelta - delta),
 				WJR_SIMD_ADD_PTR(s, negdelta - delta + 16 / _Mysize),
 				WJR_SIMD_ADD_PTR(s, negdelta),
 				WJR_SIMD_ADD_PTR(s, negdelta + 16 / _Mysize));
@@ -200,8 +200,7 @@ WJR_NODISCARD WJR_NOINLINE const T* WJR_MACRO_CONCAT(__large, __WJR_MEMCHR_NAME)
 // Doing so does not cause the code to become overly bloated, while also balancing performance
 // But what's awkward is that MSVC doesn't inline it
 template<typename T, typename _Pred>
-WJR_NODISCARD inline const T* (__WJR_MEMCHR_NAME)(const T* s, T val, size_t n, _Pred pred) noexcept {
-
+WJR_NODISCARD WJR_PURE inline const T* (__WJR_MEMCHR_NAME)(const T* s, T val, size_t n, _Pred pred) noexcept {
 	constexpr size_t _Mysize = sizeof(T);
 
 	if (is_unlikely(n == 0)) return s;

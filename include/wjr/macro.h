@@ -242,7 +242,6 @@
 
 #if WJR_SSE2
 #define _WJR_FAST_MEMCHR
-#define _WJR_FAST_MEMSKIPW
 #define _WJR_FAST_MEMCMP
 #define _WJR_FAST_MEMMIS
 //#define _WJR_FAST_MEMCNT
@@ -464,6 +463,19 @@ do{                         \
 #define WJR_INTRINSIC_INLINE inline
 #endif
 
+// pure attribute
+#if WJR_HAS_ATTRIBUTE(pure)
+#define WJR_PURE __attribute__((pure))
+#else
+#define WJR_PURE
+#endif 
+
+// const attribute
+#if WJR_HAS_ATTRIBUTE(const)
+#define WJR_CONST __attribute__((const))
+#else
+#define WJR_CONST
+#endif
 
 // Compiler support for constexpr
 #if defined(__cpp_lib_is_constant_evaluated) || WJR_HAS_BUILTIN(__builtin_is_constant_evaluated) \
@@ -525,8 +537,8 @@ do{                         \
 #define WJR_COUNTER __LINE__
 #endif 
 
-#define WJR_CONCAT(x, y) x##y
-#define WJR_MACRO_CONCAT(x, y) WJR_CONCAT(x, y)
+#define _WJR_CONCAT(x, y) x##y
+#define WJR_MACRO_CONCAT(x, y) _WJR_CONCAT(x, y)
 
 #define WJR_EXPAND(x) x
 
@@ -534,8 +546,12 @@ do{                         \
 #define __WJR_DEFINE_1(x) x
 #define WJR_DEFINE(x, y) __WJR_DEFINE_##y (x)
 
-#define WJR_STR(x) #x
-#define WJR_MACRO_STR(x) WJR_STR(x)
+#define _WJR_STR(x) #x
+#define WJR_MACRO_STR(x) _WJR_STR(x)
+
+#define WJR_MACRO_RP(M, x) M x
+#define _WJR_MACRO_ESC(...) __VA_ARGS__
+#define WJR_MACRO_ESC(x) WJR_MACRO_RP(_WJR_MACRO_ESC, x)
 
 #define WJR_MACRO_IOTA(N) WJR_MACRO_IOTA_##N
 #define WJR_MACRO_IOTA_0
