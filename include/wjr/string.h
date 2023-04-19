@@ -11,12 +11,11 @@
 #include <charconv>
 #include <functional>
 
+#include <double-conversion/double-conversion.h>
+
 #include <wjr/vector.h>
 #include <wjr/math.h>
-
 #include <wjr/string_func.h>
-
-#include <double-conversion/double-conversion.h>
 
 _WJR_BEGIN
 
