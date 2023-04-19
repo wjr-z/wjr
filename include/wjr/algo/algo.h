@@ -153,7 +153,6 @@ inline constexpr bool __has_fast_memcmp_v = __has_fast_memcmp<T, U, _Pred>::type
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memcmp_v<T, U, _Pred>, int> = 0>
 WJR_NODISCARD bool memcmp(const T* s0, const U* s1, size_t n, WJR_MAYBE_UNUSED _Pred pred) {
-	(void)(pred);
 	return ::memcmp(s0, s1, n * sizeof(T)) == 0;
 }
 
