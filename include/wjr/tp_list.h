@@ -1130,6 +1130,24 @@ struct tp_iota {
 template<size_t I, size_t N>
 using tp_iota_t = typename tp_iota<I, N>::type;
 
+//
+
+template<typename C, typename...Args>
+struct tp_find_constructible {
+	constexpr static size_t value = tp_find_if_f<C, tp_bind_back<std::is_constructible, Args...>>;
+};
+
+template<typename C, typename...Args>
+inline constexpr size_t tp_find_constructible_v = tp_find_constructible<C, Args...>::value;
+
+template<typename C, typename...Args>
+struct tp_find_assignable {
+	constexpr static size_t value = tp_find_if_f<C, tp_bind_back<std::is_assignable, Args...>>;
+};
+
+template<typename C, typename...Args>
+inline constexpr size_t tp_find_assignable_v = tp_find_assignable<C, Args...>::value;
+
 class tp_fn {
 public:
 	template<typename C, typename F>

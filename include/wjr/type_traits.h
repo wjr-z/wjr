@@ -4,6 +4,7 @@
 
 #include <functional>
 #include <limits>
+#include <utility>
 
 #include <wjr/cpuinfo.h>
 
@@ -171,6 +172,15 @@ using add_cvref_t = add_lref_t<std::add_cv_t<T>>;
 
 template<typename T>
 using add_cref_t = add_lref_t<std::add_const_t<T>>;
+
+template<typename T>
+struct is_in_place_type : std::false_type {};
+
+template<template<typename...>typename C, typename T, typename...Args>
+struct is_in_place_type<C<T, Args...>> : std::is_same<C<T, Args...>, std::in_place_type_t<T>> {};
+
+template<typename T>
+inline constexpr bool is_in_place_type_v = is_in_place_type<T>::value;
 
 // default comparator
 // can be used for optimize, such as find, compare...

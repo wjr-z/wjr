@@ -10,9 +10,11 @@ namespace wjr {
 		overflow         = 0x01,
 		underflow        = 0x02,
 		out_of_range     = overflow | underflow,
-		noconv           = 0x04,
-		buffer_too_small = 0x05,
+		empty			 = 0x04,
+		noconv           = 0x05,
+		buffer_too_small = 0x06,
 	};
+
 }
 
 #endif // __WJR_ERROR_HANDLE_H

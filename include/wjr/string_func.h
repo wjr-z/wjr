@@ -13,26 +13,17 @@
 _WJR_BEGIN
 
 namespace __string_func_traits {
-	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(skipw, skipw);
-	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(rskipw, rskipw);
-	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(skipz, skipz);
-	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(skipd, skipd);
+	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(__skipw, skipw);
+	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(__rskipw, rskipw);
+	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(__skipz, skipz);
+	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(__skipd, skipd);
 }
 
-// fast integer conversion of strings with different encodings
-// requires :
-// 1. forward iterator
-// 2. constexpr uint32_t todigit<base = 10[, idx = 0]>
-// related to base
-// return (digit(ch)) * (base ^ idx);
-// if is a invalid digit, return 1u << 24;
-// use this function to find last of digit
-// 3. constexpr bool isspace
-// use this function to skip white space
 template<typename Traits>
 class string_func {
 public:
 	using traits_type = Traits;
+	using encode_type = typename traits_type::encode_type;
 	using value_type = typename traits_type::value_type;
 
 	constexpr static uint32_t invalid_digit = 1u << 24;
@@ -90,23 +81,37 @@ public:
 		ALLOW_TAIL                 = 0x02,
 		ALLOW_SIGN                 = 0x04,
 		ALLOW_LEADING_SPACE        = 0x08,
-		ALLOW_TRAILING_SPACE       = 0x10,
+		ALLOW_SPACE_AFTER_SIGN     = 0x10,
 		ALLOW_LEADING_ZEROS        = 0x20,
-		ALLOW_ONLY_LOWERCASE	   = 0x40,
-		ALLOW_ONLY_UPPERCASE	   = 0x80
 	};
 
-	template<typename T, typename _Iter, typename F>
+	// ALLOW_PREFIX:
+	//  prefix : base = 2 : 0b, base = 8 : 0, base = 16 : 0x
+	// ALLOW_LEADING_SPACE:
+	//	leading space is allowed, but not allowed after sign
+	// ALLOW_SPACE_AFTER_SIGN:
+	//	leading space is allowed after sign
+	// ALLOW_LEADING_ZEROS:
+	//  allow mutiple leading zeros
+
+	using default_to_integral_flags = std::integral_constant<flags, 
+		static_cast<flags>(flags::ALLOW_PREFIX
+				| flags::ALLOW_TAIL
+				| flags::ALLOW_SIGN
+				| flags::ALLOW_LEADING_SPACE
+				| flags::ALLOW_LEADING_ZEROS)>;
+
+	template<typename T, typename _Iter, typename F = default_to_integral_flags>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR static T to_integral(
-		F f,
 		_Iter _First, _Iter _Last,
-		errc& _Err, _Iter& _Pos, int base) noexcept;
+		_Iter& _Pos, int base, errc& _Err, F f = F()) noexcept;
 
 	template<typename T, typename _Iter>
 	WJR_INLINE_CONSTEXPR20 static void from_integral(
 		T _Val, _Iter _First, _Iter _Last,
-		errc& _Err, _Iter& _Pos, int base) noexcept;
+		_Iter& _Pos, int base, errc& _Err) noexcept;
 
+private:
 };
 
 template<typename T, typename Func>
@@ -118,15 +123,14 @@ public:
 
 	template<typename _Iter, typename F>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR static T work(
-		F f,
 		_Iter _First, _Iter _Last,
-		errc& _Err, _Iter& _Pos, int base) noexcept;
+		_Iter& _Pos, int base, errc& _Err, F f) noexcept;
 
 	// copy of std::to_chars
 	template <typename _Iter>
 	WJR_INLINE_CONSTEXPR20 static void work(
 		T _Val, _Iter _First, _Iter _Last,
-		errc& _Err, _Iter& _Pos, int base) noexcept;
+		_Iter& _Pos, int base, errc& _Err) noexcept;
 
 private:
 
@@ -149,10 +153,9 @@ private:
 
 	template<typename _Iter, typename F>
 	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static T __work(
-		F f,
 		_Iter _First, _Iter _Last,
-		errc& _Err, WJR_MAYBE_UNUSED _Iter& _Pos,
-		int base, _Iter _Zero, bool _Is_minus) noexcept;
+		WJR_MAYBE_UNUSED _Iter& _Pos,
+		int base, errc& _Err, F f, _Iter _Zero, bool _Is_minus) noexcept;
 
 };
 
@@ -167,9 +170,8 @@ private:
 template<typename T, typename Func>
 template<typename _Iter, typename F>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::work(
-	F f,
 	_Iter _First, _Iter _Last,
-	errc& _Err, _Iter& _Pos, int base) noexcept {
+	_Iter& _Pos, int base, errc& _Err, F f) noexcept {
 	const auto _Flags = get_cvar(f);
 
 	// skip white space
@@ -199,8 +201,11 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::work(
 		}
 	}
 
-	if (_Flags & flags::ALLOW_TRAILING_SPACE) {
+	if (_Flags & flags::ALLOW_SPACE_AFTER_SIGN) {
 		_First = func_type::skipw(_First, _Last);
+		if (is_unlikely(_First == _Last)) {
+			__CONV_EMPTY_RET;
+		}
 	}
 
 	constexpr auto _B = func_type::toalnum('B');
@@ -226,7 +231,7 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::work(
 						_Pos = _First;
 						return static_cast<T>(0);
 					}
-					return __work(f, _First, _Last, _Err, _Pos, 2, _Zero, _Is_minus);
+					return __work(_First, _Last, _Pos, 2, _Err, f, _Zero, _Is_minus);
 				}
 				case _X: {
 					// eat 'x'/'X'
@@ -234,14 +239,14 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::work(
 						_Pos = _First;
 						return static_cast<T>(0);
 					}
-					return __work(f, _First, _Last, _Err, _Pos, 16, _Zero, _Is_minus);
+					return __work(_First, _Last, _Pos, 16, _Err, f, _Zero, _Is_minus);
 				}
 				default: {
-					return __work(f, _First, _Last, _Err, _Pos, 8, _Zero, _Is_minus);
+					return __work(_First, _Last, _Pos, 8, _Err, f, _Zero, _Is_minus);
 				}
 				}
 			}
-			return __work(f, _First, _Last, _Err, _Pos, 10, _Last, _Is_minus);
+			return __work(_First, _Last, _Pos, 10, _Err, f, _Last, _Is_minus);
 		}
 		case 2: {
 			if (*_First == '0') {
@@ -291,16 +296,15 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::work(
 		}
 	}
 
-	return __work(f, _First, _Last, _Err, _Pos, base, _Zero, _Is_minus);
+	return __work(_First, _Last, _Pos, base, _Err, f, _Zero, _Is_minus);
 }
 
 template<typename T, typename Func>
 template<typename _Iter, typename F>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR T integral_conversion_details<T, Func>::__work(
-	F f,
 	_Iter _First, _Iter _Last,
-	errc& _Err, WJR_MAYBE_UNUSED _Iter& _Pos,
-	int base, _Iter _Zero, bool _Is_minus) noexcept {
+	WJR_MAYBE_UNUSED _Iter& _Pos,
+	int base, errc& _Err, F f, _Iter _Zero, bool _Is_minus) noexcept {
 
 	const auto _Flags = get_cvar(f);
 
@@ -385,7 +389,7 @@ template<typename T, typename Func>
 template <typename _Iter>
 WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::work(
 	T _Val, _Iter _First, _Iter _Last,
-	errc& _Err, _Iter& _Pos, int base) noexcept {
+	_Iter& _Pos, int base, errc& _Err) noexcept {
 
 	auto uval = make_unsigned_v(_Val);
 
@@ -518,44 +522,44 @@ WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::work(
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool string_func<Traits>::isalnum(value_type ch) {
-	return traits_type::isalnum(ch);
+	return encode_type::isalnum(ch);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool string_func<Traits>::isalpha(value_type ch) {
-	return traits_type::isalpha(ch);
+	return encode_type::isalpha(ch);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool string_func<Traits>::islower(value_type ch) {
-	return traits_type::islower(ch);
+	return encode_type::islower(ch);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool string_func<Traits>::isupper(value_type ch) {
-	return traits_type::isupper(ch);
+	return encode_type::isupper(ch);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool string_func<Traits>::isxdigit(value_type ch) {
-	return traits_type::isxdigit(ch);
+	return encode_type::isxdigit(ch);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool string_func<Traits>::isspace(value_type ch) {
-	return traits_type::isspace(ch);
+	return encode_type::isspace(ch);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR typename string_func<Traits>::value_type
 string_func<Traits>::tolower(value_type ch) {
-	return traits_type::tolower(ch);
+	return encode_type::tolower(ch);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR typename string_func<Traits>::value_type
 string_func<Traits>::toupper(value_type ch) {
-	return traits_type::toupper(ch);
+	return encode_type::toupper(ch);
 }
 
 template<typename Traits>
@@ -572,7 +576,7 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR bool string_func<Traits>::isdigit(value_ty
 template<typename Traits>
 template<unsigned int Base>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR uint32_t string_func<Traits>::todigit(value_type ch) {
-	return traits_type::template todigit<Base>(ch);
+	return encode_type::template todigit<Base>(ch);
 }
 
 template<typename Traits>
@@ -583,8 +587,8 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR uint32_t string_func<Traits>::toalnum(valu
 template<typename Traits>
 template<typename _Iter>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::skipw(_Iter _First, _Iter _Last) {
-	if constexpr (__string_func_traits::has_static_member_function_skipw_v<traits_type, _Iter, _Iter>) {
-		return traits_type::skipw(_First, _Last);
+	if constexpr (__string_func_traits::has_static_member_function_skipw_v<encode_type, _Iter, _Iter>) {
+		return encode_type::skipw(_First, _Last);
 	}
 	else {
 		while (_First != _Last && isspace(*_First)) ++_First;
@@ -596,8 +600,8 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::skipw(_Iter _Fi
 template<typename Traits>
 template<typename _Iter>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::rskipw(_Iter _First, _Iter _Last) {
-	if constexpr (__string_func_traits::has_static_member_function_rskipw_v<traits_type, _Iter, _Iter>) {
-		return traits_type::rskipw(_First, _Last);
+	if constexpr (__string_func_traits::has_static_member_function_rskipw_v<encode_type, _Iter, _Iter>) {
+		return encode_type::rskipw(_First, _Last);
 	}
 	else {
 		while (_First != _Last && isspace(*(_Last - 1))) --_Last;
@@ -608,8 +612,8 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::rskipw(_Iter _F
 template<typename Traits>
 template<typename _Iter>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::skipz(_Iter _First, _Iter _Last) {
-	if constexpr (__string_func_traits::has_static_member_function_skipz_v<traits_type, _Iter, _Iter>) {
-		return traits_type::skipz(_First, _Last);
+	if constexpr (__string_func_traits::has_static_member_function_skipz_v<encode_type, _Iter, _Iter>) {
+		return encode_type::skipz(_First, _Last);
 	}
 	else {
 		while (_First != _Last && *_First == '0') ++_First;
@@ -629,8 +633,8 @@ template<typename Traits>
 template<typename _Iter>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>
 ::skipd(_Iter _First, _Iter _Last, int Base) {
-	if constexpr (__string_func_traits::has_static_member_function_skipz_v<traits_type, _Iter, _Iter, int>) {
-		return traits_type::skipz(_First, _Last, Base);
+	if constexpr (__string_func_traits::has_static_member_function_skipz_v<encode_type, _Iter, _Iter, int>) {
+		return encode_type::skipz(_First, _Last, Base);
 	}
 	else {
 		while (_First != _Last && isdigit(*_First, Base)) ++_First;
@@ -641,20 +645,19 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>
 template<typename Traits>
 template<typename T, typename _Iter, typename F>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR T string_func<Traits>::to_integral(
-	F f,
 	_Iter _First, _Iter _Last,
-	errc& _Err, _Iter& _Pos, int base) noexcept {
+	_Iter& _Pos, int base, errc& _Err, F f) noexcept {
 	return integral_conversion_details<T, string_func<Traits>>
-		::template work(f, _First, _Last, _Err, _Pos, base);
+		::template work(_First, _Last, _Pos, base, _Err, f);
 }
 
 template<typename Traits>
 template<typename T, typename _Iter>
 WJR_INLINE_CONSTEXPR20 void string_func<Traits>::from_integral(
 	T _Val, _Iter _First, _Iter _Last,
-	errc& _Err, _Iter& _Pos, int base) noexcept {
+	_Iter& _Pos, int base, errc& _Err) noexcept {
 	return integral_conversion_details<T, string_func<Traits>>
-		::template work(_Val, _First, _Last, _Err, _Pos, base);
+		::template work(_Val, _First, _Last, _Pos, base, _Err);
 }
 
 _WJR_END

@@ -16,6 +16,8 @@
 
 #include <wjr/string_func.h>
 
+#include <double-conversion/double-conversion.h>
+
 _WJR_BEGIN
 
 /*---------------------------data for string---------------------------*/
@@ -2918,14 +2920,12 @@ _WJR_BEGIN
  
 namespace ascii {
 
-	template<int Base, int idx = 0>
+	template<int Base>
 	struct __to_digit_table {
 
 		constexpr static uint32_t invalid = 1u << 24;
-		constexpr static uint32_t multi = power<uint32_t>(Base, idx);
 
 		static_assert(Base >= 2 && Base <= 36, "");
-		static_assert(idx >= 0 && idx < 4, "");
 
 		constexpr __to_digit_table() : table() {
 			for (int i = 0; i < 256; ++i) {
@@ -2935,7 +2935,7 @@ namespace ascii {
 			{
 				constexpr int _Max = '0' + (Base >= 10 ? 10 : Base) - 1;
 				for (int i = '0'; i <= _Max; ++i) {
-					table[i] = (i - '0') * multi;
+					table[i] = (i - '0');
 				}
 			}
 
@@ -2943,11 +2943,11 @@ namespace ascii {
 				constexpr int _Maxl = 'a' + (Base - 10) - 1;
 				constexpr int _Maxu = _Maxl + ('A' - 'a');
 				for (int i = 'a'; i <= _Maxl; ++i) {
-					table[i] = ((i - 'a') + 10) * multi;
+					table[i] = (i - 'a') + 10;
 				}
 
 				for (int i = 'A'; i <= _Maxu; ++i) {
-					table[i] = ((i - 'A') + 10) * multi;
+					table[i] = (i - 'A') + 10;
 				}
 			}
 
@@ -2959,8 +2959,8 @@ namespace ascii {
 		uint32_t table[256];
 	};
 
-	template<int Base, int idx = 0>
-	constexpr static __to_digit_table<Base, idx> __to_digit_table_v;
+	template<int Base>
+	constexpr static __to_digit_table<Base> __to_digit_table_v;
 
 	enum __char_code {
 		__none = 0x00,
@@ -3038,58 +3038,401 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 		  __none,          __none,          __none,          __none
 	};
 
-	class encode {
-	public:
+	class encode;
 
+	struct encode_traits {
+		using value_type = char;
+		using encode_type = encode;
+	};
+
+	class encode : public string_func<encode_traits> {
+	public:
+		friend string_func<encode_traits>;
+		using _Mybase = string_func<encode_traits>;
 		using value_type = char;
 
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isalnum(char ch) {
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isalnum(value_type ch) {
 			return __char_code_table[make_unsigned_v(ch)] & (__lower | __upper | __digit);
 		}
 
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isalpha(char ch) {
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isalpha(value_type ch) {
 			return __char_code_table[make_unsigned_v(ch)] & (__lower | __upper);
 		}
 
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool islower(char ch) {
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool islower(value_type ch) {
 			return __char_code_table[make_unsigned_v(ch)] & __lower;
 		}
 
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isupper(char ch) {
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isupper(value_type ch) {
 			return __char_code_table[make_unsigned_v(ch)] & __upper;
 		}
 
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isdigit(char ch) {
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isdigit(value_type ch) {
 			return __char_code_table[make_unsigned_v(ch)] & __digit;
 		}
 
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isxdigit(char ch) {
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isxdigit(value_type ch) {
 			return __char_code_table[make_unsigned_v(ch)] & __xdigit;
 		}
 
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isspace(char ch) {
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isspace(value_type ch) {
 			return __char_code_table[make_unsigned_v(ch)] & __white;
 		}
 
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static char tolower(char ch) {
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR static value_type tolower(value_type ch) {
 			return isupper(ch) ? ch + 'a' - 'A' : ch;
 		}
 
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static char toupper(char ch) {
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR static value_type toupper(value_type ch) {
 			return islower(ch) ? ch + 'A' - 'a' : ch;
 		}
 
-		// transfrom ch to digit
-	// if ch is a valid digit, return digit(ch) * (Base ^ idx)
-	// else return invalid
-		template<unsigned int Base = 10, int idx = 0>
+		template<unsigned int Base = 10>
 		WJR_NODISCARD WJR_INLINE_CONSTEXPR static uint32_t todigit(char ch) {
-			return __to_digit_table_v<Base, idx>[ch];
+			return __to_digit_table_v<Base>[ch];
+		}
+
+		using to_i_flags = typename _Mybase::flags;
+
+		using default_to_i_flags = typename _Mybase::default_to_integral_flags;
+
+		using _Mybase::to_integral;
+		using _Mybase::from_integral;
+
+		template<typename T, typename F = default_to_i_flags>
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR static T to_integral(const char* _First, const char* _Last,
+			const char** _Pos = nullptr, int base = 10, errc* _Err = nullptr, F f = F()) noexcept {
+			const char* end_ptr = _First;
+			errc c = errc::ok;
+			auto ret = to_integral<T>(_First, _Last, end_ptr, base, c, f);
+
+			if (_Pos != nullptr) {
+				*_Pos = end_ptr;
+			}
+
+			if (_Err != nullptr) {
+				*_Err = c;
+			}
+
+			return ret;
+		}
+
+		template<typename T, typename F = default_to_i_flags>
+		WJR_NODISCARD WJR_INLINE_CONSTEXPR static T to_integral(const char* _First, size_t n,
+			size_t* _Pos = nullptr, int base = 10, errc* _Err = nullptr, F f = F()) noexcept {
+			const char* end_ptr = _First;
+			errc c = errc::ok;
+			auto ret = to_integral<T>(_First, _First + n, end_ptr, base, c, f);
+
+			if (_Pos != nullptr) {
+				*_Pos = static_cast<size_t>(end_ptr - _First);
+			}
+
+			if (_Err != nullptr) {
+				*_Err = c;
+			}
+
+			return ret;
+		}
+
+		template<typename T>
+		WJR_INLINE_CONSTEXPR20 static void from_integral(
+			const char* _First, const char* _Last, const char** _Pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept {
+			const char* end_ptr = _First;
+			errc c = errc::ok;
+			auto ret = from_integral<T>(_First, _Last, end_ptr, base, c);
+
+			if (_Pos != nullptr) {
+				*_Pos = end_ptr;
+			}
+
+			if (_Err != nullptr) {
+				*_Err = c;
+			}
+
+		}
+
+		template<typename T>
+		WJR_INLINE_CONSTEXPR20 static void from_integral(
+			const char* _First, size_t n, size_t* _Pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept {
+			const char* end_ptr = _First;
+			errc c = errc::ok;
+			auto ret = from_integral<T>(_First, _First + n, end_ptr, base, c);
+
+			if (_Pos != nullptr) {
+				*_Pos = static_cast<size_t>(end_ptr - _First);
+			}
+
+			if (_Err != nullptr) {
+				*_Err = c;
+			}
+
+		}
+
+		using to_f_flags = typename double_conversion::StringToDoubleConverter::Flags;
+
+		using default_to_f_flags = std::integral_constant<
+			to_f_flags,
+			static_cast<to_f_flags>
+			(to_f_flags::ALLOW_LEADING_SPACES
+			| to_f_flags::ALLOW_TRAILING_JUNK)
+		>;
+
+		template<typename T, typename F = default_to_f_flags>
+		WJR_NODISCARD static T to_floating_point(
+			const char* _First, const char* _Last, const char*& _Pos, errc& _Err, F f = F()) noexcept {
+			using namespace double_conversion;
+
+			if (_First == _Last) {
+				_Err = errc::noconv;
+				return static_cast<T>(0);
+			}
+
+			StringToDoubleConverter conv(
+				to_f_flags::ALLOW_TRAILING_JUNK |
+				to_f_flags::ALLOW_LEADING_SPACES,
+				0.0,
+				// return this for junk input string
+				std::numeric_limits<T>::quiet_NaN(),
+				nullptr,
+				nullptr);
+
+			int length = 0; // processed char count
+			T result = 0;
+			static_assert(is_any_of_v<T, float, double>, "");
+			if constexpr (std::is_same_v<T, float>) {
+				result = conv.StringToFloat(_First, static_cast<size_t>(_Last - _First), &length);
+			}
+			else {
+				result = conv.StringToDouble(_First, static_cast<size_t>(_Last - _First), &length);
+			}
+
+			if (!std::isnan(result)) {
+				if (length == 0 ||
+					(result == 0.0 && isspace(_First[length - 1]))) {
+					_Err = errc::noconv;
+					return static_cast<T>(0);
+				}
+				if (length >= 2) {
+					const char* suffix = _First + length - 1;
+
+					if (*suffix == '-' || *suffix == '+') {
+						--suffix;
+						--length;
+					}
+					// "12e-f-g" or "12euro" should only parse "12"
+					if (*suffix == 'e' || *suffix == 'E') {
+						--length;
+					}
+				}
+				
+				_Pos = _First + length;
+				_Err = errc::ok;
+				return result;
+			}
+
+			auto s = _Mybase::skipw(_First, _Last);
+
+			if (s == _Last) {
+				_Err = errc::noconv;
+				return static_cast<T>(0);
+			}
+
+			auto size = size_t(_Last - s);
+
+			bool negative = false;
+			if (*s == '-') {
+				negative = true;
+				++s;
+				--size;
+				if (size == 0) {
+					_Err = errc::noconv;
+					return static_cast<T>(0);
+				}
+			}
+
+			WJR_ASSUME(size > 0);
+
+			result = 0.0;
+
+			switch (tolower(*s)) {
+			case 'i':
+				if (size >= 3 && tolower(s[1]) == 'n' &&
+					tolower(s[2]) == 'f') {
+					if (size >= 8 && tolower(s[3]) == 'i' &&
+						tolower(s[4]) == 'n' && tolower(s[5]) == 'i' &&
+						tolower(s[6]) == 't' && tolower(s[7]) == 'y') {
+						s += 8;
+					}
+					else {
+						s += 3;
+					}
+					result = std::numeric_limits<T>::infinity();
+				}
+				break;
+
+			case 'n':
+				if (size >= 3 && tolower(s[1]) == 'a' &&
+					tolower(s[2]) == 'n') {
+					s += 3;
+					result = std::numeric_limits<T>::quiet_NaN();
+				}
+				break;
+
+			default:
+				break;
+			}
+
+			if (result == 0.0) {
+				// All bets are off
+				_Err = errc::noconv;
+				return static_cast<T>(0);
+			}
+
+			if (negative) {
+				result = -result;
+			}
+
+			_Pos = s;
+			_Err = errc::ok;
+			return static_cast<T>(result);
+		}
+
+		template<typename T, typename F = default_to_f_flags>
+		WJR_NODISCARD static T to_floating_point(
+			const char* _First, const char* _Last, const char** _Pos = nullptr, errc* _Err = nullptr, F f = F()) noexcept {
+			const char* end_ptr = _First;
+			errc c = errc::ok;
+			auto ret = to_floating_point<T>(_First, _Last, end_ptr, c, f);
+
+			if (_Pos != nullptr) {
+				*_Pos = end_ptr;
+			}
+
+			if (_Err != nullptr) {
+				*_Err = c;
+			}
+			return ret;
+		}
+
+		template<typename T, typename F = default_to_f_flags>
+		WJR_NODISCARD static T to_floating_point(
+			const char* _First, size_t n, size_t* _Pos = nullptr, errc* _Err = nullptr, F f = F()) noexcept {
+			const char* end_ptr = _First;
+			errc c = errc::ok;
+			auto ret = to_floating_point<T>(_First, _First + n, end_ptr, c, f);
+
+			if (_Pos != nullptr) {
+				*_Pos = static_cast<size_t>(end_ptr - _First);
+			}
+
+			if (_Err != nullptr) {
+				*_Err = c;
+			}
+
+			return ret;
+		}
+
+		using from_f_mode = typename double_conversion::DoubleToStringConverter::DtoaMode;
+		using from_f_flags = typename double_conversion::DoubleToStringConverter::Flags;
+
+		using defualt_from_f_mode = std::integral_constant<
+			from_f_mode,
+			from_f_mode::SHORTEST
+		>;
+
+		using defualt_from_f_flags = std::integral_constant<
+			from_f_flags,
+			from_f_flags::NO_FLAGS
+		>;
+
+		template<typename T, 
+			typename M = defualt_from_f_mode,
+			typename F = defualt_from_f_flags>
+		static void from_floating_point(
+			T value, char* first, char* last,
+			char*& pos, errc& err, int precision = 0, M m = M(), F f = F()) noexcept {
+			using namespace double_conversion;
+			DoubleToStringConverter conv(
+				get_cvar(f),
+				"Infinity",
+				"NaN",
+				'E',
+				-6,
+				21,
+				6, // max leading padding zeros
+				1); // max trailing padding zeros
+			char buffer[256];
+			StringBuilder builder(buffer, sizeof(buffer));
+			const auto mode = get_cvar(m);
+			switch (mode) {
+			case DoubleToStringConverter::SHORTEST:
+				conv.ToShortest(value, &builder);
+				break;
+			case DoubleToStringConverter::SHORTEST_SINGLE:
+				conv.ToShortestSingle(static_cast<float>(value), &builder);
+				break;
+			case DoubleToStringConverter::FIXED:
+				conv.ToFixed(value, precision, &builder);
+				break;
+			case DoubleToStringConverter::PRECISION:
+			default:
+				conv.ToPrecision(value, precision, &builder);
+				break;
+			}
+			const auto length = static_cast<size_t>(builder.position());
+			builder.Finalize();
+			const auto n = static_cast<size_t>(last - first);
+			if (n < length) {
+				err = errc::buffer_too_small;
+				return;
+			}
+			first = copy_n(buffer, length, first);
+			pos = first;
+			err = errc::ok;
+			return;
+		}
+
+		template<typename T,
+			typename M = defualt_from_f_mode,
+			typename F = defualt_from_f_flags>
+		static void from_floating_point(
+			T value, char* first, char* last,
+			char** pos = nullptr, errc* err = nullptr, int precision = 0, M m = M(), F f = F()) noexcept {
+			auto end_ptr = first;
+			errc c = errc::ok;
+			from_floating_point(value, first, last, end_ptr, c, precision, m, f);
+
+			if (pos != nullptr) {
+				*pos = end_ptr;
+			}
+
+			if (err != nullptr) {
+				*err = c;
+			}
+
+		}
+
+		template<typename T,
+			typename M = defualt_from_f_mode,
+			typename F = defualt_from_f_flags>
+		static void from_floating_point(
+			T value, char* first, size_t n,
+			size_t* pos = nullptr, errc* err = nullptr, int precision = 0, M m = M(), F f = F()) noexcept {
+			auto end_ptr = first;
+			errc c = errc::ok;
+			from_floating_point(value, first, first + n, end_ptr, c, precision, m, f);
+
+			if (pos != nullptr) {
+				*pos = static_cast<size_t>(end_ptr - first);
+			}
+
+			if (err != nullptr) {
+				*err = c;
+			}
 		}
 
 	};
-
-	using func_type = string_func<encode>;
 
 }
 
@@ -3121,8 +3464,8 @@ public:
 
 	using traits_type = ascii_traits<Traits>;
 	using size_type = typename _Mybase1::size_type;
-	using func_type = string_func<typename ascii::encode>;
-	using flags = typename func_type::flags;
+	using encode_type = ascii::encode;
+	using flags = typename encode_type::flags;
 
 	basic_string_view(const _Mybase1& base) : _Mybase1(base) {}
 
@@ -3140,28 +3483,36 @@ public:
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view rtrim() const;
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view trim() const;
 
+	using default_to_integral_flags = typename encode_type::default_to_integral_flags;
+
 	// support constexpr if str is constexpr
-	template<typename T>
+	template<typename T, typename F = default_to_integral_flags>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_integral(
-		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+		size_type* pos = nullptr, int base = 10, errc* err = nullptr, F f = F()) const;
 
+	template<typename F = default_to_integral_flags>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR int toi(
-		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+		size_type* pos = nullptr, int base = 10, errc* err = nullptr, F f = F()) const;
 
+	template<typename F = default_to_integral_flags>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR long tol(
-		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+		size_type* pos = nullptr, int base = 10, errc* err = nullptr, F f = F()) const;
 
+	template<typename F = default_to_integral_flags>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR long long toll(
-		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+		size_type* pos = nullptr, int base = 10, errc* err = nullptr, F f = F()) const;
 
+	template<typename F = default_to_integral_flags>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned int toui(
-		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+		size_type* pos = nullptr, int base = 10, errc* err = nullptr, F f = F()) const;
 
+	template<typename F = default_to_integral_flags>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long toul(
-		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+		size_type* pos = nullptr, int base = 10, errc* err = nullptr, F f = F()) const;
 
+	template<typename F = default_to_integral_flags>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long long toull(
-		errc* err = nullptr, size_type* pos = nullptr, int base = 10) const;
+		size_type* pos = nullptr, int base = 10, errc* err = nullptr, F f = F()) const;
 
 };
 
@@ -3169,47 +3520,47 @@ using ascii_view = basic_string_view<char, ascii_traits<>>;
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::isalnum(char ch) {
-	return func_type::isalnum(ch);
+	return encode_type::isalnum(ch);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::isalpha(char ch) {
-	return func_type::isalpha(ch);
+	return encode_type::isalpha(ch);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::islower(char ch) {
-	return func_type::islower(ch);
+	return encode_type::islower(ch);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::isupper(char ch) {
-	return func_type::isupper(ch);
+	return encode_type::isupper(ch);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::isdigit(char ch) {
-	return func_type::isdigit(ch);
+	return encode_type::isdigit(ch);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::isxdigit(char ch) {
-	return func_type::isxdigit(ch);
+	return encode_type::isxdigit(ch);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::isspace(char ch) {
-	return func_type::isspace(ch);
+	return encode_type::isspace(ch);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR char basic_string_view<char, ascii_traits<Traits>>::tolower(char ch) {
-	return func_type::tolower(ch);
+	return encode_type::tolower(ch);
 }
 
 template<typename Traits>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR char basic_string_view<char, ascii_traits<Traits>>::toupper(char ch) {
-	return func_type::toupper(ch);
+	return encode_type::toupper(ch);
 }
 
 template<typename Traits>
@@ -3217,7 +3568,7 @@ WJR_INLINE_CONSTEXPR basic_string_view<char, ascii_traits<Traits>>
 	basic_string_view<char, ascii_traits<Traits>>::ltrim() const {
 	const char* s = begin();
 	const char* e = end();
-	s = func_type::skipw(s, e);
+	s = encode_type::skipw(s, e);
 	return basic_string_view(s, e - s);
 }
 
@@ -3226,7 +3577,7 @@ WJR_INLINE_CONSTEXPR basic_string_view<char, ascii_traits<Traits>>
 basic_string_view<char, ascii_traits<Traits>>::rtrim() const {
 	const char* s = begin();
 	const char* e = end();
-	e = func_type::rskipw(s, e);
+	e = encode_type::rskipw(s, e);
 	return basic_string_view(s, e - s);
 }
 
@@ -3237,73 +3588,67 @@ basic_string_view<char, ascii_traits<Traits>>::trim() const {
 }
 
 template<typename Traits>
-template<typename T>
+template<typename T, typename F>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR T basic_string_view<char, ascii_traits<Traits>>::to_integral(
-	errc* err, size_type* pos, int base) const {
+	size_type* pos, int base, errc* err, F f) const {
 	using namespace enum_ops;
 
-	constexpr auto _Flags =
-		flags::ALLOW_PREFIX
-		| flags::ALLOW_SIGN
-		| flags::ALLOW_LEADING_SPACE
-		| flags::ALLOW_LEADING_ZEROS;
-
 	errc cc = errc::ok;
-	const char* end_ptr = nullptr;
-	T ret = func_type::to_integral<T>(
-		std::integral_constant<flags, _Flags>(),
-		begin(), end(), cc, end_ptr, base);
+	const char* end_ptr = begin();
+	T ret = encode_type::to_integral<T>(
+		begin(), end(), end_ptr, base, cc, f);
 
 	if (err != nullptr) {
 		*err = cc;
 	}
 
 	if (pos != nullptr) {
-		if (cc == errc::noconv) {
-			*pos = static_cast<size_type>(0);
-		}
-		else {
-			*pos = static_cast<size_type>(end_ptr - begin());
-		}
+		*pos = static_cast<size_type>(end_ptr - begin());
 	}
 
 	return ret;
 }
 
 template<typename Traits>
+template<typename F>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR int basic_string_view<char, ascii_traits<Traits>>::toi(
-	errc* err, size_type* pos, int base) const {
-	return to_integral<int>(err, pos, base);
+	size_type* pos, int base, errc* err, F f) const {
+	return to_integral<int>(pos, base, err, f);
 }
 
 template<typename Traits>
+template<typename F>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR long basic_string_view<char, ascii_traits<Traits>>::tol(
-	errc* err, size_type* pos, int base) const {
-	return to_integral<long>(err, pos, base);
+	size_type* pos, int base, errc* err, F f) const {
+	return to_integral<long>(pos, base, err, f);
 }
 
 template<typename Traits>
+template<typename F>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR long long basic_string_view<char, ascii_traits<Traits>>::toll(
-	errc* err, size_type* pos, int base) const {
-	return to_integral<long long>(err, pos, base);
+	size_type* pos, int base, errc* err, F f) const {
+	return to_integral<long long>(pos, base, err, f);
 }
 
 template<typename Traits>
+template<typename F>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned int basic_string_view<char, ascii_traits<Traits>>::toui(
-	errc* err, size_type* pos, int base) const {
+	size_type* pos, int base, errc* err, F f) const {
 	return to_integral<unsigned int>(err, pos, base);
 }
 
 template<typename Traits>
+template<typename F>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long basic_string_view<char, ascii_traits<Traits>>::toul(
-	errc* err, size_type* pos, int base) const {
-	return to_integral<unsigned long>(err, pos, base);
+	size_type* pos, int base, errc* err, F f) const {
+		return to_integral<unsigned long>(err, pos, base);
 }
 
 template<typename Traits>
+template<typename F>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long long basic_string_view<char, ascii_traits<Traits>>::toull(
-	errc* err, size_type* pos, int base) const {
-	return to_integral<unsigned long long>(err, pos, base);
+	size_type* pos, int base, errc* err, F f) const {
+		return to_integral<unsigned long long>(err, pos, base);
 }
 
 namespace utf8 {
