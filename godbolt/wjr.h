@@ -6841,6 +6841,7 @@ vector[*length] = '\0';
 #define __WJR_MMACRO_H
 
 #include <cstdint>
+#include <cassert>
 
 #if defined(_MSC_VER)
 /* Microsoft C/C++-compatible compiler */
@@ -20830,6 +20831,11 @@ WJR_INLINE_CONSTEXPR20 static void from_integral(
 T _Val, _Iter _First, _Iter _Last,
 _Iter& _Pos, int base, errc& _Err) noexcept;
 
+template<typename T, typename _Diff, typename _Iter>
+WJR_INLINE_CONSTEXPR20 static void from_integral(
+T _Val, _Iter _First, _Diff n,
+_Iter& _Pos, int base, errc& _Err) noexcept;
+
 private:
 };
 
@@ -20841,14 +20847,19 @@ using value_type = typename func_type::value_type;
 using flags = typename func_type::flags;
 
 template<typename _Iter, typename F>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static T work(
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static T to(
 _Iter _First, _Iter _Last,
 _Iter& _Pos, int base, errc& _Err, F f) noexcept;
 
 // copy of std::to_chars
 template <typename _Iter>
-WJR_INLINE_CONSTEXPR20 static void work(
+WJR_INLINE_CONSTEXPR20 static void from(
 T _Val, _Iter _First, _Iter _Last,
+_Iter& _Pos, int base, errc& _Err) noexcept;
+
+template <typename _Iter, typename _Diff>
+WJR_INLINE_CONSTEXPR20 static void from(
+T _Val, _Iter _First, _Diff n,
 _Iter& _Pos, int base, errc& _Err) noexcept;
 
 private:
@@ -20871,10 +20882,13 @@ constexpr static T max() { return std::numeric_limits<T>::max(); }
 constexpr static uT umax() { return std::max(make_unsigned_v(min()), make_unsigned_v(max())); }
 
 template<typename _Iter, typename F>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static T __work(
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static T __to(
 _Iter _First, _Iter _Last,
 WJR_MAYBE_UNUSED _Iter& _Pos,
 int base, errc& _Err, F f, _Iter _Zero, bool _Is_minus) noexcept;
+
+WJR_INLINE_CONSTEXPR20 static void __from(
+uT uval, const char*& _RNext, int base) noexcept;
 
 };
 
@@ -20888,7 +20902,7 @@ __CONV_EMPTY_RET					\
 
 template<typename T, typename Func>
 template<typename _Iter, typename F>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::work(
+WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::to(
 _Iter _First, _Iter _Last,
 _Iter& _Pos, int base, errc& _Err, F f) noexcept {
 const auto _Flags = get_cvar(f);
@@ -20950,7 +20964,7 @@ if (is_unlikely(++_First == _Last)) {
 _Pos = _First;
 return static_cast<T>(0);
 }
-return __work(_First, _Last, _Pos, 2, _Err, f, _Zero, _Is_minus);
+return __to(_First, _Last, _Pos, 2, _Err, f, _Zero, _Is_minus);
 }
 case _X: {
 // eat 'x'/'X'
@@ -20958,14 +20972,14 @@ if (is_unlikely(++_First == _Last)) {
 _Pos = _First;
 return static_cast<T>(0);
 }
-return __work(_First, _Last, _Pos, 16, _Err, f, _Zero, _Is_minus);
+return __to(_First, _Last, _Pos, 16, _Err, f, _Zero, _Is_minus);
 }
 default: {
-return __work(_First, _Last, _Pos, 8, _Err, f, _Zero, _Is_minus);
+return __to(_First, _Last, _Pos, 8, _Err, f, _Zero, _Is_minus);
 }
 }
 }
-return __work(_First, _Last, _Pos, 10, _Err, f, _Last, _Is_minus);
+return __to(_First, _Last, _Pos, 10, _Err, f, _Last, _Is_minus);
 }
 case 2: {
 if (*_First == '0') {
@@ -21015,12 +21029,12 @@ break;
 }
 }
 
-return __work(_First, _Last, _Pos, base, _Err, f, _Zero, _Is_minus);
+return __to(_First, _Last, _Pos, base, _Err, f, _Zero, _Is_minus);
 }
 
 template<typename T, typename Func>
 template<typename _Iter, typename F>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR T integral_conversion_details<T, Func>::__work(
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR T integral_conversion_details<T, Func>::__to(
 _Iter _First, _Iter _Last,
 WJR_MAYBE_UNUSED _Iter& _Pos,
 int base, errc& _Err, F f, _Iter _Zero, bool _Is_minus) noexcept {
@@ -21105,30 +21119,8 @@ return static_cast<T>(uret);
 #undef __CONV_NEXT
 
 template<typename T, typename Func>
-template <typename _Iter>
-WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::work(
-T _Val, _Iter _First, _Iter _Last,
-_Iter& _Pos, int base, errc& _Err) noexcept {
-
-auto uval = make_unsigned_v(_Val);
-
-if constexpr (std::is_signed_v<T>) {
-if (_Val < 0) {
-if (_First == _Last) {
-_Err = errc::buffer_too_small;
-return;
-}
-*_First = '-';
-++_First;
-uval = static_cast<uT>(0 - uval);
-}
-}
-
-constexpr size_t _Buff_size = sizeof(uT) * 8;
-value_type _Buff[_Buff_size];
-char* const _Buff_end = _Buff + _Buff_size;
-char* _RNext = _Buff_end;
-
+WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::__from(
+uT uval, const char*& _RNext, int base) noexcept {
 switch (base) {
 case 10:
 { // Derived from _UIntegral_to_buff()
@@ -21138,7 +21130,7 @@ constexpr bool _Use_chunks = sizeof(uT) > sizeof(size_t);
 if constexpr (_Use_chunks) { // For 64-bit numbers on 32-bit platforms, work in chunks to avoid 64-bit
 // divisions.
 while (uval > 0xFFFF'FFFFU) {
-// Performance note: Ryu's division workaround would be faster here.
+// Performance note: Ryu's division toaround would be faster here.
 unsigned long _Chunk = static_cast<unsigned long>(uval % 1'000'000'000);
 uval = static_cast<uT>(uval / 1'000'000'000);
 
@@ -21213,6 +21205,34 @@ uval = static_cast<uT>(uval / base);
 } while (uval != 0);
 break;
 }
+}
+
+template<typename T, typename Func>
+template <typename _Iter>
+WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::from(
+T _Val, _Iter _First, _Iter _Last,
+_Iter& _Pos, int base, errc& _Err) noexcept {
+
+auto uval = make_unsigned_v(_Val);
+
+if constexpr (std::is_signed_v<T>) {
+if (_Val < 0) {
+if (_First == _Last) {
+_Err = errc::buffer_too_small;
+return;
+}
+*_First = '-';
+++_First;
+uval = static_cast<uT>(0 - uval);
+}
+}
+
+constexpr size_t _Buff_size = sizeof(uT) * 8;
+value_type _Buff[_Buff_size];
+char* const _Buff_end = _Buff + _Buff_size;
+char* _RNext = _Buff_end;
+
+__from(uval, _RNext, base);
 
 ptrdiff_t _Digits_written = _Buff_end - _RNext;
 
@@ -21233,6 +21253,49 @@ _Err = errc::buffer_too_small;
 return;
 }
 }
+
+_Pos = _First;
+_Err = errc::ok;
+return;
+}
+
+template<typename T, typename Func>
+template <typename _Iter, typename _Diff>
+WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::from(
+T _Val, _Iter _First, _Diff n,
+_Iter& _Pos, int base, errc& _Err) noexcept {
+
+if (n <= 0) {
+_Err = errc::buffer_too_small;
+return;
+}
+
+auto uval = make_unsigned_v(_Val);
+
+if constexpr (std::is_signed_v<T>) {
+if (_Val < 0) {
+*_First = '-';
+++_First;
+--n;
+uval = static_cast<uT>(0 - uval);
+}
+}
+
+constexpr size_t _Buff_size = sizeof(uT) * 8;
+value_type _Buff[_Buff_size];
+char* const _Buff_end = _Buff + _Buff_size;
+char* _RNext = _Buff_end;
+
+__from(uval, _RNext, base);
+
+ptrdiff_t _Digits_written = _Buff_end - _RNext;
+
+if (n < _Digits_written) {
+_Err = errc::buffer_too_small;
+return;
+}
+
+_First = wjr::copy_n(_RNext, _Digits_written, _First);
 
 _Pos = _First;
 _Err = errc::ok;
@@ -21367,7 +21430,7 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR T string_func<Traits>::to_integral(
 _Iter _First, _Iter _Last,
 _Iter& _Pos, int base, errc& _Err, F f) noexcept {
 return integral_conversion_details<T, string_func<Traits>>
-::template work(_First, _Last, _Pos, base, _Err, f);
+::template to(_First, _Last, _Pos, base, _Err, f);
 }
 
 template<typename Traits>
@@ -21376,7 +21439,16 @@ WJR_INLINE_CONSTEXPR20 void string_func<Traits>::from_integral(
 T _Val, _Iter _First, _Iter _Last,
 _Iter& _Pos, int base, errc& _Err) noexcept {
 return integral_conversion_details<T, string_func<Traits>>
-::template work(_Val, _First, _Last, _Pos, base, _Err);
+::template from(_Val, _First, _Last, _Pos, base, _Err);
+}
+
+template<typename Traits>
+template<typename T, typename _Diff, typename _Iter>
+WJR_INLINE_CONSTEXPR20 void string_func<Traits>::from_integral(
+T _Val, _Iter _First, _Diff n,
+_Iter& _Pos, int base, errc& _Err) noexcept {
+return integral_conversion_details<T, string_func<Traits>>
+::template from(_Val, _First, n, _Pos, base, _Err);
 }
 
 _WJR_END
@@ -24501,10 +24573,10 @@ if (_Err != nullptr) {
 return ret;
 }
 
-template<typename T>
+template<typename _Iter, typename T>
 WJR_INLINE_CONSTEXPR20 static void from_integral(
-const char* _First, const char* _Last, const char** _Pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept {
-const char* end_ptr = _First;
+_Iter _First, _Iter _Last, _Iter* _Pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept {
+_Iter end_ptr = _First;
 errc c = errc::ok;
 auto ret = from_integral<T>(_First, _Last, end_ptr, base, c);
 
@@ -24518,12 +24590,12 @@ if (_Err != nullptr) {
 
 }
 
-template<typename T>
+template<typename _Iter, typename _Diff, typename T>
 WJR_INLINE_CONSTEXPR20 static void from_integral(
-const char* _First, size_t n, size_t* _Pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept {
-const char* end_ptr = _First;
+_Iter _First, _Diff n, size_t* _Pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept {
+_Iter end_ptr = _First;
 errc c = errc::ok;
-auto ret = from_integral<T>(_First, _First + n, end_ptr, base, c);
+auto ret = from_integral<T>(_First, n, end_ptr, base, c);
 
 if (_Pos != nullptr) {
 *_Pos = static_cast<size_t>(end_ptr - _First);
@@ -24712,11 +24784,12 @@ from_f_flags::NO_FLAGS
 >;
 
 template<typename T,
+typename _Iter,
 typename M = defualt_from_f_mode,
 typename F = defualt_from_f_flags>
 static void from_floating_point(
-T value, char* first, char* last,
-char*& pos, errc& err, int precision = 0, M m = M(), F f = F()) noexcept {
+T value, _Iter first, _Iter last,
+_Iter& pos, errc& err, int precision = 0, M m = M(), F f = F()) noexcept {
 using double_conversion::DoubleToStringConverter;
 using double_conversion::StringBuilder;
 DoubleToStringConverter conv(
@@ -24746,25 +24819,92 @@ default:
 conv.ToPrecision(value, precision, &builder);
 break;
 }
+
 const auto length = static_cast<size_t>(builder.position());
 builder.Finalize();
+
+if constexpr (is_random_iterator_v<_Iter>) {
 const auto n = static_cast<size_t>(last - first);
 if (n < length) {
 err = errc::buffer_too_small;
 return;
 }
 first = wjr::copy_n(buffer, length, first);
+}
+else {
+auto _Buf = buffer;
+for (; length && first != last; ++_Buf, ++first, --length) {
+*first = *_Buf;
+}
+
+if (length) {
+err = errc::buffer_too_small;
+return;
+}
+}
+
 pos = first;
 err = errc::ok;
 return;
 }
 
 template<typename T,
+typename _Iter, typename _Diff,
 typename M = defualt_from_f_mode,
 typename F = defualt_from_f_flags>
 static void from_floating_point(
-T value, char* first, char* last,
-char** pos = nullptr, errc* err = nullptr, int precision = 0, M m = M(), F f = F()) noexcept {
+T value, _Iter first, _Diff n,
+_Iter& pos, errc& err, int precision = 0, M m = M(), F f = F()) noexcept {
+using double_conversion::DoubleToStringConverter;
+using double_conversion::StringBuilder;
+DoubleToStringConverter conv(
+get_cvar(f),
+"Infinity",
+"NaN",
+'E',
+-6,
+21,
+6, // max leading padding zeros
+1); // max trailing padding zeros
+char buffer[256];
+StringBuilder builder(buffer, sizeof(buffer));
+const auto mode = get_cvar(m);
+switch (mode) {
+case DoubleToStringConverter::SHORTEST:
+conv.ToShortest(value, &builder);
+break;
+case DoubleToStringConverter::SHORTEST_SINGLE:
+conv.ToShortestSingle(static_cast<float>(value), &builder);
+break;
+case DoubleToStringConverter::FIXED:
+conv.ToFixed(value, precision, &builder);
+break;
+case DoubleToStringConverter::PRECISION:
+default:
+conv.ToPrecision(value, precision, &builder);
+break;
+}
+
+const auto length = static_cast<size_t>(builder.position());
+builder.Finalize();
+
+if (n < length) {
+err = errc::buffer_too_small;
+return;
+}
+first = wjr::copy_n(buffer, length, first);
+
+pos = first;
+err = errc::ok;
+return;
+}
+
+template<typename T, typename _Iter,
+typename M = defualt_from_f_mode,
+typename F = defualt_from_f_flags>
+static void from_floating_point(
+T value, _Iter first, _Iter last,
+_Iter* pos = nullptr, errc* err = nullptr, int precision = 0, M m = M(), F f = F()) noexcept {
 auto end_ptr = first;
 errc c = errc::ok;
 from_floating_point(value, first, last, end_ptr, c, precision, m, f);
@@ -24779,15 +24919,15 @@ if (err != nullptr) {
 
 }
 
-template<typename T,
+template<typename T, typename _Iter, typename _Diff,
 typename M = defualt_from_f_mode,
 typename F = defualt_from_f_flags>
 static void from_floating_point(
-T value, char* first, size_t n,
+T value, _Iter first, _Diff n,
 size_t* pos = nullptr, errc* err = nullptr, int precision = 0, M m = M(), F f = F()) noexcept {
 auto end_ptr = first;
 errc c = errc::ok;
-from_floating_point(value, first, first + n, end_ptr, c, precision, m, f);
+from_floating_point(value, first, n, end_ptr, c, precision, m, f);
 
 if (pos != nullptr) {
 *pos = static_cast<size_t>(end_ptr - first);
@@ -28526,20 +28666,72 @@ using tp_iota_t = typename tp_iota<I, N>::type;
 //
 
 template<typename C, typename...Args>
-struct tp_find_constructible {
+struct tp_find_first_constructible {
 constexpr static size_t value = tp_find_if_f<C, tp_bind_back<std::is_constructible, Args...>>;
 };
 
 template<typename C, typename...Args>
-inline constexpr size_t tp_find_constructible_v = tp_find_constructible<C, Args...>::value;
+inline constexpr size_t tp_find_first_constructible_v = tp_find_first_constructible<C, Args...>::value;
 
 template<typename C, typename...Args>
-struct tp_find_assignable {
+struct tp_find_first_assignable {
 constexpr static size_t value = tp_find_if_f<C, tp_bind_back<std::is_assignable, Args...>>;
 };
 
 template<typename C, typename...Args>
-inline constexpr size_t tp_find_assignable_v = tp_find_assignable<C, Args...>::value;
+inline constexpr size_t tp_find_first_assignable_v = tp_find_first_assignable<C, Args...>::value;
+
+template<typename C, size_t idx, typename T>
+struct __tp_find_best_constructible_func {
+auto operator()(tp_at_t<C, idx>)->tp_c<size_t, idx>;
+};
+
+template<typename C, typename I, typename T>
+struct __tp_find_best_constructible_func_table;
+
+template<typename C, typename...Args, typename T>
+struct __tp_find_best_constructible_func_table<C, tp_list<Args...>, T>
+: __tp_find_best_constructible_func<C, Args::value, T>... {
+using __tp_find_best_constructible_func<C, Args::value, T>::operator()...;
+};
+
+template<typename C, typename I, typename T>
+struct __tp_find_best_constructible_helper;
+
+template<typename C, typename...Args, typename T>
+struct __tp_find_best_constructible_helper<C, tp_list<Args...>, T> {
+
+template<typename U>
+struct __remove : std::negation<std::is_constructible<tp_at_t<C, U::value>, T>> {};
+
+using __seq = tp_remove_if_t<tp_list<Args...>, __remove>;
+using type = __tp_find_best_constructible_func_table<C, __seq, T>;
+};
+
+template<typename C, typename I, typename T>
+using __tp_find_best_constructible_helper_t = typename __tp_find_best_constructible_helper<C, I, T>::type;
+
+template<typename _Enable, typename C, typename T>
+struct __tp_find_best_constructible{
+using type = tp_c<size_t, (size_t)(-1)>;
+};
+
+template<typename C, typename T>
+struct __tp_find_best_constructible<std::void_t<decltype(
+__tp_find_best_constructible_helper_t<C, tp_iota_t<0, tp_size_v<C>>, T>{}(std::declval<T>()))>, C, T> {
+using type = decltype(
+__tp_find_best_constructible_helper_t<C, tp_iota_t<0, tp_size_v<C>>, T>{}(std::declval<T>()));
+};
+
+template<typename C, typename T>
+struct tp_find_best_constructible {
+using __type= typename __tp_find_best_constructible<void, C, T>::type;
+constexpr static size_t value =  __type::value;
+};
+
+// find best match
+template<typename C, typename T>
+inline constexpr size_t tp_find_best_constructible_v = tp_find_best_constructible<C, T>::value;
 
 class tp_fn {
 public:
@@ -28566,19 +28758,8 @@ _WJR_END
 #ifndef __WJR_JSON_H
 #define __WJR_JSON_H
 
-#include <cstdint>
-#include <cstdlib>
-#include <deque>
-#include <forward_list>
-#include <list>
 #include <map>
-#include <memory>
-#include <set>
-#include <string.h>
-#include <unordered_map>
-#include <unordered_set>
 #include <variant>
-#include <vector>
 
 
 
@@ -28588,51 +28769,88 @@ _WJR_BEGIN
 
 class json;
 
+// cstring/cobject/carray is unique_ptr of string/object/array
+// container use the former
+// you can use both to init json
 struct json_traits {
 template<typename T>
-using allocator_type = nsallocator<T>;
+using allocator_type = sallocator<T>;
 
 using null = std::nullptr_t;
 using boolean = bool;
 using number = double;
 
-using vstring = basic_string<char, std::char_traits<char>, allocator_type<char>>;
-using varray = vector<json, allocator_type<json>>;
-using vobject = std::map<vstring, json, std::less<vstring>, allocator_type<std::pair<const vstring, json>>>;
+using string = basic_string<char, std::char_traits<char>, allocator_type<char>>;
+using array = vector<json, allocator_type<json>>;
+using object = std::map<string, json, std::less<string>, allocator_type<std::pair<const string, json>>>;
 
-using string = unique_ptr_with_nsallocator<vstring>;
-using array = unique_ptr_with_nsallocator<varray>;
-using object = unique_ptr_with_nsallocator<vobject>;
+using cstring = unique_ptr_with_sallocator<string>;
+using carray = unique_ptr_with_sallocator<array>;
+using cobject = unique_ptr_with_sallocator<object>;
 
-using vcont = std::variant<null, boolean, number, vstring, varray, vobject>;
-using cont = std::variant<null, boolean, number, string, array, object>;
+using vcont = std::variant<null, boolean, number, string, array, object>;
+using cont = std::variant<null, boolean, number, cstring, carray, cobject>;
 
-using type_list = tp_list<null, boolean, number, vstring, varray, vobject, string, array, object>;
-};
+using type_list = tp_list<null, boolean, number, string, array, object, cstring, carray, cobject>;
 
+template<typename T>
+constexpr static size_t find_vcont_v = tp_find_v<vcont, T>;
+
+template<typename T>
+constexpr static size_t find_cont_v = tp_find_v<cont, T>;
+
+template<typename T>
+constexpr static size_t find_type_v = tp_find_v<type_list, T>;
+
+private:
 template<typename T, typename = void>
-struct __json_get {
-using type = T;
+struct __find_best_constructible {
+using type = tp_find_best_constructible<type_list, T>;
+};
+template<typename T>
+struct __find_best_constructible<T, std::enable_if_t<std::is_integral_v<remove_cvref_t<T>>, void>> {
+using type = tp_size_t<2>;
+};
+public:
+
+template<typename T>
+using find_best_constructible = typename __find_best_constructible<T>::type;
+
+template<typename T>
+constexpr static size_t find_best_constructible_v = find_best_constructible<T>::value;
+
 };
 
-template<typename T>
-struct __json_get<T, std::enable_if_t<(tp_find_v<json_traits::type_list, T> >= 6)>> {
-constexpr static auto value = tp_find_v<json_traits::type_list, T>;
-static_assert(value != -1, "");
-using type = tp_at_t<json_traits::vcont, value - 3>;
-};
+template<size_t idx>
+constexpr tp_at_t<json_traits::type_list, idx>& get(json&);
+
+template<size_t idx>
+constexpr const tp_at_t<json_traits::type_list, idx>& get(const json&);
+
+template<size_t idx>
+constexpr tp_at_t<json_traits::type_list, idx>&& get(json&&);
 
 template<typename T>
-using __json_get_t = typename __json_get<T, void>::type;
+constexpr T& get(json&);
 
 template<typename T>
-constexpr const __json_get_t<T>& get(const json& j);
+constexpr const T& get(const json& j);
 
 template<typename T>
-constexpr __json_get_t<T>& get(json& j);
+constexpr T&& get(json&& j);
+
+template<size_t idx>
+constexpr std::add_pointer_t<tp_at_t<json_traits::type_list, idx>> get_if(json*) noexcept;
+
+template<size_t idx>
+constexpr std::add_pointer_t<const tp_at_t<json_traits::type_list, idx>> get_if(const json*)noexcept;
 
 template<typename T>
-constexpr __json_get_t<T>&& get(json&& j);
+constexpr std::add_pointer_t<T> get_if(json*) noexcept;
+
+
+template<typename T>
+constexpr std::add_pointer_t<const T> get_if(const json*) noexcept;
 
 class json : public json_traits {
 public:
@@ -28645,158 +28863,36 @@ using null = typename traits_type::null;
 using boolean = typename traits_type::boolean;
 using number = typename traits_type::number;
 
-using vstring = typename traits_type::vstring;
-using varray = typename traits_type::varray;
-using vobject = typename traits_type::vobject;
-
 using string = typename traits_type::string;
 using array = typename traits_type::array;
 using object = typename traits_type::object;
+
+using cstring = typename traits_type::cstring;
+using carray = typename traits_type::carray;
+using cobject = typename traits_type::cobject;
 
 using vcont = typename traits_type::vcont;
 using cont = typename traits_type::cont;
 
 using type_list = typename traits_type::type_list;
 
-inline json() noexcept = default;
-inline json(const json& other) noexcept {
-std::visit([this](const auto& x) {
-constexpr auto idx1 = tp_find_v<vcont, remove_cvref_t<decltype(x)>>;
-constexpr auto idx2 = tp_find_v<cont, remove_cvref_t<decltype(x)>>;
-if constexpr (idx1 != -1) {
-this->emplace<tp_at_t<vcont, idx1>>(x);
-}
-else {
-this->emplace<tp_at_t<vcont, idx2>>(*x);
-}
-}, other.m_value);
-}
-inline json(json&& other) noexcept = default;
-
-private:
-template<size_t idx, typename...Args, std::enable_if_t<(idx >= 0) && (idx < 3), int> = 0>
-inline json(std::in_place_index_t<idx>, Args&&...args)
-: m_value(std::in_place_index_t<idx>{}, std::forward<Args>(args)...) {}
-template<size_t idx, typename...Args, std::enable_if_t<(idx >= 6) && (idx < 9), int> = 0>
-inline json(std::in_place_index_t<idx>, Args&&...args)
-: m_value(std::in_place_index_t<idx - 3>{}, std::forward<Args>(args)...) {}
-template<size_t idx, typename...Args, std::enable_if_t<(idx >= 3 && idx < 6), int> = 0>
-inline json(std::in_place_index_t<idx>, Args&&...args)
-: m_value(std::in_place_index_t<idx>{},
-std::move(make_unique_with_nsallocator<tp_at_t<vcont, idx>>(std::forward<Args>(args)...))) {}
-public:
-
-template<typename T, typename... Args, std::enable_if_t<tp_find_v<type_list, T> != -1, int> = 0>
-inline json(std::in_place_type_t<T>, Args&&...args)
-: json(std::in_place_index_t<tp_find_v<type_list, T>>{}, std::forward<Args>(args)...) {}
-
-template<typename T, std::enable_if_t<
-tp_find_constructible_v<type_list, T&&> != -1
-&& !is_in_place_type_v<remove_cvref_t<T>>
-&& !std::is_same_v<std::decay_t<T>, json>, int> = 0>
-inline json(T&& t) : json(std::in_place_index_t<tp_find_constructible_v<type_list, T&&>>{}, std::forward<T>(t)) {}
-
-template<typename T, typename...Args,
-std::enable_if_t<
-tp_find_constructible_v<type_list, T&&, Args&&...> != -1
-&& !is_in_place_type_v<remove_cvref_t<T>>
-&& !std::is_same_v<std::decay_t<T>, json>
-&& sizeof...(Args) != 0, int> = 0>
-inline json(T&& t, Args&&...args)
-: json(std::in_place_index_t<tp_find_constructible_v<type_list, T&&>>{},
-std::forward<T>(t), std::forward<Args>(args)...) {}
-
-inline json& operator=(const json& other) {
-
-if (this == std::addressof(other)) {
-return *this;
-}
-
-std::visit([this](const auto& x) {
-constexpr auto idx1 = tp_find_v<vcont, remove_cvref_t<decltype(x)>>;
-constexpr auto idx2 = tp_find_v<cont, remove_cvref_t<decltype(x)>>;
-if constexpr (idx1 != -1) {
-this->emplace<tp_at_t<vcont, idx1>>(x);
-}
-else {
-this->emplace<tp_at_t<vcont, idx2>>(*x);
-}
-}, other.m_value);
-
-return *this;
-}
-
-inline json& operator=(json&& other) = default;
-
-template<typename T, std::enable_if_t<
-tp_find_assignable_v<type_list, T&&> != -1
-&& !std::is_same_v<json, std::decay_t<T>>
-&& !std::is_same_v<std::decay_t<T>, json>, int> = 0>
-inline json& operator=(T&& t) {
-emplace<tp_at_t<type_list, tp_find_assignable_v<type_list, T&&>>>(std::forward<T>(t));
-return *this;
-}
-
-inline~json() = default;
-
-inline void reset() { emplace<null>(nullptr); }
-
-inline size_t index() const { return m_value.index(); }
-
-template<typename T, typename...Args, std::enable_if_t<
-tp_contains_v<type_list, T>, int> = 0>
-inline T& emplace(Args&&...args) {
-constexpr auto idx1 = tp_find_v<vcont, T>;
-constexpr auto idx2 = tp_find_v<cont, T>;
-if constexpr (idx1 < 3) {
-static_assert(idx1 == idx2, "");
-return m_value.emplace<T>(std::forward<Args>(args)...);
-}
-else if constexpr (idx2 != -1) {
-static_assert(idx1 == -1, "");
-return m_value.emplace<idx2>(std::move(make_unique_with_nsallocator<tp_at_t<vcont, idx2>>(std::forward<Args>(args)...)));
-}
-else {
-static_assert(idx2 == -1, "");
-return *(m_value.emplace<idx1>(std::move(make_unique_with_nsallocator<tp_at_t<vcont, idx1>>(std::forward<Args>(args)...))));
-}
-}
-
-inline cont& get() &  { return m_value; }
-inline cont&& get()&& { return std::move(m_value); }
-inline const cont& get() const & { return m_value; }
-
-static bool accept(const char* first, const char* last) {
-first = ascii::encode::skipw(first, last);
-if (first == last) {
-return false;
-}
-
-switch (*first) {
-case '[':
-++first;
-if (!__accept(first, last, ']'))
-return false;
-first = ascii::encode::skipw(first, last);
-return first == last;
-case '{':
-++first;
-if (!__accept(first, last, '}'))
-return false;
-first = ascii::encode::skipw(first, last);
-return first == last;
-default:
-return false;
-}
-}
-
-static json parse(const char* first, const char* last) {
-return __parse(first, last);
-}
+template<typename T>
+constexpr static size_t find_vcont_v = traits_type::template find_vcont_v<T>;
 
 template<typename T>
-static decltype(auto) value(T&& t) {
-constexpr auto idx = tp_find_v<type_list, remove_cvref_t<T>>;
+constexpr static size_t find_cont_v = traits_type::template find_cont_v<T>;
+
+template<typename T>
+constexpr static size_t find_type_v = traits_type::template find_type_v<T>;
+
+template<typename T>
+constexpr static size_t find_best_constructible_v = traits_type::template find_best_constructible_v<T>;
+
+template<typename T>
+WJR_CONSTEXPR20 static decltype(auto) value(T&& t) {
+using type = remove_cvref_t<T>;
+constexpr auto idx = find_type_v<type>;
+static_assert(idx < 9, "");
 if constexpr (idx < 6) {
 return std::forward<T>(t);
 }
@@ -28805,45 +28901,263 @@ return *(std::forward<T>(t));
 }
 }
 
+// default , nullptr
+WJR_CONSTEXPR20 json() noexcept = default;
+
+WJR_CONSTEXPR20 json(const json& other) noexcept {
+std::visit([this](const auto& x) {
+constexpr auto idx = find_cont_v<remove_cvref_t<decltype(x)>>;
+wjr::construct_at(this, std::in_place_index_t<idx>{}, json::value(x));
+}, other.m_value);
+}
+
+WJR_CONSTEXPR20 json(json&& other) noexcept = default;
+
+template<size_t idx, typename...Args, std::enable_if_t<(idx >= 0) && (idx < 3), int> = 0>
+WJR_CONSTEXPR20 json(std::in_place_index_t<idx>, Args&&...args) noexcept
+: m_value(std::in_place_index_t<idx>{}, std::forward<Args>(args)...) {}
+
+// init a json with cstring/cobject/carray
+template<size_t idx, typename...Args, std::enable_if_t<(idx >= 6) && (idx < 9), int> = 0>
+WJR_CONSTEXPR20 json(std::in_place_index_t<idx>, Args&&...args) noexcept
+: m_value(std::in_place_index_t<idx - 3>{}, std::forward<Args>(args)...) {}
+
+// init a json with string/object/array
+template<size_t idx, typename...Args, std::enable_if_t<(idx >= 3 && idx < 6), int> = 0>
+WJR_CONSTEXPR20 json(std::in_place_index_t<idx>, Args&&...args) noexcept
+: m_value(std::in_place_index_t<idx>{},
+make_unique_with_sallocator<tp_at_t<vcont, idx>>(std::forward<Args>(args)...)) {}
+
+template<typename T, typename... Args, std::enable_if_t<find_type_v<T> != -1, int> = 0>
+WJR_CONSTEXPR20 json(std::in_place_type_t<T>, Args&&...args) noexcept
+: json(std::in_place_index_t<find_type_v<T>>{}, std::forward<Args>(args)...) {}
+
+template<typename T, std::enable_if_t<
+find_best_constructible_v<T&&> != -1
+&& !is_in_place_type_v<remove_cvref_t<T>>
+&& !std::is_same_v<remove_cvref_t<T>, json>, int> = 0>
+WJR_CONSTEXPR20 json(T&& t) noexcept
+: json(std::in_place_index_t<find_best_constructible_v<T&&>>{}, std::forward<T>(t)) {}
+
+WJR_CONSTEXPR20 json& operator=(const json& other) noexcept {
+if (this == std::addressof(other)) {
+return *this;
+}
+
+std::visit([this](const auto& x) {
+constexpr auto idx = find_cont_v<remove_cvref_t<decltype(x)>>;
+if constexpr (idx < 3) {
+this->emplace<idx>(x);
+}
+else {
+this->emplace<idx>(*x);
+}
+}, other.m_value);
+
+return *this;
+}
+
+WJR_CONSTEXPR20 json& operator=(json&& other) noexcept = default;
+
+template<typename T, std::enable_if_t<
+find_best_constructible_v<T&&> != -1
+&& !is_in_place_type_v<remove_cvref_t<T>>
+&& !std::is_same_v<remove_cvref_t<T>, json>, int> = 0>
+WJR_CONSTEXPR20 json& operator=(T&& t) noexcept {
+emplace<find_best_constructible_v<T&&>>(std::forward<T>(t));
+return *this;
+}
+
+WJR_CONSTEXPR20 ~json() noexcept = default;
+
+WJR_CONSTEXPR20 void reset() { emplace<null>(nullptr); }
+
+WJR_CONSTEXPR20 size_t index() const { return m_value.index(); }
+WJR_CONSTEXPR20 const char* type_name() const {
+switch (m_value.index()) {
+case 0: return "null";
+case 1: return "boolean";
+case 2: return "number";
+case 3: return "string";
+case 4: return "array";
+case 5: return "object";
+default: WJR_UNREACHABLE;
+}
+}
+
+template<size_t I, typename...Args, std::enable_if_t<(I < 9), int> = 0>
+WJR_CONSTEXPR20 tp_at_t<type_list, I>& emplace(Args&&...args) noexcept {
+if constexpr (I < 3) {
+return m_value.emplace<I>(std::forward<Args>(args)...);
+}
+else if constexpr (I < 6) {
+if (m_value.index() == I) {
+auto ptr = std::addressof(*std::get<I>(m_value));
+wjr::destroy_at(ptr);
+wjr::construct_at(ptr, std::forward<Args>(args)...);
+return *ptr;
+}
+return *(m_value.emplace<I>(make_unique_with_sallocator<tp_at_t<type_list, I>>(std::forward<Args>(args)...)));
+}
+else {
+return m_value.emplace<I - 3>(std::forward<Args>(args)...);
+}
+}
+
+template<typename T, typename...Args, std::enable_if_t<
+tp_contains_v<type_list, T>, int> = 0>
+WJR_CONSTEXPR20 T& emplace(Args&&...args) noexcept {
+return emplace<find_type_v<T>>(std::forward<Args>(args)...);
+}
+
+WJR_CONSTEXPR20 void swap(json& other) noexcept {
+m_value.swap(other.m_value);
+}
+
+WJR_CONSTEXPR20 cont& get() & { return m_value; }
+WJR_CONSTEXPR20 cont&& get()&& { return std::move(m_value); }
+WJR_CONSTEXPR20 const cont& get() const & { return m_value; }
+
+WJR_CONSTEXPR20 static bool accept(const char* first, const char* last);
+
+WJR_CONSTEXPR20 static json parse(const char* first, const char* last) {
+return __parse(first, last);
+}
+
+enum stringify_mode {
+SHORTEST = 0,
+TWO_SPACE_ALIGN = 1, // 2 space
+FOUR_SPACE_ALIGN = 2, // 4 space
+TAB_ALGIN = 3 // 1 tab
+};
+
+WJR_CONSTEXPR20 string stringify(stringify_mode m = SHORTEST) const noexcept {
+string ret;
+switch (m) {
+case SHORTEST: _stringify<SHORTEST>(ret, 0); break;
+case TWO_SPACE_ALIGN: _stringify<TWO_SPACE_ALIGN>(ret, 0); break;
+case FOUR_SPACE_ALIGN: _stringify<FOUR_SPACE_ALIGN>(ret, 0); break;
+case TAB_ALGIN: _stringify<TAB_ALGIN>(ret, 0); break;
+default: WJR_UNREACHABLE; break;
+}
+return ret;
+}
+
 private:
 
-static json __parse(const char*& first, const char* last);
-static bool __accept(const char*& first, const char* last, uint8_t state);
+WJR_CONSTEXPR20 static json __parse(const char*& first, const char* last);
+WJR_CONSTEXPR20 static bool __accept(const char*& first, const char* last, uint8_t state);
+
+template<int m>
+WJR_CONSTEXPR20 void _stringify(string&, int) const noexcept;
+
 
 cont m_value;
 };
 
-template<typename T>
-constexpr const __json_get_t<T>& get(const json& j) {
-constexpr auto idx = tp_find_v<json::type_list, T>;
-if constexpr (idx < 3 || idx >= 6) {
-return std::get<T>(j.get());
+extern template void json::_stringify<0>(string&, int) const noexcept;
+extern template void json::_stringify<1>(string&, int) const noexcept;
+extern template void json::_stringify<2>(string&, int) const noexcept;
+extern template void json::_stringify<3>(string&, int) const noexcept;
+
+template<size_t idx>
+constexpr tp_at_t<json_traits::type_list, idx>& get(json& it) {
+if constexpr (idx < 3) {
+return std::get<idx>(it.get());
+}
+else if constexpr (idx < 6) {
+return *(std::get<idx>(it.get()));
 }
 else {
-return *(std::get<tp_at_t<json::cont, idx>>(j.get()));
+return std::get<idx - 3>(it.get());
+}
+}
+
+template<size_t idx>
+constexpr const tp_at_t<json_traits::type_list, idx>& get(const json& it) {
+if constexpr (idx < 3) {
+return std::get<idx>(it.get());
+}
+else if constexpr (idx < 6) {
+return *(std::get<idx>(it.get()));
+}
+else {
+return std::get<idx - 3>(it.get());
+}
+}
+
+template<size_t idx>
+constexpr tp_at_t<json_traits::type_list, idx>&& get(json&& it) {
+if constexpr (idx < 3) {
+return std::get<idx>(std::move(it).get());
+}
+else if constexpr (idx < 6) {
+return *(std::get<idx>(std::move(it).get()));
+}
+else {
+return std::get<idx - 3>(std::move(it).get());
 }
 }
 
 template<typename T>
-constexpr __json_get_t<T>& get(json& j) {
-constexpr auto idx = tp_find_v<json::type_list, T>;
-if constexpr (idx < 3 || idx >= 6) {
-return std::get<T>(j.get());
-}
-else {
-return *(std::get<tp_at_t<json::cont, idx>>(j.get()));
-}
+constexpr T& get(json& it) {
+return wjr::get<json::find_type_v<T>>(it);
 }
 
 template<typename T>
-constexpr __json_get_t<T>&& get(json&& j) {
-constexpr auto idx = tp_find_v<json::type_list, T>;
-if constexpr (idx < 3 || idx >= 6) {
-return std::get<T>(std::move(j).get());
+constexpr const T& get(const json& it) {
+return wjr::get<json::find_type_v<T>>(it);
+}
+
+template<typename T>
+constexpr T&& get(json&& it) {
+return wjr::get<json::find_type_v<T>>(std::move(it));
+}
+
+template<size_t idx>
+constexpr std::add_pointer_t<tp_at_t<json_traits::type_list, idx>> get_if(json* it) noexcept {
+if constexpr (idx < 3) {
+return std::get_if<idx>(it->get());
+}
+else if constexpr (idx < 6) {
+auto ptr = std::get_if<idx>(it->get());
+return ptr == nullptr ? nullptr : (*ptr);
 }
 else {
-return *(std::get<tp_at_t<json::cont, idx>>(std::move(j).get()));
+return std::get_if<idx - 3>(it->get());
 }
+}
+
+template<size_t idx>
+constexpr std::add_pointer_t<const tp_at_t<json_traits::type_list, idx>> get_if(const json* it) noexcept {
+if constexpr (idx < 3) {
+return std::get_if<idx>(it->get());
+}
+else if constexpr (idx < 6) {
+auto ptr = std::get_if<idx>(it->get());
+return ptr == nullptr ? nullptr : (*ptr);
+}
+else {
+return std::get_if<idx - 3>(it->get());
+}
+}
+
+template<typename  T>
+constexpr std::add_pointer_t<T> get_if(json* it) noexcept {
+return get_if<json::find_type_v<T>>(it);
+}
+
+template<typename  T>
+constexpr std::add_pointer_t<const T> get_if(const json* it) noexcept {
+return get_if<json::find_type_v<T>>(it);
+}
+
+template<typename Func, typename...Var, std::enable_if_t<
+std::conjunction_v<std::is_same<remove_cvref_t<Var>, json>...>, int> = 0>
+constexpr decltype(auto) visit(Func&& fn, Var&&...var) {
+return std::visit([_Fn = std::forward<Func>(fn)](auto&&...args) {
+return _Fn(json::value(std::forward<decltype(args)>(args))...);
+}, (std::forward<Var>(var).get())...);
 }
 
 _WJR_END
@@ -28929,21 +29243,15 @@ return false;
 }
 }
 else {
-if constexpr (std::is_unsigned_v<iter>) {
-if (*s < 32 || *s == 127)
-return false;
-}
-else {
 if ((*s >= 0 && *s < 32) || *s == 127)
 return false;
-}
 }
 ++s;
 }
 return s != e;
 }
 
-bool json::__accept(const char*& first, const char* last, uint8_t state) {
+WJR_CONSTEXPR20 bool json::__accept(const char*& first, const char* last, uint8_t state) {
 bool head = true;
 for (;; ++first) {
 first = ascii::encode::skipw(first, last);
@@ -29036,8 +29344,31 @@ return true;
 }
 }
 
-json json::__parse(const char*& first, const char* last) {
-wjr::string_view ss(first, std::min<int>(128, last - first));
+WJR_CONSTEXPR20 bool json::accept(const char* first, const char* last) {
+first = ascii::encode::skipw(first, last);
+if (first == last) {
+return false;
+}
+
+switch (*first) {
+case '[':
+++first;
+if (!__accept(first, last, ']'))
+return false;
+first = ascii::encode::skipw(first, last);
+return first == last;
+case '{':
+++first;
+if (!__accept(first, last, '}'))
+return false;
+first = ascii::encode::skipw(first, last);
+return first == last;
+default:
+return false;
+}
+}
+
+WJR_CONSTEXPR20 json json::__parse(const char*& first, const char* last) {
 first = ascii::encode::skipw(first, last);
 switch (*first) {
 case 'n': {
@@ -29056,8 +29387,8 @@ first += 5;
 return it;
 }
 case '{': {
-json it(std::in_place_type_t<vobject>{});
-auto& obj = wjr::get<vobject>(it);
+json it(std::in_place_type_t<object>{});
+auto& obj = wjr::get<object>(it);
 ++first;
 first = ascii::encode::skipw(first, last);
 if (*first == '}') {
@@ -29068,7 +29399,7 @@ while (true) {
 first = ascii::encode::skipw(first, last);
 ++first;
 auto p = skip_string(first, last);
-auto& item = obj[vstring(first, p)];
+auto& item = obj[string(first, p)];
 first = p + 1;
 first = ascii::encode::skipw(first, last);
 ++first;
@@ -29083,8 +29414,8 @@ break;
 return it;
 }
 case '[': {
-json it(std::in_place_type_t<varray>{});
-auto& arr = wjr::get<varray>(it);
+json it(std::in_place_type_t<array>{});
+auto& arr = wjr::get<array>(it);
 ++first;
 first = ascii::encode::skipw(first, last);
 if (*first == ']') {
@@ -29106,7 +29437,7 @@ return it;
 case '"': {
 ++first;
 auto t = skip_string(first, last);
-json it(std::in_place_type_t<vstring>{}, first, t);
+json it(std::in_place_type_t<string>{}, first, t);
 first = t + 1;
 return it;
 }
@@ -29120,6 +29451,116 @@ return it;
 }
 }
 }
+
+template<int m>
+WJR_CONSTEXPR20 void json::_stringify(string& str, int a) const noexcept {
+constexpr int LEN = []() {
+switch (m) {
+case SHORTEST:return 0;
+case TWO_SPACE_ALIGN: return 2;
+case FOUR_SPACE_ALIGN: return 4;
+case TAB_ALGIN: return 1;
+}
+}();
+switch (m_value.index()) {
+case 0: {
+str.append("null");
+break;
+}
+case 1: {
+if (wjr::get<boolean>(*this)) {
+str.append("true");
+}
+else {
+str.append("false");
+}
+break;
+}
+case 2: {
+str.reserve(str.size() + 256);
+size_t length = 0;
+ascii::encode::from_floating_point<double>(
+wjr::get<number>(*this), str.end(), 256, &length);
+str.inc_size(length);
+break;
+}
+case 3: {
+str.append(wjr::get<string>(*this));
+break;
+}
+case 4: {
+const auto& arr = wjr::get<array>(*this);
+str.push_back('[');
+if (!arr.empty()) {
+bool head = true;
+for (const auto& val : arr) {
+if (head) head = false;
+else str.push_back(',');
+if constexpr (m != SHORTEST) {
+str.push_back('\n');
+if constexpr (m == TAB_ALGIN) {
+str.append(a + LEN, '\t');
+}
+else {
+str.append(a + LEN, ' ');
+}
+}
+val._stringify<m>(str, a + LEN);
+}
+if constexpr (m != SHORTEST) {
+str.push_back('\n');
+if constexpr (m == TAB_ALGIN) {
+str.append(a + LEN, '\t');
+}
+else {
+str.append(a + LEN, ' ');
+}
+}
+}
+str.push_back(']');
+break;
+}
+case 5: {
+auto& obj = wjr::get<object>(*this);
+str.push_back('{');
+if (!obj.empty()) {
+bool head = true;
+for (const auto& [name, val] : obj) {
+if (head) head = false;
+else str.push_back(',');
+if constexpr (m != SHORTEST) {
+str.push_back('\n');
+if constexpr (m == TAB_ALGIN) {
+str.append(a + LEN, '\t');
+}
+else {
+str.append(a + LEN, ' ');
+}
+}
+str.append('"').append(name).append("\": ");
+val._stringify<m>(str, a + LEN);
+}
+if constexpr (m != SHORTEST) {
+str.push_back('\n');
+if constexpr (m == TAB_ALGIN) {
+str.append(a, '\t');
+}
+else {
+str.append(a, ' ');
+}
+}
+}
+str.push_back('}');
+break;
+}
+default:WJR_UNREACHABLE; break;
+}
+}
+
+template void json::_stringify<0>(string& str, int a) const noexcept;
+template void json::_stringify<1>(string& str, int a) const noexcept;
+template void json::_stringify<2>(string& str, int a) const noexcept;
+template void json::_stringify<3>(string& str, int a) const noexcept;
 
 _WJR_END
 

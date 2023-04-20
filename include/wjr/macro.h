@@ -3,6 +3,7 @@
 #define __WJR_MMACRO_H
 
 #include <cstdint>
+#include <cassert>
 
 #if defined(_MSC_VER)
 /* Microsoft C/C++-compatible compiler */

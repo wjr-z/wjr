@@ -1133,20 +1133,72 @@ using tp_iota_t = typename tp_iota<I, N>::type;
 //
 
 template<typename C, typename...Args>
-struct tp_find_constructible {
+struct tp_find_first_constructible {
 	constexpr static size_t value = tp_find_if_f<C, tp_bind_back<std::is_constructible, Args...>>;
 };
 
 template<typename C, typename...Args>
-inline constexpr size_t tp_find_constructible_v = tp_find_constructible<C, Args...>::value;
+inline constexpr size_t tp_find_first_constructible_v = tp_find_first_constructible<C, Args...>::value;
 
 template<typename C, typename...Args>
-struct tp_find_assignable {
+struct tp_find_first_assignable {
 	constexpr static size_t value = tp_find_if_f<C, tp_bind_back<std::is_assignable, Args...>>;
 };
 
 template<typename C, typename...Args>
-inline constexpr size_t tp_find_assignable_v = tp_find_assignable<C, Args...>::value;
+inline constexpr size_t tp_find_first_assignable_v = tp_find_first_assignable<C, Args...>::value;
+
+template<typename C, size_t idx, typename T>
+struct __tp_find_best_constructible_func {
+	auto operator()(tp_at_t<C, idx>)->tp_c<size_t, idx>;
+};
+
+template<typename C, typename I, typename T>
+struct __tp_find_best_constructible_func_table;
+
+template<typename C, typename...Args, typename T>
+struct __tp_find_best_constructible_func_table<C, tp_list<Args...>, T>
+	: __tp_find_best_constructible_func<C, Args::value, T>... {
+	using __tp_find_best_constructible_func<C, Args::value, T>::operator()...;
+};
+
+template<typename C, typename I, typename T>
+struct __tp_find_best_constructible_helper;
+
+template<typename C, typename...Args, typename T>
+struct __tp_find_best_constructible_helper<C, tp_list<Args...>, T> {
+
+	template<typename U>
+	struct __remove : std::negation<std::is_constructible<tp_at_t<C, U::value>, T>> {};
+
+	using __seq = tp_remove_if_t<tp_list<Args...>, __remove>;
+	using type = __tp_find_best_constructible_func_table<C, __seq, T>;
+};
+
+template<typename C, typename I, typename T>
+using __tp_find_best_constructible_helper_t = typename __tp_find_best_constructible_helper<C, I, T>::type;
+
+template<typename _Enable, typename C, typename T>
+struct __tp_find_best_constructible{
+	using type = tp_c<size_t, (size_t)(-1)>;
+};
+
+template<typename C, typename T>
+struct __tp_find_best_constructible<std::void_t<decltype(
+	__tp_find_best_constructible_helper_t<C, tp_iota_t<0, tp_size_v<C>>, T>{}(std::declval<T>()))>, C, T> {
+	using type = decltype(
+		__tp_find_best_constructible_helper_t<C, tp_iota_t<0, tp_size_v<C>>, T>{}(std::declval<T>()));
+};
+
+template<typename C, typename T>
+struct tp_find_best_constructible {
+	using __type= typename __tp_find_best_constructible<void, C, T>::type;
+	constexpr static size_t value =  __type::value;
+};
+
+// find best match
+template<typename C, typename T>
+inline constexpr size_t tp_find_best_constructible_v = tp_find_best_constructible<C, T>::value;
 
 class tp_fn {
 public:

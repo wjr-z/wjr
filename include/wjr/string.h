@@ -3135,10 +3135,10 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 			return ret;
 		}
 
-		template<typename T>
+		template<typename _Iter, typename T>
 		WJR_INLINE_CONSTEXPR20 static void from_integral(
-			const char* _First, const char* _Last, const char** _Pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept {
-			const char* end_ptr = _First;
+			_Iter _First, _Iter _Last, _Iter* _Pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept {
+			_Iter end_ptr = _First;
 			errc c = errc::ok;
 			auto ret = from_integral<T>(_First, _Last, end_ptr, base, c);
 
@@ -3152,12 +3152,12 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 
 		}
 
-		template<typename T>
+		template<typename _Iter, typename _Diff, typename T>
 		WJR_INLINE_CONSTEXPR20 static void from_integral(
-			const char* _First, size_t n, size_t* _Pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept {
-			const char* end_ptr = _First;
+			_Iter _First, _Diff n, size_t* _Pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept {
+			_Iter end_ptr = _First;
 			errc c = errc::ok;
-			auto ret = from_integral<T>(_First, _First + n, end_ptr, base, c);
+			auto ret = from_integral<T>(_First, n, end_ptr, base, c);
 
 			if (_Pos != nullptr) {
 				*_Pos = static_cast<size_t>(end_ptr - _First);
@@ -3345,12 +3345,13 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 			from_f_flags::NO_FLAGS
 		>;
 
-		template<typename T, 
+		template<typename T,
+			typename _Iter,
 			typename M = defualt_from_f_mode,
 			typename F = defualt_from_f_flags>
 		static void from_floating_point(
-			T value, char* first, char* last,
-			char*& pos, errc& err, int precision = 0, M m = M(), F f = F()) noexcept {
+			T value, _Iter first, _Iter last,
+			_Iter& pos, errc& err, int precision = 0, M m = M(), F f = F()) noexcept {
 			using double_conversion::DoubleToStringConverter;
 			using double_conversion::StringBuilder;
 			DoubleToStringConverter conv(
@@ -3380,25 +3381,92 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 				conv.ToPrecision(value, precision, &builder);
 				break;
 			}
+
 			const auto length = static_cast<size_t>(builder.position());
 			builder.Finalize();
-			const auto n = static_cast<size_t>(last - first);
-			if (n < length) {
-				err = errc::buffer_too_small;
-				return;
+
+			if constexpr (is_random_iterator_v<_Iter>) {
+				const auto n = static_cast<size_t>(last - first);
+				if (n < length) {
+					err = errc::buffer_too_small;
+					return;
+				}
+				first = wjr::copy_n(buffer, length, first);
 			}
-			first = wjr::copy_n(buffer, length, first);
+			else {
+				auto _Buf = buffer;
+				for (; length && first != last; ++_Buf, ++first, --length) {
+					*first = *_Buf;
+				}
+
+				if (length) {
+					err = errc::buffer_too_small;
+					return;
+				}
+			}
+
 			pos = first;
 			err = errc::ok;
 			return;
 		}
 
 		template<typename T,
+			typename _Iter, typename _Diff, 
 			typename M = defualt_from_f_mode,
 			typename F = defualt_from_f_flags>
 		static void from_floating_point(
-			T value, char* first, char* last,
-			char** pos = nullptr, errc* err = nullptr, int precision = 0, M m = M(), F f = F()) noexcept {
+			T value, _Iter first, _Diff n,
+			_Iter& pos, errc& err, int precision = 0, M m = M(), F f = F()) noexcept {
+			using double_conversion::DoubleToStringConverter;
+			using double_conversion::StringBuilder;
+			DoubleToStringConverter conv(
+				get_cvar(f),
+				"Infinity",
+				"NaN",
+				'E',
+				-6,
+				21,
+				6, // max leading padding zeros
+				1); // max trailing padding zeros
+			char buffer[256];
+			StringBuilder builder(buffer, sizeof(buffer));
+			const auto mode = get_cvar(m);
+			switch (mode) {
+			case DoubleToStringConverter::SHORTEST:
+				conv.ToShortest(value, &builder);
+				break;
+			case DoubleToStringConverter::SHORTEST_SINGLE:
+				conv.ToShortestSingle(static_cast<float>(value), &builder);
+				break;
+			case DoubleToStringConverter::FIXED:
+				conv.ToFixed(value, precision, &builder);
+				break;
+			case DoubleToStringConverter::PRECISION:
+			default:
+				conv.ToPrecision(value, precision, &builder);
+				break;
+			}
+
+			const auto length = static_cast<size_t>(builder.position());
+			builder.Finalize();
+
+			if (n < length) {
+				err = errc::buffer_too_small;
+				return;
+			}
+			first = wjr::copy_n(buffer, length, first);
+
+			pos = first;
+			err = errc::ok;
+			return;
+		}
+
+		template<typename T, typename _Iter,
+			typename M = defualt_from_f_mode,
+			typename F = defualt_from_f_flags>
+		static void from_floating_point(
+			T value, _Iter first, _Iter last,
+			_Iter* pos = nullptr, errc* err = nullptr, int precision = 0, M m = M(), F f = F()) noexcept {
 			auto end_ptr = first;
 			errc c = errc::ok;
 			from_floating_point(value, first, last, end_ptr, c, precision, m, f);
@@ -3413,15 +3481,15 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 
 		}
 
-		template<typename T,
+		template<typename T, typename _Iter, typename _Diff,
 			typename M = defualt_from_f_mode,
 			typename F = defualt_from_f_flags>
 		static void from_floating_point(
-			T value, char* first, size_t n,
+			T value, _Iter first, _Diff n,
 			size_t* pos = nullptr, errc* err = nullptr, int precision = 0, M m = M(), F f = F()) noexcept {
 			auto end_ptr = first;
 			errc c = errc::ok;
-			from_floating_point(value, first, first + n, end_ptr, c, precision, m, f);
+			from_floating_point(value, first, n, end_ptr, c, precision, m, f);
 
 			if (pos != nullptr) {
 				*pos = static_cast<size_t>(end_ptr - first);

@@ -111,6 +111,11 @@ public:
 		T _Val, _Iter _First, _Iter _Last,
 		_Iter& _Pos, int base, errc& _Err) noexcept;
 
+	template<typename T, typename _Diff, typename _Iter>
+	WJR_INLINE_CONSTEXPR20 static void from_integral(
+		T _Val, _Iter _First, _Diff n,
+		_Iter& _Pos, int base, errc& _Err) noexcept;
+
 private:
 };
 
@@ -122,14 +127,19 @@ public:
 	using flags = typename func_type::flags;
 
 	template<typename _Iter, typename F>
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static T work(
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static T to(
 		_Iter _First, _Iter _Last,
 		_Iter& _Pos, int base, errc& _Err, F f) noexcept;
 
 	// copy of std::to_chars
 	template <typename _Iter>
-	WJR_INLINE_CONSTEXPR20 static void work(
+	WJR_INLINE_CONSTEXPR20 static void from(
 		T _Val, _Iter _First, _Iter _Last,
+		_Iter& _Pos, int base, errc& _Err) noexcept;
+
+	template <typename _Iter, typename _Diff>
+	WJR_INLINE_CONSTEXPR20 static void from(
+		T _Val, _Iter _First, _Diff n,
 		_Iter& _Pos, int base, errc& _Err) noexcept;
 
 private:
@@ -152,10 +162,13 @@ private:
 	constexpr static uT umax() { return std::max(make_unsigned_v(min()), make_unsigned_v(max())); }
 
 	template<typename _Iter, typename F>
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static T __work(
+	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static T __to(
 		_Iter _First, _Iter _Last,
 		WJR_MAYBE_UNUSED _Iter& _Pos,
 		int base, errc& _Err, F f, _Iter _Zero, bool _Is_minus) noexcept;
+
+	WJR_INLINE_CONSTEXPR20 static void __from(
+		uT uval, const char*& _RNext, int base) noexcept;
 
 };
 
@@ -169,7 +182,7 @@ private:
 
 template<typename T, typename Func>
 template<typename _Iter, typename F>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::work(
+WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::to(
 	_Iter _First, _Iter _Last,
 	_Iter& _Pos, int base, errc& _Err, F f) noexcept {
 	const auto _Flags = get_cvar(f);
@@ -231,7 +244,7 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::work(
 						_Pos = _First;
 						return static_cast<T>(0);
 					}
-					return __work(_First, _Last, _Pos, 2, _Err, f, _Zero, _Is_minus);
+					return __to(_First, _Last, _Pos, 2, _Err, f, _Zero, _Is_minus);
 				}
 				case _X: {
 					// eat 'x'/'X'
@@ -239,14 +252,14 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::work(
 						_Pos = _First;
 						return static_cast<T>(0);
 					}
-					return __work(_First, _Last, _Pos, 16, _Err, f, _Zero, _Is_minus);
+					return __to(_First, _Last, _Pos, 16, _Err, f, _Zero, _Is_minus);
 				}
 				default: {
-					return __work(_First, _Last, _Pos, 8, _Err, f, _Zero, _Is_minus);
+					return __to(_First, _Last, _Pos, 8, _Err, f, _Zero, _Is_minus);
 				}
 				}
 			}
-			return __work(_First, _Last, _Pos, 10, _Err, f, _Last, _Is_minus);
+			return __to(_First, _Last, _Pos, 10, _Err, f, _Last, _Is_minus);
 		}
 		case 2: {
 			if (*_First == '0') {
@@ -296,12 +309,12 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::work(
 		}
 	}
 
-	return __work(_First, _Last, _Pos, base, _Err, f, _Zero, _Is_minus);
+	return __to(_First, _Last, _Pos, base, _Err, f, _Zero, _Is_minus);
 }
 
 template<typename T, typename Func>
 template<typename _Iter, typename F>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR T integral_conversion_details<T, Func>::__work(
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR T integral_conversion_details<T, Func>::__to(
 	_Iter _First, _Iter _Last,
 	WJR_MAYBE_UNUSED _Iter& _Pos,
 	int base, errc& _Err, F f, _Iter _Zero, bool _Is_minus) noexcept {
@@ -386,30 +399,8 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR T integral_conversion_details<T, Func>::__
 #undef __CONV_NEXT
 
 template<typename T, typename Func>
-template <typename _Iter>
-WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::work(
-	T _Val, _Iter _First, _Iter _Last,
-	_Iter& _Pos, int base, errc& _Err) noexcept {
-
-	auto uval = make_unsigned_v(_Val);
-
-	if constexpr (std::is_signed_v<T>) {
-		if (_Val < 0) {
-			if (_First == _Last) {
-				_Err = errc::buffer_too_small;
-				return;
-			}
-			*_First = '-';
-			++_First;
-			uval = static_cast<uT>(0 - uval);
-		}
-	}
-
-	constexpr size_t _Buff_size = sizeof(uT) * 8;
-	value_type _Buff[_Buff_size];
-	char* const _Buff_end = _Buff + _Buff_size;
-	char* _RNext = _Buff_end;
-
+WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::__from(
+	uT uval, const char*& _RNext, int base) noexcept {
 	switch (base) {
 	case 10:
 	{ // Derived from _UIntegral_to_buff()
@@ -419,7 +410,7 @@ WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::work(
 		if constexpr (_Use_chunks) { // For 64-bit numbers on 32-bit platforms, work in chunks to avoid 64-bit
 			// divisions.
 			while (uval > 0xFFFF'FFFFU) {
-				// Performance note: Ryu's division workaround would be faster here.
+				// Performance note: Ryu's division toaround would be faster here.
 				unsigned long _Chunk = static_cast<unsigned long>(uval % 1'000'000'000);
 				uval = static_cast<uT>(uval / 1'000'000'000);
 
@@ -494,6 +485,34 @@ WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::work(
 		} while (uval != 0);
 		break;
 	}
+}
+
+template<typename T, typename Func>
+template <typename _Iter>
+WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::from(
+	T _Val, _Iter _First, _Iter _Last,
+	_Iter& _Pos, int base, errc& _Err) noexcept {
+
+	auto uval = make_unsigned_v(_Val);
+
+	if constexpr (std::is_signed_v<T>) {
+		if (_Val < 0) {
+			if (_First == _Last) {
+				_Err = errc::buffer_too_small;
+				return;
+			}
+			*_First = '-';
+			++_First;
+			uval = static_cast<uT>(0 - uval);
+		}
+	}
+
+	constexpr size_t _Buff_size = sizeof(uT) * 8;
+	value_type _Buff[_Buff_size];
+	char* const _Buff_end = _Buff + _Buff_size;
+	char* _RNext = _Buff_end;
+
+	__from(uval, _RNext, base);
 
 	ptrdiff_t _Digits_written = _Buff_end - _RNext;
 
@@ -514,6 +533,49 @@ WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::work(
 			return;
 		}
 	}
+
+	_Pos = _First;
+	_Err = errc::ok;
+	return;
+}
+
+template<typename T, typename Func>
+template <typename _Iter, typename _Diff>
+WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::from(
+	T _Val, _Iter _First, _Diff n,
+	_Iter& _Pos, int base, errc& _Err) noexcept {
+
+	if (n <= 0) {
+		_Err = errc::buffer_too_small;
+		return;
+	}
+
+	auto uval = make_unsigned_v(_Val);
+
+	if constexpr (std::is_signed_v<T>) {
+		if (_Val < 0) {
+			*_First = '-';
+			++_First;
+			--n;
+			uval = static_cast<uT>(0 - uval);
+		}
+	}
+
+	constexpr size_t _Buff_size = sizeof(uT) * 8;
+	value_type _Buff[_Buff_size];
+	char* const _Buff_end = _Buff + _Buff_size;
+	char* _RNext = _Buff_end;
+
+	__from(uval, _RNext, base);
+
+	ptrdiff_t _Digits_written = _Buff_end - _RNext;
+
+	if (n < _Digits_written) {
+		_Err = errc::buffer_too_small;
+		return;
+	}
+
+	_First = wjr::copy_n(_RNext, _Digits_written, _First);
 
 	_Pos = _First;
 	_Err = errc::ok;
@@ -648,7 +710,7 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR T string_func<Traits>::to_integral(
 	_Iter _First, _Iter _Last,
 	_Iter& _Pos, int base, errc& _Err, F f) noexcept {
 	return integral_conversion_details<T, string_func<Traits>>
-		::template work(_First, _Last, _Pos, base, _Err, f);
+		::template to(_First, _Last, _Pos, base, _Err, f);
 }
 
 template<typename Traits>
@@ -657,7 +719,16 @@ WJR_INLINE_CONSTEXPR20 void string_func<Traits>::from_integral(
 	T _Val, _Iter _First, _Iter _Last,
 	_Iter& _Pos, int base, errc& _Err) noexcept {
 	return integral_conversion_details<T, string_func<Traits>>
-		::template work(_Val, _First, _Last, _Pos, base, _Err);
+		::template from(_Val, _First, _Last, _Pos, base, _Err);
+}
+
+template<typename Traits>
+template<typename T, typename _Diff, typename _Iter>
+WJR_INLINE_CONSTEXPR20 void string_func<Traits>::from_integral(
+	T _Val, _Iter _First, _Diff n,
+	_Iter& _Pos, int base, errc& _Err) noexcept {
+	return integral_conversion_details<T, string_func<Traits>>
+		::template from(_Val, _First, n, _Pos, base, _Err);
 }
 
 _WJR_END

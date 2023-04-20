@@ -78,21 +78,15 @@ constexpr static bool check_string(iter& s, iter e) {
 			}
 		}
 		else {
-			if constexpr (std::is_unsigned_v<iter>) {
-				if (*s < 32 || *s == 127)
-					return false;
-			}
-			else {
-				if ((*s >= 0 && *s < 32) || *s == 127)
-					return false;
-			}
+			if ((*s >= 0 && *s < 32) || *s == 127)
+				return false;
 		}
 		++s;
 	}
 	return s != e;
 }
 
-bool json::__accept(const char*& first, const char* last, uint8_t state) {
+WJR_CONSTEXPR20 bool json::__accept(const char*& first, const char* last, uint8_t state) {
 	bool head = true;
 	for (;; ++first) {
 		first = ascii::encode::skipw(first, last);
@@ -185,8 +179,31 @@ bool json::__accept(const char*& first, const char* last, uint8_t state) {
 	}
 }
 
-json json::__parse(const char*& first, const char* last) {
-	wjr::string_view ss(first, std::min<int>(128, last - first));
+WJR_CONSTEXPR20 bool json::accept(const char* first, const char* last) {
+	first = ascii::encode::skipw(first, last);
+	if (first == last) {
+		return false;
+	}
+
+	switch (*first) {
+	case '[':
+		++first;
+		if (!__accept(first, last, ']'))
+			return false;
+		first = ascii::encode::skipw(first, last);
+		return first == last;
+	case '{':
+		++first;
+		if (!__accept(first, last, '}'))
+			return false;
+		first = ascii::encode::skipw(first, last);
+		return first == last;
+	default:
+		return false;
+	}
+}
+
+WJR_CONSTEXPR20 json json::__parse(const char*& first, const char* last) {
 	first = ascii::encode::skipw(first, last);
 	switch (*first) {
 	case 'n': {
@@ -205,8 +222,8 @@ json json::__parse(const char*& first, const char* last) {
 		return it;
 	}
 	case '{': {
-		json it(std::in_place_type_t<vobject>{});
-		auto& obj = wjr::get<vobject>(it);
+		json it(std::in_place_type_t<object>{});
+		auto& obj = wjr::get<object>(it);
 		++first;
 		first = ascii::encode::skipw(first, last);
 		if (*first == '}') {
@@ -217,7 +234,7 @@ json json::__parse(const char*& first, const char* last) {
 			first = ascii::encode::skipw(first, last);
 			++first;
 			auto p = skip_string(first, last);
-			auto& item = obj[vstring(first, p)];
+			auto& item = obj[string(first, p)];
 			first = p + 1;
 			first = ascii::encode::skipw(first, last);
 			++first;
@@ -232,8 +249,8 @@ json json::__parse(const char*& first, const char* last) {
 		return it;
 	}
 	case '[': {
-		json it(std::in_place_type_t<varray>{});
-		auto& arr = wjr::get<varray>(it);
+		json it(std::in_place_type_t<array>{});
+		auto& arr = wjr::get<array>(it);
 		++first;
 		first = ascii::encode::skipw(first, last);
 		if (*first == ']') {
@@ -255,7 +272,7 @@ json json::__parse(const char*& first, const char* last) {
 	case '"': {
 		++first;
 		auto t = skip_string(first, last);
-		json it(std::in_place_type_t<vstring>{}, first, t);
+		json it(std::in_place_type_t<string>{}, first, t);
 		first = t + 1;
 		return it;
 	}
@@ -269,5 +286,115 @@ json json::__parse(const char*& first, const char* last) {
 	}
 	}
 }
+
+template<int m>
+WJR_CONSTEXPR20 void json::_stringify(string& str, int a) const noexcept {
+	constexpr int LEN = []() {
+		switch (m) {
+		case SHORTEST:return 0;
+		case TWO_SPACE_ALIGN: return 2;
+		case FOUR_SPACE_ALIGN: return 4;
+		case TAB_ALGIN: return 1;
+		}
+	}();
+	switch (m_value.index()) {
+	case 0: {
+		str.append("null");
+		break;
+	}
+	case 1: {
+		if (wjr::get<boolean>(*this)) {
+			str.append("true");
+		}
+		else {
+			str.append("false");
+		}
+		break;
+	}
+	case 2: {
+		str.reserve(str.size() + 256);
+		size_t length = 0;
+		ascii::encode::from_floating_point<double>(
+			wjr::get<number>(*this), str.end(), 256, &length);
+		str.inc_size(length);
+		break;
+	}
+	case 3: {
+		str.append(wjr::get<string>(*this));
+		break;
+	}
+	case 4: {
+		const auto& arr = wjr::get<array>(*this);
+		str.push_back('[');
+		if (!arr.empty()) {
+			bool head = true;
+			for (const auto& val : arr) {
+				if (head) head = false;
+				else str.push_back(',');
+				if constexpr (m != SHORTEST) {
+					str.push_back('\n');
+					if constexpr (m == TAB_ALGIN) {
+						str.append(a + LEN, '\t');
+					}
+					else {
+						str.append(a + LEN, ' ');
+					}
+				}
+				val._stringify<m>(str, a + LEN);
+			}
+			if constexpr (m != SHORTEST) {
+				str.push_back('\n');
+				if constexpr (m == TAB_ALGIN) {
+					str.append(a + LEN, '\t');
+				}
+				else {
+					str.append(a + LEN, ' ');
+				}
+			}
+		}
+		str.push_back(']');
+		break;
+	}
+	case 5: {
+		auto& obj = wjr::get<object>(*this);
+		str.push_back('{');
+		if (!obj.empty()) {
+			bool head = true;
+			for (const auto& [name, val] : obj) {
+				if (head) head = false;
+				else str.push_back(',');
+				if constexpr (m != SHORTEST) {
+					str.push_back('\n');
+					if constexpr (m == TAB_ALGIN) {
+						str.append(a + LEN, '\t');
+					}
+					else {
+						str.append(a + LEN, ' ');
+					}
+				}
+				str.append('"').append(name).append("\": ");
+				val._stringify<m>(str, a + LEN);
+			}
+			if constexpr (m != SHORTEST) {
+				str.push_back('\n');
+				if constexpr (m == TAB_ALGIN) {
+					str.append(a, '\t');
+				}
+				else {
+					str.append(a, ' ');
+				}
+			}
+		}
+		str.push_back('}');
+		break;
+	}
+	default:WJR_UNREACHABLE; break;
+	}
+}
+
+template void json::_stringify<0>(string& str, int a) const noexcept;
+template void json::_stringify<1>(string& str, int a) const noexcept;
+template void json::_stringify<2>(string& str, int a) const noexcept;
+template void json::_stringify<3>(string& str, int a) const noexcept;
 
 _WJR_END
