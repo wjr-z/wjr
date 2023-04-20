@@ -340,7 +340,7 @@ WJR_CONSTEXPR20 void json::_stringify(string& str, int a) const noexcept {
 						str.append(a + LEN, ' ');
 					}
 				}
-				val._stringify<m>(str, a + LEN);
+				val.template _stringify<m>(str, a + LEN);
 			}
 			if constexpr (m != SHORTEST) {
 				str.push_back('\n');
@@ -373,7 +373,7 @@ WJR_CONSTEXPR20 void json::_stringify(string& str, int a) const noexcept {
 					}
 				}
 				str.append('"').append(name).append("\": ");
-				val._stringify<m>(str, a + LEN);
+				val.template _stringify<m>(str, a + LEN);
 			}
 			if constexpr (m != SHORTEST) {
 				str.push_back('\n');

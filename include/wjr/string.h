@@ -3382,7 +3382,7 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 				break;
 			}
 
-			const auto length = static_cast<size_t>(builder.position());
+			auto length = static_cast<size_t>(builder.position());
 			builder.Finalize();
 
 			if constexpr (is_random_iterator_v<_Iter>) {

@@ -24820,7 +24820,7 @@ conv.ToPrecision(value, precision, &builder);
 break;
 }
 
-const auto length = static_cast<size_t>(builder.position());
+auto length = static_cast<size_t>(builder.position());
 builder.Finalize();
 
 if constexpr (is_random_iterator_v<_Iter>) {
@@ -29505,7 +29505,7 @@ else {
 str.append(a + LEN, ' ');
 }
 }
-val._stringify<m>(str, a + LEN);
+val.template _stringify<m>(str, a + LEN);
 }
 if constexpr (m != SHORTEST) {
 str.push_back('\n');
@@ -29538,7 +29538,7 @@ str.append(a + LEN, ' ');
 }
 }
 str.append('"').append(name).append("\": ");
-val._stringify<m>(str, a + LEN);
+val.template _stringify<m>(str, a + LEN);
 }
 if constexpr (m != SHORTEST) {
 str.push_back('\n');
