@@ -10,6 +10,7 @@
 #include <cstring>
 #include <charconv>
 #include <functional>
+#include <cmath>
 
 #include <double-conversion/double-conversion.h>
 
@@ -3180,7 +3181,7 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 		template<typename T, typename F = default_to_f_flags>
 		WJR_NODISCARD static T to_floating_point(
 			const char* _First, const char* _Last, const char*& _Pos, errc& _Err, F f = F()) noexcept {
-			using namespace double_conversion;
+			using double_conversion::StringToDoubleConverter;
 
 			if (_First == _Last) {
 				_Err = errc::noconv;
@@ -3188,8 +3189,7 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 			}
 
 			StringToDoubleConverter conv(
-				to_f_flags::ALLOW_TRAILING_JUNK |
-				to_f_flags::ALLOW_LEADING_SPACES,
+				get_cvar(f),
 				0.0,
 				// return this for junk input string
 				std::numeric_limits<T>::quiet_NaN(),
@@ -3351,7 +3351,8 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 		static void from_floating_point(
 			T value, char* first, char* last,
 			char*& pos, errc& err, int precision = 0, M m = M(), F f = F()) noexcept {
-			using namespace double_conversion;
+			using double_conversion::DoubleToStringConverter;
+			using double_conversion::StringBuilder;
 			DoubleToStringConverter conv(
 				get_cvar(f),
 				"Infinity",
@@ -3386,7 +3387,7 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 				err = errc::buffer_too_small;
 				return;
 			}
-			first = copy_n(buffer, length, first);
+			first = wjr::copy_n(buffer, length, first);
 			pos = first;
 			err = errc::ok;
 			return;

@@ -587,8 +587,7 @@ constexpr auto make_unique_with_nsallocator(Args&&...args) {
 	auto al = nsallocator<T>();
 	auto _Ptr = al.allocate(1);
 	construct_at(al, _Ptr, std::forward<Args>(args)...);
-	unique_ptr_with_nsallocator<T> ptr(_Ptr);
-	return std::move(ptr);
+	return unique_ptr_with_nsallocator<T>(_Ptr);
 }
 
 // notice that initialization will not occur
@@ -598,8 +597,7 @@ constexpr auto make_unique_with_nsallocator(size_t n) {
 	auto al = nsallocator<elem>();
 	auto _Ptr = al.allocate(n);
 	uninitialized_default_construct_n(al, _Ptr, n);
-	unique_ptr_with_nsallocator<T> ptr(_Ptr, unique_ptr_with_nsallocator_delete<T>(n));
-	return std::move(ptr);
+	return unique_ptr_with_nsallocator<T>(_Ptr, unique_ptr_with_nsallocator_delete<T>(n));
 }
 
 template<typename T, typename...Args, std::enable_if_t<!std::is_array_v<T>, int> = 0>
@@ -607,8 +605,7 @@ constexpr auto make_unique_with_sallocator(Args&&...args) {
 	auto al = sallocator<T>();
 	auto _Ptr = al.allocate(1);
 	construct_at(al, _Ptr, std::forward<Args>(args)...);
-	unique_ptr_with_sallocator<T> ptr(_Ptr);
-	return std::move(ptr);
+	return unique_ptr_with_sallocator<T>(_Ptr);
 }
 
 // notice that initialization will not occur
@@ -618,8 +615,7 @@ constexpr auto make_unique_with_sallocator(size_t n) {
 	auto al = nsallocator<elem>();
 	auto _Ptr = al.allocate(n);
 	uninitialized_default_construct_n(al, _Ptr, n);
-	unique_ptr_with_sallocator<T> ptr(_Ptr, unique_ptr_with_sallocator_delete<T>(n));
-	return std::move(ptr);
+	return unique_ptr_with_sallocator<T>(_Ptr, unique_ptr_with_sallocator_delete<T>(n));
 }
 
 _WJR_END

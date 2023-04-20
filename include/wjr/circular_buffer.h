@@ -291,35 +291,35 @@ public:
 // algorithm overload
 
 template<typename T, typename _Iter>
-WJR_CONSTEXPR20 _Iter uninitialized_copy(
+WJR_CONSTEXPR20 _Iter do_uninitialized_copy(
 	circular_buffer_const_iterator<T> _First, circular_buffer_const_iterator<T> _Last, _Iter _Dest);
 
 template<typename T, typename _Iter>
-WJR_CONSTEXPR20 _Iter uninitialized_copy(
+WJR_CONSTEXPR20 _Iter do_uninitialized_copy(
 	circular_buffer_iterator<T> _First, circular_buffer_iterator<T> _Last, _Iter _Dest);
 
 template<typename Alloc, typename T, typename _Iter>
-WJR_CONSTEXPR20 _Iter uninitialized_copy(Alloc& al,
+WJR_CONSTEXPR20 _Iter do_uninitialized_copy(Alloc& al,
 	circular_buffer_const_iterator<T> _First, circular_buffer_const_iterator<T> _Last, _Iter _Dest);
 
 template<typename Alloc, typename T, typename _Iter>
-WJR_CONSTEXPR20 _Iter uninitialized_copy(Alloc& al,
+WJR_CONSTEXPR20 _Iter do_uninitialized_copy(Alloc& al,
 	circular_buffer_iterator<T> _First, circular_buffer_iterator<T> _Last, _Iter _Dest);
 
 template<typename T, typename _Iter>
-WJR_CONSTEXPR20 _Iter uninitialized_move(
+WJR_CONSTEXPR20 _Iter do_uninitialized_move(
 	circular_buffer_const_iterator<T> _First, circular_buffer_const_iterator<T> _Last, _Iter _Dest);
 
 template<typename T, typename _Iter>
-WJR_CONSTEXPR20 _Iter uninitialized_move(
+WJR_CONSTEXPR20 _Iter do_uninitialized_move(
 	circular_buffer_iterator<T> _First, circular_buffer_iterator<T> _Last, _Iter _Dest);
 
 template<typename Alloc, typename T, typename _Iter>
-WJR_CONSTEXPR20 _Iter uninitialized_move(Alloc& al,
+WJR_CONSTEXPR20 _Iter do_uninitialized_move(Alloc& al,
 	circular_buffer_const_iterator<T> _First, circular_buffer_const_iterator<T> _Last, _Iter _Dest);
 
 template<typename Alloc, typename T, typename _Iter>
-WJR_CONSTEXPR20 _Iter uninitialized_move(Alloc& al,
+WJR_CONSTEXPR20 _Iter do_uninitialized_move(Alloc& al,
 	circular_buffer_iterator<T> _First, circular_buffer_iterator<T> _Last, _Iter _Dest);
 
 template<typename T, typename Alloc = std::allocator<T>>

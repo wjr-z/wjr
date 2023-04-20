@@ -53,7 +53,7 @@ struct __json_get {
 
 template<typename T>
 struct __json_get<T, std::enable_if_t<(tp_find_v<json_traits::type_list, T> >= 6)>> {
-	constexpr static size_t value = tp_find_v<json_traits::type_list, T>;
+	constexpr static auto value = tp_find_v<json_traits::type_list, T>;
 	static_assert(value != -1, "");
 	using type = tp_at_t<json_traits::vcont, value - 3>;
 };
@@ -94,8 +94,8 @@ public:
 
 	using type_list = typename traits_type::type_list;
 
-	inline json() = default;
-	inline json(const json& other) {
+	inline json() noexcept = default;
+	inline json(const json& other) noexcept {
 		std::visit([this](const auto& x) {
 			constexpr auto idx1 = tp_find_v<vcont, remove_cvref_t<decltype(x)>>;
 			constexpr auto idx2 = tp_find_v<cont, remove_cvref_t<decltype(x)>>;
@@ -107,7 +107,7 @@ public:
 			}
 			}, other.m_value);
 	}
-	inline json(json&& other) = default;
+	inline json(json&& other) noexcept = default;
 
 private:
 	template<size_t idx, typename...Args, std::enable_if_t<(idx >= 0) && (idx < 3), int> = 0>

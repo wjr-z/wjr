@@ -7,7 +7,7 @@
 _WJR_BEGIN
 
 template<typename T, typename _Iter>
-WJR_CONSTEXPR20 _Iter uninitialized_copy(
+WJR_CONSTEXPR20 _Iter do_uninitialized_copy(
 	circular_buffer_const_iterator<T> _First, circular_buffer_const_iterator<T> _Last, _Iter _Dest) {
 	const auto ptr = _First.ptr();
 	const auto head_pos = _First.pos();
@@ -28,13 +28,13 @@ WJR_CONSTEXPR20 _Iter uninitialized_copy(
 }
 
 template<typename T, typename _Iter>
-WJR_CONSTEXPR20 _Iter uninitialized_copy(
+WJR_CONSTEXPR20 _Iter do_uninitialized_copy(
 	circular_buffer_iterator<T> _First, circular_buffer_iterator<T> _Last, _Iter _Dest) {
 	return wjr::uninitialized_copy(_First.base(), _Last.base(), _Dest);
 }
 
 template<typename Alloc, typename T, typename _Iter>
-WJR_CONSTEXPR20 _Iter uninitialized_copy(Alloc& al,
+WJR_CONSTEXPR20 _Iter do_uninitialized_copy(Alloc& al,
 	circular_buffer_const_iterator<T> _First, circular_buffer_const_iterator<T> _Last, _Iter _Dest) {
 	const auto ptr = _First.ptr();
 	const auto head_pos = _First.pos();
@@ -55,13 +55,13 @@ WJR_CONSTEXPR20 _Iter uninitialized_copy(Alloc& al,
 }
 
 template<typename Alloc, typename T, typename _Iter>
-WJR_CONSTEXPR20 _Iter uninitialized_copy(Alloc& al,
+WJR_CONSTEXPR20 _Iter do_uninitialized_copy(Alloc& al,
 	circular_buffer_iterator<T> _First, circular_buffer_iterator<T> _Last, _Iter _Dest) {
 	return wjr::uninitialized_copy(al, _First.base(), _Last.base(), _Dest);
 }
 
 template<typename T, typename _Iter>
-WJR_CONSTEXPR20 _Iter uninitialized_move(
+WJR_CONSTEXPR20 _Iter do_uninitialized_move(
 	circular_buffer_const_iterator<T> _First, circular_buffer_const_iterator<T> _Last, _Iter _Dest) {
 	const auto ptr = _First.ptr();
 	const auto head_pos = _First.pos();
@@ -82,13 +82,13 @@ WJR_CONSTEXPR20 _Iter uninitialized_move(
 }
 
 template<typename T, typename _Iter>
-WJR_CONSTEXPR20 _Iter uninitialized_move(
+WJR_CONSTEXPR20 _Iter do_uninitialized_move(
 	circular_buffer_iterator<T> _First, circular_buffer_iterator<T> _Last, _Iter _Dest) {
 	return wjr::uninitialized_move(_First.base(), _Last.base(), _Dest);
 }
 
 template<typename Alloc, typename T, typename _Iter>
-WJR_CONSTEXPR20 _Iter uninitialized_move(Alloc& al,
+WJR_CONSTEXPR20 _Iter do_uninitialized_move(Alloc& al,
 	circular_buffer_const_iterator<T> _First, circular_buffer_const_iterator<T> _Last, _Iter _Dest) {
 	const auto ptr = _First.ptr();
 	const auto head_pos = _First.pos();
@@ -109,7 +109,7 @@ WJR_CONSTEXPR20 _Iter uninitialized_move(Alloc& al,
 }
 
 template<typename Alloc, typename T, typename _Iter>
-WJR_CONSTEXPR20 _Iter uninitialized_move(Alloc& al,
+WJR_CONSTEXPR20 _Iter do_uninitialized_move(Alloc& al,
 	circular_buffer_iterator<T> _First, circular_buffer_iterator<T> _Last, _Iter _Dest) {
 	return wjr::uninitialized_move(al, _First.base(), _Last.base(), _Dest);
 }

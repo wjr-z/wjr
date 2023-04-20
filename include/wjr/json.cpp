@@ -166,7 +166,7 @@ bool json::__accept(const char*& first, const char* last, uint8_t state) {
 		default:
 			const char* pos = nullptr;
 			errc c = errc::ok;
-			auto val = ascii::encode::to_floating_point<double>(first, last, &pos, &c,
+			(void)ascii::encode::to_floating_point<double>(first, last, &pos, &c,
 				std::integral_constant<ascii::encode::to_f_flags, ascii::encode::to_f_flags::ALLOW_TRAILING_JUNK>());
 			if (c != errc::ok)
 				return false;

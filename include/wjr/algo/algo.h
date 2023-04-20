@@ -5,7 +5,6 @@
 #include <string.h>
 
 #include <wjr/algo/mem-all.h>
-
 #include <wjr/Optimizer.h>
 
 _WJR_ALGO_BEGIN

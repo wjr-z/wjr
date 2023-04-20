@@ -29,7 +29,7 @@ constexpr bool __has_fast_find_v = __has_fast_find<_Iter, _Val, _Pred>::value;
 // find
 
 template<typename _Iter, typename _Ty, typename _Pred>
-WJR_CONSTEXPR20 _Iter find(
+WJR_CONSTEXPR20 _Iter do_find(
 	_Iter _First, _Iter _Last, const _Ty& _Val, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_find_v<_Iter, _Ty, _Pred>) {
@@ -60,17 +60,17 @@ WJR_CONSTEXPR20 _Iter find(
 }
 
 template<typename _Iter, typename _Ty>
-WJR_CONSTEXPR20 _Iter find(_Iter _First, _Iter _Last, const _Ty& _Val) {
+WJR_CONSTEXPR20 _Iter do_find(_Iter _First, _Iter _Last, const _Ty& _Val) {
 	return wjr::find(_First, _Last, _Val, std::equal_to<>{});
 }
 
 template<typename _Iter, typename _Pr>
-WJR_CONSTEXPR20 _Iter find_if(_Iter _First, _Iter _Last, _Pr _Pred) {
+WJR_CONSTEXPR20 _Iter do_find_if(_Iter _First, _Iter _Last, _Pr _Pred) {
 	return std::find_if(_First, _Last, _Pred);
 }
 
 template<typename _Iter, typename _Pr>
-WJR_CONSTEXPR20 _Iter find_if_not(_Iter _First, _Iter _Last, _Pr _Pred) {
+WJR_CONSTEXPR20 _Iter do_find_if_not(_Iter _First, _Iter _Last, _Pr _Pred) {
 	return std::find_if_not(_First, _Last, _Pred);
 }
 
@@ -86,7 +86,7 @@ constexpr bool __has_fast_count_v = __has_fast_count<_Iter, _Val>::value;
 
 template<typename _Iter, typename _Ty>
 WJR_CONSTEXPR20 typename std::iterator_traits<_Iter>::difference_type
-count(_Iter _First, _Iter _Last, const _Ty& _Val) {
+do_count(_Iter _First, _Iter _Last, const _Ty& _Val) {
 	if (!wjr::is_constant_evaluated()) {
 #if defined(_WJR_FAST_MEMCNT)
 		if constexpr (__has_fast_count_v<_Iter, _Ty>) {
@@ -107,7 +107,7 @@ count(_Iter _First, _Iter _Last, const _Ty& _Val) {
 
 template<typename _Iter, typename _Pr>
 WJR_CONSTEXPR20 typename std::iterator_traits<_Iter>::difference_type
-count_if(_Iter _First, _Iter _Last, _Pr _Pred) {
+do_count_if(_Iter _First, _Iter _Last, _Pr _Pred) {
 	return std::count_if(_First, _Last, _Pred);
 }
 
@@ -147,7 +147,7 @@ template<typename _Iter1, typename _Iter2, typename _Pred>
 constexpr bool __has_fast_mismatch_v = __has_fast_mismatch<_Iter1, _Iter2, _Pred>::value;
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> mismatch(
+WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(
 	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
 #if defined(_WJR_FAST_MEMMIS)
@@ -176,7 +176,7 @@ WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> mismatch(
 }
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> mismatch(
+WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(
 	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_mismatch_v<_Iter1, _Iter2, _Pred>) {
@@ -190,17 +190,17 @@ WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> mismatch(
 }
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> mismatch(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2) {
+WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2) {
 	return wjr::mismatch(_First1, _Last1, _First2, std::equal_to<>{});
 }
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> mismatch(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
+WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
 	return wjr::mismatch(_First1, _Last1, _First2, _Last2, std::equal_to<>{});
 }
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 bool equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred pred) {
+WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_equal_v<_Iter1, _Iter2, _Pred>) {
 			const auto n = _Last1 - _First1;
@@ -222,7 +222,7 @@ WJR_CONSTEXPR20 bool equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred 
 }
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 bool equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
+WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_equal_v<_Iter1, _Iter2, _Pred>) {
 			const auto n = std::distance(_First1, _Last1);
@@ -235,12 +235,12 @@ WJR_CONSTEXPR20 bool equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2
 }
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 bool equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2) {
+WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2) {
 	return wjr::equal(_First1, _Last1, _First2, std::equal_to<>{});
 }
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 bool equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
+WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
 	return wjr::equal(_First1, _Last1, _First2, _Last2, std::equal_to<>{});
 }
 
@@ -270,7 +270,7 @@ template<typename _Iter1, typename _Iter2, typename _Pred>
 constexpr bool __has_fast_lexicographical_compare_v = __has_fast_lexicographical_compare<_Iter1, _Iter2, _Pred>::value;
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 bool lexicographical_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
+WJR_CONSTEXPR20 bool do_lexicographical_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_lexicographical_compare_v<_Iter1, _Iter2, _Pred>) {
 			const auto n = std::distance(_First1, _Last1);
@@ -297,12 +297,12 @@ WJR_CONSTEXPR20 bool lexicographical_compare(_Iter1 _First1, _Iter1 _Last1, _Ite
 }
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 bool lexicographical_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
+WJR_CONSTEXPR20 bool do_lexicographical_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
 	return wjr::lexicographical_compare(_First1, _Last1, _First2, _Last2, std::less<>{});
 }
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 int compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
+WJR_CONSTEXPR20 int do_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_lexicographical_compare_v<_Iter1, _Iter2, _Pred>) {
 			const auto n = std::distance(_First1, _Last1);
@@ -337,7 +337,7 @@ WJR_CONSTEXPR20 int compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter
 }
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 int compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
+WJR_CONSTEXPR20 int do_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
 	return wjr::compare(_First1, _Last1, _First2, _Last2, std::less<>{});
 }
 
@@ -352,7 +352,7 @@ template<typename _Iter, typename _Val>
 constexpr bool __has_fast_fill_v = __has_fast_fill<_Iter, _Val>::value;
 
 template<typename _Iter, typename _Val>
-WJR_CONSTEXPR20 void fill(_Iter _First, _Iter _Last, const _Val& value) {
+WJR_CONSTEXPR20 void do_fill(_Iter _First, _Iter _Last, const _Val& value) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_fill_v<_Iter, _Val>) {
 			const auto n = std::distance(_First, _Last);
@@ -372,7 +372,7 @@ WJR_CONSTEXPR20 void fill(_Iter _First, _Iter _Last, const _Val& value) {
 }
 
 template<typename _Iter, typename _Size, typename _Val>
-WJR_CONSTEXPR20 _Iter fill_n(_Iter _First, _Size count, const _Val& value) {
+WJR_CONSTEXPR20 _Iter do_fill_n(_Iter _First, _Size count, const _Val& value) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_fill_v<_Iter, _Val>) {
 			if (count <= 0) { return _First; }
@@ -397,7 +397,7 @@ template<typename _Input, typename _Output>
 constexpr bool __has_fast_copy_v = __has_fast_copy<_Input, _Output>::value;
 
 template<typename _Input, typename _Output>
-WJR_CONSTEXPR20 _Output copy(_Input _First1, _Input _Last1, _Output _First2) {
+WJR_CONSTEXPR20 _Output do_copy(_Input _First1, _Input _Last1, _Output _First2) {
 	static_assert(!std::is_const_v<iter_ref_t<_Output>>, "Output iterator must not be const");
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_copy_v<_Input, _Output>) {
@@ -424,7 +424,7 @@ WJR_CONSTEXPR20 _Output copy(_Input _First1, _Input _Last1, _Output _First2) {
 
 
 template<typename _Input, typename _Size, typename _Output>
-WJR_CONSTEXPR20 _Output copy_n(_Input _First1, _Size count, _Output _First2) {
+WJR_CONSTEXPR20 _Output do_copy_n(_Input _First1, _Size count, _Output _First2) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_copy_v<_Input, _Output>) {
 			if (count <= 0) { return _First2; }
@@ -435,19 +435,19 @@ WJR_CONSTEXPR20 _Output copy_n(_Input _First1, _Size count, _Output _First2) {
 }
 
 template<typename _Input, typename _Output>
-WJR_CONSTEXPR20 _Output copy_backward(_Input _First1, _Input _Last1, _Output _Last2) {
+WJR_CONSTEXPR20 _Output do_copy_backward(_Input _First1, _Input _Last1, _Output _Last2) {
 	return wjr::copy(std::make_reverse_iterator(_Last1),
 		std::make_reverse_iterator(_First1),
 		std::make_reverse_iterator(_Last2)).base();
 }
 
 template<typename _Input, typename _Output>
-WJR_CONSTEXPR20 _Output move(_Input _First1, _Input _Last1, _Output _First2) {
+WJR_CONSTEXPR20 _Output do_move(_Input _First1, _Input _Last1, _Output _First2) {
 	return wjr::copy(std::make_move_iterator(_First1), std::make_move_iterator(_Last1), _First2);
 }
 
 template<typename _Input, typename _Output>
-WJR_CONSTEXPR20 _Output move_backward(_Input _First1, _Input _Last1, _Output _Last2) {
+WJR_CONSTEXPR20 _Output do_move_backward(_Input _First1, _Input _Last1, _Output _Last2) {
 	return wjr::copy_backward(std::make_move_iterator(_First1), std::make_move_iterator(_Last1), _Last2);
 }
 
@@ -509,25 +509,25 @@ private:
 };
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 _Iter1 search(_Iter1 _First1, _Iter1 _Last1,
+WJR_CONSTEXPR20 _Iter1 do_search(_Iter1 _First1, _Iter1 _Last1,
 	_Iter2 _First2, _Iter2 _Last2) {
 	return wjr::search(_First1, _Last1, _First2, _Last2, std::equal_to<>{});
 }
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 _Iter1 search(_Iter1 _First1, _Iter1 _Last1,
+WJR_CONSTEXPR20 _Iter1 do_search(_Iter1 _First1, _Iter1 _Last1,
 	_Iter2 _First2, _Iter2 _Last2, _Pred pred) {
 	return wjr::search(_First1, _Last1, wjr::default_searcher(_First2, _Last2, pred));
 }
 
 template<typename _Iter, typename _Searcher>
-WJR_CONSTEXPR20 _Iter search(_Iter _First, _Iter _Last, const _Searcher& _Srch) {
+WJR_CONSTEXPR20 _Iter do_search(_Iter _First, _Iter _Last, const _Searcher& _Srch) {
 	return _Srch(_First, _Last).first;
 }
 
 template<typename _Iter, typename...Args, 
 	std::enable_if_t<is_iterator_v<wjr::remove_cvref_t<_Iter>>, int>>
-WJR_CONSTEXPR20 void construct_at(_Iter iter, Args&&... args) {
+WJR_CONSTEXPR20 void do_construct_at(_Iter iter, Args&&... args) {
 #if defined(WJR_CPP_20)
 	std::construct_at(get_address(iter), std::forward<Args>(args)...);
 #else
@@ -537,7 +537,7 @@ WJR_CONSTEXPR20 void construct_at(_Iter iter, Args&&... args) {
 }
 
 template<typename _Iter, std::enable_if_t<is_iterator_v<wjr::remove_cvref_t<_Iter>>, int>>
-WJR_CONSTEXPR20 void construct_at(_Iter iter, default_construct_tag) {
+WJR_CONSTEXPR20 void do_construct_at(_Iter iter, default_construct_tag) {
 	using value_type = iter_val_t<_Iter>;
 	if (!is_constant_evaluated()) {
 		(void)(::new (voidify(get_address(iter))) value_type);
@@ -554,13 +554,13 @@ WJR_CONSTEXPR20 void construct_at(_Iter iter, default_construct_tag) {
 }
 
 template<typename _Iter, std::enable_if_t<is_iterator_v<wjr::remove_cvref_t<_Iter>>, int>>
-WJR_CONSTEXPR20 void construct_at(_Iter iter, value_construct_tag) {
+WJR_CONSTEXPR20 void do_construct_at(_Iter iter, value_construct_tag) {
 	wjr::construct_at(iter);
 }
 
 template<typename Alloc, typename _Iter, typename...Args, 
 	std::enable_if_t<!is_iterator_v<wjr::remove_cvref_t<Alloc>>, int>>
-WJR_CONSTEXPR20 void construct_at(Alloc& al, _Iter iter, Args&&...args) {
+WJR_CONSTEXPR20 void do_construct_at(Alloc& al, _Iter iter, Args&&...args) {
 	using pointer = iter_address_t<_Iter>;
 	if constexpr (is_default_allocator_construct_v<Alloc, pointer, Args...>) {
 		wjr::construct_at(iter, std::forward<Args>(args)...);
@@ -579,7 +579,7 @@ WJR_CONSTEXPR20 void construct_at(Alloc& al, _Iter iter, Args&&...args) {
 }
 
 template<typename _Iter>
-WJR_CONSTEXPR20 void destroy_at(_Iter ptr) {
+WJR_CONSTEXPR20 void do_destroy_at(_Iter ptr) {
 	using value_type = iter_val_t<_Iter>;
 	if constexpr (!std::is_trivially_destructible_v<value_type>) {
 		get_address(ptr)->~value_type();
@@ -587,7 +587,7 @@ WJR_CONSTEXPR20 void destroy_at(_Iter ptr) {
 }
 
 template<typename Alloc, typename _Iter>
-WJR_CONSTEXPR20 void destroy_at(Alloc& al, _Iter iter) {
+WJR_CONSTEXPR20 void do_destroy_at(Alloc& al, _Iter iter) {
 	if constexpr (is_default_allocator_destroy_v<Alloc, _Iter>) {
 		wjr::destroy_at(iter);
 	}
@@ -597,7 +597,7 @@ WJR_CONSTEXPR20 void destroy_at(Alloc& al, _Iter iter) {
 }
 
 template<typename _Iter>
-WJR_CONSTEXPR20 void destroy(_Iter _First, _Iter _Last) {
+WJR_CONSTEXPR20 void do_destroy(_Iter _First, _Iter _Last) {
 	using value_type = iter_val_t<_Iter>;
 	if constexpr (!std::is_trivially_destructible_v<value_type>) {
 		for (; _First != _Last; ++_First) {
@@ -607,7 +607,7 @@ WJR_CONSTEXPR20 void destroy(_Iter _First, _Iter _Last) {
 }
 
 template<typename Alloc, typename _Iter>
-WJR_CONSTEXPR20 void destroy(Alloc& al, _Iter _First, _Iter _Last) {
+WJR_CONSTEXPR20 void do_destroy(Alloc& al, _Iter _First, _Iter _Last) {
 	using value_type = iter_val_t<_Iter>;
 	if constexpr (!(is_default_allocator_destroy_v<Alloc, _Iter>
 		&& std::is_trivially_destructible_v<value_type>)) {
@@ -619,7 +619,7 @@ WJR_CONSTEXPR20 void destroy(Alloc& al, _Iter _First, _Iter _Last) {
 
 
 template<typename _Iter, typename _Diff>
-WJR_CONSTEXPR20 void destroy_n(_Iter _First, const _Diff n) {
+WJR_CONSTEXPR20 void do_destroy_n(_Iter _First, const _Diff n) {
 	using value_type = iter_val_t<_Iter>;
 	if constexpr (!std::is_trivially_destructible_v<value_type>) {
 		for (; n > 0; ++_First, (void)--n) {
@@ -629,7 +629,7 @@ WJR_CONSTEXPR20 void destroy_n(_Iter _First, const _Diff n) {
 }
 
 template<typename Alloc, typename _Iter, typename _Diff>
-WJR_CONSTEXPR20 void destroy_n(Alloc& al, _Iter _First, _Diff n) {
+WJR_CONSTEXPR20 void do_destroy_n(Alloc& al, _Iter _First, _Diff n) {
 	using value_type = iter_val_t<_Iter>;
 	if constexpr (!(is_default_allocator_destroy_v<Alloc, _Iter> && std::is_trivially_destructible_v<value_type>)) {
 		for (; n > 0; ++_First, (void)--n) {
@@ -639,7 +639,7 @@ WJR_CONSTEXPR20 void destroy_n(Alloc& al, _Iter _First, _Diff n) {
 }
 
 template<typename _Iter>
-WJR_CONSTEXPR20 void uninitialized_default_construct(_Iter _First, _Iter _Last) {
+WJR_CONSTEXPR20 void do_uninitialized_default_construct(_Iter _First, _Iter _Last) {
 	if (!wjr::is_constant_evaluated()) {
 		return std::uninitialized_default_construct(_First, _Last);
 	}
@@ -655,7 +655,7 @@ WJR_CONSTEXPR20 void uninitialized_default_construct(_Iter _First, _Iter _Last) 
 }
 
 template<typename Alloc, typename _Iter>
-WJR_CONSTEXPR20 void uninitialized_default_construct(
+WJR_CONSTEXPR20 void do_uninitialized_default_construct(
 	Alloc& al, _Iter _First, _Iter _Last) {
 	if constexpr (is_default_allocator_construct_v<Alloc, _Iter, default_construct_tag>) {
 		wjr::uninitialized_default_construct(_First, _Last);
@@ -668,7 +668,7 @@ WJR_CONSTEXPR20 void uninitialized_default_construct(
 }
 
 template<typename _Iter, typename _Diff>
-WJR_CONSTEXPR20 _Iter uninitialized_default_construct_n(_Iter _First, _Diff n) {
+WJR_CONSTEXPR20 _Iter do_uninitialized_default_construct_n(_Iter _First, _Diff n) {
 	if (!wjr::is_constant_evaluated()) {
 		return std::uninitialized_default_construct_n(_First, n);
 	}
@@ -691,7 +691,7 @@ WJR_CONSTEXPR20 _Iter uninitialized_default_construct_n(_Iter _First, _Diff n) {
 }
 
 template<typename Alloc, typename _Iter, typename _Diff>
-WJR_CONSTEXPR20 _Iter uninitialized_default_construct_n(
+WJR_CONSTEXPR20 _Iter do_uninitialized_default_construct_n(
 	Alloc& al, _Iter _First, _Diff n) {
 	if constexpr (is_default_allocator_construct_v<Alloc, _Iter, default_construct_tag>) {
 		return wjr::uninitialized_default_construct_n(_First, n);
@@ -705,7 +705,7 @@ WJR_CONSTEXPR20 _Iter uninitialized_default_construct_n(
 }
 
 template<typename _Iter>
-WJR_CONSTEXPR20 void uninitialized_value_construct(_Iter _First, _Iter _Last) {
+WJR_CONSTEXPR20 void do_uninitialized_value_construct(_Iter _First, _Iter _Last) {
 	if (!wjr::is_constant_evaluated()) {
 		return std::uninitialized_value_construct(_First, _Last);
 	}
@@ -715,7 +715,7 @@ WJR_CONSTEXPR20 void uninitialized_value_construct(_Iter _First, _Iter _Last) {
 }
 
 template<typename Alloc, typename _Iter>
-WJR_CONSTEXPR20 void uninitialized_value_construct(
+WJR_CONSTEXPR20 void do_uninitialized_value_construct(
 	Alloc& al, _Iter _First, _Iter _Last) {
 	if constexpr (is_default_allocator_construct_v<Alloc, _Iter, value_construct_tag>) {
 		wjr::uninitialized_value_construct(_First, _Last);
@@ -728,7 +728,7 @@ WJR_CONSTEXPR20 void uninitialized_value_construct(
 }
 
 template<typename _Iter, typename _Diff>
-WJR_CONSTEXPR20 _Iter uninitialized_value_construct_n(_Iter _First, _Diff n) {
+WJR_CONSTEXPR20 _Iter do_uninitialized_value_construct_n(_Iter _First, _Diff n) {
 	if (!wjr::is_constant_evaluated()) {
 		return std::uninitialized_value_construct_n(_First, n);
 	}
@@ -745,7 +745,7 @@ WJR_CONSTEXPR20 _Iter uninitialized_value_construct_n(_Iter _First, _Diff n) {
 }
 
 template<typename Alloc, typename _Iter, typename _Diff>
-WJR_CONSTEXPR20 _Iter uninitialized_value_construct_n(
+WJR_CONSTEXPR20 _Iter do_uninitialized_value_construct_n(
 	Alloc& al, _Iter _First, _Diff n) {
 	if constexpr (is_default_allocator_construct_v<Alloc, _Iter, value_construct_tag>) {
 		return wjr::uninitialized_value_construct_n(_First, n);
@@ -772,7 +772,7 @@ template<typename _Input, typename _Output>
 constexpr bool __has_fast_uninitialized_copy_v = __has_fast_uninitialized_copy<_Input, _Output>::value;
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 _Iter2 uninitialized_copy(_Iter1 _First, _Iter1 _Last, _Iter2 _Dest) {
+WJR_CONSTEXPR20 _Iter2 do_uninitialized_copy(_Iter1 _First, _Iter1 _Last, _Iter2 _Dest) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_uninitialized_copy_v<_Iter1, _Iter2>) {
 			const auto n = std::distance(_First, _Last);
@@ -803,7 +803,7 @@ WJR_CONSTEXPR20 _Iter2 uninitialized_copy(_Iter1 _First, _Iter1 _Last, _Iter2 _D
 }
 
 template<typename Alloc, typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 _Iter2 uninitialized_copy(
+WJR_CONSTEXPR20 _Iter2 do_uninitialized_copy(
 	Alloc& al, _Iter1 _First, _Iter1 _Last, _Iter2 _Dest) {
 	if constexpr (is_default_allocator_construct_v<Alloc, _Iter2, decltype(*_First)>) {
 		return wjr::uninitialized_copy(_First, _Last, _Dest);
@@ -816,7 +816,7 @@ WJR_CONSTEXPR20 _Iter2 uninitialized_copy(
 }
 
 template<typename _Iter1, typename _Diff, typename _Iter2>
-WJR_CONSTEXPR20 _Iter2 uninitialized_copy_n(_Iter1 _First, _Diff n, _Iter2 _Dest) {
+WJR_CONSTEXPR20 _Iter2 do_uninitialized_copy_n(_Iter1 _First, _Diff n, _Iter2 _Dest) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_uninitialized_copy_v<_Iter1, _Iter2>) {
 			if (n <= 0) { return _Dest; }
@@ -837,7 +837,7 @@ WJR_CONSTEXPR20 _Iter2 uninitialized_copy_n(_Iter1 _First, _Diff n, _Iter2 _Dest
 }
 
 template<typename Alloc, typename _Iter1, typename _Diff, typename _Iter2>
-WJR_CONSTEXPR20 _Iter2 uninitialized_copy_n(Alloc& al, _Iter1 _First, _Diff n, _Iter2 _Dest) {
+WJR_CONSTEXPR20 _Iter2 do_uninitialized_copy_n(Alloc& al, _Iter1 _First, _Diff n, _Iter2 _Dest) {
 	if constexpr (is_default_allocator_construct_v<Alloc, _Iter2, decltype(*_First)>) {
 		return wjr::uninitialized_copy_n(_First, n, _Dest);
 	}
@@ -860,7 +860,7 @@ template<typename _Iter, typename _Val>
 constexpr bool __has_fast_uninitialized_fill_v = __has_fast_uninitialized_fill<_Iter, _Val>::value;
 
 template<typename _Iter, typename _Val>
-WJR_CONSTEXPR20 void uninitialized_fill(_Iter _First, _Iter _Last, const _Val& val) {
+WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, const _Val& val) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_uninitialized_fill_v<_Iter, _Val>) {
 			const auto n = static_cast<size_t>(std::distance(_First, _Last));
@@ -884,17 +884,17 @@ WJR_CONSTEXPR20 void uninitialized_fill(_Iter _First, _Iter _Last, const _Val& v
 }
 
 template<typename _Iter>
-WJR_CONSTEXPR20 void uninitialized_fill(_Iter _First, _Iter _Last, default_construct_tag) {
+WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, default_construct_tag) {
 	wjr::uninitialized_default_construct(_First, _Last);
 }
 
 template<typename _Iter>
-WJR_CONSTEXPR20 void uninitialized_fill(_Iter _First, _Iter _Last, value_construct_tag) {
+WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, value_construct_tag) {
 	wjr::uninitialized_value_construct(_First, _Last);
 }
 
 template<typename Alloc, typename _Iter, typename _Val>
-WJR_CONSTEXPR20 void uninitialized_fill(Alloc& al, _Iter _First, _Iter _Last, const _Val& val) {
+WJR_CONSTEXPR20 void do_uninitialized_fill(Alloc& al, _Iter _First, _Iter _Last, const _Val& val) {
 	if constexpr (is_default_allocator_construct_v<Alloc, _Iter, _Val>) {
 		wjr::uninitialized_fill(_First, _Last, val);
 	}
@@ -906,7 +906,7 @@ WJR_CONSTEXPR20 void uninitialized_fill(Alloc& al, _Iter _First, _Iter _Last, co
 }
 
 template<typename _Iter, typename _Diff, typename _Val>
-WJR_CONSTEXPR20 _Iter uninitialized_fill_n(_Iter _First, _Diff n, const _Val& val) {
+WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(_Iter _First, _Diff n, const _Val& val) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_uninitialized_fill_v<_Iter, _Val>) {
 			if (n <= 0) { return _First; }
@@ -928,17 +928,17 @@ WJR_CONSTEXPR20 _Iter uninitialized_fill_n(_Iter _First, _Diff n, const _Val& va
 }
 
 template<typename _Iter, typename _Diff>
-WJR_CONSTEXPR20 _Iter uninitialized_fill_n(_Iter _First, _Diff n, default_construct_tag) {
+WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(_Iter _First, _Diff n, default_construct_tag) {
 	return wjr::uninitialized_default_construct_n(_First, n);
 }
 
 template<typename _Iter, typename _Diff>
-WJR_CONSTEXPR20 _Iter uninitialized_fill_n(_Iter _First, _Diff n, value_construct_tag) {
+WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(_Iter _First, _Diff n, value_construct_tag) {
 	return wjr::uninitialized_value_construct_n(_First, n);
 }
 
 template<typename Alloc, typename _Iter, typename _Diff, typename _Val>
-WJR_CONSTEXPR20 _Iter uninitialized_fill_n(Alloc& al, _Iter _First, _Diff n, const _Val& val) {
+WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(Alloc& al, _Iter _First, _Diff n, const _Val& val) {
 	if constexpr (is_default_allocator_construct_v<Alloc, _Iter, _Val>) {
 		return wjr::uninitialized_fill_n(_First, n, val);
 	}
@@ -950,7 +950,7 @@ WJR_CONSTEXPR20 _Iter uninitialized_fill_n(Alloc& al, _Iter _First, _Diff n, con
 }
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 _Iter2 uninitialized_move(_Iter1 _First, _Iter1 _Last, _Iter2 _Dest) {
+WJR_CONSTEXPR20 _Iter2 do_uninitialized_move(_Iter1 _First, _Iter1 _Last, _Iter2 _Dest) {
 	return wjr::uninitialized_copy(
 		std::make_move_iterator(_First),
 		std::make_move_iterator(_Last),
@@ -959,7 +959,7 @@ WJR_CONSTEXPR20 _Iter2 uninitialized_move(_Iter1 _First, _Iter1 _Last, _Iter2 _D
 }
 
 template<typename Alloc, typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 _Iter2 uninitialized_move(Alloc& al, _Iter1 _First, _Iter1 _Last, _Iter2 _Dest) {
+WJR_CONSTEXPR20 _Iter2 do_uninitialized_move(Alloc& al, _Iter1 _First, _Iter1 _Last, _Iter2 _Dest) {
 	return wjr::uninitialized_copy(al,
 		std::make_move_iterator(_First),
 		std::make_move_iterator(_Last),
@@ -968,7 +968,7 @@ WJR_CONSTEXPR20 _Iter2 uninitialized_move(Alloc& al, _Iter1 _First, _Iter1 _Last
 }
 
 template<typename _Iter1, typename _Diff, typename _Iter2>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> uninitialized_move_n(_Iter1 _First, _Diff n, _Iter2 _Dest) {
+WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_uninitialized_move_n(_Iter1 _First, _Diff n, _Iter2 _Dest) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_uninitialized_copy_v<_Iter1, std::move_iterator<_Iter1>>) {
 			if (n <= 0) return std::make_pair(_First, _Dest);
@@ -990,7 +990,7 @@ WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> uninitialized_move_n(_Iter1 _First, _D
 }
 
 template<typename Alloc, typename _Iter1, typename _Diff, typename _Iter2>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> uninitialized_move_n(
+WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_uninitialized_move_n(
 	Alloc& al, _Iter1 _First, _Diff n, _Iter2 _Dest) {
 	if constexpr (is_default_allocator_construct_v<Alloc, _Iter1, decltype(std::move(*_First))>) {
 		return wjr::uninitialized_move_n(_First, n, _Dest);
@@ -1004,14 +1004,14 @@ WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> uninitialized_move_n(
 }
 
 template<typename _Iter, typename _Func>
-WJR_CONSTEXPR20 void for_each(_Iter _First, _Iter _Last, _Func fn) {
+WJR_CONSTEXPR20 void do_for_each(_Iter _First, _Iter _Last, _Func fn) {
 	for (; _First != _Last; ++_First) {
 		fn(*_First);
 	}
 }
 
 template<typename _Iter, typename _SizeT, typename _Func>
-WJR_CONSTEXPR20 void for_each_n(_Iter _First, _SizeT n, _Func fn) {
+WJR_CONSTEXPR20 void do_for_each_n(_Iter _First, _SizeT n, _Func fn) {
 	if (n <= 0) {
 		return;
 	}
@@ -1063,4 +1063,3 @@ private:
 };
 
 _WJR_END
-

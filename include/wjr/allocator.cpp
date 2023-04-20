@@ -2,6 +2,7 @@
 #include <wjr/allocator.h>
 
 _WJR_BEGIN
+
 #if defined(WJR_TEST_ALLOCATOR)
 void __test_allocator::test() const {
 	if (_Count != 0) {
