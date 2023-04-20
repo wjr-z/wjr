@@ -514,6 +514,9 @@ constexpr bool operator!=(const basic_allocator<T, t1>&, const basic_allocator<U
 	return t1 != t2;
 }
 
+template<typename T, bool f>
+struct is_default_allocator<basic_allocator<T, f>> : std::true_type {};
+
 // non thread safe allocator
 template<typename T>
 using nsallocator = basic_allocator<T, false>;
@@ -522,24 +525,25 @@ template<typename T>
 using sallocator = basic_allocator<T, true>;
 
 template<typename T, typename Alloc>
-class unique_ptr_with_allocator_delete {
+class unique_ptr_with_allocator_delete 
+	: private _Pair_wrapper<0, typename std::allocator_traits<Alloc>::template rebind_alloc<T>>{
 	using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
+	using _Mybase = _Pair_wrapper<0, _Alty>;
 	using _Alty_traits = std::allocator_traits<Alloc>;
 public:
 	using allocator_type = Alloc;
-	constexpr unique_ptr_with_allocator_delete() noexcept(std::is_nothrow_default_constructible_v<_Alty>) : al() {}
+	constexpr unique_ptr_with_allocator_delete() 
+		noexcept(std::is_nothrow_default_constructible_v<_Alty>) : _Mybase() {}
 	constexpr unique_ptr_with_allocator_delete(const allocator_type& _Al)
-		noexcept(std::is_nothrow_constructible_v<_Alty, const allocator_type&>) : al(_Al) {}
+		noexcept(std::is_nothrow_constructible_v<_Alty, const allocator_type&>) : _Mybase(_Al) {}
 	constexpr unique_ptr_with_allocator_delete(const unique_ptr_with_allocator_delete&) = default;
 	constexpr unique_ptr_with_allocator_delete(unique_ptr_with_allocator_delete&&) = default;
 	constexpr unique_ptr_with_allocator_delete& operator=(const unique_ptr_with_allocator_delete&) = default;
 	constexpr unique_ptr_with_allocator_delete& operator=(unique_ptr_with_allocator_delete&&) = default;
 	constexpr void operator()(T* ptr) {
-		destroy_at(al, ptr);
-		al.deallocate(ptr, 1);
+		destroy_at(_Mybase::value(), ptr);
+		_Mybase::value().deallocate(ptr, 1);
 	}
-private:
-	_Alty al;
 };
 
 template<typename T, typename Alloc>

@@ -241,7 +241,7 @@ json json::__parse(const char*& first, const char* last) {
 			return it;
 		}
 		for (;;) {
-			arr.emplace_back(std::move(__parse(first, last)));
+			arr.emplace_back(__parse(first, last));
 			first = ascii::encode::skipw(first, last);
 			if (*first == ']') {
 				++first;

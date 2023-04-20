@@ -2,11 +2,11 @@
 #ifndef __WJR_CPUINFO_H
 #define __WJR_CPUINFO_H
 
+#include <wjr/macro.h>
+
 #if defined(_WJR_CPUINFO)
 #include <cpuinfo_x86.h>
 #endif // _WJR_CPUINFO
-
-#include <wjr/macro.h>
 
 _WJR_BEGIN
 

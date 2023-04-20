@@ -128,12 +128,16 @@ public:
 
 	template<typename T, std::enable_if_t<
 		tp_find_constructible_v<type_list, T&&> != -1 
-		&& !is_in_place_type_v<remove_cvref_t<T>>, int> = 0>
+		&& !is_in_place_type_v<remove_cvref_t<T>>
+		&& !std::is_same_v<std::decay_t<T>, json>, int> = 0>
 	inline json(T&& t) : json(std::in_place_index_t<tp_find_constructible_v<type_list, T&&>>{}, std::forward<T>(t)) {}
 
 	template<typename T, typename...Args, 
-		std::enable_if_t<tp_find_constructible_v<type_list, T&&, Args&&...> != -1
-		&& !is_in_place_type_v<remove_cvref_t<T>>, int> = 0>
+		std::enable_if_t<
+		tp_find_constructible_v<type_list, T&&, Args&&...> != -1
+		&& !is_in_place_type_v<remove_cvref_t<T>>
+		&& !std::is_same_v<std::decay_t<T>, json>
+		&& sizeof...(Args) != 0, int> = 0>
 	inline json(T&& t, Args&&...args) 
 		: json(std::in_place_index_t<tp_find_constructible_v<type_list, T&&>>{}, 
 			std::forward<T>(t), std::forward<Args>(args)...) {}
@@ -160,8 +164,10 @@ public:
 
 	inline json& operator=(json&& other) = default;
 
-	template<typename T, std::enable_if_t<tp_find_assignable_v<type_list, T&&> != -1 
-		&& !std::is_same_v<json, std::decay_t<T>>, int> = 0>
+	template<typename T, std::enable_if_t<
+		tp_find_assignable_v<type_list, T&&> != -1 
+		&& !std::is_same_v<json, std::decay_t<T>>
+		&& !std::is_same_v<std::decay_t<T>, json>, int> = 0>
 	inline json& operator=(T&& t) {
 		emplace<tp_at_t<type_list, tp_find_assignable_v<type_list, T&&>>>(std::forward<T>(t));
 		return *this;

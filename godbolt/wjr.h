@@ -6835,10 +6835,6 @@ vector[*length] = '\0';
 #ifndef __WJR_CPUINFO_H
 #define __WJR_CPUINFO_H
 
-#if defined(_WJR_CPUINFO)
-#include <cpuinfo_x86.h>
-#endif // _WJR_CPUINFO
-
 #pragma once
 #ifndef __WJR_MMACRO_H
 #define __WJR_MMACRO_H
@@ -7754,6 +7750,10 @@ has_type_##NAME<T, Args...>::value;
 
 #endif
 
+
+#if defined(_WJR_CPUINFO)
+#include <cpuinfo_x86.h>
+#endif // _WJR_CPUINFO
 
 _WJR_BEGIN
 
@@ -26007,6 +26007,9 @@ constexpr bool operator!=(const basic_allocator<T, t1>&, const basic_allocator<U
 return t1 != t2;
 }
 
+template<typename T, bool f>
+struct is_default_allocator<basic_allocator<T, f>> : std::true_type {};
+
 // non thread safe allocator
 template<typename T>
 using nsallocator = basic_allocator<T, false>;
@@ -26015,24 +26018,25 @@ template<typename T>
 using sallocator = basic_allocator<T, true>;
 
 template<typename T, typename Alloc>
-class unique_ptr_with_allocator_delete {
+class unique_ptr_with_allocator_delete
+: private _Pair_wrapper<0, typename std::allocator_traits<Alloc>::template rebind_alloc<T>>{
 using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
+using _Mybase = _Pair_wrapper<0, _Alty>;
 using _Alty_traits = std::allocator_traits<Alloc>;
 public:
 using allocator_type = Alloc;
-constexpr unique_ptr_with_allocator_delete() noexcept(std::is_nothrow_default_constructible_v<_Alty>) : al() {}
+constexpr unique_ptr_with_allocator_delete()
+noexcept(std::is_nothrow_default_constructible_v<_Alty>) : _Mybase() {}
 constexpr unique_ptr_with_allocator_delete(const allocator_type& _Al)
-noexcept(std::is_nothrow_constructible_v<_Alty, const allocator_type&>) : al(_Al) {}
+noexcept(std::is_nothrow_constructible_v<_Alty, const allocator_type&>) : _Mybase(_Al) {}
 constexpr unique_ptr_with_allocator_delete(const unique_ptr_with_allocator_delete&) = default;
 constexpr unique_ptr_with_allocator_delete(unique_ptr_with_allocator_delete&&) = default;
 constexpr unique_ptr_with_allocator_delete& operator=(const unique_ptr_with_allocator_delete&) = default;
 constexpr unique_ptr_with_allocator_delete& operator=(unique_ptr_with_allocator_delete&&) = default;
 constexpr void operator()(T* ptr) {
-destroy_at(al, ptr);
-al.deallocate(ptr, 1);
+destroy_at(_Mybase::value(), ptr);
+_Mybase::value().deallocate(ptr, 1);
 }
-private:
-_Alty al;
 };
 
 template<typename T, typename Alloc>
@@ -28642,12 +28646,16 @@ inline json(std::in_place_type_t<T>, Args&&...args)
 
 template<typename T, std::enable_if_t<
 tp_find_constructible_v<type_list, T&&> != -1
-&& !is_in_place_type_v<remove_cvref_t<T>>, int> = 0>
+&& !is_in_place_type_v<remove_cvref_t<T>>
+&& !std::is_same_v<std::decay_t<T>, json>, int> = 0>
 inline json(T&& t) : json(std::in_place_index_t<tp_find_constructible_v<type_list, T&&>>{}, std::forward<T>(t)) {}
 
 template<typename T, typename...Args,
-std::enable_if_t<tp_find_constructible_v<type_list, T&&, Args&&...> != -1
-&& !is_in_place_type_v<remove_cvref_t<T>>, int> = 0>
+std::enable_if_t<
+tp_find_constructible_v<type_list, T&&, Args&&...> != -1
+&& !is_in_place_type_v<remove_cvref_t<T>>
+&& !std::is_same_v<std::decay_t<T>, json>
+&& sizeof...(Args) != 0, int> = 0>
 inline json(T&& t, Args&&...args)
 : json(std::in_place_index_t<tp_find_constructible_v<type_list, T&&>>{},
 std::forward<T>(t), std::forward<Args>(args)...) {}
@@ -28674,8 +28682,10 @@ return *this;
 
 inline json& operator=(json&& other) = default;
 
-template<typename T, std::enable_if_t<tp_find_assignable_v<type_list, T&&> != -1
-&& !std::is_same_v<json, std::decay_t<T>>, int> = 0>
+template<typename T, std::enable_if_t<
+tp_find_assignable_v<type_list, T&&> != -1
+&& !std::is_same_v<json, std::decay_t<T>>
+&& !std::is_same_v<std::decay_t<T>, json>, int> = 0>
 inline json& operator=(T&& t) {
 emplace<tp_at_t<type_list, tp_find_assignable_v<type_list, T&&>>>(std::forward<T>(t));
 return *this;
@@ -29036,7 +29046,7 @@ if (*first == ']') {
 return it;
 }
 for (;;) {
-arr.emplace_back(std::move(__parse(first, last)));
+arr.emplace_back(__parse(first, last));
 first = ascii::encode::skipw(first, last);
 if (*first == ']') {
 ++first;
