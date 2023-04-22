@@ -176,11 +176,26 @@ using add_cref_t = add_lref_t<std::add_const_t<T>>;
 template<typename T>
 struct is_in_place_type : std::false_type {};
 
-template<template<typename...>typename C, typename T, typename...Args>
-struct is_in_place_type<C<T, Args...>> : std::is_same<C<T, Args...>, std::in_place_type_t<T>> {};
+template<template<typename...>typename C, typename T>
+struct is_in_place_type<C<T>> : std::is_same<C<T>, std::in_place_type_t<T>> {};
 
 template<typename T>
 inline constexpr bool is_in_place_type_v = is_in_place_type<T>::value;
+
+template<typename T>
+struct is_in_place_index : std::false_type {};
+
+template<template<size_t...>typename C, size_t I>
+struct is_in_place_index<C<I>> : std::is_same<C<I>, std::in_place_index_t<I>> {};
+
+template<typename T>
+inline constexpr bool is_in_place_index_v = is_in_place_index<T>::value;
+
+template<typename T>
+struct is_in_place : std::disjunction<is_in_place_type<T>, is_in_place_index<T>> {};
+
+template<typename T>
+inline constexpr bool is_in_place_v = is_in_place<T>::value;
 
 // default comparator
 // can be used for optimize, such as find, compare...
@@ -431,9 +446,9 @@ constexpr ipmc_result is_possible_memory_comparable(const U& v, _Pred) {
 	
 	constexpr auto __nt_min = static_cast<cat>(std::numeric_limits<nt>::min());
 	constexpr auto __nt_max = static_cast<cat>(std::numeric_limits<nt>::max());
-	constexpr auto __nt_negone = static_cast<cat>(static_cast<nt>(-1));
 
 	if constexpr (std::is_signed_v<nt> && std::is_unsigned_v<cat>) {
+		constexpr auto __nt_negone = static_cast<cat>(static_cast<nt>(-1));
 		static_assert(__nt_negone == std::numeric_limits<cat>::max(), "error");
 		static_assert(__nt_min <= __nt_negone, "error");
 		static_assert(__nt_max < __nt_min, "error");

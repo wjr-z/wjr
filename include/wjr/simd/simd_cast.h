@@ -13,7 +13,7 @@ template<typename T, typename U>
 struct simd_cast_fn;
 
 template<typename T, typename U>
-constexpr simd_cast_fn<T, U> simd_cast{};
+inline constexpr simd_cast_fn<T, U> simd_cast;
 
 #define __REGISTER_BASIC_CAST(FROM, TO, func)											                    \
 template<>	                                                                                                \

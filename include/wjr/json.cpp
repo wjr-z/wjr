@@ -20,20 +20,40 @@ constexpr iter skip_string(iter first, WJR_MAYBE_UNUSED iter last) {
 	using value_t = typename std::iterator_traits<iter>::value_type;
 	using uvalue_t = std::make_unsigned_t<value_t>;
 	if constexpr (std::numeric_limits<uvalue_t>::max() < 256) {
-		auto u_value = make_unsigned_v(*first);
-		while (string_skip_step[u_value]) {
-			first += string_skip_step[u_value];
-			u_value = make_unsigned_v(*first);
+		if constexpr (std::is_same_v<value_t, char> && is_contiguous_iter_v<iter>) {
+			do {
+				// very fast for most cases
+				// In most cases, skipping characters greater than or equal to 2 
+				// will be faster than regular loops above this threshold.
+				//And in most cases, even if there are transfer characters, 
+				// there are only a few
+				auto pos = wjr::find(first, last, '"');
+				auto pos2 = wjr::find_if(std::reverse_iterator(pos), std::reverse_iterator(first), [](auto x) {
+					return x != '\\';
+					});
+				if (static_cast<size_t>(pos - pos2.base()) % 2 == 0) {
+					return pos;
+				}
+				first = pos + 1;
+			} while (true);
+		}
+		else {
+			auto u_value = make_unsigned_v(*first);
+			while (string_skip_step[u_value]) {
+				first += string_skip_step[u_value];
+				u_value = make_unsigned_v(*first);
+			}
+			return first;
 		}
 	}
 	else {
 		auto u_value = make_unsigned_v(*first);
 		while (u_value >= 256 || string_skip_step[u_value]) {
-			first += u_value >= 256 ? 1 : string_skip_step[*first];
+			first += u_value >= 256 ? 1 : string_skip_step[u_value];
 			u_value = make_unsigned_v(*first);
 		}
+		return first;
 	}
-	return first;
 }
 
 template<typename iter, std::enable_if_t<is_iterator_v<iter>, int> = 0>
@@ -86,7 +106,7 @@ constexpr static bool check_string(iter& s, iter e) {
 	return s != e;
 }
 
-WJR_CONSTEXPR20 bool json::__accept(const char*& first, const char* last, uint8_t state) {
+bool json::__accept(const char*& first, const char* last, uint8_t state) {
 	bool head = true;
 	for (;; ++first) {
 		first = ascii::encode::skipw(first, last);
@@ -179,7 +199,7 @@ WJR_CONSTEXPR20 bool json::__accept(const char*& first, const char* last, uint8_
 	}
 }
 
-WJR_CONSTEXPR20 bool json::accept(const char* first, const char* last) {
+bool json::accept(const char* first, const char* last) {
 	first = ascii::encode::skipw(first, last);
 	if (first == last) {
 		return false;
@@ -203,7 +223,7 @@ WJR_CONSTEXPR20 bool json::accept(const char* first, const char* last) {
 	}
 }
 
-WJR_CONSTEXPR20 json json::__parse(const char*& first, const char* last) {
+json json::__parse(const char*& first, const char* last) {
 	first = ascii::encode::skipw(first, last);
 	switch (*first) {
 	case 'n': {
@@ -221,36 +241,16 @@ WJR_CONSTEXPR20 json json::__parse(const char*& first, const char* last) {
 		first += 5;
 		return it;
 	}
-	case '{': {
-		json it(std::in_place_type_t<object>{});
-		auto& obj = wjr::get<object>(it);
+	case '"': {
 		++first;
-		first = ascii::encode::skipw(first, last);
-		if (*first == '}') {
-			++first;
-			return it;
-		}
-		while (true) {
-			first = ascii::encode::skipw(first, last);
-			++first;
-			auto p = skip_string(first, last);
-			auto& item = obj[string(first, p)];
-			first = p + 1;
-			first = ascii::encode::skipw(first, last);
-			++first;
-			item = __parse(first, last);
-			first = ascii::encode::skipw(first, last);
-			if (*first == '}') {
-				++first;
-				break;
-			}
-			++first;
-		}
+		auto t = skip_string(first, last);
+		json it(std::in_place_type_t<string>{}, first, t);
+		first = t + 1;
 		return it;
 	}
 	case '[': {
 		json it(std::in_place_type_t<array>{});
-		auto& arr = wjr::get<array>(it);
+		auto& arr = it.get_array();
 		++first;
 		first = ascii::encode::skipw(first, last);
 		if (*first == ']') {
@@ -269,11 +269,31 @@ WJR_CONSTEXPR20 json json::__parse(const char*& first, const char* last) {
 		arr.shrink_to_fit();
 		return it;
 	}
-	case '"': {
+	case '{': {
+		json it(std::in_place_type_t<object>{});
+		auto& obj = it.get_object();
 		++first;
-		auto t = skip_string(first, last);
-		json it(std::in_place_type_t<string>{}, first, t);
-		first = t + 1;
+		first = ascii::encode::skipw(first, last);
+		if (*first == '}') {
+			++first;
+			return it;
+		}
+		for(;;) {
+			first = ascii::encode::skipw(first, last);
+			++first;
+			auto p = skip_string(first, last);
+			string name(first, p);
+			first = p + 1;
+			first = ascii::encode::skipw(first, last);
+			++first;
+			obj.insert_or_assign(std::move(name), __parse(first, last));
+			first = ascii::encode::skipw(first, last);
+			if (*first == '}') {
+				++first;
+				break;
+			}
+			++first;
+		}
 		return it;
 	}
 	default: {
@@ -288,7 +308,7 @@ WJR_CONSTEXPR20 json json::__parse(const char*& first, const char* last) {
 }
 
 template<int m>
-WJR_CONSTEXPR20 void json::_stringify(string& str, int a) const noexcept {
+void json::_stringify(string& str, int a) const noexcept {
 	constexpr int LEN = []() {
 		switch (m) {
 		case SHORTEST:return 0;
@@ -303,7 +323,7 @@ WJR_CONSTEXPR20 void json::_stringify(string& str, int a) const noexcept {
 		break;
 	}
 	case 1: {
-		if (wjr::get<boolean>(*this)) {
+		if (get_boolean()) {
 			str.append("true");
 		}
 		else {
@@ -315,16 +335,16 @@ WJR_CONSTEXPR20 void json::_stringify(string& str, int a) const noexcept {
 		str.reserve(str.size() + 256);
 		size_t length = 0;
 		ascii::encode::from_floating_point<double>(
-			wjr::get<number>(*this), str.end(), 256, &length);
+			get_number(), str.end(), 256, &length);
 		str.inc_size(length);
 		break;
 	}
 	case 3: {
-		str.append(wjr::get<string>(*this));
+		str.append('"').append(get_string()).append('"');
 		break;
 	}
 	case 4: {
-		const auto& arr = wjr::get<array>(*this);
+		const auto& arr = get_array();
 		str.push_back('[');
 		if (!arr.empty()) {
 			bool head = true;
@@ -356,7 +376,7 @@ WJR_CONSTEXPR20 void json::_stringify(string& str, int a) const noexcept {
 		break;
 	}
 	case 5: {
-		auto& obj = wjr::get<object>(*this);
+		auto& obj = get_object();
 		str.push_back('{');
 		if (!obj.empty()) {
 			bool head = true;
@@ -396,5 +416,16 @@ template void json::_stringify<0>(string& str, int a) const noexcept;
 template void json::_stringify<1>(string& str, int a) const noexcept;
 template void json::_stringify<2>(string& str, int a) const noexcept;
 template void json::_stringify<3>(string& str, int a) const noexcept;
+
+bool operator==(const json& a, const json& b) {
+	if (a.index() != b.index()) {
+		return false;
+	}
+	return wjr::visit([&b](const auto& x) {
+		using value_type = remove_cvref_t<decltype(x)>;
+		return x == wjr::get<value_type>(b);
+		}, a);
+}
+
 
 _WJR_END

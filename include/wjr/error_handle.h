@@ -3,7 +3,6 @@
 #define __WJR_ERROR_HANDLE_H
 
 namespace wjr {
-	// TODO :
 
 	enum class errc {
 		ok               = 0x00,
@@ -14,6 +13,8 @@ namespace wjr {
 		noconv           = 0x05,
 		buffer_too_small = 0x06,
 	};
+
+	// TODO : use reflexpr...
 
 }
 

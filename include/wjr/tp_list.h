@@ -1132,73 +1132,81 @@ using tp_iota_t = typename tp_iota<I, N>::type;
 
 //
 
-template<typename C, typename...Args>
-struct tp_find_first_constructible {
-	constexpr static size_t value = tp_find_if_f<C, tp_bind_back<std::is_constructible, Args...>>;
+template<typename C, typename T, typename = void>
+struct __tp_find_unique_constructible_helper {
+	using type = tp_size_t<(size_t)(-1)>;
+};
+
+template<typename C, typename T>
+struct __tp_find_unique_constructible_helper<C, T, std::enable_if_t<tp_size_v<T> == 1, void>> {
+	using type = tp_size_t<tp_find_v<C, tp_front_t<T>>>;
 };
 
 template<typename C, typename...Args>
-inline constexpr size_t tp_find_first_constructible_v = tp_find_first_constructible<C, Args...>::value;
-
-template<typename C, typename...Args>
-struct tp_find_first_assignable {
-	constexpr static size_t value = tp_find_if_f<C, tp_bind_back<std::is_assignable, Args...>>;
+struct tp_find_unique_constructible {
+private:
+	template<typename U>
+	struct __remove : std::negation<std::is_constructible<U, Args...>> {};
+	using type1 = tp_remove_if_t<C, __remove>;
+	using type2 = typename __tp_find_unique_constructible_helper<C, type1, void>::type;
+public:
+	constexpr static size_t value = type2::value;
 };
 
 template<typename C, typename...Args>
-inline constexpr size_t tp_find_first_assignable_v = tp_find_first_assignable<C, Args...>::value;
+inline constexpr size_t tp_find_unique_constructible_v = tp_find_unique_constructible<C, Args...>::value;
 
 template<typename C, size_t idx, typename T>
-struct __tp_find_best_constructible_func {
+struct __tp_find_best_convertible_func {
 	auto operator()(tp_at_t<C, idx>)->tp_c<size_t, idx>;
 };
 
 template<typename C, typename I, typename T>
-struct __tp_find_best_constructible_func_table;
+struct __tp_find_best_convertible_func_table;
 
 template<typename C, typename...Args, typename T>
-struct __tp_find_best_constructible_func_table<C, tp_list<Args...>, T>
-	: __tp_find_best_constructible_func<C, Args::value, T>... {
-	using __tp_find_best_constructible_func<C, Args::value, T>::operator()...;
+struct __tp_find_best_convertible_func_table<C, tp_list<Args...>, T>
+	: __tp_find_best_convertible_func<C, Args::value, T>... {
+	using __tp_find_best_convertible_func<C, Args::value, T>::operator()...;
 };
 
 template<typename C, typename I, typename T>
-struct __tp_find_best_constructible_helper;
+struct __tp_find_best_convertible_helper;
 
 template<typename C, typename...Args, typename T>
-struct __tp_find_best_constructible_helper<C, tp_list<Args...>, T> {
+struct __tp_find_best_convertible_helper<C, tp_list<Args...>, T> {
 
 	template<typename U>
-	struct __remove : std::negation<std::is_constructible<tp_at_t<C, U::value>, T>> {};
+	struct __remove : std::negation<std::is_convertible<T, tp_at_t<C, U::value>>> {};
 
 	using __seq = tp_remove_if_t<tp_list<Args...>, __remove>;
-	using type = __tp_find_best_constructible_func_table<C, __seq, T>;
+	using type = __tp_find_best_convertible_func_table<C, __seq, T>;
 };
 
 template<typename C, typename I, typename T>
-using __tp_find_best_constructible_helper_t = typename __tp_find_best_constructible_helper<C, I, T>::type;
+using __tp_find_best_convertible_helper_t = typename __tp_find_best_convertible_helper<C, I, T>::type;
 
 template<typename _Enable, typename C, typename T>
-struct __tp_find_best_constructible{
+struct __tp_find_best_convertible{
 	using type = tp_c<size_t, (size_t)(-1)>;
 };
 
 template<typename C, typename T>
-struct __tp_find_best_constructible<std::void_t<decltype(
-	__tp_find_best_constructible_helper_t<C, tp_iota_t<0, tp_size_v<C>>, T>{}(std::declval<T>()))>, C, T> {
+struct __tp_find_best_convertible<std::void_t<decltype(
+	__tp_find_best_convertible_helper_t<C, tp_iota_t<0, tp_size_v<C>>, T>{}(std::declval<T>()))>, C, T> {
 	using type = decltype(
-		__tp_find_best_constructible_helper_t<C, tp_iota_t<0, tp_size_v<C>>, T>{}(std::declval<T>()));
+		__tp_find_best_convertible_helper_t<C, tp_iota_t<0, tp_size_v<C>>, T>{}(std::declval<T>()));
 };
 
 template<typename C, typename T>
-struct tp_find_best_constructible {
-	using __type= typename __tp_find_best_constructible<void, C, T>::type;
+struct tp_find_best_convertible {
+	using __type= typename __tp_find_best_convertible<void, C, T>::type;
 	constexpr static size_t value =  __type::value;
 };
 
-// find best match
+// find best match of convert
 template<typename C, typename T>
-inline constexpr size_t tp_find_best_constructible_v = tp_find_best_constructible<C, T>::value;
+inline constexpr size_t tp_find_best_convertible_v = tp_find_best_convertible<C, T>::value;
 
 class tp_fn {
 public:

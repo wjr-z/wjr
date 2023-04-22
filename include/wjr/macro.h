@@ -478,6 +478,12 @@ do{                         \
 #define WJR_CONST
 #endif
 
+#if WJR_HAS_ATTRIBUTE(malloc)
+#define WJR_MALLOC __attribute__((malloc))
+#else
+#define WJR_MALLOC 
+#endif
+
 // Compiler support for constexpr
 #if defined(__cpp_lib_is_constant_evaluated) || WJR_HAS_BUILTIN(__builtin_is_constant_evaluated) \
 	|| WJR_HAS_GCC(9,1,0) || WJR_HAS_CLANG(9,0,0)

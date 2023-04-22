@@ -94,7 +94,7 @@ public:
 		::operator delete(ptr, _Count * sizeof(_Ty) + _Off, static_cast<std::align_val_t>(_Al));
 	}
 
-	WJR_NODISCARD WJR_CONSTEXPR20 _Ty* allocate(const size_t _Count) {
+	WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC _Ty* allocate(const size_t _Count) {
 #if defined(WJR_TEST_ALLOCATOR)
 		__test_allocator_instance._Count += _Count * sizeof(_Ty) + _Off;
 #endif
@@ -474,7 +474,7 @@ public:
 	~basic_allocator() = default;
 	basic_allocator& operator=(const basic_allocator&) noexcept = default;
 
-	WJR_NODISCARD WJR_CONSTEXPR20 Ty* allocate(size_t n) const noexcept {
+	WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty* allocate(size_t n) const noexcept {
 #if defined(WJR_TEST_ALLOCATOR)
 		__test_allocator_instance._Count += n;
 #endif

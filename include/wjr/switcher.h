@@ -9,6 +9,9 @@
 
 _WJR_BEGIN
 
+// TODO, switch for strings
+// use binary search or hash
+
 template<typename T>
 class switcher;
 

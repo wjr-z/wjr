@@ -13,10 +13,10 @@
 _WJR_BEGIN
 
 namespace __string_func_traits {
-	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(__skipw, skipw);
-	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(__rskipw, rskipw);
-	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(__skipz, skipz);
-	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(__skipd, skipd);
+	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(do_skipw, do_skipw);
+	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(do_rskipw, do_rskipw);
+	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(do_skipz, do_skipz);
+	WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(do_skipd, do_skipd);
 }
 
 template<typename Traits>
@@ -168,7 +168,7 @@ private:
 		int base, errc& _Err, F f, _Iter _Zero, bool _Is_minus) noexcept;
 
 	WJR_INLINE_CONSTEXPR20 static void __from(
-		uT uval, const char*& _RNext, int base) noexcept;
+		uT uval, char*& _RNext, int base) noexcept;
 
 };
 
@@ -400,7 +400,7 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR T integral_conversion_details<T, Func>::__
 
 template<typename T, typename Func>
 WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::__from(
-	uT uval, const char*& _RNext, int base) noexcept {
+	uT uval, char*& _RNext, int base) noexcept {
 	switch (base) {
 	case 10:
 	{ // Derived from _UIntegral_to_buff()
@@ -649,7 +649,7 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR uint32_t string_func<Traits>::toalnum(valu
 template<typename Traits>
 template<typename _Iter>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::skipw(_Iter _First, _Iter _Last) {
-	if constexpr (__string_func_traits::has_static_member_function_skipw_v<encode_type, _Iter, _Iter>) {
+	if constexpr (__string_func_traits::has_static_member_function_do_skipw_v<encode_type, _Iter, _Iter>) {
 		return encode_type::skipw(_First, _Last);
 	}
 	else {
@@ -662,7 +662,7 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::skipw(_Iter _Fi
 template<typename Traits>
 template<typename _Iter>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::rskipw(_Iter _First, _Iter _Last) {
-	if constexpr (__string_func_traits::has_static_member_function_rskipw_v<encode_type, _Iter, _Iter>) {
+	if constexpr (__string_func_traits::has_static_member_function_do_rskipw_v<encode_type, _Iter, _Iter>) {
 		return encode_type::rskipw(_First, _Last);
 	}
 	else {
@@ -674,7 +674,7 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::rskipw(_Iter _F
 template<typename Traits>
 template<typename _Iter>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::skipz(_Iter _First, _Iter _Last) {
-	if constexpr (__string_func_traits::has_static_member_function_skipz_v<encode_type, _Iter, _Iter>) {
+	if constexpr (__string_func_traits::has_static_member_function_do_skipz_v<encode_type, _Iter, _Iter>) {
 		return encode_type::skipz(_First, _Last);
 	}
 	else {
@@ -695,7 +695,7 @@ template<typename Traits>
 template<typename _Iter>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>
 ::skipd(_Iter _First, _Iter _Last, int Base) {
-	if constexpr (__string_func_traits::has_static_member_function_skipz_v<encode_type, _Iter, _Iter, int>) {
+	if constexpr (__string_func_traits::has_static_member_function_do_skipz_v<encode_type, _Iter, _Iter, int>) {
 		return encode_type::skipz(_First, _Last, Base);
 	}
 	else {

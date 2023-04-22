@@ -964,6 +964,36 @@ __m128i sse::setmax(uint8_t) { return set1_epi32(0xFFFFFFFF); }
 __m128i sse::setmax(uint16_t) { return set1_epi32(0xFFFFFFFF); }
 __m128i sse::setmax(uint32_t) { return set1_epi32(0xFFFFFFFF); }
 
+template<int imm>
+__m128i sse::shl(__m128i a) {
+	if constexpr (imm >= 64) {
+		a = slli<8>(a);
+		a = slli_epi64(a, imm - 64);
+		return a;
+	}
+	else {
+		auto b = slli_epi64(a, imm);
+		auto c = slli<8>(a);
+		c = srli_epi64(c, 64 - imm);
+		return Or(b, c);
+	}
+}
+
+template<int imm>
+__m128i sse::shr(__m128i a) {
+	if constexpr (imm >= 64) {
+		a = srli<8>(a);
+		a = srli_epi64(a, imm - 64);
+		return a;
+	}
+	else {
+		auto b = srli_epi64(a, imm);
+		auto c = srli<8>(a);
+		c = slli_epi64(c, 64 - imm);
+		return Or(b, c);
+	}
+}
+
 template<int imm8>
 __m128i sse::shuffle_epi32(__m128i v) {
 	static_assert(imm8 >= 0 && imm8 <= 255, "imm8 must be in range [0, 255]");
@@ -1947,6 +1977,68 @@ __m256i avx::packs_epi32(__m256i a, __m256i b) { return _mm256_packs_epi32(a, b)
 __m256i avx::packus_epi16(__m256i a, __m256i b) { return _mm256_packus_epi16(a, b); }
 __m256i avx::packus_epi32(__m256i a, __m256i b) { return _mm256_packus_epi32(a, b); }
 
+template<int imm>
+__m256i avx::shl(__m256i a) {
+	if constexpr (imm >= 64 * 3) {
+		a = slli<8 * 3>(a);
+		a = slli_epi64(a, imm - 64 * 3);
+		return a;
+	}
+	else if constexpr (imm >= 64 * 2) {
+		a = slli<8 * 2>(a);
+		constexpr auto I = imm - 64 * 2;
+		auto b = slli_epi64(a, I);
+		auto c = slli<8>(a);
+		c = srli_epi64(c, 64 - I);
+		return Or(b, c);
+	}
+	else if constexpr (imm >= 64) {
+		a = slli<8>(a);
+		constexpr auto I = imm - 64;
+		auto b = slli_epi64(a, I);
+		auto c = slli<8>(a);
+		c = srli_epi64(c, 64 - I);
+		return Or(b, c);
+	}
+	else {
+		auto b = slli_epi64(a, imm);
+		auto c = slli<8>(a);
+		c = srli_epi64(c, 64 - imm);
+		return Or(b, c);
+	}
+}
+
+template<int imm>
+__m256i avx::shr(__m256i a) {
+	if constexpr (imm >= 64 * 3) {
+		a = srli<8 * 3>(a);
+		a = srli_epi64(a, imm - 64 * 3);
+		return a;
+	}
+	else if constexpr (imm >= 64 * 2) {
+		a = srli<8 * 2>(a);
+		constexpr auto I = imm - 64 * 2;
+		auto b = srli_epi64(a, I);
+		auto c = srli<8>(a);
+		c = slli_epi64(c, 64 - I);
+		return Or(b, c);
+	}
+	else if constexpr (imm >= 64) {
+		a = srli<8>(a);
+		constexpr auto I = imm - 64;
+		auto b = srli_epi64(a, I);
+		auto c = srli<8>(a);
+		c = slli_epi64(c, 64 - I);
+		return Or(b, c);
+	}
+	else {
+		auto b = srli_epi64(a, imm);
+		auto c = srli<8>(a);
+		c = slli_epi64(c, 64 - imm);
+		return Or(b, c);
+	}
+}
+
 __m256i avx::shuffle_epi8(__m256i a, __m256i b) { return _mm256_shuffle_epi8(a, b); }
 
 template<int imm8>
@@ -1975,6 +2067,10 @@ __m256i avx::sll(__m256i a, __m128i b, uint16_t) { return sll_epi16(a, b); }
 __m256i avx::sll(__m256i a, __m128i b, uint32_t) { return sll_epi32(a, b); }
 __m256i avx::sll(__m256i a, __m128i b, uint64_t) { return sll_epi64(a, b); }
 
+template<int imm8>
+__m256i avx::slli(__m256i a) {
+	return _mm256_slli_si256(a, imm8);
+}
 __m256i avx::slli_epi16(__m256i a, int imm8) { return _mm256_slli_epi16(a, imm8); }
 __m256i avx::slli_epi32(__m256i a, int imm8) { return _mm256_slli_epi32(a, imm8); }
 __m256i avx::slli_epi64(__m256i a, int imm8) { return _mm256_slli_epi64(a, imm8); }
@@ -2011,6 +2107,10 @@ __m256i avx::srl(__m256i a, __m128i b, uint16_t) { return srl_epi16(a, b); }
 __m256i avx::srl(__m256i a, __m128i b, uint32_t) { return srl_epi32(a, b); }
 __m256i avx::srl(__m256i a, __m128i b, uint64_t) { return srl_epi64(a, b); }
 
+template<int imm8>
+__m256i avx::srli(__m256i a) {
+	return _mm256_srli_si256(a, imm8);
+}
 __m256i avx::srli_epi16(__m256i a, int imm8) { return _mm256_srli_epi16(a, imm8); }
 __m256i avx::srli_epi32(__m256i a, int imm8) { return _mm256_srli_epi32(a, imm8); }
 __m256i avx::srli_epi64(__m256i a, int imm8) { return _mm256_srli_epi64(a, imm8); }
@@ -2075,6 +2175,7 @@ __m256i avx::unpacklo(__m256i a, __m256i b, int64_t) { return unpacklo_epi64(a, 
 __m256i avx::unpacklo(__m256i a, __m256i b, uint8_t) { return unpacklo_epi8(a, b); }
 __m256i avx::unpacklo(__m256i a, __m256i b, uint16_t) { return unpacklo_epi16(a, b); }
 __m256i avx::unpacklo(__m256i a, __m256i b, uint32_t) { return unpacklo_epi32(a, b); }
+
 #endif // WJR_AVX2
 
 _WJR_SIMD_END

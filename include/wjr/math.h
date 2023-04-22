@@ -99,6 +99,24 @@ WJR_INTRINSIC_CONSTEXPR20 T endian_convert(T x, endian from = endian::native) no
 	return x;
 }
 
+template<endian from, endian to, typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR20 T endian_convert(T x) noexcept {
+	if constexpr (from != to) {
+		return byteswap(x);
+	}
+	return x;
+}
+
+//template<typename T, endian to = endian::native>
+//WJR_INTRINSIC_CONSTEXPR20 void write_bytes
+
+template<typename T, endian to = endian::native>
+WJR_INTRINSIC_CONSTEXPR20 T read_bytes(const void* ptr) noexcept {
+	T value = T{};
+	memcpy(std::addressof(value), ptr, sizeof(T));
+	return endian_convert<endian::little, to>(value);
+}
+
 template< typename T, typename U >
 constexpr bool cmp_equal(T t, U u) noexcept {
 	using UT = std::make_unsigned_t<T>;

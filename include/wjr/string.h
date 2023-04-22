@@ -3135,12 +3135,13 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 			return ret;
 		}
 
-		template<typename _Iter, typename T>
+		template<typename T, typename _Iter>
 		WJR_INLINE_CONSTEXPR20 static void from_integral(
+			T value, 
 			_Iter _First, _Iter _Last, _Iter* _Pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept {
 			_Iter end_ptr = _First;
 			errc c = errc::ok;
-			auto ret = from_integral<T>(_First, _Last, end_ptr, base, c);
+			from_integral<T>(value, _First, _Last, end_ptr, base, c);
 
 			if (_Pos != nullptr) {
 				*_Pos = end_ptr;
@@ -3152,12 +3153,13 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 
 		}
 
-		template<typename _Iter, typename _Diff, typename T>
+		template<typename T, typename _Iter, typename _Diff>
 		WJR_INLINE_CONSTEXPR20 static void from_integral(
+			T value, 
 			_Iter _First, _Diff n, size_t* _Pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept {
 			_Iter end_ptr = _First;
 			errc c = errc::ok;
-			auto ret = from_integral<T>(_First, n, end_ptr, base, c);
+			from_integral<T>(value, _First, n, end_ptr, base, c);
 
 			if (_Pos != nullptr) {
 				*_Pos = static_cast<size_t>(end_ptr - _First);
@@ -3419,6 +3421,12 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 			_Iter& pos, errc& err, int precision = 0, M m = M(), F f = F()) noexcept {
 			using double_conversion::DoubleToStringConverter;
 			using double_conversion::StringBuilder;
+
+			if (n <= 0) {
+				err = errc::buffer_too_small;
+				return;
+			}
+
 			DoubleToStringConverter conv(
 				get_cvar(f),
 				"Infinity",
@@ -3450,10 +3458,11 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 			const auto length = static_cast<size_t>(builder.position());
 			builder.Finalize();
 
-			if (n < length) {
+			if (static_cast<size_t>(n) < length) {
 				err = errc::buffer_too_small;
 				return;
 			}
+
 			first = wjr::copy_n(buffer, length, first);
 
 			pos = first;

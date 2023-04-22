@@ -2,6 +2,7 @@
 #ifndef __WJR_SIMD_SIMD_INTRIN_H
 #define __WJR_SIMD_SIMD_INTRIN_H
 
+#include <wjr/math.h>
 #include <wjr/simd/simd_cast.h>
 #include <wjr/type_traits.h>
 
@@ -464,6 +465,12 @@ struct sse {
 	WJR_INTRINSIC_INLINE static __m128i setmax(uint8_t);
 	WJR_INTRINSIC_INLINE static __m128i setmax(uint16_t);
 	WJR_INTRINSIC_INLINE static __m128i setmax(uint32_t);
+
+	template<int imm>
+	WJR_INTRINSIC_INLINE static __m128i shl(__m128i a);
+
+	template<int imm>
+	WJR_INTRINSIC_INLINE static __m128i shr(__m128i b);
 
 	template<int imm8>
 	WJR_INTRINSIC_INLINE static __m128i shuffle_epi32(__m128i v);
@@ -1156,6 +1163,12 @@ struct avx {
 	WJR_INTRINSIC_INLINE static __m256i packus_epi16(__m256i a, __m256i b);
 	WJR_INTRINSIC_INLINE static __m256i packus_epi32(__m256i a, __m256i b);
 
+	template<int imm>
+	WJR_INTRINSIC_INLINE static __m256i shl(__m256i a);
+
+	template<int imm>
+	WJR_INTRINSIC_INLINE static __m256i shr(__m256i a);
+
 	WJR_INTRINSIC_INLINE static __m256i shuffle_epi8(__m256i a, __m256i b);
 	template<int imm8>
 	WJR_INTRINSIC_INLINE static __m256i shuffle_epi32(__m256i a);
@@ -1177,6 +1190,8 @@ struct avx {
 	WJR_INTRINSIC_INLINE static __m256i sll(__m256i a, __m128i b, uint32_t);
 	WJR_INTRINSIC_INLINE static __m256i sll(__m256i a, __m128i b, uint64_t);
 
+	template<int imm8>
+	WJR_INTRINSIC_INLINE static __m256i slli(__m256i a);
 	WJR_INTRINSIC_INLINE static __m256i slli_epi16(__m256i a, int imm8);
 	WJR_INTRINSIC_INLINE static __m256i slli_epi32(__m256i a, int imm8);
 	WJR_INTRINSIC_INLINE static __m256i slli_epi64(__m256i a, int imm8);
@@ -1213,6 +1228,8 @@ struct avx {
 	WJR_INTRINSIC_INLINE static __m256i srl(__m256i a, __m128i b, uint32_t);
 	WJR_INTRINSIC_INLINE static __m256i srl(__m256i a, __m128i b, uint64_t);
 
+	template<int imm8>
+	WJR_INTRINSIC_INLINE static __m256i srli(__m256i a);
 	WJR_INTRINSIC_INLINE static __m256i srli_epi16(__m256i a, int imm8);
 	WJR_INTRINSIC_INLINE static __m256i srli_epi32(__m256i a, int imm8);
 	WJR_INTRINSIC_INLINE static __m256i srli_epi64(__m256i a, int imm8);
