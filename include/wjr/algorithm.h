@@ -13,65 +13,68 @@
 _WJR_BEGIN
 
 template<typename _Iter, typename _Ty, typename _Pred>
-WJR_CONSTEXPR20 _Iter do_find(_Iter _First, _Iter _Last, const _Ty& _val, _Pred pred);
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) _Iter do_find(_Iter _First, _Iter _Last, const _Ty& _val, _Pred pred);
 
 template<typename _Iter, typename _Ty>
-WJR_CONSTEXPR20 _Iter do_find(_Iter _First, _Iter _Last, const _Ty& _val);
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) _Iter do_find(_Iter _First, _Iter _Last, const _Ty& _val);
 
 template<typename _Iter, typename _Pr>
-WJR_CONSTEXPR20 _Iter do_find_if(_Iter _First, _Iter _Last, _Pr _Pred);
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) _Iter do_find_if(_Iter _First, _Iter _Last, _Pr _Pred);
 
 template<typename _Iter, typename _Pr>
-WJR_CONSTEXPR20 _Iter do_find_if_not(_Iter _First, _Iter _Last, _Pr _Pred);
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) _Iter do_find_if_not(_Iter _First, _Iter _Last, _Pr _Pred);
 
 template<typename _Iter, typename _Ty>
-WJR_CONSTEXPR20 typename std::iterator_traits<_Iter>::difference_type
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) typename std::iterator_traits<_Iter>::difference_type
 do_count(_Iter _First, _Iter _Last, const _Ty& _Val);
 
 template<typename _Iter, typename _Pr>
-WJR_CONSTEXPR20 typename std::iterator_traits<_Iter>::difference_type
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) typename std::iterator_traits<_Iter>::difference_type
 do_count_if(_Iter _First, _Iter _Last, _Pr _Pred);
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) std::pair<_Iter1, _Iter2> do_mismatch(
 	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred pred);
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) std::pair<_Iter1, _Iter2> do_mismatch(
 	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred);
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2);
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) std::pair<_Iter1, _Iter2> do_mismatch(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2);
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) std::pair<_Iter1, _Iter2> do_mismatch(
 	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2);
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred pred);
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred pred);
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred);
-
-template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2);
-
-template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2);
-
-template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 bool do_lexicographical_compare(
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_equal(
 	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred);
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 bool do_lexicographical_compare(
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2);
+
+template<typename _Iter1, typename _Iter2>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2);
+
+template<typename _Iter1, typename _Iter2, typename _Pred>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) int do_compare(
+	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred);
+
+template<typename _Iter1, typename _Iter2>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) int do_compare(
 	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2);
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 int do_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred);
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_lexicographical_compare(
+	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred);
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 int do_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2);
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_lexicographical_compare(
+	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2);
 
 template<typename _Iter, typename _Val>
 WJR_CONSTEXPR20 void do_fill(_Iter _First, _Iter _Last, const _Val& value);
@@ -228,13 +231,13 @@ WJR_CONSTEXPR20 void do_for_each_n(_Iter _First, _SizeT n, _Func fn);
 template<typename Alloc>
 class temporary_allocator_value;
 
-#define __WJR_REGISTER_ALGO_FUNCTOR(name)	                        \
-struct name##_fn{	                                                \
-	template<typename...Args>	                                    \
-	WJR_CONSTEXPR20 decltype(auto) operator()(Args&&...args) const{	\
-		return do_##name(std::forward<Args>(args)...);				\
-	}			                                                    \
-};	                                                                \
+#define __WJR_REGISTER_ALGO_FUNCTOR(name)	                                \
+struct name##_fn{	                                                        \
+	template<typename...Args>	                                            \
+	WJR_INLINE_CONSTEXPR20 decltype(auto) operator()(Args&&...args) const{	\
+		return do_##name(std::forward<Args>(args)...);				        \
+	}			                                                            \
+};	                                                                        \
 inline constexpr name##_fn name;
 
 __WJR_REGISTER_ALGO_FUNCTOR(find);

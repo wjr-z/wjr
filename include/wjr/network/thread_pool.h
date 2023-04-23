@@ -7,7 +7,6 @@
 #include <shared_mutex>
 #include <condition_variable>
 #include <future>
-#include <functional>
 #include <chrono>
 
 #include <wjr/vector.h>

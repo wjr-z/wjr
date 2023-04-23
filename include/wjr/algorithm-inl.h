@@ -4,8 +4,6 @@
 
 #include <algorithm>
 #include <memory>
-#include <limits>
-#include <cstring>
 
 #include <wjr/compressed_pair.h>
 #include <wjr/algo/algo.h>
@@ -24,12 +22,12 @@ template<typename _Iter, typename _Val, typename _Pred,
 	> {};
 
 template<typename _Iter, typename _Val, typename _Pred>
-constexpr bool __has_fast_find_v = __has_fast_find<_Iter, _Val, _Pred>::value;
+inline constexpr bool __has_fast_find_v = __has_fast_find<_Iter, _Val, _Pred>::value;
 
 // find
 
 template<typename _Iter, typename _Ty, typename _Pred>
-WJR_CONSTEXPR20 _Iter do_find(
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) _Iter do_find(
 	_Iter _First, _Iter _Last, const _Ty& _Val, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_find_v<_Iter, _Ty, _Pred>) {
@@ -60,17 +58,17 @@ WJR_CONSTEXPR20 _Iter do_find(
 }
 
 template<typename _Iter, typename _Ty>
-WJR_CONSTEXPR20 _Iter do_find(_Iter _First, _Iter _Last, const _Ty& _Val) {
-	return wjr::find(_First, _Last, _Val, std::equal_to<>{});
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) _Iter do_find(_Iter _First, _Iter _Last, const _Ty& _Val) {
+	return wjr::do_find(_First, _Last, _Val, std::equal_to<>{});
 }
 
 template<typename _Iter, typename _Pr>
-WJR_CONSTEXPR20 _Iter do_find_if(_Iter _First, _Iter _Last, _Pr _Pred) {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) _Iter do_find_if(_Iter _First, _Iter _Last, _Pr _Pred) {
 	return std::find_if(_First, _Last, _Pred);
 }
 
 template<typename _Iter, typename _Pr>
-WJR_CONSTEXPR20 _Iter do_find_if_not(_Iter _First, _Iter _Last, _Pr _Pred) {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) _Iter do_find_if_not(_Iter _First, _Iter _Last, _Pr _Pred) {
 	return std::find_if_not(_First, _Last, _Pred);
 }
 
@@ -82,10 +80,10 @@ template<typename _Iter, typename _Val,
 	> {};
 
 template<typename _Iter, typename _Val>
-constexpr bool __has_fast_count_v = __has_fast_count<_Iter, _Val>::value;
+inline constexpr bool __has_fast_count_v = __has_fast_count<_Iter, _Val>::value;
 
 template<typename _Iter, typename _Ty>
-WJR_CONSTEXPR20 typename std::iterator_traits<_Iter>::difference_type
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) typename std::iterator_traits<_Iter>::difference_type
 do_count(_Iter _First, _Iter _Last, const _Ty& _Val) {
 	if (!wjr::is_constant_evaluated()) {
 #if defined(_WJR_FAST_MEMCNT)
@@ -106,13 +104,13 @@ do_count(_Iter _First, _Iter _Last, const _Ty& _Val) {
 }
 
 template<typename _Iter, typename _Pr>
-WJR_CONSTEXPR20 typename std::iterator_traits<_Iter>::difference_type
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) typename std::iterator_traits<_Iter>::difference_type
 do_count_if(_Iter _First, _Iter _Last, _Pr _Pred) {
 	return std::count_if(_First, _Last, _Pred);
 }
 
-// First use algo::memcmp
-// Then use memcmp
+// First use algo::memeq
+// Then use memeq
 template<typename _Iter1, typename _Iter2, typename _Pred,
 	typename _Iter_value1 = iter_val_t<_Iter1>,
 	typename _Iter_value2 = iter_val_t<_Iter2>>
@@ -120,14 +118,14 @@ template<typename _Iter1, typename _Iter2, typename _Pred,
 	wjr::is_contiguous_iter<_Iter1>,
 	wjr::is_contiguous_iter<_Iter2>,
 	std::bool_constant<wjr::is_reverse_iterator_v<_Iter1> == wjr::is_reverse_iterator_v<_Iter2>>,
-	algo::__has_fast_memcmp<_Iter_value1, _Iter_value2, _Pred>
+	algo::__has_fast_memeq<_Iter_value1, _Iter_value2, _Pred>
 	> {};
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
 struct __has_fast_equal : std::bool_constant<__has_fast_equal_helper<_Iter1, _Iter2, _Pred>::value> {};
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-constexpr bool __has_fast_equal_v = __has_fast_equal<_Iter1, _Iter2, _Pred>::value;
+inline constexpr bool __has_fast_equal_v = __has_fast_equal<_Iter1, _Iter2, _Pred>::value;
 
 template<typename _Iter1, typename _Iter2, typename _Pred,
 	typename _Iter_value1 = iter_val_t<_Iter1>,
@@ -144,10 +142,10 @@ template<typename _Iter1, typename _Iter2, typename _Pred,
 	> {};
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-constexpr bool __has_fast_mismatch_v = __has_fast_mismatch<_Iter1, _Iter2, _Pred>::value;
+inline constexpr bool __has_fast_mismatch_v = __has_fast_mismatch<_Iter1, _Iter2, _Pred>::value;
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) std::pair<_Iter1, _Iter2> do_mismatch(
 	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
 #if defined(_WJR_FAST_MEMMIS)
@@ -176,31 +174,32 @@ WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(
 }
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) std::pair<_Iter1, _Iter2> do_mismatch(
 	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_mismatch_v<_Iter1, _Iter2, _Pred>) {
 			const auto n = _Last1 - _First1;
 			const auto m = _Last2 - _First2;
 			const auto _M = n < m ? n : m;
-			return wjr::mismatch(_First1, _First1 + _M, _First2, pred);
+			return wjr::do_mismatch(_First1, _First1 + _M, _First2, pred);
 		}
 	}
 	return std::mismatch(_First1, _Last1, _First2, _Last2, pred);
 }
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2) {
-	return wjr::mismatch(_First1, _Last1, _First2, std::equal_to<>{});
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) std::pair<_Iter1, _Iter2> do_mismatch(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2) {
+	return wjr::do_mismatch(_First1, _Last1, _First2, std::equal_to<>{});
 }
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
-	return wjr::mismatch(_First1, _Last1, _First2, _Last2, std::equal_to<>{});
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) std::pair<_Iter1, _Iter2> do_mismatch(
+	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
+	return wjr::do_mismatch(_First1, _Last1, _First2, _Last2, std::equal_to<>{});
 }
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred pred) {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_equal_v<_Iter1, _Iter2, _Pred>) {
 			const auto n = _Last1 - _First1;
@@ -208,13 +207,13 @@ WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pr
 			if constexpr (!wjr::is_reverse_iterator_v<_Iter1>) {
 				const auto first1 = wjr::get_address(_First1);
 				const auto first2 = wjr::get_address(_First2);
-				return algo::memcmp(first1, first2, n, pred);
+				return algo::memeq(first1, first2, n, pred);
 			}
 			else {
 				const auto first1 = wjr::get_address(_Last1 - 1);
 				const auto _Last2 = _First2 + n;
 				const auto first2 = wjr::get_address(_Last2 - 1);
-				return algo::memcmp(first1, first2, n, pred);
+				return algo::memeq(first1, first2, n, pred);
 			}
 		}
 	}
@@ -222,104 +221,70 @@ WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pr
 }
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_equal(
+	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_equal_v<_Iter1, _Iter2, _Pred>) {
 			const auto n = std::distance(_First1, _Last1);
 			const auto m = std::distance(_First2, _Last2);
 			if (n != m) { return false; }
-			return wjr::equal(_First1, _Last1, _First2, pred);
+			return wjr::do_equal(_First1, _Last1, _First2, pred);
 		}
 	}
 	return std::equal(_First1, _Last1, _First2, _Last2, pred);
 }
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2) {
-	return wjr::equal(_First1, _Last1, _First2, std::equal_to<>{});
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2) {
+	return wjr::do_equal(_First1, _Last1, _First2, std::equal_to<>{});
 }
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
-	return wjr::equal(_First1, _Last1, _First2, _Last2, std::equal_to<>{});
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
+	return wjr::do_equal(_First1, _Last1, _First2, _Last2, std::equal_to<>{});
 }
 
 template<typename _Iter1, typename _Iter2, typename _Pred,
 	typename _Iter_value1 = iter_val_t<_Iter1>,
 	typename _Iter_value2 = iter_val_t<_Iter2>>
-	struct __has_fast_lexicographical_compare : std::conjunction<
-	wjr::is_any_of<_Pred, std::less<>>,
-#if defined(_WJR_FAST_MEMMIS)
-	__has_fast_mismatch<_Iter1, _Iter2, _Pred>
-#else
+	struct __has_fast_compare : std::conjunction <
 	wjr::is_contiguous_iter<_Iter1>,
 	wjr::is_contiguous_iter<_Iter2>,
 	std::bool_constant<wjr::is_reverse_iterator_v<_Iter1> == wjr::is_reverse_iterator_v<_Iter2>>,
 	std::conditional_t<
 	wjr::is_reverse_iterator_v<_Iter1>,
-	std::false_type,
-	is_memory_comparable<_Iter_value1, _Iter_value2, _Pred>
-	>,
-	std::is_unsigned<_Iter_value1>,
-	std::is_unsigned<_Iter_value2>,
-	wjr::is_any_index_of<sizeof(_Iter_value1), 1>
-#endif // _WJR_FAST_MEMMIS
+	algo::__has_fast_memrcmp<_Iter_value1, _Iter_value2, _Pred>,
+	algo::__has_fast_memcmp<_Iter_value1, _Iter_value2, _Pred>
+	>
 	> {};
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-constexpr bool __has_fast_lexicographical_compare_v = __has_fast_lexicographical_compare<_Iter1, _Iter2, _Pred>::value;
+inline constexpr bool __has_fast_compare_v = __has_fast_compare<_Iter1, _Iter2, _Pred>::value;
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 bool do_lexicographical_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) int do_compare(
+	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
-		if constexpr (__has_fast_lexicographical_compare_v<_Iter1, _Iter2, _Pred>) {
+		if constexpr (__has_fast_compare_v<_Iter1, _Iter2, _Pred>) {
 			const auto n = std::distance(_First1, _Last1);
 			const auto m = std::distance(_First2, _Last2);
-			auto cl = std::min(n, m);
-#if defined(_WJR_FAST_MEMMIS)
-			auto e = _First1 + cl;
-			auto pos = wjr::mismatch(_First1, e, _First2, std::equal_to<>{}).first - _First1;
-			if (pos != cl) {
-				return pred(_First1[pos], _First2[pos]);
-			}
-#else
-			auto first1 = get_address(_First1);
-			auto first2 = get_address(_First2);
-			auto f = ::memcmp(first1, first2, cl * sizeof(iter_val_t<_Iter1>));
-			if (f != 0) {
-				return f < 0;
-			}
-#endif // _WJR_FAST_MEMMIS
-			return n < m;
-		}
-	}
-	return std::lexicographical_compare(_First1, _Last1, _First2, _Last2, pred);
-}
+			const auto cl = std::min(n, m);
 
-template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 bool do_lexicographical_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
-	return wjr::lexicographical_compare(_First1, _Last1, _First2, _Last2, std::less<>{});
-}
-
-template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 int do_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
-	if (!wjr::is_constant_evaluated()) {
-		if constexpr (__has_fast_lexicographical_compare_v<_Iter1, _Iter2, _Pred>) {
-			const auto n = std::distance(_First1, _Last1);
-			const auto m = std::distance(_First2, _Last2);
-			auto cl = std::min(n, m);
-#if defined(_WJR_FAST_MEMMIS)
-			auto e = _First1 + cl;
-			auto pos = wjr::mismatch(_First1, e, _First2, std::equal_to<>{}).first - _First1;
-			if (pos != cl) {
-				return pred(_First1[pos], _First2[pos]) ? -1 : 1;
+			if constexpr (!wjr::is_reverse_iterator_v<_Iter1>) {
+				const auto first1 = wjr::get_address(_First1);
+				const auto first2 = wjr::get_address(_First2);
+				
+				auto r = algo::memcmp(first1, first2, cl, pred);
+				if (r != 0) return r;
 			}
-#else
-			auto first1 = get_address(_First1);
-			auto first2 = get_address(_First2);
-			auto f = ::memcmp(first1, first2, cl * sizeof(iter_val_t<_Iter1>));
-			if (f != 0) {
-				return f;
+#if defined(_WJR_FAST_MEMMIS)
+			else {
+				const auto first1 = wjr::get_address(_Last1 - 1);
+				const auto _Last2 = _First2 + n;
+				const auto first2 = wjr::get_address(_Last2 - 1);
+
+				auto r = algo::memrcmp(first1, first2, cl, pred);
+				if (r != 0) return r;
 			}
 #endif // _WJR_FAST_MEMMIS
 			return n < m ? -1 : (n > m ? 1 : 0);
@@ -337,8 +302,21 @@ WJR_CONSTEXPR20 int do_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _I
 }
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 int do_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
-	return wjr::compare(_First1, _Last1, _First2, _Last2, std::less<>{});
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) int do_compare(
+	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
+	return wjr::do_compare(_First1, _Last1, _First2, _Last2, std::less<>{});
+}
+
+template<typename _Iter1, typename _Iter2, typename _Pred>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_lexicographical_compare(
+	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
+	return wjr::do_compare(_First1, _Last2, _First2, _Last2, pred) < 0;
+}
+
+template<typename _Iter1, typename _Iter2>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_lexicographical_compare(
+	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
+	return wjr::do_lexicographical_compare(_First1, _Last1, _First2, _Last2, std::less<>{});
 }
 
 template<typename _Iter, typename _Val,
@@ -349,7 +327,7 @@ template<typename _Iter, typename _Val,
 	> {};
 
 template<typename _Iter, typename _Val>
-constexpr bool __has_fast_fill_v = __has_fast_fill<_Iter, _Val>::value;
+inline constexpr bool __has_fast_fill_v = __has_fast_fill<_Iter, _Val>::value;
 
 template<typename _Iter, typename _Val>
 WJR_CONSTEXPR20 void do_fill(_Iter _First, _Iter _Last, const _Val& value) {
@@ -394,7 +372,7 @@ template<typename _Input, typename _Output,
 	> {};
 
 template<typename _Input, typename _Output>
-constexpr bool __has_fast_copy_v = __has_fast_copy<_Input, _Output>::value;
+inline constexpr bool __has_fast_copy_v = __has_fast_copy<_Input, _Output>::value;
 
 template<typename _Input, typename _Output>
 WJR_CONSTEXPR20 _Output do_copy(_Input _First1, _Input _Last1, _Output _First2) {
@@ -769,7 +747,7 @@ template<typename _Input, typename _Output,
 	> {};
 
 template<typename _Input, typename _Output>
-constexpr bool __has_fast_uninitialized_copy_v = __has_fast_uninitialized_copy<_Input, _Output>::value;
+inline constexpr bool __has_fast_uninitialized_copy_v = __has_fast_uninitialized_copy<_Input, _Output>::value;
 
 template<typename _Iter1, typename _Iter2>
 WJR_CONSTEXPR20 _Iter2 do_uninitialized_copy(_Iter1 _First, _Iter1 _Last, _Iter2 _Dest) {
@@ -857,7 +835,7 @@ template<typename _Iter, typename _Val,
 	> {};
 
 template<typename _Iter, typename _Val>
-constexpr bool __has_fast_uninitialized_fill_v = __has_fast_uninitialized_fill<_Iter, _Val>::value;
+inline constexpr bool __has_fast_uninitialized_fill_v = __has_fast_uninitialized_fill<_Iter, _Val>::value;
 
 template<typename _Iter, typename _Val>
 WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, const _Val& val) {

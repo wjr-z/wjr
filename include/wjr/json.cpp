@@ -58,6 +58,7 @@ constexpr iter skip_string(iter first, WJR_MAYBE_UNUSED iter last) {
 
 template<typename iter, std::enable_if_t<is_iterator_v<iter>, int> = 0>
 constexpr static bool check_string(iter& s, iter e) {
+	using encode_type = typename json_traits::encode_type;
 	if (*s != '"')return false;
 	++s;
 	while (s != e && *s != '"') {
@@ -76,19 +77,19 @@ constexpr static bool check_string(iter& s, iter e) {
 				break;
 			case 'u':
 				if (s + 4 > e)return false;
-				if (!ascii::encode::isalnum(*s)) {
+				if (!encode_type::isalnum(*s)) {
 					return false;
 				}
 				++s;
-				if (!ascii::encode::isalnum(*s)) {
+				if (!encode_type::isalnum(*s)) {
 					return false;
 				}
 				++s;
-				if (!ascii::encode::isalnum(*s)) {
+				if (!encode_type::isalnum(*s)) {
 					return false;
 				}
 				++s;
-				if (!ascii::encode::isalnum(*s)) {
+				if (!encode_type::isalnum(*s)) {
 					return false;
 				}
 				++s;
@@ -109,7 +110,7 @@ constexpr static bool check_string(iter& s, iter e) {
 bool json::__accept(const char*& first, const char* last, uint8_t state) {
 	bool head = true;
 	for (;; ++first) {
-		first = ascii::encode::skipw(first, last);
+		first = encode_type::skipw(first, last);
 		if (first == last)return false;
 
 		if (state == '}') {
@@ -122,10 +123,10 @@ bool json::__accept(const char*& first, const char* last, uint8_t state) {
 			if (!check_string(first, last))
 				return false;
 			++first;
-			first = ascii::encode::skipw(first, last);
+			first = encode_type::skipw(first, last);
 			if (first == last || *first != ':') return false;
 			++first;
-			first = ascii::encode::skipw(first, last);
+			first = encode_type::skipw(first, last);
 			if (first == last) return false;
 		}
 		else {
@@ -180,15 +181,15 @@ bool json::__accept(const char*& first, const char* last, uint8_t state) {
 		default:
 			const char* pos = nullptr;
 			errc c = errc::ok;
-			(void)ascii::encode::to_floating_point<double>(first, last, &pos, &c,
-				std::integral_constant<ascii::encode::to_f_flags, ascii::encode::to_f_flags::ALLOW_TRAILING_JUNK>());
+			(void)encode_type::to_floating_point<double>(first, last, &pos, &c,
+				std::integral_constant<encode_type::to_f_flags, encode_type::to_f_flags::ALLOW_TRAILING_JUNK>());
 			if (c != errc::ok)
 				return false;
 			first = pos;
 			break;
 		}
 
-		first = ascii::encode::skipw(first, last);
+		first = encode_type::skipw(first, last);
 		if (first == last)return false;
 		if (*first == ',')
 			continue;
@@ -200,7 +201,7 @@ bool json::__accept(const char*& first, const char* last, uint8_t state) {
 }
 
 bool json::accept(const char* first, const char* last) {
-	first = ascii::encode::skipw(first, last);
+	first = encode_type::skipw(first, last);
 	if (first == last) {
 		return false;
 	}
@@ -210,13 +211,13 @@ bool json::accept(const char* first, const char* last) {
 		++first;
 		if (!__accept(first, last, ']'))
 			return false;
-		first = ascii::encode::skipw(first, last);
+		first = encode_type::skipw(first, last);
 		return first == last;
 	case '{':
 		++first;
 		if (!__accept(first, last, '}'))
 			return false;
-		first = ascii::encode::skipw(first, last);
+		first = encode_type::skipw(first, last);
 		return first == last;
 	default:
 		return false;
@@ -224,7 +225,7 @@ bool json::accept(const char* first, const char* last) {
 }
 
 json json::__parse(const char*& first, const char* last) {
-	first = ascii::encode::skipw(first, last);
+	first = encode_type::skipw(first, last);
 	switch (*first) {
 	case 'n': {
 		json it(std::in_place_type_t<null>{});
@@ -252,14 +253,14 @@ json json::__parse(const char*& first, const char* last) {
 		json it(std::in_place_type_t<array>{});
 		auto& arr = it.get_array();
 		++first;
-		first = ascii::encode::skipw(first, last);
+		first = encode_type::skipw(first, last);
 		if (*first == ']') {
 			++first;
 			return it;
 		}
 		for (;;) {
 			arr.emplace_back(__parse(first, last));
-			first = ascii::encode::skipw(first, last);
+			first = encode_type::skipw(first, last);
 			if (*first == ']') {
 				++first;
 				break;
@@ -273,21 +274,21 @@ json json::__parse(const char*& first, const char* last) {
 		json it(std::in_place_type_t<object>{});
 		auto& obj = it.get_object();
 		++first;
-		first = ascii::encode::skipw(first, last);
+		first = encode_type::skipw(first, last);
 		if (*first == '}') {
 			++first;
 			return it;
 		}
 		for(;;) {
-			first = ascii::encode::skipw(first, last);
+			first = encode_type::skipw(first, last);
 			++first;
 			auto p = skip_string(first, last);
 			string name(first, p);
 			first = p + 1;
-			first = ascii::encode::skipw(first, last);
+			first = encode_type::skipw(first, last);
 			++first;
 			obj.insert_or_assign(std::move(name), __parse(first, last));
-			first = ascii::encode::skipw(first, last);
+			first = encode_type::skipw(first, last);
 			if (*first == '}') {
 				++first;
 				break;
@@ -298,8 +299,8 @@ json json::__parse(const char*& first, const char* last) {
 	}
 	default: {
 		const char* pos = nullptr;
-		auto val = ascii::encode::to_floating_point<double>(first, last, &pos, nullptr, 
-			std::integral_constant<ascii::encode::to_f_flags, ascii::encode::to_f_flags::ALLOW_TRAILING_JUNK>());
+		auto val = encode_type::to_floating_point<double>(first, last, &pos, nullptr, 
+			std::integral_constant<encode_type::to_f_flags, encode_type::to_f_flags::ALLOW_TRAILING_JUNK>());
 		first = pos;
 		json it(std::in_place_type_t<number>{}, val);
 		return it;
@@ -334,9 +335,10 @@ void json::_stringify(string& str, int a) const noexcept {
 	case 2: {
 		str.reserve(str.size() + 256);
 		size_t length = 0;
-		ascii::encode::from_floating_point<double>(
+		encode_type::from_floating_point<double>(
 			get_number(), str.end(), 256, &length);
 		str.inc_size(length);
+		str.set_end();
 		break;
 	}
 	case 3: {

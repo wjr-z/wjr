@@ -1,15 +1,14 @@
-
 #pragma once
 #ifndef __WJR_STRING_H
 #define __WJR_STRING_H
 
+#include <array>
 #include <string_view>
 #include <iostream>
 #include <cctype>
 #include <locale>
 #include <cstring>
 #include <charconv>
-#include <functional>
 #include <cmath>
 
 // Copyright 2012 the V8 project authors. All rights reserved.
@@ -6818,7 +6817,6 @@ void DoubleToStringConverter::DoubleToAscii(double v,
 #undef new
 
 #include <stdexcept>
-#include <string>
 
 #pragma once
 #ifndef __WJR_COMPRESSED_PAIR_H
@@ -6830,7 +6828,6 @@ void DoubleToStringConverter::DoubleToAscii(double v,
 
 #include <functional>
 #include <limits>
-#include <utility>
 
 #pragma once
 #ifndef __WJR_CPUINFO_H
@@ -7081,7 +7078,7 @@ void DoubleToStringConverter::DoubleToAscii(double v,
 
 #if WJR_SSE2
 #define _WJR_FAST_MEMCHR
-#define _WJR_FAST_MEMCMP
+#define _WJR_FAST_MEMEQ
 #define _WJR_FAST_MEMMIS
 //#define _WJR_FAST_MEMCNT
 #define _WJR_FAST_MEMSET
@@ -7322,6 +7319,9 @@ do{                         \
 #define WJR_MALLOC
 #endif
 
+#define WJR_INLINE inline
+#define WJR_CONSTEXPR constexpr
+
 // Compiler support for constexpr
 #if defined(__cpp_lib_is_constant_evaluated) || WJR_HAS_BUILTIN(__builtin_is_constant_evaluated) \
 	|| WJR_HAS_GCC(9,1,0) || WJR_HAS_CLANG(9,0,0)
@@ -7342,10 +7342,6 @@ do{                         \
 #define WJR_CONSTEXPR20
 #endif
 
-#define WJR_FORCEINLINE_CONSTEXPR WJR_FORCEINLINE constexpr
-#define WJR_FORCEINLINE_CONSTEXPR20 WJR_FORCEINLINE WJR_CONSTEXPR20
-#define WJR_FORCEINLINE_E_CONSTEXPR WJR_FORCEINLINE WJR_E_CONSTEXPR
-
 #define WJR_INTRINSIC_CONSTEXPR WJR_INTRINSIC_INLINE constexpr
 #define WJR_INTRINSIC_CONSTEXPR20 WJR_INTRINSIC_INLINE WJR_CONSTEXPR20
 #define WJR_INTRINSIC_E_CONSTEXPR WJR_INTRINSIC_INLINE WJR_E_CONSTEXPR
@@ -7353,6 +7349,9 @@ do{                         \
 #define WJR_INLINE_CONSTEXPR inline constexpr
 #define WJR_INLINE_CONSTEXPR20 inline WJR_CONSTEXPR20
 #define WJR_INLINE_E_CONSTEXPR inline WJR_E_CONSTEXPR
+
+#define _WJR_ATTRIBUTE(x) WJR_##x
+#define WJR_ATTRIBUTE(...) WJR_EXPAND(WJR_MACRO_CALL(_WJR_ATTRIBUTE, , __VA_ARGS__))
 
 #define _WJR_BEGIN namespace wjr{
 #define _WJR_END }
@@ -7846,8 +7845,8 @@ inline bool is_enhanced_rep() {
 _WJR_END
 
 #endif // __WJR_CPUINFO_H
-
 #include <stdio.h>
+
 
 _WJR_BEGIN
 
@@ -9074,65 +9073,68 @@ namespace std {
 _WJR_BEGIN
 
 template<typename _Iter, typename _Ty, typename _Pred>
-WJR_CONSTEXPR20 _Iter do_find(_Iter _First, _Iter _Last, const _Ty& _val, _Pred pred);
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) _Iter do_find(_Iter _First, _Iter _Last, const _Ty& _val, _Pred pred);
 
 template<typename _Iter, typename _Ty>
-WJR_CONSTEXPR20 _Iter do_find(_Iter _First, _Iter _Last, const _Ty& _val);
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) _Iter do_find(_Iter _First, _Iter _Last, const _Ty& _val);
 
 template<typename _Iter, typename _Pr>
-WJR_CONSTEXPR20 _Iter do_find_if(_Iter _First, _Iter _Last, _Pr _Pred);
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) _Iter do_find_if(_Iter _First, _Iter _Last, _Pr _Pred);
 
 template<typename _Iter, typename _Pr>
-WJR_CONSTEXPR20 _Iter do_find_if_not(_Iter _First, _Iter _Last, _Pr _Pred);
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) _Iter do_find_if_not(_Iter _First, _Iter _Last, _Pr _Pred);
 
 template<typename _Iter, typename _Ty>
-WJR_CONSTEXPR20 typename std::iterator_traits<_Iter>::difference_type
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) typename std::iterator_traits<_Iter>::difference_type
 do_count(_Iter _First, _Iter _Last, const _Ty& _Val);
 
 template<typename _Iter, typename _Pr>
-WJR_CONSTEXPR20 typename std::iterator_traits<_Iter>::difference_type
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) typename std::iterator_traits<_Iter>::difference_type
 do_count_if(_Iter _First, _Iter _Last, _Pr _Pred);
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) std::pair<_Iter1, _Iter2> do_mismatch(
 	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred pred);
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) std::pair<_Iter1, _Iter2> do_mismatch(
 	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred);
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2);
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) std::pair<_Iter1, _Iter2> do_mismatch(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2);
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) std::pair<_Iter1, _Iter2> do_mismatch(
 	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2);
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred pred);
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred pred);
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred);
-
-template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2);
-
-template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2);
-
-template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 bool do_lexicographical_compare(
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_equal(
 	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred);
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 bool do_lexicographical_compare(
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2);
+
+template<typename _Iter1, typename _Iter2>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2);
+
+template<typename _Iter1, typename _Iter2, typename _Pred>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) int do_compare(
+	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred);
+
+template<typename _Iter1, typename _Iter2>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) int do_compare(
 	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2);
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 int do_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred);
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_lexicographical_compare(
+	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred);
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 int do_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2);
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_lexicographical_compare(
+	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2);
 
 template<typename _Iter, typename _Val>
 WJR_CONSTEXPR20 void do_fill(_Iter _First, _Iter _Last, const _Val& value);
@@ -9289,13 +9291,13 @@ WJR_CONSTEXPR20 void do_for_each_n(_Iter _First, _SizeT n, _Func fn);
 template<typename Alloc>
 class temporary_allocator_value;
 
-#define __WJR_REGISTER_ALGO_FUNCTOR(name)	                        \
-struct name##_fn{	                                                \
-	template<typename...Args>	                                    \
-	WJR_CONSTEXPR20 decltype(auto) operator()(Args&&...args) const{	\
-		return do_##name(std::forward<Args>(args)...);				\
-	}			                                                    \
-};	                                                                \
+#define __WJR_REGISTER_ALGO_FUNCTOR(name)	                                \
+struct name##_fn{	                                                        \
+	template<typename...Args>	                                            \
+	WJR_INLINE_CONSTEXPR20 decltype(auto) operator()(Args&&...args) const{	\
+		return do_##name(std::forward<Args>(args)...);				        \
+	}			                                                            \
+};	                                                                        \
 inline constexpr name##_fn name;
 
 __WJR_REGISTER_ALGO_FUNCTOR(find);
@@ -9342,15 +9344,11 @@ _WJR_END
 
 #include <algorithm>
 #include <memory>
-#include <limits>
-#include <cstring>
 
 
 #pragma once
 #ifndef __WJR_ALGO_ALOG_H
 #define __WJR_ALGO_ALOG_H
-
-#include <string.h>
 
 #ifndef __WJR_ALGO_MEM_ALL_H
 #define __WJR_ALGO_MEM_ALL_H
@@ -9369,269 +9367,6 @@ _WJR_END
 #ifndef __WJR_ASM_ASM_H
 #define __WJR_ASM_ASM_H
 
-
-
-#ifndef __WJR_ASM_ASM_H
-#error "This file should not be included directly. Include <wjr/asm.h> instead."
-#endif
-
-_WJR_ASM_BEGIN
-
-#if WJR_HAS_BUILTIN(__builtin_addc) || WJR_HAS_CLANG(5, 0, 0)
-template<typename T>
-WJR_INTRINSIC_INLINE T __wjr_builtin_adc(T a, T b, T carry_in, T* carry_out) {
-	constexpr auto _Nd = std::numeric_limits<T>::digits;
-
-	constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
-	constexpr auto _Nd_ul = std::numeric_limits<unsigned long>::digits;
-	constexpr auto _Nd_ui = std::numeric_limits<unsigned int>::digits;
-	constexpr auto _Nd_us = std::numeric_limits<unsigned short>::digits;
-	constexpr auto _Nd_ub = std::numeric_limits<unsigned char>::digits;
-
-	if constexpr (_Nd <= _Nd_ub) {
-		unsigned char CF = 0;
-		T ret = __builtin_addcb(a, b, carry_in, &CF);
-		*carry_out = CF;
-		return ret;
-	}
-	else if constexpr (_Nd <= _Nd_us) {
-		unsigned short CF = 0;
-		T ret = __builtin_addcs(a, b, carry_in, &CF);
-		*carry_out = CF;
-		return ret;
-	}
-	else if constexpr (_Nd <= _Nd_ui) {
-		unsigned int CF = 0;
-		T ret = __builtin_addc(a, b, carry_in, &CF);
-		*carry_out = CF;
-		return ret;
-	}
-	else if constexpr (_Nd <= _Nd_ul) {
-		unsigned long CF = 0;
-		T ret = __builtin_addcl(a, b, carry_in, &CF);
-		*carry_out = CF;
-		return ret;
-	}
-#if defined(WJR_X86_64)
-	else if constexpr (_Nd <= _Nd_ull) {
-		unsigned long long CF = 0;
-		T ret = __builtin_addcll(a, b, carry_in, &CF);
-		*carry_out = CF;
-		return ret;
-	}
-#endif // WJR_X86_64
-	else {
-		static_assert(_Nd <= _Nd_ull, "unsupported integer type");
-	}
-}
-#elif defined(WJR_COMPILER_MSVC)
-template<typename T>
-WJR_INTRINSIC_INLINE T __wjr_msvc_adc(T a, T b, T carry_in, T* carry_out) {
-	constexpr auto _Nd = std::numeric_limits<T>::digits;
-
-	constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
-	//constexpr auto _Nd_ul = std::numeric_limits<unsigned long>::digits;
-	constexpr auto _Nd_ui = std::numeric_limits<unsigned int>::digits;
-	constexpr auto _Nd_us = std::numeric_limits<unsigned short>::digits;
-	constexpr auto _Nd_ub = std::numeric_limits<unsigned char>::digits;
-
-	if constexpr (_Nd <= _Nd_ub) {
-		unsigned char ret = 0;
-		*carry_out = _addcarry_u8(carry_in, a, b, &ret);
-		return ret;
-	}
-	else if constexpr (_Nd <= _Nd_us) {
-		unsigned short ret = 0;
-		*carry_out = _addcarry_u16(carry_in, a, b, &ret);
-		return ret;
-	}
-	else if constexpr (_Nd <= _Nd_ui) {
-		unsigned int ret = 0;
-		*carry_out = _addcarry_u32(carry_in, a, b, &ret);
-		return ret;
-	}
-#if defined(WJR_X86_64)
-	else if constexpr (_Nd <= _Nd_ull) {
-		unsigned long long ret = 0;
-		*carry_out = _addcarry_u64(carry_in, a, b, &ret);
-		return ret;
-	}
-#endif // WJR_X86_64
-	else {
-		static_assert(_Nd <= _Nd_ull, "unsupported integer type");
-	}
-}
-#endif
-
-template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T adc(T a, T b, T carry_in, T* carry_out) {
-	if (!wjr::is_constant_evaluated()) {
-		if (!((is_constant_p(a) && is_constant_p(b)) || (is_constant_p(carry_in) && carry_in == 0))) {
-#if WJR_HAS_BUILTIN(__builtin_addc) || WJR_HAS_CLANG(5, 0, 0)
-			return __wjr_builtin_adc(a, b, carry_in, carry_out);
-#elif defined(WJR_COMPILER_MSVC)
-			return __wjr_msvc_adc(a, b, carry_in, carry_out);
-#elif defined(WJR_INLINE_ASM)
-#if defined(WJR_BETTER_INLINE_ASM)
-			asm("add $255, %b0\n\t"
-				"adc %3, %2\n\t"
-				"setb %b1"
-				: "+r"(carry_in), "=rm"(*carry_out), "+%r"(a)
-				: "rm"(b)
-				: "cc");
-#else
-			asm("add $255, %b0\n\t"
-				"adc %3, %2\n\t"
-				"setb %b1"
-				: "+r"(carry_in), "=r"(*carry_out), "+%r"(a)
-				: "r"(b)
-				: "cc");
-			return a;
-#endif // WJR_BETTER_INLINE_ASM
-#endif
-		}
-	}
-	T c = 0;
-	a += b;
-	c = a < b;
-	a += carry_in;
-	c |= a < carry_in;
-	*carry_out = c;
-	return a;
-}
-
-_WJR_ASM_END
-
-#ifndef __WJR_ASM_ASM_H
-#error "This file should not be included directly. Include <wjr/asm.h> instead."
-#endif
-
-_WJR_ASM_BEGIN
-
-#if WJR_HAS_BUILTIN(__builtin_subc) || WJR_HAS_CLANG(5, 0, 0)
-template<typename T>
-WJR_INTRINSIC_INLINE T __wjr_builtin_sbb(T a, T b, T carry_in, T* carry_out) {
-	constexpr auto _Nd = std::numeric_limits<T>::digits;
-
-	constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
-	constexpr auto _Nd_ul = std::numeric_limits<unsigned long>::digits;
-	constexpr auto _Nd_ui = std::numeric_limits<unsigned int>::digits;
-	constexpr auto _Nd_us = std::numeric_limits<unsigned short>::digits;
-	constexpr auto _Nd_ub = std::numeric_limits<unsigned char>::digits;
-
-	if constexpr (_Nd <= _Nd_ub) {
-		unsigned char CF = 0;
-		T ret = __builtin_subcb(a, b, carry_in, &CF);
-		*carry_out = CF;
-		return ret;
-	}
-	else if constexpr (_Nd <= _Nd_us) {
-		unsigned short CF = 0;
-		T ret = __builtin_subcs(a, b, carry_in, &CF);
-		*carry_out = CF;
-		return ret;
-	}
-	else if constexpr (_Nd <= _Nd_ui) {
-		unsigned int CF = 0;
-		T ret = __builtin_subc(a, b, carry_in, &CF);
-		*carry_out = CF;
-		return ret;
-	}
-	else if constexpr (_Nd <= _Nd_ul) {
-		unsigned long CF = 0;
-		T ret = __builtin_subcl(a, b, carry_in, &CF);
-		*carry_out = CF;
-		return ret;
-	}
-#if defined(WJR_X86_64)
-	else if constexpr (_Nd <= _Nd_ull) {
-		unsigned long long CF = 0;
-		T ret = __builtin_subcll(a, b, carry_in, &CF);
-		*carry_out = CF;
-		return ret;
-	}
-#endif // WJR_X86_64
-	else {
-		static_assert(_Nd <= _Nd_ull, "unsupported integer type");
-	}
-}
-#elif defined(WJR_COMPILER_MSVC)
-template<typename T>
-WJR_INTRINSIC_INLINE T __wjr_msvc_sbb(T a, T b, T carry_in, T* carry_out) {
-	constexpr auto _Nd = std::numeric_limits<T>::digits;
-
-	constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
-	//constexpr auto _Nd_ul = std::numeric_limits<unsigned long>::digits;
-	constexpr auto _Nd_ui = std::numeric_limits<unsigned int>::digits;
-	constexpr auto _Nd_us = std::numeric_limits<unsigned short>::digits;
-	constexpr auto _Nd_ub = std::numeric_limits<unsigned char>::digits;
-
-	if constexpr (_Nd <= _Nd_ub) {
-		unsigned char ret = 0;
-		*carry_out = _subborrow_u8(carry_in, a, b, &ret);
-		return ret;
-	}
-	else if constexpr (_Nd <= _Nd_us) {
-		unsigned short ret = 0;
-		*carry_out = _subborrow_u16(carry_in, a, b, &ret);
-		return ret;
-	}
-	else if constexpr (_Nd <= _Nd_ui) {
-		unsigned int ret = 0;
-		*carry_out = _subborrow_u32(carry_in, a, b, &ret);
-		return ret;
-	}
-#if defined(WJR_X86_64)
-	else if constexpr (_Nd <= _Nd_ull) {
-		unsigned long long ret = 0;
-		*carry_out = _subborrow_u64(carry_in, a, b, &ret);
-		return ret;
-	}
-#endif // WJR_X86_64
-	else {
-		static_assert(_Nd <= _Nd_ull, "unsupported integer type");
-	}
-}
-#endif
-
-template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T sbb(T a, T b, T carry_in, T* carry_out) {
-	if (!wjr::is_constant_evaluated()) {
-		if (!((is_constant_p(a) && is_constant_p(b)) || (is_constant_p(carry_in) && carry_in == 0))) {
-#if WJR_HAS_BUILTIN(__builtin_subc) || WJR_HAS_CLANG(5, 0, 0)
-			return __wjr_builtin_sbb(a, b, carry_in, carry_out);
-#elif defined(WJR_COMPILER_MSVC)
-			return __wjr_msvc_sbb(a, b, carry_in, carry_out);
-#elif defined(WJR_INLINE_ASM) // Clang does not need inline assembly
-#if defined(WJR_BETTER_INLINE_ASM)
-			asm("add $255, %b0\n\t"
-				"sbb %3, %2\n\t"
-				"setb %b1"
-				: "+r"(carry_in), "=rm"(*carry_out), "+r"(a)
-				: "rm"(b)
-				: "cc");
-#else
-			asm("add $255, %b0\n\t"
-				"sbb %3, %2\n\t"
-				"setb %b1"
-				: "+r"(carry_in), "=r"(*carry_out), "+r"(a)
-				: "r"(b)
-				: "cc");
-			return a;
-#endif // WJR_BETTER_INLINE_ASM
-#endif
-		}
-	}
-	T c = 0;
-	c = a < b;
-	a -= b;
-	c |= a < carry_in;
-	a -= carry_in;
-	*carry_out = c;
-	return a;
-}
-
-_WJR_ASM_END
 
 
 #ifndef __WJR_ASM_ASM_H
@@ -9660,7 +9395,7 @@ const static int _WJR_LOG_TABLE[256] = {
 };
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR int __wjr_fallback_clz(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) int __wjr_fallback_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 
 	if (is_likely(x != 0)) {
@@ -9693,7 +9428,7 @@ WJR_INTRINSIC_CONSTEXPR int __wjr_fallback_clz(T x) noexcept {
 
 #if WJR_HAS_BUILTIN(__builtin_clz) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
 template<typename T>
-WJR_INTRINSIC_INLINE static int __wjr_builtin_clz(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) int __wjr_builtin_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 
 	if (is_likely(x != 0)) {
@@ -9727,7 +9462,7 @@ WJR_INTRINSIC_INLINE static int __wjr_builtin_clz(T x) noexcept {
 #if defined(WJR_X86)
 
 template<typename T>
-WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_avx2_clz(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) int __wjr_msvc_x86_64_avx2_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if constexpr (_Nd <= 16) {
 		return static_cast<int>(__lzcnt16(x) - (16 - _Nd));
@@ -9752,7 +9487,7 @@ WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_avx2_clz(T x) noexcept {
 }
 
 template<typename T>
-WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_normal_clz(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) int __wjr_msvc_x86_64_normal_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	unsigned long _Result;
 	if constexpr (_Nd <= 32) {
@@ -9780,7 +9515,7 @@ WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_normal_clz(T x) noexcept {
 }
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_clz(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) int __wjr_msvc_x86_64_clz(T x) noexcept {
 #if WJR_AVX2
 	return __wjr_msvc_x86_64_avx2_clz(x);
 #elif defined(_WJR_CPUINFO)
@@ -9796,7 +9531,7 @@ WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_clz(T x) noexcept {
 }
 #elif defined(WJR_ARM)
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_INLINE int __wjr_msvc_arm_clz(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) int __wjr_msvc_arm_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if (x == 0) {
 		return _Nd;
@@ -9812,7 +9547,7 @@ WJR_INTRINSIC_INLINE int __wjr_msvc_arm_clz(T x) noexcept {
 #endif
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_CONST WJR_INTRINSIC_E_CONSTEXPR int clz(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int clz(T x) noexcept {
 	if (!wjr::is_constant_evaluated()) {
 #if WJR_HAS_BUILTIN(__builtin_clz) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
 		return __wjr_builtin_clz(x);
@@ -9838,7 +9573,7 @@ _WJR_ASM_BEGIN
 
 #if WJR_HAS_BUILTIN(__builtin_ctz) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
 template<typename T>
-WJR_INTRINSIC_INLINE int __wjr_builtin_ctz(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) int __wjr_builtin_ctz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 
 	if (is_likely(x != 0)) {
@@ -9866,7 +9601,7 @@ WJR_INTRINSIC_INLINE int __wjr_builtin_ctz(T x) noexcept {
 #elif defined(WJR_COMPILER_MSVC) && defined(WJR_X86) && !defined(_M_CEE_PURE) && !defined(__CUDACC__) \
     && !defined(__INTEL_COMPILER)
 template<typename T>
-WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_avx2_ctz(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) int __wjr_msvc_x86_64_avx2_ctz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	constexpr T _Max = std::numeric_limits<T>::max();
 	if constexpr (_Nd <= 32) {
@@ -9889,7 +9624,7 @@ WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_avx2_ctz(T x) noexcept {
 }
 
 template<typename T>
-WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_normal_ctz(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) int __wjr_msvc_x86_64_normal_ctz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	constexpr T _Max = std::numeric_limits<T>::max();
 	unsigned long _Result;
@@ -9922,7 +9657,7 @@ WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_normal_ctz(T x) noexcept {
 }
 
 template<typename T>
-WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_ctz(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) int __wjr_msvc_x86_64_ctz(T x) noexcept {
 #if WJR_AVX2
 	return __wjr_msvc_x86_64_avx2_ctz(x);
 #elif defined(_WJR_CPUINFO)
@@ -9939,7 +9674,7 @@ WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_ctz(T x) noexcept {
 #endif
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_CONST WJR_INTRINSIC_E_CONSTEXPR int ctz(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int ctz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if (!wjr::is_constant_evaluated()) {
 #if WJR_HAS_BUILTIN(__builtin_ctz) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
@@ -9961,7 +9696,7 @@ _WJR_ASM_END
 _WJR_ASM_BEGIN
 
 template<typename _Ty>
-WJR_INTRINSIC_CONSTEXPR int __wjr_fallback_popcount(_Ty _Val) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) int __wjr_fallback_popcount(_Ty _Val) noexcept {
 	constexpr int _Digits = std::numeric_limits<_Ty>::digits;
 #if defined(WJR_X86_32) || defined(WJR_ARM)
 	if constexpr (_Digits == 64) {
@@ -9984,7 +9719,7 @@ WJR_INTRINSIC_CONSTEXPR int __wjr_fallback_popcount(_Ty _Val) noexcept {
 
 #if WJR_HAS_BUILTIN(__builtin_popcount) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
 template<typename T>
-WJR_INTRINSIC_INLINE int __wjr_builtin_popcount(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) int __wjr_builtin_popcount(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 
 	constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
@@ -10008,7 +9743,7 @@ WJR_INTRINSIC_INLINE int __wjr_builtin_popcount(T x) noexcept {
 #elif defined(WJR_COMPILER_MSVC) && defined(WJR_X86) && !defined(_M_CEE_PURE) && !defined(__CUDACC__) \
 	&& !defined(__INTEL_COMPILER)
 template <typename T>
-WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_popcount(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) int __wjr_msvc_x86_64_popcount(T x) noexcept {
 	constexpr int _Digits = std::numeric_limits<T>::digits;
 	if constexpr (_Digits <= 16) {
 		return static_cast<int>(__popcnt16(x));
@@ -10027,7 +9762,7 @@ WJR_INTRINSIC_INLINE int __wjr_msvc_x86_64_popcount(T x) noexcept {
 #endif
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcnt(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int popcnt(T x) noexcept {
 	if (!wjr::is_constant_evaluated()) {
 #if WJR_HAS_BUILTIN(__builtin_popcount) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
 		return __wjr_builtin_popcount(x);
@@ -10047,25 +9782,25 @@ _WJR_ASM_END
 
 _WJR_ASM_BEGIN
 
-WJR_INTRINSIC_CONSTEXPR static uint8_t __wjr_fallback_bswap8(uint8_t x) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint8_t __wjr_fallback_bswap8(uint8_t x) {
 	return x;
 }
 
-WJR_INTRINSIC_CONSTEXPR static uint16_t __wjr_fallback_bswap16(uint16_t x) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint16_t __wjr_fallback_bswap16(uint16_t x) {
 	return static_cast<uint16_t>(x >> 8) | static_cast<uint16_t>(x << 8);
 }
 
-WJR_INTRINSIC_CONSTEXPR static uint32_t __wjr_fallback_bswap32(uint32_t x) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint32_t __wjr_fallback_bswap32(uint32_t x) {
 	return (x >> 24) | ((x >> 8) & 0xff00) | ((x << 8) & 0xff0000) | (x << 24);
 }
 
-WJR_INTRINSIC_CONSTEXPR static uint64_t __wjr_fallback_bswap64(uint64_t x) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint64_t __wjr_fallback_bswap64(uint64_t x) {
 	return (x >> 56) | ((x >> 40) & 0xff00) | ((x >> 24) & 0xff0000) | ((x >> 8) & 0xff000000)
 		| ((x << 8) & 0xff00000000) | ((x << 24) & 0xff0000000000) | ((x << 40) & 0xff000000000000) | (x << 56);
 }
 
 template<typename T>
-WJR_INTRINSIC_CONSTEXPR T __wjr_fallback_bswap(T x) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) T __wjr_fallback_bswap(T x) {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if constexpr (_Nd <= 8) {
 		return __wjr_fallback_bswap8(x);
@@ -10087,7 +9822,7 @@ WJR_INTRINSIC_CONSTEXPR T __wjr_fallback_bswap(T x) {
 // byte swap
 #if WJR_HAS_BUILTIN(__builtin_bswap16) || WJR_HAS_GCC(10, 1, 0) || WJR_HAS_CLANG(15, 0, 0)
 template<typename T>
-WJR_INTRINSIC_INLINE T __wjr_builtin_bswap(T x) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) T __wjr_builtin_bswap(T x) {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 
 	constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
@@ -10119,7 +9854,7 @@ WJR_INTRINSIC_INLINE T __wjr_builtin_bswap(T x) {
 }
 #elif defined(WJR_COMPILER_MSVC)
 template<typename T>
-WJR_INTRINSIC_INLINE T __wjr_msvc_bswap(T x) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) T __wjr_msvc_bswap(T x) {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 
 	constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
@@ -10147,7 +9882,7 @@ WJR_INTRINSIC_INLINE T __wjr_msvc_bswap(T x) {
 #endif // WJR_HAS_BUILTIN(__builtin_bswap16) || WJR_HAS_CLANG(3, 2, 0)
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_CONST WJR_INTRINSIC_INLINE T bswap(T x) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) T bswap(T x) {
 	if (!wjr::is_constant_evaluated()) {
 #if WJR_HAS_BUILTIN(__builtin_bswap16) || WJR_HAS_GCC(10, 1, 0) || WJR_HAS_CLANG(15, 0, 0)
 		return __wjr_builtin_bswap(x);
@@ -10273,32 +10008,32 @@ constexpr bool has_single_bit(T x) noexcept {
 }
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_E_CONSTEXPR int countl_zero(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int countl_zero(T x) noexcept {
 	return wjr::masm::clz(x);
 }
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_E_CONSTEXPR int countl_one(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int countl_one(T x) noexcept {
 	return wjr::countl_zero(static_cast<T>(~x));
 }
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_E_CONSTEXPR int countr_zero(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int countr_zero(T x) noexcept {
 	return wjr::masm::ctz(x);
 }
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_E_CONSTEXPR int countr_one(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int countr_one(T x) noexcept {
 	return wjr::countr_zero(static_cast<T>(~x));
 }
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_E_CONSTEXPR int bit_width(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int bit_width(T x) noexcept {
 	return std::numeric_limits<T>::digits - wjr::countl_zero(x);
 }
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_E_CONSTEXPR T bit_floor(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) T bit_floor(T x) noexcept {
 	if (x != 0) {
 		return static_cast<T>(T{ 1 } << (wjr::bit_width(x) - 1));
 	}
@@ -10306,7 +10041,7 @@ WJR_INTRINSIC_E_CONSTEXPR T bit_floor(T x) noexcept {
 }
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_E_CONSTEXPR T bit_ceil(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) T bit_ceil(T x) noexcept {
 	if (x <= 1) {
 		return T{ 1 };
 	}
@@ -10314,18 +10049,18 @@ WJR_INTRINSIC_E_CONSTEXPR T bit_ceil(T x) noexcept {
 }
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_E_CONSTEXPR int popcount(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int popcount(T x) noexcept {
 	return wjr::masm::popcnt(x);
 }
 
 template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 T byteswap(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) T byteswap(T x) noexcept {
 	using value_type = uint_t<8 * sizeof(T)>;
 	return bit_cast<T>(wjr::masm::bswap(bit_cast<value_type>(x)));
 }
 
 template<endian to = endian::native, typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 T endian_convert(T x, endian from = endian::native) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) T endian_convert(T x, endian from = endian::native) noexcept {
 	if (from != to) {
 		return byteswap(x);
 	}
@@ -10333,7 +10068,7 @@ WJR_INTRINSIC_CONSTEXPR20 T endian_convert(T x, endian from = endian::native) no
 }
 
 template<endian from, endian to, typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 T endian_convert(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) T endian_convert(T x) noexcept {
 	if constexpr (from != to) {
 		return byteswap(x);
 	}
@@ -10409,7 +10144,7 @@ constexpr bool in_range(T t) noexcept {
 // calc a ^ b
 // O(log2 b)
 template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
-inline constexpr T power(T a, unsigned int b) {
+WJR_ATTRIBUTE(NODISCARD, CONST, INLINE, CONSTEXPR) T power(T a, unsigned int b) {
 	T ret = 1;
 	while (b) {
 		if (b & 1)ret *= a;
@@ -14643,7 +14378,7 @@ _WJR_SIMD_END
 	{	                                                                            \
 		auto r = st::cmp(x, q, pred, T());	                                        \
 		st::mask_type z = st::movemask_epi8(r);	                                    \
-		if(z != 0){	                                                                \
+		if(is_likely(z != 0)) {	                                                    \
 			return WJR_SIMD_FIRST_ONE_PTR(ptr, z);	                                \
 		}	                                                                        \
 	}
@@ -14686,7 +14421,7 @@ _WJR_SIMD_END
 _WJR_ALGO_BEGIN
 
 template<typename T, typename _Pred>
-WJR_NODISCARD WJR_PURE const T*
+WJR_ATTRIBUTE(NODISCARD, PURE) const T*
 	WJR_MACRO_CONCAT(__large, __WJR_MEMCHR_NAME)(const T* s, T val, size_t n, _Pred pred) noexcept {
 
 	constexpr size_t _Mysize = sizeof(T);
@@ -14879,7 +14614,7 @@ WJR_NODISCARD WJR_PURE const T*
 // Doing so does not cause the code to become overly bloated, while also balancing performance
 // But what's awkward is that MSVC doesn't inline it
 template<typename T, typename _Pred>
-WJR_NODISCARD WJR_PURE inline const T* (__WJR_MEMCHR_NAME)(const T* s, T val, size_t n, _Pred pred) noexcept {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* (__WJR_MEMCHR_NAME)(const T* s, T val, size_t n, _Pred pred) noexcept {
 	constexpr size_t _Mysize = sizeof(T);
 
 	if (is_unlikely(n == 0)) return s;
@@ -14895,21 +14630,16 @@ WJR_NODISCARD WJR_PURE inline const T* (__WJR_MEMCHR_NAME)(const T* s, T val, si
 			__WJR_MEMCHR_ONE(simd::sse, qx, s);
 		}
 
-		if (n <= 32 / _Mysize) {
-			// solve last 16 bytes
+		auto m = n <= 32 / _Mysize ? (n - 16 / _Mysize) : (16 / _Mysize);
 
-			WJR_SIMD_INC_PTR(s, n - 16 / _Mysize);
-
-			WJR_SIMD_LOADU(simd::sse, x, s);
-			__WJR_MEMCHR_ONE(simd::sse, qx, s);
-
-			return WJR_SIMD_ADD_PTR(s, 16 / _Mysize);
+		// solve next 16 bytes
+		{
+			WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s, m));
+			__WJR_MEMCHR_ONE(simd::sse, qx, WJR_SIMD_ADD_PTR(s, m));
 		}
 
-		{
-			// solve first 16 bytes
-			WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s, 16 / _Mysize));
-			__WJR_MEMCHR_ONE(simd::sse, qx, WJR_SIMD_ADD_PTR(s, 16 / _Mysize));
+		if (n <= 32 / _Mysize) {
+			return WJR_SIMD_ADD_PTR(s, n);
 		}
 
 		return WJR_MACRO_CONCAT(__large, __WJR_MEMCHR_NAME)(s, val, n, pred);
@@ -15053,7 +14783,7 @@ _WJR_ALGO_END
 _WJR_ALGO_BEGIN
 
 template<typename T, typename _Pred>
-WJR_NODISCARD WJR_PURE const T*
+WJR_ATTRIBUTE(NODISCARD, PURE) const T*
 	WJR_MACRO_CONCAT(__large, __WJR_MEMCHR_NAME)(const T* s, T val, size_t n, _Pred pred) noexcept {
 
 	constexpr size_t _Mysize = sizeof(T);
@@ -15246,7 +14976,7 @@ WJR_NODISCARD WJR_PURE const T*
 // Doing so does not cause the code to become overly bloated, while also balancing performance
 // But what's awkward is that MSVC doesn't inline it
 template<typename T, typename _Pred>
-WJR_NODISCARD WJR_PURE inline const T* (__WJR_MEMCHR_NAME)(const T* s, T val, size_t n, _Pred pred) noexcept {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* (__WJR_MEMCHR_NAME)(const T* s, T val, size_t n, _Pred pred) noexcept {
 	constexpr size_t _Mysize = sizeof(T);
 
 	if (is_unlikely(n == 0)) return s;
@@ -15262,21 +14992,16 @@ WJR_NODISCARD WJR_PURE inline const T* (__WJR_MEMCHR_NAME)(const T* s, T val, si
 			__WJR_MEMCHR_ONE(simd::sse, qx, s);
 		}
 
-		if (n <= 32 / _Mysize) {
-			// solve last 16 bytes
+		auto m = n <= 32 / _Mysize ? (n - 16 / _Mysize) : (16 / _Mysize);
 
-			WJR_SIMD_INC_PTR(s, n - 16 / _Mysize);
-
-			WJR_SIMD_LOADU(simd::sse, x, s);
-			__WJR_MEMCHR_ONE(simd::sse, qx, s);
-
-			return WJR_SIMD_ADD_PTR(s, 16 / _Mysize);
+		// solve next 16 bytes
+		{
+			WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s, m));
+			__WJR_MEMCHR_ONE(simd::sse, qx, WJR_SIMD_ADD_PTR(s, m));
 		}
 
-		{
-			// solve first 16 bytes
-			WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s, 16 / _Mysize));
-			__WJR_MEMCHR_ONE(simd::sse, qx, WJR_SIMD_ADD_PTR(s, 16 / _Mysize));
+		if (n <= 32 / _Mysize) {
+			return WJR_SIMD_ADD_PTR(s, n);
 		}
 
 		return WJR_MACRO_CONCAT(__large, __WJR_MEMCHR_NAME)(s, val, n, pred);
@@ -15434,9 +15159,9 @@ _WJR_ALGO_END
 #error "This file should not be included directly. Include <wjr/algo/mem-all.h> instead."
 #endif // __WJR_ALGO_MEM_ALL_H
 
-#if defined(_WJR_FAST_MEMCMP)
+#if defined(_WJR_FAST_MEMEQ)
 
-#define __WJR_MEMCMP_ONE_NORMAL(st)														    \
+#define __WJR_MEMEQ_ONE_NORMAL(st)														    \
 	{	                                                                                    \
 		auto r = st::cmp(x, y, pred, T());	                                                \
 		st::mask_type z = st::movemask_epi8(r);		                                        \
@@ -15445,7 +15170,7 @@ _WJR_ALGO_END
 		}	                                                                                \
 	}
 
-#define __WJR_MEMCMP_FOUR_NORMAL(st)													    \
+#define __WJR_MEMEQ_FOUR_NORMAL(st)													    \
 	{	                                                                                    \
 		auto r0 = st::cmp(x0, y0, pred, T());	                                            \
 		auto r1 = st::cmp(x1, y1, pred, T());	                                            \
@@ -15459,14 +15184,14 @@ _WJR_ALGO_END
 		}	                                                                                \
 	}
 
-#define __WJR_MEMCMP_ONE(st) __WJR_MEMCMP_ONE_NORMAL(st)
-#define __WJR_MEMCMP_FOUR(st) __WJR_MEMCMP_FOUR_NORMAL(st)
+#define __WJR_MEMEQ_ONE(st) __WJR_MEMEQ_ONE_NORMAL(st)
+#define __WJR_MEMEQ_FOUR(st) __WJR_MEMEQ_FOUR_NORMAL(st)
 
 #if WJR_SSE4_1
-#undef __WJR_MEMCMP_ONE
-#undef __WJR_MEMCMP_FOUR
+#undef __WJR_MEMEQ_ONE
+#undef __WJR_MEMEQ_FOUR
 
-#define __WJR_MEMCMP_ONE(st)															\
+#define __WJR_MEMEQ_ONE(st)															\
 	if constexpr(std::is_same_v<_Pred, std::equal_to<>>){	                            \
 		auto r = st::Xor(x, y);	                                                        \
 		auto z = st::test_all_zeros(r);	                                                \
@@ -15475,10 +15200,10 @@ _WJR_ALGO_END
 		}	                                                                            \
 	}	                                                                                \
 	else{	                                                                            \
-		__WJR_MEMCMP_ONE_NORMAL(st)														\
+		__WJR_MEMEQ_ONE_NORMAL(st)														\
 	}
 
-#define __WJR_MEMCMP_FOUR(st)															\
+#define __WJR_MEMEQ_FOUR(st)															\
 	if constexpr(std::is_same_v<_Pred, std::equal_to<>>){	                            \
 		auto r0 = st::Xor(x0, y0);	                                                    \
 		auto r1 = st::Xor(x1, y1);	                                                    \
@@ -15492,7 +15217,7 @@ _WJR_ALGO_END
 		}	                                                                            \
 	}	                                                                                \
 	else{	                                                                            \
-		__WJR_MEMCMP_FOUR_NORMAL(st)													\
+		__WJR_MEMEQ_FOUR_NORMAL(st)													\
 	}
 #endif // WJR_SSE4_1
 
@@ -15501,7 +15226,7 @@ _WJR_ALGO_BEGIN
 #define WJR_SIMD_IS_BACKWARD 0
 
 template<typename T, typename _Pred>
-WJR_NODISCARD WJR_PURE bool __large_memcmp(const T * s0, const T * s1, size_t n, _Pred pred) noexcept {
+WJR_ATTRIBUTE(NODISCARD, PURE) bool __large__memeq(const T * s0, const T * s1, size_t n, _Pred pred) noexcept {
 	constexpr size_t _Mysize = sizeof(T);
 
 #if WJR_AVX2
@@ -15525,32 +15250,32 @@ WJR_NODISCARD WJR_PURE bool __large_memcmp(const T * s0, const T * s1, size_t n,
 			WJR_SIMD_LOADU(simd::avx, x, s0 + delta);
 			WJR_SIMD_LOADU(simd::avx, y, s1 + delta);
 
-			__WJR_MEMCMP_ONE(simd::avx);
+			__WJR_MEMEQ_ONE(simd::avx);
 		}
 		{
 			WJR_SIMD_LOADU(simd::avx, x, s0 + negdelta - delta);
 			WJR_SIMD_LOADU(simd::avx, y, s1 + negdelta - delta);
 
-			__WJR_MEMCMP_ONE(simd::avx);
+			__WJR_MEMEQ_ONE(simd::avx);
 		}
 		{
 			WJR_SIMD_LOADU(simd::avx, x, s0 + negdelta);
 			WJR_SIMD_LOADU(simd::avx, y, s1 + negdelta);
 
-			__WJR_MEMCMP_ONE(simd::avx);
+			__WJR_MEMEQ_ONE(simd::avx);
 		}
 #else
 		{
 			WJR_SIMD_LOADU(simd::sse, x, s0 + delta);
 			WJR_SIMD_LOADU(simd::sse, y, s1 + delta);
 
-			__WJR_MEMCMP_ONE(simd::sse);
+			__WJR_MEMEQ_ONE(simd::sse);
 		}
 		{
 			WJR_SIMD_LOADU(simd::sse, x, s0 + delta + 16 / _Mysize);
 			WJR_SIMD_LOADU(simd::sse, y, s1 + delta + 16 / _Mysize);
 
-			__WJR_MEMCMP_ONE(simd::sse);
+			__WJR_MEMEQ_ONE(simd::sse);
 		}
 
 		{
@@ -15566,7 +15291,7 @@ WJR_NODISCARD WJR_PURE bool __large_memcmp(const T * s0, const T * s1, size_t n,
 				s1 + negdelta,
 				s1 + negdelta + 16 / _Mysize);
 
-			__WJR_MEMCMP_FOUR(simd::sse);
+			__WJR_MEMEQ_FOUR(simd::sse);
 		}
 #endif // WJR_AVX2
 
@@ -15596,7 +15321,7 @@ WJR_NODISCARD WJR_PURE bool __large_memcmp(const T * s0, const T * s1, size_t n,
 			s1 - width * 2,
 			s1 - width);
 
-		__WJR_MEMCMP_FOUR(simd_t);
+		__WJR_MEMEQ_FOUR(simd_t);
 
 		return true;
 	}
@@ -15622,7 +15347,7 @@ WJR_NODISCARD WJR_PURE bool __large_memcmp(const T * s0, const T * s1, size_t n,
 				WJR_SIMD_LOADU(simd_t, x, s0);
 				WJR_SIMD_LOADU(simd_t, y, s1);
 
-				__WJR_MEMCMP_ONE(simd_t);
+				__WJR_MEMEQ_ONE(simd_t);
 
 				const auto __align_s = bound - off0;
 				s0 += __align_s / _Mysize;
@@ -15638,7 +15363,7 @@ WJR_NODISCARD WJR_PURE bool __large_memcmp(const T * s0, const T * s1, size_t n,
 				WJR_SIMD_LOAD4(simd_t, x, s0, s0 + width, s0 + width * 2, s0 + width * 3);
 				WJR_SIMD_LOADU4(simd_t, y, s1, s1 + width, s1 + width * 2, s1 + width * 3);
 
-				__WJR_MEMCMP_FOUR(simd_t);
+				__WJR_MEMEQ_FOUR(simd_t);
 
 				s0 += width * 4;
 				s1 += width * 4;
@@ -15664,7 +15389,7 @@ WJR_NODISCARD WJR_PURE bool __large_memcmp(const T * s0, const T * s1, size_t n,
 
 				WJR_SIMD_LOADU4(simd_t, y, ptr1, ptr1 + width, ptr1 + width * 2, s1 - width);
 
-				__WJR_MEMCMP_FOUR(simd_t);
+				__WJR_MEMEQ_FOUR(simd_t);
 			}
 
 			return true;
@@ -15678,7 +15403,7 @@ WJR_NODISCARD WJR_PURE bool __large_memcmp(const T * s0, const T * s1, size_t n,
 			auto x = simd_t::loadu(reinterpret_cast<const sint*>(s0));
 			auto y = simd_t::loadu(reinterpret_cast<const sint*>(s1));
 
-			__WJR_MEMCMP_ONE(simd_t);
+			__WJR_MEMEQ_ONE(simd_t);
 
 			const auto __align_s = bound - off0;
 			s0 += __align_s / _Mysize;
@@ -15694,7 +15419,7 @@ WJR_NODISCARD WJR_PURE bool __large_memcmp(const T * s0, const T * s1, size_t n,
 			WJR_SIMD_LOAD4(simd_t, x, s0, s0 + width, s0 + width * 2, s0 + width * 3);
 			WJR_SIMD_LOAD4(simd_t, y, s1, s1 + width, s1 + width * 2, s1 + width * 3);
 
-			__WJR_MEMCMP_FOUR(simd_t);
+			__WJR_MEMEQ_FOUR(simd_t);
 
 			s0 += width * 4;
 			s1 += width * 4;
@@ -15723,7 +15448,7 @@ WJR_NODISCARD WJR_PURE bool __large_memcmp(const T * s0, const T * s1, size_t n,
 			auto y2 = simd_t::load(reinterpret_cast<const sint*>(ptr1 + width * 2));
 			auto y3 = simd_t::loadu(reinterpret_cast<const sint*>(s1 - width));
 
-			__WJR_MEMCMP_FOUR(simd_t);
+			__WJR_MEMEQ_FOUR(simd_t);
 		}
 
 		return true;
@@ -15740,7 +15465,7 @@ WJR_NODISCARD WJR_PURE bool __large_memcmp(const T * s0, const T * s1, size_t n,
 			auto x = simd_t::loadu(reinterpret_cast<const sint*>(s0));
 			auto y = simd_t::loadu(reinterpret_cast<const sint*>(s1));
 
-			__WJR_MEMCMP_ONE(simd_t);
+			__WJR_MEMEQ_ONE(simd_t);
 
 			const auto __align_s = bound - off1;
 			s0 += __align_s / _Mysize;
@@ -15756,7 +15481,7 @@ WJR_NODISCARD WJR_PURE bool __large_memcmp(const T * s0, const T * s1, size_t n,
 			WJR_SIMD_LOADU4(simd_t, x, s0, s0 + width, s0 + width * 2, s0 + width * 3);
 			WJR_SIMD_LOAD4(simd_t, y, s1, s1 + width, s1 + width * 2, s1 + width * 3);
 
-			__WJR_MEMCMP_FOUR(simd_t);
+			__WJR_MEMEQ_FOUR(simd_t);
 
 			s0 += width * 4;
 			s1 += width * 4;
@@ -15785,7 +15510,7 @@ WJR_NODISCARD WJR_PURE bool __large_memcmp(const T * s0, const T * s1, size_t n,
 			auto y2 = simd_t::load(reinterpret_cast<const sint*>(ptr1 + width * 2));
 			auto y3 = simd_t::loadu(reinterpret_cast<const sint*>(s1 - width));
 
-			__WJR_MEMCMP_FOUR(simd_t);
+			__WJR_MEMEQ_FOUR(simd_t);
 		}
 
 		return true;
@@ -15796,7 +15521,7 @@ WJR_NODISCARD WJR_PURE bool __large_memcmp(const T * s0, const T * s1, size_t n,
 		WJR_SIMD_LOADU4(simd_t, x, s0, s0 + width, s0 + width * 2, s0 + width * 3);
 		WJR_SIMD_LOADU4(simd_t, y, s1, s1 + width, s1 + width * 2, s1 + width * 3);
 
-		__WJR_MEMCMP_FOUR(simd_t);
+		__WJR_MEMEQ_FOUR(simd_t);
 
 		s0 += width * 4;
 		s1 += width * 4;
@@ -15810,11 +15535,11 @@ WJR_NODISCARD WJR_PURE bool __large_memcmp(const T * s0, const T * s1, size_t n,
 	goto WJR_MACRO_LABEL(unaligned_last_4vec);
 }
 
-extern template bool __large_memcmp(const uint8_t*, const uint8_t*, size_t, std::equal_to<>) noexcept;
-extern template bool __large_memcmp(const uint8_t*, const uint8_t*, size_t, std::not_equal_to<>) noexcept;
+extern template bool __large__memeq(const uint8_t*, const uint8_t*, size_t, std::equal_to<>) noexcept;
+extern template bool __large__memeq(const uint8_t*, const uint8_t*, size_t, std::not_equal_to<>) noexcept;
 
 template<typename T, typename _Pred>
-WJR_NODISCARD WJR_PURE inline bool __memcmp(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
+WJR_NODISCARD WJR_PURE inline bool __memeq(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
 
 	constexpr size_t _Mysize = sizeof(T);
 
@@ -15831,7 +15556,7 @@ WJR_NODISCARD WJR_PURE inline bool __memcmp(const T* s0, const T* s1, size_t n, 
 			WJR_SIMD_LOADU(simd::sse, x, s0);
 			WJR_SIMD_LOADU(simd::sse, y, s1);
 
-			__WJR_MEMCMP_ONE(simd::sse);
+			__WJR_MEMEQ_ONE(simd::sse);
 		}
 
 		if (n <= 32 / _Mysize) {
@@ -15844,7 +15569,7 @@ WJR_NODISCARD WJR_PURE inline bool __memcmp(const T* s0, const T* s1, size_t n, 
 				WJR_SIMD_LOADU(simd::sse, x, s0);
 				WJR_SIMD_LOADU(simd::sse, y, s1);
 
-				__WJR_MEMCMP_ONE(simd::sse);
+				__WJR_MEMEQ_ONE(simd::sse);
 			}
 
 			return true;
@@ -15855,10 +15580,10 @@ WJR_NODISCARD WJR_PURE inline bool __memcmp(const T* s0, const T* s1, size_t n, 
 			WJR_SIMD_LOADU(simd::sse, x, s0 + 16 / _Mysize);
 			WJR_SIMD_LOADU(simd::sse, y, s1 + 16 / _Mysize);
 
-			__WJR_MEMCMP_ONE(simd::sse);
+			__WJR_MEMEQ_ONE(simd::sse);
 		}
 
-		return __large_memcmp(s0, s1, n, pred);
+		return __large__memeq(s0, s1, n, pred);
 	}
 
 	if constexpr (_Mysize == 8) {
@@ -15879,7 +15604,7 @@ WJR_NODISCARD WJR_PURE inline bool __memcmp(const T* s0, const T* s1, size_t n, 
 			auto x = simd::sse::set_epi64x(B0, A0);
 			auto y = simd::sse::set_epi64x(B1, A1);
 
-			__WJR_MEMCMP_ONE(simd::sse);
+			__WJR_MEMEQ_ONE(simd::sse);
 
 			return true;
 		}
@@ -15904,7 +15629,7 @@ WJR_NODISCARD WJR_PURE inline bool __memcmp(const T* s0, const T* s1, size_t n, 
 			auto x = simd::sse::set_epi32(D0, C0, B0, A0);
 			auto y = simd::sse::set_epi32(D1, C1, B1, A1);
 
-			__WJR_MEMCMP_ONE(simd::sse);
+			__WJR_MEMEQ_ONE(simd::sse);
 
 			return true;
 		}
@@ -15923,15 +15648,14 @@ WJR_NODISCARD WJR_PURE inline bool __memcmp(const T* s0, const T* s1, size_t n, 
 
 #undef WJR_SIMD_IS_BACKWARD
 
-
 _WJR_ALGO_END
 
-#undef __WJR_MEMCMP_ONE
-#undef __WJR_MEMCMP_FOUR
-#undef __WJR_MEMCMP_ONE_NORMAL
-#undef __WJR_MEMCMP_FOUR_NORMAL
+#undef __WJR_MEMEQ_ONE
+#undef __WJR_MEMEQ_FOUR
+#undef __WJR_MEMEQ_ONE_NORMAL
+#undef __WJR_MEMEQ_FOUR_NORMAL
 
-#endif // _WJR_FAST_MEMCMP
+#endif // _WJR_FAST_MEMEQ
 
 #ifndef __WJR_ALGO_MEM_ALL_H
 #error "This file should not be included directly. Include <wjr/algo/mem-all.h> instead."
@@ -15943,7 +15667,7 @@ _WJR_ALGO_END
 	{	                                                                                            \
 		auto r = st::cmp(x, y, pred, T());	                                                        \
 		st::mask_type z = st::movemask_epi8(r);		                                                \
-		if(is_unlikely(z != st::mask())) {	                                                        \
+		if(is_likely(z != st::mask())) {	                                                        \
 			return WJR_SIMD_FIRST_ZERO_PTR(_s, z);													\
 		}	                                                                                        \
 	}
@@ -15986,7 +15710,7 @@ _WJR_ALGO_END
 _WJR_ALGO_BEGIN
 
 template<typename T, typename _Pred>
-WJR_NODISCARD WJR_PURE const T*
+WJR_ATTRIBUTE(NODISCARD, PURE) const T*
 WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
 	constexpr size_t _Mysize = sizeof(T);
 
@@ -15998,6 +15722,24 @@ WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n,
 
 	constexpr uintptr_t width = simd_t::width() / (8 * _Mysize);
 	constexpr uintptr_t bound = width * _Mysize;
+
+	{
+		// solve next 16 bytes
+		if(n <= 32 / _Mysize) {
+			const auto m = n - 16 / _Mysize;
+			WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s0, m));
+			WJR_SIMD_LOADU(simd::sse, y, WJR_SIMD_ADD_PTR(s1, m));
+
+			__WJR_MEMMIS_ONE(simd::sse, WJR_SIMD_ADD_PTR(s0, m));
+
+			return s0 + n;
+		}
+
+		WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s0, 16 / _Mysize));
+		WJR_SIMD_LOADU(simd::sse, y, WJR_SIMD_ADD_PTR(s1, 16 / _Mysize));
+
+		__WJR_MEMMIS_ONE(simd::sse, WJR_SIMD_ADD_PTR(s0, 16 / _Mysize));
+	}
 
 	// solve first min(n, 128 / _Mysize) bytes
 	// no branch algorithm
@@ -16369,7 +16111,7 @@ WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n,
 }
 
 template<typename T, typename _Pred>
-WJR_NODISCARD WJR_PURE WJR_NOINLINE const T*
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T*
 __WJR_MEMMIS_NAME(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
 	constexpr size_t _Mysize = sizeof(T);
 
@@ -16386,27 +16128,6 @@ __WJR_MEMMIS_NAME(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
 			WJR_SIMD_LOADU(simd::sse, y, s1);
 
 			__WJR_MEMMIS_ONE(simd::sse, s0);
-		}
-
-		if (n <= 32 / _Mysize) {
-
-			WJR_SIMD_INC_PTR(s0, n - 16 / _Mysize);
-			WJR_SIMD_INC_PTR(s1, n - 16 / _Mysize);
-
-			WJR_SIMD_LOADU(simd::sse, x, s0);
-			WJR_SIMD_LOADU(simd::sse, y, s1);
-
-			__WJR_MEMMIS_ONE(simd::sse, s0);
-
-			return WJR_SIMD_ADD_PTR(s0, 16 / _Mysize);
-		}
-
-		// solve next 16 bytes
-		{
-			WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s0, 16 / _Mysize));
-			WJR_SIMD_LOADU(simd::sse, y, WJR_SIMD_ADD_PTR(s1, 16 / _Mysize));
-
-			__WJR_MEMMIS_ONE(simd::sse, WJR_SIMD_ADD_PTR(s0, 16 / _Mysize));
 		}
 
 		return WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(s0, s1, n, pred);
@@ -16511,7 +16232,7 @@ __WJR_MEMMIS_NAME(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
 		// n = [1, 16)
 		if (n >= 4) {
 			// n = [4, 16)
-			auto delta = (n & 8) >> 1;
+			const auto delta = (n & 8) >> 1;
 
 			auto A0 = *reinterpret_cast<const uint32_t*>(s0 - n);
 			auto B0 = *reinterpret_cast<const uint32_t*>(s0 - n + delta);
@@ -16566,7 +16287,7 @@ _WJR_ALGO_END
 _WJR_ALGO_BEGIN
 
 template<typename T, typename _Pred>
-WJR_NODISCARD WJR_PURE const T*
+WJR_ATTRIBUTE(NODISCARD, PURE) const T*
 WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
 	constexpr size_t _Mysize = sizeof(T);
 
@@ -16578,6 +16299,24 @@ WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n,
 
 	constexpr uintptr_t width = simd_t::width() / (8 * _Mysize);
 	constexpr uintptr_t bound = width * _Mysize;
+
+	{
+		// solve next 16 bytes
+		if(n <= 32 / _Mysize) {
+			const auto m = n - 16 / _Mysize;
+			WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s0, m));
+			WJR_SIMD_LOADU(simd::sse, y, WJR_SIMD_ADD_PTR(s1, m));
+
+			__WJR_MEMMIS_ONE(simd::sse, WJR_SIMD_ADD_PTR(s0, m));
+
+			return s0 + n;
+		}
+
+		WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s0, 16 / _Mysize));
+		WJR_SIMD_LOADU(simd::sse, y, WJR_SIMD_ADD_PTR(s1, 16 / _Mysize));
+
+		__WJR_MEMMIS_ONE(simd::sse, WJR_SIMD_ADD_PTR(s0, 16 / _Mysize));
+	}
 
 	// solve first min(n, 128 / _Mysize) bytes
 	// no branch algorithm
@@ -16949,7 +16688,7 @@ WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n,
 }
 
 template<typename T, typename _Pred>
-WJR_NODISCARD WJR_PURE WJR_NOINLINE const T*
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T*
 __WJR_MEMMIS_NAME(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
 	constexpr size_t _Mysize = sizeof(T);
 
@@ -16966,27 +16705,6 @@ __WJR_MEMMIS_NAME(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
 			WJR_SIMD_LOADU(simd::sse, y, s1);
 
 			__WJR_MEMMIS_ONE(simd::sse, s0);
-		}
-
-		if (n <= 32 / _Mysize) {
-
-			WJR_SIMD_INC_PTR(s0, n - 16 / _Mysize);
-			WJR_SIMD_INC_PTR(s1, n - 16 / _Mysize);
-
-			WJR_SIMD_LOADU(simd::sse, x, s0);
-			WJR_SIMD_LOADU(simd::sse, y, s1);
-
-			__WJR_MEMMIS_ONE(simd::sse, s0);
-
-			return WJR_SIMD_ADD_PTR(s0, 16 / _Mysize);
-		}
-
-		// solve next 16 bytes
-		{
-			WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s0, 16 / _Mysize));
-			WJR_SIMD_LOADU(simd::sse, y, WJR_SIMD_ADD_PTR(s1, 16 / _Mysize));
-
-			__WJR_MEMMIS_ONE(simd::sse, WJR_SIMD_ADD_PTR(s0, 16 / _Mysize));
 		}
 
 		return WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(s0, s1, n, pred);
@@ -17091,7 +16809,7 @@ __WJR_MEMMIS_NAME(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
 		// n = [1, 16)
 		if (n >= 4) {
 			// n = [4, 16)
-			auto delta = (n & 8) >> 1;
+			const auto delta = (n & 8) >> 1;
 
 			auto A0 = *reinterpret_cast<const uint32_t*>(s0 - n);
 			auto B0 = *reinterpret_cast<const uint32_t*>(s0 - n + delta);
@@ -17477,10 +17195,10 @@ template const uint8_t* __large__memrchr(
 	const uint8_t*, uint8_t, size_t, std::not_equal_to<>) noexcept;
 #endif // _WJR_FAST_MEMCHR
 
-#if defined(_WJR_FAST_MEMCMP)
-template bool __large_memcmp(const uint8_t*, const uint8_t*, size_t, std::equal_to<>) noexcept;
-template bool __large_memcmp(const uint8_t*, const uint8_t*, size_t, std::not_equal_to<>) noexcept;
-#endif // _WJR_FAST_MEMCMP
+#if defined(_WJR_FAST_MEMEQ)
+template bool __large__memeq(const uint8_t*, const uint8_t*, size_t, std::equal_to<>) noexcept;
+template bool __large__memeq(const uint8_t*, const uint8_t*, size_t, std::not_equal_to<>) noexcept;
+#endif // _WJR_FAST_MEMEQ
 
 #if defined(_WJR_FAST_MEMMIS)
 template const uint8_t* __large__memmis(
@@ -17699,7 +17417,8 @@ template<typename T, typename U, typename _Pred>
 constexpr bool __has_fast_memrchr_v = __has_fast_memrchr<T, U, _Pred>::value;
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memchr_v<T, U, _Pred>, int> = 0>
-WJR_NODISCARD WJR_INTRINSIC_INLINE const T* memchr(const T* s, U val, size_t n, _Pred pred) noexcept {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* memchr(
+	const T* s, U val, size_t n, _Pred pred) noexcept {
 	auto p = is_possible_memory_comparable<T>(val, pred);
 	if (p == ipmc_result::none) {
 		return s + n;
@@ -17713,7 +17432,7 @@ WJR_NODISCARD WJR_INTRINSIC_INLINE const T* memchr(const T* s, U val, size_t n, 
 	return reinterpret_cast<const T*>(__memchr(__s, __val, n, pred));
 }
 template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memchr_v<T, U, _Pred>, int> = 0>
-WJR_NODISCARD const T* memrchr(const T* s, U val, size_t n, _Pred pred) {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* memrchr(const T* s, U val, size_t n, _Pred pred) {
 	auto p = is_possible_memory_comparable<T>(val, pred);
 	if (p == ipmc_result::none) {
 		return s;
@@ -17745,7 +17464,7 @@ template<typename T, typename U, typename _Pred>
 constexpr bool __has_fast_memrchr_v = __has_fast_memrchr<T, U, _Pred>::value;
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memchr_v<T, U, _Pred>, int> = 0>
-WJR_NODISCARD const T* memchr(const T* s, U val, size_t n, _Pred pred) {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* memchr(const T* s, U val, size_t n, _Pred pred) {
 	auto p = is_possible_memory_comparable<T>(val, pred);
 	if (p == ipmc_result::none) {
 		return s + n;
@@ -17777,56 +17496,56 @@ WJR_NODISCARD const T* memchr(const T* s, U val, size_t n, _Pred pred) {
 
 #endif // _WJR_FAST_MEMCHR
 
-#if defined(_WJR_FAST_MEMCMP)
+#if defined(_WJR_FAST_MEMEQ)
 template<typename T, typename U, typename _Pred>
-struct __has_fast_memcmp : std::conjunction<
+struct __has_fast_memeq : std::conjunction<
 	is_memory_comparable<T, U, _Pred>,
 	is_integrals<T, U>,
 	is_any_index_of<sizeof(T), 1, 2, 4>
 > {};
 
 template<typename T, typename U>
-struct __has_fast_memcmp<T, U, std::equal_to<>> : std::conjunction<
+struct __has_fast_memeq<T, U, std::equal_to<>> : std::conjunction<
 	is_memory_comparable<T, U, std::equal_to<>>
 > {};
 
 template<typename T, typename U, typename _Pred>
-constexpr bool __has_fast_memcmp_v = __has_fast_memcmp<T, U, _Pred>::value;
+constexpr bool __has_fast_memeq_v = __has_fast_memeq<T, U, _Pred>::value;
 
-template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memcmp_v<T, U, _Pred>, int> = 0>
-WJR_NODISCARD bool memcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
+template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memeq_v<T, U, _Pred>, int> = 0>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) bool memeq(const T* s0, const U* s1, size_t n, _Pred pred) {
 	if constexpr (is_any_of_v<_Pred, std::equal_to<>>) {
 		using value_type = uint8_t;
 		auto __s0 = reinterpret_cast<const value_type*>(s0);
 		auto __s1 = reinterpret_cast<const value_type*>(s1);
-		return __memcmp(__s0, __s1, n * sizeof(T), pred);
+		return __memeq(__s0, __s1, n * sizeof(T), pred);
 	}
 	else {
 		using value_type = make_integral_t<T>;
 		auto __s0 = reinterpret_cast<const value_type*>(s0);
 		auto __s1 = reinterpret_cast<const value_type*>(s1);
-		return __memcmp(__s0, __s1, n, pred);
+		return __memeq(__s0, __s1, n, pred);
 	}
 }
 
 #else
 template<typename T, typename U, typename _Pred>
-struct __has_fast_memcmp : std::false_type {};
+struct __has_fast_memeq : std::false_type {};
 
 template<typename T, typename U>
-struct __has_fast_memcmp<T, U, std::equal_to<>> : std::conjunction<
+struct __has_fast_memeq<T, U, std::equal_to<>> : std::conjunction<
 	is_memory_comparable<T, U, std::equal_to<>>
 > {};
 
 template<typename T, typename U, typename _Pred>
-inline constexpr bool __has_fast_memcmp_v = __has_fast_memcmp<T, U, _Pred>::type::value;
+inline constexpr bool __has_fast_memeq_v = __has_fast_memeq<T, U, _Pred>::type::value;
 
-template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memcmp_v<T, U, _Pred>, int> = 0>
-WJR_NODISCARD bool memcmp(const T* s0, const U* s1, size_t n, WJR_MAYBE_UNUSED _Pred pred) {
+template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memeq_v<T, U, _Pred>, int> = 0>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) bool memeq(const T* s0, const U* s1, size_t n, WJR_MAYBE_UNUSED _Pred pred) {
 	return ::memcmp(s0, s1, n * sizeof(T)) == 0;
 }
 
-#endif // _WJR_FAST_MEMCMP
+#endif // _WJR_FAST_MEMEQ
 
 #if defined(_WJR_FAST_MEMMIS)
 template<typename T, typename U, typename _Pred>
@@ -17852,7 +17571,7 @@ constexpr bool __has_fast_memrmis_v = __has_fast_memrmis<T, U, _Pred>::value;
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<
 	__has_fast_memmis_v<T, U, _Pred>, int> = 0>
-WJR_NODISCARD const T* memmis(const T* s0, const U* s1, size_t n, _Pred pred) {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* memmis(const T* s0, const U* s1, size_t n, _Pred pred) {
 	if constexpr (is_any_of_v<_Pred, std::equal_to<>>) {
 		using value_type = uint8_t;
 		auto __s0 = reinterpret_cast<const value_type*>(s0);
@@ -17872,7 +17591,7 @@ WJR_NODISCARD const T* memmis(const T* s0, const U* s1, size_t n, _Pred pred) {
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<
 	__has_fast_memmis_v<T, U, _Pred>, int> = 0>
-WJR_NODISCARD const T* memrmis(const T* s0, const U* s1, size_t n, _Pred pred) {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* memrmis(const T* s0, const U* s1, size_t n, _Pred pred) {
 	if constexpr (is_any_of_v<_Pred, std::equal_to<>>) {
 		using value_type = uint8_t;
 		auto __s0 = reinterpret_cast<const value_type*>(s0);
@@ -17906,29 +17625,105 @@ constexpr bool __has_fast_memrmis_v = __has_fast_memrmis<T, U, _Pred>::value;
 
 #endif // _WJR_FAST_MEMMIS
 
-#if defined(_WJR_FAST_MEMCNT)
+#if defined(_WJR_FAST_MEMMIS)
+template<typename T, typename U, typename _Pred>
+struct __has_fast_memcmp : std::false_type {};
+
 template<typename T, typename U>
-struct __has_fast_memcnt : std::conjunction<
-	is_comparable<T, U, std::equal_to<>>,
-	is_integrals<T, U>,
-	is_any_index_of<sizeof(T), 1, 2, 4>
+struct __has_fast_memcmp<T, U, std::less<>> : std::conjunction<
+	is_memory_comparable<T, U, std::less<>>,
+	__has_fast_memmis<T, U, std::equal_to<>>
 > {};
 
 template<typename T, typename U>
-constexpr bool __has_fast_memcnt_v = __has_fast_memcnt<T, U>::value;
+struct __has_fast_memcmp<T, U, std::greater<>> : __has_fast_memcmp<T, U, std::less<>> {};
 
-template<typename T, typename U, std::enable_if_t<__has_fast_memcnt_v<T, U>, int> = 0>
-WJR_NODISCARD size_t memcnt(const T* s, U val, size_t n) {
-	auto p = is_possible_memory_comparable<T>(val, std::equal_to<>{});
-	if (p == ipmc_result::none) {
+template<typename T, typename U, typename _Pred>
+constexpr bool __has_fast_memcmp_v = __has_fast_memcmp<T, U, _Pred>::value;
+
+template<typename T, typename U, typename _Pred>
+struct __has_fast_memrcmp : std::false_type {};
+
+template<typename T, typename U>
+struct __has_fast_memrcmp<T, U, std::less<>> : std::conjunction<
+	is_memory_comparable<T, U, std::less<>>,
+	__has_fast_memrmis<T, U, std::equal_to<>>
+> {};
+
+template<typename T, typename U>
+struct __has_fast_memrcmp<T, U, std::greater<>> : __has_fast_memrcmp<T, U, std::less<>> {};
+
+template<typename T, typename U, typename _Pred>
+constexpr bool __has_fast_memrcmp_v = __has_fast_memrmis<T, U, _Pred>::value;
+
+template<typename T, typename U, typename _Pred, std::enable_if_t<
+	__has_fast_memcmp_v<T, U, _Pred>, int> = 0>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) int memcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
+	if constexpr (std::is_same_v<_Pred, std::greater<>>) {
+		return -wjr::algo::memcmp(s0, s1, n, std::less<>{});
+	}
+	else {
+		auto mis = wjr::algo::memmis(s0, s1, n, std::equal_to<>{});
+		if (mis != s0 + n) {
+			auto pos = mis - s0;
+			return s0[pos] < s1[pos] ? -1 : 1;
+		}
 		return 0;
 	}
-	using value_type = std::make_unsigned_t<make_integral_t<T>>;
-	auto __s = reinterpret_cast<const value_type*>(s);
-	auto __val = static_cast<value_type>(val);
-	return __memcnt(__s, __val, n);
 }
 
+template<typename T, typename U, typename _Pred, std::enable_if_t<
+	__has_fast_memmis_v<T, U, _Pred>, int> = 0>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) int memrcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
+	if constexpr (std::is_same_v<_Pred, std::greater<>>) {
+		return -wjr::algo::memrcmp(s0, s1, n, std::less<>{});
+	}
+	else {
+		auto mis = wjr::algo::memrmis(s0, s1, n, std::equal_to<>{});
+		if (mis != s0 + n) {
+			auto pos = mis - s0;
+			return s0[pos] < s1[pos] ? -1 : 1;
+		}
+		return 0;
+	}
+}
+
+#else
+template<typename T, typename U, typename _Pred>
+struct __has_fast_memcmp : std::false_type {};
+
+template<typename T, typename U>
+struct __has_fast_memcmp<T, U, std::less<>> : std::conjunction<
+	is_memory_comparable<T, U, std::less<>>,
+	std::conjunction<
+	is_memory_comparable<T, U, std::equal_to<>>,
+	std::bool_constant<sizeof(T) == 1>,
+	std::is_unsigned<T>,
+	std::is_unsigned<U>
+	>
+> {};
+
+template<typename T, typename U, typename _Pred>
+constexpr bool __has_fast_memcmp_v = __has_fast_memcmp<T, U, _Pred>::value;
+
+template<typename T, typename U, typename _Pred>
+struct __has_fast_memrcmp : std::false_type {};
+
+template<typename T, typename U, typename _Pred>
+constexpr bool __has_fast_memrcmp_v = __has_fast_memrcmp<T, U, _Pred>::value;
+
+template<typename T, typename U, typename _Pred, std::enable_if_t<
+	__has_fast_memcmp_v<T, U, _Pred>, int> = 0>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) int memcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
+	using value_type = uint8_t;
+	auto __s0 = reinterpret_cast<const value_type*>(s0);
+	auto __s1 = reinterpret_cast<const value_type*>(s1);
+	return ::memcmp(__s0, __s1, n);
+}
+
+#endif // _WJR_FAST_MEMCMP
+
+#if defined(_WJR_FAST_MEMCNT)
 #else
 template<typename T, typename U>
 struct __has_fast_memcnt : std::false_type {};
@@ -17947,7 +17742,7 @@ template<template<typename X, typename Y> typename TEST, typename T, typename U>
 constexpr bool __has_fast_memset_helper_v = __has_fast_memset_helper<TEST, T, U>::value;
 
 template<template<typename X, typename Y> typename TEST, typename T, typename U>
-static void __memset_helper(T* s, const U& val, size_t n) {
+void __memset_helper(T* s, const U& val, size_t n) {
 
 	if (is_constant_p(n) && n <= 4 / sizeof(T)) {
 		std::fill_n(s, n, val);
@@ -18015,7 +17810,7 @@ template<template<typename X, typename Y> typename TEST, typename T, typename U>
 constexpr bool __has_fast_memcpy_helper_v = __has_fast_memcpy_helper<TEST, T, U>::value;
 
 template<template<typename X, typename Y> typename TEST, typename T, typename U>
-static void __memcpy_helper(T* s, const U* t, size_t n) {
+void __memcpy_helper(T* s, const U* t, size_t n) {
 	static_assert(sizeof(T) == sizeof(U), "type mismatch");
 #if defined(_WJR_FAST_MEMCPY)
 #else
@@ -18024,7 +17819,7 @@ static void __memcpy_helper(T* s, const U* t, size_t n) {
 }
 
 template<template<typename X, typename Y> typename TEST, typename T, typename U>
-static void __memmove_helper(T* s, const U* t, size_t n) {
+void __memmove_helper(T* s, const U* t, size_t n) {
 	static_assert(sizeof(T) == sizeof(U), "type mismatch");
 #if defined(_WJR_FAST_MEMCPY)
 #else
@@ -18052,7 +17847,7 @@ template<typename T, typename U>
 struct __has_fast_assign_memcpy : __has_fast_memcpy_helper<is_byte_assignable, T, U> {};
 
 template<typename T, typename U>
-constexpr bool __has_fast_assign_memcpy_v = __has_fast_assign_memcpy<T, U>::value;
+inline constexpr bool __has_fast_assign_memcpy_v = __has_fast_assign_memcpy<T, U>::value;
 
 template<typename T, typename U>
 void assign_memcpy(T* s, const U* t, size_t n) {
@@ -18083,12 +17878,12 @@ template<typename _Iter, typename _Val, typename _Pred,
 	> {};
 
 template<typename _Iter, typename _Val, typename _Pred>
-constexpr bool __has_fast_find_v = __has_fast_find<_Iter, _Val, _Pred>::value;
+inline constexpr bool __has_fast_find_v = __has_fast_find<_Iter, _Val, _Pred>::value;
 
 // find
 
 template<typename _Iter, typename _Ty, typename _Pred>
-WJR_CONSTEXPR20 _Iter do_find(
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) _Iter do_find(
 	_Iter _First, _Iter _Last, const _Ty& _Val, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_find_v<_Iter, _Ty, _Pred>) {
@@ -18119,17 +17914,17 @@ WJR_CONSTEXPR20 _Iter do_find(
 }
 
 template<typename _Iter, typename _Ty>
-WJR_CONSTEXPR20 _Iter do_find(_Iter _First, _Iter _Last, const _Ty& _Val) {
-	return wjr::find(_First, _Last, _Val, std::equal_to<>{});
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) _Iter do_find(_Iter _First, _Iter _Last, const _Ty& _Val) {
+	return wjr::do_find(_First, _Last, _Val, std::equal_to<>{});
 }
 
 template<typename _Iter, typename _Pr>
-WJR_CONSTEXPR20 _Iter do_find_if(_Iter _First, _Iter _Last, _Pr _Pred) {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) _Iter do_find_if(_Iter _First, _Iter _Last, _Pr _Pred) {
 	return std::find_if(_First, _Last, _Pred);
 }
 
 template<typename _Iter, typename _Pr>
-WJR_CONSTEXPR20 _Iter do_find_if_not(_Iter _First, _Iter _Last, _Pr _Pred) {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) _Iter do_find_if_not(_Iter _First, _Iter _Last, _Pr _Pred) {
 	return std::find_if_not(_First, _Last, _Pred);
 }
 
@@ -18141,10 +17936,10 @@ template<typename _Iter, typename _Val,
 	> {};
 
 template<typename _Iter, typename _Val>
-constexpr bool __has_fast_count_v = __has_fast_count<_Iter, _Val>::value;
+inline constexpr bool __has_fast_count_v = __has_fast_count<_Iter, _Val>::value;
 
 template<typename _Iter, typename _Ty>
-WJR_CONSTEXPR20 typename std::iterator_traits<_Iter>::difference_type
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) typename std::iterator_traits<_Iter>::difference_type
 do_count(_Iter _First, _Iter _Last, const _Ty& _Val) {
 	if (!wjr::is_constant_evaluated()) {
 #if defined(_WJR_FAST_MEMCNT)
@@ -18165,13 +17960,13 @@ do_count(_Iter _First, _Iter _Last, const _Ty& _Val) {
 }
 
 template<typename _Iter, typename _Pr>
-WJR_CONSTEXPR20 typename std::iterator_traits<_Iter>::difference_type
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) typename std::iterator_traits<_Iter>::difference_type
 do_count_if(_Iter _First, _Iter _Last, _Pr _Pred) {
 	return std::count_if(_First, _Last, _Pred);
 }
 
-// First use algo::memcmp
-// Then use memcmp
+// First use algo::memeq
+// Then use memeq
 template<typename _Iter1, typename _Iter2, typename _Pred,
 	typename _Iter_value1 = iter_val_t<_Iter1>,
 	typename _Iter_value2 = iter_val_t<_Iter2>>
@@ -18179,14 +17974,14 @@ template<typename _Iter1, typename _Iter2, typename _Pred,
 	wjr::is_contiguous_iter<_Iter1>,
 	wjr::is_contiguous_iter<_Iter2>,
 	std::bool_constant<wjr::is_reverse_iterator_v<_Iter1> == wjr::is_reverse_iterator_v<_Iter2>>,
-	algo::__has_fast_memcmp<_Iter_value1, _Iter_value2, _Pred>
+	algo::__has_fast_memeq<_Iter_value1, _Iter_value2, _Pred>
 	> {};
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
 struct __has_fast_equal : std::bool_constant<__has_fast_equal_helper<_Iter1, _Iter2, _Pred>::value> {};
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-constexpr bool __has_fast_equal_v = __has_fast_equal<_Iter1, _Iter2, _Pred>::value;
+inline constexpr bool __has_fast_equal_v = __has_fast_equal<_Iter1, _Iter2, _Pred>::value;
 
 template<typename _Iter1, typename _Iter2, typename _Pred,
 	typename _Iter_value1 = iter_val_t<_Iter1>,
@@ -18203,10 +17998,10 @@ template<typename _Iter1, typename _Iter2, typename _Pred,
 	> {};
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-constexpr bool __has_fast_mismatch_v = __has_fast_mismatch<_Iter1, _Iter2, _Pred>::value;
+inline constexpr bool __has_fast_mismatch_v = __has_fast_mismatch<_Iter1, _Iter2, _Pred>::value;
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) std::pair<_Iter1, _Iter2> do_mismatch(
 	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
 #if defined(_WJR_FAST_MEMMIS)
@@ -18235,31 +18030,32 @@ WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(
 }
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) std::pair<_Iter1, _Iter2> do_mismatch(
 	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_mismatch_v<_Iter1, _Iter2, _Pred>) {
 			const auto n = _Last1 - _First1;
 			const auto m = _Last2 - _First2;
 			const auto _M = n < m ? n : m;
-			return wjr::mismatch(_First1, _First1 + _M, _First2, pred);
+			return wjr::do_mismatch(_First1, _First1 + _M, _First2, pred);
 		}
 	}
 	return std::mismatch(_First1, _Last1, _First2, _Last2, pred);
 }
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2) {
-	return wjr::mismatch(_First1, _Last1, _First2, std::equal_to<>{});
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) std::pair<_Iter1, _Iter2> do_mismatch(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2) {
+	return wjr::do_mismatch(_First1, _Last1, _First2, std::equal_to<>{});
 }
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_mismatch(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
-	return wjr::mismatch(_First1, _Last1, _First2, _Last2, std::equal_to<>{});
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) std::pair<_Iter1, _Iter2> do_mismatch(
+	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
+	return wjr::do_mismatch(_First1, _Last1, _First2, _Last2, std::equal_to<>{});
 }
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred pred) {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_equal_v<_Iter1, _Iter2, _Pred>) {
 			const auto n = _Last1 - _First1;
@@ -18267,13 +18063,13 @@ WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pr
 			if constexpr (!wjr::is_reverse_iterator_v<_Iter1>) {
 				const auto first1 = wjr::get_address(_First1);
 				const auto first2 = wjr::get_address(_First2);
-				return algo::memcmp(first1, first2, n, pred);
+				return algo::memeq(first1, first2, n, pred);
 			}
 			else {
 				const auto first1 = wjr::get_address(_Last1 - 1);
 				const auto _Last2 = _First2 + n;
 				const auto first2 = wjr::get_address(_Last2 - 1);
-				return algo::memcmp(first1, first2, n, pred);
+				return algo::memeq(first1, first2, n, pred);
 			}
 		}
 	}
@@ -18281,104 +18077,70 @@ WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pr
 }
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_equal(
+	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_equal_v<_Iter1, _Iter2, _Pred>) {
 			const auto n = std::distance(_First1, _Last1);
 			const auto m = std::distance(_First2, _Last2);
 			if (n != m) { return false; }
-			return wjr::equal(_First1, _Last1, _First2, pred);
+			return wjr::do_equal(_First1, _Last1, _First2, pred);
 		}
 	}
 	return std::equal(_First1, _Last1, _First2, _Last2, pred);
 }
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2) {
-	return wjr::equal(_First1, _Last1, _First2, std::equal_to<>{});
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2) {
+	return wjr::do_equal(_First1, _Last1, _First2, std::equal_to<>{});
 }
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
-	return wjr::equal(_First1, _Last1, _First2, _Last2, std::equal_to<>{});
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_equal(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
+	return wjr::do_equal(_First1, _Last1, _First2, _Last2, std::equal_to<>{});
 }
 
 template<typename _Iter1, typename _Iter2, typename _Pred,
 	typename _Iter_value1 = iter_val_t<_Iter1>,
 	typename _Iter_value2 = iter_val_t<_Iter2>>
-	struct __has_fast_lexicographical_compare : std::conjunction<
-	wjr::is_any_of<_Pred, std::less<>>,
-#if defined(_WJR_FAST_MEMMIS)
-	__has_fast_mismatch<_Iter1, _Iter2, _Pred>
-#else
+	struct __has_fast_compare : std::conjunction <
 	wjr::is_contiguous_iter<_Iter1>,
 	wjr::is_contiguous_iter<_Iter2>,
 	std::bool_constant<wjr::is_reverse_iterator_v<_Iter1> == wjr::is_reverse_iterator_v<_Iter2>>,
 	std::conditional_t<
 	wjr::is_reverse_iterator_v<_Iter1>,
-	std::false_type,
-	is_memory_comparable<_Iter_value1, _Iter_value2, _Pred>
-	>,
-	std::is_unsigned<_Iter_value1>,
-	std::is_unsigned<_Iter_value2>,
-	wjr::is_any_index_of<sizeof(_Iter_value1), 1>
-#endif // _WJR_FAST_MEMMIS
+	algo::__has_fast_memrcmp<_Iter_value1, _Iter_value2, _Pred>,
+	algo::__has_fast_memcmp<_Iter_value1, _Iter_value2, _Pred>
+	>
 	> {};
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-constexpr bool __has_fast_lexicographical_compare_v = __has_fast_lexicographical_compare<_Iter1, _Iter2, _Pred>::value;
+inline constexpr bool __has_fast_compare_v = __has_fast_compare<_Iter1, _Iter2, _Pred>::value;
 
 template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 bool do_lexicographical_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) int do_compare(
+	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
-		if constexpr (__has_fast_lexicographical_compare_v<_Iter1, _Iter2, _Pred>) {
+		if constexpr (__has_fast_compare_v<_Iter1, _Iter2, _Pred>) {
 			const auto n = std::distance(_First1, _Last1);
 			const auto m = std::distance(_First2, _Last2);
-			auto cl = std::min(n, m);
-#if defined(_WJR_FAST_MEMMIS)
-			auto e = _First1 + cl;
-			auto pos = wjr::mismatch(_First1, e, _First2, std::equal_to<>{}).first - _First1;
-			if (pos != cl) {
-				return pred(_First1[pos], _First2[pos]);
-			}
-#else
-			auto first1 = get_address(_First1);
-			auto first2 = get_address(_First2);
-			auto f = ::memcmp(first1, first2, cl * sizeof(iter_val_t<_Iter1>));
-			if (f != 0) {
-				return f < 0;
-			}
-#endif // _WJR_FAST_MEMMIS
-			return n < m;
-		}
-	}
-	return std::lexicographical_compare(_First1, _Last1, _First2, _Last2, pred);
-}
+			const auto cl = std::min(n, m);
 
-template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 bool do_lexicographical_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
-	return wjr::lexicographical_compare(_First1, _Last1, _First2, _Last2, std::less<>{});
-}
+			if constexpr (!wjr::is_reverse_iterator_v<_Iter1>) {
+				const auto first1 = wjr::get_address(_First1);
+				const auto first2 = wjr::get_address(_First2);
 
-template<typename _Iter1, typename _Iter2, typename _Pred>
-WJR_CONSTEXPR20 int do_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
-	if (!wjr::is_constant_evaluated()) {
-		if constexpr (__has_fast_lexicographical_compare_v<_Iter1, _Iter2, _Pred>) {
-			const auto n = std::distance(_First1, _Last1);
-			const auto m = std::distance(_First2, _Last2);
-			auto cl = std::min(n, m);
-#if defined(_WJR_FAST_MEMMIS)
-			auto e = _First1 + cl;
-			auto pos = wjr::mismatch(_First1, e, _First2, std::equal_to<>{}).first - _First1;
-			if (pos != cl) {
-				return pred(_First1[pos], _First2[pos]) ? -1 : 1;
+				auto r = algo::memcmp(first1, first2, cl, pred);
+				if (r != 0) return r;
 			}
-#else
-			auto first1 = get_address(_First1);
-			auto first2 = get_address(_First2);
-			auto f = ::memcmp(first1, first2, cl * sizeof(iter_val_t<_Iter1>));
-			if (f != 0) {
-				return f;
+#if defined(_WJR_FAST_MEMMIS)
+			else {
+				const auto first1 = wjr::get_address(_Last1 - 1);
+				const auto _Last2 = _First2 + n;
+				const auto first2 = wjr::get_address(_Last2 - 1);
+
+				auto r = algo::memrcmp(first1, first2, cl, pred);
+				if (r != 0) return r;
 			}
 #endif // _WJR_FAST_MEMMIS
 			return n < m ? -1 : (n > m ? 1 : 0);
@@ -18396,8 +18158,21 @@ WJR_CONSTEXPR20 int do_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _I
 }
 
 template<typename _Iter1, typename _Iter2>
-WJR_CONSTEXPR20 int do_compare(_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
-	return wjr::compare(_First1, _Last1, _First2, _Last2, std::less<>{});
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) int do_compare(
+	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
+	return wjr::do_compare(_First1, _Last1, _First2, _Last2, std::less<>{});
+}
+
+template<typename _Iter1, typename _Iter2, typename _Pred>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_lexicographical_compare(
+	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
+	return wjr::do_compare(_First1, _Last2, _First2, _Last2, pred) < 0;
+}
+
+template<typename _Iter1, typename _Iter2>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_lexicographical_compare(
+	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2) {
+	return wjr::do_lexicographical_compare(_First1, _Last1, _First2, _Last2, std::less<>{});
 }
 
 template<typename _Iter, typename _Val,
@@ -18408,7 +18183,7 @@ template<typename _Iter, typename _Val,
 	> {};
 
 template<typename _Iter, typename _Val>
-constexpr bool __has_fast_fill_v = __has_fast_fill<_Iter, _Val>::value;
+inline constexpr bool __has_fast_fill_v = __has_fast_fill<_Iter, _Val>::value;
 
 template<typename _Iter, typename _Val>
 WJR_CONSTEXPR20 void do_fill(_Iter _First, _Iter _Last, const _Val& value) {
@@ -18453,7 +18228,7 @@ template<typename _Input, typename _Output,
 	> {};
 
 template<typename _Input, typename _Output>
-constexpr bool __has_fast_copy_v = __has_fast_copy<_Input, _Output>::value;
+inline constexpr bool __has_fast_copy_v = __has_fast_copy<_Input, _Output>::value;
 
 template<typename _Input, typename _Output>
 WJR_CONSTEXPR20 _Output do_copy(_Input _First1, _Input _Last1, _Output _First2) {
@@ -18828,7 +18603,7 @@ template<typename _Input, typename _Output,
 	> {};
 
 template<typename _Input, typename _Output>
-constexpr bool __has_fast_uninitialized_copy_v = __has_fast_uninitialized_copy<_Input, _Output>::value;
+inline constexpr bool __has_fast_uninitialized_copy_v = __has_fast_uninitialized_copy<_Input, _Output>::value;
 
 template<typename _Iter1, typename _Iter2>
 WJR_CONSTEXPR20 _Iter2 do_uninitialized_copy(_Iter1 _First, _Iter1 _Last, _Iter2 _Dest) {
@@ -18916,7 +18691,7 @@ template<typename _Iter, typename _Val,
 	> {};
 
 template<typename _Iter, typename _Val>
-constexpr bool __has_fast_uninitialized_fill_v = __has_fast_uninitialized_fill<_Iter, _Val>::value;
+inline constexpr bool __has_fast_uninitialized_fill_v = __has_fast_uninitialized_fill<_Iter, _Val>::value;
 
 template<typename _Iter, typename _Val>
 WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, const _Val& val) {
@@ -19227,40 +19002,41 @@ struct vector_data {
 		}
 	}
 
-	WJR_INLINE_CONSTEXPR20 size_type size() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) size_type size() const noexcept {
 		return static_cast<size_type>(_Mylast - _Myfirst);
 	}
 
-	WJR_INLINE_CONSTEXPR20 size_type capacity() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) size_type capacity() const noexcept {
 		return static_cast<size_type>(_Myend - _Myfirst);
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer data() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer data() noexcept {
 		return _Myfirst;
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer data() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer data() const noexcept {
 		return _Myfirst;
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer lastPtr() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer lastPtr() noexcept {
 		return _Mylast;
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer lastPtr() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer lastPtr() const noexcept {
 		return _Mylast;
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer endPtr() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer endPtr() noexcept {
 		return _Myend;
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer endPtr() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer endPtr() const noexcept {
 		return _Myend;
 	}
 
 	WJR_INLINE_CONSTEXPR20 void set_size(const size_type _Size) noexcept {
 		_Mylast = _Myfirst + _Size;
+		WJR_ASSUME(size() == _Size);
 	}
 
 	WJR_INLINE_CONSTEXPR20 void inc_size(const difference_type _Size) noexcept {
@@ -19298,10 +19074,7 @@ struct vector_static_data {
 
 	WJR_CONSTEXPR20 static void _lengthError(WJR_MAYBE_UNUSED const size_type _Newcapacity){
 #if defined(_WJR_EXCEPTION)
-		std::string str = "vector_static_data is too small to hold the requested data";
-		str += "\n old capacity = " + std::to_string(max_capacity);
-		str += "\n allocate new capacity = " + std::to_string(_Newcapacity);
-		throw std::length_error(str);
+		throw std::length_error("vector_static_data is too small to hold the requested data");
 #endif // _WJR_EXCEPTION
 		unreachable();
 	}
@@ -19351,40 +19124,41 @@ struct vector_static_data {
 		// do nothing
 	}
 
-	WJR_INLINE_CONSTEXPR20 size_type size() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) size_type size() const noexcept {
 		return _M_size;
 	}
 
-	WJR_INLINE_CONSTEXPR20 size_type capacity() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) size_type capacity() const noexcept {
 		return max_capacity;
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer data() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer data() noexcept {
 		return reinterpret_cast<pointer>(_M_storage);
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer data() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer data() const noexcept {
 		return reinterpret_cast<const_pointer>(_M_storage);
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer lastPtr() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer lastPtr() noexcept {
 		return data() + size();
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer lastPtr() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer lastPtr() const noexcept {
 		return data() + size();
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer endPtr() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer endPtr() noexcept {
 		return data() + capacity();
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer endPtr() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer endPtr() const noexcept {
 		return data() + capacity();
 	}
 
 	WJR_INLINE_CONSTEXPR20 void set_size(const size_type _Size) noexcept {
 		_M_size = _Size;
+		WJR_ASSUME(size() == _Size);
 	}
 
 	WJR_INLINE_CONSTEXPR20 void inc_size(const difference_type _Size) noexcept {
@@ -19510,35 +19284,35 @@ struct vector_sso_data {
 		}
 	}
 
-	WJR_INLINE_CONSTEXPR20 size_type size() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) size_type size() const noexcept {
 		return _M_size;
 	}
 
-	WJR_INLINE_CONSTEXPR20 size_type capacity() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) size_type capacity() const noexcept {
 		return is_small() ? max_capacity : _M_capacity;
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer data() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer data() noexcept {
 		return _M_ptr;
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer data() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer data() const noexcept {
 		return _M_ptr;
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer lastPtr() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer lastPtr() noexcept {
 		return data() + size();
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer lastPtr() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer lastPtr() const noexcept {
 		return data() + size();
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer endPtr() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer endPtr() noexcept {
 		return data() + capacity();
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer endPtr() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer endPtr() const noexcept {
 		return data() + capacity();
 	}
 
@@ -19807,7 +19581,7 @@ public:
 		return const_reverse_iterator(cbegin());
 	}
 
-	WJR_INLINE_CONSTEXPR20 size_type size() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) size_type size() const noexcept {
 		return getData().size();
 	}
 
@@ -19823,7 +19597,7 @@ public:
 		shrinkToFit(getAllocator(), getData());
 	}
 
-	WJR_INLINE_CONSTEXPR20 size_type capacity() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) size_type capacity() const noexcept {
 		return getData().capacity();
 	}
 
@@ -19886,15 +19660,15 @@ public:
 		return *(lastPtr() - 1);
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer data() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer data() noexcept {
 		return getData().data();
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer data() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer data() const noexcept {
 		return getData().data();
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer cdata() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer cdata() const noexcept {
 		return getData().data();
 	}
 
@@ -20056,10 +19830,10 @@ public:
 		data_type::shrinkToFit(al, _Data);
 	}
 
-	WJR_INLINE_CONSTEXPR20 _Alty& getAllocator() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) _Alty& getAllocator() noexcept {
 		return _Myval.first();
 	}
-	WJR_INLINE_CONSTEXPR20 const _Alty& getAllocator() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const _Alty& getAllocator() const noexcept {
 		return _Myval.first();
 	}
 
@@ -20070,17 +19844,17 @@ public:
 		return _Myval.second();
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer lastPtr() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer lastPtr() noexcept {
 		return getData().lastPtr();
 	}
-	WJR_INLINE_CONSTEXPR20 const_pointer lastPtr() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer lastPtr() const noexcept {
 		return getData().lastPtr();
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer endPtr() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer endPtr() noexcept {
 		return getData().endPtr();
 	}
-	WJR_INLINE_CONSTEXPR20 const_pointer endPtr() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer endPtr() const noexcept {
 		return getData().endPtr();
 	}
 
@@ -20903,6 +20677,8 @@ public:
 	using traits_type = Traits;
 	using encode_type = typename traits_type::encode_type;
 	using value_type = typename traits_type::value_type;
+	using iterator = typename traits_type::iterator;
+	using const_iterator = typename traits_type::const_iterator;
 
 	constexpr static uint32_t invalid_digit = 1u << 24;
 
@@ -20922,38 +20698,31 @@ public:
 
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR static value_type toupper(value_type ch);
 
+	// valid digits : [0, 36)
+	// invalid digits : 0xff
+	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static uint8_t todigit(value_type ch);
+
+	// same as todigit
+	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static uint8_t toalnum(value_type ch);
+
 	// base <= 10, digit is ['0', '0' + base - 1]
-	// base > 10, digit is ['0', '9'] and ['a', 'a' + (base - 10) - 1] and ['A', 'A' + (base - 10) - 1]
-	template<unsigned int Base = 10>
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static bool isdigit(value_type ch);
-
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static bool isdigit(value_type ch, int Base);
-
-	template<unsigned int Base = 10>
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static uint32_t todigit(value_type ch);
-
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static uint32_t toalnum(value_type ch);
+// base > 10, digit is ['0', '9'] and ['a', 'a' + (base - 10) - 1] and ['A', 'A' + (base - 10) - 1]
+	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static bool isdigit(value_type ch, int Base = 10);
 
 	// skip whit space
-	template<typename _Iter>
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static _Iter skipw(_Iter _First, _Iter _Last);
+	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static const_iterator
+		skipw(const_iterator _First, const_iterator _Last);
 
 	// skip whit space at end
-	template<typename _Iter>
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static _Iter rskipw(_Iter _First, _Iter _Last);
+	// can only support bidirectional iterators
+	template<typename _Iter = const_iterator, std::enable_if_t<is_bidir_iterator_v<_Iter>, int> = 0>
+	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static _Iter
+		rskipw(_Iter _First, _Iter _Last);
 
 	// skip leading zeros
-	template<typename _Iter>
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static _Iter skipz(_Iter _First, _Iter _Last);
+	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static const_iterator skipz(const_iterator _First, const_iterator _Last);
 
-	// skip digit
-	template<unsigned int Base, typename _Iter>
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static _Iter skipd(_Iter _First, _Iter _Last);
-
-	template<typename _Iter>
-	WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static _Iter skipd(_Iter _First, _Iter _Last, int Base);
-
-	enum flags {
+	enum to_i_flags {
 		NO_FLAGS                   = 0,
 		ALLOW_PREFIX               = 0x01,
 		ALLOW_TAIL                 = 0x02,
@@ -20972,29 +20741,62 @@ public:
 	// ALLOW_LEADING_ZEROS:
 	//  allow mutiple leading zeros
 
-	using default_to_integral_flags = std::integral_constant<flags,
-		static_cast<flags>(flags::ALLOW_PREFIX
-				| flags::ALLOW_TAIL
-				| flags::ALLOW_SIGN
-				| flags::ALLOW_LEADING_SPACE
-				| flags::ALLOW_LEADING_ZEROS)>;
+	using default_to_i_flags = std::integral_constant< to_i_flags,
+		static_cast<to_i_flags>(
+				ALLOW_PREFIX
+				| ALLOW_TAIL
+				| ALLOW_SIGN
+				| ALLOW_LEADING_SPACE
+				| ALLOW_LEADING_ZEROS)>;
 
-	template<typename T, typename _Iter, typename F = default_to_integral_flags>
+	template<typename T, typename F = default_to_i_flags>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR static T to_integral(
-		_Iter _First, _Iter _Last,
-		_Iter& _Pos, int base, errc& _Err, F f = F()) noexcept;
+		const_iterator _First, const_iterator _Last,
+		const_iterator& _Pos, int base, errc& _Err, F f = F()) noexcept;
 
-	template<typename T, typename _Iter>
+	template<typename T, typename F = default_to_i_flags>
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static T to_integral(
+		const_iterator _First, const_iterator _Last,
+		const_iterator* _Pos = nullptr, int base = 10, errc* _Err = nullptr, F f = F()) noexcept;
+
+
+#define _WJR_REGISTER_TO_INTEGRAL_FUNC(I, name)	                                                    \
+	template<typename F = default_to_i_flags>                                                       \
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static I to_##name(											\
+		const_iterator _First, const_iterator _Last,                                                \
+		const_iterator* _Pos = nullptr, int base = 10, errc* _Err = nullptr, F f = F()) noexcept{	\
+		return to_integral<I, F>(_First, _Last, _Pos, base, _Err, f);	                            \
+	}
+
+#define WJR_REGISTER_TO_INTEGRAL_FUNC(x) _WJR_REGISTER_TO_INTEGRAL_FUNC x
+
+	WJR_MACRO_CALL(WJR_REGISTER_TO_INTEGRAL_FUNC, ,
+		(char, char),
+		(signed char, schar),
+		(unsigned char, uchar),
+		(short, short),
+		(unsigned short, ushort),
+		(int, int),
+		(unsigned int, uint),
+		(long, long),
+		(unsigned long, ulong),
+		(long long, llong),
+		(unsigned long long, ullong)
+	);
+
+#undef _WJR_REGISTER_TO_INTEGRAL_FUNC
+#undef WJR_REGISTER_TO_INTEGRAL_FUNC
+
+	template<typename T>
 	WJR_INLINE_CONSTEXPR20 static void from_integral(
-		T _Val, _Iter _First, _Iter _Last,
-		_Iter& _Pos, int base, errc& _Err) noexcept;
+		T _Val, iterator _First, iterator _Last,
+		iterator& _Pos, int base, errc& _Err) noexcept;
 
-	template<typename T, typename _Diff, typename _Iter>
+	template<typename T>
 	WJR_INLINE_CONSTEXPR20 static void from_integral(
-		T _Val, _Iter _First, _Diff n,
-		_Iter& _Pos, int base, errc& _Err) noexcept;
+		T _Val, iterator _First, iterator _Last,
+		iterator* _Pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept;
 
-private:
 };
 
 template<typename T, typename Func>
@@ -21002,23 +20804,19 @@ class integral_conversion_details {
 public:
 	using func_type = Func;
 	using value_type = typename func_type::value_type;
-	using flags = typename func_type::flags;
+	using to_i_flags = typename func_type::to_i_flags;
+	using iterator = typename func_type::iterator;
+	using const_iterator = typename func_type::const_iterator;
 
-	template<typename _Iter, typename F>
+	template<typename F>
 	WJR_NODISCARD WJR_INLINE_CONSTEXPR static T to(
-		_Iter _First, _Iter _Last,
-		_Iter& _Pos, int base, errc& _Err, F f) noexcept;
+		const_iterator _First, const_iterator _Last,
+		const_iterator& _Pos, int base, errc& _Err, F f) noexcept;
 
 	// copy of std::to_chars
-	template <typename _Iter>
 	WJR_INLINE_CONSTEXPR20 static void from(
-		T _Val, _Iter _First, _Iter _Last,
-		_Iter& _Pos, int base, errc& _Err) noexcept;
-
-	template <typename _Iter, typename _Diff>
-	WJR_INLINE_CONSTEXPR20 static void from(
-		T _Val, _Iter _First, _Diff n,
-		_Iter& _Pos, int base, errc& _Err) noexcept;
+		T _Val, iterator _First, iterator _Last,
+		iterator& _Pos, int base, errc& _Err) noexcept;
 
 private:
 
@@ -21045,9 +20843,6 @@ private:
 		WJR_MAYBE_UNUSED _Iter& _Pos,
 		int base, errc& _Err, F f, _Iter _Zero, bool _Is_minus) noexcept;
 
-	WJR_INLINE_CONSTEXPR20 static void __from(
-		uT uval, char*& _RNext, int base) noexcept;
-
 };
 
 #define __CONV_EMPTY_RET				        \
@@ -21059,14 +20854,14 @@ private:
 		}
 
 template<typename T, typename Func>
-template<typename _Iter, typename F>
+template<typename F>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::to(
-	_Iter _First, _Iter _Last,
-	_Iter& _Pos, int base, errc& _Err, F f) noexcept {
+	const_iterator _First, const_iterator _Last,
+	const_iterator& _Pos, int base, errc& _Err, F f) noexcept {
 	const auto _Flags = get_cvar(f);
 
 	// skip white space
-	if (_Flags & flags::ALLOW_LEADING_SPACE) {
+	if (_Flags & to_i_flags::ALLOW_LEADING_SPACE) {
 		_First = func_type::skipw(_First, _Last);
 	}
 
@@ -21077,7 +20872,7 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::to(
 	bool _Is_minus = false;
 
 	// eat sign
-	if (_Flags & flags::ALLOW_SIGN) {
+	if (_Flags & to_i_flags::ALLOW_SIGN) {
 		auto ch = *_First;
 		switch (ch) {
 		case '+': {
@@ -21092,7 +20887,7 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::to(
 		}
 	}
 
-	if (_Flags & flags::ALLOW_SPACE_AFTER_SIGN) {
+	if (_Flags & to_i_flags::ALLOW_SPACE_AFTER_SIGN) {
 		_First = func_type::skipw(_First, _Last);
 		if (is_unlikely(_First == _Last)) {
 			__CONV_EMPTY_RET;
@@ -21104,7 +20899,7 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::to(
 
 	WJR_MAYBE_UNUSED auto _Zero = _Last;
 
-	if (_Flags & flags::ALLOW_PREFIX) {
+	if (_Flags & to_i_flags::ALLOW_PREFIX) {
 		switch (base) {
 		case 0: {
 			if (*_First == '0') {
@@ -21115,7 +20910,7 @@ WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::to(
 				}
 				_Zero = _First;
 				auto ch = func_type::toalnum(*_First);
-				switch (ch) {
+				switch (*_First) {
 				case _B: {
 					// eat 'b'/'B'
 					if (is_unlikely(++_First == _Last)) {
@@ -21201,7 +20996,7 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR T integral_conversion_details<T, Func>::__
 
 	auto _Next = _First;
 
-	if (_Flags & flags::ALLOW_LEADING_ZEROS) {
+	if (_Flags & to_i_flags::ALLOW_LEADING_ZEROS) {
 		_Next = func_type::skipz(_First, _Last);
 	}
 
@@ -21277,8 +21072,29 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR T integral_conversion_details<T, Func>::__
 #undef __CONV_NEXT
 
 template<typename T, typename Func>
-WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::__from(
-	uT uval, char*& _RNext, int base) noexcept {
+WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::from(
+	T _Val, iterator _First, iterator _Last,
+	iterator& _Pos, int base, errc& _Err) noexcept {
+
+	auto uval = make_unsigned_v(_Val);
+
+	if constexpr (std::is_signed_v<T>) {
+		if (_Val < 0) {
+			if (_First == _Last) {
+				_Err = errc::buffer_too_small;
+				return;
+			}
+			*_First = '-';
+			++_First;
+			uval = static_cast<uT>(0 - uval);
+		}
+	}
+
+	constexpr size_t _Buff_size = sizeof(uT) * 8;
+	char _Buff[_Buff_size];
+	char* const _Buff_end = _Buff + _Buff_size;
+	char* _RNext = _Buff_end;
+
 	switch (base) {
 	case 10:
 	{ // Derived from _UIntegral_to_buff()
@@ -21363,38 +21179,10 @@ WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::__from(
 		} while (uval != 0);
 		break;
 	}
-}
-
-template<typename T, typename Func>
-template <typename _Iter>
-WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::from(
-	T _Val, _Iter _First, _Iter _Last,
-	_Iter& _Pos, int base, errc& _Err) noexcept {
-
-	auto uval = make_unsigned_v(_Val);
-
-	if constexpr (std::is_signed_v<T>) {
-		if (_Val < 0) {
-			if (_First == _Last) {
-				_Err = errc::buffer_too_small;
-				return;
-			}
-			*_First = '-';
-			++_First;
-			uval = static_cast<uT>(0 - uval);
-		}
-	}
-
-	constexpr size_t _Buff_size = sizeof(uT) * 8;
-	value_type _Buff[_Buff_size];
-	char* const _Buff_end = _Buff + _Buff_size;
-	char* _RNext = _Buff_end;
-
-	__from(uval, _RNext, base);
 
 	ptrdiff_t _Digits_written = _Buff_end - _RNext;
 
-	if constexpr (is_random_iterator_v<_Iter>) {
+	if constexpr (is_random_iterator_v<iterator>) {
 		const auto _Size = std::distance(_First, _Last);
 		if (_Size < _Digits_written) {
 			_Err = errc::buffer_too_small;
@@ -21411,49 +21199,6 @@ WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::from(
 			return;
 		}
 	}
-
-	_Pos = _First;
-	_Err = errc::ok;
-	return;
-}
-
-template<typename T, typename Func>
-template <typename _Iter, typename _Diff>
-WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::from(
-	T _Val, _Iter _First, _Diff n,
-	_Iter& _Pos, int base, errc& _Err) noexcept {
-
-	if (n <= 0) {
-		_Err = errc::buffer_too_small;
-		return;
-	}
-
-	auto uval = make_unsigned_v(_Val);
-
-	if constexpr (std::is_signed_v<T>) {
-		if (_Val < 0) {
-			*_First = '-';
-			++_First;
-			--n;
-			uval = static_cast<uT>(0 - uval);
-		}
-	}
-
-	constexpr size_t _Buff_size = sizeof(uT) * 8;
-	value_type _Buff[_Buff_size];
-	char* const _Buff_end = _Buff + _Buff_size;
-	char* _RNext = _Buff_end;
-
-	__from(uval, _RNext, base);
-
-	ptrdiff_t _Digits_written = _Buff_end - _RNext;
-
-	if (n < _Digits_written) {
-		_Err = errc::buffer_too_small;
-		return;
-	}
-
-	_First = wjr::copy_n(_RNext, _Digits_written, _First);
 
 	_Pos = _First;
 	_Err = errc::ok;
@@ -21503,9 +21248,13 @@ string_func<Traits>::toupper(value_type ch) {
 }
 
 template<typename Traits>
-template<unsigned int Base>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR bool string_func<Traits>::isdigit(value_type ch) {
-	return todigit<Base>(ch) != invalid_digit;
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR uint8_t string_func<Traits>::todigit(value_type ch) {
+	return encode_type::todigit(ch);
+}
+
+template<typename Traits>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR uint8_t string_func<Traits>::toalnum(value_type ch) {
+	return todigit(ch);
 }
 
 template<typename Traits>
@@ -21514,21 +21263,10 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR bool string_func<Traits>::isdigit(value_ty
 }
 
 template<typename Traits>
-template<unsigned int Base>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR uint32_t string_func<Traits>::todigit(value_type ch) {
-	return encode_type::template todigit<Base>(ch);
-}
-
-template<typename Traits>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR uint32_t string_func<Traits>::toalnum(value_type ch) {
-	return todigit<36>(ch);
-}
-
-template<typename Traits>
-template<typename _Iter>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::skipw(_Iter _First, _Iter _Last) {
-	if constexpr (__string_func_traits::has_static_member_function_do_skipw_v<encode_type, _Iter, _Iter>) {
-		return encode_type::skipw(_First, _Last);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR typename string_func<Traits>::const_iterator
+	string_func<Traits>::skipw(const_iterator _First, const_iterator _Last) {
+	if constexpr (__string_func_traits::has_static_member_function_do_skipw_v<encode_type, const_iterator, const_iterator>) {
+		return encode_type::do_skipw(_First, _Last);
 	}
 	else {
 		while (_First != _Last && isspace(*_First)) ++_First;
@@ -21538,10 +21276,11 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::skipw(_Iter _Fi
 
 // skip whit space at end
 template<typename Traits>
-template<typename _Iter>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::rskipw(_Iter _First, _Iter _Last) {
+template<typename _Iter, std::enable_if_t<is_bidir_iterator_v<_Iter>, int>>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter
+string_func<Traits>::rskipw(_Iter _First, _Iter _Last){
 	if constexpr (__string_func_traits::has_static_member_function_do_rskipw_v<encode_type, _Iter, _Iter>) {
-		return encode_type::rskipw(_First, _Last);
+		return encode_type::do_rskipw(_First, _Last);
 	}
 	else {
 		while (_First != _Last && isspace(*(_Last - 1))) --_Last;
@@ -21550,10 +21289,10 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::rskipw(_Iter _F
 }
 
 template<typename Traits>
-template<typename _Iter>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::skipz(_Iter _First, _Iter _Last) {
-	if constexpr (__string_func_traits::has_static_member_function_do_skipz_v<encode_type, _Iter, _Iter>) {
-		return encode_type::skipz(_First, _Last);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR typename string_func<Traits>::const_iterator
+string_func<Traits>::skipz(const_iterator _First, const_iterator _Last) {
+	if constexpr (__string_func_traits::has_static_member_function_do_skipz_v<encode_type, const_iterator, const_iterator>) {
+		return encode_type::do_skipz(_First, _Last);
 	}
 	else {
 		while (_First != _Last && *_First == '0') ++_First;
@@ -21561,52 +21300,49 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::skipz(_Iter _Fi
 	}
 }
 
-// skip digit
 template<typename Traits>
-template<unsigned int Base, typename _Iter>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>::skipd(_Iter _First, _Iter _Last) {
-	while (_First != _Last && isdigit<Base>(*_First)) ++_First;
-	return _First;
-}
-
-template<typename Traits>
-template<typename _Iter>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter string_func<Traits>
-::skipd(_Iter _First, _Iter _Last, int Base) {
-	if constexpr (__string_func_traits::has_static_member_function_do_skipz_v<encode_type, _Iter, _Iter, int>) {
-		return encode_type::skipz(_First, _Last, Base);
-	}
-	else {
-		while (_First != _Last && isdigit(*_First, Base)) ++_First;
-		return _First;
-	}
-}
-
-template<typename Traits>
-template<typename T, typename _Iter, typename F>
+template<typename T, typename F>
 WJR_NODISCARD WJR_INLINE_CONSTEXPR T string_func<Traits>::to_integral(
-	_Iter _First, _Iter _Last,
-	_Iter& _Pos, int base, errc& _Err, F f) noexcept {
+	const_iterator _First, const_iterator _Last,
+	const_iterator& _Pos, int base, errc& _Err, F f) noexcept {
 	return integral_conversion_details<T, string_func<Traits>>
 		::template to(_First, _Last, _Pos, base, _Err, f);
 }
 
 template<typename Traits>
-template<typename T, typename _Iter>
+template<typename T, typename F>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR T string_func<Traits>::to_integral(
+	const_iterator _First, const_iterator _Last,
+	const_iterator* _Pos, int base, errc* _Err, F f) noexcept {
+	const_iterator _End = _First;
+	errc c = errc::ok;
+	auto ret = to_integral<T>(_First, _Last, _End, base, c, f);
+	if(_Pos != nullptr) *_Pos = _End;
+	if(_Err != nullptr) *_Err = c;
+	return ret;
+}
+
+template<typename Traits>
+template<typename T>
 WJR_INLINE_CONSTEXPR20 void string_func<Traits>::from_integral(
-	T _Val, _Iter _First, _Iter _Last,
-	_Iter& _Pos, int base, errc& _Err) noexcept {
+	T _Val, iterator _First, iterator _Last,
+	iterator& _Pos, int base, errc& _Err) noexcept {
 	return integral_conversion_details<T, string_func<Traits>>
 		::template from(_Val, _First, _Last, _Pos, base, _Err);
 }
 
 template<typename Traits>
-template<typename T, typename _Diff, typename _Iter>
+template<typename T>
 WJR_INLINE_CONSTEXPR20 void string_func<Traits>::from_integral(
-	T _Val, _Iter _First, _Diff n,
-	_Iter& _Pos, int base, errc& _Err) noexcept {
-	return integral_conversion_details<T, string_func<Traits>>
-		::template from(_Val, _First, n, _Pos, base, _Err);
+	T _Val, iterator _First, iterator _Last,
+	iterator* _Pos, int base, errc* _Err) noexcept {
+	iterator end_ptr = _First;
+	errc c = errc::ok;
+	from_integral<T>(_Val, _First, _Last, end_ptr, base, c);
+
+	if (_Pos != nullptr) *_Pos = end_ptr;
+
+	if (_Err != nullptr) *_Err = c;
 }
 
 _WJR_END
@@ -21682,7 +21418,7 @@ struct string_static_data : public vector_static_data<Char, N, Alloc> {
 		return _Mybase::shrinkToFit(al, _Data);
 	}
 
-	WJR_INLINE_CONSTEXPR20 size_type capacity() const noexcept {
+	WJR_ATTRIBUTE(CONST, INLINE_CONSTEXPR20) size_type capacity() const noexcept {
 		return _Mybase::capacity() - 1;
 	}
 
@@ -21777,7 +21513,7 @@ struct string_sso_data : public vector_sso_data<Char, N, Alloc> {
 		}
 	}
 
-	WJR_INLINE_CONSTEXPR20 size_type capacity() const noexcept {
+	WJR_ATTRIBUTE(CONST, INLINE_CONSTEXPR20) size_type capacity() const noexcept {
 		return _Mybase::capacity() - 1;
 	}
 
@@ -22058,15 +21794,15 @@ public:
 		return rend();
 	}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR size_type size() const noexcept {
+	WJR_ATTRIBUTE(CONST, INLINE_CONSTEXPR20) size_type size() const noexcept {
 		return _Mysize;
 	}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR size_type length() const noexcept {
+	WJR_ATTRIBUTE(CONST, INLINE_CONSTEXPR20) size_type length() const noexcept {
 		return _Mysize;
 	}
 
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR bool empty() const noexcept {
+	WJR_ATTRIBUTE(CONST, INLINE_CONSTEXPR20) bool empty() const noexcept {
 		return _Mysize == 0;
 	}
 
@@ -22107,7 +21843,7 @@ public:
 	}
 
 	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-	WJR_NODISCARD WJR_CONSTEXPR20 int compare(const StringView& t) const noexcept {
+	WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(const StringView& t) const noexcept {
 		const auto sv = view(t);
 		if constexpr (_Traits_helper::is_default_equal::value) {
 			if constexpr (std::is_same_v<Char, char>) {
@@ -22847,7 +22583,7 @@ template<
 			resize(0);
 		}
 
-		WJR_INLINE_CONSTEXPR20 size_type size() const {
+		WJR_ATTRIBUTE(CONST, INLINE_CONSTEXPR20) size_type size() const {
 			return m_core.size();
 		}
 
@@ -22857,7 +22593,7 @@ template<
 
 		WJR_INLINE_CONSTEXPR20 size_type max_size() const { return std::numeric_limits<size_type>::max(); }
 
-		WJR_INLINE_CONSTEXPR20 size_type capacity() const {
+		WJR_ATTRIBUTE(CONST, INLINE_CONSTEXPR20) size_type capacity() const {
 			return m_core.capacity();
 		}
 
@@ -23099,44 +22835,50 @@ template<
 
 		WJR_INLINE_CONSTEXPR20 bool empty()const { return m_core.empty(); }
 
-		WJR_NODISCARD WJR_CONSTEXPR20 int compare(const basic_string& other) const noexcept {
+		WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(const basic_string& other) const noexcept {
 			return compare(view(other));
 		}
 
-		WJR_NODISCARD WJR_CONSTEXPR20 int compare(const size_type off1, const size_type n1, const basic_string& other) const {
+		WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(
+			const size_type off1, const size_type n1, const basic_string& other) const {
 			return compare(off1, n1, view(other));
 		}
 
-		WJR_NODISCARD WJR_CONSTEXPR20 int compare(const size_type off1, const size_type n1, const basic_string& other,
+		WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(
+			const size_type off1, const size_type n1, const basic_string& other,
 			const size_type off2, const size_type n2 = npos) const {
 			return compare(off1, n1, view(other, off2, n2));
 		}
 
-		WJR_NODISCARD WJR_CONSTEXPR20 int compare(const value_type* s) const {
+		WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(const value_type* s) const {
 			return compare(view(s));
 		}
 
-		WJR_NODISCARD WJR_CONSTEXPR20 int compare(const size_type off1, const size_type n1, const value_type* s) const {
+		WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(
+			const size_type off1, const size_type n1, const value_type* s) const {
 			return compare(off1, n1, view(s));
 		}
 
-		WJR_NODISCARD WJR_CONSTEXPR20 int compare(const size_type off1, const size_type n1, const value_type* s,
+		WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(
+			const size_type off1, const size_type n1, const value_type* s,
 			const size_type n2) const {
 			return compare(off1, n1, view(s, n2));
 		}
 
 		template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-		WJR_NODISCARD WJR_CONSTEXPR20 int compare(const StringView& t) const noexcept {
+		WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(const StringView& t) const noexcept {
 			return view().compare(view(t));
 		}
 
 		template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-		WJR_NODISCARD WJR_CONSTEXPR20 int compare(const size_type off1, const size_type n1, const StringView& t) const {
+		WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(
+			const size_type off1, const size_type n1, const StringView& t) const {
 			return view(*this, off1, n1).compare(view(t));
 		}
 
 		template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-		WJR_NODISCARD WJR_CONSTEXPR20 int compare(const size_type off1, const size_type n1, const StringView& t,
+		WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(
+			const size_type off1, const size_type n1, const StringView& t,
 			const size_type off2, const size_type n2 = npos) const {
 			return compare(off1, n1, view(t, off2, n2));
 		}
@@ -24509,65 +24251,65 @@ namespace std {
 
 _WJR_BEGIN
 
-// encode functions
-// the code writing specification is related to the function namespace,
-// which requires encoding auxiliary functions and auxiliary classes,
-// followed by defining corresponding traits and basic_string_view, implemented after all
+// encode class
 
-namespace ascii {
+namespace encode {
 
-	template<int Base>
-	struct __to_digit_table {
+	class ascii;
 
-		constexpr static uint32_t invalid = 1u << 24;
+	struct ascii_traits {
+		using value_type = char;
+		using encode_type = encode::ascii;
+		using iterator = char*;
+		using const_iterator = const char*;
+	};
 
-		static_assert(Base >= 2 && Base <= 36, "");
+	struct __ascii_to_digit_table {
 
-		constexpr __to_digit_table() : table() {
+		constexpr static uint8_t invalid = 0xff;
+
+		constexpr __ascii_to_digit_table() : table() {
 			for (int i = 0; i < 256; ++i) {
 				table[i] = invalid;
 			}
 
 			{
-				constexpr int _Max = '0' + (Base >= 10 ? 10 : Base) - 1;
-				for (int i = '0'; i <= _Max; ++i) {
+				for (int i = '0'; i <= '9'; ++i) {
 					table[i] = (i - '0');
 				}
 			}
 
-			if constexpr (Base > 10) {
-				constexpr int _Maxl = 'a' + (Base - 10) - 1;
-				constexpr int _Maxu = _Maxl + ('A' - 'a');
-				for (int i = 'a'; i <= _Maxl; ++i) {
-					table[i] = (i - 'a') + 10;
-				}
+			for (int i = 'a'; i <= 'z'; ++i) {
+				table[i] = (i - 'a') + 10;
+			}
 
-				for (int i = 'A'; i <= _Maxu; ++i) {
-					table[i] = (i - 'A') + 10;
-				}
+			for (int i = 'A'; i <= 'Z'; ++i) {
+				table[i] = (i - 'A') + 10;
 			}
 
 		}
 
-		constexpr uint32_t operator[](uint8_t ch) const { return table[ch]; }
+		WJR_ATTRIBUTE(CONST, CONSTEXPR) uint8_t operator[](uint8_t ch) const { return table[ch]; }
 
 	private:
-		uint32_t table[256];
+		std::array<uint8_t, 256> table;
 	};
 
-	template<int Base>
-	constexpr static __to_digit_table<Base> __to_digit_table_v;
+	constexpr static __ascii_to_digit_table __ascii_to_digit_table_v = {};
 
-	enum __char_code {
-		__none = 0x00,
-		__lower = 0x01,
-		__upper = 0x02,
-		__digit = 0x04,
-		__xdigit = 0x08,
-		__white = 0x10
-	};
+	class ascii : public string_func<ascii_traits> {
+	public:
 
-	static constexpr int __char_code_table[256] = {
+		enum __char_code {
+			__none = 0x00,
+			__lower = 0x01,
+			__upper = 0x02,
+			__digit = 0x04,
+			__xdigit = 0x08,
+			__white = 0x10
+		};
+
+		static constexpr int __char_code_table[256] = {
 		  __none,          __none,          __none,          __none,
 		  __none,          __none,          __none,          __none,
 		  __none,         __white,         __white,         __white,
@@ -24632,140 +24374,59 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 		  __none,          __none,          __none,          __none,
 		  __none,          __none,          __none,          __none,
 		  __none,          __none,          __none,          __none
-	};
+		};
 
-	class encode;
-
-	struct encode_traits {
-		using value_type = char;
-		using encode_type = encode;
-	};
-
-	class encode : public string_func<encode_traits> {
-	public:
-		friend string_func<encode_traits>;
-		using _Mybase = string_func<encode_traits>;
+		friend string_func<ascii_traits>;
+		using _Mybase = string_func<ascii_traits>;
 		using value_type = char;
 
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isalnum(value_type ch) {
+		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isalnum(value_type ch) {
 			return __char_code_table[make_unsigned_v(ch)] & (__lower | __upper | __digit);
 		}
 
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isalpha(value_type ch) {
+		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isalpha(value_type ch) {
 			return __char_code_table[make_unsigned_v(ch)] & (__lower | __upper);
 		}
 
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool islower(value_type ch) {
+		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool islower(value_type ch) {
 			return __char_code_table[make_unsigned_v(ch)] & __lower;
 		}
 
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isupper(value_type ch) {
+		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isupper(value_type ch) {
 			return __char_code_table[make_unsigned_v(ch)] & __upper;
 		}
 
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isdigit(value_type ch) {
+		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isdigit(value_type ch) {
 			return __char_code_table[make_unsigned_v(ch)] & __digit;
 		}
 
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isxdigit(value_type ch) {
+		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isxdigit(value_type ch) {
 			return __char_code_table[make_unsigned_v(ch)] & __xdigit;
 		}
 
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isspace(value_type ch) {
+		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isspace(value_type ch) {
 			return __char_code_table[make_unsigned_v(ch)] & __white;
 		}
 
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static value_type tolower(value_type ch) {
+		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static value_type tolower(value_type ch) {
 			return isupper(ch) ? ch + 'a' - 'A' : ch;
 		}
 
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static value_type toupper(value_type ch) {
+		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static value_type toupper(value_type ch) {
 			return islower(ch) ? ch + 'A' - 'a' : ch;
 		}
 
-		template<unsigned int Base = 10>
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static uint32_t todigit(char ch) {
-			return __to_digit_table_v<Base>[ch];
+		// return -1 if is invalid
+		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static uint8_t todigit(char ch) {
+			return __ascii_to_digit_table_v[ch];
 		}
 
-		using to_i_flags = typename _Mybase::flags;
+		using to_i_flags = typename _Mybase::to_i_flags;
 
-		using default_to_i_flags = typename _Mybase::default_to_integral_flags;
+		using default_to_i_flags = typename _Mybase::default_to_i_flags;
 
 		using _Mybase::to_integral;
 		using _Mybase::from_integral;
-
-		template<typename T, typename F = default_to_i_flags>
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static T to_integral(const char* _First, const char* _Last,
-			const char** _Pos = nullptr, int base = 10, errc* _Err = nullptr, F f = F()) noexcept {
-			const char* end_ptr = _First;
-			errc c = errc::ok;
-			auto ret = to_integral<T>(_First, _Last, end_ptr, base, c, f);
-
-			if (_Pos != nullptr) {
-				*_Pos = end_ptr;
-			}
-
-			if (_Err != nullptr) {
-				*_Err = c;
-			}
-
-			return ret;
-		}
-
-		template<typename T, typename F = default_to_i_flags>
-		WJR_NODISCARD WJR_INLINE_CONSTEXPR static T to_integral(const char* _First, size_t n,
-			size_t* _Pos = nullptr, int base = 10, errc* _Err = nullptr, F f = F()) noexcept {
-			const char* end_ptr = _First;
-			errc c = errc::ok;
-			auto ret = to_integral<T>(_First, _First + n, end_ptr, base, c, f);
-
-			if (_Pos != nullptr) {
-				*_Pos = static_cast<size_t>(end_ptr - _First);
-			}
-
-			if (_Err != nullptr) {
-				*_Err = c;
-			}
-
-			return ret;
-		}
-
-		template<typename T, typename _Iter>
-		WJR_INLINE_CONSTEXPR20 static void from_integral(
-			T value,
-			_Iter _First, _Iter _Last, _Iter* _Pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept {
-			_Iter end_ptr = _First;
-			errc c = errc::ok;
-			from_integral<T>(value, _First, _Last, end_ptr, base, c);
-
-			if (_Pos != nullptr) {
-				*_Pos = end_ptr;
-			}
-
-			if (_Err != nullptr) {
-				*_Err = c;
-			}
-
-		}
-
-		template<typename T, typename _Iter, typename _Diff>
-		WJR_INLINE_CONSTEXPR20 static void from_integral(
-			T value,
-			_Iter _First, _Diff n, size_t* _Pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept {
-			_Iter end_ptr = _First;
-			errc c = errc::ok;
-			from_integral<T>(value, _First, n, end_ptr, base, c);
-
-			if (_Pos != nullptr) {
-				*_Pos = static_cast<size_t>(end_ptr - _First);
-			}
-
-			if (_Err != nullptr) {
-				*_Err = c;
-			}
-
-		}
 
 		using to_f_flags = typename double_conversion::StringToDoubleConverter::Flags;
 
@@ -24773,7 +24434,7 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 			to_f_flags,
 			static_cast<to_f_flags>
 			(to_f_flags::ALLOW_LEADING_SPACES
-			| to_f_flags::ALLOW_TRAILING_JUNK)
+				| to_f_flags::ALLOW_TRAILING_JUNK)
 		>;
 
 		template<typename T, typename F = default_to_f_flags>
@@ -25017,6 +24678,12 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 			_Iter& pos, errc& err, int precision = 0, M m = M(), F f = F()) noexcept {
 			using double_conversion::DoubleToStringConverter;
 			using double_conversion::StringBuilder;
+
+			if (n <= 0) {
+				err = errc::buffer_too_small;
+				return;
+			}
+
 			DoubleToStringConverter conv(
 				get_cvar(f),
 				"Infinity",
@@ -25048,10 +24715,11 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 			const auto length = static_cast<size_t>(builder.position());
 			builder.Finalize();
 
-			if (n < length) {
+			if (static_cast<size_t>(n) < length) {
 				err = errc::buffer_too_small;
 				return;
 			}
+
 			first = wjr::copy_n(buffer, length, first);
 
 			pos = first;
@@ -25100,522 +24768,15 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 
 	};
 
-}
-
-template<typename Traits = std::char_traits<char>>
-struct ascii_traits : public Traits {};
-
-template<typename Traits>
-struct __traits_helper<ascii_traits<Traits>> : __traits_helper<Traits> {};
-
-template<typename Traits>
-class basic_string_view<char, ascii_traits<Traits>>
-	: public basic_string_view<char, Traits>,
-	public __base_string_view<basic_string_view<char, ascii_traits<Traits>>> {
-private:
-	using _Mybase1 = basic_string_view<char, Traits>;
-	using _Mybase2 = __base_string_view<basic_string_view<char, ascii_traits<Traits>>>;
-public:
-	using _Mybase1::_Mybase1;
-	using _Mybase1::operator=;
-	using _Mybase1::begin;
-	using _Mybase1::end;
-
-	using _Mybase2::swap;
-	using _Mybase2::substr;
-	using _Mybase2::view;
-	using _Mybase2::eview;
-	using _Mybase2::prefix;
-	using _Mybase2::suffix;
-
-	using traits_type = ascii_traits<Traits>;
-	using size_type = typename _Mybase1::size_type;
-	using encode_type = ascii::encode;
-	using flags = typename encode_type::flags;
-
-	basic_string_view(const _Mybase1& base) : _Mybase1(base) {}
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isalnum(char ch);
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isalpha(char ch);
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool islower(char ch);
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isupper(char ch);
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isdigit(char ch);
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isxdigit(char ch);
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isspace(char ch);
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static char tolower(char ch);
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static char toupper(char ch);
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view ltrim() const;
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view rtrim() const;
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view trim() const;
-
-	using default_to_integral_flags = typename encode_type::default_to_integral_flags;
-
-	// support constexpr if str is constexpr
-	template<typename T, typename F = default_to_integral_flags>
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_integral(
-		size_type* pos = nullptr, int base = 10, errc* err = nullptr, F f = F()) const;
-
-	template<typename F = default_to_integral_flags>
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR int toi(
-		size_type* pos = nullptr, int base = 10, errc* err = nullptr, F f = F()) const;
-
-	template<typename F = default_to_integral_flags>
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR long tol(
-		size_type* pos = nullptr, int base = 10, errc* err = nullptr, F f = F()) const;
-
-	template<typename F = default_to_integral_flags>
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR long long toll(
-		size_type* pos = nullptr, int base = 10, errc* err = nullptr, F f = F()) const;
-
-	template<typename F = default_to_integral_flags>
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned int toui(
-		size_type* pos = nullptr, int base = 10, errc* err = nullptr, F f = F()) const;
-
-	template<typename F = default_to_integral_flags>
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long toul(
-		size_type* pos = nullptr, int base = 10, errc* err = nullptr, F f = F()) const;
-
-	template<typename F = default_to_integral_flags>
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long long toull(
-		size_type* pos = nullptr, int base = 10, errc* err = nullptr, F f = F()) const;
-
-};
-
-using ascii_view = basic_string_view<char, ascii_traits<>>;
-
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::isalnum(char ch) {
-	return encode_type::isalnum(ch);
-}
-
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::isalpha(char ch) {
-	return encode_type::isalpha(ch);
-}
-
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::islower(char ch) {
-	return encode_type::islower(ch);
-}
-
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::isupper(char ch) {
-	return encode_type::isupper(ch);
-}
-
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::isdigit(char ch) {
-	return encode_type::isdigit(ch);
-}
-
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::isxdigit(char ch) {
-	return encode_type::isxdigit(ch);
-}
-
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR bool basic_string_view<char, ascii_traits<Traits>>::isspace(char ch) {
-	return encode_type::isspace(ch);
-}
-
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR char basic_string_view<char, ascii_traits<Traits>>::tolower(char ch) {
-	return encode_type::tolower(ch);
-}
-
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR char basic_string_view<char, ascii_traits<Traits>>::toupper(char ch) {
-	return encode_type::toupper(ch);
-}
-
-template<typename Traits>
-WJR_INLINE_CONSTEXPR basic_string_view<char, ascii_traits<Traits>>
-	basic_string_view<char, ascii_traits<Traits>>::ltrim() const {
-	const char* s = begin();
-	const char* e = end();
-	s = encode_type::skipw(s, e);
-	return basic_string_view(s, e - s);
-}
-
-template<typename Traits>
-WJR_INLINE_CONSTEXPR basic_string_view<char, ascii_traits<Traits>>
-basic_string_view<char, ascii_traits<Traits>>::rtrim() const {
-	const char* s = begin();
-	const char* e = end();
-	e = encode_type::rskipw(s, e);
-	return basic_string_view(s, e - s);
-}
-
-template<typename Traits>
-WJR_INLINE_CONSTEXPR basic_string_view<char, ascii_traits<Traits>>
-basic_string_view<char, ascii_traits<Traits>>::trim() const {
-	return ltrim().rtrim();
-}
-
-template<typename Traits>
-template<typename T, typename F>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR T basic_string_view<char, ascii_traits<Traits>>::to_integral(
-	size_type* pos, int base, errc* err, F f) const {
-	using namespace enum_ops;
-
-	errc cc = errc::ok;
-	const char* end_ptr = begin();
-	T ret = encode_type::to_integral<T>(
-		begin(), end(), end_ptr, base, cc, f);
-
-	if (err != nullptr) {
-		*err = cc;
-	}
-
-	if (pos != nullptr) {
-		*pos = static_cast<size_type>(end_ptr - begin());
-	}
-
-	return ret;
-}
-
-template<typename Traits>
-template<typename F>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR int basic_string_view<char, ascii_traits<Traits>>::toi(
-	size_type* pos, int base, errc* err, F f) const {
-	return to_integral<int>(pos, base, err, f);
-}
-
-template<typename Traits>
-template<typename F>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR long basic_string_view<char, ascii_traits<Traits>>::tol(
-	size_type* pos, int base, errc* err, F f) const {
-	return to_integral<long>(pos, base, err, f);
-}
-
-template<typename Traits>
-template<typename F>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR long long basic_string_view<char, ascii_traits<Traits>>::toll(
-	size_type* pos, int base, errc* err, F f) const {
-	return to_integral<long long>(pos, base, err, f);
-}
-
-template<typename Traits>
-template<typename F>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned int basic_string_view<char, ascii_traits<Traits>>::toui(
-	size_type* pos, int base, errc* err, F f) const {
-	return to_integral<unsigned int>(err, pos, base);
-}
-
-template<typename Traits>
-template<typename F>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long basic_string_view<char, ascii_traits<Traits>>::toul(
-	size_type* pos, int base, errc* err, F f) const {
-		return to_integral<unsigned long>(err, pos, base);
-}
-
-template<typename Traits>
-template<typename F>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR unsigned long long basic_string_view<char, ascii_traits<Traits>>::toull(
-	size_type* pos, int base, errc* err, F f) const {
-		return to_integral<unsigned long long>(err, pos, base);
-}
-
-namespace utf8 {
-	enum __char_code {
-		__invalid_byte = 0x00,
-		__one_byte = 0x01,
-		__two_byte = 0x02,
-		__three_byte = 0x03,
-		__four_byte = 0x04,
-		__tail_byte = 0x08,
-	};
-
-	static constexpr int __char_code_table[256] = {
-
-		__one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte,
-		__one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte,
-		__one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte,
-		__one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte,
-		__one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte,
-		__one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte,
-		__one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte,
-		__one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte,
-		__one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte,
-		__one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte,
-		__one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte,
-		__one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte,
-		__one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte,
-		__one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte,
-		__one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte,
-		__one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte, __one_byte,
-
-		__tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte,
-		__tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte,
-		__tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte,
-		__tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte,
-		__tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte,
-		__tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte,
-		__tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte,
-		__tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte, __tail_byte,
-
-		__two_byte, __two_byte, __two_byte, __two_byte, __two_byte, __two_byte, __two_byte, __two_byte,
-		__two_byte, __two_byte, __two_byte, __two_byte, __two_byte, __two_byte, __two_byte, __two_byte,
-		__two_byte, __two_byte, __two_byte, __two_byte, __two_byte, __two_byte, __two_byte, __two_byte,
-		__two_byte, __two_byte, __two_byte, __two_byte, __two_byte, __two_byte, __two_byte, __two_byte,
-
-		__three_byte, __three_byte, __three_byte, __three_byte, __three_byte, __three_byte, __three_byte, __three_byte,
-		__three_byte, __three_byte, __three_byte, __three_byte, __three_byte, __three_byte, __three_byte, __three_byte,
-
-		__four_byte, __four_byte, __four_byte, __four_byte, __four_byte, __four_byte, __four_byte, __four_byte,
-
-		__invalid_byte, __invalid_byte, __invalid_byte, __invalid_byte,
-		__invalid_byte, __invalid_byte, __invalid_byte, __invalid_byte,
-	};
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 int get_code(uint8_t c) {
-		return __char_code_table[c];
-	}
-
-	// return - 1 if the length is insufficient
-	// return - 2 if illegal
-	template<typename iter1, typename iter2>
-	WJR_NODISCARD WJR_CONSTEXPR20 uint32_t decode(iter1& _First, iter2 _Last) {
-		if (is_unlikely(_First == _Last)) {
-			return -1;
-		}
-		uint8_t c;
-		c = *_First;
-		++_First;
-		int len = get_code(c) & 0x07;
-		if (!len) {
-			return -2;
-		}
-
-		switch (len) {
-		case 4: {
-			uint8_t t0, t1, t2;
-
-			if (is_unlikely(_First == _Last)) {
-				return -1;
-			}
-			t0 = *_First;
-			++_First;
-			if (get_code(t0) != __tail_byte) {
-				return -2;
-			}
-
-			if (is_unlikely(_First == _Last)) {
-				return -1;
-			}
-			t1 = *_First;
-			++_First;
-			if (get_code(t1) != __tail_byte) {
-				return -2;
-			}
-
-			if (is_unlikely(_First == _Last)) {
-				return -1;
-			}
-			t2 = *_First;
-			++_First;
-			if (get_code(t2) != __tail_byte) {
-				return -2;
-			}
-
-			return ((c & 0x07) << 18)
-				| ((t0 & 0x3f) << 12)
-				| ((t1 & 0x3f) << 6)
-				| (t2 & 0x3f);
-		}
-		case 3: {
-			uint8_t t0, t1;
-
-			if (is_unlikely(_First == _Last)) {
-				return -1;
-			}
-			t0 = *_First;
-			++_First;
-			if (get_code(t0) != __tail_byte) {
-				return -2;
-			}
-
-			if (is_unlikely(_First == _Last)) {
-				return -1;
-			}
-			t1 = *_First;
-			++_First;
-			if (get_code(t1) != __tail_byte) {
-				return -2;
-			}
-
-			return ((c & 0x0f) << 12)
-				| ((t0 & 0x3f) << 6)
-				| (t1 & 0x3f);
-		}
-		case 2: {
-			uint8_t t0;
-
-			if (is_unlikely(_First == _Last)) {
-				return -1;
-			}
-			t0 = *_First;
-			++_First;
-			if (get_code(t0) != __tail_byte) {
-				return -2;
-			}
-
-			return ((c & 0x1f) << 6)
-				| (t0 & 0x3f);
-		}
-		case 1: {
-			return c;
-		}
-		default: {
-			WJR_UNREACHABLE;
-		}
-		}
-
-	}
-
-	template<typename iter1, typename iter2>
-	WJR_NODISCARD WJR_CONSTEXPR20 uint32_t rdecode(iter1& _First, iter2 _Last) {
-		if (is_unlikely(_First == _Last)) {
-			return -1;
-		}
-		uint8_t c;
-		c = *_First;
-		++_First;
-		int len = get_code(c) & 0x07;
-		if (!len) {
-			return -2;
-		}
-
-		switch (len) {
-		case 4: {
-			uint8_t t0, t1, t2;
-
-			if (is_unlikely(_First == _Last)) {
-				return -1;
-			}
-			t0 = *_First;
-			++_First;
-			if (get_code(t0) != __tail_byte) {
-				return -2;
-			}
-
-			if (is_unlikely(_First == _Last)) {
-				return -1;
-			}
-			t1 = *_First;
-			++_First;
-			if (get_code(t1) != __tail_byte) {
-				return -2;
-			}
-
-			if (is_unlikely(_First == _Last)) {
-				return -1;
-			}
-			t2 = *_First;
-			++_First;
-			if (get_code(t2) != __tail_byte) {
-				return -2;
-			}
-
-			return ((c & 0x07) << 18)
-				| ((t0 & 0x3f) << 12)
-				| ((t1 & 0x3f) << 6)
-				| (t2 & 0x3f);
-		}
-		case 3: {
-			uint8_t t0, t1;
-
-			if (is_unlikely(_First == _Last)) {
-				return -1;
-			}
-			t0 = *_First;
-			++_First;
-			if (get_code(t0) != __tail_byte) {
-				return -2;
-			}
-
-			if (is_unlikely(_First == _Last)) {
-				return -1;
-			}
-			t1 = *_First;
-			++_First;
-			if (get_code(t1) != __tail_byte) {
-				return -2;
-			}
-
-			return ((c & 0x0f) << 12)
-				| ((t0 & 0x3f) << 6)
-				| (t1 & 0x3f);
-		}
-		case 2: {
-			uint8_t t0;
-
-			if (is_unlikely(_First == _Last)) {
-				return -1;
-			}
-			t0 = *_First;
-			++_First;
-			if (get_code(t0) != __tail_byte) {
-				return -2;
-			}
-
-			return ((c & 0x1f) << 6)
-				| (t0 & 0x3f);
-		}
-		case 1: {
-			return c;
-		}
-		default: {
-			WJR_UNREACHABLE;
-		}
-		}
-
-	}
-
-	// return - 2 if illegal
-	// return 0 if legal
-	template<typename iter>
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR20 uint32_t encode(uint32_t c, iter& _First) {
-		if (c > 0x10ffff)return -2;
-		if (c < 0x80) {
-			*_First = static_cast<uint8_t>(c);
-			++_First;
-			return 0;
-		}
-		if (c < 0x800) {
-			*_First = static_cast<uint8_t>(0xc0 | (c >> 6));
-			++_First;
-			*_First = static_cast<uint8_t>(0x80 | (c & 0x3f));
-			++_First;
-			return 0;
-		}
-		if (c < 0x10000) {
-			*_First = static_cast<uint8_t>(0xe0 | (c >> 12));
-			++_First;
-			*_First = static_cast<uint8_t>(0x80 | ((c >> 6) & 0x3f));
-			++_First;
-			*_First = static_cast<uint8_t>(0x80 | (c & 0x3f));
-			++_First;
-			return 0;
-		}
-		*_First = static_cast<uint8_t>(0xf0 | (c >> 18));
-		++_First;
-		*_First = static_cast<uint8_t>(0x80 | ((c >> 12) & 0x3f));
-		++_First;
-		*_First = static_cast<uint8_t>(0x80 | ((c >> 6) & 0x3f));
-		++_First;
-		*_First = static_cast<uint8_t>(0x80 | (c & 0x3f));
-		++_First;
-		return 0;
-	}
+	// TODO
+	// Encoding and decoding in previous github files
+	class utf8 {};
 
 }
 
 _WJR_END
 
 #endif // __WJR_STRING_H
-
 
 #pragma once
 #ifndef __WJR_RANDOM_H
@@ -26511,7 +25672,6 @@ _WJR_END
 #include <shared_mutex>
 #include <condition_variable>
 #include <future>
-#include <functional>
 #include <chrono>
 
 
@@ -28887,8 +28047,6 @@ _WJR_BEGIN
 
 template<size_t from_I, size_t to_I, typename...Vars, typename...Args>
 WJR_CONSTEXPR20 tp_at_t<tp_list<Vars...>, to_I>& emplace_from(std::variant<Vars...>& var, Args&&...args) {
-	WJR_ASSUME(var.index() == from_I);
-	using from_value_type = tp_at_t<tp_list<Vars...>, from_I>;
 	wjr::destroy_at(std::addressof(std::get<from_I>(var)));
 	wjr::construct_at(std::addressof(var), std::in_place_index<to_I>, std::forward<Args>(args)...);
 	return std::get<to_I>(var);
@@ -28896,8 +28054,6 @@ WJR_CONSTEXPR20 tp_at_t<tp_list<Vars...>, to_I>& emplace_from(std::variant<Vars.
 
 template<size_t from_I, typename to_T, typename...Vars, typename...Args>
 WJR_CONSTEXPR20 to_T& emplace_from(std::variant<Vars...>& var, Args&&...args) {
-	WJR_ASSUME(var.index() == from_I);
-	using from_value_type = tp_at_t<tp_list<Vars...>, from_I>;
 	wjr::destroy_at(std::addressof(std::get<from_I>(var)));
 	wjr::construct_at(std::addressof(var), std::in_place_type<to_T>, std::forward<Args>(args)...);
 	return std::get<to_T>(var);
@@ -28919,13 +28075,15 @@ struct json_traits {
 	template<typename T>
 	using allocator_type = sallocator<T>;
 
+	using encode_type = encode::ascii;
+
 	using null = std::nullptr_t;
 	using boolean = bool;
 	using number = double;
 
 	using string = basic_string<char, std::char_traits<char>, allocator_type<char>>;
 	using array = vector<json, allocator_type<json>>;
-	using object = std::map<string, json, std::less<string>, allocator_type<std::pair<const string, json>>>;
+	using object = std::map<string, json, std::less<>, allocator_type<std::pair<const string, json>>>;
 
 	using cstring = string*;
 	using carray = array*;
@@ -29018,8 +28176,11 @@ class json : public json_traits {
 public:
 
 	using traits_type = json_traits;
+
 	template<typename T>
 	using allocator_type = typename traits_type::template allocator_type<T>;
+
+	using encode_type = typename traits_type::encode_type;
 
 	using null = typename traits_type::null;
 	using boolean = typename traits_type::boolean;
@@ -29129,7 +28290,7 @@ public:
 		&& find_unique_constructible_v<T&&> != -1
 		&& !is_in_place_v<remove_cvref_t<T>>
 		&& !std::is_same_v<remove_cvref_t<T>, json>, int> = 0>
-	inline explicit json(T && t) noexcept
+	inline explicit json(T&& t) noexcept
 		: json(std::in_place_index_t<find_unique_constructible_v<T&&>>{},
 			std::forward<T>(t)) {}
 
@@ -29177,19 +28338,21 @@ public:
 		tidy();
 	}
 
+private:
 	// don't use json after tidy
 	template<size_t I, std::enable_if_t<(I < 6), int> = 0>
 	inline void tidy_from() noexcept {
-		if constexpr (I >= 3) {
+		if constexpr (I < 3) {
+			// do nothing
+		}
+		else {
 			using value_type = type_at_t<I>;
 			auto ptr = std::get<I>(m_value);
 			ptr->~value_type();
 			allocator_type<value_type>().deallocate(ptr, 1);
 		}
-		if constexpr (I != 0) {
-			wjr::emplace_from<I, 0>(m_value);
-		}
 	}
+public:
 
 	// don't use json after tidy
 	// set to null
@@ -29205,7 +28368,7 @@ public:
 	inline type_at_t<to_I>& emplace_from(Args&&...args) noexcept {
 		if constexpr (to_I < 3) {
 			tidy_from<from_I>();
-			return wjr::emplace_from<0, to_I>(m_value, std::forward<Args>(args)...);
+			return wjr::emplace_from<from_I, to_I>(m_value, std::forward<Args>(args)...);
 		}
 		else if constexpr (to_I < 6) {
 			// don't tidy for this
@@ -29220,12 +28383,12 @@ public:
 				using value_type = type_at_t<to_I>;
 				auto ptr = allocator_type<value_type>().allocate(1);
 				wjr::construct_at(ptr, std::forward<Args>(args)...);
-				return *wjr::emplace_from<0, to_I>(m_value, ptr);
+				return *wjr::emplace_from<from_I, to_I>(m_value, ptr);
 			}
 		}
 		else {
 			tidy_from<from_I>();
-			return wjr::emplace_from<0, to_I - 3>(m_value, std::forward<Args>(args)...);
+			return wjr::emplace_from<from_I, to_I - 3>(m_value, std::forward<Args>(args)...);
 		}
 	}
 
@@ -29386,7 +28549,7 @@ inline x& emplace_##x(Args&&...args) noexcept{ return emplace<x>(std::forward<Ar
 
 private:
 
-	static json __parse(const char*& first, const char* last);
+	WJR_NODISCARD static json __parse(const char*& first, const char* last);
 	static bool __accept(const char*& first, const char* last, uint8_t state);
 
 	template<int m>
@@ -29507,7 +28670,7 @@ constexpr decltype(auto) visit(Func&& fn, Var&&...var) {
 		}, (std::forward<Var>(var).get())...);
 }
 
-WJR_INLINE_CONSTEXPR20 void swap(json& a, json& b) noexcept {
+inline void swap(json& a, json& b) noexcept {
 	a.swap(b);
 }
 
@@ -29577,6 +28740,7 @@ constexpr iter skip_string(iter first, WJR_MAYBE_UNUSED iter last) {
 
 template<typename iter, std::enable_if_t<is_iterator_v<iter>, int> = 0>
 constexpr static bool check_string(iter& s, iter e) {
+	using encode_type = typename json_traits::encode_type;
 	if (*s != '"')return false;
 	++s;
 	while (s != e && *s != '"') {
@@ -29595,19 +28759,19 @@ constexpr static bool check_string(iter& s, iter e) {
 				break;
 			case 'u':
 				if (s + 4 > e)return false;
-				if (!ascii::encode::isalnum(*s)) {
+				if (!encode_type::isalnum(*s)) {
 					return false;
 				}
 				++s;
-				if (!ascii::encode::isalnum(*s)) {
+				if (!encode_type::isalnum(*s)) {
 					return false;
 				}
 				++s;
-				if (!ascii::encode::isalnum(*s)) {
+				if (!encode_type::isalnum(*s)) {
 					return false;
 				}
 				++s;
-				if (!ascii::encode::isalnum(*s)) {
+				if (!encode_type::isalnum(*s)) {
 					return false;
 				}
 				++s;
@@ -29628,7 +28792,7 @@ constexpr static bool check_string(iter& s, iter e) {
 bool json::__accept(const char*& first, const char* last, uint8_t state) {
 	bool head = true;
 	for (;; ++first) {
-		first = ascii::encode::skipw(first, last);
+		first = encode_type::skipw(first, last);
 		if (first == last)return false;
 
 		if (state == '}') {
@@ -29641,10 +28805,10 @@ bool json::__accept(const char*& first, const char* last, uint8_t state) {
 			if (!check_string(first, last))
 				return false;
 			++first;
-			first = ascii::encode::skipw(first, last);
+			first = encode_type::skipw(first, last);
 			if (first == last || *first != ':') return false;
 			++first;
-			first = ascii::encode::skipw(first, last);
+			first = encode_type::skipw(first, last);
 			if (first == last) return false;
 		}
 		else {
@@ -29699,15 +28863,15 @@ bool json::__accept(const char*& first, const char* last, uint8_t state) {
 		default:
 			const char* pos = nullptr;
 			errc c = errc::ok;
-			(void)ascii::encode::to_floating_point<double>(first, last, &pos, &c,
-				std::integral_constant<ascii::encode::to_f_flags, ascii::encode::to_f_flags::ALLOW_TRAILING_JUNK>());
+			(void)encode_type::to_floating_point<double>(first, last, &pos, &c,
+				std::integral_constant<encode_type::to_f_flags, encode_type::to_f_flags::ALLOW_TRAILING_JUNK>());
 			if (c != errc::ok)
 				return false;
 			first = pos;
 			break;
 		}
 
-		first = ascii::encode::skipw(first, last);
+		first = encode_type::skipw(first, last);
 		if (first == last)return false;
 		if (*first == ',')
 			continue;
@@ -29719,7 +28883,7 @@ bool json::__accept(const char*& first, const char* last, uint8_t state) {
 }
 
 bool json::accept(const char* first, const char* last) {
-	first = ascii::encode::skipw(first, last);
+	first = encode_type::skipw(first, last);
 	if (first == last) {
 		return false;
 	}
@@ -29729,13 +28893,13 @@ bool json::accept(const char* first, const char* last) {
 		++first;
 		if (!__accept(first, last, ']'))
 			return false;
-		first = ascii::encode::skipw(first, last);
+		first = encode_type::skipw(first, last);
 		return first == last;
 	case '{':
 		++first;
 		if (!__accept(first, last, '}'))
 			return false;
-		first = ascii::encode::skipw(first, last);
+		first = encode_type::skipw(first, last);
 		return first == last;
 	default:
 		return false;
@@ -29743,7 +28907,7 @@ bool json::accept(const char* first, const char* last) {
 }
 
 json json::__parse(const char*& first, const char* last) {
-	first = ascii::encode::skipw(first, last);
+	first = encode_type::skipw(first, last);
 	switch (*first) {
 	case 'n': {
 		json it(std::in_place_type_t<null>{});
@@ -29771,14 +28935,14 @@ json json::__parse(const char*& first, const char* last) {
 		json it(std::in_place_type_t<array>{});
 		auto& arr = it.get_array();
 		++first;
-		first = ascii::encode::skipw(first, last);
+		first = encode_type::skipw(first, last);
 		if (*first == ']') {
 			++first;
 			return it;
 		}
 		for (;;) {
 			arr.emplace_back(__parse(first, last));
-			first = ascii::encode::skipw(first, last);
+			first = encode_type::skipw(first, last);
 			if (*first == ']') {
 				++first;
 				break;
@@ -29792,21 +28956,21 @@ json json::__parse(const char*& first, const char* last) {
 		json it(std::in_place_type_t<object>{});
 		auto& obj = it.get_object();
 		++first;
-		first = ascii::encode::skipw(first, last);
+		first = encode_type::skipw(first, last);
 		if (*first == '}') {
 			++first;
 			return it;
 		}
 		for(;;) {
-			first = ascii::encode::skipw(first, last);
+			first = encode_type::skipw(first, last);
 			++first;
 			auto p = skip_string(first, last);
 			string name(first, p);
 			first = p + 1;
-			first = ascii::encode::skipw(first, last);
+			first = encode_type::skipw(first, last);
 			++first;
 			obj.insert_or_assign(std::move(name), __parse(first, last));
-			first = ascii::encode::skipw(first, last);
+			first = encode_type::skipw(first, last);
 			if (*first == '}') {
 				++first;
 				break;
@@ -29817,8 +28981,8 @@ json json::__parse(const char*& first, const char* last) {
 	}
 	default: {
 		const char* pos = nullptr;
-		auto val = ascii::encode::to_floating_point<double>(first, last, &pos, nullptr,
-			std::integral_constant<ascii::encode::to_f_flags, ascii::encode::to_f_flags::ALLOW_TRAILING_JUNK>());
+		auto val = encode_type::to_floating_point<double>(first, last, &pos, nullptr,
+			std::integral_constant<encode_type::to_f_flags, encode_type::to_f_flags::ALLOW_TRAILING_JUNK>());
 		first = pos;
 		json it(std::in_place_type_t<number>{}, val);
 		return it;
@@ -29853,9 +29017,10 @@ void json::_stringify(string& str, int a) const noexcept {
 	case 2: {
 		str.reserve(str.size() + 256);
 		size_t length = 0;
-		ascii::encode::from_floating_point<double>(
+		encode_type::from_floating_point<double>(
 			get_number(), str.end(), 256, &length);
 		str.inc_size(length);
+		str.set_end();
 		break;
 	}
 	case 3: {

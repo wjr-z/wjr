@@ -7,7 +7,7 @@
 _WJR_ALGO_BEGIN
 
 template<typename T, typename _Pred>
-WJR_NODISCARD WJR_PURE const T*
+WJR_ATTRIBUTE(NODISCARD, PURE) const T*
 WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
 	constexpr size_t _Mysize = sizeof(T);
 
@@ -19,6 +19,24 @@ WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n,
 
 	constexpr uintptr_t width = simd_t::width() / (8 * _Mysize);
 	constexpr uintptr_t bound = width * _Mysize;
+
+	{
+		// solve next 16 bytes
+		if(n <= 32 / _Mysize) {
+			const auto m = n - 16 / _Mysize;
+			WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s0, m));
+			WJR_SIMD_LOADU(simd::sse, y, WJR_SIMD_ADD_PTR(s1, m));
+
+			__WJR_MEMMIS_ONE(simd::sse, WJR_SIMD_ADD_PTR(s0, m));
+
+			return s0 + n;
+		}
+
+		WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s0, 16 / _Mysize));
+		WJR_SIMD_LOADU(simd::sse, y, WJR_SIMD_ADD_PTR(s1, 16 / _Mysize));
+
+		__WJR_MEMMIS_ONE(simd::sse, WJR_SIMD_ADD_PTR(s0, 16 / _Mysize));
+	}
 
 	// solve first min(n, 128 / _Mysize) bytes
 	// no branch algorithm
@@ -390,7 +408,7 @@ WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n,
 }
 
 template<typename T, typename _Pred>
-WJR_NODISCARD WJR_PURE WJR_NOINLINE const T*
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T*
 __WJR_MEMMIS_NAME(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
 	constexpr size_t _Mysize = sizeof(T);
 
@@ -407,27 +425,6 @@ __WJR_MEMMIS_NAME(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
 			WJR_SIMD_LOADU(simd::sse, y, s1);
 
 			__WJR_MEMMIS_ONE(simd::sse, s0);
-		}
-
-		if (n <= 32 / _Mysize) {
-
-			WJR_SIMD_INC_PTR(s0, n - 16 / _Mysize);
-			WJR_SIMD_INC_PTR(s1, n - 16 / _Mysize);
-
-			WJR_SIMD_LOADU(simd::sse, x, s0);
-			WJR_SIMD_LOADU(simd::sse, y, s1);
-
-			__WJR_MEMMIS_ONE(simd::sse, s0);
-
-			return WJR_SIMD_ADD_PTR(s0, 16 / _Mysize);
-		}
-
-		// solve next 16 bytes
-		{
-			WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s0, 16 / _Mysize));
-			WJR_SIMD_LOADU(simd::sse, y, WJR_SIMD_ADD_PTR(s1, 16 / _Mysize));
-
-			__WJR_MEMMIS_ONE(simd::sse, WJR_SIMD_ADD_PTR(s0, 16 / _Mysize));
 		}
 
 		return WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(s0, s1, n, pred);
@@ -532,7 +529,7 @@ __WJR_MEMMIS_NAME(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
 		// n = [1, 16)
 		if (n >= 4) {
 			// n = [4, 16)
-			auto delta = (n & 8) >> 1;
+			const auto delta = (n & 8) >> 1;
 
 			auto A0 = *reinterpret_cast<const uint32_t*>(s0 - n);
 			auto B0 = *reinterpret_cast<const uint32_t*>(s0 - n + delta);

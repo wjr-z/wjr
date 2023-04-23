@@ -6,7 +6,6 @@
 #undef new
 
 #include <stdexcept>
-#include <string>
 
 #include <wjr/compressed_pair.h>
 #include <wjr/algorithm.h>
@@ -111,40 +110,41 @@ struct vector_data {
 		}
 	}
 
-	WJR_INLINE_CONSTEXPR20 size_type size() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) size_type size() const noexcept {
 		return static_cast<size_type>(_Mylast - _Myfirst);
 	}
 
-	WJR_INLINE_CONSTEXPR20 size_type capacity() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) size_type capacity() const noexcept {
 		return static_cast<size_type>(_Myend - _Myfirst);
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer data() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer data() noexcept {
 		return _Myfirst;
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer data() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer data() const noexcept {
 		return _Myfirst;
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer lastPtr() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer lastPtr() noexcept {
 		return _Mylast;
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer lastPtr() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer lastPtr() const noexcept {
 		return _Mylast;
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer endPtr() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer endPtr() noexcept {
 		return _Myend;
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer endPtr() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer endPtr() const noexcept {
 		return _Myend;
 	}
 
 	WJR_INLINE_CONSTEXPR20 void set_size(const size_type _Size) noexcept {
 		_Mylast = _Myfirst + _Size;
+		WJR_ASSUME(size() == _Size);
 	}
 
 	WJR_INLINE_CONSTEXPR20 void inc_size(const difference_type _Size) noexcept {
@@ -182,10 +182,7 @@ struct vector_static_data {
 
 	WJR_CONSTEXPR20 static void _lengthError(WJR_MAYBE_UNUSED const size_type _Newcapacity){
 #if defined(_WJR_EXCEPTION)
-		std::string str = "vector_static_data is too small to hold the requested data";
-		str += "\n old capacity = " + std::to_string(max_capacity);
-		str += "\n allocate new capacity = " + std::to_string(_Newcapacity);
-		throw std::length_error(str);
+		throw std::length_error("vector_static_data is too small to hold the requested data");
 #endif // _WJR_EXCEPTION
 		unreachable();
 	}
@@ -235,40 +232,41 @@ struct vector_static_data {
 		// do nothing
 	}
 
-	WJR_INLINE_CONSTEXPR20 size_type size() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) size_type size() const noexcept {
 		return _M_size;
 	}
 
-	WJR_INLINE_CONSTEXPR20 size_type capacity() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) size_type capacity() const noexcept {
 		return max_capacity;
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer data() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer data() noexcept {
 		return reinterpret_cast<pointer>(_M_storage);
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer data() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer data() const noexcept {
 		return reinterpret_cast<const_pointer>(_M_storage);
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer lastPtr() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer lastPtr() noexcept {
 		return data() + size();
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer lastPtr() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer lastPtr() const noexcept {
 		return data() + size();
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer endPtr() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer endPtr() noexcept {
 		return data() + capacity();
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer endPtr() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer endPtr() const noexcept {
 		return data() + capacity();
 	}
 
 	WJR_INLINE_CONSTEXPR20 void set_size(const size_type _Size) noexcept {
 		_M_size = _Size;
+		WJR_ASSUME(size() == _Size);
 	}
 
 	WJR_INLINE_CONSTEXPR20 void inc_size(const difference_type _Size) noexcept {
@@ -394,35 +392,35 @@ struct vector_sso_data {
 		}
 	}
 
-	WJR_INLINE_CONSTEXPR20 size_type size() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) size_type size() const noexcept {
 		return _M_size;
 	}
 
-	WJR_INLINE_CONSTEXPR20 size_type capacity() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) size_type capacity() const noexcept {
 		return is_small() ? max_capacity : _M_capacity;
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer data() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer data() noexcept {
 		return _M_ptr;
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer data() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer data() const noexcept {
 		return _M_ptr;
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer lastPtr() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer lastPtr() noexcept {
 		return data() + size();
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer lastPtr() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer lastPtr() const noexcept {
 		return data() + size();
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer endPtr() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer endPtr() noexcept {
 		return data() + capacity();
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer endPtr() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer endPtr() const noexcept {
 		return data() + capacity();
 	}
 
@@ -691,7 +689,7 @@ public:
 		return const_reverse_iterator(cbegin());
 	}
 
-	WJR_INLINE_CONSTEXPR20 size_type size() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) size_type size() const noexcept {
 		return getData().size();
 	}
 
@@ -707,7 +705,7 @@ public:
 		shrinkToFit(getAllocator(), getData());
 	}
 
-	WJR_INLINE_CONSTEXPR20 size_type capacity() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) size_type capacity() const noexcept {
 		return getData().capacity();
 	}
 
@@ -770,15 +768,15 @@ public:
 		return *(lastPtr() - 1);
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer data() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer data() noexcept {
 		return getData().data();
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer data() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer data() const noexcept {
 		return getData().data();
 	}
 
-	WJR_INLINE_CONSTEXPR20 const_pointer cdata() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer cdata() const noexcept {
 		return getData().data();
 	}
 
@@ -940,10 +938,10 @@ public:
 		data_type::shrinkToFit(al, _Data);
 	}
 
-	WJR_INLINE_CONSTEXPR20 _Alty& getAllocator() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) _Alty& getAllocator() noexcept {
 		return _Myval.first();
 	}
-	WJR_INLINE_CONSTEXPR20 const _Alty& getAllocator() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const _Alty& getAllocator() const noexcept {
 		return _Myval.first();
 	}
 
@@ -954,17 +952,17 @@ public:
 		return _Myval.second();
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer lastPtr() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer lastPtr() noexcept {
 		return getData().lastPtr();
 	}
-	WJR_INLINE_CONSTEXPR20 const_pointer lastPtr() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer lastPtr() const noexcept {
 		return getData().lastPtr();
 	}
 
-	WJR_INLINE_CONSTEXPR20 pointer endPtr() noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) pointer endPtr() noexcept {
 		return getData().endPtr();
 	}
-	WJR_INLINE_CONSTEXPR20 const_pointer endPtr() const noexcept {
+	WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) const_pointer endPtr() const noexcept {
 		return getData().endPtr();
 	}
 

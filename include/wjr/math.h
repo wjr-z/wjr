@@ -40,32 +40,32 @@ constexpr bool has_single_bit(T x) noexcept {
 }
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_E_CONSTEXPR int countl_zero(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int countl_zero(T x) noexcept {
 	return wjr::masm::clz(x);
 }
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_E_CONSTEXPR int countl_one(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int countl_one(T x) noexcept {
 	return wjr::countl_zero(static_cast<T>(~x));
 }
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_E_CONSTEXPR int countr_zero(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int countr_zero(T x) noexcept {
 	return wjr::masm::ctz(x);
 }
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_E_CONSTEXPR int countr_one(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int countr_one(T x) noexcept {
 	return wjr::countr_zero(static_cast<T>(~x));
 }
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_E_CONSTEXPR int bit_width(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int bit_width(T x) noexcept {
 	return std::numeric_limits<T>::digits - wjr::countl_zero(x);
 }
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_E_CONSTEXPR T bit_floor(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) T bit_floor(T x) noexcept {
 	if (x != 0) {
 		return static_cast<T>(T{ 1 } << (wjr::bit_width(x) - 1));
 	}
@@ -73,7 +73,7 @@ WJR_INTRINSIC_E_CONSTEXPR T bit_floor(T x) noexcept {
 }
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_E_CONSTEXPR T bit_ceil(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) T bit_ceil(T x) noexcept {
 	if (x <= 1) {
 		return T{ 1 };
 	}
@@ -81,18 +81,18 @@ WJR_INTRINSIC_E_CONSTEXPR T bit_ceil(T x) noexcept {
 }
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_E_CONSTEXPR int popcount(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int popcount(T x) noexcept {
 	return wjr::masm::popcnt(x);
 }
 
 template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 T byteswap(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) T byteswap(T x) noexcept {
 	using value_type = uint_t<8 * sizeof(T)>;
 	return bit_cast<T>(wjr::masm::bswap(bit_cast<value_type>(x)));
 }
 
 template<endian to = endian::native, typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 T endian_convert(T x, endian from = endian::native) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) T endian_convert(T x, endian from = endian::native) noexcept {
 	if (from != to) {
 		return byteswap(x);
 	}
@@ -100,7 +100,7 @@ WJR_INTRINSIC_CONSTEXPR20 T endian_convert(T x, endian from = endian::native) no
 }
 
 template<endian from, endian to, typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 T endian_convert(T x) noexcept {
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) T endian_convert(T x) noexcept {
 	if constexpr (from != to) {
 		return byteswap(x);
 	}
@@ -176,7 +176,7 @@ constexpr bool in_range(T t) noexcept {
 // calc a ^ b
 // O(log2 b)
 template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
-inline constexpr T power(T a, unsigned int b) {
+WJR_ATTRIBUTE(NODISCARD, CONST, INLINE, CONSTEXPR) T power(T a, unsigned int b) {
 	T ret = 1;
 	while (b) {
 		if (b & 1)ret *= a;

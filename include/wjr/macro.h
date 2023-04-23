@@ -243,7 +243,7 @@
 
 #if WJR_SSE2
 #define _WJR_FAST_MEMCHR
-#define _WJR_FAST_MEMCMP
+#define _WJR_FAST_MEMEQ
 #define _WJR_FAST_MEMMIS
 //#define _WJR_FAST_MEMCNT
 #define _WJR_FAST_MEMSET
@@ -484,6 +484,9 @@ do{                         \
 #define WJR_MALLOC 
 #endif
 
+#define WJR_INLINE inline
+#define WJR_CONSTEXPR constexpr
+
 // Compiler support for constexpr
 #if defined(__cpp_lib_is_constant_evaluated) || WJR_HAS_BUILTIN(__builtin_is_constant_evaluated) \
 	|| WJR_HAS_GCC(9,1,0) || WJR_HAS_CLANG(9,0,0)
@@ -504,10 +507,6 @@ do{                         \
 #define WJR_CONSTEXPR20
 #endif
 
-#define WJR_FORCEINLINE_CONSTEXPR WJR_FORCEINLINE constexpr
-#define WJR_FORCEINLINE_CONSTEXPR20 WJR_FORCEINLINE WJR_CONSTEXPR20
-#define WJR_FORCEINLINE_E_CONSTEXPR WJR_FORCEINLINE WJR_E_CONSTEXPR
-
 #define WJR_INTRINSIC_CONSTEXPR WJR_INTRINSIC_INLINE constexpr
 #define WJR_INTRINSIC_CONSTEXPR20 WJR_INTRINSIC_INLINE WJR_CONSTEXPR20
 #define WJR_INTRINSIC_E_CONSTEXPR WJR_INTRINSIC_INLINE WJR_E_CONSTEXPR
@@ -515,6 +514,9 @@ do{                         \
 #define WJR_INLINE_CONSTEXPR inline constexpr
 #define WJR_INLINE_CONSTEXPR20 inline WJR_CONSTEXPR20
 #define WJR_INLINE_E_CONSTEXPR inline WJR_E_CONSTEXPR
+
+#define _WJR_ATTRIBUTE(x) WJR_##x 
+#define WJR_ATTRIBUTE(...) WJR_EXPAND(WJR_MACRO_CALL(_WJR_ATTRIBUTE, , __VA_ARGS__))
 
 #define _WJR_BEGIN namespace wjr{
 #define _WJR_END }

@@ -4,25 +4,25 @@
 
 _WJR_ASM_BEGIN
 
-WJR_INTRINSIC_CONSTEXPR static uint8_t __wjr_fallback_bswap8(uint8_t x) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint8_t __wjr_fallback_bswap8(uint8_t x) {
 	return x;
 }
 
-WJR_INTRINSIC_CONSTEXPR static uint16_t __wjr_fallback_bswap16(uint16_t x) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint16_t __wjr_fallback_bswap16(uint16_t x) {
 	return static_cast<uint16_t>(x >> 8) | static_cast<uint16_t>(x << 8);
 }
 
-WJR_INTRINSIC_CONSTEXPR static uint32_t __wjr_fallback_bswap32(uint32_t x) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint32_t __wjr_fallback_bswap32(uint32_t x) {
 	return (x >> 24) | ((x >> 8) & 0xff00) | ((x << 8) & 0xff0000) | (x << 24);
 }
 
-WJR_INTRINSIC_CONSTEXPR static uint64_t __wjr_fallback_bswap64(uint64_t x) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint64_t __wjr_fallback_bswap64(uint64_t x) {
 	return (x >> 56) | ((x >> 40) & 0xff00) | ((x >> 24) & 0xff0000) | ((x >> 8) & 0xff000000)
 		| ((x << 8) & 0xff00000000) | ((x << 24) & 0xff0000000000) | ((x << 40) & 0xff000000000000) | (x << 56);
 }
 
 template<typename T>
-WJR_INTRINSIC_CONSTEXPR T __wjr_fallback_bswap(T x) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) T __wjr_fallback_bswap(T x) {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 	if constexpr (_Nd <= 8) {
 		return __wjr_fallback_bswap8(x);
@@ -44,7 +44,7 @@ WJR_INTRINSIC_CONSTEXPR T __wjr_fallback_bswap(T x) {
 // byte swap
 #if WJR_HAS_BUILTIN(__builtin_bswap16) || WJR_HAS_GCC(10, 1, 0) || WJR_HAS_CLANG(15, 0, 0)
 template<typename T>
-WJR_INTRINSIC_INLINE T __wjr_builtin_bswap(T x) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) T __wjr_builtin_bswap(T x) {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 
 	constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
@@ -76,7 +76,7 @@ WJR_INTRINSIC_INLINE T __wjr_builtin_bswap(T x) {
 }
 #elif defined(WJR_COMPILER_MSVC)
 template<typename T>
-WJR_INTRINSIC_INLINE T __wjr_msvc_bswap(T x) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) T __wjr_msvc_bswap(T x) {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 
 	constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
@@ -104,7 +104,7 @@ WJR_INTRINSIC_INLINE T __wjr_msvc_bswap(T x) {
 #endif // WJR_HAS_BUILTIN(__builtin_bswap16) || WJR_HAS_CLANG(3, 2, 0)
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_CONST WJR_INTRINSIC_INLINE T bswap(T x) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) T bswap(T x) {
 	if (!wjr::is_constant_evaluated()) {
 #if WJR_HAS_BUILTIN(__builtin_bswap16) || WJR_HAS_GCC(10, 1, 0) || WJR_HAS_CLANG(15, 0, 0)
 		return __wjr_builtin_bswap(x);

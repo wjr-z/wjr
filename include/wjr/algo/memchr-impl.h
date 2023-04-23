@@ -7,7 +7,7 @@
 _WJR_ALGO_BEGIN
 
 template<typename T, typename _Pred>
-WJR_NODISCARD WJR_PURE const T*
+WJR_ATTRIBUTE(NODISCARD, PURE) const T*
 	WJR_MACRO_CONCAT(__large, __WJR_MEMCHR_NAME)(const T* s, T val, size_t n, _Pred pred) noexcept {
 
 	constexpr size_t _Mysize = sizeof(T);
@@ -200,7 +200,7 @@ WJR_NODISCARD WJR_PURE const T*
 // Doing so does not cause the code to become overly bloated, while also balancing performance
 // But what's awkward is that MSVC doesn't inline it
 template<typename T, typename _Pred>
-WJR_NODISCARD WJR_PURE inline const T* (__WJR_MEMCHR_NAME)(const T* s, T val, size_t n, _Pred pred) noexcept {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* (__WJR_MEMCHR_NAME)(const T* s, T val, size_t n, _Pred pred) noexcept {
 	constexpr size_t _Mysize = sizeof(T);
 
 	if (is_unlikely(n == 0)) return s;
@@ -216,21 +216,16 @@ WJR_NODISCARD WJR_PURE inline const T* (__WJR_MEMCHR_NAME)(const T* s, T val, si
 			__WJR_MEMCHR_ONE(simd::sse, qx, s);
 		}
 
-		if (n <= 32 / _Mysize) {
-			// solve last 16 bytes
+		auto m = n <= 32 / _Mysize ? (n - 16 / _Mysize) : (16 / _Mysize);
 
-			WJR_SIMD_INC_PTR(s, n - 16 / _Mysize);
-
-			WJR_SIMD_LOADU(simd::sse, x, s);
-			__WJR_MEMCHR_ONE(simd::sse, qx, s);
-
-			return WJR_SIMD_ADD_PTR(s, 16 / _Mysize);
+		// solve next 16 bytes
+		{
+			WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s, m));
+			__WJR_MEMCHR_ONE(simd::sse, qx, WJR_SIMD_ADD_PTR(s, m));
 		}
 
-		{
-			// solve first 16 bytes
-			WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s, 16 / _Mysize));
-			__WJR_MEMCHR_ONE(simd::sse, qx, WJR_SIMD_ADD_PTR(s, 16 / _Mysize));
+		if (n <= 32 / _Mysize) {
+			return WJR_SIMD_ADD_PTR(s, n);
 		}
 
 		return WJR_MACRO_CONCAT(__large, __WJR_MEMCHR_NAME)(s, val, n, pred);

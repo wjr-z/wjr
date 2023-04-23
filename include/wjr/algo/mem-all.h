@@ -4,7 +4,7 @@
 #include <wjr/simd/simd_intrin.h>
 
 #include <wjr/algo/memchr.h>
-#include <wjr/algo/memcmp.h>
+#include <wjr/algo/memeq.h>
 #include <wjr/algo/memmis.h>
 #include <wjr/algo/memset.h>
 

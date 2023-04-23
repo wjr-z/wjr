@@ -4,7 +4,6 @@
 
 #include <functional>
 #include <limits>
-#include <utility>
 
 #include <wjr/cpuinfo.h>
 

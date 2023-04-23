@@ -18,6 +18,8 @@ class json;
 struct json_traits {
 	template<typename T>
 	using allocator_type = sallocator<T>;
+	
+	using encode_type = encode::ascii;
 
 	using null = std::nullptr_t;
 	using boolean = bool;
@@ -25,7 +27,7 @@ struct json_traits {
 
 	using string = basic_string<char, std::char_traits<char>, allocator_type<char>>;
 	using array = vector<json, allocator_type<json>>;
-	using object = std::map<string, json, std::less<string>, allocator_type<std::pair<const string, json>>>;
+	using object = std::map<string, json, std::less<>, allocator_type<std::pair<const string, json>>>;
 
 	using cstring = string*;
 	using carray = array*;
@@ -118,8 +120,11 @@ class json : public json_traits {
 public:
 
 	using traits_type = json_traits;
+
 	template<typename T>
 	using allocator_type = typename traits_type::template allocator_type<T>;
+
+	using encode_type = typename traits_type::encode_type;
 
 	using null = typename traits_type::null;
 	using boolean = typename traits_type::boolean;
@@ -229,7 +234,7 @@ public:
 		&& find_unique_constructible_v<T&&> != -1
 		&& !is_in_place_v<remove_cvref_t<T>>
 		&& !std::is_same_v<remove_cvref_t<T>, json>, int> = 0>
-	inline explicit json(T && t) noexcept
+	inline explicit json(T&& t) noexcept
 		: json(std::in_place_index_t<find_unique_constructible_v<T&&>>{},
 			std::forward<T>(t)) {}
 
@@ -277,19 +282,21 @@ public:
 		tidy();
 	}
 
+private:
 	// don't use json after tidy
 	template<size_t I, std::enable_if_t<(I < 6), int> = 0>
 	inline void tidy_from() noexcept {
-		if constexpr (I >= 3) {
+		if constexpr (I < 3) {
+			// do nothing
+		}
+		else {
 			using value_type = type_at_t<I>;
 			auto ptr = std::get<I>(m_value);
 			ptr->~value_type();
 			allocator_type<value_type>().deallocate(ptr, 1);
 		}
-		if constexpr (I != 0) {
-			wjr::emplace_from<I, 0>(m_value);
-		}
 	}
+public:
 
 	// don't use json after tidy
 	// set to null
@@ -305,7 +312,7 @@ public:
 	inline type_at_t<to_I>& emplace_from(Args&&...args) noexcept {
 		if constexpr (to_I < 3) {
 			tidy_from<from_I>();
-			return wjr::emplace_from<0, to_I>(m_value, std::forward<Args>(args)...);
+			return wjr::emplace_from<from_I, to_I>(m_value, std::forward<Args>(args)...);
 		}
 		else if constexpr (to_I < 6) {
 			// don't tidy for this
@@ -320,12 +327,12 @@ public:
 				using value_type = type_at_t<to_I>;
 				auto ptr = allocator_type<value_type>().allocate(1);
 				wjr::construct_at(ptr, std::forward<Args>(args)...);
-				return *wjr::emplace_from<0, to_I>(m_value, ptr);
+				return *wjr::emplace_from<from_I, to_I>(m_value, ptr);
 			}
 		}
 		else {
 			tidy_from<from_I>();
-			return wjr::emplace_from<0, to_I - 3>(m_value, std::forward<Args>(args)...);
+			return wjr::emplace_from<from_I, to_I - 3>(m_value, std::forward<Args>(args)...);
 		}
 	}
 
@@ -486,7 +493,7 @@ inline x& emplace_##x(Args&&...args) noexcept{ return emplace<x>(std::forward<Ar
 
 private:
 
-	static json __parse(const char*& first, const char* last);
+	WJR_NODISCARD static json __parse(const char*& first, const char* last);
 	static bool __accept(const char*& first, const char* last, uint8_t state);
 
 	template<int m>

@@ -1,5 +1,5 @@
-#include <wjr/cpuinfo.h>
 #include <stdio.h>
+#include <wjr/cpuinfo.h>
 
 _WJR_BEGIN
 

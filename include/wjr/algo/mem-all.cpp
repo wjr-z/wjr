@@ -14,10 +14,10 @@ template const uint8_t* __large__memrchr(
 	const uint8_t*, uint8_t, size_t, std::not_equal_to<>) noexcept;
 #endif // _WJR_FAST_MEMCHR
 
-#if defined(_WJR_FAST_MEMCMP)
-template bool __large_memcmp(const uint8_t*, const uint8_t*, size_t, std::equal_to<>) noexcept;
-template bool __large_memcmp(const uint8_t*, const uint8_t*, size_t, std::not_equal_to<>) noexcept;
-#endif // _WJR_FAST_MEMCMP
+#if defined(_WJR_FAST_MEMEQ)
+template bool __large__memeq(const uint8_t*, const uint8_t*, size_t, std::equal_to<>) noexcept;
+template bool __large__memeq(const uint8_t*, const uint8_t*, size_t, std::not_equal_to<>) noexcept;
+#endif // _WJR_FAST_MEMEQ
 
 #if defined(_WJR_FAST_MEMMIS)
 template const uint8_t* __large__memmis(
