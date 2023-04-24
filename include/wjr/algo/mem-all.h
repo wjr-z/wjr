@@ -7,5 +7,6 @@
 #include <wjr/algo/memeq.h>
 #include <wjr/algo/memmis.h>
 #include <wjr/algo/memset.h>
+#include <wjr/algo/memskipw.h>
 
 #endif // __WJR_ALGO_MEM_ALL_H

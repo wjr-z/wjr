@@ -313,9 +313,9 @@ void json::_stringify(string& str, int a) const noexcept {
 	constexpr int LEN = []() {
 		switch (m) {
 		case SHORTEST:return 0;
+		case TAB_ALIGN: return 1;
 		case TWO_SPACE_ALIGN: return 2;
 		case FOUR_SPACE_ALIGN: return 4;
-		case TAB_ALGIN: return 1;
 		}
 	}();
 	switch (m_value.index()) {
@@ -355,7 +355,7 @@ void json::_stringify(string& str, int a) const noexcept {
 				else str.push_back(',');
 				if constexpr (m != SHORTEST) {
 					str.push_back('\n');
-					if constexpr (m == TAB_ALGIN) {
+					if constexpr (m == TAB_ALIGN) {
 						str.append(a + LEN, '\t');
 					}
 					else {
@@ -366,7 +366,7 @@ void json::_stringify(string& str, int a) const noexcept {
 			}
 			if constexpr (m != SHORTEST) {
 				str.push_back('\n');
-				if constexpr (m == TAB_ALGIN) {
+				if constexpr (m == TAB_ALIGN) {
 					str.append(a + LEN, '\t');
 				}
 				else {
@@ -387,7 +387,7 @@ void json::_stringify(string& str, int a) const noexcept {
 				else str.push_back(',');
 				if constexpr (m != SHORTEST) {
 					str.push_back('\n');
-					if constexpr (m == TAB_ALGIN) {
+					if constexpr (m == TAB_ALIGN) {
 						str.append(a + LEN, '\t');
 					}
 					else {
@@ -399,7 +399,7 @@ void json::_stringify(string& str, int a) const noexcept {
 			}
 			if constexpr (m != SHORTEST) {
 				str.push_back('\n');
-				if constexpr (m == TAB_ALGIN) {
+				if constexpr (m == TAB_ALIGN) {
 					str.append(a, '\t');
 				}
 				else {

@@ -40,7 +40,7 @@ WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* memchr(
 	auto __val = static_cast<value_type>(static_cast<T>(val));
 	return reinterpret_cast<const T*>(__memchr(__s, __val, n, pred));
 }
-template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memchr_v<T, U, _Pred>, int> = 0>
+template<typename T, typename U, typename _Pred, std::enable_if_t<__has_fast_memrchr_v<T, U, _Pred>, int> = 0>
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* memrchr(const T* s, U val, size_t n, _Pred pred) {
 	auto p = is_possible_memory_comparable<T>(val, pred);
 	if (p == ipmc_result::none) {
@@ -102,6 +102,8 @@ WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* memchr(const T* s, U val, size_t
 		return reinterpret_cast<const T*>(pos);
 	}
 }
+template<typename T, typename U, typename _Pred>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* memrchr(const T* s, U val, size_t n, _Pred pred);
 
 #endif // _WJR_FAST_MEMCHR
 
@@ -199,7 +201,7 @@ WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* memmis(const T* s0, const U* s1,
 }
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<
-	__has_fast_memmis_v<T, U, _Pred>, int> = 0>
+	__has_fast_memrmis_v<T, U, _Pred>, int> = 0>
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* memrmis(const T* s0, const U* s1, size_t n, _Pred pred) {
 	if constexpr (is_any_of_v<_Pred, std::equal_to<>>) {
 		using value_type = uint8_t;
@@ -231,6 +233,12 @@ struct __has_fast_memrmis : __has_fast_memmis<T, U, _Pred> {};
 
 template<typename T, typename U, typename _Pred>
 constexpr bool __has_fast_memrmis_v = __has_fast_memrmis<T, U, _Pred>::value;
+
+template<typename T, typename U, typename _Pred>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* memmis(const T* s0, const U* s1, size_t n, _Pred pred);
+
+template<typename T, typename U, typename _Pred>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* memrmis(const T* s0, const U* s1, size_t n, _Pred pred);
 
 #endif // _WJR_FAST_MEMMIS
 
@@ -267,7 +275,7 @@ constexpr bool __has_fast_memrcmp_v = __has_fast_memrmis<T, U, _Pred>::value;
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<
 	__has_fast_memcmp_v<T, U, _Pred>, int> = 0>
-WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) int memcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) int memcmp(const T* s0, const U* s1, size_t n, _Pred) {
 	if constexpr (std::is_same_v<_Pred, std::greater<>>) {
 		return -wjr::algo::memcmp(s0, s1, n, std::less<>{});
 	}
@@ -282,7 +290,7 @@ WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) int memcmp(const T* s0, const U* s1, size
 }
 
 template<typename T, typename U, typename _Pred, std::enable_if_t<
-	__has_fast_memmis_v<T, U, _Pred>, int> = 0>
+	__has_fast_memrmis_v<T, U, _Pred>, int> = 0>
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) int memrcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
 	if constexpr (std::is_same_v<_Pred, std::greater<>>) {
 		return -wjr::algo::memrcmp(s0, s1, n, std::less<>{});
@@ -329,6 +337,9 @@ WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) int memcmp(const T* s0, const U* s1, size
 	auto __s1 = reinterpret_cast<const value_type*>(s1);
 	return ::memcmp(__s0, __s1, n);
 }
+
+template<typename T, typename U, typename _Pred>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) int memrcmp(const T* s0, const U* s1, size_t n, _Pred pred);
 
 #endif // _WJR_FAST_MEMCMP
 
@@ -467,6 +478,38 @@ template<typename T, typename U>
 void assign_memmove(T* s, const U* t, size_t n) {
 	__memmove_helper<is_byte_assignable>(s, t, n);
 }
+
+#if defined(_WJR_FAST_MEMSKIPW)
+
+template<typename T>
+struct __has_fast_memskipw : std::conjunction<
+	is_integrals<T>,
+	is_any_index_of<sizeof(T), 1>
+> {};
+
+template<typename T>
+constexpr bool __has_fast_memskipw_v = __has_fast_memskipw<T>::value;
+
+template<typename T, std::enable_if_t<__has_fast_memskipw_v<T>, int> = 0>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* memskipw(const T* s, const T* e) {
+	using value_type = char;
+	return reinterpret_cast<const T*>(
+		__memskipw(reinterpret_cast<const value_type*>(s), 
+			reinterpret_cast<const value_type*>(e)));
+}
+
+#else
+
+template<typename T>
+struct __has_fast_memskipw : std::false_type {};
+
+template<typename T>
+inline constexpr bool __has_fast_memskipw_v = __has_fast_memskipw<T>::value;
+
+template<typename T>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* memskipw(const T* s, const T* e);
+
+#endif // _WJR_FAST_MEMSKIPW
 
 _WJR_ALGO_END
 

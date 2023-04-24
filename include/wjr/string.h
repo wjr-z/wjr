@@ -3088,6 +3088,16 @@ __lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
 			return __ascii_to_digit_table_v[ch];
 		}
 
+		WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) static const char* do_skipw(const char* s, const char* e) {
+			if constexpr(wjr::algo::__has_fast_memskipw_v<char>){
+				return wjr::algo::memskipw(s, e);
+			}
+			else {
+				for (; s != e && isspace(*s); ++s);
+				return s;
+			}
+		}
+
 		using to_i_flags = typename _Mybase::to_i_flags;
 
 		using default_to_i_flags = typename _Mybase::default_to_i_flags;

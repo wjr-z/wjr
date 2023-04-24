@@ -245,9 +245,8 @@
 #define _WJR_FAST_MEMCHR
 #define _WJR_FAST_MEMEQ
 #define _WJR_FAST_MEMMIS
-//#define _WJR_FAST_MEMCNT
 #define _WJR_FAST_MEMSET
-//#define _WJR_FAST_MEMCPY
+#define _WJR_FAST_MEMSKIPW
 #endif // WJR_SSE2
 
 #if defined(NWJR_FAST_MEMCHR)
@@ -425,6 +424,22 @@
 #define WJR_NOINLINE __declspec(noinline)
 #else
 #define WJR_NOINLINE
+#endif
+
+#if WJR_HAS_ATTRIBUTE(hot)
+#define WJR_HOT __attribute__((hot))
+#elif defined(_MSC_VER)
+#define WJR_HOT 
+#else
+#define WJR_HOT
+#endif 
+
+#if WJR_HAS_ATTRIBUTE(cold)
+#define WJR_COLD __attribute__((cold))
+#elif defined(_MSC_VER)
+#define WJR_COLD
+#else
+#define WJR_COLD
 #endif
 
 #if defined(__cpp_lib_unreachable)

@@ -196,41 +196,10 @@ WJR_ATTRIBUTE(NODISCARD, PURE) const T*
 	return s;
 }
 
-// inline this function, and call __large_memchr for ans pos > 32
-// Doing so does not cause the code to become overly bloated, while also balancing performance
-// But what's awkward is that MSVC doesn't inline it
 template<typename T, typename _Pred>
-WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* (__WJR_MEMCHR_NAME)(const T* s, T val, size_t n, _Pred pred) noexcept {
-	constexpr size_t _Mysize = sizeof(T);
-
-	if (is_unlikely(n == 0)) return s;
-
-	WJR_SIMD_INIT_PTR(s, n);
-
-	if (n >= 16 / _Mysize) {
-		auto qx = simd::sse::set1(val, T());
-
-		{
-			// solve first 16 bytes
-			WJR_SIMD_LOADU(simd::sse, x, s);
-			__WJR_MEMCHR_ONE(simd::sse, qx, s);
-		}
-
-		auto m = n <= 32 / _Mysize ? (n - 16 / _Mysize) : (16 / _Mysize);
-
-		// solve next 16 bytes
-		{
-			WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s, m));
-			__WJR_MEMCHR_ONE(simd::sse, qx, WJR_SIMD_ADD_PTR(s, m));
-		}
-
-		if (n <= 32 / _Mysize) {
-			return WJR_SIMD_ADD_PTR(s, n);
-		}
-
-		return WJR_MACRO_CONCAT(__large, __WJR_MEMCHR_NAME)(s, val, n, pred);
-	}
-
+WJR_ATTRIBUTE(NODISCARD, PURE) const T* WJR_MACRO_CONCAT(__small, __WJR_MEMCHR_NAME)(
+	const T* s, T val, size_t n, _Pred pred) noexcept {
+	constexpr auto _Mysize = sizeof(T);
 #if !WJR_SIMD_IS_BACKWARD
 	if constexpr (_Mysize == 8) {
 		// n = [1, 2)
@@ -350,7 +319,45 @@ WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* (__WJR_MEMCHR_NAME)(const T* s, 
 		return s + i2;
 	}
 #endif //
+}
 
+// inline this function, and call __large_memchr for ans pos > 32
+// Doing so does not cause the code to become overly bloated, while also balancing performance
+// But what's awkward is that MSVC doesn't inline it
+template<typename T, typename _Pred>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* (__WJR_MEMCHR_NAME)(
+	const T* s, T val, size_t n, _Pred pred) noexcept {
+	constexpr size_t _Mysize = sizeof(T);
+
+	if (is_unlikely(n == 0)) return s;
+
+	WJR_SIMD_INIT_PTR(s, n);
+
+	if (n >= 16 / _Mysize) {
+		auto qx = simd::sse::set1(val, T());
+
+		{
+			// solve first 16 bytes
+			WJR_SIMD_LOADU(simd::sse, x, s);
+			__WJR_MEMCHR_ONE(simd::sse, qx, s);
+		}
+
+		auto m = n <= 32 / _Mysize ? (n - 16 / _Mysize) : (16 / _Mysize);
+
+		// solve next 16 bytes
+		{
+			WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s, m));
+			__WJR_MEMCHR_ONE(simd::sse, qx, WJR_SIMD_ADD_PTR(s, m));
+		}
+
+		if (n <= 32 / _Mysize) {
+			return WJR_SIMD_ADD_PTR(s, n);
+		}
+
+		return WJR_MACRO_CONCAT(__large, __WJR_MEMCHR_NAME)(s, val, n, pred);
+	}
+
+	return WJR_MACRO_CONCAT(__small, __WJR_MEMCHR_NAME)(s, val, n, pred);
 }
 
 _WJR_ALGO_END

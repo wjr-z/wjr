@@ -370,18 +370,18 @@ public:
 
 	enum stringify_mode {
 		SHORTEST = 0,
-		TWO_SPACE_ALIGN = 1, // 2 space
-		FOUR_SPACE_ALIGN = 2, // 4 space
-		TAB_ALGIN = 3 // 1 tab
+		TAB_ALIGN = 1, // 1 tab
+		TWO_SPACE_ALIGN = 2, // 2 space
+		FOUR_SPACE_ALIGN = 3, // 4 space
 	};
 
-	string stringify(stringify_mode m = SHORTEST) const noexcept {
+	string stringify(stringify_mode m = TWO_SPACE_ALIGN) const noexcept {
 		string ret;
 		switch (m) {
 		case SHORTEST: _stringify<SHORTEST>(ret, 0); break;
+		case TAB_ALIGN: _stringify<TAB_ALIGN>(ret, 0); break;
 		case TWO_SPACE_ALIGN: _stringify<TWO_SPACE_ALIGN>(ret, 0); break;
 		case FOUR_SPACE_ALIGN: _stringify<FOUR_SPACE_ALIGN>(ret, 0); break;
-		case TAB_ALGIN: _stringify<TAB_ALGIN>(ret, 0); break;
 		default: WJR_UNREACHABLE; break;
 		}
 		return ret;

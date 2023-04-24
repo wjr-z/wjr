@@ -20,23 +20,7 @@ WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n,
 	constexpr uintptr_t width = simd_t::width() / (8 * _Mysize);
 	constexpr uintptr_t bound = width * _Mysize;
 
-	{
-		// solve next 16 bytes
-		if(n <= 32 / _Mysize) {
-			const auto m = n - 16 / _Mysize;
-			WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s0, m));
-			WJR_SIMD_LOADU(simd::sse, y, WJR_SIMD_ADD_PTR(s1, m));
 
-			__WJR_MEMMIS_ONE(simd::sse, WJR_SIMD_ADD_PTR(s0, m));
-
-			return s0 + n;
-		}
-
-		WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s0, 16 / _Mysize));
-		WJR_SIMD_LOADU(simd::sse, y, WJR_SIMD_ADD_PTR(s1, 16 / _Mysize));
-
-		__WJR_MEMMIS_ONE(simd::sse, WJR_SIMD_ADD_PTR(s0, 16 / _Mysize));
-	}
 
 	// solve first min(n, 128 / _Mysize) bytes
 	// no branch algorithm
@@ -408,28 +392,9 @@ WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n,
 }
 
 template<typename T, typename _Pred>
-WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T*
-__WJR_MEMMIS_NAME(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
-	constexpr size_t _Mysize = sizeof(T);
-
-	if (is_unlikely(n == 0)) return s0;
-
-	WJR_SIMD_INIT_PTR(s0, n);
-	WJR_SIMD_INIT_PTR(s1, n);
-
-	if (n >= 16 / _Mysize) {
-
-		// solve first 16 bytes
-		{
-			WJR_SIMD_LOADU(simd::sse, x, s0);
-			WJR_SIMD_LOADU(simd::sse, y, s1);
-
-			__WJR_MEMMIS_ONE(simd::sse, s0);
-		}
-
-		return WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(s0, s1, n, pred);
-	}
-
+WJR_ATTRIBUTE(NODISCARD, PURE) const T*
+WJR_MACRO_CONCAT(__small, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
+	constexpr auto _Mysize = sizeof(T);
 #if !WJR_SIMD_IS_BACKWARD
 	if constexpr (_Mysize == 8) {
 		// n = [1, 2)
@@ -565,7 +530,45 @@ __WJR_MEMMIS_NAME(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
 		return s0 + i2;
 	}
 #endif // WJR_SIMD_IS_BACKWARD
+}
 
+template<typename T, typename _Pred>
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T*
+__WJR_MEMMIS_NAME(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
+	constexpr size_t _Mysize = sizeof(T);
+
+	if (is_unlikely(n == 0)) return s0;
+
+	WJR_SIMD_INIT_PTR(s0, n);
+	WJR_SIMD_INIT_PTR(s1, n);
+
+	if (n >= 16 / _Mysize) {
+
+		// solve first 16 bytes
+		{
+			WJR_SIMD_LOADU(simd::sse, x, s0);
+			WJR_SIMD_LOADU(simd::sse, y, s1);
+
+			__WJR_MEMMIS_ONE(simd::sse, s0);
+		}
+
+		auto m = n <= 32 / _Mysize ? (n - 16 / _Mysize) : (16 / _Mysize);
+
+		{
+			WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s0, m));
+			WJR_SIMD_LOADU(simd::sse, y, WJR_SIMD_ADD_PTR(s1, m));
+
+			__WJR_MEMMIS_ONE(simd::sse, WJR_SIMD_ADD_PTR(s0, m));
+		}
+
+		if (n <= 32 / _Mysize) {
+			return WJR_SIMD_ADD_PTR(s0, n);
+		}
+
+		return WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(s0, s1, n, pred);
+	}
+
+	return WJR_MACRO_CONCAT(__small, __WJR_MEMMIS_NAME)(s0, s1, n, pred);
 }
 
 _WJR_ALGO_END

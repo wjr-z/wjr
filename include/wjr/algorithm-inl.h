@@ -36,12 +36,10 @@ WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) _Iter do_find(
 				const auto first = wjr::get_address(_First);
 				return _First + (algo::memchr(first, _Val, n, pred) - first);
 			}
-#if defined(_WJR_FAST_MEMCHR) // use algo::memchr
 			else {
 				const auto first = wjr::get_address(_Last - 1);
 				return _Last - (algo::memrchr(first, _Val, n, pred) - first);
 			}
-#endif // _WJR_FAST_MEMCHR
 		}
 	}
 	if constexpr (std::is_same_v<_Pred, std::equal_to<>>) {
@@ -148,7 +146,6 @@ template<typename _Iter1, typename _Iter2, typename _Pred>
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) std::pair<_Iter1, _Iter2> do_mismatch(
 	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred pred) {
 	if (!wjr::is_constant_evaluated()) {
-#if defined(_WJR_FAST_MEMMIS)
 		if constexpr (__has_fast_mismatch_v<_Iter1, _Iter2, _Pred>) {
 			const auto n = std::distance(_First1, _Last1);
 			if (is_unlikely(n == 0)) { return std::make_pair(_First1, _First2); }
@@ -168,7 +165,6 @@ WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) std::pair<_Iter1, _Iter2> do
 				return std::make_pair(_First1 + pos, _First2 + pos);
 			}
 		}
-#endif // _WJR_FAST_MEMMIS
 	}
 	return std::mismatch(_First1, _Last1, _First2, pred);
 }
@@ -277,7 +273,6 @@ WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) int do_compare(
 				auto r = algo::memcmp(first1, first2, cl, pred);
 				if (r != 0) return r;
 			}
-#if defined(_WJR_FAST_MEMMIS)
 			else {
 				const auto first1 = wjr::get_address(_Last1 - 1);
 				const auto _Last2 = _First2 + n;
@@ -286,7 +281,6 @@ WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) int do_compare(
 				auto r = algo::memrcmp(first1, first2, cl, pred);
 				if (r != 0) return r;
 			}
-#endif // _WJR_FAST_MEMMIS
 			return n < m ? -1 : (n > m ? 1 : 0);
 		}
 	}
@@ -310,7 +304,7 @@ WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) int do_compare(
 template<typename _Iter1, typename _Iter2, typename _Pred>
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_lexicographical_compare(
 	_Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
-	return wjr::do_compare(_First1, _Last2, _First2, _Last2, pred) < 0;
+	return wjr::do_compare(_First1, _Last1, _First2, _Last2, pred) < 0;
 }
 
 template<typename _Iter1, typename _Iter2>
