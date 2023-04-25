@@ -104,7 +104,7 @@ void __memset(T* s, T val, size_t n) {
 		// [128, ...)
 		auto q = broadcast<simd::__simd_wrapper_t<sint>, simd::__m128i_tag>(qx);
 
-		if (is_likely(reinterpret_cast<uintptr_t>(s) % _Mysize == 0)) {
+		if (WJR_LIKELY(reinterpret_cast<uintptr_t>(s) % _Mysize == 0)) {
 
 #if defined(_WJR_FAST_REP)
 			if (__use_rep) {

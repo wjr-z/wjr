@@ -4,7 +4,7 @@
 
 #include <map>
 
-#include <wjr/string.h>
+#include <wjr/string_encode.h>
 #include <wjr/allocator.h>
 #include <wjr/variant.h>
 
@@ -19,7 +19,7 @@ struct json_traits {
 	template<typename T>
 	using allocator_type = sallocator<T>;
 	
-	using encode_type = encode::ascii;
+	using encode_type = wjr::encode::ascii;
 
 	using null = std::nullptr_t;
 	using boolean = bool;
@@ -246,6 +246,9 @@ public:
 		: json(std::in_place_index_t<find_unique_constructible_v<T&&, U&&, Args&&...>>{},
 			std::forward<T>(t), std::forward<U>(u), std::forward<Args>(args)...) {}
 
+	struct parse_tag {};
+	json(const char*& s, const char* e, parse_tag);
+
 	inline json& operator=(const json& other) noexcept {
 		if (this == std::addressof(other)) {
 			return *this;
@@ -301,7 +304,7 @@ public:
 	// don't use json after tidy
 	// set to null
 	inline void tidy() noexcept {
-		std::visit([this](auto& x) {
+		std::visit([this](const auto& x) {
 			constexpr auto idx = cont_find_v<remove_cvref_t<decltype(x)>>;
 			this->tidy_from<idx>();
 		}, m_value);
@@ -362,10 +365,10 @@ public:
 		m_value.swap(other.m_value);
 	}
 
-	static bool accept(const char* first, const char* last);
+	WJR_ATTRIBUTE(NODISCARD, PURE) static bool accept(const char* first, const char* last);
 
-	static json parse(const char* first, const char* last) {
-		return __parse(first, last);
+	WJR_ATTRIBUTE(NODISCARD, PURE) static json parse(const char* first, const char* last) {
+		return json(first, last, parse_tag{});
 	}
 
 	enum stringify_mode {
@@ -387,8 +390,8 @@ public:
 		return ret;
 	}
 
-	inline size_t index() const { return m_value.index(); }
-	inline const char* type_name() const {
+	WJR_ATTRIBUTE(PURE, INLINE) size_t index() const { return m_value.index(); }
+	WJR_ATTRIBUTE(PURE, INLINE) const char* type_name() const {
 		switch (m_value.index()) {
 		case 0: return "null";
 		case 1: return "boolean";
@@ -400,15 +403,15 @@ public:
 		}
 	}
 
-	inline cont& get()& { return m_value; }
-	inline cont&& get()&& { return std::move(m_value); }
-	inline const cont& get() const& { return m_value; }
+	WJR_ATTRIBUTE(PURE, INLINE) cont& get()& { return m_value; }
+	WJR_ATTRIBUTE(PURE, INLINE) cont&& get()&& { return std::move(m_value); }
+	WJR_ATTRIBUTE(PURE, INLINE) const cont& get() const& { return m_value; }
 
-#define WJR_REGISTER_JSON_GET_FUNC(x)	                                            \
-inline x& get_##x() noexcept {return wjr::get<x>(*this);}	                        \
-inline const x& get_##x() const noexcept {return wjr::get<x>(*this);}	            \
-inline x* get_if_##x() noexcept {return wjr::get_if<x>(this);}	                    \
-inline const x* get_if_##x() const noexcept {return wjr::get_if<x>(this);}
+#define WJR_REGISTER_JSON_GET_FUNC(x)															\
+WJR_PURE WJR_INLINE x& get_##x() noexcept {return wjr::get<x>(*this);}	                        \
+WJR_PURE WJR_INLINE  const x& get_##x() const noexcept {return wjr::get<x>(*this);}	            \
+WJR_PURE WJR_INLINE  x* get_if_##x() noexcept {return wjr::get_if<x>(this);}	                \
+WJR_PURE WJR_INLINE  const x* get_if_##x() const noexcept {return wjr::get_if<x>(this);}
 
 	WJR_MACRO_CALL(WJR_REGISTER_JSON_GET_FUNC, , null, boolean, number, string, array, object, cstring, carray, cobject);
 
@@ -493,7 +496,6 @@ inline x& emplace_##x(Args&&...args) noexcept{ return emplace<x>(std::forward<Ar
 
 private:
 
-	WJR_NODISCARD static json __parse(const char*& first, const char* last);
 	static bool __accept(const char*& first, const char* last, uint8_t state);
 
 	template<int m>

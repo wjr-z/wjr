@@ -1215,6 +1215,35 @@ public:
 		return __for_each_helper(std::forward<F>(f), tp_rename_t<C, tp_list>());
 	}
 
+	template<typename C, typename F, typename U>
+	constexpr static decltype(auto) accumulate(F&& f, U&& u) {
+		constexpr auto len = tp_size_v<C>;
+		if constexpr (len == 0) { return std::forward<U>(u); }
+		else {
+#define __WJR_REGISTER_ACCUMULATE_FUNC(x, y)			\
+			if constexpr(len == x) {return ans##y;}		\
+			else{										\
+				auto ans##x = f(tp_at_t<C, x>(), ans##y)
+
+#define __WJR_REGISTER_ACCUMULATE_FUNC_END	}
+
+			auto ans0 = std::forward<F>(f)(tp_at_t<C, 0>(), std::forward<U>(u));
+			__WJR_REGISTER_ACCUMULATE_FUNC(1, 0);
+			__WJR_REGISTER_ACCUMULATE_FUNC(2, 1);
+			__WJR_REGISTER_ACCUMULATE_FUNC(3, 2);
+			__WJR_REGISTER_ACCUMULATE_FUNC(4, 3);
+			return accumulate<tp_remove_prefix_t<C, 4>>(std::forward<F>(f), ans4);
+			__WJR_REGISTER_ACCUMULATE_FUNC_END;
+			__WJR_REGISTER_ACCUMULATE_FUNC_END;
+			__WJR_REGISTER_ACCUMULATE_FUNC_END;
+			__WJR_REGISTER_ACCUMULATE_FUNC_END;
+
+#undef __WJR_REGISTER_ACCUMULATE_FUNC_END
+#undef __WJR_REGISTER_ACCUMULATE_FUNC
+
+		}
+	}
+
 private:
 	template<typename F, typename...Args>
 	constexpr static F __for_each_helper(F&& f, tp_list<Args...>) {
@@ -1224,6 +1253,25 @@ private:
 };
 
 inline constexpr tp_fn tp;
+
+constexpr inline size_t __get_constant_string_lenth(const char* str) {
+	const char* s = str;
+	while (*str != '\0') ++str;
+	return str - s;
+}
+
+// make to constant string
+#define WJR_MAKE_CONSTANT_STRING(STRING)                                                                    \
+	[](){	                                                                                                \
+		constexpr auto __wjr_str = STRING;	                                                                \
+		constexpr auto __wjr_len = ::wjr::__get_constant_string_lenth(__wjr_str);	                        \
+		tp_list<> it;	                                                                                    \
+		return tp.accumulate<tp_iota_t<0, __wjr_len>>([](auto x, auto y) {	                                \
+			using type = remove_cvref_t<decltype(y)>;	                                                    \
+			using ret_type = tp_push_back_t<type, tp_c<char, __wjr_str[x]>>;	                            \
+			return ret_type();	                                                                            \
+			}, it);	                                                                                        \
+	}()
 
 _WJR_END
 

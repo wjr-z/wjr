@@ -39,22 +39,6 @@ namespace std {
 
 _WJR_BEGIN
 
-WJR_INTRINSIC_CONSTEXPR bool is_likely(bool f) noexcept {
-#if WJR_HAS_BUILTIN(__builtin_expect) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
-	return __builtin_expect(f, true);
-#else
-	return f;
-#endif
-}
-
-WJR_INTRINSIC_CONSTEXPR bool is_unlikely(bool f) noexcept {
-#if WJR_HAS_BUILTIN(__builtin_expect) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
-	return __builtin_expect(f, false);
-#else
-	return f;
-#endif
-}
-
 WJR_INTRINSIC_CONSTEXPR bool is_constant_evaluated() noexcept {
 #if defined(__cpp_lib_is_constant_evaluated) 
 	return std::is_constant_evaluated();
@@ -63,10 +47,6 @@ WJR_INTRINSIC_CONSTEXPR bool is_constant_evaluated() noexcept {
 #else
 	return false;
 #endif
-}
-
-WJR_NORETURN WJR_INTRINSIC_INLINE void unreachable() noexcept {
-	WJR_UNREACHABLE;
 }
 
 template<typename T>

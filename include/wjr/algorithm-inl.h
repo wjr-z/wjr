@@ -148,7 +148,7 @@ WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) std::pair<_Iter1, _Iter2> do
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_mismatch_v<_Iter1, _Iter2, _Pred>) {
 			const auto n = std::distance(_First1, _Last1);
-			if (is_unlikely(n == 0)) { return std::make_pair(_First1, _First2); }
+			if (WJR_UNLIKELY(n == 0)) { return std::make_pair(_First1, _First2); }
 			if constexpr (!wjr::is_reverse_iterator_v<_Iter1>) {
 				const auto first1 = wjr::get_address(_First1);
 				const auto first2 = wjr::get_address(_First2);
@@ -199,7 +199,7 @@ WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_equal(_Iter1 _First1
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_equal_v<_Iter1, _Iter2, _Pred>) {
 			const auto n = _Last1 - _First1;
-			if (is_unlikely(n == 0)) { return true; }
+			if (WJR_UNLIKELY(n == 0)) { return true; }
 			if constexpr (!wjr::is_reverse_iterator_v<_Iter1>) {
 				const auto first1 = wjr::get_address(_First1);
 				const auto first2 = wjr::get_address(_First2);
@@ -333,7 +333,7 @@ WJR_CONSTEXPR20 void do_fill(_Iter _First, _Iter _Last, const _Val& value) {
 				algo::assign_memset(first, value, n);
 			}
 			else {
-				if (is_unlikely(n == 0)) { return; }
+				if (WJR_UNLIKELY(n == 0)) { return; }
 				const auto first = wjr::get_address(_Last - 1);
 				algo::assign_memset(first, value, n);
 			}
@@ -374,7 +374,7 @@ WJR_CONSTEXPR20 _Output do_copy(_Input _First1, _Input _Last1, _Output _First2) 
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_copy_v<_Input, _Output>) {
 			const auto n = std::distance(_First1, _Last1);
-			if (is_unlikely(n == 0)) { return _First2; }
+			if (WJR_UNLIKELY(n == 0)) { return _First2; }
 			if constexpr (!wjr::is_reverse_iterator_v<_Input>) {
 				const auto first1 = wjr::get_address(_First1);
 				const auto first2 = wjr::get_address(_First2);
@@ -748,7 +748,7 @@ WJR_CONSTEXPR20 _Iter2 do_uninitialized_copy(_Iter1 _First, _Iter1 _Last, _Iter2
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_uninitialized_copy_v<_Iter1, _Iter2>) {
 			const auto n = std::distance(_First, _Last);
-			if (is_unlikely(n == 0)) { return _Dest; }
+			if (WJR_UNLIKELY(n == 0)) { return _Dest; }
 			if constexpr (!wjr::is_reverse_iterator_v<_Iter1>) {
 				const auto first1 = wjr::get_address(_First);
 				const auto first2 = wjr::get_address(_Dest);
@@ -778,7 +778,7 @@ template<typename Alloc, typename _Iter1, typename _Iter2>
 WJR_CONSTEXPR20 _Iter2 do_uninitialized_copy(
 	Alloc& al, _Iter1 _First, _Iter1 _Last, _Iter2 _Dest) {
 	if constexpr (is_default_allocator_construct_v<Alloc, _Iter2, decltype(*_First)>) {
-		return wjr::uninitialized_copy(_First, _Last, _Dest);
+		return wjr::do_uninitialized_copy(_First, _Last, _Dest);
 	}
 	else {
 		for (; _First != _Last; ++_Dest, (void)++_First) {
@@ -792,7 +792,7 @@ WJR_CONSTEXPR20 _Iter2 do_uninitialized_copy_n(_Iter1 _First, _Diff n, _Iter2 _D
 	if (!wjr::is_constant_evaluated()) {
 		if constexpr (__has_fast_uninitialized_copy_v<_Iter1, _Iter2>) {
 			if (n <= 0) { return _Dest; }
-			return wjr::uninitialized_copy(_First, _First + n, _Dest);
+			return wjr::do_uninitialized_copy(_First, _First + n, _Dest);
 		}
 		return std::uninitialized_copy_n(_First, n, _Dest);
 	}
@@ -841,7 +841,7 @@ WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, const _Val
 				algo::construct_memset(first, val, n);
 			}
 			else {
-				if (is_unlikely(n == 0)) { return; }
+				if (WJR_UNLIKELY(n == 0)) { return; }
 				const auto first = wjr::get_address(_Last - 1);
 				algo::construct_memset(first, val, n);
 			}

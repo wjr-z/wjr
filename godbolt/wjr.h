@@ -4301,6 +4301,16 @@ WJR_UNREACHABLE;	\
 }	                    \
 } while (0)
 #endif
+#if WJR_HAS_BUILTIN(__builtin_expect) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
+#define WJR_LIKELY(expr) __builtin_expect(!!(expr), true)
+#else
+#define WJR_LIKELY(expr) (expr)
+#endif
+#if WJR_HAS_BUILTIN(__builtin_expect) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
+#define WJR_UNLIKELY(expr) __builtin_expect(!!(expr), false)
+#else
+#define WJR_UNLIKELY(expr) (expr)
+#endif
 #ifdef WJR_CPP_20
 #define WJR_EXPLICIT(expression) explicit(expression)
 #define WJR_EXPLICIT20(expreesion) explicit(expression)
@@ -4366,6 +4376,8 @@ WJR_UNREACHABLE;	\
 #define _WJR_RANGES_END } _WJR_END
 #define _WJR_LITERALS_BEGIN _WJR_BEGIN namespace literals{
 #define _WJR_LITERALS_END } _WJR_END
+#define _WJR_ENCODE_BEGIN _WJR_BEGIN namespace encode{
+#define _WJR_ENCODE_END } _WJR_END
 #define WJR_MACRO_NULL(...)
 #define WJR_MACRO_LABEL(NAME) __wjr_label_##NAME
 #if defined(WJR_MSVC)
@@ -4386,70 +4398,70 @@ WJR_UNREACHABLE;	\
 #define WJR_MACRO_ESC(x) WJR_MACRO_RP(_WJR_MACRO_ESC, x)
 #define WJR_MACRO_IOTA(N) WJR_MACRO_IOTA_##N
 #define WJR_MACRO_IOTA_0
-#define WJR_MACRO_IOTA_1 1
-#define WJR_MACRO_IOTA_2 WJR_MACRO_IOTA_1, 2
-#define WJR_MACRO_IOTA_3 WJR_MACRO_IOTA_2, 3
-#define WJR_MACRO_IOTA_4 WJR_MACRO_IOTA_3, 4
-#define WJR_MACRO_IOTA_5 WJR_MACRO_IOTA_4, 5
-#define WJR_MACRO_IOTA_6 WJR_MACRO_IOTA_5, 6
-#define WJR_MACRO_IOTA_7 WJR_MACRO_IOTA_6, 7
-#define WJR_MACRO_IOTA_8 WJR_MACRO_IOTA_7, 8
-#define WJR_MACRO_IOTA_9 WJR_MACRO_IOTA_8, 9
-#define WJR_MACRO_IOTA_10 WJR_MACRO_IOTA_9, 10
-#define WJR_MACRO_IOTA_11 WJR_MACRO_IOTA_10, 11
-#define WJR_MACRO_IOTA_12 WJR_MACRO_IOTA_11, 12
-#define WJR_MACRO_IOTA_13 WJR_MACRO_IOTA_12, 13
-#define WJR_MACRO_IOTA_14 WJR_MACRO_IOTA_13, 14
-#define WJR_MACRO_IOTA_15 WJR_MACRO_IOTA_14, 15
-#define WJR_MACRO_IOTA_16 WJR_MACRO_IOTA_15, 16
-#define WJR_MACRO_IOTA_17 WJR_MACRO_IOTA_16, 17
-#define WJR_MACRO_IOTA_18 WJR_MACRO_IOTA_17, 18
-#define WJR_MACRO_IOTA_19 WJR_MACRO_IOTA_18, 19
-#define WJR_MACRO_IOTA_20 WJR_MACRO_IOTA_19, 20
-#define WJR_MACRO_IOTA_21 WJR_MACRO_IOTA_20, 21
-#define WJR_MACRO_IOTA_22 WJR_MACRO_IOTA_21, 22
-#define WJR_MACRO_IOTA_23 WJR_MACRO_IOTA_22, 23
-#define WJR_MACRO_IOTA_24 WJR_MACRO_IOTA_23, 24
-#define WJR_MACRO_IOTA_25 WJR_MACRO_IOTA_24, 25
-#define WJR_MACRO_IOTA_26 WJR_MACRO_IOTA_25, 26
-#define WJR_MACRO_IOTA_27 WJR_MACRO_IOTA_26, 27
-#define WJR_MACRO_IOTA_28 WJR_MACRO_IOTA_27, 28
-#define WJR_MACRO_IOTA_29 WJR_MACRO_IOTA_28, 29
-#define WJR_MACRO_IOTA_30 WJR_MACRO_IOTA_29, 30
-#define WJR_MACRO_IOTA_31 WJR_MACRO_IOTA_30, 31
-#define WJR_MACRO_IOTA_32 WJR_MACRO_IOTA_31, 32
-#define WJR_MACRO_IOTA_33 WJR_MACRO_IOTA_32, 33
-#define WJR_MACRO_IOTA_34 WJR_MACRO_IOTA_33, 34
-#define WJR_MACRO_IOTA_35 WJR_MACRO_IOTA_34, 35
-#define WJR_MACRO_IOTA_36 WJR_MACRO_IOTA_35, 36
-#define WJR_MACRO_IOTA_37 WJR_MACRO_IOTA_36, 37
-#define WJR_MACRO_IOTA_38 WJR_MACRO_IOTA_37, 38
-#define WJR_MACRO_IOTA_39 WJR_MACRO_IOTA_38, 39
-#define WJR_MACRO_IOTA_40 WJR_MACRO_IOTA_39, 40
-#define WJR_MACRO_IOTA_41 WJR_MACRO_IOTA_40, 41
-#define WJR_MACRO_IOTA_42 WJR_MACRO_IOTA_41, 42
-#define WJR_MACRO_IOTA_43 WJR_MACRO_IOTA_42, 43
-#define WJR_MACRO_IOTA_44 WJR_MACRO_IOTA_43, 44
-#define WJR_MACRO_IOTA_45 WJR_MACRO_IOTA_44, 45
-#define WJR_MACRO_IOTA_46 WJR_MACRO_IOTA_45, 46
-#define WJR_MACRO_IOTA_47 WJR_MACRO_IOTA_46, 47
-#define WJR_MACRO_IOTA_48 WJR_MACRO_IOTA_47, 48
-#define WJR_MACRO_IOTA_49 WJR_MACRO_IOTA_48, 49
-#define WJR_MACRO_IOTA_50 WJR_MACRO_IOTA_49, 50
-#define WJR_MACRO_IOTA_51 WJR_MACRO_IOTA_50, 51
-#define WJR_MACRO_IOTA_52 WJR_MACRO_IOTA_51, 52
-#define WJR_MACRO_IOTA_53 WJR_MACRO_IOTA_52, 53
-#define WJR_MACRO_IOTA_54 WJR_MACRO_IOTA_53, 54
-#define WJR_MACRO_IOTA_55 WJR_MACRO_IOTA_54, 55
-#define WJR_MACRO_IOTA_56 WJR_MACRO_IOTA_55, 56
-#define WJR_MACRO_IOTA_57 WJR_MACRO_IOTA_56, 57
-#define WJR_MACRO_IOTA_58 WJR_MACRO_IOTA_57, 58
-#define WJR_MACRO_IOTA_59 WJR_MACRO_IOTA_58, 59
-#define WJR_MACRO_IOTA_60 WJR_MACRO_IOTA_59, 60
-#define WJR_MACRO_IOTA_61 WJR_MACRO_IOTA_60, 61
-#define WJR_MACRO_IOTA_62 WJR_MACRO_IOTA_61, 62
-#define WJR_MACRO_IOTA_63 WJR_MACRO_IOTA_62, 63
-#define WJR_MACRO_IOTA_64 WJR_MACRO_IOTA_63, 64
+#define WJR_MACRO_IOTA_1 0
+#define WJR_MACRO_IOTA_2 WJR_MACRO_IOTA_1, 1
+#define WJR_MACRO_IOTA_3 WJR_MACRO_IOTA_2, 2
+#define WJR_MACRO_IOTA_4 WJR_MACRO_IOTA_3, 3
+#define WJR_MACRO_IOTA_5 WJR_MACRO_IOTA_4, 4
+#define WJR_MACRO_IOTA_6 WJR_MACRO_IOTA_5, 5
+#define WJR_MACRO_IOTA_7 WJR_MACRO_IOTA_6, 6
+#define WJR_MACRO_IOTA_8 WJR_MACRO_IOTA_7, 7
+#define WJR_MACRO_IOTA_9 WJR_MACRO_IOTA_8, 8
+#define WJR_MACRO_IOTA_10 WJR_MACRO_IOTA_9, 9
+#define WJR_MACRO_IOTA_11 WJR_MACRO_IOTA_10, 10
+#define WJR_MACRO_IOTA_12 WJR_MACRO_IOTA_11, 11
+#define WJR_MACRO_IOTA_13 WJR_MACRO_IOTA_12, 12
+#define WJR_MACRO_IOTA_14 WJR_MACRO_IOTA_13, 13
+#define WJR_MACRO_IOTA_15 WJR_MACRO_IOTA_14, 14
+#define WJR_MACRO_IOTA_16 WJR_MACRO_IOTA_15, 15
+#define WJR_MACRO_IOTA_17 WJR_MACRO_IOTA_16, 16
+#define WJR_MACRO_IOTA_18 WJR_MACRO_IOTA_17, 17
+#define WJR_MACRO_IOTA_19 WJR_MACRO_IOTA_18, 18
+#define WJR_MACRO_IOTA_20 WJR_MACRO_IOTA_19, 19
+#define WJR_MACRO_IOTA_21 WJR_MACRO_IOTA_20, 20
+#define WJR_MACRO_IOTA_22 WJR_MACRO_IOTA_21, 21
+#define WJR_MACRO_IOTA_23 WJR_MACRO_IOTA_22, 22
+#define WJR_MACRO_IOTA_24 WJR_MACRO_IOTA_23, 23
+#define WJR_MACRO_IOTA_25 WJR_MACRO_IOTA_24, 24
+#define WJR_MACRO_IOTA_26 WJR_MACRO_IOTA_25, 25
+#define WJR_MACRO_IOTA_27 WJR_MACRO_IOTA_26, 26
+#define WJR_MACRO_IOTA_28 WJR_MACRO_IOTA_27, 27
+#define WJR_MACRO_IOTA_29 WJR_MACRO_IOTA_28, 28
+#define WJR_MACRO_IOTA_30 WJR_MACRO_IOTA_29, 29
+#define WJR_MACRO_IOTA_31 WJR_MACRO_IOTA_30, 30
+#define WJR_MACRO_IOTA_32 WJR_MACRO_IOTA_31, 31
+#define WJR_MACRO_IOTA_33 WJR_MACRO_IOTA_32, 32
+#define WJR_MACRO_IOTA_34 WJR_MACRO_IOTA_33, 33
+#define WJR_MACRO_IOTA_35 WJR_MACRO_IOTA_34, 34
+#define WJR_MACRO_IOTA_36 WJR_MACRO_IOTA_35, 35
+#define WJR_MACRO_IOTA_37 WJR_MACRO_IOTA_36, 36
+#define WJR_MACRO_IOTA_38 WJR_MACRO_IOTA_37, 37
+#define WJR_MACRO_IOTA_39 WJR_MACRO_IOTA_38, 38
+#define WJR_MACRO_IOTA_40 WJR_MACRO_IOTA_39, 39
+#define WJR_MACRO_IOTA_41 WJR_MACRO_IOTA_40, 40
+#define WJR_MACRO_IOTA_42 WJR_MACRO_IOTA_41, 41
+#define WJR_MACRO_IOTA_43 WJR_MACRO_IOTA_42, 42
+#define WJR_MACRO_IOTA_44 WJR_MACRO_IOTA_43, 43
+#define WJR_MACRO_IOTA_45 WJR_MACRO_IOTA_44, 44
+#define WJR_MACRO_IOTA_46 WJR_MACRO_IOTA_45, 45
+#define WJR_MACRO_IOTA_47 WJR_MACRO_IOTA_46, 46
+#define WJR_MACRO_IOTA_48 WJR_MACRO_IOTA_47, 47
+#define WJR_MACRO_IOTA_49 WJR_MACRO_IOTA_48, 48
+#define WJR_MACRO_IOTA_50 WJR_MACRO_IOTA_49, 49
+#define WJR_MACRO_IOTA_51 WJR_MACRO_IOTA_50, 50
+#define WJR_MACRO_IOTA_52 WJR_MACRO_IOTA_51, 51
+#define WJR_MACRO_IOTA_53 WJR_MACRO_IOTA_52, 52
+#define WJR_MACRO_IOTA_54 WJR_MACRO_IOTA_53, 53
+#define WJR_MACRO_IOTA_55 WJR_MACRO_IOTA_54, 54
+#define WJR_MACRO_IOTA_56 WJR_MACRO_IOTA_55, 55
+#define WJR_MACRO_IOTA_57 WJR_MACRO_IOTA_56, 56
+#define WJR_MACRO_IOTA_58 WJR_MACRO_IOTA_57, 57
+#define WJR_MACRO_IOTA_59 WJR_MACRO_IOTA_58, 58
+#define WJR_MACRO_IOTA_60 WJR_MACRO_IOTA_59, 59
+#define WJR_MACRO_IOTA_61 WJR_MACRO_IOTA_60, 60
+#define WJR_MACRO_IOTA_62 WJR_MACRO_IOTA_61, 61
+#define WJR_MACRO_IOTA_63 WJR_MACRO_IOTA_62, 62
+#define WJR_MACRO_IOTA_64 WJR_MACRO_IOTA_63, 63
 #define WJR_MACRO_ARG_LEN(...) WJR_EXPAND(WJR_MACRO_ARG_LEN_(0, ##__VA_ARGS__ , WJR_MACRO_ARG_LEN_RSEQ_N()))
 #define WJR_MACRO_ARG_LEN_RSEQ_N()                                                   \
 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48,                  \
@@ -4597,6 +4609,7 @@ N, ...) N
 #define WJR_MACRO_CALL_COMMA_62(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_61(Func, __VA_ARGS__))
 #define WJR_MACRO_CALL_COMMA_63(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_62(Func, __VA_ARGS__))
 #define WJR_MACRO_CALL_COMMA_64(Func, x, ...) Func(x) , WJR_EXPAND(WJR_MACRO_CALL_COMMA_63(Func, __VA_ARGS__))
+#define WJR_MACRO_PREFIX(N, ...) WJR_EXPAND(WJR_MACRO_CALL_COMMA_N(WJR_EXPAND, N, __VA_ARGS__))
 #define WJR_OVERLAP_P(p1, s1, p2, s2) \
 ((p1) + (s1) > (p2) && (p2) + (s2) > (p1))
 #define WJR_OVERLAP_P_N(p1, p2, n)	\
@@ -4852,20 +4865,6 @@ return _Left -= _Right;
 };
 }
 _WJR_BEGIN
-WJR_INTRINSIC_CONSTEXPR bool is_likely(bool f) noexcept {
-#if WJR_HAS_BUILTIN(__builtin_expect) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
-return __builtin_expect(f, true);
-#else
-return f;
-#endif
-}
-WJR_INTRINSIC_CONSTEXPR bool is_unlikely(bool f) noexcept {
-#if WJR_HAS_BUILTIN(__builtin_expect) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
-return __builtin_expect(f, false);
-#else
-return f;
-#endif
-}
 WJR_INTRINSIC_CONSTEXPR bool is_constant_evaluated() noexcept {
 #if defined(__cpp_lib_is_constant_evaluated)
 return std::is_constant_evaluated();
@@ -4874,9 +4873,6 @@ return __builtin_is_constant_evaluated();
 #else
 return false;
 #endif
-}
-WJR_NORETURN WJR_INTRINSIC_INLINE void unreachable() noexcept {
-WJR_UNREACHABLE;
 }
 template<typename T>
 WJR_INTRINSIC_CONSTEXPR bool is_constant_p(T x) noexcept {
@@ -5988,7 +5984,7 @@ const static int _WJR_LOG_TABLE[256] = {
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) int __wjr_fallback_clz(T x) noexcept {
 constexpr auto _Nd = std::numeric_limits<T>::digits;
-if (is_likely(x != 0)) {
+if (WJR_LIKELY(x != 0)) {
 int n = 0;
 if constexpr (_Nd > 32) {
 if (x >> 32) {
@@ -6016,7 +6012,7 @@ return _Nd;
 template<typename T>
 WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) int __wjr_builtin_clz(T x) noexcept {
 constexpr auto _Nd = std::numeric_limits<T>::digits;
-if (is_likely(x != 0)) {
+if (WJR_LIKELY(x != 0)) {
 constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
 constexpr auto _Nd_ul = std::numeric_limits<unsigned long>::digits;
 constexpr auto _Nd_ui = std::numeric_limits<unsigned int>::digits;
@@ -6149,7 +6145,7 @@ _WJR_ASM_BEGIN
 template<typename T>
 WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) int __wjr_builtin_ctz(T x) noexcept {
 constexpr auto _Nd = std::numeric_limits<T>::digits;
-if (is_likely(x != 0)) {
+if (WJR_LIKELY(x != 0)) {
 constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
 constexpr auto _Nd_ul = std::numeric_limits<unsigned long>::digits;
 constexpr auto _Nd_ui = std::numeric_limits<unsigned int>::digits;
@@ -6463,31 +6459,6 @@ asm volatile("rep stosq" : "+D"(s), "+c"(n) : "a"(val) : "memory");
 #endif
 }
 #endif  // _WJR_FAST_REP
-_WJR_ASM_END
-
-#ifndef __WJR_ASM_ASM_H
-#error "This file should not be included directly. Include <wjr/asm.h> instead."
-#endif
-_WJR_ASM_BEGIN
-WJR_ATTRIBUTE(DEPRECATED, INTRINSIC_INLINE) void __volatile_pause() noexcept {
-volatile int x = 0;
-++x; ++x; ++x; ++x; ++x;
-++x; ++x; ++x; ++x; ++x;
-++x; ++x; ++x; ++x; ++x;
-}
-WJR_ATTRIBUTE(DEPRECATED, INTRINSIC_INLINE) void pause() noexcept {
-#if defined(WJR_MSVC) && defined(WJR_X86)
-_mm_pause();
-#elif defined(WJR_INLINE_ASM)
-#if defined(WJR_X86)
-asm volatile("pause");
-#else
-__volatile_pause();
-#endif
-#else
-__volatile_pause();
-#endif
-}
 _WJR_ASM_END
 
 #endif // __WJR_ASM_ASM_H
@@ -6935,7 +6906,7 @@ inline constexpr unsigned int base_width(T a) {
 constexpr auto __digits = base_digits_v<T, base>;
 constexpr auto __depth = __width_depth<base, T, __digits>();
 constexpr auto __use_table = __width_end_with_table<base, T, __digits>();
-if (is_unlikely(!a)) return 0;
+if (WJR_UNLIKELY(!a)) return 0;
 unsigned int ret = 1;
 __width<base, T, __digits, __depth, __use_table>(a, ret);
 return ret;
@@ -10021,7 +9992,7 @@ _WJR_SIMD_END
 {	                                                                            \
 auto r = st::cmp(x, q, pred, T());	                                        \
 st::mask_type z = st::movemask_epi8(r);	                                    \
-if(is_likely(z != 0)) {	                                                    \
+if(WJR_LIKELY(z != 0)) {	                                                    \
 return WJR_SIMD_FIRST_ONE_PTR(ptr, z);	                                \
 }	                                                                        \
 }
@@ -10132,7 +10103,7 @@ return s;
 }
 WJR_SIMD_INC_PTR(s, 128 / _Mysize);
 n -= 128 / _Mysize;
-if (is_likely(WJR_SIMD_UINTPTR(s) % _Mysize == 0)) {
+if (WJR_LIKELY(WJR_SIMD_UINTPTR(s) % _Mysize == 0)) {
 const auto __align_s = WJR_SIMD_CEIL_ALIGN_OFFSET(s, bound);
 if (is_constant_p(__align_s) && __align_s == 0) {
 }
@@ -10141,7 +10112,7 @@ WJR_SIMD_LOADU(simd_t, x, s);
 __WJR_MEMCHR_ONE(simd_t, q, s);
 WJR_SIMD_INC_PTR(s, __align_s / _Mysize);
 n -= __align_s / _Mysize;
-if (is_unlikely(n < width * 4)) {
+if (WJR_UNLIKELY(n < width * 4)) {
 goto WJR_MACRO_LABEL(last_solve_align);
 }
 }
@@ -10292,7 +10263,7 @@ template<typename T, typename _Pred>
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* (__WJR_MEMCHR_NAME)(
 const T* s, T val, size_t n, _Pred pred) noexcept {
 constexpr size_t _Mysize = sizeof(T);
-if (is_unlikely(n == 0)) return s;
+if (WJR_UNLIKELY(n == 0)) return s;
 WJR_SIMD_INIT_PTR(s, n);
 if (n >= 16 / _Mysize) {
 auto qx = simd::sse::set1(val, T());
@@ -10397,7 +10368,7 @@ return s;
 }
 WJR_SIMD_INC_PTR(s, 128 / _Mysize);
 n -= 128 / _Mysize;
-if (is_likely(WJR_SIMD_UINTPTR(s) % _Mysize == 0)) {
+if (WJR_LIKELY(WJR_SIMD_UINTPTR(s) % _Mysize == 0)) {
 const auto __align_s = WJR_SIMD_CEIL_ALIGN_OFFSET(s, bound);
 if (is_constant_p(__align_s) && __align_s == 0) {
 }
@@ -10406,7 +10377,7 @@ WJR_SIMD_LOADU(simd_t, x, s);
 __WJR_MEMCHR_ONE(simd_t, q, s);
 WJR_SIMD_INC_PTR(s, __align_s / _Mysize);
 n -= __align_s / _Mysize;
-if (is_unlikely(n < width * 4)) {
+if (WJR_UNLIKELY(n < width * 4)) {
 goto WJR_MACRO_LABEL(last_solve_align);
 }
 }
@@ -10557,7 +10528,7 @@ template<typename T, typename _Pred>
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* (__WJR_MEMCHR_NAME)(
 const T* s, T val, size_t n, _Pred pred) noexcept {
 constexpr size_t _Mysize = sizeof(T);
-if (is_unlikely(n == 0)) return s;
+if (WJR_UNLIKELY(n == 0)) return s;
 WJR_SIMD_INIT_PTR(s, n);
 if (n >= 16 / _Mysize) {
 auto qx = simd::sse::set1(val, T());
@@ -10735,7 +10706,7 @@ return true;
 s0 += 128 / _Mysize;
 s1 += 128 / _Mysize;
 n -= 128 / _Mysize;
-if (is_likely(reinterpret_cast<uintptr_t>(s0) % _Mysize == 0)) {
+if (WJR_LIKELY(reinterpret_cast<uintptr_t>(s0) % _Mysize == 0)) {
 const auto off0 = reinterpret_cast<uintptr_t>(s0) % bound;
 const auto off1 = reinterpret_cast<uintptr_t>(s1) % bound;
 if (off0 != off1) {
@@ -10749,7 +10720,7 @@ const auto __align_s = bound - off0;
 s0 += __align_s / _Mysize;
 s1 += __align_s / _Mysize;
 n -= __align_s / _Mysize;
-if (is_unlikely(n < width * 4)) {
+if (WJR_UNLIKELY(n < width * 4)) {
 goto WJR_MACRO_LABEL(last_solve_align_0);
 }
 }
@@ -10788,7 +10759,7 @@ const auto __align_s = bound - off0;
 s0 += __align_s / _Mysize;
 s1 += __align_s / _Mysize;
 n -= __align_s / _Mysize;
-if (is_unlikely(n < width * 4)) {
+if (WJR_UNLIKELY(n < width * 4)) {
 goto WJR_MACRO_LABEL(last_solve_align_0_1);
 }
 }
@@ -10820,7 +10791,7 @@ __WJR_MEMEQ_FOUR(simd_t);
 }
 return true;
 }
-if (is_likely(reinterpret_cast<uintptr_t>(s1) % _Mysize == 0)) {
+if (WJR_LIKELY(reinterpret_cast<uintptr_t>(s1) % _Mysize == 0)) {
 const auto off1 = reinterpret_cast<uintptr_t>(s1) % bound;
 if (is_constant_p(off1) && off1 == 0) {
 }
@@ -10832,7 +10803,7 @@ const auto __align_s = bound - off1;
 s0 += __align_s / _Mysize;
 s1 += __align_s / _Mysize;
 n -= __align_s / _Mysize;
-if (is_unlikely(n < width * 4)) {
+if (WJR_UNLIKELY(n < width * 4)) {
 goto WJR_MACRO_LABEL(last_solve_align_1);
 }
 }
@@ -10885,27 +10856,23 @@ constexpr size_t _Mysize = sizeof(T);
 if (is_constant_p(n) && n <= 64 / _Mysize) {
 return ::memcmp(s0, s1, n * _Mysize) == 0;
 }
-if (is_unlikely(n == 0)) return true;
+if (WJR_UNLIKELY(n == 0)) return true;
 if (n >= 16 / _Mysize) {
 {
 WJR_SIMD_LOADU(simd::sse, x, s0);
 WJR_SIMD_LOADU(simd::sse, y, s1);
 __WJR_MEMEQ_ONE(simd::sse);
 }
+{
+auto m = n <= 32 / _Mysize ? (n - 16 / _Mysize) : (16 / _Mysize);
+{
+WJR_SIMD_LOADU(simd::sse, x, s0 + m);
+WJR_SIMD_LOADU(simd::sse, y, s1 + m);
+__WJR_MEMEQ_ONE(simd::sse);
+}
 if (n <= 32 / _Mysize) {
-s0 += n - 16 / _Mysize;
-s1 += n - 16 / _Mysize;
-{
-WJR_SIMD_LOADU(simd::sse, x, s0);
-WJR_SIMD_LOADU(simd::sse, y, s1);
-__WJR_MEMEQ_ONE(simd::sse);
+return WJR_SIMD_ADD_PTR(s0, n);
 }
-return true;
-}
-{
-WJR_SIMD_LOADU(simd::sse, x, s0 + 16 / _Mysize);
-WJR_SIMD_LOADU(simd::sse, y, s1 + 16 / _Mysize);
-__WJR_MEMEQ_ONE(simd::sse);
 }
 return __large__memeq(s0, s1, n, pred);
 }
@@ -10928,7 +10895,7 @@ B0 = wjr::byteswap(B0);
 A1 = wjr::byteswap(A1);
 B1 = wjr::byteswap(B1);
 }
-return pred(A0, A1) & pred(B0, B1);
+return pred(A0, A1) && pred(B0, B1);
 }
 }
 if constexpr (_Mysize == 1) {
@@ -10952,7 +10919,7 @@ B1 = wjr::byteswap(B1);
 C1 = wjr::byteswap(C1);
 D1 = wjr::byteswap(D1);
 }
-return (pred(A0, A1) & pred(B0, B1)) & (pred(C0, C1) & pred(D0, D1));
+return (pred(A0, A1) && pred(B0, B1)) && (pred(C0, C1) && pred(D0, D1));
 }
 }
 if constexpr (_Mysize <= 4) {
@@ -10983,7 +10950,7 @@ _WJR_ALGO_END
 {	                                                                                            \
 auto r = st::cmp(x, y, pred, T());	                                                        \
 st::mask_type z = st::movemask_epi8(r);		                                                \
-if(is_likely(z != st::mask())) {	                                                        \
+if(WJR_LIKELY(z != st::mask())) {	                                                        \
 return WJR_SIMD_FIRST_ZERO_PTR(_s, z);													\
 }	                                                                                        \
 }
@@ -10996,7 +10963,7 @@ auto r3 = st::cmp(x3, y3, pred, T());	                                          
 \
 r3 = st::And(st::And(r0, r1), st::And(r2, r3));	                                            \
 st::mask_type z = st::movemask_epi8(r3);		                                            \
-if(is_unlikely(z != st::mask())) {	                                                        \
+if(WJR_UNLIKELY(z != st::mask())) {	                                                        \
 st::mask_type tmp = st::movemask_epi8(r0);	                                            \
 if(tmp != st::mask()){	                                                                \
 return WJR_SIMD_FIRST_ZERO_PTR(_s0, tmp);	                                        \
@@ -11028,6 +10995,17 @@ using simd_t = simd::sse;
 constexpr uintptr_t width = simd_t::width() / (8 * _Mysize);
 constexpr uintptr_t bound = width * _Mysize;
 {
+auto m = n <= 32 / _Mysize ? (n - 16 / _Mysize) : (16 / _Mysize);
+{
+WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s0, m));
+WJR_SIMD_LOADU(simd::sse, y, WJR_SIMD_ADD_PTR(s1, m));
+__WJR_MEMMIS_ONE(simd::sse, WJR_SIMD_ADD_PTR(s0, m));
+}
+if (n <= 32 / _Mysize) {
+return WJR_SIMD_ADD_PTR(s0, n);
+}
+}
+{
 const auto m = n <= 128 / _Mysize ? n : 128 / _Mysize;
 const auto delta = ((m - 1) & (64 / _Mysize)) >> 1;
 const auto negdelta = m - 32 / _Mysize;
@@ -11108,7 +11086,7 @@ return s0;
 WJR_SIMD_INC_PTR(s0, 128 / _Mysize);
 WJR_SIMD_INC_PTR(s1, 128 / _Mysize);
 n -= 128 / _Mysize;
-if (is_likely(reinterpret_cast<uintptr_t>(s0) % _Mysize == 0)) {
+if (WJR_LIKELY(reinterpret_cast<uintptr_t>(s0) % _Mysize == 0)) {
 const auto __align_s0 = WJR_SIMD_CEIL_ALIGN_OFFSET(s0, bound);
 const auto __align_s1 = WJR_SIMD_CEIL_ALIGN_OFFSET(s1, bound);
 if (__align_s0 != __align_s1) {
@@ -11121,7 +11099,7 @@ __WJR_MEMMIS_ONE(simd_t, s0);
 WJR_SIMD_INC_PTR(s0, __align_s0 / _Mysize);
 WJR_SIMD_INC_PTR(s1, __align_s0 / _Mysize);
 n -= __align_s0 / _Mysize;
-if (is_unlikely(n < width * 4)) {
+if (WJR_UNLIKELY(n < width * 4)) {
 goto WJR_MACRO_LABEL(last_solve_align_0);
 }
 }
@@ -11178,7 +11156,7 @@ __WJR_MEMMIS_ONE(simd_t, s0);
 WJR_SIMD_INC_PTR(s0, __align_s0 / _Mysize);
 WJR_SIMD_INC_PTR(s1, __align_s0 / _Mysize);
 n -= __align_s0 / _Mysize;
-if (is_unlikely(n < width * 4)) {
+if (WJR_UNLIKELY(n < width * 4)) {
 goto WJR_MACRO_LABEL(last_solve_align_0_1);
 }
 }
@@ -11225,7 +11203,7 @@ WJR_SIMD_SUB_PTR(s0, width));
 }
 return s0;
 }
-if (is_likely(reinterpret_cast<uintptr_t>(s1) % _Mysize == 0)) {
+if (WJR_LIKELY(reinterpret_cast<uintptr_t>(s1) % _Mysize == 0)) {
 const auto __align_s1 = WJR_SIMD_CEIL_ALIGN_OFFSET(s1, bound);
 if (is_constant_p(__align_s1) && __align_s1 == 0) {
 }
@@ -11236,7 +11214,7 @@ __WJR_MEMMIS_ONE(simd_t, s0);
 WJR_SIMD_INC_PTR(s0, __align_s1 / _Mysize);
 WJR_SIMD_INC_PTR(s1, __align_s1 / _Mysize);
 n -= __align_s1 / _Mysize;
-if (is_unlikely(n < width * 4)) {
+if (WJR_UNLIKELY(n < width * 4)) {
 goto WJR_MACRO_LABEL(last_solve_align_1);
 }
 }
@@ -11419,7 +11397,7 @@ template<typename T, typename _Pred>
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T*
 __WJR_MEMMIS_NAME(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
 constexpr size_t _Mysize = sizeof(T);
-if (is_unlikely(n == 0)) return s0;
+if (WJR_UNLIKELY(n == 0)) return s0;
 WJR_SIMD_INIT_PTR(s0, n);
 WJR_SIMD_INIT_PTR(s1, n);
 if (n >= 16 / _Mysize) {
@@ -11427,15 +11405,6 @@ if (n >= 16 / _Mysize) {
 WJR_SIMD_LOADU(simd::sse, x, s0);
 WJR_SIMD_LOADU(simd::sse, y, s1);
 __WJR_MEMMIS_ONE(simd::sse, s0);
-}
-auto m = n <= 32 / _Mysize ? (n - 16 / _Mysize) : (16 / _Mysize);
-{
-WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s0, m));
-WJR_SIMD_LOADU(simd::sse, y, WJR_SIMD_ADD_PTR(s1, m));
-__WJR_MEMMIS_ONE(simd::sse, WJR_SIMD_ADD_PTR(s0, m));
-}
-if (n <= 32 / _Mysize) {
-return WJR_SIMD_ADD_PTR(s0, n);
 }
 return WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(s0, s1, n, pred);
 }
@@ -11460,6 +11429,17 @@ using simd_t = simd::sse;
 constexpr uintptr_t width = simd_t::width() / (8 * _Mysize);
 constexpr uintptr_t bound = width * _Mysize;
 {
+auto m = n <= 32 / _Mysize ? (n - 16 / _Mysize) : (16 / _Mysize);
+{
+WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s0, m));
+WJR_SIMD_LOADU(simd::sse, y, WJR_SIMD_ADD_PTR(s1, m));
+__WJR_MEMMIS_ONE(simd::sse, WJR_SIMD_ADD_PTR(s0, m));
+}
+if (n <= 32 / _Mysize) {
+return WJR_SIMD_ADD_PTR(s0, n);
+}
+}
+{
 const auto m = n <= 128 / _Mysize ? n : 128 / _Mysize;
 const auto delta = ((m - 1) & (64 / _Mysize)) >> 1;
 const auto negdelta = m - 32 / _Mysize;
@@ -11540,7 +11520,7 @@ return s0;
 WJR_SIMD_INC_PTR(s0, 128 / _Mysize);
 WJR_SIMD_INC_PTR(s1, 128 / _Mysize);
 n -= 128 / _Mysize;
-if (is_likely(reinterpret_cast<uintptr_t>(s0) % _Mysize == 0)) {
+if (WJR_LIKELY(reinterpret_cast<uintptr_t>(s0) % _Mysize == 0)) {
 const auto __align_s0 = WJR_SIMD_CEIL_ALIGN_OFFSET(s0, bound);
 const auto __align_s1 = WJR_SIMD_CEIL_ALIGN_OFFSET(s1, bound);
 if (__align_s0 != __align_s1) {
@@ -11553,7 +11533,7 @@ __WJR_MEMMIS_ONE(simd_t, s0);
 WJR_SIMD_INC_PTR(s0, __align_s0 / _Mysize);
 WJR_SIMD_INC_PTR(s1, __align_s0 / _Mysize);
 n -= __align_s0 / _Mysize;
-if (is_unlikely(n < width * 4)) {
+if (WJR_UNLIKELY(n < width * 4)) {
 goto WJR_MACRO_LABEL(last_solve_align_0);
 }
 }
@@ -11610,7 +11590,7 @@ __WJR_MEMMIS_ONE(simd_t, s0);
 WJR_SIMD_INC_PTR(s0, __align_s0 / _Mysize);
 WJR_SIMD_INC_PTR(s1, __align_s0 / _Mysize);
 n -= __align_s0 / _Mysize;
-if (is_unlikely(n < width * 4)) {
+if (WJR_UNLIKELY(n < width * 4)) {
 goto WJR_MACRO_LABEL(last_solve_align_0_1);
 }
 }
@@ -11657,7 +11637,7 @@ WJR_SIMD_SUB_PTR(s0, width));
 }
 return s0;
 }
-if (is_likely(reinterpret_cast<uintptr_t>(s1) % _Mysize == 0)) {
+if (WJR_LIKELY(reinterpret_cast<uintptr_t>(s1) % _Mysize == 0)) {
 const auto __align_s1 = WJR_SIMD_CEIL_ALIGN_OFFSET(s1, bound);
 if (is_constant_p(__align_s1) && __align_s1 == 0) {
 }
@@ -11668,7 +11648,7 @@ __WJR_MEMMIS_ONE(simd_t, s0);
 WJR_SIMD_INC_PTR(s0, __align_s1 / _Mysize);
 WJR_SIMD_INC_PTR(s1, __align_s1 / _Mysize);
 n -= __align_s1 / _Mysize;
-if (is_unlikely(n < width * 4)) {
+if (WJR_UNLIKELY(n < width * 4)) {
 goto WJR_MACRO_LABEL(last_solve_align_1);
 }
 }
@@ -11851,7 +11831,7 @@ template<typename T, typename _Pred>
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T*
 __WJR_MEMMIS_NAME(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
 constexpr size_t _Mysize = sizeof(T);
-if (is_unlikely(n == 0)) return s0;
+if (WJR_UNLIKELY(n == 0)) return s0;
 WJR_SIMD_INIT_PTR(s0, n);
 WJR_SIMD_INIT_PTR(s1, n);
 if (n >= 16 / _Mysize) {
@@ -11859,15 +11839,6 @@ if (n >= 16 / _Mysize) {
 WJR_SIMD_LOADU(simd::sse, x, s0);
 WJR_SIMD_LOADU(simd::sse, y, s1);
 __WJR_MEMMIS_ONE(simd::sse, s0);
-}
-auto m = n <= 32 / _Mysize ? (n - 16 / _Mysize) : (16 / _Mysize);
-{
-WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s0, m));
-WJR_SIMD_LOADU(simd::sse, y, WJR_SIMD_ADD_PTR(s1, m));
-__WJR_MEMMIS_ONE(simd::sse, WJR_SIMD_ADD_PTR(s0, m));
-}
-if (n <= 32 / _Mysize) {
-return WJR_SIMD_ADD_PTR(s0, n);
 }
 return WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(s0, s1, n, pred);
 }
@@ -11967,7 +11938,7 @@ return;
 }
 #endif // WJR_AVX2
 auto q = broadcast<simd::__simd_wrapper_t<sint>, simd::__m128i_tag>(qx);
-if (is_likely(reinterpret_cast<uintptr_t>(s) % _Mysize == 0)) {
+if (WJR_LIKELY(reinterpret_cast<uintptr_t>(s) % _Mysize == 0)) {
 #if defined(_WJR_FAST_REP)
 if (__use_rep) {
 if (n < __rep_align64byte_threshold) {
@@ -12152,15 +12123,15 @@ bool m_table[256];
 constexpr static __memskipw_table __memskipw_table_instance = {};
 #define WJR_SIMD_IS_BACKWARD 0
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const char* __memskipw(const char* s, const char* e) {
-if (is_unlikely(s == e)) return s;
-if(is_likely(!__memskipw_table_instance[*s])) return s;
+if (WJR_UNLIKELY(s == e)) return s;
+if(WJR_LIKELY(!__memskipw_table_instance[*s])) return s;
 ++s;
-if (is_likely(s + 3 <= e)) {
+if (WJR_LIKELY(s + 3 <= e)) {
 if (!__memskipw_table_instance[*s]) return s;
 if (!__memskipw_table_instance[s[1]]) return s + 1;
 if (!__memskipw_table_instance[s[2]]) return s + 2;
 s += 3;
-if (is_likely(s + 16 <= e)) {
+if (WJR_LIKELY(s + 16 <= e)) {
 const auto simd_32 = simd::sse::set1_epi8(32);
 const auto simd_9 = simd::sse::set1_epi8(9);
 const auto simd_5 = simd::sse::set1_epi8(4);
@@ -12170,7 +12141,7 @@ auto y = simd::sse::cmpeq(x, simd_32, uint8_t());
 auto z = simd::sse::sub(x, simd_9, uint8_t());
 z = simd::sse::cmple(z, simd_5, uint8_t());
 auto r = simd::sse::movemask_epi8(simd::sse::Or(y, z));
-if (is_likely(r != simd::sse::mask())) {
+if (WJR_LIKELY(r != simd::sse::mask())) {
 return WJR_SIMD_FIRST_ZERO_PTR(s, r);
 }
 s += 16;
@@ -12590,7 +12561,7 @@ template<typename T, typename U, typename _Pred>
 constexpr bool __has_fast_memrcmp_v = __has_fast_memrmis<T, U, _Pred>::value;
 template<typename T, typename U, typename _Pred, std::enable_if_t<
 __has_fast_memcmp_v<T, U, _Pred>, int> = 0>
-WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) int memcmp(const T* s0, const U* s1, size_t n, _Pred pred) {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) int memcmp(const T* s0, const U* s1, size_t n, _Pred) {
 if constexpr (std::is_same_v<_Pred, std::greater<>>) {
 return -wjr::algo::memcmp(s0, s1, n, std::less<>{});
 }
@@ -12900,7 +12871,7 @@ _Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Pred pred) {
 if (!wjr::is_constant_evaluated()) {
 if constexpr (__has_fast_mismatch_v<_Iter1, _Iter2, _Pred>) {
 const auto n = std::distance(_First1, _Last1);
-if (is_unlikely(n == 0)) { return std::make_pair(_First1, _First2); }
+if (WJR_UNLIKELY(n == 0)) { return std::make_pair(_First1, _First2); }
 if constexpr (!wjr::is_reverse_iterator_v<_Iter1>) {
 const auto first1 = wjr::get_address(_First1);
 const auto first2 = wjr::get_address(_First2);
@@ -12945,7 +12916,7 @@ WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_equal(_Iter1 _First1
 if (!wjr::is_constant_evaluated()) {
 if constexpr (__has_fast_equal_v<_Iter1, _Iter2, _Pred>) {
 const auto n = _Last1 - _First1;
-if (is_unlikely(n == 0)) { return true; }
+if (WJR_UNLIKELY(n == 0)) { return true; }
 if constexpr (!wjr::is_reverse_iterator_v<_Iter1>) {
 const auto first1 = wjr::get_address(_First1);
 const auto first2 = wjr::get_address(_First2);
@@ -13039,7 +13010,7 @@ return wjr::do_compare(_First1, _Last1, _First2, _Last2, std::less<>{});
 template<typename _Iter1, typename _Iter2, typename _Pred>
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_lexicographical_compare(
 _Iter1 _First1, _Iter1 _Last1, _Iter2 _First2, _Iter2 _Last2, _Pred pred) {
-return wjr::do_compare(_First1, _Last2, _First2, _Last2, pred) < 0;
+return wjr::do_compare(_First1, _Last1, _First2, _Last2, pred) < 0;
 }
 template<typename _Iter1, typename _Iter2>
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE, CONSTEXPR20) bool do_lexicographical_compare(
@@ -13064,7 +13035,7 @@ const auto first = wjr::get_address(_First);
 algo::assign_memset(first, value, n);
 }
 else {
-if (is_unlikely(n == 0)) { return; }
+if (WJR_UNLIKELY(n == 0)) { return; }
 const auto first = wjr::get_address(_Last - 1);
 algo::assign_memset(first, value, n);
 }
@@ -13101,7 +13072,7 @@ static_assert(!std::is_const_v<iter_ref_t<_Output>>, "Output iterator must not b
 if (!wjr::is_constant_evaluated()) {
 if constexpr (__has_fast_copy_v<_Input, _Output>) {
 const auto n = std::distance(_First1, _Last1);
-if (is_unlikely(n == 0)) { return _First2; }
+if (WJR_UNLIKELY(n == 0)) { return _First2; }
 if constexpr (!wjr::is_reverse_iterator_v<_Input>) {
 const auto first1 = wjr::get_address(_First1);
 const auto first2 = wjr::get_address(_First2);
@@ -13427,7 +13398,7 @@ WJR_CONSTEXPR20 _Iter2 do_uninitialized_copy(_Iter1 _First, _Iter1 _Last, _Iter2
 if (!wjr::is_constant_evaluated()) {
 if constexpr (__has_fast_uninitialized_copy_v<_Iter1, _Iter2>) {
 const auto n = std::distance(_First, _Last);
-if (is_unlikely(n == 0)) { return _Dest; }
+if (WJR_UNLIKELY(n == 0)) { return _Dest; }
 if constexpr (!wjr::is_reverse_iterator_v<_Iter1>) {
 const auto first1 = wjr::get_address(_First);
 const auto first2 = wjr::get_address(_Dest);
@@ -13452,7 +13423,7 @@ template<typename Alloc, typename _Iter1, typename _Iter2>
 WJR_CONSTEXPR20 _Iter2 do_uninitialized_copy(
 Alloc& al, _Iter1 _First, _Iter1 _Last, _Iter2 _Dest) {
 if constexpr (is_default_allocator_construct_v<Alloc, _Iter2, decltype(*_First)>) {
-return wjr::uninitialized_copy(_First, _Last, _Dest);
+return wjr::do_uninitialized_copy(_First, _Last, _Dest);
 }
 else {
 for (; _First != _Last; ++_Dest, (void)++_First) {
@@ -13465,7 +13436,7 @@ WJR_CONSTEXPR20 _Iter2 do_uninitialized_copy_n(_Iter1 _First, _Diff n, _Iter2 _D
 if (!wjr::is_constant_evaluated()) {
 if constexpr (__has_fast_uninitialized_copy_v<_Iter1, _Iter2>) {
 if (n <= 0) { return _Dest; }
-return wjr::uninitialized_copy(_First, _First + n, _Dest);
+return wjr::do_uninitialized_copy(_First, _First + n, _Dest);
 }
 return std::uninitialized_copy_n(_First, n, _Dest);
 }
@@ -13507,7 +13478,7 @@ const auto first = wjr::get_address(_First);
 algo::construct_memset(first, val, n);
 }
 else {
-if (is_unlikely(n == 0)) { return; }
+if (WJR_UNLIKELY(n == 0)) { return; }
 const auto first = wjr::get_address(_Last - 1);
 algo::construct_memset(first, val, n);
 }
@@ -13815,7 +13786,7 @@ WJR_CONSTEXPR20 static void _lengthError(WJR_MAYBE_UNUSED const size_type _Newca
 #if defined(_WJR_EXCEPTION)
 throw std::length_error("vector_static_data is too small to hold the requested data");
 #endif // _WJR_EXCEPTION
-unreachable();
+WJR_UNREACHABLE;
 }
 WJR_CONSTEXPR20 vector_static_data(
 _Alty&,
@@ -14149,7 +14120,7 @@ WJR_CONSTEXPR20 ~vector() noexcept {
 tidy();
 }
 WJR_CONSTEXPR20 vector& operator=(const vector& other) {
-if (is_likely(this != std::addressof(other))) {
+if (WJR_LIKELY(this != std::addressof(other))) {
 auto& al = getAllocator();
 auto& other_al = other.getAllocator();
 if constexpr (std::conjunction_v<typename _Alty_traits::propagate_on_container_copy_assignment
@@ -14170,7 +14141,7 @@ noexcept(_Alty_traits::propagate_on_container_move_assignment::value
 || _Alty_traits::is_always_equal::value) {
 using type = std::disjunction<typename _Alty_traits::propagate_on_container_move_assignment,
 typename _Alty_traits::is_always_equal>;
-if (is_likely(this != std::addressof(other))) {
+if (WJR_LIKELY(this != std::addressof(other))) {
 _M_move_assign(std::move(other), type());
 }
 return *this;
@@ -15078,10 +15049,6 @@ return n;
 #endif // !__WJR_VECTOR_H
 
 #pragma once
-#ifndef __WJR_STRING_FUNC_H
-#define __WJR_STRING_FUNC_H
-#include <optional>
-#pragma once
 #ifndef __WJR_ERROR_HANDLE_H
 #define __WJR_ERROR_HANDLE_H
 namespace wjr {
@@ -15096,566 +15063,6 @@ buffer_too_small = 0x06,
 };
 }
 #endif // __WJR_ERROR_HANDLE_H
-
-#pragma once
-#ifndef __WJR_RTC_VAR_H
-#define __WJR_RTC_VAR_H
-_WJR_BEGIN
-template<typename T>
-constexpr decltype(auto) get_cvar(T&& value) { return std::forward<T>(value); }
-template<typename T, T _Val>
-constexpr auto get_cvar(std::integral_constant<T, _Val>) { return get_cvar(_Val); }
-_WJR_END
-#endif // __WJR_RTC_VAR_H
-
-_WJR_BEGIN
-namespace __string_func_traits {
-WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(do_skipw, do_skipw);
-WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(do_rskipw, do_rskipw);
-WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(do_skipz, do_skipz);
-WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(do_skipd, do_skipd);
-}
-template<typename Traits>
-class string_func {
-public:
-using traits_type = Traits;
-using encode_type = typename traits_type::encode_type;
-using value_type = typename traits_type::value_type;
-using iterator = typename traits_type::iterator;
-using const_iterator = typename traits_type::const_iterator;
-constexpr static uint32_t invalid_digit = 1u << 24;
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isalnum(value_type ch);
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isalpha(value_type ch);
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool islower(value_type ch);
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isupper(value_type ch);
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isxdigit(value_type ch);
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isspace(value_type ch);
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static value_type tolower(value_type ch);
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static value_type toupper(value_type ch);
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static uint8_t todigit(value_type ch);
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static uint8_t toalnum(value_type ch);
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static bool isdigit(value_type ch, int Base = 10);
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static const_iterator
-skipw(const_iterator _First, const_iterator _Last);
-template<typename _Iter = const_iterator, std::enable_if_t<is_bidir_iterator_v<_Iter>, int> = 0>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static _Iter
-rskipw(_Iter _First, _Iter _Last);
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static const_iterator skipz(const_iterator _First, const_iterator _Last);
-enum to_i_flags {
-NO_FLAGS                   = 0,
-ALLOW_PREFIX               = 0x01,
-ALLOW_TAIL                 = 0x02,
-ALLOW_SIGN                 = 0x04,
-ALLOW_LEADING_SPACE        = 0x08,
-ALLOW_SPACE_AFTER_SIGN     = 0x10,
-ALLOW_LEADING_ZEROS        = 0x20,
-};
-using default_to_i_flags = std::integral_constant< to_i_flags,
-static_cast<to_i_flags>(
-ALLOW_PREFIX
-| ALLOW_TAIL
-| ALLOW_SIGN
-| ALLOW_LEADING_SPACE
-| ALLOW_LEADING_ZEROS)>;
-template<typename T, typename F = default_to_i_flags>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static T to_integral(
-const_iterator _First, const_iterator _Last,
-const_iterator& _Pos, int base, errc& _Err, F f = F()) noexcept;
-template<typename T, typename F = default_to_i_flags>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static T to_integral(
-const_iterator _First, const_iterator _Last,
-const_iterator* _Pos = nullptr, int base = 10, errc* _Err = nullptr, F f = F()) noexcept;
-#define _WJR_REGISTER_TO_INTEGRAL_FUNC(I, name)	                                                    \
-template<typename F = default_to_i_flags>                                                       \
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static I to_##name(											\
-const_iterator _First, const_iterator _Last,                                                \
-const_iterator* _Pos = nullptr, int base = 10, errc* _Err = nullptr, F f = F()) noexcept{	\
-return to_integral<I, F>(_First, _Last, _Pos, base, _Err, f);	                            \
-}
-#define WJR_REGISTER_TO_INTEGRAL_FUNC(x) _WJR_REGISTER_TO_INTEGRAL_FUNC x
-WJR_MACRO_CALL(WJR_REGISTER_TO_INTEGRAL_FUNC, ,
-(char, char),
-(signed char, schar),
-(unsigned char, uchar),
-(short, short),
-(unsigned short, ushort),
-(int, int),
-(unsigned int, uint),
-(long, long),
-(unsigned long, ulong),
-(long long, llong),
-(unsigned long long, ullong)
-);
-#undef _WJR_REGISTER_TO_INTEGRAL_FUNC
-#undef WJR_REGISTER_TO_INTEGRAL_FUNC
-template<typename T>
-WJR_INLINE_CONSTEXPR20 static void from_integral(
-T _Val, iterator _First, iterator _Last,
-iterator& _Pos, int base, errc& _Err) noexcept;
-template<typename T>
-WJR_INLINE_CONSTEXPR20 static void from_integral(
-T _Val, iterator _First, iterator _Last,
-iterator* _Pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept;
-};
-template<typename T, typename Func>
-class integral_conversion_details {
-public:
-using func_type = Func;
-using value_type = typename func_type::value_type;
-using to_i_flags = typename func_type::to_i_flags;
-using iterator = typename func_type::iterator;
-using const_iterator = typename func_type::const_iterator;
-template<typename F>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static T to(
-const_iterator _First, const_iterator _Last,
-const_iterator& _Pos, int base, errc& _Err, F f) noexcept;
-WJR_INLINE_CONSTEXPR20 static void from(
-T _Val, iterator _First, iterator _Last,
-iterator& _Pos, int base, errc& _Err) noexcept;
-private:
-inline constexpr static char charconv_lower[] =
-{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
-'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
-'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
-inline constexpr static char charconv_upper[] =
-{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E',
-'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
-'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
-using uT = std::make_unsigned_t<T>;
-constexpr static T min() { return std::numeric_limits<T>::min(); }
-constexpr static T max() { return std::numeric_limits<T>::max(); }
-constexpr static uT umax() { return std::max(make_unsigned_v(min()), make_unsigned_v(max())); }
-template<typename _Iter, typename F>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static T __to(
-_Iter _First, _Iter _Last,
-WJR_MAYBE_UNUSED _Iter& _Pos,
-int base, errc& _Err, F f, _Iter _Zero, bool _Is_minus) noexcept;
-};
-#define __CONV_EMPTY_RET				        \
-_Err = errc::noconv;					\
-return static_cast<T>(0);
-#define __CONV_NEXT								\
-if(is_unlikely(++_First == _Last)){	    \
-__CONV_EMPTY_RET					\
-}
-template<typename T, typename Func>
-template<typename F>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::to(
-const_iterator _First, const_iterator _Last,
-const_iterator& _Pos, int base, errc& _Err, F f) noexcept {
-const auto _Flags = get_cvar(f);
-if (_Flags & to_i_flags::ALLOW_LEADING_SPACE) {
-_First = func_type::skipw(_First, _Last);
-}
-if (is_unlikely(_First == _Last)) {
-__CONV_EMPTY_RET;
-}
-bool _Is_minus = false;
-if (_Flags & to_i_flags::ALLOW_SIGN) {
-auto ch = *_First;
-switch (ch) {
-case '+': {
-__CONV_NEXT;
-break;
-}
-case '-': {
-_Is_minus = true;
-__CONV_NEXT;
-break;
-}
-}
-}
-if (_Flags & to_i_flags::ALLOW_SPACE_AFTER_SIGN) {
-_First = func_type::skipw(_First, _Last);
-if (is_unlikely(_First == _Last)) {
-__CONV_EMPTY_RET;
-}
-}
-constexpr auto _B = func_type::toalnum('B');
-constexpr auto _X = func_type::toalnum('X');
-WJR_MAYBE_UNUSED auto _Zero = _Last;
-if (_Flags & to_i_flags::ALLOW_PREFIX) {
-switch (base) {
-case 0: {
-if (*_First == '0') {
-if (is_unlikely(++_First == _Last)) {
-_Pos = _First;
-return static_cast<T>(0);
-}
-_Zero = _First;
-auto ch = func_type::toalnum(*_First);
-switch (*_First) {
-case _B: {
-if (is_unlikely(++_First == _Last)) {
-_Pos = _First;
-return static_cast<T>(0);
-}
-return __to(_First, _Last, _Pos, 2, _Err, f, _Zero, _Is_minus);
-}
-case _X: {
-if (is_unlikely(++_First == _Last)) {
-_Pos = _First;
-return static_cast<T>(0);
-}
-return __to(_First, _Last, _Pos, 16, _Err, f, _Zero, _Is_minus);
-}
-default: {
-return __to(_First, _Last, _Pos, 8, _Err, f, _Zero, _Is_minus);
-}
-}
-}
-return __to(_First, _Last, _Pos, 10, _Err, f, _Last, _Is_minus);
-}
-case 2: {
-if (*_First == '0') {
-if (is_unlikely(++_First == _Last)) {
-_Pos = _First;
-return static_cast<T>(0);
-}
-_Zero = _First;
-if (func_type::toalnum(*_First) == _B) {
-if (is_unlikely(++_First == _Last)) {
-_Pos = _Zero;
-return static_cast<T>(0);
-}
-}
-}
-break;
-}
-case 8: {
-if (*_First == '0') {
-if (is_unlikely(++_First == _Last)) {
-_Pos = _First;
-return static_cast<T>(0);
-}
-_Zero = _First;
-}
-break;
-}
-case 16: {
-if (*_First == '0') {
-if (is_unlikely(++_First == _Last)) {
-_Pos = _First;
-return static_cast<T>(0);
-}
-_Zero = _First;
-if (func_type::toalnum(*_First) == _X) {
-if (is_unlikely(++_First == _Last)) {
-_Pos = _Zero;
-return static_cast<T>(0);
-}
-}
-}
-break;
-}
-default: {
-break;
-}
-}
-}
-return __to(_First, _Last, _Pos, base, _Err, f, _Zero, _Is_minus);
-}
-template<typename T, typename Func>
-template<typename _Iter, typename F>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR T integral_conversion_details<T, Func>::__to(
-_Iter _First, _Iter _Last,
-WJR_MAYBE_UNUSED _Iter& _Pos,
-int base, errc& _Err, F f, _Iter _Zero, bool _Is_minus) noexcept {
-const auto _Flags = get_cvar(f);
-auto _Next = _First;
-if (_Flags & to_i_flags::ALLOW_LEADING_ZEROS) {
-_Next = func_type::skipz(_First, _Last);
-}
-uT _Max1 = 0;
-uT _Max2 = 0;
-if constexpr (std::is_unsigned_v<T>) {
-_Max1 = umax() / base;
-_Max2 = umax() % base;
-}
-else {
-if (_Is_minus) {
-_Max1 = umax() / base;
-_Max2 = umax() % base;
-}
-else {
-constexpr auto __umax2 = umax() - 1;
-_Max1 = __umax2 / base;
-_Max2 = __umax2 % base;
-}
-}
-uT uret = 0;
-bool overflowed = false;
-for (; _Next != _Last; ++_Next) {
-auto ch = func_type::toalnum(*_Next);
-if (ch >= base) break;
-if (uret < _Max1 || (uret == _Max1 && ch <= _Max2)) {
-uret *= base;
-uret += ch;
-}
-else overflowed = true;
-}
-if (_First == _Next) {
-if (_Zero != _Last) {
-_Pos = _Zero;
-return static_cast<T>(uret);
-}
-__CONV_EMPTY_RET;
-}
-_Pos = _Next;
-if (overflowed) {
-if constexpr (std::is_unsigned_v<T>) {
-_Err = errc::overflow;
-}
-else {
-if (_Is_minus) {
-_Err = errc::underflow;
-}
-else {
-_Err = errc::overflow;
-}
-}
-return static_cast<T>(0);
-}
-_Err = errc::ok;
-if (_Is_minus) {
-uret = static_cast<uT>(0 - uret);
-}
-return static_cast<T>(uret);
-}
-#undef __CONV_EMPTY_RET
-#undef __CONV_NEXT
-template<typename T, typename Func>
-WJR_INLINE_CONSTEXPR20 void integral_conversion_details<T, Func>::from(
-T _Val, iterator _First, iterator _Last,
-iterator& _Pos, int base, errc& _Err) noexcept {
-auto uval = make_unsigned_v(_Val);
-if constexpr (std::is_signed_v<T>) {
-if (_Val < 0) {
-if (_First == _Last) {
-_Err = errc::buffer_too_small;
-return;
-}
-*_First = '-';
-++_First;
-uval = static_cast<uT>(0 - uval);
-}
-}
-constexpr size_t _Buff_size = sizeof(uT) * 8;
-char _Buff[_Buff_size];
-char* const _Buff_end = _Buff + _Buff_size;
-char* _RNext = _Buff_end;
-switch (base) {
-case 10:
-{ // Derived from _UIntegral_to_buff()
-constexpr bool _Use_chunks = sizeof(uT) > sizeof(size_t);
-if constexpr (_Use_chunks) { // For 64-bit numbers on 32-bit platforms, work in chunks to avoid 64-bit
-while (uval > 0xFFFF'FFFFU) {
-unsigned long _Chunk = static_cast<unsigned long>(uval % 1'000'000'000);
-uval = static_cast<uT>(uval / 1'000'000'000);
-for (int _Idx = 0; _Idx != 9; ++_Idx) {
-*--_RNext = static_cast<char>('0' + _Chunk % 10);
-_Chunk /= 10;
-}
-}
-}
-using _Truncated = std::conditional_t<_Use_chunks, unsigned long, uT>;
-_Truncated _Trunc = static_cast<_Truncated>(uval);
-do {
-*--_RNext = static_cast<char>('0' + _Trunc % 10);
-_Trunc /= 10;
-} while (_Trunc != 0);
-break;
-}
-case 2:
-do {
-*--_RNext = static_cast<char>('0' + (uval & 0b1));
-uval >>= 1;
-} while (uval != 0);
-break;
-case 4:
-do {
-*--_RNext = static_cast<char>('0' + (uval & 0b11));
-uval >>= 2;
-} while (uval != 0);
-break;
-case 8:
-do {
-*--_RNext = static_cast<char>('0' + (uval & 0b111));
-uval >>= 3;
-} while (uval != 0);
-break;
-case 16:
-do {
-*--_RNext = charconv_lower[uval & 0b1111];
-uval >>= 4;
-} while (uval != 0);
-break;
-case 32:
-do {
-*--_RNext = charconv_lower[uval & 0b11111];
-uval >>= 5;
-} while (uval != 0);
-break;
-case 3:
-case 5:
-case 6:
-case 7:
-case 9:
-do {
-*--_RNext = static_cast<char>('0' + uval % base);
-uval = static_cast<uT>(uval / base);
-} while (uval != 0);
-break;
-default:
-do {
-*--_RNext = charconv_lower[uval % base];
-uval = static_cast<uT>(uval / base);
-} while (uval != 0);
-break;
-}
-ptrdiff_t _Digits_written = _Buff_end - _RNext;
-if constexpr (is_random_iterator_v<iterator>) {
-const auto _Size = std::distance(_First, _Last);
-if (_Size < _Digits_written) {
-_Err = errc::buffer_too_small;
-return;
-}
-_First = wjr::copy_n(_RNext, _Digits_written, _First);
-}
-else {
-for (; _Digits_written && _First != _Last; ++_RNext, ++_First, --_Digits_written) {
-*_First = *_RNext;
-}
-if (_Digits_written) {
-_Err = errc::buffer_too_small;
-return;
-}
-}
-_Pos = _First;
-_Err = errc::ok;
-return;
-}
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR bool string_func<Traits>::isalnum(value_type ch) {
-return encode_type::isalnum(ch);
-}
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR bool string_func<Traits>::isalpha(value_type ch) {
-return encode_type::isalpha(ch);
-}
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR bool string_func<Traits>::islower(value_type ch) {
-return encode_type::islower(ch);
-}
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR bool string_func<Traits>::isupper(value_type ch) {
-return encode_type::isupper(ch);
-}
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR bool string_func<Traits>::isxdigit(value_type ch) {
-return encode_type::isxdigit(ch);
-}
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR bool string_func<Traits>::isspace(value_type ch) {
-return encode_type::isspace(ch);
-}
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR typename string_func<Traits>::value_type
-string_func<Traits>::tolower(value_type ch) {
-return encode_type::tolower(ch);
-}
-template<typename Traits>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR typename string_func<Traits>::value_type
-string_func<Traits>::toupper(value_type ch) {
-return encode_type::toupper(ch);
-}
-template<typename Traits>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR uint8_t string_func<Traits>::todigit(value_type ch) {
-return encode_type::todigit(ch);
-}
-template<typename Traits>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR uint8_t string_func<Traits>::toalnum(value_type ch) {
-return todigit(ch);
-}
-template<typename Traits>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR bool string_func<Traits>::isdigit(value_type ch, int Base) {
-return toalnum(ch) < Base;
-}
-template<typename Traits>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR typename string_func<Traits>::const_iterator
-string_func<Traits>::skipw(const_iterator _First, const_iterator _Last) {
-if constexpr (__string_func_traits::has_static_member_function_do_skipw_v<encode_type, const_iterator, const_iterator>) {
-return encode_type::do_skipw(_First, _Last);
-}
-else {
-while (_First != _Last && isspace(*_First)) ++_First;
-return _First;
-}
-}
-template<typename Traits>
-template<typename _Iter, std::enable_if_t<is_bidir_iterator_v<_Iter>, int>>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR _Iter
-string_func<Traits>::rskipw(_Iter _First, _Iter _Last){
-if constexpr (__string_func_traits::has_static_member_function_do_rskipw_v<encode_type, _Iter, _Iter>) {
-return encode_type::do_rskipw(_First, _Last);
-}
-else {
-while (_First != _Last && isspace(*(_Last - 1))) --_Last;
-return _Last;
-}
-}
-template<typename Traits>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR typename string_func<Traits>::const_iterator
-string_func<Traits>::skipz(const_iterator _First, const_iterator _Last) {
-if constexpr (__string_func_traits::has_static_member_function_do_skipz_v<encode_type, const_iterator, const_iterator>) {
-return encode_type::do_skipz(_First, _Last);
-}
-else {
-while (_First != _Last && *_First == '0') ++_First;
-return _First;
-}
-}
-template<typename Traits>
-template<typename T, typename F>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR T string_func<Traits>::to_integral(
-const_iterator _First, const_iterator _Last,
-const_iterator& _Pos, int base, errc& _Err, F f) noexcept {
-return integral_conversion_details<T, string_func<Traits>>
-::template to(_First, _Last, _Pos, base, _Err, f);
-}
-template<typename Traits>
-template<typename T, typename F>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR T string_func<Traits>::to_integral(
-const_iterator _First, const_iterator _Last,
-const_iterator* _Pos, int base, errc* _Err, F f) noexcept {
-const_iterator _End = _First;
-errc c = errc::ok;
-auto ret = to_integral<T>(_First, _Last, _End, base, c, f);
-if(_Pos != nullptr) *_Pos = _End;
-if(_Err != nullptr) *_Err = c;
-return ret;
-}
-template<typename Traits>
-template<typename T>
-WJR_INLINE_CONSTEXPR20 void string_func<Traits>::from_integral(
-T _Val, iterator _First, iterator _Last,
-iterator& _Pos, int base, errc& _Err) noexcept {
-return integral_conversion_details<T, string_func<Traits>>
-::template from(_Val, _First, _Last, _Pos, base, _Err);
-}
-template<typename Traits>
-template<typename T>
-WJR_INLINE_CONSTEXPR20 void string_func<Traits>::from_integral(
-T _Val, iterator _First, iterator _Last,
-iterator* _Pos, int base, errc* _Err) noexcept {
-iterator end_ptr = _First;
-errc c = errc::ok;
-from_integral<T>(_Val, _First, _Last, end_ptr, base, c);
-if (_Pos != nullptr) *_Pos = end_ptr;
-if (_Err != nullptr) *_Err = c;
-}
-_WJR_END
-#endif // __WJR_STRING_FUNC_H
 
 _WJR_BEGIN
 /*---------------------------data for string---------------------------*/
@@ -15805,12 +15212,9 @@ using is_default_less = std::true_type;
 };
 template<typename Derived>
 struct __base_string_view_traits;
-template<typename Char, typename Traits = std::char_traits<Char>>
-class basic_string_view;
-template<typename Char, typename Traits>
-struct __base_string_view_traits<basic_string_view<Char, Traits>> {
-using _Derived = basic_string_view<Char, Traits>;
-using _Traits_helper = __traits_helper<Traits>;
+template<template<typename...>typename C, typename Char, typename Traits>
+struct __base_string_view_traits<C<Char, Traits>> {
+using _Derived = C<Char, Traits>;
 using _Std_view_type = std::basic_string_view<Char, Traits>;
 template<typename T>
 struct _Is_string_view_like : std::conjunction<
@@ -15846,95 +15250,25 @@ using size_type = size_t;
 using difference_type = ptrdiff_t;
 static constexpr auto npos = static_cast<size_type>(-1);
 };
-template<typename Derived>
-class __base_string_view : public __base_string_view_traits<Derived> {
-public:
-using _Mybase = __base_string_view_traits<Derived>;
-template<typename T>
-constexpr static bool _Is_noptr_string_view_like_v = _Mybase::template _Is_noptr_string_view_like_v<T>;
-using value_type = typename _Mybase::value_type;
-using size_type = typename _Mybase::size_type;
-constexpr static size_type npos = _Mybase::npos;
-WJR_INLINE_CONSTEXPR void swap(Derived& other) noexcept {
-const Derived tmp{ other };
-other = this->derived();
-this->derived() = tmp;
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived substr(
-const size_type off = 0, size_type n = npos) const WJR_NOEXCEPT {
-#if defined(_WJR_EXCEPTION)
-if (is_likely(off <= derived().size())) {
-#endif // _WJR_EXCEPTION
-return nesubstr(off, n);
-#if defined(_WJR_EXCEPTION)
-}
-throw std::out_of_range("out of range at basic_string_view::substr");
-#endif // _WJR_EXCEPTION
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived
-nesubstr(const size_type off = 0, size_type n = npos) const noexcept {
-n = std::min(n, this->derived().size() - off);
-return Derived(this->derived().data() + off, n);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(
-const value_type* s, const size_type n) noexcept {
-return Derived(s, n);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(
-const value_type* s) noexcept {
-return Derived(s);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(
-std::initializer_list<value_type> il) noexcept {
-return view(il.begin(), il.size());
-}
-template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(const StringView& t) noexcept {
-return Derived(t);
-}
-template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(const StringView& t,
-const size_type off, const size_type n = npos) noexcept {
-return view(t).nesubstr(off, n);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived view() const noexcept {
-return this->derived();
-}
-template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived eview(const StringView& t,
-const size_type off, const size_type n = npos) WJR_NOEXCEPT {
-return view(t).substr(off, n);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived prefix(size_type n) const noexcept {
-n = std::min(n, this->derived().size());
-return Derived(this->derived().begin(), n);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived suffix(size_type n) const noexcept {
-n = std::min(n, this->derived().size());
-return Derived(this->derived().end() - n, n);
-}
+template<typename Char, typename Traits = std::char_traits<Char>>
+class basic_string_view {
 protected:
-Derived& derived() { return static_cast<Derived&>(*this); }
-const Derived& derived() const { return static_cast<const Derived&>(*this); }
-};
-template<typename Char, typename Traits>
-class basic_string_view : public __base_string_view<basic_string_view<Char, Traits>> {
-public:
-using _Mybase = __base_string_view<basic_string_view<Char, Traits>>;
-private:
-using _Traits_helper = typename _Mybase::_Traits_helper;
+using _Mybase = __base_string_view_traits<basic_string_view<Char, Traits>>;
+using _Traits_helper = __traits_helper<Traits>;
 using _Std_view_type = typename _Mybase::_Std_view_type;
 template<typename T>
-constexpr static bool _Is_string_view_like_v = _Mybase::template _Is_string_view_like_v<T>;
+using _Is_string_view_like = typename _Mybase::template _Is_string_view_like<T>;
 template<typename T>
-constexpr static bool _Is_noptr_std_string_view_like_v = _Mybase::template _Is_noptr_std_string_view_like_v<T>;
+constexpr static bool _Is_string_view_like_v = _Is_string_view_like<T>::value;
 template<typename T>
-constexpr static bool _Is_noptr_string_view_like_v = _Mybase::template _Is_noptr_string_view_like_v<T>;
+using _Is_noptr_std_string_view_like = typename _Mybase::template _Is_noptr_std_string_view_like<T>;
+template<typename T>
+constexpr static bool _Is_noptr_std_string_view_like_v = _Is_noptr_std_string_view_like<T>::value;
+template<typename T>
+using _Is_noptr_string_view_like = typename _Mybase::template _Is_noptr_string_view_like<T>;
+template<typename T>
+constexpr static bool _Is_noptr_string_view_like_v = _Is_noptr_string_view_like<T>::value;
 public:
-static_assert(!std::is_array_v<Char>&& std::is_trivial_v<Char>&& std::is_standard_layout_v<Char>,
-"The character type of basic_string_view must be a non-array trivial standard-layout type. See N4910 "
-"23.1 [strings.general]/1.");
-static_assert(std::is_same_v<Char, typename Traits::char_type>, "");
 using traits_type = typename _Mybase::traits_type;
 using value_type = typename _Mybase::value_type;
 using pointer = typename _Mybase::pointer;
@@ -15948,12 +15282,75 @@ using reverse_iterator = typename _Mybase::reverse_iterator;
 using size_type = typename _Mybase::size_type;
 using difference_type = typename _Mybase::difference_type;
 constexpr static size_type npos = _Mybase::npos;
-using _Mybase::swap;
-using _Mybase::substr;
-using _Mybase::view;
-using _Mybase::eview;
-using _Mybase::prefix;
-using _Mybase::suffix;
+public:
+static_assert(!std::is_array_v<Char>&& std::is_trivial_v<Char>&& std::is_standard_layout_v<Char>,
+"The character type of basic_string_view must be a non-array trivial standard-layout type. See N4910 "
+"23.1 [strings.general]/1.");
+static_assert(std::is_same_v<Char, typename Traits::char_type>, "");
+WJR_INLINE_CONSTEXPR void swap(basic_string_view& other) noexcept {
+const basic_string_view tmp{ other };
+other = *this;
+*this = tmp;
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view substr(
+const size_type off = 0, size_type n = npos) const WJR_NOEXCEPT {
+#if defined(_WJR_EXCEPTION)
+if (WJR_LIKELY(off <= size())) {
+#endif // _WJR_EXCEPTION
+return nesubstr(off, n);
+#if defined(_WJR_EXCEPTION)
+}
+throw std::out_of_range("out of range at basic_string_view::substr");
+#endif // _WJR_EXCEPTION
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view
+nesubstr(const size_type off = 0, size_type n = npos) const noexcept {
+n = std::min(n, size() - off);
+return basic_string_view(data() + off, n);
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(
+const value_type* s, const size_type n) noexcept {
+return basic_string_view(s, n);
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(
+const value_type* s) noexcept {
+return basic_string_view(s);
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(
+std::initializer_list<value_type> il) noexcept {
+return view(il.begin(), il.size());
+}
+template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(const StringView& t) noexcept {
+return basic_string_view(t);
+}
+template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(const StringView& t,
+const size_type off, const size_type n = npos) noexcept {
+return view(t).nesubstr(off, n);
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view view() const noexcept {
+return *this;
+}
+template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view eview(const StringView& t,
+const size_type off, const size_type n = npos) WJR_NOEXCEPT {
+return view(t).substr(off, n);
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view prefix(size_type n) const noexcept {
+n = std::min(n, size());
+return basic_string_view(begin(), n);
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view suffix(size_type n) const noexcept {
+n = std::min(n, size());
+return basic_string_view(end() - n, n);
+}
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_string_view adjust_begin(const_iterator iter) const noexcept {
+return basic_string_view(iter, static_cast<size_type>(end() - iter));
+}
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_string_view adjust_end(const_iterator iter) const noexcept {
+return basic_string_view(begin(), static_cast<size_type>(iter - begin()));
+}
 private:
 constexpr static size_type traits_length(const value_type* s) {
 return traits_type::length(s);
@@ -16075,23 +15472,24 @@ return ret != 0 ? ret : (size() < sv.size() ? -1 : 1);
 }
 }
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_CONSTEXPR20 int compare(const size_type off, const size_type n, const StringView& t)
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(const size_type off, const size_type n, const StringView& t)
 const WJR_NOEXCEPT {
 return eview(*this, off, n).compare(t);
 }
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_CONSTEXPR20 int compare(const size_type off1, const size_type n1, const StringView& t,
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(
+const size_type off1, const size_type n1, const StringView& t,
 const size_type off2, const size_type n2)
 const WJR_NOEXCEPT {
 return eview(*this, off1, n1).compare(eview(t, off2, n2));
 }
-WJR_NODISCARD WJR_CONSTEXPR20 int compare(const Char* const ptr) const {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(const Char* const ptr) const {
 return compare(view(ptr));
 }
-WJR_NODISCARD WJR_CONSTEXPR20 int compare(const size_type off, const size_type n, const Char* const ptr) const {
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(const size_type off, const size_type n, const Char* const ptr) const {
 return eview(*this, off, n).compare(view(ptr));
 }
-WJR_NODISCARD WJR_CONSTEXPR20 int compare(const size_type off1, const size_type n1,
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(const size_type off1, const size_type n1,
 const Char* const ptr, const size_type n2) const {
 return eview(*this, off1, n1).compare(eview(ptr, n2));
 }
@@ -16129,7 +15527,7 @@ return find(other) != npos;
 }
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
 WJR_NODISCARD WJR_CONSTEXPR20 size_type find(const StringView& t, const size_type off = 0) const noexcept {
-if (is_likely(off <= size())) {
+if (WJR_LIKELY(off <= size())) {
 const auto sv1 = view(*this, off);
 const auto sv2 = view(t);
 if constexpr (_Traits_helper::is_default_equal::value) {
@@ -16147,7 +15545,7 @@ return iter == end() ? npos : static_cast<size_type>(iter - begin());
 return npos;
 }
 WJR_NODISCARD WJR_CONSTEXPR20 size_type find(const Char ch, const size_type off = 0) const noexcept {
-if (is_likely(off <= size())) {
+if (WJR_LIKELY(off <= size())) {
 const auto sv = view(*this, off);
 if constexpr (_Traits_helper::is_default_equal::value) {
 auto iter = wjr::find(sv.begin(), sv.end(), ch);
@@ -16170,7 +15568,7 @@ return find(view(ptr), off);
 }
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
 WJR_NODISCARD WJR_CONSTEXPR20 size_type rfind(const StringView& t, const size_type off = npos) const noexcept {
-if (is_likely(size() != 0)) {
+if (WJR_LIKELY(size() != 0)) {
 const auto sv1 = view(*this, 0, std::min(off, size() - 1) + 1);
 const auto sv2 = view(t);
 if constexpr (_Traits_helper::is_default_equal::value) {
@@ -16190,7 +15588,7 @@ return iter == rend() ? npos : static_cast<size_type>(rend() - iter) - sv2.size(
 return npos;
 }
 WJR_NODISCARD WJR_CONSTEXPR20 size_type rfind(const Char ch, const size_type off = npos) const noexcept {
-if (is_likely(size() != 0)) {
+if (WJR_LIKELY(size() != 0)) {
 const auto sv = view(*this, 0, std::min(off, size() - 1) + 1);
 if constexpr (_Traits_helper::is_default_equal::value) {
 auto iter = wjr::find(sv.rbegin(), sv.rend(), ch);
@@ -16255,7 +15653,7 @@ const auto sv = _Std_view_type(view(t));
 return _Std_view_type(*this).find_first_not_of(sv, off);
 }
 WJR_NODISCARD WJR_CONSTEXPR20 size_type find_first_not_of(const Char ch, const size_type off = 0) const noexcept {
-if (is_likely(off <= size())) {
+if (WJR_LIKELY(off <= size())) {
 const auto sv = view(*this, off);
 if constexpr (_Traits_helper::is_default_equal::value) {
 auto iter = wjr::find(sv.begin(), sv.end(), ch, std::not_equal_to<>{});
@@ -16286,7 +15684,7 @@ const auto sv = _Std_view_type(view(t));
 return _Std_view_type(*this).find_last_not_of(sv, off);
 }
 WJR_NODISCARD WJR_CONSTEXPR20 size_type find_last_not_of(const Char ch, const size_type off = npos) const noexcept {
-if (is_likely(size() != 0)) {
+if (WJR_LIKELY(size() != 0)) {
 const auto sv = view(*this, 0, std::min(off, size() - 1) + 1);
 if constexpr (_Traits_helper::is_default_equal::value) {
 auto iter = wjr::find(sv.rbegin(), sv.rend(), ch, std::not_equal_to<>{});
@@ -16312,7 +15710,7 @@ return find_last_not_of(view(ptr), off);
 }
 /*------External extension function------*/
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_CONSTEXPR20 bool equal(const StringView& t) const noexcept {
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR20) bool equal(const StringView& t) const noexcept {
 const auto sv = view(t);
 if constexpr (_Traits_helper::is_default_equal::value) {
 return wjr::equal(begin(), end(), sv.begin(), sv.end());
@@ -16322,22 +15720,22 @@ return compare(sv) == 0;
 }
 }
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_CONSTEXPR20 bool equal(const size_type off, const size_type n, const StringView& t)
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR20) bool equal(const size_type off, const size_type n, const StringView& t)
 const WJR_NOEXCEPT {
 return eview(*this, off, n).equal(view(t));
 }
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_CONSTEXPR20 bool equal(const size_type off1, const size_type n1, const StringView& t,
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR20) bool equal(const size_type off1, const size_type n1, const StringView& t,
 const size_type off2, const size_type n2) const WJR_NOEXCEPT {
 return eview(*this, off1, n1).equal(eview(t, off2, n2));
 }
-WJR_NODISCARD WJR_CONSTEXPR20 bool equal(const Char* const ptr) const {
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR20) bool equal(const Char* const ptr) const {
 return equal(view(ptr));
 }
-WJR_NODISCARD WJR_CONSTEXPR20 bool equal(const size_type off, const size_type n, const Char* const ptr) const {
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR20) bool equal(const size_type off, const size_type n, const Char* const ptr) const {
 return equal(off, n, view(ptr));
 }
-WJR_NODISCARD WJR_CONSTEXPR20 bool equal(const size_type off1, const size_type n1,
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR20) bool equal(const size_type off1, const size_type n1,
 const Char* const ptr, const size_type n2) const {
 return equal(off1, n1, view(ptr, n2));
 }
@@ -16516,34 +15914,34 @@ public:
 WJR_CONSTEXPR20 basic_string()
 noexcept(std::is_nothrow_default_constructible_v<vector_type>)
 : m_core() {
-set_end();
+finalize();
 }
 WJR_CONSTEXPR20 explicit basic_string(const allocator_type& al) noexcept
 : m_core(al) {
-set_end();
+finalize();
 }
 WJR_CONSTEXPR20 basic_string(const basic_string& other)
 : m_core(other.m_core) {
-set_end();
+finalize();
 }
 WJR_CONSTEXPR20 basic_string(const basic_string& other, const allocator_type& al)
 : m_core(other.m_core, al) {
-set_end();
+finalize();
 }
 WJR_CONSTEXPR20 basic_string(basic_string&& other)
 : m_core(std::move(other.m_core)) {
-set_end();
-other.set_end();
+finalize();
+other.finalize();
 }
 WJR_CONSTEXPR20 basic_string(basic_string&& other, const allocator_type& al)
 : m_core(std::move(other.m_core), al) {
-set_end();
-other.set_end();
+finalize();
+other.finalize();
 }
 template<typename iter, std::enable_if_t<is_iterator_v<iter>, int> = 0>
 WJR_CONSTEXPR20 basic_string(iter first, iter last, const allocator_type& al = allocator_type())
 : m_core(first, last, al) {
-set_end();
+finalize();
 }
 WJR_CONSTEXPR20 basic_string(const basic_string& other,
 const size_type off, const allocator_type& al = allocator_type())
@@ -16577,24 +15975,24 @@ const allocator_type& al = allocator_type())
 WJR_CONSTEXPR20 explicit basic_string(const size_type n,
 const value_type c = value_type(), const allocator_type& al = allocator_type())
 : m_core(n, c, al) {
-set_end();
+finalize();
 }
 WJR_CONSTEXPR20 operator std::basic_string_view<Char, traits_type>() const noexcept {
 return { data(), size() };
 }
 WJR_CONSTEXPR20 ~basic_string() noexcept = default;
 WJR_CONSTEXPR20 basic_string& operator=(const basic_string& other) {
-if (is_likely(this != std::addressof(other))) {
+if (WJR_LIKELY(this != std::addressof(other))) {
 m_core = other.m_core;
-set_end();
+finalize();
 }
 return *this;
 }
 WJR_CONSTEXPR20 basic_string& operator=(basic_string&& other) noexcept {
-if (is_likely(this != std::addressof(other))) {
+if (WJR_LIKELY(this != std::addressof(other))) {
 m_core = std::move(other.m_core);
-set_end();
-other.set_end();
+finalize();
+other.finalize();
 }
 return *this;
 }
@@ -16635,19 +16033,19 @@ return m_core.back();
 }
 WJR_CONSTEXPR20 void resize(const size_type n) {
 m_core.resize(n);
-set_end();
+finalize();
 }
 WJR_CONSTEXPR20 void resize(const size_type n, const value_type c) {
 m_core.resize(n, c);
-set_end();
+finalize();
 }
 WJR_CONSTEXPR20 void reserve(const size_type c) {
 m_core.reserve(c);
-set_end();
+finalize();
 }
 WJR_CONSTEXPR20 void shrink_to_fit() {
 m_core.shrink_to_fit();
-set_end();
+finalize();
 }
 WJR_CONSTEXPR20 void clear() {
 resize(0);
@@ -16695,7 +16093,7 @@ return append(eview(other, off, n));
 template<typename iter, std::enable_if_t<is_iterator_v<iter>, int> = 0>
 WJR_CONSTEXPR20 basic_string& append(iter first, iter last) {
 m_core.append(first, last);
-set_end();
+finalize();
 return *this;
 }
 WJR_CONSTEXPR20 basic_string& append(const value_type* s, size_type n) {
@@ -16719,7 +16117,7 @@ return apend(eview(t, off, n));
 }
 WJR_CONSTEXPR20 basic_string& append(const size_type n, const value_type c) {
 m_core.append(n, c);
-set_end();
+finalize();
 return *this;
 }
 WJR_CONSTEXPR20 basic_string& append(const value_type c) {
@@ -16728,14 +16126,14 @@ return *this;
 }
 WJR_CONSTEXPR20 void push_back(const value_type c) {
 m_core.push_back(c);
-set_end();
+finalize();
 }
 WJR_CONSTEXPR20 void push_front(const value_type c) {
 prepend(c);
 }
 WJR_CONSTEXPR20 void pop_back() {
 m_core.pop_back();
-set_end();
+finalize();
 }
 WJR_CONSTEXPR20 basic_string& assign(const basic_string& other) {
 return (*this) = other;
@@ -16749,7 +16147,7 @@ return assign(eview(other, off, n));
 template<typename iter, std::enable_if_t<is_iterator_v<iter>, int> = 0>
 WJR_CONSTEXPR20 basic_string& assign(iter first, iter last) {
 m_core.assign(first, last);
-set_end();
+finalize();
 return *this;
 }
 WJR_CONSTEXPR20 basic_string& assign(const value_type* s, const size_type n) {
@@ -16772,7 +16170,7 @@ return assign(eview(t, off, n));
 }
 WJR_CONSTEXPR20 basic_string& assign(const size_type n, const value_type c) {
 m_core.assign(n, c);
-set_end();
+finalize();
 return *this;
 }
 WJR_CONSTEXPR20 basic_string& insert(const size_type off, const basic_string& str) {
@@ -16786,7 +16184,7 @@ template<typename iter, std::enable_if_t<is_iterator_v<iter>, int> = 0>
 WJR_CONSTEXPR20 iterator insert(const_iterator _Where, iter first, iter last) {
 auto __old_pos = static_cast<size_type>(_Where - cbegin());
 m_core.insert(_Where, first, last);
-set_end();
+finalize();
 return begin() + __old_pos;
 }
 WJR_CONSTEXPR20 basic_string& insert(const size_type off, const value_type* s, const size_type n) {
@@ -16798,7 +16196,7 @@ return insert(off, view(s));
 WJR_CONSTEXPR20 iterator insert(const_iterator _Where, const size_type n, const value_type c) {
 auto __old_pos = static_cast<size_type>(_Where - cbegin());
 m_core.insert(_Where, n, c);
-set_end();
+finalize();
 return begin() + __old_pos;
 }
 WJR_CONSTEXPR20 basic_string& insert(const size_type off, const size_type n, const value_type c) {
@@ -16809,7 +16207,7 @@ return *this;
 WJR_CONSTEXPR20 iterator insert(const_iterator _Where, const value_type c) {
 auto __old_pos = static_cast<size_type>(_Where - cbegin());
 m_core.insert(_Where, c);
-set_end();
+finalize();
 return begin() + __old_pos;
 }
 WJR_CONSTEXPR20 iterator insert(const_iterator _Where, std::initializer_list<value_type> il) {
@@ -16830,7 +16228,7 @@ return insert(off1, view(t, off2, n));
 WJR_CONSTEXPR20 iterator erase(const_iterator first, const_iterator last) {
 auto __old_pos = first - cbegin();
 m_core.erase(first, last);
-set_end();
+finalize();
 return begin() + __old_pos;
 }
 WJR_CONSTEXPR20 basic_string& erase(const size_type off = 0, size_type n = npos) {
@@ -16841,13 +16239,13 @@ return *this;
 WJR_CONSTEXPR20 iterator erase(const_iterator _Where) {
 auto __old_pos = _Where - cbegin();
 m_core.erase(_Where);
-set_end();
+finalize();
 return begin() + __old_pos;
 }
 WJR_CONSTEXPR20 void swap(basic_string& other)noexcept {
 m_core.swap(other.m_core);
-set_end();
-other.set_end();
+finalize();
+other.finalize();
 }
 WJR_INLINE_CONSTEXPR20 const value_type* c_str() const { return m_core.data(); }
 WJR_INLINE_CONSTEXPR20 value_type* data() { return m_core.data(); }
@@ -17039,7 +16437,7 @@ template<typename iter>
 WJR_CONSTEXPR20 basic_string& replace(const_iterator first, const_iterator last,
 iter first2, iter last2) {
 m_core.replace(first, last, first2, last2);
-set_end();
+finalize();
 return *this;
 }
 WJR_CONSTEXPR20 basic_string& replace(size_type off, size_type n1,
@@ -17067,7 +16465,7 @@ return replace(sv.begin(), sv.end(), n2, ch);
 WJR_CONSTEXPR20 basic_string& replace(const_iterator first, const_iterator last,
 size_type n2, value_type ch) {
 m_core.replace(first, last, n2, ch);
-set_end();
+finalize();
 return *this;
 }
 WJR_CONSTEXPR20 basic_string& replace(const_iterator first, const_iterator last,
@@ -17154,7 +16552,7 @@ getData().set_size(_Size);
 WJR_INLINE_CONSTEXPR20 void inc_size(const difference_type _Size) noexcept {
 getData().inc_size(_Size);
 }
-WJR_INLINE_CONSTEXPR20 void set_end() {
+WJR_INLINE_CONSTEXPR20 void finalize() {
 wjr::construct_at(getAllocator(), lastPtr());
 }
 /*------External extension function------*/
@@ -17231,7 +16629,7 @@ return *this;
 }
 WJR_CONSTEXPR20 basic_string& prepend(const value_type c) {
 m_core.emplace(m_core.begin(), c);
-set_end();
+finalize();
 return *this;
 }
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
@@ -17260,46 +16658,46 @@ return view().equal(off1, n1, ptr, n2);
 }
 WJR_CONSTEXPR20 basic_string(const size_type _Count, default_construct_tag, const allocator_type& al = allocator_type())
 : m_core(_Count, default_construct_tag(), al) {
-set_end();
+finalize();
 }
 WJR_CONSTEXPR20 basic_string(const size_type _Count, value_construct_tag, const allocator_type& al = allocator_type())
 : m_core(_Count, value_construct_tag(), al) {
-set_end();
+finalize();
 }
 WJR_CONSTEXPR20 void resize(const size_type _Newsize, default_construct_tag) {
 m_core.resize(_Newsize, default_construct_tag());
-set_end();
+finalize();
 }
 WJR_CONSTEXPR20 void resize(const size_type _Newsize, value_construct_tag) {
 m_core.resize(_Newsize, value_construct_tag());
-set_end();
+finalize();
 }
 WJR_CONSTEXPR20 void push_back(default_construct_tag) {
 m_core.push_back(default_construct_tag());
-set_end();
+finalize();
 }
 WJR_CONSTEXPR20 void push_back(value_construct_tag) {
 m_core.push_back(value_construct_tag());
-set_end();
+finalize();
 }
 WJR_CONSTEXPR20 basic_string& append(const size_type n, default_construct_tag) {
 m_core.append(n, default_construct_tag());
-set_end();
+finalize();
 return *this;
 }
 WJR_CONSTEXPR20 basic_string& append(const size_type n, value_construct_tag) {
 m_core.append(n, value_construct_tag());
-set_end();
+finalize();
 return *this;
 }
 WJR_CONSTEXPR20 basic_string& chop(const size_type n) noexcept {
 m_core.chop(n);
-set_end();
+finalize();
 return *this;
 }
 WJR_CONSTEXPR20 basic_string& truncate(const size_type n) noexcept {
 m_core.truncate(n);
-set_end();
+finalize();
 return *this;
 }
 WJR_INLINE_CONSTEXPR20 void assume_total_capacity(const size_type n) const noexcept {
@@ -18009,447 +17407,124 @@ return std::hash<std::basic_string_view<Char, Traits>>()(str);
 };
 }
 _WJR_BEGIN
-namespace encode {
-class ascii;
-struct ascii_traits {
-using value_type = char;
-using encode_type = encode::ascii;
-using iterator = char*;
-using const_iterator = const char*;
-};
-struct __ascii_to_digit_table {
-constexpr static uint8_t invalid = 0xff;
-constexpr __ascii_to_digit_table() : table() {
-for (int i = 0; i < 256; ++i) {
-table[i] = invalid;
-}
-{
-for (int i = '0'; i <= '9'; ++i) {
-table[i] = (i - '0');
-}
-}
-for (int i = 'a'; i <= 'z'; ++i) {
-table[i] = (i - 'a') + 10;
-}
-for (int i = 'A'; i <= 'Z'; ++i) {
-table[i] = (i - 'A') + 10;
-}
-}
-WJR_ATTRIBUTE(CONST, CONSTEXPR) uint8_t operator[](uint8_t ch) const { return table[ch]; }
-private:
-std::array<uint8_t, 256> table;
-};
-constexpr static __ascii_to_digit_table __ascii_to_digit_table_v = {};
-class ascii : public string_func<ascii_traits> {
+template<typename Char, typename Traits = std::char_traits<Char>>
+class basic_string_modifier :
+public basic_string_view<Char, Traits>{
+using _Mybase = basic_string_view<Char, Traits>;
+template<typename T>
+constexpr static bool _Is_noptr_string_view_like_v = _Mybase::template _Is_noptr_string_view_like_v<T>;
 public:
-enum __char_code {
-__none = 0x00,
-__lower = 0x01,
-__upper = 0x02,
-__digit = 0x04,
-__xdigit = 0x08,
-__white = 0x10
-};
-static constexpr int __char_code_table[256] = {
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,         __white,         __white,         __white,
-__white,         __white,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__white,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__digit | __xdigit,__digit | __xdigit,__digit | __xdigit,__digit | __xdigit,
-__digit | __xdigit,__digit | __xdigit,__digit | __xdigit,__digit | __xdigit,
-__digit | __xdigit,__digit | __xdigit,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,__upper | __xdigit,__upper | __xdigit,__upper | __xdigit,
-__upper | __xdigit,__upper | __xdigit,__upper | __xdigit,         __upper,
-__upper,         __upper,         __upper,         __upper,
-__upper,         __upper,         __upper,         __upper,
-__upper,         __upper,         __upper,         __upper,
-__upper,         __upper,         __upper,         __upper,
-__upper,         __upper,         __upper,          __none,
-__none,          __none,          __none,          __none,
-__none,__lower | __xdigit,__lower | __xdigit,__lower | __xdigit,
-__lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
-__lower,         __lower,         __lower,         __lower,
-__lower,         __lower,         __lower,         __lower,
-__lower,         __lower,         __lower,         __lower,
-__lower,         __lower,         __lower,         __lower,
-__lower,         __lower,         __lower,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none,
-__none,          __none,          __none,          __none
-};
-friend string_func<ascii_traits>;
-using _Mybase = string_func<ascii_traits>;
-using value_type = char;
-WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isalnum(value_type ch) {
-return __char_code_table[make_unsigned_v(ch)] & (__lower | __upper | __digit);
+using traits_type = typename _Mybase::traits_type;
+using value_type = typename _Mybase::value_type;
+using pointer = value_type*;
+using const_pointer = typename _Mybase::const_pointer;
+using reference = value_type&;
+using const_reference = typename _Mybase::const_reference;
+using const_iterator = typename _Mybase::const_iterator;
+using iterator = pointer;
+using const_reverse_iterator = typename _Mybase::const_reverse_iterator;
+using reverse_iterator = std::reverse_iterator<iterator>;
+using size_type = typename _Mybase::size_type;
+using difference_type = typename _Mybase::difference_type;
+static constexpr size_type npos = _Mybase::npos;
+using _Mybase::_Mybase;
+using _Mybase::operator=;
+using _Mybase::data;
+using _Mybase::begin;
+using _Mybase::end;
+using _Mybase::rbegin;
+using _Mybase::rend;
+using _Mybase::front;
+WJR_CONSTEXPR basic_string_modifier(const _Mybase& other)
+: _Mybase(other) {}
+WJR_INLINE_CONSTEXPR void swap(basic_string_modifier& other) noexcept {
+return _Mybase::swap(other);
 }
-WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isalpha(value_type ch) {
-return __char_code_table[make_unsigned_v(ch)] & (__lower | __upper);
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_modifier substr(
+const size_type off = 0, size_type n = npos) const WJR_NOEXCEPT {
+return basic_string_modifier(_Mybase::substr(off, n));
 }
-WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool islower(value_type ch) {
-return __char_code_table[make_unsigned_v(ch)] & __lower;
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_modifier
+nesubstr(const size_type off = 0, size_type n = npos) const noexcept {
+return basic_string_modifier(_Mybase::nesubstr(off, n));
 }
-WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isupper(value_type ch) {
-return __char_code_table[make_unsigned_v(ch)] & __upper;
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_modifier view(
+const value_type* s, const size_type n) noexcept {
+return basic_string_modifier(s, n);
 }
-WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isdigit(value_type ch) {
-return __char_code_table[make_unsigned_v(ch)] & __digit;
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_modifier view(
+const value_type* s) noexcept {
+return basic_string_modifier(s);
 }
-WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isxdigit(value_type ch) {
-return __char_code_table[make_unsigned_v(ch)] & __xdigit;
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_modifier view(
+std::initializer_list<value_type> il) noexcept {
+return view(il.begin(), il.size());
 }
-WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isspace(value_type ch) {
-return __char_code_table[make_unsigned_v(ch)] & __white;
+template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_modifier view(const StringView& t) noexcept {
+return basic_string_modifier(t);
 }
-WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static value_type tolower(value_type ch) {
-return isupper(ch) ? ch + 'a' - 'A' : ch;
+template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_modifier view(const StringView& t,
+const size_type off, const size_type n = npos) noexcept {
+return view(t).nesubstr(off, n);
 }
-WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static value_type toupper(value_type ch) {
-return islower(ch) ? ch + 'A' - 'a' : ch;
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_modifier view() const noexcept {
+return *this;
 }
-WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static uint8_t todigit(char ch) {
-return __ascii_to_digit_table_v[ch];
+template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_modifier eview(const StringView& t,
+const size_type off, const size_type n = npos) WJR_NOEXCEPT {
+return view(t).substr(off, n);
 }
-WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) static const char* do_skipw(const char* s, const char* e) {
-if constexpr(wjr::algo::__has_fast_memskipw_v<char>){
-return wjr::algo::memskipw(s, e);
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_modifier prefix(size_type n) const noexcept {
+return basic_string_modifier(prefix(n));
 }
-else {
-for (; s != e && isspace(*s); ++s);
-return s;
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_modifier suffix(size_type n) const noexcept {
+return basic_string_modifier(suffix(n));
 }
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_string_modifier adjust_begin(const_iterator iter) const noexcept {
+return basic_string_modifier(_Mybase::adjust_begin(iter));
 }
-using to_i_flags = typename _Mybase::to_i_flags;
-using default_to_i_flags = typename _Mybase::default_to_i_flags;
-using _Mybase::to_integral;
-using _Mybase::from_integral;
-using to_f_flags = typename double_conversion::StringToDoubleConverter::Flags;
-using default_to_f_flags = std::integral_constant<
-to_f_flags,
-static_cast<to_f_flags>
-(to_f_flags::ALLOW_LEADING_SPACES
-| to_f_flags::ALLOW_TRAILING_JUNK)
->;
-template<typename T, typename F = default_to_f_flags>
-WJR_NODISCARD static T to_floating_point(
-const char* _First, const char* _Last, const char*& _Pos, errc& _Err, F f = F()) noexcept {
-using double_conversion::StringToDoubleConverter;
-if (_First == _Last) {
-_Err = errc::noconv;
-return static_cast<T>(0);
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_string_modifier adjust_end(const_iterator iter) const noexcept {
+return basic_string_modifier(_Mybase::adjust_end(iter));
 }
-StringToDoubleConverter conv(
-get_cvar(f),
-0.0,
-std::numeric_limits<T>::quiet_NaN(),
-nullptr,
-nullptr);
-int length = 0; // processed char count
-T result = 0;
-static_assert(is_any_of_v<T, float, double>, "");
-if constexpr (std::is_same_v<T, float>) {
-result = conv.StringToFloat(_First, static_cast<size_t>(_Last - _First), &length);
+WJR_INLINE_CONSTEXPR pointer data() { return const_cast<pointer>(_Mybase::data()); }
+WJR_INLINE_CONSTEXPR iterator begin() { return const_cast<iterator>(_Mybase::begin()); }
+WJR_INLINE_CONSTEXPR iterator end() { return const_cast<iterator>(_Mybase::end()); }
+WJR_INLINE_CONSTEXPR reverse_iterator rbegin() {
+return reverse_iterator(end());
 }
-else {
-result = conv.StringToDouble(_First, static_cast<size_t>(_Last - _First), &length);
+WJR_INLINE_CONSTEXPR reverse_iterator rend() {
+return reverse_iterator(begin());
 }
-if (!std::isnan(result)) {
-if (length == 0 ||
-(result == 0.0 && isspace(_First[length - 1]))) {
-_Err = errc::noconv;
-return static_cast<T>(0);
+WJR_INLINE_CONSTEXPR reference front() {
+return *begin();
 }
-if (length >= 2) {
-const char* suffix = _First + length - 1;
-if (*suffix == '-' || *suffix == '+') {
---suffix;
---length;
+WJR_INLINE_CONSTEXPR reference operator[](size_type n) {
+return data()[n];
 }
-if (*suffix == 'e' || *suffix == 'E') {
---length;
+using _Mybase::size;
+template<typename otherChar, typename otherTraits>
+WJR_INLINE_CONSTEXPR20 basic_string_modifier append(basic_string_view<otherChar, otherTraits> str) {
+static_assert(sizeof(otherChar) <= sizeof(Char), "");
+wjr::uninitialized_copy_n(str.begin(), str.size(), data());
+return basic_string_modifier(data() + str.size(), size() - str.size());
 }
+template<typename otherChar>
+WJR_INLINE_CONSTEXPR20 basic_string_modifier append(size_type n, otherChar ch) {
+static_assert(sizeof(otherChar) <= sizeof(Char), "");
+wjr::uninitialized_fill_n(data(), n, ch);
+return basic_string_modifier(data() + n, size() - n);
 }
-_Pos = _First + length;
-_Err = errc::ok;
-return result;
-}
-auto s = _Mybase::skipw(_First, _Last);
-if (s == _Last) {
-_Err = errc::noconv;
-return static_cast<T>(0);
-}
-auto size = size_t(_Last - s);
-bool negative = false;
-if (*s == '-') {
-negative = true;
-++s;
---size;
-if (size == 0) {
-_Err = errc::noconv;
-return static_cast<T>(0);
-}
-}
-WJR_ASSUME(size > 0);
-result = 0.0;
-switch (tolower(*s)) {
-case 'i':
-if (size >= 3 && tolower(s[1]) == 'n' &&
-tolower(s[2]) == 'f') {
-if (size >= 8 && tolower(s[3]) == 'i' &&
-tolower(s[4]) == 'n' && tolower(s[5]) == 'i' &&
-tolower(s[6]) == 't' && tolower(s[7]) == 'y') {
-s += 8;
-}
-else {
-s += 3;
-}
-result = std::numeric_limits<T>::infinity();
-}
-break;
-case 'n':
-if (size >= 3 && tolower(s[1]) == 'a' &&
-tolower(s[2]) == 'n') {
-s += 3;
-result = std::numeric_limits<T>::quiet_NaN();
-}
-break;
-default:
-break;
-}
-if (result == 0.0) {
-_Err = errc::noconv;
-return static_cast<T>(0);
-}
-if (negative) {
-result = -result;
-}
-_Pos = s;
-_Err = errc::ok;
-return static_cast<T>(result);
-}
-template<typename T, typename F = default_to_f_flags>
-WJR_NODISCARD static T to_floating_point(
-const char* _First, const char* _Last, const char** _Pos = nullptr, errc* _Err = nullptr, F f = F()) noexcept {
-const char* end_ptr = _First;
-errc c = errc::ok;
-auto ret = to_floating_point<T>(_First, _Last, end_ptr, c, f);
-if (_Pos != nullptr) {
-*_Pos = end_ptr;
-}
-if (_Err != nullptr) {
-*_Err = c;
-}
-return ret;
-}
-template<typename T, typename F = default_to_f_flags>
-WJR_NODISCARD static T to_floating_point(
-const char* _First, size_t n, size_t* _Pos = nullptr, errc* _Err = nullptr, F f = F()) noexcept {
-const char* end_ptr = _First;
-errc c = errc::ok;
-auto ret = to_floating_point<T>(_First, _First + n, end_ptr, c, f);
-if (_Pos != nullptr) {
-*_Pos = static_cast<size_t>(end_ptr - _First);
-}
-if (_Err != nullptr) {
-*_Err = c;
-}
-return ret;
-}
-using from_f_mode = typename double_conversion::DoubleToStringConverter::DtoaMode;
-using from_f_flags = typename double_conversion::DoubleToStringConverter::Flags;
-using defualt_from_f_mode = std::integral_constant<
-from_f_mode,
-from_f_mode::SHORTEST
->;
-using defualt_from_f_flags = std::integral_constant<
-from_f_flags,
-from_f_flags::NO_FLAGS
->;
-template<typename T,
-typename _Iter,
-typename M = defualt_from_f_mode,
-typename F = defualt_from_f_flags>
-static void from_floating_point(
-T value, _Iter first, _Iter last,
-_Iter& pos, errc& err, int precision = 0, M m = M(), F f = F()) noexcept {
-using double_conversion::DoubleToStringConverter;
-using double_conversion::StringBuilder;
-DoubleToStringConverter conv(
-get_cvar(f),
-"Infinity",
-"NaN",
-'E',
--6,
-21,
-6, // max leading padding zeros
-1); // max trailing padding zeros
-char buffer[256];
-StringBuilder builder(buffer, sizeof(buffer));
-const auto mode = get_cvar(m);
-switch (mode) {
-case DoubleToStringConverter::SHORTEST:
-conv.ToShortest(value, &builder);
-break;
-case DoubleToStringConverter::SHORTEST_SINGLE:
-conv.ToShortestSingle(static_cast<float>(value), &builder);
-break;
-case DoubleToStringConverter::FIXED:
-conv.ToFixed(value, precision, &builder);
-break;
-case DoubleToStringConverter::PRECISION:
-default:
-conv.ToPrecision(value, precision, &builder);
-break;
-}
-auto length = static_cast<size_t>(builder.position());
-builder.Finalize();
-if constexpr (is_random_iterator_v<_Iter>) {
-const auto n = static_cast<size_t>(last - first);
-if (n < length) {
-err = errc::buffer_too_small;
-return;
-}
-first = wjr::copy_n(buffer, length, first);
-}
-else {
-auto _Buf = buffer;
-for (; length && first != last; ++_Buf, ++first, --length) {
-*first = *_Buf;
-}
-if (length) {
-err = errc::buffer_too_small;
-return;
-}
-}
-pos = first;
-err = errc::ok;
-return;
-}
-template<typename T,
-typename _Iter, typename _Diff,
-typename M = defualt_from_f_mode,
-typename F = defualt_from_f_flags>
-static void from_floating_point(
-T value, _Iter first, _Diff n,
-_Iter& pos, errc& err, int precision = 0, M m = M(), F f = F()) noexcept {
-using double_conversion::DoubleToStringConverter;
-using double_conversion::StringBuilder;
-if (n <= 0) {
-err = errc::buffer_too_small;
-return;
-}
-DoubleToStringConverter conv(
-get_cvar(f),
-"Infinity",
-"NaN",
-'E',
--6,
-21,
-6, // max leading padding zeros
-1); // max trailing padding zeros
-char buffer[256];
-StringBuilder builder(buffer, sizeof(buffer));
-const auto mode = get_cvar(m);
-switch (mode) {
-case DoubleToStringConverter::SHORTEST:
-conv.ToShortest(value, &builder);
-break;
-case DoubleToStringConverter::SHORTEST_SINGLE:
-conv.ToShortestSingle(static_cast<float>(value), &builder);
-break;
-case DoubleToStringConverter::FIXED:
-conv.ToFixed(value, precision, &builder);
-break;
-case DoubleToStringConverter::PRECISION:
-default:
-conv.ToPrecision(value, precision, &builder);
-break;
-}
-const auto length = static_cast<size_t>(builder.position());
-builder.Finalize();
-if (static_cast<size_t>(n) < length) {
-err = errc::buffer_too_small;
-return;
-}
-first = wjr::copy_n(buffer, length, first);
-pos = first;
-err = errc::ok;
-return;
-}
-template<typename T, typename _Iter,
-typename M = defualt_from_f_mode,
-typename F = defualt_from_f_flags>
-static void from_floating_point(
-T value, _Iter first, _Iter last,
-_Iter* pos = nullptr, errc* err = nullptr, int precision = 0, M m = M(), F f = F()) noexcept {
-auto end_ptr = first;
-errc c = errc::ok;
-from_floating_point(value, first, last, end_ptr, c, precision, m, f);
-if (pos != nullptr) {
-*pos = end_ptr;
-}
-if (err != nullptr) {
-*err = c;
-}
-}
-template<typename T, typename _Iter, typename _Diff,
-typename M = defualt_from_f_mode,
-typename F = defualt_from_f_flags>
-static void from_floating_point(
-T value, _Iter first, _Diff n,
-size_t* pos = nullptr, errc* err = nullptr, int precision = 0, M m = M(), F f = F()) noexcept {
-auto end_ptr = first;
-errc c = errc::ok;
-from_floating_point(value, first, n, end_ptr, c, precision, m, f);
-if (pos != nullptr) {
-*pos = static_cast<size_t>(end_ptr - first);
-}
-if (err != nullptr) {
-*err = c;
-}
+WJR_INLINE_CONSTEXPR void finalize() {
+front() = value_type();
 }
 };
-class utf8 {};
-}
+using string_modifier = basic_string_modifier<char>;
+using wstring_modifier = basic_string_modifier<wchar_t>;
+using u16string_modifier = basic_string_modifier<char16_t>;
+using u32string_modifier = basic_string_modifier<char32_t>;
 _WJR_END
 #endif // __WJR_STRING_H
 
@@ -18767,7 +17842,7 @@ static void (*__malloc_alloc_oom_handler)();
 public:
 static void* allocate(size_t __n) {
 void* __result = malloc(__n);
-if (is_unlikely(0 == __result)) __result = _S_oom_malloc(__n);
+if (WJR_UNLIKELY(0 == __result)) __result = _S_oom_malloc(__n);
 return __result;
 }
 static void deallocate(void* __p, size_t /* __n */) {
@@ -18775,7 +17850,7 @@ free(__p);
 }
 static void* reallocate(void* __p, size_t /* old_sz */, size_t __new_sz) {
 void* __result = realloc(__p, __new_sz);
-if (is_unlikely(0 == __result)) __result = _S_oom_realloc(__p, __new_sz);
+if (WJR_UNLIKELY(0 == __result)) __result = _S_oom_realloc(__p, __new_sz);
 return __result;
 }
 static void (*__set_malloc_handler(void (*__f)()))()
@@ -18923,7 +17998,7 @@ base::free_list + FREELIST_INDEX(bytes_left);
 *my_free_list = (obj*)base::start_free;
 }
 base::start_free = (char*)malloc(bytes_to_get);
-if (is_unlikely(0 == base::start_free)) {
+if (WJR_UNLIKELY(0 == base::start_free)) {
 obj* volatile* my_free_list, * p;
 for (int i = static_cast<int>(size); i <= __MAX_BYTES; i += __ALIGN) {
 my_free_list = base::free_list + FREELIST_INDEX(i);
@@ -19000,7 +18075,7 @@ WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty* allocate(size_t n) const noexcept {
 __test_allocator_instance._Count += n;
 #endif
 if (!is_constant_evaluated()) {
-if (is_unlikely(0 == n)) {
+if (WJR_UNLIKELY(0 == n)) {
 return nullptr;
 }
 return static_cast<Ty*>(allocator_type::allocate(sizeof(Ty) * n));
@@ -19012,7 +18087,7 @@ WJR_CONSTEXPR20 void deallocate(Ty* ptr, size_t n) const noexcept {
 __test_allocator_instance._Count -= n;
 #endif
 if (!is_constant_evaluated()) {
-if (is_unlikely(0 == n)) return;
+if (WJR_UNLIKELY(0 == n)) return;
 return allocator_type::deallocate(static_cast<void*>(ptr), sizeof(Ty) * n);
 }
 return std::allocator<Ty>().deallocate(ptr, n);
@@ -19488,7 +18563,7 @@ template<typename...Args>
 WJR_INLINE_CONSTEXPR20 decltype(auto) emplace_back(Args&&...args) {
 auto& al = getAllocator();
 auto& _Mydata = getData();
-if (is_likely(_Mydata._Mysize != _Mydata._Mycapacity)) {
+if (WJR_LIKELY(_Mydata._Mysize != _Mydata._Mycapacity)) {
 wjr::construct_at(al, _Mydata._Myptr + _Mydata._Mytail, std::forward<Args>(args)...);
 ++_Mydata._Mytail;
 _Mydata._Mytail = _Mydata._Mytail == _Mydata._Mycapacity ? 0 : _Mydata._Mytail;
@@ -19505,7 +18580,7 @@ template<typename...Args>
 WJR_INLINE_CONSTEXPR20 decltype(auto) emplac_front(Args&&...args) {
 auto& al = getAllocator();
 auto& _Mydata = getData();
-if (is_likely(_Mydata._Mysize != _Mydata._Mycapacity)) {
+if (WJR_LIKELY(_Mydata._Mysize != _Mydata._Mycapacity)) {
 _Mydata._Myhead = _Mydata._Myhead == 0 ? _Mydata._Mycapacity : _Mydata._Myhead;
 --_Mydata._Myhead;
 wjr::construct_at(al, _Mydata._Myptr + _Mydata._Myhead, std::forward<Args>(args)...);
@@ -19908,7 +18983,7 @@ std::function<void()> function = std::bind(std::forward<Func>(func), std::forwar
 std::unique_lock task_lock(m_task_mutex);
 m_task_queue.push_back(std::move(function));
 #if defined(_WJR_EXCEPTION)
-if (is_unlikely(!m_valid)) {
+if (WJR_UNLIKELY(!m_valid)) {
 throw std::runtime_error("can't put task into invalid thread_pool");
 }
 #endif // _WJR_EXCEPTION
@@ -20040,7 +19115,7 @@ std::unique_lock task_lock(m_task_mutex);
 m_task_cv.wait(task_lock, [this] {
 return !m_task_queue.empty() || !m_valid;
 });
-if (is_likely(m_valid)) {
+if (WJR_LIKELY(m_valid)) {
 if (!m_pause) {
 task = std::move(m_task_queue.front());
 m_task_queue.pop_front();
@@ -20970,6 +20045,30 @@ template<typename C, typename F>
 constexpr static F for_each(F&& f) {
 return __for_each_helper(std::forward<F>(f), tp_rename_t<C, tp_list>());
 }
+template<typename C, typename F, typename U>
+constexpr static decltype(auto) accumulate(F&& f, U&& u) {
+constexpr auto len = tp_size_v<C>;
+if constexpr (len == 0) { return std::forward<U>(u); }
+else {
+#define __WJR_REGISTER_ACCUMULATE_FUNC(x, y)			\
+if constexpr(len == x) {return ans##y;}		\
+else{										\
+auto ans##x = f(tp_at_t<C, x>(), ans##y)
+#define __WJR_REGISTER_ACCUMULATE_FUNC_END	}
+auto ans0 = std::forward<F>(f)(tp_at_t<C, 0>(), std::forward<U>(u));
+__WJR_REGISTER_ACCUMULATE_FUNC(1, 0);
+__WJR_REGISTER_ACCUMULATE_FUNC(2, 1);
+__WJR_REGISTER_ACCUMULATE_FUNC(3, 2);
+__WJR_REGISTER_ACCUMULATE_FUNC(4, 3);
+return accumulate<tp_remove_prefix_t<C, 4>>(std::forward<F>(f), ans4);
+__WJR_REGISTER_ACCUMULATE_FUNC_END;
+__WJR_REGISTER_ACCUMULATE_FUNC_END;
+__WJR_REGISTER_ACCUMULATE_FUNC_END;
+__WJR_REGISTER_ACCUMULATE_FUNC_END;
+#undef __WJR_REGISTER_ACCUMULATE_FUNC_END
+#undef __WJR_REGISTER_ACCUMULATE_FUNC
+}
+}
 private:
 template<typename F, typename...Args>
 constexpr static F __for_each_helper(F&& f, tp_list<Args...>) {
@@ -20978,6 +20077,22 @@ return std::forward<F>(f);
 }
 };
 inline constexpr tp_fn tp;
+constexpr inline size_t __get_constant_string_lenth(const char* str) {
+const char* s = str;
+while (*str != '\0') ++str;
+return str - s;
+}
+#define WJR_MAKE_CONSTANT_STRING(STRING)                                                                    \
+[](){	                                                                                                \
+constexpr auto __wjr_str = STRING;	                                                                \
+constexpr auto __wjr_len = ::wjr::__get_constant_string_lenth(__wjr_str);	                        \
+tp_list<> it;	                                                                                    \
+return tp.accumulate<tp_iota_t<0, __wjr_len>>([](auto x, auto y) {	                                \
+using type = remove_cvref_t<decltype(y)>;	                                                    \
+using ret_type = tp_push_back_t<type, tp_c<char, __wjr_str[x]>>;	                            \
+return ret_type();	                                                                            \
+}, it);	                                                                                        \
+}()
 _WJR_END
 #endif // __WJR_TP_LIST_H
 
@@ -20986,18 +20101,1404 @@ _WJR_END
 #define __WJR_JSON_H
 #include <map>
 #pragma once
+#ifndef __WJR_STRING_FUNC_H
+#define __WJR_STRING_FUNC_H
+#include <optional>
+_WJR_ENCODE_BEGIN
+namespace __string_func_traits {
+WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(do_skipw, do_skipw);
+WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(do_rskipw, do_rskipw);
+WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(do_skipz, do_skipz);
+}
+class __base_encode_common {
+public:
+template<typename T, typename Char>
+WJR_INLINE_CONSTEXPR static void from_integral(T _Val,
+basic_string_modifier<Char>& it, int base, errc& _Err) noexcept;
+using from_f_mode = typename double_conversion::DoubleToStringConverter::DtoaMode;
+using from_f_flags = typename double_conversion::DoubleToStringConverter::Flags;
+using default_from_f_mode = std::integral_constant<
+from_f_mode,
+from_f_mode::SHORTEST
+>;
+using default_from_f_flags = std::integral_constant<
+from_f_flags,
+from_f_flags::NO_FLAGS
+>;
+template<typename T, typename Char,
+typename M = default_from_f_mode,
+typename F = default_from_f_flags>
+WJR_INLINE static void from_floating_point(
+T value, basic_string_modifier<Char>& it, errc& err, int precision = 0, M m = M(), F _Flags = F()) noexcept;
+private:
+inline constexpr static char charconv_lower[] =
+{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
+'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
+inline constexpr static char charconv_upper[] =
+{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E',
+'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
+'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
+};
+template<typename T, typename Char>
+WJR_INLINE_CONSTEXPR void __base_encode_common::from_integral(T _Val,
+basic_string_modifier<Char>& it, int base, errc& _Err) noexcept {
+using uT = std::make_unsigned_t<T>;
+auto uval = make_unsigned_v(_Val);
+auto _First = it.begin();
+const auto _Size = it.size();
+if (WJR_UNLIKELY(_Size == 0)) {
+_Err = errc::buffer_too_small;
+return;
+}
+if constexpr (std::is_signed_v<T>) {
+if (_Val < 0) {
+if (_Size == 1) {
+_Err = errc::buffer_too_small;
+return;
+}
+*_First = '-';
+++_First;
+uval = static_cast<uT>(0 - uval);
+}
+}
+constexpr size_t _Buff_size = sizeof(uT) * 8;
+char _Buff[_Buff_size];
+char* const _Buff_end = _Buff + _Buff_size;
+char* _RNext = _Buff_end;
+switch (base) {
+case 10:
+{ // Derived from _UIntegral_to_buff()
+constexpr bool _Use_chunks = sizeof(uT) > sizeof(size_t);
+if constexpr (_Use_chunks) { // For 64-bit numbers on 32-bit platforms, work in chunks to avoid 64-bit
+while (uval > 0xFFFF'FFFFU) {
+unsigned long _Chunk = static_cast<unsigned long>(uval % 1'000'000'000);
+uval = static_cast<uT>(uval / 1'000'000'000);
+for (int _Idx = 0; _Idx != 9; ++_Idx) {
+*--_RNext = static_cast<char>('0' + _Chunk % 10);
+_Chunk /= 10;
+}
+}
+}
+using _Truncated = std::conditional_t<_Use_chunks, unsigned long, uT>;
+_Truncated _Trunc = static_cast<_Truncated>(uval);
+do {
+*--_RNext = static_cast<char>('0' + _Trunc % 10);
+_Trunc /= 10;
+} while (_Trunc != 0);
+break;
+}
+case 2:
+do {
+*--_RNext = static_cast<char>('0' + (uval & 0b1));
+uval >>= 1;
+} while (uval != 0);
+break;
+case 4:
+do {
+*--_RNext = static_cast<char>('0' + (uval & 0b11));
+uval >>= 2;
+} while (uval != 0);
+break;
+case 8:
+do {
+*--_RNext = static_cast<char>('0' + (uval & 0b111));
+uval >>= 3;
+} while (uval != 0);
+break;
+case 16:
+do {
+*--_RNext = charconv_lower[uval & 0b1111];
+uval >>= 4;
+} while (uval != 0);
+break;
+case 32:
+do {
+*--_RNext = charconv_lower[uval & 0b11111];
+uval >>= 5;
+} while (uval != 0);
+break;
+case 3:
+case 5:
+case 6:
+case 7:
+case 9:
+do {
+*--_RNext = static_cast<char>('0' + uval % base);
+uval = static_cast<uT>(uval / base);
+} while (uval != 0);
+break;
+default:
+do {
+*--_RNext = charconv_lower[uval % base];
+uval = static_cast<uT>(uval / base);
+} while (uval != 0);
+break;
+}
+size_t _Digits_written = _Buff_end - _RNext;
+if (_Size < _Digits_written) {
+_Err = errc::buffer_too_small;
+return;
+}
+it = it.append(string_view(_RNext, _Digits_written));
+it.finalize();
+_Err = errc::ok;
+return;
+}
+template<typename T, typename Char,
+typename M,
+typename F>
+WJR_INLINE void __base_encode_common::from_floating_point(
+T value, basic_string_modifier<Char>& it, errc& err, int precision, M m, F _Flags) noexcept {
+using double_conversion::DoubleToStringConverter;
+using double_conversion::StringBuilder;
+DoubleToStringConverter conv(
+_Flags,
+"Infinity",
+"NaN",
+'E',
+-6,
+21,
+6, // max leading padding zeros
+1); // max trailing padding zeros
+char buffer[256];
+StringBuilder builder(buffer, sizeof(buffer));
+const auto mode = m;
+switch (mode) {
+case DoubleToStringConverter::SHORTEST:
+conv.ToShortest(value, &builder);
+break;
+case DoubleToStringConverter::SHORTEST_SINGLE:
+conv.ToShortestSingle(static_cast<float>(value), &builder);
+break;
+case DoubleToStringConverter::FIXED:
+conv.ToFixed(value, precision, &builder);
+break;
+case DoubleToStringConverter::PRECISION:
+default:
+conv.ToPrecision(value, precision, &builder);
+break;
+}
+auto length = static_cast<size_t>(builder.position());
+builder.Finalize();
+const auto n = it.size();
+if (n < length) {
+err = errc::buffer_too_small;
+return;
+}
+it = it.append(string_view(buffer, length));
+it.finalize();
+err = errc::ok;
+return;
+}
+template<typename Traits>
+class __base_encode : public __base_encode_common {
+using _Mybase = __base_encode_common;
+public:
+using traits_type = Traits;
+using encode_type = typename traits_type::encode_type;
+using value_type = typename traits_type::value_type;
+using pointer = typename traits_type::pointer;
+using const_pointer = typename traits_type::const_pointer;
+using iterator = typename traits_type::iterator;
+using const_iterator = typename traits_type::const_iterator;
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isalnum(value_type ch);
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isalpha(value_type ch);
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool islower(value_type ch);
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isupper(value_type ch);
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isxdigit(value_type ch);
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static bool isspace(value_type ch);
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static value_type tolower(value_type ch);
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static value_type toupper(value_type ch);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static uint8_t todigit(value_type ch);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static uint8_t toalnum(value_type ch);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static bool isdigit(value_type ch, int Base = 10);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static const_iterator
+skipw(const_iterator _First, const_iterator _Last);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static
+auto rskipw(const_iterator _First, const_iterator _Last)
+-> std::enable_if_t<is_random_iterator_v<const_iterator>, const_iterator>;
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static const_iterator skipz(const_iterator _First, const_iterator _Last);
+enum to_i_flags {
+NO_FLAGS = 0,
+ALLOW_PREFIX = 0x01,
+ALLOW_TAIL = 0x02,
+ALLOW_SIGN = 0x04,
+ALLOW_LEADING_SPACE = 0x08,
+ALLOW_SPACE_AFTER_SIGN = 0x10,
+ALLOW_LEADING_ZEROS = 0x20,
+};
+using default_to_i_flags = std::integral_constant< to_i_flags,
+static_cast<to_i_flags>(
+ALLOW_PREFIX
+| ALLOW_TAIL
+| ALLOW_SIGN
+| ALLOW_LEADING_SPACE
+| ALLOW_LEADING_ZEROS)>;
+template<typename T, typename F = default_to_i_flags>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static T to_integral(
+const_iterator _First, const_iterator _Last,
+const_iterator& _Pos, int base, errc& _Err, F f = F()) noexcept;
+template<typename T, typename F = default_to_i_flags>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static T to_integral(
+const_iterator _First, const_iterator _Last,
+const_iterator* _Pos = nullptr, int base = 10, errc* _Err = nullptr, F f = F()) noexcept;
+private:
+using _Mybase::from_integral;
+public:
+template<typename T>
+WJR_INLINE_CONSTEXPR20 static void from_integral(
+T _Val, basic_string_modifier<value_type>& it, int base, errc& _Err) noexcept;
+template<typename T>
+WJR_INLINE_CONSTEXPR20 static void from_integral(
+T _Val, pointer _First, pointer _Last,
+pointer& _Pos, int base, errc& _Err) noexcept;
+template<typename T>
+WJR_INLINE_CONSTEXPR20 static void from_integral(
+T _Val, pointer _First, pointer _Last,
+pointer* _Pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept;
+using to_f_flags = typename double_conversion::StringToDoubleConverter::Flags;
+using default_to_f_flags = std::integral_constant<
+to_f_flags,
+static_cast<to_f_flags>
+(to_f_flags::ALLOW_LEADING_SPACES
+| to_f_flags::ALLOW_TRAILING_JUNK)
+>;
+template<typename T, typename F = default_to_f_flags>
+WJR_NODISCARD WJR_INLINE static T to_floating_point(
+const_iterator _First, const_iterator _Last,
+const_iterator& _Pos, errc& _Err, F f = F()) noexcept;
+template<typename T, typename F = default_to_f_flags>
+WJR_NODISCARD WJR_INLINE static T to_floating_point(
+const_iterator _First, const_iterator _Last,
+const_iterator* _Pos = nullptr, errc* _Err = nullptr, F f = F()) noexcept;
+using from_f_mode = typename _Mybase::from_f_mode;
+using from_f_flags = typename _Mybase::from_f_flags;
+using default_from_f_mode = typename _Mybase::default_from_f_mode;
+using default_from_f_flags = typename _Mybase::default_from_f_flags;
+private:
+using _Mybase::from_floating_point;
+public:
+template<typename T,
+typename M = default_from_f_mode,
+typename F = default_from_f_flags>
+WJR_INLINE_CONSTEXPR20 static void from_floating_point(
+T _Val, basic_string_modifier<value_type>& it,
+errc& err, int precision = 0, M m = M(), F _Flags = F()) noexcept;
+template<typename T,
+typename M = default_from_f_mode,
+typename F = default_from_f_flags>
+WJR_INLINE static void from_floating_point(
+T value, pointer first, pointer last,
+pointer& pos, errc& err, int precision = 0, M m = M(), F _Flags = F()) noexcept;
+template<typename T,
+typename M = default_from_f_mode,
+typename F = default_from_f_flags>
+WJR_INLINE static void from_floating_point(
+T value, pointer first, pointer last,
+pointer* pos = nullptr, errc* err = nullptr, int precision = 0, M m = M(), F _Flags = F()) noexcept;
+WJR_INLINE_CONSTEXPR static iterator make_iterator(pointer);
+WJR_INLINE_CONSTEXPR static const_iterator make_iterator(const_pointer);
+WJR_INLINE_CONSTEXPR static pointer make_pointer(iterator);
+WJR_INLINE_CONSTEXPR static const_pointer make_pointer(const_iterator);
+};
+template<typename T, typename Encode>
+class integral_conversion_details;
+template<typename T, typename Encode>
+class floating_point_conversion_details;
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR bool __base_encode<Traits>::isalnum(value_type ch) {
+return encode_type::isalnum(ch);
+}
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR bool __base_encode<Traits>::isalpha(value_type ch) {
+return encode_type::isalpha(ch);
+}
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR bool __base_encode<Traits>::islower(value_type ch) {
+return encode_type::islower(ch);
+}
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR bool __base_encode<Traits>::isupper(value_type ch) {
+return encode_type::isupper(ch);
+}
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR bool __base_encode<Traits>::isxdigit(value_type ch) {
+return encode_type::isxdigit(ch);
+}
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR bool __base_encode<Traits>::isspace(value_type ch) {
+return encode_type::isspace(ch);
+}
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR typename __base_encode<Traits>::value_type
+__base_encode<Traits>::tolower(value_type ch) {
+return encode_type::tolower(ch);
+}
+template<typename Traits>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR typename __base_encode<Traits>::value_type
+__base_encode<Traits>::toupper(value_type ch) {
+return encode_type::toupper(ch);
+}
+template<typename Traits>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR uint8_t __base_encode<Traits>::todigit(value_type ch) {
+return encode_type::todigit(ch);
+}
+template<typename Traits>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR uint8_t __base_encode<Traits>::toalnum(value_type ch) {
+return todigit(ch);
+}
+template<typename Traits>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR bool __base_encode<Traits>::isdigit(value_type ch, int Base) {
+return toalnum(ch) < Base;
+}
+template<typename Traits>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR typename __base_encode<Traits>::const_iterator
+__base_encode<Traits>::skipw(const_iterator _First, const_iterator _Last) {
+if constexpr (__string_func_traits::has_static_member_function_do_skipw_v<encode_type, const_iterator, const_iterator>) {
+return encode_type::do_skipw(_First, _Last);
+}
+else {
+while (_First != _Last && isspace(*_First)) ++_First;
+return _First;
+}
+}
+template<typename Traits>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR auto
+__base_encode<Traits>::rskipw(const_iterator _First, const_iterator _Last)
+-> std::enable_if_t<is_random_iterator_v<const_iterator>, const_iterator> {
+if constexpr (__string_func_traits::
+has_static_member_function_do_rskipw_v<encode_type, const_iterator, const_iterator>) {
+return encode_type::do_rskipw(_First, _Last);
+}
+else {
+while (_First != _Last && isspace(*(_Last - 1))) --_Last;
+return _Last;
+}
+}
+template<typename Traits>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR typename __base_encode<Traits>::const_iterator
+__base_encode<Traits>::skipz(const_iterator _First, const_iterator _Last) {
+if constexpr (__string_func_traits::has_static_member_function_do_skipz_v<encode_type, const_iterator, const_iterator>) {
+return encode_type::do_skipz(_First, _Last);
+}
+else {
+while (_First != _Last && *_First == '0') ++_First;
+return _First;
+}
+}
+template<typename Traits>
+template<typename T, typename F>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR T __base_encode<Traits>::to_integral(
+const_iterator _First, const_iterator _Last,
+const_iterator& _Pos, int base, errc& _Err, F f) noexcept {
+return integral_conversion_details<T, __base_encode<Traits>>
+::template to(_First, _Last, _Pos, base, _Err, f);
+}
+template<typename Traits>
+template<typename T, typename F>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR T __base_encode<Traits>::to_integral(
+const_iterator _First, const_iterator _Last,
+const_iterator* _Pos, int base, errc* _Err, F f) noexcept {
+const_iterator _End = _First;
+errc c = errc::ok;
+auto ret = to_integral<T>(_First, _Last, _End, base, c, f);
+if (_Pos != nullptr) *_Pos = _End;
+if (_Err != nullptr) *_Err = c;
+return ret;
+}
+template<typename Traits>
+template<typename T>
+WJR_INLINE_CONSTEXPR20 void __base_encode<Traits>::from_integral(
+T _Val, basic_string_modifier<value_type>& it, int base, errc& _Err) noexcept {
+_Mybase::from_integral(_Val, it, base, _Err);
+}
+template<typename Traits>
+template<typename T>
+WJR_INLINE_CONSTEXPR20 void __base_encode<Traits>::from_integral(
+T _Val, pointer _First, pointer _Last,
+pointer& _Pos, int base, errc& _Err) noexcept {
+basic_string_modifier<value_type> it(_First, static_cast<size_t>(_Last - _First));
+from_integral(_Val, it, base, _Err);
+_Pos = it.begin();
+}
+template<typename Traits>
+template<typename T>
+WJR_INLINE_CONSTEXPR20 void __base_encode<Traits>::from_integral(
+T _Val, pointer _First, pointer _Last,
+pointer* _Pos, int base, errc* _Err) noexcept {
+pointer end_ptr = _First;
+errc c = errc::ok;
+from_integral(_Val, _First, _Last, end_ptr, base, c);
+if (_Pos != nullptr) *_Pos = end_ptr;
+if (_Err != nullptr) *_Err = c;
+}
+template<typename Traits>
+template<typename T, typename F>
+WJR_NODISCARD WJR_INLINE T __base_encode<Traits>::to_floating_point(
+const_iterator _First, const_iterator _Last,
+const_iterator& _Pos, errc& _Err, F f) noexcept {
+return floating_point_conversion_details<T, __base_encode<Traits>>
+::template to(_First, _Last, _Pos, _Err, f);
+}
+template<typename Traits>
+template<typename T, typename F>
+WJR_NODISCARD WJR_INLINE T __base_encode<Traits>::to_floating_point(
+const_iterator _First, const_iterator _Last,
+const_iterator* _Pos, errc* _Err, F f) noexcept {
+const_iterator _End = _First;
+errc c = errc::ok;
+auto ret = to_floating_point<T>(_First, _Last, _End, c, f);
+if (_Pos != nullptr) *_Pos = _End;
+if (_Err != nullptr) *_Err = c;
+return ret;
+}
+template<typename Traits>
+template<typename T,
+typename M,
+typename F>
+WJR_INLINE_CONSTEXPR20 void __base_encode<Traits>::from_floating_point(
+T _Val, basic_string_modifier<value_type>& it,
+errc& err, int precision, M m, F _Flags) noexcept {
+_Mybase::from_floating_point(_Val, it, err, precision, m, _Flags);
+}
+template<typename Traits>
+template<typename T,
+typename M,
+typename F>
+WJR_INLINE void __base_encode<Traits>::from_floating_point(
+T value, pointer first, pointer last,
+pointer& pos, errc& err, int precision, M m, F _Flags) noexcept {
+basic_string_modifier<value_type> it(first, static_cast<size_t>(last - first));
+from_floating_point(value, it, err, precision, m, _Flags);
+pos = it.begin();
+}
+template<typename Traits>
+template<typename T,
+typename M,
+typename F>
+WJR_INLINE void __base_encode<Traits>::from_floating_point(
+T value, pointer first, pointer last,
+pointer* pos, errc* err, int precision, M m, F _Flags) noexcept {
+pointer end_ptr = first;
+errc c = errc::ok;
+from_floating_point(value, first, last, end_ptr, c, precision, m, _Flags);
+if (pos != nullptr) *pos = end_ptr;
+if (err != nullptr) *err = c;
+}
+template<typename Traits>
+WJR_INLINE_CONSTEXPR typename __base_encode<Traits>::iterator
+__base_encode<Traits>::make_iterator(pointer ptr) {
+return encode_type::make_iterator(ptr);
+}
+template<typename Traits>
+WJR_INLINE_CONSTEXPR typename __base_encode<Traits>::const_iterator
+__base_encode<Traits>::make_iterator(const_pointer ptr) {
+return encode_type::make_iterator(ptr);
+}
+template<typename Traits>
+WJR_INLINE_CONSTEXPR typename __base_encode<Traits>::pointer
+__base_encode<Traits>::make_pointer(iterator ptr) {
+return encode_type::make_pointer(ptr);
+}
+template<typename Traits>
+WJR_INLINE_CONSTEXPR typename __base_encode<Traits>::const_pointer
+__base_encode<Traits>::make_pointer(const_iterator ptr) {
+return encode_type::make_pointer(ptr);
+}
+template<typename T, typename Encode>
+class integral_conversion_details {
+public:
+using encode_type = Encode;
+using value_type = typename encode_type::value_type;
+using to_i_flags = typename encode_type::to_i_flags;
+using iterator = typename encode_type::iterator;
+using const_iterator = typename encode_type::const_iterator;
+template<typename F>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static T to(
+const_iterator _First, const_iterator _Last,
+const_iterator& _Pos, int base, errc& _Err, F f) noexcept;
+private:
+inline constexpr static char charconv_lower[] =
+{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
+'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
+inline constexpr static char charconv_upper[] =
+{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E',
+'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
+'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
+using uT = std::make_unsigned_t<T>;
+constexpr static T min() { return std::numeric_limits<T>::min(); }
+constexpr static T max() { return std::numeric_limits<T>::max(); }
+constexpr static uT umax() { return std::max(make_unsigned_v(min()), make_unsigned_v(max())); }
+template<typename _Iter, typename F>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR static T __to(
+_Iter _First, _Iter _Last,
+WJR_MAYBE_UNUSED _Iter& _Pos,
+int base, errc& _Err, F f, _Iter _Zero, bool _Is_minus) noexcept;
+};
+#define __CONV_EMPTY_RET				        \
+_Err = errc::noconv;					\
+return static_cast<T>(0);
+#define __CONV_NEXT								\
+if(WJR_UNLIKELY(++_First == _Last)){	    \
+__CONV_EMPTY_RET					\
+}
+template<typename T, typename Func>
+template<typename F>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR T integral_conversion_details<T, Func>::to(
+const_iterator _First, const_iterator _Last,
+const_iterator& _Pos, int base, errc& _Err, F _Flags) noexcept {
+static_assert(std::is_integral_v<T>, "");
+if (_Flags & to_i_flags::ALLOW_LEADING_SPACE) {
+_First = encode_type::skipw(_First, _Last);
+}
+if (WJR_UNLIKELY(_First == _Last)) {
+__CONV_EMPTY_RET;
+}
+bool _Is_minus = false;
+if (_Flags & to_i_flags::ALLOW_SIGN) {
+auto ch = *_First;
+switch (ch) {
+case '+': {
+__CONV_NEXT;
+break;
+}
+case '-': {
+_Is_minus = true;
+__CONV_NEXT;
+break;
+}
+}
+}
+if (_Flags & to_i_flags::ALLOW_SPACE_AFTER_SIGN) {
+_First = encode_type::skipw(_First, _Last);
+if (WJR_UNLIKELY(_First == _Last)) {
+__CONV_EMPTY_RET;
+}
+}
+constexpr auto _B = encode_type::toalnum('B');
+constexpr auto _X = encode_type::toalnum('X');
+WJR_MAYBE_UNUSED auto _Zero = _Last;
+if (_Flags & to_i_flags::ALLOW_PREFIX) {
+switch (base) {
+case 0: {
+if (*_First == '0') {
+if (WJR_UNLIKELY(++_First == _Last)) {
+_Pos = _First;
+return static_cast<T>(0);
+}
+_Zero = _First;
+auto ch = encode_type::toalnum(*_First);
+switch (ch) {
+case _B: {
+if (WJR_UNLIKELY(++_First == _Last)) {
+_Pos = _First;
+return static_cast<T>(0);
+}
+return __to(_First, _Last, _Pos, 2, _Err, _Flags, _Zero, _Is_minus);
+}
+case _X: {
+if (WJR_UNLIKELY(++_First == _Last)) {
+_Pos = _First;
+return static_cast<T>(0);
+}
+return __to(_First, _Last, _Pos, 16, _Err, _Flags, _Zero, _Is_minus);
+}
+default: {
+return __to(_First, _Last, _Pos, 8, _Err, _Flags, _Zero, _Is_minus);
+}
+}
+}
+return __to(_First, _Last, _Pos, 10, _Err, _Flags, _Last, _Is_minus);
+}
+case 2: {
+if (*_First == '0') {
+if (WJR_UNLIKELY(++_First == _Last)) {
+_Pos = _First;
+return static_cast<T>(0);
+}
+_Zero = _First;
+if (encode_type::toalnum(*_First) == _B) {
+if (WJR_UNLIKELY(++_First == _Last)) {
+_Pos = _Zero;
+return static_cast<T>(0);
+}
+}
+}
+break;
+}
+case 8: {
+if (*_First == '0') {
+if (WJR_UNLIKELY(++_First == _Last)) {
+_Pos = _First;
+return static_cast<T>(0);
+}
+_Zero = _First;
+}
+break;
+}
+case 16: {
+if (*_First == '0') {
+if (WJR_UNLIKELY(++_First == _Last)) {
+_Pos = _First;
+return static_cast<T>(0);
+}
+_Zero = _First;
+if (encode_type::toalnum(*_First) == _X) {
+if (WJR_UNLIKELY(++_First == _Last)) {
+_Pos = _Zero;
+return static_cast<T>(0);
+}
+}
+}
+break;
+}
+default: {
+break;
+}
+}
+}
+return __to(_First, _Last, _Pos, base, _Err, _Flags, _Zero, _Is_minus);
+}
+template<typename T, typename Func>
+template<typename _Iter, typename F>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR T integral_conversion_details<T, Func>::__to(
+_Iter _First, _Iter _Last,
+WJR_MAYBE_UNUSED _Iter& _Pos,
+int base, errc& _Err, F _Flags, _Iter _Zero, bool _Is_minus) noexcept {
+auto _Next = _First;
+if (_Flags & to_i_flags::ALLOW_LEADING_ZEROS) {
+_Next = encode_type::skipz(_First, _Last);
+}
+uT _Max1 = 0;
+uT _Max2 = 0;
+if constexpr (std::is_unsigned_v<T>) {
+_Max1 = umax() / base;
+_Max2 = umax() % base;
+}
+else {
+if (_Is_minus) {
+_Max1 = umax() / base;
+_Max2 = umax() % base;
+}
+else {
+constexpr auto __umax2 = umax() - 1;
+_Max1 = __umax2 / base;
+_Max2 = __umax2 % base;
+}
+}
+uT uret = 0;
+bool overflowed = false;
+for (; _Next != _Last; ++_Next) {
+auto ch = encode_type::toalnum(*_Next);
+if (ch >= base) break;
+if (uret < _Max1 || (uret == _Max1 && ch <= _Max2)) {
+uret *= base;
+uret += ch;
+}
+else overflowed = true;
+}
+if (_First == _Next) {
+if (_Zero != _Last) {
+_Pos = _Zero;
+return static_cast<T>(uret);
+}
+__CONV_EMPTY_RET;
+}
+_Pos = _Next;
+if (overflowed) {
+if constexpr (std::is_unsigned_v<T>) {
+_Err = errc::overflow;
+}
+else {
+if (_Is_minus) {
+_Err = errc::underflow;
+}
+else {
+_Err = errc::overflow;
+}
+}
+return static_cast<T>(0);
+}
+_Err = errc::ok;
+if (_Is_minus) {
+uret = static_cast<uT>(0 - uret);
+}
+return static_cast<T>(uret);
+}
+#undef __CONV_EMPTY_RET
+#undef __CONV_NEXT
+template<typename T, typename Encode>
+class floating_point_conversion_details {
+public:
+using encode_type = Encode;
+using value_type = typename encode_type::value_type;
+using to_f_flags = typename encode_type::to_f_flags;
+using iterator = typename encode_type::iterator;
+using const_iterator = typename encode_type::const_iterator;
+template<typename F>
+WJR_ATTRIBUTE(NODISCARD, INLINE) static T to(
+const_iterator _First, const_iterator _Last,
+const_iterator& _Pos, errc& _Err, F f) noexcept;
+};
+class ascii;
+struct ascii_traits;
+template<typename T, typename Encode>
+template<typename F>
+WJR_ATTRIBUTE(NODISCARD, INLINE) T floating_point_conversion_details<T, Encode>::to(
+const_iterator _First, const_iterator _Last,
+const_iterator& _Pos, errc& _Err, F f) noexcept {
+static_assert(is_any_of_v<T, float, double>, "");
+if constexpr (std::is_same_v<Encode, __base_encode<ascii_traits>>) {
+using double_conversion::StringToDoubleConverter;
+if (_First == _Last) {
+_Err = errc::noconv;
+return static_cast<T>(0);
+}
+const StringToDoubleConverter conv(
+f,
+0.0,
+std::numeric_limits<T>::quiet_NaN(),
+nullptr,
+nullptr);
+int length = 0; // processed char count
+T result = 0;
+if constexpr (std::is_same_v<T, float>) {
+result = conv.StringToFloat(_First, static_cast<size_t>(_Last - _First), &length);
+}
+else {
+result = conv.StringToDouble(_First, static_cast<size_t>(_Last - _First), &length);
+}
+if (!std::isnan(result)) {
+if (length == 0 ||
+(result == 0.0 && encode_type::isspace(_First[length - 1]))) {
+_Err = errc::noconv;
+return static_cast<T>(0);
+}
+if (length >= 2) {
+const char* suffix = _First + length - 1;
+if (*suffix == '-' || *suffix == '+') {
+--suffix;
+--length;
+}
+if (*suffix == 'e' || *suffix == 'E') {
+--length;
+}
+}
+_Pos = _First + length;
+_Err = errc::ok;
+return result;
+}
+auto s = encode_type::skipw(_First, _Last);
+if (s == _Last) {
+_Err = errc::noconv;
+return static_cast<T>(0);
+}
+auto size = size_t(_Last - s);
+bool negative = false;
+if (*s == '-') {
+negative = true;
+++s;
+--size;
+if (size == 0) {
+_Err = errc::noconv;
+return static_cast<T>(0);
+}
+}
+WJR_ASSUME(size > 0);
+result = 0.0;
+switch (encode_type::tolower(*s)) {
+case 'i':
+if (size >= 3 && encode_type::tolower(s[1]) == 'n' &&
+encode_type::tolower(s[2]) == 'f') {
+if (size >= 8 && encode_type::tolower(s[3]) == 'i' &&
+encode_type::tolower(s[4]) == 'n' && encode_type::tolower(s[5]) == 'i' &&
+encode_type::tolower(s[6]) == 't' && encode_type::tolower(s[7]) == 'y') {
+s += 8;
+}
+else {
+s += 3;
+}
+result = std::numeric_limits<T>::infinity();
+}
+break;
+case 'n':
+if (size >= 3 && encode_type::tolower(s[1]) == 'a' &&
+encode_type::tolower(s[2]) == 'n') {
+s += 3;
+result = std::numeric_limits<T>::quiet_NaN();
+}
+break;
+default:
+break;
+}
+if (result == 0.0) {
+_Err = errc::noconv;
+return static_cast<T>(0);
+}
+if (negative) {
+result = -result;
+}
+_Pos = s;
+_Err = errc::ok;
+return static_cast<T>(result);
+}
+else {
+static_assert(std::is_same_v<Encode, __base_encode<ascii_traits>>, "");
+return static_cast<T>(0);
+}
+}
+struct ascii_traits {
+using encode_type = encode::ascii;
+using value_type = char;
+using pointer = value_type*;
+using const_pointer = const value_type*;
+using iterator = pointer;
+using const_iterator = const_pointer;
+};
+struct __ascii_to_digit_table {
+constexpr static uint8_t invalid = 0xff;
+constexpr __ascii_to_digit_table() : table() {
+for (int i = 0; i < 256; ++i) {
+table[i] = invalid;
+}
+for (int i = '0'; i <= '9'; ++i) {
+table[i] = (i - '0');
+}
+for (int i = 'a'; i <= 'z'; ++i) {
+table[i] = (i - 'a') + 10;
+}
+for (int i = 'A'; i <= 'Z'; ++i) {
+table[i] = (i - 'A') + 10;
+}
+}
+WJR_ATTRIBUTE(CONST, CONSTEXPR) uint8_t operator[](uint8_t ch) const { return table[ch]; }
+private:
+std::array<uint8_t, 256> table;
+};
+constexpr static __ascii_to_digit_table __ascii_to_digit_table_v = {};
+class ascii : public __base_encode<ascii_traits> {
+public:
+friend __base_encode<ascii_traits>;
+using _Mybase = __base_encode<ascii_traits>;
+using traits_type = ascii_traits;
+using value_type = typename traits_type::value_type;
+using pointer = typename traits_type::pointer;
+using const_pointer = typename traits_type::const_pointer;
+using iterator = typename traits_type::iterator;
+using const_iterator = typename traits_type::const_iterator;
+enum __char_code {
+__none = 0x00,
+__lower = 0x01,
+__upper = 0x02,
+__digit = 0x04,
+__xdigit = 0x08,
+__white = 0x10
+};
+static constexpr int __char_code_table[256] = {
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,         __white,         __white,         __white,
+__white,         __white,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__white,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__digit | __xdigit,__digit | __xdigit,__digit | __xdigit,__digit | __xdigit,
+__digit | __xdigit,__digit | __xdigit,__digit | __xdigit,__digit | __xdigit,
+__digit | __xdigit,__digit | __xdigit,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,__upper | __xdigit,__upper | __xdigit,__upper | __xdigit,
+__upper | __xdigit,__upper | __xdigit,__upper | __xdigit,         __upper,
+__upper,         __upper,         __upper,         __upper,
+__upper,         __upper,         __upper,         __upper,
+__upper,         __upper,         __upper,         __upper,
+__upper,         __upper,         __upper,         __upper,
+__upper,         __upper,         __upper,          __none,
+__none,          __none,          __none,          __none,
+__none,__lower | __xdigit,__lower | __xdigit,__lower | __xdigit,
+__lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
+__lower,         __lower,         __lower,         __lower,
+__lower,         __lower,         __lower,         __lower,
+__lower,         __lower,         __lower,         __lower,
+__lower,         __lower,         __lower,         __lower,
+__lower,         __lower,         __lower,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none,
+__none,          __none,          __none,          __none
+};
+WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isalnum(value_type ch) {
+return __char_code_table[make_unsigned_v(ch)] & (__lower | __upper | __digit);
+}
+WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isalpha(value_type ch) {
+return __char_code_table[make_unsigned_v(ch)] & (__lower | __upper);
+}
+WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool islower(value_type ch) {
+return __char_code_table[make_unsigned_v(ch)] & __lower;
+}
+WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isupper(value_type ch) {
+return __char_code_table[make_unsigned_v(ch)] & __upper;
+}
+WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isdigit(value_type ch) {
+return __char_code_table[make_unsigned_v(ch)] & __digit;
+}
+WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isxdigit(value_type ch) {
+return __char_code_table[make_unsigned_v(ch)] & __xdigit;
+}
+WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isspace(value_type ch) {
+return __char_code_table[make_unsigned_v(ch)] & __white;
+}
+WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static value_type tolower(value_type ch) {
+return isupper(ch) ? ch + 'a' - 'A' : ch;
+}
+WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static value_type toupper(value_type ch) {
+return islower(ch) ? ch + 'A' - 'a' : ch;
+}
+WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static uint8_t todigit(char ch) {
+return __ascii_to_digit_table_v[ch];
+}
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) static const_iterator do_skipw(const_iterator s, const_iterator e) {
+if constexpr (::wjr::algo::__has_fast_memskipw_v<value_type>) {
+return ::wjr::algo::memskipw(s, e);
+}
+else {
+for (; s != e && isspace(*s); ++s);
+return s;
+}
+}
+WJR_INLINE_CONSTEXPR static iterator make_iterator(pointer ptr) { return ptr; }
+WJR_INLINE_CONSTEXPR static const_iterator make_iterator(const_pointer ptr) { return ptr; }
+WJR_INLINE_CONSTEXPR static pointer make_pointer(iterator ptr) { return ptr; }
+WJR_INLINE_CONSTEXPR static const_pointer make_pointer(const_iterator ptr) { return ptr; }
+};
+class utf8 {
+public:
+};
+_WJR_ENCODE_END
+_WJR_BEGIN
+template<typename Traits>
+class basic_encode_view
+: public basic_string_view<typename Traits::value_type> {
+public:
+using _Mybase = basic_string_view<typename Traits::value_type>;
+template<typename T>
+constexpr static bool _Is_noptr_string_view_like_v = _Mybase::template _Is_noptr_string_view_like_v<T>;
+public:
+using traits_type = typename _Mybase::traits_type;
+using value_type = typename _Mybase::value_type;
+using pointer = typename _Mybase::pointer;
+using const_pointer = typename _Mybase::const_pointer;
+using reference = typename _Mybase::reference;
+using const_reference = typename _Mybase::const_reference;
+using const_iterator = typename _Mybase::const_iterator;
+using iterator = typename _Mybase::iterator;
+using const_reverse_iterator = typename _Mybase::const_reverse_iterator;
+using reverse_iterator = typename _Mybase::reverse_iterator;
+using size_type = typename _Mybase::size_type;
+using difference_type = typename _Mybase::difference_type;
+constexpr static size_type npos = _Mybase::npos;
+using encode_type = encode::__base_encode<Traits>;
+using encode_iterator = typename encode_type::iterator;
+using encode_const_iterator = typename encode_type::const_iterator;
+using _Mybase::_Mybase;
+using _Mybase::operator=;
+using _Mybase::begin;
+using _Mybase::end;
+WJR_CONSTEXPR basic_encode_view(const _Mybase& other)
+: _Mybase(other) {}
+WJR_INLINE_CONSTEXPR void swap(basic_encode_view& other) noexcept {
+return _Mybase::swap(other);
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_view substr(
+const size_type off = 0, size_type n = npos) const WJR_NOEXCEPT {
+return basic_encode_view(_Mybase::substr(off, n));
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_view
+nesubstr(const size_type off = 0, size_type n = npos) const noexcept {
+return basic_encode_view(_Mybase::nesubstr(off, n));
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_view view(
+const value_type* s, const size_type n) noexcept {
+return basic_encode_view(s, n);
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_view view(
+const value_type* s) noexcept {
+return basic_encode_view(s);
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_view view(
+std::initializer_list<value_type> il) noexcept {
+return view(il.begin(), il.size());
+}
+template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_view view(const StringView& t) noexcept {
+return basic_encode_view(t);
+}
+template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_view view(const StringView& t,
+const size_type off, const size_type n = npos) noexcept {
+return view(t).nesubstr(off, n);
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_view view() const noexcept {
+return *this;
+}
+template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_view eview(const StringView& t,
+const size_type off, const size_type n = npos) WJR_NOEXCEPT {
+return view(t).substr(off, n);
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_view prefix(size_type n) const noexcept {
+return basic_encode_view(prefix(n));
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_view suffix(size_type n) const noexcept {
+return basic_encode_view(suffix(n));
+}
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_encode_view adjust_begin(const_iterator iter) const noexcept {
+return basic_encode_view(_Mybase::adjust_begin(iter));
+}
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_encode_view adjust_end(const_iterator iter) const noexcept {
+return basic_encode_view(_Mybase::adjust_end(iter));
+}
+#define _WJR_REGISTER_ENCODE_VIEW_DERIVED_FUNC(name, ret_type, type)	\
+WJR_INLINE_CONSTEXPR static ret_type name(type arg){return encode_type::name(arg);}
+#define WJR_REGISTER_ENCODE_VIEW_DERIVED_FUNC(x) _WJR_REGISTER_ENCODE_VIEW_DERIVED_FUNC x
+WJR_MACRO_CALL(WJR_REGISTER_ENCODE_VIEW_DERIVED_FUNC, ,
+(isalnum, bool, value_type),
+(isalpha, bool, value_type),
+(islower, bool, value_type),
+(isupper, bool, value_type),
+(isxdigit, bool, value_type),
+(isspace, bool, value_type),
+(tolower, value_type, value_type),
+(toupper, value_type, value_type),
+(todigit, uint8_t, value_type),
+(toalnum, uint8_t, value_type),
+(isdigit, bool, value_type),
+(make_iterator, encode_iterator, pointer),
+(make_iterator, encode_const_iterator, const_pointer),
+(make_pointer, pointer, encode_iterator),
+(make_pointer, const_pointer, encode_const_iterator)
+);
+#undef WJR_REGISTER_ENCODE_VIEW_DERIVED_FUNC
+#undef _WJR_REGISTER_ENCODE_VIEW_DERIVED_FUNC
+WJR_INLINE_CONSTEXPR encode_iterator encode_begin() { return make_iterator(begin()); }
+WJR_INLINE_CONSTEXPR encode_const_iterator encode_begin() const { return make_iterator(begin()); }
+WJR_INLINE_CONSTEXPR encode_iterator encode_end() { return make_iterator(end()); }
+WJR_INLINE_CONSTEXPR encode_const_iterator encode_end() const { return make_iterator(end()); }
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_encode_view ltrim() const;
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR)auto rtrim() const
+->std::enable_if_t<is_random_iterator_v<encode_const_iterator>, basic_encode_view>;
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR)auto trim() const
+->std::enable_if_t<is_random_iterator_v<encode_const_iterator>, basic_encode_view>;
+using to_i_flags = typename encode_type::to_i_flags;
+using default_to_i_flags = typename encode_type::default_to_i_flags;
+template<typename T, typename F = default_to_i_flags>
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) T to_integral(
+const_iterator* _Pos = nullptr, int base = 10, errc* _Err = nullptr, F f = F()) const noexcept;
+#define _WJR_REGISTER_STRING_TO_INTEGRAL_FUNC(T, name)	                                            \
+template<typename F = default_to_i_flags>	                                                    \
+WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_##name(	                                                \
+const_iterator* _Pos = nullptr, int base = 10, errc* _Err = nullptr, F f = F()) const noexcept{	\
+return to_integral<T>(_Pos, base, _Err, f);	                                                \
+}
+#define WJR_REGISTER_STRING_TO_INTEGRAL_FUNC(x) _WJR_REGISTER_STRING_TO_INTEGRAL_FUNC x
+WJR_MACRO_CALL(WJR_REGISTER_STRING_TO_INTEGRAL_FUNC, ,
+(char, char),
+(signed char, schar),
+(unsigned char, uchar),
+(short, short),
+(unsigned short, ushort),
+(int, int),
+(unsigned int, uint),
+(long, long),
+(unsigned long, ulong),
+(long long, llong),
+(unsigned long long, ullong)
+);
+#undef WJR_REGISTER_STRING_TO_INTEGRAL_FUNC
+#undef _WJR_REGISTER_STRING_TO_INTEGRAL_FUNC
+using to_f_flags = typename encode_type::to_f_flags;
+using default_to_f_flags = typename encode_type::default_to_f_flags;
+template<typename T, typename F = default_to_f_flags>
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) T to_floating_point(
+const_iterator* _Pos = nullptr, errc* _Err = nullptr, F f = F()) const noexcept;
+#define _WJR_REGISTER_STRING_TO_FLOATING_POINT_FUNC(T, name)	                                            \
+template<typename F = default_to_i_flags>	                                                            \
+WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_##name(	                                                        \
+const_iterator* _Pos = nullptr, errc* _Err = nullptr, F f = F()) const noexcept{	                    \
+return to_floating_point<T>(_Pos, _Err, f);	                                                        \
+}
+#define WJR_REGISTER_STRING_TO_FLOATING_POINT_FUNC(x) _WJR_REGISTER_STRING_TO_FLOATING_POINT_FUNC x
+WJR_MACRO_CALL(WJR_REGISTER_STRING_TO_FLOATING_POINT_FUNC, ,
+(float, float),
+(double, double)
+);
+#undef WJR_REGISTER_STRING_TO_FLOATING_POINT_FUNC
+#undef _WJR_REGISTER_STRING_TO_FLOATING_POINT_FUNC
+};
+template<typename Traits>
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_encode_view<Traits> basic_encode_view<Traits>::ltrim() const {
+return this->adjust_begin(encode_type::make_pointer(
+encode_type::skipw(encode_begin(), encode_end())));
+}
+template<typename Traits>
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR)
+auto basic_encode_view<Traits>::rtrim() const
+-> std::enable_if_t<is_random_iterator_v<typename basic_encode_view<Traits>::encode_const_iterator>, basic_encode_view<Traits>> {
+return this->adjust_end(encode_type::make_pointer(
+encode_type::rskipw(encode_begin(), encode_end())));
+}
+template<typename Traits>
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR)
+auto basic_encode_view<Traits>::trim() const
+-> std::enable_if_t<is_random_iterator_v<typename basic_encode_view<Traits>::encode_const_iterator>, basic_encode_view<Traits>> {
+return ltrim().rtrim();
+}
+template<typename Traits>
+template<typename T, typename F>
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) T basic_encode_view<Traits>::to_integral(
+const_iterator* _Pos, int base, errc* _Err, F f) const noexcept {
+return encode_type::template to_integral<T>(encode_begin(), encode_end(), _Pos, base, _Err, f);
+}
+template<typename Traits>
+template<typename T, typename F>
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) T basic_encode_view<Traits>::to_floating_point(
+const_iterator* _Pos, errc* _Err, F f) const noexcept {
+return encode_type::template to_floating_point<T>(encode_begin(), encode_end(), _Pos, _Err, f);
+}
+template<typename Traits>
+class basic_encode_modifier
+: public basic_encode_view<Traits>{
+using _Mybase = basic_encode_view<Traits>;
+using _Mybase2 = basic_string_modifier<typename Traits::value_type, std::char_traits<typename Traits::value_type>>;
+template<typename T>
+constexpr static bool _Is_noptr_string_view_like_v = _Mybase::template _Is_noptr_string_view_like_v<T>;
+public:
+using traits_type = typename _Mybase::traits_type;
+using value_type = typename _Mybase::value_type;
+using pointer = typename _Mybase2::pointer;
+using const_pointer = typename _Mybase::const_pointer;
+using reference = typename _Mybase2::reference;
+using const_reference = typename _Mybase::const_reference;
+using const_iterator = typename _Mybase::const_iterator;
+using iterator = typename _Mybase2::iterator;
+using const_reverse_iterator = typename _Mybase::const_reverse_iterator;
+using reverse_iterator = typename _Mybase2::reverse_iterator;
+using size_type = typename _Mybase::size_type;
+using difference_type = typename _Mybase::difference_type;
+constexpr static size_type npos = _Mybase::npos;
+using encode_type = encode::__base_encode<Traits>;
+using encode_iterator = typename encode_type::iterator;
+using encode_const_iterator = typename encode_type::const_iterator;
+using _Mybase::_Mybase;
+using _Mybase::operator=;
+using _Mybase::data;
+using _Mybase::begin;
+using _Mybase::end;
+using _Mybase::rbegin;
+using _Mybase::rend;
+using _Mybase::front;
+WJR_CONSTEXPR basic_encode_modifier(const _Mybase& other)
+: _Mybase(other) {}
+WJR_INLINE_CONSTEXPR void swap(basic_encode_modifier& other) noexcept {
+return _Mybase::swap(other);
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_modifier substr(
+const size_type off = 0, size_type n = npos) const WJR_NOEXCEPT {
+return basic_encode_modifier(_Mybase::substr(off, n));
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_modifier
+nesubstr(const size_type off = 0, size_type n = npos) const noexcept {
+return basic_encode_modifier(_Mybase::nesubstr(off, n));
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_modifier view(
+const value_type* s, const size_type n) noexcept {
+return basic_encode_modifier(s, n);
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_modifier view(
+const value_type* s) noexcept {
+return basic_encode_modifier(s);
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_modifier view(
+std::initializer_list<value_type> il) noexcept {
+return view(il.begin(), il.size());
+}
+template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_modifier view(const StringView& t) noexcept {
+return basic_encode_modifier(t);
+}
+template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_modifier view(const StringView& t,
+const size_type off, const size_type n = npos) noexcept {
+return view(t).nesubstr(off, n);
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_modifier view() const noexcept {
+return *this;
+}
+template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_modifier eview(const StringView& t,
+const size_type off, const size_type n = npos) WJR_NOEXCEPT {
+return view(t).substr(off, n);
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_modifier prefix(size_type n) const noexcept {
+return basic_encode_modifier(prefix(n));
+}
+WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_modifier suffix(size_type n) const noexcept {
+return basic_encode_modifier(suffix(n));
+}
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_encode_modifier adjust_begin(const_iterator iter) const noexcept {
+return basic_encode_modifier(_Mybase::adjust_begin(iter));
+}
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_encode_modifier adjust_end(const_iterator iter) const noexcept {
+return basic_encode_modifier(_Mybase::adjust_end(iter));
+}
+WJR_INLINE_CONSTEXPR pointer data() { return const_cast<pointer>(_Mybase::data()); }
+WJR_INLINE_CONSTEXPR iterator begin() { return const_cast<iterator>(_Mybase::begin()); }
+WJR_INLINE_CONSTEXPR iterator end() { return const_cast<iterator>(_Mybase::end()); }
+WJR_INLINE_CONSTEXPR reverse_iterator rbegin() {
+return reverse_iterator(end());
+}
+WJR_INLINE_CONSTEXPR reverse_iterator rend() {
+return reverse_iterator(begin());
+}
+WJR_INLINE_CONSTEXPR reference front() {
+return *begin();
+}
+WJR_INLINE_CONSTEXPR reference operator[](size_type n) {
+return data()[n];
+}
+using _Mybase::size;
+template<typename otherChar, typename otherTraits>
+WJR_INLINE_CONSTEXPR20 basic_encode_modifier append(basic_string_view<otherChar, otherTraits> str) {
+static_assert(sizeof(otherChar) <= sizeof(value_type), "");
+wjr::uninitialized_copy_n(str.begin(), str.size(), data());
+return basic_encode_modifier(data() + str.size(), size() - str.size());
+}
+template<typename otherChar>
+WJR_INLINE_CONSTEXPR20 basic_encode_modifier append(size_type n, otherChar ch) {
+static_assert(sizeof(otherChar) <= sizeof(value_type), "");
+wjr::uninitialized_fill_n(data(), n, ch);
+return basic_encode_modifier(data() + n, size() - n);
+}
+template<typename otherChar>
+WJR_INLINE_CONSTEXPR20 basic_encode_modifier append(otherChar ch) {
+static_assert(sizeof(otherChar) <= sizeof(value_type), "");
+front() = ch;
+return basic_encode_modifier(data() + 1, size() - 1);
+}
+WJR_INLINE_CONSTEXPR void finalize() {
+front() = value_type();
+}
+template<typename T>
+WJR_INLINE_CONSTEXPR void from_integral(
+T _Val, iterator* pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept;
+using from_f_mode = typename encode_type::from_f_mode;
+using from_f_flags = typename encode_type::from_f_flags;
+using default_from_f_mode = typename encode_type::default_from_f_mode;
+using default_from_f_flags = typename encode_type::default_from_f_flags;
+template<typename T,
+typename M = default_from_f_mode,
+typename F = default_from_f_flags>
+WJR_INLINE void from_floating_point(
+T value, iterator* pos = nullptr, errc* err = nullptr, int precision = 0, M m = M(), F _Flags = F()) noexcept;
+using _Mybase::tolower;
+using _Mybase::toupper;
+WJR_CONSTEXPR20 void tolower() noexcept;
+WJR_CONSTEXPR20 void toupper() noexcept;
+};
+template<typename Traits>
+template<typename T>
+WJR_INLINE_CONSTEXPR void basic_encode_modifier<Traits>::from_integral(
+T _Val, iterator* pos, int base, errc* err) noexcept {
+basic_string_modifier<value_type, traits_type> it(*this);
+errc c = errc::ok;
+encode_type::from_integral(_Val, it, base, c);
+if (pos != nullptr) *pos = it.begin();
+if (err != nullptr) *err = c;
+}
+template<typename Traits>
+template<typename T,
+typename M,
+typename F>
+WJR_INLINE void basic_encode_modifier<Traits>::from_floating_point(
+T value, iterator* pos, errc* err, int precision, M m, F _Flags) noexcept {
+basic_string_modifier<value_type, traits_type> it(*this);
+errc c = errc::ok;
+encode_type::from_floating_point(value, it, c, precision, m, _Flags);
+if (pos != nullptr) *pos = it.begin();
+if (err != nullptr) *err = c;
+}
+template<typename Traits>
+WJR_CONSTEXPR20 void basic_encode_modifier<Traits>::tolower() noexcept {
+auto first = make_iterator(begin());
+auto last = make_iterator(end());
+while (first != last) {
+*first = tolower(*first);
+++first;
+}
+}
+template<typename Traits>
+WJR_CONSTEXPR20 void basic_encode_modifier<Traits>::toupper() noexcept {
+auto first = make_iterator(begin());
+auto last = make_iterator(end());
+while (first != last) {
+*first = toupper(*first);
+++first;
+}
+}
+using ascii_encode = encode::ascii;
+using ascii_view = basic_encode_view<encode::ascii_traits>;
+using ascii_modifier = basic_encode_modifier<encode::ascii_traits>;
+_WJR_END
+#endif // __WJR_STRING_FUNC_H
+
+#pragma once
 #ifndef __WJR_VARIANT_H
 #define __WJR_VARIANT_H
 #include <variant>
 _WJR_BEGIN
 template<size_t from_I, size_t to_I, typename...Vars, typename...Args>
-WJR_CONSTEXPR20 tp_at_t<tp_list<Vars...>, to_I>& emplace_from(std::variant<Vars...>& var, Args&&...args) {
+WJR_CONSTEXPR20 tp_at_t<tp_list<Vars...>, to_I>& emplace_from(std::variant<Vars...>& var, Args&&...args) noexcept {
 wjr::destroy_at(std::addressof(std::get<from_I>(var)));
 wjr::construct_at(std::addressof(var), std::in_place_index<to_I>, std::forward<Args>(args)...);
 return std::get<to_I>(var);
 }
 template<size_t from_I, typename to_T, typename...Vars, typename...Args>
-WJR_CONSTEXPR20 to_T& emplace_from(std::variant<Vars...>& var, Args&&...args) {
+WJR_CONSTEXPR20 to_T& emplace_from(std::variant<Vars...>& var, Args&&...args) noexcept {
 wjr::destroy_at(std::addressof(std::get<from_I>(var)));
 wjr::construct_at(std::addressof(var), std::in_place_type<to_T>, std::forward<Args>(args)...);
 return std::get<to_T>(var);
@@ -21010,7 +21511,7 @@ class json;
 struct json_traits {
 template<typename T>
 using allocator_type = sallocator<T>;
-using encode_type = encode::ascii;
+using encode_type = wjr::encode::ascii;
 using null = std::nullptr_t;
 using boolean = bool;
 using number = double;
@@ -21169,6 +21670,8 @@ find_unique_constructible_v<T&&, U&&, Args&&...> != -1
 inline explicit json(T&& t, U&& u, Args&&...args) noexcept
 : json(std::in_place_index_t<find_unique_constructible_v<T&&, U&&, Args&&...>>{},
 std::forward<T>(t), std::forward<U>(u), std::forward<Args>(args)...) {}
+struct parse_tag {};
+json(const char*& s, const char* e, parse_tag);
 inline json& operator=(const json& other) noexcept {
 if (this == std::addressof(other)) {
 return *this;
@@ -21212,7 +21715,7 @@ allocator_type<value_type>().deallocate(ptr, 1);
 }
 public:
 inline void tidy() noexcept {
-std::visit([this](auto& x) {
+std::visit([this](const auto& x) {
 constexpr auto idx = cont_find_v<remove_cvref_t<decltype(x)>>;
 this->tidy_from<idx>();
 }, m_value);
@@ -21266,9 +21769,9 @@ return emplace<type_find_v<T>>(std::forward<Args>(args)...);
 inline void swap(json& other) noexcept {
 m_value.swap(other.m_value);
 }
-static bool accept(const char* first, const char* last);
-static json parse(const char* first, const char* last) {
-return __parse(first, last);
+WJR_ATTRIBUTE(NODISCARD, PURE) static bool accept(const char* first, const char* last);
+WJR_ATTRIBUTE(NODISCARD, PURE) static json parse(const char* first, const char* last) {
+return json(first, last, parse_tag{});
 }
 enum stringify_mode {
 SHORTEST = 0,
@@ -21287,8 +21790,8 @@ default: WJR_UNREACHABLE; break;
 }
 return ret;
 }
-inline size_t index() const { return m_value.index(); }
-inline const char* type_name() const {
+WJR_ATTRIBUTE(PURE, INLINE) size_t index() const { return m_value.index(); }
+WJR_ATTRIBUTE(PURE, INLINE) const char* type_name() const {
 switch (m_value.index()) {
 case 0: return "null";
 case 1: return "boolean";
@@ -21299,14 +21802,14 @@ case 5: return "object";
 default: WJR_UNREACHABLE;
 }
 }
-inline cont& get()& { return m_value; }
-inline cont&& get()&& { return std::move(m_value); }
-inline const cont& get() const& { return m_value; }
-#define WJR_REGISTER_JSON_GET_FUNC(x)	                                            \
-inline x& get_##x() noexcept {return wjr::get<x>(*this);}	                        \
-inline const x& get_##x() const noexcept {return wjr::get<x>(*this);}	            \
-inline x* get_if_##x() noexcept {return wjr::get_if<x>(this);}	                    \
-inline const x* get_if_##x() const noexcept {return wjr::get_if<x>(this);}
+WJR_ATTRIBUTE(PURE, INLINE) cont& get()& { return m_value; }
+WJR_ATTRIBUTE(PURE, INLINE) cont&& get()&& { return std::move(m_value); }
+WJR_ATTRIBUTE(PURE, INLINE) const cont& get() const& { return m_value; }
+#define WJR_REGISTER_JSON_GET_FUNC(x)															\
+WJR_PURE WJR_INLINE x& get_##x() noexcept {return wjr::get<x>(*this);}	                        \
+WJR_PURE WJR_INLINE  const x& get_##x() const noexcept {return wjr::get<x>(*this);}	            \
+WJR_PURE WJR_INLINE  x* get_if_##x() noexcept {return wjr::get_if<x>(this);}	                \
+WJR_PURE WJR_INLINE  const x* get_if_##x() const noexcept {return wjr::get_if<x>(this);}
 WJR_MACRO_CALL(WJR_REGISTER_JSON_GET_FUNC, , null, boolean, number, string, array, object, cstring, carray, cobject);
 #undef WJR_REGISTER_JSON_GET_FUNC
 #define WJR_REGISTER_JSON_EMPLACE_FUNC(x)	\
@@ -21369,7 +21872,6 @@ const json& operator[](const Key& key) const {
 return at(key);
 }
 private:
-WJR_NODISCARD static json __parse(const char*& first, const char* last);
 static bool __accept(const char*& first, const char* last, uint8_t state);
 template<int m>
 void _stringify(string&, int) const noexcept;
@@ -21689,42 +22191,42 @@ default:
 return false;
 }
 }
-json json::__parse(const char*& first, const char* last) {
+json::json(const char*& first, const char* last, parse_tag) {
 first = encode_type::skipw(first, last);
 switch (*first) {
 case 'n': {
-json it(std::in_place_type_t<null>{});
+this->emplace_from<0, null>();
 first += 4;
-return it;
+break;
 }
 case 't': {
-json it(std::in_place_type_t<boolean>{}, true);
+this->emplace_from<0, boolean>(true);
 first += 4;
-return it;
+break;
 }
 case 'f': {
-json it(std::in_place_type_t<boolean>{}, false);
+this->emplace_from<0, boolean>(false);
 first += 5;
-return it;
+break;
 }
 case '"': {
 ++first;
 auto t = skip_string(first, last);
-json it(std::in_place_type_t<string>{}, first, t);
+this->emplace_from<0, string>(first, t);
 first = t + 1;
-return it;
+break;
 }
 case '[': {
-json it(std::in_place_type_t<array>{});
-auto& arr = it.get_array();
+this->emplace_from<0, array>();
+auto& arr = this->get_array();
 ++first;
 first = encode_type::skipw(first, last);
 if (*first == ']') {
 ++first;
-return it;
+break;
 }
 for (;;) {
-arr.emplace_back(__parse(first, last));
+arr.emplace_back(first, last, parse_tag{});
 first = encode_type::skipw(first, last);
 if (*first == ']') {
 ++first;
@@ -21733,16 +22235,16 @@ break;
 ++first;
 }
 arr.shrink_to_fit();
-return it;
+break;
 }
 case '{': {
-json it(std::in_place_type_t<object>{});
-auto& obj = it.get_object();
+this->emplace_from<0, object>();
+auto& obj = this->get_object();
 ++first;
 first = encode_type::skipw(first, last);
 if (*first == '}') {
 ++first;
-return it;
+break;
 }
 for(;;) {
 first = encode_type::skipw(first, last);
@@ -21752,7 +22254,9 @@ string name(first, p);
 first = p + 1;
 first = encode_type::skipw(first, last);
 ++first;
-obj.insert_or_assign(std::move(name), __parse(first, last));
+obj.emplace(std::piecewise_construct,
+std::forward_as_tuple(std::move(name)),
+std::forward_as_tuple(first, last, parse_tag{}));
 first = encode_type::skipw(first, last);
 if (*first == '}') {
 ++first;
@@ -21760,15 +22264,15 @@ break;
 }
 ++first;
 }
-return it;
+break;
 }
 default: {
 const char* pos = nullptr;
 auto val = encode_type::to_floating_point<double>(first, last, &pos, nullptr,
 std::integral_constant<encode_type::to_f_flags, encode_type::to_f_flags::ALLOW_TRAILING_JUNK>());
 first = pos;
-json it(std::in_place_type_t<number>{}, val);
-return it;
+this->emplace_from<0, number>(val);
+break;
 }
 }
 }
@@ -21798,11 +22302,11 @@ break;
 }
 case 2: {
 str.reserve(str.size() + 256);
-size_t length = 0;
-encode_type::from_floating_point<double>(
-get_number(), str.end(), 256, &length);
-str.inc_size(length);
-str.set_end();
+ascii_modifier it(str.lastPtr(), str.endPtr() - str.lastPtr());
+char* e = nullptr;
+it.from_floating_point(get_number(), &e);
+str.set_size(e - str.data());
+str.finalize();
 break;
 }
 case 3: {

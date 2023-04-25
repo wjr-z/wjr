@@ -36,16 +36,16 @@ constexpr static __memskipw_table __memskipw_table_instance = {};
 #define WJR_SIMD_IS_BACKWARD 0
 
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const char* __memskipw(const char* s, const char* e) {
-	if (is_unlikely(s == e)) return s;
-	if(is_likely(!__memskipw_table_instance[*s])) return s;
+	if (WJR_UNLIKELY(s == e)) return s;
+	if(WJR_LIKELY(!__memskipw_table_instance[*s])) return s;
 	++s;
-	if (is_likely(s + 3 <= e)) {
+	if (WJR_LIKELY(s + 3 <= e)) {
 		if (!__memskipw_table_instance[*s]) return s;
 		if (!__memskipw_table_instance[s[1]]) return s + 1;
 		if (!__memskipw_table_instance[s[2]]) return s + 2;
 
 		s += 3;
-		if (is_likely(s + 16 <= e)) {
+		if (WJR_LIKELY(s + 16 <= e)) {
 			const auto simd_32 = simd::sse::set1_epi8(32);
 			const auto simd_9 = simd::sse::set1_epi8(9);
 			const auto simd_5 = simd::sse::set1_epi8(4);
@@ -56,7 +56,7 @@ WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const char* __memskipw(const char* s, con
 				auto z = simd::sse::sub(x, simd_9, uint8_t());
 				z = simd::sse::cmple(z, simd_5, uint8_t());
 				auto r = simd::sse::movemask_epi8(simd::sse::Or(y, z));
-				if (is_likely(r != simd::sse::mask())) {
+				if (WJR_LIKELY(r != simd::sse::mask())) {
 					return WJR_SIMD_FIRST_ZERO_PTR(s, r);
 				}
 				s += 16;

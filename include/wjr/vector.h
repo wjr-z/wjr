@@ -184,7 +184,7 @@ struct vector_static_data {
 #if defined(_WJR_EXCEPTION)
 		throw std::length_error("vector_static_data is too small to hold the requested data");
 #endif // _WJR_EXCEPTION
-		unreachable();
+		WJR_UNREACHABLE;
 	}
 
 	WJR_CONSTEXPR20 vector_static_data(
@@ -587,7 +587,7 @@ public:
 
 	WJR_CONSTEXPR20 vector& operator=(const vector& other) {
 
-		if (is_likely(this != std::addressof(other))) {
+		if (WJR_LIKELY(this != std::addressof(other))) {
 			auto& al = getAllocator();
 			auto& other_al = other.getAllocator();
 
@@ -615,7 +615,7 @@ public:
 		using type = std::disjunction<typename _Alty_traits::propagate_on_container_move_assignment,
 			typename _Alty_traits::is_always_equal>;
 
-		if (is_likely(this != std::addressof(other))) {
+		if (WJR_LIKELY(this != std::addressof(other))) {
 			_M_move_assign(std::move(other), type());
 		}
 

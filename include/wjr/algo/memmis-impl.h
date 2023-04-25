@@ -20,7 +20,20 @@ WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n,
 	constexpr uintptr_t width = simd_t::width() / (8 * _Mysize);
 	constexpr uintptr_t bound = width * _Mysize;
 
+	{
+		auto m = n <= 32 / _Mysize ? (n - 16 / _Mysize) : (16 / _Mysize);
 
+		{
+			WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s0, m));
+			WJR_SIMD_LOADU(simd::sse, y, WJR_SIMD_ADD_PTR(s1, m));
+
+			__WJR_MEMMIS_ONE(simd::sse, WJR_SIMD_ADD_PTR(s0, m));
+		}
+
+		if (n <= 32 / _Mysize) {
+			return WJR_SIMD_ADD_PTR(s0, n);
+		}
+	}
 
 	// solve first min(n, 128 / _Mysize) bytes
 	// no branch algorithm
@@ -123,7 +136,7 @@ WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n,
 
 	// align
 
-	if (is_likely(reinterpret_cast<uintptr_t>(s0) % _Mysize == 0)) {
+	if (WJR_LIKELY(reinterpret_cast<uintptr_t>(s0) % _Mysize == 0)) {
 
 		const auto __align_s0 = WJR_SIMD_CEIL_ALIGN_OFFSET(s0, bound);
 		const auto __align_s1 = WJR_SIMD_CEIL_ALIGN_OFFSET(s1, bound);
@@ -145,7 +158,7 @@ WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n,
 				WJR_SIMD_INC_PTR(s1, __align_s0 / _Mysize);
 				n -= __align_s0 / _Mysize;
 
-				if (is_unlikely(n < width * 4)) {
+				if (WJR_UNLIKELY(n < width * 4)) {
 					goto WJR_MACRO_LABEL(last_solve_align_0);
 				}
 			}
@@ -220,7 +233,7 @@ WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n,
 			WJR_SIMD_INC_PTR(s1, __align_s0 / _Mysize);
 			n -= __align_s0 / _Mysize;
 
-			if (is_unlikely(n < width * 4)) {
+			if (WJR_UNLIKELY(n < width * 4)) {
 				goto WJR_MACRO_LABEL(last_solve_align_0_1);
 			}
 		}
@@ -280,7 +293,7 @@ WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n,
 		return s0;
 	}
 
-	if (is_likely(reinterpret_cast<uintptr_t>(s1) % _Mysize == 0)) {
+	if (WJR_LIKELY(reinterpret_cast<uintptr_t>(s1) % _Mysize == 0)) {
 
 		const auto __align_s1 = WJR_SIMD_CEIL_ALIGN_OFFSET(s1, bound);
 		// only align second pointer
@@ -297,7 +310,7 @@ WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n,
 			WJR_SIMD_INC_PTR(s1, __align_s1 / _Mysize);
 			n -= __align_s1 / _Mysize;
 
-			if (is_unlikely(n < width * 4)) {
+			if (WJR_UNLIKELY(n < width * 4)) {
 				goto WJR_MACRO_LABEL(last_solve_align_1);
 			}
 		}
@@ -537,7 +550,7 @@ WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T*
 __WJR_MEMMIS_NAME(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
 	constexpr size_t _Mysize = sizeof(T);
 
-	if (is_unlikely(n == 0)) return s0;
+	if (WJR_UNLIKELY(n == 0)) return s0;
 
 	WJR_SIMD_INIT_PTR(s0, n);
 	WJR_SIMD_INIT_PTR(s1, n);
@@ -550,19 +563,6 @@ __WJR_MEMMIS_NAME(const T* s0, const T* s1, size_t n, _Pred pred) noexcept {
 			WJR_SIMD_LOADU(simd::sse, y, s1);
 
 			__WJR_MEMMIS_ONE(simd::sse, s0);
-		}
-
-		auto m = n <= 32 / _Mysize ? (n - 16 / _Mysize) : (16 / _Mysize);
-
-		{
-			WJR_SIMD_LOADU(simd::sse, x, WJR_SIMD_ADD_PTR(s0, m));
-			WJR_SIMD_LOADU(simd::sse, y, WJR_SIMD_ADD_PTR(s1, m));
-
-			__WJR_MEMMIS_ONE(simd::sse, WJR_SIMD_ADD_PTR(s0, m));
-		}
-
-		if (n <= 32 / _Mysize) {
-			return WJR_SIMD_ADD_PTR(s0, n);
 		}
 
 		return WJR_MACRO_CONCAT(__large, __WJR_MEMMIS_NAME)(s0, s1, n, pred);

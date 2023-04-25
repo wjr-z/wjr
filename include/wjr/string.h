@@ -15,7 +15,7 @@
 
 #include <wjr/vector.h>
 #include <wjr/math.h>
-#include <wjr/string_func.h>
+#include <wjr/error_handle.h>
 
 _WJR_BEGIN
 
@@ -208,14 +208,9 @@ struct __traits_helper<std::char_traits<Char>> {
 template<typename Derived>
 struct __base_string_view_traits;
 
-template<typename Char, typename Traits = std::char_traits<Char>>
-class basic_string_view;
-
-template<typename Char, typename Traits>
-struct __base_string_view_traits<basic_string_view<Char, Traits>> {
-	using _Derived = basic_string_view<Char, Traits>;
-
-	using _Traits_helper = __traits_helper<Traits>;
+template<template<typename...>typename C, typename Char, typename Traits>
+struct __base_string_view_traits<C<Char, Traits>> {
+	using _Derived = C<Char, Traits>;
 
 	using _Std_view_type = std::basic_string_view<Char, Traits>;
 
@@ -259,121 +254,36 @@ struct __base_string_view_traits<basic_string_view<Char, Traits>> {
 	using difference_type = ptrdiff_t;
 
 	static constexpr auto npos = static_cast<size_type>(-1);
+
 };
 
-template<typename Derived>
-class __base_string_view : public __base_string_view_traits<Derived> {
-public:
-	using _Mybase = __base_string_view_traits<Derived>;
-	template<typename T>
-	constexpr static bool _Is_noptr_string_view_like_v = _Mybase::template _Is_noptr_string_view_like_v<T>;
-
-	using value_type = typename _Mybase::value_type;
-	using size_type = typename _Mybase::size_type;
-
-	constexpr static size_type npos = _Mybase::npos;
-	
-	WJR_INLINE_CONSTEXPR void swap(Derived& other) noexcept {
-		const Derived tmp{ other };
-		other = this->derived();
-		this->derived() = tmp;
-	}
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived substr(
-		const size_type off = 0, size_type n = npos) const WJR_NOEXCEPT {
-#if defined(_WJR_EXCEPTION)
-		if (is_likely(off <= derived().size())) {
-#endif // _WJR_EXCEPTION
-			return nesubstr(off, n);
-#if defined(_WJR_EXCEPTION)
-		}
-		throw std::out_of_range("out of range at basic_string_view::substr");
-#endif // _WJR_EXCEPTION
-	}
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived
-		nesubstr(const size_type off = 0, size_type n = npos) const noexcept {
-		n = std::min(n, this->derived().size() - off);
-		return Derived(this->derived().data() + off, n);
-	}
-
-	// no exception view
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(
-		const value_type* s, const size_type n) noexcept {
-		return Derived(s, n);
-	}
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(
-		const value_type* s) noexcept {
-		return Derived(s);
-	}
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(
-		std::initializer_list<value_type> il) noexcept {
-		return view(il.begin(), il.size());
-	}
-
-	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(const StringView& t) noexcept {
-		return Derived(t);
-	}
-
-	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(const StringView& t,
-		const size_type off, const size_type n = npos) noexcept {
-		return view(t).nesubstr(off, n);
-	}
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived view() const noexcept {
-		return this->derived();
-	}
-
-	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived eview(const StringView& t,
-		const size_type off, const size_type n = npos) WJR_NOEXCEPT {
-		return view(t).substr(off, n);
-	}
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived prefix(size_type n) const noexcept {
-		n = std::min(n, this->derived().size());
-		return Derived(this->derived().begin(), n);
-	}
-
-	WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived suffix(size_type n) const noexcept {
-		n = std::min(n, this->derived().size());
-		return Derived(this->derived().end() - n, n);
-	}
+template<typename Char, typename Traits = std::char_traits<Char>>
+class basic_string_view {
 protected:
-	Derived& derived() { return static_cast<Derived&>(*this); }
-	const Derived& derived() const { return static_cast<const Derived&>(*this); }
-};
+	using _Mybase = __base_string_view_traits<basic_string_view<Char, Traits>>;
 
-template<typename Char, typename Traits>
-class basic_string_view : public __base_string_view<basic_string_view<Char, Traits>> {
-public:
-	using _Mybase = __base_string_view<basic_string_view<Char, Traits>>;
-private:
-
-	using _Traits_helper = typename _Mybase::_Traits_helper;
+	using _Traits_helper = __traits_helper<Traits>;
 
 	using _Std_view_type = typename _Mybase::_Std_view_type;
 
 	template<typename T>
-	constexpr static bool _Is_string_view_like_v = _Mybase::template _Is_string_view_like_v<T>;
+	using _Is_string_view_like = typename _Mybase::template _Is_string_view_like<T>;
 
 	template<typename T>
-	constexpr static bool _Is_noptr_std_string_view_like_v = _Mybase::template _Is_noptr_std_string_view_like_v<T>;
+	constexpr static bool _Is_string_view_like_v = _Is_string_view_like<T>::value;
 
 	template<typename T>
-	constexpr static bool _Is_noptr_string_view_like_v = _Mybase::template _Is_noptr_string_view_like_v<T>;
+	using _Is_noptr_std_string_view_like = typename _Mybase::template _Is_noptr_std_string_view_like<T>;
 
+	template<typename T>
+	constexpr static bool _Is_noptr_std_string_view_like_v = _Is_noptr_std_string_view_like<T>::value;
+
+	template<typename T>
+	using _Is_noptr_string_view_like = typename _Mybase::template _Is_noptr_string_view_like<T>;
+
+	template<typename T>
+	constexpr static bool _Is_noptr_string_view_like_v = _Is_noptr_string_view_like<T>::value;
 public:
-	static_assert(!std::is_array_v<Char>&& std::is_trivial_v<Char>&& std::is_standard_layout_v<Char>,
-		"The character type of basic_string_view must be a non-array trivial standard-layout type. See N4910 "
-		"23.1 [strings.general]/1.");
-
-	static_assert(std::is_same_v<Char, typename Traits::char_type>, "");
 
 	using traits_type = typename _Mybase::traits_type;
 	using value_type = typename _Mybase::value_type;
@@ -390,12 +300,92 @@ public:
 
 	constexpr static size_type npos = _Mybase::npos;
 
-	using _Mybase::swap;
-	using _Mybase::substr;
-	using _Mybase::view;
-	using _Mybase::eview;
-	using _Mybase::prefix;
-	using _Mybase::suffix;
+public:
+	static_assert(!std::is_array_v<Char>&& std::is_trivial_v<Char>&& std::is_standard_layout_v<Char>,
+		"The character type of basic_string_view must be a non-array trivial standard-layout type. See N4910 "
+		"23.1 [strings.general]/1.");
+
+	static_assert(std::is_same_v<Char, typename Traits::char_type>, "");
+
+	WJR_INLINE_CONSTEXPR void swap(basic_string_view& other) noexcept {
+		const basic_string_view tmp{ other };
+		other = *this;
+		*this = tmp;
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view substr(
+		const size_type off = 0, size_type n = npos) const WJR_NOEXCEPT {
+#if defined(_WJR_EXCEPTION)
+		if (WJR_LIKELY(off <= size())) {
+#endif // _WJR_EXCEPTION
+			return nesubstr(off, n);
+#if defined(_WJR_EXCEPTION)
+		}
+		throw std::out_of_range("out of range at basic_string_view::substr");
+#endif // _WJR_EXCEPTION
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view
+		nesubstr(const size_type off = 0, size_type n = npos) const noexcept {
+		n = std::min(n, size() - off);
+		return basic_string_view(data() + off, n);
+	}
+
+	// no exception view
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(
+		const value_type* s, const size_type n) noexcept {
+		return basic_string_view(s, n);
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(
+		const value_type* s) noexcept {
+		return basic_string_view(s);
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(
+		std::initializer_list<value_type> il) noexcept {
+		return view(il.begin(), il.size());
+	}
+
+	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(const StringView& t) noexcept {
+		return basic_string_view(t);
+	}
+
+	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(const StringView& t,
+		const size_type off, const size_type n = npos) noexcept {
+		return view(t).nesubstr(off, n);
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view view() const noexcept {
+		return *this;
+	}
+
+	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view eview(const StringView& t,
+		const size_type off, const size_type n = npos) WJR_NOEXCEPT {
+		return view(t).substr(off, n);
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view prefix(size_type n) const noexcept {
+		n = std::min(n, size());
+		return basic_string_view(begin(), n);
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view suffix(size_type n) const noexcept {
+		n = std::min(n, size());
+		return basic_string_view(end() - n, n);
+	}
+
+	WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_string_view adjust_begin(const_iterator iter) const noexcept {
+		return basic_string_view(iter, static_cast<size_type>(end() - iter));
+	}
+
+	WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_string_view adjust_end(const_iterator iter) const noexcept {
+		return basic_string_view(begin(), static_cast<size_type>(iter - begin()));
+	}
 
 private:
 
@@ -547,30 +537,31 @@ public:
 	}
 
 	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-	WJR_NODISCARD WJR_CONSTEXPR20 int compare(const size_type off, const size_type n, const StringView& t)
+	WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(const size_type off, const size_type n, const StringView& t)
 		const WJR_NOEXCEPT {
 		return eview(*this, off, n).compare(t);
 	}
 
 	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-	WJR_NODISCARD WJR_CONSTEXPR20 int compare(const size_type off1, const size_type n1, const StringView& t,
+	WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(
+		const size_type off1, const size_type n1, const StringView& t,
 		const size_type off2, const size_type n2)
 		const WJR_NOEXCEPT {
 		return eview(*this, off1, n1).compare(eview(t, off2, n2));
 	}
 
-	WJR_NODISCARD WJR_CONSTEXPR20 int compare(const Char* const ptr) const {
+	WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(const Char* const ptr) const {
 		return compare(view(ptr));
 	}
 
-	WJR_NODISCARD WJR_CONSTEXPR20 int compare(const size_type off, const size_type n, const Char* const ptr) const {
+	WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(const size_type off, const size_type n, const Char* const ptr) const {
 		return eview(*this, off, n).compare(view(ptr));
 	}
 
-	WJR_NODISCARD WJR_CONSTEXPR20 int compare(const size_type off1, const size_type n1,
+	WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(const size_type off1, const size_type n1,
 		const Char* const ptr, const size_type n2) const {
 		return eview(*this, off1, n1).compare(eview(ptr, n2));
-	}       
+	}
 
 	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
 	WJR_NODISCARD WJR_CONSTEXPR20 bool starts_with(const StringView& t) const noexcept {
@@ -615,7 +606,7 @@ public:
 
 	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
 	WJR_NODISCARD WJR_CONSTEXPR20 size_type find(const StringView& t, const size_type off = 0) const noexcept {
-		if (is_likely(off <= size())) {
+		if (WJR_LIKELY(off <= size())) {
 			const auto sv1 = view(*this, off);
 			const auto sv2 = view(t);
 			if constexpr (_Traits_helper::is_default_equal::value) {
@@ -634,7 +625,7 @@ public:
 	}
 
 	WJR_NODISCARD WJR_CONSTEXPR20 size_type find(const Char ch, const size_type off = 0) const noexcept {
-		if (is_likely(off <= size())) {
+		if (WJR_LIKELY(off <= size())) {
 			const auto sv = view(*this, off);
 			if constexpr (_Traits_helper::is_default_equal::value) {
 				auto iter = wjr::find(sv.begin(), sv.end(), ch);
@@ -660,7 +651,7 @@ public:
 
 	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
 	WJR_NODISCARD WJR_CONSTEXPR20 size_type rfind(const StringView& t, const size_type off = npos) const noexcept {
-		if (is_likely(size() != 0)) {
+		if (WJR_LIKELY(size() != 0)) {
 			const auto sv1 = view(*this, 0, std::min(off, size() - 1) + 1);
 			const auto sv2 = view(t);
 			if constexpr (_Traits_helper::is_default_equal::value) {
@@ -681,7 +672,7 @@ public:
 	}
 
 	WJR_NODISCARD WJR_CONSTEXPR20 size_type rfind(const Char ch, const size_type off = npos) const noexcept {
-		if (is_likely(size() != 0)) {
+		if (WJR_LIKELY(size() != 0)) {
 			const auto sv = view(*this, 0, std::min(off, size() - 1) + 1);
 			if constexpr (_Traits_helper::is_default_equal::value) {
 				auto iter = wjr::find(sv.rbegin(), sv.rend(), ch);
@@ -758,7 +749,7 @@ public:
 	}
 
 	WJR_NODISCARD WJR_CONSTEXPR20 size_type find_first_not_of(const Char ch, const size_type off = 0) const noexcept {
-		if (is_likely(off <= size())) {
+		if (WJR_LIKELY(off <= size())) {
 			const auto sv = view(*this, off);
 			if constexpr (_Traits_helper::is_default_equal::value) {
 				auto iter = wjr::find(sv.begin(), sv.end(), ch, std::not_equal_to<>{});
@@ -793,7 +784,7 @@ public:
 	}
 
 	WJR_NODISCARD WJR_CONSTEXPR20 size_type find_last_not_of(const Char ch, const size_type off = npos) const noexcept {
-		if (is_likely(size() != 0)) {
+		if (WJR_LIKELY(size() != 0)) {
 			const auto sv = view(*this, 0, std::min(off, size() - 1) + 1);
 			if constexpr (_Traits_helper::is_default_equal::value) {
 				auto iter = wjr::find(sv.rbegin(), sv.rend(), ch, std::not_equal_to<>{});
@@ -825,7 +816,7 @@ public:
 	/*------External extension function------*/
 
 	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-	WJR_NODISCARD WJR_CONSTEXPR20 bool equal(const StringView& t) const noexcept {
+	WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR20) bool equal(const StringView& t) const noexcept {
 		const auto sv = view(t);
 		if constexpr (_Traits_helper::is_default_equal::value) {
 			return wjr::equal(begin(), end(), sv.begin(), sv.end());
@@ -836,26 +827,26 @@ public:
 	}
 
 	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-	WJR_NODISCARD WJR_CONSTEXPR20 bool equal(const size_type off, const size_type n, const StringView& t)
+	WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR20) bool equal(const size_type off, const size_type n, const StringView& t)
 		const WJR_NOEXCEPT {
 		return eview(*this, off, n).equal(view(t));
 	}
 
 	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-	WJR_NODISCARD WJR_CONSTEXPR20 bool equal(const size_type off1, const size_type n1, const StringView& t,
+	WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR20) bool equal(const size_type off1, const size_type n1, const StringView& t,
 		const size_type off2, const size_type n2) const WJR_NOEXCEPT {
 		return eview(*this, off1, n1).equal(eview(t, off2, n2));
 	}
 
-	WJR_NODISCARD WJR_CONSTEXPR20 bool equal(const Char* const ptr) const {
+	WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR20) bool equal(const Char* const ptr) const {
 		return equal(view(ptr));
 	}
 
-	WJR_NODISCARD WJR_CONSTEXPR20 bool equal(const size_type off, const size_type n, const Char* const ptr) const {
+	WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR20) bool equal(const size_type off, const size_type n, const Char* const ptr) const {
 		return equal(off, n, view(ptr));
 	}
 
-	WJR_NODISCARD WJR_CONSTEXPR20 bool equal(const size_type off1, const size_type n1,
+	WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR20) bool equal(const size_type off1, const size_type n1,
 		const Char* const ptr, const size_type n2) const {
 		return equal(off1, n1, view(ptr, n2));
 	}
@@ -1073,40 +1064,40 @@ template<
 		WJR_CONSTEXPR20 basic_string()
 			noexcept(std::is_nothrow_default_constructible_v<vector_type>)
 			: m_core() {
-			set_end();
+			finalize();
 		}
 
 		WJR_CONSTEXPR20 explicit basic_string(const allocator_type& al) noexcept
 			: m_core(al) {
-			set_end();
+			finalize();
 		}
 
 		WJR_CONSTEXPR20 basic_string(const basic_string& other)
 			: m_core(other.m_core) {
-			set_end();
+			finalize();
 		}
 
 		WJR_CONSTEXPR20 basic_string(const basic_string& other, const allocator_type& al)
 			: m_core(other.m_core, al) {
-			set_end();
+			finalize();
 		}
 
 		WJR_CONSTEXPR20 basic_string(basic_string&& other)
 			: m_core(std::move(other.m_core)) {
-			set_end();
-			other.set_end();
+			finalize();
+			other.finalize();
 		}
 
 		WJR_CONSTEXPR20 basic_string(basic_string&& other, const allocator_type& al)
 			: m_core(std::move(other.m_core), al) {
-			set_end();
-			other.set_end();
+			finalize();
+			other.finalize();
 		}
 
 		template<typename iter, std::enable_if_t<is_iterator_v<iter>, int> = 0>
 		WJR_CONSTEXPR20 basic_string(iter first, iter last, const allocator_type& al = allocator_type())
 			: m_core(first, last, al) {
-			set_end();
+			finalize();
 		}
 
 		WJR_CONSTEXPR20 basic_string(const basic_string& other,
@@ -1150,7 +1141,7 @@ template<
 		WJR_CONSTEXPR20 explicit basic_string(const size_type n,
 			const value_type c = value_type(), const allocator_type& al = allocator_type())
 			: m_core(n, c, al) {
-			set_end();
+			finalize();
 		}
 
 		WJR_CONSTEXPR20 operator std::basic_string_view<Char, traits_type>() const noexcept {
@@ -1161,9 +1152,9 @@ template<
 
 		WJR_CONSTEXPR20 basic_string& operator=(const basic_string& other) {
 
-			if (is_likely(this != std::addressof(other))) {
+			if (WJR_LIKELY(this != std::addressof(other))) {
 				m_core = other.m_core;
-				set_end();
+				finalize();
 			}
 
 			return *this;
@@ -1171,10 +1162,10 @@ template<
 
 		WJR_CONSTEXPR20 basic_string& operator=(basic_string&& other) noexcept {
 
-			if (is_likely(this != std::addressof(other))) {
+			if (WJR_LIKELY(this != std::addressof(other))) {
 				m_core = std::move(other.m_core);
-				set_end();
-				other.set_end();
+				finalize();
+				other.finalize();
 			}
 
 			return *this;
@@ -1228,22 +1219,22 @@ template<
 
 		WJR_CONSTEXPR20 void resize(const size_type n) {
 			m_core.resize(n);
-			set_end();
+			finalize();
 		}
 
 		WJR_CONSTEXPR20 void resize(const size_type n, const value_type c) {
 			m_core.resize(n, c);
-			set_end();
+			finalize();
 		}
 
 		WJR_CONSTEXPR20 void reserve(const size_type c) {
 			m_core.reserve(c);
-			set_end();
+			finalize();
 		}
 
 		WJR_CONSTEXPR20 void shrink_to_fit() {
 			m_core.shrink_to_fit();
-			set_end();
+			finalize();
 		}
 
 		WJR_CONSTEXPR20 void clear() {
@@ -1306,7 +1297,7 @@ template<
 		template<typename iter, std::enable_if_t<is_iterator_v<iter>, int> = 0>
 		WJR_CONSTEXPR20 basic_string& append(iter first, iter last) {
 			m_core.append(first, last);
-			set_end();
+			finalize();
 			return *this;
 		}
 
@@ -1336,7 +1327,7 @@ template<
 
 		WJR_CONSTEXPR20 basic_string& append(const size_type n, const value_type c) {
 			m_core.append(n, c);
-			set_end();
+			finalize();
 			return *this;
 		}
 
@@ -1347,7 +1338,7 @@ template<
 
 		WJR_CONSTEXPR20 void push_back(const value_type c) {
 			m_core.push_back(c);
-			set_end();
+			finalize();
 		}
 
 		WJR_CONSTEXPR20 void push_front(const value_type c) {
@@ -1356,7 +1347,7 @@ template<
 
 		WJR_CONSTEXPR20 void pop_back() {
 			m_core.pop_back();
-			set_end();
+			finalize();
 		}
 
 		WJR_CONSTEXPR20 basic_string& assign(const basic_string& other) {
@@ -1374,7 +1365,7 @@ template<
 		template<typename iter, std::enable_if_t<is_iterator_v<iter>, int> = 0>
 		WJR_CONSTEXPR20 basic_string& assign(iter first, iter last) {
 			m_core.assign(first, last);
-			set_end();
+			finalize();
 			return *this;
 		}
 
@@ -1403,7 +1394,7 @@ template<
 
 		WJR_CONSTEXPR20 basic_string& assign(const size_type n, const value_type c) {
 			m_core.assign(n, c);
-			set_end();
+			finalize();
 			return *this;
 		}
 
@@ -1420,7 +1411,7 @@ template<
 		WJR_CONSTEXPR20 iterator insert(const_iterator _Where, iter first, iter last) {
 			auto __old_pos = static_cast<size_type>(_Where - cbegin());
 			m_core.insert(_Where, first, last);
-			set_end();
+			finalize();
 			return begin() + __old_pos;
 		}
 
@@ -1435,7 +1426,7 @@ template<
 		WJR_CONSTEXPR20 iterator insert(const_iterator _Where, const size_type n, const value_type c) {
 			auto __old_pos = static_cast<size_type>(_Where - cbegin());
 			m_core.insert(_Where, n, c);
-			set_end();
+			finalize();
 			return begin() + __old_pos;
 		}
 
@@ -1448,7 +1439,7 @@ template<
 		WJR_CONSTEXPR20 iterator insert(const_iterator _Where, const value_type c) {
 			auto __old_pos = static_cast<size_type>(_Where - cbegin());
 			m_core.insert(_Where, c);
-			set_end();
+			finalize();
 			return begin() + __old_pos;
 		}
 
@@ -1473,7 +1464,7 @@ template<
 		WJR_CONSTEXPR20 iterator erase(const_iterator first, const_iterator last) {
 			auto __old_pos = first - cbegin();
 			m_core.erase(first, last);
-			set_end();
+			finalize();
 			return begin() + __old_pos;
 		}
 
@@ -1486,14 +1477,14 @@ template<
 		WJR_CONSTEXPR20 iterator erase(const_iterator _Where) {
 			auto __old_pos = _Where - cbegin();
 			m_core.erase(_Where);
-			set_end();
+			finalize();
 			return begin() + __old_pos;
 		}
 
 		WJR_CONSTEXPR20 void swap(basic_string& other)noexcept {
 			m_core.swap(other.m_core);
-			set_end();
-			other.set_end();
+			finalize();
+			other.finalize();
 		}
 
 		WJR_INLINE_CONSTEXPR20 const value_type* c_str() const { return m_core.data(); }
@@ -1734,7 +1725,7 @@ template<
 		WJR_CONSTEXPR20 basic_string& replace(const_iterator first, const_iterator last,
 			iter first2, iter last2) {
 			m_core.replace(first, last, first2, last2);
-			set_end();
+			finalize();
 			return *this;
 		}
 
@@ -1768,7 +1759,7 @@ template<
 		WJR_CONSTEXPR20 basic_string& replace(const_iterator first, const_iterator last,
 			size_type n2, value_type ch) {
 			m_core.replace(first, last, n2, ch);
-			set_end();
+			finalize();
 			return *this;
 		}
 
@@ -1878,7 +1869,7 @@ template<
 			getData().inc_size(_Size);
 		}
 
-		WJR_INLINE_CONSTEXPR20 void set_end() {
+		WJR_INLINE_CONSTEXPR20 void finalize() {
 			wjr::construct_at(getAllocator(), lastPtr());
 		}
 
@@ -1976,7 +1967,7 @@ template<
 
 		WJR_CONSTEXPR20 basic_string& prepend(const value_type c) {
 			m_core.emplace(m_core.begin(), c);
-			set_end();
+			finalize();
 			return *this;
 		}
 
@@ -2012,55 +2003,55 @@ template<
 
 		WJR_CONSTEXPR20 basic_string(const size_type _Count, default_construct_tag, const allocator_type& al = allocator_type())
 			: m_core(_Count, default_construct_tag(), al) {
-			set_end();
+			finalize();
 		}
 
 		WJR_CONSTEXPR20 basic_string(const size_type _Count, value_construct_tag, const allocator_type& al = allocator_type())
 			: m_core(_Count, value_construct_tag(), al) {
-			set_end();
+			finalize();
 		}
 
 		WJR_CONSTEXPR20 void resize(const size_type _Newsize, default_construct_tag) {
 			m_core.resize(_Newsize, default_construct_tag());
-			set_end();
+			finalize();
 		}
 
 		WJR_CONSTEXPR20 void resize(const size_type _Newsize, value_construct_tag) {
 			m_core.resize(_Newsize, value_construct_tag());
-			set_end();
+			finalize();
 		}
 
 		WJR_CONSTEXPR20 void push_back(default_construct_tag) {
 			m_core.push_back(default_construct_tag());
-			set_end();
+			finalize();
 		}
 
 		WJR_CONSTEXPR20 void push_back(value_construct_tag) {
 			m_core.push_back(value_construct_tag());
-			set_end();
+			finalize();
 		}
 
 		WJR_CONSTEXPR20 basic_string& append(const size_type n, default_construct_tag) {
 			m_core.append(n, default_construct_tag());
-			set_end();
+			finalize();
 			return *this;
 		}
 
 		WJR_CONSTEXPR20 basic_string& append(const size_type n, value_construct_tag) {
 			m_core.append(n, value_construct_tag());
-			set_end();
+			finalize();
 			return *this;
 		}
 
 		WJR_CONSTEXPR20 basic_string& chop(const size_type n) noexcept {
 			m_core.chop(n);
-			set_end();
+			finalize();
 			return *this;
 		}
 
 		WJR_CONSTEXPR20 basic_string& truncate(const size_type n) noexcept {
 			m_core.truncate(n);
-			set_end();
+			finalize();
 			return *this;
 		}
 
@@ -2918,538 +2909,161 @@ namespace std {
 
 _WJR_BEGIN
 
-// encode class
-
-namespace encode {
-
-	class ascii;
-
-	struct ascii_traits {
-		using value_type = char;
-		using encode_type = encode::ascii;
-		using iterator = char*;
-		using const_iterator = const char*;
-	};
-
-	struct __ascii_to_digit_table {
-
-		constexpr static uint8_t invalid = 0xff;
-
-		constexpr __ascii_to_digit_table() : table() {
-			for (int i = 0; i < 256; ++i) {
-				table[i] = invalid;
-			}
-
-			{
-				for (int i = '0'; i <= '9'; ++i) {
-					table[i] = (i - '0');
-				}
-			}
-
-			for (int i = 'a'; i <= 'z'; ++i) {
-				table[i] = (i - 'a') + 10;
-			}
-
-			for (int i = 'A'; i <= 'Z'; ++i) {
-				table[i] = (i - 'A') + 10;
-			}
-
-		}
-
-		WJR_ATTRIBUTE(CONST, CONSTEXPR) uint8_t operator[](uint8_t ch) const { return table[ch]; }
-
-	private:
-		std::array<uint8_t, 256> table;
-	};
-
-	constexpr static __ascii_to_digit_table __ascii_to_digit_table_v = {};
-
-	class ascii : public string_func<ascii_traits> {
-	public:
-
-		enum __char_code {
-			__none = 0x00,
-			__lower = 0x01,
-			__upper = 0x02,
-			__digit = 0x04,
-			__xdigit = 0x08,
-			__white = 0x10
-		};
-
-		static constexpr int __char_code_table[256] = {
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,         __white,         __white,         __white,
-		 __white,         __white,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		 __white,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-__digit | __xdigit,__digit | __xdigit,__digit | __xdigit,__digit | __xdigit,
-__digit | __xdigit,__digit | __xdigit,__digit | __xdigit,__digit | __xdigit,
-__digit | __xdigit,__digit | __xdigit,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,__upper | __xdigit,__upper | __xdigit,__upper | __xdigit,
-__upper | __xdigit,__upper | __xdigit,__upper | __xdigit,         __upper,
-		 __upper,         __upper,         __upper,         __upper,
-		 __upper,         __upper,         __upper,         __upper,
-		 __upper,         __upper,         __upper,         __upper,
-		 __upper,         __upper,         __upper,         __upper,
-		 __upper,         __upper,         __upper,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,__lower | __xdigit,__lower | __xdigit,__lower | __xdigit,
-__lower | __xdigit,__lower | __xdigit,__lower | __xdigit,         __lower,
-		 __lower,         __lower,         __lower,         __lower,
-		 __lower,         __lower,         __lower,         __lower,
-		 __lower,         __lower,         __lower,         __lower,
-		 __lower,         __lower,         __lower,         __lower,
-		 __lower,         __lower,         __lower,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none,
-		  __none,          __none,          __none,          __none
-		};
-
-		friend string_func<ascii_traits>;
-		using _Mybase = string_func<ascii_traits>;
-		using value_type = char;
-
-		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isalnum(value_type ch) {
-			return __char_code_table[make_unsigned_v(ch)] & (__lower | __upper | __digit);
-		}
-
-		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isalpha(value_type ch) {
-			return __char_code_table[make_unsigned_v(ch)] & (__lower | __upper);
-		}
-
-		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool islower(value_type ch) {
-			return __char_code_table[make_unsigned_v(ch)] & __lower;
-		}
-
-		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isupper(value_type ch) {
-			return __char_code_table[make_unsigned_v(ch)] & __upper;
-		}
-
-		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isdigit(value_type ch) {
-			return __char_code_table[make_unsigned_v(ch)] & __digit;
-		}
-
-		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isxdigit(value_type ch) {
-			return __char_code_table[make_unsigned_v(ch)] & __xdigit;
-		}
-
-		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static bool isspace(value_type ch) {
-			return __char_code_table[make_unsigned_v(ch)] & __white;
-		}
-
-		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static value_type tolower(value_type ch) {
-			return isupper(ch) ? ch + 'a' - 'A' : ch;
-		}
-
-		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static value_type toupper(value_type ch) {
-			return islower(ch) ? ch + 'A' - 'a' : ch;
-		}
-
-		// return -1 if is invalid
-		WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static uint8_t todigit(char ch) {
-			return __ascii_to_digit_table_v[ch];
-		}
-
-		WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) static const char* do_skipw(const char* s, const char* e) {
-			if constexpr(wjr::algo::__has_fast_memskipw_v<char>){
-				return wjr::algo::memskipw(s, e);
-			}
-			else {
-				for (; s != e && isspace(*s); ++s);
-				return s;
-			}
-		}
-
-		using to_i_flags = typename _Mybase::to_i_flags;
-
-		using default_to_i_flags = typename _Mybase::default_to_i_flags;
-
-		using _Mybase::to_integral;
-		using _Mybase::from_integral;
-
-		using to_f_flags = typename double_conversion::StringToDoubleConverter::Flags;
-
-		using default_to_f_flags = std::integral_constant<
-			to_f_flags,
-			static_cast<to_f_flags>
-			(to_f_flags::ALLOW_LEADING_SPACES
-				| to_f_flags::ALLOW_TRAILING_JUNK)
-		>;
-
-		template<typename T, typename F = default_to_f_flags>
-		WJR_NODISCARD static T to_floating_point(
-			const char* _First, const char* _Last, const char*& _Pos, errc& _Err, F f = F()) noexcept {
-			using double_conversion::StringToDoubleConverter;
-
-			if (_First == _Last) {
-				_Err = errc::noconv;
-				return static_cast<T>(0);
-			}
-
-			StringToDoubleConverter conv(
-				get_cvar(f),
-				0.0,
-				// return this for junk input string
-				std::numeric_limits<T>::quiet_NaN(),
-				nullptr,
-				nullptr);
-
-			int length = 0; // processed char count
-			T result = 0;
-			static_assert(is_any_of_v<T, float, double>, "");
-			if constexpr (std::is_same_v<T, float>) {
-				result = conv.StringToFloat(_First, static_cast<size_t>(_Last - _First), &length);
-			}
-			else {
-				result = conv.StringToDouble(_First, static_cast<size_t>(_Last - _First), &length);
-			}
-
-			if (!std::isnan(result)) {
-				if (length == 0 ||
-					(result == 0.0 && isspace(_First[length - 1]))) {
-					_Err = errc::noconv;
-					return static_cast<T>(0);
-				}
-				if (length >= 2) {
-					const char* suffix = _First + length - 1;
-
-					if (*suffix == '-' || *suffix == '+') {
-						--suffix;
-						--length;
-					}
-					// "12e-f-g" or "12euro" should only parse "12"
-					if (*suffix == 'e' || *suffix == 'E') {
-						--length;
-					}
-				}
-
-				_Pos = _First + length;
-				_Err = errc::ok;
-				return result;
-			}
-
-			auto s = _Mybase::skipw(_First, _Last);
-
-			if (s == _Last) {
-				_Err = errc::noconv;
-				return static_cast<T>(0);
-			}
-
-			auto size = size_t(_Last - s);
-
-			bool negative = false;
-			if (*s == '-') {
-				negative = true;
-				++s;
-				--size;
-				if (size == 0) {
-					_Err = errc::noconv;
-					return static_cast<T>(0);
-				}
-			}
-
-			WJR_ASSUME(size > 0);
-
-			result = 0.0;
-
-			switch (tolower(*s)) {
-			case 'i':
-				if (size >= 3 && tolower(s[1]) == 'n' &&
-					tolower(s[2]) == 'f') {
-					if (size >= 8 && tolower(s[3]) == 'i' &&
-						tolower(s[4]) == 'n' && tolower(s[5]) == 'i' &&
-						tolower(s[6]) == 't' && tolower(s[7]) == 'y') {
-						s += 8;
-					}
-					else {
-						s += 3;
-					}
-					result = std::numeric_limits<T>::infinity();
-				}
-				break;
-
-			case 'n':
-				if (size >= 3 && tolower(s[1]) == 'a' &&
-					tolower(s[2]) == 'n') {
-					s += 3;
-					result = std::numeric_limits<T>::quiet_NaN();
-				}
-				break;
-
-			default:
-				break;
-			}
-
-			if (result == 0.0) {
-				// All bets are off
-				_Err = errc::noconv;
-				return static_cast<T>(0);
-			}
-
-			if (negative) {
-				result = -result;
-			}
-
-			_Pos = s;
-			_Err = errc::ok;
-			return static_cast<T>(result);
-		}
-
-		template<typename T, typename F = default_to_f_flags>
-		WJR_NODISCARD static T to_floating_point(
-			const char* _First, const char* _Last, const char** _Pos = nullptr, errc* _Err = nullptr, F f = F()) noexcept {
-			const char* end_ptr = _First;
-			errc c = errc::ok;
-			auto ret = to_floating_point<T>(_First, _Last, end_ptr, c, f);
-
-			if (_Pos != nullptr) {
-				*_Pos = end_ptr;
-			}
-
-			if (_Err != nullptr) {
-				*_Err = c;
-			}
-			return ret;
-		}
-
-		template<typename T, typename F = default_to_f_flags>
-		WJR_NODISCARD static T to_floating_point(
-			const char* _First, size_t n, size_t* _Pos = nullptr, errc* _Err = nullptr, F f = F()) noexcept {
-			const char* end_ptr = _First;
-			errc c = errc::ok;
-			auto ret = to_floating_point<T>(_First, _First + n, end_ptr, c, f);
-
-			if (_Pos != nullptr) {
-				*_Pos = static_cast<size_t>(end_ptr - _First);
-			}
-
-			if (_Err != nullptr) {
-				*_Err = c;
-			}
-
-			return ret;
-		}
-
-		using from_f_mode = typename double_conversion::DoubleToStringConverter::DtoaMode;
-		using from_f_flags = typename double_conversion::DoubleToStringConverter::Flags;
-
-		using defualt_from_f_mode = std::integral_constant<
-			from_f_mode,
-			from_f_mode::SHORTEST
-		>;
-
-		using defualt_from_f_flags = std::integral_constant<
-			from_f_flags,
-			from_f_flags::NO_FLAGS
-		>;
-
-		template<typename T,
-			typename _Iter,
-			typename M = defualt_from_f_mode,
-			typename F = defualt_from_f_flags>
-		static void from_floating_point(
-			T value, _Iter first, _Iter last,
-			_Iter& pos, errc& err, int precision = 0, M m = M(), F f = F()) noexcept {
-			using double_conversion::DoubleToStringConverter;
-			using double_conversion::StringBuilder;
-			DoubleToStringConverter conv(
-				get_cvar(f),
-				"Infinity",
-				"NaN",
-				'E',
-				-6,
-				21,
-				6, // max leading padding zeros
-				1); // max trailing padding zeros
-			char buffer[256];
-			StringBuilder builder(buffer, sizeof(buffer));
-			const auto mode = get_cvar(m);
-			switch (mode) {
-			case DoubleToStringConverter::SHORTEST:
-				conv.ToShortest(value, &builder);
-				break;
-			case DoubleToStringConverter::SHORTEST_SINGLE:
-				conv.ToShortestSingle(static_cast<float>(value), &builder);
-				break;
-			case DoubleToStringConverter::FIXED:
-				conv.ToFixed(value, precision, &builder);
-				break;
-			case DoubleToStringConverter::PRECISION:
-			default:
-				conv.ToPrecision(value, precision, &builder);
-				break;
-			}
-
-			auto length = static_cast<size_t>(builder.position());
-			builder.Finalize();
-
-			if constexpr (is_random_iterator_v<_Iter>) {
-				const auto n = static_cast<size_t>(last - first);
-				if (n < length) {
-					err = errc::buffer_too_small;
-					return;
-				}
-				first = wjr::copy_n(buffer, length, first);
-			}
-			else {
-				auto _Buf = buffer;
-				for (; length && first != last; ++_Buf, ++first, --length) {
-					*first = *_Buf;
-				}
-
-				if (length) {
-					err = errc::buffer_too_small;
-					return;
-				}
-			}
-
-			pos = first;
-			err = errc::ok;
-			return;
-		}
-
-		template<typename T,
-			typename _Iter, typename _Diff,
-			typename M = defualt_from_f_mode,
-			typename F = defualt_from_f_flags>
-		static void from_floating_point(
-			T value, _Iter first, _Diff n,
-			_Iter& pos, errc& err, int precision = 0, M m = M(), F f = F()) noexcept {
-			using double_conversion::DoubleToStringConverter;
-			using double_conversion::StringBuilder;
-
-			if (n <= 0) {
-				err = errc::buffer_too_small;
-				return;
-			}
-
-			DoubleToStringConverter conv(
-				get_cvar(f),
-				"Infinity",
-				"NaN",
-				'E',
-				-6,
-				21,
-				6, // max leading padding zeros
-				1); // max trailing padding zeros
-			char buffer[256];
-			StringBuilder builder(buffer, sizeof(buffer));
-			const auto mode = get_cvar(m);
-			switch (mode) {
-			case DoubleToStringConverter::SHORTEST:
-				conv.ToShortest(value, &builder);
-				break;
-			case DoubleToStringConverter::SHORTEST_SINGLE:
-				conv.ToShortestSingle(static_cast<float>(value), &builder);
-				break;
-			case DoubleToStringConverter::FIXED:
-				conv.ToFixed(value, precision, &builder);
-				break;
-			case DoubleToStringConverter::PRECISION:
-			default:
-				conv.ToPrecision(value, precision, &builder);
-				break;
-			}
-
-			const auto length = static_cast<size_t>(builder.position());
-			builder.Finalize();
-
-			if (static_cast<size_t>(n) < length) {
-				err = errc::buffer_too_small;
-				return;
-			}
-
-			first = wjr::copy_n(buffer, length, first);
-
-			pos = first;
-			err = errc::ok;
-			return;
-		}
-
-		template<typename T, typename _Iter,
-			typename M = defualt_from_f_mode,
-			typename F = defualt_from_f_flags>
-		static void from_floating_point(
-			T value, _Iter first, _Iter last,
-			_Iter* pos = nullptr, errc* err = nullptr, int precision = 0, M m = M(), F f = F()) noexcept {
-			auto end_ptr = first;
-			errc c = errc::ok;
-			from_floating_point(value, first, last, end_ptr, c, precision, m, f);
-
-			if (pos != nullptr) {
-				*pos = end_ptr;
-			}
-
-			if (err != nullptr) {
-				*err = c;
-			}
-
-		}
-
-		template<typename T, typename _Iter, typename _Diff,
-			typename M = defualt_from_f_mode,
-			typename F = defualt_from_f_flags>
-		static void from_floating_point(
-			T value, _Iter first, _Diff n,
-			size_t* pos = nullptr, errc* err = nullptr, int precision = 0, M m = M(), F f = F()) noexcept {
-			auto end_ptr = first;
-			errc c = errc::ok;
-			from_floating_point(value, first, n, end_ptr, c, precision, m, f);
-
-			if (pos != nullptr) {
-				*pos = static_cast<size_t>(end_ptr - first);
-			}
-
-			if (err != nullptr) {
-				*err = c;
-			}
-		}
-
-	};
-
-	// TODO
-	// Encoding and decoding in previous github files
-	class utf8 {};
-
-}
+// One must be reserved for '\0'
+// for example
+// char build[256];
+// you need to use :
+// string_modifier it(build, sizeof(build) - 1)
+template<typename Char, typename Traits = std::char_traits<Char>>
+class basic_string_modifier : 
+	public basic_string_view<Char, Traits>{
+	using _Mybase = basic_string_view<Char, Traits>;
+
+	template<typename T>
+	constexpr static bool _Is_noptr_string_view_like_v = _Mybase::template _Is_noptr_string_view_like_v<T>;
+
+public:
+	using traits_type = typename _Mybase::traits_type;
+	using value_type = typename _Mybase::value_type;
+	using pointer = value_type*;
+	using const_pointer = typename _Mybase::const_pointer;
+	using reference = value_type&;
+	using const_reference = typename _Mybase::const_reference;
+	using const_iterator = typename _Mybase::const_iterator;
+	using iterator = pointer;
+	using const_reverse_iterator = typename _Mybase::const_reverse_iterator;
+	using reverse_iterator = std::reverse_iterator<iterator>;
+	using size_type = typename _Mybase::size_type;
+	using difference_type = typename _Mybase::difference_type;
+
+	static constexpr size_type npos = _Mybase::npos;
+
+	using _Mybase::_Mybase;
+	using _Mybase::operator=;
+
+	using _Mybase::data;
+	using _Mybase::begin;
+	using _Mybase::end;
+	using _Mybase::rbegin;
+	using _Mybase::rend;
+	using _Mybase::front;
+
+	WJR_CONSTEXPR basic_string_modifier(const _Mybase& other)
+		: _Mybase(other) {}
+
+	WJR_INLINE_CONSTEXPR void swap(basic_string_modifier& other) noexcept {
+		return _Mybase::swap(other);
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_modifier substr(
+		const size_type off = 0, size_type n = npos) const WJR_NOEXCEPT {
+		return basic_string_modifier(_Mybase::substr(off, n));
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_modifier
+		nesubstr(const size_type off = 0, size_type n = npos) const noexcept {
+		return basic_string_modifier(_Mybase::nesubstr(off, n));
+	}
+
+	// no exception view
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_modifier view(
+		const value_type* s, const size_type n) noexcept {
+		return basic_string_modifier(s, n);
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_modifier view(
+		const value_type* s) noexcept {
+		return basic_string_modifier(s);
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_modifier view(
+		std::initializer_list<value_type> il) noexcept {
+		return view(il.begin(), il.size());
+	}
+
+	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_modifier view(const StringView& t) noexcept {
+		return basic_string_modifier(t);
+	}
+
+	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_modifier view(const StringView& t,
+		const size_type off, const size_type n = npos) noexcept {
+		return view(t).nesubstr(off, n);
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_modifier view() const noexcept {
+		return *this;
+	}
+
+	template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_modifier eview(const StringView& t,
+		const size_type off, const size_type n = npos) WJR_NOEXCEPT {
+		return view(t).substr(off, n);
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_modifier prefix(size_type n) const noexcept {
+		return basic_string_modifier(prefix(n));
+	}
+
+	WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_modifier suffix(size_type n) const noexcept {
+		return basic_string_modifier(suffix(n));
+	}
+
+	WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_string_modifier adjust_begin(const_iterator iter) const noexcept {
+		return basic_string_modifier(_Mybase::adjust_begin(iter));
+	}
+
+	WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_string_modifier adjust_end(const_iterator iter) const noexcept {
+		return basic_string_modifier(_Mybase::adjust_end(iter));
+	}
+
+	WJR_INLINE_CONSTEXPR pointer data() { return const_cast<pointer>(_Mybase::data()); }
+	WJR_INLINE_CONSTEXPR iterator begin() { return const_cast<iterator>(_Mybase::begin()); }
+	WJR_INLINE_CONSTEXPR iterator end() { return const_cast<iterator>(_Mybase::end()); }
+
+	WJR_INLINE_CONSTEXPR reverse_iterator rbegin() {
+		return reverse_iterator(end());
+	}
+	WJR_INLINE_CONSTEXPR reverse_iterator rend() {
+		return reverse_iterator(begin());
+	}
+	WJR_INLINE_CONSTEXPR reference front() {
+		return *begin();
+	}
+
+	WJR_INLINE_CONSTEXPR reference operator[](size_type n) {
+		return data()[n];
+	}
+
+	using _Mybase::size;
+
+	template<typename otherChar, typename otherTraits>
+	WJR_INLINE_CONSTEXPR20 basic_string_modifier append(basic_string_view<otherChar, otherTraits> str) {
+		static_assert(sizeof(otherChar) <= sizeof(Char), "");
+		wjr::uninitialized_copy_n(str.begin(), str.size(), data());
+		return basic_string_modifier(data() + str.size(), size() - str.size());
+	}
+
+	template<typename otherChar>
+	WJR_INLINE_CONSTEXPR20 basic_string_modifier append(size_type n, otherChar ch) {
+		static_assert(sizeof(otherChar) <= sizeof(Char), "");
+		wjr::uninitialized_fill_n(data(), n, ch);
+		return basic_string_modifier(data() + n, size() - n);
+	}
+
+	// set begin to '\0'
+	WJR_INLINE_CONSTEXPR void finalize() {
+		front() = value_type();
+	}
+
+};
+
+using string_modifier = basic_string_modifier<char>;
+using wstring_modifier = basic_string_modifier<wchar_t>;
+using u16string_modifier = basic_string_modifier<char16_t>;
+using u32string_modifier = basic_string_modifier<char32_t>;
 
 _WJR_END
 

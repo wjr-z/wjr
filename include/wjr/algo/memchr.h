@@ -8,7 +8,7 @@
 	{	                                                                            \
 		auto r = st::cmp(x, q, pred, T());	                                        \
 		st::mask_type z = st::movemask_epi8(r);	                                    \
-		if(is_likely(z != 0)) {	                                                    \
+		if(WJR_LIKELY(z != 0)) {	                                                    \
 			return WJR_SIMD_FIRST_ONE_PTR(ptr, z);	                                \
 		}	                                                                        \
 	}

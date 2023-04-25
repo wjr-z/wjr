@@ -175,7 +175,7 @@ WJR_ATTRIBUTE(NODISCARD, PURE) bool __large__memeq(const T * s0, const T * s1, s
 
 	// align
 
-	if (is_likely(reinterpret_cast<uintptr_t>(s0) % _Mysize == 0)) {
+	if (WJR_LIKELY(reinterpret_cast<uintptr_t>(s0) % _Mysize == 0)) {
 
 		const auto off0 = reinterpret_cast<uintptr_t>(s0) % bound;
 		const auto off1 = reinterpret_cast<uintptr_t>(s1) % bound;
@@ -197,7 +197,7 @@ WJR_ATTRIBUTE(NODISCARD, PURE) bool __large__memeq(const T * s0, const T * s1, s
 				s1 += __align_s / _Mysize;
 				n -= __align_s / _Mysize;
 
-				if (is_unlikely(n < width * 4)) {
+				if (WJR_UNLIKELY(n < width * 4)) {
 					goto WJR_MACRO_LABEL(last_solve_align_0);
 				}
 			}
@@ -253,7 +253,7 @@ WJR_ATTRIBUTE(NODISCARD, PURE) bool __large__memeq(const T * s0, const T * s1, s
 			s1 += __align_s / _Mysize;
 			n -= __align_s / _Mysize;
 
-			if (is_unlikely(n < width * 4)) {
+			if (WJR_UNLIKELY(n < width * 4)) {
 				goto WJR_MACRO_LABEL(last_solve_align_0_1);
 			}
 		}
@@ -297,7 +297,7 @@ WJR_ATTRIBUTE(NODISCARD, PURE) bool __large__memeq(const T * s0, const T * s1, s
 		return true;
 	}
 
-	if (is_likely(reinterpret_cast<uintptr_t>(s1) % _Mysize == 0)) {
+	if (WJR_LIKELY(reinterpret_cast<uintptr_t>(s1) % _Mysize == 0)) {
 
 		const auto off1 = reinterpret_cast<uintptr_t>(s1) % bound;
 		// only align second pointer
@@ -315,7 +315,7 @@ WJR_ATTRIBUTE(NODISCARD, PURE) bool __large__memeq(const T * s0, const T * s1, s
 			s1 += __align_s / _Mysize;
 			n -= __align_s / _Mysize;
 
-			if (is_unlikely(n < width * 4)) {
+			if (WJR_UNLIKELY(n < width * 4)) {
 				goto WJR_MACRO_LABEL(last_solve_align_1);
 			}
 		}
@@ -390,7 +390,7 @@ WJR_NODISCARD WJR_PURE inline bool __memeq(const T* s0, const T* s1, size_t n, _
 		return ::memcmp(s0, s1, n * _Mysize) == 0;
 	}
 
-	if (is_unlikely(n == 0)) return true;
+	if (WJR_UNLIKELY(n == 0)) return true;
 
 	if (n >= 16 / _Mysize) {
 
@@ -402,28 +402,19 @@ WJR_NODISCARD WJR_PURE inline bool __memeq(const T* s0, const T* s1, size_t n, _
 			__WJR_MEMEQ_ONE(simd::sse);
 		}
 
-		if (n <= 32 / _Mysize) {
-			// solve last 16 bytes
-
-			s0 += n - 16 / _Mysize;
-			s1 += n - 16 / _Mysize;
+		{
+			auto m = n <= 32 / _Mysize ? (n - 16 / _Mysize) : (16 / _Mysize);
 
 			{
-				WJR_SIMD_LOADU(simd::sse, x, s0);
-				WJR_SIMD_LOADU(simd::sse, y, s1);
+				WJR_SIMD_LOADU(simd::sse, x, s0 + m);
+				WJR_SIMD_LOADU(simd::sse, y, s1 + m);
 
 				__WJR_MEMEQ_ONE(simd::sse);
 			}
 
-			return true;
-		}
-
-		// solve next 16 bytes
-		{
-			WJR_SIMD_LOADU(simd::sse, x, s0 + 16 / _Mysize);
-			WJR_SIMD_LOADU(simd::sse, y, s1 + 16 / _Mysize);
-
-			__WJR_MEMEQ_ONE(simd::sse);
+			if (n <= 32 / _Mysize) {
+				return WJR_SIMD_ADD_PTR(s0, n);
+			}
 		}
 
 		return __large__memeq(s0, s1, n, pred);

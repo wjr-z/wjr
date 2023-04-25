@@ -108,7 +108,7 @@ WJR_ATTRIBUTE(NODISCARD, PURE) const T*
 
 	// align
 
-	if (is_likely(WJR_SIMD_UINTPTR(s) % _Mysize == 0)) {
+	if (WJR_LIKELY(WJR_SIMD_UINTPTR(s) % _Mysize == 0)) {
 
 		const auto __align_s = WJR_SIMD_CEIL_ALIGN_OFFSET(s, bound);
 
@@ -124,7 +124,7 @@ WJR_ATTRIBUTE(NODISCARD, PURE) const T*
 			WJR_SIMD_INC_PTR(s, __align_s / _Mysize);
 			n -= __align_s / _Mysize;
 
-			if (is_unlikely(n < width * 4)) {
+			if (WJR_UNLIKELY(n < width * 4)) {
 				goto WJR_MACRO_LABEL(last_solve_align);
 			}
 		}
@@ -329,7 +329,7 @@ WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* (__WJR_MEMCHR_NAME)(
 	const T* s, T val, size_t n, _Pred pred) noexcept {
 	constexpr size_t _Mysize = sizeof(T);
 
-	if (is_unlikely(n == 0)) return s;
+	if (WJR_UNLIKELY(n == 0)) return s;
 
 	WJR_SIMD_INIT_PTR(s, n);
 

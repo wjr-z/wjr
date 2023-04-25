@@ -80,7 +80,7 @@ void thread_pool::core_work() {
 				return !m_task_queue.empty() || !m_valid;
 				});
 
-			if (is_likely(m_valid)) {
+			if (WJR_LIKELY(m_valid)) {
 				if (!m_pause) {
 					task = std::move(m_task_queue.front());
 					m_task_queue.pop_front();

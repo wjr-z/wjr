@@ -406,7 +406,7 @@ public:
 	WJR_INLINE_CONSTEXPR20 decltype(auto) emplace_back(Args&&...args) {
 		auto& al = getAllocator();
 		auto& _Mydata = getData();
-		if (is_likely(_Mydata._Mysize != _Mydata._Mycapacity)) {
+		if (WJR_LIKELY(_Mydata._Mysize != _Mydata._Mycapacity)) {
 			wjr::construct_at(al, _Mydata._Myptr + _Mydata._Mytail, std::forward<Args>(args)...);
 			++_Mydata._Mytail;
 			_Mydata._Mytail = _Mydata._Mytail == _Mydata._Mycapacity ? 0 : _Mydata._Mytail;
@@ -425,7 +425,7 @@ public:
 	WJR_INLINE_CONSTEXPR20 decltype(auto) emplac_front(Args&&...args) {
 		auto& al = getAllocator();
 		auto& _Mydata = getData();
-		if (is_likely(_Mydata._Mysize != _Mydata._Mycapacity)) {
+		if (WJR_LIKELY(_Mydata._Mysize != _Mydata._Mycapacity)) {
 			_Mydata._Myhead = _Mydata._Myhead == 0 ? _Mydata._Mycapacity : _Mydata._Myhead;
 			--_Mydata._Myhead;
 			wjr::construct_at(al, _Mydata._Myptr + _Mydata._Myhead, std::forward<Args>(args)...);

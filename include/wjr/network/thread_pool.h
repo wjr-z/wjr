@@ -82,7 +82,7 @@ void thread_pool::push(Func&& func, Args&&...args) {
         std::unique_lock task_lock(m_task_mutex);
         m_task_queue.push_back(std::move(function));
 #if defined(_WJR_EXCEPTION)
-        if (is_unlikely(!m_valid)) {
+        if (WJR_UNLIKELY(!m_valid)) {
             throw std::runtime_error("can't put task into invalid thread_pool");
         }
 #endif // _WJR_EXCEPTION

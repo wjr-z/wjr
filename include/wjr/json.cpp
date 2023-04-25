@@ -224,42 +224,42 @@ bool json::accept(const char* first, const char* last) {
 	}
 }
 
-json json::__parse(const char*& first, const char* last) {
+json::json(const char*& first, const char* last, parse_tag) {
 	first = encode_type::skipw(first, last);
 	switch (*first) {
 	case 'n': {
-		json it(std::in_place_type_t<null>{});
+		this->emplace_from<0, null>();
 		first += 4;
-		return it;
+		break;
 	}
 	case 't': {
-		json it(std::in_place_type_t<boolean>{}, true);
+		this->emplace_from<0, boolean>(true);
 		first += 4;
-		return it;
+		break;
 	}
 	case 'f': {
-		json it(std::in_place_type_t<boolean>{}, false);
+		this->emplace_from<0, boolean>(false);
 		first += 5;
-		return it;
+		break;
 	}
 	case '"': {
 		++first;
 		auto t = skip_string(first, last);
-		json it(std::in_place_type_t<string>{}, first, t);
+		this->emplace_from<0, string>(first, t);
 		first = t + 1;
-		return it;
+		break;
 	}
 	case '[': {
-		json it(std::in_place_type_t<array>{});
-		auto& arr = it.get_array();
+		this->emplace_from<0, array>();
+		auto& arr = this->get_array();
 		++first;
 		first = encode_type::skipw(first, last);
 		if (*first == ']') {
 			++first;
-			return it;
+			break;
 		}
 		for (;;) {
-			arr.emplace_back(__parse(first, last));
+			arr.emplace_back(first, last, parse_tag{});
 			first = encode_type::skipw(first, last);
 			if (*first == ']') {
 				++first;
@@ -268,16 +268,16 @@ json json::__parse(const char*& first, const char* last) {
 			++first;
 		}
 		arr.shrink_to_fit();
-		return it;
+		break;
 	}
 	case '{': {
-		json it(std::in_place_type_t<object>{});
-		auto& obj = it.get_object();
+		this->emplace_from<0, object>();
+		auto& obj = this->get_object();
 		++first;
 		first = encode_type::skipw(first, last);
 		if (*first == '}') {
 			++first;
-			return it;
+			break;
 		}
 		for(;;) {
 			first = encode_type::skipw(first, last);
@@ -287,7 +287,9 @@ json json::__parse(const char*& first, const char* last) {
 			first = p + 1;
 			first = encode_type::skipw(first, last);
 			++first;
-			obj.insert_or_assign(std::move(name), __parse(first, last));
+			obj.emplace(std::piecewise_construct,
+				std::forward_as_tuple(std::move(name)),
+				std::forward_as_tuple(first, last, parse_tag{}));
 			first = encode_type::skipw(first, last);
 			if (*first == '}') {
 				++first;
@@ -295,15 +297,15 @@ json json::__parse(const char*& first, const char* last) {
 			}
 			++first;
 		}
-		return it;
+		break;
 	}
 	default: {
 		const char* pos = nullptr;
 		auto val = encode_type::to_floating_point<double>(first, last, &pos, nullptr, 
 			std::integral_constant<encode_type::to_f_flags, encode_type::to_f_flags::ALLOW_TRAILING_JUNK>());
 		first = pos;
-		json it(std::in_place_type_t<number>{}, val);
-		return it;
+		this->emplace_from<0, number>(val);
+		break;
 	}
 	}
 }
@@ -334,11 +336,11 @@ void json::_stringify(string& str, int a) const noexcept {
 	}
 	case 2: {
 		str.reserve(str.size() + 256);
-		size_t length = 0;
-		encode_type::from_floating_point<double>(
-			get_number(), str.end(), 256, &length);
-		str.inc_size(length);
-		str.set_end();
+		ascii_modifier it(str.lastPtr(), str.endPtr() - str.lastPtr());
+		char* e = nullptr;
+		it.from_floating_point(get_number(), &e);
+		str.set_size(e - str.data());
+		str.finalize();
 		break;
 	}
 	case 3: {

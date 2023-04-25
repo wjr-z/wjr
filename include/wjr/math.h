@@ -538,7 +538,7 @@ inline constexpr unsigned int base_width(T a) {
 	constexpr auto __digits = base_digits_v<T, base>;
 	constexpr auto __depth = __width_depth<base, T, __digits>();
 	constexpr auto __use_table = __width_end_with_table<base, T, __digits>();
-	if (is_unlikely(!a)) return 0;
+	if (WJR_UNLIKELY(!a)) return 0;
 	unsigned int ret = 1;
 	__width<base, T, __digits, __depth, __use_table>(a, ret);
 	return ret;

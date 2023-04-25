@@ -173,7 +173,7 @@ public:
 
 	static void* allocate(size_t __n) {
 		void* __result = malloc(__n);
-		if (is_unlikely(0 == __result)) __result = _S_oom_malloc(__n);
+		if (WJR_UNLIKELY(0 == __result)) __result = _S_oom_malloc(__n);
 		return __result;
 	}
 
@@ -183,7 +183,7 @@ public:
 
 	static void* reallocate(void* __p, size_t /* old_sz */, size_t __new_sz) {
 		void* __result = realloc(__p, __new_sz);
-		if (is_unlikely(0 == __result)) __result = _S_oom_realloc(__p, __new_sz);
+		if (WJR_UNLIKELY(0 == __result)) __result = _S_oom_realloc(__p, __new_sz);
 		return __result;
 	}
 
@@ -373,7 +373,7 @@ chunk_alloc(size_t size, int& nobjs) noexcept {
 		*my_free_list = (obj*)base::start_free;
 	}
 	base::start_free = (char*)malloc(bytes_to_get);
-	if (is_unlikely(0 == base::start_free)) {
+	if (WJR_UNLIKELY(0 == base::start_free)) {
 		obj* volatile* my_free_list, * p;
 
 		//Try to make do with what we have. That can't
@@ -479,7 +479,7 @@ public:
 		__test_allocator_instance._Count += n;
 #endif
 		if (!is_constant_evaluated()) {
-			if (is_unlikely(0 == n)) {
+			if (WJR_UNLIKELY(0 == n)) {
 				return nullptr;
 			}
 			return static_cast<Ty*>(allocator_type::allocate(sizeof(Ty) * n));
@@ -492,7 +492,7 @@ public:
 		__test_allocator_instance._Count -= n;
 #endif
 		if (!is_constant_evaluated()) {
-			if (is_unlikely(0 == n)) return;
+			if (WJR_UNLIKELY(0 == n)) return;
 			return allocator_type::deallocate(static_cast<void*>(ptr), sizeof(Ty) * n);
 		}
 		return std::allocator<Ty>().deallocate(ptr, n);

@@ -9,6 +9,5 @@
 #include <wjr/asm/popcnt.h>
 #include <wjr/asm/bswap.h>
 #include <wjr/asm/rep.h>
-#include <wjr/asm/pause.h>
 
 #endif // __WJR_ASM_ASM_H

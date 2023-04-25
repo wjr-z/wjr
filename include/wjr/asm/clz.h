@@ -27,7 +27,7 @@ template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) int __wjr_fallback_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 
-	if (is_likely(x != 0)) {
+	if (WJR_LIKELY(x != 0)) {
 		int n = 0;
 		// use _Table
 
@@ -60,7 +60,7 @@ template<typename T>
 WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) int __wjr_builtin_clz(T x) noexcept {
 	constexpr auto _Nd = std::numeric_limits<T>::digits;
 
-	if (is_likely(x != 0)) {
+	if (WJR_LIKELY(x != 0)) {
 
 		constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
 		constexpr auto _Nd_ul = std::numeric_limits<unsigned long>::digits;
