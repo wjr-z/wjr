@@ -299,21 +299,21 @@ private:
 	}
 
 	// Returns an object of size n, and optionally adds to size n free list.
-	static void* refill(size_t n) noexcept;
+	WJR_NOINLINE static void* refill(size_t n) noexcept;
 
 	// Allocates a chunk for nobjs of size "size".  nobjs may be reduced
 	// if it is inconvenient to allocate the requested number.
 	static char* chunk_alloc(size_t size, int& nobjs) noexcept;
 
 public:
-	static void* allocate(size_t n) noexcept //n must be > 0
+	WJR_INTRINSIC_INLINE static void* allocate(size_t n) noexcept //n must be > 0
 	{
 		if (n > (size_t)__MAX_BYTES) {
 			return malloc_alloc::allocate(n);
 		}
 		obj* volatile* my_free_list = base::free_list + FREELIST_INDEX(n);
 		obj* result = *my_free_list;
-		if (result != nullptr) {
+		if (WJR_LIKELY(result != nullptr)) {
 			*my_free_list = result->free_list_link;
 			return result;
 		}

@@ -79,6 +79,9 @@ inline constexpr size_t tp_size_v = tp_size<T>::value;
 template<size_t idx>
 using tp_size_t = tp_c<size_t, idx>;
 
+template<char ch>
+using tp_char_t = tp_c<char, ch>;
+
 template<typename T, typename U>
 struct tp_equal_c : std::bool_constant<(T::value == U::value)> {};
 
@@ -140,6 +143,7 @@ struct tp_identity {
 	using type = T;
 };
 
+// tp_identity_t<T> is T
 template<typename T>
 using tp_identity_t = typename tp_identity<T>::type;
 
@@ -274,7 +278,7 @@ struct tp_rename<C<Args...>, U> {
 	using type = U<Args...>;
 };
 
-// f(L1<Args1...>, L2<Args2...>) -> L2<Args1...>
+// f(L1<Args1...>, L2) -> L2<Args1...>
 template<typename T, template<typename...>typename U>
 using tp_rename_t = typename tp_rename<T, U>::type;
 
@@ -287,7 +291,7 @@ struct tp_cut<C<Args...>, I, N> {
 	using type = tp_rename_t<typename __tp_cut_helper<void, I, N, Args...>::type, C>;
 };
 
-// f(L<Args...>, I, N) -> L<Args(0 ~ max(0, I - 1)), Args(I + 1 ~ N - 1)>
+// f(L<Args...>, I, N) -> L<Args[I ~ I + N - 1]>
 template<typename T, size_t I, size_t N>
 using tp_cut_t = typename tp_cut<T, I, N>::type;
 
@@ -318,6 +322,7 @@ struct __tp_at_helper<0, T, Args...> {
 	using type = T;
 };
 
+// 
 template<typename T, size_t index>
 struct tp_at;
 
@@ -354,6 +359,7 @@ struct tp_prefix {
 	using type = tp_cut_t<T, 0, idx>;
 };
 
+// f(L<Args...>, idx) -> L<Args[0 ~ idx - 1]>
 template<typename T, size_t idx>
 using tp_prefix_t = typename tp_prefix<T, idx>::type;
 
@@ -362,6 +368,7 @@ struct tp_suffix {
 	using type = tp_cut_t<T, tp_size_v<T> - idx, idx>;
 };
 
+// f(L<Args...>, idx) -> L<Args[tp_size_v<T> - idx ~ tp_size_v<T> - 1]>
 template<typename T, size_t idx>
 using tp_suffix_t = typename tp_suffix<T, idx>::type;
 
@@ -410,7 +417,7 @@ using tp_concat_t = typename tp_concat<Args...>::type;
 
 template<typename T, size_t idx, typename U>
 struct tp_replace_at {
-	using type = tp_concat_t<tp_push_back_t<tp_cut_t<T, 0, idx - 1>, U>, tp_cut_t<T, idx, tp_size_v<T> -idx>>;
+	using type = tp_concat_t<tp_push_back_t<tp_cut_t<T, 0, idx>, U>, tp_cut_t<T, idx + 1, tp_size_v<T> -idx - 1>>;
 };
 
 template<typename T, typename U>
@@ -418,6 +425,7 @@ struct tp_replace_at<T, 0, U> {
 	using type = tp_push_front_t<tp_pop_front_t<T>, U>;
 };
 
+// f(L<Args...>, idx, U) -> L<Args[0 ~ idx - 1], U, Args[idx + 1 ~ tp_size_v<T> - 1]>
 template<typename T, size_t idx, typename U>
 using tp_replace_at_t = typename tp_replace_at<T, idx, U>::type;
 
@@ -447,6 +455,8 @@ struct tp_conditional<V, T1, T2> {
 	using type = std::conditional_t<V::value, T1, T2>;
 };
 
+// f(V, T, U) -> std::conditional_t<V::value, T, U>
+// f(V, T, Args...) -> std::conditional_t<V::value, T, f(Args...)>
 template<typename V, typename T, typename...Args>
 using tp_conditional_t = typename tp_conditional<V, T, Args...>::type;
 
@@ -486,7 +496,8 @@ struct tp_apply {
 	using type = tp_rename_t<T, F>;
 };
 
-// f(L<Args...>) -> f(Args...)
+// f(F, L<Args...>) -> F<Args...>
+// same as tp_rename_t(L<Args...>, F)
 template<template<typename...>typename F,
 	typename T>
 using tp_apply_t = typename tp_apply<F, T>::type;
@@ -572,7 +583,7 @@ struct tp_zip<C> {
 
 template<template<typename...>typename C, typename T>
 struct tp_zip<C, T> {
-	using type = tp_list<T>;
+	using type = typename __tp_zip_helper<C, std::make_index_sequence<tp_size_v<T>>>::template type<T>;
 };
 
 template<template<typename...>typename C, typename T, typename...Args>
@@ -584,6 +595,8 @@ struct tp_zip<C, T, Args...> {
 	using type = typename __tp_zip_helper<C, std::make_index_sequence<tp_size_v<T>>>::template type<T, Args...>;
 };
 
+// f(C, L<A1, A2, ... An>, L<B1, B2, ..., Bn> ...) 
+// -> L<C<A1, B1, ...>, C<A2, B2, ...>, ..., C<An, Bn, ...>>
 template<template<typename...>typename C, typename...Args>
 using tp_zip_t = typename tp_zip<C, Args...>::type;
 
@@ -605,6 +618,7 @@ struct tp_max_size {
 	constexpr static size_t value = __tp_max_size_helper<T, Args...>::value;
 };
 
+// tp_max_size_v<T, Args...> -> size_t
 template<typename T, typename...Args>
 inline constexpr size_t tp_max_size_v = tp_max_size<T, Args...>::value;
 
@@ -613,6 +627,7 @@ struct tp_wrap {
 	using type = tp_list<T>;
 };
 
+// tp_wrap_t<T> -> L<T>
 template<typename T>
 using tp_wrap_t = typename tp_wrap<T>::type;
 
@@ -626,6 +641,7 @@ struct tp_unwrap<C<T>> {
 	using type = T;
 };
 
+// f(C<T>) -> T
 template<typename T>
 using tp_unwrap_t = typename tp_unwrap<T>::type;
 
@@ -673,6 +689,7 @@ struct tp_fill {
 	using type = tp_replace_if_t<T, tp_always_true, U>;
 };
 
+// f(L<Args...>, U) -> L<U, U, ..., U>
 template<typename T, typename U>
 using tp_fill_t = typename tp_fill<T, U>::type;
 
@@ -764,12 +781,12 @@ inline constexpr bool tp_equal_v = tp_equal<T, U>::value;
 
 template<typename T, size_t N>
 struct tp_repeat {
-	using type = tp_concat<T, typename tp_repeat<T, N - 1>::type>;
+	using type = tp_concat_t<T, typename tp_repeat<T, N - 1>::type>;
 };
 
 template<typename T>
 struct tp_repeat<T, 0> {
-	using type = T;
+	using type = tp_clear_t<T>;
 };
 
 template<typename C, size_t N>
@@ -821,6 +838,8 @@ struct tp_product {
 	using type = typename __tp_product_helper<void, C, tp_list<>, Args...>::type;
 };
 
+// for example
+// f(C, L<A1, A2>, L<B1, B2, B3>) -> L<C<A1, B1>, C<A1, B2>, C<A1, B3>, C<A2, B1>, C<A2, B2>, C<A2, B3>>
 template<template<typename...>typename C, typename...Args>
 using tp_product_t = typename tp_product<C, Args...>::type;
 
@@ -937,6 +956,7 @@ struct tp_left_fold<C<T, Args...>, E, F> {
 	using type = typename tp_left_fold<C<Args...>, F<E, T>, F>::type;
 };
 
+// f(L<A1, A2, ... An>, E, F) -> F<F<F...<F<E, A1>, A2>, ...>, An>
 template<typename C, typename E, template<typename...>typename F>
 using tp_left_fold_t = typename tp_left_fold<C, E, F>::type;
 
@@ -965,6 +985,7 @@ struct tp_right_fold<C<T, Args...>, E, F> {
 	using type = F<T, next_type>;
 };
 
+// f(L<A1, A2, ... An>, E, F) -> F<A1, F<A2, ... F<An, E>...>>
 template<typename C, typename E, template<typename...>typename F>
 using tp_right_fold_t = typename tp_right_fold<C, E, F>::type;
 
@@ -973,10 +994,24 @@ using tp_right_fold_f = typename tp_right_fold<C, E, F::template fn>::type;
 
 template<typename C, template<typename...>typename P>
 struct tp_unique_if {
-	using type = tp_left_fold_f<C, tp_clear_t<C>, tp_bind<tp_conditional_t, tp_bind_front<P>, tp_arg<0>,
+	using type = tp_left_fold_f<C, tp_clear_t<C>, 
+		tp_bind<tp_conditional_t, tp_bind_front<P>, tp_arg<0>,
 		tp_bind_front<tp_push_back_t>>>;
 };
 
+// using NOW_LIST = tp_prefix_t<C, I + 1>;
+// using PRE_LIST = tp_prefix_t<C, I>;
+// using PRE_UNIQUE_IF_LIST = tp_unique_if_t<PRE_LIST>;
+// then :
+// tp_unique_if_t<NOW_LIST, P>
+// = tp_conditonal_t<
+// P<PRE_UNIQUE_IF_LIST, tp_at_t<C, I>>, 
+// PRE_UNIQUE_IF_LIST, 
+// tp_push_back_t<PRE_UNIQUE_IF_LIST, tp_at_t<C, I>>>
+//
+// It is equivalent to calling P every time on the results 
+// of the previous processing and the new value. 
+// If P is false, the new value is added
 template<typename C, template<typename...>typename P>
 using tp_unique_if_t = typename tp_unique_if<C, P>::type;
 
@@ -988,6 +1023,8 @@ struct tp_unique{
 	using type = tp_unique_if_t<C, tp_contains>;
 };
 
+// same as tp_unique_if_t<C, tp_contains>
+// remove the same type
 template<typename C>
 using tp_unique_t = typename tp_unique<C>::type;
 
@@ -1058,6 +1095,8 @@ struct tp_merge {
 	using type = typename __tp_merge_helper<void, tp_list<>, C1, C2, P>::type;
 };
 
+// like std::merge
+// merge two list with P
 template<typename C1, typename C2, template<typename...>typename P>
 using tp_merge_t = typename tp_merge<C1, C2, P>::type;
 
@@ -1108,6 +1147,7 @@ struct tp_sort<C<Args...>, P> {
 	using type = tp_rename_t<typename __tp_sort_helper<C<Args...>, P>::type, C>;
 };
 
+// list std::sort
 template<typename C, template<typename...>typename P>
 using tp_sort_t = typename tp_sort<C, P>::type;
 
@@ -1129,6 +1169,85 @@ struct tp_iota {
 
 template<size_t I, size_t N>
 using tp_iota_t = typename tp_iota<I, N>::type;
+
+template<typename T, typename...Args>
+struct tp_set_push_back {
+	using type = tp_unique_t<tp_push_back_t<T, Args...>>;
+};
+
+template<typename T, typename...Args>
+using tp_set_push_back_t = typename tp_set_push_back<T, Args...>::type;
+
+template<typename T, typename...Args>
+struct tp_set_push_front {
+	using type = tp_unique_t<tp_push_front_t<T, Args...>>;
+};
+
+template<typename T, typename...Args>
+using tp_set_push_front_t = typename tp_set_push_front<T, Args...>::type;
+
+template<typename...Args>
+struct tp_set_union {
+	using type = tp_unique_t<tp_concat_t<Args...>>;
+};
+
+template<typename...Args>
+using tp_set_union_t = typename tp_set_union<Args...>::type;
+
+template<typename T, typename...Args>
+struct tp_set_difference;
+
+template<typename T>
+struct tp_set_difference<T> {
+	using type = T;
+};
+
+template<typename T, typename U>
+struct tp_set_difference<T, U> {
+private:
+	template<typename C>
+	using __filter = tp_contains<U, C>;
+public:
+	using type = tp_remove_if_t<T, __filter>;
+};
+
+template<typename T, typename U, typename...Args>
+struct tp_set_difference<T, U, Args...> {
+	using type = typename tp_set_difference<typename tp_set_difference<T, U>::type, Args...>::type;
+};
+
+template<typename T, typename...Args>
+using tp_set_difference_t = typename tp_set_difference<T, Args...>::type;
+
+template<typename...Args>
+struct tp_set_intersection;
+
+template<>
+struct tp_set_intersection<> {
+	using type = tp_list<>;
+};
+
+template<typename T>
+struct tp_set_intersection<T> {
+	using type = T;
+};
+
+template<typename T, typename U>
+struct tp_set_intersection<T, U> {
+private:
+	template<typename C>
+	using __filter = tp_contains<U, C>;
+public:
+	using type = tp_filter_t<T, __filter>;
+};
+
+template<typename T, typename U, typename...Args>
+struct tp_set_intersection<T, U, Args...> {
+	using type = typename tp_set_intersection<typename tp_set_intersection<T, U>::type, Args...>::type;
+};
+
+template<typename...Args>
+using tp_set_intersection_t = typename tp_set_intersection<Args...>::type;
 
 //
 
@@ -1212,9 +1331,17 @@ class tp_fn {
 public:
 	template<typename C, typename F>
 	constexpr static F for_each(F&& f) {
-		return __for_each_helper(std::forward<F>(f), tp_rename_t<C, tp_list>());
+		return for_each(tp_rename_t<C, tp_list>{}, std::forward<F>(f));
 	}
 
+	template<template<typename...>typename C, typename...Args, typename F>
+	constexpr static F for_each(C<Args...>, F&& f) {
+		int dummy[] = { (f(Args()), 0)... };
+		(void)(dummy);
+		return std::forward<F>(f);
+	}
+
+	// F(tp_at_t<C,n -1>{}, F(tp_at_t<C,n -2>{}, F(tp_at_t<C,n -3>{}, ... F(tp_at_t<C,0>{}, u))))
 	template<typename C, typename F, typename U>
 	constexpr static decltype(auto) accumulate(F&& f, U&& u) {
 		constexpr auto len = tp_size_v<C>;
@@ -1227,12 +1354,20 @@ public:
 
 #define __WJR_REGISTER_ACCUMULATE_FUNC_END	}
 
-			auto ans0 = std::forward<F>(f)(tp_at_t<C, 0>(), std::forward<U>(u));
+			auto ans0 = f(tp_at_t<C, 0>(), std::forward<U>(u));
 			__WJR_REGISTER_ACCUMULATE_FUNC(1, 0);
 			__WJR_REGISTER_ACCUMULATE_FUNC(2, 1);
 			__WJR_REGISTER_ACCUMULATE_FUNC(3, 2);
 			__WJR_REGISTER_ACCUMULATE_FUNC(4, 3);
-			return accumulate<tp_remove_prefix_t<C, 4>>(std::forward<F>(f), ans4);
+			__WJR_REGISTER_ACCUMULATE_FUNC(5, 4);
+			__WJR_REGISTER_ACCUMULATE_FUNC(6, 5);
+			__WJR_REGISTER_ACCUMULATE_FUNC(7, 6);
+			__WJR_REGISTER_ACCUMULATE_FUNC(8, 7);
+			return tp_remove_prefix_t<C, 8>{}.accumulate(std::forward<F>(f), ans4);
+			__WJR_REGISTER_ACCUMULATE_FUNC_END;
+			__WJR_REGISTER_ACCUMULATE_FUNC_END;
+			__WJR_REGISTER_ACCUMULATE_FUNC_END;
+			__WJR_REGISTER_ACCUMULATE_FUNC_END;
 			__WJR_REGISTER_ACCUMULATE_FUNC_END;
 			__WJR_REGISTER_ACCUMULATE_FUNC_END;
 			__WJR_REGISTER_ACCUMULATE_FUNC_END;
@@ -1240,38 +1375,13 @@ public:
 
 #undef __WJR_REGISTER_ACCUMULATE_FUNC_END
 #undef __WJR_REGISTER_ACCUMULATE_FUNC
-
 		}
 	}
 
 private:
-	template<typename F, typename...Args>
-	constexpr static F __for_each_helper(F&& f, tp_list<Args...>) {
-		int dummy[] = { (f(Args()), 0)... };
-		return std::forward<F>(f);
-	}
 };
 
 inline constexpr tp_fn tp;
-
-constexpr inline size_t __get_constant_string_lenth(const char* str) {
-	const char* s = str;
-	while (*str != '\0') ++str;
-	return str - s;
-}
-
-// make to constant string
-#define WJR_MAKE_CONSTANT_STRING(STRING)                                                                    \
-	[](){	                                                                                                \
-		constexpr auto __wjr_str = STRING;	                                                                \
-		constexpr auto __wjr_len = ::wjr::__get_constant_string_lenth(__wjr_str);	                        \
-		tp_list<> it;	                                                                                    \
-		return tp.accumulate<tp_iota_t<0, __wjr_len>>([](auto x, auto y) {	                                \
-			using type = remove_cvref_t<decltype(y)>;	                                                    \
-			using ret_type = tp_push_back_t<type, tp_c<char, __wjr_str[x]>>;	                            \
-			return ret_type();	                                                                            \
-			}, it);	                                                                                        \
-	}()
 
 _WJR_END
 

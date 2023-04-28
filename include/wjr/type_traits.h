@@ -140,6 +140,8 @@ using remove_cref_t = std::remove_const_t<remove_ref_t<T>>;
 template<typename T>
 using remove_cvref_t = std::remove_cv_t<remove_ref_t<T>>;
 
+#define WJR_PRIMITIVE_TYPE(x) ::wjr::remove_cvref_t<decltype(x)>
+
 template<typename T>
 using add_lref_t = std::add_lvalue_reference_t<T>;
 
