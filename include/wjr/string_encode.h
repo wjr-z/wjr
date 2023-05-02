@@ -6,6 +6,8 @@
 
 #include <optional>
 
+#include <double-conversion/double-conversion.h>
+
 #include <wjr/math.h>
 #include <wjr/string.h>
 

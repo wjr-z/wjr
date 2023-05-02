@@ -24,7 +24,7 @@ constexpr inline size_t __get_constant_string_lenth(const char* str) {
 		constexpr auto __wjr_str = STRING;	                                                                \
 		constexpr auto __wjr_len = ::wjr::__get_constant_string_lenth(__wjr_str);	                        \
 		tp_list<> it;	                                                                                    \
-		return tp.accumulate<tp_iota_t<0, __wjr_len>>([](auto x, auto y) {	                                \
+		return ::wjr::tp.accumulate<tp_iota_t<0, __wjr_len>>([](auto x, auto y) {	                        \
 			using type = remove_cvref_t<decltype(y)>;	                                                    \
 			using ret_type = tp_push_back_t<type, tp_char_t<__wjr_str[x]>>;									\
 			return ret_type();	                                                                            \

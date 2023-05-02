@@ -9,5 +9,8 @@
 #include <wjr/asm/popcnt.h>
 #include <wjr/asm/bswap.h>
 #include <wjr/asm/rep.h>
+#include <wjr/asm/adc.h>
+#include <wjr/asm/sbb.h>
+#include <wjr/asm/int128.h>
 
 #endif // __WJR_ASM_ASM_H

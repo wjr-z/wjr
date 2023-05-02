@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __WJR_SIMD_SIMD_CAST_H__
-#define __WJR_SIMD_SIMD_CAST_H__
+#ifndef __WJR_SIMD_SIMD_CAST_H
+#define __WJR_SIMD_SIMD_CAST_H
 
 #include <wjr/macro.h>
 
@@ -147,4 +147,4 @@ __REGISTER_INTEGER1_CAST(uint64_t, __m256i, __INT64_CVT2_AVX, __AVX_CVT2_INT64);
 
 _WJR_SIMD_END
 
-#endif // __WJR_SIMD_SIMD_CAST_H__
+#endif // __WJR_SIMD_SIMD_CAST_H

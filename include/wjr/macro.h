@@ -545,6 +545,15 @@ do{                         \
 #define _WJR_ATTRIBUTE(x) WJR_##x 
 #define WJR_ATTRIBUTE(...) WJR_EXPAND(WJR_MACRO_CALL(_WJR_ATTRIBUTE, , __VA_ARGS__))
 
+#if defined(__SIZEOF_INT128__)
+#define WJR_HAS_INT128 1
+#if !(defined(__clang__) && defined(LIBDIVIDE_VC))
+#define WJR_HAS_INT128_DIV 1
+#endif
+#else
+#define WJR_HAS_INT128 0
+#endif 
+
 #define _WJR_BEGIN namespace wjr{
 #define _WJR_END }
 
@@ -565,6 +574,9 @@ do{                         \
 
 #define _WJR_ENCODE_BEGIN _WJR_BEGIN namespace encode{
 #define _WJR_ENCODE_END } _WJR_END
+
+#define _WJR_PARSE_BEGIN _WJR_BEGIN namespace parse{
+#define _WJR_PARSE_END } _WJR_END
 
 #define WJR_MACRO_NULL(...)
 

@@ -9,3884 +9,6 @@
 #include <cstring>
 #include <charconv>
 #include <cmath>
-#ifndef DOUBLE_CONVERSION_DOUBLE_CONVERSION_H_
-#define DOUBLE_CONVERSION_DOUBLE_CONVERSION_H_
-#ifndef DOUBLE_CONVERSION_STRING_TO_DOUBLE_H_
-#define DOUBLE_CONVERSION_STRING_TO_DOUBLE_H_
-#ifndef DOUBLE_CONVERSION_UTILS_H_
-#define DOUBLE_CONVERSION_UTILS_H_
-#include <cstdlib>
-#include <cstring>
-#if __cplusplus >= 201103L
-#define DOUBLE_CONVERSION_NULLPTR nullptr
-#else
-#define DOUBLE_CONVERSION_NULLPTR NULL
-#endif
-#include <cassert>
-#ifndef DOUBLE_CONVERSION_ASSERT
-#define DOUBLE_CONVERSION_ASSERT(condition)         \
-assert(condition)
-#endif
-#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(ASSERT)
-#define ASSERT DOUBLE_CONVERSION_ASSERT
-#endif
-#ifndef DOUBLE_CONVERSION_UNIMPLEMENTED
-#define DOUBLE_CONVERSION_UNIMPLEMENTED() (abort())
-#endif
-#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(UNIMPLEMENTED)
-#define UNIMPLEMENTED DOUBLE_CONVERSION_UNIMPLEMENTED
-#endif
-#ifndef DOUBLE_CONVERSION_NO_RETURN
-#ifdef _MSC_VER
-#define DOUBLE_CONVERSION_NO_RETURN __declspec(noreturn)
-#else
-#define DOUBLE_CONVERSION_NO_RETURN __attribute__((noreturn))
-#endif
-#endif
-#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(NO_RETURN)
-#define NO_RETURN DOUBLE_CONVERSION_NO_RETURN
-#endif
-#ifndef DOUBLE_CONVERSION_UNREACHABLE
-#ifdef _MSC_VER
-void DOUBLE_CONVERSION_NO_RETURN abort_noreturn();
-inline void abort_noreturn() { abort(); }
-#define DOUBLE_CONVERSION_UNREACHABLE()   (abort_noreturn())
-#else
-#define DOUBLE_CONVERSION_UNREACHABLE()   (abort())
-#endif
-#endif
-#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(UNREACHABLE)
-#define UNREACHABLE DOUBLE_CONVERSION_UNREACHABLE
-#endif
-#ifdef __has_attribute
-#   define DOUBLE_CONVERSION_HAS_ATTRIBUTE(x) __has_attribute(x)
-#else
-#   define DOUBLE_CONVERSION_HAS_ATTRIBUTE(x) 0
-#endif
-#ifndef DOUBLE_CONVERSION_UNUSED
-#if DOUBLE_CONVERSION_HAS_ATTRIBUTE(unused)
-#define DOUBLE_CONVERSION_UNUSED __attribute__((unused))
-#else
-#define DOUBLE_CONVERSION_UNUSED
-#endif
-#endif
-#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(UNUSED)
-#define UNUSED DOUBLE_CONVERSION_UNUSED
-#endif
-#if DOUBLE_CONVERSION_HAS_ATTRIBUTE(uninitialized)
-#define DOUBLE_CONVERSION_STACK_UNINITIALIZED __attribute__((uninitialized))
-#else
-#define DOUBLE_CONVERSION_STACK_UNINITIALIZED
-#endif
-#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(STACK_UNINITIALIZED)
-#define STACK_UNINITIALIZED DOUBLE_CONVERSION_STACK_UNINITIALIZED
-#endif
-/*
-double Div_double(double x, double y) { return x / y; }
-double Div_double(double x, double y);  // Forward declaration.
-int main(int argc, char** argv) {
-return Div_double(89255.0, 1e22) == 89255e-22;
-}
-*/
-#if defined(_M_X64) || defined(__x86_64__) || \
-defined(__ARMEL__) || defined(__avr32__) || defined(_M_ARM) || defined(_M_ARM64) || \
-defined(__hppa__) || defined(__ia64__) || \
-defined(__mips__) || \
-defined(__loongarch__) || \
-defined(__nios2__) || defined(__ghs) || \
-defined(__powerpc__) || defined(__ppc__) || defined(__ppc64__) || \
-defined(_POWER) || defined(_ARCH_PPC) || defined(_ARCH_PPC64) || \
-defined(__sparc__) || defined(__sparc) || defined(__s390__) || \
-defined(__SH4__) || defined(__alpha__) || \
-defined(_MIPS_ARCH_MIPS32R2) || defined(__ARMEB__) ||\
-defined(__AARCH64EL__) || defined(__aarch64__) || defined(__AARCH64EB__) || \
-defined(__riscv) || defined(__e2k__) || \
-defined(__or1k__) || defined(__arc__) || defined(__ARC64__) || \
-defined(__microblaze__) || defined(__XTENSA__) || \
-defined(__EMSCRIPTEN__) || defined(__wasm32__)
-#define DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS 1
-#elif defined(__mc68000__) || \
-defined(__pnacl__) || defined(__native_client__)
-#undef DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS
-#elif defined(_M_IX86) || defined(__i386__) || defined(__i386)
-#if defined(_WIN32)
-#define DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS 1
-#else
-#undef DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS
-#endif  // _WIN32
-#else
-#error Target architecture was not detected as supported by Double-Conversion.
-#endif
-#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(CORRECT_DOUBLE_OPERATIONS)
-#define CORRECT_DOUBLE_OPERATIONS DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS
-#endif
-#if defined(_WIN32) && !defined(__MINGW32__)
-typedef signed char int8_t;
-typedef unsigned char uint8_t;
-typedef short int16_t;  // NOLINT
-typedef unsigned short uint16_t;  // NOLINT
-typedef int int32_t;
-typedef unsigned int uint32_t;
-typedef __int64 int64_t;
-typedef unsigned __int64 uint64_t;
-#else
-#include <stdint.h>
-#endif
-typedef uint16_t uc16;
-#define DOUBLE_CONVERSION_UINT64_2PART_C(a, b) (((static_cast<uint64_t>(a) << 32) + 0x##b##u))
-#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(UINT64_2PART_C)
-#define UINT64_2PART_C DOUBLE_CONVERSION_UINT64_2PART_C
-#endif
-#ifndef DOUBLE_CONVERSION_ARRAY_SIZE
-#define DOUBLE_CONVERSION_ARRAY_SIZE(a)                                   \
-((sizeof(a) / sizeof(*(a))) /                         \
-static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
-#endif
-#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(ARRAY_SIZE)
-#define ARRAY_SIZE DOUBLE_CONVERSION_ARRAY_SIZE
-#endif
-#ifndef DOUBLE_CONVERSION_DISALLOW_COPY_AND_ASSIGN
-#define DOUBLE_CONVERSION_DISALLOW_COPY_AND_ASSIGN(TypeName)      \
-TypeName(const TypeName&);                    \
-void operator=(const TypeName&)
-#endif
-#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(DC_DISALLOW_COPY_AND_ASSIGN)
-#define DC_DISALLOW_COPY_AND_ASSIGN DOUBLE_CONVERSION_DISALLOW_COPY_AND_ASSIGN
-#endif
-#ifndef DOUBLE_CONVERSION_DISALLOW_IMPLICIT_CONSTRUCTORS
-#define DOUBLE_CONVERSION_DISALLOW_IMPLICIT_CONSTRUCTORS(TypeName) \
-TypeName();                                    \
-DOUBLE_CONVERSION_DISALLOW_COPY_AND_ASSIGN(TypeName)
-#endif
-#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(DC_DISALLOW_IMPLICIT_CONSTRUCTORS)
-#define DC_DISALLOW_IMPLICIT_CONSTRUCTORS DOUBLE_CONVERSION_DISALLOW_IMPLICIT_CONSTRUCTORS
-#endif
-namespace double_conversion {
-inline int StrLength(const char* string) {
-size_t length = strlen(string);
-DOUBLE_CONVERSION_ASSERT(length == static_cast<size_t>(static_cast<int>(length)));
-return static_cast<int>(length);
-}
-template <typename T>
-class Vector {
-public:
-Vector() : start_(DOUBLE_CONVERSION_NULLPTR), length_(0) {}
-Vector(T* data, int len) : start_(data), length_(len) {
-DOUBLE_CONVERSION_ASSERT(len == 0 || (len > 0 && data != DOUBLE_CONVERSION_NULLPTR));
-}
-Vector<T> SubVector(int from, int to) {
-DOUBLE_CONVERSION_ASSERT(to <= length_);
-DOUBLE_CONVERSION_ASSERT(from < to);
-DOUBLE_CONVERSION_ASSERT(0 <= from);
-return Vector<T>(start() + from, to - from);
-}
-int length() const { return length_; }
-bool is_empty() const { return length_ == 0; }
-T* start() const { return start_; }
-T& operator[](int index) const {
-DOUBLE_CONVERSION_ASSERT(0 <= index && index < length_);
-return start_[index];
-}
-T& first() { return start_[0]; }
-T& last() { return start_[length_ - 1]; }
-void pop_back() {
-DOUBLE_CONVERSION_ASSERT(!is_empty());
---length_;
-}
-private:
-T* start_;
-int length_;
-};
-class StringBuilder {
-public:
-StringBuilder(char* buffer, int buffer_size)
-: buffer_(buffer, buffer_size), position_(0) { }
-~StringBuilder() { if (!is_finalized()) Finalize(); }
-int size() const { return buffer_.length(); }
-int position() const {
-DOUBLE_CONVERSION_ASSERT(!is_finalized());
-return position_;
-}
-void Reset() { position_ = 0; }
-void AddCharacter(char c) {
-DOUBLE_CONVERSION_ASSERT(c != '\0');
-DOUBLE_CONVERSION_ASSERT(!is_finalized() && position_ < buffer_.length());
-buffer_[position_++] = c;
-}
-void AddString(const char* s) {
-AddSubstring(s, StrLength(s));
-}
-void AddSubstring(const char* s, int n) {
-DOUBLE_CONVERSION_ASSERT(!is_finalized() && position_ + n < buffer_.length());
-DOUBLE_CONVERSION_ASSERT(static_cast<size_t>(n) <= strlen(s));
-memmove(&buffer_[position_], s, static_cast<size_t>(n));
-position_ += n;
-}
-void AddPadding(char c, int count) {
-for (int i = 0; i < count; i++) {
-AddCharacter(c);
-}
-}
-char* Finalize() {
-DOUBLE_CONVERSION_ASSERT(!is_finalized() && position_ < buffer_.length());
-buffer_[position_] = '\0';
-DOUBLE_CONVERSION_ASSERT(strlen(buffer_.start()) == static_cast<size_t>(position_));
-position_ = -1;
-DOUBLE_CONVERSION_ASSERT(is_finalized());
-return buffer_.start();
-}
-private:
-Vector<char> buffer_;
-int position_;
-bool is_finalized() const { return position_ < 0; }
-DOUBLE_CONVERSION_DISALLOW_IMPLICIT_CONSTRUCTORS(StringBuilder);
-};
-template <class Dest, class Source>
-Dest BitCast(const Source& source) {
-#if __cplusplus >= 201103L
-static_assert(sizeof(Dest) == sizeof(Source),
-"source and destination size mismatch");
-#else
-DOUBLE_CONVERSION_UNUSED
-typedef char VerifySizesAreEqual[sizeof(Dest) == sizeof(Source) ? 1 : -1];
-#endif
-Dest dest;
-memmove(&dest, &source, sizeof(dest));
-return dest;
-}
-template <class Dest, class Source>
-Dest BitCast(Source* source) {
-return BitCast<Dest>(reinterpret_cast<uintptr_t>(source));
-}
-}  // namespace double_conversion
-#endif  // DOUBLE_CONVERSION_UTILS_H_
-
-namespace double_conversion {
-class StringToDoubleConverter {
-public:
-enum Flags {
-NO_FLAGS = 0,
-ALLOW_HEX = 1,
-ALLOW_OCTALS = 2,
-ALLOW_TRAILING_JUNK = 4,
-ALLOW_LEADING_SPACES = 8,
-ALLOW_TRAILING_SPACES = 16,
-ALLOW_SPACES_AFTER_SIGN = 32,
-ALLOW_CASE_INSENSITIVITY = 64,
-ALLOW_CASE_INSENSIBILITY = 64,  // Deprecated
-ALLOW_HEX_FLOATS = 128,
-};
-static const uc16 kNoSeparator = '\0';
-StringToDoubleConverter(int flags,
-double empty_string_value,
-double junk_string_value,
-const char* infinity_symbol,
-const char* nan_symbol,
-uc16 separator = kNoSeparator)
-: flags_(flags),
-empty_string_value_(empty_string_value),
-junk_string_value_(junk_string_value),
-infinity_symbol_(infinity_symbol),
-nan_symbol_(nan_symbol),
-separator_(separator) {
-}
-double StringToDouble(const char* buffer,
-int length,
-int* processed_characters_count) const;
-double StringToDouble(const uc16* buffer,
-int length,
-int* processed_characters_count) const;
-float StringToFloat(const char* buffer,
-int length,
-int* processed_characters_count) const;
-float StringToFloat(const uc16* buffer,
-int length,
-int* processed_characters_count) const;
-template <typename T>
-T StringTo(const char* buffer,
-int length,
-int* processed_characters_count) const;
-template <typename T>
-T StringTo(const uc16* buffer,
-int length,
-int* processed_characters_count) const;
-private:
-const int flags_;
-const double empty_string_value_;
-const double junk_string_value_;
-const char* const infinity_symbol_;
-const char* const nan_symbol_;
-const uc16 separator_;
-template <class Iterator>
-double StringToIeee(Iterator start_pointer,
-int length,
-bool read_as_double,
-int* processed_characters_count) const;
-DOUBLE_CONVERSION_DISALLOW_IMPLICIT_CONSTRUCTORS(StringToDoubleConverter);
-};
-}  // namespace double_conversion
-#endif  // DOUBLE_CONVERSION_STRING_TO_DOUBLE_H_
-#include <climits>
-#include <locale>
-#include <cmath>
-#ifndef DOUBLE_CONVERSION_DOUBLE_H_
-#define DOUBLE_CONVERSION_DOUBLE_H_
-#ifndef DOUBLE_CONVERSION_DIY_FP_H_
-#define DOUBLE_CONVERSION_DIY_FP_H_
-namespace double_conversion {
-class DiyFp {
-public:
-static const int kSignificandSize = 64;
-DiyFp() : f_(0), e_(0) {}
-DiyFp(const uint64_t significand, const int32_t exponent) : f_(significand), e_(exponent) {}
-void Subtract(const DiyFp& other) {
-DOUBLE_CONVERSION_ASSERT(e_ == other.e_);
-DOUBLE_CONVERSION_ASSERT(f_ >= other.f_);
-f_ -= other.f_;
-}
-static DiyFp Minus(const DiyFp& a, const DiyFp& b) {
-DiyFp result = a;
-result.Subtract(b);
-return result;
-}
-void Multiply(const DiyFp& other) {
-const uint64_t kM32 = 0xFFFFFFFFU;
-const uint64_t a = f_ >> 32;
-const uint64_t b = f_ & kM32;
-const uint64_t c = other.f_ >> 32;
-const uint64_t d = other.f_ & kM32;
-const uint64_t ac = a * c;
-const uint64_t bc = b * c;
-const uint64_t ad = a * d;
-const uint64_t bd = b * d;
-const uint64_t tmp = (bd >> 32) + (ad & kM32) + (bc & kM32) + (1U << 31);
-e_ += other.e_ + 64;
-f_ = ac + (ad >> 32) + (bc >> 32) + (tmp >> 32);
-}
-static DiyFp Times(const DiyFp& a, const DiyFp& b) {
-DiyFp result = a;
-result.Multiply(b);
-return result;
-}
-void Normalize() {
-DOUBLE_CONVERSION_ASSERT(f_ != 0);
-uint64_t significand = f_;
-int32_t exponent = e_;
-const uint64_t k10MSBits = DOUBLE_CONVERSION_UINT64_2PART_C(0xFFC00000, 00000000);
-while ((significand & k10MSBits) == 0) {
-significand <<= 10;
-exponent -= 10;
-}
-while ((significand & kUint64MSB) == 0) {
-significand <<= 1;
-exponent--;
-}
-f_ = significand;
-e_ = exponent;
-}
-static DiyFp Normalize(const DiyFp& a) {
-DiyFp result = a;
-result.Normalize();
-return result;
-}
-uint64_t f() const { return f_; }
-int32_t e() const { return e_; }
-void set_f(uint64_t new_value) { f_ = new_value; }
-void set_e(int32_t new_value) { e_ = new_value; }
-private:
-static const uint64_t kUint64MSB = DOUBLE_CONVERSION_UINT64_2PART_C(0x80000000, 00000000);
-uint64_t f_;
-int32_t e_;
-};
-}  // namespace double_conversion
-#endif  // DOUBLE_CONVERSION_DIY_FP_H_
-
-namespace double_conversion {
-static uint64_t double_to_uint64(double d) { return BitCast<uint64_t>(d); }
-static double uint64_to_double(uint64_t d64) { return BitCast<double>(d64); }
-static uint32_t float_to_uint32(float f) { return BitCast<uint32_t>(f); }
-static float uint32_to_float(uint32_t d32) { return BitCast<float>(d32); }
-class Double {
-public:
-static const uint64_t kSignMask = DOUBLE_CONVERSION_UINT64_2PART_C(0x80000000, 00000000);
-static const uint64_t kExponentMask = DOUBLE_CONVERSION_UINT64_2PART_C(0x7FF00000, 00000000);
-static const uint64_t kSignificandMask = DOUBLE_CONVERSION_UINT64_2PART_C(0x000FFFFF, FFFFFFFF);
-static const uint64_t kHiddenBit = DOUBLE_CONVERSION_UINT64_2PART_C(0x00100000, 00000000);
-static const uint64_t kQuietNanBit = DOUBLE_CONVERSION_UINT64_2PART_C(0x00080000, 00000000);
-static const int kPhysicalSignificandSize = 52;  // Excludes the hidden bit.
-static const int kSignificandSize = 53;
-static const int kExponentBias = 0x3FF + kPhysicalSignificandSize;
-static const int kMaxExponent = 0x7FF - kExponentBias;
-Double() : d64_(0) {}
-explicit Double(double d) : d64_(double_to_uint64(d)) {}
-explicit Double(uint64_t d64) : d64_(d64) {}
-explicit Double(DiyFp diy_fp)
-: d64_(DiyFpToUint64(diy_fp)) {}
-DiyFp AsDiyFp() const {
-DOUBLE_CONVERSION_ASSERT(Sign() > 0);
-DOUBLE_CONVERSION_ASSERT(!IsSpecial());
-return DiyFp(Significand(), Exponent());
-}
-DiyFp AsNormalizedDiyFp() const {
-DOUBLE_CONVERSION_ASSERT(value() > 0.0);
-uint64_t f = Significand();
-int e = Exponent();
-while ((f & kHiddenBit) == 0) {
-f <<= 1;
-e--;
-}
-f <<= DiyFp::kSignificandSize - kSignificandSize;
-e -= DiyFp::kSignificandSize - kSignificandSize;
-return DiyFp(f, e);
-}
-uint64_t AsUint64() const {
-return d64_;
-}
-double NextDouble() const {
-if (d64_ == kInfinity) return Double(kInfinity).value();
-if (Sign() < 0 && Significand() == 0) {
-return 0.0;
-}
-if (Sign() < 0) {
-return Double(d64_ - 1).value();
-} else {
-return Double(d64_ + 1).value();
-}
-}
-double PreviousDouble() const {
-if (d64_ == (kInfinity | kSignMask)) return -Infinity();
-if (Sign() < 0) {
-return Double(d64_ + 1).value();
-} else {
-if (Significand() == 0) return -0.0;
-return Double(d64_ - 1).value();
-}
-}
-int Exponent() const {
-if (IsDenormal()) return kDenormalExponent;
-uint64_t d64 = AsUint64();
-int biased_e =
-static_cast<int>((d64 & kExponentMask) >> kPhysicalSignificandSize);
-return biased_e - kExponentBias;
-}
-uint64_t Significand() const {
-uint64_t d64 = AsUint64();
-uint64_t significand = d64 & kSignificandMask;
-if (!IsDenormal()) {
-return significand + kHiddenBit;
-} else {
-return significand;
-}
-}
-bool IsDenormal() const {
-uint64_t d64 = AsUint64();
-return (d64 & kExponentMask) == 0;
-}
-bool IsSpecial() const {
-uint64_t d64 = AsUint64();
-return (d64 & kExponentMask) == kExponentMask;
-}
-bool IsNan() const {
-uint64_t d64 = AsUint64();
-return ((d64 & kExponentMask) == kExponentMask) &&
-((d64 & kSignificandMask) != 0);
-}
-bool IsQuietNan() const {
-#if (defined(__mips__) && !defined(__mips_nan2008)) || defined(__hppa__)
-return IsNan() && ((AsUint64() & kQuietNanBit) == 0);
-#else
-return IsNan() && ((AsUint64() & kQuietNanBit) != 0);
-#endif
-}
-bool IsSignalingNan() const {
-#if (defined(__mips__) && !defined(__mips_nan2008)) || defined(__hppa__)
-return IsNan() && ((AsUint64() & kQuietNanBit) != 0);
-#else
-return IsNan() && ((AsUint64() & kQuietNanBit) == 0);
-#endif
-}
-bool IsInfinite() const {
-uint64_t d64 = AsUint64();
-return ((d64 & kExponentMask) == kExponentMask) &&
-((d64 & kSignificandMask) == 0);
-}
-int Sign() const {
-uint64_t d64 = AsUint64();
-return (d64 & kSignMask) == 0? 1: -1;
-}
-DiyFp UpperBoundary() const {
-DOUBLE_CONVERSION_ASSERT(Sign() > 0);
-return DiyFp(Significand() * 2 + 1, Exponent() - 1);
-}
-void NormalizedBoundaries(DiyFp* out_m_minus, DiyFp* out_m_plus) const {
-DOUBLE_CONVERSION_ASSERT(value() > 0.0);
-DiyFp v = this->AsDiyFp();
-DiyFp m_plus = DiyFp::Normalize(DiyFp((v.f() << 1) + 1, v.e() - 1));
-DiyFp m_minus;
-if (LowerBoundaryIsCloser()) {
-m_minus = DiyFp((v.f() << 2) - 1, v.e() - 2);
-} else {
-m_minus = DiyFp((v.f() << 1) - 1, v.e() - 1);
-}
-m_minus.set_f(m_minus.f() << (m_minus.e() - m_plus.e()));
-m_minus.set_e(m_plus.e());
-*out_m_plus = m_plus;
-*out_m_minus = m_minus;
-}
-bool LowerBoundaryIsCloser() const {
-bool physical_significand_is_zero = ((AsUint64() & kSignificandMask) == 0);
-return physical_significand_is_zero && (Exponent() != kDenormalExponent);
-}
-double value() const { return uint64_to_double(d64_); }
-static int SignificandSizeForOrderOfMagnitude(int order) {
-if (order >= (kDenormalExponent + kSignificandSize)) {
-return kSignificandSize;
-}
-if (order <= kDenormalExponent) return 0;
-return order - kDenormalExponent;
-}
-static double Infinity() {
-return Double(kInfinity).value();
-}
-static double NaN() {
-return Double(kNaN).value();
-}
-private:
-static const int kDenormalExponent = -kExponentBias + 1;
-static const uint64_t kInfinity = DOUBLE_CONVERSION_UINT64_2PART_C(0x7FF00000, 00000000);
-#if (defined(__mips__) && !defined(__mips_nan2008)) || defined(__hppa__)
-static const uint64_t kNaN = DOUBLE_CONVERSION_UINT64_2PART_C(0x7FF7FFFF, FFFFFFFF);
-#else
-static const uint64_t kNaN = DOUBLE_CONVERSION_UINT64_2PART_C(0x7FF80000, 00000000);
-#endif
-const uint64_t d64_;
-static uint64_t DiyFpToUint64(DiyFp diy_fp) {
-uint64_t significand = diy_fp.f();
-int exponent = diy_fp.e();
-while (significand > kHiddenBit + kSignificandMask) {
-significand >>= 1;
-exponent++;
-}
-if (exponent >= kMaxExponent) {
-return kInfinity;
-}
-if (exponent < kDenormalExponent) {
-return 0;
-}
-while (exponent > kDenormalExponent && (significand & kHiddenBit) == 0) {
-significand <<= 1;
-exponent--;
-}
-uint64_t biased_exponent;
-if (exponent == kDenormalExponent && (significand & kHiddenBit) == 0) {
-biased_exponent = 0;
-} else {
-biased_exponent = static_cast<uint64_t>(exponent + kExponentBias);
-}
-return (significand & kSignificandMask) |
-(biased_exponent << kPhysicalSignificandSize);
-}
-DOUBLE_CONVERSION_DISALLOW_COPY_AND_ASSIGN(Double);
-};
-class Single {
-public:
-static const uint32_t kSignMask = 0x80000000;
-static const uint32_t kExponentMask = 0x7F800000;
-static const uint32_t kSignificandMask = 0x007FFFFF;
-static const uint32_t kHiddenBit = 0x00800000;
-static const uint32_t kQuietNanBit = 0x00400000;
-static const int kPhysicalSignificandSize = 23;  // Excludes the hidden bit.
-static const int kSignificandSize = 24;
-Single() : d32_(0) {}
-explicit Single(float f) : d32_(float_to_uint32(f)) {}
-explicit Single(uint32_t d32) : d32_(d32) {}
-DiyFp AsDiyFp() const {
-DOUBLE_CONVERSION_ASSERT(Sign() > 0);
-DOUBLE_CONVERSION_ASSERT(!IsSpecial());
-return DiyFp(Significand(), Exponent());
-}
-uint32_t AsUint32() const {
-return d32_;
-}
-int Exponent() const {
-if (IsDenormal()) return kDenormalExponent;
-uint32_t d32 = AsUint32();
-int biased_e =
-static_cast<int>((d32 & kExponentMask) >> kPhysicalSignificandSize);
-return biased_e - kExponentBias;
-}
-uint32_t Significand() const {
-uint32_t d32 = AsUint32();
-uint32_t significand = d32 & kSignificandMask;
-if (!IsDenormal()) {
-return significand + kHiddenBit;
-} else {
-return significand;
-}
-}
-bool IsDenormal() const {
-uint32_t d32 = AsUint32();
-return (d32 & kExponentMask) == 0;
-}
-bool IsSpecial() const {
-uint32_t d32 = AsUint32();
-return (d32 & kExponentMask) == kExponentMask;
-}
-bool IsNan() const {
-uint32_t d32 = AsUint32();
-return ((d32 & kExponentMask) == kExponentMask) &&
-((d32 & kSignificandMask) != 0);
-}
-bool IsQuietNan() const {
-#if (defined(__mips__) && !defined(__mips_nan2008)) || defined(__hppa__)
-return IsNan() && ((AsUint32() & kQuietNanBit) == 0);
-#else
-return IsNan() && ((AsUint32() & kQuietNanBit) != 0);
-#endif
-}
-bool IsSignalingNan() const {
-#if (defined(__mips__) && !defined(__mips_nan2008)) || defined(__hppa__)
-return IsNan() && ((AsUint32() & kQuietNanBit) != 0);
-#else
-return IsNan() && ((AsUint32() & kQuietNanBit) == 0);
-#endif
-}
-bool IsInfinite() const {
-uint32_t d32 = AsUint32();
-return ((d32 & kExponentMask) == kExponentMask) &&
-((d32 & kSignificandMask) == 0);
-}
-int Sign() const {
-uint32_t d32 = AsUint32();
-return (d32 & kSignMask) == 0? 1: -1;
-}
-void NormalizedBoundaries(DiyFp* out_m_minus, DiyFp* out_m_plus) const {
-DOUBLE_CONVERSION_ASSERT(value() > 0.0);
-DiyFp v = this->AsDiyFp();
-DiyFp m_plus = DiyFp::Normalize(DiyFp((v.f() << 1) + 1, v.e() - 1));
-DiyFp m_minus;
-if (LowerBoundaryIsCloser()) {
-m_minus = DiyFp((v.f() << 2) - 1, v.e() - 2);
-} else {
-m_minus = DiyFp((v.f() << 1) - 1, v.e() - 1);
-}
-m_minus.set_f(m_minus.f() << (m_minus.e() - m_plus.e()));
-m_minus.set_e(m_plus.e());
-*out_m_plus = m_plus;
-*out_m_minus = m_minus;
-}
-DiyFp UpperBoundary() const {
-DOUBLE_CONVERSION_ASSERT(Sign() > 0);
-return DiyFp(Significand() * 2 + 1, Exponent() - 1);
-}
-bool LowerBoundaryIsCloser() const {
-bool physical_significand_is_zero = ((AsUint32() & kSignificandMask) == 0);
-return physical_significand_is_zero && (Exponent() != kDenormalExponent);
-}
-float value() const { return uint32_to_float(d32_); }
-static float Infinity() {
-return Single(kInfinity).value();
-}
-static float NaN() {
-return Single(kNaN).value();
-}
-private:
-static const int kExponentBias = 0x7F + kPhysicalSignificandSize;
-static const int kDenormalExponent = -kExponentBias + 1;
-static const int kMaxExponent = 0xFF - kExponentBias;
-static const uint32_t kInfinity = 0x7F800000;
-#if (defined(__mips__) && !defined(__mips_nan2008)) || defined(__hppa__)
-static const uint32_t kNaN = 0x7FBFFFFF;
-#else
-static const uint32_t kNaN = 0x7FC00000;
-#endif
-const uint32_t d32_;
-DOUBLE_CONVERSION_DISALLOW_COPY_AND_ASSIGN(Single);
-};
-}  // namespace double_conversion
-#endif  // DOUBLE_CONVERSION_DOUBLE_H_
-
-#ifndef DOUBLE_CONVERSION_STRTOD_H_
-#define DOUBLE_CONVERSION_STRTOD_H_
-namespace double_conversion {
-double Strtod(Vector<const char> buffer, int exponent);
-float Strtof(Vector<const char> buffer, int exponent);
-double StrtodTrimmed(Vector<const char> trimmed, int exponent);
-float StrtofTrimmed(Vector<const char> trimmed, int exponent);
-inline Vector<const char> TrimTrailingZeros(Vector<const char> buffer) {
-for (int i = buffer.length() - 1; i >= 0; --i) {
-if (buffer[i] != '0') {
-return buffer.SubVector(0, i + 1);
-}
-}
-return Vector<const char>(buffer.start(), 0);
-}
-}  // namespace double_conversion
-#endif  // DOUBLE_CONVERSION_STRTOD_H_
-#include <climits>
-#include <cstdarg>
-#ifndef DOUBLE_CONVERSION_BIGNUM_H_
-#define DOUBLE_CONVERSION_BIGNUM_H_
-namespace double_conversion {
-class Bignum {
-public:
-static const int kMaxSignificantBits = 3584;
-Bignum() : used_bigits_(0), exponent_(0) {}
-void AssignUInt16(const uint16_t value);
-void AssignUInt64(uint64_t value);
-void AssignBignum(const Bignum& other);
-void AssignDecimalString(const Vector<const char> value);
-void AssignHexString(const Vector<const char> value);
-void AssignPowerUInt16(uint16_t base, const int exponent);
-void AddUInt64(const uint64_t operand);
-void AddBignum(const Bignum& other);
-void SubtractBignum(const Bignum& other);
-void Square();
-void ShiftLeft(const int shift_amount);
-void MultiplyByUInt32(const uint32_t factor);
-void MultiplyByUInt64(const uint64_t factor);
-void MultiplyByPowerOfTen(const int exponent);
-void Times10() { return MultiplyByUInt32(10); }
-uint16_t DivideModuloIntBignum(const Bignum& other);
-bool ToHexString(char* buffer, const int buffer_size) const;
-static int Compare(const Bignum& a, const Bignum& b);
-static bool Equal(const Bignum& a, const Bignum& b) {
-return Compare(a, b) == 0;
-}
-static bool LessEqual(const Bignum& a, const Bignum& b) {
-return Compare(a, b) <= 0;
-}
-static bool Less(const Bignum& a, const Bignum& b) {
-return Compare(a, b) < 0;
-}
-static int PlusCompare(const Bignum& a, const Bignum& b, const Bignum& c);
-static bool PlusEqual(const Bignum& a, const Bignum& b, const Bignum& c) {
-return PlusCompare(a, b, c) == 0;
-}
-static bool PlusLessEqual(const Bignum& a, const Bignum& b, const Bignum& c) {
-return PlusCompare(a, b, c) <= 0;
-}
-static bool PlusLess(const Bignum& a, const Bignum& b, const Bignum& c) {
-return PlusCompare(a, b, c) < 0;
-}
-private:
-typedef uint32_t Chunk;
-typedef uint64_t DoubleChunk;
-static const int kChunkSize = sizeof(Chunk) * 8;
-static const int kDoubleChunkSize = sizeof(DoubleChunk) * 8;
-static const int kBigitSize = 28;
-static const Chunk kBigitMask = (1 << kBigitSize) - 1;
-static const int kBigitCapacity = kMaxSignificantBits / kBigitSize;
-static void EnsureCapacity(const int size) {
-if (size > kBigitCapacity) {
-DOUBLE_CONVERSION_UNREACHABLE();
-}
-}
-void Align(const Bignum& other);
-void Clamp();
-bool IsClamped() const {
-return used_bigits_ == 0 || RawBigit(used_bigits_ - 1) != 0;
-}
-void Zero() {
-used_bigits_ = 0;
-exponent_ = 0;
-}
-void BigitsShiftLeft(const int shift_amount);
-int BigitLength() const { return used_bigits_ + exponent_; }
-Chunk& RawBigit(const int index);
-const Chunk& RawBigit(const int index) const;
-Chunk BigitOrZero(const int index) const;
-void SubtractTimes(const Bignum& other, const int factor);
-int16_t used_bigits_;
-int16_t exponent_;
-Chunk bigits_buffer_[kBigitCapacity];
-DOUBLE_CONVERSION_DISALLOW_COPY_AND_ASSIGN(Bignum);
-};
-}  // namespace double_conversion
-#endif  // DOUBLE_CONVERSION_BIGNUM_H_
-#include <algorithm>
-#include <cstring>
-namespace double_conversion {
-Bignum::Chunk& Bignum::RawBigit(const int index) {
-DOUBLE_CONVERSION_ASSERT(static_cast<unsigned>(index) < kBigitCapacity);
-return bigits_buffer_[index];
-}
-const Bignum::Chunk& Bignum::RawBigit(const int index) const {
-DOUBLE_CONVERSION_ASSERT(static_cast<unsigned>(index) < kBigitCapacity);
-return bigits_buffer_[index];
-}
-template<typename S>
-static int BitSize(const S value) {
-(void) value;  // Mark variable as used.
-return 8 * sizeof(value);
-}
-void Bignum::AssignUInt16(const uint16_t value) {
-DOUBLE_CONVERSION_ASSERT(kBigitSize >= BitSize(value));
-Zero();
-if (value > 0) {
-RawBigit(0) = value;
-used_bigits_ = 1;
-}
-}
-void Bignum::AssignUInt64(uint64_t value) {
-Zero();
-for(int i = 0; value > 0; ++i) {
-RawBigit(i) = value & kBigitMask;
-value >>= kBigitSize;
-++used_bigits_;
-}
-}
-void Bignum::AssignBignum(const Bignum& other) {
-exponent_ = other.exponent_;
-for (int i = 0; i < other.used_bigits_; ++i) {
-RawBigit(i) = other.RawBigit(i);
-}
-used_bigits_ = other.used_bigits_;
-}
-static uint64_t ReadUInt64(const Vector<const char> buffer,
-const int from,
-const int digits_to_read) {
-uint64_t result = 0;
-for (int i = from; i < from + digits_to_read; ++i) {
-const int digit = buffer[i] - '0';
-DOUBLE_CONVERSION_ASSERT(0 <= digit && digit <= 9);
-result = result * 10 + digit;
-}
-return result;
-}
-void Bignum::AssignDecimalString(const Vector<const char> value) {
-static const int kMaxUint64DecimalDigits = 19;
-Zero();
-int length = value.length();
-unsigned pos = 0;
-while (length >= kMaxUint64DecimalDigits) {
-const uint64_t digits = ReadUInt64(value, pos, kMaxUint64DecimalDigits);
-pos += kMaxUint64DecimalDigits;
-length -= kMaxUint64DecimalDigits;
-MultiplyByPowerOfTen(kMaxUint64DecimalDigits);
-AddUInt64(digits);
-}
-const uint64_t digits = ReadUInt64(value, pos, length);
-MultiplyByPowerOfTen(length);
-AddUInt64(digits);
-Clamp();
-}
-static uint64_t HexCharValue(const int c) {
-if ('0' <= c && c <= '9') {
-return c - '0';
-}
-if ('a' <= c && c <= 'f') {
-return 10 + c - 'a';
-}
-DOUBLE_CONVERSION_ASSERT('A' <= c && c <= 'F');
-return 10 + c - 'A';
-}
-void Bignum::AssignHexString(Vector<const char> value) {
-Zero();
-EnsureCapacity(((value.length() * 4) + kBigitSize - 1) / kBigitSize);
-DOUBLE_CONVERSION_ASSERT(sizeof(uint64_t) * 8 >= kBigitSize + 4);  // TODO: static_assert
-uint64_t tmp = 0;
-for (int cnt = 0; !value.is_empty(); value.pop_back()) {
-tmp |= (HexCharValue(value.last()) << cnt);
-if ((cnt += 4) >= kBigitSize) {
-RawBigit(used_bigits_++) = (tmp & kBigitMask);
-cnt -= kBigitSize;
-tmp >>= kBigitSize;
-}
-}
-if (tmp > 0) {
-DOUBLE_CONVERSION_ASSERT(tmp <= kBigitMask);
-RawBigit(used_bigits_++) = static_cast<Bignum::Chunk>(tmp & kBigitMask);
-}
-Clamp();
-}
-void Bignum::AddUInt64(const uint64_t operand) {
-if (operand == 0) {
-return;
-}
-Bignum other;
-other.AssignUInt64(operand);
-AddBignum(other);
-}
-void Bignum::AddBignum(const Bignum& other) {
-DOUBLE_CONVERSION_ASSERT(IsClamped());
-DOUBLE_CONVERSION_ASSERT(other.IsClamped());
-Align(other);
-EnsureCapacity(1 + (std::max)(BigitLength(), other.BigitLength()) - exponent_);
-Chunk carry = 0;
-int bigit_pos = other.exponent_ - exponent_;
-DOUBLE_CONVERSION_ASSERT(bigit_pos >= 0);
-for (int i = used_bigits_; i < bigit_pos; ++i) {
-RawBigit(i) = 0;
-}
-for (int i = 0; i < other.used_bigits_; ++i) {
-const Chunk my = (bigit_pos < used_bigits_) ? RawBigit(bigit_pos) : 0;
-const Chunk sum = my + other.RawBigit(i) + carry;
-RawBigit(bigit_pos) = sum & kBigitMask;
-carry = sum >> kBigitSize;
-++bigit_pos;
-}
-while (carry != 0) {
-const Chunk my = (bigit_pos < used_bigits_) ? RawBigit(bigit_pos) : 0;
-const Chunk sum = my + carry;
-RawBigit(bigit_pos) = sum & kBigitMask;
-carry = sum >> kBigitSize;
-++bigit_pos;
-}
-used_bigits_ = static_cast<int16_t>(std::max(bigit_pos, static_cast<int>(used_bigits_)));
-DOUBLE_CONVERSION_ASSERT(IsClamped());
-}
-void Bignum::SubtractBignum(const Bignum& other) {
-DOUBLE_CONVERSION_ASSERT(IsClamped());
-DOUBLE_CONVERSION_ASSERT(other.IsClamped());
-DOUBLE_CONVERSION_ASSERT(LessEqual(other, *this));
-Align(other);
-const int offset = other.exponent_ - exponent_;
-Chunk borrow = 0;
-int i;
-for (i = 0; i < other.used_bigits_; ++i) {
-DOUBLE_CONVERSION_ASSERT((borrow == 0) || (borrow == 1));
-const Chunk difference = RawBigit(i + offset) - other.RawBigit(i) - borrow;
-RawBigit(i + offset) = difference & kBigitMask;
-borrow = difference >> (kChunkSize - 1);
-}
-while (borrow != 0) {
-const Chunk difference = RawBigit(i + offset) - borrow;
-RawBigit(i + offset) = difference & kBigitMask;
-borrow = difference >> (kChunkSize - 1);
-++i;
-}
-Clamp();
-}
-void Bignum::ShiftLeft(const int shift_amount) {
-if (used_bigits_ == 0) {
-return;
-}
-exponent_ += static_cast<int16_t>(shift_amount / kBigitSize);
-const int local_shift = shift_amount % kBigitSize;
-EnsureCapacity(used_bigits_ + 1);
-BigitsShiftLeft(local_shift);
-}
-void Bignum::MultiplyByUInt32(const uint32_t factor) {
-if (factor == 1) {
-return;
-}
-if (factor == 0) {
-Zero();
-return;
-}
-if (used_bigits_ == 0) {
-return;
-}
-DOUBLE_CONVERSION_ASSERT(kDoubleChunkSize >= kBigitSize + 32 + 1);
-DoubleChunk carry = 0;
-for (int i = 0; i < used_bigits_; ++i) {
-const DoubleChunk product = static_cast<DoubleChunk>(factor) * RawBigit(i) + carry;
-RawBigit(i) = static_cast<Chunk>(product & kBigitMask);
-carry = (product >> kBigitSize);
-}
-while (carry != 0) {
-EnsureCapacity(used_bigits_ + 1);
-RawBigit(used_bigits_) = carry & kBigitMask;
-used_bigits_++;
-carry >>= kBigitSize;
-}
-}
-void Bignum::MultiplyByUInt64(const uint64_t factor) {
-if (factor == 1) {
-return;
-}
-if (factor == 0) {
-Zero();
-return;
-}
-if (used_bigits_ == 0) {
-return;
-}
-DOUBLE_CONVERSION_ASSERT(kBigitSize < 32);
-uint64_t carry = 0;
-const uint64_t low = factor & 0xFFFFFFFF;
-const uint64_t high = factor >> 32;
-for (int i = 0; i < used_bigits_; ++i) {
-const uint64_t product_low = low * RawBigit(i);
-const uint64_t product_high = high * RawBigit(i);
-const uint64_t tmp = (carry & kBigitMask) + product_low;
-RawBigit(i) = tmp & kBigitMask;
-carry = (carry >> kBigitSize) + (tmp >> kBigitSize) +
-(product_high << (32 - kBigitSize));
-}
-while (carry != 0) {
-EnsureCapacity(used_bigits_ + 1);
-RawBigit(used_bigits_) = carry & kBigitMask;
-used_bigits_++;
-carry >>= kBigitSize;
-}
-}
-void Bignum::MultiplyByPowerOfTen(const int exponent) {
-static const uint64_t kFive27 = DOUBLE_CONVERSION_UINT64_2PART_C(0x6765c793, fa10079d);
-static const uint16_t kFive1 = 5;
-static const uint16_t kFive2 = kFive1 * 5;
-static const uint16_t kFive3 = kFive2 * 5;
-static const uint16_t kFive4 = kFive3 * 5;
-static const uint16_t kFive5 = kFive4 * 5;
-static const uint16_t kFive6 = kFive5 * 5;
-static const uint32_t kFive7 = kFive6 * 5;
-static const uint32_t kFive8 = kFive7 * 5;
-static const uint32_t kFive9 = kFive8 * 5;
-static const uint32_t kFive10 = kFive9 * 5;
-static const uint32_t kFive11 = kFive10 * 5;
-static const uint32_t kFive12 = kFive11 * 5;
-static const uint32_t kFive13 = kFive12 * 5;
-static const uint32_t kFive1_to_12[] =
-{ kFive1, kFive2, kFive3, kFive4, kFive5, kFive6,
-kFive7, kFive8, kFive9, kFive10, kFive11, kFive12 };
-DOUBLE_CONVERSION_ASSERT(exponent >= 0);
-if (exponent == 0) {
-return;
-}
-if (used_bigits_ == 0) {
-return;
-}
-int remaining_exponent = exponent;
-while (remaining_exponent >= 27) {
-MultiplyByUInt64(kFive27);
-remaining_exponent -= 27;
-}
-while (remaining_exponent >= 13) {
-MultiplyByUInt32(kFive13);
-remaining_exponent -= 13;
-}
-if (remaining_exponent > 0) {
-MultiplyByUInt32(kFive1_to_12[remaining_exponent - 1]);
-}
-ShiftLeft(exponent);
-}
-void Bignum::Square() {
-DOUBLE_CONVERSION_ASSERT(IsClamped());
-const int product_length = 2 * used_bigits_;
-EnsureCapacity(product_length);
-if ((1 << (2 * (kChunkSize - kBigitSize))) <= used_bigits_) {
-DOUBLE_CONVERSION_UNIMPLEMENTED();
-}
-DoubleChunk accumulator = 0;
-const int copy_offset = used_bigits_;
-for (int i = 0; i < used_bigits_; ++i) {
-RawBigit(copy_offset + i) = RawBigit(i);
-}
-for (int i = 0; i < used_bigits_; ++i) {
-int bigit_index1 = i;
-int bigit_index2 = 0;
-while (bigit_index1 >= 0) {
-const Chunk chunk1 = RawBigit(copy_offset + bigit_index1);
-const Chunk chunk2 = RawBigit(copy_offset + bigit_index2);
-accumulator += static_cast<DoubleChunk>(chunk1) * chunk2;
-bigit_index1--;
-bigit_index2++;
-}
-RawBigit(i) = static_cast<Chunk>(accumulator) & kBigitMask;
-accumulator >>= kBigitSize;
-}
-for (int i = used_bigits_; i < product_length; ++i) {
-int bigit_index1 = used_bigits_ - 1;
-int bigit_index2 = i - bigit_index1;
-while (bigit_index2 < used_bigits_) {
-const Chunk chunk1 = RawBigit(copy_offset + bigit_index1);
-const Chunk chunk2 = RawBigit(copy_offset + bigit_index2);
-accumulator += static_cast<DoubleChunk>(chunk1) * chunk2;
-bigit_index1--;
-bigit_index2++;
-}
-RawBigit(i) = static_cast<Chunk>(accumulator) & kBigitMask;
-accumulator >>= kBigitSize;
-}
-DOUBLE_CONVERSION_ASSERT(accumulator == 0);
-used_bigits_ = static_cast<int16_t>(product_length);
-exponent_ *= 2;
-Clamp();
-}
-void Bignum::AssignPowerUInt16(uint16_t base, const int power_exponent) {
-DOUBLE_CONVERSION_ASSERT(base != 0);
-DOUBLE_CONVERSION_ASSERT(power_exponent >= 0);
-if (power_exponent == 0) {
-AssignUInt16(1);
-return;
-}
-Zero();
-int shifts = 0;
-while ((base & 1) == 0) {
-base >>= 1;
-shifts++;
-}
-int bit_size = 0;
-int tmp_base = base;
-while (tmp_base != 0) {
-tmp_base >>= 1;
-bit_size++;
-}
-const int final_size = bit_size * power_exponent;
-EnsureCapacity(final_size / kBigitSize + 2);
-int mask = 1;
-while (power_exponent >= mask) mask <<= 1;
-mask >>= 2;
-uint64_t this_value = base;
-bool delayed_multiplication = false;
-const uint64_t max_32bits = 0xFFFFFFFF;
-while (mask != 0 && this_value <= max_32bits) {
-this_value = this_value * this_value;
-if ((power_exponent & mask) != 0) {
-DOUBLE_CONVERSION_ASSERT(bit_size > 0);
-const uint64_t base_bits_mask =
-~((static_cast<uint64_t>(1) << (64 - bit_size)) - 1);
-const bool high_bits_zero = (this_value & base_bits_mask) == 0;
-if (high_bits_zero) {
-this_value *= base;
-} else {
-delayed_multiplication = true;
-}
-}
-mask >>= 1;
-}
-AssignUInt64(this_value);
-if (delayed_multiplication) {
-MultiplyByUInt32(base);
-}
-while (mask != 0) {
-Square();
-if ((power_exponent & mask) != 0) {
-MultiplyByUInt32(base);
-}
-mask >>= 1;
-}
-ShiftLeft(shifts * power_exponent);
-}
-uint16_t Bignum::DivideModuloIntBignum(const Bignum& other) {
-DOUBLE_CONVERSION_ASSERT(IsClamped());
-DOUBLE_CONVERSION_ASSERT(other.IsClamped());
-DOUBLE_CONVERSION_ASSERT(other.used_bigits_ > 0);
-if (BigitLength() < other.BigitLength()) {
-return 0;
-}
-Align(other);
-uint16_t result = 0;
-while (BigitLength() > other.BigitLength()) {
-DOUBLE_CONVERSION_ASSERT(other.RawBigit(other.used_bigits_ - 1) >= ((1 << kBigitSize) / 16));
-DOUBLE_CONVERSION_ASSERT(RawBigit(used_bigits_ - 1) < 0x10000);
-result += static_cast<uint16_t>(RawBigit(used_bigits_ - 1));
-SubtractTimes(other, RawBigit(used_bigits_ - 1));
-}
-DOUBLE_CONVERSION_ASSERT(BigitLength() == other.BigitLength());
-const Chunk this_bigit = RawBigit(used_bigits_ - 1);
-const Chunk other_bigit = other.RawBigit(other.used_bigits_ - 1);
-if (other.used_bigits_ == 1) {
-int quotient = this_bigit / other_bigit;
-RawBigit(used_bigits_ - 1) = this_bigit - other_bigit * quotient;
-DOUBLE_CONVERSION_ASSERT(quotient < 0x10000);
-result += static_cast<uint16_t>(quotient);
-Clamp();
-return result;
-}
-const int division_estimate = this_bigit / (other_bigit + 1);
-DOUBLE_CONVERSION_ASSERT(division_estimate < 0x10000);
-result += static_cast<uint16_t>(division_estimate);
-SubtractTimes(other, division_estimate);
-if (other_bigit * (division_estimate + 1) > this_bigit) {
-return result;
-}
-while (LessEqual(other, *this)) {
-SubtractBignum(other);
-result++;
-}
-return result;
-}
-template<typename S>
-static int SizeInHexChars(S number) {
-DOUBLE_CONVERSION_ASSERT(number > 0);
-int result = 0;
-while (number != 0) {
-number >>= 4;
-result++;
-}
-return result;
-}
-static char HexCharOfValue(const int value) {
-DOUBLE_CONVERSION_ASSERT(0 <= value && value <= 16);
-if (value < 10) {
-return static_cast<char>(value + '0');
-}
-return static_cast<char>(value - 10 + 'A');
-}
-bool Bignum::ToHexString(char* buffer, const int buffer_size) const {
-DOUBLE_CONVERSION_ASSERT(IsClamped());
-DOUBLE_CONVERSION_ASSERT(kBigitSize % 4 == 0);
-static const int kHexCharsPerBigit = kBigitSize / 4;
-if (used_bigits_ == 0) {
-if (buffer_size < 2) {
-return false;
-}
-buffer[0] = '0';
-buffer[1] = '\0';
-return true;
-}
-const int needed_chars = (BigitLength() - 1) * kHexCharsPerBigit +
-SizeInHexChars(RawBigit(used_bigits_ - 1)) + 1;
-if (needed_chars > buffer_size) {
-return false;
-}
-int string_index = needed_chars - 1;
-buffer[string_index--] = '\0';
-for (int i = 0; i < exponent_; ++i) {
-for (int j = 0; j < kHexCharsPerBigit; ++j) {
-buffer[string_index--] = '0';
-}
-}
-for (int i = 0; i < used_bigits_ - 1; ++i) {
-Chunk current_bigit = RawBigit(i);
-for (int j = 0; j < kHexCharsPerBigit; ++j) {
-buffer[string_index--] = HexCharOfValue(current_bigit & 0xF);
-current_bigit >>= 4;
-}
-}
-Chunk most_significant_bigit = RawBigit(used_bigits_ - 1);
-while (most_significant_bigit != 0) {
-buffer[string_index--] = HexCharOfValue(most_significant_bigit & 0xF);
-most_significant_bigit >>= 4;
-}
-return true;
-}
-Bignum::Chunk Bignum::BigitOrZero(const int index) const {
-if (index >= BigitLength()) {
-return 0;
-}
-if (index < exponent_) {
-return 0;
-}
-return RawBigit(index - exponent_);
-}
-int Bignum::Compare(const Bignum& a, const Bignum& b) {
-DOUBLE_CONVERSION_ASSERT(a.IsClamped());
-DOUBLE_CONVERSION_ASSERT(b.IsClamped());
-const int bigit_length_a = a.BigitLength();
-const int bigit_length_b = b.BigitLength();
-if (bigit_length_a < bigit_length_b) {
-return -1;
-}
-if (bigit_length_a > bigit_length_b) {
-return +1;
-}
-for (int i = bigit_length_a - 1; i >= (std::min)(a.exponent_, b.exponent_); --i) {
-const Chunk bigit_a = a.BigitOrZero(i);
-const Chunk bigit_b = b.BigitOrZero(i);
-if (bigit_a < bigit_b) {
-return -1;
-}
-if (bigit_a > bigit_b) {
-return +1;
-}
-}
-return 0;
-}
-int Bignum::PlusCompare(const Bignum& a, const Bignum& b, const Bignum& c) {
-DOUBLE_CONVERSION_ASSERT(a.IsClamped());
-DOUBLE_CONVERSION_ASSERT(b.IsClamped());
-DOUBLE_CONVERSION_ASSERT(c.IsClamped());
-if (a.BigitLength() < b.BigitLength()) {
-return PlusCompare(b, a, c);
-}
-if (a.BigitLength() + 1 < c.BigitLength()) {
-return -1;
-}
-if (a.BigitLength() > c.BigitLength()) {
-return +1;
-}
-if (a.exponent_ >= b.BigitLength() && a.BigitLength() < c.BigitLength()) {
-return -1;
-}
-Chunk borrow = 0;
-const int min_exponent = (std::min)((std::min)(a.exponent_, b.exponent_), c.exponent_);
-for (int i = c.BigitLength() - 1; i >= min_exponent; --i) {
-const Chunk chunk_a = a.BigitOrZero(i);
-const Chunk chunk_b = b.BigitOrZero(i);
-const Chunk chunk_c = c.BigitOrZero(i);
-const Chunk sum = chunk_a + chunk_b;
-if (sum > chunk_c + borrow) {
-return +1;
-} else {
-borrow = chunk_c + borrow - sum;
-if (borrow > 1) {
-return -1;
-}
-borrow <<= kBigitSize;
-}
-}
-if (borrow == 0) {
-return 0;
-}
-return -1;
-}
-void Bignum::Clamp() {
-while (used_bigits_ > 0 && RawBigit(used_bigits_ - 1) == 0) {
-used_bigits_--;
-}
-if (used_bigits_ == 0) {
-exponent_ = 0;
-}
-}
-void Bignum::Align(const Bignum& other) {
-if (exponent_ > other.exponent_) {
-const int zero_bigits = exponent_ - other.exponent_;
-EnsureCapacity(used_bigits_ + zero_bigits);
-for (int i = used_bigits_ - 1; i >= 0; --i) {
-RawBigit(i + zero_bigits) = RawBigit(i);
-}
-for (int i = 0; i < zero_bigits; ++i) {
-RawBigit(i) = 0;
-}
-used_bigits_ += static_cast<int16_t>(zero_bigits);
-exponent_ -= static_cast<int16_t>(zero_bigits);
-DOUBLE_CONVERSION_ASSERT(used_bigits_ >= 0);
-DOUBLE_CONVERSION_ASSERT(exponent_ >= 0);
-}
-}
-void Bignum::BigitsShiftLeft(const int shift_amount) {
-DOUBLE_CONVERSION_ASSERT(shift_amount < kBigitSize);
-DOUBLE_CONVERSION_ASSERT(shift_amount >= 0);
-Chunk carry = 0;
-for (int i = 0; i < used_bigits_; ++i) {
-const Chunk new_carry = RawBigit(i) >> (kBigitSize - shift_amount);
-RawBigit(i) = ((RawBigit(i) << shift_amount) + carry) & kBigitMask;
-carry = new_carry;
-}
-if (carry != 0) {
-RawBigit(used_bigits_) = carry;
-used_bigits_++;
-}
-}
-void Bignum::SubtractTimes(const Bignum& other, const int factor) {
-DOUBLE_CONVERSION_ASSERT(exponent_ <= other.exponent_);
-if (factor < 3) {
-for (int i = 0; i < factor; ++i) {
-SubtractBignum(other);
-}
-return;
-}
-Chunk borrow = 0;
-const int exponent_diff = other.exponent_ - exponent_;
-for (int i = 0; i < other.used_bigits_; ++i) {
-const DoubleChunk product = static_cast<DoubleChunk>(factor) * other.RawBigit(i);
-const DoubleChunk remove = borrow + product;
-const Chunk difference = RawBigit(i + exponent_diff) - (remove & kBigitMask);
-RawBigit(i + exponent_diff) = difference & kBigitMask;
-borrow = static_cast<Chunk>((difference >> (kChunkSize - 1)) +
-(remove >> kBigitSize));
-}
-for (int i = other.used_bigits_ + exponent_diff; i < used_bigits_; ++i) {
-if (borrow == 0) {
-return;
-}
-const Chunk difference = RawBigit(i) - borrow;
-RawBigit(i) = difference & kBigitMask;
-borrow = difference >> (kChunkSize - 1);
-}
-Clamp();
-}
-}  // namespace double_conversion
-
-
-#ifndef DOUBLE_CONVERSION_CACHED_POWERS_H_
-#define DOUBLE_CONVERSION_CACHED_POWERS_H_
-namespace double_conversion {
-namespace PowersOfTenCache {
-static const int kDecimalExponentDistance = 8;
-static const int kMinDecimalExponent = -348;
-static const int kMaxDecimalExponent = 340;
-void GetCachedPowerForBinaryExponentRange(int min_exponent,
-int max_exponent,
-DiyFp* power,
-int* decimal_exponent);
-void GetCachedPowerForDecimalExponent(int requested_exponent,
-DiyFp* power,
-int* found_exponent);
-}  // namespace PowersOfTenCache
-}  // namespace double_conversion
-#endif  // DOUBLE_CONVERSION_CACHED_POWERS_H_
-#include <climits>
-#include <cmath>
-#include <cstdarg>
-namespace double_conversion {
-namespace PowersOfTenCache {
-struct CachedPower {
-uint64_t significand;
-int16_t binary_exponent;
-int16_t decimal_exponent;
-};
-static const CachedPower kCachedPowers[] = {
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xfa8fd5a0, 081c0288), -1220, -348},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xbaaee17f, a23ebf76), -1193, -340},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x8b16fb20, 3055ac76), -1166, -332},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xcf42894a, 5dce35ea), -1140, -324},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x9a6bb0aa, 55653b2d), -1113, -316},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xe61acf03, 3d1a45df), -1087, -308},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xab70fe17, c79ac6ca), -1060, -300},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xff77b1fc, bebcdc4f), -1034, -292},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xbe5691ef, 416bd60c), -1007, -284},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x8dd01fad, 907ffc3c), -980, -276},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xd3515c28, 31559a83), -954, -268},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x9d71ac8f, ada6c9b5), -927, -260},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xea9c2277, 23ee8bcb), -901, -252},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xaecc4991, 4078536d), -874, -244},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x823c1279, 5db6ce57), -847, -236},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xc2109436, 4dfb5637), -821, -228},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x9096ea6f, 3848984f), -794, -220},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xd77485cb, 25823ac7), -768, -212},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xa086cfcd, 97bf97f4), -741, -204},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xef340a98, 172aace5), -715, -196},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xb23867fb, 2a35b28e), -688, -188},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x84c8d4df, d2c63f3b), -661, -180},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xc5dd4427, 1ad3cdba), -635, -172},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x936b9fce, bb25c996), -608, -164},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xdbac6c24, 7d62a584), -582, -156},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xa3ab6658, 0d5fdaf6), -555, -148},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xf3e2f893, dec3f126), -529, -140},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xb5b5ada8, aaff80b8), -502, -132},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x87625f05, 6c7c4a8b), -475, -124},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xc9bcff60, 34c13053), -449, -116},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x964e858c, 91ba2655), -422, -108},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xdff97724, 70297ebd), -396, -100},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xa6dfbd9f, b8e5b88f), -369, -92},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xf8a95fcf, 88747d94), -343, -84},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xb9447093, 8fa89bcf), -316, -76},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x8a08f0f8, bf0f156b), -289, -68},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xcdb02555, 653131b6), -263, -60},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x993fe2c6, d07b7fac), -236, -52},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xe45c10c4, 2a2b3b06), -210, -44},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xaa242499, 697392d3), -183, -36},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xfd87b5f2, 8300ca0e), -157, -28},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xbce50864, 92111aeb), -130, -20},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x8cbccc09, 6f5088cc), -103, -12},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xd1b71758, e219652c), -77, -4},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x9c400000, 00000000), -50, 4},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xe8d4a510, 00000000), -24, 12},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xad78ebc5, ac620000), 3, 20},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x813f3978, f8940984), 30, 28},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xc097ce7b, c90715b3), 56, 36},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x8f7e32ce, 7bea5c70), 83, 44},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xd5d238a4, abe98068), 109, 52},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x9f4f2726, 179a2245), 136, 60},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xed63a231, d4c4fb27), 162, 68},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xb0de6538, 8cc8ada8), 189, 76},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x83c7088e, 1aab65db), 216, 84},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xc45d1df9, 42711d9a), 242, 92},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x924d692c, a61be758), 269, 100},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xda01ee64, 1a708dea), 295, 108},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xa26da399, 9aef774a), 322, 116},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xf209787b, b47d6b85), 348, 124},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xb454e4a1, 79dd1877), 375, 132},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x865b8692, 5b9bc5c2), 402, 140},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xc83553c5, c8965d3d), 428, 148},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x952ab45c, fa97a0b3), 455, 156},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xde469fbd, 99a05fe3), 481, 164},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xa59bc234, db398c25), 508, 172},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xf6c69a72, a3989f5c), 534, 180},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xb7dcbf53, 54e9bece), 561, 188},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x88fcf317, f22241e2), 588, 196},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xcc20ce9b, d35c78a5), 614, 204},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x98165af3, 7b2153df), 641, 212},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xe2a0b5dc, 971f303a), 667, 220},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xa8d9d153, 5ce3b396), 694, 228},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xfb9b7cd9, a4a7443c), 720, 236},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xbb764c4c, a7a44410), 747, 244},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x8bab8eef, b6409c1a), 774, 252},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xd01fef10, a657842c), 800, 260},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x9b10a4e5, e9913129), 827, 268},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xe7109bfb, a19c0c9d), 853, 276},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xac2820d9, 623bf429), 880, 284},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x80444b5e, 7aa7cf85), 907, 292},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xbf21e440, 03acdd2d), 933, 300},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x8e679c2f, 5e44ff8f), 960, 308},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xd433179d, 9c8cb841), 986, 316},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0x9e19db92, b4e31ba9), 1013, 324},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xeb96bf6e, badf77d9), 1039, 332},
-{DOUBLE_CONVERSION_UINT64_2PART_C(0xaf87023b, 9bf0ee6b), 1066, 340},
-};
-static const int kCachedPowersOffset = 348;  // -1 * the first decimal_exponent.
-static const double kD_1_LOG2_10 = 0.30102999566398114;  //  1 / lg(10)
-void GetCachedPowerForBinaryExponentRange(
-int min_exponent,
-int max_exponent,
-DiyFp* power,
-int* decimal_exponent) {
-int kQ = DiyFp::kSignificandSize;
-double k = ceil((min_exponent + kQ - 1) * kD_1_LOG2_10);
-int foo = kCachedPowersOffset;
-int index =
-(foo + static_cast<int>(k) - 1) / kDecimalExponentDistance + 1;
-DOUBLE_CONVERSION_ASSERT(0 <= index && index < static_cast<int>(DOUBLE_CONVERSION_ARRAY_SIZE(kCachedPowers)));
-CachedPower cached_power = kCachedPowers[index];
-DOUBLE_CONVERSION_ASSERT(min_exponent <= cached_power.binary_exponent);
-(void) max_exponent;  // Mark variable as used.
-DOUBLE_CONVERSION_ASSERT(cached_power.binary_exponent <= max_exponent);
-*decimal_exponent = cached_power.decimal_exponent;
-*power = DiyFp(cached_power.significand, cached_power.binary_exponent);
-}
-void GetCachedPowerForDecimalExponent(int requested_exponent,
-DiyFp* power,
-int* found_exponent) {
-DOUBLE_CONVERSION_ASSERT(kMinDecimalExponent <= requested_exponent);
-DOUBLE_CONVERSION_ASSERT(requested_exponent < kMaxDecimalExponent + kDecimalExponentDistance);
-int index =
-(requested_exponent + kCachedPowersOffset) / kDecimalExponentDistance;
-CachedPower cached_power = kCachedPowers[index];
-*power = DiyFp(cached_power.significand, cached_power.binary_exponent);
-*found_exponent = cached_power.decimal_exponent;
-DOUBLE_CONVERSION_ASSERT(*found_exponent <= requested_exponent);
-DOUBLE_CONVERSION_ASSERT(requested_exponent < *found_exponent + kDecimalExponentDistance);
-}
-}  // namespace PowersOfTenCache
-}  // namespace double_conversion
-
-
-namespace double_conversion {
-#if defined(DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS)
-static const int kMaxExactDoubleIntegerDecimalDigits = 15;
-#endif // #if defined(DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS)
-static const int kMaxUint64DecimalDigits = 19;
-static const int kMaxDecimalPower = 309;
-static const int kMinDecimalPower = -324;
-static const uint64_t kMaxUint64 = DOUBLE_CONVERSION_UINT64_2PART_C(0xFFFFFFFF, FFFFFFFF);
-#if defined(DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS)
-static const double exact_powers_of_ten[] = {
-1.0,  // 10^0
-10.0,
-100.0,
-1000.0,
-10000.0,
-100000.0,
-1000000.0,
-10000000.0,
-100000000.0,
-1000000000.0,
-10000000000.0,  // 10^10
-100000000000.0,
-1000000000000.0,
-10000000000000.0,
-100000000000000.0,
-1000000000000000.0,
-10000000000000000.0,
-100000000000000000.0,
-1000000000000000000.0,
-10000000000000000000.0,
-100000000000000000000.0,  // 10^20
-1000000000000000000000.0,
-10000000000000000000000.0
-};
-static const int kExactPowersOfTenSize = DOUBLE_CONVERSION_ARRAY_SIZE(exact_powers_of_ten);
-#endif // #if defined(DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS)
-static const int kMaxSignificantDecimalDigits = 780;
-static Vector<const char> TrimLeadingZeros(Vector<const char> buffer) {
-for (int i = 0; i < buffer.length(); i++) {
-if (buffer[i] != '0') {
-return buffer.SubVector(i, buffer.length());
-}
-}
-return Vector<const char>(buffer.start(), 0);
-}
-static void CutToMaxSignificantDigits(Vector<const char> buffer,
-int exponent,
-char* significant_buffer,
-int* significant_exponent) {
-for (int i = 0; i < kMaxSignificantDecimalDigits - 1; ++i) {
-significant_buffer[i] = buffer[i];
-}
-DOUBLE_CONVERSION_ASSERT(buffer[buffer.length() - 1] != '0');
-significant_buffer[kMaxSignificantDecimalDigits - 1] = '1';
-*significant_exponent =
-exponent + (buffer.length() - kMaxSignificantDecimalDigits);
-}
-static void TrimAndCut(Vector<const char> buffer, int exponent,
-char* buffer_copy_space, int space_size,
-Vector<const char>* trimmed, int* updated_exponent) {
-Vector<const char> left_trimmed = TrimLeadingZeros(buffer);
-Vector<const char> right_trimmed = TrimTrailingZeros(left_trimmed);
-exponent += left_trimmed.length() - right_trimmed.length();
-if (right_trimmed.length() > kMaxSignificantDecimalDigits) {
-(void) space_size;  // Mark variable as used.
-DOUBLE_CONVERSION_ASSERT(space_size >= kMaxSignificantDecimalDigits);
-CutToMaxSignificantDigits(right_trimmed, exponent,
-buffer_copy_space, updated_exponent);
-*trimmed = Vector<const char>(buffer_copy_space,
-kMaxSignificantDecimalDigits);
-} else {
-*trimmed = right_trimmed;
-*updated_exponent = exponent;
-}
-}
-static uint64_t ReadUint64(Vector<const char> buffer,
-int* number_of_read_digits) {
-uint64_t result = 0;
-int i = 0;
-while (i < buffer.length() && result <= (kMaxUint64 / 10 - 1)) {
-int digit = buffer[i++] - '0';
-DOUBLE_CONVERSION_ASSERT(0 <= digit && digit <= 9);
-result = 10 * result + digit;
-}
-*number_of_read_digits = i;
-return result;
-}
-static void ReadDiyFp(Vector<const char> buffer,
-DiyFp* result,
-int* remaining_decimals) {
-int read_digits;
-uint64_t significand = ReadUint64(buffer, &read_digits);
-if (buffer.length() == read_digits) {
-*result = DiyFp(significand, 0);
-*remaining_decimals = 0;
-} else {
-if (buffer[read_digits] >= '5') {
-significand++;
-}
-int exponent = 0;
-*result = DiyFp(significand, exponent);
-*remaining_decimals = buffer.length() - read_digits;
-}
-}
-static bool DoubleStrtod(Vector<const char> trimmed,
-int exponent,
-double* result) {
-#if !defined(DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS)
-(void) trimmed;
-(void) exponent;
-(void) result;
-return false;
-#else
-if (trimmed.length() <= kMaxExactDoubleIntegerDecimalDigits) {
-int read_digits;
-if (exponent < 0 && -exponent < kExactPowersOfTenSize) {
-*result = static_cast<double>(ReadUint64(trimmed, &read_digits));
-DOUBLE_CONVERSION_ASSERT(read_digits == trimmed.length());
-*result /= exact_powers_of_ten[-exponent];
-return true;
-}
-if (0 <= exponent && exponent < kExactPowersOfTenSize) {
-*result = static_cast<double>(ReadUint64(trimmed, &read_digits));
-DOUBLE_CONVERSION_ASSERT(read_digits == trimmed.length());
-*result *= exact_powers_of_ten[exponent];
-return true;
-}
-int remaining_digits =
-kMaxExactDoubleIntegerDecimalDigits - trimmed.length();
-if ((0 <= exponent) &&
-(exponent - remaining_digits < kExactPowersOfTenSize)) {
-*result = static_cast<double>(ReadUint64(trimmed, &read_digits));
-DOUBLE_CONVERSION_ASSERT(read_digits == trimmed.length());
-*result *= exact_powers_of_ten[remaining_digits];
-*result *= exact_powers_of_ten[exponent - remaining_digits];
-return true;
-}
-}
-return false;
-#endif
-}
-static DiyFp AdjustmentPowerOfTen(int exponent) {
-DOUBLE_CONVERSION_ASSERT(0 < exponent);
-DOUBLE_CONVERSION_ASSERT(exponent < PowersOfTenCache::kDecimalExponentDistance);
-DOUBLE_CONVERSION_ASSERT(PowersOfTenCache::kDecimalExponentDistance == 8);
-switch (exponent) {
-case 1: return DiyFp(DOUBLE_CONVERSION_UINT64_2PART_C(0xa0000000, 00000000), -60);
-case 2: return DiyFp(DOUBLE_CONVERSION_UINT64_2PART_C(0xc8000000, 00000000), -57);
-case 3: return DiyFp(DOUBLE_CONVERSION_UINT64_2PART_C(0xfa000000, 00000000), -54);
-case 4: return DiyFp(DOUBLE_CONVERSION_UINT64_2PART_C(0x9c400000, 00000000), -50);
-case 5: return DiyFp(DOUBLE_CONVERSION_UINT64_2PART_C(0xc3500000, 00000000), -47);
-case 6: return DiyFp(DOUBLE_CONVERSION_UINT64_2PART_C(0xf4240000, 00000000), -44);
-case 7: return DiyFp(DOUBLE_CONVERSION_UINT64_2PART_C(0x98968000, 00000000), -40);
-default:
-DOUBLE_CONVERSION_UNREACHABLE();
-}
-}
-static bool DiyFpStrtod(Vector<const char> buffer,
-int exponent,
-double* result) {
-DiyFp input;
-int remaining_decimals;
-ReadDiyFp(buffer, &input, &remaining_decimals);
-const int kDenominatorLog = 3;
-const int kDenominator = 1 << kDenominatorLog;
-exponent += remaining_decimals;
-uint64_t error = (remaining_decimals == 0 ? 0 : kDenominator / 2);
-int old_e = input.e();
-input.Normalize();
-error <<= old_e - input.e();
-DOUBLE_CONVERSION_ASSERT(exponent <= PowersOfTenCache::kMaxDecimalExponent);
-if (exponent < PowersOfTenCache::kMinDecimalExponent) {
-*result = 0.0;
-return true;
-}
-DiyFp cached_power;
-int cached_decimal_exponent;
-PowersOfTenCache::GetCachedPowerForDecimalExponent(exponent,
-&cached_power,
-&cached_decimal_exponent);
-if (cached_decimal_exponent != exponent) {
-int adjustment_exponent = exponent - cached_decimal_exponent;
-DiyFp adjustment_power = AdjustmentPowerOfTen(adjustment_exponent);
-input.Multiply(adjustment_power);
-if (kMaxUint64DecimalDigits - buffer.length() >= adjustment_exponent) {
-DOUBLE_CONVERSION_ASSERT(DiyFp::kSignificandSize == 64);
-} else {
-error += kDenominator / 2;
-}
-}
-input.Multiply(cached_power);
-int error_b = kDenominator / 2;
-int error_ab = (error == 0 ? 0 : 1);  // We round up to 1.
-int fixed_error = kDenominator / 2;
-error += error_b + error_ab + fixed_error;
-old_e = input.e();
-input.Normalize();
-error <<= old_e - input.e();
-int order_of_magnitude = DiyFp::kSignificandSize + input.e();
-int effective_significand_size =
-Double::SignificandSizeForOrderOfMagnitude(order_of_magnitude);
-int precision_digits_count =
-DiyFp::kSignificandSize - effective_significand_size;
-if (precision_digits_count + kDenominatorLog >= DiyFp::kSignificandSize) {
-int shift_amount = (precision_digits_count + kDenominatorLog) -
-DiyFp::kSignificandSize + 1;
-input.set_f(input.f() >> shift_amount);
-input.set_e(input.e() + shift_amount);
-error = (error >> shift_amount) + 1 + kDenominator;
-precision_digits_count -= shift_amount;
-}
-DOUBLE_CONVERSION_ASSERT(DiyFp::kSignificandSize == 64);
-DOUBLE_CONVERSION_ASSERT(precision_digits_count < 64);
-uint64_t one64 = 1;
-uint64_t precision_bits_mask = (one64 << precision_digits_count) - 1;
-uint64_t precision_bits = input.f() & precision_bits_mask;
-uint64_t half_way = one64 << (precision_digits_count - 1);
-precision_bits *= kDenominator;
-half_way *= kDenominator;
-DiyFp rounded_input(input.f() >> precision_digits_count,
-input.e() + precision_digits_count);
-if (precision_bits >= half_way + error) {
-rounded_input.set_f(rounded_input.f() + 1);
-}
-*result = Double(rounded_input).value();
-if (half_way - error < precision_bits && precision_bits < half_way + error) {
-return false;
-} else {
-return true;
-}
-}
-static int CompareBufferWithDiyFp(Vector<const char> buffer,
-int exponent,
-DiyFp diy_fp) {
-DOUBLE_CONVERSION_ASSERT(buffer.length() + exponent <= kMaxDecimalPower + 1);
-DOUBLE_CONVERSION_ASSERT(buffer.length() + exponent > kMinDecimalPower);
-DOUBLE_CONVERSION_ASSERT(buffer.length() <= kMaxSignificantDecimalDigits);
-DOUBLE_CONVERSION_ASSERT(((kMaxDecimalPower + 1) * 333 / 100) < Bignum::kMaxSignificantBits);
-Bignum buffer_bignum;
-Bignum diy_fp_bignum;
-buffer_bignum.AssignDecimalString(buffer);
-diy_fp_bignum.AssignUInt64(diy_fp.f());
-if (exponent >= 0) {
-buffer_bignum.MultiplyByPowerOfTen(exponent);
-} else {
-diy_fp_bignum.MultiplyByPowerOfTen(-exponent);
-}
-if (diy_fp.e() > 0) {
-diy_fp_bignum.ShiftLeft(diy_fp.e());
-} else {
-buffer_bignum.ShiftLeft(-diy_fp.e());
-}
-return Bignum::Compare(buffer_bignum, diy_fp_bignum);
-}
-static bool ComputeGuess(Vector<const char> trimmed, int exponent,
-double* guess) {
-if (trimmed.length() == 0) {
-*guess = 0.0;
-return true;
-}
-if (exponent + trimmed.length() - 1 >= kMaxDecimalPower) {
-*guess = Double::Infinity();
-return true;
-}
-if (exponent + trimmed.length() <= kMinDecimalPower) {
-*guess = 0.0;
-return true;
-}
-if (DoubleStrtod(trimmed, exponent, guess) ||
-DiyFpStrtod(trimmed, exponent, guess)) {
-return true;
-}
-if (*guess == Double::Infinity()) {
-return true;
-}
-return false;
-}
-static bool IsDigit(const char d) {
-return ('0' <= d) && (d <= '9');
-}
-static bool IsNonZeroDigit(const char d) {
-return ('1' <= d) && (d <= '9');
-}
-#ifdef __has_cpp_attribute
-#if __has_cpp_attribute(maybe_unused)
-[[maybe_unused]]
-#endif
-#endif
-static bool AssertTrimmedDigits(const Vector<const char>& buffer) {
-for(int i = 0; i < buffer.length(); ++i) {
-if(!IsDigit(buffer[i])) {
-return false;
-}
-}
-return (buffer.length() == 0) || (IsNonZeroDigit(buffer[0]) && IsNonZeroDigit(buffer[buffer.length()-1]));
-}
-double StrtodTrimmed(Vector<const char> trimmed, int exponent) {
-DOUBLE_CONVERSION_ASSERT(trimmed.length() <= kMaxSignificantDecimalDigits);
-DOUBLE_CONVERSION_ASSERT(AssertTrimmedDigits(trimmed));
-double guess;
-const bool is_correct = ComputeGuess(trimmed, exponent, &guess);
-if (is_correct) {
-return guess;
-}
-DiyFp upper_boundary = Double(guess).UpperBoundary();
-int comparison = CompareBufferWithDiyFp(trimmed, exponent, upper_boundary);
-if (comparison < 0) {
-return guess;
-} else if (comparison > 0) {
-return Double(guess).NextDouble();
-} else if ((Double(guess).Significand() & 1) == 0) {
-return guess;
-} else {
-return Double(guess).NextDouble();
-}
-}
-double Strtod(Vector<const char> buffer, int exponent) {
-char copy_buffer[kMaxSignificantDecimalDigits];
-Vector<const char> trimmed;
-int updated_exponent;
-TrimAndCut(buffer, exponent, copy_buffer, kMaxSignificantDecimalDigits,
-&trimmed, &updated_exponent);
-return StrtodTrimmed(trimmed, updated_exponent);
-}
-static float SanitizedDoubletof(double d) {
-DOUBLE_CONVERSION_ASSERT(d >= 0.0);
-float max_finite = 3.4028234663852885981170418348451692544e+38;
-double half_max_finite_infinity =
-3.40282356779733661637539395458142568448e+38;
-if (d >= max_finite) {
-if (d >= half_max_finite_infinity) {
-return Single::Infinity();
-} else {
-return max_finite;
-}
-} else {
-return static_cast<float>(d);
-}
-}
-float Strtof(Vector<const char> buffer, int exponent) {
-char copy_buffer[kMaxSignificantDecimalDigits];
-Vector<const char> trimmed;
-int updated_exponent;
-TrimAndCut(buffer, exponent, copy_buffer, kMaxSignificantDecimalDigits,
-&trimmed, &updated_exponent);
-exponent = updated_exponent;
-return StrtofTrimmed(trimmed, exponent);
-}
-float StrtofTrimmed(Vector<const char> trimmed, int exponent) {
-DOUBLE_CONVERSION_ASSERT(trimmed.length() <= kMaxSignificantDecimalDigits);
-DOUBLE_CONVERSION_ASSERT(AssertTrimmedDigits(trimmed));
-double double_guess;
-bool is_correct = ComputeGuess(trimmed, exponent, &double_guess);
-float float_guess = SanitizedDoubletof(double_guess);
-if (float_guess == double_guess) {
-return float_guess;
-}
-double double_next = Double(double_guess).NextDouble();
-double double_previous = Double(double_guess).PreviousDouble();
-float f1 = SanitizedDoubletof(double_previous);
-float f2 = float_guess;
-float f3 = SanitizedDoubletof(double_next);
-float f4;
-if (is_correct) {
-f4 = f3;
-} else {
-double double_next2 = Double(double_next).NextDouble();
-f4 = SanitizedDoubletof(double_next2);
-}
-(void) f2;  // Mark variable as used.
-DOUBLE_CONVERSION_ASSERT(f1 <= f2 && f2 <= f3 && f3 <= f4);
-if (f1 == f4) {
-return float_guess;
-}
-DOUBLE_CONVERSION_ASSERT((f1 != f2 && f2 == f3 && f3 == f4) ||
-(f1 == f2 && f2 != f3 && f3 == f4) ||
-(f1 == f2 && f2 == f3 && f3 != f4));
-float guess = f1;
-float next = f4;
-DiyFp upper_boundary;
-if (guess == 0.0f) {
-float min_float = 1e-45f;
-upper_boundary = Double(static_cast<double>(min_float) / 2).AsDiyFp();
-} else {
-upper_boundary = Single(guess).UpperBoundary();
-}
-int comparison = CompareBufferWithDiyFp(trimmed, exponent, upper_boundary);
-if (comparison < 0) {
-return guess;
-} else if (comparison > 0) {
-return next;
-} else if ((Single(guess).Significand() & 1) == 0) {
-return guess;
-} else {
-return next;
-}
-}
-}  // namespace double_conversion
-
-
-#ifdef _MSC_VER
-#  if _MSC_VER >= 1900
-__pragma(warning(disable: 4244))
-#  endif
-#  if _MSC_VER <= 1700 // VS2012, see IsDecimalDigitForRadix warning fix, below
-#    define VS2012_RADIXWARN
-#  endif
-#endif
-namespace double_conversion {
-namespace {
-inline char ToLower(char ch) {
-static const std::ctype<char>& cType =
-std::use_facet<std::ctype<char> >(std::locale::classic());
-return cType.tolower(ch);
-}
-inline char Pass(char ch) {
-return ch;
-}
-template <class Iterator, class Converter>
-static inline bool ConsumeSubStringImpl(Iterator* current,
-Iterator end,
-const char* substring,
-Converter converter) {
-DOUBLE_CONVERSION_ASSERT(converter(**current) == *substring);
-for (substring++; *substring != '\0'; substring++) {
-++*current;
-if (*current == end || converter(**current) != *substring) {
-return false;
-}
-}
-++*current;
-return true;
-}
-template <class Iterator>
-static bool ConsumeSubString(Iterator* current,
-Iterator end,
-const char* substring,
-bool allow_case_insensitivity) {
-if (allow_case_insensitivity) {
-return ConsumeSubStringImpl(current, end, substring, ToLower);
-} else {
-return ConsumeSubStringImpl(current, end, substring, Pass);
-}
-}
-inline bool ConsumeFirstCharacter(char ch,
-const char* str,
-bool case_insensitivity) {
-return case_insensitivity ? ToLower(ch) == str[0] : ch == str[0];
-}
-}  // namespace
-const int kMaxSignificantDigits = 772;
-static const char kWhitespaceTable7[] = { 32, 13, 10, 9, 11, 12 };
-static const int kWhitespaceTable7Length = DOUBLE_CONVERSION_ARRAY_SIZE(kWhitespaceTable7);
-static const uc16 kWhitespaceTable16[] = {
-160, 8232, 8233, 5760, 6158, 8192, 8193, 8194, 8195,
-8196, 8197, 8198, 8199, 8200, 8201, 8202, 8239, 8287, 12288, 65279
-};
-static const int kWhitespaceTable16Length = DOUBLE_CONVERSION_ARRAY_SIZE(kWhitespaceTable16);
-static bool isWhitespace(int x) {
-if (x < 128) {
-for (int i = 0; i < kWhitespaceTable7Length; i++) {
-if (kWhitespaceTable7[i] == x) return true;
-}
-} else {
-for (int i = 0; i < kWhitespaceTable16Length; i++) {
-if (kWhitespaceTable16[i] == x) return true;
-}
-}
-return false;
-}
-template <class Iterator>
-static inline bool AdvanceToNonspace(Iterator* current, Iterator end) {
-while (*current != end) {
-if (!isWhitespace(**current)) return true;
-++*current;
-}
-return false;
-}
-static bool isDigit(int x, int radix) {
-return (x >= '0' && x <= '9' && x < '0' + radix)
-|| (radix > 10 && x >= 'a' && x < 'a' + radix - 10)
-|| (radix > 10 && x >= 'A' && x < 'A' + radix - 10);
-}
-static double SignedZero(bool sign) {
-return sign ? -0.0 : 0.0;
-}
-#ifdef VS2012_RADIXWARN
-#pragma optimize("",off)
-static bool IsDecimalDigitForRadix(int c, int radix) {
-return '0' <= c && c <= '9' && (c - '0') < radix;
-}
-#pragma optimize("",on)
-#else
-static bool inline IsDecimalDigitForRadix(int c, int radix) {
-return '0' <= c && c <= '9' && (c - '0') < radix;
-}
-#endif
-static bool IsCharacterDigitForRadix(int c, int radix, char a_character) {
-return radix > 10 && c >= a_character && c < a_character + radix - 10;
-}
-template<class Iterator>
-static bool Advance (Iterator* it, uc16 separator, int base, Iterator& end) {
-if (separator == StringToDoubleConverter::kNoSeparator) {
-++(*it);
-return *it == end;
-}
-if (!isDigit(**it, base)) {
-++(*it);
-return *it == end;
-}
-++(*it);
-if (*it == end) return true;
-if (*it + 1 == end) return false;
-if (**it == separator && isDigit(*(*it + 1), base)) {
-++(*it);
-}
-return *it == end;
-}
-template<class Iterator>
-static bool IsHexFloatString(Iterator start,
-Iterator end,
-uc16 separator,
-bool allow_trailing_junk) {
-DOUBLE_CONVERSION_ASSERT(start != end);
-Iterator current = start;
-bool saw_digit = false;
-while (isDigit(*current, 16)) {
-saw_digit = true;
-if (Advance(&current, separator, 16, end)) return false;
-}
-if (*current == '.') {
-if (Advance(&current, separator, 16, end)) return false;
-while (isDigit(*current, 16)) {
-saw_digit = true;
-if (Advance(&current, separator, 16, end)) return false;
-}
-}
-if (!saw_digit) return false;
-if (*current != 'p' && *current != 'P') return false;
-if (Advance(&current, separator, 16, end)) return false;
-if (*current == '+' || *current == '-') {
-if (Advance(&current, separator, 16, end)) return false;
-}
-if (!isDigit(*current, 10)) return false;
-if (Advance(&current, separator, 16, end)) return true;
-while (isDigit(*current, 10)) {
-if (Advance(&current, separator, 16, end)) return true;
-}
-return allow_trailing_junk || !AdvanceToNonspace(&current, end);
-}
-template <int radix_log_2, class Iterator>
-static double RadixStringToIeee(Iterator* current,
-Iterator end,
-bool sign,
-uc16 separator,
-bool parse_as_hex_float,
-bool allow_trailing_junk,
-double junk_string_value,
-bool read_as_double,
-bool* result_is_junk) {
-DOUBLE_CONVERSION_ASSERT(*current != end);
-DOUBLE_CONVERSION_ASSERT(!parse_as_hex_float ||
-IsHexFloatString(*current, end, separator, allow_trailing_junk));
-const int kDoubleSize = Double::kSignificandSize;
-const int kSingleSize = Single::kSignificandSize;
-const int kSignificandSize = read_as_double? kDoubleSize: kSingleSize;
-*result_is_junk = true;
-int64_t number = 0;
-int exponent = 0;
-const int radix = (1 << radix_log_2);
-bool post_decimal = false;
-while (**current == '0') {
-if (Advance(current, separator, radix, end)) {
-*result_is_junk = false;
-return SignedZero(sign);
-}
-}
-while (true) {
-int digit;
-if (IsDecimalDigitForRadix(**current, radix)) {
-digit = static_cast<char>(**current) - '0';
-if (post_decimal) exponent -= radix_log_2;
-} else if (IsCharacterDigitForRadix(**current, radix, 'a')) {
-digit = static_cast<char>(**current) - 'a' + 10;
-if (post_decimal) exponent -= radix_log_2;
-} else if (IsCharacterDigitForRadix(**current, radix, 'A')) {
-digit = static_cast<char>(**current) - 'A' + 10;
-if (post_decimal) exponent -= radix_log_2;
-} else if (parse_as_hex_float && **current == '.') {
-post_decimal = true;
-Advance(current, separator, radix, end);
-DOUBLE_CONVERSION_ASSERT(*current != end);
-continue;
-} else if (parse_as_hex_float && (**current == 'p' || **current == 'P')) {
-break;
-} else {
-if (allow_trailing_junk || !AdvanceToNonspace(current, end)) {
-break;
-} else {
-return junk_string_value;
-}
-}
-number = number * radix + digit;
-int overflow = static_cast<int>(number >> kSignificandSize);
-if (overflow != 0) {
-int overflow_bits_count = 1;
-while (overflow > 1) {
-overflow_bits_count++;
-overflow >>= 1;
-}
-int dropped_bits_mask = ((1 << overflow_bits_count) - 1);
-int dropped_bits = static_cast<int>(number) & dropped_bits_mask;
-number >>= overflow_bits_count;
-exponent += overflow_bits_count;
-bool zero_tail = true;
-for (;;) {
-if (Advance(current, separator, radix, end)) break;
-if (parse_as_hex_float && **current == '.') {
-Advance(current, separator, radix, end);
-DOUBLE_CONVERSION_ASSERT(*current != end);
-post_decimal = true;
-}
-if (!isDigit(**current, radix)) break;
-zero_tail = zero_tail && **current == '0';
-if (!post_decimal) exponent += radix_log_2;
-}
-if (!parse_as_hex_float &&
-!allow_trailing_junk &&
-AdvanceToNonspace(current, end)) {
-return junk_string_value;
-}
-int middle_value = (1 << (overflow_bits_count - 1));
-if (dropped_bits > middle_value) {
-number++;  // Rounding up.
-} else if (dropped_bits == middle_value) {
-if ((number & 1) != 0 || !zero_tail) {
-number++;  // Rounding up.
-}
-}
-if ((number & ((int64_t)1 << kSignificandSize)) != 0) {
-exponent++;
-number >>= 1;
-}
-break;
-}
-if (Advance(current, separator, radix, end)) break;
-}
-DOUBLE_CONVERSION_ASSERT(number < ((int64_t)1 << kSignificandSize));
-DOUBLE_CONVERSION_ASSERT(static_cast<int64_t>(static_cast<double>(number)) == number);
-*result_is_junk = false;
-if (parse_as_hex_float) {
-DOUBLE_CONVERSION_ASSERT(**current == 'p' || **current == 'P');
-Advance(current, separator, radix, end);
-DOUBLE_CONVERSION_ASSERT(*current != end);
-bool is_negative = false;
-if (**current == '+') {
-Advance(current, separator, radix, end);
-DOUBLE_CONVERSION_ASSERT(*current != end);
-} else if (**current == '-') {
-is_negative = true;
-Advance(current, separator, radix, end);
-DOUBLE_CONVERSION_ASSERT(*current != end);
-}
-int written_exponent = 0;
-while (IsDecimalDigitForRadix(**current, 10)) {
-if (abs(written_exponent) <= 100 * Double::kMaxExponent) {
-written_exponent = 10 * written_exponent + **current - '0';
-}
-if (Advance(current, separator, radix, end)) break;
-}
-if (is_negative) written_exponent = -written_exponent;
-exponent += written_exponent;
-}
-if (exponent == 0 || number == 0) {
-if (sign) {
-if (number == 0) return -0.0;
-number = -number;
-}
-return static_cast<double>(number);
-}
-DOUBLE_CONVERSION_ASSERT(number != 0);
-double result = Double(DiyFp(number, exponent)).value();
-return sign ? -result : result;
-}
-template <class Iterator>
-double StringToDoubleConverter::StringToIeee(
-Iterator input,
-int length,
-bool read_as_double,
-int* processed_characters_count) const {
-Iterator current = input;
-Iterator end = input + length;
-*processed_characters_count = 0;
-const bool allow_trailing_junk = (flags_ & ALLOW_TRAILING_JUNK) != 0;
-const bool allow_leading_spaces = (flags_ & ALLOW_LEADING_SPACES) != 0;
-const bool allow_trailing_spaces = (flags_ & ALLOW_TRAILING_SPACES) != 0;
-const bool allow_spaces_after_sign = (flags_ & ALLOW_SPACES_AFTER_SIGN) != 0;
-const bool allow_case_insensitivity = (flags_ & ALLOW_CASE_INSENSITIVITY) != 0;
-if (current == end) return empty_string_value_;
-if (allow_leading_spaces || allow_trailing_spaces) {
-if (!AdvanceToNonspace(&current, end)) {
-*processed_characters_count = static_cast<int>(current - input);
-return empty_string_value_;
-}
-if (!allow_leading_spaces && (input != current)) {
-return junk_string_value_;
-}
-}
-int exponent = 0;
-int significant_digits = 0;
-int insignificant_digits = 0;
-bool nonzero_digit_dropped = false;
-bool sign = false;
-if (*current == '+' || *current == '-') {
-sign = (*current == '-');
-++current;
-Iterator next_non_space = current;
-if (!AdvanceToNonspace(&next_non_space, end)) return junk_string_value_;
-if (!allow_spaces_after_sign && (current != next_non_space)) {
-return junk_string_value_;
-}
-current = next_non_space;
-}
-if (infinity_symbol_ != DOUBLE_CONVERSION_NULLPTR) {
-if (ConsumeFirstCharacter(*current, infinity_symbol_, allow_case_insensitivity)) {
-if (!ConsumeSubString(&current, end, infinity_symbol_, allow_case_insensitivity)) {
-return junk_string_value_;
-}
-if (!(allow_trailing_spaces || allow_trailing_junk) && (current != end)) {
-return junk_string_value_;
-}
-if (!allow_trailing_junk && AdvanceToNonspace(&current, end)) {
-return junk_string_value_;
-}
-*processed_characters_count = static_cast<int>(current - input);
-return sign ? -Double::Infinity() : Double::Infinity();
-}
-}
-if (nan_symbol_ != DOUBLE_CONVERSION_NULLPTR) {
-if (ConsumeFirstCharacter(*current, nan_symbol_, allow_case_insensitivity)) {
-if (!ConsumeSubString(&current, end, nan_symbol_, allow_case_insensitivity)) {
-return junk_string_value_;
-}
-if (!(allow_trailing_spaces || allow_trailing_junk) && (current != end)) {
-return junk_string_value_;
-}
-if (!allow_trailing_junk && AdvanceToNonspace(&current, end)) {
-return junk_string_value_;
-}
-*processed_characters_count = static_cast<int>(current - input);
-return sign ? -Double::NaN() : Double::NaN();
-}
-}
-bool leading_zero = false;
-if (*current == '0') {
-if (Advance(&current, separator_, 10, end)) {
-*processed_characters_count = static_cast<int>(current - input);
-return SignedZero(sign);
-}
-leading_zero = true;
-if (((flags_ & ALLOW_HEX) || (flags_ & ALLOW_HEX_FLOATS)) &&
-(*current == 'x' || *current == 'X')) {
-++current;
-if (current == end) return junk_string_value_;  // "0x"
-bool parse_as_hex_float = (flags_ & ALLOW_HEX_FLOATS) &&
-IsHexFloatString(current, end, separator_, allow_trailing_junk);
-if (!parse_as_hex_float && !isDigit(*current, 16)) {
-return junk_string_value_;
-}
-bool result_is_junk;
-double result = RadixStringToIeee<4>(&current,
-end,
-sign,
-separator_,
-parse_as_hex_float,
-allow_trailing_junk,
-junk_string_value_,
-read_as_double,
-&result_is_junk);
-if (!result_is_junk) {
-if (allow_trailing_spaces) AdvanceToNonspace(&current, end);
-*processed_characters_count = static_cast<int>(current - input);
-}
-return result;
-}
-while (*current == '0') {
-if (Advance(&current, separator_, 10, end)) {
-*processed_characters_count = static_cast<int>(current - input);
-return SignedZero(sign);
-}
-}
-}
-bool octal = leading_zero && (flags_ & ALLOW_OCTALS) != 0;
-const int kBufferSize = kMaxSignificantDigits + 10;
-DOUBLE_CONVERSION_STACK_UNINITIALIZED char
-buffer[kBufferSize];  // NOLINT: size is known at compile time.
-int buffer_pos = 0;
-while (*current >= '0' && *current <= '9') {
-if (significant_digits < kMaxSignificantDigits) {
-DOUBLE_CONVERSION_ASSERT(buffer_pos < kBufferSize);
-buffer[buffer_pos++] = static_cast<char>(*current);
-significant_digits++;
-} else {
-insignificant_digits++;  // Move the digit into the exponential part.
-nonzero_digit_dropped = nonzero_digit_dropped || *current != '0';
-}
-octal = octal && *current < '8';
-if (Advance(&current, separator_, 10, end)) goto parsing_done;
-}
-if (significant_digits == 0) {
-octal = false;
-}
-if (*current == '.') {
-if (octal && !allow_trailing_junk) return junk_string_value_;
-if (octal) goto parsing_done;
-if (Advance(&current, separator_, 10, end)) {
-if (significant_digits == 0 && !leading_zero) {
-return junk_string_value_;
-} else {
-goto parsing_done;
-}
-}
-if (significant_digits == 0) {
-while (*current == '0') {
-if (Advance(&current, separator_, 10, end)) {
-*processed_characters_count = static_cast<int>(current - input);
-return SignedZero(sign);
-}
-exponent--;  // Move this 0 into the exponent.
-}
-}
-while (*current >= '0' && *current <= '9') {
-if (significant_digits < kMaxSignificantDigits) {
-DOUBLE_CONVERSION_ASSERT(buffer_pos < kBufferSize);
-buffer[buffer_pos++] = static_cast<char>(*current);
-significant_digits++;
-exponent--;
-} else {
-nonzero_digit_dropped = nonzero_digit_dropped || *current != '0';
-}
-if (Advance(&current, separator_, 10, end)) goto parsing_done;
-}
-}
-if (!leading_zero && exponent == 0 && significant_digits == 0) {
-return junk_string_value_;
-}
-if (*current == 'e' || *current == 'E') {
-if (octal && !allow_trailing_junk) return junk_string_value_;
-if (octal) goto parsing_done;
-Iterator junk_begin = current;
-++current;
-if (current == end) {
-if (allow_trailing_junk) {
-current = junk_begin;
-goto parsing_done;
-} else {
-return junk_string_value_;
-}
-}
-char exponen_sign = '+';
-if (*current == '+' || *current == '-') {
-exponen_sign = static_cast<char>(*current);
-++current;
-if (current == end) {
-if (allow_trailing_junk) {
-current = junk_begin;
-goto parsing_done;
-} else {
-return junk_string_value_;
-}
-}
-}
-if (current == end || *current < '0' || *current > '9') {
-if (allow_trailing_junk) {
-current = junk_begin;
-goto parsing_done;
-} else {
-return junk_string_value_;
-}
-}
-const int max_exponent = INT_MAX / 2;
-DOUBLE_CONVERSION_ASSERT(-max_exponent / 2 <= exponent && exponent <= max_exponent / 2);
-int num = 0;
-do {
-int digit = *current - '0';
-if (num >= max_exponent / 10
-&& !(num == max_exponent / 10 && digit <= max_exponent % 10)) {
-num = max_exponent;
-} else {
-num = num * 10 + digit;
-}
-++current;
-} while (current != end && *current >= '0' && *current <= '9');
-exponent += (exponen_sign == '-' ? -num : num);
-}
-if (!(allow_trailing_spaces || allow_trailing_junk) && (current != end)) {
-return junk_string_value_;
-}
-if (!allow_trailing_junk && AdvanceToNonspace(&current, end)) {
-return junk_string_value_;
-}
-if (allow_trailing_spaces) {
-AdvanceToNonspace(&current, end);
-}
-parsing_done:
-exponent += insignificant_digits;
-if (octal) {
-double result;
-bool result_is_junk;
-char* start = buffer;
-result = RadixStringToIeee<3>(&start,
-buffer + buffer_pos,
-sign,
-separator_,
-false, // Don't parse as hex_float.
-allow_trailing_junk,
-junk_string_value_,
-read_as_double,
-&result_is_junk);
-DOUBLE_CONVERSION_ASSERT(!result_is_junk);
-*processed_characters_count = static_cast<int>(current - input);
-return result;
-}
-if (nonzero_digit_dropped) {
-buffer[buffer_pos++] = '1';
-exponent--;
-}
-DOUBLE_CONVERSION_ASSERT(buffer_pos < kBufferSize);
-buffer[buffer_pos] = '\0';
-Vector<const char> chars(buffer, buffer_pos);
-chars = TrimTrailingZeros(chars);
-exponent += buffer_pos - chars.length();
-double converted;
-if (read_as_double) {
-converted = StrtodTrimmed(chars, exponent);
-} else {
-converted = StrtofTrimmed(chars, exponent);
-}
-*processed_characters_count = static_cast<int>(current - input);
-return sign? -converted: converted;
-}
-double StringToDoubleConverter::StringToDouble(
-const char* buffer,
-int length,
-int* processed_characters_count) const {
-return StringToIeee(buffer, length, true, processed_characters_count);
-}
-double StringToDoubleConverter::StringToDouble(
-const uc16* buffer,
-int length,
-int* processed_characters_count) const {
-return StringToIeee(buffer, length, true, processed_characters_count);
-}
-float StringToDoubleConverter::StringToFloat(
-const char* buffer,
-int length,
-int* processed_characters_count) const {
-return static_cast<float>(StringToIeee(buffer, length, false,
-processed_characters_count));
-}
-float StringToDoubleConverter::StringToFloat(
-const uc16* buffer,
-int length,
-int* processed_characters_count) const {
-return static_cast<float>(StringToIeee(buffer, length, false,
-processed_characters_count));
-}
-template<>
-double StringToDoubleConverter::StringTo<double>(
-const char* buffer,
-int length,
-int* processed_characters_count) const {
-return StringToDouble(buffer, length, processed_characters_count);
-}
-template<>
-float StringToDoubleConverter::StringTo<float>(
-const char* buffer,
-int length,
-int* processed_characters_count) const {
-return StringToFloat(buffer, length, processed_characters_count);
-}
-template<>
-double StringToDoubleConverter::StringTo<double>(
-const uc16* buffer,
-int length,
-int* processed_characters_count) const {
-return StringToDouble(buffer, length, processed_characters_count);
-}
-template<>
-float StringToDoubleConverter::StringTo<float>(
-const uc16* buffer,
-int length,
-int* processed_characters_count) const {
-return StringToFloat(buffer, length, processed_characters_count);
-}
-}  // namespace double_conversion
-
-
-#ifndef DOUBLE_CONVERSION_DOUBLE_TO_STRING_H_
-#define DOUBLE_CONVERSION_DOUBLE_TO_STRING_H_
-namespace double_conversion {
-class DoubleToStringConverter {
-public:
-static const int kMaxFixedDigitsBeforePoint = 60;
-static const int kMaxFixedDigitsAfterPoint = 100;
-static const int kMaxExponentialDigits = 120;
-static const int kMinPrecisionDigits = 1;
-static const int kMaxPrecisionDigits = 120;
-static const int kBase10MaximalLength = 17;
-static const int kBase10MaximalLengthSingle = 9;
-static const int kMaxCharsEcmaScriptShortest = 25;
-enum Flags {
-NO_FLAGS = 0,
-EMIT_POSITIVE_EXPONENT_SIGN = 1,
-EMIT_TRAILING_DECIMAL_POINT = 2,
-EMIT_TRAILING_ZERO_AFTER_POINT = 4,
-UNIQUE_ZERO = 8,
-NO_TRAILING_ZERO = 16
-};
-DoubleToStringConverter(int flags,
-const char* infinity_symbol,
-const char* nan_symbol,
-char exponent_character,
-int decimal_in_shortest_low,
-int decimal_in_shortest_high,
-int max_leading_padding_zeroes_in_precision_mode,
-int max_trailing_padding_zeroes_in_precision_mode,
-int min_exponent_width = 0)
-: flags_(flags),
-infinity_symbol_(infinity_symbol),
-nan_symbol_(nan_symbol),
-exponent_character_(exponent_character),
-decimal_in_shortest_low_(decimal_in_shortest_low),
-decimal_in_shortest_high_(decimal_in_shortest_high),
-max_leading_padding_zeroes_in_precision_mode_(
-max_leading_padding_zeroes_in_precision_mode),
-max_trailing_padding_zeroes_in_precision_mode_(
-max_trailing_padding_zeroes_in_precision_mode),
-min_exponent_width_(min_exponent_width) {
-DOUBLE_CONVERSION_ASSERT(((flags & EMIT_TRAILING_DECIMAL_POINT) != 0) ||
-!((flags & EMIT_TRAILING_ZERO_AFTER_POINT) != 0));
-}
-static const DoubleToStringConverter& EcmaScriptConverter();
-bool ToShortest(double value, StringBuilder* result_builder) const {
-return ToShortestIeeeNumber(value, result_builder, SHORTEST);
-}
-bool ToShortestSingle(float value, StringBuilder* result_builder) const {
-return ToShortestIeeeNumber(value, result_builder, SHORTEST_SINGLE);
-}
-bool ToFixed(double value,
-int requested_digits,
-StringBuilder* result_builder) const;
-bool ToExponential(double value,
-int requested_digits,
-StringBuilder* result_builder) const;
-bool ToPrecision(double value,
-int precision,
-StringBuilder* result_builder) const;
-enum DtoaMode {
-SHORTEST,
-SHORTEST_SINGLE,
-FIXED,
-PRECISION
-};
-static void DoubleToAscii(double v,
-DtoaMode mode,
-int requested_digits,
-char* buffer,
-int buffer_length,
-bool* sign,
-int* length,
-int* point);
-private:
-bool ToShortestIeeeNumber(double value,
-StringBuilder* result_builder,
-DtoaMode mode) const;
-bool HandleSpecialValues(double value, StringBuilder* result_builder) const;
-void CreateExponentialRepresentation(const char* decimal_digits,
-int length,
-int exponent,
-StringBuilder* result_builder) const;
-void CreateDecimalRepresentation(const char* decimal_digits,
-int length,
-int decimal_point,
-int digits_after_point,
-StringBuilder* result_builder) const;
-const int flags_;
-const char* const infinity_symbol_;
-const char* const nan_symbol_;
-const char exponent_character_;
-const int decimal_in_shortest_low_;
-const int decimal_in_shortest_high_;
-const int max_leading_padding_zeroes_in_precision_mode_;
-const int max_trailing_padding_zeroes_in_precision_mode_;
-const int min_exponent_width_;
-DOUBLE_CONVERSION_DISALLOW_IMPLICIT_CONSTRUCTORS(DoubleToStringConverter);
-};
-}  // namespace double_conversion
-#endif  // DOUBLE_CONVERSION_DOUBLE_TO_STRING_H_
-#include <algorithm>
-#include <climits>
-#include <cmath>
-#ifndef DOUBLE_CONVERSION_BIGNUM_DTOA_H_
-#define DOUBLE_CONVERSION_BIGNUM_DTOA_H_
-namespace double_conversion {
-enum BignumDtoaMode {
-BIGNUM_DTOA_SHORTEST,
-BIGNUM_DTOA_SHORTEST_SINGLE,
-BIGNUM_DTOA_FIXED,
-BIGNUM_DTOA_PRECISION
-};
-void BignumDtoa(double v, BignumDtoaMode mode, int requested_digits,
-Vector<char> buffer, int* length, int* point);
-}  // namespace double_conversion
-#endif  // DOUBLE_CONVERSION_BIGNUM_DTOA_H_
-#include <cmath>
-namespace double_conversion {
-static int NormalizedExponent(uint64_t significand, int exponent) {
-DOUBLE_CONVERSION_ASSERT(significand != 0);
-while ((significand & Double::kHiddenBit) == 0) {
-significand = significand << 1;
-exponent = exponent - 1;
-}
-return exponent;
-}
-static int EstimatePower(int exponent);
-static void InitialScaledStartValues(uint64_t significand,
-int exponent,
-bool lower_boundary_is_closer,
-int estimated_power,
-bool need_boundary_deltas,
-Bignum* numerator,
-Bignum* denominator,
-Bignum* delta_minus,
-Bignum* delta_plus);
-static void FixupMultiply10(int estimated_power, bool is_even,
-int* decimal_point,
-Bignum* numerator, Bignum* denominator,
-Bignum* delta_minus, Bignum* delta_plus);
-static void GenerateShortestDigits(Bignum* numerator, Bignum* denominator,
-Bignum* delta_minus, Bignum* delta_plus,
-bool is_even,
-Vector<char> buffer, int* length);
-static void BignumToFixed(int requested_digits, int* decimal_point,
-Bignum* numerator, Bignum* denominator,
-Vector<char> buffer, int* length);
-static void GenerateCountedDigits(int count, int* decimal_point,
-Bignum* numerator, Bignum* denominator,
-Vector<char> buffer, int* length);
-void BignumDtoa(double v, BignumDtoaMode mode, int requested_digits,
-Vector<char> buffer, int* length, int* decimal_point) {
-DOUBLE_CONVERSION_ASSERT(v > 0);
-DOUBLE_CONVERSION_ASSERT(!Double(v).IsSpecial());
-uint64_t significand;
-int exponent;
-bool lower_boundary_is_closer;
-if (mode == BIGNUM_DTOA_SHORTEST_SINGLE) {
-float f = static_cast<float>(v);
-DOUBLE_CONVERSION_ASSERT(f == v);
-significand = Single(f).Significand();
-exponent = Single(f).Exponent();
-lower_boundary_is_closer = Single(f).LowerBoundaryIsCloser();
-} else {
-significand = Double(v).Significand();
-exponent = Double(v).Exponent();
-lower_boundary_is_closer = Double(v).LowerBoundaryIsCloser();
-}
-bool need_boundary_deltas =
-(mode == BIGNUM_DTOA_SHORTEST || mode == BIGNUM_DTOA_SHORTEST_SINGLE);
-bool is_even = (significand & 1) == 0;
-int normalized_exponent = NormalizedExponent(significand, exponent);
-int estimated_power = EstimatePower(normalized_exponent);
-if (mode == BIGNUM_DTOA_FIXED && -estimated_power - 1 > requested_digits) {
-buffer[0] = '\0';
-*length = 0;
-*decimal_point = -requested_digits;
-return;
-}
-Bignum numerator;
-Bignum denominator;
-Bignum delta_minus;
-Bignum delta_plus;
-DOUBLE_CONVERSION_ASSERT(Bignum::kMaxSignificantBits >= 324*4);
-InitialScaledStartValues(significand, exponent, lower_boundary_is_closer,
-estimated_power, need_boundary_deltas,
-&numerator, &denominator,
-&delta_minus, &delta_plus);
-FixupMultiply10(estimated_power, is_even, decimal_point,
-&numerator, &denominator,
-&delta_minus, &delta_plus);
-switch (mode) {
-case BIGNUM_DTOA_SHORTEST:
-case BIGNUM_DTOA_SHORTEST_SINGLE:
-GenerateShortestDigits(&numerator, &denominator,
-&delta_minus, &delta_plus,
-is_even, buffer, length);
-break;
-case BIGNUM_DTOA_FIXED:
-BignumToFixed(requested_digits, decimal_point,
-&numerator, &denominator,
-buffer, length);
-break;
-case BIGNUM_DTOA_PRECISION:
-GenerateCountedDigits(requested_digits, decimal_point,
-&numerator, &denominator,
-buffer, length);
-break;
-default:
-DOUBLE_CONVERSION_UNREACHABLE();
-}
-buffer[*length] = '\0';
-}
-static void GenerateShortestDigits(Bignum* numerator, Bignum* denominator,
-Bignum* delta_minus, Bignum* delta_plus,
-bool is_even,
-Vector<char> buffer, int* length) {
-if (Bignum::Equal(*delta_minus, *delta_plus)) {
-delta_plus = delta_minus;
-}
-*length = 0;
-for (;;) {
-uint16_t digit;
-digit = numerator->DivideModuloIntBignum(*denominator);
-DOUBLE_CONVERSION_ASSERT(digit <= 9);  // digit is a uint16_t and therefore always positive.
-buffer[(*length)++] = static_cast<char>(digit + '0');
-bool in_delta_room_minus;
-bool in_delta_room_plus;
-if (is_even) {
-in_delta_room_minus = Bignum::LessEqual(*numerator, *delta_minus);
-} else {
-in_delta_room_minus = Bignum::Less(*numerator, *delta_minus);
-}
-if (is_even) {
-in_delta_room_plus =
-Bignum::PlusCompare(*numerator, *delta_plus, *denominator) >= 0;
-} else {
-in_delta_room_plus =
-Bignum::PlusCompare(*numerator, *delta_plus, *denominator) > 0;
-}
-if (!in_delta_room_minus && !in_delta_room_plus) {
-numerator->Times10();
-delta_minus->Times10();
-if (delta_minus != delta_plus) {
-delta_plus->Times10();
-}
-} else if (in_delta_room_minus && in_delta_room_plus) {
-int compare = Bignum::PlusCompare(*numerator, *numerator, *denominator);
-if (compare < 0) {
-} else if (compare > 0) {
-DOUBLE_CONVERSION_ASSERT(buffer[(*length) - 1] != '9');
-buffer[(*length) - 1]++;
-} else {
-if ((buffer[(*length) - 1] - '0') % 2 == 0) {
-} else {
-DOUBLE_CONVERSION_ASSERT(buffer[(*length) - 1] != '9');
-buffer[(*length) - 1]++;
-}
-}
-return;
-} else if (in_delta_room_minus) {
-return;
-} else {  // in_delta_room_plus
-DOUBLE_CONVERSION_ASSERT(buffer[(*length) -1] != '9');
-buffer[(*length) - 1]++;
-return;
-}
-}
-}
-static void GenerateCountedDigits(int count, int* decimal_point,
-Bignum* numerator, Bignum* denominator,
-Vector<char> buffer, int* length) {
-DOUBLE_CONVERSION_ASSERT(count >= 0);
-for (int i = 0; i < count - 1; ++i) {
-uint16_t digit;
-digit = numerator->DivideModuloIntBignum(*denominator);
-DOUBLE_CONVERSION_ASSERT(digit <= 9);  // digit is a uint16_t and therefore always positive.
-buffer[i] = static_cast<char>(digit + '0');
-numerator->Times10();
-}
-uint16_t digit;
-digit = numerator->DivideModuloIntBignum(*denominator);
-if (Bignum::PlusCompare(*numerator, *numerator, *denominator) >= 0) {
-digit++;
-}
-DOUBLE_CONVERSION_ASSERT(digit <= 10);
-buffer[count - 1] = static_cast<char>(digit + '0');
-for (int i = count - 1; i > 0; --i) {
-if (buffer[i] != '0' + 10) break;
-buffer[i] = '0';
-buffer[i - 1]++;
-}
-if (buffer[0] == '0' + 10) {
-buffer[0] = '1';
-(*decimal_point)++;
-}
-*length = count;
-}
-static void BignumToFixed(int requested_digits, int* decimal_point,
-Bignum* numerator, Bignum* denominator,
-Vector<char> buffer, int* length) {
-if (-(*decimal_point) > requested_digits) {
-*decimal_point = -requested_digits;
-*length = 0;
-return;
-} else if (-(*decimal_point) == requested_digits) {
-DOUBLE_CONVERSION_ASSERT(*decimal_point == -requested_digits);
-denominator->Times10();
-if (Bignum::PlusCompare(*numerator, *numerator, *denominator) >= 0) {
-buffer[0] = '1';
-*length = 1;
-(*decimal_point)++;
-} else {
-*length = 0;
-}
-return;
-} else {
-int needed_digits = (*decimal_point) + requested_digits;
-GenerateCountedDigits(needed_digits, decimal_point,
-numerator, denominator,
-buffer, length);
-}
-}
-static int EstimatePower(int exponent) {
-const double k1Log10 = 0.30102999566398114;  // 1/lg(10)
-const int kSignificandSize = Double::kSignificandSize;
-double estimate = ceil((exponent + kSignificandSize - 1) * k1Log10 - 1e-10);
-return static_cast<int>(estimate);
-}
-static void InitialScaledStartValuesPositiveExponent(
-uint64_t significand, int exponent,
-int estimated_power, bool need_boundary_deltas,
-Bignum* numerator, Bignum* denominator,
-Bignum* delta_minus, Bignum* delta_plus) {
-DOUBLE_CONVERSION_ASSERT(estimated_power >= 0);
-numerator->AssignUInt64(significand);
-numerator->ShiftLeft(exponent);
-denominator->AssignPowerUInt16(10, estimated_power);
-if (need_boundary_deltas) {
-denominator->ShiftLeft(1);
-numerator->ShiftLeft(1);
-delta_plus->AssignUInt16(1);
-delta_plus->ShiftLeft(exponent);
-delta_minus->AssignUInt16(1);
-delta_minus->ShiftLeft(exponent);
-}
-}
-static void InitialScaledStartValuesNegativeExponentPositivePower(
-uint64_t significand, int exponent,
-int estimated_power, bool need_boundary_deltas,
-Bignum* numerator, Bignum* denominator,
-Bignum* delta_minus, Bignum* delta_plus) {
-numerator->AssignUInt64(significand);
-denominator->AssignPowerUInt16(10, estimated_power);
-denominator->ShiftLeft(-exponent);
-if (need_boundary_deltas) {
-denominator->ShiftLeft(1);
-numerator->ShiftLeft(1);
-delta_plus->AssignUInt16(1);
-delta_minus->AssignUInt16(1);
-}
-}
-static void InitialScaledStartValuesNegativeExponentNegativePower(
-uint64_t significand, int exponent,
-int estimated_power, bool need_boundary_deltas,
-Bignum* numerator, Bignum* denominator,
-Bignum* delta_minus, Bignum* delta_plus) {
-Bignum* power_ten = numerator;
-power_ten->AssignPowerUInt16(10, -estimated_power);
-if (need_boundary_deltas) {
-delta_plus->AssignBignum(*power_ten);
-delta_minus->AssignBignum(*power_ten);
-}
-DOUBLE_CONVERSION_ASSERT(numerator == power_ten);
-numerator->MultiplyByUInt64(significand);
-denominator->AssignUInt16(1);
-denominator->ShiftLeft(-exponent);
-if (need_boundary_deltas) {
-numerator->ShiftLeft(1);
-denominator->ShiftLeft(1);
-}
-}
-static void InitialScaledStartValues(uint64_t significand,
-int exponent,
-bool lower_boundary_is_closer,
-int estimated_power,
-bool need_boundary_deltas,
-Bignum* numerator,
-Bignum* denominator,
-Bignum* delta_minus,
-Bignum* delta_plus) {
-if (exponent >= 0) {
-InitialScaledStartValuesPositiveExponent(
-significand, exponent, estimated_power, need_boundary_deltas,
-numerator, denominator, delta_minus, delta_plus);
-} else if (estimated_power >= 0) {
-InitialScaledStartValuesNegativeExponentPositivePower(
-significand, exponent, estimated_power, need_boundary_deltas,
-numerator, denominator, delta_minus, delta_plus);
-} else {
-InitialScaledStartValuesNegativeExponentNegativePower(
-significand, exponent, estimated_power, need_boundary_deltas,
-numerator, denominator, delta_minus, delta_plus);
-}
-if (need_boundary_deltas && lower_boundary_is_closer) {
-denominator->ShiftLeft(1);  // *2
-numerator->ShiftLeft(1);    // *2
-delta_plus->ShiftLeft(1);   // *2
-}
-}
-static void FixupMultiply10(int estimated_power, bool is_even,
-int* decimal_point,
-Bignum* numerator, Bignum* denominator,
-Bignum* delta_minus, Bignum* delta_plus) {
-bool in_range;
-if (is_even) {
-in_range = Bignum::PlusCompare(*numerator, *delta_plus, *denominator) >= 0;
-} else {
-in_range = Bignum::PlusCompare(*numerator, *delta_plus, *denominator) > 0;
-}
-if (in_range) {
-*decimal_point = estimated_power + 1;
-} else {
-*decimal_point = estimated_power;
-numerator->Times10();
-if (Bignum::Equal(*delta_minus, *delta_plus)) {
-delta_minus->Times10();
-delta_plus->AssignBignum(*delta_minus);
-} else {
-delta_minus->Times10();
-delta_plus->Times10();
-}
-}
-}
-}  // namespace double_conversion
-
-
-#ifndef DOUBLE_CONVERSION_FAST_DTOA_H_
-#define DOUBLE_CONVERSION_FAST_DTOA_H_
-namespace double_conversion {
-enum FastDtoaMode {
-FAST_DTOA_SHORTEST,
-FAST_DTOA_SHORTEST_SINGLE,
-FAST_DTOA_PRECISION
-};
-static const int kFastDtoaMaximalLength = 17;
-static const int kFastDtoaMaximalSingleLength = 9;
-bool FastDtoa(double d,
-FastDtoaMode mode,
-int requested_digits,
-Vector<char> buffer,
-int* length,
-int* decimal_point);
-}  // namespace double_conversion
-#endif  // DOUBLE_CONVERSION_FAST_DTOA_H_
-namespace double_conversion {
-static const int kMinimalTargetExponent = -60;
-static const int kMaximalTargetExponent = -32;
-static bool RoundWeed(Vector<char> buffer,
-int length,
-uint64_t distance_too_high_w,
-uint64_t unsafe_interval,
-uint64_t rest,
-uint64_t ten_kappa,
-uint64_t unit) {
-uint64_t small_distance = distance_too_high_w - unit;
-uint64_t big_distance = distance_too_high_w + unit;
-DOUBLE_CONVERSION_ASSERT(rest <= unsafe_interval);
-while (rest < small_distance &&  // Negated condition 1
-unsafe_interval - rest >= ten_kappa &&  // Negated condition 2
-(rest + ten_kappa < small_distance ||  // buffer{-1} > w_high
-small_distance - rest >= rest + ten_kappa - small_distance)) {
-buffer[length - 1]--;
-rest += ten_kappa;
-}
-if (rest < big_distance &&
-unsafe_interval - rest >= ten_kappa &&
-(rest + ten_kappa < big_distance ||
-big_distance - rest > rest + ten_kappa - big_distance)) {
-return false;
-}
-return (2 * unit <= rest) && (rest <= unsafe_interval - 4 * unit);
-}
-static bool RoundWeedCounted(Vector<char> buffer,
-int length,
-uint64_t rest,
-uint64_t ten_kappa,
-uint64_t unit,
-int* kappa) {
-DOUBLE_CONVERSION_ASSERT(rest < ten_kappa);
-if (unit >= ten_kappa) return false;
-if (ten_kappa - unit <= unit) return false;
-if ((ten_kappa - rest > rest) && (ten_kappa - 2 * rest >= 2 * unit)) {
-return true;
-}
-if ((rest > unit) && (ten_kappa - (rest - unit) <= (rest - unit))) {
-buffer[length - 1]++;
-for (int i = length - 1; i > 0; --i) {
-if (buffer[i] != '0' + 10) break;
-buffer[i] = '0';
-buffer[i - 1]++;
-}
-if (buffer[0] == '0' + 10) {
-buffer[0] = '1';
-(*kappa) += 1;
-}
-return true;
-}
-return false;
-}
-static unsigned int const kSmallPowersOfTen[] =
-{0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000,
-1000000000};
-static void BiggestPowerTen(uint32_t number,
-int number_bits,
-uint32_t* power,
-int* exponent_plus_one) {
-DOUBLE_CONVERSION_ASSERT(number < (1u << (number_bits + 1)));
-int exponent_plus_one_guess = ((number_bits + 1) * 1233 >> 12);
-exponent_plus_one_guess++;
-if (number < kSmallPowersOfTen[exponent_plus_one_guess]) {
-exponent_plus_one_guess--;
-}
-*power = kSmallPowersOfTen[exponent_plus_one_guess];
-*exponent_plus_one = exponent_plus_one_guess;
-}
-static bool DigitGen(DiyFp low,
-DiyFp w,
-DiyFp high,
-Vector<char> buffer,
-int* length,
-int* kappa) {
-DOUBLE_CONVERSION_ASSERT(low.e() == w.e() && w.e() == high.e());
-DOUBLE_CONVERSION_ASSERT(low.f() + 1 <= high.f() - 1);
-DOUBLE_CONVERSION_ASSERT(kMinimalTargetExponent <= w.e() && w.e() <= kMaximalTargetExponent);
-uint64_t unit = 1;
-DiyFp too_low = DiyFp(low.f() - unit, low.e());
-DiyFp too_high = DiyFp(high.f() + unit, high.e());
-DiyFp unsafe_interval = DiyFp::Minus(too_high, too_low);
-DiyFp one = DiyFp(static_cast<uint64_t>(1) << -w.e(), w.e());
-uint32_t integrals = static_cast<uint32_t>(too_high.f() >> -one.e());
-uint64_t fractionals = too_high.f() & (one.f() - 1);
-uint32_t divisor;
-int divisor_exponent_plus_one;
-BiggestPowerTen(integrals, DiyFp::kSignificandSize - (-one.e()),
-&divisor, &divisor_exponent_plus_one);
-*kappa = divisor_exponent_plus_one;
-*length = 0;
-while (*kappa > 0) {
-int digit = integrals / divisor;
-DOUBLE_CONVERSION_ASSERT(digit <= 9);
-buffer[*length] = static_cast<char>('0' + digit);
-(*length)++;
-integrals %= divisor;
-(*kappa)--;
-uint64_t rest =
-(static_cast<uint64_t>(integrals) << -one.e()) + fractionals;
-if (rest < unsafe_interval.f()) {
-return RoundWeed(buffer, *length, DiyFp::Minus(too_high, w).f(),
-unsafe_interval.f(), rest,
-static_cast<uint64_t>(divisor) << -one.e(), unit);
-}
-divisor /= 10;
-}
-DOUBLE_CONVERSION_ASSERT(one.e() >= -60);
-DOUBLE_CONVERSION_ASSERT(fractionals < one.f());
-DOUBLE_CONVERSION_ASSERT(DOUBLE_CONVERSION_UINT64_2PART_C(0xFFFFFFFF, FFFFFFFF) / 10 >= one.f());
-for (;;) {
-fractionals *= 10;
-unit *= 10;
-unsafe_interval.set_f(unsafe_interval.f() * 10);
-int digit = static_cast<int>(fractionals >> -one.e());
-DOUBLE_CONVERSION_ASSERT(digit <= 9);
-buffer[*length] = static_cast<char>('0' + digit);
-(*length)++;
-fractionals &= one.f() - 1;  // Modulo by one.
-(*kappa)--;
-if (fractionals < unsafe_interval.f()) {
-return RoundWeed(buffer, *length, DiyFp::Minus(too_high, w).f() * unit,
-unsafe_interval.f(), fractionals, one.f(), unit);
-}
-}
-}
-static bool DigitGenCounted(DiyFp w,
-int requested_digits,
-Vector<char> buffer,
-int* length,
-int* kappa) {
-DOUBLE_CONVERSION_ASSERT(kMinimalTargetExponent <= w.e() && w.e() <= kMaximalTargetExponent);
-DOUBLE_CONVERSION_ASSERT(kMinimalTargetExponent >= -60);
-DOUBLE_CONVERSION_ASSERT(kMaximalTargetExponent <= -32);
-uint64_t w_error = 1;
-DiyFp one = DiyFp(static_cast<uint64_t>(1) << -w.e(), w.e());
-uint32_t integrals = static_cast<uint32_t>(w.f() >> -one.e());
-uint64_t fractionals = w.f() & (one.f() - 1);
-uint32_t divisor;
-int divisor_exponent_plus_one;
-BiggestPowerTen(integrals, DiyFp::kSignificandSize - (-one.e()),
-&divisor, &divisor_exponent_plus_one);
-*kappa = divisor_exponent_plus_one;
-*length = 0;
-while (*kappa > 0) {
-int digit = integrals / divisor;
-DOUBLE_CONVERSION_ASSERT(digit <= 9);
-buffer[*length] = static_cast<char>('0' + digit);
-(*length)++;
-requested_digits--;
-integrals %= divisor;
-(*kappa)--;
-if (requested_digits == 0) break;
-divisor /= 10;
-}
-if (requested_digits == 0) {
-uint64_t rest =
-(static_cast<uint64_t>(integrals) << -one.e()) + fractionals;
-return RoundWeedCounted(buffer, *length, rest,
-static_cast<uint64_t>(divisor) << -one.e(), w_error,
-kappa);
-}
-DOUBLE_CONVERSION_ASSERT(one.e() >= -60);
-DOUBLE_CONVERSION_ASSERT(fractionals < one.f());
-DOUBLE_CONVERSION_ASSERT(DOUBLE_CONVERSION_UINT64_2PART_C(0xFFFFFFFF, FFFFFFFF) / 10 >= one.f());
-while (requested_digits > 0 && fractionals > w_error) {
-fractionals *= 10;
-w_error *= 10;
-int digit = static_cast<int>(fractionals >> -one.e());
-DOUBLE_CONVERSION_ASSERT(digit <= 9);
-buffer[*length] = static_cast<char>('0' + digit);
-(*length)++;
-requested_digits--;
-fractionals &= one.f() - 1;  // Modulo by one.
-(*kappa)--;
-}
-if (requested_digits != 0) return false;
-return RoundWeedCounted(buffer, *length, fractionals, one.f(), w_error,
-kappa);
-}
-static bool Grisu3(double v,
-FastDtoaMode mode,
-Vector<char> buffer,
-int* length,
-int* decimal_exponent) {
-DiyFp w = Double(v).AsNormalizedDiyFp();
-DiyFp boundary_minus, boundary_plus;
-if (mode == FAST_DTOA_SHORTEST) {
-Double(v).NormalizedBoundaries(&boundary_minus, &boundary_plus);
-} else {
-DOUBLE_CONVERSION_ASSERT(mode == FAST_DTOA_SHORTEST_SINGLE);
-float single_v = static_cast<float>(v);
-Single(single_v).NormalizedBoundaries(&boundary_minus, &boundary_plus);
-}
-DOUBLE_CONVERSION_ASSERT(boundary_plus.e() == w.e());
-DiyFp ten_mk;  // Cached power of ten: 10^-k
-int mk;        // -k
-int ten_mk_minimal_binary_exponent =
-kMinimalTargetExponent - (w.e() + DiyFp::kSignificandSize);
-int ten_mk_maximal_binary_exponent =
-kMaximalTargetExponent - (w.e() + DiyFp::kSignificandSize);
-PowersOfTenCache::GetCachedPowerForBinaryExponentRange(
-ten_mk_minimal_binary_exponent,
-ten_mk_maximal_binary_exponent,
-&ten_mk, &mk);
-DOUBLE_CONVERSION_ASSERT((kMinimalTargetExponent <= w.e() + ten_mk.e() +
-DiyFp::kSignificandSize) &&
-(kMaximalTargetExponent >= w.e() + ten_mk.e() +
-DiyFp::kSignificandSize));
-DiyFp scaled_w = DiyFp::Times(w, ten_mk);
-DOUBLE_CONVERSION_ASSERT(scaled_w.e() ==
-boundary_plus.e() + ten_mk.e() + DiyFp::kSignificandSize);
-DiyFp scaled_boundary_minus = DiyFp::Times(boundary_minus, ten_mk);
-DiyFp scaled_boundary_plus  = DiyFp::Times(boundary_plus,  ten_mk);
-int kappa;
-bool result = DigitGen(scaled_boundary_minus, scaled_w, scaled_boundary_plus,
-buffer, length, &kappa);
-*decimal_exponent = -mk + kappa;
-return result;
-}
-static bool Grisu3Counted(double v,
-int requested_digits,
-Vector<char> buffer,
-int* length,
-int* decimal_exponent) {
-DiyFp w = Double(v).AsNormalizedDiyFp();
-DiyFp ten_mk;  // Cached power of ten: 10^-k
-int mk;        // -k
-int ten_mk_minimal_binary_exponent =
-kMinimalTargetExponent - (w.e() + DiyFp::kSignificandSize);
-int ten_mk_maximal_binary_exponent =
-kMaximalTargetExponent - (w.e() + DiyFp::kSignificandSize);
-PowersOfTenCache::GetCachedPowerForBinaryExponentRange(
-ten_mk_minimal_binary_exponent,
-ten_mk_maximal_binary_exponent,
-&ten_mk, &mk);
-DOUBLE_CONVERSION_ASSERT((kMinimalTargetExponent <= w.e() + ten_mk.e() +
-DiyFp::kSignificandSize) &&
-(kMaximalTargetExponent >= w.e() + ten_mk.e() +
-DiyFp::kSignificandSize));
-DiyFp scaled_w = DiyFp::Times(w, ten_mk);
-int kappa;
-bool result = DigitGenCounted(scaled_w, requested_digits,
-buffer, length, &kappa);
-*decimal_exponent = -mk + kappa;
-return result;
-}
-bool FastDtoa(double v,
-FastDtoaMode mode,
-int requested_digits,
-Vector<char> buffer,
-int* length,
-int* decimal_point) {
-DOUBLE_CONVERSION_ASSERT(v > 0);
-DOUBLE_CONVERSION_ASSERT(!Double(v).IsSpecial());
-bool result = false;
-int decimal_exponent = 0;
-switch (mode) {
-case FAST_DTOA_SHORTEST:
-case FAST_DTOA_SHORTEST_SINGLE:
-result = Grisu3(v, mode, buffer, length, &decimal_exponent);
-break;
-case FAST_DTOA_PRECISION:
-result = Grisu3Counted(v, requested_digits,
-buffer, length, &decimal_exponent);
-break;
-default:
-DOUBLE_CONVERSION_UNREACHABLE();
-}
-if (result) {
-*decimal_point = *length + decimal_exponent;
-buffer[*length] = '\0';
-}
-return result;
-}
-}  // namespace double_conversion
-
-
-#ifndef DOUBLE_CONVERSION_FIXED_DTOA_H_
-#define DOUBLE_CONVERSION_FIXED_DTOA_H_
-namespace double_conversion {
-bool FastFixedDtoa(double v, int fractional_count,
-Vector<char> buffer, int* length, int* decimal_point);
-}  // namespace double_conversion
-#endif  // DOUBLE_CONVERSION_FIXED_DTOA_H_
-#include <cmath>
-namespace double_conversion {
-class UInt128 {
-public:
-UInt128() : high_bits_(0), low_bits_(0) { }
-UInt128(uint64_t high, uint64_t low) : high_bits_(high), low_bits_(low) { }
-void Multiply(uint32_t multiplicand) {
-uint64_t accumulator;
-accumulator = (low_bits_ & kMask32) * multiplicand;
-uint32_t part = static_cast<uint32_t>(accumulator & kMask32);
-accumulator >>= 32;
-accumulator = accumulator + (low_bits_ >> 32) * multiplicand;
-low_bits_ = (accumulator << 32) + part;
-accumulator >>= 32;
-accumulator = accumulator + (high_bits_ & kMask32) * multiplicand;
-part = static_cast<uint32_t>(accumulator & kMask32);
-accumulator >>= 32;
-accumulator = accumulator + (high_bits_ >> 32) * multiplicand;
-high_bits_ = (accumulator << 32) + part;
-DOUBLE_CONVERSION_ASSERT((accumulator >> 32) == 0);
-}
-void Shift(int shift_amount) {
-DOUBLE_CONVERSION_ASSERT(-64 <= shift_amount && shift_amount <= 64);
-if (shift_amount == 0) {
-return;
-} else if (shift_amount == -64) {
-high_bits_ = low_bits_;
-low_bits_ = 0;
-} else if (shift_amount == 64) {
-low_bits_ = high_bits_;
-high_bits_ = 0;
-} else if (shift_amount <= 0) {
-high_bits_ <<= -shift_amount;
-high_bits_ += low_bits_ >> (64 + shift_amount);
-low_bits_ <<= -shift_amount;
-} else {
-low_bits_ >>= shift_amount;
-low_bits_ += high_bits_ << (64 - shift_amount);
-high_bits_ >>= shift_amount;
-}
-}
-int DivModPowerOf2(int power) {
-if (power >= 64) {
-int result = static_cast<int>(high_bits_ >> (power - 64));
-high_bits_ -= static_cast<uint64_t>(result) << (power - 64);
-return result;
-} else {
-uint64_t part_low = low_bits_ >> power;
-uint64_t part_high = high_bits_ << (64 - power);
-int result = static_cast<int>(part_low + part_high);
-high_bits_ = 0;
-low_bits_ -= part_low << power;
-return result;
-}
-}
-bool IsZero() const {
-return high_bits_ == 0 && low_bits_ == 0;
-}
-int BitAt(int position) const {
-if (position >= 64) {
-return static_cast<int>(high_bits_ >> (position - 64)) & 1;
-} else {
-return static_cast<int>(low_bits_ >> position) & 1;
-}
-}
-private:
-static const uint64_t kMask32 = 0xFFFFFFFF;
-uint64_t high_bits_;
-uint64_t low_bits_;
-};
-static const int kDoubleSignificandSize = 53;  // Includes the hidden bit.
-static void FillDigits32FixedLength(uint32_t number, int requested_length,
-Vector<char> buffer, int* length) {
-for (int i = requested_length - 1; i >= 0; --i) {
-buffer[(*length) + i] = '0' + number % 10;
-number /= 10;
-}
-*length += requested_length;
-}
-static void FillDigits32(uint32_t number, Vector<char> buffer, int* length) {
-int number_length = 0;
-while (number != 0) {
-int digit = number % 10;
-number /= 10;
-buffer[(*length) + number_length] = static_cast<char>('0' + digit);
-number_length++;
-}
-int i = *length;
-int j = *length + number_length - 1;
-while (i < j) {
-char tmp = buffer[i];
-buffer[i] = buffer[j];
-buffer[j] = tmp;
-i++;
-j--;
-}
-*length += number_length;
-}
-static void FillDigits64FixedLength(uint64_t number,
-Vector<char> buffer, int* length) {
-const uint32_t kTen7 = 10000000;
-uint32_t part2 = static_cast<uint32_t>(number % kTen7);
-number /= kTen7;
-uint32_t part1 = static_cast<uint32_t>(number % kTen7);
-uint32_t part0 = static_cast<uint32_t>(number / kTen7);
-FillDigits32FixedLength(part0, 3, buffer, length);
-FillDigits32FixedLength(part1, 7, buffer, length);
-FillDigits32FixedLength(part2, 7, buffer, length);
-}
-static void FillDigits64(uint64_t number, Vector<char> buffer, int* length) {
-const uint32_t kTen7 = 10000000;
-uint32_t part2 = static_cast<uint32_t>(number % kTen7);
-number /= kTen7;
-uint32_t part1 = static_cast<uint32_t>(number % kTen7);
-uint32_t part0 = static_cast<uint32_t>(number / kTen7);
-if (part0 != 0) {
-FillDigits32(part0, buffer, length);
-FillDigits32FixedLength(part1, 7, buffer, length);
-FillDigits32FixedLength(part2, 7, buffer, length);
-} else if (part1 != 0) {
-FillDigits32(part1, buffer, length);
-FillDigits32FixedLength(part2, 7, buffer, length);
-} else {
-FillDigits32(part2, buffer, length);
-}
-}
-static void RoundUp(Vector<char> buffer, int* length, int* decimal_point) {
-if (*length == 0) {
-buffer[0] = '1';
-*decimal_point = 1;
-*length = 1;
-return;
-}
-buffer[(*length) - 1]++;
-for (int i = (*length) - 1; i > 0; --i) {
-if (buffer[i] != '0' + 10) {
-return;
-}
-buffer[i] = '0';
-buffer[i - 1]++;
-}
-if (buffer[0] == '0' + 10) {
-buffer[0] = '1';
-(*decimal_point)++;
-}
-}
-static void FillFractionals(uint64_t fractionals, int exponent,
-int fractional_count, Vector<char> buffer,
-int* length, int* decimal_point) {
-DOUBLE_CONVERSION_ASSERT(-128 <= exponent && exponent <= 0);
-if (-exponent <= 64) {
-DOUBLE_CONVERSION_ASSERT(fractionals >> 56 == 0);
-int point = -exponent;
-for (int i = 0; i < fractional_count; ++i) {
-if (fractionals == 0) break;
-fractionals *= 5;
-point--;
-int digit = static_cast<int>(fractionals >> point);
-DOUBLE_CONVERSION_ASSERT(digit <= 9);
-buffer[*length] = static_cast<char>('0' + digit);
-(*length)++;
-fractionals -= static_cast<uint64_t>(digit) << point;
-}
-DOUBLE_CONVERSION_ASSERT(fractionals == 0 || point - 1 >= 0);
-if ((fractionals != 0) && ((fractionals >> (point - 1)) & 1) == 1) {
-RoundUp(buffer, length, decimal_point);
-}
-} else {  // We need 128 bits.
-DOUBLE_CONVERSION_ASSERT(64 < -exponent && -exponent <= 128);
-UInt128 fractionals128 = UInt128(fractionals, 0);
-fractionals128.Shift(-exponent - 64);
-int point = 128;
-for (int i = 0; i < fractional_count; ++i) {
-if (fractionals128.IsZero()) break;
-fractionals128.Multiply(5);
-point--;
-int digit = fractionals128.DivModPowerOf2(point);
-DOUBLE_CONVERSION_ASSERT(digit <= 9);
-buffer[*length] = static_cast<char>('0' + digit);
-(*length)++;
-}
-if (fractionals128.BitAt(point - 1) == 1) {
-RoundUp(buffer, length, decimal_point);
-}
-}
-}
-static void TrimZeros(Vector<char> buffer, int* length, int* decimal_point) {
-while (*length > 0 && buffer[(*length) - 1] == '0') {
-(*length)--;
-}
-int first_non_zero = 0;
-while (first_non_zero < *length && buffer[first_non_zero] == '0') {
-first_non_zero++;
-}
-if (first_non_zero != 0) {
-for (int i = first_non_zero; i < *length; ++i) {
-buffer[i - first_non_zero] = buffer[i];
-}
-*length -= first_non_zero;
-*decimal_point -= first_non_zero;
-}
-}
-bool FastFixedDtoa(double v,
-int fractional_count,
-Vector<char> buffer,
-int* length,
-int* decimal_point) {
-const uint32_t kMaxUInt32 = 0xFFFFFFFF;
-uint64_t significand = Double(v).Significand();
-int exponent = Double(v).Exponent();
-if (exponent > 20) return false;
-if (fractional_count > 20) return false;
-*length = 0;
-if (exponent + kDoubleSignificandSize > 64) {
-const uint64_t kFive17 = DOUBLE_CONVERSION_UINT64_2PART_C(0xB1, A2BC2EC5);  // 5^17
-uint64_t divisor = kFive17;
-int divisor_power = 17;
-uint64_t dividend = significand;
-uint32_t quotient;
-uint64_t remainder;
-if (exponent > divisor_power) {
-dividend <<= exponent - divisor_power;
-quotient = static_cast<uint32_t>(dividend / divisor);
-remainder = (dividend % divisor) << divisor_power;
-} else {
-divisor <<= divisor_power - exponent;
-quotient = static_cast<uint32_t>(dividend / divisor);
-remainder = (dividend % divisor) << exponent;
-}
-FillDigits32(quotient, buffer, length);
-FillDigits64FixedLength(remainder, buffer, length);
-*decimal_point = *length;
-} else if (exponent >= 0) {
-significand <<= exponent;
-FillDigits64(significand, buffer, length);
-*decimal_point = *length;
-} else if (exponent > -kDoubleSignificandSize) {
-uint64_t integrals = significand >> -exponent;
-uint64_t fractionals = significand - (integrals << -exponent);
-if (integrals > kMaxUInt32) {
-FillDigits64(integrals, buffer, length);
-} else {
-FillDigits32(static_cast<uint32_t>(integrals), buffer, length);
-}
-*decimal_point = *length;
-FillFractionals(fractionals, exponent, fractional_count,
-buffer, length, decimal_point);
-} else if (exponent < -128) {
-DOUBLE_CONVERSION_ASSERT(fractional_count <= 20);
-buffer[0] = '\0';
-*length = 0;
-*decimal_point = -fractional_count;
-} else {
-*decimal_point = 0;
-FillFractionals(significand, exponent, fractional_count,
-buffer, length, decimal_point);
-}
-TrimZeros(buffer, length, decimal_point);
-buffer[*length] = '\0';
-if ((*length) == 0) {
-*decimal_point = -fractional_count;
-}
-return true;
-}
-}  // namespace double_conversion
-
-
-namespace double_conversion {
-const DoubleToStringConverter& DoubleToStringConverter::EcmaScriptConverter() {
-int flags = UNIQUE_ZERO | EMIT_POSITIVE_EXPONENT_SIGN;
-static DoubleToStringConverter converter(flags,
-"Infinity",
-"NaN",
-'e',
--6, 21,
-6, 0);
-return converter;
-}
-bool DoubleToStringConverter::HandleSpecialValues(
-double value,
-StringBuilder* result_builder) const {
-Double double_inspect(value);
-if (double_inspect.IsInfinite()) {
-if (infinity_symbol_ == DOUBLE_CONVERSION_NULLPTR) return false;
-if (value < 0) {
-result_builder->AddCharacter('-');
-}
-result_builder->AddString(infinity_symbol_);
-return true;
-}
-if (double_inspect.IsNan()) {
-if (nan_symbol_ == DOUBLE_CONVERSION_NULLPTR) return false;
-result_builder->AddString(nan_symbol_);
-return true;
-}
-return false;
-}
-void DoubleToStringConverter::CreateExponentialRepresentation(
-const char* decimal_digits,
-int length,
-int exponent,
-StringBuilder* result_builder) const {
-DOUBLE_CONVERSION_ASSERT(length != 0);
-result_builder->AddCharacter(decimal_digits[0]);
-if (length != 1) {
-result_builder->AddCharacter('.');
-result_builder->AddSubstring(&decimal_digits[1], length-1);
-}
-result_builder->AddCharacter(exponent_character_);
-if (exponent < 0) {
-result_builder->AddCharacter('-');
-exponent = -exponent;
-} else {
-if ((flags_ & EMIT_POSITIVE_EXPONENT_SIGN) != 0) {
-result_builder->AddCharacter('+');
-}
-}
-DOUBLE_CONVERSION_ASSERT(exponent < 1e4);
-const int kMaxExponentLength = 5;
-char buffer[kMaxExponentLength + 1];
-buffer[kMaxExponentLength] = '\0';
-int first_char_pos = kMaxExponentLength;
-if (exponent == 0) {
-buffer[--first_char_pos] = '0';
-} else {
-while (exponent > 0) {
-buffer[--first_char_pos] = '0' + (exponent % 10);
-exponent /= 10;
-}
-}
-while(kMaxExponentLength - first_char_pos < std::min(min_exponent_width_, kMaxExponentLength)) {
-buffer[--first_char_pos] = '0';
-}
-result_builder->AddSubstring(&buffer[first_char_pos],
-kMaxExponentLength - first_char_pos);
-}
-void DoubleToStringConverter::CreateDecimalRepresentation(
-const char* decimal_digits,
-int length,
-int decimal_point,
-int digits_after_point,
-StringBuilder* result_builder) const {
-if (decimal_point <= 0) {
-result_builder->AddCharacter('0');
-if (digits_after_point > 0) {
-result_builder->AddCharacter('.');
-result_builder->AddPadding('0', -decimal_point);
-DOUBLE_CONVERSION_ASSERT(length <= digits_after_point - (-decimal_point));
-result_builder->AddSubstring(decimal_digits, length);
-int remaining_digits = digits_after_point - (-decimal_point) - length;
-result_builder->AddPadding('0', remaining_digits);
-}
-} else if (decimal_point >= length) {
-result_builder->AddSubstring(decimal_digits, length);
-result_builder->AddPadding('0', decimal_point - length);
-if (digits_after_point > 0) {
-result_builder->AddCharacter('.');
-result_builder->AddPadding('0', digits_after_point);
-}
-} else {
-DOUBLE_CONVERSION_ASSERT(digits_after_point > 0);
-result_builder->AddSubstring(decimal_digits, decimal_point);
-result_builder->AddCharacter('.');
-DOUBLE_CONVERSION_ASSERT(length - decimal_point <= digits_after_point);
-result_builder->AddSubstring(&decimal_digits[decimal_point],
-length - decimal_point);
-int remaining_digits = digits_after_point - (length - decimal_point);
-result_builder->AddPadding('0', remaining_digits);
-}
-if (digits_after_point == 0) {
-if ((flags_ & EMIT_TRAILING_DECIMAL_POINT) != 0) {
-result_builder->AddCharacter('.');
-}
-if ((flags_ & EMIT_TRAILING_ZERO_AFTER_POINT) != 0) {
-result_builder->AddCharacter('0');
-}
-}
-}
-bool DoubleToStringConverter::ToShortestIeeeNumber(
-double value,
-StringBuilder* result_builder,
-DoubleToStringConverter::DtoaMode mode) const {
-DOUBLE_CONVERSION_ASSERT(mode == SHORTEST || mode == SHORTEST_SINGLE);
-if (Double(value).IsSpecial()) {
-return HandleSpecialValues(value, result_builder);
-}
-int decimal_point;
-bool sign;
-const int kDecimalRepCapacity = kBase10MaximalLength + 1;
-char decimal_rep[kDecimalRepCapacity];
-int decimal_rep_length;
-DoubleToAscii(value, mode, 0, decimal_rep, kDecimalRepCapacity,
-&sign, &decimal_rep_length, &decimal_point);
-bool unique_zero = (flags_ & UNIQUE_ZERO) != 0;
-if (sign && (value != 0.0 || !unique_zero)) {
-result_builder->AddCharacter('-');
-}
-int exponent = decimal_point - 1;
-if ((decimal_in_shortest_low_ <= exponent) &&
-(exponent < decimal_in_shortest_high_)) {
-CreateDecimalRepresentation(decimal_rep, decimal_rep_length,
-decimal_point,
-(std::max)(0, decimal_rep_length - decimal_point),
-result_builder);
-} else {
-CreateExponentialRepresentation(decimal_rep, decimal_rep_length, exponent,
-result_builder);
-}
-return true;
-}
-bool DoubleToStringConverter::ToFixed(double value,
-int requested_digits,
-StringBuilder* result_builder) const {
-DOUBLE_CONVERSION_ASSERT(kMaxFixedDigitsBeforePoint == 60);
-const double kFirstNonFixed = 1e60;
-if (Double(value).IsSpecial()) {
-return HandleSpecialValues(value, result_builder);
-}
-if (requested_digits > kMaxFixedDigitsAfterPoint) return false;
-if (value >= kFirstNonFixed || value <= -kFirstNonFixed) return false;
-int decimal_point;
-bool sign;
-const int kDecimalRepCapacity =
-kMaxFixedDigitsBeforePoint + kMaxFixedDigitsAfterPoint + 1;
-char decimal_rep[kDecimalRepCapacity];
-int decimal_rep_length;
-DoubleToAscii(value, FIXED, requested_digits,
-decimal_rep, kDecimalRepCapacity,
-&sign, &decimal_rep_length, &decimal_point);
-bool unique_zero = ((flags_ & UNIQUE_ZERO) != 0);
-if (sign && (value != 0.0 || !unique_zero)) {
-result_builder->AddCharacter('-');
-}
-CreateDecimalRepresentation(decimal_rep, decimal_rep_length, decimal_point,
-requested_digits, result_builder);
-return true;
-}
-bool DoubleToStringConverter::ToExponential(
-double value,
-int requested_digits,
-StringBuilder* result_builder) const {
-if (Double(value).IsSpecial()) {
-return HandleSpecialValues(value, result_builder);
-}
-if (requested_digits < -1) return false;
-if (requested_digits > kMaxExponentialDigits) return false;
-int decimal_point;
-bool sign;
-const int kDecimalRepCapacity = kMaxExponentialDigits + 2;
-DOUBLE_CONVERSION_ASSERT(kDecimalRepCapacity > kBase10MaximalLength);
-char decimal_rep[kDecimalRepCapacity];
-#ifndef NDEBUG
-memset(decimal_rep, 0, sizeof(decimal_rep));
-#endif
-int decimal_rep_length;
-if (requested_digits == -1) {
-DoubleToAscii(value, SHORTEST, 0,
-decimal_rep, kDecimalRepCapacity,
-&sign, &decimal_rep_length, &decimal_point);
-} else {
-DoubleToAscii(value, PRECISION, requested_digits + 1,
-decimal_rep, kDecimalRepCapacity,
-&sign, &decimal_rep_length, &decimal_point);
-DOUBLE_CONVERSION_ASSERT(decimal_rep_length <= requested_digits + 1);
-for (int i = decimal_rep_length; i < requested_digits + 1; ++i) {
-decimal_rep[i] = '0';
-}
-decimal_rep_length = requested_digits + 1;
-}
-bool unique_zero = ((flags_ & UNIQUE_ZERO) != 0);
-if (sign && (value != 0.0 || !unique_zero)) {
-result_builder->AddCharacter('-');
-}
-int exponent = decimal_point - 1;
-CreateExponentialRepresentation(decimal_rep,
-decimal_rep_length,
-exponent,
-result_builder);
-return true;
-}
-bool DoubleToStringConverter::ToPrecision(double value,
-int precision,
-StringBuilder* result_builder) const {
-if (Double(value).IsSpecial()) {
-return HandleSpecialValues(value, result_builder);
-}
-if (precision < kMinPrecisionDigits || precision > kMaxPrecisionDigits) {
-return false;
-}
-int decimal_point;
-bool sign;
-const int kDecimalRepCapacity = kMaxPrecisionDigits + 1;
-char decimal_rep[kDecimalRepCapacity];
-int decimal_rep_length;
-DoubleToAscii(value, PRECISION, precision,
-decimal_rep, kDecimalRepCapacity,
-&sign, &decimal_rep_length, &decimal_point);
-DOUBLE_CONVERSION_ASSERT(decimal_rep_length <= precision);
-bool unique_zero = ((flags_ & UNIQUE_ZERO) != 0);
-if (sign && (value != 0.0 || !unique_zero)) {
-result_builder->AddCharacter('-');
-}
-int exponent = decimal_point - 1;
-int extra_zero = ((flags_ & EMIT_TRAILING_ZERO_AFTER_POINT) != 0) ? 1 : 0;
-bool as_exponential =
-(-decimal_point + 1 > max_leading_padding_zeroes_in_precision_mode_) ||
-(decimal_point - precision + extra_zero >
-max_trailing_padding_zeroes_in_precision_mode_);
-if ((flags_ & NO_TRAILING_ZERO) != 0) {
-int stop = as_exponential ? 1 : std::max(1, decimal_point);
-while (decimal_rep_length > stop && decimal_rep[decimal_rep_length - 1] == '0') {
---decimal_rep_length;
-}
-precision = std::min(precision, decimal_rep_length);
-}
-if (as_exponential) {
-for (int i = decimal_rep_length; i < precision; ++i) {
-decimal_rep[i] = '0';
-}
-CreateExponentialRepresentation(decimal_rep,
-precision,
-exponent,
-result_builder);
-} else {
-CreateDecimalRepresentation(decimal_rep, decimal_rep_length, decimal_point,
-(std::max)(0, precision - decimal_point),
-result_builder);
-}
-return true;
-}
-static BignumDtoaMode DtoaToBignumDtoaMode(
-DoubleToStringConverter::DtoaMode dtoa_mode) {
-switch (dtoa_mode) {
-case DoubleToStringConverter::SHORTEST:  return BIGNUM_DTOA_SHORTEST;
-case DoubleToStringConverter::SHORTEST_SINGLE:
-return BIGNUM_DTOA_SHORTEST_SINGLE;
-case DoubleToStringConverter::FIXED:     return BIGNUM_DTOA_FIXED;
-case DoubleToStringConverter::PRECISION: return BIGNUM_DTOA_PRECISION;
-default:
-DOUBLE_CONVERSION_UNREACHABLE();
-}
-}
-void DoubleToStringConverter::DoubleToAscii(double v,
-DtoaMode mode,
-int requested_digits,
-char* buffer,
-int buffer_length,
-bool* sign,
-int* length,
-int* point) {
-Vector<char> vector(buffer, buffer_length);
-DOUBLE_CONVERSION_ASSERT(!Double(v).IsSpecial());
-DOUBLE_CONVERSION_ASSERT(mode == SHORTEST || mode == SHORTEST_SINGLE || requested_digits >= 0);
-if (Double(v).Sign() < 0) {
-*sign = true;
-v = -v;
-} else {
-*sign = false;
-}
-if (mode == PRECISION && requested_digits == 0) {
-vector[0] = '\0';
-*length = 0;
-return;
-}
-if (v == 0) {
-vector[0] = '0';
-vector[1] = '\0';
-*length = 1;
-*point = 1;
-return;
-}
-bool fast_worked;
-switch (mode) {
-case SHORTEST:
-fast_worked = FastDtoa(v, FAST_DTOA_SHORTEST, 0, vector, length, point);
-break;
-case SHORTEST_SINGLE:
-fast_worked = FastDtoa(v, FAST_DTOA_SHORTEST_SINGLE, 0,
-vector, length, point);
-break;
-case FIXED:
-fast_worked = FastFixedDtoa(v, requested_digits, vector, length, point);
-break;
-case PRECISION:
-fast_worked = FastDtoa(v, FAST_DTOA_PRECISION, requested_digits,
-vector, length, point);
-break;
-default:
-fast_worked = false;
-DOUBLE_CONVERSION_UNREACHABLE();
-}
-if (fast_worked) return;
-BignumDtoaMode bignum_mode = DtoaToBignumDtoaMode(mode);
-BignumDtoa(v, bignum_mode, requested_digits, vector, length, point);
-vector[*length] = '\0';
-}
-}  // namespace double_conversion
-
-
-#endif  // DOUBLE_CONVERSION_DOUBLE_CONVERSION_H_
-
 #pragma once
 #ifndef __WJR_VECTOR_H
 #define __WJR_VECTOR_H
@@ -4364,6 +486,14 @@ WJR_UNREACHABLE;	\
 #define WJR_INLINE_E_CONSTEXPR inline WJR_E_CONSTEXPR
 #define _WJR_ATTRIBUTE(x) WJR_##x
 #define WJR_ATTRIBUTE(...) WJR_EXPAND(WJR_MACRO_CALL(_WJR_ATTRIBUTE, , __VA_ARGS__))
+#if defined(__SIZEOF_INT128__)
+#define WJR_HAS_INT128 1
+#if !(defined(__clang__) && defined(LIBDIVIDE_VC))
+#define WJR_HAS_INT128_DIV 1
+#endif
+#else
+#define WJR_HAS_INT128 0
+#endif
 #define _WJR_BEGIN namespace wjr{
 #define _WJR_END }
 #define _WJR_SIMD_BEGIN _WJR_BEGIN namespace simd{
@@ -4378,6 +508,8 @@ WJR_UNREACHABLE;	\
 #define _WJR_LITERALS_END } _WJR_END
 #define _WJR_ENCODE_BEGIN _WJR_BEGIN namespace encode{
 #define _WJR_ENCODE_END } _WJR_END
+#define _WJR_PARSE_BEGIN _WJR_BEGIN namespace parse{
+#define _WJR_PARSE_END } _WJR_END
 #define WJR_MACRO_NULL(...)
 #define WJR_MACRO_LABEL(NAME) __wjr_label_##NAME
 #if defined(WJR_MSVC)
@@ -5954,9 +2086,8 @@ _WJR_END
 #ifndef __WJR_SIMD_SIMD_INTRIN_H
 #define __WJR_SIMD_SIMD_INTRIN_H
 #pragma once
-#ifndef __WJR_MATH_H__
-#define __WJR_MATH_H__
-#include <string.h>
+#ifndef __WJR_MATH_H
+#define __WJR_MATH_H
 #pragma once
 #ifndef __WJR_ASM_ASM_H
 #define __WJR_ASM_ASM_H
@@ -6462,7 +2593,442 @@ asm volatile("rep stosq" : "+D"(s), "+c"(n) : "a"(val) : "memory");
 #endif  // _WJR_FAST_REP
 _WJR_ASM_END
 
+#ifndef __WJR_ASM_ASM_H
+#error "This file should not be included directly. Include <wjr/asm.h> instead."
+#endif
+_WJR_ASM_BEGIN
+#if WJR_HAS_BUILTIN(__builtin_addc) || WJR_HAS_CLANG(5, 0, 0)
+template<typename T>
+WJR_INTRINSIC_INLINE static T __wjr_builtin_adc(T a, T b, T carry_in, T& carry_out) {
+constexpr auto _Nd = std::numeric_limits<T>::digits;
+constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
+constexpr auto _Nd_ul = std::numeric_limits<unsigned long>::digits;
+constexpr auto _Nd_ui = std::numeric_limits<unsigned int>::digits;
+constexpr auto _Nd_us = std::numeric_limits<unsigned short>::digits;
+constexpr auto _Nd_ub = std::numeric_limits<unsigned char>::digits;
+if constexpr (_Nd <= _Nd_ub) {
+unsigned char CF = 0;
+T ret = __builtin_addcb(a, b, carry_in, &CF);
+carry_out = CF;
+return ret;
+}
+else if constexpr (_Nd <= _Nd_us) {
+unsigned short CF = 0;
+T ret = __builtin_addcs(a, b, carry_in, &CF);
+carry_out = CF;
+return ret;
+}
+else if constexpr (_Nd <= _Nd_ui) {
+unsigned int CF = 0;
+T ret = __builtin_addc(a, b, carry_in, &CF);
+carry_out = CF;
+return ret;
+}
+else if constexpr (_Nd <= _Nd_ul) {
+unsigned long CF = 0;
+T ret = __builtin_addcl(a, b, carry_in, &CF);
+carry_out = CF;
+return ret;
+}
+#if defined(WJR_X86_64)
+else if constexpr (_Nd <= _Nd_ull) {
+unsigned long long CF = 0;
+T ret = __builtin_addcll(a, b, carry_in, &CF);
+carry_out = CF;
+return ret;
+}
+#endif // WJR_X86_64
+else {
+static_assert(_Nd <= _Nd_ull, "unsupported integer type");
+}
+}
+#elif defined(WJR_COMPILER_MSVC)
+template<typename T>
+WJR_INTRINSIC_INLINE static T __wjr_msvc_adc(T a, T b, T carry_in, T& carry_out) {
+constexpr auto _Nd = std::numeric_limits<T>::digits;
+constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
+constexpr auto _Nd_ui = std::numeric_limits<unsigned int>::digits;
+constexpr auto _Nd_us = std::numeric_limits<unsigned short>::digits;
+constexpr auto _Nd_ub = std::numeric_limits<unsigned char>::digits;
+if constexpr (_Nd <= _Nd_ub) {
+unsigned char ret = 0;
+carry_out = _addcarry_u8(carry_in, a, b, &ret);
+return ret;
+}
+else if constexpr (_Nd <= _Nd_us) {
+unsigned short ret = 0;
+carry_out = _addcarry_u16(carry_in, a, b, &ret);
+return ret;
+}
+else if constexpr (_Nd <= _Nd_ui) {
+unsigned int ret = 0;
+carry_out = _addcarry_u32(carry_in, a, b, &ret);
+return ret;
+}
+#if defined(WJR_X86_64)
+else if constexpr (_Nd <= _Nd_ull) {
+unsigned long long ret = 0;
+carry_out = _addcarry_u64(carry_in, a, b, &ret);
+return ret;
+}
+#endif // WJR_X86_64
+else {
+static_assert(_Nd <= _Nd_ull, "unsupported integer type");
+}
+}
+#endif
+template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+WJR_ATTRIBUTE(INTRINSIC_E_CONSTEXPR) T adc(T a, T b, T carry_in, T& carry_out) {
+if (!wjr::is_constant_evaluated()) {
+if (!((is_constant_p(a) && is_constant_p(b)) || (is_constant_p(carry_in) && carry_in == 0))) {
+#if WJR_HAS_BUILTIN(__builtin_addc) || WJR_HAS_CLANG(5, 0, 0)
+return __wjr_builtin_adc(a, b, carry_in, carry_out);
+#elif defined(WJR_COMPILER_MSVC)
+return __wjr_msvc_adc(a, b, carry_in, carry_out);
+#elif defined(WJR_INLINE_ASM)
+#if defined(WJR_BETTER_INLINE_ASM)
+asm("add $255, %b0\n\t"
+"adc %3, %2\n\t"
+"setb %b1"
+: "+r"(carry_in), "=rm"(carry_out), "+%r"(a)
+: "rm"(b)
+: "cc");
+#else
+asm("add $255, %b0\n\t"
+"adc %3, %2\n\t"
+"setb %b1"
+: "+r"(carry_in), "=r"(carry_out), "+%r"(a)
+: "r"(b)
+: "cc");
+return a;
+#endif // WJR_BETTER_INLINE_ASM
+#endif
+}
+}
+T c = 0;
+a += b;
+c = a < b;
+a += carry_in;
+c |= a < carry_in;
+carry_out = c;
+return a;
+}
+_WJR_ASM_END
+
+#ifndef __WJR_ASM_ASM_H
+#error "This file should not be included directly. Include <wjr/asm.h> instead."
+#endif
+_WJR_ASM_BEGIN
+#if WJR_HAS_BUILTIN(__builtin_subc) || WJR_HAS_CLANG(5, 0, 0)
+template<typename T>
+WJR_INTRINSIC_INLINE static T __wjr_builtin_sbb(T a, T b, T carry_in, T& carry_out) {
+constexpr auto _Nd = std::numeric_limits<T>::digits;
+constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
+constexpr auto _Nd_ul = std::numeric_limits<unsigned long>::digits;
+constexpr auto _Nd_ui = std::numeric_limits<unsigned int>::digits;
+constexpr auto _Nd_us = std::numeric_limits<unsigned short>::digits;
+constexpr auto _Nd_ub = std::numeric_limits<unsigned char>::digits;
+if constexpr (_Nd <= _Nd_ub) {
+unsigned char CF = 0;
+T ret = __builtin_subcb(a, b, carry_in, &CF);
+carry_out = CF;
+return ret;
+}
+else if constexpr (_Nd <= _Nd_us) {
+unsigned short CF = 0;
+T ret = __builtin_subcs(a, b, carry_in, &CF);
+carry_out = CF;
+return ret;
+}
+else if constexpr (_Nd <= _Nd_ui) {
+unsigned int CF = 0;
+T ret = __builtin_subc(a, b, carry_in, &CF);
+carry_out = CF;
+return ret;
+}
+else if constexpr (_Nd <= _Nd_ul) {
+unsigned long CF = 0;
+T ret = __builtin_subcl(a, b, carry_in, &CF);
+carry_out = CF;
+return ret;
+}
+#if defined(WJR_X86_64)
+else if constexpr (_Nd <= _Nd_ull) {
+unsigned long long CF = 0;
+T ret = __builtin_subcll(a, b, carry_in, &CF);
+carry_out = CF;
+return ret;
+}
+#endif // WJR_X86_64
+else {
+static_assert(_Nd <= _Nd_ull, "unsupported integer type");
+}
+}
+#elif defined(WJR_COMPILER_MSVC)
+template<typename T>
+WJR_INTRINSIC_INLINE static T __wjr_msvc_sbb(T a, T b, T carry_in, T& carry_out) {
+constexpr auto _Nd = std::numeric_limits<T>::digits;
+constexpr auto _Nd_ull = std::numeric_limits<unsigned long long>::digits;
+constexpr auto _Nd_ui = std::numeric_limits<unsigned int>::digits;
+constexpr auto _Nd_us = std::numeric_limits<unsigned short>::digits;
+constexpr auto _Nd_ub = std::numeric_limits<unsigned char>::digits;
+if constexpr (_Nd <= _Nd_ub) {
+unsigned char ret = 0;
+carry_out = _subborrow_u8(carry_in, a, b, &ret);
+return ret;
+}
+else if constexpr (_Nd <= _Nd_us) {
+unsigned short ret = 0;
+carry_out = _subborrow_u16(carry_in, a, b, &ret);
+return ret;
+}
+else if constexpr (_Nd <= _Nd_ui) {
+unsigned int ret = 0;
+carry_out = _subborrow_u32(carry_in, a, b, &ret);
+return ret;
+}
+#if defined(WJR_X86_64)
+else if constexpr (_Nd <= _Nd_ull) {
+unsigned long long ret = 0;
+carry_out = _subborrow_u64(carry_in, a, b, &ret);
+return ret;
+}
+#endif // WJR_X86_64
+else {
+static_assert(_Nd <= _Nd_ull, "unsupported integer type");
+}
+}
+#endif
+template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
+WJR_ATTRIBUTE(INTRINSIC_E_CONSTEXPR) T sbb(T a, T b, T carry_in, T& carry_out) {
+if (!wjr::is_constant_evaluated()) {
+if (!((is_constant_p(a) && is_constant_p(b)) || (is_constant_p(carry_in) && carry_in == 0))) {
+#if WJR_HAS_BUILTIN(__builtin_subc) || WJR_HAS_CLANG(5, 0, 0)
+return __wjr_builtin_sbb(a, b, carry_in, carry_out);
+#elif defined(WJR_COMPILER_MSVC)
+return __wjr_msvc_sbb(a, b, carry_in, carry_out);
+#elif defined(WJR_INLINE_ASM) // Clang does not need inline assembly
+#if defined(WJR_BETTER_INLINE_ASM)
+asm("add $255, %b0\n\t"
+"sbb %3, %2\n\t"
+"setb %b1"
+: "+r"(carry_in), "=rm"(carry_out), "+r"(a)
+: "rm"(b)
+: "cc");
+#else
+asm("add $255, %b0\n\t"
+"sbb %3, %2\n\t"
+"setb %b1"
+: "+r"(carry_in), "=r"(carry_out), "+r"(a)
+: "r"(b)
+: "cc");
+return a;
+#endif // WJR_BETTER_INLINE_ASM
+#endif
+}
+}
+T c = 0;
+c = a < b;
+a -= b;
+c |= a < carry_in;
+a -= carry_in;
+carry_out = c;
+return a;
+}
+_WJR_ASM_END
+
+#ifndef __WJR_ASM_ASM_H
+#error "This file should not be included directly. Include <wjr/asm.h> instead."
+#endif
+_WJR_ASM_BEGIN
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) uint64_t u64x64(uint64_t a, uint64_t b, uint64_t& hi) {
+if (!wjr::is_constant_evaluated()) {
+#if defined(WJR_COMPILER_MSVC) && defined(WJR_X86_64)
+return _umul128(a, b, &hi);
+#elif defined(WJR_HAS_INT128)
+unsigned __int128 r = (unsigned __int128)a * (unsigned __int128)b;
+hi = (uint64_t)(r >> 64);
+return (uint64_t)r;
+#elif defined(WJR_INLINE_ASM)
+asm volatile("mulq %[u1]" : [u1] "+d"(a) : "a"(b) : "cc");
+hi = a;
+return b;
+#endif
+}
+uint64_t ah = a >> 32;
+uint64_t al = a & 0xFFFFFFFF;
+uint64_t bh = b >> 32;
+uint64_t bl = b & 0xFFFFFFFF;
+uint64_t rh = ah * bh;
+uint64_t rm0 = ah * bl;
+uint64_t rm1 = al * bh;
+uint64_t rl = al * bl;
+uint64_t t = rl + (rm0 << 32);
+uint64_t lo = t + (rm1 << 32);
+uint64_t c = t < rl;
+hi = rh + (rm0 >> 32) + (rm1 >> 32) + c;
+return lo;
+}
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR) uint32_t u32x32(uint32_t a, uint32_t b, uint32_t& hi) {
+uint64_t r = (uint64_t)a * (uint64_t)b;
+hi = (uint32_t)(r >> 32);
+return (uint32_t)r;
+}
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR) uint16_t u16x16(uint16_t a, uint16_t b, uint16_t& hi) {
+uint32_t r = (uint32_t)a * (uint32_t)b;
+hi = (uint16_t)(r >> 16);
+return (uint16_t)r;
+}
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint64_t u64x64lo(uint64_t a, uint64_t b) {
+return a * b;
+}
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint32_t u32x32hi(uint32_t a, uint32_t b) {
+return (uint32_t)(((uint64_t)a * (uint64_t)b) >> 32);
+}
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) uint64_t u64x64hi(uint64_t a, uint64_t b) {
+if (!wjr::is_constant_evaluated()) {
+#if defined(WJR_COMPILER_MSVC) && defined(WJR_X86_64)
+return __umulh(a, b);
+#elif defined(WJR_HAS_INT128)
+return (uint64_t)(((unsigned __int128)a * (unsigned __int128)b) >> 64);
+#elif defined(WJR_INLINE_ASM)
+asm volatile("mulq %[u1]" : [u1] "+d"(a) : "a"(b) : "cc");
+return a;
+#endif
+}
+uint32_t ah = a >> 32;
+uint32_t al = a & 0xFFFFFFFF;
+uint32_t bh = b >> 32;
+uint32_t bl = b & 0xFFFFFFFF;
+uint32_t albl_hi = u32x32hi(al, bl);
+uint64_t albh = al * (uint64_t)bh;
+uint64_t ahbl = ah * (uint64_t)bl;
+uint64_t ahbh = ah * (uint64_t)bh;
+uint64_t temp = ahbl + albl_hi;
+uint64_t temp_lo = temp & 0xFFFFFFFF;
+uint64_t temp_hi = temp >> 32;
+return ahbh + temp_hi + ((temp_lo + albh) >> 32);
+}
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint32_t u32x32lo(uint32_t a, uint32_t b) {
+return a * b;
+}
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint16_t u16x16hi(uint16_t a, uint16_t b) {
+return (uint16_t)(((uint32_t)a * (uint32_t)b) >> 16);
+}
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint16_t u16x16lo(uint16_t a, uint16_t b) {
+return a * b;
+}
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) uint64_t u128d64t64(uint64_t hi, uint64_t lo, uint64_t den, uint64_t& r) {
+if (!wjr::is_constant_evaluated()) {
+#if defined(WJR_COMPILER_MSVC) && defined(WJR_X86_64)
+return _udiv128(hi, lo, den, &r);
+#elif defined(WJR_INLINE_ASM)
+asm volatile("divq %[u2]" : [u2] "+d"(hi), "+a"(lo) : "r"(den) : "cc");
+r = hi;
+return lo;
+#endif
+}
+extern uint64_t __large__u128d64t64(uint64_t hi, uint64_t lo, uint64_t den, uint64_t & r);
+return __large__u128d64t64(hi, lo, den, r);
+}
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) uint32_t u64d32t32(uint64_t x, uint32_t den, uint32_t& r) {
+if (wjr::is_constant_evaluated()) {
+#if defined(WJR_COMPILER_MSVC) && defined(WJR_X86)
+return _udiv64(x, den, &r);
+#elif defined(WJR_INLINE_ASM)
+uint32_t hi = x >> 32;
+uint32_t lo = x;
+asm volatile("divl %[u2]" : [u2] "+d"(hi), "+a"(lo) : "r"(den) : "cc");
+r = hi;
+return lo;
+#endif
+}
+uint32_t q = x / den;
+r = x % den;
+return q;
+}
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR) uint16_t u32d16t16(uint32_t x, uint16_t den, uint16_t& r) {
+uint16_t q = x / den;
+r = x % den;
+return q;
+}
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR) uint8_t u16d8t8(uint16_t x, uint8_t den, uint8_t& r) {
+uint8_t q = x / den;
+r = x % den;
+return q;
+}
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) int64_t s64x64hi(int64_t a, int64_t b) {
+if (!wjr::is_constant_evaluated()) {
+#if defined(WJR_COMPILER_MSVC) && defined(WJR_X86_64)
+return __mulh(a, b);
+#elif defined(WJR_HAS_INT128)
+return (int64_t)(((__int128)a * (__int128)b) >> 64);
+#elif defined(WJR_INLINE_ASM)
+asm volatile("imulq %[u1]" : [u1] "+d"(a) : "a"(b) : "cc");
+return a;
+#endif
+}
+int32_t ah = a >> 32;
+uint32_t al = a & 0xFFFFFFFF;
+int32_t bh = b >> 32;
+uint32_t bl = b & 0xFFFFFFFF;
+uint32_t albl_hi = u32x32hi(al, bl);
+int64_t t = ah * (int64_t)bl + albl_hi;
+int64_t w1 = al * (int64_t)bh + (t & 0xFFFFFFFF);
+return ah * (int64_t)bh + (t >> 32) + (w1 >> 32);
+}
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint64_t s64x64lo(uint64_t a, uint64_t b) {
+return a * b;
+}
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint32_t s32x32hi(uint32_t a, uint32_t b) {
+return (uint32_t)(((uint64_t)a * (uint64_t)b) >> 32);
+}
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint32_t s32x32lo(uint32_t a, uint32_t b) {
+return a * b;
+}
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint16_t s16x16hi(uint16_t a, uint16_t b) {
+return (uint16_t)(((uint32_t)a * (uint32_t)b) >> 16);
+}
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint16_t s16x16lo(uint16_t a, uint16_t b) {
+return a * b;
+}
+_WJR_ASM_END
+
 #endif // __WJR_ASM_ASM_H
+_WJR_ASM_BEGIN
+uint64_t __large__u128d64t64(uint64_t hi, uint64_t lo, uint64_t den, uint64_t& r) {
+constexpr uint64_t b = ((uint64_t)1 << 32);
+if (hi >= den) {
+r = ~0ull;
+return ~0ull;
+}
+int shift = masm::clz(den);
+den <<= shift;
+hi <<= shift;
+hi |= (lo >> (-shift & 63)) & (-(int64_t)shift >> 63);
+lo <<= shift;
+uint32_t num1 = (uint32_t)(lo >> 32);
+uint32_t num0 = (uint32_t)(lo & 0xFFFFFFFFu);
+uint32_t den1 = (uint32_t)(den >> 32);
+uint32_t den0 = (uint32_t)(den & 0xFFFFFFFFu);
+uint64_t qhat = hi / den1;
+uint64_t rhat = hi % den1;
+uint64_t c1 = qhat * den0;
+uint64_t c2 = rhat * b + num1;
+if (c1 > c2) qhat -= (c1 - c2 > den) ? 2 : 1;
+uint32_t q1 = (uint32_t)qhat;
+uint64_t rem = hi * b + num1 - q1 * den;
+qhat = rem / den1;
+rhat = rem % den1;
+c1 = qhat * den0;
+c2 = rhat * b + num0;
+if (c1 > c2) qhat -= (c1 - c2 > den) ? 2 : 1;
+uint32_t q0 = (uint32_t)qhat;
+r = (rem * b + num0 - q0 * den) >> shift;
+return ((uint64_t)q1 << 32) | q0;
+}
+_WJR_ASM_END
+
 
 _WJR_BEGIN
 #ifdef __cpp_lib_bit_cast
@@ -6475,7 +3041,2165 @@ std::enable_if_t<
 sizeof(From) == sizeof(To) && std::is_trivially_copyable<To>::value&&
 std::is_trivially_copyable<From>::value,
 int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 To bit_cast(const From & src) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 To bit_cast(const From & src) noexcept;
+#endif
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+constexpr bool has_single_bit(T x) noexcept;
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int countl_zero(T x) noexcept;
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int countl_one(T x) noexcept;
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int countr_zero(T x) noexcept;
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int countr_one(T x) noexcept;
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int bit_width(T x) noexcept;
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) T bit_floor(T x) noexcept;
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) T bit_ceil(T x) noexcept;
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int popcount(T x) noexcept;
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_ATTRIBUTE(INTRINSIC_E_CONSTEXPR) T adc(T a, T b, T c, T& d) noexcept;
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_ATTRIBUTE(INTRINSIC_E_CONSTEXPR) T sbb(T a, T b, T c, T& d) noexcept;
+template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) T byteswap(T x) noexcept;
+template<endian to = endian::native, typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) T endian_convert(T x, endian from = endian::native) noexcept;
+template<endian from, endian to, typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) T endian_convert(T x) noexcept;
+template<typename T, endian to = endian::native>
+WJR_INTRINSIC_CONSTEXPR20 T read_bytes(const void* ptr) noexcept;
+template< typename T, typename U >
+constexpr bool cmp_equal(T t, U u) noexcept;
+template< typename T, typename U >
+constexpr bool cmp_not_equal(T t, U u) noexcept;
+template< typename T, typename U >
+constexpr bool cmp_less(T t, U u) noexcept;
+template< typename T, typename U >
+constexpr bool cmp_greater(T t, U u) noexcept;
+template< typename T, typename U >
+constexpr bool cmp_less_equal(T t, U u) noexcept;
+template< typename T, typename U >
+constexpr bool cmp_greater_equal(T t, U u) noexcept;
+template< typename R, typename T>
+constexpr bool in_range(T t) noexcept;
+#define _WJR_USE_ASM_INT128(FUNC) using masm::FUNC;
+WJR_MACRO_CALL(_WJR_USE_ASM_INT128, ,
+u64x64,
+u32x32,
+u16x16,
+u64x64hi,
+u64x64lo,
+u32x32hi,
+u32x32lo,
+u16x16hi,
+u16x16lo,
+u128d64t64,
+u64d32t32,
+u32d16t16,
+u16d8t8,
+s64x64hi,
+s64x64lo,
+s32x32hi,
+s32x32lo,
+s16x16hi,
+s16x16lo
+);
+#undef _WJR_USE_ASM_INT128
+template<typename T, std::enable_if_t<is_integrals_v<T>, int> = 0>
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR) T mul(T a, T b, T& hi);
+template<typename T, std::enable_if_t<is_integrals_v<T>, int> = 0>
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) T mulhi(T a, T b);
+template<typename T, std::enable_if_t<is_integrals_v<T>, int> = 0>
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) T mullo(T a, T b);
+template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
+WJR_ATTRIBUTE(NODISCARD, CONST, INLINE, CONSTEXPR) T power(T a, unsigned int b);
+template<typename T, unsigned int base>
+struct base_digits {
+static_assert(std::is_integral_v<T>, "");
+constexpr static unsigned int value = []() {
+unsigned int ret = 0;
+auto _Max = std::numeric_limits<T>::max();
+while (_Max) {
+++ret;
+_Max /= base;
+}
+return ret;
+}();
+};
+template<typename T, unsigned int base>
+inline constexpr unsigned int base_digits_v = base_digits<T, base>::value;
+template<unsigned int base, typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+inline constexpr unsigned int base_width(T a);
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+inline constexpr unsigned int base2_width(T a);
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+inline constexpr unsigned int base10_width(T a);
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+inline constexpr unsigned int base_width(unsigned int b, T a);
+template<typename R, typename T>
+struct broadcast_fn {};
+template<typename R, typename T>
+inline constexpr broadcast_fn<R, T> broadcast{};
+_WJR_END
+#ifndef __WJR_MATH_H
+#error "This file should not be included directly. Include <wjr/math.h> instead."
+#endif // !__WJR_MATH_H
+#include <string.h>
+#ifndef LIBDIVIDE_H
+#define LIBDIVIDE_H
+#define LIBDIVIDE_VERSION "5.0"
+#define LIBDIVIDE_VERSION_MAJOR 5
+#define LIBDIVIDE_VERSION_MINOR 0
+#include <stdint.h>
+#if !defined(__AVR__)
+#include <stdio.h>
+#include <stdlib.h>
+#endif
+#if defined(LIBDIVIDE_NEON)
+#include <arm_neon.h>
+#endif
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4146)
+#pragma warning(disable : 4204)
+#define LIBDIVIDE_VC
+#endif
+#if defined(__SIZEOF_INT128__)
+#define HAS_INT128_T
+#if !(defined(__clang__) && defined(LIBDIVIDE_VC))
+#define HAS_INT128_DIV
+#endif
+#endif
+#if defined(WJR_X86_64)
+#define LIBDIVIDE_X86_64
+#endif
+#if defined(__i386__)
+#define LIBDIVIDE_i386
+#endif
+#if defined(WJR_INLINE_ASM)
+#define LIBDIVIDE_GCC_STYLE_ASM
+#endif
+#if defined(__cplusplus) || defined(LIBDIVIDE_VC)
+#define LIBDIVIDE_FUNCTION __FUNCTION__
+#else
+#define LIBDIVIDE_FUNCTION __func__
+#endif
+#ifdef __cplusplus
+namespace wjr::libdivide {
+#endif
+#pragma pack(push, 1)
+struct libdivide_u16_t {
+uint16_t magic;
+uint8_t more;
+};
+struct libdivide_s16_t {
+int16_t magic;
+uint8_t more;
+};
+struct libdivide_u32_t {
+uint32_t magic;
+uint8_t more;
+};
+struct libdivide_s32_t {
+int32_t magic;
+uint8_t more;
+};
+struct libdivide_u64_t {
+uint64_t magic;
+uint8_t more;
+};
+struct libdivide_s64_t {
+int64_t magic;
+uint8_t more;
+};
+struct libdivide_u16_branchfree_t {
+uint16_t magic;
+uint8_t more;
+};
+struct libdivide_s16_branchfree_t {
+int16_t magic;
+uint8_t more;
+};
+struct libdivide_u32_branchfree_t {
+uint32_t magic;
+uint8_t more;
+};
+struct libdivide_s32_branchfree_t {
+int32_t magic;
+uint8_t more;
+};
+struct libdivide_u64_branchfree_t {
+uint64_t magic;
+uint8_t more;
+};
+struct libdivide_s64_branchfree_t {
+int64_t magic;
+uint8_t more;
+};
+#pragma pack(pop)
+enum {
+LIBDIVIDE_16_SHIFT_MASK = 0x1F,
+LIBDIVIDE_32_SHIFT_MASK = 0x1F,
+LIBDIVIDE_64_SHIFT_MASK = 0x3F,
+LIBDIVIDE_ADD_MARKER = 0x40,
+LIBDIVIDE_NEGATIVE_DIVISOR = 0x80
+};
+static WJR_INTRINSIC_INLINE struct libdivide_s16_t libdivide_s16_gen(int16_t d);
+static WJR_INTRINSIC_INLINE struct libdivide_u16_t libdivide_u16_gen(uint16_t d);
+static WJR_INTRINSIC_INLINE struct libdivide_s32_t libdivide_s32_gen(int32_t d);
+static WJR_INTRINSIC_INLINE struct libdivide_u32_t libdivide_u32_gen(uint32_t d);
+static WJR_INTRINSIC_INLINE struct libdivide_s64_t libdivide_s64_gen(int64_t d);
+static WJR_INTRINSIC_INLINE struct libdivide_u64_t libdivide_u64_gen(uint64_t d);
+static WJR_INTRINSIC_INLINE struct libdivide_s16_branchfree_t libdivide_s16_branchfree_gen(int16_t d);
+static WJR_INTRINSIC_INLINE struct libdivide_u16_branchfree_t libdivide_u16_branchfree_gen(uint16_t d);
+static WJR_INTRINSIC_INLINE struct libdivide_s32_branchfree_t libdivide_s32_branchfree_gen(int32_t d);
+static WJR_INTRINSIC_INLINE struct libdivide_u32_branchfree_t libdivide_u32_branchfree_gen(uint32_t d);
+static WJR_INTRINSIC_INLINE struct libdivide_s64_branchfree_t libdivide_s64_branchfree_gen(int64_t d);
+static WJR_INTRINSIC_INLINE struct libdivide_u64_branchfree_t libdivide_u64_branchfree_gen(uint64_t d);
+static WJR_INTRINSIC_INLINE int16_t libdivide_s16_do_raw(
+int16_t numer, int16_t magic, uint8_t more);
+static WJR_INTRINSIC_INLINE int16_t libdivide_s16_do(
+int16_t numer, const struct libdivide_s16_t* denom);
+static WJR_INTRINSIC_INLINE uint16_t libdivide_u16_do_raw(
+uint16_t numer, uint16_t magic, uint8_t more);
+static WJR_INTRINSIC_INLINE uint16_t libdivide_u16_do(
+uint16_t numer, const struct libdivide_u16_t* denom);
+static WJR_INTRINSIC_INLINE int32_t libdivide_s32_do(
+int32_t numer, const struct libdivide_s32_t* denom);
+static WJR_INTRINSIC_INLINE uint32_t libdivide_u32_do(
+uint32_t numer, const struct libdivide_u32_t* denom);
+static WJR_INTRINSIC_INLINE int64_t libdivide_s64_do(
+int64_t numer, const struct libdivide_s64_t* denom);
+static WJR_INTRINSIC_INLINE uint64_t libdivide_u64_do(
+uint64_t numer, const struct libdivide_u64_t* denom);
+static WJR_INTRINSIC_INLINE int16_t libdivide_s16_branchfree_do(
+int16_t numer, const struct libdivide_s16_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE uint16_t libdivide_u16_branchfree_do(
+uint16_t numer, const struct libdivide_u16_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE int32_t libdivide_s32_branchfree_do(
+int32_t numer, const struct libdivide_s32_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE uint32_t libdivide_u32_branchfree_do(
+uint32_t numer, const struct libdivide_u32_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE int64_t libdivide_s64_branchfree_do(
+int64_t numer, const struct libdivide_s64_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE uint64_t libdivide_u64_branchfree_do(
+uint64_t numer, const struct libdivide_u64_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE int16_t libdivide_s16_recover(const struct libdivide_s16_t* denom);
+static WJR_INTRINSIC_INLINE uint16_t libdivide_u16_recover(const struct libdivide_u16_t* denom);
+static WJR_INTRINSIC_INLINE int32_t libdivide_s32_recover(const struct libdivide_s32_t* denom);
+static WJR_INTRINSIC_INLINE uint32_t libdivide_u32_recover(const struct libdivide_u32_t* denom);
+static WJR_INTRINSIC_INLINE int64_t libdivide_s64_recover(const struct libdivide_s64_t* denom);
+static WJR_INTRINSIC_INLINE uint64_t libdivide_u64_recover(const struct libdivide_u64_t* denom);
+static WJR_INTRINSIC_INLINE int16_t libdivide_s16_branchfree_recover(
+const struct libdivide_s16_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE uint16_t libdivide_u16_branchfree_recover(
+const struct libdivide_u16_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE int32_t libdivide_s32_branchfree_recover(
+const struct libdivide_s32_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE uint32_t libdivide_u32_branchfree_recover(
+const struct libdivide_u32_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE int64_t libdivide_s64_branchfree_recover(
+const struct libdivide_s64_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE uint64_t libdivide_u64_branchfree_recover(
+const struct libdivide_u64_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE void libdivide_u128_shift(
+uint64_t* u1, uint64_t* u0, int32_t signed_shift) {
+if (signed_shift > 0) {
+uint32_t shift = signed_shift;
+*u1 <<= shift;
+*u1 |= *u0 >> (64 - shift);
+*u0 <<= shift;
+}
+else if (signed_shift < 0) {
+uint32_t shift = -signed_shift;
+*u0 >>= shift;
+*u0 |= *u1 << (64 - shift);
+*u1 >>= shift;
+}
+}
+static WJR_INTRINSIC_INLINE uint64_t libdivide_128_div_128_to_64(
+uint64_t u_hi, uint64_t u_lo, uint64_t v_hi, uint64_t v_lo, uint64_t* r_hi, uint64_t* r_lo) {
+#if defined(HAS_INT128_T) && defined(HAS_INT128_DIV)
+__uint128_t ufull = u_hi;
+__uint128_t vfull = v_hi;
+ufull = (ufull << 64) | u_lo;
+vfull = (vfull << 64) | v_lo;
+uint64_t res = (uint64_t)(ufull / vfull);
+__uint128_t remainder = ufull - (vfull * res);
+*r_lo = (uint64_t)remainder;
+*r_hi = (uint64_t)(remainder >> 64);
+return res;
+#else
+typedef struct {
+uint64_t hi;
+uint64_t lo;
+} u128_t;
+u128_t u = { u_hi, u_lo };
+u128_t v = { v_hi, v_lo };
+if (v.hi == 0) {
+*r_hi = 0;
+return wjr::u128d64t64(u.hi, u.lo, v.lo, *r_lo);
+}
+uint32_t n = wjr::countl_zero(v.hi);
+u128_t v1t = v;
+libdivide_u128_shift(&v1t.hi, &v1t.lo, n);
+uint64_t v1 = v1t.hi;  // i.e. v1 = v1t >> 64
+u128_t u1 = u;
+libdivide_u128_shift(&u1.hi, &u1.lo, -1);
+uint64_t rem_ignored;
+uint64_t q1 = wjr::u128d64t64(u1.hi, u1.lo, v1, rem_ignored);
+u128_t q0 = { 0, q1 };
+libdivide_u128_shift(&q0.hi, &q0.lo, n);
+libdivide_u128_shift(&q0.hi, &q0.lo, -63);
+if (q0.hi != 0 || q0.lo != 0) {
+q0.hi -= (q0.lo == 0);  // borrow
+q0.lo -= 1;
+}
+u128_t q0v = { 0, 0 };
+q0v.hi = q0.hi * v.lo + q0.lo * v.hi + wjr::u64x64hi(q0.lo, v.lo);
+q0v.lo = q0.lo * v.lo;
+u128_t u_q0v = u;
+u_q0v.hi -= q0v.hi + (u.lo < q0v.lo);  // second term is borrow
+u_q0v.lo -= q0v.lo;
+if ((u_q0v.hi > v.hi) || (u_q0v.hi == v.hi && u_q0v.lo >= v.lo)) {
+q0.lo += 1;
+q0.hi += (q0.lo == 0);  // carry
+u_q0v.hi -= v.hi + (u_q0v.lo < v.lo);
+u_q0v.lo -= v.lo;
+}
+*r_hi = u_q0v.hi;
+*r_lo = u_q0v.lo;
+return q0.lo;
+#endif
+}
+static WJR_INTRINSIC_INLINE struct libdivide_u16_t libdivide_internal_u16_gen(
+uint16_t d, int branchfree) {
+struct libdivide_u16_t result;
+uint8_t floor_log_2_d = (uint8_t)(15 - wjr::countl_zero(d));
+if ((d & (d - 1)) == 0) {
+result.magic = 0;
+result.more = (uint8_t)(floor_log_2_d - (branchfree != 0));
+}
+else {
+uint8_t more;
+uint16_t rem, proposed_m;
+proposed_m = wjr::u32d16t16((uint32_t)1 << (floor_log_2_d + 16), d, rem);
+const uint16_t e = d - rem;
+if (!branchfree && (e < ((uint16_t)1 << floor_log_2_d))) {
+more = floor_log_2_d;
+}
+else {
+proposed_m += proposed_m;
+const uint16_t twice_rem = rem + rem;
+if (twice_rem >= d || twice_rem < rem) proposed_m += 1;
+more = floor_log_2_d | LIBDIVIDE_ADD_MARKER;
+}
+result.magic = 1 + proposed_m;
+result.more = more;
+}
+return result;
+}
+struct libdivide_u16_t libdivide_u16_gen(uint16_t d) {
+return libdivide_internal_u16_gen(d, 0);
+}
+struct libdivide_u16_branchfree_t libdivide_u16_branchfree_gen(uint16_t d) {
+struct libdivide_u16_t tmp = libdivide_internal_u16_gen(d, 1);
+struct libdivide_u16_branchfree_t ret = {
+tmp.magic, (uint8_t)(tmp.more & LIBDIVIDE_16_SHIFT_MASK) };
+return ret;
+}
+uint16_t libdivide_u16_do_raw(uint16_t numer, uint16_t magic, uint8_t more) {
+if (!magic) {
+return numer >> more;
+}
+else {
+uint16_t q = wjr::u16x16hi(magic, numer);
+if (more & LIBDIVIDE_ADD_MARKER) {
+uint16_t t = ((numer - q) >> 1) + q;
+return t >> (more & LIBDIVIDE_16_SHIFT_MASK);
+}
+else {
+return q >> more;
+}
+}
+}
+uint16_t libdivide_u16_do(uint16_t numer, const struct libdivide_u16_t* denom) {
+return libdivide_u16_do_raw(numer, denom->magic, denom->more);
+}
+uint16_t libdivide_u16_branchfree_do(
+uint16_t numer, const struct libdivide_u16_branchfree_t* denom) {
+uint16_t q = wjr::u16x16hi(denom->magic, numer);
+uint16_t t = ((numer - q) >> 1) + q;
+return t >> denom->more;
+}
+uint16_t libdivide_u16_recover(const struct libdivide_u16_t* denom) {
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_16_SHIFT_MASK;
+if (!denom->magic) {
+return (uint16_t)1 << shift;
+}
+else if (!(more & LIBDIVIDE_ADD_MARKER)) {
+uint16_t hi_dividend = (uint16_t)1 << shift;
+uint16_t rem_ignored;
+return 1 + wjr::u32d16t16((uint32_t)hi_dividend << 16, denom->magic, rem_ignored);
+}
+else {
+uint32_t half_n = (uint32_t)1 << (16 + shift);
+uint32_t d = ((uint32_t)1 << 16) | denom->magic;
+uint16_t half_q = (uint16_t)(half_n / d);
+uint32_t rem = half_n % d;
+uint16_t full_q = half_q + half_q + ((rem << 1) >= d);
+return full_q + 1;
+}
+}
+uint16_t libdivide_u16_branchfree_recover(const struct libdivide_u16_branchfree_t* denom) {
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_16_SHIFT_MASK;
+if (!denom->magic) {
+return (uint16_t)1 << (shift + 1);
+}
+else {
+uint32_t half_n = (uint32_t)1 << (16 + shift);
+uint32_t d = ((uint32_t)1 << 16) | denom->magic;
+uint16_t half_q = (uint16_t)(half_n / d);
+uint32_t rem = half_n % d;
+uint16_t full_q = half_q + half_q + ((rem << 1) >= d);
+return full_q + 1;
+}
+}
+static WJR_INTRINSIC_INLINE struct libdivide_u32_t libdivide_internal_u32_gen(
+uint32_t d, int branchfree) {
+struct libdivide_u32_t result;
+uint32_t floor_log_2_d = 31 - wjr::countl_zero(d);
+if ((d & (d - 1)) == 0) {
+result.magic = 0;
+result.more = (uint8_t)(floor_log_2_d - (branchfree != 0));
+}
+else {
+uint8_t more;
+uint32_t rem, proposed_m;
+proposed_m = wjr::u64d32t32((uint64_t)1 << (floor_log_2_d + 32), d, rem);
+const uint32_t e = d - rem;
+if (!branchfree && (e < ((uint32_t)1 << floor_log_2_d))) {
+more = (uint8_t)floor_log_2_d;
+}
+else {
+proposed_m += proposed_m;
+const uint32_t twice_rem = rem + rem;
+if (twice_rem >= d || twice_rem < rem) proposed_m += 1;
+more = (uint8_t)(floor_log_2_d | LIBDIVIDE_ADD_MARKER);
+}
+result.magic = 1 + proposed_m;
+result.more = more;
+}
+return result;
+}
+struct libdivide_u32_t libdivide_u32_gen(uint32_t d) {
+return libdivide_internal_u32_gen(d, 0);
+}
+struct libdivide_u32_branchfree_t libdivide_u32_branchfree_gen(uint32_t d) {
+struct libdivide_u32_t tmp = libdivide_internal_u32_gen(d, 1);
+struct libdivide_u32_branchfree_t ret = {
+tmp.magic, (uint8_t)(tmp.more & LIBDIVIDE_32_SHIFT_MASK) };
+return ret;
+}
+uint32_t libdivide_u32_do(uint32_t numer, const struct libdivide_u32_t* denom) {
+uint8_t more = denom->more;
+if (!denom->magic) {
+return numer >> more;
+}
+else {
+uint32_t q = wjr::u32x32hi(denom->magic, numer);
+if (more & LIBDIVIDE_ADD_MARKER) {
+uint32_t t = ((numer - q) >> 1) + q;
+return t >> (more & LIBDIVIDE_32_SHIFT_MASK);
+}
+else {
+return q >> more;
+}
+}
+}
+uint32_t libdivide_u32_branchfree_do(
+uint32_t numer, const struct libdivide_u32_branchfree_t* denom) {
+uint32_t q = wjr::u32x32hi(denom->magic, numer);
+uint32_t t = ((numer - q) >> 1) + q;
+return t >> denom->more;
+}
+uint32_t libdivide_u32_recover(const struct libdivide_u32_t* denom) {
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
+if (!denom->magic) {
+return (uint32_t)1 << shift;
+}
+else if (!(more & LIBDIVIDE_ADD_MARKER)) {
+uint32_t hi_dividend = (uint32_t)1 << shift;
+uint32_t rem_ignored;
+return 1 + wjr::u64d32t32((uint64_t)hi_dividend << 32, denom->magic, rem_ignored);
+}
+else {
+uint64_t half_n = (uint64_t)1 << (32 + shift);
+uint64_t d = ((uint64_t)1 << 32) | denom->magic;
+uint32_t half_q = (uint32_t)(half_n / d);
+uint64_t rem = half_n % d;
+uint32_t full_q = half_q + half_q + ((rem << 1) >= d);
+return full_q + 1;
+}
+}
+uint32_t libdivide_u32_branchfree_recover(const struct libdivide_u32_branchfree_t* denom) {
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
+if (!denom->magic) {
+return (uint32_t)1 << (shift + 1);
+}
+else {
+uint64_t half_n = (uint64_t)1 << (32 + shift);
+uint64_t d = ((uint64_t)1 << 32) | denom->magic;
+uint32_t half_q = (uint32_t)(half_n / d);
+uint64_t rem = half_n % d;
+uint32_t full_q = half_q + half_q + ((rem << 1) >= d);
+return full_q + 1;
+}
+}
+static WJR_INTRINSIC_INLINE struct libdivide_u64_t libdivide_internal_u64_gen(
+uint64_t d, int branchfree) {
+struct libdivide_u64_t result;
+uint32_t floor_log_2_d = 63 - wjr::countl_zero(d);
+if (has_single_bit(d)) {
+result.magic = 0;
+result.more = (uint8_t)(floor_log_2_d - (branchfree != 0));
+}
+else {
+uint64_t proposed_m, rem;
+uint8_t more;
+proposed_m = wjr::u128d64t64((uint64_t)1 << floor_log_2_d, 0, d, rem);
+const uint64_t e = d - rem;
+if (!branchfree && e < ((uint64_t)1 << floor_log_2_d)) {
+more = (uint8_t)floor_log_2_d;
+}
+else {
+proposed_m += proposed_m;
+const uint64_t twice_rem = rem + rem;
+if (twice_rem >= d || twice_rem < rem) proposed_m += 1;
+more = (uint8_t)(floor_log_2_d | LIBDIVIDE_ADD_MARKER);
+}
+result.magic = 1 + proposed_m;
+result.more = more;
+}
+return result;
+}
+struct libdivide_u64_t libdivide_u64_gen(uint64_t d) {
+return libdivide_internal_u64_gen(d, 0);
+}
+struct libdivide_u64_branchfree_t libdivide_u64_branchfree_gen(uint64_t d) {
+struct libdivide_u64_t tmp = libdivide_internal_u64_gen(d, 1);
+struct libdivide_u64_branchfree_t ret = {
+tmp.magic, (uint8_t)(tmp.more & LIBDIVIDE_64_SHIFT_MASK) };
+return ret;
+}
+uint64_t libdivide_u64_do(uint64_t numer, const struct libdivide_u64_t* denom) {
+uint8_t more = denom->more;
+if (!denom->magic) {
+return numer >> more;
+}
+else {
+uint64_t q = wjr::u64x64hi(denom->magic, numer);
+if (more & LIBDIVIDE_ADD_MARKER) {
+uint64_t t = ((numer - q) >> 1) + q;
+return t >> (more & LIBDIVIDE_64_SHIFT_MASK);
+}
+else {
+return q >> more;
+}
+}
+}
+uint64_t libdivide_u64_branchfree_do(
+uint64_t numer, const struct libdivide_u64_branchfree_t* denom) {
+uint64_t q = wjr::u64x64hi(denom->magic, numer);
+uint64_t t = ((numer - q) >> 1) + q;
+return t >> denom->more;
+}
+uint64_t libdivide_u64_recover(const struct libdivide_u64_t* denom) {
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
+if (!denom->magic) {
+return (uint64_t)1 << shift;
+}
+else if (!(more & LIBDIVIDE_ADD_MARKER)) {
+uint64_t hi_dividend = (uint64_t)1 << shift;
+uint64_t rem_ignored;
+return 1 + wjr::u128d64t64(hi_dividend, 0, denom->magic, rem_ignored);
+}
+else {
+uint64_t half_n_hi = (uint64_t)1 << shift, half_n_lo = 0;
+const uint64_t d_hi = 1, d_lo = denom->magic;
+uint64_t r_hi, r_lo;
+uint64_t half_q =
+libdivide_128_div_128_to_64(half_n_hi, half_n_lo, d_hi, d_lo, &r_hi, &r_lo);
+uint64_t dr_lo = r_lo + r_lo;
+uint64_t dr_hi = r_hi + r_hi + (dr_lo < r_lo);  // last term is carry
+int dr_exceeds_d = (dr_hi > d_hi) || (dr_hi == d_hi && dr_lo >= d_lo);
+uint64_t full_q = half_q + half_q + (dr_exceeds_d ? 1 : 0);
+return full_q + 1;
+}
+}
+uint64_t libdivide_u64_branchfree_recover(const struct libdivide_u64_branchfree_t* denom) {
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
+if (!denom->magic) {
+return (uint64_t)1 << (shift + 1);
+}
+else {
+uint64_t half_n_hi = (uint64_t)1 << shift, half_n_lo = 0;
+const uint64_t d_hi = 1, d_lo = denom->magic;
+uint64_t r_hi, r_lo;
+uint64_t half_q =
+libdivide_128_div_128_to_64(half_n_hi, half_n_lo, d_hi, d_lo, &r_hi, &r_lo);
+uint64_t dr_lo = r_lo + r_lo;
+uint64_t dr_hi = r_hi + r_hi + (dr_lo < r_lo);  // last term is carry
+int dr_exceeds_d = (dr_hi > d_hi) || (dr_hi == d_hi && dr_lo >= d_lo);
+uint64_t full_q = half_q + half_q + (dr_exceeds_d ? 1 : 0);
+return full_q + 1;
+}
+}
+static WJR_INTRINSIC_INLINE struct libdivide_s16_t libdivide_internal_s16_gen(
+int16_t d, int branchfree) {
+struct libdivide_s16_t result;
+uint16_t ud = (uint16_t)d;
+uint16_t absD = (d < 0) ? -ud : ud;
+uint16_t floor_log_2_d = 15 - wjr::countl_zero(absD);
+if ((absD & (absD - 1)) == 0) {
+result.magic = 0;
+result.more = (uint8_t)(floor_log_2_d | (d < 0 ? LIBDIVIDE_NEGATIVE_DIVISOR : 0));
+}
+else {
+uint8_t more;
+uint16_t rem, proposed_m;
+proposed_m = wjr::u32d16t16((uint32_t)(1 << (floor_log_2_d - 1 + 16)) , absD, rem);
+const uint16_t e = absD - rem;
+if (!branchfree && e < ((uint16_t)1 << floor_log_2_d)) {
+more = (uint8_t)(floor_log_2_d - 1);
+}
+else {
+proposed_m += proposed_m;
+const uint16_t twice_rem = rem + rem;
+if (twice_rem >= absD || twice_rem < rem) proposed_m += 1;
+more = (uint8_t)(floor_log_2_d | LIBDIVIDE_ADD_MARKER);
+}
+proposed_m += 1;
+int16_t magic = (int16_t)proposed_m;
+if (d < 0) {
+more |= LIBDIVIDE_NEGATIVE_DIVISOR;
+if (!branchfree) {
+magic = -magic;
+}
+}
+result.more = more;
+result.magic = magic;
+}
+return result;
+}
+struct libdivide_s16_t libdivide_s16_gen(int16_t d) {
+return libdivide_internal_s16_gen(d, 0);
+}
+struct libdivide_s16_branchfree_t libdivide_s16_branchfree_gen(int16_t d) {
+struct libdivide_s16_t tmp = libdivide_internal_s16_gen(d, 1);
+struct libdivide_s16_branchfree_t result = { tmp.magic, tmp.more };
+return result;
+}
+int16_t libdivide_s16_do_raw(int16_t numer, int16_t magic, uint8_t more) {
+uint8_t shift = more & LIBDIVIDE_16_SHIFT_MASK;
+if (!magic) {
+uint16_t sign = (int8_t)more >> 7;
+uint16_t mask = ((uint16_t)1 << shift) - 1;
+uint16_t uq = numer + ((numer >> 15) & mask);
+int16_t q = (int16_t)uq;
+q >>= shift;
+q = (q ^ sign) - sign;
+return q;
+}
+else {
+uint16_t uq = (uint16_t)wjr::s16x16hi(magic, numer);
+if (more & LIBDIVIDE_ADD_MARKER) {
+int16_t sign = (int8_t)more >> 7;
+uq += ((uint16_t)numer ^ sign) - sign;
+}
+int16_t q = (int16_t)uq;
+q >>= shift;
+q += (q < 0);
+return q;
+}
+}
+int16_t libdivide_s16_do(int16_t numer, const struct libdivide_s16_t* denom) {
+return libdivide_s16_do_raw(numer, denom->magic, denom->more);
+}
+int16_t libdivide_s16_branchfree_do(int16_t numer, const struct libdivide_s16_branchfree_t* denom) {
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_16_SHIFT_MASK;
+int16_t sign = (int8_t)more >> 7;
+int16_t magic = denom->magic;
+int16_t q = wjr::s16x16hi(magic, numer);
+q += numer;
+uint16_t is_power_of_2 = (magic == 0);
+uint16_t q_sign = (uint16_t)(q >> 15);
+q += q_sign & (((uint16_t)1 << shift) - is_power_of_2);
+q >>= shift;
+q = (q ^ sign) - sign;
+return q;
+}
+int16_t libdivide_s16_recover(const struct libdivide_s16_t* denom) {
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_16_SHIFT_MASK;
+if (!denom->magic) {
+uint16_t absD = (uint16_t)1 << shift;
+if (more & LIBDIVIDE_NEGATIVE_DIVISOR) {
+absD = -absD;
+}
+return (int16_t)absD;
+}
+else {
+int negative_divisor = (more & LIBDIVIDE_NEGATIVE_DIVISOR);
+int magic_was_negated = (more & LIBDIVIDE_ADD_MARKER) ? denom->magic > 0 : denom->magic < 0;
+if (denom->magic == 0) {
+int16_t result = (uint16_t)1 << shift;
+return negative_divisor ? -result : result;
+}
+uint16_t d = (uint16_t)(magic_was_negated ? -denom->magic : denom->magic);
+uint32_t n = (uint32_t)1 << (16 + shift);  // this shift cannot exceed 30
+uint16_t q = (uint16_t)(n / d);
+int16_t result = (int16_t)q;
+result += 1;
+return negative_divisor ? -result : result;
+}
+}
+int16_t libdivide_s16_branchfree_recover(const struct libdivide_s16_branchfree_t* denom) {
+return libdivide_s16_recover((const struct libdivide_s16_t*)denom);
+}
+static WJR_INTRINSIC_INLINE struct libdivide_s32_t libdivide_internal_s32_gen(
+int32_t d, int branchfree) {
+struct libdivide_s32_t result;
+uint32_t ud = (uint32_t)d;
+uint32_t absD = (d < 0) ? -ud : ud;
+uint32_t floor_log_2_d = 31 - wjr::countl_zero(absD);
+if ((absD & (absD - 1)) == 0) {
+result.magic = 0;
+result.more = (uint8_t)(floor_log_2_d | (d < 0 ? LIBDIVIDE_NEGATIVE_DIVISOR : 0));
+}
+else {
+uint8_t more;
+uint32_t rem, proposed_m;
+proposed_m = wjr::u64d32t32((uint64_t)(1 << (floor_log_2_d - 1 + 16)),absD, rem);
+const uint32_t e = absD - rem;
+if (!branchfree && e < ((uint32_t)1 << floor_log_2_d)) {
+more = (uint8_t)(floor_log_2_d - 1);
+}
+else {
+proposed_m += proposed_m;
+const uint32_t twice_rem = rem + rem;
+if (twice_rem >= absD || twice_rem < rem) proposed_m += 1;
+more = (uint8_t)(floor_log_2_d | LIBDIVIDE_ADD_MARKER);
+}
+proposed_m += 1;
+int32_t magic = (int32_t)proposed_m;
+if (d < 0) {
+more |= LIBDIVIDE_NEGATIVE_DIVISOR;
+if (!branchfree) {
+magic = -magic;
+}
+}
+result.more = more;
+result.magic = magic;
+}
+return result;
+}
+struct libdivide_s32_t libdivide_s32_gen(int32_t d) {
+return libdivide_internal_s32_gen(d, 0);
+}
+struct libdivide_s32_branchfree_t libdivide_s32_branchfree_gen(int32_t d) {
+struct libdivide_s32_t tmp = libdivide_internal_s32_gen(d, 1);
+struct libdivide_s32_branchfree_t result = { tmp.magic, tmp.more };
+return result;
+}
+int32_t libdivide_s32_do(int32_t numer, const struct libdivide_s32_t* denom) {
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
+if (!denom->magic) {
+uint32_t sign = (int8_t)more >> 7;
+uint32_t mask = ((uint32_t)1 << shift) - 1;
+uint32_t uq = numer + ((numer >> 31) & mask);
+int32_t q = (int32_t)uq;
+q >>= shift;
+q = (q ^ sign) - sign;
+return q;
+}
+else {
+uint32_t uq = (uint32_t)wjr::s32x32hi(denom->magic, numer);
+if (more & LIBDIVIDE_ADD_MARKER) {
+int32_t sign = (int8_t)more >> 7;
+uq += ((uint32_t)numer ^ sign) - sign;
+}
+int32_t q = (int32_t)uq;
+q >>= shift;
+q += (q < 0);
+return q;
+}
+}
+int32_t libdivide_s32_branchfree_do(int32_t numer, const struct libdivide_s32_branchfree_t* denom) {
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
+int32_t sign = (int8_t)more >> 7;
+int32_t magic = denom->magic;
+int32_t q = wjr::s32x32hi(magic, numer);
+q += numer;
+uint32_t is_power_of_2 = (magic == 0);
+uint32_t q_sign = (uint32_t)(q >> 31);
+q += q_sign & (((uint32_t)1 << shift) - is_power_of_2);
+q >>= shift;
+q = (q ^ sign) - sign;
+return q;
+}
+int32_t libdivide_s32_recover(const struct libdivide_s32_t* denom) {
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
+if (!denom->magic) {
+uint32_t absD = (uint32_t)1 << shift;
+if (more & LIBDIVIDE_NEGATIVE_DIVISOR) {
+absD = -absD;
+}
+return (int32_t)absD;
+}
+else {
+int negative_divisor = (more & LIBDIVIDE_NEGATIVE_DIVISOR);
+int magic_was_negated = (more & LIBDIVIDE_ADD_MARKER) ? denom->magic > 0 : denom->magic < 0;
+if (denom->magic == 0) {
+int32_t result = (uint32_t)1 << shift;
+return negative_divisor ? -result : result;
+}
+uint32_t d = (uint32_t)(magic_was_negated ? -denom->magic : denom->magic);
+uint64_t n = (uint64_t)1 << (32 + shift);  // this shift cannot exceed 30
+uint32_t q = (uint32_t)(n / d);
+int32_t result = (int32_t)q;
+result += 1;
+return negative_divisor ? -result : result;
+}
+}
+int32_t libdivide_s32_branchfree_recover(const struct libdivide_s32_branchfree_t* denom) {
+return libdivide_s32_recover((const struct libdivide_s32_t*)denom);
+}
+static WJR_INTRINSIC_INLINE struct libdivide_s64_t libdivide_internal_s64_gen(
+int64_t d, int branchfree) {
+struct libdivide_s64_t result;
+uint64_t ud = (uint64_t)d;
+uint64_t absD = (d < 0) ? -ud : ud;
+uint32_t floor_log_2_d = 63 - wjr::countl_zero(absD);
+if ((absD & (absD - 1)) == 0) {
+result.magic = 0;
+result.more = (uint8_t)(floor_log_2_d | (d < 0 ? LIBDIVIDE_NEGATIVE_DIVISOR : 0));
+}
+else {
+uint8_t more;
+uint64_t rem, proposed_m;
+proposed_m = wjr::u128d64t64((uint64_t)1 << (floor_log_2_d - 1), 0, absD, rem);
+const uint64_t e = absD - rem;
+if (!branchfree && e < ((uint64_t)1 << floor_log_2_d)) {
+more = (uint8_t)(floor_log_2_d - 1);
+}
+else {
+proposed_m += proposed_m;
+const uint64_t twice_rem = rem + rem;
+if (twice_rem >= absD || twice_rem < rem) proposed_m += 1;
+more = (uint8_t)(floor_log_2_d | LIBDIVIDE_ADD_MARKER);
+}
+proposed_m += 1;
+int64_t magic = (int64_t)proposed_m;
+if (d < 0) {
+more |= LIBDIVIDE_NEGATIVE_DIVISOR;
+if (!branchfree) {
+magic = -magic;
+}
+}
+result.more = more;
+result.magic = magic;
+}
+return result;
+}
+struct libdivide_s64_t libdivide_s64_gen(int64_t d) {
+return libdivide_internal_s64_gen(d, 0);
+}
+struct libdivide_s64_branchfree_t libdivide_s64_branchfree_gen(int64_t d) {
+struct libdivide_s64_t tmp = libdivide_internal_s64_gen(d, 1);
+struct libdivide_s64_branchfree_t ret = { tmp.magic, tmp.more };
+return ret;
+}
+int64_t libdivide_s64_do(int64_t numer, const struct libdivide_s64_t* denom) {
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
+if (!denom->magic) {  // shift path
+uint64_t mask = ((uint64_t)1 << shift) - 1;
+uint64_t uq = numer + ((numer >> 63) & mask);
+int64_t q = (int64_t)uq;
+q >>= shift;
+int64_t sign = (int8_t)more >> 7;
+q = (q ^ sign) - sign;
+return q;
+}
+else {
+uint64_t uq = (uint64_t)wjr::s64x64hi(denom->magic, numer);
+if (more & LIBDIVIDE_ADD_MARKER) {
+int64_t sign = (int8_t)more >> 7;
+uq += ((uint64_t)numer ^ sign) - sign;
+}
+int64_t q = (int64_t)uq;
+q >>= shift;
+q += (q < 0);
+return q;
+}
+}
+int64_t libdivide_s64_branchfree_do(int64_t numer, const struct libdivide_s64_branchfree_t* denom) {
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
+int64_t sign = (int8_t)more >> 7;
+int64_t magic = denom->magic;
+int64_t q = wjr::s64x64hi(magic, numer);
+q += numer;
+uint64_t is_power_of_2 = (magic == 0);
+uint64_t q_sign = (uint64_t)(q >> 63);
+q += q_sign & (((uint64_t)1 << shift) - is_power_of_2);
+q >>= shift;
+q = (q ^ sign) - sign;
+return q;
+}
+int64_t libdivide_s64_recover(const struct libdivide_s64_t* denom) {
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
+if (denom->magic == 0) {  // shift path
+uint64_t absD = (uint64_t)1 << shift;
+if (more & LIBDIVIDE_NEGATIVE_DIVISOR) {
+absD = -absD;
+}
+return (int64_t)absD;
+}
+else {
+int negative_divisor = (more & LIBDIVIDE_NEGATIVE_DIVISOR);
+int magic_was_negated = (more & LIBDIVIDE_ADD_MARKER) ? denom->magic > 0 : denom->magic < 0;
+uint64_t d = (uint64_t)(magic_was_negated ? -denom->magic : denom->magic);
+uint64_t n_hi = (uint64_t)1 << shift, n_lo = 0;
+uint64_t rem_ignored;
+uint64_t q = wjr::u128d64t64(n_hi, n_lo, d, rem_ignored);
+int64_t result = (int64_t)(q + 1);
+if (negative_divisor) {
+result = -result;
+}
+return result;
+}
+}
+int64_t libdivide_s64_branchfree_recover(const struct libdivide_s64_branchfree_t* denom) {
+return libdivide_s64_recover((const struct libdivide_s64_t*)denom);
+}
+#define SIMPLE_VECTOR_DIVISION(IntT, VecT, Algo) \
+const size_t count = sizeof(VecT) / sizeof(IntT); \
+union type_pun_vec { \
+VecT vec; \
+IntT arr[sizeof(VecT) / sizeof(IntT)]; \
+}; \
+union type_pun_vec result; \
+union type_pun_vec input; \
+input.vec = numers; \
+for (size_t loop=0; loop<count; ++loop) { \
+result.arr[loop] = libdivide_##Algo##_do(input.arr[loop], denom); \
+} \
+return result.vec;
+#if defined(LIBDIVIDE_NEON)
+static WJR_INTRINSIC_INLINE uint16x8_t libdivide_u16_do_vec128(
+uint16x8_t numers, const struct libdivide_u16_t* denom);
+static WJR_INTRINSIC_INLINE int16x8_t libdivide_s16_do_vec128(
+int16x8_t numers, const struct libdivide_s16_t* denom);
+static WJR_INTRINSIC_INLINE uint32x4_t libdivide_u32_do_vec128(
+uint32x4_t numers, const struct libdivide_u32_t* denom);
+static WJR_INTRINSIC_INLINE int32x4_t libdivide_s32_do_vec128(
+int32x4_t numers, const struct libdivide_s32_t* denom);
+static WJR_INTRINSIC_INLINE uint64x2_t libdivide_u64_do_vec128(
+uint64x2_t numers, const struct libdivide_u64_t* denom);
+static WJR_INTRINSIC_INLINE int64x2_t libdivide_s64_do_vec128(
+int64x2_t numers, const struct libdivide_s64_t* denom);
+static WJR_INTRINSIC_INLINE uint16x8_t libdivide_u16_branchfree_do_vec128(
+uint16x8_t numers, const struct libdivide_u16_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE int16x8_t libdivide_s16_branchfree_do_vec128(
+int16x8_t numers, const struct libdivide_s16_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE uint32x4_t libdivide_u32_branchfree_do_vec128(
+uint32x4_t numers, const struct libdivide_u32_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE int32x4_t libdivide_s32_branchfree_do_vec128(
+int32x4_t numers, const struct libdivide_s32_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE uint64x2_t libdivide_u64_branchfree_do_vec128(
+uint64x2_t numers, const struct libdivide_u64_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE int64x2_t libdivide_s64_branchfree_do_vec128(
+int64x2_t numers, const struct libdivide_s64_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE uint32x4_t libdivide_u32_neon_srl(uint32x4_t v, uint8_t amt) {
+int32_t wamt = (int32_t)(amt);
+return vshlq_u32(v, vdupq_n_s32(-wamt));
+}
+static WJR_INTRINSIC_INLINE uint64x2_t libdivide_u64_neon_srl(uint64x2_t v, uint8_t amt) {
+int64_t wamt = (int64_t)(amt);
+return vshlq_u64(v, vdupq_n_s64(-wamt));
+}
+static WJR_INTRINSIC_INLINE int32x4_t libdivide_s32_neon_sra(int32x4_t v, uint8_t amt) {
+int32_t wamt = (int32_t)(amt);
+return vshlq_s32(v, vdupq_n_s32(-wamt));
+}
+static WJR_INTRINSIC_INLINE int64x2_t libdivide_s64_neon_sra(int64x2_t v, uint8_t amt) {
+int64_t wamt = (int64_t)(amt);
+return vshlq_s64(v, vdupq_n_s64(-wamt));
+}
+static WJR_INTRINSIC_INLINE int64x2_t libdivide_s64_signbits(int64x2_t v) { return vshrq_n_s64(v, 63); }
+static WJR_INTRINSIC_INLINE uint32x4_t libdivide_mullhi_u32_vec128(uint32x4_t a, uint32_t b) {
+uint32x4_t w1 = vreinterpretq_u32_u64(vmull_n_u32(vget_low_u32(a), b));  // [_, x0, _, x1]
+uint32x4_t w2 = vreinterpretq_u32_u64(vmull_high_n_u32(a, b));           //[_, x2, _, x3]
+return vuzp2q_u32(w1, w2);                                               // [x0, x1, x2, x3]
+}
+static WJR_INTRINSIC_INLINE int32x4_t libdivide_mullhi_s32_vec128(int32x4_t a, int32_t b) {
+int32x4_t w1 = vreinterpretq_s32_s64(vmull_n_s32(vget_low_s32(a), b));  // [_, x0, _, x1]
+int32x4_t w2 = vreinterpretq_s32_s64(vmull_high_n_s32(a, b));           //[_, x2, _, x3]
+return vuzp2q_s32(w1, w2);                                              // [x0, x1, x2, x3]
+}
+static WJR_INTRINSIC_INLINE uint64x2_t libdivide_mullhi_u64_vec128(uint64x2_t x, uint64_t sy) {
+uint64x2_t y = vdupq_n_u64(sy);
+uint32x2_t x0 = vmovn_u64(x);
+uint32x2_t y0 = vmovn_u64(y);
+uint32x2_t x1 = vshrn_n_u64(x, 32);
+uint32x2_t y1 = vshrn_n_u64(y, 32);
+uint64x2_t x0y0 = vmull_u32(x0, y0);
+uint64x2_t x0y0_hi = vshrq_n_u64(x0y0, 32);
+uint64x2_t temp = vmlal_u32(x0y0_hi, x1, y0);  // temp = x0y0_hi + x1*y0;
+uint64x2_t temp_lo = vshrq_n_u64(vshlq_n_u64(temp, 32), 32);  // temp_lo = temp & 0xFFFFFFFF;
+uint64x2_t temp_hi = vshrq_n_u64(temp, 32);                   // temp_hi = temp >> 32;
+temp_lo = vmlal_u32(temp_lo, x0, y1);  // temp_lo += x0*y0
+temp_lo = vshrq_n_u64(temp_lo, 32);    // temp_lo >>= 32
+temp_hi = vmlal_u32(temp_hi, x1, y1);  // temp_hi += x1*y1
+uint64x2_t result = vaddq_u64(temp_hi, temp_lo);
+return result;
+}
+static WJR_INTRINSIC_INLINE int64x2_t libdivide_mullhi_s64_vec128(int64x2_t x, int64_t sy) {
+int64x2_t p = vreinterpretq_s64_u64(
+libdivide_mullhi_u64_vec128(vreinterpretq_u64_s64(x), (uint64_t)(sy)));
+int64x2_t y = vdupq_n_s64(sy);
+int64x2_t t1 = vandq_s64(libdivide_s64_signbits(x), y);
+int64x2_t t2 = vandq_s64(libdivide_s64_signbits(y), x);
+p = vsubq_s64(p, t1);
+p = vsubq_s64(p, t2);
+return p;
+}
+uint16x8_t libdivide_u16_do_vec128(uint16x8_t numers, const struct libdivide_u16_t* denom) {
+SIMPLE_VECTOR_DIVISION(uint16_t, uint16x8_t, u16)
+}
+uint16x8_t libdivide_u16_branchfree_do_vec128(uint16x8_t numers, const struct libdivide_u16_branchfree_t* denom) {
+SIMPLE_VECTOR_DIVISION(uint16_t, uint16x8_t, u16_branchfree)
+}
+uint32x4_t libdivide_u32_do_vec128(uint32x4_t numers, const struct libdivide_u32_t* denom) {
+uint8_t more = denom->more;
+if (!denom->magic) {
+return libdivide_u32_neon_srl(numers, more);
+}
+else {
+uint32x4_t q = libdivide_mullhi_u32_vec128(numers, denom->magic);
+if (more & LIBDIVIDE_ADD_MARKER) {
+uint8_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
+uint32x4_t t = vaddq_u32(vhsubq_u32(numers, q), q);
+return libdivide_u32_neon_srl(t, shift);
+}
+else {
+return libdivide_u32_neon_srl(q, more);
+}
+}
+}
+uint32x4_t libdivide_u32_branchfree_do_vec128(
+uint32x4_t numers, const struct libdivide_u32_branchfree_t* denom) {
+uint32x4_t q = libdivide_mullhi_u32_vec128(numers, denom->magic);
+uint32x4_t t = vaddq_u32(vhsubq_u32(numers, q), q);
+return libdivide_u32_neon_srl(t, denom->more);
+}
+uint64x2_t libdivide_u64_do_vec128(uint64x2_t numers, const struct libdivide_u64_t* denom) {
+uint8_t more = denom->more;
+if (!denom->magic) {
+return libdivide_u64_neon_srl(numers, more);
+}
+else {
+uint64x2_t q = libdivide_mullhi_u64_vec128(numers, denom->magic);
+if (more & LIBDIVIDE_ADD_MARKER) {
+uint8_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
+uint64x2_t t = vaddq_u64(vshrq_n_u64(vsubq_u64(numers, q), 1), q);
+return libdivide_u64_neon_srl(t, shift);
+}
+else {
+return libdivide_u64_neon_srl(q, more);
+}
+}
+}
+uint64x2_t libdivide_u64_branchfree_do_vec128(
+uint64x2_t numers, const struct libdivide_u64_branchfree_t* denom) {
+uint64x2_t q = libdivide_mullhi_u64_vec128(numers, denom->magic);
+uint64x2_t t = vaddq_u64(vshrq_n_u64(vsubq_u64(numers, q), 1), q);
+return libdivide_u64_neon_srl(t, denom->more);
+}
+int16x8_t libdivide_s16_do_vec128(int16x8_t numers, const struct libdivide_s16_t* denom) {
+SIMPLE_VECTOR_DIVISION(int16_t, int16x8_t, s16)
+}
+int16x8_t libdivide_s16_branchfree_do_vec128(int16x8_t numers, const struct libdivide_s16_branchfree_t* denom) {
+SIMPLE_VECTOR_DIVISION(int16_t, int16x8_t, s16_branchfree)
+}
+int32x4_t libdivide_s32_do_vec128(int32x4_t numers, const struct libdivide_s32_t* denom) {
+uint8_t more = denom->more;
+if (!denom->magic) {
+uint8_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
+uint32_t mask = ((uint32_t)1 << shift) - 1;
+int32x4_t roundToZeroTweak = vdupq_n_s32((int)mask);
+int32x4_t q = vaddq_s32(numers, vandq_s32(vshrq_n_s32(numers, 31), roundToZeroTweak));
+q = libdivide_s32_neon_sra(q, shift);
+int32x4_t sign = vdupq_n_s32((int8_t)more >> 7);
+q = vsubq_s32(veorq_s32(q, sign), sign);
+return q;
+}
+else {
+int32x4_t q = libdivide_mullhi_s32_vec128(numers, denom->magic);
+if (more & LIBDIVIDE_ADD_MARKER) {
+int32x4_t sign = vdupq_n_s32((int8_t)more >> 7);
+q = vaddq_s32(q, vsubq_s32(veorq_s32(numers, sign), sign));
+}
+q = libdivide_s32_neon_sra(q, more & LIBDIVIDE_32_SHIFT_MASK);
+q = vaddq_s32(
+q, vreinterpretq_s32_u32(vshrq_n_u32(vreinterpretq_u32_s32(q), 31)));  // q += (q < 0)
+return q;
+}
+}
+int32x4_t libdivide_s32_branchfree_do_vec128(
+int32x4_t numers, const struct libdivide_s32_branchfree_t* denom) {
+int32_t magic = denom->magic;
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
+int32x4_t sign = vdupq_n_s32((int8_t)more >> 7);
+int32x4_t q = libdivide_mullhi_s32_vec128(numers, magic);
+q = vaddq_s32(q, numers);  // q += numers
+uint32_t is_power_of_2 = (magic == 0);
+int32x4_t q_sign = vshrq_n_s32(q, 31);  // q_sign = q >> 31
+int32x4_t mask = vdupq_n_s32(((uint32_t)1 << shift) - is_power_of_2);
+q = vaddq_s32(q, vandq_s32(q_sign, mask));  // q = q + (q_sign & mask)
+q = libdivide_s32_neon_sra(q, shift);       // q >>= shift
+q = vsubq_s32(veorq_s32(q, sign), sign);    // q = (q ^ sign) - sign
+return q;
+}
+int64x2_t libdivide_s64_do_vec128(int64x2_t numers, const struct libdivide_s64_t* denom) {
+uint8_t more = denom->more;
+int64_t magic = denom->magic;
+if (magic == 0) {  // shift path
+uint8_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
+uint64_t mask = ((uint64_t)1 << shift) - 1;
+int64x2_t roundToZeroTweak = vdupq_n_s64(mask);  // TODO: no need to sign extend
+int64x2_t q =
+vaddq_s64(numers, vandq_s64(libdivide_s64_signbits(numers), roundToZeroTweak));
+q = libdivide_s64_neon_sra(q, shift);
+int64x2_t sign = vreinterpretq_s64_s8(vdupq_n_s8((int8_t)more >> 7));
+q = vsubq_s64(veorq_s64(q, sign), sign);
+return q;
+}
+else {
+int64x2_t q = libdivide_mullhi_s64_vec128(numers, magic);
+if (more & LIBDIVIDE_ADD_MARKER) {
+int64x2_t sign = vdupq_n_s64((int8_t)more >> 7);  // TODO: no need to widen
+q = vaddq_s64(q, vsubq_s64(veorq_s64(numers, sign), sign));
+}
+q = libdivide_s64_neon_sra(q, more & LIBDIVIDE_64_SHIFT_MASK);
+q = vaddq_s64(
+q, vreinterpretq_s64_u64(vshrq_n_u64(vreinterpretq_u64_s64(q), 63)));  // q += (q < 0)
+return q;
+}
+}
+int64x2_t libdivide_s64_branchfree_do_vec128(
+int64x2_t numers, const struct libdivide_s64_branchfree_t* denom) {
+int64_t magic = denom->magic;
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
+int64x2_t sign = vdupq_n_s64((int8_t)more >> 7);  // TODO: avoid sign extend
+int64x2_t q = libdivide_mullhi_s64_vec128(numers, magic);
+q = vaddq_s64(q, numers);  // q += numers
+uint32_t is_power_of_2 = (magic == 0);
+int64x2_t q_sign = libdivide_s64_signbits(q);  // q_sign = q >> 63
+int64x2_t mask = vdupq_n_s64(((uint64_t)1 << shift) - is_power_of_2);
+q = vaddq_s64(q, vandq_s64(q_sign, mask));  // q = q + (q_sign & mask)
+q = libdivide_s64_neon_sra(q, shift);       // q >>= shift
+q = vsubq_s64(veorq_s64(q, sign), sign);    // q = (q ^ sign) - sign
+return q;
+}
+#endif
+#if defined(LIBDIVIDE_AVX512)
+static WJR_INTRINSIC_INLINE __m512i libdivide_u16_do_vec512(
+__m512i numers, const struct libdivide_u16_t* denom);
+static WJR_INTRINSIC_INLINE __m512i libdivide_s16_do_vec512(
+__m512i numers, const struct libdivide_s16_t* denom);
+static WJR_INTRINSIC_INLINE __m512i libdivide_u32_do_vec512(
+__m512i numers, const struct libdivide_u32_t* denom);
+static WJR_INTRINSIC_INLINE __m512i libdivide_s32_do_vec512(
+__m512i numers, const struct libdivide_s32_t* denom);
+static WJR_INTRINSIC_INLINE __m512i libdivide_u64_do_vec512(
+__m512i numers, const struct libdivide_u64_t* denom);
+static WJR_INTRINSIC_INLINE __m512i libdivide_s64_do_vec512(
+__m512i numers, const struct libdivide_s64_t* denom);
+static WJR_INTRINSIC_INLINE __m512i libdivide_u16_branchfree_do_vec512(
+__m512i numers, const struct libdivide_u16_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE __m512i libdivide_s16_branchfree_do_vec512(
+__m512i numers, const struct libdivide_s16_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE __m512i libdivide_u32_branchfree_do_vec512(
+__m512i numers, const struct libdivide_u32_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE __m512i libdivide_s32_branchfree_do_vec512(
+__m512i numers, const struct libdivide_s32_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE __m512i libdivide_u64_branchfree_do_vec512(
+__m512i numers, const struct libdivide_u64_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE __m512i libdivide_s64_branchfree_do_vec512(
+__m512i numers, const struct libdivide_s64_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE __m512i libdivide_s64_signbits_vec512(__m512i v) {
+;
+return _mm512_srai_epi64(v, 63);
+}
+static WJR_INTRINSIC_INLINE __m512i libdivide_s64_shift_right_vec512(__m512i v, int amt) {
+return _mm512_srai_epi64(v, amt);
+}
+static WJR_INTRINSIC_INLINE __m512i libdivide_mullhi_u32_vec512(__m512i a, __m512i b) {
+__m512i hi_product_0Z2Z = _mm512_srli_epi64(_mm512_mul_epu32(a, b), 32);
+__m512i a1X3X = _mm512_srli_epi64(a, 32);
+__m512i mask = _mm512_set_epi32(-1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0);
+__m512i hi_product_Z1Z3 = _mm512_and_si512(_mm512_mul_epu32(a1X3X, b), mask);
+return _mm512_or_si512(hi_product_0Z2Z, hi_product_Z1Z3);
+}
+static WJR_INTRINSIC_INLINE __m512i libdivide_mullhi_s32_vec512(__m512i a, __m512i b) {
+__m512i hi_product_0Z2Z = _mm512_srli_epi64(_mm512_mul_epi32(a, b), 32);
+__m512i a1X3X = _mm512_srli_epi64(a, 32);
+__m512i mask = _mm512_set_epi32(-1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0);
+__m512i hi_product_Z1Z3 = _mm512_and_si512(_mm512_mul_epi32(a1X3X, b), mask);
+return _mm512_or_si512(hi_product_0Z2Z, hi_product_Z1Z3);
+}
+static WJR_INTRINSIC_INLINE __m512i libdivide_mullhi_u64_vec512(__m512i x, __m512i y) {
+__m512i x0y0 = _mm512_mul_epu32(x, y);
+__m512i x0y0_hi = _mm512_srli_epi64(x0y0, 32);
+__m512i x1 = _mm512_shuffle_epi32(x, (_MM_PERM_ENUM)_MM_SHUFFLE(3, 3, 1, 1));
+__m512i y1 = _mm512_shuffle_epi32(y, (_MM_PERM_ENUM)_MM_SHUFFLE(3, 3, 1, 1));
+__m512i x0y1 = _mm512_mul_epu32(x, y1);
+__m512i x1y0 = _mm512_mul_epu32(x1, y);
+__m512i x1y1 = _mm512_mul_epu32(x1, y1);
+__m512i mask = _mm512_set1_epi64(0xFFFFFFFF);
+__m512i temp = _mm512_add_epi64(x1y0, x0y0_hi);
+__m512i temp_lo = _mm512_and_si512(temp, mask);
+__m512i temp_hi = _mm512_srli_epi64(temp, 32);
+temp_lo = _mm512_srli_epi64(_mm512_add_epi64(temp_lo, x0y1), 32);
+temp_hi = _mm512_add_epi64(x1y1, temp_hi);
+return _mm512_add_epi64(temp_lo, temp_hi);
+}
+static WJR_INTRINSIC_INLINE __m512i libdivide_mullhi_s64_vec512(__m512i x, __m512i y) {
+__m512i p = libdivide_mullhi_u64_vec512(x, y);
+__m512i t1 = _mm512_and_si512(libdivide_s64_signbits_vec512(x), y);
+__m512i t2 = _mm512_and_si512(libdivide_s64_signbits_vec512(y), x);
+p = _mm512_sub_epi64(p, t1);
+p = _mm512_sub_epi64(p, t2);
+return p;
+}
+__m512i libdivide_u16_do_vec512(__m512i numers, const struct libdivide_u16_t* denom) {
+SIMPLE_VECTOR_DIVISION(uint16_t, __m512i, u16)
+}
+__m512i libdivide_u16_branchfree_do_vec512(__m512i numers, const struct libdivide_u16_branchfree_t* denom) {
+SIMPLE_VECTOR_DIVISION(uint16_t, __m512i, u16_branchfree)
+}
+__m512i libdivide_u32_do_vec512(__m512i numers, const struct libdivide_u32_t* denom) {
+uint8_t more = denom->more;
+if (!denom->magic) {
+return _mm512_srli_epi32(numers, more);
+}
+else {
+__m512i q = libdivide_mullhi_u32_vec512(numers, _mm512_set1_epi32(denom->magic));
+if (more & LIBDIVIDE_ADD_MARKER) {
+uint32_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
+__m512i t = _mm512_add_epi32(_mm512_srli_epi32(_mm512_sub_epi32(numers, q), 1), q);
+return _mm512_srli_epi32(t, shift);
+}
+else {
+return _mm512_srli_epi32(q, more);
+}
+}
+}
+__m512i libdivide_u32_branchfree_do_vec512(
+__m512i numers, const struct libdivide_u32_branchfree_t* denom) {
+__m512i q = libdivide_mullhi_u32_vec512(numers, _mm512_set1_epi32(denom->magic));
+__m512i t = _mm512_add_epi32(_mm512_srli_epi32(_mm512_sub_epi32(numers, q), 1), q);
+return _mm512_srli_epi32(t, denom->more);
+}
+__m512i libdivide_u64_do_vec512(__m512i numers, const struct libdivide_u64_t* denom) {
+uint8_t more = denom->more;
+if (!denom->magic) {
+return _mm512_srli_epi64(numers, more);
+}
+else {
+__m512i q = libdivide_mullhi_u64_vec512(numers, _mm512_set1_epi64(denom->magic));
+if (more & LIBDIVIDE_ADD_MARKER) {
+uint32_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
+__m512i t = _mm512_add_epi64(_mm512_srli_epi64(_mm512_sub_epi64(numers, q), 1), q);
+return _mm512_srli_epi64(t, shift);
+}
+else {
+return _mm512_srli_epi64(q, more);
+}
+}
+}
+__m512i libdivide_u64_branchfree_do_vec512(
+__m512i numers, const struct libdivide_u64_branchfree_t* denom) {
+__m512i q = libdivide_mullhi_u64_vec512(numers, _mm512_set1_epi64(denom->magic));
+__m512i t = _mm512_add_epi64(_mm512_srli_epi64(_mm512_sub_epi64(numers, q), 1), q);
+return _mm512_srli_epi64(t, denom->more);
+}
+__m512i libdivide_s16_do_vec512(__m512i numers, const struct libdivide_s16_t* denom) {
+SIMPLE_VECTOR_DIVISION(int16_t, __m512i, s16)
+}
+__m512i libdivide_s16_branchfree_do_vec512(__m512i numers, const struct libdivide_s16_branchfree_t* denom) {
+SIMPLE_VECTOR_DIVISION(int16_t, __m512i, s16_branchfree)
+}
+__m512i libdivide_s32_do_vec512(__m512i numers, const struct libdivide_s32_t* denom) {
+uint8_t more = denom->more;
+if (!denom->magic) {
+uint32_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
+uint32_t mask = ((uint32_t)1 << shift) - 1;
+__m512i roundToZeroTweak = _mm512_set1_epi32(mask);
+__m512i q = _mm512_add_epi32(
+numers, _mm512_and_si512(_mm512_srai_epi32(numers, 31), roundToZeroTweak));
+q = _mm512_srai_epi32(q, shift);
+__m512i sign = _mm512_set1_epi32((int8_t)more >> 7);
+q = _mm512_sub_epi32(_mm512_xor_si512(q, sign), sign);
+return q;
+}
+else {
+__m512i q = libdivide_mullhi_s32_vec512(numers, _mm512_set1_epi32(denom->magic));
+if (more & LIBDIVIDE_ADD_MARKER) {
+__m512i sign = _mm512_set1_epi32((int8_t)more >> 7);
+q = _mm512_add_epi32(q, _mm512_sub_epi32(_mm512_xor_si512(numers, sign), sign));
+}
+q = _mm512_srai_epi32(q, more & LIBDIVIDE_32_SHIFT_MASK);
+q = _mm512_add_epi32(q, _mm512_srli_epi32(q, 31));  // q += (q < 0)
+return q;
+}
+}
+__m512i libdivide_s32_branchfree_do_vec512(
+__m512i numers, const struct libdivide_s32_branchfree_t* denom) {
+int32_t magic = denom->magic;
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
+__m512i sign = _mm512_set1_epi32((int8_t)more >> 7);
+__m512i q = libdivide_mullhi_s32_vec512(numers, _mm512_set1_epi32(magic));
+q = _mm512_add_epi32(q, numers);  // q += numers
+uint32_t is_power_of_2 = (magic == 0);
+__m512i q_sign = _mm512_srai_epi32(q, 31);  // q_sign = q >> 31
+__m512i mask = _mm512_set1_epi32(((uint32_t)1 << shift) - is_power_of_2);
+q = _mm512_add_epi32(q, _mm512_and_si512(q_sign, mask));  // q = q + (q_sign & mask)
+q = _mm512_srai_epi32(q, shift);                          // q >>= shift
+q = _mm512_sub_epi32(_mm512_xor_si512(q, sign), sign);    // q = (q ^ sign) - sign
+return q;
+}
+__m512i libdivide_s64_do_vec512(__m512i numers, const struct libdivide_s64_t* denom) {
+uint8_t more = denom->more;
+int64_t magic = denom->magic;
+if (magic == 0) {  // shift path
+uint32_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
+uint64_t mask = ((uint64_t)1 << shift) - 1;
+__m512i roundToZeroTweak = _mm512_set1_epi64(mask);
+__m512i q = _mm512_add_epi64(
+numers, _mm512_and_si512(libdivide_s64_signbits_vec512(numers), roundToZeroTweak));
+q = libdivide_s64_shift_right_vec512(q, shift);
+__m512i sign = _mm512_set1_epi32((int8_t)more >> 7);
+q = _mm512_sub_epi64(_mm512_xor_si512(q, sign), sign);
+return q;
+}
+else {
+__m512i q = libdivide_mullhi_s64_vec512(numers, _mm512_set1_epi64(magic));
+if (more & LIBDIVIDE_ADD_MARKER) {
+__m512i sign = _mm512_set1_epi32((int8_t)more >> 7);
+q = _mm512_add_epi64(q, _mm512_sub_epi64(_mm512_xor_si512(numers, sign), sign));
+}
+q = libdivide_s64_shift_right_vec512(q, more & LIBDIVIDE_64_SHIFT_MASK);
+q = _mm512_add_epi64(q, _mm512_srli_epi64(q, 63));  // q += (q < 0)
+return q;
+}
+}
+__m512i libdivide_s64_branchfree_do_vec512(
+__m512i numers, const struct libdivide_s64_branchfree_t* denom) {
+int64_t magic = denom->magic;
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
+__m512i sign = _mm512_set1_epi32((int8_t)more >> 7);
+__m512i q = libdivide_mullhi_s64_vec512(numers, _mm512_set1_epi64(magic));
+q = _mm512_add_epi64(q, numers);  // q += numers
+uint32_t is_power_of_2 = (magic == 0);
+__m512i q_sign = libdivide_s64_signbits_vec512(q);  // q_sign = q >> 63
+__m512i mask = _mm512_set1_epi64(((uint64_t)1 << shift) - is_power_of_2);
+q = _mm512_add_epi64(q, _mm512_and_si512(q_sign, mask));  // q = q + (q_sign & mask)
+q = libdivide_s64_shift_right_vec512(q, shift);           // q >>= shift
+q = _mm512_sub_epi64(_mm512_xor_si512(q, sign), sign);    // q = (q ^ sign) - sign
+return q;
+}
+#endif
+#if defined(LIBDIVIDE_AVX2)
+static WJR_INTRINSIC_INLINE __m256i libdivide_u16_do_vec256(
+__m256i numers, const struct libdivide_u16_t* denom);
+static WJR_INTRINSIC_INLINE __m256i libdivide_s16_do_vec256(
+__m256i numers, const struct libdivide_s16_t* denom);
+static WJR_INTRINSIC_INLINE __m256i libdivide_u32_do_vec256(
+__m256i numers, const struct libdivide_u32_t* denom);
+static WJR_INTRINSIC_INLINE __m256i libdivide_s32_do_vec256(
+__m256i numers, const struct libdivide_s32_t* denom);
+static WJR_INTRINSIC_INLINE __m256i libdivide_u64_do_vec256(
+__m256i numers, const struct libdivide_u64_t* denom);
+static WJR_INTRINSIC_INLINE __m256i libdivide_s64_do_vec256(
+__m256i numers, const struct libdivide_s64_t* denom);
+static WJR_INTRINSIC_INLINE __m256i libdivide_u16_branchfree_do_vec256(
+__m256i numers, const struct libdivide_u16_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE __m256i libdivide_s16_branchfree_do_vec256(
+__m256i numers, const struct libdivide_s16_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE __m256i libdivide_u32_branchfree_do_vec256(
+__m256i numers, const struct libdivide_u32_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE __m256i libdivide_s32_branchfree_do_vec256(
+__m256i numers, const struct libdivide_s32_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE __m256i libdivide_u64_branchfree_do_vec256(
+__m256i numers, const struct libdivide_u64_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE __m256i libdivide_s64_branchfree_do_vec256(
+__m256i numers, const struct libdivide_s64_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE __m256i libdivide_s64_signbits_vec256(__m256i v) {
+__m256i hiBitsDuped = _mm256_shuffle_epi32(v, _MM_SHUFFLE(3, 3, 1, 1));
+__m256i signBits = _mm256_srai_epi32(hiBitsDuped, 31);
+return signBits;
+}
+static WJR_INTRINSIC_INLINE __m256i libdivide_s64_shift_right_vec256(__m256i v, int amt) {
+const int b = 64 - amt;
+__m256i m = _mm256_set1_epi64x((uint64_t)1 << (b - 1));
+__m256i x = _mm256_srli_epi64(v, amt);
+__m256i result = _mm256_sub_epi64(_mm256_xor_si256(x, m), m);
+return result;
+}
+static WJR_INTRINSIC_INLINE __m256i libdivide_mullhi_u32_vec256(__m256i a, __m256i b) {
+__m256i hi_product_0Z2Z = _mm256_srli_epi64(_mm256_mul_epu32(a, b), 32);
+__m256i a1X3X = _mm256_srli_epi64(a, 32);
+__m256i mask = _mm256_set_epi32(-1, 0, -1, 0, -1, 0, -1, 0);
+__m256i hi_product_Z1Z3 = _mm256_and_si256(_mm256_mul_epu32(a1X3X, b), mask);
+return _mm256_or_si256(hi_product_0Z2Z, hi_product_Z1Z3);
+}
+static WJR_INTRINSIC_INLINE __m256i libdivide_mullhi_s32_vec256(__m256i a, __m256i b) {
+__m256i hi_product_0Z2Z = _mm256_srli_epi64(_mm256_mul_epi32(a, b), 32);
+__m256i a1X3X = _mm256_srli_epi64(a, 32);
+__m256i mask = _mm256_set_epi32(-1, 0, -1, 0, -1, 0, -1, 0);
+__m256i hi_product_Z1Z3 = _mm256_and_si256(_mm256_mul_epi32(a1X3X, b), mask);
+return _mm256_or_si256(hi_product_0Z2Z, hi_product_Z1Z3);
+}
+static WJR_INTRINSIC_INLINE __m256i libdivide_mullhi_u64_vec256(__m256i x, __m256i y) {
+__m256i x0y0 = _mm256_mul_epu32(x, y);
+__m256i x0y0_hi = _mm256_srli_epi64(x0y0, 32);
+__m256i x1 = _mm256_shuffle_epi32(x, _MM_SHUFFLE(3, 3, 1, 1));
+__m256i y1 = _mm256_shuffle_epi32(y, _MM_SHUFFLE(3, 3, 1, 1));
+__m256i x0y1 = _mm256_mul_epu32(x, y1);
+__m256i x1y0 = _mm256_mul_epu32(x1, y);
+__m256i x1y1 = _mm256_mul_epu32(x1, y1);
+__m256i mask = _mm256_set1_epi64x(0xFFFFFFFF);
+__m256i temp = _mm256_add_epi64(x1y0, x0y0_hi);
+__m256i temp_lo = _mm256_and_si256(temp, mask);
+__m256i temp_hi = _mm256_srli_epi64(temp, 32);
+temp_lo = _mm256_srli_epi64(_mm256_add_epi64(temp_lo, x0y1), 32);
+temp_hi = _mm256_add_epi64(x1y1, temp_hi);
+return _mm256_add_epi64(temp_lo, temp_hi);
+}
+static WJR_INTRINSIC_INLINE __m256i libdivide_mullhi_s64_vec256(__m256i x, __m256i y) {
+__m256i p = libdivide_mullhi_u64_vec256(x, y);
+__m256i t1 = _mm256_and_si256(libdivide_s64_signbits_vec256(x), y);
+__m256i t2 = _mm256_and_si256(libdivide_s64_signbits_vec256(y), x);
+p = _mm256_sub_epi64(p, t1);
+p = _mm256_sub_epi64(p, t2);
+return p;
+}
+__m256i libdivide_u16_do_vec256(__m256i numers, const struct libdivide_u16_t* denom) {
+uint8_t more = denom->more;
+if (!denom->magic) {
+return _mm256_srli_epi16(numers, more);
+}
+else {
+__m256i q = _mm256_mulhi_epu16(numers, _mm256_set1_epi16(denom->magic));
+if (more & LIBDIVIDE_ADD_MARKER) {
+__m256i t = _mm256_adds_epu16(_mm256_srli_epi16(_mm256_subs_epu16(numers, q), 1), q);
+return _mm256_srli_epi16(t, (more & LIBDIVIDE_16_SHIFT_MASK));
+}
+else {
+return _mm256_srli_epi16(q, more);
+}
+}
+}
+__m256i libdivide_u16_branchfree_do_vec256(__m256i numers, const struct libdivide_u16_branchfree_t* denom) {
+__m256i q = _mm256_mulhi_epu16(numers, _mm256_set1_epi16(denom->magic));
+__m256i t = _mm256_adds_epu16(_mm256_srli_epi16(_mm256_subs_epu16(numers, q), 1), q);
+return _mm256_srli_epi16(t, denom->more);
+}
+__m256i libdivide_u32_do_vec256(__m256i numers, const struct libdivide_u32_t* denom) {
+uint8_t more = denom->more;
+if (!denom->magic) {
+return _mm256_srli_epi32(numers, more);
+}
+else {
+__m256i q = libdivide_mullhi_u32_vec256(numers, _mm256_set1_epi32(denom->magic));
+if (more & LIBDIVIDE_ADD_MARKER) {
+uint32_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
+__m256i t = _mm256_add_epi32(_mm256_srli_epi32(_mm256_sub_epi32(numers, q), 1), q);
+return _mm256_srli_epi32(t, shift);
+}
+else {
+return _mm256_srli_epi32(q, more);
+}
+}
+}
+__m256i libdivide_u32_branchfree_do_vec256(
+__m256i numers, const struct libdivide_u32_branchfree_t* denom) {
+__m256i q = libdivide_mullhi_u32_vec256(numers, _mm256_set1_epi32(denom->magic));
+__m256i t = _mm256_add_epi32(_mm256_srli_epi32(_mm256_sub_epi32(numers, q), 1), q);
+return _mm256_srli_epi32(t, denom->more);
+}
+__m256i libdivide_u64_do_vec256(__m256i numers, const struct libdivide_u64_t* denom) {
+uint8_t more = denom->more;
+if (!denom->magic) {
+return _mm256_srli_epi64(numers, more);
+}
+else {
+__m256i q = libdivide_mullhi_u64_vec256(numers, _mm256_set1_epi64x(denom->magic));
+if (more & LIBDIVIDE_ADD_MARKER) {
+uint32_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
+__m256i t = _mm256_add_epi64(_mm256_srli_epi64(_mm256_sub_epi64(numers, q), 1), q);
+return _mm256_srli_epi64(t, shift);
+}
+else {
+return _mm256_srli_epi64(q, more);
+}
+}
+}
+__m256i libdivide_u64_branchfree_do_vec256(
+__m256i numers, const struct libdivide_u64_branchfree_t* denom) {
+__m256i q = libdivide_mullhi_u64_vec256(numers, _mm256_set1_epi64x(denom->magic));
+__m256i t = _mm256_add_epi64(_mm256_srli_epi64(_mm256_sub_epi64(numers, q), 1), q);
+return _mm256_srli_epi64(t, denom->more);
+}
+__m256i libdivide_s16_do_vec256(__m256i numers, const struct libdivide_s16_t* denom) {
+uint8_t more = denom->more;
+if (!denom->magic) {
+uint16_t shift = more & LIBDIVIDE_16_SHIFT_MASK;
+uint16_t mask = ((uint16_t)1 << shift) - 1;
+__m256i roundToZeroTweak = _mm256_set1_epi16(mask);
+__m256i q = _mm256_add_epi16(
+numers, _mm256_and_si256(_mm256_srai_epi16(numers, 15), roundToZeroTweak));
+q = _mm256_srai_epi16(q, shift);
+__m256i sign = _mm256_set1_epi16((int8_t)more >> 7);
+q = _mm256_sub_epi16(_mm256_xor_si256(q, sign), sign);
+return q;
+}
+else {
+__m256i q = _mm256_mulhi_epi16(numers, _mm256_set1_epi16(denom->magic));
+if (more & LIBDIVIDE_ADD_MARKER) {
+__m256i sign = _mm256_set1_epi16((int8_t)more >> 7);
+q = _mm256_add_epi16(q, _mm256_sub_epi16(_mm256_xor_si256(numers, sign), sign));
+}
+q = _mm256_srai_epi16(q, more & LIBDIVIDE_16_SHIFT_MASK);
+q = _mm256_add_epi16(q, _mm256_srli_epi16(q, 15));  // q += (q < 0)
+return q;
+}
+}
+__m256i libdivide_s16_branchfree_do_vec256(__m256i numers, const struct libdivide_s16_branchfree_t* denom) {
+int16_t magic = denom->magic;
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_16_SHIFT_MASK;
+__m256i sign = _mm256_set1_epi16((int8_t)more >> 7);
+__m256i q = _mm256_mulhi_epi16(numers, _mm256_set1_epi16(magic));
+q = _mm256_add_epi16(q, numers);  // q += numers
+uint16_t is_power_of_2 = (magic == 0);
+__m256i q_sign = _mm256_srai_epi16(q, 15);  // q_sign = q >> 15
+__m256i mask = _mm256_set1_epi16(((uint16_t)1 << shift) - is_power_of_2);
+q = _mm256_add_epi16(q, _mm256_and_si256(q_sign, mask));  // q = q + (q_sign & mask)
+q = _mm256_srai_epi16(q, shift);                          // q >>= shift
+q = _mm256_sub_epi16(_mm256_xor_si256(q, sign), sign);    // q = (q ^ sign) - sign
+return q;
+}
+__m256i libdivide_s32_do_vec256(__m256i numers, const struct libdivide_s32_t* denom) {
+uint8_t more = denom->more;
+if (!denom->magic) {
+uint32_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
+uint32_t mask = ((uint32_t)1 << shift) - 1;
+__m256i roundToZeroTweak = _mm256_set1_epi32(mask);
+__m256i q = _mm256_add_epi32(
+numers, _mm256_and_si256(_mm256_srai_epi32(numers, 31), roundToZeroTweak));
+q = _mm256_srai_epi32(q, shift);
+__m256i sign = _mm256_set1_epi32((int8_t)more >> 7);
+q = _mm256_sub_epi32(_mm256_xor_si256(q, sign), sign);
+return q;
+}
+else {
+__m256i q = libdivide_mullhi_s32_vec256(numers, _mm256_set1_epi32(denom->magic));
+if (more & LIBDIVIDE_ADD_MARKER) {
+__m256i sign = _mm256_set1_epi32((int8_t)more >> 7);
+q = _mm256_add_epi32(q, _mm256_sub_epi32(_mm256_xor_si256(numers, sign), sign));
+}
+q = _mm256_srai_epi32(q, more & LIBDIVIDE_32_SHIFT_MASK);
+q = _mm256_add_epi32(q, _mm256_srli_epi32(q, 31));  // q += (q < 0)
+return q;
+}
+}
+__m256i libdivide_s32_branchfree_do_vec256(
+__m256i numers, const struct libdivide_s32_branchfree_t* denom) {
+int32_t magic = denom->magic;
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
+__m256i sign = _mm256_set1_epi32((int8_t)more >> 7);
+__m256i q = libdivide_mullhi_s32_vec256(numers, _mm256_set1_epi32(magic));
+q = _mm256_add_epi32(q, numers);  // q += numers
+uint32_t is_power_of_2 = (magic == 0);
+__m256i q_sign = _mm256_srai_epi32(q, 31);  // q_sign = q >> 31
+__m256i mask = _mm256_set1_epi32(((uint32_t)1 << shift) - is_power_of_2);
+q = _mm256_add_epi32(q, _mm256_and_si256(q_sign, mask));  // q = q + (q_sign & mask)
+q = _mm256_srai_epi32(q, shift);                          // q >>= shift
+q = _mm256_sub_epi32(_mm256_xor_si256(q, sign), sign);    // q = (q ^ sign) - sign
+return q;
+}
+__m256i libdivide_s64_do_vec256(__m256i numers, const struct libdivide_s64_t* denom) {
+uint8_t more = denom->more;
+int64_t magic = denom->magic;
+if (magic == 0) {  // shift path
+uint32_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
+uint64_t mask = ((uint64_t)1 << shift) - 1;
+__m256i roundToZeroTweak = _mm256_set1_epi64x(mask);
+__m256i q = _mm256_add_epi64(
+numers, _mm256_and_si256(libdivide_s64_signbits_vec256(numers), roundToZeroTweak));
+q = libdivide_s64_shift_right_vec256(q, shift);
+__m256i sign = _mm256_set1_epi32((int8_t)more >> 7);
+q = _mm256_sub_epi64(_mm256_xor_si256(q, sign), sign);
+return q;
+}
+else {
+__m256i q = libdivide_mullhi_s64_vec256(numers, _mm256_set1_epi64x(magic));
+if (more & LIBDIVIDE_ADD_MARKER) {
+__m256i sign = _mm256_set1_epi32((int8_t)more >> 7);
+q = _mm256_add_epi64(q, _mm256_sub_epi64(_mm256_xor_si256(numers, sign), sign));
+}
+q = libdivide_s64_shift_right_vec256(q, more & LIBDIVIDE_64_SHIFT_MASK);
+q = _mm256_add_epi64(q, _mm256_srli_epi64(q, 63));  // q += (q < 0)
+return q;
+}
+}
+__m256i libdivide_s64_branchfree_do_vec256(
+__m256i numers, const struct libdivide_s64_branchfree_t* denom) {
+int64_t magic = denom->magic;
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
+__m256i sign = _mm256_set1_epi32((int8_t)more >> 7);
+__m256i q = libdivide_mullhi_s64_vec256(numers, _mm256_set1_epi64x(magic));
+q = _mm256_add_epi64(q, numers);  // q += numers
+uint32_t is_power_of_2 = (magic == 0);
+__m256i q_sign = libdivide_s64_signbits_vec256(q);  // q_sign = q >> 63
+__m256i mask = _mm256_set1_epi64x(((uint64_t)1 << shift) - is_power_of_2);
+q = _mm256_add_epi64(q, _mm256_and_si256(q_sign, mask));  // q = q + (q_sign & mask)
+q = libdivide_s64_shift_right_vec256(q, shift);           // q >>= shift
+q = _mm256_sub_epi64(_mm256_xor_si256(q, sign), sign);    // q = (q ^ sign) - sign
+return q;
+}
+#endif
+#if defined(LIBDIVIDE_SSE2)
+static WJR_INTRINSIC_INLINE __m128i libdivide_u16_do_vec128(
+__m128i numers, const struct libdivide_u16_t* denom);
+static WJR_INTRINSIC_INLINE __m128i libdivide_s16_do_vec128(
+__m128i numers, const struct libdivide_s16_t* denom);
+static WJR_INTRINSIC_INLINE __m128i libdivide_u32_do_vec128(
+__m128i numers, const struct libdivide_u32_t* denom);
+static WJR_INTRINSIC_INLINE __m128i libdivide_s32_do_vec128(
+__m128i numers, const struct libdivide_s32_t* denom);
+static WJR_INTRINSIC_INLINE __m128i libdivide_u64_do_vec128(
+__m128i numers, const struct libdivide_u64_t* denom);
+static WJR_INTRINSIC_INLINE __m128i libdivide_s64_do_vec128(
+__m128i numers, const struct libdivide_s64_t* denom);
+static WJR_INTRINSIC_INLINE __m128i libdivide_u16_branchfree_do_vec128(
+__m128i numers, const struct libdivide_u16_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE __m128i libdivide_s16_branchfree_do_vec128(
+__m128i numers, const struct libdivide_s16_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE __m128i libdivide_u32_branchfree_do_vec128(
+__m128i numers, const struct libdivide_u32_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE __m128i libdivide_s32_branchfree_do_vec128(
+__m128i numers, const struct libdivide_s32_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE __m128i libdivide_u64_branchfree_do_vec128(
+__m128i numers, const struct libdivide_u64_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE __m128i libdivide_s64_branchfree_do_vec128(
+__m128i numers, const struct libdivide_s64_branchfree_t* denom);
+static WJR_INTRINSIC_INLINE __m128i libdivide_s64_signbits_vec128(__m128i v) {
+__m128i hiBitsDuped = _mm_shuffle_epi32(v, _MM_SHUFFLE(3, 3, 1, 1));
+__m128i signBits = _mm_srai_epi32(hiBitsDuped, 31);
+return signBits;
+}
+static WJR_INTRINSIC_INLINE __m128i libdivide_s64_shift_right_vec128(__m128i v, int amt) {
+const int b = 64 - amt;
+__m128i m = _mm_set1_epi64x((uint64_t)1 << (b - 1));
+__m128i x = _mm_srli_epi64(v, amt);
+__m128i result = _mm_sub_epi64(_mm_xor_si128(x, m), m);
+return result;
+}
+static WJR_INTRINSIC_INLINE __m128i libdivide_mullhi_u32_vec128(__m128i a, __m128i b) {
+__m128i hi_product_0Z2Z = _mm_srli_epi64(_mm_mul_epu32(a, b), 32);
+__m128i a1X3X = _mm_srli_epi64(a, 32);
+__m128i mask = _mm_set_epi32(-1, 0, -1, 0);
+__m128i hi_product_Z1Z3 = _mm_and_si128(_mm_mul_epu32(a1X3X, b), mask);
+return _mm_or_si128(hi_product_0Z2Z, hi_product_Z1Z3);
+}
+static WJR_INTRINSIC_INLINE __m128i libdivide_mullhi_s32_vec128(__m128i a, __m128i b) {
+__m128i p = libdivide_mullhi_u32_vec128(a, b);
+__m128i t1 = _mm_and_si128(_mm_srai_epi32(a, 31), b);
+__m128i t2 = _mm_and_si128(_mm_srai_epi32(b, 31), a);
+p = _mm_sub_epi32(p, t1);
+p = _mm_sub_epi32(p, t2);
+return p;
+}
+static WJR_INTRINSIC_INLINE __m128i libdivide_mullhi_u64_vec128(__m128i x, __m128i y) {
+__m128i x0y0 = _mm_mul_epu32(x, y);
+__m128i x0y0_hi = _mm_srli_epi64(x0y0, 32);
+__m128i x1 = _mm_shuffle_epi32(x, _MM_SHUFFLE(3, 3, 1, 1));
+__m128i y1 = _mm_shuffle_epi32(y, _MM_SHUFFLE(3, 3, 1, 1));
+__m128i x0y1 = _mm_mul_epu32(x, y1);
+__m128i x1y0 = _mm_mul_epu32(x1, y);
+__m128i x1y1 = _mm_mul_epu32(x1, y1);
+__m128i mask = _mm_set1_epi64x(0xFFFFFFFF);
+__m128i temp = _mm_add_epi64(x1y0, x0y0_hi);
+__m128i temp_lo = _mm_and_si128(temp, mask);
+__m128i temp_hi = _mm_srli_epi64(temp, 32);
+temp_lo = _mm_srli_epi64(_mm_add_epi64(temp_lo, x0y1), 32);
+temp_hi = _mm_add_epi64(x1y1, temp_hi);
+return _mm_add_epi64(temp_lo, temp_hi);
+}
+static WJR_INTRINSIC_INLINE __m128i libdivide_mullhi_s64_vec128(__m128i x, __m128i y) {
+__m128i p = libdivide_mullhi_u64_vec128(x, y);
+__m128i t1 = _mm_and_si128(libdivide_s64_signbits_vec128(x), y);
+__m128i t2 = _mm_and_si128(libdivide_s64_signbits_vec128(y), x);
+p = _mm_sub_epi64(p, t1);
+p = _mm_sub_epi64(p, t2);
+return p;
+}
+__m128i libdivide_u16_do_vec128(__m128i numers, const struct libdivide_u16_t* denom) {
+uint8_t more = denom->more;
+if (!denom->magic) {
+return _mm_srli_epi16(numers, more);
+}
+else {
+__m128i q = _mm_mulhi_epu16(numers, _mm_set1_epi16(denom->magic));
+if (more & LIBDIVIDE_ADD_MARKER) {
+__m128i t = _mm_adds_epu16(_mm_srli_epi16(_mm_subs_epu16(numers, q), 1), q);
+return _mm_srli_epi16(t, (more & LIBDIVIDE_16_SHIFT_MASK));
+}
+else {
+return _mm_srli_epi16(q, more);
+}
+}
+}
+__m128i libdivide_u16_branchfree_do_vec128(__m128i numers, const struct libdivide_u16_branchfree_t* denom) {
+__m128i q = _mm_mulhi_epu16(numers, _mm_set1_epi16(denom->magic));
+__m128i t = _mm_adds_epu16(_mm_srli_epi16(_mm_subs_epu16(numers, q), 1), q);
+return _mm_srli_epi16(t, denom->more);
+}
+__m128i libdivide_u32_do_vec128(__m128i numers, const struct libdivide_u32_t* denom) {
+uint8_t more = denom->more;
+if (!denom->magic) {
+return _mm_srli_epi32(numers, more);
+}
+else {
+__m128i q = libdivide_mullhi_u32_vec128(numers, _mm_set1_epi32(denom->magic));
+if (more & LIBDIVIDE_ADD_MARKER) {
+uint32_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
+__m128i t = _mm_add_epi32(_mm_srli_epi32(_mm_sub_epi32(numers, q), 1), q);
+return _mm_srli_epi32(t, shift);
+}
+else {
+return _mm_srli_epi32(q, more);
+}
+}
+}
+__m128i libdivide_u32_branchfree_do_vec128(
+__m128i numers, const struct libdivide_u32_branchfree_t* denom) {
+__m128i q = libdivide_mullhi_u32_vec128(numers, _mm_set1_epi32(denom->magic));
+__m128i t = _mm_add_epi32(_mm_srli_epi32(_mm_sub_epi32(numers, q), 1), q);
+return _mm_srli_epi32(t, denom->more);
+}
+__m128i libdivide_u64_do_vec128(__m128i numers, const struct libdivide_u64_t* denom) {
+uint8_t more = denom->more;
+if (!denom->magic) {
+return _mm_srli_epi64(numers, more);
+}
+else {
+__m128i q = libdivide_mullhi_u64_vec128(numers, _mm_set1_epi64x(denom->magic));
+if (more & LIBDIVIDE_ADD_MARKER) {
+uint32_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
+__m128i t = _mm_add_epi64(_mm_srli_epi64(_mm_sub_epi64(numers, q), 1), q);
+return _mm_srli_epi64(t, shift);
+}
+else {
+return _mm_srli_epi64(q, more);
+}
+}
+}
+__m128i libdivide_u64_branchfree_do_vec128(
+__m128i numers, const struct libdivide_u64_branchfree_t* denom) {
+__m128i q = libdivide_mullhi_u64_vec128(numers, _mm_set1_epi64x(denom->magic));
+__m128i t = _mm_add_epi64(_mm_srli_epi64(_mm_sub_epi64(numers, q), 1), q);
+return _mm_srli_epi64(t, denom->more);
+}
+__m128i libdivide_s16_do_vec128(__m128i numers, const struct libdivide_s16_t* denom) {
+uint8_t more = denom->more;
+if (!denom->magic) {
+uint16_t shift = more & LIBDIVIDE_16_SHIFT_MASK;
+uint16_t mask = ((uint16_t)1 << shift) - 1;
+__m128i roundToZeroTweak = _mm_set1_epi16(mask);
+__m128i q = _mm_add_epi16(
+numers, _mm_and_si128(_mm_srai_epi16(numers, 15), roundToZeroTweak));
+q = _mm_srai_epi16(q, shift);
+__m128i sign = _mm_set1_epi16((int8_t)more >> 7);
+q = _mm_sub_epi16(_mm_xor_si128(q, sign), sign);
+return q;
+}
+else {
+__m128i q = _mm_mulhi_epi16(numers, _mm_set1_epi16(denom->magic));
+if (more & LIBDIVIDE_ADD_MARKER) {
+__m128i sign = _mm_set1_epi16((int8_t)more >> 7);
+q = _mm_add_epi16(q, _mm_sub_epi16(_mm_xor_si128(numers, sign), sign));
+}
+q = _mm_srai_epi16(q, more & LIBDIVIDE_16_SHIFT_MASK);
+q = _mm_add_epi16(q, _mm_srli_epi16(q, 15));  // q += (q < 0)
+return q;
+}
+}
+__m128i libdivide_s16_branchfree_do_vec128(__m128i numers, const struct libdivide_s16_branchfree_t* denom) {
+int16_t magic = denom->magic;
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_16_SHIFT_MASK;
+__m128i sign = _mm_set1_epi16((int8_t)more >> 7);
+__m128i q = _mm_mulhi_epi16(numers, _mm_set1_epi16(magic));
+q = _mm_add_epi16(q, numers);  // q += numers
+uint16_t is_power_of_2 = (magic == 0);
+__m128i q_sign = _mm_srai_epi16(q, 15);  // q_sign = q >> 15
+__m128i mask = _mm_set1_epi16(((uint16_t)1 << shift) - is_power_of_2);
+q = _mm_add_epi16(q, _mm_and_si128(q_sign, mask));  // q = q + (q_sign & mask)
+q = _mm_srai_epi16(q, shift);                          // q >>= shift
+q = _mm_sub_epi16(_mm_xor_si128(q, sign), sign);    // q = (q ^ sign) - sign
+return q;
+}
+__m128i libdivide_s32_do_vec128(__m128i numers, const struct libdivide_s32_t* denom) {
+uint8_t more = denom->more;
+if (!denom->magic) {
+uint32_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
+uint32_t mask = ((uint32_t)1 << shift) - 1;
+__m128i roundToZeroTweak = _mm_set1_epi32(mask);
+__m128i q =
+_mm_add_epi32(numers, _mm_and_si128(_mm_srai_epi32(numers, 31), roundToZeroTweak));
+q = _mm_srai_epi32(q, shift);
+__m128i sign = _mm_set1_epi32((int8_t)more >> 7);
+q = _mm_sub_epi32(_mm_xor_si128(q, sign), sign);
+return q;
+}
+else {
+__m128i q = libdivide_mullhi_s32_vec128(numers, _mm_set1_epi32(denom->magic));
+if (more & LIBDIVIDE_ADD_MARKER) {
+__m128i sign = _mm_set1_epi32((int8_t)more >> 7);
+q = _mm_add_epi32(q, _mm_sub_epi32(_mm_xor_si128(numers, sign), sign));
+}
+q = _mm_srai_epi32(q, more & LIBDIVIDE_32_SHIFT_MASK);
+q = _mm_add_epi32(q, _mm_srli_epi32(q, 31));  // q += (q < 0)
+return q;
+}
+}
+__m128i libdivide_s32_branchfree_do_vec128(
+__m128i numers, const struct libdivide_s32_branchfree_t* denom) {
+int32_t magic = denom->magic;
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
+__m128i sign = _mm_set1_epi32((int8_t)more >> 7);
+__m128i q = libdivide_mullhi_s32_vec128(numers, _mm_set1_epi32(magic));
+q = _mm_add_epi32(q, numers);  // q += numers
+uint32_t is_power_of_2 = (magic == 0);
+__m128i q_sign = _mm_srai_epi32(q, 31);  // q_sign = q >> 31
+__m128i mask = _mm_set1_epi32(((uint32_t)1 << shift) - is_power_of_2);
+q = _mm_add_epi32(q, _mm_and_si128(q_sign, mask));  // q = q + (q_sign & mask)
+q = _mm_srai_epi32(q, shift);                       // q >>= shift
+q = _mm_sub_epi32(_mm_xor_si128(q, sign), sign);    // q = (q ^ sign) - sign
+return q;
+}
+__m128i libdivide_s64_do_vec128(__m128i numers, const struct libdivide_s64_t* denom) {
+uint8_t more = denom->more;
+int64_t magic = denom->magic;
+if (magic == 0) {  // shift path
+uint32_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
+uint64_t mask = ((uint64_t)1 << shift) - 1;
+__m128i roundToZeroTweak = _mm_set1_epi64x(mask);
+__m128i q =
+_mm_add_epi64(numers, _mm_and_si128(libdivide_s64_signbits_vec128(numers), roundToZeroTweak));
+q = libdivide_s64_shift_right_vec128(q, shift);
+__m128i sign = _mm_set1_epi32((int8_t)more >> 7);
+q = _mm_sub_epi64(_mm_xor_si128(q, sign), sign);
+return q;
+}
+else {
+__m128i q = libdivide_mullhi_s64_vec128(numers, _mm_set1_epi64x(magic));
+if (more & LIBDIVIDE_ADD_MARKER) {
+__m128i sign = _mm_set1_epi32((int8_t)more >> 7);
+q = _mm_add_epi64(q, _mm_sub_epi64(_mm_xor_si128(numers, sign), sign));
+}
+q = libdivide_s64_shift_right_vec128(q, more & LIBDIVIDE_64_SHIFT_MASK);
+q = _mm_add_epi64(q, _mm_srli_epi64(q, 63));  // q += (q < 0)
+return q;
+}
+}
+__m128i libdivide_s64_branchfree_do_vec128(
+__m128i numers, const struct libdivide_s64_branchfree_t* denom) {
+int64_t magic = denom->magic;
+uint8_t more = denom->more;
+uint8_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
+__m128i sign = _mm_set1_epi32((int8_t)more >> 7);
+__m128i q = libdivide_mullhi_s64_vec128(numers, _mm_set1_epi64x(magic));
+q = _mm_add_epi64(q, numers);  // q += numers
+uint32_t is_power_of_2 = (magic == 0);
+__m128i q_sign = libdivide_s64_signbits_vec128(q);  // q_sign = q >> 63
+__m128i mask = _mm_set1_epi64x(((uint64_t)1 << shift) - is_power_of_2);
+q = _mm_add_epi64(q, _mm_and_si128(q_sign, mask));  // q = q + (q_sign & mask)
+q = libdivide_s64_shift_right_vec128(q, shift);     // q >>= shift
+q = _mm_sub_epi64(_mm_xor_si128(q, sign), sign);    // q = (q ^ sign) - sign
+return q;
+}
+#endif
+#ifdef __cplusplus
+enum Branching {
+BRANCHFULL,  // use branching algorithms
+BRANCHFREE   // use branchfree algorithms
+};
+#if defined(LIBDIVIDE_NEON)
+template <typename T>
+struct NeonVecFor {};
+template <>
+struct NeonVecFor<uint16_t> {
+typedef uint16x8_t type;
+};
+template <>
+struct NeonVecFor<int16_t> {
+typedef int16x8_t type;
+};
+template <>
+struct NeonVecFor<uint32_t> {
+typedef uint32x4_t type;
+};
+template <>
+struct NeonVecFor<int32_t> {
+typedef int32x4_t type;
+};
+template <>
+struct NeonVecFor<uint64_t> {
+typedef uint64x2_t type;
+};
+template <>
+struct NeonVecFor<int64_t> {
+typedef int64x2_t type;
+};
+#endif
+#if defined(LIBDIVIDE_NEON)
+#define LIBDIVIDE_DIVIDE_NEON(ALGO, INT_TYPE)                    \
+WJR_INTRINSIC_INLINE typename NeonVecFor<INT_TYPE>::type divide( \
+typename NeonVecFor<INT_TYPE>::type n) const {           \
+return libdivide_##ALGO##_do_vec128(n, &denom);          \
+}
+#else
+#define LIBDIVIDE_DIVIDE_NEON(ALGO, INT_TYPE)
+#endif
+#if defined(LIBDIVIDE_SSE2)
+#define LIBDIVIDE_DIVIDE_SSE2(ALGO)                     \
+WJR_INTRINSIC_INLINE __m128i divide(__m128i n) const {  \
+return libdivide_##ALGO##_do_vec128(n, &denom); \
+}
+#else
+#define LIBDIVIDE_DIVIDE_SSE2(ALGO)
+#endif
+#if defined(LIBDIVIDE_AVX2)
+#define LIBDIVIDE_DIVIDE_AVX2(ALGO)                     \
+WJR_INTRINSIC_INLINE __m256i divide(__m256i n) const {  \
+return libdivide_##ALGO##_do_vec256(n, &denom); \
+}
+#else
+#define LIBDIVIDE_DIVIDE_AVX2(ALGO)
+#endif
+#if defined(LIBDIVIDE_AVX512)
+#define LIBDIVIDE_DIVIDE_AVX512(ALGO)                   \
+WJR_INTRINSIC_INLINE __m512i divide(__m512i n) const {  \
+return libdivide_##ALGO##_do_vec512(n, &denom); \
+}
+#else
+#define LIBDIVIDE_DIVIDE_AVX512(ALGO)
+#endif
+#define DISPATCHER_GEN(T, ALGO)                                                       \
+libdivide_##ALGO##_t denom;                                                       \
+WJR_INTRINSIC_INLINE dispatcher() {}                                                  \
+WJR_INTRINSIC_INLINE dispatcher(T d) : denom(libdivide_##ALGO##_gen(d)) {}            \
+WJR_INTRINSIC_INLINE T divide(T n) const { return libdivide_##ALGO##_do(n, &denom); } \
+WJR_INTRINSIC_INLINE T recover() const { return libdivide_##ALGO##_recover(&denom); } \
+LIBDIVIDE_DIVIDE_NEON(ALGO, T)                                                    \
+LIBDIVIDE_DIVIDE_SSE2(ALGO)                                                       \
+LIBDIVIDE_DIVIDE_AVX2(ALGO)                                                       \
+LIBDIVIDE_DIVIDE_AVX512(ALGO)
+template <typename _IntT, Branching ALGO>
+struct dispatcher {};
+template <>
+struct dispatcher<int16_t, BRANCHFULL> {
+DISPATCHER_GEN(int16_t, s16)
+};
+template <>
+struct dispatcher<int16_t, BRANCHFREE> {
+DISPATCHER_GEN(int16_t, s16_branchfree)
+};
+template <>
+struct dispatcher<uint16_t, BRANCHFULL> {
+DISPATCHER_GEN(uint16_t, u16)
+};
+template <>
+struct dispatcher<uint16_t, BRANCHFREE> {
+DISPATCHER_GEN(uint16_t, u16_branchfree)
+};
+template <>
+struct dispatcher<int32_t, BRANCHFULL> {
+DISPATCHER_GEN(int32_t, s32)
+};
+template <>
+struct dispatcher<int32_t, BRANCHFREE> {
+DISPATCHER_GEN(int32_t, s32_branchfree)
+};
+template <>
+struct dispatcher<uint32_t, BRANCHFULL> {
+DISPATCHER_GEN(uint32_t, u32)
+};
+template <>
+struct dispatcher<uint32_t, BRANCHFREE> {
+DISPATCHER_GEN(uint32_t, u32_branchfree)
+};
+template <>
+struct dispatcher<int64_t, BRANCHFULL> {
+DISPATCHER_GEN(int64_t, s64)
+};
+template <>
+struct dispatcher<int64_t, BRANCHFREE> {
+DISPATCHER_GEN(int64_t, s64_branchfree)
+};
+template <>
+struct dispatcher<uint64_t, BRANCHFULL> {
+DISPATCHER_GEN(uint64_t, u64)
+};
+template <>
+struct dispatcher<uint64_t, BRANCHFREE> {
+DISPATCHER_GEN(uint64_t, u64_branchfree)
+};
+template <typename T, Branching ALGO = BRANCHFULL>
+class divider {
+private:
+typedef dispatcher<T, ALGO> dispatcher_t;
+public:
+divider() = default;
+WJR_INTRINSIC_INLINE divider(T d) : div(d) {}
+WJR_INTRINSIC_INLINE T divide(T n) const { return div.divide(n); }
+T recover() const { return div.recover(); }
+bool operator==(const divider<T, ALGO>& other) const {
+return div.denom.magic == other.denom.magic && div.denom.more == other.denom.more;
+}
+bool operator!=(const divider<T, ALGO>& other) const { return !(*this == other); }
+#if defined(LIBDIVIDE_SSE2)
+WJR_INTRINSIC_INLINE __m128i divide(__m128i n) const { return div.divide(n); }
+#endif
+#if defined(LIBDIVIDE_AVX2)
+WJR_INTRINSIC_INLINE __m256i divide(__m256i n) const { return div.divide(n); }
+#endif
+#if defined(LIBDIVIDE_AVX512)
+WJR_INTRINSIC_INLINE __m512i divide(__m512i n) const { return div.divide(n); }
+#endif
+#if defined(LIBDIVIDE_NEON)
+WJR_INTRINSIC_INLINE typename NeonVecFor<T>::type divide(typename NeonVecFor<T>::type n) const {
+return div.divide(n);
+}
+#endif
+dispatcher_t div;
+};
+template <typename T, Branching ALGO>
+WJR_INTRINSIC_INLINE T operator/(T n, const divider<T, ALGO>& div) {
+return div.divide(n);
+}
+template <typename T, Branching ALGO>
+WJR_INTRINSIC_INLINE T& operator/=(T& n, const divider<T, ALGO>& div) {
+n = div.divide(n);
+return n;
+}
+#if defined(LIBDIVIDE_SSE2)
+template <typename T, Branching ALGO>
+WJR_INTRINSIC_INLINE __m128i operator/(__m128i n, const divider<T, ALGO>& div) {
+return div.divide(n);
+}
+template <typename T, Branching ALGO>
+WJR_INTRINSIC_INLINE __m128i operator/=(__m128i& n, const divider<T, ALGO>& div) {
+n = div.divide(n);
+return n;
+}
+#endif
+#if defined(LIBDIVIDE_AVX2)
+template <typename T, Branching ALGO>
+WJR_INTRINSIC_INLINE __m256i operator/(__m256i n, const divider<T, ALGO>& div) {
+return div.divide(n);
+}
+template <typename T, Branching ALGO>
+WJR_INTRINSIC_INLINE __m256i operator/=(__m256i& n, const divider<T, ALGO>& div) {
+n = div.divide(n);
+return n;
+}
+#endif
+#if defined(LIBDIVIDE_AVX512)
+template <typename T, Branching ALGO>
+WJR_INTRINSIC_INLINE __m512i operator/(__m512i n, const divider<T, ALGO>& div) {
+return div.divide(n);
+}
+template <typename T, Branching ALGO>
+WJR_INTRINSIC_INLINE __m512i operator/=(__m512i& n, const divider<T, ALGO>& div) {
+n = div.divide(n);
+return n;
+}
+#endif
+#if defined(LIBDIVIDE_NEON)
+template <typename T, Branching ALGO>
+WJR_INTRINSIC_INLINE typename NeonVecFor<T>::type operator/(typename NeonVecFor<T>::type n, const divider<T, ALGO>& div) {
+return div.divide(n);
+}
+template <typename T, Branching ALGO>
+WJR_INTRINSIC_INLINE typename NeonVecFor<T>::type operator/=(typename NeonVecFor<T>::type& n, const divider<T, ALGO>& div) {
+n = div.divide(n);
+return n;
+}
+#endif
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
+template <typename T>
+using branchfree_divider = divider<T, BRANCHFREE>;
+#endif
+}  // namespace wjr::libdivide
+#endif  // __cplusplus
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
+#endif  // LIBDIVIDE_H
+
+_WJR_BEGIN
+#ifdef __cpp_lib_bit_cast
+#else
+template <
+typename To,
+typename From,
+std::enable_if_t<
+sizeof(From) == sizeof(To) && std::is_trivially_copyable<To>::value&&
+std::is_trivially_copyable<From>::value,
+int>>
+WJR_INTRINSIC_CONSTEXPR20 To bit_cast(const From& src) noexcept {
 static_assert(std::is_trivially_constructible_v<To>,
 "This implementation additionally requires destination type to be trivially constructible");
 To storage;
@@ -6489,68 +5213,76 @@ else {
 return storage;
 }
 #endif
-template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 constexpr bool has_single_bit(T x) noexcept {
 return x != 0 && (x & (x - 1)) == 0;
 }
-template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int countl_zero(T x) noexcept {
 return wjr::masm::clz(x);
 }
-template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int countl_one(T x) noexcept {
 return wjr::countl_zero(static_cast<T>(~x));
 }
-template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int countr_zero(T x) noexcept {
 return wjr::masm::ctz(x);
 }
-template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int countr_one(T x) noexcept {
 return wjr::countr_zero(static_cast<T>(~x));
 }
-template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int bit_width(T x) noexcept {
 return std::numeric_limits<T>::digits - wjr::countl_zero(x);
 }
-template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) T bit_floor(T x) noexcept {
 if (x != 0) {
 return static_cast<T>(T{ 1 } << (wjr::bit_width(x) - 1));
 }
 return T{ 0 };
 }
-template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) T bit_ceil(T x) noexcept {
 if (x <= 1) {
 return T{ 1 };
 }
 return static_cast<T>(T{ 1 } << wjr::bit_width(x - 1));
 }
-template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int popcount(T x) noexcept {
 return wjr::masm::popcnt(x);
 }
-template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+WJR_ATTRIBUTE(INTRINSIC_E_CONSTEXPR) T adc(T a, T b, T c, T& d) noexcept {
+return wjr::masm::adc(a, b, c, &d);
+}
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+WJR_ATTRIBUTE(INTRINSIC_E_CONSTEXPR) T sbb(T a, T b, T c, T& d) noexcept {
+return wjr::masm::sbb(a, b, c, &d);
+}
+template<typename T, std::enable_if_t<is_standard_numer_v<T>, int>>
 WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) T byteswap(T x) noexcept {
 using value_type = uint_t<8 * sizeof(T)>;
 return bit_cast<T>(wjr::masm::bswap(bit_cast<value_type>(x)));
 }
-template<endian to = endian::native, typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
-WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) T endian_convert(T x, endian from = endian::native) noexcept {
+template<endian to, typename T, std::enable_if_t<is_standard_numer_v<T>, int>>
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) T endian_convert(T x, endian from) noexcept {
 if (from != to) {
 return byteswap(x);
 }
 return x;
 }
-template<endian from, endian to, typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
+template<endian from, endian to, typename T, std::enable_if_t<is_standard_numer_v<T>, int>>
 WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) T endian_convert(T x) noexcept {
 if constexpr (from != to) {
 return byteswap(x);
 }
 return x;
 }
-template<typename T, endian to = endian::native>
+template<typename T, endian to>
 WJR_INTRINSIC_CONSTEXPR20 T read_bytes(const void* ptr) noexcept {
 T value = T{};
 memcpy(std::addressof(value), ptr, sizeof(T));
@@ -6605,7 +5337,65 @@ constexpr bool in_range(T t) noexcept {
 return wjr::cmp_greater_equal(t, std::numeric_limits<R>::min()) &&
 wjr::cmp_less_equal(t, std::numeric_limits<R>::max());
 }
-template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_integrals_v<T>, int>>
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR) T mul(T a, T b, T& hi) {
+if constexpr (sizeof(T) == 8) {
+if constexpr (std::is_signed_v<T>) {
+static_assert(std::is_same_v<T, int64_t>, "");
+return s64x64(a, b, hi);
+}
+else {
+static_assert(std::is_same_v<T, uint64_t>, "");
+return u64x64(a, b, hi);
+}
+}
+else {
+static_assert(sizeof(T) <= 4, "");
+using dT = int_or_uint_t<2 * sizeof(T), std::is_signed_v<T>>;
+dT ret = dT(a) * dT(b);
+hi = ret >> (8 * sizeof(T));
+return T(ret);
+}
+}
+template<typename T, std::enable_if_t<is_integrals_v<T>, int>>
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) T mulhi(T a, T b) {
+if constexpr (sizeof(T) == 8) {
+if constexpr (std::is_signed_v<T>) {
+static_assert(std::is_same_v<T, int64_t>, "");
+return s64x64hi(a, b);
+}
+else {
+static_assert(std::is_same_v<T, uint64_t>, "");
+return u64x64hi(a, b);
+}
+}
+else {
+static_assert(sizeof(T) <= 4, "");
+using dT = int_or_uint_t<2 * sizeof(T), std::is_signed_v<T>>;
+dT ret = dT(a) * dT(b);
+return T(ret >> (8 * sizeof(T)));
+}
+}
+template<typename T, std::enable_if_t<is_integrals_v<T>, int>>
+WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) T mullo(T a, T b) {
+if constexpr (sizeof(T) == 8) {
+if constexpr (std::is_signed_v<T>) {
+static_assert(std::is_same_v<T, int64_t>, "");
+return s64x64lo(a, b);
+}
+else {
+static_assert(std::is_same_v<T, uint64_t>, "");
+return u64x64lo(a, b);
+}
+}
+else {
+static_assert(sizeof(T) <= 4, "");
+using dT = int_or_uint_t<2 * sizeof(T), std::is_signed_v<T>>;
+dT ret = dT(a) * dT(b);
+return T(ret);
+}
+}
+template<typename T, std::enable_if_t<is_standard_numer_v<T>, int>>
 WJR_ATTRIBUTE(NODISCARD, CONST, INLINE, CONSTEXPR) T power(T a, unsigned int b) {
 T ret = 1;
 while (b) {
@@ -6615,21 +5405,6 @@ b >>= 1;
 }
 return ret;
 }
-template<typename T, unsigned int base>
-struct base_digits {
-static_assert(std::is_integral_v<T>, "");
-constexpr static unsigned int value = []() {
-unsigned int ret = 0;
-auto _Max = std::numeric_limits<T>::max();
-while (_Max) {
-++ret;
-_Max /= base;
-}
-return ret;
-}();
-};
-template<typename T, unsigned int base>
-inline constexpr unsigned int base_digits_v = base_digits<T, base>::value;
 template<unsigned int base, unsigned int SIZE>
 struct __width_table {
 constexpr static unsigned int max_size = SIZE;
@@ -6902,7 +5677,7 @@ __width<base, T, get_mid_digits(4), depth - 4, use_table>(a, ret);
 }
 }
 #undef __WIDTH_WORK_GEN
-template<unsigned int base, typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template<unsigned int base, typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 inline constexpr unsigned int base_width(T a) {
 constexpr auto __digits = base_digits_v<T, base>;
 constexpr auto __depth = __width_depth<base, T, __digits>();
@@ -6912,15 +5687,15 @@ unsigned int ret = 1;
 __width<base, T, __digits, __depth, __use_table>(a, ret);
 return ret;
 }
-template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 inline constexpr unsigned int base2_width(T a) {
 return base_width<2>(a);
 }
-template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 inline constexpr unsigned int base10_width(T a) {
 return base_width<10>(a);
 }
-template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 inline constexpr unsigned int base_width(unsigned int b, T a) {
 switch (b) {
 case 2: return base_width<2>(a);
@@ -6945,10 +5720,6 @@ return ret;
 }
 }
 }
-template<typename R, typename T>
-struct broadcast_fn {};
-template<typename R, typename T>
-inline constexpr broadcast_fn<R, T> broadcast{};
 template<>
 struct broadcast_fn<uint8_t, uint8_t> {
 WJR_INTRINSIC_CONSTEXPR uint8_t operator()(uint8_t x)const {
@@ -7010,11 +5781,12 @@ return x * static_cast<uint64_t>(0x0101010101010101ull);
 }
 };
 _WJR_END
-#endif // __WJR_MATH_H__
+
+#endif // __WJR_MATH_H
 
 #pragma once
-#ifndef __WJR_SIMD_SIMD_CAST_H__
-#define __WJR_SIMD_SIMD_CAST_H__
+#ifndef __WJR_SIMD_SIMD_CAST_H
+#define __WJR_SIMD_SIMD_CAST_H
 _WJR_SIMD_BEGIN
 struct lo {};
 struct hi {};
@@ -7124,7 +5896,7 @@ __REGISTER_INTEGER1_CAST(uint64_t, __m256i, __INT64_CVT2_AVX, __AVX_CVT2_INT64);
 #undef __REGISTER_INTEGER1_CAST
 #undef __REGISTER_BASIC_CAST
 _WJR_SIMD_END
-#endif // __WJR_SIMD_SIMD_CAST_H__
+#endif // __WJR_SIMD_SIMD_CAST_H
 
 _WJR_SIMD_BEGIN
 #if WJR_SSE2
@@ -19151,8 +17923,19 @@ _WJR_END
 
 
 #pragma once
-#ifndef __WJR_TP_BNF_H
-#define __WJR_TP_BNF_H
+#ifndef __WJR_PARSE_H
+#define __WJR_PARSE_H
+#pragma once
+#ifndef __WJR_PARSE_LL1_H
+#define __WJR_PARSE_LL1_H
+#define _WJR_PARSE_LL1_BEGIN _WJR_PARSE_BEGIN namespace LL1{
+#define _WJR_PARSE_LL1_END } _WJR_PARSE_END
+#pragma once
+#ifndef __WJR_PARSE_GENERIC_H
+#define __WJR_PARSE_GENERIC_H
+#pragma once
+#ifndef __WJR_SWITCH_H
+#define __WJR_SWITCH_H
 #pragma once
 #ifndef __WJR_TP_LIST_H
 #define __WJR_TP_LIST_H
@@ -20159,77 +18942,249 @@ _WJR_END
 #endif // __WJR_TP_LIST_H
 
 _WJR_BEGIN
-struct tp_bnf_empty {};
+struct switch_fallthrough {};
+struct switch_default {};
+namespace __switch_details {
+#define __WJR_SWITCH_STRATEGY_CASE(X)	                                                                                \
+case (tp_at_t<__clist, (X)>::value) : {																				\
+if constexpr((X) < tp_size_v<IndexList>){	                                                                    \
+constexpr bool __is_fallthrough = tp_contains_v<tp_at_t<StateList, (X)>, switch_fallthrough>;	            \
+if constexpr (__is_fallthrough){	                                                                        \
+(void)(func(tp_size_t<(X)>{}, std::forward<Args>(args)...));	                                        \
+}else {	                                                                                                    \
+return static_cast<Ret>(func(tp_size_t<(X)>{}, std::forward<Args>(args)...));	                        \
+WJR_UNREACHABLE;	                                                                                    \
+}	                                                                                                        \
+}	                                                                                                            \
+else if constexpr(!Default){WJR_UNREACHABLE;}	                                                                \
+WJR_FALLTHROUGH;	                                                                                            \
+}
+#define __WJR_CALL1(CASE, I)     \
+CASE(I)
+#define __WJR_CALL2(CASE, I)     \
+__WJR_CALL1(CASE, I);	         \
+__WJR_CALL1(CASE, I + 1)
+#define __WJR_CALL4(CASE, I)     \
+__WJR_CALL2(CASE, I);	         \
+__WJR_CALL2(CASE, I + 2)
+#define __WJR_CALL8(CASE, I)     \
+__WJR_CALL4(CASE, I);	         \
+__WJR_CALL4(CASE, I + 4)
+#define __WJR_CALL16(CASE, I)    \
+__WJR_CALL8(CASE, I);	         \
+__WJR_CALL8(CASE, I + 8)
+#define __WJR_CALL32(CASE, I)    \
+__WJR_CALL8(CASE, I);	         \
+__WJR_CALL8(CASE, I + 16)
+#define __WJR_CALL64(CASE, I)    \
+__WJR_CALL8(CASE, I);	         \
+__WJR_CALL8(CASE, I + 32)
+#define __WJR_CALL128(CASE, I)   \
+__WJR_CALL8(CASE, I);	         \
+__WJR_CALL8(CASE, I + 64)
+#define __WJR_CALL256(CASE, I)   \
+__WJR_CALL8(CASE, I);	         \
+__WJR_CALL8(CASE, I + 128)
+#define __WJR_CALL512(CASE, I)   \
+__WJR_CALL8(CASE, I);	         \
+__WJR_CALL8(CASE, I + 256)
+#define __WJR_CALL1024(CASE, I)  \
+__WJR_CALL8(CASE, I);	         \
+__WJR_CALL8(CASE, I + 512)
+#define __WJR_CALL2048(CASE, I)  \
+__WJR_CALL8(CASE, I);	         \
+__WJR_CALL8(CASE, I + 1024)
+#define __WJR_CALL4096(CASE, I)  \
+__WJR_CALL8(CASE, I);	         \
+__WJR_CALL8(CASE, I + 2048)
+#define __WJR_CALL8192(CASE, I)  \
+__WJR_CALL8(CASE, I);	         \
+__WJR_CALL8(CASE, I + 4096)
+#define __WJR_CALL16384(CASE, I) \
+__WJR_CALL8(CASE, I);	         \
+__WJR_CALL8(CASE, I + 8192)
+#define __WJR_SWITCH_STRATEGY_CASES(N)	                                                 \
+switch(token){	                                                                     \
+WJR_MACRO_CONCAT(__WJR_CALL, N)(__WJR_SWITCH_STRATEGY_CASE, 0)	                 \
+default:{	                                                                         \
+if constexpr(Default){	                                                         \
+return static_cast<Ret>(func(switch_default{}, std::forward<Args>(args)...));\
+}	                                                                             \
+WJR_UNREACHABLE;	                                                                 \
+}	                                                                                 \
+}
+template<int S>
+struct switch_strategy;
+template<size_t I>
+struct __complete_helper {
+template<typename T>
+using fn = tp_equal_c<T, tp_size_t<I>>;
+};
+template<size_t N, size_t I, typename IndexList>
+constexpr auto __complete() {
+if constexpr (N == tp_size_v<IndexList>) return IndexList{};
+else {
+if constexpr (tp_find_if_v<IndexList, __complete_helper<I>::template fn> != -1) {
+return __complete<N, I + 1, IndexList>();
+}
+else {
+return __complete<N, I + 1, tp_push_back_t<IndexList, tp_size_t<I>>>();
+}
+}
+}
+#define __WJR_SWITCH_STRATEGY(N)	                                                                     \
+template<>	                                                                                         \
+struct switch_strategy<(base2_width<unsigned int>(N) - 1)> {	                                     \
+template<typename Ret, typename IndexList, bool Default, typename StateList,	                 \
+typename Token, typename Func, typename...Args>	                                             \
+inline constexpr static Ret invoke(Token token, Func func, Args&&...args) {						 \
+constexpr auto __value = __complete<(N), 0, IndexList>();	                                 \
+using __clist = WJR_PRIMITIVE_TYPE(__value);	                                             \
+__WJR_SWITCH_STRATEGY_CASES(N);	                                                             \
+}	                                                                                             \
+};
+WJR_MACRO_CALL(__WJR_SWITCH_STRATEGY, , 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384);
+#undef __WJR_CALL1
+#undef __WJR_CALL2
+#undef __WJR_CALL4
+#undef __WJR_CALL8
+#undef __WJR_CALL16
+#undef __WJR_CALL32
+#undef __WJR_CALL64
+#undef __WJR_CALL128
+#undef __WJR_CALL256
+#undef __WJR_CALL512
+#undef __WJR_CALL1024
+#undef __WJR_CALL2048
+#undef __WJR_CALL4096
+#undef __WJR_CALL8192
+#undef __WJR_CALL16384
+#undef __WJR_SWITCH_STRATEGY_CASE
+#undef __WJR_SWITCH_STRATEGY
+}
+template<typename IndexList, bool Default, typename StateList>
+struct switch_invoke_fn {
+static_assert(tp_size_v<IndexList> == tp_size_v<StateList>, "");
+constexpr static size_t size() { return tp_size_v<IndexList>; }
+static_assert(size() >= 1, "");
+private:
+template<typename T>
+using __remove_if = tp_contains<tp_at_t<StateList, tp_front_t<T>::value>, switch_fallthrough>;
+constexpr static int __strategy = base2_width<unsigned int>(size() - 1);
+static_assert(size() <= ((size_t)1 << __strategy), "");
+template<typename T, typename Func, typename...Args>
+constexpr static auto __get_ret_list() {
+if constexpr (Default) {
+return tp_push_back_t<T, std::invoke_result_t<Func, switch_default, Args&&...>>{};
+}
+else return T{};
+}
+public:
+template<typename Token, typename Func, typename...Args>
+inline constexpr decltype(auto) operator()(Token token, Func func, Args&&...args) const {
+using RetList = tp_transform_f<tp_iota_t<0, size()>,
+tp_bind<std::invoke_result_t, Func, tp_arg<0>, Args&&...>>;
+using ZipFilterRetList = tp_remove_if_t<tp_zip_t<tp_list, tp_iota_t<0, size()>, RetList>, __remove_if>;
+using _FilterRetList = tp_transform_t<ZipFilterRetList, tp_back_t>;
+constexpr auto __value = __get_ret_list<_FilterRetList, Func, Args&&...>();
+using FilterRetList = WJR_PRIMITIVE_TYPE(__value);
+using UniqueRetList = tp_unique_t<FilterRetList>;
+if constexpr (tp_is_empty_v<UniqueRetList>) {
+return __switch_details::switch_strategy<__strategy>
+::template invoke<void, IndexList, Default, StateList>(token,
+func, std::forward<Args>(args)...);
+}
+else {
+static_assert(tp_size_v<UniqueRetList> == 1, "");
+using Ret = tp_front_t<UniqueRetList>;
+return __switch_details::switch_strategy<__strategy>
+::template invoke<Ret, IndexList, Default, StateList>(token,
+func, std::forward<Args>(args)...);
+}
+}
+};
+template<typename IndexList, bool Default = false,
+typename StateList = tp_repeat_t<tp_list<tp_list<>>, tp_size_v<IndexList>>>
+inline constexpr switch_invoke_fn<IndexList, Default, StateList> switch_invoke{};
+_WJR_END
+#endif // __WJR_SWITCH_H
+
+_WJR_PARSE_BEGIN
+struct empty {};
+_WJR_PARSE_END
+#endif // __WJR_PARSE_GENERIC_H
+
+_WJR_PARSE_LL1_BEGIN
 template<typename BNF>
-struct tp_bnf_non_terminator {
+struct non_terminator_list {
 using type = tp_unique_t<tp_transform_t<BNF, tp_front_t>>;
 };
 template<typename BNF>
-using tp_bnf_non_terminator_t = typename tp_bnf_non_terminator<BNF>::type;
+using non_terminator_list_t = typename non_terminator_list<BNF>::type;
 template<typename BNF, typename T>
-inline constexpr size_t tp_bnf_find_non_terminator_v = tp_find_v<tp_bnf_non_terminator_t<BNF>, T>;
+inline constexpr size_t find_non_terminator_v = tp_find_v<non_terminator_list_t<BNF>, T>;
 template<typename BNF, typename T>
-inline constexpr bool tp_bnf_is_non_terminator_v = tp_bnf_find_non_terminator_v<BNF, T> != -1;
+inline constexpr bool is_non_terminator_v = find_non_terminator_v<BNF, T> != -1;
 template<typename BNF>
-struct tp_bnf_terminator {
+struct terminator_list {
 using type = tp_set_difference_t<
 tp_left_fold_t<tp_transform_t<BNF, tp_pop_front_t>, tp_list<>, tp_set_union_t>,
-tp_bnf_non_terminator_t<BNF>
+non_terminator_list_t<BNF>
 >;
 };
 template<typename BNF>
-using tp_bnf_terminator_t = typename tp_bnf_terminator<BNF>::type;
+using terminator_list_t = typename terminator_list<BNF>::type;
 template<typename BNF, typename T>
-inline constexpr size_t tp_bnf_find_terminator_v = tp_find_v<tp_bnf_terminator_t<BNF>, T>;
+inline constexpr size_t find_terminator_v = tp_find_v<terminator_list_t<BNF>, T>;
 template<typename BNF, typename T>
-inline constexpr bool tp_bnf_is_terminator_v = tp_bnf_find_terminator_v<BNF, T> != -1;
+inline constexpr bool is_terminator_v = find_terminator_v<BNF, T> != -1;
 template<typename BNF, typename FIRST, typename LAST_FIRST>
-inline constexpr auto __tp_bnf_first_helper();
+inline constexpr auto __first_helper();
 template<typename BNF, typename E, typename FIRST>
-inline constexpr auto __tp_bnf_first_helper2();
+inline constexpr auto __first_helper2();
 template<typename BNF, typename FA, typename SON, typename FIRST>
-inline constexpr auto __tp_bnf_first_helper3();
+inline constexpr auto __first_helper3();
 template<typename BNF, typename FIRST, typename LAST_FIRST>
-inline constexpr auto __tp_bnf_first_helper() {
+inline constexpr auto __first_helper() {
 if constexpr (std::is_same_v<FIRST, LAST_FIRST>) {
 return FIRST{};
 }
 else {
-constexpr auto __value = __tp_bnf_first_helper2<BNF, BNF, FIRST>();
+constexpr auto __value = __first_helper2<BNF, BNF, FIRST>();
 using __type = WJR_PRIMITIVE_TYPE(__value);
-return __tp_bnf_first_helper<BNF, __type, FIRST>();
+return __first_helper<BNF, __type, FIRST>();
 }
 }
 template<typename BNF, typename E, typename FIRST>
-inline constexpr auto __tp_bnf_first_helper2() {
+inline constexpr auto __first_helper2() {
 constexpr auto len = tp_size_v<E>;
 if constexpr (len == 0) {
 return FIRST{};
 }
 else {
 using front = tp_front_t<E>;
-constexpr auto __value = __tp_bnf_first_helper3<BNF, tp_front_t<front>, tp_pop_front_t<front>, FIRST>();
+constexpr auto __value = __first_helper3<BNF, tp_front_t<front>, tp_pop_front_t<front>, FIRST>();
 using __type = WJR_PRIMITIVE_TYPE(__value);
-return __tp_bnf_first_helper2<BNF, tp_pop_front_t<E>, __type>();
+return __first_helper2<BNF, tp_pop_front_t<E>, __type>();
 }
 }
 template<typename BNF, typename FA, typename SON, typename FIRST>
-inline constexpr auto __tp_bnf_first_helper3() {
+inline constexpr auto __first_helper3() {
 constexpr auto len = tp_size_v<SON>;
 if constexpr (len == 0) {
 return FIRST{};
 }
 else {
 using front = tp_front_t<SON>;
-constexpr auto idx = tp_bnf_find_non_terminator_v<BNF, FA>;
-if constexpr (tp_bnf_is_terminator_v<BNF, front>) {
+constexpr auto idx = find_non_terminator_v<BNF, FA>;
+if constexpr (is_terminator_v<BNF, front>) {
 return tp_replace_at_t<FIRST, idx, tp_set_push_back_t<tp_at_t<FIRST, idx>, front>>();
 }
 else {
-constexpr auto idx2 = tp_bnf_find_non_terminator_v<BNF, front>;
+constexpr auto idx2 = find_non_terminator_v<BNF, front>;
 using __type1 = tp_replace_at_t<FIRST, idx, tp_set_union_t<tp_at_t<FIRST, idx>, tp_at_t<FIRST, idx2>>>;
-if constexpr (tp_contains_v<tp_at_t<FIRST, idx2>, tp_bnf_empty>) {
-constexpr auto __value = __tp_bnf_first_helper2<BNF, FA, tp_pop_front_t<SON>, __type1>();
+if constexpr (tp_contains_v<tp_at_t<FIRST, idx2>, empty>) {
+constexpr auto __value = __first_helper2<BNF, FA, tp_pop_front_t<SON>, __type1>();
 using __type2 = WJR_PRIMITIVE_TYPE(__value);
 return __type2();
 }
@@ -20240,105 +19195,129 @@ return __type1();
 }
 }
 template<typename BNF>
-struct tp_bnf_first {
+struct first {
 private:
-constexpr static auto __value = __tp_bnf_first_helper<BNF,
-tp_repeat_t<tp_list<tp_list<>>, tp_size_v<tp_bnf_non_terminator_t<BNF>>>,
+constexpr static auto __value = __first_helper<BNF,
+tp_repeat_t<tp_list<tp_list<>>, tp_size_v<non_terminator_list_t<BNF>>>,
 void>();
 public:
 using type = WJR_PRIMITIVE_TYPE(__value);
 };
 template<typename BNF>
-using tp_bnf_first_t = typename tp_bnf_first<BNF>::type;
+using first_t = typename first<BNF>::type;
+template<typename BNF, typename E>
+struct get_first;
+template<typename BNF,  typename E>
+using get_first_t = typename get_first<BNF, E>::type;
+template<typename BNF, typename T, typename Enable>
+struct __get_first_helper2 {
+using type = tp_at_t<first_t<BNF>, find_non_terminator_v<BNF, T>>;
+};
+template<typename BNF, typename T>
+struct __get_first_helper2<BNF, T, std::enable_if_t<is_terminator_v<BNF, T>, void>> {
+using type = tp_list<T>;
+};
+template<typename BNF, typename E>
+struct __get_first_helper {
+using type = typename __get_first_helper2<BNF, tp_front_t<E>, void>::type;
+};
+template<typename BNF, typename...Args>
+struct __get_first_helper<BNF, tp_list<empty, Args...>> {
+using type = typename __get_first_helper2<BNF, tp_list<Args...>, void>::type;
+};
+template<typename BNF, typename T>
+struct __get_first_helper<BNF, tp_list<T>> {
+using type = typename __get_first_helper2<BNF, T, void>::type;
+};
 template<typename BNF>
-struct tp_bnf_start;
+struct __get_first_helper<BNF, tp_list<empty>> {
+using type = typename __get_first_helper2<BNF, empty, void>::type;
+};
+template<typename BNF, typename E>
+struct get_first {
+using type = typename __get_first_helper<BNF, E>::type;
+};
 template<typename BNF>
-using tp_bnf_start_t = typename tp_bnf_start<BNF>::type;
-template<typename BNF, typename FIRST, typename FOLLOW, typename LAST_FOLLOW>
-inline constexpr auto __tp_bnf_follow_helper();
-template<typename BNF, typename FIRST, typename E, typename FOLLOW>
-inline constexpr auto __tp_bnf_follow_helper2();
-template<typename BNF, typename FIRST, typename FA, typename SON, typename FOLLOW>
-inline constexpr auto __tp_bnf_follow_helper3();
-template<typename BNF, typename FIRST, typename FOLLOW, typename LAST_FOLLOW>
-inline constexpr auto __tp_bnf_follow_helper() {
+struct start;
+template<typename BNF>
+using start_t = typename start<BNF>::type;
+template<typename BNF, typename FOLLOW, typename LAST_FOLLOW>
+inline constexpr auto __follow_helper();
+template<typename BNF, typename E, typename FOLLOW>
+inline constexpr auto __follow_helper2();
+template<typename BNF, typename FA, typename SON, typename FOLLOW>
+inline constexpr auto __follow_helper3();
+template<typename BNF, typename FOLLOW, typename LAST_FOLLOW>
+inline constexpr auto __follow_helper() {
 if constexpr (std::is_same_v<FOLLOW, LAST_FOLLOW>) {
 return FOLLOW{};
 }
 else {
-constexpr auto __value = __tp_bnf_follow_helper2<BNF, FIRST, BNF, FOLLOW>();
+constexpr auto __value = __follow_helper2<BNF, BNF, FOLLOW>();
 using __type = WJR_PRIMITIVE_TYPE(__value);
-return __tp_bnf_follow_helper<BNF, FIRST, __type, FOLLOW>();
+return __follow_helper<BNF, __type, FOLLOW>();
 }
 }
-template<typename BNF, typename FIRST, typename E, typename FOLLOW>
-inline constexpr auto __tp_bnf_follow_helper2() {
+template<typename BNF, typename E, typename FOLLOW>
+inline constexpr auto __follow_helper2() {
 constexpr auto len = tp_size_v<E>;
 if constexpr (len == 0) {
 return FOLLOW{};
 }
 else {
 using front = tp_front_t<E>;
-constexpr auto __value = __tp_bnf_follow_helper3<BNF, FIRST, tp_front_t<front>, tp_pop_front_t<front>, FOLLOW>();
+constexpr auto __value = __follow_helper3<BNF, tp_front_t<front>, tp_pop_front_t<front>, FOLLOW>();
 using __type = WJR_PRIMITIVE_TYPE(__value);
-return __tp_bnf_follow_helper2<BNF, FIRST, tp_pop_front_t<E>, __type>();
+return __follow_helper2<BNF, tp_pop_front_t<E>, __type>();
 }
 }
-template<typename BNF, typename FIRST, typename FA, typename SON, typename FOLLOW>
-inline constexpr auto __tp_bnf_follow_helper3() {
+template<typename BNF, typename FA, typename SON, typename FOLLOW>
+inline constexpr auto __follow_helper3() {
 constexpr auto len = tp_size_v<SON>;
 if constexpr (len == 0) {
 return FOLLOW{};
 }
 else {
-constexpr auto idx0 = tp_bnf_find_non_terminator_v<BNF, FA>;
+constexpr auto idx0 = find_non_terminator_v<BNF, FA>;
 using first = tp_front_t<SON>;
-if constexpr (tp_bnf_is_terminator_v<BNF, first>) {
-return __tp_bnf_follow_helper3<BNF, FIRST, FA, tp_pop_front_t<SON>, FOLLOW>();
+if constexpr (is_terminator_v<BNF, first>) {
+return __follow_helper3<BNF, FA, tp_pop_front_t<SON>, FOLLOW>();
 }
 else {
-constexpr auto idx1 = tp_bnf_find_non_terminator_v<BNF, first>;
+constexpr auto idx1 = find_non_terminator_v<BNF, first>;
 if constexpr (len == 1) {
 return tp_replace_at_t<FOLLOW, idx1, tp_set_union_t<tp_at_t<FOLLOW, idx1>, tp_at_t<FOLLOW, idx0>>>{};
 }
 else {
-using second = tp_at_t<SON, 1>;
-if constexpr (tp_bnf_is_terminator_v<BNF, second>) {
-using __type = tp_replace_at_t<FOLLOW, idx1, tp_set_push_back_t<tp_at_t<FOLLOW, idx1>, second>>;
-return __tp_bnf_follow_helper3<BNF, FIRST, FA, tp_pop_front_t<SON>, __type>();
-}
-else {
-constexpr auto idx2 = tp_bnf_find_non_terminator_v<BNF, second>;
+using second_first = get_first_t<BNF, tp_pop_front_t<SON>>;
 using __type = tp_set_union_t<tp_at_t<FOLLOW, idx1>,
-tp_remove_t<tp_at_t<FIRST, idx2>, tp_bnf_empty>>;
-if constexpr (tp_contains_v<tp_at_t<FIRST, idx2>, tp_bnf_empty>) {
+tp_remove_t<second_first, empty>>;
+if constexpr (tp_contains_v<second_first, empty>) {
 using __type2 = tp_replace_at_t<FOLLOW, idx1, tp_set_union_t<__type, tp_at_t<FOLLOW, idx0>>>;
-return __tp_bnf_follow_helper3<BNF, FIRST, FA, tp_pop_front_t<SON>, __type2>();
+return __follow_helper3<BNF, FA, tp_pop_front_t<SON>, __type2>();
 }
 else {
 using __type2 = tp_replace_at_t<FOLLOW, idx1, __type>;
-return __tp_bnf_follow_helper3<BNF, FIRST, FA, tp_pop_front_t<SON>, __type2>();
-}
+return __follow_helper3<BNF, FA, tp_pop_front_t<SON>, __type2>();
 }
 }
 }
 }
 }
 template<typename BNF>
-struct tp_bnf_follow {
+struct follow {
 private:
-using __follow = tp_repeat_t<tp_list<tp_list<>>, tp_size_v<tp_bnf_non_terminator_t<BNF>>>;
-constexpr static auto __value = __tp_bnf_follow_helper<BNF,
-tp_bnf_first_t<BNF>,
+using __follow = tp_repeat_t<tp_list<tp_list<>>, tp_size_v<non_terminator_list_t<BNF>>>;
+constexpr static auto __value = __follow_helper<BNF,
 __follow,
 void>();
 public:
 using type = WJR_PRIMITIVE_TYPE(__value);
 };
 template<typename BNF>
-using tp_bnf_follow_t = typename tp_bnf_follow<BNF>::type;
+using follow_t = typename follow<BNF>::type;
 template<typename BNF, typename E, typename SELECT>
-inline constexpr auto __tp_bnf_select_helper() {
+inline constexpr auto __select_helper() {
 constexpr auto len = tp_size_v<E>;
 if constexpr (len == 0) {
 return SELECT{};
@@ -20347,133 +19326,88 @@ else {
 using first = tp_front_t<E>;
 using fa = tp_front_t<first>;
 using son = tp_pop_front_t<first>;
-using son_first = tp_front_t<son>;
-using NT = tp_bnf_non_terminator_t<BNF>;
-using FIRST = tp_bnf_first_t<BNF>;
-using FOLLOW = tp_bnf_follow_t<BNF>;
+using NT = non_terminator_list_t<BNF>;
+using FOLLOW = follow_t<BNF>;
 constexpr auto idx0 = tp_find_v<NT, fa>;
-if constexpr (tp_bnf_is_terminator_v<BNF, son_first>) {
-if constexpr (std::is_same_v<son_first, tp_bnf_empty>) {
+using __first = get_first_t<BNF, son>;
+if constexpr (tp_contains_v<__first, empty>) {
 using __follow = tp_at_t<FOLLOW, idx0>;
-return __tp_bnf_select_helper<BNF, tp_pop_front_t<E>, tp_push_back_t<SELECT, __follow>>();
+using __select = tp_push_back_t<SELECT, tp_set_union_t<tp_remove_t<__first, empty>, __follow>>;
+return __select_helper<BNF, tp_pop_front_t<E>, __select>();
 }
 else {
-return __tp_bnf_select_helper<BNF, tp_pop_front_t<E>, tp_push_back_t<SELECT, tp_list<son_first>>>();
-}
-}
-else {
-constexpr auto idx1 = tp_find_v<NT, son_first>;
-if constexpr (tp_contains_v<tp_at_t<FIRST, idx1>, tp_bnf_empty>) {
-using __follow = tp_at_t<FOLLOW, idx0>;
-using __select = tp_set_union_t<tp_remove_t<tp_at_t<FIRST, idx1>, tp_bnf_empty>, __follow>;
-return __tp_bnf_select_helper<BNF, tp_pop_front_t<E>, tp_push_back_t<SELECT, __select>>();
-}
-else {
-using __select = tp_at_t<FIRST, idx1>;
-return __tp_bnf_select_helper<BNF, tp_pop_front_t<E>, tp_push_back_t<SELECT, __select>>();
-}
+using __select = tp_push_back_t<SELECT, __first>;
+return __select_helper<BNF, tp_pop_front_t<E>, __select>();
 }
 }
 }
 template<typename BNF>
-struct tp_bnf_select {
+struct select {
 private:
-constexpr static auto __value = __tp_bnf_select_helper<BNF, BNF, tp_list<>>();
+constexpr static auto __value = __select_helper<BNF, BNF, tp_list<>>();
 public:
 using type = WJR_PRIMITIVE_TYPE(__value);
+static_assert(tp_size_v<type> == tp_size_v<BNF>, "");
 };
 template<typename BNF>
-using tp_bnf_select_t = typename tp_bnf_select<BNF>::type;
-template<typename X, uint8_t MAX, typename Enable>
-struct __tp_bnf_token_map {
-constexpr __tp_bnf_token_map() : m_table() {
-for (uint8_t i = 0; i != MAX; ++i)m_table[i] = -1;
-tp.for_each<X>([this](auto x) {
-using type = WJR_PRIMITIVE_TYPE(x);
-constexpr auto idx = tp_find_v<X, type>;
-this->m_table[idx] = this->m_size++;
-});
-bool f = false;
-for (uint8_t i = 0; i != MAX; ++i) {
-if (m_table[i] == -1) {
-f = true;
-m_table[i] = m_size;
-}
-}
-if (f) {
-++m_size;
-}
-}
-constexpr uint8_t size() const { return m_size; }
+using select_t = typename select<BNF>::type;
+template<typename BNF>
+struct parse_fn {
+using SELECT = select_t<BNF>;
 private:
-uint8_t m_size;
-uint8_t m_table[MAX];
-};
-template<typename X, uint8_t MAX>
-struct __tp_bnf_token_map<X, MAX,
-std::enable_if_t<(tp_size_v<X> * 4 >= MAX), void>> {
-constexpr uint8_t size() const { return MAX; }
-constexpr uint8_t get(uint8_t x)const { return x; }
-};
-template<typename BNF, uint8_t MAX>
-struct tp_bnf_token_map {
-private:
-constexpr static __tp_bnf_token_map<tp_bnf_non_terminator_t<BNF>, MAX, void> map_x = {};
-constexpr static __tp_bnf_token_map<tp_bnf_terminator_t<BNF>, MAX, void> map_y = {};
+template<typename T, typename ACTION, typename...Args>
+inline constexpr static decltype(auto) invoke(ACTION act, Args&&...args) {
+if constexpr (std::is_same_v<T, disable_tag>) {
+(void)(std::forward<Args>(args), ...);
+return;
+}
+else {
+return act(T{}, std::forward<Args>(args)...);
+}
+}
+template<typename T, typename __SELECT, size_t I, typename __LIST>
+constexpr static auto __get_switch_helper() {
+constexpr auto len = tp_size_v<__SELECT>;
+if constexpr (len == 0) { return __LIST{}; }
+else {
+using front = tp_front_t<__SELECT>;
+using thisT = tp_front_t<tp_at_t<BNF, I>>;
+if constexpr (std::is_same_v<thisT, T> && tp_size_v<front> != 0) {
+auto pre = __LIST{};
+auto aft = tp.accumulate<front>([](auto x, auto l) {
+using typex = WJR_PRIMITIVE_TYPE(x);
+using typel = WJR_PRIMITIVE_TYPE(l);
+using thisT = tp_list<tp_size_t<typex::value>, disable_tag, tp_list<switch_fallthrough>>;
+return tp_push_back_t<typel, thisT>{};
+}, pre);
+using thisList = WJR_PRIMITIVE_TYPE(aft);
+constexpr auto ListSize = tp_size_v<thisList>;
+using Last = tp_at_t<thisList, ListSize - 1>;
+using List = tp_replace_at_t<thisList, ListSize - 1,
+tp_list<tp_front_t<Last>, tp_size_t<I>, tp_list<>>>;
+return __get_switch_helper<T, tp_pop_front_t<__SELECT>, I + 1, List>();
+}
+else return __get_switch_helper<T, tp_pop_front_t<__SELECT>, I + 1, __LIST>();
+}
+}
 public:
-constexpr static uint8_t sizex() { return map_x.size(); }
-constexpr static uint8_t sizey() { return map_y.size(); }
-constexpr static uint8_t getx(uint8_t x) { return map_x.get(x); }
-constexpr static uint8_t gety(uint8_t y) { return map_y.get(y); }
+template<typename T, typename ACTION, typename...Args>
+inline constexpr decltype(auto) operator()(T, size_t token, ACTION act, Args&&...args) const {
+constexpr auto __value = __get_switch_helper<T, SELECT, 0, tp_list<>>();
+using __switch = WJR_PRIMITIVE_TYPE(__value);
+using __index = tp_transform_t<__switch, tp_front_t>;
+using __state = tp_transform_t<__switch, tp_back_t>;
+return switch_invoke<__index, false, __state>(token, [](auto I, auto&&...args) {
+return invoke<tp_at_t<tp_at_t<__switch, I>, 1>>(std::forward<decltype(args)>(args)...);
+}, act, std::forward<Args>(args)...);
+}
 };
-template<typename BNF, uint8_t MAX>
-class tp_bnf_prediction_table {
-constexpr static tp_bnf_token_map<BNF, MAX> m_map = {};
-public:
-using non_terminal_t = tp_bnf_non_terminator_t<BNF>;
-using terminal_t = tp_bnf_terminator_t<BNF>;
-using FIRST = tp_bnf_first_t<BNF>;
-using FOLLOW = tp_bnf_follow_t<BNF>;
-using SELECT = tp_bnf_select_t<BNF>;
-constexpr static size_t non_terminal_size = tp_size_v<tp_bnf_non_terminator_t<BNF>>;
-constexpr static size_t terminal_size = tp_size_v<tp_bnf_terminator_t<BNF>>;
-constexpr static size_t edge_size = tp_size_v<BNF>;
-template<typename T>
-constexpr static size_t find_non_terminal_v = tp_find_v<non_terminal_t, T>;
-template<size_t idx>
-using non_terminal_at = tp_at_t<non_terminal_t, idx>;
-template<typename T>
-constexpr static size_t find_terminal_v = tp_find_v<terminal_t, T>;
-template<size_t idx>
-using terminal_at = tp_at_t<terminal_t, idx>;
-constexpr tp_bnf_prediction_table() : m_table() {
-for (int i = 0; i < sizex(); ++i) {
-for (int j = 0; j < sizex(); ++j) {
-m_table[i][j] = -1;
-}
-}
-tp.for_each<tp_zip_t<tp_list, tp_iota_t<0, edge_size>, SELECT>>([this](auto x) {
-using type = WJR_PRIMITIVE_TYPE(x);
-using select = tp_back_t<type>;
-tp.for_each<select>([this](auto x) {
-constexpr auto idx = tp_front_t<type>::value;
-using edge = tp_at_t<BNF, idx>;
-using fa = tp_front_t<edge>;
-this->m_table[getx(fa{})][gety(x)] = idx;
-});
-});
-}
-constexpr static size_t sizex() { return m_map.sizex(); }
-constexpr static size_t sizey() { return m_map.sizey(); }
-constexpr static uint8_t getx(uint8_t c) { return m_map.getx(c); }
-constexpr static uint8_t gety(uint8_t c) { return m_map.gety(c); }
-constexpr uint8_t get(uint8_t a, uint8_t b) const { return m_table[a][b]; }
-constexpr const uint8_t* operator[](uint8_t a) const { return m_table[a]; }
-private:
-uint8_t m_table[sizex()][sizey()];
-};
-_WJR_END
-#endif // __WJR_TP_BNF_H
+template<typename BNF>
+inline constexpr parse_fn<BNF> parse{};
+_WJR_PARSE_LL1_END
+#endif // __WJR_PARSE_LL1_H
+
+#endif // __WJR_PARSE_H
 
 #pragma once
 #ifndef __WJR_JSON_H
@@ -20483,6 +19417,3884 @@ _WJR_END
 #ifndef __WJR_STRING_FUNC_H
 #define __WJR_STRING_FUNC_H
 #include <optional>
+#ifndef DOUBLE_CONVERSION_DOUBLE_CONVERSION_H_
+#define DOUBLE_CONVERSION_DOUBLE_CONVERSION_H_
+#ifndef DOUBLE_CONVERSION_STRING_TO_DOUBLE_H_
+#define DOUBLE_CONVERSION_STRING_TO_DOUBLE_H_
+#ifndef DOUBLE_CONVERSION_UTILS_H_
+#define DOUBLE_CONVERSION_UTILS_H_
+#include <cstdlib>
+#include <cstring>
+#if __cplusplus >= 201103L
+#define DOUBLE_CONVERSION_NULLPTR nullptr
+#else
+#define DOUBLE_CONVERSION_NULLPTR NULL
+#endif
+#include <cassert>
+#ifndef DOUBLE_CONVERSION_ASSERT
+#define DOUBLE_CONVERSION_ASSERT(condition)         \
+assert(condition)
+#endif
+#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(ASSERT)
+#define ASSERT DOUBLE_CONVERSION_ASSERT
+#endif
+#ifndef DOUBLE_CONVERSION_UNIMPLEMENTED
+#define DOUBLE_CONVERSION_UNIMPLEMENTED() (abort())
+#endif
+#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(UNIMPLEMENTED)
+#define UNIMPLEMENTED DOUBLE_CONVERSION_UNIMPLEMENTED
+#endif
+#ifndef DOUBLE_CONVERSION_NO_RETURN
+#ifdef _MSC_VER
+#define DOUBLE_CONVERSION_NO_RETURN __declspec(noreturn)
+#else
+#define DOUBLE_CONVERSION_NO_RETURN __attribute__((noreturn))
+#endif
+#endif
+#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(NO_RETURN)
+#define NO_RETURN DOUBLE_CONVERSION_NO_RETURN
+#endif
+#ifndef DOUBLE_CONVERSION_UNREACHABLE
+#ifdef _MSC_VER
+void DOUBLE_CONVERSION_NO_RETURN abort_noreturn();
+inline void abort_noreturn() { abort(); }
+#define DOUBLE_CONVERSION_UNREACHABLE()   (abort_noreturn())
+#else
+#define DOUBLE_CONVERSION_UNREACHABLE()   (abort())
+#endif
+#endif
+#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(UNREACHABLE)
+#define UNREACHABLE DOUBLE_CONVERSION_UNREACHABLE
+#endif
+#ifdef __has_attribute
+#   define DOUBLE_CONVERSION_HAS_ATTRIBUTE(x) __has_attribute(x)
+#else
+#   define DOUBLE_CONVERSION_HAS_ATTRIBUTE(x) 0
+#endif
+#ifndef DOUBLE_CONVERSION_UNUSED
+#if DOUBLE_CONVERSION_HAS_ATTRIBUTE(unused)
+#define DOUBLE_CONVERSION_UNUSED __attribute__((unused))
+#else
+#define DOUBLE_CONVERSION_UNUSED
+#endif
+#endif
+#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(UNUSED)
+#define UNUSED DOUBLE_CONVERSION_UNUSED
+#endif
+#if DOUBLE_CONVERSION_HAS_ATTRIBUTE(uninitialized)
+#define DOUBLE_CONVERSION_STACK_UNINITIALIZED __attribute__((uninitialized))
+#else
+#define DOUBLE_CONVERSION_STACK_UNINITIALIZED
+#endif
+#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(STACK_UNINITIALIZED)
+#define STACK_UNINITIALIZED DOUBLE_CONVERSION_STACK_UNINITIALIZED
+#endif
+/*
+double Div_double(double x, double y) { return x / y; }
+double Div_double(double x, double y);  // Forward declaration.
+int main(int argc, char** argv) {
+return Div_double(89255.0, 1e22) == 89255e-22;
+}
+*/
+#if defined(_M_X64) || defined(__x86_64__) || \
+defined(__ARMEL__) || defined(__avr32__) || defined(_M_ARM) || defined(_M_ARM64) || \
+defined(__hppa__) || defined(__ia64__) || \
+defined(__mips__) || \
+defined(__loongarch__) || \
+defined(__nios2__) || defined(__ghs) || \
+defined(__powerpc__) || defined(__ppc__) || defined(__ppc64__) || \
+defined(_POWER) || defined(_ARCH_PPC) || defined(_ARCH_PPC64) || \
+defined(__sparc__) || defined(__sparc) || defined(__s390__) || \
+defined(__SH4__) || defined(__alpha__) || \
+defined(_MIPS_ARCH_MIPS32R2) || defined(__ARMEB__) ||\
+defined(__AARCH64EL__) || defined(__aarch64__) || defined(__AARCH64EB__) || \
+defined(__riscv) || defined(__e2k__) || \
+defined(__or1k__) || defined(__arc__) || defined(__ARC64__) || \
+defined(__microblaze__) || defined(__XTENSA__) || \
+defined(__EMSCRIPTEN__) || defined(__wasm32__)
+#define DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS 1
+#elif defined(__mc68000__) || \
+defined(__pnacl__) || defined(__native_client__)
+#undef DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS
+#elif defined(_M_IX86) || defined(__i386__) || defined(__i386)
+#if defined(_WIN32)
+#define DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS 1
+#else
+#undef DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS
+#endif  // _WIN32
+#else
+#error Target architecture was not detected as supported by Double-Conversion.
+#endif
+#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(CORRECT_DOUBLE_OPERATIONS)
+#define CORRECT_DOUBLE_OPERATIONS DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS
+#endif
+#if defined(_WIN32) && !defined(__MINGW32__)
+typedef signed char int8_t;
+typedef unsigned char uint8_t;
+typedef short int16_t;  // NOLINT
+typedef unsigned short uint16_t;  // NOLINT
+typedef int int32_t;
+typedef unsigned int uint32_t;
+typedef __int64 int64_t;
+typedef unsigned __int64 uint64_t;
+#else
+#include <stdint.h>
+#endif
+typedef uint16_t uc16;
+#define DOUBLE_CONVERSION_UINT64_2PART_C(a, b) (((static_cast<uint64_t>(a) << 32) + 0x##b##u))
+#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(UINT64_2PART_C)
+#define UINT64_2PART_C DOUBLE_CONVERSION_UINT64_2PART_C
+#endif
+#ifndef DOUBLE_CONVERSION_ARRAY_SIZE
+#define DOUBLE_CONVERSION_ARRAY_SIZE(a)                                   \
+((sizeof(a) / sizeof(*(a))) /                         \
+static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
+#endif
+#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(ARRAY_SIZE)
+#define ARRAY_SIZE DOUBLE_CONVERSION_ARRAY_SIZE
+#endif
+#ifndef DOUBLE_CONVERSION_DISALLOW_COPY_AND_ASSIGN
+#define DOUBLE_CONVERSION_DISALLOW_COPY_AND_ASSIGN(TypeName)      \
+TypeName(const TypeName&);                    \
+void operator=(const TypeName&)
+#endif
+#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(DC_DISALLOW_COPY_AND_ASSIGN)
+#define DC_DISALLOW_COPY_AND_ASSIGN DOUBLE_CONVERSION_DISALLOW_COPY_AND_ASSIGN
+#endif
+#ifndef DOUBLE_CONVERSION_DISALLOW_IMPLICIT_CONSTRUCTORS
+#define DOUBLE_CONVERSION_DISALLOW_IMPLICIT_CONSTRUCTORS(TypeName) \
+TypeName();                                    \
+DOUBLE_CONVERSION_DISALLOW_COPY_AND_ASSIGN(TypeName)
+#endif
+#if defined(DOUBLE_CONVERSION_NON_PREFIXED_MACROS) && !defined(DC_DISALLOW_IMPLICIT_CONSTRUCTORS)
+#define DC_DISALLOW_IMPLICIT_CONSTRUCTORS DOUBLE_CONVERSION_DISALLOW_IMPLICIT_CONSTRUCTORS
+#endif
+namespace double_conversion {
+inline int StrLength(const char* string) {
+size_t length = strlen(string);
+DOUBLE_CONVERSION_ASSERT(length == static_cast<size_t>(static_cast<int>(length)));
+return static_cast<int>(length);
+}
+template <typename T>
+class Vector {
+public:
+Vector() : start_(DOUBLE_CONVERSION_NULLPTR), length_(0) {}
+Vector(T* data, int len) : start_(data), length_(len) {
+DOUBLE_CONVERSION_ASSERT(len == 0 || (len > 0 && data != DOUBLE_CONVERSION_NULLPTR));
+}
+Vector<T> SubVector(int from, int to) {
+DOUBLE_CONVERSION_ASSERT(to <= length_);
+DOUBLE_CONVERSION_ASSERT(from < to);
+DOUBLE_CONVERSION_ASSERT(0 <= from);
+return Vector<T>(start() + from, to - from);
+}
+int length() const { return length_; }
+bool is_empty() const { return length_ == 0; }
+T* start() const { return start_; }
+T& operator[](int index) const {
+DOUBLE_CONVERSION_ASSERT(0 <= index && index < length_);
+return start_[index];
+}
+T& first() { return start_[0]; }
+T& last() { return start_[length_ - 1]; }
+void pop_back() {
+DOUBLE_CONVERSION_ASSERT(!is_empty());
+--length_;
+}
+private:
+T* start_;
+int length_;
+};
+class StringBuilder {
+public:
+StringBuilder(char* buffer, int buffer_size)
+: buffer_(buffer, buffer_size), position_(0) { }
+~StringBuilder() { if (!is_finalized()) Finalize(); }
+int size() const { return buffer_.length(); }
+int position() const {
+DOUBLE_CONVERSION_ASSERT(!is_finalized());
+return position_;
+}
+void Reset() { position_ = 0; }
+void AddCharacter(char c) {
+DOUBLE_CONVERSION_ASSERT(c != '\0');
+DOUBLE_CONVERSION_ASSERT(!is_finalized() && position_ < buffer_.length());
+buffer_[position_++] = c;
+}
+void AddString(const char* s) {
+AddSubstring(s, StrLength(s));
+}
+void AddSubstring(const char* s, int n) {
+DOUBLE_CONVERSION_ASSERT(!is_finalized() && position_ + n < buffer_.length());
+DOUBLE_CONVERSION_ASSERT(static_cast<size_t>(n) <= strlen(s));
+memmove(&buffer_[position_], s, static_cast<size_t>(n));
+position_ += n;
+}
+void AddPadding(char c, int count) {
+for (int i = 0; i < count; i++) {
+AddCharacter(c);
+}
+}
+char* Finalize() {
+DOUBLE_CONVERSION_ASSERT(!is_finalized() && position_ < buffer_.length());
+buffer_[position_] = '\0';
+DOUBLE_CONVERSION_ASSERT(strlen(buffer_.start()) == static_cast<size_t>(position_));
+position_ = -1;
+DOUBLE_CONVERSION_ASSERT(is_finalized());
+return buffer_.start();
+}
+private:
+Vector<char> buffer_;
+int position_;
+bool is_finalized() const { return position_ < 0; }
+DOUBLE_CONVERSION_DISALLOW_IMPLICIT_CONSTRUCTORS(StringBuilder);
+};
+template <class Dest, class Source>
+Dest BitCast(const Source& source) {
+#if __cplusplus >= 201103L
+static_assert(sizeof(Dest) == sizeof(Source),
+"source and destination size mismatch");
+#else
+DOUBLE_CONVERSION_UNUSED
+typedef char VerifySizesAreEqual[sizeof(Dest) == sizeof(Source) ? 1 : -1];
+#endif
+Dest dest;
+memmove(&dest, &source, sizeof(dest));
+return dest;
+}
+template <class Dest, class Source>
+Dest BitCast(Source* source) {
+return BitCast<Dest>(reinterpret_cast<uintptr_t>(source));
+}
+}  // namespace double_conversion
+#endif  // DOUBLE_CONVERSION_UTILS_H_
+
+namespace double_conversion {
+class StringToDoubleConverter {
+public:
+enum Flags {
+NO_FLAGS = 0,
+ALLOW_HEX = 1,
+ALLOW_OCTALS = 2,
+ALLOW_TRAILING_JUNK = 4,
+ALLOW_LEADING_SPACES = 8,
+ALLOW_TRAILING_SPACES = 16,
+ALLOW_SPACES_AFTER_SIGN = 32,
+ALLOW_CASE_INSENSITIVITY = 64,
+ALLOW_CASE_INSENSIBILITY = 64,  // Deprecated
+ALLOW_HEX_FLOATS = 128,
+};
+static const uc16 kNoSeparator = '\0';
+StringToDoubleConverter(int flags,
+double empty_string_value,
+double junk_string_value,
+const char* infinity_symbol,
+const char* nan_symbol,
+uc16 separator = kNoSeparator)
+: flags_(flags),
+empty_string_value_(empty_string_value),
+junk_string_value_(junk_string_value),
+infinity_symbol_(infinity_symbol),
+nan_symbol_(nan_symbol),
+separator_(separator) {
+}
+double StringToDouble(const char* buffer,
+int length,
+int* processed_characters_count) const;
+double StringToDouble(const uc16* buffer,
+int length,
+int* processed_characters_count) const;
+float StringToFloat(const char* buffer,
+int length,
+int* processed_characters_count) const;
+float StringToFloat(const uc16* buffer,
+int length,
+int* processed_characters_count) const;
+template <typename T>
+T StringTo(const char* buffer,
+int length,
+int* processed_characters_count) const;
+template <typename T>
+T StringTo(const uc16* buffer,
+int length,
+int* processed_characters_count) const;
+private:
+const int flags_;
+const double empty_string_value_;
+const double junk_string_value_;
+const char* const infinity_symbol_;
+const char* const nan_symbol_;
+const uc16 separator_;
+template <class Iterator>
+double StringToIeee(Iterator start_pointer,
+int length,
+bool read_as_double,
+int* processed_characters_count) const;
+DOUBLE_CONVERSION_DISALLOW_IMPLICIT_CONSTRUCTORS(StringToDoubleConverter);
+};
+}  // namespace double_conversion
+#endif  // DOUBLE_CONVERSION_STRING_TO_DOUBLE_H_
+#include <climits>
+#include <locale>
+#include <cmath>
+#ifndef DOUBLE_CONVERSION_DOUBLE_H_
+#define DOUBLE_CONVERSION_DOUBLE_H_
+#ifndef DOUBLE_CONVERSION_DIY_FP_H_
+#define DOUBLE_CONVERSION_DIY_FP_H_
+namespace double_conversion {
+class DiyFp {
+public:
+static const int kSignificandSize = 64;
+DiyFp() : f_(0), e_(0) {}
+DiyFp(const uint64_t significand, const int32_t exponent) : f_(significand), e_(exponent) {}
+void Subtract(const DiyFp& other) {
+DOUBLE_CONVERSION_ASSERT(e_ == other.e_);
+DOUBLE_CONVERSION_ASSERT(f_ >= other.f_);
+f_ -= other.f_;
+}
+static DiyFp Minus(const DiyFp& a, const DiyFp& b) {
+DiyFp result = a;
+result.Subtract(b);
+return result;
+}
+void Multiply(const DiyFp& other) {
+const uint64_t kM32 = 0xFFFFFFFFU;
+const uint64_t a = f_ >> 32;
+const uint64_t b = f_ & kM32;
+const uint64_t c = other.f_ >> 32;
+const uint64_t d = other.f_ & kM32;
+const uint64_t ac = a * c;
+const uint64_t bc = b * c;
+const uint64_t ad = a * d;
+const uint64_t bd = b * d;
+const uint64_t tmp = (bd >> 32) + (ad & kM32) + (bc & kM32) + (1U << 31);
+e_ += other.e_ + 64;
+f_ = ac + (ad >> 32) + (bc >> 32) + (tmp >> 32);
+}
+static DiyFp Times(const DiyFp& a, const DiyFp& b) {
+DiyFp result = a;
+result.Multiply(b);
+return result;
+}
+void Normalize() {
+DOUBLE_CONVERSION_ASSERT(f_ != 0);
+uint64_t significand = f_;
+int32_t exponent = e_;
+const uint64_t k10MSBits = DOUBLE_CONVERSION_UINT64_2PART_C(0xFFC00000, 00000000);
+while ((significand & k10MSBits) == 0) {
+significand <<= 10;
+exponent -= 10;
+}
+while ((significand & kUint64MSB) == 0) {
+significand <<= 1;
+exponent--;
+}
+f_ = significand;
+e_ = exponent;
+}
+static DiyFp Normalize(const DiyFp& a) {
+DiyFp result = a;
+result.Normalize();
+return result;
+}
+uint64_t f() const { return f_; }
+int32_t e() const { return e_; }
+void set_f(uint64_t new_value) { f_ = new_value; }
+void set_e(int32_t new_value) { e_ = new_value; }
+private:
+static const uint64_t kUint64MSB = DOUBLE_CONVERSION_UINT64_2PART_C(0x80000000, 00000000);
+uint64_t f_;
+int32_t e_;
+};
+}  // namespace double_conversion
+#endif  // DOUBLE_CONVERSION_DIY_FP_H_
+
+namespace double_conversion {
+static uint64_t double_to_uint64(double d) { return BitCast<uint64_t>(d); }
+static double uint64_to_double(uint64_t d64) { return BitCast<double>(d64); }
+static uint32_t float_to_uint32(float f) { return BitCast<uint32_t>(f); }
+static float uint32_to_float(uint32_t d32) { return BitCast<float>(d32); }
+class Double {
+public:
+static const uint64_t kSignMask = DOUBLE_CONVERSION_UINT64_2PART_C(0x80000000, 00000000);
+static const uint64_t kExponentMask = DOUBLE_CONVERSION_UINT64_2PART_C(0x7FF00000, 00000000);
+static const uint64_t kSignificandMask = DOUBLE_CONVERSION_UINT64_2PART_C(0x000FFFFF, FFFFFFFF);
+static const uint64_t kHiddenBit = DOUBLE_CONVERSION_UINT64_2PART_C(0x00100000, 00000000);
+static const uint64_t kQuietNanBit = DOUBLE_CONVERSION_UINT64_2PART_C(0x00080000, 00000000);
+static const int kPhysicalSignificandSize = 52;  // Excludes the hidden bit.
+static const int kSignificandSize = 53;
+static const int kExponentBias = 0x3FF + kPhysicalSignificandSize;
+static const int kMaxExponent = 0x7FF - kExponentBias;
+Double() : d64_(0) {}
+explicit Double(double d) : d64_(double_to_uint64(d)) {}
+explicit Double(uint64_t d64) : d64_(d64) {}
+explicit Double(DiyFp diy_fp)
+: d64_(DiyFpToUint64(diy_fp)) {}
+DiyFp AsDiyFp() const {
+DOUBLE_CONVERSION_ASSERT(Sign() > 0);
+DOUBLE_CONVERSION_ASSERT(!IsSpecial());
+return DiyFp(Significand(), Exponent());
+}
+DiyFp AsNormalizedDiyFp() const {
+DOUBLE_CONVERSION_ASSERT(value() > 0.0);
+uint64_t f = Significand();
+int e = Exponent();
+while ((f & kHiddenBit) == 0) {
+f <<= 1;
+e--;
+}
+f <<= DiyFp::kSignificandSize - kSignificandSize;
+e -= DiyFp::kSignificandSize - kSignificandSize;
+return DiyFp(f, e);
+}
+uint64_t AsUint64() const {
+return d64_;
+}
+double NextDouble() const {
+if (d64_ == kInfinity) return Double(kInfinity).value();
+if (Sign() < 0 && Significand() == 0) {
+return 0.0;
+}
+if (Sign() < 0) {
+return Double(d64_ - 1).value();
+} else {
+return Double(d64_ + 1).value();
+}
+}
+double PreviousDouble() const {
+if (d64_ == (kInfinity | kSignMask)) return -Infinity();
+if (Sign() < 0) {
+return Double(d64_ + 1).value();
+} else {
+if (Significand() == 0) return -0.0;
+return Double(d64_ - 1).value();
+}
+}
+int Exponent() const {
+if (IsDenormal()) return kDenormalExponent;
+uint64_t d64 = AsUint64();
+int biased_e =
+static_cast<int>((d64 & kExponentMask) >> kPhysicalSignificandSize);
+return biased_e - kExponentBias;
+}
+uint64_t Significand() const {
+uint64_t d64 = AsUint64();
+uint64_t significand = d64 & kSignificandMask;
+if (!IsDenormal()) {
+return significand + kHiddenBit;
+} else {
+return significand;
+}
+}
+bool IsDenormal() const {
+uint64_t d64 = AsUint64();
+return (d64 & kExponentMask) == 0;
+}
+bool IsSpecial() const {
+uint64_t d64 = AsUint64();
+return (d64 & kExponentMask) == kExponentMask;
+}
+bool IsNan() const {
+uint64_t d64 = AsUint64();
+return ((d64 & kExponentMask) == kExponentMask) &&
+((d64 & kSignificandMask) != 0);
+}
+bool IsQuietNan() const {
+#if (defined(__mips__) && !defined(__mips_nan2008)) || defined(__hppa__)
+return IsNan() && ((AsUint64() & kQuietNanBit) == 0);
+#else
+return IsNan() && ((AsUint64() & kQuietNanBit) != 0);
+#endif
+}
+bool IsSignalingNan() const {
+#if (defined(__mips__) && !defined(__mips_nan2008)) || defined(__hppa__)
+return IsNan() && ((AsUint64() & kQuietNanBit) != 0);
+#else
+return IsNan() && ((AsUint64() & kQuietNanBit) == 0);
+#endif
+}
+bool IsInfinite() const {
+uint64_t d64 = AsUint64();
+return ((d64 & kExponentMask) == kExponentMask) &&
+((d64 & kSignificandMask) == 0);
+}
+int Sign() const {
+uint64_t d64 = AsUint64();
+return (d64 & kSignMask) == 0? 1: -1;
+}
+DiyFp UpperBoundary() const {
+DOUBLE_CONVERSION_ASSERT(Sign() > 0);
+return DiyFp(Significand() * 2 + 1, Exponent() - 1);
+}
+void NormalizedBoundaries(DiyFp* out_m_minus, DiyFp* out_m_plus) const {
+DOUBLE_CONVERSION_ASSERT(value() > 0.0);
+DiyFp v = this->AsDiyFp();
+DiyFp m_plus = DiyFp::Normalize(DiyFp((v.f() << 1) + 1, v.e() - 1));
+DiyFp m_minus;
+if (LowerBoundaryIsCloser()) {
+m_minus = DiyFp((v.f() << 2) - 1, v.e() - 2);
+} else {
+m_minus = DiyFp((v.f() << 1) - 1, v.e() - 1);
+}
+m_minus.set_f(m_minus.f() << (m_minus.e() - m_plus.e()));
+m_minus.set_e(m_plus.e());
+*out_m_plus = m_plus;
+*out_m_minus = m_minus;
+}
+bool LowerBoundaryIsCloser() const {
+bool physical_significand_is_zero = ((AsUint64() & kSignificandMask) == 0);
+return physical_significand_is_zero && (Exponent() != kDenormalExponent);
+}
+double value() const { return uint64_to_double(d64_); }
+static int SignificandSizeForOrderOfMagnitude(int order) {
+if (order >= (kDenormalExponent + kSignificandSize)) {
+return kSignificandSize;
+}
+if (order <= kDenormalExponent) return 0;
+return order - kDenormalExponent;
+}
+static double Infinity() {
+return Double(kInfinity).value();
+}
+static double NaN() {
+return Double(kNaN).value();
+}
+private:
+static const int kDenormalExponent = -kExponentBias + 1;
+static const uint64_t kInfinity = DOUBLE_CONVERSION_UINT64_2PART_C(0x7FF00000, 00000000);
+#if (defined(__mips__) && !defined(__mips_nan2008)) || defined(__hppa__)
+static const uint64_t kNaN = DOUBLE_CONVERSION_UINT64_2PART_C(0x7FF7FFFF, FFFFFFFF);
+#else
+static const uint64_t kNaN = DOUBLE_CONVERSION_UINT64_2PART_C(0x7FF80000, 00000000);
+#endif
+const uint64_t d64_;
+static uint64_t DiyFpToUint64(DiyFp diy_fp) {
+uint64_t significand = diy_fp.f();
+int exponent = diy_fp.e();
+while (significand > kHiddenBit + kSignificandMask) {
+significand >>= 1;
+exponent++;
+}
+if (exponent >= kMaxExponent) {
+return kInfinity;
+}
+if (exponent < kDenormalExponent) {
+return 0;
+}
+while (exponent > kDenormalExponent && (significand & kHiddenBit) == 0) {
+significand <<= 1;
+exponent--;
+}
+uint64_t biased_exponent;
+if (exponent == kDenormalExponent && (significand & kHiddenBit) == 0) {
+biased_exponent = 0;
+} else {
+biased_exponent = static_cast<uint64_t>(exponent + kExponentBias);
+}
+return (significand & kSignificandMask) |
+(biased_exponent << kPhysicalSignificandSize);
+}
+DOUBLE_CONVERSION_DISALLOW_COPY_AND_ASSIGN(Double);
+};
+class Single {
+public:
+static const uint32_t kSignMask = 0x80000000;
+static const uint32_t kExponentMask = 0x7F800000;
+static const uint32_t kSignificandMask = 0x007FFFFF;
+static const uint32_t kHiddenBit = 0x00800000;
+static const uint32_t kQuietNanBit = 0x00400000;
+static const int kPhysicalSignificandSize = 23;  // Excludes the hidden bit.
+static const int kSignificandSize = 24;
+Single() : d32_(0) {}
+explicit Single(float f) : d32_(float_to_uint32(f)) {}
+explicit Single(uint32_t d32) : d32_(d32) {}
+DiyFp AsDiyFp() const {
+DOUBLE_CONVERSION_ASSERT(Sign() > 0);
+DOUBLE_CONVERSION_ASSERT(!IsSpecial());
+return DiyFp(Significand(), Exponent());
+}
+uint32_t AsUint32() const {
+return d32_;
+}
+int Exponent() const {
+if (IsDenormal()) return kDenormalExponent;
+uint32_t d32 = AsUint32();
+int biased_e =
+static_cast<int>((d32 & kExponentMask) >> kPhysicalSignificandSize);
+return biased_e - kExponentBias;
+}
+uint32_t Significand() const {
+uint32_t d32 = AsUint32();
+uint32_t significand = d32 & kSignificandMask;
+if (!IsDenormal()) {
+return significand + kHiddenBit;
+} else {
+return significand;
+}
+}
+bool IsDenormal() const {
+uint32_t d32 = AsUint32();
+return (d32 & kExponentMask) == 0;
+}
+bool IsSpecial() const {
+uint32_t d32 = AsUint32();
+return (d32 & kExponentMask) == kExponentMask;
+}
+bool IsNan() const {
+uint32_t d32 = AsUint32();
+return ((d32 & kExponentMask) == kExponentMask) &&
+((d32 & kSignificandMask) != 0);
+}
+bool IsQuietNan() const {
+#if (defined(__mips__) && !defined(__mips_nan2008)) || defined(__hppa__)
+return IsNan() && ((AsUint32() & kQuietNanBit) == 0);
+#else
+return IsNan() && ((AsUint32() & kQuietNanBit) != 0);
+#endif
+}
+bool IsSignalingNan() const {
+#if (defined(__mips__) && !defined(__mips_nan2008)) || defined(__hppa__)
+return IsNan() && ((AsUint32() & kQuietNanBit) != 0);
+#else
+return IsNan() && ((AsUint32() & kQuietNanBit) == 0);
+#endif
+}
+bool IsInfinite() const {
+uint32_t d32 = AsUint32();
+return ((d32 & kExponentMask) == kExponentMask) &&
+((d32 & kSignificandMask) == 0);
+}
+int Sign() const {
+uint32_t d32 = AsUint32();
+return (d32 & kSignMask) == 0? 1: -1;
+}
+void NormalizedBoundaries(DiyFp* out_m_minus, DiyFp* out_m_plus) const {
+DOUBLE_CONVERSION_ASSERT(value() > 0.0);
+DiyFp v = this->AsDiyFp();
+DiyFp m_plus = DiyFp::Normalize(DiyFp((v.f() << 1) + 1, v.e() - 1));
+DiyFp m_minus;
+if (LowerBoundaryIsCloser()) {
+m_minus = DiyFp((v.f() << 2) - 1, v.e() - 2);
+} else {
+m_minus = DiyFp((v.f() << 1) - 1, v.e() - 1);
+}
+m_minus.set_f(m_minus.f() << (m_minus.e() - m_plus.e()));
+m_minus.set_e(m_plus.e());
+*out_m_plus = m_plus;
+*out_m_minus = m_minus;
+}
+DiyFp UpperBoundary() const {
+DOUBLE_CONVERSION_ASSERT(Sign() > 0);
+return DiyFp(Significand() * 2 + 1, Exponent() - 1);
+}
+bool LowerBoundaryIsCloser() const {
+bool physical_significand_is_zero = ((AsUint32() & kSignificandMask) == 0);
+return physical_significand_is_zero && (Exponent() != kDenormalExponent);
+}
+float value() const { return uint32_to_float(d32_); }
+static float Infinity() {
+return Single(kInfinity).value();
+}
+static float NaN() {
+return Single(kNaN).value();
+}
+private:
+static const int kExponentBias = 0x7F + kPhysicalSignificandSize;
+static const int kDenormalExponent = -kExponentBias + 1;
+static const int kMaxExponent = 0xFF - kExponentBias;
+static const uint32_t kInfinity = 0x7F800000;
+#if (defined(__mips__) && !defined(__mips_nan2008)) || defined(__hppa__)
+static const uint32_t kNaN = 0x7FBFFFFF;
+#else
+static const uint32_t kNaN = 0x7FC00000;
+#endif
+const uint32_t d32_;
+DOUBLE_CONVERSION_DISALLOW_COPY_AND_ASSIGN(Single);
+};
+}  // namespace double_conversion
+#endif  // DOUBLE_CONVERSION_DOUBLE_H_
+
+#ifndef DOUBLE_CONVERSION_STRTOD_H_
+#define DOUBLE_CONVERSION_STRTOD_H_
+namespace double_conversion {
+double Strtod(Vector<const char> buffer, int exponent);
+float Strtof(Vector<const char> buffer, int exponent);
+double StrtodTrimmed(Vector<const char> trimmed, int exponent);
+float StrtofTrimmed(Vector<const char> trimmed, int exponent);
+inline Vector<const char> TrimTrailingZeros(Vector<const char> buffer) {
+for (int i = buffer.length() - 1; i >= 0; --i) {
+if (buffer[i] != '0') {
+return buffer.SubVector(0, i + 1);
+}
+}
+return Vector<const char>(buffer.start(), 0);
+}
+}  // namespace double_conversion
+#endif  // DOUBLE_CONVERSION_STRTOD_H_
+#include <climits>
+#include <cstdarg>
+#ifndef DOUBLE_CONVERSION_BIGNUM_H_
+#define DOUBLE_CONVERSION_BIGNUM_H_
+namespace double_conversion {
+class Bignum {
+public:
+static const int kMaxSignificantBits = 3584;
+Bignum() : used_bigits_(0), exponent_(0) {}
+void AssignUInt16(const uint16_t value);
+void AssignUInt64(uint64_t value);
+void AssignBignum(const Bignum& other);
+void AssignDecimalString(const Vector<const char> value);
+void AssignHexString(const Vector<const char> value);
+void AssignPowerUInt16(uint16_t base, const int exponent);
+void AddUInt64(const uint64_t operand);
+void AddBignum(const Bignum& other);
+void SubtractBignum(const Bignum& other);
+void Square();
+void ShiftLeft(const int shift_amount);
+void MultiplyByUInt32(const uint32_t factor);
+void MultiplyByUInt64(const uint64_t factor);
+void MultiplyByPowerOfTen(const int exponent);
+void Times10() { return MultiplyByUInt32(10); }
+uint16_t DivideModuloIntBignum(const Bignum& other);
+bool ToHexString(char* buffer, const int buffer_size) const;
+static int Compare(const Bignum& a, const Bignum& b);
+static bool Equal(const Bignum& a, const Bignum& b) {
+return Compare(a, b) == 0;
+}
+static bool LessEqual(const Bignum& a, const Bignum& b) {
+return Compare(a, b) <= 0;
+}
+static bool Less(const Bignum& a, const Bignum& b) {
+return Compare(a, b) < 0;
+}
+static int PlusCompare(const Bignum& a, const Bignum& b, const Bignum& c);
+static bool PlusEqual(const Bignum& a, const Bignum& b, const Bignum& c) {
+return PlusCompare(a, b, c) == 0;
+}
+static bool PlusLessEqual(const Bignum& a, const Bignum& b, const Bignum& c) {
+return PlusCompare(a, b, c) <= 0;
+}
+static bool PlusLess(const Bignum& a, const Bignum& b, const Bignum& c) {
+return PlusCompare(a, b, c) < 0;
+}
+private:
+typedef uint32_t Chunk;
+typedef uint64_t DoubleChunk;
+static const int kChunkSize = sizeof(Chunk) * 8;
+static const int kDoubleChunkSize = sizeof(DoubleChunk) * 8;
+static const int kBigitSize = 28;
+static const Chunk kBigitMask = (1 << kBigitSize) - 1;
+static const int kBigitCapacity = kMaxSignificantBits / kBigitSize;
+static void EnsureCapacity(const int size) {
+if (size > kBigitCapacity) {
+DOUBLE_CONVERSION_UNREACHABLE();
+}
+}
+void Align(const Bignum& other);
+void Clamp();
+bool IsClamped() const {
+return used_bigits_ == 0 || RawBigit(used_bigits_ - 1) != 0;
+}
+void Zero() {
+used_bigits_ = 0;
+exponent_ = 0;
+}
+void BigitsShiftLeft(const int shift_amount);
+int BigitLength() const { return used_bigits_ + exponent_; }
+Chunk& RawBigit(const int index);
+const Chunk& RawBigit(const int index) const;
+Chunk BigitOrZero(const int index) const;
+void SubtractTimes(const Bignum& other, const int factor);
+int16_t used_bigits_;
+int16_t exponent_;
+Chunk bigits_buffer_[kBigitCapacity];
+DOUBLE_CONVERSION_DISALLOW_COPY_AND_ASSIGN(Bignum);
+};
+}  // namespace double_conversion
+#endif  // DOUBLE_CONVERSION_BIGNUM_H_
+#include <algorithm>
+#include <cstring>
+namespace double_conversion {
+Bignum::Chunk& Bignum::RawBigit(const int index) {
+DOUBLE_CONVERSION_ASSERT(static_cast<unsigned>(index) < kBigitCapacity);
+return bigits_buffer_[index];
+}
+const Bignum::Chunk& Bignum::RawBigit(const int index) const {
+DOUBLE_CONVERSION_ASSERT(static_cast<unsigned>(index) < kBigitCapacity);
+return bigits_buffer_[index];
+}
+template<typename S>
+static int BitSize(const S value) {
+(void) value;  // Mark variable as used.
+return 8 * sizeof(value);
+}
+void Bignum::AssignUInt16(const uint16_t value) {
+DOUBLE_CONVERSION_ASSERT(kBigitSize >= BitSize(value));
+Zero();
+if (value > 0) {
+RawBigit(0) = value;
+used_bigits_ = 1;
+}
+}
+void Bignum::AssignUInt64(uint64_t value) {
+Zero();
+for(int i = 0; value > 0; ++i) {
+RawBigit(i) = value & kBigitMask;
+value >>= kBigitSize;
+++used_bigits_;
+}
+}
+void Bignum::AssignBignum(const Bignum& other) {
+exponent_ = other.exponent_;
+for (int i = 0; i < other.used_bigits_; ++i) {
+RawBigit(i) = other.RawBigit(i);
+}
+used_bigits_ = other.used_bigits_;
+}
+static uint64_t ReadUInt64(const Vector<const char> buffer,
+const int from,
+const int digits_to_read) {
+uint64_t result = 0;
+for (int i = from; i < from + digits_to_read; ++i) {
+const int digit = buffer[i] - '0';
+DOUBLE_CONVERSION_ASSERT(0 <= digit && digit <= 9);
+result = result * 10 + digit;
+}
+return result;
+}
+void Bignum::AssignDecimalString(const Vector<const char> value) {
+static const int kMaxUint64DecimalDigits = 19;
+Zero();
+int length = value.length();
+unsigned pos = 0;
+while (length >= kMaxUint64DecimalDigits) {
+const uint64_t digits = ReadUInt64(value, pos, kMaxUint64DecimalDigits);
+pos += kMaxUint64DecimalDigits;
+length -= kMaxUint64DecimalDigits;
+MultiplyByPowerOfTen(kMaxUint64DecimalDigits);
+AddUInt64(digits);
+}
+const uint64_t digits = ReadUInt64(value, pos, length);
+MultiplyByPowerOfTen(length);
+AddUInt64(digits);
+Clamp();
+}
+static uint64_t HexCharValue(const int c) {
+if ('0' <= c && c <= '9') {
+return c - '0';
+}
+if ('a' <= c && c <= 'f') {
+return 10 + c - 'a';
+}
+DOUBLE_CONVERSION_ASSERT('A' <= c && c <= 'F');
+return 10 + c - 'A';
+}
+void Bignum::AssignHexString(Vector<const char> value) {
+Zero();
+EnsureCapacity(((value.length() * 4) + kBigitSize - 1) / kBigitSize);
+DOUBLE_CONVERSION_ASSERT(sizeof(uint64_t) * 8 >= kBigitSize + 4);  // TODO: static_assert
+uint64_t tmp = 0;
+for (int cnt = 0; !value.is_empty(); value.pop_back()) {
+tmp |= (HexCharValue(value.last()) << cnt);
+if ((cnt += 4) >= kBigitSize) {
+RawBigit(used_bigits_++) = (tmp & kBigitMask);
+cnt -= kBigitSize;
+tmp >>= kBigitSize;
+}
+}
+if (tmp > 0) {
+DOUBLE_CONVERSION_ASSERT(tmp <= kBigitMask);
+RawBigit(used_bigits_++) = static_cast<Bignum::Chunk>(tmp & kBigitMask);
+}
+Clamp();
+}
+void Bignum::AddUInt64(const uint64_t operand) {
+if (operand == 0) {
+return;
+}
+Bignum other;
+other.AssignUInt64(operand);
+AddBignum(other);
+}
+void Bignum::AddBignum(const Bignum& other) {
+DOUBLE_CONVERSION_ASSERT(IsClamped());
+DOUBLE_CONVERSION_ASSERT(other.IsClamped());
+Align(other);
+EnsureCapacity(1 + (std::max)(BigitLength(), other.BigitLength()) - exponent_);
+Chunk carry = 0;
+int bigit_pos = other.exponent_ - exponent_;
+DOUBLE_CONVERSION_ASSERT(bigit_pos >= 0);
+for (int i = used_bigits_; i < bigit_pos; ++i) {
+RawBigit(i) = 0;
+}
+for (int i = 0; i < other.used_bigits_; ++i) {
+const Chunk my = (bigit_pos < used_bigits_) ? RawBigit(bigit_pos) : 0;
+const Chunk sum = my + other.RawBigit(i) + carry;
+RawBigit(bigit_pos) = sum & kBigitMask;
+carry = sum >> kBigitSize;
+++bigit_pos;
+}
+while (carry != 0) {
+const Chunk my = (bigit_pos < used_bigits_) ? RawBigit(bigit_pos) : 0;
+const Chunk sum = my + carry;
+RawBigit(bigit_pos) = sum & kBigitMask;
+carry = sum >> kBigitSize;
+++bigit_pos;
+}
+used_bigits_ = static_cast<int16_t>(std::max(bigit_pos, static_cast<int>(used_bigits_)));
+DOUBLE_CONVERSION_ASSERT(IsClamped());
+}
+void Bignum::SubtractBignum(const Bignum& other) {
+DOUBLE_CONVERSION_ASSERT(IsClamped());
+DOUBLE_CONVERSION_ASSERT(other.IsClamped());
+DOUBLE_CONVERSION_ASSERT(LessEqual(other, *this));
+Align(other);
+const int offset = other.exponent_ - exponent_;
+Chunk borrow = 0;
+int i;
+for (i = 0; i < other.used_bigits_; ++i) {
+DOUBLE_CONVERSION_ASSERT((borrow == 0) || (borrow == 1));
+const Chunk difference = RawBigit(i + offset) - other.RawBigit(i) - borrow;
+RawBigit(i + offset) = difference & kBigitMask;
+borrow = difference >> (kChunkSize - 1);
+}
+while (borrow != 0) {
+const Chunk difference = RawBigit(i + offset) - borrow;
+RawBigit(i + offset) = difference & kBigitMask;
+borrow = difference >> (kChunkSize - 1);
+++i;
+}
+Clamp();
+}
+void Bignum::ShiftLeft(const int shift_amount) {
+if (used_bigits_ == 0) {
+return;
+}
+exponent_ += static_cast<int16_t>(shift_amount / kBigitSize);
+const int local_shift = shift_amount % kBigitSize;
+EnsureCapacity(used_bigits_ + 1);
+BigitsShiftLeft(local_shift);
+}
+void Bignum::MultiplyByUInt32(const uint32_t factor) {
+if (factor == 1) {
+return;
+}
+if (factor == 0) {
+Zero();
+return;
+}
+if (used_bigits_ == 0) {
+return;
+}
+DOUBLE_CONVERSION_ASSERT(kDoubleChunkSize >= kBigitSize + 32 + 1);
+DoubleChunk carry = 0;
+for (int i = 0; i < used_bigits_; ++i) {
+const DoubleChunk product = static_cast<DoubleChunk>(factor) * RawBigit(i) + carry;
+RawBigit(i) = static_cast<Chunk>(product & kBigitMask);
+carry = (product >> kBigitSize);
+}
+while (carry != 0) {
+EnsureCapacity(used_bigits_ + 1);
+RawBigit(used_bigits_) = carry & kBigitMask;
+used_bigits_++;
+carry >>= kBigitSize;
+}
+}
+void Bignum::MultiplyByUInt64(const uint64_t factor) {
+if (factor == 1) {
+return;
+}
+if (factor == 0) {
+Zero();
+return;
+}
+if (used_bigits_ == 0) {
+return;
+}
+DOUBLE_CONVERSION_ASSERT(kBigitSize < 32);
+uint64_t carry = 0;
+const uint64_t low = factor & 0xFFFFFFFF;
+const uint64_t high = factor >> 32;
+for (int i = 0; i < used_bigits_; ++i) {
+const uint64_t product_low = low * RawBigit(i);
+const uint64_t product_high = high * RawBigit(i);
+const uint64_t tmp = (carry & kBigitMask) + product_low;
+RawBigit(i) = tmp & kBigitMask;
+carry = (carry >> kBigitSize) + (tmp >> kBigitSize) +
+(product_high << (32 - kBigitSize));
+}
+while (carry != 0) {
+EnsureCapacity(used_bigits_ + 1);
+RawBigit(used_bigits_) = carry & kBigitMask;
+used_bigits_++;
+carry >>= kBigitSize;
+}
+}
+void Bignum::MultiplyByPowerOfTen(const int exponent) {
+static const uint64_t kFive27 = DOUBLE_CONVERSION_UINT64_2PART_C(0x6765c793, fa10079d);
+static const uint16_t kFive1 = 5;
+static const uint16_t kFive2 = kFive1 * 5;
+static const uint16_t kFive3 = kFive2 * 5;
+static const uint16_t kFive4 = kFive3 * 5;
+static const uint16_t kFive5 = kFive4 * 5;
+static const uint16_t kFive6 = kFive5 * 5;
+static const uint32_t kFive7 = kFive6 * 5;
+static const uint32_t kFive8 = kFive7 * 5;
+static const uint32_t kFive9 = kFive8 * 5;
+static const uint32_t kFive10 = kFive9 * 5;
+static const uint32_t kFive11 = kFive10 * 5;
+static const uint32_t kFive12 = kFive11 * 5;
+static const uint32_t kFive13 = kFive12 * 5;
+static const uint32_t kFive1_to_12[] =
+{ kFive1, kFive2, kFive3, kFive4, kFive5, kFive6,
+kFive7, kFive8, kFive9, kFive10, kFive11, kFive12 };
+DOUBLE_CONVERSION_ASSERT(exponent >= 0);
+if (exponent == 0) {
+return;
+}
+if (used_bigits_ == 0) {
+return;
+}
+int remaining_exponent = exponent;
+while (remaining_exponent >= 27) {
+MultiplyByUInt64(kFive27);
+remaining_exponent -= 27;
+}
+while (remaining_exponent >= 13) {
+MultiplyByUInt32(kFive13);
+remaining_exponent -= 13;
+}
+if (remaining_exponent > 0) {
+MultiplyByUInt32(kFive1_to_12[remaining_exponent - 1]);
+}
+ShiftLeft(exponent);
+}
+void Bignum::Square() {
+DOUBLE_CONVERSION_ASSERT(IsClamped());
+const int product_length = 2 * used_bigits_;
+EnsureCapacity(product_length);
+if ((1 << (2 * (kChunkSize - kBigitSize))) <= used_bigits_) {
+DOUBLE_CONVERSION_UNIMPLEMENTED();
+}
+DoubleChunk accumulator = 0;
+const int copy_offset = used_bigits_;
+for (int i = 0; i < used_bigits_; ++i) {
+RawBigit(copy_offset + i) = RawBigit(i);
+}
+for (int i = 0; i < used_bigits_; ++i) {
+int bigit_index1 = i;
+int bigit_index2 = 0;
+while (bigit_index1 >= 0) {
+const Chunk chunk1 = RawBigit(copy_offset + bigit_index1);
+const Chunk chunk2 = RawBigit(copy_offset + bigit_index2);
+accumulator += static_cast<DoubleChunk>(chunk1) * chunk2;
+bigit_index1--;
+bigit_index2++;
+}
+RawBigit(i) = static_cast<Chunk>(accumulator) & kBigitMask;
+accumulator >>= kBigitSize;
+}
+for (int i = used_bigits_; i < product_length; ++i) {
+int bigit_index1 = used_bigits_ - 1;
+int bigit_index2 = i - bigit_index1;
+while (bigit_index2 < used_bigits_) {
+const Chunk chunk1 = RawBigit(copy_offset + bigit_index1);
+const Chunk chunk2 = RawBigit(copy_offset + bigit_index2);
+accumulator += static_cast<DoubleChunk>(chunk1) * chunk2;
+bigit_index1--;
+bigit_index2++;
+}
+RawBigit(i) = static_cast<Chunk>(accumulator) & kBigitMask;
+accumulator >>= kBigitSize;
+}
+DOUBLE_CONVERSION_ASSERT(accumulator == 0);
+used_bigits_ = static_cast<int16_t>(product_length);
+exponent_ *= 2;
+Clamp();
+}
+void Bignum::AssignPowerUInt16(uint16_t base, const int power_exponent) {
+DOUBLE_CONVERSION_ASSERT(base != 0);
+DOUBLE_CONVERSION_ASSERT(power_exponent >= 0);
+if (power_exponent == 0) {
+AssignUInt16(1);
+return;
+}
+Zero();
+int shifts = 0;
+while ((base & 1) == 0) {
+base >>= 1;
+shifts++;
+}
+int bit_size = 0;
+int tmp_base = base;
+while (tmp_base != 0) {
+tmp_base >>= 1;
+bit_size++;
+}
+const int final_size = bit_size * power_exponent;
+EnsureCapacity(final_size / kBigitSize + 2);
+int mask = 1;
+while (power_exponent >= mask) mask <<= 1;
+mask >>= 2;
+uint64_t this_value = base;
+bool delayed_multiplication = false;
+const uint64_t max_32bits = 0xFFFFFFFF;
+while (mask != 0 && this_value <= max_32bits) {
+this_value = this_value * this_value;
+if ((power_exponent & mask) != 0) {
+DOUBLE_CONVERSION_ASSERT(bit_size > 0);
+const uint64_t base_bits_mask =
+~((static_cast<uint64_t>(1) << (64 - bit_size)) - 1);
+const bool high_bits_zero = (this_value & base_bits_mask) == 0;
+if (high_bits_zero) {
+this_value *= base;
+} else {
+delayed_multiplication = true;
+}
+}
+mask >>= 1;
+}
+AssignUInt64(this_value);
+if (delayed_multiplication) {
+MultiplyByUInt32(base);
+}
+while (mask != 0) {
+Square();
+if ((power_exponent & mask) != 0) {
+MultiplyByUInt32(base);
+}
+mask >>= 1;
+}
+ShiftLeft(shifts * power_exponent);
+}
+uint16_t Bignum::DivideModuloIntBignum(const Bignum& other) {
+DOUBLE_CONVERSION_ASSERT(IsClamped());
+DOUBLE_CONVERSION_ASSERT(other.IsClamped());
+DOUBLE_CONVERSION_ASSERT(other.used_bigits_ > 0);
+if (BigitLength() < other.BigitLength()) {
+return 0;
+}
+Align(other);
+uint16_t result = 0;
+while (BigitLength() > other.BigitLength()) {
+DOUBLE_CONVERSION_ASSERT(other.RawBigit(other.used_bigits_ - 1) >= ((1 << kBigitSize) / 16));
+DOUBLE_CONVERSION_ASSERT(RawBigit(used_bigits_ - 1) < 0x10000);
+result += static_cast<uint16_t>(RawBigit(used_bigits_ - 1));
+SubtractTimes(other, RawBigit(used_bigits_ - 1));
+}
+DOUBLE_CONVERSION_ASSERT(BigitLength() == other.BigitLength());
+const Chunk this_bigit = RawBigit(used_bigits_ - 1);
+const Chunk other_bigit = other.RawBigit(other.used_bigits_ - 1);
+if (other.used_bigits_ == 1) {
+int quotient = this_bigit / other_bigit;
+RawBigit(used_bigits_ - 1) = this_bigit - other_bigit * quotient;
+DOUBLE_CONVERSION_ASSERT(quotient < 0x10000);
+result += static_cast<uint16_t>(quotient);
+Clamp();
+return result;
+}
+const int division_estimate = this_bigit / (other_bigit + 1);
+DOUBLE_CONVERSION_ASSERT(division_estimate < 0x10000);
+result += static_cast<uint16_t>(division_estimate);
+SubtractTimes(other, division_estimate);
+if (other_bigit * (division_estimate + 1) > this_bigit) {
+return result;
+}
+while (LessEqual(other, *this)) {
+SubtractBignum(other);
+result++;
+}
+return result;
+}
+template<typename S>
+static int SizeInHexChars(S number) {
+DOUBLE_CONVERSION_ASSERT(number > 0);
+int result = 0;
+while (number != 0) {
+number >>= 4;
+result++;
+}
+return result;
+}
+static char HexCharOfValue(const int value) {
+DOUBLE_CONVERSION_ASSERT(0 <= value && value <= 16);
+if (value < 10) {
+return static_cast<char>(value + '0');
+}
+return static_cast<char>(value - 10 + 'A');
+}
+bool Bignum::ToHexString(char* buffer, const int buffer_size) const {
+DOUBLE_CONVERSION_ASSERT(IsClamped());
+DOUBLE_CONVERSION_ASSERT(kBigitSize % 4 == 0);
+static const int kHexCharsPerBigit = kBigitSize / 4;
+if (used_bigits_ == 0) {
+if (buffer_size < 2) {
+return false;
+}
+buffer[0] = '0';
+buffer[1] = '\0';
+return true;
+}
+const int needed_chars = (BigitLength() - 1) * kHexCharsPerBigit +
+SizeInHexChars(RawBigit(used_bigits_ - 1)) + 1;
+if (needed_chars > buffer_size) {
+return false;
+}
+int string_index = needed_chars - 1;
+buffer[string_index--] = '\0';
+for (int i = 0; i < exponent_; ++i) {
+for (int j = 0; j < kHexCharsPerBigit; ++j) {
+buffer[string_index--] = '0';
+}
+}
+for (int i = 0; i < used_bigits_ - 1; ++i) {
+Chunk current_bigit = RawBigit(i);
+for (int j = 0; j < kHexCharsPerBigit; ++j) {
+buffer[string_index--] = HexCharOfValue(current_bigit & 0xF);
+current_bigit >>= 4;
+}
+}
+Chunk most_significant_bigit = RawBigit(used_bigits_ - 1);
+while (most_significant_bigit != 0) {
+buffer[string_index--] = HexCharOfValue(most_significant_bigit & 0xF);
+most_significant_bigit >>= 4;
+}
+return true;
+}
+Bignum::Chunk Bignum::BigitOrZero(const int index) const {
+if (index >= BigitLength()) {
+return 0;
+}
+if (index < exponent_) {
+return 0;
+}
+return RawBigit(index - exponent_);
+}
+int Bignum::Compare(const Bignum& a, const Bignum& b) {
+DOUBLE_CONVERSION_ASSERT(a.IsClamped());
+DOUBLE_CONVERSION_ASSERT(b.IsClamped());
+const int bigit_length_a = a.BigitLength();
+const int bigit_length_b = b.BigitLength();
+if (bigit_length_a < bigit_length_b) {
+return -1;
+}
+if (bigit_length_a > bigit_length_b) {
+return +1;
+}
+for (int i = bigit_length_a - 1; i >= (std::min)(a.exponent_, b.exponent_); --i) {
+const Chunk bigit_a = a.BigitOrZero(i);
+const Chunk bigit_b = b.BigitOrZero(i);
+if (bigit_a < bigit_b) {
+return -1;
+}
+if (bigit_a > bigit_b) {
+return +1;
+}
+}
+return 0;
+}
+int Bignum::PlusCompare(const Bignum& a, const Bignum& b, const Bignum& c) {
+DOUBLE_CONVERSION_ASSERT(a.IsClamped());
+DOUBLE_CONVERSION_ASSERT(b.IsClamped());
+DOUBLE_CONVERSION_ASSERT(c.IsClamped());
+if (a.BigitLength() < b.BigitLength()) {
+return PlusCompare(b, a, c);
+}
+if (a.BigitLength() + 1 < c.BigitLength()) {
+return -1;
+}
+if (a.BigitLength() > c.BigitLength()) {
+return +1;
+}
+if (a.exponent_ >= b.BigitLength() && a.BigitLength() < c.BigitLength()) {
+return -1;
+}
+Chunk borrow = 0;
+const int min_exponent = (std::min)((std::min)(a.exponent_, b.exponent_), c.exponent_);
+for (int i = c.BigitLength() - 1; i >= min_exponent; --i) {
+const Chunk chunk_a = a.BigitOrZero(i);
+const Chunk chunk_b = b.BigitOrZero(i);
+const Chunk chunk_c = c.BigitOrZero(i);
+const Chunk sum = chunk_a + chunk_b;
+if (sum > chunk_c + borrow) {
+return +1;
+} else {
+borrow = chunk_c + borrow - sum;
+if (borrow > 1) {
+return -1;
+}
+borrow <<= kBigitSize;
+}
+}
+if (borrow == 0) {
+return 0;
+}
+return -1;
+}
+void Bignum::Clamp() {
+while (used_bigits_ > 0 && RawBigit(used_bigits_ - 1) == 0) {
+used_bigits_--;
+}
+if (used_bigits_ == 0) {
+exponent_ = 0;
+}
+}
+void Bignum::Align(const Bignum& other) {
+if (exponent_ > other.exponent_) {
+const int zero_bigits = exponent_ - other.exponent_;
+EnsureCapacity(used_bigits_ + zero_bigits);
+for (int i = used_bigits_ - 1; i >= 0; --i) {
+RawBigit(i + zero_bigits) = RawBigit(i);
+}
+for (int i = 0; i < zero_bigits; ++i) {
+RawBigit(i) = 0;
+}
+used_bigits_ += static_cast<int16_t>(zero_bigits);
+exponent_ -= static_cast<int16_t>(zero_bigits);
+DOUBLE_CONVERSION_ASSERT(used_bigits_ >= 0);
+DOUBLE_CONVERSION_ASSERT(exponent_ >= 0);
+}
+}
+void Bignum::BigitsShiftLeft(const int shift_amount) {
+DOUBLE_CONVERSION_ASSERT(shift_amount < kBigitSize);
+DOUBLE_CONVERSION_ASSERT(shift_amount >= 0);
+Chunk carry = 0;
+for (int i = 0; i < used_bigits_; ++i) {
+const Chunk new_carry = RawBigit(i) >> (kBigitSize - shift_amount);
+RawBigit(i) = ((RawBigit(i) << shift_amount) + carry) & kBigitMask;
+carry = new_carry;
+}
+if (carry != 0) {
+RawBigit(used_bigits_) = carry;
+used_bigits_++;
+}
+}
+void Bignum::SubtractTimes(const Bignum& other, const int factor) {
+DOUBLE_CONVERSION_ASSERT(exponent_ <= other.exponent_);
+if (factor < 3) {
+for (int i = 0; i < factor; ++i) {
+SubtractBignum(other);
+}
+return;
+}
+Chunk borrow = 0;
+const int exponent_diff = other.exponent_ - exponent_;
+for (int i = 0; i < other.used_bigits_; ++i) {
+const DoubleChunk product = static_cast<DoubleChunk>(factor) * other.RawBigit(i);
+const DoubleChunk remove = borrow + product;
+const Chunk difference = RawBigit(i + exponent_diff) - (remove & kBigitMask);
+RawBigit(i + exponent_diff) = difference & kBigitMask;
+borrow = static_cast<Chunk>((difference >> (kChunkSize - 1)) +
+(remove >> kBigitSize));
+}
+for (int i = other.used_bigits_ + exponent_diff; i < used_bigits_; ++i) {
+if (borrow == 0) {
+return;
+}
+const Chunk difference = RawBigit(i) - borrow;
+RawBigit(i) = difference & kBigitMask;
+borrow = difference >> (kChunkSize - 1);
+}
+Clamp();
+}
+}  // namespace double_conversion
+
+
+#ifndef DOUBLE_CONVERSION_CACHED_POWERS_H_
+#define DOUBLE_CONVERSION_CACHED_POWERS_H_
+namespace double_conversion {
+namespace PowersOfTenCache {
+static const int kDecimalExponentDistance = 8;
+static const int kMinDecimalExponent = -348;
+static const int kMaxDecimalExponent = 340;
+void GetCachedPowerForBinaryExponentRange(int min_exponent,
+int max_exponent,
+DiyFp* power,
+int* decimal_exponent);
+void GetCachedPowerForDecimalExponent(int requested_exponent,
+DiyFp* power,
+int* found_exponent);
+}  // namespace PowersOfTenCache
+}  // namespace double_conversion
+#endif  // DOUBLE_CONVERSION_CACHED_POWERS_H_
+#include <climits>
+#include <cmath>
+#include <cstdarg>
+namespace double_conversion {
+namespace PowersOfTenCache {
+struct CachedPower {
+uint64_t significand;
+int16_t binary_exponent;
+int16_t decimal_exponent;
+};
+static const CachedPower kCachedPowers[] = {
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xfa8fd5a0, 081c0288), -1220, -348},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xbaaee17f, a23ebf76), -1193, -340},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x8b16fb20, 3055ac76), -1166, -332},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xcf42894a, 5dce35ea), -1140, -324},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x9a6bb0aa, 55653b2d), -1113, -316},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xe61acf03, 3d1a45df), -1087, -308},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xab70fe17, c79ac6ca), -1060, -300},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xff77b1fc, bebcdc4f), -1034, -292},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xbe5691ef, 416bd60c), -1007, -284},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x8dd01fad, 907ffc3c), -980, -276},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xd3515c28, 31559a83), -954, -268},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x9d71ac8f, ada6c9b5), -927, -260},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xea9c2277, 23ee8bcb), -901, -252},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xaecc4991, 4078536d), -874, -244},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x823c1279, 5db6ce57), -847, -236},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xc2109436, 4dfb5637), -821, -228},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x9096ea6f, 3848984f), -794, -220},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xd77485cb, 25823ac7), -768, -212},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xa086cfcd, 97bf97f4), -741, -204},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xef340a98, 172aace5), -715, -196},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xb23867fb, 2a35b28e), -688, -188},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x84c8d4df, d2c63f3b), -661, -180},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xc5dd4427, 1ad3cdba), -635, -172},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x936b9fce, bb25c996), -608, -164},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xdbac6c24, 7d62a584), -582, -156},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xa3ab6658, 0d5fdaf6), -555, -148},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xf3e2f893, dec3f126), -529, -140},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xb5b5ada8, aaff80b8), -502, -132},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x87625f05, 6c7c4a8b), -475, -124},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xc9bcff60, 34c13053), -449, -116},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x964e858c, 91ba2655), -422, -108},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xdff97724, 70297ebd), -396, -100},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xa6dfbd9f, b8e5b88f), -369, -92},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xf8a95fcf, 88747d94), -343, -84},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xb9447093, 8fa89bcf), -316, -76},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x8a08f0f8, bf0f156b), -289, -68},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xcdb02555, 653131b6), -263, -60},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x993fe2c6, d07b7fac), -236, -52},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xe45c10c4, 2a2b3b06), -210, -44},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xaa242499, 697392d3), -183, -36},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xfd87b5f2, 8300ca0e), -157, -28},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xbce50864, 92111aeb), -130, -20},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x8cbccc09, 6f5088cc), -103, -12},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xd1b71758, e219652c), -77, -4},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x9c400000, 00000000), -50, 4},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xe8d4a510, 00000000), -24, 12},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xad78ebc5, ac620000), 3, 20},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x813f3978, f8940984), 30, 28},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xc097ce7b, c90715b3), 56, 36},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x8f7e32ce, 7bea5c70), 83, 44},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xd5d238a4, abe98068), 109, 52},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x9f4f2726, 179a2245), 136, 60},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xed63a231, d4c4fb27), 162, 68},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xb0de6538, 8cc8ada8), 189, 76},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x83c7088e, 1aab65db), 216, 84},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xc45d1df9, 42711d9a), 242, 92},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x924d692c, a61be758), 269, 100},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xda01ee64, 1a708dea), 295, 108},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xa26da399, 9aef774a), 322, 116},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xf209787b, b47d6b85), 348, 124},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xb454e4a1, 79dd1877), 375, 132},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x865b8692, 5b9bc5c2), 402, 140},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xc83553c5, c8965d3d), 428, 148},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x952ab45c, fa97a0b3), 455, 156},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xde469fbd, 99a05fe3), 481, 164},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xa59bc234, db398c25), 508, 172},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xf6c69a72, a3989f5c), 534, 180},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xb7dcbf53, 54e9bece), 561, 188},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x88fcf317, f22241e2), 588, 196},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xcc20ce9b, d35c78a5), 614, 204},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x98165af3, 7b2153df), 641, 212},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xe2a0b5dc, 971f303a), 667, 220},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xa8d9d153, 5ce3b396), 694, 228},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xfb9b7cd9, a4a7443c), 720, 236},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xbb764c4c, a7a44410), 747, 244},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x8bab8eef, b6409c1a), 774, 252},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xd01fef10, a657842c), 800, 260},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x9b10a4e5, e9913129), 827, 268},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xe7109bfb, a19c0c9d), 853, 276},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xac2820d9, 623bf429), 880, 284},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x80444b5e, 7aa7cf85), 907, 292},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xbf21e440, 03acdd2d), 933, 300},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x8e679c2f, 5e44ff8f), 960, 308},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xd433179d, 9c8cb841), 986, 316},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0x9e19db92, b4e31ba9), 1013, 324},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xeb96bf6e, badf77d9), 1039, 332},
+{DOUBLE_CONVERSION_UINT64_2PART_C(0xaf87023b, 9bf0ee6b), 1066, 340},
+};
+static const int kCachedPowersOffset = 348;  // -1 * the first decimal_exponent.
+static const double kD_1_LOG2_10 = 0.30102999566398114;  //  1 / lg(10)
+void GetCachedPowerForBinaryExponentRange(
+int min_exponent,
+int max_exponent,
+DiyFp* power,
+int* decimal_exponent) {
+int kQ = DiyFp::kSignificandSize;
+double k = ceil((min_exponent + kQ - 1) * kD_1_LOG2_10);
+int foo = kCachedPowersOffset;
+int index =
+(foo + static_cast<int>(k) - 1) / kDecimalExponentDistance + 1;
+DOUBLE_CONVERSION_ASSERT(0 <= index && index < static_cast<int>(DOUBLE_CONVERSION_ARRAY_SIZE(kCachedPowers)));
+CachedPower cached_power = kCachedPowers[index];
+DOUBLE_CONVERSION_ASSERT(min_exponent <= cached_power.binary_exponent);
+(void) max_exponent;  // Mark variable as used.
+DOUBLE_CONVERSION_ASSERT(cached_power.binary_exponent <= max_exponent);
+*decimal_exponent = cached_power.decimal_exponent;
+*power = DiyFp(cached_power.significand, cached_power.binary_exponent);
+}
+void GetCachedPowerForDecimalExponent(int requested_exponent,
+DiyFp* power,
+int* found_exponent) {
+DOUBLE_CONVERSION_ASSERT(kMinDecimalExponent <= requested_exponent);
+DOUBLE_CONVERSION_ASSERT(requested_exponent < kMaxDecimalExponent + kDecimalExponentDistance);
+int index =
+(requested_exponent + kCachedPowersOffset) / kDecimalExponentDistance;
+CachedPower cached_power = kCachedPowers[index];
+*power = DiyFp(cached_power.significand, cached_power.binary_exponent);
+*found_exponent = cached_power.decimal_exponent;
+DOUBLE_CONVERSION_ASSERT(*found_exponent <= requested_exponent);
+DOUBLE_CONVERSION_ASSERT(requested_exponent < *found_exponent + kDecimalExponentDistance);
+}
+}  // namespace PowersOfTenCache
+}  // namespace double_conversion
+
+
+namespace double_conversion {
+#if defined(DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS)
+static const int kMaxExactDoubleIntegerDecimalDigits = 15;
+#endif // #if defined(DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS)
+static const int kMaxUint64DecimalDigits = 19;
+static const int kMaxDecimalPower = 309;
+static const int kMinDecimalPower = -324;
+static const uint64_t kMaxUint64 = DOUBLE_CONVERSION_UINT64_2PART_C(0xFFFFFFFF, FFFFFFFF);
+#if defined(DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS)
+static const double exact_powers_of_ten[] = {
+1.0,  // 10^0
+10.0,
+100.0,
+1000.0,
+10000.0,
+100000.0,
+1000000.0,
+10000000.0,
+100000000.0,
+1000000000.0,
+10000000000.0,  // 10^10
+100000000000.0,
+1000000000000.0,
+10000000000000.0,
+100000000000000.0,
+1000000000000000.0,
+10000000000000000.0,
+100000000000000000.0,
+1000000000000000000.0,
+10000000000000000000.0,
+100000000000000000000.0,  // 10^20
+1000000000000000000000.0,
+10000000000000000000000.0
+};
+static const int kExactPowersOfTenSize = DOUBLE_CONVERSION_ARRAY_SIZE(exact_powers_of_ten);
+#endif // #if defined(DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS)
+static const int kMaxSignificantDecimalDigits = 780;
+static Vector<const char> TrimLeadingZeros(Vector<const char> buffer) {
+for (int i = 0; i < buffer.length(); i++) {
+if (buffer[i] != '0') {
+return buffer.SubVector(i, buffer.length());
+}
+}
+return Vector<const char>(buffer.start(), 0);
+}
+static void CutToMaxSignificantDigits(Vector<const char> buffer,
+int exponent,
+char* significant_buffer,
+int* significant_exponent) {
+for (int i = 0; i < kMaxSignificantDecimalDigits - 1; ++i) {
+significant_buffer[i] = buffer[i];
+}
+DOUBLE_CONVERSION_ASSERT(buffer[buffer.length() - 1] != '0');
+significant_buffer[kMaxSignificantDecimalDigits - 1] = '1';
+*significant_exponent =
+exponent + (buffer.length() - kMaxSignificantDecimalDigits);
+}
+static void TrimAndCut(Vector<const char> buffer, int exponent,
+char* buffer_copy_space, int space_size,
+Vector<const char>* trimmed, int* updated_exponent) {
+Vector<const char> left_trimmed = TrimLeadingZeros(buffer);
+Vector<const char> right_trimmed = TrimTrailingZeros(left_trimmed);
+exponent += left_trimmed.length() - right_trimmed.length();
+if (right_trimmed.length() > kMaxSignificantDecimalDigits) {
+(void) space_size;  // Mark variable as used.
+DOUBLE_CONVERSION_ASSERT(space_size >= kMaxSignificantDecimalDigits);
+CutToMaxSignificantDigits(right_trimmed, exponent,
+buffer_copy_space, updated_exponent);
+*trimmed = Vector<const char>(buffer_copy_space,
+kMaxSignificantDecimalDigits);
+} else {
+*trimmed = right_trimmed;
+*updated_exponent = exponent;
+}
+}
+static uint64_t ReadUint64(Vector<const char> buffer,
+int* number_of_read_digits) {
+uint64_t result = 0;
+int i = 0;
+while (i < buffer.length() && result <= (kMaxUint64 / 10 - 1)) {
+int digit = buffer[i++] - '0';
+DOUBLE_CONVERSION_ASSERT(0 <= digit && digit <= 9);
+result = 10 * result + digit;
+}
+*number_of_read_digits = i;
+return result;
+}
+static void ReadDiyFp(Vector<const char> buffer,
+DiyFp* result,
+int* remaining_decimals) {
+int read_digits;
+uint64_t significand = ReadUint64(buffer, &read_digits);
+if (buffer.length() == read_digits) {
+*result = DiyFp(significand, 0);
+*remaining_decimals = 0;
+} else {
+if (buffer[read_digits] >= '5') {
+significand++;
+}
+int exponent = 0;
+*result = DiyFp(significand, exponent);
+*remaining_decimals = buffer.length() - read_digits;
+}
+}
+static bool DoubleStrtod(Vector<const char> trimmed,
+int exponent,
+double* result) {
+#if !defined(DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS)
+(void) trimmed;
+(void) exponent;
+(void) result;
+return false;
+#else
+if (trimmed.length() <= kMaxExactDoubleIntegerDecimalDigits) {
+int read_digits;
+if (exponent < 0 && -exponent < kExactPowersOfTenSize) {
+*result = static_cast<double>(ReadUint64(trimmed, &read_digits));
+DOUBLE_CONVERSION_ASSERT(read_digits == trimmed.length());
+*result /= exact_powers_of_ten[-exponent];
+return true;
+}
+if (0 <= exponent && exponent < kExactPowersOfTenSize) {
+*result = static_cast<double>(ReadUint64(trimmed, &read_digits));
+DOUBLE_CONVERSION_ASSERT(read_digits == trimmed.length());
+*result *= exact_powers_of_ten[exponent];
+return true;
+}
+int remaining_digits =
+kMaxExactDoubleIntegerDecimalDigits - trimmed.length();
+if ((0 <= exponent) &&
+(exponent - remaining_digits < kExactPowersOfTenSize)) {
+*result = static_cast<double>(ReadUint64(trimmed, &read_digits));
+DOUBLE_CONVERSION_ASSERT(read_digits == trimmed.length());
+*result *= exact_powers_of_ten[remaining_digits];
+*result *= exact_powers_of_ten[exponent - remaining_digits];
+return true;
+}
+}
+return false;
+#endif
+}
+static DiyFp AdjustmentPowerOfTen(int exponent) {
+DOUBLE_CONVERSION_ASSERT(0 < exponent);
+DOUBLE_CONVERSION_ASSERT(exponent < PowersOfTenCache::kDecimalExponentDistance);
+DOUBLE_CONVERSION_ASSERT(PowersOfTenCache::kDecimalExponentDistance == 8);
+switch (exponent) {
+case 1: return DiyFp(DOUBLE_CONVERSION_UINT64_2PART_C(0xa0000000, 00000000), -60);
+case 2: return DiyFp(DOUBLE_CONVERSION_UINT64_2PART_C(0xc8000000, 00000000), -57);
+case 3: return DiyFp(DOUBLE_CONVERSION_UINT64_2PART_C(0xfa000000, 00000000), -54);
+case 4: return DiyFp(DOUBLE_CONVERSION_UINT64_2PART_C(0x9c400000, 00000000), -50);
+case 5: return DiyFp(DOUBLE_CONVERSION_UINT64_2PART_C(0xc3500000, 00000000), -47);
+case 6: return DiyFp(DOUBLE_CONVERSION_UINT64_2PART_C(0xf4240000, 00000000), -44);
+case 7: return DiyFp(DOUBLE_CONVERSION_UINT64_2PART_C(0x98968000, 00000000), -40);
+default:
+DOUBLE_CONVERSION_UNREACHABLE();
+}
+}
+static bool DiyFpStrtod(Vector<const char> buffer,
+int exponent,
+double* result) {
+DiyFp input;
+int remaining_decimals;
+ReadDiyFp(buffer, &input, &remaining_decimals);
+const int kDenominatorLog = 3;
+const int kDenominator = 1 << kDenominatorLog;
+exponent += remaining_decimals;
+uint64_t error = (remaining_decimals == 0 ? 0 : kDenominator / 2);
+int old_e = input.e();
+input.Normalize();
+error <<= old_e - input.e();
+DOUBLE_CONVERSION_ASSERT(exponent <= PowersOfTenCache::kMaxDecimalExponent);
+if (exponent < PowersOfTenCache::kMinDecimalExponent) {
+*result = 0.0;
+return true;
+}
+DiyFp cached_power;
+int cached_decimal_exponent;
+PowersOfTenCache::GetCachedPowerForDecimalExponent(exponent,
+&cached_power,
+&cached_decimal_exponent);
+if (cached_decimal_exponent != exponent) {
+int adjustment_exponent = exponent - cached_decimal_exponent;
+DiyFp adjustment_power = AdjustmentPowerOfTen(adjustment_exponent);
+input.Multiply(adjustment_power);
+if (kMaxUint64DecimalDigits - buffer.length() >= adjustment_exponent) {
+DOUBLE_CONVERSION_ASSERT(DiyFp::kSignificandSize == 64);
+} else {
+error += kDenominator / 2;
+}
+}
+input.Multiply(cached_power);
+int error_b = kDenominator / 2;
+int error_ab = (error == 0 ? 0 : 1);  // We round up to 1.
+int fixed_error = kDenominator / 2;
+error += error_b + error_ab + fixed_error;
+old_e = input.e();
+input.Normalize();
+error <<= old_e - input.e();
+int order_of_magnitude = DiyFp::kSignificandSize + input.e();
+int effective_significand_size =
+Double::SignificandSizeForOrderOfMagnitude(order_of_magnitude);
+int precision_digits_count =
+DiyFp::kSignificandSize - effective_significand_size;
+if (precision_digits_count + kDenominatorLog >= DiyFp::kSignificandSize) {
+int shift_amount = (precision_digits_count + kDenominatorLog) -
+DiyFp::kSignificandSize + 1;
+input.set_f(input.f() >> shift_amount);
+input.set_e(input.e() + shift_amount);
+error = (error >> shift_amount) + 1 + kDenominator;
+precision_digits_count -= shift_amount;
+}
+DOUBLE_CONVERSION_ASSERT(DiyFp::kSignificandSize == 64);
+DOUBLE_CONVERSION_ASSERT(precision_digits_count < 64);
+uint64_t one64 = 1;
+uint64_t precision_bits_mask = (one64 << precision_digits_count) - 1;
+uint64_t precision_bits = input.f() & precision_bits_mask;
+uint64_t half_way = one64 << (precision_digits_count - 1);
+precision_bits *= kDenominator;
+half_way *= kDenominator;
+DiyFp rounded_input(input.f() >> precision_digits_count,
+input.e() + precision_digits_count);
+if (precision_bits >= half_way + error) {
+rounded_input.set_f(rounded_input.f() + 1);
+}
+*result = Double(rounded_input).value();
+if (half_way - error < precision_bits && precision_bits < half_way + error) {
+return false;
+} else {
+return true;
+}
+}
+static int CompareBufferWithDiyFp(Vector<const char> buffer,
+int exponent,
+DiyFp diy_fp) {
+DOUBLE_CONVERSION_ASSERT(buffer.length() + exponent <= kMaxDecimalPower + 1);
+DOUBLE_CONVERSION_ASSERT(buffer.length() + exponent > kMinDecimalPower);
+DOUBLE_CONVERSION_ASSERT(buffer.length() <= kMaxSignificantDecimalDigits);
+DOUBLE_CONVERSION_ASSERT(((kMaxDecimalPower + 1) * 333 / 100) < Bignum::kMaxSignificantBits);
+Bignum buffer_bignum;
+Bignum diy_fp_bignum;
+buffer_bignum.AssignDecimalString(buffer);
+diy_fp_bignum.AssignUInt64(diy_fp.f());
+if (exponent >= 0) {
+buffer_bignum.MultiplyByPowerOfTen(exponent);
+} else {
+diy_fp_bignum.MultiplyByPowerOfTen(-exponent);
+}
+if (diy_fp.e() > 0) {
+diy_fp_bignum.ShiftLeft(diy_fp.e());
+} else {
+buffer_bignum.ShiftLeft(-diy_fp.e());
+}
+return Bignum::Compare(buffer_bignum, diy_fp_bignum);
+}
+static bool ComputeGuess(Vector<const char> trimmed, int exponent,
+double* guess) {
+if (trimmed.length() == 0) {
+*guess = 0.0;
+return true;
+}
+if (exponent + trimmed.length() - 1 >= kMaxDecimalPower) {
+*guess = Double::Infinity();
+return true;
+}
+if (exponent + trimmed.length() <= kMinDecimalPower) {
+*guess = 0.0;
+return true;
+}
+if (DoubleStrtod(trimmed, exponent, guess) ||
+DiyFpStrtod(trimmed, exponent, guess)) {
+return true;
+}
+if (*guess == Double::Infinity()) {
+return true;
+}
+return false;
+}
+static bool IsDigit(const char d) {
+return ('0' <= d) && (d <= '9');
+}
+static bool IsNonZeroDigit(const char d) {
+return ('1' <= d) && (d <= '9');
+}
+#ifdef __has_cpp_attribute
+#if __has_cpp_attribute(maybe_unused)
+[[maybe_unused]]
+#endif
+#endif
+static bool AssertTrimmedDigits(const Vector<const char>& buffer) {
+for(int i = 0; i < buffer.length(); ++i) {
+if(!IsDigit(buffer[i])) {
+return false;
+}
+}
+return (buffer.length() == 0) || (IsNonZeroDigit(buffer[0]) && IsNonZeroDigit(buffer[buffer.length()-1]));
+}
+double StrtodTrimmed(Vector<const char> trimmed, int exponent) {
+DOUBLE_CONVERSION_ASSERT(trimmed.length() <= kMaxSignificantDecimalDigits);
+DOUBLE_CONVERSION_ASSERT(AssertTrimmedDigits(trimmed));
+double guess;
+const bool is_correct = ComputeGuess(trimmed, exponent, &guess);
+if (is_correct) {
+return guess;
+}
+DiyFp upper_boundary = Double(guess).UpperBoundary();
+int comparison = CompareBufferWithDiyFp(trimmed, exponent, upper_boundary);
+if (comparison < 0) {
+return guess;
+} else if (comparison > 0) {
+return Double(guess).NextDouble();
+} else if ((Double(guess).Significand() & 1) == 0) {
+return guess;
+} else {
+return Double(guess).NextDouble();
+}
+}
+double Strtod(Vector<const char> buffer, int exponent) {
+char copy_buffer[kMaxSignificantDecimalDigits];
+Vector<const char> trimmed;
+int updated_exponent;
+TrimAndCut(buffer, exponent, copy_buffer, kMaxSignificantDecimalDigits,
+&trimmed, &updated_exponent);
+return StrtodTrimmed(trimmed, updated_exponent);
+}
+static float SanitizedDoubletof(double d) {
+DOUBLE_CONVERSION_ASSERT(d >= 0.0);
+float max_finite = 3.4028234663852885981170418348451692544e+38;
+double half_max_finite_infinity =
+3.40282356779733661637539395458142568448e+38;
+if (d >= max_finite) {
+if (d >= half_max_finite_infinity) {
+return Single::Infinity();
+} else {
+return max_finite;
+}
+} else {
+return static_cast<float>(d);
+}
+}
+float Strtof(Vector<const char> buffer, int exponent) {
+char copy_buffer[kMaxSignificantDecimalDigits];
+Vector<const char> trimmed;
+int updated_exponent;
+TrimAndCut(buffer, exponent, copy_buffer, kMaxSignificantDecimalDigits,
+&trimmed, &updated_exponent);
+exponent = updated_exponent;
+return StrtofTrimmed(trimmed, exponent);
+}
+float StrtofTrimmed(Vector<const char> trimmed, int exponent) {
+DOUBLE_CONVERSION_ASSERT(trimmed.length() <= kMaxSignificantDecimalDigits);
+DOUBLE_CONVERSION_ASSERT(AssertTrimmedDigits(trimmed));
+double double_guess;
+bool is_correct = ComputeGuess(trimmed, exponent, &double_guess);
+float float_guess = SanitizedDoubletof(double_guess);
+if (float_guess == double_guess) {
+return float_guess;
+}
+double double_next = Double(double_guess).NextDouble();
+double double_previous = Double(double_guess).PreviousDouble();
+float f1 = SanitizedDoubletof(double_previous);
+float f2 = float_guess;
+float f3 = SanitizedDoubletof(double_next);
+float f4;
+if (is_correct) {
+f4 = f3;
+} else {
+double double_next2 = Double(double_next).NextDouble();
+f4 = SanitizedDoubletof(double_next2);
+}
+(void) f2;  // Mark variable as used.
+DOUBLE_CONVERSION_ASSERT(f1 <= f2 && f2 <= f3 && f3 <= f4);
+if (f1 == f4) {
+return float_guess;
+}
+DOUBLE_CONVERSION_ASSERT((f1 != f2 && f2 == f3 && f3 == f4) ||
+(f1 == f2 && f2 != f3 && f3 == f4) ||
+(f1 == f2 && f2 == f3 && f3 != f4));
+float guess = f1;
+float next = f4;
+DiyFp upper_boundary;
+if (guess == 0.0f) {
+float min_float = 1e-45f;
+upper_boundary = Double(static_cast<double>(min_float) / 2).AsDiyFp();
+} else {
+upper_boundary = Single(guess).UpperBoundary();
+}
+int comparison = CompareBufferWithDiyFp(trimmed, exponent, upper_boundary);
+if (comparison < 0) {
+return guess;
+} else if (comparison > 0) {
+return next;
+} else if ((Single(guess).Significand() & 1) == 0) {
+return guess;
+} else {
+return next;
+}
+}
+}  // namespace double_conversion
+
+
+#ifdef _MSC_VER
+#  if _MSC_VER >= 1900
+__pragma(warning(disable: 4244))
+#  endif
+#  if _MSC_VER <= 1700 // VS2012, see IsDecimalDigitForRadix warning fix, below
+#    define VS2012_RADIXWARN
+#  endif
+#endif
+namespace double_conversion {
+namespace {
+inline char ToLower(char ch) {
+static const std::ctype<char>& cType =
+std::use_facet<std::ctype<char> >(std::locale::classic());
+return cType.tolower(ch);
+}
+inline char Pass(char ch) {
+return ch;
+}
+template <class Iterator, class Converter>
+static inline bool ConsumeSubStringImpl(Iterator* current,
+Iterator end,
+const char* substring,
+Converter converter) {
+DOUBLE_CONVERSION_ASSERT(converter(**current) == *substring);
+for (substring++; *substring != '\0'; substring++) {
+++*current;
+if (*current == end || converter(**current) != *substring) {
+return false;
+}
+}
+++*current;
+return true;
+}
+template <class Iterator>
+static bool ConsumeSubString(Iterator* current,
+Iterator end,
+const char* substring,
+bool allow_case_insensitivity) {
+if (allow_case_insensitivity) {
+return ConsumeSubStringImpl(current, end, substring, ToLower);
+} else {
+return ConsumeSubStringImpl(current, end, substring, Pass);
+}
+}
+inline bool ConsumeFirstCharacter(char ch,
+const char* str,
+bool case_insensitivity) {
+return case_insensitivity ? ToLower(ch) == str[0] : ch == str[0];
+}
+}  // namespace
+const int kMaxSignificantDigits = 772;
+static const char kWhitespaceTable7[] = { 32, 13, 10, 9, 11, 12 };
+static const int kWhitespaceTable7Length = DOUBLE_CONVERSION_ARRAY_SIZE(kWhitespaceTable7);
+static const uc16 kWhitespaceTable16[] = {
+160, 8232, 8233, 5760, 6158, 8192, 8193, 8194, 8195,
+8196, 8197, 8198, 8199, 8200, 8201, 8202, 8239, 8287, 12288, 65279
+};
+static const int kWhitespaceTable16Length = DOUBLE_CONVERSION_ARRAY_SIZE(kWhitespaceTable16);
+static bool isWhitespace(int x) {
+if (x < 128) {
+for (int i = 0; i < kWhitespaceTable7Length; i++) {
+if (kWhitespaceTable7[i] == x) return true;
+}
+} else {
+for (int i = 0; i < kWhitespaceTable16Length; i++) {
+if (kWhitespaceTable16[i] == x) return true;
+}
+}
+return false;
+}
+template <class Iterator>
+static inline bool AdvanceToNonspace(Iterator* current, Iterator end) {
+while (*current != end) {
+if (!isWhitespace(**current)) return true;
+++*current;
+}
+return false;
+}
+static bool isDigit(int x, int radix) {
+return (x >= '0' && x <= '9' && x < '0' + radix)
+|| (radix > 10 && x >= 'a' && x < 'a' + radix - 10)
+|| (radix > 10 && x >= 'A' && x < 'A' + radix - 10);
+}
+static double SignedZero(bool sign) {
+return sign ? -0.0 : 0.0;
+}
+#ifdef VS2012_RADIXWARN
+#pragma optimize("",off)
+static bool IsDecimalDigitForRadix(int c, int radix) {
+return '0' <= c && c <= '9' && (c - '0') < radix;
+}
+#pragma optimize("",on)
+#else
+static bool inline IsDecimalDigitForRadix(int c, int radix) {
+return '0' <= c && c <= '9' && (c - '0') < radix;
+}
+#endif
+static bool IsCharacterDigitForRadix(int c, int radix, char a_character) {
+return radix > 10 && c >= a_character && c < a_character + radix - 10;
+}
+template<class Iterator>
+static bool Advance (Iterator* it, uc16 separator, int base, Iterator& end) {
+if (separator == StringToDoubleConverter::kNoSeparator) {
+++(*it);
+return *it == end;
+}
+if (!isDigit(**it, base)) {
+++(*it);
+return *it == end;
+}
+++(*it);
+if (*it == end) return true;
+if (*it + 1 == end) return false;
+if (**it == separator && isDigit(*(*it + 1), base)) {
+++(*it);
+}
+return *it == end;
+}
+template<class Iterator>
+static bool IsHexFloatString(Iterator start,
+Iterator end,
+uc16 separator,
+bool allow_trailing_junk) {
+DOUBLE_CONVERSION_ASSERT(start != end);
+Iterator current = start;
+bool saw_digit = false;
+while (isDigit(*current, 16)) {
+saw_digit = true;
+if (Advance(&current, separator, 16, end)) return false;
+}
+if (*current == '.') {
+if (Advance(&current, separator, 16, end)) return false;
+while (isDigit(*current, 16)) {
+saw_digit = true;
+if (Advance(&current, separator, 16, end)) return false;
+}
+}
+if (!saw_digit) return false;
+if (*current != 'p' && *current != 'P') return false;
+if (Advance(&current, separator, 16, end)) return false;
+if (*current == '+' || *current == '-') {
+if (Advance(&current, separator, 16, end)) return false;
+}
+if (!isDigit(*current, 10)) return false;
+if (Advance(&current, separator, 16, end)) return true;
+while (isDigit(*current, 10)) {
+if (Advance(&current, separator, 16, end)) return true;
+}
+return allow_trailing_junk || !AdvanceToNonspace(&current, end);
+}
+template <int radix_log_2, class Iterator>
+static double RadixStringToIeee(Iterator* current,
+Iterator end,
+bool sign,
+uc16 separator,
+bool parse_as_hex_float,
+bool allow_trailing_junk,
+double junk_string_value,
+bool read_as_double,
+bool* result_is_junk) {
+DOUBLE_CONVERSION_ASSERT(*current != end);
+DOUBLE_CONVERSION_ASSERT(!parse_as_hex_float ||
+IsHexFloatString(*current, end, separator, allow_trailing_junk));
+const int kDoubleSize = Double::kSignificandSize;
+const int kSingleSize = Single::kSignificandSize;
+const int kSignificandSize = read_as_double? kDoubleSize: kSingleSize;
+*result_is_junk = true;
+int64_t number = 0;
+int exponent = 0;
+const int radix = (1 << radix_log_2);
+bool post_decimal = false;
+while (**current == '0') {
+if (Advance(current, separator, radix, end)) {
+*result_is_junk = false;
+return SignedZero(sign);
+}
+}
+while (true) {
+int digit;
+if (IsDecimalDigitForRadix(**current, radix)) {
+digit = static_cast<char>(**current) - '0';
+if (post_decimal) exponent -= radix_log_2;
+} else if (IsCharacterDigitForRadix(**current, radix, 'a')) {
+digit = static_cast<char>(**current) - 'a' + 10;
+if (post_decimal) exponent -= radix_log_2;
+} else if (IsCharacterDigitForRadix(**current, radix, 'A')) {
+digit = static_cast<char>(**current) - 'A' + 10;
+if (post_decimal) exponent -= radix_log_2;
+} else if (parse_as_hex_float && **current == '.') {
+post_decimal = true;
+Advance(current, separator, radix, end);
+DOUBLE_CONVERSION_ASSERT(*current != end);
+continue;
+} else if (parse_as_hex_float && (**current == 'p' || **current == 'P')) {
+break;
+} else {
+if (allow_trailing_junk || !AdvanceToNonspace(current, end)) {
+break;
+} else {
+return junk_string_value;
+}
+}
+number = number * radix + digit;
+int overflow = static_cast<int>(number >> kSignificandSize);
+if (overflow != 0) {
+int overflow_bits_count = 1;
+while (overflow > 1) {
+overflow_bits_count++;
+overflow >>= 1;
+}
+int dropped_bits_mask = ((1 << overflow_bits_count) - 1);
+int dropped_bits = static_cast<int>(number) & dropped_bits_mask;
+number >>= overflow_bits_count;
+exponent += overflow_bits_count;
+bool zero_tail = true;
+for (;;) {
+if (Advance(current, separator, radix, end)) break;
+if (parse_as_hex_float && **current == '.') {
+Advance(current, separator, radix, end);
+DOUBLE_CONVERSION_ASSERT(*current != end);
+post_decimal = true;
+}
+if (!isDigit(**current, radix)) break;
+zero_tail = zero_tail && **current == '0';
+if (!post_decimal) exponent += radix_log_2;
+}
+if (!parse_as_hex_float &&
+!allow_trailing_junk &&
+AdvanceToNonspace(current, end)) {
+return junk_string_value;
+}
+int middle_value = (1 << (overflow_bits_count - 1));
+if (dropped_bits > middle_value) {
+number++;  // Rounding up.
+} else if (dropped_bits == middle_value) {
+if ((number & 1) != 0 || !zero_tail) {
+number++;  // Rounding up.
+}
+}
+if ((number & ((int64_t)1 << kSignificandSize)) != 0) {
+exponent++;
+number >>= 1;
+}
+break;
+}
+if (Advance(current, separator, radix, end)) break;
+}
+DOUBLE_CONVERSION_ASSERT(number < ((int64_t)1 << kSignificandSize));
+DOUBLE_CONVERSION_ASSERT(static_cast<int64_t>(static_cast<double>(number)) == number);
+*result_is_junk = false;
+if (parse_as_hex_float) {
+DOUBLE_CONVERSION_ASSERT(**current == 'p' || **current == 'P');
+Advance(current, separator, radix, end);
+DOUBLE_CONVERSION_ASSERT(*current != end);
+bool is_negative = false;
+if (**current == '+') {
+Advance(current, separator, radix, end);
+DOUBLE_CONVERSION_ASSERT(*current != end);
+} else if (**current == '-') {
+is_negative = true;
+Advance(current, separator, radix, end);
+DOUBLE_CONVERSION_ASSERT(*current != end);
+}
+int written_exponent = 0;
+while (IsDecimalDigitForRadix(**current, 10)) {
+if (abs(written_exponent) <= 100 * Double::kMaxExponent) {
+written_exponent = 10 * written_exponent + **current - '0';
+}
+if (Advance(current, separator, radix, end)) break;
+}
+if (is_negative) written_exponent = -written_exponent;
+exponent += written_exponent;
+}
+if (exponent == 0 || number == 0) {
+if (sign) {
+if (number == 0) return -0.0;
+number = -number;
+}
+return static_cast<double>(number);
+}
+DOUBLE_CONVERSION_ASSERT(number != 0);
+double result = Double(DiyFp(number, exponent)).value();
+return sign ? -result : result;
+}
+template <class Iterator>
+double StringToDoubleConverter::StringToIeee(
+Iterator input,
+int length,
+bool read_as_double,
+int* processed_characters_count) const {
+Iterator current = input;
+Iterator end = input + length;
+*processed_characters_count = 0;
+const bool allow_trailing_junk = (flags_ & ALLOW_TRAILING_JUNK) != 0;
+const bool allow_leading_spaces = (flags_ & ALLOW_LEADING_SPACES) != 0;
+const bool allow_trailing_spaces = (flags_ & ALLOW_TRAILING_SPACES) != 0;
+const bool allow_spaces_after_sign = (flags_ & ALLOW_SPACES_AFTER_SIGN) != 0;
+const bool allow_case_insensitivity = (flags_ & ALLOW_CASE_INSENSITIVITY) != 0;
+if (current == end) return empty_string_value_;
+if (allow_leading_spaces || allow_trailing_spaces) {
+if (!AdvanceToNonspace(&current, end)) {
+*processed_characters_count = static_cast<int>(current - input);
+return empty_string_value_;
+}
+if (!allow_leading_spaces && (input != current)) {
+return junk_string_value_;
+}
+}
+int exponent = 0;
+int significant_digits = 0;
+int insignificant_digits = 0;
+bool nonzero_digit_dropped = false;
+bool sign = false;
+if (*current == '+' || *current == '-') {
+sign = (*current == '-');
+++current;
+Iterator next_non_space = current;
+if (!AdvanceToNonspace(&next_non_space, end)) return junk_string_value_;
+if (!allow_spaces_after_sign && (current != next_non_space)) {
+return junk_string_value_;
+}
+current = next_non_space;
+}
+if (infinity_symbol_ != DOUBLE_CONVERSION_NULLPTR) {
+if (ConsumeFirstCharacter(*current, infinity_symbol_, allow_case_insensitivity)) {
+if (!ConsumeSubString(&current, end, infinity_symbol_, allow_case_insensitivity)) {
+return junk_string_value_;
+}
+if (!(allow_trailing_spaces || allow_trailing_junk) && (current != end)) {
+return junk_string_value_;
+}
+if (!allow_trailing_junk && AdvanceToNonspace(&current, end)) {
+return junk_string_value_;
+}
+*processed_characters_count = static_cast<int>(current - input);
+return sign ? -Double::Infinity() : Double::Infinity();
+}
+}
+if (nan_symbol_ != DOUBLE_CONVERSION_NULLPTR) {
+if (ConsumeFirstCharacter(*current, nan_symbol_, allow_case_insensitivity)) {
+if (!ConsumeSubString(&current, end, nan_symbol_, allow_case_insensitivity)) {
+return junk_string_value_;
+}
+if (!(allow_trailing_spaces || allow_trailing_junk) && (current != end)) {
+return junk_string_value_;
+}
+if (!allow_trailing_junk && AdvanceToNonspace(&current, end)) {
+return junk_string_value_;
+}
+*processed_characters_count = static_cast<int>(current - input);
+return sign ? -Double::NaN() : Double::NaN();
+}
+}
+bool leading_zero = false;
+if (*current == '0') {
+if (Advance(&current, separator_, 10, end)) {
+*processed_characters_count = static_cast<int>(current - input);
+return SignedZero(sign);
+}
+leading_zero = true;
+if (((flags_ & ALLOW_HEX) || (flags_ & ALLOW_HEX_FLOATS)) &&
+(*current == 'x' || *current == 'X')) {
+++current;
+if (current == end) return junk_string_value_;  // "0x"
+bool parse_as_hex_float = (flags_ & ALLOW_HEX_FLOATS) &&
+IsHexFloatString(current, end, separator_, allow_trailing_junk);
+if (!parse_as_hex_float && !isDigit(*current, 16)) {
+return junk_string_value_;
+}
+bool result_is_junk;
+double result = RadixStringToIeee<4>(&current,
+end,
+sign,
+separator_,
+parse_as_hex_float,
+allow_trailing_junk,
+junk_string_value_,
+read_as_double,
+&result_is_junk);
+if (!result_is_junk) {
+if (allow_trailing_spaces) AdvanceToNonspace(&current, end);
+*processed_characters_count = static_cast<int>(current - input);
+}
+return result;
+}
+while (*current == '0') {
+if (Advance(&current, separator_, 10, end)) {
+*processed_characters_count = static_cast<int>(current - input);
+return SignedZero(sign);
+}
+}
+}
+bool octal = leading_zero && (flags_ & ALLOW_OCTALS) != 0;
+const int kBufferSize = kMaxSignificantDigits + 10;
+DOUBLE_CONVERSION_STACK_UNINITIALIZED char
+buffer[kBufferSize];  // NOLINT: size is known at compile time.
+int buffer_pos = 0;
+while (*current >= '0' && *current <= '9') {
+if (significant_digits < kMaxSignificantDigits) {
+DOUBLE_CONVERSION_ASSERT(buffer_pos < kBufferSize);
+buffer[buffer_pos++] = static_cast<char>(*current);
+significant_digits++;
+} else {
+insignificant_digits++;  // Move the digit into the exponential part.
+nonzero_digit_dropped = nonzero_digit_dropped || *current != '0';
+}
+octal = octal && *current < '8';
+if (Advance(&current, separator_, 10, end)) goto parsing_done;
+}
+if (significant_digits == 0) {
+octal = false;
+}
+if (*current == '.') {
+if (octal && !allow_trailing_junk) return junk_string_value_;
+if (octal) goto parsing_done;
+if (Advance(&current, separator_, 10, end)) {
+if (significant_digits == 0 && !leading_zero) {
+return junk_string_value_;
+} else {
+goto parsing_done;
+}
+}
+if (significant_digits == 0) {
+while (*current == '0') {
+if (Advance(&current, separator_, 10, end)) {
+*processed_characters_count = static_cast<int>(current - input);
+return SignedZero(sign);
+}
+exponent--;  // Move this 0 into the exponent.
+}
+}
+while (*current >= '0' && *current <= '9') {
+if (significant_digits < kMaxSignificantDigits) {
+DOUBLE_CONVERSION_ASSERT(buffer_pos < kBufferSize);
+buffer[buffer_pos++] = static_cast<char>(*current);
+significant_digits++;
+exponent--;
+} else {
+nonzero_digit_dropped = nonzero_digit_dropped || *current != '0';
+}
+if (Advance(&current, separator_, 10, end)) goto parsing_done;
+}
+}
+if (!leading_zero && exponent == 0 && significant_digits == 0) {
+return junk_string_value_;
+}
+if (*current == 'e' || *current == 'E') {
+if (octal && !allow_trailing_junk) return junk_string_value_;
+if (octal) goto parsing_done;
+Iterator junk_begin = current;
+++current;
+if (current == end) {
+if (allow_trailing_junk) {
+current = junk_begin;
+goto parsing_done;
+} else {
+return junk_string_value_;
+}
+}
+char exponen_sign = '+';
+if (*current == '+' || *current == '-') {
+exponen_sign = static_cast<char>(*current);
+++current;
+if (current == end) {
+if (allow_trailing_junk) {
+current = junk_begin;
+goto parsing_done;
+} else {
+return junk_string_value_;
+}
+}
+}
+if (current == end || *current < '0' || *current > '9') {
+if (allow_trailing_junk) {
+current = junk_begin;
+goto parsing_done;
+} else {
+return junk_string_value_;
+}
+}
+const int max_exponent = INT_MAX / 2;
+DOUBLE_CONVERSION_ASSERT(-max_exponent / 2 <= exponent && exponent <= max_exponent / 2);
+int num = 0;
+do {
+int digit = *current - '0';
+if (num >= max_exponent / 10
+&& !(num == max_exponent / 10 && digit <= max_exponent % 10)) {
+num = max_exponent;
+} else {
+num = num * 10 + digit;
+}
+++current;
+} while (current != end && *current >= '0' && *current <= '9');
+exponent += (exponen_sign == '-' ? -num : num);
+}
+if (!(allow_trailing_spaces || allow_trailing_junk) && (current != end)) {
+return junk_string_value_;
+}
+if (!allow_trailing_junk && AdvanceToNonspace(&current, end)) {
+return junk_string_value_;
+}
+if (allow_trailing_spaces) {
+AdvanceToNonspace(&current, end);
+}
+parsing_done:
+exponent += insignificant_digits;
+if (octal) {
+double result;
+bool result_is_junk;
+char* start = buffer;
+result = RadixStringToIeee<3>(&start,
+buffer + buffer_pos,
+sign,
+separator_,
+false, // Don't parse as hex_float.
+allow_trailing_junk,
+junk_string_value_,
+read_as_double,
+&result_is_junk);
+DOUBLE_CONVERSION_ASSERT(!result_is_junk);
+*processed_characters_count = static_cast<int>(current - input);
+return result;
+}
+if (nonzero_digit_dropped) {
+buffer[buffer_pos++] = '1';
+exponent--;
+}
+DOUBLE_CONVERSION_ASSERT(buffer_pos < kBufferSize);
+buffer[buffer_pos] = '\0';
+Vector<const char> chars(buffer, buffer_pos);
+chars = TrimTrailingZeros(chars);
+exponent += buffer_pos - chars.length();
+double converted;
+if (read_as_double) {
+converted = StrtodTrimmed(chars, exponent);
+} else {
+converted = StrtofTrimmed(chars, exponent);
+}
+*processed_characters_count = static_cast<int>(current - input);
+return sign? -converted: converted;
+}
+double StringToDoubleConverter::StringToDouble(
+const char* buffer,
+int length,
+int* processed_characters_count) const {
+return StringToIeee(buffer, length, true, processed_characters_count);
+}
+double StringToDoubleConverter::StringToDouble(
+const uc16* buffer,
+int length,
+int* processed_characters_count) const {
+return StringToIeee(buffer, length, true, processed_characters_count);
+}
+float StringToDoubleConverter::StringToFloat(
+const char* buffer,
+int length,
+int* processed_characters_count) const {
+return static_cast<float>(StringToIeee(buffer, length, false,
+processed_characters_count));
+}
+float StringToDoubleConverter::StringToFloat(
+const uc16* buffer,
+int length,
+int* processed_characters_count) const {
+return static_cast<float>(StringToIeee(buffer, length, false,
+processed_characters_count));
+}
+template<>
+double StringToDoubleConverter::StringTo<double>(
+const char* buffer,
+int length,
+int* processed_characters_count) const {
+return StringToDouble(buffer, length, processed_characters_count);
+}
+template<>
+float StringToDoubleConverter::StringTo<float>(
+const char* buffer,
+int length,
+int* processed_characters_count) const {
+return StringToFloat(buffer, length, processed_characters_count);
+}
+template<>
+double StringToDoubleConverter::StringTo<double>(
+const uc16* buffer,
+int length,
+int* processed_characters_count) const {
+return StringToDouble(buffer, length, processed_characters_count);
+}
+template<>
+float StringToDoubleConverter::StringTo<float>(
+const uc16* buffer,
+int length,
+int* processed_characters_count) const {
+return StringToFloat(buffer, length, processed_characters_count);
+}
+}  // namespace double_conversion
+
+
+#ifndef DOUBLE_CONVERSION_DOUBLE_TO_STRING_H_
+#define DOUBLE_CONVERSION_DOUBLE_TO_STRING_H_
+namespace double_conversion {
+class DoubleToStringConverter {
+public:
+static const int kMaxFixedDigitsBeforePoint = 60;
+static const int kMaxFixedDigitsAfterPoint = 100;
+static const int kMaxExponentialDigits = 120;
+static const int kMinPrecisionDigits = 1;
+static const int kMaxPrecisionDigits = 120;
+static const int kBase10MaximalLength = 17;
+static const int kBase10MaximalLengthSingle = 9;
+static const int kMaxCharsEcmaScriptShortest = 25;
+enum Flags {
+NO_FLAGS = 0,
+EMIT_POSITIVE_EXPONENT_SIGN = 1,
+EMIT_TRAILING_DECIMAL_POINT = 2,
+EMIT_TRAILING_ZERO_AFTER_POINT = 4,
+UNIQUE_ZERO = 8,
+NO_TRAILING_ZERO = 16
+};
+DoubleToStringConverter(int flags,
+const char* infinity_symbol,
+const char* nan_symbol,
+char exponent_character,
+int decimal_in_shortest_low,
+int decimal_in_shortest_high,
+int max_leading_padding_zeroes_in_precision_mode,
+int max_trailing_padding_zeroes_in_precision_mode,
+int min_exponent_width = 0)
+: flags_(flags),
+infinity_symbol_(infinity_symbol),
+nan_symbol_(nan_symbol),
+exponent_character_(exponent_character),
+decimal_in_shortest_low_(decimal_in_shortest_low),
+decimal_in_shortest_high_(decimal_in_shortest_high),
+max_leading_padding_zeroes_in_precision_mode_(
+max_leading_padding_zeroes_in_precision_mode),
+max_trailing_padding_zeroes_in_precision_mode_(
+max_trailing_padding_zeroes_in_precision_mode),
+min_exponent_width_(min_exponent_width) {
+DOUBLE_CONVERSION_ASSERT(((flags & EMIT_TRAILING_DECIMAL_POINT) != 0) ||
+!((flags & EMIT_TRAILING_ZERO_AFTER_POINT) != 0));
+}
+static const DoubleToStringConverter& EcmaScriptConverter();
+bool ToShortest(double value, StringBuilder* result_builder) const {
+return ToShortestIeeeNumber(value, result_builder, SHORTEST);
+}
+bool ToShortestSingle(float value, StringBuilder* result_builder) const {
+return ToShortestIeeeNumber(value, result_builder, SHORTEST_SINGLE);
+}
+bool ToFixed(double value,
+int requested_digits,
+StringBuilder* result_builder) const;
+bool ToExponential(double value,
+int requested_digits,
+StringBuilder* result_builder) const;
+bool ToPrecision(double value,
+int precision,
+StringBuilder* result_builder) const;
+enum DtoaMode {
+SHORTEST,
+SHORTEST_SINGLE,
+FIXED,
+PRECISION
+};
+static void DoubleToAscii(double v,
+DtoaMode mode,
+int requested_digits,
+char* buffer,
+int buffer_length,
+bool* sign,
+int* length,
+int* point);
+private:
+bool ToShortestIeeeNumber(double value,
+StringBuilder* result_builder,
+DtoaMode mode) const;
+bool HandleSpecialValues(double value, StringBuilder* result_builder) const;
+void CreateExponentialRepresentation(const char* decimal_digits,
+int length,
+int exponent,
+StringBuilder* result_builder) const;
+void CreateDecimalRepresentation(const char* decimal_digits,
+int length,
+int decimal_point,
+int digits_after_point,
+StringBuilder* result_builder) const;
+const int flags_;
+const char* const infinity_symbol_;
+const char* const nan_symbol_;
+const char exponent_character_;
+const int decimal_in_shortest_low_;
+const int decimal_in_shortest_high_;
+const int max_leading_padding_zeroes_in_precision_mode_;
+const int max_trailing_padding_zeroes_in_precision_mode_;
+const int min_exponent_width_;
+DOUBLE_CONVERSION_DISALLOW_IMPLICIT_CONSTRUCTORS(DoubleToStringConverter);
+};
+}  // namespace double_conversion
+#endif  // DOUBLE_CONVERSION_DOUBLE_TO_STRING_H_
+#include <algorithm>
+#include <climits>
+#include <cmath>
+#ifndef DOUBLE_CONVERSION_BIGNUM_DTOA_H_
+#define DOUBLE_CONVERSION_BIGNUM_DTOA_H_
+namespace double_conversion {
+enum BignumDtoaMode {
+BIGNUM_DTOA_SHORTEST,
+BIGNUM_DTOA_SHORTEST_SINGLE,
+BIGNUM_DTOA_FIXED,
+BIGNUM_DTOA_PRECISION
+};
+void BignumDtoa(double v, BignumDtoaMode mode, int requested_digits,
+Vector<char> buffer, int* length, int* point);
+}  // namespace double_conversion
+#endif  // DOUBLE_CONVERSION_BIGNUM_DTOA_H_
+#include <cmath>
+namespace double_conversion {
+static int NormalizedExponent(uint64_t significand, int exponent) {
+DOUBLE_CONVERSION_ASSERT(significand != 0);
+while ((significand & Double::kHiddenBit) == 0) {
+significand = significand << 1;
+exponent = exponent - 1;
+}
+return exponent;
+}
+static int EstimatePower(int exponent);
+static void InitialScaledStartValues(uint64_t significand,
+int exponent,
+bool lower_boundary_is_closer,
+int estimated_power,
+bool need_boundary_deltas,
+Bignum* numerator,
+Bignum* denominator,
+Bignum* delta_minus,
+Bignum* delta_plus);
+static void FixupMultiply10(int estimated_power, bool is_even,
+int* decimal_point,
+Bignum* numerator, Bignum* denominator,
+Bignum* delta_minus, Bignum* delta_plus);
+static void GenerateShortestDigits(Bignum* numerator, Bignum* denominator,
+Bignum* delta_minus, Bignum* delta_plus,
+bool is_even,
+Vector<char> buffer, int* length);
+static void BignumToFixed(int requested_digits, int* decimal_point,
+Bignum* numerator, Bignum* denominator,
+Vector<char> buffer, int* length);
+static void GenerateCountedDigits(int count, int* decimal_point,
+Bignum* numerator, Bignum* denominator,
+Vector<char> buffer, int* length);
+void BignumDtoa(double v, BignumDtoaMode mode, int requested_digits,
+Vector<char> buffer, int* length, int* decimal_point) {
+DOUBLE_CONVERSION_ASSERT(v > 0);
+DOUBLE_CONVERSION_ASSERT(!Double(v).IsSpecial());
+uint64_t significand;
+int exponent;
+bool lower_boundary_is_closer;
+if (mode == BIGNUM_DTOA_SHORTEST_SINGLE) {
+float f = static_cast<float>(v);
+DOUBLE_CONVERSION_ASSERT(f == v);
+significand = Single(f).Significand();
+exponent = Single(f).Exponent();
+lower_boundary_is_closer = Single(f).LowerBoundaryIsCloser();
+} else {
+significand = Double(v).Significand();
+exponent = Double(v).Exponent();
+lower_boundary_is_closer = Double(v).LowerBoundaryIsCloser();
+}
+bool need_boundary_deltas =
+(mode == BIGNUM_DTOA_SHORTEST || mode == BIGNUM_DTOA_SHORTEST_SINGLE);
+bool is_even = (significand & 1) == 0;
+int normalized_exponent = NormalizedExponent(significand, exponent);
+int estimated_power = EstimatePower(normalized_exponent);
+if (mode == BIGNUM_DTOA_FIXED && -estimated_power - 1 > requested_digits) {
+buffer[0] = '\0';
+*length = 0;
+*decimal_point = -requested_digits;
+return;
+}
+Bignum numerator;
+Bignum denominator;
+Bignum delta_minus;
+Bignum delta_plus;
+DOUBLE_CONVERSION_ASSERT(Bignum::kMaxSignificantBits >= 324*4);
+InitialScaledStartValues(significand, exponent, lower_boundary_is_closer,
+estimated_power, need_boundary_deltas,
+&numerator, &denominator,
+&delta_minus, &delta_plus);
+FixupMultiply10(estimated_power, is_even, decimal_point,
+&numerator, &denominator,
+&delta_minus, &delta_plus);
+switch (mode) {
+case BIGNUM_DTOA_SHORTEST:
+case BIGNUM_DTOA_SHORTEST_SINGLE:
+GenerateShortestDigits(&numerator, &denominator,
+&delta_minus, &delta_plus,
+is_even, buffer, length);
+break;
+case BIGNUM_DTOA_FIXED:
+BignumToFixed(requested_digits, decimal_point,
+&numerator, &denominator,
+buffer, length);
+break;
+case BIGNUM_DTOA_PRECISION:
+GenerateCountedDigits(requested_digits, decimal_point,
+&numerator, &denominator,
+buffer, length);
+break;
+default:
+DOUBLE_CONVERSION_UNREACHABLE();
+}
+buffer[*length] = '\0';
+}
+static void GenerateShortestDigits(Bignum* numerator, Bignum* denominator,
+Bignum* delta_minus, Bignum* delta_plus,
+bool is_even,
+Vector<char> buffer, int* length) {
+if (Bignum::Equal(*delta_minus, *delta_plus)) {
+delta_plus = delta_minus;
+}
+*length = 0;
+for (;;) {
+uint16_t digit;
+digit = numerator->DivideModuloIntBignum(*denominator);
+DOUBLE_CONVERSION_ASSERT(digit <= 9);  // digit is a uint16_t and therefore always positive.
+buffer[(*length)++] = static_cast<char>(digit + '0');
+bool in_delta_room_minus;
+bool in_delta_room_plus;
+if (is_even) {
+in_delta_room_minus = Bignum::LessEqual(*numerator, *delta_minus);
+} else {
+in_delta_room_minus = Bignum::Less(*numerator, *delta_minus);
+}
+if (is_even) {
+in_delta_room_plus =
+Bignum::PlusCompare(*numerator, *delta_plus, *denominator) >= 0;
+} else {
+in_delta_room_plus =
+Bignum::PlusCompare(*numerator, *delta_plus, *denominator) > 0;
+}
+if (!in_delta_room_minus && !in_delta_room_plus) {
+numerator->Times10();
+delta_minus->Times10();
+if (delta_minus != delta_plus) {
+delta_plus->Times10();
+}
+} else if (in_delta_room_minus && in_delta_room_plus) {
+int compare = Bignum::PlusCompare(*numerator, *numerator, *denominator);
+if (compare < 0) {
+} else if (compare > 0) {
+DOUBLE_CONVERSION_ASSERT(buffer[(*length) - 1] != '9');
+buffer[(*length) - 1]++;
+} else {
+if ((buffer[(*length) - 1] - '0') % 2 == 0) {
+} else {
+DOUBLE_CONVERSION_ASSERT(buffer[(*length) - 1] != '9');
+buffer[(*length) - 1]++;
+}
+}
+return;
+} else if (in_delta_room_minus) {
+return;
+} else {  // in_delta_room_plus
+DOUBLE_CONVERSION_ASSERT(buffer[(*length) -1] != '9');
+buffer[(*length) - 1]++;
+return;
+}
+}
+}
+static void GenerateCountedDigits(int count, int* decimal_point,
+Bignum* numerator, Bignum* denominator,
+Vector<char> buffer, int* length) {
+DOUBLE_CONVERSION_ASSERT(count >= 0);
+for (int i = 0; i < count - 1; ++i) {
+uint16_t digit;
+digit = numerator->DivideModuloIntBignum(*denominator);
+DOUBLE_CONVERSION_ASSERT(digit <= 9);  // digit is a uint16_t and therefore always positive.
+buffer[i] = static_cast<char>(digit + '0');
+numerator->Times10();
+}
+uint16_t digit;
+digit = numerator->DivideModuloIntBignum(*denominator);
+if (Bignum::PlusCompare(*numerator, *numerator, *denominator) >= 0) {
+digit++;
+}
+DOUBLE_CONVERSION_ASSERT(digit <= 10);
+buffer[count - 1] = static_cast<char>(digit + '0');
+for (int i = count - 1; i > 0; --i) {
+if (buffer[i] != '0' + 10) break;
+buffer[i] = '0';
+buffer[i - 1]++;
+}
+if (buffer[0] == '0' + 10) {
+buffer[0] = '1';
+(*decimal_point)++;
+}
+*length = count;
+}
+static void BignumToFixed(int requested_digits, int* decimal_point,
+Bignum* numerator, Bignum* denominator,
+Vector<char> buffer, int* length) {
+if (-(*decimal_point) > requested_digits) {
+*decimal_point = -requested_digits;
+*length = 0;
+return;
+} else if (-(*decimal_point) == requested_digits) {
+DOUBLE_CONVERSION_ASSERT(*decimal_point == -requested_digits);
+denominator->Times10();
+if (Bignum::PlusCompare(*numerator, *numerator, *denominator) >= 0) {
+buffer[0] = '1';
+*length = 1;
+(*decimal_point)++;
+} else {
+*length = 0;
+}
+return;
+} else {
+int needed_digits = (*decimal_point) + requested_digits;
+GenerateCountedDigits(needed_digits, decimal_point,
+numerator, denominator,
+buffer, length);
+}
+}
+static int EstimatePower(int exponent) {
+const double k1Log10 = 0.30102999566398114;  // 1/lg(10)
+const int kSignificandSize = Double::kSignificandSize;
+double estimate = ceil((exponent + kSignificandSize - 1) * k1Log10 - 1e-10);
+return static_cast<int>(estimate);
+}
+static void InitialScaledStartValuesPositiveExponent(
+uint64_t significand, int exponent,
+int estimated_power, bool need_boundary_deltas,
+Bignum* numerator, Bignum* denominator,
+Bignum* delta_minus, Bignum* delta_plus) {
+DOUBLE_CONVERSION_ASSERT(estimated_power >= 0);
+numerator->AssignUInt64(significand);
+numerator->ShiftLeft(exponent);
+denominator->AssignPowerUInt16(10, estimated_power);
+if (need_boundary_deltas) {
+denominator->ShiftLeft(1);
+numerator->ShiftLeft(1);
+delta_plus->AssignUInt16(1);
+delta_plus->ShiftLeft(exponent);
+delta_minus->AssignUInt16(1);
+delta_minus->ShiftLeft(exponent);
+}
+}
+static void InitialScaledStartValuesNegativeExponentPositivePower(
+uint64_t significand, int exponent,
+int estimated_power, bool need_boundary_deltas,
+Bignum* numerator, Bignum* denominator,
+Bignum* delta_minus, Bignum* delta_plus) {
+numerator->AssignUInt64(significand);
+denominator->AssignPowerUInt16(10, estimated_power);
+denominator->ShiftLeft(-exponent);
+if (need_boundary_deltas) {
+denominator->ShiftLeft(1);
+numerator->ShiftLeft(1);
+delta_plus->AssignUInt16(1);
+delta_minus->AssignUInt16(1);
+}
+}
+static void InitialScaledStartValuesNegativeExponentNegativePower(
+uint64_t significand, int exponent,
+int estimated_power, bool need_boundary_deltas,
+Bignum* numerator, Bignum* denominator,
+Bignum* delta_minus, Bignum* delta_plus) {
+Bignum* power_ten = numerator;
+power_ten->AssignPowerUInt16(10, -estimated_power);
+if (need_boundary_deltas) {
+delta_plus->AssignBignum(*power_ten);
+delta_minus->AssignBignum(*power_ten);
+}
+DOUBLE_CONVERSION_ASSERT(numerator == power_ten);
+numerator->MultiplyByUInt64(significand);
+denominator->AssignUInt16(1);
+denominator->ShiftLeft(-exponent);
+if (need_boundary_deltas) {
+numerator->ShiftLeft(1);
+denominator->ShiftLeft(1);
+}
+}
+static void InitialScaledStartValues(uint64_t significand,
+int exponent,
+bool lower_boundary_is_closer,
+int estimated_power,
+bool need_boundary_deltas,
+Bignum* numerator,
+Bignum* denominator,
+Bignum* delta_minus,
+Bignum* delta_plus) {
+if (exponent >= 0) {
+InitialScaledStartValuesPositiveExponent(
+significand, exponent, estimated_power, need_boundary_deltas,
+numerator, denominator, delta_minus, delta_plus);
+} else if (estimated_power >= 0) {
+InitialScaledStartValuesNegativeExponentPositivePower(
+significand, exponent, estimated_power, need_boundary_deltas,
+numerator, denominator, delta_minus, delta_plus);
+} else {
+InitialScaledStartValuesNegativeExponentNegativePower(
+significand, exponent, estimated_power, need_boundary_deltas,
+numerator, denominator, delta_minus, delta_plus);
+}
+if (need_boundary_deltas && lower_boundary_is_closer) {
+denominator->ShiftLeft(1);  // *2
+numerator->ShiftLeft(1);    // *2
+delta_plus->ShiftLeft(1);   // *2
+}
+}
+static void FixupMultiply10(int estimated_power, bool is_even,
+int* decimal_point,
+Bignum* numerator, Bignum* denominator,
+Bignum* delta_minus, Bignum* delta_plus) {
+bool in_range;
+if (is_even) {
+in_range = Bignum::PlusCompare(*numerator, *delta_plus, *denominator) >= 0;
+} else {
+in_range = Bignum::PlusCompare(*numerator, *delta_plus, *denominator) > 0;
+}
+if (in_range) {
+*decimal_point = estimated_power + 1;
+} else {
+*decimal_point = estimated_power;
+numerator->Times10();
+if (Bignum::Equal(*delta_minus, *delta_plus)) {
+delta_minus->Times10();
+delta_plus->AssignBignum(*delta_minus);
+} else {
+delta_minus->Times10();
+delta_plus->Times10();
+}
+}
+}
+}  // namespace double_conversion
+
+
+#ifndef DOUBLE_CONVERSION_FAST_DTOA_H_
+#define DOUBLE_CONVERSION_FAST_DTOA_H_
+namespace double_conversion {
+enum FastDtoaMode {
+FAST_DTOA_SHORTEST,
+FAST_DTOA_SHORTEST_SINGLE,
+FAST_DTOA_PRECISION
+};
+static const int kFastDtoaMaximalLength = 17;
+static const int kFastDtoaMaximalSingleLength = 9;
+bool FastDtoa(double d,
+FastDtoaMode mode,
+int requested_digits,
+Vector<char> buffer,
+int* length,
+int* decimal_point);
+}  // namespace double_conversion
+#endif  // DOUBLE_CONVERSION_FAST_DTOA_H_
+namespace double_conversion {
+static const int kMinimalTargetExponent = -60;
+static const int kMaximalTargetExponent = -32;
+static bool RoundWeed(Vector<char> buffer,
+int length,
+uint64_t distance_too_high_w,
+uint64_t unsafe_interval,
+uint64_t rest,
+uint64_t ten_kappa,
+uint64_t unit) {
+uint64_t small_distance = distance_too_high_w - unit;
+uint64_t big_distance = distance_too_high_w + unit;
+DOUBLE_CONVERSION_ASSERT(rest <= unsafe_interval);
+while (rest < small_distance &&  // Negated condition 1
+unsafe_interval - rest >= ten_kappa &&  // Negated condition 2
+(rest + ten_kappa < small_distance ||  // buffer{-1} > w_high
+small_distance - rest >= rest + ten_kappa - small_distance)) {
+buffer[length - 1]--;
+rest += ten_kappa;
+}
+if (rest < big_distance &&
+unsafe_interval - rest >= ten_kappa &&
+(rest + ten_kappa < big_distance ||
+big_distance - rest > rest + ten_kappa - big_distance)) {
+return false;
+}
+return (2 * unit <= rest) && (rest <= unsafe_interval - 4 * unit);
+}
+static bool RoundWeedCounted(Vector<char> buffer,
+int length,
+uint64_t rest,
+uint64_t ten_kappa,
+uint64_t unit,
+int* kappa) {
+DOUBLE_CONVERSION_ASSERT(rest < ten_kappa);
+if (unit >= ten_kappa) return false;
+if (ten_kappa - unit <= unit) return false;
+if ((ten_kappa - rest > rest) && (ten_kappa - 2 * rest >= 2 * unit)) {
+return true;
+}
+if ((rest > unit) && (ten_kappa - (rest - unit) <= (rest - unit))) {
+buffer[length - 1]++;
+for (int i = length - 1; i > 0; --i) {
+if (buffer[i] != '0' + 10) break;
+buffer[i] = '0';
+buffer[i - 1]++;
+}
+if (buffer[0] == '0' + 10) {
+buffer[0] = '1';
+(*kappa) += 1;
+}
+return true;
+}
+return false;
+}
+static unsigned int const kSmallPowersOfTen[] =
+{0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000,
+1000000000};
+static void BiggestPowerTen(uint32_t number,
+int number_bits,
+uint32_t* power,
+int* exponent_plus_one) {
+DOUBLE_CONVERSION_ASSERT(number < (1u << (number_bits + 1)));
+int exponent_plus_one_guess = ((number_bits + 1) * 1233 >> 12);
+exponent_plus_one_guess++;
+if (number < kSmallPowersOfTen[exponent_plus_one_guess]) {
+exponent_plus_one_guess--;
+}
+*power = kSmallPowersOfTen[exponent_plus_one_guess];
+*exponent_plus_one = exponent_plus_one_guess;
+}
+static bool DigitGen(DiyFp low,
+DiyFp w,
+DiyFp high,
+Vector<char> buffer,
+int* length,
+int* kappa) {
+DOUBLE_CONVERSION_ASSERT(low.e() == w.e() && w.e() == high.e());
+DOUBLE_CONVERSION_ASSERT(low.f() + 1 <= high.f() - 1);
+DOUBLE_CONVERSION_ASSERT(kMinimalTargetExponent <= w.e() && w.e() <= kMaximalTargetExponent);
+uint64_t unit = 1;
+DiyFp too_low = DiyFp(low.f() - unit, low.e());
+DiyFp too_high = DiyFp(high.f() + unit, high.e());
+DiyFp unsafe_interval = DiyFp::Minus(too_high, too_low);
+DiyFp one = DiyFp(static_cast<uint64_t>(1) << -w.e(), w.e());
+uint32_t integrals = static_cast<uint32_t>(too_high.f() >> -one.e());
+uint64_t fractionals = too_high.f() & (one.f() - 1);
+uint32_t divisor;
+int divisor_exponent_plus_one;
+BiggestPowerTen(integrals, DiyFp::kSignificandSize - (-one.e()),
+&divisor, &divisor_exponent_plus_one);
+*kappa = divisor_exponent_plus_one;
+*length = 0;
+while (*kappa > 0) {
+int digit = integrals / divisor;
+DOUBLE_CONVERSION_ASSERT(digit <= 9);
+buffer[*length] = static_cast<char>('0' + digit);
+(*length)++;
+integrals %= divisor;
+(*kappa)--;
+uint64_t rest =
+(static_cast<uint64_t>(integrals) << -one.e()) + fractionals;
+if (rest < unsafe_interval.f()) {
+return RoundWeed(buffer, *length, DiyFp::Minus(too_high, w).f(),
+unsafe_interval.f(), rest,
+static_cast<uint64_t>(divisor) << -one.e(), unit);
+}
+divisor /= 10;
+}
+DOUBLE_CONVERSION_ASSERT(one.e() >= -60);
+DOUBLE_CONVERSION_ASSERT(fractionals < one.f());
+DOUBLE_CONVERSION_ASSERT(DOUBLE_CONVERSION_UINT64_2PART_C(0xFFFFFFFF, FFFFFFFF) / 10 >= one.f());
+for (;;) {
+fractionals *= 10;
+unit *= 10;
+unsafe_interval.set_f(unsafe_interval.f() * 10);
+int digit = static_cast<int>(fractionals >> -one.e());
+DOUBLE_CONVERSION_ASSERT(digit <= 9);
+buffer[*length] = static_cast<char>('0' + digit);
+(*length)++;
+fractionals &= one.f() - 1;  // Modulo by one.
+(*kappa)--;
+if (fractionals < unsafe_interval.f()) {
+return RoundWeed(buffer, *length, DiyFp::Minus(too_high, w).f() * unit,
+unsafe_interval.f(), fractionals, one.f(), unit);
+}
+}
+}
+static bool DigitGenCounted(DiyFp w,
+int requested_digits,
+Vector<char> buffer,
+int* length,
+int* kappa) {
+DOUBLE_CONVERSION_ASSERT(kMinimalTargetExponent <= w.e() && w.e() <= kMaximalTargetExponent);
+DOUBLE_CONVERSION_ASSERT(kMinimalTargetExponent >= -60);
+DOUBLE_CONVERSION_ASSERT(kMaximalTargetExponent <= -32);
+uint64_t w_error = 1;
+DiyFp one = DiyFp(static_cast<uint64_t>(1) << -w.e(), w.e());
+uint32_t integrals = static_cast<uint32_t>(w.f() >> -one.e());
+uint64_t fractionals = w.f() & (one.f() - 1);
+uint32_t divisor;
+int divisor_exponent_plus_one;
+BiggestPowerTen(integrals, DiyFp::kSignificandSize - (-one.e()),
+&divisor, &divisor_exponent_plus_one);
+*kappa = divisor_exponent_plus_one;
+*length = 0;
+while (*kappa > 0) {
+int digit = integrals / divisor;
+DOUBLE_CONVERSION_ASSERT(digit <= 9);
+buffer[*length] = static_cast<char>('0' + digit);
+(*length)++;
+requested_digits--;
+integrals %= divisor;
+(*kappa)--;
+if (requested_digits == 0) break;
+divisor /= 10;
+}
+if (requested_digits == 0) {
+uint64_t rest =
+(static_cast<uint64_t>(integrals) << -one.e()) + fractionals;
+return RoundWeedCounted(buffer, *length, rest,
+static_cast<uint64_t>(divisor) << -one.e(), w_error,
+kappa);
+}
+DOUBLE_CONVERSION_ASSERT(one.e() >= -60);
+DOUBLE_CONVERSION_ASSERT(fractionals < one.f());
+DOUBLE_CONVERSION_ASSERT(DOUBLE_CONVERSION_UINT64_2PART_C(0xFFFFFFFF, FFFFFFFF) / 10 >= one.f());
+while (requested_digits > 0 && fractionals > w_error) {
+fractionals *= 10;
+w_error *= 10;
+int digit = static_cast<int>(fractionals >> -one.e());
+DOUBLE_CONVERSION_ASSERT(digit <= 9);
+buffer[*length] = static_cast<char>('0' + digit);
+(*length)++;
+requested_digits--;
+fractionals &= one.f() - 1;  // Modulo by one.
+(*kappa)--;
+}
+if (requested_digits != 0) return false;
+return RoundWeedCounted(buffer, *length, fractionals, one.f(), w_error,
+kappa);
+}
+static bool Grisu3(double v,
+FastDtoaMode mode,
+Vector<char> buffer,
+int* length,
+int* decimal_exponent) {
+DiyFp w = Double(v).AsNormalizedDiyFp();
+DiyFp boundary_minus, boundary_plus;
+if (mode == FAST_DTOA_SHORTEST) {
+Double(v).NormalizedBoundaries(&boundary_minus, &boundary_plus);
+} else {
+DOUBLE_CONVERSION_ASSERT(mode == FAST_DTOA_SHORTEST_SINGLE);
+float single_v = static_cast<float>(v);
+Single(single_v).NormalizedBoundaries(&boundary_minus, &boundary_plus);
+}
+DOUBLE_CONVERSION_ASSERT(boundary_plus.e() == w.e());
+DiyFp ten_mk;  // Cached power of ten: 10^-k
+int mk;        // -k
+int ten_mk_minimal_binary_exponent =
+kMinimalTargetExponent - (w.e() + DiyFp::kSignificandSize);
+int ten_mk_maximal_binary_exponent =
+kMaximalTargetExponent - (w.e() + DiyFp::kSignificandSize);
+PowersOfTenCache::GetCachedPowerForBinaryExponentRange(
+ten_mk_minimal_binary_exponent,
+ten_mk_maximal_binary_exponent,
+&ten_mk, &mk);
+DOUBLE_CONVERSION_ASSERT((kMinimalTargetExponent <= w.e() + ten_mk.e() +
+DiyFp::kSignificandSize) &&
+(kMaximalTargetExponent >= w.e() + ten_mk.e() +
+DiyFp::kSignificandSize));
+DiyFp scaled_w = DiyFp::Times(w, ten_mk);
+DOUBLE_CONVERSION_ASSERT(scaled_w.e() ==
+boundary_plus.e() + ten_mk.e() + DiyFp::kSignificandSize);
+DiyFp scaled_boundary_minus = DiyFp::Times(boundary_minus, ten_mk);
+DiyFp scaled_boundary_plus  = DiyFp::Times(boundary_plus,  ten_mk);
+int kappa;
+bool result = DigitGen(scaled_boundary_minus, scaled_w, scaled_boundary_plus,
+buffer, length, &kappa);
+*decimal_exponent = -mk + kappa;
+return result;
+}
+static bool Grisu3Counted(double v,
+int requested_digits,
+Vector<char> buffer,
+int* length,
+int* decimal_exponent) {
+DiyFp w = Double(v).AsNormalizedDiyFp();
+DiyFp ten_mk;  // Cached power of ten: 10^-k
+int mk;        // -k
+int ten_mk_minimal_binary_exponent =
+kMinimalTargetExponent - (w.e() + DiyFp::kSignificandSize);
+int ten_mk_maximal_binary_exponent =
+kMaximalTargetExponent - (w.e() + DiyFp::kSignificandSize);
+PowersOfTenCache::GetCachedPowerForBinaryExponentRange(
+ten_mk_minimal_binary_exponent,
+ten_mk_maximal_binary_exponent,
+&ten_mk, &mk);
+DOUBLE_CONVERSION_ASSERT((kMinimalTargetExponent <= w.e() + ten_mk.e() +
+DiyFp::kSignificandSize) &&
+(kMaximalTargetExponent >= w.e() + ten_mk.e() +
+DiyFp::kSignificandSize));
+DiyFp scaled_w = DiyFp::Times(w, ten_mk);
+int kappa;
+bool result = DigitGenCounted(scaled_w, requested_digits,
+buffer, length, &kappa);
+*decimal_exponent = -mk + kappa;
+return result;
+}
+bool FastDtoa(double v,
+FastDtoaMode mode,
+int requested_digits,
+Vector<char> buffer,
+int* length,
+int* decimal_point) {
+DOUBLE_CONVERSION_ASSERT(v > 0);
+DOUBLE_CONVERSION_ASSERT(!Double(v).IsSpecial());
+bool result = false;
+int decimal_exponent = 0;
+switch (mode) {
+case FAST_DTOA_SHORTEST:
+case FAST_DTOA_SHORTEST_SINGLE:
+result = Grisu3(v, mode, buffer, length, &decimal_exponent);
+break;
+case FAST_DTOA_PRECISION:
+result = Grisu3Counted(v, requested_digits,
+buffer, length, &decimal_exponent);
+break;
+default:
+DOUBLE_CONVERSION_UNREACHABLE();
+}
+if (result) {
+*decimal_point = *length + decimal_exponent;
+buffer[*length] = '\0';
+}
+return result;
+}
+}  // namespace double_conversion
+
+
+#ifndef DOUBLE_CONVERSION_FIXED_DTOA_H_
+#define DOUBLE_CONVERSION_FIXED_DTOA_H_
+namespace double_conversion {
+bool FastFixedDtoa(double v, int fractional_count,
+Vector<char> buffer, int* length, int* decimal_point);
+}  // namespace double_conversion
+#endif  // DOUBLE_CONVERSION_FIXED_DTOA_H_
+#include <cmath>
+namespace double_conversion {
+class UInt128 {
+public:
+UInt128() : high_bits_(0), low_bits_(0) { }
+UInt128(uint64_t high, uint64_t low) : high_bits_(high), low_bits_(low) { }
+void Multiply(uint32_t multiplicand) {
+uint64_t accumulator;
+accumulator = (low_bits_ & kMask32) * multiplicand;
+uint32_t part = static_cast<uint32_t>(accumulator & kMask32);
+accumulator >>= 32;
+accumulator = accumulator + (low_bits_ >> 32) * multiplicand;
+low_bits_ = (accumulator << 32) + part;
+accumulator >>= 32;
+accumulator = accumulator + (high_bits_ & kMask32) * multiplicand;
+part = static_cast<uint32_t>(accumulator & kMask32);
+accumulator >>= 32;
+accumulator = accumulator + (high_bits_ >> 32) * multiplicand;
+high_bits_ = (accumulator << 32) + part;
+DOUBLE_CONVERSION_ASSERT((accumulator >> 32) == 0);
+}
+void Shift(int shift_amount) {
+DOUBLE_CONVERSION_ASSERT(-64 <= shift_amount && shift_amount <= 64);
+if (shift_amount == 0) {
+return;
+} else if (shift_amount == -64) {
+high_bits_ = low_bits_;
+low_bits_ = 0;
+} else if (shift_amount == 64) {
+low_bits_ = high_bits_;
+high_bits_ = 0;
+} else if (shift_amount <= 0) {
+high_bits_ <<= -shift_amount;
+high_bits_ += low_bits_ >> (64 + shift_amount);
+low_bits_ <<= -shift_amount;
+} else {
+low_bits_ >>= shift_amount;
+low_bits_ += high_bits_ << (64 - shift_amount);
+high_bits_ >>= shift_amount;
+}
+}
+int DivModPowerOf2(int power) {
+if (power >= 64) {
+int result = static_cast<int>(high_bits_ >> (power - 64));
+high_bits_ -= static_cast<uint64_t>(result) << (power - 64);
+return result;
+} else {
+uint64_t part_low = low_bits_ >> power;
+uint64_t part_high = high_bits_ << (64 - power);
+int result = static_cast<int>(part_low + part_high);
+high_bits_ = 0;
+low_bits_ -= part_low << power;
+return result;
+}
+}
+bool IsZero() const {
+return high_bits_ == 0 && low_bits_ == 0;
+}
+int BitAt(int position) const {
+if (position >= 64) {
+return static_cast<int>(high_bits_ >> (position - 64)) & 1;
+} else {
+return static_cast<int>(low_bits_ >> position) & 1;
+}
+}
+private:
+static const uint64_t kMask32 = 0xFFFFFFFF;
+uint64_t high_bits_;
+uint64_t low_bits_;
+};
+static const int kDoubleSignificandSize = 53;  // Includes the hidden bit.
+static void FillDigits32FixedLength(uint32_t number, int requested_length,
+Vector<char> buffer, int* length) {
+for (int i = requested_length - 1; i >= 0; --i) {
+buffer[(*length) + i] = '0' + number % 10;
+number /= 10;
+}
+*length += requested_length;
+}
+static void FillDigits32(uint32_t number, Vector<char> buffer, int* length) {
+int number_length = 0;
+while (number != 0) {
+int digit = number % 10;
+number /= 10;
+buffer[(*length) + number_length] = static_cast<char>('0' + digit);
+number_length++;
+}
+int i = *length;
+int j = *length + number_length - 1;
+while (i < j) {
+char tmp = buffer[i];
+buffer[i] = buffer[j];
+buffer[j] = tmp;
+i++;
+j--;
+}
+*length += number_length;
+}
+static void FillDigits64FixedLength(uint64_t number,
+Vector<char> buffer, int* length) {
+const uint32_t kTen7 = 10000000;
+uint32_t part2 = static_cast<uint32_t>(number % kTen7);
+number /= kTen7;
+uint32_t part1 = static_cast<uint32_t>(number % kTen7);
+uint32_t part0 = static_cast<uint32_t>(number / kTen7);
+FillDigits32FixedLength(part0, 3, buffer, length);
+FillDigits32FixedLength(part1, 7, buffer, length);
+FillDigits32FixedLength(part2, 7, buffer, length);
+}
+static void FillDigits64(uint64_t number, Vector<char> buffer, int* length) {
+const uint32_t kTen7 = 10000000;
+uint32_t part2 = static_cast<uint32_t>(number % kTen7);
+number /= kTen7;
+uint32_t part1 = static_cast<uint32_t>(number % kTen7);
+uint32_t part0 = static_cast<uint32_t>(number / kTen7);
+if (part0 != 0) {
+FillDigits32(part0, buffer, length);
+FillDigits32FixedLength(part1, 7, buffer, length);
+FillDigits32FixedLength(part2, 7, buffer, length);
+} else if (part1 != 0) {
+FillDigits32(part1, buffer, length);
+FillDigits32FixedLength(part2, 7, buffer, length);
+} else {
+FillDigits32(part2, buffer, length);
+}
+}
+static void RoundUp(Vector<char> buffer, int* length, int* decimal_point) {
+if (*length == 0) {
+buffer[0] = '1';
+*decimal_point = 1;
+*length = 1;
+return;
+}
+buffer[(*length) - 1]++;
+for (int i = (*length) - 1; i > 0; --i) {
+if (buffer[i] != '0' + 10) {
+return;
+}
+buffer[i] = '0';
+buffer[i - 1]++;
+}
+if (buffer[0] == '0' + 10) {
+buffer[0] = '1';
+(*decimal_point)++;
+}
+}
+static void FillFractionals(uint64_t fractionals, int exponent,
+int fractional_count, Vector<char> buffer,
+int* length, int* decimal_point) {
+DOUBLE_CONVERSION_ASSERT(-128 <= exponent && exponent <= 0);
+if (-exponent <= 64) {
+DOUBLE_CONVERSION_ASSERT(fractionals >> 56 == 0);
+int point = -exponent;
+for (int i = 0; i < fractional_count; ++i) {
+if (fractionals == 0) break;
+fractionals *= 5;
+point--;
+int digit = static_cast<int>(fractionals >> point);
+DOUBLE_CONVERSION_ASSERT(digit <= 9);
+buffer[*length] = static_cast<char>('0' + digit);
+(*length)++;
+fractionals -= static_cast<uint64_t>(digit) << point;
+}
+DOUBLE_CONVERSION_ASSERT(fractionals == 0 || point - 1 >= 0);
+if ((fractionals != 0) && ((fractionals >> (point - 1)) & 1) == 1) {
+RoundUp(buffer, length, decimal_point);
+}
+} else {  // We need 128 bits.
+DOUBLE_CONVERSION_ASSERT(64 < -exponent && -exponent <= 128);
+UInt128 fractionals128 = UInt128(fractionals, 0);
+fractionals128.Shift(-exponent - 64);
+int point = 128;
+for (int i = 0; i < fractional_count; ++i) {
+if (fractionals128.IsZero()) break;
+fractionals128.Multiply(5);
+point--;
+int digit = fractionals128.DivModPowerOf2(point);
+DOUBLE_CONVERSION_ASSERT(digit <= 9);
+buffer[*length] = static_cast<char>('0' + digit);
+(*length)++;
+}
+if (fractionals128.BitAt(point - 1) == 1) {
+RoundUp(buffer, length, decimal_point);
+}
+}
+}
+static void TrimZeros(Vector<char> buffer, int* length, int* decimal_point) {
+while (*length > 0 && buffer[(*length) - 1] == '0') {
+(*length)--;
+}
+int first_non_zero = 0;
+while (first_non_zero < *length && buffer[first_non_zero] == '0') {
+first_non_zero++;
+}
+if (first_non_zero != 0) {
+for (int i = first_non_zero; i < *length; ++i) {
+buffer[i - first_non_zero] = buffer[i];
+}
+*length -= first_non_zero;
+*decimal_point -= first_non_zero;
+}
+}
+bool FastFixedDtoa(double v,
+int fractional_count,
+Vector<char> buffer,
+int* length,
+int* decimal_point) {
+const uint32_t kMaxUInt32 = 0xFFFFFFFF;
+uint64_t significand = Double(v).Significand();
+int exponent = Double(v).Exponent();
+if (exponent > 20) return false;
+if (fractional_count > 20) return false;
+*length = 0;
+if (exponent + kDoubleSignificandSize > 64) {
+const uint64_t kFive17 = DOUBLE_CONVERSION_UINT64_2PART_C(0xB1, A2BC2EC5);  // 5^17
+uint64_t divisor = kFive17;
+int divisor_power = 17;
+uint64_t dividend = significand;
+uint32_t quotient;
+uint64_t remainder;
+if (exponent > divisor_power) {
+dividend <<= exponent - divisor_power;
+quotient = static_cast<uint32_t>(dividend / divisor);
+remainder = (dividend % divisor) << divisor_power;
+} else {
+divisor <<= divisor_power - exponent;
+quotient = static_cast<uint32_t>(dividend / divisor);
+remainder = (dividend % divisor) << exponent;
+}
+FillDigits32(quotient, buffer, length);
+FillDigits64FixedLength(remainder, buffer, length);
+*decimal_point = *length;
+} else if (exponent >= 0) {
+significand <<= exponent;
+FillDigits64(significand, buffer, length);
+*decimal_point = *length;
+} else if (exponent > -kDoubleSignificandSize) {
+uint64_t integrals = significand >> -exponent;
+uint64_t fractionals = significand - (integrals << -exponent);
+if (integrals > kMaxUInt32) {
+FillDigits64(integrals, buffer, length);
+} else {
+FillDigits32(static_cast<uint32_t>(integrals), buffer, length);
+}
+*decimal_point = *length;
+FillFractionals(fractionals, exponent, fractional_count,
+buffer, length, decimal_point);
+} else if (exponent < -128) {
+DOUBLE_CONVERSION_ASSERT(fractional_count <= 20);
+buffer[0] = '\0';
+*length = 0;
+*decimal_point = -fractional_count;
+} else {
+*decimal_point = 0;
+FillFractionals(significand, exponent, fractional_count,
+buffer, length, decimal_point);
+}
+TrimZeros(buffer, length, decimal_point);
+buffer[*length] = '\0';
+if ((*length) == 0) {
+*decimal_point = -fractional_count;
+}
+return true;
+}
+}  // namespace double_conversion
+
+
+namespace double_conversion {
+const DoubleToStringConverter& DoubleToStringConverter::EcmaScriptConverter() {
+int flags = UNIQUE_ZERO | EMIT_POSITIVE_EXPONENT_SIGN;
+static DoubleToStringConverter converter(flags,
+"Infinity",
+"NaN",
+'e',
+-6, 21,
+6, 0);
+return converter;
+}
+bool DoubleToStringConverter::HandleSpecialValues(
+double value,
+StringBuilder* result_builder) const {
+Double double_inspect(value);
+if (double_inspect.IsInfinite()) {
+if (infinity_symbol_ == DOUBLE_CONVERSION_NULLPTR) return false;
+if (value < 0) {
+result_builder->AddCharacter('-');
+}
+result_builder->AddString(infinity_symbol_);
+return true;
+}
+if (double_inspect.IsNan()) {
+if (nan_symbol_ == DOUBLE_CONVERSION_NULLPTR) return false;
+result_builder->AddString(nan_symbol_);
+return true;
+}
+return false;
+}
+void DoubleToStringConverter::CreateExponentialRepresentation(
+const char* decimal_digits,
+int length,
+int exponent,
+StringBuilder* result_builder) const {
+DOUBLE_CONVERSION_ASSERT(length != 0);
+result_builder->AddCharacter(decimal_digits[0]);
+if (length != 1) {
+result_builder->AddCharacter('.');
+result_builder->AddSubstring(&decimal_digits[1], length-1);
+}
+result_builder->AddCharacter(exponent_character_);
+if (exponent < 0) {
+result_builder->AddCharacter('-');
+exponent = -exponent;
+} else {
+if ((flags_ & EMIT_POSITIVE_EXPONENT_SIGN) != 0) {
+result_builder->AddCharacter('+');
+}
+}
+DOUBLE_CONVERSION_ASSERT(exponent < 1e4);
+const int kMaxExponentLength = 5;
+char buffer[kMaxExponentLength + 1];
+buffer[kMaxExponentLength] = '\0';
+int first_char_pos = kMaxExponentLength;
+if (exponent == 0) {
+buffer[--first_char_pos] = '0';
+} else {
+while (exponent > 0) {
+buffer[--first_char_pos] = '0' + (exponent % 10);
+exponent /= 10;
+}
+}
+while(kMaxExponentLength - first_char_pos < std::min(min_exponent_width_, kMaxExponentLength)) {
+buffer[--first_char_pos] = '0';
+}
+result_builder->AddSubstring(&buffer[first_char_pos],
+kMaxExponentLength - first_char_pos);
+}
+void DoubleToStringConverter::CreateDecimalRepresentation(
+const char* decimal_digits,
+int length,
+int decimal_point,
+int digits_after_point,
+StringBuilder* result_builder) const {
+if (decimal_point <= 0) {
+result_builder->AddCharacter('0');
+if (digits_after_point > 0) {
+result_builder->AddCharacter('.');
+result_builder->AddPadding('0', -decimal_point);
+DOUBLE_CONVERSION_ASSERT(length <= digits_after_point - (-decimal_point));
+result_builder->AddSubstring(decimal_digits, length);
+int remaining_digits = digits_after_point - (-decimal_point) - length;
+result_builder->AddPadding('0', remaining_digits);
+}
+} else if (decimal_point >= length) {
+result_builder->AddSubstring(decimal_digits, length);
+result_builder->AddPadding('0', decimal_point - length);
+if (digits_after_point > 0) {
+result_builder->AddCharacter('.');
+result_builder->AddPadding('0', digits_after_point);
+}
+} else {
+DOUBLE_CONVERSION_ASSERT(digits_after_point > 0);
+result_builder->AddSubstring(decimal_digits, decimal_point);
+result_builder->AddCharacter('.');
+DOUBLE_CONVERSION_ASSERT(length - decimal_point <= digits_after_point);
+result_builder->AddSubstring(&decimal_digits[decimal_point],
+length - decimal_point);
+int remaining_digits = digits_after_point - (length - decimal_point);
+result_builder->AddPadding('0', remaining_digits);
+}
+if (digits_after_point == 0) {
+if ((flags_ & EMIT_TRAILING_DECIMAL_POINT) != 0) {
+result_builder->AddCharacter('.');
+}
+if ((flags_ & EMIT_TRAILING_ZERO_AFTER_POINT) != 0) {
+result_builder->AddCharacter('0');
+}
+}
+}
+bool DoubleToStringConverter::ToShortestIeeeNumber(
+double value,
+StringBuilder* result_builder,
+DoubleToStringConverter::DtoaMode mode) const {
+DOUBLE_CONVERSION_ASSERT(mode == SHORTEST || mode == SHORTEST_SINGLE);
+if (Double(value).IsSpecial()) {
+return HandleSpecialValues(value, result_builder);
+}
+int decimal_point;
+bool sign;
+const int kDecimalRepCapacity = kBase10MaximalLength + 1;
+char decimal_rep[kDecimalRepCapacity];
+int decimal_rep_length;
+DoubleToAscii(value, mode, 0, decimal_rep, kDecimalRepCapacity,
+&sign, &decimal_rep_length, &decimal_point);
+bool unique_zero = (flags_ & UNIQUE_ZERO) != 0;
+if (sign && (value != 0.0 || !unique_zero)) {
+result_builder->AddCharacter('-');
+}
+int exponent = decimal_point - 1;
+if ((decimal_in_shortest_low_ <= exponent) &&
+(exponent < decimal_in_shortest_high_)) {
+CreateDecimalRepresentation(decimal_rep, decimal_rep_length,
+decimal_point,
+(std::max)(0, decimal_rep_length - decimal_point),
+result_builder);
+} else {
+CreateExponentialRepresentation(decimal_rep, decimal_rep_length, exponent,
+result_builder);
+}
+return true;
+}
+bool DoubleToStringConverter::ToFixed(double value,
+int requested_digits,
+StringBuilder* result_builder) const {
+DOUBLE_CONVERSION_ASSERT(kMaxFixedDigitsBeforePoint == 60);
+const double kFirstNonFixed = 1e60;
+if (Double(value).IsSpecial()) {
+return HandleSpecialValues(value, result_builder);
+}
+if (requested_digits > kMaxFixedDigitsAfterPoint) return false;
+if (value >= kFirstNonFixed || value <= -kFirstNonFixed) return false;
+int decimal_point;
+bool sign;
+const int kDecimalRepCapacity =
+kMaxFixedDigitsBeforePoint + kMaxFixedDigitsAfterPoint + 1;
+char decimal_rep[kDecimalRepCapacity];
+int decimal_rep_length;
+DoubleToAscii(value, FIXED, requested_digits,
+decimal_rep, kDecimalRepCapacity,
+&sign, &decimal_rep_length, &decimal_point);
+bool unique_zero = ((flags_ & UNIQUE_ZERO) != 0);
+if (sign && (value != 0.0 || !unique_zero)) {
+result_builder->AddCharacter('-');
+}
+CreateDecimalRepresentation(decimal_rep, decimal_rep_length, decimal_point,
+requested_digits, result_builder);
+return true;
+}
+bool DoubleToStringConverter::ToExponential(
+double value,
+int requested_digits,
+StringBuilder* result_builder) const {
+if (Double(value).IsSpecial()) {
+return HandleSpecialValues(value, result_builder);
+}
+if (requested_digits < -1) return false;
+if (requested_digits > kMaxExponentialDigits) return false;
+int decimal_point;
+bool sign;
+const int kDecimalRepCapacity = kMaxExponentialDigits + 2;
+DOUBLE_CONVERSION_ASSERT(kDecimalRepCapacity > kBase10MaximalLength);
+char decimal_rep[kDecimalRepCapacity];
+#ifndef NDEBUG
+memset(decimal_rep, 0, sizeof(decimal_rep));
+#endif
+int decimal_rep_length;
+if (requested_digits == -1) {
+DoubleToAscii(value, SHORTEST, 0,
+decimal_rep, kDecimalRepCapacity,
+&sign, &decimal_rep_length, &decimal_point);
+} else {
+DoubleToAscii(value, PRECISION, requested_digits + 1,
+decimal_rep, kDecimalRepCapacity,
+&sign, &decimal_rep_length, &decimal_point);
+DOUBLE_CONVERSION_ASSERT(decimal_rep_length <= requested_digits + 1);
+for (int i = decimal_rep_length; i < requested_digits + 1; ++i) {
+decimal_rep[i] = '0';
+}
+decimal_rep_length = requested_digits + 1;
+}
+bool unique_zero = ((flags_ & UNIQUE_ZERO) != 0);
+if (sign && (value != 0.0 || !unique_zero)) {
+result_builder->AddCharacter('-');
+}
+int exponent = decimal_point - 1;
+CreateExponentialRepresentation(decimal_rep,
+decimal_rep_length,
+exponent,
+result_builder);
+return true;
+}
+bool DoubleToStringConverter::ToPrecision(double value,
+int precision,
+StringBuilder* result_builder) const {
+if (Double(value).IsSpecial()) {
+return HandleSpecialValues(value, result_builder);
+}
+if (precision < kMinPrecisionDigits || precision > kMaxPrecisionDigits) {
+return false;
+}
+int decimal_point;
+bool sign;
+const int kDecimalRepCapacity = kMaxPrecisionDigits + 1;
+char decimal_rep[kDecimalRepCapacity];
+int decimal_rep_length;
+DoubleToAscii(value, PRECISION, precision,
+decimal_rep, kDecimalRepCapacity,
+&sign, &decimal_rep_length, &decimal_point);
+DOUBLE_CONVERSION_ASSERT(decimal_rep_length <= precision);
+bool unique_zero = ((flags_ & UNIQUE_ZERO) != 0);
+if (sign && (value != 0.0 || !unique_zero)) {
+result_builder->AddCharacter('-');
+}
+int exponent = decimal_point - 1;
+int extra_zero = ((flags_ & EMIT_TRAILING_ZERO_AFTER_POINT) != 0) ? 1 : 0;
+bool as_exponential =
+(-decimal_point + 1 > max_leading_padding_zeroes_in_precision_mode_) ||
+(decimal_point - precision + extra_zero >
+max_trailing_padding_zeroes_in_precision_mode_);
+if ((flags_ & NO_TRAILING_ZERO) != 0) {
+int stop = as_exponential ? 1 : std::max(1, decimal_point);
+while (decimal_rep_length > stop && decimal_rep[decimal_rep_length - 1] == '0') {
+--decimal_rep_length;
+}
+precision = std::min(precision, decimal_rep_length);
+}
+if (as_exponential) {
+for (int i = decimal_rep_length; i < precision; ++i) {
+decimal_rep[i] = '0';
+}
+CreateExponentialRepresentation(decimal_rep,
+precision,
+exponent,
+result_builder);
+} else {
+CreateDecimalRepresentation(decimal_rep, decimal_rep_length, decimal_point,
+(std::max)(0, precision - decimal_point),
+result_builder);
+}
+return true;
+}
+static BignumDtoaMode DtoaToBignumDtoaMode(
+DoubleToStringConverter::DtoaMode dtoa_mode) {
+switch (dtoa_mode) {
+case DoubleToStringConverter::SHORTEST:  return BIGNUM_DTOA_SHORTEST;
+case DoubleToStringConverter::SHORTEST_SINGLE:
+return BIGNUM_DTOA_SHORTEST_SINGLE;
+case DoubleToStringConverter::FIXED:     return BIGNUM_DTOA_FIXED;
+case DoubleToStringConverter::PRECISION: return BIGNUM_DTOA_PRECISION;
+default:
+DOUBLE_CONVERSION_UNREACHABLE();
+}
+}
+void DoubleToStringConverter::DoubleToAscii(double v,
+DtoaMode mode,
+int requested_digits,
+char* buffer,
+int buffer_length,
+bool* sign,
+int* length,
+int* point) {
+Vector<char> vector(buffer, buffer_length);
+DOUBLE_CONVERSION_ASSERT(!Double(v).IsSpecial());
+DOUBLE_CONVERSION_ASSERT(mode == SHORTEST || mode == SHORTEST_SINGLE || requested_digits >= 0);
+if (Double(v).Sign() < 0) {
+*sign = true;
+v = -v;
+} else {
+*sign = false;
+}
+if (mode == PRECISION && requested_digits == 0) {
+vector[0] = '\0';
+*length = 0;
+return;
+}
+if (v == 0) {
+vector[0] = '0';
+vector[1] = '\0';
+*length = 1;
+*point = 1;
+return;
+}
+bool fast_worked;
+switch (mode) {
+case SHORTEST:
+fast_worked = FastDtoa(v, FAST_DTOA_SHORTEST, 0, vector, length, point);
+break;
+case SHORTEST_SINGLE:
+fast_worked = FastDtoa(v, FAST_DTOA_SHORTEST_SINGLE, 0,
+vector, length, point);
+break;
+case FIXED:
+fast_worked = FastFixedDtoa(v, requested_digits, vector, length, point);
+break;
+case PRECISION:
+fast_worked = FastDtoa(v, FAST_DTOA_PRECISION, requested_digits,
+vector, length, point);
+break;
+default:
+fast_worked = false;
+DOUBLE_CONVERSION_UNREACHABLE();
+}
+if (fast_worked) return;
+BignumDtoaMode bignum_mode = DtoaToBignumDtoaMode(mode);
+BignumDtoa(v, bignum_mode, requested_digits, vector, length, point);
+vector[*length] = '\0';
+}
+}  // namespace double_conversion
+
+
+#endif  // DOUBLE_CONVERSION_DOUBLE_CONVERSION_H_
+
 _WJR_ENCODE_BEGIN
 namespace __string_func_traits {
 WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(do_skipw, do_skipw);
@@ -22134,7 +24946,7 @@ return emplace_from<from_I, type_find_v<to_T>>(std::forward<Args>(args)...);
 template<size_t I, typename...Args, std::enable_if_t<(I < 9), int> = 0>
 inline type_at_t<I>& emplace(Args&&...args) noexcept {
 return std::visit([this, tp = std::forward_as_tuple(std::forward<Args>(args)...)](const auto& x) ->type_at_t<I>&{
-constexpr auto idx = cont_find_v<WJR_PRIMITIVE_TYPE(x)>;
+WJR_MAYBE_UNUSED constexpr auto idx = cont_find_v<WJR_PRIMITIVE_TYPE(x)>;
 return std::apply([this](auto&&...args) ->type_at_t<I>&{
 return this->emplace_from<idx, I>(std::forward<decltype(args)>(args)...);
 }, std::move(tp));

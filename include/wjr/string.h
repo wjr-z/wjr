@@ -11,8 +11,6 @@
 #include <charconv>
 #include <cmath>
 
-#include <double-conversion/double-conversion.h>
-
 #include <wjr/vector.h>
 #include <wjr/math.h>
 #include <wjr/error_handle.h>
