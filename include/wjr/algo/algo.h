@@ -493,9 +493,31 @@ constexpr bool __has_fast_memskipw_v = __has_fast_memskipw<T>::value;
 template<typename T, std::enable_if_t<__has_fast_memskipw_v<T>, int> = 0>
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* memskipw(const T* s, const T* e) {
 	using value_type = char;
-	return reinterpret_cast<const T*>(
+	auto ptr= reinterpret_cast<const T*>(
 		__memskipw(reinterpret_cast<const value_type*>(s), 
 			reinterpret_cast<const value_type*>(e)));
+	return ptr;
+	/*struct node {
+		void inc(size_t n) {
+			if (n >= vec.size()) {
+				vec.resize(n + 1);
+			}
+			++vec[n];
+		}
+		~node() {
+			size_t tot = 0;
+			auto n = vec.size();
+			for (int i = 0; i < n; ++i)tot += (i + 1) * vec[i];
+			for (int i = 0; i < n; ++i) {
+				auto x = (i + 1) * vec[i];
+				printf("%d %lld %lld %.3f\n", i, vec[i], x, x * 100. / tot);
+			}
+		}
+		std::vector<size_t> vec;
+	};
+	static node it;
+	it.inc(ptr - s);
+	return ptr;*/
 }
 
 #else

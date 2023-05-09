@@ -19,7 +19,7 @@ struct json_traits {
 	template<typename T>
 	using allocator_type = sallocator<T>;
 	
-	using encode_type = wjr::encode::ascii;
+	using encode_type = wjr::ascii;
 
 	using null = std::nullptr_t;
 	using boolean = bool;
@@ -188,7 +188,7 @@ public:
 
 	inline json(const json& other) noexcept {
 		std::visit([this](const auto& x) {
-			constexpr auto idx = cont_find_v<WJR_PRIMITIVE_TYPE(x)>;
+			constexpr auto idx = cont_find_v<WJR_PRI_TYPE(x)>;
 			this->emplace_from<0, idx>(json::value(x));
 			}, other.m_value);
 	}
@@ -305,7 +305,7 @@ public:
 	// set to null
 	inline void tidy() noexcept {
 		std::visit([this](const auto& x) {
-			constexpr auto idx = cont_find_v<WJR_PRIMITIVE_TYPE(x)>;
+			constexpr auto idx = cont_find_v<WJR_PRI_TYPE(x)>;
 			this->tidy_from<idx>();
 		}, m_value);
 	}
@@ -348,7 +348,7 @@ public:
 	template<size_t I, typename...Args, std::enable_if_t<(I < 9), int> = 0>
 	inline type_at_t<I>& emplace(Args&&...args) noexcept {
 		return std::visit([this, tp = std::forward_as_tuple(std::forward<Args>(args)...)](const auto& x) ->type_at_t<I>&{
-			WJR_MAYBE_UNUSED constexpr auto idx = cont_find_v<WJR_PRIMITIVE_TYPE(x)>;
+			WJR_MAYBE_UNUSED constexpr auto idx = cont_find_v<WJR_PRI_TYPE(x)>;
 			return std::apply([this](auto&&...args) ->type_at_t<I>&{
 				return this->emplace_from<idx, I>(std::forward<decltype(args)>(args)...);
 				}, std::move(tp));

@@ -31,6 +31,302 @@
 #define __WJR_MMACRO_H
 #include <cstdint>
 #include <cassert>
+#pragma once
+#ifndef __WJR_PREPROCESSOR_ALL_H
+#define __WJR_PREPROCESSOR_ALL_H
+#ifndef __WJR_PREPROCESSOR_CPP_H
+#define __WJR_PREPROCESSOR_CPP_H
+#pragma once
+#ifndef __WJR_PREPROCESSOR_COMPILER_H
+#define __WJR_PREPROCESSOR_COMPILER_H
+#pragma once
+#ifndef __WJR_PREPROCESSOR_ARCH_H
+#define __WJR_PREPROCESSOR_ARCH_H
+#if defined(__pnacl__) || defined(__CLR_VER)
+#	define WJR_VM
+#endif
+#if (defined(_M_IX86) || defined(__i386__)) && !defined(WJR_VM)
+#	define WJR_X86_32
+#endif
+#if (defined(_M_X64) || defined(__x86_64__)) && !defined(WJR_VM)
+#	define WJR_X86_64
+#endif
+#if defined(WJR_X86_32) || defined(WJR_X86_64)
+#	define WJR_X86
+#endif
+#if (defined(__arm__) || defined(_M_ARM))
+#	define WJR_ARM
+#endif
+#if defined(__aarch64__)
+#	define WJR_AARCH64
+#endif
+#if defined(__powerpc64__)
+#	define WJR_PPC64
+#endif
+#if !defined(WJR_X86)
+#	error "ARM is not supported"
+#endif
+#if defined(WJR_X86_64)
+#	if defined(__i386__) || defined(_M_IX86) || defined(_X86_)
+#		define CPU_INTEL
+#	elif defined(_M_AMD64)
+#		define CPU_AMD
+#	endif
+#else
+#	define CPU_UNKNOWN
+#endif
+#endif // !__WJR_PREPROCESSOR_ARCH_H
+
+#if defined(__clang__)
+#	define WJR_COMPILER_CLANG
+#elif defined(__GNUC__)
+#	define WJR_COMPILER_GCC
+#elif defined(_MSC_VER)
+#	define WJR_COMPILER_MSVC
+#endif
+#if defined(_MSC_VER)
+#	define WJR_MSVC
+#endif // _MSC_VER
+#if defined(__GNUC__)
+#	define WJR_HAS_GCC(major, minor, patchlevel)	            \
+((__GNUC__ > (major)) ||					                \
+(__GNUC__ == (major) && __GNUC_MINOR__ > (minor)) ||	\
+(__GNUC__ == (major) && __GNUC_MINOR__ == (minor) && __GNUC_PATCHLEVEL__ >= (patchlevel)))
+#else
+#	define WJR_HAS_GCC(major, minor, patchlevel) 0
+#endif // __GNUC__
+#if defined(__clang__)
+#	define WJR_HAS_CLANG(major, minor, patchlevel)	                    \
+((__clang_major__ > (major)) ||					                    \
+(__clang_major__ == (major) && __clang_minor__ > (minor)) ||	\
+(__clang_major__ == (major) && __clang_minor__ == (minor) && __clang_patchlevel__ >= (patchlevel)))
+#else
+#	define WJR_HAS_CLANG(major, minor, patchlevel) 0
+#endif
+#if defined(_MSC_VER)
+#	define WJR_HAS_MSVC(minor, level)	\
+(_MSC_VER >= (minor) * 100 + (level))
+#else
+#	define WJR_HAS_MSVC(minor, level) 0
+#endif
+#if (defined(WJR_COMPILER_GCC) && !WJR_HAS_GCC(7, 1, 0)) ||	\
+(defined(WJR_COMPILER_CLANG) && !WJR_HAS_CLANG(5, 0, 0))
+#	error "GCC 7.1.0 or Clang 5.0.0 or later is required"
+#endif
+#endif // __WJR_PREPROCESSOR_COMPILER_H
+
+#if defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC)
+#	define WJR_CPP_STANDARD __cplusplus
+#elif defined(WJR_COMPILER_MSVC)
+#	define WJR_CPP_STANDARD _MSVC_LANG
+#endif
+#if WJR_CPP_STANDARD >= 199711L
+#	define WJR_CPP_03
+#endif
+#if WJR_CPP_STANDARD >= 201103L
+#	define WJR_CPP_11
+#endif
+#if WJR_CPP_STANDARD >= 201402L
+#	define WJR_CPP_14
+#endif
+#if WJR_CPP_STANDARD >= 201703L
+#	define WJR_CPP_17
+#endif
+#if WJR_CPP_STANDARD >= 202002L
+#	define WJR_CPP_20
+#endif
+#if defined(__cpp_char8_t)
+#	define WJR_CHAR8_T
+#endif // __cpp_char8_t
+#endif // __WJR_PREPROCESSOR_CPP_H
+
+#ifndef __WJR_PREPROCESSOR_ATTRIBUTE_H
+#define __WJR_PREPROCESSOR_ATTRIBUTE_H
+#if (defined(WJR_COMPILER_GCC) && WJR_HAS_GCC(10, 1, 0)) ||	\
+(defined(WJR_COMPILER_CLANG) && WJR_HAS_CLANG(10, 0, 0))	|| \
+(!defined(WJR_COMPILER_GCC) && !defined(WJR_COMPILER_CLANG) && defined(__has_builtin))
+#	define WJR_HAS_BUILTIN(x) __has_builtin(x)
+#else
+#	define WJR_HAS_BUILTIN(x) 0
+#endif
+#if defined(__has_include)
+#	define WJR_HAS_INCLUDE(x) __has_include(x)
+#else
+#	define WJR_HAS_INCLUDE(x) 0
+#endif // __has_include
+#if defined(__has_attribute)
+#	define WJR_HAS_ATTRIBUTE(x) __has_attribute(x)
+#else
+#	define WJR_HAS_ATTRIBUTE(x) 0
+#endif
+#if defined(__has_cpp_attribute)
+#	define WJR_HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
+#else
+#	define WJR_HAS_CPP_ATTRIBUTE(x) 0
+#endif
+#if WJR_HAS_CPP_ATTRIBUTE(fallthrough)
+#	define WJR_FALLTHROUGH [[fallthrough]]
+#elif WJR_HAS_ATTRIBUTE(fallthrough)
+#	define WJR_FALLTHROUGH __attribute__((fallthrough))
+#elif defined(_MSC_VER) && defined(__fallthrough)
+#	define WJR_FALLTHROUGH __fallthrough
+#else
+#	define WJR_FALLTHROUGH
+#endif
+#if WJR_HAS_CPP_ATTRIBUTE(noreturn)
+#	define WJR_NORETURN [[noreturn]]
+#elif WJR_HAS_ATTRIBUTE(noreturn)
+#	define WJR_NORETURN __attribute__((noreturn))
+#elif defined(_MSC_VER)
+#	define WJR_NORETURN __declspec(noreturn)
+#else
+#	define WJR_NORETURN
+#endif
+#if WJR_HAS_CPP_ATTRIBUTE(nodiscard)
+#	define WJR_NODISCARD [[nodiscard]]
+#elif WJR_HAS_ATTRIBUTE(nodiscard)
+#	define WJR_NODISCARD __attribute__((nodiscard))
+#elif defined(_MSC_VER)
+#	define WJR_NODISCARD _Check_return_
+#else
+#	define WJR_NODISCARD
+#endif
+#if WJR_HAS_CPP_ATTRIBUTE(deprecated)
+#	define WJR_DEPRECATED [[deprecated]]
+#elif WJR_HAS_ATTRIBUTE(deprecated)
+#	define WJR_DEPRECATED __attribute__((deprecated))
+#elif defined(_MSC_VER)
+#	define WJR_DEPRECATED __declspec(deprecated)
+#else
+#	define WJR_DEPRECATED
+#endif
+#if WJR_HAS_CPP_ATTRIBUTE(maybe_unused)
+#	define WJR_MAYBE_UNUSED [[maybe_unused]]
+#elif WJR_HAS_ATTRIBUTE(maybe_unused)
+#	define WJR_MAYBE_UNUSED __attribute__((maybe_unused))
+#elif defined(_MSC_VER)
+#	define WJR_MAYBE_UNUSED
+#else
+#	define WJR_MAYBE_UNUSED
+#endif
+#if WJR_HAS_ATTRIBUTE(always_inline)
+#	define WJR_FORCEINLINE __attribute__((always_inline))
+#elif defined(_MSC_VER)
+#	define WJR_FORCEINLINE __forceinline
+#else
+#	define WJR_FORCEINLINE
+#endif
+#if WJR_HAS_ATTRIBUTE(noinline)
+#	define WJR_NOINLINE __attribute__((noinline))
+#elif defined(_MSC_VER)
+#	define WJR_NOINLINE __declspec(noinline)
+#else
+#	define WJR_NOINLINE
+#endif
+#if WJR_HAS_ATTRIBUTE(hot)
+#	define WJR_HOT __attribute__((hot))
+#elif defined(_MSC_VER)
+#	define WJR_HOT
+#else
+#	define WJR_HOT
+#endif
+#if WJR_HAS_ATTRIBUTE(cold)
+#	define WJR_COLD __attribute__((cold))
+#elif defined(_MSC_VER)
+#	define WJR_COLD
+#else
+#	define WJR_COLD
+#endif
+#if defined(__cpp_lib_unreachable)
+#	define WJR_UNREACHABLE std::unreachable()
+#elif WJR_HAS_BUILTIN(__builtin_unreachable) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
+#	define WJR_UNREACHABLE __builtin_unreachable()
+#elif defined(WJR_COMPILER_MSVC)
+#	define WJR_UNREACHABLE __assume(0)
+#else
+#	define WJR_UNREACHABLE
+#endif
+#if WJR_HAS_BUILTIN(__builtin_assume)
+#	define WJR_ASSUME(x) __builtin_assume(x)
+#elif defined(WJR_COMPILER_MSVC)
+#	define WJR_ASSUME(x) __assume(x)
+#else
+#	define WJR_ASSUME(x)	    \
+do{                         \
+if (!(x)) {	            \
+WJR_UNREACHABLE;	\
+}	                    \
+} while (0)
+#endif
+#if WJR_HAS_BUILTIN(__builtin_expect) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
+#	define WJR_LIKELY(expr) __builtin_expect(!!(expr), true)
+#else
+#	define WJR_LIKELY(expr) (expr)
+#endif
+#if WJR_HAS_BUILTIN(__builtin_expect) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
+#	define WJR_UNLIKELY(expr) __builtin_expect(!!(expr), false)
+#else
+#	define WJR_UNLIKELY(expr) (expr)
+#endif
+#ifdef WJR_CPP_20
+#	define WJR_EXPLICIT(expression) explicit(expression)
+#	define WJR_EXPLICIT20(expreesion) explicit(expression)
+#else
+#	define WJR_EXPLICIT(expression) explicit
+#	define WJR_EXPLICIT20(expression)
+#endif
+#if defined(WJR_FORCEINLINE)
+#	define WJR_INTRINSIC_INLINE inline WJR_FORCEINLINE
+#else
+#	define WJR_INTRINSIC_INLINE inline
+#endif
+#if WJR_HAS_ATTRIBUTE(pure)
+#	define WJR_PURE __attribute__((pure))
+#else
+#	define WJR_PURE
+#endif
+#if WJR_HAS_ATTRIBUTE(const)
+#	define WJR_CONST __attribute__((const))
+#else
+#	define WJR_CONST
+#endif
+#if WJR_HAS_ATTRIBUTE(malloc)
+#	define WJR_MALLOC __attribute__((malloc))
+#else
+#	define WJR_MALLOC
+#endif
+#define WJR_INLINE inline
+#define WJR_CONSTEXPR constexpr
+#if defined(__cpp_lib_is_constant_evaluated) || WJR_HAS_BUILTIN(__builtin_is_constant_evaluated) \
+|| WJR_HAS_GCC(9,1,0) || WJR_HAS_CLANG(9,0,0)
+#	define WJR_ENABLE_CONSTEXPR 1
+#else
+#	define WJR_ENABLE_CONSTEXPR 0
+#endif
+#if WJR_ENABLE_CONSTEXPR
+#	define WJR_E_CONSTEXPR constexpr
+#else
+#	define WJR_E_CONSTEXPR
+#endif
+#if defined(WJR_CPP_20)
+#	define WJR_CONSTEXPR20 constexpr
+#else
+#	define WJR_CONSTEXPR20
+#endif
+#define WJR_INTRINSIC_CONSTEXPR WJR_INTRINSIC_INLINE constexpr
+#define WJR_INTRINSIC_CONSTEXPR20 WJR_INTRINSIC_INLINE WJR_CONSTEXPR20
+#define WJR_INTRINSIC_E_CONSTEXPR WJR_INTRINSIC_INLINE WJR_E_CONSTEXPR
+#define WJR_INLINE_CONSTEXPR inline constexpr
+#define WJR_INLINE_CONSTEXPR20 inline WJR_CONSTEXPR20
+#define WJR_INLINE_E_CONSTEXPR inline WJR_E_CONSTEXPR
+#define _WJR_ATTRIBUTE(x) WJR_##x
+#define WJR_ATTRIBUTE(...) WJR_EXPAND(WJR_MACRO_CALL(_WJR_ATTRIBUTE, , __VA_ARGS__))
+#endif // __WJR_PREPROCESSOR_ATTRIBUTE_H
+
+#ifndef __WJR_PREPROCESSOR_WJR_H
+#define __WJR_PREPROCESSOR_WJR_H
+#ifndef __WJR_PREPROCESSOR_SIMD_H
+#define __WJR_PREPROCESSOR_SIMD_H
 #if defined(_MSC_VER)
 /* Microsoft C/C++-compatible compiler */
 #include <intrin.h>
@@ -51,185 +347,83 @@
 #include <spe.h>
 #endif
 #if defined(__AVX512VL__)
-#define WJR_AVX512VL 1
+#	define WJR_AVX512VL 1
 #else
-#define WJR_AVX512VL 0
+#	define WJR_AVX512VL 0
 #endif
 #if defined(__AVX512BW__)
-#define WJR_AVX512BW 1
+#	define WJR_AVX512BW 1
 #else
-#define WJR_AVX512BW 0
+#	define WJR_AVX512BW 0
 #endif
 #if defined(__AVX512DQ__)
-#define WJR_AVX512DQ 1
+#	define WJR_AVX512DQ 1
 #else
-#define WJR_AVX512DQ 0
+#	define WJR_AVX512DQ 0
 #endif
 #if defined(__AVX512F__) || (WJR_AVX512VL && WJR_AVX512BW && WJR_AVX512DQ)
-#define WJR_AVX512F 1
+#	define WJR_AVX512F 1
 #else
-#define WJR_AVX512F 0
+#	define WJR_AVX512F 0
 #endif
 #if defined(__AVX512__) || (WJR_AVX512F && WJR_AVX512BW && WJR_AVX512DQ)
-#define WJR_AVX512 1
+#	define WJR_AVX512 1
 #else
-#define WJR_AVX512 0
+#	define WJR_AVX512 0
 #endif
 #if defined(__AVX2__) || (WJR_AVX512 || WJR_AVX512F)
-#define WJR_AVX2 1
+#	define WJR_AVX2 1
 #else
-#define WJR_AVX2 0
+#	define WJR_AVX2 0
 #endif
 #if defined(__AVX__) || WJR_AVX2
-#define WJR_AVX 1
+#	define WJR_AVX 1
 #else
-#define WJR_AVX 0
+#	define WJR_AVX 0
 #endif
 #if defined(__SSE4_2__) || WJR_AVX
-#define WJR_SSE4_2 1
+#	define WJR_SSE4_2 1
 #else
-#define WJR_SSE4_2 0
+#	define WJR_SSE4_2 0
 #endif
 #if defined(__SSE4_1__) || WJR_SSE4_2
-#define WJR_SSE4_1 1
+#	define WJR_SSE4_1 1
 #else
-#define WJR_SSE4_1 0
+#	define WJR_SSE4_1 0
 #endif
 #if defined(__SSSE3__) || WJR_SSE4_1
-#define WJR_SSSE3 1
+#	define WJR_SSSE3 1
 #else
-#define WJR_SSSE3 0
+#	define WJR_SSSE3 0
 #endif
 #if defined(__SSE3__) || WJR_SSSE3
-#define WJR_SSE3 1
+#	define WJR_SSE3 1
 #else
-#define WJR_SSE3 0
+#	define WJR_SSE3 0
 #endif
 #if defined(__SSE2__) || WJR_SSE3 || _M_IX86_FP >= 2 || \
 (defined(_MSC_VER) && (defined(_M_AMD64) || defined(_M_X64)))
-#define WJR_SSE2 1
+#	define WJR_SSE2 1
 #else
-#define WJR_SSE2 0
+#	define WJR_SSE2 0
 #endif
 #if defined(__SSE__) || WJR_SSE2 ||_M_IX86_FP >= 1
-#define WJR_SSE 1
+#	define WJR_SSE 1
 #else
-#define WJR_SSE 0
+#	define WJR_SSE 0
 #endif
 #if defined(__MMX__) || WJR_SSE
-#define WJR_MMX 1
+#	define WJR_MMX 1
 #else
-#define WJR_MMX 0
+#	define WJR_MMX 0
 #endif
 #if defined(__XOP__)
-#define WJR_XOP 1
+#	define WJR_XOP 1
 #else
-#define WJR_XOP 0
+#	define WJR_XOP 0
 #endif
-#if defined(__pnacl__) || defined(__CLR_VER)
-#define WJR_VM
-#endif
-#if (defined(_M_IX86) || defined(__i386__)) && !defined(WJR_VM)
-#define WJR_X86_32
-#endif
-#if (defined(_M_X64) || defined(__x86_64__)) && !defined(WJR_VM)
-#define WJR_X86_64
-#endif
-#if defined(WJR_X86_32) || defined(WJR_X86_64)
-#define WJR_X86
-#endif
-#if (defined(__arm__) || defined(_M_ARM))
-#define WJR_ARM
-#endif
-#if defined(__aarch64__)
-#define WJR_AARCH64
-#endif
-#if defined(__powerpc64__)
-#define WJR_PPC64
-#endif
-#if !defined(WJR_X86)
-#error "ARM is not supported"
-#endif
-#if defined(__clang__)
-#define WJR_COMPILER_CLANG
-#elif defined(__GNUC__)
-#define WJR_COMPILER_GCC
-#elif defined(_MSC_VER)
-#define WJR_COMPILER_MSVC
-#endif
-#if defined(_MSC_VER)
-#define WJR_MSVC
-#endif // _MSC_VER
-#if defined(WJR_X86) && (defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG))
-#define WJR_INLINE_ASM
-#if defined(WJR_COMPILER_GCC)
-#define WJR_BETTER_INLINE_ASM
-#endif // WJR_COMPILER_GCC
-#endif
-#if defined(__GNUC__)
-#define WJR_HAS_GCC(major, minor, patchlevel)	            \
-((__GNUC__ > (major)) ||					                \
-(__GNUC__ == (major) && __GNUC_MINOR__ > (minor)) ||	\
-(__GNUC__ == (major) && __GNUC_MINOR__ == (minor) && __GNUC_PATCHLEVEL__ >= (patchlevel)))
-#else
-#define WJR_HAS_GCC(major, minor, patchlevel) 0
-#endif // __GNUC__
-#if defined(__clang__)
-#define WJR_HAS_CLANG(major, minor, patchlevel)	                    \
-((__clang_major__ > (major)) ||					                    \
-(__clang_major__ == (major) && __clang_minor__ > (minor)) ||	\
-(__clang_major__ == (major) && __clang_minor__ == (minor) && __clang_patchlevel__ >= (patchlevel)))
-#else
-#define WJR_HAS_CLANG(major, minor, patchlevel) 0
-#endif
-#if defined(_MSC_VER)
-#define WJR_HAS_MSVC(minor, level)	\
-(_MSC_VER >= (minor) * 100 + (level))
-#else
-#define WJR_HAS_MSVC(minor, level) 0
-#endif
-#if (defined(WJR_COMPILER_GCC) && !WJR_HAS_GCC(7, 1, 0)) ||	\
-(defined(WJR_COMPILER_CLANG) && !WJR_HAS_CLANG(5, 0, 0))
-#error "GCC 7.1.0 or Clang 5.0.0 or later is required"
-#endif
-#if defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC)
-#define WJR_CPP_STANDARD __cplusplus
-#elif defined(WJR_COMPILER_MSVC)
-#define WJR_CPP_STANDARD _MSVC_LANG
-#endif
-#if WJR_CPP_STANDARD >= 199711L
-#define WJR_CPP_03
-#endif
-#if WJR_CPP_STANDARD >= 201103L
-#define WJR_CPP_11
-#endif
-#if WJR_CPP_STANDARD >= 201402L
-#define WJR_CPP_14
-#endif
-#if WJR_CPP_STANDARD >= 201703L
-#define WJR_CPP_17
-#endif
-#if WJR_CPP_STANDARD >= 202002L
-#define WJR_CPP_20
-#endif
-#if defined(__cpp_char8_t)
-#define WJR_CHAR8_T
-#endif // __cpp_char8_t
-#if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN || \
-defined(__BIG_ENDIAN__) || \
-defined(__ARMEB__) || \
-defined(__THUMBEB__) || \
-defined(__AARCH64EB__) || \
-defined(_MIBSEB) || defined(__MIBSEB) || defined(__MIBSEB__)
-#define WJR_BIG_ENDIAN
-#elif defined(__BYTE_ORDER) && __BYTE_ORDER == __LITTLE_ENDIAN || \
-defined(__LITTLE_ENDIAN__) || \
-defined(__ARMEL__) || \
-defined(__THUMBEL__) || \
-defined(__AARCH64EL__) || \
-defined(_MIPSEL) || defined(__MIPSEL) || defined(__MIPSEL__)
-#define WJR_LITTLE_ENDIAN
-#endif
+#endif // ! __WJR_PREPROCESSOR_SIMD_H
+
 #if WJR_SSE2
 #define _WJR_FAST_MEMCHR
 #define _WJR_FAST_MEMEQ
@@ -254,6 +448,12 @@ defined(_MIPSEL) || defined(__MIPSEL) || defined(__MIPSEL__)
 #endif
 #if defined(NWJR_FAST_MEMCPY)
 #endif
+#if defined(WJR_X86) && (defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG))
+#	define WJR_INLINE_ASM
+#	if defined(WJR_COMPILER_GCC)
+#		define WJR_BETTER_INLINE_ASM
+#	endif // WJR_COMPILER_GCC
+#endif
 #if defined(WJR_INLINE_ASM) || defined(WJR_COMPILER_MSVC)
 #define _WJR_FAST_REP
 #endif
@@ -261,15 +461,6 @@ defined(_MIPSEL) || defined(__MIPSEL) || defined(__MIPSEL__)
 #if defined(NWJR_CPUINFO)
 #undef _WJR_CPUINFO
 #endif // NWJR_CPUINFO
-#if defined(WJR_X86_64)
-#if defined(__i386__) || defined(_M_IX86) || defined(_X86_)
-#define CPU_INTEL
-#elif defined(_M_AMD64)
-#define CPU_AMD
-#endif
-#else
-#define CPU_UNKNOWN
-#endif
 #if defined(WJR_INTEL)
 #define _WJR_ENHANCED_REP
 #endif
@@ -305,187 +496,6 @@ defined(_MIPSEL) || defined(__MIPSEL) || defined(__MIPSEL__)
 #define _WJR_RELEASE
 #define WJR_NOEXCEPT noexcept
 #endif
-#if (defined(WJR_COMPILER_GCC) && WJR_HAS_GCC(10, 1, 0)) ||	\
-(defined(WJR_COMPILER_CLANG) && WJR_HAS_CLANG(10, 0, 0))	|| \
-(!defined(WJR_COMPILER_GCC) && !defined(WJR_COMPILER_CLANG) && defined(__has_builtin))
-#define WJR_HAS_BUILTIN(x) __has_builtin(x)
-#else
-#define WJR_HAS_BUILTIN(x) 0
-#endif
-#if defined(__has_include)
-#define WJR_HAS_INCLUDE(x) __has_include(x)
-#else
-#define WJR_HAS_INCLUDE(x) 0
-#endif // __has_include
-#if WJR_HAS_INCLUDE(<execution>)
-#endif // WJR_HAS_INCLUDE(<execution>)
-#if defined(__has_attribute)
-#define WJR_HAS_ATTRIBUTE(x) __has_attribute(x)
-#else
-#define WJR_HAS_ATTRIBUTE(x) 0
-#endif
-#if defined(__has_cpp_attribute)
-#define WJR_HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
-#else
-#define WJR_HAS_CPP_ATTRIBUTE(x) 0
-#endif
-#if WJR_HAS_CPP_ATTRIBUTE(fallthrough)
-#define WJR_FALLTHROUGH [[fallthrough]]
-#elif WJR_HAS_ATTRIBUTE(fallthrough)
-#define WJR_FALLTHROUGH __attribute__((fallthrough))
-#elif defined(_MSC_VER) && defined(__fallthrough)
-#define WJR_FALLTHROUGH __fallthrough
-#else
-#define WJR_FALLTHROUGH
-#endif
-#if WJR_HAS_CPP_ATTRIBUTE(noreturn)
-#define WJR_NORETURN [[noreturn]]
-#elif WJR_HAS_ATTRIBUTE(noreturn)
-#define WJR_NORETURN __attribute__((noreturn))
-#elif defined(_MSC_VER)
-#define WJR_NORETURN __declspec(noreturn)
-#else
-#define WJR_NORETURN
-#endif
-#if WJR_HAS_CPP_ATTRIBUTE(nodiscard)
-#define WJR_NODISCARD [[nodiscard]]
-#elif WJR_HAS_ATTRIBUTE(nodiscard)
-#define WJR_NODISCARD __attribute__((nodiscard))
-#elif defined(_MSC_VER)
-#define WJR_NODISCARD _Check_return_
-#else
-#define WJR_NODISCARD
-#endif
-#if WJR_HAS_CPP_ATTRIBUTE(deprecated)
-#define WJR_DEPRECATED [[deprecated]]
-#elif WJR_HAS_ATTRIBUTE(deprecated)
-#define WJR_DEPRECATED __attribute__((deprecated))
-#elif defined(_MSC_VER)
-#define WJR_DEPRECATED __declspec(deprecated)
-#else
-#define WJR_DEPRECATED
-#endif
-#if WJR_HAS_CPP_ATTRIBUTE(maybe_unused)
-#define WJR_MAYBE_UNUSED [[maybe_unused]]
-#elif WJR_HAS_ATTRIBUTE(maybe_unused)
-#define WJR_MAYBE_UNUSED __attribute__((maybe_unused))
-#elif defined(_MSC_VER)
-#define WJR_MAYBE_UNUSED
-#else
-#define WJR_MAYBE_UNUSED
-#endif
-#if WJR_HAS_ATTRIBUTE(always_inline)
-#define WJR_FORCEINLINE __attribute__((always_inline))
-#elif defined(_MSC_VER)
-#define WJR_FORCEINLINE __forceinline
-#else
-#define WJR_FORCEINLINE
-#endif
-#if WJR_HAS_ATTRIBUTE(noinline)
-#define WJR_NOINLINE __attribute__((noinline))
-#elif defined(_MSC_VER)
-#define WJR_NOINLINE __declspec(noinline)
-#else
-#define WJR_NOINLINE
-#endif
-#if WJR_HAS_ATTRIBUTE(hot)
-#define WJR_HOT __attribute__((hot))
-#elif defined(_MSC_VER)
-#define WJR_HOT
-#else
-#define WJR_HOT
-#endif
-#if WJR_HAS_ATTRIBUTE(cold)
-#define WJR_COLD __attribute__((cold))
-#elif defined(_MSC_VER)
-#define WJR_COLD
-#else
-#define WJR_COLD
-#endif
-#if defined(__cpp_lib_unreachable)
-#define WJR_UNREACHABLE std::unreachable()
-#elif WJR_HAS_BUILTIN(__builtin_unreachable) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
-#define WJR_UNREACHABLE __builtin_unreachable()
-#elif defined(WJR_COMPILER_MSVC)
-#define WJR_UNREACHABLE __assume(0)
-#else
-#define WJR_UNREACHABLE
-#endif
-#if WJR_HAS_BUILTIN(__builtin_assume)
-#define WJR_ASSUME(x) __builtin_assume(x)
-#elif defined(WJR_COMPILER_MSVC)
-#define WJR_ASSUME(x) __assume(x)
-#else
-#define WJR_ASSUME(x)	    \
-do{                         \
-if (!(x)) {	            \
-WJR_UNREACHABLE;	\
-}	                    \
-} while (0)
-#endif
-#if WJR_HAS_BUILTIN(__builtin_expect) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
-#define WJR_LIKELY(expr) __builtin_expect(!!(expr), true)
-#else
-#define WJR_LIKELY(expr) (expr)
-#endif
-#if WJR_HAS_BUILTIN(__builtin_expect) || WJR_HAS_GCC(7,1,0) || WJR_HAS_CLANG(5,0,0)
-#define WJR_UNLIKELY(expr) __builtin_expect(!!(expr), false)
-#else
-#define WJR_UNLIKELY(expr) (expr)
-#endif
-#ifdef WJR_CPP_20
-#define WJR_EXPLICIT(expression) explicit(expression)
-#define WJR_EXPLICIT20(expreesion) explicit(expression)
-#else
-#define WJR_EXPLICIT(expression) explicit
-#define WJR_EXPLICIT20(expression)
-#endif
-#if defined(WJR_FORCEINLINE)
-#define WJR_INTRINSIC_INLINE inline WJR_FORCEINLINE
-#else
-#define WJR_INTRINSIC_INLINE inline
-#endif
-#if WJR_HAS_ATTRIBUTE(pure)
-#define WJR_PURE __attribute__((pure))
-#else
-#define WJR_PURE
-#endif
-#if WJR_HAS_ATTRIBUTE(const)
-#define WJR_CONST __attribute__((const))
-#else
-#define WJR_CONST
-#endif
-#if WJR_HAS_ATTRIBUTE(malloc)
-#define WJR_MALLOC __attribute__((malloc))
-#else
-#define WJR_MALLOC
-#endif
-#define WJR_INLINE inline
-#define WJR_CONSTEXPR constexpr
-#if defined(__cpp_lib_is_constant_evaluated) || WJR_HAS_BUILTIN(__builtin_is_constant_evaluated) \
-|| WJR_HAS_GCC(9,1,0) || WJR_HAS_CLANG(9,0,0)
-#define WJR_ENABLE_CONSTEXPR 1
-#else
-#define WJR_ENABLE_CONSTEXPR 0
-#endif
-#if WJR_ENABLE_CONSTEXPR
-#define WJR_E_CONSTEXPR constexpr
-#else
-#define WJR_E_CONSTEXPR
-#endif
-#if defined(WJR_CPP_20)
-#define WJR_CONSTEXPR20 constexpr
-#else
-#define WJR_CONSTEXPR20
-#endif
-#define WJR_INTRINSIC_CONSTEXPR WJR_INTRINSIC_INLINE constexpr
-#define WJR_INTRINSIC_CONSTEXPR20 WJR_INTRINSIC_INLINE WJR_CONSTEXPR20
-#define WJR_INTRINSIC_E_CONSTEXPR WJR_INTRINSIC_INLINE WJR_E_CONSTEXPR
-#define WJR_INLINE_CONSTEXPR inline constexpr
-#define WJR_INLINE_CONSTEXPR20 inline WJR_CONSTEXPR20
-#define WJR_INLINE_E_CONSTEXPR inline WJR_E_CONSTEXPR
-#define _WJR_ATTRIBUTE(x) WJR_##x
-#define WJR_ATTRIBUTE(...) WJR_EXPAND(WJR_MACRO_CALL(_WJR_ATTRIBUTE, , __VA_ARGS__))
 #if defined(__SIZEOF_INT128__)
 #define WJR_HAS_INT128 1
 #if !(defined(__clang__) && defined(LIBDIVIDE_VC))
@@ -510,6 +520,10 @@ WJR_UNREACHABLE;	\
 #define _WJR_ENCODE_END } _WJR_END
 #define _WJR_PARSE_BEGIN _WJR_BEGIN namespace parse{
 #define _WJR_PARSE_END } _WJR_END
+#endif // __WJR_PREPROCESSOR_WJR_H
+
+#endif // !__WJR_PREPROCESSOR_ALL_H
+
 #define WJR_MACRO_NULL(...)
 #define WJR_MACRO_LABEL(NAME) __wjr_label_##NAME
 #if defined(WJR_MSVC)
@@ -875,7 +889,7 @@ _WJR_BEGIN
 extern const cpu_features::X86Info cpuinfo;
 extern const cpu_features::CacheInfo cacheinfo;
 extern const cpu_features::X86Microarchitecture microarchitecture;
-extern const size_t __max_cache_size;
+extern const int __max_cache_size;
 extern const bool __is_intel;
 extern const bool __is_amd;
 inline bool is_sse() {
@@ -948,8 +962,8 @@ _WJR_BEGIN
 const cpu_features::X86Info cpuinfo = cpu_features::GetX86Info();
 const cpu_features::CacheInfo cacheinfo = cpu_features::GetX86CacheInfo();
 const cpu_features::X86Microarchitecture microarchitecture = cpu_features::GetX86Microarchitecture(&cpuinfo);
-const size_t __max_cache_size = []() {
-size_t max_size = 0;
+const int __max_cache_size = []() {
+int max_size = 0;
 for (int i = 0; i < cacheinfo.size; ++i) {
 if (cacheinfo.levels[i].cache_type != cpu_features::CacheType::CPU_FEATURE_CACHE_NULL) {
 max_size = max_size < cacheinfo.levels[i].cache_size ?
@@ -1024,14 +1038,15 @@ template<typename T>
 WJR_INTRINSIC_CONSTEXPR void assume_no_sub_overflow(T a, T b) noexcept {
 WJR_ASSUME(a >= b);
 }
-struct disable_tag {};
-struct default_construct_tag {};
-struct value_construct_tag {};
-struct extend_tag {};
-struct reserve_tag {};
-struct defer_tag {};
-struct adopt_tag {};
-struct unreachable_tag {};
+struct empty {};
+struct disable_t {};
+struct default_construct_t {};
+struct value_construct_t {};
+struct extend_t {};
+struct reserve_t {};
+struct defer_t {};
+struct adopt_t {};
+struct unreachable_t {};
 template<typename T, typename U, typename _Pred>
 struct has_global_binary_operator : std::false_type {};
 template<typename T, typename U, typename _Pred>
@@ -1070,7 +1085,7 @@ template<typename T>
 using remove_cref_t = std::remove_const_t<remove_ref_t<T>>;
 template<typename T>
 using remove_cvref_t = std::remove_cv_t<remove_ref_t<T>>;
-#define WJR_PRIMITIVE_TYPE(x) ::wjr::remove_cvref_t<decltype(x)>
+#define WJR_PRI_TYPE(x) ::wjr::remove_cvref_t<decltype(x)>
 template<typename T>
 using add_lref_t = std::add_lvalue_reference_t<T>;
 template<typename T>
@@ -1152,22 +1167,22 @@ struct is_random_iterator : std::is_convertible<iter_cat_t<T>, std::random_acces
 template<typename T>
 inline constexpr bool is_random_iterator_v = is_random_iterator<T>::value;
 template<typename _Iter, typename = void>
-struct _is_contiguous_iter_helper : std::false_type {};
+struct _is_contiguous_iterator_helper : std::false_type {};
 template<typename _Iter>
-struct _is_contiguous_iter_helper<_Iter, typename _Iter::is_contiguous_iter> : std::true_type {};
+struct _is_contiguous_iterator_helper<_Iter, typename _Iter::is_contiguous_iterator> : std::true_type {};
 template<typename T>
-struct _is_contiguous_iter_helper<T*, void> : std::true_type {};
+struct _is_contiguous_iterator_helper<T*, void> : std::true_type {};
 #if defined(WJR_CPP_20)
 template<typename T>
-struct is_contiguous_iter : std::bool_constant<std::contiguous_iterator<T> || _is_contiguous_iter_helper<T>::value> {};
+struct is_contiguous_iterator : std::bool_constant<std::contiguous_iterator<T> || _is_contiguous_iterator_helper<T>::value> {};
 #else
 template<typename T>
-struct is_contiguous_iter : _is_contiguous_iter_helper<T> {};
+struct is_contiguous_iterator : _is_contiguous_iterator_helper<T> {};
 #endif
 template<typename _Iter>
-struct is_contiguous_iter<std::reverse_iterator<_Iter>> : is_contiguous_iter<_Iter> {};
+struct is_contiguous_iterator<std::reverse_iterator<_Iter>> : is_contiguous_iterator<_Iter> {};
 template<typename T>
-inline constexpr bool is_contiguous_iter_v = is_contiguous_iter<T>::value;
+inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<T>::value;
 template<size_t n>
 struct __uint_helper{};
 template<>
@@ -1564,23 +1579,23 @@ _WJR_BEGIN
 template<size_t index, typename T>
 struct _Pair_wrapper1 {
 template<typename _Ty = T, std::enable_if_t<std::is_default_constructible_v<_Ty>, int> = 0>
-constexpr _Pair_wrapper1() noexcept(std::is_nothrow_default_constructible_v<_Ty>)
+WJR_INLINE_CONSTEXPR _Pair_wrapper1() noexcept(std::is_nothrow_default_constructible_v<_Ty>)
 : val() {}
 template<typename _Ty = T, std::enable_if_t<std::is_copy_constructible_v<_Ty>, int> = 0>
-constexpr _Pair_wrapper1(const _Ty& other) noexcept(std::is_nothrow_copy_constructible_v<_Ty>)
+WJR_INLINE_CONSTEXPR _Pair_wrapper1(const _Ty& other) noexcept(std::is_nothrow_copy_constructible_v<_Ty>)
 : val(other) {}
 template<typename _Ty = T, std::enable_if_t<std::is_move_constructible_v<_Ty>, int> = 0>
-constexpr _Pair_wrapper1(_Ty&& other) noexcept(std::is_nothrow_move_constructible_v<_Ty>)
+WJR_INLINE_CONSTEXPR _Pair_wrapper1(_Ty&& other) noexcept(std::is_nothrow_move_constructible_v<_Ty>)
 : val(std::forward<_Ty>(other)) {}
 template<typename...Args, std::enable_if_t<std::is_constructible_v<T, Args...>, int> = 0>
-constexpr _Pair_wrapper1(Args&&...args) noexcept(std::is_nothrow_constructible_v<T, Args...>)
+WJR_INLINE_CONSTEXPR _Pair_wrapper1(Args&&...args) noexcept(std::is_nothrow_constructible_v<T, Args...>)
 : val(std::forward<Args>(args)...) {}
-_Pair_wrapper1(const _Pair_wrapper1&) = default;
-_Pair_wrapper1(_Pair_wrapper1&&) noexcept = default;
-_Pair_wrapper1& operator=(const _Pair_wrapper1&) = default;
-_Pair_wrapper1& operator=(_Pair_wrapper1&&) noexcept = default;
-constexpr T& value() noexcept { return val; }
-constexpr const T& value() const noexcept { return val; }
+WJR_INLINE_CONSTEXPR _Pair_wrapper1(const _Pair_wrapper1&) = default;
+WJR_INLINE_CONSTEXPR _Pair_wrapper1(_Pair_wrapper1&&) noexcept = default;
+WJR_INLINE_CONSTEXPR _Pair_wrapper1& operator=(const _Pair_wrapper1&) = default;
+WJR_INLINE_CONSTEXPR _Pair_wrapper1& operator=(_Pair_wrapper1&&) noexcept = default;
+WJR_INTRINSIC_CONSTEXPR T& value() noexcept { return val; }
+WJR_INTRINSIC_CONSTEXPR const T& value() const noexcept { return val; }
 private:
 T val;
 };
@@ -1588,23 +1603,23 @@ template<size_t index, typename T>
 struct _Pair_wrapper2 : private T{
 using _Mybase = T;
 template<typename _Ty = T, std::enable_if_t<std::is_default_constructible_v<_Ty>, int> = 0>
-constexpr _Pair_wrapper2() noexcept(std::is_nothrow_default_constructible_v<_Ty>)
+WJR_INLINE_CONSTEXPR _Pair_wrapper2() noexcept(std::is_nothrow_default_constructible_v<_Ty>)
 : _Mybase() {}
 template<typename _Ty = T, std::enable_if_t<std::is_copy_constructible_v<_Ty>, int> = 0>
-constexpr _Pair_wrapper2(const _Ty& other) noexcept(std::is_nothrow_copy_constructible_v<_Ty>)
+WJR_INLINE_CONSTEXPR _Pair_wrapper2(const _Ty& other) noexcept(std::is_nothrow_copy_constructible_v<_Ty>)
 : _Mybase(other) {}
 template<typename _Ty = T, std::enable_if_t<std::is_move_constructible_v<_Ty>, int> = 0>
-constexpr _Pair_wrapper2(_Ty&& other) noexcept(std::is_nothrow_move_constructible_v<_Ty>)
+WJR_INLINE_CONSTEXPR _Pair_wrapper2(_Ty&& other) noexcept(std::is_nothrow_move_constructible_v<_Ty>)
 : _Mybase(std::forward<_Ty>(other)) {}
 template<typename...Args, std::enable_if_t<std::is_constructible_v<T, Args...>, int> = 0>
-constexpr _Pair_wrapper2(Args&&...args) noexcept(std::is_nothrow_constructible_v<T, Args...>)
+WJR_INLINE_CONSTEXPR _Pair_wrapper2(Args&&...args) noexcept(std::is_nothrow_constructible_v<T, Args...>)
 : _Mybase(std::forward<Args>(args)...) {}
-_Pair_wrapper2(const _Pair_wrapper2&) = default;
-_Pair_wrapper2(_Pair_wrapper2&&) noexcept= default;
-_Pair_wrapper2& operator=(const _Pair_wrapper2&) = default;
-_Pair_wrapper2& operator=(_Pair_wrapper2&&) noexcept = default;
-constexpr T& value() noexcept { return *this; }
-constexpr const T& value() const noexcept { return *this; }
+WJR_INLINE_CONSTEXPR _Pair_wrapper2(const _Pair_wrapper2&) = default;
+WJR_INLINE_CONSTEXPR _Pair_wrapper2(_Pair_wrapper2&&) noexcept= default;
+WJR_INLINE_CONSTEXPR _Pair_wrapper2& operator=(const _Pair_wrapper2&) = default;
+WJR_INLINE_CONSTEXPR _Pair_wrapper2& operator=(_Pair_wrapper2&&) noexcept = default;
+WJR_INTRINSIC_CONSTEXPR T& value() noexcept { return *this; }
+WJR_INTRINSIC_CONSTEXPR const T& value() const noexcept { return *this; }
 };
 template<size_t index, typename T>
 using _Pair_wrapper = std::conditional_t<
@@ -1642,82 +1657,82 @@ using second_type = U;
 template<typename _Ty = T, typename _Uy = U, std::enable_if_t<
 std::conjunction_v<_Is_default_constructible<_Ty, _Uy>,
 _Is_default_convertible<_Ty, _Uy>>, bool> = true>
-constexpr compressed_pair() noexcept(std::conjunction_v<std::is_nothrow_default_constructible<_Ty>,
+WJR_INLINE_CONSTEXPR compressed_pair() noexcept(std::conjunction_v<std::is_nothrow_default_constructible<_Ty>,
 std::is_nothrow_default_constructible<_Uy>>)
 : _Mybase1(), _Mybase2() {}
 template<typename _Ty = T, typename _Uy = U, std::enable_if_t<
 std::conjunction_v<_Is_default_constructible<_Ty, _Uy>,
 std::negation<_Is_default_convertible<_Ty, _Uy>>>, bool> = false>
-constexpr explicit compressed_pair() noexcept(std::conjunction_v<std::is_nothrow_default_constructible<_Ty>,
+WJR_INLINE_CONSTEXPR explicit compressed_pair() noexcept(std::conjunction_v<std::is_nothrow_default_constructible<_Ty>,
 std::is_nothrow_default_constructible<_Uy>>)
 : _Mybase1(), _Mybase2() {}
 template<typename _Ty = T, typename _Uy = U, std::enable_if_t<
 std::conjunction_v<_Is_copy_constructible<_Ty, _Uy>,
 _Is_convertible<_Ty, _Uy, const _Ty&, const _Uy&>>, bool> = true>
-constexpr compressed_pair(const T& _First, const U& _Second)
+WJR_INLINE_CONSTEXPR compressed_pair(const T& _First, const U& _Second)
 noexcept(std::conjunction_v<std::is_nothrow_copy_constructible<_Ty>, std::is_nothrow_copy_constructible<_Uy>>)
 : _Mybase1(_First), _Mybase2(_Second) {}
 template<typename _Ty = T, typename _Uy = U, std::enable_if_t<
 std::conjunction_v<_Is_copy_constructible<_Ty, _Uy>,
 std::negation<_Is_convertible<_Ty, _Uy, const _Ty&, const _Uy&>>>, bool> = false>
-constexpr explicit compressed_pair(const T& _First, const U& _Second)
+WJR_INLINE_CONSTEXPR explicit compressed_pair(const T& _First, const U& _Second)
 noexcept(std::conjunction_v<std::is_nothrow_copy_constructible<_Ty>, std::is_nothrow_copy_constructible<_Uy>>)
 : _Mybase1(_First), _Mybase2(_Second) {}
 template<typename _Other1, typename _Other2, std::enable_if_t<
 std::conjunction_v<_Is_constructible<T, U, _Other1, _Other2>,
 _Is_convertible<T, U, _Other1, _Other2>>, bool> = true>
-constexpr compressed_pair(_Other1&& _First, _Other2&& _Second)
+WJR_INLINE_CONSTEXPR compressed_pair(_Other1&& _First, _Other2&& _Second)
 noexcept(std::conjunction_v<std::is_nothrow_constructible<T, _Other1>, std::is_nothrow_constructible<U, _Other2>>)
 : _Mybase1(std::forward<_Other1>(_First)), _Mybase2(std::forward<_Other2>(_Second)) {}
 template<typename _Other1, typename _Other2, std::enable_if_t<
 std::conjunction_v<_Is_constructible<T, U, _Other1, _Other2>,
 std::negation<_Is_convertible<T, U, _Other1, _Other2>>>, bool> = false>
-constexpr explicit compressed_pair(_Other1&& _First, _Other2&& _Second)
+WJR_INLINE_CONSTEXPR explicit compressed_pair(_Other1&& _First, _Other2&& _Second)
 noexcept(std::conjunction_v<std::is_nothrow_constructible<T, _Other1>, std::is_nothrow_constructible<U, _Other2>>)
 : _Mybase1(std::forward<_Other1>(_First)), _Mybase2(std::forward<_Other2>(_Second)) {}
-compressed_pair(const compressed_pair&) = default;
-compressed_pair(compressed_pair&&) noexcept = default;
+WJR_INLINE_CONSTEXPR compressed_pair(const compressed_pair&) = default;
+WJR_INLINE_CONSTEXPR compressed_pair(compressed_pair&&) noexcept = default;
 template<typename _Other1, typename _Other2, std::enable_if_t<
 std::conjunction_v<_Is_constructible<T, U, const _Other1&, const _Other2&>,
 _Is_convertible<T, U, const _Other1&, const _Other2&>>, bool> = true>
-constexpr compressed_pair(const compressed_pair<_Other1, _Other2>& other)
+WJR_INLINE_CONSTEXPR compressed_pair(const compressed_pair<_Other1, _Other2>& other)
 noexcept(std::conjunction_v<std::is_nothrow_constructible<T, const _Other1&>, std::is_nothrow_constructible<U, const _Other2&>>)
 : _Mybase1(other.first()), _Mybase2(other.second()) {}
 template<typename _Other1, typename _Other2, std::enable_if_t<
 std::conjunction_v<_Is_constructible<T, U, const _Other1&, const _Other2&>,
 std::negation<_Is_convertible<T, U, const _Other1&, const _Other2&>>>, bool> = false>
-constexpr explicit compressed_pair(const compressed_pair<_Other1, _Other2>& other)
+WJR_INLINE_CONSTEXPR explicit compressed_pair(const compressed_pair<_Other1, _Other2>& other)
 noexcept(std::conjunction_v<std::is_nothrow_constructible<T, const _Other1&>, std::is_nothrow_constructible<U, const _Other2&>>)
 : _Mybase1(other.first()), _Mybase2(other.second()) {}
 template<typename _Other1, typename _Other2, std::enable_if_t<
 std::conjunction_v<_Is_constructible<T, U, _Other1, _Other2>,
 _Is_convertible<T, U, _Other1, _Other2>>, bool> = true>
-constexpr compressed_pair(compressed_pair<_Other1, _Other2>&& other)
+WJR_INLINE_CONSTEXPR compressed_pair(compressed_pair<_Other1, _Other2>&& other)
 noexcept(std::conjunction_v<std::is_nothrow_constructible<T, _Other1>, std::is_nothrow_constructible<U, _Other2>>)
 : _Mybase1(std::forward<_Other1>(other.first())), _Mybase2(std::forward<_Other2>(other.second())) {}
 template<typename _Other1, typename _Other2, std::enable_if_t<
 std::conjunction_v<_Is_constructible<T, U, _Other1, _Other2>,
 std::negation<_Is_convertible<T, U, _Other1, _Other2>>>, bool> = false>
-constexpr explicit compressed_pair(compressed_pair<_Other1, _Other2>&& other)
+WJR_INLINE_CONSTEXPR explicit compressed_pair(compressed_pair<_Other1, _Other2>&& other)
 noexcept(std::conjunction_v<std::is_nothrow_constructible<T, _Other1>, std::is_nothrow_constructible<U, _Other2>>)
 : _Mybase1(std::forward<_Other1>(other.first())), _Mybase2(std::forward<_Other2>(other.second())) {}
 template<typename _Tuple1, typename _Tuple2, size_t...N1, size_t...N2>
-constexpr compressed_pair(_Tuple1& tp1, _Tuple2& tp2, std::index_sequence<N1...>, std::index_sequence<N2...>)
+WJR_INLINE_CONSTEXPR compressed_pair(_Tuple1& tp1, _Tuple2& tp2, std::index_sequence<N1...>, std::index_sequence<N2...>)
 : _Mybase1(std::get<N1>(std::move(tp1))...), _Mybase2(std::get<N2>(std::move(tp2))...) {}
 template<typename...Args1, typename...Args2>
-constexpr compressed_pair(std::piecewise_construct_t, std::tuple<Args1...> tp1, std::tuple<Args2...> tp2)
+WJR_INLINE_CONSTEXPR compressed_pair(std::piecewise_construct_t, std::tuple<Args1...> tp1, std::tuple<Args2...> tp2)
 : compressed_pair(tp1, tp2, std::index_sequence_for<Args1...>{}, std::index_sequence_for<Args2...>{}) {}
-constexpr compressed_pair&
+WJR_INLINE_CONSTEXPR compressed_pair&
 operator=(std::conditional_t<std::conjunction_v<std::is_copy_assignable<T>,
-std::is_copy_assignable<U>>,const compressed_pair&, const wjr::disable_tag&> other)
+std::is_copy_assignable<U>>,const compressed_pair&, const wjr::disable_t&> other)
 noexcept(std::conjunction_v<std::is_nothrow_copy_assignable<T>, std::is_nothrow_copy_assignable<U>>) {
 first() = other.first();
 second() = other.second();
 return *this;
 }
-constexpr compressed_pair&
+WJR_INLINE_CONSTEXPR compressed_pair&
 operator=(std::conditional_t<std::conjunction_v<std::is_move_assignable<T>,
-std::is_move_assignable<U>>, compressed_pair&&, wjr::disable_tag&&> other)
+std::is_move_assignable<U>>, compressed_pair&&, wjr::disable_t&&> other)
 noexcept(std::conjunction_v<std::is_nothrow_move_assignable<T>, std::is_nothrow_move_assignable<U>>) {
 first() = std::forward<T>(other.first());
 second() = std::forward<U>(other.second());
@@ -1727,7 +1742,7 @@ template<typename _Other1, typename _Other2, std::enable_if_t<
 std::conjunction_v<std::negation<std::is_same<compressed_pair, compressed_pair<_Other1, _Other2>>>,
 std::is_assignable<T&, const _Other1&>,
 std::is_assignable<U&, const _Other2&>>, int> = 0>
-constexpr compressed_pair& operator=(const compressed_pair<_Other1, _Other2>& other)
+WJR_INLINE_CONSTEXPR compressed_pair& operator=(const compressed_pair<_Other1, _Other2>& other)
 noexcept(std::conjunction_v<std::is_nothrow_assignable<T&, const _Other1&>,
 std::is_nothrow_assignable<U&, const _Other2&>>) {
 first() = other.first();
@@ -1738,54 +1753,60 @@ template<typename _Other1, typename _Other2, std::enable_if_t<
 std::conjunction_v<std::negation<std::is_same<compressed_pair, compressed_pair<_Other1, _Other2>>>,
 std::is_assignable<T&, _Other1>,
 std::is_assignable<U&, _Other2>>, int> = 0>
-constexpr compressed_pair& operator=(compressed_pair<_Other1, _Other2>&& other)
+WJR_INLINE_CONSTEXPR compressed_pair& operator=(compressed_pair<_Other1, _Other2>&& other)
 noexcept(std::conjunction_v<std::is_nothrow_assignable<T&, _Other1>,
 std::is_nothrow_assignable<U&, _Other2>>) {
 first() = std::forward<_Other1>(other.first());
 second() = std::forward<_Other2>(other.second());
 return *this;
 }
-constexpr void swap(compressed_pair& other)
+WJR_INLINE_CONSTEXPR void swap(compressed_pair& other)
 noexcept(std::conjunction_v<is_nothrow_swappable<T>, is_nothrow_swappable<U>>) {
 using std::swap;
 swap(first(), other.first());
 swap(second(), other.second());
 }
-constexpr T& first() noexcept { return _Mybase1::value(); }
-constexpr const T& first() const noexcept { return _Mybase1::value(); }
-constexpr U& second() noexcept { return _Mybase2::value(); }
-constexpr const U& second() const noexcept { return _Mybase2::value(); }
+WJR_INTRINSIC_CONSTEXPR T& first() noexcept { return _Mybase1::value(); }
+WJR_INTRINSIC_CONSTEXPR const T& first() const noexcept { return _Mybase1::value(); }
+WJR_INTRINSIC_CONSTEXPR U& second() noexcept { return _Mybase2::value(); }
+WJR_INTRINSIC_CONSTEXPR const U& second() const noexcept { return _Mybase2::value(); }
 };
 #ifdef WJR_CPP17
 template<typename T, typename U>
 compressed_pair(T, U)->compressed_pair<T, U>;
 #endif
 template<typename T, typename U>
-WJR_NODISCARD constexpr bool operator==(const compressed_pair<T, U>& lhs, const compressed_pair<T, U>& rhs) {
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) bool operator==(
+const compressed_pair<T, U>& lhs, const compressed_pair<T, U>& rhs) {
 return lhs.first() == rhs.first() && lhs.second() == rhs.second();
 }
 template<typename T, typename U>
-WJR_NODISCARD constexpr bool operator!=(const compressed_pair<T, U>& lhs, const compressed_pair<T, U>& rhs) {
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) bool operator!=(
+const compressed_pair<T, U>& lhs, const compressed_pair<T, U>& rhs) {
 return !(lhs == rhs);
 }
 template<typename T, typename U>
-WJR_NODISCARD constexpr bool operator<(const compressed_pair<T, U>& lhs, const compressed_pair<T, U>& rhs) {
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) bool operator<(
+const compressed_pair<T, U>& lhs, const compressed_pair<T, U>& rhs) {
 return lhs.first() < rhs.first() || (!(rhs.first() < lhs.first()) && lhs.second() < rhs.second());
 }
 template<typename T, typename U>
-WJR_NODISCARD constexpr bool operator>(const compressed_pair<T, U>& lhs, const compressed_pair<T, U>& rhs) {
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) bool operator>(
+const compressed_pair<T, U>& lhs, const compressed_pair<T, U>& rhs) {
 return rhs < lhs;
 }
 template<typename T, typename U>
-WJR_NODISCARD constexpr bool operator<=(const compressed_pair<T, U>& lhs, const compressed_pair<T, U>& rhs) {
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) bool operator<=(
+const compressed_pair<T, U>& lhs, const compressed_pair<T, U>& rhs) {
 return !(rhs < lhs);
 }
 template<typename T, typename U>
-WJR_NODISCARD constexpr bool operator>=(const compressed_pair<T, U>& lhs, const compressed_pair<T, U>& rhs) {
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) bool operator>=(
+const compressed_pair<T, U>& lhs, const compressed_pair<T, U>& rhs) {
 return !(lhs < rhs);
 }
 template<typename T, typename U>
-WJR_NODISCARD constexpr compressed_pair<unrefwrap_t<T>, unrefwrap_t<U>> make_pair(T&& t, U&& u)
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) compressed_pair<unrefwrap_t<T>, unrefwrap_t<U>> make_pair(T&& t, U&& u)
 noexcept(std::conjunction_v<std::is_nothrow_constructible<unrefwrap_t<T>, T>,
 std::is_nothrow_constructible<unrefwrap_t<U>, U>>) {
 return compressed_pair<unrefwrap_t<T>, unrefwrap_t<U>>(std::forward<T>(t), std::forward<U>(u));
@@ -1795,7 +1816,7 @@ namespace std {
 template<typename T, typename U>
 using _Wjr_pair = wjr::compressed_pair<T, U>;
 template<typename T, typename U, enable_if_t<conjunction_v<wjr::is_swappable<T>, wjr::is_swappable<U>>, int> = 0>
-void swap(_Wjr_pair<T, U>& lhs, _Wjr_pair<T, U>& rhs)
+WJR_INLINE_CONSTEXPR void swap(_Wjr_pair<T, U>& lhs, _Wjr_pair<T, U>& rhs)
 noexcept(noexcept(lhs.swap(rhs))) {
 lhs.swap(rhs);
 }
@@ -1807,66 +1828,66 @@ static_assert(I < 2, "tuple_element index out of bounds");
 using type = conditional_t<I == 0, T, U>;
 };
 template<typename _Ret, typename _Pair>
-WJR_NODISCARD constexpr _Ret& _Wjr_pair_get(_Pair& p, integral_constant<size_t, 0>) noexcept {
+WJR_ATTRIBUTE(NODISCARD, INTRINSIC_CONSTEXPR) _Ret& _Wjr_pair_get(_Pair& p, integral_constant<size_t, 0>) noexcept {
 return p.first();
 }
 template<typename _Ret, typename _Pair>
-WJR_NODISCARD constexpr _Ret& _Wjr_pair_get(_Pair& p, integral_constant<size_t, 1>) noexcept {
+WJR_ATTRIBUTE(NODISCARD, INTRINSIC_CONSTEXPR) _Ret& _Wjr_pair_get(_Pair& p, integral_constant<size_t, 1>) noexcept {
 return p.second();
 }
 template<size_t I, typename T, typename U>
-WJR_NODISCARD constexpr tuple_element_t<I, _Wjr_pair<T, U>>& get(_Wjr_pair<T, U>& p) noexcept {
+WJR_ATTRIBUTE(NODISCARD, INTRINSIC_CONSTEXPR) tuple_element_t<I, _Wjr_pair<T, U>>& get(_Wjr_pair<T, U>& p) noexcept {
 using _Ret = tuple_element_t<I, _Wjr_pair<T, U>>&;
 return _Wjr_pair_get<_Ret>(p, integral_constant<size_t, I>{});
 }
 template<typename T, typename U>
-WJR_NODISCARD constexpr T& get(_Wjr_pair<T, U>& p) noexcept {
+WJR_ATTRIBUTE(NODISCARD, INTRINSIC_CONSTEXPR) T& get(_Wjr_pair<T, U>& p) noexcept {
 return get<0>(p);
 }
 template<typename U, typename T>
-WJR_NODISCARD constexpr U& get(_Wjr_pair<T, U>& p) noexcept {
+WJR_ATTRIBUTE(NODISCARD, INTRINSIC_CONSTEXPR) U& get(_Wjr_pair<T, U>& p) noexcept {
 return get<1>(p);
 }
 template<size_t I, typename T, typename U>
-WJR_NODISCARD constexpr const tuple_element_t<I, _Wjr_pair<T, U>>& get(const _Wjr_pair<T, U>& p) noexcept {
+WJR_ATTRIBUTE(NODISCARD, INTRINSIC_CONSTEXPR) const tuple_element_t<I, _Wjr_pair<T, U>>& get(const _Wjr_pair<T, U>& p) noexcept {
 using _Ret = const tuple_element_t<I, _Wjr_pair<T, U>>&;
 return _Wjr_pair_get<_Ret>(p, integral_constant<size_t, I>{});
 }
 template<typename T, typename U>
-WJR_NODISCARD constexpr const T& get(const _Wjr_pair<T, U>& p) noexcept {
+WJR_ATTRIBUTE(NODISCARD, INTRINSIC_CONSTEXPR) const T& get(const _Wjr_pair<T, U>& p) noexcept {
 return get<0>(p);
 }
 template<typename U, typename T>
-WJR_NODISCARD constexpr const U& get(const _Wjr_pair<T, U>& p) noexcept {
+WJR_ATTRIBUTE(NODISCARD, INTRINSIC_CONSTEXPR) const U& get(const _Wjr_pair<T, U>& p) noexcept {
 return get<1>(p);
 }
 template <size_t I, typename T, typename U>
-WJR_NODISCARD constexpr tuple_element_t<I, _Wjr_pair<T, U>>&& get(
+WJR_ATTRIBUTE(NODISCARD, INTRINSIC_CONSTEXPR) tuple_element_t<I, _Wjr_pair<T, U>>&& get(
 _Wjr_pair<T, U>&& p) noexcept {
 using _RRtype = tuple_element_t<I, _Wjr_pair<T, U>>&&;
 return forward<_RRtype>(get<I>(p));
 }
 template <typename T, typename U>
-WJR_NODISCARD constexpr T&& get(_Wjr_pair<T, U>&& p) noexcept {
+WJR_ATTRIBUTE(NODISCARD, INTRINSIC_CONSTEXPR) T&& get(_Wjr_pair<T, U>&& p) noexcept {
 return get<0>(move(p));
 }
 template <typename U, typename T>
-WJR_NODISCARD constexpr U&& get(_Wjr_pair<T, U>&& p) noexcept {
+WJR_ATTRIBUTE(NODISCARD, INTRINSIC_CONSTEXPR) U&& get(_Wjr_pair<T, U>&& p) noexcept {
 return get<1>(move(p));
 }
 template <size_t I, typename T, typename U>
-WJR_NODISCARD constexpr const tuple_element_t<I, _Wjr_pair<T, U>>&& get(
+WJR_ATTRIBUTE(NODISCARD, INTRINSIC_CONSTEXPR) const tuple_element_t<I, _Wjr_pair<T, U>>&& get(
 const _Wjr_pair<T, U>&& p) noexcept {
 using _RRtype = const tuple_element_t<I, _Wjr_pair<T, U>>&&;
 return forward<_RRtype>(get<I>(p));
 }
 template <typename T, typename U>
-WJR_NODISCARD constexpr const T&& get(
+WJR_ATTRIBUTE(NODISCARD, INTRINSIC_CONSTEXPR) const T&& get(
 const _Wjr_pair<T, U>&& p) noexcept {
 return get<0>(move(p));
 }
 template <typename U, typename T>
-WJR_NODISCARD constexpr const U&& get(
+WJR_ATTRIBUTE(NODISCARD, INTRINSIC_CONSTEXPR) const U&& get(
 const _Wjr_pair<T, U>&& p) noexcept {
 return get<1>(move(p));
 }
@@ -1951,9 +1972,9 @@ template<typename _Iter, typename...Args,
 std::enable_if_t<is_iterator_v<wjr::remove_cvref_t<_Iter>>, int> = 0>
 WJR_CONSTEXPR20 void do_construct_at(_Iter iter, Args&&... args);
 template<typename _Iter, std::enable_if_t<is_iterator_v<wjr::remove_cvref_t<_Iter>>, int> = 0>
-WJR_CONSTEXPR20 void do_construct_at(_Iter iter, default_construct_tag);
+WJR_CONSTEXPR20 void do_construct_at(_Iter iter, default_construct_t);
 template<typename _Iter, std::enable_if_t<is_iterator_v<wjr::remove_cvref_t<_Iter>>, int> = 0>
-WJR_CONSTEXPR20 void do_construct_at(_Iter iter, value_construct_tag);
+WJR_CONSTEXPR20 void do_construct_at(_Iter iter, value_construct_t);
 template<typename Alloc, typename _Iter, typename...Args,
 std::enable_if_t<!is_iterator_v<wjr::remove_cvref_t<Alloc>>, int> = 0>
 WJR_CONSTEXPR20 void do_construct_at(Alloc& al, _Iter iter, Args&&...args);
@@ -2001,17 +2022,17 @@ WJR_CONSTEXPR20 _Iter2 do_uninitialized_copy_n(Alloc& al, _Iter1 _First, _Diff n
 template<typename _Iter, typename _Val>
 WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, const _Val& val);
 template<typename _Iter>
-WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, default_construct_tag);
+WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, default_construct_t);
 template<typename _Iter>
-WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, value_construct_tag);
+WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, value_construct_t);
 template<typename Alloc, typename _Iter, typename _Val>
 WJR_CONSTEXPR20 void do_uninitialized_fill(Alloc& al, _Iter _First, _Iter _Last, const _Val& val);
 template<typename _Iter, typename _Diff, typename _Val>
 WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(_Iter _First, _Diff count, const _Val& val);
 template<typename _Iter, typename _Diff>
-WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(_Iter _First, _Diff n, default_construct_tag);
+WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(_Iter _First, _Diff n, default_construct_t);
 template<typename _Iter, typename _Diff>
-WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(_Iter _First, _Diff n, value_construct_tag);
+WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(_Iter _First, _Diff n, value_construct_t);
 template<typename Alloc, typename _Iter, typename _Diff, typename _Val>
 WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(Alloc& al, _Iter _First, _Diff n, const _Val& val);
 template<typename _Iter1, typename _Iter2>
@@ -2027,6 +2048,8 @@ template<typename _Iter, typename _Func>
 WJR_CONSTEXPR20 void do_for_each(_Iter _First, _Iter _Last, _Func fn);
 template<typename _Iter, typename _SizeT, typename _Func>
 WJR_CONSTEXPR20 void do_for_each_n(_Iter _First, _SizeT n, _Func fn);
+template<typename _Iter>
+WJR_CONSTEXPR20 _Iter do_skip_whitespace(_Iter _First, _Iter _Last);
 template<typename Alloc>
 class temporary_allocator_value;
 #define __WJR_REGISTER_ALGO_FUNCTOR(name)	                                \
@@ -2070,6 +2093,7 @@ __WJR_REGISTER_ALGO_FUNCTOR(uninitialized_move);
 __WJR_REGISTER_ALGO_FUNCTOR(uninitialized_move_n);
 __WJR_REGISTER_ALGO_FUNCTOR(for_each);
 __WJR_REGISTER_ALGO_FUNCTOR(for_each_n);
+__WJR_REGISTER_ALGO_FUNCTOR(skip_whitespace);
 #undef __WJR_REGISTER_ALGO_FUNCTOR
 _WJR_END
 #ifndef __WJR_ALGORITHM_H
@@ -2678,7 +2702,7 @@ static_assert(_Nd <= _Nd_ull, "unsupported integer type");
 }
 #endif
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_ATTRIBUTE(INTRINSIC_E_CONSTEXPR) T adc(T a, T b, T carry_in, T& carry_out) {
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) T adc(T a, T b, T carry_in, T& carry_out) {
 if (!wjr::is_constant_evaluated()) {
 if (!((is_constant_p(a) && is_constant_p(b)) || (is_constant_p(carry_in) && carry_in == 0))) {
 #if WJR_HAS_BUILTIN(__builtin_addc) || WJR_HAS_CLANG(5, 0, 0)
@@ -2800,7 +2824,7 @@ static_assert(_Nd <= _Nd_ull, "unsupported integer type");
 }
 #endif
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_ATTRIBUTE(INTRINSIC_E_CONSTEXPR) T sbb(T a, T b, T carry_in, T& carry_out) {
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) T sbb(T a, T b, T carry_in, T& carry_out) {
 if (!wjr::is_constant_evaluated()) {
 if (!((is_constant_p(a) && is_constant_p(b)) || (is_constant_p(carry_in) && carry_in == 0))) {
 #if WJR_HAS_BUILTIN(__builtin_subc) || WJR_HAS_CLANG(5, 0, 0)
@@ -2841,7 +2865,7 @@ _WJR_ASM_END
 #error "This file should not be included directly. Include <wjr/asm.h> instead."
 #endif
 _WJR_ASM_BEGIN
-WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) uint64_t u64x64(uint64_t a, uint64_t b, uint64_t& hi) {
+WJR_ATTRIBUTE(INTRINSIC_INLINE) uint64_t u64x64(uint64_t a, uint64_t b, uint64_t& hi) {
 if (!wjr::is_constant_evaluated()) {
 #if defined(WJR_COMPILER_MSVC) && defined(WJR_X86_64)
 return _umul128(a, b, &hi);
@@ -2885,7 +2909,7 @@ return a * b;
 WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint32_t u32x32hi(uint32_t a, uint32_t b) {
 return (uint32_t)(((uint64_t)a * (uint64_t)b) >> 32);
 }
-WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) uint64_t u64x64hi(uint64_t a, uint64_t b) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) uint64_t u64x64hi(uint64_t a, uint64_t b) {
 if (!wjr::is_constant_evaluated()) {
 #if defined(WJR_COMPILER_MSVC) && defined(WJR_X86_64)
 return __umulh(a, b);
@@ -2918,7 +2942,7 @@ return (uint16_t)(((uint32_t)a * (uint32_t)b) >> 16);
 WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint16_t u16x16lo(uint16_t a, uint16_t b) {
 return a * b;
 }
-WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) uint64_t u128d64t64(uint64_t hi, uint64_t lo, uint64_t den, uint64_t& r) {
+WJR_ATTRIBUTE(INTRINSIC_INLINE) uint64_t u128d64t64(uint64_t hi, uint64_t lo, uint64_t den, uint64_t& r) {
 if (!wjr::is_constant_evaluated()) {
 #if defined(WJR_COMPILER_MSVC) && defined(WJR_X86_64)
 return _udiv128(hi, lo, den, &r);
@@ -2931,7 +2955,7 @@ return lo;
 extern uint64_t __large__u128d64t64(uint64_t hi, uint64_t lo, uint64_t den, uint64_t & r);
 return __large__u128d64t64(hi, lo, den, r);
 }
-WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) uint32_t u64d32t32(uint64_t x, uint32_t den, uint32_t& r) {
+WJR_ATTRIBUTE(INTRINSIC_INLINE) uint32_t u64d32t32(uint64_t x, uint32_t den, uint32_t& r) {
 if (wjr::is_constant_evaluated()) {
 #if defined(WJR_COMPILER_MSVC) && defined(WJR_X86)
 return _udiv64(x, den, &r);
@@ -2943,21 +2967,21 @@ r = hi;
 return lo;
 #endif
 }
-uint32_t q = x / den;
+uint32_t q = static_cast<uint32_t>(x / den);
 r = x % den;
 return q;
 }
 WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR) uint16_t u32d16t16(uint32_t x, uint16_t den, uint16_t& r) {
-uint16_t q = x / den;
+uint16_t q = static_cast<uint16_t>(x / den);
 r = x % den;
 return q;
 }
 WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR) uint8_t u16d8t8(uint16_t x, uint8_t den, uint8_t& r) {
-uint8_t q = x / den;
+uint8_t q = static_cast<uint8_t>(x / den);
 r = x % den;
 return q;
 }
-WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) int64_t s64x64hi(int64_t a, int64_t b) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) int64_t s64x64hi(int64_t a, int64_t b) {
 if (!wjr::is_constant_evaluated()) {
 #if defined(WJR_COMPILER_MSVC) && defined(WJR_X86_64)
 return __mulh(a, b);
@@ -3062,9 +3086,9 @@ WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) T bit_ceil(T x) noexcept;
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int popcount(T x) noexcept;
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_ATTRIBUTE(INTRINSIC_E_CONSTEXPR) T adc(T a, T b, T c, T& d) noexcept;
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) T adc(T a, T b, T c, T& d) noexcept;
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_ATTRIBUTE(INTRINSIC_E_CONSTEXPR) T sbb(T a, T b, T c, T& d) noexcept;
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) T sbb(T a, T b, T c, T& d) noexcept;
 template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
 WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) T byteswap(T x) noexcept;
 template<endian to = endian::native, typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
@@ -3792,7 +3816,7 @@ result.more = (uint8_t)(floor_log_2_d | (d < 0 ? LIBDIVIDE_NEGATIVE_DIVISOR : 0)
 else {
 uint8_t more;
 uint32_t rem, proposed_m;
-proposed_m = wjr::u64d32t32((uint64_t)(1 << (floor_log_2_d - 1 + 16)),absD, rem);
+proposed_m = wjr::u64d32t32((uint64_t)1 << (floor_log_2_d - 1 + 16),absD, rem);
 const uint32_t e = absD - rem;
 if (!branchfree && e < ((uint32_t)1 << floor_log_2_d)) {
 more = (uint8_t)(floor_log_2_d - 1);
@@ -5256,11 +5280,11 @@ WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int popcount(T x) noexcept {
 return wjr::masm::popcnt(x);
 }
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
-WJR_ATTRIBUTE(INTRINSIC_E_CONSTEXPR) T adc(T a, T b, T c, T& d) noexcept {
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) T adc(T a, T b, T c, T& d) noexcept {
 return wjr::masm::adc(a, b, c, &d);
 }
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
-WJR_ATTRIBUTE(INTRINSIC_E_CONSTEXPR) T sbb(T a, T b, T c, T& d) noexcept {
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) T sbb(T a, T b, T c, T& d) noexcept {
 return wjr::masm::sbb(a, b, c, &d);
 }
 template<typename T, std::enable_if_t<is_standard_numer_v<T>, int>>
@@ -5652,13 +5676,14 @@ D = (D + 1) / 2;
 }
 return D;
 };
-if constexpr (depth <= 4) {
-WJR_MACRO_CALL(__WIDTH_WORK_GEN, , 1, 2, 3, 4);
+if constexpr (depth <= 8) {
+WJR_MACRO_CALL(__WIDTH_WORK_GEN, , 1, 2, 3, 4, 5, 6, 7, 8);
 if constexpr (use_table) {
 constexpr auto __mid_digits = get_mid_digits(depth);
 constexpr auto __mid = power<T>(base, __mid_digits);
 constexpr auto __table_index = __get_width_table_v<base>;
 constexpr auto __table_size = __get_width_table_size<__table_index>::value;
+static_assert(__mid <= __table_size, "");
 constexpr auto p = []() {
 unsigned int ret = 0;
 unsigned int idx = base;
@@ -5672,8 +5697,8 @@ ret += (__width_table_v<__table_index>[static_cast<unsigned int>(a)] + p - 1) / 
 }
 }
 else {
-WJR_MACRO_CALL(__WIDTH_WORK_GEN, , 1, 2, 3, 4);
-__width<base, T, get_mid_digits(4), depth - 4, use_table>(a, ret);
+WJR_MACRO_CALL(__WIDTH_WORK_GEN, , 1, 2, 3, 4, 5, 6, 7, 8);
+__width<base, T, get_mid_digits(8), depth - 8, use_table>(a, ret);
 }
 }
 #undef __WIDTH_WORK_GEN
@@ -7640,8 +7665,8 @@ uint8_t sse::min(__m128i a, uint8_t) { return min_epu8(a); }
 uint16_t sse::min(__m128i a, uint16_t) { return min_epu16(a); }
 uint32_t sse::min(__m128i a, uint32_t) { return min_epu32(a); }
 __m128i sse::move_epi64(__m128i a) { return _mm_move_epi64(a); }
-sse::mask_type sse::movemask_epi8(__m128i a) { return _mm_movemask_epi8(a); }
-sse::mask_type sse::movemask_pd(__m128d v) { return _mm_movemask_pd(v); }
+sse::mask_type sse::movemask_epi8(__m128i a) { return static_cast<mask_type>(_mm_movemask_epi8(a)); }
+sse::mask_type sse::movemask_pd(__m128d v) { return static_cast<mask_type>(_mm_movemask_pd(v)); }
 sse::mask_type sse::movemask(__m128i v, int8_t) { return movemask_epi8(v); }
 sse::mask_type sse::movemask(__m128i v, int32_t) { return movemask_ps(simd_cast<__m128_tag, __m128i_tag>(v)); }
 sse::mask_type sse::movemask(__m128i v, int64_t) { return movemask_pd(simd_cast<__m128d_tag, __m128i_tag>(v)); }
@@ -9026,8 +9051,8 @@ if (pred(s[-1], val)) return s;
 if (n == 1) return s - 1;
 const bool f = pred(s[static_cast<size_t>(1 - n)], val);
 const bool g = pred(s[static_cast<size_t>(0 - n)], val);
-const size_t i1 = g ? 1 - n : -n;
-const size_t i2 = f ? 2 - n : i1;
+const size_t i1 = g ? static_cast<size_t>(1 - n) : static_cast<size_t>(0 - n);
+const size_t i2 = f ? static_cast<size_t>(2 - n) : i1;
 return s + i2;
 }
 #endif //
@@ -9291,8 +9316,8 @@ if (pred(s[-1], val)) return s;
 if (n == 1) return s - 1;
 const bool f = pred(s[static_cast<size_t>(1 - n)], val);
 const bool g = pred(s[static_cast<size_t>(0 - n)], val);
-const size_t i1 = g ? 1 - n : -n;
-const size_t i2 = f ? 2 - n : i1;
+const size_t i1 = g ? static_cast<size_t>(1 - n) : static_cast<size_t>(0 - n);
+const size_t i2 = f ? static_cast<size_t>(2 - n) : i1;
 return s + i2;
 }
 #endif //
@@ -9652,23 +9677,21 @@ return __large__memeq(s0, s1, n, pred);
 if constexpr (_Mysize == 8) {
 return pred(s0[0], s1[0]);
 }
-constexpr auto __need_byteswap = !wjr::is_any_of_v<_Pred,
-std::equal_to<>,
-std::not_equal_to<>
->;
 if constexpr (_Mysize == 2) {
 if (n >= 4) {
 auto A0 = *reinterpret_cast<const uint64_t*>(s0);
 auto B0 = *reinterpret_cast<const uint64_t*>(s0 + n - 4);
 auto A1 = *reinterpret_cast<const uint64_t*>(s1);
 auto B1 = *reinterpret_cast<const uint64_t*>(s1 + n - 4);
-if constexpr (__need_byteswap) {
-A0 = wjr::byteswap(A0);
-B0 = wjr::byteswap(B0);
-A1 = wjr::byteswap(A1);
-B1 = wjr::byteswap(B1);
+if constexpr (std::is_same_v<_Pred, std::equal_to<>>) {
+return A0 == A1 && B0 == B1;
 }
-return pred(A0, A1) && pred(B0, B1);
+else {
+auto x = simd::sse::set_epi64x(B0, A0);
+auto y = simd::sse::set_epi64x(B1, A1);
+__WJR_MEMEQ_ONE(simd::sse);
+return true;
+}
 }
 }
 if constexpr (_Mysize == 1) {
@@ -9682,29 +9705,23 @@ auto A1 = *reinterpret_cast<const uint32_t*>(s1);
 auto B1 = *reinterpret_cast<const uint32_t*>(s1 + delta);
 auto C1 = *reinterpret_cast<const uint32_t*>(s1 + n - 4 - delta);
 auto D1 = *reinterpret_cast<const uint32_t*>(s1 + n - 4);
-if constexpr (__need_byteswap) {
-A0 = wjr::byteswap(A0);
-B0 = wjr::byteswap(B0);
-C0 = wjr::byteswap(C0);
-D0 = wjr::byteswap(D0);
-A1 = wjr::byteswap(A1);
-B1 = wjr::byteswap(B1);
-C1 = wjr::byteswap(C1);
-D1 = wjr::byteswap(D1);
+if constexpr (std::is_same_v<_Pred, std::equal_to<>>) {
+return A0 == A1 && B0 == B1 && C0 == C1 && D0 == D1;
 }
-return (pred(A0, A1) && pred(B0, B1)) && (pred(C0, C1) && pred(D0, D1));
+else {
+auto x = simd::sse::set_epi32(D0, C0, B0, A0);
+auto y = simd::sse::set_epi32(D1, C1, B1, A1);
+__WJR_MEMEQ_ONE(simd::sse);
+return true;
+}
 }
 }
 if constexpr (_Mysize <= 4) {
 if (!pred(s0[0], s1[0])) return false;
 if (n == 1) return true;
-auto A = *reinterpret_cast<const uint16_t*>(s0 + n - 2);
-auto B = *reinterpret_cast<const uint16_t*>(s1 + n - 2);
-if constexpr (__need_byteswap) {
-A = wjr::byteswap(A);
-B = wjr::byteswap(B);
-}
-return pred(A, B);
+const bool f = pred(s0[n - 2], s1[n - 2]);
+const bool g = pred(s0[n - 1], s1[n - 1]);
+return f && g;
 }
 }
 #undef WJR_SIMD_IS_BACKWARD
@@ -10160,7 +10177,7 @@ if (!pred(s0[-1], s1[-1])) return s0;
 if (n == 1) return s0 - 1;
 const bool f = pred(s0[static_cast<size_t>(1 - n)], s1[static_cast<size_t>(1 - n)]);
 const bool g = pred(s0[static_cast<size_t>(0 - n)], s1[static_cast<size_t>(0 - n)]);
-const size_t i1 = g ? -n : 1 - n;
+const size_t i1 = g ? static_cast<size_t>(0 - n) : static_cast<size_t>(1 - n);
 const size_t i2 = f ? i1 : 2 - n;
 return s0 + i2;
 }
@@ -10594,7 +10611,7 @@ if (!pred(s0[-1], s1[-1])) return s0;
 if (n == 1) return s0 - 1;
 const bool f = pred(s0[static_cast<size_t>(1 - n)], s1[static_cast<size_t>(1 - n)]);
 const bool g = pred(s0[static_cast<size_t>(0 - n)], s1[static_cast<size_t>(0 - n)]);
-const size_t i1 = g ? -n : 1 - n;
+const size_t i1 = g ? static_cast<size_t>(0 - n) : static_cast<size_t>(1 - n);
 const size_t i2 = f ? i1 : 2 - n;
 return s0 + i2;
 }
@@ -10879,7 +10896,6 @@ _WJR_ALGO_END
 #ifndef __WJR_ALGO_MEM_ALL_H
 #error "This file should not be included directly. Include <wjr/algo/mem-all.h> instead."
 #endif // __WJR_ALGO_MEM_ALL_H
-#if defined(_WJR_FAST_MEMSKIPW)
 _WJR_ALGO_BEGIN
 struct __memskipw_table {
 constexpr __memskipw_table() : m_table() {
@@ -10894,39 +10910,45 @@ private:
 bool m_table[256];
 };
 constexpr static __memskipw_table __memskipw_table_instance = {};
+#if defined(_WJR_FAST_MEMSKIPW)
 #define WJR_SIMD_IS_BACKWARD 0
-WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const char* __memskipw(const char* s, const char* e) {
-if (WJR_UNLIKELY(s == e)) return s;
-if(WJR_LIKELY(!__memskipw_table_instance[*s])) return s;
-++s;
-if (WJR_LIKELY(s + 3 <= e)) {
-if (!__memskipw_table_instance[*s]) return s;
-if (!__memskipw_table_instance[s[1]]) return s + 1;
-if (!__memskipw_table_instance[s[2]]) return s + 2;
-s += 3;
-if (WJR_LIKELY(s + 16 <= e)) {
+template<typename T = char>
+WJR_ATTRIBUTE(NODISCARD, PURE, NOINLINE) const T* __large__memskipw(const T* s, const T* e) noexcept {
 const auto simd_32 = simd::sse::set1_epi8(32);
 const auto simd_9 = simd::sse::set1_epi8(9);
-const auto simd_5 = simd::sse::set1_epi8(4);
+const auto simd_4 = simd::sse::set1_epi8(4);
 do {
 WJR_SIMD_LOADU(simd::sse, x, s);
 auto y = simd::sse::cmpeq(x, simd_32, uint8_t());
 auto z = simd::sse::sub(x, simd_9, uint8_t());
-z = simd::sse::cmple(z, simd_5, uint8_t());
+z = simd::sse::cmple(z, simd_4, uint8_t());
 auto r = simd::sse::movemask_epi8(simd::sse::Or(y, z));
 if (WJR_LIKELY(r != simd::sse::mask())) {
 return WJR_SIMD_FIRST_ZERO_PTR(s, r);
 }
 s += 16;
 } while (s <= e);
+return s;
 }
+extern template const char* __large__memskipw(
+const char*, const char*) noexcept;
+WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const char* __memskipw(const char* s, const char* e) {
+if (WJR_UNLIKELY(s == e)) return s;
+if(!__memskipw_table_instance[*s]) return s;
+++s;
+const int threshold = 4;
+if (WJR_LIKELY(s + threshold + 16 <= e)) {
+auto m = s + threshold;
+for (; s != m && __memskipw_table_instance[*s]; ++s);
+if (WJR_LIKELY(s != m))return s;
+return __large__memskipw(s, e);
 }
 for (; s < e && __memskipw_table_instance[*s]; ++s);
 return s;
 }
 #undef WJR_SIMD_IS_BACKWARD
-_WJR_ALGO_END
 #endif // _WJR_FAST_MEMSKIPW
+_WJR_ALGO_END
 
 #endif // __WJR_ALGO_MEM_ALL_H
 _WJR_ALGO_BEGIN
@@ -10950,6 +10972,10 @@ const uint8_t*, const uint8_t*, size_t, std::equal_to<>) noexcept;
 template const uint8_t* __large__memrmis(
 const uint8_t*, const uint8_t*, size_t, std::equal_to<>) noexcept;
 #endif // _WJR_FAST_MEMMIS
+#if defined(_WJR_FAST_MEMSKIPW)
+template const char* __large__memskipw(
+const char*, const char*) noexcept;
+#endif // _WJR_FAST_MEMSKIPW
 _WJR_ALGO_END
 
 
@@ -11509,9 +11535,31 @@ constexpr bool __has_fast_memskipw_v = __has_fast_memskipw<T>::value;
 template<typename T, std::enable_if_t<__has_fast_memskipw_v<T>, int> = 0>
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const T* memskipw(const T* s, const T* e) {
 using value_type = char;
-return reinterpret_cast<const T*>(
+auto ptr= reinterpret_cast<const T*>(
 __memskipw(reinterpret_cast<const value_type*>(s),
 reinterpret_cast<const value_type*>(e)));
+return ptr;
+/*struct node {
+void inc(size_t n) {
+if (n >= vec.size()) {
+vec.resize(n + 1);
+}
+++vec[n];
+}
+~node() {
+size_t tot = 0;
+auto n = vec.size();
+for (int i = 0; i < n; ++i)tot += (i + 1) * vec[i];
+for (int i = 0; i < n; ++i) {
+auto x = (i + 1) * vec[i];
+printf("%d %lld %lld %.3f\n", i, vec[i], x, x * 100. / tot);
+}
+}
+std::vector<size_t> vec;
+};
+static node it;
+it.inc(ptr - s);
+return ptr;*/
 }
 #else
 template<typename T>
@@ -11528,7 +11576,7 @@ _WJR_BEGIN
 template<typename _Iter, typename _Val, typename _Pred,
 typename _Iter_value = iter_val_t<_Iter>>
 struct __has_fast_find : std::conjunction<
-is_contiguous_iter<_Iter>,
+is_contiguous_iterator<_Iter>,
 std::conditional_t<
 wjr::is_reverse_iterator_v<_Iter>,
 algo::__has_fast_memrchr<_Iter_value, _Val, _Pred>,
@@ -11580,7 +11628,7 @@ return std::find_if_not(_First, _Last, _Pred);
 template<typename _Iter, typename _Val,
 typename _Iter_value = iter_val_t<_Iter>>
 struct __has_fast_count : std::conjunction<
-wjr::is_contiguous_iter<_Iter>,
+wjr::is_contiguous_iterator<_Iter>,
 algo::__has_fast_memcnt<_Iter_value, _Val>
 > {};
 template<typename _Iter, typename _Val>
@@ -11614,8 +11662,8 @@ template<typename _Iter1, typename _Iter2, typename _Pred,
 typename _Iter_value1 = iter_val_t<_Iter1>,
 typename _Iter_value2 = iter_val_t<_Iter2>>
 struct __has_fast_equal_helper : std::conjunction<
-wjr::is_contiguous_iter<_Iter1>,
-wjr::is_contiguous_iter<_Iter2>,
+wjr::is_contiguous_iterator<_Iter1>,
+wjr::is_contiguous_iterator<_Iter2>,
 std::bool_constant<wjr::is_reverse_iterator_v<_Iter1> == wjr::is_reverse_iterator_v<_Iter2>>,
 algo::__has_fast_memeq<_Iter_value1, _Iter_value2, _Pred>
 > {};
@@ -11627,8 +11675,8 @@ template<typename _Iter1, typename _Iter2, typename _Pred,
 typename _Iter_value1 = iter_val_t<_Iter1>,
 typename _Iter_value2 = iter_val_t<_Iter2>>
 struct __has_fast_mismatch : std::conjunction <
-wjr::is_contiguous_iter<_Iter1>,
-wjr::is_contiguous_iter<_Iter2>,
+wjr::is_contiguous_iterator<_Iter1>,
+wjr::is_contiguous_iterator<_Iter2>,
 std::bool_constant<wjr::is_reverse_iterator_v<_Iter1> == wjr::is_reverse_iterator_v<_Iter2>>,
 std::conditional_t<
 wjr::is_reverse_iterator_v<_Iter1>,
@@ -11730,8 +11778,8 @@ template<typename _Iter1, typename _Iter2, typename _Pred,
 typename _Iter_value1 = iter_val_t<_Iter1>,
 typename _Iter_value2 = iter_val_t<_Iter2>>
 struct __has_fast_compare : std::conjunction <
-wjr::is_contiguous_iter<_Iter1>,
-wjr::is_contiguous_iter<_Iter2>,
+wjr::is_contiguous_iterator<_Iter1>,
+wjr::is_contiguous_iterator<_Iter2>,
 std::bool_constant<wjr::is_reverse_iterator_v<_Iter1> == wjr::is_reverse_iterator_v<_Iter2>>,
 std::conditional_t<
 wjr::is_reverse_iterator_v<_Iter1>,
@@ -11793,7 +11841,7 @@ return wjr::do_lexicographical_compare(_First1, _Last1, _First2, _Last2, std::le
 template<typename _Iter, typename _Val,
 typename _Iter_ref = iter_ref_t<_Iter>>
 struct __has_fast_fill : std::conjunction<
-is_contiguous_iter<_Iter>,
+is_contiguous_iterator<_Iter>,
 algo::__has_fast_assign_memset<remove_cref_t<_Iter_ref>, add_cref_t<_Val>>
 > {};
 template<typename _Iter, typename _Val>
@@ -11832,8 +11880,8 @@ template<typename _Input, typename _Output,
 typename _Input_ref = iter_ref_t<_Input>,
 typename _Output_ref = iter_ref_t<_Output>>
 struct __has_fast_copy : std::conjunction<
-is_contiguous_iter<_Input>,
-is_contiguous_iter<_Output>,
+is_contiguous_iterator<_Input>,
+is_contiguous_iterator<_Output>,
 std::bool_constant<wjr::is_reverse_iterator_v<_Input> == wjr::is_reverse_iterator_v<_Output>>,
 algo::__has_fast_assign_memcpy<remove_ref_t<_Output_ref>, _Input_ref>
 > {};
@@ -11964,7 +12012,7 @@ using value_type = iter_val_t<_Iter>;
 #endif // WJR_CPP_20
 }
 template<typename _Iter, std::enable_if_t<is_iterator_v<wjr::remove_cvref_t<_Iter>>, int>>
-WJR_CONSTEXPR20 void do_construct_at(_Iter iter, default_construct_tag) {
+WJR_CONSTEXPR20 void do_construct_at(_Iter iter, default_construct_t) {
 using value_type = iter_val_t<_Iter>;
 if (!is_constant_evaluated()) {
 (void)(::new (voidify(get_address(iter))) value_type);
@@ -11973,11 +12021,11 @@ return;
 if constexpr (std::is_trivially_default_constructible_v<value_type>) {
 }
 else {
-construct_at(iter, value_construct_tag());
+construct_at(iter, value_construct_t());
 }
 }
 template<typename _Iter, std::enable_if_t<is_iterator_v<wjr::remove_cvref_t<_Iter>>, int>>
-WJR_CONSTEXPR20 void do_construct_at(_Iter iter, value_construct_tag) {
+WJR_CONSTEXPR20 void do_construct_at(_Iter iter, value_construct_t) {
 wjr::construct_at(iter);
 }
 template<typename Alloc, typename _Iter, typename...Args,
@@ -11989,8 +12037,8 @@ wjr::construct_at(iter, std::forward<Args>(args)...);
 }
 else {
 if constexpr(sizeof...(Args) == 1){
-if constexpr (is_any_of_v<default_construct_tag, Args...>
-|| is_any_of_v<value_construct_tag, Args...>) {
+if constexpr (is_any_of_v<default_construct_t, Args...>
+|| is_any_of_v<value_construct_t, Args...>) {
 return construct_at(al, iter);
 }
 }
@@ -12060,19 +12108,19 @@ if constexpr (std::is_trivially_default_constructible_v<value_type>) {
 }
 else {
 for (; _First != _Last; (void)++_First) {
-wjr::construct_at(_First, default_construct_tag());
+wjr::construct_at(_First, default_construct_t());
 }
 }
 }
 template<typename Alloc, typename _Iter>
 WJR_CONSTEXPR20 void do_uninitialized_default_construct(
 Alloc& al, _Iter _First, _Iter _Last) {
-if constexpr (is_default_allocator_construct_v<Alloc, _Iter, default_construct_tag>) {
+if constexpr (is_default_allocator_construct_v<Alloc, _Iter, default_construct_t>) {
 wjr::uninitialized_default_construct(_First, _Last);
 }
 else {
 for (; _First != _Last; (void)++_First) {
-wjr::construct_at(al, _First, default_construct_tag());
+wjr::construct_at(al, _First, default_construct_t());
 }
 }
 }
@@ -12090,7 +12138,7 @@ std::advance(_First, n);
 }
 else {
 for (; n; ++_First, (void)--n) {
-wjr::construct_at(_First, default_construct_tag());
+wjr::construct_at(_First, default_construct_t());
 }
 }
 return _First;
@@ -12098,12 +12146,12 @@ return _First;
 template<typename Alloc, typename _Iter, typename _Diff>
 WJR_CONSTEXPR20 _Iter do_uninitialized_default_construct_n(
 Alloc& al, _Iter _First, _Diff n) {
-if constexpr (is_default_allocator_construct_v<Alloc, _Iter, default_construct_tag>) {
+if constexpr (is_default_allocator_construct_v<Alloc, _Iter, default_construct_t>) {
 return wjr::uninitialized_default_construct_n(_First, n);
 }
 else {
 for (; n > 0; ++_First, (void)--n) {
-wjr::construct_at(al, _First, default_construct_tag{});
+wjr::construct_at(al, _First, default_construct_t{});
 }
 return _First;
 }
@@ -12114,18 +12162,18 @@ if (!wjr::is_constant_evaluated()) {
 return std::uninitialized_value_construct(_First, _Last);
 }
 for (; _First != _Last; ++_First) {
-wjr::construct_at(_First, value_construct_tag());
+wjr::construct_at(_First, value_construct_t());
 }
 }
 template<typename Alloc, typename _Iter>
 WJR_CONSTEXPR20 void do_uninitialized_value_construct(
 Alloc& al, _Iter _First, _Iter _Last) {
-if constexpr (is_default_allocator_construct_v<Alloc, _Iter, value_construct_tag>) {
+if constexpr (is_default_allocator_construct_v<Alloc, _Iter, value_construct_t>) {
 wjr::uninitialized_value_construct(_First, _Last);
 }
 else {
 for (; _First != _Last; (void)++_First) {
-wjr::construct_at(al, _First, value_construct_tag());
+wjr::construct_at(al, _First, value_construct_t());
 }
 }
 }
@@ -12138,19 +12186,19 @@ if (n <= 0) {
 return _First;
 }
 for (; n; ++_First, (void)--n) {
-wjr::construct_at(_First, value_construct_tag());
+wjr::construct_at(_First, value_construct_t());
 }
 return _First;
 }
 template<typename Alloc, typename _Iter, typename _Diff>
 WJR_CONSTEXPR20 _Iter do_uninitialized_value_construct_n(
 Alloc& al, _Iter _First, _Diff n) {
-if constexpr (is_default_allocator_construct_v<Alloc, _Iter, value_construct_tag>) {
+if constexpr (is_default_allocator_construct_v<Alloc, _Iter, value_construct_t>) {
 return wjr::uninitialized_value_construct_n(_First, n);
 }
 else {
 for (; n > 0; ++_First, (void)--n) {
-wjr::construct_at(al, _First, value_construct_tag{});
+wjr::construct_at(al, _First, value_construct_t{});
 }
 return _First;
 }
@@ -12159,8 +12207,8 @@ template<typename _Input, typename _Output,
 typename _Input_ref = iter_ref_t<_Input>,
 typename _Output_ref = iter_ref_t<_Output>>
 struct __has_fast_uninitialized_copy : std::conjunction<
-is_contiguous_iter<_Input>,
-is_contiguous_iter<_Output>,
+is_contiguous_iterator<_Input>,
+is_contiguous_iterator<_Output>,
 std::bool_constant<wjr::is_reverse_iterator_v<_Input> == wjr::is_reverse_iterator_v<_Output>>,
 algo::__has_fast_construct_memcpy<remove_ref_t<_Output_ref>, _Input_ref>
 > {};
@@ -12236,7 +12284,7 @@ return _Dest;
 template<typename _Iter, typename _Val,
 typename _Iter_ref = iter_ref_t<_Iter>>
 struct __has_fast_uninitialized_fill : std::conjunction<
-is_contiguous_iter<_Iter>,
+is_contiguous_iterator<_Iter>,
 algo::__has_fast_construct_memset<remove_cref_t<_Iter_ref>, add_cref_t<_Val>>
 > {};
 template<typename _Iter, typename _Val>
@@ -12264,11 +12312,11 @@ wjr::construct_at(_First, val);
 }
 }
 template<typename _Iter>
-WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, default_construct_tag) {
+WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, default_construct_t) {
 wjr::uninitialized_default_construct(_First, _Last);
 }
 template<typename _Iter>
-WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, value_construct_tag) {
+WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, value_construct_t) {
 wjr::uninitialized_value_construct(_First, _Last);
 }
 template<typename Alloc, typename _Iter, typename _Val>
@@ -12301,11 +12349,11 @@ wjr::construct_at(_First, val);
 return _First;
 }
 template<typename _Iter, typename _Diff>
-WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(_Iter _First, _Diff n, default_construct_tag) {
+WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(_Iter _First, _Diff n, default_construct_t) {
 return wjr::uninitialized_default_construct_n(_First, n);
 }
 template<typename _Iter, typename _Diff>
-WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(_Iter _First, _Diff n, value_construct_tag) {
+WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(_Iter _First, _Diff n, value_construct_t) {
 return wjr::uninitialized_value_construct_n(_First, n);
 }
 template<typename Alloc, typename _Iter, typename _Diff, typename _Val>
@@ -12381,6 +12429,21 @@ for (; n; ++_First, (void)--n) {
 fn(*_First);
 }
 }
+template<typename _Iter>
+WJR_CONSTEXPR20 _Iter do_skip_whitespace(_Iter _First, _Iter _Last) {
+using value_type = decltype(*_First);
+static_assert(is_integrals_v<remove_cvref_t<value_type>> && sizeof(value_type) == 1, "");
+if constexpr (is_contiguous_iterator_v<_Iter> && !is_reverse_iterator_v<_Iter>
+&& algo::__has_fast_memskipw_v<remove_cvref_t<value_type>>) {
+auto first = get_address(_First);
+auto last = get_address(_Last);
+return algo::memskipw(first, last);
+}
+else {
+for (; _First != _Last && algo::__memskipw_table_instance[*_First]; ++_First);
+return _First;
+}
+}
 template<typename Alloc>
 class temporary_allocator_value {
 public:
@@ -12415,6 +12478,114 @@ std::aligned_storage_t<sizeof(value_type), alignof(value_type)> vl;
 _WJR_END
 
 #endif // __WJR_ALGORITHM_H
+
+#pragma once
+#ifndef __WJR_CONTAINER_TRAITS_H
+#define __WJR_CONTAINER_TRAITS_H
+_WJR_BEGIN
+template<typename Container>
+struct base_container_traits;
+template<typename Container>
+class container_traits {
+using __traits = base_container_traits<Container>;
+using __allocator_type = typename __traits::allocator_type;
+using __allocator_traits = typename __traits::allocator_traits;
+using __allocator_is_always_equal = typename __allocator_traits::is_always_equal;
+using __allocator_propagate_on_container_move_assignment =
+typename __allocator_traits::propagate_on_container_move_assignment;
+using __allocator_propagate_on_container_copy_assignment =
+typename __allocator_traits::propagate_on_container_copy_assignment;
+using __allocator_propagate_on_container_swap =
+typename __allocator_traits::propagate_on_container_swap;
+WJR_INTRINSIC_CONSTEXPR static bool do_equal_allocator(const Container& a, const Container& b) noexcept {
+return Container::do_get_allocator(a) == Container::do_get_allocator(b);
+}
+using __noexcept_move_construct = std::bool_constant<noexcept(
+Container::do_move_construct(std::declval<Container&>(), std::declval<Container&&>()))>;
+using __noexcept_move_construct_by_element = std::bool_constant < noexcept(
+Container::do_move_construct_by_element(std::declval<Container&>(), std::declval<Container&&>()))>;
+using __noexcept_tidy = std::bool_constant<noexcept(Container::do_tidy(std::declval<Container&>()))>;
+using __noexcept_get_allocator =
+std::bool_constant<noexcept(Container::do_get_allocator(std::declval<Container&>()))>;
+using __noexcept_copy_assign =
+std::bool_constant<noexcept(Container::do_copy_assign(std::declval<Container&>(), std::declval<const Container&>()))>;
+using __noexcept_move_assign =
+std::bool_constant<noexcept(Container::do_move_assign(std::declval<Container&>(), std::declval<Container&&>()))>;
+using __noexcept_move_assign_by_element =
+std::bool_constant<noexcept(Container::do_move_assign_by_element(std::declval<Container&>(), std::declval<Container&&>()))>;
+using __noexcept_swap = std::bool_constant<noexcept(Container::do_swap(std::declval<Container&>(), std::declval<Container&>()))>;
+public:
+using noexcept_move_construct = std::conditional_t<
+__allocator_is_always_equal::value,
+__noexcept_move_construct,
+std::conjunction<__noexcept_move_construct, __noexcept_move_construct_by_element>>;
+WJR_INTRINSIC_CONSTEXPR static void move_construct(Container& a, Container&& b)
+noexcept(noexcept_move_construct::value) {
+if constexpr (__allocator_is_always_equal::value) {
+Container::do_move_construct(a, std::move(b));
+} else {
+if (do_equal_allocator(a, b)) {
+Container::do_move_construct(a, std::move(b));
+}
+else {
+Container::do_move_construct_by_element(a, std::move(b));
+}
+}
+}
+using noexcept_copy_assign = std::conditional_t<
+std::conjunction_v<__allocator_propagate_on_container_copy_assignment,
+std::negation<__allocator_is_always_equal>>,
+std::conjunction<__noexcept_copy_assign, __noexcept_tidy>,
+__noexcept_copy_assign>;
+WJR_INTRINSIC_CONSTEXPR static void copy_assign(Container& a, const Container& b)
+noexcept(noexcept_copy_assign::value) {
+if constexpr (std::conjunction_v<__allocator_propagate_on_container_copy_assignment,
+std::negation<__allocator_is_always_equal>>) {
+if (!do_equal_allocator(a, b)) {
+Container::do_tidy(a);
+}
+}
+if constexpr (__allocator_propagate_on_container_copy_assignment::value) {
+Container::do_get_allocator(a) = Container::do_get_allocator(b);
+}
+Container::do_copy_assign(a, b);
+}
+using noexcept_move_assign = std::conditional_t<
+std::disjunction_v<__allocator_propagate_on_container_move_assignment,
+__allocator_is_always_equal>,
+std::conjunction<__noexcept_move_assign, __noexcept_tidy>,
+std::conjunction<__noexcept_move_assign, __noexcept_tidy, __noexcept_move_assign_by_element>>;
+WJR_INTRINSIC_CONSTEXPR static void move_assign(Container& a, Container&& b)
+noexcept(noexcept_move_assign::value) {
+if constexpr (std::disjunction_v<__allocator_propagate_on_container_move_assignment,
+__allocator_is_always_equal>) {
+Container::do_tidy(a);
+if constexpr (__allocator_propagate_on_container_move_assignment::value) {
+Container::do_get_allocator(a) = std::move(Container::do_get_allocator(b));
+}
+Container::do_move_assign(a, std::move(b));
+}
+else {
+if (do_equal_allocator(a, b)) {
+Container::do_tidy(a);
+Container::do_move_assign(a, std::move(b));
+}
+else {
+Container::do_move_assign_by_element(a, std::move(b));
+}
+}
+}
+using noexcept_swap = __noexcept_swap;
+WJR_INTRINSIC_CONSTEXPR static void swap(Container& a, Container& b)
+noexcept(noexcept_swap::value) {
+Container::do_swap(a, b);
+if constexpr (__allocator_propagate_on_container_swap::value) {
+std::swap(Container::do_get_allocator(a), Container::do_get_allocator(b));
+}
+}
+};
+_WJR_END
+#endif // __WJR_CONTAINER_TRAITS_H
 
 _WJR_BEGIN
 /*
@@ -12461,7 +12632,7 @@ WJR_CONSTEXPR20 vector_data(
 _Alty& al,
 const size_type _Newsize,
 const size_type _Newcapacity,
-extend_tag)
+extend_t)
 : vector_data(al, _Newsize, _Newcapacity) {}
 WJR_CONSTEXPR20 static void copyConstruct(_Alty& al, const vector_data& _Src, vector_data& _Dest) {
 {
@@ -12565,7 +12736,7 @@ WJR_CONSTEXPR20 vector_static_data(
 _Alty&,
 const size_type,
 const size_type _Newcapacity,
-extend_tag) {
+extend_t) {
 _lengthError(_Newcapacity);
 }
 WJR_CONSTEXPR20 vector_static_data(
@@ -12659,7 +12830,7 @@ WJR_CONSTEXPR20 vector_sso_data(
 _Alty& al,
 const size_type _Newsize,
 const size_type _Newcapacity,
-extend_tag)
+extend_t)
 : _M_ptr(_Alty_traits::allocate(al, _Newcapacity)),
 _M_size(_Newsize),
 _M_capacity(_Newcapacity) {
@@ -12782,6 +12953,13 @@ WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(Swap, Swap);
 WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(getGrowthCapacity, getGrowthCapacity);
 }
 template<typename T, typename Alloc = std::allocator<T>, typename Data = vector_data<T, Alloc>>
+class vector;
+template<typename T, typename Alloc, typename Data>
+struct base_container_traits<vector<T, Alloc, Data>> {
+using allocator_type = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
+using allocator_traits = std::allocator_traits<allocator_type>;
+};
+template<typename T, typename Alloc, typename Data>
 class vector {
 public:
 using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
@@ -12809,12 +12987,12 @@ noexcept(std::is_nothrow_default_constructible_v<_Alty>
 WJR_CONSTEXPR20 explicit vector(const allocator_type& al)
 noexcept(std::is_nothrow_constructible_v<_Alty, const allocator_type&>
 && std::is_nothrow_default_constructible_v<data_type>)
-: _Myval(std::piecewise_construct_t{},
+: _Myval(std::piecewise_construct,
 std::forward_as_tuple(al),
 std::forward_as_tuple()) {}
 WJR_CONSTEXPR20 explicit vector(const size_type _Count, const allocator_type& al = allocator_type())
 : vector(al) {
-_M_construct_n(_Count, value_construct_tag());
+_M_construct_n(_Count, value_construct_t());
 }
 WJR_CONSTEXPR20 vector(size_type _Count, const value_type& _Val, const allocator_type& al = allocator_type())
 : vector(al) {
@@ -12829,59 +13007,72 @@ noexcept(data_type::moveConstruct(std::declval<_Alty&>(),
 std::declval<data_type&&>(), std::declval<data_type&>()));
 public:
 template<typename _Alloc>
-WJR_CONSTEXPR20 vector(const vector& other, _Alloc&& al, disable_tag)
+WJR_CONSTEXPR20 vector(const vector& other, _Alloc&& al, disable_t)
 noexcept(_IsNoThrowCopyConstruct
 && std::is_nothrow_constructible_v<_Alty, _Alloc&&>)
-: _Myval(std::piecewise_construct_t{},
+: _Myval(std::piecewise_construct,
 std::forward_as_tuple(std::forward<_Alloc>(al)),
 std::forward_as_tuple()) {
 copyConstruct(getAllocator(), other.getData(), getData());
 }
 WJR_CONSTEXPR20 vector(const vector& other)
 : vector(other, _Alty_traits::select_on_container_copy_construction(other.getAllocator()),
-disable_tag{}) {}
+disable_t{}) {}
 WJR_CONSTEXPR20 vector(const vector& other, const allocator_type& al)
-: vector(other, al, disable_tag{}) {}
+: vector(other, al, disable_t{}) {}
 WJR_CONSTEXPR20 vector(vector&& other)
 noexcept(_IsNoThrowMoveConstruct
 && std::is_nothrow_move_constructible_v<_Alty>)
-: _Myval(std::piecewise_construct_t{},
+: _Myval(std::piecewise_construct,
 std::forward_as_tuple(std::move(other.getAllocator())),
 std::forward_as_tuple()) {
 moveConstruct(getAllocator(), std::move(other.getData()), getData());
 }
 private:
-WJR_CONSTEXPR20 vector(vector&& other, const allocator_type& al, std::true_type) noexcept
-: _Myval(std::piecewise_construct_t{},
-std::forward_as_tuple(al),
-std::forward_as_tuple()) {
-moveConstruct(getAllocator(), std::move(other.getData()), getData());
+WJR_INTRINSIC_CONSTEXPR20 static void do_move_construct(vector& a, vector&& b) noexcept {
+moveConstruct(a.getAllocator(), std::move(b.getData()), a.getData());
 }
-WJR_CONSTEXPR20 vector(vector&& other, const allocator_type& _Al, std::false_type)
-: _Myval(std::piecewise_construct_t{},
-std::forward_as_tuple(_Al),
-std::forward_as_tuple()) {
-auto& al = getAllocator();
-if (al == other.getAllocator()) {
-moveConstruct(al, std::move(other.getData()), getData());
-}
-else {
-const auto _Size = other.size();
+WJR_INTRINSIC_CONSTEXPR20 static void do_move_construct_by_element(vector& a, vector&& b) noexcept {
+const auto _Size = b.size();
 if (_Size != 0) {
+auto& al = a.getAllocator();
 {
 data_type _Data(al, 0, _Size);
-moveConstruct(al, std::move(_Data), getData());
+moveConstruct(al, std::move(_Data), a.getData());
 }
-set_size(_Size);
-wjr::uninitialized_move_n(al, other.data(), _Size, data());
+a.set_size(_Size);
+wjr::uninitialized_move_n(al, b.data(), _Size, a.data());
 }
 }
+WJR_INTRINSIC_CONSTEXPR20 static void do_tidy(vector& a) noexcept { a.tidy(); }
+WJR_INTRINSIC_CONSTEXPR20 static _Alty& do_get_allocator(vector& a) {
+return a.getAllocator();
 }
+WJR_INTRINSIC_CONSTEXPR20 static const _Alty& do_get_allocator(const vector& a) {
+return a.getAllocator();
+}
+WJR_INTRINSIC_CONSTEXPR20 static void do_copy_assign(vector& a, const vector& b) {
+a.assign(b.begin(), b.end());
+}
+WJR_INTRINSIC_CONSTEXPR20 static void do_move_assign(vector& a, vector&& b) noexcept {
+moveConstruct(a.getAllocator(), std::move(b.getData()), a.getData());
+}
+WJR_INTRINSIC_CONSTEXPR20 static void do_move_assign_by_element(vector& a, vector&& b) noexcept {
+a.assign(std::make_move_iterator(b.begin()), std::make_move_iterator(b.end()));
+}
+WJR_INTRINSIC_CONSTEXPR20 static void do_swap(vector& a, vector& b) noexcept {
+Swap(a.getAllocator(), a.getData(), b.getData());
+}
+using ctraits = container_traits<vector>;
+friend ctraits;
 public:
 WJR_CONSTEXPR20 vector(vector&& other, const allocator_type& al)
-noexcept(noexcept(vector(std::declval<vector&&>(),
-std::declval<const allocator_type&>(), std::declval<typename _Alty_traits::is_always_equal>())))
-: vector(std::move(other), al, typename _Alty_traits::is_always_equal{}) {}
+noexcept
+: _Myval(std::piecewise_construct,
+std::forward_as_tuple(al),
+std::forward_as_tuple()) {
+ctraits::move_construct(*this, std::move(other));
+}
 template<typename _Iter, std::enable_if_t<wjr::is_iterator_v<_Iter>, int> = 0>
 WJR_CONSTEXPR20 vector(_Iter _First, _Iter _Last, const allocator_type& al = allocator_type())
 : vector(al) {
@@ -12894,28 +13085,15 @@ tidy();
 }
 WJR_CONSTEXPR20 vector& operator=(const vector& other) {
 if (WJR_LIKELY(this != std::addressof(other))) {
-auto& al = getAllocator();
-auto& other_al = other.getAllocator();
-if constexpr (std::conjunction_v<typename _Alty_traits::propagate_on_container_copy_assignment
-, std::negation<typename _Alty_traits::is_always_equal>>) {
-if (al != other_al) {
-tidy();
-}
-}
-if constexpr (_Alty_traits::propagate_on_container_copy_assignment::value) {
-al = other_al;
-}
-assign(other.begin(), other.end());
+ctraits::copy_assign(*this, other);
 }
 return *this;
 }
 WJR_CONSTEXPR20 vector& operator=(vector&& other)
 noexcept(_Alty_traits::propagate_on_container_move_assignment::value
 || _Alty_traits::is_always_equal::value) {
-using type = std::disjunction<typename _Alty_traits::propagate_on_container_move_assignment,
-typename _Alty_traits::is_always_equal>;
 if (WJR_LIKELY(this != std::addressof(other))) {
-_M_move_assign(std::move(other), type());
+ctraits::move_assign(*this, std::move(other));
 }
 return *this;
 }
@@ -12974,7 +13152,7 @@ WJR_ATTRIBUTE(PURE, INLINE_CONSTEXPR20) size_type size() const noexcept {
 return getData().size();
 }
 WJR_CONSTEXPR20 void resize(const size_type _Newsize) {
-_M_resize(_Newsize, value_construct_tag());
+_M_resize(_Newsize, value_construct_t());
 }
 WJR_CONSTEXPR20 void resize(const size_type _Newsize, const value_type& _Val) {
 _M_resize(_Newsize, _Val);
@@ -12994,7 +13172,7 @@ const size_type _Oldcapacity = capacity();
 if (_Oldcapacity < n) {
 auto& al = getAllocator();
 const size_type _Newcapacity = getGrowthCapacity(_Oldcapacity, n);
-data_type _Newdata(al, _Oldsize, _Newcapacity, extend_tag());
+data_type _Newdata(al, _Oldsize, _Newcapacity, extend_t());
 wjr::uninitialized_move_n(al, data(), _Oldsize, _Newdata.data());
 tidy();
 moveConstruct(al, std::move(_Newdata), getData());
@@ -13098,10 +13276,7 @@ const const_iterator __cbeg = cbegin();
 return _M_erase(__beg + (_First - __cbeg), __beg + (_Last - __cbeg));
 }
 WJR_INLINE_CONSTEXPR20 void swap(vector& _Right) noexcept {
-Swap(getAllocator(), getData(), _Right.getData());
-if constexpr (_Alty_traits::propagate_on_container_swap::value) {
-std::swap(getAllocator(), _Right.getAllocator());
-}
+ctraits::swap(*this, _Right);
 }
 WJR_CONSTEXPR20 void clear() {
 _M_erase_at_end(data());
@@ -13211,36 +13386,36 @@ WJR_ASSUME(size() == 0);
 }
 /*------External extension function------*/
 /*------default construct/value_construct------*/
-WJR_CONSTEXPR20 vector(const size_type _Count, default_construct_tag, const allocator_type& al = allocator_type())
+WJR_CONSTEXPR20 vector(const size_type _Count, default_construct_t, const allocator_type& al = allocator_type())
 : vector(al) {
-_M_construct_n(_Count, default_construct_tag());
+_M_construct_n(_Count, default_construct_t());
 }
-WJR_CONSTEXPR20 vector(const size_type _Count, value_construct_tag, const allocator_type& al = allocator_type())
+WJR_CONSTEXPR20 vector(const size_type _Count, value_construct_t, const allocator_type& al = allocator_type())
 : vector(al) {
-_M_construct_n(_Count, value_construct_tag());
+_M_construct_n(_Count, value_construct_t());
 }
 WJR_CONSTEXPR20 vector(data_type&& _Data, const allocator_type& al = allocator_type())
 : vector(al) {
 moveConstruct(getAllocator(), std::move(_Data), getData());
 }
-WJR_CONSTEXPR20 void resize(const size_type _Newsize, default_construct_tag) {
-_M_resize(_Newsize, default_construct_tag());
+WJR_CONSTEXPR20 void resize(const size_type _Newsize, default_construct_t) {
+_M_resize(_Newsize, default_construct_t());
 }
-WJR_CONSTEXPR20 void resize(const size_type _Newsize, value_construct_tag) {
-_M_resize(_Newsize, value_construct_tag());
+WJR_CONSTEXPR20 void resize(const size_type _Newsize, value_construct_t) {
+_M_resize(_Newsize, value_construct_t());
 }
-WJR_CONSTEXPR20 void push_back(default_construct_tag) {
-emplace_back(default_construct_tag());
+WJR_CONSTEXPR20 void push_back(default_construct_t) {
+emplace_back(default_construct_t());
 }
-WJR_CONSTEXPR20 void push_back(value_construct_tag) {
-emplace_back(value_construct_tag());
+WJR_CONSTEXPR20 void push_back(value_construct_t) {
+emplace_back(value_construct_t());
 }
-WJR_CONSTEXPR20 vector& append(const size_type n, default_construct_tag) {
-_M_append(n, default_construct_tag());
+WJR_CONSTEXPR20 vector& append(const size_type n, default_construct_t) {
+_M_append(n, default_construct_t());
 return *this;
 }
-WJR_CONSTEXPR20 vector& append(const size_type n, value_construct_tag) {
-_M_append(n, value_construct_tag());
+WJR_CONSTEXPR20 vector& append(const size_type n, value_construct_t) {
+_M_append(n, value_construct_t());
 return *this;
 }
 /*------------------------------------------------------------*/
@@ -13399,7 +13574,7 @@ else {
 const auto __old_size = static_cast<size_type>(_Mylast - _Myfirst);
 const auto __old_pos = static_cast<size_type>(_Where - _Myfirst);
 const size_type _Newcapacity = getGrowthCapacity(capacity(), __old_size + n);
-data_type _Newdata(al, __old_size + n, _Newcapacity, extend_tag());
+data_type _Newdata(al, __old_size + n, _Newcapacity, extend_t());
 const pointer _Newfirst = _Newdata.data();
 wjr::uninitialized_copy(al, _First, _Last, _Newfirst + __old_pos);
 wjr::uninitialized_move(al, _Myfirst, _Where, _Newfirst);
@@ -13431,7 +13606,7 @@ inc_size(n);
 else {
 const auto __old_size = static_cast<size_type>(_Mylast - _Myfirst);
 const size_type _Newcapacity = getGrowthCapacity(capacity(), __old_size + n);
-data_type _Newdata(al, __old_size + n, _Newcapacity, extend_tag());
+data_type _Newdata(al, __old_size + n, _Newcapacity, extend_t());
 const pointer _Newfirst = _Newdata.data();
 wjr::uninitialized_copy(al, _First, _Last, _Newfirst + __old_size);
 wjr::uninitialized_move(al, _Myfirst, _Mylast, _Newfirst);
@@ -13474,7 +13649,7 @@ set_size(_Count);
 }
 else {
 size_type _Newcapacity = getGrowthCapacity(capacity(), _Count);
-data_type _Newdata(al, _Count, _Newcapacity, extend_tag());
+data_type _Newdata(al, _Count, _Newcapacity, extend_t());
 const pointer _Newfirst = _Newdata.data();
 wjr::uninitialized_copy(al, _First, _Last, _Newfirst);
 tidy();
@@ -13485,7 +13660,7 @@ WJR_CONSTEXPR20 void _M_fill_assign(size_type _Count, const value_type& _Val) {
 auto& al = getAllocator();
 if (_Count > capacity()) {
 tidy();
-data_type _Newdata(al, _Count, _Count, extend_tag());
+data_type _Newdata(al, _Count, _Count, extend_t());
 moveConstruct(al, std::move(_Newdata), getData());
 wjr::uninitialized_fill_n(al, data(), _Count, _Val);
 return;
@@ -13528,7 +13703,7 @@ const auto __old_pos = static_cast<size_type>(_Where - _Myfirst);
 const auto __old_size = static_cast<size_type>(_Mylast - _Myfirst);
 const size_type __new_size = __old_size + 1;
 const size_type _Newcapacity = getGrowthCapacity(__old_size, __new_size);
-data_type _Newdata(al, __new_size, _Newcapacity, extend_tag());
+data_type _Newdata(al, __new_size, _Newcapacity, extend_t());
 const pointer _Newfirst = _Newdata.data();
 const pointer _Newwhere = _Newfirst + __old_pos;
 wjr::construct_at(al, _Newwhere, std::forward<Args>(args)...);
@@ -13545,7 +13720,7 @@ const pointer _Mylast = lastPtr();
 const auto __old_size = static_cast<size_type>(_Mylast - _Myfirst);
 const auto __new_size = __old_size + 1;
 const size_type _Newcapacity = getGrowthCapacity(__old_size, __new_size);
-data_type _Newdata(al, __new_size, _Newcapacity, extend_tag());
+data_type _Newdata(al, __new_size, _Newcapacity, extend_t());
 const pointer _Newfirst = _Newdata.data();
 const pointer _Newwhere = _Newfirst + __old_size;
 wjr::construct_at(al, _Newwhere, std::forward<Args>(args)...);
@@ -13580,7 +13755,7 @@ inc_size(n);
 }
 else {
 const auto _Newcapacity = getGrowthCapacity(capacity(), size() + n);
-data_type _Newdata(al, size() + n, _Newcapacity, extend_tag());
+data_type _Newdata(al, size() + n, _Newcapacity, extend_t());
 const pointer _Newfirst = _Newdata.data();
 const auto __old_pos = static_cast<size_type>(_Where - _Myfirst);
 wjr::uninitialized_fill_n(al, _Newfirst + __old_pos, n, _Val);
@@ -13615,7 +13790,7 @@ set_size(_Newsize);
 }
 else {
 auto _Newcapacity = getGrowthCapacity(_Oldcapacity, _Newsize);
-data_type _Newdata(al, _Newsize, _Newcapacity, extend_tag());
+data_type _Newdata(al, _Newsize, _Newcapacity, extend_t());
 const pointer _Newfirst = _Newdata.data();
 wjr::uninitialized_fill_n(al, _Newfirst + _Oldsize, n, _Val);
 wjr::uninitialized_move(al, _Myfirst, _Mylast, _Newfirst);
@@ -13705,7 +13880,7 @@ else {
 const auto __old_size = static_cast<size_type>(_Mylast - _Myfirst);
 const auto __old_pos = static_cast<size_type>(_Oldfirst - _Myfirst);
 const auto _Newcapacity = getGrowthCapacity(capacity(), __old_size + __delta);
-data_type _Newdata(al, __old_size + __delta, _Newcapacity, extend_tag());
+data_type _Newdata(al, __old_size + __delta, _Newcapacity, extend_t());
 const pointer _Ptr = _Newdata.data();
 wjr::uninitialized_copy(al, _Newfirst, _Newlast, _Ptr + __old_pos);
 wjr::uninitialized_move(al, _Myfirst, _Oldfirst, _Ptr);
@@ -13749,7 +13924,7 @@ else {
 const auto __old_size = static_cast<size_type>(_Mylast - _Myfirst);
 const auto __old_pos = static_cast<size_type>(_Oldfirst - _Myfirst);
 const auto _Newcapacity = getGrowthCapacity(capacity(), __old_size + __delta);
-data_type _Newdata(al, __old_size + __delta, _Newcapacity, extend_tag());
+data_type _Newdata(al, __old_size + __delta, _Newcapacity, extend_t());
 const pointer _Ptr = _Newdata.data();
 wjr::uninitialized_fill_n(al, _Ptr + __old_pos, __m, _Val);
 wjr::uninitialized_move(al, _Myfirst, _Oldfirst, _Ptr);
@@ -13858,8 +14033,8 @@ WJR_CONSTEXPR20 string_static_data(
 _Alty& al,
 const size_type _Newsize,
 const size_type _Newcapacity,
-extend_tag)
-: _Mybase(al, _Newsize, _Newcapacity + 1, extend_tag{}) {
+extend_t)
+: _Mybase(al, _Newsize, _Newcapacity + 1, extend_t{}) {
 }
 WJR_CONSTEXPR20 string_static_data(
 _Alty& al,
@@ -13912,8 +14087,8 @@ WJR_CONSTEXPR20 string_sso_data(
 _Alty& al,
 const size_type _Newsize,
 const size_type _Newcapacity,
-extend_tag)
-: _Mybase(al, _Newsize, _Newcapacity + 1, extend_tag{}) {
+extend_t)
+: _Mybase(al, _Newsize, _Newcapacity + 1, extend_t{}) {
 }
 WJR_CONSTEXPR20 string_sso_data(
 _Alty& al,
@@ -13924,7 +14099,7 @@ const size_type _Newcapacity)
 WJR_CONSTEXPR20 static void copyConstruct(_Alty& al, const string_sso_data& _Src, string_sso_data& _Dest) {
 const auto _Size = _Src._M_size;
 if (!_Src.is_small()) {
-string_sso_data data(al, _Size, _Size, extend_tag{});
+string_sso_data data(al, _Size, _Size, extend_t{});
 _Dest._M_ptr = data._M_ptr;
 _Dest._M_capacity = data._M_capacity;
 }
@@ -14023,10 +14198,13 @@ using size_type = size_t;
 using difference_type = ptrdiff_t;
 static constexpr auto npos = static_cast<size_type>(-1);
 };
-template<typename Char, typename Traits = std::char_traits<Char>>
-class basic_string_view {
+template<typename Derived>
+class __base_string_view {
+private:
+using _Mybase = __base_string_view_traits<Derived>;
+using Char = typename _Mybase::value_type;
+using Traits = typename _Mybase::traits_type;
 protected:
-using _Mybase = __base_string_view_traits<basic_string_view<Char, Traits>>;
 using _Traits_helper = __traits_helper<Traits>;
 using _Std_view_type = typename _Mybase::_Std_view_type;
 template<typename T>
@@ -14060,12 +14238,12 @@ static_assert(!std::is_array_v<Char>&& std::is_trivial_v<Char>&& std::is_standar
 "The character type of basic_string_view must be a non-array trivial standard-layout type. See N4910 "
 "23.1 [strings.general]/1.");
 static_assert(std::is_same_v<Char, typename Traits::char_type>, "");
-WJR_INLINE_CONSTEXPR void swap(basic_string_view& other) noexcept {
-const basic_string_view tmp{ other };
-other = *this;
-*this = tmp;
+WJR_INLINE_CONSTEXPR void swap(Derived& other) noexcept {
+const Derived tmp{ other };
+other = this->derived();
+this->derived() = tmp;
 }
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view substr(
+WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived substr(
 const size_type off = 0, size_type n = npos) const WJR_NOEXCEPT {
 #if defined(_WJR_EXCEPTION)
 if (WJR_LIKELY(off <= size())) {
@@ -14076,74 +14254,74 @@ return nesubstr(off, n);
 throw std::out_of_range("out of range at basic_string_view::substr");
 #endif // _WJR_EXCEPTION
 }
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view
+WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived
 nesubstr(const size_type off = 0, size_type n = npos) const noexcept {
 n = std::min(n, size() - off);
-return basic_string_view(data() + off, n);
+return Derived(data() + off, n);
 }
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(
 const value_type* s, const size_type n) noexcept {
-return basic_string_view(s, n);
+return Derived(s, n);
 }
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(
 const value_type* s) noexcept {
-return basic_string_view(s);
+return Derived(s);
 }
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(
 std::initializer_list<value_type> il) noexcept {
 return view(il.begin(), il.size());
 }
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(const StringView& t) noexcept {
-return basic_string_view(t);
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(const StringView& t) noexcept {
+return Derived(t);
 }
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view view(const StringView& t,
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived view(const StringView& t,
 const size_type off, const size_type n = npos) noexcept {
 return view(t).nesubstr(off, n);
 }
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view view() const noexcept {
-return *this;
+WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived view() const noexcept {
+return this->derived();
 }
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_view eview(const StringView& t,
+WJR_NODISCARD WJR_INLINE_CONSTEXPR static Derived eview(const StringView& t,
 const size_type off, const size_type n = npos) WJR_NOEXCEPT {
 return view(t).substr(off, n);
 }
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view prefix(size_type n) const noexcept {
+WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived prefix(size_type n) const noexcept {
 n = std::min(n, size());
-return basic_string_view(begin(), n);
+return Derived(begin(), n);
 }
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_view suffix(size_type n) const noexcept {
+WJR_NODISCARD WJR_INLINE_CONSTEXPR Derived suffix(size_type n) const noexcept {
 n = std::min(n, size());
-return basic_string_view(end() - n, n);
+return Derived(end() - n, n);
 }
-WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_string_view adjust_begin(const_iterator iter) const noexcept {
-return basic_string_view(iter, static_cast<size_type>(end() - iter));
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) Derived adjust_begin(const_iterator iter) const noexcept {
+return Derived(iter, static_cast<size_type>(end() - iter));
 }
-WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_string_view adjust_end(const_iterator iter) const noexcept {
-return basic_string_view(begin(), static_cast<size_type>(iter - begin()));
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) Derived adjust_end(const_iterator iter) const noexcept {
+return Derived(begin(), static_cast<size_type>(iter - begin()));
 }
 private:
 constexpr static size_type traits_length(const value_type* s) {
 return traits_type::length(s);
 }
 public:
-WJR_INLINE_CONSTEXPR basic_string_view() noexcept : _Mydata(), _Mysize(0) {}
-WJR_INLINE_CONSTEXPR basic_string_view(const basic_string_view&) noexcept = default;
-WJR_INLINE_CONSTEXPR basic_string_view& operator=(const basic_string_view&) noexcept = default;
-WJR_INLINE_CONSTEXPR basic_string_view(const const_pointer ptr)
+WJR_INLINE_CONSTEXPR __base_string_view() noexcept : _Mydata(), _Mysize(0) {}
+WJR_INLINE_CONSTEXPR __base_string_view(const __base_string_view&) noexcept = default;
+WJR_INLINE_CONSTEXPR __base_string_view& operator=(const __base_string_view&) noexcept = default;
+WJR_INLINE_CONSTEXPR __base_string_view(const const_pointer ptr)
 : _Mydata(ptr), _Mysize(traits_length(ptr)) {}
-WJR_INLINE_CONSTEXPR basic_string_view(
+WJR_INLINE_CONSTEXPR __base_string_view(
 const const_pointer ptr, const size_type n)
 : _Mydata(ptr), _Mysize(n) {}
 private:
-WJR_INLINE_CONSTEXPR basic_string_view(_Std_view_type s, disable_tag) noexcept
+WJR_INLINE_CONSTEXPR __base_string_view(_Std_view_type s, disable_t) noexcept
 : _Mydata(s.data()), _Mysize(s.size()) {}
 public:
 template<typename StringView, std::enable_if_t<_Is_noptr_std_string_view_like_v<StringView>, int> = 0>
-WJR_INLINE_CONSTEXPR basic_string_view(const StringView& t) noexcept
-: basic_string_view(_Std_view_type(t), disable_tag{}) {}
+WJR_INLINE_CONSTEXPR __base_string_view(const StringView& t) noexcept
+: __base_string_view(_Std_view_type(t), disable_t{}) {}
 WJR_NODISCARD WJR_INLINE_CONSTEXPR operator _Std_view_type() const noexcept {
 return { data(), size() };
 }
@@ -14247,24 +14425,24 @@ return ret != 0 ? ret : (size() < sv.size() ? -1 : 1);
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(const size_type off, const size_type n, const StringView& t)
 const WJR_NOEXCEPT {
-return eview(*this, off, n).compare(t);
+return eview(this->derived(), off, n).compare(t);
 }
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(
 const size_type off1, const size_type n1, const StringView& t,
 const size_type off2, const size_type n2)
 const WJR_NOEXCEPT {
-return eview(*this, off1, n1).compare(eview(t, off2, n2));
+return eview(this->derived(), off1, n1).compare(eview(t, off2, n2));
 }
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(const Char* const ptr) const {
 return compare(view(ptr));
 }
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(const size_type off, const size_type n, const Char* const ptr) const {
-return eview(*this, off, n).compare(view(ptr));
+return eview(this->derived(), off, n).compare(view(ptr));
 }
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE_CONSTEXPR20) int compare(const size_type off1, const size_type n1,
 const Char* const ptr, const size_type n2) const {
-return eview(*this, off1, n1).compare(eview(ptr, n2));
+return eview(this->derived(), off1, n1).compare(eview(ptr, n2));
 }
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
 WJR_NODISCARD WJR_CONSTEXPR20 bool starts_with(const StringView& t) const noexcept {
@@ -14301,7 +14479,7 @@ return find(other) != npos;
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
 WJR_NODISCARD WJR_CONSTEXPR20 size_type find(const StringView& t, const size_type off = 0) const noexcept {
 if (WJR_LIKELY(off <= size())) {
-const auto sv1 = view(*this, off);
+const auto sv1 = view(this->derived(), off);
 const auto sv2 = view(t);
 if constexpr (_Traits_helper::is_default_equal::value) {
 auto iter = wjr::search(sv1.begin(), sv1.end(), sv2.begin(), sv2.end());
@@ -14319,7 +14497,7 @@ return npos;
 }
 WJR_NODISCARD WJR_CONSTEXPR20 size_type find(const Char ch, const size_type off = 0) const noexcept {
 if (WJR_LIKELY(off <= size())) {
-const auto sv = view(*this, off);
+const auto sv = view(this->derived(), off);
 if constexpr (_Traits_helper::is_default_equal::value) {
 auto iter = wjr::find(sv.begin(), sv.end(), ch);
 return iter == end() ? npos : static_cast<size_type>(iter - begin());
@@ -14342,7 +14520,7 @@ return find(view(ptr), off);
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
 WJR_NODISCARD WJR_CONSTEXPR20 size_type rfind(const StringView& t, const size_type off = npos) const noexcept {
 if (WJR_LIKELY(size() != 0)) {
-const auto sv1 = view(*this, 0, std::min(off, size() - 1) + 1);
+const auto sv1 = view(this->derived(), 0, std::min(off, size() - 1) + 1);
 const auto sv2 = view(t);
 if constexpr (_Traits_helper::is_default_equal::value) {
 auto iter = wjr::search(sv1.rbegin(), sv1.rend(),
@@ -14362,7 +14540,7 @@ return npos;
 }
 WJR_NODISCARD WJR_CONSTEXPR20 size_type rfind(const Char ch, const size_type off = npos) const noexcept {
 if (WJR_LIKELY(size() != 0)) {
-const auto sv = view(*this, 0, std::min(off, size() - 1) + 1);
+const auto sv = view(this->derived(), 0, std::min(off, size() - 1) + 1);
 if constexpr (_Traits_helper::is_default_equal::value) {
 auto iter = wjr::find(sv.rbegin(), sv.rend(), ch);
 return iter == rend() ? npos : static_cast<size_type>(rend() - iter) - 1;
@@ -14389,7 +14567,7 @@ template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<Stri
 WJR_NODISCARD WJR_CONSTEXPR20 size_type find_first_of(const StringView& t,
 const size_type off = 0) const noexcept {
 auto sv = _Std_view_type(view(t));
-return _Std_view_type(*this).find_first_of(sv, off);
+return _Std_view_type(this->derived()).find_first_of(sv, off);
 }
 WJR_NODISCARD WJR_CONSTEXPR20 size_type find_first_of(const Char ch, const size_type off = 0) const noexcept {
 return find(ch, off);
@@ -14406,7 +14584,7 @@ template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<Stri
 WJR_NODISCARD WJR_CONSTEXPR20 size_type find_last_of(const StringView& t,
 const size_type off = npos) const noexcept {
 const auto sv = _Std_view_type(view(t));
-return _Std_view_type(*this).find_last_of(sv, off);
+return _Std_view_type(this->derived()).find_last_of(sv, off);
 }
 WJR_NODISCARD WJR_CONSTEXPR20 size_type find_last_of(const Char ch, const size_type off = npos) const noexcept {
 return rfind(ch, off);
@@ -14423,11 +14601,11 @@ template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<Stri
 WJR_NODISCARD WJR_CONSTEXPR20 size_type find_first_not_of(const StringView& t,
 const size_type off = 0) const noexcept {
 const auto sv = _Std_view_type(view(t));
-return _Std_view_type(*this).find_first_not_of(sv, off);
+return _Std_view_type(this->derived()).find_first_not_of(sv, off);
 }
 WJR_NODISCARD WJR_CONSTEXPR20 size_type find_first_not_of(const Char ch, const size_type off = 0) const noexcept {
 if (WJR_LIKELY(off <= size())) {
-const auto sv = view(*this, off);
+const auto sv = view(this->derived(), off);
 if constexpr (_Traits_helper::is_default_equal::value) {
 auto iter = wjr::find(sv.begin(), sv.end(), ch, std::not_equal_to<>{});
 return iter == end() ? npos : static_cast<size_type>(iter - begin());
@@ -14454,11 +14632,11 @@ template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<Stri
 WJR_NODISCARD WJR_CONSTEXPR20 size_type find_last_not_of(const StringView& t,
 const size_type off = npos) const noexcept {
 const auto sv = _Std_view_type(view(t));
-return _Std_view_type(*this).find_last_not_of(sv, off);
+return _Std_view_type(this->derived()).find_last_not_of(sv, off);
 }
 WJR_NODISCARD WJR_CONSTEXPR20 size_type find_last_not_of(const Char ch, const size_type off = npos) const noexcept {
 if (WJR_LIKELY(size() != 0)) {
-const auto sv = view(*this, 0, std::min(off, size() - 1) + 1);
+const auto sv = view(this->derived(), 0, std::min(off, size() - 1) + 1);
 if constexpr (_Traits_helper::is_default_equal::value) {
 auto iter = wjr::find(sv.rbegin(), sv.rend(), ch, std::not_equal_to<>{});
 return iter == rend() ? npos : static_cast<size_type>(rend() - iter) - 1;
@@ -14495,12 +14673,12 @@ return compare(sv) == 0;
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
 WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR20) bool equal(const size_type off, const size_type n, const StringView& t)
 const WJR_NOEXCEPT {
-return eview(*this, off, n).equal(view(t));
+return eview(this->derived(), off, n).equal(view(t));
 }
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
 WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR20) bool equal(const size_type off1, const size_type n1, const StringView& t,
 const size_type off2, const size_type n2) const WJR_NOEXCEPT {
-return eview(*this, off1, n1).equal(eview(t, off2, n2));
+return eview(this->derived(), off1, n1).equal(eview(t, off2, n2));
 }
 WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR20) bool equal(const Char* const ptr) const {
 return equal(view(ptr));
@@ -14512,9 +14690,19 @@ WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR20) bool equal(const size_type off1, co
 const Char* const ptr, const size_type n2) const {
 return equal(off1, n1, view(ptr, n2));
 }
-private:
+protected:
+WJR_INTRINSIC_CONSTEXPR Derived& derived() noexcept { return static_cast<Derived&>(*this); }
+WJR_INTRINSIC_CONSTEXPR const Derived& derived() const noexcept { return static_cast<const Derived&>(*this); }
 const_pointer _Mydata;
 size_type _Mysize;
+};
+template<typename Char, typename Traits = std::char_traits<Char>>
+class basic_string_view : public __base_string_view<basic_string_view<Char, Traits>> {
+private:
+using _Mybase = __base_string_view<basic_string_view<Char, Traits>>;
+public:
+using _Mybase::_Mybase;
+using _Mybase::operator=;
 };
 template<typename Char, typename Traits>
 WJR_NODISCARD WJR_CONSTEXPR20 bool operator==(
@@ -14701,7 +14889,7 @@ WJR_CONSTEXPR20 basic_string(const basic_string& other, const allocator_type& al
 : m_core(other.m_core, al) {
 finalize();
 }
-WJR_CONSTEXPR20 basic_string(basic_string&& other)
+WJR_CONSTEXPR20 basic_string(basic_string&& other) noexcept
 : m_core(std::move(other.m_core)) {
 finalize();
 other.finalize();
@@ -14729,22 +14917,22 @@ WJR_CONSTEXPR20 basic_string(const value_type* s, const allocator_type& al = all
 WJR_CONSTEXPR20 basic_string(std::initializer_list<value_type> il, const allocator_type& al = allocator_type())
 : basic_string(view(il), al) {}
 private:
-WJR_CONSTEXPR20 basic_string(view_type sv, const allocator_type& al, disable_tag)
+WJR_CONSTEXPR20 basic_string(view_type sv, const allocator_type& al, disable_t)
 : basic_string(sv.data(), sv.data() + sv.size(), al) {}
 WJR_CONSTEXPR20 basic_string(
 view_type sv,
 const size_type off, const size_type n,
-const allocator_type& al, disable_tag)
+const allocator_type& al, disable_t)
 : basic_string(eview(sv, off, n), al) {}
 public:
 template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
 WJR_CONSTEXPR20 explicit basic_string(const StringView& t, const allocator_type& al = allocator_type())
-:basic_string(view_type(t), al, disable_tag{}) {}
+:basic_string(view_type(t), al, disable_t{}) {}
 template<typename StringView, std::enable_if_t<_Is_string_view_like_v<StringView>, int> = 0>
 explicit basic_string(const StringView& t,
 const size_type off, const size_type n,
 const allocator_type& al = allocator_type())
-: basic_string(view_type(t), off, n, al, disable_tag{}) {}
+: basic_string(view_type(t), off, n, al, disable_t{}) {}
 WJR_CONSTEXPR20 explicit basic_string(const size_type n,
 const value_type c = value_type(), const allocator_type& al = allocator_type())
 : m_core(n, c, al) {
@@ -15429,37 +15617,37 @@ WJR_NODISCARD WJR_CONSTEXPR20 bool equal(const size_type off1, const size_type n
 const Char* const ptr, const size_type n2) const {
 return view().equal(off1, n1, ptr, n2);
 }
-WJR_CONSTEXPR20 basic_string(const size_type _Count, default_construct_tag, const allocator_type& al = allocator_type())
-: m_core(_Count, default_construct_tag(), al) {
+WJR_CONSTEXPR20 basic_string(const size_type _Count, default_construct_t, const allocator_type& al = allocator_type())
+: m_core(_Count, default_construct_t(), al) {
 finalize();
 }
-WJR_CONSTEXPR20 basic_string(const size_type _Count, value_construct_tag, const allocator_type& al = allocator_type())
-: m_core(_Count, value_construct_tag(), al) {
+WJR_CONSTEXPR20 basic_string(const size_type _Count, value_construct_t, const allocator_type& al = allocator_type())
+: m_core(_Count, value_construct_t(), al) {
 finalize();
 }
-WJR_CONSTEXPR20 void resize(const size_type _Newsize, default_construct_tag) {
-m_core.resize(_Newsize, default_construct_tag());
+WJR_CONSTEXPR20 void resize(const size_type _Newsize, default_construct_t) {
+m_core.resize(_Newsize, default_construct_t());
 finalize();
 }
-WJR_CONSTEXPR20 void resize(const size_type _Newsize, value_construct_tag) {
-m_core.resize(_Newsize, value_construct_tag());
+WJR_CONSTEXPR20 void resize(const size_type _Newsize, value_construct_t) {
+m_core.resize(_Newsize, value_construct_t());
 finalize();
 }
-WJR_CONSTEXPR20 void push_back(default_construct_tag) {
-m_core.push_back(default_construct_tag());
+WJR_CONSTEXPR20 void push_back(default_construct_t) {
+m_core.push_back(default_construct_t());
 finalize();
 }
-WJR_CONSTEXPR20 void push_back(value_construct_tag) {
-m_core.push_back(value_construct_tag());
+WJR_CONSTEXPR20 void push_back(value_construct_t) {
+m_core.push_back(value_construct_t());
 finalize();
 }
-WJR_CONSTEXPR20 basic_string& append(const size_type n, default_construct_tag) {
-m_core.append(n, default_construct_tag());
+WJR_CONSTEXPR20 basic_string& append(const size_type n, default_construct_t) {
+m_core.append(n, default_construct_t());
 finalize();
 return *this;
 }
-WJR_CONSTEXPR20 basic_string& append(const size_type n, value_construct_tag) {
-m_core.append(n, value_construct_tag());
+WJR_CONSTEXPR20 basic_string& append(const size_type n, value_construct_t) {
+m_core.append(n, value_construct_t());
 finalize();
 return *this;
 }
@@ -16179,126 +16367,6 @@ return std::hash<std::basic_string_view<Char, Traits>>()(str);
 }
 };
 }
-_WJR_BEGIN
-template<typename Char, typename Traits = std::char_traits<Char>>
-class basic_string_modifier :
-public basic_string_view<Char, Traits>{
-using _Mybase = basic_string_view<Char, Traits>;
-template<typename T>
-constexpr static bool _Is_noptr_string_view_like_v = _Mybase::template _Is_noptr_string_view_like_v<T>;
-public:
-using traits_type = typename _Mybase::traits_type;
-using value_type = typename _Mybase::value_type;
-using pointer = value_type*;
-using const_pointer = typename _Mybase::const_pointer;
-using reference = value_type&;
-using const_reference = typename _Mybase::const_reference;
-using const_iterator = typename _Mybase::const_iterator;
-using iterator = pointer;
-using const_reverse_iterator = typename _Mybase::const_reverse_iterator;
-using reverse_iterator = std::reverse_iterator<iterator>;
-using size_type = typename _Mybase::size_type;
-using difference_type = typename _Mybase::difference_type;
-static constexpr size_type npos = _Mybase::npos;
-using _Mybase::_Mybase;
-using _Mybase::operator=;
-using _Mybase::data;
-using _Mybase::begin;
-using _Mybase::end;
-using _Mybase::rbegin;
-using _Mybase::rend;
-using _Mybase::front;
-WJR_CONSTEXPR basic_string_modifier(const _Mybase& other)
-: _Mybase(other) {}
-WJR_INLINE_CONSTEXPR void swap(basic_string_modifier& other) noexcept {
-return _Mybase::swap(other);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_modifier substr(
-const size_type off = 0, size_type n = npos) const WJR_NOEXCEPT {
-return basic_string_modifier(_Mybase::substr(off, n));
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_modifier
-nesubstr(const size_type off = 0, size_type n = npos) const noexcept {
-return basic_string_modifier(_Mybase::nesubstr(off, n));
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_modifier view(
-const value_type* s, const size_type n) noexcept {
-return basic_string_modifier(s, n);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_modifier view(
-const value_type* s) noexcept {
-return basic_string_modifier(s);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_modifier view(
-std::initializer_list<value_type> il) noexcept {
-return view(il.begin(), il.size());
-}
-template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_modifier view(const StringView& t) noexcept {
-return basic_string_modifier(t);
-}
-template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_modifier view(const StringView& t,
-const size_type off, const size_type n = npos) noexcept {
-return view(t).nesubstr(off, n);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_modifier view() const noexcept {
-return *this;
-}
-template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_string_modifier eview(const StringView& t,
-const size_type off, const size_type n = npos) WJR_NOEXCEPT {
-return view(t).substr(off, n);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_modifier prefix(size_type n) const noexcept {
-return basic_string_modifier(prefix(n));
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_string_modifier suffix(size_type n) const noexcept {
-return basic_string_modifier(suffix(n));
-}
-WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_string_modifier adjust_begin(const_iterator iter) const noexcept {
-return basic_string_modifier(_Mybase::adjust_begin(iter));
-}
-WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_string_modifier adjust_end(const_iterator iter) const noexcept {
-return basic_string_modifier(_Mybase::adjust_end(iter));
-}
-WJR_INLINE_CONSTEXPR pointer data() { return const_cast<pointer>(_Mybase::data()); }
-WJR_INLINE_CONSTEXPR iterator begin() { return const_cast<iterator>(_Mybase::begin()); }
-WJR_INLINE_CONSTEXPR iterator end() { return const_cast<iterator>(_Mybase::end()); }
-WJR_INLINE_CONSTEXPR reverse_iterator rbegin() {
-return reverse_iterator(end());
-}
-WJR_INLINE_CONSTEXPR reverse_iterator rend() {
-return reverse_iterator(begin());
-}
-WJR_INLINE_CONSTEXPR reference front() {
-return *begin();
-}
-WJR_INLINE_CONSTEXPR reference operator[](size_type n) {
-return data()[n];
-}
-using _Mybase::size;
-template<typename otherChar, typename otherTraits>
-WJR_INLINE_CONSTEXPR20 basic_string_modifier append(basic_string_view<otherChar, otherTraits> str) {
-static_assert(sizeof(otherChar) <= sizeof(Char), "");
-wjr::uninitialized_copy_n(str.begin(), str.size(), data());
-return basic_string_modifier(data() + str.size(), size() - str.size());
-}
-template<typename otherChar>
-WJR_INLINE_CONSTEXPR20 basic_string_modifier append(size_type n, otherChar ch) {
-static_assert(sizeof(otherChar) <= sizeof(Char), "");
-wjr::uninitialized_fill_n(data(), n, ch);
-return basic_string_modifier(data() + n, size() - n);
-}
-WJR_INLINE_CONSTEXPR void finalize() {
-front() = value_type();
-}
-};
-using string_modifier = basic_string_modifier<char>;
-using wstring_modifier = basic_string_modifier<wchar_t>;
-using u16string_modifier = basic_string_modifier<char16_t>;
-using u32string_modifier = basic_string_modifier<char32_t>;
-_WJR_END
 #endif // __WJR_STRING_H
 
 #pragma once
@@ -16913,7 +16981,7 @@ using allocator_type = Alloc;
 constexpr unique_ptr_with_allocator_delete() = default;
 constexpr unique_ptr_with_allocator_delete(size_t n, const allocator_type& _Al = allocator_type())
 noexcept(std::is_nothrow_constructible_v<_Alty, const allocator_type&>)
-: m_value(std::piecewise_construct_t(),
+: m_value(std::piecewise_construct,
 std::forward_as_tuple(_Al),
 std::forward_as_tuple(n)) {}
 constexpr unique_ptr_with_allocator_delete(const unique_ptr_with_allocator_delete&) = default;
@@ -17296,13 +17364,13 @@ WJR_CONSTEXPR20 circular_buffer()
 noexcept(std::is_nothrow_default_constructible_v<_Alty>) = default;
 WJR_CONSTEXPR20 circular_buffer(const allocator_type& al)
 noexcept(std::is_nothrow_constructible_v<_Alty, const allocator_type&>)
-: _Myval(std::piecewise_construct_t{},
+: _Myval(std::piecewise_construct,
 std::forward_as_tuple(al),
 std::forward_as_tuple()) {}
 template<typename _Alloc>
-WJR_CONSTEXPR20 circular_buffer(const circular_buffer& other, _Alloc&& _Al, disable_tag)
+WJR_CONSTEXPR20 circular_buffer(const circular_buffer& other, _Alloc&& _Al, disable_t)
 noexcept(std::is_nothrow_constructible_v<_Alty, _Alloc&&>)
-: _Myval(std::piecewise_construct_t{},
+: _Myval(std::piecewise_construct,
 std::forward_as_tuple(_Al),
 std::forward_as_tuple()){
 auto& al = getAllocator();
@@ -17320,12 +17388,12 @@ wjr::uninitialized_copy(other.begin(), other.end(), _Mydata._Myptr);
 }
 WJR_CONSTEXPR20 circular_buffer(const circular_buffer& other)
 : circular_buffer(other, _Alty_traits::select_on_container_copy_construction(other.getAllocator()),
-disable_tag{}) {}
+disable_t{}) {}
 WJR_CONSTEXPR20 circular_buffer(const circular_buffer& other, const allocator_type& al)
-: circular_buffer(other, al, disable_tag{}) {}
+: circular_buffer(other, al, disable_t{}) {}
 WJR_CONSTEXPR20 circular_buffer(circular_buffer&& other)
 noexcept(std::is_nothrow_move_constructible_v<_Alty>)
-: _Myval(std::piecewise_construct_t{},
+: _Myval(std::piecewise_construct,
 std::forward_as_tuple(std::move(other.getAllocator())),
 std::forward_as_tuple(other.getData())) {
 other.getData().reset();
@@ -17877,7 +17945,7 @@ std::unique_lock task_lock(m_task_mutex);
 return std::move(m_task_queue);
 }
 unsigned int thread_pool::get_threads_size() const {
-return m_core_threads.size();
+return static_cast<unsigned int>(m_core_threads.size());
 }
 void thread_pool::core_work() {
 for (;;) {
@@ -17921,1493 +17989,6 @@ m_core_threads.emplace_back(&thread_pool::core_work, this);
 }
 _WJR_END
 
-
-#pragma once
-#ifndef __WJR_PARSE_H
-#define __WJR_PARSE_H
-#pragma once
-#ifndef __WJR_PARSE_LL1_H
-#define __WJR_PARSE_LL1_H
-#define _WJR_PARSE_LL1_BEGIN _WJR_PARSE_BEGIN namespace LL1{
-#define _WJR_PARSE_LL1_END } _WJR_PARSE_END
-#pragma once
-#ifndef __WJR_PARSE_GENERIC_H
-#define __WJR_PARSE_GENERIC_H
-#pragma once
-#ifndef __WJR_SWITCH_H
-#define __WJR_SWITCH_H
-#pragma once
-#ifndef __WJR_TP_LIST_H
-#define __WJR_TP_LIST_H
-#include <type_traits>
-#include <variant>
-_WJR_BEGIN
-struct tp_null {};
-template<typename...Args>
-struct tp_list {};
-template<typename T, T I>
-using tp_c = std::integral_constant<T, I>;
-template<typename T, T...I>
-struct tp_list_c {
-using type = tp_list<tp_c<T, I>...>;
-};
-template<typename T, T... I>
-using tp_list_c_t = typename tp_list_c<T, I...>::type;
-template<typename T>
-struct tp_is_list : std::false_type {};
-template<typename...Args>
-struct tp_is_list<tp_list<Args...>> : std::true_type {};
-template<typename T>
-inline constexpr bool tp_is_list_v = tp_is_list<T>::value;
-template<typename T>
-struct tp_is_container : std::false_type {};
-template<
-template<typename...>typename C,
-typename...Args>
-struct tp_is_container<C<Args...>> : std::true_type {};
-template<typename T>
-inline constexpr bool tp_is_container_v = tp_is_container<T>::value;
-template<typename T>
-struct tp_size;
-template<template<typename...>typename C, typename...Args>
-struct tp_size<C<Args...>> {
-constexpr static size_t value = sizeof...(Args);
-};
-template<typename T>
-inline constexpr size_t tp_size_v = tp_size<T>::value;
-template<size_t idx>
-using tp_size_t = tp_c<size_t, idx>;
-template<char ch>
-using tp_char_t = tp_c<char, ch>;
-template<typename T, typename U>
-struct tp_equal_c : std::bool_constant<(T::value == U::value)> {};
-template<typename T, typename U>
-struct tp_not_equal_c : std::bool_constant<(T::value != U::value)> {};
-template<typename T, typename U>
-struct tp_less_c : std::bool_constant<(T::value < U::value)>{};
-template<typename T, typename U>
-struct tp_less_equal_c : std::bool_constant < (T::value <= U::value)> {};
-template<typename T, typename U>
-struct tp_greater_c : std::bool_constant < (T::value > U::value)> {};
-template<typename T, typename U>
-struct tp_greater_equalv : std::bool_constant < (T::value >= U::value)>{};
-template<typename T>
-struct tp_is_fn : std::false_type {};
-template<typename T>
-inline constexpr bool tp_is_fn_v = tp_is_fn<T>::value;
-template<typename _Enable, template<typename...>typename F, typename...Args>
-struct __tp_valid_helper : std::false_type {};
-template<template<typename...>typename F, typename...Args>
-struct __tp_valid_helper<std::void_t<F<Args...>>, F, Args...> : std::true_type {};
-template<template<typename...>typename F, typename...Args>
-struct tp_valid : __tp_valid_helper<void, F, Args...> {};
-template<template<typename...>typename F, typename...Args>
-inline constexpr bool tp_valid_v = tp_valid<F, Args...>::value;
-template<typename F, typename...Args>
-inline constexpr bool tp_valid_f = tp_valid_v<F::template fn, Args...>;
-template<template<typename...>typename F, typename...Args>
-struct __tp_defer_helper {
-using type = F<Args...>;
-};
-template<template<typename...>typename F, typename...Args>
-struct tp_defer {
-using type = std::enable_if_t<tp_valid_v<F, Args...>, typename __tp_defer_helper<F, Args...>::type>;
-};
-template<template<typename...>typename F, typename...Args>
-using tp_defer_t = typename tp_defer<F, Args...>::type;
-template<typename F, typename...Args>
-using tp_defer_f = tp_defer_t<F::template fn, Args...>;
-template<typename T>
-struct tp_identity {
-using type = T;
-};
-template<typename T>
-using tp_identity_t = typename tp_identity<T>::type;
-template<template<typename...>typename F1, template<typename...>typename F2>
-struct tp_bind_fn {
-template<typename...Args>
-using fn = tp_defer_t<F1, tp_defer_t<F2, Args...>>;
-};
-template<template<typename...>typename F>
-struct tp_make_fn {
-template<typename...Args>
-using fn = tp_defer_t<F, Args...>;
-};
-template<template<typename...>typename F>
-struct tp_not_fn {
-template<typename...Args>
-using fn = typename tp_bind_fn<std::negation, F>::template fn<Args...>;
-};
-template<typename...Args>
-struct tp_always_true : std::true_type {};
-template<typename...Args>
-struct tp_always_false : std::false_type {};
-template<typename T>
-struct tp_is_empty : std::bool_constant<tp_size_v<T> == 0> {};
-template<typename T>
-inline constexpr bool tp_is_empty_v = tp_is_empty<T>::value;
-template<typename T, typename U>
-struct tp_assign;
-template<typename...Args1, template<typename...>typename T1,
-typename...Args2, template<typename...>typename T2>
-struct tp_assign<T1<Args1...>, T2<Args2...>> {
-using type = T1<Args2...>;
-};
-template<typename T, typename U>
-using tp_assign_t = typename tp_assign<T, U>::type;
-template<typename T>
-struct tp_clear;
-template<template<typename...>typename T, typename...Args>
-struct tp_clear<T<Args...>> {
-using type = T<>;
-};
-template<typename T>
-using tp_clear_t = typename tp_clear<T>::type;
-template<typename T, typename...Args>
-struct tp_push_front;
-template<template<typename...>typename C, typename...Args1, typename...Args2>
-struct tp_push_front<C<Args1...>, Args2...> {
-using type = C<Args2..., Args1...>;
-};
-template<typename T, typename...Args>
-using tp_push_front_t = typename tp_push_front<T, Args...>::type;
-template<typename T, typename...Args>
-struct tp_push_back;
-template<template<typename...>typename C, typename...Args1, typename...Args2>
-struct tp_push_back<C<Args1...>, Args2...> {
-using type = C<Args1..., Args2...>;
-};
-template<typename T, typename...Args>
-using tp_push_back_t = typename tp_push_back<T, Args...>::type;
-template<typename _Enable, size_t I, size_t N, typename...Args>
-struct __tp_cut_helper;
-template<size_t I, size_t N, typename T, typename...Args>
-struct __tp_cut_helper<std::enable_if_t<N != 0, void>, I, N, T, Args...> {
-using type = typename __tp_cut_helper<void, I - 1, N, Args...>::type;
-};
-template<size_t I, size_t N, typename T, typename...Args>
-struct __tp_cut_helper<std::enable_if_t<N == 0, void>, I, N, T, Args...> {
-using type = tp_list<>;
-};
-template<size_t N, typename...Args2>
-struct __tp_cut_helper2;
-template<size_t N, typename T, typename...Args>
-struct __tp_cut_helper2<N, T, Args...> {
-using type = tp_push_front_t<typename __tp_cut_helper2<N - 1, Args...>::type, T>;
-};
-template<typename...Args>
-struct __tp_cut_helper2<0, Args...> {
-using type = tp_list<>;
-};
-template<typename T, typename...Args>
-struct __tp_cut_helper2<0, T, Args...> {
-using type = tp_list<>;
-};
-template<size_t N, typename...Args>
-struct __tp_cut_helper<std::enable_if_t<N != 0>, 0, N, Args...> {
-using type = typename __tp_cut_helper2<N, Args...>::type;
-};
-template<size_t N, typename T, typename...Args>
-struct __tp_cut_helper<std::enable_if_t<N != 0>, 0, N, T, Args...> {
-using type = typename __tp_cut_helper2<N, T, Args...>::type;
-};
-template<typename T, template<typename...>typename U>
-struct tp_rename;
-template<template<typename...>typename C, typename...Args, template<typename...>typename U>
-struct tp_rename<C<Args...>, U> {
-using type = U<Args...>;
-};
-template<typename T, template<typename...>typename U>
-using tp_rename_t = typename tp_rename<T, U>::type;
-template<typename T, size_t I, size_t N>
-struct tp_cut;
-template<template<typename...>typename C, typename...Args, size_t I, size_t N>
-struct tp_cut<C<Args...>, I, N> {
-static_assert(N <= sizeof...(Args) && I <= (sizeof...(Args) - N), "tp_cut: invalid index");
-using type = tp_rename_t<typename __tp_cut_helper<void, I, N, Args...>::type, C>;
-};
-template<typename T, size_t I, size_t N>
-using tp_cut_t = typename tp_cut<T, I, N>::type;
-template<typename T>
-struct tp_pop_front : tp_cut<T, 1, tp_size_v<T> - 1> {};
-template<typename T>
-using tp_pop_front_t = typename tp_pop_front<T>::type;
-template<typename T>
-struct tp_pop_back : tp_cut<T, 0, tp_size_v<T> -1> {};
-template<typename T>
-using tp_pop_back_t = typename tp_pop_back<T>::type;
-template<size_t index, typename...Args>
-struct __tp_at_helper;
-template<size_t index, typename T, typename...Args>
-struct __tp_at_helper<index, T, Args...> {
-using type = typename __tp_at_helper<index - 1, Args...>::type;
-};
-template<typename T, typename...Args>
-struct __tp_at_helper<0, T, Args...> {
-using type = T;
-};
-template<typename T, size_t index>
-struct tp_at;
-template<template<typename...Args>typename C, typename...Args, size_t index>
-struct tp_at<C<Args...>, index> {
-static_assert(index < sizeof...(Args), "tp_at: invalid index");
-using type = typename __tp_at_helper<index, Args...>::type;
-};
-template<typename T, size_t index>
-using tp_at_t = typename tp_at<T, index>::type;
-template<typename T>
-struct tp_front {
-using type = tp_at_t<T, 0>;
-};
-template<typename T>
-using tp_front_t = typename tp_front<T>::type;
-template<typename T>
-struct tp_back {
-using type = tp_at_t<T, tp_size_v<T> -1>;
-};
-template<typename T>
-using tp_back_t = typename tp_back<T>::type;
-template<typename T, size_t idx>
-struct tp_prefix {
-using type = tp_cut_t<T, 0, idx>;
-};
-template<typename T, size_t idx>
-using tp_prefix_t = typename tp_prefix<T, idx>::type;
-template<typename T, size_t idx>
-struct tp_suffix {
-using type = tp_cut_t<T, tp_size_v<T> - idx, idx>;
-};
-template<typename T, size_t idx>
-using tp_suffix_t = typename tp_suffix<T, idx>::type;
-template<typename T, size_t idx>
-struct tp_remove_prefix {
-using type = tp_suffix_t<T, tp_size_v<T> - idx>;
-};
-template<typename T, size_t idx>
-using tp_remove_prefix_t = typename tp_remove_prefix<T, idx>::type;
-template<typename T, size_t idx>
-struct tp_remove_suffix {
-using type = tp_prefix_t<T, tp_size_v<T> - idx>;
-};
-template<typename T, size_t idx>
-using tp_remove_suffix_t = typename tp_remove_suffix<T, idx>::type;
-template<typename...Args>
-struct tp_concat;
-template<typename T>
-struct tp_concat<T> {
-using type = T;
-};
-template<
-template<typename...>typename C1, typename...Args1,
-template<typename...>typename C2, typename...Args2>
-struct tp_concat<C1<Args1...>, C2<Args2...>> {
-using type = C1<Args1..., Args2...>;
-};
-template<
-typename T,
-typename U,
-typename...Args3>
-struct tp_concat<T, U, Args3...> {
-using type = typename tp_concat<typename tp_concat<T, U>::type, Args3...>::type;
-};
-template<typename...Args>
-using tp_concat_t = typename tp_concat<Args...>::type;
-template<typename T, size_t idx, typename U>
-struct tp_replace_at {
-using type = tp_concat_t<tp_push_back_t<tp_cut_t<T, 0, idx>, U>, tp_cut_t<T, idx + 1, tp_size_v<T> -idx - 1>>;
-};
-template<typename T, typename U>
-struct tp_replace_at<T, 0, U> {
-using type = tp_push_front_t<tp_pop_front_t<T>, U>;
-};
-template<typename T, size_t idx, typename U>
-using tp_replace_at_t = typename tp_replace_at<T, idx, U>::type;
-template<typename T, typename U>
-struct tp_replace_front_at {
-using type = tp_replace_at_t<T, 0, U>;
-};
-template<typename T, typename U>
-using tp_replace_front_at_t = typename tp_replace_front_at<T, U>::type;
-template<typename T, typename U>
-struct tp_replace_back_at {
-using type = tp_replace_at_t<T, tp_size_v<T> -1, U>;
-};
-template<typename T, typename U>
-using tp_replace_back_at_t = typename tp_replace_back_at<T, U>::type;
-template<typename V, typename T, typename...Args>
-struct tp_conditional {
-using type = std::conditional_t<V::value, T, typename tp_conditional<Args...>::type>;
-};
-template<typename V, typename T1, typename T2>
-struct tp_conditional<V, T1, T2> {
-using type = std::conditional_t<V::value, T1, T2>;
-};
-template<typename V, typename T, typename...Args>
-using tp_conditional_t = typename tp_conditional<V, T, Args...>::type;
-template<size_t idx>
-struct tp_arg;
-template<template<typename...>typename F, typename...Args>
-struct tp_bind;
-template<template<typename...>typename F, typename...Args>
-struct tp_bind_front;
-template<template<typename...>typename F, typename...Args>
-struct tp_bind_back;
-template<size_t idx>
-struct tp_is_fn<tp_arg<idx>> : std::true_type {};
-template<template<typename...>typename F, typename...Args>
-struct tp_is_fn<tp_bind<F, Args...>> : std::true_type {};
-template<template<typename...>typename F, typename...Args>
-struct tp_is_fn<tp_bind_front<F, Args...>> : std::true_type {};
-template<template<typename...>typename F, typename...Args>
-struct tp_is_fn<tp_bind_back<F, Args...>> : std::true_type {};
-template<size_t idx>
-struct tp_arg {
-template<typename...Args>
-using fn = tp_at_t<tp_list<Args...>, idx>;
-};
-template<template<typename...>typename F,
-typename T>
-struct tp_apply {
-using type = tp_rename_t<T, F>;
-};
-template<template<typename...>typename F,
-typename T>
-using tp_apply_t = typename tp_apply<F, T>::type;
-template<typename F, typename T>
-using tp_apply_f = tp_apply_t<F::template fn, T>;
-template<typename _Enable, typename T, typename...Args>
-struct __tp_bind_helper {
-using type = T;
-};
-template<typename F, typename...Args>
-struct __tp_bind_helper<std::enable_if_t<tp_is_fn_v<F>, void>, F, Args...> {
-using type = typename F::template fn<Args...>;
-};
-template<template<typename...>typename F, typename...Args>
-struct tp_bind {
-template<typename...Args2>
-using fn = F<typename __tp_bind_helper<void, Args, Args2...>::type...>;
-};
-template<typename F, typename...Args>
-using tp_bind_f = tp_bind<F::template fn, Args...>;
-template<template<typename...>typename F, typename...Args>
-struct tp_bind_front {
-template<typename...Args2>
-using fn = tp_defer_t<F, Args..., Args2...>;
-};
-template<typename F, typename...Args>
-using tp_bind_front_f = tp_bind_front<F::template fn, Args...>;
-template<template<typename...>typename F, typename...Args>
-struct tp_bind_back {
-template<typename...Args2>
-using fn = tp_defer_t<F, Args2..., Args...>;
-};
-template<typename F, typename...Args>
-using tp_bind_back_f = tp_bind_back<F::template fn, Args...>;
-template<typename T, template<typename...>typename F>
-struct tp_transform;
-template<template<typename...>typename C, typename...Args, template<typename...>typename F>
-struct tp_transform<C<Args...>, F> {
-using type = C<F<Args>...>;
-};
-template<typename T, template<typename...>typename F>
-using tp_transform_t = typename tp_transform<T, F>::type;
-template<typename T, typename F>
-using tp_transform_f = typename tp_transform<T, F::template fn>::type;
-template<template<typename...>typename C, typename...Args>
-struct tp_zip;
-template<template<typename...>typename C, typename T>
-struct __tp_zip_helper;
-template<template<typename...>typename C, size_t...idx>
-struct __tp_zip_helper<C, std::index_sequence<idx...>> {
-template<size_t I, typename...Args>
-using __type = C<tp_at_t<Args, I>...>;
-template<typename...Args>
-using type = tp_list<__type<idx, Args...>...>;
-};
-template<template<typename...>typename C>
-struct tp_zip<C> {
-using type = tp_list<>;
-};
-template<template<typename...>typename C, typename T>
-struct tp_zip<C, T> {
-using type = typename __tp_zip_helper<C, std::make_index_sequence<tp_size_v<T>>>::template type<T>;
-};
-template<template<typename...>typename C, typename T, typename...Args>
-struct tp_zip<C, T, Args...> {
-constexpr static size_t size = tp_size_v<T>;
-static_assert(((size == tp_size_v<Args>) && ...),
-"tp_zip arguments must have same size, \
-you can make all arguments have same size by tp_");
-using type = typename __tp_zip_helper<C, std::make_index_sequence<tp_size_v<T>>>::template type<T, Args...>;
-};
-template<template<typename...>typename C, typename...Args>
-using tp_zip_t = typename tp_zip<C, Args...>::type;
-template<typename...Args>
-struct __tp_max_size_helper;
-template<typename T>
-struct __tp_max_size_helper<T> {
-constexpr static size_t value = tp_size_v<T>;
-};
-template<typename T, typename...Args>
-struct __tp_max_size_helper<T, Args...> {
-constexpr static size_t value = std::max(tp_size_v<T>, __tp_max_size_helper<Args...>::value);
-};
-template<typename T, typename...Args>
-struct tp_max_size {
-constexpr static size_t value = __tp_max_size_helper<T, Args...>::value;
-};
-template<typename T, typename...Args>
-inline constexpr size_t tp_max_size_v = tp_max_size<T, Args...>::value;
-template<typename T>
-struct tp_wrap {
-using type = tp_list<T>;
-};
-template<typename T>
-using tp_wrap_t = typename tp_wrap<T>::type;
-template<typename T>
-struct tp_unwrap {
-static_assert(tp_size_v<T> == 1, "only container that size = 1 can use unwrap");
-};
-template<template<typename...>typename C, typename T>
-struct tp_unwrap<C<T>> {
-using type = T;
-};
-template<typename T>
-using tp_unwrap_t = typename tp_unwrap<T>::type;
-template<typename T, template<typename...>typename P, typename U>
-struct tp_replace_if;
-template<template<typename...>typename C, typename...Args, template<typename...>typename P, typename U>
-struct tp_replace_if<C<Args...>, P, U> {
-using type = C<tp_conditional_t<P<Args>, U, Args>...>;
-};
-template<typename T, template<typename...>typename P, typename U>
-using tp_replace_if_t = typename tp_replace_if<T, P, U>::type;
-template<typename T, typename P, typename U>
-using tp_replace_if_f = tp_replace_if_t<T, P::template fn, U>;
-template<typename T, typename U>
-struct tp_replace_if_true {
-using type = tp_replace_if_t<T, tp_identity_t, U>;
-};
-template<typename T, typename U>
-using tp_replace_if_true_t = typename tp_replace_if_true<T, U>::type;
-template<typename T, typename U>
-struct tp_replace_if_false {
-using type = tp_replace_if_f<T, tp_not_fn<tp_identity_t>, U>;
-};
-template<typename T, typename U>
-using tp_replace_if_false_t = typename tp_replace_if_false<T, U>::type;
-template<typename T, typename O, typename N>
-struct tp_replace {
-using type = tp_replace_if_f<T, tp_bind_front<std::is_same, O>, N>;
-};
-template<typename T, typename O, typename N>
-using tp_replace_t = typename tp_replace<T, O, N>::type;
-template<typename T, typename U>
-struct tp_fill {
-using type = tp_replace_if_t<T, tp_always_true, U>;
-};
-template<typename T, typename U>
-using tp_fill_t = typename tp_fill<T, U>::type;
-template<typename T, template<typename...>typename P>
-struct tp_count_if;
-template<template<typename...>typename C, template<typename...>typename P>
-struct tp_count_if<C<>, P> {
-static constexpr size_t value = 0;
-};
-template<template<typename...>typename C, typename...Args, template<typename...>typename P>
-struct tp_count_if<C<Args...>, P> {
-static constexpr size_t value = (P<Args>::value + ...);
-};
-template<typename T, template<typename...>typename P>
-constexpr size_t tp_count_if_v = tp_count_if<T, P>::value;
-template<typename T, typename P>
-constexpr size_t tp_count_if_f_v = tp_count_if_v<T, P::template fn>;
-template<typename T, typename V>
-struct tp_count {
-static constexpr size_t value = tp_count_if_f_v<T, tp_bind_front<std::is_same, V>>;
-};
-template<typename T, typename V>
-constexpr size_t tp_count_v = tp_count<T, V>::value;
-template<typename T, typename V>
-struct tp_contains {
-static constexpr bool value = tp_count_v<T, V> != 0;
-};
-template<typename T, typename V>
-constexpr bool tp_contains_v = tp_contains<T, V>::value;
-template<typename T, template<typename...>typename P>
-struct tp_remove_if;
-template<template<typename...>typename C, typename...Args, template<typename...>typename P>
-struct tp_remove_if<C<Args...>, P> {
-using type = tp_concat_t<C<>, tp_conditional_t<P<Args>, C<>, C<Args>>...>;
-};
-template<typename T, template<typename...>typename P>
-using tp_remove_if_t = typename tp_remove_if<T, P>::type;
-template<typename T, typename P>
-using tp_remove_if_f = tp_remove_if_t<T, P::template fn>;
-template<typename T, typename V>
-struct tp_remove {
-using type = tp_remove_if_f<T, tp_bind_front<std::is_same, V>>;
-};
-template<typename T, typename V>
-using tp_remove_t = typename tp_remove<T, V>::type;
-template<typename T, template<typename...>typename P>
-struct tp_filter {
-using type = tp_remove_if_f<T, tp_not_fn<P>>;
-};
-template<typename T, template<typename...>typename P>
-using tp_filter_t = typename tp_filter<T, P>::type;
-template<typename T, typename P>
-using tp_filter_f = tp_filter_t<T, P::template fn>;
-template<typename T, typename U>
-struct tp_equal;
-template<typename _Enable, typename T, typename U>
-struct __tp_equal_helper : std::false_type{};
-template<template<typename...>typename C, typename...Args, template<typename...>typename D, typename...Args2>
-struct __tp_equal_helper<std::enable_if_t<sizeof...(Args) == sizeof...(Args2), void>, C<Args...>, D<Args2...>>
-: std::conjunction<std::is_same<Args, Args2>...> {};
-template<typename T, typename U>
-struct tp_equal : __tp_equal_helper<void, T, U> {};
-template<typename T, typename U>
-inline constexpr bool tp_equal_v = tp_equal<T, U>::value;
-template<typename T, size_t N>
-struct tp_repeat {
-using type = tp_concat_t<T, typename tp_repeat<T, N - 1>::type>;
-};
-template<typename T>
-struct tp_repeat<T, 0> {
-using type = tp_clear_t<T>;
-};
-template<typename C, size_t N>
-using tp_repeat_t = typename tp_repeat<C, N>::type;
-template<typename _Enable, typename C, size_t N, typename V>
-struct __tp_resize_helper {
-using type = tp_cut_t<C, 0, N>;
-};
-template<typename C, size_t N, typename V>
-struct __tp_resize_helper<std::enable_if_t<N >= tp_size_v<C>, void>, C, N, V> {
-using type = tp_concat_t<C, tp_repeat_t<V, N - tp_size_v<C>>>;
-};
-template<typename C, size_t N, typename V>
-struct tp_resize {
-using tyep = typename __tp_resize_helper<void, C, N, V>::type;
-};
-template<typename C, size_t N, typename V>
-using tp_resize_t = typename tp_resize<C, N, V>::type;
-template<template<typename...>typename C, typename...Args>
-struct tp_product;
-template<typename _Enable, template<typename...>typename C, typename...Args>
-struct __tp_product_helper{
-using type = tp_list<>;
-};
-template<typename _Enable, template<typename...>typename C, typename T>
-struct __tp_product_helper<_Enable, C, T> {
-using type = tp_list<tp_rename_t<T, C>>;
-};
-template<
-template<typename...>typename C,
-typename T,
-template<typename...>typename C1,
-typename...Args1,
-typename...Args>
-struct __tp_product_helper<std::enable_if_t<sizeof...(Args1) != 0, void>, C, T, C1<Args1...>, Args...> {
-using type = tp_concat_t<typename __tp_product_helper<void, C, tp_push_back_t<T, Args1>, Args...>::type...>;
-};
-template<template<typename...>typename C, typename...Args>
-struct tp_product {
-using type = typename __tp_product_helper<void, C, tp_list<>, Args...>::type;
-};
-template<template<typename...>typename C, typename...Args>
-using tp_product_t = typename tp_product<C, Args...>::type;
-template<typename C, size_t I, typename...Args>
-struct tp_insert {
-static_assert(I <= tp_size_v<C>, "tp insert index out of range");
-using type = tp_concat_t<tp_push_back_t<tp_prefix_t<C, I>, Args...>, tp_suffix_t<C, tp_size_v<C> -I>>;
-};
-template<typename C, size_t I, typename...Args>
-using tp_insert_t = typename tp_insert<C, I, Args...>::type;
-template<typename C, size_t I, size_t N>
-struct tp_erase {
-static_assert(N <= tp_size_v<C> && I <= tp_size_v<C> -N, "tp erase index out of range");
-using type = tp_concat_t<tp_prefix_t<C, I>, tp_suffix_t<C, tp_size_v<C> -I - N>>;
-};
-template<typename C, size_t I, size_t N>
-using tp_erase_t = typename tp_erase<C, I, N>::type;
-template<typename C>
-struct tp_reverse;
-template<template<typename...>typename C>
-struct tp_reverse<C<>> {
-using type = C<>;
-};
-template<template<typename...>typename C, typename T, typename...Args>
-struct tp_reverse<C<T, Args...>> {
-using type = tp_push_back_t<typename tp_reverse<C<Args...>>::type, T>;
-};
-template<typename C>
-using tp_reverse_t = typename tp_reverse<C>::type;
-template<typename _Enable, size_t idx, typename C, template<typename...>typename P>
-struct __tp_find_if_helper;
-template<typename _Enable, size_t idx,
-template<typename...>typename C,
-typename T,
-typename...Args,
-template<typename...>typename P>
-struct __tp_find_if_helper<_Enable, idx, C<T, Args...>, P> {
-constexpr static size_t value = __tp_find_if_helper<void, idx + 1, C<Args...>, P>::value;
-};
-template<typename _Enable, size_t idx,
-template<typename...>typename C,
-template<typename...>typename P>
-struct __tp_find_if_helper<_Enable, idx, C<>, P> {
-constexpr static size_t value = -1;
-};
-template<size_t idx,
-template<typename...>typename C,
-typename T,
-typename...Args,
-template<typename...>typename P>
-struct __tp_find_if_helper<std::enable_if_t<P<T>::value, void>, idx, C<T, Args...>, P> {
-constexpr static size_t value = idx;
-};
-template<typename C, template<typename...>typename P>
-struct tp_find_if {
-constexpr static size_t value = __tp_find_if_helper<void, 0, C, P>::value;
-};
-template<typename C, template<typename...>typename P>
-inline constexpr size_t tp_find_if_v = tp_find_if<C, P>::value;
-template<typename C, typename P>
-inline constexpr size_t tp_find_if_f = tp_find_if<C, P::template fn>::value;
-template<typename C, template<typename...>typename P>
-struct tp_find_if_not {
-constexpr static size_t value = tp_find_if_f<C, tp_not_fn<P>>;
-};
-template<typename C, template<typename...>typename P>
-inline constexpr size_t tp_find_if_not_v = tp_find_if_not<C, P>::value;
-template<typename C, typename P>
-inline constexpr size_t tp_find_if_not_f = tp_find_if_not<C, P::template fn>::value;
-template<typename C, typename V>
-struct tp_find{
-constexpr static size_t value = tp_find_if_f<C, tp_bind_front<std::is_same, V>>;
-};
-template<typename C, typename V>
-inline constexpr size_t tp_find_v = tp_find<C, V>::value;
-template<typename C, typename E, template<typename...>typename F>
-struct tp_left_fold;
-template<
-template<typename...>typename C,
-typename E,
-template<typename...>typename F>
-struct tp_left_fold<C<>, E, F> {
-using type = E;
-};
-template<
-template<typename...>typename C,
-typename T,
-typename...Args,
-typename E,
-template<typename...>typename F>
-struct tp_left_fold<C<T, Args...>, E, F> {
-using type = typename tp_left_fold<C<Args...>, F<E, T>, F>::type;
-};
-template<typename C, typename E, template<typename...>typename F>
-using tp_left_fold_t = typename tp_left_fold<C, E, F>::type;
-template<typename C, typename E, typename F>
-using tp_left_fold_f = typename tp_left_fold<C, E, F::template fn>::type;
-template<typename C, typename E, template<typename...>typename F>
-struct tp_right_fold;
-template<
-template<typename...>typename C,
-typename E,
-template<typename...>typename F>
-struct tp_right_fold<C<>, E, F> {
-using type = E;
-};
-template<
-template<typename...>typename C,
-typename T,
-typename...Args,
-typename E,
-template<typename...>typename F>
-struct tp_right_fold<C<T, Args...>, E, F> {
-using next_type = typename tp_right_fold<C<Args...>, E, F>::type;
-using type = F<T, next_type>;
-};
-template<typename C, typename E, template<typename...>typename F>
-using tp_right_fold_t = typename tp_right_fold<C, E, F>::type;
-template<typename C, typename E, typename F>
-using tp_right_fold_f = typename tp_right_fold<C, E, F::template fn>::type;
-template<typename C, template<typename...>typename P>
-struct tp_unique_if {
-using type = tp_left_fold_f<C, tp_clear_t<C>,
-tp_bind<tp_conditional_t, tp_bind_front<P>, tp_arg<0>,
-tp_bind_front<tp_push_back_t>>>;
-};
-template<typename C, template<typename...>typename P>
-using tp_unique_if_t = typename tp_unique_if<C, P>::type;
-template<typename C, typename P>
-using tp_unique_if_f = typename tp_unique_if<C, P::template fn>::type;
-template<typename C>
-struct tp_unique{
-using type = tp_unique_if_t<C, tp_contains>;
-};
-template<typename C>
-using tp_unique_t = typename tp_unique<C>::type;
-template<typename _Enable, typename C, typename C1, typename C2, template<typename...>typename P>
-struct __tp_merge_helper;
-template<
-typename _Enable,
-template<typename...>typename C,
-typename...Args,
-template<typename...>typename C1,
-template<typename...>typename C2,
-typename...Args2,
-template<typename...>typename P>
-struct __tp_merge_helper<_Enable, C<Args...>, C1<>, C2<Args2...>, P> {
-using type = tp_list<Args..., Args2...>;
-};
-template<
-typename _Enable,
-template<typename...>typename C,
-typename...Args,
-template<typename...>typename C1,
-typename...Args1,
-template<typename...>typename C2,
-template<typename...>typename P>
-struct __tp_merge_helper<_Enable, C<Args...>, C1<Args1...>, C2<>, P> {
-using type = tp_list<Args..., Args1...>;
-};
-template<
-typename _Enable,
-template<typename...>typename C,
-typename...Args,
-template<typename...>typename C1,
-template<typename...>typename C2,
-template<typename...>typename P>
-struct __tp_merge_helper<_Enable, C<Args...>, C1<>, C2<>, P> {
-using type = tp_list<Args...>;
-};
-template<
-template<typename...>typename C,
-typename...Args,
-template<typename...>typename C1,
-typename T1, typename...Args1,
-template<typename...>typename C2,
-typename T2, typename...Args2,
-template<typename...>typename P>
-struct __tp_merge_helper<std::enable_if_t<P<T1, T2>::value, void>, C<Args...>, C1<T1, Args1...>, C2<T2, Args2...>, P> {
-using type = typename __tp_merge_helper<void, C<Args..., T1>, C1<Args1...>, C2<T2, Args2...>, P>::type;
-};
-template<
-template<typename...>typename C,
-typename...Args,
-template<typename...>typename C1,
-typename T1, typename...Args1,
-template<typename...>typename C2,
-typename T2, typename...Args2,
-template<typename...>typename P>
-struct __tp_merge_helper<std::enable_if_t<!P<T1, T2>::value, void>, C<Args...>, C1<T1, Args1...>, C2<T2, Args2...>, P> {
-using type = typename __tp_merge_helper<void, C<Args..., T2>, C1<T1, Args1...>, C2<Args2...>, P>::type;
-};
-template<typename C1, typename C2, template<typename...>typename P>
-struct tp_merge {
-using type = typename __tp_merge_helper<void, tp_list<>, C1, C2, P>::type;
-};
-template<typename C1, typename C2, template<typename...>typename P>
-using tp_merge_t = typename tp_merge<C1, C2, P>::type;
-template<typename C1, typename C2, typename P>
-using tp_merge_f = typename tp_merge<C1, C2, P::template fn>::type;
-template<typename C, template<typename...>typename P>
-struct tp_sort;
-template<
-typename C,
-template<typename...>typename P>
-struct __tp_sort_helper;
-template<
-template<typename...>typename C,
-typename...Args,
-template<typename...>typename P>
-struct __tp_sort_helper<C<Args...>, P> {
-using _Container = C<Args...>;
-constexpr static size_t size = tp_size_v<_Container>;
-constexpr static size_t mid = size / 2;
-using type1 = typename __tp_sort_helper<tp_prefix_t<_Container, mid>, P>::type;
-using type2 = typename __tp_sort_helper<tp_suffix_t<_Container, size - mid>, P>::type;
-using type = tp_merge_t<type1, type2, P>;
-};
-template<
-template<typename...>typename C,
-typename T,
-template<typename...>typename P>
-struct __tp_sort_helper<C<T>, P> {
-using type = C<T>;
-};
-template<
-template<typename...>typename C,
-template<typename...>typename P>
-struct __tp_sort_helper<C<>, P> {
-using type = C<>;
-};
-template<
-template<typename...>typename C,
-typename...Args,
-template<typename...>typename P>
-struct tp_sort<C<Args...>, P> {
-using type = tp_rename_t<typename __tp_sort_helper<C<Args...>, P>::type, C>;
-};
-template<typename C, template<typename...>typename P>
-using tp_sort_t = typename tp_sort<C, P>::type;
-template<typename C, typename P>
-using tp_sort_f = typename tp_sort<C, P::template fn>::type;
-template<size_t I, typename T>
-struct __tp_iota_helper;
-template<size_t I, size_t...Idx>
-struct __tp_iota_helper<I, std::index_sequence<Idx...>> {
-using type = tp_list<tp_size_t<I + Idx>...>;
-};
-template<size_t I, size_t N>
-struct tp_iota {
-using type = typename __tp_iota_helper<I, std::make_index_sequence<N>>::type;
-};
-template<size_t I, size_t N>
-using tp_iota_t = typename tp_iota<I, N>::type;
-template<typename T, typename...Args>
-struct tp_set_push_back {
-using type = tp_unique_t<tp_push_back_t<T, Args...>>;
-};
-template<typename T, typename...Args>
-using tp_set_push_back_t = typename tp_set_push_back<T, Args...>::type;
-template<typename T, typename...Args>
-struct tp_set_push_front {
-using type = tp_unique_t<tp_push_front_t<T, Args...>>;
-};
-template<typename T, typename...Args>
-using tp_set_push_front_t = typename tp_set_push_front<T, Args...>::type;
-template<typename...Args>
-struct tp_set_union {
-using type = tp_unique_t<tp_concat_t<Args...>>;
-};
-template<typename...Args>
-using tp_set_union_t = typename tp_set_union<Args...>::type;
-template<typename T, typename...Args>
-struct tp_set_difference;
-template<typename T>
-struct tp_set_difference<T> {
-using type = T;
-};
-template<typename T, typename U>
-struct tp_set_difference<T, U> {
-private:
-template<typename C>
-using __filter = tp_contains<U, C>;
-public:
-using type = tp_remove_if_t<T, __filter>;
-};
-template<typename T, typename U, typename...Args>
-struct tp_set_difference<T, U, Args...> {
-using type = typename tp_set_difference<typename tp_set_difference<T, U>::type, Args...>::type;
-};
-template<typename T, typename...Args>
-using tp_set_difference_t = typename tp_set_difference<T, Args...>::type;
-template<typename...Args>
-struct tp_set_intersection;
-template<>
-struct tp_set_intersection<> {
-using type = tp_list<>;
-};
-template<typename T>
-struct tp_set_intersection<T> {
-using type = T;
-};
-template<typename T, typename U>
-struct tp_set_intersection<T, U> {
-private:
-template<typename C>
-using __filter = tp_contains<U, C>;
-public:
-using type = tp_filter_t<T, __filter>;
-};
-template<typename T, typename U, typename...Args>
-struct tp_set_intersection<T, U, Args...> {
-using type = typename tp_set_intersection<typename tp_set_intersection<T, U>::type, Args...>::type;
-};
-template<typename...Args>
-using tp_set_intersection_t = typename tp_set_intersection<Args...>::type;
-template<typename C, typename T, typename = void>
-struct __tp_find_unique_constructible_helper {
-using type = tp_size_t<(size_t)(-1)>;
-};
-template<typename C, typename T>
-struct __tp_find_unique_constructible_helper<C, T, std::enable_if_t<tp_size_v<T> == 1, void>> {
-using type = tp_size_t<tp_find_v<C, tp_front_t<T>>>;
-};
-template<typename C, typename...Args>
-struct tp_find_unique_constructible {
-private:
-template<typename U>
-struct __remove : std::negation<std::is_constructible<U, Args...>> {};
-using type1 = tp_remove_if_t<C, __remove>;
-using type2 = typename __tp_find_unique_constructible_helper<C, type1, void>::type;
-public:
-constexpr static size_t value = type2::value;
-};
-template<typename C, typename...Args>
-inline constexpr size_t tp_find_unique_constructible_v = tp_find_unique_constructible<C, Args...>::value;
-template<typename C, size_t idx, typename T>
-struct __tp_find_best_convertible_func {
-auto operator()(tp_at_t<C, idx>)->tp_c<size_t, idx>;
-};
-template<typename C, typename I, typename T>
-struct __tp_find_best_convertible_func_table;
-template<typename C, typename...Args, typename T>
-struct __tp_find_best_convertible_func_table<C, tp_list<Args...>, T>
-: __tp_find_best_convertible_func<C, Args::value, T>... {
-using __tp_find_best_convertible_func<C, Args::value, T>::operator()...;
-};
-template<typename C, typename I, typename T>
-struct __tp_find_best_convertible_helper;
-template<typename C, typename...Args, typename T>
-struct __tp_find_best_convertible_helper<C, tp_list<Args...>, T> {
-template<typename U>
-struct __remove : std::negation<std::is_convertible<T, tp_at_t<C, U::value>>> {};
-using __seq = tp_remove_if_t<tp_list<Args...>, __remove>;
-using type = __tp_find_best_convertible_func_table<C, __seq, T>;
-};
-template<typename C, typename I, typename T>
-using __tp_find_best_convertible_helper_t = typename __tp_find_best_convertible_helper<C, I, T>::type;
-template<typename _Enable, typename C, typename T>
-struct __tp_find_best_convertible{
-using type = tp_c<size_t, (size_t)(-1)>;
-};
-template<typename C, typename T>
-struct __tp_find_best_convertible<std::void_t<decltype(
-__tp_find_best_convertible_helper_t<C, tp_iota_t<0, tp_size_v<C>>, T>{}(std::declval<T>()))>, C, T> {
-using type = decltype(
-__tp_find_best_convertible_helper_t<C, tp_iota_t<0, tp_size_v<C>>, T>{}(std::declval<T>()));
-};
-template<typename C, typename T>
-struct tp_find_best_convertible {
-using __type= typename __tp_find_best_convertible<void, C, T>::type;
-constexpr static size_t value =  __type::value;
-};
-template<typename C, typename T>
-inline constexpr size_t tp_find_best_convertible_v = tp_find_best_convertible<C, T>::value;
-class tp_fn {
-public:
-template<typename C, typename F>
-constexpr static F for_each(F&& f) {
-return for_each(tp_rename_t<C, tp_list>{}, std::forward<F>(f));
-}
-template<template<typename...>typename C, typename...Args, typename F>
-constexpr static F for_each(C<Args...>, F&& f) {
-int dummy[] = { (f(Args()), 0)... };
-(void)(dummy);
-return std::forward<F>(f);
-}
-template<typename C, typename F, typename U>
-constexpr static decltype(auto) accumulate(F&& f, U&& u) {
-constexpr auto len = tp_size_v<C>;
-if constexpr (len == 0) { return std::forward<U>(u); }
-else {
-#define __WJR_REGISTER_ACCUMULATE_FUNC(x, y)			\
-if constexpr(len == x) {return ans##y;}		\
-else{										\
-auto ans##x = f(tp_at_t<C, x>(), ans##y)
-#define __WJR_REGISTER_ACCUMULATE_FUNC_END	}
-auto ans0 = f(tp_at_t<C, 0>(), std::forward<U>(u));
-__WJR_REGISTER_ACCUMULATE_FUNC(1, 0);
-__WJR_REGISTER_ACCUMULATE_FUNC(2, 1);
-__WJR_REGISTER_ACCUMULATE_FUNC(3, 2);
-__WJR_REGISTER_ACCUMULATE_FUNC(4, 3);
-__WJR_REGISTER_ACCUMULATE_FUNC(5, 4);
-__WJR_REGISTER_ACCUMULATE_FUNC(6, 5);
-__WJR_REGISTER_ACCUMULATE_FUNC(7, 6);
-__WJR_REGISTER_ACCUMULATE_FUNC(8, 7);
-return tp_remove_prefix_t<C, 8>{}.accumulate(std::forward<F>(f), ans4);
-__WJR_REGISTER_ACCUMULATE_FUNC_END;
-__WJR_REGISTER_ACCUMULATE_FUNC_END;
-__WJR_REGISTER_ACCUMULATE_FUNC_END;
-__WJR_REGISTER_ACCUMULATE_FUNC_END;
-__WJR_REGISTER_ACCUMULATE_FUNC_END;
-__WJR_REGISTER_ACCUMULATE_FUNC_END;
-__WJR_REGISTER_ACCUMULATE_FUNC_END;
-__WJR_REGISTER_ACCUMULATE_FUNC_END;
-#undef __WJR_REGISTER_ACCUMULATE_FUNC_END
-#undef __WJR_REGISTER_ACCUMULATE_FUNC
-}
-}
-private:
-};
-inline constexpr tp_fn tp;
-_WJR_END
-#endif // __WJR_TP_LIST_H
-
-_WJR_BEGIN
-struct switch_fallthrough {};
-struct switch_default {};
-namespace __switch_details {
-#define __WJR_SWITCH_STRATEGY_CASE(X)	                                                                                \
-case (tp_at_t<__clist, (X)>::value) : {																				\
-if constexpr((X) < tp_size_v<IndexList>){	                                                                    \
-constexpr bool __is_fallthrough = tp_contains_v<tp_at_t<StateList, (X)>, switch_fallthrough>;	            \
-if constexpr (__is_fallthrough){	                                                                        \
-(void)(func(tp_size_t<(X)>{}, std::forward<Args>(args)...));	                                        \
-}else {	                                                                                                    \
-return static_cast<Ret>(func(tp_size_t<(X)>{}, std::forward<Args>(args)...));	                        \
-WJR_UNREACHABLE;	                                                                                    \
-}	                                                                                                        \
-}	                                                                                                            \
-else if constexpr(!Default){WJR_UNREACHABLE;}	                                                                \
-WJR_FALLTHROUGH;	                                                                                            \
-}
-#define __WJR_CALL1(CASE, I)     \
-CASE(I)
-#define __WJR_CALL2(CASE, I)     \
-__WJR_CALL1(CASE, I);	         \
-__WJR_CALL1(CASE, I + 1)
-#define __WJR_CALL4(CASE, I)     \
-__WJR_CALL2(CASE, I);	         \
-__WJR_CALL2(CASE, I + 2)
-#define __WJR_CALL8(CASE, I)     \
-__WJR_CALL4(CASE, I);	         \
-__WJR_CALL4(CASE, I + 4)
-#define __WJR_CALL16(CASE, I)    \
-__WJR_CALL8(CASE, I);	         \
-__WJR_CALL8(CASE, I + 8)
-#define __WJR_CALL32(CASE, I)    \
-__WJR_CALL8(CASE, I);	         \
-__WJR_CALL8(CASE, I + 16)
-#define __WJR_CALL64(CASE, I)    \
-__WJR_CALL8(CASE, I);	         \
-__WJR_CALL8(CASE, I + 32)
-#define __WJR_CALL128(CASE, I)   \
-__WJR_CALL8(CASE, I);	         \
-__WJR_CALL8(CASE, I + 64)
-#define __WJR_CALL256(CASE, I)   \
-__WJR_CALL8(CASE, I);	         \
-__WJR_CALL8(CASE, I + 128)
-#define __WJR_CALL512(CASE, I)   \
-__WJR_CALL8(CASE, I);	         \
-__WJR_CALL8(CASE, I + 256)
-#define __WJR_CALL1024(CASE, I)  \
-__WJR_CALL8(CASE, I);	         \
-__WJR_CALL8(CASE, I + 512)
-#define __WJR_CALL2048(CASE, I)  \
-__WJR_CALL8(CASE, I);	         \
-__WJR_CALL8(CASE, I + 1024)
-#define __WJR_CALL4096(CASE, I)  \
-__WJR_CALL8(CASE, I);	         \
-__WJR_CALL8(CASE, I + 2048)
-#define __WJR_CALL8192(CASE, I)  \
-__WJR_CALL8(CASE, I);	         \
-__WJR_CALL8(CASE, I + 4096)
-#define __WJR_CALL16384(CASE, I) \
-__WJR_CALL8(CASE, I);	         \
-__WJR_CALL8(CASE, I + 8192)
-#define __WJR_SWITCH_STRATEGY_CASES(N)	                                                 \
-switch(token){	                                                                     \
-WJR_MACRO_CONCAT(__WJR_CALL, N)(__WJR_SWITCH_STRATEGY_CASE, 0)	                 \
-default:{	                                                                         \
-if constexpr(Default){	                                                         \
-return static_cast<Ret>(func(switch_default{}, std::forward<Args>(args)...));\
-}	                                                                             \
-WJR_UNREACHABLE;	                                                                 \
-}	                                                                                 \
-}
-template<int S>
-struct switch_strategy;
-template<size_t I>
-struct __complete_helper {
-template<typename T>
-using fn = tp_equal_c<T, tp_size_t<I>>;
-};
-template<size_t N, size_t I, typename IndexList>
-constexpr auto __complete() {
-if constexpr (N == tp_size_v<IndexList>) return IndexList{};
-else {
-if constexpr (tp_find_if_v<IndexList, __complete_helper<I>::template fn> != -1) {
-return __complete<N, I + 1, IndexList>();
-}
-else {
-return __complete<N, I + 1, tp_push_back_t<IndexList, tp_size_t<I>>>();
-}
-}
-}
-#define __WJR_SWITCH_STRATEGY(N)	                                                                     \
-template<>	                                                                                         \
-struct switch_strategy<(base2_width<unsigned int>(N) - 1)> {	                                     \
-template<typename Ret, typename IndexList, bool Default, typename StateList,	                 \
-typename Token, typename Func, typename...Args>	                                             \
-inline constexpr static Ret invoke(Token token, Func func, Args&&...args) {						 \
-constexpr auto __value = __complete<(N), 0, IndexList>();	                                 \
-using __clist = WJR_PRIMITIVE_TYPE(__value);	                                             \
-__WJR_SWITCH_STRATEGY_CASES(N);	                                                             \
-}	                                                                                             \
-};
-WJR_MACRO_CALL(__WJR_SWITCH_STRATEGY, , 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384);
-#undef __WJR_CALL1
-#undef __WJR_CALL2
-#undef __WJR_CALL4
-#undef __WJR_CALL8
-#undef __WJR_CALL16
-#undef __WJR_CALL32
-#undef __WJR_CALL64
-#undef __WJR_CALL128
-#undef __WJR_CALL256
-#undef __WJR_CALL512
-#undef __WJR_CALL1024
-#undef __WJR_CALL2048
-#undef __WJR_CALL4096
-#undef __WJR_CALL8192
-#undef __WJR_CALL16384
-#undef __WJR_SWITCH_STRATEGY_CASE
-#undef __WJR_SWITCH_STRATEGY
-}
-template<typename IndexList, bool Default, typename StateList>
-struct switch_invoke_fn {
-static_assert(tp_size_v<IndexList> == tp_size_v<StateList>, "");
-constexpr static size_t size() { return tp_size_v<IndexList>; }
-static_assert(size() >= 1, "");
-private:
-template<typename T>
-using __remove_if = tp_contains<tp_at_t<StateList, tp_front_t<T>::value>, switch_fallthrough>;
-constexpr static int __strategy = base2_width<unsigned int>(size() - 1);
-static_assert(size() <= ((size_t)1 << __strategy), "");
-template<typename T, typename Func, typename...Args>
-constexpr static auto __get_ret_list() {
-if constexpr (Default) {
-return tp_push_back_t<T, std::invoke_result_t<Func, switch_default, Args&&...>>{};
-}
-else return T{};
-}
-public:
-template<typename Token, typename Func, typename...Args>
-inline constexpr decltype(auto) operator()(Token token, Func func, Args&&...args) const {
-using RetList = tp_transform_f<tp_iota_t<0, size()>,
-tp_bind<std::invoke_result_t, Func, tp_arg<0>, Args&&...>>;
-using ZipFilterRetList = tp_remove_if_t<tp_zip_t<tp_list, tp_iota_t<0, size()>, RetList>, __remove_if>;
-using _FilterRetList = tp_transform_t<ZipFilterRetList, tp_back_t>;
-constexpr auto __value = __get_ret_list<_FilterRetList, Func, Args&&...>();
-using FilterRetList = WJR_PRIMITIVE_TYPE(__value);
-using UniqueRetList = tp_unique_t<FilterRetList>;
-if constexpr (tp_is_empty_v<UniqueRetList>) {
-return __switch_details::switch_strategy<__strategy>
-::template invoke<void, IndexList, Default, StateList>(token,
-func, std::forward<Args>(args)...);
-}
-else {
-static_assert(tp_size_v<UniqueRetList> == 1, "");
-using Ret = tp_front_t<UniqueRetList>;
-return __switch_details::switch_strategy<__strategy>
-::template invoke<Ret, IndexList, Default, StateList>(token,
-func, std::forward<Args>(args)...);
-}
-}
-};
-template<typename IndexList, bool Default = false,
-typename StateList = tp_repeat_t<tp_list<tp_list<>>, tp_size_v<IndexList>>>
-inline constexpr switch_invoke_fn<IndexList, Default, StateList> switch_invoke{};
-_WJR_END
-#endif // __WJR_SWITCH_H
-
-_WJR_PARSE_BEGIN
-struct empty {};
-_WJR_PARSE_END
-#endif // __WJR_PARSE_GENERIC_H
-
-_WJR_PARSE_LL1_BEGIN
-template<typename BNF>
-struct non_terminator_list {
-using type = tp_unique_t<tp_transform_t<BNF, tp_front_t>>;
-};
-template<typename BNF>
-using non_terminator_list_t = typename non_terminator_list<BNF>::type;
-template<typename BNF, typename T>
-inline constexpr size_t find_non_terminator_v = tp_find_v<non_terminator_list_t<BNF>, T>;
-template<typename BNF, typename T>
-inline constexpr bool is_non_terminator_v = find_non_terminator_v<BNF, T> != -1;
-template<typename BNF>
-struct terminator_list {
-using type = tp_set_difference_t<
-tp_left_fold_t<tp_transform_t<BNF, tp_pop_front_t>, tp_list<>, tp_set_union_t>,
-non_terminator_list_t<BNF>
->;
-};
-template<typename BNF>
-using terminator_list_t = typename terminator_list<BNF>::type;
-template<typename BNF, typename T>
-inline constexpr size_t find_terminator_v = tp_find_v<terminator_list_t<BNF>, T>;
-template<typename BNF, typename T>
-inline constexpr bool is_terminator_v = find_terminator_v<BNF, T> != -1;
-template<typename BNF, typename FIRST, typename LAST_FIRST>
-inline constexpr auto __first_helper();
-template<typename BNF, typename E, typename FIRST>
-inline constexpr auto __first_helper2();
-template<typename BNF, typename FA, typename SON, typename FIRST>
-inline constexpr auto __first_helper3();
-template<typename BNF, typename FIRST, typename LAST_FIRST>
-inline constexpr auto __first_helper() {
-if constexpr (std::is_same_v<FIRST, LAST_FIRST>) {
-return FIRST{};
-}
-else {
-constexpr auto __value = __first_helper2<BNF, BNF, FIRST>();
-using __type = WJR_PRIMITIVE_TYPE(__value);
-return __first_helper<BNF, __type, FIRST>();
-}
-}
-template<typename BNF, typename E, typename FIRST>
-inline constexpr auto __first_helper2() {
-constexpr auto len = tp_size_v<E>;
-if constexpr (len == 0) {
-return FIRST{};
-}
-else {
-using front = tp_front_t<E>;
-constexpr auto __value = __first_helper3<BNF, tp_front_t<front>, tp_pop_front_t<front>, FIRST>();
-using __type = WJR_PRIMITIVE_TYPE(__value);
-return __first_helper2<BNF, tp_pop_front_t<E>, __type>();
-}
-}
-template<typename BNF, typename FA, typename SON, typename FIRST>
-inline constexpr auto __first_helper3() {
-constexpr auto len = tp_size_v<SON>;
-if constexpr (len == 0) {
-return FIRST{};
-}
-else {
-using front = tp_front_t<SON>;
-constexpr auto idx = find_non_terminator_v<BNF, FA>;
-if constexpr (is_terminator_v<BNF, front>) {
-return tp_replace_at_t<FIRST, idx, tp_set_push_back_t<tp_at_t<FIRST, idx>, front>>();
-}
-else {
-constexpr auto idx2 = find_non_terminator_v<BNF, front>;
-using __type1 = tp_replace_at_t<FIRST, idx, tp_set_union_t<tp_at_t<FIRST, idx>, tp_at_t<FIRST, idx2>>>;
-if constexpr (tp_contains_v<tp_at_t<FIRST, idx2>, empty>) {
-constexpr auto __value = __first_helper2<BNF, FA, tp_pop_front_t<SON>, __type1>();
-using __type2 = WJR_PRIMITIVE_TYPE(__value);
-return __type2();
-}
-else {
-return __type1();
-}
-}
-}
-}
-template<typename BNF>
-struct first {
-private:
-constexpr static auto __value = __first_helper<BNF,
-tp_repeat_t<tp_list<tp_list<>>, tp_size_v<non_terminator_list_t<BNF>>>,
-void>();
-public:
-using type = WJR_PRIMITIVE_TYPE(__value);
-};
-template<typename BNF>
-using first_t = typename first<BNF>::type;
-template<typename BNF, typename E>
-struct get_first;
-template<typename BNF,  typename E>
-using get_first_t = typename get_first<BNF, E>::type;
-template<typename BNF, typename T, typename Enable>
-struct __get_first_helper2 {
-using type = tp_at_t<first_t<BNF>, find_non_terminator_v<BNF, T>>;
-};
-template<typename BNF, typename T>
-struct __get_first_helper2<BNF, T, std::enable_if_t<is_terminator_v<BNF, T>, void>> {
-using type = tp_list<T>;
-};
-template<typename BNF, typename E>
-struct __get_first_helper {
-using type = typename __get_first_helper2<BNF, tp_front_t<E>, void>::type;
-};
-template<typename BNF, typename...Args>
-struct __get_first_helper<BNF, tp_list<empty, Args...>> {
-using type = typename __get_first_helper2<BNF, tp_list<Args...>, void>::type;
-};
-template<typename BNF, typename T>
-struct __get_first_helper<BNF, tp_list<T>> {
-using type = typename __get_first_helper2<BNF, T, void>::type;
-};
-template<typename BNF>
-struct __get_first_helper<BNF, tp_list<empty>> {
-using type = typename __get_first_helper2<BNF, empty, void>::type;
-};
-template<typename BNF, typename E>
-struct get_first {
-using type = typename __get_first_helper<BNF, E>::type;
-};
-template<typename BNF>
-struct start;
-template<typename BNF>
-using start_t = typename start<BNF>::type;
-template<typename BNF, typename FOLLOW, typename LAST_FOLLOW>
-inline constexpr auto __follow_helper();
-template<typename BNF, typename E, typename FOLLOW>
-inline constexpr auto __follow_helper2();
-template<typename BNF, typename FA, typename SON, typename FOLLOW>
-inline constexpr auto __follow_helper3();
-template<typename BNF, typename FOLLOW, typename LAST_FOLLOW>
-inline constexpr auto __follow_helper() {
-if constexpr (std::is_same_v<FOLLOW, LAST_FOLLOW>) {
-return FOLLOW{};
-}
-else {
-constexpr auto __value = __follow_helper2<BNF, BNF, FOLLOW>();
-using __type = WJR_PRIMITIVE_TYPE(__value);
-return __follow_helper<BNF, __type, FOLLOW>();
-}
-}
-template<typename BNF, typename E, typename FOLLOW>
-inline constexpr auto __follow_helper2() {
-constexpr auto len = tp_size_v<E>;
-if constexpr (len == 0) {
-return FOLLOW{};
-}
-else {
-using front = tp_front_t<E>;
-constexpr auto __value = __follow_helper3<BNF, tp_front_t<front>, tp_pop_front_t<front>, FOLLOW>();
-using __type = WJR_PRIMITIVE_TYPE(__value);
-return __follow_helper2<BNF, tp_pop_front_t<E>, __type>();
-}
-}
-template<typename BNF, typename FA, typename SON, typename FOLLOW>
-inline constexpr auto __follow_helper3() {
-constexpr auto len = tp_size_v<SON>;
-if constexpr (len == 0) {
-return FOLLOW{};
-}
-else {
-constexpr auto idx0 = find_non_terminator_v<BNF, FA>;
-using first = tp_front_t<SON>;
-if constexpr (is_terminator_v<BNF, first>) {
-return __follow_helper3<BNF, FA, tp_pop_front_t<SON>, FOLLOW>();
-}
-else {
-constexpr auto idx1 = find_non_terminator_v<BNF, first>;
-if constexpr (len == 1) {
-return tp_replace_at_t<FOLLOW, idx1, tp_set_union_t<tp_at_t<FOLLOW, idx1>, tp_at_t<FOLLOW, idx0>>>{};
-}
-else {
-using second_first = get_first_t<BNF, tp_pop_front_t<SON>>;
-using __type = tp_set_union_t<tp_at_t<FOLLOW, idx1>,
-tp_remove_t<second_first, empty>>;
-if constexpr (tp_contains_v<second_first, empty>) {
-using __type2 = tp_replace_at_t<FOLLOW, idx1, tp_set_union_t<__type, tp_at_t<FOLLOW, idx0>>>;
-return __follow_helper3<BNF, FA, tp_pop_front_t<SON>, __type2>();
-}
-else {
-using __type2 = tp_replace_at_t<FOLLOW, idx1, __type>;
-return __follow_helper3<BNF, FA, tp_pop_front_t<SON>, __type2>();
-}
-}
-}
-}
-}
-template<typename BNF>
-struct follow {
-private:
-using __follow = tp_repeat_t<tp_list<tp_list<>>, tp_size_v<non_terminator_list_t<BNF>>>;
-constexpr static auto __value = __follow_helper<BNF,
-__follow,
-void>();
-public:
-using type = WJR_PRIMITIVE_TYPE(__value);
-};
-template<typename BNF>
-using follow_t = typename follow<BNF>::type;
-template<typename BNF, typename E, typename SELECT>
-inline constexpr auto __select_helper() {
-constexpr auto len = tp_size_v<E>;
-if constexpr (len == 0) {
-return SELECT{};
-}
-else {
-using first = tp_front_t<E>;
-using fa = tp_front_t<first>;
-using son = tp_pop_front_t<first>;
-using NT = non_terminator_list_t<BNF>;
-using FOLLOW = follow_t<BNF>;
-constexpr auto idx0 = tp_find_v<NT, fa>;
-using __first = get_first_t<BNF, son>;
-if constexpr (tp_contains_v<__first, empty>) {
-using __follow = tp_at_t<FOLLOW, idx0>;
-using __select = tp_push_back_t<SELECT, tp_set_union_t<tp_remove_t<__first, empty>, __follow>>;
-return __select_helper<BNF, tp_pop_front_t<E>, __select>();
-}
-else {
-using __select = tp_push_back_t<SELECT, __first>;
-return __select_helper<BNF, tp_pop_front_t<E>, __select>();
-}
-}
-}
-template<typename BNF>
-struct select {
-private:
-constexpr static auto __value = __select_helper<BNF, BNF, tp_list<>>();
-public:
-using type = WJR_PRIMITIVE_TYPE(__value);
-static_assert(tp_size_v<type> == tp_size_v<BNF>, "");
-};
-template<typename BNF>
-using select_t = typename select<BNF>::type;
-template<typename BNF>
-struct parse_fn {
-using SELECT = select_t<BNF>;
-private:
-template<typename T, typename ACTION, typename...Args>
-inline constexpr static decltype(auto) invoke(ACTION act, Args&&...args) {
-if constexpr (std::is_same_v<T, disable_tag>) {
-(void)(std::forward<Args>(args), ...);
-return;
-}
-else {
-return act(T{}, std::forward<Args>(args)...);
-}
-}
-template<typename T, typename __SELECT, size_t I, typename __LIST>
-constexpr static auto __get_switch_helper() {
-constexpr auto len = tp_size_v<__SELECT>;
-if constexpr (len == 0) { return __LIST{}; }
-else {
-using front = tp_front_t<__SELECT>;
-using thisT = tp_front_t<tp_at_t<BNF, I>>;
-if constexpr (std::is_same_v<thisT, T> && tp_size_v<front> != 0) {
-auto pre = __LIST{};
-auto aft = tp.accumulate<front>([](auto x, auto l) {
-using typex = WJR_PRIMITIVE_TYPE(x);
-using typel = WJR_PRIMITIVE_TYPE(l);
-using thisT = tp_list<tp_size_t<typex::value>, disable_tag, tp_list<switch_fallthrough>>;
-return tp_push_back_t<typel, thisT>{};
-}, pre);
-using thisList = WJR_PRIMITIVE_TYPE(aft);
-constexpr auto ListSize = tp_size_v<thisList>;
-using Last = tp_at_t<thisList, ListSize - 1>;
-using List = tp_replace_at_t<thisList, ListSize - 1,
-tp_list<tp_front_t<Last>, tp_size_t<I>, tp_list<>>>;
-return __get_switch_helper<T, tp_pop_front_t<__SELECT>, I + 1, List>();
-}
-else return __get_switch_helper<T, tp_pop_front_t<__SELECT>, I + 1, __LIST>();
-}
-}
-public:
-template<typename T, typename ACTION, typename...Args>
-inline constexpr decltype(auto) operator()(T, size_t token, ACTION act, Args&&...args) const {
-constexpr auto __value = __get_switch_helper<T, SELECT, 0, tp_list<>>();
-using __switch = WJR_PRIMITIVE_TYPE(__value);
-using __index = tp_transform_t<__switch, tp_front_t>;
-using __state = tp_transform_t<__switch, tp_back_t>;
-return switch_invoke<__index, false, __state>(token, [](auto I, auto&&...args) {
-return invoke<tp_at_t<tp_at_t<__switch, I>, 1>>(std::forward<decltype(args)>(args)...);
-}, act, std::forward<Args>(args)...);
-}
-};
-template<typename BNF>
-inline constexpr parse_fn<BNF> parse{};
-_WJR_PARSE_LL1_END
-#endif // __WJR_PARSE_LL1_H
-
-#endif // __WJR_PARSE_H
 
 #pragma once
 #ifndef __WJR_JSON_H
@@ -19758,6 +18339,16 @@ result.Subtract(b);
 return result;
 }
 void Multiply(const DiyFp& other) {
+#if (defined(WJR_COMPILER_MSVC) && defined(WJR_X86_64)) ||  \
+defined(WJR_HAS_INT128) || \
+defined(WJR_INLINE_ASM)
+uint64_t lo, hi;
+lo = wjr::u64x64(f_, other.f_, hi);
+e_ += other.e_ + 64;
+lo += 1ull << 63;
+hi += lo < (1ull << 63);
+f_ = hi;
+#else
 const uint64_t kM32 = 0xFFFFFFFFU;
 const uint64_t a = f_ >> 32;
 const uint64_t b = f_ & kM32;
@@ -19770,6 +18361,7 @@ const uint64_t bd = b * d;
 const uint64_t tmp = (bd >> 32) + (ad & kM32) + (bc & kM32) + (1U << 31);
 e_ += other.e_ + 64;
 f_ = ac + (ad >> 32) + (bc >> 32) + (tmp >> 32);
+#endif
 }
 static DiyFp Times(const DiyFp& a, const DiyFp& b) {
 DiyFp result = a;
@@ -23295,12 +21887,94 @@ vector[*length] = '\0';
 
 #endif  // DOUBLE_CONVERSION_DOUBLE_CONVERSION_H_
 
-_WJR_ENCODE_BEGIN
-namespace __string_func_traits {
-WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(do_skipw, do_skipw);
-WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(do_rskipw, do_rskipw);
-WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(do_skipz, do_skipz);
+_WJR_BEGIN
+template<typename Derived>
+class __base_string_modifier : public __base_string_view<Derived> {
+using _Mybase = __base_string_view<Derived>;
+template<typename T>
+constexpr static bool _Is_noptr_string_view_like_v = _Mybase::template _Is_noptr_string_view_like_v<T>;
+using Char = typename _Mybase::value_type;
+using Traits = typename _Mybase::traits_type;
+public:
+using value_type = typename _Mybase::value_type;
+using traits_type = typename _Mybase::traits_type;
+using reference = value_type&;
+using pointer = value_type*;
+using iterator = pointer;
+using reverse_iterator = std::reverse_iterator<iterator>;
+using size_type = typename _Mybase::size_type;
+using _Mybase::_Mybase;
+using _Mybase::operator=;
+using _Mybase::data;
+using _Mybase::size;
+WJR_INLINE_CONSTEXPR __base_string_modifier(const basic_string_view<Char, Traits> other)
+: _Mybase(other) {}
+WJR_INLINE_CONSTEXPR operator basic_string_view<Char, Traits>() const noexcept {
+return basic_string_view<Char, Traits>(*this);
 }
+WJR_INLINE_CONSTEXPR pointer data() { return const_cast<pointer>(_Mybase::data()); }
+WJR_INLINE_CONSTEXPR iterator begin() { return const_cast<iterator>(_Mybase::begin()); }
+WJR_INLINE_CONSTEXPR iterator end() { return const_cast<iterator>(_Mybase::end()); }
+WJR_INLINE_CONSTEXPR reverse_iterator rbegin() {
+return reverse_iterator(end());
+}
+WJR_INLINE_CONSTEXPR reverse_iterator rend() {
+return reverse_iterator(begin());
+}
+WJR_INLINE_CONSTEXPR reference front() {
+return *begin();
+}
+WJR_INLINE_CONSTEXPR reference back() {
+return *rbegin();
+}
+WJR_INLINE_CONSTEXPR reference operator[](size_type n) {
+return data()[n];
+}
+template<typename otherChar, typename otherTraits>
+WJR_INLINE_CONSTEXPR20 Derived append(basic_string_view<otherChar, otherTraits> str) {
+static_assert(sizeof(otherChar) <= sizeof(Char), "");
+wjr::uninitialized_copy_n(str.begin(), str.size(), data());
+return Derived(data() + str.size(), size() - str.size());
+}
+template<typename otherChar>
+WJR_INLINE_CONSTEXPR20 Derived append(size_type n, otherChar ch) {
+static_assert(sizeof(otherChar) <= sizeof(Char), "");
+wjr::uninitialized_fill_n(data(), n, ch);
+return Derived(data() + n, size() - n);
+}
+template<typename otherChar>
+WJR_INLINE_CONSTEXPR20 Derived push_back(otherChar ch) {
+static_assert(sizeof(otherChar) <= sizeof(Char), "");
+wjr::construct_at(data(), ch);
+return Derived(data() + 1, size() - 1);
+}
+WJR_INLINE_CONSTEXPR void finalize() {
+front() = value_type();
+}
+protected:
+using _Mybase::derived;
+};
+template<typename Char, typename Traits = std::char_traits<Char>>
+class basic_string_modifier : public __base_string_modifier<basic_string_modifier<Char, Traits>> {
+using _Mybase = __base_string_modifier<basic_string_modifier<Char, Traits>>;
+public:
+using value_type = typename _Mybase::value_type;
+using pointer = typename _Mybase::pointer;
+using const_pointer = typename _Mybase::const_pointer;
+using _Mybase::_Mybase;
+using _Mybase::operator=;
+WJR_INLINE_CONSTEXPR basic_string_modifier(const basic_string_view<Char, Traits> other)
+: _Mybase(other) {}
+WJR_INLINE_CONSTEXPR operator basic_string_view<Char, Traits>() const noexcept {}
+WJR_INLINE_CONSTEXPR basic_string_modifier(pointer ptr, size_t n)
+: _Mybase(const_cast<const_pointer>(ptr), n) {}
+WJR_INLINE_CONSTEXPR basic_string_modifier(pointer ptr)
+: _Mybase(const_cast<const_pointer>(ptr)) {}
+};
+using string_modifier = basic_string_modifier<char>;
+using wstring_modifier = basic_string_modifier<wchar_t>;
+using u16string_modifier = basic_string_modifier<char16_t>;
+using u32string_modifier = basic_string_modifier<char32_t>;
 class __base_encode_common {
 public:
 template<typename T, typename Char>
@@ -23336,20 +22010,13 @@ WJR_INLINE_CONSTEXPR void __base_encode_common::from_integral(T _Val,
 basic_string_modifier<Char>& it, int base, errc& _Err) noexcept {
 using uT = std::make_unsigned_t<T>;
 auto uval = make_unsigned_v(_Val);
-auto _First = it.begin();
-const auto _Size = it.size();
-if (WJR_UNLIKELY(_Size == 0)) {
-_Err = errc::buffer_too_small;
-return;
-}
 if constexpr (std::is_signed_v<T>) {
 if (_Val < 0) {
-if (_Size == 1) {
+if (it.length() == 0) {
 _Err = errc::buffer_too_small;
 return;
 }
-*_First = '-';
-++_First;
+it.push_back('-');
 uval = static_cast<uT>(0 - uval);
 }
 }
@@ -23426,13 +22093,12 @@ uval = static_cast<uT>(uval / base);
 } while (uval != 0);
 break;
 }
-size_t _Digits_written = _Buff_end - _RNext;
-if (_Size < _Digits_written) {
+unsigned int _Digits_written = _Buff_end - _RNext;
+if (it.length() < _Digits_written) {
 _Err = errc::buffer_too_small;
 return;
 }
 it = it.append(string_view(_RNext, _Digits_written));
-it.finalize();
 _Err = errc::ok;
 return;
 }
@@ -23470,23 +22136,25 @@ default:
 conv.ToPrecision(value, precision, &builder);
 break;
 }
-auto length = static_cast<size_t>(builder.position());
-builder.Finalize();
-const auto n = it.size();
-if (n < length) {
+auto _Digits_written = static_cast<size_t>(builder.position());
+if (it.length() < _Digits_written) {
 err = errc::buffer_too_small;
 return;
 }
-it = it.append(string_view(buffer, length));
-it.finalize();
+it = it.append(string_view(buffer, _Digits_written));
 err = errc::ok;
 return;
 }
-template<typename Traits>
+namespace __string_encode_traits {
+WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(do_skipw, do_skipw);
+WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(do_rskipw, do_rskipw);
+WJR_REGISTER_HAS_STATIC_MEMBER_FUNCTION(do_skipz, do_skipz);
+}
+template<typename EncodeTraits>
 class __base_encode : public __base_encode_common {
 using _Mybase = __base_encode_common;
 public:
-using traits_type = Traits;
+using traits_type = EncodeTraits;
 using encode_type = typename traits_type::encode_type;
 using value_type = typename traits_type::value_type;
 using pointer = typename traits_type::pointer;
@@ -23519,7 +22187,7 @@ ALLOW_LEADING_SPACE = 0x08,
 ALLOW_SPACE_AFTER_SIGN = 0x10,
 ALLOW_LEADING_ZEROS = 0x20,
 };
-using default_to_i_flags = std::integral_constant< to_i_flags,
+using default_to_i_flags = std::integral_constant<to_i_flags,
 static_cast<to_i_flags>(
 ALLOW_PREFIX
 | ALLOW_TAIL
@@ -23540,14 +22208,6 @@ public:
 template<typename T>
 WJR_INLINE_CONSTEXPR20 static void from_integral(
 T _Val, basic_string_modifier<value_type>& it, int base, errc& _Err) noexcept;
-template<typename T>
-WJR_INLINE_CONSTEXPR20 static void from_integral(
-T _Val, pointer _First, pointer _Last,
-pointer& _Pos, int base, errc& _Err) noexcept;
-template<typename T>
-WJR_INLINE_CONSTEXPR20 static void from_integral(
-T _Val, pointer _First, pointer _Last,
-pointer* _Pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept;
 using to_f_flags = typename double_conversion::StringToDoubleConverter::Flags;
 using default_to_f_flags = std::integral_constant<
 to_f_flags,
@@ -23576,18 +22236,6 @@ typename F = default_from_f_flags>
 WJR_INLINE_CONSTEXPR20 static void from_floating_point(
 T _Val, basic_string_modifier<value_type>& it,
 errc& err, int precision = 0, M m = M(), F _Flags = F()) noexcept;
-template<typename T,
-typename M = default_from_f_mode,
-typename F = default_from_f_flags>
-WJR_INLINE static void from_floating_point(
-T value, pointer first, pointer last,
-pointer& pos, errc& err, int precision = 0, M m = M(), F _Flags = F()) noexcept;
-template<typename T,
-typename M = default_from_f_mode,
-typename F = default_from_f_flags>
-WJR_INLINE static void from_floating_point(
-T value, pointer first, pointer last,
-pointer* pos = nullptr, errc* err = nullptr, int precision = 0, M m = M(), F _Flags = F()) noexcept;
 WJR_INLINE_CONSTEXPR static iterator make_iterator(pointer);
 WJR_INLINE_CONSTEXPR static const_iterator make_iterator(const_pointer);
 WJR_INLINE_CONSTEXPR static pointer make_pointer(iterator);
@@ -23646,7 +22294,7 @@ return toalnum(ch) < Base;
 template<typename Traits>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR typename __base_encode<Traits>::const_iterator
 __base_encode<Traits>::skipw(const_iterator _First, const_iterator _Last) {
-if constexpr (__string_func_traits::has_static_member_function_do_skipw_v<encode_type, const_iterator, const_iterator>) {
+if constexpr (__string_encode_traits::has_static_member_function_do_skipw_v<encode_type, const_iterator, const_iterator>) {
 return encode_type::do_skipw(_First, _Last);
 }
 else {
@@ -23658,7 +22306,7 @@ template<typename Traits>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR auto
 __base_encode<Traits>::rskipw(const_iterator _First, const_iterator _Last)
 -> std::enable_if_t<is_random_iterator_v<const_iterator>, const_iterator> {
-if constexpr (__string_func_traits::
+if constexpr (__string_encode_traits::
 has_static_member_function_do_rskipw_v<encode_type, const_iterator, const_iterator>) {
 return encode_type::do_rskipw(_First, _Last);
 }
@@ -23670,7 +22318,7 @@ return _Last;
 template<typename Traits>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR typename __base_encode<Traits>::const_iterator
 __base_encode<Traits>::skipz(const_iterator _First, const_iterator _Last) {
-if constexpr (__string_func_traits::has_static_member_function_do_skipz_v<encode_type, const_iterator, const_iterator>) {
+if constexpr (__string_encode_traits::has_static_member_function_do_skipz_v<encode_type, const_iterator, const_iterator>) {
 return encode_type::do_skipz(_First, _Last);
 }
 else {
@@ -23705,26 +22353,6 @@ T _Val, basic_string_modifier<value_type>& it, int base, errc& _Err) noexcept {
 _Mybase::from_integral(_Val, it, base, _Err);
 }
 template<typename Traits>
-template<typename T>
-WJR_INLINE_CONSTEXPR20 void __base_encode<Traits>::from_integral(
-T _Val, pointer _First, pointer _Last,
-pointer& _Pos, int base, errc& _Err) noexcept {
-basic_string_modifier<value_type> it(_First, static_cast<size_t>(_Last - _First));
-from_integral(_Val, it, base, _Err);
-_Pos = it.begin();
-}
-template<typename Traits>
-template<typename T>
-WJR_INLINE_CONSTEXPR20 void __base_encode<Traits>::from_integral(
-T _Val, pointer _First, pointer _Last,
-pointer* _Pos, int base, errc* _Err) noexcept {
-pointer end_ptr = _First;
-errc c = errc::ok;
-from_integral(_Val, _First, _Last, end_ptr, base, c);
-if (_Pos != nullptr) *_Pos = end_ptr;
-if (_Err != nullptr) *_Err = c;
-}
-template<typename Traits>
 template<typename T, typename F>
 WJR_NODISCARD WJR_INLINE T __base_encode<Traits>::to_floating_point(
 const_iterator _First, const_iterator _Last,
@@ -23752,30 +22380,6 @@ WJR_INLINE_CONSTEXPR20 void __base_encode<Traits>::from_floating_point(
 T _Val, basic_string_modifier<value_type>& it,
 errc& err, int precision, M m, F _Flags) noexcept {
 _Mybase::from_floating_point(_Val, it, err, precision, m, _Flags);
-}
-template<typename Traits>
-template<typename T,
-typename M,
-typename F>
-WJR_INLINE void __base_encode<Traits>::from_floating_point(
-T value, pointer first, pointer last,
-pointer& pos, errc& err, int precision, M m, F _Flags) noexcept {
-basic_string_modifier<value_type> it(first, static_cast<size_t>(last - first));
-from_floating_point(value, it, err, precision, m, _Flags);
-pos = it.begin();
-}
-template<typename Traits>
-template<typename T,
-typename M,
-typename F>
-WJR_INLINE void __base_encode<Traits>::from_floating_point(
-T value, pointer first, pointer last,
-pointer* pos, errc* err, int precision, M m, F _Flags) noexcept {
-pointer end_ptr = first;
-errc c = errc::ok;
-from_floating_point(value, first, last, end_ptr, c, precision, m, _Flags);
-if (pos != nullptr) *pos = end_ptr;
-if (err != nullptr) *err = c;
 }
 template<typename Traits>
 WJR_INLINE_CONSTEXPR typename __base_encode<Traits>::iterator
@@ -24056,10 +22660,10 @@ nullptr);
 int length = 0; // processed char count
 T result = 0;
 if constexpr (std::is_same_v<T, float>) {
-result = conv.StringToFloat(_First, static_cast<size_t>(_Last - _First), &length);
+result = conv.StringToFloat(_First, static_cast<int>(_Last - _First), &length);
 }
 else {
-result = conv.StringToDouble(_First, static_cast<size_t>(_Last - _First), &length);
+result = conv.StringToDouble(_First, static_cast<int>(_Last - _First), &length);
 }
 if (!std::isnan(result)) {
 if (length == 0 ||
@@ -24141,7 +22745,8 @@ return static_cast<T>(0);
 }
 }
 struct ascii_traits {
-using encode_type = encode::ascii;
+using encode_type = ascii;
+using char_type = char;
 using value_type = char;
 using pointer = value_type*;
 using const_pointer = const value_type*;
@@ -24174,6 +22779,7 @@ public:
 friend __base_encode<ascii_traits>;
 using _Mybase = __base_encode<ascii_traits>;
 using traits_type = ascii_traits;
+using char_type = typename traits_type::char_type;
 using value_type = typename traits_type::value_type;
 using pointer = typename traits_type::pointer;
 using const_pointer = typename traits_type::const_pointer;
@@ -24284,13 +22890,14 @@ WJR_ATTRIBUTE(NODISCARD, CONST, INLINE_CONSTEXPR) static uint8_t todigit(char ch
 return __ascii_to_digit_table_v[ch];
 }
 WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) static const_iterator do_skipw(const_iterator s, const_iterator e) {
-if constexpr (::wjr::algo::__has_fast_memskipw_v<value_type>) {
+return wjr::skip_whitespace(s, e);
+/*if constexpr (::wjr::algo::__has_fast_memskipw_v<value_type>) {
 return ::wjr::algo::memskipw(s, e);
 }
 else {
 for (; s != e && isspace(*s); ++s);
 return s;
-}
+}*/
 }
 WJR_INLINE_CONSTEXPR static iterator make_iterator(pointer ptr) { return ptr; }
 WJR_INLINE_CONSTEXPR static const_iterator make_iterator(const_pointer ptr) { return ptr; }
@@ -24300,105 +22907,37 @@ WJR_INLINE_CONSTEXPR static const_pointer make_pointer(const_iterator ptr) { ret
 class utf8 {
 public:
 };
-_WJR_ENCODE_END
-_WJR_BEGIN
-template<typename Traits>
-class basic_encode_view
-: public basic_string_view<typename Traits::value_type> {
+template<typename Derived, typename Encode>
+class __base_encode_view {
+private:
+using _Mybase = Derived;
+using _Mytraits = __base_string_view_traits<Derived>;
+using Char = typename _Mytraits::value_type;
+using Traits = typename _Mytraits::traits_type;
 public:
-using _Mybase = basic_string_view<typename Traits::value_type>;
-template<typename T>
-constexpr static bool _Is_noptr_string_view_like_v = _Mybase::template _Is_noptr_string_view_like_v<T>;
-public:
-using traits_type = typename _Mybase::traits_type;
-using value_type = typename _Mybase::value_type;
-using pointer = typename _Mybase::pointer;
-using const_pointer = typename _Mybase::const_pointer;
-using reference = typename _Mybase::reference;
-using const_reference = typename _Mybase::const_reference;
-using const_iterator = typename _Mybase::const_iterator;
-using iterator = typename _Mybase::iterator;
-using const_reverse_iterator = typename _Mybase::const_reverse_iterator;
-using reverse_iterator = typename _Mybase::reverse_iterator;
-using size_type = typename _Mybase::size_type;
-using difference_type = typename _Mybase::difference_type;
-constexpr static size_type npos = _Mybase::npos;
-using encode_type = encode::__base_encode<Traits>;
+using encode_type = Encode;
 using encode_iterator = typename encode_type::iterator;
 using encode_const_iterator = typename encode_type::const_iterator;
-using _Mybase::_Mybase;
-using _Mybase::operator=;
-using _Mybase::begin;
-using _Mybase::end;
-WJR_CONSTEXPR basic_encode_view(const _Mybase& other)
-: _Mybase(other) {}
-WJR_INLINE_CONSTEXPR void swap(basic_encode_view& other) noexcept {
-return _Mybase::swap(other);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_view substr(
-const size_type off = 0, size_type n = npos) const WJR_NOEXCEPT {
-return basic_encode_view(_Mybase::substr(off, n));
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_view
-nesubstr(const size_type off = 0, size_type n = npos) const noexcept {
-return basic_encode_view(_Mybase::nesubstr(off, n));
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_view view(
-const value_type* s, const size_type n) noexcept {
-return basic_encode_view(s, n);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_view view(
-const value_type* s) noexcept {
-return basic_encode_view(s);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_view view(
-std::initializer_list<value_type> il) noexcept {
-return view(il.begin(), il.size());
-}
-template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_view view(const StringView& t) noexcept {
-return basic_encode_view(t);
-}
-template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_view view(const StringView& t,
-const size_type off, const size_type n = npos) noexcept {
-return view(t).nesubstr(off, n);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_view view() const noexcept {
-return *this;
-}
-template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_view eview(const StringView& t,
-const size_type off, const size_type n = npos) WJR_NOEXCEPT {
-return view(t).substr(off, n);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_view prefix(size_type n) const noexcept {
-return basic_encode_view(prefix(n));
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_view suffix(size_type n) const noexcept {
-return basic_encode_view(suffix(n));
-}
-WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_encode_view adjust_begin(const_iterator iter) const noexcept {
-return basic_encode_view(_Mybase::adjust_begin(iter));
-}
-WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_encode_view adjust_end(const_iterator iter) const noexcept {
-return basic_encode_view(_Mybase::adjust_end(iter));
-}
+using encode_value_type = typename encode_type::value_type;
+using pointer = typename _Mytraits::pointer;
+using const_pointer = typename _Mytraits::const_pointer;
+using iterator = typename _Mytraits::iterator;
+using const_iterator = typename _Mytraits::const_iterator;
 #define _WJR_REGISTER_ENCODE_VIEW_DERIVED_FUNC(name, ret_type, type)	\
 WJR_INLINE_CONSTEXPR static ret_type name(type arg){return encode_type::name(arg);}
 #define WJR_REGISTER_ENCODE_VIEW_DERIVED_FUNC(x) _WJR_REGISTER_ENCODE_VIEW_DERIVED_FUNC x
 WJR_MACRO_CALL(WJR_REGISTER_ENCODE_VIEW_DERIVED_FUNC, ,
-(isalnum, bool, value_type),
-(isalpha, bool, value_type),
-(islower, bool, value_type),
-(isupper, bool, value_type),
-(isxdigit, bool, value_type),
-(isspace, bool, value_type),
-(tolower, value_type, value_type),
-(toupper, value_type, value_type),
-(todigit, uint8_t, value_type),
-(toalnum, uint8_t, value_type),
-(isdigit, bool, value_type),
+(isalnum, bool, encode_value_type),
+(isalpha, bool, encode_value_type),
+(islower, bool, encode_value_type),
+(isupper, bool, encode_value_type),
+(isxdigit, bool, encode_value_type),
+(isspace, bool, encode_value_type),
+(tolower, encode_value_type, encode_value_type),
+(toupper, encode_value_type, encode_value_type),
+(todigit, uint8_t, encode_value_type),
+(toalnum, uint8_t, encode_value_type),
+(isdigit, bool, encode_value_type),
 (make_iterator, encode_iterator, pointer),
 (make_iterator, encode_const_iterator, const_pointer),
 (make_pointer, pointer, encode_iterator),
@@ -24406,15 +22945,13 @@ WJR_MACRO_CALL(WJR_REGISTER_ENCODE_VIEW_DERIVED_FUNC, ,
 );
 #undef WJR_REGISTER_ENCODE_VIEW_DERIVED_FUNC
 #undef _WJR_REGISTER_ENCODE_VIEW_DERIVED_FUNC
-WJR_INLINE_CONSTEXPR encode_iterator encode_begin() { return make_iterator(begin()); }
-WJR_INLINE_CONSTEXPR encode_const_iterator encode_begin() const { return make_iterator(begin()); }
-WJR_INLINE_CONSTEXPR encode_iterator encode_end() { return make_iterator(end()); }
-WJR_INLINE_CONSTEXPR encode_const_iterator encode_end() const { return make_iterator(end()); }
-WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_encode_view ltrim() const;
+WJR_INLINE_CONSTEXPR encode_const_iterator encode_begin() const { return make_iterator(derived().begin()); }
+WJR_INLINE_CONSTEXPR encode_const_iterator encode_end() const { return make_iterator(derived().end()); }
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) __base_encode_view ltrim() const;
 WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR)auto rtrim() const
-->std::enable_if_t<is_random_iterator_v<encode_const_iterator>, basic_encode_view>;
+->std::enable_if_t<is_random_iterator_v<encode_const_iterator>, __base_encode_view>;
 WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR)auto trim() const
-->std::enable_if_t<is_random_iterator_v<encode_const_iterator>, basic_encode_view>;
+->std::enable_if_t<is_random_iterator_v<encode_const_iterator>, __base_encode_view>;
 using to_i_flags = typename encode_type::to_i_flags;
 using default_to_i_flags = typename encode_type::default_to_i_flags;
 template<typename T, typename F = default_to_i_flags>
@@ -24424,7 +22961,7 @@ const_iterator* _Pos = nullptr, int base = 10, errc* _Err = nullptr, F f = F()) 
 template<typename F = default_to_i_flags>	                                                    \
 WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_##name(	                                                \
 const_iterator* _Pos = nullptr, int base = 10, errc* _Err = nullptr, F f = F()) const noexcept{	\
-return to_integral<T>(_Pos, base, _Err, f);	                                                \
+return this->to_integral<T>(_Pos, base, _Err, f);	                                        \
 }
 #define WJR_REGISTER_STRING_TO_INTEGRAL_FUNC(x) _WJR_REGISTER_STRING_TO_INTEGRAL_FUNC x
 WJR_MACRO_CALL(WJR_REGISTER_STRING_TO_INTEGRAL_FUNC, ,
@@ -24451,7 +22988,7 @@ const_iterator* _Pos = nullptr, errc* _Err = nullptr, F f = F()) const noexcept;
 template<typename F = default_to_i_flags>	                                                            \
 WJR_NODISCARD WJR_INLINE_CONSTEXPR T to_##name(	                                                        \
 const_iterator* _Pos = nullptr, errc* _Err = nullptr, F f = F()) const noexcept{	                    \
-return to_floating_point<T>(_Pos, _Err, f);	                                                        \
+return this->to_floating_point<T>(_Pos, _Err, f);	                                                \
 }
 #define WJR_REGISTER_STRING_TO_FLOATING_POINT_FUNC(x) _WJR_REGISTER_STRING_TO_FLOATING_POINT_FUNC x
 WJR_MACRO_CALL(WJR_REGISTER_STRING_TO_FLOATING_POINT_FUNC, ,
@@ -24460,220 +22997,189 @@ WJR_MACRO_CALL(WJR_REGISTER_STRING_TO_FLOATING_POINT_FUNC, ,
 );
 #undef WJR_REGISTER_STRING_TO_FLOATING_POINT_FUNC
 #undef _WJR_REGISTER_STRING_TO_FLOATING_POINT_FUNC
+protected:
+WJR_INTRINSIC_CONSTEXPR Derived& derived() noexcept { return static_cast<Derived&>(*this); }
+WJR_INTRINSIC_CONSTEXPR const Derived& derived() const noexcept { return static_cast<const Derived&>(*this); }
 };
-template<typename Traits>
-WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_encode_view<Traits> basic_encode_view<Traits>::ltrim() const {
+template<typename Derived, typename Encode>
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) __base_encode_view<Derived, Encode>
+__base_encode_view<Derived, Encode>::ltrim() const {
 return this->adjust_begin(encode_type::make_pointer(
 encode_type::skipw(encode_begin(), encode_end())));
 }
-template<typename Traits>
+template<typename Derived, typename Encode>
 WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR)
-auto basic_encode_view<Traits>::rtrim() const
--> std::enable_if_t<is_random_iterator_v<typename basic_encode_view<Traits>::encode_const_iterator>, basic_encode_view<Traits>> {
+auto __base_encode_view<Derived, Encode>::rtrim() const
+-> std::enable_if_t<is_random_iterator_v<
+typename __base_encode_view<Derived, Encode>::encode_const_iterator>, __base_encode_view<Derived, Encode>> {
 return this->adjust_end(encode_type::make_pointer(
 encode_type::rskipw(encode_begin(), encode_end())));
 }
-template<typename Traits>
+template<typename Derived, typename Encode>
 WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR)
-auto basic_encode_view<Traits>::trim() const
--> std::enable_if_t<is_random_iterator_v<typename basic_encode_view<Traits>::encode_const_iterator>, basic_encode_view<Traits>> {
+auto __base_encode_view<Derived, Encode>::trim() const
+-> std::enable_if_t<is_random_iterator_v<
+typename __base_encode_view<Derived, Encode>::encode_const_iterator>, __base_encode_view<Derived, Encode>> {
 return ltrim().rtrim();
 }
-template<typename Traits>
+template<typename Derived, typename Encode>
 template<typename T, typename F>
-WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) T basic_encode_view<Traits>::to_integral(
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) T __base_encode_view<Derived, Encode>::to_integral(
 const_iterator* _Pos, int base, errc* _Err, F f) const noexcept {
 return encode_type::template to_integral<T>(encode_begin(), encode_end(), _Pos, base, _Err, f);
 }
-template<typename Traits>
+template<typename Derived, typename Encode>
 template<typename T, typename F>
-WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) T basic_encode_view<Traits>::to_floating_point(
+WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) T __base_encode_view<Derived, Encode>::to_floating_point(
 const_iterator* _Pos, errc* _Err, F f) const noexcept {
 return encode_type::template to_floating_point<T>(encode_begin(), encode_end(), _Pos, _Err, f);
 }
-template<typename Traits>
-class basic_encode_modifier
-: public basic_encode_view<Traits>{
-using _Mybase = basic_encode_view<Traits>;
-using _Mybase2 = basic_string_modifier<typename Traits::value_type, std::char_traits<typename Traits::value_type>>;
-template<typename T>
-constexpr static bool _Is_noptr_string_view_like_v = _Mybase::template _Is_noptr_string_view_like_v<T>;
+template<typename Char, typename Traits = std::char_traits<Char>>
+class basic_encode_view;
+template<>
+class basic_encode_view<char, std::char_traits<char>>
+:
+public __base_string_view< basic_encode_view<char, std::char_traits<char>>>,
+public __base_encode_view<basic_encode_view<char, std::char_traits<char>>, ascii> {
+using _Mybase1 = __base_string_view< basic_encode_view<char, std::char_traits<char>>>;
+using _Mybase2 = __base_encode_view<basic_encode_view<char, std::char_traits<char>>, ascii>;
+using Char = char;
+using Traits = std::char_traits<char>;
 public:
-using traits_type = typename _Mybase::traits_type;
-using value_type = typename _Mybase::value_type;
-using pointer = typename _Mybase2::pointer;
-using const_pointer = typename _Mybase::const_pointer;
-using reference = typename _Mybase2::reference;
-using const_reference = typename _Mybase::const_reference;
-using const_iterator = typename _Mybase::const_iterator;
-using iterator = typename _Mybase2::iterator;
-using const_reverse_iterator = typename _Mybase::const_reverse_iterator;
-using reverse_iterator = typename _Mybase2::reverse_iterator;
-using size_type = typename _Mybase::size_type;
-using difference_type = typename _Mybase::difference_type;
-constexpr static size_type npos = _Mybase::npos;
-using encode_type = encode::__base_encode<Traits>;
-using encode_iterator = typename encode_type::iterator;
-using encode_const_iterator = typename encode_type::const_iterator;
-using _Mybase::_Mybase;
-using _Mybase::operator=;
-using _Mybase::data;
-using _Mybase::begin;
-using _Mybase::end;
-using _Mybase::rbegin;
-using _Mybase::rend;
-using _Mybase::front;
-WJR_CONSTEXPR basic_encode_modifier(const _Mybase& other)
-: _Mybase(other) {}
-WJR_INLINE_CONSTEXPR void swap(basic_encode_modifier& other) noexcept {
-return _Mybase::swap(other);
+using _Mybase1::_Mybase1;
+using _Mybase1::operator=;
+WJR_INLINE_CONSTEXPR basic_encode_view(const basic_string_view<Char, Traits> other)
+: _Mybase1(other) {}
+WJR_INLINE_CONSTEXPR operator basic_string_view<Char, Traits>() const noexcept {
+return basic_string_view<Char, Traits>(*this);
 }
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_modifier substr(
-const size_type off = 0, size_type n = npos) const WJR_NOEXCEPT {
-return basic_encode_modifier(_Mybase::substr(off, n));
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_modifier
-nesubstr(const size_type off = 0, size_type n = npos) const noexcept {
-return basic_encode_modifier(_Mybase::nesubstr(off, n));
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_modifier view(
-const value_type* s, const size_type n) noexcept {
-return basic_encode_modifier(s, n);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_modifier view(
-const value_type* s) noexcept {
-return basic_encode_modifier(s);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_modifier view(
-std::initializer_list<value_type> il) noexcept {
-return view(il.begin(), il.size());
-}
-template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_modifier view(const StringView& t) noexcept {
-return basic_encode_modifier(t);
-}
-template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_modifier view(const StringView& t,
-const size_type off, const size_type n = npos) noexcept {
-return view(t).nesubstr(off, n);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_modifier view() const noexcept {
-return *this;
-}
-template<typename StringView, std::enable_if_t<_Is_noptr_string_view_like_v<StringView>, int> = 0>
-WJR_NODISCARD WJR_INLINE_CONSTEXPR static basic_encode_modifier eview(const StringView& t,
-const size_type off, const size_type n = npos) WJR_NOEXCEPT {
-return view(t).substr(off, n);
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_modifier prefix(size_type n) const noexcept {
-return basic_encode_modifier(prefix(n));
-}
-WJR_NODISCARD WJR_INLINE_CONSTEXPR basic_encode_modifier suffix(size_type n) const noexcept {
-return basic_encode_modifier(suffix(n));
-}
-WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_encode_modifier adjust_begin(const_iterator iter) const noexcept {
-return basic_encode_modifier(_Mybase::adjust_begin(iter));
-}
-WJR_ATTRIBUTE(NODISCARD, INLINE_CONSTEXPR) basic_encode_modifier adjust_end(const_iterator iter) const noexcept {
-return basic_encode_modifier(_Mybase::adjust_end(iter));
-}
-WJR_INLINE_CONSTEXPR pointer data() { return const_cast<pointer>(_Mybase::data()); }
-WJR_INLINE_CONSTEXPR iterator begin() { return const_cast<iterator>(_Mybase::begin()); }
-WJR_INLINE_CONSTEXPR iterator end() { return const_cast<iterator>(_Mybase::end()); }
-WJR_INLINE_CONSTEXPR reverse_iterator rbegin() {
-return reverse_iterator(end());
-}
-WJR_INLINE_CONSTEXPR reverse_iterator rend() {
-return reverse_iterator(begin());
-}
-WJR_INLINE_CONSTEXPR reference front() {
-return *begin();
-}
-WJR_INLINE_CONSTEXPR reference operator[](size_type n) {
-return data()[n];
-}
-using _Mybase::size;
-template<typename otherChar, typename otherTraits>
-WJR_INLINE_CONSTEXPR20 basic_encode_modifier append(basic_string_view<otherChar, otherTraits> str) {
-static_assert(sizeof(otherChar) <= sizeof(value_type), "");
-wjr::uninitialized_copy_n(str.begin(), str.size(), data());
-return basic_encode_modifier(data() + str.size(), size() - str.size());
-}
-template<typename otherChar>
-WJR_INLINE_CONSTEXPR20 basic_encode_modifier append(size_type n, otherChar ch) {
-static_assert(sizeof(otherChar) <= sizeof(value_type), "");
-wjr::uninitialized_fill_n(data(), n, ch);
-return basic_encode_modifier(data() + n, size() - n);
-}
-template<typename otherChar>
-WJR_INLINE_CONSTEXPR20 basic_encode_modifier append(otherChar ch) {
-static_assert(sizeof(otherChar) <= sizeof(value_type), "");
-front() = ch;
-return basic_encode_modifier(data() + 1, size() - 1);
-}
-WJR_INLINE_CONSTEXPR void finalize() {
-front() = value_type();
-}
+};
+template<typename Derived, typename Encode>
+class __base_encode_modifier
+: public __base_string_modifier<Derived>,
+public __base_encode_view<Derived, Encode> {
+using _Mybase1 = __base_string_modifier<Derived>;
+using _Mybase2 = __base_encode_view<Derived, Encode>;
+using _Mytraits = __base_string_view_traits<Derived>;
+using Char = typename _Mytraits::value_type;
+using Traits = typename _Mytraits::traits_type;
+public:
+using encode_type = typename _Mybase2::encode_type;
+using pointer = typename _Mybase1::pointer;
+using const_pointer = typename _Mybase1::const_pointer;
+using iterator = typename _Mybase1::iterator;
+using const_iterator = typename _Mybase1::const_iterator;
+using _Mybase1::_Mybase1;
+using _Mybase1::operator=;
+using _Mybase1::data;
+using _Mybase1::size;
 template<typename T>
 WJR_INLINE_CONSTEXPR void from_integral(
-T _Val, iterator* pos = nullptr, int base = 10, errc* _Err = nullptr) noexcept;
-using from_f_mode = typename encode_type::from_f_mode;
-using from_f_flags = typename encode_type::from_f_flags;
-using default_from_f_mode = typename encode_type::default_from_f_mode;
-using default_from_f_flags = typename encode_type::default_from_f_flags;
+T _Val, pointer& pos, int base, errc& _Err) noexcept;
+template<typename T>
+WJR_INLINE_CONSTEXPR void from_integral(
+T val, pointer* pos = nullptr, int base = 10, errc* err = nullptr) noexcept {
+pointer _Pos = nullptr;
+errc _Err = errc::ok;
+from_integral(val, _Pos, base, _Err);
+if (pos != nullptr) *pos = _Pos;
+if (err != nullptr) *err = _Err;
+}
+using from_f_mode = typename double_conversion::DoubleToStringConverter::DtoaMode;
+using from_f_flags = typename double_conversion::DoubleToStringConverter::Flags;
+using default_from_f_mode = std::integral_constant<
+from_f_mode,
+from_f_mode::SHORTEST
+>;
+using default_from_f_flags = std::integral_constant<
+from_f_flags,
+from_f_flags::NO_FLAGS
+>;
 template<typename T,
 typename M = default_from_f_mode,
 typename F = default_from_f_flags>
 WJR_INLINE void from_floating_point(
-T value, iterator* pos = nullptr, errc* err = nullptr, int precision = 0, M m = M(), F _Flags = F()) noexcept;
-using _Mybase::tolower;
-using _Mybase::toupper;
-WJR_CONSTEXPR20 void tolower() noexcept;
-WJR_CONSTEXPR20 void toupper() noexcept;
-};
-template<typename Traits>
-template<typename T>
-WJR_INLINE_CONSTEXPR void basic_encode_modifier<Traits>::from_integral(
-T _Val, iterator* pos, int base, errc* err) noexcept {
-basic_string_modifier<value_type, traits_type> it(*this);
-errc c = errc::ok;
-encode_type::from_integral(_Val, it, base, c);
-if (pos != nullptr) *pos = it.begin();
-if (err != nullptr) *err = c;
+T value, pointer& pos, errc& err, int precision = 0, M m = M(), F _Flags = F()) noexcept;
+template<typename T,
+typename M = default_from_f_mode,
+typename F = default_from_f_flags>
+WJR_INLINE void from_floating_point(
+T value, pointer* pos = nullptr, errc* err = nullptr, int precision = 0, M m = M(), F _Flags = F()) noexcept {
+pointer _Pos = nullptr;
+errc _Err = errc::ok;
+from_floating_point(value, _Pos, _Err, precision, m, _Flags);
+if (pos != nullptr) *pos = _Pos;
+if (err != nullptr) *err = _Err;
 }
-template<typename Traits>
+using _Mybase1::begin;
+using _Mybase1::end;
+WJR_INLINE_CONSTEXPR20 void tolower() noexcept;
+WJR_INLINE_CONSTEXPR20 void toupper() noexcept;
+};
+template<typename Derived, typename Encode>
+template<typename T>
+WJR_INLINE_CONSTEXPR void __base_encode_modifier<Derived, Encode>::from_integral(
+T _Val, pointer& pos, int base, errc& _Err) noexcept {
+auto it = basic_string_modifier<Char>(data(), size());
+encode_type::template from_integral<T>(_Val, it, base, _Err);
+pos = it.data();
+}
+template<typename Derived, typename Encode>
 template<typename T,
 typename M,
 typename F>
-WJR_INLINE void basic_encode_modifier<Traits>::from_floating_point(
-T value, iterator* pos, errc* err, int precision, M m, F _Flags) noexcept {
-basic_string_modifier<value_type, traits_type> it(*this);
-errc c = errc::ok;
-encode_type::from_floating_point(value, it, c, precision, m, _Flags);
-if (pos != nullptr) *pos = it.begin();
-if (err != nullptr) *err = c;
+WJR_INLINE void __base_encode_modifier<Derived, Encode>::from_floating_point(
+T value, pointer& pos, errc& err, int precision, M m, F _Flags) noexcept {
+auto it = basic_string_modifier<Char>(data(), size());
+encode_type::template from_floating_point<T>(value, it, err, precision, m, _Flags);
+pos = it.data();
 }
-template<typename Traits>
-WJR_CONSTEXPR20 void basic_encode_modifier<Traits>::tolower() noexcept {
+template<typename Derived, typename Encode>
+WJR_INLINE_CONSTEXPR20 void __base_encode_modifier<Derived, Encode>::tolower() noexcept {
 auto first = make_iterator(begin());
 auto last = make_iterator(end());
-while (first != last) {
-*first = tolower(*first);
-++first;
+for (; first != last; ++first) {
+*first = encode_type::tolower(*first);
 }
 }
-template<typename Traits>
-WJR_CONSTEXPR20 void basic_encode_modifier<Traits>::toupper() noexcept {
+template<typename Derived, typename Encode>
+WJR_INLINE_CONSTEXPR20 void __base_encode_modifier<Derived, Encode>::toupper() noexcept {
 auto first = make_iterator(begin());
 auto last = make_iterator(end());
-while (first != last) {
-*first = toupper(*first);
-++first;
+for (; first != last; ++first) {
+*first = encode_type::toupper(*first);
 }
 }
-using ascii_encode = encode::ascii;
-using ascii_view = basic_encode_view<encode::ascii_traits>;
-using ascii_modifier = basic_encode_modifier<encode::ascii_traits>;
+template<typename Char, typename Traits = std::char_traits<Char>>
+class basic_encode_modifier;
+template<>
+class basic_encode_modifier<char, std::char_traits<char>>
+: public __base_encode_modifier<basic_encode_modifier<char, std::char_traits<char>>, ascii> {
+using _Mybase0 = __base_encode_modifier<basic_encode_modifier<char, std::char_traits<char>>, ascii>;
+using Char = typename _Mybase0::value_type;
+using Traits = typename _Mybase0::traits_type;
+public :
+using _Mybase0::_Mybase0;
+using _Mybase0::operator=;
+WJR_INLINE_CONSTEXPR basic_encode_modifier(const basic_string_view<Char, Traits> other)
+: _Mybase0(other) {}
+WJR_INLINE_CONSTEXPR basic_encode_modifier(const basic_string_modifier<Char, Traits> other)
+: _Mybase0(other) {}
+WJR_INLINE_CONSTEXPR basic_encode_modifier(const basic_encode_view<Char, Traits> other)
+: _Mybase0(other) {}
+WJR_INLINE_CONSTEXPR operator basic_string_view<Char, Traits>() const noexcept {
+return basic_string_view<Char, Traits>(*this);
+}
+WJR_INLINE_CONSTEXPR operator basic_string_modifier<Char, Traits>() const noexcept {
+return basic_string_modifier<Char, Traits>(*this);
+}
+WJR_INLINE_CONSTEXPR operator basic_encode_view<Char, Traits>() const noexcept {
+return basic_encode_view<Char, Traits>(*this);
+}
+};
+using ascii_encode = ascii;
+using ascii_view = basic_encode_view<char>;
+using ascii_modifier = basic_encode_modifier<char>;
 _WJR_END
 #endif // __WJR_STRING_FUNC_H
 
@@ -24681,6 +23187,1017 @@ _WJR_END
 #ifndef __WJR_VARIANT_H
 #define __WJR_VARIANT_H
 #include <variant>
+#pragma once
+#ifndef __WJR_TP_LIST_H
+#define __WJR_TP_LIST_H
+#include <type_traits>
+#include <variant>
+_WJR_BEGIN
+struct tp_null {};
+template<typename...Args>
+struct tp_list {};
+template<typename T, T I>
+using tp_c = std::integral_constant<T, I>;
+template<typename T, T...I>
+struct tp_list_c {
+using type = tp_list<tp_c<T, I>...>;
+};
+template<typename T, T... I>
+using tp_list_c_t = typename tp_list_c<T, I...>::type;
+template<typename T>
+struct tp_is_list : std::false_type {};
+template<typename...Args>
+struct tp_is_list<tp_list<Args...>> : std::true_type {};
+template<typename T>
+inline constexpr bool tp_is_list_v = tp_is_list<T>::value;
+template<typename T>
+struct tp_is_container : std::false_type {};
+template<
+template<typename...>typename C,
+typename...Args>
+struct tp_is_container<C<Args...>> : std::true_type {};
+template<typename T>
+inline constexpr bool tp_is_container_v = tp_is_container<T>::value;
+template<typename T>
+struct tp_size;
+template<template<typename...>typename C, typename...Args>
+struct tp_size<C<Args...>> {
+constexpr static size_t value = sizeof...(Args);
+};
+template<typename T>
+inline constexpr size_t tp_size_v = tp_size<T>::value;
+template<size_t idx>
+using tp_size_t = tp_c<size_t, idx>;
+template<char ch>
+using tp_char_t = tp_c<char, ch>;
+template<typename T, typename U>
+struct tp_equal_c : std::bool_constant<(T::value == U::value)> {};
+template<typename T, typename U>
+struct tp_not_equal_c : std::bool_constant<(T::value != U::value)> {};
+template<typename T, typename U>
+struct tp_less_c : std::bool_constant<(T::value < U::value)>{};
+template<typename T, typename U>
+struct tp_less_equal_c : std::bool_constant < (T::value <= U::value)> {};
+template<typename T, typename U>
+struct tp_greater_c : std::bool_constant < (T::value > U::value)> {};
+template<typename T, typename U>
+struct tp_greater_equalv : std::bool_constant < (T::value >= U::value)>{};
+template<typename T, typename U>
+struct tp_max_c : std::conditional_t<(T::value < U::value), U, T> {};
+template<typename T>
+struct tp_is_fn : std::false_type {};
+template<typename T>
+inline constexpr bool tp_is_fn_v = tp_is_fn<T>::value;
+template<typename _Enable, template<typename...>typename F, typename...Args>
+struct __tp_valid_helper : std::false_type {};
+template<template<typename...>typename F, typename...Args>
+struct __tp_valid_helper<std::void_t<F<Args...>>, F, Args...> : std::true_type {};
+template<template<typename...>typename F, typename...Args>
+struct tp_valid : __tp_valid_helper<void, F, Args...> {};
+template<template<typename...>typename F, typename...Args>
+inline constexpr bool tp_valid_v = tp_valid<F, Args...>::value;
+template<typename F, typename...Args>
+inline constexpr bool tp_valid_f = tp_valid_v<F::template fn, Args...>;
+template<template<typename...>typename F, typename...Args>
+struct __tp_defer_helper {
+using type = F<Args...>;
+};
+template<template<typename...>typename F, typename...Args>
+struct tp_defer {
+using type = std::enable_if_t<tp_valid_v<F, Args...>, typename __tp_defer_helper<F, Args...>::type>;
+};
+template<template<typename...>typename F, typename...Args>
+using tp_defer_t = typename tp_defer<F, Args...>::type;
+template<typename F, typename...Args>
+using tp_defer_f = tp_defer_t<F::template fn, Args...>;
+template<typename T>
+struct tp_identity {
+using type = T;
+};
+template<typename T>
+using tp_identity_t = typename tp_identity<T>::type;
+template<template<typename...>typename F1, template<typename...>typename F2>
+struct tp_bind_fn {
+template<typename...Args>
+using fn = tp_defer_t<F1, tp_defer_t<F2, Args...>>;
+};
+template<template<typename...>typename F>
+struct tp_make_fn {
+template<typename...Args>
+using fn = tp_defer_t<F, Args...>;
+};
+template<template<typename...>typename F>
+struct tp_not_fn {
+template<typename...Args>
+using fn = typename tp_bind_fn<std::negation, F>::template fn<Args...>;
+};
+template<typename...Args>
+struct tp_always_true : std::true_type {};
+template<typename...Args>
+struct tp_always_false : std::false_type {};
+template<typename T>
+struct tp_is_empty : std::bool_constant<tp_size_v<T> == 0> {};
+template<typename T>
+inline constexpr bool tp_is_empty_v = tp_is_empty<T>::value;
+template<typename T, typename U>
+struct tp_assign;
+template<typename...Args1, template<typename...>typename T1,
+typename...Args2, template<typename...>typename T2>
+struct tp_assign<T1<Args1...>, T2<Args2...>> {
+using type = T1<Args2...>;
+};
+template<typename T, typename U>
+using tp_assign_t = typename tp_assign<T, U>::type;
+template<typename T>
+struct tp_clear;
+template<template<typename...>typename T, typename...Args>
+struct tp_clear<T<Args...>> {
+using type = T<>;
+};
+template<typename T>
+using tp_clear_t = typename tp_clear<T>::type;
+template<typename T, typename...Args>
+struct tp_push_front;
+template<template<typename...>typename C, typename...Args1, typename...Args2>
+struct tp_push_front<C<Args1...>, Args2...> {
+using type = C<Args2..., Args1...>;
+};
+template<typename T, typename...Args>
+using tp_push_front_t = typename tp_push_front<T, Args...>::type;
+template<typename T, typename...Args>
+struct tp_push_back;
+template<template<typename...>typename C, typename...Args1, typename...Args2>
+struct tp_push_back<C<Args1...>, Args2...> {
+using type = C<Args1..., Args2...>;
+};
+template<typename T, typename...Args>
+using tp_push_back_t = typename tp_push_back<T, Args...>::type;
+template<typename _Enable, size_t I, size_t N, typename...Args>
+struct __tp_cut_helper;
+template<size_t I, size_t N, typename T, typename...Args>
+struct __tp_cut_helper<std::enable_if_t<N != 0, void>, I, N, T, Args...> {
+using type = typename __tp_cut_helper<void, I - 1, N, Args...>::type;
+};
+template<size_t I, size_t N, typename T, typename...Args>
+struct __tp_cut_helper<std::enable_if_t<N == 0, void>, I, N, T, Args...> {
+using type = tp_list<>;
+};
+template<size_t N, typename...Args2>
+struct __tp_cut_helper2;
+template<size_t N, typename T, typename...Args>
+struct __tp_cut_helper2<N, T, Args...> {
+using type = tp_push_front_t<typename __tp_cut_helper2<N - 1, Args...>::type, T>;
+};
+template<typename...Args>
+struct __tp_cut_helper2<0, Args...> {
+using type = tp_list<>;
+};
+template<typename T, typename...Args>
+struct __tp_cut_helper2<0, T, Args...> {
+using type = tp_list<>;
+};
+template<size_t N, typename...Args>
+struct __tp_cut_helper<std::enable_if_t<N != 0>, 0, N, Args...> {
+using type = typename __tp_cut_helper2<N, Args...>::type;
+};
+template<size_t N, typename T, typename...Args>
+struct __tp_cut_helper<std::enable_if_t<N != 0>, 0, N, T, Args...> {
+using type = typename __tp_cut_helper2<N, T, Args...>::type;
+};
+template<typename T, template<typename...>typename U>
+struct tp_rename;
+template<template<typename...>typename C, typename...Args, template<typename...>typename U>
+struct tp_rename<C<Args...>, U> {
+using type = U<Args...>;
+};
+template<typename T, template<typename...>typename U>
+using tp_rename_t = typename tp_rename<T, U>::type;
+template<typename T, size_t I, size_t N>
+struct tp_cut;
+template<template<typename...>typename C, typename...Args, size_t I, size_t N>
+struct tp_cut<C<Args...>, I, N> {
+static_assert(N <= sizeof...(Args) && I <= (sizeof...(Args) - N), "tp_cut: invalid index");
+using type = tp_rename_t<typename __tp_cut_helper<void, I, N, Args...>::type, C>;
+};
+template<typename T, size_t I, size_t N>
+using tp_cut_t = typename tp_cut<T, I, N>::type;
+template<typename T>
+struct tp_pop_front : tp_cut<T, 1, tp_size_v<T> - 1> {};
+template<typename T>
+using tp_pop_front_t = typename tp_pop_front<T>::type;
+template<typename T>
+struct tp_pop_back : tp_cut<T, 0, tp_size_v<T> -1> {};
+template<typename T>
+using tp_pop_back_t = typename tp_pop_back<T>::type;
+template<size_t index, typename...Args>
+struct __tp_at_helper;
+template<size_t index, typename T, typename...Args>
+struct __tp_at_helper<index, T, Args...> {
+using type = typename __tp_at_helper<index - 1, Args...>::type;
+};
+template<typename T, typename...Args>
+struct __tp_at_helper<0, T, Args...> {
+using type = T;
+};
+template<typename T, size_t index>
+struct tp_at;
+template<template<typename...Args>typename C, typename...Args, size_t index>
+struct tp_at<C<Args...>, index> {
+static_assert(index < sizeof...(Args), "tp_at: invalid index");
+using type = typename __tp_at_helper<index, Args...>::type;
+};
+template<typename T, size_t index>
+using tp_at_t = typename tp_at<T, index>::type;
+template<typename T>
+struct tp_front {
+using type = tp_at_t<T, 0>;
+};
+template<typename T>
+using tp_front_t = typename tp_front<T>::type;
+template<typename T>
+struct tp_back {
+using type = tp_at_t<T, tp_size_v<T> -1>;
+};
+template<typename T>
+using tp_back_t = typename tp_back<T>::type;
+template<typename T, size_t idx>
+struct tp_prefix {
+using type = tp_cut_t<T, 0, idx>;
+};
+template<typename T, size_t idx>
+using tp_prefix_t = typename tp_prefix<T, idx>::type;
+template<typename T, size_t idx>
+struct tp_suffix {
+using type = tp_cut_t<T, tp_size_v<T> - idx, idx>;
+};
+template<typename T, size_t idx>
+using tp_suffix_t = typename tp_suffix<T, idx>::type;
+template<typename T, size_t idx>
+struct tp_remove_prefix {
+using type = tp_suffix_t<T, tp_size_v<T> - idx>;
+};
+template<typename T, size_t idx>
+using tp_remove_prefix_t = typename tp_remove_prefix<T, idx>::type;
+template<typename T, size_t idx>
+struct tp_remove_suffix {
+using type = tp_prefix_t<T, tp_size_v<T> - idx>;
+};
+template<typename T, size_t idx>
+using tp_remove_suffix_t = typename tp_remove_suffix<T, idx>::type;
+template<typename...Args>
+struct tp_concat;
+template<typename T>
+struct tp_concat<T> {
+using type = T;
+};
+template<
+template<typename...>typename C1, typename...Args1,
+template<typename...>typename C2, typename...Args2>
+struct tp_concat<C1<Args1...>, C2<Args2...>> {
+using type = C1<Args1..., Args2...>;
+};
+template<
+typename T,
+typename U,
+typename...Args3>
+struct tp_concat<T, U, Args3...> {
+using type = typename tp_concat<typename tp_concat<T, U>::type, Args3...>::type;
+};
+template<typename...Args>
+using tp_concat_t = typename tp_concat<Args...>::type;
+template<typename T, size_t idx, typename U>
+struct tp_replace_at {
+using type = tp_concat_t<tp_push_back_t<tp_cut_t<T, 0, idx>, U>, tp_cut_t<T, idx + 1, tp_size_v<T> -idx - 1>>;
+};
+template<typename T, typename U>
+struct tp_replace_at<T, 0, U> {
+using type = tp_push_front_t<tp_pop_front_t<T>, U>;
+};
+template<typename T, size_t idx, typename U>
+using tp_replace_at_t = typename tp_replace_at<T, idx, U>::type;
+template<typename T, typename U>
+struct tp_replace_front_at {
+using type = tp_replace_at_t<T, 0, U>;
+};
+template<typename T, typename U>
+using tp_replace_front_at_t = typename tp_replace_front_at<T, U>::type;
+template<typename T, typename U>
+struct tp_replace_back_at {
+using type = tp_replace_at_t<T, tp_size_v<T> -1, U>;
+};
+template<typename T, typename U>
+using tp_replace_back_at_t = typename tp_replace_back_at<T, U>::type;
+template<typename V, typename T, typename...Args>
+struct tp_conditional {
+using type = std::conditional_t<V::value, T, typename tp_conditional<Args...>::type>;
+};
+template<typename V, typename T1, typename T2>
+struct tp_conditional<V, T1, T2> {
+using type = std::conditional_t<V::value, T1, T2>;
+};
+template<typename V, typename T, typename...Args>
+using tp_conditional_t = typename tp_conditional<V, T, Args...>::type;
+template<size_t idx>
+struct tp_arg;
+template<template<typename...>typename F, typename...Args>
+struct tp_bind;
+template<template<typename...>typename F, typename...Args>
+struct tp_bind_front;
+template<template<typename...>typename F, typename...Args>
+struct tp_bind_back;
+template<size_t idx>
+struct tp_is_fn<tp_arg<idx>> : std::true_type {};
+template<template<typename...>typename F, typename...Args>
+struct tp_is_fn<tp_bind<F, Args...>> : std::true_type {};
+template<template<typename...>typename F, typename...Args>
+struct tp_is_fn<tp_bind_front<F, Args...>> : std::true_type {};
+template<template<typename...>typename F, typename...Args>
+struct tp_is_fn<tp_bind_back<F, Args...>> : std::true_type {};
+template<size_t idx>
+struct tp_arg {
+template<typename...Args>
+using fn = tp_at_t<tp_list<Args...>, idx>;
+};
+template<template<typename...>typename F,
+typename T>
+struct tp_apply {
+using type = tp_rename_t<T, F>;
+};
+template<template<typename...>typename F,
+typename T>
+using tp_apply_t = typename tp_apply<F, T>::type;
+template<typename F, typename T>
+using tp_apply_f = tp_apply_t<F::template fn, T>;
+template<typename _Enable, typename T, typename...Args>
+struct __tp_bind_helper {
+using type = T;
+};
+template<typename F, typename...Args>
+struct __tp_bind_helper<std::enable_if_t<tp_is_fn_v<F>, void>, F, Args...> {
+using type = typename F::template fn<Args...>;
+};
+template<template<typename...>typename F, typename...Args>
+struct tp_bind {
+template<typename...Args2>
+using fn = F<typename __tp_bind_helper<void, Args, Args2...>::type...>;
+};
+template<typename F, typename...Args>
+using tp_bind_f = tp_bind<F::template fn, Args...>;
+template<template<typename...>typename F, typename...Args>
+struct tp_bind_front {
+template<typename...Args2>
+using fn = tp_defer_t<F, Args..., Args2...>;
+};
+template<typename F, typename...Args>
+using tp_bind_front_f = tp_bind_front<F::template fn, Args...>;
+template<template<typename...>typename F, typename...Args>
+struct tp_bind_back {
+template<typename...Args2>
+using fn = tp_defer_t<F, Args2..., Args...>;
+};
+template<typename F, typename...Args>
+using tp_bind_back_f = tp_bind_back<F::template fn, Args...>;
+template<typename T, template<typename...>typename F>
+struct tp_transform;
+template<template<typename...>typename C, typename...Args, template<typename...>typename F>
+struct tp_transform<C<Args...>, F> {
+using type = C<F<Args>...>;
+};
+template<typename T, template<typename...>typename F>
+using tp_transform_t = typename tp_transform<T, F>::type;
+template<typename T, typename F>
+using tp_transform_f = typename tp_transform<T, F::template fn>::type;
+template<template<typename...>typename C, typename...Args>
+struct tp_zip;
+template<template<typename...>typename C, typename T>
+struct __tp_zip_helper;
+template<template<typename...>typename C, size_t...idx>
+struct __tp_zip_helper<C, std::index_sequence<idx...>> {
+template<size_t I, typename...Args>
+using __type = C<tp_at_t<Args, I>...>;
+template<typename...Args>
+using type = tp_list<__type<idx, Args...>...>;
+};
+template<template<typename...>typename C>
+struct tp_zip<C> {
+using type = tp_list<>;
+};
+template<template<typename...>typename C, typename T>
+struct tp_zip<C, T> {
+using type = typename __tp_zip_helper<C, std::make_index_sequence<tp_size_v<T>>>::template type<T>;
+};
+template<template<typename...>typename C, typename T, typename...Args>
+struct tp_zip<C, T, Args...> {
+constexpr static size_t size = tp_size_v<T>;
+static_assert(((size == tp_size_v<Args>) && ...),
+"tp_zip arguments must have same size, \
+you can make all arguments have same size by tp_");
+using type = typename __tp_zip_helper<C, std::make_index_sequence<tp_size_v<T>>>::template type<T, Args...>;
+};
+template<template<typename...>typename C, typename...Args>
+using tp_zip_t = typename tp_zip<C, Args...>::type;
+template<typename...Args>
+struct __tp_max_size_helper;
+template<typename T>
+struct __tp_max_size_helper<T> {
+constexpr static size_t value = tp_size_v<T>;
+};
+template<typename T, typename...Args>
+struct __tp_max_size_helper<T, Args...> {
+constexpr static size_t value = std::max(tp_size_v<T>, __tp_max_size_helper<Args...>::value);
+};
+template<typename T, typename...Args>
+struct tp_max_size {
+constexpr static size_t value = __tp_max_size_helper<T, Args...>::value;
+};
+template<typename T, typename...Args>
+inline constexpr size_t tp_max_size_v = tp_max_size<T, Args...>::value;
+template<typename T>
+struct tp_wrap {
+using type = tp_list<T>;
+};
+template<typename T>
+using tp_wrap_t = typename tp_wrap<T>::type;
+template<typename T>
+struct tp_unwrap {
+static_assert(tp_size_v<T> == 1, "only container that size = 1 can use unwrap");
+};
+template<template<typename...>typename C, typename T>
+struct tp_unwrap<C<T>> {
+using type = T;
+};
+template<typename T>
+using tp_unwrap_t = typename tp_unwrap<T>::type;
+template<typename T, template<typename...>typename P, typename U>
+struct tp_replace_if;
+template<template<typename...>typename C, typename...Args, template<typename...>typename P, typename U>
+struct tp_replace_if<C<Args...>, P, U> {
+using type = C<tp_conditional_t<P<Args>, U, Args>...>;
+};
+template<typename T, template<typename...>typename P, typename U>
+using tp_replace_if_t = typename tp_replace_if<T, P, U>::type;
+template<typename T, typename P, typename U>
+using tp_replace_if_f = tp_replace_if_t<T, P::template fn, U>;
+template<typename T, typename U>
+struct tp_replace_if_true {
+using type = tp_replace_if_t<T, tp_identity_t, U>;
+};
+template<typename T, typename U>
+using tp_replace_if_true_t = typename tp_replace_if_true<T, U>::type;
+template<typename T, typename U>
+struct tp_replace_if_false {
+using type = tp_replace_if_f<T, tp_not_fn<tp_identity_t>, U>;
+};
+template<typename T, typename U>
+using tp_replace_if_false_t = typename tp_replace_if_false<T, U>::type;
+template<typename T, typename O, typename N>
+struct tp_replace {
+using type = tp_replace_if_f<T, tp_bind_front<std::is_same, O>, N>;
+};
+template<typename T, typename O, typename N>
+using tp_replace_t = typename tp_replace<T, O, N>::type;
+template<typename T, typename U>
+struct tp_fill {
+using type = tp_replace_if_t<T, tp_always_true, U>;
+};
+template<typename T, typename U>
+using tp_fill_t = typename tp_fill<T, U>::type;
+template<typename T, template<typename...>typename P>
+struct tp_count_if;
+template<template<typename...>typename C, template<typename...>typename P>
+struct tp_count_if<C<>, P> {
+static constexpr size_t value = 0;
+};
+template<template<typename...>typename C, typename...Args, template<typename...>typename P>
+struct tp_count_if<C<Args...>, P> {
+static constexpr size_t value = (P<Args>::value + ...);
+};
+template<typename T, template<typename...>typename P>
+constexpr size_t tp_count_if_v = tp_count_if<T, P>::value;
+template<typename T, typename P>
+constexpr size_t tp_count_if_f_v = tp_count_if_v<T, P::template fn>;
+template<typename T, typename V>
+struct tp_count {
+static constexpr size_t value = tp_count_if_f_v<T, tp_bind_front<std::is_same, V>>;
+};
+template<typename T, typename V>
+constexpr size_t tp_count_v = tp_count<T, V>::value;
+template<typename T, typename V>
+struct tp_contains {
+static constexpr bool value = tp_count_v<T, V> != 0;
+};
+template<typename T, typename V>
+constexpr bool tp_contains_v = tp_contains<T, V>::value;
+template<typename T, template<typename...>typename P>
+struct tp_remove_if;
+template<template<typename...>typename C, typename...Args, template<typename...>typename P>
+struct tp_remove_if<C<Args...>, P> {
+using type = tp_concat_t<C<>, tp_conditional_t<P<Args>, C<>, C<Args>>...>;
+};
+template<typename T, template<typename...>typename P>
+using tp_remove_if_t = typename tp_remove_if<T, P>::type;
+template<typename T, typename P>
+using tp_remove_if_f = tp_remove_if_t<T, P::template fn>;
+template<typename T, typename V>
+struct tp_remove {
+using type = tp_remove_if_f<T, tp_bind_front<std::is_same, V>>;
+};
+template<typename T, typename V>
+using tp_remove_t = typename tp_remove<T, V>::type;
+template<typename T, template<typename...>typename P>
+struct tp_filter {
+using type = tp_remove_if_f<T, tp_not_fn<P>>;
+};
+template<typename T, template<typename...>typename P>
+using tp_filter_t = typename tp_filter<T, P>::type;
+template<typename T, typename P>
+using tp_filter_f = tp_filter_t<T, P::template fn>;
+template<typename T, typename U>
+struct tp_equal;
+template<typename _Enable, typename T, typename U>
+struct __tp_equal_helper : std::false_type{};
+template<template<typename...>typename C, typename...Args, template<typename...>typename D, typename...Args2>
+struct __tp_equal_helper<std::enable_if_t<sizeof...(Args) == sizeof...(Args2), void>, C<Args...>, D<Args2...>>
+: std::conjunction<std::is_same<Args, Args2>...> {};
+template<typename T, typename U>
+struct tp_equal : __tp_equal_helper<void, T, U> {};
+template<typename T, typename U>
+inline constexpr bool tp_equal_v = tp_equal<T, U>::value;
+template<typename T, size_t N>
+struct tp_repeat {
+using type = tp_concat_t<T, typename tp_repeat<T, N - 1>::type>;
+};
+template<typename T>
+struct tp_repeat<T, 0> {
+using type = tp_clear_t<T>;
+};
+template<typename C, size_t N>
+using tp_repeat_t = typename tp_repeat<C, N>::type;
+template<typename _Enable, typename C, size_t N, typename V>
+struct __tp_resize_helper {
+using type = tp_cut_t<C, 0, N>;
+};
+template<typename C, size_t N, typename V>
+struct __tp_resize_helper<std::enable_if_t<N >= tp_size_v<C>, void>, C, N, V> {
+using type = tp_concat_t<C, tp_repeat_t<V, N - tp_size_v<C>>>;
+};
+template<typename C, size_t N, typename V>
+struct tp_resize {
+using tyep = typename __tp_resize_helper<void, C, N, V>::type;
+};
+template<typename C, size_t N, typename V>
+using tp_resize_t = typename tp_resize<C, N, V>::type;
+template<template<typename...>typename C, typename...Args>
+struct tp_product;
+template<typename _Enable, template<typename...>typename C, typename...Args>
+struct __tp_product_helper{
+using type = tp_list<>;
+};
+template<typename _Enable, template<typename...>typename C, typename T>
+struct __tp_product_helper<_Enable, C, T> {
+using type = tp_list<tp_rename_t<T, C>>;
+};
+template<
+template<typename...>typename C,
+typename T,
+template<typename...>typename C1,
+typename...Args1,
+typename...Args>
+struct __tp_product_helper<std::enable_if_t<sizeof...(Args1) != 0, void>, C, T, C1<Args1...>, Args...> {
+using type = tp_concat_t<typename __tp_product_helper<void, C, tp_push_back_t<T, Args1>, Args...>::type...>;
+};
+template<template<typename...>typename C, typename...Args>
+struct tp_product {
+using type = typename __tp_product_helper<void, C, tp_list<>, Args...>::type;
+};
+template<template<typename...>typename C, typename...Args>
+using tp_product_t = typename tp_product<C, Args...>::type;
+template<typename C, size_t I, typename...Args>
+struct tp_insert {
+static_assert(I <= tp_size_v<C>, "tp insert index out of range");
+using type = tp_concat_t<tp_push_back_t<tp_prefix_t<C, I>, Args...>, tp_suffix_t<C, tp_size_v<C> -I>>;
+};
+template<typename C, size_t I, typename...Args>
+using tp_insert_t = typename tp_insert<C, I, Args...>::type;
+template<typename C, size_t I, size_t N>
+struct tp_erase {
+static_assert(N <= tp_size_v<C> && I <= tp_size_v<C> -N, "tp erase index out of range");
+using type = tp_concat_t<tp_prefix_t<C, I>, tp_suffix_t<C, tp_size_v<C> -I - N>>;
+};
+template<typename C, size_t I, size_t N>
+using tp_erase_t = typename tp_erase<C, I, N>::type;
+template<typename C>
+struct tp_reverse;
+template<template<typename...>typename C>
+struct tp_reverse<C<>> {
+using type = C<>;
+};
+template<template<typename...>typename C, typename T, typename...Args>
+struct tp_reverse<C<T, Args...>> {
+using type = tp_push_back_t<typename tp_reverse<C<Args...>>::type, T>;
+};
+template<typename C>
+using tp_reverse_t = typename tp_reverse<C>::type;
+template<typename _Enable, size_t idx, typename C, template<typename...>typename P>
+struct __tp_find_if_helper;
+template<typename _Enable, size_t idx,
+template<typename...>typename C,
+typename T,
+typename...Args,
+template<typename...>typename P>
+struct __tp_find_if_helper<_Enable, idx, C<T, Args...>, P> {
+constexpr static size_t value = __tp_find_if_helper<void, idx + 1, C<Args...>, P>::value;
+};
+template<typename _Enable, size_t idx,
+template<typename...>typename C,
+template<typename...>typename P>
+struct __tp_find_if_helper<_Enable, idx, C<>, P> {
+constexpr static size_t value = -1;
+};
+template<size_t idx,
+template<typename...>typename C,
+typename T,
+typename...Args,
+template<typename...>typename P>
+struct __tp_find_if_helper<std::enable_if_t<P<T>::value, void>, idx, C<T, Args...>, P> {
+constexpr static size_t value = idx;
+};
+template<typename C, template<typename...>typename P>
+struct tp_find_if {
+constexpr static size_t value = __tp_find_if_helper<void, 0, C, P>::value;
+};
+template<typename C, template<typename...>typename P>
+inline constexpr size_t tp_find_if_v = tp_find_if<C, P>::value;
+template<typename C, typename P>
+inline constexpr size_t tp_find_if_f = tp_find_if<C, P::template fn>::value;
+template<typename C, template<typename...>typename P>
+struct tp_find_if_not {
+constexpr static size_t value = tp_find_if_f<C, tp_not_fn<P>>;
+};
+template<typename C, template<typename...>typename P>
+inline constexpr size_t tp_find_if_not_v = tp_find_if_not<C, P>::value;
+template<typename C, typename P>
+inline constexpr size_t tp_find_if_not_f = tp_find_if_not<C, P::template fn>::value;
+template<typename C, typename V>
+struct tp_find{
+constexpr static size_t value = tp_find_if_f<C, tp_bind_front<std::is_same, V>>;
+};
+template<typename C, typename V>
+inline constexpr size_t tp_find_v = tp_find<C, V>::value;
+template<typename C, typename E, template<typename...>typename F>
+struct tp_left_fold;
+template<
+template<typename...>typename C,
+typename E,
+template<typename...>typename F>
+struct tp_left_fold<C<>, E, F> {
+using type = E;
+};
+template<
+template<typename...>typename C,
+typename T,
+typename...Args,
+typename E,
+template<typename...>typename F>
+struct tp_left_fold<C<T, Args...>, E, F> {
+using type = typename tp_left_fold<C<Args...>, F<E, T>, F>::type;
+};
+template<typename C, typename E, template<typename...>typename F>
+using tp_left_fold_t = typename tp_left_fold<C, E, F>::type;
+template<typename C, typename E, typename F>
+using tp_left_fold_f = typename tp_left_fold<C, E, F::template fn>::type;
+template<typename C, typename E, template<typename...>typename F>
+struct tp_right_fold;
+template<
+template<typename...>typename C,
+typename E,
+template<typename...>typename F>
+struct tp_right_fold<C<>, E, F> {
+using type = E;
+};
+template<
+template<typename...>typename C,
+typename T,
+typename...Args,
+typename E,
+template<typename...>typename F>
+struct tp_right_fold<C<T, Args...>, E, F> {
+using next_type = typename tp_right_fold<C<Args...>, E, F>::type;
+using type = F<T, next_type>;
+};
+template<typename C, typename E, template<typename...>typename F>
+using tp_right_fold_t = typename tp_right_fold<C, E, F>::type;
+template<typename C, typename E, typename F>
+using tp_right_fold_f = typename tp_right_fold<C, E, F::template fn>::type;
+template<typename C, template<typename...>typename P>
+struct tp_unique_if {
+using type = tp_left_fold_f<C, tp_clear_t<C>,
+tp_bind<tp_conditional_t, tp_bind_front<P>, tp_arg<0>,
+tp_bind_front<tp_push_back_t>>>;
+};
+template<typename C, template<typename...>typename P>
+using tp_unique_if_t = typename tp_unique_if<C, P>::type;
+template<typename C, typename P>
+using tp_unique_if_f = typename tp_unique_if<C, P::template fn>::type;
+template<typename C>
+struct tp_unique{
+using type = tp_unique_if_t<C, tp_contains>;
+};
+template<typename C>
+using tp_unique_t = typename tp_unique<C>::type;
+template<typename _Enable, typename C, typename C1, typename C2, template<typename...>typename P>
+struct __tp_merge_helper;
+template<
+typename _Enable,
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename C1,
+template<typename...>typename C2,
+typename...Args2,
+template<typename...>typename P>
+struct __tp_merge_helper<_Enable, C<Args...>, C1<>, C2<Args2...>, P> {
+using type = tp_list<Args..., Args2...>;
+};
+template<
+typename _Enable,
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename C1,
+typename...Args1,
+template<typename...>typename C2,
+template<typename...>typename P>
+struct __tp_merge_helper<_Enable, C<Args...>, C1<Args1...>, C2<>, P> {
+using type = tp_list<Args..., Args1...>;
+};
+template<
+typename _Enable,
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename C1,
+template<typename...>typename C2,
+template<typename...>typename P>
+struct __tp_merge_helper<_Enable, C<Args...>, C1<>, C2<>, P> {
+using type = tp_list<Args...>;
+};
+template<
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename C1,
+typename T1, typename...Args1,
+template<typename...>typename C2,
+typename T2, typename...Args2,
+template<typename...>typename P>
+struct __tp_merge_helper<std::enable_if_t<P<T1, T2>::value, void>, C<Args...>, C1<T1, Args1...>, C2<T2, Args2...>, P> {
+using type = typename __tp_merge_helper<void, C<Args..., T1>, C1<Args1...>, C2<T2, Args2...>, P>::type;
+};
+template<
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename C1,
+typename T1, typename...Args1,
+template<typename...>typename C2,
+typename T2, typename...Args2,
+template<typename...>typename P>
+struct __tp_merge_helper<std::enable_if_t<!P<T1, T2>::value, void>, C<Args...>, C1<T1, Args1...>, C2<T2, Args2...>, P> {
+using type = typename __tp_merge_helper<void, C<Args..., T2>, C1<T1, Args1...>, C2<Args2...>, P>::type;
+};
+template<typename C1, typename C2, template<typename...>typename P>
+struct tp_merge {
+using type = typename __tp_merge_helper<void, tp_list<>, C1, C2, P>::type;
+};
+template<typename C1, typename C2, template<typename...>typename P>
+using tp_merge_t = typename tp_merge<C1, C2, P>::type;
+template<typename C1, typename C2, typename P>
+using tp_merge_f = typename tp_merge<C1, C2, P::template fn>::type;
+template<typename C, template<typename...>typename P>
+struct tp_sort;
+template<
+typename C,
+template<typename...>typename P>
+struct __tp_sort_helper;
+template<
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename P>
+struct __tp_sort_helper<C<Args...>, P> {
+using _Container = C<Args...>;
+constexpr static size_t size = tp_size_v<_Container>;
+constexpr static size_t mid = size / 2;
+using type1 = typename __tp_sort_helper<tp_prefix_t<_Container, mid>, P>::type;
+using type2 = typename __tp_sort_helper<tp_suffix_t<_Container, size - mid>, P>::type;
+using type = tp_merge_t<type1, type2, P>;
+};
+template<
+template<typename...>typename C,
+typename T,
+template<typename...>typename P>
+struct __tp_sort_helper<C<T>, P> {
+using type = C<T>;
+};
+template<
+template<typename...>typename C,
+template<typename...>typename P>
+struct __tp_sort_helper<C<>, P> {
+using type = C<>;
+};
+template<
+template<typename...>typename C,
+typename...Args,
+template<typename...>typename P>
+struct tp_sort<C<Args...>, P> {
+using type = tp_rename_t<typename __tp_sort_helper<C<Args...>, P>::type, C>;
+};
+template<typename C, template<typename...>typename P>
+using tp_sort_t = typename tp_sort<C, P>::type;
+template<typename C, typename P>
+using tp_sort_f = typename tp_sort<C, P::template fn>::type;
+template<typename P, P I, typename T>
+struct __tp_iota_helper;
+template<typename P, P I, size_t...Idx>
+struct __tp_iota_helper<P, I, std::integer_sequence<P, Idx...>> {
+using type = tp_list<tp_c<P, I + Idx>...>;
+};
+template<typename P, P I, size_t N>
+struct tp_ctoa {
+using type = typename __tp_iota_helper<P, I, std::make_index_sequence<N>>::type;
+};
+template<typename P, P I, size_t N>
+using tp_ctoa_t = typename tp_ctoa<P, I, N>::type;
+template<size_t I, size_t N>
+struct tp_iota {
+using type = tp_ctoa_t<size_t, I, N>;
+};
+template<size_t I, size_t N>
+using tp_iota_t = typename tp_iota<I, N>::type;
+template<typename T, typename...Args>
+struct tp_set_push_back {
+using type = tp_unique_t<tp_push_back_t<T, Args...>>;
+};
+template<typename T, typename...Args>
+using tp_set_push_back_t = typename tp_set_push_back<T, Args...>::type;
+template<typename T, typename...Args>
+struct tp_set_push_front {
+using type = tp_unique_t<tp_push_front_t<T, Args...>>;
+};
+template<typename T, typename...Args>
+using tp_set_push_front_t = typename tp_set_push_front<T, Args...>::type;
+template<typename...Args>
+struct tp_set_union {
+using type = tp_unique_t<tp_concat_t<Args...>>;
+};
+template<typename...Args>
+using tp_set_union_t = typename tp_set_union<Args...>::type;
+template<typename T, typename...Args>
+struct tp_set_difference;
+template<typename T>
+struct tp_set_difference<T> {
+using type = T;
+};
+template<typename T, typename U>
+struct tp_set_difference<T, U> {
+private:
+template<typename C>
+using __filter = tp_contains<U, C>;
+public:
+using type = tp_remove_if_t<T, __filter>;
+};
+template<typename T, typename U, typename...Args>
+struct tp_set_difference<T, U, Args...> {
+using type = typename tp_set_difference<typename tp_set_difference<T, U>::type, Args...>::type;
+};
+template<typename T, typename...Args>
+using tp_set_difference_t = typename tp_set_difference<T, Args...>::type;
+template<typename...Args>
+struct tp_set_intersection;
+template<>
+struct tp_set_intersection<> {
+using type = tp_list<>;
+};
+template<typename T>
+struct tp_set_intersection<T> {
+using type = T;
+};
+template<typename T, typename U>
+struct tp_set_intersection<T, U> {
+private:
+template<typename C>
+using __filter = tp_contains<U, C>;
+public:
+using type = tp_filter_t<T, __filter>;
+};
+template<typename T, typename U, typename...Args>
+struct tp_set_intersection<T, U, Args...> {
+using type = typename tp_set_intersection<typename tp_set_intersection<T, U>::type, Args...>::type;
+};
+template<typename...Args>
+using tp_set_intersection_t = typename tp_set_intersection<Args...>::type;
+template<typename C, typename T, typename = void>
+struct __tp_find_unique_constructible_helper {
+using type = tp_size_t<(size_t)(-1)>;
+};
+template<typename C, typename T>
+struct __tp_find_unique_constructible_helper<C, T, std::enable_if_t<tp_size_v<T> == 1, void>> {
+using type = tp_size_t<tp_find_v<C, tp_front_t<T>>>;
+};
+template<typename C, typename...Args>
+struct tp_find_unique_constructible {
+private:
+template<typename U>
+struct __remove : std::negation<std::is_constructible<U, Args...>> {};
+using type1 = tp_remove_if_t<C, __remove>;
+using type2 = typename __tp_find_unique_constructible_helper<C, type1, void>::type;
+public:
+constexpr static size_t value = type2::value;
+};
+template<typename C, typename...Args>
+inline constexpr size_t tp_find_unique_constructible_v = tp_find_unique_constructible<C, Args...>::value;
+template<typename C, size_t idx, typename T>
+struct __tp_find_best_convertible_func {
+auto operator()(tp_at_t<C, idx>)->tp_c<size_t, idx>;
+};
+template<typename C, typename I, typename T>
+struct __tp_find_best_convertible_func_table;
+template<typename C, typename...Args, typename T>
+struct __tp_find_best_convertible_func_table<C, tp_list<Args...>, T>
+: __tp_find_best_convertible_func<C, Args::value, T>... {
+using __tp_find_best_convertible_func<C, Args::value, T>::operator()...;
+};
+template<typename C, typename I, typename T>
+struct __tp_find_best_convertible_helper;
+template<typename C, typename...Args, typename T>
+struct __tp_find_best_convertible_helper<C, tp_list<Args...>, T> {
+template<typename U>
+struct __remove : std::negation<std::is_convertible<T, tp_at_t<C, U::value>>> {};
+using __seq = tp_remove_if_t<tp_list<Args...>, __remove>;
+using type = __tp_find_best_convertible_func_table<C, __seq, T>;
+};
+template<typename C, typename I, typename T>
+using __tp_find_best_convertible_helper_t = typename __tp_find_best_convertible_helper<C, I, T>::type;
+template<typename _Enable, typename C, typename T>
+struct __tp_find_best_convertible{
+using type = tp_c<size_t, (size_t)(-1)>;
+};
+template<typename C, typename T>
+struct __tp_find_best_convertible<std::void_t<decltype(
+__tp_find_best_convertible_helper_t<C, tp_iota_t<0, tp_size_v<C>>, T>{}(std::declval<T>()))>, C, T> {
+using type = decltype(
+__tp_find_best_convertible_helper_t<C, tp_iota_t<0, tp_size_v<C>>, T>{}(std::declval<T>()));
+};
+template<typename C, typename T>
+struct tp_find_best_convertible {
+using __type= typename __tp_find_best_convertible<void, C, T>::type;
+constexpr static size_t value =  __type::value;
+};
+template<typename C, typename T>
+inline constexpr size_t tp_find_best_convertible_v = tp_find_best_convertible<C, T>::value;
+class tp_fn {
+public:
+template<typename C, typename F>
+constexpr static F for_each(F&& f) {
+return for_each(tp_rename_t<C, tp_list>{}, std::forward<F>(f));
+}
+template<template<typename...>typename C, typename...Args, typename F>
+constexpr static F for_each(C<Args...>, F&& f) {
+int dummy[] = { (f(Args()), 0)... };
+(void)(dummy);
+return std::forward<F>(f);
+}
+template<typename C, typename F, typename U>
+constexpr static decltype(auto) accumulate(F&& f, U&& u) {
+constexpr auto len = tp_size_v<C>;
+if constexpr (len == 0) { return std::forward<U>(u); }
+else {
+#define __WJR_REGISTER_ACCUMULATE_FUNC(x, y)			\
+if constexpr(len == x) {return ans##y;}		\
+else{										\
+auto ans##x = f(tp_at_t<C, x>(), ans##y)
+#define __WJR_REGISTER_ACCUMULATE_FUNC_END	}
+auto ans0 = f(tp_at_t<C, 0>(), std::forward<U>(u));
+__WJR_REGISTER_ACCUMULATE_FUNC(1, 0);
+__WJR_REGISTER_ACCUMULATE_FUNC(2, 1);
+__WJR_REGISTER_ACCUMULATE_FUNC(3, 2);
+__WJR_REGISTER_ACCUMULATE_FUNC(4, 3);
+__WJR_REGISTER_ACCUMULATE_FUNC(5, 4);
+__WJR_REGISTER_ACCUMULATE_FUNC(6, 5);
+__WJR_REGISTER_ACCUMULATE_FUNC(7, 6);
+return accumulate<tp_remove_prefix_t<C, 8>>(std::forward<F>(f), ans7);
+__WJR_REGISTER_ACCUMULATE_FUNC_END;
+__WJR_REGISTER_ACCUMULATE_FUNC_END;
+__WJR_REGISTER_ACCUMULATE_FUNC_END;
+__WJR_REGISTER_ACCUMULATE_FUNC_END;
+__WJR_REGISTER_ACCUMULATE_FUNC_END;
+__WJR_REGISTER_ACCUMULATE_FUNC_END;
+__WJR_REGISTER_ACCUMULATE_FUNC_END;
+#undef __WJR_REGISTER_ACCUMULATE_FUNC_END
+#undef __WJR_REGISTER_ACCUMULATE_FUNC
+}
+}
+private:
+};
+inline constexpr tp_fn tp;
+_WJR_END
+#endif // __WJR_TP_LIST_H
+
 _WJR_BEGIN
 template<size_t from_I, size_t to_I, typename...Vars, typename...Args>
 WJR_CONSTEXPR20 tp_at_t<tp_list<Vars...>, to_I>& emplace_from(std::variant<Vars...>& var, Args&&...args) noexcept {
@@ -24702,7 +24219,7 @@ class json;
 struct json_traits {
 template<typename T>
 using allocator_type = sallocator<T>;
-using encode_type = wjr::encode::ascii;
+using encode_type = wjr::ascii;
 using null = std::nullptr_t;
 using boolean = bool;
 using number = double;
@@ -24818,7 +24335,7 @@ return *(std::forward<T>(t));
 inline json() noexcept = default;
 inline json(const json& other) noexcept {
 std::visit([this](const auto& x) {
-constexpr auto idx = cont_find_v<WJR_PRIMITIVE_TYPE(x)>;
+constexpr auto idx = cont_find_v<WJR_PRI_TYPE(x)>;
 this->emplace_from<0, idx>(json::value(x));
 }, other.m_value);
 }
@@ -24907,7 +24424,7 @@ allocator_type<value_type>().deallocate(ptr, 1);
 public:
 inline void tidy() noexcept {
 std::visit([this](const auto& x) {
-constexpr auto idx = cont_find_v<WJR_PRIMITIVE_TYPE(x)>;
+constexpr auto idx = cont_find_v<WJR_PRI_TYPE(x)>;
 this->tidy_from<idx>();
 }, m_value);
 }
@@ -24946,7 +24463,7 @@ return emplace_from<from_I, type_find_v<to_T>>(std::forward<Args>(args)...);
 template<size_t I, typename...Args, std::enable_if_t<(I < 9), int> = 0>
 inline type_at_t<I>& emplace(Args&&...args) noexcept {
 return std::visit([this, tp = std::forward_as_tuple(std::forward<Args>(args)...)](const auto& x) ->type_at_t<I>&{
-WJR_MAYBE_UNUSED constexpr auto idx = cont_find_v<WJR_PRIMITIVE_TYPE(x)>;
+WJR_MAYBE_UNUSED constexpr auto idx = cont_find_v<WJR_PRI_TYPE(x)>;
 return std::apply([this](auto&&...args) ->type_at_t<I>&{
 return this->emplace_from<idx, I>(std::forward<decltype(args)>(args)...);
 }, std::move(tp));
@@ -25191,7 +24708,7 @@ constexpr iter skip_string(iter first, WJR_MAYBE_UNUSED iter last) {
 using value_t = typename std::iterator_traits<iter>::value_type;
 using uvalue_t = std::make_unsigned_t<value_t>;
 if constexpr (std::numeric_limits<uvalue_t>::max() < 256) {
-if constexpr (std::is_same_v<value_t, char> && is_contiguous_iter_v<iter>) {
+if constexpr (std::is_same_v<value_t, char> && is_contiguous_iterator_v<iter>) {
 do {
 auto pos = wjr::find(first, last, '"');
 auto pos2 = wjr::find_if(std::reverse_iterator(pos), std::reverse_iterator(first), [](auto x) {
@@ -25459,7 +24976,8 @@ break;
 }
 default: {
 const char* pos = nullptr;
-auto val = encode_type::to_floating_point<double>(first, last, &pos, nullptr,
+auto val = ascii_view(first, last - first).to_double(
+&pos, nullptr,
 std::integral_constant<encode_type::to_f_flags, encode_type::to_f_flags::ALLOW_TRAILING_JUNK>());
 first = pos;
 this->emplace_from<0, number>(val);
@@ -25496,6 +25014,7 @@ str.reserve(str.size() + 256);
 ascii_modifier it(str.lastPtr(), str.endPtr() - str.lastPtr());
 char* e = nullptr;
 it.from_floating_point(get_number(), &e);
+*e = '\0';
 str.set_size(e - str.data());
 str.finalize();
 break;

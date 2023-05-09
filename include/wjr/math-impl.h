@@ -83,12 +83,12 @@ WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int popcount(T x) noexcept {
 }
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
-WJR_ATTRIBUTE(INTRINSIC_E_CONSTEXPR) T adc(T a, T b, T c, T& d) noexcept {
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) T adc(T a, T b, T c, T& d) noexcept {
 	return wjr::masm::adc(a, b, c, &d);
 }
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
-WJR_ATTRIBUTE(INTRINSIC_E_CONSTEXPR) T sbb(T a, T b, T c, T& d) noexcept {
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) T sbb(T a, T b, T c, T& d) noexcept {
 	return wjr::masm::sbb(a, b, c, &d);
 }
 
@@ -549,14 +549,14 @@ inline constexpr void __width(T a, unsigned int& ret) {
 		}
 		return D;
 	};
-	if constexpr (depth <= 4) {
-		WJR_MACRO_CALL(__WIDTH_WORK_GEN, , 1, 2, 3, 4);
+	if constexpr (depth <= 8) {
+		WJR_MACRO_CALL(__WIDTH_WORK_GEN, , 1, 2, 3, 4, 5, 6, 7, 8);
 		if constexpr (use_table) {
 			constexpr auto __mid_digits = get_mid_digits(depth);
 			constexpr auto __mid = power<T>(base, __mid_digits);
 			constexpr auto __table_index = __get_width_table_v<base>;
 			constexpr auto __table_size = __get_width_table_size<__table_index>::value;
-			//static_assert(__mid <= __table_size, "");
+			static_assert(__mid <= __table_size, "");
 			constexpr auto p = []() {
 				unsigned int ret = 0;
 				unsigned int idx = base;
@@ -570,8 +570,8 @@ inline constexpr void __width(T a, unsigned int& ret) {
 		}
 	}
 	else {
-		WJR_MACRO_CALL(__WIDTH_WORK_GEN, , 1, 2, 3, 4);
-		__width<base, T, get_mid_digits(4), depth - 4, use_table>(a, ret);
+		WJR_MACRO_CALL(__WIDTH_WORK_GEN, , 1, 2, 3, 4, 5, 6, 7, 8);
+		__width<base, T, get_mid_digits(8), depth - 8, use_table>(a, ret);
 	}
 }
 

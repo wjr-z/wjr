@@ -425,11 +425,6 @@ WJR_NODISCARD WJR_PURE inline bool __memeq(const T* s0, const T* s1, size_t n, _
 		return pred(s0[0], s1[0]);
 	}
 
-	constexpr auto __need_byteswap = !wjr::is_any_of_v<_Pred,
-		std::equal_to<>,
-		std::not_equal_to<>
-	>;
-
 	if constexpr (_Mysize == 2) {
 		// n = [1, 8)
 		if (n >= 4) {
@@ -440,14 +435,17 @@ WJR_NODISCARD WJR_PURE inline bool __memeq(const T* s0, const T* s1, size_t n, _
 			auto A1 = *reinterpret_cast<const uint64_t*>(s1);
 			auto B1 = *reinterpret_cast<const uint64_t*>(s1 + n - 4);
 
-			if constexpr (__need_byteswap) {
-				A0 = wjr::byteswap(A0);
-				B0 = wjr::byteswap(B0);
-				A1 = wjr::byteswap(A1);
-				B1 = wjr::byteswap(B1);
+			if constexpr (std::is_same_v<_Pred, std::equal_to<>>) {
+				return A0 == A1 && B0 == B1;
 			}
+			else {
+				auto x = simd::sse::set_epi64x(B0, A0);
+				auto y = simd::sse::set_epi64x(B1, A1);
 
-			return pred(A0, A1) && pred(B0, B1);
+				__WJR_MEMEQ_ONE(simd::sse);
+
+				return true;
+			}
 		}
 	}
 
@@ -467,18 +465,17 @@ WJR_NODISCARD WJR_PURE inline bool __memeq(const T* s0, const T* s1, size_t n, _
 			auto C1 = *reinterpret_cast<const uint32_t*>(s1 + n - 4 - delta);
 			auto D1 = *reinterpret_cast<const uint32_t*>(s1 + n - 4);
 
-			if constexpr (__need_byteswap) {
-				A0 = wjr::byteswap(A0);
-				B0 = wjr::byteswap(B0);
-				C0 = wjr::byteswap(C0);
-				D0 = wjr::byteswap(D0);
-				A1 = wjr::byteswap(A1);
-				B1 = wjr::byteswap(B1);
-				C1 = wjr::byteswap(C1);
-				D1 = wjr::byteswap(D1);
+			if constexpr (std::is_same_v<_Pred, std::equal_to<>>) {
+				return A0 == A1 && B0 == B1 && C0 == C1 && D0 == D1;
 			}
+			else {
+				auto x = simd::sse::set_epi32(D0, C0, B0, A0);
+				auto y = simd::sse::set_epi32(D1, C1, B1, A1);
 
-			return (pred(A0, A1) && pred(B0, B1)) && (pred(C0, C1) && pred(D0, D1));
+				__WJR_MEMEQ_ONE(simd::sse);
+
+				return true;
+			}
 		}
 	}
 
@@ -486,15 +483,9 @@ WJR_NODISCARD WJR_PURE inline bool __memeq(const T* s0, const T* s1, size_t n, _
 		// n = [1, 4)
 		if (!pred(s0[0], s1[0])) return false;
 		if (n == 1) return true;
-		auto A = *reinterpret_cast<const uint16_t*>(s0 + n - 2);
-		auto B = *reinterpret_cast<const uint16_t*>(s1 + n - 2);
-
-		if constexpr (__need_byteswap) {
-			A = wjr::byteswap(A);
-			B = wjr::byteswap(B);
-		}
-
-		return pred(A, B);
+		const bool f = pred(s0[n - 2], s1[n - 2]);
+		const bool g = pred(s0[n - 1], s1[n - 1]);
+		return f && g;
 	}
 
 }

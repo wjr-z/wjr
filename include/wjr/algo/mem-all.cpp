@@ -26,4 +26,9 @@ template const uint8_t* __large__memrmis(
 	const uint8_t*, const uint8_t*, size_t, std::equal_to<>) noexcept;
 #endif // _WJR_FAST_MEMMIS
 
+#if defined(_WJR_FAST_MEMSKIPW)
+template const char* __large__memskipw(
+	const char*, const char*) noexcept;
+#endif // _WJR_FAST_MEMSKIPW
+
 _WJR_ALGO_END

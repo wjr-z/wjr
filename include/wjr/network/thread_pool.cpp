@@ -65,7 +65,7 @@ typename thread_pool::queue_type thread_pool::shutdown(bool) {
 }
 
 unsigned int thread_pool::get_threads_size() const {
-	return m_core_threads.size();
+	return static_cast<unsigned int>(m_core_threads.size());
 }
 
 void thread_pool::core_work() {

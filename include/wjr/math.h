@@ -47,10 +47,10 @@ template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_ATTRIBUTE(CONST, INTRINSIC_E_CONSTEXPR) int popcount(T x) noexcept;
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_ATTRIBUTE(INTRINSIC_E_CONSTEXPR) T adc(T a, T b, T c, T& d) noexcept;
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) T adc(T a, T b, T c, T& d) noexcept;
 
 template<typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_ATTRIBUTE(INTRINSIC_E_CONSTEXPR) T sbb(T a, T b, T c, T& d) noexcept;
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) T sbb(T a, T b, T c, T& d) noexcept;
 
 template<typename T, std::enable_if_t<is_standard_numer_v<T>, int> = 0>
 WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) T byteswap(T x) noexcept;

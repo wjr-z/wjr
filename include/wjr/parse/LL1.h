@@ -70,7 +70,7 @@ inline constexpr auto __first_helper() {
 	// update all edges
 	else {
 		constexpr auto __value = __first_helper2<BNF, BNF, FIRST>();
-		using __type = WJR_PRIMITIVE_TYPE(__value);
+		using __type = WJR_PRI_TYPE(__value);
 		return __first_helper<BNF, __type, FIRST>();
 	}
 }
@@ -85,7 +85,7 @@ inline constexpr auto __first_helper2() {
 	else {
 		using front = tp_front_t<E>;
 		constexpr auto __value = __first_helper3<BNF, tp_front_t<front>, tp_pop_front_t<front>, FIRST>();
-		using __type = WJR_PRIMITIVE_TYPE(__value);
+		using __type = WJR_PRI_TYPE(__value);
 		return __first_helper2<BNF, tp_pop_front_t<E>, __type>();
 	}
 }
@@ -115,8 +115,8 @@ inline constexpr auto __first_helper3() {
 			// if this node can reach empty
 			// we need to update the first set
 			if constexpr (tp_contains_v<tp_at_t<FIRST, idx2>, empty>) {
-				constexpr auto __value = __first_helper2<BNF, FA, tp_pop_front_t<SON>, __type1>();
-				using __type2 = WJR_PRIMITIVE_TYPE(__value);
+				constexpr auto __value = __first_helper3<BNF, FA, tp_pop_front_t<SON>, __type1>();
+				using __type2 = WJR_PRI_TYPE(__value);
 				return __type2();
 			}
 			else {
@@ -134,7 +134,7 @@ private:
 		tp_repeat_t<tp_list<tp_list<>>, tp_size_v<non_terminator_list_t<BNF>>>,
 		void>();
 public:
-	using type = WJR_PRIMITIVE_TYPE(__value);
+	using type = WJR_PRI_TYPE(__value);
 };
 
 // get FIRST set
@@ -157,39 +157,41 @@ struct get_first;
 template<typename BNF,  typename E>
 using get_first_t = typename get_first<BNF, E>::type;
 
-template<typename BNF, typename T, typename Enable>
-struct __get_first_helper2 {
-	using type = tp_at_t<first_t<BNF>, find_non_terminator_v<BNF, T>>;
-};
-
-template<typename BNF, typename T>
-struct __get_first_helper2<BNF, T, std::enable_if_t<is_terminator_v<BNF, T>, void>> {
-	using type = tp_list<T>;
-};
-
-template<typename BNF, typename E>
-struct __get_first_helper {
-	using type = typename __get_first_helper2<BNF, tp_front_t<E>, void>::type;
-};
-
-template<typename BNF, typename...Args>
-struct __get_first_helper<BNF, tp_list<empty, Args...>> {
-	using type = typename __get_first_helper2<BNF, tp_list<Args...>, void>::type;
-};
-
-template<typename BNF, typename T>
-struct __get_first_helper<BNF, tp_list<T>> {
-	using type = typename __get_first_helper2<BNF, T, void>::type;
-};
-
-template<typename BNF>
-struct __get_first_helper<BNF, tp_list<empty>> {
-	using type = typename __get_first_helper2<BNF, empty, void>::type;
-};
+template<typename BNF, typename E, typename LIST>
+constexpr auto __get_first_helper() {
+	constexpr auto len = tp_size_v<E>;
+	if constexpr (len == 0) {
+		return tp_set_push_back_t<LIST, empty>{};
+	}
+	else {
+		using first = tp_front_t<E>;
+		if constexpr (is_terminator_v<BNF, first>) {
+			if constexpr (!std::is_same_v<first, empty>) {
+				return tp_set_push_back_t<LIST, first>{};
+			}
+			else {
+				return __get_first_helper<BNF, tp_pop_front_t<E>, tp_set_push_back_t<LIST, empty>>();
+			}
+		}
+		else {
+			constexpr auto idx = find_non_terminator_v<BNF, first>;
+			using __LIST = tp_set_union_t<LIST, tp_at_t<first_t<BNF>, idx>>;
+			if constexpr (tp_contains_v<tp_at_t<first_t<BNF>, idx>, empty>) {
+				return __get_first_helper<BNF, tp_pop_front_t<E>, __LIST>();
+			}
+			else {
+				return __LIST{};
+			}
+		}
+	}
+}
 
 template<typename BNF, typename E>
 struct get_first {
-	using type = typename __get_first_helper<BNF, E>::type;
+private:
+	constexpr static auto __value = __get_first_helper<BNF, E, tp_list<>>();
+public:
+	using type = WJR_PRI_TYPE(__value);
 };
 
 template<typename BNF>
@@ -215,7 +217,7 @@ inline constexpr auto __follow_helper() {
 	}
 	else {
 		constexpr auto __value = __follow_helper2<BNF, BNF, FOLLOW>();
-		using __type = WJR_PRIMITIVE_TYPE(__value);
+		using __type = WJR_PRI_TYPE(__value);
 		return __follow_helper<BNF, __type, FOLLOW>();
 	}
 }
@@ -229,7 +231,7 @@ inline constexpr auto __follow_helper2() {
 	else {
 		using front = tp_front_t<E>;
 		constexpr auto __value = __follow_helper3<BNF, tp_front_t<front>, tp_pop_front_t<front>, FOLLOW>();
-		using __type = WJR_PRIMITIVE_TYPE(__value);
+		using __type = WJR_PRI_TYPE(__value);
 		return __follow_helper2<BNF, tp_pop_front_t<E>, __type>();
 	}
 }
@@ -286,7 +288,7 @@ private:
 		__follow,
 		void>();
 public:
-	using type = WJR_PRIMITIVE_TYPE(__value);
+	using type = WJR_PRI_TYPE(__value);
 };
 
 template<typename BNF>
@@ -323,7 +325,7 @@ struct select {
 private:
 	constexpr static auto __value = __select_helper<BNF, BNF, tp_list<>>();
 public:
-	using type = WJR_PRIMITIVE_TYPE(__value);
+	using type = WJR_PRI_TYPE(__value);
 	static_assert(tp_size_v<type> == tp_size_v<BNF>, "");
 };
 
@@ -335,25 +337,27 @@ template<typename BNF>
 using select_t = typename select<BNF>::type;
 
 template<typename BNF>
-struct parse_fn {
+struct parser_fn {
 	using SELECT = select_t<BNF>;
 
 private:
-	template<typename T, typename ACTION, typename...Args>
-	inline constexpr static decltype(auto) invoke(ACTION act, Args&&...args) {
-		if constexpr (std::is_same_v<T, disable_tag>) {
+	template<typename __switch, typename I, typename ACTION, typename...Args>
+	WJR_INTRINSIC_INLINE constexpr static decltype(auto) invoke(I i, ACTION act, Args&&...args) {
+		using I_ = WJR_PRI_TYPE(i);
+		using T = tp_at_t<tp_at_t<__switch, I_::value>, 1>;
+		if constexpr (std::is_same_v<T, disable_t>) {
 			(void)(std::forward<Args>(args), ...);
 			return;
 		}
 		else {
-			return act(T{}, std::forward<Args>(args)...);
+			return act(tp_at_t<BNF, T::value>{}, std::forward<Args>(args)...);
 		}
 	}
 
 	// tp_list<tp_list<I, S, T>...>
 	// I is index
 	// S is state
-	// T is disable or action index
+	// T is disable or action_fn{} index
 	template<typename T, typename __SELECT, size_t I, typename __LIST>
 	constexpr static auto __get_switch_helper() {
 		constexpr auto len = tp_size_v<__SELECT>;
@@ -364,37 +368,73 @@ private:
 			if constexpr (std::is_same_v<thisT, T> && tp_size_v<front> != 0) {
 				auto pre = __LIST{};
 				auto aft = tp.accumulate<front>([](auto x, auto l) {
-					using typex = WJR_PRIMITIVE_TYPE(x);
-					using typel = WJR_PRIMITIVE_TYPE(l);
-					using thisT = tp_list<tp_size_t<typex::value>, disable_tag, tp_list<switch_fallthrough>>;
+					using typex = WJR_PRI_TYPE(x);
+					using typel = WJR_PRI_TYPE(l);
+					using thisT = tp_list<typex, disable_t, tp_list<switch_fallthrough>>;
+					constexpr auto __conflict = tp_find_if_v<typel, 
+						tp_bind<tp_equal_c, tp_bind<tp_front_t, tp_arg<0>>, typex>::template fn>;
+					static_assert(__conflict == -1, "");
 					return tp_push_back_t<typel, thisT>{};
 					}, pre);
-				using thisList = WJR_PRIMITIVE_TYPE(aft);
+				using thisList = WJR_PRI_TYPE(aft);
 				constexpr auto ListSize = tp_size_v<thisList>;
 				using Last = tp_at_t<thisList, ListSize - 1>;
 				using List = tp_replace_at_t<thisList, ListSize - 1,
 					tp_list<tp_front_t<Last>, tp_size_t<I>, tp_list<>>>;
 				return __get_switch_helper<T, tp_pop_front_t<__SELECT>, I + 1, List>();
 			}
-			else return __get_switch_helper<T, tp_pop_front_t<__SELECT>, I + 1, __LIST>();
+			else return __get_switch_helper<T, tp_pop_front_t<__SELECT>, I + 1, __LIST>();                                                
 		}
 	}
+
+	template<typename __switch, typename __index, typename __state, bool Fall,
+		size_t I, size_t token, typename ACTION, typename...Args>
+	inline constexpr decltype(auto) crun(ACTION act, Args&&...args) const {
+		if constexpr (Fall) {
+			if constexpr (tp_contains_v<tp_at_t<__state, I>, switch_fallthrough>) {
+				return crun<__switch, __index, __state, Fall, I + 1, token>(act, std::forward<Args>(args)...);
+			}
+			else {
+				return invoke<__switch>(tp_size_t<I>{}, act, std::forward<Args>(args)...);
+			}
+		}
+		else {
+			if constexpr (token == tp_at_t<__index, I>::value) {
+				return crun<__switch, __index, __state, true, I, token>(act, std::forward<Args>(args)...);
+			}
+			else {
+				return crun<__switch, __index, __state, false, I + 1, token>(act, std::forward<Args>(args)...);
+			}
+		}
+	}
+
 public:
 
 	template<typename T, typename ACTION, typename...Args>
-	inline constexpr decltype(auto) operator()(T, size_t token, ACTION act, Args&&...args) const {
+	WJR_INTRINSIC_CONSTEXPR decltype(auto) operator()(T, size_t token, ACTION act, Args&&...args) const {
 		constexpr auto __value = __get_switch_helper<T, SELECT, 0, tp_list<>>();
-		using __switch = WJR_PRIMITIVE_TYPE(__value);
+		using __switch = WJR_PRI_TYPE(__value);
 		using __index = tp_transform_t<__switch, tp_front_t>;
 		using __state = tp_transform_t<__switch, tp_back_t>;
-		return switch_invoke<__index, false, __state>(token, [](auto I, auto&&...args) {
-			return invoke<tp_at_t<tp_at_t<__switch, I>, 1>>(std::forward<decltype(args)>(args)...);
-			}, act, std::forward<Args>(args)...);
+		return switch_invoke<__index, false, __state>(token, [act](auto I, auto&&...args) {
+			return invoke<__switch>(I, act, std::forward<decltype(args)>(args)...);
+			}, std::forward<Args>(args)...);
 	}
+
+	template<size_t token, typename T, typename ACTION, typename...Args>
+	inline constexpr decltype(auto) crun(T, ACTION act, Args&&...args) const {
+		constexpr auto __value = __get_switch_helper<T, SELECT, 0, tp_list<>>();
+		using __switch = WJR_PRI_TYPE(__value);
+		using __index = tp_transform_t<__switch, tp_front_t>;
+		using __state = tp_transform_t<__switch, tp_back_t>;
+
+		return crun<__switch, __index, __state, false, 0, token>(act, std::forward<Args>(args)...);
+	}
+
 };
 
 template<typename BNF>
-inline constexpr parse_fn<BNF> parse{};
+inline constexpr parser_fn<BNF> parser{};
 
 _WJR_PARSE_LL1_END
 

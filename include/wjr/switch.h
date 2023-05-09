@@ -9,6 +9,7 @@ _WJR_BEGIN
 
 struct switch_fallthrough {};
 struct switch_default {};
+struct switch_goto_default {};
 
 // Use these to control cases
 
@@ -20,12 +21,16 @@ namespace __switch_details {
 			constexpr bool __is_fallthrough = tp_contains_v<tp_at_t<StateList, (X)>, switch_fallthrough>;	            \
 			if constexpr (__is_fallthrough){	                                                                        \
 				(void)(func(tp_size_t<(X)>{}, std::forward<Args>(args)...));	                                        \
+				constexpr bool __is_goto_default = tp_contains_v<tp_at_t<StateList, (X)>, switch_goto_default>;			\
+				if constexpr(__is_goto_default){	                                                                    \
+					break;	                                                                                            \
+				}	                                                                                                    \
 			}else {	                                                                                                    \
 				return static_cast<Ret>(func(tp_size_t<(X)>{}, std::forward<Args>(args)...));	                        \
 				WJR_UNREACHABLE;	                                                                                    \
 			}	                                                                                                        \
 		}	                                                                                                            \
-		else if constexpr(!Default){WJR_UNREACHABLE;}	                                                                \
+		else break;	                                                                                                    \
 		WJR_FALLTHROUGH;	                                                                                            \
 	}
 
@@ -77,15 +82,14 @@ __WJR_CALL8(CASE, I + 8192)
 #define __WJR_SWITCH_STRATEGY_CASES(N)	                                                 \
 	switch(token){	                                                                     \
 		WJR_MACRO_CONCAT(__WJR_CALL, N)(__WJR_SWITCH_STRATEGY_CASE, 0)	                 \
-	default:{	                                                                         \
-		if constexpr(Default){	                                                         \
-			return static_cast<Ret>(func(switch_default{}, std::forward<Args>(args)...));\
-		}	                                                                             \
-	WJR_UNREACHABLE;	                                                                 \
+	default: break;	                                                                     \
 	}	                                                                                 \
-	}
+	if constexpr(Default){	                                                             \
+		return static_cast<Ret>(func(switch_default{}, std::forward<Args>(args)...));    \
+	}	                                                                                 \
+	WJR_UNREACHABLE;
 
-	template<int S>
+	template<unsigned int S>
 	struct switch_strategy;
 
 	template<size_t I>
@@ -112,9 +116,9 @@ __WJR_CALL8(CASE, I + 8192)
 	struct switch_strategy<(base2_width<unsigned int>(N) - 1)> {	                                     \
 		template<typename Ret, typename IndexList, bool Default, typename StateList,	                 \
 			typename Token, typename Func, typename...Args>	                                             \
-		inline constexpr static Ret invoke(Token token, Func func, Args&&...args) {						 \
+		WJR_INTRINSIC_CONSTEXPR static Ret invoke(Token token, Func func, Args&&...args) {				 \
 			constexpr auto __value = __complete<(N), 0, IndexList>();	                                 \
-			using __clist = WJR_PRIMITIVE_TYPE(__value);	                                             \
+			using __clist = WJR_PRI_TYPE(__value);	                                             \
 			__WJR_SWITCH_STRATEGY_CASES(N);	                                                             \
 		}	                                                                                             \
 	};
@@ -157,7 +161,7 @@ struct switch_invoke_fn {
 private:
 	template<typename T>
 	using __remove_if = tp_contains<tp_at_t<StateList, tp_front_t<T>::value>, switch_fallthrough>;
-	constexpr static int __strategy = base2_width<unsigned int>(size() - 1);
+	constexpr static unsigned int __strategy = base2_width<unsigned int>(size() - 1);
 	static_assert(size() <= ((size_t)1 << __strategy), "");
 	template<typename T, typename Func, typename...Args>
 	constexpr static auto __get_ret_list() {
@@ -169,13 +173,13 @@ private:
 public:
 
 	template<typename Token, typename Func, typename...Args>
-	inline constexpr decltype(auto) operator()(Token token, Func func, Args&&...args) const {
+	WJR_INTRINSIC_CONSTEXPR decltype(auto) operator()(Token token, Func func, Args&&...args) const {
 		using RetList = tp_transform_f<tp_iota_t<0, size()>,
 			tp_bind<std::invoke_result_t, Func, tp_arg<0>, Args&&...>>;
 		using ZipFilterRetList = tp_remove_if_t<tp_zip_t<tp_list, tp_iota_t<0, size()>, RetList>, __remove_if>;
 		using _FilterRetList = tp_transform_t<ZipFilterRetList, tp_back_t>;
 		constexpr auto __value = __get_ret_list<_FilterRetList, Func, Args&&...>();
-		using FilterRetList = WJR_PRIMITIVE_TYPE(__value);
+		using FilterRetList = WJR_PRI_TYPE(__value);
 		using UniqueRetList = tp_unique_t<FilterRetList>;
 		if constexpr (tp_is_empty_v<UniqueRetList>) {
 			return __switch_details::switch_strategy<__strategy>
@@ -195,6 +199,8 @@ public:
 template<typename IndexList, bool Default = false,
 	typename StateList = tp_repeat_t<tp_list<tp_list<>>, tp_size_v<IndexList>>>
 inline constexpr switch_invoke_fn<IndexList, Default, StateList> switch_invoke{};
+
+// TODO : switch for string and others
 
 _WJR_END
 

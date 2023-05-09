@@ -9,6 +9,7 @@
 
 #include <wjr/compressed_pair.h>
 #include <wjr/algorithm.h>
+#include <wjr/container_traits.h>
 
 _WJR_BEGIN
 
@@ -63,7 +64,7 @@ struct vector_data {
 		_Alty& al,
 		const size_type _Newsize,
 		const size_type _Newcapacity,
-		extend_tag)
+		extend_t)
 		: vector_data(al, _Newsize, _Newcapacity) {}
 
 	WJR_CONSTEXPR20 static void copyConstruct(_Alty& al, const vector_data& _Src, vector_data& _Dest) {
@@ -191,7 +192,7 @@ struct vector_static_data {
 		_Alty&, 
 		const size_type,
 		const size_type _Newcapacity,
-		extend_tag) {
+		extend_t) {
 		_lengthError(_Newcapacity);
 	}
 
@@ -309,7 +310,7 @@ struct vector_sso_data {
 		_Alty& al,
 		const size_type _Newsize,
 		const size_type _Newcapacity,
-		extend_tag)
+		extend_t)
 		: _M_ptr(_Alty_traits::allocate(al, _Newcapacity)),
 		_M_size(_Newsize), 
 		_M_capacity(_Newcapacity) {
@@ -455,6 +456,16 @@ namespace _Vector_helper {
 }
 
 template<typename T, typename Alloc = std::allocator<T>, typename Data = vector_data<T, Alloc>>
+class vector;
+
+template<typename T, typename Alloc, typename Data>
+struct base_container_traits<vector<T, Alloc, Data>> {
+	using allocator_type = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
+	using allocator_traits = std::allocator_traits<allocator_type>;
+};
+
+
+template<typename T, typename Alloc, typename Data>
 class vector {
 
 public:
@@ -490,13 +501,13 @@ public:
 	WJR_CONSTEXPR20 explicit vector(const allocator_type& al)
 		noexcept(std::is_nothrow_constructible_v<_Alty, const allocator_type&>
 			&& std::is_nothrow_default_constructible_v<data_type>)
-		: _Myval(std::piecewise_construct_t{},
+		: _Myval(std::piecewise_construct,
 			std::forward_as_tuple(al),
 			std::forward_as_tuple()) {}
 
 	WJR_CONSTEXPR20 explicit vector(const size_type _Count, const allocator_type& al = allocator_type())
 		: vector(al) {
-		_M_construct_n(_Count, value_construct_tag());
+		_M_construct_n(_Count, value_construct_t());
 	}
 
 	WJR_CONSTEXPR20 vector(size_type _Count, const value_type& _Val, const allocator_type& al = allocator_type())
@@ -514,10 +525,10 @@ private:
 public:
 
 	template<typename _Alloc>
-	WJR_CONSTEXPR20 vector(const vector& other, _Alloc&& al, disable_tag)
+	WJR_CONSTEXPR20 vector(const vector& other, _Alloc&& al, disable_t)
 		noexcept(_IsNoThrowCopyConstruct
 			&& std::is_nothrow_constructible_v<_Alty, _Alloc&&>)
-		: _Myval(std::piecewise_construct_t{},
+		: _Myval(std::piecewise_construct,
 			std::forward_as_tuple(std::forward<_Alloc>(al)),
 			std::forward_as_tuple()) {
 		copyConstruct(getAllocator(), other.getData(), getData());
@@ -525,52 +536,75 @@ public:
 
 	WJR_CONSTEXPR20 vector(const vector& other)
 		: vector(other, _Alty_traits::select_on_container_copy_construction(other.getAllocator()), 
-			disable_tag{}) {}
+			disable_t{}) {}
 
 	WJR_CONSTEXPR20 vector(const vector& other, const allocator_type& al)
-		: vector(other, al, disable_tag{}) {}
+		: vector(other, al, disable_t{}) {}
 
 	WJR_CONSTEXPR20 vector(vector&& other)
 		noexcept(_IsNoThrowMoveConstruct
 			&& std::is_nothrow_move_constructible_v<_Alty>)
-		: _Myval(std::piecewise_construct_t{},
+		: _Myval(std::piecewise_construct,
 			std::forward_as_tuple(std::move(other.getAllocator())),
 			std::forward_as_tuple()) {
 		moveConstruct(getAllocator(), std::move(other.getData()), getData());
 	}
 
 private:
-	WJR_CONSTEXPR20 vector(vector&& other, const allocator_type& al, std::true_type) noexcept
-		: _Myval(std::piecewise_construct_t{},
+	WJR_INTRINSIC_CONSTEXPR20 static void do_move_construct(vector& a, vector&& b) noexcept {
+		moveConstruct(a.getAllocator(), std::move(b.getData()), a.getData());
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 static void do_move_construct_by_element(vector& a, vector&& b) noexcept {
+		const auto _Size = b.size();
+		if (_Size != 0) {
+			auto& al = a.getAllocator();
+			{
+				data_type _Data(al, 0, _Size);
+				moveConstruct(al, std::move(_Data), a.getData());
+			}
+			a.set_size(_Size);
+			wjr::uninitialized_move_n(al, b.data(), _Size, a.data());
+		}
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 static void do_tidy(vector& a) noexcept { a.tidy(); }
+
+	WJR_INTRINSIC_CONSTEXPR20 static _Alty& do_get_allocator(vector& a) { 
+		return a.getAllocator();
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 static const _Alty& do_get_allocator(const vector& a) {
+		return a.getAllocator();
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 static void do_copy_assign(vector& a, const vector& b) {
+		a.assign(b.begin(), b.end());
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 static void do_move_assign(vector& a, vector&& b) noexcept {
+		moveConstruct(a.getAllocator(), std::move(b.getData()), a.getData());
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 static void do_move_assign_by_element(vector& a, vector&& b) noexcept {
+	    a.assign(std::make_move_iterator(b.begin()), std::make_move_iterator(b.end()));
+	}
+
+	WJR_INTRINSIC_CONSTEXPR20 static void do_swap(vector& a, vector& b) noexcept {
+		Swap(a.getAllocator(), a.getData(), b.getData());
+	}
+
+	using ctraits = container_traits<vector>;
+	friend ctraits;
+
+public:	
+	WJR_CONSTEXPR20 vector(vector&& other, const allocator_type& al)
+		noexcept
+		: _Myval(std::piecewise_construct,
 			std::forward_as_tuple(al),
 			std::forward_as_tuple()) {
-		moveConstruct(getAllocator(), std::move(other.getData()), getData());
+		ctraits::move_construct(*this, std::move(other));
 	}
-	WJR_CONSTEXPR20 vector(vector&& other, const allocator_type& _Al, std::false_type)
-		: _Myval(std::piecewise_construct_t{},
-			std::forward_as_tuple(_Al),
-			std::forward_as_tuple()) {
-		auto& al = getAllocator();
-		if (al == other.getAllocator()) {
-			moveConstruct(al, std::move(other.getData()), getData());
-		}
-		else {
-			const auto _Size = other.size();
-			if (_Size != 0) {
-				{
-					data_type _Data(al, 0, _Size);
-					moveConstruct(al, std::move(_Data), getData());
-				}
-				set_size(_Size);
-				wjr::uninitialized_move_n(al, other.data(), _Size, data());
-			}
-		}
-	}
-public:
-	WJR_CONSTEXPR20 vector(vector&& other, const allocator_type& al)
-		noexcept(noexcept(vector(std::declval<vector&&>(),
-			std::declval<const allocator_type&>(), std::declval<typename _Alty_traits::is_always_equal>())))
-		: vector(std::move(other), al, typename _Alty_traits::is_always_equal{}) {}
 
 	template<typename _Iter, std::enable_if_t<wjr::is_iterator_v<_Iter>, int> = 0>
 	WJR_CONSTEXPR20 vector(_Iter _First, _Iter _Last, const allocator_type& al = allocator_type())
@@ -588,21 +622,7 @@ public:
 	WJR_CONSTEXPR20 vector& operator=(const vector& other) {
 
 		if (WJR_LIKELY(this != std::addressof(other))) {
-			auto& al = getAllocator();
-			auto& other_al = other.getAllocator();
-
-			if constexpr (std::conjunction_v<typename _Alty_traits::propagate_on_container_copy_assignment
-				, std::negation<typename _Alty_traits::is_always_equal>>) {
-				if (al != other_al) {
-					tidy();
-				}
-			}
-
-			if constexpr (_Alty_traits::propagate_on_container_copy_assignment::value) {
-				al = other_al;
-			}
-
-			assign(other.begin(), other.end());
+			ctraits::copy_assign(*this, other);
 		}
 
 		return *this;
@@ -612,11 +632,8 @@ public:
 		noexcept(_Alty_traits::propagate_on_container_move_assignment::value
 			|| _Alty_traits::is_always_equal::value) {
 
-		using type = std::disjunction<typename _Alty_traits::propagate_on_container_move_assignment,
-			typename _Alty_traits::is_always_equal>;
-
 		if (WJR_LIKELY(this != std::addressof(other))) {
-			_M_move_assign(std::move(other), type());
+			ctraits::move_assign(*this, std::move(other));
 		}
 
 		return *this;
@@ -694,7 +711,7 @@ public:
 	}
 
 	WJR_CONSTEXPR20 void resize(const size_type _Newsize) {
-		_M_resize(_Newsize, value_construct_tag());
+		_M_resize(_Newsize, value_construct_t());
 	}
 
 	WJR_CONSTEXPR20 void resize(const size_type _Newsize, const value_type& _Val) {
@@ -721,7 +738,7 @@ public:
 
 			const size_type _Newcapacity = getGrowthCapacity(_Oldcapacity, n);
 
-			data_type _Newdata(al, _Oldsize, _Newcapacity, extend_tag());
+			data_type _Newdata(al, _Oldsize, _Newcapacity, extend_t());
 			wjr::uninitialized_move_n(al, data(), _Oldsize, _Newdata.data());
 
 			tidy();
@@ -850,10 +867,7 @@ public:
 	}
 
 	WJR_INLINE_CONSTEXPR20 void swap(vector& _Right) noexcept {
-		Swap(getAllocator(), getData(), _Right.getData());
-		if constexpr (_Alty_traits::propagate_on_container_swap::value) {
-			std::swap(getAllocator(), _Right.getAllocator());
-		}
+		ctraits::swap(*this, _Right);
 	}
 
 	WJR_CONSTEXPR20 void clear() {
@@ -986,14 +1000,14 @@ public:
 	
 	/*------default construct/value_construct------*/
 	
-	WJR_CONSTEXPR20 vector(const size_type _Count, default_construct_tag, const allocator_type& al = allocator_type())
+	WJR_CONSTEXPR20 vector(const size_type _Count, default_construct_t, const allocator_type& al = allocator_type())
 		: vector(al) {
-		_M_construct_n(_Count, default_construct_tag());
+		_M_construct_n(_Count, default_construct_t());
 	}
 
-	WJR_CONSTEXPR20 vector(const size_type _Count, value_construct_tag, const allocator_type& al = allocator_type())
+	WJR_CONSTEXPR20 vector(const size_type _Count, value_construct_t, const allocator_type& al = allocator_type())
 		: vector(al) {
-		_M_construct_n(_Count, value_construct_tag());
+		_M_construct_n(_Count, value_construct_t());
 	}
 
 	WJR_CONSTEXPR20 vector(data_type&& _Data, const allocator_type& al = allocator_type())
@@ -1001,29 +1015,29 @@ public:
 		moveConstruct(getAllocator(), std::move(_Data), getData());
 	}
 
-	WJR_CONSTEXPR20 void resize(const size_type _Newsize, default_construct_tag) {
-		_M_resize(_Newsize, default_construct_tag());
+	WJR_CONSTEXPR20 void resize(const size_type _Newsize, default_construct_t) {
+		_M_resize(_Newsize, default_construct_t());
 	}
 
-	WJR_CONSTEXPR20 void resize(const size_type _Newsize, value_construct_tag) {
-		_M_resize(_Newsize, value_construct_tag());
+	WJR_CONSTEXPR20 void resize(const size_type _Newsize, value_construct_t) {
+		_M_resize(_Newsize, value_construct_t());
 	}
 
-	WJR_CONSTEXPR20 void push_back(default_construct_tag) {
-		emplace_back(default_construct_tag());
+	WJR_CONSTEXPR20 void push_back(default_construct_t) {
+		emplace_back(default_construct_t());
 	}
 
-	WJR_CONSTEXPR20 void push_back(value_construct_tag) {
-		emplace_back(value_construct_tag());
+	WJR_CONSTEXPR20 void push_back(value_construct_t) {
+		emplace_back(value_construct_t());
 	}
 
-	WJR_CONSTEXPR20 vector& append(const size_type n, default_construct_tag) {
-		_M_append(n, default_construct_tag());
+	WJR_CONSTEXPR20 vector& append(const size_type n, default_construct_t) {
+		_M_append(n, default_construct_t());
 		return *this;
 	}
 
-	WJR_CONSTEXPR20 vector& append(const size_type n, value_construct_tag) {
-		_M_append(n, value_construct_tag());
+	WJR_CONSTEXPR20 vector& append(const size_type n, value_construct_t) {
+		_M_append(n, value_construct_t());
 		return *this;
 	}
 	
@@ -1207,7 +1221,7 @@ private:
 				const auto __old_size = static_cast<size_type>(_Mylast - _Myfirst);
 				const auto __old_pos = static_cast<size_type>(_Where - _Myfirst);
 				const size_type _Newcapacity = getGrowthCapacity(capacity(), __old_size + n);
-				data_type _Newdata(al, __old_size + n, _Newcapacity, extend_tag());
+				data_type _Newdata(al, __old_size + n, _Newcapacity, extend_t());
 				const pointer _Newfirst = _Newdata.data();
 
 				wjr::uninitialized_copy(al, _First, _Last, _Newfirst + __old_pos);
@@ -1246,7 +1260,7 @@ private:
 				const auto __old_size = static_cast<size_type>(_Mylast - _Myfirst);
 				const size_type _Newcapacity = getGrowthCapacity(capacity(), __old_size + n);
 
-				data_type _Newdata(al, __old_size + n, _Newcapacity, extend_tag());
+				data_type _Newdata(al, __old_size + n, _Newcapacity, extend_t());
 				const pointer _Newfirst = _Newdata.data();
 
 				wjr::uninitialized_copy(al, _First, _Last, _Newfirst + __old_size);
@@ -1297,7 +1311,7 @@ private:
 		}
 		else {
 			size_type _Newcapacity = getGrowthCapacity(capacity(), _Count);
-			data_type _Newdata(al, _Count, _Newcapacity, extend_tag());
+			data_type _Newdata(al, _Count, _Newcapacity, extend_t());
 			const pointer _Newfirst = _Newdata.data();
 			wjr::uninitialized_copy(al, _First, _Last, _Newfirst);
 
@@ -1310,7 +1324,7 @@ private:
 		auto& al = getAllocator();
 		if (_Count > capacity()) {
 			tidy();
-			data_type _Newdata(al, _Count, _Count, extend_tag());
+			data_type _Newdata(al, _Count, _Count, extend_t());
 			moveConstruct(al, std::move(_Newdata), getData());
 			wjr::uninitialized_fill_n(al, data(), _Count, _Val);
 			return;
@@ -1358,7 +1372,7 @@ private:
 		const size_type __new_size = __old_size + 1;
 		const size_type _Newcapacity = getGrowthCapacity(__old_size, __new_size);
 
-		data_type _Newdata(al, __new_size, _Newcapacity, extend_tag());
+		data_type _Newdata(al, __new_size, _Newcapacity, extend_t());
 
 		const pointer _Newfirst = _Newdata.data();
 		const pointer _Newwhere = _Newfirst + __old_pos;
@@ -1382,7 +1396,7 @@ private:
 		const auto __new_size = __old_size + 1;
 		const size_type _Newcapacity = getGrowthCapacity(__old_size, __new_size);
 
-		data_type _Newdata(al, __new_size, _Newcapacity, extend_tag());
+		data_type _Newdata(al, __new_size, _Newcapacity, extend_t());
 		const pointer _Newfirst = _Newdata.data();
 
 		const pointer _Newwhere = _Newfirst + __old_size;
@@ -1424,7 +1438,7 @@ private:
 		}
 		else {
 			const auto _Newcapacity = getGrowthCapacity(capacity(), size() + n);
-			data_type _Newdata(al, size() + n, _Newcapacity, extend_tag());
+			data_type _Newdata(al, size() + n, _Newcapacity, extend_t());
 			const pointer _Newfirst = _Newdata.data();
 
 			const auto __old_pos = static_cast<size_type>(_Where - _Myfirst);
@@ -1468,7 +1482,7 @@ private:
 		}
 		else {
 			auto _Newcapacity = getGrowthCapacity(_Oldcapacity, _Newsize);
-			data_type _Newdata(al, _Newsize, _Newcapacity, extend_tag());
+			data_type _Newdata(al, _Newsize, _Newcapacity, extend_t());
 			const pointer _Newfirst = _Newdata.data();
 
 			wjr::uninitialized_fill_n(al, _Newfirst + _Oldsize, n, _Val);
@@ -1575,7 +1589,7 @@ private:
 				const auto __old_size = static_cast<size_type>(_Mylast - _Myfirst);
 				const auto __old_pos = static_cast<size_type>(_Oldfirst - _Myfirst);
 				const auto _Newcapacity = getGrowthCapacity(capacity(), __old_size + __delta);
-				data_type _Newdata(al, __old_size + __delta, _Newcapacity, extend_tag());
+				data_type _Newdata(al, __old_size + __delta, _Newcapacity, extend_t());
 				const pointer _Ptr = _Newdata.data();
 
 				wjr::uninitialized_copy(al, _Newfirst, _Newlast, _Ptr + __old_pos);
@@ -1627,7 +1641,7 @@ private:
 				const auto __old_size = static_cast<size_type>(_Mylast - _Myfirst);
 				const auto __old_pos = static_cast<size_type>(_Oldfirst - _Myfirst);
 				const auto _Newcapacity = getGrowthCapacity(capacity(), __old_size + __delta);
-				data_type _Newdata(al, __old_size + __delta, _Newcapacity, extend_tag());
+				data_type _Newdata(al, __old_size + __delta, _Newcapacity, extend_t());
 				const pointer _Ptr = _Newdata.data();
 
 				wjr::uninitialized_fill_n(al, _Ptr + __old_pos, __m, _Val);

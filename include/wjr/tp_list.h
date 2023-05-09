@@ -100,6 +100,9 @@ struct tp_greater_c : std::bool_constant < (T::value > U::value)> {};
 template<typename T, typename U>
 struct tp_greater_equalv : std::bool_constant < (T::value >= U::value)>{};
 
+template<typename T, typename U>
+struct tp_max_c : std::conditional_t<(T::value < U::value), U, T> {};
+
 template<typename T>
 struct tp_is_fn : std::false_type {};
 
@@ -1154,17 +1157,25 @@ using tp_sort_t = typename tp_sort<C, P>::type;
 template<typename C, typename P>
 using tp_sort_f = typename tp_sort<C, P::template fn>::type;
 
-template<size_t I, typename T>
+template<typename P, P I, typename T>
 struct __tp_iota_helper;
 
-template<size_t I, size_t...Idx>
-struct __tp_iota_helper<I, std::index_sequence<Idx...>> {
-	using type = tp_list<tp_size_t<I + Idx>...>;
+template<typename P, P I, size_t...Idx>
+struct __tp_iota_helper<P, I, std::integer_sequence<P, Idx...>> {
+	using type = tp_list<tp_c<P, I + Idx>...>;
 };
+
+template<typename P, P I, size_t N>
+struct tp_ctoa {
+	using type = typename __tp_iota_helper<P, I, std::make_index_sequence<N>>::type;
+};
+
+template<typename P, P I, size_t N>
+using tp_ctoa_t = typename tp_ctoa<P, I, N>::type;
 
 template<size_t I, size_t N>
 struct tp_iota {
-	using type = typename __tp_iota_helper<I, std::make_index_sequence<N>>::type;
+	using type = tp_ctoa_t<size_t, I, N>;
 };
 
 template<size_t I, size_t N>
@@ -1362,9 +1373,7 @@ public:
 			__WJR_REGISTER_ACCUMULATE_FUNC(5, 4);
 			__WJR_REGISTER_ACCUMULATE_FUNC(6, 5);
 			__WJR_REGISTER_ACCUMULATE_FUNC(7, 6);
-			__WJR_REGISTER_ACCUMULATE_FUNC(8, 7);
-			return tp_remove_prefix_t<C, 8>{}.accumulate(std::forward<F>(f), ans4);
-			__WJR_REGISTER_ACCUMULATE_FUNC_END;
+			return accumulate<tp_remove_prefix_t<C, 8>>(std::forward<F>(f), ans7);
 			__WJR_REGISTER_ACCUMULATE_FUNC_END;
 			__WJR_REGISTER_ACCUMULATE_FUNC_END;
 			__WJR_REGISTER_ACCUMULATE_FUNC_END;

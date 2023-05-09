@@ -555,7 +555,7 @@ public:
 	constexpr unique_ptr_with_allocator_delete() = default;
 	constexpr unique_ptr_with_allocator_delete(size_t n, const allocator_type& _Al = allocator_type())
 		noexcept(std::is_nothrow_constructible_v<_Alty, const allocator_type&>)
-		: m_value(std::piecewise_construct_t(),
+		: m_value(std::piecewise_construct,
 			std::forward_as_tuple(_Al),
 			std::forward_as_tuple(n)) {}
 	constexpr unique_ptr_with_allocator_delete(const unique_ptr_with_allocator_delete&) = default;

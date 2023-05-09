@@ -538,7 +538,7 @@ WJR_MACRO_CONCAT(__small, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n,
 		if (n == 1) return s0 - 1;
 		const bool f = pred(s0[static_cast<size_t>(1 - n)], s1[static_cast<size_t>(1 - n)]);
 		const bool g = pred(s0[static_cast<size_t>(0 - n)], s1[static_cast<size_t>(0 - n)]);
-		const size_t i1 = g ? -n : 1 - n;
+		const size_t i1 = g ? static_cast<size_t>(0 - n) : static_cast<size_t>(1 - n);
 		const size_t i2 = f ? i1 : 2 - n;
 		return s0 + i2;
 	}

@@ -20,7 +20,7 @@ constexpr iter skip_string(iter first, WJR_MAYBE_UNUSED iter last) {
 	using value_t = typename std::iterator_traits<iter>::value_type;
 	using uvalue_t = std::make_unsigned_t<value_t>;
 	if constexpr (std::numeric_limits<uvalue_t>::max() < 256) {
-		if constexpr (std::is_same_v<value_t, char> && is_contiguous_iter_v<iter>) {
+		if constexpr (std::is_same_v<value_t, char> && is_contiguous_iterator_v<iter>) {
 			do {
 				// very fast for most cases
 				// In most cases, skipping characters greater than or equal to 2 
@@ -301,7 +301,8 @@ json::json(const char*& first, const char* last, parse_tag) {
 	}
 	default: {
 		const char* pos = nullptr;
-		auto val = encode_type::to_floating_point<double>(first, last, &pos, nullptr, 
+		auto val = ascii_view(first, last - first).to_double(
+			&pos, nullptr, 
 			std::integral_constant<encode_type::to_f_flags, encode_type::to_f_flags::ALLOW_TRAILING_JUNK>());
 		first = pos;
 		this->emplace_from<0, number>(val);
@@ -339,6 +340,7 @@ void json::_stringify(string& str, int a) const noexcept {
 		ascii_modifier it(str.lastPtr(), str.endPtr() - str.lastPtr());
 		char* e = nullptr;
 		it.from_floating_point(get_number(), &e);
+		*e = '\0';
 		str.set_size(e - str.data());
 		str.finalize();
 		break;

@@ -15,7 +15,7 @@ extern const cpu_features::X86Info cpuinfo;
 extern const cpu_features::CacheInfo cacheinfo;
 extern const cpu_features::X86Microarchitecture microarchitecture;
 
-extern const size_t __max_cache_size;
+extern const int __max_cache_size;
 extern const bool __is_intel;
 extern const bool __is_amd;
 

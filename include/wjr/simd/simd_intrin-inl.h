@@ -786,8 +786,8 @@ uint32_t sse::min(__m128i a, uint32_t) { return min_epu32(a); }
 
 __m128i sse::move_epi64(__m128i a) { return _mm_move_epi64(a); }
 
-sse::mask_type sse::movemask_epi8(__m128i a) { return _mm_movemask_epi8(a); }
-sse::mask_type sse::movemask_pd(__m128d v) { return _mm_movemask_pd(v); }
+sse::mask_type sse::movemask_epi8(__m128i a) { return static_cast<mask_type>(_mm_movemask_epi8(a)); }
+sse::mask_type sse::movemask_pd(__m128d v) { return static_cast<mask_type>(_mm_movemask_pd(v)); }
 
 sse::mask_type sse::movemask(__m128i v, int8_t) { return movemask_epi8(v); }
 sse::mask_type sse::movemask(__m128i v, int32_t) { return movemask_ps(simd_cast<__m128_tag, __m128i_tag>(v)); }

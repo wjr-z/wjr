@@ -70,22 +70,24 @@ WJR_INTRINSIC_CONSTEXPR void assume_no_sub_overflow(T a, T b) noexcept {
 	WJR_ASSUME(a >= b);
 }
 
+struct empty {};
+
 // disable tag, for example, used in enable_if_t
-struct disable_tag {};
+struct disable_t {};
 
 // used in construct_at, use default construct instead of value construct
-struct default_construct_tag {};
-struct value_construct_tag {};
+struct default_construct_t {};
+struct value_construct_t {};
 
 // used in string
-struct extend_tag {};
+struct extend_t {};
 // used if the memory is reserved for optimize
-struct reserve_tag {};
+struct reserve_t {};
 
-struct defer_tag {};
-struct adopt_tag {};
+struct defer_t {};
+struct adopt_t {};
 
-struct unreachable_tag {};
+struct unreachable_t {};
 
 template<typename T, typename U, typename _Pred>
 struct has_global_binary_operator : std::false_type {};
@@ -140,7 +142,7 @@ using remove_cref_t = std::remove_const_t<remove_ref_t<T>>;
 template<typename T>
 using remove_cvref_t = std::remove_cv_t<remove_ref_t<T>>;
 
-#define WJR_PRIMITIVE_TYPE(x) ::wjr::remove_cvref_t<decltype(x)>
+#define WJR_PRI_TYPE(x) ::wjr::remove_cvref_t<decltype(x)>
 
 template<typename T>
 using add_lref_t = std::add_lvalue_reference_t<T>;
@@ -261,27 +263,27 @@ template<typename T>
 inline constexpr bool is_random_iterator_v = is_random_iterator<T>::value;
 
 template<typename _Iter, typename = void>
-struct _is_contiguous_iter_helper : std::false_type {};
+struct _is_contiguous_iterator_helper : std::false_type {};
 
 template<typename _Iter>
-struct _is_contiguous_iter_helper<_Iter, typename _Iter::is_contiguous_iter> : std::true_type {};
+struct _is_contiguous_iterator_helper<_Iter, typename _Iter::is_contiguous_iterator> : std::true_type {};
 
 template<typename T>
-struct _is_contiguous_iter_helper<T*, void> : std::true_type {};
+struct _is_contiguous_iterator_helper<T*, void> : std::true_type {};
 
 #if defined(WJR_CPP_20)
 template<typename T>
-struct is_contiguous_iter : std::bool_constant<std::contiguous_iterator<T> || _is_contiguous_iter_helper<T>::value> {};
+struct is_contiguous_iterator : std::bool_constant<std::contiguous_iterator<T> || _is_contiguous_iterator_helper<T>::value> {};
 #else
 template<typename T>
-struct is_contiguous_iter : _is_contiguous_iter_helper<T> {};
+struct is_contiguous_iterator : _is_contiguous_iterator_helper<T> {};
 #endif
 
 template<typename _Iter>
-struct is_contiguous_iter<std::reverse_iterator<_Iter>> : is_contiguous_iter<_Iter> {};
+struct is_contiguous_iterator<std::reverse_iterator<_Iter>> : is_contiguous_iterator<_Iter> {};
 
 template<typename T>
-inline constexpr bool is_contiguous_iter_v = is_contiguous_iter<T>::value;
+inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<T>::value;
 
 // dont't support int128 / uint128 yet
 

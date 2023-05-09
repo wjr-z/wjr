@@ -91,7 +91,7 @@ WJR_INTRINSIC_INLINE static T __wjr_msvc_adc(T a, T b, T carry_in, T& carry_out)
 #endif
 
 template<typename T, std::enable_if_t<wjr::is_unsigned_integral_v<T>, int> = 0>
-WJR_ATTRIBUTE(INTRINSIC_E_CONSTEXPR) T adc(T a, T b, T carry_in, T& carry_out) {
+WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) T adc(T a, T b, T carry_in, T& carry_out) {
 	if (!wjr::is_constant_evaluated()) {
 		if (!((is_constant_p(a) && is_constant_p(b)) || (is_constant_p(carry_in) && carry_in == 0))) {
 #if WJR_HAS_BUILTIN(__builtin_addc) || WJR_HAS_CLANG(5, 0, 0)

@@ -116,10 +116,10 @@ template<typename _Iter, typename...Args,
 WJR_CONSTEXPR20 void do_construct_at(_Iter iter, Args&&... args);
 
 template<typename _Iter, std::enable_if_t<is_iterator_v<wjr::remove_cvref_t<_Iter>>, int> = 0>
-WJR_CONSTEXPR20 void do_construct_at(_Iter iter, default_construct_tag);
+WJR_CONSTEXPR20 void do_construct_at(_Iter iter, default_construct_t);
 
 template<typename _Iter, std::enable_if_t<is_iterator_v<wjr::remove_cvref_t<_Iter>>, int> = 0>
-WJR_CONSTEXPR20 void do_construct_at(_Iter iter, value_construct_tag);
+WJR_CONSTEXPR20 void do_construct_at(_Iter iter, value_construct_t);
 
 template<typename Alloc, typename _Iter, typename...Args, 
 	std::enable_if_t<!is_iterator_v<wjr::remove_cvref_t<Alloc>>, int> = 0>
@@ -189,10 +189,10 @@ template<typename _Iter, typename _Val>
 WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, const _Val& val);
 
 template<typename _Iter>
-WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, default_construct_tag);
+WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, default_construct_t);
 
 template<typename _Iter>
-WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, value_construct_tag);
+WJR_CONSTEXPR20 void do_uninitialized_fill(_Iter _First, _Iter _Last, value_construct_t);
 
 template<typename Alloc, typename _Iter, typename _Val>
 WJR_CONSTEXPR20 void do_uninitialized_fill(Alloc& al, _Iter _First, _Iter _Last, const _Val& val);
@@ -201,10 +201,10 @@ template<typename _Iter, typename _Diff, typename _Val>
 WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(_Iter _First, _Diff count, const _Val& val);
 
 template<typename _Iter, typename _Diff>
-WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(_Iter _First, _Diff n, default_construct_tag);
+WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(_Iter _First, _Diff n, default_construct_t);
 
 template<typename _Iter, typename _Diff>
-WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(_Iter _First, _Diff n, value_construct_tag);
+WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(_Iter _First, _Diff n, value_construct_t);
 
 template<typename Alloc, typename _Iter, typename _Diff, typename _Val>
 WJR_CONSTEXPR20 _Iter do_uninitialized_fill_n(Alloc& al, _Iter _First, _Diff n, const _Val& val);
@@ -227,6 +227,9 @@ WJR_CONSTEXPR20 void do_for_each(_Iter _First, _Iter _Last, _Func fn);
 
 template<typename _Iter, typename _SizeT, typename _Func>
 WJR_CONSTEXPR20 void do_for_each_n(_Iter _First, _SizeT n, _Func fn);
+
+template<typename _Iter>
+WJR_CONSTEXPR20 _Iter do_skip_whitespace(_Iter _First, _Iter _Last);
 
 template<typename Alloc>
 class temporary_allocator_value;
@@ -273,6 +276,7 @@ __WJR_REGISTER_ALGO_FUNCTOR(uninitialized_move);
 __WJR_REGISTER_ALGO_FUNCTOR(uninitialized_move_n);
 __WJR_REGISTER_ALGO_FUNCTOR(for_each);
 __WJR_REGISTER_ALGO_FUNCTOR(for_each_n);
+__WJR_REGISTER_ALGO_FUNCTOR(skip_whitespace);
 
 #undef __WJR_REGISTER_ALGO_FUNCTOR
 

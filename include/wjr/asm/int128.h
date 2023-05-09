@@ -4,7 +4,7 @@
 
 _WJR_ASM_BEGIN
 
-WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) uint64_t u64x64(uint64_t a, uint64_t b, uint64_t& hi) {
+WJR_ATTRIBUTE(INTRINSIC_INLINE) uint64_t u64x64(uint64_t a, uint64_t b, uint64_t& hi) {
     if (!wjr::is_constant_evaluated()) {
 #if defined(WJR_COMPILER_MSVC) && defined(WJR_X86_64)
         return _umul128(a, b, &hi);
@@ -57,7 +57,7 @@ WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint32_t u32x32hi(uint32_t a, uint32_t
     return (uint32_t)(((uint64_t)a * (uint64_t)b) >> 32);
 }
 
-WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) uint64_t u64x64hi(uint64_t a, uint64_t b) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) uint64_t u64x64hi(uint64_t a, uint64_t b) {
     if (!wjr::is_constant_evaluated()) {
 #if defined(WJR_COMPILER_MSVC) && defined(WJR_X86_64)
         return __umulh(a, b);
@@ -100,7 +100,7 @@ WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR) uint16_t u16x16lo(uint16_t a, uint16_t
 
 // uint128_t / uint64_t -> uint64_t
 // Must ensure that the quotient is within the uint64_t range
-WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) uint64_t u128d64t64(uint64_t hi, uint64_t lo, uint64_t den, uint64_t& r) {
+WJR_ATTRIBUTE(INTRINSIC_INLINE) uint64_t u128d64t64(uint64_t hi, uint64_t lo, uint64_t den, uint64_t& r) {
     if (!wjr::is_constant_evaluated()) {
 #if defined(WJR_COMPILER_MSVC) && defined(WJR_X86_64)
         return _udiv128(hi, lo, den, &r);
@@ -115,7 +115,7 @@ WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) uint64_t u128d64t64(uint64_t hi, uint64_t l
     return __large__u128d64t64(hi, lo, den, r);
 }
 
-WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) uint32_t u64d32t32(uint64_t x, uint32_t den, uint32_t& r) {
+WJR_ATTRIBUTE(INTRINSIC_INLINE) uint32_t u64d32t32(uint64_t x, uint32_t den, uint32_t& r) {
     if (wjr::is_constant_evaluated()) {
 #if defined(WJR_COMPILER_MSVC) && defined(WJR_X86)
         return _udiv64(x, den, &r);
@@ -128,24 +128,24 @@ WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR20) uint32_t u64d32t32(uint64_t x, uint32_t den
 #endif 
     }
     // fallback
-    uint32_t q = x / den;
+    uint32_t q = static_cast<uint32_t>(x / den);
     r = x % den;
     return q;
 }
 
 WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR) uint16_t u32d16t16(uint32_t x, uint16_t den, uint16_t& r) {
-    uint16_t q = x / den;
+    uint16_t q = static_cast<uint16_t>(x / den);
     r = x % den;
     return q;
 }
 
 WJR_ATTRIBUTE(INTRINSIC_CONSTEXPR) uint8_t u16d8t8(uint16_t x, uint8_t den, uint8_t& r) {
-    uint8_t q = x / den;
+    uint8_t q = static_cast<uint8_t>(x / den);
     r = x % den;
     return q;
 }
 
-WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) int64_t s64x64hi(int64_t a, int64_t b) {
+WJR_ATTRIBUTE(CONST, INTRINSIC_INLINE) int64_t s64x64hi(int64_t a, int64_t b) {
     if (!wjr::is_constant_evaluated()) {
 #if defined(WJR_COMPILER_MSVC) && defined(WJR_X86_64)
         return __mulh(a, b);

@@ -359,14 +359,14 @@ public:
 		noexcept(std::is_nothrow_default_constructible_v<_Alty>) = default;
 	WJR_CONSTEXPR20 circular_buffer(const allocator_type& al)
 		noexcept(std::is_nothrow_constructible_v<_Alty, const allocator_type&>)
-		: _Myval(std::piecewise_construct_t{},
+		: _Myval(std::piecewise_construct,
 			std::forward_as_tuple(al),
 			std::forward_as_tuple()) {}
 
 	template<typename _Alloc>
-	WJR_CONSTEXPR20 circular_buffer(const circular_buffer& other, _Alloc&& _Al, disable_tag)
+	WJR_CONSTEXPR20 circular_buffer(const circular_buffer& other, _Alloc&& _Al, disable_t)
 		noexcept(std::is_nothrow_constructible_v<_Alty, _Alloc&&>)
-		: _Myval(std::piecewise_construct_t{},
+		: _Myval(std::piecewise_construct,
 			std::forward_as_tuple(_Al),
 			std::forward_as_tuple()){
 		auto& al = getAllocator();
@@ -385,14 +385,14 @@ public:
 
 	WJR_CONSTEXPR20 circular_buffer(const circular_buffer& other)
 		: circular_buffer(other, _Alty_traits::select_on_container_copy_construction(other.getAllocator()),
-			disable_tag{}) {}
+			disable_t{}) {}
 	
 	WJR_CONSTEXPR20 circular_buffer(const circular_buffer& other, const allocator_type& al)
-		: circular_buffer(other, al, disable_tag{}) {}
+		: circular_buffer(other, al, disable_t{}) {}
 	
 	WJR_CONSTEXPR20 circular_buffer(circular_buffer&& other)
 		noexcept(std::is_nothrow_move_constructible_v<_Alty>)
-		: _Myval(std::piecewise_construct_t{},
+		: _Myval(std::piecewise_construct,
 			std::forward_as_tuple(std::move(other.getAllocator())),
 			std::forward_as_tuple(other.getData())) {
 		other.getData().reset();

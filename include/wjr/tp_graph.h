@@ -53,7 +53,7 @@ private:
 	using __remove = std::bool_constant<
 		tp_size_v<tp_graph_find_fa_t<G, tp_front_t<T>::value>> == 0>;
 public:
-	using type = tp_transform_t<tp_remove_if_t<G, __remove>, tp_front_t>;
+	using type = tp_transform_t<tp_filter_t<G, __remove>, tp_front_t>;
 };
 
 // find all nodes that in degree is 0
@@ -66,12 +66,38 @@ private:
 	template<typename T>
 	using __remove = std::bool_constant<tp_size_v<T> == 1>;
 public:
-	using type = tp_transform_t<tp_remove_if_t<G, __remove>, tp_front_t>;
+	using type = tp_transform_t<tp_filter_t<G, __remove>, tp_front_t>;
 };
 
 // find all nodes that out degree is 0
 template<typename G>
 using tp_graph_end_node_t = typename tp_graph_end_node<G>::type;
+
+template<typename G>
+struct tp_graph_unique_start_node {
+private:
+	using __type = tp_graph_start_node_t<G>;
+	static_assert(tp_size_v<__type> == 1, "start node is not unique");
+public:
+	using type = tp_front_t<__type>;
+};
+
+// find the unique start node
+template<typename G>
+using tp_graph_unique_start_node_t = typename tp_graph_unique_start_node<G>::type;
+
+template<typename G>
+struct tp_graph_unique_end_node {
+private:
+	using __type = tp_graph_end_node_t<G>;
+	static_assert(tp_size_v<__type> == 1, "end node is not unique");
+public:
+	using type = tp_front_t<__type>;
+};
+
+// find the unique end node
+template<typename G>
+using tp_graph_unique_end_node_t = typename tp_graph_unique_end_node<G>::type;
 
 template<typename G>
 struct tp_graph_remove_empty_node {
@@ -87,6 +113,20 @@ public:
 // remove all empty nodes
 template<typename G>
 using tp_graph_remove_empty_node_t = typename tp_graph_remove_empty_node<G>::type;
+
+template<typename G>
+struct tp_graph_max_node {
+	static_assert(tp_size_v<G> > 0, "graph is empty");
+private:
+	template<typename T, typename U>
+	using __left_fold = tp_max_c<T, tp_front_t<U>>;
+public:
+	using type = tp_left_fold_t<tp_pop_front_t<G>, tp_front_t<tp_front_t<G>>, __left_fold>;
+};
+
+// find the max node
+template<typename G>
+using tp_graph_max_node_t = typename tp_graph_max_node<G>::type;
 
 template<typename G, typename E, size_t I, size_t J>
 struct tp_graph_add_edge {

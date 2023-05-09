@@ -6,8 +6,6 @@
 
 _WJR_PARSE_BEGIN
 
-struct empty {};
-
 // production list is like :
 // tp_list<E0, E1, ... , En>
 // Ei is like

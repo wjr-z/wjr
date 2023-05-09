@@ -28,6 +28,7 @@ private:
 
 class nocopy_and_moveable : public nocopyable, public nomoveable { };
 
+// TODO :
 // CRTP for iterator
 
 _WJR_END

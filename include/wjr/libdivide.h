@@ -1057,7 +1057,7 @@ namespace wjr::libdivide {
             // the dividend here is 2**(floor_log_2_d + 31), so the low 32 bit word
             // is 0 and the high word is floor_log_2_d - 1
             uint32_t rem, proposed_m;
-            proposed_m = wjr::u64d32t32((uint64_t)(1 << (floor_log_2_d - 1 + 16)),absD, rem);
+            proposed_m = wjr::u64d32t32((uint64_t)1 << (floor_log_2_d - 1 + 16),absD, rem);
             const uint32_t e = absD - rem;
 
             // We are going to start with a power of floor_log_2_d - 1.
