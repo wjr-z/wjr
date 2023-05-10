@@ -18342,7 +18342,7 @@ void Multiply(const DiyFp& other) {
 #if (defined(WJR_COMPILER_MSVC) && defined(WJR_X86_64)) ||  \
 defined(WJR_HAS_INT128) || \
 defined(WJR_INLINE_ASM)
-uint64_t lo, hi;
+wjr::uint64_t lo, hi;
 lo = wjr::u64x64(f_, other.f_, hi);
 e_ += other.e_ + 64;
 lo += 1ull << 63;
