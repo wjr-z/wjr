@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_RANDOM_H
 #define __WJR_RANDOM_H
 

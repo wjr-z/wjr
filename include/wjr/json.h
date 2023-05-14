@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_JSON_H
 #define __WJR_JSON_H
 
@@ -288,13 +287,13 @@ public:
 private:
 	// don't use json after tidy
 	template<size_t I, std::enable_if_t<(I < 6), int> = 0>
-	inline void tidy_from() noexcept {
+	WJR_INTRINSIC_INLINE void tidy_from() noexcept {
 		if constexpr (I < 3) {
 			// do nothing
 		}
 		else {
 			using value_type = type_at_t<I>;
-			auto ptr = std::get<I>(m_value);
+			const auto ptr = std::get<I>(m_value);
 			ptr->~value_type();
 			allocator_type<value_type>().deallocate(ptr, 1);
 		}
@@ -302,12 +301,25 @@ private:
 public:
 
 	// don't use json after tidy
-	// set to null
 	inline void tidy() noexcept {
-		std::visit([this](const auto& x) {
-			constexpr auto idx = cont_find_v<WJR_PRI_TYPE(x)>;
-			this->tidy_from<idx>();
-		}, m_value);
+		switch (m_value.index()) {
+		case 0:
+		case 1:
+		case 2:break;
+		case 3: {
+			tidy_from<3>();
+			break;
+		}
+		case 4: {
+			tidy_from<4>();
+			break;
+		}
+		case 5: {
+			tidy_from<5>();
+			break;
+		}
+		default: WJR_UNREACHABLE; break;
+		}
 	}
 
 	template<size_t from_I, size_t to_I, typename...Args, std::enable_if_t<
@@ -500,7 +512,6 @@ private:
 
 	template<int m>
 	void _stringify(string&, int) const noexcept;
-
 
 	cont m_value;
 };

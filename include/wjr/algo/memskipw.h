@@ -35,17 +35,18 @@ constexpr static __memskipw_table __memskipw_table_instance = {};
 #if defined(_WJR_FAST_MEMSKIPW)
 #define WJR_SIMD_IS_BACKWARD 0
 
+const static auto __simd_32 = simd::sse::set1_epi8(32);
+const static auto __simd_9 = simd::sse::set1_epi8(9);
+const static auto __simd_4 = simd::sse::set1_epi8(4);
+
 template<typename T = char>
 WJR_ATTRIBUTE(NODISCARD, PURE, NOINLINE) const T* __large__memskipw(const T* s, const T* e) noexcept {
-	const auto simd_32 = simd::sse::set1_epi8(32);
-	const auto simd_9 = simd::sse::set1_epi8(9);
-	const auto simd_4 = simd::sse::set1_epi8(4);
 
 	do {
 		WJR_SIMD_LOADU(simd::sse, x, s);
-		auto y = simd::sse::cmpeq(x, simd_32, uint8_t());
-		auto z = simd::sse::sub(x, simd_9, uint8_t());
-		z = simd::sse::cmple(z, simd_4, uint8_t());
+		auto y = simd::sse::cmpeq(x, __simd_32, uint8_t());
+		auto z = simd::sse::sub(x, __simd_9, uint8_t());
+		z = simd::sse::cmple(z, __simd_4, uint8_t());
 		auto r = simd::sse::movemask_epi8(simd::sse::Or(y, z));
 		if (WJR_LIKELY(r != simd::sse::mask())) {
 			return WJR_SIMD_FIRST_ZERO_PTR(s, r);
@@ -63,7 +64,7 @@ WJR_ATTRIBUTE(NODISCARD, PURE, INLINE) const char* __memskipw(const char* s, con
 	if (WJR_UNLIKELY(s == e)) return s;
 	if(!__memskipw_table_instance[*s]) return s;
 	++s;
-	const int threshold = 4;
+	const int threshold = 3;
 	if (WJR_LIKELY(s + threshold + 16 <= e)) {
 		auto m = s + threshold;
 		for (; s != m && __memskipw_table_instance[*s]; ++s);

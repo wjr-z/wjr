@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_ALGO_ALOG_H
 #define __WJR_ALGO_ALOG_H
 

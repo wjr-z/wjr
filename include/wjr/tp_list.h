@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_TP_LIST_H
 #define __WJR_TP_LIST_H
 

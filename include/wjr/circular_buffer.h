@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_CIRCULAR_BUFFER_H
 #define __WJR_CIRCULAR_BUFFER_H
 

@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_CONTAINER_TRAITS_H
 #define __WJR_CONTAINER_TRAITS_H
 

@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_CRTP_H
 #define __WJR_CRTP_H
 

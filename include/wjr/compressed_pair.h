@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_COMPRESSED_PAIR_H
 #define __WJR_COMPRESSED_PAIR_H
 

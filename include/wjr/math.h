@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_MATH_H
 #define __WJR_MATH_H
 
@@ -62,7 +61,10 @@ template<endian from, endian to, typename T, std::enable_if_t<is_standard_numer_
 WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) T endian_convert(T x) noexcept;
 
 template<typename T, endian to = endian::native>
-WJR_INTRINSIC_CONSTEXPR20 T read_bytes(const void* ptr) noexcept;
+WJR_INTRINSIC_INLINE T read_bytes(const void* ptr) noexcept;
+
+template<typename T, endian to = endian::native>
+WJR_INTRINSIC_INLINE void write_bytes(void* ptr, T val) noexcept;
 
 template< typename T, typename U >
 constexpr bool cmp_equal(T t, U u) noexcept;

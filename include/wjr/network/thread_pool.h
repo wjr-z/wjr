@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_NETWORK_THREAD_POOL_H
 #define __WJR_NETWORK_THREAD_POOL_H
 

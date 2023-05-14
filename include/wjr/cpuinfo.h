@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_CPUINFO_H
 #define __WJR_CPUINFO_H
 

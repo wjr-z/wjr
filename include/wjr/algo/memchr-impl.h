@@ -210,8 +210,8 @@ WJR_ATTRIBUTE(NODISCARD, PURE) const T* WJR_MACRO_CONCAT(__small, __WJR_MEMCHR_N
 		// n = [1, 8)
 		if (n >= 4) {
 			// n = [4, 8)
-			auto A = *reinterpret_cast<const uint64_t*>(s);
-			auto B = *reinterpret_cast<const uint64_t*>(s + (n - 4u));
+			uint64_t A = read_bytes<uint64_t>(s);
+			uint64_t B = read_bytes<uint64_t>(s + (n - 4u));
 
 			auto x = simd::sse::set_epi64x(B, A);
 			auto y = simd::sse::set1(val, T());
@@ -231,10 +231,10 @@ WJR_ATTRIBUTE(NODISCARD, PURE) const T* WJR_MACRO_CONCAT(__small, __WJR_MEMCHR_N
 			// n = [4, 16)
 			auto delta = (n & 8) >> 1;
 
-			auto A = *reinterpret_cast<const uint32_t*>(s);
-			auto B = *reinterpret_cast<const uint32_t*>(s + delta);
-			auto C = *reinterpret_cast<const uint32_t*>(s + (n - 4u - delta));
-			auto D = *reinterpret_cast<const uint32_t*>(s + (n - 4u));
+			uint32_t A = read_bytes<uint32_t>(s);
+			uint32_t B = read_bytes<uint32_t>(s + delta);
+			uint32_t C = read_bytes<uint32_t>(s + (n - 4u - delta));
+			uint32_t D = read_bytes<uint32_t>(s + (n - 4u));
 
 			auto x = simd::sse::set_epi32(D, C, B, A);
 			auto y = simd::sse::set1(val, T());
@@ -269,8 +269,8 @@ WJR_ATTRIBUTE(NODISCARD, PURE) const T* WJR_MACRO_CONCAT(__small, __WJR_MEMCHR_N
 		// n = [1, 8)
 		if (n >= 4) {
 			// n = [4, 8)
-			auto A0 = *reinterpret_cast<const uint64_t*>(s - n);
-			auto B0 = *reinterpret_cast<const uint64_t*>(s - 4);
+			uint64_t A0 = read_bytes<uint64_t>(s - n);
+			uint64_t B0 = read_bytes<uint64_t>(s - 4);
 
 			auto x = simd::sse::set_epi64x(B0, A0);
 			auto y = simd::sse::set1(val, T());
@@ -290,10 +290,10 @@ WJR_ATTRIBUTE(NODISCARD, PURE) const T* WJR_MACRO_CONCAT(__small, __WJR_MEMCHR_N
 			// n = [4, 16)
 			auto delta = (n & 8) >> 1;
 
-			auto A0 = *reinterpret_cast<const uint32_t*>(s - n);
-			auto B0 = *reinterpret_cast<const uint32_t*>(s - n + delta);
-			auto C0 = *reinterpret_cast<const uint32_t*>(s - 4 - delta);
-			auto D0 = *reinterpret_cast<const uint32_t*>(s - 4);
+			uint32_t A0 = read_bytes<uint32_t>(s - n);
+			uint32_t B0 = read_bytes<uint32_t>(s - n + delta);
+			uint32_t C0 = read_bytes<uint32_t>(s - 4 - delta);
+			uint32_t D0 = read_bytes<uint32_t>(s - 4);
 
 			auto x = simd::sse::set_epi32(D0, C0, B0, A0);
 			auto y = simd::sse::set1(val, T());

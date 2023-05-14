@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_MMACRO_H
 #define __WJR_MMACRO_H
 

@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_OPTIMIZER_H
 #define __WJR_OPTIMIZER_H
 

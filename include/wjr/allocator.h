@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_ALLOCATOR_H
 #define __WJR_ALLOCATOR_H
 
@@ -162,7 +161,7 @@ template <int __inst>
 class __malloc_alloc_template__ {
 private:
 
-	static void* _S_oom_malloc(size_t);
+	WJR_NOINLINE static void* _S_oom_malloc(size_t);
 	static void* _S_oom_realloc(void*, size_t);
 
 #ifndef __STL_STATIC_TEMPLATE_MEMBER_BUG
@@ -171,10 +170,10 @@ private:
 
 public:
 
-	static void* allocate(size_t __n) {
+	WJR_INTRINSIC_INLINE static void* allocate(size_t __n) {
 		void* __result = malloc(__n);
-		if (WJR_UNLIKELY(0 == __result)) __result = _S_oom_malloc(__n);
-		return __result;
+		if(WJR_LIKELY(0 != __result)) return __result;
+		return _S_oom_malloc(__n);
 	}
 
 	static void deallocate(void* __p, size_t /* __n */) {
@@ -183,8 +182,8 @@ public:
 
 	static void* reallocate(void* __p, size_t /* old_sz */, size_t __new_sz) {
 		void* __result = realloc(__p, __new_sz);
-		if (WJR_UNLIKELY(0 == __result)) __result = _S_oom_realloc(__p, __new_sz);
-		return __result;
+		if(WJR_LIKELY(0 != __result)) return __result;
+		return _S_oom_realloc(__p, __new_sz);
 	}
 
 	static void (*__set_malloc_handler(void (*__f)()))()
@@ -233,7 +232,7 @@ void* __malloc_alloc_template__<__inst>::_S_oom_realloc(void* __p, size_t __n) {
 typedef __malloc_alloc_template__<0> malloc_alloc;
 
 enum { ALLOC_ALIGN = 8 };
-enum { ALLOC_MAX_BYTES = 256 };
+enum { ALLOC_MAX_BYTES = 128 };
 enum { ALLOC_NFRELISTS = ALLOC_MAX_BYTES / ALLOC_ALIGN };
 
 template <bool threads, int inst>
@@ -306,7 +305,7 @@ private:
 	static char* chunk_alloc(size_t size, int& nobjs) noexcept;
 
 public:
-	WJR_INTRINSIC_INLINE static void* allocate(size_t n) noexcept //n must be > 0
+	inline static void* allocate(size_t n) noexcept //n must be > 0
 	{
 		if (n > (size_t)__MAX_BYTES) {
 			return malloc_alloc::allocate(n);
@@ -320,7 +319,7 @@ public:
 		return refill(ROUND_UP(n));
 	}
 
-	static void deallocate(void* p, size_t n) noexcept //p may not be 0
+	inline static void deallocate(void* p, size_t n) noexcept //p may not be 0
 	{
 
 		if (n > (size_t)__MAX_BYTES) {
@@ -469,8 +468,8 @@ public:
 
 	constexpr basic_allocator() noexcept = default;
 	constexpr basic_allocator(const basic_allocator&) noexcept = default;
-	template <class _Other>
-	constexpr explicit basic_allocator(const basic_allocator<_Other, threads>&) noexcept {}
+	template <typename _Other>
+	constexpr basic_allocator(const basic_allocator<_Other, threads>&) noexcept {}
 	~basic_allocator() = default;
 	basic_allocator& operator=(const basic_allocator&) noexcept = default;
 

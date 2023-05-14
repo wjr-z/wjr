@@ -269,14 +269,14 @@ void __memset(T* s, T val, size_t n) {
 
 	if constexpr (_Mysize <= 4) {
 		if (n >= 4 / _Mysize) {
-			auto u32v = broadcast<uint32_t, T>(val);
+			uint32_t u32v = broadcast<uint32_t, T>(val);
 			auto delta = (n & (8 / _Mysize)) >> 1;
-			*reinterpret_cast<uint32_t*>(s) = u32v;
-			*reinterpret_cast<uint32_t*>(s + delta) = u32v;
+			write_bytes<uint32_t, endian::little>(s, u32v);
+			write_bytes<uint32_t, endian::little>(s + delta, u32v);
 			if constexpr (_Mysize != 4) {
-				*reinterpret_cast<uint32_t*>(s + n - (4 / _Mysize) - delta) = u32v;
+				write_bytes<uint32_t, endian::little>(s + n - (4 / _Mysize) - delta, u32v);
 			}
-			*reinterpret_cast<uint32_t*>(s + n - (4 / _Mysize)) = u32v;
+			write_bytes<uint32_t, endian::little>(s + n - (4 / _Mysize), u32v);
 			return;
 		}
 	}
@@ -294,7 +294,7 @@ void __memset(T* s, T val, size_t n) {
 		if (n != 0) {
 			*s = val;
 			if (n != 1) {
-				*reinterpret_cast<uint16_t*>(s + n - 2) = broadcast<uint16_t, uint8_t>(val);
+				write_bytes<uint16_t, endian::little>(s + n - 2, broadcast<uint16_t, uint8_t>(val));
 			}
 		}
 		return;

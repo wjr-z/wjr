@@ -115,10 +115,16 @@ WJR_ATTRIBUTE(CONST, INTRINSIC_CONSTEXPR20) T endian_convert(T x) noexcept {
 }
 
 template<typename T, endian to>
-WJR_INTRINSIC_CONSTEXPR20 T read_bytes(const void* ptr) noexcept {
-	T value = T{};
-	memcpy(std::addressof(value), ptr, sizeof(T));
-	return endian_convert<endian::little, to>(value);
+WJR_INTRINSIC_INLINE T read_bytes(const void* ptr) noexcept {
+	T val;
+	::memcpy(std::addressof(val), ptr, sizeof(T));
+	return endian_convert<endian::little, to>(val);
+}
+
+template<typename T, endian to>
+WJR_INTRINSIC_INLINE void write_bytes(void* ptr, T val) noexcept {
+	T __val = endian_convert<endian::little, to>(val);
+	::memcpy(ptr, std::addressof(__val), sizeof(T));
 }
 
 template< typename T, typename U >

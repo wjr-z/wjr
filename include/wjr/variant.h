@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_VARIANT_H
 #define __WJR_VARIANT_H
 

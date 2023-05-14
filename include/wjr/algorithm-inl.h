@@ -561,7 +561,7 @@ WJR_CONSTEXPR20 void do_destroy_at(_Iter ptr) {
 template<typename Alloc, typename _Iter>
 WJR_CONSTEXPR20 void do_destroy_at(Alloc& al, _Iter iter) {
 	if constexpr (is_default_allocator_destroy_v<Alloc, _Iter>) {
-		wjr::destroy_at(iter);
+		wjr::do_destroy_at(iter);
 	}
 	else {
 		std::allocator_traits<Alloc>::destroy(al, get_address(iter));
@@ -942,7 +942,7 @@ WJR_CONSTEXPR20 _Iter2 do_uninitialized_move(Alloc& al, _Iter1 _First, _Iter1 _L
 template<typename _Iter1, typename _Diff, typename _Iter2>
 WJR_CONSTEXPR20 std::pair<_Iter1, _Iter2> do_uninitialized_move_n(_Iter1 _First, _Diff n, _Iter2 _Dest) {
 	if (!wjr::is_constant_evaluated()) {
-		if constexpr (__has_fast_uninitialized_copy_v<_Iter1, std::move_iterator<_Iter1>>) {
+		if constexpr (__has_fast_uninitialized_copy_v<std::move_iterator<_Iter1>, _Iter2>) {
 			if (n <= 0) return std::make_pair(_First, _Dest);
 			wjr::uninitialized_move(_First, _First + n, _Dest);
 			return std::make_pair(_First + n, _Dest + n);
@@ -999,9 +999,9 @@ WJR_CONSTEXPR20 _Iter do_skip_whitespace(_Iter _First, _Iter _Last) {
 	static_assert(is_integrals_v<remove_cvref_t<value_type>> && sizeof(value_type) == 1, "");
 	if constexpr (is_contiguous_iterator_v<_Iter> && !is_reverse_iterator_v<_Iter>
 		&& algo::__has_fast_memskipw_v<remove_cvref_t<value_type>>) {
-		auto first = get_address(_First);
-		auto last = get_address(_Last);
-		return algo::memskipw(first, last);
+		const auto first = get_address(_First);
+		const auto last = get_address(_Last);
+		return _First + (algo::memskipw(first, last) - first);
 	}
 	else {
 		for (; _First != _Last && algo::__memskipw_table_instance[*_First]; ++_First);

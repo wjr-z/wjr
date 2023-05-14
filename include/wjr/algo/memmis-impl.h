@@ -418,11 +418,11 @@ WJR_MACRO_CONCAT(__small, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n,
 		// n = [1, 8)
 		if (n >= 4) {
 			// n = [4, 8)
-			auto A0 = *reinterpret_cast<const uint64_t*>(s0);
-			auto B0 = *reinterpret_cast<const uint64_t*>(s0 + n - 4);
+			uint64_t A0 = read_bytes<uint64_t>(s0);
+			uint64_t B0 = read_bytes<uint64_t>(s0 + (n - 4u));
 
-			auto A1 = *reinterpret_cast<const uint64_t*>(s1);
-			auto B1 = *reinterpret_cast<const uint64_t*>(s1 + n - 4);
+			uint64_t A1 = read_bytes<uint64_t>(s1);
+			uint64_t B1 = read_bytes<uint64_t>(s1 + (n - 4u));
 
 			auto x = simd::sse::set_epi64x(B0, A0);
 			auto y = simd::sse::set_epi64x(B1, A1);
@@ -442,15 +442,15 @@ WJR_MACRO_CONCAT(__small, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n,
 			// n = [4, 16)
 			auto delta = (n & 8) >> 1;
 
-			auto A0 = *reinterpret_cast<const uint32_t*>(s0);
-			auto B0 = *reinterpret_cast<const uint32_t*>(s0 + delta);
-			auto C0 = *reinterpret_cast<const uint32_t*>(s0 + n - 4 - delta);
-			auto D0 = *reinterpret_cast<const uint32_t*>(s0 + n - 4);
+			uint32_t A0 = read_bytes<uint32_t>(s0);
+			uint32_t B0 = read_bytes<uint32_t>(s0 + delta);
+			uint32_t C0 = read_bytes<uint32_t>(s0 + (n - 4u - delta));
+			uint32_t D0 = read_bytes<uint32_t>(s0 + (n - 4u));
 
-			auto A1 = *reinterpret_cast<const uint32_t*>(s1);
-			auto B1 = *reinterpret_cast<const uint32_t*>(s1 + delta);
-			auto C1 = *reinterpret_cast<const uint32_t*>(s1 + n - 4 - delta);
-			auto D1 = *reinterpret_cast<const uint32_t*>(s1 + n - 4);
+			uint32_t A1 = read_bytes<uint32_t>(s1);
+			uint32_t B1 = read_bytes<uint32_t>(s1 + delta);
+			uint32_t C1 = read_bytes<uint32_t>(s1 + (n - 4u - delta));
+			uint32_t D1 = read_bytes<uint32_t>(s1 + (n - 4u));
 
 			auto x = simd::sse::set_epi32(D0, C0, B0, A0);
 			auto y = simd::sse::set_epi32(D1, C1, B1, A1);
@@ -485,11 +485,11 @@ WJR_MACRO_CONCAT(__small, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n,
 		// n = [1, 8)
 		if (n >= 4) {
 			// n = [4, 8)
-			auto A0 = *reinterpret_cast<const uint64_t*>(s0 - n);
-			auto B0 = *reinterpret_cast<const uint64_t*>(s0 - 4);
+			uint64_t A0 = read_bytes<uint64_t>(s0 - n);
+			uint64_t B0 = read_bytes<uint64_t>(s0 - 4u);
 
-			auto A1 = *reinterpret_cast<const uint64_t*>(s1 - n);
-			auto B1 = *reinterpret_cast<const uint64_t*>(s1 - 4);
+			uint64_t A1 = read_bytes<uint64_t>(s1 - n);
+			uint64_t B1 = read_bytes<uint64_t>(s1 - 4u);
 
 			auto x = simd::sse::set_epi64x(B0, A0);
 			auto y = simd::sse::set_epi64x(B1, A1);
@@ -509,15 +509,15 @@ WJR_MACRO_CONCAT(__small, __WJR_MEMMIS_NAME)(const T* s0, const T* s1, size_t n,
 			// n = [4, 16)
 			const auto delta = (n & 8) >> 1;
 
-			auto A0 = *reinterpret_cast<const uint32_t*>(s0 - n);
-			auto B0 = *reinterpret_cast<const uint32_t*>(s0 - n + delta);
-			auto C0 = *reinterpret_cast<const uint32_t*>(s0 - 4 - delta);
-			auto D0 = *reinterpret_cast<const uint32_t*>(s0 - 4);
+			uint32_t A0 = read_bytes<uint32_t>(s0 - n);
+			uint32_t B0 = read_bytes<uint32_t>(s0 - n + delta);
+			uint32_t C0 = read_bytes<uint32_t>(s0 - 4 - delta);
+			uint32_t D0 = read_bytes<uint32_t>(s0 - 4);
 
-			auto A1 = *reinterpret_cast<const uint32_t*>(s1 - n);
-			auto B1 = *reinterpret_cast<const uint32_t*>(s1 - n + delta);
-			auto C1 = *reinterpret_cast<const uint32_t*>(s1 - 4 - delta);
-			auto D1 = *reinterpret_cast<const uint32_t*>(s1 - 4);
+			uint32_t A1 = read_bytes<uint32_t>(s1 - n);
+			uint32_t B1 = read_bytes<uint32_t>(s1 - n + delta);
+			uint32_t C1 = read_bytes<uint32_t>(s1 - 4 - delta);
+			uint32_t D1 = read_bytes<uint32_t>(s1 - 4);
 
 			auto x = simd::sse::set_epi32(D0, C0, B0, A0);
 			auto y = simd::sse::set_epi32(D1, C1, B1, A1);

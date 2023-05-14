@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_PARSE_LL1_H
 #define __WJR_PARSE_LL1_H
 

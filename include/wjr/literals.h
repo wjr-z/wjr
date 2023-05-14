@@ -1,5 +1,3 @@
-#pragma once
-
 #include <wjr/macro.h>
 
 _WJR_LITERALS_BEGIN

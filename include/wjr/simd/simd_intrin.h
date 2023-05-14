@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_SIMD_SIMD_INTRIN_H
 #define __WJR_SIMD_SIMD_INTRIN_H
 

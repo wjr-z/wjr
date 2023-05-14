@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_ALGORITHM_H
 #define __WJR_ALGORITHM_H
 

@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_REFLEXPR_H
 #define __WJR_REFLEXPR_H
 

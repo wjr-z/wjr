@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_PREPROCESSOR_COMPILER_H
 #define __WJR_PREPROCESSOR_COMPILER_H
 

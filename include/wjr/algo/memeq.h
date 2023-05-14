@@ -429,11 +429,11 @@ WJR_NODISCARD WJR_PURE inline bool __memeq(const T* s0, const T* s1, size_t n, _
 		// n = [1, 8)
 		if (n >= 4) {
 			// n = [4, 8)
-			auto A0 = *reinterpret_cast<const uint64_t*>(s0);
-			auto B0 = *reinterpret_cast<const uint64_t*>(s0 + n - 4);
+			uint64_t A0 = read_bytes<uint64_t>(s0);
+			uint64_t B0 = read_bytes<uint64_t>(s0 + (n - 4u));
 
-			auto A1 = *reinterpret_cast<const uint64_t*>(s1);
-			auto B1 = *reinterpret_cast<const uint64_t*>(s1 + n - 4);
+			uint64_t A1 = read_bytes<uint64_t>(s1);
+			uint64_t B1 = read_bytes<uint64_t>(s1 + (n - 4u));
 
 			if constexpr (std::is_same_v<_Pred, std::equal_to<>>) {
 				return A0 == A1 && B0 == B1;
@@ -455,15 +455,15 @@ WJR_NODISCARD WJR_PURE inline bool __memeq(const T* s0, const T* s1, size_t n, _
 			// n = [4, 16)
 			auto delta = (n & 8) >> 1;
 
-			auto A0 = *reinterpret_cast<const uint32_t*>(s0);
-			auto B0 = *reinterpret_cast<const uint32_t*>(s0 + delta);
-			auto C0 = *reinterpret_cast<const uint32_t*>(s0 + n - 4 - delta);
-			auto D0 = *reinterpret_cast<const uint32_t*>(s0 + n - 4);
+			uint32_t A0 = read_bytes<uint32_t>(s0);
+			uint32_t B0 = read_bytes<uint32_t>(s0 + delta);
+			uint32_t C0 = read_bytes<uint32_t>(s0 + (n - 4u - delta));
+			uint32_t D0 = read_bytes<uint32_t>(s0 + (n - 4u));
 
-			auto A1 = *reinterpret_cast<const uint32_t*>(s1);
-			auto B1 = *reinterpret_cast<const uint32_t*>(s1 + delta);
-			auto C1 = *reinterpret_cast<const uint32_t*>(s1 + n - 4 - delta);
-			auto D1 = *reinterpret_cast<const uint32_t*>(s1 + n - 4);
+			uint32_t A1 = read_bytes<uint32_t>(s1);
+			uint32_t B1 = read_bytes<uint32_t>(s1 + delta);
+			uint32_t C1 = read_bytes<uint32_t>(s1 + (n - 4u - delta));
+			uint32_t D1 = read_bytes<uint32_t>(s1 + (n - 4u));
 
 			if constexpr (std::is_same_v<_Pred, std::equal_to<>>) {
 				return A0 == A1 && B0 == B1 && C0 == C1 && D0 == D1;

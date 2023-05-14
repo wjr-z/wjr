@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_SWITCH_H
 #define __WJR_SWITCH_H
 

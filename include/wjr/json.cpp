@@ -1,6 +1,7 @@
 #include <array>
 
 #include <wjr/json.h>
+#include <wjr/fast_float/fast_float.h>
 
 _WJR_BEGIN
 
@@ -31,7 +32,7 @@ constexpr iter skip_string(iter first, WJR_MAYBE_UNUSED iter last) {
 				auto pos2 = wjr::find_if(std::reverse_iterator(pos), std::reverse_iterator(first), [](auto x) {
 					return x != '\\';
 					});
-				if (static_cast<size_t>(pos - pos2.base()) % 2 == 0) {
+				if (WJR_LIKELY(static_cast<size_t>(pos - pos2.base()) % 2 == 0)) {
 					return pos;
 				}
 				first = pos + 1;
@@ -180,10 +181,9 @@ bool json::__accept(const char*& first, const char* last, uint8_t state) {
 			break;
 		default:
 			const char* pos = nullptr;
-			errc c = errc::ok;
-			(void)encode_type::to_floating_point<double>(first, last, &pos, &c,
-				std::integral_constant<encode_type::to_f_flags, encode_type::to_f_flags::ALLOW_TRAILING_JUNK>());
-			if (c != errc::ok)
+			std::errc c = {};
+			(void)(wjr::ascii_view(first, last - first).to_double(&pos, &c));
+			if (c != std::errc{})
 				return false;
 			first = pos;
 			break;
@@ -267,7 +267,6 @@ json::json(const char*& first, const char* last, parse_tag) {
 			}
 			++first;
 		}
-		arr.shrink_to_fit();
 		break;
 	}
 	case '{': {
@@ -282,13 +281,13 @@ json::json(const char*& first, const char* last, parse_tag) {
 		for(;;) {
 			first = encode_type::skipw(first, last);
 			++first;
-			auto p = skip_string(first, last);
-			string name(first, p);
-			first = p + 1;
+			auto p = first;
+			auto q = skip_string(first, last);
+			first = q + 1;
 			first = encode_type::skipw(first, last);
 			++first;
-			obj.emplace(std::piecewise_construct,
-				std::forward_as_tuple(std::move(name)),
+			obj.emplace(std::piecewise_construct_t{},
+				std::forward_as_tuple(p, q),
 				std::forward_as_tuple(first, last, parse_tag{}));
 			first = encode_type::skipw(first, last);
 			if (*first == '}') {
@@ -300,11 +299,9 @@ json::json(const char*& first, const char* last, parse_tag) {
 		break;
 	}
 	default: {
-		const char* pos = nullptr;
-		auto val = ascii_view(first, last - first).to_double(
-			&pos, nullptr, 
-			std::integral_constant<encode_type::to_f_flags, encode_type::to_f_flags::ALLOW_TRAILING_JUNK>());
-		first = pos;
+		const char* ptr;
+		double val = ascii_view(first, last - first).to_double(&ptr);
+		first = ptr;
 		this->emplace_from<0, number>(val);
 		break;
 	}

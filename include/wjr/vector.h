@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_VECTOR_H
 #define __WJR_VECTOR_H
 
@@ -941,9 +940,15 @@ public:
 		WJR_ASSUME(_Newsize > _Oldcapacity);
 		const auto _Newcapacity = _Oldcapacity + _Oldcapacity / 2;
 		const auto _FixedCapacity = _Newcapacity < _Newsize ? _Newsize : _Newcapacity;
-		const auto ret = _FixedCapacity < 32 ? ((_FixedCapacity + 3) & (-4)) :
-			_FixedCapacity < 256 ? ((_FixedCapacity + 15) & (-16)) :
-			((_FixedCapacity + 63) & (-64));
+
+		constexpr auto step1 = sizeof(value_type) <= 8 ? 4 : 2;
+		constexpr auto step2 = sizeof(value_type) <= 8 ? 16 : 8;
+		constexpr auto step3 = sizeof(value_type) <= 8 ? 64 : 32;
+
+		const auto ret = _FixedCapacity < 32 ? ((_FixedCapacity + (step1 - 1)) & (-step1)) :
+			_FixedCapacity < 256 ? ((_FixedCapacity + (step2 - 1)) & (-step2)) :
+			((_FixedCapacity + step3) & (-step3));
+
 		WJR_ASSUME(ret >= _Newsize);
 		return ret;
 	}
@@ -1403,7 +1408,6 @@ private:
 		wjr::construct_at(al, _Newwhere, std::forward<Args>(args)...);
 
 		wjr::uninitialized_move_n(al, _Myfirst, __old_size, _Newfirst);
-
 		tidy();
 		moveConstruct(al, std::move(_Newdata), getData());
 	}

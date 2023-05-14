@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __WJR_STRING_H
 #define __WJR_STRING_H
 
@@ -1160,7 +1159,7 @@ template<
 			return { data(), size() };
 		}
 
-		WJR_CONSTEXPR20 ~basic_string() noexcept = default;
+		WJR_INLINE_CONSTEXPR20 ~basic_string() noexcept = default;
 
 		WJR_CONSTEXPR20 basic_string& operator=(const basic_string& other) {
 
