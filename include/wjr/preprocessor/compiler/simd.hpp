@@ -1,5 +1,5 @@
-#ifndef WJR_PREPROCESSOR_COMPILER_SIMD_H__
-#define WJR_PREPROCESSOR_COMPILER_SIMD_H__
+#ifndef WJR_PREPROCESSOR_COMPILER_SIMD_HPP__
+#define WJR_PREPROCESSOR_COMPILER_SIMD_HPP__
 
 #if defined(_MSC_VER)
 /* Microsoft C/C++-compatible compiler */
@@ -113,4 +113,4 @@
 #define WJR_XOP 0
 #endif
 
-#endif // ! WJR_PREPROCESSOR_COMPILER_SIMD_H__
+#endif // ! WJR_PREPROCESSOR_COMPILER_SIMD_HPP__

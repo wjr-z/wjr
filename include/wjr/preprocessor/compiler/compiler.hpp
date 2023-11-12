@@ -1,5 +1,5 @@
-#ifndef WJR_PREPROCESSOR_COMPILER_COMPILER_H__
-#define WJR_PREPROCESSOR_COMPILER_COMPILER_H__
+#ifndef WJR_PREPROCESSOR_COMPILER_COMPILER_HPP__
+#define WJR_PREPROCESSOR_COMPILER_COMPILER_HPP__
 
 #include <wjr/preprocessor/compiler/has.hpp>
 #include <wjr/preprocessor/compiler/arch.hpp>
@@ -93,4 +93,4 @@
 #endif
 #endif
 
-#endif // !WJR_PREPROCESSOR_COMPILER_COMPILER_H__
+#endif // !WJR_PREPROCESSOR_COMPILER_COMPILER_HPP__

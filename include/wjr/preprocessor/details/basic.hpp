@@ -35,10 +35,7 @@
     _53, _54, _55, _56, _57, _58, _59, _60, _61, _62, _63, _64, _65, N, ...)             \
     N
 
-#define WJR_PP_HOLDER
-#define WJR_PP_NULLPTR
-
-#define WJR_PP_IS_NULLPTR(VAL) WJR_PP_IS_NULLPTR_I(WJR_PP_IS_NULLPTR##VAL, 0)
+#define WJR_PP_IS_NULLPTR(VAL) WJR_PP_IS_NULLPTR_I(WJR_PP_CONCAT(WJR_PP_IS_NULLPTR_, VAL), 0)
 #define WJR_PP_IS_NULLPTR_I(...) WJR_PP_IS_NULLPTR_II(__VA_ARGS__)
 #define WJR_PP_IS_NULLPTR_II(HOLDER, VAL, ...) VAL
 #define WJR_PP_IS_NULLPTR_WJR_PP_NULLPTR WJR_PP_HOLDER, 1
@@ -48,13 +45,17 @@
 // if MAP ## KEY is defined as WJR_PP_MAP_DEF, then return VAL
 // else return WJR_PP_NULLPTR
 #define WJR_PP_MAP_FIND(MAP, KEY) WJR_PP_MAP_FIND_I(MAP, KEY)
-#define WJR_PP_MAP_FIND_I(MAP, KEY) WJR_PP_MAP_FIND_II(MAP##KEY, WJR_PP_NULLPTR)
+#define WJR_PP_MAP_FIND_I(MAP, KEY)                                                      \
+    WJR_PP_MAP_FIND_II(WJR_PP_CONCAT(MAP, KEY), WJR_PP_NULLPTR)
 #define WJR_PP_MAP_FIND_II(...) WJR_PP_MAP_FIND_III(__VA_ARGS__)
 #define WJR_PP_MAP_FIND_III(HOLDER, VAL, ...) VAL
 
+// Most macros rely on this macro.
+// If there are tokens such as (), [], ->that cannot be connected in macro parameters,
+// then this macro needs to be used for conversion
 #define WJR_PP_DEF_VAR(VAR) _WJR_PP_FROM_VAR(VAR)
 
-#define WJR_PP_FROM_VAR(VAR) WJR_PP_FROM_VAR_I(WJR_PP_FROM_VAR##VAR, VAR)
+#define WJR_PP_FROM_VAR(VAR) WJR_PP_FROM_VAR_I(WJR_PP_CONCAT(WJR_PP_FROM_VAR, VAR), VAR)
 #define WJR_PP_FROM_VAR_I(...) WJR_PP_FROM_VAR_II(__VA_ARGS__)
 #define WJR_PP_FROM_VAR_II(HOLDER, VAL, ...) VAL
 #define WJR_PP_FROM_VAR_WJR_PP_FROM_VAR(VAR) WJR_PP_HOLDER, VAR
