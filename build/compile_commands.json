@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/root/wjr/build",
+  "command": "/usr/bin/g++  -I/root/wjr/src/../include  -O2 -std=c++17 -mavx2 -lpthread -DWJR_DEBUG_LEVEL=3 -g -o CMakeFiles/wjr.dir/main.cpp.o -c /root/wjr/src/main.cpp",
+  "file": "/root/wjr/src/main.cpp"
+}
+]
