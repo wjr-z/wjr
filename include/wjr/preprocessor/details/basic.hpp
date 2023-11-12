@@ -35,7 +35,8 @@
     _53, _54, _55, _56, _57, _58, _59, _60, _61, _62, _63, _64, _65, N, ...)             \
     N
 
-#define WJR_PP_IS_NULLPTR(VAL) WJR_PP_IS_NULLPTR_I(WJR_PP_CONCAT(WJR_PP_IS_NULLPTR_, VAL), 0)
+#define WJR_PP_IS_NULLPTR(VAL)                                                           \
+    WJR_PP_IS_NULLPTR_I(WJR_PP_CONCAT(WJR_PP_IS_NULLPTR_, VAL), 0)
 #define WJR_PP_IS_NULLPTR_I(...) WJR_PP_IS_NULLPTR_II(__VA_ARGS__)
 #define WJR_PP_IS_NULLPTR_II(HOLDER, VAL, ...) VAL
 #define WJR_PP_IS_NULLPTR_WJR_PP_NULLPTR WJR_PP_HOLDER, 1
@@ -59,5 +60,14 @@
 #define WJR_PP_FROM_VAR_I(...) WJR_PP_FROM_VAR_II(__VA_ARGS__)
 #define WJR_PP_FROM_VAR_II(HOLDER, VAL, ...) VAL
 #define WJR_PP_FROM_VAR_WJR_PP_FROM_VAR(VAR) WJR_PP_HOLDER, VAR
+
+#define WJR_PP_PAREN ()
+#define WJR_PP_DEFER(FUNC) FUNC WJR_PP_PAREN
+
+#define WJR_PP_EXPAND4(x) WJR_PP_EXPAND(WJR_PP_EXPAND(WJR_PP_EXPAND(WJR_PP_EXPAND(x))))
+#define WJR_PP_EXPAND16(x)                                                               \
+    WJR_PP_EXPAND4(WJR_PP_EXPAND4(WJR_PP_EXPAND4(WJR_PP_EXPAND4(x))))
+#define WJR_PP_EXPAND64(x)                                                               \
+    WJR_PP_EXPAND16(WJR_PP_EXPAND16(WJR_PP_EXPAND16(WJR_PP_EXPAND16(x))))
 
 #endif // ! WJR_PREPROCESSOR_DETAILS_BASIC_HPP__
