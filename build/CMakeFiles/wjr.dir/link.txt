@@ -1,1 +1,0 @@
-/usr/bin/g++  -O2 -std=c++17 -mavx2 -lpthread -DWJR_DEBUG_LEVEL=3 -g CMakeFiles/wjr.dir/main.cpp.o -o wjr 

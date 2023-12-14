@@ -1,3 +1,0 @@
-/root/wjr/CMakeFiles/wjr.dir
-/root/wjr/CMakeFiles/edit_cache.dir
-/root/wjr/CMakeFiles/rebuild_cache.dir
