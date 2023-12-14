@@ -20,7 +20,10 @@
 
 CMakeFiles
 CMakeCache.txt
-cmaek_install.cmake
+cmake_install.cmake
 Makefile
 build
 .vscode
+*.sln
+*.vcxproj
+*.vcxproj.filters
