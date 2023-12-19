@@ -5,7 +5,7 @@
 
 #define WJR_PP_DEC_I(x) WJR_PP_DEC_##x
 
-#define WJR_PP_DEC_0 64
+#define WJR_PP_DEC_0 63
 #define WJR_PP_DEC_1 0
 #define WJR_PP_DEC_2 1
 #define WJR_PP_DEC_3 2
@@ -69,6 +69,5 @@
 #define WJR_PP_DEC_61 60
 #define WJR_PP_DEC_62 61
 #define WJR_PP_DEC_63 62
-#define WJR_PP_DEC_64 63
 
 #endif // WJR_PREPROCESSOR_ARITHMATIC_DEC_HPP__

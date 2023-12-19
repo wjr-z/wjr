@@ -3,7 +3,7 @@
 
 #include <wjr/preprocessor/arithmatic/add.hpp>
 #include <wjr/preprocessor/arithmatic/inc.hpp>
-#include <wjr/preprocessor/arithmatic/not.hpp>
+#include <wjr/preprocessor/arithmatic/neg.hpp>
 
 #define WJR_PP_SUB(x, y) WJR_PP_ADD(x, WJR_PP_INC(WJR_PP_NEG(y)))
 

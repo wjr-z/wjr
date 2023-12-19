@@ -13,7 +13,7 @@
 #elif defined(__GNUC__) && defined(__IWMMXT__)
 /* GCC-compatible compiler, targeting ARM with WMMX */
 #include <mmintrin.h>
-#elif (defined(__GNUC__) || defined(__xlC__)) &&                               \
+#elif (defined(__GNUC__) || defined(__xlC__)) &&                                         \
     (defined(__VEC__) || defined(__ALTIVEC__))
 /* XLC or GCC-compatible compiler, targeting PowerPC with VMX/VSX */
 #include <altivec.h>
@@ -88,7 +88,7 @@
 #define WJR_SSE3 0
 #endif
 
-#if defined(__SSE2__) || WJR_SSE3 || _M_IX86_FP >= 2 ||                        \
+#if defined(__SSE2__) || WJR_SSE3 || _M_IX86_FP >= 2 ||                                  \
     (defined(_MSC_VER) && (defined(_M_AMD64) || defined(_M_X64)))
 #define WJR_SSE2 1
 #else

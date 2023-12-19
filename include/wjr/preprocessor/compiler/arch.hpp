@@ -29,10 +29,6 @@
 #define WJR_PPC64
 #endif
 
-#if !defined(WJR_X86)
-#error "ARM is not supported"
-#endif
-
 #if defined(WJR_X86_64)
 #if defined(__i386__) || defined(_M_IX86) || defined(_X86_)
 #define CPU_INTEL

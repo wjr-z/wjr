@@ -2,7 +2,6 @@
 #define WJR_PREPROCESSOR_DETAILS_IOTA_HPP__
 
 #define WJR_PP_IOTA(n) WJR_PP_IOTA_I(n)
-
 #define WJR_PP_IOTA_I(n) WJR_PP_IOTA_##n
 
 #define WJR_PP_IOTA_0

@@ -2,7 +2,7 @@
 #define WJR_PREPROCESSOR_ARITHMATIC_NEG_HPP__
 
 #define WJR_PP_NEG(x) WJR_PP_NEG_I(x)
-#define WJR_PP_NEG_I(x) WJR_PP_NEG_ ## x
+#define WJR_PP_NEG_I(x) WJR_PP_NEG_##x
 
 #define WJR_PP_NEG_0 63
 #define WJR_PP_NEG_1 62

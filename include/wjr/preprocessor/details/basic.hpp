@@ -6,8 +6,8 @@
 #define WJR_PP_CONCAT(x, y) WJR_PP_CONCAT_I(x, y)
 #define WJR_PP_CONCAT_I(x, y) x##y
 
-#define WJR_PP_EXPAND(x) WJR_PP_EXPAND_I(x)
-#define WJR_PP_EXPAND_I(x) x
+#define WJR_PP_EXPAND(...) WJR_PP_EXPAND_I(__VA_ARGS__)
+#define WJR_PP_EXPAND_I(...) __VA_ARGS__
 
 #define WJR_PP_STR(x) WJR_PP_STR_I(x)
 #define WJR_PP_STR_I(x) #x
@@ -50,24 +50,5 @@
     WJR_PP_MAP_FIND_II(WJR_PP_CONCAT(MAP, KEY), WJR_PP_NULLPTR)
 #define WJR_PP_MAP_FIND_II(...) WJR_PP_MAP_FIND_III(__VA_ARGS__)
 #define WJR_PP_MAP_FIND_III(HOLDER, VAL, ...) VAL
-
-// Most macros rely on this macro.
-// If there are tokens such as (), [], ->that cannot be connected in macro parameters,
-// then this macro needs to be used for conversion
-#define WJR_PP_DEF_VAR(VAR) _WJR_PP_FROM_VAR(VAR)
-
-#define WJR_PP_FROM_VAR(VAR) WJR_PP_FROM_VAR_I(WJR_PP_CONCAT(WJR_PP_FROM_VAR, VAR), VAR)
-#define WJR_PP_FROM_VAR_I(...) WJR_PP_FROM_VAR_II(__VA_ARGS__)
-#define WJR_PP_FROM_VAR_II(HOLDER, VAL, ...) VAL
-#define WJR_PP_FROM_VAR_WJR_PP_FROM_VAR(VAR) WJR_PP_HOLDER, VAR
-
-#define WJR_PP_PAREN ()
-#define WJR_PP_DEFER(FUNC) FUNC WJR_PP_PAREN
-
-#define WJR_PP_EXPAND4(x) WJR_PP_EXPAND(WJR_PP_EXPAND(WJR_PP_EXPAND(WJR_PP_EXPAND(x))))
-#define WJR_PP_EXPAND16(x)                                                               \
-    WJR_PP_EXPAND4(WJR_PP_EXPAND4(WJR_PP_EXPAND4(WJR_PP_EXPAND4(x))))
-#define WJR_PP_EXPAND64(x)                                                               \
-    WJR_PP_EXPAND16(WJR_PP_EXPAND16(WJR_PP_EXPAND16(WJR_PP_EXPAND16(x))))
 
 #endif // ! WJR_PREPROCESSOR_DETAILS_BASIC_HPP__

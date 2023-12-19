@@ -8,43 +8,6 @@
 
 namespace wjr {
 
-template <typename... Ts>
-struct make_void {
-    typedef void type;
-};
-
-template <typename... Ts>
-using void_t = typename make_void<Ts...>::type;
-
-template <bool B>
-using bool_constant = std::integral_constant<bool, B>;
-
-#if !defined(WJR_CPP_17)
-template <typename Fn, typename... Args>
-struct invoke_result {
-    using type = std::result_of_t<Fn(Args...)>;
-};
-#else
-template <typename Fn, typename... Args>
-struct invoke_result : std::invoke_result<Fn, Args...> {};
-#endif
-
-template <typename Fn, typename... Args>
-using invoke_result_t = typename invoke_result<Fn, Args...>::type;
-
-template <bool f, typename T, typename U>
-struct conditional {
-    using type = T;
-};
-
-template <typename T, typename U>
-struct conditional<false, T, U> {
-    using type = U;
-};
-
-template <bool f, typename T, typename U>
-using conditional_t = typename conditional<f, T, U>::type;
-
 template <typename... Args>
 struct multi_conditional;
 
@@ -63,79 +26,13 @@ struct multi_conditional_impl<false, T, Args...> {
 
 template <typename F, typename T, typename U>
 struct multi_conditional<F, T, U> {
-    using type = conditional_t<F::value, T, U>;
+    using type = std::conditional_t<F::value, T, U>;
 };
 
 template <typename F, typename T, typename U, typename V, typename... Args>
 struct multi_conditional<F, T, U, V, Args...> {
-    using type =
-        typename multi_conditional_impl<F::value, T, U, V, Args...>::type;
+    using type = typename multi_conditional_impl<F::value, T, U, V, Args...>::type;
 };
-
-template <typename... Args>
-struct conjunction_impl;
-
-template <>
-struct conjunction_impl<> : std::true_type {};
-
-template <typename T>
-struct conjunction_impl<T> : T {};
-
-template <typename T, typename U>
-struct conjunction_impl<T, U> : conditional_t<T::value, U, T> {};
-
-template <typename T, typename U, typename V, typename... Args>
-struct conjunction_impl<T, U, V, Args...>
-    : conditional_t<T::value, conjunction_impl<U, V, Args...>, U> {};
-
-template <typename... Args>
-struct conjunction {
-    using type = typename conjunction_impl<Args...>::type;
-};
-
-template <typename... Args>
-using conjunction_t = typename conjunction<Args...>::type;
-
-template <typename... Args>
-struct disjunction_impl;
-
-template <>
-struct disjunction_impl<> : std::false_type {};
-
-template <typename T>
-struct disjunction_impl<T> : T {};
-
-template <typename T, typename U>
-struct disjunction_impl<T, U> : conditional_t<T::value, T, U> {};
-
-template <typename T, typename U, typename V, typename... Args>
-struct disjunction_impl<T, U, V, Args...>
-    : conditional_t<T::value, T, disjunction_impl<U, V, Args...>> {};
-
-template <typename... Args>
-struct disjunction {
-    using type = typename disjunction_impl<Args...>::type;
-};
-
-template <typename... Args>
-using disjunction_t = typename disjunction<Args...>::type;
-
-template <typename F>
-struct negation {
-    using type = bool_constant<!F::value>;
-};
-
-template <typename F>
-using negation_t = typename negation<F>::type;
-
-template <typename T>
-using aligned_storage_for_t = std::aligned_storage_t<sizeof(T), alignof(T)>;
-
-template <typename T, typename... Args>
-struct is_any_of : disjunction<std::is_same<T, Args>...> {};
-
-template <typename T, T idx, T... indexs>
-struct is_any_integral_of : disjunction<bool_constant<idx == indexs>...> {};
 
 template <typename T>
 using remove_ref_t = std::remove_reference_t<T>;
@@ -155,9 +52,9 @@ struct is_contiguous_iterator_impl<iter, typename iter::is_contiguous_iterator>
 
 #if defined(WJR_CPP_20)
 template <typename iter>
-struct is_contiguous_iterator
-    : bool_constant<std::contiguous_iterator<iter> ||
-                    is_contiguous_iterator_impl<iter>::value> {};
+struct is_contiguous_iterator : bool_constant<std::contiguous_iterator<iter> ||
+                                              is_contiguous_iterator_impl<iter>::value> {
+};
 #else
 template <typename iter>
 struct is_contiguous_iterator : is_contiguous_iterator_impl<iter> {};
@@ -223,12 +120,11 @@ template <size_t n, bool __s>
 using usint_t = std::conditional_t<__s, int_t<n>, uint_t<n>>;
 
 template <typename T>
-struct is_unsigned_integral
-    : conjunction<std::is_integral<T>, std::is_unsigned<T>> {};
+struct is_unsigned_integral : std::conjunction<std::is_integral<T>, std::is_unsigned<T>> {
+};
 
 template <typename T>
-struct is_signed_integral
-    : conjunction<std::is_integral<T>, std::is_signed<T>> {};
+struct is_signed_integral : std::conjunction<std::is_integral<T>, std::is_signed<T>> {};
 
 class __is_little_endian_helper {
     constexpr static std::uint32_t u4 = 1;

@@ -1,7 +1,6 @@
 #ifndef WJR_PREPROCESSOR_COMPILER_COMPILER_HPP__
 #define WJR_PREPROCESSOR_COMPILER_COMPILER_HPP__
 
-#include <wjr/preprocessor/compiler/has.hpp>
 #include <wjr/preprocessor/compiler/arch.hpp>
 
 #if defined(__clang__)
@@ -17,20 +16,19 @@
 #endif // _MSC_VER
 
 #if defined(__GNUC__)
-#define WJR_HAS_GCC(major, minor, patchlevel)                                  \
-    ((__GNUC__ > (major)) ||                                                   \
-     (__GNUC__ == (major) && __GNUC_MINOR__ > (minor)) ||                      \
-     (__GNUC__ == (major) && __GNUC_MINOR__ == (minor) &&                      \
+#define WJR_HAS_GCC(major, minor, patchlevel)                                            \
+    ((__GNUC__ > (major)) || (__GNUC__ == (major) && __GNUC_MINOR__ > (minor)) ||        \
+     (__GNUC__ == (major) && __GNUC_MINOR__ == (minor) &&                                \
       __GNUC_PATCHLEVEL__ >= (patchlevel)))
 #else
 #define WJR_HAS_GCC(major, minor, patchlevel) 0
 #endif // __GNUC__
 
 #if defined(__clang__)
-#define WJR_HAS_CLANG(major, minor, patchlevel)                                \
-    ((__clang_major__ > (major)) ||                                            \
-     (__clang_major__ == (major) && __clang_minor__ > (minor)) ||              \
-     (__clang_major__ == (major) && __clang_minor__ == (minor) &&              \
+#define WJR_HAS_CLANG(major, minor, patchlevel)                                          \
+    ((__clang_major__ > (major)) ||                                                      \
+     (__clang_major__ == (major) && __clang_minor__ > (minor)) ||                        \
+     (__clang_major__ == (major) && __clang_minor__ == (minor) &&                        \
       __clang_patchlevel__ >= (patchlevel)))
 #else
 #define WJR_HAS_CLANG(major, minor, patchlevel) 0
@@ -42,7 +40,7 @@
 #define WJR_HAS_MSVC(minor, level) 0
 #endif
 
-#if (defined(WJR_COMPILER_GCC) && !WJR_HAS_GCC(7, 1, 0)) ||                    \
+#if (defined(WJR_COMPILER_GCC) && !WJR_HAS_GCC(7, 1, 0)) ||                              \
     (defined(WJR_COMPILER_CLANG) && !WJR_HAS_CLANG(5, 0, 0))
 #error "GCC 7.1.0 or Clang 5.0.0 or later is required"
 #endif
@@ -68,6 +66,10 @@
 #if WJR_CPP_STANDARD >= 202002L
 #define WJR_CPP_20
 #endif
+
+#if !defined(WJR_CPP_17)
+#error "required C++17 or later"
+#endif // c++17
 
 #if defined(__cpp_char8_t)
 #define WJR_CHAR8_T

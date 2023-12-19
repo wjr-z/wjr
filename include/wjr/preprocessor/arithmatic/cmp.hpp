@@ -3,7 +3,7 @@
 
 #include <wjr/preprocessor/arithmatic/add.hpp>
 #include <wjr/preprocessor/arithmatic/inc.hpp>
-#include <wjr/preprocessor/arithmatic/not.hpp>
+#include <wjr/preprocessor/arithmatic/neg.hpp>
 #include <wjr/preprocessor/logical.hpp>
 
 #define WJR_PP_LT(x, y) WJR_PP_BOOL_IF(WJR_PP_BOOL(y), WJR_PP_ADD_OVERFLOW(x, y), 0)

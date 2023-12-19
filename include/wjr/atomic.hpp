@@ -2,6 +2,7 @@
 #define WJR_ATOMIC_HPP__
 
 #include <atomic>
+#include <memory>
 
 #include <wjr/type_traits.hpp>
 
@@ -22,8 +23,12 @@
 #define WJR_ATOMIC_VERIFY(veris)                                                         \
     WJR_PP_QUEUE_PUT(WJR_PP_QUEUE_TRANSFORM(veris, WJR_ATOMIC_VERIFY_IMPL))
 #define WJR_ATOMIC_VERIFY_IMPL(ptr)                                                      \
-    WJR_ASSERT(3, reinterpret_cast<::wjr::uintptr_t>(ptr) % sizeof(T) == 0,              \
-               "Atomic operation used incorrectly aligned pointers");
+    WJR_ASSERT_L(1,                                                                      \
+                 reinterpret_cast<::wjr::uintptr_t>(ptr) %                               \
+                         sizeof(typename std::pointer_traits<                            \
+                                remove_cvref_t<decltype(ptr)>>::element_type) ==         \
+                     0,                                                                  \
+                 "Atomic operation used incorrectly aligned pointers");
 
 namespace wjr {
 
