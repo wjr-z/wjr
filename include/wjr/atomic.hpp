@@ -20,8 +20,7 @@
 #define WJR_ATOMIC_CONCAT(x) WJR_ATOMIC_CONCAT_I x
 #define WJR_ATOMIC_CONCAT_I(a, b) a b
 
-#define WJR_ATOMIC_VERIFY(veris)                                                         \
-    WJR_PP_QUEUE_PUT(WJR_PP_QUEUE_TRANSFORM(veris, WJR_ATOMIC_VERIFY_IMPL))
+#define WJR_ATOMIC_VERIFY(veris) WJR_PP_TRANSFORM_PUT(veris, WJR_ATOMIC_VERIFY_IMPL)
 #define WJR_ATOMIC_VERIFY_IMPL(ptr)                                                      \
     WJR_ASSERT_L(1,                                                                      \
                  reinterpret_cast<::wjr::uintptr_t>(ptr) %                               \

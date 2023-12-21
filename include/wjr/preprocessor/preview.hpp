@@ -32,7 +32,7 @@
 // use abort instead of assert when NDEBUG is defined
 #if defined(NDEBUG)
 #define WJR_ASSERT_NOMESSAGE_I(expr)                                                     \
-    if (!WS_UNLIKELY(expr)) {                                                            \
+    if (!WJR_UNLIKELY(expr)) {                                                           \
         std::abort();                                                                    \
         WJR_UNREACHABLE;                                                                 \
     }
@@ -82,8 +82,11 @@
 // level of assert is zero at default.
 #define WJR_ASSERT(...) WJR_ASSERT_L(0, __VA_ARGS__)
 
-#define WJR_ATTRIBUTES(...)                                                              \
-    WJR_PP_QUEUE_PUT(WJR_PP_QUEUE_TRANSFORM((__VA_ARGS__), WJR_ATTRIBUTES_CALLER))
+// (a, b, c) -> f(a) f(b) f(c)
+#define WJR_PP_TRANSFORM_PUT(queue, op)                                                  \
+    WJR_PP_QUEUE_PUT(WJR_PP_QUEUE_TRANSFORM(queue, op))
+
+#define WJR_ATTRIBUTES(...) WJR_PP_TRANSFORM_PUT(WJR_ATTRIBUTES_CALLER)
 #define WJR_ATTRIBUTES_CALLER(x) WJR_ATTRIBUTE(x)
 
 #endif // ! WJR_PREPROCESSOR_PREVIEW_HPP__

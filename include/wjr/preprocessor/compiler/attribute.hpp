@@ -2,18 +2,6 @@
 #define WJR_PREPROCESSOR_COMPILER_ATTRIBUTE_HPP__
 
 #include <wjr/preprocessor/compiler/compiler.hpp>
-#include <wjr/preprocessor/details/basic.hpp>
-#include <wjr/preprocessor/logical/basic.hpp>
-
-#define WJR_HAS_DEF WJR_PP_MAP_DEF(1)
-
-#define WJR_HAS_FIND(MAP, KEY) WJR_PP_CONCAT(WJR_HAS_FIND_I_, WJR_PP_MAP_FIND(MAP, KEY))
-#define WJR_HAS_FIND_I_1 1
-#define WJR_HAS_FIND_I_WJR_PP_NULLPTR 0
-
-// Currently only has_builtin, has_attribute, has_feature are supported.
-#define WJR_HAS_BUILTIN_FIND(KEY) WJR_HAS_FIND(WJR_HAS_BUILTIN_, KEY)
-#define WJR_HAS_ATTRIBUTE_FIND(KEY) WJR_HAS_FIND(WJR_HAS_ATTRIBUTE_, KEY)
 
 #if (defined(WJR_COMPILER_GCC) && WJR_HAS_GCC(10, 1, 0)) ||                              \
     (defined(WJR_COMPILER_CLANG) && WJR_HAS_CLANG(10, 0, 0)) ||                          \
@@ -42,6 +30,8 @@
 #else
 #define WJR_HAS_CPP_ATTRIBUTE(x) 0
 #endif
+
+#define WJR_HAS_FEATURE(x) WJR_HAS_FEATURE_FIND(x)
 
 #if WJR_HAS_CPP_ATTRIBUTE(fallthrough)
 #define WJR_FALLTHROUGH [[fallthrough]]
@@ -138,13 +128,15 @@
 #endif
 
 #if WJR_HAS_BUILTIN(__builtin_assume)
-#define WJR_ASSUME(x) __builtin_assume(x)
+#define WJR_ASSUME(expr) __builtin_assume(expr)
 #elif defined(WJR_COMPILER_MSVC)
-#define WJR_ASSUME(x) __assume(x)
+#define WJR_ASSUME(expr) __assume(expr)
+#elif WJR_HAS_CPP_ATTRIBUTE(assume)
+#define WJR_ASSUME(expr) [[assume(expr)]]
 #else
-#define WJR_ASSUME(x)                                                                    \
+#define WJR_ASSUME(expr)                                                                 \
     do {                                                                                 \
-        if (!(x)) {                                                                      \
+        if (!(expr)) {                                                                   \
             WJR_UNREACHABLE;                                                             \
         }                                                                                \
     } while (0)
@@ -164,6 +156,8 @@
 #define WJR_UNLIKELY(expr) (expr)
 #endif
 
+#define WJR_HAS_FEATURE_IS_CONSTANT_EVALUATED WJR_HAS_DEF
+
 #if defined(__cpp_lib_is_constant_evaluated)
 #define WJR_IS_CONSTANT_EVALUATED std::is_constant_evaluated()
 #elif WJR_HAS_BUILTIN(__builtin_is_constant_evaluated) || WJR_HAS_GCC(9, 1, 0) ||        \
@@ -171,17 +165,14 @@
 #define WJR_IS_CONSTANT_EVALUATED() __builtin_is_constant_evaluated()
 #else
 #define WJR_IS_CONSTANT_EVALUATED() false
+#undef WJR_HAS_FEATURE_IS_CONSTANT_EVALUATED
 #endif
 
 #if WJR_HAS_BUILTIN(__builtin_constant_p) || WJR_HAS_GCC(7, 1, 0) ||                     \
     WJR_HAS_CLANG(5, 0, 0)
-#define WJR_BUILTIN_CONSTANT_P(expr) __builtin_constant_p(WJR_BOOL_EXPR(expr))
-#undef WJR_HAS_CONSTANT_P
-#define WJR_HAS_CONSTANT_P 1
+#define WJR_BUILTIN_CONSTANT_P(expr) __builtin_constant_p(expr)
 #else
 #define WJR_BUILTIN_CONSTANT_P(expr) WJR_IS_CONSTANT_EVALUATED()
-#undef WJR_HAS_CONSTANT_P
-#define WJR_HAS_CONSTANT_P WJR_HAS_CONSTANT_EVALUATED
 #endif
 
 #ifdef WJR_CPP_20

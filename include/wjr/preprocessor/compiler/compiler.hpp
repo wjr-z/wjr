@@ -2,6 +2,7 @@
 #define WJR_PREPROCESSOR_COMPILER_COMPILER_HPP__
 
 #include <wjr/preprocessor/compiler/arch.hpp>
+#include <wjr/preprocessor/compiler/has.hpp>
 
 #if defined(__clang__)
 #define WJR_COMPILER_CLANG
@@ -81,17 +82,17 @@
 #define WJR_COUNTER __LINE__
 #endif
 
-#if defined(WJR_X86) && (defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG))
-#undef WJR_HAS_INLINE_ASM
+#if defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_MSVC)
 #define WJR_HAS_INLINE_ASM 1
+#define WJR_HAS_FEATURE_INLINE_ASM WJR_HAS_DEF
 #endif
 
 #if defined(__SIZEOF_INT128__)
-#undef WJR_HAS_INT128
 #define WJR_HAS_INT128 1
+#define WJR_HAS_FEATURE_INT128 WJR_HAS_DEF
 #if !(defined(__clang__) && defined(LIBDIVIDE_VC))
-#undef WJR_HAS_INT128_DIV
 #define WJR_HAS_INT128_DIV 1
+#define WJR_HAS_FEATURE_INT128_DIV WJR_HAS_DEF
 #endif
 #endif
 

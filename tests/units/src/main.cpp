@@ -10,6 +10,7 @@
 #define WJR_DEBUG_LEVEL 3
 #endif
 
+#include <wjr/math.hpp>
 #include <wjr/preprocessor.hpp>
 
 TEST(preprocessor, arithmatic) {
@@ -199,4 +200,86 @@ TEST(preprocessor_preview, queue) {
 
 #undef WJR_TEST_F
 #undef WJR_TEST_SELF
+}
+
+TEST(asm, add) {
+
+#define WJR_TEST_ADDC(type, x, y, ci, ans, ans_co)                                       \
+    WJR_TEST_ADDC_I(type, x, y, ci, co, ans, ans_co)
+#define WJR_TEST_ADDC_I(type, x, y, ci, co, ans, ans_co)                                 \
+    WJR_ASSERT((wjr::fallback_addc<type, type>(x, y, ci, co) == ans && co == ans_co));   \
+    WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ADDC),                                                \
+                   do {                                                                  \
+                       WJR_ASSERT((wjr::builtin_addc<type, type>(x, y, ci, co) == ans && \
+                                   co == ans_co));                                       \
+                   } while (0),                                                          \
+                   {});                                                                  \
+    WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_ADDC),                                            \
+                   do {                                                                  \
+                       if (ci == 1) {                                                    \
+                           WJR_ASSERT((wjr::asm_addc_1<type, type>(x, y, co) == ans &&   \
+                                       co == ans_co));                                   \
+                       }                                                                 \
+                   } while (0),                                                          \
+                   {})
+
+#define WJR_TEST_ADDC_F(type)                                                            \
+    do {                                                                                 \
+        constexpr auto maxn = std::numeric_limits<type>::max();                          \
+        type co;                                                                         \
+        WJR_TEST_ADDC(type, 0, 0, 0, 0, 0);                                              \
+        WJR_TEST_ADDC(type, 0, 0, 1, 1, 0);                                              \
+        WJR_TEST_ADDC(type, 0, maxn, 0, maxn, 0);                                        \
+        WJR_TEST_ADDC(type, 1, maxn, 0, 0, 1);                                           \
+        WJR_TEST_ADDC(type, 0, maxn, 1, 0, 1);                                           \
+        WJR_TEST_ADDC(type, 1, maxn, 1, 1, 1);                                           \
+    } while (0);
+
+    WJR_PP_TRANSFORM_PUT(
+        (unsigned char, unsigned short, unsigned int, unsigned long, unsigned long long),
+        WJR_TEST_ADDC_F);
+
+#undef WJR_TEST_ADDC_F
+#undef WJR_TEST_ADDC_I
+#undef WJR_TEST_ADDC
+
+#define WJR_TEST_SUBC(type, x, y, ci, ans, ans_co)                                       \
+    WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)
+#define WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)                                 \
+    WJR_ASSERT((wjr::fallback_subc<type, type>(x, y, ci, co) == ans && co == ans_co));   \
+    WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(SUBC),                                                \
+                   do {                                                                  \
+                       WJR_ASSERT((wjr::builtin_subc<type, type>(x, y, ci, co) == ans && \
+                                   co == ans_co));                                       \
+                   } while (0),                                                          \
+                   {});                                                                  \
+    WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_SUBC),                                            \
+                   do {                                                                  \
+                       if (ci == 1) {                                                    \
+                           WJR_ASSERT((wjr::asm_subc_1<type, type>(x, y, co) == ans &&   \
+                                       co == ans_co));                                   \
+                       }                                                                 \
+                   } while (0),                                                          \
+                   {})
+
+#define WJR_TEST_SUBC_F(type)                                                            \
+    do {                                                                                 \
+        constexpr auto maxn = std::numeric_limits<type>::max();                          \
+        type co;                                                                         \
+        WJR_TEST_SUBC(type, 0, 0, 0, 0, 0);                                              \
+        WJR_TEST_SUBC(type, 0, 0, 1, maxn, 1);                                           \
+        WJR_TEST_SUBC(type, 1, 0, 1, 0, 0);                                              \
+        WJR_TEST_SUBC(type, 0, maxn, 0, 1, 1);                                           \
+        WJR_TEST_SUBC(type, 1, maxn, 0, 2, 1);                                           \
+        WJR_TEST_SUBC(type, 0, maxn, 1, 0, 1);                                           \
+        WJR_TEST_SUBC(type, 1, maxn, 1, 1, 1);                                           \
+    } while (0);
+
+    WJR_PP_TRANSFORM_PUT(
+        (unsigned char, unsigned short, unsigned int, unsigned long, unsigned long long),
+        WJR_TEST_SUBC_F);
+
+#undef WJR_TEST_SUBC_F
+#undef WJR_TEST_SUBC_I
+#undef WJR_TEST_SUBC
 }

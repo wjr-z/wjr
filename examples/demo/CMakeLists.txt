@@ -8,7 +8,7 @@ endif()
 if (MSVC)
 set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} /O2 /std:c++17 /Zc:preprocessor")
 else()
-set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -O2 -std=c++17")
+set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -O2 -std=c++17 -g")
 endif() 
 
 set(WJR_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/../../include)
