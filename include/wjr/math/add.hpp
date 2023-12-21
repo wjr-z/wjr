@@ -52,6 +52,7 @@ WJR_INTRINSIC_INLINE T asm_addc_1(T a, T b, U &c_out) {
     WJR_REGISTER_BUILTIN_ASM_ADDC(
         ((b, uint8_t), (w, uint16_t), (l, uint32_t), (q, uint64_t))) {
         static_assert(nd <= 64, "not supported yet");
+        WJR_UNREACHABLE;
     }
 
 #undef WJR_REGISTER_BUILTIN_ASM_ADDC_I_CALLER
@@ -81,6 +82,7 @@ WJR_INTRINSIC_INLINE T builtin_addc(T a, T b, U c_in, U &c_out) {
     WJR_REGISTER_BUILTIN_ADDC(((b, unsigned char), (s, unsigned short), (, unsigned int),
                                (l, unsigned long), (ll, unsigned long long))) {
         static_assert(nd <= 64, "not supported yet");
+        WJR_UNREACHABLE;
     }
 
 #undef WJR_REGISTER_BUILTIN_ADDC_I_CALLER
@@ -138,9 +140,9 @@ WJR_INTRINSIC_CONSTEXPR U addc_n_res(T *dst, const T *src0, const T *src1, U c_i
         return c_in;
     }
 
+    dst += n;
     src0 += n;
     src1 += n;
-    dst += n;
 
 #define WJR_REGISTER_ADDC_RES_CASE_CALLER(idx)                                           \
     case idx: {                                                                          \
@@ -162,6 +164,7 @@ WJR_INTRINSIC_CONSTEXPR U addc_n_res(T *dst, const T *src0, const T *src1, U c_i
     WJR_REGISTER_ADDC_RES_SWITCH_CALLER(2)
     WJR_REGISTER_ADDC_RES_SWITCH_CALLER(4) WJR_REGISTER_ADDC_RES_SWITCH_CALLER(8) {
         static_assert(div <= 8, "not support yet");
+        WJR_UNREACHABLE;
     }
 
 #undef WJR_REGISTER_ADDC_RES_CASE_CALLER
@@ -179,9 +182,9 @@ WJR_INTRINSIC_CONSTEXPR U fallback_addc_n(T *dst, const T *src0, const T *src1, 
         dst[2] = addc(src0[2], src1[2], c_in, c_in);
         dst[3] = addc(src0[3], src1[3], c_in, c_in);
 
+        dst += 4;
         src0 += 4;
         src1 += 4;
-        dst += 4;
     }
 
     return addc_n_res<4>(dst, src0, src1, c_in, n);
@@ -237,6 +240,7 @@ WJR_INTRINSIC_INLINE U asm_addc_n(T *dst, const T *src0, const T *src1, U c_in,
     WJR_REGISTER_ASM_ADDC_N(((uint8_t, b, 0, 1, 2, 3), (uint16_t, w, 0, 2, 4, 6),
                              (uint32_t, l, 0, 4, 8, 12), (uint64_t, q, 0, 8, 16, 24))) {
         static_assert(nd <= 64, "not support yet");
+        WJR_UNREACHABLE;
     }
 
 #undef WJR_REGISTER_ASM_ADDC_N_I_CALLER
