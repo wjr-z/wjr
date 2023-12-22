@@ -1,5 +1,6 @@
 require : \
-C++17
+C++17, 64-bit   \
+Currently, most optimizations do not target 32-bit encoding, so 32-bit is not currently supported
 
 1. container \
     TODO :  \

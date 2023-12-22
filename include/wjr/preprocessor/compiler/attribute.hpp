@@ -1,37 +1,7 @@
 #ifndef WJR_PREPROCESSOR_COMPILER_ATTRIBUTE_HPP__
 #define WJR_PREPROCESSOR_COMPILER_ATTRIBUTE_HPP__
 
-#include <wjr/preprocessor/compiler/compiler.hpp>
-
-#if (defined(WJR_COMPILER_GCC) && WJR_HAS_GCC(10, 1, 0)) ||                              \
-    (defined(WJR_COMPILER_CLANG) && WJR_HAS_CLANG(10, 0, 0)) ||                          \
-    (!defined(WJR_COMPILER_GCC) && !defined(WJR_COMPILER_CLANG) &&                       \
-     defined(__has_builtin))
-#define WJR_HAS_BUILTIN(x) WJR_PP_BOOL_IF(WJR_HAS_BUILTIN_FIND(x), 1, __has_builtin(x))
-#else
-#define WJR_HAS_BUILTIN(x) WJR_HAS_BUILTIN_FIND(x)
-#endif
-
-#if defined(__has_include)
-#define WJR_HAS_INCLUDE(x) __has_include(x)
-#else
-#define WJR_HAS_INCLUDE(x) 0
-#endif // __has_includeF
-
-#if defined(__has_attribute)
-#define WJR_HAS_ATTRIBUTE(x)                                                             \
-    WJR_PP_BOOL_IF(WJR_HAS_ATTRIBUTE_FIND(x), 1, __has_attribute(x))
-#else
-#define WJR_HAS_ATTRIBUTE(x) WJR_HAS_ATTRIBUTE_FIND(x)
-#endif
-
-#if defined(__has_cpp_attribute)
-#define WJR_HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
-#else
-#define WJR_HAS_CPP_ATTRIBUTE(x) 0
-#endif
-
-#define WJR_HAS_FEATURE(x) WJR_HAS_FEATURE_FIND(x)
+#include <wjr/preprocessor/compiler/has.hpp>
 
 #if WJR_HAS_CPP_ATTRIBUTE(fallthrough)
 #define WJR_FALLTHROUGH [[fallthrough]]
@@ -118,8 +88,7 @@
 
 #if defined(__cpp_lib_unreachable)
 #define WJR_UNREACHABLE std::unreachable()
-#elif WJR_HAS_BUILTIN(__builtin_unreachable) || WJR_HAS_GCC(7, 1, 0) ||                  \
-    WJR_HAS_CLANG(5, 0, 0)
+#elif WJR_HAS_BUILTIN(__builtin_unreachable)
 #define WJR_UNREACHABLE __builtin_unreachable()
 #elif defined(WJR_COMPILER_MSVC)
 #define WJR_UNREACHABLE __assume(0)
@@ -144,13 +113,13 @@
 
 #define WJR_BOOL_EXPR(expr) (!!(expr))
 
-#if WJR_HAS_BUILTIN(__builtin_expect) || WJR_HAS_GCC(7, 1, 0) || WJR_HAS_CLANG(5, 0, 0)
+#if WJR_HAS_BUILTIN(__builtin_expect)
 #define WJR_LIKELY(expr) __builtin_expect(WJR_BOOL_EXPR(expr), true)
 #else
 #define WJR_LIKELY(expr) (expr)
 #endif
 
-#if WJR_HAS_BUILTIN(__builtin_expect) || WJR_HAS_GCC(7, 1, 0) || WJR_HAS_CLANG(5, 0, 0)
+#if WJR_HAS_BUILTIN(__builtin_expect)
 #define WJR_UNLIKELY(expr) __builtin_expect(WJR_BOOL_EXPR(expr), false)
 #else
 #define WJR_UNLIKELY(expr) (expr)
@@ -160,16 +129,14 @@
 
 #if defined(__cpp_lib_is_constant_evaluated)
 #define WJR_IS_CONSTANT_EVALUATED std::is_constant_evaluated()
-#elif WJR_HAS_BUILTIN(__builtin_is_constant_evaluated) || WJR_HAS_GCC(9, 1, 0) ||        \
-    WJR_HAS_CLANG(9, 0, 0)
+#elif WJR_HAS_BUILTIN(__builtin_is_constant_evaluated)
 #define WJR_IS_CONSTANT_EVALUATED() __builtin_is_constant_evaluated()
 #else
 #define WJR_IS_CONSTANT_EVALUATED() false
 #undef WJR_HAS_FEATURE_IS_CONSTANT_EVALUATED
 #endif
 
-#if WJR_HAS_BUILTIN(__builtin_constant_p) || WJR_HAS_GCC(7, 1, 0) ||                     \
-    WJR_HAS_CLANG(5, 0, 0)
+#if WJR_HAS_BUILTIN(__builtin_constant_p)
 #define WJR_BUILTIN_CONSTANT_P(expr) __builtin_constant_p(expr)
 #else
 #define WJR_BUILTIN_CONSTANT_P(expr) WJR_IS_CONSTANT_EVALUATED()

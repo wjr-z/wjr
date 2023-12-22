@@ -242,25 +242,26 @@ TEST(asm, add) {
 #undef WJR_TEST_ADDC_F
 #undef WJR_TEST_ADDC_I
 #undef WJR_TEST_ADDC
+}
+
+TEST(math, sub) {
 
 #define WJR_TEST_SUBC(type, x, y, ci, ans, ans_co)                                       \
     WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)
 #define WJR_TEST_SUBC_I(type, x, y, ci, co, ans, ans_co)                                 \
-    WJR_ASSERT((wjr::fallback_subc<type, type>(x, y, ci, co) == ans && co == ans_co));   \
-    WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(SUBC),                                                \
-                   do {                                                                  \
-                       WJR_ASSERT((wjr::builtin_subc<type, type>(x, y, ci, co) == ans && \
-                                   co == ans_co));                                       \
-                   } while (0),                                                          \
-                   {});                                                                  \
-    WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_SUBC),                                            \
-                   do {                                                                  \
-                       if (ci == 1) {                                                    \
-                           WJR_ASSERT((wjr::asm_subc_1<type, type>(x, y, co) == ans &&   \
-                                       co == ans_co));                                   \
-                       }                                                                 \
-                   } while (0),                                                          \
-                   {})
+    WJR_ASSERT((wjr::fallback_subc<type, type>(x, y, ci, co) == ans && co == ans_co))    \
+    WJR_PP_BOOL_IF(                                                                      \
+        WJR_HAS_BUILTIN(SUBC), ; do {                                                    \
+            WJR_ASSERT(                                                                  \
+                (wjr::builtin_subc<type, type>(x, y, ci, co) == ans && co == ans_co));   \
+        } while (0), )                                                                   \
+    WJR_PP_BOOL_IF(                                                                      \
+        WJR_HAS_BUILTIN(ASM_SUBC), ; do {                                                \
+            if (ci == 1) {                                                               \
+                WJR_ASSERT(                                                              \
+                    (wjr::asm_subc_1<type, type>(x, y, co) == ans && co == ans_co));     \
+            }                                                                            \
+        } while (0), )
 
 #define WJR_TEST_SUBC_F(type)                                                            \
     do {                                                                                 \
@@ -282,4 +283,67 @@ TEST(asm, add) {
 #undef WJR_TEST_SUBC_F
 #undef WJR_TEST_SUBC_I
 #undef WJR_TEST_SUBC
+}
+
+TEST(math, popcount) {
+#define WJR_TEST_POPCOUNT(queue) WJR_PP_TRANSFORM_PUT(queue, WJR_TEST_POPCOUNT_I_CALLER)
+#define WJR_TEST_POPCOUNT_I(type, x, ans)                                                \
+    WJR_ASSERT(wjr::fallback_popcount<type>(x) == ans)                                   \
+    WJR_PP_BOOL_IF(                                                                      \
+        WJR_HAS_BUILTIN(POPCOUNT), ;                                                     \
+        do { WJR_ASSERT((wjr::builtin_popcount<type>(x) == ans)); } while (0), );
+#define WJR_TEST_POPCOUNT_I_CALLER(args) WJR_TEST_POPCOUNT_I args
+
+    WJR_TEST_POPCOUNT(((uint8_t, 0x00, 0), (uint8_t, 0x01, 1), (uint8_t, 0x02, 1),
+                       (uint8_t, 0x03, 2), (uint8_t, 0x04, 1), (uint8_t, 0x0a, 2),
+                       (uint8_t, 0x0b, 3), (uint8_t, 0x0c, 2), (uint8_t, 0x0f, 4),
+                       (uint8_t, 0x17, 4), (uint8_t, 0xff, 8)));
+
+    WJR_TEST_POPCOUNT(
+        ((uint16_t, 0x0000, 0), (uint16_t, 0x0001, 1), (uint16_t, 0x0002, 1),
+         (uint16_t, 0x0003, 2), (uint16_t, 0x0004, 1), (uint16_t, 0x000a, 2),
+         (uint16_t, 0x000b, 3), (uint16_t, 0x000c, 2), (uint16_t, 0x000f, 4),
+         (uint16_t, 0x0017, 4), (uint16_t, 0x00ff, 8), (uint16_t, 0x0a0f, 6),
+         (uint16_t, 0xffff, 16)));
+
+    WJR_TEST_POPCOUNT(((uint32_t, 0x0000'0000, 0), (uint32_t, 0x0000'0001, 1),
+                       (uint32_t, 0x0000'0002, 1), (uint32_t, 0x0000'0003, 2),
+                       (uint32_t, 0x0000'0004, 1), (uint32_t, 0x0000'000a, 2),
+                       (uint32_t, 0x0000'000b, 3), (uint32_t, 0x0000'000c, 2),
+                       (uint32_t, 0x0000'000f, 4), (uint32_t, 0x0000'0013, 3),
+                       (uint32_t, 0x0000'0017, 4), (uint32_t, 0x0000'00ff, 8),
+                       (uint32_t, 0x0000'00cf, 6), (uint32_t, 0x0001'00cd, 6),
+                       (uint32_t, 0x0100'0000, 1), (uint32_t, 0x0200'0000, 1),
+                       (uint32_t, 0x0300'0000, 2), (uint32_t, 0x0400'0000, 1),
+                       (uint32_t, 0xffff'ffff, 32)));
+
+    WJR_TEST_POPCOUNT(((uint64_t, 0x0000'0000, 0), (uint64_t, 0x0000'0001, 1),
+                       (uint64_t, 0x0000'0002, 1), (uint64_t, 0x0000'0003, 2),
+                       (uint64_t, 0x0000'0004, 1), (uint64_t, 0x0000'000a, 2),
+                       (uint64_t, 0x0000'000b, 3), (uint64_t, 0x0000'000c, 2),
+                       (uint64_t, 0x0000'000f, 4), (uint64_t, 0x0000'0013, 3),
+                       (uint64_t, 0x0000'0017, 4), (uint64_t, 0x0000'00ff, 8),
+                       (uint64_t, 0x0000'00cf, 6), (uint64_t, 0x0001'00cd, 6),
+                       (uint64_t, 0x0100'0000, 1), (uint64_t, 0x0200'0000, 1),
+                       (uint64_t, 0x0300'0000, 2), (uint64_t, 0x0400'0000, 1),
+                       (uint64_t, 0xffff'ffff, 32)));
+
+    WJR_TEST_POPCOUNT(
+        ((uint64_t, 0x0000'0000'0000'0000, 0), (uint64_t, 0x0000'0001'0000'000, 1),
+         (uint64_t, 0x0000'0002'0000'000, 1), (uint64_t, 0x0000'0003'0000'000, 2),
+         (uint64_t, 0x0000'0004'0000'000, 1), (uint64_t, 0x0000'000a'0000'000, 2),
+         (uint64_t, 0x0000'000b'0000'000, 3), (uint64_t, 0x0000'000c'0000'000, 2),
+         (uint64_t, 0x0000'000f'0000'000, 4), (uint64_t, 0x0000'0013'0000'000, 3),
+         (uint64_t, 0x0000'0017'0000'000, 4), (uint64_t, 0x0000'00ff'0000'000, 8),
+         (uint64_t, 0x0000'00cf'0000'000, 6), (uint64_t, 0x0001'00cd'0000'000, 6),
+         (uint64_t, 0x0100'0000'0000'000, 1), (uint64_t, 0x0200'0000'0000'000, 1),
+         (uint64_t, 0x0300'0000'0000'000, 2), (uint64_t, 0x0400'0000'0000'000, 1),
+         (uint64_t, 0xffff'ffff'0000'000, 32), (uint64_t, 0xffff'ffff'ffff'ffff, 64)));
+
+#undef WJR_TEST_POPCOUNT_I_CALLER
+#undef WJR_TEST_POPCOUNT_I
+#undef WJR_TEST_POPCOUNT
+}
+
+TEST(math, ctz) {
 }

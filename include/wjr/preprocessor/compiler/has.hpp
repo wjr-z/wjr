@@ -4,6 +4,8 @@
 #include <wjr/preprocessor/details/basic.hpp>
 #include <wjr/preprocessor/logical/basic.hpp>
 
+#include <wjr/preprocessor/compiler/compiler.hpp>
+
 #define WJR_HAS_DEF WJR_PP_MAP_DEF(1)
 #define WJR_HAS_UNDEF WJR_PP_MAP_DEF(0)
 
@@ -17,16 +19,69 @@
 #define WJR_HAS_ATTRIBUTE_FIND(KEY) WJR_HAS_FIND(WJR_HAS_ATTRIBUTE_, KEY)
 #define WJR_HAS_FEATURE_FIND(KEY) WJR_HAS_FIND(WJR_HAS_FEATURE_, KEY)
 
-// Distinguishing between uppercase and GCC/Clang compiler support.
-// Additional Support List :
+//
 
-// WJR_HAS_BUILTIN : ADDC, ASM_ADDC, SUBC, ASM_SUBC
-// WJR_HAS_ATTRIBUTE :
-// WJR_HAS_FEATURE : IS_CONSTANT_EVALUATED, INT128, INT128_DIV, INLINE_ASM
+#if (defined(WJR_COMPILER_GCC) && WJR_HAS_GCC(10, 1, 0)) ||                              \
+    (defined(WJR_COMPILER_CLANG) && WJR_HAS_CLANG(10, 0, 0)) ||                          \
+    (!defined(WJR_COMPILER_GCC) && !defined(WJR_COMPILER_CLANG) &&                       \
+     defined(__has_builtin))
+#define WJR_HAS_BUILTIN(x) WJR_PP_BOOL_IF(WJR_HAS_BUILTIN_FIND(x), 1, __has_builtin(x))
+#else
+#define WJR_HAS_BUILTIN(x) WJR_HAS_BUILTIN_FIND(x)
+#endif
 
-// ADDC :
-//  wjr::builtin_addc, optimized by using __builtin_addc if supported.
-// ASM_ADDC : 
-//  wjr::builtin_addc, include ADDC and maybe optimize by using inline assembly.
+#if defined(__has_include)
+#define WJR_HAS_INCLUDE(x) __has_include(x)
+#else
+#define WJR_HAS_INCLUDE(x) 0
+#endif // __has_includeF
+
+#if defined(__has_attribute)
+#define WJR_HAS_ATTRIBUTE(x)                                                             \
+    WJR_PP_BOOL_IF(WJR_HAS_ATTRIBUTE_FIND(x), 1, __has_attribute(x))
+#else
+#define WJR_HAS_ATTRIBUTE(x) WJR_HAS_ATTRIBUTE_FIND(x)
+#endif
+
+#if defined(__has_cpp_attribute)
+#define WJR_HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
+#else
+#define WJR_HAS_CPP_ATTRIBUTE(x) 0
+#endif
+
+#define WJR_HAS_FEATURE(x) WJR_HAS_FEATURE_FIND(x)
+
+// WJR_HAS_BUILTIN
+
+#if WJR_HAS_GCC(7, 1, 0) || WJR_HAS_CLANG(5, 0, 0)
+#define WJR_HAS_BUILTIN___builtin_unreachable WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___builtin_expect WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___builtin_constant_p WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___builtin_clz WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___builtin_ctz WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___builtin_popcount WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_GCC(9, 1, 0) || WJR_HAS_CLANG(9, 0, 0)
+#define WJR_HAS_BUILTIN___builtin_is_constant_evaluated WJR_HAS_DEF
+#endif 
+
+#if WJR_HAS_CLANG(5, 0, 0)
+#define WJR_HAS_BUILTIN___builtin_addc WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___builtin_subc WJR_HAS_DEF
+#endif 
+
+// WJR_HAS_FEATURE
+
+#if defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_MSVC)
+#define WJR_HAS_FEATURE_INLINE_ASM WJR_HAS_DEF
+#endif
+
+#if defined(__SIZEOF_INT128__)
+#define WJR_HAS_FEATURE_INT128 WJR_HAS_DEF
+#if !(defined(__clang__) && defined(LIBDIVIDE_VC))
+#define WJR_HAS_FEATURE_INT128_DIV WJR_HAS_DEF
+#endif
+#endif
 
 #endif // WJR_PREPROCESSOR_COMPILER_HAS_HPP__
