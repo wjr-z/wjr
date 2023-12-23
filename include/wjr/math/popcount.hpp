@@ -33,7 +33,7 @@ int fallback_popcount(T x) {
 #if WJR_HAS_BUILTIN(POPCOUNT)
 
 template <typename T>
-WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
+WJR_ATTRIBUTES(CONST, INTRINSIC_INLINE)
 int builtin_popcount(T x) {
     constexpr auto nd = std::numeric_limits<T>::digits;
     if constexpr (nd < 32) {
@@ -57,7 +57,7 @@ int builtin_popcount(T x) {
 template <typename T>
 WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
 int popcount(T x) {
-    if (is_constant_p(is_power_of_two(x)) && is_constant_p(x != 0)) {
+    if (is_constant_p(is_power_of_two(x)) && is_power_of_two(x)) {
         return x != 0;
     }
 

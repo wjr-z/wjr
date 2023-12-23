@@ -7,6 +7,30 @@ namespace wjr {
 
 template <typename T>
 WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
+int fallback_ctz_impl(T x) {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+#if WJR_HAS_BUILTIN(POPCOUNT) && defined(__POPCNT__)
+    return popcount(static_cast<T>(lowbit(x) - 1));
+#else
+    if constexpr (nd < 32) {
+        return fallback_ctz_impl(static_cast<uint32_t>(x));
+    } else {
+        x = lowbit(x);
+
+        if constexpr (nd <= 32) {
+            return math_details::de_bruijn32.get(x);
+        } else if constexpr (nd <= 64) {
+            return math_details::de_bruijn64.get(x);
+        } else {
+            static_assert(nd <= 64, "not support yet");
+        }
+    }
+#endif //
+}
+
+template <typename T>
+WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
 int fallback_ctz(T x) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
@@ -14,27 +38,7 @@ int fallback_ctz(T x) {
         return nd;
     }
 
-#if WJR_HAS_BUILTIN(POPCOUNT) && defined(__POPCNT__)
-    return popcount((x & -x) - 1);
-#else
-    if constexpr (nd < 32) {
-        return fallback_ctz(static_cast<uint32_t>(x));
-    } else {
-        if (!is_constant_p(is_power_of_two(x))) {
-            x &= -x;
-        }
-
-        if constexpr (nd <= 32) {
-            return math_details::de_bruijn32_lookup[(x * math_details::de_bruijn32) >>
-                                                    27];
-        } else if constexpr (nd <= 64) {
-            return math_details::de_bruijn64_lookup[(x * math_details::de_bruijn64) >>
-                                                    58];
-        } else {
-            static_assert(nd <= 64, "not support yet");
-        }
-    }
-#endif //
+    return fallback_ctz_impl(x);
 }
 
 #if WJR_HAS_BUILTIN(__builtin_ctz)
@@ -45,24 +49,19 @@ int fallback_ctz(T x) {
 
 template <typename T>
 WJR_ATTRIBUTES(CONST, INTRINSIC_INLINE)
-int builtin_ctz(T x) {
+int builtin_ctz_impl(T x) {
     constexpr auto nd = std::numeric_limits<T>::digits;
-
-    if (WJR_UNLIKELY(x == 0)) {
-        return nd;
-    }
 
 #define WJR_REGISTER_BUILTIN_CTZ(args)                                                   \
     WJR_PP_TRANSFORM_PUT(args, WJR_REGISTER_BUILTIN_CTZ_I_CALLER)
 #define WJR_REGISTER_BUILTIN_CTZ_I(suffix, type)                                         \
     if constexpr (nd <= std::numeric_limits<type>::digits) {                             \
-        constexpr auto delta = std::numeric_limits<type>::digits;                        \
-        return __builtin_ctz##suffix(static_cast<type>(x)) - delta;                      \
+        return __builtin_ctz##suffix(static_cast<type>(x));                              \
     } else
 #define WJR_REGISTER_BUILTIN_CTZ_I_CALLER(args) WJR_REGISTER_BUILTIN_CTZ_I args
 
     if constexpr (nd < 32) {
-        return builtin_ctz(static_cast<uint32_t>(x));
+        return builtin_ctz_impl(static_cast<uint32_t>(x));
     } else {
         WJR_REGISTER_BUILTIN_CTZ(
             ((, unsigned int), (l, unsigned long), (ll, unsigned long long))) {
@@ -75,10 +74,22 @@ int builtin_ctz(T x) {
 #undef WJR_REGISTER_BUILTIN_CTZ
 }
 
+template <typename T>
+WJR_ATTRIBUTES(CONST, INTRINSIC_INLINE)
+int builtin_ctz(T x) {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+    if (WJR_UNLIKELY(x == 0)) {
+        return nd;
+    }
+
+    return builtin_ctz_impl(x);
+}
+
 #endif
 
 template <typename T>
-WJR_ATTRIBUTES(CONST, INTRINSIC_INLINE)
+WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
 int ctz(T x) {
 #if WJR_HAS_BUILTIN(CTZ)
     if (is_constant_evaluated() || is_constant_p(x)) {

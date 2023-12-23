@@ -3,6 +3,6 @@
 
 #include <wjr/math/add.hpp>
 #include <wjr/math/sub.hpp>
-#include <wjr/math/ctz.hpp>
+#include <wjr/math/clz.hpp>
 
 #endif // WJR_MATH_HPP__

@@ -5,19 +5,32 @@
 
 namespace wjr {
 namespace math_details {
-inline constexpr uint32_t de_bruijn32 = 0x077C'B531;
-static constexpr uint8_t de_bruijn32_lookup[] = {
-    0,  1,  28, 2,  29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4,  8,
-    31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6,  11, 5,  10, 9,
+
+template <typename T, T seed>
+class de_bruijn {
+public:
+    constexpr static uint8_t digits = std::numeric_limits<T>::digits;
+    constexpr static uint8_t mv = digits == 32 ? 27 : 58;
+    constexpr de_bruijn() : lookup(), lookupr() { initial(); }
+
+    WJR_INTRINSIC_CONSTEXPR int get(T idx) const { return lookup[(idx * seed) >> mv]; }
+    WJR_INTRINSIC_CONSTEXPR int getr(T idx) const { return lookupr[(idx * seed) >> mv]; }
+
+private:
+    constexpr void initial() {
+        for (uint8_t i = 0; i < digits; ++i) {
+            auto idx = (seed << i) >> mv;
+            lookup[idx] = i;
+            lookupr[idx] = i == 0 ? 0 : digits - i;
+        }
+    }
+
+    uint8_t lookup[digits];
+    uint8_t lookupr[digits];
 };
 
-inline constexpr uint64_t de_bruijn64 = 0x03f7'9d71'b4ca'8b09;
-static constexpr uint8_t de_bruijn64_lookup[] = {
-    0,  1,  56, 2,  57, 49, 28, 3,  61, 58, 42, 50, 38, 29, 17, 4,
-    62, 47, 59, 36, 45, 43, 51, 22, 53, 39, 33, 30, 24, 18, 12, 5,
-    63, 55, 48, 27, 60, 41, 37, 16, 46, 35, 44, 21, 52, 32, 23, 11,
-    54, 26, 40, 15, 34, 20, 31, 10, 25, 14, 19, 9,  13, 8,  7,  6,
-};
+inline constexpr de_bruijn<uint32_t, 0x077C'B531> de_bruijn32 = {};
+inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
 
 } // namespace math_details
 
@@ -30,6 +43,10 @@ bool is_power_of_two(T x) {
 template <typename T>
 WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
 T lowbit(T x) {
+    if (is_constant_p(is_power_of_two(x)) && is_power_of_two(x)) {
+        return x;
+    }
+
     return x & -x;
 }
 
