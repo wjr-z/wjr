@@ -10,7 +10,7 @@ WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
 int fallback_ctz_impl(T x) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
-#if WJR_HAS_BUILTIN(POPCOUNT) && defined(__POPCNT__)
+#if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
     return popcount(static_cast<T>(lowbit(x) - 1));
 #else
     if constexpr (nd < 32) {

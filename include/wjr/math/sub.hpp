@@ -5,20 +5,15 @@
 
 namespace wjr {
 
-template <typename T, typename U>
-WJR_INTRINSIC_CONSTEXPR T subo(T a, T b, U &c_out) {
-    c_out = a < b;
-    a -= b;
-    return a;
-}
 
 template <typename T, typename U>
 WJR_INTRINSIC_CONSTEXPR T fallback_subc(T a, T b, U c_in, U &c_out) {
+    T ret = a;
     U c = 0;
-    U c2 = 0;
-    T ret = subo(a, b, c);
-    ret = subo(ret, c_in, c2);
-    c |= c2;
+    c = ret < b;
+    ret -= b;
+    c |= ret < c_in;
+    ret -= c_in;
     c_out = c;
     return ret;
 }
@@ -132,8 +127,8 @@ WJR_INTRINSIC_CONSTEXPR T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
 }
 
 template <size_t div, typename T, typename U>
-WJR_INTRINSIC_CONSTEXPR U subc_n_res(T *dst, const T *src0, const T *src1, U c_in,
-                                     size_t n) {
+WJR_INTRINSIC_CONSTEXPR U subc_n_res(T *dst, const T *src0, const T *src1, size_t n,
+                                     U c_in) {
 
     constexpr size_t mask = div - 1;
 
@@ -174,8 +169,8 @@ WJR_INTRINSIC_CONSTEXPR U subc_n_res(T *dst, const T *src0, const T *src1, U c_i
 } // namespace wjr
 
 template <typename T, typename U>
-WJR_INTRINSIC_CONSTEXPR U fallback_subc_n(T *dst, const T *src0, const T *src1, U c_in,
-                                          size_t n) {
+WJR_INTRINSIC_CONSTEXPR U fallback_subc_n(T *dst, const T *src0, const T *src1, size_t n,
+                                          U c_in) {
     size_t m = n / 4;
 
     for (size_t i = 0; i < m; ++i) {
@@ -189,7 +184,7 @@ WJR_INTRINSIC_CONSTEXPR U fallback_subc_n(T *dst, const T *src0, const T *src1, 
         src1 += 4;
     }
 
-    return subc_n_res<4>(dst, src0, src1, c_in, n);
+    return subc_n_res<4>(dst, src0, src1, n, c_in);
 }
 
 #if WJR_HAS_BUILTIN(ASM_SUBC)
@@ -199,8 +194,8 @@ WJR_INTRINSIC_CONSTEXPR U fallback_subc_n(T *dst, const T *src0, const T *src1, 
 #if WJR_HAS_BUILTIN(ASM_SUBC_N)
 
 template <typename T, typename U>
-WJR_INTRINSIC_INLINE U asm_subc_n(T *dst, const T *src0, const T *src1, U c_in,
-                                  size_t n) {
+WJR_INTRINSIC_INLINE U asm_subc_n(T *dst, const T *src0, const T *src1, size_t n,
+                                  U c_in) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
     size_t m = n / 4;
@@ -249,21 +244,21 @@ WJR_INTRINSIC_INLINE U asm_subc_n(T *dst, const T *src0, const T *src1, U c_in,
 #undef WJR_REGISTER_ASM_SUBC_N_I
 #undef WJR_REGISTER_ASM_SUBC_N
 
-    return subc_n_res<4>(dst, src0, src1, c_in, n);
+    return subc_n_res<4>(dst, src0, src1, n, c_in);
 }
 
 #endif
 
 template <typename T, typename U>
-WJR_INTRINSIC_CONSTEXPR U subc_n(T *dst, const T *src0, const T *src1, U c_in, size_t n) {
+WJR_INTRINSIC_CONSTEXPR U subc_n(T *dst, const T *src0, const T *src1, size_t n, U c_in) {
 #if WJR_HAS_BUILTIN(ASM_SUBC_N)
     if (is_constant_evaluated()) {
-        return fallback_subc_n(dst, src0, src1, c_in, n);
+        return fallback_subc_n(dst, src0, src1, n, c_in);
     }
 
-    return asm_subc_n(dst, src0, src1, c_in, n);
+    return asm_subc_n(dst, src0, src1, n, c_in);
 #else
-    return fallback_subc_n(dst, src0, src1, c_in, n);
+    return fallback_subc_n(dst, src0, src1, n, c_in);
 #endif
 }
 

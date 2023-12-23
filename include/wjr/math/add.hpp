@@ -6,19 +6,13 @@
 namespace wjr {
 
 template <typename T, typename U>
-WJR_INTRINSIC_CONSTEXPR T addo(T a, T b, U &c_out) {
-    a += b;
-    c_out = a < b;
-    return a;
-}
-
-template <typename T, typename U>
 WJR_INTRINSIC_CONSTEXPR T fallback_addc(T a, T b, U c_in, U &c_out) {
+    T ret = a;
     U c = 0;
-    U c2 = 0;
-    T ret = addo(a, b, c);
-    ret = addo(ret, c_in, c2);
-    c |= c2;
+    ret += b;
+    c = ret < b;
+    ret += c_in;
+    c |= ret < c_in;
     c_out = c;
     return ret;
 }
@@ -132,8 +126,8 @@ WJR_INTRINSIC_CONSTEXPR T addc(T a, T b, type_identity_t<U> c_in, U &c_out) {
 }
 
 template <size_t div, typename T, typename U>
-WJR_INTRINSIC_CONSTEXPR U addc_n_res(T *dst, const T *src0, const T *src1, U c_in,
-                                     size_t n) {
+WJR_INTRINSIC_CONSTEXPR U addc_n_res(T *dst, const T *src0, const T *src1, size_t n,
+                                     U c_in) {
 
     constexpr size_t mask = div - 1;
 
@@ -174,8 +168,8 @@ WJR_INTRINSIC_CONSTEXPR U addc_n_res(T *dst, const T *src0, const T *src1, U c_i
 } // namespace wjr
 
 template <typename T, typename U>
-WJR_INTRINSIC_CONSTEXPR U fallback_addc_n(T *dst, const T *src0, const T *src1, U c_in,
-                                          size_t n) {
+WJR_INTRINSIC_CONSTEXPR U fallback_addc_n(T *dst, const T *src0, const T *src1, size_t n,
+                                          U c_in) {
     size_t m = n / 4;
 
     for (size_t i = 0; i < m; ++i) {
@@ -189,7 +183,7 @@ WJR_INTRINSIC_CONSTEXPR U fallback_addc_n(T *dst, const T *src0, const T *src1, 
         src1 += 4;
     }
 
-    return addc_n_res<4>(dst, src0, src1, c_in, n);
+    return addc_n_res<4>(dst, src0, src1, n, c_in);
 }
 
 #if WJR_HAS_BUILTIN(ASM_ADDC)
@@ -199,8 +193,8 @@ WJR_INTRINSIC_CONSTEXPR U fallback_addc_n(T *dst, const T *src0, const T *src1, 
 #if WJR_HAS_BUILTIN(ASM_ADDC_N)
 
 template <typename T, typename U>
-WJR_INTRINSIC_INLINE U asm_addc_n(T *dst, const T *src0, const T *src1, U c_in,
-                                  size_t n) {
+WJR_INTRINSIC_INLINE U asm_addc_n(T *dst, const T *src0, const T *src1, size_t n,
+                                  U c_in) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
     size_t m = n / 4;
@@ -249,22 +243,57 @@ WJR_INTRINSIC_INLINE U asm_addc_n(T *dst, const T *src0, const T *src1, U c_in,
 #undef WJR_REGISTER_ASM_ADDC_N_I
 #undef WJR_REGISTER_ASM_ADDC_N
 
-    return addc_n_res<4>(dst, src0, src1, c_in, n);
+    return addc_n_res<4>(dst, src0, src1, n, c_in);
 }
 
 #endif
 
 template <typename T, typename U>
-WJR_INTRINSIC_CONSTEXPR U addc_n(T *dst, const T *src0, const T *src1, U c_in, size_t n) {
+WJR_INTRINSIC_CONSTEXPR U addc_n(T *dst, const T *src0, const T *src1, size_t n, U c_in) {
 #if WJR_HAS_BUILTIN(ASM_ADDC_N)
     if (is_constant_evaluated()) {
-        return fallback_addc_n(dst, src0, src1, c_in, n);
+        return fallback_addc_n(dst, src0, src1, n, c_in);
     }
 
-    return asm_addc_n(dst, src0, src1, c_in, n);
+    return asm_addc_n(dst, src0, src1, n, c_in);
 #else
-    return fallback_addc_n(dst, src0, src1, c_in, n);
+    return fallback_addc_n(dst, src0, src1, n, c_in);
 #endif
+}
+
+template <typename T, typename U>
+WJR_INTRINSIC_CONSTEXPR U addc_1(T *dst, const T *src0, size_t n, T src1, U c_in) {
+    const bool is_same_ptr = is_constant_p(dst == src0) && dst == src0;
+
+    dst[0] = addc(src0[0], src1, c_in, c_in);
+
+    if (c_in) {
+        size_t idx = 1;
+        
+        for (; idx < n && src0[idx] == static_cast<T>(-1); ++idx)
+            ;
+        for (size_t i = 1; i < idx; ++i) {
+            dst[i] = 0;
+        }
+
+        if (idx == n) {
+            return 1;
+        }
+
+        dst[idx] = src0[idx] + 1;
+
+        dst += idx;
+        src0 += idx;
+        n -= idx;
+    }
+
+    if (!is_same_ptr) {
+        for (size_t i = 1; i < n; ++i) {
+            dst[i] = src0[i];
+        }
+    }
+
+    return static_cast<U>(0);
 }
 
 } // namespace wjr
