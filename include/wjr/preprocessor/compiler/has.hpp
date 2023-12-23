@@ -85,7 +85,7 @@
 #endif
 #endif
 
-// WJR_HAS_SIMD
+#define WJR_HAS_SIMD_SIMD WJR_HAS_DEF
 
 #if defined(_MSC_VER)
 /* Microsoft C/C++-compatible compiler */
@@ -96,6 +96,8 @@
 #elif defined(__GNUC__) && defined(__ARM_NEON__)
 /* GCC-compatible compiler, targeting ARM with NEON */
 #include <arm_neon.h>
+#else
+#undef WJR_HAS_SIMD_SIMD
 #endif
 
 #if defined(__AVX512VL__)

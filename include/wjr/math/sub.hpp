@@ -1,10 +1,10 @@
 #ifndef WJR_MATH_SUB_HPP__
 #define WJR_MATH_SUB_HPP__
 
+#include <wjr/math/ctz.hpp>
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
-
 
 template <typename T, typename U>
 WJR_INTRINSIC_CONSTEXPR T fallback_subc(T a, T b, U c_in, U &c_out) {
@@ -107,7 +107,8 @@ WJR_INTRINSIC_CONSTEXPR T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
     if (is_constant_evaluated() ||
         // constant value is zero or constant value number greater or equal than 2
         (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >=
-         2)) {
+         2) ||
+        is_cosntant_p(a - b)) {
         return fallback_subc(a, b, c_in, c_out);
     }
 
@@ -260,6 +261,127 @@ WJR_INTRINSIC_CONSTEXPR U subc_n(T *dst, const T *src0, const T *src1, size_t n,
 #else
     return fallback_subc_n(dst, src0, src1, n, c_in);
 #endif
+}
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR size_t fallback_subc_1_impl(T *dst, const T *src0, size_t n) {
+    size_t idx = 1;
+
+    // small size optimize
+    if (is_constant_p(n <= 8) && n <= 8) {
+        for (; idx < n && src0[idx] == static_cast<T>(0); ++idx) {
+            dst[idx] = static_cast<T>(-1);
+        }
+
+        return idx;
+    }
+
+    for (; idx < n && src0[idx] == static_cast<T>(0); ++idx)
+        ;
+    for (size_t i = 1; i < idx; ++i) {
+        dst[i] = static_cast<T>(-1);
+    }
+    return idx;
+}
+
+#if WJR_HAS_SIMD(SSE4_1) && WJR_HAS_SIMD(SIMD) && defined(WJR_X86)
+#define WJR_HAS_BUILTIN_SUBC_1_IMPL WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(SUBC_1_IMPL)
+
+template <typename T>
+WJR_INTRINSIC_INLINE size_t builtin_subc_1_impl(T *dst, const T *src0, size_t n) {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+    static_assert(nd == 64, "Currently, only support uint64_t");
+
+    if (n <= 8) {
+        return fallback_subc_1_impl(dst, src0, n);
+    }
+
+    size_t idx = fallback_subc_1_impl(dst, src0, 5);
+
+    if (WJR_LIKELY(idx != 5)) {
+        return idx;
+    }
+
+    __m128i y = _mm_setzero_si128();
+
+    do {
+        __m128i x = _mm_loadu_si128((__m128i *)(src0 + idx));
+        __m128i r = _mm_cmpeq_epi64(x, y);
+        uint16_t z = _mm_movemask_epi8(r);
+        if (z != static_cast<uint16_t>(-1)) {
+            int k = ctz(z) / 8;
+            if (!k) {
+                return idx;
+            }
+
+            dst[idx] = static_cast<T>(-1);
+            return idx + 1;
+        }
+
+        _mm_storeu_si128((__m128i *)(dst + idx), y);
+
+        idx += 2;
+    } while (idx + 2 <= n);
+
+    if (idx != n && src0[idx] == 0ull) {
+        ++idx;
+    }
+
+    return idx;
+}
+
+#endif
+
+template <typename T, typename U>
+WJR_INTRINSIC_CONSTEXPR U subc_1(T *dst, const T *src0, size_t n, T src1, U c_in) {
+    WJR_ASSUME(n >= 1);
+    WJR_ASSUME(dst != nullptr);
+    WJR_ASSUME(src0 != nullptr);
+
+    dst[0] = subc(src0[0], src1, c_in, c_in);
+
+    if (c_in) {
+        size_t idx = 0;
+
+#if WJR_HAS_BUILTIN(SUBC_1_IMPL)
+        if constexpr (std::numeric_limits<T>::digits != 64) {
+            // not support builtin_subc_1_impl yet
+            idx = fallback_subc_1_impl(dst, src0, n);
+        } else {
+            if (is_constant_evaluated()) {
+                idx = fallback_subc_1_impl(dst, src0, n);
+            } else {
+                idx = builtin_subc_1_impl(dst, src0, n);
+            }
+        }
+#else
+        idx = fallback_subc_1_impl(dst, src0, 5);
+        if (WJR_UNLIKELY(idx == 5)) {
+            idx = 4 + fallback_subc_1_impl(dst + 4, src0 + 4, n - 4);
+        }
+#endif
+
+        if (idx == n) {
+            return static_cast<U>(1);
+        }
+
+        dst[idx] = src0[idx] - 1;
+
+        dst += idx;
+        src0 += idx;
+        n -= idx;
+    }
+
+    if (src0 != dst) {
+        for (size_t i = 1; i < n; ++i) {
+            dst[i] = src0[i];
+        }
+    }
+
+    return static_cast<U>(0);
 }
 
 } // namespace wjr
