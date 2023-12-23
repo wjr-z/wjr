@@ -108,7 +108,7 @@ WJR_INTRINSIC_CONSTEXPR T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
         // constant value is zero or constant value number greater or equal than 2
         (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >=
          2) ||
-        is_cosntant_p(a - b)) {
+        is_constant_p(a - b)) {
         return fallback_subc(a, b, c_in, c_out);
     }
 
