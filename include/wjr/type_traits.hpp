@@ -3,7 +3,9 @@
 
 #include <functional>
 #include <limits>
+#include <optional>
 #include <type_traits>
+
 #include <wjr/preprocessor.hpp>
 
 namespace wjr {
@@ -183,6 +185,30 @@ WJR_INTRINSIC_CONSTEXPR bool is_constant_p(const T &p) {
         return WJR_BUILTIN_CONSTANT_P(p);
     }
 }
+
+template <typename T>
+using null_optional_t = std::optional<T>;
+
+template <typename T>
+inline constexpr null_optional_t<T> null_optional = null_optional_t<T>(std::nullopt);
+
+template <typename T>
+struct may_null {
+    using type = T;
+    static constexpr bool value = false;
+};
+
+template <typename T>
+struct may_null<null_optional_t<T>> {
+    using type = T;
+    static constexpr bool value = true;
+};
+
+template <typename T>
+using may_null_t = typename may_null<T>::type;
+
+template <typename T>
+inline constexpr bool may_null_v = may_null<T>::value;
 
 } // namespace wjr
 

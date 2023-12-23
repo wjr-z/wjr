@@ -6,13 +6,19 @@
 namespace wjr {
 
 template <typename T, typename U>
+WJR_INTRINSIC_CONSTEXPR T subo(T a, T b, U &c_out) {
+    c_out = a < b;
+    a -= b;
+    return a;
+}
+
+template <typename T, typename U>
 WJR_INTRINSIC_CONSTEXPR T fallback_subc(T a, T b, U c_in, U &c_out) {
-    T ret = a;
     U c = 0;
-    c = ret < b;
-    ret -= b;
-    c |= ret < c_in;
-    ret -= c_in;
+    U c2 = 0;
+    T ret = subo(a, b, c);
+    ret = subo(ret, c_in, c2);
+    c |= c2;
     c_out = c;
     return ret;
 }

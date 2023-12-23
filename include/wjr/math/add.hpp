@@ -6,13 +6,19 @@
 namespace wjr {
 
 template <typename T, typename U>
+WJR_INTRINSIC_CONSTEXPR T addo(T a, T b, U &c_out) {
+    a += b;
+    c_out = a < b;
+    return a;
+}
+
+template <typename T, typename U>
 WJR_INTRINSIC_CONSTEXPR T fallback_addc(T a, T b, U c_in, U &c_out) {
-    T ret = a;
     U c = 0;
-    ret += b;
-    c = ret < b;
-    ret += c_in;
-    c |= ret < c_in;
+    U c2 = 0;
+    T ret = addo(a, b, c);
+    ret = addo(ret, c_in, c2);
+    c |= c2;
     c_out = c;
     return ret;
 }
