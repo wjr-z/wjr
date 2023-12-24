@@ -33,7 +33,7 @@ int fallback_clz_impl(T x) {
 #endif
 
 #if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
-    return popcount(~x);
+    return popcount<T>(~x);
 #else
     if constexpr (nd < 32) {
         return fallback_clz_impl(static_cast<uint32_t>(x)) - (32 - nd);

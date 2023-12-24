@@ -89,7 +89,21 @@
 #define WJR_ATTRIBUTES(...) WJR_PP_TRANSFORM_PUT((__VA_ARGS__), WJR_ATTRIBUTES_CALLER)
 #define WJR_ATTRIBUTES_CALLER(x) WJR_ATTRIBUTE(x)
 
-#define WJR_PRAGMA(expr) WJR_PRAGMA_I(expr)
 #define WJR_PRAGMA_I(expr) _Pragma(#expr)
+#if defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_MSVC)
+#define WJR_PRAGMA(expr) WJR_PRAGMA_I(expr)
+#else
+#define WJR_PRAGMA(expr)
+#endif
+
+#if WJR_HAS_FEATURE(PRAGMA_UNROLL)
+#if defined(WJR_COMPILER_GCC)
+#define WJR_UNROLL(loop) WJR_PRAGMA(GCC unroll(loop))
+#else
+#define WJR_UNROLL(loop) WJR_PRAGMA(unroll(loop))
+#endif
+#else 
+#define WJR_UNROLL(loop)
+#endif
 
 #endif // ! WJR_PREPROCESSOR_PREVIEW_HPP__

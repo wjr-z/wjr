@@ -11,7 +11,7 @@ int fallback_ctz_impl(T x) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
 #if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
-    return popcount(static_cast<T>(lowbit(x) - 1));
+    return popcount<T>(lowbit(x) - 1);
 #else
     if constexpr (nd < 32) {
         return fallback_ctz_impl(static_cast<uint32_t>(x));

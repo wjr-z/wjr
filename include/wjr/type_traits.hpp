@@ -54,7 +54,7 @@ struct is_contiguous_iterator_impl<iter, typename iter::is_contiguous_iterator>
 
 #if defined(WJR_CPP_20)
 template <typename iter>
-struct is_contiguous_iterator : bool_constant<std::contiguous_iterator<iter> ||
+struct is_contiguous_iterator : std::bool_constant<std::contiguous_iterator<iter> ||
                                               is_contiguous_iterator_impl<iter>::value> {
 };
 #else

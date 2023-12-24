@@ -128,7 +128,7 @@
 #define WJR_HAS_FEATURE_IS_CONSTANT_EVALUATED WJR_HAS_DEF
 
 #if defined(__cpp_lib_is_constant_evaluated)
-#define WJR_IS_CONSTANT_EVALUATED std::is_constant_evaluated()
+#define WJR_IS_CONSTANT_EVALUATED() std::is_constant_evaluated()
 #elif WJR_HAS_BUILTIN(__builtin_is_constant_evaluated)
 #define WJR_IS_CONSTANT_EVALUATED() __builtin_is_constant_evaluated()
 #else
