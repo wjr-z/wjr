@@ -27,3 +27,4 @@ build
 *.sln
 *.vcxproj
 *.vcxproj.filters
+.VScodeCounter

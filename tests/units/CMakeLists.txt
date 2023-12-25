@@ -10,7 +10,7 @@ endif()
 if (MSVC)
 set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} /O2 /std:c++17 /Zc:preprocessor")
 else()
-set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -O2 -std=c++17")
+set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -O2 -std=c++17 -masm=intel -march=native")
 endif() 
 
 

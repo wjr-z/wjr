@@ -8,8 +8,7 @@ namespace wjr {
 template <typename T, typename U>
 WJR_INTRINSIC_CONSTEXPR T fallback_subc(T a, T b, U c_in, U &c_out) {
     T ret = a;
-    U c = 0;
-    c = ret < b;
+    U c = ret < b;
     ret -= b;
     c |= ret < c_in;
     ret -= c_in;
@@ -36,7 +35,7 @@ WJR_INTRINSIC_INLINE T asm_subc_1(T a, T b, U &c_out) {
     WJR_PP_TRANSFORM_PUT(args, WJR_REGISTER_BUILTIN_ASM_SUBC_I_CALLER)
 #define WJR_REGISTER_BUILTIN_ASM_SUBC_I(suffix, type)                                    \
     if constexpr (nd == std::numeric_limits<type>::digits) {                             \
-        unsigned char cf = 0;                                                            \
+        unsigned char cf;                                                                \
         asm volatile("stc\n\t"                                                           \
                      "sbb{" #suffix " %2, %0| %0, %2}\n\t"                               \
                      "setb %b1"                                                          \
@@ -70,7 +69,7 @@ WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) {
     WJR_PP_TRANSFORM_PUT(args, WJR_REGISTER_BUILTIN_SUBC_I_CALLER)
 #define WJR_REGISTER_BUILTIN_SUBC_I(suffix, type)                                        \
     if constexpr (nd <= std::numeric_limits<type>::digits) {                             \
-        type __c_out = 0;                                                                \
+        type __c_out;                                                                    \
         T ret = __builtin_subc##suffix(a, b, static_cast<type>(c_in), &__c_out);         \
         c_out = static_cast<U>(__c_out);                                                 \
         return ret;                                                                      \
@@ -106,8 +105,7 @@ WJR_INTRINSIC_CONSTEXPR T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
     if (is_constant_evaluated() ||
         // constant value is zero or constant value number greater or equal than 2
         (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >=
-         2) ||
-        is_constant_p(a - b)) {
+         2)) {
         return fallback_subc(a, b, c_in, c_out);
     }
 
@@ -160,7 +158,7 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_subc_1_impl(T *dst, const T *src0, size_
 #if WJR_HAS_BUILTIN(SUBC_1_IMPL)
 
 template <typename T>
-WJR_INTRINSIC_INLINE size_t builtin_subc_1_impl(T *dst, const T *src0, size_t n) {
+WJR_INLINE size_t builtin_subc_1_impl(T *dst, const T *src0, size_t n) {
     constexpr auto nd = std::numeric_limits<T>::digits;
     static_assert(nd == 64, "Currently, only support uint64_t");
 
@@ -196,6 +194,7 @@ WJR_INTRINSIC_INLINE size_t builtin_subc_1_impl(T *dst, const T *src0, size_t n)
     } while (idx + 2 <= n);
 
     if (idx != n && src0[idx] == 0ull) {
+        dst[idx] = -1ull;
         ++idx;
     }
 
@@ -322,8 +321,7 @@ WJR_INTRINSIC_CONSTEXPR U fallback_subc_n(T *dst, const T *src0, const T *src1, 
 #if WJR_HAS_BUILTIN(ASM_SUBC_N)
 
 template <typename T, typename U>
-WJR_INTRINSIC_INLINE U asm_subc_n(T *dst, const T *src0, const T *src1, size_t n,
-                                  U c_in) {
+WJR_INLINE U asm_subc_n(T *dst, const T *src0, const T *src1, size_t n, U c_in) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
     size_t m = n / 4;
@@ -331,44 +329,64 @@ WJR_INTRINSIC_INLINE U asm_subc_n(T *dst, const T *src0, const T *src1, size_t n
 #define WJR_REGISTER_ASM_SUBC_N(args)                                                    \
     WJR_PP_TRANSFORM_PUT(args, WJR_REGISTER_ASM_SUBC_N_I_CALLER)
 
-#define WJR_REGISTER_ASM_SUBC_N_I(type, suffix, offset0, offset1, offset2, offset3)      \
+#define WJR_REGISTER_ASM_SUBC_N_I(type, suffix, offset0, offset1, offset2, offset3,      \
+                                  offset4)                                               \
     if constexpr (nd == std::numeric_limits<type>::digits) {                             \
-        for (size_t i = 0; i < m; ++i) {                                                 \
-            T tmp = 0;                                                                   \
-            WJR_REGISTER_ASM_SUBC_N_II(suffix, offset0, offset1, offset2, offset3);      \
-            dst += 4;                                                                    \
-            src0 += 4;                                                                   \
-            src1 += 4;                                                                   \
+        if (WJR_LIKELY(m != 0)) {                                                        \
+            T tmp;                                                                       \
+            unsigned char cf = c_in;                                                     \
+            asm volatile("dec %[cf]\n\t"                                                 \
+                         "loop" #suffix "%=:\n\t"                                        \
+                         "mov{" #suffix " " #offset0                                     \
+                         "(%[src0]), %[tmp]| %[tmp], [%[src0] + " #offset0 "]}\n\t"      \
+                         "sbb{" #suffix " " #offset0                                     \
+                         "(%[src1]), %[tmp]| %[tmp], [%[src1] + " #offset0 "]}\n\t"      \
+                         "mov{" #suffix " %[tmp], " #offset0                             \
+                         "(%[dst])| [%[dst] + " #offset0 "], %[tmp]}\n\t"                \
+                         "mov{" #suffix " " #offset1                                     \
+                         "(%[src0]), %[tmp]| %[tmp], [%[src0] + " #offset1 "]}\n\t"      \
+                         "sbb{" #suffix " " #offset1                                     \
+                         "(%[src1]), %[tmp]| %[tmp], [%[src1] + " #offset1 "]}\n\t"      \
+                         "mov{" #suffix " %[tmp], " #offset1                             \
+                         "(%[dst])| [%[dst] + " #offset1 "], %[tmp]}\n\t"                \
+                         "mov{" #suffix " " #offset2                                     \
+                         "(%[src0]), %[tmp]| %[tmp], [%[src0] + " #offset2 "]}\n\t"      \
+                         "sbb{" #suffix " " #offset2                                     \
+                         "(%[src1]), %[tmp]| %[tmp], [%[src1] + " #offset2 "]}\n\t"      \
+                         "mov{" #suffix " %[tmp], " #offset2                             \
+                         "(%[dst])| [%[dst] + " #offset2 "], %[tmp]}\n\t"                \
+                         "mov{" #suffix " " #offset3                                     \
+                         "(%[src0]), %[tmp]| %[tmp], [%[src0] + " #offset3 "]}\n\t"      \
+                         "sbb{" #suffix " " #offset3                                     \
+                         "(%[src1]), %[tmp]| %[tmp], [%[src1] + " #offset3 "]}\n\t"      \
+                         "mov{" #suffix " %[tmp], " #offset3                             \
+                         "(%[dst])| [%[dst] + " #offset3 "], %[tmp]}\n\t"                \
+                         "lea{" #suffix " " #offset4                                     \
+                         "(%[src0]), %3| %3, [%[src0] + " #offset4 "]}\n\t"              \
+                         "lea{" #suffix " " #offset4                                     \
+                         "(%[src1]), %4| %4, [%[src1] + " #offset4 "]}\n\t"              \
+                         "lea{" #suffix " " #offset4                                     \
+                         "(%[dst]), %2| %2, [%[dst] + " #offset4 "]}\n\t"                \
+                         "dec %[m]\n\t"                                                  \
+                         "jne loop" #suffix "%=\n\t"                                     \
+                         "setb %b0"                                                      \
+                         : [cf] "+r"(cf), [tmp] "=r"(tmp), [dst] "+r"(dst),              \
+                           [src0] "+r"(src0), [src1] "+r"(src1), [m] "+r"(m)             \
+                         :                                                               \
+                         : "cc", "memory");                                              \
+            c_in = cf;                                                                   \
         }                                                                                \
     } else
-#define WJR_REGISTER_ASM_SUBC_N_II(suffix, offset0, offset1, offset2, offset3)           \
-    asm volatile("dec %0\n\t"                                                            \
-                 "mov{" #suffix " " #offset0 "(%4), %1| %1, [%4 + " #offset0 "]}\n\t"    \
-                 "sbb{" #suffix " " #offset0 "(%5), %1| %1, [%5 + " #offset0 "]}\n\t"    \
-                 "mov{" #suffix " %6, " #offset0 "(%3)| [%3 + " #offset0 "], %6}\n\t"    \
-                 "mov{" #suffix " " #offset1 "(%4), %1| %1, [%4 + " #offset1 "]}\n\t"    \
-                 "sbb{" #suffix " " #offset1 "(%5), %1| %1, [%5 + " #offset1 "]}\n\t"    \
-                 "mov{" #suffix " %6, " #offset1 "(%3)| [%3 + " #offset1 "], %6}\n\t"    \
-                 "mov{" #suffix " " #offset2 "(%4), %1| %1, [%4 + " #offset2 "]}\n\t"    \
-                 "sbb{" #suffix " " #offset2 "(%5), %1| %1, [%5 + " #offset2 "]}\n\t"    \
-                 "mov{" #suffix " %6, " #offset2 "(%3)| [%3 + " #offset2 "], %6}\n\t"    \
-                 "mov{" #suffix " " #offset3 "(%4), %1| %1, [%4 + " #offset3 "]}\n\t"    \
-                 "sbb{" #suffix " " #offset3 "(%5), %1| %1, [%5 + " #offset3 "]}\n\t"    \
-                 "mov{" #suffix " %6, " #offset3 "(%3)| [%3 + " #offset3 "], %6}\n\t"    \
-                 "setb %b0"                                                              \
-                 : "=r"(c_in), "=r"(tmp)                                                 \
-                 : "0"(c_in), "r"(dst), "r"(src0), "r"(src1), "1"(tmp)                   \
-                 : "cc", "memory")
 
 #define WJR_REGISTER_ASM_SUBC_N_I_CALLER(args) WJR_REGISTER_ASM_SUBC_N_I args
 
-    WJR_REGISTER_ASM_SUBC_N(((uint8_t, b, 0, 1, 2, 3), (uint16_t, w, 0, 2, 4, 6),
-                             (uint32_t, l, 0, 4, 8, 12), (uint64_t, q, 0, 8, 16, 24))) {
+    WJR_REGISTER_ASM_SUBC_N(((uint8_t, b, 0, 1, 2, 3, 4), (uint16_t, w, 0, 2, 4, 6, 8),
+                             (uint32_t, l, 0, 4, 8, 12, 16),
+                             (uint64_t, q, 0, 8, 16, 24, 32))) {
         static_assert(nd <= 64, "not support yet");
     }
 
 #undef WJR_REGISTER_ASM_SUBC_N_I_CALLER
-#undef WJR_REGISTER_ASM_SUBC_N_II
 #undef WJR_REGISTER_ASM_SUBC_N_I
 #undef WJR_REGISTER_ASM_SUBC_N
 

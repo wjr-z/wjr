@@ -12,6 +12,9 @@
 #define WJR_PP_STR(x) WJR_PP_STR_I(x)
 #define WJR_PP_STR_I(x) #x
 
+#define WJR_PP_STRS(...) WJR_PP_STRS_I(__VA_ARGS__)
+#define WJR_PP_STRS_I(...) # __VA_ARGS__
+
 #define WJR_PP_ESC(x) WJR_PP_ESC_(WJR_PP_ESC_I, x)
 #define WJR_PP_ESC_(M, x) M x
 #define WJR_PP_ESC_I(...) __VA_ARGS__
