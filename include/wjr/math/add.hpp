@@ -336,7 +336,7 @@ WJR_INLINE U asm_addc_n(T *dst, const T *src0, const T *src1, size_t n, U c_in) 
             T tmp;                                                                       \
             unsigned char cf = c_in;                                                     \
             asm volatile("dec %[cf]\n\t"                                                 \
-                         "loop" #suffix "%=:\n\t"                                        \
+                         ".Lwjr_asm_addc_n_loop" #suffix ":\n\t"                         \
                          "mov{" #suffix " " #offset0                                     \
                          "(%[src0]), %[tmp]| %[tmp], [%[src0] + " #offset0 "]}\n\t"      \
                          "adc{" #suffix " " #offset0                                     \
@@ -368,7 +368,7 @@ WJR_INLINE U asm_addc_n(T *dst, const T *src0, const T *src1, size_t n, U c_in) 
                          "lea{" #suffix " " #offset4                                     \
                          "(%[dst]), %2| %2, [%[dst] + " #offset4 "]}\n\t"                \
                          "dec %[m]\n\t"                                                  \
-                         "jne loop" #suffix "%=\n\t"                                     \
+                         "jne .Lwjr_asm_addc_n_loop" #suffix "\n\t"                      \
                          "setb %b0"                                                      \
                          : [cf] "+r"(cf), [tmp] "=r"(tmp), [dst] "+r"(dst),              \
                            [src0] "+r"(src0), [src1] "+r"(src1), [m] "+r"(m)             \

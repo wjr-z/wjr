@@ -299,72 +299,90 @@ WJR_INTRINSIC_CONSTEXPR T fallback_addmul_1(T *dst, const T *src0, size_t n, T s
 WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src0, size_t n,
                                  uint64_t src1, uint64_t t2) {
     size_t m = n / 8;
-    uint64_t t0, t1;
+    uint64_t t0;
+    uint64_t t1 = 0;
 
-    if (WJR_LIKELY(m != 0)) {
+    asm volatile(
+        "and{q $7, %[n]| %[n], 7}\n\t"
+        "lea{q -64(%[src0], %[n], 8), %[src0]| %[src0], [%[src0] - 64 + %[n] * 8]}\n\t"
+        "lea{q -64(%[dst], %[n], 8), %[dst]| %[dst], [%[dst] - 64 + %[n] * 8]}\n\t"
+        "jmp{q *asm_addmul_1_lookup%=(, %[n], 8)| QWORD PTR [asm_addmul_1_lookup%= + %[n] * 8]}\n\t"
+        "asm_addmul_1_lookup%=:\n\t"
+        ".quad case0%=\n\t"
+        ".quad case1%=\n\t"
+        ".quad case2%=\n\t"
+        ".quad case3%=\n\t"
+        ".quad case4%=\n\t"
+        ".quad case5%=\n\t"
+        ".quad case6%=\n\t"
+        ".quad case7%=\n\t"
 
-        asm volatile("xor{q %[t0], %[t0]| %[t0], %[t0]}\n\t"
-                     "asm_addmul_1_loop%=:\n\t"
+        "asm_addmul_1_loop%=:\n\t"
 
-                     "mulx {(%[src0]), %[t0], %[t1]|%[t1], %[t0], [%[src0]]}\n\t"
-                     "adcx{q %[t2], %[t0]| %[t0], %[t2]}\n\t"
-                     "adox{q (%[dst]), %[t0]| %[t0], [%[dst]]}\n\t"
-                     "mov{q %[t0], (%[dst])| [%[dst]], %[t0]}\n\t"
-                     "mulx {8(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 8]}\n\t"
-                     "adcx{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
-                     "adox{q 8(%[dst]), %[t0]| %[t0], [%[dst] + 8]}\n\t"
-                     "mov{q %[t0], 8(%[dst])| [%[dst] + 8], %[t0]}\n\t"
+        "mulx {(%[src0]), %[t0], %[t1]|%[t1], %[t0], [%[src0]]}\n\t"
+        "adcx{q %[t2], %[t0]| %[t0], %[t2]}\n\t"
+        "adox{q (%[dst]), %[t0]| %[t0], [%[dst]]}\n\t"
+        "mov{q %[t0], (%[dst])| [%[dst]], %[t0]}\n\t"
 
-                     "mulx {16(%[src0]), %[t0], %[t1]|%[t1], %[t0], [%[src0] + 16]}\n\t"
-                     "adcx{q %[t2], %[t0]| %[t0], %[t2]}\n\t"
-                     "adox{q 16(%[dst]), %[t0]| %[t0], [%[dst] + 16]}\n\t"
-                     "mov{q %[t0], 16(%[dst])| [%[dst] + 16], %[t0]}\n\t"
-                     "mulx {24(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 24]}\n\t"
-                     "adcx{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
-                     "adox{q 24(%[dst]), %[t0]| %[t0], [%[dst] + 24]}\n\t"
-                     "mov{q %[t0], 24(%[dst])| [%[dst] + 24], %[t0]}\n\t"
+        "case7%=:\n\t"
+        "mulx {8(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 8]}\n\t"
+        "adcx{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
+        "adox{q 8(%[dst]), %[t0]| %[t0], [%[dst] + 8]}\n\t"
+        "mov{q %[t0], 8(%[dst])| [%[dst] + 8], %[t0]}\n\t"
 
-                     "mulx {32(%[src0]), %[t0], %[t1]|%[t1], %[t0], [%[src0] + 32]}\n\t"
-                     "adcx{q %[t2], %[t0]| %[t0], %[t2]}\n\t"
-                     "adox{q 32(%[dst]), %[t0]| %[t0], [%[dst] + 32]}\n\t"
-                     "mov{q %[t0], 32(%[dst])| [%[dst] + 32], %[t0]}\n\t"
-                     "mulx {40(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 40]}\n\t"
-                     "adcx{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
-                     "adox{q 40(%[dst]), %[t0]| %[t0], [%[dst] + 40]}\n\t"
-                     "mov{q %[t0], 40(%[dst])| [%[dst] + 40], %[t0]}\n\t"
+        "case6%=:\n\t"
+        "mulx {16(%[src0]), %[t0], %[t1]|%[t1], %[t0], [%[src0] + 16]}\n\t"
+        "adcx{q %[t2], %[t0]| %[t0], %[t2]}\n\t"
+        "adox{q 16(%[dst]), %[t0]| %[t0], [%[dst] + 16]}\n\t"
+        "mov{q %[t0], 16(%[dst])| [%[dst] + 16], %[t0]}\n\t"
 
-                     "mulx {48(%[src0]), %[t0], %[t1]|%[t1], %[t0], [%[src0] + 48]}\n\t"
-                     "adcx{q %[t2], %[t0]| %[t0], %[t2]}\n\t"
-                     "adox{q 48(%[dst]), %[t0]| %[t0], [%[dst] + 48]}\n\t"
-                     "mov{q %[t0], 48(%[dst])| [%[dst] + 48], %[t0]}\n\t"
-                     "mulx {56(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 56]}\n\t"
-                     "adcx{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
-                     "adox{q 56(%[dst]), %[t0]| %[t0], [%[dst] + 56]}\n\t"
-                     "mov{q %[t0], 56(%[dst])| [%[dst] + 56], %[t0]}\n\t"
+        "case5%=:\n\t"
+        "mulx {24(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 24]}\n\t"
+        "adcx{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
+        "adox{q 24(%[dst]), %[t0]| %[t0], [%[dst] + 24]}\n\t"
+        "mov{q %[t0], 24(%[dst])| [%[dst] + 24], %[t0]}\n\t"
 
-                     "lea{q 64(%[src0]), %[src0]| %[src0], [%[src0] + 64]}\n\t"
-                     "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
-                     "lea{q -1(%[m]), %[m]| %[m], [%[m] - 1]}\n\t"
-                     "jrcxz asm_addmul_1_loop_out%=\n\t"
-                     "jmp asm_addmul_1_loop%=\n\t"
-                     "asm_addmul_1_loop_out%=:\n\t"
-                     "seto %b[t0]\n\t"
-                     "setb %b[t1]"
-                     : [dst] "+r"(dst), [src0] "+r"(src0), [src1] "+d"(src1), [m] "+c"(m),
-                       [t0] "=r"(t0), [t1] "=r"(t1), [t2] "+r"(t2)
-                     :
-                     : "cc", "memory");
+        "case4%=:\n\t"
+        "mulx {32(%[src0]), %[t0], %[t1]|%[t1], %[t0], [%[src0] + 32]}\n\t"
+        "adcx{q %[t2], %[t0]| %[t0], %[t2]}\n\t"
+        "adox{q 32(%[dst]), %[t0]| %[t0], [%[dst] + 32]}\n\t"
+        "mov{q %[t0], 32(%[dst])| [%[dst] + 32], %[t0]}\n\t"
 
-        t2 += (uint64_t)(unsigned char)(t0) + (uint64_t)(unsigned char)(t1);
-    }
+        "case3%=:\n\t"
+        "mulx {40(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 40]}\n\t"
+        "adcx{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
+        "adox{q 40(%[dst]), %[t0]| %[t0], [%[dst] + 40]}\n\t"
+        "mov{q %[t0], 40(%[dst])| [%[dst] + 40], %[t0]}\n\t"
 
-    n &= 7;
+        "case2%=:\n\t"
+        "mulx {48(%[src0]), %[t0], %[t1]|%[t1], %[t0], [%[src0] + 48]}\n\t"
+        "adcx{q %[t2], %[t0]| %[t0], %[t2]}\n\t"
+        "adox{q 48(%[dst]), %[t0]| %[t0], [%[dst] + 48]}\n\t"
+        "mov{q %[t0], 48(%[dst])| [%[dst] + 48], %[t0]}\n\t"
 
-    if (WJR_UNLIKELY(n == 0)) {
-        return 0;
-    }
+        "case1%=:\n\t"
+        "mulx {56(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 56]}\n\t"
+        "adcx{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
+        "adox{q 56(%[dst]), %[t0]| %[t0], [%[dst] + 56]}\n\t"
+        "mov{q %[t0], 56(%[dst])| [%[dst] + 56], %[t0]}\n\t"
 
-    return fallback_addmul_1(dst + m, src0 + m, n, src1, t2);
+        "case0%=:\n\t"
+        "lea{q 64(%[src0]), %[src0]| %[src0], [%[src0] + 64]}\n\t"
+        "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
+        "jrcxz asm_addmul_1_loop_out%=\n\t"
+        "lea{q -1(%[m]), %[m]| %[m], [%[m] - 1]}\n\t"
+        "jmp asm_addmul_1_loop%=\n\t"
+        
+        "asm_addmul_1_loop_out%=:\n\t"
+        "seto %b[t0]\n\t"
+        "mov{zbl %b[t0], %k[t0]|zx %k[t0], %b[t0]}\n\t"
+        "adc{q %[t0], %[t2]| %[t2], %[t0]}"
+        : [dst] "+r"(dst), [src0] "+r"(src0), [src1] "+d"(src1), [m] "+c"(m),
+          [t0] "=r"(t0), [t1] "+r"(t1), [t2] "+r"(t2), [n] "+r"(n)
+        :
+        : "cc", "memory");
+
+    return t2;
 }
 
 #endif
@@ -384,6 +402,7 @@ WJR_INTRINSIC_CONSTEXPR T addmul_1(T *dst, const T *src0, size_t n, T src1,
 #endif
 }
 
+// preview
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR T mul_n_basecase(T *dst, const T *src0, size_t n, const T *src1,
                                          size_t m, type_identity_t<T> c_in) {
