@@ -54,9 +54,9 @@ struct is_contiguous_iterator_impl<iter, typename iter::is_contiguous_iterator>
 
 #if defined(WJR_CPP_20)
 template <typename iter>
-struct is_contiguous_iterator : std::bool_constant<std::contiguous_iterator<iter> ||
-                                              is_contiguous_iterator_impl<iter>::value> {
-};
+struct is_contiguous_iterator
+    : std::bool_constant<std::contiguous_iterator<iter> ||
+                         is_contiguous_iterator_impl<iter>::value> {};
 #else
 template <typename iter>
 struct is_contiguous_iterator : is_contiguous_iterator_impl<iter> {};
@@ -73,34 +73,60 @@ template <>
 struct __uint_selector<8> {
     using type = std::uint8_t;
 };
+
 template <>
 struct __uint_selector<16> {
     using type = std::uint16_t;
 };
+
 template <>
 struct __uint_selector<32> {
     using type = std::uint32_t;
 };
+
 template <>
 struct __uint_selector<64> {
     using type = std::uint64_t;
 };
 
 template <size_t n>
+struct __int_selector {
+    using type = std::make_signed_t<typename __uint_selector<n>::type>;
+};
+
+#if WJR_HAS_FEATURE(INT128)
+template <>
+struct __uint_selector<128> {
+    using type = __uint128_t;
+};
+
+template <>
+struct __int_selector<128> {
+    using type = __int128_t;
+};
+#endif
+
+template <size_t n>
 using uint_t = typename __uint_selector<n>::type;
 
 template <size_t n>
-using int_t = std::make_signed_t<uint_t<n>>;
+using int_t = typename __int_selector<n>::type;
 
 using int8_t = int_t<8>;
 using int16_t = int_t<16>;
 using int32_t = int_t<32>;
 using int64_t = int_t<64>;
+#if WJR_HAS_FEATURE(INT128)
+using int128_t = int_t<128>;
+#endif 
 
 using uint8_t = uint_t<8>;
 using uint16_t = uint_t<16>;
 using uint32_t = uint_t<32>;
 using uint64_t = uint_t<64>;
+#if WJR_HAS_FEATURE(INT128)
+using uint128_t = uint_t<128>;
+#endif 
 
 using intptr_t = int_t<sizeof(void *) * 8>;
 using uintptr_t = uint_t<sizeof(void *) * 8>;
