@@ -180,7 +180,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_mul_1(T *dst, const T *src0, size_t n, T src1
 
     for (size_t i = 0; i < n; ++i) {
         lo = mul(src0[i], src1, hi);
-        dst[i] = addc<T>(lo, 0, c_in, c_in);
+        dst[i] = addc<T>(lo, c_in, 0, c_in);
         c_in += hi;
     }
 
@@ -195,64 +195,83 @@ WJR_INTRINSIC_CONSTEXPR T fallback_mul_1(T *dst, const T *src0, size_t n, T src1
 #if WJR_HAS_BUILTIN(ASM_MUL_1)
 
 WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src0, size_t n,
-                              uint64_t src1, uint64_t c_in) {
-    size_t m = n / 8;
-
-    if (WJR_LIKELY(m != 0)) {
-        uint64_t t0, t1;
-        uint64_t t2 = c_in;
-
-        asm volatile("clc\n\t"
-                     ".Lasm_mul_1_loop%=:\n\t"
-
-                     "mulx {(%[src0]), %[t0], %[t1]|%[t1], %[t0], [%[src0]]}\n\t"
-                     "adc{q %[t2], %[t0]| %[t0], %[t2]}\n\t"
-                     "mov{q %[t0], (%[dst])| [%[dst]], %[t0]}\n\t"
-                     "mulx {8(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 8]}\n\t"
-                     "adc{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
-                     "mov{q %[t0], 8(%[dst])| [%[dst] + 8], %[t0]}\n\t"
-
-                     "mulx {16(%[src0]), %[t0], %[t1]|%[t1], %[t0], [%[src0] + 16]}\n\t"
-                     "adc{q %[t2], %[t0]| %[t0], %[t2]}\n\t"
-                     "mov{q %[t0], 16(%[dst])| [%[dst] + 16], %[t0]}\n\t"
-                     "mulx {24(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 24]}\n\t"
-                     "adc{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
-                     "mov{q %[t0], 24(%[dst])| [%[dst] + 24], %[t0]}\n\t"
-
-                     "mulx {32(%[src0]), %[t0], %[t1]|%[t1], %[t0], [%[src0] + 32]}\n\t"
-                     "adc{q %[t2], %[t0]| %[t0], %[t2]}\n\t"
-                     "mov{q %[t0], 32(%[dst])| [%[dst] + 32], %[t0]}\n\t"
-                     "mulx {40(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 40]}\n\t"
-                     "adc{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
-                     "mov{q %[t0], 40(%[dst])| [%[dst] + 40], %[t0]}\n\t"
-
-                     "mulx {48(%[src0]), %[t0], %[t1]|%[t1], %[t0], [%[src0] + 48]}\n\t"
-                     "adc{q %[t2], %[t0]| %[t0], %[t2]}\n\t"
-                     "mov{q %[t0], 48(%[dst])| [%[dst] + 48], %[t0]}\n\t"
-                     "mulx {56(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 56]}\n\t"
-                     "adc{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
-                     "mov{q %[t0], 56(%[dst])| [%[dst] + 56], %[t0]}\n\t"
-
-                     "lea{q 64(%[src0]), %[src0]| %[src0], [%[src0] + 64]}\n\t"
-                     "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
-                     "dec %[m]\n\t"
-                     "jne .Lasm_mul_1_loop%=\n\t"
-                     "adc{q $0, %[t2]| %[t2], 0}"
-                     : [dst] "+r"(dst), [src0] "+r"(src0), [src1] "+d"(src1), [m] "+r"(m),
-                       [t0] "=r"(t0), [t1] "=r"(t1), [t2] "+r"(t2)
-                     :
-                     : "cc", "memory");
-
-        c_in = t2;
-    }
-
+                              uint64_t src1, uint64_t t2) {
+    size_t m = n / 8 + 1;
     n &= 7;
+    dst += n - 8;
+    src0 += n - 8;
 
-    if (WJR_UNLIKELY(n == 0)) {
-        return 0;
-    }
+    uint64_t t0;
+    uint64_t t1;
 
-    return fallback_mul_1(dst + m, src0 + m, n, src1, c_in);
+    asm volatile(
+        "xor %[t1], %[t1]\n\t"
+        "jmp{q|} {*|QWORD PTR [}.Lasm_addmul_1_lookup%={(, %[n], 8)| + %[n] * 8]}\n\t"
+
+        ".Lasm_addmul_1_lookup%=:\n\t"
+        ".quad .Lcase0%=\n\t"
+        ".quad .Lcase1%=\n\t"
+        ".quad .Lcase2%=\n\t"
+        ".quad .Lcase3%=\n\t"
+        ".quad .Lcase4%=\n\t"
+        ".quad .Lcase5%=\n\t"
+        ".quad .Lcase6%=\n\t"
+        ".quad .Lcase7%=\n\t"
+
+        ".Lasm_addmul_1_loop%=:\n\t"
+
+        "lea{q 64(%[src0]), %[src0]| %[src0], [%[src0] + 64]}\n\t"
+        "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
+
+        "mulx {(%[src0]), %[t0], %[t1]|%[t1], %[t0], [%[src0]]}\n\t"
+        "adc{q %[t2], %[t0]| %[t0], %[t2]}\n\t"
+        "mov{q %[t0], (%[dst])| [%[dst]], %[t0]}\n\t"
+
+        ".Lcase7%=:\n\t"
+        "mulx {8(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 8]}\n\t"
+        "adc{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
+        "mov{q %[t0], 8(%[dst])| [%[dst] + 8], %[t0]}\n\t"
+
+        ".Lcase6%=:\n\t"
+        "mulx {16(%[src0]), %[t0], %[t1]|%[t1], %[t0], [%[src0] + 16]}\n\t"
+        "adc{q %[t2], %[t0]| %[t0], %[t2]}\n\t"
+        "mov{q %[t0], 16(%[dst])| [%[dst] + 16], %[t0]}\n\t"
+
+        ".Lcase5%=:\n\t"
+        "mulx {24(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 24]}\n\t"
+        "adc{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
+        "mov{q %[t0], 24(%[dst])| [%[dst] + 24], %[t0]}\n\t"
+
+        ".Lcase4%=:\n\t"
+        "mulx {32(%[src0]), %[t0], %[t1]|%[t1], %[t0], [%[src0] + 32]}\n\t"
+        "adc{q %[t2], %[t0]| %[t0], %[t2]}\n\t"
+        "mov{q %[t0], 32(%[dst])| [%[dst] + 32], %[t0]}\n\t"
+
+        ".Lcase3%=:\n\t"
+        "mulx {40(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 40]}\n\t"
+        "adc{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
+        "mov{q %[t0], 40(%[dst])| [%[dst] + 40], %[t0]}\n\t"
+
+        ".Lcase2%=:\n\t"
+        "mulx {48(%[src0]), %[t0], %[t1]|%[t1], %[t0], [%[src0] + 48]}\n\t"
+        "adc{q %[t2], %[t0]| %[t0], %[t2]}\n\t"
+        "mov{q %[t0], 48(%[dst])| [%[dst] + 48], %[t0]}\n\t"
+
+        ".Lcase1%=:\n\t"
+        "mulx {56(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 56]}\n\t"
+        "adc{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
+        "mov{q %[t0], 56(%[dst])| [%[dst] + 56], %[t0]}\n\t"
+
+        ".Lcase0%=:\n\t"
+        "dec %[m]\n\t"
+        "jne .Lasm_addmul_1_loop%=\n\t"
+        "adc{q $0, %[t2]| %[t2], 0}"
+        : [dst] "+r"(dst), [src0] "+r"(src0), [src1] "+d"(src1), [m] "+c"(m),
+          [t0] "=r"(t0), [t1] "=&r"(t1), [t2] "+r"(t2)
+        : [n] "r"(n)
+        : "cc", "memory");
+
+    return t2;
 }
 
 #endif
@@ -277,11 +296,13 @@ template <typename T>
 WJR_INTRINSIC_CONSTEXPR T fallback_addmul_1(T *dst, const T *src0, size_t n, T src1,
                                             T c_in) {
     T lo, hi;
+    T c2_in;
 
     for (size_t i = 0; i < n; ++i) {
         lo = mul(src0[i], src1, hi);
-        dst[i] = addc<T>(lo, dst[i], c_in, c_in);
-        c_in += hi;
+        lo = addc<T>(lo, c_in, 0, c_in);
+        dst[i] = addc<T>(lo, dst[i], 0, c2_in);
+        c_in += hi + c2_in;
     }
 
     return c_in;
@@ -403,22 +424,89 @@ WJR_INTRINSIC_CONSTEXPR T addmul_1(T *dst, const T *src0, size_t n, T src1,
 #endif
 }
 
+// preview : mul (n x n)
+// TODO, optimize
+//
+
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR void basecase_mul_n(T *dst, const T *src0, size_t n,
-                                            const T *src1, size_t m,
-                                            type_identity_t<T> c_in) {
+WJR_INLINE_CONSTEXPR void basecase_mul_n(T *dst, const T *src0, const T *src1, size_t n,
+                                         type_identity_t<T> c_in) {
+    WJR_ASSERT(n >= 1);
     WJR_ASSUME(n >= 1);
-    WJR_ASSUME(m >= 1);
 
-    if (n > m) {
-        std::swap(src0, src1);
-        std::swap(n, m);
-    }
-
-    dst[m] = mul_1(dst, src1, m, src0[0], c_in);
+    dst[n] = mul_1(dst, src1, n, src0[0], c_in);
     for (size_t i = 1; i < n; ++i) {
-        dst[i + m] = addmul_1(dst + i, src1, m, src0[i], 0);
+        dst[i + n] = addmul_1(dst + i, src1, n, src0[i], 0);
     }
+}
+
+template <typename T, typename StackAllocator>
+WJR_INLINE_CONSTEXPR20 void mul_n(T *dst, const T *src0, const T *src1, size_t n,
+                                  type_identity_t<T> c_in, StackAllocator &al);
+
+template <typename T, typename StackAllocator>
+WJR_INLINE_CONSTEXPR20 void toom2_mul_n(T *dst, const T *src0, const T *src1, size_t n,
+                                        type_identity_t<T> c_in, StackAllocator &al) {
+    WJR_ASSERT(n >= 1);
+
+    size_t mid = n >> 1;
+
+    unique_stack_ptr ptr(al, sizeof(T) * n);
+
+    T *stk = (T *)ptr.get();
+
+    auto a = src0;
+    auto b = src0 + mid;
+    auto c = src1;
+    auto d = src1 + mid;
+
+    T c0 = subc_n(dst, a, b, mid, 0);
+    T c1 = subc_n(dst + mid, c, d, mid, 0);
+
+    // (a - b) * (c - d)
+    mul_n(stk, dst, dst + mid, mid, 0, al);
+
+    T c2 = -(c0 & c1);
+
+    // a < b
+    if (c0) {
+        c2 += subc_n(stk + mid, stk + mid, dst + mid, mid, 0);
+    }
+
+    // c < d
+    if (c1) {
+        c2 += subc_n(stk + mid, stk + mid, dst, mid, 0);
+    }
+
+    // a * c
+    mul_n(dst, a, c, mid, 0, al);
+    // b * d
+    mul_n(dst + n, b, d, mid, 0, al);
+
+    c2 += subc_n(stk, stk, dst, n, 0);
+    c2 += subc_n(stk, stk, dst + n, n, 0);
+
+    // a * d + b * c
+
+    auto tmp = c2;
+
+    c2 -= subc_n(dst + mid, dst + mid, stk, n, 0);
+
+    if (c2) {
+        c2 = addc_1(dst + mid + n, dst + mid + n, mid, c2, 0);
+        (void)(c2);
+        WJR_ASSERT(c2 == 0);
+    }
+}
+
+template <typename T, typename StackAllocator>
+WJR_INLINE_CONSTEXPR20 void mul_n(T *dst, const T *src0, const T *src1, size_t n,
+                                  type_identity_t<T> c_in, StackAllocator &al) {
+    if ((n & 1) || n <= 26) {
+        return basecase_mul_n(dst, src0, src1, n, c_in);
+    }
+
+    return toom2_mul_n(dst, src0, src1, n, c_in, al);
 }
 
 } // namespace wjr

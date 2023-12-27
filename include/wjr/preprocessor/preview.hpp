@@ -102,7 +102,7 @@
 #else
 #define WJR_UNROLL(loop) WJR_PRAGMA(unroll(loop))
 #endif
-#else 
+#else
 #define WJR_UNROLL(loop)
 #endif
 

@@ -118,7 +118,7 @@ using int32_t = int_t<32>;
 using int64_t = int_t<64>;
 #if WJR_HAS_FEATURE(INT128)
 using int128_t = int_t<128>;
-#endif 
+#endif
 
 using uint8_t = uint_t<8>;
 using uint16_t = uint_t<16>;
@@ -126,7 +126,7 @@ using uint32_t = uint_t<32>;
 using uint64_t = uint_t<64>;
 #if WJR_HAS_FEATURE(INT128)
 using uint128_t = uint_t<128>;
-#endif 
+#endif
 
 using intptr_t = int_t<sizeof(void *) * 8>;
 using uintptr_t = uint_t<sizeof(void *) * 8>;
@@ -235,6 +235,18 @@ using may_null_t = typename may_null<T>::type;
 
 template <typename T>
 inline constexpr bool may_null_v = may_null<T>::value;
+
+template <class P, class M>
+WJR_INTRINSIC_CONSTEXPR20 size_t container_of_offset(const M P::*member) {
+    return reinterpret_cast<size_t>(&(reinterpret_cast<P *>(nullptr)->*member));
+}
+
+template <class P, class M>
+WJR_INTRINSIC_CONSTEXPR20 P *container_of_offset_impl(M *ptr, const M P::*member) {
+    return reinterpret_cast<P*>(reinterpret_cast<char*>(ptr) - container_of_offset(member));
+}
+
+#define WJR_CONTAINER_OF(ptr, type, member) container_of_offset_impl(ptr, &type::member)
 
 } // namespace wjr
 

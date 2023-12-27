@@ -1,7 +1,9 @@
 #ifndef WJR_MATH_DETAILS_HPP__
 #define WJR_MATH_DETAILS_HPP__
 
+#include <wjr/stack_allocator.hpp>
 #include <wjr/type_traits.hpp>
+
 
 namespace wjr {
 namespace math_details {
@@ -31,6 +33,11 @@ private:
 
 inline constexpr de_bruijn<uint32_t, 0x077C'B531> de_bruijn32 = {};
 inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
+
+using default_stack_allocator = stack_allocator<128 * 1024, 8 * 1024>;
+
+// opt for 8 KB small obj
+thread_local default_stack_allocator stack_alloc = {};
 
 } // namespace math_details
 
