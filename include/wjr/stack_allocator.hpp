@@ -8,52 +8,71 @@
 
 namespace wjr {
 
-template <size_t cache, size_t alignment = alignof(std::max_align_t)>
 class native_stack_allocator {
 public:
-    native_stack_allocator() = default;
+    native_stack_allocator(void *ptr) : ptr(ptr) {}
     native_stack_allocator(const native_stack_allocator &) = delete;
     native_stack_allocator &operator=(const native_stack_allocator &) = delete;
     ~native_stack_allocator() = default;
 
     WJR_ATTRIBUTES(NODISCARD, INTRINSIC_CONSTEXPR20) void *allocate(size_t n) {
         auto ret = ptr;
-        ptr += n;
-        WJR_ASSERT_L(1, ptr < bytes + cache, "stack allocator allocate overflow.");
+        ptr = static_cast<void *>(static_cast<char *>(ptr) + n);
         return static_cast<void *>(ret);
     }
 
     WJR_INTRINSIC_CONSTEXPR20 void deallocate(void *old, WJR_MAYBE_UNUSED size_t n) {
-        char *set = static_cast<char *>(old);
-        WJR_ASSERT_L(1, ptr == set + n);
-
-        ptr = set;
-        WJR_ASSERT_L(1, ptr >= bytes && ptr < bytes + cache,
-                     "stack allocator reset error.");
-
+        ptr = old;
         (void)(n);
     }
 
-    WJR_INTRINSIC_CONSTEXPR size_t remain() const { return (bytes + cache) - ptr; }
+    WJR_INTRINSIC_CONSTEXPR void *get() const { return ptr; }
 
 private:
-    char *ptr = bytes;
+    void *ptr;
+};
+
+template <size_t cache, size_t alignment = alignof(std::max_align_t)>
+class basic_stack_allocator {
+public:
+    basic_stack_allocator() : alloc(bytes) {}
+    basic_stack_allocator(const basic_stack_allocator &) = delete;
+    basic_stack_allocator &operator=(const basic_stack_allocator &) = delete;
+    ~basic_stack_allocator() { WJR_ASSERT(alloc.get() == bytes); }
+
+    WJR_ATTRIBUTES(NODISCARD, INTRINSIC_CONSTEXPR20) void *allocate(size_t n) {
+        return alloc.allocate(n);
+    }
+
+    WJR_INTRINSIC_CONSTEXPR20 void deallocate(void *old, WJR_MAYBE_UNUSED size_t n) {
+        return alloc.deallocate(old, n);
+    }
+
+    WJR_INTRINSIC_CONSTEXPR size_t remain() const {
+        return (bytes + cache) - static_cast<char *>(alloc.get());
+    }
+
+private:
+    native_stack_allocator alloc;
     alignas(alignment) char bytes[cache];
 };
 
+// TODO
+// 1. optimize for cache_blocks == -1.
+// 2. optimize memory fragmentation caused by large object allocation
 template <size_t cache, size_t obj_threashold, size_t cache_blocks = 2,
           size_t alignment = alignof(std::max_align_t)>
 class stack_allocator {
 
-    static_assert(obj_threashold <= cache / 2,
-                  "malloc size must less or equal then cache / 2.");
+    static_assert(obj_threashold <= cache / 4,
+                  "malloc size must less or equal then cache / 4.");
 
     constexpr static size_t remain_cache_blocks = cache_blocks + 1;
 
     struct stack_node {
         stack_node *next = nullptr;
         stack_node *prev = nullptr;
-        native_stack_allocator<cache, alignment> alloc;
+        basic_stack_allocator<cache, alignment> alloc;
     };
 
     WJR_INTRINSIC_CONSTEXPR20 void malloc_node() {
