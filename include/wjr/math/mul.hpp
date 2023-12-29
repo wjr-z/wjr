@@ -633,9 +633,9 @@ WJR_INLINE_CONSTEXPR20 void toom22_mul(T *dst, const T *src0, size_t n, const T 
         }
     }
 
-    mul(stk, dst, rn, dst + rn, tm, 0, al);
-    mul(dst, a, mid, c, mid, 0, al);
-    mul(dst + mid * 2, b, rn, d, rm, 0, al);
+    mul(stk, dst, rn, dst + rn, tm, al);
+    mul(dst, a, mid, c, mid, al);
+    mul(dst + mid * 2, b, rn, d, rm, al);
 
     // stk : rn + tm
 
