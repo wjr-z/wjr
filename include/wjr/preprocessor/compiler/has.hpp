@@ -91,6 +91,10 @@
 
 #define WJR_HAS_SIMD_SIMD WJR_HAS_DEF
 
+#if WJR_HAS_GCC(11, 1, 0) || WJR_HAS_CLANG(5, 0, 0)
+#define WJR_HAS_ATTRIBUTE_FORCEINLINE_LAMBDA WJR_HAS_DEF
+#endif
+
 #if defined(_MSC_VER)
 /* Microsoft C/C++-compatible compiler */
 #include <intrin.h>

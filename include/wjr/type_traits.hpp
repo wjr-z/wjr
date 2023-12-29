@@ -10,6 +10,8 @@
 
 namespace wjr {
 
+struct empty {};
+
 template <typename... Args>
 struct multi_conditional;
 
@@ -152,7 +154,13 @@ struct is_unsigned_integral : std::conjunction<std::is_integral<T>, std::is_unsi
 };
 
 template <typename T>
+inline constexpr bool is_unsigned_integral_v = is_unsigned_integral<T>::value;
+
+template <typename T>
 struct is_signed_integral : std::conjunction<std::is_integral<T>, std::is_signed<T>> {};
+
+template <typename T>
+inline constexpr bool is_signed_integral_v = is_signed_integral<T>::value;
 
 class __is_little_endian_helper {
     constexpr static std::uint32_t u4 = 1;
@@ -204,15 +212,6 @@ WJR_INTRINSIC_CONSTEXPR bool is_constant_evaluated() noexcept {
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR bool is_constant_p(const T &p) {
-    if constexpr (is_constant_v<T>) {
-        return true;
-    } else {
-        return WJR_BUILTIN_CONSTANT_P(p);
-    }
-}
-
-template <typename T>
 using null_optional_t = std::optional<T>;
 
 template <typename T>
@@ -243,7 +242,8 @@ WJR_INTRINSIC_CONSTEXPR20 size_t container_of_offset(const M P::*member) {
 
 template <class P, class M>
 WJR_INTRINSIC_CONSTEXPR20 P *container_of_offset_impl(M *ptr, const M P::*member) {
-    return reinterpret_cast<P*>(reinterpret_cast<char*>(ptr) - container_of_offset(member));
+    return reinterpret_cast<P *>(reinterpret_cast<char *>(ptr) -
+                                 container_of_offset(member));
 }
 
 #define WJR_CONTAINER_OF(ptr, type, member) container_of_offset_impl(ptr, &type::member)

@@ -69,14 +69,14 @@ WJR_INTRINSIC_CONSTEXPR T mul(T a, T b, T &hi) {
     } else {
 
 #if WJR_HAS_BUILTIN(MUL64)
-        if (is_constant_evaluated() || is_constant_p(a) && is_constant_p(b)) {
+        if (is_constant_evaluated() || (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
             return fallback_mul64(a, b, hi);
         }
 
 #if WJR_HAS_BUILTIN(ASM_MUL64)
         // mov b to rax, then mul a
         // instead of mov a to rax, mov b to register, then mul
-        if (is_constant_p(b)) {
+        if (WJR_BUILTIN_CONSTANT_P(b)) {
             return builtin_mul64(b, a, hi);
         }
 #endif
@@ -107,7 +107,7 @@ uint64_t fallback_mulhi64(uint64_t a, uint64_t b) {
 
 WJR_ATTRIBUTES(CONST, INTRINSIC_INLINE)
 uint64_t builtin_mulhi64(uint64_t a, uint64_t b) {
-    uint64_t lo, hi;
+    uint64_t hi;
     (void)builtin_mul64(a, b, hi);
     return hi;
 }
@@ -124,14 +124,14 @@ T mulhi(T a, T b) {
     } else {
 
 #if WJR_HAS_BUILTIN(MUL64)
-        if (is_constant_evaluated() || is_constant_p(a) && is_constant_p(b)) {
+        if (is_constant_evaluated() || (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
             return fallback_mulhi64(a, b);
         }
 
 #if WJR_HAS_BUILTIN(ASM_MUL64)
         // mov b to rax, then mul a
         // instead of mov a to rax, mov b to register, then mul
-        if (is_constant_p(b)) {
+        if (WJR_BUILTIN_CONSTANT_P(b)) {
             return builtin_mulhi64(b, a);
         }
 #endif
@@ -181,7 +181,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_mul_1(T *dst, const T *src0, size_t n, T src1
 
     for (size_t i = 0; i < n; ++i) {
         lo = mul(src0[i], src1, hi);
-        dst[i] = addc<T>(lo, c_in, 0, c_in);
+        dst[i] = addc<T>(lo, c_in, 0u, c_in);
         c_in += hi;
     }
 
@@ -301,8 +301,8 @@ WJR_INTRINSIC_CONSTEXPR T fallback_addmul_1(T *dst, const T *src0, size_t n, T s
 
     for (size_t i = 0; i < n; ++i) {
         lo = mul(src0[i], src1, hi);
-        lo = addc<T>(lo, c_in, 0, c_in);
-        dst[i] = addc<T>(lo, dst[i], 0, o_in);
+        lo = addc<T>(lo, c_in, 0u, c_in);
+        dst[i] = addc<T>(lo, dst[i], 0u, o_in);
         c_in += hi + o_in;
     }
 
@@ -433,8 +433,8 @@ WJR_INTRINSIC_CONSTEXPR T fallback_submul_1(T *dst, const T *src0, size_t n, T s
 
     for (size_t i = 0; i < n; ++i) {
         lo = mul(src0[i], src1, hi);
-        lo = addc<T>(lo, c_in, 0, c_in);
-        dst[i] = subc<T>(dst[i], lo, 0, o_in);
+        lo = addc<T>(lo, c_in, 0u, c_in);
+        dst[i] = subc<T>(dst[i], lo, 0u, o_in);
         c_in += hi + o_in;
     }
 
@@ -462,6 +462,7 @@ WJR_INLINE uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src0, size_t n,
     asm volatile(
         "xor %[t1], %[t1]\n\t"
         "mov{b $127, %b[t0]| %b[t0], 127}\n\t"
+        // set CF = 0, OF = 1
         "add{b $1, %b[t0]| %b[t0], 1}\n\t"
         "jmp{q|} {*|QWORD PTR [}.Lasm_submul_1_lookup%={(, %[n], 8)| + %[n] * 8]}\n\t"
 
@@ -572,8 +573,8 @@ WJR_INTRINSIC_CONSTEXPR T submul_1(T *dst, const T *src0, size_t n, T src1,
 
 template <typename T>
 WJR_INLINE_CONSTEXPR void basecase_mul(T *dst, const T *src0, size_t n, const T *src1,
-                                       size_t m, type_identity_t<T> c_in) {
-    dst[n] = mul_1(dst, src0, n, src1[0], c_in);
+                                       size_t m) {
+    dst[n] = mul_1(dst, src0, n, src1[0], 0);
     for (size_t i = 1; i < m; ++i) {
         dst[i + n] = addmul_1(dst + i, src0, n, src1[i], 0);
     }
@@ -581,12 +582,11 @@ WJR_INLINE_CONSTEXPR void basecase_mul(T *dst, const T *src0, size_t n, const T 
 
 template <typename T, typename StackAllocator>
 WJR_INLINE_CONSTEXPR20 void mul(T *dst, const T *src0, size_t n, const T *src1, size_t m,
-                                type_identity_t<T> c_in, StackAllocator &al);
+                                StackAllocator &al);
 
 template <typename T, typename StackAllocator>
 WJR_INLINE_CONSTEXPR20 void toom22_mul(T *dst, const T *src0, size_t n, const T *src1,
-                                       size_t m, type_identity_t<T> c_in,
-                                       StackAllocator &al) {
+                                       size_t m, StackAllocator &al) {
 
     size_t mid = n >> 1;
     size_t rn = n - mid;
@@ -608,7 +608,7 @@ WJR_INLINE_CONSTEXPR20 void toom22_mul(T *dst, const T *src0, size_t n, const T 
 
     T cc;
 
-    cc = subc(dst, b, rn, a, mid, 0);
+    cc = subc(dst, b, rn, a, mid, 0u);
     if (cc) {
         bool g = neg_n(dst, dst, rn);
         WJR_ASSERT(!g);
@@ -616,7 +616,7 @@ WJR_INLINE_CONSTEXPR20 void toom22_mul(T *dst, const T *src0, size_t n, const T 
     }
 
     if (rm >= mid) {
-        cc = subc(dst + rn, d, rm, c, mid, 0);
+        cc = subc(dst + rn, d, rm, c, mid, 0u);
         if (cc) {
             bool g = neg_n(dst + rn, dst + rn, rm);
             WJR_ASSERT(!g);
@@ -625,7 +625,7 @@ WJR_INLINE_CONSTEXPR20 void toom22_mul(T *dst, const T *src0, size_t n, const T 
 
     } else {
         f ^= 1;
-        cc = subc(dst + rn, c, mid, d, rm, 0);
+        cc = subc(dst + rn, c, mid, d, rm, 0u);
         if (cc) {
             bool g = neg_n(dst + rn, dst + rn, mid);
             WJR_ASSERT(!g);
@@ -642,97 +642,20 @@ WJR_INLINE_CONSTEXPR20 void toom22_mul(T *dst, const T *src0, size_t n, const T 
     T c2 = 0;
 
     if (!f) {
-        c2 += subc(stk, stk, rn + tm, dst, mid * 2, 0);
-        c2 += subc(stk, stk, rn + tm, dst + mid * 2, rn + rm, 0);
+        c2 += subc(stk, stk, rn + tm, dst, mid * 2, 0u);
+        c2 += subc(stk, stk, rn + tm, dst + mid * 2, rn + rm, 0u);
 
-        c2 -= subc_n(dst + mid, dst + mid, stk, rn + tm, 0);
+        c2 -= subc_n(dst + mid, dst + mid, stk, rn + tm, 0u);
     } else {
-        c2 += addc(stk, stk, rn + tm, dst, mid * 2, 0);
-        c2 += addc(stk, stk, rn + tm, dst + mid * 2, rn + rm, 0);
+        c2 += addc(stk, stk, rn + tm, dst, mid * 2, 0u);
+        c2 += addc(stk, stk, rn + tm, dst + mid * 2, rn + rm, 0u);
 
-        c2 += addc_n(dst + mid, dst + mid, stk, rn + tm, 0);
+        c2 += addc_n(dst + mid, dst + mid, stk, rn + tm, 0u);
     }
 
     if (c2) {
         WJR_ASSERT(c2 <= 2);
-        c2 = addc_1(dst + mid + rn + tm, dst + mid + rn + tm, m - tm, c2, 0);
-        WJR_ASSERT(c2 == 0);
-    }
-}
-
-template <typename T, typename StackAllocator>
-WJR_INLINE_CONSTEXPR20 void toom33_mul(T *dst, const T *src0, size_t n, const T *src1,
-                                       size_t m, type_identity_t<T> c_in,
-                                       StackAllocator &al) {
-
-    size_t mid = n >> 1;
-    size_t rn = n - mid;
-    size_t rm = m - mid;
-    size_t tm = std::max(mid, rm);
-
-    unique_stack_ptr ptr(al, sizeof(T) * (rn + tm));
-    T *stk = (T *)ptr.get();
-
-    auto a = src0;
-    auto b = src0 + mid;
-
-    auto c = src1;
-    auto d = src1 + mid;
-
-    bool f = 0;
-    // 0 : (A-B)*(C-D)
-    // 1 : (A-B)*(D-C)
-
-    T cc;
-
-    cc = subc(dst, b, rn, a, mid, 0);
-    if (cc) {
-        bool g = neg_n(dst, dst, rn);
-        WJR_ASSERT(!g);
-        f ^= 1;
-    }
-
-    if (rm >= mid) {
-        cc = subc(dst + rn, d, rm, c, mid, 0);
-        if (cc) {
-            bool g = neg_n(dst + rn, dst + rn, rm);
-            WJR_ASSERT(!g);
-            f ^= 1;
-        }
-
-    } else {
-        f ^= 1;
-        cc = subc(dst + rn, c, mid, d, rm, 0);
-        if (cc) {
-            bool g = neg_n(dst + rn, dst + rn, mid);
-            WJR_ASSERT(!g);
-            f ^= 1;
-        }
-    }
-
-    mul(stk, dst, rn, dst + rn, tm, 0, al);
-    mul(dst, a, mid, c, mid, 0, al);
-    mul(dst + mid * 2, b, rn, d, rm, 0, al);
-
-    // stk : rn + tm
-
-    T c2 = 0;
-
-    if (!f) {
-        c2 += subc(stk, stk, rn + tm, dst, mid * 2, 0);
-        c2 += subc(stk, stk, rn + tm, dst + mid * 2, rn + rm, 0);
-
-        c2 -= subc_n(dst + mid, dst + mid, stk, rn + tm, 0);
-    } else {
-        c2 += addc(stk, stk, rn + tm, dst, mid * 2, 0);
-        c2 += addc(stk, stk, rn + tm, dst + mid * 2, rn + rm, 0);
-
-        c2 += addc_n(dst + mid, dst + mid, stk, rn + tm, 0);
-    }
-
-    if (c2) {
-        WJR_ASSERT(c2 <= 2);
-        c2 = addc_1(dst + mid + rn + tm, dst + mid + rn + tm, m - tm, c2, 0);
+        c2 = addc_1(dst + mid + rn + tm, dst + mid + rn + tm, m - tm, c2, 0u);
         WJR_ASSERT(c2 == 0);
     }
 }
@@ -745,9 +668,12 @@ WJR_INLINE_CONSTEXPR20 void toom33_mul(T *dst, const T *src0, size_t n, const T 
 
 inline constexpr size_t toom2_mul_threshold = WJR_TOOM2_MUL_THRESHOLD;
 
+// preview : mul n x m
+// TODO : ...
+
 template <typename T, typename StackAllocator>
 WJR_INLINE_CONSTEXPR20 void mul(T *dst, const T *src0, size_t n, const T *src1, size_t m,
-                                type_identity_t<T> c_in, StackAllocator &al) {
+                                StackAllocator &al) {
     if (n < m) {
         std::swap(n, m);
         std::swap(src0, src1);
@@ -756,22 +682,22 @@ WJR_INLINE_CONSTEXPR20 void mul(T *dst, const T *src0, size_t n, const T *src1, 
     WJR_ASSUME(m >= 1);
 
     if (m <= toom2_mul_threshold) {
-        return basecase_mul(dst, src0, n, src1, m, c_in);
+        return basecase_mul(dst, src0, n, src1, m);
     }
 
     if (m <= toom2_mul_threshold * 4) {
         if (5 * m <= 4 * n) {
-            return basecase_mul(dst, src0, n, src1, m, c_in);
+            return basecase_mul(dst, src0, n, src1, m);
         }
 
-        return toom22_mul(dst, src0, n, src1, m, c_in, al);
+        return toom22_mul(dst, src0, n, src1, m, al);
     }
 
     if (5 * m <= 3 * n) {
-        return basecase_mul(dst, src0, n, src1, m, c_in);
+        return basecase_mul(dst, src0, n, src1, m);
     }
 
-    return toom22_mul(dst, src0, n, src1, m, c_in, al);
+    return toom22_mul(dst, src0, n, src1, m, al);
 }
 
 } // namespace wjr

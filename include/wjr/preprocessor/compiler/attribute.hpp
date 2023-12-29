@@ -61,6 +61,12 @@
 #define WJR_FORCEINLINE
 #endif
 
+#if WJR_HAS_ATTRIBUTE(FORCEINLINE_LAMBDA)
+#define WJR_FORCEINLINE_LAMBDA WJR_FORCEINLINE
+#else
+#define WJR_FORCEINLINE_LAMBDA
+#endif
+
 // NOINLINE for MSVC/GCC/CLANG ...
 #if WJR_HAS_ATTRIBUTE(noinline)
 #define WJR_NOINLINE __attribute__((noinline))
@@ -94,6 +100,12 @@
 #define WJR_UNREACHABLE __assume(0)
 #else
 #define WJR_UNREACHABLE
+#endif
+
+#if defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC)
+#define WJR_RESTRICT __restrict
+#else
+#define WJR_RESTRICT
 #endif
 
 #if WJR_HAS_BUILTIN(__builtin_assume)

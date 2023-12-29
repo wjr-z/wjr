@@ -57,12 +57,12 @@ int builtin_popcount(T x) {
 template <typename T>
 WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
 int popcount(T x) {
-    if (is_constant_p(is_power_of_two(x)) && is_power_of_two(x)) {
+    if (WJR_BUILTIN_CONSTANT_P(is_power_of_two(x)) && is_power_of_two(x)) {
         return x != 0;
     }
 
 #if WJR_HAS_BUILTIN(POPCOUNT)
-    if (is_constant_evaluated() || is_constant_p(x)) {
+    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
         return fallback_popcount(x);
     }
 

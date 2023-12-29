@@ -8,11 +8,12 @@ namespace wjr {
 template <typename T>
 WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
 int fallback_ctz_impl(T x) {
-    constexpr auto nd = std::numeric_limits<T>::digits;
 
 #if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
     return popcount<T>(lowbit(x) - 1);
 #else
+    constexpr auto nd = std::numeric_limits<T>::digits;
+    
     if constexpr (nd < 32) {
         return fallback_ctz_impl(static_cast<uint32_t>(x));
     } else {
@@ -92,7 +93,7 @@ template <typename T>
 WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
 int ctz(T x) {
 #if WJR_HAS_BUILTIN(CTZ)
-    if (is_constant_evaluated() || is_constant_p(x)) {
+    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
         return fallback_ctz(x);
     }
 

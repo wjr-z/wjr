@@ -131,7 +131,7 @@ class stack_allocator {
                 delete tmp;
             }
 
-            WJR_ASSERT(reset < remain_cache_blocks);
+            WJR_ASSERT(rest < remain_cache_blocks);
         }
     }
 

@@ -89,7 +89,9 @@ WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) {
 
 #endif // WJR_HAS_BUILTIN(SUBC)
 
-template <typename T, typename U>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
     WJR_ASSERT_L(1, c_in == 0 || c_in == 1);
     WJR_ASSUME((c_in == 0 || c_in == 1));
@@ -98,7 +100,7 @@ WJR_INTRINSIC_CONSTEXPR T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
     return fallback_subc(a, b, c_in, c_out);
 #else
     constexpr auto is_constant_or_zero = [](const auto &x) -> int {
-        return is_constant_p(x) ? (x == 0 ? 2 : 1) : 0;
+        return WJR_BUILTIN_CONSTANT_P(x) ? (x == 0 ? 2 : 1) : 0;
     };
 
     // The compiler should be able to optimize the judgment condition of if when enabling
@@ -111,7 +113,7 @@ WJR_INTRINSIC_CONSTEXPR T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
     }
 
 #if WJR_HAS_BUILTIN(ASM_SUBC)
-    if (is_constant_p(c_in) && c_in == 1) {
+    if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
         return asm_subc_1(a, b, c_out);
     }
 #endif
@@ -125,7 +127,9 @@ WJR_INTRINSIC_CONSTEXPR T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
 #endif
 }
 
-template <typename T, typename U>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR U subc_1(T *dst, const T *src0, size_t n, type_identity_t<T> src1,
                                  U c_in) {
     WJR_ASSUME(n >= 1);
@@ -149,9 +153,7 @@ WJR_INTRINSIC_CONSTEXPR U subc_1(T *dst, const T *src0, size_t n, type_identity_
     }
 
     if (src0 != dst) {
-        for (size_t i = 1; i < n; ++i) {
-            dst[i] = src0[i];
-        }
+        std::copy(src0 + 1, src0 + n, dst + 1);
     }
 
     return static_cast<U>(0);
@@ -318,7 +320,9 @@ WJR_INLINE U asm_subc_n(T *dst, const T *src0, const T *src1, size_t n, U c_in) 
 
 #endif
 
-template <typename T, typename U>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR U subc_n(T *dst, const T *src0, const T *src1, size_t n, U c_in) {
 #if WJR_HAS_BUILTIN(ASM_SUBC_N)
     if (is_constant_evaluated()) {
@@ -331,7 +335,9 @@ WJR_INTRINSIC_CONSTEXPR U subc_n(T *dst, const T *src0, const T *src1, size_t n,
 #endif
 }
 
-template <typename T, typename U>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR U subc(T *dst, const T *src0, size_t n, const T *src1, size_t m,
                                U c_in) {
     WJR_ASSUME(n >= m);

@@ -115,7 +115,7 @@ template <typename T>
 WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
 int clz(T x) {
 #if WJR_HAS_BUILTIN(CLZ)
-    if (is_constant_evaluated() || is_constant_p(x)) {
+    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
         return fallback_clz(x);
     }
 

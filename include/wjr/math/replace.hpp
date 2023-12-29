@@ -44,7 +44,7 @@ WJR_INLINE size_t fallback_replace_val_memset(T *dst, const T *src, size_t n, T 
 template <typename T>
 WJR_INLINE_CONSTEXPR size_t fallback_replace_val(T *dst, const T *src, size_t n, T from,
                                                  T to) {
-    if (is_constant_evaluated() || (is_constant_p(n <= 8) && n <= 8)) {
+    if (is_constant_evaluated() || (WJR_BUILTIN_CONSTANT_P(n <= 8) && n <= 8)) {
         return fallback_replace_val_nomemset(dst, src, n, from, to);
     }
 
@@ -65,36 +65,84 @@ WJR_INLINE_CONSTEXPR size_t fallback_replace_val(T *dst, const T *src, size_t n,
 #if WJR_HAS_BUILTIN(REPLACE_VAL)
 
 template <typename T>
-WJR_INLINE size_t builtin_SSE4_1_replace_val(T *dst, const T *src, size_t n, T from,
+WJR_INLINE size_t builtin_SSE4_1_replace_val(T *dst, const T *src, const size_t n, T from,
                                              T to) {
-    size_t idx = 0;
+    WJR_ASSUME(n >= 4);
+
+    size_t p = n;
+
+    if (n & 1) {
+        if (src[0] != from) {
+            return 0;
+        }
+
+        dst[0] = to;
+
+        ++dst;
+        ++src;
+
+        --p;
+    }
+
     __m128i y = _mm_set1_epi64x(from);
     __m128i z = _mm_set1_epi64x(to);
 
-    do {
-        __m128i x = _mm_loadu_si128((__m128i *)(src + idx));
-        __m128i r = _mm_cmpeq_epi64(x, y);
-        uint16_t mask = _mm_movemask_epi8(r);
-        if (mask != 0xFFFF) {
-            if (mask != 0x00FF) {
-                return idx;
-            }
+#define WJR_REGISTER_REPLACE_VAL_IMPL(index)                                             \
+    do {                                                                                 \
+        __m128i x = _mm_loadu_si128((__m128i *)(src + index));                           \
+        __m128i r = _mm_cmpeq_epi64(x, y);                                               \
+        uint16_t mask = _mm_movemask_epi8(r);                                            \
+        if (mask != 0xFFFF) {                                                            \
+            if (mask != 0x00FF) {                                                        \
+                return (n - p) + index;                                                  \
+            }                                                                            \
+            dst[index] = to;                                                             \
+            return (n - p) + index + 1;                                                  \
+        }                                                                                \
+        _mm_storeu_si128((__m128i *)(dst + index), z);                                   \
+    } while (0)
 
-            dst[idx] = to;
-            return idx + 1;
-        }
+    if (p <= 14) {
+        do {
+            WJR_REGISTER_REPLACE_VAL_IMPL(0);
 
-        _mm_storeu_si128((__m128i *)(dst + idx), z);
+            dst += 2;
+            src += 2;
+            p -= 2;
+        } while (p);
 
-        idx += 2;
-    } while (idx + 2 <= n);
-
-    if ((n & 1) && src[idx] == from) {
-        dst[idx] = to;
-        ++idx;
+        return n;
     }
 
-    return idx;
+    WJR_REGISTER_REPLACE_VAL_IMPL(0);
+    WJR_REGISTER_REPLACE_VAL_IMPL(2);
+    WJR_REGISTER_REPLACE_VAL_IMPL(4);
+    WJR_REGISTER_REPLACE_VAL_IMPL(6);
+
+    if (p & 2) {
+        WJR_REGISTER_REPLACE_VAL_IMPL(8);
+
+        dst += 10;
+        src += 10;
+        p -= 10;
+    } else {
+        dst += 8;
+        src += 8;
+        p -= 8;
+    }
+
+    do {
+        WJR_REGISTER_REPLACE_VAL_IMPL(0);
+        WJR_REGISTER_REPLACE_VAL_IMPL(2);
+
+        dst += 4;
+        src += 4;
+        p -= 4;
+    } while (p);
+
+    return n;
+
+#undef WJR_REGISTER_REPLACE_VAL_IMPL
 }
 
 template <typename T>
@@ -122,7 +170,7 @@ template <typename T>
 WJR_INLINE_CONSTEXPR size_t replace_val(T *dst, const T *src, size_t n,
                                         type_identity_t<T> from, type_identity_t<T> to) {
     if (from == to && src == dst) {
-        return find_not_val(src, n, from);
+        return find_not(src, n, from);
     }
 
 #if WJR_HAS_BUILTIN(REPLACE_VAL)
