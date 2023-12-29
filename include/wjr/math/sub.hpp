@@ -32,9 +32,7 @@ template <typename T, typename U>
 WJR_INTRINSIC_INLINE T asm_subc_1(T a, T b, U &c_out) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
-#define WJR_REGISTER_BUILTIN_ASM_SUBC(args)                                              \
-    WJR_PP_TRANSFORM_PUT(args, WJR_REGISTER_BUILTIN_ASM_SUBC_I_CALLER)
-#define WJR_REGISTER_BUILTIN_ASM_SUBC_I(suffix, type)                                    \
+#define WJR_REGISTER_BUILTIN_ASM_SUBC(suffix, type)                                      \
     if constexpr (nd == std::numeric_limits<type>::digits) {                             \
         unsigned char cf;                                                                \
         asm("stc\n\t"                                                                    \
@@ -46,15 +44,14 @@ WJR_INTRINSIC_INLINE T asm_subc_1(T a, T b, U &c_out) {
         c_out = cf;                                                                      \
         return a;                                                                        \
     } else
-#define WJR_REGISTER_BUILTIN_ASM_SUBC_I_CALLER(args) WJR_REGISTER_BUILTIN_ASM_SUBC_I args
 
-    WJR_REGISTER_BUILTIN_ASM_SUBC(
-        ((b, uint8_t), (w, uint16_t), (l, uint32_t), (q, uint64_t))) {
+    WJR_REGISTER_BUILTIN_ASM_SUBC(b, uint8_t)
+    WJR_REGISTER_BUILTIN_ASM_SUBC(w, uint16_t)
+    WJR_REGISTER_BUILTIN_ASM_SUBC(l, uint32_t)
+    WJR_REGISTER_BUILTIN_ASM_SUBC(q, uint64_t) {
         static_assert(nd <= 64, "not supported yet");
     }
 
-#undef WJR_REGISTER_BUILTIN_ASM_SUBC_I_CALLER
-#undef WJR_REGISTER_BUILTIN_ASM_SUBC_I
 #undef WJR_REGISTER_BUILTIN_ASM_SUBC
 }
 
@@ -66,24 +63,22 @@ template <typename T, typename U>
 WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
-#define WJR_REGISTER_BUILTIN_SUBC(args)                                                  \
-    WJR_PP_TRANSFORM_PUT(args, WJR_REGISTER_BUILTIN_SUBC_I_CALLER)
-#define WJR_REGISTER_BUILTIN_SUBC_I(suffix, type)                                        \
+#define WJR_REGISTER_BUILTIN_SUBC(suffix, type)                                          \
     if constexpr (nd <= std::numeric_limits<type>::digits) {                             \
         type __c_out;                                                                    \
         T ret = __builtin_subc##suffix(a, b, static_cast<type>(c_in), &__c_out);         \
         c_out = static_cast<U>(__c_out);                                                 \
         return ret;                                                                      \
     } else
-#define WJR_REGISTER_BUILTIN_SUBC_I_CALLER(args) WJR_REGISTER_BUILTIN_SUBC_I args
 
-    WJR_REGISTER_BUILTIN_SUBC(((b, unsigned char), (s, unsigned short), (, unsigned int),
-                               (l, unsigned long), (ll, unsigned long long))) {
+    WJR_REGISTER_BUILTIN_SUBC(b, unsigned char)
+    WJR_REGISTER_BUILTIN_SUBC(s, unsigned short)
+    WJR_REGISTER_BUILTIN_SUBC(, unsigned int)
+    WJR_REGISTER_BUILTIN_SUBC(l, unsigned long)
+    WJR_REGISTER_BUILTIN_SUBC(ll, unsigned long long) {
         static_assert(nd <= 64, "not supported yet");
     }
 
-#undef WJR_REGISTER_BUILTIN_SUBC_I_CALLER
-#undef WJR_REGISTER_BUILTIN_SUBC_I
 #undef WJR_REGISTER_BUILTIN_SUBC
 }
 
@@ -229,93 +224,131 @@ WJR_INTRINSIC_CONSTEXPR U fallback_subc_n(T *dst, const T *src0, const T *src1, 
 template <typename T, typename U>
 WJR_INLINE U asm_subc_n(T *dst, const T *src0, const T *src1, size_t n, U c_in) {
     constexpr auto nd = std::numeric_limits<T>::digits;
+    T t0 = c_in;
 
-#define WJR_REGISTER_ASM_SUBC_N(args)                                                    \
-    WJR_PP_TRANSFORM_PUT(args, WJR_REGISTER_ASM_SUBC_N_I_CALLER)
-
-#define WJR_REGISTER_ASM_SUBC_N_I(type, suffix, offset0, offset1, offset2, offset3,      \
-                                  offset4)                                               \
+#define WJR_REGISTER_ASM_SUBC_N(type, suffix, offset0, offset1, offset2, offset3,        \
+                                offset4, offset5, offset6, offset7, offset8)             \
     if constexpr (nd == std::numeric_limits<type>::digits) {                             \
-        size_t m = n / 4 + 1;                                                            \
-        n &= 3;                                                                          \
-        src0 += n - 4;                                                                   \
-        src1 += n - 4;                                                                   \
-        dst += n - 4;                                                                    \
-        T tmp;                                                                           \
-        asm volatile(                                                                    \
-            "add{b $255, %b[c_in]| %b[c_in], 255}\n\t"                                   \
-            "jmp{q|} {*|QWORD PTR [}.Lasm_subc_n_lookup%={(, %[n], 8)| + %[n] * 8]}\n\t" \
+        size_t m = n / 8 + 1;                                                            \
+        n &= 7;                                                                          \
+        src0 += n - 8;                                                                   \
+        src1 += n - 8;                                                                   \
+        dst += n - 8;                                                                    \
+        uint64_t t1;                                                                     \
+        uint64_t t2;                                                                     \
+        t1 = n;                                                                          \
+        asm volatile("add{b $255, %b[t0]| %b[t0], 255}\n\t"                              \
+                     "lea{q .Lasm_subc_n_lookup%=(%%rip), %[t2]| %[t2], "                \
+                     "[rip+.Lasm_subc_n_lookup%=]}\n\t"                                  \
+                     "movs{lq (%[t2], %[t1], 4), %[t1]|xd %[t1], DWORD PTR [%[t2] + "    \
+                     "%[t1] * "                                                          \
+                     "4]}\n\t"                                                           \
+                     "lea{q (%[t2], %[t1], 1), %[t1]| %[t1], [%[t2] + %[t1]]}\n\t"       \
+                     "jmp{q *%[t1]| %[t1]}\n\t"                                          \
                                                                                          \
-            ".Lasm_subc_n_lookup%=:\n\t"                                                 \
-            ".quad .Lcase0%=\n\t"                                                        \
-            ".quad .Lcase1%=\n\t"                                                        \
-            ".quad .Lcase2%=\n\t"                                                        \
-            ".quad .Lcase3%=\n\t"                                                        \
+                     ".align 8\n\t"                                                      \
+                     ".Lasm_subc_n_lookup%=:\n\t"                                        \
+                     ".long .Lcase0%=-.Lasm_subc_n_lookup%=\n\t"                         \
+                     ".long .Lcase1%=-.Lasm_subc_n_lookup%=\n\t"                         \
+                     ".long .Lcase2%=-.Lasm_subc_n_lookup%=\n\t"                         \
+                     ".long .Lcase3%=-.Lasm_subc_n_lookup%=\n\t"                         \
+                     ".long .Lcase4%=-.Lasm_subc_n_lookup%=\n\t"                         \
+                     ".long .Lcase5%=-.Lasm_subc_n_lookup%=\n\t"                         \
+                     ".long .Lcase6%=-.Lasm_subc_n_lookup%=\n\t"                         \
+                     ".long .Lcase7%=-.Lasm_subc_n_lookup%=\n\t"                         \
                                                                                          \
-            ".Lwjr_asm_subc_n_loop%=:\n\t"                                               \
-            "lea{" #suffix " " #offset4 "(%[src0]), %3| %3, [%[src0] + " #offset4        \
-            "]}\n\t"                                                                     \
-            "lea{" #suffix " " #offset4 "(%[src1]), %4| %4, [%[src1] + " #offset4        \
-            "]}\n\t"                                                                     \
-            "lea{" #suffix " " #offset4 "(%[dst]), %2| %2, [%[dst] + " #offset4 "]}\n\t" \
+                     ".Lwjr_asm_subc_n_loop%=:\n\t"                                      \
+                     "lea{" #suffix " " #offset8                                         \
+                     "(%[src0]), %[src0]| %[src0], [%[src0] + " #offset8 "]}\n\t"        \
+                     "lea{" #suffix " " #offset8                                         \
+                     "(%[src1]), %[src1]| %[src1], [%[src1] + " #offset8 "]}\n\t"        \
+                     "lea{" #suffix " " #offset8                                         \
+                     "(%[dst]), %[dst]| %[dst], [%[dst] + " #offset8 "]}\n\t"            \
                                                                                          \
-            "mov{" #suffix " " #offset0                                                  \
-            "(%[src0]), %[tmp]| %[tmp], [%[src0] + " #offset0 "]}\n\t"                   \
-            "sbb{" #suffix " " #offset0                                                  \
-            "(%[src1]), %[tmp]| %[tmp], [%[src1] + " #offset0 "]}\n\t"                   \
-            "mov{" #suffix " %[tmp], " #offset0 "(%[dst])| [%[dst] + " #offset0          \
-            "], %[tmp]}\n\t"                                                             \
+                     "mov{" #suffix " " #offset0                                         \
+                     "(%[src0]), %[t0]| %[t0], [%[src0] + " #offset0 "]}\n\t"            \
+                     "sbb{" #suffix " " #offset0                                         \
+                     "(%[src1]), %[t0]| %[t0], [%[src1] + " #offset0 "]}\n\t"            \
+                     "mov{" #suffix " %[t0], " #offset0 "(%[dst])| [%[dst] + " #offset0  \
+                     "], %[t0]}\n\t"                                                     \
                                                                                          \
-            ".Lcase3%=:\n\t"                                                             \
-            "mov{" #suffix " " #offset1                                                  \
-            "(%[src0]), %[tmp]| %[tmp], [%[src0] + " #offset1 "]}\n\t"                   \
-            "sbb{" #suffix " " #offset1                                                  \
-            "(%[src1]), %[tmp]| %[tmp], [%[src1] + " #offset1 "]}\n\t"                   \
-            "mov{" #suffix " %[tmp], " #offset1 "(%[dst])| [%[dst] + " #offset1          \
-            "], %[tmp]}\n\t"                                                             \
+                     ".Lcase7%=:\n\t"                                                    \
+                     "mov{" #suffix " " #offset1                                         \
+                     "(%[src0]), %[t0]| %[t0], [%[src0] + " #offset1 "]}\n\t"            \
+                     "sbb{" #suffix " " #offset1                                         \
+                     "(%[src1]), %[t0]| %[t0], [%[src1] + " #offset1 "]}\n\t"            \
+                     "mov{" #suffix " %[t0], " #offset1 "(%[dst])| [%[dst] + " #offset1  \
+                     "], %[t0]}\n\t"                                                     \
                                                                                          \
-            ".Lcase2%=:\n\t"                                                             \
-            "mov{" #suffix " " #offset2                                                  \
-            "(%[src0]), %[tmp]| %[tmp], [%[src0] + " #offset2 "]}\n\t"                   \
-            "sbb{" #suffix " " #offset2                                                  \
-            "(%[src1]), %[tmp]| %[tmp], [%[src1] + " #offset2 "]}\n\t"                   \
-            "mov{" #suffix " %[tmp], " #offset2 "(%[dst])| [%[dst] + " #offset2          \
-            "], %[tmp]}\n\t"                                                             \
+                     ".Lcase6%=:\n\t"                                                    \
+                     "mov{" #suffix " " #offset2                                         \
+                     "(%[src0]), %[t0]| %[t0], [%[src0] + " #offset2 "]}\n\t"            \
+                     "sbb{" #suffix " " #offset2                                         \
+                     "(%[src1]), %[t0]| %[t0], [%[src1] + " #offset2 "]}\n\t"            \
+                     "mov{" #suffix " %[t0], " #offset2 "(%[dst])| [%[dst] + " #offset2  \
+                     "], %[t0]}\n\t"                                                     \
                                                                                          \
-            ".Lcase1%=:\n\t"                                                             \
-            "mov{" #suffix " " #offset3                                                  \
-            "(%[src0]), %[tmp]| %[tmp], [%[src0] + " #offset3 "]}\n\t"                   \
-            "sbb{" #suffix " " #offset3                                                  \
-            "(%[src1]), %[tmp]| %[tmp], [%[src1] + " #offset3 "]}\n\t"                   \
-            "mov{" #suffix " %[tmp], " #offset3 "(%[dst])| [%[dst] + " #offset3          \
-            "], %[tmp]}\n\t"                                                             \
+                     ".Lcase5%=:\n\t"                                                    \
+                     "mov{" #suffix " " #offset3                                         \
+                     "(%[src0]), %[t0]| %[t0], [%[src0] + " #offset3 "]}\n\t"            \
+                     "sbb{" #suffix " " #offset3                                         \
+                     "(%[src1]), %[t0]| %[t0], [%[src1] + " #offset3 "]}\n\t"            \
+                     "mov{" #suffix " %[t0], " #offset3 "(%[dst])| [%[dst] + " #offset3  \
+                     "], %[t0]}\n\t"                                                     \
                                                                                          \
-            ".Lcase0%=:\n\t"                                                             \
-            "dec %[m]\n\t"                                                               \
-            "jne .Lwjr_asm_subc_n_loop%=\n\t"                                            \
-            "setb %b[c_in]"                                                              \
+                     ".Lcase4%=:\n\t"                                                    \
+                     "mov{" #suffix " " #offset4                                         \
+                     "(%[src0]), %[t0]| %[t0], [%[src0] + " #offset4 "]}\n\t"            \
+                     "sbb{" #suffix " " #offset4                                         \
+                     "(%[src1]), %[t0]| %[t0], [%[src1] + " #offset4 "]}\n\t"            \
+                     "mov{" #suffix " %[t0], " #offset4 "(%[dst])| [%[dst] + " #offset4  \
+                     "], %[t0]}\n\t"                                                     \
                                                                                          \
-            : [c_in] "+&r"(c_in), [tmp] "=r"(tmp), [dst] "+r"(dst), [src0] "+%r"(src0),  \
-              [src1] "+r"(src1), [m] "+r"(m)                                             \
-            : [n] "r"(n)                                                                 \
-            : "cc", "memory");                                                           \
+                     ".Lcase3%=:\n\t"                                                    \
+                     "mov{" #suffix " " #offset5                                         \
+                     "(%[src0]), %[t0]| %[t0], [%[src0] + " #offset5 "]}\n\t"            \
+                     "sbb{" #suffix " " #offset5                                         \
+                     "(%[src1]), %[t0]| %[t0], [%[src1] + " #offset5 "]}\n\t"            \
+                     "mov{" #suffix " %[t0], " #offset5 "(%[dst])| [%[dst] + " #offset5  \
+                     "], %[t0]}\n\t"                                                     \
+                                                                                         \
+                     ".Lcase2%=:\n\t"                                                    \
+                     "mov{" #suffix " " #offset6                                         \
+                     "(%[src0]), %[t0]| %[t0], [%[src0] + " #offset6 "]}\n\t"            \
+                     "sbb{" #suffix " " #offset6                                         \
+                     "(%[src1]), %[t0]| %[t0], [%[src1] + " #offset6 "]}\n\t"            \
+                     "mov{" #suffix " %[t0], " #offset6 "(%[dst])| [%[dst] + " #offset6  \
+                     "], %[t0]}\n\t"                                                     \
+                                                                                         \
+                     ".Lcase1%=:\n\t"                                                    \
+                     "mov{" #suffix " " #offset7                                         \
+                     "(%[src0]), %[t0]| %[t0], [%[src0] + " #offset7 "]}\n\t"            \
+                     "sbb{" #suffix " " #offset7                                         \
+                     "(%[src1]), %[t0]| %[t0], [%[src1] + " #offset7 "]}\n\t"            \
+                     "mov{" #suffix " %[t0], " #offset7 "(%[dst])| [%[dst] + " #offset7  \
+                     "], %[t0]}\n\t"                                                     \
+                                                                                         \
+                     ".Lcase0%=:\n\t"                                                    \
+                     "dec %[m]\n\t"                                                      \
+                     "jne .Lwjr_asm_subc_n_loop%=\n\t"                                   \
+                     "setb %b[t0]"                                                       \
+                                                                                         \
+                     : [dst] "+r"(dst), [src0] "+%r"(src0), [src1] "+r"(src1),           \
+                       [m] "+r"(m), [t0] "+r"(t0), [t1] "+r"(t1), [t2] "=r"(t2)          \
+                     :                                                                   \
+                     : "cc", "memory");                                                  \
     } else
 
-#define WJR_REGISTER_ASM_SUBC_N_I_CALLER(args) WJR_REGISTER_ASM_SUBC_N_I args
-
-    WJR_REGISTER_ASM_SUBC_N(((uint8_t, b, 0, 1, 2, 3, 4), (uint16_t, w, 0, 2, 4, 6, 8),
-                             (uint32_t, l, 0, 4, 8, 12, 16),
-                             (uint64_t, q, 0, 8, 16, 24, 32))) {
+    WJR_REGISTER_ASM_SUBC_N(uint8_t, b, 0, 1, 2, 3, 4, 5, 6, 7, 8)
+    WJR_REGISTER_ASM_SUBC_N(uint16_t, w, 0, 2, 4, 6, 8, 10, 12, 14, 16)
+    WJR_REGISTER_ASM_SUBC_N(uint32_t, l, 0, 4, 8, 12, 16, 20, 24, 28, 32)
+    WJR_REGISTER_ASM_SUBC_N(uint64_t, q, 0, 8, 16, 24, 32, 40, 48, 56, 64) {
         static_assert(nd <= 64, "not support yet");
     }
 
-#undef WJR_REGISTER_ASM_SUBC_N_I_CALLER
-#undef WJR_REGISTER_ASM_SUBC_N_I
 #undef WJR_REGISTER_ASM_SUBC_N
 
-    c_in = static_cast<U>(static_cast<unsigned char>(c_in));
-
-    return c_in;
+    return static_cast<unsigned char>(t0);
 }
 
 #endif
@@ -346,7 +379,7 @@ WJR_INTRINSIC_CONSTEXPR U subc(T *dst, const T *src0, size_t n, const T *src1, s
     c_in = subc_n(dst, src0, src1, m, c_in);
 
     if (n != m) {
-        c_in = subc_1(dst + m, src0 + m, n - m, 0, c_in);
+        c_in = subc_1(dst + m, src0 + m, n - m, 0u, c_in);
     }
 
     return c_in;
