@@ -9,8 +9,8 @@
 namespace wjr {
 
 template <typename T>
-WJR_INLINE_CONSTEXPR size_t fallback_replace_val_nomemset(T *dst, const T *src, size_t n,
-                                                          T from, T to) {
+WJR_INTRINSIC_CONSTEXPR size_t fallback_replace_val_nomemset(T *dst, const T *src,
+                                                             size_t n, T from, T to) {
     size_t idx = 0;
 
     WJR_UNROLL(4)
@@ -26,8 +26,8 @@ WJR_INLINE_CONSTEXPR size_t fallback_replace_val_nomemset(T *dst, const T *src, 
 }
 
 template <typename T>
-WJR_INLINE size_t fallback_replace_val_memset(T *dst, const T *src, size_t n, T from,
-                                              uint8_t to) {
+WJR_INTRINSIC_CONSTEXPR size_t fallback_replace_val_memset(T *dst, const T *src, size_t n,
+                                                           T from, uint8_t to) {
     size_t idx = 0;
 
     WJR_UNROLL(4)
@@ -42,15 +42,15 @@ WJR_INLINE size_t fallback_replace_val_memset(T *dst, const T *src, size_t n, T 
 }
 
 template <typename T>
-WJR_INLINE_CONSTEXPR size_t fallback_replace_val(T *dst, const T *src, size_t n, T from,
-                                                 T to) {
+WJR_INTRINSIC_CONSTEXPR size_t fallback_replace_val(T *dst, const T *src, size_t n,
+                                                    T from, T to) {
     if (is_constant_evaluated() || (WJR_BUILTIN_CONSTANT_P(n <= 8) && n <= 8)) {
         return fallback_replace_val_nomemset(dst, src, n, from, to);
     }
 
     uint8_t set = to;
 
-    if (broadcast<T, uint8_t>(set) == to) {
+    if (broadcast<uint8_t, T>(set) == to) {
         return fallback_replace_val_memset(dst, src, n, from, set);
     }
 
@@ -71,7 +71,7 @@ WJR_INLINE size_t builtin_SSE4_1_replace_val(T *dst, const T *src, const size_t 
 
     size_t p = n;
 
-    if (n & 1) {
+    if (p & 1) {
         if (src[0] != from) {
             return 0;
         }
@@ -80,7 +80,6 @@ WJR_INLINE size_t builtin_SSE4_1_replace_val(T *dst, const T *src, const size_t 
 
         ++dst;
         ++src;
-
         --p;
     }
 
@@ -102,7 +101,7 @@ WJR_INLINE size_t builtin_SSE4_1_replace_val(T *dst, const T *src, const size_t 
         _mm_storeu_si128((__m128i *)(dst + index), z);                                   \
     } while (0)
 
-    if (p <= 14) {
+    if (p <= 22) {
         do {
             WJR_REGISTER_REPLACE_VAL_IMPL(0);
 
@@ -119,25 +118,57 @@ WJR_INLINE size_t builtin_SSE4_1_replace_val(T *dst, const T *src, const size_t 
     WJR_REGISTER_REPLACE_VAL_IMPL(4);
     WJR_REGISTER_REPLACE_VAL_IMPL(6);
 
-    if (p & 2) {
+    switch (p & 6) {
+    case 6: {
+        WJR_REGISTER_REPLACE_VAL_IMPL(8);
+        WJR_REGISTER_REPLACE_VAL_IMPL(10);
+        WJR_REGISTER_REPLACE_VAL_IMPL(12);
+
+        dst += 14;
+        src += 14;
+        p -= 14;
+        break;
+    }
+    case 4: {
+        WJR_REGISTER_REPLACE_VAL_IMPL(8);
+        WJR_REGISTER_REPLACE_VAL_IMPL(10);
+
+        dst += 12;
+        src += 12;
+        p -= 12;
+        break;
+    }
+    case 2: {
         WJR_REGISTER_REPLACE_VAL_IMPL(8);
 
         dst += 10;
         src += 10;
         p -= 10;
-    } else {
+        break;
+    }
+    case 0: {
         dst += 8;
         src += 8;
         p -= 8;
+        break;
     }
+    default: {
+        WJR_UNREACHABLE;
+        break;
+    }
+    }
+
+    WJR_ASSUME(p % 8 == 0);
 
     do {
         WJR_REGISTER_REPLACE_VAL_IMPL(0);
         WJR_REGISTER_REPLACE_VAL_IMPL(2);
+        WJR_REGISTER_REPLACE_VAL_IMPL(4);
+        WJR_REGISTER_REPLACE_VAL_IMPL(6);
 
-        dst += 4;
-        src += 4;
-        p -= 4;
+        dst += 8;
+        src += 8;
+        p -= 8;
     } while (p);
 
     return n;
@@ -146,29 +177,31 @@ WJR_INLINE size_t builtin_SSE4_1_replace_val(T *dst, const T *src, const size_t 
 }
 
 template <typename T>
-WJR_INLINE size_t builtin_replace_val(T *dst, const T *src, size_t n, T from, T to) {
+WJR_INTRINSIC_INLINE size_t builtin_replace_val(T *dst, const T *src, size_t n, T from,
+                                                T to) {
     static_assert(std::is_same_v<T, uint64_t>, "Currently only support uint64_t.");
 
-    if (n <= 7) {
+    if (n < 6) {
         return fallback_replace_val(dst, src, n, from, to);
     }
 
-    // n >= 8
+    // n >= 6
 
-    size_t idx = fallback_replace_val(dst, src, 4, from, to);
+    size_t idx = fallback_replace_val(dst, src, 2, from, to);
 
-    if (WJR_LIKELY(idx != 4)) {
+    if (WJR_LIKELY(idx != 2)) {
         return idx;
     }
 
-    return 4 + builtin_SSE4_1_replace_val(dst + 4, src + 4, n - 4, from, to);
+    return 2 + builtin_SSE4_1_replace_val(dst + 2, src + 2, n - 2, from, to);
 }
 
 #endif
 
 template <typename T>
-WJR_INLINE_CONSTEXPR size_t replace_val(T *dst, const T *src, size_t n,
-                                        type_identity_t<T> from, type_identity_t<T> to) {
+WJR_INTRINSIC_CONSTEXPR size_t replace_val(T *dst, const T *src, size_t n,
+                                           type_identity_t<T> from,
+                                           type_identity_t<T> to) {
     if (from == to && src == dst) {
         return find_not(src, n, from);
     }

@@ -1,12 +1,13 @@
 #ifndef WJR_MATH_FIND_HPP__
 #define WJR_MATH_FIND_HPP__
 
-#include <wjr/type_traits.hpp>
+#include <wjr/simd/simd.hpp>
+#include <wjr/unroll.hpp>
 
 namespace wjr {
 
 template <typename T>
-WJR_INLINE_CONSTEXPR size_t fallback_find_not(const T *src, size_t n, T val) {
+WJR_INTRINSIC_CONSTEXPR size_t fallback_find_not(const T *src, size_t n, T val) {
     size_t idx = 0;
 
     WJR_UNROLL(4)
@@ -52,7 +53,7 @@ WJR_INLINE size_t builtin_SSE4_1_find_not(const T *src, const size_t n, T val) {
         }                                                                                \
     } while (0)
 
-    if (p <= 14) {
+    if (p <= 22) {
         do {
             WJR_REGISTER_FIND_NOT_IMPL(0);
 
@@ -68,23 +69,52 @@ WJR_INLINE size_t builtin_SSE4_1_find_not(const T *src, const size_t n, T val) {
     WJR_REGISTER_FIND_NOT_IMPL(4);
     WJR_REGISTER_FIND_NOT_IMPL(6);
 
-    if (p & 2) {
+    switch (p & 6) {
+    case 6: {
         WJR_REGISTER_FIND_NOT_IMPL(8);
+        WJR_REGISTER_FIND_NOT_IMPL(10);
+        WJR_REGISTER_FIND_NOT_IMPL(12);
+
+        src += 14;
+        p -= 14;
+        break;
+    }
+    case 4: {
+        WJR_REGISTER_FIND_NOT_IMPL(8);
+        WJR_REGISTER_FIND_NOT_IMPL(10);
+
+        src += 12;
+        p -= 12;
+        break;
+    }
+    case 2: {
+        WJR_REGISTER_FIND_NOT_IMPL(8);
+
         src += 10;
         p -= 10;
-    } else {
-        src -= 8;
+        break;
+    }
+    case 0: {
+        src += 8;
         p -= 8;
+        break;
+    }
+    default: {
+        WJR_UNREACHABLE;
+        break;
+    }
     }
 
-    WJR_ASSUME(p % 4 == 0);
+    WJR_ASSUME(p % 8 == 0);
 
     do {
         WJR_REGISTER_FIND_NOT_IMPL(0);
         WJR_REGISTER_FIND_NOT_IMPL(2);
+        WJR_REGISTER_FIND_NOT_IMPL(4);
+        WJR_REGISTER_FIND_NOT_IMPL(6);
 
-        src += 4;
-        p -= 4;
+        src += 8;
+        p -= 8;
     } while (p);
 
     return n;
@@ -92,29 +122,68 @@ WJR_INLINE size_t builtin_SSE4_1_find_not(const T *src, const size_t n, T val) {
 #undef WJR_REGISTER_FIND_NOT_IMPL
 }
 
-template <typename T>
-WJR_INLINE size_t builtin_find_not(const T *src, size_t n, T val) {
-    static_assert(sizeof(T) == 8, "Currently only support uint64_t.");
+template <size_t unroll, typename T>
+WJR_INTRINSIC_INLINE size_t builtin_unroll_find_not(const T *src, T val) {
+    auto fn = [src, val](auto ic) -> std::optional<size_t> {
+        constexpr size_t idx = decltype(ic)::value;
+        if (WJR_LIKELY(src[idx] != val)) {
+            return idx;
+        }
 
-    if (n <= 7) {
-        return fallback_find_not(src, n, val);
+        return std::nullopt;
+    };
+
+    auto idx = unroll_call<unroll>(fn);
+    if (idx.has_value()) {
+        return idx.value();
     }
 
-    // n >= 8
+    return unroll;
+}
 
-    size_t idx = fallback_find_not(src, 4, val);
+template <size_t unroll, typename T>
+WJR_INTRINSIC_INLINE size_t builtin_unroll_find_not_n(const T *src, size_t n, T val) {
+    auto fn = [src, n, val](auto ic) -> std::optional<size_t> {
+        constexpr size_t idx = decltype(ic)::value;
 
-    if (WJR_LIKELY(idx != 4)) {
+        if (idx == n || WJR_LIKELY(src[idx] != val)) {
+            return idx;
+        }
+
+        return std::nullopt;
+    };
+
+    auto idx = unroll_call<unroll>(fn);
+    if (idx.has_value()) {
+        return idx.value();
+    }
+
+    return unroll;
+}
+
+template <typename T>
+WJR_INTRINSIC_INLINE size_t builtin_find_not(const T *src, size_t n, T val) {
+    static_assert(sizeof(T) == 8, "Currently only support uint64_t.");
+
+    if (WJR_UNLIKELY(n < 6)) {
+        return builtin_unroll_find_not_n<5>(src, n, val);
+    }
+
+    // n >= 6
+
+    size_t idx = builtin_unroll_find_not<2>(src, val);
+
+    if (WJR_LIKELY(idx != 2)) {
         return idx;
     }
 
-    return 4 + builtin_SSE4_1_find_not(src - 4, n - 4, val);
+    return 2 + builtin_SSE4_1_find_not(src + 2, n - 2, val);
 }
 
 #endif
 
 template <typename T>
-WJR_INLINE_CONSTEXPR size_t find_not(const T *src, size_t n, type_identity_t<T> val) {
+WJR_INTRINSIC_CONSTEXPR size_t find_not(const T *src, size_t n, type_identity_t<T> val) {
 #if WJR_HAS_BUILTIN(FIND_NOT_VAL)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {

@@ -246,7 +246,7 @@ WJR_INLINE U asm_addc_n(T *dst, const T *src0, const T *src1, size_t n, U c_in) 
                      "lea{q (%[t2], %[t1], 1), %[t1]| %[t1], [%[t2] + %[t1]]}\n\t"       \
                      "jmp{q *%[t1]| %[t1]}\n\t"                                          \
                                                                                          \
-                     ".align 8\n\t"                                                      \
+                     ".align 4\n\t"                                                      \
                      ".Lasm_addc_n_lookup%=:\n\t"                                        \
                      ".long .Lcase0%=-.Lasm_addc_n_lookup%=\n\t"                         \
                      ".long .Lcase1%=-.Lasm_addc_n_lookup%=\n\t"                         \

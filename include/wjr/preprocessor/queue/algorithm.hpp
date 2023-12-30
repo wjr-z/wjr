@@ -98,6 +98,15 @@
 #define WJR_PP_QUEUE_UNWRAP_CALLER(x) WJR_PP_QUEUE_UNWRAP_CALLER_I x
 #define WJR_PP_QUEUE_UNWRAP_CALLER_I(x) x
 
+// ((A), (B), (C)) -> A B C
+#define WJR_PP_QUEUE_UNWRAP_PUT(queue)                                                   \
+    WJR_PP_QUEUE_EXPAND(WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_CALL_N_SAME(                     \
+        WJR_PP_QUEUE_PUSH_FRONT(queue, ()), WJR_PP_QUEUE_UNWRAP_PUT_CALLER,              \
+        WJR_PP_QUEUE_SIZE(queue))))
+
+#define WJR_PP_QUEUE_UNWRAP_PUT_CALLER(x, y)                                             \
+    (WJR_PP_QUEUE_EXPAND(x) WJR_PP_QUEUE_EXPAND(y))
+
 // (A, B, C) (x, y, z) -> ((A, x), (B, y), (C, z))
 #define WJR_PP_QUEUE_ZIP_2(queue1, queue2)                                               \
     WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_FRONT(WJR_PP_QUEUE_CALL_N_SAME(                  \

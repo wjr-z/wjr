@@ -86,6 +86,10 @@
 #define WJR_PP_TRANSFORM_PUT(queue, op)                                                  \
     WJR_PP_QUEUE_PUT(WJR_PP_QUEUE_TRANSFORM(queue, op))
 
+// (a, b, c) -> (f(a), f(b), f(c)) (note : f(x) = (g(x))) -> g(a) g(b) g(c)
+#define WJR_PP_TRANSFORM_UNWRAP_PUT(queue, op)                                           \
+    WJR_PP_QUEUE_UNWRAP_PUT(WJR_PP_QUEUE_TRANSFORM(queue, op))
+
 #define WJR_ATTRIBUTES(...) WJR_PP_TRANSFORM_PUT((__VA_ARGS__), WJR_ATTRIBUTES_CALLER)
 #define WJR_ATTRIBUTES_CALLER(x) WJR_ATTRIBUTE(x)
 

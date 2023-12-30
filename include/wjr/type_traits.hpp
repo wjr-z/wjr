@@ -38,6 +38,12 @@ struct multi_conditional<F, T, U, V, Args...> {
     using type = typename multi_conditional_impl<F::value, T, U, V, Args...>::type;
 };
 
+template <typename T, typename... Args>
+struct is_any_of : std::disjunction<std::is_same<T, Args>...> {};
+
+template <typename T, typename... Args>
+inline constexpr bool is_any_of_v = is_any_of<T, Args...>::value;
+
 template <typename T>
 using remove_ref_t = std::remove_reference_t<T>;
 
