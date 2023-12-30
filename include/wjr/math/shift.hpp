@@ -213,7 +213,7 @@ WJR_INLINE void builtin_rshift_impl(T *dst, const T *src, size_t n, unsigned int
 
 template <typename T>
 WJR_INLINE T builtin_rshift(T *dst, const T *src, size_t n, unsigned int c) {
-    T ret = src[0] >> c;
+    T ret = src[0] << (64 - c);
     builtin_rshift_impl(dst, src, n - 1, c);
     dst[n - 1] = src[n - 1] >> c;
     return ret;
@@ -235,6 +235,131 @@ WJR_INTRINSIC_CONSTEXPR T rshift(T *dst, const T *src, size_t n, unsigned int c)
     }
 #else
     return fallback_rshift(dst, src, n, c);
+#endif
+}
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR T fallback_lshift(T *dst, const T *src, size_t n,
+                                          unsigned int c) {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+    T ret = src[n - 1] >> (nd - c);
+    for (size_t i = 0; i < n - 1; ++i) {
+        dst[n - i - 1] = fallback_shld(src[n - i - 1], src[n - i - 2], c);
+    }
+    dst[0] = src[0] << c;
+    return ret;
+}
+
+#if WJR_HAS_BUILTIN(RSHIFT)
+#define WJR_HAS_BUILTIN_LSHIFT WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(LSHIFT)
+
+template <size_t unroll, typename T>
+WJR_INLINE void builtin_unroll_lshift_impl_n(T *dst, const T *src, size_t n,
+                                             unsigned int c) {
+    (void)unroll_call<unroll>([dst, src, n, c](auto ic) -> std::optional<empty> {
+        constexpr auto idx = decltype(ic)::value;
+
+        if (idx == n) {
+            return empty{};
+        }
+
+        dst[-idx - 1] = fallback_shld(src[-idx - 1], src[-idx - 2], c);
+        return std::nullopt;
+    });
+}
+
+template <typename T>
+WJR_INLINE void builtin_lshift_impl(T *dst, const T *src, size_t n, unsigned int c) {
+    static_assert(sizeof(T) == 8, "Currently only support uint64_t.");
+
+    dst += n;
+    src += n;
+
+    if (WJR_UNLIKELY(n < 5)) {
+        return builtin_unroll_lshift_impl_n<4>(dst, src, n, c);
+    }
+
+    size_t m = n & 1;
+    builtin_unroll_lshift_impl_n<1>(dst, src, m, c);
+
+    dst -= m;
+    src -= m;
+    n -= m;
+
+    auto y = simd_cast<uint32_t, __m128i_tag>(c);
+    auto z = simd_cast<uint32_t, __m128i_tag>(64 - c);
+
+    auto x0 = sse::set1(src[-1], T());
+    __m128i x1, r0, r1, r;
+
+#define WJR_REGISTER_LSHIFT_IMPL(index)                                                  \
+    do {                                                                                 \
+        auto x1 = sse::loadu((__m128i *)(src - 3 - (index)));                            \
+        x0 = simd_cast<__m128_tag, __m128i_tag>(                                         \
+            sse::shuffle_ps<78>(simd_cast<__m128i_tag, __m128_tag>(x1),                  \
+                                simd_cast<__m128i_tag, __m128_tag>(x0)));                \
+                                                                                         \
+        auto r0 = sse::sll(x0, y, T());                                                  \
+        auto r1 = sse::srl(x1, z, T());                                                  \
+                                                                                         \
+        auto r = sse::Or(r0, r1);                                                        \
+                                                                                         \
+        sse::storeu((__m128i *)(dst - 2 - (index)), r);                                  \
+                                                                                         \
+        x0 = x1;                                                                         \
+    } while (0)
+
+    if (n & 2) {
+        WJR_REGISTER_LSHIFT_IMPL(0);
+
+        dst -= 2;
+        src -= 2;
+        n -= 2;
+    }
+
+    if (n == 0) {
+        return;
+    }
+
+    size_t idx = 0;
+
+    do {
+        WJR_REGISTER_LSHIFT_IMPL(idx);
+        WJR_REGISTER_LSHIFT_IMPL(idx + 2);
+
+        idx += 4;
+    } while (idx != n);
+
+#undef WJR_REGISTER_LSHIFT_IMPL
+}
+
+template <typename T>
+WJR_INLINE T builtin_lshift(T *dst, const T *src, size_t n, unsigned int c) {
+    T ret = src[n - 1] >> (64 - c);
+    builtin_lshift_impl(dst + 1, src + 1, n - 1, c);
+    dst[0] = src[0] << c;
+    return ret;
+}
+
+#endif
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR T lshift(T *dst, const T *src, size_t n, unsigned int c) {
+#if WJR_HAS_BUILTIN(LSHIFT)
+    if constexpr (sizeof(T) == 8) {
+        if (is_constant_evaluated()) {
+            return fallback_lshift(dst, src, n, c);
+        }
+
+        return builtin_lshift(dst, src, n, c);
+    } else {
+        return fallback_lshift(dst, src, n, c);
+    }
+#else
+    return fallback_lshift(dst, src, n, c);
 #endif
 }
 
