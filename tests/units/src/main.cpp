@@ -310,7 +310,7 @@ TEST(math, popcount_ctz_clz) {
 #undef WJR_TEST_PTZ
 }
 
-TEST(math, add) {
+TEST(math, addc) {
 
 #define WJR_TEST_ADDC(type, x, y, ci, ans, ans_co)                                       \
     WJR_TEST_ADDC_I(type, x, y, ci, co, ans, ans_co)
@@ -350,110 +350,143 @@ TEST(math, add) {
 #undef WJR_TEST_ADDC_F
 #undef WJR_TEST_ADDC_I
 #undef WJR_TEST_ADDC
+}
 
-#define WJR_TEST_ADDC_1(queue) WJR_PP_TRANSFORM_PUT(queue, WJR_TEST_ADDC_1_I_CALLER)
-#define WJR_TEST_ADDC_1_EXPAND(args) WJR_TEST_ADDC_1_EXPAND_I args
-#define WJR_TEST_ADDC_1_EXPAND_I(...) __VA_ARGS__
-#define WJR_TEST_ADDC_1_I(type, inputs, c, c_in, outputs, ans)                           \
-    {                                                                                    \
-        constexpr auto N = WJR_PP_QUEUE_SIZE(inputs);                                    \
-        auto init = [](type *arr, auto... args) {                                        \
-            auto il = {(args)...};                                                       \
-            for (size_t i = 0; i < il.size(); ++i) {                                     \
-                arr[i] = il.begin()[i];                                                  \
-            }                                                                            \
-        };                                                                               \
-        type in[N];                                                                      \
-        type out[N];                                                                     \
-        type expect[N];                                                                  \
-        init(in, WJR_PP_QUEUE_EXPAND(inputs));                                           \
-        init(expect, WJR_PP_QUEUE_EXPAND(outputs));                                      \
-        WJR_ASSERT((wjr::addc_1<type, type>(out, in, N, c, c_in) == ans));               \
-        WJR_ASSERT((memcmp(out, expect, sizeof(out)) == 0),                              \
-                   "uncorrect array of addc_1<%s, %s>, different array", #type, #type);  \
-        WJR_ASSERT((wjr::addc_1<type, type>(in, in, N, c, c_in) == ans));                \
-        WJR_ASSERT((memcmp(in, expect, sizeof(out)) == 0),                               \
-                   "uncorrect array of addc_1<%s, %s>, same array", #type, #type);       \
-    }
-#define WJR_TEST_ADDC_1_I_CALLER(args) WJR_TEST_ADDC_1_I args
-
-    WJR_TEST_ADDC_1(((uint64_t, (1, 2, 3), 0, 0, (1, 2, 3), 0),
-                     (uint64_t, (1, 2, 3), 1, 0, (2, 2, 3), 0),
-                     (uint64_t, (1, 2, 3), -1, 0, (0, 3, 3), 0),
-                     (uint64_t, (1, 2, 3), -2, 1, (0, 3, 3), 0)));
-
-    WJR_TEST_ADDC_1(((uint64_t, (-2, 2, 3), 1, 1, (0, 3, 3), 0),
-                     (uint64_t, (-1, 2, 3), 1, 0, (0, 3, 3), 0),
-                     (uint64_t, (-1, -1, 3), 1, 0, (0, 0, 4), 0),
-                     (uint64_t, (-1, -1, -1), 1, 0, (0, 0, 0), 1),
-                     (uint64_t, (-5, -1, -1), -5, 1, (-9, 0, 0), 1)));
-
-#undef WJR_TEST_ADDC_1_I_CALLER
-#undef WJR_TEST_ADDC_1_I
-#undef WJR_TEST_ADDC_1_EXPAND_I
-#undef WJR_TEST_ADDC_1_EXPAND
-#undef WJR_TEST_ADDC_1
+TEST(math, addc_1) {
 
     {
-        std::vector<uint64_t> in, out;
+        std::vector<uint64_t> in, tmp, copy;
         uint64_t add;
         std::mt19937_64 mt_rand(time(0));
         for (size_t n = 1; n <= 256; n = n + (n == 1 ? 1 : n / 2)) {
             in.resize(n);
-            out.resize(n);
+            tmp.resize(n);
             for (auto &x : in) {
                 x = 1;
             }
 
-            for (uint64_t cf : {0, 1}) {
-                for (size_t k : {0, 1, 2, -1}) {
-                    if (!k) {
-                        add = 3 - cf;
-                    } else {
-                        add = -1 - cf;
-                    }
+            for (auto p : {&in, &tmp}) {
+                for (uint64_t cf : {0, 1}) {
+                    for (size_t k : {0, 1, 2, -1}) {
+                        copy = in;
 
-                    auto l = std::min(k, n);
-
-                    for (size_t p = 1; p < l; ++p) {
-                        in[p] = -1;
-                    }
-
-                    uint64_t c_out = wjr::addc_1(out.data(), in.data(), n, add, cf);
-
-                    if (l == n && k) {
-                        WJR_ASSERT(c_out == 1);
-                    } else {
-                        WJR_ASSERT(c_out == 0);
-                    }
-
-                    if (!k) {
-                        WJR_ASSERT(out[0] == 4);
-                        for (size_t p = 1; p < n; ++p) {
-                            WJR_ASSERT(out[p] == 1);
+                        if (!k) {
+                            add = 3 - cf;
+                        } else {
+                            add = -1 - cf;
                         }
-                    } else {
-                        WJR_ASSERT(out[0] == 0);
+
+                        auto l = std::min(k, n);
+
                         for (size_t p = 1; p < l; ++p) {
-                            WJR_ASSERT(out[p] == 0);
+                            in[p] = -1;
                         }
-                        if (l != n) {
-                            WJR_ASSERT(out[l] == 2);
-                            for (size_t p = l + 1; p < n; ++p) {
+
+                        auto &out = *p;
+
+                        uint64_t c_out = wjr::addc_1(out.data(), in.data(), n, add, cf);
+
+                        if (l == n && k) {
+                            WJR_ASSERT(c_out == 1);
+                        } else {
+                            WJR_ASSERT(c_out == 0);
+                        }
+
+                        if (!k) {
+                            WJR_ASSERT(out[0] == 4);
+                            for (size_t p = 1; p < n; ++p) {
                                 WJR_ASSERT(out[p] == 1);
                             }
+                        } else {
+                            for (size_t p = 0; p < l; ++p) {
+                                WJR_ASSERT(out[p] == 0);
+                            }
+                            if (l != n) {
+                                WJR_ASSERT(out[l] == 2);
+                                for (size_t p = l + 1; p < n; ++p) {
+                                    WJR_ASSERT(out[p] == 1);
+                                }
+                            }
                         }
-                    }
 
-                    for (size_t p = 1; p < l; ++p) {
-                        in[p] = 1;
+                        in = copy;
                     }
                 }
             }
         }
     }
 
+    {
+        std::vector<uint64_t> x, y;
+        for (size_t n = 1; n <= 256; ++n) {
+            x.resize(n);
+            y.resize(n);
+            for (auto &j : x) {
+                j = -1;
+            }
 
+            auto cf = wjr::addc_1(y.data(), x.data(), n, 1, 0u);
+            WJR_ASSERT(cf == 1);
+            for (auto &j : y) {
+                WJR_ASSERT(j == 0);
+            }
+
+            cf = wjr::addc_1(y.data(), x.data(), n, 0, 1u);
+            WJR_ASSERT(cf == 1);
+            for (auto &j : y) {
+                WJR_ASSERT(j == 0);
+            }
+
+            cf = wjr::addc_1(y.data(), x.data(), n, 1, 1u);
+            WJR_ASSERT(cf == 1);
+            WJR_ASSERT(y[0] == 1);
+            for (size_t j = 1; j < n; ++j) {
+                WJR_ASSERT(y[j] == 0);
+            }
+
+            cf = wjr::addc_1(x.data(), x.data(), n, 1, 0u);
+            WJR_ASSERT(cf == 1);
+            for (auto &j : x) {
+                WJR_ASSERT(j == 0);
+                j = -1;
+            }
+
+            if (n > 1) {
+                cf = wjr::addc_1(x.data(), x.data() + 1, n - 1, 1, 0u);
+                WJR_ASSERT(cf == 1);
+                for (size_t j = 0; j < n - 1; ++j) {
+                    WJR_ASSERT(x[j] == 0);
+                }
+                WJR_ASSERT(x.back() == -1ull);
+            }
+        }
+    }
+}
+
+TEST(math, addc_n) {
+    {
+        std::vector<uint64_t> a, b, c;
+        for (size_t n = 1; n <= 128; ++n) {
+            a.resize(n);
+            b.resize(n);
+            c.resize(n);
+
+            a[0] = 1;
+            b[0] = -1;
+
+            for (size_t i = 1; i < n; ++i) {
+                a[i] = 1;
+                b[i] = -2;
+            }
+
+            auto cf = wjr::addc_n(c.data(), a.data(), b.data(), n, 0u);
+            WJR_ASSERT(cf == 1);
+
+            for (auto &i : c) {
+                WJR_ASSERT(i == 0);
+            }
+        }
+    }
 }
 
 TEST(math, sub) {
@@ -526,7 +559,7 @@ TEST(math, sub) {
                      (uint64_t, (1, 2, 3), 1, 0, (0, 2, 3), 0),
                      (uint64_t, (0, 2, 3), 1, 0, (-1, 1, 3), 0),
                      (uint64_t, (1, 2, 3), 1, 1, (-1, 1, 3), 0)));
-                     
+
     WJR_TEST_SUBC_1(((uint64_t, (2, 2, 3), 1, 1, (0, 2, 3), 0),
                      (uint64_t, (1, 0, 3), 1, 1, (-1, -1, 2), 0),
                      (uint64_t, (0, 0, 0), 3, 1, (-4, -1, -1), 1),
@@ -537,4 +570,251 @@ TEST(math, sub) {
 #undef WJR_TEST_SUBC_1_EXPAND_I
 #undef WJR_TEST_SUBC_1_EXPAND
 #undef WJR_TEST_SUBC_1
+}
+
+TEST(math, subc_1) {
+
+    {
+        std::vector<uint64_t> in, tmp, copy;
+        uint64_t sub;
+        std::mt19937_64 mt_rand(time(0));
+        for (size_t n = 1; n <= 256; n = n + (n == 1 ? 1 : n / 2)) {
+            in.resize(n);
+            tmp.resize(n);
+            for (auto &x : in) {
+                x = 4;
+            }
+
+            for (auto p : {&in, &tmp}) {
+                for (uint64_t cf : {0, 1}) {
+                    for (size_t k : {0, 1, 2, -1}) {
+                        copy = in;
+
+                        if (!k) {
+                            sub = 2 - cf;
+                        } else {
+                            sub = 5 - cf;
+                        }
+
+                        auto l = std::min(k, n);
+
+                        for (size_t p = 1; p < l; ++p) {
+                            in[p] = 0;
+                        }
+
+                        auto &out = *p;
+
+                        uint64_t c_out = wjr::subc_1(out.data(), in.data(), n, sub, cf);
+
+                        if (l == n && k) {
+                            WJR_ASSERT(c_out == 1);
+                        } else {
+                            WJR_ASSERT(c_out == 0);
+                        }
+
+                        if (!k) {
+                            WJR_ASSERT(out[0] == 2);
+                            for (size_t p = 1; p < n; ++p) {
+                                WJR_ASSERT(out[p] == 4);
+                            }
+                        } else {
+                            for (size_t p = 0; p < l; ++p) {
+                                WJR_ASSERT(out[p] == -1ull);
+                            }
+                            if (l != n) {
+                                WJR_ASSERT(out[l] == 3);
+                                for (size_t p = l + 1; p < n; ++p) {
+                                    WJR_ASSERT(out[p] == 4);
+                                }
+                            }
+                        }
+
+                        in = copy;
+                    }
+                }
+            }
+        }
+    }
+
+    {
+        std::vector<uint64_t> x, y;
+        for (size_t n = 1; n <= 256; ++n) {
+            x.resize(n);
+            y.resize(n);
+            for (auto &j : x) {
+                j = 0;
+            }
+
+            auto cf = wjr::subc_1(y.data(), x.data(), n, 1, 0u);
+            WJR_ASSERT(cf == 1);
+            for (auto &j : y) {
+                WJR_ASSERT(j == -1ull);
+            }
+
+            cf = wjr::subc_1(y.data(), x.data(), n, 0, 1u);
+            WJR_ASSERT(cf == 1);
+            for (auto &j : y) {
+                WJR_ASSERT(j == -1ull);
+            }
+
+            cf = wjr::subc_1(y.data(), x.data(), n, 1, 1u);
+            WJR_ASSERT(cf == 1);
+            WJR_ASSERT(y[0] == -2ull);
+            for (size_t j = 1; j < n; ++j) {
+                WJR_ASSERT(y[j] == -1ull);
+            }
+
+            cf = wjr::subc_1(x.data(), x.data(), n, 1, 0u);
+            WJR_ASSERT(cf == 1);
+            for (auto &j : x) {
+                WJR_ASSERT(j == -1ull);
+                j = 0;
+            }
+
+            if (n > 1) {
+                cf = wjr::subc_1(x.data(), x.data() + 1, n - 1, 1, 0u);
+                WJR_ASSERT(cf == 1);
+                for (size_t j = 0; j < n - 1; ++j) {
+                    WJR_ASSERT(x[j] == -1ull);
+                }
+                WJR_ASSERT(x.back() == 0);
+            }
+        }
+    }
+}
+
+TEST(math, subc_n) {
+    {
+        std::vector<uint64_t> a, b, c;
+        for (size_t n = 1; n <= 128; ++n) {
+            a.resize(n);
+            b.resize(n);
+            c.resize(n);
+
+            a[0] = 1;
+            b[0] = 2;
+
+            for (size_t i = 1; i < n; ++i) {
+                a[i] = 1;
+                b[i] = 1;
+            }
+
+            auto cf = wjr::subc_n(c.data(), a.data(), b.data(), n, 0u);
+            WJR_ASSERT(cf == 1);
+
+            for (auto &i : c) {
+                WJR_ASSERT(i == -1ull);
+            }
+        }
+    }
+}
+
+TEST(math, broadcast) {}
+
+TEST(math, find_not) {
+    {
+        std::vector<uint64_t> vec;
+
+        for (size_t n = 0; n < 128; ++n) {
+            vec.resize(n + 32);
+            for (int i = 0; i < n; ++i) {
+                vec[i] = 0;
+            }
+            for (int i = n; i < n + 32; ++i) {
+                vec[i] = -1;
+            }
+            for (size_t m = 0; m <= n; ++m) {
+
+                if (m != n) {
+                    vec[m] = -1;
+                }
+
+                auto idx = wjr::find_not(vec.data(), n, 0);
+
+                WJR_ASSERT(idx == m);
+
+                if (m != n) {
+                    vec[m] = 0;
+                }
+            }
+        }
+    }
+}
+
+TEST(math, replace_val) {
+    {
+        std::vector<uint64_t> a, b;
+
+        for (size_t n = 0; n < 128; ++n) {
+            a.resize(n + 32);
+            b.resize(n + 32);
+
+            for (size_t m = 0; m <= n; ++m) {
+
+                for (int i = 0; i < n; ++i) {
+                    a[i] = 0;
+                }
+
+                for (int i = n; i < n + 32; ++i) {
+                    a[i] = -1;
+                }
+
+                for (int i = 0; i < n; ++i) {
+                    b[i] = 0;
+                }
+
+                for (int i = n; i < n + 32; ++i) {
+                    b[i] = -1;
+                }
+
+                if (m != n) {
+                    a[m] = -1;
+                }
+
+                auto idx = wjr::replace_val(b.data(), a.data(), n, 0, 1);
+
+                WJR_ASSERT(idx == m);
+
+                for (size_t i = 0; i < m; ++i) {
+                    WJR_ASSERT(b[i] == 1);
+                }
+
+                if (n != m) {
+                    for (size_t i = m; i < n; ++i) {
+                        WJR_ASSERT(b[i] == 0);
+                    }
+                }
+
+                idx = wjr::replace_val(a.data(), a.data(), n, 0, 0);
+
+                WJR_ASSERT(idx == m);
+
+                for (size_t i = 0; i < m; ++i) {
+                    WJR_ASSERT(a[i] == 0);
+                }
+
+                if (n != m) {
+                    WJR_ASSERT(a[m] == -1);
+                    for (size_t i = m + 1; i < n; ++i) {
+                        WJR_ASSERT(a[i] == 0);
+                    }
+                }
+
+                idx = wjr::replace_val(a.data(), a.data(), n, 0, 1);
+
+                WJR_ASSERT(idx == m);
+
+                for (size_t i = 0; i < m; ++i) {
+                    WJR_ASSERT(a[i] == 1);
+                }
+
+                if (n != m) {
+                    WJR_ASSERT(a[m] == -1);
+                    for (size_t i = m + 1; i < n; ++i) {
+                        WJR_ASSERT(a[i] == 0);
+                    }
+                }
+            }
+        }
+    }
 }
