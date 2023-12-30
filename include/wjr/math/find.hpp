@@ -142,7 +142,7 @@ WJR_INTRINSIC_INLINE size_t builtin_unroll_find_not(const T *src, T val) {
 }
 
 template <size_t unroll, typename T>
-WJR_INTRINSIC_INLINE size_t builtin_unroll_find_not_n(const T *src, size_t n, T val) {
+WJR_INTRINSIC_INLINE size_t builtin_unroll_find_not(const T *src, size_t n, T val) {
     auto fn = [src, n, val](auto ic) -> std::optional<size_t> {
         constexpr size_t idx = decltype(ic)::value;
 
@@ -166,7 +166,7 @@ WJR_INTRINSIC_INLINE size_t builtin_find_not(const T *src, size_t n, T val) {
     static_assert(sizeof(T) == 8, "Currently only support uint64_t.");
 
     if (WJR_UNLIKELY(n < 6)) {
-        return builtin_unroll_find_not_n<5>(src, n, val);
+        return builtin_unroll_find_not<5>(src, n, val);
     }
 
     // n >= 6

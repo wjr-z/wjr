@@ -135,8 +135,8 @@ WJR_INTRINSIC_CONSTEXPR T fallback_rshift(T *dst, const T *src, size_t n,
 #if WJR_HAS_BUILTIN(RSHIFT)
 
 template <size_t unroll, typename T>
-WJR_INLINE void builtin_unroll_rshift_impl_n(T *dst, const T *src, size_t n,
-                                             unsigned int c) {
+WJR_INLINE void builtin_unroll_rshift_impl(T *dst, const T *src, size_t n,
+                                           unsigned int c) {
     (void)unroll_call<unroll>([dst, src, n, c](auto ic) -> std::optional<empty> {
         constexpr auto idx = decltype(ic)::value;
 
@@ -154,11 +154,11 @@ WJR_INLINE void builtin_rshift_impl(T *dst, const T *src, size_t n, unsigned int
     static_assert(sizeof(T) == 8, "Currently only support uint64_t.");
 
     if (WJR_UNLIKELY(n < 5)) {
-        return builtin_unroll_rshift_impl_n<4>(dst, src, n, c);
+        return builtin_unroll_rshift_impl<4>(dst, src, n, c);
     }
 
     size_t m = n & 1;
-    builtin_unroll_rshift_impl_n<1>(dst, src, m, c);
+    builtin_unroll_rshift_impl<1>(dst, src, m, c);
 
     dst += m;
     src += m;
@@ -168,7 +168,6 @@ WJR_INLINE void builtin_rshift_impl(T *dst, const T *src, size_t n, unsigned int
     auto z = simd_cast<uint32_t, __m128i_tag>(64 - c);
 
     auto x0 = sse::set1(src[0], T());
-    __m128i x1, r0, r1, r;
 
 #define WJR_REGISTER_RSHIFT_IMPL(index)                                                  \
     do {                                                                                 \
@@ -257,8 +256,8 @@ WJR_INTRINSIC_CONSTEXPR T fallback_lshift(T *dst, const T *src, size_t n,
 #if WJR_HAS_BUILTIN(LSHIFT)
 
 template <size_t unroll, typename T>
-WJR_INLINE void builtin_unroll_lshift_impl_n(T *dst, const T *src, size_t n,
-                                             unsigned int c) {
+WJR_INLINE void builtin_unroll_lshift_impl(T *dst, const T *src, size_t n,
+                                           unsigned int c) {
     (void)unroll_call<unroll>([dst, src, n, c](auto ic) -> std::optional<empty> {
         constexpr auto idx = decltype(ic)::value;
 
@@ -279,11 +278,11 @@ WJR_INLINE void builtin_lshift_impl(T *dst, const T *src, size_t n, unsigned int
     src += n;
 
     if (WJR_UNLIKELY(n < 5)) {
-        return builtin_unroll_lshift_impl_n<4>(dst, src, n, c);
+        return builtin_unroll_lshift_impl<4>(dst, src, n, c);
     }
 
     size_t m = n & 1;
-    builtin_unroll_lshift_impl_n<1>(dst, src, m, c);
+    builtin_unroll_lshift_impl<1>(dst, src, m, c);
 
     dst -= m;
     src -= m;
@@ -293,7 +292,6 @@ WJR_INLINE void builtin_lshift_impl(T *dst, const T *src, size_t n, unsigned int
     auto z = simd_cast<uint32_t, __m128i_tag>(64 - c);
 
     auto x0 = sse::set1(src[-1], T());
-    __m128i x1, r0, r1, r;
 
 #define WJR_REGISTER_LSHIFT_IMPL(index)                                                  \
     do {                                                                                 \
