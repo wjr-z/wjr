@@ -693,6 +693,13 @@ WJR_INLINE_CONSTEXPR20 void toom22_mul(T *dst, const T *src0, size_t n, const T 
 
 inline constexpr size_t toom2_mul_threshold = WJR_TOOM2_MUL_THRESHOLD;
 
+struct mul_threshold {
+    size_t toom22_threshold;
+    size_t toom33_threshold;
+};
+
+void mul_optimize_threshold() {}
+
 // preview : mul n x m
 // TODO : ...
 

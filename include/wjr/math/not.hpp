@@ -41,12 +41,13 @@ WJR_INLINE void builtin_not_n(T *dst, const T *src, size_t n) {
         return builtin_unroll_not_n<4>(dst, src, n);
     }
 
-    size_t m = n & 1;
-    builtin_unroll_not_n<1>(dst, src, m);
+    if (n & 1) {
+        dst[0] = ~src[0];
 
-    dst += m;
-    src += m;
-    n -= m;
+        ++dst;
+        ++src;
+        --n;
+    }
 
     auto ones = sse::ones();
 

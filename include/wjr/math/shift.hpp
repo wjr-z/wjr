@@ -157,12 +157,13 @@ WJR_INLINE void builtin_rshift_impl(T *dst, const T *src, size_t n, unsigned int
         return builtin_unroll_rshift_impl<4>(dst, src, n, c);
     }
 
-    size_t m = n & 1;
-    builtin_unroll_rshift_impl<1>(dst, src, m, c);
+    if (n & 1) {
+        dst[0] = fallback_shrd(src[0], src[1], c);
 
-    dst += m;
-    src += m;
-    n -= m;
+        ++dst;
+        ++src;
+        --n;
+    }
 
     auto y = simd_cast<uint32_t, __m128i_tag>(c);
     auto z = simd_cast<uint32_t, __m128i_tag>(64 - c);
@@ -281,12 +282,13 @@ WJR_INLINE void builtin_lshift_impl(T *dst, const T *src, size_t n, unsigned int
         return builtin_unroll_lshift_impl<4>(dst, src, n, c);
     }
 
-    size_t m = n & 1;
-    builtin_unroll_lshift_impl<1>(dst, src, m, c);
+    if (n & 1) {
+        dst[-1] = fallback_shld(src[-1], src[-2], c);
 
-    dst -= m;
-    src -= m;
-    n -= m;
+        --dst;
+        --src;
+        --n;
+    }
 
     auto y = simd_cast<uint32_t, __m128i_tag>(c);
     auto z = simd_cast<uint32_t, __m128i_tag>(64 - c);
