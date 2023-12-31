@@ -33,66 +33,62 @@ WJR_INTRINSIC_INLINE void builtin_unroll_not_n(T *dst, const T *src, size_t n) {
     });
 }
 
-template <typename simd, typename T>
+template <typename T>
 WJR_INLINE void builtin_simd_not_n(T *dst, const T *src, size_t n) {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-    constexpr auto simd_width = simd::width() / nd;
-    using simd_int = typename simd::int_type;
-
-    WJR_ASSUME(n >= simd_width);
+    WJR_ASSUME(n >= 2);
 
     {
-        size_t k = n % simd_width;
-        builtin_unroll_not_n<simd_width - 1>(dst, src, k);
+        size_t k = n % 2;
+        builtin_unroll_not_n<1>(dst, src, k);
 
         dst += k;
         src += k;
         n -= k;
     }
 
-    WJR_ASSUME(n % simd_width == 0);
+    WJR_ASSUME(n % 2 == 0);
     WJR_ASSUME(n != 0);
 
-    auto ones = simd::ones();
+    auto ones = sse::ones();
 
 #define WJR_REGISTER_NOT_N_IMPL(index)                                                   \
     do {                                                                                 \
-        simd_int x = simd::loadu((simd_int *)(src + (index)));                           \
-        simd_int r = simd::Xor(x, ones);                                                 \
+        __m128i x = sse::loadu((__m128i *)(src + (index)));                              \
+        __m128i r = sse::Xor(x, ones);                                                   \
                                                                                          \
-        simd::storeu((simd_int *)(dst + (index)), r);                                    \
+        sse::storeu((__m128i *)(dst + (index)), r);                                      \
                                                                                          \
     } while (0)
 
-    if ((n / simd_width) & 1) {
+    if (n & 2) {
         WJR_REGISTER_NOT_N_IMPL(0);
 
-        dst += simd_width;
-        src += simd_width;
-        n -= simd_width;
+        dst += 2;
+        src += 2;
+        n -= 2;
     }
 
-    if ((n / (simd_width * 2)) & 1) {
+    if (n & 4) {
         WJR_REGISTER_NOT_N_IMPL(0);
-        WJR_REGISTER_NOT_N_IMPL(simd_width);
+        WJR_REGISTER_NOT_N_IMPL(2);
 
-        dst += simd_width * 2;
-        src += simd_width * 2;
-        n -= simd_width * 2;
+        dst += 4;
+        src += 4;
+        n -= 4;
     }
 
     if (!n) {
         return;
     }
 
-    WJR_ASSUME(n % (simd_width * 4) == 0);
+    WJR_ASSUME(n % 8 == 0);
 
     WJR_REGISTER_NOT_N_IMPL(0);
-    WJR_REGISTER_NOT_N_IMPL(simd_width);
-    WJR_REGISTER_NOT_N_IMPL(simd_width * 2);
-    WJR_REGISTER_NOT_N_IMPL(simd_width * 3);
+    WJR_REGISTER_NOT_N_IMPL(2);
+    WJR_REGISTER_NOT_N_IMPL(4);
+    WJR_REGISTER_NOT_N_IMPL(6);
 
-    n -= simd_width * 4;
+    n -= 8;
 
     if (WJR_UNLIKELY(!n)) {
         return;
@@ -102,11 +98,11 @@ WJR_INLINE void builtin_simd_not_n(T *dst, const T *src, size_t n) {
 
     do {
         WJR_REGISTER_NOT_N_IMPL(idx);
-        WJR_REGISTER_NOT_N_IMPL(idx + simd_width);
-        WJR_REGISTER_NOT_N_IMPL(idx + simd_width * 2);
-        WJR_REGISTER_NOT_N_IMPL(idx + simd_width * 3);
+        WJR_REGISTER_NOT_N_IMPL(idx + 2);
+        WJR_REGISTER_NOT_N_IMPL(idx + 4);
+        WJR_REGISTER_NOT_N_IMPL(idx + 6);
 
-        idx += simd_width * 4;
+        idx += 8;
     } while (idx != n);
 
     return;
@@ -118,18 +114,11 @@ template <typename T>
 WJR_INLINE void builtin_not_n(T *dst, const T *src, size_t n) {
     static_assert(std::is_same_v<T, uint64_t>, "Currently only support uint64_t.");
 
-    using simd = sse;
-
-    constexpr auto nd = std::numeric_limits<T>::digits;
-    constexpr auto simd_width = simd::width() / nd;
-    constexpr auto threshold = std::max<size_t>(simd_width, 4);
-
-    if (WJR_UNLIKELY(n < threshold)) {
-        return builtin_unroll_not_n<threshold - 1>(dst, src, n);
+    if (WJR_UNLIKELY(n < 4)) {
+        return builtin_unroll_not_n<3>(dst, src, n);
     }
 
-    WJR_ASSUME(n >= threshold);
-    return builtin_simd_not_n<simd>(dst, src, n);
+    return builtin_simd_not_n(dst, src, n);
 }
 
 #endif

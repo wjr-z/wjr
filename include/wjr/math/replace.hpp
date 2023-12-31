@@ -59,7 +59,6 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_replace_val(T *dst, const T *src, size_t
 
 #if WJR_HAS_SIMD(SSE4_1) && WJR_HAS_SIMD(SIMD) && defined(WJR_X86)
 #define WJR_HAS_BUILTIN_REPLACE_VAL WJR_HAS_DEF
-#define WJR_HAS_BUILTIN_SSE4_1_REPLACE_VAL WJR_HAS_DEF
 #endif
 
 #if WJR_HAS_BUILTIN(REPLACE_VAL)
@@ -87,20 +86,16 @@ WJR_INTRINSIC_INLINE size_t builtin_unroll_replace_val(T *dst, const T *src, siz
     return n;
 }
 
-template <typename simd, typename T>
+template <typename T>
 WJR_INLINE size_t builtin_simd_replace_val(T *dst, const T *src, const size_t n, T from,
                                            T to) {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-    constexpr auto simd_width = simd::width() / nd;
-    using simd_int = typename simd::int_type;
-
-    WJR_ASSUME(n >= simd_width);
+    WJR_ASSUME(n >= 2);
 
     size_t m = n;
 
     {
-        size_t k = m % simd_width;
-        size_t idx = builtin_unroll_replace_val<simd_width - 1>(dst, src, k, from, to);
+        size_t k = m % 2;
+        size_t idx = builtin_unroll_replace_val<1>(dst, src, k, from, to);
         if (idx != k) {
             return idx;
         }
@@ -110,97 +105,85 @@ WJR_INLINE size_t builtin_simd_replace_val(T *dst, const T *src, const size_t n,
         m -= k;
     }
 
-    WJR_ASSUME(m % simd_width == 0);
+    WJR_ASSUME(m % 2 == 0);
     WJR_ASSUME(m != 0);
 
-    simd_int y = simd::set1_epi64(from);
-    simd_int z = simd::set1_epi64(to);
+    __m128i y = sse::set1_epi64(from);
+    __m128i z = sse::set1_epi64(to);
 
 #define WJR_REGISTER_REPLACE_VAL_IMPL(index)                                             \
     do {                                                                                 \
-        simd_int x = simd::loadu((simd_int *)(src + (index)));                           \
-        simd_int r = simd::cmpeq_epi64(x, y);                                            \
-        auto mask = simd::movemask_epi8(r);                                              \
-        if (mask != simd::mask()) {                                                      \
+        __m128i x = sse::loadu((__m128i *)(src + (index)));                              \
+        __m128i r = sse::cmpeq_epi64(x, y);                                              \
+        auto mask = sse::movemask_epi8(r);                                               \
+        if (mask != sse::mask()) {                                                       \
             if (!(mask & 0xFF)) {                                                        \
                 return (n - m) + (index);                                                \
             }                                                                            \
             dst[(index)] = to;                                                           \
-            if constexpr (std::is_same_v<simd, sse>) {                                   \
-                return (n - m) + (index) + 1;                                            \
-            } else {                                                                     \
-                if (!(mask & 0xFF00)) {                                                  \
-                    return (n - m) + (index) + 1;                                        \
-                }                                                                        \
-                dst[(index) + 1] = to;                                                   \
-                if (!(mask & 0xFF00'00)) {                                               \
-                    return (n - m) + (index) + 2;                                        \
-                }                                                                        \
-                dst[(index) + 2] = to;                                                   \
-                return (n - m) + (index) + 3;                                            \
-            }                                                                            \
+            return (n - m) + (index) + 1;                                                \
         }                                                                                \
-        simd::storeu((simd_int *)(dst + (index)), z);                                    \
+        sse::storeu((__m128i *)(dst + (index)), z);                                      \
     } while (0)
 
     {
         WJR_REGISTER_REPLACE_VAL_IMPL(0);
 
-        dst += simd_width;
-        src += simd_width;
-        m -= simd_width;
+        dst += 2;
+        src += 2;
+        m -= 2;
     }
 
     if (!m) {
         return n;
     }
 
-    if ((m / simd_width) & 1) {
+    if (m & 2) {
         WJR_REGISTER_REPLACE_VAL_IMPL(0);
 
-        dst += simd_width;
-        src += simd_width;
-        m -= simd_width;
+        dst += 2;
+        src += 2;
+        m -= 2;
     }
 
-    if ((m / (simd_width * 2)) & 1) {
+    if (m & 4) {
         WJR_REGISTER_REPLACE_VAL_IMPL(0);
-        WJR_REGISTER_REPLACE_VAL_IMPL(simd_width);
+        WJR_REGISTER_REPLACE_VAL_IMPL(2);
 
-        dst += simd_width * 2;
-        src += simd_width * 2;
-        m -= simd_width * 2;
+        dst += 4;
+        src += 4;
+        m -= 4;
     }
 
     if (!m) {
         return n;
     }
 
-    WJR_ASSUME(m % (simd_width * 4) == 0);
+    WJR_ASSUME(m % 8 == 0);
 
     WJR_REGISTER_REPLACE_VAL_IMPL(0);
-    WJR_REGISTER_REPLACE_VAL_IMPL(simd_width);
-    WJR_REGISTER_REPLACE_VAL_IMPL(simd_width * 2);
-    WJR_REGISTER_REPLACE_VAL_IMPL(simd_width * 3);
+    WJR_REGISTER_REPLACE_VAL_IMPL(2);
+    WJR_REGISTER_REPLACE_VAL_IMPL(4);
+    WJR_REGISTER_REPLACE_VAL_IMPL(6);
 
-    m -= simd_width * 4;
+    m -= 8;
 
     if (WJR_UNLIKELY(!m)) {
         return n;
     }
 
-    dst += simd_width * 4;
-    src += simd_width * 4;
+    dst += 8;
+    src += 8;
 
     size_t idx = 0;
 
     do {
         WJR_REGISTER_REPLACE_VAL_IMPL(idx);
-        WJR_REGISTER_REPLACE_VAL_IMPL(idx + simd_width);
-        WJR_REGISTER_REPLACE_VAL_IMPL(idx + simd_width * 2);
-        WJR_REGISTER_REPLACE_VAL_IMPL(idx + simd_width * 3);
+        WJR_REGISTER_REPLACE_VAL_IMPL(idx + 2);
+        WJR_REGISTER_REPLACE_VAL_IMPL(idx + 4);
+        WJR_REGISTER_REPLACE_VAL_IMPL(idx + 6);
 
-        idx += simd_width * 4;
+        idx += 8;
     } while (idx != m);
 
     return n;
@@ -213,18 +196,11 @@ WJR_INTRINSIC_INLINE size_t builtin_replace_val(T *dst, const T *src, size_t n, 
                                                 T to) {
     static_assert(std::is_same_v<T, uint64_t>, "Currently only support uint64_t.");
 
-    using simd = sse;
-
-    constexpr auto nd = std::numeric_limits<T>::digits;
-    constexpr auto simd_width = simd::width() / nd;
-    constexpr auto threshold = std::max<size_t>(simd_width + 2, 4);
-
-    if (WJR_UNLIKELY(n < threshold)) {
-        return builtin_unroll_replace_val<threshold - 1>(dst, src, n, from, to);
+    if (WJR_UNLIKELY(n < 4)) {
+        return builtin_unroll_replace_val<3>(dst, src, n, from, to);
     }
 
-    WJR_ASSUME(n >= threshold);
-    return builtin_simd_replace_val<simd>(dst, src, n, from, to);
+    return builtin_simd_replace_val(dst, src, n, from, to);
 }
 
 #endif

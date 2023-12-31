@@ -21,7 +21,7 @@ template <typename T>
 using simd_wrapper_t = typename simd_wrapper<T>::type;
 
 #define WJR_REGISTER_SIMD_TAG(simd_type)                                                 \
-    struct simd_type##_tag {                                                             \
+    struct simd_type##_t {                                                               \
         using type = simd_type;                                                          \
     }
 
@@ -37,13 +37,13 @@ using simd_wrapper_t = typename simd_wrapper<T>::type;
 #define WJR_GET_SIMD_TAG_int64_t int64_t
 #define WJR_GET_SIMD_TAG_uint64_t uint64_t
 
-#define WJR_GET_SIMD_TAG___m128 __m128_tag
-#define WJR_GET_SIMD_TAG___m128i __m128i_tag
-#define WJR_GET_SIMD_TAG___m128d __m128d_tag
+#define WJR_GET_SIMD_TAG___m128 __m128_t
+#define WJR_GET_SIMD_TAG___m128i __m128i_t
+#define WJR_GET_SIMD_TAG___m128d __m128d_t
 
-#define WJR_GET_SIMD_TAG___m256 __m256_tag
-#define WJR_GET_SIMD_TAG___m256i __m256i_tag
-#define WJR_GET_SIMD_TAG___m256d __m256d_tag
+#define WJR_GET_SIMD_TAG___m256 __m256_t
+#define WJR_GET_SIMD_TAG___m256i __m256i_t
+#define WJR_GET_SIMD_TAG___m256d __m256d_t
 
 #define WJR_REGISTER_SIMD_CAST(args)                                                     \
     WJR_PP_TRANSFORM_UNWRAP_PUT(args, WJR_REGISTER_SIMD_CAST_I_CALLER)
@@ -111,14 +111,14 @@ WJR_REGISTER_SIMD_CAST(
      (__m256i, __m128i, _mm256_castsi256_si128)));
 
 #define WJR_REGISTER_INT32_CVT2_AVX(x)                                                   \
-    simd_cast<__m128i_tag, __m256i_tag>(simd_cast<uint32_t, __m128i_tag>(x))
+    simd_cast<__m128i_t, __m256i_t>(simd_cast<uint32_t, __m128i_t>(x))
 #define WJR_REGISTER_INT64_CVT2_AVX(x)                                                   \
-    simd_cast<__m128i_tag, __m256i_tag>(simd_cast<uint64_t, __m128i_tag>(x))
+    simd_cast<__m128i_t, __m256i_t>(simd_cast<uint64_t, __m128i_t>(x))
 
 #define WJR_REGISTER_AVX_CVT2_INT32(x)                                                   \
-    simd_cast<__m128i_tag, uint32_t>(simd_cast<__m256i_tag, __m128i_tag>(x))
+    simd_cast<__m128i_t, uint32_t>(simd_cast<__m256i_t, __m128i_t>(x))
 #define WJR_REGISTER_AVX_CVT2_INT64(x)                                                   \
-    simd_cast<__m128i_tag, uint64_t>(simd_cast<__m256i_tag, __m128i_tag>(x))
+    simd_cast<__m128i_t, uint64_t>(simd_cast<__m256i_t, __m128i_t>(x))
 
 WJR_REGISTER_SIMD_CAST(((int8_t, __m256i, WJR_REGISTER_INT32_CVT2_AVX),
                         (uint8_t, __m256i, WJR_REGISTER_INT32_CVT2_AVX),

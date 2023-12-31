@@ -150,96 +150,87 @@ WJR_INLINE void builtin_unroll_rshift(T *dst, const T *src, size_t n, unsigned i
 
 template <typename T>
 WJR_INLINE void builtin_simd_rshift_impl(T *dst, const T *src, size_t n, unsigned int c) {
-    using simd = sse;
-    using simd_int = typename simd::int_type;
-    using simd_int_tag = typename simd::int_tag_type;
-    using simd_float_tag = typename simd::float_tag_type;
-
-    constexpr auto nd = std::numeric_limits<T>::digits;
-    constexpr auto simd_width = simd::width() / nd;
-
-    WJR_ASSUME(n >= simd_width);
+    WJR_ASSUME(n >= 2);
 
     {
-        size_t k = n % simd_width;
-        builtin_unroll_rshift<simd_width - 1>(dst, src, k, c);
+        size_t k = n % 2;
+        builtin_unroll_rshift<1>(dst, src, k, c);
 
         dst += k;
         src += k;
         n -= k;
     }
 
-    WJR_ASSUME(n % simd_width == 0);
+    WJR_ASSUME(n % 2 == 0);
     WJR_ASSUME(n != 0);
 
-    simd_int y = simd_cast<uint32_t, simd_int_tag>(c);
-    simd_int z = simd_cast<uint32_t, simd_int_tag>(64 - c);
+    __m128i y = simd_cast<uint32_t, __m128i_t>(c);
+    __m128i z = simd_cast<uint32_t, __m128i_t>(64 - c);
 
-    simd_int x0 = simd::set1(src[0], T());
+    __m128i x0 = sse::set1(src[0], T());
 
 #define WJR_REGISTER_RSHIFT_IMPL(index)                                                  \
     do {                                                                                 \
-        simd_int x1 = simd::loadu((simd_int *)(src + 1 + (index)));                      \
-        x0 = simd_cast<simd_float_tag, simd_int_tag>(                                    \
-            simd::template shuffle_ps<78>(simd_cast<simd_int_tag, simd_float_tag>(x0),   \
-                                          simd_cast<simd_int_tag, simd_float_tag>(x1))); \
+        __m128i x1 = sse::loadu((__m128i *)(src + 1 + (index)));                         \
+        x0 = simd_cast<__m128_t, __m128i_t>(sse::template shuffle_ps<78>(                \
+            simd_cast<__m128i_t, __m128_t>(x0), simd_cast<__m128i_t, __m128_t>(x1)));    \
                                                                                          \
-        simd_int r0 = simd::srl(x0, y, T());                                             \
-        simd_int r1 = simd::sll(x1, z, T());                                             \
+        __m128i r0 = sse::srl(x0, y, T());                                               \
+        __m128i r1 = sse::sll(x1, z, T());                                               \
                                                                                          \
-        simd_int r = simd::Or(r0, r1);                                                   \
+        __m128i r = sse::Or(r0, r1);                                                     \
                                                                                          \
-        simd::storeu((simd_int *)(dst + (index)), r);                                    \
+        sse::storeu((__m128i *)(dst + (index)), r);                                      \
                                                                                          \
         x0 = x1;                                                                         \
     } while (0)
 
-    if ((n / simd_width) & 1) {
+    if (n & 2) {
         WJR_REGISTER_RSHIFT_IMPL(0);
 
-        dst += simd_width;
-        src += simd_width;
-        n -= simd_width;
+        dst += 2;
+        src += 2;
+        n -= 2;
     }
 
-    if ((n / (simd_width * 2)) & 1) {
+    if (n & 4) {
         WJR_REGISTER_RSHIFT_IMPL(0);
-        WJR_REGISTER_RSHIFT_IMPL(simd_width);
+        WJR_REGISTER_RSHIFT_IMPL(2);
 
-        dst += simd_width * 2;
-        src += simd_width * 2;
-        n -= simd_width * 2;
+        dst += 4;
+        src += 4;
+        n -= 4;
     }
 
     if (!n) {
         return;
     }
 
-    WJR_ASSUME(n % (simd_width * 4) == 0);
+    WJR_ASSUME(n % 8 == 0);
 
     WJR_REGISTER_RSHIFT_IMPL(0);
-    WJR_REGISTER_RSHIFT_IMPL(simd_width);
-    WJR_REGISTER_RSHIFT_IMPL(simd_width * 2);
-    WJR_REGISTER_RSHIFT_IMPL(simd_width * 3);
+    WJR_REGISTER_RSHIFT_IMPL(2);
+    WJR_REGISTER_RSHIFT_IMPL(4);
+    WJR_REGISTER_RSHIFT_IMPL(6);
 
-    n -= simd_width * 4;
+    n -= 8;
 
     if (WJR_UNLIKELY(!n)) {
         return;
     }
 
-    dst += simd_width * 4;
-    src += simd_width * 4;
+    dst += 8;
+    src += 8;
 
     size_t idx = 0;
 
     do {
         WJR_REGISTER_RSHIFT_IMPL(idx);
-        WJR_REGISTER_RSHIFT_IMPL(idx + simd_width);
-        WJR_REGISTER_RSHIFT_IMPL(idx + simd_width * 2);
-        WJR_REGISTER_RSHIFT_IMPL(idx + simd_width * 3);
+        WJR_REGISTER_RSHIFT_IMPL(idx + 2);
+        WJR_REGISTER_RSHIFT_IMPL(idx + 4);
+        WJR_REGISTER_RSHIFT_IMPL(idx + 6);
 
-        idx += simd_width * 4;
+        idx += 8;
     } while (idx != n);
 
 #undef WJR_REGISTER_RSHIFT_IMPL
@@ -249,17 +240,10 @@ template <typename T>
 WJR_INLINE void builtin_rshift_impl(T *dst, const T *src, size_t n, unsigned int c) {
     static_assert(sizeof(T) == 8, "Currently only support uint64_t.");
 
-    using simd = sse;
-
-    constexpr auto nd = std::numeric_limits<T>::digits;
-    constexpr auto simd_width = simd::width() / nd;
-    constexpr auto threshold = std::max<size_t>(simd_width, 4);
-
-    if (WJR_UNLIKELY(n < threshold)) {
-        return builtin_unroll_rshift<threshold - 1>(dst, src, n, c);
+    if (WJR_UNLIKELY(n < 4)) {
+        return builtin_unroll_rshift<3>(dst, src, n, c);
     }
 
-    WJR_ASSUME(n >= threshold);
     return builtin_simd_rshift_impl(dst, src, n, c);
 }
 
@@ -324,99 +308,90 @@ WJR_INLINE void builtin_unroll_lshift(T *dst, const T *src, size_t n, unsigned i
 
 template <typename T>
 WJR_INLINE void builtin_simd_lshift_impl(T *dst, const T *src, size_t n, unsigned int c) {
-    using simd = sse;
-    using simd_int = typename simd::int_type;
-    using simd_int_tag = typename simd::int_tag_type;
-    using simd_float_tag = typename simd::float_tag_type;
-
-    constexpr auto nd = std::numeric_limits<T>::digits;
-    constexpr auto simd_width = simd::width() / nd;
-
-    WJR_ASSUME(n >= simd_width);
+    WJR_ASSUME(n >= 2);
 
     dst += n;
     src += n;
 
     {
-        size_t k = n % simd_width;
-        builtin_unroll_lshift<simd_width - 1>(dst, src, k, c);
+        size_t k = n % 2;
+        builtin_unroll_lshift<1>(dst, src, k, c);
 
         dst -= k;
         src -= k;
         n -= k;
     }
 
-    WJR_ASSUME(n % simd_width == 0);
+    WJR_ASSUME(n % 2 == 0);
     WJR_ASSUME(n != 0);
 
-    simd_int y = simd_cast<uint32_t, simd_int_tag>(c);
-    simd_int z = simd_cast<uint32_t, simd_int_tag>(64 - c);
+    __m128i y = simd_cast<uint32_t, __m128i_t>(c);
+    __m128i z = simd_cast<uint32_t, __m128i_t>(64 - c);
 
-    simd_int x0 = simd::set1(src[-1], T());
+    __m128i x0 = sse::set1(src[-1], T());
 
 #define WJR_REGISTER_LSHIFT_IMPL(index)                                                  \
     do {                                                                                 \
-        simd_int x1 = simd::loadu((simd_int *)(src - 1 - simd_width - (index)));         \
-        x0 = simd_cast<simd_float_tag, simd_int_tag>(                                    \
-            simd::template shuffle_ps<78>(simd_cast<simd_int_tag, simd_float_tag>(x1),   \
-                                          simd_cast<simd_int_tag, simd_float_tag>(x0))); \
+        __m128i x1 = sse::loadu((__m128i *)(src - 3 - (index)));                         \
+        x0 = simd_cast<__m128_t, __m128i_t>(sse::template shuffle_ps<78>(                \
+            simd_cast<__m128i_t, __m128_t>(x1), simd_cast<__m128i_t, __m128_t>(x0)));    \
                                                                                          \
-        simd_int r0 = simd::sll(x0, y, T());                                             \
-        simd_int r1 = simd::srl(x1, z, T());                                             \
+        __m128i r0 = sse::sll(x0, y, T());                                               \
+        __m128i r1 = sse::srl(x1, z, T());                                               \
                                                                                          \
-        simd_int r = simd::Or(r0, r1);                                                   \
+        __m128i r = sse::Or(r0, r1);                                                     \
                                                                                          \
-        simd::storeu((simd_int *)(dst - simd_width - (index)), r);                       \
+        sse::storeu((__m128i *)(dst - 1 - (index)), r);                                  \
                                                                                          \
         x0 = x1;                                                                         \
     } while (0)
 
-    if ((n / simd_width) & 1) {
+    if (n & 2) {
         WJR_REGISTER_LSHIFT_IMPL(0);
 
-        dst -= simd_width;
-        src -= simd_width;
-        n -= simd_width;
+        dst -= 2;
+        src -= 2;
+        n -= 2;
     }
 
-    if ((n / (simd_width * 2)) & 1) {
+    if (n & 4) {
         WJR_REGISTER_LSHIFT_IMPL(0);
-        WJR_REGISTER_LSHIFT_IMPL(simd_width);
+        WJR_REGISTER_LSHIFT_IMPL(2);
 
-        dst -= simd_width * 2;
-        src -= simd_width * 2;
-        n -= simd_width * 2;
+        dst -= 4;
+        src -= 4;
+        n -= 4;
     }
 
     if (!n) {
         return;
     }
 
-    WJR_ASSUME(n % (simd_width * 4) == 0);
+    WJR_ASSUME(n % 8 == 0);
 
     WJR_REGISTER_LSHIFT_IMPL(0);
-    WJR_REGISTER_LSHIFT_IMPL(simd_width);
-    WJR_REGISTER_LSHIFT_IMPL(simd_width * 2);
-    WJR_REGISTER_LSHIFT_IMPL(simd_width * 3);
+    WJR_REGISTER_LSHIFT_IMPL(2);
+    WJR_REGISTER_LSHIFT_IMPL(4);
+    WJR_REGISTER_LSHIFT_IMPL(6);
 
-    n -= simd_width * 4;
+    n -= 8;
 
     if (WJR_UNLIKELY(!n)) {
         return;
     }
 
-    dst -= simd_width * 4;
-    src -= simd_width * 4;
+    dst -= 8;
+    src -= 8;
 
     size_t idx = 0;
 
     do {
         WJR_REGISTER_LSHIFT_IMPL(idx);
-        WJR_REGISTER_LSHIFT_IMPL(idx + simd_width);
-        WJR_REGISTER_LSHIFT_IMPL(idx + simd_width * 2);
-        WJR_REGISTER_LSHIFT_IMPL(idx + simd_width * 3);
+        WJR_REGISTER_LSHIFT_IMPL(idx + 2);
+        WJR_REGISTER_LSHIFT_IMPL(idx + 4);
+        WJR_REGISTER_LSHIFT_IMPL(idx + 6);
 
-        idx += simd_width * 4;
+        idx += 8;
     } while (idx != n);
 
 #undef WJR_REGISTER_LSHIFT_IMPL
@@ -426,17 +401,10 @@ template <typename T>
 WJR_INLINE void builtin_lshift_impl(T *dst, const T *src, size_t n, unsigned int c) {
     static_assert(sizeof(T) == 8, "Currently only support uint64_t.");
 
-    using simd = sse;
-
-    constexpr auto nd = std::numeric_limits<T>::digits;
-    constexpr auto simd_width = simd::width() / nd;
-    constexpr auto threshold = std::max<size_t>(simd_width, 4);
-
-    if (WJR_UNLIKELY(n < threshold)) {
-        return builtin_unroll_lshift<threshold - 1>(dst, src, n, c);
+    if (WJR_UNLIKELY(n < 4)) {
+        return builtin_unroll_lshift<3>(dst, src, n, c);
     }
 
-    WJR_ASSUME(n >= threshold);
     return builtin_simd_lshift_impl(dst, src, n, c);
 }
 
