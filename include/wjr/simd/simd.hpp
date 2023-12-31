@@ -12,13 +12,16 @@ struct sse {
 #if WJR_HAS_SIMD(SSE)
 
     using float_type = __m128;
+    using float_tag_type = __m128_tag;
 
 #endif // SSE
 
 #if WJR_HAS_SIMD(SSE2)
 
     using int_type = __m128i;
+    using int_tag_type = __m128i_tag;
     using double_type = __m128d;
+    using double_tag_type = __m128d_tag;
 
 #endif // SSE2
 
@@ -715,8 +718,11 @@ struct avx {
 #if WJR_HAS_SIMD(AVX)
 
     using float_type = __m256;
+    using float_tag_type = __m256_tag;
     using int_type = __m256i;
+    using int_tag_type = __m256i_tag;
     using double_type = __m256d;
+    using double_tag_type = __m256d_tag;
 
 #endif // AVX
 
@@ -855,8 +861,8 @@ struct avx {
 
     WJR_INTRINSIC_INLINE static void stream(__m256i *p, __m256i a);
 
-    WJR_INTRINSIC_INLINE static void store(__m256i *p, const __m256i &a);
-    WJR_INTRINSIC_INLINE static void storeu(__m256i *p, const __m256i &a);
+    WJR_INTRINSIC_INLINE static void store(__m256i *p, __m256i a);
+    WJR_INTRINSIC_INLINE static void storeu(__m256i *p, __m256i a);
 
     WJR_INTRINSIC_INLINE static int test_all_zeros(__m256i a);
 
@@ -2940,8 +2946,8 @@ __m256i avx::setmax(int64_t) { return setmax_epi64(); }
 
 void avx::stream(__m256i *p, __m256i a) { _mm256_stream_si256(p, a); }
 
-void avx::store(__m256i *p, const __m256i &a) { _mm256_store_si256(p, a); }
-void avx::storeu(__m256i *p, const __m256i &a) { _mm256_storeu_si256(p, a); }
+void avx::store(__m256i *p, __m256i a) { _mm256_store_si256(p, a); }
+void avx::storeu(__m256i *p, __m256i a) { _mm256_storeu_si256(p, a); }
 
 int avx::test_all_zeros(__m256i a) { return testz(a, a); }
 
