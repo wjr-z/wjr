@@ -213,11 +213,7 @@ WJR_INTRINSIC_INLINE size_t builtin_replace_val(T *dst, const T *src, size_t n, 
                                                 T to) {
     static_assert(std::is_same_v<T, uint64_t>, "Currently only support uint64_t.");
 
-#if WJR_HAS_SIMD(AVX2)
-    using simd = avx;
-#else
     using simd = sse;
-#endif
 
     constexpr auto nd = std::numeric_limits<T>::digits;
     constexpr auto simd_width = simd::width() / nd;

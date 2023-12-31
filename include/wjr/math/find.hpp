@@ -6,6 +6,8 @@
 
 namespace wjr {
 
+    // TODO : find
+
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR size_t fallback_find_not(const T *src, size_t n, T val) {
     size_t idx = 0;
@@ -153,11 +155,7 @@ template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_find_not(const T *src, size_t n, T val) {
     static_assert(sizeof(T) == 8, "Currently only support uint64_t.");
 
-#if WJR_HAS_SIMD(AVX2)
-    using simd = avx;
-#else
     using simd = sse;
-#endif
 
     constexpr auto nd = std::numeric_limits<T>::digits;
     constexpr auto simd_width = simd::width() / nd;
