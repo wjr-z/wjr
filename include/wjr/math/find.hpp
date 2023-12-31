@@ -53,6 +53,8 @@ WJR_INLINE size_t builtin_simd_find_not(const T *src, const size_t n, T val) {
     constexpr auto simd_width = simd::width() / nd;
     using simd_int = typename simd::int_type;
 
+    WJR_ASSUME(n >= simd_width);
+
     size_t m = n;
 
     {
