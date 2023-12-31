@@ -208,20 +208,6 @@ WJR_INLINE void builtin_simd_rshift_impl(T *dst, const T *src, size_t n, unsigne
 
     WJR_ASSUME(n % 8 == 0);
 
-    WJR_REGISTER_RSHIFT_IMPL(0);
-    WJR_REGISTER_RSHIFT_IMPL(2);
-    WJR_REGISTER_RSHIFT_IMPL(4);
-    WJR_REGISTER_RSHIFT_IMPL(6);
-
-    n -= 8;
-
-    if (WJR_UNLIKELY(!n)) {
-        return;
-    }
-
-    dst += 8;
-    src += 8;
-
     size_t idx = 0;
 
     do {
@@ -368,20 +354,6 @@ WJR_INLINE void builtin_simd_lshift_impl(T *dst, const T *src, size_t n, unsigne
     }
 
     WJR_ASSUME(n % 8 == 0);
-
-    WJR_REGISTER_LSHIFT_IMPL(0);
-    WJR_REGISTER_LSHIFT_IMPL(2);
-    WJR_REGISTER_LSHIFT_IMPL(4);
-    WJR_REGISTER_LSHIFT_IMPL(6);
-
-    n -= 8;
-
-    if (WJR_UNLIKELY(!n)) {
-        return;
-    }
-
-    dst -= 8;
-    src -= 8;
 
     size_t idx = 0;
 

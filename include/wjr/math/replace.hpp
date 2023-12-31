@@ -64,20 +64,21 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_replace_val(T *dst, const T *src, size_t
 #if WJR_HAS_BUILTIN(REPLACE_VAL)
 
 template <size_t unroll, typename T>
-WJR_INTRINSIC_INLINE size_t builtin_unroll_replace_val(T *dst, const T *src, size_t n,
-                                                       T from, T to) {
-    auto fn = [dst, src, n, from, to](auto ic) -> std::optional<size_t> {
-        constexpr size_t idx = decltype(ic)::value;
+WJR_NODISCARD WJR_INTRINSIC_INLINE size_t builtin_unroll_replace_val(T *dst, const T *src,
+                                                                     size_t n, T from,
+                                                                     T to) {
+    auto idx =
+        unroll_call<unroll>([dst, src, n, from, to](auto ic) -> std::optional<size_t> {
+            constexpr size_t idx = decltype(ic)::value;
 
-        if (idx == n || WJR_LIKELY(src[idx] != from)) {
-            return idx;
-        }
+            if (idx == n || WJR_LIKELY(src[idx] != from)) {
+                return idx;
+            }
 
-        dst[idx] = to;
-        return std::nullopt;
-    };
+            dst[idx] = to;
+            return std::nullopt;
+        });
 
-    auto idx = unroll_call<unroll>(fn);
     if (idx.has_value()) {
         return idx.value();
     }
@@ -126,18 +127,6 @@ WJR_INLINE size_t builtin_simd_replace_val(T *dst, const T *src, const size_t n,
         sse::storeu((__m128i *)(dst + (index)), z);                                      \
     } while (0)
 
-    {
-        WJR_REGISTER_REPLACE_VAL_IMPL(0);
-
-        dst += 2;
-        src += 2;
-        m -= 2;
-    }
-
-    if (!m) {
-        return n;
-    }
-
     if (m & 2) {
         WJR_REGISTER_REPLACE_VAL_IMPL(0);
 
@@ -161,20 +150,6 @@ WJR_INLINE size_t builtin_simd_replace_val(T *dst, const T *src, const size_t n,
 
     WJR_ASSUME(m % 8 == 0);
 
-    WJR_REGISTER_REPLACE_VAL_IMPL(0);
-    WJR_REGISTER_REPLACE_VAL_IMPL(2);
-    WJR_REGISTER_REPLACE_VAL_IMPL(4);
-    WJR_REGISTER_REPLACE_VAL_IMPL(6);
-
-    m -= 8;
-
-    if (WJR_UNLIKELY(!m)) {
-        return n;
-    }
-
-    dst += 8;
-    src += 8;
-
     size_t idx = 0;
 
     do {
@@ -194,7 +169,7 @@ WJR_INLINE size_t builtin_simd_replace_val(T *dst, const T *src, const size_t n,
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_replace_val(T *dst, const T *src, size_t n, T from,
                                                 T to) {
-    static_assert(std::is_same_v<T, uint64_t>, "Currently only support uint64_t.");
+    static_assert(sizeof(T) == 8, "Currently only support uint64_t.");
 
     if (WJR_UNLIKELY(n < 4)) {
         return builtin_unroll_replace_val<3>(dst, src, n, from, to);

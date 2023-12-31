@@ -83,17 +83,6 @@ WJR_INLINE void builtin_simd_not_n(T *dst, const T *src, size_t n) {
 
     WJR_ASSUME(n % 8 == 0);
 
-    WJR_REGISTER_NOT_N_IMPL(0);
-    WJR_REGISTER_NOT_N_IMPL(2);
-    WJR_REGISTER_NOT_N_IMPL(4);
-    WJR_REGISTER_NOT_N_IMPL(6);
-
-    n -= 8;
-
-    if (WJR_UNLIKELY(!n)) {
-        return;
-    }
-
     size_t idx = 0;
 
     do {
@@ -105,14 +94,12 @@ WJR_INLINE void builtin_simd_not_n(T *dst, const T *src, size_t n) {
         idx += 8;
     } while (idx != n);
 
-    return;
-
 #undef WJR_REGISTER_NOT_N_IMPL
 }
 
 template <typename T>
 WJR_INLINE void builtin_not_n(T *dst, const T *src, size_t n) {
-    static_assert(std::is_same_v<T, uint64_t>, "Currently only support uint64_t.");
+    static_assert(sizeof(T) == 8, "Currently only support uint64_t.");
 
     if (WJR_UNLIKELY(n < 4)) {
         return builtin_unroll_not_n<3>(dst, src, n);
@@ -126,11 +113,15 @@ WJR_INLINE void builtin_not_n(T *dst, const T *src, size_t n) {
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR void not_n(T *dst, const T *src, size_t n) {
 #if WJR_HAS_BUILTIN(NOT_N)
-    if (is_constant_evaluated()) {
-        return fallback_not_n(dst, src, n);
-    }
+    if constexpr (sizeof(T) == 8) {
+        if (is_constant_evaluated()) {
+            return builtin_not_n(dst, src, n);
+        }
 
-    return builtin_not_n(dst, src, n);
+        return builtin_not_n(dst, src, n);
+    } else {
+        return builtin_not_n(dst, src, n);
+    }
 #else
     return fallback_not_n(dst, src, n);
 #endif

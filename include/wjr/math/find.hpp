@@ -29,8 +29,9 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_find_not(const T *src, size_t n, T val) 
 #if WJR_HAS_BUILTIN(FIND_NOT_VAL)
 
 template <size_t unroll, typename T>
-WJR_INTRINSIC_INLINE size_t builtin_unroll_find_not(const T *src, size_t n, T val) {
-    auto fn = [src, n, val](auto ic) -> std::optional<size_t> {
+WJR_NODISCARD WJR_INTRINSIC_INLINE size_t builtin_unroll_find_not(const T *src, size_t n,
+                                                                  T val) {
+    auto idx = unroll_call<unroll>([src, n, val](auto ic) -> std::optional<size_t> {
         constexpr size_t idx = decltype(ic)::value;
 
         if (idx == n || WJR_LIKELY(src[idx] != val)) {
@@ -38,9 +39,8 @@ WJR_INTRINSIC_INLINE size_t builtin_unroll_find_not(const T *src, size_t n, T va
         }
 
         return std::nullopt;
-    };
+    });
 
-    auto idx = unroll_call<unroll>(fn);
     if (idx.has_value()) {
         return idx.value();
     }
@@ -51,24 +51,10 @@ WJR_INTRINSIC_INLINE size_t builtin_unroll_find_not(const T *src, size_t n, T va
 
 template <typename T>
 WJR_INLINE size_t builtin_simd_find_not(const T *src, const size_t n, T val) {
-    WJR_ASSUME(n >= 2);
+    WJR_ASSUME(n % 2 == 0);
+    WJR_ASSUME(n != 0);
 
     size_t m = n;
-
-    {
-        size_t k = m % 2;
-        size_t idx = builtin_unroll_find_not<1>(src, k, val);
-        if (idx != k) {
-            return idx;
-        }
-
-        src += k;
-        m -= k;
-    }
-
-    WJR_ASSUME(m % 2 == 0);
-    WJR_ASSUME(m != 0);
-
     __m128i y = sse::set1_epi64(val);
 
 #define WJR_REGISTER_FIND_NOT_IMPL(index)                                                \
@@ -80,17 +66,6 @@ WJR_INLINE size_t builtin_simd_find_not(const T *src, const size_t n, T val) {
             return (n - m) + (index) + (mask == 0x00FF);                                 \
         }                                                                                \
     } while (0)
-
-    {
-        WJR_REGISTER_FIND_NOT_IMPL(0);
-
-        src += 2;
-        m -= 2;
-    }
-
-    if (!m) {
-        return n;
-    }
 
     if (m & 2) {
         WJR_REGISTER_FIND_NOT_IMPL(0);
@@ -112,19 +87,6 @@ WJR_INLINE size_t builtin_simd_find_not(const T *src, const size_t n, T val) {
     }
 
     WJR_ASSUME(m % 8 == 0);
-
-    WJR_REGISTER_FIND_NOT_IMPL(0);
-    WJR_REGISTER_FIND_NOT_IMPL(2);
-    WJR_REGISTER_FIND_NOT_IMPL(4);
-    WJR_REGISTER_FIND_NOT_IMPL(6);
-
-    m -= 8;
-
-    if (WJR_UNLIKELY(!m)) {
-        return n;
-    }
-
-    src += 8;
 
     size_t idx = 0;
 
@@ -150,7 +112,32 @@ WJR_INTRINSIC_INLINE size_t builtin_find_not(const T *src, size_t n, T val) {
         return builtin_unroll_find_not<3>(src, n, val);
     }
 
-    return builtin_simd_find_not(src, n, val);
+    size_t m = n;
+
+    {
+        auto idx = builtin_unroll_find_not<1>(src, 1, val);
+
+        if (idx != 1) {
+            return idx;
+        }
+
+        ++src;
+        --m;
+    }
+
+    {
+        size_t k = m % 2;
+        size_t idx = builtin_unroll_find_not<1>(src, k, val);
+
+        if (idx != k) {
+            return 1 + idx;
+        }
+
+        src += k;
+        m -= k;
+    }
+
+    return n - m + builtin_simd_find_not(src, m, val);
 }
 
 #endif
