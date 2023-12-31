@@ -64,18 +64,6 @@ WJR_INLINE void builtin_simd_not_n(T *dst, const T *src, size_t n) {
                                                                                          \
     } while (0)
 
-    {
-        WJR_REGISTER_NOT_N_IMPL(0);
-
-        dst += simd_width;
-        src += simd_width;
-        n -= simd_width;
-    }
-
-    if (!n) {
-        return;
-    }
-
     if ((n / simd_width) & 1) {
         WJR_REGISTER_NOT_N_IMPL(0);
 
@@ -130,11 +118,7 @@ template <typename T>
 WJR_INLINE void builtin_not_n(T *dst, const T *src, size_t n) {
     static_assert(std::is_same_v<T, uint64_t>, "Currently only support uint64_t.");
 
-#if WJR_HAS_SIMD(AVX2)
-    using simd = avx;
-#else
     using simd = sse;
-#endif
 
     constexpr auto nd = std::numeric_limits<T>::digits;
     constexpr auto simd_width = simd::width() / nd;
