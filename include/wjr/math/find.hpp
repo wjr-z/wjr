@@ -26,121 +26,6 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_find_not(const T *src, size_t n, T val) 
 
 #if WJR_HAS_BUILTIN(FIND_NOT_VAL)
 
-template <typename T>
-WJR_INLINE size_t builtin_SSE4_1_find_not(const T *src, const size_t n, T val) {
-    WJR_ASSUME(n >= 4);
-
-    size_t p = n;
-
-    if (p & 1) {
-        if (src[0] != val) {
-            return 0;
-        }
-
-        ++src;
-        --p;
-    }
-
-    __m128i y = _mm_set1_epi64x(val);
-
-#define WJR_REGISTER_FIND_NOT_IMPL(index)                                                \
-    do {                                                                                 \
-        __m128i x = _mm_loadu_si128((__m128i *)(src + index));                           \
-        __m128i r = _mm_cmpeq_epi64(x, y);                                               \
-        uint16_t mask = _mm_movemask_epi8(r);                                            \
-        if (mask != 0xFFFF) {                                                            \
-            return (n - p) + index + (mask == 0x00FF);                                   \
-        }                                                                                \
-    } while (0)
-
-    if (p <= 22) {
-        do {
-            WJR_REGISTER_FIND_NOT_IMPL(0);
-
-            src += 2;
-            p -= 2;
-        } while (p);
-
-        return n;
-    }
-
-    WJR_REGISTER_FIND_NOT_IMPL(0);
-    WJR_REGISTER_FIND_NOT_IMPL(2);
-    WJR_REGISTER_FIND_NOT_IMPL(4);
-    WJR_REGISTER_FIND_NOT_IMPL(6);
-
-    switch (p & 6) {
-    case 6: {
-        WJR_REGISTER_FIND_NOT_IMPL(8);
-        WJR_REGISTER_FIND_NOT_IMPL(10);
-        WJR_REGISTER_FIND_NOT_IMPL(12);
-
-        src += 14;
-        p -= 14;
-        break;
-    }
-    case 4: {
-        WJR_REGISTER_FIND_NOT_IMPL(8);
-        WJR_REGISTER_FIND_NOT_IMPL(10);
-
-        src += 12;
-        p -= 12;
-        break;
-    }
-    case 2: {
-        WJR_REGISTER_FIND_NOT_IMPL(8);
-
-        src += 10;
-        p -= 10;
-        break;
-    }
-    case 0: {
-        src += 8;
-        p -= 8;
-        break;
-    }
-    default: {
-        WJR_UNREACHABLE;
-        break;
-    }
-    }
-
-    WJR_ASSUME(p % 8 == 0);
-
-    do {
-        WJR_REGISTER_FIND_NOT_IMPL(0);
-        WJR_REGISTER_FIND_NOT_IMPL(2);
-        WJR_REGISTER_FIND_NOT_IMPL(4);
-        WJR_REGISTER_FIND_NOT_IMPL(6);
-
-        src += 8;
-        p -= 8;
-    } while (p);
-
-    return n;
-
-#undef WJR_REGISTER_FIND_NOT_IMPL
-}
-
-template <size_t unroll, typename T>
-WJR_INTRINSIC_INLINE size_t builtin_unroll_find_not(const T *src, T val) {
-    auto fn = [src, val](auto ic) -> std::optional<size_t> {
-        constexpr size_t idx = decltype(ic)::value;
-        if (WJR_LIKELY(src[idx] != val)) {
-            return idx;
-        }
-
-        return std::nullopt;
-    };
-
-    auto idx = unroll_call<unroll>(fn);
-    if (idx.has_value()) {
-        return idx.value();
-    }
-
-    return unroll;
-}
-
 template <size_t unroll, typename T>
 WJR_INTRINSIC_INLINE size_t builtin_unroll_find_not(const T *src, size_t n, T val) {
     auto fn = [src, n, val](auto ic) -> std::optional<size_t> {
@@ -158,26 +43,130 @@ WJR_INTRINSIC_INLINE size_t builtin_unroll_find_not(const T *src, size_t n, T va
         return idx.value();
     }
 
-    return unroll;
+    WJR_ASSUME(n == unroll);
+    return n;
+}
+
+template <typename simd, typename T>
+WJR_INLINE size_t builtin_simd_find_not(const T *src, const size_t n, T val) {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+    constexpr auto simd_width = simd::width() / nd;
+    using simd_int = typename simd::int_type;
+
+    size_t m = n;
+
+    {
+        size_t k = m % simd_width;
+        size_t idx = builtin_unroll_find_not<simd_width - 1>(src, k, val);
+        if (idx != k) {
+            return idx;
+        }
+
+        src += k;
+        m -= k;
+    }
+
+    WJR_ASSUME(m % simd_width == 0);
+    WJR_ASSUME(m != 0);
+
+    simd_int y = simd::set1_epi64(val);
+
+#define WJR_REGISTER_FIND_NOT_IMPL(index)                                                \
+    do {                                                                                 \
+        simd_int x = simd::loadu((simd_int *)(src + (index)));                           \
+        simd_int r = simd::cmpeq_epi64(x, y);                                            \
+        auto mask = simd::movemask_epi8(r);                                              \
+        if (mask != simd::mask()) {                                                      \
+            if constexpr (std::is_same_v<simd, sse>) {                                   \
+                return (n - m) + (index) + (mask == 0x00FF);                             \
+            } else {                                                                     \
+                auto k = ctz(~mask) / 8;                                                 \
+                return (n - m) + (index) + k;                                            \
+            }                                                                            \
+        }                                                                                \
+    } while (0)
+
+    {
+        WJR_REGISTER_FIND_NOT_IMPL(0);
+
+        src += simd_width;
+        m -= simd_width;
+    }
+
+    if (!m) {
+        return n;
+    }
+
+    if ((m / simd_width) & 1) {
+        WJR_REGISTER_FIND_NOT_IMPL(0);
+
+        src += simd_width;
+        m -= simd_width;
+    }
+
+    if ((m / (simd_width * 2)) & 1) {
+        WJR_REGISTER_FIND_NOT_IMPL(0);
+        WJR_REGISTER_FIND_NOT_IMPL(simd_width);
+
+        src += simd_width * 2;
+        m -= simd_width * 2;
+    }
+
+    if (!m) {
+        return n;
+    }
+
+    WJR_ASSUME(m % (simd_width * 4) == 0);
+
+    WJR_REGISTER_FIND_NOT_IMPL(0);
+    WJR_REGISTER_FIND_NOT_IMPL(simd_width);
+    WJR_REGISTER_FIND_NOT_IMPL(simd_width * 2);
+    WJR_REGISTER_FIND_NOT_IMPL(simd_width * 3);
+
+    m -= simd_width * 4;
+
+    if (WJR_UNLIKELY(!m)) {
+        return n;
+    }
+
+    src += simd_width * 4;
+
+    size_t idx = 0;
+
+    do {
+        WJR_REGISTER_FIND_NOT_IMPL(idx);
+        WJR_REGISTER_FIND_NOT_IMPL(idx + simd_width);
+        WJR_REGISTER_FIND_NOT_IMPL(idx + simd_width * 2);
+        WJR_REGISTER_FIND_NOT_IMPL(idx + simd_width * 3);
+
+        idx += simd_width * 4;
+    } while (idx != m);
+
+    return n;
+
+#undef WJR_REGISTER_FIND_NOT_IMPL
 }
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_find_not(const T *src, size_t n, T val) {
     static_assert(sizeof(T) == 8, "Currently only support uint64_t.");
 
-    if (WJR_UNLIKELY(n < 6)) {
-        return builtin_unroll_find_not<5>(src, n, val);
+#if WJR_HAS_SIMD(AVX2)
+    using simd = avx;
+#else
+    using simd = sse;
+#endif
+
+    constexpr auto nd = std::numeric_limits<T>::digits;
+    constexpr auto simd_width = simd::width() / nd;
+    constexpr auto threshold = std::max<size_t>(simd_width + 2, 4);
+
+    if (WJR_UNLIKELY(n < threshold)) {
+        return builtin_unroll_find_not<threshold - 1>(src, n, val);
     }
 
-    // n >= 6
-
-    size_t idx = builtin_unroll_find_not<2>(src, val);
-
-    if (WJR_LIKELY(idx != 2)) {
-        return idx;
-    }
-
-    return 2 + builtin_SSE4_1_find_not(src + 2, n - 2, val);
+    WJR_ASSUME(n >= threshold);
+    return builtin_simd_find_not<simd>(src, n, val);
 }
 
 #endif
