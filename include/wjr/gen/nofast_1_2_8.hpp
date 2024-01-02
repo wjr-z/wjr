@@ -3,79 +3,60 @@
 
 #define WJR_GEN_NOFAST_1_2_8(LOOP1, LOOP2, LOOP8, INIT1, INIT2, INIT8, RET)              \
     do {                                                                                 \
-        size_t gen_n = n;                                                                \
-        size_t gen_offset = 0;                                                           \
-        INIT1(gen_offset);                                                               \
+        INIT1(0);                                                                        \
                                                                                          \
-        if (WJR_UNLIKELY(gen_n < 4)) {                                                   \
+        if (WJR_UNLIKELY(n < 4)) {                                                       \
                                                                                          \
-            if (WJR_UNLIKELY(gen_n == 0)) {                                              \
+            if (WJR_UNLIKELY(n == 0)) {                                                  \
                 return RET();                                                            \
             }                                                                            \
                                                                                          \
-            LOOP1(gen_offset + 0);                                                       \
+            LOOP1(0);                                                                    \
                                                                                          \
-            if (WJR_UNLIKELY(gen_n == 1)) {                                              \
+            if (WJR_UNLIKELY(n == 1)) {                                                  \
                 return RET();                                                            \
             }                                                                            \
                                                                                          \
-            LOOP1(gen_offset + 1);                                                       \
+            LOOP1(1);                                                                    \
                                                                                          \
-            if (WJR_UNLIKELY(gen_n == 2)) {                                              \
+            if (WJR_UNLIKELY(n == 2)) {                                                  \
                 return RET();                                                            \
             }                                                                            \
                                                                                          \
-            LOOP1(gen_offset + 2);                                                       \
+            LOOP1(2);                                                                    \
                                                                                          \
             return RET();                                                                \
         }                                                                                \
                                                                                          \
+        size_t gen_n = n;                                                                \
+        size_t gen_offset = 0;                                                           \
+                                                                                         \
         WJR_ASSUME(gen_n >= 4);                                                          \
                                                                                          \
-        {                                                                                \
-            size_t gen_k = gen_n % 2;                                                    \
-            do {                                                                         \
-                if (gen_k == 0) {                                                        \
-                    break;                                                               \
-                }                                                                        \
+        if (gen_n & 1) {                                                                 \
+            LOOP1(gen_offset);                                                           \
                                                                                          \
-                LOOP1(gen_offset + 0);                                                   \
-                                                                                         \
-            } while (0);                                                                 \
-                                                                                         \
-            gen_offset += gen_k;                                                         \
-            gen_n -= gen_k;                                                              \
+            ++gen_offset;                                                                \
+            --gen_n;                                                                     \
         }                                                                                \
                                                                                          \
         WJR_ASSUME(gen_n % 2 == 0);                                                      \
                                                                                          \
         INIT2(gen_offset);                                                               \
                                                                                          \
-        {                                                                                \
-            size_t gen_k = gen_n % 8;                                                    \
-            do {                                                                         \
-                if (gen_k == 0) {                                                        \
-                    break;                                                               \
-                }                                                                        \
+        if (gen_n & 2) {                                                                 \
+            LOOP2(gen_offset);                                                           \
                                                                                          \
-                LOOP2(gen_offset + 0);                                                   \
+            gen_offset += 2;                                                             \
+            gen_n -= 2;                                                                  \
+        }                                                                                \
                                                                                          \
-                if (gen_k == 2) {                                                        \
-                    break;                                                               \
-                }                                                                        \
+        if (gen_n & 4) {                                                                 \
+            LOOP2(gen_offset);                                                           \
+            LOOP2(gen_offset + 2);                                                       \
                                                                                          \
-                LOOP2(gen_offset + 2);                                                   \
-                                                                                         \
-                if (gen_k == 4) {                                                        \
-                    break;                                                               \
-                }                                                                        \
-                                                                                         \
-                LOOP2(gen_offset + 4);                                                   \
-                                                                                         \
-            } while (0);                                                                 \
-                                                                                         \
-            gen_offset += gen_k;                                                         \
-            gen_n -= gen_k;                                                              \
+            gen_offset += 4;                                                             \
+            gen_n -= 4;                                                                  \
         }                                                                                \
                                                                                          \
         WJR_ASSUME(gen_n % 8 == 0);                                                      \
@@ -87,7 +68,7 @@
         INIT8(gen_offset);                                                               \
                                                                                          \
         do {                                                                             \
-            LOOP8(gen_offset + 0);                                                       \
+            LOOP8(gen_offset);                                                           \
                                                                                          \
             gen_offset += 8;                                                             \
         } while (WJR_LIKELY(gen_offset != n));                                           \

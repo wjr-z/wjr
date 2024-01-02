@@ -10,7 +10,7 @@ WJR_INTRINSIC_CONSTEXPR int compare_n(const T *src0, const T *src1, size_t n) {
     if constexpr (sizeof(T) == 1) {
         return ::memcmp(src0, src1, n);
     } else {
-        return find_p(src0, src1, n,
+        return find_not_p(src0, src1, n,
                       [src0_copy = src0, src1_copy = src1](auto &&...args) -> int {
                           if constexpr (sizeof...(args) == 0) {
                               return 0;
@@ -26,7 +26,7 @@ WJR_INTRINSIC_CONSTEXPR int compare_n(const T *src0, const T *src1, size_t n) {
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR int reverse_compare_n(const T *src0, const T *src1, size_t n) {
-    return reverse_find_p(
+    return reverse_find_not_p(
         src0, src1, n,
         [src0_copy = src0, src1_copy = src1, n_copy = n](auto &&...args) -> int {
             if constexpr (sizeof...(args) == 0) {

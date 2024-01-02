@@ -90,8 +90,7 @@ WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src0, size_t n,
     uint64_t t3;
 
     asm volatile("xor %[t1], %[t1]\n\t"
-                 "lea{q .Lasm_addmul_1_lookup%=(%%rip), %[t3]| %[t3], "
-                 "[rip+.Lasm_addmul_1_lookup%=]}\n\t"
+                 "lea{q| %[t3], [rip +} .Lasm_addmul_1_lookup%={(%%rip), %[t3]|]}\n\t"
                  "movs{lq (%[t3], %[t0], 4), %[t0]|xd %[t0], DWORD PTR [%[t3] + "
                  "%[t0] * "
                  "4]}\n\t"
@@ -185,9 +184,7 @@ WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src0, size_t n,
     uint64_t t3;
 
     asm volatile("xor %[t1], %[t1]\n\t"
-
-                 "lea{q .Lasm_addmul_1_lookup%=(%%rip), %[t3]| %[t3], "
-                 "[rip+.Lasm_addmul_1_lookup%=]}\n\t"
+                 "lea{q| %[t3], [rip +} .Lasm_addmul_1_lookup%={(%%rip), %[t3]|]}\n\t"
                  "movs{lq (%[t3], %[t0], 4), %[t0]|xd %[t0], DWORD PTR [%[t3] + "
                  "%[t0] * "
                  "4]}\n\t"
@@ -300,8 +297,7 @@ WJR_INLINE uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src0, size_t n,
                  // set CF = 0, OF = 1
                  "add{b $1, %b[t3]| %b[t3], 1}\n\t"
 
-                 "lea{q .Lasm_submul_1_lookup%=(%%rip), %[t3]| %[t3], "
-                 "[rip+.Lasm_submul_1_lookup%=]}\n\t"
+                 "lea{q| %[t3], [rip +} .Lasm_submul_1_lookup%={(%%rip), %[t3]|]}\n\t"
                  "movs{lq (%[t3], %[t0], 4), %[t0]|xd %[t0], DWORD PTR [%[t3] + "
                  "%[t0] * "
                  "4]}\n\t"

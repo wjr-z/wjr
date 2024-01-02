@@ -68,8 +68,7 @@ WJR_INLINE U asm_subc_n(T *dst, const T *src0, const T *src1, size_t n, U c_in) 
         uint64_t t2;                                                                     \
         t1 = n;                                                                          \
         asm volatile("add{b $255, %b[t0]| %b[t0], 255}\n\t"                              \
-                     "lea{q .Lasm_subc_n_lookup%=(%%rip), %[t2]| %[t2], "                \
-                     "[rip+.Lasm_subc_n_lookup%=]}\n\t"                                  \
+                     "lea{q| %[t2], [rip +} .Lasm_subc_n_lookup%={(%%rip), %[t2]|]}\n\t" \
                      "movs{lq (%[t2], %[t1], 4), %[t1]|xd %[t1], DWORD PTR [%[t2] + "    \
                      "%[t1] * "                                                          \
                      "4]}\n\t"                                                           \
