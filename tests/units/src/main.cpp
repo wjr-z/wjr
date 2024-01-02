@@ -254,54 +254,95 @@ TEST(math, popcount_ctz_clz) {
         WJR_TEST_POPCOUNT_I args WJR_TEST_CTZ_I args WJR_TEST_CLZ_I args                 \
     } while (0);
 
-    WJR_TEST_PTZ(((uint8_t, 0x00, 0), (uint8_t, 0x01, 1), (uint8_t, 0x02, 1),
-                  (uint8_t, 0x03, 2), (uint8_t, 0x04, 1), (uint8_t, 0x0a, 2),
-                  (uint8_t, 0x0b, 3), (uint8_t, 0x0c, 2), (uint8_t, 0x0f, 4),
-                  (uint8_t, 0x17, 4), (uint8_t, 0xff, 8)));
+    WJR_TEST_PTZ_I_CALLER((uint8_t, 0x00, 0));
+    WJR_TEST_PTZ_I_CALLER((uint8_t, 0x01, 1));
+    WJR_TEST_PTZ_I_CALLER((uint8_t, 0x02, 1));
+    WJR_TEST_PTZ_I_CALLER((uint8_t, 0x03, 2));
+    WJR_TEST_PTZ_I_CALLER((uint8_t, 0x04, 1));
+    WJR_TEST_PTZ_I_CALLER((uint8_t, 0x0a, 2));
+    WJR_TEST_PTZ_I_CALLER((uint8_t, 0x0b, 3));
+    WJR_TEST_PTZ_I_CALLER((uint8_t, 0x0c, 2));
+    WJR_TEST_PTZ_I_CALLER((uint8_t, 0x0f, 4));
+    WJR_TEST_PTZ_I_CALLER((uint8_t, 0x17, 4));
+    WJR_TEST_PTZ_I_CALLER((uint8_t, 0xff, 8));
 
-    WJR_TEST_PTZ(((uint16_t, 0x0000, 0), (uint16_t, 0x0001, 1), (uint16_t, 0x0002, 1),
-                  (uint16_t, 0x0003, 2), (uint16_t, 0x0004, 1), (uint16_t, 0x000a, 2),
-                  (uint16_t, 0x000b, 3), (uint16_t, 0x000c, 2), (uint16_t, 0x000f, 4),
-                  (uint16_t, 0x0017, 4), (uint16_t, 0x00ff, 8), (uint16_t, 0x0a0f, 6),
-                  (uint16_t, 0xffff, 16)));
+    WJR_TEST_PTZ_I_CALLER((uint16_t, 0x0000, 0));
+    WJR_TEST_PTZ_I_CALLER((uint16_t, 0x0001, 1));
+    WJR_TEST_PTZ_I_CALLER((uint16_t, 0x0002, 1));
+    WJR_TEST_PTZ_I_CALLER((uint16_t, 0x0003, 2));
+    WJR_TEST_PTZ_I_CALLER((uint16_t, 0x0004, 1));
+    WJR_TEST_PTZ_I_CALLER((uint16_t, 0x000a, 2));
+    WJR_TEST_PTZ_I_CALLER((uint16_t, 0x000b, 3));
+    WJR_TEST_PTZ_I_CALLER((uint16_t, 0x000c, 2));
+    WJR_TEST_PTZ_I_CALLER((uint16_t, 0x000f, 4));
+    WJR_TEST_PTZ_I_CALLER((uint16_t, 0x0017, 4));
+    WJR_TEST_PTZ_I_CALLER((uint16_t, 0x00ff, 8));
+    WJR_TEST_PTZ_I_CALLER((uint16_t, 0x0a0f, 6));
+    WJR_TEST_PTZ_I_CALLER((uint16_t, 0xffff, 16));
 
-    WJR_TEST_PTZ(((uint32_t, 0x0000'0000, 0), (uint32_t, 0x0000'0001, 1),
-                  (uint32_t, 0x0000'0002, 1), (uint32_t, 0x0000'0003, 2),
-                  (uint32_t, 0x0000'0004, 1), (uint32_t, 0x0000'000a, 2),
-                  (uint32_t, 0x0000'000b, 3), (uint32_t, 0x0000'000c, 2)));
+    WJR_TEST_PTZ_I_CALLER((uint32_t, 0x0000'0000, 0));
+    WJR_TEST_PTZ_I_CALLER((uint32_t, 0x0000'0001, 1));
+    WJR_TEST_PTZ_I_CALLER((uint32_t, 0x0000'0002, 1));
+    WJR_TEST_PTZ_I_CALLER((uint32_t, 0x0000'0003, 2));
+    WJR_TEST_PTZ_I_CALLER((uint32_t, 0x0000'0004, 1));
+    WJR_TEST_PTZ_I_CALLER((uint32_t, 0x0000'000a, 2));
+    WJR_TEST_PTZ_I_CALLER((uint32_t, 0x0000'000b, 3));
+    WJR_TEST_PTZ_I_CALLER((uint32_t, 0x0000'000c, 2));
 
-    WJR_TEST_PTZ(((uint32_t, 0x0000'000f, 4), (uint32_t, 0x0000'0013, 3),
-                  (uint32_t, 0x0000'0017, 4), (uint32_t, 0x0000'00ff, 8),
-                  (uint32_t, 0x0000'00cf, 6), (uint32_t, 0x0001'00cd, 6),
-                  (uint32_t, 0x0100'0000, 1), (uint32_t, 0x0200'0000, 1),
-                  (uint32_t, 0x0300'0000, 2), (uint32_t, 0x0400'0000, 1),
-                  (uint32_t, 0xffff'ffff, 32)));
+    WJR_TEST_PTZ_I_CALLER((uint32_t, 0x0000'000f, 4));
+    WJR_TEST_PTZ_I_CALLER((uint32_t, 0x0000'0013, 3));
+    WJR_TEST_PTZ_I_CALLER((uint32_t, 0x0000'0017, 4));
+    WJR_TEST_PTZ_I_CALLER((uint32_t, 0x0000'00ff, 8));
+    WJR_TEST_PTZ_I_CALLER((uint32_t, 0x0000'00cf, 6));
+    WJR_TEST_PTZ_I_CALLER((uint32_t, 0x0001'00cd, 6));
+    WJR_TEST_PTZ_I_CALLER((uint32_t, 0x0100'0000, 1));
+    WJR_TEST_PTZ_I_CALLER((uint32_t, 0x0200'0000, 1));
+    WJR_TEST_PTZ_I_CALLER((uint32_t, 0x0300'0000, 2));
+    WJR_TEST_PTZ_I_CALLER((uint32_t, 0x0400'0000, 1));
+    WJR_TEST_PTZ_I_CALLER((uint32_t, 0xffff'ffff, 32));
 
-    WJR_TEST_PTZ(((uint64_t, 0x0000'0000, 0), (uint64_t, 0x0000'0001, 1),
-                  (uint64_t, 0x0000'0002, 1), (uint64_t, 0x0000'0003, 2),
-                  (uint64_t, 0x0000'0004, 1), (uint64_t, 0x0000'000a, 2),
-                  (uint64_t, 0x0000'000b, 3), (uint64_t, 0x0000'000c, 2)));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'0000, 0));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'0001, 1));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'0002, 1));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'0003, 2));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'0004, 1));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'000a, 2));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'000b, 3));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'000c, 2));
 
-    WJR_TEST_PTZ(((uint64_t, 0x0000'000f, 4), (uint64_t, 0x0000'0013, 3),
-                  (uint64_t, 0x0000'0017, 4), (uint64_t, 0x0000'00ff, 8),
-                  (uint64_t, 0x0000'00cf, 6), (uint64_t, 0x0001'00cd, 6),
-                  (uint64_t, 0x0100'0000, 1), (uint64_t, 0x0200'0000, 1),
-                  (uint64_t, 0x0300'0000, 2), (uint64_t, 0x0400'0000, 1),
-                  (uint64_t, 0xffff'ffff, 32)));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'000f, 4));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'0013, 3));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'0017, 4));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'00ff, 8));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'00cf, 6));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0001'00cd, 6));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0100'0000, 1));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0200'0000, 1));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0300'0000, 2));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0400'0000, 1));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0xffff'ffff, 32));
 
-    WJR_TEST_PTZ(
-        ((uint64_t, 0x0000'0000'0000'0000, 0), (uint64_t, 0x0000'0001'0000'000, 1),
-         (uint64_t, 0x0000'0002'0000'000, 1), (uint64_t, 0x0000'0003'0000'000, 2),
-         (uint64_t, 0x0000'0004'0000'000, 1), (uint64_t, 0x0000'000a'0000'000, 2),
-         (uint64_t, 0x0000'000b'0000'000, 3), (uint64_t, 0x0000'000c'0000'000, 2),
-         (uint64_t, 0x0000'000f'0000'000, 4), (uint64_t, 0x0000'0013'0000'000, 3)));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'0000'0000'0000, 0));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'0001'0000'000, 1));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'0002'0000'000, 1));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'0003'0000'000, 2));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'0004'0000'000, 1));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'000a'0000'000, 2));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'000b'0000'000, 3));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'000c'0000'000, 2));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'000f'0000'000, 4));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'0013'0000'000, 3));
 
-    WJR_TEST_PTZ(
-        ((uint64_t, 0x0000'0017'0000'000, 4), (uint64_t, 0x0000'00ff'0000'000, 8),
-         (uint64_t, 0x0000'00cf'0000'000, 6), (uint64_t, 0x0001'00cd'0000'000, 6),
-         (uint64_t, 0x0100'0000'0000'000, 1), (uint64_t, 0x0200'0000'0000'000, 1),
-         (uint64_t, 0x0300'0000'0000'000, 2), (uint64_t, 0x0400'0000'0000'000, 1),
-         (uint64_t, 0xffff'ffff'0000'000, 32), (uint64_t, 0xffff'ffff'ffff'ffff, 64)));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'0017'0000'000, 4));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'00ff'0000'000, 8));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0000'00cf'0000'000, 6));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0001'00cd'0000'000, 6));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0100'0000'0000'000, 1));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0200'0000'0000'000, 1));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0300'0000'0000'000, 2));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0x0400'0000'0000'000, 1));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0xffff'ffff'0000'000, 32));
+    WJR_TEST_PTZ_I_CALLER((uint64_t, 0xffff'ffff'ffff'ffff, 64));
 
 #undef WJR_TEST_PTZ_I_CALLER
 #undef WJR_TEST_CLZ_I
@@ -464,27 +505,25 @@ TEST(math, addc_1) {
 }
 
 TEST(math, addc_n) {
-    {
-        std::vector<uint64_t> a, b, c;
-        for (size_t n = 1; n <= 128; ++n) {
-            a.resize(n);
-            b.resize(n);
-            c.resize(n);
+    std::vector<uint64_t> a, b, c;
+    for (size_t n = 1; n <= 128; ++n) {
+        a.resize(n);
+        b.resize(n);
+        c.resize(n);
 
-            a[0] = 1;
-            b[0] = -1;
+        a[0] = 1;
+        b[0] = -1;
 
-            for (size_t i = 1; i < n; ++i) {
-                a[i] = 1;
-                b[i] = -2;
-            }
+        for (size_t i = 1; i < n; ++i) {
+            a[i] = 1;
+            b[i] = -2;
+        }
 
-            auto cf = wjr::addc_n(c.data(), a.data(), b.data(), n, 0u);
-            WJR_ASSERT(cf == 1);
+        auto cf = wjr::addc_n(c.data(), a.data(), b.data(), n, 0u);
+        WJR_ASSERT(cf == 1);
 
-            for (auto &i : c) {
-                WJR_ASSERT(i == 0);
-            }
+        for (auto &i : c) {
+            WJR_ASSERT(i == 0);
         }
     }
 }
@@ -684,64 +723,193 @@ TEST(math, subc_1) {
 }
 
 TEST(math, subc_n) {
-    {
-        std::vector<uint64_t> a, b, c;
-        for (size_t n = 1; n <= 128; ++n) {
-            a.resize(n);
-            b.resize(n);
-            c.resize(n);
+    std::vector<uint64_t> a, b, c;
+    for (size_t n = 1; n <= 128; ++n) {
+        a.resize(n);
+        b.resize(n);
+        c.resize(n);
 
-            a[0] = 1;
-            b[0] = 2;
+        a[0] = 1;
+        b[0] = 2;
 
-            for (size_t i = 1; i < n; ++i) {
-                a[i] = 1;
-                b[i] = 1;
+        for (size_t i = 1; i < n; ++i) {
+            a[i] = 1;
+            b[i] = 1;
+        }
+
+        auto cf = wjr::subc_n(c.data(), a.data(), b.data(), n, 0u);
+        WJR_ASSERT(cf == 1);
+
+        for (auto &i : c) {
+            WJR_ASSERT(i == -1ull);
+        }
+    }
+}
+
+TEST(math, broadcast) {
+#define WJR_TEST_BROADCAST(ft, tt, x, expect)                                            \
+    WJR_ASSERT((wjr::broadcast<ft, tt>(x) == expect))
+
+    WJR_TEST_BROADCAST(uint8_t, uint8_t, 0, 0);
+    WJR_TEST_BROADCAST(uint8_t, uint8_t, 0x3f, 0x3f);
+
+    WJR_TEST_BROADCAST(uint16_t, uint16_t, 0, 0);
+    WJR_TEST_BROADCAST(uint16_t, uint16_t, 0x3f, 0x3f);
+    WJR_TEST_BROADCAST(uint16_t, uint16_t, 0x1f03, 0x1f03);
+    WJR_TEST_BROADCAST(uint16_t, uint16_t, 0x1f00, 0x1f00);
+
+    WJR_TEST_BROADCAST(uint32_t, uint32_t, 0, 0);
+    WJR_TEST_BROADCAST(uint32_t, uint32_t, 0x3f, 0x3f);
+    WJR_TEST_BROADCAST(uint32_t, uint32_t, 0x1f03, 0x1f03);
+    WJR_TEST_BROADCAST(uint32_t, uint32_t, 0x1f00, 0x1f00);
+    WJR_TEST_BROADCAST(uint32_t, uint32_t, 0xac'0000, 0xac'0000);
+
+    WJR_TEST_BROADCAST(uint64_t, uint64_t, 0, 0);
+    WJR_TEST_BROADCAST(uint64_t, uint64_t, 0x3f, 0x3f);
+    WJR_TEST_BROADCAST(uint64_t, uint64_t, 0x1f03, 0x1f03);
+    WJR_TEST_BROADCAST(uint64_t, uint64_t, 0x1f00, 0x1f00);
+    WJR_TEST_BROADCAST(uint64_t, uint64_t, 0xac'0000, 0xac'0000);
+
+    WJR_TEST_BROADCAST(uint8_t, uint16_t, 0, 0);
+    WJR_TEST_BROADCAST(uint8_t, uint16_t, 0x0001, 0x0101);
+    WJR_TEST_BROADCAST(uint8_t, uint16_t, 0x0031, 0x3131);
+
+    WJR_TEST_BROADCAST(uint8_t, uint32_t, 0, 0);
+    WJR_TEST_BROADCAST(uint8_t, uint32_t, 0x0000'0031, 0x3131'3131);
+    WJR_TEST_BROADCAST(uint8_t, uint32_t, 0x0000'000c, 0x0c0c'0c0c);
+
+    WJR_TEST_BROADCAST(uint8_t, uint64_t, 0, 0);
+    WJR_TEST_BROADCAST(uint8_t, uint64_t, 0x0000'0000'0000'000c, 0x0c0c'0c0c'0c0c'0c0c);
+
+    WJR_TEST_BROADCAST(uint16_t, uint32_t, 0, 0);
+    WJR_TEST_BROADCAST(uint16_t, uint32_t, 0x0001, 0x0001'0001);
+    WJR_TEST_BROADCAST(uint16_t, uint32_t, 0x0c01, 0x0c01'0c01);
+
+    WJR_TEST_BROADCAST(uint16_t, uint64_t, 0, 0);
+    WJR_TEST_BROADCAST(uint16_t, uint64_t, 0x0001, 0x0001'0001'0001'0001);
+    WJR_TEST_BROADCAST(uint16_t, uint64_t, 0x0c01, 0x0c01'0c01'0c01'0c01);
+    WJR_TEST_BROADCAST(uint16_t, uint64_t, 0xacb1, 0xacb1'acb1'acb1'acb1);
+
+    WJR_TEST_BROADCAST(uint32_t, uint64_t, 0, 0);
+    WJR_TEST_BROADCAST(uint32_t, uint64_t, 0x0001'0001, 0x0001'0001'0001'0001);
+    WJR_TEST_BROADCAST(uint32_t, uint64_t, 0xabc2'def3, 0xabc2'def3'abc2'def3);
+
+#undef WJR_TEST_BROADCAST
+}
+
+TEST(math, find_n) {
+    std::vector<uint64_t> vec;
+
+    for (size_t n = 0; n < 128; ++n) {
+        vec.resize(n + 32);
+        for (size_t i = 0; i < n; ++i) {
+            vec[i] = -1;
+        }
+        for (size_t i = n; i < n + 32; ++i) {
+            vec[i] = 0;
+        }
+        for (size_t m = 0; m <= n; ++m) {
+
+            if (m != n) {
+                vec[m] = 0;
             }
 
-            auto cf = wjr::subc_n(c.data(), a.data(), b.data(), n, 0u);
-            WJR_ASSERT(cf == 1);
+            auto idx = wjr::find_n(vec.data(), 0, n);
 
-            for (auto &i : c) {
-                WJR_ASSERT(i == -1ull);
+            WJR_ASSERT(idx == m);
+
+            if (m != n) {
+                vec[m] = -1;
             }
         }
     }
 }
 
-TEST(math, broadcast) {}
+TEST(math, find_not_n) {
+    std::vector<uint64_t> vec;
 
-TEST(math, find_not) {
-    {
-        std::vector<uint64_t> vec;
+    for (size_t n = 0; n < 128; ++n) {
+        vec.resize(n + 32);
+        for (size_t i = 0; i < n; ++i) {
+            vec[i] = 0;
+        }
+        for (size_t i = n; i < n + 32; ++i) {
+            vec[i] = -1;
+        }
+        for (size_t m = 0; m <= n; ++m) {
 
-        for (size_t n = 0; n < 128; ++n) {
-            vec.resize(n + 32);
-            for (int i = 0; i < n; ++i) {
-                vec[i] = 0;
+            if (m != n) {
+                vec[m] = -1;
             }
-            for (int i = n; i < n + 32; ++i) {
-                vec[i] = -1;
-            }
-            for (size_t m = 0; m <= n; ++m) {
 
-                if (m != n) {
-                    vec[m] = -1;
-                }
+            auto idx = wjr::find_not_n(vec.data(), 0, n);
 
-                auto idx = wjr::find_not(vec.data(), n, 0);
+            WJR_ASSERT(idx == m);
 
-                WJR_ASSERT(idx == m);
-
-                if (m != n) {
-                    vec[m] = 0;
-                }
+            if (m != n) {
+                vec[m] = 0;
             }
         }
     }
 }
 
-TEST(math, replace_val) {
+TEST(math, reverse_find_n) {
+    std::vector<uint64_t> vec;
+
+    for (size_t n = 0; n < 128; ++n) {
+        vec.resize(n + 32);
+        for (size_t i = 0; i < n; ++i) {
+            vec[i] = -1;
+        }
+        for (size_t i = n; i < n + 32; ++i) {
+            vec[i] = 0;
+        }
+        for (size_t m = 0; m <= n; ++m) {
+
+            if (m != n) {
+                vec[n - m - 1] = 0;
+            }
+
+            auto idx = wjr::reverse_find_n(vec.data(), 0, n);
+
+            WJR_ASSERT(idx == n - m);
+
+            if (m != n) {
+                vec[n - m - 1] = -1;
+            }
+        }
+    }
+}
+
+TEST(math, reverse_find_not_n) {
+    std::vector<uint64_t> vec;
+
+    for (size_t n = 0; n < 128; ++n) {
+        vec.resize(n + 32);
+        for (size_t i = 0; i < n; ++i) {
+            vec[i] = 0;
+        }
+        for (size_t i = n; i < n + 32; ++i) {
+            vec[i] = -1;
+        }
+        for (size_t m = 0; m <= n; ++m) {
+
+            if (m != n) {
+                vec[n - m - 1] = -1;
+            }
+
+            auto idx = wjr::reverse_find_not_n(vec.data(), 0, n);
+
+            WJR_ASSERT(idx == n - m);
+
+            if (m != n) {
+                vec[n - m - 1] = 0;
+            }
+        }
+    }
+}
+
+TEST(math, replace_find_not) {
     {
         std::vector<uint64_t> a, b;
 
@@ -751,19 +919,19 @@ TEST(math, replace_val) {
 
             for (size_t m = 0; m <= n; ++m) {
 
-                for (int i = 0; i < n; ++i) {
+                for (size_t i = 0; i < n; ++i) {
                     a[i] = 0;
                 }
 
-                for (int i = n; i < n + 32; ++i) {
+                for (size_t i = n; i < n + 32; ++i) {
                     a[i] = -1;
                 }
 
-                for (int i = 0; i < n; ++i) {
+                for (size_t i = 0; i < n; ++i) {
                     b[i] = 0;
                 }
 
-                for (int i = n; i < n + 32; ++i) {
+                for (size_t i = n; i < n + 32; ++i) {
                     b[i] = -1;
                 }
 
@@ -771,7 +939,7 @@ TEST(math, replace_val) {
                     a[m] = -1;
                 }
 
-                auto idx = wjr::replace_val(b.data(), a.data(), n, 0, 1);
+                auto idx = wjr::replace_find_not(b.data(), a.data(), n, 0, 1);
 
                 WJR_ASSERT(idx == m);
 
@@ -785,7 +953,7 @@ TEST(math, replace_val) {
                     }
                 }
 
-                idx = wjr::replace_val(a.data(), a.data(), n, 0, 0);
+                idx = wjr::replace_find_not(a.data(), a.data(), n, 0, 0);
 
                 WJR_ASSERT(idx == m);
 
@@ -794,13 +962,13 @@ TEST(math, replace_val) {
                 }
 
                 if (n != m) {
-                    WJR_ASSERT(a[m] == -1);
+                    WJR_ASSERT(a[m] == -1ull);
                     for (size_t i = m + 1; i < n; ++i) {
                         WJR_ASSERT(a[i] == 0);
                     }
                 }
 
-                idx = wjr::replace_val(a.data(), a.data(), n, 0, 1);
+                idx = wjr::replace_find_not(a.data(), a.data(), n, 0, 1);
 
                 WJR_ASSERT(idx == m);
 
@@ -809,12 +977,144 @@ TEST(math, replace_val) {
                 }
 
                 if (n != m) {
-                    WJR_ASSERT(a[m] == -1);
+                    WJR_ASSERT(a[m] == -1ull);
                     for (size_t i = m + 1; i < n; ++i) {
                         WJR_ASSERT(a[i] == 0);
                     }
                 }
             }
+        }
+    }
+}
+
+TEST(math, not ) {
+    std::vector<uint64_t> a, b;
+    for (size_t n = 0; n <= 128; ++n) {
+        a.resize(n);
+        b.resize(n);
+        for (auto &i : a) {
+            i = 0;
+        }
+
+        wjr::not_n(b.data(), a.data(), n);
+        for (auto &i : b) {
+            WJR_ASSERT(i == -1ull);
+        }
+
+        wjr::not_n(a.data(), a.data(), n);
+        for (auto &i : a) {
+            WJR_ASSERT(i == -1ull);
+        }
+    }
+}
+
+TEST(math, neg) {
+    std::mt19937_64 mt_rand(time(0));
+    std::vector<uint64_t> a, b, c;
+    for (size_t n = 0; n <= 128; ++n) {
+        a.resize(n);
+        b.resize(n);
+        c.resize(n);
+        for (size_t m = 0; m <= n; ++m) {
+            for (size_t i = 0; i < m; ++i) {
+                a[i] = 0;
+            }
+            uint64_t xx = 0;
+            if (n != m) {
+                do {
+                    xx = a[m] = mt_rand();
+                } while (!xx);
+                for (size_t i = m + 1; i < n; ++i) {
+                    a[i] = mt_rand();
+                }
+            }
+
+            c = a;
+
+            for (auto &i : b) {
+                i = -1;
+            }
+
+            bool zero = wjr::neg_n(b.data(), a.data(), n);
+
+            if (n == m) {
+                WJR_ASSERT(zero);
+            } else {
+                WJR_ASSERT(!zero);
+            }
+
+            for (size_t i = 0; i < m; ++i) {
+                WJR_ASSERT(b[i] == 0);
+            }
+
+            if (n != m) {
+                WJR_ASSERT(b[m] == -xx);
+                for (size_t i = m + 1; i < n; ++i) {
+                    WJR_ASSERT(b[i] == ~c[i]);
+                }
+            }
+
+            auto cf = wjr::addc_n(c.data(), a.data(), b.data(), n, 0u);
+            if (n != m) {
+                WJR_ASSERT(cf);
+            } else {
+                WJR_ASSERT(!cf);
+            }
+
+            for (size_t i = 0; i < n; ++i) {
+                WJR_ASSERT(c[i] == 0);
+            }
+        }
+    }
+}
+
+TEST(math, set) {
+    std::mt19937_64 mt_rand(time(0));
+    std::vector<uint64_t> a;
+    for (size_t n = 0; n <= 128; ++n) {
+        a.resize(n);
+
+        uint64_t b = mt_rand();
+
+        for (auto &i : a) {
+            i = mt_rand();
+        }
+
+        wjr::set_n(a.data(), b, n);
+
+        for (auto &i : a) {
+            WJR_ASSERT(i == b);
+        }
+    }
+}
+
+TEST(math, compare) {
+    std::mt19937_64 mt_rand(time(0));
+    std::vector<uint64_t> a, b;
+    for (size_t n = 0; n <= 128; ++n) {
+        b.resize(n);
+        for (size_t m = 0; m <= n; ++m) {
+            for (auto &i : a) {
+                i = mt_rand();
+            }
+            b = a;
+
+            if (n != m) {
+                ++b[m];
+            }
+
+            auto f = wjr::compare_n(a.data(), b.data(), n);
+            if (n == m) {
+                WJR_ASSERT(f == 0);
+                continue;
+            }
+
+            WJR_ASSERT(f == -1);
+
+            b[m] -= 2;
+            f = wjr::compare_n(a.data(), b.data(), n);
+
+            WJR_ASSERT(f == 1);
         }
     }
 }
