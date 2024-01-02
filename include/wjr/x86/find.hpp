@@ -17,14 +17,11 @@ namespace wjr {
 #define WJR_HAS_BUILTIN_REVERSE_FIND_NOT_P WJR_HAS_DEF
 #endif
 
-template <typename Ret>
-using __builtin_find_p_ret_t = std::invoke_result_t<Ret>;
-
 #if WJR_HAS_BUILTIN(FIND_P)
 
 template <typename T, typename Ret>
-WJR_INLINE __builtin_find_p_ret_t<Ret> builtin_find_p(const T *src0, const T *src1,
-                                                      size_t n, Ret ret) {
+WJR_INLINE std::invoke_result_t<Ret> builtin_find_p(const T *src0, const T *src1,
+                                                    size_t n, Ret ret) {
 #define WJR_REGISTER_FIND_P_L1(index)                                                    \
     if (src0[(index)] == src1[(index)]) {                                                \
         return ret((index));                                                             \
@@ -59,8 +56,8 @@ WJR_INLINE __builtin_find_p_ret_t<Ret> builtin_find_p(const T *src0, const T *sr
 }
 
 template <typename T, typename Ret>
-WJR_INLINE __builtin_find_p_ret_t<Ret> builtin_find_p(const T *src, T val, size_t n,
-                                                      Ret ret) {
+WJR_INLINE std::invoke_result_t<Ret> builtin_find_p(const T *src, T val, size_t n,
+                                                    Ret ret) {
 #define WJR_REGISTER_FIND_P_L1(index)                                                    \
     if (src[(index)] == val) {                                                           \
         return ret((index));                                                             \
@@ -100,8 +97,8 @@ WJR_INLINE __builtin_find_p_ret_t<Ret> builtin_find_p(const T *src, T val, size_
 #if WJR_HAS_BUILTIN(FIND_NOT_P)
 
 template <typename T, typename Ret>
-WJR_INLINE __builtin_find_p_ret_t<Ret> builtin_find_not_p(const T *src0, const T *src1,
-                                                          size_t n, Ret ret) {
+WJR_INLINE std::invoke_result_t<Ret> builtin_find_not_p(const T *src0, const T *src1,
+                                                        size_t n, Ret ret) {
 #define WJR_REGISTER_FIND_NOT_P_L1(index)                                                \
     if (src0[(index)] != src1[(index)]) {                                                \
         return ret((index));                                                             \
@@ -136,8 +133,8 @@ WJR_INLINE __builtin_find_p_ret_t<Ret> builtin_find_not_p(const T *src0, const T
 }
 
 template <typename T, typename Ret>
-WJR_INLINE __builtin_find_p_ret_t<Ret> builtin_find_not_p(const T *src, T val, size_t n,
-                                                          Ret ret) {
+WJR_INLINE std::invoke_result_t<Ret> builtin_find_not_p(const T *src, T val, size_t n,
+                                                        Ret ret) {
 #define WJR_REGISTER_FIND_NOT_P_L1(index)                                                \
     if (src[(index)] != val) {                                                           \
         return ret((index));                                                             \
@@ -178,8 +175,8 @@ WJR_INLINE __builtin_find_p_ret_t<Ret> builtin_find_not_p(const T *src, T val, s
 #if WJR_HAS_BUILTIN(REVERSE_FIND_P)
 
 template <typename T, typename Ret>
-WJR_INLINE __builtin_find_p_ret_t<Ret>
-builtin_reverse_find_p(const T *src0, const T *src1, size_t n, Ret ret) {
+WJR_INLINE std::invoke_result_t<Ret> builtin_reverse_find_p(const T *src0, const T *src1,
+                                                            size_t n, Ret ret) {
 #define WJR_REGISTER_REVERSE_FIND_P_L1(index)                                            \
     if (src0[-1 - (index)] == src1[-1 - (index)]) {                                      \
         return ret((index));                                                             \
@@ -217,8 +214,8 @@ builtin_reverse_find_p(const T *src0, const T *src1, size_t n, Ret ret) {
 }
 
 template <typename T, typename Ret>
-WJR_INLINE __builtin_find_p_ret_t<Ret> builtin_reverse_find_p(const T *src, T val,
-                                                              size_t n, Ret ret) {
+WJR_INLINE std::invoke_result_t<Ret> builtin_reverse_find_p(const T *src, T val, size_t n,
+                                                            Ret ret) {
 #define WJR_REGISTER_FIND_P_L1(index)                                                    \
     if (src[-1 - (index)] == val) {                                                      \
         return ret((index));                                                             \
@@ -260,7 +257,7 @@ WJR_INLINE __builtin_find_p_ret_t<Ret> builtin_reverse_find_p(const T *src, T va
 #if WJR_HAS_BUILTIN(REVERSE_FIND_NOT_P)
 
 template <typename T, typename Ret>
-WJR_INLINE __builtin_find_p_ret_t<Ret>
+WJR_INLINE std::invoke_result_t<Ret>
 builtin_reverse_find_not_p(const T *src0, const T *src1, size_t n, Ret ret) {
 #define WJR_REGISTER_FIND_NOT_P_L1(index)                                                \
     if (src0[-1 - (index)] != src1[-1 - (index)]) {                                      \
@@ -299,8 +296,8 @@ builtin_reverse_find_not_p(const T *src0, const T *src1, size_t n, Ret ret) {
 }
 
 template <typename T, typename Ret>
-WJR_INLINE __builtin_find_p_ret_t<Ret> builtin_reverse_find_not_p(const T *src, T val,
-                                                                  size_t n, Ret ret) {
+WJR_INLINE std::invoke_result_t<Ret> builtin_reverse_find_not_p(const T *src, T val,
+                                                                size_t n, Ret ret) {
 #define WJR_REGISTER_REVERSE_FIND_NOT_P_L1(index)                                        \
     if (src[-1 - (index)] != val) {                                                      \
         return ret((index));                                                             \

@@ -9,12 +9,9 @@
 
 namespace wjr {
 
-template <typename Ret>
-using __find_p_ret_t = std::invoke_result_t<Ret>;
-
 template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret> fallback_find_p(const T *src0, const T *src1,
-                                                            size_t n, Ret ret) {
+WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
+fallback_find_p(const T *src0, const T *src1, size_t n, Ret ret) {
     size_t idx = 0;
 
     WJR_UNROLL(4)
@@ -28,8 +25,8 @@ WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret> fallback_find_p(const T *src0, const
 }
 
 template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret> find_p(const T *src0, const T *src1, size_t n,
-                                                   Ret ret) {
+WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret> find_p(const T *src0, const T *src1,
+                                                         size_t n, Ret ret) {
 #if WJR_HAS_BUILTIN(FIND_P)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {
@@ -46,8 +43,8 @@ WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret> find_p(const T *src0, const T *src1,
 }
 
 template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret> fallback_find_p(const T *src, T val, size_t n,
-                                                            Ret ret) {
+WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret> fallback_find_p(const T *src, T val,
+                                                                  size_t n, Ret ret) {
     size_t idx = 0;
 
     WJR_UNROLL(4)
@@ -61,8 +58,8 @@ WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret> fallback_find_p(const T *src, T val,
 }
 
 template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret> find_p(const T *src, type_identity_t<T> val,
-                                                   size_t n, Ret ret) {
+WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
+find_p(const T *src, type_identity_t<T> val, size_t n, Ret ret) {
 #if WJR_HAS_BUILTIN(FIND_P)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {
@@ -79,7 +76,7 @@ WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret> find_p(const T *src, type_identity_t
 }
 
 template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret>
+WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
 fallback_find_not_p(const T *src0, const T *src1, size_t n, Ret ret) {
     size_t idx = 0;
 
@@ -94,8 +91,8 @@ fallback_find_not_p(const T *src0, const T *src1, size_t n, Ret ret) {
 }
 
 template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret> find_not_p(const T *src0, const T *src1,
-                                                       size_t n, Ret ret) {
+WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret> find_not_p(const T *src0, const T *src1,
+                                                             size_t n, Ret ret) {
 #if WJR_HAS_BUILTIN(FIND_P)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {
@@ -112,8 +109,8 @@ WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret> find_not_p(const T *src0, const T *s
 }
 
 template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret> fallback_find_not_p(const T *src, T val,
-                                                                size_t n, Ret ret) {
+WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret> fallback_find_not_p(const T *src, T val,
+                                                                      size_t n, Ret ret) {
     size_t idx = 0;
 
     WJR_UNROLL(4)
@@ -127,7 +124,7 @@ WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret> fallback_find_not_p(const T *src, T 
 }
 
 template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret>
+WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
 find_not_p(const T *src, type_identity_t<T> val, size_t n, Ret ret) {
 #if WJR_HAS_BUILTIN(FIND_P)
     if constexpr (sizeof(T) == 8) {
@@ -145,7 +142,7 @@ find_not_p(const T *src, type_identity_t<T> val, size_t n, Ret ret) {
 }
 
 template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret>
+WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
 fallback_reverse_find_p(const T *src0, const T *src1, size_t n, Ret ret) {
     size_t idx = 0;
 
@@ -163,8 +160,8 @@ fallback_reverse_find_p(const T *src0, const T *src1, size_t n, Ret ret) {
 }
 
 template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret> reverse_find_p(const T *src0, const T *src1,
-                                                           size_t n, Ret ret) {
+WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
+reverse_find_p(const T *src0, const T *src1, size_t n, Ret ret) {
 #if WJR_HAS_BUILTIN(FIND_P)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {
@@ -181,8 +178,8 @@ WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret> reverse_find_p(const T *src0, const 
 }
 
 template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret> fallback_reverse_find_p(const T *src, T val,
-                                                                    size_t n, Ret ret) {
+WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
+fallback_reverse_find_p(const T *src, T val, size_t n, Ret ret) {
     size_t idx = 0;
 
     src += n;
@@ -198,7 +195,7 @@ WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret> fallback_reverse_find_p(const T *src
 }
 
 template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret>
+WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
 reverse_find_p(const T *src, type_identity_t<T> val, size_t n, Ret ret) {
 #if WJR_HAS_BUILTIN(FIND_P)
     if constexpr (sizeof(T) == 8) {
@@ -216,7 +213,7 @@ reverse_find_p(const T *src, type_identity_t<T> val, size_t n, Ret ret) {
 }
 
 template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret>
+WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
 fallback_reverse_find_not_p(const T *src0, const T *src1, size_t n, Ret ret) {
     size_t idx = 0;
 
@@ -234,7 +231,7 @@ fallback_reverse_find_not_p(const T *src0, const T *src1, size_t n, Ret ret) {
 }
 
 template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret>
+WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
 reverse_find_not_p(const T *src0, const T *src1, size_t n, Ret ret) {
 #if WJR_HAS_BUILTIN(FIND_P)
     if constexpr (sizeof(T) == 8) {
@@ -252,7 +249,7 @@ reverse_find_not_p(const T *src0, const T *src1, size_t n, Ret ret) {
 }
 
 template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret>
+WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
 fallback_reverse_find_not_p(const T *src, type_identity_t<T> val, size_t n, Ret ret) {
     size_t idx = 0;
 
@@ -269,8 +266,8 @@ fallback_reverse_find_not_p(const T *src, type_identity_t<T> val, size_t n, Ret 
 }
 
 template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR __find_p_ret_t<Ret> reverse_find_not_p(const T *src, T val,
-                                                               size_t n, Ret ret) {
+WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret> reverse_find_not_p(const T *src, T val,
+                                                                     size_t n, Ret ret) {
 #if WJR_HAS_BUILTIN(FIND_P)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {
