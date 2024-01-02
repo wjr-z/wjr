@@ -13,7 +13,7 @@ int fallback_ctz_impl(T x) {
     return popcount<T>(lowbit(x) - 1);
 #else
     constexpr auto nd = std::numeric_limits<T>::digits;
-    
+
     if constexpr (nd < 32) {
         return fallback_ctz_impl(static_cast<uint32_t>(x));
     } else {
@@ -89,7 +89,7 @@ int builtin_ctz(T x) {
 
 #endif
 
-template <typename T>
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
 int ctz(T x) {
 #if WJR_HAS_BUILTIN(CTZ)

@@ -111,7 +111,7 @@ int builtin_clz(T x) {
 
 #endif
 
-template <typename T>
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
 int clz(T x) {
 #if WJR_HAS_BUILTIN(CLZ)
