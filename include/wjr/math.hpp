@@ -4,5 +4,6 @@
 #include <wjr/math/sub.hpp>
 #include <wjr/math/clz.hpp>
 #include <wjr/math/mul.hpp>
+#include <wjr/math/compare.hpp>
 
 #endif // WJR_MATH_HPP__
