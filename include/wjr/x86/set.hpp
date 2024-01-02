@@ -33,7 +33,7 @@ WJR_INLINE void builtin_set_n(T *dst, T val, size_t n) {
 
     WJR_GEN_NOFAST_1_2_8(WJR_REGISTER_SET_N_L1, WJR_REGISTER_SET_N_L2,
                          WJR_REGISTER_SET_N_L8, WJR_PP_EMPTY, WJR_REGISTER_SET_N_I2,
-                         WJR_PP_EMPTY, WJR_PP_EMPTY)
+                         WJR_PP_EMPTY, WJR_PP_EMPTY);
 
 #undef WJR_REGISTER_SET_N_I2
 #undef WJR_REGISTER_SET_N_L8

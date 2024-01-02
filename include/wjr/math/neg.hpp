@@ -2,7 +2,7 @@
 #define WJR_MATH_NEG_HPP__
 
 #include <wjr/math/not.hpp>
-#include <wjr/math/sub.hpp>
+#include <wjr/math/replace.hpp>
 
 namespace wjr {
 

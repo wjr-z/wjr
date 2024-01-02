@@ -98,6 +98,6 @@
         } while (WJR_LIKELY(gen_offset != n));                                           \
                                                                                          \
         return RET();                                                                    \
-    } while (0);
+    } while (0)
 
 #endif // WJR_GEN_FAST_1_2_8_HPP__

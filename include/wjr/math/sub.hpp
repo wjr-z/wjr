@@ -5,7 +5,6 @@
 #include <wjr/math/neg.hpp>
 #include <wjr/math/replace.hpp>
 
-
 #if defined(WJR_X86)
 #include <wjr/x86/sub.hpp>
 #endif
@@ -203,8 +202,8 @@ WJR_INTRINSIC_CONSTEXPR U subc_n(T *dst, const T *src0, const T *src1, size_t n,
 template <
     typename T, typename U,
     std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR U subc(T *dst, const T *src0, size_t n, const T *src1, size_t m,
-                               U c_in) {
+WJR_INTRINSIC_CONSTEXPR U subc_s(T *dst, const T *src0, size_t n, const T *src1, size_t m,
+                                 U c_in) {
     WJR_ASSUME(n >= m);
     WJR_ASSERT(n >= m);
 
@@ -241,14 +240,15 @@ WJR_INTRINSIC_CONSTEXPR int abs_subc_n(T *dst, const T *src0, const T *src1, siz
     return c;
 }
 
+// dst = abs(src0 - src1)
+// return compare(src0, src1)
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR int abs_subc(T *dst, const T *src0, size_t n, const T *src1,
-                                     size_t m) {
+WJR_INTRINSIC_CONSTEXPR int abs_subc_s(T *dst, const T *src0, size_t n, const T *src1,
+                                       size_t m) {
     WJR_ASSERT(n >= m);
     WJR_ASSUME(n >= m);
 
     size_t delta = n - m;
-
     size_t idx = reverse_find_not_n(src0 + m, 0u, delta);
 
     if (dst != src0) {
@@ -259,7 +259,7 @@ WJR_INTRINSIC_CONSTEXPR int abs_subc(T *dst, const T *src0, size_t n, const T *s
         return abs_subc_n(dst, src0, src1, m);
     }
 
-    auto cf = subc(dst, src0, n - (delta - idx), src1, m, 0u);
+    auto cf = subc_s(dst, src0, n - (delta - idx), src1, m, 0u);
     WJR_ASSERT(cf == 0);
     WJR_ASSUME(cf == 0);
     (void)(cf);

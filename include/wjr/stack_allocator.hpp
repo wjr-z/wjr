@@ -40,7 +40,7 @@ public:
     basic_stack_allocator &operator=(const basic_stack_allocator &) = delete;
     ~basic_stack_allocator() { WJR_ASSERT(alloc.get() == bytes); }
 
-    WJR_ATTRIBUTES(NODISCARD, INTRINSIC_CONSTEXPR20) void *allocate(size_t n) {
+    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 void *allocate(size_t n) {
         return alloc.allocate(n);
     }
 
@@ -75,7 +75,7 @@ class stack_allocator {
         basic_stack_allocator<cache, alignment> alloc;
     };
 
-    WJR_INTRINSIC_CONSTEXPR20 void malloc_node() {
+    WJR_INLINE_CONSTEXPR20 void malloc_node() {
         WJR_ASSERT(rest == 0);
         rest = 1;
         auto node = new stack_node;
@@ -89,7 +89,7 @@ class stack_allocator {
         tail = node;
     }
 
-    WJR_ATTRIBUTES(NODISCARD, INTRINSIC_CONSTEXPR20) void *allocate_small(size_t n) {
+    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 void *allocate_small(size_t n) {
         if constexpr (cache_blocks != 0) {
             WJR_ASSERT(ptr != nullptr);
 
@@ -114,7 +114,7 @@ class stack_allocator {
         return ptr->alloc.allocate(n);
     }
 
-    WJR_ATTRIBUTES(NODISCARD, INTRINSIC_CONSTEXPR20) void *allocate_large(size_t n) {
+    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 void *allocate_large(size_t n) {
         return malloc(n);
     }
 
@@ -152,7 +152,7 @@ public:
     stack_allocator(const stack_allocator &) = delete;
     stack_allocator &operator=(const stack_allocator &) = delete;
 
-    WJR_ATTRIBUTES(NODISCARD, INTRINSIC_CONSTEXPR20) void *allocate(size_t n) {
+    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 void *allocate(size_t n) {
         if (WJR_UNLIKELY(n >= obj_threashold)) {
             return allocate_large(n);
         }
@@ -179,12 +179,12 @@ private:
 template <typename StackAllocator>
 class unique_stack_ptr {
 public:
-    WJR_CONSTEXPR20 unique_stack_ptr(StackAllocator &al, size_t size)
+    WJR_INTRINSIC_CONSTEXPR20 unique_stack_ptr(StackAllocator &al, size_t size)
         : al(al), size(size) {
         ptr = al.allocate(size);
     }
 
-    ~unique_stack_ptr() {
+    WJR_INTRINSIC_CONSTEXPR20 ~unique_stack_ptr() {
         if (ptr) {
             al.deallocate(ptr, size);
         }
@@ -193,9 +193,9 @@ public:
     unique_stack_ptr(const unique_stack_ptr &) = delete;
     unique_stack_ptr &operator=(const unique_stack_ptr &) = delete;
 
-    WJR_CONSTEXPR20 void *get() const { return ptr; }
+    WJR_INTRINSIC_CONSTEXPR20 void *get() const { return ptr; }
 
-    void release() {
+    WJR_INTRINSIC_CONSTEXPR20 void release() {
         al.deallocate(ptr, size);
         ptr = nullptr;
     }
