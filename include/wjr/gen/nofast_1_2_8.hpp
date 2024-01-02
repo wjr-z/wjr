@@ -1,7 +1,7 @@
 #ifndef WJR_GEN_NOFAST_1_2_8_HPP__
 #define WJR_GEN_NOFAST_1_2_8_HPP__
 
-#define WJR_GEN_NOFAST_1_2_8(LOOP1, LOOP2, LOOP8, INIT1, INIT2, INIT8, RET)              \
+#define WJR_GEN_SMALL_NOFAST_1_2_8(LOOP1, INIT1, RET, LARGE, ...)                        \
     do {                                                                                 \
         INIT1(0);                                                                        \
                                                                                          \
@@ -40,6 +40,11 @@
             --gen_n;                                                                     \
         }                                                                                \
                                                                                          \
+        LARGE(gen_offset, gen_n, __VA_ARGS__);                                           \
+    } while (0)
+
+#define WJR_GEN_LARGE_NOFAST_1_2_8(gen_offset, gen_n, LOOP2, LOOP8, INIT2, INIT8, RET)   \
+    do {                                                                                 \
         WJR_ASSUME(gen_n % 2 == 0);                                                      \
                                                                                          \
         INIT2(gen_offset);                                                               \
@@ -75,5 +80,9 @@
                                                                                          \
         return RET();                                                                    \
     } while (0)
+
+#define WJR_GEN_NOFAST_1_2_8(LOOP1, LOOP2, LOOP8, INIT1, INIT2, INIT8, RET)              \
+    WJR_GEN_SMALL_NOFAST_1_2_8(LOOP1, INIT1, RET, WJR_GEN_LARGE_NOFAST_1_2_8, LOOP2,     \
+                               LOOP8, INIT2, INIT8, RET)
 
 #endif //

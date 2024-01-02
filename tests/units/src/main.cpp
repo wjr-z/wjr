@@ -1092,29 +1092,44 @@ TEST(math, compare) {
     std::mt19937_64 mt_rand(time(0));
     std::vector<uint64_t> a, b;
     for (size_t n = 0; n <= 128; ++n) {
-        b.resize(n);
+        a.resize(n);
         for (size_t m = 0; m <= n; ++m) {
             for (auto &i : a) {
                 i = mt_rand();
             }
+
             b = a;
 
             if (n != m) {
-                ++b[m];
+                while (a[m] == -1ull) {
+                    a[m] = mt_rand();
+                }
+                b[m] = a[m] + 1;
             }
 
-            auto f = wjr::compare_n(a.data(), b.data(), n);
+            int f = wjr::compare_n(a.data(), b.data(), n);
             if (n == m) {
                 WJR_ASSERT(f == 0);
                 continue;
             }
 
-            WJR_ASSERT(f == -1);
+            if(f >= 0) {
+                for(auto i : a) {
+                    std::cout << i << ',';
+                }
+                std::cout << '\n';
+                 for(auto i : b) {
+                    std::cout << i << ',';
+                }
+                std::cout << '\n';
+            }
+
+            WJR_ASSERT(f < 0, "%d", f);
 
             b[m] -= 2;
             f = wjr::compare_n(a.data(), b.data(), n);
 
-            WJR_ASSERT(f == 1);
+            WJR_ASSERT(f > 0);
         }
     }
 }
