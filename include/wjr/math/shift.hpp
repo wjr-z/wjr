@@ -17,7 +17,6 @@ WJR_INTRINSIC_CONSTEXPR T fallback_shld(T hi, T lo, unsigned int c) {
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR T shld(T hi, T lo, unsigned int c) {
-
 #if WJR_HAS_BUILTIN(ASM_SHLD)
     if (is_constant_evaluated() || (WJR_BUILTIN_CONSTANT_P(c == 0) && c == 0)) {
         return fallback_shld(hi, lo, c);
@@ -37,7 +36,6 @@ WJR_INTRINSIC_CONSTEXPR T fallback_shrd(T lo, T hi, unsigned int c) {
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR T shrd(T lo, T hi, unsigned int c) {
-
 #if WJR_HAS_BUILTIN(ASM_SHRD)
     if (is_constant_evaluated() || (WJR_BUILTIN_CONSTANT_P(c == 0) && c == 0)) {
         return fallback_shrd(lo, hi, c);
@@ -63,6 +61,16 @@ WJR_INTRINSIC_CONSTEXPR T fallback_lshift_n(T *dst, const T *src, size_t n,
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR T lshift_n(T *dst, const T *src, size_t n, unsigned int c) {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+    if (WJR_BUILTIN_CONSTANT_P(c % nd == 0) && c % nd == 0) {
+        if (WJR_LIKELY(dst != src)) {
+            std::copy_backward(src, src + n, dst);
+        }
+
+        return 0;
+    }
+
 #if WJR_HAS_BUILTIN(LSHIFT_N)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {
@@ -92,6 +100,16 @@ WJR_INTRINSIC_CONSTEXPR T fallback_rshift_n(T *dst, const T *src, size_t n,
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR T rshift_n(T *dst, const T *src, size_t n, unsigned int c) {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+    if (WJR_BUILTIN_CONSTANT_P(c % nd == 0) && c % nd == 0) {
+        if (WJR_LIKELY(dst != src)) {
+            std::copy(src, src + n, dst);
+        }
+
+        return 0;
+    }
+
 #if WJR_HAS_BUILTIN(RSHIFT_N)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {

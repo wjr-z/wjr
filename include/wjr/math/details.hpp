@@ -50,10 +50,6 @@ bool is_power_of_two(T x) {
 template <typename T>
 WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
 T lowbit(T x) {
-    if (WJR_BUILTIN_CONSTANT_P(is_power_of_two(x)) && is_power_of_two(x)) {
-        return x;
-    }
-
     return x & -x;
 }
 

@@ -9,141 +9,143 @@
 
 namespace wjr {
 
-template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
-fallback_find_p(const T *src0, const T *src1, size_t n, Ret ret) {
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR size_t fallback_find_n(const T *src0, const T *src1, size_t n) {
     size_t idx = 0;
 
     WJR_UNROLL(4)
     for (; idx < n; ++idx) {
         if (src0[idx] == src1[idx]) {
-            return ret(idx);
+            break;
         }
     }
 
-    return ret();
+    return idx;
 }
 
-template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret> find_p(const T *src0, const T *src1,
-                                                         size_t n, Ret ret) {
-#if WJR_HAS_BUILTIN(FIND_P)
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR size_t find_n(const T *src0, const T *src1, size_t n) {
+    if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
+        return 0;
+    }
+
+#if WJR_HAS_BUILTIN(FIND_N)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {
-            return fallback_find_p(src0, src1, n, ret);
+            return fallback_find_n(src0, src1, n);
         }
 
-        return builtin_find_p(src0, src1, n, ret);
+        return builtin_find_n(src0, src1, n);
     } else {
-        return fallback_find_p(src0, src1, n, ret);
+        return fallback_find_n(src0, src1, n);
     }
 #else
-    return fallback_find_p(src0, src1, n, ret);
+    return fallback_find_n(src0, src1, n);
 #endif
 }
 
-template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret> fallback_find_p(const T *src, T val,
-                                                                  size_t n, Ret ret) {
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR size_t fallback_find_n(const T *src, T val, size_t n) {
     size_t idx = 0;
 
     WJR_UNROLL(4)
     for (; idx < n; ++idx) {
         if (src[idx] == val) {
-            return ret(idx);
+            break;
         }
     }
 
-    return ret();
+    return idx;
 }
 
-template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
-find_p(const T *src, type_identity_t<T> val, size_t n, Ret ret) {
-#if WJR_HAS_BUILTIN(FIND_P)
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR size_t find_n(const T *src, type_identity_t<T> val, size_t n) {
+#if WJR_HAS_BUILTIN(FIND_N)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {
-            return fallback_find_p(src, val, n, ret);
+            return fallback_find_n(src, val, n);
         }
 
-        return builtin_find_p(src, val, n, ret);
+        return builtin_find_n(src, val, n);
     } else {
-        return fallback_find_p(src, val, n, ret);
+        return fallback_find_n(src, val, n);
     }
 #else
-    return fallback_find_p(src, val, n, ret);
+    return fallback_find_n(src, val, n);
 #endif
 }
 
-template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
-fallback_find_not_p(const T *src0, const T *src1, size_t n, Ret ret) {
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR size_t fallback_find_not_n(const T *src0, const T *src1,
+                                                   size_t n) {
     size_t idx = 0;
 
     WJR_UNROLL(4)
     for (; idx < n; ++idx) {
         if (src0[idx] != src1[idx]) {
-            return ret(idx);
+            break;
         }
     }
 
-    return ret();
+    return idx;
 }
 
-template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret> find_not_p(const T *src0, const T *src1,
-                                                             size_t n, Ret ret) {
-#if WJR_HAS_BUILTIN(FIND_P)
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR size_t find_not_n(const T *src0, const T *src1, size_t n) {
+    if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
+        return n;
+    }
+
+#if WJR_HAS_BUILTIN(FIND_NOT_N)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {
-            return fallback_find_not_p(src0, src1, n, ret);
+            return fallback_find_not_n(src0, src1, n);
         }
 
-        return builtin_find_not_p(src0, src1, n, ret);
+        return builtin_find_not_n(src0, src1, n);
     } else {
-        return fallback_find_not_p(src0, src1, n, ret);
+        return fallback_find_not_n(src0, src1, n);
     }
 #else
-    return fallback_find_not_p(src0, src1, n, ret);
+    return fallback_find_not_n(src0, src1, n);
 #endif
 }
 
-template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret> fallback_find_not_p(const T *src, T val,
-                                                                      size_t n, Ret ret) {
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR size_t fallback_find_not_n(const T *src, T val, size_t n) {
     size_t idx = 0;
 
     WJR_UNROLL(4)
     for (; idx < n; ++idx) {
         if (src[idx] != val) {
-            return ret(idx);
+            break;
         }
     }
 
-    return ret();
+    return idx;
 }
 
-template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
-find_not_p(const T *src, type_identity_t<T> val, size_t n, Ret ret) {
-#if WJR_HAS_BUILTIN(FIND_P)
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR size_t find_not_n(const T *src, type_identity_t<T> val,
+                                          size_t n) {
+#if WJR_HAS_BUILTIN(FIND_NOT_N)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {
-            return fallback_find_not_p(src, val, n, ret);
+            return fallback_find_not_n(src, val, n);
         }
 
-        return builtin_find_not_p(src, val, n, ret);
+        return builtin_find_not_n(src, val, n);
     } else {
-        return fallback_find_not_p(src, val, n, ret);
+        return fallback_find_not_n(src, val, n);
     }
 #else
-    return fallback_find_not_p(src, val, n, ret);
+    return fallback_find_not_n(src, val, n);
 #endif
 }
 
-template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
-fallback_reverse_find_p(const T *src0, const T *src1, size_t n, Ret ret) {
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR size_t fallback_reverse_find_n(const T *src0, const T *src1,
+                                                       size_t n) {
     size_t idx = 0;
 
     src0 += n;
@@ -152,34 +154,36 @@ fallback_reverse_find_p(const T *src0, const T *src1, size_t n, Ret ret) {
     WJR_UNROLL(4)
     for (; idx < n; ++idx) {
         if (src0[-1 - idx] == src1[-1 - idx]) {
-            return ret(idx);
+            break;
         }
     }
 
-    return ret();
+    return n - idx;
 }
 
-template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
-reverse_find_p(const T *src0, const T *src1, size_t n, Ret ret) {
-#if WJR_HAS_BUILTIN(FIND_P)
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR size_t reverse_find_n(const T *src0, const T *src1, size_t n) {
+    if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
+        return n;
+    }
+
+#if WJR_HAS_BUILTIN(REVERSE_FIND_N)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {
-            return fallback_reverse_find_p(src0, src1, n, ret);
+            return fallback_reverse_find_n(src0, src1, n);
         }
 
-        return builtin_reverse_find_p(src0, src1, n, ret);
+        return builtin_reverse_find_n(src0, src1, n);
     } else {
-        return fallback_reverse_find_p(src0, src1, n, ret);
+        return fallback_reverse_find_n(src0, src1, n);
     }
 #else
-    return fallback_reverse_find_p(src0, src1, n, ret);
+    return fallback_reverse_find_n(src0, src1, n);
 #endif
 }
 
-template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
-fallback_reverse_find_p(const T *src, T val, size_t n, Ret ret) {
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR size_t fallback_reverse_find_n(const T *src, T val, size_t n) {
     size_t idx = 0;
 
     src += n;
@@ -187,34 +191,34 @@ fallback_reverse_find_p(const T *src, T val, size_t n, Ret ret) {
     WJR_UNROLL(4)
     for (; idx < n; ++idx) {
         if (src[-1 - idx] == val) {
-            return ret(idx);
+            break;
         }
     }
 
-    return ret();
+    return n - idx;
 }
 
-template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
-reverse_find_p(const T *src, type_identity_t<T> val, size_t n, Ret ret) {
-#if WJR_HAS_BUILTIN(FIND_P)
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR size_t reverse_find_n(const T *src, type_identity_t<T> val,
+                                              size_t n) {
+#if WJR_HAS_BUILTIN(REVERSE_FIND_N)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {
-            return fallback_reverse_find_p(src, val, n, ret);
+            return fallback_reverse_find_n(src, val, n);
         }
 
-        return builtin_reverse_find_p(src, val, n, ret);
+        return builtin_reverse_find_n(src, val, n);
     } else {
-        return fallback_reverse_find_p(src, val, n, ret);
+        return fallback_reverse_find_n(src, val, n);
     }
 #else
-    return fallback_reverse_find_p(src, val, n, ret);
+    return fallback_reverse_find_n(src, val, n);
 #endif
 }
 
-template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
-fallback_reverse_find_not_p(const T *src0, const T *src1, size_t n, Ret ret) {
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR size_t fallback_reverse_find_not_n(const T *src0, const T *src1,
+                                                           size_t n) {
     size_t idx = 0;
 
     src0 += n;
@@ -223,34 +227,38 @@ fallback_reverse_find_not_p(const T *src0, const T *src1, size_t n, Ret ret) {
     WJR_UNROLL(4)
     for (; idx < n; ++idx) {
         if (src0[-1 - idx] != src1[-1 - idx]) {
-            return ret(idx);
+            break;
         }
     }
 
-    return ret();
+    return n - idx;
 }
 
-template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
-reverse_find_not_p(const T *src0, const T *src1, size_t n, Ret ret) {
-#if WJR_HAS_BUILTIN(FIND_P)
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR size_t reverse_find_not_n(const T *src0, const T *src1,
+                                                  size_t n) {
+    if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
+        return 0;
+    }
+
+#if WJR_HAS_BUILTIN(REVERSE_FIND_NOT_N)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {
-            return fallback_reverse_find_not_p(src0, src1, n, ret);
+            return fallback_reverse_find_not_n(src0, src1, n);
         }
 
-        return builtin_reverse_find_not_p(src0, src1, n, ret);
+        return builtin_reverse_find_not_n(src0, src1, n);
     } else {
-        return fallback_reverse_find_not_p(src0, src1, n, ret);
+        return fallback_reverse_find_not_n(src0, src1, n);
     }
 #else
-    return fallback_reverse_find_not_p(src0, src1, n, ret);
+    return fallback_reverse_find_not_n(src0, src1, n);
 #endif
 }
 
-template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret>
-fallback_reverse_find_not_p(const T *src, type_identity_t<T> val, size_t n, Ret ret) {
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR size_t fallback_reverse_find_not_n(const T *src, T val,
+                                                           size_t n) {
     size_t idx = 0;
 
     src += n;
@@ -258,133 +266,29 @@ fallback_reverse_find_not_p(const T *src, type_identity_t<T> val, size_t n, Ret 
     WJR_UNROLL(4)
     for (; idx < n; ++idx) {
         if (src[-1 - idx] != val) {
-            return ret(idx);
+            break;
         }
     }
 
-    return ret();
-}
-
-template <typename T, typename Ret>
-WJR_INTRINSIC_CONSTEXPR std::invoke_result_t<Ret> reverse_find_not_p(const T *src, T val,
-                                                                     size_t n, Ret ret) {
-#if WJR_HAS_BUILTIN(FIND_P)
-    if constexpr (sizeof(T) == 8) {
-        if (is_constant_evaluated()) {
-            return fallback_reverse_find_not_p(src, val, n, ret);
-        }
-
-        return builtin_reverse_find_not_p(src, val, n, ret);
-    } else {
-        return fallback_reverse_find_not_p(src, val, n, ret);
-    }
-#else
-    return fallback_reverse_find_not_p(src, val, n, ret);
-#endif
-}
-
-template <typename T>
-WJR_INTRINSIC_CONSTEXPR size_t find_n(const T *src0, const T *src1, size_t n) {
-    return find_p(src0, src1, n, [n](auto &&...args) -> size_t {
-        if constexpr (sizeof...(args) == 0) {
-            return n;
-        } else {
-            return [](auto x) { return x; }(std::forward<decltype(args)>(args)...);
-        }
-        WJR_UNREACHABLE;
-    });
-}
-
-template <typename T>
-WJR_INTRINSIC_CONSTEXPR size_t find_n(const T *src, type_identity_t<T> val, size_t n) {
-    return find_p(src, val, n, [n](auto &&...args) -> size_t {
-        if constexpr (sizeof...(args) == 0) {
-            return n;
-        } else {
-            return [](auto x) { return x; }(std::forward<decltype(args)>(args)...);
-        }
-        WJR_UNREACHABLE;
-    });
-}
-
-template <typename T>
-WJR_INTRINSIC_CONSTEXPR size_t find_not_n(const T *src0, const T *src1, size_t n) {
-    return find_not_p(src0, src1, n, [n](auto &&...args) -> size_t {
-        if constexpr (sizeof...(args) == 0) {
-            return n;
-        } else {
-            return [](auto x) { return x; }(std::forward<decltype(args)>(args)...);
-        }
-        WJR_UNREACHABLE;
-    });
-}
-
-template <typename T>
-WJR_INTRINSIC_CONSTEXPR size_t find_not_n(const T *src, type_identity_t<T> val,
-                                          size_t n) {
-    return find_not_p(src, val, n, [n](auto &&...args) -> size_t {
-        if constexpr (sizeof...(args) == 0) {
-            return n;
-        } else {
-            return [](auto x) { return x; }(std::forward<decltype(args)>(args)...);
-        }
-        WJR_UNREACHABLE;
-    });
-}
-
-template <typename T>
-WJR_INTRINSIC_CONSTEXPR size_t reverse_find_n(const T *src0, const T *src1, size_t n) {
-    return reverse_find_p(src0, src1, n, [n_copy = n](auto &&...args) -> size_t {
-        if constexpr (sizeof...(args) == 0) {
-            return 0;
-        } else {
-            return
-                [=](auto x) { return n_copy - x; }(std::forward<decltype(args)>(args)...);
-        }
-        WJR_UNREACHABLE;
-    });
-}
-
-template <typename T>
-WJR_INTRINSIC_CONSTEXPR size_t reverse_find_n(const T *src, type_identity_t<T> val,
-                                              size_t n) {
-    return reverse_find_p(src, val, n, [n_copy = n](auto &&...args) -> size_t {
-        if constexpr (sizeof...(args) == 0) {
-            return 0;
-        } else {
-            return
-                [=](auto x) { return n_copy - x; }(std::forward<decltype(args)>(args)...);
-        }
-        WJR_UNREACHABLE;
-    });
-}
-
-template <typename T>
-WJR_INTRINSIC_CONSTEXPR size_t reverse_find_not_n(const T *src0, const T *src1,
-                                                  size_t n) {
-    return reverse_find_not_p(src0, src1, n, [n_copy = n](auto &&...args) -> size_t {
-        if constexpr (sizeof...(args) == 0) {
-            return 0;
-        } else {
-            return
-                [=](auto x) { return n_copy - x; }(std::forward<decltype(args)>(args)...);
-        }
-        WJR_UNREACHABLE;
-    });
+    return n - idx;
 }
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR size_t reverse_find_not_n(const T *src, type_identity_t<T> val,
                                                   size_t n) {
-    return reverse_find_not_p(src, val, n, [n_copy = n](auto &&...args) -> size_t {
-        if constexpr (sizeof...(args) == 0) {
-            return 0;
-        } else {
-            return
-                [=](auto x) { return n_copy - x; }(std::forward<decltype(args)>(args)...);
+#if WJR_HAS_BUILTIN(REVERSE_FIND_NOT_N)
+    if constexpr (sizeof(T) == 8) {
+        if (is_constant_evaluated()) {
+            return fallback_reverse_find_not_n(src, val, n);
         }
-        WJR_UNREACHABLE;
-    });
+
+        return builtin_reverse_find_not_n(src, val, n);
+    } else {
+        return fallback_reverse_find_not_n(src, val, n);
+    }
+#else
+    return fallback_reverse_find_not_n(src, val, n);
+#endif
 }
 
 } // namespace wjr

@@ -204,8 +204,8 @@ template <
     std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR U subc_s(T *dst, const T *src0, size_t n, const T *src1, size_t m,
                                  U c_in) {
-    WJR_ASSUME(n >= m);
     WJR_ASSERT(n >= m);
+    WJR_ASSUME(n >= m);
 
     c_in = subc_n(dst, src0, src1, m, c_in);
 
@@ -259,7 +259,7 @@ WJR_INTRINSIC_CONSTEXPR int abs_subc_s(T *dst, const T *src0, size_t n, const T 
         return abs_subc_n(dst, src0, src1, m);
     }
 
-    auto cf = subc_s(dst, src0, n - (delta - idx), src1, m, 0u);
+    auto cf = subc_s(dst, src0, m + idx, src1, m, 0u);
     WJR_ASSERT(cf == 0);
     WJR_ASSUME(cf == 0);
     (void)(cf);

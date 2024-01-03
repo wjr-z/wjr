@@ -18,6 +18,7 @@ WJR_INTRINSIC_CONSTEXPR size_t replace_find_not(T *dst, const T *src, size_t n,
     if (WJR_UNLIKELY(dst == src && from == to)) {
         return ret;
     }
+    
     set_n(dst, to, ret);
     return ret;
 }

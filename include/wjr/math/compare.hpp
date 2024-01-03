@@ -1,44 +1,80 @@
 #ifndef WJR_MATH_CMP_HPP__
 #define WJR_MATH_CMP_HPP__
 
-#include <wjr/math/find.hpp>
+#include <wjr/simd/simd.hpp>
+
+#if defined(WJR_X86)
+#include <wjr/x86/compare.hpp>
+#endif
 
 namespace wjr {
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR int compare_n(const T *src0, const T *src1, size_t n) {
-    if constexpr (sizeof(T) == 1) {
-        return ::memcmp(src0, src1, n);
-    } else {
-        return find_not_p(src0, src1, n,
-                      [src0_copy = src0, src1_copy = src1](auto &&...args) -> int {
-                          if constexpr (sizeof...(args) == 0) {
-                              return 0;
-                          } else {
-                              return [=](auto idx) {
-                                  return src0_copy[idx] < src1_copy[idx] ? -1 : 1;
-                              }(std::forward<decltype(args)>(args)...);
-                          }
-                          WJR_UNREACHABLE;
-                      });
+WJR_INTRINSIC_CONSTEXPR int fallback_compare_n(const T *src0, const T *src1, size_t n) {
+    for (size_t idx = 0; idx < n; ++idx) {
+        if (src0[idx] != src1[idx]) {
+            return src0[idx] < src1[idx] ? -1 : 1;
+        }
     }
+
+    return 0;
+}
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR int compare_n(const T *src0, const T *src1, size_t n) {
+    if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
+        return 0;
+    }
+
+#if WJR_HAS_BUILTIN(COMPARE_N)
+    if constexpr (sizeof(T) == 8) {
+        if (is_constant_evaluated()) {
+            return fallback_compare_n(src0, src1, n);
+        }
+
+        return builtin_compare_n(src0, src1, n);
+    } else {
+        return fallback_compare_n(src0, src1, n);
+    }
+#else
+    return fallback_compare_n(src0, src1, n);
+#endif
+}
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR int fallback_reverse_compare_n(const T *src0, const T *src1,
+                                                       size_t n) {
+    src0 += n;
+    src1 += n;
+
+    for (size_t idx = 0; idx < n; ++idx) {
+        if (src0[-1 - idx] != src1[-1 - idx]) {
+            return src0[-1 - idx] < src1[-1 - idx] ? -1 : 1;
+        }
+    }
+
+    return 0;
 }
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR int reverse_compare_n(const T *src0, const T *src1, size_t n) {
-    return reverse_find_not_p(
-        src0, src1, n,
-        [src0_copy = src0, src1_copy = src1, n_copy = n](auto &&...args) -> int {
-            if constexpr (sizeof...(args) == 0) {
-                return 0;
-            } else {
-                return [=](auto idx) {
-                    return src0_copy[n_copy - idx - 1] < src1_copy[n_copy - idx - 1] ? -1
-                                                                                     : 1;
-                }(std::forward<decltype(args)>(args)...);
-            }
-            WJR_UNREACHABLE;
-        });
+    if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
+        return 0;
+    }
+
+#if WJR_HAS_BUILTIN(COMPARE_N)
+    if constexpr (sizeof(T) == 8) {
+        if (is_constant_evaluated()) {
+            return fallback_reverse_compare_n(src0, src1, n);
+        }
+
+        return builtin_reverse_compare_n(src0, src1, n);
+    } else {
+        return fallback_reverse_compare_n(src0, src1, n);
+    }
+#else
+    return fallback_reverse_compare_n(src0, src1, n);
+#endif
 }
 
 } // namespace wjr

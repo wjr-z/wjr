@@ -301,7 +301,7 @@ WJR_CONSTEXPR20 void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1
 
 // native default threshold of toom-cook-2
 // TODO : optimize threshold
-#if !defined(WJR_TOOM2_MUL_THRESHOLD)
+#ifndef WJR_TOOM2_MUL_THRESHOLD
 #define WJR_TOOM2_MUL_THRESHOLD 26
 #endif
 

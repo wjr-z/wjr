@@ -3,7 +3,7 @@
 
 #include <wjr/type_traits.hpp>
 
-#if !defined(WJR_X86)
+#ifndef WJR_X86
 #error "x86 required"
 #endif
 

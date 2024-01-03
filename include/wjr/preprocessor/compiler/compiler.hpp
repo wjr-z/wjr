@@ -67,7 +67,7 @@
 #define WJR_CPP_20
 #endif
 
-#if !defined(WJR_CPP_17)
+#ifndef WJR_CPP_17
 #error "required C++17 or later"
 #endif // c++17
 
