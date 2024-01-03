@@ -136,8 +136,8 @@ using uint64_t = uint_t<64>;
 using uint128_t = uint_t<128>;
 #endif
 
-using intptr_t = int_t<sizeof(void *) * 8>;
-using uintptr_t = uint_t<sizeof(void *) * 8>;
+using intptr_t = std::intptr_t;
+using uintptr_t = std::uintptr_t;
 
 using std_int8_t = std::int8_t;
 using std_int16_t = std::int16_t;

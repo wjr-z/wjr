@@ -19,7 +19,7 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(SET_N)
 
 template <typename T>
-WJR_COLD void large_builtin_set_n(T *dst, T val, size_t n) {
+void large_builtin_set_n(T *dst, T val, size_t n) {
     constexpr auto nd = std::numeric_limits<T>::digits;
     constexpr auto is_avx = WJR_PP_BOOL(WJR_HAS_SIMD(AVX2));
 
@@ -28,24 +28,9 @@ WJR_COLD void large_builtin_set_n(T *dst, T val, size_t n) {
     constexpr auto simd_width = simd::width();
     constexpr auto simd_loop = simd_width / nd;
 
-    WJR_ASSUME(n > simd_loop * 2);
+    WJR_ASSUME(n > simd_loop * 4);
 
     auto y = simd::set1(val, T());
-
-    if (WJR_LIKELY(n <= simd_loop * 4)) {
-        simd::storeu((simd_int *)(dst), y);
-        simd::storeu((simd_int *)(dst + simd_loop), y);
-        simd::storeu((simd_int *)(dst + n - simd_loop), y);
-        simd::storeu((simd_int *)(dst + n - simd_loop * 2), y);
-        return;
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P(val) && broadcast<uint8_t, T>(val) == val) {
-        if (WJR_UNLIKELY(n >= 2048 / sizeof(T))) {
-            ::memset(dst, static_cast<uint8_t>(val), sizeof(T) * n);
-            return;
-        }
-    }
 
     simd::storeu((simd_int *)(dst), y);
     simd::storeu((simd_int *)(dst + n - simd_loop), y);
@@ -113,7 +98,18 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
     constexpr auto sse_loop = sse_width / nd;
 
     if (WJR_UNLIKELY(n > simd_loop * 2)) {
-        return large_builtin_set_n(dst, val, n);
+
+        if (WJR_UNLIKELY(n > simd_loop * 4)) {
+            return large_builtin_set_n(dst, val, n);
+        }
+
+        auto y = simd::set1(val, T());
+
+        simd::storeu((simd_int *)(dst), y);
+        simd::storeu((simd_int *)(dst + simd_loop), y);
+        simd::storeu((simd_int *)(dst + n - simd_loop), y);
+        simd::storeu((simd_int *)(dst + n - simd_loop * 2), y);
+        return;
     }
 
     auto x = broadcast<T, uint64_t>(val);
@@ -167,12 +163,14 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
         return;
     }
 
+#if WJR_HAS_SIMD(AVX2)
     if constexpr (is_avx) {
         auto z = broadcast<__m128i_t, __m256i_t>(y);
         avx::storeu((simd_int *)(dst), z);
         avx::storeu((simd_int *)(dst + n - simd_loop), z);
         return;
     }
+#endif
 
     WJR_UNREACHABLE;
 }

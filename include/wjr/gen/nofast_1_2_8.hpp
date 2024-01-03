@@ -1,6 +1,92 @@
 #ifndef WJR_GEN_NOFAST_1_2_8_HPP__
 #define WJR_GEN_NOFAST_1_2_8_HPP__
 
+// OVERLAP + LOW
+#define WJR_GEN_SMALL_NOFAST_SSE_CALL_0_IMPL(N, LOOP1, LOOP2, INIT2, RET)                \
+    INIT2(0);                                                                            \
+                                                                                         \
+    if (N >= 2) {                                                                        \
+        LOOP2(0);                                                                        \
+        LOOP2(N - 2);                                                                    \
+        return RET();                                                                    \
+    }                                                                                    \
+                                                                                         \
+    if (N >= 1) {                                                                        \
+        LOOP1(0);                                                                        \
+    }                                                                                    \
+                                                                                         \
+    return RET()
+
+// not OVERLAP + LOW
+#define WJR_GEN_SMALL_NOFAST_SSE_CALL_1_IMPL(N, LOOP1, LOOP2, INIT2, RET)                \
+    if (N >= 2) {                                                                        \
+        INIT2(0);                                                                        \
+        LOOP2(0);                                                                        \
+                                                                                         \
+        do {                                                                             \
+            if (N == 2) {                                                                \
+                break;                                                                   \
+            }                                                                            \
+                                                                                         \
+            if (N == 3) {                                                                \
+                LOOP1(2);                                                                \
+                break;                                                                   \
+            }                                                                            \
+                                                                                         \
+            LOOP2(2);                                                                    \
+        } while (0);                                                                     \
+                                                                                         \
+        return RET();                                                                    \
+    }                                                                                    \
+                                                                                         \
+    if (N >= 1) {                                                                        \
+        LOOP1(gen_offset);                                                               \
+    }                                                                                    \
+                                                                                         \
+    return RET()
+
+// not OVERLAP + not LOW
+#define WJR_GEN_SMALL_NOFAST_SSE_CALL_2_IMPL(N, LOOP1, LOOP2, INIT2, RET)                \
+    do {                                                                                 \
+        if (N == 0) {                                                                    \
+            break;                                                                       \
+        }                                                                                \
+                                                                                         \
+        LOOP1(0);                                                                        \
+                                                                                         \
+        if (N == 1) {                                                                    \
+            break;                                                                       \
+        }                                                                                \
+                                                                                         \
+        LOOP1(1);                                                                        \
+                                                                                         \
+        if (N == 2) {                                                                    \
+            break;                                                                       \
+        }                                                                                \
+                                                                                         \
+        LOOP1(2);                                                                        \
+                                                                                         \
+        if (N == 3) {                                                                    \
+            break;                                                                       \
+        }                                                                                \
+                                                                                         \
+        LOOP1(3);                                                                        \
+    } while (0);                                                                         \
+                                                                                         \
+    return RET()
+
+#define WJR_GEN_SMALL_NOFAST_SSE_CALL(OVERLAP, LOW, N, LOOP1, LOOP2, LOOP3, INIT1,       \
+                                      INIT2, INIT3, RET)                                 \
+    do {                                                                                 \
+        if (WJR_UNLIKELY(N <= 4)) {                                                      \
+            WJR_PP_BOOL_IF(LOW,                                                          \
+                           WJR_PP_BOOL_IF(OVERLAP, WJR_GEN_SMALL_NOFAST_SSE_CALL_0_IMPL, \
+                                          WJR_GEN_SMALL_NOFAST_SSE_CALL_1_IMPL),         \
+                           WJR_GEN_SMALL_NOFAST_SSE_CALL_2_IMPL)                         \
+            (N, LOOP1, LOOP2, INIT2, RET);                                               \
+        }                                                                                \
+    } while (0)
+
 #define WJR_GEN_SMALL_NOFAST_1_2_8(n, LOOP1, LOOP2, INIT1, INIT2, RET, LARGE)            \
     do {                                                                                 \
         INIT1(0);                                                                        \
