@@ -97,8 +97,7 @@ template <
 WJR_INTRINSIC_CONSTEXPR U subc_1(T *dst, const T *src0, size_t n, type_identity_t<T> src1,
                                  U c_in) {
     WJR_ASSUME(n >= 1);
-    WJR_ASSUME(dst != nullptr);
-    WJR_ASSUME(src0 != nullptr);
+    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
 
     dst[0] = subc(src0[0], src1, c_in, c_in);
 
@@ -188,6 +187,9 @@ template <
     typename T, typename U,
     std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR U subc_n(T *dst, const T *src0, const T *src1, size_t n, U c_in) {
+    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
+
 #if WJR_HAS_BUILTIN(ASM_SUBC_N)
     if (is_constant_evaluated()) {
         return fallback_subc_n(dst, src0, src1, n, c_in);
