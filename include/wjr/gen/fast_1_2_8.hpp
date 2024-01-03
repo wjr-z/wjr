@@ -30,13 +30,10 @@
             return RET();                                                                \
         }                                                                                \
                                                                                          \
-        size_t gen_n = n;                                                                \
-        size_t gen_offset = 0;                                                           \
+        LOOP1(0);                                                                        \
                                                                                          \
-        LOOP1(gen_offset);                                                               \
-                                                                                         \
-        gen_offset += 1;                                                                 \
-        gen_n -= 1;                                                                      \
+        size_t gen_n = n - 1;                                                            \
+        size_t gen_offset = 1;                                                           \
                                                                                          \
         WJR_ASSUME(gen_n >= 3);                                                          \
                                                                                          \
@@ -67,12 +64,12 @@
 
 #define WJR_GEN_LARGE_FAST_1_2_8(n, LOOP2, LOOP8, INIT2, INIT8, RET)                     \
     do {                                                                                 \
-        size_t gen_offset = 0;                                                           \
+        WJR_ASSUME(n % 2 == 0);                                                          \
+                                                                                         \
+        INIT2(0);                                                                        \
+                                                                                         \
         size_t gen_n = n;                                                                \
-                                                                                         \
-        WJR_ASSUME(gen_n % 2 == 0);                                                      \
-                                                                                         \
-        INIT2(gen_offset);                                                               \
+        size_t gen_offset = 0;                                                           \
                                                                                          \
         if (gen_n & 2) {                                                                 \
             LOOP2(gen_offset);                                                           \

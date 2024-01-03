@@ -218,6 +218,14 @@ WJR_INLINE_CONSTEXPR void basecase_mul_s(T *dst, const T *src0, size_t n, const 
     }
 }
 
+// native default threshold of toom-cook-2
+// TODO : optimize threshold
+#ifndef WJR_TOOM22_MUL_THRESHOLD
+#define WJR_TOOM22_MUL_THRESHOLD 26
+#endif
+
+inline constexpr size_t toom22_mul_threshold = WJR_TOOM22_MUL_THRESHOLD;
+
 template <typename T>
 WJR_CONSTEXPR20 void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m);
 
@@ -226,12 +234,13 @@ WJR_CONSTEXPR20 void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1
                                   size_t m) {
     WJR_ASSUME(n >= m);
 
-    size_t rn = n >> 1;
-    size_t l = n - rn;
+    const size_t rn = n >> 1;
+    const size_t l = n - rn;
 
     WJR_ASSUME(l >= rn);
+    WJR_ASSUME(l - rn <= 1);
 
-    size_t rm = m - l;
+    const size_t rm = m - l;
     WJR_ASSUME(l >= rm);
 
     unique_stack_ptr ptr(math_details::stack_alloc, sizeof(T) * (l * 2));
@@ -298,19 +307,6 @@ WJR_CONSTEXPR20 void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1
     WJR_ASSERT(cy == 0);
 }
 
-// native default threshold of toom-cook-2
-// TODO : optimize threshold
-#ifndef WJR_TOOM2_MUL_THRESHOLD
-#define WJR_TOOM2_MUL_THRESHOLD 26
-#endif
-
-inline constexpr size_t toom2_mul_threshold = WJR_TOOM2_MUL_THRESHOLD;
-
-struct mul_threshold {
-    size_t toom22_threshold;
-    size_t toom33_threshold;
-};
-
 // preview : mul n x m
 // TODO : ...
 
@@ -323,23 +319,25 @@ WJR_CONSTEXPR20 void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_
 
     WJR_ASSUME(m >= 1);
 
-    if (m <= toom2_mul_threshold) {
-        return basecase_mul_s(dst, src0, n, src1, m);
-    }
+    do {
+        if (m <= toom22_mul_threshold) {
+            break;
+        }
 
-    if (m <= toom2_mul_threshold * 4) {
-        if (5 * m <= 4 * n) {
-            return basecase_mul_s(dst, src0, n, src1, m);
+        if (m <= toom22_mul_threshold * 4) {
+            if (5 * m <= 4 * n) {
+                break;
+            }
+        }
+
+        if (5 * m <= 3 * n) {
+            break;
         }
 
         return toom22_mul_s(dst, src0, n, src1, m);
-    }
+    } while (0);
 
-    if (5 * m <= 3 * n) {
-        return basecase_mul_s(dst, src0, n, src1, m);
-    }
-
-    return toom22_mul_s(dst, src0, n, src1, m);
+    return basecase_mul_s(dst, src0, n, src1, m);
 }
 
 } // namespace wjr

@@ -22,6 +22,7 @@ public:
     }
 
     WJR_INTRINSIC_CONSTEXPR20 void deallocate(void *old, WJR_MAYBE_UNUSED size_t n) {
+        WJR_ASSERT(ptr == static_cast<void*>(static_cast<char*>(old) + n));
         ptr = old;
         (void)(n);
     }
@@ -48,8 +49,8 @@ public:
         return alloc.deallocate(old, n);
     }
 
-    WJR_INTRINSIC_CONSTEXPR size_t remain() const {
-        return (bytes + cache) - static_cast<char *>(alloc.get());
+    WJR_INTRINSIC_CONSTEXPR size_t size() const {
+        return static_cast<char *>(alloc.get()) - bytes;
     }
 
 private:
@@ -66,6 +67,7 @@ class stack_allocator {
 
     static_assert(obj_threashold <= cache / 4,
                   "malloc size must less or equal then cache / 4.");
+    static_assert(cache_blocks != 0, "");
 
     constexpr static size_t remain_cache_blocks = cache_blocks + 1;
 
@@ -75,10 +77,12 @@ class stack_allocator {
         basic_stack_allocator<cache, alignment> alloc;
     };
 
-    WJR_INLINE_CONSTEXPR20 void malloc_node() {
+    WJR_CONSTEXPR20 void malloc_node() {
         WJR_ASSERT(rest == 0);
         rest = 1;
         auto node = new stack_node;
+
+        WJR_ASSERT(node->alloc.size() == 0);
 
         if (tail != nullptr) {
             tail->next = node;
@@ -90,22 +94,11 @@ class stack_allocator {
     }
 
     WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 void *allocate_small(size_t n) {
-        if constexpr (cache_blocks != 0) {
-            WJR_ASSERT(ptr != nullptr);
+        WJR_ASSERT(ptr != nullptr);
 
-            if (WJR_UNLIKELY(ptr->alloc.remain() < n)) {
-                --rest;
-                ptr = ptr->next;
-                if (WJR_UNLIKELY(ptr == nullptr)) {
-                    malloc_node();
-                }
-            }
-        } else {
-            if (WJR_UNLIKELY(ptr && ptr->alloc.remain() < n)) {
-                ptr = ptr->next;
-                --rest;
-            }
-
+        if (WJR_UNLIKELY(cache - ptr->alloc.size() < n)) {
+            --rest;
+            ptr = ptr->next;
             if (WJR_UNLIKELY(ptr == nullptr)) {
                 malloc_node();
             }
@@ -122,7 +115,7 @@ class stack_allocator {
     void deallocate_small(void *p, size_t n) {
         ptr->alloc.deallocate(p, n);
 
-        if (ptr->alloc.remain() == 0) {
+        if (ptr->alloc.size() == 0 && ptr->prev) {
             ptr = ptr->prev;
             if (WJR_UNLIKELY(++rest == remain_cache_blocks)) {
                 --rest;
@@ -142,11 +135,7 @@ class stack_allocator {
     }
 
 public:
-    WJR_CONSTEXPR20 stack_allocator() {
-        if constexpr (cache_blocks != 0) {
-            malloc_node();
-        }
-    }
+    WJR_CONSTEXPR20 stack_allocator() { malloc_node(); }
 
     ~stack_allocator() = default;
     stack_allocator(const stack_allocator &) = delete;

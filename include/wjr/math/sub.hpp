@@ -227,15 +227,13 @@ WJR_INTRINSIC_CONSTEXPR int abs_subc_n(T *dst, const T *src0, const T *src1, siz
 
     int c = src0[idx - 1] < src1[idx - 1] ? -1 : 1;
 
-    if (c == 1) {
-        auto cf = subc_n(dst, src0, src1, idx, 0u);
-        WJR_ASSERT(cf == 0);
-        (void)(cf);
-    } else {
-        auto cf = subc_n(dst, src1, src0, idx, 0u);
-        WJR_ASSERT(cf == 0);
-        (void)(cf);
+    if (c < 0) {
+        std::swap(src0, src1);
     }
+
+    auto cf = subc_n(dst, src0, src1, idx, 0u);
+    WJR_ASSERT(cf == 0);
+    (void)(cf);
 
     return c;
 }
