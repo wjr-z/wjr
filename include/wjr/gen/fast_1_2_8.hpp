@@ -62,7 +62,6 @@
                                                                                          \
             gen_offset += 2;                                                             \
         } while (WJR_LIKELY(gen_offset != n));                                           \
-                                                                                         \
         return RET();                                                                    \
     } while (0)
 

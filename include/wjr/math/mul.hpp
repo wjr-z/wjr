@@ -218,13 +218,12 @@ WJR_INLINE_CONSTEXPR void basecase_mul_s(T *dst, const T *src0, size_t n, const 
     }
 }
 
-template <typename T, typename StackAllocator>
-WJR_CONSTEXPR20 void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m,
-                           StackAllocator &al);
+template <typename T>
+WJR_CONSTEXPR20 void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m);
 
-template <typename T, typename StackAllocator>
+template <typename T>
 WJR_CONSTEXPR20 void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1,
-                                  size_t m, StackAllocator &al) {
+                                  size_t m) {
     WJR_ASSUME(n >= m);
 
     size_t rn = n >> 1;
@@ -235,7 +234,7 @@ WJR_CONSTEXPR20 void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1
     size_t rm = m - l;
     WJR_ASSUME(l >= rm);
 
-    unique_stack_ptr ptr(al, sizeof(T) * (l * 2));
+    unique_stack_ptr ptr(math_details::stack_alloc, sizeof(T) * (l * 2));
     T *stk = (T *)ptr.get();
 
     // [u0(l), u1(rn)] (n)
@@ -275,11 +274,11 @@ WJR_CONSTEXPR20 void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1
             break;
         }
 
-        mul_s(stk, p0, l, p1, l, al);
+        mul_s(stk, p0, l, p1, l);
     } while (0);
 
-    mul_s(p0, u0, l, v0, l, al);
-    mul_s(p2, u1, rn, v1, rm, al);
+    mul_s(p0, u0, l, v0, l);
+    mul_s(p2, u1, rn, v1, rm);
 
     T cy = 0, cy2 = 0;
 
@@ -312,14 +311,11 @@ struct mul_threshold {
     size_t toom33_threshold;
 };
 
-void mul_optimize_threshold() {}
-
 // preview : mul n x m
 // TODO : ...
 
-template <typename T, typename StackAllocator>
-WJR_CONSTEXPR20 void mul_s(T *dst, const T *src0, size_t n, const T *src1,
-                                  size_t m, StackAllocator &al) {
+template <typename T>
+WJR_CONSTEXPR20 void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
     if (n < m) {
         std::swap(n, m);
         std::swap(src0, src1);
@@ -336,14 +332,14 @@ WJR_CONSTEXPR20 void mul_s(T *dst, const T *src0, size_t n, const T *src1,
             return basecase_mul_s(dst, src0, n, src1, m);
         }
 
-        return toom22_mul_s(dst, src0, n, src1, m, al);
+        return toom22_mul_s(dst, src0, n, src1, m);
     }
 
     if (5 * m <= 3 * n) {
         return basecase_mul_s(dst, src0, n, src1, m);
     }
 
-    return toom22_mul_s(dst, src0, n, src1, m, al);
+    return toom22_mul_s(dst, src0, n, src1, m);
 }
 
 } // namespace wjr

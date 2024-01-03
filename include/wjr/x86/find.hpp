@@ -51,7 +51,7 @@ size_t large_builtin_find_n(const T *src0, const T *src1, size_t n) {
 }
 
 template <typename T>
-WJR_INLINE size_t builtin_find_n(const T *src0, const T *src1, size_t n) {
+WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src0, const T *src1, size_t n) {
 #define WJR_REGISTER_FIND_N_L1(index)                                                    \
     if (src0[(index)] == src1[(index)]) {                                                \
         return (index);                                                                  \
@@ -102,7 +102,7 @@ size_t large_builtin_find_n(const T *src, T val, size_t n) {
 }
 
 template <typename T>
-WJR_INLINE size_t builtin_find_n(const T *src, T val, size_t n) {
+WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src, T val, size_t n) {
 #define WJR_REGISTER_FIND_N_L1(index)                                                    \
     if (src[(index)] == val) {                                                           \
         return (index);                                                                  \
@@ -157,7 +157,7 @@ size_t large_builtin_find_not_n(const T *src0, const T *src1, size_t n) {
 }
 
 template <typename T>
-WJR_INLINE size_t builtin_find_not_n(const T *src0, const T *src1, size_t n) {
+WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src0, const T *src1, size_t n) {
 #define WJR_REGISTER_FIND_NOT_N_L1(index)                                                \
     if (src0[(index)] != src1[(index)]) {                                                \
         return (index);                                                                  \
@@ -209,7 +209,7 @@ size_t large_builtin_find_not_n(const T *src, T val, size_t n) {
 }
 
 template <typename T>
-WJR_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) {
+WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) {
 #define WJR_REGISTER_FIND_NOT_N_L1(index)                                                \
     if (src[(index)] != val) {                                                           \
         return (index);                                                                  \
@@ -265,7 +265,8 @@ size_t large_builtin_reverse_find_n(const T *src0, const T *src1, size_t n) {
 }
 
 template <typename T>
-WJR_INLINE size_t builtin_reverse_find_n(const T *src0, const T *src1, size_t n) {
+WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src0, const T *src1,
+                                                   size_t n) {
 #define WJR_REGISTER_REVERSE_FIND_N_L1(index)                                            \
     if (src0[-1 - (index)] == src1[-1 - (index)]) {                                      \
         return n - (index);                                                              \
@@ -330,7 +331,7 @@ size_t large_builtin_reverse_find_n(const T *src, T val, size_t n) {
 }
 
 template <typename T>
-WJR_INLINE size_t builtin_reverse_find_n(const T *src, T val, size_t n) {
+WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src, T val, size_t n) {
 #define WJR_REGISTER_REVERSE_FIND_N_L1(index)                                            \
     if (src[-1 - (index)] == val) {                                                      \
         return n - (index);                                                              \
@@ -398,7 +399,8 @@ size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1, size_t n) 
 }
 
 template <typename T>
-WJR_INLINE size_t builtin_reverse_find_not_n(const T *src0, const T *src1, size_t n) {
+WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src0, const T *src1,
+                                                       size_t n) {
 #define WJR_REGISTER_REVERSE_FIND_NOT_N_L1(index)                                        \
     if (src0[-1 - (index)] != src1[-1 - (index)]) {                                      \
         return n - (index);                                                              \
@@ -464,7 +466,7 @@ size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) {
 }
 
 template <typename T>
-WJR_INLINE size_t builtin_reverse_find_not_n(const T *src, T val, size_t n) {
+WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src, T val, size_t n) {
 #define WJR_REGISTER_REVERSE_FIND_NOT_N_L1(index)                                        \
     if (src[-1 - (index)] != val) {                                                      \
         return n - (index);                                                              \
