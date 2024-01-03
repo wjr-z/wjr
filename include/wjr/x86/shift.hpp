@@ -93,6 +93,8 @@ WJR_INTRINSIC_INLINE T asm_shrd(T lo, T hi, unsigned int c) {
 
 #if WJR_HAS_BUILTIN(LSHIFT_N)
 
+#define WJR_REGISTER_LSHIFT_N_IMPL_L1(index)                                             \
+    dst[-1 - (index)] = shld(src[-1 - (index)], src[-2 - (index)], c)
 #define WJR_REGISTER_LSHIFT_N_IMPL_L2(index)                                             \
     do {                                                                                 \
         __m128i x1 = sse::loadu((__m128i *)(src - 3 - (index)));                         \
@@ -114,15 +116,17 @@ WJR_INTRINSIC_INLINE T asm_shrd(T lo, T hi, unsigned int c) {
     __m128i x0 = sse::set1_epi64(src[-1 - (index)]);
 
 template <typename T>
-void large_buitlin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int c) {
+WJR_COLD void large_buitlin_lshift_n_impl(T *dst, const T *src, size_t n,
+                                          unsigned int c) {
 #define WJR_REGISTER_LSHIFT_N_IMPL_L8(index)                                             \
     WJR_REGISTER_LSHIFT_N_IMPL_L2((index));                                              \
     WJR_REGISTER_LSHIFT_N_IMPL_L2((index) + 2);                                          \
     WJR_REGISTER_LSHIFT_N_IMPL_L2((index) + 4);                                          \
     WJR_REGISTER_LSHIFT_N_IMPL_L2((index) + 6);
 
-    WJR_GEN_LARGE_NOFAST_1_2_8(n, WJR_REGISTER_LSHIFT_N_IMPL_L2,
-                               WJR_REGISTER_LSHIFT_N_IMPL_L8,
+    WJR_GEN_LARGE_NOFAST_1_2_8(n, WJR_REGISTER_LSHIFT_N_IMPL_L1,
+                               WJR_REGISTER_LSHIFT_N_IMPL_L2,
+                               WJR_REGISTER_LSHIFT_N_IMPL_L8, WJR_PP_EMPTY,
                                WJR_REGISTER_LSHIFT_N_IMPL_I2, WJR_PP_EMPTY, WJR_PP_EMPTY);
 
 #undef WJR_REGISTER_LSHIFT_N_IMPL_L8
@@ -130,9 +134,7 @@ void large_buitlin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int c)
 
 template <typename T>
 WJR_INLINE void buitlin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int c) {
-#define WJR_REGISTER_LSHIFT_N_IMPL_L1(index)                                             \
-    dst[-1 - (index)] = shld(src[-1 - (index)], src[-2 - (index)], c)
-#define WJR_REGISTER_LARGE_SHIFT_N_IMPL(gen_offset, gen_n, ...)                          \
+#define WJR_REGISTER_LARGE_SHIFT_N_IMPL(gen_offset, gen_n)                               \
     return large_buitlin_lshift_n_impl(dst - gen_offset, src - gen_offset, gen_n, c)
 
     dst += n;
@@ -143,9 +145,9 @@ WJR_INLINE void buitlin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned i
         WJR_REGISTER_LSHIFT_N_IMPL_I2, WJR_PP_EMPTY, WJR_REGISTER_LARGE_SHIFT_N_IMPL);
 
 #undef WJR_REGISTER_LARGE_SHIFT_N_IMPL
-#undef WJR_REGISTER_LSHIFT_N_IMPL_L1
 }
 
+#undef WJR_REGISTER_LSHIFT_N_IMPL_L1
 #undef WJR_REGISTER_LSHIFT_N_IMPL_I2
 #undef WJR_REGISTER_LSHIFT_N_IMPL_L2
 
@@ -161,6 +163,8 @@ WJR_INLINE T buitlin_lshift_n(T *dst, const T *src, size_t n, unsigned int c) {
 
 #if WJR_HAS_BUILTIN(RSHIFT_N)
 
+#define WJR_REGISTER_RSHIFT_N_IMPL_L1(index)                                             \
+    dst[(index)] = shrd(src[(index)], src[(index) + 1], c)
 #define WJR_REGISTER_RSHIFT_N_IMPL_L2(index)                                             \
     do {                                                                                 \
         __m128i x1 = sse::loadu((__m128i *)(src + 1 + (index)));                         \
@@ -182,15 +186,17 @@ WJR_INLINE T buitlin_lshift_n(T *dst, const T *src, size_t n, unsigned int c) {
     __m128i x0 = sse::set1_epi64(src[(index)]);
 
 template <typename T>
-void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n, unsigned int c) {
+WJR_COLD void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n,
+                                          unsigned int c) {
 #define WJR_REGISTER_RSHIFT_N_IMPL_L8(index)                                             \
     WJR_REGISTER_RSHIFT_N_IMPL_L2((index));                                              \
     WJR_REGISTER_RSHIFT_N_IMPL_L2((index) + 2);                                          \
     WJR_REGISTER_RSHIFT_N_IMPL_L2((index) + 4);                                          \
     WJR_REGISTER_RSHIFT_N_IMPL_L2((index) + 6);
 
-    WJR_GEN_LARGE_NOFAST_1_2_8(n, WJR_REGISTER_RSHIFT_N_IMPL_L2,
-                               WJR_REGISTER_RSHIFT_N_IMPL_L8,
+    WJR_GEN_LARGE_NOFAST_1_2_8(n, WJR_REGISTER_RSHIFT_N_IMPL_L1,
+                               WJR_REGISTER_RSHIFT_N_IMPL_L2,
+                               WJR_REGISTER_RSHIFT_N_IMPL_L8, WJR_PP_EMPTY,
                                WJR_REGISTER_RSHIFT_N_IMPL_I2, WJR_PP_EMPTY, WJR_PP_EMPTY);
 
 #undef WJR_REGISTER_RSHIFT_N_IMPL_L8
@@ -199,9 +205,7 @@ void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n, unsigned int c)
 template <typename T>
 WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T *src, size_t n,
                                                 unsigned int c) {
-#define WJR_REGISTER_RSHIFT_N_IMPL_L1(index)                                             \
-    dst[(index)] = shrd(src[(index)], src[(index) + 1], c)
-#define WJR_REGISTER_LARGE_RSHIFT_N_IMPL(gen_offset, gen_n, ...)                         \
+#define WJR_REGISTER_LARGE_RSHIFT_N_IMPL(gen_offset, gen_n)                              \
     return large_builtin_rshift_n_impl(dst + gen_offset, src + gen_offset, gen_n, c)
 
     WJR_GEN_SMALL_NOFAST_1_2_8(
@@ -209,11 +213,11 @@ WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T *src, size_t n,
         WJR_REGISTER_RSHIFT_N_IMPL_I2, WJR_PP_EMPTY, WJR_REGISTER_LARGE_RSHIFT_N_IMPL);
 
 #undef WJR_REGISTER_LARGE_RSHIFT_N_IMPL
-#undef WJR_REGISTER_RSHIFT_N_IMPL_L1
 }
 
 #undef WJR_REGISTER_RSHIFT_N_IMPL_I2
 #undef WJR_REGISTER_RSHIFT_N_IMPL_L2
+#undef WJR_REGISTER_RSHIFT_N_IMPL_L1
 
 template <typename T>
 WJR_INLINE void rshift_n(T *dst, const T *src, size_t n, unsigned int c) {

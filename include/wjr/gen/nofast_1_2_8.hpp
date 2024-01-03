@@ -30,10 +30,13 @@
             return RET();                                                                \
         }                                                                                \
                                                                                          \
+        if (WJR_UNLIKELY(n >= 32)) {                                                     \
+            LARGE(0, n);                                                                 \
+            WJR_UNREACHABLE;                                                             \
+        }                                                                                \
+                                                                                         \
         size_t gen_n = n;                                                                \
         size_t gen_offset = 0;                                                           \
-                                                                                         \
-        WJR_ASSUME(gen_n >= 4);                                                          \
                                                                                          \
         if (gen_n & 1) {                                                                 \
             LOOP1(gen_offset);                                                           \
@@ -43,12 +46,7 @@
         }                                                                                \
                                                                                          \
         WJR_ASSUME(gen_n % 2 == 0);                                                      \
-                                                                                         \
-        if (WJR_UNLIKELY(gen_n > 32)) {                                                  \
-            WJR_ASSUME(gen_offset + gen_n == n);                                         \
-            LARGE(gen_offset, gen_n, n);                                                 \
-            WJR_UNREACHABLE;                                                             \
-        }                                                                                \
+        WJR_ASSUME(gen_n >= 4);                                                          \
                                                                                          \
         INIT2(gen_offset);                                                               \
                                                                                          \
@@ -60,14 +58,23 @@
         return RET();                                                                    \
     } while (0)
 
-#define WJR_GEN_LARGE_NOFAST_1_2_8(n, LOOP2, LOOP8, INIT2, INIT8, RET)                   \
+#define WJR_GEN_LARGE_NOFAST_1_2_8(n, LOOP1, LOOP2, LOOP8, INIT1, INIT2, INIT8, RET)     \
     do {                                                                                 \
+        size_t gen_n = n;                                                                \
+        size_t gen_offset = 0;                                                           \
+                                                                                         \
+        INIT1(gen_offset, gen_n);                                                        \
+                                                                                         \
+        if (gen_n & 1) {                                                                 \
+            LOOP1(gen_offset);                                                           \
+                                                                                         \
+            ++gen_offset;                                                                \
+            --gen_n;                                                                     \
+        }                                                                                \
+                                                                                         \
         WJR_ASSUME(n % 2 == 0);                                                          \
                                                                                          \
         INIT2(0);                                                                        \
-                                                                                         \
-        size_t gen_n = n;                                                                \
-        size_t gen_offset = 0;                                                           \
                                                                                          \
         if (gen_n & 2) {                                                                 \
             LOOP2(gen_offset);                                                           \

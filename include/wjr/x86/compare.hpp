@@ -33,7 +33,7 @@ namespace wjr {
     } while (0)
 
 template <typename T>
-int large_builtin_compare_n(const T *src0, const T *src1, size_t n) {
+WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size_t n) {
 #define WJR_REGISTER_COMPARE_NOT_N_L8(index)                                             \
     WJR_REGISTER_COMPARE_NOT_N_L2((index));                                              \
     WJR_REGISTER_COMPARE_NOT_N_L2((index) + 2);                                          \
@@ -92,7 +92,7 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1, size_t 
     } while (0)
 
 template <typename T>
-int large_builtin_reverse_compare_n(const T *src0, const T *src1, size_t n) {
+WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1, size_t n) {
 #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_L8(index)                                     \
     WJR_REGISTER_REVERSE_COMPARE_NOT_N_L2((index));                                      \
     WJR_REGISTER_REVERSE_COMPARE_NOT_N_L2((index) + 2);                                  \
