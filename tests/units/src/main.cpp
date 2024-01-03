@@ -798,112 +798,132 @@ TEST(math, broadcast) {
 }
 
 TEST(math, find_n) {
-    std::vector<uint64_t> vec;
+    std::vector<uint64_t> a, b;
 
     for (size_t n = 0; n < 128; ++n) {
-        vec.resize(n + 32);
+        a.resize(n);
+        b.resize(n);
         for (size_t i = 0; i < n; ++i) {
-            vec[i] = -1;
-        }
-        for (size_t i = n; i < n + 32; ++i) {
-            vec[i] = 0;
+            a[i] = -1;
+            b[i] = -2;
         }
         for (size_t m = 0; m <= n; ++m) {
 
             if (m != n) {
-                vec[m] = 0;
+                a[m] = 0;
+                b[m] = 0;
             }
 
-            auto idx = wjr::find_n(vec.data(), 0, n);
+            auto idx = wjr::find_n(a.data(), 0, n);
+
+            WJR_ASSERT(idx == m);
+
+            idx = wjr::find_n(a.data(), b.data(), n);
 
             WJR_ASSERT(idx == m);
 
             if (m != n) {
-                vec[m] = -1;
+                a[m] = -1;
+                b[m] = -2;
             }
         }
     }
 }
 
 TEST(math, find_not_n) {
-    std::vector<uint64_t> vec;
+    std::vector<uint64_t> a, b;
 
     for (size_t n = 0; n < 128; ++n) {
-        vec.resize(n + 32);
+        a.resize(n);
+        b.resize(n);
         for (size_t i = 0; i < n; ++i) {
-            vec[i] = 0;
-        }
-        for (size_t i = n; i < n + 32; ++i) {
-            vec[i] = -1;
+            a[i] = 0;
+            b[i] = 0;
         }
         for (size_t m = 0; m <= n; ++m) {
 
             if (m != n) {
-                vec[m] = -1;
+                a[m] = -1;
+                b[m] = -2;
             }
 
-            auto idx = wjr::find_not_n(vec.data(), 0, n);
+            auto idx = wjr::find_not_n(a.data(), 0, n);
+
+            WJR_ASSERT(idx == m);
+
+            idx = wjr::find_not_n(a.data(), b.data(), n);
 
             WJR_ASSERT(idx == m);
 
             if (m != n) {
-                vec[m] = 0;
+                a[m] = 0;
+                b[m] = 0;
             }
         }
     }
 }
 
 TEST(math, reverse_find_n) {
-    std::vector<uint64_t> vec;
+    std::vector<uint64_t> a, b;
 
     for (size_t n = 0; n < 128; ++n) {
-        vec.resize(n + 32);
+        a.resize(n);
+        b.resize(n);
         for (size_t i = 0; i < n; ++i) {
-            vec[i] = -1;
-        }
-        for (size_t i = n; i < n + 32; ++i) {
-            vec[i] = 0;
+            a[i] = -1;
+            b[i] = -2;
         }
         for (size_t m = 0; m <= n; ++m) {
 
             if (m != n) {
-                vec[n - m - 1] = 0;
+                a[n - m - 1] = 0;
+                b[n - m - 1] = 0;
             }
 
-            auto idx = wjr::reverse_find_n(vec.data(), 0, n);
+            auto idx = wjr::reverse_find_n(a.data(), 0, n);
+
+            WJR_ASSERT(idx == n - m);
+
+            idx = wjr::reverse_find_n(a.data(), b.data(), n);
 
             WJR_ASSERT(idx == n - m);
 
             if (m != n) {
-                vec[n - m - 1] = -1;
+                a[n - m - 1] = -1;
+                b[n - m - 1] = -2;
             }
         }
     }
 }
 
 TEST(math, reverse_find_not_n) {
-    std::vector<uint64_t> vec;
+    std::vector<uint64_t> a, b;
 
     for (size_t n = 0; n < 128; ++n) {
-        vec.resize(n + 32);
+        a.resize(n);
+        b.resize(n);
         for (size_t i = 0; i < n; ++i) {
-            vec[i] = 0;
-        }
-        for (size_t i = n; i < n + 32; ++i) {
-            vec[i] = -1;
+            a[i] = 0;
+            b[i] = 0;
         }
         for (size_t m = 0; m <= n; ++m) {
 
             if (m != n) {
-                vec[n - m - 1] = -1;
+                a[n - m - 1] = -1;
+                b[n - m - 1] = -2;
             }
 
-            auto idx = wjr::reverse_find_not_n(vec.data(), 0, n);
+            auto idx = wjr::reverse_find_not_n(a.data(), 0, n);
+
+            WJR_ASSERT(idx == n - m);
+
+            idx = wjr::reverse_find_not_n(a.data(), b.data(), n);
 
             WJR_ASSERT(idx == n - m);
 
             if (m != n) {
-                vec[n - m - 1] = 0;
+                a[n - m - 1] = 0;
+                b[n - m - 1] = 0;
             }
         }
     }
@@ -1088,7 +1108,7 @@ TEST(math, set) {
     }
 }
 
-TEST(math, compare) {
+TEST(math, compare_n) {
     std::mt19937_64 mt_rand(time(0));
     std::vector<uint64_t> a, b;
     for (size_t n = 0; n <= 128; ++n) {
@@ -1100,7 +1120,7 @@ TEST(math, compare) {
 
             b = a;
 
-            if (n != m) {
+            for (size_t i = m; i < n; ++i) {
                 while (a[m] == -1ull) {
                     a[m] = mt_rand();
                 }
@@ -1113,21 +1133,57 @@ TEST(math, compare) {
                 continue;
             }
 
-            if(f >= 0) {
-                for(auto i : a) {
-                    std::cout << i << ',';
+            WJR_ASSERT(f < 0, "%d", f);
+
+            for (size_t i = m; i < n; ++i) {
+                while (a[m] == 0) {
+                    a[m] = mt_rand();
                 }
-                std::cout << '\n';
-                 for(auto i : b) {
-                    std::cout << i << ',';
+                b[m] = a[m] - 1;
+            }
+
+            f = wjr::compare_n(a.data(), b.data(), n);
+
+            WJR_ASSERT(f > 0);
+        }
+    }
+}
+
+TEST(math, reverse_compare_n) {
+    std::mt19937_64 mt_rand(time(0));
+    std::vector<uint64_t> a, b;
+    for (size_t n = 0; n <= 128; ++n) {
+        a.resize(n);
+        for (size_t m = 0; m <= n; ++m) {
+            for (auto &i : a) {
+                i = mt_rand();
+            }
+
+            b = a;
+
+            for (size_t i = m; i < n; ++i) {
+                while (a[n - m - 1] == -1ull) {
+                    a[n - m - 1] = mt_rand();
                 }
-                std::cout << '\n';
+                b[n - m - 1] = a[n - m - 1] + 1;
+            }
+
+            int f = wjr::reverse_compare_n(a.data(), b.data(), n);
+            if (n == m) {
+                WJR_ASSERT(f == 0);
+                continue;
             }
 
             WJR_ASSERT(f < 0, "%d", f);
 
-            b[m] -= 2;
-            f = wjr::compare_n(a.data(), b.data(), n);
+            for (size_t i = m; i < n; ++i) {
+                while (a[n - m - 1] == 0) {
+                    a[n - m - 1] = mt_rand();
+                }
+                b[n - m - 1] = a[n - m - 1] - 1;
+            }
+
+            f = wjr::reverse_compare_n(a.data(), b.data(), n);
 
             WJR_ASSERT(f > 0);
         }
