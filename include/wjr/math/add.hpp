@@ -59,7 +59,7 @@ WJR_INTRINSIC_CONSTEXPR T addc(T a, T b, type_identity_t<U> c_in, U &c_out) {
     WJR_ASSERT_L(1, c_in == 0 || c_in == 1);
     WJR_ASSUME((c_in == 0 || c_in == 1));
 
-#if !WJR_HAS_BUILTIN(ADDC) && !WJR_HAS_BUILTIN(ASM_ADDC)
+#if !WJR_HAS_BUILTIN(ADDC) && !WJR_HAS_BUILTIN(ASM_ADDC_1)
     return fallback_addc(a, b, c_in, c_out);
 #else
     constexpr auto is_constant_or_zero = [](const auto &x) -> int {
@@ -75,18 +75,9 @@ WJR_INTRINSIC_CONSTEXPR T addc(T a, T b, type_identity_t<U> c_in, U &c_out) {
         return fallback_addc(a, b, c_in, c_out);
     }
 
-#if WJR_HAS_BUILTIN(ASM_ADDC)
-    if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
-        return asm_addc_1(a, b, c_out);
-    }
-#endif
-
-#if WJR_HAS_BUILTIN(ADDC)
-    return builtin_addc(a, b, c_in, c_out);
-#else
-    return fallback_addc(a, b, c_in, c_out);
-#endif // WJR_HAS_BUILTIN(ADDC)
-
+    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_ADDC_1), asm_addc_1,
+                          WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ADDC), builtin_addc,
+                                         fallback_addc))(a, b, c_in, c_out);
 #endif
 }
 
@@ -188,7 +179,7 @@ template <
 WJR_INTRINSIC_CONSTEXPR U addc_n(T *dst, const T *src0, const T *src1, size_t n, U c_in) {
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
-    
+
 #if WJR_HAS_BUILTIN(ASM_ADDC_N)
     if (is_constant_evaluated()) {
         return fallback_addc_n(dst, src0, src1, n, c_in);
@@ -204,7 +195,7 @@ template <
     typename T, typename U,
     std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR U addc_s(T *dst, const T *src0, size_t n, const T *src1, size_t m,
-                               U c_in) {
+                                 U c_in) {
     WJR_ASSERT(n >= m);
     WJR_ASSUME(n >= m);
 

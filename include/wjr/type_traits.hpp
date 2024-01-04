@@ -217,6 +217,82 @@ WJR_INTRINSIC_CONSTEXPR bool is_constant_evaluated() noexcept {
     return WJR_IS_CONSTANT_EVALUATED();
 }
 
+template <typename T, typename U, typename = void>
+struct __is_swappable_with : std::false_type {};
+
+template <typename T, typename U>
+struct __is_swappable_with<
+    T, U, std::void_t<decltype(std::swap(std::declval<T>(), std::declval<U>()))>>
+    : std::true_type {};
+
+template <typename T, typename U>
+struct is_swappable_with
+    : std::conjunction<__is_swappable_with<T, U>, __is_swappable_with<U, T>> {};
+
+template <typename T, typename U>
+inline constexpr bool is_swappable_with_v = is_swappable_with<T, U>::value;
+
+template <typename T>
+struct is_swappable
+    : is_swappable_with<std::add_lvalue_reference_t<T>, std::add_lvalue_reference_t<T>> {
+};
+
+template <typename T>
+inline constexpr bool is_swappable_v = is_swappable<T>::value;
+
+template <typename T, typename U>
+struct __is_nothrow_swappable_with
+    : std::bool_constant<noexcept(std::swap(std::declval<T>(), std::declval<U>())) &&
+                         noexcept(std::swap(std::declval<U>(), std::declval<T>()))> {};
+
+template <typename T, typename U>
+struct is_nothrow_swappable_with
+    : std::conjunction<is_swappable_with<T, U>, __is_nothrow_swappable_with<T, U>> {};
+
+template <typename T, typename U>
+inline constexpr bool is_nothrow_swappable_with_v =
+    is_nothrow_swappable_with<T, U>::value;
+
+template <typename T>
+struct is_nothrow_swappable : is_nothrow_swappable_with<std::add_lvalue_reference_t<T>,
+                                                        std::add_lvalue_reference_t<T>> {
+};
+
+template <typename T>
+inline constexpr bool is_nothrow_swappable_v = is_nothrow_swappable<T>::value;
+
+template <typename T>
+struct unrefwrap {
+    using type = T;
+};
+
+template <typename T>
+struct unrefwrap<std::reference_wrapper<T>> {
+    using type = T &;
+};
+
+template <typename T>
+using unrefwrap_t = typename unrefwrap<T>::type;
+
+template <typename T, typename = void>
+struct __is_default_convertible : std::false_type {};
+
+template <typename T>
+void __test_default_convertible(const T &);
+
+template <typename T>
+struct __is_default_convertible<T,
+                                std::void_t<decltype(__test_default_convertible<T>({}))>>
+    : std::true_type {};
+
+template <typename T>
+using is_default_convertible = __is_default_convertible<T>;
+
+template <typename T>
+inline constexpr bool is_default_convertible_v = is_default_convertible<T>::value;
+
+// ....
+
 template <typename T>
 using null_optional_t = std::optional<T>;
 

@@ -312,6 +312,9 @@ WJR_CONSTEXPR20 void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1
 
 template <typename T>
 WJR_CONSTEXPR20 void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
+    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n + m, src0, n));
+    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n + m, src1, m));
+
     if (n < m) {
         std::swap(n, m);
         std::swap(src0, src1);

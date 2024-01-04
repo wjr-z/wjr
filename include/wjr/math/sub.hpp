@@ -60,7 +60,7 @@ WJR_INTRINSIC_CONSTEXPR T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
     WJR_ASSERT_L(1, c_in == 0 || c_in == 1);
     WJR_ASSUME((c_in == 0 || c_in == 1));
 
-#if !WJR_HAS_BUILTIN(SUBC) && !WJR_HAS_BUILTIN(ASM_SUBC)
+#if !WJR_HAS_BUILTIN(SUBC) && !WJR_HAS_BUILTIN(ASM_SUBC_1)
     return fallback_subc(a, b, c_in, c_out);
 #else
     constexpr auto is_constant_or_zero = [](const auto &x) -> int {
@@ -76,18 +76,9 @@ WJR_INTRINSIC_CONSTEXPR T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
         return fallback_subc(a, b, c_in, c_out);
     }
 
-#if WJR_HAS_BUILTIN(ASM_SUBC)
-    if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
-        return asm_subc_1(a, b, c_out);
-    }
-#endif
-
-#if WJR_HAS_BUILTIN(SUBC)
-    return builtin_subc(a, b, c_in, c_out);
-#else
-    return fallback_subc(a, b, c_in, c_out);
-#endif // WJR_HAS_BUILTIN(SUBC)
-
+    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_SUBC_1), asm_subc_1,
+                          WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(SUBC), builtin_subc,
+                                         fallback_subc))(a, b, c_in, c_out);
 #endif
 }
 

@@ -8,6 +8,9 @@
 
 namespace wjr {
 
+// preview :
+// stack allocator
+
 class native_stack_allocator {
 public:
     native_stack_allocator(void *ptr) : ptr(ptr) {}
@@ -22,7 +25,7 @@ public:
     }
 
     WJR_INTRINSIC_CONSTEXPR20 void deallocate(void *old, WJR_MAYBE_UNUSED size_t n) {
-        WJR_ASSERT(ptr == static_cast<void*>(static_cast<char*>(old) + n));
+        WJR_ASSERT(ptr == static_cast<void *>(static_cast<char *>(old) + n));
         ptr = old;
         (void)(n);
     }

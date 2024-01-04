@@ -30,6 +30,13 @@ void large_builtin_set_n(T *dst, T val, size_t n) {
 
     WJR_ASSUME(n > simd_loop * 4);
 
+    if (WJR_BUILTIN_CONSTANT_P(val) && broadcast<uint8_t, T>(val) == val) {
+        if (WJR_UNLIKELY(n >= 2048)) {
+            ::memset(dst, static_cast<uint8_t>(val), n * sizeof(T));
+            return;
+        }
+    }
+
     auto y = simd::set1(val, T());
 
     simd::storeu((simd_int *)(dst), y);

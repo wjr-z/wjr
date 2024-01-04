@@ -5,6 +5,10 @@
 
 namespace wjr {
 
+// preview :
+// The GCC lower version of options lacks optimization for trial types and cannot achieve
+// zero overhead.
+
 template <size_t unroll, typename Fn, typename Ret, size_t idx>
 WJR_INTRINSIC_CONSTEXPR Ret unroll_call_impl(Fn &&fn) {
 #define WJR_REGISTER_UNROLL_CALL_IMPL(idxs)                                              \
