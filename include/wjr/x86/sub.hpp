@@ -17,7 +17,7 @@ namespace wjr {
 
 #define WJR_ADDSUB_I 0
 
-#include <wjr/x86/addsub.hpp>
+#include <wjr/x86/gen_addsub.hpp>
 
 } // namespace wjr
 
