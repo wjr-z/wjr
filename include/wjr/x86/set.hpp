@@ -27,6 +27,8 @@ void large_builtin_set_n(T *dst, T val, size_t n) {
     using simd_int = typename simd::int_type;
     constexpr auto simd_width = simd::width();
     constexpr auto simd_loop = simd_width / nd;
+    constexpr auto u8_loop = simd_width / 8;
+    constexpr auto mask = u8_loop * 4;
 
     WJR_ASSUME(n > simd_loop * 4);
 
@@ -51,9 +53,6 @@ void large_builtin_set_n(T *dst, T val, size_t n) {
     uintptr_t ps = reinterpret_cast<uintptr_t>(dst);
     uintptr_t pe = reinterpret_cast<uintptr_t>(dst + n);
 
-    constexpr auto u8loop = simd_width / 8;
-    constexpr auto mask = u8loop * 4;
-
     ps += mask;
     ps &= -mask;
     pe &= -mask;
@@ -70,22 +69,22 @@ void large_builtin_set_n(T *dst, T val, size_t n) {
 
         do {
             simd::storeu((simd_int *)(ps), y);
-            simd::storeu((simd_int *)(ps + u8loop * 1), y);
-            simd::storeu((simd_int *)(ps + u8loop * 2), y);
-            simd::storeu((simd_int *)(ps + u8loop * 3), y);
+            simd::storeu((simd_int *)(ps + u8_loop * 1), y);
+            simd::storeu((simd_int *)(ps + u8_loop * 2), y);
+            simd::storeu((simd_int *)(ps + u8_loop * 3), y);
 
-            ps += u8loop * 4;
+            ps += u8_loop * 4;
         } while (WJR_LIKELY(ps != pe));
         return;
     }
 
     do {
         simd::store((simd_int *)(ps), y);
-        simd::store((simd_int *)(ps + u8loop * 1), y);
-        simd::store((simd_int *)(ps + u8loop * 2), y);
-        simd::store((simd_int *)(ps + u8loop * 3), y);
+        simd::store((simd_int *)(ps + u8_loop * 1), y);
+        simd::store((simd_int *)(ps + u8_loop * 2), y);
+        simd::store((simd_int *)(ps + u8_loop * 3), y);
 
-        ps += u8loop * 4;
+        ps += u8_loop * 4;
     } while (WJR_LIKELY(ps != pe));
     return;
 }
