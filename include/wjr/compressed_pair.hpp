@@ -15,13 +15,13 @@ struct comp_pair_wrapper1 {
 
     template <typename Ty = T,
               std::enable_if_t<std::is_copy_constructible_v<Ty>, int> = 0>
-    constexpr comp_pair_wrapper1(const Ty &other) noexcept(
+    constexpr explicit comp_pair_wrapper1(const Ty &other) noexcept(
         std::is_nothrow_copy_constructible_v<Ty>)
         : val(other) {}
 
     template <typename Ty = T,
               std::enable_if_t<std::is_move_constructible_v<Ty>, int> = 0>
-    constexpr comp_pair_wrapper1(Ty &&other) noexcept(
+    constexpr explicit comp_pair_wrapper1(Ty &&other) noexcept(
         std::is_nothrow_move_constructible_v<Ty>)
         : val(std::forward<Ty>(other)) {}
 
@@ -54,13 +54,13 @@ struct comp_pair_wrapper2 : private T {
 
     template <typename Ty = T,
               std::enable_if_t<std::is_copy_constructible_v<Ty>, int> = 0>
-    constexpr comp_pair_wrapper2(const Ty &other) noexcept(
+    constexpr explicit comp_pair_wrapper2(const Ty &other) noexcept(
         std::is_nothrow_copy_constructible_v<Ty>)
         : Mybase(other) {}
 
     template <typename Ty = T,
               std::enable_if_t<std::is_move_constructible_v<Ty>, int> = 0>
-    constexpr comp_pair_wrapper2(Ty &&other) noexcept(
+    constexpr explicit comp_pair_wrapper2(Ty &&other) noexcept(
         std::is_nothrow_move_constructible_v<Ty>)
         : Mybase(std::forward<Ty>(other)) {}
 
