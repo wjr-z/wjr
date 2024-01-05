@@ -316,44 +316,44 @@ template <typename T, typename U>
 compressed_pair(T, U) -> compressed_pair<T, U>;
 
 template <typename T, typename U>
-WJR_NODISCARD constexpr bool operator==(const compressed_pair<T, U> &lhs,
-                                        const compressed_pair<T, U> &rhs) {
+constexpr bool operator==(const compressed_pair<T, U> &lhs,
+                          const compressed_pair<T, U> &rhs) {
     return lhs.first() == rhs.first() && lhs.second() == rhs.second();
 }
 
 template <typename T, typename U>
-WJR_NODISCARD constexpr bool operator!=(const compressed_pair<T, U> &lhs,
-                                        const compressed_pair<T, U> &rhs) {
+constexpr bool operator!=(const compressed_pair<T, U> &lhs,
+                          const compressed_pair<T, U> &rhs) {
     return !(lhs == rhs);
 }
 
 template <typename T, typename U>
-WJR_NODISCARD constexpr bool operator<(const compressed_pair<T, U> &lhs,
-                                       const compressed_pair<T, U> &rhs) {
+constexpr bool operator<(const compressed_pair<T, U> &lhs,
+                         const compressed_pair<T, U> &rhs) {
     return lhs.first() < rhs.first() ||
            (!(rhs.first() < lhs.first()) && lhs.second() < rhs.second());
 }
 
 template <typename T, typename U>
-WJR_NODISCARD constexpr bool operator>(const compressed_pair<T, U> &lhs,
-                                       const compressed_pair<T, U> &rhs) {
+constexpr bool operator>(const compressed_pair<T, U> &lhs,
+                         const compressed_pair<T, U> &rhs) {
     return rhs < lhs;
 }
 
 template <typename T, typename U>
-WJR_NODISCARD constexpr bool operator<=(const compressed_pair<T, U> &lhs,
-                                        const compressed_pair<T, U> &rhs) {
+constexpr bool operator<=(const compressed_pair<T, U> &lhs,
+                          const compressed_pair<T, U> &rhs) {
     return !(rhs < lhs);
 }
 
 template <typename T, typename U>
-WJR_NODISCARD constexpr bool operator>=(const compressed_pair<T, U> &lhs,
-                                        const compressed_pair<T, U> &rhs) {
+constexpr bool operator>=(const compressed_pair<T, U> &lhs,
+                          const compressed_pair<T, U> &rhs) {
     return !(lhs < rhs);
 }
 
 template <typename T, typename U>
-WJR_NODISCARD constexpr compressed_pair<unrefwrap_t<T>, unrefwrap_t<U>>
+constexpr compressed_pair<unrefwrap_t<T>, unrefwrap_t<U>>
 make_pair(T &&t, U &&u) noexcept(
     std::conjunction_v<std::is_nothrow_constructible<unrefwrap_t<T>, T>,
                        std::is_nothrow_constructible<unrefwrap_t<U>, U>>) {
@@ -453,6 +453,24 @@ template <typename T, typename U>
 WJR_NODISCARD constexpr const T &&get(const wjr::compressed_pair<U, T> &&pr) noexcept {
     return std::get<1>(std::move(pr));
 }
+
+template <typename T, typename U>
+struct tuple_size<wjr::compressed_pair<T, U>> : std::integral_constant<size_t, 2> {};
+
+template <size_t I, typename T, typename U>
+struct tuple_element<I, wjr::compressed_pair<T, U>> {
+    static_assert(I < 2, "wjr::compressed_pair has only 2 elements!");
+};
+
+template <typename T, typename U>
+struct tuple_element<0, wjr::compressed_pair<T, U>> {
+    using type = T;
+};
+
+template <typename T, typename U>
+struct tuple_element<1, wjr::compressed_pair<T, U>> {
+    using type = U;
+};
 
 } // namespace std
 

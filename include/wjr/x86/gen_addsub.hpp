@@ -2,6 +2,10 @@
 // 0 : SUB
 // 1 : ADD
 
+#ifndef WJR_ADDSUB_I
+#error "abort"
+#endif
+
 #define WJR_ADDSUB WJR_PP_BOOL_IF(WJR_ADDSUB_I, ADDC, SUBC)
 #define WJR_addcsubc WJR_PP_BOOL_IF(WJR_ADDSUB_I, addc, subc)
 #define WJR_addsub WJR_PP_BOOL_IF(WJR_ADDSUB_I, add, sub)
