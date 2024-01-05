@@ -19,7 +19,7 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(SET_N)
 
 template <typename T>
-void large_builtin_set_n(T *dst, T val, size_t n) {
+WJR_COLD void large_builtin_set_n(T *dst, T val, size_t n) {
     constexpr auto nd = std::numeric_limits<T>::digits;
     constexpr auto is_avx = WJR_PP_BOOL(WJR_HAS_SIMD(AVX2));
 
@@ -31,13 +31,6 @@ void large_builtin_set_n(T *dst, T val, size_t n) {
     constexpr auto mask = u8_loop * 4;
 
     WJR_ASSUME(n > simd_loop * 4);
-
-    if (WJR_BUILTIN_CONSTANT_P(val) && broadcast<uint8_t, T>(val) == val) {
-        if (WJR_UNLIKELY(n >= 2048)) {
-            ::memset(dst, static_cast<uint8_t>(val), n * sizeof(T));
-            return;
-        }
-    }
 
     auto y = simd::set1(val, T());
 
@@ -61,21 +54,12 @@ void large_builtin_set_n(T *dst, T val, size_t n) {
         return;
     }
 
-    uintptr_t mo = ps % sizeof(T);
+    uintptr_t mo = reinterpret_cast<uintptr_t>(dst) % sizeof(T);
 
     if (WJR_UNLIKELY(mo != 0)) {
-        ps += mo;
-        pe += mo;
-
-        do {
-            simd::storeu((simd_int *)(ps), y);
-            simd::storeu((simd_int *)(ps + u8_loop * 1), y);
-            simd::storeu((simd_int *)(ps + u8_loop * 2), y);
-            simd::storeu((simd_int *)(ps + u8_loop * 3), y);
-
-            ps += u8_loop * 4;
-        } while (WJR_LIKELY(ps != pe));
-        return;
+        T stk[2] = {val, val};
+        ::memcpy(&val, (char *)(stk) + mo, sizeof(T));
+        y = simd::set1(val, T());
     }
 
     do {

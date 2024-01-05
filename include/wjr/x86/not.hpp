@@ -25,8 +25,6 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) {
     constexpr auto simd_width = simd::width();
     constexpr auto simd_loop = simd_width / 64;
 
-    WJR_ASSUME(n > 32);
-
     uintptr_t ptr = reinterpret_cast<uintptr_t>(dst);
     WJR_ASSUME(ptr % sizeof(T) == 0);
     size_t offset = (((ptr + 32 - 1) & (-32)) - ptr) / sizeof(T);
@@ -92,66 +90,61 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) {
         idx += simd_loop * 4;
     } while (idx != m);
 
-    n -= m;
-    if (WJR_UNLIKELY(n == 0)) {
+    if (WJR_UNLIKELY(n == m)) {
         return;
     }
 
     dst += m;
     src += m;
+    n -= m;
 
-    do {
-        if (n < simd_loop) {
-            break;
-        }
+    m = n / simd_loop;
+    WJR_ASSUME(m < 4);
 
+    switch (m) {
+    case 3: {
         simd::store((simd_int *)(dst), simd::Xor(simd::loadu((simd_int *)(src)), z));
-
-        if (n < simd_loop * 2) {
-            dst += simd_loop;
-            src += simd_loop;
-            n -= simd_loop;
-            break;
-        }
-
-        simd::store((simd_int *)(dst + simd_loop),
-                    simd::Xor(simd::loadu((simd_int *)(src + simd_loop)), z));
-
-        if (n < simd_loop * 3) {
-            dst += simd_loop * 2;
-            src += simd_loop * 2;
-            n -= simd_loop * 2;
-            break;
-        }
-
-        simd::store((simd_int *)(dst + simd_loop * 2),
-                    simd::Xor(simd::loadu((simd_int *)(src + simd_loop * 2)), z));
-
-        dst += simd_loop * 3;
-        src += simd_loop * 3;
-        n -= simd_loop * 3;
-    } while (0);
-
-    if (WJR_UNLIKELY(n == 0)) {
-        return;
+        WJR_FALLTHROUGH;
     }
-
-    switch (n) {
+    case 2: {
+        simd::store((simd_int *)(dst + simd_loop * (m - 2)),
+                    simd::Xor(simd::loadu((simd_int *)(src + simd_loop * (m - 2))), z));
+        WJR_FALLTHROUGH;
+    }
+    case 1: {
+        simd::store((simd_int *)(dst + simd_loop * (m - 1)),
+                    simd::Xor(simd::loadu((simd_int *)(src + simd_loop * (m - 1))), z));
+        WJR_FALLTHROUGH;
+    }
     case 0: {
         break;
     }
+    default: {
+        WJR_UNREACHABLE;
+    }
+    }
+
+    m = n & (-simd_loop);
+
+    if (WJR_UNLIKELY(n == m)) {
+        return;
+    }
+
+    WJR_ASSUME(n - m < 4);
+
+    switch (n - m) {
     case 1: {
-        dst[0] = ~src[0];
+        dst[m] = ~src[m];
         break;
     }
     case 2: {
-        sse::storeu((__m128i *)(dst), sse::Xor(sse::loadu((__m128i *)(src)), y));
+        sse::store((__m128i *)(dst + m), sse::Xor(sse::loadu((__m128i *)(src + m)), y));
         break;
     }
 
     case 3: {
-        sse::storeu((__m128i *)(dst), sse::Xor(sse::loadu((__m128i *)(src)), y));
-        dst[2] = ~src[2];
+        sse::store((__m128i *)(dst + m), sse::Xor(sse::loadu((__m128i *)(src + m)), y));
+        dst[m + 2] = ~src[m + 2];
         break;
     }
 
@@ -159,6 +152,8 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) {
         WJR_UNREACHABLE;
     }
     }
+
+    return;
 }
 
 template <typename T>
@@ -166,25 +161,23 @@ WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) {
     static_assert(sizeof(T) == 8, "");
 
     if (WJR_UNLIKELY(n < 4)) {
-        do {
-            if (n == 0) {
-                break;
-            }
-
+        switch (n) {
+        case 3: {
             dst[0] = ~src[0];
-
-            if (n == 1) {
-                break;
-            }
-
-            dst[1] = ~src[1];
-
-            if (n == 2) {
-                break;
-            }
-
-            dst[2] = ~src[2];
-        } while (0);
+            WJR_FALLTHROUGH;
+        }
+        case 2: {
+            dst[n - 2] = ~src[n - 2];
+            WJR_FALLTHROUGH;
+        }
+        case 1: {
+            dst[n - 1] = ~src[n - 1];
+            WJR_FALLTHROUGH;
+        }
+        case 0: {
+            break;
+        }
+        }
 
         return;
     }
@@ -227,6 +220,8 @@ WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) {
     if (WJR_UNLIKELY(idx == n)) {
         return;
     }
+
+    WJR_ASSUME((n - idx) % 8 == 0);
 
     do {
         auto x0 = sse::loadu((__m128i *)(src + idx));

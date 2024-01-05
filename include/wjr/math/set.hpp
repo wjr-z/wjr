@@ -27,6 +27,13 @@ WJR_INTRINSIC_CONSTEXPR void set_n(T *dst, type_identity_t<T> val, size_t n) {
             return fallback_set_n(dst, val, n);
         }
 
+        if (WJR_BUILTIN_CONSTANT_P(val) && broadcast<uint8_t, T>(val) == val) {
+            if (WJR_UNLIKELY(n >= 2048)) {
+                ::memset(dst, static_cast<uint8_t>(val), n * sizeof(T));
+                return;
+            }
+        }
+
         return builtin_set_n(dst, val, n);
     } else {
         return fallback_set_n(dst, val, n);

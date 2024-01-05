@@ -93,9 +93,7 @@ WJR_INTRINSIC_INLINE T asm_shrd(T lo, T hi, unsigned int c) {
 
 #if WJR_HAS_BUILTIN(LSHIFT_N)
 
-#define WJR_REGISTER_LSHIFT_N_IMPL_L1(index)                                             \
-    dst[-1 - (index)] = shld(src[-1 - (index)], src[-2 - (index)], c)
-#define WJR_REGISTER_LSHIFT_N_IMPL_L2(index)                                             \
+#define WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2(index)                                   \
     do {                                                                                 \
         __m128i x1 = sse::loadu((__m128i *)(src - 3 - (index)));                         \
         x0 = simd_cast<__m128_t, __m128i_t>(sse::template shuffle_ps<78>(                \
@@ -116,45 +114,79 @@ WJR_INTRINSIC_INLINE T asm_shrd(T lo, T hi, unsigned int c) {
     __m128i x0 = sse::set1_epi64(src[-1 - (index)]);
 
 template <typename T>
-WJR_COLD void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n,
-                                          unsigned int c) {
-#define WJR_REGISTER_LSHIFT_N_IMPL_L8(index)                                             \
-    WJR_REGISTER_LSHIFT_N_IMPL_L2((index));                                              \
-    WJR_REGISTER_LSHIFT_N_IMPL_L2((index) + 2);                                          \
-    WJR_REGISTER_LSHIFT_N_IMPL_L2((index) + 4);                                          \
-    WJR_REGISTER_LSHIFT_N_IMPL_L2((index) + 6);
-
-    WJR_GEN_LARGE_NOFAST_1_2_8(n, WJR_REGISTER_LSHIFT_N_IMPL_L1,
-                               WJR_REGISTER_LSHIFT_N_IMPL_L2,
-                               WJR_REGISTER_LSHIFT_N_IMPL_L8, WJR_PP_EMPTY,
-                               WJR_REGISTER_LSHIFT_N_IMPL_I2, WJR_PP_EMPTY, WJR_PP_EMPTY);
-
-#undef WJR_REGISTER_LSHIFT_N_IMPL_L8
-}
-
-template <typename T>
 WJR_INLINE void builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int c) {
-#define WJR_REGISTER_LARGE_SHIFT_N_IMPL(gen_offset, gen_n)                               \
-    return large_builtin_lshift_n_impl(dst - gen_offset, src - gen_offset, gen_n, c)
+
+    if (WJR_UNLIKELY(n < 4)) {
+        switch (n) {
+        case 3: {
+            dst[2] = shld(src[2], src[1], c);
+            WJR_FALLTHROUGH;
+        }
+        case 2: {
+            dst[1] = shld(src[1], src[0], c);
+            WJR_FALLTHROUGH;
+        }
+        case 1: {
+            dst[0] = shld(src[0], src[-1], c);
+            WJR_FALLTHROUGH;
+        }
+        case 0: {
+            break;
+        }
+        }
+
+        return;
+    }
 
     dst += n;
     src += n;
 
-    WJR_GEN_SMALL_NOFAST_1_2_8(
-        n, WJR_REGISTER_LSHIFT_N_IMPL_L1, WJR_REGISTER_LSHIFT_N_IMPL_L2, WJR_PP_EMPTY,
-        WJR_REGISTER_LSHIFT_N_IMPL_I2, WJR_PP_EMPTY, WJR_REGISTER_LARGE_SHIFT_N_IMPL);
+    size_t idx = 0;
 
-#undef WJR_REGISTER_LARGE_SHIFT_N_IMPL
+    if (n & 1) {
+        dst[-1] = shld(src[-1], src[-2], c);
+
+        idx += 1;
+    }
+
+    WJR_REGISTER_LSHIFT_N_IMPL_I2(idx);
+
+    if (n & 2) {
+        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2(idx);
+
+        idx += 2;
+    }
+
+    if (n & 4) {
+        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2(idx);
+        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2(idx + 2);
+
+        idx += 4;
+    }
+
+    if (WJR_UNLIKELY(idx == n)) {
+        return;
+    }
+
+    WJR_ASSUME((n - idx) % 8 == 0);
+
+    do {
+        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2(idx);
+        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2(idx + 2);
+        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2(idx + 4);
+        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2(idx + 6);
+
+        idx += 8;
+    } while (idx != n);
 }
 
-#undef WJR_REGISTER_LSHIFT_N_IMPL_L1
 #undef WJR_REGISTER_LSHIFT_N_IMPL_I2
-#undef WJR_REGISTER_LSHIFT_N_IMPL_L2
+#undef WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2
 
 template <typename T>
 WJR_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned int c) {
     T ret = src[n - 1] >> (64 - c);
-    builtin_lshift_n_impl(dst, src, n, c);
+    builtin_lshift_n_impl(dst + 1, src + 1, n - 1, c);
     dst[0] = src[0] << c;
     return ret;
 }
@@ -222,7 +254,7 @@ WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T *src, size_t n,
 template <typename T>
 WJR_INLINE void builtin_rshift_n(T *dst, const T *src, size_t n, unsigned int c) {
     T ret = src[0] << (64 - c);
-    builtin_rshift_n_impl(dst, src, n, c);
+    builtin_rshift_n_impl(dst, src, n - 1, c);
     dst[n - 1] = src[n - 1] >> c;
     return ret;
 }
