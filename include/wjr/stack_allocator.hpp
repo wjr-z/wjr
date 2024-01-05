@@ -167,7 +167,6 @@ private:
 };
 
 // Disable move constructor
-// It is necessary to ensure that the release sequence is correct
 template <typename StackAllocator>
 class unique_stack_ptr {
 public:

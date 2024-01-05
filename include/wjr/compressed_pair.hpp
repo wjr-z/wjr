@@ -363,4 +363,97 @@ make_pair(T &&t, U &&u) noexcept(
 
 } // namespace wjr
 
+namespace std {
+
+template <typename T, typename U,
+          std::enable_if_t<std::conjunction_v<wjr::is_swappable<T>, wjr::is_swappable<U>>,
+                           int> = 0>
+WJR_INLINE_CONSTEXPR void
+swap(wjr::compressed_pair<T, U> &lhs,
+     wjr::compressed_pair<T, U> &rhs) noexcept(noexcept(lhs.swap(rhs))) {
+    lhs.swap(rhs);
+}
+
+template <size_t I, typename T, typename U>
+WJR_NODISCARD constexpr std::tuple_element_t<I, wjr::compressed_pair<T, U>> &
+get(wjr::compressed_pair<T, U> &pr) noexcept {
+    if constexpr (I == 0) {
+        return pr.first();
+    } else {
+        return pr.second();
+    }
+}
+
+template <size_t I, typename T, typename U>
+WJR_NODISCARD constexpr const std::tuple_element_t<I, wjr::compressed_pair<T, U>> &
+get(const wjr::compressed_pair<T, U> &pr) noexcept {
+    if constexpr (I == 0) {
+        return pr.first();
+    } else {
+        return pr.second();
+    }
+}
+
+template <size_t I, typename T, typename U>
+WJR_NODISCARD constexpr std::tuple_element_t<I, wjr::compressed_pair<T, U>> &&
+get(wjr::compressed_pair<T, U> &&pr) noexcept {
+    if constexpr (I == 0) {
+        return std::forward<T>(pr.first());
+    } else {
+        return std::forward<U>(pr.second());
+    }
+}
+
+template <size_t I, typename T, typename U>
+WJR_NODISCARD constexpr const std::tuple_element_t<I, wjr::compressed_pair<T, U>> &&
+get(const wjr::compressed_pair<T, U> &&pr) noexcept {
+    if constexpr (I == 0) {
+        return std::forward<T>(pr.first());
+    } else {
+        return std::forward<U>(pr.second());
+    }
+}
+
+template <typename T, typename U>
+WJR_NODISCARD constexpr T &get(wjr::compressed_pair<T, U> &pr) noexcept {
+    return std::get<0>(pr);
+}
+
+template <typename T, typename U>
+WJR_NODISCARD constexpr const T &get(const wjr::compressed_pair<T, U> &pr) noexcept {
+    return std::get<0>(pr);
+}
+
+template <typename T, typename U>
+WJR_NODISCARD constexpr T &&get(wjr::compressed_pair<T, U> &&pr) noexcept {
+    return std::get<0>(std::move(pr));
+}
+
+template <typename T, typename U>
+WJR_NODISCARD constexpr const T &&get(const wjr::compressed_pair<T, U> &&pr) noexcept {
+    return std::get<0>(std::move(pr));
+}
+
+template <typename T, typename U>
+WJR_NODISCARD constexpr T &get(wjr::compressed_pair<U, T> &pr) noexcept {
+    return std::get<1>(pr);
+}
+
+template <typename T, typename U>
+WJR_NODISCARD constexpr const T &get(const wjr::compressed_pair<U, T> &pr) noexcept {
+    return std::get<1>(pr);
+}
+
+template <typename T, typename U>
+WJR_NODISCARD constexpr T &&get(wjr::compressed_pair<U, T> &&pr) noexcept {
+    return std::get<1>(std::move(pr));
+}
+
+template <typename T, typename U>
+WJR_NODISCARD constexpr const T &&get(const wjr::compressed_pair<U, T> &&pr) noexcept {
+    return std::get<1>(std::move(pr));
+}
+
+} // namespace std
+
 #endif // WJR_COMPRESSED_PAIR_HPP__

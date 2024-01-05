@@ -67,7 +67,7 @@ WJR_INTRINSIC_CONSTEXPR T lshift_n(T *dst, const T *src, size_t n, unsigned int 
 
     if (WJR_BUILTIN_CONSTANT_P(c % nd == 0) && c % nd == 0) {
         if (WJR_LIKELY(dst != src)) {
-            std::copy_backward(src, src + n, dst);
+            std::copy_backward(src, src + n, dst + n);
         }
 
         return 0;

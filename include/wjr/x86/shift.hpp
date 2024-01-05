@@ -116,7 +116,7 @@ WJR_INTRINSIC_INLINE T asm_shrd(T lo, T hi, unsigned int c) {
     __m128i x0 = sse::set1_epi64(src[-1 - (index)]);
 
 template <typename T>
-WJR_COLD void large_buitlin_lshift_n_impl(T *dst, const T *src, size_t n,
+WJR_COLD void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n,
                                           unsigned int c) {
 #define WJR_REGISTER_LSHIFT_N_IMPL_L8(index)                                             \
     WJR_REGISTER_LSHIFT_N_IMPL_L2((index));                                              \
@@ -133,9 +133,9 @@ WJR_COLD void large_buitlin_lshift_n_impl(T *dst, const T *src, size_t n,
 }
 
 template <typename T>
-WJR_INLINE void buitlin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int c) {
+WJR_INLINE void builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int c) {
 #define WJR_REGISTER_LARGE_SHIFT_N_IMPL(gen_offset, gen_n)                               \
-    return large_buitlin_lshift_n_impl(dst - gen_offset, src - gen_offset, gen_n, c)
+    return large_builtin_lshift_n_impl(dst - gen_offset, src - gen_offset, gen_n, c)
 
     dst += n;
     src += n;
@@ -152,9 +152,9 @@ WJR_INLINE void buitlin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned i
 #undef WJR_REGISTER_LSHIFT_N_IMPL_L2
 
 template <typename T>
-WJR_INLINE T buitlin_lshift_n(T *dst, const T *src, size_t n, unsigned int c) {
+WJR_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned int c) {
     T ret = src[n - 1] >> (64 - c);
-    buitlin_lshift_n_impl(dst, src, n, c);
+    builtin_lshift_n_impl(dst, src, n, c);
     dst[0] = src[0] << c;
     return ret;
 }
@@ -220,7 +220,7 @@ WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T *src, size_t n,
 #undef WJR_REGISTER_RSHIFT_N_IMPL_L1
 
 template <typename T>
-WJR_INLINE void rshift_n(T *dst, const T *src, size_t n, unsigned int c) {
+WJR_INLINE void builtin_rshift_n(T *dst, const T *src, size_t n, unsigned int c) {
     T ret = src[0] << (64 - c);
     builtin_rshift_n_impl(dst, src, n, c);
     dst[n - 1] = src[n - 1] >> c;

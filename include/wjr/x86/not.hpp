@@ -190,6 +190,8 @@ WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) {
     }
 
     if (WJR_UNLIKELY(n >= 35)) {
+        // Can be aligned
+        // TODO : Align those that cannot be aligned with T through uint8_t
         if (WJR_LIKELY(reinterpret_cast<uintptr_t>(dst) % sizeof(T) == 0)) {
             return large_builtin_not_n(dst, src, n);
         }
