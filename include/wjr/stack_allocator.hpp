@@ -2,6 +2,7 @@
 #define WJR_STACK_ALLOCATOR_HPP__
 
 #include <cstddef>
+#include <vector>
 
 #include <wjr/container/list.hpp>
 #include <wjr/type_traits.hpp>
@@ -64,106 +65,92 @@ private:
 // TODO
 // 1. optimize for cache_blocks == -1.
 // 2. optimize memory fragmentation caused by large object allocation
-template <size_t cache, size_t obj_threashold, size_t cache_blocks = 2,
+template <size_t cache0, size_t threshold0, size_t cache1, size_t threshold1,
           size_t alignment = alignof(std::max_align_t)>
 class stack_allocator {
 
-    static_assert(obj_threashold <= cache / 4,
-                  "malloc size must less or equal then cache / 4.");
-    static_assert(cache_blocks != 0, "");
+    template <size_t cache>
+    class stack_alloc {
+        using node = basic_stack_allocator<cache, alignment>;
 
-    constexpr static size_t remain_cache_blocks = cache_blocks + 1;
-
-    struct stack_node {
-        stack_node *next = nullptr;
-        stack_node *prev = nullptr;
-        basic_stack_allocator<cache, alignment> alloc;
-    };
-
-    WJR_CONSTEXPR20 void malloc_node() {
-        WJR_ASSERT(rest == 0);
-        rest = 1;
-        auto node = new stack_node;
-
-        WJR_ASSERT(node->alloc.size() == 0);
-
-        if (tail != nullptr) {
-            tail->next = node;
-            node->prev = tail;
+        WJR_CONSTEXPR20 void malloc_node() {
+            WJR_ASSERT(idx == stk.size());
+            stk.emplace_back(new node);
         }
 
-        ptr = node;
-        tail = node;
-    }
+    public:
+        stack_alloc() = default;
+        stack_alloc(const stack_alloc &) = delete;
+        stack_alloc(stack_alloc &&) = default;
+        stack_alloc &operator=(const stack_alloc &) = delete;
+        stack_alloc &operator=(stack_alloc &&) = default;
+        ~stack_alloc() = default;
 
-    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 void *allocate_small(size_t n) {
-        WJR_ASSERT(ptr != nullptr);
+        WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 void *allocate(size_t n) {
+            if (WJR_UNLIKELY(stk.empty() || stk[idx]->size() + n > cache)) {
+                ++idx;
+                if (WJR_UNLIKELY(idx == stk.size())) {
+                    malloc_node();
+                }
+            }
 
-        if (WJR_UNLIKELY(cache - ptr->alloc.size() < n)) {
-            --rest;
-            ptr = ptr->next;
-            if (WJR_UNLIKELY(ptr == nullptr)) {
-                malloc_node();
+            return stk[idx]->allocate(n);
+        }
+
+        WJR_INTRINSIC_CONSTEXPR20 void deallocate(void *ptr, size_t n) {
+            stk[idx]->deallocate(ptr, n);
+            if (WJR_UNLIKELY(idx && stk[idx]->size() == 0)) {
+                --idx;
+                auto size = stk.size();
+                auto idx2 = size <= 8 ? idx + 4 : idx + idx / 2;
+
+                if (WJR_UNLIKELY(idx2 <= size)) {
+                    delete stk.back();
+                    stk.pop_back();
+                }
             }
         }
 
-        return ptr->alloc.allocate(n);
-    }
+    private:
+        size_t idx = -1ull;
+        std::vector<node *> stk;
+    };
 
-    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 void *allocate_large(size_t n) {
+public:
+    stack_allocator() = default;
+    stack_allocator(const stack_allocator &) = delete;
+    stack_allocator(stack_allocator &&) = default;
+    stack_allocator &operator=(const stack_allocator &) = delete;
+    stack_allocator &operator=(stack_allocator &&) = default;
+    ~stack_allocator() = default;
+
+    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 void *allocate(size_t n) {
+        if (WJR_LIKELY(n < threshold0)) {
+            return small_alloc.allocate(n);
+        }
+
+        if (WJR_LIKELY(n < threshold1)) {
+            return mid_alloc.allocate(n);
+        }
+
         return malloc(n);
     }
 
-    WJR_INTRINSIC_CONSTEXPR20
-    void deallocate_small(void *p, size_t n) {
-        ptr->alloc.deallocate(p, n);
-
-        if (ptr->alloc.size() == 0 && ptr->prev) {
-            ptr = ptr->prev;
-            if (WJR_UNLIKELY(++rest == remain_cache_blocks)) {
-                --rest;
-                stack_node *tmp = tail;
-                tail = tail->prev;
-                delete tmp;
-            }
-
-            WJR_ASSERT(rest < remain_cache_blocks);
+    WJR_INTRINSIC_CONSTEXPR20 void deallocate(void *ptr, size_t n) {
+        if (WJR_LIKELY(n < threshold0)) {
+            return small_alloc.deallocate(ptr, n);
         }
-    }
 
-    WJR_INTRINSIC_CONSTEXPR20
-    void deallocate_large(void *ptr, WJR_MAYBE_UNUSED size_t n) {
+        if (WJR_LIKELY(n < threshold1)) {
+            return mid_alloc.deallocate(ptr, n);
+        }
+
         free(ptr);
-        (void)(n);
-    }
-
-public:
-    WJR_CONSTEXPR20 stack_allocator() { malloc_node(); }
-
-    ~stack_allocator() = default;
-    stack_allocator(const stack_allocator &) = delete;
-    stack_allocator &operator=(const stack_allocator &) = delete;
-
-    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 void *allocate(size_t n) {
-        if (WJR_UNLIKELY(n >= obj_threashold)) {
-            return allocate_large(n);
-        }
-
-        return allocate_small(n);
-    }
-
-    WJR_INTRINSIC_CONSTEXPR20 void deallocate(void *p, size_t n) {
-        if (WJR_UNLIKELY(n >= obj_threashold)) {
-            return deallocate_large(p, n);
-        }
-
-        return deallocate_small(p, n);
     }
 
 private:
-    stack_node *ptr = nullptr;
-    stack_node *tail = nullptr;
-    size_t rest = 0;
+    stack_alloc<cache0> small_alloc;
+    stack_alloc<cache1> mid_alloc;
 };
 
 // Disable move constructor

@@ -293,30 +293,6 @@ inline constexpr bool is_default_convertible_v = is_default_convertible<T>::valu
 
 // ....
 
-template <typename T>
-using null_optional_t = std::optional<T>;
-
-template <typename T>
-inline constexpr null_optional_t<T> null_optional = null_optional_t<T>(std::nullopt);
-
-template <typename T>
-struct may_null {
-    using type = T;
-    static constexpr bool value = false;
-};
-
-template <typename T>
-struct may_null<null_optional_t<T>> {
-    using type = T;
-    static constexpr bool value = true;
-};
-
-template <typename T>
-using may_null_t = typename may_null<T>::type;
-
-template <typename T>
-inline constexpr bool may_null_v = may_null<T>::value;
-
 template <class P, class M>
 WJR_INTRINSIC_CONSTEXPR20 size_t container_of_offset(const M P::*member) {
     return reinterpret_cast<size_t>(&(reinterpret_cast<P *>(nullptr)->*member));

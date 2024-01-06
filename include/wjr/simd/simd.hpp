@@ -1,6 +1,8 @@
 #ifndef WJR_SIMD_SIMD_HPP__
 #define WJR_SIMD_SIMD_HPP__
 
+#include <cstring>
+
 #include <wjr/math/broadcast.hpp>
 #include <wjr/simd/simd_cast.hpp>
 
