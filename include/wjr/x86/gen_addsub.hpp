@@ -11,35 +11,37 @@
 #define WJR_addsub WJR_PP_BOOL_IF(WJR_ADDSUB_I, add, sub)
 #define WJR_adcsbb WJR_PP_BOOL_IF(WJR_ADDSUB_I, adc, sbb)
 
-#if WJR_HAS_BUILTIN(WJR_PP_CONCAT(ASM_, WJR_PP_CONCAT(WJR_ADDSUB, _1)))
+#if WJR_HAS_BUILTIN(WJR_PP_CONCAT(ASM_, WJR_ADDSUB))
 
 template <typename T, typename U>
-WJR_INTRINSIC_INLINE T WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _1))(T a, T b,
-                                                                          U c_in,
-                                                                          U &c_out) {
+WJR_INTRINSIC_INLINE T WJR_PP_CONCAT(asm_, WJR_addcsubc)(T a, T b, U c_in, U &c_out) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
-#define WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL(STR, suffix)                                \
-    asm(STR "{" #suffix " %2, %0| %0, %2}\n\t"                                           \
+#define WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL(STR, SUFFIX, A, B)                          \
+    asm(STR "{" #SUFFIX " %2, %0| %0, %2}\n\t"                                           \
         "setb %b1"                                                                       \
-        : "=r"(a), "+r"(c_in)                                                            \
-        : "%r"(b), "0"(a)                                                                \
+        : "=r"(A), "+r"(c_in)                                                            \
+        : "%ri"(B), "0"(A)                                                               \
         : "cc");                                                                         \
-    c_out = static_cast<unsigned char>(c_in);                                            \
-    return a
+    c_out = c_in;                                                                        \
+    return A
 
 #define WJR_REGISTER_BUILTIN_ASM_ADDSUB(suffix, type)                                    \
     if constexpr (nd == std::numeric_limits<type>::digits) {                             \
+        if (WJR_BUILTIN_CONSTANT_P(a)) {                                                 \
+            WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL(                                        \
+                "add{b $255, %b1| %b1, 255}\n\t" WJR_PP_STR(WJR_adcsbb), suffix, b, a);  \
+        }                                                                                \
         if (WJR_BUILTIN_CONSTANT_P(c_in)) {                                              \
             if (c_in == 0) {                                                             \
-                WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL(WJR_PP_STR(WJR_addsub), suffix);    \
+                WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL(WJR_PP_STR(WJR_addsub), suffix, a, b);    \
             } else {                                                                     \
                 WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL("stc\n\t"                           \
-                WJR_PP_STR(WJR_adcsbb), suffix);                                         \
+                WJR_PP_STR(WJR_adcsbb), suffix, a, b);                                   \
             }                                                                            \
         }                                                                                \
         WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL(                                            \
-            "add{b $255, %b1| %b1, 255}\n\t" WJR_PP_STR(WJR_adcsbb), suffix);            \
+            "add{b $255, %b1| %b1, 255}\n\t" WJR_PP_STR(WJR_adcsbb), suffix, a, b);      \
                                                                                          \
     } else
 
@@ -68,7 +70,7 @@ WJR_INLINE U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(T *dst, const 
 
     if (WJR_BUILTIN_CONSTANT_P(n)) {
         if (n == 1) {
-            dst[0] = WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _1))(src0[0], src1[0], c_in, c_in);
+            dst[0] = WJR_PP_CONCAT(asm_, WJR_addcsubc)(src0[0], src1[0], c_in, c_in);
             return c_in;
         }
     }

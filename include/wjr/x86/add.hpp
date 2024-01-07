@@ -11,7 +11,7 @@ namespace wjr {
 
 #if WJR_HAS_FEATURE(INLINE_ASM) &&                                                       \
     (defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC))
-#define WJR_HAS_BUILTIN_ASM_ADDC_1 WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_ASM_ADDC_N WJR_HAS_DEF
 #endif
 

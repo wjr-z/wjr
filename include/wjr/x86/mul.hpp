@@ -59,7 +59,7 @@ WJR_INTRINSIC_INLINE T mulx(T a, T b, T &hi) {
 
 #if defined(WJR_COMPILER_GCC)
     T lo;
-    asm("mulx {%3, %0, %1|%1, %0, %3}" : "=r"(lo), "=r"(hi) : "%d"(a), "rm"(b));
+    asm("mulx {%3, %0, %1|%1, %0, %3}" : "=r"(lo), "=r"(hi) : "%d"(a), "r"(b));
     return lo;
 #else
     unsigned long long hi_;
