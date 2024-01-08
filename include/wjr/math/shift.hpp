@@ -17,12 +17,12 @@ WJR_INTRINSIC_CONSTEXPR T fallback_shld(T hi, T lo, unsigned int c) {
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR T shld(T hi, T lo, unsigned int c) {
-    if (WJR_BUILTIN_CONSTANT_P(c == 0) && c == 0) {
-        return hi;
-    }
-
 #if WJR_HAS_BUILTIN(ASM_SHLD)
-    if (is_constant_evaluated()) {
+    if (is_constant_evaluated() || (WJR_BUILTIN_CONSTANT_P(hi == 0) && hi == 0) ||
+        (WJR_BUILTIN_CONSTANT_P(lo == 0) && lo == 0) ||
+        (WJR_BUILTIN_CONSTANT_P(c == 0) && c == 0) ||
+        (WJR_BUILTIN_CONSTANT_P(c) &&
+         (WJR_BUILTIN_CONSTANT_P(hi) || WJR_BUILTIN_CONSTANT_P(lo)))) {
         return fallback_shld(hi, lo, c);
     }
 
@@ -40,12 +40,12 @@ WJR_INTRINSIC_CONSTEXPR T fallback_shrd(T lo, T hi, unsigned int c) {
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR T shrd(T lo, T hi, unsigned int c) {
-    if (WJR_BUILTIN_CONSTANT_P(c == 0) && c == 0) {
-        return lo;
-    }
-
 #if WJR_HAS_BUILTIN(ASM_SHRD)
-    if (is_constant_evaluated()) {
+    if (is_constant_evaluated() || (WJR_BUILTIN_CONSTANT_P(hi == 0) && hi == 0) ||
+        (WJR_BUILTIN_CONSTANT_P(lo == 0) && lo == 0) ||
+        (WJR_BUILTIN_CONSTANT_P(c == 0) && c == 0) ||
+        (WJR_BUILTIN_CONSTANT_P(c) &&
+         (WJR_BUILTIN_CONSTANT_P(hi) || WJR_BUILTIN_CONSTANT_P(lo)))) {
         return fallback_shrd(lo, hi, c);
     }
 

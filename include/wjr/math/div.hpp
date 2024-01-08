@@ -3,8 +3,6 @@
 
 namespace wjr {
 
-    
-
 }
 
 #endif // WJR_MATH_DIV_HPP__

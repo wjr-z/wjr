@@ -31,7 +31,7 @@ WJR_INTRINSIC_INLINE T asm_shld(T hi, T lo, unsigned int c) {
     WJR_PP_TRANSFORM_PUT(args, WJR_REGISTER_BUILTIN_ASM_SHLD_I_CALLER)
 #define WJR_REGISTER_BUILTIN_ASM_SHLD_I(suffix, type)                                    \
     if constexpr (nd == std::numeric_limits<type>::digits) {                             \
-        asm("shld{" #suffix " %b2, %1, %0| %0, %1, %2 }"                                 \
+        asm("shld{" #suffix " %b2, %1, %0| %0, %1, %b2 }"                                \
             : "+r"(hi)                                                                   \
             : "r"(lo), "ci"(c)                                                           \
             : "cc");                                                                     \
@@ -66,7 +66,7 @@ WJR_INTRINSIC_INLINE T asm_shrd(T lo, T hi, unsigned int c) {
     WJR_PP_TRANSFORM_PUT(args, WJR_REGISTER_BUILTIN_ASM_SHRD_I_CALLER)
 #define WJR_REGISTER_BUILTIN_ASM_SHRD_I(suffix, type)                                    \
     if constexpr (nd == std::numeric_limits<type>::digits) {                             \
-        asm("shrd{" #suffix " %b2, %1, %0| %0, %1, %2 }"                                 \
+        asm("shrd{" #suffix " %b2, %1, %0| %0, %1, %b2 }"                                \
             : "+r"(lo)                                                                   \
             : "r"(hi), "ci"(c)                                                           \
             : "cc");                                                                     \
