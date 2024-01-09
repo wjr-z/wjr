@@ -33,14 +33,14 @@ private:
             m_shift = clz(m_divisor);
         }
 
-        if (WJR_UNLIKELY(wjr::is_power_of_two(m_divisor))) {
-            m_divisor = 1ull << 63;
+        m_divisor <<= m_shift;
+
+        if (WJR_UNLIKELY(m_divisor == (1ull << 63))) {
             m_value = -1;
             return;
         }
 
-        m_divisor <<= m_shift;
-        large_initialize();
+        return large_initialize();
     }
 
     constexpr void large_initialize() {

@@ -39,7 +39,7 @@ WJR_INTRINSIC_CONSTEXPR uint64_t fallback_mul64(uint64_t a, uint64_t b, uint64_t
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR T mul(T a, T b, T &hi) {
+WJR_INTRINSIC_CONSTEXPR20 T mul(T a, T b, T &hi) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
     if constexpr (nd < 64) {
@@ -83,7 +83,7 @@ uint64_t fallback_mulhi64(uint64_t a, uint64_t b) {
 }
 
 template <typename T>
-WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
+WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR20)
 T mulhi(T a, T b) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
@@ -104,7 +104,6 @@ T mulhi(T a, T b) {
             return builtin_mulhi64(b, a);
         }
 #endif
-
 
         return builtin_mulhi64(a, b);
 #else
@@ -134,8 +133,8 @@ WJR_INTRINSIC_CONSTEXPR T fallback_mul1(T *dst, const T *src0, size_t n, T src1,
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR T mul_1(T *dst, const T *src0, size_t n, T src1,
-                                type_identity_t<T> c_in) {
+WJR_INTRINSIC_CONSTEXPR20 T mul_1(T *dst, const T *src0, size_t n, T src1,
+                                  type_identity_t<T> c_in) {
     static_assert(std::is_same_v<T, uint64_t>, "only support uint64_t now");
 #if WJR_HAS_BUILTIN(ASM_MUL_1)
     if (is_constant_evaluated()) {
@@ -166,8 +165,8 @@ WJR_INTRINSIC_CONSTEXPR T fallback_addmul_1(T *dst, const T *src0, size_t n, T s
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR T addmul_1(T *dst, const T *src0, size_t n, T src1,
-                                   type_identity_t<T> c_in) {
+WJR_INTRINSIC_CONSTEXPR20 T addmul_1(T *dst, const T *src0, size_t n, T src1,
+                                     type_identity_t<T> c_in) {
     static_assert(std::is_same_v<T, uint64_t>, "only support uint64_t now");
 #if WJR_HAS_BUILTIN(ASM_ADDMUL_1)
     if (is_constant_evaluated()) {
@@ -197,8 +196,8 @@ WJR_INTRINSIC_CONSTEXPR T fallback_submul_1(T *dst, const T *src0, size_t n, T s
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR T submul_1(T *dst, const T *src0, size_t n, T src1,
-                                   type_identity_t<T> c_in) {
+WJR_INTRINSIC_CONSTEXPR20 T submul_1(T *dst, const T *src0, size_t n, T src1,
+                                     type_identity_t<T> c_in) {
     static_assert(std::is_same_v<T, uint64_t>, "only support uint64_t now");
 #if WJR_HAS_BUILTIN(ASM_SUBMUL_1)
     if (is_constant_evaluated()) {

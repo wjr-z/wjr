@@ -56,7 +56,7 @@ WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) {
 template <
     typename T, typename U,
     std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
+WJR_INTRINSIC_CONSTEXPR20 T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
     WJR_ASSERT_L(1, c_in == 0 || c_in == 1);
     WJR_ASSUME((c_in == 0 || c_in == 1));
 
@@ -85,8 +85,8 @@ WJR_INTRINSIC_CONSTEXPR T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
 template <
     typename T, typename U,
     std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR U subc_1(T *dst, const T *src0, size_t n, type_identity_t<T> src1,
-                                 U c_in) {
+WJR_INTRINSIC_CONSTEXPR20 U subc_1(T *dst, const T *src0, size_t n,
+                                   type_identity_t<T> src1, U c_in) {
     WJR_ASSUME(n >= 1);
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
 
@@ -177,7 +177,8 @@ WJR_INTRINSIC_CONSTEXPR U fallback_subc_n(T *dst, const T *src0, const T *src1, 
 template <
     typename T, typename U,
     std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR U subc_n(T *dst, const T *src0, const T *src1, size_t n, U c_in) {
+WJR_INTRINSIC_CONSTEXPR20 U subc_n(T *dst, const T *src0, const T *src1, size_t n,
+                                   U c_in) {
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
 
@@ -195,8 +196,8 @@ WJR_INTRINSIC_CONSTEXPR U subc_n(T *dst, const T *src0, const T *src1, size_t n,
 template <
     typename T, typename U,
     std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR U subc_s(T *dst, const T *src0, size_t n, const T *src1, size_t m,
-                                 U c_in) {
+WJR_INTRINSIC_CONSTEXPR20 U subc_s(T *dst, const T *src0, size_t n, const T *src1,
+                                   size_t m, U c_in) {
     WJR_ASSERT(n >= m);
     WJR_ASSUME(n >= m);
 
@@ -210,7 +211,7 @@ WJR_INTRINSIC_CONSTEXPR U subc_s(T *dst, const T *src0, size_t n, const T *src1,
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR int abs_subc_n(T *dst, const T *src0, const T *src1, size_t n) {
+WJR_INTRINSIC_CONSTEXPR20 int abs_subc_n(T *dst, const T *src0, const T *src1, size_t n) {
     size_t idx = reverse_find_not_n(src0, src1, n);
     set_n(dst + idx, 0u, n - idx);
 
@@ -234,8 +235,8 @@ WJR_INTRINSIC_CONSTEXPR int abs_subc_n(T *dst, const T *src0, const T *src1, siz
 // dst = abs(src0 - src1)
 // return compare(src0, src1)
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR int abs_subc_s(T *dst, const T *src0, size_t n, const T *src1,
-                                       size_t m) {
+WJR_INTRINSIC_CONSTEXPR20 int abs_subc_s(T *dst, const T *src0, size_t n, const T *src1,
+                                         size_t m) {
     WJR_ASSERT(n >= m);
     WJR_ASSUME(n >= m);
 

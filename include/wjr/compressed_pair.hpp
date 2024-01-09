@@ -79,14 +79,19 @@ struct comp_pair_wrapper2 : private T {
     constexpr const T &value() const noexcept { return *this; }
 };
 
-template <size_t index, typename T>
+template <typename T>
+using comp_pair_wrapper_helper =
+    std::conjunction<std::is_class<T>, std::is_empty<T>, std::negation<std::is_final<T>>>;
+
+template <size_t index, typename T, typename U>
 using comp_pair_wrapper =
-    std::conditional_t<std::conjunction_v<std::is_class<T>, std::is_empty<T>,
-                                          std::negation<std::is_final<T>>>,
+    std::conditional_t<comp_pair_wrapper_helper<T>::value &&
+                           (index == 0 || !comp_pair_wrapper_helper<U>::value),
                        comp_pair_wrapper2<index, T>, comp_pair_wrapper1<index, T>>;
 
 template <typename T, typename U>
-class compressed_pair : private comp_pair_wrapper<0, T>, private comp_pair_wrapper<1, U> {
+class compressed_pair : private comp_pair_wrapper<0, T, U>,
+                        private comp_pair_wrapper<1, U, T> {
 
     template <typename Ty, typename Uy>
     using __is_all_default_constructible =
@@ -110,8 +115,8 @@ class compressed_pair : private comp_pair_wrapper<0, T>, private comp_pair_wrapp
         std::conjunction<std::is_constructible<Ty, Vty>, std::is_constructible<Uy, Wuy>>;
 
 public:
-    using Mybase1 = comp_pair_wrapper<0, T>;
-    using Mybase2 = comp_pair_wrapper<1, U>;
+    using Mybase1 = comp_pair_wrapper<0, T, U>;
+    using Mybase2 = comp_pair_wrapper<1, U, T>;
 
     using first_type = T;
     using second_type = U;
@@ -368,7 +373,7 @@ namespace std {
 template <typename T, typename U,
           std::enable_if_t<std::conjunction_v<wjr::is_swappable<T>, wjr::is_swappable<U>>,
                            int> = 0>
-WJR_INLINE_CONSTEXPR void
+constexpr void
 swap(wjr::compressed_pair<T, U> &lhs,
      wjr::compressed_pair<T, U> &rhs) noexcept(noexcept(lhs.swap(rhs))) {
     lhs.swap(rhs);

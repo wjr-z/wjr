@@ -193,27 +193,6 @@ struct type_identity {
 template <typename T>
 using type_identity_t = typename type_identity<T>::type;
 
-template <typename T>
-struct is_constant : std::false_type {};
-
-template <typename T, T V>
-struct is_constant<std::integral_constant<T, V>> : std::true_type {};
-
-template <typename T>
-inline constexpr bool is_constant_v = is_constant<T>::value;
-
-template <typename T>
-WJR_INTRINSIC_CONSTEXPR std::enable_if_t<!is_constant_v<T>, const T &>
-get_constant(const T &p) {
-    return p;
-}
-
-template <typename T>
-WJR_INTRINSIC_CONSTEXPR std::enable_if_t<is_constant_v<T>, typename T::value_type>
-get_constant(const T &p) {
-    return static_cast<typename T::value_type>(p);
-}
-
 WJR_INTRINSIC_CONSTEXPR bool is_constant_evaluated() noexcept {
     return WJR_IS_CONSTANT_EVALUATED();
 }
