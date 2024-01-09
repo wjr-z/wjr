@@ -6,7 +6,8 @@
 namespace wjr {
 
 template <typename T>
-constexpr T fallback_divmod_1(T *dst, const T *src, size_t n, div2by1_divider<T> div) {
+WJR_CONSTEXPR20 T fallback_divmod_1(T *dst, const T *src, size_t n,
+                                    div2by1_divider<T> div) {
     WJR_ASSERT(n != 0);
     WJR_ASSUME(n != 0);
 
@@ -14,118 +15,138 @@ constexpr T fallback_divmod_1(T *dst, const T *src, size_t n, div2by1_divider<T>
     uint64_t value = div.value();
     uint64_t shift = div.shift();
 
-    uint64_t u1 = 0;
-    uint64_t u0 = 0;
-    uint64_t q1 = 0;
-    uint64_t q0 = 0;
-    uint64_t tmp = 0;
-    bool f = false;
+    uint64_t rax = 0, rdx = 0, rbp = 0, r10 = 0, r11 = 0, r13 = 0;
 
     if (WJR_UNLIKELY(shift == 0)) {
-        u0 = src[n - 1];
+        rbp = src[n - 1];
 
-        q0 = u0;
-        q1 = 1;
+        rax = rbp;
+        rbp -= divisor;
 
-        u1 = u0 - divisor;
-        tmp = u1 + divisor;
+        bool f = rbp < rax;
+        rax = f ? rbp : rax;
+        r13 = f;
 
-        f = u1 < q0;
-        u1 = f ? u1 : tmp;
-        q1 += -1 + f;
-
-        if (WJR_VERY_UNLIKELY(u1 >= divisor, 0.999)) {
-            ++q1;
-            u1 -= divisor;
+        if (WJR_VERY_UNLIKELY(rax >= divisor, 0.97)) {
+            WJR_FORCE_BRANCH_BARRIER();
+            rax -= divisor;
+            ++r13;
         }
 
-        dst[n - 1] = q1;
+        dst[n - 1] = r13;
         --n;
 
         if (WJR_UNLIKELY(n == 0)) {
-            return u1;
+            return rax;
         }
 
         do {
-            u0 = src[n - 1];
-            q0 = mul(u1, value, q1);
+            rbp = src[n - 1];
+            r11 = rax + 1;
 
-            q0 += u0;
-            q1 += u1 + 1 + (q0 < u0);
+            rax = mul(rax, value, rdx);
+            rax += rbp;
+            rdx += r11 + (rax < rbp);
 
-            u1 = u0 - mullo(q1, divisor);
-            tmp = u1 + divisor;
-            f = u1 < q0;
-            u1 = f ? u1 : tmp;
-            q1 += -1 + f;
+            r11 = rax;
+            r13 = rdx;
+            rdx = mullo(rdx, divisor);
+            rbp -= rdx;
 
-            if (WJR_VERY_UNLIKELY(u1 >= divisor, 0.999)) {
-                ++q1;
-                u1 -= divisor;
+            rax = divisor;
+            rax += rbp;
+
+            bool f = rbp < r11;
+            rax = f ? rbp : rax;
+            r13 += -1 + f;
+
+            if (WJR_VERY_UNLIKELY(rax >= divisor, 0.97)) {
+                WJR_FORCE_BRANCH_BARRIER();
+                rax -= divisor;
+                ++r13;
             }
 
-            dst[n - 1] = q1;
+            dst[n - 1] = r13;
             --n;
         } while (WJR_LIKELY(n != 0));
 
-        return u1;
+        return rax;
     }
 
     --n;
-    uint64_t tmp2 = src[n];
-    u1 = tmp2 >> (64 - shift);
+    rbp = src[n];
+    rax = rbp >> (64 - shift);
 
     if (WJR_LIKELY(n != 0)) {
         do {
-            tmp = src[n - 1];
-            u0 = shld(tmp2, tmp, shift);
-            tmp2 = tmp;
-            q0 = mul(u1, value, q1);
+            r10 = src[n - 1];
+            r11 = rax + 1;
+            rbp = shld(rbp, r10, shift);
 
-            q0 += u0;
-            q1 += u1 + 1 + (q0 < u0);
+            rax = mul(rax, value, rdx);
+            rax += rbp;
+            rdx += r11 + (rax < rbp);
 
-            u1 = u0 - mullo(q1, divisor);
-            tmp = u1 + divisor;
-            f = u1 < q0;
-            u1 = f ? u1 : tmp;
-            q1 += -1 + f;
+            r11 = rax;
+            r13 = rdx;
+            rdx = mullo(rdx, divisor);
+            rbp -= rdx;
 
-            if (WJR_VERY_UNLIKELY(u1 >= divisor, 0.999)) {
-                ++q1;
-                u1 -= divisor;
+            rax = divisor;
+            rax += rbp;
+
+            bool f = rbp < r11;
+            rax = f ? rbp : rax;
+            r13 += -1 + f;
+
+            if (WJR_VERY_UNLIKELY(rax >= divisor, 0.97)) {
+                WJR_FORCE_BRANCH_BARRIER();
+                rax -= divisor;
+                ++r13;
             }
 
-            dst[n] = q1;
-
+            dst[n] = r13;
             --n;
+            rbp = r10;
         } while (WJR_LIKELY(n != 0));
     }
 
-    u0 = tmp2 << shift;
-    q0 = mul(u1, value, q1);
+    r11 = rax + 1;
+    rbp = rbp << shift;
 
-    q0 += u0;
-    q1 += u1 + 1 + (q0 < u0);
+    rax = mul(rax, value, rdx);
+    rax += rbp;
+    rdx += r11 + (rax < rbp);
 
-    u1 = u0 - mullo(q1, divisor);
-    tmp = u1 + divisor;
-    f = u1 < q0;
-    u1 = f ? u1 : tmp;
-    q1 += -1 + f;
+    r11 = rax;
+    r13 = rdx;
+    rdx = mullo(rdx, divisor);
+    rbp -= rdx;
 
-    if (WJR_VERY_UNLIKELY(u1 >= divisor, 0.999)) {
-        ++q1;
-        u1 -= divisor;
+    rax = divisor;
+    rax += rbp;
+
+    bool f = rbp < r11;
+    rax = f ? rbp : rax;
+    r13 += -1 + f;
+
+    if (WJR_VERY_UNLIKELY(rax >= divisor, 0.97)) {
+        WJR_FORCE_BRANCH_BARRIER();
+        rax -= divisor;
+        ++r13;
     }
 
-    dst[0] = q1;
+    dst[0] = r13;
 
-    return u1 >> shift;
+    return rax >> shift;
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-constexpr T divmod_1(T *dst, const T *src, size_t n, div2by1_divider<T> div) {
+WJR_CONSTEXPR20 T divmod_1(T *dst, const T *src, size_t n, div2by1_divider<T> div) {
+    if (WJR_UNLIKELY(n == 0)) {
+        return 0;
+    }
+
     if (WJR_UNLIKELY(div.is_power_of_two())) {
         unsigned int c = 63 - div.shift();
         T ret = src[0] & ((1ull << c) - 1);
@@ -133,15 +154,23 @@ constexpr T divmod_1(T *dst, const T *src, size_t n, div2by1_divider<T> div) {
         return ret;
     }
 
-    if (WJR_UNLIKELY(n == 0)) {
-        return 0;
+    if (WJR_BUILTIN_CONSTANT_P(div.divisor()) && WJR_BUILTIN_CONSTANT_P(div.shift()) &&
+        WJR_UNLIKELY(n == 1)) {
+        uint64_t div = div.divisor() >> div.shift();
+        uint64_t tmp = src[0];
+        dst[0] = tmp / div;
+        return tmp % div;
     }
 
     return fallback_divmod_1(dst, src, n, div);
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-constexpr T divmod_1(T *dst, const T *src, size_t n, T div) {
+WJR_CONSTEXPR20 T divmod_1(T *dst, const T *src, size_t n, type_identity_t<T> div) {
+    if (WJR_UNLIKELY(n == 0)) {
+        return 0;
+    }
+
     if (WJR_UNLIKELY(is_power_of_two(div))) {
         unsigned int c = ctz(div);
         T ret = src[0] & ((1ull << c) - 1);
@@ -149,13 +178,10 @@ constexpr T divmod_1(T *dst, const T *src, size_t n, T div) {
         return ret;
     }
 
-    if (WJR_UNLIKELY(n == 0)) {
-        return 0;
-    }
-
     if (WJR_UNLIKELY(n == 1)) {
-        dst[0] = src[0] / div;
-        return src[0] % div;
+        uint64_t tmp = src[0];
+        dst[0] = tmp / div;
+        return tmp % div;
     }
 
     return fallback_divmod_1(dst, src, n, div2by1_divider<T>(div));

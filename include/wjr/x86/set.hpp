@@ -162,7 +162,7 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
     }
 #endif
 
-    WJR_UNREACHABLE;
+    WJR_UNREACHABLE();
 }
 
 #endif

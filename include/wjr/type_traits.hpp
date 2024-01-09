@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <limits>
+#include <memory>
 #include <optional>
 #include <type_traits>
 

@@ -32,7 +32,7 @@
                                                                                          \
         if (WJR_UNLIKELY(n >= 32)) {                                                     \
             LARGE(0, n);                                                                 \
-            WJR_UNREACHABLE;                                                             \
+            WJR_UNREACHABLE();                                                             \
         }                                                                                \
                                                                                          \
         size_t gen_n = n;                                                                \

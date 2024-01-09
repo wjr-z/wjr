@@ -34,16 +34,16 @@
 #define WJR_ASSERT_NOMESSAGE_I(expr)                                                     \
     if (!WJR_UNLIKELY(expr)) {                                                           \
         std::abort();                                                                    \
-        WJR_UNREACHABLE;                                                                 \
+        WJR_UNREACHABLE();                                                                 \
     }
 #define WJR_ASSERT_MESSAGE_I(expr)                                                       \
     std::abort();                                                                        \
-    WJR_UNREACHABLE;
+    WJR_UNREACHABLE();
 #else
 #define WJR_ASSERT_NOMESSAGE_I(expr) assert(expr)
 #define WJR_ASSERT_MESSAGE_I(expr)                                                       \
     assert(expr);                                                                        \
-    WJR_UNREACHABLE
+    WJR_UNREACHABLE()
 #endif
 
 #define WJR_ASSERT_CHECK_I_NOMESSAGE(expr)                                               \

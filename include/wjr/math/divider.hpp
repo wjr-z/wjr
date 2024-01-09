@@ -11,7 +11,7 @@ class div2by1_divider {
 public:
     static_assert(std::is_same_v<T, uint64_t>, "only support uint64_t");
 
-    constexpr div2by1_divider(T value) : m_divisor(value) { initialize(); }
+    constexpr explicit div2by1_divider(T value) : m_divisor(value) { initialize(); }
     div2by1_divider(const div2by1_divider &) = default;
     div2by1_divider &operator=(const div2by1_divider &) = default;
     ~div2by1_divider() = default;
@@ -23,7 +23,8 @@ public:
     constexpr bool is_power_of_two() const { return m_divisor == (1ull << 63); }
 
 private:
-    constexpr void initialize() {
+    // make sure m_shift/one_single_bit(divisor) can be inlined
+    WJR_INTRINSIC_CONSTEXPR void initialize() {
         if (!(m_divisor >> 63)) {
             m_shift = clz(m_divisor);
         }
@@ -36,10 +37,14 @@ private:
 
         m_divisor <<= m_shift;
 
+        large_initialize();
+    }
+
+    constexpr void large_initialize() {
         uint64_t d = m_divisor;
         uint64_t d40 = 0, d63 = 0;
         uint64_t v0 = 0, v1 = 0, v2 = 0, v3 = 0, v4 = 0;
-        uint64_t e = 0, t0 = 0, t1 = 0, t2 = 0;
+        uint64_t t0 = 0, t1 = 0;
 
         // 40 bit
         d40 = (d >> 24) + 1;
@@ -50,9 +55,9 @@ private:
         // 22 bit
         v1 = (v0 << 11) - (mullo<uint64_t>(mullo<uint32_t>(v0, v0), d40) >> 40) - 1;
 
-        t0 = mul<uint64_t>(v1, (1ull << 60) - mullo<uint64_t>(v1, d40), t1);
+        t1 = mulhi<uint64_t>(v1 << 17, (1ull << 60) - mullo<uint64_t>(v1, d40));
         // 35 bit
-        v2 = (v1 << 13) + shrd(t0, t1, 47);
+        v2 = (v1 << 13) + t1;
 
         t0 = 0 - mul<uint64_t>(v2, d63, t1);
         if (d & 1) {

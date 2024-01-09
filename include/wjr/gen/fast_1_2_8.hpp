@@ -49,7 +49,7 @@
         if (WJR_UNLIKELY(gen_n > 32)) {                                                  \
             WJR_ASSUME(gen_offset + gen_n == n);                                         \
             LARGE(gen_offset, gen_n, n);                                                 \
-            WJR_UNREACHABLE;                                                             \
+            WJR_UNREACHABLE();                                                             \
         }                                                                                \
                                                                                          \
         INIT2(gen_offset);                                                               \

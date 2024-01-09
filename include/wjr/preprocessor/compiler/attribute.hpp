@@ -93,13 +93,13 @@
 #endif
 
 #if defined(__cpp_lib_unreachable)
-#define WJR_UNREACHABLE std::unreachable()
+#define WJR_UNREACHABLE() std::unreachable()
 #elif WJR_HAS_BUILTIN(__builtin_unreachable)
-#define WJR_UNREACHABLE __builtin_unreachable()
+#define WJR_UNREACHABLE() __builtin_unreachable()
 #elif defined(WJR_COMPILER_MSVC)
-#define WJR_UNREACHABLE __assume(0)
+#define WJR_UNREACHABLE() __assume(0)
 #else
-#define WJR_UNREACHABLE
+#define WJR_UNREACHABLE()
 #endif
 
 #if defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC)
@@ -118,7 +118,7 @@
 #define WJR_ASSUME(expr)                                                                 \
     do {                                                                                 \
         if (!(expr)) {                                                                   \
-            WJR_UNREACHABLE;                                                             \
+            WJR_UNREACHABLE();                                                           \
         }                                                                                \
     } while (0)
 #endif
@@ -152,8 +152,8 @@
 #define WJR_VERY_UNLIKELY(exp, probability)                                              \
     WJR_EXPECT_WITH_PROBABILITY(exp, false, probability)
 #else
-#define WJR_VERY_LIKELY(exp, probability) WJR_LIKELY((exp) == (c))
-#define WJR_VERY_UNLIKELY(exp, probability) WJR_UNLIKELY((exp) == (c))
+#define WJR_VERY_LIKELY(exp, probability) WJR_LIKELY((exp))
+#define WJR_VERY_UNLIKELY(exp, probability) WJR_UNLIKELY((exp))
 #endif
 
 #if defined(__cpp_lib_is_constant_evaluated)
@@ -169,6 +169,27 @@
 #define WJR_BUILTIN_CONSTANT_P(expr) __builtin_constant_p(expr)
 #else
 #define WJR_BUILTIN_CONSTANT_P(expr) false
+#endif
+
+#if WJR_HAS_FEATURE(INLINE_ASM) &&                                                       \
+    (defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG))
+#define WJR_COMPILER_BARRIER() asm volatile("" ::: "memory")
+#else
+#define WJR_COMPILER_BARRIER()
+#endif
+
+#define WJR_CONSTEXPR_COMPILER_BARRIER()                                                 \
+    do {                                                                                 \
+        if (!(WJR_IS_CONSTANT_EVALUATED())) {                                            \
+            WJR_COMPILER_BARRIER();                                                      \
+        }                                                                                \
+    } while (0)
+
+// Lower versions of clang cannot predict branches well
+#if defined(WJR_COMPILER_CLANG) && !WJR_HAS_CLANG(13, 0, 0)
+#define WJR_FORCE_BRANCH_BARRIER() WJR_COMPILER_BARRIER()
+#else
+#define WJR_FORCE_BRANCH_BARRIER()
 #endif
 
 #ifdef WJR_CPP_20

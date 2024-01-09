@@ -65,7 +65,7 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) {
     }
 
     default: {
-        WJR_UNREACHABLE;
+        WJR_UNREACHABLE();
     }
     }
 
@@ -120,7 +120,7 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) {
         break;
     }
     default: {
-        WJR_UNREACHABLE;
+        WJR_UNREACHABLE();
     }
     }
 
@@ -149,7 +149,7 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) {
     }
 
     default: {
-        WJR_UNREACHABLE;
+        WJR_UNREACHABLE();
     }
     }
 
