@@ -6,12 +6,16 @@
 
 namespace wjr {
 
+// reference : https://ieeexplore.ieee.org/document/5487506
 template <typename T>
 class div2by1_divider {
 public:
-    static_assert(std::is_same_v<T, uint64_t>, "only support uint64_t");
+    static_assert(std::is_same_v<T, uint64_t>, "Currently only support uint64_t");
 
-    constexpr explicit div2by1_divider(T value) : m_divisor(value) { initialize(); }
+    constexpr div2by1_divider() = default;
+    constexpr explicit div2by1_divider(T _divisor) : m_divisor(_divisor) { initialize(); }
+    constexpr div2by1_divider(T _divisor, T _value, T _shift)
+        : m_divisor(_divisor), m_value(_value), m_shift(_shift) {}
     div2by1_divider(const div2by1_divider &) = default;
     div2by1_divider &operator=(const div2by1_divider &) = default;
     ~div2by1_divider() = default;
@@ -36,14 +40,14 @@ private:
         }
 
         m_divisor <<= m_shift;
-
         large_initialize();
     }
 
     constexpr void large_initialize() {
         uint64_t d = m_divisor;
         uint64_t d40 = 0, d63 = 0;
-        uint64_t v0 = 0, v1 = 0, v2 = 0, v3 = 0, v4 = 0;
+        uint32_t v0 = 0;
+        uint64_t v1 = 0, v2 = 0, v3 = 0, v4 = 0;
         uint64_t t0 = 0, t1 = 0;
 
         // 40 bit
@@ -78,7 +82,7 @@ private:
     }
 
     T m_divisor = 0;
-    // m_value = floor((B^2 - 1) / m_divisor) - B
+    // m_value = floor((B ^ 2 - 1) / m_divisor) - B
     T m_value = 0;
     unsigned int m_shift = 0;
 };
