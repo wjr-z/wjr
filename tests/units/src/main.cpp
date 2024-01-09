@@ -365,10 +365,8 @@ TEST(math, addc) {
                    {});                                                                  \
     WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_ADDC),                                            \
                    do {                                                                  \
-                       if (ci == 1) {                                                    \
-                           WJR_ASSERT((wjr::asm_addc_1<type, type>(x, y, co) == ans &&   \
-                                       co == ans_co));                                   \
-                       }                                                                 \
+                       WJR_ASSERT((wjr::asm_addc<type, type>(x, y, ci, co) == ans &&     \
+                                   co == ans_co));                                       \
                    } while (0),                                                          \
                    {})
 
@@ -506,7 +504,7 @@ TEST(math, addc_1) {
 
 TEST(math, addc_n) {
     std::vector<uint64_t> a, b, c;
-    for (size_t n = 1; n <= 128; ++n) {
+    for (size_t n = 1; n <= 384; ++n) {
         a.resize(n);
         b.resize(n);
         c.resize(n);
@@ -541,10 +539,8 @@ TEST(math, sub) {
         } while (0), )                                                                   \
     WJR_PP_BOOL_IF(                                                                      \
         WJR_HAS_BUILTIN(ASM_SUBC), ; do {                                                \
-            if (ci == 1) {                                                               \
-                WJR_ASSERT(                                                              \
-                    (wjr::asm_subc_1<type, type>(x, y, co) == ans && co == ans_co));     \
-            }                                                                            \
+            WJR_ASSERT(                                                                  \
+                (wjr::asm_subc<type, type>(x, y, ci, co) == ans && co == ans_co));       \
         } while (0), )
 
 #define WJR_TEST_SUBC_F(type)                                                            \
@@ -724,7 +720,7 @@ TEST(math, subc_1) {
 
 TEST(math, subc_n) {
     std::vector<uint64_t> a, b, c;
-    for (size_t n = 1; n <= 128; ++n) {
+    for (size_t n = 1; n <= 384; ++n) {
         a.resize(n);
         b.resize(n);
         c.resize(n);
@@ -800,7 +796,7 @@ TEST(math, broadcast) {
 TEST(math, find_n) {
     std::vector<uint64_t> a, b;
 
-    for (size_t n = 0; n < 128; ++n) {
+    for (size_t n = 0; n < 384; ++n) {
         a.resize(n);
         b.resize(n);
         for (size_t i = 0; i < n; ++i) {
@@ -833,7 +829,7 @@ TEST(math, find_n) {
 TEST(math, find_not_n) {
     std::vector<uint64_t> a, b;
 
-    for (size_t n = 0; n < 128; ++n) {
+    for (size_t n = 0; n < 384; ++n) {
         a.resize(n);
         b.resize(n);
         for (size_t i = 0; i < n; ++i) {
@@ -866,7 +862,7 @@ TEST(math, find_not_n) {
 TEST(math, reverse_find_n) {
     std::vector<uint64_t> a, b;
 
-    for (size_t n = 0; n < 128; ++n) {
+    for (size_t n = 0; n < 384; ++n) {
         a.resize(n);
         b.resize(n);
         for (size_t i = 0; i < n; ++i) {
@@ -899,7 +895,7 @@ TEST(math, reverse_find_n) {
 TEST(math, reverse_find_not_n) {
     std::vector<uint64_t> a, b;
 
-    for (size_t n = 0; n < 128; ++n) {
+    for (size_t n = 0; n < 384; ++n) {
         a.resize(n);
         b.resize(n);
         for (size_t i = 0; i < n; ++i) {
@@ -933,7 +929,7 @@ TEST(math, replace_find_not) {
     {
         std::vector<uint64_t> a, b;
 
-        for (size_t n = 0; n < 128; ++n) {
+        for (size_t n = 0; n < 384; ++n) {
             a.resize(n + 32);
             b.resize(n + 32);
 
@@ -1007,9 +1003,9 @@ TEST(math, replace_find_not) {
     }
 }
 
-TEST(math, not ) {
+TEST(math, not_n) {
     std::vector<uint64_t> a, b;
-    for (size_t n = 0; n <= 128; ++n) {
+    for (size_t n = 0; n <= 384; ++n) {
         a.resize(n);
         b.resize(n);
         for (auto &i : a) {
@@ -1018,7 +1014,7 @@ TEST(math, not ) {
 
         wjr::not_n(b.data(), a.data(), n);
         for (auto &i : b) {
-            WJR_ASSERT(i == -1ull);
+            WJR_ASSERT(i == -1ull, "%zu", n);
         }
 
         wjr::not_n(a.data(), a.data(), n);
@@ -1031,7 +1027,7 @@ TEST(math, not ) {
 TEST(math, neg) {
     std::mt19937_64 mt_rand(time(0));
     std::vector<uint64_t> a, b, c;
-    for (size_t n = 0; n <= 128; ++n) {
+    for (size_t n = 0; n <= 384; ++n) {
         a.resize(n);
         b.resize(n);
         c.resize(n);
@@ -1088,10 +1084,10 @@ TEST(math, neg) {
     }
 }
 
-TEST(math, set) {
+TEST(math, set_n) {
     std::mt19937_64 mt_rand(time(0));
     std::vector<uint64_t> a;
-    for (size_t n = 0; n <= 128; ++n) {
+    for (size_t n = 0; n <= 384; ++n) {
         a.resize(n);
 
         uint64_t b = mt_rand();
@@ -1111,7 +1107,7 @@ TEST(math, set) {
 TEST(math, compare_n) {
     std::mt19937_64 mt_rand(time(0));
     std::vector<uint64_t> a, b;
-    for (size_t n = 0; n <= 128; ++n) {
+    for (size_t n = 0; n <= 384; ++n) {
         a.resize(n);
         for (size_t m = 0; m <= n; ++m) {
             for (auto &i : a) {
@@ -1152,7 +1148,7 @@ TEST(math, compare_n) {
 TEST(math, reverse_compare_n) {
     std::mt19937_64 mt_rand(time(0));
     std::vector<uint64_t> a, b;
-    for (size_t n = 0; n <= 128; ++n) {
+    for (size_t n = 0; n <= 384; ++n) {
         a.resize(n);
         for (size_t m = 0; m <= n; ++m) {
             for (auto &i : a) {
