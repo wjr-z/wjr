@@ -31,8 +31,9 @@ WJR_INTRINSIC_CONSTEXPR uint64_t fallback_mul64(uint64_t a, uint64_t b, uint64_t
     uint64_t rl = al * bl;
 
     uint64_t t = rl + (rm0 << 32);
-    uint64_t lo = t + (rm1 << 32);
     uint64_t c = t < rl;
+    uint64_t lo = t + (rm1 << 32);
+    c += lo < t;
     hi = rh + (rm0 >> 32) + (rm1 >> 32) + c;
     return lo;
 }
@@ -103,6 +104,7 @@ T mulhi(T a, T b) {
             return builtin_mulhi64(b, a);
         }
 #endif
+
 
         return builtin_mulhi64(a, b);
 #else

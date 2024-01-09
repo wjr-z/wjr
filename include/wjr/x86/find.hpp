@@ -4,7 +4,7 @@
 #include <wjr/gen/fast_1_2_8.hpp>
 #include <wjr/simd/simd.hpp>
 
-#if !defined(WJR_X86)
+#ifndef WJR_X86
 #error "x86 required"
 #endif
 

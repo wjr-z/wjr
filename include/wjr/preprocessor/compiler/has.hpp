@@ -72,6 +72,10 @@
 #define WJR_HAS_BUILTIN___builtin_subc WJR_HAS_DEF
 #endif
 
+#if WJR_HAS_GCC(9, 1, 0) || WJR_HAS_CLANG(11, 0, 0)
+#define WJR_HAS_BUILTIN___builtin_expect_with_probability WJR_HAS_DEF
+#endif 
+
 // WJR_HAS_FEATURE
 
 #if WJR_HAS_GCC(7, 1, 0) || WJR_HAS_CLANG(5, 0, 0)

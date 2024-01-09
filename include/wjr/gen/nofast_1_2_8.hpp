@@ -74,7 +74,7 @@
                                                                                          \
         WJR_ASSUME(gen_n % 2 == 0);                                                      \
                                                                                          \
-        INIT2(0);                                                                        \
+        INIT2(gen_offset);                                                               \
                                                                                          \
         if (gen_n & 2) {                                                                 \
             LOOP2(gen_offset);                                                           \

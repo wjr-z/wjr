@@ -6,5 +6,6 @@
 #include <wjr/math/mul.hpp>
 #include <wjr/math/compare.hpp>
 #include <wjr/math/shift.hpp>
+#include <wjr/math/div.hpp>
 
 #endif // WJR_MATH_HPP__

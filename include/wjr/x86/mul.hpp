@@ -13,7 +13,7 @@ namespace wjr {
 
 #if WJR_HAS_FEATURE(INT128)
 #define WJR_HAS_BUILTIN_INT128_MUL64 WJR_HAS_DEF
-#elif WJR_HAS_FEATURE(INLINE_ASM) && defined(WJR_X86) &&                                 \
+#elif WJR_HAS_FEATURE(INLINE_ASM) &&                                                     \
     (defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC))
 #define WJR_HAS_BUILTIN_ASM_MUL64 WJR_HAS_DEF
 #else

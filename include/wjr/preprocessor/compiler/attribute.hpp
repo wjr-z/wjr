@@ -139,6 +139,23 @@
 
 #define WJR_HAS_FEATURE_IS_CONSTANT_EVALUATED WJR_HAS_DEF
 
+#if WJR_HAS_BUILTIN(__builtin_expect_with_probability)
+#define WJR_EXPECT_WITH_PROBABILITY(exp, c, probability)                                 \
+    __builtin_expect_with_probability(exp, c, probability)
+#else
+#define WJR_EXPECT_WITH_PROBABILITY(exp, c, probability) (expr)
+#endif
+
+#if WJR_HAS_BUILTIN(__builtin_expect_with_probability)
+#define WJR_VERY_LIKELY(exp, probability)                                                \
+    WJR_EXPECT_WITH_PROBABILITY(exp, true, probability)
+#define WJR_VERY_UNLIKELY(exp, probability)                                              \
+    WJR_EXPECT_WITH_PROBABILITY(exp, false, probability)
+#else
+#define WJR_VERY_LIKELY(exp, probability) WJR_LIKELY((exp) == (c))
+#define WJR_VERY_UNLIKELY(exp, probability) WJR_UNLIKELY((exp) == (c))
+#endif
+
 #if defined(__cpp_lib_is_constant_evaluated)
 #define WJR_IS_CONSTANT_EVALUATED() std::is_constant_evaluated()
 #elif WJR_HAS_BUILTIN(__builtin_is_constant_evaluated)

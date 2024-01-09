@@ -252,7 +252,7 @@ WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T *src, size_t n,
 #undef WJR_REGISTER_RSHIFT_N_IMPL_L1
 
 template <typename T>
-WJR_INLINE void builtin_rshift_n(T *dst, const T *src, size_t n, unsigned int c) {
+WJR_INLINE T builtin_rshift_n(T *dst, const T *src, size_t n, unsigned int c) {
     T ret = src[0] << (64 - c);
     builtin_rshift_n_impl(dst, src, n - 1, c);
     dst[n - 1] = src[n - 1] >> c;
