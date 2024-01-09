@@ -156,10 +156,10 @@ WJR_CONSTEXPR20 T divmod_1(T *dst, const T *src, size_t n, div2by1_divider<T> di
 
     if (WJR_BUILTIN_CONSTANT_P(div.divisor()) && WJR_BUILTIN_CONSTANT_P(div.shift()) &&
         WJR_UNLIKELY(n == 1)) {
-        uint64_t div = div.divisor() >> div.shift();
+        uint64_t divisor = div.divisor() >> div.shift();
         uint64_t tmp = src[0];
-        dst[0] = tmp / div;
-        return tmp % div;
+        dst[0] = tmp / divisor;
+        return tmp % divisor;
     }
 
     return fallback_divmod_1(dst, src, n, div);
