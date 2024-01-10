@@ -8,7 +8,7 @@ namespace wjr {
 
 // return true if src is all zero
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR20 bool neg_n(T *dst, const T *src, size_t n) {
+WJR_INTRINSIC_CONSTEXPR_E bool neg_n(T *dst, const T *src, size_t n) {
     size_t idx = replace_find_not(dst, src, n, 0, 0);
 
     if (idx == n) {

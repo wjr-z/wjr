@@ -11,10 +11,10 @@
 namespace wjr {
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR20 T shld(T hi, T lo, unsigned int c);
+WJR_INTRINSIC_CONSTEXPR_E T shld(T hi, T lo, unsigned int c);
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR20 T shrd(T lo, T hi, unsigned int c);
+WJR_INTRINSIC_CONSTEXPR_E T shrd(T lo, T hi, unsigned int c);
 
 #if WJR_HAS_FEATURE(INLINE_ASM) &&                                                       \
     (defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC))

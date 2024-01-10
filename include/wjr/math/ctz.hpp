@@ -6,7 +6,7 @@
 namespace wjr {
 
 template <typename T>
-WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR20)
+WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR_E)
 int fallback_ctz_impl(T x) {
 
 #if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
@@ -31,7 +31,7 @@ int fallback_ctz_impl(T x) {
 }
 
 template <typename T>
-WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR20)
+WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR_E)
 int fallback_ctz(T x) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
@@ -90,7 +90,7 @@ int builtin_ctz(T x) {
 #endif
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR20)
+WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR_E)
 int ctz(T x) {
 #if WJR_HAS_BUILTIN(CTZ)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {

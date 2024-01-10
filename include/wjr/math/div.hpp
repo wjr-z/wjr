@@ -6,7 +6,7 @@
 namespace wjr {
 
 template <typename T>
-WJR_CONSTEXPR20 T fallback_divmod_1(T *dst, const T *src, size_t n,
+WJR_INTRINSIC_CONSTEXPR_E T fallback_divmod_1(T *dst, const T *src, size_t n,
                                     div2by1_divider<T> div) {
     WJR_ASSERT(n != 0);
     WJR_ASSUME(n != 0);
@@ -142,7 +142,7 @@ WJR_CONSTEXPR20 T fallback_divmod_1(T *dst, const T *src, size_t n,
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_CONSTEXPR20 T divmod_1(T *dst, const T *src, size_t n, div2by1_divider<T> div) {
+WJR_INTRINSIC_CONSTEXPR_E T divmod_1(T *dst, const T *src, size_t n, div2by1_divider<T> div) {
     if (WJR_UNLIKELY(n == 0)) {
         return 0;
     }
@@ -166,7 +166,7 @@ WJR_CONSTEXPR20 T divmod_1(T *dst, const T *src, size_t n, div2by1_divider<T> di
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_CONSTEXPR20 T divmod_1(T *dst, const T *src, size_t n, type_identity_t<T> div) {
+WJR_INTRINSIC_CONSTEXPR_E T divmod_1(T *dst, const T *src, size_t n, type_identity_t<T> div) {
     if (WJR_UNLIKELY(n == 0)) {
         return 0;
     }

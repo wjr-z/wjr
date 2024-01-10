@@ -17,7 +17,7 @@ template <typename T, typename U>
 WJR_INTRINSIC_INLINE T WJR_PP_CONCAT(asm_, WJR_addcsubc)(T a, T b, U c_in, U &c_out) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
-#define WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL(STR, SUFFIX, A, B)                          \
+#define WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL_HELPER(STR, SUFFIX, A, B)                   \
     asm(STR "{" #SUFFIX " %2, %0| %0, %2}\n\t"                                           \
         "setb %b1"                                                                       \
         : "=r"(A), "+r"(c_in)                                                            \
@@ -26,22 +26,25 @@ WJR_INTRINSIC_INLINE T WJR_PP_CONCAT(asm_, WJR_addcsubc)(T a, T b, U c_in, U &c_
     c_out = c_in;                                                                        \
     return A
 
+    #define WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL(STR, SUFFIX)                            \
+    WJR_PP_BOOL_IF(WJR_PP_EQ(WJR_ADDSUB_I, 1),                                           \
+    if (WJR_BUILTIN_CONSTANT_P(a)) {                                                     \
+        WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL_HELPER(STR, SUFFIX, b, a);                  \
+    }, );                                                                                \
+    WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL_HELPER(STR, SUFFIX, a, b);
+
 #define WJR_REGISTER_BUILTIN_ASM_ADDSUB(suffix, type)                                    \
     if constexpr (nd == std::numeric_limits<type>::digits) {                             \
-        if (WJR_BUILTIN_CONSTANT_P(a)) {                                                 \
-            WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL(                                        \
-                "add{b $255, %b1| %b1, 255}\n\t" WJR_PP_STR(WJR_adcsbb), suffix, b, a);  \
-        }                                                                                \
         if (WJR_BUILTIN_CONSTANT_P(c_in)) {                                              \
             if (c_in == 0) {                                                             \
-                WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL(WJR_PP_STR(WJR_addsub), suffix, a, b);    \
+                WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL(WJR_PP_STR(WJR_addsub), suffix);    \
             } else {                                                                     \
                 WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL("stc\n\t"                           \
-                WJR_PP_STR(WJR_adcsbb), suffix, a, b);                                   \
+                WJR_PP_STR(WJR_adcsbb), suffix);                                         \
             }                                                                            \
         }                                                                                \
         WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL(                                            \
-            "add{b $255, %b1| %b1, 255}\n\t" WJR_PP_STR(WJR_adcsbb), suffix, a, b);      \
+            "add{b $255, %b1| %b1, 255}\n\t" WJR_PP_STR(WJR_adcsbb), suffix);            \
                                                                                          \
     } else
 
@@ -54,6 +57,7 @@ WJR_INTRINSIC_INLINE T WJR_PP_CONCAT(asm_, WJR_addcsubc)(T a, T b, U c_in, U &c_
 
 #undef WJR_REGISTER_BUILTIN_ASM_ADDSUB
 #undef WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL
+#undef WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL_HELPER
 }
 
 #endif

@@ -10,7 +10,7 @@ namespace wjr {
 // set_n(dst, to, ret)
 // return ret;
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR20 size_t replace_find_not(T *dst, const T *src, size_t n,
+WJR_INTRINSIC_CONSTEXPR_E size_t replace_find_not(T *dst, const T *src, size_t n,
                                                   type_identity_t<T> from,
                                                   type_identity_t<T> to) {
 

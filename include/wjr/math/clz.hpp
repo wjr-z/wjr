@@ -6,7 +6,7 @@
 namespace wjr {
 
 template <typename T>
-WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR20)
+WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR_E)
 int fallback_clz_impl(T x) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
@@ -52,7 +52,7 @@ int fallback_clz_impl(T x) {
 }
 
 template <typename T>
-WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR20)
+WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR_E)
 int fallback_clz(T x) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
@@ -112,7 +112,7 @@ int builtin_clz(T x) {
 #endif
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR20)
+WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR_E)
 int clz(T x) {
 #if WJR_HAS_BUILTIN(CLZ)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {

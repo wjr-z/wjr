@@ -13,7 +13,9 @@ public:
     static_assert(std::is_same_v<T, uint64_t>, "Currently only support uint64_t");
 
     constexpr div2by1_divider() = default;
-    constexpr explicit div2by1_divider(T _divisor) : m_divisor(_divisor) { initialize(); }
+    WJR_INTRINSIC_CONSTEXPR_E explicit div2by1_divider(T _divisor) : m_divisor(_divisor) {
+        initialize();
+    }
     constexpr div2by1_divider(T _divisor, T _value, T _shift)
         : m_divisor(_divisor), m_value(_value), m_shift(_shift) {}
     div2by1_divider(const div2by1_divider &) = default;
@@ -28,7 +30,7 @@ public:
 
 private:
     // make sure m_shift/one_single_bit(divisor) can be inlined
-    WJR_INTRINSIC_CONSTEXPR void initialize() {
+    WJR_INTRINSIC_CONSTEXPR_E void initialize() {
         if (!(m_divisor >> 63)) {
             m_shift = clz(m_divisor);
         }
@@ -43,7 +45,7 @@ private:
         return large_initialize();
     }
 
-    constexpr void large_initialize() {
+    WJR_INTRINSIC_CONSTEXPR_E void large_initialize() {
         uint64_t d = m_divisor;
         uint64_t d40 = 0, d63 = 0;
         uint32_t v0 = 0;
