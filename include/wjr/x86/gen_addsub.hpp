@@ -17,21 +17,33 @@ template <typename T, typename U>
 WJR_INTRINSIC_INLINE T WJR_PP_CONCAT(asm_, WJR_addcsubc)(T a, T b, U c_in, U &c_out) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
-#define WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL_HELPER(STR, SUFFIX, A, B)                   \
-    asm(STR "{" #SUFFIX " %2, %0| %0, %2}\n\t"                                           \
-        "setb %b1"                                                                       \
-        : "=r"(A), "+r"(c_in)                                                            \
-        : "%ri"(B), "0"(A)                                                               \
-        : "cc");                                                                         \
-    c_out = c_in;                                                                        \
-    return A
-
     #define WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL(STR, SUFFIX)                            \
     WJR_PP_BOOL_IF(WJR_PP_EQ(WJR_ADDSUB_I, 1),                                           \
     if (WJR_BUILTIN_CONSTANT_P(a)) {                                                     \
-        WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL_HELPER(STR, SUFFIX, b, a);                  \
-    }, );                                                                                \
-    WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL_HELPER(STR, SUFFIX, a, b);
+        asm(STR "{" #SUFFIX " %2, %0| %0, %2}\n\t"                                       \
+            "setb %b1"                                                                   \
+            : "=r"(b), "+r"(c_in)                                                        \
+            : "%ri"(a), "0"(b)                                                           \
+            : "cc");                                                                     \
+        c_out = c_in;                                                                    \
+        return b;                                                                        \
+    }                                                                                    \
+    asm(STR "{" #SUFFIX " %2, %0| %0, %2}\n\t"                                           \
+        "setb %b1"                                                                       \
+        : "=r"(a), "+r"(c_in)                                                            \
+        : "%ri"(b), "0"(a)                                                               \
+        : "cc");                                                                         \
+    c_out = c_in;                                                                        \
+    return a;                                                                            \
+    ,                                                                                    \
+    asm(STR "{" #SUFFIX " %2, %0| %0, %2}\n\t"                                           \
+        "setb %b1"                                                                       \
+        : "=r"(a), "+r"(c_in)                                                            \
+        : "ri"(b), "0"(a)                                                                \
+        : "cc");                                                                         \
+    c_out = c_in;                                                                        \
+    return a;                                                                            \
+    )
 
 #define WJR_REGISTER_BUILTIN_ASM_ADDSUB(suffix, type)                                    \
     if constexpr (nd == std::numeric_limits<type>::digits) {                             \
