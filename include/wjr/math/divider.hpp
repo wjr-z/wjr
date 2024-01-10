@@ -16,7 +16,7 @@ public:
     WJR_INTRINSIC_CONSTEXPR_E explicit div2by1_divider(T _divisor) : m_divisor(_divisor) {
         initialize();
     }
-    constexpr div2by1_divider(T _divisor, T _value, T _shift)
+    constexpr div2by1_divider(T _divisor, T _value, unsigned int _shift)
         : m_divisor(_divisor), m_value(_value), m_shift(_shift) {}
     div2by1_divider(const div2by1_divider &) = default;
     div2by1_divider &operator=(const div2by1_divider &) = default;

@@ -6,7 +6,7 @@
 namespace wjr {
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E T fallback_divmod_1(T *dst, const T *src, size_t n,
+WJR_INLINE_CONSTEXPR_E T fallback_divmod_1(T *dst, const T *src, size_t n,
                                     div2by1_divider<T> div) {
     WJR_ASSERT(n != 0);
     WJR_ASSUME(n != 0);
