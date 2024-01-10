@@ -14,6 +14,8 @@
 #include <wjr/math.hpp>
 #include <wjr/preprocessor.hpp>
 
+#include <wjr/compressed_pair.hpp>
+
 TEST(preprocessor, arithmatic) {
     WJR_ASSERT(WJR_PP_ADD(1, 3) == 4);
     WJR_ASSERT(WJR_PP_ADD(1, 4) == 5);
@@ -241,13 +243,10 @@ TEST(math, popcount_ctz_clz) {
         ++n;                                                                             \
         return nd - wjr::ctz<type>(n);                                                   \
     }();                                                                                 \
-    WJR_ASSERT(wjr::fallback_clz<type>(x) == clz_ans, "%d %d",                           \
-               wjr::fallback_clz<type>(x), clz_ans)                                      \
+    WJR_ASSERT(wjr::fallback_clz<type>(x) == clz_ans)                                    \
     WJR_PP_BOOL_IF(                                                                      \
-        WJR_HAS_BUILTIN(CTZ), ; do {                                                     \
-            WJR_ASSERT((wjr::builtin_clz<type>(x) == clz_ans), "%d %d",                  \
-                       wjr::builtin_clz<type>(x), clz_ans);                              \
-        } while (0), );
+        WJR_HAS_BUILTIN(CTZ), ;                                                          \
+        do { WJR_ASSERT((wjr::builtin_clz<type>(x) == clz_ans)); } while (0), );
 
 #define WJR_TEST_PTZ_I_CALLER(args)                                                      \
     do {                                                                                 \
@@ -1014,7 +1013,7 @@ TEST(math, not_n) {
 
         wjr::not_n(b.data(), a.data(), n);
         for (auto &i : b) {
-            WJR_ASSERT(i == -1ull, "%zu", n);
+            WJR_ASSERT(i == -1ull);
         }
 
         wjr::not_n(a.data(), a.data(), n);
@@ -1129,7 +1128,7 @@ TEST(math, compare_n) {
                 continue;
             }
 
-            WJR_ASSERT(f < 0, "%d", f);
+            WJR_ASSERT(f < 0);
 
             for (size_t i = m; i < n; ++i) {
                 while (a[m] == 0) {
@@ -1170,7 +1169,7 @@ TEST(math, reverse_compare_n) {
                 continue;
             }
 
-            WJR_ASSERT(f < 0, "%d", f);
+            WJR_ASSERT(f < 0);
 
             for (size_t i = m; i < n; ++i) {
                 while (a[n - m - 1] == 0) {
@@ -1182,6 +1181,83 @@ TEST(math, reverse_compare_n) {
             f = wjr::reverse_compare_n(a.data(), b.data(), n);
 
             WJR_ASSERT(f > 0);
+        }
+    }
+}
+
+TEST(math, shld) {
+#define WJR_TEST_SHLD(hi, lo, c, expect)                                                 \
+    WJR_ASSERT(wjr::shld<uint64_t>((hi), (lo), (c)) == (expect))
+
+    WJR_TEST_SHLD(0, 0, 1, 0);
+    WJR_TEST_SHLD(0, 1, 1, 0);
+    WJR_TEST_SHLD(0, 1ull << 63, 1, 1);
+    WJR_TEST_SHLD(1, 1, 1, 2);
+    WJR_TEST_SHLD(1, 1ull << 63, 1, 3);
+
+#undef WJR_TEST_SHLD
+}
+
+TEST(math, shrd) {}
+
+TEST(math, lshift_n) {
+    {
+        std::vector<uint64_t> a, b;
+        std::mt19937_64 mt_rand(time(0));
+
+        for (size_t n = 1; n <= 512; ++n) {
+            a.resize(n);
+            b.resize(n);
+
+            for (size_t i = 0; i < n; ++i) {
+                a[i] = mt_rand();
+            }
+
+            for (unsigned int c = 0; c < 64; ++c) {
+                uint64_t ex = c ? (a[n - 1] >> (64 - c)) : 0;
+                auto z = wjr::lshift_n(b.data(), a.data(), n, c);
+                WJR_ASSERT(z == ex);
+
+                for (size_t i = 1; i < n; ++i) {
+                    ex = c ? ((a[i] << c) | (a[i - 1] >> (64 - c))) : a[i];
+                    WJR_ASSERT(b[i] == ex);
+                }
+
+                ex = a[0] << c;
+
+                WJR_ASSERT(b[0] == ex);
+            }
+        }
+    }
+}
+
+TEST(math, rshift_n) {
+    {
+        std::vector<uint64_t> a, b;
+        std::mt19937_64 mt_rand(time(0));
+
+        for (size_t n = 1; n <= 512; ++n) {
+            a.resize(n);
+            b.resize(n);
+
+            for (size_t i = 0; i < n; ++i) {
+                a[i] = mt_rand();
+            }
+
+            for (unsigned int c = 0; c < 64; ++c) {
+                uint64_t ex = c ? (a[0] << (64 - c)) : 0;
+                auto z = wjr::rshift_n(b.data(), a.data(), n, c);
+                WJR_ASSERT(z == ex);
+
+                for (size_t i = 0; i < n - 1; ++i) {
+                    ex = c ? ((a[i] >> c) | (a[i + 1] << (64 - c))) : a[i];
+                    WJR_ASSERT(b[i] == ex);
+                }
+
+                ex = a[n - 1] >> c;
+
+                WJR_ASSERT(b[n - 1] == ex);
+            }
         }
     }
 }
