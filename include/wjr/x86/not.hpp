@@ -1,7 +1,6 @@
 #ifndef WJR_X86_NOT_HPP__
 #define WJR_X86_NOT_HPP__
 
-#include <wjr/gen/nofast_1_2_8.hpp>
 #include <wjr/simd/simd.hpp>
 
 #ifndef WJR_X86

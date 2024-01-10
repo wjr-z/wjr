@@ -3,7 +3,6 @@
 
 #include <cstring>
 
-#include <wjr/gen/nofast_1_2_8.hpp>
 #include <wjr/simd/simd.hpp>
 
 #ifndef WJR_X86
