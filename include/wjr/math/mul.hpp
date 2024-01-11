@@ -117,8 +117,6 @@ uint64_t fallback_mulhi64(uint64_t a, uint64_t b) {
 template <typename T>
 WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR_E)
 T mulhi(T a, T b) {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
     T ret = 0;
     (void)mul(a, b, ret);
     return ret;

@@ -7,7 +7,7 @@ namespace wjr {
 
 // reference : https://ieeexplore.ieee.org/document/5487506
 template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
-WJR_CONSTEXPR_E T fallback_divmod_1(T *dst, const T *src, size_t n,
+WJR_CONSTEXPR20 T fallback_divmod_1(T *dst, const T *src, size_t n,
                                     div2by1_divider<T> div) {
     uint64_t divisor = div.divisor();
     uint64_t value = div.value();
@@ -140,7 +140,7 @@ WJR_CONSTEXPR_E T fallback_divmod_1(T *dst, const T *src, size_t n,
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E T divmod_1(T *dst, const T *src, size_t n,
+WJR_INTRINSIC_CONSTEXPR20 T divmod_1(T *dst, const T *src, size_t n,
                                      div2by1_divider<T> div) {
     WJR_ASSERT(n != 0);
     WJR_ASSUME(n != 0);
@@ -164,7 +164,7 @@ WJR_INTRINSIC_CONSTEXPR_E T divmod_1(T *dst, const T *src, size_t n,
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E T divmod_1(T *dst, const T *src, size_t n,
+WJR_INTRINSIC_CONSTEXPR20 T divmod_1(T *dst, const T *src, size_t n,
                                      type_identity_t<T> div) {
     WJR_ASSERT(n != 0);
     WJR_ASSUME(n != 0);
@@ -214,7 +214,7 @@ WJR_CONSTEXPR_E void fallback_divexact_1(T *dst, const T *src, size_t n,
         }
 
         r10 = src[n];
-        r10 = subc(r10, rdx, cf, cf);
+        r10 -= rdx + cf;
         r10 = mullo(r10, value);
         dst[n] = r10;
         return;
@@ -237,7 +237,7 @@ WJR_CONSTEXPR_E void fallback_divexact_1(T *dst, const T *src, size_t n,
     }
 
     r10 = r10 >> shift;
-    r10 = subc(r10, rdx, cf, cf);
+    r10 -= rdx + cf;
     r10 = mullo(r10, value);
     dst[n] = r10;
     return;

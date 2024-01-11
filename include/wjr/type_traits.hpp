@@ -287,7 +287,8 @@ WJR_INTRINSIC_CONSTEXPR20 P *container_of_offset_impl(M *ptr, const M P::*member
 #define WJR_CONTAINER_OF(ptr, type, member) container_of_offset_impl(ptr, &type::member)
 
 WJR_INTRINSIC_CONSTEXPR size_t abs_cast(size_t n) {
-    WJR_ASSUME((n & static_cast<size_t>(std::numeric_limits<ptrdiff_t>::min())) == 0);
+    constexpr auto nd = std::numeric_limits<size_t>::digits;
+    WJR_ASSUME((n >> (nd - 1)) == 0);
     return n;
 }
 

@@ -152,17 +152,13 @@ WJR_INLINE U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(T *dst, const 
         src0 += n - 8;                                                                   \
         src1 += n - 8;                                                                   \
         dst += n - 8;                                                                    \
-        uint64_t t1;                                                                     \
-        uint64_t t2;                                                                     \
-        t1 = n;                                                                          \
         asm volatile("add{b $255, %b[t0]| %b[t0], 255}\n\t"                              \
-                     "lea{q| %[t2], [rip +} .Lasm_"                                      \
-                     WJR_PP_STR(WJR_addcsubc) "_n_lookup%={(%%rip), %[t2]|]}\n\t"        \
-                     "movs{lq (%[t2], %[t1], 4), %[t1]|xd %[t1], DWORD PTR [%[t2] + "    \
-                     "%[t1] * 4]}\n\t"                                                   \
-                     "lea{q (%[t2], %[t1], 1), %[t1]| %[t1], [%[t2] + %[t1]]}\n\t"       \
-                     "jmp{q *%[t1]| %[t1]}\n\t"                                          \
-                                                                                         \
+                     "lea{q| %[t0], [rip +} .Lasm_"                                      \
+                     WJR_PP_STR(WJR_addcsubc) "_n_lookup%={(%%rip), %[t0]|]}\n\t"        \
+                     "movs{lq (%[t0], %[n], 4), %[n]|xd %[n], DWORD PTR [%[t0] + "       \
+                     "%[n] * 4]}\n\t"                                                    \
+                     "lea{q (%[t0], %[n], 1), %[n]| %[n], [%[t0] + %[n]]}\n\t"           \
+                     "jmp{q *%[n]| %[n]}\n\t"                                            \
                      ".align 4\n\t"                                                      \
                      ".Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=:\n\t"                \
                      ".long .Lcase0%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t" \
@@ -251,7 +247,7 @@ WJR_INLINE U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(T *dst, const 
                      "setb %b[t0]"                                                       \
                                                                                          \
                      : [dst] "+r"(dst), [src0] "+%r"(src0), [src1] "+r"(src1),           \
-                       [m] "+r"(m), [t0] "+r"(t0), [t1] "+r"(t1), [t2] "=r"(t2)          \
+                       [m] "+r"(m), [t0] "+r"(t0), [n] "+r"(n)                           \
                      :                                                                   \
                      : "cc", "memory");                                                  \
     } else
@@ -263,6 +259,9 @@ WJR_INLINE U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(T *dst, const 
         static_assert(nd <= 64, "not support yet");
     }
 
+#undef WJR_REGISTER_ASM_ADDSUB_N_JUMP
+#undef WJR_REGISTER_ASM_ADDSUB_N_PIC_JUMP
+#undef WJR_REGISTER_ASM_ADDSUB_N_NOPIC_JUMP
 #undef WJR_REGISTER_ASM_ADDSUB_N
 
     return static_cast<unsigned char>(t0);
