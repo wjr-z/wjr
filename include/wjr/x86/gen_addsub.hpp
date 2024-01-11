@@ -17,47 +17,96 @@ template <typename T, typename U>
 WJR_INTRINSIC_INLINE T WJR_PP_CONCAT(asm_, WJR_addcsubc)(T a, T b, U c_in, U &c_out) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
-    #define WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL(STR, SUFFIX)                            \
-    WJR_PP_BOOL_IF(WJR_PP_EQ(WJR_ADDSUB_I, 1),                                           \
-    if (WJR_BUILTIN_CONSTANT_P(a)) {                                                     \
-        asm(STR "{" #SUFFIX " %2, %0| %0, %2}\n\t"                                       \
-            "setb %b1"                                                                   \
-            : "=r"(b), "+r"(c_in)                                                        \
-            : "%ri"(a), "0"(b)                                                           \
-            : "cc");                                                                     \
-        c_out = c_in;                                                                    \
-        return b;                                                                        \
-    }                                                                                    \
-    asm(STR "{" #SUFFIX " %2, %0| %0, %2}\n\t"                                           \
-        "setb %b1"                                                                       \
-        : "=r"(a), "+r"(c_in)                                                            \
-        : "%ri"(b), "0"(a)                                                               \
-        : "cc");                                                                         \
-    c_out = c_in;                                                                        \
-    return a;                                                                            \
-    ,                                                                                    \
-    asm(STR "{" #SUFFIX " %2, %0| %0, %2}\n\t"                                           \
-        "setb %b1"                                                                       \
-        : "=r"(a), "+r"(c_in)                                                            \
-        : "ri"(b), "0"(a)                                                                \
-        : "cc");                                                                         \
-    c_out = c_in;                                                                        \
-    return a;                                                                            \
-    )
+#define WJR_REGISTER_BUILTIN_ASM_ADDSUB_0(suffix)                                       \
+    if (WJR_BUILTIN_CONSTANT_P(c_in)) {                                                 \
+        if (c_in == 0) {                                                                \
+            asm (                                                                       \
+                "sub{" #suffix " %2, %0| %0, %2}\n\t"                                   \
+                "setb %b1"                                                              \
+                : "=r"(a), "=r"(c_in)                                                   \
+                : "ri"(b), "0"(a)                                                       \
+                : "cc"                                                                  \
+            );                                                                          \
+            c_out = c_in;                                                               \
+            return a;                                                                   \
+        } else {                                                                        \
+            asm (                                                                       \
+                "stc\n\t"                                                               \
+                "sbb{" #suffix " %2, %0| %0, %2}\n\t"                                   \
+                "setb %b1"                                                              \
+                :  "=r"(a), "=r"(c_in)                                                  \
+                : "ri"(b), "0"(a)                                                       \
+                : "cc"                                                                  \
+            );                                                                          \
+            c_out = c_in;                                                               \
+            return a;                                                                   \
+        }                                                                               \
+    }                                                                                   \
+                                                                                        \
+    asm (                                                                               \
+        "add{b $255, %b1| %b1, 255}\n\t"                                                 \
+        "sbb{" #suffix " %2, %0| %0, %2}\n\t"                                           \
+        "setb %b1"                                                                      \
+        :  "=r"(a), "+r"(c_in)                                                          \
+        : "ri"(b), "0"(a)                                                               \
+        : "cc"                                                                          \
+    );                                                                                  \
+    c_out = c_in;                                                                       \
+    return a;
 
-#define WJR_REGISTER_BUILTIN_ASM_ADDSUB(suffix, type)                                    \
-    if constexpr (nd == std::numeric_limits<type>::digits) {                             \
-        if (WJR_BUILTIN_CONSTANT_P(c_in)) {                                              \
-            if (c_in == 0) {                                                             \
-                WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL(WJR_PP_STR(WJR_addsub), suffix);    \
-            } else {                                                                     \
-                WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL("stc\n\t"                           \
-                WJR_PP_STR(WJR_adcsbb), suffix);                                         \
-            }                                                                            \
-        }                                                                                \
-        WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL(                                            \
-            "add{b $255, %b1| %b1, 255}\n\t" WJR_PP_STR(WJR_adcsbb), suffix);            \
-                                                                                         \
+#define WJR_REGISTER_BUILTIN_ASM_ADDSUB_1(suffix)                                       \
+    if (WJR_BUILTIN_CONSTANT_P(c_in)) {                                                 \
+        if (c_in == 0) {                                                                \
+            asm (                                                                       \
+                "add{" #suffix " %2, %0| %0, %2}\n\t"                                   \
+                "setb %b1"                                                              \
+                :  "=r"(a), "=r"(c_in)                                                  \
+                : "ri"(b), "0"(a)                                                       \
+                : "cc"                                                                  \
+            );                                                                          \
+            c_out = c_in;                                                               \
+            return a;                                                                   \
+        } else {                                                                        \
+            asm (                                                                       \
+                "stc\n\t"                                                               \
+                "adc{" #suffix " %2, %0| %0, %2}\n\t"                                   \
+                "setb %b1"                                                              \
+                :  "=r"(a), "=r"(c_in)                                                  \
+                : "ri"(b), "0"(a)                                                       \
+                : "cc"                                                                  \
+            );                                                                          \
+            c_out = c_in;                                                               \
+            return a;                                                                   \
+        }                                                                               \
+    }                                                                                   \
+                                                                                        \
+    if (WJR_BUILTIN_CONSTANT_P(a)) {                                                    \
+        asm (                                                                           \
+            "add{b $255, %b1| %b1, 255}\n\t"                                            \
+            "adc{" #suffix " %2, %0| %0, %2}\n\t"                                       \
+            "setb %b1"                                                                  \
+            :  "=r"(b), "+r"(c_in)                                                      \
+            : "ri"(a), "0"(b)                                                           \
+            : "cc"                                                                      \
+        );                                                                              \
+        c_out = c_in;                                                                   \
+        return b;                                                                       \
+    }                                                                                   \
+                                                                                        \
+    asm (                                                                               \
+        "add{b $255, %b1| %b1, 255}\n\t"                                                \
+        "adc{" #suffix " %2, %0| %0, %2}\n\t"                                           \
+        "setb %b1"                                                                      \
+        :  "=r"(a), "+r"(c_in)                                                          \
+        : "ri"(b), "0"(a)                                                               \
+        : "cc"                                                                          \
+    );                                                                                  \
+    c_out = c_in;                                                                       \
+    return a
+
+#define WJR_REGISTER_BUILTIN_ASM_ADDSUB(suffix, type)                                   \
+    if constexpr (nd == std::numeric_limits<type>::digits) {                            \
+        WJR_PP_CONCAT(WJR_REGISTER_BUILTIN_ASM_ADDSUB_,WJR_ADDSUB_I)(suffix);           \
     } else
 
     WJR_REGISTER_BUILTIN_ASM_ADDSUB(b, uint8_t)
@@ -67,8 +116,9 @@ WJR_INTRINSIC_INLINE T WJR_PP_CONCAT(asm_, WJR_addcsubc)(T a, T b, U c_in, U &c_
         static_assert(nd <= 64, "not supported yet");
     }
 
+#undef WJR_REGISTER_BUILTIN_ASM_ADDSUB_1
+#undef WJR_REGISTER_BUILTIN_ASM_ADDSUB_0
 #undef WJR_REGISTER_BUILTIN_ASM_ADDSUB
-#undef WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL
 #undef WJR_REGISTER_BUILTIN_ASM_ADDSUB_IMPL_HELPER
 }
 
