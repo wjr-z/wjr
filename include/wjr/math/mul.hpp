@@ -220,14 +220,7 @@ WJR_INTRINSIC_CONSTEXPR_E T submul_1(T *dst, const T *src0, size_t n, T src1,
 #endif
 }
 
-template <typename T>
-WJR_INLINE_CONSTEXPR void basecase_mul_s(T *dst, const T *src0, size_t n, const T *src1,
-                                         size_t m) {
-    dst[n] = mul_1(dst, src0, n, src1[0], 0);
-    for (size_t i = 1; i < m; ++i) {
-        dst[i + n] = addmul_1(dst + i, src0, n, src1[i], 0);
-    }
-}
+// preview :
 
 // native default threshold of toom-cook-2
 // TODO : optimize threshold
@@ -238,7 +231,53 @@ WJR_INLINE_CONSTEXPR void basecase_mul_s(T *dst, const T *src0, size_t n, const 
 inline constexpr size_t toom22_mul_threshold = WJR_TOOM22_MUL_THRESHOLD;
 
 template <typename T>
-void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m);
+WJR_INLINE_CONSTEXPR void basecase_mul_s(T *dst, const T *src0, size_t n, const T *src1,
+                                         size_t m);
+
+template <typename T>
+void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m);
+
+template <typename T>
+void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
+    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n + m, src0, n));
+    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n + m, src1, m));
+
+    if (n < m) {
+        std::swap(n, m);
+        std::swap(src0, src1);
+    }
+
+    WJR_ASSUME(m >= 1);
+
+    do {
+        if (m <= toom22_mul_threshold) {
+            break;
+        }
+
+        if (m <= toom22_mul_threshold * 4) {
+            if (5 * m <= 4 * n) {
+                break;
+            }
+        }
+
+        if (5 * m <= 3 * n) {
+            break;
+        }
+
+        return toom22_mul_s(dst, src0, n, src1, m);
+    } while (0);
+
+    return basecase_mul_s(dst, src0, n, src1, m);
+}
+
+template <typename T>
+WJR_INLINE_CONSTEXPR void basecase_mul_s(T *dst, const T *src0, size_t n, const T *src1,
+                                         size_t m) {
+    dst[n] = mul_1(dst, src0, n, src1[0], 0);
+    for (size_t i = 1; i < m; ++i) {
+        dst[i + n] = addmul_1(dst + i, src0, n, src1[i], 0);
+    }
+}
 
 template <typename T>
 void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
@@ -299,58 +338,39 @@ void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
     mul_s(p0, u0, l, v0, l);
     mul_s(p2, u1, rn, v1, rm);
 
-    T cy = 0, cy2 = 0;
+    T cf = 0, cf2 = 0;
 
-    cy = addc_n(p2, p1, p2, l, 0u);
-    cy2 = cy + addc_n(p1, p0, p2, l, 0u);
-    cy += addc_s(p2, p2, l, p3, p3n, 0u);
+    cf = addc_n(p2, p1, p2, l, 0u);
+    cf2 = cf + addc_n(p1, p0, p2, l, 0u);
+    cf += addc_s(p2, p2, l, p3, p3n, 0u);
 
     if (!f) {
-        cy -= subc_n(p1, p1, stk, l * 2, 0u);
+        cf -= subc_n(p1, p1, stk, l * 2, 0u);
     } else {
-        cy += addc_n(p1, p1, stk, l * 2, 0u);
+        cf += addc_n(p1, p1, stk, l * 2, 0u);
     }
 
-    cy2 = addc_1(p2, p2, rn + rm, cy2, 0u);
-    WJR_ASSERT(cy2 == 0);
-    cy = addc_1(p3, p3, rn + rm - l, cy, 0u);
-    WJR_ASSERT(cy == 0);
+    cf2 = addc_1(p2, p2, rn + rm, cf2, 0u);
+    WJR_ASSERT(cf2 == 0);
+    cf = addc_1(p3, p3, rn + rm - l, cf, 0u);
+    WJR_ASSERT(cf == 0);
 }
 
-// preview : mul n x m
-// TODO : ...
-
 template <typename T>
-void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
-    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n + m, src0, n));
-    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n + m, src1, m));
+void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
+    WJR_ASSUME(n >= m);
 
-    if (n < m) {
-        std::swap(n, m);
-        std::swap(src0, src1);
-    }
+    const size_t l = (n + 2) / 3;
+    const size_t rn = n - l * 2;
+    const size_t rm = m - l * 2;
 
-    WJR_ASSUME(m >= 1);
+    const auto u0p = src0;
+    const auto u1p = src0 + l;
+    const auto u2p = src0 + l * 2;
 
-    do {
-        if (m <= toom22_mul_threshold) {
-            break;
-        }
-
-        if (m <= toom22_mul_threshold * 4) {
-            if (5 * m <= 4 * n) {
-                break;
-            }
-        }
-
-        if (5 * m <= 3 * n) {
-            break;
-        }
-
-        return toom22_mul_s(dst, src0, n, src1, m);
-    } while (0);
-
-    return basecase_mul_s(dst, src0, n, src1, m);
+    const auto v0p = src1;
+    const auto v1p = src1 + l;
+    const auto v2p = src1 + l * 2;
 }
 
 } // namespace wjr

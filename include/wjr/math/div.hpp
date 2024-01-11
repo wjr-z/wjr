@@ -185,6 +185,34 @@ WJR_INTRINSIC_CONSTEXPR20 T divmod_1(T *dst, const T *src, size_t n,
     return fallback_divmod_1(dst, src, n, div2by1_divider<T>(div));
 }
 
+template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+WJR_CONSTEXPR_E T fallback_divexact_dbm1c(T *dst, const T *src, size_t n, T bd, T h) {
+    T a = 0, p0 = 0, p1 = 0, cf = 0;
+
+    for (size_t i = 0; i < n; i++) {
+        a = src[i];
+        p0 = mul(a, bd, p1);
+        cf = h < p0;
+        h = (h - p0);
+        dst[i] = h;
+        h = h - p1 - cf;
+    }
+
+    return h;
+}
+
+template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+WJR_CONSTEXPR_E void divexact_by3(T *dst, const T *src, size_t n) {
+    constexpr auto max = std::numeric_limits<T>::max();
+    (void)fallback_divexact_dbm1c<T>(dst, src, n, max / 3, 0);
+}
+
+template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+WJR_CONSTEXPR_E void divexact_by5(T *dst, const T *src, size_t n) {
+    constexpr auto max = std::numeric_limits<T>::max();
+    (void)fallback_divexact_dbm1c<T>(dst, src, n, max / 5, 0);
+}
+
 // reference : ftp://ftp.risc.uni-linz.ac.at/pub/techreports/1992/92-35.ps.gz
 // TODO : asm_divexact_1 (Low priority)
 template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
@@ -255,6 +283,16 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
         return;
     }
 
+    if (WJR_BUILTIN_CONSTANT_P(div.shift() == 0) && div.shift() == 0) {
+        if (WJR_BUILTIN_CONSTANT_P(div.divisor() == 3) && div.divisor() == 3) {
+            return divexact_by3(dst, src, n);
+        }
+        
+        if (WJR_BUILTIN_CONSTANT_P(div.divisor() == 5) && div.divisor() == 5) {
+            return divexact_by5(dst, src, n);
+        }
+    }
+
     return fallback_divexact_1(dst, src, n, div);
 }
 
@@ -268,6 +306,14 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
         unsigned int c = ctz(div);
         (void)rshift_n(dst, src, n, c);
         return;
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(div == 3) && div == 3) {
+        return divexact_by3(dst, src, n);
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(div == 5) && div == 5) {
+        return divexact_by5(dst, src, n);
     }
 
     return fallback_divexact_1(dst, src, n, divexact1_divider<T>(div));

@@ -86,7 +86,7 @@ WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src0, size_t n,
                  "lea{q (%[t3], %[t0], 1), %[t0]| %[t0], [%[t0] + %[t3]]}\n\t"
                  "jmp{q *%[t0]| %[t0]}\n\t"
 
-                 ".align 4\n\t"
+                 ".align 8\n\t"
                  ".Lasm_addmul_1_lookup%=:\n\t"
                  ".long .Lcase0%=-.Lasm_addmul_1_lookup%=\n\t"
                  ".long .Lcase1%=-.Lasm_addmul_1_lookup%=\n\t"
@@ -180,7 +180,7 @@ WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src0, size_t n,
                  "lea{q (%[t3], %[t0], 1), %[t0]| %[t0], [%[t0] + %[t3]]}\n\t"
                  "jmp{q *%[t0]| %[t0]}\n\t"
 
-                 ".align 4\n\t"
+                 ".align 8\n\t"
                  ".Lasm_addmul_1_lookup%=:\n\t"
                  ".long .Lcase0%=-.Lasm_addmul_1_lookup%=\n\t"
                  ".long .Lcase1%=-.Lasm_addmul_1_lookup%=\n\t"
@@ -293,7 +293,7 @@ WJR_INLINE uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src0, size_t n,
                  "lea{q (%[t3], %[t0], 1), %[t0]| %[t0], [%[t0] + %[t3]]}\n\t"
                  "jmp{q *%[t0]| %[t0]}\n\t"
 
-                 ".align 4\n\t"
+                 ".align 8\n\t"
                  ".Lasm_submul_1_lookup%=:\n\t"
                  ".long .Lcase0%=-.Lasm_submul_1_lookup%=\n\t"
                  ".long .Lcase1%=-.Lasm_submul_1_lookup%=\n\t"

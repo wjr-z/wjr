@@ -159,7 +159,7 @@ WJR_INLINE U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(T *dst, const 
                      "%[n] * 4]}\n\t"                                                    \
                      "lea{q (%[t0], %[n], 1), %[n]| %[n], [%[t0] + %[n]]}\n\t"           \
                      "jmp{q *%[n]| %[n]}\n\t"                                            \
-                     ".align 4\n\t"                                                      \
+                     ".align 8\n\t"                                                      \
                      ".Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=:\n\t"                \
                      ".long .Lcase0%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t" \
                      ".long .Lcase1%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t" \
