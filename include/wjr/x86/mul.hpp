@@ -36,17 +36,6 @@ WJR_INTRINSIC_INLINE uint64_t builtin_mul64(uint64_t a, uint64_t b, uint64_t &hi
 
 #endif
 
-#if WJR_HAS_BUILTIN(MUL64)
-
-WJR_ATTRIBUTES(CONST, INTRINSIC_INLINE)
-uint64_t builtin_mulhi64(uint64_t a, uint64_t b) {
-    uint64_t hi;
-    (void)builtin_mul64(a, b, hi);
-    return hi;
-}
-
-#endif
-
 #if WJR_HAS_SIMD(SIMD) && defined(__BMI2__)
 #define WJR_HAS_BUILTIN_MULX_U64 WJR_HAS_DEF
 #endif

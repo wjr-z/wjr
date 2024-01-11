@@ -42,13 +42,45 @@ template <typename T>
 WJR_INTRINSIC_CONSTEXPR_E T mul(T a, T b, T &hi) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
+    if ((WJR_BUILTIN_CONSTANT_P(a == 0) && a == 0) ||
+        (WJR_BUILTIN_CONSTANT_P(b == 0) && b == 0)) {
+        hi = 0;
+        return 0;
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(a == 1) && a == 1) {
+        hi = 0;
+        return b;
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(b == 1) && b == 1) {
+        hi = 0;
+        return a;
+    }
+
+    constexpr auto max = std::numeric_limits<T>::max();
+
+    if (WJR_BUILTIN_CONSTANT_P(a == max) && a == max) {
+        hi = b == 0 ? 0 : b - 1;
+        return -b;
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(b == max) && b == max) {
+        hi = a == 0 ? 0 : a - 1;
+        return -a;
+    }
+
     if constexpr (nd < 64) {
         return fallback_mul(a, b, hi);
     } else {
 
 #if WJR_HAS_BUILTIN(MUL64)
         if (is_constant_evaluated() ||
-            (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
+            (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b)) ||
+            ((WJR_BUILTIN_CONSTANT_P(a) || WJR_BUILTIN_CONSTANT_P(is_power_of_two(a))) &&
+             is_power_of_two(a)) ||
+            ((WJR_BUILTIN_CONSTANT_P(b) || WJR_BUILTIN_CONSTANT_P(is_power_of_two(b))) &&
+             is_power_of_two(b))) {
             return fallback_mul64(a, b, hi);
         }
 
@@ -87,29 +119,9 @@ WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR_E)
 T mulhi(T a, T b) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
-    if constexpr (nd < 64) {
-        return fallback_mulhi(a, b);
-    } else {
-
-#if WJR_HAS_BUILTIN(MUL64)
-        if (is_constant_evaluated() ||
-            (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
-            return fallback_mulhi64(a, b);
-        }
-
-#if WJR_HAS_BUILTIN(ASM_MUL64)
-        // mov b to rax, then mul a
-        // instead of mov a to rax, mov b to register, then mul
-        if (WJR_BUILTIN_CONSTANT_P(b)) {
-            return builtin_mulhi64(b, a);
-        }
-#endif
-
-        return builtin_mulhi64(a, b);
-#else
-        return fallback_mulhi64(a, b);
-#endif
-    }
+    T ret = 0;
+    (void)mul(a, b, ret);
+    return ret;
 }
 
 template <typename T>
@@ -231,8 +243,7 @@ template <typename T>
 void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m);
 
 template <typename T>
-void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1,
-                                  size_t m) {
+void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
     WJR_ASSUME(n >= m);
 
     const size_t rn = n >> 1;
@@ -267,7 +278,7 @@ void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1,
     bool f = 0;
 
     do {
-        int cc;
+        ptrdiff_t cc;
         cc = abs_subc_s(p0, u0, l, u1, rn);
         if (cc < 0) {
             f ^= 1;

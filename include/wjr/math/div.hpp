@@ -5,15 +5,13 @@
 
 namespace wjr {
 
-template <typename T>
-WJR_INLINE_CONSTEXPR_E T fallback_divmod_1(T *dst, const T *src, size_t n,
+// reference : https://ieeexplore.ieee.org/document/5487506
+template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+WJR_CONSTEXPR_E T fallback_divmod_1(T *dst, const T *src, size_t n,
                                     div2by1_divider<T> div) {
-    WJR_ASSERT(n != 0);
-    WJR_ASSUME(n != 0);
-
     uint64_t divisor = div.divisor();
     uint64_t value = div.value();
-    uint64_t shift = div.shift();
+    unsigned int shift = div.shift();
 
     uint64_t rax = 0, rdx = 0, rbp = 0, r10 = 0, r11 = 0, r13 = 0;
 
@@ -142,10 +140,10 @@ WJR_INLINE_CONSTEXPR_E T fallback_divmod_1(T *dst, const T *src, size_t n,
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E T divmod_1(T *dst, const T *src, size_t n, div2by1_divider<T> div) {
-    if (WJR_UNLIKELY(n == 0)) {
-        return 0;
-    }
+WJR_INTRINSIC_CONSTEXPR_E T divmod_1(T *dst, const T *src, size_t n,
+                                     div2by1_divider<T> div) {
+    WJR_ASSERT(n != 0);
+    WJR_ASSUME(n != 0);
 
     if (WJR_UNLIKELY(div.is_power_of_two())) {
         unsigned int c = 63 - div.shift();
@@ -166,10 +164,10 @@ WJR_INTRINSIC_CONSTEXPR_E T divmod_1(T *dst, const T *src, size_t n, div2by1_div
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E T divmod_1(T *dst, const T *src, size_t n, type_identity_t<T> div) {
-    if (WJR_UNLIKELY(n == 0)) {
-        return 0;
-    }
+WJR_INTRINSIC_CONSTEXPR_E T divmod_1(T *dst, const T *src, size_t n,
+                                     type_identity_t<T> div) {
+    WJR_ASSERT(n != 0);
+    WJR_ASSUME(n != 0);
 
     if (WJR_UNLIKELY(is_power_of_two(div))) {
         unsigned int c = ctz(div);
@@ -185,6 +183,94 @@ WJR_INTRINSIC_CONSTEXPR_E T divmod_1(T *dst, const T *src, size_t n, type_identi
     }
 
     return fallback_divmod_1(dst, src, n, div2by1_divider<T>(div));
+}
+
+// reference : ftp://ftp.risc.uni-linz.ac.at/pub/techreports/1992/92-35.ps.gz
+// TODO : asm_divexact_1 (Low priority)
+template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+WJR_CONSTEXPR_E void fallback_divexact_1(T *dst, const T *src, size_t n,
+                                         divexact1_divider<T> div) {
+    uint64_t divisor = div.divisor();
+    uint64_t value = div.value();
+    unsigned int shift = div.shift();
+
+    uint64_t rdx = 0, r10 = 0;
+    unsigned char cf = 0;
+    size_t idx = 0;
+
+    --n;
+
+    if (WJR_UNLIKELY(shift == 0)) {
+
+        if (WJR_LIKELY(n != 0)) {
+            do {
+                r10 = src[idx];
+                r10 = subc(r10, rdx, cf, cf);
+                r10 = mullo(r10, value);
+                dst[idx] = r10;
+                ++idx;
+                rdx = mulhi(r10, divisor);
+            } while (WJR_LIKELY(idx != n));
+        }
+
+        r10 = src[n];
+        r10 = subc(r10, rdx, cf, cf);
+        r10 = mullo(r10, value);
+        dst[n] = r10;
+        return;
+    }
+
+    uint64_t r11 = 0;
+    r10 = src[0];
+
+    if (WJR_LIKELY(n != 0)) {
+        do {
+            r11 = src[idx + 1];
+            r10 = shrd(r10, r11, shift);
+            r10 = subc(r10, rdx, cf, cf);
+            r10 = mullo(r10, value);
+            dst[idx] = r10;
+            ++idx;
+            rdx = mulhi(r10, divisor);
+            r10 = r11;
+        } while (WJR_LIKELY(idx != n));
+    }
+
+    r10 = r10 >> shift;
+    r10 = subc(r10, rdx, cf, cf);
+    r10 = mullo(r10, value);
+    dst[n] = r10;
+    return;
+}
+
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
+                                          divexact1_divider<T> div) {
+    WJR_ASSERT(n != 0);
+    WJR_ASSUME(n != 0);
+
+    if (WJR_UNLIKELY(div.is_power_of_two())) {
+        unsigned int c = div.shift();
+        (void)rshift_n(dst, src, n, c);
+        return;
+    }
+
+    return fallback_divexact_1(dst, src, n, div);
+}
+
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
+                                          type_identity_t<T> div) {
+    WJR_ASSERT(n != 0);
+    WJR_ASSUME(n != 0);
+
+    if (WJR_UNLIKELY(is_power_of_two(div))) {
+        unsigned int c = ctz(div);
+        (void)rshift_n(dst, src, n, c);
+        return;
+    }
+
+    return fallback_divexact_1(dst, src, n, divexact1_divider<T>(div));
 }
 
 } // namespace wjr
