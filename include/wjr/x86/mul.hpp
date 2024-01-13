@@ -68,7 +68,7 @@ WJR_INTRINSIC_INLINE T mulx(T a, T b, T &hi) {
 #if WJR_HAS_BUILTIN(ASM_MUL_1)
 
 WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src0, size_t n,
-                              uint64_t src1, uint64_t t2) {
+                              uint64_t src1) {
     size_t m = n / 8 + 1;
     n &= 7;
     dst += n - 8;
@@ -76,6 +76,7 @@ WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src0, size_t n,
 
     uint64_t t0 = n;
     uint64_t t1;
+    uint64_t t2 = 0;
     uint64_t t3;
 
     asm volatile("xor %[t1], %[t1]\n\t"
@@ -107,9 +108,9 @@ WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src0, size_t n,
                  "mov{q %[t0], (%[dst])| [%[dst]], %[t0]}\n\t"
 
                  ".Lcase7%=:\n\t"
-                 "mulx {8(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 8]}\n\t"
-                 "adc{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
-                 "mov{q %[t0], 8(%[dst])| [%[dst] + 8], %[t0]}\n\t"
+                 "mulx {8(%[src0]), %[t3], %[t2]|%[t2], %[t3], [%[src0] + 8]}\n\t"
+                 "adc{q %[t1], %[t3]| %[t3], %[t1]}\n\t"
+                 "mov{q %[t3], 8(%[dst])| [%[dst] + 8], %[t3]}\n\t"
 
                  ".Lcase6%=:\n\t"
                  "mulx {16(%[src0]), %[t0], %[t1]|%[t1], %[t0], [%[src0] + 16]}\n\t"
@@ -117,9 +118,9 @@ WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src0, size_t n,
                  "mov{q %[t0], 16(%[dst])| [%[dst] + 16], %[t0]}\n\t"
 
                  ".Lcase5%=:\n\t"
-                 "mulx {24(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 24]}\n\t"
-                 "adc{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
-                 "mov{q %[t0], 24(%[dst])| [%[dst] + 24], %[t0]}\n\t"
+                 "mulx {24(%[src0]), %[t3], %[t2]|%[t2], %[t3], [%[src0] + 24]}\n\t"
+                 "adc{q %[t1], %[t3]| %[t3], %[t1]}\n\t"
+                 "mov{q %[t3], 24(%[dst])| [%[dst] + 24], %[t3]}\n\t"
 
                  ".Lcase4%=:\n\t"
                  "mulx {32(%[src0]), %[t0], %[t1]|%[t1], %[t0], [%[src0] + 32]}\n\t"
@@ -127,9 +128,9 @@ WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src0, size_t n,
                  "mov{q %[t0], 32(%[dst])| [%[dst] + 32], %[t0]}\n\t"
 
                  ".Lcase3%=:\n\t"
-                 "mulx {40(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 40]}\n\t"
-                 "adc{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
-                 "mov{q %[t0], 40(%[dst])| [%[dst] + 40], %[t0]}\n\t"
+                 "mulx {40(%[src0]), %[t3], %[t2]|%[t2], %[t3], [%[src0] + 40]}\n\t"
+                 "adc{q %[t1], %[t3]| %[t3], %[t1]}\n\t"
+                 "mov{q %[t3], 40(%[dst])| [%[dst] + 40], %[t3]}\n\t"
 
                  ".Lcase2%=:\n\t"
                  "mulx {48(%[src0]), %[t0], %[t1]|%[t1], %[t0], [%[src0] + 48]}\n\t"
@@ -137,9 +138,9 @@ WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src0, size_t n,
                  "mov{q %[t0], 48(%[dst])| [%[dst] + 48], %[t0]}\n\t"
 
                  ".Lcase1%=:\n\t"
-                 "mulx {56(%[src0]), %[t0], %[t2]|%[t2], %[t0], [%[src0] + 56]}\n\t"
-                 "adc{q %[t1], %[t0]| %[t0], %[t1]}\n\t"
-                 "mov{q %[t0], 56(%[dst])| [%[dst] + 56], %[t0]}\n\t"
+                 "mulx {56(%[src0]), %[t3], %[t2]|%[t2], %[t3], [%[src0] + 56]}\n\t"
+                 "adc{q %[t1], %[t3]| %[t3], %[t1]}\n\t"
+                 "mov{q %[t3], 56(%[dst])| [%[dst] + 56], %[t3]}\n\t"
 
                  ".Lcase0%=:\n\t"
                  "dec %[m]\n\t"
@@ -162,7 +163,7 @@ WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src0, size_t n,
 #if WJR_HAS_BUILTIN(ASM_ADDMUL_1)
 
 WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src0, size_t n,
-                                 uint64_t src1, uint64_t t2) {
+                                 uint64_t src1) {
     size_t m = n / 8;
     n &= 7;
     dst += n - 8;
@@ -170,6 +171,7 @@ WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src0, size_t n,
 
     uint64_t t0 = n;
     uint64_t t1;
+    uint64_t t2 = 0;
     uint64_t t3;
 
     asm volatile("xor %[t1], %[t1]\n\t"
@@ -271,7 +273,7 @@ WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src0, size_t n,
 // slower than asm_addmul_1
 // TODO : optimize
 WJR_INLINE uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src0, size_t n,
-                                 uint64_t src1, uint64_t t2) {
+                                 uint64_t src1) {
     size_t m = n / 8;
     n &= 7;
     dst += n - 8;
@@ -279,6 +281,7 @@ WJR_INLINE uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src0, size_t n,
 
     uint64_t t0 = n;
     uint64_t t1;
+    uint64_t t2 = 0;
     uint64_t t3;
 
     asm volatile("xor %[t1], %[t1]\n\t"
