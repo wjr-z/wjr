@@ -201,7 +201,7 @@ WJR_CONSTEXPR_E T fallback_divexact_dbm1c(T *dst, const T *src, size_t n, T bd, 
     return h;
 }
 
-template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int>>
 WJR_CONSTEXPR_E void divexact_by3(T *dst, const T *src, size_t n) {
     constexpr auto max = std::numeric_limits<T>::max();
     (void)fallback_divexact_dbm1c<T>(dst, src, n, max / 3, 0);
