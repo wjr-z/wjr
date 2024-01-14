@@ -74,6 +74,7 @@ WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint
     uint64_t r8, r9, r10 = n, r11;
 
     asm volatile(
+        "xor %k[r8], %k[r8]\n\t"
         "lea{q| %[r9], [rip +} .Lasm_mul_1_lookup%={(%%rip), %[r9]|]}\n\t"
         "movs{lq (%[r9], %[r10], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + %[r10] * 4]}\n\t"
         "lea{q (%[r9], %[r10], 1), %[r10]| %[r10], [%[r10] + %[r9]]}\n\t"
