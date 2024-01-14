@@ -117,13 +117,7 @@
 #define WJR_IS_SAME_OR_INCR_P(p, pn, q, qn) (p <= q || WJR_IS_SEPARATE_P(p, pn, q, qn))
 #define WJR_IS_SAME_OR_DECR_P(p, pn, q, qn) (p >= q || WJR_IS_SEPARATE_P(p, pn, q, qn))
 
-#define WJR_ASM_PIC_JUMPLABEL(LABEL, TABLE) ".long " #LABEL "-" #TABLE
-#define WJR_ASM_NOPIC_JUMPLABEL(LABEL) ".quad " #LABEL
-
-#ifdef __PIC__
-#define WJR_ASM_JUMPLABEL(LABEL, TABLE) ".long " #LABEL "-" #TABLE
-#else
-#define WJR_ASM_JUMPLABEL(LABEL, TABLE) ".quad " #LABEL
-#endif
+#define WJR_ASM_PIC_JMPL(LABEL, TABLE) ".long " #LABEL "-" #TABLE
+#define WJR_ASM_NOPIC_JMPL(LABEL) ".quad " #LABEL
 
 #endif // ! WJR_PREPROCESSOR_PREVIEW_HPP__

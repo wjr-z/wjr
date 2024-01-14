@@ -105,97 +105,187 @@ WJR_INLINE U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(T *dst, const 
                                                                   U c_in) {
     static_assert(std::is_same_v<T, uint64_t>, "");
 
-    if (WJR_BUILTIN_CONSTANT_P(n == 0) && n == 0) {
-        return c_in;
-    }
-
     if (WJR_BUILTIN_CONSTANT_P(n)) {
-        if (n == 1) {
+        if (WJR_UNLIKELY(n == 1)) {
             dst[0] = WJR_PP_CONCAT(asm_, WJR_addcsubc)(src0[0], src1[0], c_in, c_in);
             return c_in;
         }
     }
 
-    T t0 = c_in;
-
-    size_t m = n / 8 + 1;
+    size_t m = n / 8;
     n &= 7;
-    src0 += n - 8;
-    src1 += n - 8;
-    dst += n - 8;
-    asm volatile("add{b $255, %b[t0]| %b[t0], 255}\n\t"
-                     "lea{q| %[t0], [rip +} .Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%={(%%rip), %[t0]|]}\n\t"
-                     "movs{lq (%[t0], %[n], 4), %[n]|xd %[n], DWORD PTR [%[t0] + %[n] * 4]}\n\t"
-                     "lea{q (%[t0], %[n], 1), %[n]| %[n], [%[t0] + %[n]]}\n\t"
-                     "jmp{q *%[n]| %[n]}\n\t"
-                     ".align 8\n\t"
-                     ".Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=:\n\t"
-                     ".long .Lcase0%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
-                     ".long .Lcase1%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
-                     ".long .Lcase2%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
-                     ".long .Lcase3%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
-                     ".long .Lcase4%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
-                     ".long .Lcase5%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
-                     ".long .Lcase6%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
-                     ".long .Lcase7%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
-                     ".align 16\n\t"
 
-                     ".Lwjr_asm_" WJR_PP_STR(WJR_addcsubc) "_n_loop%=:\n\t"
+    T r8 = c_in, r9, r10 = n, r11;
 
-                     "mov{q (%[src0]), %[t0]| %[t0], [%[src0]]}\n\t"
-                     WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[t0]| %[t0], [%[src1]]}\n\t"
-                     "mov{q %[t0], (%[dst])| [%[dst]], %[t0]}\n\t"
+    asm volatile(
+        "add{b $255, %b[r8]| %b[r8], 255}\n\t"
+        "lea{q| %[r9], [rip +} .Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%={(%%rip), %[r9]|]}\n\t"
+        "movs{lq (%[r9], %[r10], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + %[r10] * 4]}\n\t"
+        "lea{q (%[r9], %[r10], 1), %[r10]| %[r10], [%[r9] + %[r10]]}\n\t"
+        "jmp{q *%[r10]| %[r10]}\n\t"
+        
+        ".align 8\n\t"
+        ".Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=:\n\t"
+        ".long .Ll0%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
+        ".long .Ll1%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
+        ".long .Ll2%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
+        ".long .Ll3%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
+        ".long .Ll4%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
+        ".long .Ll5%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
+        ".long .Ll6%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
+        ".long .Ll7%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
+        ".align 16\n\t"
+        
+        ".Ld0%=:\n\t"
+        "jmp .Ldone%=\n\t"
+        ".Ll0%=:\n\t"
+        "jrcxz .Ld0%=\n\t"
+        "mov{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r11]| %[r11], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
+        "jmp .Lb0%=\n\t"
 
-                     ".Lcase7%=:\n\t"
-                     "mov{q 8(%[src0]), %[t0]| %[t0], [%[src0] + 8]}\n\t"
-                     WJR_PP_STR(WJR_adcsbb) "{q 8(%[src1]), %[t0]| %[t0], [%[src1] + 8]}\n\t"
-                     "mov{q %[t0], 8(%[dst])| [%[dst] + 8], %[t0]}\n\t"
+        ".Ld1%=:\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r10]| %[r10], [%[src1]]}\n\t"
+        "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
+        "jmp .Ldone%=\n\t"
+        ".Ll1%=:\n\t"
+        "mov{q (%[src0]), %[r10]| %[r10], [%[src0]]}\n\t"
+        "jrcxz .Ld1%=\n\t"
+        "mov{q 8(%[src0]), %[r9]| %[r9], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r10]| %[r10], [%[src1]]}\n\t"
+        "lea{q 8(%[src0]), %[src0]| %[src0], [%[src0] + 8]}\n\t"
+        "lea{q 8(%[src1]), %[src1]| %[src1], [%[src1] + 8]}\n\t"
+        "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
+        "jmp .Lb1%=\n\t"
 
-                     ".Lcase6%=:\n\t"
-                     "mov{q 16(%[src0]), %[t0]| %[t0], [%[src0] + 16]}\n\t"
-                     WJR_PP_STR(WJR_adcsbb) "{q 16(%[src1]), %[t0]| %[t0], [%[src1] + 16]}\n\t"
-                     "mov{q %[t0], 16(%[dst])| [%[dst] + 16], %[t0]}\n\t"
+        ".Ld2%=:\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 8(%[src1]), %[r10]| %[r10], [%[src1] + 8]}\n\t"
+        "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
+        "mov{q %[r10], 8(%[dst])| [%[dst] + 8], %[r10]}\n\t"
+        "jmp .Ldone%=\n\t"
+        ".Ll2%=:\n\t"
+        "mov{q (%[src0]), %[r8]| %[r8], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r10]| %[r10], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r8]| %[r8], [%[src1]]}\n\t"
+        "jrcxz .Ld2%=\n\t"
+        "lea{q 16(%[src0]), %[src0]| %[src0], [%[src0] + 16]}\n\t"
+        "lea{q 16(%[src1]), %[src1]| %[src1], [%[src1] + 16]}\n\t"
+        "lea{q 16(%[dst]), %[dst]| %[dst], [%[dst] + 16]}\n\t"
+        "jmp .Lb2%=\n\t"
 
-                     ".Lcase5%=:\n\t"
-                     "mov{q 24(%[src0]), %[t0]| %[t0], [%[src0] + 24]}\n\t"
-                     WJR_PP_STR(WJR_adcsbb) "{q 24(%[src1]), %[t0]| %[t0], [%[src1] + 24]}\n\t"
-                     "mov{q %[t0], 24(%[dst])| [%[dst] + 24], %[t0]}\n\t"
+        ".Ll3%=:\n\t"
+        "mov{q (%[src0]), %[r11]| %[r11], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r8]| %[r8], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r11]| %[r11], [%[src1]]}\n\t"
+        "inc %[m]\n\t"
+        "lea{q -40(%[src0]), %[src0]| %[src0], [%[src0] - 40]}\n\t"
+        "lea{q -40(%[src1]), %[src1]| %[src1], [%[src1] - 40]}\n\t"
+        "lea{q -40(%[dst]), %[dst]| %[dst], [%[dst] - 40]}\n\t"
+        "jmp .Lb3%=\n\t"
 
-                     ".Lcase4%=:\n\t"
-                     "mov{q 32(%[src0]), %[t0]| %[t0], [%[src0] + 32]}\n\t"
-                     WJR_PP_STR(WJR_adcsbb) "{q 32(%[src1]), %[t0]| %[t0], [%[src1] + 32]}\n\t"
-                     "mov{q %[t0], 32(%[dst])| [%[dst] + 32], %[t0]}\n\t"
+        ".Ll4%=:\n\t"
+        "mov{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r11]| %[r11], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
+        "inc %[m]\n\t"
+        "lea{q -32(%[src0]), %[src0]| %[src0], [%[src0] - 32]}\n\t"
+        "lea{q -32(%[src1]), %[src1]| %[src1], [%[src1] - 32]}\n\t"
+        "lea{q -32(%[dst]), %[dst]| %[dst], [%[dst] - 32]}\n\t"
+        "jmp .Lb4%=\n\t"
 
-                     ".Lcase3%=:\n\t"
-                     "mov{q 40(%[src0]), %[t0]| %[t0], [%[src0] + 40]}\n\t"
-                     WJR_PP_STR(WJR_adcsbb) "{q 40(%[src1]), %[t0]| %[t0], [%[src1] + 40]}\n\t"
-                     "mov{q %[t0], 40(%[dst])| [%[dst] + 40], %[t0]}\n\t"
+        ".Ll5%=:\n\t"
+        "mov{q (%[src0]), %[r10]| %[r10], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r9]| %[r9], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r10]| %[r10], [%[src1]]}\n\t"
+        "inc %[m]\n\t"
+        "lea{q -24(%[src0]), %[src0]| %[src0], [%[src0] -24]}\n\t"
+        "lea{q -24(%[src1]), %[src1]| %[src1], [%[src1] -24]}\n\t"
+        "lea{q -24(%[dst]), %[dst]| %[dst], [%[dst] -24]}\n\t"
+        "jmp .Lb5%=\n\t"
 
-                     ".Lcase2%=:\n\t"
-                     "mov{q 48(%[src0]), %[t0]| %[t0], [%[src0] + 48]}\n\t"
-                     WJR_PP_STR(WJR_adcsbb) "{q 48(%[src1]), %[t0]| %[t0], [%[src1] + 48]}\n\t"
-                     "mov{q %[t0], 48(%[dst])| [%[dst] + 48], %[t0]}\n\t"
+        ".Ll6%=:\n\t"
+        "mov{q (%[src0]), %[r8]| %[r8], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r10]| %[r10], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r8]| %[r8], [%[src1]]}\n\t"
+        "inc %[m]\n\t"
+        "lea{q -16(%[src0]), %[src0]| %[src0], [%[src0] -16]}\n\t"
+        "lea{q -16(%[src1]), %[src1]| %[src1], [%[src1] -16]}\n\t"
+        "lea{q -16(%[dst]), %[dst]| %[dst], [%[dst] -16]}\n\t"
+        "jmp .Lb6%=\n\t"
 
-                     ".Lcase1%=:\n\t"
-                     "mov{q 56(%[src0]), %[t0]| %[t0], [%[src0] + 56]}\n\t"
-                     WJR_PP_STR(WJR_adcsbb) "{q 56(%[src1]), %[t0]| %[t0], [%[src1] + 56]}\n\t"
-                     "mov{q %[t0], 56(%[dst])| [%[dst] + 56], %[t0]}\n\t"
+        ".Ll7%=:\n\t"
+        "mov{q (%[src0]), %[r11]| %[r11], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r8]| %[r8], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r11]| %[r11], [%[src1]]}\n\t"
+        "inc %[m]\n\t"
+        "lea{q -8(%[src0]), %[src0]| %[src0], [%[src0] -8]}\n\t"
+        "lea{q -8(%[src1]), %[src1]| %[src1], [%[src1] -8]}\n\t"
+        "lea{q -8(%[dst]), %[dst]| %[dst], [%[dst] -8]}\n\t"
+        "jmp .Lb7%=\n\t"
 
-                     ".Lcase0%=:\n\t"
+        ".align 32\n\t"
+        ".Lwjr_asm_" WJR_PP_STR(WJR_addcsubc) "_n_loop%=:\n\t"
 
-                     "lea{q 64(%[src0]), %[src0]| %[src0], [%[src0] + 64]}\n\t"
-                     "lea{q 64(%[src1]), %[src1]| %[src1], [%[src1] + 64]}\n\t"
-                     "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
-                     "dec %[m]\n\t"
-                     "jne .Lwjr_asm_" WJR_PP_STR(WJR_addcsubc) "_n_loop%=\n\t"
-                     "setb %b[t0]"
+        ".Lb2%=:\n\t"
+        "mov{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q -8(%[src1]), %[r10]| %[r10], [%[src1] - 8]}\n\t"
+        "mov{q %[r8], -16(%[dst])| [%[dst] - 16], %[r8]}\n\t"
 
-                     : [dst] "+r"(dst), [src0] "+%r"(src0), [src1] "+r"(src1),
-                       [m] "+r"(m), [t0] "+r"(t0), [n] "+r"(n)
-                     :
-                     : "cc", "memory");
+        ".Lb1%=:\n\t"
+        "mov{q 8(%[src0]), %[r11]| %[r11], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
+        "mov{q %[r10], -8(%[dst])| [%[dst] - 8], %[r10]}\n\t"
 
-    return static_cast<unsigned char>(t0);
+        ".Lb0%=:\n\t"
+        "mov{q 16(%[src0]), %[r8]| %[r8], [%[src0] + 16]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 8(%[src1]), %[r11]| %[r11], [%[src1] + 8]}\n\t"
+        "mov{q %[r9], (%[dst])| [%[dst]], %[r9]}\n\t"
+
+        ".Lb7%=:\n\t"
+        "mov{q 24(%[src0]), %[r10]| %[r10], [%[src0] + 24]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 16(%[src1]), %[r8]| %[r8], [%[src1] + 16]}\n\t"
+        "mov{q %[r11], 8(%[dst])| [%[dst] + 8], %[r11]}\n\t"
+
+        ".Lb6%=:\n\t"
+        "mov{q 32(%[src0]), %[r9]| %[r9], [%[src0] + 32]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 24(%[src1]), %[r10]| %[r10], [%[src1] + 24]}\n\t"
+        "mov{q %[r8], 16(%[dst])| [%[dst] + 16], %[r8]}\n\t"
+
+        ".Lb5%=:\n\t"
+        "mov{q 40(%[src0]), %[r11]| %[r11], [%[src0] + 40]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 32(%[src1]), %[r9]| %[r9], [%[src1] + 32]}\n\t"
+        "mov{q %[r10], 24(%[dst])| [%[dst] + 24], %[r10]}\n\t"
+
+        ".Lb4%=:\n\t"
+        "mov{q 48(%[src0]), %[r8]| %[r8], [%[src0] + 48]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 40(%[src1]), %[r11]| %[r11], [%[src1] + 40]}\n\t"
+        "mov{q %[r9], 32(%[dst])| [%[dst] + 32], %[r9]}\n\t"
+
+        ".Lb3%=:\n\t"
+        "mov{q 56(%[src0]), %[r10]| %[r10], [%[src0] + 56]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 48(%[src1]), %[r8]| %[r8], [%[src1] + 48]}\n\t"
+        "mov{q %[r11], 40(%[dst])| [%[dst] + 40], %[r11]}\n\t"
+
+        "lea{q 64(%[src0]), %[src0]| %[src0], [%[src0] + 64]}\n\t"
+        "lea{q 64(%[src1]), %[src1]| %[src1], [%[src1] + 64]}\n\t"
+        "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
+
+        "dec %[m]\n\t"
+        "jne .Lwjr_asm_" WJR_PP_STR(WJR_addcsubc) "_n_loop%=\n\t"
+
+        WJR_PP_STR(WJR_adcsbb) "{q -8(%[src1]), %[r10]| %[r10], [%[src1] - 8]}\n\t"
+        "mov{q %[r8], -16(%[dst])| [%[dst] - 16], %[r8]}\n\t"
+        "mov{q %[r10], -8(%[dst])| [%[dst] - 8], %[r10]}\n\t"
+        ".Ldone%=:\n\t"
+        "setb %b[r9]\n\t"
+
+        : [dst] "+r"(dst), [src0] "+r"(src0), [src1] "+r"(src1),
+          [m] "+c"(m), [r8] "+r"(r8), [r9] "=r"(r9), [r10] "+r"(r10), [r11] "=r"(r11)
+        :
+        : "cc", "memory");
+
+    return static_cast<unsigned char>(r9);
 }
 
 #endif
