@@ -34,7 +34,7 @@
 #define WJR_ASSERT_NOMESSAGE_I(expr)                                                     \
     if (!WJR_UNLIKELY(expr)) {                                                           \
         std::abort();                                                                    \
-        WJR_UNREACHABLE();                                                                 \
+        WJR_UNREACHABLE();                                                               \
     }
 #define WJR_ASSERT_MESSAGE_I(expr)                                                       \
     std::abort();                                                                        \
@@ -112,8 +112,18 @@
 
 #define WJR_IS_OVERLAP_P(p, pn, q, qn) ((p) + (pn) > (q) && (q) + (qn) > (p))
 #define WJR_IS_SEPARATE_P(p, pn, q, qn) (!WJR_IS_OVERLAP_P(p, pn, q, qn))
-#define WJR_IS_SAME_OR_SEPARATE_P(p, pn, q, qn) (p == q || WJR_IS_SEPARATE_P(p, pn, q, qn))
+#define WJR_IS_SAME_OR_SEPARATE_P(p, pn, q, qn)                                          \
+    (p == q || WJR_IS_SEPARATE_P(p, pn, q, qn))
 #define WJR_IS_SAME_OR_INCR_P(p, pn, q, qn) (p <= q || WJR_IS_SEPARATE_P(p, pn, q, qn))
 #define WJR_IS_SAME_OR_DECR_P(p, pn, q, qn) (p >= q || WJR_IS_SEPARATE_P(p, pn, q, qn))
+
+#define WJR_ASM_PIC_JUMPLABEL(LABEL, TABLE) ".long " #LABEL "-" #TABLE
+#define WJR_ASM_NOPIC_JUMPLABEL(LABEL) ".quad " #LABEL
+
+#ifdef __PIC__
+#define WJR_ASM_JUMPLABEL(LABEL, TABLE) ".long " #LABEL "-" #TABLE
+#else
+#define WJR_ASM_JUMPLABEL(LABEL, TABLE) ".quad " #LABEL
+#endif
 
 #endif // ! WJR_PREPROCESSOR_PREVIEW_HPP__

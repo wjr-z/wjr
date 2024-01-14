@@ -76,9 +76,14 @@ WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
         return fallback_subc(a, b, c_in, c_out);
     }
 
-    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_SUBC), asm_subc,
-                          WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(SUBC), builtin_subc,
-                                         fallback_subc))(a, b, c_in, c_out);
+    if constexpr (sizeof(T) == 8) {
+        return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_SUBC), asm_subc,
+                              WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(SUBC), builtin_subc,
+                                             fallback_subc))(a, b, c_in, c_out);
+    } else {
+        return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(SUBC), builtin_subc,
+                              fallback_subc)(a, b, c_in, c_out);
+    }
 #endif
 }
 
@@ -183,11 +188,15 @@ WJR_INTRINSIC_CONSTEXPR_E U subc_n(T *dst, const T *src0, const T *src1, size_t 
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
 
 #if WJR_HAS_BUILTIN(ASM_SUBC_N)
-    if (is_constant_evaluated()) {
+    if constexpr (sizeof(T) == 8) {
+        if (is_constant_evaluated()) {
+            return fallback_subc_n(dst, src0, src1, n, c_in);
+        }
+
+        return asm_subc_n(dst, src0, src1, n, c_in);
+    } else {
         return fallback_subc_n(dst, src0, src1, n, c_in);
     }
-
-    return asm_subc_n(dst, src0, src1, n, c_in);
 #else
     return fallback_subc_n(dst, src0, src1, n, c_in);
 #endif
