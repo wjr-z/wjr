@@ -120,4 +120,12 @@
 #define WJR_ASM_PIC_JMPL(LABEL, TABLE) ".long " #LABEL "-" #TABLE
 #define WJR_ASM_NOPIC_JMPL(LABEL) ".quad " #LABEL
 
+#if defined(__linux__)
+#define WJR_ASM_SECTION(...) ".section " WJR_PP_STRS(__VA_ARGS__) "\n\t"
+#define WJR_ASM_PREVIOUS() ".previous\n\t"
+#else
+#define WJR_ASM_SECTION(...) "\n\t"
+#define WJR_ASM_PREVIOUS() "\n\t"
+#endif
+
 #endif // ! WJR_PREPROCESSOR_PREVIEW_HPP__
