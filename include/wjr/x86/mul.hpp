@@ -67,14 +67,12 @@ WJR_INTRINSIC_INLINE T mulx(T a, T b, T &hi) {
 
 #if WJR_HAS_BUILTIN(ASM_MUL_1)
 
-WJR_NOINLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t ml) {
+WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t ml) {
     size_t m = n / 8;
-    n &= 7;
-
-    uint64_t r8, r9, r10 = n, r11;
+    uint64_t r8, r9, r11;
 
     asm volatile(
-        "xor %k[r8], %k[r8]\n\t"
+        "and{l $7, %k[r10]| %k[r10], 7}\n\t"
         "lea{q| %[r9], [rip +} .Lasm_mul_1_lookup%={(%%rip), %[r9]|]}\n\t"
         "movs{lq (%[r9], %[r10], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + %[r10] * 4]}\n\t"
         "lea{q (%[r9], %[r10], 1), %[r10]| %[r10], [%[r10] + %[r9]]}\n\t"
@@ -114,44 +112,44 @@ WJR_NOINLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, ui
 
         ".Ll2%=:\n\t"
         "mulx {(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "inc %[m]\n\t"
         "lea{q -48(%[src]), %[src]| %[src], [%[src] - 48]}\n\t"
         "lea{q -48(%[dst]), %[dst]| %[dst], [%[dst] - 48]}\n\t"
+        "inc %[m]\n\t"
         "jmp .Lb2%=\n\t"
 
         ".Ll3%=:\n\t"
         "mulx {(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "inc %[m]\n\t"
         "lea{q -40(%[src]), %[src]| %[src], [%[src] - 40]}\n\t"
         "lea{q -40(%[dst]), %[dst]| %[dst], [%[dst] - 40]}\n\t"
+        "inc %[m]\n\t"
         "jmp .Lb3%=\n\t"
 
         ".Ll4%=:\n\t"
         "mulx {(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "inc %[m]\n\t"
         "lea{q -32(%[src]), %[src]| %[src], [%[src] - 32]}\n\t"
         "lea{q -32(%[dst]), %[dst]| %[dst], [%[dst] - 32]}\n\t"
+        "inc %[m]\n\t"
         "jmp .Lb4%=\n\t"
 
         ".Ll5%=:\n\t"
         "mulx {(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "inc %[m]\n\t"
         "lea{q -24(%[src]), %[src]| %[src], [%[src] - 24]}\n\t"
         "lea{q -24(%[dst]), %[dst]| %[dst], [%[dst] - 24]}\n\t"
+        "inc %[m]\n\t"
         "jmp .Lb5%=\n\t"
 
         ".Ll6%=:\n\t"
         "mulx {(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "inc %[m]\n\t"
         "lea{q -16(%[src]), %[src]| %[src], [%[src] - 16]}\n\t"
         "lea{q -16(%[dst]), %[dst]| %[dst], [%[dst] - 16]}\n\t"
+        "inc %[m]\n\t"
         "jmp .Lb6%=\n\t"
 
         ".Ll7%=:\n\t"
         "mulx {(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "inc %[m]\n\t"
         "lea{q -8(%[src]), %[src]| %[src], [%[src] - 8]}\n\t"
         "lea{q -8(%[dst]), %[dst]| %[dst], [%[dst] - 8]}\n\t"
+        "inc %[m]\n\t"
         "jmp .Lb7%=\n\t"
 
         ".align 32\n\t"
@@ -209,7 +207,7 @@ WJR_NOINLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, ui
         ".Ldone%=:"
 
         : [dst] "+r"(dst), [src] "+r"(src), "+d"(ml), [m] "+c"(m), [r8] "=r"(r8),
-          [r9] "=r"(r9), [r10] "+r"(r10), [r11] "=r"(r11)
+          [r9] "=r"(r9), [r10] "+r"(n), [r11] "=r"(r11)
         :
         : "cc", "memory");
 
@@ -224,15 +222,14 @@ WJR_NOINLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, ui
 
 #if WJR_HAS_BUILTIN(ASM_ADDMUL_1)
 
+// TODO : optimize pipeline
 WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
                                  uint64_t ml) {
     size_t m = n / 8;
-    n &= 7;
-
-    uint64_t r8, r9, r10 = n, r11;
+    uint64_t r8, r9, r11;
 
     asm volatile(
-        "xor %k[r8], %k[r8]\n\t"
+        "and{l $7, %k[r10]| %k[r10], 7}\n\t"
         "lea{q| %[r9], [rip +} .Lasm_mul_1_lookup%={(%%rip), %[r9]|]}\n\t"
         "movs{lq (%[r9], %[r10], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + %[r10] * 4]}\n\t"
         "lea{q (%[r9], %[r10], 1), %[r10]| %[r10], [%[r10] + %[r9]]}\n\t"
@@ -274,44 +271,44 @@ WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
 
         ".Ll2%=:\n\t"
         "mulx {(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "lea{q 1(%[m]), %[m]| %[m], [%[m] + 1]}\n\t"
         "lea{q -48(%[src]), %[src]| %[src], [%[src] - 48]}\n\t"
         "lea{q -48(%[dst]), %[dst]| %[dst], [%[dst] - 48]}\n\t"
+        "lea{q 1(%[m]), %[m]| %[m], [%[m] + 1]}\n\t"
         "jmp .Lb2%=\n\t"
 
         ".Ll3%=:\n\t"
         "mulx {(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "lea{q 1(%[m]), %[m]| %[m], [%[m] + 1]}\n\t"
         "lea{q -40(%[src]), %[src]| %[src], [%[src] - 40]}\n\t"
         "lea{q -40(%[dst]), %[dst]| %[dst], [%[dst] - 40]}\n\t"
+        "lea{q 1(%[m]), %[m]| %[m], [%[m] + 1]}\n\t"
         "jmp .Lb3%=\n\t"
 
         ".Ll4%=:\n\t"
         "mulx {(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "lea{q 1(%[m]), %[m]| %[m], [%[m] + 1]}\n\t"
         "lea{q -32(%[src]), %[src]| %[src], [%[src] - 32]}\n\t"
         "lea{q -32(%[dst]), %[dst]| %[dst], [%[dst] - 32]}\n\t"
+        "lea{q 1(%[m]), %[m]| %[m], [%[m] + 1]}\n\t"
         "jmp .Lb4%=\n\t"
 
         ".Ll5%=:\n\t"
         "mulx {(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "lea{q 1(%[m]), %[m]| %[m], [%[m] + 1]}\n\t"
         "lea{q -24(%[src]), %[src]| %[src], [%[src] - 24]}\n\t"
         "lea{q -24(%[dst]), %[dst]| %[dst], [%[dst] - 24]}\n\t"
+        "lea{q 1(%[m]), %[m]| %[m], [%[m] + 1]}\n\t"
         "jmp .Lb5%=\n\t"
 
         ".Ll6%=:\n\t"
         "mulx {(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "lea{q 1(%[m]), %[m]| %[m], [%[m] + 1]}\n\t"
         "lea{q -16(%[src]), %[src]| %[src], [%[src] - 16]}\n\t"
         "lea{q -16(%[dst]), %[dst]| %[dst], [%[dst] - 16]}\n\t"
+        "lea{q 1(%[m]), %[m]| %[m], [%[m] + 1]}\n\t"
         "jmp .Lb6%=\n\t"
 
         ".Ll7%=:\n\t"
         "mulx {(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "lea{q 1(%[m]), %[m]| %[m], [%[m] + 1]}\n\t"
         "lea{q -8(%[src]), %[src]| %[src], [%[src] - 8]}\n\t"
         "lea{q -8(%[dst]), %[dst]| %[dst], [%[dst] - 8]}\n\t"
+        "lea{q 1(%[m]), %[m]| %[m], [%[m] + 1]}\n\t"
         "jmp .Lb7%=\n\t"
 
         ".align 32\n\t"
@@ -374,15 +371,14 @@ WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
         ".Lloop_out%=:\n\t"
         
         "adcx{q -8(%[dst]), %[r8]| %[r8], [%[dst] - 8]}\n\t"
-        "seto %b[r10]\n\t"
-        "mov{zbl %b[r10], %k[r10]|zx %k[r10], %b[r10]}\n\t"
-        "adcx{q %[r10], %[r9]| %[r9], %[r10]}\n\t"
         "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
+        "adox %[m], %[r9]\n\t"
+        "adc %[m], %[r9]\n\t"
 
         ".Ldone%=:"
 
         : [dst] "+r"(dst), [src] "+r"(src), "+d"(ml), [m] "+c"(m), [r8] "=r"(r8),
-          [r9] "=r"(r9), [r10] "+r"(r10), [r11] "=r"(r11)
+          [r9] "=r"(r9), [r10] "+r"(n), [r11] "=r"(r11)
         :
         : "cc", "memory");
 
