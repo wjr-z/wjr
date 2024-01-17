@@ -292,6 +292,14 @@ WJR_INTRINSIC_CONSTEXPR size_t abs_cast(size_t n) {
     return n;
 }
 
+#if WJR_CPP_20
+template <typename T>
+using make_template_constant_t = T;
+#else
+template <typename T>
+using make_template_constant_t = std::add_lvalue_reference_t<std::add_const_t<T>>;
+#endif
+
 } // namespace wjr
 
 #endif // ! WJR_TYPE_TRAITS_HPP__

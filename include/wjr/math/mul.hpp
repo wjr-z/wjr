@@ -228,11 +228,24 @@ WJR_INTRINSIC_CONSTEXPR_E T submul_1(T *dst, const T *src0, size_t n, T src1) {
 inline constexpr size_t toom22_mul_threshold = WJR_TOOM22_MUL_THRESHOLD;
 
 template <typename T>
+void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m);
+
+enum class __mul_s_mode {
+    toom22 = 0,
+    toom33,
+    toom24,
+    // ...
+};
+
+template <__mul_s_mode mode, typename T>
+void __mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *stk);
+
+template <typename T>
 WJR_INLINE_CONSTEXPR void basecase_mul_s(T *dst, const T *src0, size_t n, const T *src1,
                                          size_t m);
 
 template <typename T>
-void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m);
+void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *stk);
 
 template <typename T>
 void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
@@ -244,7 +257,7 @@ void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
         std::swap(src0, src1);
     }
 
-    WJR_ASSUME(m >= 1);
+    WJR_ASSERT(m != 0);
 
     do {
         if (m <= toom22_mul_threshold) {
@@ -261,7 +274,37 @@ void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
             break;
         }
 
-        return toom22_mul_s(dst, src0, n, src1, m);
+        unique_stack_ptr stk(math_details::stack_alloc, sizeof(T) * n * 2);
+        return toom22_mul_s(dst, src0, n, src1, m, static_cast<T *>(stk.get()));
+    } while (0);
+
+    return basecase_mul_s(dst, src0, n, src1, m);
+}
+
+template <__mul_s_mode mode, typename T>
+void __mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *stk) {
+    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n + m, src0, n));
+    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n + m, src1, m));
+    WJR_ASSERT(n >= m);
+    WJR_ASSERT(m != 0);
+
+    // TODO
+    do {
+        if (m <= toom22_mul_threshold) {
+            break;
+        }
+
+        if (m <= toom22_mul_threshold * 4) {
+            if (5 * m <= 4 * n) {
+                break;
+            }
+        }
+
+        if (5 * m <= 3 * n) {
+            break;
+        }
+
+        return toom22_mul_s(dst, src0, n, src1, m, stk);
     } while (0);
 
     return basecase_mul_s(dst, src0, n, src1, m);
@@ -277,7 +320,12 @@ WJR_INLINE_CONSTEXPR void basecase_mul_s(T *dst, const T *src0, size_t n, const 
 }
 
 template <typename T>
-void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
+void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *stk) {
+    // [u0(l), u1(rn)] (n)
+    // [v0(l), v1(rm)] (m)
+
+    // (u0 - u1) * (v0 - v1)
+
     WJR_ASSUME(n >= m);
 
     const size_t rn = n >> 1;
@@ -288,14 +336,6 @@ void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
 
     const size_t rm = m - l;
     WJR_ASSUME(l >= rm);
-
-    unique_stack_ptr ptr(math_details::stack_alloc, sizeof(T) * (l * 2));
-    T *stk = (T *)ptr.get();
-
-    // [u0(l), u1(rn)] (n)
-    // [v0(l), v1(rm)] (m)
-
-    // (u0 - u1) * (v0 - v1)
 
     auto u0 = src0;
     auto u1 = src0 + l;
@@ -309,6 +349,9 @@ void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
     const auto p3 = dst + l * 3;
     const auto p3n = rn + rm - l;
 
+    auto wp = stk;
+    stk += l * 2;
+
     bool f = 0;
 
     do {
@@ -317,7 +360,7 @@ void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
         if (cc < 0) {
             f ^= 1;
         } else if (WJR_UNLIKELY(cc == 0)) {
-            set_n(stk, 0u, l * 2);
+            set_n(wp, 0u, l * 2);
             break;
         }
 
@@ -325,15 +368,15 @@ void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
         if (cc < 0) {
             f ^= 1;
         } else if (WJR_UNLIKELY(cc == 0)) {
-            set_n(stk, 0u, l * 2);
+            set_n(wp, 0u, l * 2);
             break;
         }
 
-        mul_s(stk, p0, l, p1, l);
+        __mul_s<__mul_s_mode::toom22>(wp, p0, l, p1, l, stk);
     } while (0);
 
-    mul_s(p0, u0, l, v0, l);
-    mul_s(p2, u1, rn, v1, rm);
+    __mul_s<__mul_s_mode::toom22>(p0, u0, l, v0, l, stk);
+    __mul_s<__mul_s_mode::toom22>(p2, u1, rn, v1, rm, stk);
 
     T cf = 0, cf2 = 0;
 
@@ -342,20 +385,21 @@ void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
     cf += addc_s(p2, p2, l, p3, p3n, 0u);
 
     if (!f) {
-        cf -= subc_n(p1, p1, stk, l * 2, 0u);
+        cf -= subc_n(p1, p1, wp, l * 2, 0u);
     } else {
-        cf += addc_n(p1, p1, stk, l * 2, 0u);
+        cf += addc_n(p1, p1, wp, l * 2, 0u);
     }
 
     cf2 = addc_1(p2, p2, rn + rm, cf2, 0u);
     WJR_ASSERT(cf2 == 0);
-    cf = addc_1(p3, p3, rn + rm - l, cf, 0u);
+    cf = addc_1(p3, p3, p3n, cf, 0u);
     WJR_ASSERT(cf == 0);
 }
 
 template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
 WJR_CONSTEXPR_E void divexact_by3(T *dst, const T *src, size_t n);
 
+// TODO : toom33 and toom24
 template <typename T>
 void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
     WJR_ASSUME(n >= m);
@@ -385,9 +429,9 @@ void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
     T cf0, cf1, cf2, cf3, cf4, cf5;
     bool neg0, neg1, neg2, neg3, neg4, neg5;
 
-    // W0 = U0 + U2
+    // W0 = U0 + U2 (non-negative)
     cf0 = addc_s(w0p, u0p, l, u2p, rn, 0u);
-    // W4 = V0 + V2
+    // W4 = V0 + V2 (non-negative)
     cf4 = addc_s(w4p, v0p, l, v2p, rm, 0u);
 
     // W3 = W0 - U1
@@ -401,7 +445,7 @@ void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
     }
 
     // W2 = W4 - V1
-    if (cf1) {
+    if (cf4) {
         neg2 = 0;
         cf2 = cf4 - subc_n(w2p, w4p, v1p, l, 0u);
     } else {
@@ -410,10 +454,10 @@ void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
         neg2 = p < 0;
     }
 
-    // W0 = W0 + U1
+    // W0 = W0 + U1 (non-negative)
     cf0 += addc_n(w0p, w0p, u1p, l, 0u);
 
-    // W4 = W4 + V1
+    // W4 = W4 + V1 (non-negative)
     cf4 += addc_n(w4p, w4p, v1p, l, 0u);
 
     // W1 = W3 * W2
@@ -423,50 +467,38 @@ void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
     neg1 = neg3 ^ neg2;
     mul_s(w1p, w3p, l + 1, w2p, l + 1);
 
-    // W2 = W0 * W4
+    // W2 = W0 * W4 (non-negative)
     w0p[l] = cf0;
     w4p[l] = cf4;
     cf2 = 0;
-    neg2 = neg0 ^ neg4;
+    neg2 = 0;
     mul_s(w2p, w0p, l + 1, w4p, l + 1);
 
-    // W0 = (W0 + U2) << 1 - U0
+    // W0 = (W0 + U2) << 1 - U0 (non-negative)
     cf0 += addc_s(w0p, w0p, l, u2p, rn, 0u);
     cf0 += lshift_n(w0p, w0p, l, 1u);
-    if (cf0) {
-        neg0 = 0;
-        cf0 -= subc_n(w0p, w0p, u0p, l, 0u);
-    } else {
-        cf0 = 0;
-        ptrdiff_t p = abs_subc_n(w0p, w0p, u0p, l);
-        neg0 = p < 0;
-    }
+    neg0 = 0;
+    cf0 -= subc_n(w0p, w0p, u0p, l, 0u);
 
-    // W4 = (W4 + V2) << 1 - V0
+    // W4 = (W4 + V2) << 1 - V0 (non-negative)
     cf4 += addc_s(w4p, w4p, l, v2p, rm, 0u);
     cf4 += lshift_n(w4p, w4p, l, 1u);
-    if (cf4) {
-        neg4 = 0;
-        cf4 -= subc_n(w4p, w4p, v0p, l, 0u);
-    } else {
-        cf4 = 0;
-        ptrdiff_t p = abs_subc_n(w4p, w4p, v0p, l);
-        neg4 = p < 0;
-    }
+    neg4 = 0;
+    cf4 -= subc_n(w4p, w4p, v0p, l, 0u);
 
-    // W3 = W0 * W4
+    // W3 = W0 * W4 (non-negative)
     w0p[l] = cf0;
     w4p[l] = cf4;
     cf3 = 0;
-    neg3 = neg0 ^ neg4;
+    neg3 = 0;
     mul_s(w3p, w0p, l + 1, w4p, l + 1);
 
-    // W0 = U0 * V0
+    // W0 = U0 * V0 (non-negative)
     cf0 = 0;
     neg0 = 0;
     mul_s(w0p, u0p, l, v0p, l);
 
-    // W4 = U2 * V2
+    // W4 = U2 * V2 (non-negative)
     cf4 = 0;
     neg4 = 0;
     mul_s(w4p, u2p, rn, v2p, rm);
@@ -501,15 +533,8 @@ void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
         }
     }
 
-    // W2 = W2 - W0
-    {
-        if (neg2 == neg0) {
-            ptrdiff_t p = abs_subc_n(w2p, w2p, w0p, (l + 1) * 2);
-            neg2 ^= p < 0;
-        } else {
-            cf2 = addc_n(w2p, w2p, w0p, (l + 1) * 2, 0u);
-        }
-    }
+    // W2 = W2 - W0 (non-negative)
+    { cf2 -= subc_n(w2p, w2p, w0p, (l + 1) * 2); }
 
     // W3 = (W3 - W2) >> 1 - W4 << 1
     {
@@ -532,37 +557,22 @@ void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
             cf3 >>= 1;
         }
 
-        neg5 = 0;
-        cf5 = lshift_n(w5p, w4p, (l + 1) * 2, 1u);
+        // TODO :
+
+        // neg5 = 0;
+        // cf5 = lshift_n(w5p, w4p, (l + 1) * 2, 1u);
 
         if (neg3 == neg5) {
-            if (cf3 > cf5) {
-                cf3 = cf3 - cf5;
-                cf3 -= subc_n(w3p, w3p, w5p, (l + 1) * 2, 0u);
-            } else if (cf3 < cf5) {
-                cf3 = cf5 - cf3;
-                neg3 ^= 1;
-                cf3 -= subc_n(w3p, w5p, w3p, (l + 1) * 2, 0u);
-            } else {
-                cf3 = 0;
-                ptrdiff_t p = abs_subc_n(w3p, w3p, w5p, (l + 1) * 2);
-                neg3 ^= p < 0;
-            }
         } else {
             cf3 += cf5;
             cf3 += addc_n(w3p, w3p, w5p, (l + 1) * 2, 0u);
         }
     }
 
-    // W2 = W2 - W1
+    // W2 = W2 - W1 (non-negative)
     {
         if (neg2 == neg1) {
-            if (cf2) {
-                cf2 = subc_n(w2p, w2p, w1p, (l + 1) * 2, 0u);
-            } else {
-                ptrdiff_t p = abs_subc_n(w2p, w2p, w1p, (l + 1) * 2);
-                neg2 ^= p < 0;
-            }
+            cf2 -= subc_n(w2p, w2p, w1p, (l + 1) * 2, 0u);
         } else {
             cf2 += addc_n(w2p, w2p, w1p, (l + 1) * 2, 0u);
         }

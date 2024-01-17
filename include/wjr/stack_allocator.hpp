@@ -9,46 +9,76 @@
 
 namespace wjr {
 
-template <size_t cache0, size_t threshold0, size_t buffer0, size_t cache1,
-          size_t threshold1, size_t buffer1, size_t alignment = alignof(std::max_align_t)>
+class basic_stack_alloc {
+public:
+    basic_stack_alloc() = delete;
+    basic_stack_alloc(void *buffer, void *end)
+        : m_ptr(static_cast<char *>(buffer)), m_end(static_cast<char *>(end)) {
+        WJR_ASSERT(m_end >= m_ptr);
+    }
+    basic_stack_alloc(const basic_stack_alloc &) = delete;
+    basic_stack_alloc &operator=(const basic_stack_alloc &) = delete;
+    ~basic_stack_alloc() = default;
+
+    WJR_NODISCARD constexpr void *allocate(size_t n) {
+        WJR_ASSERT(m_ptr != nullptr);
+        WJR_ASSERT(static_cast<size_t>(m_end - m_ptr) >= n);
+        char *ret = m_ptr;
+        m_ptr += n;
+        return static_cast<void *>(ret);
+    }
+
+    WJR_INTRINSIC_CONSTEXPR void deallocate(void *old, WJR_MAYBE_UNUSED size_t n) {
+        WJR_ASSERT(m_ptr == static_cast<char *>(old) + n);
+        m_ptr = static_cast<char *>(old);
+        (void)(n);
+    }
+
+    WJR_INTRINSIC_CONSTEXPR char *ptr() const { return m_ptr; }
+    WJR_INTRINSIC_CONSTEXPR char *end() const { return m_end; }
+
+private:
+    char *m_ptr;
+    char *m_end;
+};
+
+template <size_t cache0, size_t threshold0, size_t bufsize0, size_t cache1,
+          size_t threshold1, size_t bufsize1,
+          size_t alignment = alignof(std::max_align_t)>
 class stack_alloc {
 
-    template <size_t cache, size_t buffer>
+    template <size_t cache, size_t bufsize>
     class __stack_alloc {
 
         class __stack_alloc_node {
         public:
-            __stack_alloc_node() = default;
-            constexpr __stack_alloc_node(size_t size) : m_end(m_bytes + size) {}
+            __stack_alloc_node() = delete;
+            constexpr __stack_alloc_node(size_t size) : m_alloc(buffer, buffer + size) {}
 
             __stack_alloc_node(const __stack_alloc_node &) = delete;
             __stack_alloc_node &operator=(const __stack_alloc_node &) = delete;
-
             ~__stack_alloc_node() = default;
 
             WJR_NODISCARD constexpr void *allocate(size_t n) {
-                WJR_ASSERT(m_ptr != nullptr);
-                WJR_ASSERT(rest() >= n);
-                char *ret = m_ptr;
-                m_ptr += n;
-                return static_cast<void *>(ret);
+                return m_alloc.allocate(n);
             }
 
             WJR_INTRINSIC_CONSTEXPR void deallocate(void *old,
                                                     WJR_MAYBE_UNUSED size_t n) {
-                WJR_ASSERT(m_ptr == static_cast<char *>(old) + n);
-                m_ptr = static_cast<char *>(old);
-                (void)(n);
+                m_alloc.deallocate(old, n);
             }
 
-            WJR_INTRINSIC_CONSTEXPR size_t size() const { return m_ptr - m_bytes; }
-            WJR_INTRINSIC_CONSTEXPR size_t rest() const { return m_end - m_ptr; }
-            WJR_INTRINSIC_CONSTEXPR size_t capacity() const { return m_end - m_bytes; }
+            WJR_INTRINSIC_CONSTEXPR size_t size() const { return m_alloc.ptr() - buffer; }
+            WJR_INTRINSIC_CONSTEXPR size_t rest() const {
+                return m_alloc.end() - m_alloc.ptr();
+            }
+            WJR_INTRINSIC_CONSTEXPR size_t capacity() const {
+                return m_alloc.end() - buffer;
+            }
 
         private:
-            char *m_ptr = m_bytes;
-            char *m_end;
-            alignas(alignment) char m_bytes[];
+            basic_stack_alloc m_alloc;
+            alignas(alignment) char buffer[];
         };
 
         WJR_COLD WJR_CONSTEXPR20 void __malloc_node() {
@@ -91,7 +121,7 @@ class stack_alloc {
 
             if (WJR_UNLIKELY(idx && stk[idx]->size() == 0)) {
                 --idx;
-                if (WJR_UNLIKELY(idx + buffer + 1 <= stk.size())) {
+                if (WJR_UNLIKELY(idx + bufsize + 1 <= stk.size())) {
                     delete stk.back();
                     stk.pop_back();
                 }
@@ -136,8 +166,8 @@ public:
     }
 
 private:
-    __stack_alloc<cache0, buffer0> small_alloc;
-    __stack_alloc<cache1, buffer1> mid_alloc;
+    __stack_alloc<cache0, bufsize0> small_alloc;
+    __stack_alloc<cache1, bufsize1> mid_alloc;
 };
 
 template <size_t cache0, size_t threshold0, size_t buffer0, size_t cache1,

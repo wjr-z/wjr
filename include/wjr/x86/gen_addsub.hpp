@@ -20,18 +20,26 @@ WJR_INTRINSIC_INLINE T WJR_PP_CONCAT(asm_, WJR_addcsubc)(T a, T b, U c_in, U &c_
 #if WJR_ADDSUB_I == 0
     if (WJR_BUILTIN_CONSTANT_P(c_in)) {
         if (c_in == 0) {
+// GCC seems to have some optimization issues
+#if defined(WJR_COMPILER_GCC)
             asm("sub{q %2, %0| %0, %2}\n\t"
                 "setb %b1"
-                : "=r"(a), "=r"(c_in)
+                : "=r"(a), "+r"(c_in)
                 : "ri"(b), "0"(a)
                 : "cc");
             c_out = c_in;
             return a;
+#else
+            c_out = a < b;
+            a -= b;
+            return a;
+#endif
         } else {
+            c_in = 0;
             asm("stc\n\t"
                 "sbb{q %2, %0| %0, %2}\n\t"
                 "setb %b1"
-                : "=r"(a), "=r"(c_in)
+                : "=r"(a), "+r"(c_in)
                 : "ri"(b), "0"(a)
                 : "cc");
             c_out = c_in;
@@ -50,19 +58,16 @@ WJR_INTRINSIC_INLINE T WJR_PP_CONCAT(asm_, WJR_addcsubc)(T a, T b, U c_in, U &c_
 #else
     if (WJR_BUILTIN_CONSTANT_P(c_in)) {
         if (c_in == 0) {
-            asm("add{q %2, %0| %0, %2}\n\t"
-                "setb %b1"
-                : "=r"(a), "=r"(c_in)
-                : "ri"(b), "0"(a)
-                : "cc");
-            c_out = c_in;
+            a += b;
+            c_out = a < b;
             return a;
         } else {
+            c_in = 0;
             asm("stc\n\t"
                 "adc{q"
                 " %2, %0| %0, %2}\n\t"
                 "setb %b1"
-                : "=r"(a), "=r"(c_in)
+                : "=r"(a), "+r"(c_in)
                 : "ri"(b), "0"(a)
                 : "cc");
             c_out = c_in;
@@ -165,22 +170,6 @@ WJR_INLINE U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(T *dst, const 
         "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
         "jmp .Lb1%=\n\t"
 
-        ".Ld2%=:\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 8(%[src1]), %[r10]| %[r10], [%[src1] + 8]}\n\t"
-        "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
-        "mov{q %[r10], 8(%[dst])| [%[dst] + 8], %[r10]}\n\t"
-        "jmp .Ldone%=\n\t"
-
-        ".Ll2%=:\n\t"
-        "mov{q (%[src0]), %[r8]| %[r8], [%[src0]]}\n\t"
-        "mov{q 8(%[src0]), %[r10]| %[r10], [%[src0] + 8]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r8]| %[r8], [%[src1]]}\n\t"
-        "jrcxz .Ld2%=\n\t"
-        "lea{q 16(%[src0]), %[src0]| %[src0], [%[src0] + 16]}\n\t"
-        "lea{q 16(%[src1]), %[src1]| %[src1], [%[src1] + 16]}\n\t"
-        "lea{q 16(%[dst]), %[dst]| %[dst], [%[dst] + 16]}\n\t"
-        "jmp .Lb2%=\n\t"
-
         ".Ll3%=:\n\t"
         "mov{q (%[src0]), %[r11]| %[r11], [%[src0]]}\n\t"
         "mov{q 8(%[src0]), %[r8]| %[r8], [%[src0] + 8]}\n\t"
@@ -230,6 +219,21 @@ WJR_INLINE U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(T *dst, const 
         "lea{q -8(%[dst]), %[dst]| %[dst], [%[dst] - 8]}\n\t"
         "inc %[m]\n\t"
         "jmp .Lb7%=\n\t"
+
+        ".Ld2%=:\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 8(%[src1]), %[r10]| %[r10], [%[src1] + 8]}\n\t"
+        "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
+        "mov{q %[r10], 8(%[dst])| [%[dst] + 8], %[r10]}\n\t"
+        "jmp .Ldone%=\n\t"
+
+        ".Ll2%=:\n\t"
+        "mov{q (%[src0]), %[r8]| %[r8], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r10]| %[r10], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r8]| %[r8], [%[src1]]}\n\t"
+        "jrcxz .Ld2%=\n\t"
+        "lea{q 16(%[src0]), %[src0]| %[src0], [%[src0] + 16]}\n\t"
+        "lea{q 16(%[src1]), %[src1]| %[src1], [%[src1] + 16]}\n\t"
+        "lea{q 16(%[dst]), %[dst]| %[dst], [%[dst] + 16]}\n\t"
 
         ".align 32\n\t"
         ".Lwjr_asm_" WJR_PP_STR(WJR_addcsubc) "_n_loop%=:\n\t"

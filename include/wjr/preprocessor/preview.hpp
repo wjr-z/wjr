@@ -53,7 +53,7 @@
 
 #define WJR_ASSERT_CHECK_I_MESSAGE(expr, fmt, ...)                                       \
     do {                                                                                 \
-        if (!WJR_UNLIKELY(expr)) {                                                       \
+        if (WJR_UNLIKELY(!(expr))) {                                                     \
             fprintf(stderr, "Additional error message : " fmt "\n", ##__VA_ARGS__);      \
             WJR_ASSERT_MESSAGE_I(expr);                                                  \
         }                                                                                \
