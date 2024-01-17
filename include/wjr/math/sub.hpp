@@ -147,6 +147,9 @@ WJR_INTRINSIC_CONSTEXPR U subc_n_res(T *dst, const T *src0, const T *src1, size_
                 WJR_PP_QUEUE_TRANSFORM(                                                  \
                     WJR_PP_QUEUE_REVERSE((WJR_PP_IOTA(WJR_PP_DEC(size)))), WJR_PP_INC),  \
                 WJR_REGISTER_SUBC_RES_CASE_CALLER)                                       \
+        default: {                                                                       \
+            break;                                                                       \
+        }                                                                                \
         }                                                                                \
         return c_in;                                                                     \
     } else

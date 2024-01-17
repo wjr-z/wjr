@@ -292,7 +292,7 @@ WJR_INTRINSIC_CONSTEXPR size_t abs_cast(size_t n) {
     return n;
 }
 
-#if WJR_CPP_20
+#if defined(WJR_CPP_20)
 template <typename T>
 using make_template_constant_t = T;
 #else

@@ -81,7 +81,7 @@ WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out) {
                                              fallback_addc))(a, b, c_in, c_out);
     } else {
         return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ADDC), builtin_addc,
-                             fallback_addc)(a, b, c_in, c_out);
+                              fallback_addc)(a, b, c_in, c_out);
     }
 #endif
 }
@@ -146,6 +146,9 @@ WJR_INTRINSIC_CONSTEXPR U addc_n_res(T *dst, const T *src0, const T *src1, size_
                 WJR_PP_QUEUE_TRANSFORM(                                                  \
                     WJR_PP_QUEUE_REVERSE((WJR_PP_IOTA(WJR_PP_DEC(size)))), WJR_PP_INC),  \
                 WJR_REGISTER_ADDC_RES_CASE_CALLER)                                       \
+        default: {                                                                       \
+            break;                                                                       \
+        }                                                                                \
         }                                                                                \
         return c_in;                                                                     \
     } else
