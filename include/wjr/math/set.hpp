@@ -28,7 +28,7 @@ WJR_INTRINSIC_CONSTEXPR_E void set_n(T *dst, type_identity_t<T> val, size_t n) {
         }
 
         if (WJR_BUILTIN_CONSTANT_P(val) && broadcast<uint8_t, T>(val) == val) {
-            if (WJR_UNLIKELY(n >= 2048)) {
+            if (WJR_UNLIKELY(n >= 2048 / sizeof(T))) {
                 ::memset(dst, static_cast<uint8_t>(val), n * sizeof(T));
                 return;
             }
