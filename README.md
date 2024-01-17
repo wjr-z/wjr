@@ -8,22 +8,24 @@ Currently, most optimizations do not target 32-bit encoding, so 32-bit is not cu
 
 2. math \
     addc/subc are similar to __builtin_addc/__builtin_subc.    \
-    But for those who do not support __builtin_addc and __builtin_subc's compiler has been adapted. \
-    For GCC/Clang that supports __builtin_constant_p, constant input has been optimized.  \
-    addc_1/subc_1 are similar to mpn_add_1/mpn_sub_1. \
-    support carry_in flag.  \
-    addc_n/subc_n are similar to mpn_add_n/mpn_sub_n. \
-    But also optimized the constant input for GCC/Clang that supports __builtin_constant_p. \
-    mulx/mul_1/addmul_1/... \
-    The design goal is to better inline these large integer functions.    \
-    And generate better code through __builtin_constant_p for constant length or    \
-    some other constant information. And support constexpr as much as possible  \
-    \
+    For GCC/Clang, it has been optimized using inline assembly and __builtin_constant_p.    \
+    addc_1/subc_1 are similar to mpn_add_1/mpn_sub_1 with carry flag. \
+    addc_n/subc_n are similar to mpn_add_nc/mpn_sub_nc. \
+    addc_s/subc_s . \
+    abs_subc_n/abs_subc_s, abs of subc_n/subc_s. Ensure that the number of calculations is n, \
+    even if two numbers are the same, and can obtain the highest non-zero position.  \
+    mulx/mul_1/addmul_1/submul_1 (not optimized yet)/mul_s    \
+    divmod_1/divexact_1/... \
     clz/ctz/popcount/is_power_of_two/lowbit/... \
+    set_n, unlike memset, which can only assign uint8_t.     \
+    set_n can be used to assign uint16_t/uint32_t/uint64_t.     \
+    When the pointer can be aligned with sizeof (T) and n is large, it will be aligned.     \
+    not_n. Align optimized versions.    \
+    find_n/find_not_n/reverse_find_n/reverse_find_not_n.    \
+    Each function has two overloads: double array comparison and array to value comparison. \
+    compare_n/reverser_compare_n.   \
     TODO : \
     AVX-512 optimaztion for addc_n/subc_n.  \
-    mul ... \
-    more constexpr math functions ...
 
 3. preprocessor \
     WJR_PP_ADD, WJR_PP_SUB, WJR_PP_(LT|LE|GT|GE|EQ|NE), WJR_PP_INC, WJR_PP_DEC, WJR_PP_NEG. \
@@ -56,21 +58,6 @@ Currently, most optimizations do not target 32-bit encoding, so 32-bit is not cu
     ...
 
 4. compressed_pair  \
-    Currently undergoing refactoring. I hope it can be designed as compressed_tuple.
 
-5. vector   \
-    vector is broken now.   \
-    Vector is designed to have customizable internal data structures,   \
-    requiring only partial implementation of necessary interfaces.  \
-    The biggest drawback of a vector is that in some cases it knows the actual size,    \
-    and in some performance critical positions, the vector is not very suitable. \
-    The vector designed based on STL is expected to easily expand to this \
-    fixed length capacity situation, throwing an exception when the expansion \
-    exceeds the fixed length capacity instead of reallocating. \
-    And it should be able to be extended to SSO vectors. \
-    And I hope to expand to more complex situations in the future, \
-    such as copy on write.
-
-6. more template operations
-
-7. more constexpr support
+5. template processor (tp)  \
+    tp_list
