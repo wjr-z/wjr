@@ -210,7 +210,7 @@ public:
     WJR_INTRINSIC_CONSTEXPR20 ~unique_stack_ptr() {
         auto &al = pair.first();
         auto &mlo = pair.second();
-        pair.first().deallocate(mlo.ptr, mlo.size);
+        al.deallocate(mlo.ptr, mlo.size);
     }
 
     unique_stack_ptr(const unique_stack_ptr &) = delete;

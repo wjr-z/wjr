@@ -132,12 +132,12 @@ T mullo(T a, T b) {
 
 // TODO : optimize
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR T fallback_mul1(T *dst, const T *src0, size_t n, T src1) {
+WJR_INTRINSIC_CONSTEXPR T fallback_mul1(T *dst, const T *src, size_t n, T ml) {
     T lo = 0, hi = 0;
     T c_in = 0;
 
     for (size_t i = 0; i < n; ++i) {
-        lo = mul(src0[i], src1, hi);
+        lo = mul(src[i], ml, hi);
         dst[i] = addc<T>(lo, c_in, 0u, c_in);
         c_in += hi;
     }
@@ -146,27 +146,47 @@ WJR_INTRINSIC_CONSTEXPR T fallback_mul1(T *dst, const T *src0, size_t n, T src1)
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E T mul_1(T *dst, const T *src0, size_t n, T src1) {
+WJR_INTRINSIC_CONSTEXPR_E T mul_1(T *dst, const T *src, size_t n, type_identity_t<T> ml) {
     static_assert(std::is_same_v<T, uint64_t>, "only support uint64_t now");
-#if WJR_HAS_BUILTIN(ASM_MUL_1)
-    if (is_constant_evaluated()) {
-        return fallback_mul1(dst, src0, n, src1);
+    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
+
+    if (WJR_BUILTIN_CONSTANT_P(ml == 0) && ml == 0) {
+        set_n(dst, 0, n);
+        return 0;
     }
 
-    return asm_mul_1(dst, src0, n, src1);
+    if (WJR_BUILTIN_CONSTANT_P(ml == 1) && ml == 1) {
+        if (src != dst) {
+            std::copy(src, src + n, dst);
+        }
+
+        return 0;
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(is_power_of_two(ml)) && is_power_of_two(ml)) {
+        unsigned int k = ctz(ml);
+        return lshift_n(dst, src, n, k);
+    }
+
+#if WJR_HAS_BUILTIN(ASM_MUL_1)
+    if (is_constant_evaluated()) {
+        return fallback_mul1(dst, src, n, ml);
+    }
+
+    return asm_mul_1(dst, src, n, ml);
 #else
-    return fallback_mul1(dst, src0, n, src1);
+    return fallback_mul1(dst, src, n, ml);
 #endif
 }
 
 // TODO : optimize
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR T fallback_addmul_1(T *dst, const T *src0, size_t n, T src1) {
+WJR_INTRINSIC_CONSTEXPR T fallback_addmul_1(T *dst, const T *src, size_t n, T ml) {
     T lo = 0, hi = 0;
     T o_in = 0, c_in = 0;
 
     for (size_t i = 0; i < n; ++i) {
-        lo = mul(src0[i], src1, hi);
+        lo = mul(src[i], ml, hi);
         lo = addc<T>(lo, c_in, 0u, c_in);
         dst[i] = addc<T>(lo, dst[i], 0u, o_in);
         c_in += hi + o_in;
@@ -176,26 +196,37 @@ WJR_INTRINSIC_CONSTEXPR T fallback_addmul_1(T *dst, const T *src0, size_t n, T s
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E T addmul_1(T *dst, const T *src0, size_t n, T src1) {
+WJR_INTRINSIC_CONSTEXPR_E T addmul_1(T *dst, const T *src, size_t n,
+                                     type_identity_t<T> ml) {
     static_assert(std::is_same_v<T, uint64_t>, "only support uint64_t now");
-#if WJR_HAS_BUILTIN(ASM_ADDMUL_1)
-    if (is_constant_evaluated()) {
-        return fallback_addmul_1(dst, src0, n, src1);
+    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
+
+    if (WJR_BUILTIN_CONSTANT_P(ml == 0) && ml == 0) {
+        return 0;
     }
 
-    return asm_addmul_1(dst, src0, n, src1);
+    if (WJR_BUILTIN_CONSTANT_P(ml == 1) && ml == 1) {
+        return addc_n(dst, dst, src, n, 0u);
+    }
+
+#if WJR_HAS_BUILTIN(ASM_ADDMUL_1)
+    if (is_constant_evaluated()) {
+        return fallback_addmul_1(dst, src, n, ml);
+    }
+
+    return asm_addmul_1(dst, src, n, ml);
 #else
-    return fallback_addmul_1(dst, src0, n, src1);
+    return fallback_addmul_1(dst, src, n, ml);
 #endif
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR T fallback_submul_1(T *dst, const T *src0, size_t n, T src1) {
+WJR_INTRINSIC_CONSTEXPR T fallback_submul_1(T *dst, const T *src, size_t n, T ml) {
     T lo = 0, hi = 0;
     T o_in = 0, c_in = 0;
 
     for (size_t i = 0; i < n; ++i) {
-        lo = mul(src0[i], src1, hi);
+        lo = mul(src[i], ml, hi);
         lo = addc<T>(lo, c_in, 0u, c_in);
         dst[i] = subc<T>(dst[i], lo, 0u, o_in);
         c_in += hi + o_in;
@@ -205,16 +236,19 @@ WJR_INTRINSIC_CONSTEXPR T fallback_submul_1(T *dst, const T *src0, size_t n, T s
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E T submul_1(T *dst, const T *src0, size_t n, T src1) {
+WJR_INTRINSIC_CONSTEXPR_E T submul_1(T *dst, const T *src, size_t n,
+                                     type_identity_t<T> ml) {
     static_assert(std::is_same_v<T, uint64_t>, "only support uint64_t now");
+    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
+
 #if WJR_HAS_BUILTIN(ASM_SUBMUL_1)
     if (is_constant_evaluated()) {
-        return fallback_submul_1(dst, src0, n, src1);
+        return fallback_submul_1(dst, src, n, ml);
     }
 
-    return asm_submul_1(dst, src0, n, src1);
+    return asm_submul_1(dst, src, n, ml);
 #else
-    return fallback_submul_1(dst, src0, n, src1);
+    return fallback_submul_1(dst, src, n, ml);
 #endif
 }
 
@@ -286,7 +320,7 @@ void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
         return toom22_mul_s(dst, src0, n, src1, m, stk);
     } while (0);
 
-    unique_stack_ptr ptr(math_details::stack_alloc, sizeof(T) * (4 * n + 24));
+    unique_stack_ptr ptr(math_details::stack_alloc, sizeof(T) * (4 * n + 240));
     T *stk = static_cast<T *>(ptr.get());
     return toom33_mul_s(dst, src0, n, src1, m, stk);
 }
@@ -426,12 +460,12 @@ void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
 
     auto w0p = dst;
     auto w1p = stk;
-    auto w2p = stk + (l + 1) * 2;
-    auto w3p = stk + (l + 1) * 4;
+    auto w2p = stk + (2 * l + 1);
+    auto w3p = stk + (2 * l + 1) * 2;
     auto w4p = dst + l * 4;
-    auto w5p = stk + (l + 1) * 6;
+    auto w5p = stk + (2 * l + 1) * 3;
 
-    stk += (l + 1) * 8;
+    stk += 4 * (2 * l + 1);
 
     T cf0 = 0, cf1 = 0, cf2 = 0, cf3 = 0, cf4 = 0, cf5 = 0;
     bool neg2 = 0, neg3 = 0;
@@ -443,25 +477,21 @@ void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
 
     // W3 = W0 - U1 : u(-1)
     if (cf0) {
-        neg3 = 0;
         cf3 = cf0 - subc_n(w3p, w0p, u1p, l, 0u);
-        WJR_ASSERT(cf3 <= 1);
     } else {
-        cf3 = 0;
         ptrdiff_t p = abs_subc_n(w3p, w0p, u1p, l);
         neg3 = p < 0;
     }
+    WJR_ASSERT(cf3 <= 1);
 
     // W2 = W4 - V1 : v(-1)
     if (cf4) {
-        neg2 = 0;
         cf2 = cf4 - subc_n(w2p, w4p, v1p, l, 0u);
-        WJR_ASSERT(cf2 <= 1);
     } else {
-        cf2 = 0;
         ptrdiff_t p = abs_subc_n(w2p, w4p, v1p, l);
         neg2 = p < 0;
     }
+    WJR_ASSERT(cf2 <= 1);
 
     // W0 = W0 + U1 : (non-negative) u(1)
     cf0 += addc_n(w0p, w0p, u1p, l, 0u);
@@ -472,15 +502,35 @@ void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
     WJR_ASSERT(cf4 <= 2);
 
     // W1 = W3 * W2 : r(-1)
-    w3p[l] = cf3;
-    w2p[l] = cf2;
     neg2 ^= neg3;
-    __mul_s_impl<__mul_s_mode::toom33>(w1p, w3p, l + 1, w2p, l + 1, stk);
+    __mul_s_impl<__mul_s_mode::toom33>(w1p, w3p, l, w2p, l, stk);
+    cf1 = cf2 && cf3;
+    if (WJR_UNLIKELY(cf2 != 0)) {
+        cf1 += addc_n(w1p + l, w1p + l, w3p, l, 0u);
+    }
+    if (WJR_UNLIKELY(cf3 != 0)) {
+        cf1 += addc_n(w1p + l, w1p + l, w2p, l, 0u);
+    }
+    w1p[l * 2] = cf1;
 
     // W2 = W0 * W4 : (non-negative) r(1)
-    w0p[l] = cf0;
-    w4p[l] = cf4;
-    __mul_s_impl<__mul_s_mode::toom33>(w2p, w0p, l + 1, w4p, l + 1, stk);
+    __mul_s_impl<__mul_s_mode::toom33>(w2p, w0p, l, w4p, l, stk);
+    cf2 = cf0 * cf4;
+    if (WJR_UNLIKELY(cf0 != 0)) {
+        if (cf0 == 1) {
+            cf2 += addc_n(w2p + l, w2p + l, w4p, l, 0u);
+        } else {
+            cf2 += addmul_1(w2p + l, w4p, l, 2u);
+        }
+    }
+    if (WJR_UNLIKELY(cf4 != 0)) {
+        if (cf4 == 1) {
+            cf2 += addc_n(w2p + l, w2p + l, w0p, l, 0u);
+        } else {
+            cf2 += addmul_1(w2p + l, w0p, l, 2u);
+        }
+    }
+    w2p[l * 2] = cf2;
 
     // W0 = (W0 + U2) << 1 - U0 : (non-negative) u(2)
     cf0 += addc_s(w0p, w0p, l, u2p, rn, 0u);
@@ -497,9 +547,23 @@ void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
     WJR_ASSERT(cf4 <= 6);
 
     // W3 = W0 * W4 : (non-negative) r(2)
-    w0p[l] = cf0;
-    w4p[l] = cf4;
-    __mul_s_impl<__mul_s_mode::toom33>(w3p, w0p, l + 1, w4p, l + 1, stk);
+    __mul_s_impl<__mul_s_mode::toom33>(w3p, w0p, l, w4p, l, stk);
+    cf3 = cf0 * cf4;
+    if (WJR_UNLIKELY(cf0 != 0)) {
+        if (cf0 == 1) {
+            cf3 += addc_n(w3p + l, w3p + l, w4p, l, 0u);
+        } else {
+            cf3 += addmul_1(w3p + l, w4p, l, cf0);
+        }
+    }
+    if (WJR_UNLIKELY(cf4 != 0)) {
+        if (cf4 == 1) {
+            cf3 += addc_n(w3p + l, w3p + l, w0p, l, 0u);
+        } else {
+            cf3 += addmul_1(w3p + l, w0p, l, cf4);
+        }
+    }
+    w3p[l * 2] = cf3;
 
     // W0 = U0 * V0 : (non-negative) r(0) = r0
     __mul_s_impl<__mul_s_mode::toom33>(w0p, u0p, l, v0p, l, stk);

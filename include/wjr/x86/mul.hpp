@@ -99,11 +99,11 @@ WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint
 
         ".Ll0%=:\n\t"
         "jrcxz .Ld0%=\n\t"
-        "mulx {(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
+        "mulx {(%[src]), %[r10], %[r11]|%[r11], %[r10], [%[src]]}\n\t"
         "jmp .Lb0%=\n\t"
 
         ".Ll2%=:\n\t"
-        "mulx {(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
+        "mulx {(%[src]), %[r10], %[r11]|%[r11], %[r10], [%[src]]}\n\t"
         "lea{q -48(%[src]), %[src]| %[src], [%[src] - 48]}\n\t"
         "lea{q -48(%[dst]), %[dst]| %[dst], [%[dst] - 48]}\n\t"
         "inc %[cx]\n\t"
@@ -117,7 +117,7 @@ WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint
         "jmp .Lb3%=\n\t"
 
         ".Ll4%=:\n\t"
-        "mulx {(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
+        "mulx {(%[src]), %[r10], %[r11]|%[r11], %[r10], [%[src]]}\n\t"
         "lea{q -32(%[src]), %[src]| %[src], [%[src] - 32]}\n\t"
         "lea{q -32(%[dst]), %[dst]| %[dst], [%[dst] - 32]}\n\t"
         "inc %[cx]\n\t"
@@ -131,7 +131,7 @@ WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint
         "jmp .Lb5%=\n\t"
 
         ".Ll6%=:\n\t"
-        "mulx {(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
+        "mulx {(%[src]), %[r10], %[r11]|%[r11], %[r10], [%[src]]}\n\t"
         "lea{q -16(%[src]), %[src]| %[src], [%[src] - 16]}\n\t"
         "lea{q -16(%[dst]), %[dst]| %[dst], [%[dst] - 16]}\n\t"
         "inc %[cx]\n\t"
@@ -262,11 +262,11 @@ WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
 
         ".Ll0%=:\n\t"
         "jrcxz .Ld0%=\n\t"
-        "mulx {(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
+        "mulx {(%[src]), %[r10], %[r11]|%[r11], %[r10], [%[src]]}\n\t"
         "jmp .Lb0%=\n\t"
 
         ".Ll2%=:\n\t"
-        "mulx {(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
+        "mulx {(%[src]), %[r10], %[r11]|%[r11], %[r10], [%[src]]}\n\t"
         "lea{q -48(%[src]), %[src]| %[src], [%[src] - 48]}\n\t"
         "lea{q -48(%[dst]), %[dst]| %[dst], [%[dst] - 48]}\n\t"
         "jmp .Lb2%=\n\t"
@@ -278,7 +278,7 @@ WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
         "jmp .Lb3%=\n\t"
 
         ".Ll4%=:\n\t"
-        "mulx {(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
+        "mulx {(%[src]), %[r10], %[r11]|%[r11], %[r10], [%[src]]}\n\t"
         "lea{q -32(%[src]), %[src]| %[src], [%[src] - 32]}\n\t"
         "lea{q -32(%[dst]), %[dst]| %[dst], [%[dst] - 32]}\n\t"
         "jmp .Lb4%=\n\t"
@@ -290,7 +290,7 @@ WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
         "jmp .Lb5%=\n\t"
 
         ".Ll6%=:\n\t"
-        "mulx {(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
+        "mulx {(%[src]), %[r10], %[r11]|%[r11], %[r10], [%[src]]}\n\t"
         "lea{q -16(%[src]), %[src]| %[src], [%[src] - 16]}\n\t"
         "lea{q -16(%[dst]), %[dst]| %[dst], [%[dst] - 16]}\n\t"
         "jmp .Lb6%=\n\t"
@@ -398,9 +398,7 @@ WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)
-
 // TODO : low priority
-
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_ADDMUL_1)
