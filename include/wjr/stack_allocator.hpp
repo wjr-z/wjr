@@ -178,6 +178,8 @@ class stack_allocator {
     static thread_local alloc __alloc;
 
 public:
+    using pointer = void *;
+
     stack_allocator() = default;
     stack_allocator(const stack_allocator &) = default;
     stack_allocator &operator=(const stack_allocator &) = default;
@@ -203,14 +205,18 @@ thread_local typename stack_allocator<cache0, threshold0, buffer0, cache1, thres
 // Disable move constructor
 template <typename StackAllocator>
 class unique_stack_ptr {
+    using pointer = typename StackAllocator::pointer;
+
 public:
     WJR_INTRINSIC_CONSTEXPR20 unique_stack_ptr(const StackAllocator &al, size_t size)
-        : pair(al, Malloc{al.allocate(size), size}) {}
+        : pair(al, Malloc{nullptr, size}) {
+        pair.second().ptr = static_cast<void *>(al.allocate(size));
+    }
 
     WJR_INTRINSIC_CONSTEXPR20 ~unique_stack_ptr() {
         auto &al = pair.first();
         auto &mlo = pair.second();
-        al.deallocate(mlo.ptr, mlo.size);
+        al.deallocate(static_cast<pointer>(mlo.ptr), mlo.size);
     }
 
     unique_stack_ptr(const unique_stack_ptr &) = delete;
