@@ -32,12 +32,10 @@
 // use abort instead of assert when NDEBUG is defined
 #if defined(NDEBUG)
 #define WJR_ASSERT_NOMESSAGE_I(expr)                                                     \
-    if (!WJR_UNLIKELY(expr)) {                                                           \
-        std::abort();                                                                    \
+    if (WJR_UNLIKELY(!(expr))) {                                                         \
         WJR_UNREACHABLE();                                                               \
     }
 #define WJR_ASSERT_MESSAGE_I(expr)                                                       \
-    std::abort();                                                                        \
     WJR_UNREACHABLE();
 #else
 #define WJR_ASSERT_NOMESSAGE_I(expr) assert(expr)
@@ -114,8 +112,10 @@
 #define WJR_IS_SEPARATE_P(p, pn, q, qn) (!WJR_IS_OVERLAP_P(p, pn, q, qn))
 #define WJR_IS_SAME_OR_SEPARATE_P(p, pn, q, qn)                                          \
     (p == q || WJR_IS_SEPARATE_P(p, pn, q, qn))
-#define WJR_IS_SAME_OR_INCR_P(p, pn, q, qn) (((p) <= (q)) || WJR_IS_SEPARATE_P(p, pn, q, qn))
-#define WJR_IS_SAME_OR_DECR_P(p, pn, q, qn) (((p) >= (q)) || WJR_IS_SEPARATE_P(p, pn, q, qn))
+#define WJR_IS_SAME_OR_INCR_P(p, pn, q, qn)                                              \
+    (((p) <= (q)) || WJR_IS_SEPARATE_P(p, pn, q, qn))
+#define WJR_IS_SAME_OR_DECR_P(p, pn, q, qn)                                              \
+    (((p) >= (q)) || WJR_IS_SEPARATE_P(p, pn, q, qn))
 
 #define WJR_ASM_PIC_JMPL(LABEL, TABLE) ".long " #LABEL "-" #TABLE
 #define WJR_ASM_NOPIC_JMPL(LABEL) ".quad " #LABEL
