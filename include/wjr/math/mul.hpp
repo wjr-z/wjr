@@ -261,7 +261,7 @@ WJR_INTRINSIC_CONSTEXPR_E T submul_1(T *dst, const T *src, size_t n,
 #endif
 
 #ifndef WJR_TOOM33_MUL_THRESHOLD
-#define WJR_TOOM33_MUL_THRESHOLD 80
+#define WJR_TOOM33_MUL_THRESHOLD 66
 #endif
 
 inline constexpr size_t toom22_mul_threshold = WJR_TOOM22_MUL_THRESHOLD;
@@ -288,25 +288,25 @@ void basecase_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m);
 
 // l = ceil(n / 2)
 // stk usage : 2 * l
-// recursive stk max usage : 4 * l + 128
+// recursive stk max usage : 4 * l + 64
 template <typename T>
 void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *stk);
 
 // l = max(ceil(n / 3), ceil(m / 2))
 // stk usage : 4 * l
-// recursive stk max usage : 6 * l + 128
+// recursive stk max usage : 6 * l + 64
 template <typename T>
 void toom32_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *stk);
 
 // l = max(ceil(n / 4), ceil(m / 2))
 // stk usage : 6 * l + 3
-// recursive stk max usage : 8 * l + 131
+// recursive stk max usage : 8 * l + 67
 template <typename T>
 void toom42_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *stk);
 
 // l = ceil(n / 3)
 // stk usage : 6 * l + 3
-// recursive stk max usage : 9 * l + 576
+// recursive stk max usage : 9 * l + 288
 template <typename T>
 void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *stk);
 
@@ -335,7 +335,7 @@ void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
     }
 
     if (m < toom33_mul_threshold) {
-        unique_stack_ptr ptr(math_details::stack_alloc, sizeof(T) * (6 * m + 131));
+        unique_stack_ptr ptr(math_details::stack_alloc, sizeof(T) * (6 * m + 67));
         T *stk = static_cast<T *>(ptr.get());
         if (n >= 3 * m) {
             unique_stack_ptr tmpp(math_details::stack_alloc, sizeof(T) * (4 * m));
@@ -385,7 +385,7 @@ void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
         return;
     }
 
-    unique_stack_ptr ptr(math_details::stack_alloc, sizeof(T) * (9 * m + 576));
+    unique_stack_ptr ptr(math_details::stack_alloc, sizeof(T) * (9 * m + 288));
     T *stk = static_cast<T *>(ptr.get());
     if (n >= 3 * m) {
         unique_stack_ptr tmpp(math_details::stack_alloc, sizeof(T) * (4 * m));

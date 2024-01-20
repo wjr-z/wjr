@@ -105,7 +105,7 @@ class stack_alloc {
         __stack_alloc &operator=(__stack_alloc &&) = default;
         ~__stack_alloc() = default;
 
-        WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 void *allocate(size_t n) {
+        WJR_NODISCARD WJR_CONSTEXPR20 void *allocate(size_t n) {
             if (WJR_UNLIKELY(idx == -1ull || stk[idx]->rest() < n)) {
                 ++idx;
                 if (WJR_UNLIKELY(idx == stk.size())) {
@@ -116,7 +116,7 @@ class stack_alloc {
             return stk[idx]->allocate(n);
         }
 
-        WJR_INTRINSIC_CONSTEXPR20 void deallocate(void *ptr, size_t n) {
+        WJR_CONSTEXPR20 void deallocate(void *ptr, size_t n) {
             stk[idx]->deallocate(ptr, n);
 
             if (WJR_UNLIKELY(idx && stk[idx]->size() == 0)) {
@@ -141,28 +141,27 @@ public:
     stack_alloc &operator=(stack_alloc &&) = default;
     ~stack_alloc() = default;
 
-    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 void *allocate(size_t n) {
-        if (WJR_LIKELY(n < threshold0)) {
-            return small_alloc.allocate(n);
-        }
-
-        if (WJR_LIKELY(n < threshold1)) {
+    WJR_NODISCARD WJR_CONSTEXPR20 void *allocate(size_t n) {
+        if (WJR_UNLIKELY(n >= threshold0)) {
+            if (WJR_UNLIKELY(n >= threshold1)) {
+                return malloc(n);
+            }
             return mid_alloc.allocate(n);
         }
 
-        return malloc(n);
+        return small_alloc.allocate(n);
     }
 
-    WJR_INTRINSIC_CONSTEXPR20 void deallocate(void *ptr, size_t n) {
-        if (WJR_LIKELY(n < threshold0)) {
-            return small_alloc.deallocate(ptr, n);
-        }
-
-        if (WJR_LIKELY(n < threshold1)) {
+    WJR_CONSTEXPR20 void deallocate(void *ptr, WJR_MAYBE_UNUSED size_t n) {
+        if (WJR_UNLIKELY(n >= threshold0)) {
+            if (WJR_UNLIKELY(n >= threshold1)) {
+                free(ptr);
+                return;
+            }
             return mid_alloc.deallocate(ptr, n);
         }
 
-        free(ptr);
+        return small_alloc.deallocate(ptr, n);
     }
 
 private:
@@ -208,12 +207,12 @@ class unique_stack_ptr {
     using pointer = typename StackAllocator::pointer;
 
 public:
-    WJR_INTRINSIC_CONSTEXPR20 unique_stack_ptr(const StackAllocator &al, size_t size)
+    WJR_CONSTEXPR20 unique_stack_ptr(const StackAllocator &al, size_t size)
         : pair(al, Malloc{nullptr, size}) {
         pair.second().ptr = static_cast<void *>(al.allocate(size));
     }
 
-    WJR_INTRINSIC_CONSTEXPR20 ~unique_stack_ptr() {
+    WJR_CONSTEXPR20 ~unique_stack_ptr() {
         auto &al = pair.first();
         auto &mlo = pair.second();
         al.deallocate(static_cast<pointer>(mlo.ptr), mlo.size);
