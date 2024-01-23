@@ -46,34 +46,12 @@ template <typename T, typename... Args>
 inline constexpr bool is_any_of_v = is_any_of<T, Args...>::value;
 
 template <typename T>
-using remove_ref_t = std::remove_reference_t<T>;
+struct remove_cvref {
+    using type = std::remove_cv_t<std::remove_reference_t<T>>;
+};
 
 template <typename T>
-using remove_cref_t = std::remove_const_t<remove_ref_t<T>>;
-
-template <typename T>
-using remove_cvref_t = std::remove_cv_t<remove_ref_t<T>>;
-
-template <typename iter, typename = void>
-struct is_contiguous_iterator_impl : std::is_pointer<iter> {};
-
-template <typename iter>
-struct is_contiguous_iterator_impl<iter, typename iter::is_contiguous_iterator>
-    : std::true_type {};
-
-#if defined(WJR_CPP_20)
-template <typename iter>
-struct is_contiguous_iterator
-    : std::bool_constant<std::contiguous_iterator<iter> ||
-                         is_contiguous_iterator_impl<iter>::value> {};
-#else
-template <typename iter>
-struct is_contiguous_iterator : is_contiguous_iterator_impl<iter> {};
-#endif
-
-template <typename iter>
-struct is_contiguous_iterator<std::reverse_iterator<iter>>
-    : is_contiguous_iterator<iter> {};
+using remove_cvref_t = typename remove_cvref<T>::type;
 
 template <size_t n>
 struct __uint_selector {};
@@ -202,7 +180,7 @@ struct __is_swappable_with : std::false_type {};
 
 template <typename T, typename U>
 struct __is_swappable_with<
-    T, U, std::void_t<decltype(std::swap(std::declval<T>(), std::declval<U>()))>>
+    T, U, std::void_t<decltype(std::swap(std::declval<T &>(), std::declval<U &>()))>>
     : std::true_type {};
 
 template <typename T, typename U>
@@ -222,8 +200,9 @@ inline constexpr bool is_swappable_v = is_swappable<T>::value;
 
 template <typename T, typename U>
 struct __is_nothrow_swappable_with
-    : std::bool_constant<noexcept(std::swap(std::declval<T>(), std::declval<U>())) &&
-                         noexcept(std::swap(std::declval<U>(), std::declval<T>()))> {};
+    : std::bool_constant<noexcept(std::swap(std::declval<T &>(), std::declval<U &>())) &&
+                         noexcept(std::swap(std::declval<U &>(), std::declval<T &>()))> {
+};
 
 template <typename T, typename U>
 struct is_nothrow_swappable_with
@@ -292,13 +271,85 @@ WJR_INTRINSIC_CONSTEXPR size_t abs_cast(size_t n) {
     return n;
 }
 
+// C++ 17 concept adapt
+
+template <typename Derived, typename Base>
+struct is_derived_from
+    : std::conjunction<
+          std::is_base_of<Base, Derived>,
+          std::is_convertible<const volatile Derived *, const volatile Base *>> {};
+
+template <typename Derived, typename Base>
+inline constexpr bool is_derived_from_v = is_derived_from<Derived, Base>::Value;
+
+template <typename From, typename To, typename = void>
+struct __is_convertible_to_helper : std::false_type {};
+
+template <typename From, typename To>
+struct __is_convertible_to_helper<
+    From, To, std::void_t<decltype(static_cast<To>(std::declval<From>()))>>
+    : std::true_type {};
+
+template <typename From, typename To>
+struct is_convertible_to : std::conjunction<std::is_convertible<From, To>,
+                                            __is_convertible_to_helper<From, To, void>> {
+};
+
+template <typename From, typename To>
+inline constexpr bool is_convertible_to_v = is_convertible_to<From, To>::value;
+
+template <typename Ptr, typename = void>
+struct __has_to_address_impl : std::false_type {};
+
+template <typename Ptr>
+struct __has_to_address_impl<
+    Ptr, std::void_t<decltype(typename std::pointer_traits<Ptr>::to_address(
+             std::declval<const Ptr &>()))>> : std::true_type {};
+
+template <typename Ptr>
+struct __has_to_address : __has_to_address_impl<remove_cvref_t<Ptr>, void> {};
+
+template <typename T>
+constexpr T *to_address(T *p) noexcept {
+    static_assert(!std::is_function_v<T>);
+    return p;
+}
+
+template <typename Ptr>
+constexpr auto to_address(const Ptr &p) noexcept {
+    if constexpr (__has_to_address<Ptr>::value) {
+        return std::pointer_traits<Ptr>::to_address(p);
+    } else {
+        return to_address(p.operator->());
+    }
+}
+
+template <typename T>
+using iter_reference_t = decltype(*std::declval<T &>());
+
+template <typename iter, typename = void>
+struct is_contiguous_iterator_impl : std::is_pointer<iter> {};
+
+template <typename iter>
+struct is_contiguous_iterator_impl<iter, typename iter::is_contiguous_iterator>
+    : std::true_type {};
+
 #if defined(WJR_CPP_20)
-template <typename T>
-using make_template_constant_t = T;
+template <typename iter>
+struct is_contiguous_iterator
+    : std::bool_constant<std::contiguous_iterator<iter> ||
+                         is_contiguous_iterator_impl<iter>::value> {};
 #else
-template <typename T>
-using make_template_constant_t = std::add_lvalue_reference_t<std::add_const_t<T>>;
+template <typename iter>
+struct is_contiguous_iterator : is_contiguous_iterator_impl<iter> {};
 #endif
+
+template <typename iter>
+struct is_contiguous_iterator<std::reverse_iterator<iter>>
+    : is_contiguous_iterator<iter> {};
+
+template <typename iter>
+inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<iter>::value;
 
 } // namespace wjr
 

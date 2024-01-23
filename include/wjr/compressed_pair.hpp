@@ -373,9 +373,8 @@ namespace std {
 template <typename T, typename U,
           std::enable_if_t<std::conjunction_v<wjr::is_swappable<T>, wjr::is_swappable<U>>,
                            int> = 0>
-constexpr void
-swap(wjr::compressed_pair<T, U> &lhs,
-     wjr::compressed_pair<T, U> &rhs) noexcept(noexcept(lhs.swap(rhs))) {
+constexpr void swap(wjr::compressed_pair<T, U> &lhs,
+                    wjr::compressed_pair<T, U> &rhs) noexcept(noexcept(lhs.swap(rhs))) {
     lhs.swap(rhs);
 }
 
