@@ -4,7 +4,6 @@
 // testing ...
 
 #include <cassert>
-#include <stdlib.h>
 
 #include <wjr/preprocessor/arithmatic.hpp>
 #include <wjr/preprocessor/compiler.hpp>

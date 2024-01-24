@@ -1,10 +1,11 @@
 #ifndef WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP__
 #define WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP__
 
-#include <wjr/preprocessor/arithmatic/add.hpp>
+#include <wjr/preprocessor/arithmatic/basic.hpp>
 #include <wjr/preprocessor/arithmatic/inc.hpp>
 #include <wjr/preprocessor/arithmatic/neg.hpp>
-#include <wjr/preprocessor/logical.hpp>
+#include <wjr/preprocessor/logical/basic.hpp>
+#include <wjr/preprocessor/logical/bool.hpp>
 
 #define WJR_PP_LT(x, y) WJR_PP_BOOL_IF(WJR_PP_BOOL(y), WJR_PP_ADD_OVERFLOW(x, y), 0)
 #define WJR_PP_GT(x, y) WJR_PP_LT(y, x)

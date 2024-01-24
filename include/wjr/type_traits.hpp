@@ -1,10 +1,12 @@
 #ifndef WJR_TYPE_TRAITS_HPP__
 #define WJR_TYPE_TRAITS_HPP__
 
+#include <cstddef>
+#include <cstdint>
 #include <functional>
+#include <iterator>
 #include <limits>
 #include <memory>
-#include <optional>
 #include <type_traits>
 
 #include <wjr/preprocessor.hpp>

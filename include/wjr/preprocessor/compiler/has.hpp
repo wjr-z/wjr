@@ -1,10 +1,11 @@
 #ifndef WJR_PREPROCESSOR_COMPILER_HAS_HPP__
 #define WJR_PREPROCESSOR_COMPILER_HAS_HPP__
 
+#include <wjr/preprocessor/compiler/arch.hpp>
+#include <wjr/preprocessor/compiler/compiler.hpp>
 #include <wjr/preprocessor/details/basic.hpp>
 #include <wjr/preprocessor/logical/basic.hpp>
 
-#include <wjr/preprocessor/compiler/compiler.hpp>
 
 #define WJR_HAS_DEF_VAR(var) WJR_PP_MAP_DEF(var)
 #define WJR_HAS_DEF WJR_HAS_DEF_VAR(1)
@@ -74,7 +75,7 @@
 
 #if WJR_HAS_GCC(9, 1, 0) || WJR_HAS_CLANG(11, 0, 0)
 #define WJR_HAS_BUILTIN___builtin_expect_with_probability WJR_HAS_DEF
-#endif 
+#endif
 
 // WJR_HAS_FEATURE
 

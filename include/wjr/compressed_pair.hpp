@@ -1,6 +1,9 @@
 #ifndef WJR_COMPRESSED_PAIR_HPP__
 #define WJR_COMPRESSED_PAIR_HPP__
 
+#include <array>
+#include <tuple>
+
 #include <wjr/type_traits.hpp>
 
 namespace wjr {

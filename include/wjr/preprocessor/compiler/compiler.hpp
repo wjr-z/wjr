@@ -1,8 +1,6 @@
 #ifndef WJR_PREPROCESSOR_COMPILER_COMPILER_HPP__
 #define WJR_PREPROCESSOR_COMPILER_COMPILER_HPP__
 
-#include <wjr/preprocessor/compiler/arch.hpp>
-
 #if defined(__clang__)
 #define WJR_COMPILER_CLANG
 #elif defined(__GNUC__)
