@@ -1,7 +1,7 @@
 #ifndef WJR_TP_LIST_HPP__
 #define WJR_TP_LIST_HPP__
 
-#include <type_traits>
+#include <wjr/type_traits.hpp>
 
 namespace wjr {
 

@@ -101,12 +101,12 @@ public:
     constexpr explicit span(It first, It last)
         : storage(to_address(first), static_cast<size_type>(last - first)) {}
 
-    template <size_t N, std::enable_if_t<
-                            (__is_dynamic || N == Extent) &&
-                                __is_span_array<std::type_identity_t<element_type> (&)[N],
-                                                element_type>::value,
-                            int> = 0>
-    constexpr span(std::type_identity_t<element_type> (&arr)[N]) noexcept
+    template <size_t N,
+              std::enable_if_t<(__is_dynamic || N == Extent) &&
+                                   __is_span_array<type_identity_t<element_type> (&)[N],
+                                                   element_type>::value,
+                               int> = 0>
+    constexpr span(type_identity_t<element_type> (&arr)[N]) noexcept
         : storage(std::data(arr), N) {}
 
     template <
@@ -239,7 +239,7 @@ public:
     }
 
     constexpr span<element_type, dynamic_extent>
-    subspan(size_type Offset, size_type Count = std::dynamic_extent) const {
+    subspan(size_type Offset, size_type Count = dynamic_extent) const {
         WJR_ASSERT(Offset <= size());
 
         return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
