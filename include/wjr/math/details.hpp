@@ -43,16 +43,14 @@ inline constexpr default_stack_allocator stack_alloc = {};
 
 // preview ...
 
-template <typename T>
-WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
-bool is_power_of_two(T x) {
-    return (x & (x - 1)) == 0;
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR bool is_power_of_two(T n) noexcept {
+    return (n & (n - 1)) == 0;
 }
 
-template <typename T>
-WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
-T lowbit(T x) {
-    return x & -x;
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T lowbit(T n) noexcept {
+    return n & -n;
 }
 
 } // namespace wjr

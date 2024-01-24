@@ -147,21 +147,6 @@ struct is_signed_integral : std::conjunction<std::is_integral<T>, std::is_signed
 template <typename T>
 inline constexpr bool is_signed_integral_v = is_signed_integral<T>::value;
 
-class __is_little_endian_helper {
-    constexpr static std::uint32_t u4 = 1;
-    constexpr static std::uint8_t u1 = static_cast<const std::uint8_t &>(u4);
-
-public:
-    constexpr static bool value = u1 != 0;
-};
-
-// constexpr endian
-enum class endian {
-    little = 0,
-    big = 1,
-    native = __is_little_endian_helper::value ? little : big
-};
-
 // type identity
 template <typename T>
 struct type_identity {
@@ -298,32 +283,6 @@ struct is_convertible_to : std::conjunction<std::is_convertible<From, To>,
 template <typename From, typename To>
 inline constexpr bool is_convertible_to_v = is_convertible_to<From, To>::value;
 
-template <typename Ptr, typename = void>
-struct __has_to_address_impl : std::false_type {};
-
-template <typename Ptr>
-struct __has_to_address_impl<
-    Ptr, std::void_t<decltype(typename std::pointer_traits<Ptr>::to_address(
-             std::declval<const Ptr &>()))>> : std::true_type {};
-
-template <typename Ptr>
-struct __has_to_address : __has_to_address_impl<remove_cvref_t<Ptr>, void> {};
-
-template <typename T>
-constexpr T *to_address(T *p) noexcept {
-    static_assert(!std::is_function_v<T>);
-    return p;
-}
-
-template <typename Ptr>
-constexpr auto to_address(const Ptr &p) noexcept {
-    if constexpr (__has_to_address<Ptr>::value) {
-        return std::pointer_traits<Ptr>::to_address(p);
-    } else {
-        return to_address(p.operator->());
-    }
-}
-
 template <typename T>
 using iter_reference_t = decltype(*std::declval<T &>());
 
@@ -350,6 +309,32 @@ struct is_contiguous_iterator<std::reverse_iterator<iter>>
 
 template <typename iter>
 inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<iter>::value;
+
+template <typename Ptr, typename = void>
+struct __has_to_address_impl : std::false_type {};
+
+template <typename Ptr>
+struct __has_to_address_impl<
+    Ptr, std::void_t<decltype(typename std::pointer_traits<Ptr>::to_address(
+             std::declval<const Ptr &>()))>> : std::true_type {};
+
+template <typename Ptr>
+struct __has_to_address : __has_to_address_impl<remove_cvref_t<Ptr>, void> {};
+
+template <typename T>
+constexpr T *to_address(T *p) noexcept {
+    static_assert(!std::is_function_v<T>);
+    return p;
+}
+
+template <typename Ptr>
+constexpr auto to_address(const Ptr &p) noexcept {
+    if constexpr (__has_to_address<Ptr>::value) {
+        return std::pointer_traits<Ptr>::to_address(p);
+    } else {
+        return to_address(p.operator->());
+    }
+}
 
 } // namespace wjr
 

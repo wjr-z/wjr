@@ -1,7 +1,7 @@
 #ifndef WJR_MATH_ADD_HPP__
 #define WJR_MATH_ADD_HPP__
 
-#include <wjr/math/ctz.hpp>
+#include <wjr/math/clz.hpp>
 #include <wjr/math/replace.hpp>
 
 #if defined(WJR_X86)

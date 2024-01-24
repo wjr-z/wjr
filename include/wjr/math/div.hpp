@@ -2,7 +2,6 @@
 #define WJR_MATH_DIV_HPP__
 
 #include <wjr/math/divider.hpp>
-#include <wjr/math/div.hpp>
 
 namespace wjr {
 

@@ -1,7 +1,8 @@
 #ifndef WJR_MATH_SUB_HPP__
 #define WJR_MATH_SUB_HPP__
 
-#include <wjr/math/ctz.hpp>
+#include <wjr/math/clz.hpp>
+#include <wjr/math/bit.hpp>
 #include <wjr/math/neg.hpp>
 #include <wjr/math/replace.hpp>
 
