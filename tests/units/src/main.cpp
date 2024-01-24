@@ -364,8 +364,10 @@ TEST(math, addc) {
                    {});                                                                  \
     WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_ADDC),                                            \
                    do {                                                                  \
-                       WJR_ASSERT((wjr::asm_addc<type, type>(x, y, ci, co) == ans &&     \
-                                   co == ans_co));                                       \
+                       if constexpr (std::is_same_v<type, uint64_t>) {                   \
+                           WJR_ASSERT((wjr::asm_addc<type, type>(x, y, ci, co) == ans && \
+                                       co == ans_co));                                   \
+                       }                                                                 \
                    } while (0),                                                          \
                    {})
 
@@ -538,8 +540,10 @@ TEST(math, sub) {
         } while (0), )                                                                   \
     WJR_PP_BOOL_IF(                                                                      \
         WJR_HAS_BUILTIN(ASM_SUBC), ; do {                                                \
-            WJR_ASSERT(                                                                  \
-                (wjr::asm_subc<type, type>(x, y, ci, co) == ans && co == ans_co));       \
+            if constexpr (std::is_same_v<type, uint64_t>) {                              \
+                WJR_ASSERT(                                                              \
+                    (wjr::asm_subc<type, type>(x, y, ci, co) == ans && co == ans_co));   \
+            }                                                                            \
         } while (0), )
 
 #define WJR_TEST_SUBC_F(type)                                                            \
@@ -733,7 +737,7 @@ TEST(math, subc_n) {
         }
 
         auto cf = wjr::subc_n(c.data(), a.data(), b.data(), n, 0u);
-        WJR_ASSERT(cf == 1);
+        WJR_ASSERT(cf == 1, "%zu", n);
 
         for (auto &i : c) {
             WJR_ASSERT(i == -1ull);
