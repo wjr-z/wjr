@@ -126,6 +126,10 @@ WJR_INLINE U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(T *dst, const 
 
     T r8 = c_in, r9, r11;
 
+    const auto cdst = dst;
+    const auto csrc0 = src0;
+    const auto csrc1 = src1;
+
     asm volatile(
         "add{b $255, %b[r8]| %b[r8], 255}\n\t"
         "lea{q| %[r9], [rip +} .Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%={(%%rip), %[r9]|]}\n\t"
@@ -298,6 +302,10 @@ WJR_INLINE U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(T *dst, const 
           [r8] "+r"(r8), [r9] "=r"(r9), [r10] "+r"(n), [r11] "=r"(r11)
         :
         : "cc", "memory");
+
+    WJR_ASSUME(dst == cdst + n);
+    WJR_ASSUME(src0 == csrc0 + n);
+    WJR_ASSUME(src1 == csrc1 + n);
 
     return r9;
 }
