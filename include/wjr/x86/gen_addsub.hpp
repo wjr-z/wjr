@@ -306,6 +306,7 @@ WJR_INLINE U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(T *dst, const 
     WJR_ASSUME(dst == cdst + n);
     WJR_ASSUME(src0 == csrc0 + n);
     WJR_ASSUME(src1 == csrc1 + n);
+    WJR_ASSUME(m == 0);
 
     return r9;
 }
