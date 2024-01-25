@@ -121,51 +121,6 @@ WJR_INTRINSIC_CONSTEXPR_E U subc_1(T *dst, const T *src0, size_t n,
     return static_cast<U>(0);
 }
 
-template <size_t div, typename T, typename U>
-WJR_INTRINSIC_CONSTEXPR U subc_n_res(T *dst, const T *src0, const T *src1, size_t n,
-                                     U c_in) {
-
-    constexpr size_t mask = div - 1;
-
-    n &= mask;
-
-    if (WJR_UNLIKELY(n == 0)) {
-        return c_in;
-    }
-
-    dst += n;
-    src0 += n;
-    src1 += n;
-
-#define WJR_REGISTER_SUBC_RES_CASE_CALLER(idx)                                           \
-    case idx: {                                                                          \
-        dst[-idx] = subc(src0[-idx], src1[-idx], c_in, c_in);                            \
-        WJR_FALLTHROUGH;                                                                 \
-    }
-
-#define WJR_REGISTER_SUBC_RES_SWITCH_CALLER(size)                                        \
-    if constexpr (div == size) {                                                         \
-        switch (n) {                                                                     \
-            WJR_PP_TRANSFORM_PUT(                                                        \
-                WJR_PP_QUEUE_TRANSFORM(                                                  \
-                    WJR_PP_QUEUE_REVERSE((WJR_PP_IOTA(WJR_PP_DEC(size)))), WJR_PP_INC),  \
-                WJR_REGISTER_SUBC_RES_CASE_CALLER)                                       \
-        default: {                                                                       \
-            break;                                                                       \
-        }                                                                                \
-        }                                                                                \
-        return c_in;                                                                     \
-    } else
-
-    WJR_REGISTER_SUBC_RES_SWITCH_CALLER(2)
-    WJR_REGISTER_SUBC_RES_SWITCH_CALLER(4) WJR_REGISTER_SUBC_RES_SWITCH_CALLER(8) {
-        static_assert(div <= 8, "not support yet");
-    }
-
-#undef WJR_REGISTER_SUBC_RES_CASE_CALLER
-#undef WJR_REGISTER_SUBC_RES_SWITCH_CALLER
-}
-
 template <typename T, typename U>
 WJR_INTRINSIC_CONSTEXPR U fallback_subc_n(T *dst, const T *src0, const T *src1, size_t n,
                                           U c_in) {
@@ -182,7 +137,34 @@ WJR_INTRINSIC_CONSTEXPR U fallback_subc_n(T *dst, const T *src0, const T *src1, 
         src1 += 4;
     }
 
-    return subc_n_res<4>(dst, src0, src1, n, c_in);
+    n &= 3;
+    if (WJR_UNLIKELY(n == 0)) {
+        return c_in;
+    }
+
+    dst += n;
+    src0 += n;
+    src1 += n;
+
+    switch (n) {
+    case 3: {
+        dst[-3] = subc(src0[-3], src1[-3], c_in, c_in);
+        WJR_FALLTHROUGH;
+    }
+    case 2: {
+        dst[-2] = subc(src0[-2], src1[-2], c_in, c_in);
+        WJR_FALLTHROUGH;
+    }
+    case 1: {
+        dst[-1] = subc(src0[-1], src1[-1], c_in, c_in);
+        WJR_FALLTHROUGH;
+    }
+    default: {
+        break;
+    }
+    }
+
+    return c_in;
 }
 
 template <
@@ -190,6 +172,7 @@ template <
     std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E U subc_n(T *dst, const T *src0, const T *src1, size_t n,
                                    U c_in) {
+    WJR_ASSERT(n >= 1);
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
 

@@ -287,26 +287,26 @@ template <typename T>
 void basecase_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m);
 
 // l = ceil(n / 2)
-// stk usage : 2 * l
-// recursive stk max usage : 4 * l + 64
+// stk usage : l * 2
+// recursive stk max usage : l * 4 + 64
 template <typename T>
 void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *stk);
 
 // l = max(ceil(n / 3), ceil(m / 2))
-// stk usage : 4 * l
-// recursive stk max usage : 6 * l + 64
+// stk usage : l * 4
+// recursive stk max usage : l * 6 + 64
 template <typename T>
 void toom32_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *stk);
 
 // l = max(ceil(n / 4), ceil(m / 2))
-// stk usage : 6 * l
-// recursive stk max usage : 8 * l + 67 ?
+// stk usage : l * 6
+// recursive stk max usage : l * 8 + 67 ?
 template <typename T>
 void toom42_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *stk);
 
 // l = ceil(n / 3)
-// stk usage : 6 * l
-// recursive stk max usage : 9 * l + 288 ?
+// stk usage : l * 6
+// recursive stk max usage : l * 9 + 288 ?
 template <typename T>
 void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *stk);
 
@@ -677,10 +677,10 @@ void toom32_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
 
     auto w0p = dst;
     auto w1p = stk;
-    auto w2p = stk + (2 * l);
+    auto w2p = stk + (l * 2);
     auto w3p = dst + l * 3;
 
-    stk += 4 * l;
+    stk += l * 4;
 
     T cf0 = 0, cf1 = 0, cf2 = 0, cf3 = 0;
     bool neg0 = 0, neg3 = 0;
@@ -748,10 +748,7 @@ void toom32_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
             cf1 = cf1 + cf2 + addc_n(w1p, w1p, w2p, l * 2, 0u);
         }
 
-        rshift_n(w1p, w1p, l * 2, 1u);
-        if (cf1 & 1) {
-            w1p[l * 2 - 1] |= 1ull << 63;
-        }
+        rshift_n(w1p, w1p, l * 2, 1u, cf1);
         cf1 >>= 1;
     }
 
@@ -777,11 +774,9 @@ void toom32_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
     cf0 = addc_n(w0p + l, w0p + l, w1p, l, 0u);
     cf0 = addc_n(dst + l * 2, w1p + l, w2p, l, cf0);
     cf0 = addc_n(w3p, w3p, w2p + l, maxr, cf0);
+    cf2 += addc_1(w3p, w3p, maxr, cf1, 0u);
     cf0 = addc_1(w3p + maxr, w3p + maxr, (rn + rm) - maxr, cf2, cf0);
     WJR_ASSERT(cf0 == 0);
-    cf0 = addc_1(w3p, w3p, rn + rm, cf1, 0u);
-    WJR_ASSERT(cf0 == 0);
-    (void)(cf0);
 }
 
 template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
@@ -831,10 +826,7 @@ void toom_interpolation_5p_s(T *dst, T *w1p, size_t l, size_t rn, size_t rm,
             cf1 = cf2 + cf1 + addc_n(w1p, w2p, w1p, l * 2, 0u);
         }
 
-        (void)rshift_n(w1p, w1p, l * 2, 1u);
-        if (cf1) {
-            w1p[l * 2 - 1] |= (cf1 & 1) << 63;
-        }
+        rshift_n(w1p, w1p, l * 2, 1u, cf1);
         cf1 >>= 1;
     }
 
@@ -844,14 +836,12 @@ void toom_interpolation_5p_s(T *dst, T *w1p, size_t l, size_t rn, size_t rm,
     // W3 = ((W3 - W2) >> 1) - (W4 << 1) : (non-negative) r3
     {
         cf3 -= cf2 + subc_n(w3p, w3p, w2p, l * 2, 0u);
-
-        (void)rshift_n(w3p, w3p, l + maxr, 1u);
         if (maxr != l) {
+            WJR_ASSERT(cf3 == 0);
             cf3 = w3p[l + maxr];
         }
-        if (cf3) {
-            w3p[l + maxr - 1] |= (cf3 & 1) << 63;
-        }
+
+        rshift_n(w3p, w3p, l + maxr, 1u, cf3);
         cf3 >>= 1;
 
         cf = lshift_n(dst + l * 2, w4p, rn + rm, 1u);
@@ -930,10 +920,8 @@ void toom42_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
     if (cf0 != cf1) {
         cf3 = 1;
         if (cf0) {
-            WJR_ASSERT(cf0 == 1);
             cf3 -= subc_n(w3p, w0p, w1p, l, 0u);
         } else {
-            WJR_ASSERT(cf1 == 1);
             neg3 = 1;
             cf3 -= subc_n(w3p, w1p, w0p, l, 0u);
         }

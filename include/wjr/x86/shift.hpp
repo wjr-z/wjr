@@ -112,10 +112,10 @@ WJR_INLINE void builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned i
 #undef WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2
 
 template <typename T>
-WJR_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned int c) {
+WJR_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned int c, T lo) {
     T ret = src[n - 1] >> (64 - c);
     builtin_lshift_n_impl(dst + 1, src + 1, n - 1, c);
-    dst[0] = src[0] << c;
+    dst[0] = shld(src[0], lo, c);
     return ret;
 }
 
@@ -213,10 +213,10 @@ WJR_INLINE void builtin_rshift_n_impl(T *dst, const T *src, size_t n, unsigned i
 #undef WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED_L2
 
 template <typename T>
-WJR_INLINE T builtin_rshift_n(T *dst, const T *src, size_t n, unsigned int c) {
+WJR_INLINE T builtin_rshift_n(T *dst, const T *src, size_t n, unsigned int c, T hi) {
     T ret = src[0] << (64 - c);
     builtin_rshift_n_impl(dst, src, n - 1, c);
-    dst[n - 1] = src[n - 1] >> c;
+    dst[n - 1] = shrd(src[n - 1], hi, c);
     return ret;
 }
 

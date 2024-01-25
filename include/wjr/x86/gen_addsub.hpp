@@ -111,10 +111,6 @@ WJR_INLINE U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(T *dst, const 
     static_assert(std::is_same_v<T, uint64_t>, "");
 
     if (WJR_BUILTIN_CONSTANT_P(n)) {
-        if (n == 0) {
-            return c_in;
-        }
-
         if (n == 1) {
             dst[0] = WJR_PP_CONCAT(asm_, WJR_addcsubc)(src0[0], src1[0], c_in, c_in);
             return c_in;
@@ -147,11 +143,7 @@ WJR_INLINE U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(T *dst, const 
         ".long .Ll7%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
         ".align 16\n\t"
         
-        ".Ld0%=:\n\t"
-        "jmp .Ldone%=\n\t"
-
         ".Ll0%=:\n\t"
-        "jrcxz .Ld0%=\n\t"
         "mov{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
         "mov{q 8(%[src0]), %[r11]| %[r11], [%[src0] + 8]}\n\t"
         WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
