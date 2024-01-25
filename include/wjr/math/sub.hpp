@@ -1,8 +1,8 @@
 #ifndef WJR_MATH_SUB_HPP__
 #define WJR_MATH_SUB_HPP__
 
-#include <wjr/math/clz.hpp>
 #include <wjr/math/bit.hpp>
+#include <wjr/math/clz.hpp>
 #include <wjr/math/neg.hpp>
 #include <wjr/math/replace.hpp>
 
@@ -65,7 +65,9 @@ WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
     return fallback_subc(a, b, c_in, c_out);
 #else
     constexpr auto is_constant_or_zero = [](const auto &x) -> int {
-        return WJR_BUILTIN_CONSTANT_P(x) ? 1 : 0;
+        return WJR_BUILTIN_CONSTANT_P(x == 0) && x == 0 ? 2
+               : WJR_BUILTIN_CONSTANT_P(x)              ? 1
+                                                        : 0;
     };
 
     // The compiler should be able to optimize the judgment condition of if when enabling
