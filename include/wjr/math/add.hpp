@@ -210,7 +210,6 @@ template <
 WJR_INTRINSIC_CONSTEXPR_E U addc_s(T *dst, const T *src0, size_t n, const T *src1,
                                    size_t m, U c_in) {
     WJR_ASSERT(n >= m);
-    WJR_ASSUME(n >= m);
 
     c_in = addc_n(dst, src0, src1, m, c_in);
 

@@ -68,8 +68,13 @@ WJR_INTRINSIC_INLINE T mulx(T a, T b, T &hi) {
 #if WJR_HAS_BUILTIN(ASM_MUL_1)
 
 WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t dx) {
+    WJR_ASSERT(n != 0);
+
+    const auto cdst = dst;
+    const auto csrc = src;
+
     size_t cx = n / 8;
-    uint64_t r8, r9, r11;
+    uint64_t r8, r9, r10 = n, r11;
 
     asm volatile(
         "and{l $7, %k[r10]| %k[r10], 7}\n\t"
@@ -91,13 +96,7 @@ WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint
         ".long .Ll7%=-.Lasm_mul_1_lookup%=\n\t"
         ".align 16\n\t"
 
-        // UB
-        ".Ld0%=:\n\t"
-        "xor %k[r9], %k[r9]\n\t"
-        "jmp .Ldone%=\n\t"
-
         ".Ll0%=:\n\t"
-        "jrcxz .Ld0%=\n\t"
         "mulx {(%[src]), %[r10], %[r11]|%[r11], %[r10], [%[src]]}\n\t"
         "jmp .Lb0%=\n\t"
 
@@ -208,9 +207,13 @@ WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint
         ".Ldone%=:"
 
         : [dst] "+r"(dst), [src] "+r"(src), "+d"(dx), [cx] "+c"(cx), [r8] "=r"(r8),
-          [r9] "=r"(r9), [r10] "+r"(n), [r11] "=r"(r11)
+          [r9] "=r"(r9), [r10] "+r"(r10), [r11] "=r"(r11)
         :
         : "cc", "memory");
+
+    WJR_ASSUME(dst == cdst + n);
+    WJR_ASSUME(src == csrc + n);
+    WJR_ASSUME(cx == 0);
 
     return r9;
 }
@@ -226,8 +229,13 @@ WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint
 // TODO : optimize pipeline
 WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
                                  uint64_t dx) {
+    WJR_ASSERT(n != 0);
+
+    const auto cdst = dst;
+    const auto csrc = src;
+
     size_t cx = n / 8;
-    uint64_t r8, r9, r11;
+    uint64_t r8, r9, r10 = n, r11;
 
     asm volatile(
         "and{l $7, %k[r10]| %k[r10], 7}\n\t"
@@ -249,13 +257,7 @@ WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
         ".long .Ll7%=-.Lasm_mul_1_lookup%=\n\t"
         ".align 16\n\t"
 
-        // UB
-        ".Ld0%=:\n\t"
-        "xor %k[r9], %k[r9]\n\t"
-        "jmp .Ldone%=\n\t"
-
         ".Ll0%=:\n\t"
-        "jrcxz .Ld0%=\n\t"
         "mulx {(%[src]), %[r10], %[r11]|%[r11], %[r10], [%[src]]}\n\t"
         "jmp .Lb0%=\n\t"
 
@@ -375,9 +377,13 @@ WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
         ".Ldone%=:"
 
         : [dst] "+r"(dst), [src] "+r"(src), "+d"(dx), [cx] "+c"(cx), [r8] "=r"(r8),
-          [r9] "=r"(r9), [r10] "+r"(n), [r11] "=r"(r11)
+          [r9] "=r"(r9), [r10] "+r"(r10), [r11] "=r"(r11)
         :
         : "cc", "memory");
+
+    WJR_ASSUME(dst == cdst + n);
+    WJR_ASSUME(src == csrc + n);
+    WJR_ASSUME(cx == 0);
 
     return r9;
 }
@@ -402,9 +408,13 @@ WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
 // TODO : optimize
 WJR_INLINE uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
                                  uint64_t dx) {
+    WJR_ASSERT(n != 0);
+
+    const auto cdst = dst;
+    const auto csrc = src;
+
     size_t cx = n / 8;
-    n &= 7;
-    uint64_t r8, r9, r11;
+    uint64_t r8, r9, r10 = n & 7, r11;
 
     asm volatile(
         // set CF = 1, OF = 0
@@ -429,13 +439,7 @@ WJR_INLINE uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
         ".long .Ll7%=-.Lasm_mul_1_lookup%=\n\t"
         ".align 16\n\t"
 
-        // UB
-        ".Ld0%=:\n\t"
-        "xor %k[r9], %k[r9]\n\t"
-        "jmp .Ldone%=\n\t"
-
         ".Ll0%=:\n\t"
-        "jrcxz .Ld0%=\n\t"
         "mulx {(%[src]), %[r10], %[r11]|%[r11], %[r10], [%[src]]}\n\t"
         "not %[r10]\n\t"
         "jmp .Lb0%=\n\t"
@@ -571,9 +575,13 @@ WJR_INLINE uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
         ".Ldone%=:"
 
         : [dst] "+r"(dst), [src] "+r"(src), "+d"(dx), [cx] "+c"(cx), [r8] "=r"(r8),
-          [r9] "=r"(r9), [r10] "+r"(n), [r11] "=r"(r11)
+          [r9] "=r"(r9), [r10] "+r"(r10), [r11] "=r"(r11)
         :
         : "cc", "memory");
+
+    WJR_ASSUME(dst == cdst + n);
+    WJR_ASSUME(src == csrc + n);
+    WJR_ASSUME(cx == 0);
 
     return r9;
 }

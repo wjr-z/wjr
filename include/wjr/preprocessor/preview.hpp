@@ -28,14 +28,9 @@
 #define WJR_DEBUG_LEVEL 1
 #endif //
 
-// use abort instead of assert when NDEBUG is defined
 #if defined(NDEBUG)
-#define WJR_ASSERT_NOMESSAGE_I(expr)                                                     \
-    if (WJR_UNLIKELY(!(expr))) {                                                         \
-        WJR_UNREACHABLE();                                                               \
-    }
-#define WJR_ASSERT_MESSAGE_I(expr)                                                       \
-    WJR_UNREACHABLE();
+#define WJR_ASSERT_NOMESSAGE_I(expr) WJR_ASSUME(expr)
+#define WJR_ASSERT_MESSAGE_I(expr) WJR_UNREACHABLE()
 #else
 #define WJR_ASSERT_NOMESSAGE_I(expr) assert(expr)
 #define WJR_ASSERT_MESSAGE_I(expr)                                                       \

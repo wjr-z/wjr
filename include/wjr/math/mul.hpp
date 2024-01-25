@@ -64,12 +64,12 @@ WJR_INTRINSIC_CONSTEXPR_E T mul(T a, T b, T &hi) {
 
     if (WJR_BUILTIN_CONSTANT_P(a == max) && a == max) {
         hi = b == 0 ? 0 : b - 1;
-        return -b;
+        return static_cast<T>(-b);
     }
 
     if (WJR_BUILTIN_CONSTANT_P(b == max) && b == max) {
         hi = a == 0 ? 0 : a - 1;
-        return -a;
+        return static_cast<T>(-a);
     }
 
     if constexpr (nd < 64) {
@@ -574,7 +574,8 @@ WJR_INTRINSIC_INLINE void __rec_mul_n(T *dst, const T *src0, const T *src1, size
 }
 
 template <typename T>
-void basecase_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
+WJR_NOINLINE void basecase_mul_s(T *dst, const T *src0, size_t n, const T *src1,
+                                 size_t m) {
     dst[n] = mul_1(dst, src0, n, src1[0]);
     for (size_t i = 1; i < m; ++i) {
         dst[i + n] = addmul_1(dst + i, src0, n, src1[i]);
@@ -590,8 +591,6 @@ void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
 
     WJR_ASSERT(n >= m);
     WJR_ASSERT(2 * m > n);
-
-    WJR_ASSUME(n >= m);
 
     const size_t l = (n + 1) / 2;
     const size_t rn = n - l;
@@ -1018,8 +1017,6 @@ template <typename T>
 void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *stk) {
     WJR_ASSERT(n >= m);
     WJR_ASSERT(3 * m > 2 * n);
-
-    WJR_ASSUME(n >= m);
 
     const size_t l = (n + 2) / 3;
     const size_t rn = n - l * 2;

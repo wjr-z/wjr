@@ -143,7 +143,6 @@ template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR20 T divmod_1(T *dst, const T *src, size_t n,
                                      div2by1_divider<T> div) {
     WJR_ASSERT(n != 0);
-    WJR_ASSUME(n != 0);
 
     if (WJR_UNLIKELY(div.is_power_of_two())) {
         unsigned int c = 63 - div.shift();
@@ -167,7 +166,6 @@ template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR20 T divmod_1(T *dst, const T *src, size_t n,
                                      type_identity_t<T> div) {
     WJR_ASSERT(n != 0);
-    WJR_ASSUME(n != 0);
 
     if (WJR_UNLIKELY(is_power_of_two(div))) {
         unsigned int c = ctz(div);
@@ -275,7 +273,6 @@ template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           divexact1_divider<T> div) {
     WJR_ASSERT(n != 0);
-    WJR_ASSUME(n != 0);
 
     if (WJR_UNLIKELY(div.is_power_of_two())) {
         unsigned int c = div.shift();
@@ -300,7 +297,6 @@ template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           type_identity_t<T> div) {
     WJR_ASSERT(n != 0);
-    WJR_ASSUME(n != 0);
 
     if (WJR_UNLIKELY(is_power_of_two(div))) {
         unsigned int c = ctz(div);

@@ -212,7 +212,6 @@ template <
 WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n, const T *src1,
                                    size_t m, U c_in) {
     WJR_ASSERT(n >= m);
-    WJR_ASSUME(n >= m);
 
     c_in = subc_n(dst, src0, src1, m, c_in);
 
@@ -259,7 +258,6 @@ template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E ptrdiff_t abs_subc_s(T *dst, const T *src0, size_t n,
                                                const T *src1, size_t m) {
     WJR_ASSERT(n >= m);
-    WJR_ASSUME(n >= m);
 
     size_t delta = n - m;
     size_t idx = reverse_find_not_n(src0 + m, 0u, delta);
@@ -274,7 +272,6 @@ WJR_INTRINSIC_CONSTEXPR_E ptrdiff_t abs_subc_s(T *dst, const T *src0, size_t n,
 
     auto cf = subc_s(dst, src0, m + idx, src1, m, 0u);
     WJR_ASSERT(cf == 0);
-    WJR_ASSUME(cf == 0);
     (void)(cf);
 
     return abs_cast(m + idx);
