@@ -14,11 +14,11 @@ namespace wjr {
 
 template <typename T, typename U>
 WJR_INTRINSIC_CONSTEXPR T fallback_subc(T a, T b, U c_in, U &c_out) {
-    T ret = a;
-    U c = ret < b;
-    ret -= b;
-    c |= ret < c_in;
+    T ret = a - b;
+    U c = ret > a;
+    a = ret;
     ret -= c_in;
+    c |= ret > a;
     c_out = c;
     return ret;
 }
@@ -64,7 +64,7 @@ WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
 #if !WJR_HAS_BUILTIN(SUBC) && !WJR_HAS_BUILTIN(ASM_SUBC)
     return fallback_subc(a, b, c_in, c_out);
 #else
-    constexpr auto is_constant_or_zero = [](const auto &x) -> int {
+    constexpr auto is_constant_or_zero = [](auto x) -> int {
         return WJR_BUILTIN_CONSTANT_P(x == 0) && x == 0 ? 2
                : WJR_BUILTIN_CONSTANT_P(x)              ? 1
                                                         : 0;

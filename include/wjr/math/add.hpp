@@ -62,7 +62,7 @@ WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out) {
 #if !WJR_HAS_BUILTIN(ADDC) && !WJR_HAS_BUILTIN(ASM_ADDC)
     return fallback_addc(a, b, c_in, c_out);
 #else
-    constexpr auto is_constant_or_zero = [](const auto &x) -> int {
+    constexpr auto is_constant_or_zero = [](auto x) -> int {
         return WJR_BUILTIN_CONSTANT_P(x == 0) && x == 0 ? 2
                : WJR_BUILTIN_CONSTANT_P(x)              ? 1
                                                         : 0;

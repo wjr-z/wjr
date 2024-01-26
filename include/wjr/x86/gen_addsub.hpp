@@ -12,35 +12,18 @@
 template <typename U>
 WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_addcsubc)(uint64_t a, uint64_t b,
                                                                 U c_in, U &c_out) {
-
+    // c_in == 0, handled at addc/subc
 #if WJR_ADDSUB_I == 0
-    if (WJR_BUILTIN_CONSTANT_P(c_in)) {
-        if (c_in == 0) {
-// GCC seems to have some optimization issues
-#if defined(WJR_COMPILER_GCC)
-            asm("sub{q %2, %0| %0, %2}\n\t"
-                "setb %b1"
-                : "=r"(a), "+r"(c_in)
-                : "ri"(b), "0"(a)
-                : "cc");
-            c_out = c_in;
-            return a;
-#else
-            c_out = a < b;
-            a -= b;
-            return a;
-#endif
-        } else {
-            c_in = 0;
-            asm("stc\n\t"
-                "sbb{q %2, %0| %0, %2}\n\t"
-                "setb %b1"
-                : "=r"(a), "+r"(c_in)
-                : "ri"(b), "0"(a)
-                : "cc");
-            c_out = c_in;
-            return a;
-        }
+    if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
+        c_in = 0;
+        asm("stc\n\t"
+            "sbb{q %2, %0| %0, %2}\n\t"
+            "setb %b1"
+            : "=r"(a), "+r"(c_in)
+            : "ri"(b), "0"(a)
+            : "cc");
+        c_out = c_in;
+        return a;
     }
 
     asm("add{b $255, %b1| %b1, 255}\n\t"
@@ -52,23 +35,17 @@ WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_addcsubc)(uint64_t a, uint
     c_out = c_in;
     return a;
 #else
-    if (WJR_BUILTIN_CONSTANT_P(c_in)) {
-        if (c_in == 0) {
-            a += b;
-            c_out = a < b;
-            return a;
-        } else {
-            c_in = 0;
-            asm("stc\n\t"
-                "adc{q"
-                " %2, %0| %0, %2}\n\t"
-                "setb %b1"
-                : "=r"(a), "+r"(c_in)
-                : "ri"(b), "0"(a)
-                : "cc");
-            c_out = c_in;
-            return a;
-        }
+    if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
+        c_in = 0;
+        asm("stc\n\t"
+            "adc{q"
+            " %2, %0| %0, %2}\n\t"
+            "setb %b1"
+            : "=r"(a), "+r"(c_in)
+            : "ri"(b), "0"(a)
+            : "cc");
+        c_out = c_in;
+        return a;
     }
 
     if (WJR_BUILTIN_CONSTANT_P(a)) {

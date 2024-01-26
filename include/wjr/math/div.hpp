@@ -3,6 +3,10 @@
 
 #include <wjr/math/divider.hpp>
 
+#if defined(WJR_X86)
+#include <wjr/x86/div.hpp>
+#endif
+
 namespace wjr {
 
 // reference : https://ieeexplore.ieee.org/document/5487506
@@ -187,28 +191,47 @@ template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
 WJR_CONSTEXPR_E T fallback_divexact_dbm1c(T *dst, const T *src, size_t n, T bd, T h) {
     T a = 0, p0 = 0, p1 = 0, cf = 0;
 
+    // GCC can't optimize well
+    WJR_UNROLL(4)
     for (size_t i = 0; i < n; i++) {
         a = src[i];
         p0 = mul(a, bd, p1);
-        cf = h < p0;
-        h = (h - p0);
+        h = subc(h, p0, 0u, cf);
         dst[i] = h;
-        h = h - p1 - cf;
+        h -= p1 + cf;
     }
 
     return h;
 }
 
+template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+WJR_CONSTEXPR_E T divexact_dbm1c(T *dst, const T *src, size_t n, T bd, T h) {
+#if WJR_HAS_BUILTIN(ASM_DIVEXACT_DBM1C)
+    if (is_constant_evaluated()) {
+        return fallback_divexact_dbm1c(dst, src, n, bd, h);
+    }
+    return asm_divexact_dbm1c(dst, src, n, bd, h);
+#else
+    return fallback_divexact_dbm1c(dst, src, n, bd, h);
+#endif
+}
+
 template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int>>
 WJR_CONSTEXPR_E void divexact_by3(T *dst, const T *src, size_t n) {
     constexpr auto max = std::numeric_limits<T>::max();
-    (void)fallback_divexact_dbm1c<T>(dst, src, n, max / 3, 0);
+    (void)divexact_dbm1c<T>(dst, src, n, max / 3, 0);
 }
 
 template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
 WJR_CONSTEXPR_E void divexact_by5(T *dst, const T *src, size_t n) {
     constexpr auto max = std::numeric_limits<T>::max();
-    (void)fallback_divexact_dbm1c<T>(dst, src, n, max / 5, 0);
+    (void)divexact_dbm1c<T>(dst, src, n, max / 5, 0);
+}
+
+template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+WJR_CONSTEXPR_E void divexact_by15(T *dst, const T *src, size_t n) {
+    constexpr auto max = std::numeric_limits<T>::max();
+    (void)divexact_dbm1c<T>(dst, src, n, max / 15, 0);
 }
 
 // reference : ftp://ftp.risc.uni-linz.ac.at/pub/techreports/1992/92-35.ps.gz
@@ -280,16 +303,6 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
         return;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(div.shift() == 0) && div.shift() == 0) {
-        if (WJR_BUILTIN_CONSTANT_P(div.divisor() == 3) && div.divisor() == 3) {
-            return divexact_by3(dst, src, n);
-        }
-        
-        if (WJR_BUILTIN_CONSTANT_P(div.divisor() == 5) && div.divisor() == 5) {
-            return divexact_by5(dst, src, n);
-        }
-    }
-
     return fallback_divexact_1(dst, src, n, div);
 }
 
@@ -302,14 +315,6 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
         unsigned int c = ctz(div);
         (void)rshift_n(dst, src, n, c);
         return;
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P(div == 3) && div == 3) {
-        return divexact_by3(dst, src, n);
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P(div == 5) && div == 5) {
-        return divexact_by5(dst, src, n);
     }
 
     return fallback_divexact_1(dst, src, n, divexact1_divider<T>(div));
