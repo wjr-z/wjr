@@ -8,8 +8,8 @@
 
 #if defined(WJR_DEBUG_LEVEL)
 #undef WJR_DEBUG_LEVEL
-#define WJR_DEBUG_LEVEL 3
 #endif
+#define WJR_DEBUG_LEVEL 3
 
 #include <wjr/math.hpp>
 #include <wjr/preprocessor.hpp>
@@ -362,14 +362,14 @@ TEST(math, addc) {
                                    co == ans_co));                                       \
                    } while (0),                                                          \
                    {});                                                                  \
-    WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_ADDC),                                            \
-                   do {                                                                  \
-                       if constexpr (std::is_same_v<type, uint64_t>) {                   \
-                           WJR_ASSERT((wjr::asm_addc<type, type>(x, y, ci, co) == ans && \
-                                       co == ans_co));                                   \
-                       }                                                                 \
-                   } while (0),                                                          \
-                   {})
+    WJR_PP_BOOL_IF(                                                                      \
+        WJR_HAS_BUILTIN(ASM_ADDC),                                                       \
+        do {                                                                             \
+            if constexpr (std::is_same_v<type, uint64_t>) {                              \
+                WJR_ASSERT((wjr::asm_addc<type>(x, y, ci, co) == ans && co == ans_co));  \
+            }                                                                            \
+        } while (0),                                                                     \
+        {})
 
 #define WJR_TEST_ADDC_F(type)                                                            \
     do {                                                                                 \
@@ -541,8 +541,7 @@ TEST(math, sub) {
     WJR_PP_BOOL_IF(                                                                      \
         WJR_HAS_BUILTIN(ASM_SUBC), ; do {                                                \
             if constexpr (std::is_same_v<type, uint64_t>) {                              \
-                WJR_ASSERT(                                                              \
-                    (wjr::asm_subc<type, type>(x, y, ci, co) == ans && co == ans_co));   \
+                WJR_ASSERT((wjr::asm_subc<type>(x, y, ci, co) == ans && co == ans_co));  \
             }                                                                            \
         } while (0), )
 
