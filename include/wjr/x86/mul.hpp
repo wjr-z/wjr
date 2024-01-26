@@ -70,30 +70,27 @@ WJR_INTRINSIC_INLINE T mulx(T a, T b, T &hi) {
 WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t dx) {
     WJR_ASSERT(n != 0);
 
-    const auto cdst = dst;
-    const auto csrc = src;
-
     size_t cx = n / 8;
     uint64_t r8, r9, r10 = n, r11;
 
     asm volatile(
         "and{l $7, %k[r10]| %k[r10], 7}\n\t"
-        "lea{q| %[r9], [rip +} .Lasm_mul_1_lookup%={(%%rip), %[r9]|]}\n\t"
+        "lea{q| %[r9], [rip +} .Llookup%={(%%rip), %[r9]|]}\n\t"
         "movs{lq (%[r9], %[r10], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + "
         "%[r10] * 4]}\n\t"
         "lea{q (%[r9], %[r10], 1), %[r10]| %[r10], [%[r10] + %[r9]]}\n\t"
         "jmp{q *%[r10]| %[r10]}\n\t"
 
         ".align 8\n\t"
-        ".Lasm_mul_1_lookup%=:\n\t"
-        ".long .Ll0%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll1%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll2%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll3%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll4%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll5%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll6%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll7%=-.Lasm_mul_1_lookup%=\n\t"
+        ".Llookup%=:\n\t"
+        ".long .Ll0%=-.Llookup%=\n\t"
+        ".long .Ll1%=-.Llookup%=\n\t"
+        ".long .Ll2%=-.Llookup%=\n\t"
+        ".long .Ll3%=-.Llookup%=\n\t"
+        ".long .Ll4%=-.Llookup%=\n\t"
+        ".long .Ll5%=-.Llookup%=\n\t"
+        ".long .Ll6%=-.Llookup%=\n\t"
+        ".long .Ll7%=-.Llookup%=\n\t"
         ".align 16\n\t"
 
         ".Ll0%=:\n\t"
@@ -153,7 +150,7 @@ WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint
         "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
 
         ".align 32\n\t"
-        ".Lasm_addmul_1_loop%=:\n\t"
+        ".Lloop%=:\n\t"
 
         ".Lb1%=:\n\t"
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
@@ -199,9 +196,9 @@ WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint
         "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
 
         "dec %[cx]\n\t"
-        "jne .Lasm_addmul_1_loop%=\n\t"
+        "jne .Lloop%=\n\t"
 
-        "adc{q $0, %[r9]| %[r9], 0}\n\t"
+        "adc{q %[cx], %[r9]| %[r9], %[cx]}\n\t"
         "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
 
         ".Ldone%=:"
@@ -211,8 +208,6 @@ WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint
         :
         : "cc", "memory");
 
-    WJR_ASSUME(dst == cdst + n);
-    WJR_ASSUME(src == csrc + n);
     WJR_ASSUME(cx == 0);
 
     return r9;
@@ -231,30 +226,27 @@ WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
                                  uint64_t dx) {
     WJR_ASSERT(n != 0);
 
-    const auto cdst = dst;
-    const auto csrc = src;
-
     size_t cx = n / 8;
     uint64_t r8, r9, r10 = n, r11;
 
     asm volatile(
         "and{l $7, %k[r10]| %k[r10], 7}\n\t"
-        "lea{q| %[r9], [rip +} .Lasm_mul_1_lookup%={(%%rip), %[r9]|]}\n\t"
+        "lea{q| %[r9], [rip +} .Llookup%={(%%rip), %[r9]|]}\n\t"
         "movs{lq (%[r9], %[r10], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + "
         "%[r10] * 4]}\n\t"
         "lea{q (%[r9], %[r10], 1), %[r10]| %[r10], [%[r10] + %[r9]]}\n\t"
         "jmp{q *%[r10]| %[r10]}\n\t"
 
         ".align 8\n\t"
-        ".Lasm_mul_1_lookup%=:\n\t"
-        ".long .Ll0%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll1%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll2%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll3%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll4%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll5%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll6%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll7%=-.Lasm_mul_1_lookup%=\n\t"
+        ".Llookup%=:\n\t"
+        ".long .Ll0%=-.Llookup%=\n\t"
+        ".long .Ll1%=-.Llookup%=\n\t"
+        ".long .Ll2%=-.Llookup%=\n\t"
+        ".long .Ll3%=-.Llookup%=\n\t"
+        ".long .Ll4%=-.Llookup%=\n\t"
+        ".long .Ll5%=-.Llookup%=\n\t"
+        ".long .Ll6%=-.Llookup%=\n\t"
+        ".long .Ll7%=-.Llookup%=\n\t"
         ".align 16\n\t"
 
         ".Ll0%=:\n\t"
@@ -299,7 +291,7 @@ WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
 
         ".Ld1%=:\n\t"
         "add{q (%[dst]), %[r8]| [%[dst]], %[r8]}\n\t"
-        "adc{q $0, %[r9]| %[r9], 0}\n\t"
+        "adc{q %[cx], %[r9]| %[r9], %[cx]}\n\t"
         "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
         "jmp .Ldone%=\n\t"
 
@@ -310,7 +302,7 @@ WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
         "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
 
         ".align 32\n\t"
-        ".Lasm_addmul_1_loop%=:\n\t"
+        ".Lloop%=:\n\t"
 
         ".Lb1%=:\n\t"
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
@@ -366,7 +358,7 @@ WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
         "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
 
         "jrcxz .Lloop_out%=\n\t"
-        "jmp .Lasm_addmul_1_loop%=\n\t"
+        "jmp .Lloop%=\n\t"
         ".Lloop_out%=:\n\t"
 
         "adcx{q -8(%[dst]), %[r8]| %[r8], [%[dst] - 8]}\n\t"
@@ -381,8 +373,6 @@ WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
         :
         : "cc", "memory");
 
-    WJR_ASSUME(dst == cdst + n);
-    WJR_ASSUME(src == csrc + n);
     WJR_ASSUME(cx == 0);
 
     return r9;
@@ -410,9 +400,6 @@ WJR_INLINE uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
                                  uint64_t dx) {
     WJR_ASSERT(n != 0);
 
-    const auto cdst = dst;
-    const auto csrc = src;
-
     size_t cx = n / 8;
     uint64_t r8, r9, r10 = n & 7, r11;
 
@@ -421,22 +408,22 @@ WJR_INLINE uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
         "mov{b $255, %b[r11]| %b[r11], 255}\n\t"
         "add{b $1, %b[r11]| %b[r11], 1}\n\t"
 
-        "lea{q| %[r9], [rip +} .Lasm_mul_1_lookup%={(%%rip), %[r9]|]}\n\t"
+        "lea{q| %[r9], [rip +} .Llookup%={(%%rip), %[r9]|]}\n\t"
         "movs{lq (%[r9], %[r10], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + %[r10] * "
         "4]}\n\t"
         "lea{q (%[r9], %[r10], 1), %[r10]| %[r10], [%[r10] + %[r9]]}\n\t"
         "jmp{q *%[r10]| %[r10]}\n\t"
 
         ".align 8\n\t"
-        ".Lasm_mul_1_lookup%=:\n\t"
-        ".long .Ll0%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll1%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll2%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll3%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll4%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll5%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll6%=-.Lasm_mul_1_lookup%=\n\t"
-        ".long .Ll7%=-.Lasm_mul_1_lookup%=\n\t"
+        ".Llookup%=:\n\t"
+        ".long .Ll0%=-.Llookup%=\n\t"
+        ".long .Ll1%=-.Llookup%=\n\t"
+        ".long .Ll2%=-.Llookup%=\n\t"
+        ".long .Ll3%=-.Llookup%=\n\t"
+        ".long .Ll4%=-.Llookup%=\n\t"
+        ".long .Ll5%=-.Llookup%=\n\t"
+        ".long .Ll6%=-.Llookup%=\n\t"
+        ".long .Ll7%=-.Llookup%=\n\t"
         ".align 16\n\t"
 
         ".Ll0%=:\n\t"
@@ -500,7 +487,7 @@ WJR_INLINE uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
         "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
 
         ".align 32\n\t"
-        ".Lasm_addmul_1_loop%=:\n\t"
+        ".Lloop%=:\n\t"
 
         ".Lb1%=:\n\t"
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
@@ -564,7 +551,7 @@ WJR_INLINE uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
         "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
 
         "jrcxz .Lloop_out%=\n\t"
-        "jmp .Lasm_addmul_1_loop%=\n\t"
+        "jmp .Lloop%=\n\t"
         ".Lloop_out%=:\n\t"
 
         "adcx{q -8(%[dst]), %[r8]| %[r8], [%[dst] - 8]}\n\t"
@@ -579,12 +566,19 @@ WJR_INLINE uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
         :
         : "cc", "memory");
 
-    WJR_ASSUME(dst == cdst + n);
-    WJR_ASSUME(src == csrc + n);
     WJR_ASSUME(cx == 0);
 
     return r9;
 }
+
+#endif
+
+#if WJR_HAS_BUILTIN(ASM_MUL_1)
+#define WJR_HAS_BUILTIN_ASM_ADDLSH_N WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_ASM_SUBLSH_N WJR_HAS_DEF
+
+#define WJR_ADDSUB_I 1
+#include <wjr/x86/gen_addrsblsh_n.hpp>
 
 #endif
 

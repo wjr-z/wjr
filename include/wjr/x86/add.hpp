@@ -13,11 +13,11 @@ namespace wjr {
     (defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC))
 #define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_ASM_ADDC_N WJR_HAS_DEF
-#endif
 
 #define WJR_ADDSUB_I 1
-
 #include <wjr/x86/gen_addsub.hpp>
+
+#endif
 
 } // namespace wjr
 

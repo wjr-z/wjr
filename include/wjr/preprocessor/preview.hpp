@@ -29,8 +29,18 @@
 #endif //
 
 #if defined(NDEBUG)
-#define WJR_ASSERT_NOMESSAGE_I(expr) WJR_ASSUME(expr)
-#define WJR_ASSERT_MESSAGE_I(expr) WJR_UNREACHABLE()
+#define WJR_ASSERT_NOMESSAGE_I(expr)                                                     \
+    do {                                                                                 \
+        if (WJR_UNLIKELY(!(expr))) {                                                     \
+            std::abort();                                                                \
+            WJR_UNREACHABLE();                                                           \
+        }                                                                                \
+    } while (0)
+#define WJR_ASSERT_MESSAGE_I(expr)                                                       \
+    do {                                                                                 \
+        std::abort();                                                                    \
+        WJR_UNREACHABLE();                                                               \
+    } while (0)
 #else
 #define WJR_ASSERT_NOMESSAGE_I(expr) assert(expr)
 #define WJR_ASSERT_MESSAGE_I(expr)                                                       \
@@ -58,8 +68,9 @@
                    WJR_ASSERT_CHECK_I_MESSAGE)                                           \
     (__VA_ARGS__)
 
-#define WJR_ASSERT_UNCHECK_I(...)                                                        \
+#define WJR_ASSERT_UNCHECK_I(expr, ...)                                                  \
     do {                                                                                 \
+        WJR_ASSUME(expr);                                                                \
     } while (0)
 
 // level = [0, 2]

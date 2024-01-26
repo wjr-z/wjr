@@ -210,11 +210,15 @@ WJR_INTRINSIC_CONSTEXPR_E T addmul_1(T *dst, const T *src, size_t n,
     }
 
 #if WJR_HAS_BUILTIN(ASM_ADDMUL_1)
-    if (is_constant_evaluated()) {
+    if constexpr (sizeof(T) == 8) {
+        if (is_constant_evaluated()) {
+            return fallback_addmul_1(dst, src, n, ml);
+        }
+
+        return asm_addmul_1(dst, src, n, ml);
+    } else {
         return fallback_addmul_1(dst, src, n, ml);
     }
-
-    return asm_addmul_1(dst, src, n, ml);
 #else
     return fallback_addmul_1(dst, src, n, ml);
 #endif
@@ -257,6 +261,42 @@ WJR_INTRINSIC_CONSTEXPR_E T submul_1(T *dst, const T *src, size_t n,
     return asm_submul_1(dst, src, n, ml);
 #else
     return fallback_submul_1(dst, src, n, ml);
+#endif
+}
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR T fallback_addlsh_n(T *dst, const T *src0, const T *src1,
+                                            size_t n, type_identity_t<T> cl) {
+    T tcl = std::numeric_limits<T>::digits - cl;
+    T lo = 0, hi = 0;
+    T o_in = 0, c_in = 0;
+
+    for (size_t i = 0; i < n; ++i) {
+        lo = src1[i] << cl;
+        hi = src1[i] >> tcl;
+        lo = addc<T>(lo, c_in, 0u, c_in);
+        dst[i] = addc<T>(lo, src0[i], 0u, o_in);
+        c_in += hi + o_in;
+    }
+
+    return c_in;
+}
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR_E T addlsh_n(T *dst, const T *src0, const T *src1, size_t n,
+                                     type_identity_t<T> cl) {
+    if (WJR_UNLIKELY(cl == 0)) {
+        return wjr::addc_n(dst, src0, src1, n, 0u);
+    }
+
+#if WJR_HAS_BUILTIN(ASM_ADDLSH_N)
+    if (is_constant_evaluated()) {
+        return fallback_addlsh_n(dst, src0, src1, n, cl);
+    }
+
+    return asm_addlsh_n(dst, src0, src1, n, cl);
+#else
+    return fallback_addlsh_n(dst, src0, src1, n, cl);
 #endif
 }
 
