@@ -1073,7 +1073,13 @@ TEST(math, neg) {
                 }
             }
 
-            auto cf = wjr::addc_n(c.data(), a.data(), b.data(), n, 0u);
+            auto cf = [&]() -> uint64_t {
+                if (!n) {
+                    return 0u;
+                }
+                return wjr::addc_n(c.data(), a.data(), b.data(), n, 0u);
+            }();
+
             if (n != m) {
                 WJR_ASSERT(cf);
             } else {
