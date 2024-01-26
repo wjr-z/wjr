@@ -260,20 +260,6 @@ WJR_INTRINSIC_CONSTEXPR_E T submul_1(T *dst, const T *src, size_t n,
 #endif
 }
 
-// Built in not implemented
-template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E T addshl1_n(T *dst, const T *src, size_t n,
-                                      type_identity_t<T> cl) {
-    return addmul_1(dst, src, n, static_cast<T>(1u) << c);
-}
-
-// Built in not implemented
-template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E T subshl1_n(T *dst, const T *src, size_t n,
-                                      type_identity_t<T> c) {
-    return submul_1(dst, src, n, static_cast<T>(1u) << cl);
-}
-
 // preview :
 
 // native default threshold of toom-cook-2

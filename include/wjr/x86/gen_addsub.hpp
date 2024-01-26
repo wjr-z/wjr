@@ -8,7 +8,6 @@
 
 #define WJR_ADDSUB WJR_PP_BOOL_IF(WJR_ADDSUB_I, ADDC, SUBC)
 #define WJR_addcsubc WJR_PP_BOOL_IF(WJR_ADDSUB_I, addc, subc)
-#define WJR_addsub WJR_PP_BOOL_IF(WJR_ADDSUB_I, add, sub)
 #define WJR_adcsbb WJR_PP_BOOL_IF(WJR_ADDSUB_I, adc, sbb)
 
 #if WJR_HAS_BUILTIN(WJR_PP_CONCAT(ASM_, WJR_ADDSUB))
@@ -126,21 +125,21 @@ WJR_INLINE U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(T *dst, const 
 
     asm volatile(
         "add{b $255, %b[r8]| %b[r8], 255}\n\t"
-        "lea{q| %[r9], [rip +} .Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%={(%%rip), %[r9]|]}\n\t"
+        "lea{q| %[r9], [rip +} .Lasm_" WJR_PP_STR(WJR_adcsbb) "_n_lookup%={(%%rip), %[r9]|]}\n\t"
         "movs{lq (%[r9], %[r10], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + %[r10] * 4]}\n\t"
         "lea{q (%[r9], %[r10], 1), %[r10]| %[r10], [%[r9] + %[r10]]}\n\t"
         "jmp{q *%[r10]| %[r10]}\n\t"
         
         ".align 8\n\t"
-        ".Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=:\n\t"
-        ".long .Ll0%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
-        ".long .Ll1%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
-        ".long .Ll2%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
-        ".long .Ll3%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
-        ".long .Ll4%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
-        ".long .Ll5%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
-        ".long .Ll6%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
-        ".long .Ll7%=-.Lasm_" WJR_PP_STR(WJR_addcsubc) "_n_lookup%=\n\t"
+        ".Lasm_" WJR_PP_STR(WJR_adcsbb) "_n_lookup%=:\n\t"
+        ".long .Ll0%=-.Lasm_" WJR_PP_STR(WJR_adcsbb) "_n_lookup%=\n\t"
+        ".long .Ll1%=-.Lasm_" WJR_PP_STR(WJR_adcsbb) "_n_lookup%=\n\t"
+        ".long .Ll2%=-.Lasm_" WJR_PP_STR(WJR_adcsbb) "_n_lookup%=\n\t"
+        ".long .Ll3%=-.Lasm_" WJR_PP_STR(WJR_adcsbb) "_n_lookup%=\n\t"
+        ".long .Ll4%=-.Lasm_" WJR_PP_STR(WJR_adcsbb) "_n_lookup%=\n\t"
+        ".long .Ll5%=-.Lasm_" WJR_PP_STR(WJR_adcsbb) "_n_lookup%=\n\t"
+        ".long .Ll6%=-.Lasm_" WJR_PP_STR(WJR_adcsbb) "_n_lookup%=\n\t"
+        ".long .Ll7%=-.Lasm_" WJR_PP_STR(WJR_adcsbb) "_n_lookup%=\n\t"
         ".align 16\n\t"
         
         ".Ll0%=:\n\t"
@@ -230,7 +229,7 @@ WJR_INLINE U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(T *dst, const 
         "lea{q 16(%[dst]), %[dst]| %[dst], [%[dst] + 16]}\n\t"
 
         ".align 32\n\t"
-        ".Lwjr_asm_" WJR_PP_STR(WJR_addcsubc) "_n_loop%=:\n\t"
+        ".Lwjr_asm_" WJR_PP_STR(WJR_adcsbb) "_n_loop%=:\n\t"
 
         ".Lb2%=:\n\t"
         "mov{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
@@ -278,7 +277,7 @@ WJR_INLINE U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(T *dst, const 
         "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
         "dec %[cx]\n\t"
         
-        "jne .Lwjr_asm_" WJR_PP_STR(WJR_addcsubc) "_n_loop%=\n\t"
+        "jne .Lwjr_asm_" WJR_PP_STR(WJR_adcsbb) "_n_loop%=\n\t"
 
         WJR_PP_STR(WJR_adcsbb) "{q -8(%[src1]), %[r10]| %[r10], [%[src1] - 8]}\n\t"
         "mov{q %[r8], -16(%[dst])| [%[dst] - 16], %[r8]}\n\t"
@@ -305,7 +304,6 @@ WJR_INLINE U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(T *dst, const 
 #endif
 
 #undef WJR_adcsbb
-#undef WJR_addsub
 #undef WJR_addcsubc
 #undef WJR_ADDSUB
 
