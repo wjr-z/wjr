@@ -241,6 +241,14 @@ WJR_INTRINSIC_CONSTEXPR_E T submul_1(T *dst, const T *src, size_t n,
     static_assert(std::is_same_v<T, uint64_t>, "only support uint64_t now");
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
+    if (WJR_BUILTIN_CONSTANT_P(ml == 0) && ml == 0) {
+        return 0;
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(ml == 1) && ml == 1) {
+        return subc_n(dst, dst, src, n, 0u);
+    }
+
 #if WJR_HAS_BUILTIN(ASM_SUBMUL_1)
     if (is_constant_evaluated()) {
         return fallback_submul_1(dst, src, n, ml);
@@ -250,6 +258,20 @@ WJR_INTRINSIC_CONSTEXPR_E T submul_1(T *dst, const T *src, size_t n,
 #else
     return fallback_submul_1(dst, src, n, ml);
 #endif
+}
+
+// Built in not implemented
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR_E T addshl1_n(T *dst, const T *src, size_t n,
+                                      type_identity_t<T> cl) {
+    return addmul_1(dst, src, n, static_cast<T>(1u) << c);
+}
+
+// Built in not implemented
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR_E T subshl1_n(T *dst, const T *src, size_t n,
+                                      type_identity_t<T> c) {
+    return submul_1(dst, src, n, static_cast<T>(1u) << cl);
 }
 
 // preview :
