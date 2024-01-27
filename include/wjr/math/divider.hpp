@@ -3,6 +3,10 @@
 
 #include <wjr/math/mul.hpp>
 
+#if defined(WJR_X86)
+#include <wjr/x86/divider.hpp>
+#endif
+
 namespace wjr {
 
 namespace math_details {
@@ -63,11 +67,30 @@ public:
     constexpr div2by1_divider(T _divisor, T _value, unsigned int _shift)
         : m_divisor(_divisor), m_value(_value), m_shift(_shift) {}
 
-    constexpr T divisor() const { return m_divisor; }
-    constexpr T value() const { return m_value; }
-    constexpr unsigned int shift() const { return m_shift; }
+    constexpr T get_divisor() const { return m_divisor; }
+    constexpr T get_value() const { return m_value; }
+    constexpr unsigned int get_shift() const { return m_shift; }
 
     constexpr bool is_power_of_two() const { return m_divisor == (1ull << 63); }
+
+    WJR_INTRINSIC_CONSTEXPR_E T divide_without_shift(T lo, T &hi, T &hi1) const {
+        if (WJR_BUILTIN_CONSTANT_P(lo == 0) && lo == 0) {
+            return divide_without_shift_lo0(lo, hi, hi1);
+        }
+
+        if (WJR_BUILTIN_CONSTANT_P(hi == 0) && hi == 0) {
+            return divide_without_shift_hi0(lo, hi, hi1);
+        }
+
+        return basic_divide_without_shift(lo, hi, hi1);
+    }
+
+    // rbp is last lo
+    WJR_INTRINSIC_CONSTEXPR_E T divide_with_shift(T lo, T &hi, T &hi1, T &rbp) const {
+        T ret = divide_without_shift(shld(rbp, lo, m_shift), hi, hi1);
+        rbp = lo;
+        return ret;
+    }
 
 private:
     // make sure m_shift/one_single_bit(divisor) can be inlined
@@ -122,6 +145,85 @@ private:
         }
 
         m_value = v4;
+    }
+
+    WJR_INTRINSIC_CONSTEXPR static void fallback_adjust_divisor(T rax, T div, T &r8,
+                                                                T &rdx) {
+        T r9 = r8 + div;
+        bool f = r8 < rax;
+        r8 = f ? r8 : r9;
+        rdx += -1 + f;
+    }
+
+    WJR_INTRINSIC_CONSTEXPR_E static void adjust_divisor(T rax, T div, T &r8, T &rdx) {
+#if WJR_HAS_BUILTIN(ASM_ADJUST_DIVISOR)
+        return asm_adjust_divisor(rax, div, r8, rdx);
+#else
+        return fallback_adjust_divisor(rax, div, r8, rdx);
+#endif
+    }
+
+    WJR_INTRINSIC_CONSTEXPR_E T basic_divide_without_shift(T lo, T &hi, T &hi1) const {
+        WJR_ASSERT(hi1 == hi + 1);
+
+        T rax, rdx;
+
+        rax = mul(hi, m_value, rdx);
+        rax += lo;
+        rdx += hi1 + (rax < lo);
+
+        lo -= mullo(rdx, m_divisor);
+
+        adjust_divisor(rax, m_divisor, lo, rdx);
+
+        if (WJR_UNLIKELY(lo >= m_divisor)) {
+            WJR_FORCE_BRANCH_BARRIER();
+            lo -= m_divisor;
+            ++rdx;
+        }
+
+        hi = lo;
+        hi1 = hi + 1;
+        return rdx;
+    }
+
+    WJR_INTRINSIC_CONSTEXPR_E T divide_without_shift_lo0(T lo, T &hi, T &hi1) const {
+        WJR_ASSERT(hi1 == hi + 1);
+        WJR_ASSERT(lo == 0);
+
+        T rax, rdx;
+
+        rax = mul(hi, m_value, rdx);
+        rdx += hi1;
+
+        lo -= mullo(rdx, m_divisor);
+
+        adjust_divisor(rax, m_divisor, lo, rdx);
+
+        hi = lo;
+        hi1 = hi + 1;
+        return rdx;
+    }
+
+    WJR_INTRINSIC_CONSTEXPR_E T divide_without_shift_hi0(T lo, T &hi, T &hi1) const {
+        WJR_ASSERT(hi == 0);
+        WJR_ASSERT(hi1 == 1);
+
+        T rax = lo, rdx = 1;
+
+        lo -= m_divisor;
+
+        adjust_divisor(rax, m_divisor, lo, rdx);
+
+        if (WJR_UNLIKELY(lo >= m_divisor)) {
+            WJR_FORCE_BRANCH_BARRIER();
+            lo -= m_divisor;
+            ++rdx;
+        }
+
+        hi = lo;
+        hi1 = hi + 1;
+        return rdx;
     }
 
     T m_divisor = 0;

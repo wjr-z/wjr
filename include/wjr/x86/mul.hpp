@@ -13,8 +13,7 @@ namespace wjr {
 
 #if WJR_HAS_FEATURE(INT128)
 #define WJR_HAS_BUILTIN_INT128_MUL64 WJR_HAS_DEF
-#elif WJR_HAS_FEATURE(INLINE_ASM) &&                                                     \
-    (defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC))
+#elif WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_HAS_BUILTIN_ASM_MUL64 WJR_HAS_DEF
 #else
 #undef WJR_HAS_BUILTIN_MUL64
@@ -60,8 +59,7 @@ WJR_INTRINSIC_INLINE T mulx(T a, T b, T &hi) {
 
 #endif
 
-#if WJR_HAS_BUILTIN(MULX_U64) && WJR_HAS_FEATURE(INLINE_ASM) &&                          \
-    (defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC))
+#if WJR_HAS_BUILTIN(MULX_U64) && WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_HAS_BUILTIN_ASM_MUL_1 WJR_HAS_DEF
 #endif
 
@@ -575,9 +573,12 @@ WJR_INLINE uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
 
 #if WJR_HAS_BUILTIN(ASM_MUL_1)
 #define WJR_HAS_BUILTIN_ASM_ADDLSH_N WJR_HAS_DEF
-#define WJR_HAS_BUILTIN_ASM_SUBLSH_N WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_ASM_RSBLSH_N WJR_HAS_DEF
 
 #define WJR_ADDSUB_I 1
+#include <wjr/x86/gen_addrsblsh_n.hpp>
+
+#define WJR_ADDSUB_I 0
 #include <wjr/x86/gen_addrsblsh_n.hpp>
 
 #endif

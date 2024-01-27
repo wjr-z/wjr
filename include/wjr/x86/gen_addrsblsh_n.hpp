@@ -93,7 +93,7 @@ WJR_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
 
         ".Ld1%=:\n\t"
         "shlx{q %[cl], %[r9], %[r8]| %[r8], %[r9], %[cl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[dst]), %[r8]| [%[dst]], %[r8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src0]), %[r8]| [%[src0]], %[r8]}\n\t"
         "shrx{q %[tcl], %[r9], %[r9]| %[r9], %[r9], %[tcl]}\n\t"
         "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
         WJR_PP_STR(WJR_adcsbb) "{q %[cx], %[r9]| %[r9], %[cx]}\n\t"
@@ -186,7 +186,7 @@ WJR_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
 
         "shlx{q %[cl], %[r9], %[r8]| %[r8], %[r9], %[cl]}\n\t"
         "lea{q (%[r10], %[r8]), %[r8]| %[r8], [%[r10] + %[r8]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q -8(%[dst]), %[r8]| [%[dst] - 8], %[r8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q -8(%[src0]), %[r8]| [%[src0] - 8], %[r8]}\n\t"
         "shrx{q %[tcl], %[r9], %[r9]| %[r9],%[r9], %[tcl]}\n\t"
         "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
         WJR_PP_STR(WJR_adcsbb) "{q %[cx], %[r9]| %[r9], %[cx]}\n\t"

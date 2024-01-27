@@ -68,10 +68,8 @@
                    WJR_ASSERT_CHECK_I_MESSAGE)                                           \
     (__VA_ARGS__)
 
-#define WJR_ASSERT_UNCHECK_I(expr, ...)                                                  \
-    do {                                                                                 \
-        WJR_ASSUME(expr);                                                                \
-    } while (0)
+// do nothing
+#define WJR_ASSERT_UNCHECK_I(expr, ...)
 
 // level = [0, 2]
 // The higher the level, the less likely it is to be detected

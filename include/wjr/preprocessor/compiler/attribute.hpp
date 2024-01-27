@@ -171,8 +171,7 @@
 #define WJR_BUILTIN_CONSTANT_P(expr) false
 #endif
 
-#if WJR_HAS_FEATURE(INLINE_ASM) &&                                                       \
-    (defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG))
+#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_COMPILER_BARRIER() asm volatile("" ::: "memory")
 #else
 #define WJR_COMPILER_BARRIER()

@@ -85,6 +85,9 @@
 
 #if defined(WJR_COMPILER_GCC) || defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_MSVC)
 #define WJR_HAS_FEATURE_INLINE_ASM WJR_HAS_DEF
+#ifndef WJR_COMPILER_MSVC
+#define WJR_HAS_FEATURE_GCC_STYLE_INLINE_ASM WJR_HAS_DEF
+#endif 
 #endif
 
 #if defined(__SIZEOF_INT128__)

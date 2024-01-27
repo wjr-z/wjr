@@ -9,8 +9,7 @@
 
 namespace wjr {
 
-#if WJR_HAS_FEATURE(INLINE_ASM) &&                                                       \
-    (defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC))
+#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_HAS_BUILTIN_ASM_SUBC WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_ASM_SUBC_N WJR_HAS_DEF
 

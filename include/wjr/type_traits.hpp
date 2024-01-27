@@ -252,12 +252,6 @@ WJR_INTRINSIC_CONSTEXPR20 P *container_of_offset_impl(M *ptr, const M P::*member
 
 #define WJR_CONTAINER_OF(ptr, type, member) container_of_offset_impl(ptr, &type::member)
 
-WJR_INTRINSIC_CONSTEXPR size_t abs_cast(size_t n) {
-    constexpr auto nd = std::numeric_limits<size_t>::digits;
-    WJR_ASSUME((n >> (nd - 1)) == 0);
-    return n;
-}
-
 // C++ 17 concept adapt
 
 template <typename Derived, typename Base>
