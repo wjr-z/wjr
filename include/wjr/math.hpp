@@ -3,5 +3,6 @@
 
 #include <wjr/math/bit.hpp>
 #include <wjr/math/div.hpp>
+#include <wjr/math/neg.hpp>
 
 #endif // WJR_MATH_HPP__

@@ -136,6 +136,8 @@ using std_uintptr_t = std::uintptr_t;
 template <size_t n, bool __s>
 using usint_t = std::conditional_t<__s, int_t<n>, uint_t<n>>;
 
+using ssize_t = std::make_signed_t<size_t>;
+
 template <typename T>
 struct is_unsigned_integral : std::conjunction<std::is_integral<T>, std::is_unsigned<T>> {
 };

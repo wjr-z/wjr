@@ -16,55 +16,101 @@ WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_addcsubc)(uint64_t a, uint
 #if WJR_ADDSUB_I == 0
     if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
         c_in = 0;
-        asm("stc\n\t"
+        if (WJR_BUILTIN_CONSTANT_P(b) && b <= std::numeric_limits<uint32_t>::max()) {
+            asm("stc\n\t"
+                "sbb{q %2, %0| %0, %2}\n\t"
+                "setb %b1"
+                : "=r"(a), "+r"(c_in)
+                : "ri"(b), "0"(a)
+                : "cc");
+        } else {
+            asm("stc\n\t"
+                "sbb{q %2, %0| %0, %2}\n\t"
+                "setb %b1"
+                : "=r"(a), "+r"(c_in)
+                : "r"(b), "0"(a)
+                : "cc");
+        }
+        c_out = c_in;
+        return a;
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(b) && b <= std::numeric_limits<uint32_t>::max()) {
+        asm("add{b $255, %b1| %b1, 255}\n\t"
             "sbb{q %2, %0| %0, %2}\n\t"
             "setb %b1"
             : "=r"(a), "+r"(c_in)
             : "ri"(b), "0"(a)
             : "cc");
-        c_out = c_in;
-        return a;
+    } else {
+        asm("add{b $255, %b1| %b1, 255}\n\t"
+            "sbb{q %2, %0| %0, %2}\n\t"
+            "setb %b1"
+            : "=r"(a), "+r"(c_in)
+            : "r"(b), "0"(a)
+            : "cc");
     }
-
-    asm("add{b $255, %b1| %b1, 255}\n\t"
-        "sbb{q %2, %0| %0, %2}\n\t"
-        "setb %b1"
-        : "=r"(a), "+r"(c_in)
-        : "ri"(b), "0"(a)
-        : "cc");
     c_out = c_in;
     return a;
 #else
     if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
         c_in = 0;
-        asm("stc\n\t"
-            "adc{q"
-            " %2, %0| %0, %2}\n\t"
-            "setb %b1"
-            : "=r"(a), "+r"(c_in)
-            : "ri"(b), "0"(a)
-            : "cc");
+        if (WJR_BUILTIN_CONSTANT_P(b) && b <= std::numeric_limits<uint32_t>::max()) {
+            asm("stc\n\t"
+                "adc{q"
+                " %2, %0| %0, %2}\n\t"
+                "setb %b1"
+                : "=r"(a), "+r"(c_in)
+                : "ri"(b), "0"(a)
+                : "cc");
+        } else {
+            asm("stc\n\t"
+                "adc{q"
+                " %2, %0| %0, %2}\n\t"
+                "setb %b1"
+                : "=r"(a), "+r"(c_in)
+                : "r"(b), "0"(a)
+                : "cc");
+        }
         c_out = c_in;
         return a;
     }
 
     if (WJR_BUILTIN_CONSTANT_P(a)) {
-        asm("add{b $255, %b1| %b1, 255}\n\t"
-            "adc{q %2, %0| %0, %2}\n\t"
-            "setb %b1"
-            : "=r"(b), "+r"(c_in)
-            : "ri"(a), "0"(b)
-            : "cc");
+        if (a <= std::numeric_limits<uint32_t>::max()) {
+            asm("add{b $255, %b1| %b1, 255}\n\t"
+                "adc{q %2, %0| %0, %2}\n\t"
+                "setb %b1"
+                : "=r"(b), "+r"(c_in)
+                : "ri"(a), "0"(b)
+                : "cc");
+        } else {
+            asm("add{b $255, %b1| %b1, 255}\n\t"
+                "adc{q %2, %0| %0, %2}\n\t"
+                "setb %b1"
+                : "=r"(b), "+r"(c_in)
+                : "r"(a), "0"(b)
+                : "cc");
+        }
         c_out = c_in;
         return b;
     }
 
-    asm("add{b $255, %b1| %b1, 255}\n\t"
-        "adc{q %2, %0| %0, %2}\n\t"
-        "setb %b1"
-        : "=r"(a), "+r"(c_in)
-        : "ri"(b), "0"(a)
-        : "cc");
+    if (WJR_BUILTIN_CONSTANT_P(b) && b <= std::numeric_limits<uint32_t>::max()) {
+        asm("add{b $255, %b1| %b1, 255}\n\t"
+            "adc{q %2, %0| %0, %2}\n\t"
+            "setb %b1"
+            : "=r"(a), "+r"(c_in)
+            : "ri"(b), "0"(a)
+            : "cc");
+    } else {
+        asm("add{b $255, %b1| %b1, 255}\n\t"
+            "adc{q %2, %0| %0, %2}\n\t"
+            "setb %b1"
+            : "=r"(a), "+r"(c_in)
+            : "r"(b), "0"(a)
+            : "cc");
+    }
     c_out = c_in;
     return a;
 #endif

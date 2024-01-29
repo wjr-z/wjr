@@ -1,7 +1,7 @@
 #ifndef WJR_MATH_ADD_HPP__
 #define WJR_MATH_ADD_HPP__
 
-#include <wjr/math/clz.hpp>
+#include <wjr/math/add-impl.hpp>
 #include <wjr/math/replace.hpp>
 
 #if defined(WJR_X86)
@@ -52,9 +52,8 @@ WJR_INTRINSIC_INLINE T builtin_addc(T a, T b, U c_in, U &c_out) {
 
 #endif // WJR_HAS_BUILTIN(ADDC)
 
-template <
-    typename T, typename U,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+template <typename T, typename U,
+          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out) {
     WJR_ASSERT_L(1, c_in == 0 || c_in == 1);
     WJR_ASSUME((c_in == 0 || c_in == 1));
@@ -88,9 +87,8 @@ WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out) {
 #endif
 }
 
-template <
-    typename T, typename U,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+template <typename T, typename U,
+          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U addc_1(T *dst, const T *src0, size_t n,
                                    type_identity_t<T> src1, U c_in) {
     WJR_ASSUME(n >= 1);
@@ -165,9 +163,8 @@ WJR_INTRINSIC_CONSTEXPR U fallback_addc_n(T *dst, const T *src0, const T *src1, 
     return c_in;
 }
 
-template <
-    typename T, typename U,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+template <typename T, typename U,
+          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U addc_n(T *dst, const T *src0, const T *src1, size_t n,
                                    U c_in) {
     WJR_ASSERT(n >= 1);
@@ -189,9 +186,8 @@ WJR_INTRINSIC_CONSTEXPR_E U addc_n(T *dst, const T *src0, const T *src1, size_t 
 #endif
 }
 
-template <
-    typename T, typename U,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+template <typename T, typename U,
+          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U addc_s(T *dst, const T *src0, size_t n, const T *src1,
                                    size_t m, U c_in) {
     WJR_ASSERT(n >= m);
@@ -203,6 +199,14 @@ WJR_INTRINSIC_CONSTEXPR_E U addc_s(T *dst, const T *src0, size_t n, const T *src
     }
 
     return c_in;
+}
+
+WJR_INTRINSIC_CONSTEXPR void __addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                       uint64_t hi0, uint64_t lo1, uint64_t hi1) {
+    lo0 += lo1;
+    hi0 += hi1 + (lo0 < lo1);
+    al = lo0;
+    ah = hi0;
 }
 
 } // namespace wjr

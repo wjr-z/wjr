@@ -1,7 +1,10 @@
 #ifndef WJR_MATH_MUL_HPP__
 #define WJR_MATH_MUL_HPP__
 
+#include <wjr/math/div-impl.hpp>
+
 #include <wjr/math/add.hpp>
+#include <wjr/math/clz.hpp>
 #include <wjr/math/compare.hpp>
 #include <wjr/math/shift.hpp>
 #include <wjr/math/sub.hpp>
@@ -869,9 +872,6 @@ void toom32_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
     cf0 = addc_1(w3p + maxr, w3p + maxr, (rn + rm) - maxr, cf2, cf0);
     WJR_ASSERT(cf0 == 0);
 }
-
-template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
-WJR_CONSTEXPR_E void divexact_by3(T *dst, const T *src, size_t n);
 
 template <typename T>
 struct toom_interpolation_5p_struct {

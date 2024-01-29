@@ -110,7 +110,8 @@ WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1, size_
 }
 
 template <typename T>
-WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1, size_t n) {
+WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
+                                                   size_t n) {
 #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_L1(index)                                     \
     if (src0[-1 - (index)] != src1[-1 - (index)]) {                                      \
         return src0[-1 - (index)] < src1[-1 - (index)] ? -1 : 1;                         \
@@ -135,6 +136,39 @@ WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
 
 #undef WJR_REGISTER_REVERSE_COMPARE_NOT_N_L2
 
+#endif
+
+#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
+#define WJR_HAS_BUILTIN___ASM_LESS_128 WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___ASM_LESS_EQUAL_128 WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_LESS_128)
+WJR_INTRINSIC_INLINE bool __asm_less_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
+                                         uint64_t hi1) {
+    bool ret;
+    asm("cmp{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t"
+        "setb %b[ret]"
+        : [ret] "=r"(ret), [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
+        : [lo1] "r"(lo1), [hi1] "r"(hi1)
+        : "cc", "memory");
+    return ret;
+}
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_LESS_EQUAL_128)
+WJR_INTRINSIC_INLINE bool __asm_less_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
+                                               uint64_t hi1) {
+    bool ret;
+    asm("cmp{q %[lo0], %[lo1]| %[lo1], %[lo0]}\n\t"
+        "sbb{q %[hi0], %[hi1]| %[hi1], %[hi0]}\n\t"
+        "setae %b[ret]"
+        : [ret] "=r"(ret), [lo1] "+&r"(lo1), [hi1] "+r"(hi1)
+        : [lo0] "r"(lo0), [hi0] "r"(hi0)
+        : "cc", "memory");
+    return ret;
+}
 #endif
 
 } // namespace wjr

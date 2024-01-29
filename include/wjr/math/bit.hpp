@@ -1,8 +1,6 @@
 #ifndef WJR_MATH_BIT_HPP__
 #define WJR_MATH_BIT_HPP__
 
-// TODO
-
 #include <wjr/math/clz.hpp>
 
 namespace wjr {
