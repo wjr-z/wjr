@@ -259,13 +259,25 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
     return ret;
 }
 
-WJR_INTRINSIC_CONSTEXPR void __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                        uint64_t hi0, uint64_t lo1, uint64_t hi1) {
-    auto tmp = lo0;
-    lo0 -= lo1;
-    hi0 -= hi1 + (lo0 > tmp);
-    al = lo0;
-    ah = hi0;
+WJR_INTRINSIC_CONSTEXPR void __fallback_subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                                 uint64_t hi0, uint64_t lo1,
+                                                 uint64_t hi1) {
+    uint64_t __al = lo0 - lo1;
+    ah = hi0 - hi1 - (__al > lo0);
+    al = __al;
+}
+
+WJR_INTRINSIC_CONSTEXPR_E void __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                          uint64_t hi0, uint64_t lo1, uint64_t hi1) {
+#if WJR_HAS_BUILTIN(__ASM_SUBC_128)
+    if (is_constant_evaluated() || (WJR_BUILTIN_CONSTANT_P(lo0 == 0) && lo0 == 0) ||
+        (WJR_BUILTIN_CONSTANT_P(lo1 == 0) && lo1 == 0)) {
+        return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1);
+    }
+    return __asm_subc_128(al, ah, lo0, hi0, lo1, hi1);
+#else
+    return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1);
+#endif
 }
 
 } // namespace wjr

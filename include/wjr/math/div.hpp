@@ -20,8 +20,9 @@ WJR_CONSTEXPR20 void fallback_div_qr_1_without_shift(T *dst, T &rem, const T *sr
     WJR_ASSERT(n >= 1);
 
     T divisor = div.get_divisor();
+    T value = div.get_value();
 
-    T lo, hi, hi1;
+    T lo, hi;
 
     hi = src[n - 1];
 
@@ -37,11 +38,9 @@ WJR_CONSTEXPR20 void fallback_div_qr_1_without_shift(T *dst, T &rem, const T *sr
         return;
     }
 
-    hi1 = hi + 1;
-
     do {
         lo = src[n - 1];
-        dst[n - 1] = div.divide_without_shift(lo, hi, hi1);
+        dst[n - 1] = div.divide(divisor, value, lo, hi);
     } while (--n);
 
     rem = hi;
@@ -54,25 +53,26 @@ WJR_CONSTEXPR20 void fallback_div_qr_1_with_shift(T *dst, T &rem, const T *src, 
     WJR_ASSERT(div.get_shift() != 0);
     WJR_ASSERT(n >= 1);
 
+    T divisor = div.get_divisor();
+    T value = div.get_value();
     unsigned int shift = div.get_shift();
 
-    T lo, hi, hi1;
+    T lo, hi;
 
     T rbp = src[n - 1];
     --n;
     hi = rbp >> (64 - shift);
-    hi1 = hi + 1;
 
     if (WJR_LIKELY(n != 0)) {
         do {
             lo = src[n - 1];
-            dst[n] = div.divide_without_shift(shld(rbp, lo, shift), hi, hi1);
+            dst[n] = div.divide(divisor, value, shld(rbp, lo, shift), hi);
             rbp = lo;
             --n;
         } while (WJR_LIKELY(n != 0));
     }
 
-    dst[0] = div.divide_without_shift(rbp << shift, hi, hi1);
+    dst[0] = div.divide(divisor, value, rbp << shift, hi);
     rem = hi >> shift;
 
     return;

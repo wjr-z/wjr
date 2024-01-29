@@ -74,13 +74,14 @@ public:
 
     constexpr bool is_power_of_two() const { return m_divisor == (1ull << 63); }
 
-    // hi1 is hi + 1
-    WJR_INTRINSIC_CONSTEXPR20 T divide_without_shift(T lo, T &hi, T &hi1) const {
+    WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor, T value, T lo, T &hi) {
+        WJR_ASSERT(value >> (std::numeric_limits<T>::digits - 1));
+
         if (WJR_BUILTIN_CONSTANT_P(lo == 0) && lo == 0) {
-            return divide_without_shift_lo0(lo, hi, hi1);
+            return divide_without_shift_lo0(divisor, value, lo, hi);
         }
 
-        return basic_divide_without_shift(lo, hi, hi1);
+        return basic_divide_without_shift(divisor, value, lo, hi);
     }
 
     WJR_INLINE_CONSTEXPR_E static T reciprocal_word(T d) {
@@ -162,44 +163,45 @@ private:
 #endif
     }
 
-    WJR_INTRINSIC_CONSTEXPR20 T basic_divide_without_shift(T lo, T &hi, T &hi1) const {
-        WJR_ASSERT(hi1 == hi + 1);
+    WJR_INTRINSIC_CONSTEXPR20 static T basic_divide_without_shift(T divisor, T value,
+                                                                  T lo, T &hi) {
+        T hi1 = hi + 1;
 
         T rax, rdx;
 
-        rax = mul(hi, m_value, rdx);
+        rax = mul(hi, value, rdx);
         __addc_128(rax, rdx, rax, rdx, lo, hi1);
 
-        lo -= mullo(rdx, m_divisor);
+        lo -= mullo(rdx, divisor);
 
-        div2by1_adjust(rax, m_divisor, lo, rdx);
+        div2by1_adjust(rax, divisor, lo, rdx);
 
-        if (WJR_UNLIKELY(lo >= m_divisor)) {
+        if (WJR_UNLIKELY(lo >= divisor)) {
             WJR_FORCE_BRANCH_BARRIER();
-            lo -= m_divisor;
+            lo -= divisor;
             ++rdx;
         }
 
         hi = lo;
-        hi1 = hi + 1;
         return rdx;
     }
 
-    WJR_INTRINSIC_CONSTEXPR20 T divide_without_shift_lo0(T lo, T &hi, T &hi1) const {
-        WJR_ASSERT(hi1 == hi + 1);
+    WJR_INTRINSIC_CONSTEXPR20 static T divide_without_shift_lo0(T divisor, T value, T lo,
+                                                                T &hi) {
         WJR_ASSERT(lo == 0);
+
+        T hi1 = hi + 1;
 
         T rax, rdx;
 
-        rax = mul(hi, m_value, rdx);
+        rax = mul(hi, value, rdx);
         rdx += hi1;
 
-        lo -= mullo(rdx, m_divisor);
+        lo -= mullo(rdx, divisor);
 
-        div2by1_adjust(rax, m_divisor, lo, rdx);
+        div2by1_adjust(rax, divisor, lo, rdx);
 
         hi = lo;
-        hi1 = hi + 1;
         return rdx;
     }
 
@@ -347,9 +349,9 @@ public:
     constexpr divexact1_divider(T divisor, T value, unsigned int shift)
         : m_divisor(divisor), m_value(value), m_shift(shift) {}
 
-    constexpr T divisor() const { return m_divisor; }
-    constexpr T value() const { return m_value; }
-    constexpr unsigned int shift() const { return m_shift; }
+    constexpr T get_divisor() const { return m_divisor; }
+    constexpr T get_value() const { return m_value; }
+    constexpr unsigned int get_shift() const { return m_shift; }
 
     constexpr bool is_power_of_two() const { return m_divisor == 1; }
 
