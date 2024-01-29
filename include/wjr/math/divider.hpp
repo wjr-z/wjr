@@ -78,13 +78,13 @@ public:
         WJR_ASSERT(value >> (std::numeric_limits<T>::digits - 1));
 
         if (WJR_BUILTIN_CONSTANT_P(lo == 0) && lo == 0) {
-            return divide_without_shift_lo0(divisor, value, lo, hi);
+            return divide_lo0(divisor, value, lo, hi);
         }
 
-        return basic_divide_without_shift(divisor, value, lo, hi);
+        return basic_divide(divisor, value, lo, hi);
     }
 
-    WJR_INLINE_CONSTEXPR_E static T reciprocal_word(T d) {
+    WJR_INLINE_CONSTEXPR_E static T reciprocal(T d) {
         WJR_ASSERT(d >> (std::numeric_limits<T>::digits - 1));
 
         uint64_t d40 = 0, d63 = 0;
@@ -140,7 +140,7 @@ private:
             return;
         }
 
-        m_value = reciprocal_word(m_divisor);
+        m_value = reciprocal(m_divisor);
     }
 
     WJR_INTRINSIC_CONSTEXPR static void fallback_div2by1_adjust(T rax, T div, T &r8,
@@ -163,8 +163,7 @@ private:
 #endif
     }
 
-    WJR_INTRINSIC_CONSTEXPR20 static T basic_divide_without_shift(T divisor, T value,
-                                                                  T lo, T &hi) {
+    WJR_INTRINSIC_CONSTEXPR20 static T basic_divide(T divisor, T value, T lo, T &hi) {
         T hi1 = hi + 1;
 
         T rax, rdx;
@@ -186,8 +185,7 @@ private:
         return rdx;
     }
 
-    WJR_INTRINSIC_CONSTEXPR20 static T divide_without_shift_lo0(T divisor, T value, T lo,
-                                                                T &hi) {
+    WJR_INTRINSIC_CONSTEXPR20 static T divide_lo0(T divisor, T value, T lo, T &hi) {
         WJR_ASSERT(lo == 0);
 
         T hi1 = hi + 1;
@@ -234,28 +232,29 @@ public:
     constexpr T get_value() const { return m_value; }
     constexpr unsigned int get_shift() const { return m_shift; }
 
-    WJR_INTRINSIC_CONSTEXPR20 T divide_without_shift(T u0, T &u1, T &u2) const {
+    WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor0, T divisor1, T value, T u0,
+                                              T &u1, T &u2) {
         T q1, q0;
-        q0 = mul<T>(m_value, u2, q1);
+        q0 = mul<T>(value, u2, q1);
         __addc_128(q0, q1, q0, q1, u1, u2);
 
         T r1, r0;
-        r1 = u1 - mullo<T>(q1, m_divisor1);
+        r1 = u1 - mullo<T>(q1, divisor1);
         T t1, t0;
-        t0 = mul<T>(m_divisor0, q1, t1);
+        t0 = mul<T>(divisor0, q1, t1);
 
         __subc_128(r0, r1, u0, r1, t0, t1);
-        __subc_128(r0, r1, r0, r1, m_divisor0, m_divisor1);
+        __subc_128(r0, r1, r0, r1, divisor0, divisor1);
         ++q1;
 
         if (r1 >= q0) {
             --q1;
-            __addc_128(r0, r1, r0, r1, m_divisor0, m_divisor1);
+            __addc_128(r0, r1, r0, r1, divisor0, divisor1);
         }
 
-        if (WJR_UNLIKELY(__less_equal_128(m_divisor0, m_divisor1, r0, r1))) {
+        if (WJR_UNLIKELY(__less_equal_128(divisor0, divisor1, r0, r1))) {
             ++q1;
-            __subc_128(r0, r1, r0, r1, m_divisor0, m_divisor1);
+            __subc_128(r0, r1, r0, r1, divisor0, divisor1);
         }
 
         u1 = r0;
@@ -263,10 +262,10 @@ public:
         return q1;
     }
 
-    WJR_INLINE_CONSTEXPR_E static T reciprocal_word(T d0, T d1) {
+    WJR_INLINE_CONSTEXPR_E static T reciprocal(T d0, T d1) {
         WJR_ASSERT(d1 >> (std::numeric_limits<T>::digits - 1));
 
-        T v = div2by1_divider<T>::reciprocal_word(d1);
+        T v = div2by1_divider<T>::reciprocal(d1);
         T p = mullo<T>(d1, v);
         p += d0;
         if (p < d0) {
@@ -302,7 +301,7 @@ private:
             WJR_ASSUME(m_shift == 0);
         }
 
-        m_value = reciprocal_word(m_divisor0, m_divisor1);
+        m_value = reciprocal(m_divisor0, m_divisor1);
     }
 
     WJR_INTRINSIC_CONSTEXPR static void fallback_div3by2_adjust(T d1, T &p, T &v) {

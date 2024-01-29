@@ -267,6 +267,7 @@ WJR_INTRINSIC_CONSTEXPR void __fallback_subc_128(uint64_t &al, uint64_t &ah, uin
     al = __al;
 }
 
+// <ah, al> = <hi0, lo0> - <hi1, lo1>
 WJR_INTRINSIC_CONSTEXPR_E void __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                           uint64_t hi0, uint64_t lo1, uint64_t hi1) {
 #if WJR_HAS_BUILTIN(__ASM_SUBC_128)

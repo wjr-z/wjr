@@ -6,8 +6,7 @@
 namespace wjr {
 
 template <typename T>
-WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR_E)
-int fallback_clz_impl(T x) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int fallback_clz_impl(T x) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
 #if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
@@ -52,8 +51,7 @@ int fallback_clz_impl(T x) {
 }
 
 template <typename T>
-WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR_E)
-int fallback_clz(T x) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int fallback_clz(T x) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
     if (WJR_UNLIKELY(x == 0)) {
@@ -70,8 +68,7 @@ int fallback_clz(T x) {
 #if WJR_HAS_BUILTIN(CLZ)
 
 template <typename T>
-WJR_ATTRIBUTES(CONST, INTRINSIC_INLINE)
-int builtin_clz_impl(T x) {
+WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz_impl(T x) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
 #define WJR_REGISTER_BUILTIN_CLZ(args)                                                   \
@@ -98,8 +95,7 @@ int builtin_clz_impl(T x) {
 }
 
 template <typename T>
-WJR_ATTRIBUTES(CONST, INTRINSIC_INLINE)
-int builtin_clz(T x) {
+WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
     if (WJR_UNLIKELY(x == 0)) {
@@ -112,8 +108,7 @@ int builtin_clz(T x) {
 #endif
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR_E)
-int clz(T x) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz(T x) {
 #if WJR_HAS_BUILTIN(CLZ)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
         return fallback_clz(x);

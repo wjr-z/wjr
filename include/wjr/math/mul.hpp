@@ -24,7 +24,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_mul(T a, T b, T &hi) {
     return static_cast<T>(x);
 }
 
-WJR_INTRINSIC_CONSTEXPR uint64_t fallback_mul64(uint64_t a, uint64_t b, uint64_t &hi) {
+WJR_INTRINSIC_CONSTEXPR_E uint64_t fallback_mul64(uint64_t a, uint64_t b, uint64_t &hi) {
     uint64_t ah = a >> 32;
     uint64_t al = a & 0xFFFFFFFF;
     uint64_t bh = b >> 32;
@@ -35,12 +35,11 @@ WJR_INTRINSIC_CONSTEXPR uint64_t fallback_mul64(uint64_t a, uint64_t b, uint64_t
     uint64_t rm1 = al * bh;
     uint64_t rl = al * bl;
 
-    uint64_t t = rl + (rm0 << 32);
-    uint64_t c = t < rl;
-    uint64_t lo = t + (rm1 << 32);
-    c += lo < t;
-    hi = rh + (rm0 >> 32) + (rm1 >> 32) + c;
-    return lo;
+    __addc_128(rl, rh, rl, rh, rm0 << 32, rm0 >> 32);
+    __addc_128(rl, rh, rl, rh, rm1 << 32, rm1 >> 32);
+
+    hi = rh;
+    return rl;
 }
 
 template <typename T>
@@ -105,23 +104,21 @@ WJR_INTRINSIC_CONSTEXPR_E T mul(T a, T b, T &hi) {
 }
 
 template <typename T>
-WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
+WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR_E)
 T fallback_mulhi(T a, T b) {
     T hi = 0;
     (void)fallback_mul(a, b, hi);
     return hi;
 }
 
-WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
-uint64_t fallback_mulhi64(uint64_t a, uint64_t b) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E uint64_t fallback_mulhi64(uint64_t a, uint64_t b) {
     uint64_t hi = 0;
     (void)fallback_mul64(a, b, hi);
     return hi;
 }
 
 template <typename T>
-WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR_E)
-T mulhi(T a, T b) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T mulhi(T a, T b) {
     T ret = 0;
     (void)mul(a, b, ret);
     return ret;

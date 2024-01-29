@@ -33,8 +33,7 @@ int fallback_popcount(T x) {
 #if WJR_HAS_BUILTIN(POPCOUNT)
 
 template <typename T>
-WJR_ATTRIBUTES(CONST, INTRINSIC_INLINE)
-int builtin_popcount(T x) {
+WJR_CONST WJR_INTRINSIC_INLINE int builtin_popcount(T x) {
     constexpr auto nd = std::numeric_limits<T>::digits;
     if constexpr (nd < 32) {
         return builtin_popcount(static_cast<uint32_t>(x));
@@ -55,8 +54,7 @@ int builtin_popcount(T x) {
 #endif // WJR_HAS_BUILTIN(POPCOUNT)
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR_E)
-int popcount(T x) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int popcount(T x) {
     if (WJR_BUILTIN_CONSTANT_P(is_power_of_two(x)) && is_power_of_two(x)) {
         return x != 0;
     }

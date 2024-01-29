@@ -27,6 +27,16 @@ namespace wjr {
 
 WJR_INTRINSIC_INLINE void __asm_subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                          uint64_t hi0, uint64_t lo1, uint64_t hi1) {
+    if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= std::numeric_limits<uint32_t>::max()) {
+        asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+            "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}"
+            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
+            : [lo1] "r"(lo1), [hi1] "i"(hi1)
+            : "cc", "memory");
+        al = lo0;
+        ah = hi0;
+        return;
+    }
     asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
         "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}"
         : [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
