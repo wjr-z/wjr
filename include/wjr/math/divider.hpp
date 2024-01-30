@@ -75,7 +75,7 @@ public:
     constexpr bool is_power_of_two() const { return m_divisor == (1ull << 63); }
 
     WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor, T value, T lo, T &hi) {
-        WJR_ASSERT(value >> (std::numeric_limits<T>::digits - 1));
+        WJR_ASSERT(__has_high_bit(value));
 
         if (WJR_BUILTIN_CONSTANT_P(lo == 0) && lo == 0) {
             return divide_lo0(divisor, value, lo, hi);
@@ -84,8 +84,8 @@ public:
         return basic_divide(divisor, value, lo, hi);
     }
 
-    WJR_INLINE_CONSTEXPR_E static T reciprocal(T d) {
-        WJR_ASSERT(d >> (std::numeric_limits<T>::digits - 1));
+    WJR_CONST WJR_INLINE_CONSTEXPR_E static T reciprocal(T d) {
+        WJR_ASSERT(__has_high_bit(d));
 
         uint64_t d40 = 0, d63 = 0;
         uint32_t v0 = 0;
@@ -126,7 +126,7 @@ public:
 private:
     // make sure m_shift/one_single_bit(divisor) can be inlined
     WJR_INTRINSIC_CONSTEXPR_E void initialize() {
-        if (!(m_divisor >> 63)) {
+        if (WJR_UNLIKELY(!__has_high_bit(m_divisor))) {
             m_shift = clz(m_divisor);
             m_divisor <<= m_shift;
 
@@ -134,6 +134,8 @@ private:
         } else {
             WJR_ASSUME(m_shift == 0);
         }
+
+        WJR_ASSUME(__has_high_bit(m_divisor));
 
         if (WJR_UNLIKELY(m_divisor == (1ull << 63))) {
             m_value = -1;
@@ -157,6 +159,7 @@ private:
         if (is_constant_evaluated()) {
             return fallback_div2by1_adjust(rax, div, r8, rdx);
         }
+        
         return asm_div2by1_adjust(rax, div, r8, rdx);
 #else
         return fallback_div2by1_adjust(rax, div, r8, rdx);
@@ -262,8 +265,8 @@ public:
         return q1;
     }
 
-    WJR_INLINE_CONSTEXPR_E static T reciprocal(T d0, T d1) {
-        WJR_ASSERT(d1 >> (std::numeric_limits<T>::digits - 1));
+    WJR_CONST WJR_INLINE_CONSTEXPR_E static T reciprocal(T d0, T d1) {
+        WJR_ASSERT(__has_high_bit(d1));
 
         T v = div2by1_divider<T>::reciprocal(d1);
         T p = mullo<T>(d1, v);
@@ -291,15 +294,17 @@ public:
 
 private:
     WJR_INTRINSIC_CONSTEXPR_E void initialize() {
-        if (!(m_divisor1 >> 63)) {
+        if (WJR_UNLIKELY(!__has_high_bit(m_divisor1))) {
             m_shift = clz(m_divisor1);
-            m_divisor1 = shld(m_divisor1, m_divisor1, m_shift);
+            m_divisor1 = shld(m_divisor1, m_divisor0, m_shift);
             m_divisor0 <<= m_shift;
 
             WJR_ASSUME(m_shift != 0);
         } else {
             WJR_ASSUME(m_shift == 0);
         }
+
+        WJR_ASSUME(__has_high_bit(m_divisor1));
 
         m_value = reciprocal(m_divisor0, m_divisor1);
     }
@@ -316,6 +321,7 @@ private:
         if (is_constant_evaluated()) {
             return fallback_div3by2_adjust(rax, div, r8, rdx);
         }
+
         return asm_div3by2_adjust(rax, div, r8, rdx);
 #else
         return fallback_div3by2_adjust(rax, div, r8, rdx);

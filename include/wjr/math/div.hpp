@@ -84,7 +84,7 @@ WJR_CONSTEXPR20 void fallback_div_qr_1_with_shift(T *dst, T &rem, const T *src, 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR20 void fallback_div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                                  const div2by1_divider<T> &div) {
-    if (WJR_UNLIKELY(div.get_shift() == 0)) {
+    if (div.get_shift() == 0) {
         return fallback_div_qr_1_without_shift(dst, rem, src, n, div);
     }
 
@@ -129,7 +129,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
     }
 
     if (WJR_UNLIKELY(n == 1)) {
-        if (div >> (std::numeric_limits<T>::digits - 1)) {
+        if (__has_high_bit(div)) {
             T tmp = src[0];
             if (tmp >= div) {
                 rem = tmp - div;
@@ -216,8 +216,7 @@ WJR_CONSTEXPR20 void fallback_div_qr_2_with_shift(T *dst, T *rem, const T *src, 
     if (WJR_LIKELY(n != 0)) {
         do {
             u0 = src[n - 1];
-            dst[n - 1] =
-                div.divide(divisor0, divisor1, value, shld(rbp, u0, shift), u1, u2);
+            dst[n] = div.divide(divisor0, divisor1, value, shld(rbp, u0, shift), u1, u2);
             rbp = u0;
             --n;
         } while (WJR_LIKELY(n != 0));
@@ -233,7 +232,7 @@ WJR_CONSTEXPR20 void fallback_div_qr_2_with_shift(T *dst, T *rem, const T *src, 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR20 void fallback_div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                                  const div3by2_divider<T> &div) {
-    if (WJR_UNLIKELY(div.get_shift() == 0)) {
+    if (div.get_shift() == 0) {
         return fallback_div_qr_2_without_shift(dst, rem, src, n, div);
     }
 
@@ -274,6 +273,7 @@ WJR_CONSTEXPR_E T divexact_dbm1c(T *dst, const T *src, size_t n, T bd, T h) {
     if (is_constant_evaluated()) {
         return fallback_divexact_dbm1c(dst, src, n, bd, h);
     }
+
     return asm_divexact_dbm1c(dst, src, n, bd, h);
 #else
     return fallback_divexact_dbm1c(dst, src, n, bd, h);

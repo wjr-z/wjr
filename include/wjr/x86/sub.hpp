@@ -18,8 +18,7 @@ namespace wjr {
 
 #endif
 
-// There are certain issues with optimizing in GCC
-#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM) && defined(WJR_COMPILER_GCC)
+#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_HAS_BUILTIN___ASM_SUBC_128 WJR_HAS_DEF
 #endif
 
