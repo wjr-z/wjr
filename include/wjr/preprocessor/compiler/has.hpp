@@ -6,7 +6,6 @@
 #include <wjr/preprocessor/details/basic.hpp>
 #include <wjr/preprocessor/logical/basic.hpp>
 
-
 #define WJR_HAS_DEF_VAR(var) WJR_PP_MAP_DEF(var)
 #define WJR_HAS_DEF WJR_HAS_DEF_VAR(1)
 
@@ -87,7 +86,7 @@
 #define WJR_HAS_FEATURE_INLINE_ASM WJR_HAS_DEF
 #ifndef WJR_COMPILER_MSVC
 #define WJR_HAS_FEATURE_GCC_STYLE_INLINE_ASM WJR_HAS_DEF
-#endif 
+#endif
 #endif
 
 #if defined(__SIZEOF_INT128__)
@@ -95,6 +94,18 @@
 #if !(defined(__clang__) && defined(LIBDIVIDE_VC))
 #define WJR_HAS_FEATURE_INT128_DIV WJR_HAS_DEF
 #endif
+#endif
+
+// There are some issues with the optimization of int128 in both lower and higher versions
+// (13.1/13.2) of GCC.
+#if WJR_HAS_FEATURE(INT128) &&                                                           \
+    (defined(WJR_COMPILER_CLANG) ||                                                      \
+     (defined(WJR_COMPILER_GCC) && WJR_HAS_GCC(8, 1, 0) && !WJR_HAS_GCC(13, 1, 0)))
+#define WJR_HAS_FEATURE_FAST_INT128_COMPARE WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_FEATURE(INT128) && defined(WJR_COMPILER_CLANG)
+#define WJR_HAS_FEATURE_FAST_INT128_ADDSUB WJR_HAS_DEF
 #endif
 
 #define WJR_HAS_SIMD_SIMD WJR_HAS_DEF

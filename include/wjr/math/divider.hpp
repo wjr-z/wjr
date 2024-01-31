@@ -243,10 +243,10 @@ public:
 
         T r1, r0;
         r1 = u1 - mullo<T>(q1, divisor1);
-        T t1, t0;
-        t0 = mul<T>(divisor0, q1, t1);
+        T t1;
+        r0 = mul<T>(divisor0, q1, t1);
 
-        __subc_128(r0, r1, u0, r1, t0, t1);
+        __subc_128(r0, r1, u0, r1, r0, t1);
         __subc_128(r0, r1, r0, r1, divisor0, divisor1);
         ++q1;
 

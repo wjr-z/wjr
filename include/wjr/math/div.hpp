@@ -13,9 +13,9 @@ namespace wjr {
 // reference : https://ieeexplore.ieee.org/document/5487506
 
 template <typename T>
-WJR_CONSTEXPR20 void fallback_div_qr_1_without_shift(T *dst, T &rem, const T *src,
-                                                     size_t n,
-                                                     const div2by1_divider<T> &div) {
+WJR_NOINLINE WJR_CONSTEXPR20 void
+fallback_div_qr_1_without_shift(T *dst, T &rem, const T *src, size_t n,
+                                const div2by1_divider<T> &div) {
     WJR_ASSERT(div.get_shift() == 0);
     WJR_ASSERT(n >= 1);
 
@@ -51,8 +51,9 @@ WJR_CONSTEXPR20 void fallback_div_qr_1_without_shift(T *dst, T &rem, const T *sr
 }
 
 template <typename T>
-WJR_CONSTEXPR20 void fallback_div_qr_1_with_shift(T *dst, T &rem, const T *src, size_t n,
-                                                  const div2by1_divider<T> &div) {
+WJR_NOINLINE WJR_CONSTEXPR20 void
+fallback_div_qr_1_with_shift(T *dst, T &rem, const T *src, size_t n,
+                             const div2by1_divider<T> &div) {
     WJR_ASSERT(div.get_shift() != 0);
     WJR_ASSERT(n >= 1);
 
@@ -151,9 +152,9 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
 }
 
 template <typename T>
-WJR_CONSTEXPR20 void fallback_div_qr_2_without_shift(T *dst, T *rem, const T *src,
-                                                     size_t n,
-                                                     const div3by2_divider<T> &div) {
+WJR_NOINLINE WJR_CONSTEXPR20 void
+fallback_div_qr_2_without_shift(T *dst, T *rem, const T *src, size_t n,
+                                const div3by2_divider<T> &div) {
     WJR_ASSERT(div.get_shift() == 0);
     WJR_ASSERT(n >= 2);
 
@@ -193,8 +194,9 @@ WJR_CONSTEXPR20 void fallback_div_qr_2_without_shift(T *dst, T *rem, const T *sr
 }
 
 template <typename T>
-WJR_CONSTEXPR20 void fallback_div_qr_2_with_shift(T *dst, T *rem, const T *src, size_t n,
-                                                  const div3by2_divider<T> &div) {
+WJR_NOINLINE WJR_CONSTEXPR20 void
+fallback_div_qr_2_with_shift(T *dst, T *rem, const T *src, size_t n,
+                             const div3by2_divider<T> &div) {
     WJR_ASSERT(div.get_shift() != 0);
     WJR_ASSERT(n >= 2);
 
@@ -250,6 +252,94 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n, 
     return fallback_div_qr_2(dst, rem, src, n, div3by2_divider<T>(d[0], d[1]));
 }
 
+// reference : gmp
+template <typename T>
+WJR_NOINLINE WJR_CONSTEXPR20 void schoolbook_div_qr_s(T *dst, T *src, size_t n, T *div,
+                                                      size_t m, T dinv) {
+    using divider = div3by2_divider<T>;
+    constexpr T mask = std::numeric_limits<T>::max();
+
+    T qh;
+    T n1, n0;
+    T d1, d0;
+    T cy, cy1;
+    T q;
+    size_t i;
+
+    WJR_ASSERT(m > 2);
+    WJR_ASSERT(n >= m);
+    WJR_ASSERT(__has_high_bit(div[m - 1]));
+
+    src += n;
+
+    qh = reverse_compare_n(src - m, div, m) >= 0;
+    if (qh != 0) {
+        (void)subc_n(src - n, src - n, div, m, 0u);
+    }
+
+    dst += n - m;
+
+    m -= 2;
+    d1 = div[m + 1];
+    d0 = div[m + 0];
+
+    src -= 2;
+
+    n1 = src[1];
+
+    for (i = n - (m + 2); i > 0; i--) {
+        src--;
+        if (WJR_UNLIKELY(n1 == d1) && src[1] == d0) {
+            q = mask;
+            submul_1(src - m, div, m + 2, q);
+            n1 = src[1];
+        } else {
+            n0 = src[1];
+            q = divider::divide(d0, d1, dinv, src[0], n0, n1);
+
+            cy = submul_1(src - m, div, m, q);
+
+            n0 = subc(n0, cy, 0u, cy1);
+            n1 = subc(n1, cy1, 0u, cy);
+            src[0] = n0;
+
+            if (WJR_UNLIKELY(cy != 0)) {
+                n1 += d1 + addc_n(src - m, src - m, div, m + 1, 0u);
+                q--;
+            }
+        }
+
+        *--dst = q;
+    }
+
+    src[1] = n1;
+}
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n, T *div,
+                                        size_t m) {
+    WJR_ASSERT(n >= m);
+    WJR_ASSERT(m >= 1);
+
+    switch (m) {
+    case 0: {
+        WJR_ASSERT(false);
+        WJR_UNREACHABLE();
+        break;
+    }
+    case 1: {
+        return div_qr_1(dst, rem[0], src, n, div[0]);
+    }
+    case 2: {
+        return div_qr_2(dst, rem, src, n, div);
+    }
+    default: {
+        WJR_UNREACHABLE();
+        break;
+    }
+    }
+}
+
 template <typename T>
 WJR_CONSTEXPR_E T fallback_divexact_dbm1c(T *dst, const T *src, size_t n, T bd, T h) {
     T a = 0, p0 = 0, p1 = 0, cf = 0;
@@ -299,10 +389,10 @@ WJR_CONSTEXPR_E void divexact_by15(T *dst, const T *src, size_t n) {
 }
 
 // reference : ftp://ftp.risc.uni-linz.ac.at/pub/techreports/1992/92-35.ps.gz
-// TODO : asm_divexact_1 (Low priority)
+// TODO : (Low priority)
 template <typename T>
-WJR_CONSTEXPR_E void fallback_divexact_1(T *dst, const T *src, size_t n,
-                                         divexact1_divider<T> div) {
+WJR_NOINLINE WJR_CONSTEXPR_E void fallback_divexact_1(T *dst, const T *src, size_t n,
+                                                      divexact1_divider<T> div) {
     uint64_t divisor = div.get_divisor();
     uint64_t value = div.get_value();
     unsigned int shift = div.get_shift();

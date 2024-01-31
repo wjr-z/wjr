@@ -78,6 +78,11 @@ WJR_INTRINSIC_CONSTEXPR_E int reverse_compare_n(const T *src0, const T *src1, si
 #endif
 }
 
+#if WJR_HAS_FEATURE(FAST_INT128_COMPARE)
+#define WJR_HAS_BUILTIN___BUILTIN_LESS_128 WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___BUILTIN_LESS_EQUAL_128 WJR_HAS_DEF
+#endif
+
 WJR_INTRINSIC_CONSTEXPR_E bool __fallback_less_128(uint64_t lo0, uint64_t hi0,
                                                    uint64_t lo1, uint64_t hi1) {
     unsigned char f = lo0 < lo1;
@@ -85,14 +90,28 @@ WJR_INTRINSIC_CONSTEXPR_E bool __fallback_less_128(uint64_t lo0, uint64_t hi0,
     return f;
 }
 
+#if WJR_HAS_BUILTIN(__BUILTIN_LESS_128)
+
+WJR_INTRINSIC_INLINE bool __builtin_less_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
+                                             uint64_t hi1) {
+    auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
+    auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
+
+    return x0 < x1;
+}
+
+#endif
+
 // return <hi0, lo0> < <hi1, lo1>
 WJR_INTRINSIC_CONSTEXPR_E bool __less_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
                                           uint64_t hi1) {
-#if WJR_HAS_BUILTIN(__ASM_LESS_128)
+#if WJR_HAS_BUILTIN(__BUILTIN_LESS_128) || WJR_HAS_BUILTIN(__ASM_LESS_128)
     if (is_constant_evaluated()) {
         return __fallback_less_128(lo0, hi0, lo1, hi1);
     }
-    return __asm_less_128(lo0, hi0, lo1, hi1);
+
+    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(__BUILTIN_LESS_128), __builtin_less_128,
+                          __asm_less_128)(lo0, hi0, lo1, hi1);
 #else
     return __fallback_less_128(lo0, hi0, lo1, hi1);
 #endif
@@ -103,14 +122,29 @@ WJR_INTRINSIC_CONSTEXPR_E bool __fallback_less_equal_128(uint64_t lo0, uint64_t 
     return !__less_128(lo1, hi1, lo0, hi0);
 }
 
+#if WJR_HAS_BUILTIN(__BUILTIN_LESS_EQUAL_128)
+
+WJR_INTRINSIC_INLINE bool __builtin_less_equal_128(uint64_t lo0, uint64_t hi0,
+                                                   uint64_t lo1, uint64_t hi1) {
+    auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
+    auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
+
+    return x0 <= x1;
+}
+
+#endif
+
 // return <hi0, lo0> < <hi1, lo1>
 WJR_INTRINSIC_CONSTEXPR_E bool __less_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
                                                 uint64_t hi1) {
-#if WJR_HAS_BUILTIN(__ASM_LESS_EQUAL_128)
+#if WJR_HAS_BUILTIN(__BUILTIN_LESS_EQUAL_128) || WJR_HAS_BUILTIN(__ASM_LESS_EQUAL_128)
     if (is_constant_evaluated()) {
         return __fallback_less_equal_128(lo0, hi0, lo1, hi1);
     }
-    return __asm_less_equal_128(lo0, hi0, lo1, hi1);
+
+    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(__BUILTIN_LESS_EQUAL_128),
+                          __builtin_less_equal_128,
+                          __asm_less_equal_128)(lo0, hi0, lo1, hi1);
 #else
     return __fallback_less_equal_128(lo0, hi0, lo1, hi1);
 #endif

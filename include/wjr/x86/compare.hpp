@@ -138,6 +138,7 @@ WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
 
 #endif
 
+// __uint128_t has certain bugs in GCC 13.2, resulting in low performance
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_HAS_BUILTIN___ASM_LESS_128 WJR_HAS_DEF
 #define WJR_HAS_BUILTIN___ASM_LESS_EQUAL_128 WJR_HAS_DEF
