@@ -50,51 +50,21 @@ class stack_alloc {
     template <size_t cache, size_t bufsize>
     class __stack_alloc {
 
-        class __stack_alloc_node {
-        public:
-            __stack_alloc_node() = delete;
-            constexpr __stack_alloc_node(size_t size) : m_alloc(buffer, buffer + size) {}
-
-            __stack_alloc_node(const __stack_alloc_node &) = delete;
-            __stack_alloc_node &operator=(const __stack_alloc_node &) = delete;
-            ~__stack_alloc_node() = default;
-
-            WJR_NODISCARD constexpr void *allocate(size_t n) {
-                return m_alloc.allocate(n);
-            }
-
-            WJR_INTRINSIC_CONSTEXPR void deallocate(void *old,
-                                                    WJR_MAYBE_UNUSED size_t n) {
-                m_alloc.deallocate(old, n);
-            }
-
-            WJR_INTRINSIC_CONSTEXPR size_t size() const { return m_alloc.ptr() - buffer; }
-            WJR_INTRINSIC_CONSTEXPR size_t rest() const {
-                return m_alloc.end() - m_alloc.ptr();
-            }
-            WJR_INTRINSIC_CONSTEXPR size_t capacity() const {
-                return m_alloc.end() - buffer;
-            }
-
-        private:
-            basic_stack_alloc m_alloc;
-            alignas(alignment) char buffer[];
-        };
-
         WJR_COLD WJR_CONSTEXPR20 void __malloc_node() {
-            WJR_ASSERT(idx == stk.size());
-            size_t size = 0;
+            size_t capacity = 0;
 
-            if (WJR_UNLIKELY(idx == 0)) {
-                size = cache;
+            if (WJR_UNLIKELY(m_idx == 0)) {
+                capacity = cache;
             } else {
-                size = stk.back()->capacity();
-                size += size / 3;
+                auto &node = m_stk.back();
+                capacity = node.end - node.buffer;
+                capacity += capacity / 3;
             }
 
-            auto node = (__stack_alloc_node *)malloc(sizeof(__stack_alloc_node) + size);
-            new (node) __stack_alloc_node(size);
-            stk.emplace_back(node);
+            auto buffer = (char *)malloc(capacity);
+            alloc_node node = {buffer, buffer, buffer + capacity};
+
+            m_stk.emplace_back(node);
         }
 
     public:
@@ -106,31 +76,62 @@ class stack_alloc {
         ~__stack_alloc() = default;
 
         WJR_NODISCARD WJR_CONSTEXPR20 void *allocate(size_t n) {
-            if (WJR_UNLIKELY(idx == -1ull || stk[idx]->rest() < n)) {
-                ++idx;
-                if (WJR_UNLIKELY(idx == stk.size())) {
+            if (WJR_UNLIKELY(m_end - m_ptr < n)) {
+
+                if (WJR_LIKELY(m_idx != -1ull)) {
+                    m_stk[m_idx].ptr = m_ptr;
+                }
+
+                ++m_idx;
+                if (WJR_UNLIKELY(m_idx == m_stk.size())) {
                     __malloc_node();
                 }
+
+                const auto &node = m_stk[m_idx];
+                m_buffer = node.buffer;
+                m_ptr = m_buffer;
+                m_end = node.end;
             }
 
-            return stk[idx]->allocate(n);
+            auto ret = static_cast<void *>(m_ptr);
+            m_ptr += n;
+            return ret;
         }
 
         WJR_CONSTEXPR20 void deallocate(void *ptr, size_t n) {
-            stk[idx]->deallocate(ptr, n);
+            m_ptr = static_cast<char *>(ptr);
 
-            if (WJR_UNLIKELY(idx && stk[idx]->size() == 0)) {
-                --idx;
-                if (WJR_UNLIKELY(idx + bufsize + 1 <= stk.size())) {
-                    delete stk.back();
-                    stk.pop_back();
+            if (WJR_UNLIKELY(m_ptr == m_buffer)) {
+                --m_idx;
+                if (WJR_UNLIKELY(m_idx == -1ull)) {
+                    m_buffer = m_ptr = m_end = nullptr;
+                } else {
+                    if (WJR_UNLIKELY(m_stk.size() - m_idx >= bufsize + 2)) {
+                        delete m_stk.back().buffer;
+                        m_stk.pop_back();
+                    }
+
+                    const auto &node = m_stk[m_idx];
+                    m_buffer = node.buffer;
+                    m_ptr = node.ptr;
+                    m_end = node.end;
                 }
             }
         }
 
     private:
-        size_t idx = -1ull;
-        std::vector<__stack_alloc_node *> stk;
+        struct alloc_node {
+            char *buffer;
+            char *ptr;
+            char *end;
+        };
+
+        char *m_buffer = nullptr;
+        char *m_ptr = nullptr;
+        char *m_end = nullptr;
+
+        size_t m_idx = -1ull;
+        std::vector<alloc_node> m_stk;
     };
 
 public:

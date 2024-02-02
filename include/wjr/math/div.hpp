@@ -33,18 +33,20 @@ fallback_div_qr_1_without_shift(T *dst, T &rem, const T *src, size_t n,
         dst[n - 1] = 0;
     }
 
-    if (WJR_UNLIKELY(n == 1)) {
-        rem = hi;
-        return;
-    }
-
-    n -= 1;
-
     do {
-        lo = src[n - 1];
-        dst[n - 1] = div.divide(divisor, value, lo, hi);
+        if (WJR_UNLIKELY(n == 1)) {
+            break;
+        }
+
         --n;
-    } while (WJR_LIKELY(n != 0));
+
+        do {
+            lo = src[n - 1];
+            dst[n - 1] = div.divide(divisor, value, lo, hi);
+            --n;
+        } while (WJR_LIKELY(n != 0));
+
+    } while (0);
 
     rem = hi;
     return;
@@ -67,14 +69,19 @@ fallback_div_qr_1_with_shift(T *dst, T &rem, const T *src, size_t n,
     --n;
     hi = rbp >> (64 - shift);
 
-    if (WJR_LIKELY(n != 0)) {
+    do {
+        if (WJR_UNLIKELY(n == 0)) {
+            break;
+        }
+
         do {
             lo = src[n - 1];
             dst[n] = div.divide(divisor, value, shld(rbp, lo, shift), hi);
             rbp = lo;
             --n;
         } while (WJR_LIKELY(n != 0));
-    }
+
+    } while (0);
 
     dst[0] = div.divide(divisor, value, rbp << shift, hi);
     rem = hi >> shift;
@@ -174,19 +181,20 @@ fallback_div_qr_2_without_shift(T *dst, T *rem, const T *src, size_t n,
         dst[n - 2] = 0;
     }
 
-    if (WJR_UNLIKELY(n == 2)) {
-        rem[0] = u1;
-        rem[1] = u2;
-        return;
-    }
-
-    n -= 2;
-
     do {
-        u0 = src[n - 1];
-        dst[n - 1] = div.divide(divisor0, divisor1, value, u0, u1, u2);
-        --n;
-    } while (WJR_LIKELY(n != 0));
+        if (WJR_UNLIKELY(n == 2)) {
+            break;
+        }
+
+        n -= 2;
+
+        do {
+            u0 = src[n - 1];
+            dst[n - 1] = div.divide(divisor0, divisor1, value, u0, u1, u2);
+            --n;
+        } while (WJR_LIKELY(n != 0));
+
+    } while (0);
 
     rem[0] = u1;
     rem[1] = u2;
@@ -215,17 +223,21 @@ fallback_div_qr_2_with_shift(T *dst, T *rem, const T *src, size_t n,
 
     n -= 2;
 
-    if (WJR_LIKELY(n != 0)) {
+    do {
+        if (WJR_UNLIKELY(n == 0)) {
+            break;
+        }
+
         do {
             u0 = src[n - 1];
             dst[n] = div.divide(divisor0, divisor1, value, shld(rbp, u0, shift), u1, u2);
             rbp = u0;
             --n;
         } while (WJR_LIKELY(n != 0));
-    }
+
+    } while (0);
 
     dst[0] = div.divide(divisor0, divisor1, value, rbp << shift, u1, u2);
-
     rem[0] = shrd(u1, u2, shift);
     rem[1] = u2 >> shift;
     return;
@@ -252,10 +264,10 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n, 
     return fallback_div_qr_2(dst, rem, src, n, div3by2_divider<T>(d[0], d[1]));
 }
 
-// reference : gmp
+// reference : GMP
 template <typename T>
-WJR_NOINLINE WJR_CONSTEXPR20 void schoolbook_div_qr_s(T *dst, T *src, size_t n, T *div,
-                                                      size_t m, T dinv) {
+WJR_NOINLINE WJR_CONSTEXPR20 T sb_div_qr_s(T *dst, T *src, size_t n, T *div, size_t m,
+                                           T dinv) {
     using divider = div3by2_divider<T>;
     constexpr T mask = std::numeric_limits<T>::max();
 
@@ -313,6 +325,8 @@ WJR_NOINLINE WJR_CONSTEXPR20 void schoolbook_div_qr_s(T *dst, T *src, size_t n, 
     }
 
     src[1] = n1;
+
+    return qh;
 }
 
 template <typename T>
