@@ -266,8 +266,8 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n, 
 
 // reference : GMP
 template <typename T>
-WJR_NOINLINE WJR_CONSTEXPR20 T sb_div_qr_s(T *dst, T *src, size_t n, T *div, size_t m,
-                                           T dinv) {
+WJR_NOINLINE WJR_CONSTEXPR20 T sb_div_qr_s(T *dst, T *src, size_t n, const T *div,
+                                           size_t m, T dinv) {
     using divider = div3by2_divider<T>;
     constexpr T mask = std::numeric_limits<T>::max();
 
@@ -286,7 +286,7 @@ WJR_NOINLINE WJR_CONSTEXPR20 T sb_div_qr_s(T *dst, T *src, size_t n, T *div, siz
 
     qh = reverse_compare_n(src - m, div, m) >= 0;
     if (qh != 0) {
-        (void)subc_n(src - n, src - n, div, m, 0u);
+        (void)subc_n(src - m, src - m, div, m);
     }
 
     dst += n - m;
@@ -316,7 +316,7 @@ WJR_NOINLINE WJR_CONSTEXPR20 T sb_div_qr_s(T *dst, T *src, size_t n, T *div, siz
             src[0] = n0;
 
             if (WJR_UNLIKELY(cy != 0)) {
-                n1 += d1 + addc_n(src - m, src - m, div, m + 1, 0u);
+                n1 += d1 + addc_n(src - m, src - m, div, m + 1);
                 q--;
             }
         }
@@ -325,6 +325,55 @@ WJR_NOINLINE WJR_CONSTEXPR20 T sb_div_qr_s(T *dst, T *src, size_t n, T *div, siz
     }
 
     src[1] = n1;
+
+    return qh;
+}
+
+inline constexpr size_t dc_div_qr_threshold = toom22_mul_threshold * 2;
+
+template <typename T>
+T dc_div4by2_qr(T *dst, T *src, const T *div, size_t m, T dinv, T *stk) {
+    size_t lo, hi;
+    T cy, qh, ql;
+
+    lo = m >> 1; /* floor(n/2) */
+    hi = m - lo; /* ceil(n/2) */
+
+    if (hi < dc_div_qr_threshold) {
+        qh = sb_div_qr_s(dst + lo, src + 2 * lo, 2 * hi, div + lo, hi, dinv);
+    } else {
+        qh = dc_div4by2_qr(dst + lo, src + 2 * lo, div + lo, hi, dinv, stk);
+    }
+
+    mul_s(stk, dst + lo, hi, div, lo);
+
+    cy = subc_n(src + lo, src + lo, stk, m);
+    if (qh != 0) {
+        cy += subc_n(src + m, src + m, div, lo);
+    }
+
+    while (cy != 0) {
+        qh -= subc_1(dst + lo, dst + lo, hi, 1u);
+        cy -= addc_n(src + lo, src + lo, div, m);
+    }
+
+    if (lo < dc_div_qr_threshold) {
+        ql = sb_div_qr_s(dst, src + hi, 2 * lo, div + hi, lo, dinv);
+    } else {
+        ql = dc_div4by2_qr(dst, src + hi, div + hi, lo, dinv, stk);
+    }
+
+    mul_s(stk, div, hi, dst, lo);
+
+    cy = subc_n(src, src, stk, m);
+    if (ql != 0) {
+        cy += subc_n(src + lo, src + lo, div, hi);
+    }
+
+    while (cy != 0) {
+        subc_1(dst, dst, lo, 1u);
+        cy -= addc_n(src, src, div, m);
+    }
 
     return qh;
 }

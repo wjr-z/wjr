@@ -36,7 +36,7 @@ inline constexpr de_bruijn<uint32_t, 0x077C'B531> de_bruijn32 = {};
 inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
 
 using default_stack_allocator =
-    stack_allocator<6 * 1024, 2 * 1024, 6, 48 * 1024, 16 * 1024, 2>;
+    stack_allocator<6 * 1024, 2 * 1024, 4, 48 * 1024, 16 * 1024, 2>;
 inline constexpr default_stack_allocator stack_alloc = {};
 
 } // namespace math_details

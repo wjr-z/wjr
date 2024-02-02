@@ -61,7 +61,7 @@ class stack_alloc {
                 capacity += capacity / 3;
             }
 
-            auto buffer = (char *)malloc(capacity);
+            auto buffer = static_cast<char *>(malloc(capacity));
             alloc_node node = {buffer, buffer, buffer + capacity};
 
             m_stk.emplace_back(node);
@@ -103,13 +103,15 @@ class stack_alloc {
 
             if (WJR_UNLIKELY(m_ptr == m_buffer)) {
                 --m_idx;
+
+                if (WJR_UNLIKELY(m_stk.size() - m_idx >= bufsize + 2)) {
+                    free(m_stk.back().buffer);
+                    m_stk.pop_back();
+                }
+
                 if (WJR_UNLIKELY(m_idx == -1ull)) {
                     m_buffer = m_ptr = m_end = nullptr;
                 } else {
-                    if (WJR_UNLIKELY(m_stk.size() - m_idx >= bufsize + 2)) {
-                        delete m_stk.back().buffer;
-                        m_stk.pop_back();
-                    }
 
                     const auto &node = m_stk[m_idx];
                     m_buffer = node.buffer;
