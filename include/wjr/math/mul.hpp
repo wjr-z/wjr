@@ -1237,11 +1237,13 @@ struct toom_interpolation_6p_struct {
     T cf4;
 };
 
+/*
 template <typename T>
 void toom_interpolation_6p_s(T *dst, T *w1p, size_t l, size_t rn, size_t rm,
                              toom_interpolation_6p_struct<T> &&flag) {
     // r(0) r(1) r(-1) r(2) r(-2) r(inf)
 }
+*/
 
 } // namespace wjr
 

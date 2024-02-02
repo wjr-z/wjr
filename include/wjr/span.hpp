@@ -18,7 +18,7 @@ struct __span_static_storage {
 
     __span_static_storage(T *p, size_t s) : ptr(p) { WJR_ASSERT(s == size); }
 
-    T *ptr;
+    T *ptr = nullptr;
     static constexpr size_t size = Extent;
 };
 
@@ -31,7 +31,7 @@ struct __span_dynamic_storage {
 
     __span_dynamic_storage(T *p, size_t s) : ptr(p), size(s) {}
 
-    T *ptr;
+    T *ptr = nullptr;
     size_t size = 0;
 };
 

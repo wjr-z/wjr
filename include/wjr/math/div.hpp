@@ -486,12 +486,11 @@ WJR_NOINLINE WJR_CONSTEXPR_E void fallback_divexact_1(T *dst, const T *src, size
         return;
     }
 
-    uint64_t r11 = 0;
     r10 = src[0];
 
     if (WJR_LIKELY(n != 0)) {
         do {
-            r11 = src[idx + 1];
+            uint64_t r11 = src[idx + 1];
             r10 = shrd(r10, r11, shift);
             r10 = subc(r10, rdx, cf, cf);
             r10 = mullo(r10, value);
