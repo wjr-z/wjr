@@ -79,7 +79,7 @@ class stack_alloc {
         }
 
         WJR_NODISCARD WJR_CONSTEXPR20 void *allocate(size_t n) {
-            if (WJR_UNLIKELY(m_node.end - m_node.ptr < n)) {
+            if (WJR_UNLIKELY(static_cast<size_t>(m_node.end - m_node.ptr) < n)) {
 
                 if (WJR_LIKELY(m_idx != -1ull)) {
                     m_stk[m_idx].ptr = m_node.ptr;
@@ -98,7 +98,7 @@ class stack_alloc {
             return ret;
         }
 
-        WJR_CONSTEXPR20 void deallocate(void *ptr, size_t n) {
+        WJR_CONSTEXPR20 void deallocate(void *ptr, WJR_MAYBE_UNUSED size_t n) {
             WJR_ASSERT(m_node.ptr == static_cast<char *>(ptr) + n);
 
             m_node.ptr = static_cast<char *>(ptr);

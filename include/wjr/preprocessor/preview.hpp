@@ -51,14 +51,14 @@ template <typename Handler, typename... Args,
           std::enable_if_t<std::is_invocable_v<Handler, Args...>, int> = 0>
 WJR_COLD WJR_NOINLINE void __assert_fail(const char *expr, const char *file, int line,
                                          Handler handler, Args &&...args) {
-    fprintf(stderr, "Assertion failed: %s", expr);
-    if (file != nullptr && file[0] != '\0') {
-        fprintf(stderr, ", file %s", file);
+    (void)fprintf(stderr, "Assertion failed: %s", expr);
+    if ((file != nullptr) && (file[0] != '\0')) {
+        (void)fprintf(stderr, ", file %s", file);
     }
     if (line != -1) {
-        fprintf(stderr, ", line %d", line);
+        (void)fprintf(stderr, ", line %d", line);
     }
-    fprintf(stderr, "\n");
+    (void)fprintf(stderr, "\n");
     __assert_fail(handler, std::forward<Args>(args)...);
 }
 
@@ -67,9 +67,9 @@ struct __assert_t {
 
     template <typename... Args>
     void operator()(const char *fmt, Args &&...args) {
-        fprintf(stderr, "Additional message: ");
-        fprintf(stderr, fmt, std::forward<Args>(args)...);
-        fprintf(stderr, "\n");
+        (void)fprintf(stderr, "Additional message: ");
+        (void)fprintf(stderr, fmt, std::forward<Args>(args)...);
+        (void)fprintf(stderr, "\n");
     }
 };
 
@@ -77,8 +77,8 @@ inline constexpr __assert_t __assert{};
 
 #define WJR_ASSERT_NOMESSAGE_FAIL(handler, exprstr)                                      \
     __assert_fail(exprstr, WJR_FILE, WJR_LINE, handler)
-#define WJR_ASSERT_MESSAGE_FAIL(handler, exprstr, fmt, ...)                              \
-    __assert_fail(exprstr, WJR_FILE, WJR_LINE, handler, fmt, ##__VA_ARGS__)
+#define WJR_ASSERT_MESSAGE_FAIL(handler, exprstr, ...)                                   \
+    __assert_fail(exprstr, WJR_FILE, WJR_LINE, handler, __VA_ARGS__)
 
 #define WJR_ASSERT_CHECK_I_NOMESSAGE(handler, expr)                                      \
     do {                                                                                 \
@@ -86,10 +86,10 @@ inline constexpr __assert_t __assert{};
             WJR_ASSERT_NOMESSAGE_FAIL(handler, #expr);                                   \
         }                                                                                \
     } while (0)
-#define WJR_ASSERT_CHECK_I_MESSAGE(handler, expr, fmt, ...)                              \
+#define WJR_ASSERT_CHECK_I_MESSAGE(handler, expr, ...)                                   \
     do {                                                                                 \
         if (WJR_UNLIKELY(!(expr))) {                                                     \
-            WJR_ASSERT_MESSAGE_FAIL(handler, #expr, fmt, ##__VA_ARGS__);                 \
+            WJR_ASSERT_MESSAGE_FAIL(handler, #expr, __VA_ARGS__);                        \
         }                                                                                \
     } while (0)
 
@@ -125,11 +125,12 @@ inline constexpr __assert_t __assert{};
 // level of assert is zero at default.
 #define WJR_ALWAYS_ASSERT(...) WJR_ALWAYS_ASSERT_L(0, __VA_ARGS__)
 
-#define WJR_ASSERT_ASSUME_L(level, expr, ...)                                            \
-    WJR_ASSERT_L(level, expr, ##__VA_ARGS__);                                            \
-    WJR_ASSUME(expr)
+#define WJR_ASSERT_ASSUME_L(level, ...)                                                  \
+    WJR_ASSERT_L(level, __VA_ARGS__);                                                    \
+    __WJR_ASSERT_ASSUME_L_ASSUME(__VA_ARGS__)
+#define __WJR_ASSERT_ASSUME_L_ASSUME(expr, ...) WJR_ASSUME(expr)
 
-#define WJR_ASSERT_ASSUME(expr, ...) WJR_ASSERT_ASSUME_L(0, expr, ##__VA_ARGS__)
+#define WJR_ASSERT_ASSUME(...) WJR_ASSERT_ASSUME_L(0, __VA_ARGS__)
 
 // (a, b, c) -> f(a) f(b) f(c)
 #define WJR_PP_TRANSFORM_PUT(queue, op)                                                  \

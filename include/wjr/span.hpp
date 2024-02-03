@@ -16,7 +16,9 @@ struct __span_static_storage {
     __span_static_storage(const __span_static_storage &) = default;
     __span_static_storage &operator=(const __span_static_storage &) = default;
 
-    __span_static_storage(T *p, size_t s) : ptr(p) { WJR_ASSERT(s == size); }
+    __span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) : ptr(p) {
+        WJR_ASSERT(s == size);
+    }
 
     T *ptr = nullptr;
     static constexpr size_t size = Extent;
