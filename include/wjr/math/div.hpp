@@ -13,24 +13,24 @@ namespace wjr {
 // reference : https://ieeexplore.ieee.org/document/5487506
 
 template <typename T>
-WJR_NOINLINE WJR_CONSTEXPR20 void
-fallback_div_qr_1_without_shift(T *dst, T &rem, const T *src, size_t n,
-                                const div2by1_divider<T> &div) {
+WJR_NOINLINE WJR_CONSTEXPR20 T div_qr_1_without_shift(T *dst, T &rem, const T *src,
+                                                      size_t n,
+                                                      const div2by1_divider<T> &div) {
+    WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
     WJR_ASSERT(div.get_shift() == 0);
     WJR_ASSERT(n >= 1);
 
     T divisor = div.get_divisor();
     T value = div.get_value();
 
+    T qh = 0;
     T lo, hi;
 
     hi = src[n - 1];
 
     if (hi >= divisor) {
         hi -= divisor;
-        dst[n - 1] = 1;
-    } else {
-        dst[n - 1] = 0;
+        qh = 1;
     }
 
     do {
@@ -49,13 +49,13 @@ fallback_div_qr_1_without_shift(T *dst, T &rem, const T *src, size_t n,
     } while (0);
 
     rem = hi;
-    return;
+    return qh;
 }
 
 template <typename T>
-WJR_NOINLINE WJR_CONSTEXPR20 void
-fallback_div_qr_1_with_shift(T *dst, T &rem, const T *src, size_t n,
-                             const div2by1_divider<T> &div) {
+WJR_NOINLINE WJR_CONSTEXPR20 T div_qr_1_with_shift(T *dst, T &rem, const T *src, size_t n,
+                                                   const div2by1_divider<T> &div) {
+    WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
     WJR_ASSERT(div.get_shift() != 0);
     WJR_ASSERT(n >= 1);
 
@@ -63,6 +63,7 @@ fallback_div_qr_1_with_shift(T *dst, T &rem, const T *src, size_t n,
     T value = div.get_value();
     unsigned int shift = div.get_shift();
 
+    T qh;
     T lo, hi;
 
     T rbp = src[n - 1];
@@ -71,32 +72,39 @@ fallback_div_qr_1_with_shift(T *dst, T &rem, const T *src, size_t n,
 
     do {
         if (WJR_UNLIKELY(n == 0)) {
+            qh = div.divide(divisor, value, rbp << shift, hi);
             break;
         }
 
-        do {
-            lo = src[n - 1];
-            dst[n] = div.divide(divisor, value, shld(rbp, lo, shift), hi);
-            rbp = lo;
-            --n;
-        } while (WJR_LIKELY(n != 0));
+        lo = src[n - 1];
+        qh = div.divide(divisor, value, shld(rbp, lo, shift), hi);
+        rbp = lo;
+        --n;
 
+        if (WJR_LIKELY(n != 0)) {
+            do {
+                lo = src[n - 1];
+                dst[n] = div.divide(divisor, value, shld(rbp, lo, shift), hi);
+                rbp = lo;
+                --n;
+            } while (WJR_LIKELY(n != 0));
+        }
+
+        dst[0] = div.divide(divisor, value, rbp << shift, hi);
     } while (0);
 
-    dst[0] = div.divide(divisor, value, rbp << shift, hi);
     rem = hi >> shift;
-
-    return;
+    return qh;
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR20 void fallback_div_qr_1(T *dst, T &rem, const T *src, size_t n,
-                                                 const div2by1_divider<T> &div) {
+WJR_INTRINSIC_CONSTEXPR20 T fallback_div_qr_1(T *dst, T &rem, const T *src, size_t n,
+                                              const div2by1_divider<T> &div) {
     if (div.get_shift() == 0) {
-        return fallback_div_qr_1_without_shift(dst, rem, src, n, div);
+        return div_qr_1_without_shift(dst, rem, src, n, div);
     }
 
-    return fallback_div_qr_1_with_shift(dst, rem, src, n, div);
+    return div_qr_1_with_shift(dst, rem, src, n, div);
 }
 
 // return high quotient limb
@@ -112,16 +120,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
         return;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(div.get_divisor()) &&
-        WJR_BUILTIN_CONSTANT_P(div.get_shift()) && WJR_UNLIKELY(n == 1)) {
-        T divisor = div.get_divisor() >> div.get_shift();
-        T tmp = src[0];
-        dst[0] = tmp / divisor;
-        rem = tmp % divisor;
-        return;
-    }
-
-    return fallback_div_qr_1(dst, rem, src, n, div);
+    dst[n - 1] = fallback_div_qr_1(dst, rem, src, n, div);
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
@@ -155,13 +154,14 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
         return;
     }
 
-    return fallback_div_qr_1(dst, rem, src, n, div2by1_divider<T>(div));
+    dst[n - 1] = fallback_div_qr_1(dst, rem, src, n, div2by1_divider<T>(div));
 }
 
 template <typename T>
-WJR_NOINLINE WJR_CONSTEXPR20 void
-fallback_div_qr_2_without_shift(T *dst, T *rem, const T *src, size_t n,
-                                const div3by2_divider<T> &div) {
+WJR_NOINLINE WJR_CONSTEXPR20 T div_qr_2_without_shift(T *dst, T *rem, const T *src,
+                                                      size_t n,
+                                                      const div3by2_divider<T> &div) {
+    WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
     WJR_ASSERT(div.get_shift() == 0);
     WJR_ASSERT(n >= 2);
 
@@ -169,6 +169,7 @@ fallback_div_qr_2_without_shift(T *dst, T *rem, const T *src, size_t n,
     T divisor1 = div.get_divisor1();
     T value = div.get_value();
 
+    T qh = 0;
     T u0, u1, u2;
 
     u2 = src[n - 1];
@@ -176,9 +177,7 @@ fallback_div_qr_2_without_shift(T *dst, T *rem, const T *src, size_t n,
 
     if (__less_equal_128(divisor0, divisor1, u1, u2)) {
         __subc_128(u1, u2, u1, u2, divisor0, divisor1);
-        dst[n - 2] = 1;
-    } else {
-        dst[n - 2] = 0;
+        qh = 1;
     }
 
     do {
@@ -198,13 +197,13 @@ fallback_div_qr_2_without_shift(T *dst, T *rem, const T *src, size_t n,
 
     rem[0] = u1;
     rem[1] = u2;
-    return;
+    return qh;
 }
 
 template <typename T>
-WJR_NOINLINE WJR_CONSTEXPR20 void
-fallback_div_qr_2_with_shift(T *dst, T *rem, const T *src, size_t n,
-                             const div3by2_divider<T> &div) {
+WJR_NOINLINE WJR_CONSTEXPR20 T div_qr_2_with_shift(T *dst, T *rem, const T *src, size_t n,
+                                                   const div3by2_divider<T> &div) {
+    WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
     WJR_ASSERT(div.get_shift() != 0);
     WJR_ASSERT(n >= 2);
 
@@ -213,6 +212,7 @@ fallback_div_qr_2_with_shift(T *dst, T *rem, const T *src, size_t n,
     T value = div.get_value();
     unsigned int shift = div.get_shift();
 
+    T qh;
     T u0, u1, u2;
     T rbp;
 
@@ -225,46 +225,56 @@ fallback_div_qr_2_with_shift(T *dst, T *rem, const T *src, size_t n,
 
     do {
         if (WJR_UNLIKELY(n == 0)) {
+            qh = div.divide(divisor0, divisor1, value, rbp << shift, u1, u2);
             break;
         }
 
-        do {
-            u0 = src[n - 1];
-            dst[n] = div.divide(divisor0, divisor1, value, shld(rbp, u0, shift), u1, u2);
-            rbp = u0;
-            --n;
-        } while (WJR_LIKELY(n != 0));
+        u0 = src[n - 1];
+        qh = div.divide(divisor0, divisor1, value, shld(rbp, u0, shift), u1, u2);
+        rbp = u0;
+        --n;
 
+        if (WJR_LIKELY(n != 0)) {
+            do {
+                u0 = src[n - 1];
+                dst[n] =
+                    div.divide(divisor0, divisor1, value, shld(rbp, u0, shift), u1, u2);
+                rbp = u0;
+                --n;
+            } while (WJR_LIKELY(n != 0));
+        }
+
+        dst[0] = div.divide(divisor0, divisor1, value, rbp << shift, u1, u2);
     } while (0);
 
-    dst[0] = div.divide(divisor0, divisor1, value, rbp << shift, u1, u2);
     rem[0] = shrd(u1, u2, shift);
     rem[1] = u2 >> shift;
-    return;
+    return qh;
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR20 void fallback_div_qr_2(T *dst, T *rem, const T *src, size_t n,
-                                                 const div3by2_divider<T> &div) {
+WJR_INTRINSIC_CONSTEXPR20 T fallback_div_qr_2(T *dst, T *rem, const T *src, size_t n,
+                                              const div3by2_divider<T> &div) {
     if (div.get_shift() == 0) {
-        return fallback_div_qr_2_without_shift(dst, rem, src, n, div);
+        return div_qr_2_without_shift(dst, rem, src, n, div);
     }
 
-    return fallback_div_qr_2_with_shift(dst, rem, src, n, div);
+    return div_qr_2_with_shift(dst, rem, src, n, div);
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const div3by2_divider<T> &div) {
-    return fallback_div_qr_2(dst, rem, src, n, div);
+    dst[n - 2] = fallback_div_qr_2(dst, rem, src, n, div);
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n, T *d) {
-    return fallback_div_qr_2(dst, rem, src, n, div3by2_divider<T>(d[0], d[1]));
+WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n, T *div) {
+    dst[n - 2] = fallback_div_qr_2(dst, rem, src, n, div3by2_divider<T>(div[0], div[1]));
 }
 
 // reference : GMP
+// return qh;
 template <typename T>
 WJR_NOINLINE WJR_CONSTEXPR20 T sb_div_qr_s(T *dst, T *src, size_t n, const T *div,
                                            size_t m, T dinv) {
@@ -276,7 +286,6 @@ WJR_NOINLINE WJR_CONSTEXPR20 T sb_div_qr_s(T *dst, T *src, size_t n, const T *di
     T d1, d0;
     T cy, cy1;
     T q;
-    size_t i;
 
     WJR_ASSERT(m > 2);
     WJR_ASSERT(n >= m);
@@ -299,7 +308,7 @@ WJR_NOINLINE WJR_CONSTEXPR20 T sb_div_qr_s(T *dst, T *src, size_t n, const T *di
 
     n1 = src[1];
 
-    for (i = n - (m + 2); i > 0; i--) {
+    for (size_t i = n - (m + 2); i > 0; i--) {
         src--;
         if (WJR_UNLIKELY(n1 == d1) && src[1] == d0) {
             q = mask;
@@ -329,10 +338,14 @@ WJR_NOINLINE WJR_CONSTEXPR20 T sb_div_qr_s(T *dst, T *src, size_t n, const T *di
     return qh;
 }
 
-inline constexpr size_t dc_div_qr_threshold = toom22_mul_threshold * 2;
+#ifndef WJR_DC_DIV_QR_THRESHOLD
+#define WJR_DC_DIV_QR_THRESHOLD (WJR_TOOM22_MUL_THRESHOLD * 2)
+#endif // WJR_DC_DIV_QR_THRESHOLD
+
+inline constexpr size_t dc_div_qr_threshold = WJR_DC_DIV_QR_THRESHOLD;
 
 template <typename T>
-T dc_div4by2_qr(T *dst, T *src, const T *div, size_t m, T dinv, T *stk) {
+WJR_NOINLINE T dc_div4by2_qr(T *dst, T *src, const T *div, size_t m, T dinv, T *stk) {
     size_t lo, hi;
     T cy, qh, ql;
 
@@ -373,6 +386,157 @@ T dc_div4by2_qr(T *dst, T *src, const T *div, size_t m, T dinv, T *stk) {
     while (cy != 0) {
         subc_1(dst, dst, lo, 1u);
         cy -= addc_n(src, src, div, m);
+    }
+
+    return qh;
+}
+
+template <typename T>
+T dc_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
+    size_t qn;
+    T qh, cy;
+    T *tp;
+
+    WJR_ASSERT(m >= 6);
+    WJR_ASSERT(n - m >= 3);
+    WJR_ASSERT(__has_high_bit(div[m - 1]));
+
+    unique_stack_ptr ptr(math_details::stack_alloc, sizeof(T) * m);
+    tp = static_cast<T *>(ptr.get());
+
+    qn = n - m;
+    dst += qn;
+    src += n;
+    div += m;
+
+    if (qn > m) {
+        /* Reduce qn mod m without division, optimizing small operations.  */
+        if (qn >= 8 * m) {
+            qn %= m;
+            if (qn == 0) {
+                qn = m;
+            }
+        } else {
+            do {
+                qn -= m;
+            } while (qn > m);
+        }
+
+        dst -= qn; /* point at low limb of next quotient block */
+        src -= qn; /* point in the middle of partial remainder */
+
+        /* Perform the typically smaller block first.  */
+        if (qn == 1) {
+            T q, n1, n0, d1, d0;
+
+            /* Handle qh up front, for simplicity. */
+            qh = reverse_compare_n(src - m + 1, div - m, m) >= 0;
+            if (qh) {
+                (void)subc_n(src - m + 1, src - m + 1, div - m, m);
+            }
+
+            /* A single iteration of schoolbook: One 3/2 division,
+               followed by the bignum update and adjustment. */
+            n1 = src[0];
+            n0 = src[-1];
+            d1 = div[-1];
+            d0 = div[-2];
+
+            WJR_ASSERT(n1 < d1 || (n1 == d1 && n0 <= d0));
+
+            if (WJR_UNLIKELY(n1 == d1) && n0 == d0) {
+                q = std::numeric_limits<T>::max();
+                cy = submul_1(src - m, div - m, m, q);
+                WJR_ASSERT(cy == n2);
+            } else {
+                q = wjr::div3by2_divider<T>::divide(d0, d1, dinv, src[-2], n0, n1);
+
+                if (m > 2) {
+                    T cy, cy1;
+                    cy = submul_1(src - m, div - m, m - 2, q);
+
+                    n0 = subc(n0, cy, 0u, cy1);
+                    n1 = subc(n1, cy1, 0u, cy);
+
+                    src[-2] = n0;
+
+                    if (WJR_UNLIKELY(cy != 0)) {
+                        n1 += d1 + addc_n(src - m, src - m, div - m, m - 1);
+                        qh -= (q == 0);
+                        q = (q - 1);
+                    }
+                } else {
+                    src[-2] = n0;
+                }
+
+                src[-1] = n1;
+            }
+            dst[0] = q;
+        } else {
+            /* Do a 2qn / qn division */
+            if (qn == 2) {
+                qh = div_qr_2_without_shift(
+                    dst, src - 2, src - 2, 4,
+                    div3by2_divider<T>(div[-2], div[-1], dinv, 0u));
+            } else if (qn < dc_div_qr_threshold) {
+                qh = sb_div_qr_s(dst, src - qn, 2 * qn, div - qn, qn, dinv);
+            } else {
+                qh = dc_div4by2_qr(dst, src - qn, div - qn, qn, dinv, tp);
+            }
+
+            if (qn != m) {
+                if (qn > m - qn) {
+                    mul_s(tp, dst, qn, div - m, m - qn);
+                } else {
+                    mul_s(tp, div - m, m - qn, dst, qn);
+                }
+
+                cy = subc_n(src - m, src - m, tp, m);
+                if (qh != 0) {
+                    cy += subc_n(src - m + qn, src - m + qn, div - m, m - qn);
+                }
+
+                while (cy != 0) {
+                    qh -= subc_1(dst, dst, qn, 1);
+                    cy -= addc_n(src - m, src - m, div - m, m);
+                }
+            }
+        }
+
+        qn = n - m - qn;
+        do {
+            dst -= m;
+            src -= m;
+            dc_div4by2_qr(dst, src - m, div - m, m, dinv, tp);
+            qn -= m;
+        } while (qn > 0);
+    } else {
+        dst -= qn; /* point at low limb of next quotient block */
+        src -= qn; /* point in the middle of partial remainder */
+
+        if (qn < dc_div_qr_threshold) {
+            qh = sb_div_qr_s(dst, src - qn, 2 * qn, div - qn, qn, dinv);
+        } else {
+            qh = dc_div4by2_qr(dst, src - qn, div - qn, qn, dinv, tp);
+        }
+
+        if (qn != m) {
+            if (qn > m - qn) {
+                mul_s(tp, dst, qn, div - m, m - qn);
+            } else {
+                mul_s(tp, div - m, m - qn, dst, qn);
+            }
+
+            cy = subc_n(src - m, src - m, tp, m);
+            if (qh != 0) {
+                cy += subc_n(src - m + qn, src - m + qn, div - m, m - qn);
+            }
+
+            while (cy != 0) {
+                qh -= subc_1(dst, dst, qn, 1);
+                cy -= addc_n(src - m, src - m, div - m, m);
+            }
+        }
     }
 
     return qh;
