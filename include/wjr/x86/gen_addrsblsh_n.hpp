@@ -11,7 +11,6 @@
 
 WJR_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
     uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, uint64_t cl) {
-    WJR_ASSERT(n != 0);
     WJR_ASSERT(cl != 0);
 
     size_t cx = n / 8;

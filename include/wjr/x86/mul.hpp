@@ -66,8 +66,6 @@ WJR_INTRINSIC_INLINE T mulx(T a, T b, T &hi) {
 #if WJR_HAS_BUILTIN(ASM_MUL_1)
 
 WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t dx) {
-    WJR_ASSERT(n != 0);
-
     size_t cx = n / 8;
     uint64_t r8, r9, r10 = n, r11;
 

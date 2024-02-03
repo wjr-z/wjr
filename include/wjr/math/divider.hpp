@@ -75,7 +75,7 @@ public:
     constexpr bool is_power_of_two() const { return m_divisor == (1ull << 63); }
 
     WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor, T value, T lo, T &hi) {
-        WJR_ASSERT(__has_high_bit(value));
+        WJR_ASSERT_ASSUME(__has_high_bit(divisor));
 
         if (WJR_BUILTIN_CONSTANT_P(lo == 0) && lo == 0) {
             return divide_lo0(divisor, value, lo, hi);
@@ -85,7 +85,7 @@ public:
     }
 
     WJR_CONST WJR_INLINE_CONSTEXPR_E static T reciprocal(T d) {
-        WJR_ASSERT(__has_high_bit(d));
+        WJR_ASSERT_ASSUME(__has_high_bit(d));
 
         uint64_t d40 = 0, d63 = 0;
         uint32_t v0 = 0;
@@ -159,7 +159,7 @@ private:
         if (is_constant_evaluated()) {
             return fallback_div2by1_adjust(rax, div, r8, rdx);
         }
-        
+
         return asm_div2by1_adjust(rax, div, r8, rdx);
 #else
         return fallback_div2by1_adjust(rax, div, r8, rdx);
@@ -237,6 +237,8 @@ public:
 
     WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor0, T divisor1, T value, T u0,
                                               T &u1, T &u2) {
+        WJR_ASSERT_ASSUME(__has_high_bit(divisor1));
+        
         T q1, q0;
         q0 = mul<T>(value, u2, q1);
         __addc_128(q0, q1, q0, q1, u1, u2);
@@ -266,7 +268,7 @@ public:
     }
 
     WJR_CONST WJR_INLINE_CONSTEXPR_E static T reciprocal(T d0, T d1) {
-        WJR_ASSERT(__has_high_bit(d1));
+        WJR_ASSERT_ASSUME(__has_high_bit(d1));
 
         T v = div2by1_divider<T>::reciprocal(d1);
         T p = mullo<T>(d1, v);

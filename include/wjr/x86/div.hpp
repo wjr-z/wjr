@@ -17,8 +17,6 @@ namespace wjr {
 
 WJR_INLINE uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
                                        uint64_t bd, uint64_t h) {
-    WJR_ASSERT(n >= 1);
-
     uint64_t r8 = h, r9 = n, r10, r11 = static_cast<uint32_t>(n);
 
     src += r9;

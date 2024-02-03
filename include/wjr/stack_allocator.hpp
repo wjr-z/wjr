@@ -62,7 +62,8 @@ class stack_alloc {
             }
 
             auto buffer = static_cast<char *>(malloc(capacity));
-            m_stk.emplace_back(buffer, buffer, buffer + capacity);
+            auto node = alloc_node{buffer, buffer, buffer + capacity};
+            m_stk.emplace_back(std::move(node));
         }
 
     public:
@@ -98,6 +99,8 @@ class stack_alloc {
         }
 
         WJR_CONSTEXPR20 void deallocate(void *ptr, size_t n) {
+            WJR_ASSERT(m_node.ptr == static_cast<char *>(ptr) + n);
+
             m_node.ptr = static_cast<char *>(ptr);
 
             if (WJR_UNLIKELY(m_node.ptr == m_node.buffer)) {

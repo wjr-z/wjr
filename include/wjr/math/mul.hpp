@@ -148,6 +148,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_mul_1(T *dst, const T *src, size_t n, T ml) {
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR_E T mul_1(T *dst, const T *src, size_t n, type_identity_t<T> ml) {
     static_assert(std::is_same_v<T, uint64_t>, "only support uint64_t now");
+    WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
     if (WJR_BUILTIN_CONSTANT_P(ml == 0) && ml == 0) {
@@ -198,6 +199,7 @@ template <typename T>
 WJR_INTRINSIC_CONSTEXPR_E T addmul_1(T *dst, const T *src, size_t n,
                                      type_identity_t<T> ml) {
     static_assert(std::is_same_v<T, uint64_t>, "only support uint64_t now");
+    WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
     if (WJR_BUILTIN_CONSTANT_P(ml == 0) && ml == 0) {
@@ -242,6 +244,7 @@ template <typename T>
 WJR_INTRINSIC_CONSTEXPR_E T submul_1(T *dst, const T *src, size_t n,
                                      type_identity_t<T> ml) {
     static_assert(std::is_same_v<T, uint64_t>, "only support uint64_t now");
+    WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
     if (WJR_BUILTIN_CONSTANT_P(ml == 0) && ml == 0) {
@@ -285,7 +288,10 @@ WJR_INTRINSIC_CONSTEXPR T fallback_addlsh_n(T *dst, const T *src0, const T *src1
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR_E T addlsh_n(T *dst, const T *src0, const T *src1, size_t n,
                                      type_identity_t<T> cl) {
-    WJR_ASSERT(cl < std::numeric_limits<T>::digits);
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_ASSUME(cl < std::numeric_limits<T>::digits);
+    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
 
     if (WJR_UNLIKELY(cl == 0)) {
         return addc_n(dst, src0, src1, n);
@@ -331,6 +337,11 @@ WJR_INTRINSIC_CONSTEXPR T fallback_rsblsh_n(T *dst, const T *src0, const T *src1
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR_E T rsblsh_n(T *dst, const T *src0, const T *src1, size_t n,
                                      type_identity_t<T> cl) {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_ASSUME(cl < std::numeric_limits<T>::digits);
+    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
+
     if (WJR_UNLIKELY(cl == 0)) {
         return subc_n(dst, src1, src0, n);
     }
@@ -404,11 +415,10 @@ void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
 
 template <typename T>
 void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
+    WJR_ASSERT_ASSUME(m >= 1);
+    WJR_ASSERT_ASSUME(n >= m);
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n + m, src0, n));
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n + m, src1, m));
-
-    WJR_ASSERT(n >= m);
-    WJR_ASSERT(m >= 1);
 
     if (n < toom22_mul_threshold) {
         return basecase_mul_s(dst, src0, n, src1, m);
@@ -530,11 +540,10 @@ void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
 template <__rec_mul_mode mode, typename T>
 WJR_INTRINSIC_INLINE void __rec_mul_s(T *dst, const T *src0, size_t n, const T *src1,
                                       size_t m, T *stk) {
+    WJR_ASSERT_ASSUME(m >= 1);
+    WJR_ASSERT_ASSUME(n >= m);
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n + m, src0, n));
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n + m, src1, m));
-
-    WJR_ASSERT(n >= m);
-    WJR_ASSERT(m >= 1);
 
     if (n < toom22_mul_threshold) {
         return basecase_mul_s(dst, src0, n, src1, m);
@@ -647,10 +656,9 @@ WJR_INTRINSIC_INLINE void __rec_mul_s(T *dst, const T *src0, size_t n, const T *
 template <__rec_mul_mode mode, typename T>
 WJR_INTRINSIC_INLINE void __rec_mul_n(T *dst, const T *src0, const T *src1, size_t n,
                                       T *stk) {
+    WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n * 2, src0, n));
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n * 2, src1, n));
-
-    WJR_ASSERT(n >= 1);
 
     if (n < toom22_mul_threshold) {
         return basecase_mul_s(dst, src0, n, src1, n);
@@ -680,8 +688,8 @@ void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
 
     // (u0 - u1) * (v0 - v1)
 
-    WJR_ASSERT(n >= m);
-    WJR_ASSERT(2 * m > n);
+    WJR_ASSERT_ASSUME(n >= m);
+    WJR_ASSERT_ASSUME(2 * m > n);
 
     const size_t l = (n + 1) / 2;
     const size_t rn = n - l;
@@ -747,7 +755,7 @@ void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
 
 template <typename T>
 void toom32_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *stk) {
-    WJR_ASSERT(m + 2 <= n);
+    WJR_ASSERT_ASSUME(m + 2 <= n);
     WJR_ASSERT(n + 6 <= 3 * m);
 
     const size_t l = (2 * n >= 3 * m ? (n + 2) / 3 : (m + 1) / 2);
@@ -782,7 +790,7 @@ void toom32_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
     cf3 = addc_s(w3p, v0p, l, v1p, rm);
     // W2 = W0 + U1 : (non-negative) u(1)
     cf2 = cf0 + addc_n(w2p, w0p, u1p, l);
-    WJR_ASSERT(cf2 <= 2);
+    WJR_ASSERT_ASSUME(cf2 <= 2);
 
     // W1 = W2 * W3 : (non-negative) r(1) = r1
     __rec_mul_n<__rec_mul_mode::toom22>(w1p, w2p, w3p, l, stk);
@@ -805,7 +813,7 @@ void toom32_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
         ssize_t p = abs_subc_n(w0p, w0p, u1p, l);
         neg0 = p < 0;
     }
-    WJR_ASSERT(cf0 <= 1);
+    WJR_ASSERT_ASSUME(cf0 <= 1);
 
     // W3 = V0 - V1 : v(-1)
     {
@@ -967,7 +975,7 @@ void toom_interpolation_5p_s(T *dst, T *w1p, size_t l, size_t rn, size_t rm,
 
 template <typename T>
 void toom42_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *stk) {
-    WJR_ASSUME(n >= m);
+    WJR_ASSERT_ASSUME(n >= m);
 
     const size_t l = (n >= 2 * m ? (n + 3) / 4 : (m + 1) / 2);
     const size_t rn = n - l * 3;
@@ -1017,7 +1025,7 @@ void toom42_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
         ssize_t p = abs_subc_n(w3p, w0p, w1p, l);
         neg3 = p < 0;
     }
-    WJR_ASSERT(cf3 <= 1);
+    WJR_ASSERT_ASSUME(cf3 <= 1);
 
     // W2 = V0 - V1 : v(-1)
     {
@@ -1027,7 +1035,7 @@ void toom42_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
 
     // W0 = W0 + W1 : (non-negative) u(1)
     cf0 += cf1 + addc_n(w0p, w0p, w1p, l);
-    WJR_ASSERT(cf0 <= 3);
+    WJR_ASSERT_ASSUME(cf0 <= 3);
 
     // W1 = W3 * W2 : r(-1)
     neg2 ^= neg3;
@@ -1065,7 +1073,7 @@ void toom42_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
 
     // W4 = W4 + V1 : (non-negative) v(2)
     cf4 += addc_s(w4p, w4p, l, v1p, rm);
-    WJR_ASSERT(cf4 <= 2);
+    WJR_ASSERT_ASSUME(cf4 <= 2);
 
     // W3 = W0 * W4 : (non-negative) r(2)
     __rec_mul_n<__rec_mul_mode::toom22>(w3p, w0p, w4p, l, stk);
@@ -1101,7 +1109,7 @@ void toom42_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
 
 template <typename T>
 void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *stk) {
-    WJR_ASSERT(n >= m);
+    WJR_ASSERT_ASSUME(n >= m);
     WJR_ASSERT(3 * m > 2 * n);
 
     const size_t l = (n + 2) / 3;
@@ -1139,7 +1147,7 @@ void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
         ssize_t p = abs_subc_n(w3p, w0p, u1p, l);
         neg3 = p < 0;
     }
-    WJR_ASSERT(cf3 <= 1);
+    WJR_ASSERT_ASSUME(cf3 <= 1);
 
     // W2 = W4 - V1 : v(-1)
     if (cf4) {
@@ -1148,15 +1156,15 @@ void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
         ssize_t p = abs_subc_n(w2p, w4p, v1p, l);
         neg2 = p < 0;
     }
-    WJR_ASSERT(cf2 <= 1);
+    WJR_ASSERT_ASSUME(cf2 <= 1);
 
     // W0 = W0 + U1 : (non-negative) u(1)
     cf0 += addc_n(w0p, w0p, u1p, l);
-    WJR_ASSERT(cf0 <= 2);
+    WJR_ASSERT_ASSUME(cf0 <= 2);
 
     // W4 = W4 + V1 : (non-negative) v(1)
     cf4 += addc_n(w4p, w4p, v1p, l);
-    WJR_ASSERT(cf4 <= 2);
+    WJR_ASSERT_ASSUME(cf4 <= 2);
 
     // W1 = W3 * W2 : r(-1)
     neg2 ^= neg3;

@@ -16,9 +16,8 @@ template <typename T>
 WJR_NOINLINE WJR_CONSTEXPR20 T div_qr_1_without_shift(T *dst, T &rem, const T *src,
                                                       size_t n,
                                                       const div2by1_divider<T> &div) {
+    WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
-    WJR_ASSERT(div.get_shift() == 0);
-    WJR_ASSERT(n >= 1);
 
     T divisor = div.get_divisor();
     T value = div.get_value();
@@ -55,9 +54,9 @@ WJR_NOINLINE WJR_CONSTEXPR20 T div_qr_1_without_shift(T *dst, T &rem, const T *s
 template <typename T>
 WJR_NOINLINE WJR_CONSTEXPR20 T div_qr_1_with_shift(T *dst, T &rem, const T *src, size_t n,
                                                    const div2by1_divider<T> &div) {
-    WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
+    WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(div.get_shift() != 0);
-    WJR_ASSERT(n >= 1);
+    WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
 
     T divisor = div.get_divisor();
     T value = div.get_value();
@@ -111,7 +110,7 @@ WJR_INTRINSIC_CONSTEXPR20 T fallback_div_qr_1(T *dst, T &rem, const T *src, size
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         const div2by1_divider<T> &div) {
-    WJR_ASSERT(n >= 1);
+    WJR_ASSERT_ASSUME(n >= 1);
 
     if (WJR_UNLIKELY(div.is_power_of_two())) {
         unsigned int c = 63 - div.get_shift();
@@ -126,7 +125,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         type_identity_t<T> div) {
-    WJR_ASSERT(n >= 1);
+    WJR_ASSERT_ASSUME(n >= 1);
 
     if (WJR_UNLIKELY(is_power_of_two(div))) {
         unsigned int c = ctz(div);
@@ -161,9 +160,8 @@ template <typename T>
 WJR_NOINLINE WJR_CONSTEXPR20 T div_qr_2_without_shift(T *dst, T *rem, const T *src,
                                                       size_t n,
                                                       const div3by2_divider<T> &div) {
+    WJR_ASSERT_ASSUME(n >= 2);
     WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
-    WJR_ASSERT(div.get_shift() == 0);
-    WJR_ASSERT(n >= 2);
 
     T divisor0 = div.get_divisor0();
     T divisor1 = div.get_divisor1();
@@ -203,9 +201,9 @@ WJR_NOINLINE WJR_CONSTEXPR20 T div_qr_2_without_shift(T *dst, T *rem, const T *s
 template <typename T>
 WJR_NOINLINE WJR_CONSTEXPR20 T div_qr_2_with_shift(T *dst, T *rem, const T *src, size_t n,
                                                    const div3by2_divider<T> &div) {
-    WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
+    WJR_ASSERT_ASSUME(n >= 2);
     WJR_ASSERT(div.get_shift() != 0);
-    WJR_ASSERT(n >= 2);
+    WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
 
     T divisor0 = div.get_divisor0();
     T divisor1 = div.get_divisor1();
@@ -265,11 +263,15 @@ WJR_INTRINSIC_CONSTEXPR20 T fallback_div_qr_2(T *dst, T *rem, const T *src, size
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const div3by2_divider<T> &div) {
+    WJR_ASSERT_ASSUME(n >= 2);
+
     dst[n - 2] = fallback_div_qr_2(dst, rem, src, n, div);
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n, T *div) {
+    WJR_ASSERT_ASSUME(n >= 2);
+
     dst[n - 2] = fallback_div_qr_2(dst, rem, src, n, div3by2_divider<T>(div[0], div[1]));
 }
 
@@ -281,15 +283,15 @@ WJR_NOINLINE WJR_CONSTEXPR20 T sb_div_qr_s(T *dst, T *src, size_t n, const T *di
     using divider = div3by2_divider<T>;
     constexpr T mask = std::numeric_limits<T>::max();
 
+    WJR_ASSERT_ASSUME(m > 2);
+    WJR_ASSERT_ASSUME(n >= m);
+    WJR_ASSERT(__has_high_bit(div[m - 1]));
+
     T qh;
     T n1, n0;
     T d1, d0;
     T cy, cy1;
     T q;
-
-    WJR_ASSERT(m > 2);
-    WJR_ASSERT(n >= m);
-    WJR_ASSERT(__has_high_bit(div[m - 1]));
 
     src += n;
 
@@ -393,13 +395,13 @@ WJR_NOINLINE T dc_div4by2_qr(T *dst, T *src, const T *div, size_t m, T dinv, T *
 
 template <typename T>
 T dc_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
-    size_t qn;
-    T qh, cy;
-    T *tp;
-
     WJR_ASSERT(m >= 6);
     WJR_ASSERT(n - m >= 3);
     WJR_ASSERT(__has_high_bit(div[m - 1]));
+
+    size_t qn;
+    T qh, cy;
+    T *tp;
 
     unique_stack_ptr ptr(math_details::stack_alloc, sizeof(T) * m);
     tp = static_cast<T *>(ptr.get());
@@ -447,7 +449,6 @@ T dc_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
             if (WJR_UNLIKELY(n1 == d1) && n0 == d0) {
                 q = std::numeric_limits<T>::max();
                 cy = submul_1(src - m, div - m, m, q);
-                WJR_ASSERT(cy == n2);
             } else {
                 q = wjr::div3by2_divider<T>::divide(d0, d1, dinv, src[-2], n0, n1);
 
@@ -545,12 +546,11 @@ T dc_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n, T *div,
                                         size_t m) {
-    WJR_ASSERT(n >= m);
-    WJR_ASSERT(m >= 1);
+    WJR_ASSERT_ASSUME(m >= 1);
+    WJR_ASSERT_ASSUME(n >= m);
 
     switch (m) {
     case 0: {
-        WJR_ASSERT(false);
         WJR_UNREACHABLE();
         break;
     }
@@ -675,7 +675,7 @@ WJR_NOINLINE WJR_CONSTEXPR_E void fallback_divexact_1(T *dst, const T *src, size
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           divexact1_divider<T> div) {
-    WJR_ASSERT(n != 0);
+    WJR_ASSERT_ASSUME(n >= 1);
 
     if (WJR_UNLIKELY(div.is_power_of_two())) {
         unsigned int c = div.get_shift();
@@ -689,7 +689,7 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           type_identity_t<T> div) {
-    WJR_ASSERT(n != 0);
+    WJR_ASSERT_ASSUME(n >= 1);
 
     if (WJR_UNLIKELY(is_power_of_two(div))) {
         unsigned int c = ctz(div);

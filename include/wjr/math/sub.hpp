@@ -55,8 +55,7 @@ WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) {
 template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
-    WJR_ASSERT_L(1, c_in == 0 || c_in == 1);
-    WJR_ASSUME((c_in == 0 || c_in == 1));
+    WJR_ASSERT_ASSUME_L(1, c_in == 0 || c_in == 1);
 
 #if !WJR_HAS_BUILTIN(SUBC) && !WJR_HAS_BUILTIN(ASM_SUBC)
     return fallback_subc(a, b, c_in, c_out);
@@ -91,7 +90,7 @@ template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U subc_1(T *dst, const T *src0, size_t n,
                                    type_identity_t<T> src1, U c_in) {
-    WJR_ASSUME(n >= 1);
+    WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
 
     dst[0] = subc(src0[0], src1, c_in, c_in);
@@ -167,7 +166,7 @@ template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U subc_n(T *dst, const T *src0, const T *src1, size_t n,
                                    U c_in) {
-    WJR_ASSERT(n >= 1);
+    WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
 
@@ -190,7 +189,7 @@ template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n, const T *src1,
                                    size_t m, U c_in) {
-    WJR_ASSERT(n >= m);
+    WJR_ASSERT_ASSUME(n >= m);
 
     c_in = subc_n(dst, src0, src1, m, c_in);
 
@@ -237,7 +236,7 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
                                              const T *src1, size_t m) {
-    WJR_ASSERT(n >= m);
+    WJR_ASSERT_ASSUME(n >= m);
 
     size_t delta = n - m;
     size_t idx = reverse_find_not_n(src0 + m, 0u, delta);
