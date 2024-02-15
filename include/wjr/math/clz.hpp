@@ -1,7 +1,7 @@
 #ifndef WJR_MATH_CLZ_HPP__
 #define WJR_MATH_CLZ_HPP__
 
-#include <wjr/math/ctz.hpp>
+#include <wjr/math/popcount.hpp>
 
 namespace wjr {
 

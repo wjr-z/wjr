@@ -251,7 +251,6 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
 
     auto cf = subc_s(dst, src0, m + idx, src1, m);
     WJR_ASSERT(cf == 0);
-    (void)(cf);
 
     ssize_t ret = m + idx;
     WJR_ASSUME(ret > 0);

@@ -2,6 +2,7 @@
 #define WJR_MATH_BIT_HPP__
 
 #include <wjr/math/clz.hpp>
+#include <wjr/math/ctz.hpp>
 
 namespace wjr {
 

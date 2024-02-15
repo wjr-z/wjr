@@ -65,7 +65,7 @@ WJR_INTRINSIC_INLINE T mulx(T a, T b, T &hi) {
 
 #if WJR_HAS_BUILTIN(ASM_MUL_1)
 
-WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t dx) {
+inline uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t dx) {
     size_t cx = n / 8;
     uint64_t r8, r9, r10 = n, r11;
 
@@ -218,8 +218,7 @@ WJR_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint
 #if WJR_HAS_BUILTIN(ASM_ADDMUL_1)
 
 // TODO : optimize pipeline
-WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
-                                 uint64_t dx) {
+inline uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t dx) {
     WJR_ASSERT(n != 0);
 
     size_t cx = n / 8;
@@ -392,8 +391,7 @@ WJR_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
 
 // slower than asm_addmul_1
 // TODO : optimize
-WJR_INLINE uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
-                                 uint64_t dx) {
+inline uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t dx) {
     WJR_ASSERT(n != 0);
 
     size_t cx = n / 8;

@@ -120,10 +120,9 @@ WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_addcsubc)(uint64_t a, uint
 }
 
 template <typename U>
-WJR_INLINE U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(uint64_t *dst,
-                                                                  const uint64_t *src0,
-                                                                  const uint64_t *src1,
-                                                                  size_t n, U c_in) {
+inline U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc,
+                                           _n))(uint64_t *dst, const uint64_t *src0,
+                                                const uint64_t *src1, size_t n, U c_in) {
     if (WJR_BUILTIN_CONSTANT_P(n)) {
         if (n == 1) {
             dst[0] = WJR_PP_CONCAT(asm_, WJR_addcsubc)(src0[0], src1[0], c_in, c_in);

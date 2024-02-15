@@ -9,7 +9,7 @@
 #define WJR_addsub WJR_PP_BOOL_IF(WJR_ADDSUB_I, add, rsb)
 #define WJR_adcsbb WJR_PP_BOOL_IF(WJR_ADDSUB_I, adc, sbb)
 
-WJR_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
+inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
     uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, uint64_t cl) {
     WJR_ASSERT(cl != 0);
 

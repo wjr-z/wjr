@@ -52,8 +52,8 @@ WJR_NOINLINE WJR_CONSTEXPR20 T div_qr_1_without_shift(T *dst, T &rem, const T *s
 }
 
 template <typename T>
-WJR_NOINLINE WJR_CONSTEXPR20 T div_qr_1_with_shift(T *dst, T &rem, const T *src, size_t n,
-                                                   const div2by1_divider<T> &div) {
+WJR_CONSTEXPR20 T div_qr_1_with_shift(T *dst, T &rem, const T *src, size_t n,
+                                      const div2by1_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(div.get_shift() != 0);
     WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
@@ -157,9 +157,8 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
 }
 
 template <typename T>
-WJR_NOINLINE WJR_CONSTEXPR20 T div_qr_2_without_shift(T *dst, T *rem, const T *src,
-                                                      size_t n,
-                                                      const div3by2_divider<T> &div) {
+WJR_CONSTEXPR20 T div_qr_2_without_shift(T *dst, T *rem, const T *src, size_t n,
+                                         const div3by2_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 2);
     WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
 
@@ -199,8 +198,8 @@ WJR_NOINLINE WJR_CONSTEXPR20 T div_qr_2_without_shift(T *dst, T *rem, const T *s
 }
 
 template <typename T>
-WJR_NOINLINE WJR_CONSTEXPR20 T div_qr_2_with_shift(T *dst, T *rem, const T *src, size_t n,
-                                                   const div3by2_divider<T> &div) {
+WJR_CONSTEXPR20 T div_qr_2_with_shift(T *dst, T *rem, const T *src, size_t n,
+                                      const div3by2_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 2);
     WJR_ASSERT(div.get_shift() != 0);
     WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
@@ -561,10 +560,151 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n, 
         return div_qr_2(dst, rem, src, n, div);
     }
     default: {
-        WJR_UNREACHABLE();
         break;
     }
     }
+
+    unsigned int adjust = src[n - 1] >= div[m - 1];
+    if (n + adjust >= 2 * m) {
+        T *sp;
+        T *dp;
+
+        const auto shift = clz(div[m - 1]);
+        const size_t alloc = n + 1 + (shift != 0 ? m : 0);
+        unique_stack_ptr ptr(math_details::stack_alloc, sizeof(T) * alloc);
+        auto stk = static_cast<T *>(ptr.get());
+        sp = stk;
+
+        if (shift != 0) {
+            dp = stk + (n + 1);
+            lshift_n(dp, div, m, shift);
+            sp[n] = lshift_n(sp, src, n, shift);
+        } else {
+            dp = div;
+            std::copy_n(src, n, sp);
+            sp[n] = 0;
+        }
+
+        n += adjust;
+
+        const auto dinv = div3by2_divider<T>::reciprocal(dp[m - 2], dp[m - 1]);
+
+        if (m < dc_div_qr_threshold) {
+            sb_div_qr_s(dst, sp, n, dp, m, dinv);
+        } else {
+            dc_div_qr_s(dst, sp, n, dp, m, dinv);
+        }
+
+        rshift_n(rem, sp, m, shift);
+        return;
+    }
+
+    // 2 * m > n + adjust
+
+    auto qn = n - m;
+    dst[qn] = 0;
+    qn += adjust;
+
+    if (qn == 0) {
+        std::copy_n(src, m, rem);
+        return;
+    }
+
+    T *sp, *dp;
+    size_t st;
+
+    st = m - qn; // st = m - qn = 2 * m - n + adjust > 2 * adjust
+
+    const auto shift = clz(div[m - 1]);
+
+    const size_t alloc = 2 * qn + (shift != 0 ? qn : 0);
+    unique_stack_ptr ptr(math_details::stack_alloc, sizeof(T) * alloc);
+    auto stk = static_cast<T *>(ptr.get());
+    sp = stk;
+
+    if (shift != 0) {
+        dp = stk + 2 * qn;
+        lshift_n(dp, div + st, qn, shift, div[st - 1]);
+        if (adjust) {
+            sp[2 * qn - 1] =
+                lshift_n(sp, src + n - 2 * qn + 1, 2 * qn - 1, shift, src[n - 2 * qn]);
+        } else {
+            lshift_n(sp, src + n - 2 * qn, 2 * qn, shift, src[n - 2 * qn - 1]);
+        }
+    } else {
+        dp = div + st;
+        if (adjust) {
+            std::copy_n(src + n - 2 * qn + 1, 2 * qn - 1, sp);
+            sp[2 * qn - 1] = 0;
+        } else {
+            std::copy_n(src + n - 2 * qn, 2 * qn, sp);
+        }
+    }
+
+    if (qn == 1) {
+        const auto dinv = div2by1_divider<T>::reciprocal(dp[0]);
+        auto hi = sp[1];
+        dst[0] = div2by1_divider<T>::divide(dp[0], dinv, sp[0], hi);
+        sp[0] = hi;
+    } else if (qn == 2) {
+        const auto lo = dp[0];
+        const auto hi = dp[1];
+        const auto dinv = div3by2_divider<T>::reciprocal(lo, hi);
+        div_qr_2_without_shift(dst, sp, sp, 4, div3by2_divider<T>(lo, hi, dinv, 0u));
+    } else {
+        const auto lo = dp[qn - 2];
+        const auto hi = dp[qn - 1];
+        const auto dinv = div3by2_divider<T>::reciprocal(lo, hi);
+        if (qn < dc_div_qr_threshold) {
+            sb_div_qr_s(dst, sp, 2 * qn, dp, qn, dinv);
+        } else {
+            dc_div_qr_s(dst, sp, 2 * qn, dp, qn, dinv);
+        }
+    }
+
+    WJR_ASSUME(st >= 1);
+
+    T fix = rshift_n(sp, sp, qn, shift);
+
+    unique_stack_ptr ptr2(math_details::stack_alloc, sizeof(T) * m);
+    auto stk2 = static_cast<T *>(ptr2.get());
+    auto rp = stk2;
+
+    unsigned int cf;
+
+    if (!shift) {
+        if (qn >= st) {
+            mul_s(rp, dst, qn, div, st);
+        } else {
+            mul_s(rp, div, st, dst, qn);
+        }
+        cf = subc_n(rem, src, rp, st);
+    } else {
+        constexpr auto digits = std::numeric_limits<T>::digits;
+        T mask = (1ull << (digits - shift)) - 1;
+        if (st != 1) {
+            if (qn >= st - 1) {
+                mul_s(rp, dst, qn, div, st - 1);
+            } else {
+                mul_s(rp, div, st - 1, dst, qn);
+            }
+            rp[m - 1] = addmul_1(rp + st - 1, dst, qn, div[st - 1] & mask);
+            cf = subc_n(rem, src, rp, st - 1);
+            rem[st - 1] = subc((src[st - 1] & mask) | fix, rp[st - 1], cf, cf);
+        } else {
+            rp[m - 1] = mul_1(rp, dst, qn, div[0] & mask);
+            rem[0] = subc((src[0] & mask) | fix, rp[0], 0u, cf);
+        }
+    }
+
+    cf = subc_n(rem + st, sp, rp + st, qn, cf);
+
+    while (cf != 0) {
+        subc_1(dst, dst, qn, 1u);
+        cf -= addc_n(rem, rem, div, m);
+    }
+
+    return;
 }
 
 template <typename T>

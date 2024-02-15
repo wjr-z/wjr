@@ -7,9 +7,8 @@
 #include <iterator>
 #include <limits>
 #include <memory>
-#include <type_traits>
 
-#include <wjr/preprocessor.hpp>
+#include <wjr/assert.hpp>
 
 namespace wjr {
 

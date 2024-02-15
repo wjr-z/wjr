@@ -4,6 +4,7 @@
 #include <wjr/preprocessor/arithmatic/basic.hpp>
 #include <wjr/preprocessor/arithmatic/inc.hpp>
 #include <wjr/preprocessor/arithmatic/neg.hpp>
+#include <wjr/preprocessor/details/basic.hpp>
 #include <wjr/preprocessor/logical/basic.hpp>
 #include <wjr/preprocessor/logical/bool.hpp>
 

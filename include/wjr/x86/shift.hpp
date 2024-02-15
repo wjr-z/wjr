@@ -43,7 +43,7 @@ WJR_INTRINSIC_CONSTEXPR_E T shrd(T lo, T hi, unsigned int c);
     __m128i x0 = sse::set1_epi64(src[-1 - (index)]);
 
 template <typename T>
-WJR_INLINE void builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int c) {
+void builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int c) {
     if (WJR_UNLIKELY(n < 4)) {
         switch (n) {
         case 3: {
@@ -112,7 +112,7 @@ WJR_INLINE void builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned i
 #undef WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2
 
 template <typename T>
-WJR_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned int c, T lo) {
+T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned int c, T lo) {
     T ret = src[n - 1] >> (64 - c);
     builtin_lshift_n_impl(dst + 1, src + 1, n - 1, c);
     dst[0] = shld(src[0], lo, c);
@@ -144,7 +144,7 @@ WJR_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned int c, T 
     __m128i x0 = sse::set1_epi64(src[(index)]);
 
 template <typename T>
-WJR_INLINE void builtin_rshift_n_impl(T *dst, const T *src, size_t n, unsigned int c) {
+void builtin_rshift_n_impl(T *dst, const T *src, size_t n, unsigned int c) {
     if (WJR_UNLIKELY(n < 4)) {
         dst += n - 3;
         src += n - 3;
@@ -213,7 +213,7 @@ WJR_INLINE void builtin_rshift_n_impl(T *dst, const T *src, size_t n, unsigned i
 #undef WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED_L2
 
 template <typename T>
-WJR_INLINE T builtin_rshift_n(T *dst, const T *src, size_t n, unsigned int c, T hi) {
+T builtin_rshift_n(T *dst, const T *src, size_t n, unsigned int c, T hi) {
     T ret = src[0] << (64 - c);
     builtin_rshift_n_impl(dst, src, n - 1, c);
     dst[n - 1] = shrd(src[n - 1], hi, c);

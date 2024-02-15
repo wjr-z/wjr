@@ -4,8 +4,7 @@
 #include <wjr/math/div-impl.hpp>
 
 #include <wjr/math/add.hpp>
-#include <wjr/math/clz.hpp>
-#include <wjr/math/compare.hpp>
+#include <wjr/math/ctz.hpp>
 #include <wjr/math/shift.hpp>
 #include <wjr/math/sub.hpp>
 

@@ -73,10 +73,18 @@
 #define WJR_CHAR8_T
 #endif // __cpp_char8_t
 
-#if defined(WJR_MSVC)
-#define WJR_COUNTER __COUNTER__
+#if defined(__LINE__)
+#define WJR_LINE __LINE__
+#elif defined(__COUNTER__)
+#define WJR_LINE __COUNTER__
 #else
-#define WJR_COUNTER __LINE__
+#define WJR_LINE -1
+#endif
+
+#ifdef __FILE__
+#define WJR_FILE __FILE__
+#else
+#define WJR_FILE ""
 #endif
 
 #endif // !WJR_PREPROCESSOR_COMPILER_COMPILER_HPP__
