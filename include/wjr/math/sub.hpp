@@ -222,9 +222,7 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src
         std::swap(src0, src1);
     }
 
-    auto cf = subc_n(dst, src0, src1, idx);
-    WJR_ASSERT(cf == 0);
-    (void)(cf);
+    WJR_ALWAYS_ASSERT(subc_n(dst, src0, src1, idx) WJR_DEBUG_EXPR(== 0));
 
     ssize_t ret = n;
     WJR_ASSUME(ret > 0);
@@ -249,8 +247,7 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
         return abs_subc_n(dst, src0, src1, m);
     }
 
-    auto cf = subc_s(dst, src0, m + idx, src1, m);
-    WJR_ASSERT(cf == 0);
+    WJR_ALWAYS_ASSERT(subc_s(dst, src0, m + idx, src1, m) WJR_DEBUG_EXPR(== 0));
 
     ssize_t ret = m + idx;
     WJR_ASSUME(ret > 0);

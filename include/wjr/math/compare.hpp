@@ -22,7 +22,7 @@ WJR_INTRINSIC_CONSTEXPR int fallback_compare_n(const T *src0, const T *src1, siz
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E int compare_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_INTRINSIC_CONSTEXPR_E int compare_n(const T *src0, const T *src1, size_t n) {
     if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
         return 0;
     }
@@ -58,7 +58,8 @@ WJR_INTRINSIC_CONSTEXPR int fallback_reverse_compare_n(const T *src0, const T *s
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E int reverse_compare_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_INTRINSIC_CONSTEXPR_E int reverse_compare_n(const T *src0, const T *src1,
+                                                         size_t n) {
     if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
         return 0;
     }
@@ -103,8 +104,8 @@ WJR_INTRINSIC_INLINE bool __builtin_less_128(uint64_t lo0, uint64_t hi0, uint64_
 #endif
 
 // return <hi0, lo0> < <hi1, lo1>
-WJR_INTRINSIC_CONSTEXPR_E bool __less_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
-                                          uint64_t hi1) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool __less_128(uint64_t lo0, uint64_t hi0,
+                                                    uint64_t lo1, uint64_t hi1) {
 #if WJR_HAS_BUILTIN(__BUILTIN_LESS_128) || WJR_HAS_BUILTIN(__ASM_LESS_128)
     if (is_constant_evaluated()) {
         return __fallback_less_128(lo0, hi0, lo1, hi1);
@@ -135,8 +136,8 @@ WJR_INTRINSIC_INLINE bool __builtin_less_equal_128(uint64_t lo0, uint64_t hi0,
 #endif
 
 // return <hi0, lo0> < <hi1, lo1>
-WJR_INTRINSIC_CONSTEXPR_E bool __less_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
-                                                uint64_t hi1) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool __less_equal_128(uint64_t lo0, uint64_t hi0,
+                                                          uint64_t lo1, uint64_t hi1) {
 #if WJR_HAS_BUILTIN(__BUILTIN_LESS_EQUAL_128) || WJR_HAS_BUILTIN(__ASM_LESS_EQUAL_128)
     if (is_constant_evaluated()) {
         return __fallback_less_equal_128(lo0, hi0, lo1, hi1);

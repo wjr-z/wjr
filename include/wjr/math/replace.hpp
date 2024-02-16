@@ -6,7 +6,7 @@
 
 namespace wjr {
 
-// maybe deprected
+// maybe deprecated
 // size_t ret = find_not_n(src, from, n);
 // set_n(dst, to, ret)
 // return ret;

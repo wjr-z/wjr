@@ -24,7 +24,7 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_find_n(const T *src0, const T *src1, siz
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E size_t find_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_n(const T *src0, const T *src1, size_t n) {
     if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
         return 0;
     }
@@ -59,7 +59,8 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_find_n(const T *src, T val, size_t n) {
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E size_t find_n(const T *src, type_identity_t<T> val, size_t n) {
+WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_n(const T *src, type_identity_t<T> val,
+                                                 size_t n) {
 #if WJR_HAS_BUILTIN(FIND_N)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {
@@ -91,7 +92,8 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_find_not_n(const T *src0, const T *src1,
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E size_t find_not_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_not_n(const T *src0, const T *src1,
+                                                     size_t n) {
     if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
         return n;
     }
@@ -126,8 +128,8 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_find_not_n(const T *src, T val, size_t n
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E size_t find_not_n(const T *src, type_identity_t<T> val,
-                                            size_t n) {
+WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_not_n(const T *src, type_identity_t<T> val,
+                                                     size_t n) {
 #if WJR_HAS_BUILTIN(FIND_NOT_N)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {
@@ -162,7 +164,8 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_reverse_find_n(const T *src0, const T *s
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_n(const T *src0, const T *src1,
+                                                         size_t n) {
     if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
         return n;
     }
@@ -199,8 +202,9 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_reverse_find_n(const T *src, T val, size
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_n(const T *src, type_identity_t<T> val,
-                                                size_t n) {
+WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_n(const T *src,
+                                                         type_identity_t<T> val,
+                                                         size_t n) {
 #if WJR_HAS_BUILTIN(REVERSE_FIND_N)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {
@@ -235,8 +239,8 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_reverse_find_not_n(const T *src0, const 
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n(const T *src0, const T *src1,
-                                                    size_t n) {
+WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n(const T *src0, const T *src1,
+                                                             size_t n) {
     if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
         return 0;
     }
@@ -274,8 +278,9 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_reverse_find_not_n(const T *src, T val,
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n(const T *src, type_identity_t<T> val,
-                                                    size_t n) {
+WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n(const T *src,
+                                                             type_identity_t<T> val,
+                                                             size_t n) {
 #if WJR_HAS_BUILTIN(REVERSE_FIND_NOT_N)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {

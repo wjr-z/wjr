@@ -110,12 +110,6 @@ T fallback_mulhi(T a, T b) {
     return hi;
 }
 
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E uint64_t fallback_mulhi64(uint64_t a, uint64_t b) {
-    uint64_t hi = 0;
-    (void)fallback_mul64(a, b, hi);
-    return hi;
-}
-
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T mulhi(T a, T b) {
     T ret = 0;
@@ -436,11 +430,10 @@ void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
     }
 
     if (m < toom33_mul_threshold) {
-        unique_stack_ptr ptr(math_details::stack_alloc, sizeof(T) * (6 * m + 67));
-        T *stk = static_cast<T *>(ptr.get());
+        unique_stack_allocator stkal(math_details::stack_alloc, std::in_place_index<2>);
+        T *stk = static_cast<T *>(stkal.allocate(sizeof(T) * (6 * m + 67)));
         if (n >= 3 * m) {
-            unique_stack_ptr tmpp(math_details::stack_alloc, sizeof(T) * (4 * m));
-            T *tmp = static_cast<T *>(tmpp.get());
+            T *tmp = static_cast<T *>(stkal.allocate(sizeof(T) * (4 * m)));
 
             toom42_mul_s(dst, src0, 2 * m, src1, m, stk);
             n -= 2 * m;
@@ -486,11 +479,10 @@ void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
         return;
     }
 
-    unique_stack_ptr ptr(math_details::stack_alloc, sizeof(T) * (9 * m + 288));
-    T *stk = static_cast<T *>(ptr.get());
+    unique_stack_allocator stkal(math_details::stack_alloc, std::in_place_index<2>);
+    T *stk = static_cast<T *>(stkal.allocate(sizeof(T) * (9 * m + 288)));
     if (n >= 3 * m) {
-        unique_stack_ptr tmpp(math_details::stack_alloc, sizeof(T) * (4 * m));
-        T *tmp = static_cast<T *>(tmpp.get());
+        T *tmp = static_cast<T *>(stkal.allocate(sizeof(T) * (4 * m)));
 
         toom42_mul_s(dst, src0, 2 * m, src1, m, stk);
         n -= 2 * m;

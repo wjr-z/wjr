@@ -7,8 +7,6 @@
 
 namespace wjr {
 
-inline constexpr std::size_t dynamic_extent = std::numeric_limits<std::size_t>::max();
-
 template <typename T, size_t Extent>
 struct __span_static_storage {
 

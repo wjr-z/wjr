@@ -87,21 +87,22 @@ inline constexpr __assert_t __assert{};
 
 #define WJR_ALWAYS_ASSERT_UNCHECK_I(expr, ...) (expr)
 
+#define WJR_DEBUG_IF(level, expr0, expr1)                                                \
+    WJR_PP_BOOL_IF(WJR_PP_GT(WJR_DEBUG_LEVEL, level), expr0, expr1)
+
 // level = [0, 2]
 // The higher the level, the less likely it is to be detected
 // Runtime detect  : 1
 // Maximize detect : 2
 #define WJR_ASSERT_L(level, ...)                                                         \
-    WJR_PP_BOOL_IF(WJR_PP_GT(WJR_DEBUG_LEVEL, level), WJR_ASSERT_CHECK_I,                \
-                   WJR_ASSERT_UNCHECK_I)                                                 \
+    WJR_DEBUG_IF(level, WJR_ASSERT_CHECK_I, WJR_ASSERT_UNCHECK_I)                        \
     (__VA_ARGS__)
 
 // level of assert is zero at default.
 #define WJR_ASSERT(...) WJR_ASSERT_L(0, __VA_ARGS__)
 
 #define WJR_ALWAYS_ASSERT_L(level, ...)                                                  \
-    WJR_PP_BOOL_IF(WJR_PP_GT(WJR_DEBUG_LEVEL, level), WJR_ASSERT_CHECK_I,                \
-                   WJR_ALWAYS_ASSERT_UNCHECK_I)                                          \
+    WJR_DEBUG_IF(level, WJR_ASSERT_CHECK_I, WJR_ALWAYS_ASSERT_UNCHECK_I)                 \
     (__VA_ARGS__)
 
 // level of assert is zero at default.
@@ -113,6 +114,9 @@ inline constexpr __assert_t __assert{};
 #define __WJR_ASSERT_ASSUME_L_ASSUME(expr, ...) WJR_ASSUME(expr)
 
 #define WJR_ASSERT_ASSUME(...) WJR_ASSERT_ASSUME_L(0, __VA_ARGS__)
+
+#define WJR_DEBUG_EXPR_L(level, expr) WJR_DEBUG_IF(level, expr, )
+#define WJR_DEBUG_EXPR(expr) WJR_DEBUG_EXPR_L(0, expr)
 
 } // namespace wjr
 

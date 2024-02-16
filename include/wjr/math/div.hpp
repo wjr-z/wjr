@@ -161,6 +161,7 @@ WJR_CONSTEXPR20 T div_qr_2_without_shift(T *dst, T *rem, const T *src, size_t n,
                                          const div3by2_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 2);
     WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
+    WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n, rem, n));
 
     T divisor0 = div.get_divisor0();
     T divisor1 = div.get_divisor1();
@@ -203,6 +204,7 @@ WJR_CONSTEXPR20 T div_qr_2_with_shift(T *dst, T *rem, const T *src, size_t n,
     WJR_ASSERT_ASSUME(n >= 2);
     WJR_ASSERT(div.get_shift() != 0);
     WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
+    WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n, rem, n));
 
     T divisor0 = div.get_divisor0();
     T divisor1 = div.get_divisor1();
@@ -402,8 +404,8 @@ T dc_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
     T qh, cy;
     T *tp;
 
-    unique_stack_ptr ptr(math_details::stack_alloc, sizeof(T) * m);
-    tp = static_cast<T *>(ptr.get());
+    unique_stack_allocator stkal(math_details::stack_alloc, std::in_place_index<1>);
+    tp = static_cast<T *>(stkal.allocate(sizeof(T) * m));
 
     qn = n - m;
     dst += qn;
@@ -571,8 +573,8 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n, 
 
         const auto shift = clz(div[m - 1]);
         const size_t alloc = n + 1 + (shift != 0 ? m : 0);
-        unique_stack_ptr ptr(math_details::stack_alloc, sizeof(T) * alloc);
-        auto stk = static_cast<T *>(ptr.get());
+        unique_stack_allocator stkal(math_details::stack_alloc, std::in_place_index<1>);
+        auto stk = static_cast<T *>(stkal.allocate(sizeof(T) * alloc));
         sp = stk;
 
         if (shift != 0) {
@@ -618,8 +620,8 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n, 
     const auto shift = clz(div[m - 1]);
 
     const size_t alloc = 2 * qn + (shift != 0 ? qn : 0);
-    unique_stack_ptr ptr(math_details::stack_alloc, sizeof(T) * alloc);
-    auto stk = static_cast<T *>(ptr.get());
+    unique_stack_allocator stkal(math_details::stack_alloc, std::in_place_index<2>);
+    auto stk = static_cast<T *>(stkal.allocate(sizeof(T) * alloc));
     sp = stk;
 
     if (shift != 0) {
@@ -666,8 +668,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n, 
 
     T fix = rshift_n(sp, sp, qn, shift);
 
-    unique_stack_ptr ptr2(math_details::stack_alloc, sizeof(T) * m);
-    auto stk2 = static_cast<T *>(ptr2.get());
+    auto stk2 = static_cast<T *>(stkal.allocate(sizeof(T) * m));
     auto rp = stk2;
 
     unsigned int cf;
