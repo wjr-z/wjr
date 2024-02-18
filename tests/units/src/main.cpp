@@ -12,8 +12,6 @@
 #define WJR_DEBUG_LEVEL 3
 
 #include <wjr/math.hpp>
-#include <wjr/preprocessor.hpp>
-
 #include <wjr/compressed_pair.hpp>
 
 TEST(preprocessor, arithmatic) {

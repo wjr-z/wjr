@@ -13,9 +13,8 @@ namespace wjr {
 // reference : https://ieeexplore.ieee.org/document/5487506
 
 template <typename T>
-WJR_NOINLINE WJR_CONSTEXPR20 T div_qr_1_without_shift(T *dst, T &rem, const T *src,
-                                                      size_t n,
-                                                      const div2by1_divider<T> &div) {
+WJR_CONSTEXPR20 T div_qr_1_without_shift(T *dst, T &rem, const T *src, size_t n,
+                                         const div2by1_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
 
@@ -279,8 +278,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n, 
 // reference : GMP
 // return qh;
 template <typename T>
-WJR_NOINLINE WJR_CONSTEXPR20 T sb_div_qr_s(T *dst, T *src, size_t n, const T *div,
-                                           size_t m, T dinv) {
+WJR_CONSTEXPR20 T sb_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
     using divider = div3by2_divider<T>;
     constexpr T mask = std::numeric_limits<T>::max();
 
@@ -348,7 +346,7 @@ WJR_NOINLINE WJR_CONSTEXPR20 T sb_div_qr_s(T *dst, T *src, size_t n, const T *di
 inline constexpr size_t dc_div_qr_threshold = WJR_DC_DIV_QR_THRESHOLD;
 
 template <typename T>
-WJR_NOINLINE T dc_div4by2_qr(T *dst, T *src, const T *div, size_t m, T dinv, T *stk) {
+T dc_div4by2_qr(T *dst, T *src, const T *div, size_t m, T dinv, T *stk) {
     size_t lo, hi;
     T cy, qh, ql;
 
@@ -757,10 +755,39 @@ WJR_CONSTEXPR_E void divexact_by15(T *dst, const T *src, size_t n) {
 }
 
 // reference : ftp://ftp.risc.uni-linz.ac.at/pub/techreports/1992/92-35.ps.gz
-// TODO : (Low priority)
 template <typename T>
-WJR_NOINLINE WJR_CONSTEXPR_E void fallback_divexact_1(T *dst, const T *src, size_t n,
-                                                      divexact1_divider<T> div) {
+WJR_CONSTEXPR_E void fallback_divexact_1_without_shift(T *dst, const T *src, size_t n,
+                                                       const divexact1_divider<T> &div) {
+    uint64_t divisor = div.get_divisor();
+    uint64_t value = div.get_value();
+
+    uint64_t rdx = 0, r10 = 0;
+    unsigned char cf = 0;
+    size_t idx = 0;
+
+    --n;
+
+    if (WJR_LIKELY(n != 0)) {
+        do {
+            r10 = src[idx];
+            r10 = subc(r10, rdx, cf, cf);
+            r10 = mullo(r10, value);
+            dst[idx] = r10;
+            ++idx;
+            rdx = mulhi(r10, divisor);
+        } while (WJR_LIKELY(idx != n));
+    }
+
+    r10 = src[n];
+    r10 -= rdx + cf;
+    r10 = mullo(r10, value);
+    dst[n] = r10;
+    return;
+}
+
+template <typename T>
+WJR_CONSTEXPR_E void fallback_divexact_1_with_shift(T *dst, const T *src, size_t n,
+                                                    const divexact1_divider<T> &div) {
     uint64_t divisor = div.get_divisor();
     uint64_t value = div.get_value();
     unsigned int shift = div.get_shift();
@@ -770,27 +797,6 @@ WJR_NOINLINE WJR_CONSTEXPR_E void fallback_divexact_1(T *dst, const T *src, size
     size_t idx = 0;
 
     --n;
-
-    if (WJR_UNLIKELY(shift == 0)) {
-
-        if (WJR_LIKELY(n != 0)) {
-            do {
-                r10 = src[idx];
-                r10 = subc(r10, rdx, cf, cf);
-                r10 = mullo(r10, value);
-                dst[idx] = r10;
-                ++idx;
-                rdx = mulhi(r10, divisor);
-            } while (WJR_LIKELY(idx != n));
-        }
-
-        r10 = src[n];
-        r10 -= rdx + cf;
-        r10 = mullo(r10, value);
-        dst[n] = r10;
-        return;
-    }
-
     r10 = src[0];
 
     if (WJR_LIKELY(n != 0)) {
@@ -813,9 +819,19 @@ WJR_NOINLINE WJR_CONSTEXPR_E void fallback_divexact_1(T *dst, const T *src, size
     return;
 }
 
+template <typename T>
+WJR_CONSTEXPR_E void fallback_divexact_1(T *dst, const T *src, size_t n,
+                                         const divexact1_divider<T> &div) {
+    if (div.get_shift() == 0) {
+        return fallback_divexact_1_without_shift(dst, src, n, div);
+    }
+
+    return fallback_divexact_1_with_shift(dst, src, n, div);
+}
+
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
-                                          divexact1_divider<T> div) {
+                                          const divexact1_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
 
     if (WJR_UNLIKELY(div.is_power_of_two())) {

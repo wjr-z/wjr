@@ -21,6 +21,10 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n, T *d);
 
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n, T *div,
+                                        size_t m);
+
 template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
 WJR_CONSTEXPR_E T divexact_dbm1c(T *dst, const T *src, size_t n, T bd, T h);
 
@@ -35,7 +39,7 @@ WJR_CONSTEXPR_E void divexact_by15(T *dst, const T *src, size_t n);
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
-                                          divexact1_divider<T> div);
+                                          const divexact1_divider<T> &div);
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,

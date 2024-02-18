@@ -9,39 +9,6 @@
 
 namespace wjr {
 
-class basic_stack_alloc {
-public:
-    basic_stack_alloc() = delete;
-    basic_stack_alloc(void *buffer, void *end)
-        : m_ptr(static_cast<char *>(buffer)), m_end(static_cast<char *>(end)) {
-        WJR_ASSERT(m_end >= m_ptr);
-    }
-    basic_stack_alloc(const basic_stack_alloc &) = delete;
-    basic_stack_alloc &operator=(const basic_stack_alloc &) = delete;
-    ~basic_stack_alloc() = default;
-
-    WJR_NODISCARD constexpr void *allocate(size_t n) {
-        WJR_ASSERT(m_ptr != nullptr);
-        WJR_ASSERT(static_cast<size_t>(m_end - m_ptr) >= n);
-        char *ret = m_ptr;
-        m_ptr += n;
-        return static_cast<void *>(ret);
-    }
-
-    WJR_INTRINSIC_CONSTEXPR void deallocate(void *old, WJR_MAYBE_UNUSED size_t n) {
-        WJR_ASSERT(m_ptr == static_cast<char *>(old) + n);
-        m_ptr = static_cast<char *>(old);
-        (void)(n);
-    }
-
-    WJR_INTRINSIC_CONSTEXPR char *ptr() const { return m_ptr; }
-    WJR_INTRINSIC_CONSTEXPR char *end() const { return m_end; }
-
-private:
-    char *m_ptr;
-    char *m_end;
-};
-
 template <size_t cache0, size_t threshold0, size_t bufsize0, size_t cache1,
           size_t threshold1, size_t bufsize1,
           size_t alignment = alignof(std::max_align_t)>
@@ -184,7 +151,7 @@ public:
     stack_allocator &operator=(const stack_allocator &) = default;
     ~stack_allocator() = default;
 
-    WJR_NODISCARD WJR_CONSTEXPR20 void *allocate(size_t n) const {
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n) const {
         return __alloc.allocate(n);
     }
 
@@ -199,40 +166,6 @@ thread_local typename stack_allocator<cache0, threshold0, buffer0, cache1, thres
                                       buffer1, alignment>::alloc
     stack_allocator<cache0, threshold0, buffer0, cache1, threshold1, buffer1,
                     alignment>::__alloc = {};
-
-// deprecated
-template <typename StackAllocator>
-class WJR_DEPRECATED unique_stack_ptr {
-    using pointer = typename StackAllocator::pointer;
-
-public:
-    WJR_CONSTEXPR20 unique_stack_ptr(const StackAllocator &al, size_t size)
-        : pair(al, Malloc{nullptr, size}) {
-        pair.second().ptr = static_cast<void *>(al.allocate(size));
-    }
-
-    WJR_CONSTEXPR20 ~unique_stack_ptr() {
-        auto &al = pair.first();
-        auto &mlo = pair.second();
-        al.deallocate(static_cast<pointer>(mlo.ptr), mlo.size);
-    }
-
-    unique_stack_ptr(const unique_stack_ptr &) = delete;
-    unique_stack_ptr &operator=(const unique_stack_ptr &) = delete;
-
-    WJR_INTRINSIC_CONSTEXPR20 void *get() const { return pair.second().ptr; }
-
-private:
-    struct Malloc {
-        void *ptr;
-        size_t size;
-    };
-
-    compressed_pair<StackAllocator, Malloc> pair;
-};
-
-template <typename StackAllocator>
-unique_stack_ptr(StackAllocator &, size_t) -> unique_stack_ptr<StackAllocator>;
 
 // Universal alternative solutions for alloca
 template <typename StackAllocator, size_t Extent = dynamic_extent>
@@ -316,7 +249,7 @@ public:
                            std::in_place_index_t<Extent> = std::in_place_index<Extent>)
         : pair(al, {}) {}
 
-    WJR_CONSTEXPR20 void *allocate(size_t n) { return __allocate(n); }
+    WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n) { return __allocate(n); }
 
     WJR_CONSTEXPR20 void release_one() { __release_one(); }
 

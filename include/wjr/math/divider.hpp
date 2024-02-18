@@ -238,7 +238,7 @@ public:
     WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor0, T divisor1, T value, T u0,
                                               T &u1, T &u2) {
         WJR_ASSERT_ASSUME(__has_high_bit(divisor1));
-        
+
         T q1, q0;
         q0 = mul<T>(value, u2, q1);
         __addc_128(q0, q1, q0, q1, u1, u2);
@@ -362,21 +362,30 @@ public:
 
     constexpr bool is_power_of_two() const { return m_divisor == 1; }
 
+    WJR_CONST WJR_INLINE_CONSTEXPR_E static T reciprocal(T divisor) {
+        T inv = math_details::divexact1_lookup[(divisor & 0xFF) >> 1];
+        inv = inv * (2 - inv * divisor);
+        inv = inv * (2 - inv * divisor);
+        inv = inv * (2 - inv * divisor);
+        WJR_ASSERT(inv * divisor == 1);
+        return inv;
+    }
+
 private:
     WJR_INTRINSIC_CONSTEXPR_E void initialize() {
 
-        if (WJR_UNLIKELY(!(m_divisor & 1))) {
+        if (WJR_UNLIKELY(!__has_high_bit(m_divisor))) {
             m_shift = ctz(m_divisor);
             m_divisor >>= m_shift;
+
+            WJR_ASSUME(m_shift != 0);
+        } else {
+            WJR_ASSUME(m_shift == 0);
         }
 
-        T inv = math_details::divexact1_lookup[(m_divisor & 0xFF) >> 1];
-        inv = inv * (2 - inv * m_divisor);
-        inv = inv * (2 - inv * m_divisor);
-        inv = inv * (2 - inv * m_divisor);
-        WJR_ASSERT(inv * m_divisor == 1);
+        WJR_ASSUME(__has_high_bit(m_divisor));
 
-        m_value = inv;
+        m_value = reciprocal(m_divisor);
     }
 
     T m_divisor = 0;
