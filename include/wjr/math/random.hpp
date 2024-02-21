@@ -12,8 +12,6 @@ void random(Iter First, Iter Last, Rand &&rd) {
     }
 }
 
-// TODO
-
 } // namespace wjr
 
 #endif // WJR_MATH_RANDOM_HPP__
