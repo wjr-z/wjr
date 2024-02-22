@@ -2447,9 +2447,27 @@ template <int imm8>
 __m128i sse::slli(__m128i v) {
     return _mm_slli_si128(v, imm8);
 }
-__m128i sse::slli_epi16(__m128i a, int imm8) { return _mm_slli_epi16(a, imm8); }
-__m128i sse::slli_epi32(__m128i a, int imm8) { return _mm_slli_epi32(a, imm8); }
-__m128i sse::slli_epi64(__m128i a, int imm8) { return _mm_slli_epi64(a, imm8); }
+__m128i sse::slli_epi16(__m128i a, int imm8) {
+    if (WJR_BUILTIN_CONSTANT_P(imm8 == 1) && imm8 == 1) {
+        return sse::add_epi16(a, a);
+    }
+
+    return _mm_slli_epi16(a, imm8);
+}
+__m128i sse::slli_epi32(__m128i a, int imm8) {
+    if (WJR_BUILTIN_CONSTANT_P(imm8 == 1) && imm8 == 1) {
+        return sse::add_epi32(a, a);
+    }
+
+    return _mm_slli_epi32(a, imm8);
+}
+__m128i sse::slli_epi64(__m128i a, int imm8) {
+    if (WJR_BUILTIN_CONSTANT_P(imm8 == 1) && imm8 == 1) {
+        return sse::add_epi64(a, a);
+    }
+
+    return _mm_slli_epi64(a, imm8);
+}
 
 __m128i sse::slli(__m128i a, int imm8, int16_t) { return slli_epi16(a, imm8); }
 __m128i sse::slli(__m128i a, int imm8, int32_t) { return slli_epi32(a, imm8); }

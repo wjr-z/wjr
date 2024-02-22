@@ -56,6 +56,12 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool __has_high_bit(T n) noexcept {
     return n >> (std::numeric_limits<T>::digits - 1);
 }
 
+// align_up (n, alignment) - n
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up_offset(T n, type_identity_t<T> alignment) {
+    return (-n) & (alignment - 1);
+}
+
 } // namespace wjr
 
 #endif // WJR_MATH_DETAILS_HPP__

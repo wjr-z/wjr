@@ -2,6 +2,7 @@
 #define WJR_X86_NOT_HPP__
 
 #include <wjr/simd/simd.hpp>
+#include <wjr/math/details.hpp>
 
 #ifndef WJR_X86
 #error "x86 required"
@@ -26,7 +27,7 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) {
 
     uintptr_t ptr = reinterpret_cast<uintptr_t>(dst);
     WJR_ASSUME(ptr % sizeof(T) == 0);
-    size_t offset = (((ptr + 32 - 1) & (-32)) - ptr) / sizeof(T);
+    size_t offset = __align_up_offset(ptr, 32) / sizeof(T);
 
     WJR_ASSUME(offset < 4);
 

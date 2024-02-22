@@ -69,6 +69,9 @@ inline uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t
     size_t cx = n / 8;
     uint64_t r8, r9, r10 = n, r11;
 
+    const auto pdst = dst;
+    const auto psrc = src;
+
     asm volatile(
         "and{l $7, %k[r10]| %k[r10], 7}\n\t"
         "lea{q| %[r9], [rip +} .Llookup%={(%%rip), %[r9]|]}\n\t"
@@ -136,14 +139,13 @@ inline uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t
         "jmp .Lb7%=\n\t"
 
         ".Ld1%=:\n\t"
-        "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
         "jmp .Ldone%=\n\t"
 
         ".Ll1%=:\n\t"
         "mulx{q (%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "jrcxz .Ld1%=\n\t"
         "lea{q 8(%[src]), %[src]| %[src], [%[src] + 8]}\n\t"
         "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
+        "jrcxz .Ld1%=\n\t"
 
         ".align 32\n\t"
         ".Lloop%=:\n\t"
@@ -195,16 +197,17 @@ inline uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t
         "jne .Lloop%=\n\t"
 
         "adc{q %[cx], %[r9]| %[r9], %[cx]}\n\t"
+        ".Ldone%=:"
         "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
 
-        ".Ldone%=:"
-
-        : [dst] "+r"(dst), [src] "+r"(src), "+d"(dx), [cx] "+c"(cx), [r8] "=r"(r8),
-          [r9] "=r"(r9), [r10] "+r"(r10), [r11] "=r"(r11)
-        :
+        : [dst] "+&r"(dst), [src] "+&r"(src), [cx] "+&c"(cx), [r8] "=&r"(r8),
+          [r9] "=&r"(r9), [r10] "+&r"(r10), [r11] "=&r"(r11)
+        : "d"(dx)
         : "cc", "memory");
 
-    WJR_ASSUME(cx == 0);
+    WJR_ASSERT_ASSUME(cx == 0);
+    WJR_ASSERT_ASSUME(dst == pdst + n);
+    WJR_ASSERT_ASSUME(src == psrc + n);
 
     return r9;
 }
@@ -219,10 +222,11 @@ inline uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t
 
 // TODO : optimize pipeline
 inline uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t dx) {
-    WJR_ASSERT(n != 0);
-
     size_t cx = n / 8;
     uint64_t r8, r9, r10 = n, r11;
+
+    const auto pdst = dst;
+    const auto psrc = src;
 
     asm volatile(
         "and{l $7, %k[r10]| %k[r10], 7}\n\t"
@@ -250,25 +254,25 @@ inline uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint6
 
         ".Ll2%=:\n\t"
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "lea{q -48(%[src]), %[src]| %[src], [%[src] - 48]}\n\t"
+        "lea{q 16(%[src]), %[src]| %[src], [%[src] + 16]}\n\t"
         "lea{q -48(%[dst]), %[dst]| %[dst], [%[dst] - 48]}\n\t"
         "jmp .Lb2%=\n\t"
 
         ".Ll3%=:\n\t"
         "mulx{q (%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "lea{q -40(%[src]), %[src]| %[src], [%[src] - 40]}\n\t"
+        "lea{q 24(%[src]), %[src]| %[src], [%[src] + 24]}\n\t"
         "lea{q -40(%[dst]), %[dst]| %[dst], [%[dst] - 40]}\n\t"
         "jmp .Lb3%=\n\t"
 
         ".Ll4%=:\n\t"
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "lea{q -32(%[src]), %[src]| %[src], [%[src] - 32]}\n\t"
+        "lea{q 32(%[src]), %[src]| %[src], [%[src] + 32]}\n\t"
         "lea{q -32(%[dst]), %[dst]| %[dst], [%[dst] - 32]}\n\t"
         "jmp .Lb4%=\n\t"
 
         ".Ll5%=:\n\t"
         "mulx{q (%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "lea{q -24(%[src]), %[src]| %[src], [%[src] - 24]}\n\t"
+        "lea{q 40(%[src]), %[src]| %[src], [%[src] + 40]}\n\t"
         "lea{q -24(%[dst]), %[dst]| %[dst], [%[dst] - 24]}\n\t"
         "jmp .Lb5%=\n\t"
 
@@ -285,16 +289,16 @@ inline uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint6
         "jmp .Lb7%=\n\t"
 
         ".Ld1%=:\n\t"
-        "add{q (%[dst]), %[r8]| [%[dst]], %[r8]}\n\t"
+        "add{q -8(%[dst]), %[r8]| [%[dst] - 8], %[r8]}\n\t"
+        "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
         "adc{q %[cx], %[r9]| %[r9], %[cx]}\n\t"
-        "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
         "jmp .Ldone%=\n\t"
 
         ".Ll1%=:\n\t"
         "mulx{q (%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "jrcxz .Ld1%=\n\t"
         "lea{q 8(%[src]), %[src]| %[src], [%[src] + 8]}\n\t"
         "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
+        "jrcxz .Ld1%=\n\t"
 
         ".align 32\n\t"
         ".Lloop%=:\n\t"
@@ -321,35 +325,35 @@ inline uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint6
 
         ".Lb6%=:\n\t"
         "mulx{q 24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 24]}\n\t"
+        "lea{q 64(%[src]), %[src]| %[src], [%[src] + 64]}\n\t"
         "adcx{q 16(%[dst]), %[r10]| %[r10], [%[dst] + 16]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "mov{q %[r10], 16(%[dst])| [%[dst] + 16], %[r10]}\n\t"
 
         ".Lb5%=:\n\t"
-        "mulx{q 32(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] + 32]}\n\t"
+        "mulx{q -32(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 32]}\n\t"
         "adcx{q 24(%[dst]), %[r8]| %[r8], [%[dst] + 24]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 24(%[dst])| [%[dst] + 24], %[r8]}\n\t"
 
         ".Lb4%=:\n\t"
-        "mulx{q 40(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 40]}\n\t"
+        "mulx{q -24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 24]}\n\t"
         "adcx{q 32(%[dst]), %[r10]| %[r10], [%[dst] + 32]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "mov{q %[r10], 32(%[dst])| [%[dst] + 32], %[r10]}\n\t"
 
         ".Lb3%=:\n\t"
-        "mulx{q 48(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] + 48]}\n\t"
+        "mulx{q -16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] -16]}\n\t"
         "adcx{q 40(%[dst]), %[r8]| %[r8], [%[dst] + 40]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 40(%[dst])| [%[dst] + 40], %[r8]}\n\t"
 
         ".Lb2%=:\n\t"
-        "mulx{q 56(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 56]}\n\t"
+        "mulx{q -8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 8]}\n\t"
         "adcx{q 48(%[dst]), %[r10]| %[r10], [%[dst] + 48]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "mov{q %[r10], 48(%[dst])| [%[dst] + 48], %[r10]}\n\t"
 
-        "lea{q 64(%[src]), %[src]| %[src], [%[src] + 64]}\n\t"
         "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
 
         "jrcxz .Lloop_out%=\n\t"
@@ -357,18 +361,20 @@ inline uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint6
         ".Lloop_out%=:\n\t"
 
         "adcx{q -8(%[dst]), %[r8]| %[r8], [%[dst] - 8]}\n\t"
-        "adox %[cx], %[r9]\n\t"
         "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
+        "adox{q %[cx], %[r9]| %[r9], %[cx]}\n\t"
         "adc{q %[cx], %[r9]| %[r9], %[cx]}\n\t"
 
         ".Ldone%=:"
 
-        : [dst] "+r"(dst), [src] "+r"(src), "+d"(dx), [cx] "+c"(cx), [r8] "=r"(r8),
-          [r9] "=r"(r9), [r10] "+r"(r10), [r11] "=r"(r11)
-        :
+        : [dst] "+&r"(dst), [src] "+&r"(src), [cx] "+&c"(cx), [r8] "=&r"(r8),
+          [r9] "=&r"(r9), [r10] "+&r"(r10), [r11] "=&r"(r11)
+        : "d"(dx)
         : "cc", "memory");
 
-    WJR_ASSUME(cx == 0);
+    WJR_ASSERT_ASSUME(cx == 0);
+    WJR_ASSERT_ASSUME(dst == pdst + n);
+    WJR_ASSERT_ASSUME(src == psrc + n);
 
     return r9;
 }
@@ -555,9 +561,9 @@ inline uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n, uint6
 
         ".Ldone%=:"
 
-        : [dst] "+r"(dst), [src] "+r"(src), "+d"(dx), [cx] "+c"(cx), [r8] "=r"(r8),
-          [r9] "=r"(r9), [r10] "+r"(r10), [r11] "=r"(r11)
-        :
+        : [dst] "+&r"(dst), [src] "+&r"(src), [cx] "+&c"(cx), [r8] "=&r"(r8),
+          [r9] "=&r"(r9), [r10] "+&r"(r10), [r11] "=&r"(r11)
+        : "d"(dx)
         : "cc", "memory");
 
     WJR_ASSUME(cx == 0);
