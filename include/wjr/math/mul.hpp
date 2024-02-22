@@ -558,7 +558,11 @@ void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
                 toom43_mul_s(tmp, src0, n, src1, m, stk);
             }
         } else {
-            toom42_mul_s(tmp, src0, n, src1, m, stk);
+            if (4 * n < 7 * m) {
+                toom32_mul_s(tmp, src0, n, src1, m, stk);
+            } else {
+                toom42_mul_s(tmp, src0, n, src1, m, stk);
+            }
         }
 
         cf = addc_n(dst, dst, tmp, m, cf);
@@ -575,7 +579,11 @@ void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
                 toom43_mul_s(dst, src0, n, src1, m, stk);
             }
         } else {
-            toom42_mul_s(dst, src0, n, src1, m, stk);
+            if (4 * n < 7 * m) {
+                toom32_mul_s(dst, src0, n, src1, m, stk);
+            } else {
+                toom42_mul_s(dst, src0, n, src1, m, stk);
+            }
         }
     }
 
@@ -1325,7 +1333,7 @@ void toom_interpolation_6p_s(T *dst, T *w1p, size_t l, size_t rn, size_t rm,
     {
         cf = submul_1(w3p, w5p, rn + rm, 4u);
         if (rn + rm != l * 2) {
-            cf3 -= subc_1(w3p + rn + rm, w3p + rn + rm, l * 2 - (rn + rm), 0, cf);
+            cf3 -= subc_1(w3p + rn + rm, w3p + rn + rm, l * 2 - (rn + rm), cf);
         } else {
             cf3 -= cf;
         }
@@ -1423,6 +1431,8 @@ void toom43_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
     const size_t rn = n - l * 3;
     const size_t rm = m - l * 2;
 
+    WJR_ASSERT(rn + rm >= l);
+
     const auto u0p = src0;
     const auto u1p = u0p + l;
     const auto u2p = u0p + l * 2;
@@ -1457,7 +1467,7 @@ void toom43_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
     cf3 = addc_n(w3p, u0p, u2p, l);
 
     //  W4 = U1 + U3;
-    cf4 = addc_n(w4p, u1p, u3p, l);
+    cf4 = addc_s(w4p, u1p, l, u3p, rn);
 
     //  T0 = W3 - W4; u(-1)
     {
@@ -1481,7 +1491,7 @@ void toom43_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
     WJR_ASSERT(cft1 <= 3);
 
     //  W3 = V0 + V2;
-    cf3 = addc_n(w3p, v0p, v2p, l);
+    cf3 = addc_s(w3p, v0p, l, v2p, rm);
 
     //  W4 = W3 - V1; v(-1)
     if (cf3) {
@@ -1513,14 +1523,16 @@ void toom43_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
     //  W4 = (W4 + V2) << 1 - V0; v(-2)
     {
         if (!neg1) {
-            cf4 += addc_n(w4p, w4p, v2p, l);
+            cf4 += addc_s(w4p, w4p, l, v2p, rm);
         } else {
             WJR_ASSERT(cf4 == 0);
-            ssize_t p = abs_subc_n(w4p, v2p, w4p, l);
-            neg1 = p < 0;
+            ssize_t p = abs_subc_s(w4p, w4p, l, v2p, rm);
+            neg1 = p > 0;
         }
 
         if (!neg1) {
+            // W4 maybe less than V0
+            // use lshfit + compare sub instead of rsblsh_n
             cf4 += cf4 + lshift_n(w4p, w4p, l, 1u);
             if (cf4) {
                 cf4 -= subc_n(w4p, w4p, v0p, l);
@@ -1535,18 +1547,20 @@ void toom43_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
     WJR_ASSERT(cf4 <= 4);
 
     //  W5 = (W5 + V2) << 1 - V0; v(2)
-    cf5 += addc_n(w5p, w5p, v2p, l);
+    cf5 += addc_s(w5p, w5p, l, v2p, rm);
     cf5 += cf5 + rsblsh_n(w5p, v0p, w5p, l, 1u);
     WJR_ASSERT(cf5 <= 6);
 
     //  T0 = U0 + 4U2;
-    cft0 = lshift_n(t0p, u2p, l, 2u);
-    cft0 += addc_n(t0p, t0p, u0p, l);
+    cft0 = addlsh_n(t0p, u0p, u2p, l, 2u);
     WJR_ASSERT(cft0 <= 4);
 
-    //  T1 = (U1 + 4U3) << 1; => 8U3 + (U1 << 1)
-    cft1 = lshift_n(t1p, u3p, l, 3u);
-    cft1 += addlsh_n(t1p, t1p, u1p, l, 1u);
+    //  T1 = (U1 + 4U3) << 1;
+    cft1 = addlsh_n(t1p, u1p, u3p, rn, 2u);
+    if (l != rn) {
+        cft1 = addc_1(t1p + rn, u1p + rn, l - rn, cft1);
+    }
+    cft1 += cft1 + lshift_n(t1p, t1p, l, 1u);
     WJR_ASSERT(cft1 <= 9);
 
     //  T2 = T0 - T1; u(-2)
