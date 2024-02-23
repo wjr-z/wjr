@@ -47,7 +47,7 @@ WJR_INTRINSIC_INLINE __m128i __mm_srl_epi64(__m128i x, __m128i c) {
 
 #if WJR_HAS_BUILTIN(LSHIFT_N)
 
-#define WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2(index)                                   \
+#define WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED(index)                                      \
     do {                                                                                 \
         __m128i x1 = sse::loadu((__m128i *)(src - 3 - (index)));                         \
         x0 = simd_cast<__m128_t, __m128i_t>(sse::template shuffle_ps<78>(                \
@@ -77,15 +77,15 @@ void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int c)
     __m128i x0 = sse::set1_epi64(src[-1]);
 
     if (n & 2) {
-        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2(0);
+        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED(0);
 
         src -= 2;
         dst -= 2;
     }
 
     if (n & 4) {
-        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2(0);
-        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2(2);
+        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED(0);
+        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED(2);
 
         src -= 4;
         dst -= 4;
@@ -98,10 +98,10 @@ void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int c)
     }
 
     do {
-        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2(0);
-        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2(2);
-        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2(4);
-        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2(6);
+        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED(0);
+        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED(2);
+        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED(4);
+        WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED(6);
 
         src -= 8;
         dst -= 8;
@@ -129,6 +129,10 @@ WJR_INTRINSIC_INLINE void builtin_lshift_n_impl(T *dst, const T *src, size_t n,
         case 0: {
             break;
         }
+        default: {
+            WJR_UNREACHABLE();
+            break;
+        }
         }
 
         return;
@@ -144,7 +148,7 @@ WJR_INTRINSIC_INLINE void builtin_lshift_n_impl(T *dst, const T *src, size_t n,
     return large_builtin_lshift_n_impl<false>(dst, src, n, c);
 }
 
-#undef WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED_L2
+#undef WJR_REGISTER_LSHIFT_N_IMPL_UNALIGNED
 
 template <typename T>
 WJR_INTRINSIC_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned int c,
@@ -159,7 +163,7 @@ WJR_INTRINSIC_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned
 
 #if WJR_HAS_BUILTIN(RSHIFT_N)
 
-#define WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED_L2(index)                                   \
+#define WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED(index)                                      \
     do {                                                                                 \
         __m128i x1 = sse::loadu((__m128i *)(src + 1 + (index)));                         \
         x0 = simd_cast<__m128_t, __m128i_t>(sse::template shuffle_ps<78>(                \
@@ -189,15 +193,15 @@ void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n, unsigned int c)
     __m128i x0 = sse::set1_epi64(src[0]);
 
     if (n & 2) {
-        WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED_L2(0);
+        WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED(0);
 
         src += 2;
         dst += 2;
     }
 
     if (n & 4) {
-        WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED_L2(0);
-        WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED_L2(2);
+        WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED(0);
+        WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED(2);
 
         src += 4;
         dst += 4;
@@ -210,10 +214,10 @@ void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n, unsigned int c)
     }
 
     do {
-        WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED_L2(0);
-        WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED_L2(2);
-        WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED_L2(4);
-        WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED_L2(6);
+        WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED(0);
+        WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED(2);
+        WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED(4);
+        WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED(6);
 
         dst += 8;
         src += 8;
@@ -244,6 +248,10 @@ WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T *src, size_t n,
         case 0: {
             break;
         }
+        default: {
+            WJR_UNREACHABLE();
+            break;
+        }
         }
 
         return;
@@ -256,7 +264,7 @@ WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T *src, size_t n,
     return large_builtin_rshift_n_impl<false>(dst, src, n, c);
 }
 
-#undef WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED_L2
+#undef WJR_REGISTER_RSHIFT_N_IMPL_UNALIGNED
 
 template <typename T>
 WJR_INTRINSIC_INLINE T builtin_rshift_n(T *dst, const T *src, size_t n, unsigned int c,

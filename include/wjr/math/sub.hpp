@@ -216,13 +216,16 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src
         return 0;
     }
 
-    if (src0[idx - 1] > src1[idx - 1]) {
-        (void)subc_n(dst, src0, src1, idx);
-        return n;
-    } else {
-        (void)subc_n(dst, src1, src0, idx);
-        return -n;
+    ssize_t ret = n;
+    WJR_ASSUME(ret > 0);
+    
+    if (src0[idx - 1] < src1[idx - 1]) {
+        std::swap(src0, src1);
+        ret = -n;
     }
+
+    (void)subc_n(dst, src0, src1, idx);
+    return ret;
 }
 
 // dst = abs(src0 - src1)

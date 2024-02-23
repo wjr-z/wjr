@@ -17,14 +17,14 @@ namespace wjr {
 
 #if WJR_HAS_BUILTIN(COMPARE_N)
 
-#define WJR_REGISTER_COMPARE_NOT_N_L2(index)                                             \
+#define WJR_REGISTER_COMPARE_NOT_N(index, expect)                                        \
     do {                                                                                 \
         auto x = sse::loadu((__m128i *)(src0 + (index)));                                \
         auto y = sse::loadu((__m128i *)(src1 + (index)));                                \
         auto r = sse::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         auto mask = sse::movemask_epi8(r);                                               \
-        if (WJR_UNLIKELY(mask != sse::mask())) {                                         \
+        if (WJR_EXPECT(mask != sse::mask(), expect)) {                                   \
             if (mask == 0x00FF) {                                                        \
                 return src0[(index) + 1] < src1[(index) + 1] ? -1 : 1;                   \
             }                                                                            \
@@ -34,56 +34,114 @@ namespace wjr {
 
 template <typename T>
 WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size_t n) {
-#define WJR_REGISTER_COMPARE_NOT_N_L8(index)                                             \
-    WJR_REGISTER_COMPARE_NOT_N_L2((index));                                              \
-    WJR_REGISTER_COMPARE_NOT_N_L2((index) + 2);                                          \
-    WJR_REGISTER_COMPARE_NOT_N_L2((index) + 4);                                          \
-    WJR_REGISTER_COMPARE_NOT_N_L2((index) + 6)
+    if (WJR_LIKELY(n & 1)) {
+        ++src0;
+        ++src1;
+    } else {
+        if (WJR_LIKELY(src0[1] != src1[1])) {
+            return src0[1] < src1[1] ? -1 : 1;
+        }
 
-#define WJR_REGISTER_COMPARE_NOT_N_RET() 0
+        src0 += 2;
+        src1 += 2;
+    }
 
-    WJR_GEN_LARGE_FAST_1_2_8(n, WJR_REGISTER_COMPARE_NOT_N_L2,
-                             WJR_REGISTER_COMPARE_NOT_N_L8, WJR_PP_EMPTY, WJR_PP_EMPTY,
-                             WJR_REGISTER_COMPARE_NOT_N_RET);
+    --n;
 
-#undef WJR_REGISTER_COMPARE_NOT_N_RET
-#undef WJR_REGISTER_COMPARE_NOT_N_L8
+    if (n & 2) {
+        WJR_REGISTER_COMPARE_NOT_N(0, true);
+
+        src0 += 2;
+        src1 += 2;
+    }
+
+    if (n & 4) {
+        WJR_REGISTER_COMPARE_NOT_N(0, true);
+        WJR_REGISTER_COMPARE_NOT_N(2, true);
+
+        src0 += 4;
+        src1 += 4;
+    }
+
+    size_t idx = n / 8;
+
+    if (WJR_UNLIKELY(idx == 0)) {
+        return 0;
+    }
+
+    do {
+        WJR_REGISTER_COMPARE_NOT_N(0, false);
+        WJR_REGISTER_COMPARE_NOT_N(2, false);
+        WJR_REGISTER_COMPARE_NOT_N(4, false);
+        WJR_REGISTER_COMPARE_NOT_N(6, false);
+
+        src0 += 8;
+        src1 += 8;
+        --idx;
+    } while (WJR_LIKELY(idx != 0));
+
+    return 0;
 }
 
 template <typename T>
 WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1, size_t n) {
-#define WJR_REGISTER_COMPARE_NOT_N_L1(index)                                             \
-    if (src0[(index)] != src1[(index)]) {                                                \
-        return src0[(index)] < src1[(index)] ? -1 : 1;                                   \
+    if (WJR_UNLIKELY(n == 0)) {
+        return 0;
     }
 
-#define WJR_REGISTER_COMPARE_NOT_N_RET() 0
-#define WJR_REGISTER_LARGE_COMPARE_NOT_N(gen_offset, gen_n, ...)                         \
-    return large_builtin_compare_n(src0 + gen_offset, src1 + gen_offset, gen_n)
+    // Quickly check the first one. There is a high probability that the comparison will
+    // end in the first place
+    if (WJR_LIKELY(src0[0] != src1[0])) {
+        return src0[0] < src1[0] ? -1 : 1;
+    }
 
-    WJR_GEN_SMALL_FAST_1_2_8(
-        n, WJR_REGISTER_COMPARE_NOT_N_L1, WJR_REGISTER_COMPARE_NOT_N_L2, WJR_PP_EMPTY,
-        WJR_PP_EMPTY, WJR_REGISTER_COMPARE_NOT_N_RET, WJR_REGISTER_LARGE_COMPARE_NOT_N);
+    if (WJR_UNLIKELY(n < 4)) {
+        src0 += n - 2;
+        src1 += n - 2;
+        switch (n) {
+        case 3: {
+            if (WJR_LIKELY(src0[0] != src1[0])) {
+                return src0[0] < src1[0] ? -1 : 1;
+            }
 
-#undef WJR_REGISTER_LARGE_COMPARE_NOT_N
-#undef WJR_REGISTER_COMPARE_NOT_N_RET
-#undef WJR_REGISTER_COMPARE_NOT_N_L1
+            WJR_FALLTHROUGH;
+        }
+        case 2: {
+            if (WJR_LIKELY(src0[1] != src1[1])) {
+                return src0[1] < src1[1] ? -1 : 1;
+            }
+
+            WJR_FALLTHROUGH;
+        }
+        case 1: {
+            break;
+        }
+        default: {
+            WJR_UNREACHABLE();
+            break;
+        }
+        }
+
+        return 0;
+    }
+
+    return large_builtin_compare_n(src0, src1, n);
 }
 
-#undef WJR_REGISTER_COMPARE_NOT_N_L2
+#undef WJR_REGISTER_COMPARE_NOT_N
 
 #endif
 
 #if WJR_HAS_BUILTIN(REVERSE_COMPARE_N)
 
-#define WJR_REGISTER_REVERSE_COMPARE_NOT_N_L2(index)                                     \
+#define WJR_REGISTER_REVERSE_COMPARE_NOT_N(index, expect)                                \
     do {                                                                                 \
         auto x = sse::loadu((__m128i *)(src0 - 2 - (index)));                            \
         auto y = sse::loadu((__m128i *)(src1 - 2 - (index)));                            \
         auto r = sse::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         auto mask = sse::movemask_epi8(r);                                               \
-        if (WJR_UNLIKELY(mask != sse::mask())) {                                         \
+        if (WJR_EXPECT(mask != sse::mask(), expect)) {                                   \
             if (mask == 0xFF00) {                                                        \
                 return src0[-2 - (index)] < src1[-2 - (index)] ? -1 : 1;                 \
             }                                                                            \
@@ -93,48 +151,98 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1, size_t 
 
 template <typename T>
 WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1, size_t n) {
-#define WJR_REGISTER_REVERSE_COMPARE_NOT_N_L8(index)                                     \
-    WJR_REGISTER_REVERSE_COMPARE_NOT_N_L2((index));                                      \
-    WJR_REGISTER_REVERSE_COMPARE_NOT_N_L2((index) + 2);                                  \
-    WJR_REGISTER_REVERSE_COMPARE_NOT_N_L2((index) + 4);                                  \
-    WJR_REGISTER_REVERSE_COMPARE_NOT_N_L2((index) + 6)
+    if (WJR_LIKELY(n & 1)) {
+        src0 += n - 1;
+        src1 += n - 1;
+    } else {
+        if (WJR_LIKELY(src0[n - 2] != src1[n - 2])) {
+            return src0[n - 2] < src1[n - 2] ? -1 : 1;
+        }
 
-#define WJR_REGISTER_REVERSE_COMPARE_NOT_N_RET() 0
+        src0 += n - 2;
+        src1 += n - 2;
+    }
 
-    WJR_GEN_LARGE_FAST_1_2_8(n, WJR_REGISTER_REVERSE_COMPARE_NOT_N_L2,
-                             WJR_REGISTER_REVERSE_COMPARE_NOT_N_L8, WJR_PP_EMPTY,
-                             WJR_PP_EMPTY, WJR_REGISTER_REVERSE_COMPARE_NOT_N_RET);
+    --n;
 
-#undef WJR_REGISTER_REVERSE_COMPARE_NOT_N_RET
-#undef WJR_REGISTER_REVERSE_COMPARE_NOT_N_L8
+    if (n & 2) {
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(0, true);
+
+        src0 -= 2;
+        src1 -= 2;
+    }
+
+    if (n & 4) {
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(0, true);
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(2, true);
+
+        src0 -= 4;
+        src1 -= 4;
+    }
+
+    size_t idx = n / 8;
+
+    if (WJR_UNLIKELY(idx == 0)) {
+        return 0;
+    }
+
+    do {
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(0, false);
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(2, false);
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(4, false);
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(6, false);
+
+        src0 -= 8;
+        src1 -= 8;
+        --idx;
+    } while (WJR_LIKELY(idx != 0));
+
+    return 0;
 }
 
 template <typename T>
 WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
                                                    size_t n) {
-#define WJR_REGISTER_REVERSE_COMPARE_NOT_N_L1(index)                                     \
-    if (src0[-1 - (index)] != src1[-1 - (index)]) {                                      \
-        return src0[-1 - (index)] < src1[-1 - (index)] ? -1 : 1;                         \
+    if (WJR_UNLIKELY(n == 0)) {
+        return 0;
     }
 
-#define WJR_REGISTER_REVERSE_COMPARE_NOT_N_RET() 0
-#define WJR_REGISTER_LARGE_REVERSE_COMPARE_NOT_N(gen_offset, gen_n, n, ...)              \
-    return large_builtin_reverse_compare_n(src0 - gen_offset, src1 - gen_offset, gen_n)
+    if (WJR_LIKELY(src0[n - 1] != src1[n - 1])) {
+        return src0[n - 1] < src1[n - 1] ? -1 : 1;
+    }
 
-    src0 += n;
-    src1 += n;
+    if (WJR_UNLIKELY(n < 4)) {
+        switch (n) {
+        case 3: {
+            if (WJR_LIKELY(src0[1] != src1[1])) {
+                return src0[1] < src1[1] ? -1 : 1;
+            }
 
-    WJR_GEN_SMALL_FAST_1_2_8(n, WJR_REGISTER_REVERSE_COMPARE_NOT_N_L1,
-                             WJR_REGISTER_REVERSE_COMPARE_NOT_N_L2, WJR_PP_EMPTY,
-                             WJR_PP_EMPTY, WJR_REGISTER_REVERSE_COMPARE_NOT_N_RET,
-                             WJR_REGISTER_LARGE_REVERSE_COMPARE_NOT_N);
+            WJR_FALLTHROUGH;
+        }
+        case 2: {
+            if (WJR_LIKELY(src0[0] != src1[0])) {
+                return src0[0] < src1[0] ? -1 : 1;
+            }
 
-#undef WJR_REGISTER_LARGE_REVERSE_COMPARE_NOT_N
-#undef WJR_REGISTER_REVERSE_COMPARE_NOT_N_RET
-#undef WJR_REGISTER_REVERSE_COMPARE_NOT_N_L1
+            WJR_FALLTHROUGH;
+        }
+        case 1: {
+            break;
+        }
+        default: {
+            WJR_UNREACHABLE();
+            break;
+        }
+        }
+
+        return 0;
+    }
+
+    return large_builtin_reverse_compare_n(src0, src1, n);
 }
 
-#undef WJR_REGISTER_REVERSE_COMPARE_NOT_N_L2
+#undef WJR_REGISTER_REVERSE_COMPARE_NOT_N
 
 #endif
 

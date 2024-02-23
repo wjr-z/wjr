@@ -126,16 +126,13 @@
 #define WJR_BOOL_EXPR(expr) (!!(expr))
 
 #if WJR_HAS_BUILTIN(__builtin_expect)
-#define WJR_LIKELY(expr) __builtin_expect(WJR_BOOL_EXPR(expr), true)
+#define WJR_EXPECT(expr, expect) __builtin_expect((expr), (expect))
 #else
-#define WJR_LIKELY(expr) (expr)
+#define WJR_EXPECT(expr, expect) (expr)
 #endif
 
-#if WJR_HAS_BUILTIN(__builtin_expect)
-#define WJR_UNLIKELY(expr) __builtin_expect(WJR_BOOL_EXPR(expr), false)
-#else
-#define WJR_UNLIKELY(expr) (expr)
-#endif
+#define WJR_LIKELY(expr) WJR_EXPECT(WJR_BOOL_EXPR(expr), true)
+#define WJR_UNLIKELY(expr) WJR_EXPECT(WJR_BOOL_EXPR(expr), false)
 
 #define WJR_HAS_FEATURE_IS_CONSTANT_EVALUATED WJR_HAS_DEF
 
