@@ -754,6 +754,67 @@ WJR_CONSTEXPR_E void divexact_by15(T *dst, const T *src, size_t n) {
     (void)divexact_dbm1c<T>(dst, src, n, max / 15, 0);
 }
 
+template <typename T, T c, std::enable_if_t<std::is_same_v<T, uint64_t>, int>>
+WJR_CONSTEXPR_E void divexact_byc(T *dst, const T *src, size_t n,
+                                  std::integral_constant<T, c> gg) {
+
+    // cost : divexact_dbm1c * 2 + shift * 1 <= divexact_1
+
+    constexpr auto __is_fast = [](auto cr) -> bool {
+        constexpr T r = get_place_index_v<remove_cvref_t<decltype(cr)>>;
+        return c % r == 0 && is_power_of_two(c / r);
+    };
+
+    auto __resolve = [dst, n](auto cr) {
+        constexpr T r = get_place_index_v<remove_cvref_t<decltype(cr)>>;
+        constexpr auto p = fallback_ctz(c / r);
+        if constexpr (p != 0) {
+            rshift_n(dst, dst, n, p);
+        } else {
+            (void)(dst);
+            (void)(n);
+        }
+    };
+
+    if constexpr (__is_fast(std::in_place_index<3>)) {
+        divexact_by3(dst, src, n);
+        __resolve(std::in_place_index<3>);
+    } else if constexpr (__is_fast(std::in_place_index<5>)) {
+        divexact_by5(dst, src, n);
+        __resolve(std::in_place_index<5>);
+    } else if constexpr (__is_fast(std::in_place_index<15>)) {
+        divexact_by15(dst, src, n);
+        __resolve(std::in_place_index<15>);
+    } else if constexpr (__is_fast(std::in_place_index<9>)) {
+        divexact_by3(dst, src, n);
+        divexact_by3(dst, dst, n);
+        __resolve(std::in_place_index<9>);
+    } else if constexpr (__is_fast(std::in_place_index<25>)) {
+        divexact_by5(dst, src, n);
+        divexact_by5(dst, dst, n);
+        __resolve(std::in_place_index<25>);
+    } else if constexpr (__is_fast(std::in_place_index<45>)) {
+        divexact_by3(dst, src, n);
+        divexact_by15(dst, dst, n);
+        __resolve(std::in_place_index<45>);
+    } else if constexpr (__is_fast(std::in_place_index<75>)) {
+        divexact_by5(dst, src, n);
+        divexact_by15(dst, dst, n);
+        __resolve(std::in_place_index<75>);
+    } else if constexpr (__is_fast(std::in_place_index<225>)) {
+        divexact_by15(dst, src, n);
+        divexact_by15(dst, dst, n);
+        __resolve(std::in_place_index<225>);
+    } else {
+        constexpr auto shift = fallback_ctz(c);
+        using divider_t = divexact1_divider<T>;
+        constexpr auto divisor = c >> shift;
+        constexpr auto value = divider_t::reciprocal(divisor);
+        constexpr auto divider = divider_t(divisor, value, shift);
+        divexact_1(dst, src, n, divider);
+    }
+}
+
 // reference : ftp://ftp.risc.uni-linz.ac.at/pub/techreports/1992/92-35.ps.gz
 template <typename T>
 WJR_CONSTEXPR_E void fallback_divexact_1_without_shift(T *dst, const T *src, size_t n,

@@ -362,19 +362,18 @@ public:
 
     constexpr bool is_power_of_two() const { return m_divisor == 1; }
 
-    WJR_CONST WJR_INLINE_CONSTEXPR_E static T reciprocal(T divisor) {
+    WJR_CONST constexpr static T reciprocal(T divisor) {
         T inv = math_details::divexact1_lookup[(divisor & 0xFF) >> 1];
         inv = inv * (2 - inv * divisor);
         inv = inv * (2 - inv * divisor);
         inv = inv * (2 - inv * divisor);
-        WJR_ASSERT(inv * divisor == 1);
         return inv;
     }
 
 private:
     WJR_INTRINSIC_CONSTEXPR_E void initialize() {
 
-        if (WJR_UNLIKELY(!__has_high_bit(m_divisor))) {
+        if (WJR_UNLIKELY(!(m_divisor & 1))) {
             m_shift = ctz(m_divisor);
             m_divisor >>= m_shift;
 
@@ -383,7 +382,7 @@ private:
             WJR_ASSUME(m_shift == 0);
         }
 
-        WJR_ASSUME(__has_high_bit(m_divisor));
+        WJR_ASSUME((m_divisor & 1) != 0);
 
         m_value = reciprocal(m_divisor);
     }

@@ -37,6 +37,10 @@ WJR_CONSTEXPR_E void divexact_by5(T *dst, const T *src, size_t n);
 template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
 WJR_CONSTEXPR_E void divexact_by15(T *dst, const T *src, size_t n);
 
+template <typename T, T c, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+WJR_CONSTEXPR_E void divexact_byc(T *dst, const T *src, size_t n,
+                                  std::integral_constant<T, c>);
+
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           const divexact1_divider<T> &div);

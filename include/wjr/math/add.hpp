@@ -189,6 +189,7 @@ template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U addc_s(T *dst, const T *src0, size_t n, const T *src1,
                                    size_t m, U c_in) {
+    WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
 
     c_in = addc_n(dst, src0, src1, m, c_in);

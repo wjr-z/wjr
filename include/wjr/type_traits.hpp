@@ -240,6 +240,17 @@ using is_default_convertible = __is_default_convertible<T>;
 template <typename T>
 inline constexpr bool is_default_convertible_v = is_default_convertible<T>::value;
 
+template <typename T>
+struct get_place_index {};
+
+template <size_t idx>
+struct get_place_index<std::in_place_index_t<idx>> {
+    static constexpr size_t value = idx;
+};
+
+template <typename T>
+inline constexpr size_t get_place_index_v = get_place_index<T>::value;
+
 // ....
 
 template <class P, class M>

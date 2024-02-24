@@ -189,6 +189,7 @@ template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n, const T *src1,
                                    size_t m, U c_in) {
+    WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
 
     c_in = subc_n(dst, src0, src1, m, c_in);
@@ -209,6 +210,8 @@ WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n, const T *src
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
                                              size_t n) {
+    WJR_ASSERT_ASSUME(n >= 1);
+
     size_t idx = reverse_find_not_n(src0, src1, n);
     set_n(dst + idx, 0u, n - idx);
 
@@ -218,7 +221,7 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src
 
     ssize_t ret = n;
     WJR_ASSUME(ret > 0);
-    
+
     if (src0[idx - 1] < src1[idx - 1]) {
         std::swap(src0, src1);
         ret = -n;
@@ -233,7 +236,12 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
                                              const T *src1, size_t m) {
+    WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
+
+    if (WJR_BUILTIN_CONSTANT_P(n == m) && n == m) {
+        return abs_subc_n(dst, src0, src1, m);
+    }
 
     size_t delta = n - m;
     size_t idx = reverse_find_not_n(src0 + m, 0u, delta);

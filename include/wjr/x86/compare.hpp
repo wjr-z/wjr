@@ -98,6 +98,7 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1, size_t 
     if (WJR_UNLIKELY(n < 4)) {
         src0 += n - 2;
         src1 += n - 2;
+        
         switch (n) {
         case 3: {
             if (WJR_LIKELY(src0[0] != src1[0])) {

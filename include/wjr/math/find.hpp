@@ -149,7 +149,6 @@ template <typename T>
 WJR_INTRINSIC_CONSTEXPR size_t fallback_reverse_find_n(const T *src0, const T *src1,
                                                        size_t n) {
     size_t idx = 0;
-
     src0 += n;
     src1 += n;
 
@@ -188,7 +187,6 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_n(const T *src0, const T 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR size_t fallback_reverse_find_n(const T *src, T val, size_t n) {
     size_t idx = 0;
-
     src += n;
 
     WJR_UNROLL(4)
@@ -224,7 +222,6 @@ template <typename T>
 WJR_INTRINSIC_CONSTEXPR size_t fallback_reverse_find_not_n(const T *src0, const T *src1,
                                                            size_t n) {
     size_t idx = 0;
-
     src0 += n;
     src1 += n;
 
@@ -264,7 +261,6 @@ template <typename T>
 WJR_INTRINSIC_CONSTEXPR size_t fallback_reverse_find_not_n(const T *src, T val,
                                                            size_t n) {
     size_t idx = 0;
-
     src += n;
 
     WJR_UNROLL(4)
