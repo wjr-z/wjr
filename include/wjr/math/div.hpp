@@ -756,11 +756,11 @@ WJR_CONSTEXPR_E void divexact_by15(T *dst, const T *src, size_t n) {
 
 template <typename T, T c, std::enable_if_t<std::is_same_v<T, uint64_t>, int>>
 WJR_CONSTEXPR_E void divexact_byc(T *dst, const T *src, size_t n,
-                                  std::integral_constant<T, c> gg) {
+                                  std::integral_constant<T, c>) {
 
     // cost : divexact_dbm1c * 2 + shift * 1 <= divexact_1
 
-    constexpr auto __is_fast = [](auto cr) -> bool {
+    constexpr auto __is_fast = [](auto cr) {
         constexpr T r = get_place_index_v<remove_cvref_t<decltype(cr)>>;
         return c % r == 0 && is_power_of_two(c / r);
     };
@@ -776,7 +776,9 @@ WJR_CONSTEXPR_E void divexact_byc(T *dst, const T *src, size_t n,
         }
     };
 
-    if constexpr (__is_fast(std::in_place_index<3>)) {
+    if constexpr (__is_fast(std::in_place_index<1>)) {
+        __resolve(std::in_place_index<1>);
+    } else if constexpr (__is_fast(std::in_place_index<3>)) {
         divexact_by3(dst, src, n);
         __resolve(std::in_place_index<3>);
     } else if constexpr (__is_fast(std::in_place_index<5>)) {
@@ -813,6 +815,11 @@ WJR_CONSTEXPR_E void divexact_byc(T *dst, const T *src, size_t n,
         constexpr auto divider = divider_t(divisor, value, shift);
         divexact_1(dst, src, n, divider);
     }
+}
+
+template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int>>
+WJR_CONSTEXPR_E void divexact_by9(T *dst, const T *src, size_t n) {
+    divexact_byc(dst, src, n, std::integral_constant<T, 9>{});
 }
 
 // reference : ftp://ftp.risc.uni-linz.ac.at/pub/techreports/1992/92-35.ps.gz

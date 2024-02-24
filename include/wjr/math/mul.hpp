@@ -412,8 +412,7 @@ enum class __rec_mul_mode : unsigned int {
 };
 
 template <__rec_mul_mode mode, typename T>
-WJR_INTRINSIC_INLINE void __rec_mul_s(T *dst, const T *src0, size_t n, const T *src1,
-                                      size_t m, T *stk);
+void __rec_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *stk);
 
 template <__rec_mul_mode mode, typename T>
 WJR_INTRINSIC_INLINE void __rec_mul_n(T *dst, const T *src0, size_t n, const T *src1,
@@ -460,20 +459,8 @@ void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n + m, src0, n));
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n + m, src1, m));
 
-    if (n < toom22_mul_threshold) {
-        return basecase_mul_s(dst, src0, n, src1, m);
-    }
-
     if (m < toom22_mul_threshold) {
-        if (n >= m + toom22_mul_threshold / 4) {
-            return basecase_mul_s(dst, src0, n, src1, m);
-        }
-        // n < m + toom22_mul_threshold / 4 <= toom22_mul_threshold - 1 +
-        // toom22_mul_threshold / 4. Only need to allocate temporary memory once.
-        constexpr auto maxn = (toom22_mul_threshold - 1) + (toom22_mul_threshold / 4);
-        constexpr auto maxl = (maxn + 1) / 2;
-        T stk[2 * maxl];
-        return toom22_mul_s(dst, src0, n, src1, m, stk);
+        return basecase_mul_s(dst, src0, n, src1, m);
     }
 
     if (m < toom33_mul_threshold) {
@@ -592,22 +579,14 @@ void mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
 }
 
 template <__rec_mul_mode mode, typename T>
-WJR_INTRINSIC_INLINE void __rec_mul_s(T *dst, const T *src0, size_t n, const T *src1,
-                                      size_t m, T *stk) {
+void __rec_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *stk) {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n + m, src0, n));
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n + m, src1, m));
 
-    if (n < toom22_mul_threshold) {
-        return basecase_mul_s(dst, src0, n, src1, m);
-    }
-
     if (m < toom22_mul_threshold) {
-        if (n >= m + toom22_mul_threshold / 4) {
-            return basecase_mul_s(dst, src0, n, src1, m);
-        }
-        return toom22_mul_s(dst, src0, n, src1, m, stk);
+        return basecase_mul_s(dst, src0, n, src1, m);
     }
 
     if (mode <= __rec_mul_mode::toom22 || m < toom33_mul_threshold) {
@@ -682,12 +661,20 @@ WJR_INTRINSIC_INLINE void __rec_mul_s(T *dst, const T *src0, size_t n, const T *
             dst += 2 * m;
         }
 
-        if (4 * n < 5 * m) {
+        if (6 * n < 7 * m) {
             toom33_mul_s(tmp, src0, n, src1, m, stk);
-        } else if (4 * n < 7 * m) {
-            toom32_mul_s(tmp, src0, n, src1, m, stk);
+        } else if (2 * n < 3 * m) {
+            if (m <= toom32_to_toom43_mul_threshold) {
+                toom32_mul_s(tmp, src0, n, src1, m, stk);
+            } else {
+                toom43_mul_s(tmp, src0, n, src1, m, stk);
+            }
         } else {
-            toom42_mul_s(tmp, src0, n, src1, m, stk);
+            if (4 * n < 7 * m) {
+                toom32_mul_s(tmp, src0, n, src1, m, stk);
+            } else {
+                toom42_mul_s(tmp, src0, n, src1, m, stk);
+            }
         }
 
         cf = addc_n(dst, dst, tmp, m, cf);
@@ -695,12 +682,20 @@ WJR_INTRINSIC_INLINE void __rec_mul_s(T *dst, const T *src0, size_t n, const T *
         cf = addc_1(dst + m, dst + m, n, 0u, cf);
         WJR_ASSERT(cf == 0);
     } else {
-        if (4 * n < 5 * m) {
+        if (6 * n < 7 * m) {
             toom33_mul_s(dst, src0, n, src1, m, stk);
-        } else if (4 * n < 7 * m) {
-            toom32_mul_s(dst, src0, n, src1, m, stk);
+        } else if (2 * n < 3 * m) {
+            if (m <= toom32_to_toom43_mul_threshold) {
+                toom32_mul_s(dst, src0, n, src1, m, stk);
+            } else {
+                toom43_mul_s(dst, src0, n, src1, m, stk);
+            }
         } else {
-            toom42_mul_s(dst, src0, n, src1, m, stk);
+            if (4 * n < 7 * m) {
+                toom32_mul_s(dst, src0, n, src1, m, stk);
+            } else {
+                toom42_mul_s(dst, src0, n, src1, m, stk);
+            }
         }
     }
 
@@ -775,19 +770,21 @@ void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
         if (p < 0) {
             f ^= 1;
         } else if (WJR_UNLIKELY(p == 0)) {
-            set_n(wp, 0u, l * 2);
-            break;
+            goto ZERO;
         }
 
         p = abs_subc_s(p1, v0, l, v1, rm);
         if (p < 0) {
             f ^= 1;
         } else if (WJR_UNLIKELY(p == 0)) {
-            set_n(wp, 0u, l * 2);
-            break;
+            goto ZERO;
         }
 
         __rec_mul_n<__rec_mul_mode::toom22>(wp, p0, p1, l, stk);
+        break;
+    ZERO:
+        set_n(wp, 0u, l * 2);
+        break;
     } while (0);
 
     __rec_mul_n<__rec_mul_mode::toom22>(p0, u0, v0, l, stk);
@@ -797,7 +794,7 @@ void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
 
     cf = addc_n(p2, p1, p2, l);
     cf2 = cf + addc_n(p1, p0, p2, l);
-    cf += addc_s(p2, p2, l, p3, rn + rm - l);
+    cf += addc_sz(p2, p2, l, p3, rn + rm - l);
 
     if (!f) {
         cf -= subc_n(p1, p1, wp, l * 2);
@@ -806,7 +803,9 @@ void toom22_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
     }
 
     cf2 = addc_1(p2, p2, l, cf2);
-    cf = addc_1(p3, p3, rn + rm - l, cf, cf2);
+    if (WJR_LIKELY(rn + rm != l)) {
+        cf = addc_1(p3, p3, rn + rm - l, cf, cf2);
+    }
     WJR_ASSERT(cf == 0);
 }
 
@@ -831,10 +830,10 @@ void toom32_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
     const auto v0p = src1;
     const auto v1p = src1 + l;
 
-    auto w0p = dst;
-    auto w1p = stk;
-    auto w2p = stk + (l * 2);
-    auto w3p = dst + l * 3;
+    const auto w0p = dst;
+    const auto w1p = stk;
+    const auto w2p = stk + (l * 2);
+    const auto w3p = dst + l * 3;
 
     stk += l * 4;
 
@@ -1014,7 +1013,7 @@ void toom_interpolation_5p_s(T *dst, T *w1p, size_t l, size_t rn, size_t rm,
 
     // W  = W3*x^3 + W1*x + W0
     cf = addc_n(dst + l, dst + l, w1p, l);
-    cf = addc_1(dst + l * 2, dst + l * 2, l, 0u, cf);
+    cf = addc_1(dst + l * 2, dst + l * 2, l, cf);
     cf = addc_n(dst + l * 3, dst + l * 3, w3p, l, cf);
     cf = addc_1(dst + l * 4, dst + l * 4, rn + rm, cf2, cf);
     WJR_ASSERT(cf == 0);
@@ -1040,11 +1039,11 @@ void toom42_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
     const auto v0p = src1;
     const auto v1p = src1 + l;
 
-    auto w0p = dst;
-    auto w1p = stk;
-    auto w2p = stk + l * 2;
-    auto w3p = stk + l * 4;
-    auto w4p = dst + l * 4;
+    const auto w0p = dst;
+    const auto w1p = stk;
+    const auto w2p = stk + l * 2;
+    const auto w3p = stk + l * 4;
+    const auto w4p = dst + l * 4;
 
     stk += l * 6;
 
@@ -1148,11 +1147,11 @@ void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
     const auto v1p = src1 + l;
     const auto v2p = src1 + l * 2;
 
-    auto w0p = dst;
-    auto w1p = stk;
-    auto w2p = stk + l * 2;
-    auto w3p = stk + l * 4;
-    auto w4p = dst + l * 4;
+    const auto w0p = dst;
+    const auto w1p = stk;
+    const auto w2p = stk + l * 2;
+    const auto w3p = stk + l * 4;
+    const auto w4p = dst + l * 4;
 
     stk += l * 6;
 
@@ -1233,8 +1232,8 @@ void toom33_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
 
 template <typename T>
 struct toom_interpolation_6p_struct {
-    bool neg1;
-    bool neg3;
+    uint8_t neg1 : 1;
+    uint8_t neg3 : 1;
     T cf1;
     T cf2;
     T cf3;
@@ -1244,12 +1243,14 @@ struct toom_interpolation_6p_struct {
 template <typename T>
 void toom_interpolation_6p_s(T *dst, T *w1p, size_t l, size_t rn, size_t rm,
                              toom_interpolation_6p_struct<T> &&flag) {
-    // W0 = r(0);
-    // W1 = r(-1);
-    // W2 = r(1);
-    // W3 = r(-2);
-    // W4 = r(2);
-    // W5 = r(inf)
+    /*
+     W0 = r(0);
+     W1 = r(-1);
+     W2 = r(1);
+     W3 = r(-2);
+     W4 = r(2);
+     W5 = r(inf)
+    */
 
     /*
      11 add/sub + 4 shift + 2 divby3 + 1 submul
@@ -1277,11 +1278,11 @@ void toom_interpolation_6p_s(T *dst, T *w1p, size_t l, size_t rn, size_t rm,
 
     const size_t maxr = std::max(rn, rm);
 
-    auto w0p = dst;
-    auto w2p = w0p + l * 2;
-    auto w3p = w1p + l * 2;
-    auto w4p = w1p + l * 4;
-    auto w5p = w0p + l * 5;
+    const auto w0p = dst;
+    const auto w2p = w0p + l * 2;
+    const auto w3p = w1p + l * 2;
+    const auto w4p = w1p + l * 4;
+    const auto w5p = w0p + l * 5;
 
     auto [neg1, neg3, cf1, cf2, cf3, cf4] = flag;
     T cf;
@@ -1372,15 +1373,12 @@ void toom_interpolation_6p_s(T *dst, T *w1p, size_t l, size_t rn, size_t rm,
     cf3 -= subc_s(dst + l * 3, w3p, l * 2, w5p, rn + rm, cf);
 
     // W = W4 * x ^ 4 + W2 * x ^ 2 + W1 * x + W0;
-    cf = addc_n(dst + l, dst + l, w1p, l);
-    cf = addc_n(dst + l * 2, dst + l * 2, w1p + l, l, cf);
+    cf = addc_n(dst + l, dst + l, w1p, l * 2);
     cf = addc_1(dst + l * 3, dst + l * 3, l, cf1, cf);
     cf = addc_n(dst + l * 4, dst + l * 4, w4p, l, cf);
     cf = addc_1(dst + l * 5, dst + l * 5, rn + rm, cf3, cf);
     WJR_ASSERT(cf == 0);
 }
-
-// TODO : TOOM-COOK 3.5/4/4.5
 
 template <typename T>
 void toom43_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *stk) {
@@ -1446,16 +1444,16 @@ void toom43_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
     const auto v1p = v0p + l;
     const auto v2p = v0p + l * 2;
 
-    auto w0p = dst;
-    auto w1p = stk;
-    auto w2p = w0p + l * 2;
-    auto w3p = stk + l * 2;
-    auto w4p = stk + l * 4;
-    auto w5p = w0p + l * 5;
+    const auto w0p = dst;
+    const auto w1p = stk;
+    const auto w2p = w0p + l * 2;
+    const auto w3p = stk + l * 2;
+    const auto w4p = stk + l * 4;
+    const auto w5p = w0p + l * 5;
 
-    auto t0p = w0p;
-    auto t1p = t0p + l;
-    auto t2p = w0p + l * 4;
+    const auto t0p = w0p;
+    const auto t1p = t0p + l;
+    const auto t2p = w0p + l * 4;
 
     stk += l * 6;
 
@@ -1677,16 +1675,16 @@ void toom52_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
     const auto v0p = src1;
     const auto v1p = v0p + l;
 
-    auto w0p = dst;
-    auto w1p = stk;
-    auto w2p = w0p + l * 2;
-    auto w3p = stk + l * 2;
-    auto w4p = stk + l * 4;
-    auto w5p = w0p + l * 5;
+    const auto w0p = dst;
+    const auto w1p = stk;
+    const auto w2p = w0p + l * 2;
+    const auto w3p = stk + l * 2;
+    const auto w4p = stk + l * 4;
+    const auto w5p = w0p + l * 5;
 
-    auto t0p = w0p;
-    auto t1p = t0p + l;
-    auto t2p = w0p + l * 4;
+    const auto t0p = w0p;
+    const auto t1p = t0p + l;
+    const auto t2p = w0p + l * 4;
 
     stk += l * 6;
 
@@ -1821,6 +1819,198 @@ void toom52_mul_s(T *dst, const T *src0, size_t n, const T *src1, size_t m, T *s
     toom_interpolation_6p_s(
         dst, w1p, l, rn, rm,
         toom_interpolation_6p_struct<T>{neg0, neg1, cf1, cf2, cf3, cf4});
+}
+
+template <typename T>
+struct toom_interpolation_7p_struct {
+    uint8_t neg1 : 1;
+    uint8_t neg3 : 1;
+    T cf1;
+    T cf2;
+    T cf3;
+    T cf4;
+    T cf5;
+};
+
+template <typename T>
+void toom_interpolation_7p_s(T *dst, T *w1p, size_t l, size_t rn, size_t rm,
+                             toom_interpolation_7p_struct<T> &&flag) {
+    /*
+     W0 = r(0);
+     W1 = r(-2);
+     W2 = r(1);
+     W3 = r(-1);
+     W4 = r(2);
+     W5 = 64 * r(1/2);
+     W6 = r(inf);
+    */
+
+    /*
+    [
+    W0   1,  0,  0,  0,  0,  0,  0
+    W1   1, -2,  4, -8, 16,-32, 64
+    W2   1,  1,  1,  1,  1,  1,  1
+    W3   1, -1,  1, -1,  1, -1,  1
+    W4   1,  2,  4,  8, 16, 32, 64
+    W5  64, 32, 16,  8,  4,  2,  1
+    W6   0,  0,  0,  0,  0,  0,  1
+    ]
+
+     W5 = W5 + W4
+     W1 =(W4 - W1)/2
+     W4 = W4 - W0
+     W4 =(W4 - W1)/4 - W6*16
+     W3 =(W2 - W3)/2
+     W2 = W2 - W3
+
+     [
+    W0   1,  0,  0,  0,  0,  0,  0
+    W1   0,  2,  0,  8,  0, 32,  0
+    W2   1,  0,  1,  0,  1,  0,  1
+    W3   0,  1,  0,  1,  0,  1,  0
+    W4   0,  0,  1,  0,  4,  0,  0
+    W5  65, 34, 20, 16, 20, 34, 65
+    W6   0,  0,  0,  0,  0,  0,  1
+    ]
+
+     W5 = W5 - W2*65      May be negative.
+     W2 = W2 - W6 - W0
+     W5 =(W5 + W2*45)/2   Now >= 0 again.
+     W4 =(W4 - W2)/3
+     W2 = W2 - W4
+
+     [
+    W0   1,  0,  0,  0,  0,  0,  0
+    W1   0,  2,  0,  8,  0, 32,  0
+    W2   0,  0,  1,  0,  0,  0,  0
+    W3   0,  1,  0,  1,  0,  1,  0
+    W4   0,  0,  0,  0,  1,  0,  0
+    W5   0, 17,  0,  8,  0, 17,  0
+    W6   0,  0,  0,  0,  0,  0,  1
+    ]
+
+     W1 = W5 - W1         May be negative.
+     W5 =(W5 - W3*8)/9
+     W3 = W3 - W5
+     W1 =(W1/15 + W5)/2   Now >= 0 again.
+     W5 = W5 - W1
+
+     [
+    W0   1,  0,  0,  0,  0,  0,  0
+    W1   0,  1,  0,  0,  0,  0,  0
+    W2   0,  0,  1,  0,  0,  0,  0
+    W3   0,  0,  0,  1,  0,  0,  0
+    W4   0,  0,  0,  0,  1,  0,  0
+    W5   0,  0,  0,  0,  0,  1,  0
+    W6   0,  0,  0,  0,  0,  0,  1
+    ]
+
+    */
+
+    const size_t maxr = std::max(rn, rm);
+
+    const auto w0p = dst;
+    const auto w2p = w0p + l * 2;
+    const auto w3p = w1p + l * 2;
+    const auto w4p = w0p + l * 4;
+    const auto w5p = w1p + l * 4;
+    const auto w6p = w0p + l * 6;
+
+    auto [neg1, neg3, cf1, cf2, cf3, cf4, cf5] = flag;
+    T cf;
+
+    //  W5 = W5 + W4
+    cf5 += cf5 + addc_n(w5p, w5p, w4p, l * 2);
+
+    //  W1 =(W4 - W1)/2
+    if (!neg1) {
+        WJR_ASSERT(cf4 >= cf1);
+        cf1 = cf4 - cf1 - subc_n(w1p, w4p, w1p, l * 2);
+    } else {
+        cf1 += cf4 + addc_n(w1p, w4p, w1p, l * 2);
+    }
+    (void)rshift_n(w1p, w1p, l * 2, 1u);
+    cf1 >>= 1;
+
+    //  W4 = W4 - W0
+    cf4 -= subc_n(w4p, w4p, w0p, l * 2);
+
+    //  W4 =(W4 - W1)/4 - W6*16
+    cf4 -= subc_n(w4p, w4p, w1p, l * 2);
+    (void)rshift_n(w4p, w4p, l * 2, 2u);
+    cf4 >>= 2;
+    cf = submul_1(w4p, w6p, rn + rm, 16u);
+    if (rn + rm != l * 2) {
+        cf4 -= subc_1(w4p + rn + rm, w4p + rn + rm, l * 2 - (rn + rm), cf);
+    } else {
+        cf4 -= cf;
+    }
+
+    //  W3 =(W2 - W3)/2
+    if (!neg3) {
+        WJR_ASSERT(cf2 >= cf3);
+        cf3 = cf2 - cf3 - subc_n(w3p, w2p, w3p, l * 2);
+    } else {
+        cf3 += cf2 + addc_n(w3p, w2p, w3p, l * 2);
+    }
+    (void)rshift_n(w3p, w3p, l * 2, 1u);
+    cf3 >>= 1;
+
+    //  W2 = W2 - W3
+    WJR_ASSERT(cf2 >= cf3);
+    cf2 -= cf3 + subc_n(w2p, w2p, w3p, l * 2);
+
+    //  W5 = W5 - W2*65      May be negative.
+    cf5 -= submul_1(w5p, w2p, l * 2, 65u);
+
+    //  W2 = W2 - W6 - W0
+    cf2 -= subc_n(w2p, w2p, w0p, l * 2);
+    cf2 -= subc_s(w2p, w2p, l * 2, w6p, rn + rm);
+
+    //  W5 =(W5 + W2*45)/2   Now >= 0 again.
+    cf5 += addmul_1(w5p, w2p, l * 2, 45u);
+    (void)rshift_n(w5p, w5p, l * 2, 1u);
+    cf5 >>= 1;
+
+    //  W4 =(W4 - W2)/3
+    cf5 -= cf2 + subc_n(w4p, w4p, w2p, l * 2);
+    divexact_by3(w4p, w4p, l * 2);
+    cf5 /= 3;
+
+    //  W2 = W2 - W4
+    cf2 -= cf4 + subc_n(w2p, w2p, w4p, l * 2);
+
+    //  W1 = W5 - W1         May be negative.
+    cf1 = cf5 - cf1 - subc_n(w1p, w5p, w1p, l * 2);
+
+    //  W5 =(W5 - W3*8)/9
+    cf5 -= submul_1(w5p, w3p, l * 2, 8u);
+    divexact_by9(w5p, w5p, l * 2);
+    cf5 /= 9;
+
+    //  W3 = W3 - W5
+    cf3 = cf3 - cf5 - subc_n(w3p, w3p, w5p, l * 2);
+
+    //  W1 =(W1/15 + W5)/2   Now >= 0 again.
+    divexact_by15(w1p, w1p, l * 2);
+    cf1 /= 15;
+    cf1 += addc_n(w1p, w1p, w5p, l * 2);
+    rshift_n(w1p, w1p, l * 2, 1u);
+    cf1 >>= 1;
+
+    //  W5 = W5 - W1
+    cf5 -= cf1 + subc_n(w5p, w5p, w1p, l * 2);
+    if (l != maxr) {
+        cf5 = w5p[maxr];
+    }
+
+    // cf = addc_n(dst + l, dst + l, w1p, l * 2);
+    // cf = addc_n(dst + l * 3, dst + l * 3, w3p, l, cf1, cf);
+    // cf = addc_n(dst + l * 4, dst + l * 4, w3p + l, l, cf2, cf);
+    // cf = addc_n(dst + l * 5, dst + l * 5, w5p, l, cf3, cf);
+    // cf = addc_n(dst + l * 6, dst + l * 6, w5p + l, maxr, cf4, cf);
+    // cf = addc_1(dst + l * 6 + maxr, dst + l * 6 + maxr, (rn + rm) - maxr, cf5, cf);
+    // WJR_ASSERT(cf == 0);
 }
 
 } // namespace wjr

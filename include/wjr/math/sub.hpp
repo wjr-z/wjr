@@ -201,6 +201,23 @@ WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n, const T *src
     return c_in;
 }
 
+template <typename T, typename U,
+          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+WJR_INTRINSIC_CONSTEXPR_E U subc_sz(T *dst, const T *src0, size_t n, const T *src1,
+                                    size_t m, U c_in) {
+    WJR_ASSERT_ASSUME(n >= m);
+
+    if (WJR_LIKELY(m != 0)) {
+        c_in = subc_n(dst, src0, src1, m, c_in);
+    }
+
+    if (n != m) {
+        c_in = subc_1(dst + m, src0 + m, n - m, 0u, c_in);
+    }
+
+    return c_in;
+}
+
 // ret :
 // > 0 : src0 > src1
 // == 0 : src0 == src1
@@ -254,7 +271,7 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
         return abs_subc_n(dst, src0, src1, m);
     }
 
-    WJR_ALWAYS_ASSERT(subc_s(dst, src0, m + idx, src1, m) WJR_DEBUG_EXPR(== 0));
+    (void)subc_s(dst, src0, m + idx, src1, m);
 
     ssize_t ret = m + idx;
     WJR_ASSUME(ret > 0);

@@ -201,6 +201,23 @@ WJR_INTRINSIC_CONSTEXPR_E U addc_s(T *dst, const T *src0, size_t n, const T *src
     return c_in;
 }
 
+template <typename T, typename U,
+          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+WJR_INTRINSIC_CONSTEXPR_E U addc_sz(T *dst, const T *src0, size_t n, const T *src1,
+                                    size_t m, U c_in) {
+    WJR_ASSERT_ASSUME(n >= m);
+
+    if (WJR_LIKELY(m != 0)) {
+        c_in = addc_n(dst, src0, src1, m, c_in);
+    }
+
+    if (n != m) {
+        c_in = addc_1(dst + m, src0 + m, n - m, 0u, c_in);
+    }
+
+    return c_in;
+}
+
 WJR_INTRINSIC_CONSTEXPR void __fallback_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                                  uint64_t hi0, uint64_t lo1,
                                                  uint64_t hi1) {

@@ -2,7 +2,6 @@
 #define WJR_X86_FIND_HPP__
 
 // TODO : deprecated, optimize
-#include <wjr/gen/fast_1_2_8.hpp>
 #include <wjr/simd/simd.hpp>
 
 #ifndef WJR_X86
@@ -17,8 +16,6 @@ namespace wjr {
 #define WJR_HAS_BUILTIN_FIND_NOT_N WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_REVERSE_FIND_NOT_N WJR_HAS_DEF
 #endif
-
-#define WJR_REGISTER_FIND_VAL_I2(...) auto y = sse::set1_epi64(val)
 
 #if WJR_HAS_BUILTIN(FIND_N)
 

@@ -24,15 +24,16 @@ namespace wjr {
 
 template <typename Handler, typename... Args,
           std::enable_if_t<std::is_invocable_v<Handler, Args...>, int> = 0>
-void __assert_fail(Handler handler, Args &&...args) {
+WJR_NORETURN void __assert_fail(Handler handler, Args &&...args) {
     handler(std::forward<Args>(args)...);
     std::abort();
 }
 
 template <typename Handler, typename... Args,
           std::enable_if_t<std::is_invocable_v<Handler, Args...>, int> = 0>
-WJR_COLD WJR_NOINLINE void __assert_fail(const char *expr, const char *file, int line,
-                                         Handler handler, Args &&...args) {
+WJR_NORETURN WJR_COLD WJR_NOINLINE void __assert_fail(const char *expr, const char *file,
+                                                      int line, Handler handler,
+                                                      Args &&...args) {
     (void)fprintf(stderr, "Assertion failed: %s", expr);
     if ((file != nullptr) && (file[0] != '\0')) {
         (void)fprintf(stderr, ", file %s", file);
@@ -85,8 +86,6 @@ inline constexpr __assert_t __assert{};
 // do nothing
 #define WJR_ASSERT_UNCHECK_I(expr, ...)
 
-#define WJR_ALWAYS_ASSERT_UNCHECK_I(expr, ...) (expr)
-
 #define WJR_DEBUG_IF(level, expr0, expr1)                                                \
     WJR_PP_BOOL_IF(WJR_PP_GT(WJR_DEBUG_LEVEL, level), expr0, expr1)
 
@@ -100,13 +99,6 @@ inline constexpr __assert_t __assert{};
 
 // level of assert is zero at default.
 #define WJR_ASSERT(...) WJR_ASSERT_L(0, __VA_ARGS__)
-
-#define WJR_ALWAYS_ASSERT_L(level, ...)                                                  \
-    WJR_DEBUG_IF(level, WJR_ASSERT_CHECK_I, WJR_ALWAYS_ASSERT_UNCHECK_I)                 \
-    (__VA_ARGS__)
-
-// level of assert is zero at default.
-#define WJR_ALWAYS_ASSERT(...) WJR_ALWAYS_ASSERT_L(0, __VA_ARGS__)
 
 #define WJR_ASSERT_ASSUME_L(level, ...)                                                  \
     WJR_ASSERT_L(level, __VA_ARGS__);                                                    \

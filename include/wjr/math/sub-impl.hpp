@@ -28,6 +28,12 @@ template <
 WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n, const T *src1,
                                    size_t m, U c_in = 0u);
 
+template <
+    typename T, typename U = unsigned char,
+    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E U subc_sz(T *dst, const T *src0, size_t n, const T *src1,
+                                    size_t m, U c_in = 0u);
+
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
                                              size_t n);
