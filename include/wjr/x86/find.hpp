@@ -22,7 +22,9 @@ namespace wjr {
 
 #if WJR_HAS_BUILTIN(FIND_N)
 
-#define WJR_REGISTER_FIND_N_L2(index)                                                    \
+template <typename T>
+WJR_COLD size_t large_builtin_find_n(const T *src0, const T *src1, size_t n) {
+#define WJR_REGISTER_FIND_N(index)                                                       \
     do {                                                                                 \
         auto x = sse::loadu((__m128i *)(src0 + (index)));                                \
         auto y = sse::loadu((__m128i *)(src1 + (index)));                                \
@@ -34,46 +36,75 @@ namespace wjr {
         }                                                                                \
     } while (0)
 
-template <typename T>
-WJR_COLD size_t large_builtin_find_n(const T *src0, const T *src1, size_t n) {
-#define WJR_REGISTER_FIND_N_L8(index)                                                    \
-    WJR_REGISTER_FIND_N_L2((index));                                                     \
-    WJR_REGISTER_FIND_N_L2((index) + 2);                                                 \
-    WJR_REGISTER_FIND_N_L2((index) + 4);                                                 \
-    WJR_REGISTER_FIND_N_L2((index) + 6)
+    size_t idx = 0;
 
-#define WJR_REGISTER_FIND_N_RET() n
+    if (WJR_UNLIKELY(n & 1)) {
+        if (WJR_UNLIKELY(src0[0] == src1[0])) {
+            return 0;
+        }
 
-    WJR_GEN_LARGE_FAST_1_2_8(n, WJR_REGISTER_FIND_N_L2, WJR_REGISTER_FIND_N_L8,
-                             WJR_PP_EMPTY, WJR_PP_EMPTY, WJR_REGISTER_FIND_N_RET);
+        ++idx;
+    }
 
-#undef WJR_REGISTER_FIND_N_RET
-#undef WJR_REGISTER_FIND_N_L8
+    if (WJR_UNLIKELY(n & 2)) {
+        WJR_REGISTER_FIND_N(idx);
+
+        idx += 2;
+    }
+
+    if (WJR_UNLIKELY(n & 4)) {
+        WJR_REGISTER_FIND_N(idx);
+        WJR_REGISTER_FIND_N(idx + 2);
+
+        idx += 4;
+    }
+
+    if (WJR_UNLIKELY(idx == n)) {
+        return n;
+    }
+
+    do {
+        WJR_REGISTER_FIND_N(idx);
+        WJR_REGISTER_FIND_N(idx + 2);
+        WJR_REGISTER_FIND_N(idx + 4);
+        WJR_REGISTER_FIND_N(idx + 6);
+
+        idx += 8;
+    } while (WJR_LIKELY(idx != n));
+
+    return n;
+
+#undef WJR_REGISTER_FIND_N
 }
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src0, const T *src1, size_t n) {
-#define WJR_REGISTER_FIND_N_L1(index)                                                    \
-    if (src0[(index)] == src1[(index)]) {                                                \
-        return (index);                                                                  \
+    if (WJR_UNLIKELY(n == 0)) {
+        return 0;
     }
 
-#define WJR_REGISTER_FIND_N_RET() n
-#define WJR_REGISTER_LARGE_FIND_N(gen_offset, gen_n, ...)                                \
-    return gen_offset + large_builtin_find_n(src0 + gen_offset, src1 + gen_offset, gen_n)
+    if (WJR_UNLIKELY(n < 4)) {
+        if (WJR_UNLIKELY(src0[0] == src1[0])) {
+            return 0;
+        }
 
-    WJR_GEN_SMALL_FAST_1_2_8(n, WJR_REGISTER_FIND_N_L1, WJR_REGISTER_FIND_N_L2,
-                             WJR_PP_EMPTY, WJR_PP_EMPTY, WJR_REGISTER_FIND_N_RET,
-                             WJR_REGISTER_LARGE_FIND_N);
+        if (n == 1 || WJR_UNLIKELY(src0[1] == src1[1])) {
+            return 1;
+        }
 
-#undef WJR_REGISTER_LARGE_FIND_N
-#undef WJR_REGISTER_FIND_N_RET
-#undef WJR_REGISTER_FIND_N_L1
+        if (n == 2 || WJR_UNLIKELY(src0[2] == src1[2])) {
+            return 2;
+        }
+
+        return 3;
+    }
+
+    return large_builtin_find_n(src0, src1, n);
 }
 
-#undef WJR_REGISTER_FIND_N_L2
-
-#define WJR_REGISTER_FIND_N_L2(index)                                                    \
+template <typename T>
+WJR_COLD size_t large_builtin_find_n(const T *src, T val, size_t n) {
+#define WJR_REGISTER_FIND_N(index)                                                       \
     do {                                                                                 \
         auto x = sse::loadu((__m128i *)(src + (index)));                                 \
         auto r = sse::cmpeq_epi64(x, y);                                                 \
@@ -84,152 +115,246 @@ WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src0, const T *src1, size_t 
         }                                                                                \
     } while (0)
 
-template <typename T>
-WJR_COLD size_t large_builtin_find_n(const T *src, T val, size_t n) {
-#define WJR_REGISTER_FIND_N_L8(index)                                                    \
-    WJR_REGISTER_FIND_N_L2((index));                                                     \
-    WJR_REGISTER_FIND_N_L2((index) + 2);                                                 \
-    WJR_REGISTER_FIND_N_L2((index) + 4);                                                 \
-    WJR_REGISTER_FIND_N_L2((index) + 6)
+    size_t idx = 0;
 
-#define WJR_REGISTER_FIND_N_RET() n
+    if (WJR_UNLIKELY(n & 1)) {
+        if (WJR_UNLIKELY(src[0] == val)) {
+            return 0;
+        }
 
-    WJR_GEN_LARGE_FAST_1_2_8(n, WJR_REGISTER_FIND_N_L2, WJR_REGISTER_FIND_N_L8,
-                             WJR_REGISTER_FIND_VAL_I2, WJR_PP_EMPTY,
-                             WJR_REGISTER_FIND_N_RET);
+        ++idx;
+    }
 
-#undef WJR_REGISTER_FIND_N_RET
-#undef WJR_REGISTER_FIND_N_L8
+    auto y = sse::set1(val, T());
+
+    if (WJR_UNLIKELY(n & 2)) {
+        WJR_REGISTER_FIND_N(idx);
+
+        idx += 2;
+    }
+
+    if (WJR_UNLIKELY(n & 4)) {
+        WJR_REGISTER_FIND_N(idx);
+        WJR_REGISTER_FIND_N(idx + 2);
+
+        idx += 4;
+    }
+
+    if (WJR_UNLIKELY(idx == n)) {
+        return n;
+    }
+
+    do {
+        WJR_REGISTER_FIND_N(idx);
+        WJR_REGISTER_FIND_N(idx + 2);
+        WJR_REGISTER_FIND_N(idx + 4);
+        WJR_REGISTER_FIND_N(idx + 6);
+
+        idx += 8;
+    } while (WJR_LIKELY(idx != n));
+
+    return n;
+
+#undef WJR_REGISTER_FIND_N
 }
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src, T val, size_t n) {
-#define WJR_REGISTER_FIND_N_L1(index)                                                    \
-    if (src[(index)] == val) {                                                           \
-        return (index);                                                                  \
+    if (WJR_UNLIKELY(n == 0)) {
+        return 0;
     }
 
-#define WJR_REGISTER_FIND_N_RET() n
-#define WJR_REGISTER_LARGE_FIND_N(gen_offset, gen_n, ...)                                \
-    return gen_offset + large_builtin_find_n(src + gen_offset, val, gen_n)
+    if (WJR_UNLIKELY(n < 4)) {
+        if (WJR_UNLIKELY(src[0] == val)) {
+            return 0;
+        }
 
-    WJR_GEN_SMALL_FAST_1_2_8(n, WJR_REGISTER_FIND_N_L1, WJR_REGISTER_FIND_N_L2,
-                             WJR_PP_EMPTY, WJR_REGISTER_FIND_VAL_I2,
-                             WJR_REGISTER_FIND_N_RET, WJR_REGISTER_LARGE_FIND_N);
+        if (n == 1 || WJR_UNLIKELY(src[1] == val)) {
+            return 1;
+        }
 
-#undef WJR_REGISTER_LARGE_FIND_N
-#undef WJR_REGISTER_FIND_N_RET
-#undef WJR_REGISTER_FIND_N_L1
+        if (n == 2 || WJR_UNLIKELY(src[2] == val)) {
+            return 2;
+        }
+
+        return 3;
+    }
+
+    return large_builtin_find_n(src, val, n);
 }
-
-#undef WJR_REGISTER_FIND_N_L2
 
 #endif // WJR_HAS_BUILTIN(FIND_N)
 
 #if WJR_HAS_BUILTIN(FIND_NOT_N)
 
-#define WJR_REGISTER_FIND_NOT_N_L2(index)                                                \
+template <typename T>
+WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1, size_t n) {
+#define WJR_REGISTER_FIND_NOT_N(index, expect)                                           \
     do {                                                                                 \
         auto x = sse::loadu((__m128i *)(src0 + (index)));                                \
         auto y = sse::loadu((__m128i *)(src1 + (index)));                                \
         auto r = sse::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         auto mask = sse::movemask_epi8(r);                                               \
-        if (WJR_UNLIKELY(mask != sse::mask())) {                                         \
+        if (WJR_EXPECT(mask != sse::mask(), expect)) {                                   \
             return (index) + (mask == 0x00FF);                                           \
         }                                                                                \
     } while (0)
 
-template <typename T>
-WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1, size_t n) {
-#define WJR_REGISTER_FIND_NOT_N_L8(index)                                                \
-    WJR_REGISTER_FIND_NOT_N_L2((index));                                                 \
-    WJR_REGISTER_FIND_NOT_N_L2((index) + 2);                                             \
-    WJR_REGISTER_FIND_NOT_N_L2((index) + 4);                                             \
-    WJR_REGISTER_FIND_NOT_N_L2((index) + 6)
+    size_t idx;
 
-#define WJR_REGISTER_FIND_NOT_N_RET() n
+    if (WJR_LIKELY(n & 1)) {
+        idx = 1;
+    } else {
+        if (WJR_LIKELY(src0[1] != src1[1])) {
+            return 1;
+        }
 
-    WJR_GEN_LARGE_FAST_1_2_8(n, WJR_REGISTER_FIND_NOT_N_L2, WJR_REGISTER_FIND_NOT_N_L8,
-                             WJR_PP_EMPTY, WJR_PP_EMPTY, WJR_REGISTER_FIND_NOT_N_RET);
+        idx = 2;
+    }
 
-#undef WJR_REGISTER_FIND_NOT_N_RET
-#undef WJR_REGISTER_FIND_NOT_N_L8
+    size_t m = n - 1;
+
+    if (WJR_UNLIKELY(m & 2)) {
+        WJR_REGISTER_FIND_NOT_N(idx, true);
+
+        idx += 2;
+    }
+
+    if (WJR_UNLIKELY(m & 4)) {
+        WJR_REGISTER_FIND_NOT_N(idx, true);
+        WJR_REGISTER_FIND_NOT_N(idx + 2, true);
+
+        idx += 4;
+    }
+
+    if (WJR_UNLIKELY(idx == n)) {
+        return n;
+    }
+
+    do {
+        WJR_REGISTER_FIND_NOT_N(idx, false);
+        WJR_REGISTER_FIND_NOT_N(idx + 2, false);
+        WJR_REGISTER_FIND_NOT_N(idx + 4, false);
+        WJR_REGISTER_FIND_NOT_N(idx + 6, false);
+
+        idx += 8;
+    } while (WJR_LIKELY(idx != n));
+
+    return n;
+
+#undef WJR_REGISTER_FIND_NOT_N
 }
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src0, const T *src1, size_t n) {
-#define WJR_REGISTER_FIND_NOT_N_L1(index)                                                \
-    if (src0[(index)] != src1[(index)]) {                                                \
-        return (index);                                                                  \
+    if (WJR_UNLIKELY(n == 0)) {
+        return 0;
     }
 
-#define WJR_REGISTER_FIND_NOT_N_RET() n
-#define WJR_REGISTER_LARGE_FIND_NOT_N(gen_offset, gen_n, ...)                            \
-    return gen_offset +                                                                  \
-           large_builtin_find_not_n(src0 + gen_offset, src1 + gen_offset, gen_n)
+    if (WJR_LIKELY(src0[0] != src1[0])) {
+        return 0;
+    }
 
-    WJR_GEN_SMALL_FAST_1_2_8(n, WJR_REGISTER_FIND_NOT_N_L1, WJR_REGISTER_FIND_NOT_N_L2,
-                             WJR_PP_EMPTY, WJR_PP_EMPTY, WJR_REGISTER_FIND_NOT_N_RET,
-                             WJR_REGISTER_LARGE_FIND_NOT_N);
+    if (WJR_UNLIKELY(n < 4)) {
+        if (n == 1 || WJR_LIKELY(src0[1] != src1[1])) {
+            return 1;
+        }
 
-#undef WJR_REGISTER_LARGE_FIND_NOT_N
-#undef WJR_REGISTER_FIND_NOT_N_RET
-#undef WJR_REGISTER_FIND_NOT_N_L1
+        if (n == 2 || WJR_LIKELY(src0[2] != src1[2])) {
+            return 2;
+        }
+
+        return 3;
+    }
+
+    return large_builtin_find_not_n(src0, src1, n);
 }
 
-#undef WJR_REGISTER_FIND_NOT_N_L2
-
-#define WJR_REGISTER_FIND_NOT_N_L2(index)                                                \
+template <typename T>
+WJR_COLD size_t large_builtin_find_not_n(const T *src, T val, size_t n) {
+#define WJR_REGISTER_FIND_NOT_N(index, expect)                                           \
     do {                                                                                 \
         auto x = sse::loadu((__m128i *)(src + (index)));                                 \
         auto r = sse::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         auto mask = sse::movemask_epi8(r);                                               \
-        if (WJR_UNLIKELY(mask != sse::mask())) {                                         \
+        if (WJR_EXPECT(mask != sse::mask(), expect)) {                                   \
             return (index) + (mask == 0x00FF);                                           \
         }                                                                                \
     } while (0)
 
-template <typename T>
-WJR_COLD size_t large_builtin_find_not_n(const T *src, T val, size_t n) {
-#define WJR_REGISTER_FIND_NOT_N_L8(index)                                                \
-    WJR_REGISTER_FIND_NOT_N_L2((index));                                                 \
-    WJR_REGISTER_FIND_NOT_N_L2((index) + 2);                                             \
-    WJR_REGISTER_FIND_NOT_N_L2((index) + 4);                                             \
-    WJR_REGISTER_FIND_NOT_N_L2((index) + 6)
+    size_t idx;
 
-#define WJR_REGISTER_FIND_NOT_N_RET() n
+    if (WJR_LIKELY(n & 1)) {
+        idx = 1;
+    } else {
+        if (WJR_LIKELY(src[1] != val)) {
+            return 1;
+        }
 
-    WJR_GEN_LARGE_FAST_1_2_8(n, WJR_REGISTER_FIND_NOT_N_L2, WJR_REGISTER_FIND_NOT_N_L8,
-                             WJR_REGISTER_FIND_VAL_I2, WJR_PP_EMPTY,
-                             WJR_REGISTER_FIND_NOT_N_RET);
+        idx = 2;
+    }
 
-#undef WJR_REGISTER_FIND_NOT_N_RET
-#undef WJR_REGISTER_FIND_NOT_N_L8
+    size_t m = n - 1;
+
+    auto y = sse::set1(val, T());
+
+    if (WJR_UNLIKELY(m & 2)) {
+        WJR_REGISTER_FIND_NOT_N(idx, true);
+
+        idx += 2;
+    }
+
+    if (WJR_UNLIKELY(m & 4)) {
+        WJR_REGISTER_FIND_NOT_N(idx, true);
+        WJR_REGISTER_FIND_NOT_N(idx + 2, true);
+
+        idx += 4;
+    }
+
+    if (WJR_UNLIKELY(idx == n)) {
+        return n;
+    }
+
+    do {
+        WJR_REGISTER_FIND_NOT_N(idx, false);
+        WJR_REGISTER_FIND_NOT_N(idx + 2, false);
+        WJR_REGISTER_FIND_NOT_N(idx + 4, false);
+        WJR_REGISTER_FIND_NOT_N(idx + 6, false);
+
+        idx += 8;
+    } while (WJR_LIKELY(idx != n));
+
+    return n;
+
+#undef WJR_REGISTER_FIND_NOT_N
 }
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) {
-#define WJR_REGISTER_FIND_NOT_N_L1(index)                                                \
-    if (src[(index)] != val) {                                                           \
-        return (index);                                                                  \
+    if (WJR_UNLIKELY(n == 0)) {
+        return 0;
     }
 
-#define WJR_REGISTER_FIND_NOT_N_RET() n
-#define WJR_REGISTER_LARGE_FIND_NOT_N(gen_offset, gen_n, ...)                            \
-    return gen_offset + large_builtin_find_not_n(src + gen_offset, val, gen_n)
+    if (WJR_LIKELY(src[0] != val)) {
+        return 0;
+    }
 
-    WJR_GEN_SMALL_FAST_1_2_8(n, WJR_REGISTER_FIND_NOT_N_L1, WJR_REGISTER_FIND_NOT_N_L2,
-                             WJR_PP_EMPTY, WJR_REGISTER_FIND_VAL_I2,
-                             WJR_REGISTER_FIND_NOT_N_RET, WJR_REGISTER_LARGE_FIND_NOT_N);
+    if (WJR_UNLIKELY(n < 4)) {
+        if (n == 1 || WJR_LIKELY(src[1] != val)) {
+            return 1;
+        }
 
-#undef WJR_REGISTER_LARGE_FIND_NOT_N
-#undef WJR_REGISTER_FIND_NOT_N_RET
-#undef WJR_REGISTER_FIND_NOT_N_L1
+        if (n == 2 || WJR_LIKELY(src[2] != val)) {
+            return 2;
+        }
+
+        return 3;
+    }
+
+    return large_builtin_find_not_n(src, val, n);
 }
-
-#undef WJR_REGISTER_FIND_NOT_N_L2
 
 #endif // WJR_HAS_BUILTIN(FIND_NOT_N)
 
@@ -237,132 +362,168 @@ WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) {
 
 template <typename T>
 WJR_COLD size_t large_builtin_reverse_find_n(const T *src0, const T *src1, size_t n) {
-#define WJR_REGISTER_REVERSE_FIND_N_L2(index)                                            \
+#define WJR_REGISTER_REVERSE_FIND_N(index)                                               \
     do {                                                                                 \
-        auto x = sse::loadu((__m128i *)(src0 - 2 - (index)));                            \
-        auto y = sse::loadu((__m128i *)(src1 - 2 - (index)));                            \
+        auto x = sse::loadu((__m128i *)(src0 - 2 + (index)));                            \
+        auto y = sse::loadu((__m128i *)(src1 - 2 + (index)));                            \
         auto r = sse::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         auto mask = sse::movemask_epi8(r);                                               \
         if (WJR_UNLIKELY(mask != 0)) {                                                   \
-            return (index) + (mask == 0x00FF);                                           \
+            return (index) - (mask == 0x00FF);                                           \
         }                                                                                \
     } while (0)
-#define WJR_REGISTER_REVERSE_FIND_N_L8(index)                                            \
-    WJR_REGISTER_REVERSE_FIND_N_L2((index));                                             \
-    WJR_REGISTER_REVERSE_FIND_N_L2((index) + 2);                                         \
-    WJR_REGISTER_REVERSE_FIND_N_L2((index) + 4);                                         \
-    WJR_REGISTER_REVERSE_FIND_N_L2((index) + 6)
 
-#define WJR_REGISTER_REVERSE_FIND_N_RET() n
+    size_t idx;
 
-    WJR_GEN_LARGE_FAST_1_2_8(n, WJR_REGISTER_REVERSE_FIND_N_L2,
-                             WJR_REGISTER_REVERSE_FIND_N_L8, WJR_PP_EMPTY, WJR_PP_EMPTY,
-                             WJR_REGISTER_REVERSE_FIND_N_RET);
+    if (WJR_LIKELY(!(n & 1))) {
+        idx = n;
+    } else {
+        if (WJR_UNLIKELY(src0[n - 1] == src1[n - 1])) {
+            return n;
+        }
 
-#undef WJR_REGISTER_REVERSE_FIND_N_RET
-#undef WJR_REGISTER_REVERSE_FIND_N_L8
-#undef WJR_REGISTER_REVERSE_FIND_N_L2
+        idx = n - 1;
+    }
+
+    if (WJR_UNLIKELY(n & 2)) {
+        WJR_REGISTER_REVERSE_FIND_N(idx);
+
+        idx -= 2;
+    }
+
+    if (WJR_UNLIKELY(n & 4)) {
+        WJR_REGISTER_REVERSE_FIND_N(idx);
+        WJR_REGISTER_REVERSE_FIND_N(idx - 2);
+
+        idx -= 4;
+    }
+
+    if (WJR_UNLIKELY(idx == 0)) {
+        return 0;
+    }
+
+    do {
+        WJR_REGISTER_REVERSE_FIND_N(idx);
+        WJR_REGISTER_REVERSE_FIND_N(idx - 2);
+        WJR_REGISTER_REVERSE_FIND_N(idx - 4);
+        WJR_REGISTER_REVERSE_FIND_N(idx - 6);
+
+        idx -= 8;
+    } while (WJR_LIKELY(idx != 0));
+
+    return 0;
+
+#undef WJR_REGISTER_REVERSE_FIND_N
 }
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src0, const T *src1,
                                                    size_t n) {
-#define WJR_REGISTER_REVERSE_FIND_N_L1(index)                                            \
-    if (src0[-1 - (index)] == src1[-1 - (index)]) {                                      \
-        return n - (index);                                                              \
+    if (WJR_UNLIKELY(n == 0)) {
+        return 0;
     }
-#define WJR_REGISTER_REVERSE_FIND_N_L2(index)                                            \
-    do {                                                                                 \
-        auto x = sse::loadu((__m128i *)(src0 - 2 - (index)));                            \
-        auto y = sse::loadu((__m128i *)(src1 - 2 - (index)));                            \
-        auto r = sse::cmpeq_epi64(x, y);                                                 \
-                                                                                         \
-        auto mask = sse::movemask_epi8(r);                                               \
-        if (WJR_UNLIKELY(mask != 0)) {                                                   \
-            return n - (index) - (mask == 0x00FF);                                       \
-        }                                                                                \
-    } while (0)
 
-#define WJR_REGISTER_REVERSE_FIND_N_RET() 0
-#define WJR_REGISTER_LARGE_REVERSE_FIND_N(gen_offset, gen_n, n, ...)                     \
-    return n - gen_offset -                                                              \
-           large_builtin_reverse_find_n(src0 - gen_offset, src1 - gen_offset, gen_n)
+    if (WJR_UNLIKELY(n < 4)) {
+        if (WJR_UNLIKELY(src0[n - 1] == src1[n - 1])) {
+            return n;
+        }
 
-    src0 += n;
-    src1 += n;
+        if (n == 1 || WJR_UNLIKELY(src0[n - 2] == src1[n - 2])) {
+            return n - 1;
+        }
 
-    WJR_GEN_SMALL_FAST_1_2_8(
-        n, WJR_REGISTER_REVERSE_FIND_N_L1, WJR_REGISTER_REVERSE_FIND_N_L2, WJR_PP_EMPTY,
-        WJR_PP_EMPTY, WJR_REGISTER_REVERSE_FIND_N_RET, WJR_REGISTER_LARGE_REVERSE_FIND_N);
+        if (n == 2 || WJR_UNLIKELY(src0[n - 3] == src1[n - 3])) {
+            return n - 2;
+        }
 
-#undef WJR_REGISTER_LARGE_REVERSE_FIND_N
-#undef WJR_REGISTER_REVERSE_FIND_N_RET
-#undef WJR_REGISTER_REVERSE_FIND_N_L2
-#undef WJR_REGISTER_REVERSE_FIND_N_L1
+        return 0;
+    }
+
+    return large_builtin_reverse_find_n(src0, src1, n);
 }
 
 template <typename T>
 WJR_COLD size_t large_builtin_reverse_find_n(const T *src, T val, size_t n) {
-#define WJR_REGISTER_REVERSE_FIND_N_L2(index)                                            \
+#define WJR_REGISTER_REVERSE_FIND_N(index)                                               \
     do {                                                                                 \
-        auto x = sse::loadu((__m128i *)(src - 2 - (index)));                             \
+        auto x = sse::loadu((__m128i *)(src - 2 + (index)));                             \
         auto r = sse::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         auto mask = sse::movemask_epi8(r);                                               \
         if (WJR_UNLIKELY(mask != 0)) {                                                   \
-            return (index) + (mask == 0x00FF);                                           \
+            return (index) - (mask == 0x00FF);                                           \
         }                                                                                \
     } while (0)
-#define WJR_REGISTER_REVERSE_FIND_N_L8(index)                                            \
-    WJR_REGISTER_REVERSE_FIND_N_L2((index));                                             \
-    WJR_REGISTER_REVERSE_FIND_N_L2((index) + 2);                                         \
-    WJR_REGISTER_REVERSE_FIND_N_L2((index) + 4);                                         \
-    WJR_REGISTER_REVERSE_FIND_N_L2((index) + 6)
 
-#define WJR_REGISTER_REVERSE_FIND_N_RET() n
+    size_t idx;
 
-    WJR_GEN_LARGE_FAST_1_2_8(n, WJR_REGISTER_REVERSE_FIND_N_L2,
-                             WJR_REGISTER_REVERSE_FIND_N_L8, WJR_REGISTER_FIND_VAL_I2,
-                             WJR_PP_EMPTY, WJR_REGISTER_REVERSE_FIND_N_RET);
+    if (WJR_LIKELY(!(n & 1))) {
+        idx = n;
+    } else {
+        if (WJR_UNLIKELY(src[n - 1] == val)) {
+            return n;
+        }
 
-#undef WJR_REGISTER_REVERSE_FIND_N_RET
-#undef WJR_REGISTER_REVERSE_FIND_N_L8
-#undef WJR_REGISTER_REVERSE_FIND_N_L2
+        idx = n - 1;
+    }
+
+    auto y = sse::set1(val, T());
+
+    if (WJR_UNLIKELY(n & 2)) {
+        WJR_REGISTER_REVERSE_FIND_N(idx);
+
+        idx -= 2;
+    }
+
+    if (WJR_UNLIKELY(n & 4)) {
+        WJR_REGISTER_REVERSE_FIND_N(idx);
+        WJR_REGISTER_REVERSE_FIND_N(idx - 2);
+
+        idx -= 4;
+    }
+
+    if (WJR_UNLIKELY(idx == 0)) {
+        return 0;
+    }
+
+    do {
+        WJR_REGISTER_REVERSE_FIND_N(idx);
+        WJR_REGISTER_REVERSE_FIND_N(idx - 2);
+        WJR_REGISTER_REVERSE_FIND_N(idx - 4);
+        WJR_REGISTER_REVERSE_FIND_N(idx - 6);
+
+        idx -= 8;
+    } while (WJR_LIKELY(idx != 0));
+
+    return 0;
+
+#undef WJR_REGISTER_REVERSE_FIND_N
 }
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src, T val, size_t n) {
-#define WJR_REGISTER_REVERSE_FIND_N_L1(index)                                            \
-    if (src[-1 - (index)] == val) {                                                      \
-        return n - (index);                                                              \
+    if (WJR_UNLIKELY(n == 0)) {
+        return 0;
     }
-#define WJR_REGISTER_REVERSE_FIND_N_L2(index)                                            \
-    do {                                                                                 \
-        auto x = sse::loadu((__m128i *)(src - 2 - (index)));                             \
-        auto r = sse::cmpeq_epi64(x, y);                                                 \
-                                                                                         \
-        auto mask = sse::movemask_epi8(r);                                               \
-        if (WJR_UNLIKELY(mask != 0)) {                                                   \
-            return n - (index) - (mask == 0x00FF);                                       \
-        }                                                                                \
-    } while (0)
 
-#define WJR_REGISTER_REVERSE_FIND_N_RET() 0
-#define WJR_REGISTER_LARGE_REVERSE_FIND_N(gen_offset, gen_n, n, ...)                     \
-    return n - gen_offset - large_builtin_reverse_find_n(src - gen_offset, val, gen_n)
+    if (WJR_UNLIKELY(n < 4)) {
+        if (WJR_UNLIKELY(src[n - 1] == val)) {
+            return n;
+        }
 
-    src += n;
+        if (n == 1 || WJR_UNLIKELY(src[n - 2] == val)) {
+            return n - 1;
+        }
 
-    WJR_GEN_SMALL_FAST_1_2_8(n, WJR_REGISTER_REVERSE_FIND_N_L1,
-                             WJR_REGISTER_REVERSE_FIND_N_L2, WJR_PP_EMPTY,
-                             WJR_REGISTER_FIND_VAL_I2, WJR_REGISTER_REVERSE_FIND_N_RET,
-                             WJR_REGISTER_LARGE_REVERSE_FIND_N);
+        if (n == 2 || WJR_UNLIKELY(src[n - 3] == val)) {
+            return n - 2;
+        }
 
-#undef WJR_REGISTER_LARGE_REVERSE_FIND_N
-#undef WJR_REGISTER_REVERSE_FIND_N_RET
-#undef WJR_REGISTER_REVERSE_FIND_N_L2
-#undef WJR_REGISTER_REVERSE_FIND_N_L1
+        return 0;
+    }
+
+    return large_builtin_reverse_find_n(src, val, n);
 }
 
 #endif // WJR_HAS_BUILTIN(REVERSE_FIND_N)
@@ -371,138 +532,175 @@ WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src, T val, size_t n
 
 template <typename T>
 WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1, size_t n) {
-#define WJR_REGISTER_REVERSE_FIND_NOT_N_L2(index)                                        \
+#define WJR_REGISTER_REVERSE_FIND_NOT_N(index, expect)                                   \
     do {                                                                                 \
-        auto x = sse::loadu((__m128i *)(src0 - 2 - (index)));                            \
-        auto y = sse::loadu((__m128i *)(src1 - 2 - (index)));                            \
+        auto x = sse::loadu((__m128i *)(src0 - 2 + (index)));                            \
+        auto y = sse::loadu((__m128i *)(src1 - 2 + (index)));                            \
         auto r = sse::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         auto mask = sse::movemask_epi8(r);                                               \
-        if (WJR_UNLIKELY(mask != sse::mask())) {                                         \
-            return (index) + (mask == 0xFF00);                                           \
+        if (WJR_EXPECT(mask != sse::mask(), expect)) {                                   \
+            return (index) - (mask == 0xFF00);                                           \
         }                                                                                \
     } while (0)
-#define WJR_REGISTER_REVERSE_FIND_NOT_N_L8(index)                                        \
-    WJR_REGISTER_REVERSE_FIND_NOT_N_L2((index));                                         \
-    WJR_REGISTER_REVERSE_FIND_NOT_N_L2((index) + 2);                                     \
-    WJR_REGISTER_REVERSE_FIND_NOT_N_L2((index) + 4);                                     \
-    WJR_REGISTER_REVERSE_FIND_NOT_N_L2((index) + 6)
 
-#define WJR_REGISTER_REVERSE_FIND_NOT_N_RET() n
+    size_t idx;
 
-    WJR_GEN_LARGE_FAST_1_2_8(n, WJR_REGISTER_REVERSE_FIND_NOT_N_L2,
-                             WJR_REGISTER_REVERSE_FIND_NOT_N_L8, WJR_PP_EMPTY,
-                             WJR_PP_EMPTY, WJR_REGISTER_REVERSE_FIND_NOT_N_RET);
+    if (WJR_LIKELY(n & 1)) {
+        idx = n - 1;
+    } else {
+        if (WJR_LIKELY(src0[n - 2] != src1[n - 2])) {
+            return n - 1;
+        }
 
-#undef WJR_REGISTER_REVERSE_FIND_NOT_N_RET
-#undef WJR_REGISTER_REVERSE_FIND_NOT_N_L8
-#undef WJR_REGISTER_REVERSE_FIND_NOT_N_L2
+        idx = n - 2;
+    }
+
+    size_t m = n - 1;
+
+    if (WJR_UNLIKELY(m & 2)) {
+        WJR_REGISTER_REVERSE_FIND_NOT_N(idx, true);
+
+        idx -= 2;
+    }
+
+    if (WJR_UNLIKELY(m & 4)) {
+        WJR_REGISTER_REVERSE_FIND_NOT_N(idx, true);
+        WJR_REGISTER_REVERSE_FIND_NOT_N(idx - 2, true);
+
+        idx -= 4;
+    }
+
+    if (WJR_UNLIKELY(idx == 0)) {
+        return 0;
+    }
+
+    do {
+        WJR_REGISTER_REVERSE_FIND_NOT_N(idx, false);
+        WJR_REGISTER_REVERSE_FIND_NOT_N(idx - 2, false);
+        WJR_REGISTER_REVERSE_FIND_NOT_N(idx - 4, false);
+        WJR_REGISTER_REVERSE_FIND_NOT_N(idx - 6, false);
+
+        idx -= 8;
+    } while (WJR_LIKELY(idx != 0));
+
+    return 0;
+
+#undef WJR_REGISTER_REVERSE_FIND_NOT_N
 }
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src0, const T *src1,
                                                        size_t n) {
-#define WJR_REGISTER_REVERSE_FIND_NOT_N_L1(index)                                        \
-    if (src0[-1 - (index)] != src1[-1 - (index)]) {                                      \
-        return n - (index);                                                              \
+    if (WJR_UNLIKELY(n == 0)) {
+        return 0;
     }
-#define WJR_REGISTER_REVERSE_FIND_NOT_N_L2(index)                                        \
-    do {                                                                                 \
-        auto x = sse::loadu((__m128i *)(src0 - 2 - (index)));                            \
-        auto y = sse::loadu((__m128i *)(src1 - 2 - (index)));                            \
-        auto r = sse::cmpeq_epi64(x, y);                                                 \
-                                                                                         \
-        auto mask = sse::movemask_epi8(r);                                               \
-        if (WJR_UNLIKELY(mask != sse::mask())) {                                         \
-            return n - (index) - (mask == 0xFF00);                                       \
-        }                                                                                \
-    } while (0)
 
-#define WJR_REGISTER_REVERSE_FIND_NOT_N_RET() 0
-#define WJR_REGISTER_LARGE_REVERSE_FIND_NOT_N(gen_offset, gen_n, n, ...)                 \
-    return n - gen_offset -                                                              \
-           large_builtin_reverse_find_not_n(src0 - gen_offset, src1 - gen_offset, gen_n)
+    if (WJR_LIKELY(src0[n - 1] != src1[n - 1])) {
+        return n;
+    }
 
-    src0 += n;
-    src1 += n;
+    if (WJR_UNLIKELY(n < 4)) {
+        if (n == 1 || WJR_LIKELY(src0[n - 2] != src1[n - 2])) {
+            return n - 1;
+        }
 
-    WJR_GEN_SMALL_FAST_1_2_8(n, WJR_REGISTER_REVERSE_FIND_NOT_N_L1,
-                             WJR_REGISTER_REVERSE_FIND_NOT_N_L2, WJR_PP_EMPTY,
-                             WJR_PP_EMPTY, WJR_REGISTER_REVERSE_FIND_NOT_N_RET,
-                             WJR_REGISTER_LARGE_REVERSE_FIND_NOT_N);
+        if (n == 2 || WJR_LIKELY(src0[n - 3] != src1[n - 3])) {
+            return n - 2;
+        }
 
-#undef WJR_REGISTER_LARGE_REVERSE_FIND_NOT_N
-#undef WJR_REGISTER_REVERSE_FIND_NOT_N_RET
-#undef WJR_REGISTER_REVERSE_FIND_NOT_N_L2
-#undef WJR_REGISTER_REVERSE_FIND_NOT_N_L1
+        return 0;
+    }
+
+    return large_builtin_reverse_find_not_n(src0, src1, n);
 }
 
 template <typename T>
 WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) {
-#define WJR_REGISTER_REVERSE_FIND_NOT_N_L2(index)                                        \
+#define WJR_REGISTER_REVERSE_FIND_NOT_N(index, expect)                                   \
     do {                                                                                 \
-        auto x = sse::loadu((__m128i *)(src - 2 - (index)));                             \
+        auto x = sse::loadu((__m128i *)(src - 2 + (index)));                             \
         auto r = sse::cmpeq_epi64(x, y);                                                 \
                                                                                          \
         auto mask = sse::movemask_epi8(r);                                               \
-        if (WJR_UNLIKELY(mask != sse::mask())) {                                         \
-            return (index) + (mask == 0xFF00);                                           \
+        if (WJR_EXPECT(mask != sse::mask(), expect)) {                                   \
+            return (index) - (mask == 0xFF00);                                           \
         }                                                                                \
     } while (0)
-#define WJR_REGISTER_REVERSE_FIND_NOT_N_L8(index)                                        \
-    WJR_REGISTER_REVERSE_FIND_NOT_N_L2((index));                                         \
-    WJR_REGISTER_REVERSE_FIND_NOT_N_L2((index) + 2);                                     \
-    WJR_REGISTER_REVERSE_FIND_NOT_N_L2((index) + 4);                                     \
-    WJR_REGISTER_REVERSE_FIND_NOT_N_L2((index) + 6)
 
-#define WJR_REGISTER_REVERSE_FIND_NOT_N_RET() n
+    size_t idx;
 
-    WJR_GEN_LARGE_FAST_1_2_8(n, WJR_REGISTER_REVERSE_FIND_NOT_N_L2,
-                             WJR_REGISTER_REVERSE_FIND_NOT_N_L8, WJR_REGISTER_FIND_VAL_I2,
-                             WJR_PP_EMPTY, WJR_REGISTER_REVERSE_FIND_NOT_N_RET);
+    if (WJR_LIKELY(n & 1)) {
+        idx = n - 1;
+    } else {
+        if (WJR_LIKELY(src[n - 2] != val)) {
+            return n - 1;
+        }
 
-#undef WJR_REGISTER_REVERSE_FIND_NOT_N_RET
-#undef WJR_REGISTER_REVERSE_FIND_NOT_N_L8
-#undef WJR_REGISTER_REVERSE_FIND_NOT_N_L2
+        idx = n - 2;
+    }
+
+    size_t m = n - 1;
+
+    auto y = sse::set1(val, T());
+
+    if (WJR_UNLIKELY(m & 2)) {
+        WJR_REGISTER_REVERSE_FIND_NOT_N(idx, true);
+
+        idx -= 2;
+    }
+
+    if (WJR_UNLIKELY(m & 4)) {
+        WJR_REGISTER_REVERSE_FIND_NOT_N(idx, true);
+        WJR_REGISTER_REVERSE_FIND_NOT_N(idx - 2, true);
+
+        idx -= 4;
+    }
+
+    if (WJR_UNLIKELY(idx == 0)) {
+        return 0;
+    }
+
+    do {
+        WJR_REGISTER_REVERSE_FIND_NOT_N(idx, false);
+        WJR_REGISTER_REVERSE_FIND_NOT_N(idx - 2, false);
+        WJR_REGISTER_REVERSE_FIND_NOT_N(idx - 4, false);
+        WJR_REGISTER_REVERSE_FIND_NOT_N(idx - 6, false);
+
+        idx -= 8;
+    } while (WJR_LIKELY(idx != 0));
+
+    return 0;
+
+#undef WJR_REGISTER_REVERSE_FIND_NOT_N
 }
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src, T val, size_t n) {
-#define WJR_REGISTER_REVERSE_FIND_NOT_N_L1(index)                                        \
-    if (src[-1 - (index)] != val) {                                                      \
-        return n - (index);                                                              \
+    if (WJR_UNLIKELY(n == 0)) {
+        return 0;
     }
-#define WJR_REGISTER_REVERSE_FIND_NOT_N_L2(index)                                        \
-    do {                                                                                 \
-        auto x = sse::loadu((__m128i *)(src - 2 - (index)));                             \
-        auto r = sse::cmpeq_epi64(x, y);                                                 \
-                                                                                         \
-        auto mask = sse::movemask_epi8(r);                                               \
-        if (WJR_UNLIKELY(mask != sse::mask())) {                                         \
-            return n - (index) - (mask == 0xFF00);                                       \
-        }                                                                                \
-    } while (0)
 
-#define WJR_REGISTER_REVERSE_FIND_NOT_N_RET() 0
-#define WJR_REGISTER_LARGE_REVERSE_FIND_NOT_N(gen_offset, gen_n, n, ...)                 \
-    return n - gen_offset - large_builtin_reverse_find_not_n(src - gen_offset, val, gen_n)
+    if (WJR_LIKELY(src[n - 1] != val)) {
+        return n;
+    }
 
-    src += n;
+    if (WJR_UNLIKELY(n < 4)) {
+        if (n == 1 || WJR_LIKELY(src[n - 2] != val)) {
+            return n - 1;
+        }
 
-    WJR_GEN_SMALL_FAST_1_2_8(
-        n, WJR_REGISTER_REVERSE_FIND_NOT_N_L1, WJR_REGISTER_REVERSE_FIND_NOT_N_L2,
-        WJR_PP_EMPTY, WJR_REGISTER_FIND_VAL_I2, WJR_REGISTER_REVERSE_FIND_NOT_N_RET,
-        WJR_REGISTER_LARGE_REVERSE_FIND_NOT_N);
+        if (n == 2 || WJR_LIKELY(src[n - 3] != val)) {
+            return n - 2;
+        }
 
-#undef WJR_REGISTER_LARGE_REVERSE_FIND_NOT_N
-#undef WJR_REGISTER_REVERSE_FIND_NOT_N_RET
-#undef WJR_REGISTER_REVERSE_FIND_NOT_N_L2
-#undef WJR_REGISTER_REVERSE_FIND_NOT_N_L1
+        return 0;
+    }
+
+    return large_builtin_reverse_find_not_n(src, val, n);
 }
 
 #endif // WJR_HAS_BUILTIN(REVERSE_FIND_NOT_N)
-
-#undef WJR_REGISTER_FIND_VAL_I2
 
 } // namespace wjr
 
