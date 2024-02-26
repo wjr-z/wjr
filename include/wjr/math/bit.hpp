@@ -53,7 +53,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int bit_width(T x) noexcept {
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T bit_ceil(T x) noexcept {
-    if (x <= 1u) {
+    if (x <= 1) {
         return T(1);
     }
     if constexpr (std::is_same_v<T, decltype(+x)>) {
@@ -61,7 +61,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T bit_ceil(T x) noexcept {
     } else {
         constexpr int offset_for_ub =
             std::numeric_limits<unsigned>::digits - std::numeric_limits<T>::digits;
-        return T(1u << (bit_width(T(x - 1)) + offset_for_ub) >> offset_for_ub);
+        return T(1 << (bit_width(T(x - 1)) + offset_for_ub) >> offset_for_ub);
     }
 }
 

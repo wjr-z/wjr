@@ -192,13 +192,13 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
 
         ".Ldone%=:"
 
-        : [dst] "+r"(dst), [src0] "+r"(src0), [src1] "+r"(src1), [cx] "+c"(cx),
-          [cl] "+r"(cl), [tcl] "+r"(tcl), [r8] "=r"(r8), [r9] "+r"(r9),
-          [r10] "=r"(r10)
-        :
+        : [dst] "+&r"(dst), [src0] "+&r"(src0), [src1] "+&r"(src1), [cx] "+&c"(cx),
+          [r8] "=&r"(r8), [r9] "+&r"(r9), [r10] "=&r"(r10)
+        : [cl] "r"(cl), [tcl] "r"(tcl)
         : "cc", "memory");
 
-    WJR_ASSUME(cx == 0);
+    WJR_ASSERT_ASSUME(cx == 0);
+    WJR_ASSERT_ASSUME(r9 <= (1ull << cl));
 
     return r9;
 }

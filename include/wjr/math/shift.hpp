@@ -45,7 +45,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_lshift_n(T *dst, const T *src, size_t n,
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR_E T lshift_n(T *dst, const T *src, size_t n, unsigned int c,
-                                     T lo = 0u) {
+                                     T lo = 0) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
 
@@ -86,7 +86,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_rshift_n(T *dst, const T *src, size_t n,
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR_E T rshift_n(T *dst, const T *src, size_t n, unsigned int c,
-                                     T hi = 0u) {
+                                     T hi = 0) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 

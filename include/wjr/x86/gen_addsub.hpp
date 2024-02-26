@@ -302,8 +302,8 @@ inline U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc,
         :
         : "cc", "memory");
 
-    WJR_ASSUME(cx == 0);
-    WJR_ASSUME(r9 == 0u || r9 == 1u);
+    WJR_ASSERT_ASSUME(cx == 0);
+    WJR_ASSERT_ASSUME(r9 <= 1);
 
     return r9;
 }

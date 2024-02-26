@@ -65,9 +65,9 @@ inline uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
         "add $4, %[r9]\n\t"
         "jne .Lloop%=\n\t"
 
-        : [dst] "+r"(dst), [src] "+r"(src), [bd] "+r"(bd), [r8] "+r"(r8), [r9] "+r"(r9),
-          [r10] "=a"(r10), [r11] "+d"(r11)
-        :
+        : [dst] "+&r"(dst), [src] "+&r"(src), [r8] "+&r"(r8), [r9] "+&r"(r9),
+          [r10] "=&a"(r10), [r11] "+&d"(r11)
+        : [bd] "r"(bd)
         : "cc", "memory");
 
     return r8;

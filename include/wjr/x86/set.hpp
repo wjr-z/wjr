@@ -86,6 +86,10 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
     constexpr auto sse_width = sse::width();
     constexpr auto sse_loop = sse_width / nd;
 
+    if (WJR_UNLIKELY(n == 0)) {
+        return;
+    }
+
     if (WJR_UNLIKELY(n > simd_loop * 2)) {
 
         if (WJR_UNLIKELY(n > simd_loop * 4)) {

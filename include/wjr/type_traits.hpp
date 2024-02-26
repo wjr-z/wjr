@@ -14,7 +14,31 @@ namespace wjr {
 
 struct empty {};
 
-inline constexpr std::size_t dynamic_extent = std::numeric_limits<std::size_t>::max();
+template <typename T>
+struct null_ref_t {};
+
+template <typename T = empty>
+inline constexpr null_ref_t<T> null_ref = {};
+
+struct in_place_max_t {
+    template <typename T>
+    WJR_CONST constexpr operator T() const {
+        return std::numeric_limits<T>::max();
+    }
+};
+
+inline constexpr in_place_max_t in_place_max = {};
+
+struct in_place_min_t {
+    template <typename T>
+    WJR_CONST constexpr operator T() const {
+        return std::numeric_limits<T>::min();
+    }
+};
+
+inline constexpr in_place_min_t in_place_min = {};
+
+inline constexpr std::size_t dynamic_extent = in_place_max;
 
 template <typename... Args>
 struct multi_conditional;

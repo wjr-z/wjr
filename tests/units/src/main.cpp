@@ -1111,6 +1111,12 @@ TEST(math, set_n) {
 }
 
 TEST(math, compare_n) {
+    {
+        std::vector<uint64_t> a = {0, 1ull << 31, 0, 0};
+        std::vector<uint64_t> b = {0, 0, 0, 0};
+        WJR_ASSERT(wjr::compare_n(a.data(), b.data(), 4) > 0);
+    }
+
     std::mt19937_64 mt_rand(time(0));
     std::vector<uint64_t> a, b;
     for (size_t n = 0; n <= 384; ++n) {

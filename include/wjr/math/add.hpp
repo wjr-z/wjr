@@ -55,7 +55,7 @@ WJR_INTRINSIC_INLINE T builtin_addc(T a, T b, U c_in, U &c_out) {
 template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out) {
-    WJR_ASSERT_ASSUME_L(1, c_in == 0 || c_in == 1);
+    WJR_ASSERT_ASSUME_L(1, c_in <= 1);
 
 #if !WJR_HAS_BUILTIN(ADDC) && !WJR_HAS_BUILTIN(ASM_ADDC)
     return fallback_addc(a, b, c_in, c_out);
@@ -92,13 +92,14 @@ WJR_INTRINSIC_CONSTEXPR_E U addc_1(T *dst, const T *src0, size_t n,
                                    type_identity_t<T> src1, U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT_ASSUME(c_in <= 1);
 
     dst[0] = addc(src0[0], src1, c_in, c_in);
 
     if (c_in) {
         size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, -1, 0);
 
-        if (idx == n) {
+        if (WJR_UNLIKELY(idx == n)) {
             return static_cast<U>(1);
         }
 
@@ -195,7 +196,7 @@ WJR_INTRINSIC_CONSTEXPR_E U addc_s(T *dst, const T *src0, size_t n, const T *src
     c_in = addc_n(dst, src0, src1, m, c_in);
 
     if (n != m) {
-        c_in = addc_1(dst + m, src0 + m, n - m, 0u, c_in);
+        c_in = addc_1(dst + m, src0 + m, n - m, 0, c_in);
     }
 
     return c_in;
@@ -212,7 +213,7 @@ WJR_INTRINSIC_CONSTEXPR_E U addc_sz(T *dst, const T *src0, size_t n, const T *sr
     }
 
     if (n != m) {
-        c_in = addc_1(dst + m, src0 + m, n - m, 0u, c_in);
+        c_in = addc_1(dst + m, src0 + m, n - m, 0, c_in);
     }
 
     return c_in;

@@ -280,7 +280,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n, 
 template <typename T>
 WJR_CONSTEXPR20 T sb_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
     using divider = div3by2_divider<T>;
-    constexpr T mask = std::numeric_limits<T>::max();
+    constexpr T mask = in_place_max;
 
     WJR_ASSERT_ASSUME(m > 2);
     WJR_ASSERT_ASSUME(n >= m);
@@ -321,8 +321,8 @@ WJR_CONSTEXPR20 T sb_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, 
 
             cy = submul_1(src - m, div, m, q);
 
-            n0 = subc(n0, cy, 0u, cy1);
-            n1 = subc(n1, cy1, 0u, cy);
+            n0 = subc(n0, cy, 0, cy1);
+            n1 = subc(n1, cy1, 0, cy);
             src[0] = n0;
 
             if (WJR_UNLIKELY(cy != 0)) {
@@ -367,7 +367,7 @@ T dc_div4by2_qr(T *dst, T *src, const T *div, size_t m, T dinv, T *stk) {
     }
 
     while (cy != 0) {
-        qh -= subc_1(dst + lo, dst + lo, hi, 1u);
+        qh -= subc_1(dst + lo, dst + lo, hi, 1);
         cy -= addc_n(src + lo, src + lo, div, m);
     }
 
@@ -385,7 +385,7 @@ T dc_div4by2_qr(T *dst, T *src, const T *div, size_t m, T dinv, T *stk) {
     }
 
     while (cy != 0) {
-        subc_1(dst, dst, lo, 1u);
+        subc_1(dst, dst, lo, 1);
         cy -= addc_n(src, src, div, m);
     }
 
@@ -446,7 +446,7 @@ T dc_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
             WJR_ASSERT(n1 < d1 || (n1 == d1 && n0 <= d0));
 
             if (WJR_UNLIKELY(n1 == d1) && n0 == d0) {
-                q = std::numeric_limits<T>::max();
+                q = in_place_max;
                 cy = submul_1(src - m, div - m, m, q);
             } else {
                 q = wjr::div3by2_divider<T>::divide(d0, d1, dinv, src[-2], n0, n1);
@@ -455,8 +455,8 @@ T dc_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
                     T cy, cy1;
                     cy = submul_1(src - m, div - m, m - 2, q);
 
-                    n0 = subc(n0, cy, 0u, cy1);
-                    n1 = subc(n1, cy1, 0u, cy);
+                    n0 = subc(n0, cy, 0, cy1);
+                    n1 = subc(n1, cy1, 0, cy);
 
                     src[-2] = n0;
 
@@ -475,9 +475,9 @@ T dc_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
         } else {
             /* Do a 2qn / qn division */
             if (qn == 2) {
-                qh = div_qr_2_without_shift(
-                    dst, src - 2, src - 2, 4,
-                    div3by2_divider<T>(div[-2], div[-1], dinv, 0u));
+                qh =
+                    div_qr_2_without_shift(dst, src - 2, src - 2, 4,
+                                           div3by2_divider<T>(div[-2], div[-1], dinv, 0));
             } else if (qn < dc_div_qr_threshold) {
                 qh = sb_div_qr_s(dst, src - qn, 2 * qn, div - qn, qn, dinv);
             } else {
@@ -650,7 +650,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n, 
         const auto lo = dp[0];
         const auto hi = dp[1];
         const auto dinv = div3by2_divider<T>::reciprocal(lo, hi);
-        div_qr_2_without_shift(dst, sp, sp, 4, div3by2_divider<T>(lo, hi, dinv, 0u));
+        div_qr_2_without_shift(dst, sp, sp, 4, div3by2_divider<T>(lo, hi, dinv, 0));
     } else {
         const auto lo = dp[qn - 2];
         const auto hi = dp[qn - 1];
@@ -692,14 +692,14 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n, 
             rem[st - 1] = subc((src[st - 1] & mask) | fix, rp[st - 1], cf, cf);
         } else {
             rp[m - 1] = mul_1(rp, dst, qn, div[0] & mask);
-            rem[0] = subc((src[0] & mask) | fix, rp[0], 0u, cf);
+            rem[0] = subc((src[0] & mask) | fix, rp[0], 0, cf);
         }
     }
 
     cf = subc_n(rem + st, sp, rp + st, qn, cf);
 
     while (cf != 0) {
-        subc_1(dst, dst, qn, 1u);
+        subc_1(dst, dst, qn, 1);
         cf -= addc_n(rem, rem, div, m);
     }
 
@@ -715,7 +715,7 @@ WJR_CONSTEXPR_E T fallback_divexact_dbm1c(T *dst, const T *src, size_t n, T bd, 
     for (size_t i = 0; i < n; i++) {
         a = src[i];
         p0 = mul(a, bd, p1);
-        h = subc(h, p0, 0u, cf);
+        h = subc(h, p0, 0, cf);
         dst[i] = h;
         h -= p1 + cf;
     }
@@ -738,19 +738,19 @@ WJR_CONSTEXPR_E T divexact_dbm1c(T *dst, const T *src, size_t n, T bd, T h) {
 
 template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int>>
 WJR_CONSTEXPR_E void divexact_by3(T *dst, const T *src, size_t n) {
-    constexpr auto max = std::numeric_limits<T>::max();
+    constexpr T max = in_place_max;
     (void)divexact_dbm1c<T>(dst, src, n, max / 3, 0);
 }
 
 template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int>>
 WJR_CONSTEXPR_E void divexact_by5(T *dst, const T *src, size_t n) {
-    constexpr auto max = std::numeric_limits<T>::max();
+    constexpr T max = in_place_max;
     (void)divexact_dbm1c<T>(dst, src, n, max / 5, 0);
 }
 
 template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int>>
 WJR_CONSTEXPR_E void divexact_by15(T *dst, const T *src, size_t n) {
-    constexpr auto max = std::numeric_limits<T>::max();
+    constexpr T max = in_place_max;
     (void)divexact_dbm1c<T>(dst, src, n, max / 15, 0);
 }
 
