@@ -1078,7 +1078,13 @@ struct toom_interpolation_5p_struct {
 template <typename T>
 void toom_interpolation_5p_s(T *WJR_RESTRICT dst, T *w1p, size_t l, size_t rn, size_t rm,
                              toom_interpolation_5p_struct<T> &&flag) {
-    // f(0) f(-1) f(1) f(2) f(inf)
+    /*
+     W0 = f(0);
+     W1 = f(-1);
+     W2 = f(1);
+     W3 = f(2);
+     W4 = f(inf);
+    */
 
     WJR_ASSERT_ASSUME(0 < rn && rn <= l);
     WJR_ASSERT_ASSUME(0 < rm && rm <= l);
@@ -1167,6 +1173,38 @@ void toom_interpolation_5p_s(T *WJR_RESTRICT dst, T *w1p, size_t l, size_t rn, s
 template <typename T>
 void toom42_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, size_t m,
                   T *stk) {
+    /*
+     W0 = f(0);
+     W1 = f(-1);
+     W2 = f(1);
+     W3 = f(2);
+     W4 = f(inf);
+
+     W0 = U0 * V0;
+     W1 = (U0 - U1 + U2 - U3) * (V0 - v1);
+     W2 = (U0 + U1 + U2 + U3) * (V0 + V1);
+     W3 = (U0 + 2U1 + 4U2 + 8U3) * (V0 + 2V1);
+     W4 = U3 * V1;
+    */
+
+    /*
+     7 add/sub + 3 addlsh
+
+     T0 = U0 + U2;
+     T2 = U1 + U3;
+     T1 = T0 - T2; u(-1)
+     T0 = T0 + T2; u(1)
+     W3 = V0 - V1; v(-1)
+     T2 = V0 + V1; v(1)
+     W1 = T1 * W3; f(-1)
+     W2 = T0 * T2; f(1)
+     T0 = ((2U3 + U2) << 1 + U1) << 1 + U0; u(2)
+     T2 = T0 + V1; v(2)
+     W3 = T0 * T2; f(2)
+     W0 = U0 * V0;
+     W4 = U3 * V1;
+    */
+
     WJR_ASSERT_ASSUME(n >= m);
 
     const size_t l = (n >= 2 * m ? (n + 3) / 4 : (m + 1) / 2);
@@ -2138,6 +2176,42 @@ void toom53_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
      W5 = (16U0 + 8U1 + 4U2 + 2U3 + U4) * (4V0 + 2V1 + V2);
      W6 = U4 * V2;
     */
+
+    /*
+          dst :
+          |--- l * 2 ---|--- l * 2 ---|--- l * 2 ---|--- rn+rm ---|
+          W0             W2            W4            W6
+          |- l --|- l --|                           |- l --|
+          T0      T1                                 T2
+          stk :
+          |--- l * 2 ---|--- l * 2 ---|--- l * 2 ---|
+          W1             W3            W5
+     */
+
+    /*
+     T0 = U0 + U2 + U4;
+     T2 = U1 + U3;
+     T1 = T0 - T2; u(-1)
+     T0 = T0 + T2; u(1)
+     W5 = V0 + V2;
+     T2 = W5 + V1; v(1)
+     W5 = W5 - V1; v(-1)
+     W2 = T0 * T2; f(1)
+     W3 = T1 * W5; f(-1)
+     W5 = (W5 + V2) << 1 - V0; v(-2)
+     T2 = W5 + 4V1; v(2)
+     T1 = U0 + (U2 + 4U4) << 2;
+     W1 = (U1 + 4U3) << 1;
+     T0 = T1 + W1; u(2)
+     T1 = T1 - W1; u(-2)
+     W1 = T1 * W5; f(-2)
+     W4 = T0 * T2; f(2)
+     T0 = (((2U0 + U1) << 1 + U2) << 1 + U3) << 1 + U4; 16 * u(1/2)
+     T1 = (2V0 + V1) << 1 + V2; 4 * v(1/2)
+     W5 = T0 * T1; 64 * f(1/2)
+     W0 = U0 * V0; f(0)
+     W6 = U4 * V2; f(inf)
+    */
 }
 
 template <typename T>
@@ -2182,8 +2256,8 @@ void toom44_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
      W1 = V0 + V2;
      T2 = V1 + V3;
      W4 = W1 + T2; v(1)
-     W2 = T0 * W4; f(1)
      W1 = W1 - T2; v(-1)
+     W2 = T0 * W4; f(1)
      W3 = T1 * W1; f(-1)
      T0 = U0 + 4U2;
      T2 = (U1 + 4U3) << 1;
@@ -2192,8 +2266,8 @@ void toom44_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
      W5 = V0 + 4V2;
      T2 = (V1 + 4V3) << 1;
      W1 = W5 + T2; v(2)
-     W4 = T0 * W1; f(2)
      W5 = W5 - T2; v(-2)
+     W4 = T0 * W1; f(2)
      W1 = T1 * W5; f(-2)
      T0 = ((2U0 + U1) << 1 + U2) << 1 + U3; 8 * u(1/2)
      T1 = ((2V0 + V1) << 1 + V2) << 1 + V3; 8 * v(1/2)
@@ -2266,15 +2340,15 @@ void toom44_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     cf4 = cf1 + cft2 + addc_n(w4p, w1p, t2p, l);
     WJR_ASSERT_ASSUME(cf4 <= 3);
 
-    //  W2 = T0 * W4; f(1)
-    __rec_mul_n<__rec_mul_mode::toom44, T, 3, 3>(w2p, t0p, w4p, l, stk, cf2, cft0, cf4);
-
     //  W1 = W1 - T2; v(-1)
     {
         ssize_t p = abs_subc_n(w1p, w1p, t2p, l, cf1, cf1, cft2);
         neg1 = p < 0;
     }
     WJR_ASSERT_ASSUME(cf1 <= 1);
+
+    //  W2 = T0 * W4; f(1)
+    __rec_mul_n<__rec_mul_mode::toom44, T, 3, 3>(w2p, t0p, w4p, l, stk, cf2, cft0, cf4);
 
     //  W3 = T1 * W1; f(-1)
     neg0 ^= neg1;
@@ -2319,15 +2393,15 @@ void toom44_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     cf1 = cf5 + cft2 + addc_n(w1p, w5p, t2p, l);
     WJR_ASSERT_ASSUME(cf1 <= 14);
 
-    //  W4 = T0 * W1; f(2)
-    __rec_mul_n<__rec_mul_mode::toom44>(w4p, t0p, w1p, l, stk, cf4, cft0, cf1);
-
     //  W5 = W5 - T2; v(-2)
     {
         ssize_t p = abs_subc_n(w5p, w5p, t2p, l, cf5, cf5, cft2);
         neg2 = p < 0;
     }
     WJR_ASSERT_ASSUME(cf5 <= 9);
+
+    //  W4 = T0 * W1; f(2)
+    __rec_mul_n<__rec_mul_mode::toom44>(w4p, t0p, w1p, l, stk, cf4, cft0, cf1);
 
     //  W1 = T1 * W5; f(-2)
     neg1 ^= neg2;
