@@ -239,7 +239,7 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src
         return 0;
     }
 
-    ssize_t ret;
+    ssize_t ret = 0;
 
     if (WJR_UNLIKELY(src0[idx - 1] < src1[idx - 1])) {
         std::swap(src0, src1);
@@ -291,8 +291,8 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src
                                              size_t n, U &c_out, type_identity_t<U> cf0,
                                              type_identity_t<U> cf1) {
     if (cf0 != cf1) {
-        ssize_t ret;
-        U cf;
+        ssize_t ret = 0;
+        U cf = 0;
         if (WJR_UNLIKELY(cf0 < cf1)) {
             std::swap(src0, src1);
             ret = -n;

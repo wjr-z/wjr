@@ -339,10 +339,6 @@ WJR_CONSTEXPR20 T sb_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, 
     return qh;
 }
 
-#ifndef WJR_DC_DIV_QR_THRESHOLD
-#define WJR_DC_DIV_QR_THRESHOLD (WJR_TOOM22_MUL_THRESHOLD * 2)
-#endif // WJR_DC_DIV_QR_THRESHOLD
-
 inline constexpr size_t dc_div_qr_threshold = WJR_DC_DIV_QR_THRESHOLD;
 
 template <typename T>
