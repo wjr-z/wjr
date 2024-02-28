@@ -38,6 +38,10 @@ WJR_INTRINSIC_CONSTEXPR_E U addc_sz(T *dst, const T *src0, size_t n, const T *sr
 WJR_INTRINSIC_CONSTEXPR_E void __addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                           uint64_t hi0, uint64_t lo1, uint64_t hi1);
 
+WJR_INTRINSIC_CONSTEXPR_E uint64_t __addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                              uint64_t c_in);
+
 } // namespace wjr
 
 #endif // WJR_MATH_ADD_IMPL_HPP__

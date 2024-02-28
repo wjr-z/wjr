@@ -198,7 +198,6 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
         : "cc", "memory");
 
     WJR_ASSERT_ASSUME(cx == 0);
-    WJR_ASSERT_ASSUME(r9 <= (1ull << cl));
 
     return r9;
 }

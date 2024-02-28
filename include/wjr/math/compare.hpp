@@ -95,8 +95,8 @@ WJR_INTRINSIC_CONSTEXPR_E bool __fallback_less_128(uint64_t lo0, uint64_t hi0,
 
 WJR_INTRINSIC_INLINE bool __builtin_less_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
                                              uint64_t hi1) {
-    auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
-    auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
+    const auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
+    const auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
 
     return x0 < x1;
 }
@@ -127,8 +127,8 @@ WJR_INTRINSIC_CONSTEXPR_E bool __fallback_less_equal_128(uint64_t lo0, uint64_t 
 
 WJR_INTRINSIC_INLINE bool __builtin_less_equal_128(uint64_t lo0, uint64_t hi0,
                                                    uint64_t lo1, uint64_t hi1) {
-    auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
-    auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
+    const auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
+    const auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
 
     return x0 <= x1;
 }
@@ -149,6 +149,16 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool __less_equal_128(uint64_t lo0, uint64_t
 #else
     return __fallback_less_equal_128(lo0, hi0, lo1, hi1);
 #endif
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool __greater_128(uint64_t lo0, uint64_t hi0,
+                                                       uint64_t lo1, uint64_t hi1) {
+    return __less_128(lo1, hi1, lo0, hi0);
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool __greater_equal_128(uint64_t lo0, uint64_t hi0,
+                                                             uint64_t lo1, uint64_t hi1) {
+    return __less_equal_128(lo1, hi1, lo0, hi0);
 }
 
 } // namespace wjr
