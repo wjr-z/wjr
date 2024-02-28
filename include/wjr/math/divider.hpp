@@ -84,7 +84,7 @@ public:
         return basic_divide(divisor, value, lo, hi);
     }
 
-    WJR_CONST WJR_INLINE_CONSTEXPR_E static T reciprocal(T d) {
+    WJR_CONST WJR_CONSTEXPR_E static T reciprocal(T d) {
         WJR_ASSERT_ASSUME(__has_high_bit(d));
 
         uint64_t d40 = 0, d63 = 0;
@@ -267,7 +267,7 @@ public:
         return q1;
     }
 
-    WJR_CONST WJR_INLINE_CONSTEXPR_E static T reciprocal(T d0, T d1) {
+    WJR_CONST WJR_CONSTEXPR_E static T reciprocal(T d0, T d1) {
         WJR_ASSERT_ASSUME(__has_high_bit(d1));
 
         T v = div2by1_divider<T>::reciprocal(d1);

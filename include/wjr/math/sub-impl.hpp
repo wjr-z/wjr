@@ -39,15 +39,13 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src
                                              size_t n);
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
-                                             const T *src1, size_t m);
+ssize_t abs_subc_s(T *dst, const T *src0, size_t n, const T *src1, size_t m);
 
 template <
     typename T, typename U,
     std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
-                                             size_t n, U &c_out, type_identity_t<U> cf0,
-                                             type_identity_t<U> cf1);
+ssize_t abs_subc_n(T *dst, const T *src0, const T *src1, size_t n, U &c_out,
+                   type_identity_t<U> cf0, type_identity_t<U> cf1);
 
 WJR_INTRINSIC_CONSTEXPR_E void __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                           uint64_t hi0, uint64_t lo1, uint64_t hi1);

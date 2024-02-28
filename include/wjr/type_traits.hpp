@@ -370,6 +370,11 @@ constexpr auto to_address(const Ptr &p) noexcept {
     }
 }
 
+template <typename Fn, typename... Args>
+WJR_NOINLINE decltype(auto) call_noinlne(Fn &&fn, Args &&...args) {
+    return std::invoke(std::forward<Fn>(fn), std::forward<Args>(args)...);
+}
+
 } // namespace wjr
 
 #endif // ! WJR_TYPE_TRAITS_HPP__

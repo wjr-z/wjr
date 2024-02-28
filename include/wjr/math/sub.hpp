@@ -233,15 +233,15 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src
 
     if (WJR_UNLIKELY(idx != n)) {
         set_n(dst + idx, 0, n - idx);
-    }
 
-    if (WJR_UNLIKELY(idx == 0)) {
-        return 0;
+        if (WJR_UNLIKELY(idx == 0)) {
+            return 0;
+        }
     }
 
     ssize_t ret = 0;
 
-    if (WJR_UNLIKELY(src0[idx - 1] < src1[idx - 1])) {
+    if (src0[idx - 1] < src1[idx - 1]) {
         std::swap(src0, src1);
         ret = -n;
         WJR_ASSUME(ret < 0);
@@ -257,8 +257,7 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src
 // dst = abs(src0 - src1)
 // return compare(src0, src1)
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
-WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
-                                             const T *src1, size_t m) {
+ssize_t abs_subc_s(T *dst, const T *src0, size_t n, const T *src1, size_t m) {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
 
@@ -287,13 +286,12 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
 // non-zero pos
 template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
-WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
-                                             size_t n, U &c_out, type_identity_t<U> cf0,
-                                             type_identity_t<U> cf1) {
+ssize_t abs_subc_n(T *dst, const T *src0, const T *src1, size_t n, U &c_out,
+                   type_identity_t<U> cf0, type_identity_t<U> cf1) {
     if (cf0 != cf1) {
         ssize_t ret = 0;
         U cf = 0;
-        if (WJR_UNLIKELY(cf0 < cf1)) {
+        if (cf0 < cf1) {
             std::swap(src0, src1);
             ret = -n;
             WJR_ASSUME(ret < 0);
