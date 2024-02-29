@@ -90,6 +90,14 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
         return;
     }
 
+    if (WJR_BUILTIN_CONSTANT_P(n) && n <= 4) {
+        for (size_t i = 0; i < n; ++i) {
+            dst[i] = val;
+        }
+
+        return;
+    }
+
     if (WJR_UNLIKELY(n > simd_loop * 2)) {
 
         if (WJR_UNLIKELY(n > simd_loop * 4)) {

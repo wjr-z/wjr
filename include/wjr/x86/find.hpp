@@ -1,7 +1,6 @@
 #ifndef WJR_X86_FIND_HPP__
 #define WJR_X86_FIND_HPP__
 
-// TODO : deprecated, optimize
 #include <wjr/simd/simd.hpp>
 
 #ifndef WJR_X86

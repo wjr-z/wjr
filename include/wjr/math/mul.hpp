@@ -1090,6 +1090,7 @@ void toom22_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     WJR_ASSERT_ASSUME(0 < rn && rn <= l);
     WJR_ASSERT_ASSUME(0 < rm && rm <= l);
     WJR_ASSERT_ASSUME(rn + rm >= l);
+    WJR_ASSERT_ASSUME(l - rn <= 1);
 
     const auto u0 = src0;
     const auto u1 = src0 + l;
