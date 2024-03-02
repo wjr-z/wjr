@@ -1,6 +1,0 @@
-#ifndef WJR_MATH_BIGNUM_PRECOMPUTE_HPP__
-#define WJR_MATH_BIGNUM_PRECOMPUTE_HPP__
-
-#include <wjr/math/divider.hpp>
-
-#endif // WJR_MATH_BIGNUM_PRECOMPUTE_HPP__

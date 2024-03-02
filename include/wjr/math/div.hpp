@@ -1,6 +1,7 @@
 #ifndef WJR_MATH_DIV_HPP__
 #define WJR_MATH_DIV_HPP__
 
+#include <wjr/math/compare.hpp>
 #include <wjr/math/div-impl.hpp>
 #include <wjr/math/divider.hpp>
 
@@ -269,7 +270,8 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n, T *div) {
+WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
+                                        const T *div) {
     WJR_ASSERT_ASSUME(n >= 2);
 
     dst[n - 2] = fallback_div_qr_2(dst, rem, src, n, div3by2_divider<T>(div[0], div[1]));
@@ -539,8 +541,8 @@ T dc_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n, T *div,
-                                        size_t m) {
+WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n,
+                                        const T *div, size_t m) {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
 
@@ -576,7 +578,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n, 
             lshift_n(dp, div, m, shift);
             sp[n] = lshift_n(sp, src, n, shift);
         } else {
-            dp = div;
+            dp = const_cast<T *>(div);
             std::copy_n(src, n, sp);
             sp[n] = 0;
         }
@@ -628,7 +630,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n, 
             lshift_n(sp, src + n - 2 * qn, 2 * qn, shift, src[n - 2 * qn - 1]);
         }
     } else {
-        dp = div + st;
+        dp = const_cast<T *>(div + st);
         if (adjust) {
             std::copy_n(src + n - 2 * qn + 1, 2 * qn - 1, sp);
             sp[2 * qn - 1] = 0;
@@ -646,6 +648,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n, 
         const auto lo = dp[0];
         const auto hi = dp[1];
         const auto dinv = div3by2_divider<T>::reciprocal(lo, hi);
+        // maybe inlined ?
         div_qr_2_without_shift(dst, sp, sp, 4, div3by2_divider<T>(lo, hi, dinv, 0));
     } else {
         const auto lo = dp[qn - 2];
@@ -659,8 +662,6 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n, 
     }
 
     WJR_ASSUME(st >= 1);
-
-    T fix = rshift_n(sp, sp, qn, shift);
 
     auto stk2 = static_cast<T *>(stkal.allocate(sizeof(T) * m));
     auto rp = stk2;
@@ -676,7 +677,9 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n, 
         cf = subc_n(rem, src, rp, st);
     } else {
         constexpr auto digits = std::numeric_limits<T>::digits;
+        T fix = rshift_n(sp, sp, qn, shift);
         T mask = (1ull << (digits - shift)) - 1;
+
         if (st != 1) {
             if (qn >= st - 1) {
                 mul_s(rp, dst, qn, div, st - 1);
