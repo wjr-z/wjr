@@ -985,18 +985,18 @@ void __noinline_sqr_impl(T *WJR_RESTRICT dst, const T *src, size_t n,
         reserved, __mul_s_unique_stack_allocator,
         unique_stack_allocator<wjr::math_details::default_stack_allocator, 1>>;
 
-    if (n < toom22_mul_threshold) {
+    if (n < toom2_sqr_threshold) {
         return basecase_sqr(dst, src, n);
     }
 
     unique_alloc stkal(math_details::stack_alloc);
 
-    if (n < toom33_mul_threshold) {
+    if (n < toom3_sqr_threshold) {
         T *stk = __mul_s_allocate<T>(mal, stkal, sizeof(T) * (6 * n + 67));
         return toom2_sqr(dst, src, n, stk);
     }
 
-    if (n < toom44_mul_threshold) {
+    if (n < toom4_sqr_threshold) {
         T *stk = __mul_s_allocate<T>(mal, stkal, sizeof(T) * (9 * n + 288));
         return toom3_sqr(dst, src, n, stk);
     }

@@ -467,18 +467,18 @@ Iter dc_to_chars(Iter first, size_t len, uint64_t *up, size_t n,
     } else {
         const auto pp = pre->ptr;
         const auto pn = pre->n;
+        const auto ps = pre->shift;
 
-        if (n < pn || (n == pn && reverse_compare_n(up, pp, n) < 0)) {
+        if (n < pn + ps || (n == pn + ps && reverse_compare_n(up + ps, pp, pn) < 0)) {
             return dc_to_chars(first, len, up, n, pre - 1, stk, conv);
         }
 
         const auto pd = pre->digits_in_base;
         auto qp = stk;
-        auto rp = up;
 
-        div_qr_s(qp, rp, up, n, pp, pn);
+        div_qr_s(qp, up + ps, up + ps, n - ps, pp, pn);
 
-        size_t qn = n - pn;
+        size_t qn = n - pn - ps;
         qn += qp[qn] != 0;
 
         if (len != 0) {
@@ -486,7 +486,7 @@ Iter dc_to_chars(Iter first, size_t len, uint64_t *up, size_t n,
         }
 
         first = dc_to_chars(first, len, qp, qn, pre - 1, stk + qn, conv);
-        first = dc_to_chars(first, pd, rp, pn, pre - 1, stk, conv);
+        first = dc_to_chars(first, pd, up, pn + ps, pre - 1, stk, conv);
         return first;
     }
 }
@@ -539,7 +539,7 @@ Iter to_chars(Iter first, unsigned int base, uint64_t *up, size_t n,
     precompute_to_chars_t pre[64 - 3];
 
     unique_stack_allocator stkal(math_details::stack_alloc, std::in_place_index<1>);
-    auto stk = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * (3 * n + 192)));
+    auto stk = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * (n * 3 + 192)));
     auto __up = stk;
     std::copy_n(up, n, __up);
     stk += n;

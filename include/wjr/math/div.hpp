@@ -567,6 +567,8 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n,
         T *sp;
         T *dp;
 
+        dst[n - m] = 0;
+
         const auto shift = clz(div[m - 1]);
         const size_t alloc = n + 1 + (shift != 0 ? m : 0);
         unique_stack_allocator stkal(math_details::stack_alloc, std::in_place_index<1>);
