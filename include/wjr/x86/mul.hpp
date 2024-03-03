@@ -764,7 +764,6 @@ inline uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n, uint6
         "jmp .Lb7%=\n\t"
 
         ".Ld1%=:\n\t"
-        "not %[r8]\n\t"
         "adc{q (%[dst]), %[r8]| [%[dst]], %[r8]}\n\t"
         "sbb{q $-1, %[r9]| %[r9], -1}\n\t"
         "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
@@ -772,6 +771,7 @@ inline uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n, uint6
 
         ".Ll1%=:\n\t"
         "mulx{q (%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
+        "not %[r8]\n\t"
         "jrcxz .Ld1%=\n\t"
         "lea{q 8(%[src]), %[src]| %[src], [%[src] + 8]}\n\t"
         "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"

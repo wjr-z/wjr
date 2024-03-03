@@ -822,11 +822,6 @@ WJR_CONSTEXPR_E void divexact_byc(T *dst, const T *src, size_t n,
     }
 }
 
-template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int>>
-WJR_CONSTEXPR_E void divexact_by9(T *dst, const T *src, size_t n) {
-    divexact_byc(dst, src, n, std::integral_constant<T, 9>{});
-}
-
 // reference : ftp://ftp.risc.uni-linz.ac.at/pub/techreports/1992/92-35.ps.gz
 template <typename T>
 WJR_CONSTEXPR_E void fallback_divexact_1_without_shift(T *dst, const T *src, size_t n,

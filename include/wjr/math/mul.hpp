@@ -1429,19 +1429,20 @@ void toom_interpolation_5p_s(T *WJR_RESTRICT dst, T *w1p, size_t l, size_t rn, s
     // W3 = ((W3 - W2) >> 1) - (W4 << 1) : (non-negative) r3
     {
         cf3 -= cf2 + subc_n(w3p, w3p, w2p, l * 2);
-        if (l != maxr) {
-            WJR_ASSERT(cf3 == 0);
-            cf3 = w3p[l + maxr];
-        }
 
-        rshift_n(w3p, w3p, l + maxr, 1, cf3);
+        rshift_n(w3p, w3p, l * 2, 1, cf3);
         cf3 >>= 1;
 
         cf = submul_1(w3p, w4p, rn + rm, 2);
-        if ((l + maxr) != (rn + rm)) {
-            cf3 -= subc_1(w3p + rn + rm, w3p + rn + rm, (l + maxr) - (rn + rm), cf);
+        if (l * 2 != (rn + rm)) {
+            cf3 -= subc_1(w3p + rn + rm, w3p + rn + rm, l * 2 - (rn + rm), cf);
         } else {
             cf3 -= cf;
+        }
+
+        if (l != maxr) {
+            WJR_ASSERT(cf3 == 0);
+            cf3 = w3p[l + maxr];
         }
     }
 
@@ -2474,7 +2475,7 @@ void toom_interpolation_7p_s(T *WJR_RESTRICT dst, T *w1p, size_t l, size_t rn, s
 
     //  W5 =(W5 - W3*8)/9
     cf5 -= cf3 * 8 + submul_1(w5p, w3p, l * 2, 8);
-    divexact_by9(w5p, w5p, l * 2);
+    divexact_byc(w5p, w5p, l * 2, std::integral_constant<T, 9>{});
     cf5 /= 9;
 
     //  W3 = W3 - W5

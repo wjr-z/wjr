@@ -1,16 +1,8 @@
-// #include <wjr/type_traits.hpp>
-#include <wjr/math/precompute-convert.hpp>
+#include <wjr/math/precompute-convert-impl.hpp>
 
 namespace wjr {
 
-// struct precompute_to_chars_16n_t {
-//     uint64_t big_base;
-//     size_t n;
-//     size_t digits_in_one_base;
-//     uint64_t arr[16];
-// };
-
-precompute_to_chars_16n_t precompute_to_chars_8n[36 - 6] = {
+precompute_to_chars_16n_t precompute_to_chars_16n[36 - 6] = {
     {12157665459056928801ull,
      16ull,
      640,
@@ -259,39 +251,39 @@ precompute_to_chars_16n_t *precompute_to_chars_16n_ptr[37] = {
     nullptr,
     nullptr,
     nullptr,
-    &precompute_to_chars_8n[0],
+    &precompute_to_chars_16n[0],
     nullptr,
-    &precompute_to_chars_8n[1],
-    &precompute_to_chars_8n[2],
-    &precompute_to_chars_8n[3],
+    &precompute_to_chars_16n[1],
+    &precompute_to_chars_16n[2],
+    &precompute_to_chars_16n[3],
     nullptr,
-    &precompute_to_chars_8n[4],
-    &precompute_to_chars_8n[5],
-    &precompute_to_chars_8n[6],
-    &precompute_to_chars_8n[7],
-    &precompute_to_chars_8n[8],
-    &precompute_to_chars_8n[9],
-    &precompute_to_chars_8n[10],
+    &precompute_to_chars_16n[4],
+    &precompute_to_chars_16n[5],
+    &precompute_to_chars_16n[6],
+    &precompute_to_chars_16n[7],
+    &precompute_to_chars_16n[8],
+    &precompute_to_chars_16n[9],
+    &precompute_to_chars_16n[10],
     nullptr,
-    &precompute_to_chars_8n[11],
-    &precompute_to_chars_8n[12],
-    &precompute_to_chars_8n[13],
-    &precompute_to_chars_8n[14],
-    &precompute_to_chars_8n[15],
-    &precompute_to_chars_8n[16],
-    &precompute_to_chars_8n[17],
-    &precompute_to_chars_8n[18],
-    &precompute_to_chars_8n[19],
-    &precompute_to_chars_8n[20],
-    &precompute_to_chars_8n[21],
-    &precompute_to_chars_8n[22],
-    &precompute_to_chars_8n[23],
-    &precompute_to_chars_8n[24],
-    &precompute_to_chars_8n[25],
+    &precompute_to_chars_16n[11],
+    &precompute_to_chars_16n[12],
+    &precompute_to_chars_16n[13],
+    &precompute_to_chars_16n[14],
+    &precompute_to_chars_16n[15],
+    &precompute_to_chars_16n[16],
+    &precompute_to_chars_16n[17],
+    &precompute_to_chars_16n[18],
+    &precompute_to_chars_16n[19],
+    &precompute_to_chars_16n[20],
+    &precompute_to_chars_16n[21],
+    &precompute_to_chars_16n[22],
+    &precompute_to_chars_16n[23],
+    &precompute_to_chars_16n[24],
+    &precompute_to_chars_16n[25],
     nullptr,
-    &precompute_to_chars_8n[26],
-    &precompute_to_chars_8n[27],
-    &precompute_to_chars_8n[28],
-    &precompute_to_chars_8n[29]};
+    &precompute_to_chars_16n[26],
+    &precompute_to_chars_16n[27],
+    &precompute_to_chars_16n[28],
+    &precompute_to_chars_16n[29]};
 
 } // namespace wjr
