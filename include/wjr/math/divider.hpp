@@ -1,7 +1,6 @@
 #ifndef WJR_MATH_DIVIDER_HPP__
 #define WJR_MATH_DIVIDER_HPP__
 
-#include <wjr/math/divider-impl.hpp>
 #include <wjr/math/mul.hpp>
 
 #if defined(WJR_X86)

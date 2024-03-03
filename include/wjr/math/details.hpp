@@ -5,6 +5,7 @@
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
+    
 namespace math_details {
 
 template <typename T, T seed>

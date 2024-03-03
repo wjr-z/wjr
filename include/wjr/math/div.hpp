@@ -540,6 +540,10 @@ T dc_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
     return qh;
 }
 
+extern template uint64_t dc_div_qr_s<uint64_t>(uint64_t *dst, uint64_t *src, size_t n,
+                                               const uint64_t *div, size_t m,
+                                               uint64_t dinv);
+
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n,
                                         const T *div, size_t m) {

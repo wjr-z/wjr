@@ -499,7 +499,7 @@ template <
         int> = 0>
 Iter to_chars(Iter first, unsigned int base, uint64_t *up, size_t n,
               Converter conv = {}) {
-    WJR_ASSERT(base <= 36 && is_power_of_two(base) || base == 10, "Not support yet.");
+    WJR_ASSERT(base <= 36 && (is_power_of_two(base) || base == 10), "Not support yet.");
 
     if (is_power_of_two(base)) {
         switch (base) {

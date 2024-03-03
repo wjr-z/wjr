@@ -1,6 +1,14 @@
+// #include <wjr/type_traits.hpp>
 #include <wjr/math/precompute-convert.hpp>
 
 namespace wjr {
+
+// struct precompute_to_chars_16n_t {
+//     uint64_t big_base;
+//     size_t n;
+//     size_t digits_in_one_base;
+//     uint64_t arr[16];
+// };
 
 precompute_to_chars_16n_t precompute_to_chars_8n[36 - 6] = {
     {12157665459056928801ull,

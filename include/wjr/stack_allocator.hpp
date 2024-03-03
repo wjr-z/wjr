@@ -47,6 +47,8 @@ class stack_alloc {
         }
 
         WJR_COLD WJR_CONSTEXPR20 void __deallocate() {
+            m_stk[m_idx].ptr = m_stk[m_idx].buffer;
+
             --m_idx;
 
             if (WJR_UNLIKELY(m_stk.size() - m_idx >= bufsize + 2)) {
@@ -95,6 +97,7 @@ class stack_alloc {
             char *end;
         };
 
+        // cache of m_stk
         alloc_node m_node = {nullptr, nullptr, nullptr};
         size_t m_idx = -1ull;
         std::vector<alloc_node> m_stk;
@@ -141,7 +144,11 @@ template <size_t cache0, size_t threshold0, size_t buffer0, size_t cache1,
 class stack_allocator {
     using alloc =
         stack_alloc<cache0, threshold0, buffer0, cache1, threshold1, buffer1, alignment>;
-    static thread_local alloc __alloc;
+
+    static alloc &get_instance() {
+        static thread_local alloc __alloc = {};
+        return __alloc;
+    }
 
 public:
     using pointer = void *;
@@ -152,20 +159,13 @@ public:
     ~stack_allocator() = default;
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n) const {
-        return __alloc.allocate(n);
+        return get_instance().allocate(n);
     }
 
     WJR_CONSTEXPR20 void deallocate(void *ptr, size_t n) const {
-        return __alloc.deallocate(ptr, n);
+        return get_instance().deallocate(ptr, n);
     }
 };
-
-template <size_t cache0, size_t threshold0, size_t buffer0, size_t cache1,
-          size_t threshold1, size_t buffer1, size_t alignment>
-thread_local typename stack_allocator<cache0, threshold0, buffer0, cache1, threshold1,
-                                      buffer1, alignment>::alloc
-    stack_allocator<cache0, threshold0, buffer0, cache1, threshold1, buffer1,
-                    alignment>::__alloc = {};
 
 // Universal alternative solutions for alloca
 template <typename StackAllocator, size_t Extent = dynamic_extent>
@@ -216,7 +216,7 @@ class unique_stack_allocator {
     }
 
     template <size_t E = Extent, std::enable_if_t<!(E <= InlineThreshold), int> = 0>
-    WJR_CONSTEXPR20 void __release() {
+    WJR_CONSTEXPR20 void __release_all() {
         auto &al = pair.first();
         auto &vec = pair.second();
         NoinlineBuffer *buffer = vec.vec;
@@ -231,7 +231,7 @@ class unique_stack_allocator {
     }
 
     template <size_t E = Extent, std::enable_if_t<(E <= InlineThreshold), int> = 0>
-    WJR_CONSTEXPR20 void __release() {
+    WJR_CONSTEXPR20 void __release_all() {
         auto &al = pair.first();
         auto &arr = pair.second();
 
@@ -253,9 +253,9 @@ public:
 
     WJR_CONSTEXPR20 void release_one() { __release_one(); }
 
-    WJR_CONSTEXPR20 void release() { __release(); }
+    WJR_CONSTEXPR20 void release_all() { __release_all(); }
 
-    WJR_INTRINSIC_CONSTEXPR20 ~unique_stack_allocator() { release(); }
+    WJR_INTRINSIC_CONSTEXPR20 ~unique_stack_allocator() { release_all(); }
 
     unique_stack_allocator(const unique_stack_allocator &) = delete;
     unique_stack_allocator &operator=(const unique_stack_allocator &) = delete;

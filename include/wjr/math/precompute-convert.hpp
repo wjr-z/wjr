@@ -1,7 +1,7 @@
 #ifndef WJR_MATH_PRECOMPUTE_CONVERT_HPP__
 #define WJR_MATH_PRECOMPUTE_CONVERT_HPP__
 
-#include <wjr/math/div.hpp>
+#include <wjr/math/mul.hpp>
 #include <wjr/type_traits.hpp>
 
 namespace wjr {

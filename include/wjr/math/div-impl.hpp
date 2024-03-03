@@ -1,10 +1,18 @@
 #ifndef WJR_MATH_DIV_IMPL_HPP__
 #define WJR_MATH_DIV_IMPL_HPP__
 
-#include <wjr/math/divider-impl.hpp>
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
+
+template <typename T>
+class div2by1_divider;
+
+template <typename T>
+class div3by2_divider;
+
+template <typename T>
+class divexact1_divider;
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,

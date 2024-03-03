@@ -2,6 +2,7 @@
 #define WJR_ASSERT_HPP__
 
 #include <cstdio>
+#include <cstdlib>
 #include <type_traits>
 #include <utility>
 

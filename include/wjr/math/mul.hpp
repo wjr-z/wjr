@@ -530,6 +530,18 @@ template <typename T>
 void toom32_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, size_t m,
                   T *stk);
 
+template <typename T>
+struct toom_interpolation_5p_struct;
+
+template <typename T>
+void toom_interpolation_5p_s(T *WJR_RESTRICT dst, T *w1p, size_t l, size_t rn, size_t rm,
+                             toom_interpolation_5p_struct<T> &&flag);
+
+extern template void
+toom_interpolation_5p_s<uint64_t>(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
+                                  size_t rn, size_t rm,
+                                  toom_interpolation_5p_struct<uint64_t> &&flag);
+
 /*
  l = max(ceil(n/4), ceil(m/2))
  stk usage : l * 4
@@ -549,6 +561,18 @@ void toom33_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
 template <typename T>
 void toom3_sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *stk);
 
+template <typename T>
+struct toom_interpolation_6p_struct;
+
+template <typename T>
+void toom_interpolation_6p_s(T *WJR_RESTRICT dst, T *w1p, size_t l, size_t rn, size_t rm,
+                             toom_interpolation_6p_struct<T> &&flag);
+
+extern template void
+toom_interpolation_6p_s<uint64_t>(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
+                                  size_t rn, size_t rm,
+                                  toom_interpolation_6p_struct<uint64_t> &&flag);
+
 // unused
 template <typename T>
 void toom52_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, size_t m,
@@ -562,6 +586,23 @@ template <typename T>
 void toom43_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, size_t m,
                   T *stk);
 
+extern template void toom43_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst,
+                                            const uint64_t *src0, size_t n,
+                                            const uint64_t *src1, size_t m,
+                                            uint64_t *stk);
+
+template <typename T>
+struct toom_interpolation_7p_struct;
+
+template <typename T>
+void toom_interpolation_7p_s(T *WJR_RESTRICT dst, T *w1p, size_t l, size_t rn, size_t rm,
+                             toom_interpolation_7p_struct<T> &&flag);
+
+extern template void
+toom_interpolation_7p_s<uint64_t>(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
+                                  size_t rn, size_t rm,
+                                  toom_interpolation_7p_struct<uint64_t> &&flag);
+
 /*
  l = max(ceil(n/5), ceil(m/3))
  stk usage : l * 6
@@ -570,6 +611,11 @@ template <typename T>
 void toom53_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, size_t m,
                   T *stk);
 
+extern template void toom53_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst,
+                                            const uint64_t *src0, size_t n,
+                                            const uint64_t *src1, size_t m,
+                                            uint64_t *stk);
+
 /*
  l = ceil(n/4)
  stk usage : l * 6
@@ -577,6 +623,11 @@ void toom53_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
 template <typename T>
 void toom44_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, size_t m,
                   T *stk);
+
+extern template void toom44_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst,
+                                            const uint64_t *src0, size_t n,
+                                            const uint64_t *src1, size_t m,
+                                            uint64_t *stk);
 
 template <typename T>
 void toom4_sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *stk);
@@ -1481,7 +1532,6 @@ void toom42_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
 
     stk += l * 4;
 
-    T cf = 0;
     T cf0 = 0, cf1 = 0, cf2 = 0, cf3 = 0, cf4 = 0;
     bool neg2 = 0, neg3 = 0;
 
@@ -1662,7 +1712,7 @@ void toom3_sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *stk) {
 
     stk += l * 4;
 
-    T cf0 = 0, cf1 = 0, cf2 = 0, cf3 = 0, cf4 = 0;
+    T cf0 = 0, cf1 = 0, cf2 = 0, cf3 = 0;
 
     // W0 = U0 + U2 : (non-negative)
     cf0 = addc_s(w0p, u0p, l, u2p, rn);
@@ -2134,7 +2184,6 @@ void toom43_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     stk += l * 6;
 
     // Hand it over to the compiler to optimize reusable variables
-    T cf = 0;
     T cf1 = 0, cf2 = 0, cf3 = 0, cf4 = 0, cf5 = 0;
     T cft0 = 0, cft1 = 0, cft2 = 0;
     // Reusable
