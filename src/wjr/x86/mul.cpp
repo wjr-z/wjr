@@ -1,22 +1,91 @@
-#include <wjr/math/mul.hpp>
+#include <cstddef>
+#include <cstdint>
+
+#include <wjr/preprocessor.hpp>
 
 namespace wjr {
 
-void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t n,
+void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t dx,
                                const uint64_t *src1, size_t m) {
-    WJR_ASSERT_ASSUME(n >= m);
-    WJR_ASSERT_ASSUME(m >= 1);
 
-    if (WJR_UNLIKELY(n == 1)) {
-        WJR_ASSERT_ASSUME(m == 1);
-        dst[0] = mul(*src0, *src1, dst[1]);
+    uint64_t r8, r9, r10, r11;
+    uint64_t cx;
+    uint64_t ax; // ax = dx & 7
+
+#if !WJR_HAS_FEATURE(INLINE_ASM_GOTO_OUTPUT)
+    if (WJR_UNLIKELY(dx == 1)) {
+        dx = src1[0];
+        asm volatile("mulx{q (%[src0]), %[r8], %[r9]| %[r9], %[r8], [%[src0]]}\n\t"
+                     : [r8] "=r"(r8), [r9] "=r"(r9)
+                     : "d"(dx), [src0] "r"(src0)
+                     : "memory");
+        dst[0] = r8;
+        dst[1] = r9;
+        return;
+    }
+#else
+    asm volatile goto(
+        "cmp{q $2, %[dx]| %[dx], 2}\n\t"
+        "ja %l[LARGE]\n\t"
+        "mov{q (%[src1]), %[dx]| %[dx], [%[src1]]}\n\t"
+        "mulx{q (%[src0]), %[r8], %[r9]| %[r9], %[r8], [%[src0]]}\n\t"
+        "je %l[N2]"
+        : [r8] "=&r"(r8), [r9] "=&r"(r9), [dx] "+&r"(dx)
+        : [src0] "r"(src0), [src1] "r"(src1)
+        : "cc", "memory"
+        : LARGE, N2);
+
+    dst[0] = r8;
+    dst[1] = r9;
+
+    return;
+
+N2:
+    asm volatile("mulx{q 8(%[src0]), %[r10], %[r11]| %[r11], %[r10], [%[src0] + 8]}\n\t"
+                 : [r10] "=r"(r10), [r11] "=r"(r11)
+                 : "r"(dx), [src0] "r"(src0)
+                 : "memory");
+
+    if (WJR_LIKELY(m == 1)) {
+        asm volatile(
+            "add{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
+            "adc{q $0x0, %[r11]| %[r11], 0}\n\t"
+            "mov{q %[r8], (%[dst])| [%[dst] ], %[r8]}\n\t"
+            "mov{q %[r10], 8(%[dst])| [%[dst] + 8], %[r10]}\n\t"
+            "mov{q %[r11], 16(%[dst])| [%[dst] + 16], %[r11]}\n\t"
+            : [r10] "+&r"(r10), [r11] "+&r"(r11)
+            :
+            [r8] "r"(r8), [r9] "r"(r9), [dst] "r"(dst), [src0] "r"(src0), [src1] "r"(src1)
+            : "cc", "memory");
+
         return;
     }
 
-    uint64_t r8, r9, r10, r11;
-    uint64_t dx = n, cx;
+    asm volatile(
+        "add{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
+        "adc{q $0x0, %[r11]| %[r11], 0}\n\t"
+        "mov{q 8(%[src1]), %[dx]| %[dx], [%[src1] + 8]}\n\t"
+        "mov{q %[r8], (%[dst])| [%[dst] ], %[r8]}\n\t"
+        "mulx{q (%[src0]), %[r8], %[r9]| %[r9], %[r8], [%[src0]]}\n\t"
+        "mulx{q 8(%[src0]), %[ax], %[dx]| %[dx], %[ax], [%[src0] + 8]}\n\t"
+        "add{q %[r9], %[ax]| %[ax], %[r9]}\n\t"
+        "adc{q $0x0, %[dx]| %[dx], 0}\n\t"
+        "add{q %[r10], %[r8]| %[r8], %[r10]}\n\t"
+        "adc{q %[r11], %[ax]| %[ax], %[r11]}\n\t"
+        "adc{q $0x0, %[dx]| %[dx], 0}\n\t"
+        "mov{q %[r8], 8(%[dst])| [%[dst] + 8], %[r8]}\n\t"
+        "mov{q %[ax], 16(%[dst])| [%[dst] + 16], %[ax]}\n\t"
+        "mov{q %[dx], 24(%[dst])| [%[dst] + 24], %[dx]}\n\t"
+        : [r8] "+&r"(r8), [r9] "+&r"(r9), [r10] "+&r"(r10), [r11] "+&r"(r11),
+          [dx] "=&d"(dx), [ax] "=&r"(ax)
+        : [dst] "r"(dst), [src0] "r"(src0), [src1] "r"(src1)
+        : "cc", "memory");
 
-    uint64_t ax;  // ax = n & 7
+    return;
+
+LARGE:
+#endif
+
     uint64_t adj; // adj = ((n + 2) & 7) - (n + 2)
     uint64_t rbp; // rbp = n / 8
 

@@ -550,6 +550,11 @@ template <typename T>
 void toom42_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, size_t m,
                   T *stk);
 
+extern template void toom42_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst,
+                                            const uint64_t *src0, size_t n,
+                                            const uint64_t *src1, size_t m,
+                                            uint64_t *stk);
+
 /*
  l = ceil(n/3)
  stk usage : l * 4
@@ -557,6 +562,11 @@ void toom42_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
 template <typename T>
 void toom33_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, size_t m,
                   T *stk);
+
+extern template void toom33_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst,
+                                            const uint64_t *src0, size_t n,
+                                            const uint64_t *src1, size_t m,
+                                            uint64_t *stk);
 
 template <typename T>
 void toom3_sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *stk);
@@ -850,6 +860,17 @@ void __noinline_mul_s_impl(T *WJR_RESTRICT dst, const T *src0, size_t n, const T
     toom44_mul_s(dst, src0, n, src1, m, stk);
     return;
 }
+
+extern template void __noinline_mul_s_impl<true, uint64_t>(uint64_t *WJR_RESTRICT dst,
+                                                           const uint64_t *src0, size_t n,
+                                                           const uint64_t *src1, size_t m,
+                                                           uint64_t *mal);
+
+extern template void __noinline_mul_s_impl<false, uint64_t>(uint64_t *WJR_RESTRICT dst,
+                                                            const uint64_t *src0,
+                                                            size_t n,
+                                                            const uint64_t *src1,
+                                                            size_t m, empty mal);
 
 template <__mul_mode mode, bool reserved, typename T>
 WJR_INTRINSIC_INLINE void __mul_s_impl(T *WJR_RESTRICT dst, const T *src0, size_t n,
@@ -1436,13 +1457,12 @@ void toom_interpolation_5p_s(T *WJR_RESTRICT dst, T *w1p, size_t l, size_t rn, s
         cf = submul_1(w3p, w4p, rn + rm, 2);
         if (l * 2 != (rn + rm)) {
             cf3 -= subc_1(w3p + rn + rm, w3p + rn + rm, l * 2 - (rn + rm), cf);
+            if (l != maxr) {
+                WJR_ASSERT(cf3 == 0);
+                cf3 = w3p[l + maxr];
+            }
         } else {
             cf3 -= cf;
-        }
-
-        if (l != maxr) {
-            WJR_ASSERT(cf3 == 0);
-            cf3 = w3p[l + maxr];
         }
     }
 

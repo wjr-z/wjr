@@ -50,7 +50,7 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
         ".Ld1%=:\n\t"
         "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
         "shrx{q %[tcl], %[r11], %[r11]| %[r11], %[r11], %[tcl]}\n\t"
-        "adc{q %[cx], %[r11]| %[r11], %[cx]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q %[cx], %[r11]| %[r11], %[cx]}\n\t"
         "jmp .Ldone%=\n\t"
 
         ".Ll1%=:\n\t"
@@ -233,7 +233,7 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
         "lea{q (%[r8], %[r10]), %[r10]| %[r10], [%[r10] + %[r8]]}\n\t"
         WJR_PP_STR(WJR_adcsbb) "{q -8(%[src0]), %[r10]| %[r10], [%[src0] - 8]}\n\t"
         "shrx{q %[tcl], %[r11], %[r11]| %[r11], %[r11], %[tcl]}\n\t"
-        "adc{q %[cx], %[r11]| %[r11], %[cx]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q %[cx], %[r11]| %[r11], %[cx]}\n\t"
         "mov{q %[r10], -8(%[dst])| [%[dst] - 8], %[r10]}\n\t"
 
         ".Ldone%=:"
