@@ -2241,7 +2241,7 @@ void toom43_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
 
         if (!neg1) {
             // W4 maybe less than V0
-            // use lshfit + compare sub instead of rsblsh_n
+            // use lshfit + abs_sub instead of rsblsh_n
             cf4 += cf4 + lshift_n(w4p, w4p, l, 1);
             {
                 ssize_t p = abs_subc_n(w4p, w4p, v0p, l, cf4, cf4, 0);
@@ -2455,7 +2455,7 @@ void toom_interpolation_7p_s(T *WJR_RESTRICT dst, T *w1p, size_t l, size_t rn, s
     cf2 -= subc_s(w2p, w2p, l * 2, w6p, rn + rm);
 
     //  W5 =(W5 + W2*45)/2   Now >= 0 again.
-    cf5 += cf2 * 45 + addmul_1(w5p, w2p, l * 2, 45u);
+    cf5 += cf2 * 45 + addmul_1(w5p, w2p, l * 2, 45);
     (void)rshift_n(w5p, w5p, l * 2, 1, cf5);
     cf5 >>= 1;
 

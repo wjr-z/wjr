@@ -126,37 +126,13 @@ using uint_t = typename __uint_selector<n>::type;
 template <size_t n>
 using int_t = typename __int_selector<n>::type;
 
-using int8_t = int_t<8>;
-using int16_t = int_t<16>;
-using int32_t = int_t<32>;
-using int64_t = int_t<64>;
 #if WJR_HAS_FEATURE(INT128)
 using int128_t = int_t<128>;
 #endif
 
-using uint8_t = uint_t<8>;
-using uint16_t = uint_t<16>;
-using uint32_t = uint_t<32>;
-using uint64_t = uint_t<64>;
 #if WJR_HAS_FEATURE(INT128)
 using uint128_t = uint_t<128>;
 #endif
-
-using intptr_t = std::intptr_t;
-using uintptr_t = std::uintptr_t;
-
-using std_int8_t = std::int8_t;
-using std_int16_t = std::int16_t;
-using std_int32_t = std::int32_t;
-using std_int64_t = std::int64_t;
-
-using std_uint8_t = std::uint8_t;
-using std_uint16_t = std::uint16_t;
-using std_uint32_t = std::uint32_t;
-using std_uint64_t = std::uint64_t;
-
-using std_intptr_t = std::intptr_t;
-using std_uintptr_t = std::uintptr_t;
 
 template <size_t n, bool __s>
 using usint_t = std::conditional_t<__s, int_t<n>, uint_t<n>>;

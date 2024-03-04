@@ -89,6 +89,10 @@
 #endif
 #endif
 
+#if WJR_HAS_FEATURE(INLINE_ASM) && (WJR_HAS_GCC(7, 1, 0) || WJR_HAS_CLANG(9, 0, 0))
+#define WJR_HAS_FEATURE_INLINE_ASM_GOTO WJR_HAS_DEF
+#endif
+
 #if defined(__SIZEOF_INT128__)
 #define WJR_HAS_FEATURE_INT128 WJR_HAS_DEF
 #if !(defined(__clang__) && defined(LIBDIVIDE_VC))
@@ -108,7 +112,6 @@
 // performance bug
 // #define WJR_HAS_FEATURE_FAST_INT128_ADDSUB WJR_HAS_DEF
 #endif
-
 
 #if WJR_HAS_GCC(11, 1, 0) || WJR_HAS_CLANG(5, 0, 0)
 #define WJR_HAS_ATTRIBUTE_FORCEINLINE_LAMBDA WJR_HAS_DEF

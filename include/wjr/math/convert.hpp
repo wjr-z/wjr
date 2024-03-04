@@ -491,12 +491,10 @@ Iter dc_to_chars(Iter first, size_t len, uint64_t *up, size_t n,
     }
 }
 
-template <
-    typename Iter, typename Converter = char_converter_t,
-    std::enable_if_t<
-        std::disjunction_v<std::is_same<remove_cvref_t<Converter>, char_converter_t>,
-                           std::is_same<remove_cvref_t<Converter>, origin_converter_t>>,
-        int> = 0>
+template <typename Iter, typename Converter = char_converter_t,
+          std::enable_if_t<is_any_of_v<remove_cvref_t<Converter>, char_converter_t,
+                                       origin_converter_t>,
+                           int> = 0>
 Iter to_chars(Iter first, unsigned int base, uint64_t *up, size_t n,
               Converter conv = {}) {
     WJR_ASSERT(base <= 36 && (is_power_of_two(base) || base == 10), "Not support yet.");
