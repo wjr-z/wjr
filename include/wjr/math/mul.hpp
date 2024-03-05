@@ -530,6 +530,11 @@ template <typename T>
 void toom32_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, size_t m,
                   T *stk);
 
+extern template void toom32_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst,
+                                            const uint64_t *src0, size_t n,
+                                            const uint64_t *src1, size_t m,
+                                            uint64_t *stk);
+
 template <typename T>
 struct toom_interpolation_5p_struct;
 
