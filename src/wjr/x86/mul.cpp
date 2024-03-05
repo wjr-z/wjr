@@ -43,7 +43,7 @@ void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t dx,
 N2:
     asm volatile("mulx{q 8(%[src0]), %[r10], %[r11]| %[r11], %[r10], [%[src0] + 8]}\n\t"
                  : [r10] "=r"(r10), [r11] "=r"(r11)
-                 : "r"(dx), [src0] "r"(src0)
+                 : "d"(dx), [src0] "r"(src0)
                  : "memory");
 
     if (WJR_LIKELY(m == 1)) {

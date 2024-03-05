@@ -4,6 +4,10 @@ namespace wjr {
 
 // mul.hpp
 
+template void toom32_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                                     size_t n, const uint64_t *src1, size_t m,
+                                     uint64_t *stk);
+
 template void
 toom_interpolation_5p_s<uint64_t>(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
                                   size_t rn, size_t rm,
