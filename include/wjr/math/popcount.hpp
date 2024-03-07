@@ -55,7 +55,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_popcount(T x) {
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int popcount(T x) {
-    if (WJR_BUILTIN_CONSTANT_P(is_power_of_two(x)) && is_power_of_two(x)) {
+    if (WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(x)) && is_zero_or_single_bit(x)) {
         return x != 0;
     }
 

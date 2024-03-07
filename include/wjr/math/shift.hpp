@@ -1,6 +1,7 @@
 #ifndef WJR_MATH_SHIFT_HPP__
 #define WJR_MATH_SHIFT_HPP__
 
+#include <wjr/assert.hpp>
 #include <wjr/type_traits.hpp>
 
 #if defined(WJR_X86)
@@ -43,6 +44,11 @@ WJR_INTRINSIC_CONSTEXPR T fallback_lshift_n(T *dst, const T *src, size_t n,
     return ret;
 }
 
+/*
+require :
+1. n >= 1
+2. WJR_IS_SAME_OR_DECR_P(dst, n, src, n)
+*/
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR_E T lshift_n(T *dst, const T *src, size_t n, unsigned int c,
                                      T lo = 0) {
@@ -84,6 +90,11 @@ WJR_INTRINSIC_CONSTEXPR T fallback_rshift_n(T *dst, const T *src, size_t n,
     return ret;
 }
 
+/*
+require :
+1. n >= 1
+2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
+*/
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR_E T rshift_n(T *dst, const T *src, size_t n, unsigned int c,
                                      T hi = 0) {

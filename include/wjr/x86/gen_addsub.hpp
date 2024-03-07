@@ -2,6 +2,8 @@
 // 0 : SUB
 // 1 : ADD
 
+#include <wjr/assert.hpp>
+
 #ifndef WJR_ADDSUB_I
 #error "abort"
 #endif

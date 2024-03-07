@@ -1,6 +1,7 @@
 #ifndef WJR_X86_COMPARE_HPP__
 #define WJR_X86_COMPARE_HPP__
 
+#include <wjr/math/ctz.hpp>
 #include <wjr/simd/simd.hpp>
 
 #ifndef WJR_X86
@@ -12,7 +13,7 @@ namespace wjr {
 #if WJR_HAS_SIMD(SSE4_1) && WJR_HAS_SIMD(SIMD)
 #define WJR_HAS_BUILTIN_COMPARE_N WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_REVERSE_COMPARE_N WJR_HAS_DEF
-#endif //
+#endif
 
 #if WJR_HAS_BUILTIN(COMPARE_N)
 
@@ -456,9 +457,17 @@ WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_HAS_BUILTIN___ASM_LESS_128 WJR_HAS_DEF
 #define WJR_HAS_BUILTIN___ASM_LESS_EQUAL_128 WJR_HAS_DEF
+
+// not used yet.
+#if WJR_HAS_FEATURE(INLINE_ASM_GOTO_OUTPUT)
+#define WJR_HAS_BUILTIN___ASM_LESS_128_GOTO WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___ASM_LESS_EQUAL_128_GOTO WJR_HAS_DEF
+#endif
+
 #endif
 
 #if WJR_HAS_BUILTIN(__ASM_LESS_128)
+
 WJR_INTRINSIC_INLINE bool __asm_less_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
                                          uint64_t hi1) {
     bool ret;
@@ -470,9 +479,30 @@ WJR_INTRINSIC_INLINE bool __asm_less_128(uint64_t lo0, uint64_t hi0, uint64_t lo
         : "cc", "memory");
     return ret;
 }
+
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_LESS_128_GOTO)
+
+// unlikely to goto label
+#define WJR___ASM_LESS_128_GOTO(_lo0, _hi0, _lo1, _hi1, label)                           \
+    do {                                                                                 \
+        auto __lo0 = _lo0;                                                               \
+        auto __hi0 = _hi0;                                                               \
+        asm volatile goto(                                                               \
+            "cmp{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"                                  \
+            "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t"                                  \
+            "jb %l[" #label "]"                                                          \
+            : [lo0] "+&r"(__lo0), [hi0] "+r"(__hi0)                                      \
+            : [lo1] "r"(_lo1), [hi1] "r"(_hi1)                                           \
+            : "cc", "memory"                                                             \
+            : label);                                                                    \
+    } while (0)
+
 #endif
 
 #if WJR_HAS_BUILTIN(__ASM_LESS_EQUAL_128)
+
 WJR_INTRINSIC_INLINE bool __asm_less_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
                                                uint64_t hi1) {
     bool ret;
@@ -484,6 +514,26 @@ WJR_INTRINSIC_INLINE bool __asm_less_equal_128(uint64_t lo0, uint64_t hi0, uint6
         : "cc", "memory");
     return ret;
 }
+
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_LESS_EQUAL_128_GOTO)
+
+// unlikely to goto label
+#define WJR___ASM_LESS_EQUAL_128_GOTO(_lo0, _hi0, _lo1, _hi1, label)                     \
+    do {                                                                                 \
+        auto __lo1 = _lo1;                                                               \
+        auto __hi1 = _hi1;                                                               \
+        asm volatile goto(                                                               \
+            "cmp{q %[lo0], %[lo1]| %[lo1], %[lo0]}\n\t"                                  \
+            "sbb{q %[hi0], %[hi1]| %[hi1], %[hi0]}\n\t"                                  \
+            "jae %l[" #label "]"                                                         \
+            : [lo1] "+&r"(__lo1), [hi1] "+r"(__hi1)                                      \
+            : [lo0] "r"(_lo0), [hi0] "r"(_hi0)                                           \
+            : "cc", "memory"                                                             \
+            : label);                                                                    \
+    } while (0)
+
 #endif
 
 } // namespace wjr

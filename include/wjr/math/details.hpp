@@ -5,7 +5,7 @@
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
-    
+
 namespace math_details {
 
 template <typename T, T seed>
@@ -43,7 +43,7 @@ inline constexpr default_stack_allocator stack_alloc = {};
 // preview ...
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR bool is_power_of_two(T n) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR bool is_zero_or_single_bit(T n) noexcept {
     return (n & (n - 1)) == 0;
 }
 

@@ -71,7 +71,7 @@ public:
     constexpr T get_value() const { return m_value; }
     constexpr unsigned int get_shift() const { return m_shift; }
 
-    constexpr bool is_power_of_two() const { return m_divisor == (1ull << 63); }
+    constexpr bool is_zero_or_single_bit() const { return m_divisor == (1ull << 63); }
 
     WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor, T value, T lo, T &hi) {
         WJR_ASSERT_ASSUME(__has_high_bit(divisor));
@@ -290,6 +290,7 @@ public:
                 --v;
             }
         }
+        
         return v;
     }
 
@@ -359,7 +360,7 @@ public:
     constexpr T get_value() const { return m_value; }
     constexpr unsigned int get_shift() const { return m_shift; }
 
-    constexpr bool is_power_of_two() const { return m_divisor == 1; }
+    constexpr bool is_zero_or_single_bit() const { return m_divisor == 1; }
 
     WJR_CONST constexpr static T reciprocal(T divisor) {
         T inv = math_details::divexact1_lookup[(divisor & 0xFF) >> 1];

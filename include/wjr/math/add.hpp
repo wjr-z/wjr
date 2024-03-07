@@ -1,6 +1,7 @@
 #ifndef WJR_MATH_ADD_HPP__
 #define WJR_MATH_ADD_HPP__
 
+#include <wjr/assert.hpp>
 #include <wjr/math/add-impl.hpp>
 #include <wjr/math/replace.hpp>
 
@@ -86,6 +87,11 @@ WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out) {
 #endif
 }
 
+/*
+require :
+1. n >= 1
+2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+*/
 template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U addc_1(T *dst, const T *src0, size_t n,
@@ -163,6 +169,12 @@ WJR_INTRINSIC_CONSTEXPR U fallback_addc_n(T *dst, const T *src0, const T *src1, 
     return c_in;
 }
 
+/*
+require :
+1. n >= 1
+2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+3. WJR_IS_SAME_OR_INCR_P(dst, n, src1, n)
+*/
 template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U addc_n(T *dst, const T *src0, const T *src1, size_t n,
@@ -186,6 +198,13 @@ WJR_INTRINSIC_CONSTEXPR_E U addc_n(T *dst, const T *src0, const T *src1, size_t 
 #endif
 }
 
+/*
+require :
+1. m >= 1
+2. n >= m
+3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
+*/
 template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U addc_s(T *dst, const T *src0, size_t n, const T *src1,
@@ -202,6 +221,13 @@ WJR_INTRINSIC_CONSTEXPR_E U addc_s(T *dst, const T *src0, size_t n, const T *src
     return c_in;
 }
 
+/*
+require :
+1. n >= 0
+2. n >= m
+3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
+*/
 template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U addc_sz(T *dst, const T *src0, size_t n, const T *src1,

@@ -25,13 +25,6 @@ namespace wjr {
 
 template <typename Handler, typename... Args,
           std::enable_if_t<std::is_invocable_v<Handler, Args...>, int> = 0>
-WJR_NORETURN void __assert_fail(Handler handler, Args &&...args) {
-    handler(std::forward<Args>(args)...);
-    std::abort();
-}
-
-template <typename Handler, typename... Args,
-          std::enable_if_t<std::is_invocable_v<Handler, Args...>, int> = 0>
 WJR_NORETURN WJR_COLD WJR_NOINLINE void __assert_fail(const char *expr, const char *file,
                                                       int line, Handler handler,
                                                       Args &&...args) {
@@ -43,14 +36,16 @@ WJR_NORETURN WJR_COLD WJR_NOINLINE void __assert_fail(const char *expr, const ch
         (void)fprintf(stderr, ", line %d", line);
     }
     (void)fprintf(stderr, "\n");
-    __assert_fail(handler, std::forward<Args>(args)...);
+    
+    handler(std::forward<Args>(args)...);
+    std::abort();
 }
 
 struct __assert_t {
     void operator()() const {}
 
     template <typename... Args>
-    void operator()(const char *fmt, Args &&...args) {
+    void operator()(const char *const fmt, Args &&...args) const {
         (void)fprintf(stderr, "Additional message: ");
         (void)fprintf(stderr, fmt, std::forward<Args>(args)...);
         (void)fprintf(stderr, "\n");

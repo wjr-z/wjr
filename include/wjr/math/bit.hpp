@@ -23,7 +23,7 @@ enum class endian {
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool has_single_bit(T n) noexcept {
-    return n != 0 && is_power_of_two(n);
+    return n != 0 && is_zero_or_single_bit(n);
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>

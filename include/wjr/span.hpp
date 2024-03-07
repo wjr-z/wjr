@@ -3,6 +3,7 @@
 
 #include <stdexcept>
 
+#include <wjr/assert.hpp>
 #include <wjr/compressed_pair.hpp>
 
 namespace wjr {

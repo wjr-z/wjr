@@ -1,7 +1,9 @@
 #ifndef WJR_MATH_BROADCAST_HPP__
 #define WJR_MATH_BROADCAST_HPP__
 
-#include <wjr/type_traits.hpp>
+#include <cstdint>
+
+#include <wjr/preprocessor.hpp>
 
 namespace wjr {
 

@@ -1,7 +1,9 @@
 #include <cstddef>
 #include <cstdint>
 
-#include <wjr/preprocessor.hpp>
+#include <wjr/x86/mul-impl.hpp>
+
+#if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)
 
 namespace wjr {
 
@@ -371,3 +373,5 @@ LARGE:
 }
 
 } // namespace wjr
+
+#endif // WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)

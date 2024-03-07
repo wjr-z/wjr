@@ -1,6 +1,7 @@
 #ifndef WJR_MATH_SUB_HPP__
 #define WJR_MATH_SUB_HPP__
 
+#include <wjr/assert.hpp>
 #include <wjr/math/replace.hpp>
 #include <wjr/math/sub-impl.hpp>
 
@@ -86,6 +87,11 @@ WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
 #endif
 }
 
+/*
+require :
+1. n >= 1
+2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+*/
 template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U subc_1(T *dst, const T *src0, size_t n,
@@ -162,6 +168,12 @@ WJR_INTRINSIC_CONSTEXPR U fallback_subc_n(T *dst, const T *src0, const T *src1, 
     return c_in;
 }
 
+/*
+require :
+1. n >= 1
+2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+3. WJR_IS_SAME_OR_INCR_P(dst, n, src1, n)
+*/
 template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U subc_n(T *dst, const T *src0, const T *src1, size_t n,
@@ -185,6 +197,13 @@ WJR_INTRINSIC_CONSTEXPR_E U subc_n(T *dst, const T *src0, const T *src1, size_t 
 #endif
 }
 
+/*
+require :
+1. m >= 1
+2. n >= m
+3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
+*/
 template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n, const T *src1,
@@ -201,6 +220,13 @@ WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n, const T *src
     return c_in;
 }
 
+/*
+require :
+1. n >= 0
+2. n >= m
+3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
+*/
 template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U subc_sz(T *dst, const T *src0, size_t n, const T *src1,
@@ -218,16 +244,24 @@ WJR_INTRINSIC_CONSTEXPR_E U subc_sz(T *dst, const T *src0, size_t n, const T *sr
     return c_in;
 }
 
-// ret :
-// > 0 : src0 > src1
-// == 0 : src0 == src1
-// < 0 : src0 < src1
-// abs(ret) :
-// non-zero pos
+/*
+require :
+1. n >= 1
+2. WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n)
+3. WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n)
+return :
+dst = abs(src0 - src1)
+Absolute value represents non-zero pos
+> 0 : src0 > src1
+== 0 : src0 == src1
+< 0 : src0 < src1
+*/
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
                                              size_t n) {
     WJR_ASSERT_ASSUME(n >= 1);
+    WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n);
+    WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n);
 
     size_t idx = reverse_find_not_n(src0, src1, n);
 
@@ -254,8 +288,19 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src
     return ret;
 }
 
-// dst = abs(src0 - src1)
-// return compare(src0, src1)
+/*
+require :
+1. m >= 1
+2. n >= m
+3. WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n)
+4. WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, m)
+return :
+dst = abs(src0 - src1)
+Absolute value represents non-zero pos
+> 0 : src0 > src1
+== 0 : src0 == src1
+< 0 : src0 < src1
+*/
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
                                              const T *src1, size_t m) {
@@ -299,12 +344,7 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
     return ret;
 }
 
-// ret :
-// > 0 : <cf0, src0> > <cf1, src1>
-// == 0 : <cf0, src0> == <cf1, src1>
-// < 0 : <cf0, src0> < <cf1, src1>
-// abs(ret) :
-// non-zero pos
+// just like abs_subc_n.
 template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,

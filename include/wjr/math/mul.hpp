@@ -81,10 +81,10 @@ WJR_INTRINSIC_CONSTEXPR_E T mul(T a, T b, T &hi) {
 #if WJR_HAS_BUILTIN(MUL64)
         if (is_constant_evaluated() ||
             (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b)) ||
-            ((WJR_BUILTIN_CONSTANT_P(a) || WJR_BUILTIN_CONSTANT_P(is_power_of_two(a))) &&
-             is_power_of_two(a)) ||
-            ((WJR_BUILTIN_CONSTANT_P(b) || WJR_BUILTIN_CONSTANT_P(is_power_of_two(b))) &&
-             is_power_of_two(b))) {
+            ((WJR_BUILTIN_CONSTANT_P(a) || WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(a))) &&
+             is_zero_or_single_bit(a)) ||
+            ((WJR_BUILTIN_CONSTANT_P(b) || WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(b))) &&
+             is_zero_or_single_bit(b))) {
             return fallback_mul64(a, b, hi);
         }
 
@@ -139,6 +139,11 @@ WJR_INTRINSIC_CONSTEXPR T fallback_mul_1(T *dst, const T *src, size_t n, T ml) {
     return c_in;
 }
 
+/*
+require :
+1. n >= 1
+2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
+*/
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR_E T mul_1(T *dst, const T *src, size_t n, type_identity_t<T> ml) {
     static_assert(std::is_same_v<T, uint64_t>, "only support uint64_t now");
@@ -158,7 +163,7 @@ WJR_INTRINSIC_CONSTEXPR_E T mul_1(T *dst, const T *src, size_t n, type_identity_
         return 0;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(is_power_of_two(ml)) && is_power_of_two(ml)) {
+    if (WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(ml)) && is_zero_or_single_bit(ml)) {
         unsigned int k = ctz(ml);
         return lshift_n(dst, src, n, k);
     }
@@ -199,6 +204,11 @@ WJR_INTRINSIC_CONSTEXPR T fallback_addmul_1(T *dst, const T *src, size_t n, T ml
     return c_in;
 }
 
+/*
+require :
+1. n >= 1
+2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
+*/
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR_E T addmul_1(T *dst, const T *src, size_t n,
                                      type_identity_t<T> ml) {
@@ -214,7 +224,7 @@ WJR_INTRINSIC_CONSTEXPR_E T addmul_1(T *dst, const T *src, size_t n,
         return addc_n(dst, dst, src, n);
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(is_power_of_two(ml)) && is_power_of_two(ml)) {
+    if (WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(ml)) && is_zero_or_single_bit(ml)) {
         unsigned int c = ctz(ml);
         return addlsh_n(dst, dst, src, n, c);
     }
@@ -249,6 +259,11 @@ WJR_INTRINSIC_CONSTEXPR T fallback_submul_1(T *dst, const T *src, size_t n, T ml
     return c_in;
 }
 
+/*
+require :
+1. n >= 1
+2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
+*/
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR_E T submul_1(T *dst, const T *src, size_t n,
                                      type_identity_t<T> ml) {
@@ -293,7 +308,14 @@ WJR_INTRINSIC_CONSTEXPR T fallback_addlsh_n(T *dst, const T *src0, const T *src1
     return c_in;
 }
 
-// dst = src0 + (src1 << cl)
+/*
+dst = src0 + (src1 << cl);
+
+require :
+1. n >= 1
+2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
+3. WJR_IS_SAME_OR_INCR_P(sdt, n, src1, n)
+*/
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR_E T addlsh_n(T *dst, const T *src0, const T *src1, size_t n,
                                      type_identity_t<T> cl) {
@@ -342,7 +364,14 @@ WJR_INTRINSIC_CONSTEXPR T fallback_rsblsh_n(T *dst, const T *src0, const T *src1
     return c_in;
 }
 
-// dst = (src1 << cl) - src0
+/*
+dst = (src1 << cl) - src0;
+
+require :
+1. n >= 1
+2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
+3. WJR_IS_SAME_OR_INCR_P(sdt, n, src1, n)
+*/
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR_E T rsblsh_n(T *dst, const T *src0, const T *src1, size_t n,
                                      type_identity_t<T> cl) {
@@ -1132,11 +1161,20 @@ void fallback_basecase_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const
     }
 }
 
+/*
+require :
+1. m >= 1
+2. n >= m
+3. WJR_IS_SAME_OR_SEPARATE_P(dst, n + m, src0, n)
+4. WJR_IS_SAME_OR_SEPARATE_P(dst, n + m, src1, m)
+*/
 template <typename T>
 void basecase_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1,
                     size_t m) {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
+    WJR_ASSERT(WJR_IS_SAME_OR_SEPARATE_P(dst, n + m, src0, n));
+    WJR_ASSERT(WJR_IS_SAME_OR_SEPARATE_P(dst, n + m, src1, m));
 
 #if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)
     return asm_basecase_mul_s(dst, src0, n, src1, m);
@@ -1145,6 +1183,7 @@ void basecase_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1,
 #endif
 }
 
+// TODO : optimize
 template <typename T>
 void basecase_sqr(T *WJR_RESTRICT dst, const T *src, size_t n) {
     basecase_mul_s(dst, src, n, src, n);

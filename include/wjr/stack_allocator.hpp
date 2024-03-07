@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <vector>
 
+#include <wjr/assert.hpp>
 #include <wjr/compressed_pair.hpp>
 #include <wjr/type_traits.hpp>
 
@@ -116,6 +117,7 @@ public:
             if (WJR_UNLIKELY(n >= threshold1)) {
                 return malloc(n);
             }
+
             return mid_alloc.allocate(n);
         }
 
@@ -128,6 +130,7 @@ public:
                 free(ptr);
                 return;
             }
+
             return mid_alloc.deallocate(ptr, n);
         }
 

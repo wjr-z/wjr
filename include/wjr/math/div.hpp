@@ -112,7 +112,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         const div2by1_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
 
-    if (WJR_UNLIKELY(div.is_power_of_two())) {
+    if (WJR_UNLIKELY(div.is_zero_or_single_bit())) {
         unsigned int c = 63 - div.get_shift();
         rem = src[0] & ((1ull << c) - 1);
         (void)rshift_n(dst, src, n, c);
@@ -127,7 +127,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         type_identity_t<T> div) {
     WJR_ASSERT_ASSUME(n >= 1);
 
-    if (WJR_UNLIKELY(is_power_of_two(div))) {
+    if (WJR_UNLIKELY(is_zero_or_single_bit(div))) {
         unsigned int c = ctz(div);
         rem = src[0] & ((1ull << c) - 1);
         (void)rshift_n(dst, src, n, c);
@@ -767,7 +767,7 @@ WJR_CONSTEXPR_E void divexact_byc(T *dst, const T *src, size_t n,
 
     constexpr auto __is_fast = [](auto cr) {
         constexpr T r = get_place_index_v<remove_cvref_t<decltype(cr)>>;
-        return c % r == 0 && is_power_of_two(c / r);
+        return c % r == 0 && is_zero_or_single_bit(c / r);
     };
 
     auto __resolve = [dst, n](auto cr) {
@@ -902,7 +902,7 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           const divexact1_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
 
-    if (WJR_UNLIKELY(div.is_power_of_two())) {
+    if (WJR_UNLIKELY(div.is_zero_or_single_bit())) {
         unsigned int c = div.get_shift();
         (void)rshift_n(dst, src, n, c);
         return;
@@ -916,7 +916,7 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           type_identity_t<T> div) {
     WJR_ASSERT_ASSUME(n >= 1);
 
-    if (WJR_UNLIKELY(is_power_of_two(div))) {
+    if (WJR_UNLIKELY(is_zero_or_single_bit(div))) {
         unsigned int c = ctz(div);
         (void)rshift_n(dst, src, n, c);
         return;
