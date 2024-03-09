@@ -13,7 +13,7 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
     uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, uint64_t cl) {
     WJR_ASSERT(cl != 0);
 
-    size_t cx = n / 8;
+    size_t rcx = n / 8;
     uint64_t tcl = 64 - cl;
     uint64_t r8, r9 = n, r10, r11;
 
@@ -50,7 +50,7 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
         ".Ld1%=:\n\t"
         "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
         "shrx{q %[tcl], %[r11], %[r11]| %[r11], %[r11], %[tcl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q %[cx], %[r11]| %[r11], %[cx]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q %[rcx], %[r11]| %[r11], %[rcx]}\n\t"
         "jmp .Ldone%=\n\t"
 
         ".Ll1%=:\n\t"
@@ -136,7 +136,7 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
         "lea{q (%[r8], %[r10]), %[r10]| %[r10], [%[r10] + %[r8]]}\n\t"
         WJR_PP_STR(WJR_adcsbb) "{q 8(%[src0]), %[r10]| %[r10], [%[src0] + 8]}\n\t"
         "shrx{q %[tcl], %[r11], %[r11]| %[r11], %[r11], %[tcl]}\n\t"
-        "adc{q %[cx], %[r11]| %[r11], %[cx]}\n\t"
+        "adc{q %[rcx], %[r11]| %[r11], %[rcx]}\n\t"
         "mov{q %[r10], 8(%[dst])| [%[dst] + 8], %[r10]}\n\t"
         "jmp .Ldone%=\n\t"
 
@@ -180,7 +180,7 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
         "shlx{q %[cl], %[r10], %[r11]| %[r11], %[r10], %[cl]}\n\t"
         "mov{q %[r8], 8(%[dst])| [%[dst] + 8], %[r8]}\n\t"
 
-        "lea{q -1(%[cx]), %[cx]| %[cx], [%[cx] - 1]}\n\t"
+        "lea{q -1(%[rcx]), %[rcx]| %[rcx], [%[rcx] - 1]}\n\t"
 
         ".Lb7%=:\n\t"
         "lea{q (%[r11], %[r9]), %[r9]| %[r9], [%[r9] + %[r11]]}\n\t"
@@ -233,17 +233,17 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
         "lea{q (%[r8], %[r10]), %[r10]| %[r10], [%[r10] + %[r8]]}\n\t"
         WJR_PP_STR(WJR_adcsbb) "{q -8(%[src0]), %[r10]| %[r10], [%[src0] - 8]}\n\t"
         "shrx{q %[tcl], %[r11], %[r11]| %[r11], %[r11], %[tcl]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q %[cx], %[r11]| %[r11], %[cx]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q %[rcx], %[r11]| %[r11], %[rcx]}\n\t"
         "mov{q %[r10], -8(%[dst])| [%[dst] - 8], %[r10]}\n\t"
 
         ".Ldone%=:"
 
-        : [dst] "+&r"(dst), [src0] "+&r"(src0), [src1] "+&r"(src1), [cx] "+&c"(cx),
+        : [dst] "+&r"(dst), [src0] "+&r"(src0), [src1] "+&r"(src1), [rcx] "+&c"(rcx),
           [r8] "=&r"(r8), [r9] "+&r"(r9), [r10] "=&r"(r10), [r11] "=&r"(r11)
         : [cl] "r"(cl), [tcl] "r"(tcl)
         : "cc", "memory");
 
-    WJR_ASSERT_ASSUME(cx == 0);
+    WJR_ASSERT_ASSUME(rcx == 0);
 
     return r11;
 }

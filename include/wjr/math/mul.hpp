@@ -81,9 +81,11 @@ WJR_INTRINSIC_CONSTEXPR_E T mul(T a, T b, T &hi) {
 #if WJR_HAS_BUILTIN(MUL64)
         if (is_constant_evaluated() ||
             (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b)) ||
-            ((WJR_BUILTIN_CONSTANT_P(a) || WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(a))) &&
+            ((WJR_BUILTIN_CONSTANT_P(a) ||
+              WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(a))) &&
              is_zero_or_single_bit(a)) ||
-            ((WJR_BUILTIN_CONSTANT_P(b) || WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(b))) &&
+            ((WJR_BUILTIN_CONSTANT_P(b) ||
+              WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(b))) &&
              is_zero_or_single_bit(b))) {
             return fallback_mul64(a, b, hi);
         }
@@ -1186,7 +1188,11 @@ void basecase_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1,
 // TODO : optimize
 template <typename T>
 void basecase_sqr(T *WJR_RESTRICT dst, const T *src, size_t n) {
-    basecase_mul_s(dst, src, n, src, n);
+#if WJR_HAS_BUILTIN(ASM_BASECASE_SQR)
+    return asm_basecase_sqr(dst, src, n);
+#else
+    return basecase_mul_s(dst, src, n, src, n);
+#endif
 }
 
 template <typename T>
