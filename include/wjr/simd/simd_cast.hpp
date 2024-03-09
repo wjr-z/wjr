@@ -13,6 +13,7 @@
 #include <x86intrin.h>
 #elif defined(__GNUC__) && defined(__ARM_NEON__)
 /* GCC-compatible compiler, targeting ARM with NEON */
+#error "Not support yet."
 #include <arm_neon.h>
 #else
 #undef WJR_HAS_SIMD_SIMD

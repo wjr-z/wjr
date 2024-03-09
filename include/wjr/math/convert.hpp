@@ -437,12 +437,12 @@ char *basecase_to_chars_10(char *buf, uint64_t *up, size_t n, Converter conv) {
         first -= 2;
     };
 
-    uint64_t q = 0;
-    uint64_t rem = 0;
     do {
         if (WJR_UNLIKELY(n == 1)) {
             return __backward_to_chars_10(buf, up[0], conv);
         }
+
+        uint64_t q, rem;
 
         q = div_qr_1_without_shift(up, rem, up, n, div2by1_divider_of_big_base_10);
         n -= q == 0;

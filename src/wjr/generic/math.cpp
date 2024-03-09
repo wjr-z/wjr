@@ -388,7 +388,6 @@ precompute_to_chars_t *precompute_to_chars(precompute_to_chars_t *pre, size_t n,
     size_t digits = p16n->n;
     size_t shift = 16 - digits;
     size_t digits_in_base = p16n->digits_in_sixteen_base;
-    int c;
 
     set(pre, nullptr, 0, 0, 0);
     ++pre;
@@ -400,7 +399,7 @@ precompute_to_chars_t *precompute_to_chars(precompute_to_chars_t *pre, size_t n,
         shift <<= 1;
         digits_in_base <<= 1;
 
-        c = table_mem[0] == 0;
+        int c = table_mem[0] == 0;
         table_mem += c;
         digits -= c;
         shift += c;

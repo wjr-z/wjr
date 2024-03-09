@@ -15,7 +15,7 @@ namespace wjr {
 // 1 : Some simple runtime checks, such as boundary checks (default)
 // 2 : Most runtime checks
 // 3 : Maximize runtime checks
-#if defined WJR_DEBUG_LEVEL
+#if defined(WJR_DEBUG_LEVEL)
 #define WJR_ASSERT_LEVEL WJR_DEBUG_LEVEL
 #elif defined(NDEBUG)
 #define WJR_DEBUG_LEVEL 0
@@ -36,7 +36,7 @@ WJR_NORETURN WJR_COLD WJR_NOINLINE void __assert_fail(const char *expr, const ch
         (void)fprintf(stderr, ", line %d", line);
     }
     (void)fprintf(stderr, "\n");
-    
+
     handler(std::forward<Args>(args)...);
     std::abort();
 }

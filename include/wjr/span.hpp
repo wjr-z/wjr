@@ -107,7 +107,7 @@ public:
                                    __is_span_array<type_identity_t<element_type> (&)[N],
                                                    element_type>::value,
                                int> = 0>
-    constexpr span(type_identity_t<element_type> (&arr)[N]) noexcept
+    constexpr span(std::add_const_t<type_identity_t<element_type>> (&arr)[N]) noexcept
         : storage(std::data(arr), N) {}
 
     template <
