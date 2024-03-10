@@ -11,10 +11,8 @@ void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
                                const uint64_t *src1, size_t m) {
 
     uint64_t r8, r9, r10, r11;
-    uint64_t rcx;
-    uint64_t rax; // rax = rdx & 7
+    uint64_t rax, rcx; // rax = rdx & 7
 
-#if !WJR_HAS_FEATURE(INLINE_ASM_GOTO_OUTPUT)
     if (WJR_LIKELY(rdx <= 2)) {
         if (WJR_LIKELY(rdx != 2)) {
             rdx = src1[0];
@@ -32,73 +30,50 @@ void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
                      : [r8] "=r"(r8), [r9] "=r"(r9)
                      : "d"(rdx), [src0] "r"(src0)
                      : "memory");
-    } else {
-        goto LARGE;
-    }
-#else
-    asm volatile goto(
-        "cmp{q $2, %[rdx]| %[rdx], 2}\n\t"
-        "ja %l[LARGE]\n\t"
-        "mov{q (%[src1]), %[rdx]| %[rdx], [%[src1]]}\n\t"
-        "mulx{q (%[src0]), %[r8], %[r9]| %[r9], %[r8], [%[src0]]}\n\t"
-        "je %l[N2]"
-        : [r8] "=&r"(r8), [r9] "=&r"(r9), [rdx] "+&r"(rdx)
-        : [src0] "r"(src0), [src1] "r"(src1)
-        : "cc", "memory"
-        : LARGE, N2);
 
-    dst[0] = r8;
-    dst[1] = r9;
+        asm volatile(
+            "mulx{q 8(%[src0]), %[r10], %[r11]| %[r11], %[r10], [%[src0] + 8]}\n\t"
+            : [r10] "=r"(r10), [r11] "=r"(r11)
+            : "d"(rdx), [src0] "r"(src0)
+            : "memory");
 
-    return;
-#endif
+        if (WJR_LIKELY(m == 1)) {
+            asm volatile(
+                "add{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
+                "adc{q $0, %[r11]| %[r11], 0}\n\t"
+                "mov{q %[r8], (%[dst])| [%[dst] ], %[r8]}\n\t"
+                "mov{q %[r10], 8(%[dst])| [%[dst] + 8], %[r10]}\n\t"
+                "mov{q %[r11], 16(%[dst])| [%[dst] + 16], %[r11]}\n\t"
+                : [r10] "+&r"(r10), [r11] "+&r"(r11)
+                : [r8] "r"(r8), [r9] "r"(r9), [dst] "r"(dst), [src0] "r"(src0),
+                  [src1] "r"(src1)
+                : "cc", "memory");
 
-N2:
-    asm volatile("mulx{q 8(%[src0]), %[r10], %[r11]| %[r11], %[r10], [%[src0] + 8]}\n\t"
-                 : [r10] "=r"(r10), [r11] "=r"(r11)
-                 : "d"(rdx), [src0] "r"(src0)
-                 : "memory");
+            return;
+        }
 
-    if (WJR_LIKELY(m == 1)) {
         asm volatile(
             "add{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
             "adc{q $0, %[r11]| %[r11], 0}\n\t"
+            "mov{q 8(%[src1]), %[rdx]| %[rdx], [%[src1] + 8]}\n\t"
             "mov{q %[r8], (%[dst])| [%[dst] ], %[r8]}\n\t"
-            "mov{q %[r10], 8(%[dst])| [%[dst] + 8], %[r10]}\n\t"
-            "mov{q %[r11], 16(%[dst])| [%[dst] + 16], %[r11]}\n\t"
-            : [r10] "+&r"(r10), [r11] "+&r"(r11)
-            :
-            [r8] "r"(r8), [r9] "r"(r9), [dst] "r"(dst), [src0] "r"(src0), [src1] "r"(src1)
+            "mulx{q (%[src0]), %[r8], %[r9]| %[r9], %[r8], [%[src0]]}\n\t"
+            "mulx{q 8(%[src0]), %[rax], %[rdx]| %[rdx], %[rax], [%[src0] + 8]}\n\t"
+            "add{q %[r9], %[rax]| %[rax], %[r9]}\n\t"
+            "adc{q $0, %[rdx]| %[rdx], 0}\n\t"
+            "add{q %[r10], %[r8]| %[r8], %[r10]}\n\t"
+            "adc{q %[r11], %[rax]| %[rax], %[r11]}\n\t"
+            "adc{q $0, %[rdx]| %[rdx], 0}\n\t"
+            "mov{q %[r8], 8(%[dst])| [%[dst] + 8], %[r8]}\n\t"
+            "mov{q %[rax], 16(%[dst])| [%[dst] + 16], %[rax]}\n\t"
+            "mov{q %[rdx], 24(%[dst])| [%[dst] + 24], %[rdx]}\n\t"
+            : [r8] "+&r"(r8), [r9] "+&r"(r9), [r10] "+&r"(r10), [r11] "+&r"(r11),
+              [rdx] "=&d"(rdx), [rax] "=&r"(rax)
+            : [dst] "r"(dst), [src0] "r"(src0), [src1] "r"(src1)
             : "cc", "memory");
 
         return;
     }
-
-    asm volatile(
-        "add{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
-        "adc{q $0, %[r11]| %[r11], 0}\n\t"
-        "mov{q 8(%[src1]), %[rdx]| %[rdx], [%[src1] + 8]}\n\t"
-        "mov{q %[r8], (%[dst])| [%[dst] ], %[r8]}\n\t"
-        "mulx{q (%[src0]), %[r8], %[r9]| %[r9], %[r8], [%[src0]]}\n\t"
-        "mulx{q 8(%[src0]), %[rax], %[rdx]| %[rdx], %[rax], [%[src0] + 8]}\n\t"
-        "add{q %[r9], %[rax]| %[rax], %[r9]}\n\t"
-        "adc{q $0, %[rdx]| %[rdx], 0}\n\t"
-        "add{q %[r10], %[r8]| %[r8], %[r10]}\n\t"
-        "adc{q %[r11], %[rax]| %[rax], %[r11]}\n\t"
-        "adc{q $0, %[rdx]| %[rdx], 0}\n\t"
-        "mov{q %[r8], 8(%[dst])| [%[dst] + 8], %[r8]}\n\t"
-        "mov{q %[rax], 16(%[dst])| [%[dst] + 16], %[rax]}\n\t"
-        "mov{q %[rdx], 24(%[dst])| [%[dst] + 24], %[rdx]}\n\t"
-        : [r8] "+&r"(r8), [r9] "+&r"(r9), [r10] "+&r"(r10), [r11] "+&r"(r11),
-          [rdx] "=&d"(rdx), [rax] "=&r"(rax)
-        : [dst] "r"(dst), [src0] "r"(src0), [src1] "r"(src1)
-        : "cc", "memory");
-
-    return;
-
-LARGE:
-
-    // make sure n >= 1
 
     uint64_t adj; // adj = ((n + 2) & 7) - (n + 2)
     uint64_t rbp; // rbp = n / 8
@@ -388,95 +363,70 @@ LARGE:
 
 #if WJR_HAS_BUILTIN(ASM_BASECASE_SQR)
 
+// TODO : optimize
+// Local testing is slower than GMP by 2% to 3%
 void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx) {
 
     uint64_t r8, r9, r10, r11;
     uint64_t rax, rcx;
 
-#if !WJR_HAS_FEATURE(INLINE_ASM_GOTO_OUTPUT)
-    if (WJR_LIKELY(n <= 2)) {
-        if (WJR_LIKELY(n == 1)) {
+    if (WJR_LIKELY(rdx <= 2)) {
+        if (WJR_LIKELY(rdx == 1)) {
             rdx = src[0];
-            asm volatile("mulx{q (%[src0]), %[r8], %[r9]| %[r9], %[r8], [%[src0]]}\n\t"
+            asm volatile("mulx{q %[rdx], %[r8], %[r9]| %[r9], %[r8], %[rdx]}\n\t"
                          : [r8] "=r"(r8), [r9] "=r"(r9)
-                         : "d"(rdx), [src0] "r"(src0)
+                         : [rdx] "d"(rdx)
                          : "memory");
             dst[0] = r8;
             dst[1] = r9;
             return;
         }
 
-        rdx = src1[0];
-        asm volatile("mulx{q (%[src0]), %[r8], %[r9]| %[r9], %[r8], [%[src0]]}\n\t"
+        rdx = src[0];
+        asm volatile("mulx{q %[rdx], %[r8], %[r9]| %[r9], %[r8], %[rdx]}\n\t"
                      : [r8] "=r"(r8), [r9] "=r"(r9)
-                     : "d"(rdx), [src0] "r"(src0)
+                     : [rdx] "d"(rdx)
                      : "memory");
-    } else {
-        goto LARGE;
+
+        asm volatile(
+            "mov{q 8(%[src]), %[rcx]| %[rcx], [%[src] + 8]}\n\t"
+            "mulx{q %[rcx], %[r10], %[r11]| %[r11], %[r10], %[rcx]}\n\t"
+            "mov{q %[rcx], %[rdx]| %[rdx], %[rcx]}\n\t"
+            "mulx{q %[rdx], %[rax], %[rdx]| %[rdx], %[rax], %[rdx]}\n\t"
+            "add{q %[r10], %[r10]| %[r10], %[r10]}\n\t"
+            "adc{q %[r11], %[r11]| %[r11], %[r11]}\n\t"
+            "adc{q $0, %[rdx]| %[rdx], 0}\n\t"
+            "add{q %[r10], %[r9]| %[r9], %[r10]}\n\t"
+            "adc{q %[r11], %[rax]| %[rax], %[r11]}\n\t"
+            "adc{q $0, %[rdx]| %[rdx], 0}\n\t"
+            "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
+            "mov{q %[r9], 8(%[dst])| [%[dst] + 8], %[r9]}\n\t"
+            "mov{q %[rax], 16(%[dst])| [%[dst] + 16], %[rax]}\n\t"
+            "mov{q %[rdx], 24(%[dst])| [%[dst] + 24], %[rdx]}\n\t"
+            : [r8] "+&r"(r8), [r9] "+&r"(r9), [r10] "+&r"(r10), [r11] "+&r"(r11),
+              [rax] "+&r"(rax), [rdx] "+&d"(rdx), [rcx] "=&r"(rcx)
+            : [dst] "r"(dst), [src] "r"(src)
+            : "cc", "memory");
+
+        return;
     }
 
-#else
-    asm volatile goto(
-        "cmp{q $2, %[rdx]| %[rdx], 2}\n\t"
-        "ja %l[LARGE]\n\t"
-        "mov{q (%[src]), %[rdx]| %[rdx], [%[src]]}\n\t"
-        "mulx{q %[rdx], %[r8], %[r9]| %[r9], %[r8], %[rdx]}\n\t"
-        "je %l[N2]\n\t"
-        : [r8] "=&r"(r8), [r9] "=&r"(r9), [rdx] "+&r"(rdx)
-        : [src] "r"(src)
-        : "cc", "memory"
-        : LARGE, N2);
-
-    dst[0] = r8;
-    dst[1] = r9;
-
-    return;
-#endif
-
-N2:
-
-    asm volatile(
-        "mov{q 8(%[src]), %[rcx]| %[rcx], [%[src] + 8]}\n\t"
-        "mulx{q %[rcx], %[r10], %[r11]| %[r11], %[r10], %[rcx]}\n\t"
-        "mov{q %[rcx], %[rdx]| %[rdx], %[rcx]}\n\t"
-        "mulx{q %[rdx], %[rax], %[rdx]| %[rdx], %[rax], %[rdx]}\n\t"
-        "add{q %[r10], %[r10]| %[r10], %[r10]}\n\t"
-        "adc{q %[r11], %[r11]| %[r11], %[r11]}\n\t"
-        "adc{q $0, %[rdx]| %[rdx], 0}\n\t"
-        "add{q %[r10], %[r9]| %[r9], %[r10]}\n\t"
-        "adc{q %[r11], %[rax]| %[rax], %[r11]}\n\t"
-        "adc{q $0, %[rdx]| %[rdx], 0}\n\t"
-        "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
-        "mov{q %[r9], 8(%[dst])| [%[dst] + 8], %[r9]}\n\t"
-        "mov{q %[rax], 16(%[dst])| [%[dst] + 16], %[rax]}\n\t"
-        "mov{q %[rdx], 24(%[dst])| [%[dst] + 24], %[rdx]}\n\t"
-        : [r8] "+&r"(r8), [r9] "+&r"(r9), [r10] "+&r"(r10), [r11] "+&r"(r11),
-          [rax] "+&r"(rax), [rdx] "+&d"(rdx), [rcx] "=&r"(rcx)
-        : [dst] "r"(dst), [src] "r"(src)
-        : "cc", "memory");
-
-    return;
-
-LARGE:
-
     uint64_t rbp;
-    uint64_t adj, ptr;
-
-    // make sure n >= 2
+    uint64_t adj;
 
     asm volatile(
         "lea{q -0x1(%[rdx]), %[rbp]| %[rbp], [%[rdx] - 1]}\n\t"
-        "mov{q %[src], %[ptr]| %[ptr], %[src]}\n\t"
 
         "mov{l %k[rbp], %k[r8]| %k[r8], %k[rbp]}\n\t"
         "mov{q %[rbp], %[rax]| %[rax], %[rbp]}\n\t"
         "shr{q $3, %[rax]| %[rax], 3}\n\t"
         "and{l $7, %k[r8]| %k[r8], 7}\n\t"
+        "mov{l %k[r8], %k[adj]| %k[adj], %k[r8]}\n\t"
 
         "mov{q %[rax], %[rcx]| %[rcx], %[rax]}\n\t"
 
-        "lea{q| %[r9], [rip +} .Llookup%={(%%rip), %[r9]|]}\n\t"
         "mov{q (%[src]), %[rdx]| %[rdx], [%[src]]}\n\t"
+        "lea{q| %[r9], [rip +} .Llookup%={(%%rip), %[r9]|]}\n\t"
         "movs{lq (%[r9], %[r8], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + %[r8] * 4]}\n\t"
         "lea{q (%[r9], %[r10], 1), %[r9]| %[r9], [%[r9] + %[r10]]}\n\t"
         "jmp{q *%[r9]| %[r9]}\n\t"
@@ -597,16 +547,13 @@ LARGE:
         "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
         "mov{q %[r9], (%[dst])| [%[dst]], %[r9]}\n\t"
 
-        "mov{l %k[rbp], %k[r8]| %k[r8], %k[rbp]}\n\t"
-        "and{l $7, %k[r8]| %k[r8], 7}\n\t"
-
         "lea{q| %[r9], [rip +} .Lslookup%={(%%rip), %[r9]|]}\n\t"
-        "movs{lq (%[r9], %[r8], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + %[r8] * 4]}\n\t"
+        "movs{lq (%[r9], %[adj], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + %[adj] * 4]}\n\t"
         "lea{q (%[r9], %[r10], 1), %[r9]| %[r9], [%[r9] + %[r10]]}\n\t"
         "jmp{q *%[r9]| %[r9]}\n\t"
 
         // (n - 1) & 7
-        ".align 16\n\t"
+        ".align 8\n\t"
         ".Lslookup%=:\n\t"
         ".long .Ljs0%=-.Lslookup%=\n\t"
         ".long .Ljs1%=-.Lslookup%=\n\t"
@@ -616,66 +563,58 @@ LARGE:
         ".long .Ljs5%=-.Lslookup%=\n\t"
         ".long .Ljs6%=-.Lslookup%=\n\t"
         ".long .Ljs7%=-.Lslookup%=\n\t"
+        ".align 16\n\t"
 
         ".Ljs0%=:\n\t"
         "lea{q -2(%[rbp]), %[adj]| %[adj], [%[rbp] - 2]}\n\t"
         "not %[adj]\n\t"
-        "dec %[rax]\n\t"
         "jmp .Ls7%=\n\t"
 
         ".Ljs1%=:\n\t"
         "lea{q -3(%[rbp]), %[adj]| %[adj], [%[rbp] - 3]}\n\t"
-        "lea{q 8(%[ptr]), %[ptr]| %[ptr], [%[ptr] + 8]}\n\t"
         "not %[adj]\n\t"
         "jmp .Ls0%=\n\t"
 
         ".Ljs2%=:\n\t"
         "lea{q 4(%[rbp]), %[adj]| %[adj], [%[rbp] + 4]}\n\t"
-        "lea{q -48(%[ptr]), %[ptr]| %[ptr], [%[ptr] - 48]}\n\t"
         "not %[adj]\n\t"
         "jmp .Ls1%=\n\t"
 
         ".Ljs3%=:\n\t"
         "lea{q 3(%[rbp]), %[adj]| %[adj], [%[rbp] + 3]}\n\t"
-        "lea{q -40(%[ptr]), %[ptr]| %[ptr], [%[ptr] - 40]}\n\t"
         "not %[adj]\n\t"
         "jmp .Ls2%=\n\t"
 
         ".Ljs4%=:\n\t"
         "lea{q 2(%[rbp]), %[adj]| %[adj], [%[rbp] + 2]}\n\t"
-        "lea{q -32(%[ptr]), %[ptr]| %[ptr], [%[ptr] - 32]}\n\t"
         "not %[adj]\n\t"
         "jmp .Ls3%=\n\t"
 
         ".Ljs5%=:\n\t"
         "lea{q 1(%[rbp]), %[adj]| %[adj], [%[rbp] + 1]}\n\t"
-        "lea{q -24(%[ptr]), %[ptr]| %[ptr], [%[ptr] - 24]}\n\t"
         "not %[adj]\n\t"
         "jmp .Ls4%=\n\t"
 
         ".Ljs6%=:\n\t"
         "lea{q (%[rbp]), %[adj]| %[adj], [%[rbp]]}\n\t"
-        "lea{q -16(%[ptr]), %[ptr]| %[ptr], [%[ptr] - 16]}\n\t"
         "not %[adj]\n\t"
         "jmp .Ls5%=\n\t"
 
         ".Ljs7%=:\n\t"
         "lea{q -1(%[rbp]), %[adj]| %[adj], [%[rbp] - 1]}\n\t"
-        "lea{q -8(%[ptr]), %[ptr]| %[ptr], [%[ptr] - 8]}\n\t"
         "not %[adj]\n\t"
         "jmp .Ls6%=\n\t"
 
-        ".align 32\n\t"
+        ".align 16\n\t"
         ".Lsloop%=:\n\t"
 
         "lea{q 8(%[adj]), %[adj]| %[adj], [%[adj] + 8]}\n\t"
-        "lea{q 64(%[ptr]), %[ptr]| %[ptr], [%[ptr] + 64]}\n\t"
 
         ".Ls0%=:\n\t"
 
+        "lea{q -8(%[src], %[adj], 8), %[src]| %[src], [%[src] + %[adj] * 8 - 8]}\n\t"
         "lea{q (%[dst], %[adj], 8), %[dst]| %[dst], [%[dst] + %[adj] * 8]}\n\t"
-        "lea{q 8(%[ptr]), %[src]| %[src], [%[ptr] + 8]}\n\t"
-        "mov{q (%[ptr]), %[rdx]| %[rdx], [%[ptr]]}\n\t"
+        "mov{q -8(%[src]), %[rdx]| %[rdx], [%[src] - 8]}\n\t"
         "mov{q %[rax], %[rcx]| %[rcx], %[rax]}\n\t"
 
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
@@ -684,7 +623,6 @@ LARGE:
         ".align 32\n\t"
         ".Ls0loop%=:\n\t"
 
-        ".Ls0b1%=:\n\t"
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
         "adcx{q -8(%[dst]), %[r8]| %[r8], [%[dst] - 8]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
@@ -697,38 +635,32 @@ LARGE:
         "adcx{q (%[dst]), %[r10]| %[r10], [%[dst]]}\n\t"
         "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
 
-        ".Ls0b7%=:\n\t"
         "mulx{q 16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] + 16]}\n\t"
         "adcx{q 8(%[dst]), %[r8]| %[r8], [%[dst] + 8]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 8(%[dst])| [%[dst] + 8], %[r8]}\n\t"
 
-        ".Ls0b6%=:\n\t"
         "mulx{q 24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 24]}\n\t"
         "lea{q 64(%[src]), %[src]| %[src], [%[src] + 64]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 16(%[dst]), %[r10]| %[r10], [%[dst] + 16]}\n\t"
         "mov{q %[r10], 16(%[dst])| [%[dst] + 16], %[r10]}\n\t"
 
-        ".Ls0b5%=:\n\t"
         "mulx{q -32(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 32]}\n\t"
         "adcx{q 24(%[dst]), %[r8]| %[r8], [%[dst] + 24]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 24(%[dst])| [%[dst] + 24], %[r8]}\n\t"
 
-        ".Ls0b4%=:\n\t"
         "mulx{q -24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 24]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 32(%[dst]), %[r10]| %[r10], [%[dst] + 32]}\n\t"
         "mov{q %[r10], 32(%[dst])| [%[dst] + 32], %[r10]}\n\t"
 
-        ".Ls0b3%=:\n\t"
         "mulx{q -16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 16]}\n\t"
         "adcx{q 40(%[dst]), %[r8]| %[r8], [%[dst] + 40]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 40(%[dst])| [%[dst] + 40], %[r8]}\n\t"
 
-        ".Ls0b2%=:\n\t"
         "mulx{q -8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 8]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 48(%[dst]), %[r10]| %[r10], [%[dst] + 48]}\n\t"
@@ -746,15 +678,13 @@ LARGE:
         "adc{q %[rcx], %[r9]| %[r9], %[rcx]}\n\t"
         "mov{q %[r9], (%[dst])| [%[dst]], %[r9]}\n\t"
 
-        "dec %[rax]\n\t"
-        "js .Ldone%=\n\t"
-
         ".Ls7%=:\n\t"
 
+        "lea{q -1(%[rax]), %[rcx]| %[rcx], [%[rax] - 1]}\n\t"
+        "lea{q -1(%[rax]), %[rax]| %[rax], [%[rax] - 1]}\n\t"
+        "lea{q -8(%[src], %[adj], 8), %[src]| %[src], [%[src] + %[adj] * 8 - 8]}\n\t"
         "lea{q (%[dst], %[adj], 8), %[dst]| %[dst], [%[dst] + %[adj] * 8]}\n\t"
-        "lea{q 8(%[ptr]), %[src]| %[src], [%[ptr] + 8]}\n\t"
-        "mov{q 8(%[ptr]), %[rdx]| %[rdx], [%[ptr] + 8]}\n\t"
-        "mov{q %[rax], %[rcx]| %[rcx], %[rax]}\n\t"
+        "mov{q (%[src]), %[rdx]| %[rdx], [%[src]]}\n\t"
 
         "mulx{q 8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 8]}\n\t"
         "jmp .Ls7b7%=\n\t"
@@ -762,13 +692,11 @@ LARGE:
         ".align 32\n\t"
         ".Ls7loop%=:\n\t"
 
-        ".Ls7b1%=:\n\t"
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
         "adcx{q -8(%[dst]), %[r8]| %[r8], [%[dst] - 8]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
 
-        ".Ls7b0%=:\n\t"
         "mulx{q 8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 8]}\n\t"
         "lea{q -1(%[rcx]), %[rcx]| %[rcx], [%[rcx] - 1]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
@@ -781,32 +709,27 @@ LARGE:
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 8(%[dst])| [%[dst] + 8], %[r8]}\n\t"
 
-        ".Ls7b6%=:\n\t"
         "mulx{q 24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 24]}\n\t"
         "lea{q 64(%[src]), %[src]| %[src], [%[src] + 64]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 16(%[dst]), %[r10]| %[r10], [%[dst] + 16]}\n\t"
         "mov{q %[r10], 16(%[dst])| [%[dst] + 16], %[r10]}\n\t"
 
-        ".Ls7b5%=:\n\t"
         "mulx{q -32(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 32]}\n\t"
         "adcx{q 24(%[dst]), %[r8]| %[r8], [%[dst] + 24]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 24(%[dst])| [%[dst] + 24], %[r8]}\n\t"
 
-        ".Ls7b4%=:\n\t"
         "mulx{q -24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 24]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 32(%[dst]), %[r10]| %[r10], [%[dst] + 32]}\n\t"
         "mov{q %[r10], 32(%[dst])| [%[dst] + 32], %[r10]}\n\t"
 
-        ".Ls7b3%=:\n\t"
         "mulx{q -16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 16]}\n\t"
         "adcx{q 40(%[dst]), %[r8]| %[r8], [%[dst] + 40]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 40(%[dst])| [%[dst] + 40], %[r8]}\n\t"
 
-        ".Ls7b2%=:\n\t"
         "mulx{q -8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 8]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 48(%[dst]), %[r10]| %[r10], [%[dst] + 48]}\n\t"
@@ -826,9 +749,9 @@ LARGE:
 
         ".Ls6%=:\n\t"
 
+        "lea{q -8(%[src], %[adj], 8), %[src]| %[src], [%[src] + %[adj] * 8 - 8]}\n\t"
         "lea{q (%[dst], %[adj], 8), %[dst]| %[dst], [%[dst] + %[adj] * 8]}\n\t"
-        "lea{q 8(%[ptr]), %[src]| %[src], [%[ptr] + 8]}\n\t"
-        "mov{q 16(%[ptr]), %[rdx]| %[rdx], [%[ptr] + 16]}\n\t"
+        "mov{q 8(%[src]), %[rdx]| %[rdx], [%[src] + 8]}\n\t"
         "mov{q %[rax], %[rcx]| %[rcx], %[rax]}\n\t"
 
         "mulx{q 16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] + 16]}\n\t"
@@ -837,20 +760,17 @@ LARGE:
         ".align 32\n\t"
         ".Ls6loop%=:\n\t"
 
-        ".Ls6b1%=:\n\t"
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
         "adcx{q -8(%[dst]), %[r8]| %[r8], [%[dst] - 8]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
 
-        ".Ls6b0%=:\n\t"
         "mulx{q 8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 8]}\n\t"
         "lea{q -1(%[rcx]), %[rcx]| %[rcx], [%[rcx] - 1]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q (%[dst]), %[r10]| %[r10], [%[dst]]}\n\t"
         "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
 
-        ".Ls6b7%=:\n\t"
         "mulx{q 16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] + 16]}\n\t"
         "adcx{q 8(%[dst]), %[r8]| %[r8], [%[dst] + 8]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
@@ -863,25 +783,21 @@ LARGE:
         "adcx{q 16(%[dst]), %[r10]| %[r10], [%[dst] + 16]}\n\t"
         "mov{q %[r10], 16(%[dst])| [%[dst] + 16], %[r10]}\n\t"
 
-        ".Ls6b5%=:\n\t"
         "mulx{q -32(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 32]}\n\t"
         "adcx{q 24(%[dst]), %[r8]| %[r8], [%[dst] + 24]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 24(%[dst])| [%[dst] + 24], %[r8]}\n\t"
 
-        ".Ls6b4%=:\n\t"
         "mulx{q -24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 24]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 32(%[dst]), %[r10]| %[r10], [%[dst] + 32]}\n\t"
         "mov{q %[r10], 32(%[dst])| [%[dst] + 32], %[r10]}\n\t"
 
-        ".Ls6b3%=:\n\t"
         "mulx{q -16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 16]}\n\t"
         "adcx{q 40(%[dst]), %[r8]| %[r8], [%[dst] + 40]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 40(%[dst])| [%[dst] + 40], %[r8]}\n\t"
 
-        ".Ls6b2%=:\n\t"
         "mulx{q -8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 8]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 48(%[dst]), %[r10]| %[r10], [%[dst] + 48]}\n\t"
@@ -901,9 +817,9 @@ LARGE:
 
         ".Ls5%=:\n\t"
 
+        "lea{q 56(%[src], %[adj], 8), %[src]| %[src], [%[src] + %[adj] * 8 + 56]}\n\t"
         "lea{q (%[dst], %[adj], 8), %[dst]| %[dst], [%[dst] + %[adj] * 8]}\n\t"
-        "lea{q 72(%[ptr]), %[src]| %[src], [%[ptr] + 72]}\n\t"
-        "mov{q 24(%[ptr]), %[rdx]| %[rdx], [%[ptr] + 24]}\n\t"
+        "mov{q -48(%[src]), %[rdx]| %[rdx], [%[src] - 48]}\n\t"
         "mov{q %[rax], %[rcx]| %[rcx], %[rax]}\n\t"
 
         "mulx{q -40(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 40]}\n\t"
@@ -912,26 +828,22 @@ LARGE:
         ".align 32\n\t"
         ".Ls5loop%=:\n\t"
 
-        ".Ls5b1%=:\n\t"
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
         "adcx{q -8(%[dst]), %[r8]| %[r8], [%[dst] - 8]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
 
-        ".Ls5b0%=:\n\t"
         "mulx{q 8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 8]}\n\t"
         "lea{q -1(%[rcx]), %[rcx]| %[rcx], [%[rcx] - 1]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q (%[dst]), %[r10]| %[r10], [%[dst]]}\n\t"
         "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
 
-        ".Ls5b7%=:\n\t"
         "mulx{q 16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] + 16]}\n\t"
         "adcx{q 8(%[dst]), %[r8]| %[r8], [%[dst] + 8]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 8(%[dst])| [%[dst] + 8], %[r8]}\n\t"
 
-        ".Ls5b6%=:\n\t"
         "mulx{q 24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 24]}\n\t"
         "lea{q 64(%[src]), %[src]| %[src], [%[src] + 64]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
@@ -944,19 +856,16 @@ LARGE:
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 24(%[dst])| [%[dst] + 24], %[r8]}\n\t"
 
-        ".Ls5b4%=:\n\t"
         "mulx{q -24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 24]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 32(%[dst]), %[r10]| %[r10], [%[dst] + 32]}\n\t"
         "mov{q %[r10], 32(%[dst])| [%[dst] + 32], %[r10]}\n\t"
 
-        ".Ls5b3%=:\n\t"
         "mulx{q -16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 16]}\n\t"
         "adcx{q 40(%[dst]), %[r8]| %[r8], [%[dst] + 40]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 40(%[dst])| [%[dst] + 40], %[r8]}\n\t"
 
-        ".Ls5b2%=:\n\t"
         "mulx{q -8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 8]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 48(%[dst]), %[r10]| %[r10], [%[dst] + 48]}\n\t"
@@ -976,9 +885,9 @@ LARGE:
 
         ".Ls4%=:\n\t"
 
+        "lea{q 56(%[src], %[adj], 8), %[src]| %[src], [%[src] + %[adj] * 8 + 56]}\n\t"
         "lea{q (%[dst], %[adj], 8), %[dst]| %[dst], [%[dst] + %[adj] * 8]}\n\t"
-        "lea{q 72(%[ptr]), %[src]| %[src], [%[ptr] + 72]}\n\t"
-        "mov{q 32(%[ptr]), %[rdx]| %[rdx], [%[ptr] + 32]}\n\t"
+        "mov{q -40(%[src]), %[rdx]| %[rdx], [%[src] - 40]}\n\t"
         "mov{q %[rax], %[rcx]| %[rcx], %[rax]}\n\t"
 
         "mulx{q -32(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 32]}\n\t"
@@ -987,33 +896,28 @@ LARGE:
         ".align 32\n\t"
         ".Ls4loop%=:\n\t"
 
-        ".Ls4b1%=:\n\t"
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
         "adcx{q -8(%[dst]), %[r8]| %[r8], [%[dst] - 8]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
 
-        ".Ls4b0%=:\n\t"
         "mulx{q 8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 8]}\n\t"
         "lea{q -1(%[rcx]), %[rcx]| %[rcx], [%[rcx] - 1]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q (%[dst]), %[r10]| %[r10], [%[dst]]}\n\t"
         "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
 
-        ".Ls4b7%=:\n\t"
         "mulx{q 16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] + 16]}\n\t"
         "adcx{q 8(%[dst]), %[r8]| %[r8], [%[dst] + 8]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 8(%[dst])| [%[dst] + 8], %[r8]}\n\t"
 
-        ".Ls4b6%=:\n\t"
         "mulx{q 24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 24]}\n\t"
         "lea{q 64(%[src]), %[src]| %[src], [%[src] + 64]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 16(%[dst]), %[r10]| %[r10], [%[dst] + 16]}\n\t"
         "mov{q %[r10], 16(%[dst])| [%[dst] + 16], %[r10]}\n\t"
 
-        ".Ls4b5%=:\n\t"
         "mulx{q -32(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 32]}\n\t"
         "adcx{q 24(%[dst]), %[r8]| %[r8], [%[dst] + 24]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
@@ -1025,13 +929,11 @@ LARGE:
         "adcx{q 32(%[dst]), %[r10]| %[r10], [%[dst] + 32]}\n\t"
         "mov{q %[r10], 32(%[dst])| [%[dst] + 32], %[r10]}\n\t"
 
-        ".Ls4b3%=:\n\t"
         "mulx{q -16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 16]}\n\t"
         "adcx{q 40(%[dst]), %[r8]| %[r8], [%[dst] + 40]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 40(%[dst])| [%[dst] + 40], %[r8]}\n\t"
 
-        ".Ls4b2%=:\n\t"
         "mulx{q -8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 8]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 48(%[dst]), %[r10]| %[r10], [%[dst] + 48]}\n\t"
@@ -1051,9 +953,9 @@ LARGE:
 
         ".Ls3%=:\n\t"
 
+        "lea{q 56(%[src], %[adj], 8), %[src]| %[src], [%[src] + %[adj] * 8 + 56]}\n\t"
         "lea{q (%[dst], %[adj], 8), %[dst]| %[dst], [%[dst] + %[adj] * 8]}\n\t"
-        "lea{q 72(%[ptr]), %[src]| %[src], [%[ptr] + 72]}\n\t"
-        "mov{q 40(%[ptr]), %[rdx]| %[rdx], [%[ptr] + 40]}\n\t"
+        "mov{q -32(%[src]), %[rdx]| %[rdx], [%[src] - 32]}\n\t"
         "mov{q %[rax], %[rcx]| %[rcx], %[rax]}\n\t"
 
         "mulx{q -24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 24]}\n\t"
@@ -1062,39 +964,33 @@ LARGE:
         ".align 32\n\t"
         ".Ls3loop%=:\n\t"
 
-        ".Ls3b1%=:\n\t"
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
         "adcx{q -8(%[dst]), %[r8]| %[r8], [%[dst] - 8]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
 
-        ".Ls3b0%=:\n\t"
         "mulx{q 8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 8]}\n\t"
         "lea{q -1(%[rcx]), %[rcx]| %[rcx], [%[rcx] - 1]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q (%[dst]), %[r10]| %[r10], [%[dst]]}\n\t"
         "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
 
-        ".Ls3b7%=:\n\t"
         "mulx{q 16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] + 16]}\n\t"
         "adcx{q 8(%[dst]), %[r8]| %[r8], [%[dst] + 8]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 8(%[dst])| [%[dst] + 8], %[r8]}\n\t"
 
-        ".Ls3b6%=:\n\t"
         "mulx{q 24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 24]}\n\t"
         "lea{q 64(%[src]), %[src]| %[src], [%[src] + 64]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 16(%[dst]), %[r10]| %[r10], [%[dst] + 16]}\n\t"
         "mov{q %[r10], 16(%[dst])| [%[dst] + 16], %[r10]}\n\t"
 
-        ".Ls3b5%=:\n\t"
         "mulx{q -32(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 32]}\n\t"
         "adcx{q 24(%[dst]), %[r8]| %[r8], [%[dst] + 24]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 24(%[dst])| [%[dst] + 24], %[r8]}\n\t"
 
-        ".Ls3b4%=:\n\t"
         "mulx{q -24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 24]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 32(%[dst]), %[r10]| %[r10], [%[dst] + 32]}\n\t"
@@ -1106,7 +1002,6 @@ LARGE:
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 40(%[dst])| [%[dst] + 40], %[r8]}\n\t"
 
-        ".Ls3b2%=:\n\t"
         "mulx{q -8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 8]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 48(%[dst]), %[r10]| %[r10], [%[dst] + 48]}\n\t"
@@ -1126,9 +1021,9 @@ LARGE:
 
         ".Ls2%=:\n\t"
 
+        "lea{q 56(%[src], %[adj], 8), %[src]| %[src], [%[src] + %[adj] * 8 + 56]}\n\t"
         "lea{q (%[dst], %[adj], 8), %[dst]| %[dst], [%[dst] + %[adj] * 8]}\n\t"
-        "lea{q 72(%[ptr]), %[src]| %[src], [%[ptr] + 72]}\n\t"
-        "mov{q 48(%[ptr]), %[rdx]| %[rdx], [%[ptr] + 48]}\n\t"
+        "mov{q -24(%[src]), %[rdx]| %[rdx], [%[src] - 24]}\n\t"
         "mov{q %[rax], %[rcx]| %[rcx], %[rax]}\n\t"
 
         "mulx{q -16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 16]}\n\t"
@@ -1137,45 +1032,38 @@ LARGE:
         ".align 32\n\t"
         ".Ls2loop%=:\n\t"
 
-        ".Ls2b1%=:\n\t"
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
         "adcx{q -8(%[dst]), %[r8]| %[r8], [%[dst] - 8]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
 
-        ".Ls2b0%=:\n\t"
         "mulx{q 8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 8]}\n\t"
         "lea{q -1(%[rcx]), %[rcx]| %[rcx], [%[rcx] - 1]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q (%[dst]), %[r10]| %[r10], [%[dst]]}\n\t"
         "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
 
-        ".Ls2b7%=:\n\t"
         "mulx{q 16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] + 16]}\n\t"
         "adcx{q 8(%[dst]), %[r8]| %[r8], [%[dst] + 8]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 8(%[dst])| [%[dst] + 8], %[r8]}\n\t"
 
-        ".Ls2b6%=:\n\t"
         "mulx{q 24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 24]}\n\t"
         "lea{q 64(%[src]), %[src]| %[src], [%[src] + 64]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 16(%[dst]), %[r10]| %[r10], [%[dst] + 16]}\n\t"
         "mov{q %[r10], 16(%[dst])| [%[dst] + 16], %[r10]}\n\t"
 
-        ".Ls2b5%=:\n\t"
         "mulx{q -32(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 32]}\n\t"
         "adcx{q 24(%[dst]), %[r8]| %[r8], [%[dst] + 24]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 24(%[dst])| [%[dst] + 24], %[r8]}\n\t"
 
-        ".Ls2b4%=:\n\t"
         "mulx{q -24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 24]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 32(%[dst]), %[r10]| %[r10], [%[dst] + 32]}\n\t"
         "mov{q %[r10], 32(%[dst])| [%[dst] + 32], %[r10]}\n\t"
 
-        ".Ls2b3%=:\n\t"
         "mulx{q -16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 16]}\n\t"
         "adcx{q 40(%[dst]), %[r8]| %[r8], [%[dst] + 40]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
@@ -1201,9 +1089,9 @@ LARGE:
 
         ".Ls1%=:\n\t"
 
+        "lea{q 56(%[src], %[adj], 8), %[src]| %[src], [%[src] + %[adj] * 8 + 56]}\n\t"
         "lea{q 64(%[dst], %[adj], 8), %[dst]| %[dst], [%[dst] + %[adj] * 8 + 64]}\n\t"
-        "lea{q 72(%[ptr]), %[src]| %[src], [%[ptr] + 72]}\n\t"
-        "mov{q 56(%[ptr]), %[rdx]| %[rdx], [%[ptr] + 56]}\n\t"
+        "mov{q -16(%[src]), %[rdx]| %[rdx], [%[src] - 16]}\n\t"
         "mov{q %[rax], %[rcx]| %[rcx], %[rax]}\n\t"
 
         "jmp .Ls1l1%=\n\t"
@@ -1222,51 +1110,43 @@ LARGE:
         ".align 32\n\t"
         ".Ls1loop%=:\n\t"
 
-        ".Ls1b1%=:\n\t"
         "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
         "adcx{q -8(%[dst]), %[r8]| %[r8], [%[dst] - 8]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
 
-        ".Ls1b0%=:\n\t"
         "mulx{q 8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 8]}\n\t"
         "lea{q -1(%[rcx]), %[rcx]| %[rcx], [%[rcx] - 1]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q (%[dst]), %[r10]| %[r10], [%[dst]]}\n\t"
         "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
 
-        ".Ls1b7%=:\n\t"
         "mulx{q 16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] + 16]}\n\t"
         "adcx{q 8(%[dst]), %[r8]| %[r8], [%[dst] + 8]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 8(%[dst])| [%[dst] + 8], %[r8]}\n\t"
 
-        ".Ls1b6%=:\n\t"
         "mulx{q 24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 24]}\n\t"
         "lea{q 64(%[src]), %[src]| %[src], [%[src] + 64]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 16(%[dst]), %[r10]| %[r10], [%[dst] + 16]}\n\t"
         "mov{q %[r10], 16(%[dst])| [%[dst] + 16], %[r10]}\n\t"
 
-        ".Ls1b5%=:\n\t"
         "mulx{q -32(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 32]}\n\t"
         "adcx{q 24(%[dst]), %[r8]| %[r8], [%[dst] + 24]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 24(%[dst])| [%[dst] + 24], %[r8]}\n\t"
 
-        ".Ls1b4%=:\n\t"
         "mulx{q -24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 24]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 32(%[dst]), %[r10]| %[r10], [%[dst] + 32]}\n\t"
         "mov{q %[r10], 32(%[dst])| [%[dst] + 32], %[r10]}\n\t"
 
-        ".Ls1b3%=:\n\t"
         "mulx{q -16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 16]}\n\t"
         "adcx{q 40(%[dst]), %[r8]| %[r8], [%[dst] + 40]}\n\t"
         "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
         "mov{q %[r8], 40(%[dst])| [%[dst] + 40], %[r8]}\n\t"
 
-        ".Ls1b2%=:\n\t"
         "mulx{q -8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 8]}\n\t"
         "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
         "adcx{q 48(%[dst]), %[r10]| %[r10], [%[dst] + 48]}\n\t"
@@ -1289,8 +1169,6 @@ LARGE:
         "test %[rax], %[rax]\n\t"
         "jne .Lsloop%=\n\t"
 
-        ".Ldone%=:\n\t"
-
         // dst' = dst + 2 * n - 2
         // src' = src + n
 
@@ -1305,8 +1183,8 @@ LARGE:
         "shr{q $0x3, %[rcx]| %[rcx], 3}\n\t"
         "and{l $0x7, %k[r10]| %k[r10], 7}\n\t"
 
-        "lea{q| %[r9], [rip +} .Llslookup%={(%%rip), %[r9]|]}\n\t"
         "mov{q (%[src]), %[rdx]| %[rdx], [%[src]]}\n\t"
+        "lea{q| %[r9], [rip +} .Llslookup%={(%%rip), %[r9]|]}\n\t"
         "movs{lq (%[r9], %[r10], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + %[r10] * 4]}\n\t"
         "lea{q (%[r9], %[r10], 1), %[r9]| %[r9], [%[r9] + %[r10]]}\n\t"
         "jmp{q *%[r9]| %[r9]}\n\t"
@@ -1514,7 +1392,7 @@ LARGE:
 
         : [dst] "+r"(dst), [src] "+r"(src), [rcx] "=c"(rcx), [rdx] "+d"(rdx),
           [r8] "=r"(r8), [r9] "=r"(r9), [r10] "=r"(r10), [r11] "=r"(r11), [rax] "=r"(rax),
-          [rbp] "=r"(rbp), [adj] "=r"(adj), [ptr] "=r"(ptr)
+          [rbp] "=r"(rbp), [adj] "=r"(adj)
         :
         : "cc", "memory");
 }

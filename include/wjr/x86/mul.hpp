@@ -358,23 +358,8 @@ inline uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint6
 
 inline void asm_basecase_mul_s(uint64_t *dst, const uint64_t *src0, size_t n,
                                const uint64_t *src1, size_t m) {
-    WJR_ASSERT_ASSUME(n >= m);
-    WJR_ASSERT_ASSUME(m >= 1);
-
-    if (WJR_BUILTIN_CONSTANT_P(m)) {
-        if (m == 1) {
-            dst[n] = mul_1(dst, src0, n, src1[0]);
-            return;
-        }
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P(n)) {
-        if (n == 1) {
-            WJR_ASSERT_ASSUME(m == 1);
-            dst[0] = mul(*src0, *src1, dst[1]);
-            return;
-        }
-    }
+    WJR_ASSERT(n >= m);
+    WJR_ASSERT(m >= 1);
 
     return __asm_basecase_mul_s_impl(dst, src0, n, src1, m);
 }
@@ -384,7 +369,9 @@ inline void asm_basecase_mul_s(uint64_t *dst, const uint64_t *src0, size_t n,
 #if WJR_HAS_BUILTIN(ASM_BASECASE_SQR)
 
 inline void asm_basecase_sqr(uint64_t *dst, const uint64_t *src, size_t n) {
-    __asm_basecase_sqr_impl(dst, src, n);
+    WJR_ASSERT(n >= 1);
+
+    return __asm_basecase_sqr_impl(dst, src, n);
 }
 
 #endif
