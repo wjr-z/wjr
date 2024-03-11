@@ -1,5 +1,5 @@
-#ifndef WJR_X86_FIND_HPP__
-#define WJR_X86_FIND_HPP__
+#ifndef WJR_X86_MATH_FIND_HPP__
+#define WJR_X86_MATH_FIND_HPP__
 
 #include <wjr/simd/simd.hpp>
 
@@ -700,4 +700,4 @@ WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src, T val, size
 
 } // namespace wjr
 
-#endif // WJR_X86_FIND_HPP__
+#endif // WJR_X86_MATH_FIND_HPP__

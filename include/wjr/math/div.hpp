@@ -6,13 +6,33 @@
 #include <wjr/math/divider.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/x86/div.hpp>
+#include <wjr/x86/math/div.hpp>
 #endif
 
 namespace wjr {
 
-// reference : https://ieeexplore.ieee.org/document/5487506
+/*
+ TODO :
+ 1. __div_constant_128
+ 2. __mod_constant_128
+ 3. __div_qr_constant_128
+ 4. optimize constant divisor of div_qr_1
+ 1, 2, 3, 4: constant numbers that can be divisible by (uint64_t)(-1),
+*/
 
+// WJR_INTRINSIC_CONSTEXPR_E uint64_t __div_qr_1_128_noshift(
+//     uint64_t lo, uint64_t hi, const div2by1_divider_noshift<uint64_t> &div) {
+//     const auto divisor = div.get_divisor();
+//     uint64_t qh = hi >= divisor;
+// }
+
+// WJR_INTRINSIC_CONSTEXPR_E uint64_t
+// __div_qr_1_128_shift(uint64_t lo, uint64_t hi, const div2by1_divider<uint64_t> &div) {}
+
+// WJR_INTRINSIC_CONSTEXPR_E uint64_t __div_qr_1_128(uint64_t lo, uint64_t hi,
+//                                                   const div2by1_divider<uint64_t> &div) {}
+
+// reference : https://ieeexplore.ieee.org/document/5487506
 template <typename T>
 WJR_CONSTEXPR20 T div_qr_1_noshift(T *dst, T &rem, const T *src, size_t n,
                                    const div2by1_divider_noshift<T> &div) {
@@ -158,7 +178,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
 
 template <typename T>
 WJR_CONSTEXPR20 T div_qr_2_noshift(T *dst, T *rem, const T *src, size_t n,
-                                   const div3by2_divider<T> &div) {
+                                   const div3by2_divider_noshift<T> &div) {
     WJR_ASSERT_ASSUME(n >= 2);
     WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
     WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n, rem, n));
@@ -474,7 +494,7 @@ T dc_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
             /* Do a 2qn / qn division */
             if (qn == 2) {
                 qh = div_qr_2_noshift(dst, src - 2, src - 2, 4,
-                                      div3by2_divider<T>(div[-2], div[-1], dinv, 0));
+                                      div3by2_divider_noshift<T>(div[-2], div[-1], dinv));
             } else if (qn < dc_div_qr_threshold) {
                 qh = sb_div_qr_s(dst, src - qn, 2 * qn, div - qn, qn, dinv);
             } else {
@@ -654,7 +674,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n,
         const auto hi = dp[1];
         const auto dinv = div3by2_divider<T>::reciprocal(lo, hi);
         // maybe inlined ?
-        div_qr_2_noshift(dst, sp, sp, 4, div3by2_divider<T>(lo, hi, dinv, 0));
+        div_qr_2_noshift(dst, sp, sp, 4, div3by2_divider_noshift<T>(lo, hi, dinv));
     } else {
         const auto lo = dp[qn - 2];
         const auto hi = dp[qn - 1];

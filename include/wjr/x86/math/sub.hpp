@@ -56,7 +56,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in, U &c_out)
 }
 
 #define WJR_ADDSUB_I 0
-#include <wjr/x86/gen_addsub.hpp>
+#include <wjr/x86/math/gen_addsub.hpp>
 
 #endif
 

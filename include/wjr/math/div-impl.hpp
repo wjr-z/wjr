@@ -14,6 +14,9 @@ class div3by2_divider;
 template <typename T>
 class divexact1_divider;
 
+WJR_INTRINSIC_CONSTEXPR_E uint64_t __div_qr_1_128(uint64_t lo, uint64_t hi,
+                                                  const div2by1_divider<uint64_t> &div);
+
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         const div2by1_divider<T> &div);

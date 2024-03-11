@@ -4,7 +4,7 @@
 #include <wjr/type_traits.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/x86/find.hpp>
+#include <wjr/x86/math/find.hpp>
 #endif
 
 namespace wjr {

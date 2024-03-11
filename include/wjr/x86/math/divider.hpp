@@ -1,5 +1,5 @@
-#ifndef WJR_X86_DIVIDER_HPP__
-#define WJR_X86_DIVIDER_HPP__
+#ifndef WJR_X86_MATH_DIVIDER_HPP__
+#define WJR_X86_MATH_DIVIDER_HPP__
 
 #include <wjr/type_traits.hpp>
 
@@ -43,4 +43,4 @@ WJR_INTRINSIC_INLINE void asm_div3by2_adjust(T d1, T &p, T &v) {
 
 } // namespace wjr
 
-#endif // WJR_X86_DIVIDER_HPP__
+#endif // WJR_X86_MATH_DIVIDER_HPP__

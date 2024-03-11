@@ -10,7 +10,7 @@
 #include <wjr/math/sub.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/x86/mul.hpp>
+#include <wjr/x86/math/mul.hpp>
 #endif
 
 namespace wjr {

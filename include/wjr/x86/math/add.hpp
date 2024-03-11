@@ -1,5 +1,5 @@
-#ifndef WJR_X86_ADD_HPP__
-#define WJR_X86_ADD_HPP__
+#ifndef WJR_X86_MATH_ADD_HPP__
+#define WJR_X86_MATH_ADD_HPP__
 
 #include <wjr/type_traits.hpp>
 
@@ -19,16 +19,14 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in, U &c_out)
         c_in = 0;
         if (WJR_BUILTIN_CONSTANT_P(b) && b <= std::numeric_limits<uint32_t>::max()) {
             asm("stc\n\t"
-                "adc{q"
-                " %2, %0| %0, %2}\n\t"
+                "adc{q %2, %0| %0, %2}\n\t"
                 "setb %b1"
                 : "=r"(a), "+r"(c_in)
                 : "ri"(b), "0"(a)
                 : "cc");
         } else {
             asm("stc\n\t"
-                "adc{q"
-                " %2, %0| %0, %2}\n\t"
+                "adc{q %2, %0| %0, %2}\n\t"
                 "setb %b1"
                 : "=r"(a), "+r"(c_in)
                 : "r"(b), "0"(a)
@@ -78,7 +76,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in, U &c_out)
 }
 
 #define WJR_ADDSUB_I 1
-#include <wjr/x86/gen_addsub.hpp>
+#include <wjr/x86/math/gen_addsub.hpp>
 
 #endif
 
@@ -163,4 +161,4 @@ WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_
 
 } // namespace wjr
 
-#endif // WJR_X86_ADD_HPP__
+#endif // WJR_X86_MATH_ADD_HPP__

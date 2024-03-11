@@ -1,8 +1,8 @@
-#ifndef WJR_X86_MUL_HPP__
-#define WJR_X86_MUL_HPP__
+#ifndef WJR_X86_MATH_MUL_HPP__
+#define WJR_X86_MATH_MUL_HPP__
 
 #include <wjr/assert.hpp>
-#include <wjr/x86/mul-impl.hpp>
+#include <wjr/x86/math/mul-impl.hpp>
 
 namespace wjr {
 
@@ -549,14 +549,14 @@ inline uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n, uint6
 
 #if WJR_HAS_BUILTIN(ASM_ADDLSH_N)
 #define WJR_ADDSUB_I 1
-#include <wjr/x86/gen_addrsblsh_n.hpp>
+#include <wjr/x86/math/gen_addrsblsh_n.hpp>
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_RSBLSH_N)
 #define WJR_ADDSUB_I 0
-#include <wjr/x86/gen_addrsblsh_n.hpp>
+#include <wjr/x86/math/gen_addrsblsh_n.hpp>
 #endif
 
 } // namespace wjr
 
-#endif // WJR_X86_MUL_HPP__
+#endif // WJR_X86_MATH_MUL_HPP__

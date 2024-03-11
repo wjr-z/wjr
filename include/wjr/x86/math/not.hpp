@@ -1,5 +1,5 @@
-#ifndef WJR_X86_NOT_HPP__
-#define WJR_X86_NOT_HPP__
+#ifndef WJR_X86_MATH_NOT_HPP__
+#define WJR_X86_MATH_NOT_HPP__
 
 #include <wjr/simd/simd.hpp>
 #include <wjr/math/details.hpp>
@@ -242,4 +242,4 @@ WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) {
 
 } // namespace wjr
 
-#endif // WJR_X86_NOT_HPP__
+#endif // WJR_X86_MATH_NOT_HPP__

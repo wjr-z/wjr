@@ -1,5 +1,5 @@
-#ifndef WJR_X86_DIV_HPP__
-#define WJR_X86_DIV_HPP__
+#ifndef WJR_X86_MATH_DIV_HPP__
+#define WJR_X86_MATH_DIV_HPP__
 
 #include <wjr/type_traits.hpp>
 
@@ -15,6 +15,7 @@ namespace wjr {
 
 #if WJR_HAS_BUILTIN(ASM_DIVEXACT_DBM1C)
 
+// TODO : optimize pipeline
 inline uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
                                    uint64_t bd, uint64_t h) {
     uint64_t r8 = h, r9 = n, r10, r11 = static_cast<uint32_t>(n);
@@ -35,29 +36,25 @@ inline uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
         ".Lloop%=:\n\t"
 
         ".Lb0%=:\n\t"
-        "mov{q (%[src], %[r9], 8), %[r10]| %[r10], [%[src] + %[r9] * 8]}\n\t"
-        "mul{q %[bd]| %[bd]}\n\t"
+        "mulx{q (%[src], %[r9], 8), %[r10], %[r11]| %[r11], %[r10], [%[src] + %[r9] * 8]}\n\t"
         "sub{q %[r10], %[r8]| %[r8], %[r10]}\n\t"
         "mov{q %[r8], (%[dst], %[r9], 8)| [%[dst] + %[r9] * 8], %[r8]}\n\t"
         "sbb{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
 
         ".Lb3%=:\n\t"
-        "mov{q 8(%[src], %[r9], 8), %[r10]| %[r10], [%[src] + %[r9] * 8 + 8]}\n\t"
-        "mul{q %[bd]| %[bd]}\n\t"
+        "mulx{q 8(%[src], %[r9], 8), %[r10], %[r11]| %[r11], %[r10], [%[src] + %[r9] * 8 + 8]}\n\t"
         "sub{q %[r10], %[r8]| %[r8], %[r10]}\n\t"
         "mov{q %[r8], 8(%[dst], %[r9], 8)| [%[dst] + %[r9] * 8 + 8], %[r8]}\n\t"
         "sbb{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
 
         ".Lb2%=:\n\t"
-        "mov{q 16(%[src], %[r9], 8), %[r10]| %[r10], [%[src] + %[r9] * 8 + 16]}\n\t"
-        "mul{q %[bd]| %[bd]}\n\t"
+        "mulx{q 16(%[src], %[r9], 8), %[r10], %[r11]| %[r11], %[r10], [%[src] + %[r9] * 8 + 16]}\n\t"
         "sub{q %[r10], %[r8]| %[r8], %[r10]}\n\t"
         "mov{q %[r8], 16(%[dst], %[r9], 8)| [%[dst] + %[r9] * 8 + 16], %[r8]}\n\t"
         "sbb{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
 
         ".Lb1%=:\n\t"
-        "mov{q 24(%[src], %[r9], 8), %[r10]| %[r10], [%[src] + %[r9] * 8 + 24]}\n\t"
-        "mul{q %[bd]| %[bd]}\n\t"
+        "mulx{q 24(%[src], %[r9], 8), %[r10], %[r11]| %[r11], %[r10], [%[src] + %[r9] * 8 + 24]}\n\t"
         "sub{q %[r10], %[r8]| %[r8], %[r10]}\n\t"
         "mov{q %[r8], 24(%[dst], %[r9], 8)| [%[dst] + %[r9] * 8 + 24], %[r8]}\n\t"
         "sbb{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
@@ -66,8 +63,8 @@ inline uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
         "jne .Lloop%=\n\t"
 
         : [dst] "+&r"(dst), [src] "+&r"(src), [r8] "+&r"(r8), [r9] "+&r"(r9),
-          [r10] "=&a"(r10), [r11] "+&d"(r11)
-        : [bd] "r"(bd)
+          [r10] "=&r"(r10), [r11] "+&r"(r11)
+        : [bd] "d"(bd)
         : "cc", "memory");
 
     return r8;
@@ -77,4 +74,4 @@ inline uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
 
 } // namespace wjr
 
-#endif // WJR_X86_DIV_HPP__
+#endif // WJR_X86_MATH_DIV_HPP__

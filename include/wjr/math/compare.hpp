@@ -5,7 +5,7 @@
 #include <wjr/type_traits.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/x86/compare.hpp>
+#include <wjr/x86/math/compare.hpp>
 #endif
 
 namespace wjr {

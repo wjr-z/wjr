@@ -7,7 +7,7 @@
 #include <wjr/type_traits.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/x86/set.hpp>
+#include <wjr/x86/math/set.hpp>
 #endif
 
 namespace wjr {

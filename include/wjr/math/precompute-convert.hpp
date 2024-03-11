@@ -21,7 +21,6 @@ struct precompute_to_chars_t {
     unsigned int base;
 };
 
-// exclue 0
 extern "C" precompute_to_chars_16n_t *precompute_to_chars_16n_ptr[37];
 
 extern "C" precompute_to_chars_t *precompute_to_chars(precompute_to_chars_t *pre,

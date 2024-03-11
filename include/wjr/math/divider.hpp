@@ -4,7 +4,7 @@
 #include <wjr/math/mul.hpp>
 
 #if defined(WJR_X86)
-#include <wjr/x86/divider.hpp>
+#include <wjr/x86/math/divider.hpp>
 #endif
 
 namespace wjr {
@@ -49,6 +49,15 @@ inline constexpr std::array<uint64_t, 0x80> divexact1_lookup = {
     0xC3, 0xE5, 0x0F, 0x11, 0x3B, 0x5D, 0xC7, 0x49, 0x33, 0x55, 0xFF};
 
 } // namespace math_details
+
+template <typename T>
+class div1by1_divider;
+
+template <>
+class div1by1_divider<uint64_t> {
+public:
+private:
+};
 
 template <typename T>
 class div2by1_divider_noshift {
@@ -212,9 +221,12 @@ public:
     div2by1_divider &operator=(const div2by1_divider &) = default;
     ~div2by1_divider() = default;
 
-    explicit div2by1_divider(const Mybase &base) : Mybase(base), m_shift(0) {}
+    constexpr explicit div2by1_divider(const Mybase &base) : Mybase(base), m_shift(0) {}
 
-    WJR_INTRINSIC_CONSTEXPR_E explicit div2by1_divider(T divisor) { initialize(divisor); }
+    WJR_INTRINSIC_CONSTEXPR_E explicit div2by1_divider(T divisor) {
+        m_divisor = divisor;
+        initialize();
+    }
 
     constexpr div2by1_divider(T divisor, T value, unsigned int shift)
         : Mybase(divisor, value), m_shift(shift) {}
@@ -229,18 +241,17 @@ public:
 
 private:
     // make sure m_shift/one_single_bit(divisor) can be inlined
-    WJR_INTRINSIC_CONSTEXPR_E void initialize(T divisor) {
-        if (WJR_UNLIKELY(!__has_high_bit(divisor))) {
-            m_shift = clz(divisor);
-            divisor <<= m_shift;
+    WJR_INTRINSIC_CONSTEXPR_E void initialize() {
+        if (WJR_UNLIKELY(!__has_high_bit(m_divisor))) {
+            m_shift = clz(m_divisor);
+            m_divisor <<= m_shift;
 
             WJR_ASSUME(m_shift != 0);
         } else {
             WJR_ASSUME(m_shift == 0);
         }
 
-        WJR_ASSUME(__has_high_bit(divisor));
-        m_divisor = divisor;
+        WJR_ASSUME(__has_high_bit(m_divisor));
 
         if (WJR_UNLIKELY(m_divisor == 1ull << 63)) {
             m_value = -1;
@@ -254,105 +265,37 @@ private:
 };
 
 template <typename T>
-class div3by2_divider {
+class div3by2_divider_noshift {
 public:
     static_assert(std::is_same_v<T, uint64_t>, "");
 
-    div3by2_divider() = default;
-    div3by2_divider(const div3by2_divider &) = default;
-    div3by2_divider &operator=(const div3by2_divider &) = default;
-    ~div3by2_divider() = default;
+    div3by2_divider_noshift() = default;
+    div3by2_divider_noshift(const div3by2_divider_noshift &) = default;
+    div3by2_divider_noshift &operator=(const div3by2_divider_noshift &) = default;
+    ~div3by2_divider_noshift() = default;
 
-    WJR_INTRINSIC_CONSTEXPR_E div3by2_divider(T d0, T d1)
+    WJR_INTRINSIC_CONSTEXPR_E div3by2_divider_noshift(T d0, T d1)
         : m_divisor0(d0), m_divisor1(d1) {
-        initialize();
+        m_value = reciprocal(d0, d1);
     }
 
-    WJR_INTRINSIC_CONSTEXPR div3by2_divider(T d0, T d1, T value, unsigned int shift)
-        : m_divisor0(d0), m_divisor1(d1), m_value(value), m_shift(shift) {}
+    WJR_INTRINSIC_CONSTEXPR div3by2_divider_noshift(T d0, T d1, T value)
+        : m_divisor0(d0), m_divisor1(d1), m_value(value) {}
 
     constexpr T get_divisor0() const { return m_divisor0; }
     constexpr T get_divisor1() const { return m_divisor1; }
     constexpr T get_value() const { return m_value; }
-    constexpr unsigned int get_shift() const { return m_shift; }
+
+    WJR_INTRINSIC_CONSTEXPR20 T divide(T u0, T &u1, T &u2) const {
+        return divide(m_divisor0, m_divisor1, u0, u1, u2);
+    }
 
     WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor0, T divisor1, T value, T u0,
-                                              T &u1, T &u2) {
-        WJR_ASSERT_ASSUME(__has_high_bit(divisor1));
+                                              T &u1, T &u2);
 
-        T q1, q0;
-        q0 = mul<T>(value, u2, q1);
-        __addc_128(q0, q1, q0, q1, u1, u2);
-
-        T r1, r0;
-        r1 = u1 - mullo<T>(q1, divisor1);
-        T t1;
-        r0 = mul<T>(divisor0, q1, t1);
-
-        __subc_128(r0, r1, u0, r1, r0, t1);
-        __subc_128(r0, r1, r0, r1, divisor0, divisor1);
-        ++q1;
-
-        if (r1 >= q0) {
-            --q1;
-            __addc_128(r0, r1, r0, r1, divisor0, divisor1);
-        }
-
-        if (WJR_UNLIKELY(__less_equal_128(divisor0, divisor1, r0, r1))) {
-            ++q1;
-            __subc_128(r0, r1, r0, r1, divisor0, divisor1);
-        }
-
-        u1 = r0;
-        u2 = r1;
-        return q1;
-    }
-
-    WJR_CONST WJR_CONSTEXPR_E static T reciprocal(T d0, T d1) {
-        WJR_ASSERT_ASSUME(__has_high_bit(d1));
-
-        T v = div2by1_divider<T>::reciprocal(d1);
-        T p = mullo<T>(d1, v);
-        p += d0;
-        if (p < d0) {
-            --v;
-            if (p >= d1) {
-                --v;
-                p -= d1;
-            }
-            p -= d1;
-        }
-
-        T t0 = 0, t1 = 0;
-        t0 = mul<T>(d0, v, t1);
-        p += t1;
-        if (p < t1) {
-            --v;
-            if (__less_equal_128(d0, d1, t0, p)) {
-                --v;
-            }
-        }
-
-        return v;
-    }
+    WJR_CONST WJR_CONSTEXPR_E static T reciprocal(T d0, T d1);
 
 private:
-    WJR_INTRINSIC_CONSTEXPR_E void initialize() {
-        if (WJR_UNLIKELY(!__has_high_bit(m_divisor1))) {
-            m_shift = clz(m_divisor1);
-            m_divisor1 = shld(m_divisor1, m_divisor0, m_shift);
-            m_divisor0 <<= m_shift;
-
-            WJR_ASSUME(m_shift != 0);
-        } else {
-            WJR_ASSUME(m_shift == 0);
-        }
-
-        WJR_ASSUME(__has_high_bit(m_divisor1));
-
-        m_value = reciprocal(m_divisor0, m_divisor1);
-    }
-
     WJR_INTRINSIC_CONSTEXPR static void fallback_div3by2_adjust(T d1, T &p, T &v) {
         T q = p - d1;
         T f = p < d1;
@@ -372,9 +315,126 @@ private:
 #endif
     }
 
+protected:
     T m_divisor0 = 0;
     T m_divisor1 = 0;
     T m_value = 0;
+};
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR20 T div3by2_divider_noshift<T>::divide(T divisor0, T divisor1,
+                                                               T value, T u0, T &u1,
+                                                               T &u2) {
+    WJR_ASSERT_ASSUME(__has_high_bit(divisor1));
+
+    T q1, q0;
+    q0 = mul<T>(value, u2, q1);
+    __addc_128(q0, q1, q0, q1, u1, u2);
+
+    T r1, r0;
+    r1 = u1 - mullo<T>(q1, divisor1);
+    T t1;
+    r0 = mul<T>(divisor0, q1, t1);
+
+    __subc_128(r0, r1, u0, r1, r0, t1);
+    __subc_128(r0, r1, r0, r1, divisor0, divisor1);
+    ++q1;
+
+    if (r1 >= q0) {
+        --q1;
+        __addc_128(r0, r1, r0, r1, divisor0, divisor1);
+    }
+
+    if (WJR_UNLIKELY(__less_equal_128(divisor0, divisor1, r0, r1))) {
+        ++q1;
+        __subc_128(r0, r1, r0, r1, divisor0, divisor1);
+    }
+
+    u1 = r0;
+    u2 = r1;
+    return q1;
+}
+
+template <typename T>
+WJR_CONST WJR_CONSTEXPR_E T div3by2_divider_noshift<T>::reciprocal(T d0, T d1) {
+    WJR_ASSERT_ASSUME(__has_high_bit(d1));
+
+    T v = div2by1_divider<T>::reciprocal(d1);
+    T p = mullo<T>(d1, v);
+    p += d0;
+    if (p < d0) {
+        --v;
+        if (p >= d1) {
+            --v;
+            p -= d1;
+        }
+        p -= d1;
+    }
+
+    T t0 = 0, t1 = 0;
+    t0 = mul<T>(d0, v, t1);
+    p += t1;
+    if (p < t1) {
+        --v;
+        if (__less_equal_128(d0, d1, t0, p)) {
+            --v;
+        }
+    }
+
+    return v;
+}
+
+template <typename T>
+class div3by2_divider : public div3by2_divider_noshift<T> {
+    using Mybase = div3by2_divider_noshift<T>;
+    using Mybase::divide;
+    using Mybase::m_divisor0;
+    using Mybase::m_divisor1;
+    using Mybase::m_value;
+
+public:
+    static_assert(std::is_same_v<T, uint64_t>, "");
+
+    div3by2_divider() = default;
+    div3by2_divider(const div3by2_divider &) = default;
+    div3by2_divider &operator=(const div3by2_divider &) = default;
+    ~div3by2_divider() = default;
+
+    constexpr explicit div3by2_divider(const Mybase &base) : Mybase(base), m_shift(0) {}
+
+    WJR_INTRINSIC_CONSTEXPR_E div3by2_divider(T d0, T d1) {
+        m_divisor0 = d0;
+        m_divisor1 = d1;
+        initialize();
+    }
+
+    WJR_INTRINSIC_CONSTEXPR div3by2_divider(T d0, T d1, T value, unsigned int shift)
+        : Mybase(d0, d1, value), m_shift(shift) {}
+
+    constexpr unsigned int get_shift() const { return m_shift; }
+
+    WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor0, T divisor1, T value, T u0,
+                                              T &u1, T &u2) {
+        return Mybase::divide(divisor0, divisor1, value, u0, u1, u2);
+    }
+
+private:
+    WJR_INTRINSIC_CONSTEXPR_E void initialize() {
+        if (WJR_UNLIKELY(!__has_high_bit(m_divisor1))) {
+            m_shift = clz(m_divisor1);
+            m_divisor1 = shld(m_divisor1, m_divisor0, m_shift);
+            m_divisor0 <<= m_shift;
+
+            WJR_ASSUME(m_shift != 0);
+        } else {
+            WJR_ASSUME(m_shift == 0);
+        }
+
+        WJR_ASSUME(__has_high_bit(m_divisor1));
+
+        m_value = Mybase::reciprocal(m_divisor0, m_divisor1);
+    }
+
     unsigned int m_shift = 0;
 };
 

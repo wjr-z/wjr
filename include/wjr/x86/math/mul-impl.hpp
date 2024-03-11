@@ -1,5 +1,5 @@
-#ifndef WJR_X86_MUL_IMPL_HPP__
-#define WJR_X86_MUL_IMPL_HPP__
+#ifndef WJR_X86_MATH_MUL_IMPL_HPP__
+#define WJR_X86_MATH_MUL_IMPL_HPP__
 
 #include <wjr/type_traits.hpp>
 
@@ -105,4 +105,4 @@ inline uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n, uint6
 
 } // namespace wjr
 
-#endif // WJR_X86_MUL_IMPL_HPP__
+#endif // WJR_X86_MATH_MUL_IMPL_HPP__
