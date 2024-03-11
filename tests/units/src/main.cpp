@@ -2,6 +2,10 @@
 #include <random>
 #include <string_view>
 
+#if defined(WJR_USE_GMP)
+#include <gmp.h>
+#endif
+
 #if defined(NDEBUG)
 #undef NDEBUG
 #endif
@@ -11,8 +15,8 @@
 #endif
 #define WJR_DEBUG_LEVEL 3
 
-#include <wjr/math.hpp>
 #include <wjr/compressed_pair.hpp>
+#include <wjr/math.hpp>
 
 TEST(preprocessor, arithmatic) {
     WJR_ASSERT(WJR_PP_ADD(1, 3) == 4);
@@ -395,7 +399,6 @@ TEST(math, addc_1) {
     {
         std::vector<uint64_t> in, tmp, copy;
         uint64_t add;
-        std::mt19937_64 mt_rand(time(0));
         for (size_t n = 1; n <= 256; n = n + (n == 1 ? 1 : n / 2)) {
             in.resize(n);
             tmp.resize(n);
@@ -612,7 +615,6 @@ TEST(math, subc_1) {
     {
         std::vector<uint64_t> in, tmp, copy;
         uint64_t sub;
-        std::mt19937_64 mt_rand(time(0));
         for (size_t n = 1; n <= 256; n = n + (n == 1 ? 1 : n / 2)) {
             in.resize(n);
             tmp.resize(n);
@@ -1270,6 +1272,229 @@ TEST(math, rshift_n) {
                 ex = a[n - 1] >> c;
 
                 WJR_ASSERT(b[n - 1] == ex);
+            }
+        }
+    }
+}
+
+TEST(math_details, default_stack_allocator) {}
+
+TEST(math, __addc_128) {
+    auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                    uint64_t anslo, uint64_t anshi) {
+        wjr::__addc_128(lo0, hi0, lo0, hi0, lo1, hi1);
+        WJR_ASSERT(lo0 == anslo);
+        WJR_ASSERT(hi0 == anshi);
+    };
+
+    check(0, 0, 0, 0, 0, 0);
+    check(1, 0, 0, 0, 1, 0);
+    check(0, 0, 1, 0, 1, 0);
+    check(1, 1, 0, 0, 1, 1);
+    check(0, 1, 0, 0, 0, 1);
+    check(0, 0, 0, 1, 0, 1);
+    check(UINT64_MAX, 0, 0, 0, UINT64_MAX, 0);
+    check(0, 0, UINT64_MAX, 0, UINT64_MAX, 0);
+    check(1, 0, UINT64_MAX, 0, 0, 1);
+    check(UINT64_MAX, 0, 1, 0, 0, 1);
+    check(UINT64_MAX - 1, UINT64_MAX - 1, 1, 1, UINT64_MAX, UINT64_MAX);
+    check(UINT64_MAX, 0, UINT64_MAX, 1, UINT64_MAX - 1, 2);
+    check(1, 1, 1, 1, 2, 2);
+    check(UINT64_MAX, UINT64_MAX, 0, 1, UINT64_MAX, 0);
+    check(0, 1, 0, UINT64_MAX, 0, 0);
+    check(UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX - 1, UINT64_MAX);
+}
+
+TEST(math, __subc_128) {
+    auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                    uint64_t anslo, uint64_t anshi) {
+        wjr::__subc_128(lo0, hi0, lo0, hi0, lo1, hi1);
+        WJR_ASSERT(lo0 == anslo);
+        WJR_ASSERT(hi0 == anshi);
+    };
+
+    check(0, 0, 0, 0, 0, 0);
+    check(1, 0, 0, 0, 1, 0);
+    check(0, 0, 1, 0, UINT64_MAX, UINT64_MAX);
+    check(1, 1, 0, 0, 1, 1);
+    check(0, 1, 0, 0, 0, 1);
+    check(0, 0, 0, 1, 0, UINT64_MAX);
+    check(UINT64_MAX, 0, 0, 0, UINT64_MAX, 0);
+    check(0, 0, UINT64_MAX, 0, 1, UINT64_MAX);
+    check(1, 0, UINT64_MAX, 0, 2, UINT64_MAX);
+    check(UINT64_MAX, 0, 1, 0, UINT64_MAX - 1, 0);
+    check(UINT64_MAX - 1, UINT64_MAX - 1, 1, 1, UINT64_MAX - 2, UINT64_MAX - 2);
+    check(UINT64_MAX, 0, UINT64_MAX, 1, 0, UINT64_MAX);
+}
+
+TEST(math, mul_128) {
+    std::mt19937_64 mt_rand(time(0));
+    const int T = 256;
+    for (int i = 0; i < T; ++i) {
+        uint64_t x = mt_rand();
+        uint64_t y = mt_rand();
+
+        uint64_t anslo, anshi;
+        anslo = wjr::fallback_mul64(x, y, anshi);
+
+        uint64_t lo, hi;
+        lo = wjr::mul(x, y, hi);
+        WJR_ASSERT(lo == anslo);
+        WJR_ASSERT(hi == anshi);
+
+        lo = wjr::mulx(x, y, hi);
+        WJR_ASSERT(lo == anslo);
+        WJR_ASSERT(hi == anshi);
+    }
+}
+
+#if defined(WJR_USE_GMP)
+
+TEST(math, mul_1) {
+    std::mt19937_64 mt_rand(time(0));
+    const int T = 256;
+    const int N = 64;
+
+    std::vector<uint64_t> a(N), b(N), c(N);
+
+    for (int i = 0; i < T; ++i) {
+        for (int j = 1; j < N; ++j) {
+            uint64_t ml = mt_rand();
+
+            for (int k = 0; k < j; ++k) {
+                a[k] = mt_rand();
+            }
+
+            auto cf = wjr::mul_1(b.data(), a.data(), j, ml);
+            auto cf2 = mpn_mul_1(c.data(), a.data(), j, ml);
+
+            WJR_ASSERT(cf == cf2);
+            WJR_ASSERT(std::equal(b.begin(), b.begin() + j, c.begin()));
+        }
+    }
+}
+
+TEST(math, addmul_1) {
+    std::mt19937_64 mt_rand(time(0));
+    const int T = 256;
+    const int N = 64;
+
+    std::vector<uint64_t> a(N), b(N), c(N);
+
+    for (int i = 0; i < T; ++i) {
+        for (int j = 1; j < N; ++j) {
+            uint64_t ml = mt_rand();
+
+            for (int k = 0; k < j; ++k) {
+                a[k] = mt_rand();
+            }
+
+            auto cf = wjr::addmul_1(b.data(), a.data(), j, ml);
+            auto cf2 = mpn_addmul_1(c.data(), a.data(), j, ml);
+
+            WJR_ASSERT(cf == cf2);
+            WJR_ASSERT(std::equal(b.begin(), b.begin() + j, c.begin()));
+        }
+    }
+}
+
+TEST(math, mul_s) {
+    std::mt19937_64 mt_rand(time(0));
+    const int T = 4;
+    const int N = 240;
+    std::vector<uint64_t> a(N), b(N), c(N * 2), d(N * 2);
+
+    for (int i = 0; i < T; ++i) {
+        for (int j = 1; j < N; ++j) {
+            for (int k = 1; k <= j; ++k) {
+                for (int p = 0; p < j; ++p) {
+                    a[p] = mt_rand();
+                }
+                for (int p = 0; p < k; ++p) {
+                    b[p] = mt_rand();
+                }
+
+                wjr::mul_s(c.data(), a.data(), j, b.data(), k);
+                mpn_mul(d.data(), a.data(), j, b.data(), k);
+                WJR_ASSERT(std::equal(c.begin(), c.begin() + j + k, d.begin()));
+            }
+        }
+    }
+}
+
+TEST(math, mul_n) {
+    std::mt19937_64 mt_rand(time(0));
+    const int T = 16;
+    const int N = 240;
+    std::vector<uint64_t> a(N), b(N), c(N * 2), d(N * 2);
+
+    for (int i = 0; i < T; ++i) {
+        for (int j = 1; j < N; ++j) {
+            for (int p = 0; p < j; ++p) {
+                a[p] = mt_rand();
+            }
+            for (int p = 0; p < j; ++p) {
+                b[p] = mt_rand();
+            }
+
+            wjr::mul_n(c.data(), a.data(), b.data(), j);
+            mpn_mul_n(d.data(), a.data(), b.data(), j);
+            WJR_ASSERT(std::equal(c.begin(), c.begin() + j * 2, d.begin()));
+        }
+    }
+}
+
+TEST(math, sqr) {
+    std::mt19937_64 mt_rand(time(0));
+    const int T = 16;
+    const int N = 240;
+    std::vector<uint64_t> a(N), b(N * 2), c(N * 2);
+
+    for (int i = 0; i < T; ++i) {
+        for (int j = 1; j < N; ++j) {
+            for (int p = 0; p < j; ++p) {
+                a[p] = mt_rand();
+            }
+
+            wjr::sqr(b.data(), a.data(), j);
+            mpn_sqr(c.data(), a.data(), j);
+            WJR_ASSERT(std::equal(b.begin(), b.begin() + j * 2, c.begin()));
+        }
+    }
+}
+
+#endif
+
+TEST(math, div_qr_1) {
+    std::mt19937_64 mt_rand(time(0));
+    const int T = 8;
+    const int N = 32;
+    const int M = 64;
+
+    std::vector<uint64_t> a(M), b(M), c(M);
+
+    auto check = [&](size_t n, uint64_t div, auto divc) {
+        uint64_t rem;
+        wjr::div_qr_1(b.data(), rem, a.data(), n, divc);
+        auto cf = wjr::mul_1(c.data(), b.data(), n, div);
+        WJR_ASSERT(cf == 0);
+        cf = wjr::addc_1(c.data(), c.data(), n, rem);
+        WJR_ASSERT(cf == 0);
+        WJR_ASSERT(std::equal(a.begin(), a.begin() + n, c.begin()));
+    };
+
+    for (int i = 0; i < N; ++i) {
+        const uint64_t div = mt_rand();
+        wjr::div2by1_divider<uint64_t> divc(div);
+
+        for (int t = 0; t < T; ++t) {
+            for (int j = 1; j < M; ++j) {
+                for (int k = 0; k < j; ++k) {
+                    a[k] = mt_rand();
+                }
+
+                check(j, div, div);
+                check(j, div, divc);
             }
         }
     }
