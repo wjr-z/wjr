@@ -2,7 +2,7 @@
 #include <cstdint>
 
 #include <wjr/assert.hpp>
-#include <wjr/x86/mul-impl.hpp>
+#include <wjr/x86/math/mul-impl.hpp>
 
 namespace wjr {
 
@@ -31,7 +31,7 @@ void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
         asm volatile(
             "mulx{q (%[src0]), %[r8], %[r9]| %[r9], %[r8], [%[src0]]}\n\t"
             "mulx{q 8(%[src0]), %[r10], %[r11]| %[r11], %[r10], [%[src0] + 8]}\n\t"
-            : [r8] "=r"(r8), [r9] "=r"(r9), [r10] "=r"(r10), [r11] "=r"(r11)
+            : [r8] "=&r"(r8), [r9] "=&r"(r9), [r10] "=r"(r10), [r11] "=r"(r11)
             : "d"(rdx), [src0] "r"(src0)
             : "memory");
 

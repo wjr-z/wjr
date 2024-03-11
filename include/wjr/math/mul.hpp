@@ -1130,7 +1130,7 @@ WJR_INTRINSIC_INLINE void __sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *
 
 template <__mul_mode mode, typename T, T m>
 void __sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *stk, T &c_out,
-           type_identity_t<T> cf, std::integral_constant<T, m> x) {
+           type_identity_t<T> cf, std::integral_constant<T, m>) {
     WJR_ASSERT_ASSUME(cf <= m);
     __sqr<mode>(dst, src, n, stk);
     if constexpr (m == 0) {
@@ -1140,7 +1140,10 @@ void __sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *stk, T &c_out,
     } else {
         c_out = cf * cf;
     }
-    c_out += try_addmul_1(dst + n, src, n, 2 * cf, x);
+
+    constexpr auto m2 = m <= std::numeric_limits<uint32_t>::max() ? m * 2 : m;
+
+    c_out += try_addmul_1(dst + n, src, n, 2 * cf, std::integral_constant<T, m2>{});
 }
 
 template <typename T>

@@ -260,8 +260,8 @@ template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
                                              size_t n) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n);
-    WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n);
+    WJR_ASSERT(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
+    WJR_ASSERT(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
 
     size_t idx = reverse_find_not_n(src0, src1, n);
 

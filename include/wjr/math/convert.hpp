@@ -324,7 +324,6 @@ Iter to_chars_16(Iter first, uint64_t *up, size_t n, Converter conv) {
         *--first = conv.to(x);
     }
 
-DONE:
     return first + len;
 }
 
@@ -569,21 +568,6 @@ Iter to_chars(Iter first, uint64_t *up, size_t n, unsigned int base = 10,
     stk += n + 128;
     auto mpre = precompute_to_chars(pre, n, base, table_mem);
     return dc_to_chars(first, 0, __up, n, mpre, stk, conv);
-}
-
-template <typename Iter, typename Converter>
-uint64_t *from_chars_2(Iter first, size_t n, uint64_t *up, Converter conv) {
-    return up;
-}
-
-template <typename Iter, typename Converter>
-uint64_t *from_chars_8(Iter first, size_t n, uint64_t *up, Converter conv) {
-    return up;
-}
-
-template <typename Iter, typename Converter>
-uint64_t *from_chars_16(Iter first, size_t n, uint64_t *up, Converter conv) {
-    return up;
 }
 
 template <typename Iter, typename Converter>

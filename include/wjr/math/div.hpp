@@ -20,18 +20,6 @@ namespace wjr {
  1, 2, 3, 4: constant numbers that can be divisible by (uint64_t)(-1),
 */
 
-// WJR_INTRINSIC_CONSTEXPR_E uint64_t __div_qr_1_128_noshift(
-//     uint64_t lo, uint64_t hi, const div2by1_divider_noshift<uint64_t> &div) {
-//     const auto divisor = div.get_divisor();
-//     uint64_t qh = hi >= divisor;
-// }
-
-// WJR_INTRINSIC_CONSTEXPR_E uint64_t
-// __div_qr_1_128_shift(uint64_t lo, uint64_t hi, const div2by1_divider<uint64_t> &div) {}
-
-// WJR_INTRINSIC_CONSTEXPR_E uint64_t __div_qr_1_128(uint64_t lo, uint64_t hi,
-//                                                   const div2by1_divider<uint64_t> &div) {}
-
 // reference : https://ieeexplore.ieee.org/document/5487506
 template <typename T>
 WJR_CONSTEXPR20 T div_qr_1_noshift(T *dst, T &rem, const T *src, size_t n,
@@ -849,7 +837,7 @@ WJR_CONSTEXPR_E void fallback_divexact_1_noshift(T *dst, const T *src, size_t n,
     uint64_t value = div.get_value();
 
     uint64_t rdx = 0, r10 = 0;
-    unsigned char cf = 0;
+    uint64_t cf = 0;
     size_t idx = 0;
 
     --n;
@@ -880,7 +868,7 @@ WJR_CONSTEXPR_E void fallback_divexact_1_shift(T *dst, const T *src, size_t n,
     unsigned int shift = div.get_shift();
 
     uint64_t rdx = 0, r10 = 0;
-    unsigned char cf = 0;
+    uint64_t cf = 0;
     size_t idx = 0;
 
     --n;

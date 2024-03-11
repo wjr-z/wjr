@@ -4,6 +4,10 @@
 #include <wjr/stack_allocator.hpp>
 #include <wjr/type_traits.hpp>
 
+#if defined(WJR_X86)
+#include <wjr/x86/math/details.hpp>
+#endif
+
 namespace wjr {
 
 namespace math_details {
@@ -62,6 +66,8 @@ template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up_offset(T n, type_identity_t<T> alignment) {
     return (-n) & (alignment - 1);
 }
+
+// preview :
 
 } // namespace wjr
 

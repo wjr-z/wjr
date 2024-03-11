@@ -295,26 +295,6 @@ public:
 
     WJR_CONST WJR_CONSTEXPR_E static T reciprocal(T d0, T d1);
 
-private:
-    WJR_INTRINSIC_CONSTEXPR static void fallback_div3by2_adjust(T d1, T &p, T &v) {
-        T q = p - d1;
-        T f = p < d1;
-        p = f ? p : q;
-        v += -1 + f;
-    }
-
-    WJR_INTRINSIC_CONSTEXPR20 static void div3by2_adjust(T rax, T div, T &r8, T &rdx) {
-#if WJR_HAS_BUILTIN(ASM_DIV3BY2_ADJUST)
-        if (is_constant_evaluated()) {
-            return fallback_div3by2_adjust(rax, div, r8, rdx);
-        }
-
-        return asm_div3by2_adjust(rax, div, r8, rdx);
-#else
-        return fallback_div3by2_adjust(rax, div, r8, rdx);
-#endif
-    }
-
 protected:
     T m_divisor0 = 0;
     T m_divisor1 = 0;
