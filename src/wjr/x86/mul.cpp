@@ -1,6 +1,7 @@
 #include <cstddef>
 #include <cstdint>
 
+#include <wjr/assert.hpp>
 #include <wjr/x86/mul-impl.hpp>
 
 namespace wjr {
@@ -9,6 +10,7 @@ namespace wjr {
 
 void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
                                const uint64_t *src1, size_t m) {
+    WJR_ASSERT_ASSUME(rdx >= 1);
 
     uint64_t r8, r9, r10, r11;
     uint64_t rax, rcx; // rax = rdx & 7
@@ -26,14 +28,10 @@ void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
         }
 
         rdx = src1[0];
-        asm volatile("mulx{q (%[src0]), %[r8], %[r9]| %[r9], %[r8], [%[src0]]}\n\t"
-                     : [r8] "=r"(r8), [r9] "=r"(r9)
-                     : "d"(rdx), [src0] "r"(src0)
-                     : "memory");
-
         asm volatile(
+            "mulx{q (%[src0]), %[r8], %[r9]| %[r9], %[r8], [%[src0]]}\n\t"
             "mulx{q 8(%[src0]), %[r10], %[r11]| %[r11], %[r10], [%[src0] + 8]}\n\t"
-            : [r10] "=r"(r10), [r11] "=r"(r11)
+            : [r8] "=r"(r8), [r9] "=r"(r9), [r10] "=r"(r10), [r11] "=r"(r11)
             : "d"(rdx), [src0] "r"(src0)
             : "memory");
 
@@ -366,12 +364,13 @@ void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
 // TODO : optimize
 // Local testing is slower than GMP by 2% to 3%
 void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx) {
+    WJR_ASSERT_ASSUME(rdx >= 1);
 
     uint64_t r8, r9, r10, r11;
     uint64_t rax, rcx;
 
     if (WJR_LIKELY(rdx <= 2)) {
-        if (WJR_LIKELY(rdx == 1)) {
+        if (WJR_LIKELY(rdx != 2)) {
             rdx = src[0];
             asm volatile("mulx{q %[rdx], %[r8], %[r9]| %[r9], %[r8], %[rdx]}\n\t"
                          : [r8] "=r"(r8), [r9] "=r"(r9)
@@ -383,12 +382,8 @@ void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx) {
         }
 
         rdx = src[0];
-        asm volatile("mulx{q %[rdx], %[r8], %[r9]| %[r9], %[r8], %[rdx]}\n\t"
-                     : [r8] "=r"(r8), [r9] "=r"(r9)
-                     : [rdx] "d"(rdx)
-                     : "memory");
-
         asm volatile(
+            "mulx{q %[rdx], %[r8], %[r9]| %[r9], %[r8], %[rdx]}\n\t"
             "mov{q 8(%[src]), %[rcx]| %[rcx], [%[src] + 8]}\n\t"
             "mulx{q %[rcx], %[r10], %[r11]| %[r11], %[r10], %[rcx]}\n\t"
             "mov{q %[rcx], %[rdx]| %[rdx], %[rcx]}\n\t"
@@ -403,8 +398,8 @@ void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx) {
             "mov{q %[r9], 8(%[dst])| [%[dst] + 8], %[r9]}\n\t"
             "mov{q %[rax], 16(%[dst])| [%[dst] + 16], %[rax]}\n\t"
             "mov{q %[rdx], 24(%[dst])| [%[dst] + 24], %[rdx]}\n\t"
-            : [r8] "+&r"(r8), [r9] "+&r"(r9), [r10] "+&r"(r10), [r11] "+&r"(r11),
-              [rax] "+&r"(rax), [rdx] "+&d"(rdx), [rcx] "=&r"(rcx)
+            : [r8] "=&r"(r8), [r9] "=&r"(r9), [r10] "=&r"(r10), [r11] "=&r"(r11),
+              [rax] "=&r"(rax), [rdx] "+&d"(rdx), [rcx] "=&r"(rcx)
             : [dst] "r"(dst), [src] "r"(src)
             : "cc", "memory");
 

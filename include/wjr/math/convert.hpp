@@ -362,8 +362,6 @@ Iter to_chars_power_of_two(Iter first, unsigned int Base, uint64_t *up, size_t n
                 rest = 64;
             }
 
-            WJR_ASSERT_ASSUME(rest >= per_bit);
-
             do {
                 *--first = conv.to(x & mask);
                 x >>= per_bit;
@@ -521,7 +519,8 @@ template <typename Iter, typename Converter = char_converter_t,
                            int> = 0>
 Iter to_chars(Iter first, uint64_t *up, size_t n, unsigned int base = 10,
               Converter conv = {}) {
-    WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10), "Not support yet.");
+    WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10),
+               "Not support yet.");
 
     if (is_zero_or_single_bit(base)) {
         switch (base) {
@@ -569,6 +568,21 @@ Iter to_chars(Iter first, uint64_t *up, size_t n, unsigned int base = 10,
     stk += n + 128;
     auto mpre = precompute_to_chars(pre, n, base, table_mem);
     return dc_to_chars(first, 0, __up, n, mpre, stk, conv);
+}
+
+template <typename Iter, typename Converter>
+uint64_t *from_chars_2(Iter first, size_t n, uint64_t *up, Converter conv) {
+    return up;
+}
+
+template <typename Iter, typename Converter>
+uint64_t *from_chars_8(Iter first, size_t n, uint64_t *up, Converter conv) {
+    return up;
+}
+
+template <typename Iter, typename Converter>
+uint64_t *from_chars_16(Iter first, size_t n, uint64_t *up, Converter conv) {
+    return up;
 }
 
 template <typename Iter, typename Converter>
@@ -748,7 +762,8 @@ template <typename Iter, typename Converter = char_converter_t,
                            int> = 0>
 uint64_t *from_chars(Iter first, Iter last, uint64_t *up, unsigned int base = 10,
                      Converter conv = {}) {
-    WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10), "Not support yet.");
+    WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10),
+               "Not support yet.");
 
     if (is_zero_or_single_bit(base)) {
         return up;
