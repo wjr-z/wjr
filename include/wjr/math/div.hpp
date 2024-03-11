@@ -14,8 +14,8 @@ namespace wjr {
 // reference : https://ieeexplore.ieee.org/document/5487506
 
 template <typename T>
-WJR_CONSTEXPR20 T div_qr_1_without_shift(T *dst, T &rem, const T *src, size_t n,
-                                         const div2by1_divider<T> &div) {
+WJR_CONSTEXPR20 T div_qr_1_noshift(T *dst, T &rem, const T *src, size_t n,
+                                   const div2by1_divider_noshift<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
 
@@ -52,8 +52,8 @@ WJR_CONSTEXPR20 T div_qr_1_without_shift(T *dst, T &rem, const T *src, size_t n,
 }
 
 template <typename T>
-WJR_CONSTEXPR20 T div_qr_1_with_shift(T *dst, T &rem, const T *src, size_t n,
-                                      const div2by1_divider<T> &div) {
+WJR_CONSTEXPR20 T div_qr_1_shift(T *dst, T &rem, const T *src, size_t n,
+                                 const div2by1_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(div.get_shift() != 0);
     WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
@@ -97,13 +97,13 @@ WJR_CONSTEXPR20 T div_qr_1_with_shift(T *dst, T &rem, const T *src, size_t n,
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR20 T fallback_div_qr_1(T *dst, T &rem, const T *src, size_t n,
-                                              const div2by1_divider<T> &div) {
+WJR_INTRINSIC_CONSTEXPR20 T div_qr_1_impl(T *dst, T &rem, const T *src, size_t n,
+                                          const div2by1_divider<T> &div) {
     if (div.get_shift() == 0) {
-        return div_qr_1_without_shift(dst, rem, src, n, div);
+        return div_qr_1_noshift(dst, rem, src, n, div);
     }
 
-    return div_qr_1_with_shift(dst, rem, src, n, div);
+    return div_qr_1_shift(dst, rem, src, n, div);
 }
 
 // return high quotient limb
@@ -119,7 +119,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
         return;
     }
 
-    dst[n - 1] = fallback_div_qr_1(dst, rem, src, n, div);
+    dst[n - 1] = div_qr_1_impl(dst, rem, src, n, div);
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
@@ -153,12 +153,12 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
         return;
     }
 
-    dst[n - 1] = fallback_div_qr_1(dst, rem, src, n, div2by1_divider<T>(div));
+    dst[n - 1] = div_qr_1_impl(dst, rem, src, n, div2by1_divider<T>(div));
 }
 
 template <typename T>
-WJR_CONSTEXPR20 T div_qr_2_without_shift(T *dst, T *rem, const T *src, size_t n,
-                                         const div3by2_divider<T> &div) {
+WJR_CONSTEXPR20 T div_qr_2_noshift(T *dst, T *rem, const T *src, size_t n,
+                                   const div3by2_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 2);
     WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
     WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n, rem, n));
@@ -199,8 +199,8 @@ WJR_CONSTEXPR20 T div_qr_2_without_shift(T *dst, T *rem, const T *src, size_t n,
 }
 
 template <typename T>
-WJR_CONSTEXPR20 T div_qr_2_with_shift(T *dst, T *rem, const T *src, size_t n,
-                                      const div3by2_divider<T> &div) {
+WJR_CONSTEXPR20 T div_qr_2_shift(T *dst, T *rem, const T *src, size_t n,
+                                 const div3by2_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 2);
     WJR_ASSERT(div.get_shift() != 0);
     WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
@@ -252,13 +252,13 @@ WJR_CONSTEXPR20 T div_qr_2_with_shift(T *dst, T *rem, const T *src, size_t n,
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR20 T fallback_div_qr_2(T *dst, T *rem, const T *src, size_t n,
-                                              const div3by2_divider<T> &div) {
+WJR_INTRINSIC_CONSTEXPR20 T div_qr_2_impl(T *dst, T *rem, const T *src, size_t n,
+                                          const div3by2_divider<T> &div) {
     if (div.get_shift() == 0) {
-        return div_qr_2_without_shift(dst, rem, src, n, div);
+        return div_qr_2_noshift(dst, rem, src, n, div);
     }
 
-    return div_qr_2_with_shift(dst, rem, src, n, div);
+    return div_qr_2_shift(dst, rem, src, n, div);
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
@@ -266,7 +266,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const div3by2_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 2);
 
-    dst[n - 2] = fallback_div_qr_2(dst, rem, src, n, div);
+    dst[n - 2] = div_qr_2_impl(dst, rem, src, n, div);
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
@@ -274,7 +274,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const T *div) {
     WJR_ASSERT_ASSUME(n >= 2);
 
-    dst[n - 2] = fallback_div_qr_2(dst, rem, src, n, div3by2_divider<T>(div[0], div[1]));
+    dst[n - 2] = div_qr_2_impl(dst, rem, src, n, div3by2_divider<T>(div[0], div[1]));
 }
 
 // reference : GMP
@@ -473,9 +473,8 @@ T dc_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
         } else {
             /* Do a 2qn / qn division */
             if (qn == 2) {
-                qh =
-                    div_qr_2_without_shift(dst, src - 2, src - 2, 4,
-                                           div3by2_divider<T>(div[-2], div[-1], dinv, 0));
+                qh = div_qr_2_noshift(dst, src - 2, src - 2, 4,
+                                      div3by2_divider<T>(div[-2], div[-1], dinv, 0));
             } else if (qn < dc_div_qr_threshold) {
                 qh = sb_div_qr_s(dst, src - qn, 2 * qn, div - qn, qn, dinv);
             } else {
@@ -655,7 +654,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n,
         const auto hi = dp[1];
         const auto dinv = div3by2_divider<T>::reciprocal(lo, hi);
         // maybe inlined ?
-        div_qr_2_without_shift(dst, sp, sp, 4, div3by2_divider<T>(lo, hi, dinv, 0));
+        div_qr_2_noshift(dst, sp, sp, 4, div3by2_divider<T>(lo, hi, dinv, 0));
     } else {
         const auto lo = dp[qn - 2];
         const auto hi = dp[qn - 1];
@@ -824,8 +823,8 @@ WJR_CONSTEXPR_E void divexact_byc(T *dst, const T *src, size_t n,
 
 // reference : ftp://ftp.risc.uni-linz.ac.at/pub/techreports/1992/92-35.ps.gz
 template <typename T>
-WJR_CONSTEXPR_E void fallback_divexact_1_without_shift(T *dst, const T *src, size_t n,
-                                                       const divexact1_divider<T> &div) {
+WJR_CONSTEXPR_E void fallback_divexact_1_noshift(T *dst, const T *src, size_t n,
+                                                 const divexact1_divider<T> &div) {
     uint64_t divisor = div.get_divisor();
     uint64_t value = div.get_value();
 
@@ -854,8 +853,8 @@ WJR_CONSTEXPR_E void fallback_divexact_1_without_shift(T *dst, const T *src, siz
 }
 
 template <typename T>
-WJR_CONSTEXPR_E void fallback_divexact_1_with_shift(T *dst, const T *src, size_t n,
-                                                    const divexact1_divider<T> &div) {
+WJR_CONSTEXPR_E void fallback_divexact_1_shift(T *dst, const T *src, size_t n,
+                                               const divexact1_divider<T> &div) {
     uint64_t divisor = div.get_divisor();
     uint64_t value = div.get_value();
     unsigned int shift = div.get_shift();
@@ -891,10 +890,10 @@ template <typename T>
 WJR_CONSTEXPR_E void fallback_divexact_1(T *dst, const T *src, size_t n,
                                          const divexact1_divider<T> &div) {
     if (div.get_shift() == 0) {
-        return fallback_divexact_1_without_shift(dst, src, n, div);
+        return fallback_divexact_1_noshift(dst, src, n, div);
     }
 
-    return fallback_divexact_1_with_shift(dst, src, n, div);
+    return fallback_divexact_1_shift(dst, src, n, div);
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>

@@ -18,8 +18,9 @@ inline constexpr size_t dc_bignum_from_chars_threshold =
 inline constexpr size_t dc_bignum_from_chars_precompute_threshold =
     WJR_DC_BIGNUM_FROM_CHARS_PRECOMPUTE_THRESHOLD;
 
-inline constexpr auto div2by1_divider_of_big_base_10 = div2by1_divider<uint64_t>(
-    10'000'000'000'000'000'000ull, 15'581'492'618'384'294'730ull, 0);
+inline constexpr auto div2by1_divider_noshift_of_big_base_10 =
+    div2by1_divider_noshift<uint64_t>(10'000'000'000'000'000'000ull,
+                                      15'581'492'618'384'294'730ull);
 
 struct char_converter_t {
 private:
@@ -442,7 +443,7 @@ char *basecase_to_chars_10(char *buf, uint64_t *up, size_t n, Converter conv) {
 
         uint64_t q, rem;
 
-        q = div_qr_1_without_shift(up, rem, up, n, div2by1_divider_of_big_base_10);
+        q = div_qr_1_noshift(up, rem, up, n, div2by1_divider_noshift_of_big_base_10);
         n -= q == 0;
         if (q != 0) {
             up[n - 1] = q;
@@ -672,7 +673,7 @@ size_t basecase_from_chars_10(Iter first, size_t n, uint64_t *up, Converter conv
         if (WJR_LIKELY(m == 0)) {
             cf = x;
         } else {
-            cf = mul_1(up, up, m, div2by1_divider_of_big_base_10.get_divisor());
+            cf = mul_1(up, up, m, div2by1_divider_noshift_of_big_base_10.get_divisor());
             cf += addc_1(up, up, m, x);
         }
 
