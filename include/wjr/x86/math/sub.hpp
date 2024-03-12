@@ -12,6 +12,15 @@ namespace wjr {
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_HAS_BUILTIN_ASM_SUBC WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_ASM_SUBC_N WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___ASM_SUBC_128 WJR_HAS_DEF
+
+#if WJR_HAS_FEATURE(INLINE_ASM_CCCOND)
+#define WJR_HAS_BUILTIN_ASM_SUBC_CC WJR_HAS_DEF
+#endif
+
+#endif
+
+#if WJR_HAS_BUILTIN(ASM_SUBC)
 
 template <typename U>
 WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in, U &c_out) {
@@ -54,13 +63,50 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in, U &c_out)
     return a;
 }
 
-#define WJR_ADDSUB_I 0
-#include <wjr/x86/math/gen_addsub.hpp>
+#endif
+
+#if WJR_HAS_BUILTIN(ASM_SUBC_CC)
+
+WJR_INTRINSIC_INLINE uint64_t asm_subc_cc(uint64_t a, uint64_t b, uint8_t c_in,
+                                          uint8_t &c_out) {
+    if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
+        if (WJR_BUILTIN_CONSTANT_P(b) && b <= std::numeric_limits<uint32_t>::max()) {
+            asm("stc\n\t"
+                "sbb{q %2, %0| %0, %2}\n\t" WJR_ASM_CCSET(c)
+                : "=r"(a), WJR_ASM_CCOUT(c)(c_out)
+                : "ri"(b), "0"(a)
+                : "cc");
+        } else {
+            asm("stc\n\t"
+                "sbb{q %2, %0| %0, %2}\n\t" WJR_ASM_CCSET(c)
+                : "=r"(a), WJR_ASM_CCOUT(c)(c_out)
+                : "r"(b), "0"(a)
+                : "cc");
+        }
+        return a;
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(b) && b <= std::numeric_limits<uint32_t>::max()) {
+        asm("add{b $255, %b1| %b1, 255}\n\t"
+            "sbb{q %3, %0| %0, %3}\n\t" WJR_ASM_CCSET(c)
+            : "=r"(a), "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
+            : "ri"(b), "0"(a)
+            : "cc");
+    } else {
+        asm("add{b $255, %b1| %b1, 255}\n\t"
+            "sbb{q %3, %0| %0, %3}\n\t" WJR_ASM_CCSET(c)
+            : "=r"(a), "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
+            : "r"(b), "0"(a)
+            : "cc");
+    }
+    return a;
+}
 
 #endif
 
-#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
-#define WJR_HAS_BUILTIN___ASM_SUBC_128 WJR_HAS_DEF
+#if WJR_HAS_BUILTIN(ASM_SUBC_N)
+#define WJR_ADDSUB_I 0
+#include <wjr/x86/math/gen_addsub.hpp>
 #endif
 
 #if WJR_HAS_BUILTIN(__ASM_SUBC_128)

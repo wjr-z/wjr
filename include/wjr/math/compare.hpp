@@ -86,7 +86,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E int reverse_compare_n(const T *src0, const T 
 
 WJR_INTRINSIC_CONSTEXPR_E bool __fallback_less_128(uint64_t lo0, uint64_t hi0,
                                                    uint64_t lo1, uint64_t hi1) {
-    unsigned char f = lo0 < lo1;
+    uint8_t f = lo0 < lo1;
     (void)subc(hi0, hi1, f, f);
     return f;
 }

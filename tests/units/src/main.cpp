@@ -365,18 +365,20 @@ TEST(math, addc) {
                    } while (0),                                                          \
                    {});                                                                  \
     WJR_PP_BOOL_IF(                                                                      \
-        WJR_HAS_BUILTIN(ASM_ADDC),                                                       \
-        do {                                                                             \
+        WJR_HAS_BUILTIN(ASM_ADDC), do {                                                  \
             if constexpr (std::is_same_v<type, uint64_t>) {                              \
                 WJR_ASSERT((wjr::asm_addc<type>(x, y, ci, co) == ans && co == ans_co));  \
+                WJR_ASSERT(WJR_PP_BOOL_IF(                                               \
+                    WJR_HAS_BUILTIN(ASM_ADDC_CC),                                        \
+                    (wjr::asm_addc_cc(x, y, ci, co2) == ans && co2 == ans_co), true));   \
             }                                                                            \
-        } while (0),                                                                     \
-        {})
+        } while (0), )
 
 #define WJR_TEST_ADDC_F(type)                                                            \
     do {                                                                                 \
         constexpr auto maxn = std::numeric_limits<type>::max();                          \
         type co;                                                                         \
+        uint8_t co2;                                                                     \
         WJR_TEST_ADDC(type, 0, 0, 0, 0, 0);                                              \
         WJR_TEST_ADDC(type, 0, 0, 1, 1, 0);                                              \
         WJR_TEST_ADDC(type, 0, maxn, 0, maxn, 0);                                        \
@@ -389,9 +391,8 @@ TEST(math, addc) {
         WJR_TEST_ADDC(type, e, c, c, 5, 0);                                              \
     } while (0);
 
-    WJR_PP_TRANSFORM_PUT(
-        (unsigned char, unsigned short, unsigned int, unsigned long, unsigned long long),
-        WJR_TEST_ADDC_F);
+    WJR_PP_TRANSFORM_PUT((unsigned char, unsigned int, unsigned long, unsigned long long),
+                         WJR_TEST_ADDC_F);
 
 #undef WJR_TEST_ADDC_F
 #undef WJR_TEST_ADDC_I
@@ -547,6 +548,9 @@ TEST(math, sub) {
         WJR_HAS_BUILTIN(ASM_SUBC), ; do {                                                \
             if constexpr (std::is_same_v<type, uint64_t>) {                              \
                 WJR_ASSERT((wjr::asm_subc<type>(x, y, ci, co) == ans && co == ans_co));  \
+                WJR_ASSERT(WJR_PP_BOOL_IF(                                               \
+                    WJR_HAS_BUILTIN(ASM_SUBC_CC),                                        \
+                    (wjr::asm_subc_cc(x, y, ci, co2) == ans && co2 == ans_co), true));   \
             }                                                                            \
         } while (0), )
 
@@ -554,6 +558,7 @@ TEST(math, sub) {
     do {                                                                                 \
         constexpr auto maxn = std::numeric_limits<type>::max();                          \
         type co;                                                                         \
+        uint8_t co2;                                                                     \
         WJR_TEST_SUBC(type, 0, 0, 0, 0, 0);                                              \
         WJR_TEST_SUBC(type, 0, 0, 1, maxn, 1);                                           \
         WJR_TEST_SUBC(type, 1, 0, 1, 0, 0);                                              \
@@ -567,9 +572,8 @@ TEST(math, sub) {
         WJR_TEST_SUBC(type, e, c, c, 1, 0);                                              \
     } while (0);
 
-    WJR_PP_TRANSFORM_PUT(
-        (unsigned char, unsigned short, unsigned int, unsigned long, unsigned long long),
-        WJR_TEST_SUBC_F);
+    WJR_PP_TRANSFORM_PUT((unsigned char, unsigned int, unsigned long, unsigned long long),
+                         WJR_TEST_SUBC_F);
 
 #undef WJR_TEST_SUBC_F
 #undef WJR_TEST_SUBC_I

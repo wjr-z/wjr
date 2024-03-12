@@ -88,6 +88,43 @@ WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out) {
 }
 
 /*
+ Used for addc and then jump according to cc flag. Therefore, the types of c_in and
+ c_out are limited to uint8_t, while the default c_in and c_out types of normal addc are
+ the same as T, so that the high register is not cleared. Currently, GCC/Clang @=cccond
+ cannot know that the high register is not cleared, so the performance is worse than the
+ normal version when cc flag is not needed immediately.
+*/
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+WJR_INTRINSIC_CONSTEXPR_E T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
+    WJR_ASSERT_ASSUME_L(1, c_in <= 1);
+
+#if WJR_HAS_BUILTIN(ASM_ADDC_CC)
+    constexpr auto is_constant_or_zero = [](auto x) -> int {
+        return WJR_BUILTIN_CONSTANT_P(x == 0) && x == 0 ? 2
+               : WJR_BUILTIN_CONSTANT_P(x)              ? 1
+                                                        : 0;
+    };
+
+    // The compiler should be able to optimize the judgment condition of if when enabling
+    // optimization. If it doesn't work, then there should be a issue
+    if (is_constant_evaluated() ||
+        // constant value is zero or constant value number greater or equal than 2
+        (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >=
+         2)) {
+        return fallback_addc(a, b, c_in, c_out);
+    }
+
+    if constexpr (sizeof(T) == 8) {
+        return asm_addc_cc(a, b, c_in, c_out);
+    } else {
+        return addc(a, b, c_in, c_out);
+    }
+#else
+    return addc(a, b, c_in, c_out);
+#endif
+}
+
+/*
 require :
 1. n >= 1
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
@@ -100,9 +137,10 @@ WJR_INTRINSIC_CONSTEXPR_E U addc_1(T *dst, const T *src0, size_t n,
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
     WJR_ASSERT_ASSUME(c_in <= 1);
 
-    dst[0] = addc(src0[0], src1, c_in, c_in);
+    uint8_t overflow = 0;
+    dst[0] = addc_cc(src0[0], src1, c_in, overflow);
 
-    if (c_in) {
+    if (overflow) {
         size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, -1, 0);
 
         if (WJR_UNLIKELY(idx == n)) {
