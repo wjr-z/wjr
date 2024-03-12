@@ -190,7 +190,7 @@ inline U WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc,
         "adc{l %k[rcx], %k[r9]| %k[r9], %k[rcx]}"
 
         : [dst] "+r"(dst), [src0] "+r"(src0), [src1] "+r"(src1), [rcx] "+c"(rcx), 
-          [r8] "+r"(r8), [r9] "=r"(r9), [r10] "+r"(r10), [r11] "=r"(r11)
+          [r8] "+r"(r8), [r9] "=&r"(r9), [r10] "+r"(r10), [r11] "=&r"(r11)
         :
         : "cc", "memory");
 

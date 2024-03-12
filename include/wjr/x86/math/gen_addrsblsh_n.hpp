@@ -240,9 +240,7 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
 
         : [dst] "+&r"(dst), [src0] "+&r"(src0), [src1] "+&r"(src1), [rcx] "+&c"(rcx),
           [r8] "=&r"(r8), [r9] "+&r"(r9), [r10] "=&r"(r10), [r11] "=&r"(r11)
-          // It seems that there are some issues with the register selection for inline assembly in Clang
-          , [cl] "+&r"(cl), [tcl] "+&r"(tcl)
-        : 
+        : [cl] "r"(cl), [tcl] "r"(tcl)
         : "cc", "memory");
 
     WJR_ASSERT_ASSUME(rcx == 0);

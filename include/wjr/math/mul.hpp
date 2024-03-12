@@ -297,17 +297,18 @@ WJR_INTRINSIC_CONSTEXPR T fallback_addlsh_n(T *dst, const T *src0, const T *src1
                                             size_t n, type_identity_t<T> cl) {
     T tcl = std::numeric_limits<T>::digits - cl;
     T lo = 0, hi = 0;
-    T o_in = 0, c_in = 0;
+    T c_in = 0, x = 0;
 
     for (size_t i = 0; i < n; ++i) {
         lo = src1[i] << cl;
         hi = src1[i] >> tcl;
-        lo = addc<T>(lo, c_in, 0, c_in);
-        dst[i] = addc<T>(lo, src0[i], 0, o_in);
-        c_in += hi + o_in;
+
+        lo += x;
+        dst[i] = addc<T>(lo, src0[i], c_in, c_in);
+        x = hi;
     }
 
-    return c_in;
+    return x + c_in;
 }
 
 /*
@@ -337,13 +338,6 @@ WJR_INTRINSIC_CONSTEXPR_E T addlsh_n(T *dst, const T *src0, const T *src1, size_
 
     return asm_addlsh_n(dst, src0, src1, n, cl);
 #else
-
-#if WJR_HAS_BUILTIN(ASM_ADDMUL_1)
-    if (WJR_UNLIKELY(dst == src0)) {
-        return addmul_1(dst, src1, n, static_cast<T>(static_cast<T>(1) << cl));
-    }
-#endif
-
     return fallback_addlsh_n(dst, src0, src1, n, cl);
 #endif
 }
@@ -353,17 +347,18 @@ WJR_INTRINSIC_CONSTEXPR T fallback_rsblsh_n(T *dst, const T *src0, const T *src1
                                             size_t n, type_identity_t<T> cl) {
     T tcl = std::numeric_limits<T>::digits - cl;
     T lo = 0, hi = 0;
-    T o_in = 0, c_in = 0;
+    T c_in = 0, x = 0;
 
     for (size_t i = 0; i < n; ++i) {
         lo = src1[i] << cl;
         hi = src1[i] >> tcl;
-        lo = addc<T>(lo, c_in, 0, c_in);
-        dst[i] = subc<T>(lo, src0[i], 0, o_in);
-        c_in += hi + o_in;
+
+        lo += x;
+        dst[i] = subc<T>(lo, src0[i], c_in, c_in);
+        x = hi;
     }
 
-    return c_in;
+    return x - c_in;
 }
 
 /*
@@ -383,7 +378,7 @@ WJR_INTRINSIC_CONSTEXPR_E T rsblsh_n(T *dst, const T *src0, const T *src1, size_
     WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
 
     if (WJR_UNLIKELY(cl == 0)) {
-        return subc_n(dst, src1, src0, n);
+        return T{0} - subc_n(dst, src1, src0, n);
     }
 
 #if WJR_HAS_BUILTIN(ASM_RSBLSH_N)

@@ -120,15 +120,21 @@ Iter to_chars_2(Iter first, uint64_t *up, size_t n, Converter conv) {
         x = *up;
     }
 
-    if (WJR_LIKELY(hbits >= 4)) {
+    WJR_ASSERT_ASSUME(hbits != 0);
+
+    if (WJR_LIKELY(hbits > 4)) {
         do {
             unroll(first, x & 0x0f);
             x >>= 4;
             hbits -= 4;
-        } while (WJR_LIKELY(hbits >= 4));
+        } while (WJR_LIKELY(hbits > 4));
     }
 
     switch (hbits) {
+    case 4: {
+        unroll(first, x);
+        break;
+    }
     case 3: {
         *--first = conv.to(x & 1);
         x >>= 1;
@@ -140,11 +146,6 @@ Iter to_chars_2(Iter first, uint64_t *up, size_t n, Converter conv) {
         WJR_FALLTHROUGH;
     }
     case 1: {
-        *--first = conv.to(x & 1);
-        x >>= 1;
-        WJR_FALLTHROUGH;
-    }
-    case 0: {
         *--first = conv.to(x);
         break;
     }
@@ -255,15 +256,17 @@ Iter to_chars_8(Iter first, uint64_t *up, size_t n, Converter conv) {
     }
     }
 
-    if (WJR_LIKELY(hbits >= 6)) {
+    if (WJR_LIKELY(hbits > 6)) {
         do {
             unroll(first, x & 0x3f);
             x >>= 6;
             hbits -= 6;
-        } while (WJR_LIKELY(hbits >= 6));
+        } while (WJR_LIKELY(hbits > 6));
     }
 
-    if (hbits >= 3) {
+    WJR_ASSERT_ASSUME(hbits != 0);
+
+    if (hbits > 3) {
         unroll(first, x);
     } else {
         *--first = conv.to(x);
@@ -310,15 +313,17 @@ Iter to_chars_16(Iter first, uint64_t *up, size_t n, Converter conv) {
         x = *up;
     }
 
-    if (WJR_LIKELY(hbits >= 8)) {
+    if (WJR_LIKELY(hbits > 8)) {
         do {
             unroll(first, x & 0xff);
             x >>= 8;
             hbits -= 8;
-        } while (WJR_LIKELY(hbits >= 8));
+        } while (WJR_LIKELY(hbits > 8));
     }
 
-    if (hbits >= 4) {
+    WJR_ASSERT_ASSUME(hbits != 0);
+
+    if (hbits > 4) {
         unroll(first, x);
     } else {
         *--first = conv.to(x);
@@ -519,8 +524,7 @@ template <typename Iter, typename Converter = char_converter_t,
                            int> = 0>
 Iter to_chars(Iter first, uint64_t *up, size_t n, unsigned int base = 10,
               Converter conv = {}) {
-    WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10),
-               "Not support yet.");
+    WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));
 
     if (is_zero_or_single_bit(base)) {
         switch (base) {
@@ -747,8 +751,7 @@ template <typename Iter, typename Converter = char_converter_t,
                            int> = 0>
 uint64_t *from_chars(Iter first, Iter last, uint64_t *up, unsigned int base = 10,
                      Converter conv = {}) {
-    WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10),
-               "Not support yet.");
+    WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));
 
     if (is_zero_or_single_bit(base)) {
         return up;

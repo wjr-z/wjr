@@ -64,7 +64,7 @@ inline uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
 
         : [dst] "+&r"(dst), [src] "+&r"(src), [r8] "+&r"(r8), [r9] "+&r"(r9),
           [r10] "=&r"(r10), [r11] "+&r"(r11)
-        : [bd] "d"(bd)
+        : "d"(bd)
         : "cc", "memory");
 
     return r8;

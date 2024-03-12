@@ -40,14 +40,14 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in, U &c_out)
             asm("add{b $255, %b1| %b1, 255}\n\t"
                 "adc{q %2, %0| %0, %2}\n\t"
                 "setb %b1"
-                : "=r"(b), "+r"(c_in)
+                : "=r"(b), "+&r"(c_in)
                 : "ri"(a), "0"(b)
                 : "cc");
         } else {
             asm("add{b $255, %b1| %b1, 255}\n\t"
                 "adc{q %2, %0| %0, %2}\n\t"
                 "setb %b1"
-                : "=r"(b), "+r"(c_in)
+                : "=r"(b), "+&r"(c_in)
                 : "r"(a), "0"(b)
                 : "cc");
         }
@@ -59,14 +59,14 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in, U &c_out)
         asm("add{b $255, %b1| %b1, 255}\n\t"
             "adc{q %2, %0| %0, %2}\n\t"
             "setb %b1"
-            : "=r"(a), "+r"(c_in)
+            : "=r"(a), "+&r"(c_in)
             : "ri"(b), "0"(a)
             : "cc");
     } else {
         asm("add{b $255, %b1| %b1, 255}\n\t"
             "adc{q %2, %0| %0, %2}\n\t"
             "setb %b1"
-            : "=r"(a), "+r"(c_in)
+            : "=r"(a), "+&r"(c_in)
             : "r"(b), "0"(a)
             : "cc");
     }
@@ -121,22 +121,22 @@ WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_
                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
                                              uint64_t c_in) {
     if (WJR_BUILTIN_CONSTANT_P(hi0) && hi0 <= UINT32_MAX) {
-        asm("addb {$0xff, %b[c_in]|%b[c_in], 0xff}\n\t"
+        asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
             "add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
             "adc{q %[hi0], %[hi1]| %[hi1], %[hi0]}\n\t"
             "setb %b[c_in]"
-            : [lo0] "+&r"(lo0), [hi1] "+r"(hi1), [c_in] "+r"(c_in)
+            : [lo0] "+&r"(lo0), [hi1] "+r"(hi1), [c_in] "+&r"(c_in)
             : [lo1] "r"(lo1), [hi0] "i"(hi0)
             : "cc");
         al = lo0;
         ah = hi1;
         return c_in;
     } else if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
-        asm("addb {$0xff, %b[c_in]|%b[c_in], 0xff}\n\t"
+        asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
             "add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
             "adc{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t"
             "setb %b[c_in]"
-            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+r"(c_in)
+            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in)
             : [lo1] "r"(lo1), [hi1] "i"(hi1)
             : "cc");
         al = lo0;
@@ -144,11 +144,11 @@ WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_
         return c_in;
     }
 
-    asm("addb {$0xff, %b[c_in]|%b[c_in], 0xff}\n\t"
+    asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
         "add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
         "adc{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t"
         "setb %b[c_in]"
-        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+r"(c_in)
+        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in)
         : [lo1] "r"(lo1), [hi1] "r"(hi1)
         : "cc");
     al = lo0;

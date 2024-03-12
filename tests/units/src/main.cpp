@@ -383,6 +383,10 @@ TEST(math, addc) {
         WJR_TEST_ADDC(type, 1, maxn, 0, 0, 1);                                           \
         WJR_TEST_ADDC(type, 0, maxn, 1, 0, 1);                                           \
         WJR_TEST_ADDC(type, 1, maxn, 1, 1, 1);                                           \
+        type c = 1;                                                                      \
+        type e = 3;                                                                      \
+        asm volatile("" : "+r"(c), "+r"(e)::"memory");                                   \
+        WJR_TEST_ADDC(type, e, c, c, 5, 0);                                              \
     } while (0);
 
     WJR_PP_TRANSFORM_PUT(
@@ -557,6 +561,10 @@ TEST(math, sub) {
         WJR_TEST_SUBC(type, 1, maxn, 0, 2, 1);                                           \
         WJR_TEST_SUBC(type, 0, maxn, 1, 0, 1);                                           \
         WJR_TEST_SUBC(type, 1, maxn, 1, 1, 1);                                           \
+        type c = 1;                                                                      \
+        type e = 3;                                                                      \
+        asm volatile("" : "+r"(c), "+r"(e)::"memory");                                   \
+        WJR_TEST_SUBC(type, e, c, c, 1, 0);                                              \
     } while (0);
 
     WJR_PP_TRANSFORM_PUT(
@@ -1213,66 +1221,73 @@ TEST(math, shld) {
 #undef WJR_TEST_SHLD
 }
 
-TEST(math, shrd) {}
+TEST(math, shrd) {
+#define WJR_TEST_SHRD(lo, hi, c, expect)                                                 \
+    WJR_ASSERT(wjr::shrd<uint64_t>((lo), (hi), (c)) == (expect))
+
+    WJR_TEST_SHRD(0, 0, 1, 0);
+    WJR_TEST_SHRD(0, 1, 1, 1ull << 63);
+    WJR_TEST_SHRD(1, 1, 1, 1ull << 63);
+    WJR_TEST_SHRD(1, 1, 2, 1ull << 62);
+    WJR_TEST_SHRD(1, 1, 63, 2);
+
+#undef WJR_TEST_SHRD
+}
 
 TEST(math, lshift_n) {
-    {
-        std::vector<uint64_t> a, b;
-        std::mt19937_64 mt_rand(time(0));
+    std::vector<uint64_t> a, b;
+    std::mt19937_64 mt_rand(time(0));
 
-        for (size_t n = 1; n <= 512; ++n) {
-            a.resize(n);
-            b.resize(n);
+    for (size_t n = 1; n <= 512; ++n) {
+        a.resize(n);
+        b.resize(n);
 
-            for (size_t i = 0; i < n; ++i) {
-                a[i] = mt_rand();
+        for (size_t i = 0; i < n; ++i) {
+            a[i] = mt_rand();
+        }
+
+        for (unsigned int c = 0; c < 64; ++c) {
+            uint64_t ex = c ? (a[n - 1] >> (64 - c)) : 0;
+            auto z = wjr::lshift_n(b.data(), a.data(), n, c);
+            WJR_ASSERT(z == ex);
+
+            for (size_t i = 1; i < n; ++i) {
+                ex = c ? ((a[i] << c) | (a[i - 1] >> (64 - c))) : a[i];
+                WJR_ASSERT(b[i] == ex);
             }
 
-            for (unsigned int c = 0; c < 64; ++c) {
-                uint64_t ex = c ? (a[n - 1] >> (64 - c)) : 0;
-                auto z = wjr::lshift_n(b.data(), a.data(), n, c);
-                WJR_ASSERT(z == ex);
+            ex = a[0] << c;
 
-                for (size_t i = 1; i < n; ++i) {
-                    ex = c ? ((a[i] << c) | (a[i - 1] >> (64 - c))) : a[i];
-                    WJR_ASSERT(b[i] == ex);
-                }
-
-                ex = a[0] << c;
-
-                WJR_ASSERT(b[0] == ex);
-            }
+            WJR_ASSERT(b[0] == ex);
         }
     }
 }
 
 TEST(math, rshift_n) {
-    {
-        std::vector<uint64_t> a, b;
-        std::mt19937_64 mt_rand(time(0));
+    std::vector<uint64_t> a, b;
+    std::mt19937_64 mt_rand(time(0));
 
-        for (size_t n = 1; n <= 512; ++n) {
-            a.resize(n);
-            b.resize(n);
+    for (size_t n = 1; n <= 512; ++n) {
+        a.resize(n);
+        b.resize(n);
 
-            for (size_t i = 0; i < n; ++i) {
-                a[i] = mt_rand();
+        for (size_t i = 0; i < n; ++i) {
+            a[i] = mt_rand();
+        }
+
+        for (unsigned int c = 0; c < 64; ++c) {
+            uint64_t ex = c ? (a[0] << (64 - c)) : 0;
+            auto z = wjr::rshift_n(b.data(), a.data(), n, c);
+            WJR_ASSERT(z == ex);
+
+            for (size_t i = 0; i < n - 1; ++i) {
+                ex = c ? ((a[i] >> c) | (a[i + 1] << (64 - c))) : a[i];
+                WJR_ASSERT(b[i] == ex);
             }
 
-            for (unsigned int c = 0; c < 64; ++c) {
-                uint64_t ex = c ? (a[0] << (64 - c)) : 0;
-                auto z = wjr::rshift_n(b.data(), a.data(), n, c);
-                WJR_ASSERT(z == ex);
+            ex = a[n - 1] >> c;
 
-                for (size_t i = 0; i < n - 1; ++i) {
-                    ex = c ? ((a[i] >> c) | (a[i + 1] << (64 - c))) : a[i];
-                    WJR_ASSERT(b[i] == ex);
-                }
-
-                ex = a[n - 1] >> c;
-
-                WJR_ASSERT(b[n - 1] == ex);
-            }
+            WJR_ASSERT(b[n - 1] == ex);
         }
     }
 }
@@ -1352,8 +1367,8 @@ TEST(math, mul_128) {
 
 TEST(math, mul_1) {
     std::mt19937_64 mt_rand(time(0));
-    const int T = 256;
-    const int N = 64;
+    const int T = 64;
+    const int N = 240;
 
     std::vector<uint64_t> a(N), b(N), c(N);
 
@@ -1376,8 +1391,8 @@ TEST(math, mul_1) {
 
 TEST(math, addmul_1) {
     std::mt19937_64 mt_rand(time(0));
-    const int T = 256;
-    const int N = 64;
+    const int T = 64;
+    const int N = 240;
 
     std::vector<uint64_t> a(N), b(N), c(N);
 
@@ -1394,6 +1409,114 @@ TEST(math, addmul_1) {
 
             WJR_ASSERT(cf == cf2);
             WJR_ASSERT(std::equal(b.begin(), b.begin() + j, c.begin()));
+        }
+    }
+}
+
+TEST(math, submul_1) {
+    std::mt19937_64 mt_rand(time(0));
+    const int T = 64;
+    const int N = 240;
+
+    std::vector<uint64_t> a(N), b(N), c(N);
+
+    for (int i = 0; i < T; ++i) {
+        for (int j = 1; j < N; ++j) {
+            uint64_t ml = mt_rand();
+
+            for (int k = 0; k < j; ++k) {
+                a[k] = mt_rand();
+            }
+
+            auto cf = wjr::submul_1(b.data(), a.data(), j, ml);
+            auto cf2 = mpn_submul_1(c.data(), a.data(), j, ml);
+
+            WJR_ASSERT(cf == cf2);
+            WJR_ASSERT(std::equal(b.begin(), b.begin() + j, c.begin()));
+        }
+    }
+}
+
+TEST(math, addlsh_n) {
+    std::mt19937_64 mt_rand(time(0));
+    const int T = 64;
+    const int N = 240;
+
+    std::vector<uint64_t> a(N), b(N), c(N), d(N), e(N);
+
+    for (int i = 0; i < T; ++i) {
+        for (int j = 1; j < N; ++j) {
+            unsigned int cl = mt_rand() % 64;
+
+            for (int k = 0; k < j; ++k) {
+                a[k] = mt_rand();
+            }
+
+            for (int k = 0; k < j; ++k) {
+                b[k] = mt_rand();
+            }
+
+            // c = a + (b << cl)
+            // d = a + (b << cl)
+
+            auto cf = wjr::addlsh_n(c.data(), a.data(), b.data(), j, cl);
+            auto cf2 = wjr::lshift_n(e.data(), b.data(), j, cl);
+            cf2 += wjr::addc_n(d.data(), a.data(), e.data(), j);
+
+            WJR_ASSERT(cf == cf2);
+            WJR_ASSERT(std::equal(c.begin(), c.begin() + j, d.begin()));
+
+            // c = b + (c << cl)
+            // d = b + (d << cl)
+
+            cf = wjr::addlsh_n(c.data(), b.data(), c.data(), j, cl);
+            cf2 = wjr::lshift_n(e.data(), d.data(), j, cl);
+            cf2 += wjr::addc_n(d.data(), b.data(), e.data(), j);
+
+            WJR_ASSERT(cf == cf2);
+            WJR_ASSERT(std::equal(c.begin(), c.begin() + j, d.begin()));
+        }
+    }
+}
+
+TEST(math, rsblsh_n) {
+    std::mt19937_64 mt_rand(time(0));
+    const int T = 64;
+    const int N = 240;
+
+    std::vector<uint64_t> a(N), b(N), c(N), d(N), e(N);
+
+    for (int i = 0; i < T; ++i) {
+        for (int j = 1; j < N; ++j) {
+            unsigned int cl = mt_rand() % 64;
+
+            for (int k = 0; k < j; ++k) {
+                a[k] = mt_rand();
+            }
+
+            for (int k = 0; k < j; ++k) {
+                b[k] = mt_rand();
+            }
+
+            // c = (b << cl) - a
+            // d = (b << cl) - a
+
+            auto cf = wjr::rsblsh_n(c.data(), a.data(), b.data(), j, cl);
+            auto cf2 = wjr::lshift_n(e.data(), b.data(), j, cl);
+            cf2 -= wjr::subc_n(d.data(), e.data(), a.data(), j);
+
+            WJR_ASSERT(cf == cf2);
+            WJR_ASSERT(std::equal(c.begin(), c.begin() + j, d.begin()));
+
+            // c = (c << cl) - b
+            // d = (d << cl) - b
+
+            cf = wjr::rsblsh_n(c.data(), b.data(), c.data(), j, cl);
+            cf2 = wjr::lshift_n(e.data(), d.data(), j, cl);
+            cf2 -= wjr::subc_n(d.data(), e.data(), b.data(), j);
+
+            WJR_ASSERT(cf == cf2);
+            WJR_ASSERT(std::equal(c.begin(), c.begin() + j, d.begin()));
         }
     }
 }
@@ -1469,7 +1592,7 @@ TEST(math, div_qr_1) {
     std::mt19937_64 mt_rand(time(0));
     const int T = 8;
     const int N = 32;
-    const int M = 64;
+    const int M = 240;
 
     std::vector<uint64_t> a(M), b(M), c(M);
 
@@ -1499,3 +1622,118 @@ TEST(math, div_qr_1) {
         }
     }
 }
+
+TEST(math, div_qr_2) {
+    std::mt19937_64 mt_rand(time(0));
+    const int T = 8;
+    const int N = 32;
+    const int M = 240;
+
+    std::vector<uint64_t> a(M), b(M), c(M + 1);
+
+    auto check = [&](size_t n, uint64_t *div) {
+        uint64_t rem[2];
+        wjr::div_qr_2(b.data(), rem, a.data(), n, div);
+
+        if (n - 1 >= 2) {
+            wjr::mul_s(c.data(), b.data(), n - 1, div, 2);
+        } else {
+            wjr::mul_s(c.data(), div, 2, b.data(), n - 1);
+        }
+
+        WJR_ASSERT(c[n] == 0);
+        auto cf = wjr::addc_s(c.data(), c.data(), n, rem, 2);
+        WJR_ASSERT(cf == 0);
+        WJR_ASSERT(std::equal(a.begin(), a.begin() + n, c.begin()));
+    };
+
+    for (int i = 0; i < N; ++i) {
+        uint64_t div[2] = {mt_rand(), mt_rand()};
+
+        for (int t = 0; t < T; ++t) {
+            for (int j = 2; j < M; ++j) {
+                for (int k = 0; k < j; ++k) {
+                    a[k] = mt_rand();
+                }
+
+                check(j, div);
+            }
+        }
+    }
+}
+
+TEST(math, div_qr_s) {
+    std::mt19937_64 mt_rand(time(0));
+    const int T = 8;
+    const int N = 240;
+
+    std::vector<uint64_t> a(N), b(N + 1), c(N + 1), d(N + 1), rem(N);
+
+    auto check = [&](size_t n, size_t m) {
+        wjr::div_qr_s(c.data(), rem.data(), a.data(), n, b.data(), m);
+
+        if (n - m + 1 >= m) {
+            wjr::mul_s(d.data(), c.data(), n - m + 1, b.data(), m);
+        } else {
+            wjr::mul_s(d.data(), b.data(), m, c.data(), n - m + 1);
+        }
+
+        WJR_ASSERT(d[n] == 0);
+        auto cf = wjr::addc_s(d.data(), d.data(), n, rem.data(), m);
+        WJR_ASSERT(cf == 0);
+        WJR_ASSERT(std::equal(a.begin(), a.begin() + n, d.begin()));
+    };
+
+    for (int t = 0; t < T; ++t) {
+        for (int i = 2; i < N; ++i) {
+            for (int j = 1; j <= i; ++j) {
+                for (int k = 0; k < i; ++k) {
+                    a[k] = mt_rand();
+                }
+
+                for (int k = 0; k < j; ++k) {
+                    b[k] = mt_rand();
+                }
+
+                check(i, j);
+            }
+        }
+    }
+}
+
+#if defined(WJR_USE_GMP)
+
+TEST(math, to_chars) {
+    std::mt19937_64 mt_rand(time(0));
+
+    const int T = 4;
+    const int N = 240;
+    const int M = N * 64;
+
+    std::vector<uint64_t> a(N);
+    std::string b(M, '0'), c(M, '0');
+
+    for (int t = 0; t < T; ++t) {
+        for (int i = 1; i < N; ++i) {
+            for (int j = 0; j < i; ++j) {
+                a[j] = mt_rand();
+            }
+            while (a[i - 1] == 0) {
+                a[i - 1] = mt_rand();
+            }
+
+            for (auto base : {2, 4, 8, 16, 10}) {
+                size_t len =
+                    wjr::to_chars(b.data(), a.data(), i, base, wjr::origin_converter) -
+                    b.data();
+                size_t len2 = mpn_get_str((unsigned char *)c.data(), base, a.data(), i);
+
+                WJR_ASSERT(len == len2);
+                WJR_ASSERT(std::string_view(b.data(), len) ==
+                           std::string_view(c.data(), len2));
+            }
+        }
+    }
+}
+
+#endif
