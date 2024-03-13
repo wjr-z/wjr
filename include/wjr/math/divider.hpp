@@ -184,12 +184,12 @@ WJR_CONST WJR_CONSTEXPR_E T div2by1_divider_noshift<T>::reciprocal(T d) {
 
     v3 = (v2 << 31) + (mulhi<uint64_t>(t0, v2) >> 1);
 
-    if (v3 == -1ull) {
-        v4 = v3 - d * 2;
+    v1 = v3 + 1;
+
+    if (WJR_UNLIKELY(v1 == 0)) {
+        v4 = ~(d * 2);
     } else {
-        v4 = mulhi<uint64_t>(v3 + 1, d);
-        v4 += d;
-        v4 = v3 - v4;
+        v4 = v3 - mulhi<uint64_t>(v1, d) - d;
     }
 
     return v4;
@@ -280,7 +280,7 @@ public:
     constexpr T get_value() const { return m_value; }
 
     WJR_INTRINSIC_CONSTEXPR20 T divide(T u0, T &u1, T &u2) const {
-        return divide(m_divisor0, m_divisor1, u0, u1, u2);
+        return divide(m_divisor0, m_divisor1, m_value, u0, u1, u2);
     }
 
     WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor0, T divisor1, T value, T u0,

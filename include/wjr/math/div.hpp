@@ -33,7 +33,7 @@ inline uint64_t div128by64to64_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
     auto shift = divider.get_shift();
     hi = shld(hi, lo, shift);
     lo <<= shift;
-    uint64_t result = divider.divide(divider.get_divisor(), divider.get_value(), lo, hi);
+    uint64_t result = divider.get_base().divide(lo, hi);
     rem = hi >> shift;
     return result;
 }
@@ -83,8 +83,6 @@ div128by64to128_noshift(uint64_t &rem, uint64_t lo, uint64_t hi,
 inline std::pair<uint64_t, uint64_t>
 div128by64to128_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
                       const div2by1_divider<uint64_t> &divider) {
-    auto divisor = divider.get_divisor();
-    auto value = divider.get_value();
     auto shift = divider.get_shift();
     uint64_t u0, u1, u2;
     uint64_t q0, q1;
@@ -93,8 +91,9 @@ div128by64to128_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
     u1 = shld(hi, lo, shift);
     u0 = lo << shift;
 
-    q1 = divider.divide(divisor, value, u1, u2);
-    q0 = divider.divide(divisor, value, u0, u2);
+    const auto &div = divider.get_base();
+    q1 = div.divide(u1, u2);
+    q0 = div.divide(u0, u2);
 
     rem = u2 >> shift;
     return std::make_pair(q0, q1);

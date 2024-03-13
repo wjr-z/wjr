@@ -383,12 +383,12 @@ inline uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n, uint6
     WJR_ASSERT(n != 0);
 
     size_t rcx = n / 8;
-    uint64_t r8, r9, r10 = n & 7, r11;
+    uint64_t r8, r9, r10 = static_cast<uint32_t>(n), r11;
 
     asm volatile(
         // set CF = 1, OF = 0
-        "mov{b $255, %b[r11]| %b[r11], 255}\n\t"
-        "add{b $1, %b[r11]| %b[r11], 1}\n\t"
+        "and{l $7, %k[r10]| %k[r10], 7}\n\t"
+        "stc\n\t"
 
         "lea{q| %[r9], [rip +} .Llookup%={(%%rip), %[r9]|]}\n\t"
         "movs{lq (%[r9], %[r10], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + %[r10] * "
