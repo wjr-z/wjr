@@ -1740,4 +1740,47 @@ TEST(math, to_chars) {
     }
 }
 
+TEST(math, from_chars) {
+    std::mt19937_64 mt_rand(time(0));
+
+    const int T = 4;
+    const int N = 3840;
+    const int M = N;
+
+    std::vector<uint64_t> a(N), b(N);
+    std::string c(M, '0');
+
+    for (int t = 0; t < T; ++t) {
+        for (int i = 1; i < M;) {
+            for (auto base : {2, 10}) {
+                for (int j = 0; j < i; ++j) {
+                    c[j] = mt_rand() % base;
+                }
+                while (c[0] == 0) {
+                    c[0] = mt_rand() % base;
+                }
+
+                size_t len = wjr::from_chars(c.data(), c.data() + i, a.data(), base,
+                                             wjr::origin_converter) -
+                             a.data();
+
+                size_t len2 = mpn_set_str(b.data(), (unsigned char *)c.data(), i, base);
+
+                WJR_ASSERT(len == len2);
+                WJR_ASSERT(std::equal(a.begin(), a.begin() + len, b.begin()));
+            }
+
+            if (i < 64) {
+                ++i;
+            } else if (i < 256) {
+                i += 7;
+            } else if (i < 1024) {
+                i += 29;
+            } else {
+                i += 53;
+            }
+        }
+    }
+}
+
 #endif
