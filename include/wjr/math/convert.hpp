@@ -575,6 +575,73 @@ Iter to_chars(Iter first, uint64_t *up, size_t n, unsigned int base = 10,
 }
 
 template <typename Iter, typename Converter>
+size_t from_chars_2(Iter first, size_t n, uint64_t *up, Converter conv) {
+    size_t hbits = (n - 1) % 64 + 1;
+    size_t len = (n - 1) / 64 + 1;
+
+    auto unroll = [conv](uint64_t &x, auto &first) {
+        auto x0 = conv.from(first[0]);
+        auto x1 = conv.from(first[1]);
+        auto x2 = conv.from(first[2]);
+        auto x3 = conv.from(first[3]);
+
+        x = x << 4 | x0 << 3 | x1 << 2 | x2 << 1 | x3;
+        first += 4;
+    };
+
+    uint64_t x = 0;
+    up += len;
+
+    if (hbits > 4) {
+        do {
+            unroll(x, first);
+            hbits -= 4;
+        } while (WJR_LIKELY(hbits > 4));
+    }
+
+    switch (hbits) {
+    case 4: {
+        unroll(x, first);
+        break;
+    }
+    case 3: {
+        x = x << 1 | conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 2: {
+        x = x << 1 | conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 1: {
+        x = x << 1 | conv.from(*first++);
+        break;
+    }
+    default: {
+        WJR_UNREACHABLE();
+        break;
+    }
+    }
+
+    *--up = x;
+
+    size_t idx = len - 1;
+
+    if (idx) {
+        do {
+            x = 0;
+
+            for (int i = 0; i < 16; ++i) {
+                unroll(x, first);
+            }
+
+            *--up = x;
+        } while (WJR_LIKELY(--idx));
+    }
+
+    return len;
+}
+
+template <typename Iter, typename Converter>
 void __from_chars_10(Iter first, size_t n, uint64_t &x, Converter conv) {
     x = 0;
 
@@ -632,7 +699,7 @@ size_t basecase_from_chars_10(Iter first, size_t n, uint64_t *up, Converter conv
 
     do {
         uint64_t x = 0;
-        int i = 19;
+        int i = 16;
 
         do {
             auto x0 = conv.from(first[0]);
@@ -644,7 +711,7 @@ size_t basecase_from_chars_10(Iter first, size_t n, uint64_t *up, Converter conv
 
             first += 4;
             i -= 4;
-        } while (WJR_LIKELY(i >= 4));
+        } while (WJR_LIKELY(i != 0));
 
         do {
             auto x0 = conv.from(first[0]);
@@ -752,12 +819,19 @@ template <typename Iter, typename Converter = char_converter_t,
 uint64_t *from_chars(Iter first, Iter last, uint64_t *up, unsigned int base = 10,
                      Converter conv = {}) {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));
+    size_t n = std::distance(first, last);
 
     if (is_zero_or_single_bit(base)) {
-        return up;
+        switch (base) {
+        case 2: {
+            return up + from_chars_2(first, n, up, conv);
+        }
+        default: {
+            WJR_UNREACHABLE();
+            return up;
+        }
+        }
     }
-
-    size_t n = std::distance(first, last);
 
     if (WJR_LIKELY(n < dc_bignum_from_chars_precompute_threshold)) {
         return up + basecase_from_chars(first, n, up, base, conv);

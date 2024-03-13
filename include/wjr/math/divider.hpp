@@ -51,15 +51,6 @@ inline constexpr std::array<uint64_t, 0x80> divexact1_lookup = {
 } // namespace math_details
 
 template <typename T>
-class div1by1_divider;
-
-template <>
-class div1by1_divider<uint64_t> {
-public:
-private:
-};
-
-template <typename T>
 class div2by1_divider_noshift {
     static_assert(std::is_same_v<T, uint64_t>, "Currently only support uint64_t");
 
@@ -233,6 +224,8 @@ public:
 
     constexpr unsigned int get_shift() const { return m_shift; }
 
+    constexpr const Mybase &get_base() const { return *this; }
+
     // enable static divide function of Mybase
     // This function needs to ensure that lo and hi have been adjusted
     WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor, T value, T lo, T &hi) {
@@ -392,6 +385,8 @@ public:
         : Mybase(d0, d1, value), m_shift(shift) {}
 
     constexpr unsigned int get_shift() const { return m_shift; }
+
+    constexpr const Mybase &get_base() const { return *this; }
 
     WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor0, T divisor1, T value, T u0,
                                               T &u1, T &u2) {

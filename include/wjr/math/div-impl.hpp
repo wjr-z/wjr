@@ -1,9 +1,14 @@
 #ifndef WJR_MATH_DIV_IMPL_HPP__
 #define WJR_MATH_DIV_IMPL_HPP__
 
+#include <utility>
+
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
+
+template <typename T>
+class div1by1_divider;
 
 template <typename T>
 class div2by1_divider;
@@ -13,6 +18,19 @@ class div3by2_divider;
 
 template <typename T>
 class divexact1_divider;
+
+inline uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
+                               const div2by1_divider<uint64_t> &divider);
+
+inline uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                                    uint64_t div);
+
+inline std::pair<uint64_t, uint64_t>
+div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
+                const div2by1_divider<uint64_t> &divider);
+
+inline std::pair<uint64_t, uint64_t> div128by64to128(uint64_t &rem, uint64_t lo,
+                                                     uint64_t hi, uint64_t div);
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,

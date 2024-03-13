@@ -20,6 +20,121 @@ namespace wjr {
  1, 2, 3, 4: constant numbers that can be divisible by (uint64_t)(-1),
 */
 
+inline uint64_t
+div128by64to64_noshift(uint64_t &rem, uint64_t lo, uint64_t hi,
+                       const wjr::div2by1_divider_noshift<uint64_t> &divider) {
+    uint64_t result = divider.divide(lo, hi);
+    rem = hi;
+    return result;
+}
+
+inline uint64_t div128by64to64_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                     const wjr::div2by1_divider<uint64_t> &divider) {
+    auto shift = divider.get_shift();
+    hi = shld(hi, lo, shift);
+    lo <<= shift;
+    uint64_t result = divider.divide(divider.get_divisor(), divider.get_value(), lo, hi);
+    rem = hi >> shift;
+    return result;
+}
+
+inline uint64_t div128by64to64_impl(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                    const wjr::div2by1_divider<uint64_t> &divider) {
+    if (divider.get_shift() == 0) {
+        return div128by64to64_noshift(rem, lo, hi, divider);
+    }
+
+    return div128by64to64_shift(rem, lo, hi, divider);
+}
+
+/*
+ not optimize for divider that is power of 2,
+ manually consider whether it needs to be optimized
+*/
+inline uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
+                               const div2by1_divider<uint64_t> &divider) {
+    return div128by64to64_impl(rem, lo, hi, divider);
+}
+
+/*
+ not optimize for divider that is power of 2,
+ manually consider whether it needs to be optimized
+*/
+inline uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi, uint64_t div) {
+    return div128by64to64_impl(rem, lo, hi, wjr::div2by1_divider<uint64_t>(div));
+}
+
+inline std::pair<uint64_t, uint64_t>
+div128by64to128_noshift(uint64_t &rem, uint64_t lo, uint64_t hi,
+                        const div2by1_divider_noshift<uint64_t> &divider) {
+    auto divisor = divider.get_divisor();
+    uint64_t q0, q1 = 0;
+
+    if (hi >= divisor) {
+        q1 = 1;
+        hi -= divisor;
+    }
+
+    q0 = divider.divide(lo, hi);
+    rem = hi;
+    return std::make_pair(q0, q1);
+}
+
+inline std::pair<uint64_t, uint64_t>
+div128by64to128_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
+                      const div2by1_divider<uint64_t> &divider) {
+    auto divisor = divider.get_divisor();
+    auto value = divider.get_value();
+    auto shift = divider.get_shift();
+    uint64_t u0, u1, u2;
+    uint64_t q0, q1;
+
+    u2 = hi >> (64 - shift);
+    u1 = shld(hi, lo, shift);
+    u0 = lo << shift;
+
+    q1 = divider.divide(divisor, value, u1, u2);
+    q0 = divider.divide(divisor, value, u0, u2);
+
+    rem = u2 >> shift;
+    return std::make_pair(q0, q1);
+}
+
+inline std::pair<uint64_t, uint64_t>
+div128by64to128_impl(uint64_t &rem, uint64_t lo, uint64_t hi,
+                     const div2by1_divider<uint64_t> &divider) {
+    if (divider.get_shift() == 0) {
+        return div128by64to128_noshift(rem, lo, hi, divider);
+    }
+
+    return div128by64to128_shift(rem, lo, hi, divider);
+}
+
+/*
+ not optimize for divider that is power of 2,
+ manually consider whether it needs to be optimized
+*/
+inline std::pair<uint64_t, uint64_t>
+div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
+                const div2by1_divider<uint64_t> &divider) {
+    return div128by64to128_impl(rem, lo, hi, divider);
+}
+
+/*
+ not optimize for divider that is power of 2,
+ manually consider whether it needs to be optimized
+*/
+inline std::pair<uint64_t, uint64_t> div128by64to128(uint64_t &rem, uint64_t lo,
+                                                     uint64_t hi, uint64_t div) {
+    return div128by64to128_impl(rem, lo, hi, div2by1_divider<uint64_t>(div));
+}
+
+template <>
+class div1by1_divider<uint64_t> {
+public:
+private:
+};
+
 // reference : https://ieeexplore.ieee.org/document/5487506
 template <typename T>
 WJR_CONSTEXPR20 T div_qr_1_noshift(T *dst, T &rem, const T *src, size_t n,
@@ -127,6 +242,13 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
         return;
     }
 
+    if (WJR_BUILTIN_CONSTANT_P(n == 2) && n == 2) {
+        auto [ax, dx] = div128by64to128(rem, src[0], src[1], div);
+        dst[0] = ax;
+        dst[1] = dx;
+        return;
+    }
+
     dst[n - 1] = div_qr_1_impl(dst, rem, src, n, div);
 }
 
@@ -158,6 +280,13 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
         T tmp = src[0];
         dst[0] = tmp / div;
         rem = tmp % div;
+        return;
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(n == 2) && n == 2) {
+        auto [ax, dx] = div128by64to128(rem, src[0], src[1], div);
+        dst[0] = ax;
+        dst[1] = dx;
         return;
     }
 
