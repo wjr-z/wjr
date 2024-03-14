@@ -703,7 +703,7 @@ void __toom22_mul_s_impl(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *
 
     using unique_alloc = std::conditional_t<
         reserved, __mul_s_unique_stack_allocator,
-        unique_stack_allocator<wjr::math_details::default_stack_allocator, 2>>;
+        unique_stack_allocator<wjr::math_details::default_stack_allocator>>;
 
     if (m < toom22_mul_threshold) {
         return basecase_mul_s(dst, src0, n, src1, m);
@@ -769,7 +769,7 @@ void __noinline_mul_s_impl(T *WJR_RESTRICT dst, const T *src0, size_t n, const T
 
     using unique_alloc = std::conditional_t<
         reserved, __mul_s_unique_stack_allocator,
-        unique_stack_allocator<wjr::math_details::default_stack_allocator, 2>>;
+        unique_stack_allocator<wjr::math_details::default_stack_allocator>>;
 
     if (m < toom22_mul_threshold) {
         return basecase_mul_s(dst, src0, n, src1, m);
@@ -947,7 +947,7 @@ __inline_mul_n_impl(T *WJR_RESTRICT dst, const T *src0, const T *src1, size_t n,
 
     using unique_alloc = std::conditional_t<
         reserved, __mul_s_unique_stack_allocator,
-        unique_stack_allocator<wjr::math_details::default_stack_allocator, 1>>;
+        unique_stack_allocator<wjr::math_details::default_stack_allocator>>;
 
     if (n < toom22_mul_threshold) {
         return basecase_mul_s(dst, src0, n, src1, n);
@@ -973,7 +973,7 @@ void __noinline_mul_n_impl(T *WJR_RESTRICT dst, const T *src0, const T *src1, si
 
     using unique_alloc = std::conditional_t<
         reserved, __mul_s_unique_stack_allocator,
-        unique_stack_allocator<wjr::math_details::default_stack_allocator, 1>>;
+        unique_stack_allocator<wjr::math_details::default_stack_allocator>>;
 
     if (n < toom22_mul_threshold) {
         return basecase_mul_s(dst, src0, n, src1, n);
@@ -1061,7 +1061,7 @@ __inline_sqr_impl(T *WJR_RESTRICT dst, const T *src, size_t n,
 
     using unique_alloc = std::conditional_t<
         reserved, __mul_s_unique_stack_allocator,
-        unique_stack_allocator<wjr::math_details::default_stack_allocator, 1>>;
+        unique_stack_allocator<wjr::math_details::default_stack_allocator>>;
 
     if (n < toom2_sqr_threshold) {
         return basecase_sqr(dst, src, n);
@@ -1086,7 +1086,7 @@ void __noinline_sqr_impl(T *WJR_RESTRICT dst, const T *src, size_t n,
 
     using unique_alloc = std::conditional_t<
         reserved, __mul_s_unique_stack_allocator,
-        unique_stack_allocator<wjr::math_details::default_stack_allocator, 1>>;
+        unique_stack_allocator<wjr::math_details::default_stack_allocator>>;
 
     if (n < toom2_sqr_threshold) {
         return basecase_sqr(dst, src, n);

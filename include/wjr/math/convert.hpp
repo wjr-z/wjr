@@ -563,7 +563,7 @@ Iter to_chars(Iter first, uint64_t *up, size_t n, unsigned int base = 10,
 
     precompute_to_chars_t pre[64 - 3];
 
-    unique_stack_allocator stkal(math_details::stack_alloc, std::in_place_index<1>);
+    unique_stack_allocator stkal(math_details::stack_alloc);
     auto stk = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * (n * 3 + 192)));
     auto __up = stk;
     std::copy_n(up, n, __up);
@@ -968,11 +968,11 @@ uint64_t *from_chars(Iter first, Iter last, uint64_t *up, unsigned int base = 10
 
     precompute_to_chars_t pre[64 - 3];
 
-    unique_stack_allocator stkal(math_details::stack_alloc, std::in_place_index<1>);
+    unique_stack_allocator stkal(math_details::stack_alloc);
     size_t un = n / per_digits + 1;
-    auto stk = static_cast<uint64_t *>(stkal.allocate(n * 2 + 192));
+    auto stk = static_cast<uint64_t *>(stkal.allocate((n * 2 + 192) * sizeof(uint64_t)));
     auto table_mem = stk;
-    stk += n + 128;
+    stk += un + 128;
 
     auto mpre = precompute_to_chars(pre, un, base, table_mem);
 

@@ -536,7 +536,7 @@ T dc_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
     T qh, cy;
     T *tp;
 
-    unique_stack_allocator stkal(math_details::stack_alloc, std::in_place_index<1>);
+    unique_stack_allocator stkal(math_details::stack_alloc);
     tp = static_cast<T *>(stkal.allocate(sizeof(T) * m));
 
     qn = n - m;
@@ -710,7 +710,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n,
 
         const auto shift = clz(div[m - 1]);
         const size_t alloc = n + 1 + (shift != 0 ? m : 0);
-        unique_stack_allocator stkal(math_details::stack_alloc, std::in_place_index<1>);
+        unique_stack_allocator stkal(math_details::stack_alloc);
         auto stk = static_cast<T *>(stkal.allocate(sizeof(T) * alloc));
         sp = stk;
 
@@ -757,7 +757,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n,
     const auto shift = clz(div[m - 1]);
 
     const size_t alloc = 2 * qn + (shift != 0 ? qn : 0);
-    unique_stack_allocator stkal(math_details::stack_alloc, std::in_place_index<2>);
+    unique_stack_allocator stkal(math_details::stack_alloc);
     auto stk = static_cast<T *>(stkal.allocate(sizeof(T) * alloc));
     sp = stk;
 
