@@ -748,7 +748,7 @@ TEST(math, subc_n) {
         }
 
         auto cf = wjr::subc_n(c.data(), a.data(), b.data(), n, 0u);
-        WJR_ASSERT(cf == 1, "%zu", n);
+        WJR_ASSERT(cf == 1);
 
         for (auto &i : c) {
             WJR_ASSERT(i == -1ull);
@@ -1752,7 +1752,7 @@ TEST(math, from_chars) {
 
     for (int t = 0; t < T; ++t) {
         for (int i = 1; i < M;) {
-            for (auto base : {2, 10}) {
+            for (auto base : {2, 8, 10}) {
                 for (int j = 0; j < i; ++j) {
                     c[j] = mt_rand() % base;
                 }

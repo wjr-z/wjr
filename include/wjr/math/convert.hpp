@@ -642,6 +642,130 @@ size_t from_chars_2(Iter first, size_t n, uint64_t *up, Converter conv) {
 }
 
 template <typename Iter, typename Converter>
+size_t from_chars_8(Iter first, size_t n, uint64_t *up, Converter conv) {
+    size_t len = (n * 3 + 63) / 64;
+    size_t lbits = (64 * (len - 1)) / 3;
+    size_t rest = (64 * (len - 1)) % 3;
+    size_t hbits = n - lbits;
+
+    auto unroll = [conv](uint64_t &x, auto &first) {
+        auto x0 = conv.from(first[0]);
+        auto x1 = conv.from(first[1]);
+        auto x2 = conv.from(first[2]);
+        auto x3 = conv.from(first[3]);
+
+        x = x << 12 | x0 << 9 | x1 << 6 | x2 << 3 | x3;
+        first += 4;
+    };
+
+    uint64_t x = 0;
+    up += len;
+    size_t idx = len - 1;
+
+    if (hbits > 4) {
+        do {
+            unroll(x, first);
+            hbits -= 4;
+        } while (WJR_LIKELY(hbits > 4));
+    }
+
+    switch (hbits) {
+    case 4: {
+        x = x << 3 | conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 3: {
+        x = x << 3 | conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 2: {
+        x = x << 3 | conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 1: {
+        uint64_t nx = conv.from(*first++);
+        switch (rest) {
+        case 0: {
+            *--up = x << 3 | nx;
+            x = 0;
+            break;
+        }
+        case 1: {
+            x = x << 2 | nx >> 1;
+            if (WJR_UNLIKELY(x == 0)) {
+                --len;
+            }
+
+            *--up = x;
+            x = nx & 1;
+            break;
+        }
+        case 2: {
+            x = x << 1 | nx >> 2;
+            if (WJR_UNLIKELY(x == 0)) {
+                --len;
+            }
+            *--up = x;
+            x = nx & 3;
+            break;
+        }
+        default: {
+            WJR_UNREACHABLE();
+            break;
+        }
+        }
+        break;
+    }
+    default: {
+        WJR_UNREACHABLE();
+        break;
+    }
+    }
+
+    if (idx) {
+        do {
+            for (int i = 0; i < 5; ++i) {
+                unroll(x, first);
+            }
+
+            switch (rest) {
+            case 0: {
+                x = x << 3 | conv.from(*first++);
+                uint64_t nx = conv.from(*first++);
+                x = x << 1 | nx >> 2;
+                *--up = x;
+                x = nx & 3;
+                rest = 2;
+                break;
+            }
+            case 1: {
+                x = x << 3 | conv.from(*first++);
+                *--up = x;
+                x = 0;
+                rest = 0;
+                break;
+            }
+            case 2: {
+                uint64_t nx = conv.from(*first++);
+                x = x << 2 | nx >> 1;
+                *--up = x;
+                x = nx & 1;
+                rest = 1;
+                break;
+            }
+            default: {
+                WJR_UNREACHABLE();
+                break;
+            }
+            }
+
+        } while (WJR_LIKELY(--idx));
+    }
+
+    return len;
+}
+
+template <typename Iter, typename Converter>
 void __from_chars_10(Iter first, size_t n, uint64_t &x, Converter conv) {
     x = 0;
 
@@ -825,6 +949,9 @@ uint64_t *from_chars(Iter first, Iter last, uint64_t *up, unsigned int base = 10
         switch (base) {
         case 2: {
             return up + from_chars_2(first, n, up, conv);
+        }
+        case 8: {
+            return up + from_chars_8(first, n, up, conv);
         }
         default: {
             WJR_UNREACHABLE();
