@@ -5,13 +5,15 @@
 #include <vector>
 
 #include <wjr/compressed_pair.hpp>
-#include <wjr/memory/cross_thread_checker.hpp>
+#include <wjr/crtp.hpp>
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
 
-template <size_t cache, size_t threshold, size_t alignment = alignof(std::max_align_t)>
+template <size_t cache, size_t threshold>
 class stack_alloc {
+
+    constexpr static size_t bufsize = 5;
 
     class __stack_alloc {
     public:
@@ -50,7 +52,7 @@ class stack_alloc {
         }
 
         WJR_CONSTEXPR20 void __deallocate() {
-            size_t n = m_stk.size() - m_idx - 4;
+            size_t n = m_stk.size() - m_idx - bufsize + 1;
             for (size_t i = 0; i < n; ++i) {
                 free(m_stk.back().ptr);
                 m_stk.pop_back();
@@ -98,7 +100,7 @@ class stack_alloc {
                 } else {
                     m_idx = idx;
                     m_node = {top.ptr, m_stk[m_idx].end};
-                    if (WJR_UNLIKELY(m_stk.size() - m_idx >= 5)) {
+                    if (WJR_UNLIKELY(m_stk.size() - m_idx >= bufsize)) {
                         __deallocate();
                     }
                 }
@@ -171,16 +173,11 @@ private:
     __stack_alloc alloc = __stack_alloc();
 };
 
-template <typename StackAllocator, bool ThreadLocal = false>
+template <typename StackAllocator>
 class singleton_stack_allocator_adapter {
     static StackAllocator &get_instance() {
-        if constexpr (ThreadLocal) {
-            static thread_local StackAllocator instance;
-            return instance;
-        } else {
-            static StackAllocator instance;
-            return instance;
-        }
+        static thread_local StackAllocator instance;
+        return instance;
     }
 
 public:
@@ -200,32 +197,40 @@ public:
     }
 };
 
-template <typename Alloc, bool ThreadLocal>
-constexpr bool operator==(const singleton_stack_allocator_adapter<Alloc, ThreadLocal> &,
-                          const singleton_stack_allocator_adapter<Alloc, ThreadLocal> &) {
+template <typename Alloc>
+constexpr bool operator==(const singleton_stack_allocator_adapter<Alloc> &,
+                          const singleton_stack_allocator_adapter<Alloc> &) {
     return true;
 }
 
-template <typename Alloc, bool ThreadLocal>
-constexpr bool operator!=(const singleton_stack_allocator_adapter<Alloc, ThreadLocal> &,
-                          const singleton_stack_allocator_adapter<Alloc, ThreadLocal> &) {
+template <typename Alloc>
+constexpr bool operator!=(const singleton_stack_allocator_adapter<Alloc> &,
+                          const singleton_stack_allocator_adapter<Alloc> &) {
     return false;
 }
 
-template <size_t cache, size_t threshold, size_t alignment = alignof(std::max_align_t)>
-using stack_allocator =
-    singleton_stack_allocator_adapter<stack_alloc<cache, threshold, alignment>, true>;
+/**
+ * @brief A stack allocator for fast simulation of stack memory on the heap, singleton
+ * mode.
+ *
+ * @note When allocating memory less than threadshold, use pre-allocated heap memory,
+ * otherwise use malloc to allocate heap memory.
+ *
+ * @tparam cache The size of the first heap memory allocation
+ * @tparam threshold The threshold for using malloc to allocate heap memory
+ */
+template <size_t cache, size_t threshold>
+using stack_allocator = singleton_stack_allocator_adapter<stack_alloc<cache, threshold>>;
 
 template <typename StackAllocator>
 class unique_stack_allocator;
 
-template <size_t cache, size_t threshold, size_t alignment>
-class unique_stack_allocator<stack_allocator<cache, threshold, alignment>>
-    : private cross_thread_checker {
-    using StackAllocator = stack_allocator<cache, threshold, alignment>;
+template <size_t cache, size_t threshold>
+class unique_stack_allocator<stack_allocator<cache, threshold>> : private nonsendable {
+    using StackAllocator = stack_allocator<cache, threshold>;
     using stack_top = typename StackAllocator::stack_top;
 
-    using Mybase = cross_thread_checker;
+    using Mybase = nonsendable;
 
 public:
     unique_stack_allocator(const StackAllocator &al) : pair(al, {}) {}
