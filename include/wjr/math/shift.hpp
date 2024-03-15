@@ -17,7 +17,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_shld(T hi, T lo, unsigned int c) {
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E T shld(T hi, T lo, unsigned int c) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T shld(T hi, T lo, unsigned int c) {
     return fallback_shld(hi, lo, c);
 }
 
@@ -28,7 +28,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_shrd(T lo, T hi, unsigned int c) {
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E T shrd(T lo, T hi, unsigned int c) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T shrd(T lo, T hi, unsigned int c) {
     return fallback_shrd(lo, hi, c);
 }
 

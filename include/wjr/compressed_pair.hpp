@@ -94,10 +94,11 @@ using comp_pair_wrapper =
 
 /**
  * @class compressed_pair
- * @brief A pair used empty base optimization
- * @details When T or U is an empty class, compressed_pair will use empty base
+ * @brief A pair used empty base optimization to reduce the size of the pair.
+ * 
+ * @details When `T` or `U` is an empty class, compressed_pair will use empty base
  * optimization to reduce the size of the pair. Otherwise, compressed_pair
- * is equivalent to std::pair.
+ * is equivalent to `std::pair`.
  */
 template <typename T, typename U>
 class compressed_pair : private comp_pair_wrapper<0, T, U>,

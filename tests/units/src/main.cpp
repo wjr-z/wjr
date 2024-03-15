@@ -1744,7 +1744,7 @@ TEST(math, from_chars) {
     std::mt19937_64 mt_rand(time(0));
 
     const int T = 4;
-    const int N = 3840;
+    const int N = 4096;
     const int M = N;
 
     std::vector<uint64_t> a(N), b(N);
@@ -1752,7 +1752,7 @@ TEST(math, from_chars) {
 
     for (int t = 0; t < T; ++t) {
         for (int i = 1; i < M;) {
-            for (auto base : {2, 8, 10}) {
+            for (auto base : {2, 8, 16, 10}) {
                 for (int j = 0; j < i; ++j) {
                     c[j] = mt_rand() % base;
                 }

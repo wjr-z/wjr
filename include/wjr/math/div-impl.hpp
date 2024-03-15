@@ -22,8 +22,7 @@ class divexact1_divider;
 inline uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
                                const div2by1_divider<uint64_t> &divider);
 
-inline uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
-                                                    uint64_t div);
+inline uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi, uint64_t div);
 
 inline std::pair<uint64_t, uint64_t>
 div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
@@ -49,8 +48,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const T *div);
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n,
-                                        const T *div, size_t m);
+void div_qr_s(T *dst, T *rem, const T *src, size_t n, const T *div, size_t m);
 
 template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
 WJR_CONSTEXPR_E T divexact_dbm1c(T *dst, const T *src, size_t n, T bd, T h);

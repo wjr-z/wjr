@@ -55,6 +55,9 @@ template void __noinline_mul_s_impl<false, uint64_t>(uint64_t *WJR_RESTRICT dst,
 
 // div.hpp
 
+template uint64_t sb_div_qr_s<uint64_t>(uint64_t *dst, uint64_t *src, size_t n,
+                                        const uint64_t *div, size_t m, uint64_t dinv);
+
 template uint64_t dc_div_qr_s<uint64_t>(uint64_t *dst, uint64_t *src, size_t n,
                                         const uint64_t *div, size_t m, uint64_t dinv);
 

@@ -50,6 +50,7 @@ public:
 
 /**
  * @brief 36 hexadecimal character<->number converter
+ *
  * @note Range of characters: `[0-9a-zA-Z]`, range of numbers: `[0-35]`
  */
 inline constexpr char_converter_t char_converter = {};
@@ -61,6 +62,7 @@ struct origin_converter_t {
 
 /**
  * @brief Original converter that does not change the number or character.
+ *
  * @note Range of characters: `[0-35]`, range of numbers: `[0-35]`
  */
 inline constexpr origin_converter_t origin_converter = {};
@@ -528,16 +530,18 @@ Iter dc_to_chars(Iter first, size_t len, uint64_t *up, size_t n,
 
 /**
  * @brief Convert a biginteger to a string by a given base.
+ *
  * @tparam Iter Output iterator type
- * @tparam Converter char_converter_t or origin_converter_t. Default is char_converter_t.
+ * @tparam Converter char_converter_t or origin_converter_t. The default type is
+ * char_converter_t.
  * @param[out] first Output iterator
  * @param[in] up Pointer to the biginteger
  * @param[in] n Length of the biginteger
  * @param[in] base Base of the output string. Range: `[2, 36]`,
  * Only support 10 and power of two currently.
- * @param[in] conv Converter, only support char_converter_t or origin_converter_t. Default
- * is char_converter.
- * @return Output iterator after the conversion 
+ * @param[in] conv Converter, only support char_converter_t or origin_converter_t. The
+ * default value is char_converter.
+ * @return Output iterator after the conversion
  */
 template <typename Iter, typename Converter = char_converter_t,
           std::enable_if_t<is_any_of_v<remove_cvref_t<Converter>, char_converter_t,
@@ -787,6 +791,73 @@ size_t from_chars_8(Iter first, size_t n, uint64_t *up, Converter conv) {
 }
 
 template <typename Iter, typename Converter>
+size_t from_chars_16(Iter first, size_t n, uint64_t *up, Converter conv) {
+    size_t hbits = (n - 1) % 16 + 1;
+    size_t len = (n - 1) / 16 + 1;
+
+    auto unroll = [conv](uint64_t &x, auto &first) {
+        auto x0 = conv.from(first[0]);
+        auto x1 = conv.from(first[1]);
+        auto x2 = conv.from(first[2]);
+        auto x3 = conv.from(first[3]);
+
+        x = x << 16 | x0 << 12 | x1 << 8 | x2 << 4 | x3;
+        first += 4;
+    };
+
+    uint64_t x = 0;
+    up += len;
+
+    if (hbits > 4) {
+        do {
+            unroll(x, first);
+            hbits -= 4;
+        } while (WJR_LIKELY(hbits > 4));
+    }
+
+    switch (hbits) {
+    case 4: {
+        unroll(x, first);
+        break;
+    }
+    case 3: {
+        x = x << 4 | conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 2: {
+        x = x << 4 | conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 1: {
+        x = x << 4 | conv.from(*first++);
+        break;
+    }
+    default: {
+        WJR_UNREACHABLE();
+        break;
+    }
+    }
+
+    *--up = x;
+
+    size_t idx = len - 1;
+
+    if (idx) {
+        do {
+            x = 0;
+
+            for (int i = 0; i < 4; ++i) {
+                unroll(x, first);
+            }
+
+            *--up = x;
+        } while (WJR_LIKELY(--idx));
+    }
+
+    return len;
+}
+
+template <typename Iter, typename Converter>
 void __from_chars_10(Iter first, size_t n, uint64_t &x, Converter conv) {
     x = 0;
 
@@ -959,14 +1030,17 @@ size_t dc_from_chars(Iter first, size_t n, uint64_t *up, precompute_to_chars_t *
 
 /**
  * @brief Convert a string to a biginteger by a given base.
+ *
  * @tparam Iter Input iterator type
- * @tparam Converter char_converter_t or origin_converter_t. Default is char_converter_t.
- * @param[in] first Input iterator 
+ * @tparam Converter char_converter_t or origin_converter_t. The default type is
+ * char_converter_t.
+ * @param[in] first Input iterator
  * @param[in] last Input iterator
  * @param[out] up Pointer to the biginteger
  * @param[in] base Base of the input string. Range: `[2, 36]`,
  * Only support 10 and power of two currently.
- * @param conv Converter, only support char_converter_t or origin_converter_t. Default
+ * @param[in] conv Converter, only support char_converter_t or origin_converter_t. The
+ * default value is char_converter.
  * @return uint64_t* Pointer after the conversion
  */
 template <typename Iter, typename Converter = char_converter_t,
@@ -985,6 +1059,9 @@ uint64_t *from_chars(Iter first, Iter last, uint64_t *up, unsigned int base = 10
         }
         case 8: {
             return up + from_chars_8(first, n, up, conv);
+        }
+        case 16: {
+            return up + from_chars_16(first, n, up, conv);
         }
         default: {
             WJR_UNREACHABLE();

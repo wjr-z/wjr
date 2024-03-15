@@ -53,6 +53,15 @@ WJR_INTRINSIC_INLINE T builtin_addc(T a, T b, U c_in, U &c_out) {
 
 #endif // WJR_HAS_BUILTIN(ADDC)
 
+/**
+ * @brief Add two numbers with carry-in, and return the result and carry-out
+ *
+ * @note The carry-in and carry-out are limited to 0 and 1
+ * @tparam U Type of the carry-in and carry-out. It must be an unsigned integral type.
+ * the default type is the same as `T`
+ * @param[in] c_in The carry-in flag.
+ * @param[out] c_out The carry-out flag.
+ */
 template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out) {
@@ -87,13 +96,21 @@ WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out) {
 #endif
 }
 
-/*
- Used for addc and then jump according to cc flag. Therefore, the types of c_in and
- c_out are limited to uint8_t, while the default c_in and c_out types of normal addc are
- the same as T, so that the high register is not cleared. Currently, GCC/Clang @=cccond
- cannot know that the high register is not cleared, so the performance is worse than the
- normal version when cc flag is not needed immediately.
-*/
+/**
+ * @brief Performs addition with carry-in and carry-out, optimized for subsequent
+ * branching based on carry-out.
+ *
+ * @details This function, `addc_cc`, adds two numbers with a carry-in, and returns the
+ * result and a carry-out. The carry-out (`c_out`) is optimized for subsequent code that
+ * branches based on its value. For example, it can be used with jump instructions like
+ * `je` or `jne`. This is in contrast to the `addc` function, which may use instructions
+ * like `setc` or `test` for branching.
+ *
+ * @note The carry-in and carry-out are limited to 0 and 1
+ * @tparam U Type of the carry-in and carry-out. It must be an unsigned integral type.
+ * @param[in] c_in The carry-in flag.
+ * @param[out] c_out The carry-out flag.
+ */
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
     WJR_ASSERT_ASSUME_L(1, c_in <= 1);
@@ -124,11 +141,18 @@ WJR_INTRINSIC_CONSTEXPR_E T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
 #endif
 }
 
-/*
-require :
-1. n >= 1
-2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
-*/
+/**
+ * @brief Add biginteger(src0) and number with carry-in, and return the result(dst) and
+ * carry-out.
+ *
+ * @tparam U Type of the carry-in and carry-out. It must be an unsigned integral type.
+ * @param[out] dst The result of the addition.
+ * @param[in] src0 The biginteger to be added.
+ * @param[in] n The number of elements in the biginteger.
+ * @param[in] src1 The number to be added.
+ * @param[in] c_in The carry-in flag.
+ * @return The carry-out flag.
+ */
 template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U addc_1(T *dst, const T *src0, size_t n,
@@ -207,12 +231,18 @@ WJR_INTRINSIC_CONSTEXPR U fallback_addc_n(T *dst, const T *src0, const T *src1, 
     return c_in;
 }
 
-/*
-require :
-1. n >= 1
-2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
-3. WJR_IS_SAME_OR_INCR_P(dst, n, src1, n)
-*/
+/**
+ * @brief Add biginteger(src0) and biginteger(src1) with carry-in, and return the result
+ * (dst) and carry-out.
+ *
+ * @tparam U Type of the carry-in and carry-out. It must be an unsigned integral type.
+ * @param[out] dst The result of the addition.
+ * @param[in] src0 The biginteger to be added.
+ * @param[in] src1 The biginteger to be added.
+ * @param[in] n The number of elements in the biginteger.
+ * @param[in] c_in The carry-in flag.
+ * @return The carry-out flag.
+ */
 template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U addc_n(T *dst, const T *src0, const T *src1, size_t n,

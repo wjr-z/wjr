@@ -416,7 +416,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
 // reference : GMP
 // return qh;
 template <typename T>
-WJR_CONSTEXPR20 T sb_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
+T sb_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
     using divider = div3by2_divider<T>;
     constexpr T mask = in_place_max;
 
@@ -476,6 +476,10 @@ WJR_CONSTEXPR20 T sb_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, 
 
     return qh;
 }
+
+extern template uint64_t sb_div_qr_s<uint64_t>(uint64_t *dst, uint64_t *src, size_t n,
+                                               const uint64_t *div, size_t m,
+                                               uint64_t dinv);
 
 inline constexpr size_t dc_div_qr_threshold = WJR_DC_DIV_QR_THRESHOLD;
 
@@ -680,8 +684,7 @@ extern template uint64_t dc_div_qr_s<uint64_t>(uint64_t *dst, uint64_t *src, siz
                                                uint64_t dinv);
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n,
-                                        const T *div, size_t m) {
+void div_qr_s(T *dst, T *rem, const T *src, size_t n, const T *div, size_t m) {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
 
@@ -740,7 +743,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(T *dst, T *rem, const T *src, size_t n,
 
     // 2 * m > n + adjust
 
-    auto qn = n - m;
+    size_t qn = n - m;
     dst[qn] = 0;
     qn += adjust;
 

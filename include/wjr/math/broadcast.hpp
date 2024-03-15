@@ -12,6 +12,7 @@ struct broadcast_fn {};
 
 /**
  * @brief Broadcast a value to a wider type.
+ * 
  * @note From must be a smaller type than To.
  */
 template <typename From, typename To>
