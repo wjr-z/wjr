@@ -29,17 +29,18 @@ namespace wjr {
 
 template <typename... Args>
 struct assert_format {
-    assert_format(const char *const fmt, Args &&...args)
-        : m_fmt(fmt), m_args(std::forward<Args>(args)...) {}
+    assert_format(const char *const fmt, std::tuple<Args...> &&args)
+        : m_fmt(fmt), m_args(std::move(args)) {}
 
     const char *const m_fmt;
     std::tuple<Args...> m_args;
 };
 
 template <typename... Args>
-assert_format(const char *, Args &&...) -> assert_format<Args...>;
+assert_format(const char *const, std::tuple<Args...> &&) -> assert_format<Args...>;
 
-#define WJR_ASSERT_FORMAT(...) ::wjr::assert_format(__VA_ARGS__)
+#define WJR_ASSERT_FORMAT(fmt, ...)                                                      \
+    ::wjr::assert_format(fmt, std::make_tuple(__VA_ARGS__))
 
 template <typename Handler, typename... Args,
           std::enable_if_t<std::is_invocable_v<Handler, Args...>, int> = 0>
