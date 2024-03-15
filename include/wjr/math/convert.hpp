@@ -48,6 +48,10 @@ public:
     WJR_CONST constexpr static uint8_t from(char x) { return from_table[x]; }
 };
 
+/**
+ * @brief 36 hexadecimal character<->number converter
+ * @note Range of characters: `[0-9a-zA-Z]`, range of numbers: `[0-35]`
+ */
 inline constexpr char_converter_t char_converter = {};
 
 struct origin_converter_t {
@@ -55,6 +59,10 @@ struct origin_converter_t {
     WJR_CONST constexpr static uint8_t from(char x) { return x; }
 };
 
+/**
+ * @brief Original converter that does not change the number or character.
+ * @note Range of characters: `[0-35]`, range of numbers: `[0-35]`
+ */
 inline constexpr origin_converter_t origin_converter = {};
 
 // require operator() of Converter is constexpr
@@ -518,6 +526,19 @@ Iter dc_to_chars(Iter first, size_t len, uint64_t *up, size_t n,
     }
 }
 
+/**
+ * @brief Convert a biginteger to a string by a given base.
+ * @tparam Iter Output iterator type
+ * @tparam Converter char_converter_t or origin_converter_t. Default is char_converter_t.
+ * @param[out] first Output iterator
+ * @param[in] up Pointer to the biginteger
+ * @param[in] n Length of the biginteger
+ * @param[in] base Base of the output string. Range: `[2, 36]`,
+ * Only support 10 and power of two currently.
+ * @param[in] conv Converter, only support char_converter_t or origin_converter_t. Default
+ * is char_converter.
+ * @return Output iterator after the conversion 
+ */
 template <typename Iter, typename Converter = char_converter_t,
           std::enable_if_t<is_any_of_v<remove_cvref_t<Converter>, char_converter_t,
                                        origin_converter_t>,
@@ -936,6 +957,18 @@ size_t dc_from_chars(Iter first, size_t n, uint64_t *up, precompute_to_chars_t *
     return ln;
 }
 
+/**
+ * @brief Convert a string to a biginteger by a given base.
+ * @tparam Iter Input iterator type
+ * @tparam Converter char_converter_t or origin_converter_t. Default is char_converter_t.
+ * @param[in] first Input iterator 
+ * @param[in] last Input iterator
+ * @param[out] up Pointer to the biginteger
+ * @param[in] base Base of the input string. Range: `[2, 36]`,
+ * Only support 10 and power of two currently.
+ * @param conv Converter, only support char_converter_t or origin_converter_t. Default
+ * @return uint64_t* Pointer after the conversion
+ */
 template <typename Iter, typename Converter = char_converter_t,
           std::enable_if_t<is_any_of_v<remove_cvref_t<Converter>, char_converter_t,
                                        origin_converter_t>,

@@ -10,7 +10,10 @@ namespace wjr {
 template <typename From, typename To>
 struct broadcast_fn {};
 
-// broadcast From to To
+/**
+ * @brief Broadcast a value to a wider type.
+ * @note From must be a smaller type than To.
+ */
 template <typename From, typename To>
 inline constexpr broadcast_fn<From, To> broadcast{};
 

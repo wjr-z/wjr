@@ -55,6 +55,12 @@ struct __is_span_array_helper<Array, Elem,
 template <typename Array, typename Elem>
 struct __is_span_array : __is_span_array_helper<Array, Elem, void> {};
 
+/**
+ * @class span
+ * @brief A view over a contiguous sequence of objectsd.
+ * @tparam Extent if Extent is `dynamic_extent`, the span is a runtime-sized view.
+ * Otherwise, the span is a compile-time-sized view.
+ */
 template <typename T, size_t Extent = dynamic_extent>
 class span {
     static constexpr bool __is_dynamic = Extent == dynamic_extent;

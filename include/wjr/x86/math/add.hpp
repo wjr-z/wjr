@@ -25,7 +25,7 @@ namespace wjr {
 template <typename U>
 WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in, U &c_out) {
     if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
-        if (WJR_BUILTIN_CONSTANT_P(b) && b <= std::numeric_limits<uint32_t>::max()) {
+        if (WJR_BUILTIN_CONSTANT_P(b) && b <= ((uint32_t)in_place_max)) {
             asm("stc\n\t"
                 "adc{q %2, %0| %0, %2}\n\t"
                 "setb %b1"
@@ -45,7 +45,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in, U &c_out)
     }
 
     if (WJR_BUILTIN_CONSTANT_P(a)) {
-        if (a <= std::numeric_limits<uint32_t>::max()) {
+        if (a <= ((uint32_t)in_place_max)) {
             asm("add{b $255, %b1| %b1, 255}\n\t"
                 "adc{q %2, %0| %0, %2}\n\t"
                 "setb %b1"
@@ -64,7 +64,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in, U &c_out)
         return b;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(b) && b <= std::numeric_limits<uint32_t>::max()) {
+    if (WJR_BUILTIN_CONSTANT_P(b) && b <= ((uint32_t)in_place_max)) {
         asm("add{b $255, %b1| %b1, 255}\n\t"
             "adc{q %2, %0| %0, %2}\n\t"
             "setb %b1"
@@ -90,7 +90,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in, U &c_out)
 WJR_INTRINSIC_INLINE uint64_t asm_addc_cc(uint64_t a, uint64_t b, uint8_t c_in,
                                           uint8_t &c_out) {
     if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
-        if (WJR_BUILTIN_CONSTANT_P(b) && b <= std::numeric_limits<uint32_t>::max()) {
+        if (WJR_BUILTIN_CONSTANT_P(b) && b <= ((uint32_t)in_place_max)) {
             asm("stc\n\t"
                 "adc{q %2, %0| %0, %2}\n\t" WJR_ASM_CCSET(c)
                 : "=r"(a), WJR_ASM_CCOUT(c)(c_out)
@@ -107,7 +107,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc_cc(uint64_t a, uint64_t b, uint8_t c_in,
     }
 
     if (WJR_BUILTIN_CONSTANT_P(a)) {
-        if (a <= std::numeric_limits<uint32_t>::max()) {
+        if (a <= ((uint32_t)in_place_max)) {
             asm("add{b $255, %b1| %b1, 255}\n\t"
                 "adc{q %3, %0| %0, %3}\n\t" WJR_ASM_CCSET(c)
                 : "=r"(b), "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
@@ -123,7 +123,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc_cc(uint64_t a, uint64_t b, uint8_t c_in,
         return b;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(b) && b <= std::numeric_limits<uint32_t>::max()) {
+    if (WJR_BUILTIN_CONSTANT_P(b) && b <= ((uint32_t)in_place_max)) {
         asm("add{b $255, %b1| %b1, 255}\n\t"
             "adc{q %3, %0| %0, %3}\n\t" WJR_ASM_CCSET(c)
             : "=r"(a), "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)

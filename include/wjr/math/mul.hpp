@@ -1136,7 +1136,7 @@ void __sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *stk, T &c_out,
         c_out = cf * cf;
     }
 
-    constexpr auto m2 = m <= std::numeric_limits<uint32_t>::max() ? m * 2 : m;
+    constexpr auto m2 = m <= ((uint32_t)in_place_max) ? m * 2 : m;
 
     c_out += try_addmul_1(dst + n, src, n, 2 * cf, std::integral_constant<T, m2>{});
 }

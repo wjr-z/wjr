@@ -92,6 +92,13 @@ using comp_pair_wrapper =
                            (index == 0 || !comp_pair_wrapper_helper<U>::value),
                        comp_pair_wrapper2<index, T>, comp_pair_wrapper1<index, T>>;
 
+/**
+ * @class compressed_pair
+ * @brief A pair used empty base optimization
+ * @details When T or U is an empty class, compressed_pair will use empty base
+ * optimization to reduce the size of the pair. Otherwise, compressed_pair
+ * is equivalent to std::pair.
+ */
 template <typename T, typename U>
 class compressed_pair : private comp_pair_wrapper<0, T, U>,
                         private comp_pair_wrapper<1, U, T> {
@@ -362,7 +369,7 @@ constexpr bool operator>=(const compressed_pair<T, U> &lhs,
 
 template <typename T, typename U>
 constexpr compressed_pair<unrefwrap_t<T>, unrefwrap_t<U>>
-make_pair(T &&t, U &&u) noexcept(
+make_compressed_pair(T &&t, U &&u) noexcept(
     std::conjunction_v<std::is_nothrow_constructible<unrefwrap_t<T>, T>,
                        std::is_nothrow_constructible<unrefwrap_t<U>, U>>) {
     return compressed_pair<unrefwrap_t<T>, unrefwrap_t<U>>(std::forward<T>(t),
