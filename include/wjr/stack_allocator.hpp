@@ -11,8 +11,7 @@
 
 namespace wjr {
 
-template <size_t cache0, size_t threshold0, size_t cache1, size_t threshold1,
-          size_t alignment = alignof(std::max_align_t)>
+template <size_t cache, size_t threshold, size_t alignment = alignof(std::max_align_t)>
 class stack_alloc {
 
     class __stack_alloc {
@@ -33,7 +32,7 @@ class stack_alloc {
                 } else {
                     auto &node = m_stk.back();
                     capacity = node.end - node.ptr;
-                    capacity += capacity / 4;
+                    capacity += capacity / 2;
                 }
 
                 auto buffer = static_cast<char *>(malloc(capacity));
@@ -60,7 +59,7 @@ class stack_alloc {
         }
 
     public:
-        __stack_alloc(size_t cache) : cache(cache) {}
+        __stack_alloc() = default;
         __stack_alloc(const __stack_alloc &) = delete;
         __stack_alloc(__stack_alloc &&) = default;
         __stack_alloc &operator=(const __stack_alloc &) = delete;
@@ -117,7 +116,6 @@ class stack_alloc {
         alloc_node m_node = {nullptr, nullptr};
         size_t m_idx = -1ull;
         std::vector<alloc_node> m_stk;
-        size_t cache;
     };
 
     struct large_stack_top {
@@ -128,20 +126,15 @@ class stack_alloc {
 public:
     struct stack_top {
         typename __stack_alloc::stack_top small;
-        typename __stack_alloc::stack_top mid;
         large_stack_top *large = nullptr;
     };
 
 private:
-    WJR_CONSTEXPR20 void *__mid_allocate(size_t n, stack_top &top) {
-        if (WJR_UNLIKELY(n >= threshold1)) {
-            auto buffer = (large_stack_top *)malloc(sizeof(large_stack_top) + n);
-            buffer->prev = top.large;
-            top.large = buffer;
-            return buffer->buffer;
-        }
-
-        return mid_alloc.allocate(n, top.mid);
+    WJR_CONSTEXPR20 void *__large_allocate(size_t n, stack_top &top) {
+        auto buffer = (large_stack_top *)malloc(sizeof(large_stack_top) + n);
+        buffer->prev = top.large;
+        top.large = buffer;
+        return buffer->buffer;
     }
 
 public:
@@ -158,16 +151,15 @@ public:
     ~stack_alloc() = default;
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top) {
-        if (WJR_UNLIKELY(n >= threshold0)) {
-            return __mid_allocate(n, top);
+        if (WJR_UNLIKELY(n >= threshold)) {
+            return __large_allocate(n, top);
         }
 
-        return small_alloc.allocate(n, top.small);
+        return alloc.allocate(n, top.small);
     }
 
     WJR_CONSTEXPR20 void deallocate(const stack_top &top) {
-        small_alloc.deallocate(top.small);
-        mid_alloc.deallocate(top.mid);
+        alloc.deallocate(top.small);
         auto buffer = top.large;
         while (WJR_UNLIKELY(buffer != nullptr)) {
             auto prev = buffer->prev;
@@ -177,8 +169,7 @@ public:
     }
 
 private:
-    __stack_alloc small_alloc = __stack_alloc(cache0);
-    __stack_alloc mid_alloc = __stack_alloc(cache1);
+    __stack_alloc alloc = __stack_alloc();
 };
 
 template <typename StackAllocator, bool ThreadLocal = false>
@@ -222,20 +213,16 @@ constexpr bool operator!=(const singleton_stack_allocator_adapter<Alloc, ThreadL
     return false;
 }
 
-template <size_t cache0, size_t threshold0, size_t cache1, size_t threshold1,
-          size_t alignment = alignof(std::max_align_t)>
-using stack_allocator = singleton_stack_allocator_adapter<
-    stack_alloc<cache0, threshold0, cache1, threshold1, alignment>, true>;
+template <size_t cache, size_t threshold, size_t alignment = alignof(std::max_align_t)>
+using stack_allocator =
+    singleton_stack_allocator_adapter<stack_alloc<cache, threshold, alignment>, true>;
 
 template <typename StackAllocator>
 class unique_stack_allocator;
 
-template <size_t cache0, size_t threshold0, size_t cache1, size_t threshold1,
-          size_t alignment>
-class unique_stack_allocator<
-    stack_allocator<cache0, threshold0, cache1, threshold1, alignment>> {
-    using StackAllocator =
-        stack_allocator<cache0, threshold0, cache1, threshold1, alignment>;
+template <size_t cache, size_t threshold, size_t alignment>
+class unique_stack_allocator<stack_allocator<cache, threshold, alignment>> {
+    using StackAllocator = stack_allocator<cache, threshold, alignment>;
 
     using stack_top = typename StackAllocator::stack_top;
 
