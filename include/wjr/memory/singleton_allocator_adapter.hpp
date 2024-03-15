@@ -2,8 +2,6 @@
 #define WJR_MEMORY_SINGLETON_ALLOCATOR_ADAPTER_HPP__
 
 #include <wjr/assert.hpp>
-#include <wjr/preprocessor.hpp>
-
 
 namespace wjr {
 

@@ -3,6 +3,8 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 
@@ -15,13 +17,29 @@ namespace wjr {
 // 1 : Some simple runtime checks, such as boundary checks (default)
 // 2 : Most runtime checks
 // 3 : Maximize runtime checks
-#if defined(WJR_DEBUG_LEVEL)
-#define WJR_ASSERT_LEVEL WJR_DEBUG_LEVEL
-#elif defined(NDEBUG)
+#ifndef WJR_DEBUG_LEVEL
+
+#if defined(NDEBUG)
 #define WJR_DEBUG_LEVEL 0
 #else
 #define WJR_DEBUG_LEVEL 1
-#endif //
+#endif
+
+#endif
+
+template <typename... Args>
+struct assert_format {
+    assert_format(const char *const fmt, Args &&...args)
+        : m_fmt(fmt), m_args(std::forward<Args>(args)...) {}
+
+    const char *const m_fmt;
+    std::tuple<Args...> m_args;
+};
+
+template <typename... Args>
+assert_format(const char *, Args &&...) -> assert_format<Args...>;
+
+#define WJR_ASSERT_FORMAT(...) ::wjr::assert_format(__VA_ARGS__)
 
 template <typename Handler, typename... Args,
           std::enable_if_t<std::is_invocable_v<Handler, Args...>, int> = 0>
@@ -41,18 +59,45 @@ WJR_NORETURN WJR_COLD WJR_NOINLINE void __assert_fail(const char *expr, const ch
     std::abort();
 }
 
-struct __assert_t {
+template <typename T>
+struct __is_assert_format : std::false_type {};
+
+template <typename... Args>
+struct __is_assert_format<assert_format<Args...>> : std::true_type {};
+
+class __assert_handler_t {
+private:
+    template <typename... Args>
+    void handler_format(const assert_format<Args...> &fmt) const {
+        const char *const fmt_str = fmt.m_fmt;
+        std::apply(
+            [fmt_str](auto &&...args) {
+                (void)fprintf(stderr, fmt_str, std::forward<decltype(args)>(args)...);
+            },
+            fmt.m_args);
+    }
+
+    template <typename T>
+    void handler(T &&t) const {
+        if constexpr (__is_assert_format<std::decay_t<T>>::value) {
+            handler_format(std::forward<T>(t));
+        } else {
+            std::cerr << t;
+        }
+    }
+
+public:
     void operator()() const {}
 
     template <typename... Args>
-    void operator()(const char *const fmt, Args &&...args) const {
+    void operator()(Args &&...args) const {
         (void)fprintf(stderr, "Additional message: ");
-        (void)fprintf(stderr, fmt, std::forward<Args>(args)...);
+        (void)((handler(std::forward<Args>(args)), ...));
         (void)fprintf(stderr, "\n");
     }
 };
 
-inline constexpr __assert_t __assert{};
+inline constexpr __assert_handler_t __assert_handler{};
 
 #define WJR_ASSERT_NOMESSAGE_FAIL(handler, exprstr)                                      \
     ::wjr::__assert_fail(exprstr, WJR_FILE, WJR_LINE, handler)
@@ -77,7 +122,7 @@ inline constexpr __assert_t __assert{};
 #define WJR_ASSERT_CHECK_I_N(N, ...)                                                     \
     WJR_PP_BOOL_IF(WJR_PP_EQ(N, 1), WJR_ASSERT_CHECK_I_NOMESSAGE,                        \
                    WJR_ASSERT_CHECK_I_MESSAGE)                                           \
-    (::wjr::__assert, __VA_ARGS__)
+    (::wjr::__assert_handler, __VA_ARGS__)
 
 // do nothing
 #define WJR_ASSERT_UNCHECK_I(expr, ...)

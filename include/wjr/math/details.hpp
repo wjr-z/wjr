@@ -1,8 +1,7 @@
 #ifndef WJR_MATH_DETAILS_HPP__
 #define WJR_MATH_DETAILS_HPP__
 
-#include <wjr/stack_allocator.hpp>
-#include <wjr/type_traits.hpp>
+#include <wjr/memory/stack_allocator.hpp>
 
 #if defined(WJR_X86)
 #include <wjr/x86/math/details.hpp>

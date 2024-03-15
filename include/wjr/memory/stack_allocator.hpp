@@ -4,9 +4,8 @@
 #include <cstddef>
 #include <vector>
 
-#include <wjr/allocator.hpp>
-#include <wjr/assert.hpp>
 #include <wjr/compressed_pair.hpp>
+#include <wjr/memory/cross_thread_checker.hpp>
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
@@ -221,16 +220,22 @@ template <typename StackAllocator>
 class unique_stack_allocator;
 
 template <size_t cache, size_t threshold, size_t alignment>
-class unique_stack_allocator<stack_allocator<cache, threshold, alignment>> {
+class unique_stack_allocator<stack_allocator<cache, threshold, alignment>>
+    : private cross_thread_checker {
     using StackAllocator = stack_allocator<cache, threshold, alignment>;
-
     using stack_top = typename StackAllocator::stack_top;
+
+    using Mybase = cross_thread_checker;
 
 public:
     unique_stack_allocator(const StackAllocator &al) : pair(al, {}) {}
-    ~unique_stack_allocator() { pair.first().deallocate(pair.second()); }
+    ~unique_stack_allocator() {
+        Mybase::check();
+        pair.first().deallocate(pair.second());
+    }
 
     WJR_CONSTEXPR20 void *allocate(size_t n) {
+        Mybase::check();
         return pair.first().allocate(n, pair.second());
     }
 
