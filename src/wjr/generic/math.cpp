@@ -74,6 +74,9 @@ template uint64_t sb_div_qr_s<uint64_t>(uint64_t *dst, uint64_t *src, size_t n,
 template uint64_t dc_div_qr_s<uint64_t>(uint64_t *dst, uint64_t *src, size_t n,
                                         const uint64_t *div, size_t m, uint64_t dinv);
 
+template void div_qr_s<uint64_t>(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                 size_t n, const uint64_t *div, size_t m);
+
 // convert.hpp
 
 precompute_to_chars_16n_t precompute_to_chars_16n[36 - 6] = {

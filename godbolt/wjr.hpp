@@ -18038,6 +18038,9 @@ void div_qr_s(T *dst, T *rem, const T *src, size_t n, const T *div, size_t m) {
     return;
 }
 
+extern template void div_qr_s<uint64_t>(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                        size_t n, const uint64_t *div, size_t m);
+
 template <typename T>
 WJR_CONSTEXPR_E T fallback_divexact_dbm1c(T *dst, const T *src, size_t n, T bd, T h) {
     T a = 0, p0 = 0, p1 = 0, cf = 0;
