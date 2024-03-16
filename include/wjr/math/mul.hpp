@@ -545,8 +545,16 @@ template <typename T>
 void toom22_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, size_t m,
                   T *stk);
 
+extern template void toom22_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst,
+                                            const uint64_t *src0, size_t n,
+                                            const uint64_t *src1, size_t m,
+                                            uint64_t *stk);
+
 template <typename T>
 void toom2_sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *stk);
+
+extern template void toom2_sqr<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
+                                         size_t n, uint64_t *stk);
 
 /*
  l = max(ceil(n/3), ceil(m/2))
@@ -601,6 +609,9 @@ extern template void toom33_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst,
 
 template <typename T>
 void toom3_sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *stk);
+
+extern template void toom3_sqr<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
+                                         size_t n, uint64_t *stk);
 
 template <typename T>
 struct toom_interpolation_6p_struct;
@@ -672,6 +683,9 @@ extern template void toom44_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst,
 
 template <typename T>
 void toom4_sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *stk);
+
+extern template void toom4_sqr<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
+                                         size_t n, uint64_t *stk);
 
 struct __mul_s_unique_stack_allocator {
     template <typename... Args>

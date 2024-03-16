@@ -1,8 +1,6 @@
 #ifndef WJR_MEMORY_ALIGNED_ALLOCATOR_ADAPTER_HPP__
 #define WJR_MEMORY_ALIGNED_ALLOCATOR_ADAPTER_HPP__
 
-namespace wjr {
-    
-}
+namespace wjr {}
 
 #endif // WJR_MEMORY_ALIGNED_ALLOCATOR_ADAPTER_HPP__

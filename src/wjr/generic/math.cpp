@@ -4,6 +4,13 @@ namespace wjr {
 
 // mul.hpp
 
+template void toom22_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                                     size_t n, const uint64_t *src1, size_t m,
+                                     uint64_t *stk);
+
+template void toom2_sqr<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
+                                  size_t n, uint64_t *stk);
+
 template void toom32_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                      size_t n, const uint64_t *src1, size_t m,
                                      uint64_t *stk);
@@ -20,6 +27,9 @@ template void toom42_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t 
 template void toom33_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                      size_t n, const uint64_t *src1, size_t m,
                                      uint64_t *stk);
+
+template void toom3_sqr<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
+                                  size_t n, uint64_t *stk);
 
 template void
 toom_interpolation_6p_s<uint64_t>(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
@@ -42,6 +52,9 @@ template void toom53_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t 
 template void toom44_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                      size_t n, const uint64_t *src1, size_t m,
                                      uint64_t *stk);
+
+template void toom4_sqr<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
+                                  size_t n, uint64_t *stk);
 
 template void __noinline_mul_s_impl<true, uint64_t>(uint64_t *WJR_RESTRICT dst,
                                                     const uint64_t *src0, size_t n,

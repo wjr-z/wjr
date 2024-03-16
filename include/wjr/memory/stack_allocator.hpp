@@ -91,15 +91,15 @@ class stack_alloc {
         }
 
         WJR_CONSTEXPR20 void deallocate(const stack_top &top) {
-            size_t idx = top.idx;
             if (WJR_UNLIKELY(top.ptr == nullptr)) {
                 return;
             } else {
+                size_t idx = top.idx;
                 if (WJR_LIKELY(idx == m_idx)) {
                     m_node.ptr = top.ptr;
                 } else {
                     m_idx = idx;
-                    m_node = {top.ptr, m_stk[m_idx].end};
+                    m_node = {top.ptr, m_stk[idx].end};
                     if (WJR_UNLIKELY(m_stk.size() - m_idx >= bufsize)) {
                         __deallocate();
                     }
