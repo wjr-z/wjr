@@ -27,6 +27,14 @@ namespace wjr {
 
 #endif
 
+#ifdef WJR_DEBUG_USE_THROW
+#define WJR_DEBUG_NORETURN
+#define WJR_DEBUG_ABORT() throw std::runtime_error("assertion failed")
+#else
+#define WJR_DEBUG_NORETURN WJR_NORETURN
+#define WJR_DEBUG_ABORT() std::abort()
+#endif
+
 template <typename... Args>
 struct assert_format {
     assert_format(const char *const fmt, std::tuple<Args...> &&args)
@@ -42,24 +50,6 @@ assert_format(const char *const, std::tuple<Args...> &&) -> assert_format<Args..
 #define WJR_ASSERT_FORMAT(fmt, ...)                                                      \
     ::wjr::assert_format(fmt, std::make_tuple(__VA_ARGS__))
 
-template <typename Handler, typename... Args,
-          std::enable_if_t<std::is_invocable_v<Handler, Args...>, int> = 0>
-WJR_NORETURN WJR_COLD WJR_NOINLINE void __assert_fail(const char *expr, const char *file,
-                                                      int line, Handler handler,
-                                                      Args &&...args) {
-    (void)fprintf(stderr, "Assertion failed: %s", expr);
-    if ((file != nullptr) && (file[0] != '\0')) {
-        (void)fprintf(stderr, ", file %s", file);
-    }
-    if (line != -1) {
-        (void)fprintf(stderr, ", line %d", line);
-    }
-    (void)fprintf(stderr, "\n");
-
-    handler(std::forward<Args>(args)...);
-    std::abort();
-}
-
 template <typename T>
 struct __is_assert_format : std::false_type {};
 
@@ -69,7 +59,7 @@ struct __is_assert_format<assert_format<Args...>> : std::true_type {};
 class __assert_handler_t {
 private:
     template <typename... Args>
-    void handler_format(const assert_format<Args...> &fmt) const {
+    void __handler_format(const assert_format<Args...> &fmt) const {
         const char *const fmt_str = fmt.m_fmt;
         std::apply(
             [fmt_str](auto &&...args) {
@@ -79,31 +69,44 @@ private:
     }
 
     template <typename T>
-    void handler(T &&t) const {
+    void __handler(T &&t) const {
         if constexpr (__is_assert_format<std::decay_t<T>>::value) {
-            handler_format(std::forward<T>(t));
+            __handler_format(std::forward<T>(t));
         } else {
             std::cerr << t;
         }
     }
 
-public:
-    void operator()() const {}
+    void handler() const {}
 
     template <typename... Args>
-    void operator()(Args &&...args) const {
-        (void)fprintf(stderr, "Additional message: ");
-        (void)((handler(std::forward<Args>(args)), ...));
+    void handler(Args &&...args) const {
+        (void)((__handler(std::forward<Args>(args)), ...));
         (void)fprintf(stderr, "\n");
+    }
+
+public:
+    template <typename... Args>
+    WJR_DEBUG_NORETURN void operator()(const char *expr, const char *file, int line,
+                                       Args &&...args) const {
+        (void)fprintf(stderr, "Assertion failed: %s", expr);
+        if ((file != nullptr) && (file[0] != '\0')) {
+            (void)fprintf(stderr, ", file %s", file);
+        }
+        if (line != -1) {
+            (void)fprintf(stderr, ", line %d", line);
+        }
+        (void)fprintf(stderr, "\n");
+        handler(std::forward<Args>(args)...);
+        WJR_DEBUG_ABORT();
     }
 };
 
 inline constexpr __assert_handler_t __assert_handler{};
 
-#define WJR_ASSERT_NOMESSAGE_FAIL(handler, exprstr)                                      \
-    ::wjr::__assert_fail(exprstr, WJR_FILE, WJR_LINE, handler)
+#define WJR_ASSERT_NOMESSAGE_FAIL(handler, exprstr) handler(exprstr, WJR_FILE, WJR_LINE)
 #define WJR_ASSERT_MESSAGE_FAIL(handler, exprstr, ...)                                   \
-    ::wjr::__assert_fail(exprstr, WJR_FILE, WJR_LINE, handler, __VA_ARGS__)
+    handler(exprstr, WJR_FILE, WJR_LINE, __VA_ARGS__)
 
 #define WJR_ASSERT_CHECK_I_NOMESSAGE(handler, expr)                                      \
     do {                                                                                 \

@@ -49,6 +49,11 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool is_zero_or_single_bit(T n) noexcept {
     return (n & (n - 1)) == 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @note `n & -n` is the lowest bit of n.
+ */
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T lowbit(T n) noexcept {
     return n & -n;
@@ -61,50 +66,22 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool __has_high_bit(T n) noexcept {
     return n >> (std::numeric_limits<T>::digits - 1);
 }
 
-// align_up (n, alignment) - n
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_down(T n, type_identity_t<T> alignment) {
+    WJR_ASSERT_ASSUME_L(1, is_zero_or_single_bit(alignment));
+    return n & (-alignment);
+}
+
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up(T n, type_identity_t<T> alignment) {
+    WJR_ASSERT_ASSUME_L(1, is_zero_or_single_bit(alignment));
+    return (n + alignment - 1) & (-alignment);
+}
+
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up_offset(T n, type_identity_t<T> alignment) {
+    WJR_ASSERT_ASSUME_L(1, is_zero_or_single_bit(alignment));
     return (-n) & (alignment - 1);
-}
-
-template <uint64_t c>
-WJR_INTRINSIC_INLINE void __fallback_try_sub_addc(uint64_t &minus, uint64_t subt,
-                                                  uint64_t &cadd) {
-    uint64_t r8 = minus - subt;
-    bool overflow = r8 > minus;
-    minus = overflow ? minus : r8;
-    cadd += c + overflow;
-}
-
-/*
- bool overflow = minus >= subt;
- minus = overflow ? minus : minus - subt;
- cadd += c + overflow;
- don't use it currently.
-*/
-template <uint64_t c>
-WJR_INTRINSIC_INLINE void __try_sub_addc(uint64_t &minus, uint64_t subt, uint64_t &cadd) {
-    __fallback_try_sub_addc<c>(minus, subt, cadd);
-}
-
-template <uint64_t c>
-WJR_INTRINSIC_INLINE void __fallback_try_sub_subc(uint64_t &minus, uint64_t subt,
-                                                  uint64_t &csub) {
-    uint64_t r8 = minus - subt;
-    bool overflow = r8 > minus;
-    minus = overflow ? minus : r8;
-    csub -= c + overflow;
-}
-
-/*
- bool success = minu >= subt;
- minu = success ? minu - subt : minu;
- csub -= c + (!success);
- don't use it currently.
-*/
-template <uint64_t c>
-WJR_INTRINSIC_INLINE void __try_sub_subc(uint64_t &minus, uint64_t subt, uint64_t &csub) {
-    __fallback_try_sub_subc<c>(minus, subt, csub);
 }
 
 } // namespace wjr

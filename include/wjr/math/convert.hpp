@@ -95,7 +95,7 @@ inline constexpr __char_converter_table_t<Converter, Base, Unroll>
     __char_converter_table = {};
 
 template <typename Iter, typename Converter>
-Iter to_chars_2(Iter first, uint64_t *up, size_t n, Converter conv) {
+size_t to_chars_2(Iter first, uint64_t *up, size_t n, Converter conv) {
     WJR_ASSERT(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 1);
 
@@ -165,11 +165,11 @@ Iter to_chars_2(Iter first, uint64_t *up, size_t n, Converter conv) {
     }
     }
 
-    return first + len;
+    return len;
 }
 
 template <typename Iter, typename Converter>
-Iter to_chars_8(Iter first, uint64_t *up, size_t n, Converter conv) {
+size_t to_chars_8(Iter first, uint64_t *up, size_t n, Converter conv) {
     WJR_ASSERT(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 1);
 
@@ -283,11 +283,11 @@ Iter to_chars_8(Iter first, uint64_t *up, size_t n, Converter conv) {
     }
 
 DONE:
-    return first + len;
+    return len;
 }
 
 template <typename Iter, typename Converter>
-Iter to_chars_16(Iter first, uint64_t *up, size_t n, Converter conv) {
+size_t to_chars_16(Iter first, uint64_t *up, size_t n, Converter conv) {
     WJR_ASSERT(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 1);
 
@@ -339,16 +339,16 @@ Iter to_chars_16(Iter first, uint64_t *up, size_t n, Converter conv) {
         *--first = conv.to(x);
     }
 
-    return first + len;
+    return len;
 }
 
 template <typename Iter, typename Converter>
-Iter to_chars_power_of_two(Iter first, unsigned int Base, uint64_t *up, size_t n,
-                           Converter conv) {
+size_t to_chars_power_of_two(Iter first, unsigned int base, uint64_t *up, size_t n,
+                             Converter conv) {
     WJR_ASSERT(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 1);
 
-    int per_bit = ctz(Base);
+    int per_bit = ctz(base);
     unsigned int mask = (1u << per_bit) - 1;
 
     uint64_t x = up[n - 1];
@@ -369,9 +369,9 @@ Iter to_chars_power_of_two(Iter first, unsigned int Base, uint64_t *up, size_t n
 
             if (rest) {
                 int fix = per_bit - rest;
-                unsigned int val = (x & ((1u << fix) - 1)) | last;
+                unsigned int val = ((x & ((1u << fix) - 1)) << rest) | last;
                 x >>= fix;
-                rest += 64 - fix;
+                rest = 64 - fix;
                 *--first = conv.to(val);
             } else {
                 rest = 64;
@@ -395,7 +395,7 @@ Iter to_chars_power_of_two(Iter first, unsigned int Base, uint64_t *up, size_t n
 
     if (WJR_UNLIKELY(rest != 0)) {
         int fix = per_bit - rest;
-        unsigned int val = (x & ((1u << fix) - 1)) | last;
+        unsigned int val = ((x & ((1u << fix) - 1)) << rest) | last;
         x >>= fix;
         *--first = conv.to(val);
         rest += hbits - fix;
@@ -413,7 +413,7 @@ Iter to_chars_power_of_two(Iter first, unsigned int Base, uint64_t *up, size_t n
     } while (WJR_LIKELY(rest > 0));
 
 DONE:
-    return first + len;
+    return len;
 }
 
 template <typename Converter>
@@ -554,16 +554,16 @@ Iter to_chars(Iter first, uint64_t *up, size_t n, unsigned int base = 10,
     if (is_zero_or_single_bit(base)) {
         switch (base) {
         case 2: {
-            return to_chars_2(first, up, n, conv);
+            return first + to_chars_2(first, up, n, conv);
         }
         case 8: {
-            return to_chars_8(first, up, n, conv);
+            return first + to_chars_8(first, up, n, conv);
         }
         case 16: {
-            return to_chars_16(first, up, n, conv);
+            return first + to_chars_16(first, up, n, conv);
         }
         default: {
-            return to_chars_power_of_two(first, base, up, n, conv);
+            return first + to_chars_power_of_two(first, base, up, n, conv);
         }
         }
     }

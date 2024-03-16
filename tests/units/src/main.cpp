@@ -1726,7 +1726,7 @@ TEST(math, to_chars) {
                 a[i - 1] = mt_rand();
             }
 
-            for (auto base : {2, 4, 8, 16, 10}) {
+            for (auto base : {2, 4, 8, 16, 32, 10}) {
                 size_t len =
                     wjr::to_chars(b.data(), a.data(), i, base, wjr::origin_converter) -
                     b.data();
