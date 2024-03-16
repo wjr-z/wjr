@@ -87,8 +87,8 @@ private:
 
 public:
     template <typename... Args>
-    WJR_DEBUG_NORETURN void operator()(const char *expr, const char *file, int line,
-                                       Args &&...args) const {
+    WJR_DEBUG_NORETURN WJR_NOINLINE void operator()(const char *expr, const char *file,
+                                                    int line, Args &&...args) const {
         (void)fprintf(stderr, "Assertion failed: %s", expr);
         if ((file != nullptr) && (file[0] != '\0')) {
             (void)fprintf(stderr, ", file %s", file);

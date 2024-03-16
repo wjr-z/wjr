@@ -17,7 +17,7 @@ protected:
     __debug_nonsendable &operator=(__debug_nonsendable &&) = default;
     ~__debug_nonsendable() { check(); }
     void check() const {
-        WJR_ASSERT_L(1, m_thread_id == std::this_thread::get_id(),
+        WJR_ASSERT_L(2, m_thread_id == std::this_thread::get_id(),
                      "Cross-thread access detected.");
     }
 
@@ -48,7 +48,7 @@ protected:
     }
 };
 
-using nonsendable = WJR_DEBUG_IF(1, __debug_nonsendable, __release_nonsendable);
+using nonsendable = WJR_DEBUG_IF(2, __debug_nonsendable, __release_nonsendable);
 
 template <typename T>
 struct is_nonsendable : std::is_base_of<nonsendable, T> {};
