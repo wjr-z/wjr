@@ -334,6 +334,8 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1, size_t 
 
 #if WJR_HAS_BUILTIN(REVERSE_COMPARE_N)
 
+template <typename T>
+WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1, size_t n) {
 #define WJR_REGISTER_REVERSE_COMPARE_NOT_N(index, expect)                                \
     do {                                                                                 \
         auto x = sse::loadu((__m128i *)(src0 - 2 - (index)));                            \
@@ -349,8 +351,6 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1, size_t 
         }                                                                                \
     } while (0)
 
-template <typename T>
-WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1, size_t n) {
     if (WJR_LIKELY(n & 1)) {
         src0 += n - 1;
         src1 += n - 1;
@@ -398,6 +398,8 @@ WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1, size_
     } while (WJR_LIKELY(idx != 0));
 
     return 0;
+
+#undef WJR_REGISTER_REVERSE_COMPARE_NOT_N
 }
 
 template <typename T>
@@ -441,8 +443,6 @@ WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
 
     return large_builtin_reverse_compare_n(src0, src1, n);
 }
-
-#undef WJR_REGISTER_REVERSE_COMPARE_NOT_N
 
 #endif
 

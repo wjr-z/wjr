@@ -6,16 +6,6 @@
 #include <gmp.h>
 #endif
 
-#if defined(NDEBUG)
-#undef NDEBUG
-#endif
-
-#if defined(WJR_DEBUG_LEVEL)
-#undef WJR_DEBUG_LEVEL
-#endif
-#define WJR_DEBUG_LEVEL 3
-
-#include <wjr/compressed_pair.hpp>
 #include <wjr/math.hpp>
 
 TEST(preprocessor, arithmatic) {
