@@ -4,7 +4,8 @@
 #include <gmp.h>
 #include <wjr/math.hpp>
 
-static std::mt19937_64 mt_rand(time(0));
+static std::mt19937_64 __mt_rand(time(0));
+static auto mt_rand = std::ref(__mt_rand);
 
 static void wjr_popcount(benchmark::State &state) {
     const int n = 17;

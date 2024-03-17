@@ -8,6 +8,9 @@
 
 #include <wjr/math.hpp>
 
+static std::mt19937_64 __mt_rand(time(0));
+static auto mt_rand = std::ref(__mt_rand);
+
 TEST(preprocessor, arithmatic) {
     WJR_ASSERT(WJR_PP_ADD(1, 3) == 4);
     WJR_ASSERT(WJR_PP_ADD(1, 4) == 5);
@@ -1029,7 +1032,6 @@ TEST(math, not_n) {
 }
 
 TEST(math, neg) {
-    std::mt19937_64 mt_rand(time(0));
     std::vector<uint64_t> a, b, c;
     for (size_t n = 0; n <= 384; ++n) {
         a.resize(n);
@@ -1095,7 +1097,6 @@ TEST(math, neg) {
 }
 
 TEST(math, set_n) {
-    std::mt19937_64 mt_rand(time(0));
     std::vector<uint64_t> a;
     for (size_t n = 0; n <= 384; ++n) {
         a.resize(n);
@@ -1121,7 +1122,6 @@ TEST(math, compare_n) {
         WJR_ASSERT(wjr::compare_n(a.data(), b.data(), 4) > 0);
     }
 
-    std::mt19937_64 mt_rand(time(0));
     std::vector<uint64_t> a, b;
     for (size_t n = 0; n <= 384; ++n) {
         a.resize(n);
@@ -1162,7 +1162,7 @@ TEST(math, compare_n) {
 }
 
 TEST(math, reverse_compare_n) {
-    std::mt19937_64 mt_rand(time(0));
+
     std::vector<uint64_t> a, b;
     for (size_t n = 0; n <= 384; ++n) {
         a.resize(n);
@@ -1230,7 +1230,6 @@ TEST(math, shrd) {
 
 TEST(math, lshift_n) {
     std::vector<uint64_t> a, b;
-    std::mt19937_64 mt_rand(time(0));
 
     for (size_t n = 1; n <= 512; ++n) {
         a.resize(n);
@@ -1259,7 +1258,6 @@ TEST(math, lshift_n) {
 
 TEST(math, rshift_n) {
     std::vector<uint64_t> a, b;
-    std::mt19937_64 mt_rand(time(0));
 
     for (size_t n = 1; n <= 512; ++n) {
         a.resize(n);
@@ -1337,7 +1335,7 @@ TEST(math, __subc_128) {
 }
 
 TEST(math, mul_128) {
-    std::mt19937_64 mt_rand(time(0));
+
     const int T = 256;
     for (int i = 0; i < T; ++i) {
         uint64_t x = mt_rand();
@@ -1360,7 +1358,7 @@ TEST(math, mul_128) {
 #if defined(WJR_USE_GMP)
 
 TEST(math, mul_1) {
-    std::mt19937_64 mt_rand(time(0));
+
     const int T = 64;
     const int N = 240;
 
@@ -1384,7 +1382,7 @@ TEST(math, mul_1) {
 }
 
 TEST(math, addmul_1) {
-    std::mt19937_64 mt_rand(time(0));
+
     const int T = 64;
     const int N = 240;
 
@@ -1408,7 +1406,7 @@ TEST(math, addmul_1) {
 }
 
 TEST(math, submul_1) {
-    std::mt19937_64 mt_rand(time(0));
+
     const int T = 64;
     const int N = 240;
 
@@ -1432,7 +1430,7 @@ TEST(math, submul_1) {
 }
 
 TEST(math, addlsh_n) {
-    std::mt19937_64 mt_rand(time(0));
+
     const int T = 64;
     const int N = 240;
 
@@ -1474,7 +1472,7 @@ TEST(math, addlsh_n) {
 }
 
 TEST(math, rsblsh_n) {
-    std::mt19937_64 mt_rand(time(0));
+
     const int T = 64;
     const int N = 240;
 
@@ -1516,7 +1514,7 @@ TEST(math, rsblsh_n) {
 }
 
 TEST(math, mul_s) {
-    std::mt19937_64 mt_rand(time(0));
+
     const int T = 4;
     const int N = 240;
     std::vector<uint64_t> a(N), b(N), c(N * 2), d(N * 2);
@@ -1540,7 +1538,7 @@ TEST(math, mul_s) {
 }
 
 TEST(math, mul_n) {
-    std::mt19937_64 mt_rand(time(0));
+
     const int T = 16;
     const int N = 240;
     std::vector<uint64_t> a(N), b(N), c(N * 2), d(N * 2);
@@ -1562,7 +1560,7 @@ TEST(math, mul_n) {
 }
 
 TEST(math, sqr) {
-    std::mt19937_64 mt_rand(time(0));
+
     const int T = 16;
     const int N = 240;
     std::vector<uint64_t> a(N), b(N * 2), c(N * 2);
@@ -1583,7 +1581,7 @@ TEST(math, sqr) {
 #endif
 
 TEST(math, div_qr_1) {
-    std::mt19937_64 mt_rand(time(0));
+
     const int T = 8;
     const int N = 32;
     const int M = 240;
@@ -1618,7 +1616,7 @@ TEST(math, div_qr_1) {
 }
 
 TEST(math, div_qr_2) {
-    std::mt19937_64 mt_rand(time(0));
+
     const int T = 8;
     const int N = 32;
     const int M = 240;
@@ -1657,7 +1655,7 @@ TEST(math, div_qr_2) {
 }
 
 TEST(math, div_qr_s) {
-    std::mt19937_64 mt_rand(time(0));
+
     const int T = 8;
     const int N = 240;
 
@@ -1698,7 +1696,6 @@ TEST(math, div_qr_s) {
 #if defined(WJR_USE_GMP)
 
 TEST(math, to_chars) {
-    std::mt19937_64 mt_rand(time(0));
 
     const int T = 4;
     const int N = 240;
@@ -1731,7 +1728,6 @@ TEST(math, to_chars) {
 }
 
 TEST(math, from_chars) {
-    std::mt19937_64 mt_rand(time(0));
 
     const int T = 4;
     const int N = 4096;
