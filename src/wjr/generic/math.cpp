@@ -2,6 +2,30 @@
 
 namespace wjr {
 
+// compare.hpp
+template WJR_COLD int large_builtin_compare_n<uint64_t>(const uint64_t *src0,
+                                                        const uint64_t *src1, size_t n);
+
+template WJR_COLD int large_builtin_reverse_compare_n<uint64_t>(const uint64_t *src0,
+                                                                const uint64_t *src1,
+                                                                size_t n);
+
+// find.hpp
+template WJR_COLD size_t large_builtin_find_not_n<uint64_t>(const uint64_t *src0,
+                                                            const uint64_t *src1,
+                                                            size_t n);
+
+template WJR_COLD size_t large_builtin_find_not_n<uint64_t>(const uint64_t *src,
+                                                            uint64_t val, size_t n);
+
+template WJR_COLD size_t large_builtin_reverse_find_not_n<uint64_t>(const uint64_t *src0,
+                                                                    const uint64_t *src1,
+                                                                    size_t n);
+
+template WJR_COLD size_t large_builtin_reverse_find_not_n<uint64_t>(const uint64_t *src,
+                                                                    uint64_t val,
+                                                                    size_t n);
+
 // mul.hpp
 
 template void toom22_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,

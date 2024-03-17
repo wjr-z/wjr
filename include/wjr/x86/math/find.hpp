@@ -242,6 +242,10 @@ WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1, size_t n)
 #undef WJR_REGISTER_FIND_NOT_N
 }
 
+extern template WJR_COLD size_t large_builtin_find_not_n<uint64_t>(const uint64_t *src0,
+                                                                   const uint64_t *src1,
+                                                                   size_t n);
+
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src0, const T *src1, size_t n) {
     if (WJR_UNLIKELY(n == 0)) {
@@ -264,7 +268,9 @@ WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src0, const T *src1, siz
         return 3;
     }
 
-    return large_builtin_find_not_n(src0, src1, n);
+    size_t ret = large_builtin_find_not_n(src0, src1, n);
+    WJR_ASSUME(ret != 0);
+    return ret;
 }
 
 template <typename T>
@@ -327,6 +333,10 @@ WJR_COLD size_t large_builtin_find_not_n(const T *src, T val, size_t n) {
 #undef WJR_REGISTER_FIND_NOT_N
 }
 
+extern template WJR_COLD size_t large_builtin_find_not_n<uint64_t>(const uint64_t *src,
+                                                                   uint64_t val,
+                                                                   size_t n);
+
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) {
     if (WJR_UNLIKELY(n == 0)) {
@@ -349,7 +359,9 @@ WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) {
         return 3;
     }
 
-    return large_builtin_find_not_n(src, val, n);
+    size_t ret = large_builtin_find_not_n(src, val, n);
+    WJR_ASSUME(ret != 0);
+    return ret;
 }
 
 #endif // WJR_HAS_BUILTIN(FIND_NOT_N)
@@ -585,6 +597,9 @@ WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1, s
 #undef WJR_REGISTER_REVERSE_FIND_NOT_N
 }
 
+extern template WJR_COLD size_t large_builtin_reverse_find_not_n<uint64_t>(
+    const uint64_t *src0, const uint64_t *src1, size_t n);
+
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src0, const T *src1,
                                                        size_t n) {
@@ -608,7 +623,9 @@ WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src0, const T *s
         return 0;
     }
 
-    return large_builtin_reverse_find_not_n(src0, src1, n);
+    size_t ret = large_builtin_reverse_find_not_n(src0, src1, n);
+    WJR_ASSUME(ret != n);
+    return ret;
 }
 
 template <typename T>
@@ -671,6 +688,9 @@ WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) 
 #undef WJR_REGISTER_REVERSE_FIND_NOT_N
 }
 
+extern template WJR_COLD size_t
+large_builtin_reverse_find_not_n<uint64_t>(const uint64_t *src, uint64_t val, size_t n);
+
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src, T val, size_t n) {
     if (WJR_UNLIKELY(n == 0)) {
@@ -693,7 +713,9 @@ WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src, T val, size
         return 0;
     }
 
-    return large_builtin_reverse_find_not_n(src, val, n);
+    size_t ret = large_builtin_reverse_find_not_n(src, val, n);
+    WJR_ASSUME(ret != n);
+    return ret;
 }
 
 #endif // WJR_HAS_BUILTIN(REVERSE_FIND_NOT_N)

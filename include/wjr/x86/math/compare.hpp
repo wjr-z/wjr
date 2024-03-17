@@ -274,6 +274,9 @@ WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size_t n) {
 #undef WJR_REGISTER_COMPARE_NOT_N
 }
 
+extern template WJR_COLD int
+large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1, size_t n);
+
 template <typename T>
 WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1, size_t n) {
     if (WJR_UNLIKELY(n == 0)) {
@@ -576,6 +579,10 @@ WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1, size_
 #undef WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX
 #undef WJR_REGISTER_REVERSE_COMPARE_NOT_N
 }
+
+extern template WJR_COLD int
+large_builtin_reverse_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
+                                          size_t n);
 
 template <typename T>
 WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,

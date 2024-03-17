@@ -244,6 +244,120 @@ static void wjr_worst_reverse_compare_n(benchmark::State &state) {
     }
 }
 
+static void wjr_find_n_ptr(benchmark::State &state) {
+    auto n = state.range(0);
+    std::vector<uint64_t> a(n), b(n);
+
+    std::generate(a.begin(), a.end(), mt_rand);
+    std::generate(b.begin(), b.end(), mt_rand);
+
+    for (auto _ : state) {
+        auto p = wjr::find_n(a.data(), b.data(), n);
+        benchmark::DoNotOptimize(p);
+    }
+}
+
+static void wjr_worst_find_n_ptr(benchmark::State &state) {
+    auto n = state.range(0);
+    std::vector<uint64_t> a(n), b(n);
+
+    std::generate(a.begin(), a.end(), mt_rand);
+    for (int64_t i = 0; i < n; ++i) {
+        b[i] = a[i] + 1;
+    }
+
+    for (auto _ : state) {
+        auto p = wjr::find_n(a.data(), b.data(), n);
+        benchmark::DoNotOptimize(p);
+    }
+}
+
+static void wjr_find_n_val(benchmark::State &state) {
+    auto n = state.range(0);
+    std::vector<uint64_t> a(n);
+    uint64_t b = mt_rand();
+
+    std::generate(a.begin(), a.end(), mt_rand);
+
+    for (auto _ : state) {
+        auto p = wjr::find_n(a.data(), b, n);
+        benchmark::DoNotOptimize(p);
+    }
+}
+
+static void wjr_worst_find_n_val(benchmark::State &state) {
+    auto n = state.range(0);
+    std::vector<uint64_t> a(n);
+    uint64_t b = mt_rand();
+
+    std::generate(a.begin(), a.end(), [b]() {
+        auto x = mt_rand();
+        while (x == b) {
+            x = mt_rand();
+        }
+        return x;
+    });
+
+    for (auto _ : state) {
+        auto p = wjr::find_n(a.data(), b, n);
+        benchmark::DoNotOptimize(p);
+    }
+}
+
+static void wjr_find_not_n_ptr(benchmark::State &state) {
+    auto n = state.range(0);
+    std::vector<uint64_t> a(n), b(n);
+
+    std::generate(a.begin(), a.end(), mt_rand);
+    std::generate(b.begin(), b.end(), mt_rand);
+
+    for (auto _ : state) {
+        auto p = wjr::find_not_n(a.data(), b.data(), n);
+        benchmark::DoNotOptimize(p);
+    }
+}
+
+static void wjr_worst_find_not_n_ptr(benchmark::State &state) {
+    auto n = state.range(0);
+    std::vector<uint64_t> a(n), b(n);
+
+    std::generate(a.begin(), a.end(), mt_rand);
+    b = a;
+
+    for (auto _ : state) {
+        auto p = wjr::find_not_n(a.data(), b.data(), n);
+        benchmark::DoNotOptimize(p);
+    }
+}
+
+static void wjr_find_not_n_val(benchmark::State &state) {
+    auto n = state.range(0);
+    std::vector<uint64_t> a(n);
+    uint64_t b = mt_rand();
+
+    std::generate(a.begin(), a.end(), mt_rand);
+
+    for (auto _ : state) {
+        auto p = wjr::find_not_n(a.data(), b, n);
+        benchmark::DoNotOptimize(p);
+    }
+}
+
+static void wjr_worst_find_not_n_val(benchmark::State &state) {
+    auto n = state.range(0);
+    std::vector<uint64_t> a(n);
+    uint64_t b = mt_rand();
+
+    for (auto &i : a) {
+        i = b;
+    }
+
+    for (auto _ : state) {
+        auto p = wjr::find_not_n(a.data(), b, n);
+        benchmark::DoNotOptimize(p);
+    }
+}
+
 static void wjr_lshift_n(benchmark::State &state) {
     unsigned int k = 1;
     benchmark::DoNotOptimize(k);
@@ -571,6 +685,120 @@ static void fallback_worst_reverse_compare_n(benchmark::State &state) {
     }
 }
 
+static void fallback_find_n_ptr(benchmark::State &state) {
+    auto n = state.range(0);
+    std::vector<uint64_t> a(n), b(n);
+
+    std::generate(a.begin(), a.end(), mt_rand);
+    std::generate(b.begin(), b.end(), mt_rand);
+
+    for (auto _ : state) {
+        auto p = wjr::fallback_find_n(a.data(), b.data(), n);
+        benchmark::DoNotOptimize(p);
+    }
+}
+
+static void fallback_worst_find_n_ptr(benchmark::State &state) {
+    auto n = state.range(0);
+    std::vector<uint64_t> a(n), b(n);
+
+    std::generate(a.begin(), a.end(), mt_rand);
+    for (int64_t i = 0; i < n; ++i) {
+        b[i] = a[i] + 1;
+    }
+
+    for (auto _ : state) {
+        auto p = wjr::fallback_find_n(a.data(), b.data(), n);
+        benchmark::DoNotOptimize(p);
+    }
+}
+
+static void fallback_find_n_val(benchmark::State &state) {
+    auto n = state.range(0);
+    std::vector<uint64_t> a(n);
+    uint64_t b = mt_rand();
+
+    std::generate(a.begin(), a.end(), mt_rand);
+
+    for (auto _ : state) {
+        auto p = wjr::fallback_find_n(a.data(), b, n);
+        benchmark::DoNotOptimize(p);
+    }
+}
+
+static void fallback_worst_find_n_val(benchmark::State &state) {
+    auto n = state.range(0);
+    std::vector<uint64_t> a(n);
+    uint64_t b = mt_rand();
+
+    std::generate(a.begin(), a.end(), [b]() {
+        auto x = mt_rand();
+        while (x == b) {
+            x = mt_rand();
+        }
+        return x;
+    });
+
+    for (auto _ : state) {
+        auto p = wjr::fallback_find_n(a.data(), b, n);
+        benchmark::DoNotOptimize(p);
+    }
+}
+
+static void fallback_find_not_n_ptr(benchmark::State &state) {
+    auto n = state.range(0);
+    std::vector<uint64_t> a(n), b(n);
+
+    std::generate(a.begin(), a.end(), mt_rand);
+    std::generate(b.begin(), b.end(), mt_rand);
+
+    for (auto _ : state) {
+        auto p = wjr::fallback_find_not_n(a.data(), b.data(), n);
+        benchmark::DoNotOptimize(p);
+    }
+}
+
+static void fallback_worst_find_not_n_ptr(benchmark::State &state) {
+    auto n = state.range(0);
+    std::vector<uint64_t> a(n), b(n);
+
+    std::generate(a.begin(), a.end(), mt_rand);
+    b = a;
+
+    for (auto _ : state) {
+        auto p = wjr::fallback_find_not_n(a.data(), b.data(), n);
+        benchmark::DoNotOptimize(p);
+    }
+}
+
+static void fallback_find_not_n_val(benchmark::State &state) {
+    auto n = state.range(0);
+    std::vector<uint64_t> a(n);
+    uint64_t b = mt_rand();
+
+    std::generate(a.begin(), a.end(), mt_rand);
+
+    for (auto _ : state) {
+        auto p = wjr::fallback_find_not_n(a.data(), b, n);
+        benchmark::DoNotOptimize(p);
+    }
+}
+
+static void fallback_worst_find_not_n_val(benchmark::State &state) {
+    auto n = state.range(0);
+    std::vector<uint64_t> a(n);
+    uint64_t b = mt_rand();
+
+    for (auto &i : a) {
+        i = b;
+    }
+
+    for (auto _ : state) {
+        auto p = wjr::fallback_find_not_n(a.data(), b, n);
+        benchmark::DoNotOptimize(p);
+    }
+}
+
 static void fallback_lshift_n(benchmark::State &state) {
     unsigned int k = 1;
     benchmark::DoNotOptimize(k);
@@ -890,6 +1118,14 @@ BENCHMARK(wjr_compare_n)->NORMAL_TESTS(2, 256);
 BENCHMARK(wjr_worst_compare_n)->NORMAL_TESTS(2, 256);
 BENCHMARK(wjr_reverse_compare_n)->NORMAL_TESTS(2, 256);
 BENCHMARK(wjr_worst_reverse_compare_n)->NORMAL_TESTS(2, 256);
+BENCHMARK(wjr_find_n_ptr)->NORMAL_TESTS(2, 256);
+BENCHMARK(wjr_worst_find_n_ptr)->NORMAL_TESTS(2, 256);
+BENCHMARK(wjr_find_n_val)->NORMAL_TESTS(2, 256);
+BENCHMARK(wjr_worst_find_n_val)->NORMAL_TESTS(2, 256);
+BENCHMARK(wjr_find_not_n_ptr)->NORMAL_TESTS(2, 256);
+BENCHMARK(wjr_worst_find_not_n_ptr)->NORMAL_TESTS(2, 256);
+BENCHMARK(wjr_find_not_n_val)->NORMAL_TESTS(2, 256);
+BENCHMARK(wjr_worst_find_not_n_val)->NORMAL_TESTS(2, 256);
 BENCHMARK(wjr_lshift_n)->NORMAL_TESTS(2, 256);
 BENCHMARK(wjr_rshift_n)->NORMAL_TESTS(2, 256);
 BENCHMARK(wjr_mul_1)->NORMAL_TESTS(2, 256);
@@ -913,6 +1149,14 @@ BENCHMARK(fallback_compare_n)->NORMAL_TESTS(2, 256);
 BENCHMARK(fallback_worst_compare_n)->NORMAL_TESTS(2, 256);
 BENCHMARK(fallback_reverse_compare_n)->NORMAL_TESTS(2, 256);
 BENCHMARK(fallback_worst_reverse_compare_n)->NORMAL_TESTS(2, 256);
+BENCHMARK(fallback_find_n_ptr)->NORMAL_TESTS(2, 256);
+BENCHMARK(fallback_worst_find_n_ptr)->NORMAL_TESTS(2, 256);
+BENCHMARK(fallback_find_n_val)->NORMAL_TESTS(2, 256);
+BENCHMARK(fallback_worst_find_n_val)->NORMAL_TESTS(2, 256);
+BENCHMARK(fallback_find_not_n_ptr)->NORMAL_TESTS(2, 256);
+BENCHMARK(fallback_worst_find_not_n_ptr)->NORMAL_TESTS(2, 256);
+BENCHMARK(fallback_find_not_n_val)->NORMAL_TESTS(2, 256);
+BENCHMARK(fallback_worst_find_not_n_val)->NORMAL_TESTS(2, 256);
 BENCHMARK(fallback_lshift_n)->NORMAL_TESTS(2, 256);
 BENCHMARK(fallback_rshift_n)->NORMAL_TESTS(2, 256);
 
