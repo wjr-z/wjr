@@ -229,8 +229,6 @@ FIND:
 
     idx /= 2;
 
-    avx::int_type r0, r1, r2, r3;
-
     do {
         auto x0 = avx::loadu((__m256i *)(src0));
         auto x1 = avx::loadu((__m256i *)(src0 + 4));
@@ -241,19 +239,36 @@ FIND:
         auto y2 = avx::loadu((__m256i *)(src1 + 8));
         auto y3 = avx::loadu((__m256i *)(src1 + 12));
 
-        r0 = avx::cmpeq_epi64(x0, y0);
-        r1 = avx::cmpeq_epi64(x1, y1);
-        r2 = avx::cmpeq_epi64(x2, y2);
+        auto r0 = avx::cmpeq_epi64(x0, y0);
+        auto r1 = avx::cmpeq_epi64(x1, y1);
+        auto r2 = avx::cmpeq_epi64(x2, y2);
         auto z0 = avx::And(r0, r2);
-        r3 = avx::cmpeq_epi64(x3, y3);
+        auto r3 = avx::cmpeq_epi64(x3, y3);
         auto z1 = avx::And(r1, r3);
         z0 = avx::And(z0, z1);
 
-        if (WJR_LIKELY(avx::test_all_ones(z0))) {
-            // do nothing
-            // Just to enable the compiler to optimize correctly
-        } else {
-            goto FIND;
+        if (WJR_UNLIKELY(!avx::test_all_ones(z0))) {
+            avx::mask_type mask = ~avx::movemask_epi8(r0);
+            if (WJR_UNLIKELY(mask != 0)) {
+                auto off = ctz(mask) / 8;
+                return src0[off] < src1[off] ? -1 : 1;
+            }
+
+            mask = ~avx::movemask_epi8(r1);
+            if (WJR_UNLIKELY(mask != 0)) {
+                auto off = ctz(mask) / 8;
+                return src0[off + 4] < src1[off + 4] ? -1 : 1;
+            }
+
+            mask = ~avx::movemask_epi8(r2);
+            if (WJR_UNLIKELY(mask != 0)) {
+                auto off = ctz(mask) / 8;
+                return src0[off + 8] < src1[off + 8] ? -1 : 1;
+            }
+
+            mask = ~avx::movemask_epi8(r3);
+            auto off = ctz(mask) / 8;
+            return src0[off + 12] < src1[off + 12] ? -1 : 1;
         }
 
         src0 += 16;
@@ -263,28 +278,6 @@ FIND:
 
     return 0;
 
-FIND:
-    avx::mask_type mask = ~avx::movemask_epi8(r0);
-    if (WJR_UNLIKELY(mask != 0)) {
-        auto off = ctz(mask) / 8;
-        return src0[off] < src1[off] ? -1 : 1;
-    }
-
-    mask = ~avx::movemask_epi8(r1);
-    if (WJR_UNLIKELY(mask != 0)) {
-        auto off = ctz(mask) / 8;
-        return src0[off + 4] < src1[off + 4] ? -1 : 1;
-    }
-
-    mask = ~avx::movemask_epi8(r2);
-    if (WJR_UNLIKELY(mask != 0)) {
-        auto off = ctz(mask) / 8;
-        return src0[off + 8] < src1[off + 8] ? -1 : 1;
-    }
-
-    mask = ~avx::movemask_epi8(r3);
-    auto off = ctz(mask) / 8;
-    return src0[off + 12] < src1[off + 12] ? -1 : 1;
 #endif
 
 #undef WJR_REGISTER_COMPARE_NOT_N_AVX
@@ -465,9 +458,8 @@ WJR_INTRINSIC_INLINE bool __asm_less_128(uint64_t lo0, uint64_t hi0, uint64_t lo
                                          uint64_t hi1) {
     bool ret;
     asm("cmp{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t"
-        WJR_ASM_CCSET(b)
-        : WJR_ASM_CCOUT(b) (ret), [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
+        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(b)
+        : WJR_ASM_CCOUT(b)(ret), [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
         : [lo1] "r"(lo1), [hi1] "r"(hi1)
         : "cc");
     return ret;
@@ -481,9 +473,8 @@ WJR_INTRINSIC_INLINE bool __asm_less_equal_128(uint64_t lo0, uint64_t hi0, uint6
                                                uint64_t hi1) {
     bool ret;
     asm("cmp{q %[lo0], %[lo1]| %[lo1], %[lo0]}\n\t"
-        "sbb{q %[hi0], %[hi1]| %[hi1], %[hi0]}\n\t"
-        WJR_ASM_CCSET(ae)
-        : WJR_ASM_CCOUT(ae) (ret), [lo1] "+&r"(lo1), [hi1] "+r"(hi1)
+        "sbb{q %[hi0], %[hi1]| %[hi1], %[hi0]}\n\t" WJR_ASM_CCSET(ae)
+        : WJR_ASM_CCOUT(ae)(ret), [lo1] "+&r"(lo1), [hi1] "+r"(hi1)
         : [lo0] "r"(lo0), [hi0] "r"(hi0)
         : "cc");
     return ret;
