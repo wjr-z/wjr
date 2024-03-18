@@ -12,6 +12,7 @@ namespace wjr {
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_ASM_ADDC_N WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___ASM_ADD_128 WJR_HAS_DEF
 #define WJR_HAS_BUILTIN___ASM_ADDC_128 WJR_HAS_DEF
 
 #if WJR_HAS_FEATURE(INLINE_ASM_CCCOND)
@@ -146,10 +147,10 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc_cc(uint64_t a, uint64_t b, uint8_t c_in,
 #include <wjr/x86/math/gen_addsub.hpp>
 #endif
 
-#if WJR_HAS_BUILTIN(__ASM_ADDC_128)
+#if WJR_HAS_BUILTIN(__ASM_ADD_128)
 
-WJR_INTRINSIC_INLINE void __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                         uint64_t hi0, uint64_t lo1, uint64_t hi1) {
+WJR_INTRINSIC_INLINE void __asm_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                        uint64_t hi0, uint64_t lo1, uint64_t hi1) {
     if (WJR_BUILTIN_CONSTANT_P(hi0) && hi0 <= UINT32_MAX) {
         asm("add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
             "adc{q %[hi0], %[hi1]| %[hi1], %[hi0]}"
@@ -180,12 +181,16 @@ WJR_INTRINSIC_INLINE void __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo
     return;
 }
 
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_ADDC_128)
+
 WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
                                              uint64_t c_in) {
     if (WJR_BUILTIN_CONSTANT_P(hi0) && hi0 <= UINT32_MAX) {
         asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
-            "add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+            "adc{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
             "adc{q %[hi0], %[hi1]| %[hi1], %[hi0]}\n\t"
             "setb %b[c_in]"
             : [lo0] "+&r"(lo0), [hi1] "+r"(hi1), [c_in] "+&r"(c_in)
@@ -196,7 +201,7 @@ WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_
         return c_in;
     } else if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
         asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
-            "add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+            "adc{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
             "adc{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t"
             "setb %b[c_in]"
             : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in)
@@ -208,7 +213,7 @@ WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_
     }
 
     asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
-        "add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+        "adc{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
         "adc{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t"
         "setb %b[c_in]"
         : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in)

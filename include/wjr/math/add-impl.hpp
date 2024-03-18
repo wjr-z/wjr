@@ -38,8 +38,8 @@ template <
 WJR_INTRINSIC_CONSTEXPR_E U addc_sz(T *dst, const T *src0, size_t n, const T *src1,
                                     size_t m, U c_in = 0);
 
-WJR_INTRINSIC_CONSTEXPR_E void __addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                          uint64_t hi0, uint64_t lo1, uint64_t hi1);
+WJR_INTRINSIC_CONSTEXPR_E void __add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                         uint64_t hi0, uint64_t lo1, uint64_t hi1);
 
 WJR_INTRINSIC_CONSTEXPR_E uint64_t __addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                               uint64_t hi0, uint64_t lo1, uint64_t hi1,

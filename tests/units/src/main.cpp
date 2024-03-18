@@ -1031,7 +1031,7 @@ TEST(math, not_n) {
     }
 }
 
-TEST(math, neg) {
+TEST(math, neg_n) {
     std::vector<uint64_t> a, b, c;
     for (size_t n = 0; n <= 384; ++n) {
         a.resize(n);
@@ -1286,10 +1286,10 @@ TEST(math, rshift_n) {
 
 TEST(math_details, default_stack_allocator) {}
 
-TEST(math, __addc_128) {
+TEST(math, __add_128) {
     auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1,
                     uint64_t anslo, uint64_t anshi) {
-        wjr::__addc_128(lo0, hi0, lo0, hi0, lo1, hi1);
+        wjr::__add_128(lo0, hi0, lo0, hi0, lo1, hi1);
         WJR_ASSERT(lo0 == anslo);
         WJR_ASSERT(hi0 == anshi);
     };
@@ -1312,10 +1312,55 @@ TEST(math, __addc_128) {
     check(UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX - 1, UINT64_MAX);
 }
 
-TEST(math, __subc_128) {
+TEST(math, __addc_128) {
+    auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1, uint64_t c,
+                    uint64_t anslo, uint64_t anshi, uint64_t ansc) {
+        auto cf = wjr::__addc_128(lo0, hi0, lo0, hi0, lo1, hi1, c);
+        WJR_ASSERT(lo0 == anslo);
+        WJR_ASSERT(hi0 == anshi);
+        WJR_ASSERT(cf == ansc);
+    };
+
+    check(0, 0, 0, 0, 0, 0, 0, 0);
+    check(1, 0, 0, 0, 0, 1, 0, 0);
+    check(0, 0, 1, 0, 0, 1, 0, 0);
+    check(1, 1, 0, 0, 0, 1, 1, 0);
+    check(0, 1, 0, 0, 0, 0, 1, 0);
+    check(0, 0, 0, 1, 0, 0, 1, 0);
+    check(UINT64_MAX, 0, 0, 0, 0, UINT64_MAX, 0, 0);
+    check(0, 0, UINT64_MAX, 0, 0, UINT64_MAX, 0, 0);
+    check(1, 0, UINT64_MAX, 0, 0, 0, 1, 0);
+    check(UINT64_MAX, 0, 1, 0, 0, 0, 1, 0);
+    check(UINT64_MAX - 1, UINT64_MAX - 1, 1, 1, 0, UINT64_MAX, UINT64_MAX, 0);
+    check(UINT64_MAX, 0, UINT64_MAX, 1, 0, UINT64_MAX - 1, 2, 0);
+    check(1, 1, 1, 1, 0, 2, 2, 0);
+    check(UINT64_MAX, UINT64_MAX, 0, 1, 0, UINT64_MAX, 0, 1);
+    check(0, 1, 0, UINT64_MAX, 0, 0, 0, 1);
+    check(UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX, 0, UINT64_MAX - 1, UINT64_MAX,
+          1);
+
+    check(0, 0, 0, 0, 1, 1, 0, 0);
+    check(1, 0, 0, 0, 1, 2, 0, 0);
+    check(0, 0, 1, 0, 1, 2, 0, 0);
+    check(1, 1, 0, 0, 1, 2, 1, 0);
+    check(0, 1, 0, 0, 1, 1, 1, 0);
+    check(0, 0, 0, 1, 1, 1, 1, 0);
+    check(UINT64_MAX, 0, 0, 0, 1, 0, 1, 0);
+    check(0, 0, UINT64_MAX, 0, 1, 0, 1, 0);
+    check(1, 0, UINT64_MAX, 0, 1, 1, 1, 0);
+    check(UINT64_MAX, 0, 1, 0, 1, 1, 1, 0);
+    check(UINT64_MAX - 1, UINT64_MAX - 1, 1, 1, 1, 0, 0, 1);
+    check(UINT64_MAX, 0, UINT64_MAX, 1, 1, UINT64_MAX, 2, 0);
+    check(1, 1, 1, 1, 1, 3, 2, 0);
+    check(UINT64_MAX, UINT64_MAX, 0, 1, 1, 0, 1, 1);
+    check(0, 1, 0, UINT64_MAX, 1, 1, 0, 1);
+    check(UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX, 1, UINT64_MAX, UINT64_MAX, 1);
+}
+
+TEST(math, __sub_128) {
     auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1,
                     uint64_t anslo, uint64_t anshi) {
-        wjr::__subc_128(lo0, hi0, lo0, hi0, lo1, hi1);
+        wjr::__sub_128(lo0, hi0, lo0, hi0, lo1, hi1);
         WJR_ASSERT(lo0 == anslo);
         WJR_ASSERT(hi0 == anshi);
     };
@@ -1332,6 +1377,42 @@ TEST(math, __subc_128) {
     check(UINT64_MAX, 0, 1, 0, UINT64_MAX - 1, 0);
     check(UINT64_MAX - 1, UINT64_MAX - 1, 1, 1, UINT64_MAX - 2, UINT64_MAX - 2);
     check(UINT64_MAX, 0, UINT64_MAX, 1, 0, UINT64_MAX);
+}
+
+TEST(math, __subc_128) {
+    auto check = [](uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1, uint64_t c,
+                    uint64_t anslo, uint64_t anshi, uint64_t ansc) {
+        auto cf = wjr::__subc_128(lo0, hi0, lo0, hi0, lo1, hi1, c);
+        WJR_ASSERT(lo0 == anslo);
+        WJR_ASSERT(hi0 == anshi);
+        WJR_ASSERT(cf == ansc);
+    };
+
+    check(0, 0, 0, 0, 0, 0, 0, 0);
+    check(1, 0, 0, 0, 0, 1, 0, 0);
+    check(0, 0, 1, 0, 0, UINT64_MAX, UINT64_MAX, 1);
+    check(1, 1, 0, 0, 0, 1, 1, 0);
+    check(0, 1, 0, 0, 0, 0, 1, 0);
+    check(0, 0, 0, 1, 0, 0, UINT64_MAX, 1);
+    check(UINT64_MAX, 0, 0, 0, 0, UINT64_MAX, 0, 0);
+    check(0, 0, UINT64_MAX, 0, 0, 1, UINT64_MAX, 1);
+    check(1, 0, UINT64_MAX, 0, 0, 2, UINT64_MAX, 1);
+    check(UINT64_MAX, 0, 1, 0, 0, UINT64_MAX - 1, 0, 0);
+    check(UINT64_MAX - 1, UINT64_MAX - 1, 1, 1, 0, UINT64_MAX - 2, UINT64_MAX - 2, 0);
+    check(UINT64_MAX, 0, UINT64_MAX, 1, 0, 0, UINT64_MAX, 1);
+
+    check(0, 0, 0, 0, 1, UINT64_MAX, UINT64_MAX, 1);
+    check(1, 0, 0, 0, 1, 0, 0, 0);
+    check(0, 0, 1, 0, 1, UINT64_MAX - 1, UINT64_MAX, 1);
+    check(1, 1, 0, 0, 1, 0, 1, 0);
+    check(0, 1, 0, 0, 1, UINT64_MAX, 0, 0);
+    check(0, 0, 0, 1, 1, UINT64_MAX, UINT64_MAX - 1, 1);
+    check(UINT64_MAX, 0, 0, 0, 1, UINT64_MAX - 1, 0, 0);
+    check(0, 0, UINT64_MAX, 0, 1, 0, UINT64_MAX, 1);
+    check(1, 0, UINT64_MAX, 0, 1, 1, UINT64_MAX, 1);
+    check(UINT64_MAX, 0, 1, 0, 1, UINT64_MAX - 2, 0, 0);
+    check(UINT64_MAX - 1, UINT64_MAX - 1, 1, 1, 1, UINT64_MAX - 3, UINT64_MAX - 2, 0);
+    check(UINT64_MAX, 0, UINT64_MAX, 1, 1, UINT64_MAX, UINT64_MAX - 1, 1);
 }
 
 TEST(math, mul_128) {

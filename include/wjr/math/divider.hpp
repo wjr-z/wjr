@@ -116,7 +116,7 @@ private:
         T rax, rdx;
 
         rax = mul(hi, value, rdx);
-        __addc_128(rax, rdx, rax, rdx, lo, hi1);
+        __add_128(rax, rdx, rax, rdx, lo, hi1);
 
         lo -= mullo(rdx, divisor);
 
@@ -302,25 +302,25 @@ WJR_INTRINSIC_CONSTEXPR20 T div3by2_divider_noshift<T>::divide(T divisor0, T div
 
     T q1, q0;
     q0 = mul<T>(value, u2, q1);
-    __addc_128(q0, q1, q0, q1, u1, u2);
+    __add_128(q0, q1, q0, q1, u1, u2);
 
     T r1, r0;
     r1 = u1 - mullo<T>(q1, divisor1);
     T t1;
     r0 = mul<T>(divisor0, q1, t1);
 
-    __subc_128(r0, r1, u0, r1, r0, t1);
-    __subc_128(r0, r1, r0, r1, divisor0, divisor1);
+    __sub_128(r0, r1, u0, r1, r0, t1);
+    __sub_128(r0, r1, r0, r1, divisor0, divisor1);
     ++q1;
 
     if (r1 >= q0) {
         --q1;
-        __addc_128(r0, r1, r0, r1, divisor0, divisor1);
+        __add_128(r0, r1, r0, r1, divisor0, divisor1);
     }
 
     if (WJR_UNLIKELY(__less_equal_128(divisor0, divisor1, r0, r1))) {
         ++q1;
-        __subc_128(r0, r1, r0, r1, divisor0, divisor1);
+        __sub_128(r0, r1, r0, r1, divisor0, divisor1);
     }
 
     u1 = r0;

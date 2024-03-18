@@ -4086,8 +4086,8 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src
 
 // preview :
 
-WJR_INTRINSIC_CONSTEXPR_E void __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                          uint64_t hi0, uint64_t lo1, uint64_t hi1);
+WJR_INTRINSIC_CONSTEXPR_E void __sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                         uint64_t hi0, uint64_t lo1, uint64_t hi1);
 
 WJR_INTRINSIC_CONSTEXPR_E uint64_t __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                               uint64_t hi0, uint64_t lo1, uint64_t hi1,
@@ -8764,7 +8764,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E int reverse_compare_n(const T *src0, const T 
 WJR_INTRINSIC_CONSTEXPR_E bool __fallback_less_128(uint64_t lo0, uint64_t hi0,
                                                    uint64_t lo1, uint64_t hi1) {
     uint8_t f = lo0 < lo1;
-    (void)subc(hi0, hi1, f, f);
+    (void)subc_cc(hi0, hi1, f, f);
     return f;
 }
 
@@ -9032,8 +9032,8 @@ template <
 WJR_INTRINSIC_CONSTEXPR_E U addc_sz(T *dst, const T *src0, size_t n, const T *src1,
                                     size_t m, U c_in = 0);
 
-WJR_INTRINSIC_CONSTEXPR_E void __addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                          uint64_t hi0, uint64_t lo1, uint64_t hi1);
+WJR_INTRINSIC_CONSTEXPR_E void __add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                         uint64_t hi0, uint64_t lo1, uint64_t hi1);
 
 WJR_INTRINSIC_CONSTEXPR_E uint64_t __addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                               uint64_t hi0, uint64_t lo1, uint64_t hi1,
@@ -10349,6 +10349,7 @@ namespace wjr {
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_ASM_ADDC_N WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___ASM_ADD_128 WJR_HAS_DEF
 #define WJR_HAS_BUILTIN___ASM_ADDC_128 WJR_HAS_DEF
 
 #if WJR_HAS_FEATURE(INLINE_ASM_CCCOND)
@@ -10686,10 +10687,10 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(
 #undef WJR_ADDSUB_I
 #endif
 
-#if WJR_HAS_BUILTIN(__ASM_ADDC_128)
+#if WJR_HAS_BUILTIN(__ASM_ADD_128)
 
-WJR_INTRINSIC_INLINE void __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                         uint64_t hi0, uint64_t lo1, uint64_t hi1) {
+WJR_INTRINSIC_INLINE void __asm_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                        uint64_t hi0, uint64_t lo1, uint64_t hi1) {
     if (WJR_BUILTIN_CONSTANT_P(hi0) && hi0 <= UINT32_MAX) {
         asm("add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
             "adc{q %[hi0], %[hi1]| %[hi1], %[hi0]}"
@@ -10720,12 +10721,16 @@ WJR_INTRINSIC_INLINE void __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo
     return;
 }
 
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_ADDC_128)
+
 WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
                                              uint64_t c_in) {
     if (WJR_BUILTIN_CONSTANT_P(hi0) && hi0 <= UINT32_MAX) {
         asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
-            "add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+            "adc{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
             "adc{q %[hi0], %[hi1]| %[hi1], %[hi0]}\n\t"
             "setb %b[c_in]"
             : [lo0] "+&r"(lo0), [hi1] "+r"(hi1), [c_in] "+&r"(c_in)
@@ -10736,7 +10741,7 @@ WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_
         return c_in;
     } else if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
         asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
-            "add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+            "adc{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
             "adc{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t"
             "setb %b[c_in]"
             : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in)
@@ -10748,7 +10753,7 @@ WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_
     }
 
     asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
-        "add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+        "adc{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
         "adc{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t"
         "setb %b[c_in]"
         : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in)
@@ -11070,22 +11075,22 @@ WJR_INTRINSIC_CONSTEXPR_E U addc_sz(T *dst, const T *src0, size_t n, const T *sr
     return c_in;
 }
 
-WJR_INTRINSIC_CONSTEXPR void __fallback_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                                 uint64_t hi0, uint64_t lo1,
-                                                 uint64_t hi1) {
+WJR_INTRINSIC_CONSTEXPR void __fallback_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                                uint64_t hi0, uint64_t lo1,
+                                                uint64_t hi1) {
     uint64_t __al = lo0 + lo1;
     ah = hi0 + hi1 + (__al < lo0);
     al = __al;
 }
 
 #if WJR_HAS_FEATURE(FAST_INT128_ADDSUB)
-#define WJR_HAS_BUILTIN___BUILTIN_ADDC_128 WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___BUILTIN_ADD_128 WJR_HAS_DEF
 #endif
 
-#if WJR_HAS_BUILTIN(__BUILTIN_ADDC_128)
+#if WJR_HAS_BUILTIN(__BUILTIN_ADD_128)
 
-WJR_INTRINSIC_INLINE void __builtin_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                             uint64_t hi0, uint64_t lo1, uint64_t hi1) {
+WJR_INTRINSIC_INLINE void __builtin_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                            uint64_t hi0, uint64_t lo1, uint64_t hi1) {
     const auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
     const auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
     x0 += x1;
@@ -11097,18 +11102,18 @@ WJR_INTRINSIC_INLINE void __builtin_addc_128(uint64_t &al, uint64_t &ah, uint64_
 #endif
 
 // <ah, al> = <hi0, lo0> + <hi1, lo1>
-WJR_INTRINSIC_CONSTEXPR_E void __addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                          uint64_t hi0, uint64_t lo1, uint64_t hi1) {
-#if WJR_HAS_BUILTIN(__BUILTIN_ADDC_128) || WJR_HAS_BUILTIN(__ASM_ADDC_128)
+WJR_INTRINSIC_CONSTEXPR_E void __add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                         uint64_t hi0, uint64_t lo1, uint64_t hi1) {
+#if WJR_HAS_BUILTIN(__BUILTIN_ADD_128) || WJR_HAS_BUILTIN(__ASM_ADD_128)
     if (is_constant_evaluated() || (WJR_BUILTIN_CONSTANT_P(lo0 == 0) && lo0 == 0) ||
         (WJR_BUILTIN_CONSTANT_P(lo1 == 0) && lo1 == 0)) {
-        return __fallback_addc_128(al, ah, lo0, hi0, lo1, hi1);
+        return __fallback_add_128(al, ah, lo0, hi0, lo1, hi1);
     }
 
-    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(__BUILTIN_ADDC_128), __builtin_addc_128,
-                          __asm_addc_128)(al, ah, lo0, hi0, lo1, hi1);
+    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(__BUILTIN_ADD_128), __builtin_add_128,
+                          __asm_add_128)(al, ah, lo0, hi0, lo1, hi1);
 #else
-    return __fallback_addc_128(al, ah, lo0, hi0, lo1, hi1);
+    return __fallback_add_128(al, ah, lo0, hi0, lo1, hi1);
 #endif
 }
 
@@ -11572,6 +11577,7 @@ namespace wjr {
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_HAS_BUILTIN_ASM_SUBC WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_ASM_SUBC_N WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___ASM_SUB_128 WJR_HAS_DEF
 #define WJR_HAS_BUILTIN___ASM_SUBC_128 WJR_HAS_DEF
 
 #if WJR_HAS_FEATURE(INLINE_ASM_CCCOND)
@@ -11872,10 +11878,10 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(
 #undef WJR_ADDSUB_I
 #endif
 
-#if WJR_HAS_BUILTIN(__ASM_SUBC_128)
+#if WJR_HAS_BUILTIN(__ASM_SUB_128)
 
-WJR_INTRINSIC_INLINE void __asm_subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                         uint64_t hi0, uint64_t lo1, uint64_t hi1) {
+WJR_INTRINSIC_INLINE void __asm_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                        uint64_t hi0, uint64_t lo1, uint64_t hi1) {
     if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
         asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
             "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}"
@@ -11895,23 +11901,16 @@ WJR_INTRINSIC_INLINE void __asm_subc_128(uint64_t &al, uint64_t &ah, uint64_t lo
     ah = hi0;
 }
 
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_SUBC_128)
+
 WJR_INTRINSIC_INLINE uint64_t __asm_subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
                                              uint64_t c_in) {
-    if (WJR_BUILTIN_CONSTANT_P(hi0) && hi0 <= UINT32_MAX) {
+    if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
         asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
-            "sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-            "sbb{q %[hi0], %[hi1]| %[hi1], %[hi0]}\n\t"
-            "setb %b[c_in]"
-            : [lo0] "+&r"(lo0), [hi1] "+r"(hi1), [c_in] "+&r"(c_in)
-            : [lo1] "r"(lo1), [hi0] "i"(hi0)
-            : "cc");
-        al = lo0;
-        ah = hi1;
-        return c_in;
-    } else if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
-        asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
-            "sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+            "sbb{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
             "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t"
             "setb %b[c_in]"
             : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in)
@@ -11923,7 +11922,7 @@ WJR_INTRINSIC_INLINE uint64_t __asm_subc_128(uint64_t &al, uint64_t &ah, uint64_
     }
 
     asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
-        "sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+        "sbb{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
         "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t"
         "setb %b[c_in]"
         : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in)
@@ -12342,22 +12341,22 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src
     }
 }
 
-WJR_INTRINSIC_CONSTEXPR void __fallback_subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                                 uint64_t hi0, uint64_t lo1,
-                                                 uint64_t hi1) {
+WJR_INTRINSIC_CONSTEXPR void __fallback_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                                uint64_t hi0, uint64_t lo1,
+                                                uint64_t hi1) {
     uint64_t __al = lo0 - lo1;
     ah = hi0 - hi1 - (__al > lo0);
     al = __al;
 }
 
 #if WJR_HAS_FEATURE(FAST_INT128_ADDSUB)
-#define WJR_HAS_BUILTIN___BUILTIN_SUBC_128 WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___BUILTIN_SUB_128 WJR_HAS_DEF
 #endif
 
 #if WJR_HAS_BUILTIN(__BUILTIN_SUBC_128)
 
-WJR_INTRINSIC_INLINE void __builtin_subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                             uint64_t hi0, uint64_t lo1, uint64_t hi1) {
+WJR_INTRINSIC_INLINE void __builtin_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                            uint64_t hi0, uint64_t lo1, uint64_t hi1) {
     const auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
     const auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
     x0 -= x1;
@@ -12369,18 +12368,18 @@ WJR_INTRINSIC_INLINE void __builtin_subc_128(uint64_t &al, uint64_t &ah, uint64_
 #endif
 
 // <ah, al> = <hi0, lo0> - <hi1, lo1>
-WJR_INTRINSIC_CONSTEXPR_E void __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                          uint64_t hi0, uint64_t lo1, uint64_t hi1) {
-#if WJR_HAS_BUILTIN(__BUILTIN_SUBC_128) || WJR_HAS_BUILTIN(__ASM_SUBC_128)
+WJR_INTRINSIC_CONSTEXPR_E void __sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                         uint64_t hi0, uint64_t lo1, uint64_t hi1) {
+#if WJR_HAS_BUILTIN(__BUILTIN_SUB_128) || WJR_HAS_BUILTIN(__ASM_SUB_128)
     if (is_constant_evaluated() || (WJR_BUILTIN_CONSTANT_P(lo0 == 0) && lo0 == 0) ||
         (WJR_BUILTIN_CONSTANT_P(lo1 == 0) && lo1 == 0)) {
-        return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1);
+        return __fallback_sub_128(al, ah, lo0, hi0, lo1, hi1);
     }
 
-    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(__BUILTIN_SUBC_128), __builtin_subc_128,
-                          __asm_subc_128)(al, ah, lo0, hi0, lo1, hi1);
+    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(__BUILTIN_SUB_128), __builtin_sub_128,
+                          __asm_sub_128)(al, ah, lo0, hi0, lo1, hi1);
 #else
-    return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1);
+    return __fallback_sub_128(al, ah, lo0, hi0, lo1, hi1);
 #endif
 }
 
@@ -13612,8 +13611,8 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t fallback_mul64(uint64_t a, uint64_t b, uint64
     uint64_t rm1 = al * bh;
     uint64_t rl = al * bl;
 
-    __addc_128(rl, rh, rl, rh, rm0 << 32, rm0 >> 32);
-    __addc_128(rl, rh, rl, rh, rm1 << 32, rm1 >> 32);
+    __add_128(rl, rh, rl, rh, rm0 << 32, rm0 >> 32);
+    __add_128(rl, rh, rl, rh, rm1 << 32, rm1 >> 32);
 
     hi = rh;
     return rl;
@@ -16951,7 +16950,7 @@ private:
         T rax, rdx;
 
         rax = mul(hi, value, rdx);
-        __addc_128(rax, rdx, rax, rdx, lo, hi1);
+        __add_128(rax, rdx, rax, rdx, lo, hi1);
 
         lo -= mullo(rdx, divisor);
 
@@ -17137,25 +17136,25 @@ WJR_INTRINSIC_CONSTEXPR20 T div3by2_divider_noshift<T>::divide(T divisor0, T div
 
     T q1, q0;
     q0 = mul<T>(value, u2, q1);
-    __addc_128(q0, q1, q0, q1, u1, u2);
+    __add_128(q0, q1, q0, q1, u1, u2);
 
     T r1, r0;
     r1 = u1 - mullo<T>(q1, divisor1);
     T t1;
     r0 = mul<T>(divisor0, q1, t1);
 
-    __subc_128(r0, r1, u0, r1, r0, t1);
-    __subc_128(r0, r1, r0, r1, divisor0, divisor1);
+    __sub_128(r0, r1, u0, r1, r0, t1);
+    __sub_128(r0, r1, r0, r1, divisor0, divisor1);
     ++q1;
 
     if (r1 >= q0) {
         --q1;
-        __addc_128(r0, r1, r0, r1, divisor0, divisor1);
+        __add_128(r0, r1, r0, r1, divisor0, divisor1);
     }
 
     if (WJR_UNLIKELY(__less_equal_128(divisor0, divisor1, r0, r1))) {
         ++q1;
-        __subc_128(r0, r1, r0, r1, divisor0, divisor1);
+        __sub_128(r0, r1, r0, r1, divisor0, divisor1);
     }
 
     u1 = r0;
@@ -17689,7 +17688,7 @@ WJR_CONSTEXPR20 T div_qr_2_noshift(T *dst, T *rem, const T *src, size_t n,
     u1 = src[n - 2];
 
     if (__less_equal_128(divisor0, divisor1, u1, u2)) {
-        __subc_128(u1, u2, u1, u2, divisor0, divisor1);
+        __sub_128(u1, u2, u1, u2, divisor0, divisor1);
         qh = 1;
     }
 

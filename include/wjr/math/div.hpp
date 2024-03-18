@@ -310,7 +310,7 @@ WJR_CONSTEXPR20 T div_qr_2_noshift(T *dst, T *rem, const T *src, size_t n,
     u1 = src[n - 2];
 
     if (__less_equal_128(divisor0, divisor1, u1, u2)) {
-        __subc_128(u1, u2, u1, u2, divisor0, divisor1);
+        __sub_128(u1, u2, u1, u2, divisor0, divisor1);
         qh = 1;
     }
 
