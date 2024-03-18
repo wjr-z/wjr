@@ -427,7 +427,7 @@ T sb_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
     T qh;
     T n1, n0;
     T d1, d0;
-    T cy, cy1;
+    T cy;
     T q;
 
     src += n;
@@ -458,9 +458,7 @@ T sb_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
             q = divider::divide(d0, d1, dinv, src[0], n0, n1);
 
             cy = submul_1(src - m, div, m, q);
-
-            n0 = subc(n0, cy, 0, cy1);
-            n1 = subc(n1, cy1, 0, cy);
+            cy = __subc_cc_128(n0, n1, n0, n1, cy, 0, 0);
             src[0] = n0;
 
             if (WJR_UNLIKELY(cy != 0)) {
@@ -590,18 +588,15 @@ T dc_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
                 q = wjr::div3by2_divider<T>::divide(d0, d1, dinv, src[-2], n0, n1);
 
                 if (m > 2) {
-                    T cy, cy1;
+                    T cy;
                     cy = submul_1(src - m, div - m, m - 2, q);
-
-                    n0 = subc(n0, cy, 0, cy1);
-                    n1 = subc(n1, cy1, 0, cy);
-
+                    cy = __subc_cc_128(n0, n1, n0, n1, cy, 0, 0);
                     src[-2] = n0;
 
                     if (WJR_UNLIKELY(cy != 0)) {
                         n1 += d1 + addc_n(src - m, src - m, div - m, m - 1);
                         qh -= (q == 0);
-                        q = (q - 1);
+                        --q;
                     }
                 } else {
                     src[-2] = n0;

@@ -17,6 +17,7 @@ namespace wjr {
 
 #if WJR_HAS_FEATURE(INLINE_ASM_CCCOND)
 #define WJR_HAS_BUILTIN_ASM_ADDC_CC WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___ASM_ADDC_CC_128 WJR_HAS_DEF
 #endif
 
 #endif
@@ -183,11 +184,53 @@ WJR_INTRINSIC_INLINE void __asm_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0
 
 #endif
 
+#if WJR_HAS_BUILTIN(__ASM_ADDC_128) || WJR_HAS_BUILTIN(__ASM_ADDC_CC_128)
+
+WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_zero_128(uint64_t &al, uint64_t &ah,
+                                                    uint64_t lo0, uint64_t hi0,
+                                                    uint64_t lo1, uint64_t hi1) {
+    uint8_t c_out;
+    if (WJR_BUILTIN_CONSTANT_P(hi0) && hi0 <= UINT32_MAX) {
+        asm("add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+            "adc{q %[hi0], %[hi1]| %[hi1], %[hi0]}\n\t" WJR_ASM_CCSET(c)
+            : [lo0] "+&r"(lo0), [hi1] "+r"(hi1), WJR_ASM_CCOUT(c)(c_out)
+            : [lo1] "r"(lo1), [hi0] "i"(hi0)
+            : "cc");
+        al = lo0;
+        ah = hi1;
+        return c_out;
+    } else if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
+        asm("add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+            "adc{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
+            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), WJR_ASM_CCOUT(c)(c_out)
+            : [lo1] "r"(lo1), [hi1] "i"(hi1)
+            : "cc");
+        al = lo0;
+        ah = hi0;
+        return c_out;
+    }
+
+    asm("add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+        "adc{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
+        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), WJR_ASM_CCOUT(c)(c_out)
+        : [lo1] "r"(lo1), [hi1] "r"(hi1)
+        : "cc");
+    al = lo0;
+    ah = hi0;
+    return c_out;
+}
+
+#endif
+
 #if WJR_HAS_BUILTIN(__ASM_ADDC_128)
 
 WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
                                              uint64_t c_in) {
+    if (WJR_BUILTIN_CONSTANT_P(c_in == 0) && c_in == 0) {
+        return __asm_addc_cc_zero_128(al, ah, lo0, hi0, lo1, hi1);
+    }
+
     if (WJR_BUILTIN_CONSTANT_P(hi0) && hi0 <= UINT32_MAX) {
         asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
             "adc{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
@@ -222,6 +265,53 @@ WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_
     al = lo0;
     ah = hi0;
     return c_in;
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_ADDC_CC_128)
+
+WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                               uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                               uint8_t c_in) {
+    if (WJR_BUILTIN_CONSTANT_P(c_in == 0) && c_in == 0) {
+        return __asm_addc_cc_zero_128(al, ah, lo0, hi0, lo1, hi1);
+    }
+
+    uint8_t c_out;
+    if (WJR_BUILTIN_CONSTANT_P(hi0) && hi0 <= UINT32_MAX) {
+        asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
+            "adc{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+            "adc{q %[hi0], %[hi1]| %[hi1], %[hi0]}\n\t" WJR_ASM_CCSET(c)
+            : [lo0] "+&r"(lo0), [hi1] "+r"(hi1), [c_in] "+&r"(c_in),
+              WJR_ASM_CCOUT(c)(c_out)
+            : [lo1] "r"(lo1), [hi0] "i"(hi0)
+            : "cc");
+        al = lo0;
+        ah = hi1;
+        return c_out;
+    } else if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
+        asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
+            "adc{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+            "adc{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
+            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in),
+              WJR_ASM_CCOUT(c)(c_out)
+            : [lo1] "r"(lo1), [hi1] "i"(hi1)
+            : "cc");
+        al = lo0;
+        ah = hi0;
+        return c_out;
+    }
+
+    asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
+        "adc{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+        "adc{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
+        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
+        : [lo1] "r"(lo1), [hi1] "r"(hi1)
+        : "cc");
+    al = lo0;
+    ah = hi0;
+    return c_out;
 }
 
 #endif

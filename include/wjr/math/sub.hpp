@@ -476,6 +476,20 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t __subc_128(uint64_t &al, uint64_t &ah, uint64
 #endif
 }
 
+WJR_INTRINSIC_CONSTEXPR_E uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                                uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                                uint8_t c_in) {
+#if WJR_HAS_BUILTIN(__ASM_ADDC_CC_128)
+    if (is_constant_evaluated()) {
+        return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+    }
+
+    return __asm_subc_cc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+#else
+    return __subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+#endif
+}
+
 } // namespace wjr
 
 #endif // WJR_MATH_SUB_HPP__
