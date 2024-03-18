@@ -79,7 +79,6 @@ class stack_alloc {
 
             if (WJR_UNLIKELY(static_cast<size_t>(m_node.end - m_node.ptr) < n)) {
                 __allocate(top);
-                WJR_ASSUME(top.idx != m_idx);
             }
 
             WJR_ASSERT_ASSUME(m_node.ptr != nullptr);

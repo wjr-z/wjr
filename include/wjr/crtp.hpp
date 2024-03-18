@@ -1,6 +1,7 @@
 #ifndef WJR_CRT_HPP__
 #define WJR_CRT_HPP__
 
+#include <memory>
 #include <thread>
 #include <type_traits>
 
@@ -21,6 +22,7 @@ protected:
     __debug_nonsendable &operator=(const __debug_nonsendable &) = default;
     __debug_nonsendable &operator=(__debug_nonsendable &&) = default;
     ~__debug_nonsendable() { check(); }
+
     void check() const {
         WJR_ASSERT_L(2, m_thread_id == std::this_thread::get_id(),
                      "Cross-thread access detected.");
@@ -102,6 +104,17 @@ protected:
     nonmovable &operator=(nonmovable &&) = delete;
     ~nonmovable() = default;
 };
+
+struct trivial_allocator_t {};
+
+template <typename T>
+struct is_trivially_allocator : std::is_base_of<trivial_allocator_t, T> {};
+
+template <typename T>
+struct is_trivially_allocator<std::allocator<T>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_trivially_allocator_v = is_trivially_allocator<T>::value;
 
 } // namespace wjr
 

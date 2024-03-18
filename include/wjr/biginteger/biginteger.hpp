@@ -9,7 +9,7 @@ namespace wjr {
 /**
  * @struct biginteger_data
  * @brief The data structure for biginteger
- * 
+ *
  */
 struct biginteger_data {
     ssize_t m_size = 1;
@@ -45,7 +45,7 @@ private:
     constexpr __alloc &__get_alloc() { return m_data.second(); }
     constexpr const __alloc &__get_alloc() const { return m_data.second(); }
 
-    constexpr bool is_small() const {
+    constexpr bool __is_small() const {
         const auto &data = __get_data();
         return data.m_data == data.m_small_data;
     }
