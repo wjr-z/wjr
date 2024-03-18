@@ -2388,6 +2388,15 @@ struct type_identity {
 template <typename T>
 using type_identity_t = typename type_identity<T>::type;
 
+/**
+ * @brief Return if is constant evaluated.
+ *
+ * @details Use macro WJR_IS_CONSTANT_EVALUATED(). \n
+ * Use std::is_constant_evaluated() if C++ 20 is supported. \n
+ * Otherwise, use __builtin_constant_evaluated() if
+ * WJR_HAS_BUILTIN(__builtin_is_constant_evaluated). Otherwise, return false.
+ *
+ */
 WJR_INTRINSIC_CONSTEXPR bool is_constant_evaluated() noexcept {
     return WJR_IS_CONSTANT_EVALUATED();
 }
@@ -2573,9 +2582,8 @@ constexpr auto to_address(const Ptr &p) noexcept {
     }
 }
 
-template <typename Fn, typename... Args>
-WJR_NOINLINE decltype(auto) call_noinlne(Fn &&fn, Args &&...args) {
-    return std::invoke(std::forward<Fn>(fn), std::forward<Args>(args)...);
+WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
+    return value >= (int32_t)in_place_min && value <= (int32_t)in_place_max;
 }
 
 } // namespace wjr
@@ -2584,6 +2592,11 @@ WJR_NOINLINE decltype(auto) call_noinlne(Fn &&fn, Args &&...args) {
 
 namespace wjr {
 
+/**
+ * @brief A helper class to compress the size of a pair.
+ *
+ * @note T is not an empty class.
+ */
 template <size_t index, typename T>
 struct comp_pair_wrapper1 {
 
@@ -2622,6 +2635,14 @@ private:
     T val;
 };
 
+/**
+ * @brief A helper class to compress the size of a pair.
+ *
+ * @note T is an empty class.
+ *
+ * @tparam index
+ * @tparam T
+ */
 template <size_t index, typename T>
 struct comp_pair_wrapper2 : private T {
     using Mybase = T;
@@ -2671,7 +2692,7 @@ using comp_pair_wrapper =
 /**
  * @class compressed_pair
  * @brief A pair used empty base optimization to reduce the size of the pair.
- * 
+ *
  * @details When `T` or `U` is an empty class, compressed_pair will use empty base
  * optimization to reduce the size of the pair. Otherwise, compressed_pair
  * is equivalent to `std::pair`.
@@ -3235,6 +3256,11 @@ inline constexpr __assert_handler_t __assert_handler{};
 
 namespace wjr {
 
+/**
+ * @brief Disable sending the object to another thread and check the thread id.
+ *
+ * @note Only check if WJR_DEBUG_LEVEL > 2.
+ */
 class __debug_nonsendable {
 protected:
     __debug_nonsendable() : m_thread_id(std::this_thread::get_id()) {}
@@ -3262,6 +3288,10 @@ private:
     std::thread::id m_thread_id;
 };
 
+/**
+ * @brief Disable sending the object to another thread without checking.
+ *
+ */
 class __release_nonsendable {
 protected:
     void check() const {};
@@ -3275,6 +3305,10 @@ protected:
     }
 };
 
+/**
+ * @brief A type to disable sending the object to another thread.
+ *
+ */
 using nonsendable = WJR_DEBUG_IF(2, __debug_nonsendable, __release_nonsendable);
 
 template <typename T>
@@ -3289,6 +3323,10 @@ struct is_sendable : std::negation<is_nonsendable<T>> {};
 template <typename T>
 inline constexpr bool is_sendable_v = is_sendable<T>::value;
 
+/**
+ * @brief A type to disable copying the object.
+ *
+ */
 class noncopyable {
 protected:
     noncopyable() = default;
@@ -3299,6 +3337,10 @@ protected:
     ~noncopyable() = default;
 };
 
+/**
+ * @brief A type to disable moving the object.
+ *
+ */
 class nonmovable {
 protected:
     nonmovable() = default;
@@ -10369,10 +10411,25 @@ namespace wjr {
 
 #if WJR_HAS_BUILTIN(ASM_ADDC)
 
+/**
+ * @brief Use inline assembly to add two 64-bit integers with carry-in and return the
+ * carry-out.
+ *
+ * @details The carry-in and carry-out flags are both 0 or 1. \n
+ * The carry-out flag is set to 1 if the result overflows. \n
+ * Optimization: \n
+ * 1. Use constraint "i" if a or b is a constant and is in i32 range. \n
+ * 2. If c_in is a constant and c_in == 1, use "stc" to set the carry flag.
+ *
+ * @tparam U The type of the carry.
+ * @param[in] c_in The carry-in flag.
+ * @param[out] c_out The carry-out flag.
+ * @return a + b + c_in
+ */
 template <typename U>
 WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in, U &c_out) {
     if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
-        if (WJR_BUILTIN_CONSTANT_P(b) && b <= ((uint32_t)in_place_max)) {
+        if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
             asm("stc\n\t"
                 "adc{q %2, %0| %0, %2}\n\t"
                 "setb %b1"
@@ -10392,7 +10449,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in, U &c_out)
     }
 
     if (WJR_BUILTIN_CONSTANT_P(a)) {
-        if (a <= ((uint32_t)in_place_max)) {
+        if (__is_in_i32_range(a)) {
             asm("add{b $255, %b1| %b1, 255}\n\t"
                 "adc{q %2, %0| %0, %2}\n\t"
                 "setb %b1"
@@ -10411,7 +10468,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in, U &c_out)
         return b;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(b) && b <= ((uint32_t)in_place_max)) {
+    if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
         asm("add{b $255, %b1| %b1, 255}\n\t"
             "adc{q %2, %0| %0, %2}\n\t"
             "setb %b1"
@@ -10434,10 +10491,20 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in, U &c_out)
 
 #if WJR_HAS_BUILTIN(ASM_ADDC_CC)
 
+/**
+ * @brief Use inline assembly to add two 64-bit integers with carry-in and return the
+ * carry-out.
+ *
+ * @details Similar to asm_addc, but the carry-out flag is set by using constraint
+ * "=@cccond" instead of "setb". \n
+ *
+ * @param[in] c_in
+ * @param[out] c_out
+ */
 WJR_INTRINSIC_INLINE uint64_t asm_addc_cc(uint64_t a, uint64_t b, uint8_t c_in,
                                           uint8_t &c_out) {
     if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
-        if (WJR_BUILTIN_CONSTANT_P(b) && b <= ((uint32_t)in_place_max)) {
+        if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
             asm("stc\n\t"
                 "adc{q %2, %0| %0, %2}\n\t" WJR_ASM_CCSET(c)
                 : "=r"(a), WJR_ASM_CCOUT(c)(c_out)
@@ -10454,7 +10521,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc_cc(uint64_t a, uint64_t b, uint8_t c_in,
     }
 
     if (WJR_BUILTIN_CONSTANT_P(a)) {
-        if (a <= ((uint32_t)in_place_max)) {
+        if (__is_in_i32_range(a)) {
             asm("add{b $255, %b1| %b1, 255}\n\t"
                 "adc{q %3, %0| %0, %3}\n\t" WJR_ASM_CCSET(c)
                 : "=r"(b), "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
@@ -10470,7 +10537,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc_cc(uint64_t a, uint64_t b, uint8_t c_in,
         return b;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(b) && b <= ((uint32_t)in_place_max)) {
+    if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
         asm("add{b $255, %b1| %b1, 255}\n\t"
             "adc{q %3, %0| %0, %3}\n\t" WJR_ASM_CCSET(c)
             : "=r"(a), "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
@@ -10698,6 +10765,10 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(
 
 #if WJR_HAS_BUILTIN(__ASM_ADD_128)
 
+/**
+ * @brief Use inline assembly to add two 64-bit integers and return the result.
+ *
+ */
 WJR_INTRINSIC_INLINE void __asm_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                         uint64_t hi0, uint64_t lo1, uint64_t hi1) {
     if (WJR_BUILTIN_CONSTANT_P(hi0) && hi0 <= UINT32_MAX) {
@@ -10734,6 +10805,13 @@ WJR_INTRINSIC_INLINE void __asm_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0
 
 #if WJR_HAS_BUILTIN(__ASM_ADDC_128) || WJR_HAS_BUILTIN(__ASM_ADDC_CC_128)
 
+/**
+ * @brief Use inline assembly to add two 64-bit integers and return the
+ * carry-out.
+ *
+ * @details Optimzation for __asm_addc_cc_128 and __asm_addc_128 when the carry-in is 0.
+ *
+ */
 WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_zero_128(uint64_t &al, uint64_t &ah,
                                                     uint64_t lo0, uint64_t hi0,
                                                     uint64_t lo1, uint64_t hi1) {
@@ -10772,6 +10850,11 @@ WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_zero_128(uint64_t &al, uint64_t &ah,
 
 #if WJR_HAS_BUILTIN(__ASM_ADDC_128)
 
+/**
+ * @brief Use inline assembly to add two 64-bit integers with carry-in and return the
+ * carry-out.
+ *
+ */
 WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
                                              uint64_t c_in) {
@@ -10819,6 +10902,14 @@ WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_
 
 #if WJR_HAS_BUILTIN(__ASM_ADDC_CC_128)
 
+/**
+ * @brief Use inline assembly to add two 64-bit integers with carry-in and return the
+ * carry-out.
+ *
+ * @details Similar to __asm_addc_128, but the carry-out flag is set by using constraint
+ * "=@cccond" instead of "setb".
+ *
+ */
 WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                                uint64_t hi0, uint64_t lo1, uint64_t hi1,
                                                uint8_t c_in) {
@@ -11704,7 +11795,7 @@ namespace wjr {
 template <typename U>
 WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in, U &c_out) {
     if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
-        if (WJR_BUILTIN_CONSTANT_P(b) && b <= ((uint32_t)in_place_max)) {
+        if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
             asm("stc\n\t"
                 "sbb{q %2, %0| %0, %2}\n\t"
                 "setb %b1"
@@ -11723,7 +11814,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in, U &c_out)
         return a;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(b) && b <= ((uint32_t)in_place_max)) {
+    if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
         asm("add{b $255, %b1| %b1, 255}\n\t"
             "sbb{q %2, %0| %0, %2}\n\t"
             "setb %b1"
@@ -11749,7 +11840,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in, U &c_out)
 WJR_INTRINSIC_INLINE uint64_t asm_subc_cc(uint64_t a, uint64_t b, uint8_t c_in,
                                           uint8_t &c_out) {
     if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
-        if (WJR_BUILTIN_CONSTANT_P(b) && b <= ((uint32_t)in_place_max)) {
+        if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
             asm("stc\n\t"
                 "sbb{q %2, %0| %0, %2}\n\t" WJR_ASM_CCSET(c)
                 : "=r"(a), WJR_ASM_CCOUT(c)(c_out)
@@ -11765,7 +11856,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc_cc(uint64_t a, uint64_t b, uint8_t c_in,
         return a;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(b) && b <= ((uint32_t)in_place_max)) {
+    if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
         asm("add{b $255, %b1| %b1, 255}\n\t"
             "sbb{q %3, %0| %0, %3}\n\t" WJR_ASM_CCSET(c)
             : "=r"(a), "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)

@@ -8,6 +8,11 @@
 
 namespace wjr {
 
+/**
+ * @brief Disable sending the object to another thread and check the thread id.
+ *
+ * @note Only check if WJR_DEBUG_LEVEL > 2.
+ */
 class __debug_nonsendable {
 protected:
     __debug_nonsendable() : m_thread_id(std::this_thread::get_id()) {}
@@ -35,6 +40,10 @@ private:
     std::thread::id m_thread_id;
 };
 
+/**
+ * @brief Disable sending the object to another thread without checking.
+ *
+ */
 class __release_nonsendable {
 protected:
     void check() const {};
@@ -48,6 +57,10 @@ protected:
     }
 };
 
+/**
+ * @brief A type to disable sending the object to another thread.
+ *
+ */
 using nonsendable = WJR_DEBUG_IF(2, __debug_nonsendable, __release_nonsendable);
 
 template <typename T>
@@ -62,6 +75,10 @@ struct is_sendable : std::negation<is_nonsendable<T>> {};
 template <typename T>
 inline constexpr bool is_sendable_v = is_sendable<T>::value;
 
+/**
+ * @brief A type to disable copying the object.
+ *
+ */
 class noncopyable {
 protected:
     noncopyable() = default;
@@ -72,6 +89,10 @@ protected:
     ~noncopyable() = default;
 };
 
+/**
+ * @brief A type to disable moving the object.
+ *
+ */
 class nonmovable {
 protected:
     nonmovable() = default;

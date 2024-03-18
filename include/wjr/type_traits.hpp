@@ -163,6 +163,15 @@ struct type_identity {
 template <typename T>
 using type_identity_t = typename type_identity<T>::type;
 
+/**
+ * @brief Return if is constant evaluated.
+ *
+ * @details Use macro WJR_IS_CONSTANT_EVALUATED(). \n
+ * Use std::is_constant_evaluated() if C++ 20 is supported. \n
+ * Otherwise, use __builtin_constant_evaluated() if
+ * WJR_HAS_BUILTIN(__builtin_is_constant_evaluated). Otherwise, return false.
+ *
+ */
 WJR_INTRINSIC_CONSTEXPR bool is_constant_evaluated() noexcept {
     return WJR_IS_CONSTANT_EVALUATED();
 }
@@ -348,9 +357,8 @@ constexpr auto to_address(const Ptr &p) noexcept {
     }
 }
 
-template <typename Fn, typename... Args>
-WJR_NOINLINE decltype(auto) call_noinlne(Fn &&fn, Args &&...args) {
-    return std::invoke(std::forward<Fn>(fn), std::forward<Args>(args)...);
+WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
+    return value >= (int32_t)in_place_min && value <= (int32_t)in_place_max;
 }
 
 } // namespace wjr

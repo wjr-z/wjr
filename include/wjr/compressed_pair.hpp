@@ -8,6 +8,11 @@
 
 namespace wjr {
 
+/**
+ * @brief A helper class to compress the size of a pair.
+ *
+ * @note T is not an empty class.
+ */
 template <size_t index, typename T>
 struct comp_pair_wrapper1 {
 
@@ -46,6 +51,14 @@ private:
     T val;
 };
 
+/**
+ * @brief A helper class to compress the size of a pair.
+ *
+ * @note T is an empty class.
+ *
+ * @tparam index
+ * @tparam T
+ */
 template <size_t index, typename T>
 struct comp_pair_wrapper2 : private T {
     using Mybase = T;
@@ -95,7 +108,7 @@ using comp_pair_wrapper =
 /**
  * @class compressed_pair
  * @brief A pair used empty base optimization to reduce the size of the pair.
- * 
+ *
  * @details When `T` or `U` is an empty class, compressed_pair will use empty base
  * optimization to reduce the size of the pair. Otherwise, compressed_pair
  * is equivalent to `std::pair`.

@@ -6,9 +6,12 @@
 
 namespace wjr {
 
+/**
+ * @struct biginteger_data
+ * @brief The data structure for biginteger
+ * 
+ */
 struct biginteger_data {
-    // abs(size) is the number of elements in data
-    // size < 0 means the number is negative
     ssize_t m_size = 1;
     uint64_t *m_data = m_small_data;
     union {
