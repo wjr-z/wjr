@@ -4,7 +4,6 @@
 #include <stdexcept>
 
 #include <wjr/assert.hpp>
-#include <wjr/compressed_pair.hpp>
 #include <wjr/memory/details.hpp>
 
 namespace wjr {

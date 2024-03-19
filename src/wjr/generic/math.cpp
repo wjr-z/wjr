@@ -88,7 +88,7 @@ template void __noinline_mul_s_impl<true, uint64_t>(uint64_t *WJR_RESTRICT dst,
 template void __noinline_mul_s_impl<false, uint64_t>(uint64_t *WJR_RESTRICT dst,
                                                      const uint64_t *src0, size_t n,
                                                      const uint64_t *src1, size_t m,
-                                                     empty mal);
+                                                     empty_t mal);
 
 // div.hpp
 

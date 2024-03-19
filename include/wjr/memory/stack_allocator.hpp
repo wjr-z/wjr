@@ -212,8 +212,10 @@ constexpr bool operator!=(const singleton_stack_allocator_adapter<Alloc> &,
  * @brief A stack allocator for fast simulation of stack memory on the heap, singleton
  * mode.
  *
- * @note When allocating memory less than threadshold, use pre-allocated heap memory,
- * otherwise use malloc to allocate heap memory.
+ * @note When allocating memory less than threadshold,
+ * use pre-allocated heap memory, otherwise use malloc to allocate heap memory. \n
+ * Notice that the pre-allocated heap memory is not released until the program exits. \n
+ * This allocator is not thread-safe and can't be used in container.
  *
  * @tparam cache The size of the first heap memory allocation
  * @tparam threshold The threshold for using malloc to allocate heap memory
@@ -232,19 +234,19 @@ class unique_stack_allocator<stack_allocator<cache, threshold>> : private nonsen
     using Mybase = nonsendable;
 
 public:
-    unique_stack_allocator(const StackAllocator &al) : pair(al, {}) {}
+    unique_stack_allocator(const StackAllocator &al) : m_pair(al, {}) {}
     ~unique_stack_allocator() {
         Mybase::check();
-        pair.first().deallocate(pair.second());
+        m_pair.first().deallocate(m_pair.second());
     }
 
     WJR_CONSTEXPR20 void *allocate(size_t n) {
         Mybase::check();
-        return pair.first().allocate(n, pair.second());
+        return m_pair.first().allocate(n, m_pair.second());
     }
 
 private:
-    compressed_pair<StackAllocator, stack_top> pair;
+    compressed_pair<StackAllocator, stack_top> m_pair;
 };
 
 template <typename StackAllocator>

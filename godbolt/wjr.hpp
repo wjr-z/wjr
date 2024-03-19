@@ -2239,12 +2239,14 @@
 
 namespace wjr {
 
-struct empty {};
+struct empty_t {};
+
+struct default_construct_t {};
 
 template <typename T>
 struct null_ref_t {};
 
-template <typename T = empty>
+template <typename T = empty_t>
 inline constexpr null_ref_t<T> null_ref = {};
 
 struct in_place_max_t {
@@ -2556,32 +2558,21 @@ struct is_contiguous_iterator<std::reverse_iterator<iter>>
 template <typename iter>
 inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<iter>::value;
 
-template <typename Ptr, typename = void>
-struct __has_to_address_impl : std::false_type {};
-
-template <typename Ptr>
-struct __has_to_address_impl<
-    Ptr, std::void_t<decltype(typename std::pointer_traits<Ptr>::to_address(
-             std::declval<const Ptr &>()))>> : std::true_type {};
-
-template <typename Ptr>
-struct __has_to_address : __has_to_address_impl<remove_cvref_t<Ptr>, void> {};
+template <typename T, typename = void>
+struct __is_iterator_helper : std::false_type {};
 
 template <typename T>
-constexpr T *to_address(T *p) noexcept {
-    static_assert(!std::is_function_v<T>);
-    return p;
-}
+struct __is_iterator_helper<
+    T, std::void_t<typename std::iterator_traits<T>::iterator_category>>
+    : std::true_type {};
 
-template <typename Ptr>
-constexpr auto to_address(const Ptr &p) noexcept {
-    if constexpr (__has_to_address<Ptr>::value) {
-        return std::pointer_traits<Ptr>::to_address(p);
-    } else {
-        return to_address(p.operator->());
-    }
-}
+template <typename T>
+struct is_iterator : __is_iterator_helper<T> {};
 
+template <typename T>
+inline constexpr bool is_iterator_v = is_iterator<T>::value;
+
+// TODO : move __is_in_i32_range to other header.
 WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
     return value >= (int32_t)in_place_min && value <= (int32_t)in_place_max;
 }
@@ -3090,6 +3081,7 @@ struct tuple_element<1, wjr::compressed_pair<T, U>> {
 #ifndef WJR_CRT_HPP__
 #define WJR_CRT_HPP__
 
+#include <memory>
 #include <thread>
 #include <type_traits>
 
@@ -3269,6 +3261,7 @@ protected:
     __debug_nonsendable &operator=(const __debug_nonsendable &) = default;
     __debug_nonsendable &operator=(__debug_nonsendable &&) = default;
     ~__debug_nonsendable() { check(); }
+
     void check() const {
         WJR_ASSERT_L(2, m_thread_id == std::this_thread::get_id(),
                      "Cross-thread access detected.");
@@ -3351,6 +3344,17 @@ protected:
     ~nonmovable() = default;
 };
 
+struct trivial_allocator_t {};
+
+template <typename T>
+struct is_trivially_allocator : std::is_base_of<trivial_allocator_t, T> {};
+
+template <typename T>
+struct is_trivially_allocator<std::allocator<T>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_trivially_allocator_v = is_trivially_allocator<T>::value;
+
 } // namespace wjr
 
 #endif // WJR_CRT_HPP__
@@ -3427,7 +3431,6 @@ class stack_alloc {
 
             if (WJR_UNLIKELY(static_cast<size_t>(m_node.end - m_node.ptr) < n)) {
                 __allocate(top);
-                WJR_ASSUME(top.idx != m_idx);
             }
 
             WJR_ASSERT_ASSUME(m_node.ptr != nullptr);
@@ -3561,8 +3564,10 @@ constexpr bool operator!=(const singleton_stack_allocator_adapter<Alloc> &,
  * @brief A stack allocator for fast simulation of stack memory on the heap, singleton
  * mode.
  *
- * @note When allocating memory less than threadshold, use pre-allocated heap memory,
- * otherwise use malloc to allocate heap memory.
+ * @note When allocating memory less than threadshold,
+ * use pre-allocated heap memory, otherwise use malloc to allocate heap memory. \n
+ * Notice that the pre-allocated heap memory is not released until the program exits. \n
+ * This allocator is not thread-safe and can't be used in container.
  *
  * @tparam cache The size of the first heap memory allocation
  * @tparam threshold The threshold for using malloc to allocate heap memory
@@ -3581,19 +3586,19 @@ class unique_stack_allocator<stack_allocator<cache, threshold>> : private nonsen
     using Mybase = nonsendable;
 
 public:
-    unique_stack_allocator(const StackAllocator &al) : pair(al, {}) {}
+    unique_stack_allocator(const StackAllocator &al) : m_pair(al, {}) {}
     ~unique_stack_allocator() {
         Mybase::check();
-        pair.first().deallocate(pair.second());
+        m_pair.first().deallocate(m_pair.second());
     }
 
     WJR_CONSTEXPR20 void *allocate(size_t n) {
         Mybase::check();
-        return pair.first().allocate(n, pair.second());
+        return m_pair.first().allocate(n, m_pair.second());
     }
 
 private:
-    compressed_pair<StackAllocator, stack_top> pair;
+    compressed_pair<StackAllocator, stack_top> m_pair;
 };
 
 template <typename StackAllocator>
@@ -14321,7 +14326,7 @@ enum class __mul_mode : uint8_t {
 template <__mul_mode mode, bool reserved, typename T>
 WJR_INTRINSIC_INLINE void __mul_s_impl(T *WJR_RESTRICT dst, const T *src0, size_t n,
                                        const T *src1, size_t m,
-                                       std::conditional_t<reserved, T *, empty> mal);
+                                       std::conditional_t<reserved, T *, empty_t> mal);
 
 template <__mul_mode mode, typename T>
 WJR_INTRINSIC_INLINE void __mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n,
@@ -14338,7 +14343,7 @@ WJR_INTRINSIC_INLINE void mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n,
 template <__mul_mode mode, bool reserved, typename T>
 WJR_INTRINSIC_INLINE void __mul_n_impl(T *WJR_RESTRICT dst, const T *src0, const T *src1,
                                        size_t n,
-                                       std::conditional_t<reserved, T *, empty> mal);
+                                       std::conditional_t<reserved, T *, empty_t> mal);
 
 template <__mul_mode mode, typename T>
 WJR_INTRINSIC_INLINE void __mul_n(T *WJR_RESTRICT dst, const T *src0, const T *src1,
@@ -14367,7 +14372,7 @@ void basecase_sqr(T *WJR_RESTRICT dst, const T *src, size_t n);
 
 template <__mul_mode mode, bool reserved, typename T>
 WJR_INTRINSIC_INLINE void __sqr_impl(T *WJR_RESTRICT dst, const T *src, size_t n,
-                                     std::conditional_t<reserved, T *, empty> mal);
+                                     std::conditional_t<reserved, T *, empty_t> mal);
 
 template <typename T>
 WJR_INTRINSIC_INLINE void __sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *stk);
@@ -14572,7 +14577,7 @@ WJR_INTRINSIC_INLINE P *__mul_s_allocate(WJR_MAYBE_UNUSED T mal,
 
 template <bool reserved, typename T>
 void __toom22_mul_s_impl(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1,
-                         size_t m, std::conditional_t<reserved, T *, empty> mal) {
+                         size_t m, std::conditional_t<reserved, T *, empty_t> mal) {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
     WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n + m, src0, n));
@@ -14638,7 +14643,7 @@ void __toom22_mul_s_impl(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *
 
 template <bool reserved, typename T>
 void __noinline_mul_s_impl(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1,
-                           size_t m, std::conditional_t<reserved, T *, empty> mal) {
+                           size_t m, std::conditional_t<reserved, T *, empty_t> mal) {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
     WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n + m, src0, n));
@@ -14778,12 +14783,12 @@ extern template void __noinline_mul_s_impl<false, uint64_t>(uint64_t *WJR_RESTRI
                                                             const uint64_t *src0,
                                                             size_t n,
                                                             const uint64_t *src1,
-                                                            size_t m, empty mal);
+                                                            size_t m, empty_t mal);
 
 template <__mul_mode mode, bool reserved, typename T>
 WJR_INTRINSIC_INLINE void __mul_s_impl(T *WJR_RESTRICT dst, const T *src0, size_t n,
                                        const T *src1, size_t m,
-                                       std::conditional_t<reserved, T *, empty> mal) {
+                                       std::conditional_t<reserved, T *, empty_t> mal) {
     static_assert((int)__mul_mode::toom22 == 0, "");
     if (WJR_BUILTIN_CONSTANT_P(n == m) && n == m) {
         return __mul_n_impl<mode, reserved>(dst, src0, src1, n, mal);
@@ -14805,7 +14810,7 @@ WJR_INTRINSIC_INLINE void __mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n,
 template <typename T>
 WJR_INTRINSIC_INLINE void mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n,
                                 const T *src1, size_t m) {
-    return __mul_s_impl<__mul_mode::all, false>(dst, src0, n, src1, m, empty{});
+    return __mul_s_impl<__mul_mode::all, false>(dst, src0, n, src1, m, empty_t{});
 }
 
 template <typename T>
@@ -14817,7 +14822,7 @@ WJR_INTRINSIC_INLINE void mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n,
 template <__mul_mode mode, bool reserved, typename T>
 WJR_INTRINSIC_INLINE void
 __inline_mul_n_impl(T *WJR_RESTRICT dst, const T *src0, const T *src1, size_t n,
-                    std::conditional_t<reserved, T *, empty> mal) {
+                    std::conditional_t<reserved, T *, empty_t> mal) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n * 2, src0, n));
     WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n * 2, src1, n));
@@ -14843,7 +14848,7 @@ __inline_mul_n_impl(T *WJR_RESTRICT dst, const T *src0, const T *src1, size_t n,
 
 template <bool reserved, typename T>
 void __noinline_mul_n_impl(T *WJR_RESTRICT dst, const T *src0, const T *src1, size_t n,
-                           std::conditional_t<reserved, T *, empty> mal) {
+                           std::conditional_t<reserved, T *, empty_t> mal) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n * 2, src0, n));
     WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n * 2, src1, n));
@@ -14875,7 +14880,7 @@ void __noinline_mul_n_impl(T *WJR_RESTRICT dst, const T *src0, const T *src1, si
 template <__mul_mode mode, bool reserved, typename T>
 WJR_INTRINSIC_INLINE void __mul_n_impl(T *WJR_RESTRICT dst, const T *src0, const T *src1,
                                        size_t n,
-                                       std::conditional_t<reserved, T *, empty> mal) {
+                                       std::conditional_t<reserved, T *, empty_t> mal) {
     if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
         return __sqr_impl<mode, reserved>(dst, src0, n, mal);
     }
@@ -14920,7 +14925,7 @@ void __mul_n(T *WJR_RESTRICT dst, const T *src0, const T *src1, size_t n, T *stk
 template <typename T>
 WJR_INTRINSIC_INLINE void mul_n(T *WJR_RESTRICT dst, const T *src0, const T *src1,
                                 size_t n) {
-    return __mul_n_impl<__mul_mode::all, false>(dst, src0, src1, n, empty{});
+    return __mul_n_impl<__mul_mode::all, false>(dst, src0, src1, n, empty_t{});
 }
 
 template <typename T>
@@ -14932,7 +14937,7 @@ WJR_INTRINSIC_INLINE void mul_n(T *WJR_RESTRICT dst, const T *src0, const T *src
 template <__mul_mode mode, bool reserved, typename T>
 WJR_INTRINSIC_INLINE void
 __inline_sqr_impl(T *WJR_RESTRICT dst, const T *src, size_t n,
-                  std::conditional_t<reserved, T *, empty> mal) {
+                  std::conditional_t<reserved, T *, empty_t> mal) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n * 2, src, n));
 
@@ -14957,7 +14962,7 @@ __inline_sqr_impl(T *WJR_RESTRICT dst, const T *src, size_t n,
 
 template <bool reserved, typename T>
 void __noinline_sqr_impl(T *WJR_RESTRICT dst, const T *src, size_t n,
-                         std::conditional_t<reserved, T *, empty> mal) {
+                         std::conditional_t<reserved, T *, empty_t> mal) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n * 2, src, n));
 
@@ -14987,7 +14992,7 @@ void __noinline_sqr_impl(T *WJR_RESTRICT dst, const T *src, size_t n,
 
 template <__mul_mode mode, bool reserved, typename T>
 WJR_INTRINSIC_INLINE void __sqr_impl(T *WJR_RESTRICT dst, const T *src, size_t n,
-                                     std::conditional_t<reserved, T *, empty> mal) {
+                                     std::conditional_t<reserved, T *, empty_t> mal) {
     if constexpr (mode <= __mul_mode::toom33) {
         return __inline_sqr_impl<mode, reserved>(dst, src, n, mal);
     } else {
@@ -15020,7 +15025,7 @@ void __sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *stk, T &c_out,
 
 template <typename T>
 WJR_INTRINSIC_INLINE void sqr(T *WJR_RESTRICT dst, const T *src, size_t n) {
-    __sqr_impl<__mul_mode::all, false>(dst, src, n, empty{});
+    __sqr_impl<__mul_mode::all, false>(dst, src, n, empty_t{});
 }
 
 template <typename T>
@@ -20359,7 +20364,42 @@ uint64_t *from_chars(Iter first, Iter last, uint64_t *up, unsigned int base = 10
 #include <stdexcept>
 
 // Already included
+#ifndef WJR_MEMORY_TO_ADDRESS_HPP__
+#define WJR_MEMORY_TO_ADDRESS_HPP__
+
 // Already included
+
+namespace wjr {
+
+template <typename Ptr, typename = void>
+struct __has_to_address_impl : std::false_type {};
+
+template <typename Ptr>
+struct __has_to_address_impl<
+    Ptr, std::void_t<decltype(typename std::pointer_traits<Ptr>::to_address(
+             std::declval<const Ptr &>()))>> : std::true_type {};
+
+template <typename Ptr>
+struct __has_to_address : __has_to_address_impl<remove_cvref_t<Ptr>, void> {};
+
+template <typename T>
+constexpr T *to_address(T *p) noexcept {
+    static_assert(!std::is_function_v<T>, "T cannot be a function.");
+    return p;
+}
+
+template <typename Ptr>
+constexpr auto to_address(const Ptr &p) noexcept {
+    if constexpr (__has_to_address<Ptr>::value) {
+        return std::pointer_traits<Ptr>::to_address(p);
+    } else {
+        return to_address(p.operator->());
+    }
+}
+
+} // namespace wjr
+
+#endif // WJR_MEMORY_TO_ADDRESS_HPP__
 
 namespace wjr {
 

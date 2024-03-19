@@ -14,12 +14,14 @@
 
 namespace wjr {
 
-struct empty {};
+struct empty_t {};
+
+struct default_construct_t {};
 
 template <typename T>
 struct null_ref_t {};
 
-template <typename T = empty>
+template <typename T = empty_t>
 inline constexpr null_ref_t<T> null_ref = {};
 
 struct in_place_max_t {
@@ -330,6 +332,20 @@ struct is_contiguous_iterator<std::reverse_iterator<iter>>
 
 template <typename iter>
 inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<iter>::value;
+
+template <typename T, typename = void>
+struct __is_iterator_helper : std::false_type {};
+
+template <typename T>
+struct __is_iterator_helper<
+    T, std::void_t<typename std::iterator_traits<T>::iterator_category>>
+    : std::true_type {};
+
+template <typename T>
+struct is_iterator : __is_iterator_helper<T> {};
+
+template <typename T>
+inline constexpr bool is_iterator_v = is_iterator<T>::value;
 
 // TODO : move __is_in_i32_range to other header.
 WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {

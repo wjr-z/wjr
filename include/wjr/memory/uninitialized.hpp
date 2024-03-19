@@ -92,11 +92,15 @@ template <typename Iter, typename Size, typename Alloc, typename T>
 WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n,
                                                           const Alloc &alloc,
                                                           const T &value) {
-    if constexpr (is_trivially_allocator_v<Alloc>) {
-        std::uninitialized_fill_n(first, n, value);
+    if constexpr (std::is_same_v<T, default_construct_t>) {
+        uninitialized_default_construct_n_using_allocator(first, n, alloc);
     } else {
-        for (; n > 0; ++first, --n) {
-            std::allocator_traits<Alloc>::construct(alloc, to_address(first), value);
+        if constexpr (is_trivially_allocator_v<Alloc>) {
+            std::uninitialized_fill_n(first, n, value);
+        } else {
+            for (; n > 0; ++first, --n) {
+                std::allocator_traits<Alloc>::construct(alloc, to_address(first), value);
+            }
         }
     }
 }
