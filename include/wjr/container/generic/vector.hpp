@@ -389,7 +389,6 @@ public:
 
     WJR_CONSTEXPR20 void shrink_to_fit() {
         // TODO : implement
-        WJR_UNREACHABLE();
     }
 
     WJR_PURE WJR_CONSTEXPR20 size_type capacity() const noexcept {

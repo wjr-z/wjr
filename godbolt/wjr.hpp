@@ -21938,38 +21938,6 @@ WJR_CONSTEXPR20 OutputIter uninitialized_move_n_using_allocator(InputIter first,
                                                 alloc);
 }
 
-template <typename Iter, typename Alloc, typename T>
-WJR_CONSTEXPR20 void uninitialized_fill_using_allocator(Iter first, Iter last,
-                                                        const Alloc &alloc,
-                                                        const T &value) {
-    if constexpr (is_trivially_allocator_v<Alloc>) {
-        std::uninitialized_fill(first, last, value);
-    } else {
-        for (; first != last; ++first) {
-            std::allocator_traits<Alloc>::construct(alloc, to_address(first), value);
-        }
-    }
-}
-
-template <typename Iter, typename Size, typename Alloc, typename T>
-WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n,
-                                                          const Alloc &alloc,
-                                                          const T &value) {
-    if constexpr (std::is_same_v<T, default_construct_t>) {
-        uninitialized_default_construct_n_using_allocator(first, n, alloc);
-    } else if constexpr (std::is_same_v<T, value_construct_t>) {
-        uninitialized_value_construct_n_using_allocator(first, n, alloc);
-    } else {
-        if constexpr (is_trivially_allocator_v<Alloc>) {
-            std::uninitialized_fill_n(first, n, value);
-        } else {
-            for (; n > 0; ++first, --n) {
-                std::allocator_traits<Alloc>::construct(alloc, to_address(first), value);
-            }
-        }
-    }
-}
-
 template <typename Iter, typename Alloc>
 WJR_CONSTEXPR20 void uninitialized_default_construct_using_allocator(Iter first,
                                                                      Iter last,
@@ -22016,6 +21984,44 @@ WJR_CONSTEXPR20 void uninitialized_value_construct_n_using_allocator(Iter first,
     } else {
         for (; n > 0; ++first, --n) {
             std::allocator_traits<Alloc>::construct(alloc, to_address(first));
+        }
+    }
+}
+
+template <typename Iter, typename Alloc, typename T>
+WJR_CONSTEXPR20 void uninitialized_fill_using_allocator(Iter first, Iter last,
+                                                        const Alloc &alloc,
+                                                        const T &value) {
+    if constexpr (std::is_same_v<T, default_construct_t>) {
+        uninitialized_default_construct_using_allocator(first, last, alloc);
+    } else if constexpr (std::is_same_v<T, value_construct_t>) {
+        uninitialized_value_construct_using_allocator(first, last, alloc);
+    } else {
+        if constexpr (is_trivially_allocator_v<Alloc>) {
+            std::uninitialized_fill(first, last, value);
+        } else {
+            for (; first != last; ++first) {
+                std::allocator_traits<Alloc>::construct(alloc, to_address(first), value);
+            }
+        }
+    }
+}
+
+template <typename Iter, typename Size, typename Alloc, typename T>
+WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n,
+                                                          const Alloc &alloc,
+                                                          const T &value) {
+    if constexpr (std::is_same_v<T, default_construct_t>) {
+        uninitialized_default_construct_n_using_allocator(first, n, alloc);
+    } else if constexpr (std::is_same_v<T, value_construct_t>) {
+        uninitialized_value_construct_n_using_allocator(first, n, alloc);
+    } else {
+        if constexpr (is_trivially_allocator_v<Alloc>) {
+            std::uninitialized_fill_n(first, n, value);
+        } else {
+            for (; n > 0; ++first, --n) {
+                std::allocator_traits<Alloc>::construct(alloc, to_address(first), value);
+            }
         }
     }
 }
@@ -22444,7 +22450,6 @@ public:
 
     WJR_CONSTEXPR20 void shrink_to_fit() {
         // TODO : implement
-        WJR_UNREACHABLE();
     }
 
     WJR_PURE WJR_CONSTEXPR20 size_type capacity() const noexcept {

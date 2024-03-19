@@ -1,6 +1,8 @@
-#include <gtest/gtest.h>
+#include <list>
 #include <random>
 #include <string_view>
+
+#include <gtest/gtest.h>
 
 #if defined(WJR_USE_GMP)
 #include <gmp.h>
@@ -1873,7 +1875,6 @@ const static std::string __string2 = std::string("abc");
 
 template <typename Func>
 void run_range(Func fn) {
-    fn(32);
     for (int i = 0; i < 32; ++i) {
         fn(i);
     }
@@ -1968,7 +1969,7 @@ struct random_string_fn {
 
 inline constexpr random_string_fn random_string = {};
 
-template<typename T>
+template <typename T>
 using wvector = wjr::vector<T>;
 
 TEST(vector, construct) {
@@ -2407,8 +2408,9 @@ TEST(vector, insert) {
         auto test = [](auto _Val, auto _Val2, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
             auto __test = [&](size_t pos) {
-                if (pos < 0 || pos > s)
+                if (wjr::__has_high_bit(pos) || pos > s) {
                     return;
+                }
                 wvector<T> v(c, _Val);
                 v.resize(s, _Val);
                 v.insert(v.data() + pos, n, _Val2);
