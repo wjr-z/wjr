@@ -1874,7 +1874,6 @@ const static std::string __string2 = std::string("abc");
 template <typename Func>
 void run_range(Func fn) {
     fn(32);
-    return;
     for (int i = 0; i < 32; ++i) {
         fn(i);
     }
@@ -1969,13 +1968,16 @@ struct random_string_fn {
 
 inline constexpr random_string_fn random_string = {};
 
+template<typename T>
+using wvector = wjr::vector<T>;
+
 TEST(vector, construct) {
 
     // default
     {
         auto test = [](auto _Val) {
             using T = decltype(_Val);
-            wjr::vector<T> v;
+            wvector<T> v;
             EXPECT_EQ(v.size(), 0);
             EXPECT_GE(v.capacity(), 0);
         };
@@ -1986,7 +1988,7 @@ TEST(vector, construct) {
         auto test = [](auto _Val) {
             using T = decltype(_Val);
             std::allocator<T> al;
-            wjr::vector<T> v(al);
+            wvector<T> v(al);
             EXPECT_EQ(v.size(), 0);
             EXPECT_GE(v.capacity(), 0);
         };
@@ -1997,7 +1999,7 @@ TEST(vector, construct) {
         auto test = [](auto _Val, size_t n) {
             using T = decltype(_Val);
             std::allocator<T> al;
-            wjr::vector<T> v(n, al);
+            wvector<T> v(n, al);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
             std::for_each_n(v.data(), n, [](auto &x) { EXPECT_EQ(x, T()); });
@@ -2011,8 +2013,8 @@ TEST(vector, construct) {
         auto test = [](auto _Val, size_t n) {
             using T = decltype(_Val);
             std::allocator<T> al;
-            wjr::vector<T> V(n, _Val, al);
-            wjr::vector<T> v(V);
+            wvector<T> V(n, _Val, al);
+            wvector<T> v(V);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
             EXPECT_EQ(V.size(), n);
@@ -2033,8 +2035,8 @@ TEST(vector, construct) {
         auto test = [](auto _Val, size_t n) {
             using T = decltype(_Val);
             std::allocator<T> al;
-            wjr::vector<T> V(n, _Val, al);
-            wjr::vector<T> v(V, al);
+            wvector<T> V(n, _Val, al);
+            wvector<T> v(V, al);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
             EXPECT_EQ(V.size(), n);
@@ -2055,8 +2057,8 @@ TEST(vector, construct) {
         auto test = [](auto _Val, size_t n) {
             using T = decltype(_Val);
             std::allocator<T> al;
-            wjr::vector<T> V(n, _Val, al);
-            wjr::vector<T> v(std::move(V));
+            wvector<T> V(n, _Val, al);
+            wvector<T> v(std::move(V));
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
             EXPECT_EQ(V.size(), 0);
@@ -2072,8 +2074,8 @@ TEST(vector, construct) {
         auto test = [](auto _Val, size_t n) {
             using T = decltype(_Val);
             std::allocator<T> al;
-            wjr::vector<T> V(n, _Val, al);
-            wjr::vector<T> v(std::move(V), al);
+            wvector<T> V(n, _Val, al);
+            wvector<T> v(std::move(V), al);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
             EXPECT_EQ(V.size(), 0);
@@ -2089,7 +2091,7 @@ TEST(vector, construct) {
         auto test = [](auto _Val, int n, auto _First, auto _Last) {
             using T = decltype(_Val);
             std::allocator<T> al;
-            wjr::vector<T> v(_First, _Last, al);
+            wvector<T> v(_First, _Last, al);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
             EXPECT_TRUE(std::equal(_First, _Last, v.begin()));
@@ -2126,8 +2128,8 @@ TEST(vector, assignment) {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
             std::allocator<T> al;
-            wjr::vector<T> V(n, _Val, al);
-            wjr::vector<T> v(c);
+            wvector<T> V(n, _Val, al);
+            wvector<T> v(c);
             v.resize(s);
             EXPECT_EQ(v.size(), s);
             EXPECT_GE(v.capacity(), c);
@@ -2148,8 +2150,8 @@ TEST(vector, assignment) {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
             std::allocator<T> al;
-            wjr::vector<T> V(n, _Val, al);
-            wjr::vector<T> v(c);
+            wvector<T> V(n, _Val, al);
+            wvector<T> v(c);
             v.resize(s);
             v = std::move(V);
             EXPECT_EQ(v.size(), n);
@@ -2172,7 +2174,7 @@ TEST(vector, assign) {
     {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
-            wjr::vector<T> v(c);
+            wvector<T> v(c);
             v.resize(s);
             v.assign(n, _Val);
             EXPECT_EQ(v.size(), n);
@@ -2189,7 +2191,7 @@ TEST(vector, assign) {
     {
         auto test = [](auto _Val, int n, auto _First, auto _Last) {
             using T = decltype(_Val);
-            wjr::vector<T> v;
+            wvector<T> v;
             v.assign(_First, _Last);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
@@ -2225,7 +2227,7 @@ TEST(vector, resize) {
     {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
-            wjr::vector<T> v(c);
+            wvector<T> v(c);
             v.resize(s);
             v.resize(n, _Val);
             EXPECT_EQ(v.size(), n);
@@ -2245,7 +2247,7 @@ TEST(vector, resize) {
     {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
-            wjr::vector<T> v(c);
+            wvector<T> v(c);
             v.resize(s);
             v.resize(n);
             EXPECT_EQ(v.size(), n);
@@ -2268,7 +2270,7 @@ TEST(vector, reserve) {
     {
         auto test = [](auto _Val, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
-            wjr::vector<T> v(c, _Val);
+            wvector<T> v(c, _Val);
             v.resize(s, _Val);
             v.reserve(n);
             EXPECT_EQ(v.size(), s);
@@ -2286,7 +2288,7 @@ TEST(vector, shrink_to_fit) {
     {
         auto test = [](auto _Val, size_t s, size_t c) {
             using T = decltype(_Val);
-            wjr::vector<T> v(c, _Val);
+            wvector<T> v(c, _Val);
             v.resize(s, _Val);
             v.shrink_to_fit();
             EXPECT_EQ(v.size(), s);
@@ -2304,7 +2306,7 @@ TEST(vector, emplace_back) {
     {
         auto test = [](auto _Val, size_t n) {
             using T = decltype(_Val);
-            wjr::vector<T> v;
+            wvector<T> v;
             for (size_t i = 0; i < n; ++i) {
                 v.emplace_back(_Val);
             }
@@ -2325,7 +2327,7 @@ TEST(vector, pop_back) {
             if (!n)
                 return;
             using T = decltype(_Val);
-            wjr::vector<T> v(n, _Val);
+            wvector<T> v(n, _Val);
             v.pop_back();
             EXPECT_EQ(v.size(), n - 1);
             EXPECT_GE(v.capacity(), n);
@@ -2342,7 +2344,7 @@ TEST(vector, empty) {
     {
         auto test = [](auto _Val) {
             using T = decltype(_Val);
-            wjr::vector<T> v;
+            wvector<T> v;
             EXPECT_EQ(v.size(), 0);
             EXPECT_GE(v.capacity(), 0);
             EXPECT_TRUE(v.empty());
@@ -2358,7 +2360,7 @@ TEST(vector, at) {
     {
         auto test = [](auto _Val, size_t n, size_t i) {
             using T = decltype(_Val);
-            wjr::vector<T> v(n, _Val);
+            wvector<T> v(n, _Val);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
             try {
@@ -2381,7 +2383,7 @@ TEST(vector, emplace) {
             if (n > s)
                 return;
             using T = decltype(_Val);
-            wjr::vector<T> v(c, _Val);
+            wvector<T> v(c, _Val);
             v.resize(s, _Val);
             v.insert(v.data() + n, _Val2);
             EXPECT_EQ(v.size(), s + 1);
@@ -2407,7 +2409,7 @@ TEST(vector, insert) {
             auto __test = [&](size_t pos) {
                 if (pos < 0 || pos > s)
                     return;
-                wjr::vector<T> v(c, _Val);
+                wvector<T> v(c, _Val);
                 v.resize(s, _Val);
                 v.insert(v.data() + pos, n, _Val2);
                 EXPECT_EQ(v.size(), s + n);
@@ -2440,7 +2442,7 @@ TEST(vector, erase) {
             if (n >= s || !s)
                 return;
             using T = decltype(_Val);
-            wjr::vector<T> v(c, _Val);
+            wvector<T> v(c, _Val);
             v.resize(s, _Val);
             v.erase(v.data() + n);
             EXPECT_EQ(v.size(), s - 1);

@@ -94,6 +94,8 @@ WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n,
                                                           const T &value) {
     if constexpr (std::is_same_v<T, default_construct_t>) {
         uninitialized_default_construct_n_using_allocator(first, n, alloc);
+    } else if constexpr (std::is_same_v<T, value_construct_t>) {
+        uninitialized_value_construct_n_using_allocator(first, n, alloc);
     } else {
         if constexpr (is_trivially_allocator_v<Alloc>) {
             std::uninitialized_fill_n(first, n, value);

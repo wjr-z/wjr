@@ -2243,6 +2243,8 @@ struct empty_t {};
 
 struct default_construct_t {};
 
+struct value_construct_t {};
+
 template <typename T>
 struct null_ref_t {};
 
@@ -3168,6 +3170,7 @@ private:
 
     template <typename... Args>
     void handler(Args &&...args) const {
+        (void)fprintf(stderr, "Additional information:\n");
         (void)((__handler(std::forward<Args>(args)), ...));
         (void)fprintf(stderr, "\n");
     }
@@ -21954,6 +21957,8 @@ WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n,
                                                           const T &value) {
     if constexpr (std::is_same_v<T, default_construct_t>) {
         uninitialized_default_construct_n_using_allocator(first, n, alloc);
+    } else if constexpr (std::is_same_v<T, value_construct_t>) {
+        uninitialized_value_construct_n_using_allocator(first, n, alloc);
     } else {
         if constexpr (is_trivially_allocator_v<Alloc>) {
             std::uninitialized_fill_n(first, n, value);
@@ -22087,6 +22092,12 @@ private:
 
 namespace wjr {
 
+/**
+ * @brief Default vector storage
+ *
+ * @details Use one pointer ans two size_type currently.
+ *
+ */
 template <typename T, typename Alloc>
 class default_vector_storage {
 
@@ -22161,14 +22172,96 @@ private:
     compressed_pair<Alloc, storage> m_pair;
 };
 
+template <typename T, size_t Capacity, typename Alloc>
+class static_vector_storage {
+
+public:
+    using pointer = T *;
+    using const_pointer = const T *;
+    using size_type = size_t;
+
+private:
+    static constexpr auto max_alignment = std::max<size_t>(alignof(T), alignof(size_t));
+
+    struct storage {
+        size_t m_size = 0;
+        alignas(
+            max_alignment) std::aligned_storage_t<sizeof(T), alignof(T)> m_data[Capacity];
+    };
+
+public:
+    static_vector_storage() noexcept = default;
+
+    template <typename _Alloc>
+    WJR_CONSTEXPR20 static_vector_storage(_Alloc &&al) noexcept
+        : m_pair(std::forward<_Alloc>(al), {}) {}
+
+    static_vector_storage &operator=(const static_vector_storage &) = delete;
+    static_vector_storage &operator=(static_vector_storage &&) = delete;
+
+    ~static_vector_storage() noexcept = default;
+
+    WJR_CONSTEXPR20 Alloc &get_allocator() noexcept { return m_pair.first(); }
+    WJR_CONSTEXPR20 const Alloc &get_allocator() const noexcept { return m_pair.first(); }
+
+    WJR_CONSTEXPR20 void destroy() noexcept {
+        destroy_n_using_allocator(data(), size(), get_allocator());
+    }
+
+    WJR_CONSTEXPR20 void deallocate() noexcept {}
+
+    WJR_CONSTEXPR20 void construct_allocate(size_type size, size_type capacity) {
+        WJR_ASSERT(capacity <= Capacity,
+                   "capacity must be less than or equal to Capacity");
+        auto &m_storage = get_storage();
+        m_storage.m_size = size;
+    }
+
+    WJR_CONSTEXPR20 void take_storage(static_vector_storage &&other) noexcept {
+        auto &al = get_allocator();
+        auto &m_storage = get_storage();
+        auto &other_storage = other.get_storage();
+        m_storage.m_size = other_storage.m_size;
+        uninitialized_move_n_using_allocator(other_storage.m_data, m_storage.m_size,
+                                             m_storage.m_data, al);
+        other_storage.m_size = 0;
+    }
+
+    WJR_CONSTEXPR20 void swap_storage(static_vector_storage &other) noexcept {
+        auto &al = get_allocator();
+        static_vector_storage tmp;
+        tmp.take_storage(std::move(other));
+        other.take_storage(std::move(*this));
+        take_storage(std::move(tmp));
+    }
+
+    WJR_CONSTEXPR20 size_type &size() noexcept { return get_storage().m_size; }
+    WJR_CONSTEXPR20 size_type size() const noexcept { return get_storage().m_size; }
+    WJR_CONST WJR_CONSTEXPR20 size_type capacity() const noexcept { return Capacity; }
+
+    WJR_CONSTEXPR20 pointer data() noexcept {
+        return reinterpret_cast<pointer>(get_storage().m_data);
+    }
+    WJR_CONSTEXPR20 const_pointer data() const noexcept {
+        return reinterpret_cast<const_pointer>(get_storage().m_data);
+    }
+
+private:
+    WJR_CONSTEXPR20 storage &get_storage() noexcept { return m_pair.second(); }
+    WJR_CONSTEXPR20 const storage &get_storage() const noexcept {
+        return m_pair.second();
+    }
+
+    compressed_pair<Alloc, storage> m_pair;
+};
+
 template <typename T, typename Alloc = std::allocator<T>,
-          template <typename _T, typename _Alloc> typename Storage =
-              default_vector_storage>
+          typename Storage = default_vector_storage<T, Alloc>>
 class basic_vector {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
-    using storage_type = Storage<T, Alloc>;
+    using storage_type = Storage;
     using storage_traits_type = container_traits<_Alty>;
 
     friend class container_traits<_Alty>;
@@ -22204,7 +22297,7 @@ public:
     WJR_CONSTEXPR20 explicit basic_vector(const size_type _Count,
                                           const allocator_type &al = allocator_type())
         : basic_vector(al) {
-        __construct_n(_Count, value_type());
+        __construct_n(_Count, value_construct_t());
     }
 
     WJR_CONSTEXPR20 basic_vector(size_type _Count, const value_type &val,
@@ -22342,7 +22435,7 @@ public:
     WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept { return m_storage.size(); }
 
     WJR_CONSTEXPR20 void resize(const size_type new_size) {
-        resize(new_size, value_type());
+        __resize(new_size, value_construct_t());
     }
 
     WJR_CONSTEXPR20 void resize(const size_type new_size, const value_type &val) {
@@ -22351,6 +22444,7 @@ public:
 
     WJR_CONSTEXPR20 void shrink_to_fit() {
         // TODO : implement
+        WJR_UNREACHABLE();
     }
 
     WJR_PURE WJR_CONSTEXPR20 size_type capacity() const noexcept {
@@ -22554,7 +22648,6 @@ private:
         return std::max(old_capacity + old_capacity / 2, new_size);
     }
 
-private:
     template <typename... Args,
               std::enable_if_t<sizeof...(Args) == 1 || sizeof...(Args) == 2, int> = 0>
     WJR_CONSTEXPR20 void __construct_n(const size_type n, Args &&...args) {
@@ -23092,50 +23185,49 @@ private:
 template <typename T, typename Alloc = std::allocator<T>>
 using vector = basic_vector<T, Alloc>;
 
-#if 0
+template <typename T, size_t Capacity, typename Alloc = std::allocator<T>>
+using static_vector = basic_vector<T, Alloc, static_vector_storage<T, Capacity, Alloc>>;
 
-template <typename Iter, typename v = typename std::iterator_traits<Iter>::value_type,
-          typename Alloc = std::allocator<v>, typename Data = vector_data<v, Alloc>,
+template <typename Iter, typename T = typename std::iterator_traits<Iter>::value_type,
+          typename Alloc = std::allocator<T>,
           std::enable_if_t<is_iterator_v<Iter>, int> = 0>
-basic_vector(Iter, Iter, Alloc = Alloc()) -> basic_vector<v, Data>;
+basic_vector(Iter, Iter, Alloc = Alloc()) -> basic_vector<T, Alloc>;
 
-template <typename T, size_t N, typename Alloc = std::allocator<T>>
-using static_vector = basic_vector<T, Alloc, vector_static_data<T, N, Alloc>>;
-
-template <typename T, size_t N, typename Alloc = std::allocator<T>>
-using sso_vector = basic_vector<T, Alloc, vector_sso_data<T, N, Alloc>>;
-
-template <typename T, typename Alloc, typename Data>
-bool operator==(const basic_vector<T, Alloc, Data> &lhs, const basic_vector<T, Alloc, Data> &rhs) {
+template <typename T, typename Alloc, typename Storage>
+bool operator==(const basic_vector<T, Alloc, Storage> &lhs,
+                const basic_vector<T, Alloc, Storage> &rhs) {
     return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 
-template <typename T, typename Alloc, typename Data>
-bool operator!=(const basic_vector<T, Alloc, Data> &lhs, const basic_vector<T, Alloc, Data> &rhs) {
+template <typename T, typename Alloc, typename Storage>
+bool operator!=(const basic_vector<T, Alloc, Storage> &lhs,
+                const basic_vector<T, Alloc, Storage> &rhs) {
     return !(lhs == rhs);
 }
 
-template <typename T, typename Alloc, typename Data>
-bool operator<(const basic_vector<T, Alloc, Data> &lhs, const basic_vector<T, Alloc, Data> &rhs) {
-    return lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+template <typename T, typename Alloc, typename Storage>
+bool operator<(const basic_vector<T, Alloc, Storage> &lhs,
+               const basic_vector<T, Alloc, Storage> &rhs) {
+    return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 
-template <typename T, typename Alloc, typename Data>
-bool operator>(const basic_vector<T, Alloc, Data> &lhs, const basic_vector<T, Alloc, Data> &rhs) {
+template <typename T, typename Alloc, typename Storage>
+bool operator>(const basic_vector<T, Alloc, Storage> &lhs,
+               const basic_vector<T, Alloc, Storage> &rhs) {
     return rhs < lhs;
 }
 
-template <typename T, typename Alloc, typename Data>
-bool operator<=(const basic_vector<T, Alloc, Data> &lhs, const basic_vector<T, Alloc, Data> &rhs) {
+template <typename T, typename Alloc, typename Storage>
+bool operator<=(const basic_vector<T, Alloc, Storage> &lhs,
+                const basic_vector<T, Alloc, Storage> &rhs) {
     return !(rhs < lhs);
 }
 
-template <typename T, typename Alloc, typename Data>
-bool operator>=(const basic_vector<T, Alloc, Data> &lhs, const basic_vector<T, Alloc, Data> &rhs) {
+template <typename T, typename Alloc, typename Storage>
+bool operator>=(const basic_vector<T, Alloc, Storage> &lhs,
+                const basic_vector<T, Alloc, Storage> &rhs) {
     return !(lhs < rhs);
 }
-
-#endif
 
 } // namespace wjr
 

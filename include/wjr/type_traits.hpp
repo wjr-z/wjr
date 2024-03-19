@@ -18,6 +18,8 @@ struct empty_t {};
 
 struct default_construct_t {};
 
+struct value_construct_t {};
+
 template <typename T>
 struct null_ref_t {};
 

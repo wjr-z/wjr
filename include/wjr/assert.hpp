@@ -81,6 +81,7 @@ private:
 
     template <typename... Args>
     void handler(Args &&...args) const {
+        (void)fprintf(stderr, "Additional information:\n");
         (void)((__handler(std::forward<Args>(args)), ...));
         (void)fprintf(stderr, "\n");
     }
