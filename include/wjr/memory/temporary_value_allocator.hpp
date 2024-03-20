@@ -12,17 +12,15 @@ public:
     using pointer = value_type *;
     using const_pointer = const value_type *;
 
-    template<typename...Args>
-    temporary_value_allocator(Alloc &al, Args&&...args) : al(al) {
+    template <typename... Args>
+    temporary_value_allocator(Alloc &al, Args &&...args) : al(al) {
         uninitialized_construct_using_allocator(get(), al, std::forward<Args>(args)...);
     }
 
-    temporary_value_allocator(const temporary_value_allocator&) = delete;
-    temporary_value_allocator& operator=(const temporary_value_allocator&) = delete;
+    temporary_value_allocator(const temporary_value_allocator &) = delete;
+    temporary_value_allocator &operator=(const temporary_value_allocator &) = delete;
 
-    ~temporary_value_allocator() {
-        destroy_at_using_allocator(get(), al);
-    }
+    ~temporary_value_allocator() { destroy_at_using_allocator(get(), al); }
 
     pointer get() noexcept { return reinterpret_cast<pointer>(storage); }
     const_pointer get() const noexcept {
@@ -33,6 +31,9 @@ private:
     Alloc &al;
     std::aligned_storage_t<sizeof(value_type), alignof(value_type)> storage[1];
 };
+
+template <typename Alloc, typename... Args>
+temporary_value_allocator(Alloc &, Args &&...) -> temporary_value_allocator<Alloc>;
 
 } // namespace wjr
 
