@@ -22508,7 +22508,7 @@ public:
         if constexpr (is_storage_reallocatable::value) {
             const size_type old_size = size();
             const size_type old_capacity = capacity();
-            if (old_capacity < n) {
+            if (WJR_UNLIKELY(old_capacity < n)) {
                 auto &al = __get_allocator();
                 const size_type new_capacity = __get_growth_capacity(old_capacity, n);
 
@@ -22530,7 +22530,7 @@ public:
     }
 
     WJR_INLINE_CONSTEXPR20 reference at(size_type pos) {
-        if (pos >= size()) {
+        if (WJR_UNLIKELY(pos >= size())) {
             throw std::out_of_range("basic_vector::at");
         }
 
@@ -22538,7 +22538,7 @@ public:
     }
 
     WJR_INLINE_CONSTEXPR20 const_reference at(size_type pos) const {
-        if (pos >= size()) {
+        if (WJR_UNLIKELY(pos >= size())) {
             throw std::out_of_range("basic_vector::at");
         }
 
@@ -22568,7 +22568,7 @@ public:
         const pointer __last = data() + size();
         const pointer __end = data() + capacity();
 
-        if (__last != __end) {
+        if (WJR_LIKELY(__last != __end)) {
             uninitialized_construct_using_allocator(__last, __get_allocator(),
                                                     std::forward<Args>(args)...);
             ++__get_size();
@@ -22791,7 +22791,7 @@ private:
             const auto n = static_cast<size_type>(std::distance(first, last));
             const auto __rest = static_cast<size_type>(__end - __last);
 
-            if (__rest >= n) {
+            if (WJR_LIKELY(__rest >= n)) {
                 const auto __elements_after = static_cast<size_type>(__last - pos);
                 if (__elements_after > n) {
                     uninitialized_move_n_using_allocator(__last - n, n, __last, al);
@@ -22806,7 +22806,7 @@ private:
                                                        __last + n - __elements_after, al);
                     std::copy(first, mid, pos);
                 }
-                
+
                 __get_size() += n;
             } else {
                 if constexpr (is_storage_reallocatable::value) {
@@ -22852,7 +22852,7 @@ private:
             const auto n = static_cast<size_type>(std::distance(first, last));
             const auto __rest = static_cast<size_type>(__end - __last);
 
-            if (__rest >= n) {
+            if (WJR_LIKELY(__rest >= n)) {
                 uninitialized_copy_n_using_allocator(first, n, __last, al);
                 __get_size() += n;
             } else {
@@ -22907,7 +22907,7 @@ private:
         if (n <= size()) {
             std::copy(first, last, __first);
             __erase_at_end(__first + n);
-        } else if (n <= capacity()) {
+        } else if (WJR_LIKELY(n <= capacity())) {
             auto mid = first;
             std::advance(mid, size());
             std::copy(first, mid, begin());
@@ -22931,7 +22931,7 @@ private:
     WJR_CONSTEXPR20 void __fill_assign(size_type n, const value_type &val) {
         auto &al = __get_allocator();
 
-        if (n > capacity()) {
+        if (WJR_UNLIKELY(n > capacity())) {
             if constexpr (is_storage_reallocatable::value) {
                 __destroy_and_deallocate();
                 storage_type new_storage(al, n, n, reallocate_t());
@@ -23021,7 +23021,7 @@ private:
 
         const auto __rest = static_cast<size_type>(__end - __last);
 
-        if (__rest >= n) {
+        if (WJR_LIKELY(__rest >= n)) {
             const temporary_value_allocator<Alloc> tmp(al, val);
             const auto &real_val = *tmp.get();
 
@@ -23082,7 +23082,7 @@ private:
         const auto __rest = old_capacity - old_size;
         const auto new_size = old_size + n;
 
-        if (__rest >= n) {
+        if (WJR_LIKELY(__rest >= n)) {
             uninitialized_fill_n_using_allocator(__last, n, al, val);
             __get_size() = new_size;
         } else {
@@ -23123,7 +23123,7 @@ private:
         const pointer __last = data() + size();
         const pointer __end = data() + capacity();
 
-        if (__last != __end) {
+        if (WJR_LIKELY(__last != __end)) {
             if (pos == __last) {
                 uninitialized_construct_using_allocator(__last, al,
                                                         std::forward<Args>(args)...);
@@ -23173,7 +23173,7 @@ private:
 
             const auto __rest = static_cast<size_type>(__end - __last);
 
-            if (__rest >= __delta) {
+            if (WJR_LIKLELY(__rest >= __delta)) {
                 const auto __elements_after = static_cast<size_type>(__last - old_first);
                 if (__elements_after > m) {
                     // uninitialized_move(al, __last - __delta, __last, __last);
@@ -23232,7 +23232,7 @@ private:
 
             const auto __rest = static_cast<size_type>(__end - __last);
 
-            if (__rest >= __delta) {
+            if (WJR_LILKELY(__rest >= __delta)) {
                 const temporary_value_allocator<Alloc> tmp(al, val);
                 const auto &real_value = *tmp.get();
 
