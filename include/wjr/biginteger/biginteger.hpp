@@ -22,7 +22,7 @@ public:
         return *this;
     }
 
-    WJR_CONSTEXPR20 operator uint32_t() const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 operator uint32_t() const noexcept {
         return (m_size < 0) ? -m_size : m_size;
     }
 
@@ -101,8 +101,10 @@ public:
 
     ~default_biginteger_vector_storage() noexcept = default;
 
-    WJR_CONSTEXPR20 _Alty &get_allocator() noexcept { return m_pair.first(); }
-    WJR_CONSTEXPR20 const _Alty &get_allocator() const noexcept { return m_pair.first(); }
+    WJR_PURE WJR_CONSTEXPR20 _Alty &get_allocator() noexcept { return m_pair.first(); }
+    WJR_PURE WJR_CONSTEXPR20 const _Alty &get_allocator() const noexcept {
+        return m_pair.first();
+    }
 
     WJR_CONSTEXPR20 void destroy() noexcept {
         const size_type __size = size();
@@ -132,28 +134,32 @@ public:
         std::swap(__get_data(), other.__get_data());
     }
 
-    WJR_CONSTEXPR20 default_biginteger_size_reference size() noexcept {
+    WJR_PURE WJR_CONSTEXPR20 default_biginteger_size_reference size() noexcept {
         return default_biginteger_size_reference(__get_data().m_size);
     }
-    WJR_CONSTEXPR20 size_type size() const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept {
         int32_t __size = get_xsize();
         return (__size < 0) ? -__size : __size;
     }
-    WJR_CONSTEXPR20 size_type capacity() const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 size_type capacity() const noexcept {
         return __get_data().m_capacity;
     }
 
-    WJR_CONSTEXPR20 pointer data() noexcept { return __get_data().m_data; }
-    WJR_CONSTEXPR20 const_pointer data() const noexcept { return __get_data().m_data; }
+    WJR_PURE WJR_CONSTEXPR20 pointer data() noexcept { return __get_data().m_data; }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer data() const noexcept {
+        return __get_data().m_data;
+    }
 
     // extension
 
-    WJR_CONSTEXPR20 int32_t get_xsize() const noexcept { return __get_data().m_size; }
+    WJR_PURE WJR_CONSTEXPR20 int32_t get_xsize() const noexcept {
+        return __get_data().m_size;
+    }
     WJR_CONSTEXPR20 void set_xsize(int32_t size) noexcept { __get_data().m_size = size; }
 
 private:
-    WJR_CONSTEXPR20 data_type &__get_data() noexcept { return m_pair.second(); }
-    WJR_CONSTEXPR20 const data_type &__get_data() const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 data_type &__get_data() noexcept { return m_pair.second(); }
+    WJR_PURE WJR_CONSTEXPR20 const data_type &__get_data() const noexcept {
         return m_pair.second();
     }
 

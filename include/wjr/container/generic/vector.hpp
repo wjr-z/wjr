@@ -113,8 +113,10 @@ public:
 
     ~default_vector_storage() noexcept = default;
 
-    WJR_CONSTEXPR20 _Alty &get_allocator() noexcept { return m_pair.first(); }
-    WJR_CONSTEXPR20 const _Alty &get_allocator() const noexcept { return m_pair.first(); }
+    WJR_PURE WJR_CONSTEXPR20 _Alty &get_allocator() noexcept { return m_pair.first(); }
+    WJR_PURE WJR_CONSTEXPR20 const _Alty &get_allocator() const noexcept {
+        return m_pair.first();
+    }
 
     WJR_CONSTEXPR20 void destroy() noexcept {
         destroy_n_using_allocator(data(), size(), get_allocator());
@@ -142,18 +144,22 @@ public:
         std::swap(__get_data(), other.__get_data());
     }
 
-    WJR_CONSTEXPR20 size_type &size() noexcept { return __get_data().m_size; }
-    WJR_CONSTEXPR20 size_type size() const noexcept { return __get_data().m_size; }
-    WJR_CONSTEXPR20 size_type capacity() const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 size_type &size() noexcept { return __get_data().m_size; }
+    WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept {
+        return __get_data().m_size;
+    }
+    WJR_PURE WJR_CONSTEXPR20 size_type capacity() const noexcept {
         return __get_data().m_capacity;
     }
 
-    WJR_CONSTEXPR20 pointer data() noexcept { return __get_data().m_data; }
-    WJR_CONSTEXPR20 const_pointer data() const noexcept { return __get_data().m_data; }
+    WJR_PURE WJR_CONSTEXPR20 pointer data() noexcept { return __get_data().m_data; }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer data() const noexcept {
+        return __get_data().m_data;
+    }
 
 private:
-    WJR_CONSTEXPR20 data_type &__get_data() noexcept { return m_pair.second(); }
-    WJR_CONSTEXPR20 const data_type &__get_data() const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 data_type &__get_data() noexcept { return m_pair.second(); }
+    WJR_PURE WJR_CONSTEXPR20 const data_type &__get_data() const noexcept {
         return m_pair.second();
     }
 
@@ -205,8 +211,10 @@ public:
 
     ~static_vector_storage() noexcept = default;
 
-    WJR_CONSTEXPR20 _Alty &get_allocator() noexcept { return m_pair.first(); }
-    WJR_CONSTEXPR20 const _Alty &get_allocator() const noexcept { return m_pair.first(); }
+    WJR_PURE WJR_CONSTEXPR20 _Alty &get_allocator() noexcept { return m_pair.first(); }
+    WJR_PURE WJR_CONSTEXPR20 const _Alty &get_allocator() const noexcept {
+        return m_pair.first();
+    }
 
     WJR_CONSTEXPR20 void destroy() noexcept {
         destroy_n_using_allocator(data(), size(), get_allocator());
@@ -240,20 +248,22 @@ public:
         take_storage(std::move(tmp));
     }
 
-    WJR_CONSTEXPR20 size_type &size() noexcept { return __get_data().m_size; }
-    WJR_CONSTEXPR20 size_type size() const noexcept { return __get_data().m_size; }
+    WJR_PURE WJR_CONSTEXPR20 size_type &size() noexcept { return __get_data().m_size; }
+    WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept {
+        return __get_data().m_size;
+    }
     WJR_CONST WJR_CONSTEXPR20 size_type capacity() const noexcept { return Capacity; }
 
-    WJR_CONSTEXPR20 pointer data() noexcept {
+    WJR_PURE WJR_CONSTEXPR20 pointer data() noexcept {
         return reinterpret_cast<pointer>(__get_data().m_data);
     }
-    WJR_CONSTEXPR20 const_pointer data() const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 const_pointer data() const noexcept {
         return reinterpret_cast<const_pointer>(__get_data().m_data);
     }
 
 private:
-    WJR_CONSTEXPR20 data_type &__get_data() noexcept { return m_pair.second(); }
-    WJR_CONSTEXPR20 const data_type &__get_data() const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 data_type &__get_data() noexcept { return m_pair.second(); }
+    WJR_PURE WJR_CONSTEXPR20 const data_type &__get_data() const noexcept {
         return m_pair.second();
     }
 
@@ -409,41 +419,47 @@ public:
         return assign(il.begin(), il.end());
     }
 
-    WJR_INLINE_CONSTEXPR20 iterator begin() noexcept { return data(); }
+    WJR_PURE WJR_INLINE_CONSTEXPR20 iterator begin() noexcept { return data(); }
 
-    WJR_INLINE_CONSTEXPR20 const_iterator begin() const noexcept { return data(); }
+    WJR_PURE WJR_INLINE_CONSTEXPR20 const_iterator begin() const noexcept {
+        return data();
+    }
 
-    WJR_INLINE_CONSTEXPR20 const_iterator cbegin() const noexcept { return data(); }
+    WJR_PURE WJR_INLINE_CONSTEXPR20 const_iterator cbegin() const noexcept {
+        return data();
+    }
 
-    WJR_INLINE_CONSTEXPR20 iterator end() noexcept { return data() + size(); }
+    WJR_PURE WJR_INLINE_CONSTEXPR20 iterator end() noexcept { return data() + size(); }
 
-    WJR_INLINE_CONSTEXPR20 const_iterator end() const noexcept { return data() + size(); }
-
-    WJR_INLINE_CONSTEXPR20 const_iterator cend() const noexcept {
+    WJR_PURE WJR_INLINE_CONSTEXPR20 const_iterator end() const noexcept {
         return data() + size();
     }
 
-    WJR_INLINE_CONSTEXPR20 reverse_iterator rbegin() noexcept {
+    WJR_PURE WJR_INLINE_CONSTEXPR20 const_iterator cend() const noexcept {
+        return data() + size();
+    }
+
+    WJR_PURE WJR_INLINE_CONSTEXPR20 reverse_iterator rbegin() noexcept {
         return reverse_iterator(end());
     }
 
-    WJR_INLINE_CONSTEXPR20 const_reverse_iterator rbegin() const noexcept {
+    WJR_PURE WJR_INLINE_CONSTEXPR20 const_reverse_iterator rbegin() const noexcept {
         return const_reverse_iterator(end());
     }
 
-    WJR_INLINE_CONSTEXPR20 const_reverse_iterator crbegin() const noexcept {
+    WJR_PURE WJR_INLINE_CONSTEXPR20 const_reverse_iterator crbegin() const noexcept {
         return const_reverse_iterator(cend());
     }
 
-    WJR_INLINE_CONSTEXPR20 reverse_iterator rend() noexcept {
+    WJR_PURE WJR_INLINE_CONSTEXPR20 reverse_iterator rend() noexcept {
         return reverse_iterator(begin());
     }
 
-    WJR_INLINE_CONSTEXPR20 const_reverse_iterator rend() const noexcept {
+    WJR_PURE WJR_INLINE_CONSTEXPR20 const_reverse_iterator rend() const noexcept {
         return const_reverse_iterator(begin());
     }
 
-    WJR_INLINE_CONSTEXPR20 const_reverse_iterator crend() const noexcept {
+    WJR_PURE WJR_INLINE_CONSTEXPR20 const_reverse_iterator crend() const noexcept {
         return const_reverse_iterator(cbegin());
     }
 
@@ -477,7 +493,7 @@ public:
         return m_storage.capacity();
     }
 
-    WJR_INLINE_CONSTEXPR20 bool empty() const noexcept { return size() == 0; }
+    WJR_PURE WJR_INLINE_CONSTEXPR20 bool empty() const noexcept { return size() == 0; }
 
     WJR_CONSTEXPR20 void reserve(size_type n) {
         if constexpr (is_storage_reallocatable::value) {
@@ -617,10 +633,10 @@ public:
         WJR_ASSUME(size() == 0);
     }
 
-    WJR_INLINE_CONSTEXPR20 allocator_type &get_allocator() noexcept {
+    WJR_PURE WJR_INLINE_CONSTEXPR20 allocator_type &get_allocator() noexcept {
         return __get_allocator();
     }
-    WJR_INLINE_CONSTEXPR20 const allocator_type &get_allocator() const noexcept {
+    WJR_PURE WJR_INLINE_CONSTEXPR20 const allocator_type &get_allocator() const noexcept {
         return __get_allocator();
     }
 
@@ -698,8 +714,10 @@ public:
         return *this;
     }
 
-    WJR_CONSTEXPR20 storage_type &get_storage() noexcept { return m_storage; }
-    WJR_CONSTEXPR20 const storage_type &get_storage() const noexcept { return m_storage; }
+    WJR_PURE WJR_CONSTEXPR20 storage_type &get_storage() noexcept { return m_storage; }
+    WJR_PURE WJR_CONSTEXPR20 const storage_type &get_storage() const noexcept {
+        return m_storage;
+    }
 
 private:
     // member function for container_traits (START)
@@ -738,14 +756,16 @@ private:
 
     // member function for container_traits (END)
 
-    WJR_CONSTEXPR20 __get_size_t __get_size() noexcept { return m_storage.size(); }
+    WJR_PURE WJR_CONSTEXPR20 __get_size_t __get_size() noexcept {
+        return m_storage.size();
+    }
 
     WJR_CONSTEXPR20 void __take_storage(storage_type &&other) {
         m_storage.take_storage(std::move(other));
     }
 
-    WJR_CONSTEXPR20 static size_type __get_growth_capacity(size_type old_capacity,
-                                                           size_type new_size) noexcept {
+    WJR_CONST WJR_CONSTEXPR20 static size_type
+    __get_growth_capacity(size_type old_capacity, size_type new_size) noexcept {
         return std::max(old_capacity + old_capacity / 2, new_size);
     }
 
