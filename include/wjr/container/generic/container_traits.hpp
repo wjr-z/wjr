@@ -18,9 +18,9 @@ namespace wjr {
  * -# void __move_element(container&& other)
  * -# void __swap_storage(container& other)
  *
- * 1 is used to manage the allocator of the container. \n
- * 2, 3 is used to destroy the container and deallocate the memory. \n
- * 4, 5, 6, 7 is used to assign the container data. Shouldn't change the allocator.
+ * 1 : is used to manage the allocator of the container. \n
+ * 2-3 : is used to destroy the container and deallocate the memory. \n
+ * 4-7 : is used to assign the container data. Shouldn't change the allocator.
  *
  */
 template <typename Alloc>

@@ -3,6 +3,7 @@
 #include <benchmark/benchmark.h>
 #include <gmp.h>
 #include <wjr/math.hpp>
+#include <wjr/vector.hpp>
 
 static std::mt19937_64 __mt_rand(time(0));
 static auto mt_rand = std::ref(__mt_rand);
@@ -34,6 +35,11 @@ void random_run(benchmark::State &state, Re re, Func fn) {
 
     (void)(begin != end);
 }
+
+#define NORMAL_TESTS(MULTIPLY, MAXN)                                                     \
+    DenseRange(1, 4, 1)->RangeMultiplier(MULTIPLY)->Range(8, MAXN)
+
+namespace math_tests {
 
 static void wjr_popcount(benchmark::State &state) {
     const int n = 17;
@@ -1218,9 +1224,6 @@ static void Product2D(benchmark::internal::Benchmark *state) {
     }
 }
 
-#define NORMAL_TESTS(MULTIPLY, MAXN)                                                     \
-    DenseRange(1, 4, 1)->RangeMultiplier(MULTIPLY)->Range(8, MAXN)
-
 BENCHMARK(wjr_popcount);
 BENCHMARK(wjr_clz);
 BENCHMARK(wjr_ctz);
@@ -1301,6 +1304,12 @@ BENCHMARK(gmp_sqr)->NORMAL_TESTS(2, 1024);
 BENCHMARK(gmp_div_qr_1)->NORMAL_TESTS(2, 256);
 BENCHMARK(gmp_div_qr_2)->DenseRange(2, 4, 1)->RangeMultiplier(2)->Range(8, 256);
 BENCHMARK(gmp_div_qr_s)->Apply(Product2D);
+
+} // namespace math_tests
+
+namespace vector_tests {
+
+} // namespace vector_tests
 
 #undef NORMAL_TESTS
 

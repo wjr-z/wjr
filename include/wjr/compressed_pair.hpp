@@ -382,11 +382,11 @@ constexpr bool operator>=(const compressed_pair<T, U> &lhs,
 }
 
 template <typename T, typename U>
-constexpr compressed_pair<unrefwrap_t<T>, unrefwrap_t<U>>
+constexpr compressed_pair<unref_wrapper_t<T>, unref_wrapper_t<U>>
 make_compressed_pair(T &&t, U &&u) noexcept(
-    std::conjunction_v<std::is_nothrow_constructible<unrefwrap_t<T>, T>,
-                       std::is_nothrow_constructible<unrefwrap_t<U>, U>>) {
-    return compressed_pair<unrefwrap_t<T>, unrefwrap_t<U>>(std::forward<T>(t),
+    std::conjunction_v<std::is_nothrow_constructible<unref_wrapper_t<T>, T>,
+                       std::is_nothrow_constructible<unref_wrapper_t<U>, U>>) {
+    return compressed_pair<unref_wrapper_t<T>, unref_wrapper_t<U>>(std::forward<T>(t),
                                                            std::forward<U>(u));
 }
 

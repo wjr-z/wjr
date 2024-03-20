@@ -3,7 +3,6 @@
 
 /**
  * @file uninitialized.hpp
- * @author wjr
  * @brief The header file for uninitialized memory operations using allocator.
  *
  * @version 0.0.1

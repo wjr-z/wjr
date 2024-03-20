@@ -20,6 +20,8 @@ struct default_construct_t {};
 
 struct value_construct_t {};
 
+struct reallocate_t {};
+
 template <typename T>
 struct null_ref_t {};
 
@@ -226,17 +228,17 @@ template <typename T>
 inline constexpr bool is_nothrow_swappable_v = is_nothrow_swappable<T>::value;
 
 template <typename T>
-struct unrefwrap {
+struct unref_wrapper {
     using type = T;
 };
 
 template <typename T>
-struct unrefwrap<std::reference_wrapper<T>> {
+struct unref_wrapper<std::reference_wrapper<T>> {
     using type = T &;
 };
 
 template <typename T>
-using unrefwrap_t = typename unrefwrap<T>::type;
+using unref_wrapper_t = typename unref_wrapper<T>::type;
 
 template <typename T, typename = void>
 struct __is_default_convertible : std::false_type {};

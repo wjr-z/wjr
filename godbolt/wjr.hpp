@@ -2245,6 +2245,8 @@ struct default_construct_t {};
 
 struct value_construct_t {};
 
+struct reallocate_t {};
+
 template <typename T>
 struct null_ref_t {};
 
@@ -2451,17 +2453,17 @@ template <typename T>
 inline constexpr bool is_nothrow_swappable_v = is_nothrow_swappable<T>::value;
 
 template <typename T>
-struct unrefwrap {
+struct unref_wrapper {
     using type = T;
 };
 
 template <typename T>
-struct unrefwrap<std::reference_wrapper<T>> {
+struct unref_wrapper<std::reference_wrapper<T>> {
     using type = T &;
 };
 
 template <typename T>
-using unrefwrap_t = typename unrefwrap<T>::type;
+using unref_wrapper_t = typename unref_wrapper<T>::type;
 
 template <typename T, typename = void>
 struct __is_default_convertible : std::false_type {};
@@ -2959,11 +2961,11 @@ constexpr bool operator>=(const compressed_pair<T, U> &lhs,
 }
 
 template <typename T, typename U>
-constexpr compressed_pair<unrefwrap_t<T>, unrefwrap_t<U>>
+constexpr compressed_pair<unref_wrapper_t<T>, unref_wrapper_t<U>>
 make_compressed_pair(T &&t, U &&u) noexcept(
-    std::conjunction_v<std::is_nothrow_constructible<unrefwrap_t<T>, T>,
-                       std::is_nothrow_constructible<unrefwrap_t<U>, U>>) {
-    return compressed_pair<unrefwrap_t<T>, unrefwrap_t<U>>(std::forward<T>(t),
+    std::conjunction_v<std::is_nothrow_constructible<unref_wrapper_t<T>, T>,
+                       std::is_nothrow_constructible<unref_wrapper_t<U>, U>>) {
+    return compressed_pair<unref_wrapper_t<T>, unref_wrapper_t<U>>(std::forward<T>(t),
                                                            std::forward<U>(u));
 }
 
@@ -21735,7 +21737,6 @@ using tp_sort_f = typename tp_sort<C, P::template fn>::type;
 
 /**
  * @file vector.hpp
- * @author wjr
  * @brief Vector container with definable internal structure
  *
  * @details
@@ -21743,20 +21744,41 @@ using tp_sort_f = typename tp_sort<C, P::template fn>::type;
  * -# storage()
  * -# template <typename _Alloc>  \n
  * storage(_Alloc&& al)
+ * -# template <typename _Alloc> \n
+ * storage(_Alloc&& al, size_type size, size_type capacity, reallocate_t)
+ * -# storage& (const storage&) = delete
  * -# storage& operator=(const storage&) = delete
- * -# storage& operator=(storage&&) = delete
  * -# ~storage() noexcept
  * -# auto& get_allocator() noexcept
  * -# const auto& get_allocator() const noexcept
  * -# void destroy() noexcept
  * -# void deallocate()
- * -# void construct_allocate(size_type size, size_type capacity)
+ * -# void uninitialized_construct(size_type size, size_type capacity)
  * -# void take_storage(storage&& other)
  * -# void swap_storage(storage& other)
  * -# decltype(auto) size() noexcept
  * -# size_type capacity() const noexcept
  * -# pointer data() noexcept
  * -# const_pointer data() const noexcept
+ *
+ * 1 : should not allocate memory. \n
+ * 2 : just store the allocator. \n
+ * 3 : allocate memory and set the size and capacity. this function is used for
+ * reallocation. if the storage is not reallocatable, this function won't be
+ * implemented. \n
+ * 4-5 : should be deleted. \n
+ * 6 : don't need to destroy or deallocate. \n
+ * 7-8 : \n
+ * 9 : destroy all elements. don't change ptr, size and capacity. \n
+ * 10 : deallocate memory. don't change ptr, size and capacity. \n
+ * 11 : uninitialized construct the storage. allocate memory and set the size and
+ * capacity. \n
+ * 12 : take the storage from other. set other to empty. \n
+ * 13 : swap the storage with other. \n
+ * 14 : get the size. the return type must be reference,
+ * such as size_type&, std::reference_wrapper<size_type> and so on. \n
+ * 15 : get the capacity. \n
+ * 16-17 : get the pointer. \n
  *
  * @version 0.1
  * @date 2024-03-19
@@ -21784,9 +21806,9 @@ namespace wjr {
  * -# void __move_element(container&& other)
  * -# void __swap_storage(container& other)
  *
- * 1 is used to manage the allocator of the container. \n
- * 2, 3 is used to destroy the container and deallocate the memory. \n
- * 4, 5, 6, 7 is used to assign the container data. Shouldn't change the allocator.
+ * 1 : is used to manage the allocator of the container. \n
+ * 2-3 : is used to destroy the container and deallocate the memory. \n
+ * 4-7 : is used to assign the container data. Shouldn't change the allocator.
  *
  */
 template <typename Alloc>
@@ -21866,7 +21888,6 @@ public:
 
 /**
  * @file uninitialized.hpp
- * @author wjr
  * @brief The header file for uninitialized memory operations using allocator.
  *
  * @version 0.0.1
@@ -22106,11 +22127,12 @@ namespace wjr {
  */
 template <typename T, typename Alloc>
 class default_vector_storage {
-
 public:
     using pointer = T *;
     using const_pointer = const T *;
     using size_type = size_t;
+    using allocator_type = Alloc;
+    using is_reallocatable = std::true_type;
 
 private:
     struct storage {
@@ -22126,8 +22148,15 @@ public:
     WJR_CONSTEXPR20 default_vector_storage(_Alloc &&al) noexcept
         : m_pair(std::forward<_Alloc>(al), {}) {}
 
+    template <typename _Alloc>
+    WJR_CONSTEXPR20 default_vector_storage(_Alloc &&al, size_type size,
+                                           size_type capacity, reallocate_t) noexcept
+        : m_pair(std::forward<_Alloc>(al), {}) {
+        uninitialized_construct(size, capacity);
+    }
+
+    default_vector_storage(const default_vector_storage &) = delete;
     default_vector_storage &operator=(const default_vector_storage &) = delete;
-    default_vector_storage &operator=(default_vector_storage &&) = delete;
 
     ~default_vector_storage() noexcept = default;
 
@@ -22142,7 +22171,7 @@ public:
         get_allocator().deallocate(data(), capacity());
     }
 
-    WJR_CONSTEXPR20 void construct_allocate(size_type size, size_type capacity) {
+    WJR_CONSTEXPR20 void uninitialized_construct(size_type size, size_type capacity) {
         auto &al = get_allocator();
         auto &m_storage = get_storage();
         m_storage.m_data = al.allocate(capacity);
@@ -22160,7 +22189,7 @@ public:
         std::swap(get_storage(), other.get_storage());
     }
 
-    WJR_CONSTEXPR20 size_type &size() noexcept { return get_storage().m_size; }
+    WJR_CONSTEXPR20 size_t &size() noexcept { return get_storage().m_size; }
     WJR_CONSTEXPR20 size_type size() const noexcept { return get_storage().m_size; }
     WJR_CONSTEXPR20 size_type capacity() const noexcept {
         return get_storage().m_capacity;
@@ -22178,6 +22207,13 @@ private:
     compressed_pair<Alloc, storage> m_pair;
 };
 
+/**
+ * @brief Static vector storage
+ *
+ * @details Use static storage for small size. \n
+ *
+ * @tparam Capacity Static capacity
+ */
 template <typename T, size_t Capacity, typename Alloc>
 class static_vector_storage {
 
@@ -22185,6 +22221,8 @@ public:
     using pointer = T *;
     using const_pointer = const T *;
     using size_type = size_t;
+    using allocator_type = Alloc;
+    using is_reallocatable = std::false_type;
 
 private:
     static constexpr auto max_alignment = std::max<size_t>(alignof(T), alignof(size_t));
@@ -22202,8 +22240,8 @@ public:
     WJR_CONSTEXPR20 static_vector_storage(_Alloc &&al) noexcept
         : m_pair(std::forward<_Alloc>(al), {}) {}
 
+    static_vector_storage(const static_vector_storage &) = delete;
     static_vector_storage &operator=(const static_vector_storage &) = delete;
-    static_vector_storage &operator=(static_vector_storage &&) = delete;
 
     ~static_vector_storage() noexcept = default;
 
@@ -22216,9 +22254,10 @@ public:
 
     WJR_CONSTEXPR20 void deallocate() noexcept {}
 
-    WJR_CONSTEXPR20 void construct_allocate(size_type size, size_type capacity) {
-        WJR_ASSERT(capacity <= Capacity,
-                   "capacity must be less than or equal to Capacity");
+    WJR_CONSTEXPR20 void uninitialized_construct(size_type size,
+                                                 WJR_MAYBE_UNUSED size_type capacity) {
+        WJR_ASSERT_ASSUME(capacity <= Capacity,
+                          "capacity must be less than or equal to Capacity");
         auto &m_storage = get_storage();
         m_storage.m_size = size;
     }
@@ -22261,14 +22300,21 @@ private:
     compressed_pair<Alloc, storage> m_pair;
 };
 
-template <typename T, typename Alloc = std::allocator<T>,
-          typename Storage = default_vector_storage<T, Alloc>>
+template <typename T, typename Storage = default_vector_storage<T, std::allocator<T>>>
 class basic_vector {
+    using Alloc = typename Storage::allocator_type;
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
     using storage_type = Storage;
     using storage_traits_type = container_traits<_Alty>;
+    using is_storage_reallocatable = typename storage_type::is_reallocatable;
+    using __get_size_t = decltype(std::declval<storage_type>().size());
+
+    static_assert(std::is_reference_v<unref_wrapper_t<__get_size_t>>,
+                  "return type of "
+                  "storage::size() must be "
+                  "reference type");
 
     friend class container_traits<_Alty>;
 
@@ -22319,7 +22365,7 @@ private:
         std::is_nothrow_constructible_v<storage_type, const storage_type &, _Alloc &&>)
         : m_storage(std::forward<_Alloc>(al)) {
         auto size = other.size();
-        __construct_allocate(size, other.capacity());
+        m_storage.uninitialized_construct(size, other.capacity());
         uninitialized_copy_n_using_allocator(other.data(), size, data(),
                                              __get_allocator());
     }
@@ -22359,7 +22405,7 @@ public:
                                  const allocator_type &al = allocator_type())
         : basic_vector(il.begin(), il.end(), al) {}
 
-    WJR_CONSTEXPR20 ~basic_vector() noexcept { tidy(); }
+    WJR_CONSTEXPR20 ~basic_vector() noexcept { __destroy_and_deallocate(); }
 
     WJR_CONSTEXPR20 basic_vector &operator=(const basic_vector &other) {
         if (WJR_LIKELY(this != std::addressof(other))) {
@@ -22459,18 +22505,19 @@ public:
     WJR_INLINE_CONSTEXPR20 bool empty() const noexcept { return size() == 0; }
 
     WJR_CONSTEXPR20 void reserve(size_type n) {
-        const size_type old_size = size();
-        const size_type old_capacity = capacity();
-        if (old_capacity < n) {
-            auto &al = __get_allocator();
-            const size_type new_capacity = __get_growth_capacity(old_capacity, n);
+        if constexpr (is_storage_reallocatable::value) {
+            const size_type old_size = size();
+            const size_type old_capacity = capacity();
+            if (old_capacity < n) {
+                auto &al = __get_allocator();
+                const size_type new_capacity = __get_growth_capacity(old_capacity, n);
 
-            storage_type new_storage(al);
-            new_storage.construct_allocate(old_size, new_capacity);
-            uninitialized_move_n_using_allocator(data(), old_size, new_storage.data(),
-                                                 al);
-            tidy();
-            __take_storage(std::move(new_storage));
+                storage_type new_storage(al, old_size, new_capacity, reallocate_t());
+                uninitialized_move_n_using_allocator(data(), old_size, new_storage.data(),
+                                                     al);
+                __destroy_and_deallocate();
+                __take_storage(std::move(new_storage));
+            }
         }
     }
 
@@ -22484,15 +22531,17 @@ public:
 
     WJR_INLINE_CONSTEXPR20 reference at(size_type pos) {
         if (pos >= size()) {
-            throw(std::out_of_range("basic_vector::at"));
+            throw std::out_of_range("basic_vector::at");
         }
+
         return (*this)[pos];
     }
 
     WJR_INLINE_CONSTEXPR20 const_reference at(size_type pos) const {
         if (pos >= size()) {
-            throw(std::out_of_range("basic_vector::at"));
+            throw std::out_of_range("basic_vector::at");
         }
+
         return (*this)[pos];
     }
 
@@ -22637,20 +22686,23 @@ private:
 
     // member function for container_traits (END)
 
-    WJR_CONSTEXPR20 decltype(auto) __get_size() noexcept { return m_storage.size(); }
-    WJR_CONSTEXPR20 void __construct_allocate(size_type size, size_type capacity) {
-        m_storage.construct_allocate(size, capacity);
-    }
+    WJR_CONSTEXPR20 __get_size_t __get_size() noexcept { return m_storage.size(); }
 
     WJR_CONSTEXPR20 void __take_storage(storage_type &&other) {
         m_storage.take_storage(std::move(other));
     }
 
-    WJR_CONSTEXPR20 void tidy() noexcept { __destroy_and_deallocate(); }
-
     WJR_CONSTEXPR20 static size_type __get_growth_capacity(size_type old_capacity,
                                                            size_type new_size) noexcept {
         return std::max(old_capacity + old_capacity / 2, new_size);
+    }
+
+    WJR_CONSTEXPR20 void __unreallocatable_unreachable(size_t new_capacity) const {
+        WJR_ASSERT(
+            new_capacity <= capacity(),
+            "new_capacity must be less than or equal to capacity if the storage is not reallocatable.\nnew_capacity = ",
+            new_capacity, ", capacity = ", capacity());
+        WJR_UNREACHABLE();
     }
 
     template <typename... Args,
@@ -22658,7 +22710,7 @@ private:
     WJR_CONSTEXPR20 void __construct_n(const size_type n, Args &&...args) {
         if (n != 0) {
             auto &al = __get_allocator();
-            m_storage.construct_allocate(n, n);
+            m_storage.uninitialized_construct(n, n);
             if constexpr (sizeof...(Args) == 1) {
                 uninitialized_fill_n_using_allocator(data(), n, al,
                                                      std::forward<Args>(args)...);
@@ -22754,23 +22806,29 @@ private:
                                                        __last + n - __elements_after, al);
                     std::copy(first, mid, pos);
                 }
+                
                 __get_size() += n;
             } else {
-                const auto old_size = static_cast<size_type>(__last - __first);
-                const auto old_pos = static_cast<size_type>(pos - __first);
-                const size_type new_capacity =
-                    __get_growth_capacity(capacity(), old_size + n);
-                storage_type new_storage(al);
-                new_storage.construct_allocate(old_size + n, new_capacity);
-                const pointer new_first = new_storage.data();
+                if constexpr (is_storage_reallocatable::value) {
+                    const auto old_size = static_cast<size_type>(__last - __first);
+                    const auto old_pos = static_cast<size_type>(pos - __first);
+                    const size_type new_capacity =
+                        __get_growth_capacity(capacity(), old_size + n);
+                    storage_type new_storage(al, old_size + n, new_capacity,
+                                             reallocate_t());
+                    const pointer new_first = new_storage.data();
 
-                uninitialized_copy_using_allocator(first, last, new_first + old_pos, al);
-                uninitialized_move_using_allocator(__first, pos, new_first, al);
-                uninitialized_move_using_allocator(pos, __last, new_first + old_pos + n,
-                                                   al);
+                    uninitialized_copy_using_allocator(first, last, new_first + old_pos,
+                                                       al);
+                    uninitialized_move_using_allocator(__first, pos, new_first, al);
+                    uninitialized_move_using_allocator(pos, __last,
+                                                       new_first + old_pos + n, al);
 
-                tidy();
-                __take_storage(std::move(new_storage));
+                    __destroy_and_deallocate();
+                    __take_storage(std::move(new_storage));
+                } else {
+                    __unreallocatable_unreachable(size() + n);
+                }
             }
         }
     }
@@ -22798,19 +22856,24 @@ private:
                 uninitialized_copy_n_using_allocator(first, n, __last, al);
                 __get_size() += n;
             } else {
-                const auto old_size = static_cast<size_type>(__last - __first);
-                const size_type new_capacity =
-                    __get_growth_capacity(capacity(), old_size + n);
+                if constexpr (is_storage_reallocatable::value) {
+                    const auto old_size = static_cast<size_type>(__last - __first);
+                    const size_type new_capacity =
+                        __get_growth_capacity(capacity(), old_size + n);
 
-                storage_type new_storage(al);
-                new_storage.construct_allocate(old_size + n, new_capacity);
-                const pointer new_first = new_storage.data();
+                    storage_type new_storage(al, old_size + n, new_capacity,
+                                             reallocate_t());
+                    const pointer new_first = new_storage.data();
 
-                uninitialized_copy_using_allocator(first, last, new_first + old_size, al);
-                uninitialized_move_using_allocator(__first, __last, new_first, al);
+                    uninitialized_copy_using_allocator(first, last, new_first + old_size,
+                                                       al);
+                    uninitialized_move_using_allocator(__first, __last, new_first, al);
 
-                tidy();
-                __take_storage(std::move(new_storage));
+                    __destroy_and_deallocate();
+                    __take_storage(std::move(new_storage));
+                } else {
+                    __unreallocatable_unreachable(size() + n);
+                }
             }
         }
     }
@@ -22851,14 +22914,17 @@ private:
             uninitialized_copy_using_allocator(mid, last, __last, al);
             __get_size() = n;
         } else {
-            size_type new_capacity = __get_growth_capacity(capacity(), n);
-            storage_type new_storage(al);
-            new_storage.construct_allocate(n, new_capacity);
-            const pointer new_first = new_storage.data();
-            uninitialized_copy_n_using_allocator(first, n, new_first, al);
+            if constexpr (is_storage_reallocatable::value) {
+                size_type new_capacity = __get_growth_capacity(capacity(), n);
+                storage_type new_storage(al, n, new_capacity, reallocate_t());
+                const pointer new_first = new_storage.data();
+                uninitialized_copy_n_using_allocator(first, n, new_first, al);
 
-            tidy();
-            __take_storage(std::move(new_storage));
+                __destroy_and_deallocate();
+                __take_storage(std::move(new_storage));
+            } else {
+                __unreallocatable_unreachable(n);
+            }
         }
     }
 
@@ -22866,12 +22932,15 @@ private:
         auto &al = __get_allocator();
 
         if (n > capacity()) {
-            tidy();
-            storage_type new_storage(al);
-            new_storage.construct_allocate(n, n);
-            uninitialized_fill_n_using_allocator(new_storage.data(), n, al, val);
-            __take_storage(std::move(new_storage));
-            return;
+            if constexpr (is_storage_reallocatable::value) {
+                __destroy_and_deallocate();
+                storage_type new_storage(al, n, n, reallocate_t());
+                uninitialized_fill_n_using_allocator(new_storage.data(), n, al, val);
+                __take_storage(std::move(new_storage));
+                return;
+            } else {
+                __unreallocatable_unreachable(n);
+            }
         }
 
         if (n > size()) {
@@ -22885,51 +22954,59 @@ private:
 
     template <typename... Args>
     WJR_CONSTEXPR20 void __realloc_insert(iterator pos, Args &&...args) {
-        auto &al = __get_allocator();
-        const pointer __first = data();
-        const pointer __last = data() + size();
+        if constexpr (is_storage_reallocatable::value) {
+            auto &al = __get_allocator();
+            const pointer __first = data();
+            const pointer __last = data() + size();
 
-        const auto old_pos_size = static_cast<size_type>(pos - __first);
-        const auto old_size = static_cast<size_type>(__last - __first);
-        const size_type new_size = old_size + 1;
-        const size_type new_capacity = __get_growth_capacity(old_size, new_size);
+            const auto old_pos_size = static_cast<size_type>(pos - __first);
+            const auto old_size = static_cast<size_type>(__last - __first);
+            const size_type new_size = old_size + 1;
+            const size_type new_capacity = __get_growth_capacity(old_size, new_size);
 
-        storage_type new_storage(al);
-        new_storage.construct_allocate(new_size, new_capacity);
+            storage_type new_storage(al, new_size, new_capacity, reallocate_t());
 
-        const pointer new_first = new_storage.data();
-        const pointer new_pos = new_first + old_pos_size;
+            const pointer new_first = new_storage.data();
+            const pointer new_pos = new_first + old_pos_size;
 
-        uninitialized_construct_using_allocator(new_pos, al, std::forward<Args>(args)...);
+            uninitialized_construct_using_allocator(new_pos, al,
+                                                    std::forward<Args>(args)...);
 
-        uninitialized_move_n_using_allocator(__first, old_pos_size, new_first, al);
-        uninitialized_move_using_allocator(pos, __last, new_pos + 1, al);
+            uninitialized_move_n_using_allocator(__first, old_pos_size, new_first, al);
+            uninitialized_move_using_allocator(pos, __last, new_pos + 1, al);
 
-        tidy();
-        __take_storage(std::move(new_storage));
+            __destroy_and_deallocate();
+            __take_storage(std::move(new_storage));
+        } else {
+            __unreallocatable_unreachable(size() + 1);
+        }
     }
 
     template <typename... Args>
     WJR_CONSTEXPR20 void __realloc_insert_at_end(Args &&...args) {
-        auto &al = __get_allocator();
-        const pointer __first = data();
-        const pointer __last = data() + size();
+        if constexpr (is_storage_reallocatable::value) {
+            auto &al = __get_allocator();
+            const pointer __first = data();
+            const pointer __last = data() + size();
 
-        const auto old_size = static_cast<size_type>(__last - __first);
-        const auto new_size = old_size + 1;
-        const size_type new_capacity = __get_growth_capacity(old_size, new_size);
+            const auto old_size = static_cast<size_type>(__last - __first);
+            const auto new_size = old_size + 1;
+            const size_type new_capacity = __get_growth_capacity(old_size, new_size);
 
-        storage_type new_storage(al);
-        new_storage.construct_allocate(new_size, new_capacity);
-        const pointer new_first = new_storage.data();
+            storage_type new_storage(al, new_size, new_capacity, reallocate_t());
+            const pointer new_first = new_storage.data();
 
-        const pointer new_pos = new_first + old_size;
-        uninitialized_construct_using_allocator(new_pos, al, std::forward<Args>(args)...);
+            const pointer new_pos = new_first + old_size;
+            uninitialized_construct_using_allocator(new_pos, al,
+                                                    std::forward<Args>(args)...);
 
-        uninitialized_move_using_allocator(__first, __last, new_first, al);
+            uninitialized_move_using_allocator(__first, __last, new_first, al);
 
-        tidy();
-        __take_storage(std::move(new_storage));
+            __destroy_and_deallocate();
+            __take_storage(std::move(new_storage));
+        } else {
+            __unreallocatable_unreachable(size() + 1);
+        }
     }
 
     WJR_CONSTEXPR20 void __fill_insert(iterator pos, size_type n, const value_type &val) {
@@ -22962,19 +23039,23 @@ private:
 
             __get_size() += n;
         } else {
-            const auto new_capacity = __get_growth_capacity(capacity(), size() + n);
-            storage_type new_storage(al);
-            new_storage.construct_allocate(size() + n, new_capacity);
-            const pointer new_first = new_storage.data();
+            if constexpr (is_storage_reallocatable::value) {
+                const auto new_capacity = __get_growth_capacity(capacity(), size() + n);
+                storage_type new_storage(al, size() + n, new_capacity, reallocate_t());
+                const pointer new_first = new_storage.data();
 
-            const auto old_pos = static_cast<size_type>(pos - __first);
+                const auto old_pos = static_cast<size_type>(pos - __first);
 
-            uninitialized_fill_n_using_allocator(new_first + old_pos, n, al, val);
-            uninitialized_move_using_allocator(__first, pos, new_first, al);
-            uninitialized_move_using_allocator(pos, __last, new_first + old_pos + n, al);
+                uninitialized_fill_n_using_allocator(new_first + old_pos, n, al, val);
+                uninitialized_move_using_allocator(__first, pos, new_first, al);
+                uninitialized_move_using_allocator(pos, __last, new_first + old_pos + n,
+                                                   al);
 
-            tidy();
-            __take_storage(std::move(new_storage));
+                __destroy_and_deallocate();
+                __take_storage(std::move(new_storage));
+            } else {
+                __unreallocatable_unreachable(size() + n);
+            }
         }
     }
 
@@ -23005,16 +23086,19 @@ private:
             uninitialized_fill_n_using_allocator(__last, n, al, val);
             __get_size() = new_size;
         } else {
-            auto new_capacity = __get_growth_capacity(old_capacity, new_size);
-            storage_type new_storage(al);
-            new_storage.construct_allocate(new_size, new_capacity);
-            const pointer new_first = new_storage.data();
+            if constexpr (is_storage_reallocatable::value) {
+                auto new_capacity = __get_growth_capacity(old_capacity, new_size);
+                storage_type new_storage(al, new_size, new_capacity, reallocate_t());
+                const pointer new_first = new_storage.data();
 
-            uninitialized_fill_n_using_allocator(new_first + old_size, n, al, val);
-            uninitialized_move_using_allocator(__first, __last, new_first, al);
+                uninitialized_fill_n_using_allocator(new_first + old_size, n, al, val);
+                uninitialized_move_using_allocator(__first, __last, new_first, al);
 
-            tidy();
-            __take_storage(std::move(new_storage));
+                __destroy_and_deallocate();
+                __take_storage(std::move(new_storage));
+            } else {
+                __unreallocatable_unreachable(new_size);
+            }
         }
     }
 
@@ -23107,22 +23191,26 @@ private:
                 }
                 __get_size() += __delta;
             } else {
-                const auto old_size = static_cast<size_type>(__last - __first);
-                const auto old_pos = static_cast<size_type>(old_first - __first);
-                const auto new_capacity =
-                    __get_growth_capacity(capacity(), old_size + __delta);
-                storage_type new_storage(al);
-                new_storage.construct_allocate(old_size + __delta, new_capacity);
-                const pointer __ptr = new_storage.data();
+                if constexpr (is_storage_reallocatable::value) {
+                    const auto old_size = static_cast<size_type>(__last - __first);
+                    const auto old_pos = static_cast<size_type>(old_first - __first);
+                    const auto new_capacity =
+                        __get_growth_capacity(capacity(), old_size + __delta);
+                    storage_type new_storage(al, old_size + __delta, new_capacity,
+                                             reallocate_t());
+                    const pointer __ptr = new_storage.data();
 
-                uninitialized_copy_using_allocator(new_first, new_last, __ptr + old_pos,
-                                                   al);
-                uninitialized_move_using_allocator(__first, old_first, __ptr, al);
-                uninitialized_move_using_allocator(old_last, __last, __ptr + old_pos + m,
-                                                   al);
+                    uninitialized_copy_using_allocator(new_first, new_last,
+                                                       __ptr + old_pos, al);
+                    uninitialized_move_using_allocator(__first, old_first, __ptr, al);
+                    uninitialized_move_using_allocator(old_last, __last,
+                                                       __ptr + old_pos + m, al);
 
-                tidy();
-                __take_storage(std::move(new_storage));
+                    __destroy_and_deallocate();
+                    __take_storage(std::move(new_storage));
+                } else {
+                    __unreallocatable_unreachable(size() + __delta);
+                }
             }
         }
     }
@@ -23164,21 +23252,25 @@ private:
                 }
                 __get_size() += __delta;
             } else {
-                const auto old_size = static_cast<size_type>(__last - __first);
-                const auto old_pos = static_cast<size_type>(old_first - __first);
-                const auto new_capacity =
-                    __get_growth_capacity(capacity(), old_size + __delta);
-                storage_type new_storage(al);
-                new_storage.construct_allocate(old_size + __delta, new_capacity);
-                const pointer __ptr = new_storage.data();
+                if constexpr (is_storage_reallocatable::value) {
+                    const auto old_size = static_cast<size_type>(__last - __first);
+                    const auto old_pos = static_cast<size_type>(old_first - __first);
+                    const auto new_capacity =
+                        __get_growth_capacity(capacity(), old_size + __delta);
+                    storage_type new_storage(al, old_size + __delta, new_capacity,
+                                             reallocate_t());
+                    const pointer __ptr = new_storage.data();
 
-                uninitialized_fill_n_using_allocator(__ptr + old_pos, m, al, val);
-                uninitialized_move_using_allocator(__first, old_first, __ptr, al);
-                uninitialized_move_using_allocator(old_last, __last, __ptr + old_pos + m,
-                                                   al);
+                    uninitialized_fill_n_using_allocator(__ptr + old_pos, m, al, val);
+                    uninitialized_move_using_allocator(__first, old_first, __ptr, al);
+                    uninitialized_move_using_allocator(old_last, __last,
+                                                       __ptr + old_pos + m, al);
 
-                tidy();
-                __take_storage(std::move(new_storage));
+                    __destroy_and_deallocate();
+                    __take_storage(std::move(new_storage));
+                } else {
+                    __unreallocatable_unreachable(size() + __delta);
+                }
             }
         }
     }
@@ -23188,49 +23280,48 @@ private:
 };
 
 template <typename T, typename Alloc = std::allocator<T>>
-using vector = basic_vector<T, Alloc>;
+using vector = basic_vector<T, default_vector_storage<T, Alloc>>;
 
 template <typename T, size_t Capacity, typename Alloc = std::allocator<T>>
-using static_vector = basic_vector<T, Alloc, static_vector_storage<T, Capacity, Alloc>>;
+using static_vector = basic_vector<T, static_vector_storage<T, Capacity, Alloc>>;
 
 template <typename Iter, typename T = typename std::iterator_traits<Iter>::value_type,
           typename Alloc = std::allocator<T>,
           std::enable_if_t<is_iterator_v<Iter>, int> = 0>
-basic_vector(Iter, Iter, Alloc = Alloc()) -> basic_vector<T, Alloc>;
+basic_vector(Iter, Iter, Alloc = Alloc())
+    -> basic_vector<T, default_vector_storage<T, Alloc>>;
 
-template <typename T, typename Alloc, typename Storage>
-bool operator==(const basic_vector<T, Alloc, Storage> &lhs,
-                const basic_vector<T, Alloc, Storage> &rhs) {
+template <typename T, typename Storage>
+bool operator==(const basic_vector<T, Storage> &lhs,
+                const basic_vector<T, Storage> &rhs) {
     return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 
-template <typename T, typename Alloc, typename Storage>
-bool operator!=(const basic_vector<T, Alloc, Storage> &lhs,
-                const basic_vector<T, Alloc, Storage> &rhs) {
+template <typename T, typename Storage>
+bool operator!=(const basic_vector<T, Storage> &lhs,
+                const basic_vector<T, Storage> &rhs) {
     return !(lhs == rhs);
 }
 
-template <typename T, typename Alloc, typename Storage>
-bool operator<(const basic_vector<T, Alloc, Storage> &lhs,
-               const basic_vector<T, Alloc, Storage> &rhs) {
+template <typename T, typename Storage>
+bool operator<(const basic_vector<T, Storage> &lhs, const basic_vector<T, Storage> &rhs) {
     return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 
-template <typename T, typename Alloc, typename Storage>
-bool operator>(const basic_vector<T, Alloc, Storage> &lhs,
-               const basic_vector<T, Alloc, Storage> &rhs) {
+template <typename T, typename Storage>
+bool operator>(const basic_vector<T, Storage> &lhs, const basic_vector<T, Storage> &rhs) {
     return rhs < lhs;
 }
 
-template <typename T, typename Alloc, typename Storage>
-bool operator<=(const basic_vector<T, Alloc, Storage> &lhs,
-                const basic_vector<T, Alloc, Storage> &rhs) {
+template <typename T, typename Storage>
+bool operator<=(const basic_vector<T, Storage> &lhs,
+                const basic_vector<T, Storage> &rhs) {
     return !(rhs < lhs);
 }
 
-template <typename T, typename Alloc, typename Storage>
-bool operator>=(const basic_vector<T, Alloc, Storage> &lhs,
-                const basic_vector<T, Alloc, Storage> &rhs) {
+template <typename T, typename Storage>
+bool operator>=(const basic_vector<T, Storage> &lhs,
+                const basic_vector<T, Storage> &rhs) {
     return !(lhs < rhs);
 }
 
