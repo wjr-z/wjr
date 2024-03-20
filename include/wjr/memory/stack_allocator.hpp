@@ -5,7 +5,8 @@
 #include <vector>
 
 #include <wjr/compressed_pair.hpp>
-#include <wjr/crtp.hpp>
+#include <wjr/crtp/noncopyable.hpp>
+#include <wjr/crtp/nonsendable.hpp>
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
@@ -15,7 +16,7 @@ class stack_alloc {
 
     constexpr static size_t bufsize = 5;
 
-    class __stack_alloc {
+    class __stack_alloc : noncopyable {
     public:
         struct stack_top {
             char *ptr = nullptr;
@@ -61,9 +62,7 @@ class stack_alloc {
 
     public:
         __stack_alloc() = default;
-        __stack_alloc(const __stack_alloc &) = delete;
         __stack_alloc(__stack_alloc &&) = default;
-        __stack_alloc &operator=(const __stack_alloc &) = delete;
         __stack_alloc &operator=(__stack_alloc &&) = default;
         ~__stack_alloc() {
             for (const auto &node : m_stk) {
@@ -144,9 +143,7 @@ public:
     using propagate_on_container_move_assignment = std::true_type;
 
     stack_alloc() = default;
-    stack_alloc(const stack_alloc &) = delete;
     stack_alloc(stack_alloc &&) = default;
-    stack_alloc &operator=(const stack_alloc &) = delete;
     stack_alloc &operator=(stack_alloc &&) = default;
     ~stack_alloc() = default;
 
@@ -227,21 +224,19 @@ template <typename StackAllocator>
 class unique_stack_allocator;
 
 template <size_t cache, size_t threshold>
-class unique_stack_allocator<stack_allocator<cache, threshold>> : private nonsendable {
+class unique_stack_allocator<stack_allocator<cache, threshold>> : nonsendable {
     using StackAllocator = stack_allocator<cache, threshold>;
     using stack_top = typename StackAllocator::stack_top;
-
-    using Mybase = nonsendable;
 
 public:
     unique_stack_allocator(const StackAllocator &al) : m_pair(al, {}) {}
     ~unique_stack_allocator() {
-        Mybase::check();
+        nonsendable::check();
         m_pair.first().deallocate(m_pair.second());
     }
 
     WJR_CONSTEXPR20 void *allocate(size_t n) {
-        Mybase::check();
+        nonsendable::check();
         return m_pair.first().allocate(n, m_pair.second());
     }
 

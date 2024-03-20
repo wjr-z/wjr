@@ -150,7 +150,7 @@ template <typename T>
 WJR_INTRINSIC_CONSTEXPR_E T mul_1(T *dst, const T *src, size_t n, type_identity_t<T> ml) {
     static_assert(std::is_same_v<T, uint64_t>, "only support uint64_t now");
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
     if (WJR_BUILTIN_CONSTANT_P(ml == 0) && ml == 0) {
         set_n(dst, 0, n);
@@ -216,7 +216,7 @@ WJR_INTRINSIC_CONSTEXPR_E T addmul_1(T *dst, const T *src, size_t n,
                                      type_identity_t<T> ml) {
     static_assert(std::is_same_v<T, uint64_t>, "only support uint64_t now");
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
     if (WJR_BUILTIN_CONSTANT_P(ml == 0) && ml == 0) {
         return 0;
@@ -271,7 +271,7 @@ WJR_INTRINSIC_CONSTEXPR_E T submul_1(T *dst, const T *src, size_t n,
                                      type_identity_t<T> ml) {
     static_assert(std::is_same_v<T, uint64_t>, "only support uint64_t now");
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
     if (WJR_BUILTIN_CONSTANT_P(ml == 0) && ml == 0) {
         return 0;
@@ -324,8 +324,8 @@ WJR_INTRINSIC_CONSTEXPR_E T addlsh_n(T *dst, const T *src0, const T *src1, size_
                                      type_identity_t<T> cl) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_ASSUME(cl < std::numeric_limits<T>::digits);
-    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
-    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
 
     if (WJR_UNLIKELY(cl == 0)) {
         return addc_n(dst, src0, src1, n);
@@ -374,8 +374,8 @@ WJR_INTRINSIC_CONSTEXPR_E T rsblsh_n(T *dst, const T *src0, const T *src1, size_
                                      type_identity_t<T> cl) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_ASSUME(cl < std::numeric_limits<T>::digits);
-    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
-    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
 
     if (WJR_UNLIKELY(cl == 0)) {
         return T{0} - subc_n(dst, src1, src0, n);
@@ -398,7 +398,7 @@ WJR_INTRINSIC_CONSTEXPR_E T try_addmul_1(T *dst, const T *src, size_t n,
                                          std::integral_constant<T, maxn> = {}) {
     static_assert(std::is_same_v<T, uint64_t>, "only support uint64_t now");
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
     WJR_ASSERT_ASSUME(ml <= maxn);
 
@@ -456,9 +456,9 @@ enum class __mul_mode : uint8_t {
 };
 
 template <__mul_mode mode, bool reserved, typename T>
-WJR_INTRINSIC_INLINE void __mul_s_impl(T *WJR_RESTRICT dst, const T *src0, size_t n,
-                                       const T *src1, size_t m,
-                                       std::conditional_t<reserved, T *, empty_t> mal);
+WJR_INTRINSIC_INLINE void
+__mul_s_impl(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, size_t m,
+             std::conditional_t<reserved, T *, in_place_empty_t> mal);
 
 template <__mul_mode mode, typename T>
 WJR_INTRINSIC_INLINE void __mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n,
@@ -473,9 +473,9 @@ WJR_INTRINSIC_INLINE void mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n,
                                 const T *src1, size_t m, T *stk);
 
 template <__mul_mode mode, bool reserved, typename T>
-WJR_INTRINSIC_INLINE void __mul_n_impl(T *WJR_RESTRICT dst, const T *src0, const T *src1,
-                                       size_t n,
-                                       std::conditional_t<reserved, T *, empty_t> mal);
+WJR_INTRINSIC_INLINE void
+__mul_n_impl(T *WJR_RESTRICT dst, const T *src0, const T *src1, size_t n,
+             std::conditional_t<reserved, T *, in_place_empty_t> mal);
 
 template <__mul_mode mode, typename T>
 WJR_INTRINSIC_INLINE void __mul_n(T *WJR_RESTRICT dst, const T *src0, const T *src1,
@@ -503,8 +503,9 @@ template <typename T>
 void basecase_sqr(T *WJR_RESTRICT dst, const T *src, size_t n);
 
 template <__mul_mode mode, bool reserved, typename T>
-WJR_INTRINSIC_INLINE void __sqr_impl(T *WJR_RESTRICT dst, const T *src, size_t n,
-                                     std::conditional_t<reserved, T *, empty_t> mal);
+WJR_INTRINSIC_INLINE void
+__sqr_impl(T *WJR_RESTRICT dst, const T *src, size_t n,
+           std::conditional_t<reserved, T *, in_place_empty_t> mal);
 
 template <typename T>
 WJR_INTRINSIC_INLINE void __sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *stk);
@@ -709,11 +710,12 @@ WJR_INTRINSIC_INLINE P *__mul_s_allocate(WJR_MAYBE_UNUSED T mal,
 
 template <bool reserved, typename T>
 void __toom22_mul_s_impl(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1,
-                         size_t m, std::conditional_t<reserved, T *, empty_t> mal) {
+                         size_t m,
+                         std::conditional_t<reserved, T *, in_place_empty_t> mal) {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
-    WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n + m, src0, n));
-    WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n + m, src1, m));
+    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n + m, src0, n));
+    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n + m, src1, m));
 
     using unique_alloc = std::conditional_t<
         reserved, __mul_s_unique_stack_allocator,
@@ -775,11 +777,12 @@ void __toom22_mul_s_impl(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *
 
 template <bool reserved, typename T>
 void __noinline_mul_s_impl(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1,
-                           size_t m, std::conditional_t<reserved, T *, empty_t> mal) {
+                           size_t m,
+                           std::conditional_t<reserved, T *, in_place_empty_t> mal) {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
-    WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n + m, src0, n));
-    WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n + m, src1, m));
+    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n + m, src0, n));
+    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n + m, src1, m));
 
     using unique_alloc = std::conditional_t<
         reserved, __mul_s_unique_stack_allocator,
@@ -911,16 +914,15 @@ extern template void __noinline_mul_s_impl<true, uint64_t>(uint64_t *WJR_RESTRIC
                                                            const uint64_t *src1, size_t m,
                                                            uint64_t *mal);
 
-extern template void __noinline_mul_s_impl<false, uint64_t>(uint64_t *WJR_RESTRICT dst,
-                                                            const uint64_t *src0,
-                                                            size_t n,
-                                                            const uint64_t *src1,
-                                                            size_t m, empty_t mal);
+extern template void
+__noinline_mul_s_impl<false, uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                                       size_t n, const uint64_t *src1, size_t m,
+                                       in_place_empty_t mal);
 
 template <__mul_mode mode, bool reserved, typename T>
-WJR_INTRINSIC_INLINE void __mul_s_impl(T *WJR_RESTRICT dst, const T *src0, size_t n,
-                                       const T *src1, size_t m,
-                                       std::conditional_t<reserved, T *, empty_t> mal) {
+WJR_INTRINSIC_INLINE void
+__mul_s_impl(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, size_t m,
+             std::conditional_t<reserved, T *, in_place_empty_t> mal) {
     static_assert((int)__mul_mode::toom22 == 0, "");
     if (WJR_BUILTIN_CONSTANT_P(n == m) && n == m) {
         return __mul_n_impl<mode, reserved>(dst, src0, src1, n, mal);
@@ -942,7 +944,7 @@ WJR_INTRINSIC_INLINE void __mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n,
 template <typename T>
 WJR_INTRINSIC_INLINE void mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n,
                                 const T *src1, size_t m) {
-    return __mul_s_impl<__mul_mode::all, false>(dst, src0, n, src1, m, empty_t{});
+    return __mul_s_impl<__mul_mode::all, false>(dst, src0, n, src1, m, in_place_empty);
 }
 
 template <typename T>
@@ -954,10 +956,10 @@ WJR_INTRINSIC_INLINE void mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n,
 template <__mul_mode mode, bool reserved, typename T>
 WJR_INTRINSIC_INLINE void
 __inline_mul_n_impl(T *WJR_RESTRICT dst, const T *src0, const T *src1, size_t n,
-                    std::conditional_t<reserved, T *, empty_t> mal) {
+                    std::conditional_t<reserved, T *, in_place_empty_t> mal) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n * 2, src0, n));
-    WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n * 2, src1, n));
+    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src0, n));
+    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src1, n));
 
     using unique_alloc = std::conditional_t<
         reserved, __mul_s_unique_stack_allocator,
@@ -980,10 +982,10 @@ __inline_mul_n_impl(T *WJR_RESTRICT dst, const T *src0, const T *src1, size_t n,
 
 template <bool reserved, typename T>
 void __noinline_mul_n_impl(T *WJR_RESTRICT dst, const T *src0, const T *src1, size_t n,
-                           std::conditional_t<reserved, T *, empty_t> mal) {
+                           std::conditional_t<reserved, T *, in_place_empty_t> mal) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n * 2, src0, n));
-    WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n * 2, src1, n));
+    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src0, n));
+    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src1, n));
 
     using unique_alloc = std::conditional_t<
         reserved, __mul_s_unique_stack_allocator,
@@ -1010,9 +1012,9 @@ void __noinline_mul_n_impl(T *WJR_RESTRICT dst, const T *src0, const T *src1, si
 }
 
 template <__mul_mode mode, bool reserved, typename T>
-WJR_INTRINSIC_INLINE void __mul_n_impl(T *WJR_RESTRICT dst, const T *src0, const T *src1,
-                                       size_t n,
-                                       std::conditional_t<reserved, T *, empty_t> mal) {
+WJR_INTRINSIC_INLINE void
+__mul_n_impl(T *WJR_RESTRICT dst, const T *src0, const T *src1, size_t n,
+             std::conditional_t<reserved, T *, in_place_empty_t> mal) {
     if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
         return __sqr_impl<mode, reserved>(dst, src0, n, mal);
     }
@@ -1057,7 +1059,7 @@ void __mul_n(T *WJR_RESTRICT dst, const T *src0, const T *src1, size_t n, T *stk
 template <typename T>
 WJR_INTRINSIC_INLINE void mul_n(T *WJR_RESTRICT dst, const T *src0, const T *src1,
                                 size_t n) {
-    return __mul_n_impl<__mul_mode::all, false>(dst, src0, src1, n, empty_t{});
+    return __mul_n_impl<__mul_mode::all, false>(dst, src0, src1, n, in_place_empty);
 }
 
 template <typename T>
@@ -1069,9 +1071,9 @@ WJR_INTRINSIC_INLINE void mul_n(T *WJR_RESTRICT dst, const T *src0, const T *src
 template <__mul_mode mode, bool reserved, typename T>
 WJR_INTRINSIC_INLINE void
 __inline_sqr_impl(T *WJR_RESTRICT dst, const T *src, size_t n,
-                  std::conditional_t<reserved, T *, empty_t> mal) {
+                  std::conditional_t<reserved, T *, in_place_empty_t> mal) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n * 2, src, n));
+    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src, n));
 
     using unique_alloc = std::conditional_t<
         reserved, __mul_s_unique_stack_allocator,
@@ -1094,9 +1096,9 @@ __inline_sqr_impl(T *WJR_RESTRICT dst, const T *src, size_t n,
 
 template <bool reserved, typename T>
 void __noinline_sqr_impl(T *WJR_RESTRICT dst, const T *src, size_t n,
-                         std::conditional_t<reserved, T *, empty_t> mal) {
+                         std::conditional_t<reserved, T *, in_place_empty_t> mal) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n * 2, src, n));
+    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src, n));
 
     using unique_alloc = std::conditional_t<
         reserved, __mul_s_unique_stack_allocator,
@@ -1123,8 +1125,9 @@ void __noinline_sqr_impl(T *WJR_RESTRICT dst, const T *src, size_t n,
 }
 
 template <__mul_mode mode, bool reserved, typename T>
-WJR_INTRINSIC_INLINE void __sqr_impl(T *WJR_RESTRICT dst, const T *src, size_t n,
-                                     std::conditional_t<reserved, T *, empty_t> mal) {
+WJR_INTRINSIC_INLINE void
+__sqr_impl(T *WJR_RESTRICT dst, const T *src, size_t n,
+           std::conditional_t<reserved, T *, in_place_empty_t> mal) {
     if constexpr (mode <= __mul_mode::toom33) {
         return __inline_sqr_impl<mode, reserved>(dst, src, n, mal);
     } else {
@@ -1157,7 +1160,7 @@ void __sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *stk, T &c_out,
 
 template <typename T>
 WJR_INTRINSIC_INLINE void sqr(T *WJR_RESTRICT dst, const T *src, size_t n) {
-    __sqr_impl<__mul_mode::all, false>(dst, src, n, empty_t{});
+    __sqr_impl<__mul_mode::all, false>(dst, src, n, in_place_empty);
 }
 
 template <typename T>
@@ -1187,8 +1190,8 @@ void basecase_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1,
                     size_t m) {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
-    WJR_ASSERT(WJR_IS_SAME_OR_SEPARATE_P(dst, n + m, src0, n));
-    WJR_ASSERT(WJR_IS_SAME_OR_SEPARATE_P(dst, n + m, src1, m));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n + m, src0, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n + m, src1, m));
 
 #if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)
     return asm_basecase_mul_s(dst, src0, n, src1, m);

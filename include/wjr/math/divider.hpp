@@ -133,10 +133,7 @@ private:
     }
 
     WJR_INTRINSIC_CONSTEXPR20 static T divide_lo0(T divisor, T value, T lo, T &hi) {
-        WJR_ASSERT(lo == 0);
-
         T hi1 = hi + 1;
-
         T rax, rdx;
 
         rax = mul(hi, value, rdx);

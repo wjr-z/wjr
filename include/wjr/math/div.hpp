@@ -139,7 +139,7 @@ template <typename T>
 WJR_CONSTEXPR20 T div_qr_1_noshift(T *dst, T &rem, const T *src, size_t n,
                                    const div2by1_divider_noshift<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
 
     T divisor = div.get_divisor();
     T value = div.get_value();
@@ -178,7 +178,7 @@ WJR_CONSTEXPR20 T div_qr_1_shift(T *dst, T &rem, const T *src, size_t n,
                                  const div2by1_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(div.get_shift() != 0);
-    WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
 
     T divisor = div.get_divisor();
     T value = div.get_value();
@@ -296,8 +296,8 @@ template <typename T>
 WJR_CONSTEXPR20 T div_qr_2_noshift(T *dst, T *rem, const T *src, size_t n,
                                    const div3by2_divider_noshift<T> &div) {
     WJR_ASSERT_ASSUME(n >= 2);
-    WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
-    WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n, rem, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
+    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n, rem, n));
 
     T divisor0 = div.get_divisor0();
     T divisor1 = div.get_divisor1();
@@ -339,8 +339,8 @@ WJR_CONSTEXPR20 T div_qr_2_shift(T *dst, T *rem, const T *src, size_t n,
                                  const div3by2_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 2);
     WJR_ASSERT(div.get_shift() != 0);
-    WJR_ASSERT(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
-    WJR_ASSERT(WJR_IS_SEPARATE_P(dst, n, rem, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
+    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n, rem, n));
 
     T divisor0 = div.get_divisor0();
     T divisor1 = div.get_divisor1();

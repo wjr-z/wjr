@@ -2,6 +2,7 @@
 
 #include <benchmark/benchmark.h>
 #include <gmp.h>
+#include <wjr/biginteger.hpp>
 #include <wjr/math.hpp>
 #include <wjr/vector.hpp>
 

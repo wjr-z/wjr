@@ -50,8 +50,8 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool is_zero_or_single_bit(T n) noexcept {
 }
 
 /**
- * @brief 
- * 
+ * @brief
+ *
  * @note `n & -n` is the lowest bit of n.
  */
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
@@ -68,19 +68,19 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool __has_high_bit(T n) noexcept {
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_down(T n, type_identity_t<T> alignment) {
-    WJR_ASSERT_ASSUME_L(1, is_zero_or_single_bit(alignment));
+    WJR_ASSERT_ASSUME_L1(is_zero_or_single_bit(alignment));
     return n & (-alignment);
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up(T n, type_identity_t<T> alignment) {
-    WJR_ASSERT_ASSUME_L(1, is_zero_or_single_bit(alignment));
+    WJR_ASSERT_ASSUME_L1(is_zero_or_single_bit(alignment));
     return (n + alignment - 1) & (-alignment);
 }
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up_offset(T n, type_identity_t<T> alignment) {
-    WJR_ASSERT_ASSUME_L(1, is_zero_or_single_bit(alignment));
+    WJR_ASSERT_ASSUME_L1(is_zero_or_single_bit(alignment));
     return (-n) & (alignment - 1);
 }
 

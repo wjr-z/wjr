@@ -56,7 +56,7 @@ WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) {
 template <typename T, typename U,
           std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
-    WJR_ASSERT_ASSUME_L(1, c_in <= 1);
+    WJR_ASSERT_ASSUME_L1(c_in <= 1);
 
 #if !WJR_HAS_BUILTIN(SUBC) && !WJR_HAS_BUILTIN(ASM_SUBC)
     return fallback_subc(a, b, c_in, c_out);
@@ -96,7 +96,7 @@ WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
 */
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
-    WJR_ASSERT_ASSUME_L(1, c_in <= 1);
+    WJR_ASSERT_ASSUME_L1(c_in <= 1);
 
 #if WJR_HAS_BUILTIN(ASM_SUBC_CC)
     constexpr auto is_constant_or_zero = [](auto x) -> int {
@@ -134,7 +134,7 @@ template <typename T, typename U,
 WJR_INTRINSIC_CONSTEXPR_E U subc_1(T *dst, const T *src0, size_t n,
                                    type_identity_t<T> src1, U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
 
     uint8_t overflow = 0;
     dst[0] = subc_cc(src0[0], src1, c_in, overflow);
@@ -217,8 +217,8 @@ template <typename T, typename U,
 WJR_INTRINSIC_CONSTEXPR_E U subc_n(T *dst, const T *src0, const T *src1, size_t n,
                                    U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
-    WJR_ASSERT(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
 
 #if WJR_HAS_BUILTIN(ASM_SUBC_N)
     if constexpr (sizeof(T) == 8) {
@@ -298,8 +298,8 @@ template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
                                              size_t n) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
-    WJR_ASSERT(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
 
     size_t idx = reverse_find_not_n(src0, src1, n);
 

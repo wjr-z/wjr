@@ -10,7 +10,7 @@
  *
  */
 
-#include <wjr/crtp.hpp>
+#include <wjr/crtp/trivial_allocator_base.hpp>
 #include <wjr/memory/details.hpp>
 
 namespace wjr {
@@ -128,9 +128,9 @@ template <typename Iter, typename Alloc, typename T>
 WJR_CONSTEXPR20 void uninitialized_fill_using_allocator(Iter first, Iter last,
                                                         const Alloc &alloc,
                                                         const T &value) {
-    if constexpr (std::is_same_v<T, default_construct_t>) {
+    if constexpr (std::is_same_v<T, in_place_default_construct_t>) {
         uninitialized_default_construct_using_allocator(first, last, alloc);
-    } else if constexpr (std::is_same_v<T, value_construct_t>) {
+    } else if constexpr (std::is_same_v<T, in_place_value_construct_t>) {
         uninitialized_value_construct_using_allocator(first, last, alloc);
     } else {
         if constexpr (is_trivially_allocator_v<Alloc>) {
@@ -147,9 +147,9 @@ template <typename Iter, typename Size, typename Alloc, typename T>
 WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n,
                                                           const Alloc &alloc,
                                                           const T &value) {
-    if constexpr (std::is_same_v<T, default_construct_t>) {
+    if constexpr (std::is_same_v<T, in_place_default_construct_t>) {
         uninitialized_default_construct_n_using_allocator(first, n, alloc);
-    } else if constexpr (std::is_same_v<T, value_construct_t>) {
+    } else if constexpr (std::is_same_v<T, in_place_value_construct_t>) {
         uninitialized_value_construct_n_using_allocator(first, n, alloc);
     } else {
         if constexpr (is_trivially_allocator_v<Alloc>) {

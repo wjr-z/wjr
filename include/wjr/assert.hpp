@@ -145,6 +145,9 @@ inline constexpr __assert_handler_t __assert_handler{};
 
 // level of assert is zero at default.
 #define WJR_ASSERT(...) WJR_ASSERT_L(0, __VA_ARGS__)
+#define WJR_ASSERT_L1(...) WJR_ASSERT_L(1, __VA_ARGS__)
+#define WJR_ASSERT_L2(...) WJR_ASSERT_L(2, __VA_ARGS__)
+#define WJR_ASSERT_L3(...) WJR_ASSERT_L(3, __VA_ARGS__)
 
 #define WJR_ASSERT_ASSUME_L(level, ...)                                                  \
     WJR_ASSERT_L(level, __VA_ARGS__);                                                    \
@@ -152,6 +155,9 @@ inline constexpr __assert_handler_t __assert_handler{};
 #define __WJR_ASSERT_ASSUME_L_ASSUME(expr, ...) WJR_ASSUME(expr)
 
 #define WJR_ASSERT_ASSUME(...) WJR_ASSERT_ASSUME_L(0, __VA_ARGS__)
+#define WJR_ASSERT_ASSUME_L1(...) WJR_ASSERT_ASSUME_L(1, __VA_ARGS__)
+#define WJR_ASSERT_ASSUME_L2(...) WJR_ASSERT_ASSUME_L(2, __VA_ARGS__)
+#define WJR_ASSERT_ASSUME_L3(...) WJR_ASSERT_ASSUME_L(3, __VA_ARGS__)
 
 #define WJR_DEBUG_EXPR_L(level, expr) WJR_DEBUG_IF(level, expr, )
 #define WJR_DEBUG_EXPR(expr) WJR_DEBUG_EXPR_L(0, expr)

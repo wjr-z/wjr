@@ -14,19 +14,21 @@
 
 namespace wjr {
 
-struct empty_t {};
+struct in_place_empty_t {};
 
-struct default_construct_t {};
+inline constexpr in_place_empty_t in_place_empty = {};
 
-struct value_construct_t {};
+struct in_place_default_construct_t {};
 
-struct reallocate_t {};
+inline constexpr in_place_default_construct_t in_place_default_construct = {};
 
-template <typename T>
-struct null_ref_t {};
+struct in_place_value_construct_t {};
 
-template <typename T = empty_t>
-inline constexpr null_ref_t<T> null_ref = {};
+inline constexpr in_place_value_construct_t in_place_value_construct = {};
+
+struct in_place_reallocate_t {};
+
+inline constexpr in_place_reallocate_t in_place_reallocate = {};
 
 struct in_place_max_t {
     template <typename T>
