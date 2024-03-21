@@ -22,8 +22,9 @@ public:
     default_biginteger_size_reference() = delete;
     explicit default_biginteger_size_reference(uint32_t &size) noexcept : m_size(size) {}
     ~default_biginteger_size_reference() = default;
-    default_biginteger_size_reference(default_biginteger_size_reference&&) = default;
-    default_biginteger_size_reference& operator=(default_biginteger_size_reference&&) = default;
+    default_biginteger_size_reference(default_biginteger_size_reference &&) = default;
+    default_biginteger_size_reference &
+    operator=(default_biginteger_size_reference &&) = default;
 
     default_biginteger_size_reference &operator=(uint32_t size) noexcept {
         using namespace biginteger_details;
@@ -172,7 +173,6 @@ public:
         WJR_ASSERT(biginteger_details::abs_size(size) <= capacity());
         __get_data().m_size = size;
     }
-    void set_nullptr() noexcept { __get_data().m_data = nullptr; }
 
 private:
     WJR_PURE data_type &__get_data() noexcept { return m_pair.second(); }
@@ -377,8 +377,6 @@ private:
         return m_vec.get_storage();
     }
 
-    void __set_nullptr() noexcept { __get_storage().set_nullptr(); }
-
     void __check_high_bit() const {
         WJR_ASSERT(size() == 0 || back() != 0, "biginteger should not have leading zero");
     }
@@ -491,20 +489,20 @@ void basic_biginteger<Storage>::__mul(basic_biginteger *dst, const basic_biginte
     auto lp = (pointer)lhs->data();
     auto rp = (pointer)rhs->data();
 
-    union tmp_t {
-        tmp_t() { biginteger.__set_nullptr(); }
-        ~tmp_t() {}
-        std::aligned_storage_t<sizeof(uint64_t), alignof(uint64_t)> storage;
-        basic_biginteger biginteger;
-    } temp;
+    std::aligned_storage_t<sizeof(basic_biginteger), alignof(basic_biginteger)> storage;
+    // no need to destroy this object
+    auto &temp = *reinterpret_cast<basic_biginteger *>(&storage);
 
     unique_stack_allocator stkal(math_details::stack_alloc);
 
     if (dst->capacity() < dssize) {
-        new (&temp.biginteger)
+        new (&temp)
             basic_biginteger(dssize, in_place_default_construct, dst->get_allocator());
-        dp = temp.biginteger.data();
+
+        dp = temp.data();
     } else {
+        new (&temp) basic_biginteger;
+
         if (dp == lp) {
             lp = (pointer)stkal.allocate(lusize);
             if (dp == rp) {
@@ -526,8 +524,8 @@ void basic_biginteger<Storage>::__mul(basic_biginteger *dst, const basic_biginte
     auto cf = dp[dssize - 1] == 0;
     dssize = mask | (dssize - cf);
 
-    if (temp.biginteger.data() != nullptr) {
-        *dst = std::move(temp.biginteger);
+    if (temp.data() != nullptr) {
+        *dst = std::move(temp);
     }
 
     dst->set_ssize(dssize);

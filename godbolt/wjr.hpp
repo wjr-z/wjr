@@ -17,7 +17,6 @@
 #define WJR_STACK_ALLOCATOR_HPP__
 
 #include <cstddef>
-#include <vector>
 
 #ifndef WJR_COMPRESSED_PAIR_HPP__
 #define WJR_COMPRESSED_PAIR_HPP__
@@ -3363,51 +3362,66 @@ namespace wjr {
 
 template <size_t cache, size_t threshold>
 class stack_alloc {
-
     constexpr static size_t bufsize = 5;
 
     class __stack_alloc : noncopyable {
     public:
         struct stack_top {
             char *ptr = nullptr;
-            size_t idx = 0;
+            uint32_t idx = 0;
         };
 
     private:
         WJR_NOINLINE WJR_CONSTEXPR20 void __allocate(stack_top &top) {
             ++m_idx;
-            if (WJR_UNLIKELY(m_idx == m_stk.size())) {
+            if (WJR_UNLIKELY(m_idx == m_capacity)) {
+                uint32_t new_capacity = m_idx + (m_idx <= 2 ? 1 : m_idx / 2);
+                auto new_ptr =
+                    static_cast<alloc_node *>(malloc(new_capacity * sizeof(alloc_node)));
+                if (WJR_LIKELY(m_idx != 0)) {
+                    std::copy_n(m_ptr, m_idx, new_ptr);
+                    free(m_ptr);
+                }
+                m_ptr = new_ptr;
+                m_capacity = new_capacity;
+
                 size_t capacity = 0;
 
                 if (WJR_UNLIKELY(m_idx == 0)) {
                     capacity = cache;
                 } else {
-                    auto &node = m_stk.back();
+                    auto &node = m_ptr[m_idx - 1];
                     capacity = node.end - node.ptr;
                     capacity += capacity / 2;
                 }
 
                 auto buffer = static_cast<char *>(malloc(capacity));
-                auto node = alloc_node{buffer, buffer + capacity};
-                m_stk.emplace_back(std::move(node));
+                m_ptr[m_idx] = {buffer, buffer + capacity};
 
                 if (WJR_UNLIKELY(m_idx == 0)) {
-                    top.ptr = m_stk[0].ptr;
+                    top.ptr = buffer;
                     top.idx = 0;
                 }
             } else {
                 WJR_ASSERT(top.ptr != nullptr);
             }
 
-            m_node = m_stk[m_idx];
+            m_cache = m_ptr[m_idx];
         }
 
         WJR_CONSTEXPR20 void __deallocate() {
-            size_t n = m_stk.size() - m_idx - bufsize + 1;
-            for (size_t i = 0; i < n; ++i) {
-                free(m_stk.back().ptr);
-                m_stk.pop_back();
+            uint32_t new_capacity = m_idx + bufsize - 1;
+
+            for (uint32_t i = new_capacity; i < m_capacity; ++i) {
+                free(m_ptr[i].ptr);
             }
+
+            auto new_ptr =
+                static_cast<alloc_node *>(malloc(new_capacity * sizeof(alloc_node)));
+            std::copy_n(m_ptr, new_capacity, new_ptr);
+            free(m_ptr);
+            m_ptr = new_ptr;
+            m_capacity = new_capacity;
         }
 
     public:
@@ -3415,26 +3429,28 @@ class stack_alloc {
         __stack_alloc(__stack_alloc &&) = default;
         __stack_alloc &operator=(__stack_alloc &&) = default;
         ~__stack_alloc() {
-            for (const auto &node : m_stk) {
-                free(node.ptr);
+            for (uint32_t i = 0; i < m_capacity; ++i) {
+                free(m_ptr[i].ptr);
             }
+
+            free(m_ptr);
         }
 
         WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top) {
             if (WJR_UNLIKELY(top.ptr == nullptr)) {
-                top.ptr = m_node.ptr;
+                top.ptr = m_cache.ptr;
                 top.idx = m_idx;
             }
 
-            if (WJR_UNLIKELY(static_cast<size_t>(m_node.end - m_node.ptr) < n)) {
+            if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
                 __allocate(top);
             }
 
-            WJR_ASSERT_ASSUME(m_node.ptr != nullptr);
+            WJR_ASSERT_ASSUME(m_cache.ptr != nullptr);
             WJR_ASSERT_ASSUME(top.ptr != nullptr);
 
-            auto ptr = m_node.ptr;
-            m_node.ptr += n;
+            auto ptr = m_cache.ptr;
+            m_cache.ptr += n;
             return ptr;
         }
 
@@ -3442,13 +3458,13 @@ class stack_alloc {
             if (WJR_UNLIKELY(top.ptr == nullptr)) {
                 return;
             } else {
-                size_t idx = top.idx;
+                uint32_t idx = top.idx;
                 if (WJR_LIKELY(idx == m_idx)) {
-                    m_node.ptr = top.ptr;
+                    m_cache.ptr = top.ptr;
                 } else {
                     m_idx = idx;
-                    m_node = {top.ptr, m_stk[idx].end};
-                    if (WJR_UNLIKELY(m_stk.size() - m_idx >= bufsize)) {
+                    m_cache = {top.ptr, m_ptr[idx].end};
+                    if (WJR_UNLIKELY(m_capacity - idx >= bufsize)) {
                         __deallocate();
                     }
                 }
@@ -3461,10 +3477,10 @@ class stack_alloc {
             char *end;
         };
 
-        // cache of m_stk
-        alloc_node m_node = {nullptr, nullptr};
-        size_t m_idx = -1ull;
-        std::vector<alloc_node> m_stk;
+        alloc_node m_cache = {nullptr, nullptr};
+        alloc_node *m_ptr = nullptr;
+        uint32_t m_idx = -1u;
+        uint32_t m_capacity = 0;
     };
 
     struct large_stack_top {
@@ -23461,8 +23477,9 @@ public:
     default_biginteger_size_reference() = delete;
     explicit default_biginteger_size_reference(uint32_t &size) noexcept : m_size(size) {}
     ~default_biginteger_size_reference() = default;
-    default_biginteger_size_reference(default_biginteger_size_reference&&) = default;
-    default_biginteger_size_reference& operator=(default_biginteger_size_reference&&) = default;
+    default_biginteger_size_reference(default_biginteger_size_reference &&) = default;
+    default_biginteger_size_reference &
+    operator=(default_biginteger_size_reference &&) = default;
 
     default_biginteger_size_reference &operator=(uint32_t size) noexcept {
         using namespace biginteger_details;
@@ -23611,7 +23628,6 @@ public:
         WJR_ASSERT(biginteger_details::abs_size(size) <= capacity());
         __get_data().m_size = size;
     }
-    void set_nullptr() noexcept { __get_data().m_data = nullptr; }
 
 private:
     WJR_PURE data_type &__get_data() noexcept { return m_pair.second(); }
@@ -23816,8 +23832,6 @@ private:
         return m_vec.get_storage();
     }
 
-    void __set_nullptr() noexcept { __get_storage().set_nullptr(); }
-
     void __check_high_bit() const {
         WJR_ASSERT(size() == 0 || back() != 0, "biginteger should not have leading zero");
     }
@@ -23930,20 +23944,20 @@ void basic_biginteger<Storage>::__mul(basic_biginteger *dst, const basic_biginte
     auto lp = (pointer)lhs->data();
     auto rp = (pointer)rhs->data();
 
-    union tmp_t {
-        tmp_t() { biginteger.__set_nullptr(); }
-        ~tmp_t() {}
-        std::aligned_storage_t<sizeof(uint64_t), alignof(uint64_t)> storage;
-        basic_biginteger biginteger;
-    } temp;
+    std::aligned_storage_t<sizeof(basic_biginteger), alignof(basic_biginteger)> storage;
+    // no need to destroy this object
+    auto &temp = *reinterpret_cast<basic_biginteger *>(&storage);
 
     unique_stack_allocator stkal(math_details::stack_alloc);
 
     if (dst->capacity() < dssize) {
-        new (&temp.biginteger)
+        new (&temp)
             basic_biginteger(dssize, in_place_default_construct, dst->get_allocator());
-        dp = temp.biginteger.data();
+
+        dp = temp.data();
     } else {
+        new (&temp) basic_biginteger;
+
         if (dp == lp) {
             lp = (pointer)stkal.allocate(lusize);
             if (dp == rp) {
@@ -23965,8 +23979,8 @@ void basic_biginteger<Storage>::__mul(basic_biginteger *dst, const basic_biginte
     auto cf = dp[dssize - 1] == 0;
     dssize = mask | (dssize - cf);
 
-    if (temp.biginteger.data() != nullptr) {
-        *dst = std::move(temp.biginteger);
+    if (temp.data() != nullptr) {
+        *dst = std::move(temp);
     }
 
     dst->set_ssize(dssize);
