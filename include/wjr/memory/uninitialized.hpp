@@ -16,14 +16,14 @@
 namespace wjr {
 
 template <typename Iter, typename Alloc, typename... Args>
-WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter ptr, const Alloc &alloc,
-                                                             Args &&...args) {
+WJR_CONSTEXPR20 void
+uninitialized_construct_using_allocator(Iter iter, const Alloc &alloc, Args &&...args) {
     if constexpr (is_trivially_allocator_v<Alloc>) {
         using value_type = typename std::iterator_traits<Iter>::value_type;
-        ::new (static_cast<void *>(to_address(ptr)))
+        ::new (static_cast<void *>(to_address(iter)))
             value_type(std::forward<Args>(args)...);
     } else {
-        std::allocator_traits<Alloc>::construct(alloc, to_address(ptr),
+        std::allocator_traits<Alloc>::construct(alloc, to_address(iter),
                                                 std::forward<Args>(args)...);
     }
 }
@@ -163,11 +163,11 @@ WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n,
 }
 
 template <typename Iter, typename Alloc>
-WJR_CONSTEXPR20 void destroy_at_using_allocator(Iter ptr, const Alloc &alloc) {
+WJR_CONSTEXPR20 void destroy_at_using_allocator(Iter iter, const Alloc &alloc) {
     if constexpr (is_trivially_allocator_v<Alloc>) {
-        std::destroy_at(to_address(ptr));
+        std::destroy_at(to_address(iter));
     } else {
-        std::allocator_traits<Alloc>::destroy(alloc, to_address(ptr));
+        std::allocator_traits<Alloc>::destroy(alloc, to_address(iter));
     }
 }
 

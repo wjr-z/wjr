@@ -16,7 +16,7 @@
  * -# auto& get_allocator() noexcept
  * -# const auto& get_allocator() const noexcept
  * -# void destroy() noexcept
- * -# void deallocate()
+ * -# void destroy_and_deallocate()
  * -# void uninitialized_construct(size_type size, size_type capacity)
  * -# void take_storage(storage&& other)
  * -# void swap_storage(storage& other)
@@ -33,7 +33,7 @@
  * 4 : don't need to destroy or deallocate. \n
  * 5-6 : \n
  * 7 : destroy all elements. don't change ptr, size and capacity. \n
- * 8 : deallocate memory. don't change ptr, size and capacity. \n
+ * 8 : destroy and deallocate. \n
  * 9 : uninitialized construct the storage. allocate memory and set the size and
  * capacity. \n
  * 10 : take the storage from other. set other to empty. \n
@@ -114,11 +114,26 @@ public:
     }
 
     WJR_CONSTEXPR20 void destroy() noexcept {
+        if (WJR_BUILTIN_CONSTANT_P(data() == nullptr) && data() == nullptr) {
+            return;
+        }
+
+        if (WJR_BUILTIN_CONSTANT_P(size() == 0) && size() == 0) {
+            return;
+        }
+
         destroy_n_using_allocator(data(), size(), get_allocator());
     }
 
-    WJR_CONSTEXPR20 void deallocate() noexcept {
-        get_allocator().deallocate(data(), capacity());
+    WJR_CONSTEXPR20 void destroy_and_deallocate() noexcept {
+        if (WJR_BUILTIN_CONSTANT_P(capacity() == 0) && capacity() == 0) {
+            return;
+        }
+
+        if (data()) {
+            destroy();
+            get_allocator().deallocate(data(), capacity());
+        }
     }
 
     WJR_CONSTEXPR20 void uninitialized_construct(size_type size, size_type capacity) {
@@ -209,10 +224,14 @@ public:
     }
 
     WJR_CONSTEXPR20 void destroy() noexcept {
+        if (WJR_BUILTIN_CONSTANT_P(size() == 0) && size() == 0) {
+            return;
+        }
+
         destroy_n_using_allocator(data(), size(), get_allocator());
     }
 
-    WJR_CONSTEXPR20 void deallocate() noexcept {}
+    WJR_CONSTEXPR20 void destroy_and_deallocate() noexcept { destroy(); }
 
     WJR_CONSTEXPR20 void uninitialized_construct(size_type size,
                                                  WJR_MAYBE_UNUSED size_type capacity) {
@@ -489,13 +508,18 @@ public:
 
     WJR_PURE WJR_INLINE_CONSTEXPR20 bool empty() const noexcept { return size() == 0; }
 
+    WJR_CONST WJR_CONSTEXPR20 static size_type
+    get_growth_capacity(size_type old_capacity, size_type new_size) noexcept {
+        return std::max(old_capacity + old_capacity / 2, new_size);
+    }
+
     WJR_CONSTEXPR20 void reserve(size_type n) {
         if constexpr (is_storage_reallocatable::value) {
             const size_type old_size = size();
             const size_type old_capacity = capacity();
             if (WJR_UNLIKELY(old_capacity < n)) {
                 auto &al = __get_allocator();
-                const size_type new_capacity = __get_growth_capacity(old_capacity, n);
+                const size_type new_capacity = get_growth_capacity(old_capacity, n);
 
                 storage_type new_storage(al, old_size, new_capacity, in_place_reallocate);
                 uninitialized_move_n_using_allocator(data(), old_size, new_storage.data(),
@@ -728,8 +752,7 @@ private:
     WJR_CONSTEXPR20 void __destroy() noexcept { m_storage.destroy(); }
 
     WJR_CONSTEXPR20 void __destroy_and_deallocate() noexcept {
-        m_storage.destroy();
-        m_storage.deallocate();
+        m_storage.destroy_and_deallocate();
     }
 
     WJR_CONSTEXPR20 void __copy_element(const basic_vector &other) {
@@ -757,11 +780,6 @@ private:
 
     WJR_CONSTEXPR20 void __take_storage(storage_type &&other) {
         m_storage.take_storage(std::move(other));
-    }
-
-    WJR_CONST WJR_CONSTEXPR20 static size_type
-    __get_growth_capacity(size_type old_capacity, size_type new_size) noexcept {
-        return std::max(old_capacity + old_capacity / 2, new_size);
     }
 
     WJR_CONSTEXPR20 void __unreallocatable_unreachable(size_type new_capacity) const {
@@ -880,7 +898,7 @@ private:
                     const auto old_size = static_cast<size_type>(__last - __first);
                     const auto old_pos = static_cast<size_type>(pos - __first);
                     const size_type new_capacity =
-                        __get_growth_capacity(capacity(), old_size + n);
+                        get_growth_capacity(capacity(), old_size + n);
                     storage_type new_storage(al, old_size + n, new_capacity,
                                              in_place_reallocate);
                     const pointer new_first = new_storage.data();
@@ -926,7 +944,7 @@ private:
                 if constexpr (is_storage_reallocatable::value) {
                     const auto old_size = static_cast<size_type>(__last - __first);
                     const size_type new_capacity =
-                        __get_growth_capacity(capacity(), old_size + n);
+                        get_growth_capacity(capacity(), old_size + n);
 
                     storage_type new_storage(al, old_size + n, new_capacity,
                                              in_place_reallocate);
@@ -982,7 +1000,7 @@ private:
             __get_size() = n;
         } else {
             if constexpr (is_storage_reallocatable::value) {
-                size_type new_capacity = __get_growth_capacity(capacity(), n);
+                size_type new_capacity = get_growth_capacity(capacity(), n);
                 storage_type new_storage(al, n, new_capacity, in_place_reallocate);
                 const pointer new_first = new_storage.data();
                 uninitialized_copy_n_using_allocator(first, n, new_first, al);
@@ -1029,7 +1047,7 @@ private:
             const auto old_pos_size = static_cast<size_type>(pos - __first);
             const auto old_size = static_cast<size_type>(__last - __first);
             const size_type new_size = old_size + 1;
-            const size_type new_capacity = __get_growth_capacity(old_size, new_size);
+            const size_type new_capacity = get_growth_capacity(old_size, new_size);
 
             storage_type new_storage(al, new_size, new_capacity, in_place_reallocate);
 
@@ -1058,7 +1076,7 @@ private:
 
             const auto old_size = static_cast<size_type>(__last - __first);
             const auto new_size = old_size + 1;
-            const size_type new_capacity = __get_growth_capacity(old_size, new_size);
+            const size_type new_capacity = get_growth_capacity(old_size, new_size);
 
             storage_type new_storage(al, new_size, new_capacity, in_place_reallocate);
             const pointer new_first = new_storage.data();
@@ -1107,7 +1125,7 @@ private:
             __get_size() += n;
         } else {
             if constexpr (is_storage_reallocatable::value) {
-                const auto new_capacity = __get_growth_capacity(capacity(), size() + n);
+                const auto new_capacity = get_growth_capacity(capacity(), size() + n);
                 storage_type new_storage(al, size() + n, new_capacity,
                                          in_place_reallocate);
                 const pointer new_first = new_storage.data();
@@ -1155,7 +1173,7 @@ private:
             __get_size() = new_size;
         } else {
             if constexpr (is_storage_reallocatable::value) {
-                auto new_capacity = __get_growth_capacity(old_capacity, new_size);
+                auto new_capacity = get_growth_capacity(old_capacity, new_size);
                 storage_type new_storage(al, new_size, new_capacity, in_place_reallocate);
                 const pointer new_first = new_storage.data();
 
@@ -1263,7 +1281,7 @@ private:
                     const auto old_size = static_cast<size_type>(__last - __first);
                     const auto old_pos = static_cast<size_type>(old_first - __first);
                     const auto new_capacity =
-                        __get_growth_capacity(capacity(), old_size + __delta);
+                        get_growth_capacity(capacity(), old_size + __delta);
                     storage_type new_storage(al, old_size + __delta, new_capacity,
                                              in_place_reallocate);
                     const pointer __ptr = new_storage.data();
@@ -1324,7 +1342,7 @@ private:
                     const auto old_size = static_cast<size_type>(__last - __first);
                     const auto old_pos = static_cast<size_type>(old_first - __first);
                     const auto new_capacity =
-                        __get_growth_capacity(capacity(), old_size + __delta);
+                        get_growth_capacity(capacity(), old_size + __delta);
                     storage_type new_storage(al, old_size + __delta, new_capacity,
                                              in_place_reallocate);
                     const pointer __ptr = new_storage.data();
@@ -1358,6 +1376,11 @@ template <typename Iter, typename T = typename std::iterator_traits<Iter>::value
           std::enable_if_t<is_iterator_v<Iter>, int> = 0>
 basic_vector(Iter, Iter, Alloc = Alloc())
     -> basic_vector<default_vector_storage<T, Alloc>>;
+
+template <typename Storage>
+void swap(basic_vector<Storage> &lhs, basic_vector<Storage> &rhs) noexcept {
+    lhs.swap(rhs);
+}
 
 template <typename Storage>
 bool operator==(const basic_vector<Storage> &lhs, const basic_vector<Storage> &rhs) {
