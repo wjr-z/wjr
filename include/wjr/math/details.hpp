@@ -84,6 +84,44 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up_offset(T n, type_identity_t<T> al
     return (-n) & (alignment - 1);
 }
 
+template <typename T, typename U = std::make_unsigned_t<T>>
+WJR_CONST constexpr U __fasts_sign_mask() {
+    return (U)(1) << (std::numeric_limits<U>::digits - 1);
+}
+
+template <typename T, std::enable_if_t<is_signed_integral_v<T>, int> = 0>
+WJR_CONST constexpr T __fasts_get_sign_mask(T x) {
+    return x & __fasts_sign_mask<T>();
+}
+
+template <typename T, std::enable_if_t<is_signed_integral_v<T>, int> = 0>
+WJR_CONST constexpr bool __fasts_is_negative(T x) {
+    return __fasts_get_sign_mask<T>(x) != 0;
+}
+
+template <typename T, std::enable_if_t<is_signed_integral_v<T>, int> = 0>
+WJR_CONST constexpr bool __fasts_is_positive(T x) {
+    return __fasts_get_sign_mask<T>(x) == 0;
+}
+
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_CONST constexpr std::make_signed_t<T> __fasts_from_unsigned(T x) {
+    WJR_ASSERT_ASSUME_L1(!(x & __fasts_sign_mask<T>()));
+    std::make_signed_t<T> ret = x;
+    WJR_ASSERT_ASSUME_L1(__fasts_is_positive(ret));
+    return ret;
+}
+
+template <typename T, std::enable_if_t<is_signed_integral_v<T>, int> = 0>
+WJR_CONST constexpr T __fasts_abs(T x) {
+    return x & ~__fasts_sign_mask<T>();
+}
+
+template <typename T, std::enable_if_t<is_signed_integral_v<T>, int> = 0>
+WJR_CONST constexpr T __fasts_negate(T x) {
+    return x ^ __fasts_sign_mask<T>();
+}
+
 } // namespace wjr
 
 #endif // WJR_MATH_DETAILS_HPP__

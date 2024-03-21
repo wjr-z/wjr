@@ -311,15 +311,12 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src
         }
     }
 
-    ssize_t ret = 0;
+    ssize_t ret = __fasts_from_unsigned(n);
+    WJR_ASSUME(ret > 0);
 
     if (src0[idx - 1] < src1[idx - 1]) {
         std::swap(src0, src1);
-        ret = -n;
-        WJR_ASSUME(ret < 0);
-    } else {
-        ret = n;
-        WJR_ASSUME(ret > 0);
+        ret = __fasts_negate(ret);
     }
 
     (void)subc_n(dst, src0, src1, idx);
@@ -361,9 +358,7 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
             }
 
             (void)subc_s(dst, src0, m + 1, src1, m);
-            ssize_t ret = m + 1;
-            WJR_ASSUME(ret > 0);
-            return ret;
+            return __fasts_from_unsigned(m + 1);
         } while (0);
 
         return abs_subc_n(dst, src0, src1, m);
@@ -376,10 +371,7 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
     }
 
     (void)subc_s(dst, src0, m + idx, src1, m);
-
-    ssize_t ret = m + idx;
-    WJR_ASSUME(ret > 0);
-    return ret;
+    return __fasts_from_unsigned(m + idx);
 }
 
 // just like abs_subc_n.
@@ -388,17 +380,15 @@ template <typename T, typename U,
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
                                              size_t n, U &c_out, type_identity_t<U> cf0,
                                              type_identity_t<U> cf1) {
+    WJR_ASSERT_ASSUME(n >= 1);
     if (cf0 != cf1) {
-        ssize_t ret = 0;
+        ssize_t ret = __fasts_from_unsigned(n);
         U cf = 0;
         if (cf0 < cf1) {
             std::swap(src0, src1);
-            ret = -n;
-            WJR_ASSUME(ret < 0);
+            ret = __fasts_negate(ret);
             cf = cf1 - cf0;
         } else {
-            ret = n;
-            WJR_ASSUME(ret > 0);
             cf = cf0 - cf1;
         }
 

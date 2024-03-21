@@ -3709,6 +3709,44 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up_offset(T n, type_identity_t<T> al
     return (-n) & (alignment - 1);
 }
 
+template <typename T, typename U = std::make_unsigned_t<T>>
+WJR_CONST constexpr U __fasts_sign_mask() {
+    return (U)(1) << (std::numeric_limits<U>::digits - 1);
+}
+
+template <typename T, std::enable_if_t<is_signed_integral_v<T>, int> = 0>
+WJR_CONST constexpr T __fasts_get_sign_mask(T x) {
+    return x & __fasts_sign_mask<T>();
+}
+
+template <typename T, std::enable_if_t<is_signed_integral_v<T>, int> = 0>
+WJR_CONST constexpr bool __fasts_is_negative(T x) {
+    return __fasts_get_sign_mask<T>(x) != 0;
+}
+
+template <typename T, std::enable_if_t<is_signed_integral_v<T>, int> = 0>
+WJR_CONST constexpr bool __fasts_is_positive(T x) {
+    return __fasts_get_sign_mask<T>(x) == 0;
+}
+
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_CONST constexpr std::make_signed_t<T> __fasts_from_unsigned(T x) {
+    WJR_ASSERT_ASSUME_L1(!(x & __fasts_sign_mask<T>()));
+    std::make_signed_t<T> ret = x;
+    WJR_ASSERT_ASSUME_L1(__fasts_is_positive(ret));
+    return ret;
+}
+
+template <typename T, std::enable_if_t<is_signed_integral_v<T>, int> = 0>
+WJR_CONST constexpr T __fasts_abs(T x) {
+    return x & ~__fasts_sign_mask<T>();
+}
+
+template <typename T, std::enable_if_t<is_signed_integral_v<T>, int> = 0>
+WJR_CONST constexpr T __fasts_negate(T x) {
+    return x ^ __fasts_sign_mask<T>();
+}
+
 } // namespace wjr
 
 #endif // WJR_MATH_DETAILS_HPP__
@@ -12529,15 +12567,12 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src
         }
     }
 
-    ssize_t ret = 0;
+    ssize_t ret = __fasts_from_unsigned(n);
+    WJR_ASSUME(ret > 0);
 
     if (src0[idx - 1] < src1[idx - 1]) {
         std::swap(src0, src1);
-        ret = -n;
-        WJR_ASSUME(ret < 0);
-    } else {
-        ret = n;
-        WJR_ASSUME(ret > 0);
+        ret = __fasts_negate(ret);
     }
 
     (void)subc_n(dst, src0, src1, idx);
@@ -12579,9 +12614,7 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
             }
 
             (void)subc_s(dst, src0, m + 1, src1, m);
-            ssize_t ret = m + 1;
-            WJR_ASSUME(ret > 0);
-            return ret;
+            return __fasts_from_unsigned(m + 1);
         } while (0);
 
         return abs_subc_n(dst, src0, src1, m);
@@ -12594,10 +12627,7 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
     }
 
     (void)subc_s(dst, src0, m + idx, src1, m);
-
-    ssize_t ret = m + idx;
-    WJR_ASSUME(ret > 0);
-    return ret;
+    return __fasts_from_unsigned(m + idx);
 }
 
 // just like abs_subc_n.
@@ -12606,17 +12636,15 @@ template <typename T, typename U,
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
                                              size_t n, U &c_out, type_identity_t<U> cf0,
                                              type_identity_t<U> cf1) {
+    WJR_ASSERT_ASSUME(n >= 1);
     if (cf0 != cf1) {
-        ssize_t ret = 0;
+        ssize_t ret = __fasts_from_unsigned(n);
         U cf = 0;
         if (cf0 < cf1) {
             std::swap(src0, src1);
-            ret = -n;
-            WJR_ASSUME(ret < 0);
+            ret = __fasts_negate(ret);
             cf = cf1 - cf0;
         } else {
-            ret = n;
-            WJR_ASSUME(ret > 0);
             cf = cf0 - cf1;
         }
 
@@ -15072,14 +15100,14 @@ void toom22_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     do {
         ssize_t p;
         p = abs_subc_s(p0, u0, l, u1, rn);
-        if (p < 0) {
+        if (__fasts_is_negative(p)) {
             f ^= 1;
         } else if (WJR_UNLIKELY(p == 0)) {
             goto ZERO;
         }
 
         p = abs_subc_s(p1, v0, l, v1, rm);
-        if (p < 0) {
+        if (__fasts_is_negative(p)) {
             f ^= 1;
         } else if (WJR_UNLIKELY(p == 0)) {
             goto ZERO;
@@ -15213,14 +15241,14 @@ void toom32_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     // W0 = W0 - U1 : u(-1)
     {
         ssize_t p = abs_subc_n(w0p, w0p, u1p, l, cf0, cf0, 0);
-        neg0 = p < 0;
+        neg0 = __fasts_is_negative(p);
     }
     WJR_ASSERT_ASSUME(cf0 <= 1);
 
     // W3 = V0 - V1 : v(-1)
     {
         ssize_t p = abs_subc_s(w3p, v0p, l, v1p, rm);
-        neg3 = p < 0;
+        neg3 = __fasts_is_negative(p);
     }
 
     // W2 = W0 * W3 : f(-1) = r2
@@ -15458,14 +15486,14 @@ void toom42_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     // W3 = W0 - W1 : u(-1)
     {
         ssize_t p = abs_subc_n(w3p, w0p, w1p, l, cf3, cf0, cf1);
-        neg3 = p < 0;
+        neg3 = __fasts_is_negative(p);
     }
     WJR_ASSERT_ASSUME(cf3 <= 1);
 
     // W2 = V0 - V1 : v(-1)
     {
         ssize_t p = abs_subc_s(w2p, v0p, l, v1p, rm);
-        neg2 = p < 0;
+        neg2 = __fasts_is_negative(p);
     }
 
     // W0 = W0 + W1 : (non-negative) u(1)
@@ -15552,14 +15580,14 @@ void toom33_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     // W3 = W0 - U1 : u(-1)
     {
         ssize_t p = abs_subc_n(w3p, w0p, u1p, l, cf3, cf0, 0);
-        neg3 = p < 0;
+        neg3 = __fasts_is_negative(p);
         WJR_ASSERT_ASSUME(cf3 <= 1);
     }
 
     // W2 = W4 - V1 : v(-1)
     {
         ssize_t p = abs_subc_n(w2p, w4p, v1p, l, cf2, cf4, 0);
-        neg2 = p < 0;
+        neg2 = __fasts_is_negative(p);
         WJR_ASSERT_ASSUME(cf2 <= 1);
     }
 
@@ -15917,7 +15945,7 @@ void toom52_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  T0 = W3 - W4; u(-1)
     {
         ssize_t p = abs_subc_n(t0p, w3p, w4p, l, cft0, cf3, cf4);
-        neg0 = p < 0;
+        neg0 = __fasts_is_negative(p);
         WJR_ASSERT_ASSUME(cft0 <= 2);
     }
 
@@ -15928,7 +15956,7 @@ void toom52_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  W4 = V0 - V1; v(-1)
     {
         ssize_t p = abs_subc_s(w4p, v0p, l, v1p, rm);
-        neg1 = p < 0;
+        neg1 = __fasts_is_negative(p);
         cf4 = 0;
     }
 
@@ -15946,7 +15974,7 @@ void toom52_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     {
         if (!neg1) {
             ssize_t p = abs_subc_s(w4p, w4p, l, v1p, rm);
-            neg1 = p < 0;
+            neg1 = __fasts_is_negative(p);
         } else {
             cf4 = addc_s(w4p, w4p, l, v1p, rm);
         }
@@ -15974,7 +16002,7 @@ void toom52_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  T2 = T0 - T1; u(-2)
     {
         ssize_t p = abs_subc_n(t2p, t0p, t1p, l, cft2, cft0, cft1);
-        neg2 = p < 0;
+        neg2 = __fasts_is_negative(p);
         WJR_ASSERT_ASSUME(cft2 <= 20);
     }
 
@@ -16109,7 +16137,7 @@ void toom43_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  T0 = W3 - W4; u(-1)
     {
         ssize_t p = abs_subc_n(t0p, w3p, w4p, l, cft0, cf3, cf4);
-        neg0 = p < 0;
+        neg0 = __fasts_is_negative(p);
         WJR_ASSERT_ASSUME(cft0 <= 1);
     }
 
@@ -16123,7 +16151,7 @@ void toom43_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  W4 = W3 - V1; v(-1)
     {
         ssize_t p = abs_subc_n(w4p, w3p, v1p, l, cf4, cf3, 0);
-        neg1 = p < 0;
+        neg1 = __fasts_is_negative(p);
         WJR_ASSERT_ASSUME(cf4 <= 1);
     }
 
@@ -16154,7 +16182,7 @@ void toom43_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
             cf4 += cf4 + lshift_n(w4p, w4p, l, 1);
             {
                 ssize_t p = abs_subc_n(w4p, w4p, v0p, l, cf4, cf4, 0);
-                neg1 = p < 0;
+                neg1 = __fasts_is_negative(p);
             }
         } else {
             WJR_ASSERT_ASSUME(cf4 == 0);
@@ -16183,7 +16211,7 @@ void toom43_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  T2 = T0 - T1; u(-2)
     {
         ssize_t p = abs_subc_n(t2p, t0p, t1p, l, cft2, cft0, cft1);
-        neg2 = p < 0;
+        neg2 = __fasts_is_negative(p);
         WJR_ASSERT_ASSUME(cft2 <= 9);
     }
 
@@ -16379,7 +16407,7 @@ void toom_interpolation_7p_s(T *WJR_RESTRICT dst, T *w1p, size_t l, size_t rn, s
     //  W1 = W5 - W1         May be negative.
     {
         ssize_t p = abs_subc_n(w1p, w5p, w1p, l * 2, cf1, cf5, cf1);
-        neg1 = p < 0;
+        neg1 = __fasts_is_negative(p);
     }
 
     //  W5 =(W5 - W3*8)/9
@@ -16528,7 +16556,7 @@ void toom53_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  T1 = T0 - T2; u(-1)
     {
         ssize_t p = abs_subc_n(t1p, t0p, t2p, l, cft1, cft0, cft2);
-        neg0 = p < 0;
+        neg0 = __fasts_is_negative(p);
         WJR_ASSERT_ASSUME(cft1 <= 2);
     }
 
@@ -16546,7 +16574,7 @@ void toom53_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  W5 = W5 - V1; v(-1)
     {
         ssize_t p = abs_subc_n(w5p, w5p, v1p, l, cf5, cf5, 0);
-        neg1 = p < 0;
+        neg1 = __fasts_is_negative(p);
         WJR_ASSERT_ASSUME(cf5 <= 1);
     }
 
@@ -16570,7 +16598,7 @@ void toom53_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
         cf5 += cf5 + lshift_n(w5p, w5p, l, 1);
         {
             ssize_t p = abs_subc_n(w5p, w5p, v0p, l, cf5, cf5, 0);
-            neg1 = p < 0;
+            neg1 = __fasts_is_negative(p);
         }
     } else {
         WJR_ASSERT_ASSUME(cf5 == 0);
@@ -16604,7 +16632,7 @@ void toom53_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  T1 = T1 - W1; u(-2)
     {
         ssize_t p = abs_subc_n(t1p, t1p, w1p, l, cft1, cft1, cf1);
-        neg2 = p < 0;
+        neg2 = __fasts_is_negative(p);
     }
     WJR_ASSERT_ASSUME(cft1 <= 20);
 
@@ -16769,7 +16797,7 @@ void toom44_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  T1 = T0 - T2; u(-1)
     {
         ssize_t p = abs_subc_n(t1p, t0p, t2p, l, cft1, cft0, cft2);
-        neg0 = p < 0;
+        neg0 = __fasts_is_negative(p);
         WJR_ASSERT_ASSUME(cft1 <= 1);
     }
 
@@ -16790,7 +16818,7 @@ void toom44_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  W1 = W1 - T2; v(-1)
     {
         ssize_t p = abs_subc_n(w1p, w1p, t2p, l, cf1, cf1, cft2);
-        neg1 = p < 0;
+        neg1 = __fasts_is_negative(p);
         WJR_ASSERT_ASSUME(cf1 <= 1);
     }
 
@@ -16816,7 +16844,7 @@ void toom44_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  T1 = T0 - T2; u(-2)
     {
         ssize_t p = abs_subc_n(t1p, t0p, t2p, l, cft1, cft0, cft2);
-        neg1 = p < 0;
+        neg1 = __fasts_is_negative(p);
         WJR_ASSERT_ASSUME(cft1 <= 9);
     }
 
@@ -16843,7 +16871,7 @@ void toom44_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  W5 = W5 - T2; v(-2)
     {
         ssize_t p = abs_subc_n(w5p, w5p, t2p, l, cf5, cf5, cft2);
-        neg2 = p < 0;
+        neg2 = __fasts_is_negative(p);
         WJR_ASSERT_ASSUME(cf5 <= 9);
     }
 
@@ -23464,10 +23492,8 @@ namespace wjr {
 
 namespace biginteger_details {
 
-WJR_CONST WJR_CONSTEXPR inline uint32_t abs_size(uint32_t n) { return n & 0x7FFFFFFF; }
-WJR_CONST WJR_CONSTEXPR inline uint32_t negative_mask() { return 0x80000000; }
-WJR_CONST WJR_CONSTEXPR inline uint32_t mask_sign(uint32_t n) {
-    return n & negative_mask();
+inline uint32_t normalize(uint64_t *ptr, uint32_t n) {
+    return reverse_find_not_n(ptr, 0, n);
 }
 
 } // namespace biginteger_details
@@ -23475,22 +23501,18 @@ WJR_CONST WJR_CONSTEXPR inline uint32_t mask_sign(uint32_t n) {
 class default_biginteger_size_reference : noncopyable {
 public:
     default_biginteger_size_reference() = delete;
-    explicit default_biginteger_size_reference(uint32_t &size) noexcept : m_size(size) {}
+    explicit default_biginteger_size_reference(int32_t &size) noexcept : m_size(size) {}
     ~default_biginteger_size_reference() = default;
     default_biginteger_size_reference(default_biginteger_size_reference &&) = default;
     default_biginteger_size_reference &
     operator=(default_biginteger_size_reference &&) = default;
 
     default_biginteger_size_reference &operator=(uint32_t size) noexcept {
-        using namespace biginteger_details;
-        WJR_ASSUME(!mask_sign(size));
-        m_size = mask_sign(m_size) | size;
+        m_size = __fasts_get_sign_mask(m_size) | size;
         return *this;
     }
 
-    WJR_PURE operator uint32_t() const noexcept {
-        return biginteger_details::abs_size(m_size);
-    }
+    WJR_PURE operator uint32_t() const noexcept { return __fasts_abs(m_size); }
 
     default_biginteger_size_reference &operator++() noexcept {
         ++m_size;
@@ -23513,7 +23535,7 @@ public:
     }
 
 private:
-    uint32_t &m_size;
+    int32_t &m_size;
 };
 
 /**
@@ -23538,7 +23560,7 @@ public:
 private:
     struct Data {
         pointer m_data = {};
-        uint32_t m_size = 0;
+        int32_t m_size = 0;
         uint32_t m_capacity = 0;
     };
 
@@ -23600,8 +23622,7 @@ public:
         auto &other_storage = other.__get_data();
         auto &__storage = __get_data();
         __storage.m_data = other_storage.m_data;
-        __storage.m_size =
-            biginteger_details::mask_sign(__storage.m_size) | other_storage.m_size;
+        size() = other_storage.m_size;
         __storage.m_capacity = other_storage.m_capacity;
         other_storage = {};
     }
@@ -23613,9 +23634,7 @@ public:
     WJR_PURE default_biginteger_size_reference size() noexcept {
         return default_biginteger_size_reference(__get_data().m_size);
     }
-    WJR_PURE size_type size() const noexcept {
-        return biginteger_details::abs_size(__get_data().m_size);
-    }
+    WJR_PURE size_type size() const noexcept { return __fasts_abs(__get_data().m_size); }
     WJR_PURE size_type capacity() const noexcept { return __get_data().m_capacity; }
 
     WJR_PURE pointer data() noexcept { return __get_data().m_data; }
@@ -23625,7 +23644,7 @@ public:
 
     WJR_PURE int32_t get_ssize() const noexcept { return __get_data().m_size; }
     void set_ssize(int32_t size) noexcept {
-        WJR_ASSERT(biginteger_details::abs_size(size) <= capacity());
+        WJR_ASSUME(__fasts_abs(size) <= capacity());
         __get_data().m_size = size;
     }
 
@@ -23640,19 +23659,6 @@ template <>
 struct unref_wrapper<default_biginteger_size_reference> {
     using type = uint32_t &;
 };
-
-namespace biginteger_details {
-
-inline uint32_t normalize(uint64_t *ptr, uint32_t n) {
-    return reverse_find_not_n(ptr, 0, n);
-}
-
-WJR_CONST WJR_CONSTEXPR inline int32_t conditional_negate(bool xsign,
-                                                          int32_t x) noexcept {
-    return xsign ? (x | biginteger_details::negative_mask()) : x;
-}
-
-} // namespace biginteger_details
 
 template <typename Storage>
 class basic_biginteger {
@@ -23859,12 +23865,10 @@ template <bool xsign>
 void basic_biginteger<Storage>::__addsub(basic_biginteger *dst,
                                          const basic_biginteger *lhs,
                                          const basic_biginteger *rhs) {
-    using namespace biginteger_details;
-
     int32_t lssize = lhs->get_ssize();
-    int32_t rssize = conditional_negate(xsign, rhs->get_ssize());
-    uint32_t lusize = abs_size(lssize);
-    uint32_t rusize = abs_size(rssize);
+    int32_t rssize = xsign ? __fasts_negate(rhs->get_ssize()) : rhs->get_ssize();
+    uint32_t lusize = __fasts_abs(lssize);
+    uint32_t rusize = __fasts_abs(rssize);
 
     if (lusize < rusize) {
         std::swap(lhs, rhs);
@@ -23883,19 +23887,17 @@ void basic_biginteger<Storage>::__addsub(basic_biginteger *dst,
     if ((lssize ^ rssize) < 0) {
         if (lusize != rusize) {
             subc_sz(dp, lp, lusize, rp, rusize);
-            dssize = normalize(dp, lusize);
-            dssize = mask_sign(lssize) | rssize;
+            dssize = __fasts_get_sign_mask(lssize) | normalize(dp, lusize);
         } else {
             if (WJR_UNLIKELY(lusize == 0)) {
                 dssize = 0;
             } else {
-                dssize = abs_subc_n(dp, lp, rp, rusize);
-                dssize = mask_sign(lssize) | rssize;
+                dssize = __fasts_get_sign_mask(lssize) ^ abs_subc_n(dp, lp, rp, rusize);
             }
         }
     } else {
         auto cf = addc_sz(dp, lp, lusize, rp, rusize);
-        dssize = mask_sign(lssize) | (lusize + cf);
+        dssize = __fasts_get_sign_mask(lssize) | (lusize + cf);
         if (cf) {
             dp[lusize] = 1;
         }
@@ -23909,11 +23911,11 @@ void basic_biginteger<Storage>::__mul(basic_biginteger *dst, const basic_biginte
                                       const basic_biginteger *rhs) {
     using namespace biginteger_details;
 
-    uint32_t lusize = lhs->get_ssize();
-    uint32_t rusize = rhs->get_ssize();
-    uint32_t mask = mask_sign(lusize ^ rusize);
-    lusize = abs_size(lusize);
-    rusize = abs_size(rusize);
+    int32_t lssize = lhs->get_ssize();
+    int32_t rssize = rhs->get_ssize();
+    int32_t mask = __fasts_get_sign_mask(lssize ^ rssize);
+    uint32_t lusize = __fasts_abs(lssize);
+    uint32_t rusize = __fasts_abs(rssize);
 
     if (lusize < rusize) {
         std::swap(lhs, rhs);
@@ -23976,7 +23978,7 @@ void basic_biginteger<Storage>::__mul(basic_biginteger *dst, const basic_biginte
         mul_s(dp, lp, lusize, rp, rusize);
     }
 
-    auto cf = dp[dssize - 1] == 0;
+    bool cf = dp[dssize - 1] == 0;
     dssize = mask | (dssize - cf);
 
     if (temp.data() != nullptr) {

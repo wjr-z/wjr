@@ -9,10 +9,8 @@ namespace wjr {
 
 namespace biginteger_details {
 
-WJR_CONST WJR_CONSTEXPR inline uint32_t abs_size(uint32_t n) { return n & 0x7FFFFFFF; }
-WJR_CONST WJR_CONSTEXPR inline uint32_t negative_mask() { return 0x80000000; }
-WJR_CONST WJR_CONSTEXPR inline uint32_t mask_sign(uint32_t n) {
-    return n & negative_mask();
+inline uint32_t normalize(uint64_t *ptr, uint32_t n) {
+    return reverse_find_not_n(ptr, 0, n);
 }
 
 } // namespace biginteger_details
@@ -20,22 +18,18 @@ WJR_CONST WJR_CONSTEXPR inline uint32_t mask_sign(uint32_t n) {
 class default_biginteger_size_reference : noncopyable {
 public:
     default_biginteger_size_reference() = delete;
-    explicit default_biginteger_size_reference(uint32_t &size) noexcept : m_size(size) {}
+    explicit default_biginteger_size_reference(int32_t &size) noexcept : m_size(size) {}
     ~default_biginteger_size_reference() = default;
     default_biginteger_size_reference(default_biginteger_size_reference &&) = default;
     default_biginteger_size_reference &
     operator=(default_biginteger_size_reference &&) = default;
 
     default_biginteger_size_reference &operator=(uint32_t size) noexcept {
-        using namespace biginteger_details;
-        WJR_ASSUME(!mask_sign(size));
-        m_size = mask_sign(m_size) | size;
+        m_size = __fasts_get_sign_mask(m_size) | size;
         return *this;
     }
 
-    WJR_PURE operator uint32_t() const noexcept {
-        return biginteger_details::abs_size(m_size);
-    }
+    WJR_PURE operator uint32_t() const noexcept { return __fasts_abs(m_size); }
 
     default_biginteger_size_reference &operator++() noexcept {
         ++m_size;
@@ -58,7 +52,7 @@ public:
     }
 
 private:
-    uint32_t &m_size;
+    int32_t &m_size;
 };
 
 /**
@@ -83,7 +77,7 @@ public:
 private:
     struct Data {
         pointer m_data = {};
-        uint32_t m_size = 0;
+        int32_t m_size = 0;
         uint32_t m_capacity = 0;
     };
 
@@ -145,8 +139,7 @@ public:
         auto &other_storage = other.__get_data();
         auto &__storage = __get_data();
         __storage.m_data = other_storage.m_data;
-        __storage.m_size =
-            biginteger_details::mask_sign(__storage.m_size) | other_storage.m_size;
+        size() = other_storage.m_size;
         __storage.m_capacity = other_storage.m_capacity;
         other_storage = {};
     }
@@ -158,9 +151,7 @@ public:
     WJR_PURE default_biginteger_size_reference size() noexcept {
         return default_biginteger_size_reference(__get_data().m_size);
     }
-    WJR_PURE size_type size() const noexcept {
-        return biginteger_details::abs_size(__get_data().m_size);
-    }
+    WJR_PURE size_type size() const noexcept { return __fasts_abs(__get_data().m_size); }
     WJR_PURE size_type capacity() const noexcept { return __get_data().m_capacity; }
 
     WJR_PURE pointer data() noexcept { return __get_data().m_data; }
@@ -170,7 +161,7 @@ public:
 
     WJR_PURE int32_t get_ssize() const noexcept { return __get_data().m_size; }
     void set_ssize(int32_t size) noexcept {
-        WJR_ASSERT(biginteger_details::abs_size(size) <= capacity());
+        WJR_ASSUME(__fasts_abs(size) <= capacity());
         __get_data().m_size = size;
     }
 
@@ -185,19 +176,6 @@ template <>
 struct unref_wrapper<default_biginteger_size_reference> {
     using type = uint32_t &;
 };
-
-namespace biginteger_details {
-
-inline uint32_t normalize(uint64_t *ptr, uint32_t n) {
-    return reverse_find_not_n(ptr, 0, n);
-}
-
-WJR_CONST WJR_CONSTEXPR inline int32_t conditional_negate(bool xsign,
-                                                          int32_t x) noexcept {
-    return xsign ? (x | biginteger_details::negative_mask()) : x;
-}
-
-} // namespace biginteger_details
 
 template <typename Storage>
 class basic_biginteger {
@@ -404,12 +382,10 @@ template <bool xsign>
 void basic_biginteger<Storage>::__addsub(basic_biginteger *dst,
                                          const basic_biginteger *lhs,
                                          const basic_biginteger *rhs) {
-    using namespace biginteger_details;
-
     int32_t lssize = lhs->get_ssize();
-    int32_t rssize = conditional_negate(xsign, rhs->get_ssize());
-    uint32_t lusize = abs_size(lssize);
-    uint32_t rusize = abs_size(rssize);
+    int32_t rssize = xsign ? __fasts_negate(rhs->get_ssize()) : rhs->get_ssize();
+    uint32_t lusize = __fasts_abs(lssize);
+    uint32_t rusize = __fasts_abs(rssize);
 
     if (lusize < rusize) {
         std::swap(lhs, rhs);
@@ -428,19 +404,17 @@ void basic_biginteger<Storage>::__addsub(basic_biginteger *dst,
     if ((lssize ^ rssize) < 0) {
         if (lusize != rusize) {
             subc_sz(dp, lp, lusize, rp, rusize);
-            dssize = normalize(dp, lusize);
-            dssize = mask_sign(lssize) | rssize;
+            dssize = __fasts_get_sign_mask(lssize) | normalize(dp, lusize);
         } else {
             if (WJR_UNLIKELY(lusize == 0)) {
                 dssize = 0;
             } else {
-                dssize = abs_subc_n(dp, lp, rp, rusize);
-                dssize = mask_sign(lssize) | rssize;
+                dssize = __fasts_get_sign_mask(lssize) ^ abs_subc_n(dp, lp, rp, rusize);
             }
         }
     } else {
         auto cf = addc_sz(dp, lp, lusize, rp, rusize);
-        dssize = mask_sign(lssize) | (lusize + cf);
+        dssize = __fasts_get_sign_mask(lssize) | (lusize + cf);
         if (cf) {
             dp[lusize] = 1;
         }
@@ -454,11 +428,11 @@ void basic_biginteger<Storage>::__mul(basic_biginteger *dst, const basic_biginte
                                       const basic_biginteger *rhs) {
     using namespace biginteger_details;
 
-    uint32_t lusize = lhs->get_ssize();
-    uint32_t rusize = rhs->get_ssize();
-    uint32_t mask = mask_sign(lusize ^ rusize);
-    lusize = abs_size(lusize);
-    rusize = abs_size(rusize);
+    int32_t lssize = lhs->get_ssize();
+    int32_t rssize = rhs->get_ssize();
+    int32_t mask = __fasts_get_sign_mask(lssize ^ rssize);
+    uint32_t lusize = __fasts_abs(lssize);
+    uint32_t rusize = __fasts_abs(rssize);
 
     if (lusize < rusize) {
         std::swap(lhs, rhs);
@@ -521,7 +495,7 @@ void basic_biginteger<Storage>::__mul(basic_biginteger *dst, const basic_biginte
         mul_s(dp, lp, lusize, rp, rusize);
     }
 
-    auto cf = dp[dssize - 1] == 0;
+    bool cf = dp[dssize - 1] == 0;
     dssize = mask | (dssize - cf);
 
     if (temp.data() != nullptr) {
