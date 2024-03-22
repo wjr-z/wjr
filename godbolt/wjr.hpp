@@ -19231,7 +19231,10 @@ private:
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0};
 
 public:
-    WJR_CONST constexpr static char to(uint8_t x) { return to_table[x]; }
+    WJR_CONST constexpr static char to(uint8_t x) {
+        WJR_ASSERT_L1(x < 36);
+        return to_table[x];
+    }
     WJR_CONST constexpr static uint8_t from(char x) { return from_table[x]; }
 };
 
@@ -19678,7 +19681,7 @@ template <typename Iter, typename Converter>
 size_t __large_to_chars_power_of_two_impl(Iter first, uint64_t *up, size_t n,
                                           unsigned int base, Converter conv) {
     WJR_ASSERT(up[n - 1] != 0);
-    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_ASSUME(n >= 2);
 
     int per_bit = ctz(base);
     unsigned int mask = (1u << per_bit) - 1;
@@ -19728,7 +19731,7 @@ size_t __large_to_chars_power_of_two_impl(Iter first, uint64_t *up, size_t n,
         unsigned int val = ((x & ((1u << fix) - 1)) << rest) | last;
         x >>= fix;
         *--first = conv.to(val);
-        rest += hbits - fix;
+        rest = hbits - fix;
         if (WJR_UNLIKELY(rest == 0)) {
             goto DONE;
         }
@@ -19937,9 +19940,8 @@ Iter __large_to_chars_impl(Iter first, uint64_t *up, size_t n, unsigned int base
     auto __up = stk;
     std::copy_n(up, n, __up);
     stk += n;
-    auto table_mem = stk;
+    auto mpre = precompute_to_chars(pre, n, base, stk);
     stk += n + 128;
-    auto mpre = precompute_to_chars(pre, n, base, table_mem);
     return dc_to_chars(first, 0, __up, n, mpre, stk, conv);
 }
 
