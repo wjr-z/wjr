@@ -59,6 +59,7 @@
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/generic/container_traits.hpp>
 #include <wjr/memory/temporary_value_allocator.hpp>
+#include <wjr/assert.hpp>
 
 namespace wjr {
 
@@ -381,6 +382,12 @@ private:
     compressed_pair<_Alty, data_type> m_pair;
 };
 
+/**
+ * @brief Customized vector by storage.
+ * 
+ * @details Type of pointer is same as iterator.
+ * 
+ */
 template <typename Storage>
 class basic_vector {
 public:
@@ -640,7 +647,7 @@ public:
 
     WJR_INLINE_CONSTEXPR20 reference at(size_type pos) {
         if (WJR_UNLIKELY(pos >= size())) {
-            throw std::out_of_range("basic_vector::at");
+            WJR_THROW(std::out_of_range("basic_vector::at"));
         }
 
         return (*this)[pos];
@@ -648,7 +655,7 @@ public:
 
     WJR_INLINE_CONSTEXPR20 const_reference at(size_type pos) const {
         if (WJR_UNLIKELY(pos >= size())) {
-            throw std::out_of_range("basic_vector::at");
+            WJR_THROW(std::out_of_range("basic_vector::at"));
         }
 
         return (*this)[pos];
@@ -811,6 +818,21 @@ public:
         return append(il.begin(), il.end());
     }
 
+    /**
+     * @brief Pop n elements from the end
+     * 
+     */
+    WJR_CONSTEXPR20 basic_vector &chop(const size_type n) {
+        __erase_at_end(end() - n);
+        return *this;
+    }
+
+    /**
+     * @brief Truncate the size to n
+     * 
+     */
+    WJR_CONSTEXPR20 basic_vector &truncate(const size_type n) { return chop(size() - n); }
+
     template <typename Iter, std::enable_if_t<is_iterator_v<Iter>, int> = 0>
     WJR_CONSTEXPR20 basic_vector &replace(const_iterator from, const_iterator to,
                                           Iter first, Iter last) {
@@ -925,6 +947,8 @@ private:
     WJR_CONSTEXPR20 void __erase_at_end(const_pointer pos) noexcept {
         const pointer __first = data();
         const pointer __last = data() + size();
+        WJR_ASSERT(pos >= __first && pos <= __last,
+                   "pos must be in the range of [begin(), end()]");
         const auto new_size = static_cast<size_type>(pos - __first);
         destroy_using_allocator(__first + new_size, __last, __get_allocator());
         __get_size() = new_size;

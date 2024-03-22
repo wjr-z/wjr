@@ -6,6 +6,7 @@
 #include <wjr/compressed_pair.hpp>
 #include <wjr/crtp/noncopyable.hpp>
 #include <wjr/crtp/nonsendable.hpp>
+#include <wjr/crtp/trivial_allocator_base.hpp>
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
@@ -256,10 +257,7 @@ class unique_stack_allocator<singleton_stack_allocator_object<cache, threshold>>
 
 public:
     unique_stack_allocator(const StackAllocator &al) : m_pair(al, {}) {}
-    ~unique_stack_allocator() {
-        nonsendable::check();
-        m_pair.first().deallocate(m_pair.second());
-    }
+    ~unique_stack_allocator() { m_pair.first().deallocate(m_pair.second()); }
 
     WJR_CONSTEXPR20 void *allocate(size_t n) {
         nonsendable::check();
@@ -277,7 +275,8 @@ template <typename T, typename StackAllocator>
 class weak_stack_allocator;
 
 template <typename T, size_t cache, size_t threshold>
-class weak_stack_allocator<T, singleton_stack_allocator_object<cache, threshold>> {
+class weak_stack_allocator<T, singleton_stack_allocator_object<cache, threshold>>
+    : private trivial_allocator_base {
     using StackAllocator = singleton_stack_allocator_object<cache, threshold>;
     using UniqueStackAllocator = unique_stack_allocator<StackAllocator>;
 

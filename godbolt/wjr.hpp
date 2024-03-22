@@ -1203,8 +1203,8 @@
 #define WJR_HAS_FEATURE_FAST_INT128_COMPARE WJR_HAS_DEF
 #endif
 
-#if WJR_HAS_FEATURE(INT128) && defined(WJR_COMPILER_CLANG)
 // performance bug
+#if WJR_HAS_FEATURE(INT128) && defined(WJR_COMPILER_CLANG)
 // #define WJR_HAS_FEATURE_FAST_INT128_ADDSUB WJR_HAS_DEF
 #endif
 
@@ -2215,8 +2215,54 @@
 #define WJR_ASM_CCOUT(c) "=@cc" #c
 #else
 #define WJR_ASM_CCSET(c) "set" #c " %[_cc_" #c "]\n\t"
-#define WJR_ASM_CCOUT(c) [_cc_ ## c] "=r"
+#define WJR_ASM_CCOUT(c) [_cc_##c] "=r"
 #endif
+
+// WJR_EXCEPTIONS_LEVEL : 0 ~ 3
+// 0 : Disable exceptions
+// 1 ~ 3 : Enable exceptions
+#ifndef WJR_EXCEPTIONS_LEVEL
+#define WJR_EXCEPTIONS_LEVEL 1 // enable exceptions by default
+#endif
+
+#define WJR_EXCEPTIONS_IF(level, expr0, expr1)                                           \
+    WJR_PP_BOOL_IF(WJR_PP_GT(WJR_EXCEPTIONS_LEVEL, level), expr0, expr1)
+
+#define WJR_EXCEPTIONS_EXPR_L(level, expr) WJR_EXCEPTIONS_IF(level, expr, )
+#define WJR_EXCEPTIONS_EXPR(expr) WJR_EXCEPTIONS_EXPR_L(0, expr)
+
+#define WJR_ENABLE_EXCEPTIONS_TRY_I try
+#define WJR_ENABLE_EXCEPTIONS_CATCH_I(X) catch (X)
+#define WJR_ENABLE_EXCEPTIONS_THROW_I(X) throw X
+
+#define WJR_DISABLE_EXCEPTIONS_TRY_I if (true)
+#define WJR_DISABLE_EXCEPTIONS_CATCH_I(X) if (false)
+#define WJR_DISABLE_EXCEPTIONS_THROW_I(X)
+
+#define WJR_TRY_L(level)                                                                 \
+    WJR_EXCEPTIONS_IF(level, WJR_ENABLE_EXCEPTIONS_TRY_I, WJR_DISABLE_EXCEPTIONS_TRY_I)
+#define WJR_CATCH_L(level, X)                                                            \
+    WJR_EXCEPTIONS_IF(level, WJR_ENABLE_EXCEPTIONS_CATCH_I(X),                           \
+                      WJR_DISABLE_EXCEPTIONS_CATCH_I(X))
+#define WJR_THROW_L(level, X)                                                            \
+    WJR_EXCEPTIONS_IF(level, WJR_ENABLE_EXCEPTIONS_THROW_I(X),                           \
+                      WJR_DISABLE_EXCEPTIONS_THROW_I(X))
+
+#define WJR_TRY WJR_TRY_L(0)
+#define WJR_CATCH(X) WJR_CATCH_L(0, X)
+#define WJR_THROW(X) WJR_THROW_L(0, X)
+
+#define WJR_TRY_L1 WJR_TRY_L(1)
+#define WJR_CATCH_L1(X) WJR_CATCH_L(1, X)
+#define WJR_THROW_L1(X) WJR_THROW_L(1, X)
+
+#define WJR_TRY_L2 WJR_TRY_L(2)
+#define WJR_CATCH_L2(X) WJR_CATCH_L(2, X)
+#define WJR_THROW_L2(X) WJR_THROW_L(2, X)
+
+#define WJR_TRY_L3 WJR_TRY_L(3)
+#define WJR_CATCH_L3(X) WJR_CATCH_L(3, X)
+#define WJR_THROW_L3(X) WJR_THROW_L(3, X)
 
 #endif // ! WJR_PREPROCESSOR_PREVIEW_HPP__
 
@@ -3139,22 +3185,27 @@ namespace wjr {
 // 2 : Most runtime checks
 // 3 : Maximize runtime checks
 #ifndef WJR_DEBUG_LEVEL
-
 #if defined(NDEBUG)
 #define WJR_DEBUG_LEVEL 0
 #else
 #define WJR_DEBUG_LEVEL 1
 #endif
-
 #endif
 
-#ifdef WJR_DEBUG_USE_THROW
-#define WJR_DEBUG_NORETURN
-#define WJR_DEBUG_ABORT() throw std::runtime_error("assertion failed")
+// use WJR_THROW instead of std::abort
+#ifdef WJR_ASSERT_THROW
+#define WJR_ASSERT_NORETURN
+#define WJR_ASSERT_ABORT() WJR_THROW(std::runtime_error("assertion failed"))
 #else
-#define WJR_DEBUG_NORETURN WJR_NORETURN
-#define WJR_DEBUG_ABORT() std::abort()
+#define WJR_ASSERT_NORETURN WJR_NORETURN
+#define WJR_ASSERT_ABORT() std::abort()
 #endif
+
+#define WJR_DEBUG_IF(level, expr0, expr1)                                                \
+    WJR_PP_BOOL_IF(WJR_PP_GT(WJR_DEBUG_LEVEL, level), expr0, expr1)
+
+#define WJR_DEBUG_EXPR_L(level, expr) WJR_DEBUG_IF(level, expr, )
+#define WJR_DEBUG_EXPR(expr) WJR_DEBUG_EXPR_L(0, expr)
 
 template <typename... Args>
 struct assert_format {
@@ -3209,8 +3260,8 @@ private:
 
 public:
     template <typename... Args>
-    WJR_DEBUG_NORETURN WJR_NOINLINE void operator()(const char *expr, const char *file,
-                                                    int line, Args &&...args) const {
+    WJR_ASSERT_NORETURN WJR_NOINLINE void operator()(const char *expr, const char *file,
+                                                     int line, Args &&...args) const {
         (void)fprintf(stderr, "Assertion failed: %s", expr);
         if ((file != nullptr) && (file[0] != '\0')) {
             (void)fprintf(stderr, ", file %s", file);
@@ -3220,7 +3271,7 @@ public:
         }
         (void)fprintf(stderr, "\n");
         handler(std::forward<Args>(args)...);
-        WJR_DEBUG_ABORT();
+        WJR_ASSERT_ABORT();
     }
 };
 
@@ -3253,9 +3304,6 @@ inline constexpr __assert_handler_t __assert_handler{};
 // do nothing
 #define WJR_ASSERT_UNCHECK_I(expr, ...)
 
-#define WJR_DEBUG_IF(level, expr0, expr1)                                                \
-    WJR_PP_BOOL_IF(WJR_PP_GT(WJR_DEBUG_LEVEL, level), expr0, expr1)
-
 // level = [0, 2]
 // The higher the level, the less likely it is to be detected
 // Runtime detect  : 1
@@ -3279,9 +3327,6 @@ inline constexpr __assert_handler_t __assert_handler{};
 #define WJR_ASSERT_ASSUME_L1(...) WJR_ASSERT_ASSUME_L(1, __VA_ARGS__)
 #define WJR_ASSERT_ASSUME_L2(...) WJR_ASSERT_ASSUME_L(2, __VA_ARGS__)
 #define WJR_ASSERT_ASSUME_L3(...) WJR_ASSERT_ASSUME_L(3, __VA_ARGS__)
-
-#define WJR_DEBUG_EXPR_L(level, expr) WJR_DEBUG_IF(level, expr, )
-#define WJR_DEBUG_EXPR(expr) WJR_DEBUG_EXPR_L(0, expr)
 
 } // namespace wjr
 
@@ -3363,6 +3408,28 @@ inline constexpr bool is_sendable_v = is_sendable<T>::value;
 } // namespace wjr
 
 #endif // WJR_CRTP_NONSENDABLE_HPP__
+#ifndef WJR_CRTP_TRIVIAL_ALLOCATOR_BASE_HPP__
+#define WJR_CRTP_TRIVIAL_ALLOCATOR_BASE_HPP__
+
+#include <memory>
+#include <type_traits>
+
+namespace wjr {
+
+struct trivial_allocator_base {};
+
+template <typename T>
+struct is_trivially_allocator : std::is_base_of<trivial_allocator_base, T> {};
+
+template <typename T>
+struct is_trivially_allocator<std::allocator<T>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_trivially_allocator_v = is_trivially_allocator<T>::value;
+
+} // namespace wjr
+
+#endif // WJR_CRTP_TRIVIAL_ALLOCATOR_BASE_HPP__
 // Already included
 
 namespace wjr {
@@ -3613,10 +3680,7 @@ class unique_stack_allocator<singleton_stack_allocator_object<cache, threshold>>
 
 public:
     unique_stack_allocator(const StackAllocator &al) : m_pair(al, {}) {}
-    ~unique_stack_allocator() {
-        nonsendable::check();
-        m_pair.first().deallocate(m_pair.second());
-    }
+    ~unique_stack_allocator() { m_pair.first().deallocate(m_pair.second()); }
 
     WJR_CONSTEXPR20 void *allocate(size_t n) {
         nonsendable::check();
@@ -3634,7 +3698,8 @@ template <typename T, typename StackAllocator>
 class weak_stack_allocator;
 
 template <typename T, size_t cache, size_t threshold>
-class weak_stack_allocator<T, singleton_stack_allocator_object<cache, threshold>> {
+class weak_stack_allocator<T, singleton_stack_allocator_object<cache, threshold>>
+    : private trivial_allocator_base {
     using StackAllocator = singleton_stack_allocator_object<cache, threshold>;
     using UniqueStackAllocator = unique_stack_allocator<StackAllocator>;
 
@@ -20575,28 +20640,7 @@ public:
  *
  */
 
-#ifndef WJR_CRTP_TRIVIAL_ALLOCATOR_BASE_HPP__
-#define WJR_CRTP_TRIVIAL_ALLOCATOR_BASE_HPP__
-
-#include <memory>
-#include <type_traits>
-
-namespace wjr {
-
-struct trivial_allocator_base {};
-
-template <typename T>
-struct is_trivially_allocator : std::is_base_of<trivial_allocator_base, T> {};
-
-template <typename T>
-struct is_trivially_allocator<std::allocator<T>> : std::true_type {};
-
-template <typename T>
-inline constexpr bool is_trivially_allocator_v = is_trivially_allocator<T>::value;
-
-} // namespace wjr
-
-#endif // WJR_CRTP_TRIVIAL_ALLOCATOR_BASE_HPP__
+// Already included
 #ifndef WJR_MEMORY_TO_ADDRESS_HPP__
 #define WJR_MEMORY_TO_ADDRESS_HPP__
 
@@ -20870,6 +20914,7 @@ temporary_value_allocator(Alloc &, Args &&...) -> temporary_value_allocator<Allo
 } // namespace wjr
 
 #endif // WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
+// Already included
 
 namespace wjr {
 
@@ -21192,6 +21237,12 @@ private:
     compressed_pair<_Alty, data_type> m_pair;
 };
 
+/**
+ * @brief Customized vector by storage.
+ * 
+ * @details Type of pointer is same as iterator.
+ * 
+ */
 template <typename Storage>
 class basic_vector {
 public:
@@ -21451,7 +21502,7 @@ public:
 
     WJR_INLINE_CONSTEXPR20 reference at(size_type pos) {
         if (WJR_UNLIKELY(pos >= size())) {
-            throw std::out_of_range("basic_vector::at");
+            WJR_THROW(std::out_of_range("basic_vector::at"));
         }
 
         return (*this)[pos];
@@ -21459,7 +21510,7 @@ public:
 
     WJR_INLINE_CONSTEXPR20 const_reference at(size_type pos) const {
         if (WJR_UNLIKELY(pos >= size())) {
-            throw std::out_of_range("basic_vector::at");
+            WJR_THROW(std::out_of_range("basic_vector::at"));
         }
 
         return (*this)[pos];
@@ -21622,6 +21673,21 @@ public:
         return append(il.begin(), il.end());
     }
 
+    /**
+     * @brief Pop n elements from the end
+     * 
+     */
+    WJR_CONSTEXPR20 basic_vector &chop(const size_type n) {
+        __erase_at_end(end() - n);
+        return *this;
+    }
+
+    /**
+     * @brief Truncate the size to n
+     * 
+     */
+    WJR_CONSTEXPR20 basic_vector &truncate(const size_type n) { return chop(size() - n); }
+
     template <typename Iter, std::enable_if_t<is_iterator_v<Iter>, int> = 0>
     WJR_CONSTEXPR20 basic_vector &replace(const_iterator from, const_iterator to,
                                           Iter first, Iter last) {
@@ -21736,6 +21802,8 @@ private:
     WJR_CONSTEXPR20 void __erase_at_end(const_pointer pos) noexcept {
         const pointer __first = data();
         const pointer __last = data() + size();
+        WJR_ASSERT(pos >= __first && pos <= __last,
+                   "pos must be in the range of [begin(), end()]");
         const auto new_size = static_cast<size_type>(pos - __first);
         destroy_using_allocator(__first + new_size, __last, __get_allocator());
         __get_size() = new_size;
@@ -23150,7 +23218,7 @@ public:
 
     constexpr reference at(size_type pos) const {
         if (WJR_UNLIKELY(pos >= size())) {
-            throw std::out_of_range("span at out of range");
+            WJR_THROW(std::out_of_range("span at out of range"));
         }
 
         return this->operator[](pos);
@@ -23259,8 +23327,8 @@ namespace wjr {
 
 /**
  * @brief Dynamic bitset.
- * 
- * @note TODO: Add more functions. 
+ *
+ * @note TODO: Add more functions.
  */
 template <typename Allocator = std::allocator<uint64_t>>
 class basic_dynamic_bitset {
@@ -23315,6 +23383,8 @@ public:
     /**
      * @brief Use from_chars_2 to optimize the performance.
      *
+     * @details Very fast conversion from string to uint64_t.
+     *
      * @note Only use from_chars_2 when type of T is uint64_t and CharT is char.
      */
     template <typename CharT, size_t Extent,
@@ -23332,12 +23402,14 @@ public:
         : basic_dynamic_bitset(sp, '0') {}
 
     template <typename CharT, size_t Extent>
-    basic_dynamic_bitset(const span<CharT, Extent> &sp, CharT zero, CharT one = '1')
+    basic_dynamic_bitset(const span<CharT, Extent> &sp, type_identity_t<CharT> zero,
+                         type_identity_t<CharT> one = '1')
         : basic_dynamic_bitset(sp, zero, one, std::equal_to<CharT>()) {}
 
     template <typename CharT, size_t Extent, typename Equal>
-    basic_dynamic_bitset(const span<CharT, Extent> &sp, CharT zero, CharT one,
-                         Equal equal)
+    basic_dynamic_bitset(const span<CharT, Extent> &sp,
+                         WJR_MAYBE_UNUSED type_identity_t<CharT> zero,
+                         type_identity_t<CharT> one, Equal equal)
         : m_vec((sp.size() + block_size - 1) / block_size, in_place_default_construct),
           m_bits(sp.size()) {
         auto ptr = sp.data();
@@ -23505,7 +23577,7 @@ public:
             return *this;
         }
 
-        m_vec.back() = (~m_vec.back()) & ((block_type)1 << (m_bits % block_size)) - 1;
+        m_vec.back() = ((~m_vec.back()) & ((block_type)1 << (m_bits % block_size))) - 1;
 
         for (size_type i = 0; i < n - 1; ++i) {
             m_vec[i] = ~m_vec[i];
@@ -23526,7 +23598,7 @@ public:
             return *this;
         }
 
-        m_vec.back() = (block_type)1 << (m_bits % block_size) - 1;
+        m_vec.back() = ((block_type)1 << (m_bits % block_size)) - 1;
         set_n(m_vec.data(), ~block_type(0), n - 1);
 
         return *this;
@@ -23578,6 +23650,8 @@ private:
     vector<block_type, allocator_type> m_vec;
     size_type m_bits = 0;
 };
+
+using bitset = basic_dynamic_bitset<>;
 
 } // namespace wjr
 

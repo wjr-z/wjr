@@ -9,8 +9,8 @@ namespace wjr {
 
 /**
  * @brief Dynamic bitset.
- * 
- * @note TODO: Add more functions. 
+ *
+ * @note TODO: Add more functions.
  */
 template <typename Allocator = std::allocator<uint64_t>>
 class basic_dynamic_bitset {
@@ -65,6 +65,8 @@ public:
     /**
      * @brief Use from_chars_2 to optimize the performance.
      *
+     * @details Very fast conversion from string to uint64_t.
+     *
      * @note Only use from_chars_2 when type of T is uint64_t and CharT is char.
      */
     template <typename CharT, size_t Extent,
@@ -82,12 +84,14 @@ public:
         : basic_dynamic_bitset(sp, '0') {}
 
     template <typename CharT, size_t Extent>
-    basic_dynamic_bitset(const span<CharT, Extent> &sp, CharT zero, CharT one = '1')
+    basic_dynamic_bitset(const span<CharT, Extent> &sp, type_identity_t<CharT> zero,
+                         type_identity_t<CharT> one = '1')
         : basic_dynamic_bitset(sp, zero, one, std::equal_to<CharT>()) {}
 
     template <typename CharT, size_t Extent, typename Equal>
-    basic_dynamic_bitset(const span<CharT, Extent> &sp, CharT zero, CharT one,
-                         Equal equal)
+    basic_dynamic_bitset(const span<CharT, Extent> &sp,
+                         WJR_MAYBE_UNUSED type_identity_t<CharT> zero,
+                         type_identity_t<CharT> one, Equal equal)
         : m_vec((sp.size() + block_size - 1) / block_size, in_place_default_construct),
           m_bits(sp.size()) {
         auto ptr = sp.data();
@@ -255,7 +259,7 @@ public:
             return *this;
         }
 
-        m_vec.back() = (~m_vec.back()) & ((block_type)1 << (m_bits % block_size)) - 1;
+        m_vec.back() = ((~m_vec.back()) & ((block_type)1 << (m_bits % block_size))) - 1;
 
         for (size_type i = 0; i < n - 1; ++i) {
             m_vec[i] = ~m_vec[i];
@@ -276,7 +280,7 @@ public:
             return *this;
         }
 
-        m_vec.back() = (block_type)1 << (m_bits % block_size) - 1;
+        m_vec.back() = ((block_type)1 << (m_bits % block_size)) - 1;
         set_n(m_vec.data(), ~block_type(0), n - 1);
 
         return *this;
@@ -328,6 +332,8 @@ private:
     vector<block_type, allocator_type> m_vec;
     size_type m_bits = 0;
 };
+
+using bitset = basic_dynamic_bitset<>;
 
 } // namespace wjr
 

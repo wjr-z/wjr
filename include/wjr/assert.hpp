@@ -18,22 +18,27 @@ namespace wjr {
 // 2 : Most runtime checks
 // 3 : Maximize runtime checks
 #ifndef WJR_DEBUG_LEVEL
-
 #if defined(NDEBUG)
 #define WJR_DEBUG_LEVEL 0
 #else
 #define WJR_DEBUG_LEVEL 1
 #endif
-
 #endif
 
-#ifdef WJR_DEBUG_USE_THROW
-#define WJR_DEBUG_NORETURN
-#define WJR_DEBUG_ABORT() throw std::runtime_error("assertion failed")
+// use WJR_THROW instead of std::abort
+#ifdef WJR_ASSERT_THROW
+#define WJR_ASSERT_NORETURN
+#define WJR_ASSERT_ABORT() WJR_THROW(std::runtime_error("assertion failed"))
 #else
-#define WJR_DEBUG_NORETURN WJR_NORETURN
-#define WJR_DEBUG_ABORT() std::abort()
+#define WJR_ASSERT_NORETURN WJR_NORETURN
+#define WJR_ASSERT_ABORT() std::abort()
 #endif
+
+#define WJR_DEBUG_IF(level, expr0, expr1)                                                \
+    WJR_PP_BOOL_IF(WJR_PP_GT(WJR_DEBUG_LEVEL, level), expr0, expr1)
+
+#define WJR_DEBUG_EXPR_L(level, expr) WJR_DEBUG_IF(level, expr, )
+#define WJR_DEBUG_EXPR(expr) WJR_DEBUG_EXPR_L(0, expr)
 
 template <typename... Args>
 struct assert_format {
@@ -88,8 +93,8 @@ private:
 
 public:
     template <typename... Args>
-    WJR_DEBUG_NORETURN WJR_NOINLINE void operator()(const char *expr, const char *file,
-                                                    int line, Args &&...args) const {
+    WJR_ASSERT_NORETURN WJR_NOINLINE void operator()(const char *expr, const char *file,
+                                                     int line, Args &&...args) const {
         (void)fprintf(stderr, "Assertion failed: %s", expr);
         if ((file != nullptr) && (file[0] != '\0')) {
             (void)fprintf(stderr, ", file %s", file);
@@ -99,7 +104,7 @@ public:
         }
         (void)fprintf(stderr, "\n");
         handler(std::forward<Args>(args)...);
-        WJR_DEBUG_ABORT();
+        WJR_ASSERT_ABORT();
     }
 };
 
@@ -132,9 +137,6 @@ inline constexpr __assert_handler_t __assert_handler{};
 // do nothing
 #define WJR_ASSERT_UNCHECK_I(expr, ...)
 
-#define WJR_DEBUG_IF(level, expr0, expr1)                                                \
-    WJR_PP_BOOL_IF(WJR_PP_GT(WJR_DEBUG_LEVEL, level), expr0, expr1)
-
 // level = [0, 2]
 // The higher the level, the less likely it is to be detected
 // Runtime detect  : 1
@@ -158,9 +160,6 @@ inline constexpr __assert_handler_t __assert_handler{};
 #define WJR_ASSERT_ASSUME_L1(...) WJR_ASSERT_ASSUME_L(1, __VA_ARGS__)
 #define WJR_ASSERT_ASSUME_L2(...) WJR_ASSERT_ASSUME_L(2, __VA_ARGS__)
 #define WJR_ASSERT_ASSUME_L3(...) WJR_ASSERT_ASSUME_L(3, __VA_ARGS__)
-
-#define WJR_DEBUG_EXPR_L(level, expr) WJR_DEBUG_IF(level, expr, )
-#define WJR_DEBUG_EXPR(expr) WJR_DEBUG_EXPR_L(0, expr)
 
 } // namespace wjr
 
