@@ -281,6 +281,106 @@ private:
     compressed_pair<_Alty, data_type> m_pair;
 };
 
+template <typename T, typename Alloc>
+class fixed_vector_storage : noncopyable {
+    using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
+    using _Alty_traits = std::allocator_traits<_Alty>;
+
+public:
+    using value_type = T;
+    using pointer = typename _Alty_traits::pointer;
+    using const_pointer = typename _Alty_traits::const_pointer;
+    using size_type = typename _Alty_traits::size_type;
+    using difference_type = typename _Alty_traits::difference_type;
+    using allocator_type = Alloc;
+    using is_reallocatable = std::false_type;
+
+private:
+    struct Data {
+        pointer m_data = {};
+        size_type m_size = 0;
+        size_type m_capacity = 0;
+    };
+
+    using data_type = Data;
+
+public:
+    fixed_vector_storage() noexcept = default;
+
+    template <typename _Alloc>
+    WJR_CONSTEXPR20 fixed_vector_storage(_Alloc &&al) noexcept
+        : m_pair(std::forward<_Alloc>(al), {}) {}
+
+    ~fixed_vector_storage() noexcept = default;
+
+    WJR_PURE WJR_CONSTEXPR20 _Alty &get_allocator() noexcept { return m_pair.first(); }
+    WJR_PURE WJR_CONSTEXPR20 const _Alty &get_allocator() const noexcept {
+        return m_pair.first();
+    }
+
+    WJR_CONSTEXPR20 void destroy() noexcept {
+        if (WJR_BUILTIN_CONSTANT_P(data() == nullptr) && data() == nullptr) {
+            return;
+        }
+
+        if (WJR_BUILTIN_CONSTANT_P(size() == 0) && size() == 0) {
+            return;
+        }
+
+        destroy_n_using_allocator(data(), size(), get_allocator());
+    }
+
+    WJR_CONSTEXPR20 void destroy_and_deallocate() noexcept {
+        if (WJR_BUILTIN_CONSTANT_P(capacity() == 0) && capacity() == 0) {
+            return;
+        }
+
+        if (data()) {
+            destroy();
+            get_allocator().deallocate(data(), capacity());
+        }
+    }
+
+    WJR_CONSTEXPR20 void uninitialized_construct(size_type size, size_type capacity) {
+        auto &al = get_allocator();
+        auto &m_storage = __get_data();
+        m_storage.m_data = al.allocate(capacity);
+        m_storage.m_size = size;
+        m_storage.m_capacity = capacity;
+    }
+
+    WJR_CONSTEXPR20 void take_storage(fixed_vector_storage &&other) noexcept {
+        auto &other_storage = other.__get_data();
+        __get_data() = std::move(other_storage);
+        other_storage = {};
+    }
+
+    WJR_CONSTEXPR20 void swap_storage(fixed_vector_storage &other) noexcept {
+        std::swap(__get_data(), other.__get_data());
+    }
+
+    WJR_PURE WJR_CONSTEXPR20 size_type &size() noexcept { return __get_data().m_size; }
+    WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept {
+        return __get_data().m_size;
+    }
+    WJR_PURE WJR_CONSTEXPR20 size_type capacity() const noexcept {
+        return __get_data().m_capacity;
+    }
+
+    WJR_PURE WJR_CONSTEXPR20 pointer data() noexcept { return __get_data().m_data; }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer data() const noexcept {
+        return __get_data().m_data;
+    }
+
+private:
+    WJR_PURE WJR_CONSTEXPR20 data_type &__get_data() noexcept { return m_pair.second(); }
+    WJR_PURE WJR_CONSTEXPR20 const data_type &__get_data() const noexcept {
+        return m_pair.second();
+    }
+
+    compressed_pair<_Alty, data_type> m_pair;
+};
+
 template <typename Storage>
 class basic_vector {
 public:
@@ -782,7 +882,8 @@ private:
         m_storage.take_storage(std::move(other));
     }
 
-    WJR_CONSTEXPR20 void __unreallocatable_unreachable(size_type new_capacity) const {
+    WJR_CONSTEXPR20 void
+    __unreallocatable_unreachable(WJR_MAYBE_UNUSED size_type new_capacity) const {
         WJR_ASSERT(
             new_capacity <= capacity(),
             "new_capacity must be less than or equal to capacity if the storage is not reallocatable.\nnew_capacity = ",
@@ -1368,8 +1469,22 @@ private:
 template <typename T, typename Alloc = std::allocator<T>>
 using vector = basic_vector<default_vector_storage<T, Alloc>>;
 
+/**
+ * @brief A vector with elements stored on the stack.
+ *
+ */
 template <typename T, size_t Capacity, typename Alloc = std::allocator<T>>
 using static_vector = basic_vector<static_vector_storage<T, Capacity, Alloc>>;
+
+/**
+ * @brief A vector with fixed capacity by construction.
+ *
+ * @details Only allocate memory on construction and deallocation on destruction.
+ * After construction, it cannot be expanded and can only be modified through move
+ * assignment.
+ */
+template <typename T, typename Alloc = std::allocator<T>>
+using fixed_vector = basic_vector<fixed_vector_storage<T, Alloc>>;
 
 template <typename Iter, typename T = typename std::iterator_traits<Iter>::value_type,
           typename Alloc = std::allocator<T>,

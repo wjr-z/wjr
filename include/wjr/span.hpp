@@ -263,11 +263,31 @@ template <typename T, size_t Size>
 span(std::array<T, Size> &) -> span<T, Size>;
 
 template <typename T, size_t Size>
-span(const std::array<T, Size> &) -> span<T, Size>;
+span(const std::array<T, Size> &) -> span<const T, Size>;
 
 template <typename It, typename End,
           std::enable_if_t<is_contiguous_iterator_v<It>, int> = 0>
 span(It, End) -> span<std::remove_reference_t<iter_reference_t<It>>>;
+
+template <typename Container>
+auto make_span(Container &c) {
+    return span(std::data(c), std::size(c));
+}
+
+template <typename T, size_t Extent>
+auto make_span(T (&arr)[Extent]) {
+    return span(arr);
+}
+
+template <typename T, size_t Size>
+auto make_span(std::array<T, Size> &arr) {
+    return span(arr);
+}
+
+template <typename T, size_t Size>
+auto make_span(const std::array<T, Size> &arr) {
+    return span(arr);
+}
 
 } // namespace wjr
 

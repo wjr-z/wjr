@@ -18,41 +18,41 @@ inline uint32_t normalize(uint64_t *ptr, uint32_t n) {
 class default_biginteger_size_reference : noncopyable {
 public:
     default_biginteger_size_reference() = delete;
-    explicit default_biginteger_size_reference(int32_t &size) noexcept : m_size(size) {}
+    explicit default_biginteger_size_reference(int32_t &size) noexcept : m_size(&size) {}
     ~default_biginteger_size_reference() = default;
     default_biginteger_size_reference(default_biginteger_size_reference &&) = default;
     default_biginteger_size_reference &
     operator=(default_biginteger_size_reference &&) = default;
 
     default_biginteger_size_reference &operator=(uint32_t size) noexcept {
-        m_size = __fasts_get_sign_mask(m_size) | size;
+        *m_size = __fasts_get_sign_mask(*m_size) | size;
         return *this;
     }
 
-    WJR_PURE operator uint32_t() const noexcept { return __fasts_abs(m_size); }
+    WJR_PURE operator uint32_t() const noexcept { return __fasts_abs(*m_size); }
 
     default_biginteger_size_reference &operator++() noexcept {
-        ++m_size;
+        ++*m_size;
         return *this;
     }
 
     default_biginteger_size_reference &operator--() noexcept {
-        --m_size;
+        --*m_size;
         return *this;
     }
 
     default_biginteger_size_reference &operator+=(uint32_t size) noexcept {
-        m_size += size;
+        *m_size += size;
         return *this;
     }
 
     default_biginteger_size_reference &operator-=(uint32_t size) noexcept {
-        m_size -= size;
+        *m_size -= size;
         return *this;
     }
 
 private:
-    int32_t &m_size;
+    int32_t *m_size;
 };
 
 /**
@@ -334,6 +334,22 @@ public:
         return lhs.m_vec >= rhs.m_vec;
     }
 
+    friend void add(basic_biginteger &dst, const basic_biginteger &lhs, uint64_t rhs) {
+        __addsub<false>(&dst, &lhs, rhs);
+    }
+
+    friend void add(basic_biginteger &dst, uint64_t lhs, const basic_biginteger &rhs) {
+        __addsub<false>(&dst, &rhs, lhs);
+    }
+
+    friend void sub(basic_biginteger &dst, const basic_biginteger &lhs, uint64_t rhs) {
+        __addsub<true>(&dst, &lhs, rhs);
+    }
+
+    friend void sub(basic_biginteger &dst, uint64_t lhs, const basic_biginteger &rhs) {
+        __ui_sub(&dst, lhs, &rhs);
+    }
+
     friend void add(basic_biginteger &dst, const basic_biginteger &lhs,
                     const basic_biginteger &rhs) {
         __addsub<false>(&dst, &lhs, &rhs);
@@ -361,6 +377,13 @@ private:
 
     template <bool xsign>
     static void __addsub(basic_biginteger *dst, const basic_biginteger *lhs,
+                         uint64_t rhs);
+
+    static void __ui_sub(basic_biginteger *dst, uint64_t lhs,
+                         const basic_biginteger *rhs);
+
+    template <bool xsign>
+    static void __addsub(basic_biginteger *dst, const basic_biginteger *lhs,
                          const basic_biginteger *rhs);
 
     static void __mul(basic_biginteger *dst, const basic_biginteger *lhs,
@@ -380,10 +403,91 @@ void swap(basic_biginteger<Storage> &lhs, basic_biginteger<Storage> &rhs) noexce
 template <typename Storage>
 template <bool xsign>
 void basic_biginteger<Storage>::__addsub(basic_biginteger *dst,
+                                         const basic_biginteger *lhs, uint64_t rhs) {
+    int32_t lssize = lhs->get_ssize();
+    if (lssize == 0) {
+        dst->reserve(1);
+        dst->front() = rhs;
+        dst->set_ssize(__fasts_conditional_negate<int32_t>(xsign, rhs != 0));
+        return;
+    }
+
+    uint32_t lusize = __fasts_abs(lssize);
+    dst->reserve(lusize + 1);
+
+    auto dp = dst->data();
+    auto lp = lhs->data();
+    int32_t dssize;
+
+    using compare =
+        std::conditional_t<xsign, std::less<uint64_t>, std::greater<uint64_t>>;
+
+    if (compare{}(dssize, 0)) {
+        auto cf = addc_1(dp, lp, lusize, rhs);
+        dssize = __fasts_conditional_negate(xsign, lusize + cf);
+        if (cf) {
+            dp[lusize] = 1;
+        }
+    } else {
+        if (lusize == 1 && dp[0] < rhs) {
+            dp[0] = rhs - dp[0];
+            dssize = __fasts_conditional_negate(xsign, 1);
+        } else {
+            (void)subc_1(dp, lp, lusize, rhs);
+            dssize = __fasts_conditional_negate(!xsign, lusize - (dp[lusize - 1] == 0));
+        }
+    }
+
+    dst->set_ssize(dssize);
+}
+
+template <typename Storage>
+void basic_biginteger<Storage>::__ui_sub(basic_biginteger *dst, uint64_t lhs,
+                                         const basic_biginteger *rhs) {
+    int32_t rssize = rhs->get_ssize();
+    if (rssize == 0) {
+        dst->reserve(1);
+        dst->front() = lhs;
+        dst->set_ssize(1);
+        return;
+    }
+
+    uint32_t rusize = __fasts_abs(rssize);
+    dst->reserve(rusize);
+
+    auto dp = dst->data();
+    auto rp = rhs->data();
+    int32_t dssize;
+
+    if (rssize < 0) {
+        auto cf = addc_1(dp, rp, rusize, lhs);
+        dssize = rusize + cf;
+        if (cf) {
+            dp[rusize] = 1;
+        }
+    } else {
+        // lhs >= rhs
+        if (rusize == 1 && lhs >= rp[0]) {
+            dp[0] = lhs - rp[0];
+            dssize = dp[0] != 0;
+        }
+        // lhs < rhs
+        else {
+            (void)subc_1(dp, rp, rusize, lhs);
+            dssize = __fasts_conditional_negate(1, rusize - (dp[rusize - 1] == 0));
+        }
+    }
+
+    dst->set_ssize(dssize);
+}
+
+template <typename Storage>
+template <bool xsign>
+void basic_biginteger<Storage>::__addsub(basic_biginteger *dst,
                                          const basic_biginteger *lhs,
                                          const basic_biginteger *rhs) {
     int32_t lssize = lhs->get_ssize();
-    int32_t rssize = xsign ? __fasts_negate(rhs->get_ssize()) : rhs->get_ssize();
+    int32_t rssize = __fasts_conditional_negate(xsign, rhs->get_ssize());
     uint32_t lusize = __fasts_abs(lssize);
     uint32_t rusize = __fasts_abs(rssize);
 
@@ -404,7 +508,8 @@ void basic_biginteger<Storage>::__addsub(basic_biginteger *dst,
     if ((lssize ^ rssize) < 0) {
         if (lusize != rusize) {
             subc_sz(dp, lp, lusize, rp, rusize);
-            dssize = __fasts_get_sign_mask(lssize) | normalize(dp, lusize);
+            dssize =
+                __fasts_get_sign_mask(lssize) | biginteger_details::normalize(dp, lusize);
         } else {
             if (WJR_UNLIKELY(lusize == 0)) {
                 dssize = 0;
@@ -414,6 +519,7 @@ void basic_biginteger<Storage>::__addsub(basic_biginteger *dst,
         }
     } else {
         auto cf = addc_sz(dp, lp, lusize, rp, rusize);
+        // seems can be optimized
         dssize = __fasts_get_sign_mask(lssize) | (lusize + cf);
         if (cf) {
             dp[lusize] = 1;

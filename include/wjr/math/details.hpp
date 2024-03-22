@@ -37,8 +37,11 @@ private:
 inline constexpr de_bruijn<uint32_t, 0x077C'B531> de_bruijn32 = {};
 inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
 
-using default_stack_allocator = stack_allocator<16 * 1024, 32 * 1024>;
-inline constexpr default_stack_allocator stack_alloc = {};
+using stack_alloc_object = singleton_stack_allocator_object<16 * 1024, 32 * 1024>;
+using unique_stack_alloc = unique_stack_allocator<stack_alloc_object>;
+template <typename T>
+using weak_stack_alloc = weak_stack_allocator<T, stack_alloc_object>;
+inline constexpr stack_alloc_object stack_alloc = {};
 
 } // namespace math_details
 
@@ -84,7 +87,8 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up_offset(T n, type_identity_t<T> al
     return (-n) & (alignment - 1);
 }
 
-template <typename T, typename U = std::make_unsigned_t<T>>
+template <typename T, typename U = std::make_unsigned_t<T>,
+          std::enable_if_t<std::is_integral_v<T>, int> = 0>
 WJR_CONST constexpr U __fasts_sign_mask() {
     return (U)(1) << (std::numeric_limits<U>::digits - 1);
 }
@@ -120,6 +124,12 @@ WJR_CONST constexpr T __fasts_abs(T x) {
 template <typename T, std::enable_if_t<is_signed_integral_v<T>, int> = 0>
 WJR_CONST constexpr T __fasts_negate(T x) {
     return x ^ __fasts_sign_mask<T>();
+}
+
+template <typename T, typename U = std::make_unsigned_t<T>,
+          std::enable_if_t<std::is_integral_v<T>, int> = 0>
+WJR_CONST constexpr U __fasts_conditional_negate(bool condition, T x) {
+    return (U)x ^ ((U)(condition) << (std::numeric_limits<U>::digits - 1));
 }
 
 } // namespace wjr
