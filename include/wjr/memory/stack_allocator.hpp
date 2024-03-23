@@ -13,7 +13,7 @@ template <size_t threshold, size_t cache>
 class stack_allocator_object : noncopyable {
     static_assert(threshold <= cache, "threshold must be less than or equal to cache.");
 
-    constexpr static size_t bufsize = 5;
+    constexpr static uint16_t bufsize = 5;
 
     struct alloc_node {
         char *ptr;
@@ -27,10 +27,10 @@ class stack_allocator_object : noncopyable {
 
 public:
     struct stack_top {
-        char *ptr;
+        char *ptr = nullptr;
         char *end;
+        large_stack_top *large;
         uint16_t idx;
-        large_stack_top *large = nullptr;
     };
 
 private:
@@ -78,10 +78,6 @@ private:
     }
 
     WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) {
-        if (WJR_UNLIKELY(top.ptr == nullptr)) {
-            top.ptr = m_cache.ptr;
-        }
-
         if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
             __small_reallocate(top);
         }
@@ -104,20 +100,20 @@ private:
         m_size = new_size;
     }
 
+    WJR_CONSTEXPR20 void __small_deallocate_change_idx(const stack_top &top) {
+        uint16_t idx = top.idx;
+        m_cache = {top.ptr, top.end};
+        m_idx = idx;
+        if (WJR_UNLIKELY(m_size - idx >= bufsize)) {
+            __small_redeallocate();
+        }
+    }
+
     WJR_CONSTEXPR20 void __small_deallocate(const stack_top &top) {
-        if (WJR_UNLIKELY(top.ptr == nullptr)) {
-            return;
+        if (WJR_LIKELY(top.end == nullptr)) {
+            m_cache.ptr = top.ptr;
         } else {
-            if (WJR_LIKELY(top.end == nullptr)) {
-                m_cache.ptr = top.ptr;
-            } else {
-                uint16_t idx = top.idx;
-                m_cache = {top.ptr, top.end};
-                m_idx = idx;
-                if (WJR_UNLIKELY(m_size - idx >= bufsize)) {
-                    __small_redeallocate();
-                }
-            }
+            __small_deallocate_change_idx(top);
         }
     }
 
@@ -163,35 +159,39 @@ public:
         }
     }
 
+    WJR_CONSTEXPR20 void set(stack_top &top) {
+        top.ptr = m_cache.ptr;
+        top.end = nullptr;
+        top.large = nullptr;
+    }
+
 private:
-    alloc_node m_cache = {nullptr, nullptr};
+    static char *const invalid;
+
+    alloc_node m_cache = {invalid, invalid};
     uint16_t m_idx = in_place_max;
     alignas(32) uint16_t m_size = 0;
     uint16_t m_capacity = 0;
     alloc_node *m_ptr = nullptr;
 };
 
+template <size_t threshold, size_t cache>
+char *const stack_allocator_object<threshold, cache>::invalid = (char *)(0x0c);
+
 template <typename StackAllocator>
 class singleton_stack_allocator_adapter {
-    static StackAllocator &get_instance() {
-        static thread_local StackAllocator instance;
-        return instance;
-    }
-
 public:
     using value_type = typename StackAllocator::value_type;
     using size_type = typename StackAllocator::size_type;
     using difference_type = typename StackAllocator::difference_type;
     using propagate_on_container_move_assignment =
         typename StackAllocator::propagate_on_container_move_assignment;
+    using allocator_type = StackAllocator;
     using stack_top = typename StackAllocator::stack_top;
 
-    WJR_CONSTEXPR20 value_type *allocate(size_type n, stack_top &top) const {
-        return get_instance().allocate(n, top);
-    }
-
-    WJR_CONSTEXPR20 void deallocate(stack_top &top) const {
-        get_instance().deallocate(top);
+    static StackAllocator &get_instance() {
+        static thread_local StackAllocator instance;
+        return instance;
     }
 };
 
@@ -237,20 +237,37 @@ class unique_stack_allocator;
 template <size_t threshold, size_t cache>
 class unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>
     : nonsendable {
-    using StackAllocator = singleton_stack_allocator_object<threshold, cache>;
-    using stack_top = typename StackAllocator::stack_top;
+    using StackAllocatorObject = singleton_stack_allocator_object<threshold, cache>;
+    using stack_top = typename StackAllocatorObject::stack_top;
+    using allocator_type = typename StackAllocatorObject::allocator_type;
 
 public:
-    unique_stack_allocator(const StackAllocator &al) : m_pair(al, {}) {}
-    ~unique_stack_allocator() { m_pair.first().deallocate(m_pair.second()); }
+    unique_stack_allocator(const StackAllocatorObject &al) : m_obj(&al) {}
+    ~unique_stack_allocator() {
+        if (m_top.ptr != nullptr) {
+            m_instance->deallocate(m_top);
+        }
+    }
 
-    WJR_CONSTEXPR20 void *allocate(size_t n) {
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n) {
         nonsendable::check();
-        return m_pair.first().allocate(n, m_pair.second());
+
+        if (WJR_UNLIKELY(m_top.ptr == nullptr)) {
+            m_instance = &m_obj->get_instance();
+            m_instance->set(m_top);
+            WJR_ASSERT_ASSUME(m_top.ptr != nullptr);
+        }
+
+        return m_instance->allocate(n, m_top);
     }
 
 private:
-    compressed_pair<StackAllocator, stack_top> m_pair;
+    union {
+        const StackAllocatorObject *m_obj;
+        allocator_type *m_instance;
+    };
+
+    stack_top m_top;
 };
 
 template <typename StackAllocator>
@@ -280,7 +297,7 @@ public:
     weak_stack_allocator &operator=(weak_stack_allocator &&) = default;
     ~weak_stack_allocator() = default;
 
-    WJR_CONSTEXPR20 T *allocate(size_type n) {
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 T *allocate(size_type n) {
         return static_cast<T *>(m_alloc->allocate(n * sizeof(T)));
     }
 
