@@ -3135,8 +3135,6 @@ struct tuple_element<1, wjr::compressed_pair<T, U>> {
 #ifndef WJR_STACK_ALLOCATOR_HPP__
 #define WJR_STACK_ALLOCATOR_HPP__
 
-#include <cstddef>
-
 // Already included
 #ifndef WJR_CRTP_NONCOPYABLE_HPP__
 #define WJR_CRTP_NONCOPYABLE_HPP__
@@ -3437,10 +3435,15 @@ inline constexpr bool is_trivially_allocator_v = is_trivially_allocator<T>::valu
 namespace wjr {
 
 template <size_t threshold, size_t cache>
-class stack_allocator_object {
+class stack_allocator_object : noncopyable {
     static_assert(threshold <= cache, "threshold must be less than or equal to cache.");
 
     constexpr static size_t bufsize = 5;
+
+    struct alloc_node {
+        char *ptr;
+        char *end;
+    };
 
     struct large_stack_top {
         large_stack_top *prev;
@@ -3449,127 +3452,100 @@ class stack_allocator_object {
 
 public:
     struct stack_top {
-        char *ptr = nullptr;
-        char *end = nullptr;
-        large_stack_top *large = nullptr;
+        char *ptr;
+        char *end;
         uint16_t idx;
+        large_stack_top *large = nullptr;
     };
 
 private:
-    class __stack_allocator_object : noncopyable {
-        WJR_NOINLINE WJR_CONSTEXPR20 void __allocate(stack_top &top) {
-            if (WJR_UNLIKELY(top.end == nullptr)) {
-                top.end = m_cache.end;
-                top.idx = m_idx;
+    WJR_NOINLINE WJR_CONSTEXPR20 void __small_reallocate(stack_top &top) {
+        if (WJR_UNLIKELY(top.end == nullptr)) {
+            top.end = m_cache.end;
+            top.idx = m_idx;
+        }
+
+        ++m_idx;
+        if (WJR_UNLIKELY(m_idx == m_size)) {
+
+            if (WJR_UNLIKELY(m_size == m_capacity)) {
+                uint16_t new_capacity = m_idx + 2 * (bufsize - 1);
+                auto new_ptr =
+                    static_cast<alloc_node *>(malloc(new_capacity * sizeof(alloc_node)));
+                if (WJR_LIKELY(m_idx != 0)) {
+                    std::copy_n(m_ptr, m_idx, new_ptr);
+                    free(m_ptr);
+                }
+                m_ptr = new_ptr;
+                m_capacity = new_capacity;
             }
 
-            ++m_idx;
-            if (WJR_UNLIKELY(m_idx == m_size)) {
+            ++m_size;
 
-                if (WJR_UNLIKELY(m_size == m_capacity)) {
-                    uint16_t new_capacity = m_idx + 2 * (bufsize - 1);
-                    auto new_ptr = static_cast<alloc_node *>(
-                        malloc(new_capacity * sizeof(alloc_node)));
-                    if (WJR_LIKELY(m_idx != 0)) {
-                        std::copy_n(m_ptr, m_idx, new_ptr);
-                        free(m_ptr);
-                    }
-                    m_ptr = new_ptr;
-                    m_capacity = new_capacity;
-                }
+            size_t capacity = cache << ((3 * m_idx + 2) / 5);
+            auto buffer = static_cast<char *>(malloc(capacity));
+            alloc_node node = {buffer, buffer + capacity};
+            m_ptr[m_idx] = node;
 
-                ++m_size;
+            if (WJR_UNLIKELY(m_idx == 0)) {
+                top.ptr = node.ptr;
+                top.end = node.end;
+                top.idx = 0;
+            }
 
-                size_t capacity = cache << ((3 * m_idx + 2) / 5);
-                auto buffer = static_cast<char *>(malloc(capacity));
-                alloc_node node = {buffer, buffer + capacity};
-                m_ptr[m_idx] = node;
+            m_cache = node;
+        } else {
+            m_cache = m_ptr[m_idx];
+        }
 
-                if (WJR_UNLIKELY(m_idx == 0)) {
-                    top.ptr = node.ptr;
-                    top.end = node.end;
-                    top.idx = 0;
-                }
+        WJR_ASSERT(top.ptr != nullptr);
+        WJR_ASSERT(top.end != nullptr);
+    }
 
-                m_cache = node;
+    WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) {
+        if (WJR_UNLIKELY(top.ptr == nullptr)) {
+            top.ptr = m_cache.ptr;
+        }
+
+        if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
+            __small_reallocate(top);
+        }
+
+        WJR_ASSERT_ASSUME(m_cache.ptr != nullptr);
+        WJR_ASSERT_ASSUME(top.ptr != nullptr);
+
+        auto ptr = m_cache.ptr;
+        m_cache.ptr += n;
+        return ptr;
+    }
+
+    WJR_COLD WJR_CONSTEXPR20 void __small_redeallocate() {
+        uint16_t new_size = m_idx + bufsize - 1;
+
+        for (uint16_t i = new_size; i < m_size; ++i) {
+            free(m_ptr[i].ptr);
+        }
+
+        m_size = new_size;
+    }
+
+    WJR_CONSTEXPR20 void __small_deallocate(const stack_top &top) {
+        if (WJR_UNLIKELY(top.ptr == nullptr)) {
+            return;
+        } else {
+            if (WJR_LIKELY(top.end == nullptr)) {
+                m_cache.ptr = top.ptr;
             } else {
-                m_cache = m_ptr[m_idx];
-            }
-
-            WJR_ASSERT(top.ptr != nullptr);
-            WJR_ASSERT(top.end != nullptr);
-        }
-
-        WJR_NOINLINE WJR_CONSTEXPR20 void __deallocate() {
-            uint16_t new_size = m_idx + bufsize - 1;
-
-            for (uint16_t i = new_size; i < m_size; ++i) {
-                free(m_ptr[i].ptr);
-            }
-
-            m_size = new_size;
-        }
-
-    public:
-        __stack_allocator_object() = default;
-        __stack_allocator_object(__stack_allocator_object &&) = default;
-        __stack_allocator_object &operator=(__stack_allocator_object &&) = default;
-        ~__stack_allocator_object() {
-            for (uint16_t i = 0; i < m_size; ++i) {
-                free(m_ptr[i].ptr);
-            }
-
-            free(m_ptr);
-        }
-
-        WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top) {
-            if (WJR_UNLIKELY(top.ptr == nullptr)) {
-                top.ptr = m_cache.ptr;
-            }
-
-            if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
-                __allocate(top);
-            }
-
-            WJR_ASSERT_ASSUME(m_cache.ptr != nullptr);
-            WJR_ASSERT_ASSUME(top.ptr != nullptr);
-
-            auto ptr = m_cache.ptr;
-            m_cache.ptr += n;
-            return ptr;
-        }
-
-        WJR_CONSTEXPR20 void deallocate(const stack_top &top) {
-            if (WJR_UNLIKELY(top.ptr == nullptr)) {
-                return;
-            } else {
-                if (WJR_LIKELY(top.end == nullptr)) {
-                    m_cache.ptr = top.ptr;
-                } else {
-                    uint16_t idx = top.idx;
-                    m_cache = {top.ptr, top.end};
-                    m_idx = idx;
-                    if (WJR_UNLIKELY(m_size - idx >= bufsize)) {
-                        __deallocate();
-                    }
+                uint16_t idx = top.idx;
+                m_cache = {top.ptr, top.end};
+                m_idx = idx;
+                if (WJR_UNLIKELY(m_size - idx >= bufsize)) {
+                    __small_redeallocate();
                 }
             }
         }
+    }
 
-    private:
-        struct alloc_node {
-            char *ptr;
-            char *end;
-        };
-
-        alloc_node m_cache = {nullptr, nullptr};
-        uint16_t m_idx = in_place_max;
-        alignas(32) uint16_t m_size = 0;
-        uint16_t m_capacity = 0;
-        alloc_node *m_ptr = nullptr;
-    };
-
-private:
     WJR_CONSTEXPR20 void *__large_allocate(size_t n, stack_top &top) {
         auto buffer = (large_stack_top *)malloc(sizeof(large_stack_top) + n);
         buffer->prev = top.large;
@@ -3586,18 +3562,24 @@ public:
     stack_allocator_object() = default;
     stack_allocator_object(stack_allocator_object &&) = default;
     stack_allocator_object &operator=(stack_allocator_object &&) = default;
-    ~stack_allocator_object() = default;
+    ~stack_allocator_object() {
+        for (uint16_t i = 0; i < m_size; ++i) {
+            free(m_ptr[i].ptr);
+        }
+        free(m_ptr);
+    }
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top) {
         if (WJR_UNLIKELY(n >= threshold)) {
             return __large_allocate(n, top);
         }
 
-        return alloc.allocate(n, top);
+        return __small_allocate(n, top);
     }
 
     WJR_CONSTEXPR20 void deallocate(const stack_top &top) {
-        alloc.deallocate(top);
+        __small_deallocate(top);
+
         auto buffer = top.large;
         while (WJR_UNLIKELY(buffer != nullptr)) {
             auto prev = buffer->prev;
@@ -3607,7 +3589,11 @@ public:
     }
 
 private:
-    __stack_allocator_object alloc = __stack_allocator_object();
+    alloc_node m_cache = {nullptr, nullptr};
+    uint16_t m_idx = in_place_max;
+    alignas(32) uint16_t m_size = 0;
+    uint16_t m_capacity = 0;
+    alloc_node *m_ptr = nullptr;
 };
 
 template <typename StackAllocator>
@@ -3700,7 +3686,7 @@ class weak_stack_allocator;
 
 template <typename T, size_t threshold, size_t cache>
 class weak_stack_allocator<T, singleton_stack_allocator_object<threshold, cache>>
-    : private trivial_allocator_base {
+    : trivial_allocator_base {
     using StackAllocator = singleton_stack_allocator_object<threshold, cache>;
     using UniqueStackAllocator = unique_stack_allocator<StackAllocator>;
 
@@ -3779,7 +3765,7 @@ private:
 inline constexpr de_bruijn<uint32_t, 0x077C'B531> de_bruijn32 = {};
 inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
 
-using stack_alloc_object = singleton_stack_allocator_object<16 * 1024, 34 * 1024>;
+using stack_alloc_object = singleton_stack_allocator_object<16 * 1024, 36 * 1024>;
 using unique_stack_alloc = unique_stack_allocator<stack_alloc_object>;
 template <typename T>
 using weak_stack_alloc = weak_stack_allocator<T, stack_alloc_object>;
