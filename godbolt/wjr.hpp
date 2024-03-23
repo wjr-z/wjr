@@ -4,6 +4,8 @@
 #ifndef WJR_BIGINTEGER_BIGINTEGER_HPP__
 #define WJR_BIGINTEGER_BIGINTEGER_HPP__
 
+#include <optional>
+
 #ifndef WJR_COMPRESSED_PAIR_HPP__
 #define WJR_COMPRESSED_PAIR_HPP__
 
@@ -3434,68 +3436,78 @@ inline constexpr bool is_trivially_allocator_v = is_trivially_allocator<T>::valu
 
 namespace wjr {
 
-template <size_t cache, size_t threshold>
+template <size_t threshold, size_t cache>
 class stack_allocator_object {
+    static_assert(threshold <= cache, "threshold must be less than or equal to cache.");
+
     constexpr static size_t bufsize = 5;
 
+    struct large_stack_top {
+        large_stack_top *prev;
+        char buffer[];
+    };
+
+public:
+    struct stack_top {
+        char *ptr = nullptr;
+        char *end = nullptr;
+        large_stack_top *large = nullptr;
+        uint16_t idx;
+    };
+
+private:
     class __stack_allocator_object : noncopyable {
-    public:
-        struct stack_top {
-            char *ptr = nullptr;
-            uint32_t idx = 0;
-        };
-
-    private:
         WJR_NOINLINE WJR_CONSTEXPR20 void __allocate(stack_top &top) {
-            ++m_idx;
-            if (WJR_UNLIKELY(m_idx == m_capacity)) {
-                uint32_t new_capacity = m_idx + (m_idx <= 2 ? 1 : m_idx / 2);
-                auto new_ptr =
-                    static_cast<alloc_node *>(malloc(new_capacity * sizeof(alloc_node)));
-                if (WJR_LIKELY(m_idx != 0)) {
-                    std::copy_n(m_ptr, m_idx, new_ptr);
-                    free(m_ptr);
-                }
-                m_ptr = new_ptr;
-                m_capacity = new_capacity;
-
-                size_t capacity = 0;
-
-                if (WJR_UNLIKELY(m_idx == 0)) {
-                    capacity = cache;
-                } else {
-                    auto &node = m_ptr[m_idx - 1];
-                    capacity = node.end - node.ptr;
-                    capacity += capacity / 2;
-                }
-
-                auto buffer = static_cast<char *>(malloc(capacity));
-                m_ptr[m_idx] = {buffer, buffer + capacity};
-
-                if (WJR_UNLIKELY(m_idx == 0)) {
-                    top.ptr = buffer;
-                    top.idx = 0;
-                }
-            } else {
-                WJR_ASSERT(top.ptr != nullptr);
+            if (WJR_UNLIKELY(top.end == nullptr)) {
+                top.end = m_cache.end;
+                top.idx = m_idx;
             }
 
-            m_cache = m_ptr[m_idx];
+            ++m_idx;
+            if (WJR_UNLIKELY(m_idx == m_size)) {
+
+                if (WJR_UNLIKELY(m_size == m_capacity)) {
+                    uint16_t new_capacity = m_idx + 2 * (bufsize - 1);
+                    auto new_ptr = static_cast<alloc_node *>(
+                        malloc(new_capacity * sizeof(alloc_node)));
+                    if (WJR_LIKELY(m_idx != 0)) {
+                        std::copy_n(m_ptr, m_idx, new_ptr);
+                        free(m_ptr);
+                    }
+                    m_ptr = new_ptr;
+                    m_capacity = new_capacity;
+                }
+
+                ++m_size;
+
+                size_t capacity = cache << ((3 * m_idx + 2) / 5);
+                auto buffer = static_cast<char *>(malloc(capacity));
+                alloc_node node = {buffer, buffer + capacity};
+                m_ptr[m_idx] = node;
+
+                if (WJR_UNLIKELY(m_idx == 0)) {
+                    top.ptr = node.ptr;
+                    top.end = node.end;
+                    top.idx = 0;
+                }
+
+                m_cache = node;
+            } else {
+                m_cache = m_ptr[m_idx];
+            }
+
+            WJR_ASSERT(top.ptr != nullptr);
+            WJR_ASSERT(top.end != nullptr);
         }
 
-        WJR_CONSTEXPR20 void __deallocate() {
-            uint32_t new_capacity = m_idx + bufsize - 1;
+        WJR_NOINLINE WJR_CONSTEXPR20 void __deallocate() {
+            uint16_t new_size = m_idx + bufsize - 1;
 
-            for (uint32_t i = new_capacity; i < m_capacity; ++i) {
+            for (uint16_t i = new_size; i < m_size; ++i) {
                 free(m_ptr[i].ptr);
             }
 
-            auto new_ptr =
-                static_cast<alloc_node *>(malloc(new_capacity * sizeof(alloc_node)));
-            std::copy_n(m_ptr, new_capacity, new_ptr);
-            free(m_ptr);
-            m_ptr = new_ptr;
-            m_capacity = new_capacity;
+            m_size = new_size;
         }
 
     public:
@@ -3503,7 +3515,7 @@ class stack_allocator_object {
         __stack_allocator_object(__stack_allocator_object &&) = default;
         __stack_allocator_object &operator=(__stack_allocator_object &&) = default;
         ~__stack_allocator_object() {
-            for (uint32_t i = 0; i < m_capacity; ++i) {
+            for (uint16_t i = 0; i < m_size; ++i) {
                 free(m_ptr[i].ptr);
             }
 
@@ -3513,7 +3525,6 @@ class stack_allocator_object {
         WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top) {
             if (WJR_UNLIKELY(top.ptr == nullptr)) {
                 top.ptr = m_cache.ptr;
-                top.idx = m_idx;
             }
 
             if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
@@ -3532,13 +3543,13 @@ class stack_allocator_object {
             if (WJR_UNLIKELY(top.ptr == nullptr)) {
                 return;
             } else {
-                uint32_t idx = top.idx;
-                if (WJR_LIKELY(idx == m_idx)) {
+                if (WJR_LIKELY(top.end == nullptr)) {
                     m_cache.ptr = top.ptr;
                 } else {
+                    uint16_t idx = top.idx;
+                    m_cache = {top.ptr, top.end};
                     m_idx = idx;
-                    m_cache = {top.ptr, m_ptr[idx].end};
-                    if (WJR_UNLIKELY(m_capacity - idx >= bufsize)) {
+                    if (WJR_UNLIKELY(m_size - idx >= bufsize)) {
                         __deallocate();
                     }
                 }
@@ -3552,20 +3563,10 @@ class stack_allocator_object {
         };
 
         alloc_node m_cache = {nullptr, nullptr};
+        uint16_t m_idx = in_place_max;
+        alignas(32) uint16_t m_size = 0;
+        uint16_t m_capacity = 0;
         alloc_node *m_ptr = nullptr;
-        uint32_t m_idx = -1u;
-        uint32_t m_capacity = 0;
-    };
-
-    struct large_stack_top {
-        large_stack_top *prev;
-        char buffer[];
-    };
-
-public:
-    struct stack_top {
-        typename __stack_allocator_object::stack_top small;
-        large_stack_top *large = nullptr;
     };
 
 private:
@@ -3592,11 +3593,11 @@ public:
             return __large_allocate(n, top);
         }
 
-        return alloc.allocate(n, top.small);
+        return alloc.allocate(n, top);
     }
 
     WJR_CONSTEXPR20 void deallocate(const stack_top &top) {
-        alloc.deallocate(top.small);
+        alloc.deallocate(top);
         auto buffer = top.large;
         while (WJR_UNLIKELY(buffer != nullptr)) {
             auto prev = buffer->prev;
@@ -3654,12 +3655,12 @@ constexpr bool operator!=(const singleton_stack_allocator_adapter<Alloc> &,
  * Notice that the pre-allocated heap memory is not released until the program exits. \n
  * This allocator is not thread-safe and can't be used in container.
  *
- * @tparam cache The size of the first heap memory allocation
  * @tparam threshold The threshold for using malloc to allocate heap memory
+ * @tparam cache The size of the first heap memory allocation
  */
-template <size_t cache, size_t threshold>
+template <size_t threshold, size_t cache>
 using singleton_stack_allocator_object =
-    singleton_stack_allocator_adapter<stack_allocator_object<cache, threshold>>;
+    singleton_stack_allocator_adapter<stack_allocator_object<threshold, cache>>;
 
 template <typename StackAllocator>
 class unique_stack_allocator;
@@ -3672,10 +3673,10 @@ class unique_stack_allocator;
  * unique_stack_allocator object must be destroyed in the current lifetime.
  *
  */
-template <size_t cache, size_t threshold>
-class unique_stack_allocator<singleton_stack_allocator_object<cache, threshold>>
+template <size_t threshold, size_t cache>
+class unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>
     : nonsendable {
-    using StackAllocator = singleton_stack_allocator_object<cache, threshold>;
+    using StackAllocator = singleton_stack_allocator_object<threshold, cache>;
     using stack_top = typename StackAllocator::stack_top;
 
 public:
@@ -3697,10 +3698,10 @@ unique_stack_allocator(const StackAllocator &) -> unique_stack_allocator<StackAl
 template <typename T, typename StackAllocator>
 class weak_stack_allocator;
 
-template <typename T, size_t cache, size_t threshold>
-class weak_stack_allocator<T, singleton_stack_allocator_object<cache, threshold>>
+template <typename T, size_t threshold, size_t cache>
+class weak_stack_allocator<T, singleton_stack_allocator_object<threshold, cache>>
     : private trivial_allocator_base {
-    using StackAllocator = singleton_stack_allocator_object<cache, threshold>;
+    using StackAllocator = singleton_stack_allocator_object<threshold, cache>;
     using UniqueStackAllocator = unique_stack_allocator<StackAllocator>;
 
 public:
@@ -3778,7 +3779,7 @@ private:
 inline constexpr de_bruijn<uint32_t, 0x077C'B531> de_bruijn32 = {};
 inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
 
-using stack_alloc_object = singleton_stack_allocator_object<16 * 1024, 32 * 1024>;
+using stack_alloc_object = singleton_stack_allocator_object<16 * 1024, 34 * 1024>;
 using unique_stack_alloc = unique_stack_allocator<stack_alloc_object>;
 template <typename T>
 using weak_stack_alloc = weak_stack_allocator<T, stack_alloc_object>;
@@ -22978,28 +22979,23 @@ void basic_biginteger<Storage>::__mul(basic_biginteger *dst, const basic_biginte
     auto lp = (pointer)lhs->data();
     auto rp = (pointer)rhs->data();
 
-    std::aligned_storage_t<sizeof(basic_biginteger), alignof(basic_biginteger)> storage;
-    // no need to destroy this object
-    auto &temp = *reinterpret_cast<basic_biginteger *>(&storage);
+    std::optional<basic_biginteger> temp;
 
     unique_stack_allocator stkal(math_details::stack_alloc);
 
     if (dst->capacity() < dssize) {
-        new (&temp)
-            basic_biginteger(dssize, in_place_default_construct, dst->get_allocator());
-
-        dp = temp.data();
+        temp.emplace(dst->get_growth_capacity(dst->capacity(), dssize),
+                     in_place_default_construct, dst->get_allocator());
+        dp = temp.value().data();
     } else {
-        new (&temp) basic_biginteger;
-
         if (dp == lp) {
-            lp = (pointer)stkal.allocate(lusize);
+            lp = (pointer)stkal.allocate(lusize * sizeof(uint64_t));
             if (dp == rp) {
                 rp = lp;
             }
             std::copy_n(dp, lusize, lp);
         } else if (dp == rp) {
-            rp = (pointer)stkal.allocate(rusize);
+            rp = (pointer)stkal.allocate(rusize * sizeof(uint64_t));
             std::copy_n(dp, rusize, rp);
         }
     }
@@ -23013,8 +23009,8 @@ void basic_biginteger<Storage>::__mul(basic_biginteger *dst, const basic_biginte
     bool cf = dp[dssize - 1] == 0;
     dssize = mask | (dssize - cf);
 
-    if (temp.data() != nullptr) {
-        *dst = std::move(temp);
+    if (temp.has_value()) {
+        *dst = std::move(temp).value();
     }
 
     dst->set_ssize(dssize);
@@ -23526,7 +23522,7 @@ public:
     basic_dynamic_bitset &operator&=(const basic_dynamic_bitset &other) {
         if (other.m_bits < m_bits) {
             m_bits = other.m_bits;
-            m_vec.resize(other.m_vec.size());
+            m_vec.truncate(other.m_vec.size());
         }
 
         size_type n = m_vec.size();
