@@ -206,7 +206,7 @@ public:
     basic_dynamic_bitset &operator&=(const basic_dynamic_bitset &other) {
         if (other.m_bits < m_bits) {
             m_bits = other.m_bits;
-            m_vec.resize(other.m_vec.size());
+            m_vec.truncate(other.m_vec.size());
         }
 
         size_type n = m_vec.size();

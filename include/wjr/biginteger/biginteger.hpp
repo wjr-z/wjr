@@ -1,6 +1,8 @@
 #ifndef WJR_BIGINTEGER_BIGINTEGER_HPP__
 #define WJR_BIGINTEGER_BIGINTEGER_HPP__
 
+#include <optional>
+
 #include <wjr/compressed_pair.hpp>
 #include <wjr/math.hpp>
 #include <wjr/vector.hpp>
@@ -569,28 +571,23 @@ void basic_biginteger<Storage>::__mul(basic_biginteger *dst, const basic_biginte
     auto lp = (pointer)lhs->data();
     auto rp = (pointer)rhs->data();
 
-    std::aligned_storage_t<sizeof(basic_biginteger), alignof(basic_biginteger)> storage;
-    // no need to destroy this object
-    auto &temp = *reinterpret_cast<basic_biginteger *>(&storage);
+    std::optional<basic_biginteger> temp;
 
     unique_stack_allocator stkal(math_details::stack_alloc);
 
     if (dst->capacity() < dssize) {
-        new (&temp)
-            basic_biginteger(dssize, in_place_default_construct, dst->get_allocator());
-
-        dp = temp.data();
+        temp.emplace(dst->get_growth_capacity(dst->capacity(), dssize),
+                     in_place_default_construct, dst->get_allocator());
+        dp = temp.value().data();
     } else {
-        new (&temp) basic_biginteger;
-
         if (dp == lp) {
-            lp = (pointer)stkal.allocate(lusize);
+            lp = (pointer)stkal.allocate(lusize * sizeof(uint64_t));
             if (dp == rp) {
                 rp = lp;
             }
             std::copy_n(dp, lusize, lp);
         } else if (dp == rp) {
-            rp = (pointer)stkal.allocate(rusize);
+            rp = (pointer)stkal.allocate(rusize * sizeof(uint64_t));
             std::copy_n(dp, rusize, rp);
         }
     }
@@ -604,8 +601,8 @@ void basic_biginteger<Storage>::__mul(basic_biginteger *dst, const basic_biginte
     bool cf = dp[dssize - 1] == 0;
     dssize = mask | (dssize - cf);
 
-    if (temp.data() != nullptr) {
-        *dst = std::move(temp);
+    if (temp.has_value()) {
+        *dst = std::move(temp).value();
     }
 
     dst->set_ssize(dssize);

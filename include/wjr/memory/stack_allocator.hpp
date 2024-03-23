@@ -11,8 +11,10 @@
 
 namespace wjr {
 
-template <size_t cache, size_t threshold>
+template <size_t threshold, size_t cache>
 class stack_allocator_object {
+    static_assert(threshold <= cache, "threshold must be less than or equal to cache.");
+
     constexpr static size_t bufsize = 5;
 
     class __stack_allocator_object : noncopyable {
@@ -129,8 +131,8 @@ class stack_allocator_object {
         };
 
         alloc_node m_cache = {nullptr, nullptr};
-        alloc_node *m_ptr = nullptr;
         uint32_t m_idx = -1u;
+        alloc_node *m_ptr = nullptr;
         uint32_t m_capacity = 0;
     };
 
@@ -231,12 +233,12 @@ constexpr bool operator!=(const singleton_stack_allocator_adapter<Alloc> &,
  * Notice that the pre-allocated heap memory is not released until the program exits. \n
  * This allocator is not thread-safe and can't be used in container.
  *
- * @tparam cache The size of the first heap memory allocation
  * @tparam threshold The threshold for using malloc to allocate heap memory
+ * @tparam cache The size of the first heap memory allocation
  */
-template <size_t cache, size_t threshold>
+template <size_t threshold, size_t cache>
 using singleton_stack_allocator_object =
-    singleton_stack_allocator_adapter<stack_allocator_object<cache, threshold>>;
+    singleton_stack_allocator_adapter<stack_allocator_object<threshold, cache>>;
 
 template <typename StackAllocator>
 class unique_stack_allocator;
@@ -249,10 +251,10 @@ class unique_stack_allocator;
  * unique_stack_allocator object must be destroyed in the current lifetime.
  *
  */
-template <size_t cache, size_t threshold>
-class unique_stack_allocator<singleton_stack_allocator_object<cache, threshold>>
+template <size_t threshold, size_t cache>
+class unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>
     : nonsendable {
-    using StackAllocator = singleton_stack_allocator_object<cache, threshold>;
+    using StackAllocator = singleton_stack_allocator_object<threshold, cache>;
     using stack_top = typename StackAllocator::stack_top;
 
 public:
@@ -274,10 +276,10 @@ unique_stack_allocator(const StackAllocator &) -> unique_stack_allocator<StackAl
 template <typename T, typename StackAllocator>
 class weak_stack_allocator;
 
-template <typename T, size_t cache, size_t threshold>
-class weak_stack_allocator<T, singleton_stack_allocator_object<cache, threshold>>
+template <typename T, size_t threshold, size_t cache>
+class weak_stack_allocator<T, singleton_stack_allocator_object<threshold, cache>>
     : private trivial_allocator_base {
-    using StackAllocator = singleton_stack_allocator_object<cache, threshold>;
+    using StackAllocator = singleton_stack_allocator_object<threshold, cache>;
     using UniqueStackAllocator = unique_stack_allocator<StackAllocator>;
 
 public:
