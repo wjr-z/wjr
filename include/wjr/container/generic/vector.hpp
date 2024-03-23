@@ -56,10 +56,10 @@
  *
  */
 
+#include <wjr/assert.hpp>
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/generic/container_traits.hpp>
 #include <wjr/memory/temporary_value_allocator.hpp>
-#include <wjr/assert.hpp>
 
 namespace wjr {
 
@@ -382,11 +382,14 @@ private:
     compressed_pair<_Alty, data_type> m_pair;
 };
 
+WJR_REGISTER_HAS_TYPE(__vector_storage_shrink_to_fit,
+                      std::declval<Storage>().shrink_to_fit(), Storage);
+
 /**
  * @brief Customized vector by storage.
- * 
+ *
  * @details Type of pointer is same as iterator.
- * 
+ *
  */
 template <typename Storage>
 class basic_vector {
@@ -597,7 +600,9 @@ public:
      * @todo designed shrink_to_fit for storage.
      */
     WJR_CONSTEXPR20 void shrink_to_fit() {
-        if constexpr (is_storage_reallocatable::value) {
+        if constexpr (has___vector_storage_shrink_to_fit_v<storage_type>) {
+            m_storage.shrink_to_fit();
+        } else if constexpr (is_storage_reallocatable::value) {
             if (size() < capacity()) {
                 auto &al = __get_allocator();
                 storage_type new_storage(al, size(), size(), in_place_reallocate);
@@ -820,7 +825,7 @@ public:
 
     /**
      * @brief Pop n elements from the end
-     * 
+     *
      */
     WJR_CONSTEXPR20 basic_vector &chop(const size_type n) {
         __erase_at_end(end() - n);
@@ -829,7 +834,7 @@ public:
 
     /**
      * @brief Truncate the size to n
-     * 
+     *
      */
     WJR_CONSTEXPR20 basic_vector &truncate(const size_type n) { return chop(size() - n); }
 

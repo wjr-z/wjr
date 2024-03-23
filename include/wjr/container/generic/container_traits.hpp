@@ -89,6 +89,17 @@ public:
     }
 };
 
+WJR_REGISTER_HAS_TYPE(container_reserve,
+                      std::declval<Container>().reserve(std::declval<Size>()), Container,
+                      Size);
+
+template <typename Container, typename Size>
+void try_reserve(Container &c, Size s) {
+    if constexpr (has_container_reserve_v<Container, Size>) {
+        c.reserve(s);
+    }
+}
+
 } // namespace wjr
 
 #endif // WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP

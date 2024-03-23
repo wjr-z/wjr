@@ -2616,6 +2616,44 @@ WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
     return value >= (int32_t)in_place_min && value <= (int32_t)in_place_max;
 }
 
+#define __WJR_REGISTER_TYPENAMES_EXPAND(x) __WJR_REGISTER_TYPENAMES_EXPAND_I x
+#define __WJR_REGISTER_TYPENAMES_EXPAND_I(...) __VA_ARGS__
+
+#define __WJR_REGISTER_TYPENAMES(...)                                                    \
+    __WJR_REGISTER_TYPENAMES_EXPAND(                                                     \
+        WJR_PP_QUEUE_TRANSFORM((__VA_ARGS__), __WJR_REGISTER_TYPENAMES_CALLER))
+#define __WJR_REGISTER_TYPENAMES_CALLER(x) typename x
+
+#define WJR_REGISTER_HAS_TYPE_0(NAME, HAS_EXPR)                                          \
+    template <typename Enable, typename... Args>                                         \
+    struct __has_##NAME : std::false_type {};                                            \
+    template <typename... Args>                                                          \
+    struct __has_##NAME<std::void_t<decltype(HAS_EXPR)>, Args...> : std::true_type {};   \
+    template <typename... Args>                                                          \
+    struct has_##NAME : __has_##NAME<void, Args...> {};                                  \
+    template <typename... Args>                                                          \
+    constexpr bool has_##NAME##_v = has_##NAME<Args...>::value
+
+#define WJR_REGISTER_HAS_TYPE_MORE(NAME, HAS_EXPR, ...)                                  \
+    template <typename Enable, __WJR_REGISTER_TYPENAMES(__VA_ARGS__), typename... Args>  \
+    struct __has_##NAME : std::false_type {};                                            \
+    template <__WJR_REGISTER_TYPENAMES(__VA_ARGS__), typename... Args>                   \
+    struct __has_##NAME<std::void_t<decltype(HAS_EXPR)>, __VA_ARGS__, Args...>           \
+        : std::true_type {};                                                             \
+    template <__WJR_REGISTER_TYPENAMES(__VA_ARGS__), typename... Args>                   \
+    struct has_##NAME : __has_##NAME<void, __VA_ARGS__, Args...> {};                     \
+    template <__WJR_REGISTER_TYPENAMES(__VA_ARGS__), typename... Args>                   \
+    constexpr bool has_##NAME##_v = has_##NAME<__VA_ARGS__, Args...>::value
+
+#define WJR_REGISTER_HAS_TYPE(NAME, ...)                                                 \
+    WJR_REGISTER_HAS_TYPE_N(WJR_PP_ARGS_LEN(__VA_ARGS__), NAME, __VA_ARGS__)
+#define WJR_REGISTER_HAS_TYPE_N(N, ...)                                                  \
+    WJR_PP_BOOL_IF(WJR_PP_EQ(N, 1), WJR_REGISTER_HAS_TYPE_0, WJR_REGISTER_HAS_TYPE_MORE) \
+    (__VA_ARGS__)
+
+// used for SFINAE
+constexpr static void allow_true_type(std::true_type) noexcept {}
+
 } // namespace wjr
 
 #endif // ! WJR_TYPE_TRAITS_HPP__
@@ -3505,6 +3543,7 @@ private:
     WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) {
         if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
             __small_reallocate(top);
+            WJR_ASSERT_ASSUME(top.end != nullptr);
         }
 
         WJR_ASSERT_ASSUME(m_cache.ptr != nullptr);
@@ -3562,6 +3601,7 @@ public:
         for (uint16_t i = 0; i < m_size; ++i) {
             free(m_ptr[i].ptr);
         }
+
         free(m_ptr);
     }
 
@@ -20536,6 +20576,7 @@ uint64_t *from_chars(Iter first, Iter last, uint64_t *up, unsigned int base = 10
  */
 
 // Already included
+// Already included
 #ifndef WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP
 #define WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP
 
@@ -20627,6 +20668,17 @@ public:
     }
 };
 
+WJR_REGISTER_HAS_TYPE(container_reserve,
+                      std::declval<Container>().reserve(std::declval<Size>()), Container,
+                      Size);
+
+template <typename Container, typename Size>
+void try_reserve(Container &c, Size s) {
+    if constexpr (has_container_reserve_v<Container, Size>) {
+        c.reserve(s);
+    }
+}
+
 } // namespace wjr
 
 #endif // WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP
@@ -20654,16 +20706,9 @@ public:
 
 namespace wjr {
 
-template <typename Ptr, typename = void>
-struct __has_to_address_impl : std::false_type {};
-
-template <typename Ptr>
-struct __has_to_address_impl<
-    Ptr, std::void_t<decltype(typename std::pointer_traits<Ptr>::to_address(
-             std::declval<const Ptr &>()))>> : std::true_type {};
-
-template <typename Ptr>
-struct __has_to_address : __has_to_address_impl<remove_cvref_t<Ptr>, void> {};
+WJR_REGISTER_HAS_TYPE(
+    to_address,
+    typename std::pointer_traits<Ptr>::to_address(std::declval<const Ptr &>()), Ptr);
 
 template <typename T>
 constexpr T *to_address(T *p) noexcept {
@@ -20673,7 +20718,7 @@ constexpr T *to_address(T *p) noexcept {
 
 template <typename Ptr>
 constexpr auto to_address(const Ptr &p) noexcept {
-    if constexpr (__has_to_address<Ptr>::value) {
+    if constexpr (has_to_address_v<Ptr>) {
         return std::pointer_traits<Ptr>::to_address(p);
     } else {
         return to_address(p.operator->());
@@ -20920,7 +20965,6 @@ temporary_value_allocator(Alloc &, Args &&...) -> temporary_value_allocator<Allo
 } // namespace wjr
 
 #endif // WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
-// Already included
 
 namespace wjr {
 
@@ -21243,11 +21287,14 @@ private:
     compressed_pair<_Alty, data_type> m_pair;
 };
 
+WJR_REGISTER_HAS_TYPE(__vector_storage_shrink_to_fit,
+                      std::declval<Storage>().shrink_to_fit(), Storage);
+
 /**
  * @brief Customized vector by storage.
- * 
+ *
  * @details Type of pointer is same as iterator.
- * 
+ *
  */
 template <typename Storage>
 class basic_vector {
@@ -21458,7 +21505,9 @@ public:
      * @todo designed shrink_to_fit for storage.
      */
     WJR_CONSTEXPR20 void shrink_to_fit() {
-        if constexpr (is_storage_reallocatable::value) {
+        if constexpr (has___vector_storage_shrink_to_fit_v<storage_type>) {
+            m_storage.shrink_to_fit();
+        } else if constexpr (is_storage_reallocatable::value) {
             if (size() < capacity()) {
                 auto &al = __get_allocator();
                 storage_type new_storage(al, size(), size(), in_place_reallocate);
@@ -21681,7 +21730,7 @@ public:
 
     /**
      * @brief Pop n elements from the end
-     * 
+     *
      */
     WJR_CONSTEXPR20 basic_vector &chop(const size_type n) {
         __erase_at_end(end() - n);
@@ -21690,7 +21739,7 @@ public:
 
     /**
      * @brief Truncate the size to n
-     * 
+     *
      */
     WJR_CONSTEXPR20 basic_vector &truncate(const size_type n) { return chop(size() - n); }
 

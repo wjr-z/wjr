@@ -358,6 +358,44 @@ WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
     return value >= (int32_t)in_place_min && value <= (int32_t)in_place_max;
 }
 
+#define __WJR_REGISTER_TYPENAMES_EXPAND(x) __WJR_REGISTER_TYPENAMES_EXPAND_I x
+#define __WJR_REGISTER_TYPENAMES_EXPAND_I(...) __VA_ARGS__
+
+#define __WJR_REGISTER_TYPENAMES(...)                                                    \
+    __WJR_REGISTER_TYPENAMES_EXPAND(                                                     \
+        WJR_PP_QUEUE_TRANSFORM((__VA_ARGS__), __WJR_REGISTER_TYPENAMES_CALLER))
+#define __WJR_REGISTER_TYPENAMES_CALLER(x) typename x
+
+#define WJR_REGISTER_HAS_TYPE_0(NAME, HAS_EXPR)                                          \
+    template <typename Enable, typename... Args>                                         \
+    struct __has_##NAME : std::false_type {};                                            \
+    template <typename... Args>                                                          \
+    struct __has_##NAME<std::void_t<decltype(HAS_EXPR)>, Args...> : std::true_type {};   \
+    template <typename... Args>                                                          \
+    struct has_##NAME : __has_##NAME<void, Args...> {};                                  \
+    template <typename... Args>                                                          \
+    constexpr bool has_##NAME##_v = has_##NAME<Args...>::value
+
+#define WJR_REGISTER_HAS_TYPE_MORE(NAME, HAS_EXPR, ...)                                  \
+    template <typename Enable, __WJR_REGISTER_TYPENAMES(__VA_ARGS__), typename... Args>  \
+    struct __has_##NAME : std::false_type {};                                            \
+    template <__WJR_REGISTER_TYPENAMES(__VA_ARGS__), typename... Args>                   \
+    struct __has_##NAME<std::void_t<decltype(HAS_EXPR)>, __VA_ARGS__, Args...>           \
+        : std::true_type {};                                                             \
+    template <__WJR_REGISTER_TYPENAMES(__VA_ARGS__), typename... Args>                   \
+    struct has_##NAME : __has_##NAME<void, __VA_ARGS__, Args...> {};                     \
+    template <__WJR_REGISTER_TYPENAMES(__VA_ARGS__), typename... Args>                   \
+    constexpr bool has_##NAME##_v = has_##NAME<__VA_ARGS__, Args...>::value
+
+#define WJR_REGISTER_HAS_TYPE(NAME, ...)                                                 \
+    WJR_REGISTER_HAS_TYPE_N(WJR_PP_ARGS_LEN(__VA_ARGS__), NAME, __VA_ARGS__)
+#define WJR_REGISTER_HAS_TYPE_N(N, ...)                                                  \
+    WJR_PP_BOOL_IF(WJR_PP_EQ(N, 1), WJR_REGISTER_HAS_TYPE_0, WJR_REGISTER_HAS_TYPE_MORE) \
+    (__VA_ARGS__)
+
+// used for SFINAE
+constexpr static void allow_true_type(std::true_type) noexcept {}
+
 } // namespace wjr
 
 #endif // ! WJR_TYPE_TRAITS_HPP__

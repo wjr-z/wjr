@@ -80,6 +80,7 @@ private:
     WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) {
         if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
             __small_reallocate(top);
+            WJR_ASSERT_ASSUME(top.end != nullptr);
         }
 
         WJR_ASSERT_ASSUME(m_cache.ptr != nullptr);
@@ -137,6 +138,7 @@ public:
         for (uint16_t i = 0; i < m_size; ++i) {
             free(m_ptr[i].ptr);
         }
+
         free(m_ptr);
     }
 
