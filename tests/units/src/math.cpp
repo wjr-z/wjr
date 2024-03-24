@@ -1403,14 +1403,13 @@ TEST(math, rsblsh_n) {
 }
 
 TEST(math, mul_s) {
-
     const int T = 4;
-    const int N = 240;
+    const int N = 3600;
     std::vector<uint64_t> a(N), b(N), c(N * 2), d(N * 2);
 
     for (int i = 0; i < T; ++i) {
-        for (int j = 1; j < N; ++j) {
-            for (int k = 1; k <= j; ++k) {
+        for (int j = 1; j < N; j += (j <= 180 ? 1 : j / 7)) {
+            for (int k = 1; k <= j; k += (k <= 180 ? 1 : k / 7)) {
                 for (int p = 0; p < j; ++p) {
                     a[p] = mt_rand();
                 }
@@ -1429,11 +1428,11 @@ TEST(math, mul_s) {
 TEST(math, mul_n) {
 
     const int T = 16;
-    const int N = 240;
+    const int N = 3600;
     std::vector<uint64_t> a(N), b(N), c(N * 2), d(N * 2);
 
     for (int i = 0; i < T; ++i) {
-        for (int j = 1; j < N; ++j) {
+        for (int j = 1; j < N; j += (j <= 180 ? 1 : j / 7)) {
             for (int p = 0; p < j; ++p) {
                 a[p] = mt_rand();
             }
@@ -1451,11 +1450,11 @@ TEST(math, mul_n) {
 TEST(math, sqr) {
 
     const int T = 16;
-    const int N = 240;
+    const int N = 3600;
     std::vector<uint64_t> a(N), b(N * 2), c(N * 2);
 
     for (int i = 0; i < T; ++i) {
-        for (int j = 1; j < N; ++j) {
+        for (int j = 1; j < N; j += (j <= 180 ? 1 : j / 7)) {
             for (int p = 0; p < j; ++p) {
                 a[p] = mt_rand();
             }
@@ -1473,7 +1472,7 @@ TEST(math, div_qr_1) {
 
     const int T = 8;
     const int N = 32;
-    const int M = 240;
+    const int M = 3600;
 
     std::vector<uint64_t> a(M), b(M), c(M);
 
@@ -1492,7 +1491,7 @@ TEST(math, div_qr_1) {
         wjr::div2by1_divider<uint64_t> divc(div);
 
         for (int t = 0; t < T; ++t) {
-            for (int j = 1; j < M; ++j) {
+            for (int j = 1; j < M; j += (j <= 180 ? 1 : j / 7)) {
                 for (int k = 0; k < j; ++k) {
                     a[k] = mt_rand();
                 }
@@ -1508,7 +1507,7 @@ TEST(math, div_qr_2) {
 
     const int T = 8;
     const int N = 32;
-    const int M = 240;
+    const int M = 3600;
 
     std::vector<uint64_t> a(M), b(M), c(M + 1);
 
@@ -1532,7 +1531,7 @@ TEST(math, div_qr_2) {
         uint64_t div[2] = {mt_rand(), mt_rand()};
 
         for (int t = 0; t < T; ++t) {
-            for (int j = 2; j < M; ++j) {
+            for (int j = 2; j < M; j += (j <= 180 ? 1 : j / 7)) {
                 for (int k = 0; k < j; ++k) {
                     a[k] = mt_rand();
                 }
@@ -1546,7 +1545,7 @@ TEST(math, div_qr_2) {
 TEST(math, div_qr_s) {
 
     const int T = 8;
-    const int N = 240;
+    const int N = 3600;
 
     std::vector<uint64_t> a(N), b(N + 1), c(N + 1), d(N + 1), rem(N);
 
@@ -1566,8 +1565,8 @@ TEST(math, div_qr_s) {
     };
 
     for (int t = 0; t < T; ++t) {
-        for (int i = 2; i < N; ++i) {
-            for (int j = 1; j <= i; ++j) {
+        for (int i = 2; i < N; i += (i <= 180 ? 1 : i / 7)) {
+            for (int j = 1; j <= i; j += (j <= 180 ? 1 : j / 7)) {
                 for (int k = 0; k < i; ++k) {
                     a[k] = mt_rand();
                 }
@@ -1587,22 +1586,23 @@ TEST(math, div_qr_s) {
 TEST(math, to_chars) {
 
     const int T = 4;
-    const int N = 240;
+    const int N = 1024;
     const int M = N * 64;
 
     std::vector<uint64_t> a(N);
     std::string b(M, '0'), c(M, '0');
 
     for (int t = 0; t < T; ++t) {
-        for (int i = 1; i < N; ++i) {
-            for (int j = 0; j < i; ++j) {
-                a[j] = mt_rand();
-            }
-            while (a[i - 1] == 0) {
-                a[i - 1] = mt_rand();
-            }
+        for (unsigned base : {2, 4, 8, 16, 32, 10}) {
+            for (int i = 1; i < N; ++i) {
 
-            for (auto base : {2, 4, 8, 16, 32, 10}) {
+                for (int j = 0; j < i; ++j) {
+                    a[j] = mt_rand();
+                }
+                while (a[i - 1] == 0) {
+                    a[i - 1] = mt_rand();
+                }
+
                 size_t len =
                     wjr::to_chars(b.data(), a.data(), i, base, wjr::origin_converter) -
                     b.data();
@@ -1617,9 +1617,8 @@ TEST(math, to_chars) {
 }
 
 TEST(math, from_chars) {
-
     const int T = 4;
-    const int N = 4096;
+    const int N = 8096;
     const int M = N;
 
     std::vector<uint64_t> a(N), b(N);

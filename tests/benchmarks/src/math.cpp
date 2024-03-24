@@ -1,3 +1,5 @@
+#include <charconv>
+
 #include "details.hpp"
 
 #include <wjr/math.hpp>
@@ -628,6 +630,19 @@ static void wjr_div_qr_s(benchmark::State &state) {
         [&]() { wjr::div_qr_s(q.data(), r.data(), a.data(), n, b.data(), m); });
 }
 
+static void wjr_from_chars(benchmark::State &state) {
+    auto base = state.range(0);
+    auto n = state.range(1);
+    std::vector<uint64_t> a(n);
+    std::vector<char> s(n);
+
+    std::generate(s.begin(), s.end(), []() { return '0' + mt_rand() % 10; });
+
+    for (auto _ : state) {
+        wjr::from_chars(s.data(), s.data() + s.size(), a.data(), base);
+    }
+}
+
 static void fallback_popcount(benchmark::State &state) {
     const int n = 17;
     std::vector<uint64_t> a(n);
@@ -1173,6 +1188,25 @@ static void gmp_div_qr_s(benchmark::State &state) {
 
 #endif // WJR_USE_GMP
 
+#define __CHAR_CONV_TESTS_I(base)                                                        \
+    Args({base, 1})                                                                      \
+        ->Args({base, 2})                                                                \
+        ->Args({base, 4})                                                                \
+        ->Args({base, 8})                                                                \
+        ->Args({base, 16})                                                               \
+        ->Args({base, 32})                                                               \
+        ->Args({base, 64})                                                               \
+        ->Args({base, 256})                                                              \
+        ->Args({base, 1024})                                                             \
+        ->Args({base, 4096})                                                             \
+        ->Args({base, 16384})                                                            \
+        ->Args({base, 65536})
+#define CHAR_CONV_TESTS()                                                                \
+    __CHAR_CONV_TESTS_I(2)                                                               \
+        ->__CHAR_CONV_TESTS_I(8)                                                         \
+        ->__CHAR_CONV_TESTS_I(10)                                                        \
+        ->__CHAR_CONV_TESTS_I(16)
+
 BENCHMARK(wjr_popcount);
 BENCHMARK(wjr_clz);
 BENCHMARK(wjr_ctz);
@@ -1215,6 +1249,7 @@ BENCHMARK(wjr_sqr)->NORMAL_TESTS(2, 1024);
 BENCHMARK(wjr_div_qr_1)->NORMAL_TESTS(2, 256);
 BENCHMARK(wjr_div_qr_2)->DenseRange(2, 4, 1)->RangeMultiplier(2)->Range(8, 256);
 BENCHMARK(wjr_div_qr_s)->Apply(Product2D);
+BENCHMARK(wjr_from_chars)->CHAR_CONV_TESTS();
 
 BENCHMARK(fallback_popcount);
 BENCHMARK(fallback_clz);

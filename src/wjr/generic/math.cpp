@@ -103,7 +103,7 @@ template void div_qr_s<uint64_t>(uint64_t *dst, uint64_t *rem, const uint64_t *s
 
 // convert.hpp
 
-precompute_to_chars_16n_t precompute_to_chars_16n[36 - 6] = {
+precompute_chars_convert_16n_t precompute_chars_convert_16n[36 - 6] = {
     {12157665459056928801ull,
      16ull,
      40,
@@ -378,52 +378,53 @@ precompute_to_chars_16n_t precompute_to_chars_16n[36 - 6] = {
       10351807525191341928ull, 17983159292351844974ull, 12052984924518600484ull,
       6626501641ull}}};
 
-precompute_to_chars_16n_t *precompute_to_chars_16n_ptr[37] = {
+precompute_chars_convert_16n_t *precompute_chars_convert_16n_ptr[37] = {
     nullptr,
     nullptr,
     nullptr,
-    &precompute_to_chars_16n[0],
+    &precompute_chars_convert_16n[0],
     nullptr,
-    &precompute_to_chars_16n[1],
-    &precompute_to_chars_16n[2],
-    &precompute_to_chars_16n[3],
+    &precompute_chars_convert_16n[1],
+    &precompute_chars_convert_16n[2],
+    &precompute_chars_convert_16n[3],
     nullptr,
-    &precompute_to_chars_16n[4],
-    &precompute_to_chars_16n[5],
-    &precompute_to_chars_16n[6],
-    &precompute_to_chars_16n[7],
-    &precompute_to_chars_16n[8],
-    &precompute_to_chars_16n[9],
-    &precompute_to_chars_16n[10],
+    &precompute_chars_convert_16n[4],
+    &precompute_chars_convert_16n[5],
+    &precompute_chars_convert_16n[6],
+    &precompute_chars_convert_16n[7],
+    &precompute_chars_convert_16n[8],
+    &precompute_chars_convert_16n[9],
+    &precompute_chars_convert_16n[10],
     nullptr,
-    &precompute_to_chars_16n[11],
-    &precompute_to_chars_16n[12],
-    &precompute_to_chars_16n[13],
-    &precompute_to_chars_16n[14],
-    &precompute_to_chars_16n[15],
-    &precompute_to_chars_16n[16],
-    &precompute_to_chars_16n[17],
-    &precompute_to_chars_16n[18],
-    &precompute_to_chars_16n[19],
-    &precompute_to_chars_16n[20],
-    &precompute_to_chars_16n[21],
-    &precompute_to_chars_16n[22],
-    &precompute_to_chars_16n[23],
-    &precompute_to_chars_16n[24],
-    &precompute_to_chars_16n[25],
+    &precompute_chars_convert_16n[11],
+    &precompute_chars_convert_16n[12],
+    &precompute_chars_convert_16n[13],
+    &precompute_chars_convert_16n[14],
+    &precompute_chars_convert_16n[15],
+    &precompute_chars_convert_16n[16],
+    &precompute_chars_convert_16n[17],
+    &precompute_chars_convert_16n[18],
+    &precompute_chars_convert_16n[19],
+    &precompute_chars_convert_16n[20],
+    &precompute_chars_convert_16n[21],
+    &precompute_chars_convert_16n[22],
+    &precompute_chars_convert_16n[23],
+    &precompute_chars_convert_16n[24],
+    &precompute_chars_convert_16n[25],
     nullptr,
-    &precompute_to_chars_16n[26],
-    &precompute_to_chars_16n[27],
-    &precompute_to_chars_16n[28],
-    &precompute_to_chars_16n[29]};
+    &precompute_chars_convert_16n[26],
+    &precompute_chars_convert_16n[27],
+    &precompute_chars_convert_16n[28],
+    &precompute_chars_convert_16n[29]};
 
-precompute_to_chars_t *precompute_to_chars(precompute_to_chars_t *pre, size_t n,
-                                           unsigned int base, uint64_t *table_mem) {
-    const precompute_to_chars_16n_t *p16n = precompute_to_chars_16n_ptr[base];
+precompute_chars_convert_t *precompute_chars_convert(precompute_chars_convert_t *pre,
+                                                     size_t n, unsigned int base,
+                                                     uint64_t *table_mem) {
+    const precompute_chars_convert_16n_t *p16n = precompute_chars_convert_16n_ptr[base];
     const uint64_t big_base = p16n->big_base;
     const size_t digits_in_one_base = p16n->digits_in_one_base;
 
-    auto set = [base](precompute_to_chars_t *pre, const uint64_t *ptr, size_t n,
+    auto set = [base](precompute_chars_convert_t *pre, const uint64_t *ptr, size_t n,
                       size_t shift, size_t digits_in_base) {
         *pre = {ptr, n, shift, digits_in_base, base};
     };
@@ -436,7 +437,7 @@ precompute_to_chars_t *precompute_to_chars(precompute_to_chars_t *pre, size_t n,
     ++pre;
     set(pre, p16n->arr, digits, shift, digits_in_base);
 
-    while (n + 1 > ((digits + shift) << 1)) {
+    while (n * 2 > (digits + shift) * 5) {
         sqr(table_mem, pre->ptr, digits);
         digits <<= 1;
         shift <<= 1;

@@ -1,11 +1,11 @@
-#ifndef WJR_MATH_PRECOMPUTE_CONVERT_HPP__
-#define WJR_MATH_PRECOMPUTE_CONVERT_HPP__
+#ifndef WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
+#define WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
 
 #include <wjr/math/mul.hpp>
 
 namespace wjr {
 
-struct precompute_to_chars_16n_t {
+struct precompute_chars_convert_16n_t {
     uint64_t big_base;
     size_t n;
     int digits_in_one_base;
@@ -13,7 +13,7 @@ struct precompute_to_chars_16n_t {
     uint64_t arr[16];
 };
 
-struct precompute_to_chars_t {
+struct precompute_chars_convert_t {
     const uint64_t *ptr;
     size_t n;
     size_t shift;
@@ -21,12 +21,12 @@ struct precompute_to_chars_t {
     unsigned int base;
 };
 
-extern "C" precompute_to_chars_16n_t *precompute_to_chars_16n_ptr[37];
+extern "C" precompute_chars_convert_16n_t *precompute_chars_convert_16n_ptr[37];
 
-extern "C" precompute_to_chars_t *precompute_to_chars(precompute_to_chars_t *pre,
+extern "C" precompute_chars_convert_t *precompute_chars_convert(precompute_chars_convert_t *pre,
                                                       size_t n, unsigned int base,
                                                       uint64_t *table_mem);
 
 } // namespace wjr
 
-#endif // WJR_MATH_PRECOMPUTE_CONVERT_HPP__
+#endif // WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__

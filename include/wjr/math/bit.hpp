@@ -3,23 +3,9 @@
 
 #include <wjr/math/clz.hpp>
 #include <wjr/math/ctz.hpp>
+#include <wjr/memory/details.hpp>
 
 namespace wjr {
-
-class __is_little_endian_helper {
-    constexpr static std::uint32_t u4 = 1;
-    constexpr static std::uint8_t u1 = static_cast<const std::uint8_t &>(u4);
-
-public:
-    constexpr static bool value = u1 != 0;
-};
-
-// constexpr endian
-enum class endian {
-    little = 0,
-    big = 1,
-    native = __is_little_endian_helper::value ? little : big
-};
 
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool has_single_bit(T n) noexcept {

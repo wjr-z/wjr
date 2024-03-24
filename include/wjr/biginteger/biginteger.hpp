@@ -300,18 +300,6 @@ public:
 
     void swap(basic_biginteger &other) noexcept { m_vec.swap(other.m_vec); }
 
-    /**
-     * @brief Get the sign of biginteger
-     *
-     * @return
-     * false : if the biginteger is positive \n
-     * true : if the biginteger is negative
-     */
-    WJR_PURE bool get_sign() const noexcept { return get_ssize() < 0; }
-
-    WJR_PURE int32_t get_ssize() const { return __get_storage().get_ssize(); }
-    void set_ssize(int32_t new_size) { __get_storage().set_ssize(new_size); }
-
     friend bool operator==(const basic_biginteger &lhs, const basic_biginteger &rhs) {
         return lhs.m_vec == rhs.m_vec;
     }
@@ -366,6 +354,18 @@ public:
                     const basic_biginteger &rhs) {
         __mul(&dst, &lhs, &rhs);
     }
+
+    /**
+     * @brief Get the sign of biginteger
+     *
+     * @return
+     * false : if the biginteger is positive \n
+     * true : if the biginteger is negative
+     */
+    WJR_PURE bool get_sign() const noexcept { return get_ssize() < 0; }
+
+    WJR_PURE int32_t get_ssize() const { return __get_storage().get_ssize(); }
+    void set_ssize(int32_t new_size) { __get_storage().set_ssize(new_size); }
 
 private:
     WJR_PURE storage_type &__get_storage() noexcept { return m_vec.get_storage(); }

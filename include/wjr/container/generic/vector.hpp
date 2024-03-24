@@ -382,8 +382,18 @@ private:
     compressed_pair<_Alty, data_type> m_pair;
 };
 
-WJR_REGISTER_HAS_TYPE(__vector_storage_shrink_to_fit,
-                      std::declval<Storage>().shrink_to_fit(), Storage);
+template <typename Enable, typename Storage, typename... Args>
+struct __has___vector_storage_shrink_to_fit : std::false_type {};
+template <typename Storage, typename... Args>
+struct __has___vector_storage_shrink_to_fit<
+    std::void_t<decltype(std::declval<Storage>().shrink_to_fit())>, Storage, Args...>
+    : std::true_type {};
+template <typename Storage, typename... Args>
+struct has___vector_storage_shrink_to_fit
+    : __has___vector_storage_shrink_to_fit<void, Storage, Args...> {};
+template <typename Storage, typename... Args>
+constexpr bool has___vector_storage_shrink_to_fit_v =
+    has___vector_storage_shrink_to_fit<Storage, Args...>::value;
 
 /**
  * @brief Customized vector by storage.

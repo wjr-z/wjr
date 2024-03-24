@@ -395,6 +395,7 @@ WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
 
 // used for SFINAE
 constexpr static void allow_true_type(std::true_type) noexcept {}
+constexpr static void allow_false_type(std::false_type) noexcept {}
 
 } // namespace wjr
 

@@ -5,7 +5,7 @@
 
 #include <wjr/assert.hpp>
 #include <wjr/math/clz.hpp>
-#include <wjr/math/precompute-convert.hpp>
+#include <wjr/math/precompute-chars-convert.hpp>
 
 namespace wjr {
 
@@ -96,6 +96,128 @@ private:
 template <typename Converter, int Base, int Unroll>
 inline constexpr __char_converter_table_t<Converter, Base, Unroll>
     __char_converter_table = {};
+
+template <typename Iter, typename Converter>
+struct __is_fast_convert_iterator
+    : std::conjunction<std::is_pointer<Iter>,
+                       std::bool_constant<
+                           sizeof(typename std::iterator_traits<Iter>::value_type) == 1>,
+                       is_any_of<Converter, char_converter_t, origin_converter_t>> {};
+
+template <typename Iter, typename Converter>
+inline constexpr bool __is_fast_convert_iterator_v =
+    __is_fast_convert_iterator<Iter, Converter>::value;
+
+template <unsigned int Base>
+class __from_chars_unroll_4_fn_impl {
+    template <typename Iter, typename Converter>
+    WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        uint64_t value = 0;
+        value = conv.from(*first++);
+        value = value * Base + conv.from(*first++);
+        value = value * Base + conv.from(*first++);
+        return value * Base + conv.from(*first++);
+    }
+};
+
+template <unsigned int Base>
+class __from_chars_unroll_4_fn : public __from_chars_unroll_4_fn_impl<Base> {};
+
+template <unsigned int Base>
+inline constexpr __from_chars_unroll_4_fn<Base> __from_chars_unroll_4{};
+
+template <unsigned int Base>
+class __from_chars_unroll_8_fn_impl {
+    template <typename Iter, typename Converter>
+    WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        uint64_t value = 0;
+        value = conv.from(*first++);
+        value = value * Base + conv.from(*first++);
+        value = value * Base + conv.from(*first++);
+        value = value * Base + conv.from(*first++);
+        value = value * Base + conv.from(*first++);
+        value = value * Base + conv.from(*first++);
+        value = value * Base + conv.from(*first++);
+        return value * Base + conv.from(*first++);
+    }
+};
+
+template <unsigned int Base>
+class __from_chars_unroll_8_fn : public __from_chars_unroll_8_fn_impl<Base> {};
+
+template <unsigned int Base>
+inline constexpr __from_chars_unroll_8_fn<Base> __from_chars_unroll_8{};
+
+template <>
+class __from_chars_unroll_8_fn<2> : __from_chars_unroll_8_fn_impl<2> {
+private:
+    WJR_INTRINSIC_INLINE static uint64_t __fast_conv(const void *ptr,
+                                                     origin_converter_t) {
+        return read_memory<uint64_t>(ptr);
+    }
+
+    WJR_INTRINSIC_INLINE static uint64_t __fast_conv(const void *ptr, char_converter_t) {
+        return __fast_conv(ptr, origin_converter) - 0x3030303030303030ull;
+    }
+
+public:
+    template <typename Iter, typename Converter>
+    WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
+            return __fast_conv(first, conv);
+        } else {
+            return __from_chars_unroll_8_fn_impl<2>::operator()(first, conv);
+        }
+    }
+};
+
+template <>
+class __from_chars_unroll_8_fn<10> : __from_chars_unroll_8_fn_impl<10> {
+private:
+    WJR_INTRINSIC_INLINE static uint64_t __fast_conv(uint64_t val) {
+        const uint64_t mask = 0x000000FF000000FF;
+        const uint64_t mul1 = 0x000F424000000064; // 100 + (1000000ULL << 32)
+        const uint64_t mul2 = 0x0000271000000001; // 1 + (10000ULL << 32)
+        val = (val * 10) + (val >> 8);            // val = (val * 2561) >> 8;
+        val = (((val & mask) * mul1) + (((val >> 16) & mask) * mul2)) >> 32;
+        return uint32_t(val);
+    }
+
+    WJR_INTRINSIC_INLINE static uint64_t __fast_conv(const void *ptr,
+                                                     origin_converter_t) {
+        return __fast_conv(read_memory<uint64_t>(ptr));
+    }
+
+    WJR_INTRINSIC_INLINE static uint64_t __fast_conv(const void *ptr, char_converter_t) {
+        return __fast_conv(read_memory<uint64_t>(ptr) - 0x3030303030303030ull);
+    }
+
+public:
+    template <typename Iter, typename Converter>
+    WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
+            return __fast_conv(first, conv);
+        } else {
+            return __from_chars_unroll_8_fn_impl<10>::operator()(first, conv);
+        }
+    }
+};
+
+template <unsigned int Base>
+class __from_chars_unroll_16_fn_impl {
+    template <typename Iter, typename Converter>
+    WJR_INTRINSIC_CONSTEXPR uint64_t operator()(Iter first, Converter conv) const {
+        constexpr uint64_t Base4 = Base * Base * Base * Base;
+        return __from_chars_unroll_8<Base>(first, conv) * Base4 * Base4 +
+               __from_chars_unroll_8<Base>(first + 8, conv);
+    }
+};
+
+template <unsigned int Base>
+class __from_chars_unroll_16_fn : public __from_chars_unroll_16_fn_impl<Base> {};
+
+template <unsigned int Base>
+inline constexpr __from_chars_unroll_16_fn<Base> __from_chars_unroll_16{};
 
 template <typename Iter, typename Converter>
 size_t to_chars_2(Iter first, uint64_t x, Converter conv) {
@@ -643,7 +765,7 @@ Iter basecase_to_chars(Iter first, size_t len, uint64_t *up, size_t n, unsigned 
 
 template <typename Iter, typename Converter>
 Iter dc_to_chars(Iter first, size_t len, uint64_t *up, size_t n,
-                 precompute_to_chars_t *pre, uint64_t *stk, Converter conv) {
+                 precompute_chars_convert_t *pre, uint64_t *stk, Converter conv) {
     WJR_ASSERT_ASSUME(n >= 1);
     if (n < dc_bignum_to_chars_threshold) {
         return basecase_to_chars(first, len, up, n, pre->base, conv);
@@ -651,6 +773,8 @@ Iter dc_to_chars(Iter first, size_t len, uint64_t *up, size_t n,
         const auto pp = pre->ptr;
         const auto pn = pre->n;
         const auto ps = pre->shift;
+
+        WJR_ASSERT((pn + ps) * 5 >= n * 2);
 
         if (n < pn + ps || (n == pn + ps && reverse_compare_n(up + ps, pp, pn) < 0)) {
             return dc_to_chars(first, len, up, n, pre - 1, stk, conv);
@@ -668,8 +792,10 @@ Iter dc_to_chars(Iter first, size_t len, uint64_t *up, size_t n,
             len = len - pd;
         }
 
-        first = dc_to_chars(first, len, qp, qn, pre - 1, stk + qn, conv);
-        first = dc_to_chars(first, pd, up, pn + ps, pre - 1, stk, conv);
+        pre -= qn * 2 <= n;
+
+        first = dc_to_chars(first, len, qp, qn, pre, stk + qn, conv);
+        first = dc_to_chars(first, pd, up, pn + ps, pre, stk, conv);
         return first;
     }
 }
@@ -746,15 +872,16 @@ Iter __large_to_chars_impl(Iter first, uint64_t *up, size_t n, unsigned int base
         return basecase_to_chars(first, 0, upbuf, n, base, conv);
     }
 
-    precompute_to_chars_t pre[64 - 3];
+    precompute_chars_convert_t pre[64 - 3];
 
     unique_stack_allocator stkal(math_details::stack_alloc);
-    auto stk = static_cast<uint64_t *>(stkal.allocate(sizeof(uint64_t) * (n * 3 + 192)));
+    auto stk =
+        static_cast<uint64_t *>(stkal.allocate((n * 18 / 5 + 192) * sizeof(uint64_t)));
     auto __up = stk;
     std::copy_n(up, n, __up);
     stk += n;
-    auto mpre = precompute_to_chars(pre, n, base, stk);
-    stk += n + 128;
+    auto mpre = precompute_chars_convert(pre, n, base, stk);
+    stk += n * 8 / 5 + 128;
     return dc_to_chars(first, 0, __up, n, mpre, stk, conv);
 }
 
@@ -1158,7 +1285,7 @@ size_t basecase_from_chars(Iter first, size_t n, uint64_t *up, unsigned int base
 }
 
 template <typename Iter, typename Converter>
-size_t dc_from_chars(Iter first, size_t n, uint64_t *up, precompute_to_chars_t *pre,
+size_t dc_from_chars(Iter first, size_t n, uint64_t *up, precompute_chars_convert_t *pre,
                      uint64_t *stk, Converter conv) {
     size_t lo = pre->digits_in_base;
     if (n <= lo) {
@@ -1175,7 +1302,7 @@ size_t dc_from_chars(Iter first, size_t n, uint64_t *up, precompute_to_chars_t *
     if (hi < dc_bignum_from_chars_threshold) {
         hn = basecase_from_chars(first, hi, stk, pre->base, conv);
     } else {
-        hn = dc_from_chars(first, hi, stk, pre - 1, up, conv);
+        hn = dc_from_chars(first, hi, stk, pre - (lo * 2 >= n), up, conv);
     }
 
     size_t ps = pre->shift;
@@ -1194,10 +1321,10 @@ size_t dc_from_chars(Iter first, size_t n, uint64_t *up, precompute_to_chars_t *
     if (lo < dc_bignum_from_chars_threshold) {
         ln = basecase_from_chars(first, lo, stk, pre->base, conv);
     } else {
-        ln = dc_from_chars(first, lo, stk, pre - 1, stk + pn + ps + 1, conv);
+        ln = dc_from_chars(first, lo, stk, pre - (lo * 2 >= n), stk + pn + ps + 1, conv);
     }
 
-    WJR_ASSERT(ps + pn >= ln);
+    WJR_ASSERT(ps + pn + 1 >= ln);
 
     if (WJR_LIKELY(hn != 0)) {
         if (WJR_LIKELY(ln != 0)) {
@@ -1263,18 +1390,15 @@ uint64_t *from_chars(Iter first, Iter last, uint64_t *up, unsigned int base = 10
         return up + basecase_from_chars(first, n, up, base, conv);
     }
 
-    const auto per_digits = precompute_to_chars_16n_ptr[base]->digits_in_one_base;
+    const auto per_digits = precompute_chars_convert_16n_ptr[base]->digits_in_one_base;
 
-    precompute_to_chars_t pre[64 - 3];
+    precompute_chars_convert_t pre[64 - 3];
 
     unique_stack_allocator stkal(math_details::stack_alloc);
     size_t un = n / per_digits + 1;
-    auto stk = static_cast<uint64_t *>(stkal.allocate((n * 2 + 192) * sizeof(uint64_t)));
-    auto table_mem = stk;
-    stk += un + 128;
-
-    auto mpre = precompute_to_chars(pre, un, base, table_mem);
-
+    auto stk = static_cast<uint64_t *>(stkal.allocate((un * 16 / 5 + 192) * sizeof(uint64_t)));
+    auto mpre = precompute_chars_convert(pre, un, base, stk);
+    stk += un * 8 / 5 + 128;
     return up + dc_from_chars(first, n, up, mpre, stk, conv);
 }
 

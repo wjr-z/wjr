@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include <wjr/math/broadcast.hpp>
+#include <wjr/memory/details.hpp>
 #include <wjr/simd/simd_cast.hpp>
 
 namespace wjr {
@@ -1943,21 +1944,15 @@ void sse::lfence() { _mm_lfence(); }
 __m128i sse::load(const __m128i *ptr) { return _mm_load_si128(ptr); }
 __m128i sse::loadu(const __m128i *ptr) { return _mm_loadu_si128(ptr); }
 __m128i sse::loadu_si16(const void *ptr) {
-    uint16_t buffer;
-    ::memcpy(&buffer, ptr, sizeof(uint16_t));
-    return simd_cast<uint16_t, __m128i_t>(buffer);
+    return simd_cast<uint16_t, __m128i_t>(read_memory<uint16_t>(ptr));
 }
 
 __m128i sse::loadu_si32(const void *ptr) {
-    uint32_t buffer;
-    ::memcpy(&buffer, ptr, sizeof(uint32_t));
-    return simd_cast<uint32_t, __m128i_t>(buffer);
+    return simd_cast<uint32_t, __m128i_t>(read_memory<uint32_t>(ptr));
 }
 
 __m128i sse::loadu_si64(const void *ptr) {
-    uint64_t buffer;
-    ::memcpy(&buffer, ptr, sizeof(uint64_t));
-    return simd_cast<uint64_t, __m128i_t>(buffer);
+    return simd_cast<uint64_t, __m128i_t>(read_memory<uint64_t>(ptr));
 }
 
 template <typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,

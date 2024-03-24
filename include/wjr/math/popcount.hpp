@@ -6,8 +6,7 @@
 namespace wjr {
 
 template <typename T>
-WJR_ATTRIBUTES(CONST, INTRINSIC_CONSTEXPR)
-int fallback_popcount(T x) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int fallback_popcount(T x) {
     constexpr auto nd = std::numeric_limits<T>::digits;
     if constexpr (nd < 32) {
         return fallback_popcount(static_cast<uint32_t>(x));

@@ -50,26 +50,19 @@ template <typename T>
 WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz_impl(T x) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
-#define WJR_REGISTER_BUILTIN_CTZ(args)                                                   \
-    WJR_PP_TRANSFORM_PUT(args, WJR_REGISTER_BUILTIN_CTZ_I_CALLER)
-#define WJR_REGISTER_BUILTIN_CTZ_I(suffix, type)                                         \
-    if constexpr (nd <= std::numeric_limits<type>::digits) {                             \
-        return __builtin_ctz##suffix(static_cast<type>(x));                              \
-    } else
-#define WJR_REGISTER_BUILTIN_CTZ_I_CALLER(args) WJR_REGISTER_BUILTIN_CTZ_I args
-
     if constexpr (nd < 32) {
         return builtin_ctz_impl(static_cast<uint32_t>(x));
     } else {
-        WJR_REGISTER_BUILTIN_CTZ(
-            ((, unsigned int), (l, unsigned long), (ll, unsigned long long))) {
+        if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
+            return __builtin_ctz(static_cast<unsigned int>(x));
+        } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
+            return __builtin_ctzl(static_cast<unsigned long>(x));
+        } else if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
+            return __builtin_ctzll(static_cast<unsigned long long>(x));
+        } else {
             static_assert(nd <= 64, "not supported yet");
         }
     }
-
-#undef WJR_REGISTER_BUILTIN_CTZ_I_CALLER
-#undef WJR_REGISTER_BUILTIN_CTZ_I
-#undef WJR_REGISTER_BUILTIN_CTZ
 }
 
 template <typename T>
