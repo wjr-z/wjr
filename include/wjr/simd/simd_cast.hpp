@@ -21,11 +21,11 @@
 
 namespace wjr {
 
-template <typename T, typename U>
+template <typename From, typename To>
 struct simd_cast_fn;
 
-template <typename T, typename U>
-inline constexpr simd_cast_fn<T, U> simd_cast;
+template <typename From, typename To>
+inline constexpr simd_cast_fn<From, To> simd_cast;
 
 // simd type can't be directly used on template
 template <typename T>

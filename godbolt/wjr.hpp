@@ -3575,6 +3575,10 @@ private:
     }
 
     WJR_CONSTEXPR20 void __small_deallocate(const stack_top &top) {
+        if(WJR_UNLIKELY(top.ptr == invalid)) {
+            return ;
+        }
+
         if (WJR_LIKELY(top.end == nullptr)) {
             m_cache.ptr = top.ptr;
         } else {
@@ -4594,11 +4598,11 @@ struct broadcast_fn<uint8_t, uint64_t> {
 
 namespace wjr {
 
-template <typename T, typename U>
+template <typename From, typename To>
 struct simd_cast_fn;
 
-template <typename T, typename U>
-inline constexpr simd_cast_fn<T, U> simd_cast;
+template <typename From, typename To>
+inline constexpr simd_cast_fn<From, To> simd_cast;
 
 // simd type can't be directly used on template
 template <typename T>
@@ -19226,10 +19230,72 @@ WJR_INTRINSIC_CONSTEXPR_E bool neg_n(T *dst, const T *src, size_t n) {
 #ifndef WJR_MATH_CONVERT_HPP__
 #define WJR_MATH_CONVERT_HPP__
 
+// Already included
+#ifndef WJR_MATH_CONVERT_IMPL_HPP__
+#define WJR_MATH_CONVERT_IMPL_HPP__
+
 #include <array>
 
 // Already included
-// Already included
+
+namespace wjr {
+
+struct char_converter_t {
+private:
+    static constexpr std::array<char, 36> to_table = {
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b',
+        'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+        'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+    static constexpr std::array<uint8_t, 256> from_table = {
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  0,  0,
+        0,  0,  0,  0,  0,  10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+        25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 0,  0,  0,  0,  0,  0,  10, 11, 12,
+        13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+        33, 34, 35, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0};
+
+public:
+    WJR_CONST constexpr static char to(uint8_t x) {
+        WJR_ASSERT_L2(x < 36);
+        return to_table[x];
+    }
+    WJR_CONST constexpr static uint8_t from(char x) {
+        WJR_ASSERT_L2((x >= '0' && x <= '9') || (x >= 'a' && x <= 'z') ||
+                      (x >= 'A' && x <= 'Z'));
+        return from_table[x];
+    }
+};
+
+/**
+ * @brief 36 hexadecimal character<->number converter
+ *
+ * @note Range of characters: `[0-9a-zA-Z]`, range of numbers: `[0-35]`
+ */
+inline constexpr char_converter_t char_converter = {};
+
+struct origin_converter_t {
+    WJR_CONST constexpr static char to(uint8_t x) { return x; }
+    WJR_CONST constexpr static uint8_t from(char x) { return x; }
+};
+
+/**
+ * @brief Original converter that does not change the number or character.
+ *
+ * @note Range of characters: `[0-35]`, range of numbers: `[0-35]`
+ */
+inline constexpr origin_converter_t origin_converter = {};
+
+} // namespace wjr
+
+#endif // WJR_MATH_CONVERT_IMPL_HPP__
+
 #ifndef WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
 #define WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
 
@@ -19263,6 +19329,102 @@ extern "C" precompute_chars_convert_t *precompute_chars_convert(precompute_chars
 
 #endif // WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
 
+#if defined(WJR_X86)
+#ifndef WJR_X86_MATH_CONVERT_HPP__
+#define WJR_X86_MATH_CONVERT_HPP__
+
+// Already included
+// Already included
+
+#ifndef WJR_X86
+#error "x86 required"
+#endif
+
+namespace wjr {
+
+#if WJR_HAS_SIMD(SSE4_1) && WJR_HAS_SIMD(SIMD)
+#define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_8_FAST WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_16_FAST WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST)
+
+template <uint64_t Base>
+uint32_t builtin_from_chars_unroll_8_fast(__m128i in) {
+    uint64_t Base2 = Base * Base;
+    uint64_t Base4 = Base2 * Base2;
+
+    __m128i mul1 = sse::setr_epi8(Base, 1, Base, 1, Base, 1, Base, 1, Base, 1, Base, 1,
+                                  Base, 1, Base, 1);
+    __m128i mul2 = sse::setr_epi16(Base2, 1, Base2, 1, Base2, 1, Base2, 1);
+    __m128i mul3 = sse::setr_epi16(Base4, 1, Base4, 1, Base4, 1, Base4, 1);
+
+    __m128i t1 = _mm_maddubs_epi16(in, mul1);
+    __m128i t2 = _mm_madd_epi16(t1, mul2);
+    __m128i t3 = _mm_packus_epi32(t2, t2);
+    __m128i t4 = _mm_madd_epi16(t3, mul3);
+
+    return simd_cast<__m128i_t, uint32_t>(t4);
+}
+
+template <uint64_t Base>
+uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, char_converter_t) {
+    __m128i assci = sse::set1_epi8(0x30);
+    __m128i in = _mm_sub_epi8(sse::loadu_si64(ptr), assci);
+    return builtin_from_chars_unroll_8_fast<Base>(in);
+}
+
+template <uint64_t Base>
+uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, origin_converter_t) {
+    return builtin_from_chars_unroll_8_fast<Base>(sse::loadu_si64(ptr));
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_16_FAST)
+
+template <uint64_t Base>
+uint64_t builtin_from_chars_unroll_16_fast(__m128i in) {
+    uint64_t Base2 = Base * Base;
+    uint64_t Base4 = Base2 * Base2;
+    uint64_t Base8 = Base4 * Base4;
+
+    __m128i mul1 = sse::setr_epi8(Base, 1, Base, 1, Base, 1, Base, 1, Base, 1, Base, 1,
+                                  Base, 1, Base, 1);
+    __m128i mul2 = sse::setr_epi16(Base2, 1, Base2, 1, Base2, 1, Base2, 1);
+    __m128i mul3 = sse::setr_epi16(Base4, 1, Base4, 1, Base4, 1, Base4, 1);
+
+    __m128i t1 = _mm_maddubs_epi16(in, mul1);
+    __m128i t2 = _mm_madd_epi16(t1, mul2);
+    __m128i t3 = _mm_packus_epi32(t2, t2);
+    __m128i t4 = _mm_madd_epi16(t3, mul3);
+
+    uint64_t val = simd_cast<__m128i_t, uint64_t>(t4);
+    uint32_t lo = val;
+    uint32_t hi = val >> 32;
+
+    return lo * Base8 + hi;
+}
+
+template <uint64_t Base>
+uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, char_converter_t) {
+    __m128i assci = sse::set1_epi8(0x30);
+    __m128i in = _mm_sub_epi8(sse::loadu((__m128i *)(ptr)), assci);
+    return builtin_from_chars_unroll_16_fast<Base>(in);
+}
+
+template <uint64_t Base>
+uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, origin_converter_t) {
+    return builtin_from_chars_unroll_16_fast<Base>(sse::loadu((__m128i *)(ptr)));
+}
+
+#endif
+
+} // namespace wjr
+
+#endif // WJR_X86_MATH_CONVERT_HPP__
+#endif
+
 namespace wjr {
 
 inline constexpr size_t dc_bignum_to_chars_threshold = WJR_DC_BIGNUM_TO_CHARS_THRESHOLD;
@@ -19278,63 +19440,15 @@ inline constexpr auto div2by1_divider_noshift_of_big_base_10 =
     div2by1_divider_noshift<uint64_t>(10'000'000'000'000'000'000ull,
                                       15'581'492'618'384'294'730ull);
 
-struct char_converter_t {
-private:
-    static constexpr std::array<char, 36> to_table = {
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b',
-        'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
-        'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
-    static constexpr std::array<uint8_t, 256> from_table = {
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  0,  0,
-        0,  0,  0,  0,  0,  10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
-        25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 0,  0,  0,  0,  0,  0,  10, 11, 12,
-        13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
-        33, 34, 35, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0};
-
-public:
-    WJR_CONST constexpr static char to(uint8_t x) {
-        WJR_ASSERT_L1(x < 36);
-        return to_table[x];
-    }
-    WJR_CONST constexpr static uint8_t from(char x) { return from_table[x]; }
-};
-
-/**
- * @brief 36 hexadecimal character<->number converter
- *
- * @note Range of characters: `[0-9a-zA-Z]`, range of numbers: `[0-35]`
- */
-inline constexpr char_converter_t char_converter = {};
-
-struct origin_converter_t {
-    WJR_CONST constexpr static char to(uint8_t x) { return x; }
-    WJR_CONST constexpr static uint8_t from(char x) { return x; }
-};
-
-/**
- * @brief Original converter that does not change the number or character.
- *
- * @note Range of characters: `[0-35]`, range of numbers: `[0-35]`
- */
-inline constexpr origin_converter_t origin_converter = {};
-
 // require operator() of Converter is constexpr
-template <typename Converter, int Base, int Unroll>
+template <typename Converter, uint64_t Base, int Unroll>
 class __char_converter_table_t {
-    static constexpr int pw2 = Unroll == 2 ? Base * Base : Base * Base * Base * Base;
+    static constexpr uint64_t pw2 = Unroll == 2 ? Base * Base : Base * Base * Base * Base;
 
 public:
     constexpr __char_converter_table_t() : table() {
         constexpr auto conv = Converter{};
-        for (int i = 0, j = 0; i < pw2; ++i, j += Unroll) {
+        for (uint64_t i = 0, j = 0; i < pw2; ++i, j += Unroll) {
             int x = i;
             for (int k = Unroll - 1; ~k; --k) {
                 table[j + k] = conv.to(x % Base);
@@ -19349,7 +19463,7 @@ private:
     std::array<char, pw2 * Unroll> table;
 };
 
-template <typename Converter, int Base, int Unroll>
+template <typename Converter, uint64_t Base, int Unroll>
 inline constexpr __char_converter_table_t<Converter, Base, Unroll>
     __char_converter_table = {};
 
@@ -19364,61 +19478,153 @@ template <typename Iter, typename Converter>
 inline constexpr bool __is_fast_convert_iterator_v =
     __is_fast_convert_iterator<Iter, Converter>::value;
 
-template <unsigned int Base>
+template <uint64_t Base>
 class __from_chars_unroll_4_fn_impl {
-    template <typename Iter, typename Converter>
-    WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
-        uint64_t value = 0;
-        value = conv.from(*first++);
-        value = value * Base + conv.from(*first++);
-        value = value * Base + conv.from(*first++);
-        return value * Base + conv.from(*first++);
-    }
-};
-
-template <unsigned int Base>
-class __from_chars_unroll_4_fn : public __from_chars_unroll_4_fn_impl<Base> {};
-
-template <unsigned int Base>
-inline constexpr __from_chars_unroll_4_fn<Base> __from_chars_unroll_4{};
-
-template <unsigned int Base>
-class __from_chars_unroll_8_fn_impl {
-    template <typename Iter, typename Converter>
-    WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
-        uint64_t value = 0;
-        value = conv.from(*first++);
-        value = value * Base + conv.from(*first++);
-        value = value * Base + conv.from(*first++);
-        value = value * Base + conv.from(*first++);
-        value = value * Base + conv.from(*first++);
-        value = value * Base + conv.from(*first++);
-        value = value * Base + conv.from(*first++);
-        return value * Base + conv.from(*first++);
-    }
-};
-
-template <unsigned int Base>
-class __from_chars_unroll_8_fn : public __from_chars_unroll_8_fn_impl<Base> {};
-
-template <unsigned int Base>
-inline constexpr __from_chars_unroll_8_fn<Base> __from_chars_unroll_8{};
-
-template <>
-class __from_chars_unroll_8_fn<2> : __from_chars_unroll_8_fn_impl<2> {
-private:
-    WJR_INTRINSIC_INLINE static uint64_t __fast_conv(const void *ptr,
-                                                     origin_converter_t) {
-        return read_memory<uint64_t>(ptr);
-    }
-
-    WJR_INTRINSIC_INLINE static uint64_t __fast_conv(const void *ptr, char_converter_t) {
-        return __fast_conv(ptr, origin_converter) - 0x3030303030303030ull;
-    }
-
 public:
     template <typename Iter, typename Converter>
-    WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        uint64_t value = 0;
+        value = conv.from(*first++);
+        value = value * Base + conv.from(*first++);
+        value = value * Base + conv.from(*first++);
+        return value * Base + conv.from(*first++);
+    }
+};
+
+template <uint64_t Base>
+class __from_chars_unroll_4_fn : public __from_chars_unroll_4_fn_impl<Base> {};
+
+template <uint64_t Base>
+inline constexpr __from_chars_unroll_4_fn<Base> __from_chars_unroll_4{};
+
+template <uint64_t Base>
+class __from_chars_unroll_8_fn_impl {
+public:
+    template <typename Iter, typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        constexpr uint64_t Base4 = Base * Base * Base * Base;
+        return __from_chars_unroll_4<Base>(first, conv) * Base4 +
+               __from_chars_unroll_4<Base>(first + 4, conv);
+    }
+};
+
+template <uint64_t Base>
+class __from_chars_unroll_8_fn : public __from_chars_unroll_8_fn_impl<Base> {};
+
+template <uint64_t Base>
+inline constexpr __from_chars_unroll_8_fn<Base> __from_chars_unroll_8{};
+
+template <uint64_t Base>
+class __from_chars_unroll_16_fn_impl {
+public:
+    template <typename Iter, typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        constexpr uint64_t Base4 = Base * Base * Base * Base;
+        constexpr uint64_t Base8 = Base4 * Base4;
+        return __from_chars_unroll_8<Base>(first, conv) * Base8 +
+               __from_chars_unroll_8<Base>(first + 8, conv);
+    }
+};
+
+template <uint64_t Base>
+class __from_chars_unroll_16_fn : public __from_chars_unroll_16_fn_impl<Base> {};
+
+template <uint64_t Base>
+inline constexpr __from_chars_unroll_16_fn<Base> __from_chars_unroll_16{};
+
+template <uint64_t Base>
+class __from_chars_unroll_4_fast_fn_impl {
+protected:
+    WJR_CONST WJR_INTRINSIC_INLINE static uint32_t __fast_conv(uint32_t val) {
+        constexpr uint32_t Base2 = Base * Base;
+
+        constexpr uint32_t mask = 0x00FF00FF;
+        constexpr uint32_t mul = 1 + (Base2 << 16);
+        val = (val * Base) + (val >> 8);
+        val = ((val & mask) * mul) >> 16;
+        return uint32_t(val);
+    }
+
+    WJR_PURE WJR_INTRINSIC_INLINE static uint32_t __fast_conv(const void *ptr,
+                                                              origin_converter_t) {
+        return __fast_conv(read_memory<uint32_t>(ptr));
+    }
+
+    WJR_PURE WJR_INTRINSIC_INLINE static uint32_t __fast_conv(const void *ptr,
+                                                              char_converter_t) {
+        return __fast_conv(read_memory<uint32_t>(ptr) - 0x30303030u);
+    }
+};
+
+template <>
+class __from_chars_unroll_4_fn<2> : __from_chars_unroll_4_fn_impl<2>,
+                                    __from_chars_unroll_4_fast_fn_impl<2> {
+public:
+    template <typename Iter, typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
+            return __fast_conv(first, conv);
+        } else {
+            return __from_chars_unroll_4_fn_impl<2>::operator()(first, conv);
+        }
+    }
+};
+
+template <>
+class __from_chars_unroll_4_fn<10> : __from_chars_unroll_4_fn_impl<10>,
+                                     __from_chars_unroll_4_fast_fn_impl<10> {
+public:
+    template <typename Iter, typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
+            return __fast_conv(first, conv);
+        } else {
+            return __from_chars_unroll_4_fn_impl<10>::operator()(first, conv);
+        }
+    }
+};
+
+template <uint64_t Base>
+class __from_chars_unroll_8_fast_fn_impl {
+protected:
+    WJR_CONST WJR_INTRINSIC_INLINE static uint64_t __fast_conv(uint64_t val) {
+        constexpr uint64_t Base2 = Base * Base;
+        constexpr uint64_t Base4 = Base2 * Base2;
+        constexpr uint64_t Base6 = Base4 * Base2;
+
+        constexpr uint64_t mask = 0x000000FF000000FF;
+        constexpr uint64_t mul1 = Base2 + (Base6 << 32);
+        constexpr uint64_t mul2 = 1 + (Base4 << 32);
+        val = (val * Base) + (val >> 8);
+        val = (((val & mask) * mul1) + (((val >> 16) & mask) * mul2)) >> 32;
+        return uint32_t(val);
+    }
+
+    WJR_PURE WJR_INTRINSIC_INLINE static uint64_t __fast_conv(const void *ptr,
+                                                              origin_converter_t) {
+#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST)
+        return builtin_from_chars_unroll_8_fast<Base>(ptr, origin_converter);
+#else
+        return __fast_conv(read_memory<uint64_t>(ptr));
+#endif
+    }
+
+    WJR_PURE WJR_INTRINSIC_INLINE static uint64_t __fast_conv(const void *ptr,
+                                                              char_converter_t) {
+#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST)
+        return builtin_from_chars_unroll_8_fast<Base>(ptr, char_converter);
+#else
+        return __fast_conv(read_memory<uint64_t>(ptr) - 0x3030303030303030ull);
+#endif
+    }
+};
+
+template <>
+class __from_chars_unroll_8_fn<2> : __from_chars_unroll_8_fn_impl<2>,
+                                    __from_chars_unroll_8_fast_fn_impl<2> {
+public:
+    template <typename Iter, typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
         if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
             return __fast_conv(first, conv);
         } else {
@@ -19428,29 +19634,11 @@ public:
 };
 
 template <>
-class __from_chars_unroll_8_fn<10> : __from_chars_unroll_8_fn_impl<10> {
-private:
-    WJR_INTRINSIC_INLINE static uint64_t __fast_conv(uint64_t val) {
-        const uint64_t mask = 0x000000FF000000FF;
-        const uint64_t mul1 = 0x000F424000000064; // 100 + (1000000ULL << 32)
-        const uint64_t mul2 = 0x0000271000000001; // 1 + (10000ULL << 32)
-        val = (val * 10) + (val >> 8);            // val = (val * 2561) >> 8;
-        val = (((val & mask) * mul1) + (((val >> 16) & mask) * mul2)) >> 32;
-        return uint32_t(val);
-    }
-
-    WJR_INTRINSIC_INLINE static uint64_t __fast_conv(const void *ptr,
-                                                     origin_converter_t) {
-        return __fast_conv(read_memory<uint64_t>(ptr));
-    }
-
-    WJR_INTRINSIC_INLINE static uint64_t __fast_conv(const void *ptr, char_converter_t) {
-        return __fast_conv(read_memory<uint64_t>(ptr) - 0x3030303030303030ull);
-    }
-
+class __from_chars_unroll_8_fn<10> : __from_chars_unroll_8_fn_impl<10>,
+                                     __from_chars_unroll_8_fast_fn_impl<10> {
 public:
     template <typename Iter, typename Converter>
-    WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
         if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
             return __fast_conv(first, conv);
         } else {
@@ -19459,24 +19647,54 @@ public:
     }
 };
 
-template <unsigned int Base>
-class __from_chars_unroll_16_fn_impl {
-    template <typename Iter, typename Converter>
-    WJR_INTRINSIC_CONSTEXPR uint64_t operator()(Iter first, Converter conv) const {
-        constexpr uint64_t Base4 = Base * Base * Base * Base;
-        return __from_chars_unroll_8<Base>(first, conv) * Base4 * Base4 +
-               __from_chars_unroll_8<Base>(first + 8, conv);
+#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_16_FAST)
+
+template <uint64_t Base>
+class __from_chars_unroll_16_fast_fn_impl {
+protected:
+    WJR_PURE WJR_INTRINSIC_INLINE static uint64_t __fast_conv(const void *ptr,
+                                                              origin_converter_t) {
+        return builtin_from_chars_unroll_16_fast<Base>(ptr, origin_converter);
+    }
+
+    WJR_PURE WJR_INTRINSIC_INLINE static uint64_t __fast_conv(const void *ptr,
+                                                              char_converter_t) {
+        return builtin_from_chars_unroll_16_fast<Base>(ptr, char_converter);
     }
 };
 
-template <unsigned int Base>
-class __from_chars_unroll_16_fn : public __from_chars_unroll_16_fn_impl<Base> {};
+template <>
+class __from_chars_unroll_16_fn<2> : __from_chars_unroll_16_fn_impl<2>,
+                                     __from_chars_unroll_16_fast_fn_impl<2> {
+public:
+    template <typename Iter, typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
+            return __fast_conv(first, conv);
+        } else {
+            return __from_chars_unroll_16_fn_impl<2>::operator()(first, conv);
+        }
+    }
+};
 
-template <unsigned int Base>
-inline constexpr __from_chars_unroll_16_fn<Base> __from_chars_unroll_16{};
+template <>
+class __from_chars_unroll_16_fn<10> : __from_chars_unroll_16_fn_impl<10>,
+                                      __from_chars_unroll_16_fast_fn_impl<10> {
+public:
+    template <typename Iter, typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
+            return __fast_conv(first, conv);
+        } else {
+            return __from_chars_unroll_16_fn_impl<10>::operator()(first, conv);
+        }
+    }
+};
 
-template <typename Iter, typename Converter>
-size_t to_chars_2(Iter first, uint64_t x, Converter conv) {
+#endif
+
+template <typename Iter, typename Converter = char_converter_t>
+size_t to_chars_2(Iter first, uint64_t x, Converter conv = {}) {
     WJR_ASSERT(x != 0);
 
     constexpr auto &table = __char_converter_table<Converter, 2, 4>;
@@ -19603,8 +19821,8 @@ size_t __large_to_chars_2_impl(Iter first, uint64_t *up, size_t n, Converter con
     return len;
 }
 
-template <typename Iter, typename Converter>
-size_t to_chars_8(Iter first, uint64_t x, Converter conv) {
+template <typename Iter, typename Converter = char_converter_t>
+size_t to_chars_8(Iter first, uint64_t x, Converter conv = {}) {
     WJR_ASSERT(x != 0);
 
     constexpr auto &table = __char_converter_table<Converter, 8, 2>;
@@ -19755,8 +19973,8 @@ DONE:
     return len;
 }
 
-template <typename Iter, typename Converter>
-size_t to_chars_16(Iter first, uint64_t x, Converter conv) {
+template <typename Iter, typename Converter = char_converter_t>
+size_t to_chars_16(Iter first, uint64_t x, Converter conv = {}) {
     WJR_ASSERT(x != 0);
 
     constexpr auto &table = __char_converter_table<Converter, 16, 2>;
@@ -19845,8 +20063,9 @@ size_t __large_to_chars_16_impl(Iter first, uint64_t *up, size_t n, Converter co
     return len;
 }
 
-template <typename Iter, typename Converter>
-size_t to_chars_power_of_two(Iter first, uint64_t x, unsigned int base, Converter conv) {
+template <typename Iter, typename Converter = char_converter_t>
+size_t to_chars_power_of_two(Iter first, uint64_t x, unsigned int base,
+                             Converter conv = {}) {
     WJR_ASSERT(x != 0);
 
     int per_bit = ctz(base);
@@ -20171,50 +20390,62 @@ Iter to_chars(Iter first, uint64_t *up, size_t n, unsigned int base = 10,
     return __large_to_chars_impl(first, up, n, base, conv);
 }
 
-template <typename Iter, typename Converter>
-size_t from_chars_2(Iter first, size_t n, uint64_t *up, Converter conv) {
+template <typename Iter, typename Converter = char_converter_t>
+size_t from_chars_2(Iter first, size_t n, uint64_t *up, Converter conv = {}) {
     size_t hbits = (n - 1) % 64 + 1;
     size_t len = (n - 1) / 64 + 1;
-
-    auto unroll = [conv](uint64_t &x, auto &first) {
-        auto x0 = conv.from(first[0]);
-        auto x1 = conv.from(first[1]);
-        auto x2 = conv.from(first[2]);
-        auto x3 = conv.from(first[3]);
-
-        x = x << 4 | x0 << 3 | x1 << 2 | x2 << 1 | x3;
-        first += 4;
-    };
 
     uint64_t x = 0;
     up += len;
 
-    if (hbits > 4) {
-        do {
-            unroll(x, first);
-            hbits -= 4;
-        } while (WJR_LIKELY(hbits > 4));
+    if (hbits >= 8) {
+        if (hbits >= 16) {
+            do {
+                x = (x << 16) + __from_chars_unroll_16<2>(first, conv);
+                first += 16;
+                hbits -= 16;
+            } while (WJR_LIKELY(hbits >= 16));
+        }
+
+        if (hbits >= 8) {
+            x = (x << 8) + __from_chars_unroll_8<2>(first, conv);
+            first += 8;
+            hbits -= 8;
+        }
     }
 
     switch (hbits) {
+    case 7: {
+        x = (x << 1) + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 6: {
+        x = (x << 1) + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 5: {
+        x = (x << 1) + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
     case 4: {
-        unroll(x, first);
+        x <<= 4;
+        x += __from_chars_unroll_4<2>(first, conv);
+        first += 4;
         break;
     }
     case 3: {
-        x = x << 1 | conv.from(*first++);
+        x = (x << 1) + conv.from(*first++);
         WJR_FALLTHROUGH;
     }
     case 2: {
-        x = x << 1 | conv.from(*first++);
+        x = (x << 1) + conv.from(*first++);
         WJR_FALLTHROUGH;
     }
     case 1: {
-        x = x << 1 | conv.from(*first++);
-        break;
+        x = (x << 1) + conv.from(*first++);
+        WJR_FALLTHROUGH;
     }
     default: {
-        WJR_UNREACHABLE();
         break;
     }
     }
@@ -20227,8 +20458,9 @@ size_t from_chars_2(Iter first, size_t n, uint64_t *up, Converter conv) {
         do {
             x = 0;
 
-            for (int i = 0; i < 16; ++i) {
-                unroll(x, first);
+            for (int i = 0; i < 4; ++i) {
+                x = (x << 16) + __from_chars_unroll_16<2>(first, conv);
+                first += 16;
             }
 
             *--up = x;
@@ -20238,8 +20470,8 @@ size_t from_chars_2(Iter first, size_t n, uint64_t *up, Converter conv) {
     return len;
 }
 
-template <typename Iter, typename Converter>
-size_t from_chars_8(Iter first, size_t n, uint64_t *up, Converter conv) {
+template <typename Iter, typename Converter = char_converter_t>
+size_t from_chars_8(Iter first, size_t n, uint64_t *up, Converter conv = {}) {
     size_t len = (n * 3 + 63) / 64;
     size_t lbits = (64 * (len - 1)) / 3;
     size_t rest = (64 * (len - 1)) % 3;
@@ -20362,8 +20594,8 @@ size_t from_chars_8(Iter first, size_t n, uint64_t *up, Converter conv) {
     return len;
 }
 
-template <typename Iter, typename Converter>
-size_t from_chars_16(Iter first, size_t n, uint64_t *up, Converter conv) {
+template <typename Iter, typename Converter = char_converter_t>
+size_t from_chars_16(Iter first, size_t n, uint64_t *up, Converter conv = {}) {
     size_t hbits = (n - 1) % 16 + 1;
     size_t len = (n - 1) / 16 + 1;
 
@@ -20433,21 +20665,35 @@ template <typename Iter, typename Converter>
 void __from_chars_10(Iter first, size_t n, uint64_t &x, Converter conv) {
     x = 0;
 
-    if (n >= 4) {
-        do {
-            auto x0 = conv.from(first[0]);
-            auto x1 = conv.from(first[1]);
-            auto x2 = conv.from(first[2]);
-            auto x3 = conv.from(first[3]);
-
-            x = x * 10000 + x0 * 1000 + x1 * 100 + x2 * 10 + x3;
-
-            first += 4;
-            n -= 4;
-        } while (WJR_LIKELY(n >= 4));
+    if (n >= 8) {
+        if (n >= 16) {
+            x = __from_chars_unroll_16<10>(first, conv);
+            first += 16;
+            n -= 16;
+        } else {
+            x = (x * 100000000) + __from_chars_unroll_8<10>(first, conv);
+            first += 8;
+            n -= 8;
+        }
     }
 
     switch (n) {
+    case 7: {
+        x = x * 10 + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 6: {
+        x = x * 10 + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 5: {
+        x = x * 10 + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 4: {
+        x = (x * 10000) + __from_chars_unroll_4<10>(first, conv);
+        break;
+    }
     case 3: {
         x = x * 10 + conv.from(*first++);
         WJR_FALLTHROUGH;
@@ -20487,29 +20733,13 @@ size_t basecase_from_chars_10(Iter first, size_t n, uint64_t *up, Converter conv
 
     do {
         uint64_t x = 0;
-        int i = 16;
 
-        do {
-            auto x0 = conv.from(first[0]);
-            auto x1 = conv.from(first[1]);
-            auto x2 = conv.from(first[2]);
-            auto x3 = conv.from(first[3]);
+        x = __from_chars_unroll_16<10>(first, conv);
+        first += 16;
 
-            x = x * 10000 + x0 * 1000 + x1 * 100 + x2 * 10 + x3;
-
-            first += 4;
-            i -= 4;
-        } while (WJR_LIKELY(i != 0));
-
-        do {
-            auto x0 = conv.from(first[0]);
-            auto x1 = conv.from(first[1]);
-            auto x2 = conv.from(first[2]);
-
-            x = x * 1000 + x0 * 100 + x1 * 10 + x2;
-
-            first += 3;
-        } while (0);
+        x = x * 10 + conv.from(*first++);
+        x = x * 10 + conv.from(*first++);
+        x = x * 10 + conv.from(*first++);
 
         uint64_t cf;
 
@@ -20652,7 +20882,8 @@ uint64_t *from_chars(Iter first, Iter last, uint64_t *up, unsigned int base = 10
 
     unique_stack_allocator stkal(math_details::stack_alloc);
     size_t un = n / per_digits + 1;
-    auto stk = static_cast<uint64_t *>(stkal.allocate((un * 16 / 5 + 192) * sizeof(uint64_t)));
+    auto stk =
+        static_cast<uint64_t *>(stkal.allocate((un * 16 / 5 + 192) * sizeof(uint64_t)));
     auto mpre = precompute_chars_convert(pre, un, base, stk);
     stk += un * 8 / 5 + 128;
     return up + dc_from_chars(first, n, up, mpre, stk, conv);
@@ -20666,8 +20897,8 @@ uint64_t *from_chars(Iter first, Iter last, uint64_t *up, unsigned int base = 10
 #ifndef WJR_VECTOR_HPP__
 #define WJR_VECTOR_HPP__
 
-#ifndef WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP
-#define WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP
+#ifndef WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__
+#define WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__
 
 /**
  * @file vector.hpp
@@ -20726,8 +20957,8 @@ uint64_t *from_chars(Iter first, Iter last, uint64_t *up, unsigned int base = 10
 
 // Already included
 // Already included
-#ifndef WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP
-#define WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP
+#ifndef WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP__
+#define WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP__
 
 // Already included
 
@@ -20838,7 +21069,7 @@ void try_reserve(Container &c, Size s) {
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP
+#endif // WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP__
 #ifndef WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
 #define WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
 
@@ -22602,7 +22833,7 @@ bool operator>=(const basic_vector<Storage> &lhs, const basic_vector<Storage> &r
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP
+#endif // WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__
 
 #endif // WJR_VECTOR_HPP__
 

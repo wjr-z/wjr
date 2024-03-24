@@ -1,5 +1,5 @@
-#ifndef WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP
-#define WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP
+#ifndef WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__
+#define WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__
 
 /**
  * @file vector.hpp
@@ -1568,4 +1568,4 @@ bool operator>=(const basic_vector<Storage> &lhs, const basic_vector<Storage> &r
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP
+#endif // WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__

@@ -111,6 +111,10 @@ private:
     }
 
     WJR_CONSTEXPR20 void __small_deallocate(const stack_top &top) {
+        if(WJR_UNLIKELY(top.ptr == invalid)) {
+            return ;
+        }
+
         if (WJR_LIKELY(top.end == nullptr)) {
             m_cache.ptr = top.ptr;
         } else {
