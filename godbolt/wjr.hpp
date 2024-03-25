@@ -3171,6 +3171,8 @@ struct tuple_element<1, wjr::compressed_pair<T, U>> {
 #ifndef WJR_STACK_ALLOCATOR_HPP__
 #define WJR_STACK_ALLOCATOR_HPP__
 
+#include <algorithm>
+
 // Already included
 #ifndef WJR_CRTP_NONCOPYABLE_HPP__
 #define WJR_CRTP_NONCOPYABLE_HPP__
@@ -3572,8 +3574,8 @@ private:
     }
 
     WJR_CONSTEXPR20 void __small_deallocate(const stack_top &top) {
-        if(WJR_UNLIKELY(top.ptr == invalid)) {
-            return ;
+        if (WJR_UNLIKELY(top.ptr == invalid)) {
+            return;
         }
 
         if (WJR_LIKELY(top.end == nullptr)) {
@@ -19261,6 +19263,11 @@ private:
 public:
     WJR_CONST constexpr static char to(uint8_t x) {
         WJR_ASSERT_L2(x < 36);
+        
+        if (WJR_BUILTIN_CONSTANT_P(x < 10) && x < 10) {
+            return x + '0';
+        }
+
         return to_table[x];
     }
     WJR_CONST constexpr static uint8_t from(char x) {
@@ -19684,7 +19691,7 @@ template <>
 class __to_chars_unroll_4_fast_fn_impl<10>
     : public __to_chars_unroll_4_fast_fn_impl_base<10> {
     using __to_chars_unroll_4_fast_fn_impl_base<10>::__fast_conv;
-#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
+#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_4_FAST)
 public:
     WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
                                                  char_converter_t conv) {
@@ -20587,34 +20594,35 @@ template <typename Converter>
 char *__backward_to_chars_10(char *buf, uint64_t val, Converter conv) {
     WJR_ASSERT_ASSUME(val != 0);
 
-    if (WJR_LIKELY(val >= 10)) {
-        if (WJR_LIKELY(val >= 1000'0000)) {
+    if (val >= 100) {
+        if (WJR_UNLIKELY(val >= 1'0000'0000)) {
             do {
                 __to_chars_unroll_8<10>(buf - 8, val % 1'0000'0000, conv);
                 buf -= 8;
                 val /= 1'0000'0000;
-            } while (val >= 1000'0000);
+            } while (val >= 1'0000'0000);
         }
 
-        if (WJR_LIKELY(val >= 1000)) {
+        if (WJR_LIKELY(val >= 1'0000)) {
             __to_chars_unroll_4<10>(buf - 4, val % 1'0000, conv);
             buf -= 4;
             val /= 1'0000;
         }
 
-        if (WJR_LIKELY(val >= 10)) {
+        if (val >= 100) {
             __to_chars_unroll_2<10>(buf - 2, val % 100, conv);
             buf -= 2;
             val /= 100;
         }
+    }
 
-        if (!val) {
-            return buf;
-        }
+    if (WJR_LIKELY(val >= 10)) {
+        __to_chars_unroll_2<10>(buf - 2, val % 100, conv);
+        buf -= 2;
+        return buf;
     }
 
     *--buf = conv.to(val);
-
     return buf;
 }
 

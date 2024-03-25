@@ -1589,7 +1589,7 @@ TEST(math, to_chars) {
     const int N = 1024;
     const int M = N * 64;
 
-    std::vector<uint64_t> a(N);
+    std::vector<uint64_t> a(N), d(N);
     std::string b(M, '0'), c(M, '0');
 
     for (int t = 0; t < T; ++t) {
@@ -1603,10 +1603,23 @@ TEST(math, to_chars) {
                     a[i - 1] = mt_rand();
                 }
 
+                d = a;
+
                 size_t len =
                     wjr::to_chars(b.data(), a.data(), i, base, wjr::origin_converter) -
                     b.data();
                 size_t len2 = mpn_get_str((unsigned char *)c.data(), base, a.data(), i);
+
+                WJR_ASSERT(len == len2);
+                WJR_ASSERT(std::string_view(b.data(), len) ==
+                           std::string_view(c.data(), len2));
+
+                len = wjr::to_chars(b.data(), d.data(), i, base, wjr::char_converter) -
+                      b.data();
+
+                for (auto &ch : c) {
+                    ch = ch < 10 ? ch + '0' : ch - 10 + 'a';
+                }
 
                 WJR_ASSERT(len == len2);
                 WJR_ASSERT(std::string_view(b.data(), len) ==
@@ -1641,16 +1654,17 @@ TEST(math, from_chars) {
                 size_t len2 = mpn_set_str(b.data(), (unsigned char *)c.data(), i, base);
 
                 WJR_ASSERT(len == len2);
-                if (!std::equal(a.begin(), a.begin() + len, b.begin())) {
-                    std::cout << "i = " << i << ", base = " << base << std::endl;
-                    for (int j = 0; j < i; ++j) {
-                        std::cout << (int)c[j] << ',';
-                    }
-                    std::cout << std::endl;
-                    std::cout << a[0] << std::endl;
-                    std::cout << b[0] << std::endl;
+                WJR_ASSERT(std::equal(a.begin(), a.begin() + len, b.begin()));
+
+                for (auto &ch : c) {
+                    ch = ch < 10 ? ch + '0' : ch - 10 + 'a';
                 }
 
+                len = wjr::from_chars(c.data(), c.data() + i, a.data(), base,
+                                      wjr::char_converter) -
+                      a.data();
+
+                WJR_ASSERT(len == len2);
                 WJR_ASSERT(std::equal(a.begin(), a.begin() + len, b.begin()));
             }
 

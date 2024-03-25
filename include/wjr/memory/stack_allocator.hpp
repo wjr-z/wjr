@@ -1,6 +1,8 @@
 #ifndef WJR_STACK_ALLOCATOR_HPP__
 #define WJR_STACK_ALLOCATOR_HPP__
 
+#include <algorithm>
+
 #include <wjr/compressed_pair.hpp>
 #include <wjr/crtp/noncopyable.hpp>
 #include <wjr/crtp/nonsendable.hpp>
@@ -111,8 +113,8 @@ private:
     }
 
     WJR_CONSTEXPR20 void __small_deallocate(const stack_top &top) {
-        if(WJR_UNLIKELY(top.ptr == invalid)) {
-            return ;
+        if (WJR_UNLIKELY(top.ptr == invalid)) {
+            return;
         }
 
         if (WJR_LIKELY(top.end == nullptr)) {

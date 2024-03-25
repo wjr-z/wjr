@@ -150,7 +150,7 @@ template <>
 class __to_chars_unroll_4_fast_fn_impl<10>
     : public __to_chars_unroll_4_fast_fn_impl_base<10> {
     using __to_chars_unroll_4_fast_fn_impl_base<10>::__fast_conv;
-#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
+#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_4_FAST)
 public:
     WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
                                                  char_converter_t conv) {
@@ -1053,34 +1053,35 @@ template <typename Converter>
 char *__backward_to_chars_10(char *buf, uint64_t val, Converter conv) {
     WJR_ASSERT_ASSUME(val != 0);
 
-    if (WJR_LIKELY(val >= 10)) {
-        if (WJR_LIKELY(val >= 1000'0000)) {
+    if (val >= 100) {
+        if (WJR_UNLIKELY(val >= 1'0000'0000)) {
             do {
                 __to_chars_unroll_8<10>(buf - 8, val % 1'0000'0000, conv);
                 buf -= 8;
                 val /= 1'0000'0000;
-            } while (val >= 1000'0000);
+            } while (val >= 1'0000'0000);
         }
 
-        if (WJR_LIKELY(val >= 1000)) {
+        if (WJR_LIKELY(val >= 1'0000)) {
             __to_chars_unroll_4<10>(buf - 4, val % 1'0000, conv);
             buf -= 4;
             val /= 1'0000;
         }
 
-        if (WJR_LIKELY(val >= 10)) {
+        if (val >= 100) {
             __to_chars_unroll_2<10>(buf - 2, val % 100, conv);
             buf -= 2;
             val /= 100;
         }
+    }
 
-        if (!val) {
-            return buf;
-        }
+    if (WJR_LIKELY(val >= 10)) {
+        __to_chars_unroll_2<10>(buf - 2, val % 100, conv);
+        buf -= 2;
+        return buf;
     }
 
     *--buf = conv.to(val);
-
     return buf;
 }
 

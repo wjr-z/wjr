@@ -31,6 +31,11 @@ private:
 public:
     WJR_CONST constexpr static char to(uint8_t x) {
         WJR_ASSERT_L2(x < 36);
+        
+        if (WJR_BUILTIN_CONSTANT_P(x < 10) && x < 10) {
+            return x + '0';
+        }
+
         return to_table[x];
     }
     WJR_CONST constexpr static uint8_t from(char x) {
