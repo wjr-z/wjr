@@ -1641,6 +1641,16 @@ TEST(math, from_chars) {
                 size_t len2 = mpn_set_str(b.data(), (unsigned char *)c.data(), i, base);
 
                 WJR_ASSERT(len == len2);
+                if (!std::equal(a.begin(), a.begin() + len, b.begin())) {
+                    std::cout << "i = " << i << ", base = " << base << std::endl;
+                    for (int j = 0; j < i; ++j) {
+                        std::cout << (int)c[j] << ',';
+                    }
+                    std::cout << std::endl;
+                    std::cout << a[0] << std::endl;
+                    std::cout << b[0] << std::endl;
+                }
+
                 WJR_ASSERT(std::equal(a.begin(), a.begin() + len, b.begin()));
             }
 

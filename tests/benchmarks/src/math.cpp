@@ -630,6 +630,19 @@ static void wjr_div_qr_s(benchmark::State &state) {
         [&]() { wjr::div_qr_s(q.data(), r.data(), a.data(), n, b.data(), m); });
 }
 
+static void wjr_to_chars(benchmark::State &state) {
+    auto base = state.range(0);
+    auto n = state.range(1);
+    std::vector<uint64_t> a(n);
+    std::vector<char> s(n * 64);
+
+    std::generate(a.begin(), a.end(), mt_rand);
+
+    for (auto _ : state) {
+        wjr::to_chars(s.data(), a.data(), n, base, wjr::origin_converter);
+    }
+}
+
 static void wjr_from_chars(benchmark::State &state) {
     auto base = state.range(0);
     auto n = state.range(1);
@@ -639,7 +652,8 @@ static void wjr_from_chars(benchmark::State &state) {
     std::generate(s.begin(), s.end(), []() { return '0' + mt_rand() % 10; });
 
     for (auto _ : state) {
-        wjr::from_chars(s.data(), s.data() + s.size(), a.data(), base);
+        wjr::from_chars(s.data(), s.data() + s.size(), a.data(), base,
+                        wjr::origin_converter);
     }
 }
 
@@ -1186,9 +1200,51 @@ static void gmp_div_qr_s(benchmark::State &state) {
         [&]() { mpn_tdiv_qr(q.data(), r.data(), 0, a.data(), n, b.data(), m); });
 }
 
+static void gmp_to_chars(benchmark::State &state) {
+    auto base = state.range(0);
+    auto n = state.range(1);
+    std::vector<uint64_t> a(n);
+    std::vector<char> s(n * 64);
+
+    std::generate(a.begin(), a.end(), mt_rand);
+
+    for (auto _ : state) {
+        mpn_get_str((unsigned char*)s.data(), base, a.data(), n);
+    }
+}
+
+static void gmp_from_chars(benchmark::State &state) {
+    auto base = state.range(0);
+    auto n = state.range(1);
+    std::vector<uint64_t> a(n);
+    std::vector<char> s(n);
+
+    std::generate(s.begin(), s.end(), []() { return '0' + mt_rand() % 10; });
+
+    for (auto _ : state) {
+        mpn_set_str(a.data(), (unsigned char*)s.data(), s.size(), base);
+    }
+}
+
 #endif // WJR_USE_GMP
 
-#define __CHAR_CONV_TESTS_I(base)                                                        \
+#define __TO_CHARS_TESTS_I(base)                                                         \
+    Args({base, 1})                                                                      \
+        ->Args({base, 2})                                                                \
+        ->Args({base, 4})                                                                \
+        ->Args({base, 8})                                                                \
+        ->Args({base, 16})                                                               \
+        ->Args({base, 32})                                                               \
+        ->Args({base, 64})                                                               \
+        ->Args({base, 256})                                                              \
+        ->Args({base, 1024})
+#define TO_CHARS_TESTS()                                                                 \
+    __TO_CHARS_TESTS_I(2)                                                                \
+        ->__TO_CHARS_TESTS_I(8)                                                          \
+        ->__TO_CHARS_TESTS_I(10)                                                         \
+        ->__TO_CHARS_TESTS_I(16)
+
+#define __FROM_CHARS_TESTS_I(base)                                                       \
     Args({base, 1})                                                                      \
         ->Args({base, 2})                                                                \
         ->Args({base, 4})                                                                \
@@ -1201,11 +1257,11 @@ static void gmp_div_qr_s(benchmark::State &state) {
         ->Args({base, 4096})                                                             \
         ->Args({base, 16384})                                                            \
         ->Args({base, 65536})
-#define CHAR_CONV_TESTS()                                                                \
-    __CHAR_CONV_TESTS_I(2)                                                               \
-        ->__CHAR_CONV_TESTS_I(8)                                                         \
-        ->__CHAR_CONV_TESTS_I(10)                                                        \
-        ->__CHAR_CONV_TESTS_I(16)
+#define FROM_CHARS_TESTS()                                                               \
+    __FROM_CHARS_TESTS_I(2)                                                              \
+        ->__FROM_CHARS_TESTS_I(8)                                                        \
+        ->__FROM_CHARS_TESTS_I(10)                                                       \
+        ->__FROM_CHARS_TESTS_I(16)
 
 BENCHMARK(wjr_popcount);
 BENCHMARK(wjr_clz);
@@ -1249,7 +1305,8 @@ BENCHMARK(wjr_sqr)->NORMAL_TESTS(2, 1024);
 BENCHMARK(wjr_div_qr_1)->NORMAL_TESTS(2, 256);
 BENCHMARK(wjr_div_qr_2)->DenseRange(2, 4, 1)->RangeMultiplier(2)->Range(8, 256);
 BENCHMARK(wjr_div_qr_s)->Apply(Product2D);
-BENCHMARK(wjr_from_chars)->CHAR_CONV_TESTS();
+BENCHMARK(wjr_to_chars)->TO_CHARS_TESTS();
+BENCHMARK(wjr_from_chars)->FROM_CHARS_TESTS();
 
 BENCHMARK(fallback_popcount);
 BENCHMARK(fallback_clz);
@@ -1290,6 +1347,8 @@ BENCHMARK(gmp_sqr)->NORMAL_TESTS(2, 1024);
 BENCHMARK(gmp_div_qr_1)->NORMAL_TESTS(2, 256);
 BENCHMARK(gmp_div_qr_2)->DenseRange(2, 4, 1)->RangeMultiplier(2)->Range(8, 256);
 BENCHMARK(gmp_div_qr_s)->Apply(Product2D);
+BENCHMARK(gmp_to_chars)->TO_CHARS_TESTS();
+BENCHMARK(gmp_from_chars)->FROM_CHARS_TESTS();
 
 #endif // WJR_USE_GMP
 

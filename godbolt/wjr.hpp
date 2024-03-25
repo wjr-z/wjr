@@ -19343,8 +19343,75 @@ extern "C" precompute_chars_convert_t *precompute_chars_convert(precompute_chars
 namespace wjr {
 
 #if WJR_HAS_SIMD(SSE4_1) && WJR_HAS_SIMD(SIMD)
+#define WJR_HAS_BUILTIN_TO_CHARS_UNROLL_8_FAST WJR_HAS_DEF
+
 #define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_8_FAST WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_16_FAST WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
+
+template <uint64_t Base>
+uint64_t builtin_from_chars_unroll_8_fast(uint32_t in) {
+    static_assert(Base == 10, "");
+
+    __m128i mulp4 = simd_cast<uint32_t, __m128i_t>(3518437209);
+    __m128i mulp4x = simd_cast<uint32_t, __m128i_t>(10000);
+    __m128i mulp2 = sse::set1_epi16(5243);
+    __m128i mulp2x = sse::set1_epi16(100);
+    __m128i mulp1 = sse::set1_epi16((short)52429u);
+    __m128i mulp1x = sse::set1_epi16(10);
+    __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
+
+    __m128i x = simd_cast<uint32_t, __m128i_t>(in);
+
+    // x[0: 15] = (x[0: 31] * 3518437209) >> 45;
+    // x[16 : 127] = x[32 : 127]
+    __m128i q = _mm_mul_epu32(x, mulp4);
+    q = _mm_srli_epi64(q, 45);
+
+    __m128i r = _mm_sub_epi32(x, _mm_mul_epu32(q, mulp4x));
+
+    x = _mm_packus_epi32(q, r);
+
+    // x[0: 15] = (x[0: 15] * 5243) >> 17;
+    // x[64: 79] = (x[64: 79] * 5243) >> 17;
+    q = _mm_mulhi_epu16(x, mulp2);
+    q = _mm_srli_epi16(q, 3);
+
+    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, mulp2x));
+
+    x = _mm_packus_epi16(q, r);
+
+    // x[0: 15] = (x[0: 15] * 52429) >> 19;
+    // x[32 : 47] = (x[32 : 47] * 52429) >> 19;
+    // x[64 : 79] = (x[64 : 79] * 52429) >> 19;
+    // x[96 : 111] = (x[96 : 111] * 52429) >> 19;
+
+    q = _mm_mulhi_epu16(x, mulp1);
+    q = _mm_srli_epi16(q, 3);
+
+    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, mulp1x));
+
+    x = _mm_packus_epi16(q, r);
+
+    return simd_cast<__m128i_t, uint64_t>(sse::shuffle_epi8(x, shuf));
+}
+
+template <uint64_t Base>
+void builtin_from_chars_unroll_8_fast(void *ptr, uint32_t in, char_converter_t) {
+    uint64_t x = builtin_from_chars_unroll_8_fast<Base>(in) + 0x3030303030303030ull;
+
+    write_memory<uint64_t>(ptr, x);
+}
+
+template <uint64_t Base>
+void builtin_from_chars_unroll_8_fast(void *ptr, uint32_t in, origin_converter_t) {
+    uint64_t x = builtin_from_chars_unroll_8_fast<Base>(in);
+
+    write_memory<uint64_t>(ptr, x);
+}
+
 #endif
 
 #if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST)
@@ -19479,62 +19546,8 @@ inline constexpr bool __is_fast_convert_iterator_v =
     __is_fast_convert_iterator<Iter, Converter>::value;
 
 template <uint64_t Base>
-class __from_chars_unroll_4_fn_impl {
+class __from_chars_unroll_4_fast_fn_impl_base {
 public:
-    template <typename Iter, typename Converter>
-    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
-        uint64_t value = 0;
-        value = conv.from(*first++);
-        value = value * Base + conv.from(*first++);
-        value = value * Base + conv.from(*first++);
-        return value * Base + conv.from(*first++);
-    }
-};
-
-template <uint64_t Base>
-class __from_chars_unroll_4_fn : public __from_chars_unroll_4_fn_impl<Base> {};
-
-template <uint64_t Base>
-inline constexpr __from_chars_unroll_4_fn<Base> __from_chars_unroll_4{};
-
-template <uint64_t Base>
-class __from_chars_unroll_8_fn_impl {
-public:
-    template <typename Iter, typename Converter>
-    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
-        constexpr uint64_t Base4 = Base * Base * Base * Base;
-        return __from_chars_unroll_4<Base>(first, conv) * Base4 +
-               __from_chars_unroll_4<Base>(first + 4, conv);
-    }
-};
-
-template <uint64_t Base>
-class __from_chars_unroll_8_fn : public __from_chars_unroll_8_fn_impl<Base> {};
-
-template <uint64_t Base>
-inline constexpr __from_chars_unroll_8_fn<Base> __from_chars_unroll_8{};
-
-template <uint64_t Base>
-class __from_chars_unroll_16_fn_impl {
-public:
-    template <typename Iter, typename Converter>
-    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
-        constexpr uint64_t Base4 = Base * Base * Base * Base;
-        constexpr uint64_t Base8 = Base4 * Base4;
-        return __from_chars_unroll_8<Base>(first, conv) * Base8 +
-               __from_chars_unroll_8<Base>(first + 8, conv);
-    }
-};
-
-template <uint64_t Base>
-class __from_chars_unroll_16_fn : public __from_chars_unroll_16_fn_impl<Base> {};
-
-template <uint64_t Base>
-inline constexpr __from_chars_unroll_16_fn<Base> __from_chars_unroll_16{};
-
-template <uint64_t Base>
-class __from_chars_unroll_4_fast_fn_impl {
-protected:
     WJR_CONST WJR_INTRINSIC_INLINE static uint32_t __fast_conv(uint32_t val) {
         constexpr uint32_t Base2 = Base * Base;
 
@@ -19556,51 +19569,9 @@ protected:
     }
 };
 
-template <>
-class __from_chars_unroll_4_fn<2> : __from_chars_unroll_4_fn_impl<2>,
-                                    __from_chars_unroll_4_fast_fn_impl<2> {
-public:
-    template <typename Iter, typename Converter>
-    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
-        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
-            return __fast_conv(first, conv);
-        } else {
-            return __from_chars_unroll_4_fn_impl<2>::operator()(first, conv);
-        }
-    }
-};
-
-template <>
-class __from_chars_unroll_4_fn<8> : __from_chars_unroll_4_fn_impl<8>,
-                                    __from_chars_unroll_4_fast_fn_impl<8> {
-public:
-    template <typename Iter, typename Converter>
-    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
-        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
-            return __fast_conv(first, conv);
-        } else {
-            return __from_chars_unroll_4_fn_impl<8>::operator()(first, conv);
-        }
-    }
-};
-
-template <>
-class __from_chars_unroll_4_fn<10> : __from_chars_unroll_4_fn_impl<10>,
-                                     __from_chars_unroll_4_fast_fn_impl<10> {
-public:
-    template <typename Iter, typename Converter>
-    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
-        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
-            return __fast_conv(first, conv);
-        } else {
-            return __from_chars_unroll_4_fn_impl<10>::operator()(first, conv);
-        }
-    }
-};
-
 template <uint64_t Base>
-class __from_chars_unroll_8_fast_fn_impl {
-protected:
+class __from_chars_unroll_8_fast_fn_impl_base {
+public:
     WJR_CONST WJR_INTRINSIC_INLINE static uint64_t __fast_conv(uint64_t val) {
         constexpr uint64_t Base2 = Base * Base;
         constexpr uint64_t Base4 = Base2 * Base2;
@@ -19633,53 +19604,10 @@ protected:
     }
 };
 
-template <>
-class __from_chars_unroll_8_fn<2> : __from_chars_unroll_8_fn_impl<2>,
-                                    __from_chars_unroll_8_fast_fn_impl<2> {
-public:
-    template <typename Iter, typename Converter>
-    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
-        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
-            return __fast_conv(first, conv);
-        } else {
-            return __from_chars_unroll_8_fn_impl<2>::operator()(first, conv);
-        }
-    }
-};
-
-template <>
-class __from_chars_unroll_8_fn<8> : __from_chars_unroll_8_fn_impl<8>,
-                                    __from_chars_unroll_8_fast_fn_impl<8> {
-public:
-    template <typename Iter, typename Converter>
-    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
-        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
-            return __fast_conv(first, conv);
-        } else {
-            return __from_chars_unroll_8_fn_impl<8>::operator()(first, conv);
-        }
-    }
-};
-
-template <>
-class __from_chars_unroll_8_fn<10> : __from_chars_unroll_8_fn_impl<10>,
-                                     __from_chars_unroll_8_fast_fn_impl<10> {
-public:
-    template <typename Iter, typename Converter>
-    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
-        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
-            return __fast_conv(first, conv);
-        } else {
-            return __from_chars_unroll_8_fn_impl<10>::operator()(first, conv);
-        }
-    }
-};
-
-#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_16_FAST)
-
 template <uint64_t Base>
-class __from_chars_unroll_16_fast_fn_impl {
-protected:
+class __from_chars_unroll_16_fast_fn_impl_base {
+#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_16_FAST)
+public:
     WJR_PURE WJR_INTRINSIC_INLINE static uint64_t __fast_conv(const void *ptr,
                                                               origin_converter_t) {
         return builtin_from_chars_unroll_16_fast<Base>(ptr, origin_converter);
@@ -19689,51 +19617,133 @@ protected:
                                                               char_converter_t) {
         return builtin_from_chars_unroll_16_fast<Base>(ptr, char_converter);
     }
-};
-
-template <>
-class __from_chars_unroll_16_fn<2> : __from_chars_unroll_16_fn_impl<2>,
-                                     __from_chars_unroll_16_fast_fn_impl<2> {
-public:
-    template <typename Iter, typename Converter>
-    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
-        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
-            return __fast_conv(first, conv);
-        } else {
-            return __from_chars_unroll_16_fn_impl<2>::operator()(first, conv);
-        }
-    }
-};
-
-template <>
-class __from_chars_unroll_16_fn<8> : __from_chars_unroll_16_fn_impl<8>,
-                                     __from_chars_unroll_16_fast_fn_impl<8> {
-public:
-    template <typename Iter, typename Converter>
-    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
-        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
-            return __fast_conv(first, conv);
-        } else {
-            return __from_chars_unroll_16_fn_impl<8>::operator()(first, conv);
-        }
-    }
-};
-
-template <>
-class __from_chars_unroll_16_fn<10> : __from_chars_unroll_16_fn_impl<10>,
-                                      __from_chars_unroll_16_fast_fn_impl<10> {
-public:
-    template <typename Iter, typename Converter>
-    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
-        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
-            return __fast_conv(first, conv);
-        } else {
-            return __from_chars_unroll_16_fn_impl<10>::operator()(first, conv);
-        }
-    }
-};
-
 #endif
+};
+
+WJR_REGISTER_HAS_TYPE(__from_chars_fast_fn_fast_conv,
+                      Base::__fast_conv(std::declval<const void *>(),
+                                        std::declval<Converter>()),
+                      Base, Converter);
+
+template <uint64_t Base>
+class __from_chars_unroll_4_fast_fn_impl {};
+
+template <>
+class __from_chars_unroll_4_fast_fn_impl<2>
+    : public __from_chars_unroll_4_fast_fn_impl_base<2> {};
+
+template <>
+class __from_chars_unroll_4_fast_fn_impl<8>
+    : public __from_chars_unroll_4_fast_fn_impl_base<8> {};
+
+template <>
+class __from_chars_unroll_4_fast_fn_impl<10>
+    : public __from_chars_unroll_4_fast_fn_impl_base<10> {};
+
+template <uint64_t Base>
+class __from_chars_unroll_8_fast_fn_impl {};
+
+template <>
+class __from_chars_unroll_8_fast_fn_impl<2>
+    : public __from_chars_unroll_8_fast_fn_impl_base<2> {};
+
+template <>
+class __from_chars_unroll_8_fast_fn_impl<8>
+    : public __from_chars_unroll_8_fast_fn_impl_base<8> {};
+
+template <>
+class __from_chars_unroll_8_fast_fn_impl<10>
+    : public __from_chars_unroll_8_fast_fn_impl_base<10> {};
+
+template <uint64_t Base>
+class __from_chars_unroll_16_fast_fn_impl {};
+
+template <>
+class __from_chars_unroll_16_fast_fn_impl<2>
+    : public __from_chars_unroll_16_fast_fn_impl_base<2> {};
+
+template <>
+class __from_chars_unroll_16_fast_fn_impl<8>
+    : public __from_chars_unroll_16_fast_fn_impl_base<8> {};
+
+template <>
+class __from_chars_unroll_16_fast_fn_impl<10>
+    : public __from_chars_unroll_16_fast_fn_impl_base<10> {};
+
+template <uint64_t Base>
+class __from_chars_unroll_4_fn_impl : public __from_chars_unroll_4_fast_fn_impl<Base> {
+    using Mybase = __from_chars_unroll_4_fast_fn_impl<Base>;
+
+public:
+    template <typename Iter, typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
+                      has___from_chars_fast_fn_fast_conv_v<Mybase, Converter>) {
+            return Mybase::__fast_conv(first, conv);
+        } else {
+            uint64_t value = 0;
+            value = conv.from(*first++);
+            value = value * Base + conv.from(*first++);
+            value = value * Base + conv.from(*first++);
+            return value * Base + conv.from(*first++);
+        }
+    }
+};
+
+template <uint64_t Base>
+class __from_chars_unroll_4_fn : public __from_chars_unroll_4_fn_impl<Base> {};
+
+template <uint64_t Base>
+inline constexpr __from_chars_unroll_4_fn<Base> __from_chars_unroll_4{};
+
+template <uint64_t Base>
+class __from_chars_unroll_8_fn_impl : public __from_chars_unroll_8_fast_fn_impl<Base> {
+    using Mybase = __from_chars_unroll_8_fast_fn_impl<Base>;
+
+public:
+    template <typename Iter, typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
+                      has___from_chars_fast_fn_fast_conv_v<Mybase, Converter>) {
+            return Mybase::__fast_conv(first, conv);
+        } else {
+            constexpr uint64_t Base4 = Base * Base * Base * Base;
+            return __from_chars_unroll_4<Base>(first, conv) * Base4 +
+                   __from_chars_unroll_4<Base>(first + 4, conv);
+        }
+    }
+};
+
+template <uint64_t Base>
+class __from_chars_unroll_8_fn : public __from_chars_unroll_8_fn_impl<Base> {};
+
+template <uint64_t Base>
+inline constexpr __from_chars_unroll_8_fn<Base> __from_chars_unroll_8{};
+
+template <uint64_t Base>
+class __from_chars_unroll_16_fn_impl : public __from_chars_unroll_16_fast_fn_impl<Base> {
+    using Mybase = __from_chars_unroll_16_fast_fn_impl<Base>;
+
+public:
+    template <typename Iter, typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
+                      has___from_chars_fast_fn_fast_conv_v<Mybase, Converter>) {
+            return Mybase::__fast_conv(first, conv);
+        } else {
+            constexpr uint64_t Base4 = Base * Base * Base * Base;
+            constexpr uint64_t Base8 = Base4 * Base4;
+            return __from_chars_unroll_8<Base>(first, conv) * Base8 +
+                   __from_chars_unroll_8<Base>(first + 8, conv);
+        }
+    }
+};
+
+template <uint64_t Base>
+class __from_chars_unroll_16_fn : public __from_chars_unroll_16_fn_impl<Base> {};
+
+template <uint64_t Base>
+inline constexpr __from_chars_unroll_16_fn<Base> __from_chars_unroll_16{};
 
 template <typename Iter, typename Converter = char_converter_t>
 size_t to_chars_2(Iter first, uint64_t x, Converter conv = {}) {

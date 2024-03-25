@@ -1,4 +1,5 @@
 #include <random>
+#include <functional>
 
 #include <benchmark/benchmark.h>
 
