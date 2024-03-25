@@ -1,7 +1,7 @@
 #ifndef WJR_MATH_CMP_HPP__
 #define WJR_MATH_CMP_HPP__
 
-#include <wjr/math/sub-impl.hpp>
+#include <wjr/math/sub.hpp>
 #include <wjr/type_traits.hpp>
 
 #if defined(WJR_X86)

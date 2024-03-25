@@ -4411,83 +4411,22 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T bit_floor(T x) noexcept {
 #ifndef WJR_MATH_CMP_HPP__
 #define WJR_MATH_CMP_HPP__
 
-#ifndef WJR_MATH_SUB_IMPL_HPP__
-#define WJR_MATH_SUB_IMPL_HPP__
+#ifndef WJR_MATH_SUB_HPP__
+#define WJR_MATH_SUB_HPP__
 
 // Already included
+#ifndef WJR_MATH_REPLACE_HPP__
+#define WJR_MATH_REPLACE_HPP__
 
-namespace wjr {
+#ifndef WJR_MATH_FIND_HPP__
+#define WJR_MATH_FIND_HPP__
 
-template <
-    typename T, typename U,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out);
-
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out);
-
-template <
-    typename T, typename U = T,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E U subc_1(T *dst, const T *src0, size_t n,
-                                   type_identity_t<T> src1, U c_in = 0);
-
-template <
-    typename T, typename U = T,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E U subc_n(T *dst, const T *src0, const T *src1, size_t n,
-                                   U c_in = 0);
-
-template <
-    typename T, typename U = T,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n, const T *src1,
-                                   size_t m, U c_in = 0);
-
-template <
-    typename T, typename U = T,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E U subc_sz(T *dst, const T *src0, size_t n, const T *src1,
-                                    size_t m, U c_in = 0);
-
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
-                                             size_t n);
-
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
-                                             const T *src1, size_t m);
-
-template <
-    typename T, typename U,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
-                                             size_t n, U &c_out, type_identity_t<U> cf0,
-                                             type_identity_t<U> cf1);
-
-// preview :
-
-WJR_INTRINSIC_CONSTEXPR_E void __sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                         uint64_t hi0, uint64_t lo1, uint64_t hi1);
-
-WJR_INTRINSIC_CONSTEXPR_E uint64_t __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                              uint64_t c_in);
-
-WJR_INTRINSIC_CONSTEXPR_E uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                                uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                                uint8_t c_in);
-
-} // namespace wjr
-
-#endif // WJR_MATH_SUB_IMPL_HPP__
 // Already included
 
 #if defined(WJR_X86)
-#ifndef WJR_X86_MATH_COMPARE_HPP__
-#define WJR_X86_MATH_COMPARE_HPP__
+#ifndef WJR_X86_MATH_FIND_HPP__
+#define WJR_X86_MATH_FIND_HPP__
 
-// Already included
 #ifndef WJR_SIMD_SIMD_HPP__
 #define WJR_SIMD_SIMD_HPP__
 
@@ -8517,1046 +8456,6 @@ __m256i avx::unpacklo(__m256i a, __m256i b, uint32_t) { return unpacklo_epi32(a,
 namespace wjr {
 
 #if WJR_HAS_SIMD(SSE4_1) && WJR_HAS_SIMD(SIMD)
-#define WJR_HAS_BUILTIN_COMPARE_N WJR_HAS_DEF
-#define WJR_HAS_BUILTIN_REVERSE_COMPARE_N WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_BUILTIN(COMPARE_N)
-
-template <typename T>
-WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size_t n) {
-#define WJR_REGISTER_COMPARE_NOT_N(index)                                                \
-    do {                                                                                 \
-        auto x = sse::loadu((__m128i *)(src0 + (index)));                                \
-        auto y = sse::loadu((__m128i *)(src1 + (index)));                                \
-        auto r = sse::cmpeq_epi64(x, y);                                                 \
-                                                                                         \
-        sse::mask_type mask = ~sse::movemask_epi8(r);                                    \
-        if (WJR_LIKELY(mask != 0)) {                                                     \
-            if (mask == 0xFF00) {                                                        \
-                return src0[(index) + 1] < src1[(index) + 1] ? -1 : 1;                   \
-            }                                                                            \
-            return src0[(index)] < src1[(index)] ? -1 : 1;                               \
-        }                                                                                \
-    } while (0)
-#define WJR_REGISTER_COMPARE_NOT_N_AVX(index)                                            \
-    do {                                                                                 \
-        auto x = avx::loadu((__m256i *)(src0 + (index)));                                \
-        auto y = avx::loadu((__m256i *)(src1 + (index)));                                \
-        auto r = avx::cmpeq_epi64(x, y);                                                 \
-                                                                                         \
-        avx::mask_type mask = ~avx::movemask_epi8(r);                                    \
-        if (WJR_LIKELY(mask != 0)) {                                                     \
-            auto offset = ctz(mask) / 8;                                                 \
-            return src0[(index) + offset] < src1[(index) + offset] ? -1 : 1;             \
-        }                                                                                \
-    } while (0)
-
-    switch (n & 7) {
-    case 1: { // 8
-        WJR_REGISTER_COMPARE_NOT_N(1);
-        WJR_REGISTER_COMPARE_NOT_N(3);
-#if !WJR_HAS_SIMD(AVX2)
-        WJR_REGISTER_COMPARE_NOT_N(5);
-        WJR_REGISTER_COMPARE_NOT_N(7);
-#else
-        WJR_REGISTER_COMPARE_NOT_N_AVX(5);
-#endif
-
-        src0 += 9;
-        src1 += 9;
-        break;
-    }
-    case 2: { // 1
-        if (WJR_LIKELY(src0[1] != src1[1])) {
-            return src0[1] < src1[1] ? -1 : 1;
-        }
-
-        src0 += 2;
-        src1 += 2;
-        break;
-    }
-    case 3: { // 2
-        WJR_REGISTER_COMPARE_NOT_N(1);
-
-        src0 += 3;
-        src1 += 3;
-        break;
-    }
-    case 4: { // 2 + 1
-        if (WJR_LIKELY(src0[1] != src1[1])) {
-            return src0[1] < src1[1] ? -1 : 1;
-        }
-
-        WJR_REGISTER_COMPARE_NOT_N(2);
-
-        src0 += 4;
-        src1 += 4;
-        break;
-    }
-    case 5: { // 2 * 2
-        WJR_REGISTER_COMPARE_NOT_N(1);
-        WJR_REGISTER_COMPARE_NOT_N(3);
-
-        src0 += 5;
-        src1 += 5;
-        break;
-    }
-    case 6: { // 2 * 2 + 1
-        if (WJR_LIKELY(src0[1] != src1[1])) {
-            return src0[1] < src1[1] ? -1 : 1;
-        }
-
-        WJR_REGISTER_COMPARE_NOT_N(2);
-        WJR_REGISTER_COMPARE_NOT_N(4);
-
-        src0 += 6;
-        src1 += 6;
-        break;
-    }
-    case 7: { // 2 * 3
-        WJR_REGISTER_COMPARE_NOT_N(1);
-#if !WJR_HAS_SIMD(AVX2)
-        WJR_REGISTER_COMPARE_NOT_N(3);
-        WJR_REGISTER_COMPARE_NOT_N(5);
-#else
-        WJR_REGISTER_COMPARE_NOT_N_AVX(3);
-#endif
-
-        src0 += 7;
-        src1 += 7;
-        break;
-    }
-    case 0: { // 2 * 3 + 1
-        if (WJR_LIKELY(src0[1] != src1[1])) {
-            return src0[1] < src1[1] ? -1 : 1;
-        }
-
-        WJR_REGISTER_COMPARE_NOT_N(2);
-#if !WJR_HAS_SIMD(AVX2)
-        WJR_REGISTER_COMPARE_NOT_N(4);
-        WJR_REGISTER_COMPARE_NOT_N(6);
-#else
-        WJR_REGISTER_COMPARE_NOT_N_AVX(4);
-#endif
-
-        src0 += 8;
-        src1 += 8;
-        break;
-    }
-    }
-
-    size_t idx = (n - 2) / 8;
-
-    if (WJR_UNLIKELY(idx == 0)) {
-        return 0;
-    }
-
-#if !WJR_HAS_SIMD(AVX2)
-
-    do {
-        auto x0 = sse::loadu((__m128i *)(src0));
-        auto x1 = sse::loadu((__m128i *)(src0 + 2));
-        auto x2 = sse::loadu((__m128i *)(src0 + 4));
-        auto x3 = sse::loadu((__m128i *)(src0 + 6));
-        auto y0 = sse::loadu((__m128i *)(src1));
-        auto y1 = sse::loadu((__m128i *)(src1 + 2));
-        auto y2 = sse::loadu((__m128i *)(src1 + 4));
-        auto y3 = sse::loadu((__m128i *)(src1 + 6));
-
-        auto r0 = sse::cmpeq_epi64(x0, y0);
-        auto r1 = sse::cmpeq_epi64(x1, y1);
-        auto r2 = sse::cmpeq_epi64(x2, y2);
-        auto z0 = sse::And(r0, r2);
-        auto r3 = sse::cmpeq_epi64(x3, y3);
-        auto z1 = sse::And(r1, r3);
-        z0 = sse::And(z0, z1);
-
-        if (WJR_UNLIKELY(!sse::test_all_ones(z0))) {
-            sse::mask_type mask = ~sse::movemask_epi8(r0);
-            if (WJR_UNLIKELY(mask != 0)) {
-                if (mask == 0xFF00) {
-                    return src0[1] < src1[1] ? -1 : 1;
-                }
-                return src0[0] < src1[0] ? -1 : 1;
-            }
-
-            mask = ~sse::movemask_epi8(r1);
-            if (WJR_UNLIKELY(mask != 0)) {
-                if (mask == 0xFF00) {
-                    return src0[3] < src1[3] ? -1 : 1;
-                }
-                return src0[2] < src1[2] ? -1 : 1;
-            }
-
-            mask = ~sse::movemask_epi8(r2);
-            if (WJR_UNLIKELY(mask != 0)) {
-                if (mask == 0xFF00) {
-                    return src0[5] < src1[5] ? -1 : 1;
-                }
-                return src0[4] < src1[4] ? -1 : 1;
-            }
-
-            mask = ~sse::movemask_epi8(r3);
-            if (mask == 0xFF00) {
-                return src0[7] < src1[7] ? -1 : 1;
-            }
-            return src0[6] < src1[6] ? -1 : 1;
-        }
-
-        src0 += 8;
-        src1 += 8;
-        --idx;
-    } while (WJR_LIKELY(idx != 0));
-
-    return 0;
-#else
-
-    if (idx & 1) {
-        WJR_REGISTER_COMPARE_NOT_N_AVX(0);
-        WJR_REGISTER_COMPARE_NOT_N_AVX(4);
-
-        src0 += 8;
-        src1 += 8;
-
-        if (WJR_UNLIKELY(idx == 1)) {
-            return 0;
-        }
-    }
-
-    idx /= 2;
-
-    do {
-        auto x0 = avx::loadu((__m256i *)(src0));
-        auto x1 = avx::loadu((__m256i *)(src0 + 4));
-        auto x2 = avx::loadu((__m256i *)(src0 + 8));
-        auto x3 = avx::loadu((__m256i *)(src0 + 12));
-        auto y0 = avx::loadu((__m256i *)(src1));
-        auto y1 = avx::loadu((__m256i *)(src1 + 4));
-        auto y2 = avx::loadu((__m256i *)(src1 + 8));
-        auto y3 = avx::loadu((__m256i *)(src1 + 12));
-
-        auto r0 = avx::cmpeq_epi64(x0, y0);
-        auto r1 = avx::cmpeq_epi64(x1, y1);
-        auto r2 = avx::cmpeq_epi64(x2, y2);
-        auto z0 = avx::And(r0, r2);
-        auto r3 = avx::cmpeq_epi64(x3, y3);
-        auto z1 = avx::And(r1, r3);
-        z0 = avx::And(z0, z1);
-
-        if (WJR_UNLIKELY(!avx::test_all_ones(z0))) {
-            avx::mask_type mask = ~avx::movemask_epi8(r0);
-            if (WJR_UNLIKELY(mask != 0)) {
-                auto offset = ctz(mask) / 8;
-                return src0[offset] < src1[offset] ? -1 : 1;
-            }
-
-            mask = ~avx::movemask_epi8(r1);
-            if (WJR_UNLIKELY(mask != 0)) {
-                auto offset = ctz(mask) / 8;
-                return src0[offset + 4] < src1[offset + 4] ? -1 : 1;
-            }
-
-            mask = ~avx::movemask_epi8(r2);
-            if (WJR_UNLIKELY(mask != 0)) {
-                auto offset = ctz(mask) / 8;
-                return src0[offset + 8] < src1[offset + 8] ? -1 : 1;
-            }
-
-            mask = ~avx::movemask_epi8(r3);
-            auto offset = ctz(mask) / 8;
-            return src0[offset + 12] < src1[offset + 12] ? -1 : 1;
-        }
-
-        src0 += 16;
-        src1 += 16;
-        --idx;
-    } while (WJR_LIKELY(idx != 0));
-
-    return 0;
-#endif
-
-#undef WJR_REGISTER_COMPARE_NOT_N_AVX
-#undef WJR_REGISTER_COMPARE_NOT_N
-}
-
-extern template WJR_COLD int
-large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1, size_t n);
-
-template <typename T>
-WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1, size_t n) {
-    if (WJR_UNLIKELY(n == 0)) {
-        return 0;
-    }
-
-    // Quickly check the first one. There is a high probability that the comparison will
-    // end in the first place
-    if (WJR_LIKELY(src0[0] != src1[0])) {
-        return src0[0] < src1[0] ? -1 : 1;
-    }
-
-    if (WJR_UNLIKELY(n < 4)) {
-
-        do {
-            if (n == 1) {
-                break;
-            }
-
-            if (WJR_LIKELY(src0[1] != src1[1])) {
-                return src0[1] < src1[1] ? -1 : 1;
-            }
-
-            if (n == 2) {
-                break;
-            }
-
-            if (WJR_LIKELY(src0[2] != src1[2])) {
-                return src0[2] < src1[2] ? -1 : 1;
-            }
-
-        } while (0);
-
-        return 0;
-    }
-
-    return large_builtin_compare_n(src0, src1, n);
-}
-
-#endif
-
-#if WJR_HAS_BUILTIN(REVERSE_COMPARE_N)
-
-template <typename T>
-WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1, size_t n) {
-#define WJR_REGISTER_REVERSE_COMPARE_NOT_N(index)                                        \
-    do {                                                                                 \
-        auto x = sse::loadu((__m128i *)(src0 - 2 - (index)));                            \
-        auto y = sse::loadu((__m128i *)(src1 - 2 - (index)));                            \
-        auto r = sse::cmpeq_epi64(x, y);                                                 \
-                                                                                         \
-        sse::mask_type mask = ~sse::movemask_epi8(r);                                    \
-        if (WJR_LIKELY(mask != 0)) {                                                     \
-            if (mask == 0x00FF) {                                                        \
-                return src0[-2 - (index)] < src1[-2 - (index)] ? -1 : 1;                 \
-            }                                                                            \
-            return src0[-1 - (index)] < src1[-1 - (index)] ? -1 : 1;                     \
-        }                                                                                \
-    } while (0)
-#define WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(index)                                    \
-    do {                                                                                 \
-        auto x = avx::loadu((__m256i *)(src0 - 4 - (index)));                            \
-        auto y = avx::loadu((__m256i *)(src1 - 4 - (index)));                            \
-        auto r = avx::cmpeq_epi64(x, y);                                                 \
-                                                                                         \
-        auto mask = ~avx::movemask_epi8(r);                                              \
-        if (WJR_LIKELY(mask != 0)) {                                                     \
-            auto offset = clz(mask) / 8;                                                 \
-            return src0[-1 - (index)-offset] < src1[-1 - (index)-offset] ? -1 : 1;       \
-        }                                                                                \
-    } while (0)
-
-    src0 += n;
-    src1 += n;
-
-    switch (n & 7) {
-    case 1: { // 8
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(1);
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(3);
-#if !WJR_HAS_SIMD(AVX2)
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(5);
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(7);
-#else
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(5);
-#endif
-
-        src0 -= 9;
-        src1 -= 9;
-        break;
-    }
-    case 2: { // 1
-        if (WJR_LIKELY(src0[-2] != src1[-2])) {
-            return src0[-2] < src1[-2] ? -1 : 1;
-        }
-
-        src0 -= 2;
-        src1 -= 2;
-        break;
-    }
-    case 3: { // 2
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(1);
-
-        src0 -= 3;
-        src1 -= 3;
-        break;
-    }
-    case 4: { // 2 + 1
-        if (WJR_LIKELY(src0[-2] != src1[-2])) {
-            return src0[-2] < src1[-2] ? -1 : 1;
-        }
-
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(2);
-
-        src0 -= 4;
-        src1 -= 4;
-        break;
-    }
-    case 5: { // 2 * 2
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(1);
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(3);
-
-        src0 -= 5;
-        src1 -= 5;
-        break;
-    }
-    case 6: { // 2 * 2 + 1
-        if (WJR_LIKELY(src0[-2] != src1[-2])) {
-            return src0[-2] < src1[-2] ? -1 : 1;
-        }
-
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(2);
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(4);
-
-        src0 -= 6;
-        src1 -= 6;
-        break;
-    }
-    case 7: { // 2 * 3
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(1);
-#if !WJR_HAS_SIMD(AVX2)
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(3);
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(5);
-#else
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(3);
-#endif
-
-        src0 -= 7;
-        src1 -= 7;
-        break;
-    }
-    case 0: { // 2 * 3 + 1
-        if (WJR_LIKELY(src0[-2] != src1[-2])) {
-            return src0[-2] < src1[-2] ? -1 : 1;
-        }
-
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(2);
-#if !WJR_HAS_SIMD(AVX2)
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(4);
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(6);
-#else
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(4);
-#endif
-
-        src0 -= 8;
-        src1 -= 8;
-        break;
-    }
-    }
-
-    size_t idx = (n - 2) / 8;
-
-    if (WJR_UNLIKELY(idx == 0)) {
-        return 0;
-    }
-
-#if !WJR_HAS_SIMD(AVX2)
-
-    do {
-        auto x0 = sse::loadu((__m128i *)(src0 - 8));
-        auto x1 = sse::loadu((__m128i *)(src0 - 6));
-        auto x2 = sse::loadu((__m128i *)(src0 - 4));
-        auto x3 = sse::loadu((__m128i *)(src0 - 2));
-        auto y0 = sse::loadu((__m128i *)(src1 - 8));
-        auto y1 = sse::loadu((__m128i *)(src1 - 6));
-        auto y2 = sse::loadu((__m128i *)(src1 - 4));
-        auto y3 = sse::loadu((__m128i *)(src1 - 2));
-
-        auto r0 = sse::cmpeq_epi64(x0, y0);
-        auto r1 = sse::cmpeq_epi64(x1, y1);
-        auto r2 = sse::cmpeq_epi64(x2, y2);
-        auto z0 = sse::And(r0, r2);
-        auto r3 = sse::cmpeq_epi64(x3, y3);
-        auto z1 = sse::And(r1, r3);
-        z0 = sse::And(z0, z1);
-
-        if (WJR_UNLIKELY(!sse::test_all_ones(z0))) {
-            sse::mask_type mask = ~sse::movemask_epi8(r3);
-            if (WJR_UNLIKELY(mask != 0)) {
-                if (mask == 0x00FF) {
-                    return src0[-2] < src1[-2] ? -1 : 1;
-                }
-                return src0[-1] < src1[-1] ? -1 : 1;
-            }
-
-            mask = ~sse::movemask_epi8(r2);
-            if (WJR_UNLIKELY(mask != 0)) {
-                if (mask == 0x00FF) {
-                    return src0[-4] < src1[-4] ? -1 : 1;
-                }
-                return src0[-3] < src1[-3] ? -1 : 1;
-            }
-
-            mask = ~sse::movemask_epi8(r1);
-            if (WJR_UNLIKELY(mask != 0)) {
-                if (mask == 0x00FF) {
-                    return src0[-6] < src1[-6] ? -1 : 1;
-                }
-                return src0[-5] < src1[-5] ? -1 : 1;
-            }
-
-            mask = ~sse::movemask_epi8(r0);
-            if (mask == 0x00FF) {
-                return src0[-8] < src1[-8] ? -1 : 1;
-            }
-            return src0[-7] < src1[-7] ? -1 : 1;
-        }
-
-        src0 -= 8;
-        src1 -= 8;
-        --idx;
-    } while (WJR_LIKELY(idx != 0));
-
-    return 0;
-#else
-
-    if (idx & 1) {
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(0);
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(4);
-
-        src0 -= 8;
-        src1 -= 8;
-
-        if (WJR_UNLIKELY(idx == 1)) {
-            return 0;
-        }
-    }
-
-    idx /= 2;
-
-    do {
-        auto x0 = avx::loadu((__m256i *)(src0 - 16));
-        auto x1 = avx::loadu((__m256i *)(src0 - 12));
-        auto x2 = avx::loadu((__m256i *)(src0 - 8));
-        auto x3 = avx::loadu((__m256i *)(src0 - 4));
-        auto y0 = avx::loadu((__m256i *)(src1 - 16));
-        auto y1 = avx::loadu((__m256i *)(src1 - 12));
-        auto y2 = avx::loadu((__m256i *)(src1 - 8));
-        auto y3 = avx::loadu((__m256i *)(src1 - 4));
-
-        auto r0 = avx::cmpeq_epi64(x0, y0);
-        auto r1 = avx::cmpeq_epi64(x1, y1);
-        auto r2 = avx::cmpeq_epi64(x2, y2);
-        auto z0 = avx::And(r0, r2);
-        auto r3 = avx::cmpeq_epi64(x3, y3);
-        auto z1 = avx::And(r1, r3);
-        z0 = avx::And(z0, z1);
-
-        if (WJR_UNLIKELY(!avx::test_all_ones(z0))) {
-            avx::mask_type mask = ~avx::movemask_epi8(r3);
-            if (WJR_UNLIKELY(mask != 0)) {
-                auto offset = clz(mask) / 8;
-                return src0[-1 - offset] < src1[-1 - offset] ? -1 : 1;
-            }
-
-            mask = ~avx::movemask_epi8(r2);
-            if (WJR_UNLIKELY(mask != 0)) {
-                auto offset = clz(mask) / 8;
-                return src0[-5 - offset] < src1[-5 - offset] ? -1 : 1;
-            }
-
-            mask = ~avx::movemask_epi8(r1);
-            if (WJR_UNLIKELY(mask != 0)) {
-                auto offset = clz(mask) / 8;
-                return src0[-9 - offset] < src1[-9 - offset] ? -1 : 1;
-            }
-
-            mask = ~avx::movemask_epi8(r0);
-            auto offset = clz(mask) / 8;
-            return src0[-13 - offset] < src1[-13 - offset] ? -1 : 1;
-        }
-
-        src0 -= 16;
-        src1 -= 16;
-        --idx;
-    } while (WJR_LIKELY(idx != 0));
-
-    return 0;
-#endif
-
-#undef WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX
-#undef WJR_REGISTER_REVERSE_COMPARE_NOT_N
-}
-
-extern template WJR_COLD int
-large_builtin_reverse_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
-                                          size_t n);
-
-template <typename T>
-WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
-                                                   size_t n) {
-    if (WJR_UNLIKELY(n == 0)) {
-        return 0;
-    }
-
-    if (WJR_LIKELY(src0[n - 1] != src1[n - 1])) {
-        return src0[n - 1] < src1[n - 1] ? -1 : 1;
-    }
-
-    if (WJR_UNLIKELY(n < 4)) {
-        do {
-            if (n == 1) {
-                break;
-            }
-
-            if (WJR_LIKELY(src0[n - 2] != src1[n - 2])) {
-                return src0[n - 2] < src1[n - 2] ? -1 : 1;
-            }
-
-            if (n == 2) {
-                break;
-            }
-
-            if (WJR_LIKELY(src0[n - 3] != src1[n - 3])) {
-                return src0[n - 3] < src1[n - 3] ? -1 : 1;
-            }
-
-        } while (0);
-
-        return 0;
-    }
-
-    return large_builtin_reverse_compare_n(src0, src1, n);
-}
-
-#endif
-
-// __uint128_t has certain bugs in GCC 13.2, resulting in low performance
-#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
-#define WJR_HAS_BUILTIN___ASM_LESS_128 WJR_HAS_DEF
-#define WJR_HAS_BUILTIN___ASM_LESS_EQUAL_128 WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_BUILTIN(__ASM_LESS_128)
-
-WJR_INTRINSIC_INLINE bool __asm_less_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
-                                         uint64_t hi1) {
-    bool ret;
-    asm("cmp{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(b)
-        : WJR_ASM_CCOUT(b)(ret), [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
-        : [lo1] "r"(lo1), [hi1] "r"(hi1)
-        : "cc");
-    return ret;
-}
-
-#endif
-
-#if WJR_HAS_BUILTIN(__ASM_LESS_EQUAL_128)
-
-WJR_INTRINSIC_INLINE bool __asm_less_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
-                                               uint64_t hi1) {
-    bool ret;
-    asm("cmp{q %[lo0], %[lo1]| %[lo1], %[lo0]}\n\t"
-        "sbb{q %[hi0], %[hi1]| %[hi1], %[hi0]}\n\t" WJR_ASM_CCSET(ae)
-        : WJR_ASM_CCOUT(ae)(ret), [lo1] "+&r"(lo1), [hi1] "+r"(hi1)
-        : [lo0] "r"(lo0), [hi0] "r"(hi0)
-        : "cc");
-    return ret;
-}
-
-#endif
-
-} // namespace wjr
-
-#endif // WJR_X86_MATH_COMPARE_HPP__
-#endif
-
-namespace wjr {
-
-template <typename T>
-WJR_INTRINSIC_CONSTEXPR int fallback_compare_n(const T *src0, const T *src1, size_t n) {
-    for (size_t idx = 0; idx < n; ++idx) {
-        if (src0[idx] != src1[idx]) {
-            return src0[idx] < src1[idx] ? -1 : 1;
-        }
-    }
-
-    return 0;
-}
-
-template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR_E int compare_n(const T *src0, const T *src1, size_t n) {
-    if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
-        return 0;
-    }
-
-#if WJR_HAS_BUILTIN(COMPARE_N)
-    if constexpr (sizeof(T) == 8) {
-        if (is_constant_evaluated()) {
-            return fallback_compare_n(src0, src1, n);
-        }
-
-        return builtin_compare_n(src0, src1, n);
-    } else {
-        return fallback_compare_n(src0, src1, n);
-    }
-#else
-    return fallback_compare_n(src0, src1, n);
-#endif
-}
-
-template <typename T>
-WJR_INTRINSIC_CONSTEXPR int fallback_reverse_compare_n(const T *src0, const T *src1,
-                                                       size_t n) {
-    src0 += n;
-    src1 += n;
-
-    for (size_t idx = 0; idx < n; ++idx) {
-        if (src0[-1 - idx] != src1[-1 - idx]) {
-            return src0[-1 - idx] < src1[-1 - idx] ? -1 : 1;
-        }
-    }
-
-    return 0;
-}
-
-template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR_E int reverse_compare_n(const T *src0, const T *src1,
-                                                         size_t n) {
-    if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
-        return 0;
-    }
-
-#if WJR_HAS_BUILTIN(COMPARE_N)
-    if constexpr (sizeof(T) == 8) {
-        if (is_constant_evaluated()) {
-            return fallback_reverse_compare_n(src0, src1, n);
-        }
-
-        return builtin_reverse_compare_n(src0, src1, n);
-    } else {
-        return fallback_reverse_compare_n(src0, src1, n);
-    }
-#else
-    return fallback_reverse_compare_n(src0, src1, n);
-#endif
-}
-
-#if WJR_HAS_FEATURE(FAST_INT128_COMPARE)
-#define WJR_HAS_BUILTIN___BUILTIN_LESS_128 WJR_HAS_DEF
-#define WJR_HAS_BUILTIN___BUILTIN_LESS_EQUAL_128 WJR_HAS_DEF
-#endif
-
-WJR_INTRINSIC_CONSTEXPR_E bool __fallback_less_128(uint64_t lo0, uint64_t hi0,
-                                                   uint64_t lo1, uint64_t hi1) {
-    uint8_t f = lo0 < lo1;
-    (void)subc_cc(hi0, hi1, f, f);
-    return f;
-}
-
-#if WJR_HAS_BUILTIN(__BUILTIN_LESS_128)
-
-WJR_INTRINSIC_INLINE bool __builtin_less_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
-                                             uint64_t hi1) {
-    const auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
-    const auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
-
-    return x0 < x1;
-}
-
-#endif
-
-// return <hi0, lo0> < <hi1, lo1>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool __less_128(uint64_t lo0, uint64_t hi0,
-                                                    uint64_t lo1, uint64_t hi1) {
-#if WJR_HAS_BUILTIN(__BUILTIN_LESS_128) || WJR_HAS_BUILTIN(__ASM_LESS_128)
-    if (is_constant_evaluated()) {
-        return __fallback_less_128(lo0, hi0, lo1, hi1);
-    }
-
-    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(__BUILTIN_LESS_128), __builtin_less_128,
-                          __asm_less_128)(lo0, hi0, lo1, hi1);
-#else
-    return __fallback_less_128(lo0, hi0, lo1, hi1);
-#endif
-}
-
-WJR_INTRINSIC_CONSTEXPR_E bool __fallback_less_equal_128(uint64_t lo0, uint64_t hi0,
-                                                         uint64_t lo1, uint64_t hi1) {
-    return !__less_128(lo1, hi1, lo0, hi0);
-}
-
-#if WJR_HAS_BUILTIN(__BUILTIN_LESS_EQUAL_128)
-
-WJR_INTRINSIC_INLINE bool __builtin_less_equal_128(uint64_t lo0, uint64_t hi0,
-                                                   uint64_t lo1, uint64_t hi1) {
-    const auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
-    const auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
-
-    return x0 <= x1;
-}
-
-#endif
-
-// return <hi0, lo0> < <hi1, lo1>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool __less_equal_128(uint64_t lo0, uint64_t hi0,
-                                                          uint64_t lo1, uint64_t hi1) {
-#if WJR_HAS_BUILTIN(__BUILTIN_LESS_EQUAL_128) || WJR_HAS_BUILTIN(__ASM_LESS_EQUAL_128)
-    if (is_constant_evaluated()) {
-        return __fallback_less_equal_128(lo0, hi0, lo1, hi1);
-    }
-
-    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(__BUILTIN_LESS_EQUAL_128),
-                          __builtin_less_equal_128,
-                          __asm_less_equal_128)(lo0, hi0, lo1, hi1);
-#else
-    return __fallback_less_equal_128(lo0, hi0, lo1, hi1);
-#endif
-}
-
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool __greater_128(uint64_t lo0, uint64_t hi0,
-                                                       uint64_t lo1, uint64_t hi1) {
-    return __less_128(lo1, hi1, lo0, hi0);
-}
-
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool __greater_equal_128(uint64_t lo0, uint64_t hi0,
-                                                             uint64_t lo1, uint64_t hi1) {
-    return __less_equal_128(lo1, hi1, lo0, hi0);
-}
-
-} // namespace wjr
-
-#endif // WJR_MATH_CMP_HPP__
-#ifndef WJR_MATH_DIV_IMPL_HPP__
-#define WJR_MATH_DIV_IMPL_HPP__
-
-#include <utility>
-
-// Already included
-
-namespace wjr {
-
-template <typename T>
-class div1by1_divider;
-
-template <typename T>
-class div2by1_divider;
-
-template <typename T>
-class div3by2_divider;
-
-template <typename T>
-class divexact1_divider;
-
-inline uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
-                               const div2by1_divider<uint64_t> &divider);
-
-inline uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi, uint64_t div);
-
-inline std::pair<uint64_t, uint64_t>
-div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
-                const div2by1_divider<uint64_t> &divider);
-
-inline std::pair<uint64_t, uint64_t> div128by64to128(uint64_t &rem, uint64_t lo,
-                                                     uint64_t hi, uint64_t div);
-
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
-                                        const div2by1_divider<T> &div);
-
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
-                                        type_identity_t<T> div);
-
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
-                                        const div3by2_divider<T> &div);
-
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
-                                        const T *div);
-
-template <typename T>
-void div_qr_s(T *dst, T *rem, const T *src, size_t n, const T *div, size_t m);
-
-template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
-WJR_CONSTEXPR_E T divexact_dbm1c(T *dst, const T *src, size_t n, T bd, T h);
-
-template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
-WJR_CONSTEXPR_E void divexact_by3(T *dst, const T *src, size_t n);
-
-template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
-WJR_CONSTEXPR_E void divexact_by5(T *dst, const T *src, size_t n);
-
-template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
-WJR_CONSTEXPR_E void divexact_by15(T *dst, const T *src, size_t n);
-
-template <typename T, T c, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
-WJR_CONSTEXPR_E void divexact_byc(T *dst, const T *src, size_t n,
-                                  std::integral_constant<T, c>);
-
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
-                                          const divexact1_divider<T> &div);
-
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
-                                          type_identity_t<T> div);
-
-} // namespace wjr
-
-#endif // WJR_MATH_DIV_IMPL_HPP__
-#ifndef WJR_MATH_DIVIDER_HPP__
-#define WJR_MATH_DIVIDER_HPP__
-
-#ifndef WJR_MATH_MUL_HPP__
-#define WJR_MATH_MUL_HPP__
-
-/**
- * @todo optimize temporary memory usage of mul_s, mul_n, sqr
- * 
- */
-
-#ifndef WJR_MATH_BIGNUM_CONFIG_HPP__
-#define WJR_MATH_BIGNUM_CONFIG_HPP__
-
-#ifndef WJR_TOOM22_MUL_THRESHOLD
-#define WJR_TOOM22_MUL_THRESHOLD 26
-#endif
-
-#ifndef WJR_TOOM33_MUL_THRESHOLD
-#define WJR_TOOM33_MUL_THRESHOLD 72
-#endif
-
-#ifndef WJR_TOOM44_MUL_THRESHOLD
-#define WJR_TOOM44_MUL_THRESHOLD 208
-#endif
-
-#ifndef WJR_TOOM32_TO_TOOM43_MUL_THRESHOLD
-#define WJR_TOOM32_TO_TOOM43_MUL_THRESHOLD 73
-#endif
-
-#ifndef WJR_TOOM32_TO_TOOM53_MUL_THRESHOLD
-#define WJR_TOOM32_TO_TOOM53_MUL_THRESHOLD 153
-#endif
-
-#ifndef WJR_TOOM42_TO_TOOM53_MUL_THRESHOLD
-#define WJR_TOOM42_TO_TOOM53_MUL_THRESHOLD 137
-#endif
-
-#ifndef WJR_TOOM2_SQR_THRESHOLD
-#define WJR_TOOM2_SQR_THRESHOLD 32
-#endif
-
-#ifndef WJR_TOOM3_SQR_THRESHOLD
-#define WJR_TOOM3_SQR_THRESHOLD 117
-#endif
-
-#ifndef WJR_TOOM4_SQR_THRESHOLD
-#define WJR_TOOM4_SQR_THRESHOLD 336
-#endif
-
-#ifndef WJR_DC_DIV_QR_THRESHOLD
-#define WJR_DC_DIV_QR_THRESHOLD (WJR_TOOM22_MUL_THRESHOLD * 2)
-#endif // WJR_DC_DIV_QR_THRESHOLD
-
-#ifndef WJR_DC_BIGNUM_TO_CHARS_THRESHOLD
-#define WJR_DC_BIGNUM_TO_CHARS_THRESHOLD 20
-#endif
-
-#ifndef WJR_DC_BIGNUM_TO_CHARS_PRECOMPUTE_THRESHOLD
-#define WJR_DC_BIGNUM_TO_CHARS_PRECOMPUTE_THRESHOLD 20
-#endif
-
-#ifndef WJR_DC_BIGNUM_FROM_CHARS_THRESHOLD
-#define WJR_DC_BIGNUM_FROM_CHARS_THRESHOLD 1670
-#endif
-
-#ifndef WJR_DC_BIGNUM_FROM_CHARS_PRECOMPUTE_THRESHOLD
-#define WJR_DC_BIGNUM_FROM_CHARS_PRECOMPUTE_THRESHOLD 3105
-#endif
-
-#endif // WJR_MATH_BIGNUM_CONFIG_HPP__
-// Already included
-
-#ifndef WJR_MATH_ADD_HPP__
-#define WJR_MATH_ADD_HPP__
-
-// Already included
-#ifndef WJR_MATH_ADD_IMPL_HPP__
-#define WJR_MATH_ADD_IMPL_HPP__
-
-// Already included
-
-namespace wjr {
-
-template <
-    typename T, typename U,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out);
-
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out);
-
-template <
-    typename T, typename U = T,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E U addc_1(T *dst, const T *src0, size_t n,
-                                   type_identity_t<T> src1, U c_in = 0);
-
-template <
-    typename T, typename U = T,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E U addc_n(T *dst, const T *src0, const T *src1, size_t n,
-                                   U c_in = 0);
-
-template <
-    typename T, typename U = T,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E U addc_s(T *dst, const T *src0, size_t n, const T *src1,
-                                   size_t m, U c_in = 0);
-
-// m can be zero
-template <
-    typename T, typename U = T,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E U addc_sz(T *dst, const T *src0, size_t n, const T *src1,
-                                    size_t m, U c_in = 0);
-
-WJR_INTRINSIC_CONSTEXPR_E void __add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                         uint64_t hi0, uint64_t lo1, uint64_t hi1);
-
-WJR_INTRINSIC_CONSTEXPR_E uint64_t __addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                              uint64_t c_in);
-
-WJR_INTRINSIC_CONSTEXPR_E uint8_t __addc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                                uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                                uint8_t c_in);
-
-} // namespace wjr
-
-#endif // WJR_MATH_ADD_IMPL_HPP__
-#ifndef WJR_MATH_REPLACE_HPP__
-#define WJR_MATH_REPLACE_HPP__
-
-#ifndef WJR_MATH_FIND_HPP__
-#define WJR_MATH_FIND_HPP__
-
-// Already included
-
-#if defined(WJR_X86)
-#ifndef WJR_X86_MATH_FIND_HPP__
-#define WJR_X86_MATH_FIND_HPP__
-
-// Already included
-
-#ifndef WJR_X86
-#error "x86 required"
-#endif
-
-namespace wjr {
-
-#if WJR_HAS_SIMD(SSE4_1) && WJR_HAS_SIMD(SIMD)
 #define WJR_HAS_BUILTIN_FIND_N WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_REVERSE_FIND_N WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_FIND_NOT_N WJR_HAS_DEF
@@ -10827,6 +9726,2035 @@ WJR_INTRINSIC_CONSTEXPR_E size_t reverse_replace_find_not(T *dst, const T *src, 
 } // namespace wjr
 
 #endif // WJR_MATH_REPLACE_HPP__
+#ifndef WJR_MATH_SUB_IMPL_HPP__
+#define WJR_MATH_SUB_IMPL_HPP__
+
+// Already included
+
+namespace wjr {
+
+template <
+    typename T, typename U,
+    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out);
+
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out);
+
+template <
+    typename T, typename U = T,
+    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E U subc_1(T *dst, const T *src0, size_t n,
+                                   type_identity_t<T> src1, U c_in = 0);
+
+template <
+    typename T, typename U = T,
+    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E U subc_n(T *dst, const T *src0, const T *src1, size_t n,
+                                   U c_in = 0);
+
+template <
+    typename T, typename U = T,
+    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n, const T *src1,
+                                   size_t m, U c_in = 0);
+
+template <
+    typename T, typename U = T,
+    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E U subc_sz(T *dst, const T *src0, size_t n, const T *src1,
+                                    size_t m, U c_in = 0);
+
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
+                                             size_t n);
+
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
+                                             const T *src1, size_t m);
+
+template <
+    typename T, typename U,
+    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
+                                             size_t n, U &c_out, type_identity_t<U> cf0,
+                                             type_identity_t<U> cf1);
+
+// preview :
+
+WJR_INTRINSIC_CONSTEXPR_E void __sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                         uint64_t hi0, uint64_t lo1, uint64_t hi1);
+
+WJR_INTRINSIC_CONSTEXPR_E uint64_t __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                              uint64_t c_in);
+
+WJR_INTRINSIC_CONSTEXPR_E uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                                uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                                uint8_t c_in);
+
+} // namespace wjr
+
+#endif // WJR_MATH_SUB_IMPL_HPP__
+
+#if defined(WJR_X86)
+#ifndef WJR_X86_SUB_HPP__
+#define WJR_X86_SUB_HPP__
+
+// Already included
+
+#ifndef WJR_X86
+#error "x86 required"
+#endif
+
+namespace wjr {
+
+#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
+#define WJR_HAS_BUILTIN_ASM_SUBC WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_ASM_SUBC_N WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___ASM_SUB_128 WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___ASM_SUBC_128 WJR_HAS_DEF
+
+#if WJR_HAS_FEATURE(INLINE_ASM_CCCOND)
+#define WJR_HAS_BUILTIN_ASM_SUBC_CC WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___ASM_SUBC_CC_128 WJR_HAS_DEF
+#endif
+
+#endif
+
+#if WJR_HAS_BUILTIN(ASM_SUBC)
+
+template <typename U>
+WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in, U &c_out) {
+    if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
+        if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
+            asm("stc\n\t"
+                "sbb{q %2, %0| %0, %2}\n\t"
+                "setb %b1"
+                : "=r"(a), "+r"(c_in)
+                : "ri"(b), "0"(a)
+                : "cc");
+        } else {
+            asm("stc\n\t"
+                "sbb{q %2, %0| %0, %2}\n\t"
+                "setb %b1"
+                : "=r"(a), "+r"(c_in)
+                : "r"(b), "0"(a)
+                : "cc");
+        }
+        c_out = c_in;
+        return a;
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
+        asm("add{b $255, %b1| %b1, 255}\n\t"
+            "sbb{q %2, %0| %0, %2}\n\t"
+            "setb %b1"
+            : "=r"(a), "+&r"(c_in)
+            : "ri"(b), "0"(a)
+            : "cc");
+    } else {
+        asm("add{b $255, %b1| %b1, 255}\n\t"
+            "sbb{q %2, %0| %0, %2}\n\t"
+            "setb %b1"
+            : "=r"(a), "+&r"(c_in)
+            : "r"(b), "0"(a)
+            : "cc");
+    }
+    c_out = c_in;
+    return a;
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(ASM_SUBC_CC)
+
+WJR_INTRINSIC_INLINE uint64_t asm_subc_cc(uint64_t a, uint64_t b, uint8_t c_in,
+                                          uint8_t &c_out) {
+    if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
+        if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
+            asm("stc\n\t"
+                "sbb{q %2, %0| %0, %2}\n\t" WJR_ASM_CCSET(c)
+                : "=r"(a), WJR_ASM_CCOUT(c)(c_out)
+                : "ri"(b), "0"(a)
+                : "cc");
+        } else {
+            asm("stc\n\t"
+                "sbb{q %2, %0| %0, %2}\n\t" WJR_ASM_CCSET(c)
+                : "=r"(a), WJR_ASM_CCOUT(c)(c_out)
+                : "r"(b), "0"(a)
+                : "cc");
+        }
+        return a;
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
+        asm("add{b $255, %b1| %b1, 255}\n\t"
+            "sbb{q %3, %0| %0, %3}\n\t" WJR_ASM_CCSET(c)
+            : "=r"(a), "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
+            : "ri"(b), "0"(a)
+            : "cc");
+    } else {
+        asm("add{b $255, %b1| %b1, 255}\n\t"
+            "sbb{q %3, %0| %0, %3}\n\t" WJR_ASM_CCSET(c)
+            : "=r"(a), "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
+            : "r"(b), "0"(a)
+            : "cc");
+    }
+    return a;
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(ASM_SUBC_N)
+#define WJR_ADDSUB_I 0
+// WJR_ADDSUB_I :
+// 0 : SUB
+// 1 : ADD
+
+// Already included
+
+#ifndef WJR_ADDSUB_I
+#error "abort"
+#endif
+
+#define WJR_addcsubc WJR_PP_BOOL_IF(WJR_ADDSUB_I, addc, subc)
+#define WJR_adcsbb WJR_PP_BOOL_IF(WJR_ADDSUB_I, adc, sbb)
+
+inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(
+    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, uint64_t c_in) {
+    if (WJR_BUILTIN_CONSTANT_P(n)) {
+        if (n == 1) {
+            dst[0] = WJR_PP_CONCAT(asm_, WJR_addcsubc)(src0[0], src1[0], c_in, c_in);
+            return c_in;
+        }
+    }
+
+    size_t rcx = n / 8;
+    uint64_t r8 = c_in, r9, r10 = n & 7, r11;
+
+    asm volatile(
+        "add{b $255, %b[r8]| %b[r8], 255}\n\t"
+        "lea{q| %[r9], [rip +} .Llookup%={(%%rip), %[r9]|]}\n\t"
+        "movs{lq (%[r9], %[r10], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + %[r10] * 4]}\n\t"
+        "lea{q (%[r9], %[r10], 1), %[r10]| %[r10], [%[r9] + %[r10]]}\n\t"
+        "jmp{q *%[r10]| %[r10]}\n\t"
+        
+        ".align 8\n\t"
+        ".Llookup%=:\n\t"
+        ".long .Ll0%=-.Llookup%=\n\t"
+        ".long .Ll1%=-.Llookup%=\n\t"
+        ".long .Ll2%=-.Llookup%=\n\t"
+        ".long .Ll3%=-.Llookup%=\n\t"
+        ".long .Ll4%=-.Llookup%=\n\t"
+        ".long .Ll5%=-.Llookup%=\n\t"
+        ".long .Ll6%=-.Llookup%=\n\t"
+        ".long .Ll7%=-.Llookup%=\n\t"
+        ".align 16\n\t"
+        
+        ".Ll0%=:\n\t"
+        "mov{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r11]| %[r11], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
+        "jmp .Lb0%=\n\t"
+
+        ".Ld1%=:\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r10]| %[r10], [%[src1]]}\n\t"
+        "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
+        "jmp .Ldone%=\n\t"
+
+        ".Ll1%=:\n\t"
+        "mov{q (%[src0]), %[r10]| %[r10], [%[src0]]}\n\t"
+        "jrcxz .Ld1%=\n\t"
+        "mov{q 8(%[src0]), %[r9]| %[r9], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r10]| %[r10], [%[src1]]}\n\t"
+        "lea{q 8(%[src0]), %[src0]| %[src0], [%[src0] + 8]}\n\t"
+        "lea{q 8(%[src1]), %[src1]| %[src1], [%[src1] + 8]}\n\t"
+        "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
+        "jmp .Lb1%=\n\t"
+
+        ".Ll3%=:\n\t"
+        "mov{q (%[src0]), %[r11]| %[r11], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r8]| %[r8], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r11]| %[r11], [%[src1]]}\n\t"
+        "lea{q -40(%[src0]), %[src0]| %[src0], [%[src0] - 40]}\n\t"
+        "lea{q -40(%[src1]), %[src1]| %[src1], [%[src1] - 40]}\n\t"
+        "lea{q -40(%[dst]), %[dst]| %[dst], [%[dst] - 40]}\n\t"
+        "inc %[rcx]\n\t"
+        "jmp .Lb3%=\n\t"
+
+        ".Ll4%=:\n\t"
+        "mov{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r11]| %[r11], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
+        "lea{q -32(%[src0]), %[src0]| %[src0], [%[src0] - 32]}\n\t"
+        "lea{q -32(%[src1]), %[src1]| %[src1], [%[src1] - 32]}\n\t"
+        "lea{q -32(%[dst]), %[dst]| %[dst], [%[dst] - 32]}\n\t"
+        "inc %[rcx]\n\t"
+        "jmp .Lb4%=\n\t"
+
+        ".Ll5%=:\n\t"
+        "mov{q (%[src0]), %[r10]| %[r10], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r9]| %[r9], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r10]| %[r10], [%[src1]]}\n\t"
+        "lea{q -24(%[src0]), %[src0]| %[src0], [%[src0] - 24]}\n\t"
+        "lea{q -24(%[src1]), %[src1]| %[src1], [%[src1] - 24]}\n\t"
+        "lea{q -24(%[dst]), %[dst]| %[dst], [%[dst] - 24]}\n\t"
+        "inc %[rcx]\n\t"
+        "jmp .Lb5%=\n\t"
+
+        ".Ll6%=:\n\t"
+        "mov{q (%[src0]), %[r8]| %[r8], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r10]| %[r10], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r8]| %[r8], [%[src1]]}\n\t"
+        "lea{q -16(%[src0]), %[src0]| %[src0], [%[src0] - 16]}\n\t"
+        "lea{q -16(%[src1]), %[src1]| %[src1], [%[src1] - 16]}\n\t"
+        "lea{q -16(%[dst]), %[dst]| %[dst], [%[dst] - 16]}\n\t"
+        "inc %[rcx]\n\t"
+        "jmp .Lb6%=\n\t"
+
+        ".Ll7%=:\n\t"
+        "mov{q (%[src0]), %[r11]| %[r11], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r8]| %[r8], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r11]| %[r11], [%[src1]]}\n\t"
+        "lea{q -8(%[src0]), %[src0]| %[src0], [%[src0] - 8]}\n\t"
+        "lea{q -8(%[src1]), %[src1]| %[src1], [%[src1] - 8]}\n\t"
+        "lea{q -8(%[dst]), %[dst]| %[dst], [%[dst] - 8]}\n\t"
+        "inc %[rcx]\n\t"
+        "jmp .Lb7%=\n\t"
+
+        ".Ld2%=:\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 8(%[src1]), %[r10]| %[r10], [%[src1] + 8]}\n\t"
+        "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
+        "mov{q %[r10], 8(%[dst])| [%[dst] + 8], %[r10]}\n\t"
+        "jmp .Ldone%=\n\t"
+
+        ".Ll2%=:\n\t"
+        "mov{q (%[src0]), %[r8]| %[r8], [%[src0]]}\n\t"
+        "mov{q 8(%[src0]), %[r10]| %[r10], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r8]| %[r8], [%[src1]]}\n\t"
+        "jrcxz .Ld2%=\n\t"
+        "lea{q 16(%[src0]), %[src0]| %[src0], [%[src0] + 16]}\n\t"
+        "lea{q 16(%[src1]), %[src1]| %[src1], [%[src1] + 16]}\n\t"
+        "lea{q 16(%[dst]), %[dst]| %[dst], [%[dst] + 16]}\n\t"
+
+        ".align 32\n\t"
+        ".Lloop%=:\n\t"
+
+        ".Lb2%=:\n\t"
+        "mov{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q -8(%[src1]), %[r10]| %[r10], [%[src1] - 8]}\n\t"
+        "mov{q %[r8], -16(%[dst])| [%[dst] - 16], %[r8]}\n\t"
+
+        ".Lb1%=:\n\t"
+        "mov{q 8(%[src0]), %[r11]| %[r11], [%[src0] + 8]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
+        "mov{q %[r10], -8(%[dst])| [%[dst] - 8], %[r10]}\n\t"
+
+        ".Lb0%=:\n\t"
+        "mov{q 16(%[src0]), %[r8]| %[r8], [%[src0] + 16]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 8(%[src1]), %[r11]| %[r11], [%[src1] + 8]}\n\t"
+        "mov{q %[r9], (%[dst])| [%[dst]], %[r9]}\n\t"
+
+        ".Lb7%=:\n\t"
+        "mov{q 24(%[src0]), %[r10]| %[r10], [%[src0] + 24]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 16(%[src1]), %[r8]| %[r8], [%[src1] + 16]}\n\t"
+        "mov{q %[r11], 8(%[dst])| [%[dst] + 8], %[r11]}\n\t"
+
+        ".Lb6%=:\n\t"
+        "mov{q 32(%[src0]), %[r9]| %[r9], [%[src0] + 32]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 24(%[src1]), %[r10]| %[r10], [%[src1] + 24]}\n\t"
+        "mov{q %[r8], 16(%[dst])| [%[dst] + 16], %[r8]}\n\t"
+
+        ".Lb5%=:\n\t"
+        "mov{q 40(%[src0]), %[r11]| %[r11], [%[src0] + 40]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 32(%[src1]), %[r9]| %[r9], [%[src1] + 32]}\n\t"
+        "mov{q %[r10], 24(%[dst])| [%[dst] + 24], %[r10]}\n\t"
+
+        ".Lb4%=:\n\t"
+        "mov{q 48(%[src0]), %[r8]| %[r8], [%[src0] + 48]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 40(%[src1]), %[r11]| %[r11], [%[src1] + 40]}\n\t"
+        "mov{q %[r9], 32(%[dst])| [%[dst] + 32], %[r9]}\n\t"
+
+        ".Lb3%=:\n\t"
+        "mov{q 56(%[src0]), %[r10]| %[r10], [%[src0] + 56]}\n\t"
+        WJR_PP_STR(WJR_adcsbb) "{q 48(%[src1]), %[r8]| %[r8], [%[src1] + 48]}\n\t"
+        "mov{q %[r11], 40(%[dst])| [%[dst] + 40], %[r11]}\n\t"
+
+        // TODO : optimize pipeline
+        "lea{q 64(%[src0]), %[src0]| %[src0], [%[src0] + 64]}\n\t"
+        "lea{q 64(%[src1]), %[src1]| %[src1], [%[src1] + 64]}\n\t"
+        "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
+        "dec %[rcx]\n\t"
+        
+        "jne .Lloop%=\n\t"
+
+        WJR_PP_STR(WJR_adcsbb) "{q -8(%[src1]), %[r10]| %[r10], [%[src1] - 8]}\n\t"
+        "mov{q %[r8], -16(%[dst])| [%[dst] - 16], %[r8]}\n\t"
+        "mov{q %[r10], -8(%[dst])| [%[dst] - 8], %[r10]}\n\t"
+
+        ".Ldone%=:\n\t"
+        "mov %k[rcx], %k[r9]\n\t"
+        "adc{l %k[rcx], %k[r9]| %k[r9], %k[rcx]}"
+
+        : [dst] "+r"(dst), [src0] "+r"(src0), [src1] "+r"(src1), [rcx] "+c"(rcx), 
+          [r8] "+r"(r8), [r9] "=&r"(r9), [r10] "+r"(r10), [r11] "=&r"(r11)
+        :
+        : "cc", "memory");
+
+    WJR_ASSERT_ASSUME(rcx == 0);
+    WJR_ASSERT_ASSUME(r9 <= 1);
+
+    return r9;
+}
+
+#undef WJR_adcsbb
+#undef WJR_addcsubc
+
+#undef WJR_ADDSUB_I
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_SUB_128)
+
+WJR_INTRINSIC_INLINE void __asm_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                        uint64_t hi0, uint64_t lo1, uint64_t hi1) {
+    if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
+        asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+            "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}"
+            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
+            : [lo1] "r"(lo1), [hi1] "i"(hi1)
+            : "cc");
+        al = lo0;
+        ah = hi0;
+        return;
+    }
+    asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}"
+        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
+        : [lo1] "r"(lo1), [hi1] "r"(hi1)
+        : "cc");
+    al = lo0;
+    ah = hi0;
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_SUBC_128) || WJR_HAS_BUILTIN(__ASM_SUBC_CC_128)
+
+WJR_INTRINSIC_INLINE uint8_t __asm_subc_cc_zero_128(uint64_t &al, uint64_t &ah,
+                                                    uint64_t lo0, uint64_t hi0,
+                                                    uint64_t lo1, uint64_t hi1) {
+    uint8_t c_out;
+    if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
+        asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+            "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
+            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), WJR_ASM_CCOUT(c)(c_out)
+            : [lo1] "r"(lo1), [hi1] "i"(hi1)
+            : "cc");
+        al = lo0;
+        ah = hi0;
+        return c_out;
+    }
+
+    asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
+        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), WJR_ASM_CCOUT(c)(c_out)
+        : [lo1] "r"(lo1), [hi1] "r"(hi1)
+        : "cc");
+    al = lo0;
+    ah = hi0;
+    return c_out;
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_SUBC_128)
+
+WJR_INTRINSIC_INLINE uint64_t __asm_subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                             uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                             uint64_t c_in) {
+    if (WJR_BUILTIN_CONSTANT_P(c_in == 0) && c_in == 0) {
+        return __asm_subc_cc_zero_128(al, ah, lo0, hi0, lo1, hi1);
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
+        asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
+            "sbb{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+            "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t"
+            "setb %b[c_in]"
+            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in)
+            : [lo1] "r"(lo1), [hi1] "i"(hi1)
+            : "cc");
+        al = lo0;
+        ah = hi0;
+        return c_in;
+    }
+
+    asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
+        "sbb{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t"
+        "setb %b[c_in]"
+        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in)
+        : [lo1] "r"(lo1), [hi1] "r"(hi1)
+        : "cc");
+    al = lo0;
+    ah = hi0;
+    return c_in;
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_SUBC_CC_128)
+
+WJR_INTRINSIC_INLINE uint8_t __asm_subc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                               uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                               uint8_t c_in) {
+    if (WJR_BUILTIN_CONSTANT_P(c_in == 0) && c_in == 0) {
+        return __asm_subc_cc_zero_128(al, ah, lo0, hi0, lo1, hi1);
+    }
+
+    uint8_t c_out;
+    if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
+        asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
+            "sbb{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+            "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
+            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in),
+              WJR_ASM_CCOUT(c)(c_out)
+            : [lo1] "r"(lo1), [hi1] "i"(hi1)
+            : "cc");
+        al = lo0;
+        ah = hi0;
+        return c_out;
+    }
+
+    asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
+        "sbb{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
+        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
+        : [lo1] "r"(lo1), [hi1] "r"(hi1)
+        : "cc");
+    al = lo0;
+    ah = hi0;
+    return c_out;
+}
+
+#endif
+
+} // namespace wjr
+
+#endif // WJR_X86_SUB_HPP__
+#endif
+
+namespace wjr {
+
+template <typename T, typename U>
+WJR_INTRINSIC_CONSTEXPR T fallback_subc(T a, T b, U c_in, U &c_out) {
+    T ret = a - b;
+    U c = ret > a;
+    a = ret;
+    ret -= c_in;
+    c |= ret > a;
+    c_out = c;
+    return ret;
+}
+
+#if WJR_HAS_BUILTIN(__builtin_subc)
+#define WJR_HAS_BUILTIN_SUBC WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(SUBC)
+
+template <typename T, typename U>
+WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+#define WJR_REGISTER_BUILTIN_SUBC(suffix, type)                                          \
+    if constexpr (nd <= std::numeric_limits<type>::digits) {                             \
+        type __c_out;                                                                    \
+        T ret = __builtin_subc##suffix(a, b, static_cast<type>(c_in), &__c_out);         \
+        c_out = static_cast<U>(__c_out);                                                 \
+        return ret;                                                                      \
+    } else
+
+    WJR_REGISTER_BUILTIN_SUBC(b, unsigned char)
+    WJR_REGISTER_BUILTIN_SUBC(s, unsigned short)
+    WJR_REGISTER_BUILTIN_SUBC(, unsigned int)
+    WJR_REGISTER_BUILTIN_SUBC(l, unsigned long)
+    WJR_REGISTER_BUILTIN_SUBC(ll, unsigned long long) {
+        static_assert(nd <= 64, "not supported yet");
+    }
+
+#undef WJR_REGISTER_BUILTIN_SUBC
+}
+
+#endif // WJR_HAS_BUILTIN(SUBC)
+
+template <typename T, typename U,
+          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
+    WJR_ASSERT_ASSUME_L1(c_in <= 1);
+
+#if !WJR_HAS_BUILTIN(SUBC) && !WJR_HAS_BUILTIN(ASM_SUBC)
+    return fallback_subc(a, b, c_in, c_out);
+#else
+    constexpr auto is_constant_or_zero = [](auto x) -> int {
+        return WJR_BUILTIN_CONSTANT_P(x == 0) && x == 0 ? 2
+               : WJR_BUILTIN_CONSTANT_P(x)              ? 1
+                                                        : 0;
+    };
+
+    // The compiler should be able to optimize the judgment condition of if when enabling
+    // optimization. If it doesn't work, then there should be a issue
+    if (is_constant_evaluated() ||
+        // constant value is zero or constant value number greater or equal than 2
+        (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >=
+         2)) {
+        return fallback_subc(a, b, c_in, c_out);
+    }
+
+    if constexpr (sizeof(T) == 8) {
+        return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_SUBC), asm_subc,
+                              WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(SUBC), builtin_subc,
+                                             fallback_subc))(a, b, c_in, c_out);
+    } else {
+        return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(SUBC), builtin_subc,
+                              fallback_subc)(a, b, c_in, c_out);
+    }
+#endif
+}
+
+/*
+ Used for subc and then jump according to cc flag. Therefore, the types of c_in and
+ c_out are limited to uint8_t, while the default c_in and c_out types of normal subc are
+ the same as T, so that the high register is not cleared. Currently, GCC/Clang @=cccond
+ cannot know that the high register is not cleared, so the performance is worse than the
+ normal version when cc flag is not needed immediately.
+*/
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
+    WJR_ASSERT_ASSUME_L1(c_in <= 1);
+
+#if WJR_HAS_BUILTIN(ASM_SUBC_CC)
+    constexpr auto is_constant_or_zero = [](auto x) -> int {
+        return WJR_BUILTIN_CONSTANT_P(x == 0) && x == 0 ? 2
+               : WJR_BUILTIN_CONSTANT_P(x)              ? 1
+                                                        : 0;
+    };
+
+    // The compiler should be able to optimize the judgment condition of if when enabling
+    // optimization. If it doesn't work, then there should be a issue
+    if (is_constant_evaluated() ||
+        // constant value is zero or constant value number greater or equal than 2
+        (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >=
+         2)) {
+        return fallback_subc(a, b, c_in, c_out);
+    }
+
+    if constexpr (sizeof(T) == 8) {
+        return asm_subc_cc(a, b, c_in, c_out);
+    } else {
+        return subc(a, b, c_in, c_out);
+    }
+#else
+    return subc(a, b, c_in, c_out);
+#endif
+}
+
+/*
+require :
+1. n >= 1
+2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+*/
+template <typename T, typename U,
+          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+WJR_INTRINSIC_CONSTEXPR_E U subc_1(T *dst, const T *src0, size_t n,
+                                   type_identity_t<T> src1, U c_in) {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+
+    uint8_t overflow = 0;
+    dst[0] = subc_cc(src0[0], src1, c_in, overflow);
+
+    if (overflow) {
+        size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, 0, -1);
+
+        if (WJR_UNLIKELY(idx == n)) {
+            return static_cast<U>(1);
+        }
+
+        dst[idx] = src0[idx] - 1;
+
+        dst += idx;
+        src0 += idx;
+        n -= idx;
+    }
+
+    if (src0 != dst) {
+        std::copy(src0 + 1, src0 + n, dst + 1);
+    }
+
+    return static_cast<U>(0);
+}
+
+template <typename T, typename U>
+WJR_INTRINSIC_CONSTEXPR U fallback_subc_n(T *dst, const T *src0, const T *src1, size_t n,
+                                          U c_in) {
+    size_t m = n / 4;
+
+    for (size_t i = 0; i < m; ++i) {
+        dst[0] = subc(src0[0], src1[0], c_in, c_in);
+        dst[1] = subc(src0[1], src1[1], c_in, c_in);
+        dst[2] = subc(src0[2], src1[2], c_in, c_in);
+        dst[3] = subc(src0[3], src1[3], c_in, c_in);
+
+        dst += 4;
+        src0 += 4;
+        src1 += 4;
+    }
+
+    n &= 3;
+    if (WJR_UNLIKELY(n == 0)) {
+        return c_in;
+    }
+
+    dst += n;
+    src0 += n;
+    src1 += n;
+
+    switch (n) {
+    case 3: {
+        dst[-3] = subc(src0[-3], src1[-3], c_in, c_in);
+        WJR_FALLTHROUGH;
+    }
+    case 2: {
+        dst[-2] = subc(src0[-2], src1[-2], c_in, c_in);
+        WJR_FALLTHROUGH;
+    }
+    case 1: {
+        dst[-1] = subc(src0[-1], src1[-1], c_in, c_in);
+        WJR_FALLTHROUGH;
+    }
+    default: {
+        break;
+    }
+    }
+
+    return c_in;
+}
+
+/*
+require :
+1. n >= 1
+2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+3. WJR_IS_SAME_OR_INCR_P(dst, n, src1, n)
+*/
+template <typename T, typename U,
+          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+WJR_INTRINSIC_CONSTEXPR_E U subc_n(T *dst, const T *src0, const T *src1, size_t n,
+                                   U c_in) {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
+
+#if WJR_HAS_BUILTIN(ASM_SUBC_N)
+    if constexpr (sizeof(T) == 8) {
+        if (is_constant_evaluated()) {
+            return fallback_subc_n(dst, src0, src1, n, c_in);
+        }
+
+        return asm_subc_n(dst, src0, src1, n, c_in);
+    } else {
+        return fallback_subc_n(dst, src0, src1, n, c_in);
+    }
+#else
+    return fallback_subc_n(dst, src0, src1, n, c_in);
+#endif
+}
+
+/*
+require :
+1. m >= 1
+2. n >= m
+3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
+*/
+template <typename T, typename U,
+          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n, const T *src1,
+                                   size_t m, U c_in) {
+    WJR_ASSERT_ASSUME(m >= 1);
+    WJR_ASSERT_ASSUME(n >= m);
+
+    c_in = subc_n(dst, src0, src1, m, c_in);
+
+    if (n != m) {
+        c_in = subc_1(dst + m, src0 + m, n - m, 0, c_in);
+    }
+
+    return c_in;
+}
+
+/*
+require :
+1. n >= 0
+2. n >= m
+3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
+*/
+template <typename T, typename U,
+          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+WJR_INTRINSIC_CONSTEXPR_E U subc_sz(T *dst, const T *src0, size_t n, const T *src1,
+                                    size_t m, U c_in) {
+    WJR_ASSERT_ASSUME(n >= m);
+
+    if (WJR_LIKELY(m != 0)) {
+        c_in = subc_n(dst, src0, src1, m, c_in);
+    }
+
+    if (n != m) {
+        c_in = subc_1(dst + m, src0 + m, n - m, 0, c_in);
+    }
+
+    return c_in;
+}
+
+/*
+require :
+1. n >= 1
+2. WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n)
+3. WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n)
+return :
+dst = abs(src0 - src1)
+Absolute value represents non-zero pos
+> 0 : src0 > src1
+== 0 : src0 == src1
+< 0 : src0 < src1
+*/
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
+                                             size_t n) {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
+
+    size_t idx = reverse_find_not_n(src0, src1, n);
+
+    if (WJR_UNLIKELY(idx != n)) {
+        set_n(dst + idx, 0, n - idx);
+
+        if (WJR_UNLIKELY(idx == 0)) {
+            return 0;
+        }
+    }
+
+    ssize_t ret = __fasts_from_unsigned(n);
+    WJR_ASSUME(ret > 0);
+
+    if (src0[idx - 1] < src1[idx - 1]) {
+        std::swap(src0, src1);
+        ret = __fasts_negate(ret);
+    }
+
+    (void)subc_n(dst, src0, src1, idx);
+    return ret;
+}
+
+/*
+require :
+1. m >= 1
+2. n >= m
+3. WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n)
+4. WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, m)
+return :
+dst = abs(src0 - src1)
+Absolute value represents non-zero pos
+> 0 : src0 > src1
+== 0 : src0 == src1
+< 0 : src0 < src1
+*/
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
+                                             const T *src1, size_t m) {
+    WJR_ASSERT_ASSUME(m >= 1);
+    WJR_ASSERT_ASSUME(n >= m);
+
+    if (WJR_BUILTIN_CONSTANT_P(n == m) && n == m) {
+        return abs_subc_n(dst, src0, src1, m);
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(n - m <= 1) && n - m <= 1) {
+        do {
+            if (n == m) {
+                break;
+            }
+
+            if (WJR_UNLIKELY(src0[m] == 0)) {
+                dst[m] = 0;
+                break;
+            }
+
+            (void)subc_s(dst, src0, m + 1, src1, m);
+            return __fasts_from_unsigned(m + 1);
+        } while (0);
+
+        return abs_subc_n(dst, src0, src1, m);
+    }
+
+    size_t idx = reverse_replace_find_not(dst + m, src0 + m, n - m, 0, 0);
+
+    if (WJR_UNLIKELY(idx == 0)) {
+        return abs_subc_n(dst, src0, src1, m);
+    }
+
+    (void)subc_s(dst, src0, m + idx, src1, m);
+    return __fasts_from_unsigned(m + idx);
+}
+
+// just like abs_subc_n.
+template <typename T, typename U,
+          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
+                                             size_t n, U &c_out, type_identity_t<U> cf0,
+                                             type_identity_t<U> cf1) {
+    WJR_ASSERT_ASSUME(n >= 1);
+    if (cf0 != cf1) {
+        ssize_t ret = __fasts_from_unsigned(n);
+        U cf = 0;
+        if (cf0 < cf1) {
+            std::swap(src0, src1);
+            ret = __fasts_negate(ret);
+            cf = cf1 - cf0;
+        } else {
+            cf = cf0 - cf1;
+        }
+
+        c_out = cf - subc_n(dst, src0, src1, n);
+        return ret;
+    } else {
+        c_out = 0;
+        return abs_subc_n(dst, src0, src1, n);
+    }
+}
+
+WJR_INTRINSIC_CONSTEXPR void __fallback_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                                uint64_t hi0, uint64_t lo1,
+                                                uint64_t hi1) {
+    uint64_t __al = lo0 - lo1;
+    ah = hi0 - hi1 - (__al > lo0);
+    al = __al;
+}
+
+#if WJR_HAS_FEATURE(FAST_INT128_ADDSUB)
+#define WJR_HAS_BUILTIN___BUILTIN_SUB_128 WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(__BUILTIN_SUBC_128)
+
+WJR_INTRINSIC_INLINE void __builtin_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                            uint64_t hi0, uint64_t lo1, uint64_t hi1) {
+    const auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
+    const auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
+    x0 -= x1;
+
+    al = x0;
+    ah = x0 >> 64;
+}
+
+#endif
+
+// <ah, al> = <hi0, lo0> - <hi1, lo1>
+WJR_INTRINSIC_CONSTEXPR_E void __sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                         uint64_t hi0, uint64_t lo1, uint64_t hi1) {
+#if WJR_HAS_BUILTIN(__BUILTIN_SUB_128) || WJR_HAS_BUILTIN(__ASM_SUB_128)
+    if (is_constant_evaluated() || (WJR_BUILTIN_CONSTANT_P(lo0 == 0) && lo0 == 0) ||
+        (WJR_BUILTIN_CONSTANT_P(lo1 == 0) && lo1 == 0)) {
+        return __fallback_sub_128(al, ah, lo0, hi0, lo1, hi1);
+    }
+
+    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(__BUILTIN_SUB_128), __builtin_sub_128,
+                          __asm_sub_128)(al, ah, lo0, hi0, lo1, hi1);
+#else
+    return __fallback_sub_128(al, ah, lo0, hi0, lo1, hi1);
+#endif
+}
+
+WJR_INTRINSIC_CONSTEXPR_E uint64_t __fallback_subc_128(uint64_t &al, uint64_t &ah,
+                                                       uint64_t lo0, uint64_t hi0,
+                                                       uint64_t lo1, uint64_t hi1,
+                                                       uint64_t c_in) {
+    al = subc(lo0, lo1, c_in, c_in);
+    ah = subc(hi0, hi1, c_in, c_in);
+    return c_in;
+}
+
+// return c_out
+WJR_INTRINSIC_CONSTEXPR_E uint64_t __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                              uint64_t c_in) {
+#if WJR_HAS_BUILTIN(__ASM_ADDC_128)
+    if (is_constant_evaluated()) {
+        return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+    }
+
+    return __asm_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+#else
+    return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+#endif
+}
+
+WJR_INTRINSIC_CONSTEXPR_E uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                                uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                                uint8_t c_in) {
+#if WJR_HAS_BUILTIN(__ASM_ADDC_CC_128)
+    if (is_constant_evaluated()) {
+        return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+    }
+
+    return __asm_subc_cc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+#else
+    return __subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+#endif
+}
+
+} // namespace wjr
+
+#endif // WJR_MATH_SUB_HPP__
+// Already included
+
+#if defined(WJR_X86)
+#ifndef WJR_X86_MATH_COMPARE_HPP__
+#define WJR_X86_MATH_COMPARE_HPP__
+
+// Already included
+// Already included
+
+#ifndef WJR_X86
+#error "x86 required"
+#endif
+
+namespace wjr {
+
+#if WJR_HAS_SIMD(SSE4_1) && WJR_HAS_SIMD(SIMD)
+#define WJR_HAS_BUILTIN_COMPARE_N WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_REVERSE_COMPARE_N WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(COMPARE_N)
+
+template <typename T>
+WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size_t n) {
+#define WJR_REGISTER_COMPARE_NOT_N(index)                                                \
+    do {                                                                                 \
+        auto x = sse::loadu((__m128i *)(src0 + (index)));                                \
+        auto y = sse::loadu((__m128i *)(src1 + (index)));                                \
+        auto r = sse::cmpeq_epi64(x, y);                                                 \
+                                                                                         \
+        sse::mask_type mask = ~sse::movemask_epi8(r);                                    \
+        if (WJR_LIKELY(mask != 0)) {                                                     \
+            if (mask == 0xFF00) {                                                        \
+                return src0[(index) + 1] < src1[(index) + 1] ? -1 : 1;                   \
+            }                                                                            \
+            return src0[(index)] < src1[(index)] ? -1 : 1;                               \
+        }                                                                                \
+    } while (0)
+#define WJR_REGISTER_COMPARE_NOT_N_AVX(index)                                            \
+    do {                                                                                 \
+        auto x = avx::loadu((__m256i *)(src0 + (index)));                                \
+        auto y = avx::loadu((__m256i *)(src1 + (index)));                                \
+        auto r = avx::cmpeq_epi64(x, y);                                                 \
+                                                                                         \
+        avx::mask_type mask = ~avx::movemask_epi8(r);                                    \
+        if (WJR_LIKELY(mask != 0)) {                                                     \
+            auto offset = ctz(mask) / 8;                                                 \
+            return src0[(index) + offset] < src1[(index) + offset] ? -1 : 1;             \
+        }                                                                                \
+    } while (0)
+
+    switch (n & 7) {
+    case 1: { // 8
+        WJR_REGISTER_COMPARE_NOT_N(1);
+        WJR_REGISTER_COMPARE_NOT_N(3);
+#if !WJR_HAS_SIMD(AVX2)
+        WJR_REGISTER_COMPARE_NOT_N(5);
+        WJR_REGISTER_COMPARE_NOT_N(7);
+#else
+        WJR_REGISTER_COMPARE_NOT_N_AVX(5);
+#endif
+
+        src0 += 9;
+        src1 += 9;
+        break;
+    }
+    case 2: { // 1
+        if (WJR_LIKELY(src0[1] != src1[1])) {
+            return src0[1] < src1[1] ? -1 : 1;
+        }
+
+        src0 += 2;
+        src1 += 2;
+        break;
+    }
+    case 3: { // 2
+        WJR_REGISTER_COMPARE_NOT_N(1);
+
+        src0 += 3;
+        src1 += 3;
+        break;
+    }
+    case 4: { // 2 + 1
+        if (WJR_LIKELY(src0[1] != src1[1])) {
+            return src0[1] < src1[1] ? -1 : 1;
+        }
+
+        WJR_REGISTER_COMPARE_NOT_N(2);
+
+        src0 += 4;
+        src1 += 4;
+        break;
+    }
+    case 5: { // 2 * 2
+        WJR_REGISTER_COMPARE_NOT_N(1);
+        WJR_REGISTER_COMPARE_NOT_N(3);
+
+        src0 += 5;
+        src1 += 5;
+        break;
+    }
+    case 6: { // 2 * 2 + 1
+        if (WJR_LIKELY(src0[1] != src1[1])) {
+            return src0[1] < src1[1] ? -1 : 1;
+        }
+
+        WJR_REGISTER_COMPARE_NOT_N(2);
+        WJR_REGISTER_COMPARE_NOT_N(4);
+
+        src0 += 6;
+        src1 += 6;
+        break;
+    }
+    case 7: { // 2 * 3
+        WJR_REGISTER_COMPARE_NOT_N(1);
+#if !WJR_HAS_SIMD(AVX2)
+        WJR_REGISTER_COMPARE_NOT_N(3);
+        WJR_REGISTER_COMPARE_NOT_N(5);
+#else
+        WJR_REGISTER_COMPARE_NOT_N_AVX(3);
+#endif
+
+        src0 += 7;
+        src1 += 7;
+        break;
+    }
+    case 0: { // 2 * 3 + 1
+        if (WJR_LIKELY(src0[1] != src1[1])) {
+            return src0[1] < src1[1] ? -1 : 1;
+        }
+
+        WJR_REGISTER_COMPARE_NOT_N(2);
+#if !WJR_HAS_SIMD(AVX2)
+        WJR_REGISTER_COMPARE_NOT_N(4);
+        WJR_REGISTER_COMPARE_NOT_N(6);
+#else
+        WJR_REGISTER_COMPARE_NOT_N_AVX(4);
+#endif
+
+        src0 += 8;
+        src1 += 8;
+        break;
+    }
+    }
+
+    size_t idx = (n - 2) / 8;
+
+    if (WJR_UNLIKELY(idx == 0)) {
+        return 0;
+    }
+
+#if !WJR_HAS_SIMD(AVX2)
+
+    do {
+        auto x0 = sse::loadu((__m128i *)(src0));
+        auto x1 = sse::loadu((__m128i *)(src0 + 2));
+        auto x2 = sse::loadu((__m128i *)(src0 + 4));
+        auto x3 = sse::loadu((__m128i *)(src0 + 6));
+        auto y0 = sse::loadu((__m128i *)(src1));
+        auto y1 = sse::loadu((__m128i *)(src1 + 2));
+        auto y2 = sse::loadu((__m128i *)(src1 + 4));
+        auto y3 = sse::loadu((__m128i *)(src1 + 6));
+
+        auto r0 = sse::cmpeq_epi64(x0, y0);
+        auto r1 = sse::cmpeq_epi64(x1, y1);
+        auto r2 = sse::cmpeq_epi64(x2, y2);
+        auto z0 = sse::And(r0, r2);
+        auto r3 = sse::cmpeq_epi64(x3, y3);
+        auto z1 = sse::And(r1, r3);
+        z0 = sse::And(z0, z1);
+
+        if (WJR_UNLIKELY(!sse::test_all_ones(z0))) {
+            sse::mask_type mask = ~sse::movemask_epi8(r0);
+            if (WJR_UNLIKELY(mask != 0)) {
+                if (mask == 0xFF00) {
+                    return src0[1] < src1[1] ? -1 : 1;
+                }
+                return src0[0] < src1[0] ? -1 : 1;
+            }
+
+            mask = ~sse::movemask_epi8(r1);
+            if (WJR_UNLIKELY(mask != 0)) {
+                if (mask == 0xFF00) {
+                    return src0[3] < src1[3] ? -1 : 1;
+                }
+                return src0[2] < src1[2] ? -1 : 1;
+            }
+
+            mask = ~sse::movemask_epi8(r2);
+            if (WJR_UNLIKELY(mask != 0)) {
+                if (mask == 0xFF00) {
+                    return src0[5] < src1[5] ? -1 : 1;
+                }
+                return src0[4] < src1[4] ? -1 : 1;
+            }
+
+            mask = ~sse::movemask_epi8(r3);
+            if (mask == 0xFF00) {
+                return src0[7] < src1[7] ? -1 : 1;
+            }
+            return src0[6] < src1[6] ? -1 : 1;
+        }
+
+        src0 += 8;
+        src1 += 8;
+        --idx;
+    } while (WJR_LIKELY(idx != 0));
+
+    return 0;
+#else
+
+    if (idx & 1) {
+        WJR_REGISTER_COMPARE_NOT_N_AVX(0);
+        WJR_REGISTER_COMPARE_NOT_N_AVX(4);
+
+        src0 += 8;
+        src1 += 8;
+
+        if (WJR_UNLIKELY(idx == 1)) {
+            return 0;
+        }
+    }
+
+    idx /= 2;
+
+    do {
+        auto x0 = avx::loadu((__m256i *)(src0));
+        auto x1 = avx::loadu((__m256i *)(src0 + 4));
+        auto x2 = avx::loadu((__m256i *)(src0 + 8));
+        auto x3 = avx::loadu((__m256i *)(src0 + 12));
+        auto y0 = avx::loadu((__m256i *)(src1));
+        auto y1 = avx::loadu((__m256i *)(src1 + 4));
+        auto y2 = avx::loadu((__m256i *)(src1 + 8));
+        auto y3 = avx::loadu((__m256i *)(src1 + 12));
+
+        auto r0 = avx::cmpeq_epi64(x0, y0);
+        auto r1 = avx::cmpeq_epi64(x1, y1);
+        auto r2 = avx::cmpeq_epi64(x2, y2);
+        auto z0 = avx::And(r0, r2);
+        auto r3 = avx::cmpeq_epi64(x3, y3);
+        auto z1 = avx::And(r1, r3);
+        z0 = avx::And(z0, z1);
+
+        if (WJR_UNLIKELY(!avx::test_all_ones(z0))) {
+            avx::mask_type mask = ~avx::movemask_epi8(r0);
+            if (WJR_UNLIKELY(mask != 0)) {
+                auto offset = ctz(mask) / 8;
+                return src0[offset] < src1[offset] ? -1 : 1;
+            }
+
+            mask = ~avx::movemask_epi8(r1);
+            if (WJR_UNLIKELY(mask != 0)) {
+                auto offset = ctz(mask) / 8;
+                return src0[offset + 4] < src1[offset + 4] ? -1 : 1;
+            }
+
+            mask = ~avx::movemask_epi8(r2);
+            if (WJR_UNLIKELY(mask != 0)) {
+                auto offset = ctz(mask) / 8;
+                return src0[offset + 8] < src1[offset + 8] ? -1 : 1;
+            }
+
+            mask = ~avx::movemask_epi8(r3);
+            auto offset = ctz(mask) / 8;
+            return src0[offset + 12] < src1[offset + 12] ? -1 : 1;
+        }
+
+        src0 += 16;
+        src1 += 16;
+        --idx;
+    } while (WJR_LIKELY(idx != 0));
+
+    return 0;
+#endif
+
+#undef WJR_REGISTER_COMPARE_NOT_N_AVX
+#undef WJR_REGISTER_COMPARE_NOT_N
+}
+
+extern template WJR_COLD int
+large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1, size_t n);
+
+template <typename T>
+WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1, size_t n) {
+    if (WJR_UNLIKELY(n == 0)) {
+        return 0;
+    }
+
+    // Quickly check the first one. There is a high probability that the comparison will
+    // end in the first place
+    if (WJR_LIKELY(src0[0] != src1[0])) {
+        return src0[0] < src1[0] ? -1 : 1;
+    }
+
+    if (WJR_UNLIKELY(n < 4)) {
+
+        do {
+            if (n == 1) {
+                break;
+            }
+
+            if (WJR_LIKELY(src0[1] != src1[1])) {
+                return src0[1] < src1[1] ? -1 : 1;
+            }
+
+            if (n == 2) {
+                break;
+            }
+
+            if (WJR_LIKELY(src0[2] != src1[2])) {
+                return src0[2] < src1[2] ? -1 : 1;
+            }
+
+        } while (0);
+
+        return 0;
+    }
+
+    return large_builtin_compare_n(src0, src1, n);
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(REVERSE_COMPARE_N)
+
+template <typename T>
+WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1, size_t n) {
+#define WJR_REGISTER_REVERSE_COMPARE_NOT_N(index)                                        \
+    do {                                                                                 \
+        auto x = sse::loadu((__m128i *)(src0 - 2 - (index)));                            \
+        auto y = sse::loadu((__m128i *)(src1 - 2 - (index)));                            \
+        auto r = sse::cmpeq_epi64(x, y);                                                 \
+                                                                                         \
+        sse::mask_type mask = ~sse::movemask_epi8(r);                                    \
+        if (WJR_LIKELY(mask != 0)) {                                                     \
+            if (mask == 0x00FF) {                                                        \
+                return src0[-2 - (index)] < src1[-2 - (index)] ? -1 : 1;                 \
+            }                                                                            \
+            return src0[-1 - (index)] < src1[-1 - (index)] ? -1 : 1;                     \
+        }                                                                                \
+    } while (0)
+#define WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(index)                                    \
+    do {                                                                                 \
+        auto x = avx::loadu((__m256i *)(src0 - 4 - (index)));                            \
+        auto y = avx::loadu((__m256i *)(src1 - 4 - (index)));                            \
+        auto r = avx::cmpeq_epi64(x, y);                                                 \
+                                                                                         \
+        auto mask = ~avx::movemask_epi8(r);                                              \
+        if (WJR_LIKELY(mask != 0)) {                                                     \
+            auto offset = clz(mask) / 8;                                                 \
+            return src0[-1 - (index)-offset] < src1[-1 - (index)-offset] ? -1 : 1;       \
+        }                                                                                \
+    } while (0)
+
+    src0 += n;
+    src1 += n;
+
+    switch (n & 7) {
+    case 1: { // 8
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(1);
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(3);
+#if !WJR_HAS_SIMD(AVX2)
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(5);
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(7);
+#else
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(5);
+#endif
+
+        src0 -= 9;
+        src1 -= 9;
+        break;
+    }
+    case 2: { // 1
+        if (WJR_LIKELY(src0[-2] != src1[-2])) {
+            return src0[-2] < src1[-2] ? -1 : 1;
+        }
+
+        src0 -= 2;
+        src1 -= 2;
+        break;
+    }
+    case 3: { // 2
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(1);
+
+        src0 -= 3;
+        src1 -= 3;
+        break;
+    }
+    case 4: { // 2 + 1
+        if (WJR_LIKELY(src0[-2] != src1[-2])) {
+            return src0[-2] < src1[-2] ? -1 : 1;
+        }
+
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(2);
+
+        src0 -= 4;
+        src1 -= 4;
+        break;
+    }
+    case 5: { // 2 * 2
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(1);
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(3);
+
+        src0 -= 5;
+        src1 -= 5;
+        break;
+    }
+    case 6: { // 2 * 2 + 1
+        if (WJR_LIKELY(src0[-2] != src1[-2])) {
+            return src0[-2] < src1[-2] ? -1 : 1;
+        }
+
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(2);
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(4);
+
+        src0 -= 6;
+        src1 -= 6;
+        break;
+    }
+    case 7: { // 2 * 3
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(1);
+#if !WJR_HAS_SIMD(AVX2)
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(3);
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(5);
+#else
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(3);
+#endif
+
+        src0 -= 7;
+        src1 -= 7;
+        break;
+    }
+    case 0: { // 2 * 3 + 1
+        if (WJR_LIKELY(src0[-2] != src1[-2])) {
+            return src0[-2] < src1[-2] ? -1 : 1;
+        }
+
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(2);
+#if !WJR_HAS_SIMD(AVX2)
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(4);
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N(6);
+#else
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(4);
+#endif
+
+        src0 -= 8;
+        src1 -= 8;
+        break;
+    }
+    }
+
+    size_t idx = (n - 2) / 8;
+
+    if (WJR_UNLIKELY(idx == 0)) {
+        return 0;
+    }
+
+#if !WJR_HAS_SIMD(AVX2)
+
+    do {
+        auto x0 = sse::loadu((__m128i *)(src0 - 8));
+        auto x1 = sse::loadu((__m128i *)(src0 - 6));
+        auto x2 = sse::loadu((__m128i *)(src0 - 4));
+        auto x3 = sse::loadu((__m128i *)(src0 - 2));
+        auto y0 = sse::loadu((__m128i *)(src1 - 8));
+        auto y1 = sse::loadu((__m128i *)(src1 - 6));
+        auto y2 = sse::loadu((__m128i *)(src1 - 4));
+        auto y3 = sse::loadu((__m128i *)(src1 - 2));
+
+        auto r0 = sse::cmpeq_epi64(x0, y0);
+        auto r1 = sse::cmpeq_epi64(x1, y1);
+        auto r2 = sse::cmpeq_epi64(x2, y2);
+        auto z0 = sse::And(r0, r2);
+        auto r3 = sse::cmpeq_epi64(x3, y3);
+        auto z1 = sse::And(r1, r3);
+        z0 = sse::And(z0, z1);
+
+        if (WJR_UNLIKELY(!sse::test_all_ones(z0))) {
+            sse::mask_type mask = ~sse::movemask_epi8(r3);
+            if (WJR_UNLIKELY(mask != 0)) {
+                if (mask == 0x00FF) {
+                    return src0[-2] < src1[-2] ? -1 : 1;
+                }
+                return src0[-1] < src1[-1] ? -1 : 1;
+            }
+
+            mask = ~sse::movemask_epi8(r2);
+            if (WJR_UNLIKELY(mask != 0)) {
+                if (mask == 0x00FF) {
+                    return src0[-4] < src1[-4] ? -1 : 1;
+                }
+                return src0[-3] < src1[-3] ? -1 : 1;
+            }
+
+            mask = ~sse::movemask_epi8(r1);
+            if (WJR_UNLIKELY(mask != 0)) {
+                if (mask == 0x00FF) {
+                    return src0[-6] < src1[-6] ? -1 : 1;
+                }
+                return src0[-5] < src1[-5] ? -1 : 1;
+            }
+
+            mask = ~sse::movemask_epi8(r0);
+            if (mask == 0x00FF) {
+                return src0[-8] < src1[-8] ? -1 : 1;
+            }
+            return src0[-7] < src1[-7] ? -1 : 1;
+        }
+
+        src0 -= 8;
+        src1 -= 8;
+        --idx;
+    } while (WJR_LIKELY(idx != 0));
+
+    return 0;
+#else
+
+    if (idx & 1) {
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(0);
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(4);
+
+        src0 -= 8;
+        src1 -= 8;
+
+        if (WJR_UNLIKELY(idx == 1)) {
+            return 0;
+        }
+    }
+
+    idx /= 2;
+
+    do {
+        auto x0 = avx::loadu((__m256i *)(src0 - 16));
+        auto x1 = avx::loadu((__m256i *)(src0 - 12));
+        auto x2 = avx::loadu((__m256i *)(src0 - 8));
+        auto x3 = avx::loadu((__m256i *)(src0 - 4));
+        auto y0 = avx::loadu((__m256i *)(src1 - 16));
+        auto y1 = avx::loadu((__m256i *)(src1 - 12));
+        auto y2 = avx::loadu((__m256i *)(src1 - 8));
+        auto y3 = avx::loadu((__m256i *)(src1 - 4));
+
+        auto r0 = avx::cmpeq_epi64(x0, y0);
+        auto r1 = avx::cmpeq_epi64(x1, y1);
+        auto r2 = avx::cmpeq_epi64(x2, y2);
+        auto z0 = avx::And(r0, r2);
+        auto r3 = avx::cmpeq_epi64(x3, y3);
+        auto z1 = avx::And(r1, r3);
+        z0 = avx::And(z0, z1);
+
+        if (WJR_UNLIKELY(!avx::test_all_ones(z0))) {
+            avx::mask_type mask = ~avx::movemask_epi8(r3);
+            if (WJR_UNLIKELY(mask != 0)) {
+                auto offset = clz(mask) / 8;
+                return src0[-1 - offset] < src1[-1 - offset] ? -1 : 1;
+            }
+
+            mask = ~avx::movemask_epi8(r2);
+            if (WJR_UNLIKELY(mask != 0)) {
+                auto offset = clz(mask) / 8;
+                return src0[-5 - offset] < src1[-5 - offset] ? -1 : 1;
+            }
+
+            mask = ~avx::movemask_epi8(r1);
+            if (WJR_UNLIKELY(mask != 0)) {
+                auto offset = clz(mask) / 8;
+                return src0[-9 - offset] < src1[-9 - offset] ? -1 : 1;
+            }
+
+            mask = ~avx::movemask_epi8(r0);
+            auto offset = clz(mask) / 8;
+            return src0[-13 - offset] < src1[-13 - offset] ? -1 : 1;
+        }
+
+        src0 -= 16;
+        src1 -= 16;
+        --idx;
+    } while (WJR_LIKELY(idx != 0));
+
+    return 0;
+#endif
+
+#undef WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX
+#undef WJR_REGISTER_REVERSE_COMPARE_NOT_N
+}
+
+extern template WJR_COLD int
+large_builtin_reverse_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
+                                          size_t n);
+
+template <typename T>
+WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
+                                                   size_t n) {
+    if (WJR_UNLIKELY(n == 0)) {
+        return 0;
+    }
+
+    if (WJR_LIKELY(src0[n - 1] != src1[n - 1])) {
+        return src0[n - 1] < src1[n - 1] ? -1 : 1;
+    }
+
+    if (WJR_UNLIKELY(n < 4)) {
+        do {
+            if (n == 1) {
+                break;
+            }
+
+            if (WJR_LIKELY(src0[n - 2] != src1[n - 2])) {
+                return src0[n - 2] < src1[n - 2] ? -1 : 1;
+            }
+
+            if (n == 2) {
+                break;
+            }
+
+            if (WJR_LIKELY(src0[n - 3] != src1[n - 3])) {
+                return src0[n - 3] < src1[n - 3] ? -1 : 1;
+            }
+
+        } while (0);
+
+        return 0;
+    }
+
+    return large_builtin_reverse_compare_n(src0, src1, n);
+}
+
+#endif
+
+// __uint128_t has certain bugs in GCC 13.2, resulting in low performance
+#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
+#define WJR_HAS_BUILTIN___ASM_LESS_128 WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___ASM_LESS_EQUAL_128 WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_LESS_128)
+
+WJR_INTRINSIC_INLINE bool __asm_less_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
+                                         uint64_t hi1) {
+    bool ret;
+    asm("cmp{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
+        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(b)
+        : WJR_ASM_CCOUT(b)(ret), [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
+        : [lo1] "r"(lo1), [hi1] "r"(hi1)
+        : "cc");
+    return ret;
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(__ASM_LESS_EQUAL_128)
+
+WJR_INTRINSIC_INLINE bool __asm_less_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
+                                               uint64_t hi1) {
+    bool ret;
+    asm("cmp{q %[lo0], %[lo1]| %[lo1], %[lo0]}\n\t"
+        "sbb{q %[hi0], %[hi1]| %[hi1], %[hi0]}\n\t" WJR_ASM_CCSET(ae)
+        : WJR_ASM_CCOUT(ae)(ret), [lo1] "+&r"(lo1), [hi1] "+r"(hi1)
+        : [lo0] "r"(lo0), [hi0] "r"(hi0)
+        : "cc");
+    return ret;
+}
+
+#endif
+
+} // namespace wjr
+
+#endif // WJR_X86_MATH_COMPARE_HPP__
+#endif
+
+namespace wjr {
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR int fallback_compare_n(const T *src0, const T *src1, size_t n) {
+    for (size_t idx = 0; idx < n; ++idx) {
+        if (src0[idx] != src1[idx]) {
+            return src0[idx] < src1[idx] ? -1 : 1;
+        }
+    }
+
+    return 0;
+}
+
+template <typename T>
+WJR_PURE WJR_INTRINSIC_CONSTEXPR_E int compare_n(const T *src0, const T *src1, size_t n) {
+    if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
+        return 0;
+    }
+
+#if WJR_HAS_BUILTIN(COMPARE_N)
+    if constexpr (sizeof(T) == 8) {
+        if (is_constant_evaluated()) {
+            return fallback_compare_n(src0, src1, n);
+        }
+
+        return builtin_compare_n(src0, src1, n);
+    } else {
+        return fallback_compare_n(src0, src1, n);
+    }
+#else
+    return fallback_compare_n(src0, src1, n);
+#endif
+}
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR int fallback_reverse_compare_n(const T *src0, const T *src1,
+                                                       size_t n) {
+    src0 += n;
+    src1 += n;
+
+    for (size_t idx = 0; idx < n; ++idx) {
+        if (src0[-1 - idx] != src1[-1 - idx]) {
+            return src0[-1 - idx] < src1[-1 - idx] ? -1 : 1;
+        }
+    }
+
+    return 0;
+}
+
+template <typename T>
+WJR_PURE WJR_INTRINSIC_CONSTEXPR_E int reverse_compare_n(const T *src0, const T *src1,
+                                                         size_t n) {
+    if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
+        return 0;
+    }
+
+#if WJR_HAS_BUILTIN(COMPARE_N)
+    if constexpr (sizeof(T) == 8) {
+        if (is_constant_evaluated()) {
+            return fallback_reverse_compare_n(src0, src1, n);
+        }
+
+        return builtin_reverse_compare_n(src0, src1, n);
+    } else {
+        return fallback_reverse_compare_n(src0, src1, n);
+    }
+#else
+    return fallback_reverse_compare_n(src0, src1, n);
+#endif
+}
+
+#if WJR_HAS_FEATURE(FAST_INT128_COMPARE)
+#define WJR_HAS_BUILTIN___BUILTIN_LESS_128 WJR_HAS_DEF
+#define WJR_HAS_BUILTIN___BUILTIN_LESS_EQUAL_128 WJR_HAS_DEF
+#endif
+
+WJR_INTRINSIC_CONSTEXPR_E bool __fallback_less_128(uint64_t lo0, uint64_t hi0,
+                                                   uint64_t lo1, uint64_t hi1) {
+    uint8_t f = lo0 < lo1;
+    (void)subc_cc(hi0, hi1, f, f);
+    return f;
+}
+
+#if WJR_HAS_BUILTIN(__BUILTIN_LESS_128)
+
+WJR_INTRINSIC_INLINE bool __builtin_less_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
+                                             uint64_t hi1) {
+    const auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
+    const auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
+
+    return x0 < x1;
+}
+
+#endif
+
+// return <hi0, lo0> < <hi1, lo1>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool __less_128(uint64_t lo0, uint64_t hi0,
+                                                    uint64_t lo1, uint64_t hi1) {
+#if WJR_HAS_BUILTIN(__BUILTIN_LESS_128) || WJR_HAS_BUILTIN(__ASM_LESS_128)
+    if (is_constant_evaluated()) {
+        return __fallback_less_128(lo0, hi0, lo1, hi1);
+    }
+
+    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(__BUILTIN_LESS_128), __builtin_less_128,
+                          __asm_less_128)(lo0, hi0, lo1, hi1);
+#else
+    return __fallback_less_128(lo0, hi0, lo1, hi1);
+#endif
+}
+
+WJR_INTRINSIC_CONSTEXPR_E bool __fallback_less_equal_128(uint64_t lo0, uint64_t hi0,
+                                                         uint64_t lo1, uint64_t hi1) {
+    return !__less_128(lo1, hi1, lo0, hi0);
+}
+
+#if WJR_HAS_BUILTIN(__BUILTIN_LESS_EQUAL_128)
+
+WJR_INTRINSIC_INLINE bool __builtin_less_equal_128(uint64_t lo0, uint64_t hi0,
+                                                   uint64_t lo1, uint64_t hi1) {
+    const auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
+    const auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
+
+    return x0 <= x1;
+}
+
+#endif
+
+// return <hi0, lo0> < <hi1, lo1>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool __less_equal_128(uint64_t lo0, uint64_t hi0,
+                                                          uint64_t lo1, uint64_t hi1) {
+#if WJR_HAS_BUILTIN(__BUILTIN_LESS_EQUAL_128) || WJR_HAS_BUILTIN(__ASM_LESS_EQUAL_128)
+    if (is_constant_evaluated()) {
+        return __fallback_less_equal_128(lo0, hi0, lo1, hi1);
+    }
+
+    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(__BUILTIN_LESS_EQUAL_128),
+                          __builtin_less_equal_128,
+                          __asm_less_equal_128)(lo0, hi0, lo1, hi1);
+#else
+    return __fallback_less_equal_128(lo0, hi0, lo1, hi1);
+#endif
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool __greater_128(uint64_t lo0, uint64_t hi0,
+                                                       uint64_t lo1, uint64_t hi1) {
+    return __less_128(lo1, hi1, lo0, hi0);
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool __greater_equal_128(uint64_t lo0, uint64_t hi0,
+                                                             uint64_t lo1, uint64_t hi1) {
+    return __less_equal_128(lo1, hi1, lo0, hi0);
+}
+
+} // namespace wjr
+
+#endif // WJR_MATH_CMP_HPP__
+#ifndef WJR_MATH_DIV_IMPL_HPP__
+#define WJR_MATH_DIV_IMPL_HPP__
+
+#include <utility>
+
+// Already included
+
+namespace wjr {
+
+template <typename T>
+class div1by1_divider;
+
+template <typename T>
+class div2by1_divider;
+
+template <typename T>
+class div3by2_divider;
+
+template <typename T>
+class divexact1_divider;
+
+inline uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
+                               const div2by1_divider<uint64_t> &divider);
+
+inline uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi, uint64_t div);
+
+inline std::pair<uint64_t, uint64_t>
+div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
+                const div2by1_divider<uint64_t> &divider);
+
+inline std::pair<uint64_t, uint64_t> div128by64to128(uint64_t &rem, uint64_t lo,
+                                                     uint64_t hi, uint64_t div);
+
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
+                                        const div2by1_divider<T> &div);
+
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
+                                        type_identity_t<T> div);
+
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
+                                        const div3by2_divider<T> &div);
+
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
+                                        const T *div);
+
+template <typename T>
+void div_qr_s(T *dst, T *rem, const T *src, size_t n, const T *div, size_t m);
+
+template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+WJR_CONSTEXPR_E T divexact_dbm1c(T *dst, const T *src, size_t n, T bd, T h);
+
+template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+WJR_CONSTEXPR_E void divexact_by3(T *dst, const T *src, size_t n);
+
+template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+WJR_CONSTEXPR_E void divexact_by5(T *dst, const T *src, size_t n);
+
+template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+WJR_CONSTEXPR_E void divexact_by15(T *dst, const T *src, size_t n);
+
+template <typename T, T c, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+WJR_CONSTEXPR_E void divexact_byc(T *dst, const T *src, size_t n,
+                                  std::integral_constant<T, c>);
+
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
+                                          const divexact1_divider<T> &div);
+
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
+                                          type_identity_t<T> div);
+
+} // namespace wjr
+
+#endif // WJR_MATH_DIV_IMPL_HPP__
+#ifndef WJR_MATH_DIVIDER_HPP__
+#define WJR_MATH_DIVIDER_HPP__
+
+#ifndef WJR_MATH_MUL_HPP__
+#define WJR_MATH_MUL_HPP__
+
+/**
+ * @todo optimize temporary memory usage of mul_s, mul_n, sqr
+ * 
+ */
+
+#ifndef WJR_MATH_BIGNUM_CONFIG_HPP__
+#define WJR_MATH_BIGNUM_CONFIG_HPP__
+
+#ifndef WJR_TOOM22_MUL_THRESHOLD
+#define WJR_TOOM22_MUL_THRESHOLD 26
+#endif
+
+#ifndef WJR_TOOM33_MUL_THRESHOLD
+#define WJR_TOOM33_MUL_THRESHOLD 72
+#endif
+
+#ifndef WJR_TOOM44_MUL_THRESHOLD
+#define WJR_TOOM44_MUL_THRESHOLD 208
+#endif
+
+#ifndef WJR_TOOM32_TO_TOOM43_MUL_THRESHOLD
+#define WJR_TOOM32_TO_TOOM43_MUL_THRESHOLD 73
+#endif
+
+#ifndef WJR_TOOM32_TO_TOOM53_MUL_THRESHOLD
+#define WJR_TOOM32_TO_TOOM53_MUL_THRESHOLD 153
+#endif
+
+#ifndef WJR_TOOM42_TO_TOOM53_MUL_THRESHOLD
+#define WJR_TOOM42_TO_TOOM53_MUL_THRESHOLD 137
+#endif
+
+#ifndef WJR_TOOM2_SQR_THRESHOLD
+#define WJR_TOOM2_SQR_THRESHOLD 32
+#endif
+
+#ifndef WJR_TOOM3_SQR_THRESHOLD
+#define WJR_TOOM3_SQR_THRESHOLD 117
+#endif
+
+#ifndef WJR_TOOM4_SQR_THRESHOLD
+#define WJR_TOOM4_SQR_THRESHOLD 336
+#endif
+
+#ifndef WJR_DC_DIV_QR_THRESHOLD
+#define WJR_DC_DIV_QR_THRESHOLD (WJR_TOOM22_MUL_THRESHOLD * 2)
+#endif // WJR_DC_DIV_QR_THRESHOLD
+
+#ifndef WJR_DC_BIGNUM_TO_CHARS_THRESHOLD
+#define WJR_DC_BIGNUM_TO_CHARS_THRESHOLD 20
+#endif
+
+#ifndef WJR_DC_BIGNUM_TO_CHARS_PRECOMPUTE_THRESHOLD
+#define WJR_DC_BIGNUM_TO_CHARS_PRECOMPUTE_THRESHOLD 20
+#endif
+
+#ifndef WJR_DC_BIGNUM_FROM_CHARS_THRESHOLD
+#define WJR_DC_BIGNUM_FROM_CHARS_THRESHOLD 1670
+#endif
+
+#ifndef WJR_DC_BIGNUM_FROM_CHARS_PRECOMPUTE_THRESHOLD
+#define WJR_DC_BIGNUM_FROM_CHARS_PRECOMPUTE_THRESHOLD 3105
+#endif
+
+#endif // WJR_MATH_BIGNUM_CONFIG_HPP__
+// Already included
+
+#ifndef WJR_MATH_ADD_HPP__
+#define WJR_MATH_ADD_HPP__
+
+// Already included
+#ifndef WJR_MATH_ADD_IMPL_HPP__
+#define WJR_MATH_ADD_IMPL_HPP__
+
+// Already included
+
+namespace wjr {
+
+template <
+    typename T, typename U,
+    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out);
+
+template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out);
+
+template <
+    typename T, typename U = T,
+    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E U addc_1(T *dst, const T *src0, size_t n,
+                                   type_identity_t<T> src1, U c_in = 0);
+
+template <
+    typename T, typename U = T,
+    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E U addc_n(T *dst, const T *src0, const T *src1, size_t n,
+                                   U c_in = 0);
+
+template <
+    typename T, typename U = T,
+    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E U addc_s(T *dst, const T *src0, size_t n, const T *src1,
+                                   size_t m, U c_in = 0);
+
+// m can be zero
+template <
+    typename T, typename U = T,
+    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E U addc_sz(T *dst, const T *src0, size_t n, const T *src1,
+                                    size_t m, U c_in = 0);
+
+WJR_INTRINSIC_CONSTEXPR_E void __add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                         uint64_t hi0, uint64_t lo1, uint64_t hi1);
+
+WJR_INTRINSIC_CONSTEXPR_E uint64_t __addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                              uint64_t c_in);
+
+WJR_INTRINSIC_CONSTEXPR_E uint8_t __addc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+                                                uint64_t hi0, uint64_t lo1, uint64_t hi1,
+                                                uint8_t c_in);
+
+} // namespace wjr
+
+#endif // WJR_MATH_ADD_IMPL_HPP__
+// Already included
 
 #if defined(WJR_X86)
 #ifndef WJR_X86_MATH_ADD_HPP__
@@ -12202,935 +13130,7 @@ WJR_INTRINSIC_CONSTEXPR_E T rshift_n(T *dst, const T *src, size_t n, unsigned in
 } // namespace wjr
 
 #endif // WJR_MATH_SHIFT_HPP__
-#ifndef WJR_MATH_SUB_HPP__
-#define WJR_MATH_SUB_HPP__
-
 // Already included
-// Already included
-// Already included
-
-#if defined(WJR_X86)
-#ifndef WJR_X86_SUB_HPP__
-#define WJR_X86_SUB_HPP__
-
-// Already included
-
-#ifndef WJR_X86
-#error "x86 required"
-#endif
-
-namespace wjr {
-
-#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
-#define WJR_HAS_BUILTIN_ASM_SUBC WJR_HAS_DEF
-#define WJR_HAS_BUILTIN_ASM_SUBC_N WJR_HAS_DEF
-#define WJR_HAS_BUILTIN___ASM_SUB_128 WJR_HAS_DEF
-#define WJR_HAS_BUILTIN___ASM_SUBC_128 WJR_HAS_DEF
-
-#if WJR_HAS_FEATURE(INLINE_ASM_CCCOND)
-#define WJR_HAS_BUILTIN_ASM_SUBC_CC WJR_HAS_DEF
-#define WJR_HAS_BUILTIN___ASM_SUBC_CC_128 WJR_HAS_DEF
-#endif
-
-#endif
-
-#if WJR_HAS_BUILTIN(ASM_SUBC)
-
-template <typename U>
-WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in, U &c_out) {
-    if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
-        if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
-            asm("stc\n\t"
-                "sbb{q %2, %0| %0, %2}\n\t"
-                "setb %b1"
-                : "=r"(a), "+r"(c_in)
-                : "ri"(b), "0"(a)
-                : "cc");
-        } else {
-            asm("stc\n\t"
-                "sbb{q %2, %0| %0, %2}\n\t"
-                "setb %b1"
-                : "=r"(a), "+r"(c_in)
-                : "r"(b), "0"(a)
-                : "cc");
-        }
-        c_out = c_in;
-        return a;
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
-        asm("add{b $255, %b1| %b1, 255}\n\t"
-            "sbb{q %2, %0| %0, %2}\n\t"
-            "setb %b1"
-            : "=r"(a), "+&r"(c_in)
-            : "ri"(b), "0"(a)
-            : "cc");
-    } else {
-        asm("add{b $255, %b1| %b1, 255}\n\t"
-            "sbb{q %2, %0| %0, %2}\n\t"
-            "setb %b1"
-            : "=r"(a), "+&r"(c_in)
-            : "r"(b), "0"(a)
-            : "cc");
-    }
-    c_out = c_in;
-    return a;
-}
-
-#endif
-
-#if WJR_HAS_BUILTIN(ASM_SUBC_CC)
-
-WJR_INTRINSIC_INLINE uint64_t asm_subc_cc(uint64_t a, uint64_t b, uint8_t c_in,
-                                          uint8_t &c_out) {
-    if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
-        if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
-            asm("stc\n\t"
-                "sbb{q %2, %0| %0, %2}\n\t" WJR_ASM_CCSET(c)
-                : "=r"(a), WJR_ASM_CCOUT(c)(c_out)
-                : "ri"(b), "0"(a)
-                : "cc");
-        } else {
-            asm("stc\n\t"
-                "sbb{q %2, %0| %0, %2}\n\t" WJR_ASM_CCSET(c)
-                : "=r"(a), WJR_ASM_CCOUT(c)(c_out)
-                : "r"(b), "0"(a)
-                : "cc");
-        }
-        return a;
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
-        asm("add{b $255, %b1| %b1, 255}\n\t"
-            "sbb{q %3, %0| %0, %3}\n\t" WJR_ASM_CCSET(c)
-            : "=r"(a), "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
-            : "ri"(b), "0"(a)
-            : "cc");
-    } else {
-        asm("add{b $255, %b1| %b1, 255}\n\t"
-            "sbb{q %3, %0| %0, %3}\n\t" WJR_ASM_CCSET(c)
-            : "=r"(a), "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
-            : "r"(b), "0"(a)
-            : "cc");
-    }
-    return a;
-}
-
-#endif
-
-#if WJR_HAS_BUILTIN(ASM_SUBC_N)
-#define WJR_ADDSUB_I 0
-// WJR_ADDSUB_I :
-// 0 : SUB
-// 1 : ADD
-
-// Already included
-
-#ifndef WJR_ADDSUB_I
-#error "abort"
-#endif
-
-#define WJR_addcsubc WJR_PP_BOOL_IF(WJR_ADDSUB_I, addc, subc)
-#define WJR_adcsbb WJR_PP_BOOL_IF(WJR_ADDSUB_I, adc, sbb)
-
-inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(
-    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, uint64_t c_in) {
-    if (WJR_BUILTIN_CONSTANT_P(n)) {
-        if (n == 1) {
-            dst[0] = WJR_PP_CONCAT(asm_, WJR_addcsubc)(src0[0], src1[0], c_in, c_in);
-            return c_in;
-        }
-    }
-
-    size_t rcx = n / 8;
-    uint64_t r8 = c_in, r9, r10 = n & 7, r11;
-
-    asm volatile(
-        "add{b $255, %b[r8]| %b[r8], 255}\n\t"
-        "lea{q| %[r9], [rip +} .Llookup%={(%%rip), %[r9]|]}\n\t"
-        "movs{lq (%[r9], %[r10], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + %[r10] * 4]}\n\t"
-        "lea{q (%[r9], %[r10], 1), %[r10]| %[r10], [%[r9] + %[r10]]}\n\t"
-        "jmp{q *%[r10]| %[r10]}\n\t"
-        
-        ".align 8\n\t"
-        ".Llookup%=:\n\t"
-        ".long .Ll0%=-.Llookup%=\n\t"
-        ".long .Ll1%=-.Llookup%=\n\t"
-        ".long .Ll2%=-.Llookup%=\n\t"
-        ".long .Ll3%=-.Llookup%=\n\t"
-        ".long .Ll4%=-.Llookup%=\n\t"
-        ".long .Ll5%=-.Llookup%=\n\t"
-        ".long .Ll6%=-.Llookup%=\n\t"
-        ".long .Ll7%=-.Llookup%=\n\t"
-        ".align 16\n\t"
-        
-        ".Ll0%=:\n\t"
-        "mov{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
-        "mov{q 8(%[src0]), %[r11]| %[r11], [%[src0] + 8]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
-        "jmp .Lb0%=\n\t"
-
-        ".Ld1%=:\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r10]| %[r10], [%[src1]]}\n\t"
-        "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
-        "jmp .Ldone%=\n\t"
-
-        ".Ll1%=:\n\t"
-        "mov{q (%[src0]), %[r10]| %[r10], [%[src0]]}\n\t"
-        "jrcxz .Ld1%=\n\t"
-        "mov{q 8(%[src0]), %[r9]| %[r9], [%[src0] + 8]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r10]| %[r10], [%[src1]]}\n\t"
-        "lea{q 8(%[src0]), %[src0]| %[src0], [%[src0] + 8]}\n\t"
-        "lea{q 8(%[src1]), %[src1]| %[src1], [%[src1] + 8]}\n\t"
-        "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
-        "jmp .Lb1%=\n\t"
-
-        ".Ll3%=:\n\t"
-        "mov{q (%[src0]), %[r11]| %[r11], [%[src0]]}\n\t"
-        "mov{q 8(%[src0]), %[r8]| %[r8], [%[src0] + 8]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r11]| %[r11], [%[src1]]}\n\t"
-        "lea{q -40(%[src0]), %[src0]| %[src0], [%[src0] - 40]}\n\t"
-        "lea{q -40(%[src1]), %[src1]| %[src1], [%[src1] - 40]}\n\t"
-        "lea{q -40(%[dst]), %[dst]| %[dst], [%[dst] - 40]}\n\t"
-        "inc %[rcx]\n\t"
-        "jmp .Lb3%=\n\t"
-
-        ".Ll4%=:\n\t"
-        "mov{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
-        "mov{q 8(%[src0]), %[r11]| %[r11], [%[src0] + 8]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
-        "lea{q -32(%[src0]), %[src0]| %[src0], [%[src0] - 32]}\n\t"
-        "lea{q -32(%[src1]), %[src1]| %[src1], [%[src1] - 32]}\n\t"
-        "lea{q -32(%[dst]), %[dst]| %[dst], [%[dst] - 32]}\n\t"
-        "inc %[rcx]\n\t"
-        "jmp .Lb4%=\n\t"
-
-        ".Ll5%=:\n\t"
-        "mov{q (%[src0]), %[r10]| %[r10], [%[src0]]}\n\t"
-        "mov{q 8(%[src0]), %[r9]| %[r9], [%[src0] + 8]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r10]| %[r10], [%[src1]]}\n\t"
-        "lea{q -24(%[src0]), %[src0]| %[src0], [%[src0] - 24]}\n\t"
-        "lea{q -24(%[src1]), %[src1]| %[src1], [%[src1] - 24]}\n\t"
-        "lea{q -24(%[dst]), %[dst]| %[dst], [%[dst] - 24]}\n\t"
-        "inc %[rcx]\n\t"
-        "jmp .Lb5%=\n\t"
-
-        ".Ll6%=:\n\t"
-        "mov{q (%[src0]), %[r8]| %[r8], [%[src0]]}\n\t"
-        "mov{q 8(%[src0]), %[r10]| %[r10], [%[src0] + 8]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r8]| %[r8], [%[src1]]}\n\t"
-        "lea{q -16(%[src0]), %[src0]| %[src0], [%[src0] - 16]}\n\t"
-        "lea{q -16(%[src1]), %[src1]| %[src1], [%[src1] - 16]}\n\t"
-        "lea{q -16(%[dst]), %[dst]| %[dst], [%[dst] - 16]}\n\t"
-        "inc %[rcx]\n\t"
-        "jmp .Lb6%=\n\t"
-
-        ".Ll7%=:\n\t"
-        "mov{q (%[src0]), %[r11]| %[r11], [%[src0]]}\n\t"
-        "mov{q 8(%[src0]), %[r8]| %[r8], [%[src0] + 8]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r11]| %[r11], [%[src1]]}\n\t"
-        "lea{q -8(%[src0]), %[src0]| %[src0], [%[src0] - 8]}\n\t"
-        "lea{q -8(%[src1]), %[src1]| %[src1], [%[src1] - 8]}\n\t"
-        "lea{q -8(%[dst]), %[dst]| %[dst], [%[dst] - 8]}\n\t"
-        "inc %[rcx]\n\t"
-        "jmp .Lb7%=\n\t"
-
-        ".Ld2%=:\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 8(%[src1]), %[r10]| %[r10], [%[src1] + 8]}\n\t"
-        "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
-        "mov{q %[r10], 8(%[dst])| [%[dst] + 8], %[r10]}\n\t"
-        "jmp .Ldone%=\n\t"
-
-        ".Ll2%=:\n\t"
-        "mov{q (%[src0]), %[r8]| %[r8], [%[src0]]}\n\t"
-        "mov{q 8(%[src0]), %[r10]| %[r10], [%[src0] + 8]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r8]| %[r8], [%[src1]]}\n\t"
-        "jrcxz .Ld2%=\n\t"
-        "lea{q 16(%[src0]), %[src0]| %[src0], [%[src0] + 16]}\n\t"
-        "lea{q 16(%[src1]), %[src1]| %[src1], [%[src1] + 16]}\n\t"
-        "lea{q 16(%[dst]), %[dst]| %[dst], [%[dst] + 16]}\n\t"
-
-        ".align 32\n\t"
-        ".Lloop%=:\n\t"
-
-        ".Lb2%=:\n\t"
-        "mov{q (%[src0]), %[r9]| %[r9], [%[src0]]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q -8(%[src1]), %[r10]| %[r10], [%[src1] - 8]}\n\t"
-        "mov{q %[r8], -16(%[dst])| [%[dst] - 16], %[r8]}\n\t"
-
-        ".Lb1%=:\n\t"
-        "mov{q 8(%[src0]), %[r11]| %[r11], [%[src0] + 8]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q (%[src1]), %[r9]| %[r9], [%[src1]]}\n\t"
-        "mov{q %[r10], -8(%[dst])| [%[dst] - 8], %[r10]}\n\t"
-
-        ".Lb0%=:\n\t"
-        "mov{q 16(%[src0]), %[r8]| %[r8], [%[src0] + 16]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 8(%[src1]), %[r11]| %[r11], [%[src1] + 8]}\n\t"
-        "mov{q %[r9], (%[dst])| [%[dst]], %[r9]}\n\t"
-
-        ".Lb7%=:\n\t"
-        "mov{q 24(%[src0]), %[r10]| %[r10], [%[src0] + 24]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 16(%[src1]), %[r8]| %[r8], [%[src1] + 16]}\n\t"
-        "mov{q %[r11], 8(%[dst])| [%[dst] + 8], %[r11]}\n\t"
-
-        ".Lb6%=:\n\t"
-        "mov{q 32(%[src0]), %[r9]| %[r9], [%[src0] + 32]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 24(%[src1]), %[r10]| %[r10], [%[src1] + 24]}\n\t"
-        "mov{q %[r8], 16(%[dst])| [%[dst] + 16], %[r8]}\n\t"
-
-        ".Lb5%=:\n\t"
-        "mov{q 40(%[src0]), %[r11]| %[r11], [%[src0] + 40]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 32(%[src1]), %[r9]| %[r9], [%[src1] + 32]}\n\t"
-        "mov{q %[r10], 24(%[dst])| [%[dst] + 24], %[r10]}\n\t"
-
-        ".Lb4%=:\n\t"
-        "mov{q 48(%[src0]), %[r8]| %[r8], [%[src0] + 48]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 40(%[src1]), %[r11]| %[r11], [%[src1] + 40]}\n\t"
-        "mov{q %[r9], 32(%[dst])| [%[dst] + 32], %[r9]}\n\t"
-
-        ".Lb3%=:\n\t"
-        "mov{q 56(%[src0]), %[r10]| %[r10], [%[src0] + 56]}\n\t"
-        WJR_PP_STR(WJR_adcsbb) "{q 48(%[src1]), %[r8]| %[r8], [%[src1] + 48]}\n\t"
-        "mov{q %[r11], 40(%[dst])| [%[dst] + 40], %[r11]}\n\t"
-
-        // TODO : optimize pipeline
-        "lea{q 64(%[src0]), %[src0]| %[src0], [%[src0] + 64]}\n\t"
-        "lea{q 64(%[src1]), %[src1]| %[src1], [%[src1] + 64]}\n\t"
-        "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
-        "dec %[rcx]\n\t"
-        
-        "jne .Lloop%=\n\t"
-
-        WJR_PP_STR(WJR_adcsbb) "{q -8(%[src1]), %[r10]| %[r10], [%[src1] - 8]}\n\t"
-        "mov{q %[r8], -16(%[dst])| [%[dst] - 16], %[r8]}\n\t"
-        "mov{q %[r10], -8(%[dst])| [%[dst] - 8], %[r10]}\n\t"
-
-        ".Ldone%=:\n\t"
-        "mov %k[rcx], %k[r9]\n\t"
-        "adc{l %k[rcx], %k[r9]| %k[r9], %k[rcx]}"
-
-        : [dst] "+r"(dst), [src0] "+r"(src0), [src1] "+r"(src1), [rcx] "+c"(rcx), 
-          [r8] "+r"(r8), [r9] "=&r"(r9), [r10] "+r"(r10), [r11] "=&r"(r11)
-        :
-        : "cc", "memory");
-
-    WJR_ASSERT_ASSUME(rcx == 0);
-    WJR_ASSERT_ASSUME(r9 <= 1);
-
-    return r9;
-}
-
-#undef WJR_adcsbb
-#undef WJR_addcsubc
-
-#undef WJR_ADDSUB_I
-#endif
-
-#if WJR_HAS_BUILTIN(__ASM_SUB_128)
-
-WJR_INTRINSIC_INLINE void __asm_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                        uint64_t hi0, uint64_t lo1, uint64_t hi1) {
-    if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
-        asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-            "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}"
-            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
-            : [lo1] "r"(lo1), [hi1] "i"(hi1)
-            : "cc");
-        al = lo0;
-        ah = hi0;
-        return;
-    }
-    asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}"
-        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
-        : [lo1] "r"(lo1), [hi1] "r"(hi1)
-        : "cc");
-    al = lo0;
-    ah = hi0;
-}
-
-#endif
-
-#if WJR_HAS_BUILTIN(__ASM_ADDC_128) || WJR_HAS_BUILTIN(__ASM_ADDC_CC_128)
-
-WJR_INTRINSIC_INLINE uint8_t __asm_subc_cc_zero_128(uint64_t &al, uint64_t &ah,
-                                                    uint64_t lo0, uint64_t hi0,
-                                                    uint64_t lo1, uint64_t hi1) {
-    uint8_t c_out;
-    if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
-        asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-            "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
-            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), WJR_ASM_CCOUT(c)(c_out)
-            : [lo1] "r"(lo1), [hi1] "i"(hi1)
-            : "cc");
-        al = lo0;
-        ah = hi0;
-        return c_out;
-    }
-
-    asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
-        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), WJR_ASM_CCOUT(c)(c_out)
-        : [lo1] "r"(lo1), [hi1] "r"(hi1)
-        : "cc");
-    al = lo0;
-    ah = hi0;
-    return c_out;
-}
-
-#endif
-
-#if WJR_HAS_BUILTIN(__ASM_SUBC_128)
-
-WJR_INTRINSIC_INLINE uint64_t __asm_subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                             uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                             uint64_t c_in) {
-    if (WJR_BUILTIN_CONSTANT_P(c_in == 0) && c_in == 0) {
-        return __asm_subc_cc_zero_128(al, ah, lo0, hi0, lo1, hi1);
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
-        asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
-            "sbb{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-            "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t"
-            "setb %b[c_in]"
-            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in)
-            : [lo1] "r"(lo1), [hi1] "i"(hi1)
-            : "cc");
-        al = lo0;
-        ah = hi0;
-        return c_in;
-    }
-
-    asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
-        "sbb{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t"
-        "setb %b[c_in]"
-        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in)
-        : [lo1] "r"(lo1), [hi1] "r"(hi1)
-        : "cc");
-    al = lo0;
-    ah = hi0;
-    return c_in;
-}
-
-#endif
-
-#if WJR_HAS_BUILTIN(__ASM_SUBC_CC_128)
-
-WJR_INTRINSIC_INLINE uint8_t __asm_subc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                               uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                               uint8_t c_in) {
-    if (WJR_BUILTIN_CONSTANT_P(c_in == 0) && c_in == 0) {
-        return __asm_subc_cc_zero_128(al, ah, lo0, hi0, lo1, hi1);
-    }
-
-    uint8_t c_out;
-    if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
-        asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
-            "sbb{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-            "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
-            : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in),
-              WJR_ASM_CCOUT(c)(c_out)
-            : [lo1] "r"(lo1), [hi1] "i"(hi1)
-            : "cc");
-        al = lo0;
-        ah = hi0;
-        return c_out;
-    }
-
-    asm("add{b $0xff, %b[c_in]| %b[c_in], 0xff}\n\t"
-        "sbb{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
-        "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(c)
-        : [lo0] "+&r"(lo0), [hi0] "+r"(hi0), [c_in] "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
-        : [lo1] "r"(lo1), [hi1] "r"(hi1)
-        : "cc");
-    al = lo0;
-    ah = hi0;
-    return c_out;
-}
-
-#endif
-
-} // namespace wjr
-
-#endif // WJR_X86_SUB_HPP__
-#endif
-
-namespace wjr {
-
-template <typename T, typename U>
-WJR_INTRINSIC_CONSTEXPR T fallback_subc(T a, T b, U c_in, U &c_out) {
-    T ret = a - b;
-    U c = ret > a;
-    a = ret;
-    ret -= c_in;
-    c |= ret > a;
-    c_out = c;
-    return ret;
-}
-
-#if WJR_HAS_BUILTIN(__builtin_subc)
-#define WJR_HAS_BUILTIN_SUBC WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_BUILTIN(SUBC)
-
-template <typename T, typename U>
-WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-#define WJR_REGISTER_BUILTIN_SUBC(suffix, type)                                          \
-    if constexpr (nd <= std::numeric_limits<type>::digits) {                             \
-        type __c_out;                                                                    \
-        T ret = __builtin_subc##suffix(a, b, static_cast<type>(c_in), &__c_out);         \
-        c_out = static_cast<U>(__c_out);                                                 \
-        return ret;                                                                      \
-    } else
-
-    WJR_REGISTER_BUILTIN_SUBC(b, unsigned char)
-    WJR_REGISTER_BUILTIN_SUBC(s, unsigned short)
-    WJR_REGISTER_BUILTIN_SUBC(, unsigned int)
-    WJR_REGISTER_BUILTIN_SUBC(l, unsigned long)
-    WJR_REGISTER_BUILTIN_SUBC(ll, unsigned long long) {
-        static_assert(nd <= 64, "not supported yet");
-    }
-
-#undef WJR_REGISTER_BUILTIN_SUBC
-}
-
-#endif // WJR_HAS_BUILTIN(SUBC)
-
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
-WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
-    WJR_ASSERT_ASSUME_L1(c_in <= 1);
-
-#if !WJR_HAS_BUILTIN(SUBC) && !WJR_HAS_BUILTIN(ASM_SUBC)
-    return fallback_subc(a, b, c_in, c_out);
-#else
-    constexpr auto is_constant_or_zero = [](auto x) -> int {
-        return WJR_BUILTIN_CONSTANT_P(x == 0) && x == 0 ? 2
-               : WJR_BUILTIN_CONSTANT_P(x)              ? 1
-                                                        : 0;
-    };
-
-    // The compiler should be able to optimize the judgment condition of if when enabling
-    // optimization. If it doesn't work, then there should be a issue
-    if (is_constant_evaluated() ||
-        // constant value is zero or constant value number greater or equal than 2
-        (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >=
-         2)) {
-        return fallback_subc(a, b, c_in, c_out);
-    }
-
-    if constexpr (sizeof(T) == 8) {
-        return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_SUBC), asm_subc,
-                              WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(SUBC), builtin_subc,
-                                             fallback_subc))(a, b, c_in, c_out);
-    } else {
-        return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(SUBC), builtin_subc,
-                              fallback_subc)(a, b, c_in, c_out);
-    }
-#endif
-}
-
-/*
- Used for subc and then jump according to cc flag. Therefore, the types of c_in and
- c_out are limited to uint8_t, while the default c_in and c_out types of normal subc are
- the same as T, so that the high register is not cleared. Currently, GCC/Clang @=cccond
- cannot know that the high register is not cleared, so the performance is worse than the
- normal version when cc flag is not needed immediately.
-*/
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
-WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
-    WJR_ASSERT_ASSUME_L1(c_in <= 1);
-
-#if WJR_HAS_BUILTIN(ASM_SUBC_CC)
-    constexpr auto is_constant_or_zero = [](auto x) -> int {
-        return WJR_BUILTIN_CONSTANT_P(x == 0) && x == 0 ? 2
-               : WJR_BUILTIN_CONSTANT_P(x)              ? 1
-                                                        : 0;
-    };
-
-    // The compiler should be able to optimize the judgment condition of if when enabling
-    // optimization. If it doesn't work, then there should be a issue
-    if (is_constant_evaluated() ||
-        // constant value is zero or constant value number greater or equal than 2
-        (is_constant_or_zero(a) + is_constant_or_zero(b) + is_constant_or_zero(c_in) >=
-         2)) {
-        return fallback_subc(a, b, c_in, c_out);
-    }
-
-    if constexpr (sizeof(T) == 8) {
-        return asm_subc_cc(a, b, c_in, c_out);
-    } else {
-        return subc(a, b, c_in, c_out);
-    }
-#else
-    return subc(a, b, c_in, c_out);
-#endif
-}
-
-/*
-require :
-1. n >= 1
-2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
-*/
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
-WJR_INTRINSIC_CONSTEXPR_E U subc_1(T *dst, const T *src0, size_t n,
-                                   type_identity_t<T> src1, U c_in) {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
-
-    uint8_t overflow = 0;
-    dst[0] = subc_cc(src0[0], src1, c_in, overflow);
-
-    if (overflow) {
-        size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, 0, -1);
-
-        if (WJR_UNLIKELY(idx == n)) {
-            return static_cast<U>(1);
-        }
-
-        dst[idx] = src0[idx] - 1;
-
-        dst += idx;
-        src0 += idx;
-        n -= idx;
-    }
-
-    if (src0 != dst) {
-        std::copy(src0 + 1, src0 + n, dst + 1);
-    }
-
-    return static_cast<U>(0);
-}
-
-template <typename T, typename U>
-WJR_INTRINSIC_CONSTEXPR U fallback_subc_n(T *dst, const T *src0, const T *src1, size_t n,
-                                          U c_in) {
-    size_t m = n / 4;
-
-    for (size_t i = 0; i < m; ++i) {
-        dst[0] = subc(src0[0], src1[0], c_in, c_in);
-        dst[1] = subc(src0[1], src1[1], c_in, c_in);
-        dst[2] = subc(src0[2], src1[2], c_in, c_in);
-        dst[3] = subc(src0[3], src1[3], c_in, c_in);
-
-        dst += 4;
-        src0 += 4;
-        src1 += 4;
-    }
-
-    n &= 3;
-    if (WJR_UNLIKELY(n == 0)) {
-        return c_in;
-    }
-
-    dst += n;
-    src0 += n;
-    src1 += n;
-
-    switch (n) {
-    case 3: {
-        dst[-3] = subc(src0[-3], src1[-3], c_in, c_in);
-        WJR_FALLTHROUGH;
-    }
-    case 2: {
-        dst[-2] = subc(src0[-2], src1[-2], c_in, c_in);
-        WJR_FALLTHROUGH;
-    }
-    case 1: {
-        dst[-1] = subc(src0[-1], src1[-1], c_in, c_in);
-        WJR_FALLTHROUGH;
-    }
-    default: {
-        break;
-    }
-    }
-
-    return c_in;
-}
-
-/*
-require :
-1. n >= 1
-2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
-3. WJR_IS_SAME_OR_INCR_P(dst, n, src1, n)
-*/
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
-WJR_INTRINSIC_CONSTEXPR_E U subc_n(T *dst, const T *src0, const T *src1, size_t n,
-                                   U c_in) {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
-
-#if WJR_HAS_BUILTIN(ASM_SUBC_N)
-    if constexpr (sizeof(T) == 8) {
-        if (is_constant_evaluated()) {
-            return fallback_subc_n(dst, src0, src1, n, c_in);
-        }
-
-        return asm_subc_n(dst, src0, src1, n, c_in);
-    } else {
-        return fallback_subc_n(dst, src0, src1, n, c_in);
-    }
-#else
-    return fallback_subc_n(dst, src0, src1, n, c_in);
-#endif
-}
-
-/*
-require :
-1. m >= 1
-2. n >= m
-3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
-4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
-*/
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
-WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n, const T *src1,
-                                   size_t m, U c_in) {
-    WJR_ASSERT_ASSUME(m >= 1);
-    WJR_ASSERT_ASSUME(n >= m);
-
-    c_in = subc_n(dst, src0, src1, m, c_in);
-
-    if (n != m) {
-        c_in = subc_1(dst + m, src0 + m, n - m, 0, c_in);
-    }
-
-    return c_in;
-}
-
-/*
-require :
-1. n >= 0
-2. n >= m
-3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
-4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
-*/
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
-WJR_INTRINSIC_CONSTEXPR_E U subc_sz(T *dst, const T *src0, size_t n, const T *src1,
-                                    size_t m, U c_in) {
-    WJR_ASSERT_ASSUME(n >= m);
-
-    if (WJR_LIKELY(m != 0)) {
-        c_in = subc_n(dst, src0, src1, m, c_in);
-    }
-
-    if (n != m) {
-        c_in = subc_1(dst + m, src0 + m, n - m, 0, c_in);
-    }
-
-    return c_in;
-}
-
-/*
-require :
-1. n >= 1
-2. WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n)
-3. WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n)
-return :
-dst = abs(src0 - src1)
-Absolute value represents non-zero pos
-> 0 : src0 > src1
-== 0 : src0 == src1
-< 0 : src0 < src1
-*/
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
-WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
-                                             size_t n) {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
-
-    size_t idx = reverse_find_not_n(src0, src1, n);
-
-    if (WJR_UNLIKELY(idx != n)) {
-        set_n(dst + idx, 0, n - idx);
-
-        if (WJR_UNLIKELY(idx == 0)) {
-            return 0;
-        }
-    }
-
-    ssize_t ret = __fasts_from_unsigned(n);
-    WJR_ASSUME(ret > 0);
-
-    if (src0[idx - 1] < src1[idx - 1]) {
-        std::swap(src0, src1);
-        ret = __fasts_negate(ret);
-    }
-
-    (void)subc_n(dst, src0, src1, idx);
-    return ret;
-}
-
-/*
-require :
-1. m >= 1
-2. n >= m
-3. WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n)
-4. WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, m)
-return :
-dst = abs(src0 - src1)
-Absolute value represents non-zero pos
-> 0 : src0 > src1
-== 0 : src0 == src1
-< 0 : src0 < src1
-*/
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
-WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
-                                             const T *src1, size_t m) {
-    WJR_ASSERT_ASSUME(m >= 1);
-    WJR_ASSERT_ASSUME(n >= m);
-
-    if (WJR_BUILTIN_CONSTANT_P(n == m) && n == m) {
-        return abs_subc_n(dst, src0, src1, m);
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P(n - m <= 1) && n - m <= 1) {
-        do {
-            if (n == m) {
-                break;
-            }
-
-            if (WJR_UNLIKELY(src0[m] == 0)) {
-                dst[m] = 0;
-                break;
-            }
-
-            (void)subc_s(dst, src0, m + 1, src1, m);
-            return __fasts_from_unsigned(m + 1);
-        } while (0);
-
-        return abs_subc_n(dst, src0, src1, m);
-    }
-
-    size_t idx = reverse_replace_find_not(dst + m, src0 + m, n - m, 0, 0);
-
-    if (WJR_UNLIKELY(idx == 0)) {
-        return abs_subc_n(dst, src0, src1, m);
-    }
-
-    (void)subc_s(dst, src0, m + idx, src1, m);
-    return __fasts_from_unsigned(m + idx);
-}
-
-// just like abs_subc_n.
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
-WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
-                                             size_t n, U &c_out, type_identity_t<U> cf0,
-                                             type_identity_t<U> cf1) {
-    WJR_ASSERT_ASSUME(n >= 1);
-    if (cf0 != cf1) {
-        ssize_t ret = __fasts_from_unsigned(n);
-        U cf = 0;
-        if (cf0 < cf1) {
-            std::swap(src0, src1);
-            ret = __fasts_negate(ret);
-            cf = cf1 - cf0;
-        } else {
-            cf = cf0 - cf1;
-        }
-
-        c_out = cf - subc_n(dst, src0, src1, n);
-        return ret;
-    } else {
-        c_out = 0;
-        return abs_subc_n(dst, src0, src1, n);
-    }
-}
-
-WJR_INTRINSIC_CONSTEXPR void __fallback_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                                uint64_t hi0, uint64_t lo1,
-                                                uint64_t hi1) {
-    uint64_t __al = lo0 - lo1;
-    ah = hi0 - hi1 - (__al > lo0);
-    al = __al;
-}
-
-#if WJR_HAS_FEATURE(FAST_INT128_ADDSUB)
-#define WJR_HAS_BUILTIN___BUILTIN_SUB_128 WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_BUILTIN(__BUILTIN_SUBC_128)
-
-WJR_INTRINSIC_INLINE void __builtin_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                            uint64_t hi0, uint64_t lo1, uint64_t hi1) {
-    const auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
-    const auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
-    x0 -= x1;
-
-    al = x0;
-    ah = x0 >> 64;
-}
-
-#endif
-
-// <ah, al> = <hi0, lo0> - <hi1, lo1>
-WJR_INTRINSIC_CONSTEXPR_E void __sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                         uint64_t hi0, uint64_t lo1, uint64_t hi1) {
-#if WJR_HAS_BUILTIN(__BUILTIN_SUB_128) || WJR_HAS_BUILTIN(__ASM_SUB_128)
-    if (is_constant_evaluated() || (WJR_BUILTIN_CONSTANT_P(lo0 == 0) && lo0 == 0) ||
-        (WJR_BUILTIN_CONSTANT_P(lo1 == 0) && lo1 == 0)) {
-        return __fallback_sub_128(al, ah, lo0, hi0, lo1, hi1);
-    }
-
-    return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(__BUILTIN_SUB_128), __builtin_sub_128,
-                          __asm_sub_128)(al, ah, lo0, hi0, lo1, hi1);
-#else
-    return __fallback_sub_128(al, ah, lo0, hi0, lo1, hi1);
-#endif
-}
-
-WJR_INTRINSIC_CONSTEXPR_E uint64_t __fallback_subc_128(uint64_t &al, uint64_t &ah,
-                                                       uint64_t lo0, uint64_t hi0,
-                                                       uint64_t lo1, uint64_t hi1,
-                                                       uint64_t c_in) {
-    al = subc(lo0, lo1, c_in, c_in);
-    ah = subc(hi0, hi1, c_in, c_in);
-    return c_in;
-}
-
-// return c_out
-WJR_INTRINSIC_CONSTEXPR_E uint64_t __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                              uint64_t c_in) {
-#if WJR_HAS_BUILTIN(__ASM_ADDC_128)
-    if (is_constant_evaluated()) {
-        return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
-    }
-
-    return __asm_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
-#else
-    return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
-#endif
-}
-
-WJR_INTRINSIC_CONSTEXPR_E uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                                uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                                uint8_t c_in) {
-#if WJR_HAS_BUILTIN(__ASM_ADDC_CC_128)
-    if (is_constant_evaluated()) {
-        return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
-    }
-
-    return __asm_subc_cc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
-#else
-    return __subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
-#endif
-}
-
-} // namespace wjr
-
-#endif // WJR_MATH_SUB_HPP__
 
 #if defined(WJR_X86)
 #ifndef WJR_X86_MATH_MUL_HPP__
@@ -19571,6 +19571,20 @@ public:
 };
 
 template <>
+class __from_chars_unroll_4_fn<8> : __from_chars_unroll_4_fn_impl<8>,
+                                    __from_chars_unroll_4_fast_fn_impl<8> {
+public:
+    template <typename Iter, typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
+            return __fast_conv(first, conv);
+        } else {
+            return __from_chars_unroll_4_fn_impl<8>::operator()(first, conv);
+        }
+    }
+};
+
+template <>
 class __from_chars_unroll_4_fn<10> : __from_chars_unroll_4_fn_impl<10>,
                                      __from_chars_unroll_4_fast_fn_impl<10> {
 public:
@@ -19634,6 +19648,20 @@ public:
 };
 
 template <>
+class __from_chars_unroll_8_fn<8> : __from_chars_unroll_8_fn_impl<8>,
+                                    __from_chars_unroll_8_fast_fn_impl<8> {
+public:
+    template <typename Iter, typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
+            return __fast_conv(first, conv);
+        } else {
+            return __from_chars_unroll_8_fn_impl<8>::operator()(first, conv);
+        }
+    }
+};
+
+template <>
 class __from_chars_unroll_8_fn<10> : __from_chars_unroll_8_fn_impl<10>,
                                      __from_chars_unroll_8_fast_fn_impl<10> {
 public:
@@ -19673,6 +19701,20 @@ public:
             return __fast_conv(first, conv);
         } else {
             return __from_chars_unroll_16_fn_impl<2>::operator()(first, conv);
+        }
+    }
+};
+
+template <>
+class __from_chars_unroll_16_fn<8> : __from_chars_unroll_16_fn_impl<8>,
+                                     __from_chars_unroll_16_fast_fn_impl<8> {
+public:
+    template <typename Iter, typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
+            return __fast_conv(first, conv);
+        } else {
+            return __from_chars_unroll_16_fn_impl<8>::operator()(first, conv);
         }
     }
 };
@@ -20475,7 +20517,7 @@ size_t from_chars_8(Iter first, size_t n, uint64_t *up, Converter conv = {}) {
     size_t len = (n * 3 + 63) / 64;
     size_t lbits = (64 * (len - 1)) / 3;
     size_t rest = (64 * (len - 1)) % 3;
-    size_t hbits = n - lbits;
+    size_t hbits = n - lbits - 1;
 
     auto unroll = [conv](uint64_t &x, auto &first) {
         auto x0 = conv.from(first[0]);
@@ -20491,58 +20533,82 @@ size_t from_chars_8(Iter first, size_t n, uint64_t *up, Converter conv = {}) {
     up += len;
     size_t idx = len - 1;
 
-    if (hbits > 4) {
-        do {
-            unroll(x, first);
-            hbits -= 4;
-        } while (WJR_LIKELY(hbits > 4));
+    if (hbits >= 8) {
+        if (hbits >= 16) {
+            do {
+                x = (x << 48) + __from_chars_unroll_16<8>(first, conv);
+                first += 16;
+                hbits -= 16;
+            } while (WJR_LIKELY(hbits >= 16));
+        }
+
+        if (hbits >= 8) {
+            x = (x << 24) + __from_chars_unroll_8<8>(first, conv);
+            first += 8;
+            hbits -= 8;
+        }
     }
 
     switch (hbits) {
-    case 4: {
-        x = x << 3 | conv.from(*first++);
+    case 7: {
+        x = (x << 3) + conv.from(*first++);
         WJR_FALLTHROUGH;
     }
+    case 6: {
+        x = (x << 3) + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 5: {
+        x = (x << 3) + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 4: {
+        x <<= 12;
+        x += __from_chars_unroll_4<8>(first, conv);
+        first += 4;
+        break;
+    }
     case 3: {
-        x = x << 3 | conv.from(*first++);
+        x = (x << 3) + conv.from(*first++);
         WJR_FALLTHROUGH;
     }
     case 2: {
-        x = x << 3 | conv.from(*first++);
+        x = (x << 3) + conv.from(*first++);
         WJR_FALLTHROUGH;
     }
     case 1: {
-        uint64_t nx = conv.from(*first++);
-        switch (rest) {
-        case 0: {
-            *--up = x << 3 | nx;
-            x = 0;
-            break;
-        }
-        case 1: {
-            x = x << 2 | nx >> 1;
-            if (WJR_UNLIKELY(x == 0)) {
-                --len;
-            }
+        x = (x << 3) + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    default: {
+        break;
+    }
+    }
 
-            *--up = x;
-            x = nx & 1;
-            break;
+    uint64_t nx = conv.from(*first++);
+    switch (rest) {
+    case 0: {
+        *--up = x << 3 | nx;
+        x = 0;
+        break;
+    }
+    case 1: {
+        x = x << 2 | nx >> 1;
+        if (WJR_UNLIKELY(x == 0)) {
+            --len;
         }
-        case 2: {
-            x = x << 1 | nx >> 2;
-            if (WJR_UNLIKELY(x == 0)) {
-                --len;
-            }
-            *--up = x;
-            x = nx & 3;
-            break;
+
+        *--up = x;
+        x = nx & 1;
+        break;
+    }
+    case 2: {
+        x = x << 1 | nx >> 2;
+        if (WJR_UNLIKELY(x == 0)) {
+            --len;
         }
-        default: {
-            WJR_UNREACHABLE();
-            break;
-        }
-        }
+        *--up = x;
+        x = nx & 3;
         break;
     }
     default: {

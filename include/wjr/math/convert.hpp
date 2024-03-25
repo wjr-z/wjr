@@ -155,6 +155,20 @@ public:
 };
 
 template <>
+class __from_chars_unroll_4_fn<8> : __from_chars_unroll_4_fn_impl<8>,
+                                    __from_chars_unroll_4_fast_fn_impl<8> {
+public:
+    template <typename Iter, typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
+            return __fast_conv(first, conv);
+        } else {
+            return __from_chars_unroll_4_fn_impl<8>::operator()(first, conv);
+        }
+    }
+};
+
+template <>
 class __from_chars_unroll_4_fn<10> : __from_chars_unroll_4_fn_impl<10>,
                                      __from_chars_unroll_4_fast_fn_impl<10> {
 public:
@@ -218,6 +232,20 @@ public:
 };
 
 template <>
+class __from_chars_unroll_8_fn<8> : __from_chars_unroll_8_fn_impl<8>,
+                                    __from_chars_unroll_8_fast_fn_impl<8> {
+public:
+    template <typename Iter, typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
+            return __fast_conv(first, conv);
+        } else {
+            return __from_chars_unroll_8_fn_impl<8>::operator()(first, conv);
+        }
+    }
+};
+
+template <>
 class __from_chars_unroll_8_fn<10> : __from_chars_unroll_8_fn_impl<10>,
                                      __from_chars_unroll_8_fast_fn_impl<10> {
 public:
@@ -257,6 +285,20 @@ public:
             return __fast_conv(first, conv);
         } else {
             return __from_chars_unroll_16_fn_impl<2>::operator()(first, conv);
+        }
+    }
+};
+
+template <>
+class __from_chars_unroll_16_fn<8> : __from_chars_unroll_16_fn_impl<8>,
+                                     __from_chars_unroll_16_fast_fn_impl<8> {
+public:
+    template <typename Iter, typename Converter>
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter>) {
+            return __fast_conv(first, conv);
+        } else {
+            return __from_chars_unroll_16_fn_impl<8>::operator()(first, conv);
         }
     }
 };
@@ -1059,7 +1101,7 @@ size_t from_chars_8(Iter first, size_t n, uint64_t *up, Converter conv = {}) {
     size_t len = (n * 3 + 63) / 64;
     size_t lbits = (64 * (len - 1)) / 3;
     size_t rest = (64 * (len - 1)) % 3;
-    size_t hbits = n - lbits;
+    size_t hbits = n - lbits - 1;
 
     auto unroll = [conv](uint64_t &x, auto &first) {
         auto x0 = conv.from(first[0]);
@@ -1075,58 +1117,82 @@ size_t from_chars_8(Iter first, size_t n, uint64_t *up, Converter conv = {}) {
     up += len;
     size_t idx = len - 1;
 
-    if (hbits > 4) {
-        do {
-            unroll(x, first);
-            hbits -= 4;
-        } while (WJR_LIKELY(hbits > 4));
+    if (hbits >= 8) {
+        if (hbits >= 16) {
+            do {
+                x = (x << 48) + __from_chars_unroll_16<8>(first, conv);
+                first += 16;
+                hbits -= 16;
+            } while (WJR_LIKELY(hbits >= 16));
+        }
+
+        if (hbits >= 8) {
+            x = (x << 24) + __from_chars_unroll_8<8>(first, conv);
+            first += 8;
+            hbits -= 8;
+        }
     }
 
     switch (hbits) {
-    case 4: {
-        x = x << 3 | conv.from(*first++);
+    case 7: {
+        x = (x << 3) + conv.from(*first++);
         WJR_FALLTHROUGH;
     }
+    case 6: {
+        x = (x << 3) + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 5: {
+        x = (x << 3) + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 4: {
+        x <<= 12;
+        x += __from_chars_unroll_4<8>(first, conv);
+        first += 4;
+        break;
+    }
     case 3: {
-        x = x << 3 | conv.from(*first++);
+        x = (x << 3) + conv.from(*first++);
         WJR_FALLTHROUGH;
     }
     case 2: {
-        x = x << 3 | conv.from(*first++);
+        x = (x << 3) + conv.from(*first++);
         WJR_FALLTHROUGH;
     }
     case 1: {
-        uint64_t nx = conv.from(*first++);
-        switch (rest) {
-        case 0: {
-            *--up = x << 3 | nx;
-            x = 0;
-            break;
-        }
-        case 1: {
-            x = x << 2 | nx >> 1;
-            if (WJR_UNLIKELY(x == 0)) {
-                --len;
-            }
+        x = (x << 3) + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    default: {
+        break;
+    }
+    }
 
-            *--up = x;
-            x = nx & 1;
-            break;
+    uint64_t nx = conv.from(*first++);
+    switch (rest) {
+    case 0: {
+        *--up = x << 3 | nx;
+        x = 0;
+        break;
+    }
+    case 1: {
+        x = x << 2 | nx >> 1;
+        if (WJR_UNLIKELY(x == 0)) {
+            --len;
         }
-        case 2: {
-            x = x << 1 | nx >> 2;
-            if (WJR_UNLIKELY(x == 0)) {
-                --len;
-            }
-            *--up = x;
-            x = nx & 3;
-            break;
+
+        *--up = x;
+        x = nx & 1;
+        break;
+    }
+    case 2: {
+        x = x << 1 | nx >> 2;
+        if (WJR_UNLIKELY(x == 0)) {
+            --len;
         }
-        default: {
-            WJR_UNREACHABLE();
-            break;
-        }
-        }
+        *--up = x;
+        x = nx & 3;
         break;
     }
     default: {

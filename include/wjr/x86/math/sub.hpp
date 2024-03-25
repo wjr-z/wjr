@@ -136,7 +136,7 @@ WJR_INTRINSIC_INLINE void __asm_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0
 
 #endif
 
-#if WJR_HAS_BUILTIN(__ASM_ADDC_128) || WJR_HAS_BUILTIN(__ASM_ADDC_CC_128)
+#if WJR_HAS_BUILTIN(__ASM_SUBC_128) || WJR_HAS_BUILTIN(__ASM_SUBC_CC_128)
 
 WJR_INTRINSIC_INLINE uint8_t __asm_subc_cc_zero_128(uint64_t &al, uint64_t &ah,
                                                     uint64_t lo0, uint64_t hi0,
