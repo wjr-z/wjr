@@ -316,7 +316,8 @@ template <typename T>
 using iter_reference_t = decltype(*std::declval<T &>());
 
 template <typename iter, typename = void>
-struct is_contiguous_iterator_impl : std::is_pointer<iter> {};
+struct is_contiguous_iterator_impl
+    : std::disjunction<std::is_pointer<iter>, std::is_array<iter>> {};
 
 template <typename iter>
 struct is_contiguous_iterator_impl<iter, typename iter::is_contiguous_iterator>
@@ -331,10 +332,6 @@ struct is_contiguous_iterator
 template <typename iter>
 struct is_contiguous_iterator : is_contiguous_iterator_impl<iter> {};
 #endif
-
-template <typename iter>
-struct is_contiguous_iterator<std::reverse_iterator<iter>>
-    : is_contiguous_iterator<iter> {};
 
 template <typename iter>
 inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<iter>::value;

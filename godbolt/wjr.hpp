@@ -2574,7 +2574,8 @@ template <typename T>
 using iter_reference_t = decltype(*std::declval<T &>());
 
 template <typename iter, typename = void>
-struct is_contiguous_iterator_impl : std::is_pointer<iter> {};
+struct is_contiguous_iterator_impl
+    : std::disjunction<std::is_pointer<iter>, std::is_array<iter>> {};
 
 template <typename iter>
 struct is_contiguous_iterator_impl<iter, typename iter::is_contiguous_iterator>
@@ -2589,10 +2590,6 @@ struct is_contiguous_iterator
 template <typename iter>
 struct is_contiguous_iterator : is_contiguous_iterator_impl<iter> {};
 #endif
-
-template <typename iter>
-struct is_contiguous_iterator<std::reverse_iterator<iter>>
-    : is_contiguous_iterator<iter> {};
 
 template <typename iter>
 inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<iter>::value;
@@ -19352,7 +19349,7 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
 
 template <uint64_t Base>
-uint64_t builtin_from_chars_unroll_8_fast(uint32_t in) {
+uint64_t builtin_to_chars_unroll_8_fast(uint32_t in) {
     static_assert(Base == 10, "");
 
     __m128i mulp4 = simd_cast<uint32_t, __m128i_t>(3518437209);
@@ -19399,15 +19396,15 @@ uint64_t builtin_from_chars_unroll_8_fast(uint32_t in) {
 }
 
 template <uint64_t Base>
-void builtin_from_chars_unroll_8_fast(void *ptr, uint32_t in, char_converter_t) {
-    uint64_t x = builtin_from_chars_unroll_8_fast<Base>(in) + 0x3030303030303030ull;
+void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in, char_converter_t) {
+    uint64_t x = builtin_to_chars_unroll_8_fast<Base>(in) + 0x3030303030303030ull;
 
     write_memory<uint64_t>(ptr, x);
 }
 
 template <uint64_t Base>
-void builtin_from_chars_unroll_8_fast(void *ptr, uint32_t in, origin_converter_t) {
-    uint64_t x = builtin_from_chars_unroll_8_fast<Base>(in);
+void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in, origin_converter_t) {
+    uint64_t x = builtin_to_chars_unroll_8_fast<Base>(in);
 
     write_memory<uint64_t>(ptr, x);
 }
@@ -19545,9 +19542,199 @@ template <typename Iter, typename Converter>
 inline constexpr bool __is_fast_convert_iterator_v =
     __is_fast_convert_iterator<Iter, Converter>::value;
 
+WJR_REGISTER_HAS_TYPE(__to_chars_fast_fn_fast_conv,
+                      Base::__fast_conv(std::declval<void *>(), std::declval<Value>(),
+                                        std::declval<Converter>()),
+                      Base, Value, Converter);
+
+WJR_REGISTER_HAS_TYPE(__from_chars_fast_fn_fast_conv,
+                      Base::__fast_conv(std::declval<const void *>(),
+                                        std::declval<Converter>()),
+                      Base, Converter);
+
+template <uint64_t Base>
+class __to_chars_unroll_2_fast_fn_impl_base {
+public:
+    template <typename Converter>
+    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
+                                                 Converter conv) {
+        auto str = (char *)ptr;
+        if constexpr (Base * Base <= 16) {
+            constexpr auto &table = __char_converter_table<Converter, Base, 4>;
+            str[0] = table[val * 4 + 2];
+            str[1] = table[val * 4 + 3];
+        } else {
+            constexpr auto &table = __char_converter_table<Converter, Base, 2>;
+            str[0] = table[val * 2];
+            str[1] = table[val * 2 + 1];
+        }
+    }
+};
+
+template <uint64_t Base>
+class __to_chars_unroll_2_fast_fn_impl {};
+
+template <>
+class __to_chars_unroll_2_fast_fn_impl<2>
+    : public __to_chars_unroll_2_fast_fn_impl_base<2> {};
+
+template <>
+class __to_chars_unroll_2_fast_fn_impl<8>
+    : public __to_chars_unroll_2_fast_fn_impl_base<8> {};
+
+template <>
+class __to_chars_unroll_2_fast_fn_impl<10>
+    : public __to_chars_unroll_2_fast_fn_impl_base<10> {};
+
+template <>
+class __to_chars_unroll_2_fast_fn_impl<16>
+    : public __to_chars_unroll_2_fast_fn_impl_base<16> {};
+
+template <uint64_t Base>
+class __to_chars_unroll_4_fast_fn_impl_base {
+public:
+    template <typename Converter>
+    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
+                                                 Converter conv) {
+        auto str = (char *)ptr;
+        if constexpr (Base * Base <= 16) {
+            constexpr auto &table = __char_converter_table<Converter, Base, 4>;
+            str[0] = table[val * 4];
+            str[1] = table[val * 4 + 1];
+            str[2] = table[val * 4 + 2];
+            str[3] = table[val * 4 + 3];
+        } else {
+            constexpr auto &table = __char_converter_table<Converter, Base, 2>;
+            constexpr auto Base2 = Base * Base;
+            uint32_t hi = val / Base2;
+            uint32_t lo = val % Base2;
+
+            str[0] = table[hi * 2];
+            str[1] = table[hi * 2 + 1];
+            str[2] = table[lo * 2];
+            str[3] = table[lo * 2 + 1];
+        }
+    }
+};
+
+template <uint64_t Base>
+class __to_chars_unroll_4_fast_fn_impl {};
+
+template <>
+class __to_chars_unroll_4_fast_fn_impl<2>
+    : public __to_chars_unroll_4_fast_fn_impl_base<2> {};
+
+template <>
+class __to_chars_unroll_4_fast_fn_impl<8>
+    : public __to_chars_unroll_4_fast_fn_impl_base<8> {};
+
+template <>
+class __to_chars_unroll_4_fast_fn_impl<10>
+    : public __to_chars_unroll_4_fast_fn_impl_base<10> {};
+
+template <>
+class __to_chars_unroll_4_fast_fn_impl<16>
+    : public __to_chars_unroll_4_fast_fn_impl_base<16> {};
+
+template <uint64_t Base>
+class __to_chars_unroll_8_fast_fn_impl_base {
+#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
+public:
+    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint64_t val,
+                                                 char_converter_t conv) {
+        builtin_to_chars_unroll_8_fast<Base>(ptr, val, conv);
+    }
+
+    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint64_t val,
+                                                 origin_converter_t conv) {
+        builtin_to_chars_unroll_8_fast<Base>(ptr, val, conv);
+    }
+#endif
+};
+
+template <uint64_t Base>
+class __to_chars_unroll_8_fast_fn_impl {};
+
+// template <>
+// class __to_chars_unroll_8_fast_fn_impl<2>
+//     : public __to_chars_unroll_8_fast_fn_impl_base<2> {};
+
+// template <>
+// class __to_chars_unroll_8_fast_fn_impl<8>
+//     : public __to_chars_unroll_8_fast_fn_impl_base<8> {};
+
+template <>
+class __to_chars_unroll_8_fast_fn_impl<10>
+    : public __to_chars_unroll_8_fast_fn_impl_base<10> {};
+
+// template <>
+// class __to_chars_unroll_8_fast_fn_impl<16>
+//     : public __to_chars_unroll_8_fast_fn_impl_base<16> {};
+
+template <uint64_t Base>
+class __to_chars_unroll_2_fn : public __to_chars_unroll_2_fast_fn_impl<Base> {
+    using Mybase = __to_chars_unroll_2_fast_fn_impl<Base>;
+
+public:
+    template <typename Iter, typename Converter>
+    WJR_INTRINSIC_INLINE void operator()(Iter ptr, uint32_t val, Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
+                      has___to_chars_fast_fn_fast_conv_v<Mybase, uint32_t, Converter>) {
+            Mybase::__fast_conv(to_address(ptr), val, conv);
+        } else {
+            ptr[0] = conv.to(val / Base);
+            ptr[1] = conv.to(val % Base);
+        }
+    }
+};
+
+template <uint64_t Base>
+inline constexpr __to_chars_unroll_2_fn<Base> __to_chars_unroll_2{};
+
+template <uint64_t Base>
+class __to_chars_unroll_4_fn_impl : public __to_chars_unroll_4_fast_fn_impl<Base> {
+    using Mybase = __to_chars_unroll_4_fast_fn_impl<Base>;
+
+public:
+    template <typename Iter, typename Converter>
+    WJR_INTRINSIC_INLINE void operator()(Iter ptr, uint32_t val, Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
+                      has___to_chars_fast_fn_fast_conv_v<Mybase, uint32_t, Converter>) {
+            Mybase::__fast_conv(to_address(ptr), val, conv);
+        } else {
+            constexpr auto Base2 = Base * Base;
+            __to_chars_unroll_2<Base>(ptr, val / Base2, conv);
+            __to_chars_unroll_2<Base>(ptr + 2, val % Base2, conv);
+        }
+    }
+};
+
+template <uint64_t Base>
+inline constexpr __to_chars_unroll_4_fn_impl<Base> __to_chars_unroll_4{};
+
+template <uint64_t Base>
+class __to_chars_unroll_8_fn_impl : public __to_chars_unroll_8_fast_fn_impl<Base> {
+    using Mybase = __to_chars_unroll_8_fast_fn_impl<Base>;
+
+public:
+    template <typename Iter, typename Converter>
+    WJR_INTRINSIC_INLINE void operator()(Iter ptr, uint64_t val, Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
+                      has___to_chars_fast_fn_fast_conv_v<Mybase, uint64_t, Converter>) {
+            Mybase::__fast_conv(to_address(ptr), val, conv);
+        } else {
+            constexpr auto Base4 = Base * Base * Base * Base;
+            __to_chars_unroll_4<Base>(ptr, val / Base4, conv);
+            __to_chars_unroll_4<Base>(ptr + 4, val % Base4, conv);
+        }
+    }
+};
+
+template <uint64_t Base>
+inline constexpr __to_chars_unroll_8_fn_impl<Base> __to_chars_unroll_8{};
+
 template <uint64_t Base>
 class __from_chars_unroll_4_fast_fn_impl_base {
-public:
     WJR_CONST WJR_INTRINSIC_INLINE static uint32_t __fast_conv(uint32_t val) {
         constexpr uint32_t Base2 = Base * Base;
 
@@ -19558,6 +19745,7 @@ public:
         return uint32_t(val);
     }
 
+public:
     WJR_PURE WJR_INTRINSIC_INLINE static uint32_t __fast_conv(const void *ptr,
                                                               origin_converter_t) {
         return __fast_conv(read_memory<uint32_t>(ptr));
@@ -19571,7 +19759,6 @@ public:
 
 template <uint64_t Base>
 class __from_chars_unroll_8_fast_fn_impl_base {
-public:
     WJR_CONST WJR_INTRINSIC_INLINE static uint64_t __fast_conv(uint64_t val) {
         constexpr uint64_t Base2 = Base * Base;
         constexpr uint64_t Base4 = Base2 * Base2;
@@ -19580,11 +19767,13 @@ public:
         constexpr uint64_t mask = 0x000000FF000000FF;
         constexpr uint64_t mul1 = Base2 + (Base6 << 32);
         constexpr uint64_t mul2 = 1 + (Base4 << 32);
+
         val = (val * Base) + (val >> 8);
         val = (((val & mask) * mul1) + (((val >> 16) & mask) * mul2)) >> 32;
         return uint32_t(val);
     }
 
+public:
     WJR_PURE WJR_INTRINSIC_INLINE static uint64_t __fast_conv(const void *ptr,
                                                               origin_converter_t) {
 #if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST)
@@ -19619,11 +19808,6 @@ public:
     }
 #endif
 };
-
-WJR_REGISTER_HAS_TYPE(__from_chars_fast_fn_fast_conv,
-                      Base::__fast_conv(std::declval<const void *>(),
-                                        std::declval<Converter>()),
-                      Base, Converter);
 
 template <uint64_t Base>
 class __from_chars_unroll_4_fast_fn_impl {};
@@ -19671,7 +19855,7 @@ class __from_chars_unroll_16_fast_fn_impl<10>
     : public __from_chars_unroll_16_fast_fn_impl_base<10> {};
 
 template <uint64_t Base>
-class __from_chars_unroll_4_fn_impl : public __from_chars_unroll_4_fast_fn_impl<Base> {
+class __from_chars_unroll_4_fn : public __from_chars_unroll_4_fast_fn_impl<Base> {
     using Mybase = __from_chars_unroll_4_fast_fn_impl<Base>;
 
 public:
@@ -19679,7 +19863,7 @@ public:
     WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
         if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
                       has___from_chars_fast_fn_fast_conv_v<Mybase, Converter>) {
-            return Mybase::__fast_conv(first, conv);
+            return Mybase::__fast_conv(to_address(first), conv);
         } else {
             uint64_t value = 0;
             value = conv.from(*first++);
@@ -19691,13 +19875,10 @@ public:
 };
 
 template <uint64_t Base>
-class __from_chars_unroll_4_fn : public __from_chars_unroll_4_fn_impl<Base> {};
-
-template <uint64_t Base>
 inline constexpr __from_chars_unroll_4_fn<Base> __from_chars_unroll_4{};
 
 template <uint64_t Base>
-class __from_chars_unroll_8_fn_impl : public __from_chars_unroll_8_fast_fn_impl<Base> {
+class __from_chars_unroll_8_fn : public __from_chars_unroll_8_fast_fn_impl<Base> {
     using Mybase = __from_chars_unroll_8_fast_fn_impl<Base>;
 
 public:
@@ -19705,7 +19886,7 @@ public:
     WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
         if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
                       has___from_chars_fast_fn_fast_conv_v<Mybase, Converter>) {
-            return Mybase::__fast_conv(first, conv);
+            return Mybase::__fast_conv(to_address(first), conv);
         } else {
             constexpr uint64_t Base4 = Base * Base * Base * Base;
             return __from_chars_unroll_4<Base>(first, conv) * Base4 +
@@ -19715,13 +19896,10 @@ public:
 };
 
 template <uint64_t Base>
-class __from_chars_unroll_8_fn : public __from_chars_unroll_8_fn_impl<Base> {};
-
-template <uint64_t Base>
 inline constexpr __from_chars_unroll_8_fn<Base> __from_chars_unroll_8{};
 
 template <uint64_t Base>
-class __from_chars_unroll_16_fn_impl : public __from_chars_unroll_16_fast_fn_impl<Base> {
+class __from_chars_unroll_16_fn : public __from_chars_unroll_16_fast_fn_impl<Base> {
     using Mybase = __from_chars_unroll_16_fast_fn_impl<Base>;
 
 public:
@@ -19729,7 +19907,7 @@ public:
     WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
         if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
                       has___from_chars_fast_fn_fast_conv_v<Mybase, Converter>) {
-            return Mybase::__fast_conv(first, conv);
+            return Mybase::__fast_conv(to_address(first), conv);
         } else {
             constexpr uint64_t Base4 = Base * Base * Base * Base;
             constexpr uint64_t Base8 = Base4 * Base4;
@@ -19740,23 +19918,11 @@ public:
 };
 
 template <uint64_t Base>
-class __from_chars_unroll_16_fn : public __from_chars_unroll_16_fn_impl<Base> {};
-
-template <uint64_t Base>
 inline constexpr __from_chars_unroll_16_fn<Base> __from_chars_unroll_16{};
 
 template <typename Iter, typename Converter = char_converter_t>
 size_t to_chars_2(Iter first, uint64_t x, Converter conv = {}) {
     WJR_ASSERT(x != 0);
-
-    constexpr auto &table = __char_converter_table<Converter, 2, 4>;
-    constexpr auto unroll = [](auto &first, unsigned int v) {
-        first[-1] = table[v * 4 + 3];
-        first[-2] = table[v * 4 + 2];
-        first[-3] = table[v * 4 + 1];
-        first[-4] = table[v * 4];
-        first -= 4;
-    };
 
     int pc = clz(x);
     WJR_ASSUME(0 <= pc && pc <= 63);
@@ -19765,17 +19931,33 @@ size_t to_chars_2(Iter first, uint64_t x, Converter conv = {}) {
     size_t len = hbits;
     first += len;
 
-    if (WJR_LIKELY(hbits > 4)) {
+    if (WJR_LIKELY(hbits >= 8)) {
         do {
-            unroll(first, x & 0x0f);
-            x >>= 4;
-            hbits -= 4;
-        } while (WJR_LIKELY(hbits > 4));
+            __to_chars_unroll_8<2>(first - 8, x & 0xff, conv);
+            first -= 8;
+            x >>= 8;
+            hbits -= 8;
+        } while (WJR_LIKELY(hbits >= 8));
     }
 
     switch (hbits) {
+    case 7: {
+        *--first = conv.to(x & 1);
+        x >>= 1;
+        WJR_FALLTHROUGH;
+    }
+    case 6: {
+        __to_chars_unroll_4<2>(first - 4, x & 0x0f, conv);
+        __to_chars_unroll_2<2>(first - 6, x >> 4, conv);
+        break;
+    }
+    case 5: {
+        *--first = conv.to(x & 1);
+        x >>= 1;
+        WJR_FALLTHROUGH;
+    }
     case 4: {
-        unroll(first, x);
+        __to_chars_unroll_4<2>(first - 4, x, conv);
         break;
     }
     case 3: {
@@ -19784,12 +19966,14 @@ size_t to_chars_2(Iter first, uint64_t x, Converter conv = {}) {
         WJR_FALLTHROUGH;
     }
     case 2: {
-        *--first = conv.to(x & 1);
-        x >>= 1;
-        WJR_FALLTHROUGH;
+        __to_chars_unroll_2<2>(first - 2, x, conv);
+        break;
     }
     case 1: {
         *--first = conv.to(x);
+        WJR_FALLTHROUGH;
+    }
+    case 0: {
         break;
     }
     default: {
@@ -19806,15 +19990,6 @@ size_t __large_to_chars_2_impl(Iter first, uint64_t *up, size_t n, Converter con
     WJR_ASSERT(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
-    constexpr auto &table = __char_converter_table<Converter, 2, 4>;
-    constexpr auto unroll = [](auto &first, unsigned int v) {
-        first[-1] = table[v * 4 + 3];
-        first[-2] = table[v * 4 + 2];
-        first[-3] = table[v * 4 + 1];
-        first[-4] = table[v * 4];
-        first -= 4;
-    };
-
     uint64_t x = up[n - 1];
     --n;
     int pc = clz(x);
@@ -19826,28 +20001,45 @@ size_t __large_to_chars_2_impl(Iter first, uint64_t *up, size_t n, Converter con
 
     do {
         x = *up;
-        for (int i = 0; i < 16; ++i) {
-            unroll(first, x & 0x0f);
-            x >>= 4;
+
+        for (int i = 0; i < 8; ++i) {
+            __to_chars_unroll_8<2>(first - 8, x & 0xff, conv);
+            first -= 8;
+            x >>= 8;
         }
+
         ++up;
         --n;
     } while (n);
     x = *up;
 
-    WJR_ASSERT_ASSUME(hbits != 0);
-
-    if (WJR_LIKELY(hbits > 4)) {
+    if (WJR_LIKELY(hbits >= 8)) {
         do {
-            unroll(first, x & 0x0f);
-            x >>= 4;
-            hbits -= 4;
-        } while (WJR_LIKELY(hbits > 4));
+            __to_chars_unroll_8<2>(first - 8, x & 0xff, conv);
+            first -= 8;
+            x >>= 8;
+            hbits -= 8;
+        } while (WJR_LIKELY(hbits >= 8));
     }
 
     switch (hbits) {
+    case 7: {
+        *--first = conv.to(x & 1);
+        x >>= 1;
+        WJR_FALLTHROUGH;
+    }
+    case 6: {
+        __to_chars_unroll_4<2>(first - 4, x & 0x0f, conv);
+        __to_chars_unroll_2<2>(first - 6, x >> 4, conv);
+        break;
+    }
+    case 5: {
+        *--first = conv.to(x & 1);
+        x >>= 1;
+        WJR_FALLTHROUGH;
+    }
     case 4: {
-        unroll(first, x);
+        __to_chars_unroll_4<2>(first - 4, x, conv);
         break;
     }
     case 3: {
@@ -19856,12 +20048,14 @@ size_t __large_to_chars_2_impl(Iter first, uint64_t *up, size_t n, Converter con
         WJR_FALLTHROUGH;
     }
     case 2: {
-        *--first = conv.to(x & 1);
-        x >>= 1;
-        WJR_FALLTHROUGH;
+        __to_chars_unroll_2<2>(first - 2, x, conv);
+        break;
     }
     case 1: {
         *--first = conv.to(x);
+        WJR_FALLTHROUGH;
+    }
+    case 0: {
         break;
     }
     default: {
@@ -19877,13 +20071,6 @@ template <typename Iter, typename Converter = char_converter_t>
 size_t to_chars_8(Iter first, uint64_t x, Converter conv = {}) {
     WJR_ASSERT(x != 0);
 
-    constexpr auto &table = __char_converter_table<Converter, 8, 2>;
-    constexpr auto unroll = [](auto &first, unsigned int v) {
-        first[-1] = table[v * 2 + 1];
-        first[-2] = table[v * 2];
-        first -= 2;
-    };
-
     int pc = clz(x);
     WJR_ASSUME(0 <= pc && pc <= 63);
     int hbits = 64 - pc;
@@ -19891,20 +20078,55 @@ size_t to_chars_8(Iter first, uint64_t x, Converter conv = {}) {
     size_t len = (hbits + 2) / 3;
     first += len;
 
-    if (WJR_LIKELY(hbits > 6)) {
+    if (hbits + 2 >= 24) {
         do {
-            unroll(first, x & 0x3f);
-            x >>= 6;
-            hbits -= 6;
-        } while (WJR_LIKELY(hbits > 6));
+            __to_chars_unroll_8<8>(first - 8, x & 0xff'ffff, conv);
+            first -= 8;
+            x >>= 24;
+            hbits -= 24;
+        } while (hbits + 2 >= 24);
     }
 
-    WJR_ASSERT_ASSUME(hbits != 0);
-
-    if (hbits > 3) {
-        unroll(first, x);
-    } else {
+    switch ((hbits + 2) / 3) {
+    case 7: {
+        *--first = conv.to(x & 0x07);
+        x >>= 3;
+        WJR_FALLTHROUGH;
+    }
+    case 6: {
+        __to_chars_unroll_4<8>(first - 4, x & 0x0fff, conv);
+        __to_chars_unroll_2<8>(first - 6, x >> 12, conv);
+        break;
+    }
+    case 5: {
+        *--first = conv.to(x & 0x07);
+        x >>= 3;
+        WJR_FALLTHROUGH;
+    }
+    case 4: {
+        __to_chars_unroll_4<8>(first - 4, x, conv);
+        break;
+    }
+    case 3: {
+        *--first = conv.to(x & 0x07);
+        x >>= 3;
+        WJR_FALLTHROUGH;
+    }
+    case 2: {
+        __to_chars_unroll_2<8>(first - 2, x, conv);
+        break;
+    }
+    case 1: {
         *--first = conv.to(x);
+        WJR_FALLTHROUGH;
+    }
+    case 0: {
+        break;
+    }
+    default: {
+        WJR_UNREACHABLE();
+        break;
+    }
     }
 
     return len;
@@ -19914,13 +20136,6 @@ template <typename Iter, typename Converter>
 size_t __large_to_chars_8_impl(Iter first, uint64_t *up, size_t n, Converter conv) {
     WJR_ASSERT(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
-
-    constexpr auto &table = __char_converter_table<Converter, 8, 2>;
-    constexpr auto unroll = [](auto &first, unsigned int v) {
-        first[-1] = table[v * 2 + 1];
-        first[-2] = table[v * 2];
-        first -= 2;
-    };
 
     uint64_t x = up[n - 1];
     --n;
@@ -19943,13 +20158,15 @@ size_t __large_to_chars_8_impl(Iter first, uint64_t *up, size_t n, Converter con
             break;
         }
         case 2: {
-            unroll(first, last | ((x & 0x03) << 4));
+            __to_chars_unroll_2<8>(first - 2, last | ((x & 0x03) << 4), conv);
+            first -= 2;
             x >>= 2;
             rest = 4;
             break;
         }
         case 4: {
-            unroll(first, last | ((x & 0x0f) << 2));
+            __to_chars_unroll_2<8>(first - 2, last | ((x & 0x0f) << 2), conv);
+            first -= 2;
             x >>= 4;
             rest = 0;
             break;
@@ -19960,10 +20177,13 @@ size_t __large_to_chars_8_impl(Iter first, uint64_t *up, size_t n, Converter con
         }
         }
 
-        for (int i = 0; i < 10; ++i) {
-            unroll(first, x & 0x3f);
-            x >>= 6;
-        }
+        __to_chars_unroll_8<8>(first - 8, x & 0xff'ffff, conv);
+        x >>= 24;
+        __to_chars_unroll_8<8>(first - 16, x & 0xff'ffff, conv);
+        x >>= 24;
+        __to_chars_unroll_4<8>(first - 20, x & 0x0fff, conv);
+        x >>= 12;
+        first -= 20;
 
         last = x;
 
@@ -19977,7 +20197,8 @@ size_t __large_to_chars_8_impl(Iter first, uint64_t *up, size_t n, Converter con
         break;
     }
     case 2: {
-        unroll(first, last | ((x & 0x03) << 4));
+        __to_chars_unroll_2<8>(first - 2, last | ((x & 0x03) << 4), conv);
+        first -= 2;
         if (hbits <= 2) {
             goto DONE;
         }
@@ -19991,7 +20212,8 @@ size_t __large_to_chars_8_impl(Iter first, uint64_t *up, size_t n, Converter con
             goto DONE;
         }
 
-        unroll(first, last | ((x & 0x0f) << 2));
+        __to_chars_unroll_2<8>(first - 2, last | ((x & 0x0f) << 2), conv);
+        first -= 2;
         if (hbits <= 4) {
             goto DONE;
         }
@@ -20005,20 +20227,55 @@ size_t __large_to_chars_8_impl(Iter first, uint64_t *up, size_t n, Converter con
     }
     }
 
-    if (WJR_LIKELY(hbits > 6)) {
+    if (hbits + 2 >= 24) {
         do {
-            unroll(first, x & 0x3f);
-            x >>= 6;
-            hbits -= 6;
-        } while (WJR_LIKELY(hbits > 6));
+            __to_chars_unroll_8<8>(first - 8, x & 0xff'ffff, conv);
+            first -= 8;
+            x >>= 24;
+            hbits -= 24;
+        } while (hbits + 2 >= 24);
     }
 
-    WJR_ASSERT_ASSUME(hbits != 0);
-
-    if (hbits > 3) {
-        unroll(first, x);
-    } else {
+    switch ((hbits + 2) / 3) {
+    case 7: {
+        *--first = conv.to(x & 0x07);
+        x >>= 3;
+        WJR_FALLTHROUGH;
+    }
+    case 6: {
+        __to_chars_unroll_4<8>(first - 4, x & 0x0fff, conv);
+        __to_chars_unroll_2<8>(first - 6, x >> 12, conv);
+        break;
+    }
+    case 5: {
+        *--first = conv.to(x & 0x07);
+        x >>= 3;
+        WJR_FALLTHROUGH;
+    }
+    case 4: {
+        __to_chars_unroll_4<8>(first - 4, x, conv);
+        break;
+    }
+    case 3: {
+        *--first = conv.to(x & 0x07);
+        x >>= 3;
+        WJR_FALLTHROUGH;
+    }
+    case 2: {
+        __to_chars_unroll_2<8>(first - 2, x, conv);
+        break;
+    }
+    case 1: {
         *--first = conv.to(x);
+        WJR_FALLTHROUGH;
+    }
+    case 0: {
+        break;
+    }
+    default: {
+        WJR_UNREACHABLE();
+        break;
+    }
     }
 
 DONE:
@@ -20029,13 +20286,6 @@ template <typename Iter, typename Converter = char_converter_t>
 size_t to_chars_16(Iter first, uint64_t x, Converter conv = {}) {
     WJR_ASSERT(x != 0);
 
-    constexpr auto &table = __char_converter_table<Converter, 16, 2>;
-    constexpr auto unroll = [](auto &first, unsigned int v) {
-        first[-1] = table[v * 2 + 1];
-        first[-2] = table[v * 2];
-        first -= 2;
-    };
-
     int pc = clz(x);
     WJR_ASSUME(0 <= pc && pc <= 63);
     int hbits = 64 - pc;
@@ -20043,20 +20293,58 @@ size_t to_chars_16(Iter first, uint64_t x, Converter conv = {}) {
     size_t len = (hbits + 3) / 4;
     first += len;
 
-    if (WJR_LIKELY(hbits > 8)) {
-        do {
-            unroll(first, x & 0xff);
-            x >>= 8;
-            hbits -= 8;
-        } while (WJR_LIKELY(hbits > 8));
+    if (WJR_LIKELY(hbits + 3 >= 32)) {
+        __to_chars_unroll_8<16>(first - 8, x & 0xffff'ffff, conv);
+        first -= 8;
+        x >>= 32;
+        hbits -= 32;
+
+        if (hbits + 3 >= 32) {
+            __to_chars_unroll_8<16>(first - 8, x, conv);
+            hbits -= 32;
+        }
     }
 
-    WJR_ASSERT_ASSUME(hbits != 0);
-
-    if (hbits > 4) {
-        unroll(first, x);
-    } else {
+    switch ((hbits + 3) / 4) {
+    case 7: {
+        *--first = conv.to(x & 0x0f);
+        x >>= 4;
+        WJR_FALLTHROUGH;
+    }
+    case 6: {
+        __to_chars_unroll_4<16>(first - 4, x & 0xffff, conv);
+        __to_chars_unroll_2<16>(first - 6, x >> 16, conv);
+        break;
+    }
+    case 5: {
+        *--first = conv.to(x & 0x0f);
+        x >>= 4;
+        WJR_FALLTHROUGH;
+    }
+    case 4: {
+        __to_chars_unroll_4<16>(first - 4, x, conv);
+        break;
+    }
+    case 3: {
+        *--first = conv.to(x & 0x0f);
+        x >>= 4;
+        WJR_FALLTHROUGH;
+    }
+    case 2: {
+        __to_chars_unroll_2<16>(first - 2, x, conv);
+        break;
+    }
+    case 1: {
         *--first = conv.to(x);
+        WJR_FALLTHROUGH;
+    }
+    case 0: {
+        break;
+    }
+    default: {
+        WJR_UNREACHABLE();
+        break;
+    }
     }
 
     return len;
@@ -20066,13 +20354,6 @@ template <typename Iter, typename Converter>
 size_t __large_to_chars_16_impl(Iter first, uint64_t *up, size_t n, Converter conv) {
     WJR_ASSERT(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
-
-    constexpr auto &table = __char_converter_table<Converter, 16, 2>;
-    constexpr auto unroll = [](auto &first, unsigned int v) {
-        first[-1] = table[v * 2 + 1];
-        first[-2] = table[v * 2];
-        first -= 2;
-    };
 
     uint64_t x = up[n - 1];
     --n;
@@ -20086,30 +20367,67 @@ size_t __large_to_chars_16_impl(Iter first, uint64_t *up, size_t n, Converter co
     do {
         x = *up;
 
-        for (int i = 0; i < 8; ++i) {
-            unroll(first, x & 0xff);
-            x >>= 8;
-        }
+        __to_chars_unroll_8<16>(first - 8, x & 0xffff'ffff, conv);
+        __to_chars_unroll_8<16>(first - 16, x >> 32, conv);
+        first -= 16;
 
         ++up;
         --n;
     } while (n);
     x = *up;
 
-    if (WJR_LIKELY(hbits > 8)) {
-        do {
-            unroll(first, x & 0xff);
-            x >>= 8;
-            hbits -= 8;
-        } while (WJR_LIKELY(hbits > 8));
+    if (WJR_LIKELY(hbits + 3 >= 32)) {
+        __to_chars_unroll_8<16>(first - 8, x & 0xffff'ffff, conv);
+        first -= 8;
+        x >>= 32;
+        hbits -= 32;
+
+        if (hbits + 3 >= 32) {
+            __to_chars_unroll_8<16>(first - 8, x, conv);
+            hbits -= 32;
+        }
     }
 
-    WJR_ASSERT_ASSUME(hbits != 0);
-
-    if (hbits > 4) {
-        unroll(first, x);
-    } else {
+    switch ((hbits + 3) / 4) {
+    case 7: {
+        *--first = conv.to(x & 0x0f);
+        x >>= 4;
+        WJR_FALLTHROUGH;
+    }
+    case 6: {
+        __to_chars_unroll_4<16>(first - 4, x & 0xffff, conv);
+        __to_chars_unroll_2<16>(first - 6, x >> 16, conv);
+        break;
+    }
+    case 5: {
+        *--first = conv.to(x & 0x0f);
+        x >>= 4;
+        WJR_FALLTHROUGH;
+    }
+    case 4: {
+        __to_chars_unroll_4<16>(first - 4, x, conv);
+        break;
+    }
+    case 3: {
+        *--first = conv.to(x & 0x0f);
+        x >>= 4;
+        WJR_FALLTHROUGH;
+    }
+    case 2: {
+        __to_chars_unroll_2<16>(first - 2, x, conv);
+        break;
+    }
+    case 1: {
         *--first = conv.to(x);
+        WJR_FALLTHROUGH;
+    }
+    case 0: {
+        break;
+    }
+    default: {
+        WJR_UNREACHABLE();
+        break;
+    }
     }
 
     return len;
@@ -20213,25 +20531,31 @@ DONE:
 
 template <typename Converter>
 char *__backward_to_chars_10(char *buf, uint64_t val, Converter conv) {
-    constexpr auto &table = __char_converter_table<Converter, 10, 2>;
-    constexpr auto unroll = [](auto &first, unsigned int v) {
-        first[-1] = table[v * 2 + 1];
-        first[-2] = table[v * 2];
-        first -= 2;
-    };
+    WJR_ASSERT_ASSUME(val != 0);
 
-    if (WJR_LIKELY(val >= 100)) {
-        do {
-            unroll(buf, val % 100);
-            val /= 100;
-        } while (WJR_LIKELY(val >= 100));
+    if (WJR_LIKELY(val >= 10)) {
+        if (WJR_LIKELY(val >= 1000'0000)) {
+            do {
+                __to_chars_unroll_8<10>(buf - 8, val % 1'0000'0000, conv);
+                buf -= 8;
+                val /= 1'0000'0000;
+            } while (val >= 1000'0000);
+        }
+
+        if (WJR_LIKELY(val >= 10)) {
+            do {
+                __to_chars_unroll_2<10>(buf - 2, val % 100, conv);
+                buf -= 2;
+                val /= 100;
+            } while (val >= 10);
+        }
+
+        if (!val) {
+            return buf;
+        }
     }
 
-    if (val >= 10) {
-        unroll(buf, val);
-    } else {
-        *--buf = conv.to(val);
-    }
+    *--buf = conv.to(val);
 
     return buf;
 }

@@ -20,7 +20,7 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
 
 template <uint64_t Base>
-uint64_t builtin_from_chars_unroll_8_fast(uint32_t in) {
+uint64_t builtin_to_chars_unroll_8_fast(uint32_t in) {
     static_assert(Base == 10, "");
 
     __m128i mulp4 = simd_cast<uint32_t, __m128i_t>(3518437209);
@@ -67,15 +67,15 @@ uint64_t builtin_from_chars_unroll_8_fast(uint32_t in) {
 }
 
 template <uint64_t Base>
-void builtin_from_chars_unroll_8_fast(void *ptr, uint32_t in, char_converter_t) {
-    uint64_t x = builtin_from_chars_unroll_8_fast<Base>(in) + 0x3030303030303030ull;
+void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in, char_converter_t) {
+    uint64_t x = builtin_to_chars_unroll_8_fast<Base>(in) + 0x3030303030303030ull;
 
     write_memory<uint64_t>(ptr, x);
 }
 
 template <uint64_t Base>
-void builtin_from_chars_unroll_8_fast(void *ptr, uint32_t in, origin_converter_t) {
-    uint64_t x = builtin_from_chars_unroll_8_fast<Base>(in);
+void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in, origin_converter_t) {
+    uint64_t x = builtin_to_chars_unroll_8_fast<Base>(in);
 
     write_memory<uint64_t>(ptr, x);
 }
