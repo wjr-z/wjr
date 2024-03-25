@@ -19340,10 +19340,64 @@ extern "C" precompute_chars_convert_t *precompute_chars_convert(precompute_chars
 namespace wjr {
 
 #if WJR_HAS_SIMD(SSE4_1) && WJR_HAS_SIMD(SIMD)
+#define WJR_HAS_BUILTIN_TO_CHARS_UNROLL_4_FAST WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_TO_CHARS_UNROLL_8_FAST WJR_HAS_DEF
 
 #define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_8_FAST WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_16_FAST WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_4_FAST)
+
+template <uint64_t Base>
+uint32_t builtin_to_chars_unroll_4_fast(uint16_t in) {
+    static_assert(Base == 10, "");
+
+    __m128i mulp2 = sse::set1_epi16(5243);
+    __m128i mulp2x = sse::set1_epi16(100);
+    __m128i mulp1 = sse::set1_epi16((short)52429u);
+    __m128i mulp1x = sse::set1_epi16(10);
+    __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+
+    __m128i x = simd_cast<uint32_t, __m128i_t>(in);
+
+    // x[0: 15] = (x[0: 15] * 5243) >> 19;
+    // x[64: 79] = (x[64: 79] * 5243) >> 19;
+    __m128i q = _mm_mulhi_epu16(x, mulp2);
+    q = _mm_srli_epi16(q, 3);
+
+    __m128i r = _mm_sub_epi16(x, _mm_mullo_epi16(q, mulp2x));
+
+    x = _mm_packus_epi16(q, r);
+
+    // x[0: 15] = (x[0: 15] * 52429) >> 19;
+    // x[32 : 47] = (x[32 : 47] * 52429) >> 19;
+    // x[64 : 79] = (x[64 : 79] * 52429) >> 19;
+    // x[96 : 111] = (x[96 : 111] * 52429) >> 19;
+
+    q = _mm_mulhi_epu16(x, mulp1);
+    q = _mm_srli_epi16(q, 3);
+
+    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, mulp1x));
+
+    x = _mm_packus_epi16(q, r);
+    return simd_cast<__m128i_t, uint32_t>(sse::shuffle_epi8(x, shuf));
+}
+
+template <uint64_t Base>
+void builtin_to_chars_unroll_4_fast(void *ptr, uint32_t in, char_converter_t) {
+    uint32_t x = builtin_to_chars_unroll_4_fast<Base>(in) + 0x30303030ull;
+
+    write_memory<uint32_t>(ptr, x);
+}
+
+template <uint64_t Base>
+void builtin_to_chars_unroll_4_fast(void *ptr, uint32_t in, origin_converter_t) {
+    uint32_t x = builtin_to_chars_unroll_4_fast<Base>(in);
+
+    write_memory<uint32_t>(ptr, x);
+}
+
 #endif
 
 #if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
@@ -19371,8 +19425,8 @@ uint64_t builtin_to_chars_unroll_8_fast(uint32_t in) {
 
     x = _mm_packus_epi32(q, r);
 
-    // x[0: 15] = (x[0: 15] * 5243) >> 17;
-    // x[64: 79] = (x[64: 79] * 5243) >> 17;
+    // x[0: 15] = (x[0: 15] * 5243) >> 19;
+    // x[64: 79] = (x[64: 79] * 5243) >> 19;
     q = _mm_mulhi_epu16(x, mulp2);
     q = _mm_srli_epi16(q, 3);
 
@@ -19556,8 +19610,7 @@ template <uint64_t Base>
 class __to_chars_unroll_2_fast_fn_impl_base {
 public:
     template <typename Converter>
-    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
-                                                 Converter conv) {
+    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val, Converter) {
         auto str = (char *)ptr;
         if constexpr (Base * Base <= 16) {
             constexpr auto &table = __char_converter_table<Converter, Base, 4>;
@@ -19594,8 +19647,7 @@ template <uint64_t Base>
 class __to_chars_unroll_4_fast_fn_impl_base {
 public:
     template <typename Converter>
-    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
-                                                 Converter conv) {
+    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val, Converter) {
         auto str = (char *)ptr;
         if constexpr (Base * Base <= 16) {
             constexpr auto &table = __char_converter_table<Converter, Base, 4>;
@@ -19630,7 +19682,21 @@ class __to_chars_unroll_4_fast_fn_impl<8>
 
 template <>
 class __to_chars_unroll_4_fast_fn_impl<10>
-    : public __to_chars_unroll_4_fast_fn_impl_base<10> {};
+    : public __to_chars_unroll_4_fast_fn_impl_base<10> {
+    using __to_chars_unroll_4_fast_fn_impl_base<10>::__fast_conv;
+#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
+public:
+    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
+                                                 char_converter_t conv) {
+        builtin_to_chars_unroll_4_fast<10>(ptr, val, conv);
+    }
+
+    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
+                                                 origin_converter_t conv) {
+        builtin_to_chars_unroll_4_fast<10>(ptr, val, conv);
+    }
+#endif
+};
 
 template <>
 class __to_chars_unroll_4_fast_fn_impl<16>
@@ -19655,21 +19721,9 @@ public:
 template <uint64_t Base>
 class __to_chars_unroll_8_fast_fn_impl {};
 
-// template <>
-// class __to_chars_unroll_8_fast_fn_impl<2>
-//     : public __to_chars_unroll_8_fast_fn_impl_base<2> {};
-
-// template <>
-// class __to_chars_unroll_8_fast_fn_impl<8>
-//     : public __to_chars_unroll_8_fast_fn_impl_base<8> {};
-
 template <>
 class __to_chars_unroll_8_fast_fn_impl<10>
     : public __to_chars_unroll_8_fast_fn_impl_base<10> {};
-
-// template <>
-// class __to_chars_unroll_8_fast_fn_impl<16>
-//     : public __to_chars_unroll_8_fast_fn_impl_base<16> {};
 
 template <uint64_t Base>
 class __to_chars_unroll_2_fn : public __to_chars_unroll_2_fast_fn_impl<Base> {
@@ -20542,12 +20596,16 @@ char *__backward_to_chars_10(char *buf, uint64_t val, Converter conv) {
             } while (val >= 1000'0000);
         }
 
+        if (WJR_LIKELY(val >= 1000)) {
+            __to_chars_unroll_4<10>(buf - 4, val % 1'0000, conv);
+            buf -= 4;
+            val /= 1'0000;
+        }
+
         if (WJR_LIKELY(val >= 10)) {
-            do {
-                __to_chars_unroll_2<10>(buf - 2, val % 100, conv);
-                buf -= 2;
-                val /= 100;
-            } while (val >= 10);
+            __to_chars_unroll_2<10>(buf - 2, val % 100, conv);
+            buf -= 2;
+            val /= 100;
         }
 
         if (!val) {
@@ -20562,13 +20620,6 @@ char *__backward_to_chars_10(char *buf, uint64_t val, Converter conv) {
 
 template <typename Converter>
 char *basecase_to_chars_10(char *buf, uint64_t *up, size_t n, Converter conv) {
-    constexpr auto &table = __char_converter_table<Converter, 10, 2>;
-    constexpr auto unroll = [](auto &first, unsigned int v) {
-        first[-1] = table[v * 2 + 1];
-        first[-2] = table[v * 2];
-        first -= 2;
-    };
-
     do {
         if (WJR_UNLIKELY(n == 1)) {
             return __backward_to_chars_10(buf, up[0], conv);
@@ -20582,12 +20633,15 @@ char *basecase_to_chars_10(char *buf, uint64_t *up, size_t n, Converter conv) {
             up[n - 1] = q;
         }
 
-        for (int i = 0; i < 9; ++i) {
-            unroll(buf, rem % 100);
-            rem /= 100;
-        }
+        __to_chars_unroll_8<10>(buf - 8, rem % 1'0000'0000, conv);
+        rem /= 1'0000'0000;
+        __to_chars_unroll_8<10>(buf - 16, rem % 1'0000'0000, conv);
+        rem /= 1'0000'0000;
+        __to_chars_unroll_2<10>(buf - 18, rem % 100, conv);
+        rem /= 100;
+        buf[-19] = conv.to(rem);
 
-        *--buf = conv.to(rem);
+        buf -= 19;
     } while (n);
 
     return buf;

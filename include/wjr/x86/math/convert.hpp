@@ -11,10 +11,64 @@
 namespace wjr {
 
 #if WJR_HAS_SIMD(SSE4_1) && WJR_HAS_SIMD(SIMD)
+#define WJR_HAS_BUILTIN_TO_CHARS_UNROLL_4_FAST WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_TO_CHARS_UNROLL_8_FAST WJR_HAS_DEF
 
 #define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_8_FAST WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_16_FAST WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_4_FAST)
+
+template <uint64_t Base>
+uint32_t builtin_to_chars_unroll_4_fast(uint16_t in) {
+    static_assert(Base == 10, "");
+
+    __m128i mulp2 = sse::set1_epi16(5243);
+    __m128i mulp2x = sse::set1_epi16(100);
+    __m128i mulp1 = sse::set1_epi16((short)52429u);
+    __m128i mulp1x = sse::set1_epi16(10);
+    __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+
+    __m128i x = simd_cast<uint32_t, __m128i_t>(in);
+
+    // x[0: 15] = (x[0: 15] * 5243) >> 19;
+    // x[64: 79] = (x[64: 79] * 5243) >> 19;
+    __m128i q = _mm_mulhi_epu16(x, mulp2);
+    q = _mm_srli_epi16(q, 3);
+
+    __m128i r = _mm_sub_epi16(x, _mm_mullo_epi16(q, mulp2x));
+
+    x = _mm_packus_epi16(q, r);
+
+    // x[0: 15] = (x[0: 15] * 52429) >> 19;
+    // x[32 : 47] = (x[32 : 47] * 52429) >> 19;
+    // x[64 : 79] = (x[64 : 79] * 52429) >> 19;
+    // x[96 : 111] = (x[96 : 111] * 52429) >> 19;
+
+    q = _mm_mulhi_epu16(x, mulp1);
+    q = _mm_srli_epi16(q, 3);
+
+    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, mulp1x));
+
+    x = _mm_packus_epi16(q, r);
+    return simd_cast<__m128i_t, uint32_t>(sse::shuffle_epi8(x, shuf));
+}
+
+template <uint64_t Base>
+void builtin_to_chars_unroll_4_fast(void *ptr, uint32_t in, char_converter_t) {
+    uint32_t x = builtin_to_chars_unroll_4_fast<Base>(in) + 0x30303030ull;
+
+    write_memory<uint32_t>(ptr, x);
+}
+
+template <uint64_t Base>
+void builtin_to_chars_unroll_4_fast(void *ptr, uint32_t in, origin_converter_t) {
+    uint32_t x = builtin_to_chars_unroll_4_fast<Base>(in);
+
+    write_memory<uint32_t>(ptr, x);
+}
+
 #endif
 
 #if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
@@ -42,8 +96,8 @@ uint64_t builtin_to_chars_unroll_8_fast(uint32_t in) {
 
     x = _mm_packus_epi32(q, r);
 
-    // x[0: 15] = (x[0: 15] * 5243) >> 17;
-    // x[64: 79] = (x[64: 79] * 5243) >> 17;
+    // x[0: 15] = (x[0: 15] * 5243) >> 19;
+    // x[64: 79] = (x[64: 79] * 5243) >> 19;
     q = _mm_mulhi_epu16(x, mulp2);
     q = _mm_srli_epi16(q, 3);
 

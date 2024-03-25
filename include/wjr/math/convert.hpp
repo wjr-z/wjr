@@ -76,8 +76,7 @@ template <uint64_t Base>
 class __to_chars_unroll_2_fast_fn_impl_base {
 public:
     template <typename Converter>
-    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
-                                                 Converter conv) {
+    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val, Converter) {
         auto str = (char *)ptr;
         if constexpr (Base * Base <= 16) {
             constexpr auto &table = __char_converter_table<Converter, Base, 4>;
@@ -114,8 +113,7 @@ template <uint64_t Base>
 class __to_chars_unroll_4_fast_fn_impl_base {
 public:
     template <typename Converter>
-    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
-                                                 Converter conv) {
+    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val, Converter) {
         auto str = (char *)ptr;
         if constexpr (Base * Base <= 16) {
             constexpr auto &table = __char_converter_table<Converter, Base, 4>;
@@ -150,7 +148,21 @@ class __to_chars_unroll_4_fast_fn_impl<8>
 
 template <>
 class __to_chars_unroll_4_fast_fn_impl<10>
-    : public __to_chars_unroll_4_fast_fn_impl_base<10> {};
+    : public __to_chars_unroll_4_fast_fn_impl_base<10> {
+    using __to_chars_unroll_4_fast_fn_impl_base<10>::__fast_conv;
+#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
+public:
+    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
+                                                 char_converter_t conv) {
+        builtin_to_chars_unroll_4_fast<10>(ptr, val, conv);
+    }
+
+    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
+                                                 origin_converter_t conv) {
+        builtin_to_chars_unroll_4_fast<10>(ptr, val, conv);
+    }
+#endif
+};
 
 template <>
 class __to_chars_unroll_4_fast_fn_impl<16>
@@ -175,21 +187,9 @@ public:
 template <uint64_t Base>
 class __to_chars_unroll_8_fast_fn_impl {};
 
-// template <>
-// class __to_chars_unroll_8_fast_fn_impl<2>
-//     : public __to_chars_unroll_8_fast_fn_impl_base<2> {};
-
-// template <>
-// class __to_chars_unroll_8_fast_fn_impl<8>
-//     : public __to_chars_unroll_8_fast_fn_impl_base<8> {};
-
 template <>
 class __to_chars_unroll_8_fast_fn_impl<10>
     : public __to_chars_unroll_8_fast_fn_impl_base<10> {};
-
-// template <>
-// class __to_chars_unroll_8_fast_fn_impl<16>
-//     : public __to_chars_unroll_8_fast_fn_impl_base<16> {};
 
 template <uint64_t Base>
 class __to_chars_unroll_2_fn : public __to_chars_unroll_2_fast_fn_impl<Base> {
@@ -1062,12 +1062,16 @@ char *__backward_to_chars_10(char *buf, uint64_t val, Converter conv) {
             } while (val >= 1000'0000);
         }
 
+        if (WJR_LIKELY(val >= 1000)) {
+            __to_chars_unroll_4<10>(buf - 4, val % 1'0000, conv);
+            buf -= 4;
+            val /= 1'0000;
+        }
+
         if (WJR_LIKELY(val >= 10)) {
-            do {
-                __to_chars_unroll_2<10>(buf - 2, val % 100, conv);
-                buf -= 2;
-                val /= 100;
-            } while (val >= 10);
+            __to_chars_unroll_2<10>(buf - 2, val % 100, conv);
+            buf -= 2;
+            val /= 100;
         }
 
         if (!val) {
@@ -1082,13 +1086,6 @@ char *__backward_to_chars_10(char *buf, uint64_t val, Converter conv) {
 
 template <typename Converter>
 char *basecase_to_chars_10(char *buf, uint64_t *up, size_t n, Converter conv) {
-    constexpr auto &table = __char_converter_table<Converter, 10, 2>;
-    constexpr auto unroll = [](auto &first, unsigned int v) {
-        first[-1] = table[v * 2 + 1];
-        first[-2] = table[v * 2];
-        first -= 2;
-    };
-
     do {
         if (WJR_UNLIKELY(n == 1)) {
             return __backward_to_chars_10(buf, up[0], conv);
@@ -1102,12 +1099,15 @@ char *basecase_to_chars_10(char *buf, uint64_t *up, size_t n, Converter conv) {
             up[n - 1] = q;
         }
 
-        for (int i = 0; i < 9; ++i) {
-            unroll(buf, rem % 100);
-            rem /= 100;
-        }
+        __to_chars_unroll_8<10>(buf - 8, rem % 1'0000'0000, conv);
+        rem /= 1'0000'0000;
+        __to_chars_unroll_8<10>(buf - 16, rem % 1'0000'0000, conv);
+        rem /= 1'0000'0000;
+        __to_chars_unroll_2<10>(buf - 18, rem % 100, conv);
+        rem /= 100;
+        buf[-19] = conv.to(rem);
 
-        *--buf = conv.to(rem);
+        buf -= 19;
     } while (n);
 
     return buf;
