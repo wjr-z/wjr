@@ -435,6 +435,83 @@ public:
 template <uint64_t Base>
 inline constexpr __from_chars_unroll_16_fn<Base> __from_chars_unroll_16{};
 
+template <typename UnsignedValue,
+          std::enable_if_t<std::is_unsigned_v<UnsignedValue>, int> = 0>
+constexpr int fallback_count_digits10(UnsignedValue n) {
+    int count = 1;
+
+    if (WJR_UNLIKELY(n >= 1000)) {
+        do {
+            n /= 10000;
+            count += 4;
+        } while (n >= 1000);
+
+        if (n == 0) {
+            return count;
+        }
+    }
+
+    if (n < 10) {
+        return count;
+    }
+
+    if (n < 100) {
+        return count + 1;
+    }
+
+    return count + 3;
+}
+
+inline int builtin_count_digits10_u32(uint32_t n) {
+#define WJR_INC(T) (((sizeof(#T) - 1ull) << 32) - T)
+    static constexpr uint64_t table[] = {
+        WJR_INC(0),          WJR_INC(0),          WJR_INC(0),          // 8
+        WJR_INC(10),         WJR_INC(10),         WJR_INC(10),         // 64
+        WJR_INC(100),        WJR_INC(100),        WJR_INC(100),        // 512
+        WJR_INC(1000),       WJR_INC(1000),       WJR_INC(1000),       // 4096
+        WJR_INC(10000),      WJR_INC(10000),      WJR_INC(10000),      // 32k
+        WJR_INC(100000),     WJR_INC(100000),     WJR_INC(100000),     // 256k
+        WJR_INC(1000000),    WJR_INC(1000000),    WJR_INC(1000000),    // 2048k
+        WJR_INC(10000000),   WJR_INC(10000000),   WJR_INC(10000000),   // 16M
+        WJR_INC(100000000),  WJR_INC(100000000),  WJR_INC(100000000),  // 128M
+        WJR_INC(1000000000), WJR_INC(1000000000), WJR_INC(1000000000), // 1024M
+        WJR_INC(1000000000), WJR_INC(1000000000)                       // 4B
+    };
+    auto inc = table[clz(n | 1) ^ 31];
+    return static_cast<int>((n + inc) >> 32);
+#undef WJR_INC
+}
+
+inline int builtin_count_digits10_u64(uint64_t n) {
+#define WJR_POWERS_OF_10(factor)                                                         \
+    factor * 10, (factor)*100, (factor)*1000, (factor)*10000, (factor)*100000,           \
+        (factor)*1000000, (factor)*10000000, (factor)*100000000, (factor)*1000000000
+    static constexpr uint8_t bsr2log10[] = {
+        1,  1,  1,  2,  2,  2,  3,  3,  3,  4,  4,  4,  4,  5,  5,  5,
+        6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  9,  9,  9,  10, 10, 10,
+        10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 13, 14, 14, 14, 15, 15,
+        15, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 19, 20};
+    auto t = bsr2log10[clz(n | 1) ^ 63];
+    static constexpr const uint64_t zero_or_powers_of_10[] = {
+        0, 0, WJR_POWERS_OF_10(1U), WJR_POWERS_OF_10(1000000000ULL),
+        10000000000000000000ULL};
+    return t - (n < zero_or_powers_of_10[t]);
+#undef WJR_POWERS_OF_10
+}
+
+template <typename T, std::enable_if_t<std::is_unsigned_v<T>, int> = 0>
+WJR_CONSTEXPR_E int count_digits10(T n) {
+    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(n)) {
+        return fallback_count_digits10(n);
+    }
+
+    if constexpr (sizeof(T) <= sizeof(uint32_t)) {
+        return builtin_count_digits10_u32(static_cast<uint32_t>(n));
+    } else {
+        return builtin_count_digits10_u64(static_cast<uint64_t>(n));
+    }
+}
+
 template <typename Iter, typename UnsignedValue, typename Converter = char_converter_t,
           std::enable_if_t<std::is_unsigned_v<UnsignedValue>, int> = 0>
 size_t __unsigned_to_chars_2(Iter first, UnsignedValue x, Converter conv = {}) {
@@ -616,16 +693,20 @@ Iter __unsigned_backward_to_chars_10(Iter buf, UnsignedValue val, Converter conv
 
     if (val >= 100) {
 #if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
-        if (WJR_UNLIKELY(val >= 1'0000'0000)) {
+        if (WJR_UNLIKELY(val >= 1000'0000)) {
             do {
                 __to_chars_unroll_8<10>(buf - 8, val % 1'0000'0000, conv);
                 buf -= 8;
                 val /= 1'0000'0000;
-            } while (val >= 1'0000'0000);
+            } while (val >= 1000'0000);
+
+            if (WJR_UNLIKELY(val == 0)) {
+                return buf;
+            }
         }
 #endif
 
-        if (WJR_UNLIKELY(val >= 1'0000)) {
+        if (val >= 1'0000) {
 #if !WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
             do {
 #endif
@@ -654,6 +735,15 @@ Iter __unsigned_backward_to_chars_10(Iter buf, UnsignedValue val, Converter conv
     return buf;
 }
 
+template <typename Iter, typename UnsignedValue, typename Converter,
+          std::enable_if_t<std::is_unsigned_v<UnsignedValue>, int> = 0>
+Iter __unsigned_to_chars_10(Iter iter, UnsignedValue val, Converter conv) {
+    auto count = count_digits10(val);
+    iter += count;
+    __unsigned_backward_to_chars_10(iter, val, conv);
+    return iter;
+}
+
 template <typename Iter, typename UnsignedValue, typename Converter = char_converter_t,
           std::enable_if_t<std::is_unsigned_v<UnsignedValue>, int> = 0>
 Iter __unsigned_to_chars(Iter iter, UnsignedValue val, unsigned int base = 10,
@@ -668,28 +758,23 @@ Iter __unsigned_to_chars(Iter iter, UnsignedValue val, unsigned int base = 10,
     case 16: {
         return iter + __unsigned_to_chars_16(iter, val, conv);
     }
-    case 10: {
-        constexpr auto maxn = std::numeric_limits<UnsignedValue>::digits10;
-        char buf[maxn];
-        char *end = buf + maxn;
-        char *start = __unsigned_backward_to_chars_10(end, val, conv);
-        return std::copy(start, end, iter);
-    }
     case 4:
     case 32: {
         return iter + __unsigned_to_chars_power_of_two(iter, val, base, conv);
     }
     default: {
-        WJR_UNREACHABLE();
-        return iter;
+        break;
     }
     }
+
+    WJR_ASSERT(base == 10, "Not supported base");
+
+    return __unsigned_to_chars_10(iter, val, conv);
 }
 
 template <typename Iter, typename Value, typename Converter = char_converter_t,
           std::enable_if_t<std::is_integral_v<Value>, int> = 0>
 Iter to_chars(Iter iter, Value val, unsigned int base = 10, Converter conv = {}) {
-
     if (WJR_UNLIKELY(val == 0)) {
         *iter++ = '0';
         return iter;
@@ -702,6 +787,33 @@ Iter to_chars(Iter iter, Value val, unsigned int base = 10, Converter conv = {})
         }
     }
 
+    // GCC/Clang may cause the optimization based on base to fail in some versions,
+    // and the optimization is explicitly performed.
+    if (WJR_BUILTIN_CONSTANT_P(base)) {
+        switch (base) {
+        case 2: {
+            return iter + __unsigned_to_chars_2(iter, val, conv);
+        }
+        case 8: {
+            return iter + __unsigned_to_chars_8(iter, val, conv);
+        }
+        case 16: {
+            return iter + __unsigned_to_chars_16(iter, val, conv);
+        }
+        case 4:
+        case 32: {
+            return iter + __unsigned_to_chars_power_of_two(iter, val, base, conv);
+        }
+        case 10: {
+            return __unsigned_to_chars_10(iter, val, conv);
+        }
+        default: {
+            WJR_UNREACHABLE();
+            break;
+        }
+        }
+    }
+
     return __unsigned_to_chars(iter, static_cast<std::make_unsigned_t<Value>>(val), base,
                                conv);
 }
@@ -709,7 +821,6 @@ Iter to_chars(Iter iter, Value val, unsigned int base = 10, Converter conv = {})
 template <typename Iter, typename Value, typename Converter = char_converter_t,
           std::enable_if_t<std::is_integral_v<Value>, int> = 0>
 Iter backward_to_chars_10(Iter iter, Value val, Converter conv = {}) {
-
     if (WJR_UNLIKELY(val == 0)) {
         *--iter = '0';
         return iter;
@@ -1003,7 +1114,7 @@ size_t __large_to_chars_power_of_two_impl(Iter first, uint64_t *up, size_t n,
     int pc = clz(x);
     int hbits = 64 - pc;
     WJR_ASSUME(1 <= hbits && hbits <= 64);
-    
+
     size_t len = (hbits + 64 * n + per_bit - 1) / per_bit;
     first += len;
 
@@ -1095,20 +1206,21 @@ Iter basecase_to_chars(Iter first, size_t len, uint64_t *up, size_t n, unsigned 
                        Converter conv) {
     constexpr size_t buf_len = dc_bignum_to_chars_precompute_threshold * 64 * 7 / 11;
     char buf[buf_len];
+    char *end = buf + buf_len;
     char *start;
 
     if (WJR_LIKELY(base == 10)) {
-        start = basecase_to_chars_10(buf + buf_len, up, n, conv);
+        start = basecase_to_chars_10(end, up, n, conv);
     } else {
-        start = buf + buf_len;
+        start = end;
     }
 
-    size_t rlen = buf + buf_len - start;
+    size_t rlen = end - start;
     if (len > rlen) {
         first = std::fill_n(first, len - rlen, conv.to(0));
     }
 
-    return std::copy(start, buf + buf_len, first);
+    return std::copy(start, end, first);
 }
 
 template <typename Iter, typename Converter>
@@ -1148,6 +1260,28 @@ Iter dc_to_chars(Iter first, size_t len, uint64_t *up, size_t n,
     }
 }
 
+template <typename Iter, typename Converter>
+Iter __large_basecase_to_chars(Iter first, uint64_t *up, size_t n, unsigned int base,
+                               Converter conv) {
+    if (WJR_LIKELY(n < dc_bignum_to_chars_precompute_threshold)) {
+        uint64_t upbuf[dc_bignum_to_chars_precompute_threshold];
+        std::copy_n(up, n, upbuf);
+        return basecase_to_chars(first, 0, upbuf, n, base, conv);
+    }
+
+    precompute_chars_convert_t pre[64 - 3];
+
+    unique_stack_allocator stkal(math_details::stack_alloc);
+    auto stk =
+        static_cast<uint64_t *>(stkal.allocate((n * 18 / 5 + 192) * sizeof(uint64_t)));
+    auto __up = stk;
+    std::copy_n(up, n, __up);
+    stk += n;
+    auto mpre = precompute_chars_convert(pre, n, base, stk);
+    stk += n * 8 / 5 + 128;
+    return dc_to_chars(first, 0, __up, n, mpre, stk, conv);
+}
+
 /**
  * @brief Use by `to_chars` to convert a large integer to a string.
  *
@@ -1178,23 +1312,7 @@ Iter __large_to_chars_impl(Iter first, uint64_t *up, size_t n, unsigned int base
     }
     }
 
-    if (WJR_LIKELY(n < dc_bignum_to_chars_precompute_threshold)) {
-        uint64_t upbuf[dc_bignum_to_chars_precompute_threshold];
-        std::copy_n(up, n, upbuf);
-        return basecase_to_chars(first, 0, upbuf, n, base, conv);
-    }
-
-    precompute_chars_convert_t pre[64 - 3];
-
-    unique_stack_allocator stkal(math_details::stack_alloc);
-    auto stk =
-        static_cast<uint64_t *>(stkal.allocate((n * 18 / 5 + 192) * sizeof(uint64_t)));
-    auto __up = stk;
-    std::copy_n(up, n, __up);
-    stk += n;
-    auto mpre = precompute_chars_convert(pre, n, base, stk);
-    stk += n * 8 / 5 + 128;
-    return dc_to_chars(first, 0, __up, n, mpre, stk, conv);
+    return __large_basecase_to_chars(first, up, n, base, conv);
 }
 
 /**
@@ -1222,6 +1340,31 @@ Iter to_chars(Iter first, uint64_t *up, size_t n, unsigned int base = 10,
 
     if (n == 1) {
         return to_chars(first, up[0], base, conv);
+    }
+
+    // GCC/Clang may cause the optimization based on base to fail in some versions,
+    // and the optimization is explicitly performed.
+    if (WJR_BUILTIN_CONSTANT_P(base)) {
+        switch (base) {
+        case 2: {
+            return first + __large_to_chars_2_impl(first, up, n, conv);
+        }
+        case 8: {
+            return first + __large_to_chars_8_impl(first, up, n, conv);
+        }
+        case 16: {
+            return first + __large_to_chars_16_impl(first, up, n, conv);
+        }
+        case 4:
+        case 32: {
+            return first + __large_to_chars_power_of_two_impl(first, up, n, base, conv);
+        }
+        default: {
+            break;
+        }
+        }
+
+        return __large_basecase_to_chars(first, up, n, base, conv);
     }
 
     return __large_to_chars_impl(first, up, n, base, conv);

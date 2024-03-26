@@ -18,6 +18,8 @@ namespace wjr {
 #define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_16_FAST WJR_HAS_DEF
 #endif
 
+// use packus for skylake, use unpacklo for others
+
 #if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_4_FAST)
 
 template <uint64_t Base>

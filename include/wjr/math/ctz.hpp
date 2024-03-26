@@ -7,7 +7,6 @@ namespace wjr {
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int fallback_ctz_impl(T x) {
-
 #if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
     return popcount<T>(lowbit(x) - 1);
 #else
@@ -78,6 +77,17 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) {
 
 #endif
 
+/**
+ * @brief Fast count trailing zeros
+ *
+ * @details Very fast even on non-optimized platforms by using a De Bruijn sequence. \n
+ * Try __builtin_clz if available, otherwise fallback to a portable implementation. \n
+ * In fallback_clz, use popcount and lowbit if POPCOUNT and POPCNT are available, make
+ * sure popcount is fast. \n
+ * Then use De Bruijn sequence, just a bit slower than popcount + lowbit.
+ *
+ * @tparam T Must be an unsigned integral type
+ */
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int ctz(T x) {
 #if WJR_HAS_BUILTIN(CTZ)

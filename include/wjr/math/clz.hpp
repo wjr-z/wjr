@@ -102,6 +102,11 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) {
 
 #endif
 
+/**
+ * @brief Fast count leading zeros
+ *
+ * @tparam T Must be an unsigned integral type
+ */
 template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz(T x) {
 #if WJR_HAS_BUILTIN(CLZ)
