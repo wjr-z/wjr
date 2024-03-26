@@ -31,27 +31,20 @@ uint32_t builtin_to_chars_unroll_4_fast(uint16_t in) {
     __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
 
     __m128i x = simd_cast<uint32_t, __m128i_t>(in);
+    __m128i q, r;
 
-    // x[0: 15] = (x[0: 15] * 5243) >> 19;
-    // x[64: 79] = (x[64: 79] * 5243) >> 19;
-    __m128i q = _mm_mulhi_epu16(x, mulp2);
+    q = _mm_mulhi_epu16(x, mulp2);
     q = _mm_srli_epi16(q, 3);
 
-    __m128i r = _mm_sub_epi16(x, _mm_mullo_epi16(q, mulp2x));
-
+    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, mulp2x));
     x = _mm_packus_epi16(q, r);
-
-    // x[0: 15] = (x[0: 15] * 52429) >> 19;
-    // x[32 : 47] = (x[32 : 47] * 52429) >> 19;
-    // x[64 : 79] = (x[64 : 79] * 52429) >> 19;
-    // x[96 : 111] = (x[96 : 111] * 52429) >> 19;
 
     q = _mm_mulhi_epu16(x, mulp1);
     q = _mm_srli_epi16(q, 3);
 
     r = _mm_sub_epi16(x, _mm_mullo_epi16(q, mulp1x));
-
     x = _mm_packus_epi16(q, r);
+
     return simd_cast<__m128i_t, uint32_t>(sse::shuffle_epi8(x, shuf));
 }
 
@@ -73,10 +66,7 @@ void builtin_to_chars_unroll_4_fast(void *ptr, uint32_t in, origin_converter_t) 
 
 #if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
 
-template <uint64_t Base>
-uint64_t builtin_to_chars_unroll_8_fast(uint32_t in) {
-    static_assert(Base == 10, "");
-
+inline uint64_t builtin_to_chars_unroll_8_fast_10(uint32_t in) {
     __m128i mulp4 = simd_cast<uint32_t, __m128i_t>(3518437209);
     __m128i mulp4x = simd_cast<uint32_t, __m128i_t>(10000);
     __m128i mulp2 = sse::set1_epi16(5243);
@@ -86,38 +76,36 @@ uint64_t builtin_to_chars_unroll_8_fast(uint32_t in) {
     __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
 
     __m128i x = simd_cast<uint32_t, __m128i_t>(in);
+    __m128i q, r;
 
-    // x[0: 15] = (x[0: 31] * 3518437209) >> 45;
-    // x[16 : 127] = x[32 : 127]
-    __m128i q = _mm_mul_epu32(x, mulp4);
+    q = _mm_mul_epu32(x, mulp4);
     q = _mm_srli_epi64(q, 45);
 
-    __m128i r = _mm_sub_epi32(x, _mm_mul_epu32(q, mulp4x));
-
+    r = _mm_sub_epi32(x, _mm_mul_epu32(q, mulp4x));
     x = _mm_packus_epi32(q, r);
 
-    // x[0: 15] = (x[0: 15] * 5243) >> 19;
-    // x[64: 79] = (x[64: 79] * 5243) >> 19;
     q = _mm_mulhi_epu16(x, mulp2);
     q = _mm_srli_epi16(q, 3);
 
     r = _mm_sub_epi16(x, _mm_mullo_epi16(q, mulp2x));
-
     x = _mm_packus_epi16(q, r);
-
-    // x[0: 15] = (x[0: 15] * 52429) >> 19;
-    // x[32 : 47] = (x[32 : 47] * 52429) >> 19;
-    // x[64 : 79] = (x[64 : 79] * 52429) >> 19;
-    // x[96 : 111] = (x[96 : 111] * 52429) >> 19;
 
     q = _mm_mulhi_epu16(x, mulp1);
     q = _mm_srli_epi16(q, 3);
 
     r = _mm_sub_epi16(x, _mm_mullo_epi16(q, mulp1x));
-
     x = _mm_packus_epi16(q, r);
 
     return simd_cast<__m128i_t, uint64_t>(sse::shuffle_epi8(x, shuf));
+}
+
+template <uint64_t Base>
+uint64_t builtin_to_chars_unroll_8_fast(uint32_t in) {
+    if constexpr (Base == 10) {
+        return builtin_to_chars_unroll_8_fast_10(in);
+    } else {
+        static_assert(Base == 10, "");
+    }
 }
 
 template <uint64_t Base>
@@ -158,6 +146,8 @@ uint32_t builtin_from_chars_unroll_8_fast(__m128i in) {
 
 template <uint64_t Base>
 uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, char_converter_t) {
+    static_assert(Base <= 10, "");
+
     __m128i assci = sse::set1_epi8(0x30);
     __m128i in = _mm_sub_epi8(sse::loadu_si64(ptr), assci);
     return builtin_from_chars_unroll_8_fast<Base>(in);
@@ -197,6 +187,8 @@ uint64_t builtin_from_chars_unroll_16_fast(__m128i in) {
 
 template <uint64_t Base>
 uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, char_converter_t) {
+    static_assert(Base <= 10, "");
+
     __m128i assci = sse::set1_epi8(0x30);
     __m128i in = _mm_sub_epi8(sse::loadu((__m128i *)(ptr)), assci);
     return builtin_from_chars_unroll_16_fast<Base>(in);
