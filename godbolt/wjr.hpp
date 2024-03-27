@@ -19515,14 +19515,14 @@ namespace wjr {
 
 namespace to_chars_details {
 
-inline __m128i mul10p4 = simd_cast<uint32_t, __m128i_t>(3518437209);
-inline __m128i mul10p4x = simd_cast<uint32_t, __m128i_t>(10000);
-inline __m128i mul10p2 = sse::set1_epi16(5243);
-inline __m128i mul10p2x = sse::set1_epi16(100);
-inline __m128i mul10p1 = sse::set1_epi16((short)52429u);
-inline __m128i mul10p1x = sse::set1_epi16(10);
+static __m128i mul10p4 = simd_cast<uint32_t, __m128i_t>(3518437209);
+static __m128i mul10p4x = simd_cast<uint32_t, __m128i_t>(10000);
+static __m128i mul10p2 = sse::set1_epi16(5243);
+static __m128i mul10p2x = sse::set1_epi16(100);
+static __m128i mul10p1 = sse::set1_epi16((short)52429u);
+static __m128i mul10p1x = sse::set1_epi16(10);
 
-inline __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
+static __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
 
 } // namespace to_chars_details
 
@@ -20292,14 +20292,18 @@ Iter __unsigned_to_chars_8_backward(Iter ptr, int n, UnsignedValue x,
     constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
     WJR_ASSUME(1 <= n && n <= nd);
 
-    if constexpr (nd >= 12) {
-        if (WJR_LIKELY(n >= 4)) {
+    if (WJR_LIKELY(n >= 4)) {
+        if constexpr (nd > 12) {
             do {
                 __to_chars_unroll_4<8>(ptr - 4, x & 0x0fff, conv);
                 ptr -= 4;
                 x >>= 12;
                 n -= 4;
             } while (WJR_LIKELY(n >= 4));
+        } else {
+            __to_chars_unroll_4<8>(ptr - 4, x & 0x0fff, conv);
+            ptr -= 4;
+            return ptr;
         }
     }
 
@@ -20338,14 +20342,18 @@ Iter __unsigned_to_chars_16_backward(Iter ptr, int n, UnsignedValue x,
     constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
     WJR_ASSUME(1 <= n && n <= nd);
 
-    if constexpr (nd >= 16) {
-        if (WJR_LIKELY(n >= 4)) {
+    if (WJR_LIKELY(n >= 4)) {
+        if constexpr (nd > 16) {
             do {
                 __to_chars_unroll_4<16>(ptr - 4, x & 0xffff, conv);
                 ptr -= 4;
                 x >>= 16;
                 n -= 4;
             } while (WJR_LIKELY(n >= 4));
+        } else {
+            __to_chars_unroll_4<16>(ptr - 4, x & 0xffff, conv);
+            ptr -= 4;
+            return ptr;
         }
     }
 

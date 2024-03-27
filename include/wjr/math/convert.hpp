@@ -642,14 +642,18 @@ Iter __unsigned_to_chars_8_backward(Iter ptr, int n, UnsignedValue x,
     constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
     WJR_ASSUME(1 <= n && n <= nd);
 
-    if constexpr (nd >= 12) {
-        if (WJR_LIKELY(n >= 4)) {
+    if (WJR_LIKELY(n >= 4)) {
+        if constexpr (nd > 12) {
             do {
                 __to_chars_unroll_4<8>(ptr - 4, x & 0x0fff, conv);
                 ptr -= 4;
                 x >>= 12;
                 n -= 4;
             } while (WJR_LIKELY(n >= 4));
+        } else {
+            __to_chars_unroll_4<8>(ptr - 4, x & 0x0fff, conv);
+            ptr -= 4;
+            return ptr;
         }
     }
 
@@ -688,14 +692,18 @@ Iter __unsigned_to_chars_16_backward(Iter ptr, int n, UnsignedValue x,
     constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
     WJR_ASSUME(1 <= n && n <= nd);
 
-    if constexpr (nd >= 16) {
-        if (WJR_LIKELY(n >= 4)) {
+    if (WJR_LIKELY(n >= 4)) {
+        if constexpr (nd > 16) {
             do {
                 __to_chars_unroll_4<16>(ptr - 4, x & 0xffff, conv);
                 ptr -= 4;
                 x >>= 16;
                 n -= 4;
             } while (WJR_LIKELY(n >= 4));
+        } else {
+            __to_chars_unroll_4<16>(ptr - 4, x & 0xffff, conv);
+            ptr -= 4;
+            return ptr;
         }
     }
 

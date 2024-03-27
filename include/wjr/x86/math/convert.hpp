@@ -21,14 +21,14 @@ namespace wjr {
 
 namespace to_chars_details {
 
-inline __m128i mul10p4 = simd_cast<uint32_t, __m128i_t>(3518437209);
-inline __m128i mul10p4x = simd_cast<uint32_t, __m128i_t>(10000);
-inline __m128i mul10p2 = sse::set1_epi16(5243);
-inline __m128i mul10p2x = sse::set1_epi16(100);
-inline __m128i mul10p1 = sse::set1_epi16((short)52429u);
-inline __m128i mul10p1x = sse::set1_epi16(10);
+static __m128i mul10p4 = simd_cast<uint32_t, __m128i_t>(3518437209);
+static __m128i mul10p4x = simd_cast<uint32_t, __m128i_t>(10000);
+static __m128i mul10p2 = sse::set1_epi16(5243);
+static __m128i mul10p2x = sse::set1_epi16(100);
+static __m128i mul10p1 = sse::set1_epi16((short)52429u);
+static __m128i mul10p1x = sse::set1_epi16(10);
 
-inline __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
+static __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
 
 } // namespace to_chars_details
 
