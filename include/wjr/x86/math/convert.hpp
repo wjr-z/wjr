@@ -11,7 +11,6 @@
 namespace wjr {
 
 #if WJR_HAS_SIMD(SSE4_1) && WJR_HAS_SIMD(SIMD)
-#define WJR_HAS_BUILTIN_TO_CHARS_UNROLL_4_FAST WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_TO_CHARS_UNROLL_8_FAST WJR_HAS_DEF
 
 #define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_8_FAST WJR_HAS_DEF
@@ -20,85 +19,45 @@ namespace wjr {
 
 // use packus for skylake, use unpacklo for others
 
-#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_4_FAST)
+namespace to_chars_details {
 
-template <uint64_t Base>
-uint32_t builtin_to_chars_unroll_4_fast(uint16_t in) {
-    static_assert(Base == 10, "");
+inline __m128i mul10p4 = simd_cast<uint32_t, __m128i_t>(3518437209);
+inline __m128i mul10p4x = simd_cast<uint32_t, __m128i_t>(10000);
+inline __m128i mul10p2 = sse::set1_epi16(5243);
+inline __m128i mul10p2x = sse::set1_epi16(100);
+inline __m128i mul10p1 = sse::set1_epi16((short)52429u);
+inline __m128i mul10p1x = sse::set1_epi16(10);
 
-    __m128i mulp2 = sse::set1_epi16(5243);
-    __m128i mulp2x = sse::set1_epi16(100);
-    __m128i mulp1 = sse::set1_epi16((short)52429u);
-    __m128i mulp1x = sse::set1_epi16(10);
-    __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+inline __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
 
-    __m128i x = simd_cast<uint32_t, __m128i_t>(in);
-    __m128i q, r;
-
-    q = _mm_mulhi_epu16(x, mulp2);
-    q = _mm_srli_epi16(q, 3);
-
-    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, mulp2x));
-    x = _mm_packus_epi16(q, r);
-
-    q = _mm_mulhi_epu16(x, mulp1);
-    q = _mm_srli_epi16(q, 3);
-
-    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, mulp1x));
-    x = _mm_packus_epi16(q, r);
-
-    return simd_cast<__m128i_t, uint32_t>(sse::shuffle_epi8(x, shuf));
-}
-
-template <uint64_t Base>
-void builtin_to_chars_unroll_4_fast(void *ptr, uint32_t in, char_converter_t) {
-    uint32_t x = builtin_to_chars_unroll_4_fast<Base>(in) + 0x30303030ull;
-
-    write_memory<uint32_t>(ptr, x);
-}
-
-template <uint64_t Base>
-void builtin_to_chars_unroll_4_fast(void *ptr, uint32_t in, origin_converter_t) {
-    uint32_t x = builtin_to_chars_unroll_4_fast<Base>(in);
-
-    write_memory<uint32_t>(ptr, x);
-}
-
-#endif
+} // namespace to_chars_details
 
 #if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
 
 inline uint64_t builtin_to_chars_unroll_8_fast_10(uint32_t in) {
-    __m128i mulp4 = simd_cast<uint32_t, __m128i_t>(3518437209);
-    __m128i mulp4x = simd_cast<uint32_t, __m128i_t>(10000);
-    __m128i mulp2 = sse::set1_epi16(5243);
-    __m128i mulp2x = sse::set1_epi16(100);
-    __m128i mulp1 = sse::set1_epi16((short)52429u);
-    __m128i mulp1x = sse::set1_epi16(10);
-    __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
 
     __m128i x = simd_cast<uint32_t, __m128i_t>(in);
     __m128i q, r;
 
-    q = _mm_mul_epu32(x, mulp4);
+    q = _mm_mul_epu32(x, to_chars_details::mul10p4);
     q = _mm_srli_epi64(q, 45);
 
-    r = _mm_sub_epi32(x, _mm_mul_epu32(q, mulp4x));
+    r = _mm_sub_epi32(x, _mm_mul_epu32(q, to_chars_details::mul10p4x));
     x = _mm_packus_epi32(q, r);
 
-    q = _mm_mulhi_epu16(x, mulp2);
+    q = _mm_mulhi_epu16(x, to_chars_details::mul10p2);
     q = _mm_srli_epi16(q, 3);
 
-    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, mulp2x));
+    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, to_chars_details::mul10p2x));
     x = _mm_packus_epi16(q, r);
 
-    q = _mm_mulhi_epu16(x, mulp1);
+    q = _mm_mulhi_epu16(x, to_chars_details::mul10p1);
     q = _mm_srli_epi16(q, 3);
 
-    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, mulp1x));
+    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, to_chars_details::mul10p1x));
     x = _mm_packus_epi16(q, r);
 
-    return simd_cast<__m128i_t, uint64_t>(sse::shuffle_epi8(x, shuf));
+    return simd_cast<__m128i_t, uint64_t>(sse::shuffle_epi8(x, to_chars_details::shuf));
 }
 
 template <uint64_t Base>

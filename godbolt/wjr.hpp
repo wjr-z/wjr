@@ -2688,6 +2688,40 @@ constexpr decltype(auto) make_unsigned_value(Value &&value) noexcept {
         std::forward<Value>(value));
 }
 
+template <typename T>
+struct get_integral_constant {
+    using type = T;
+};
+
+template <typename T, T v>
+struct get_integral_constant<std::integral_constant<T, v>> {
+    using type = T;
+};
+
+template <typename T>
+using get_integral_constant_t = typename get_integral_constant<T>::type;
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR auto get_integral_constant_v(T &&v) noexcept {
+    using value_type = get_integral_constant_t<remove_cvref_t<T>>;
+
+    if constexpr (std::is_same_v<value_type, remove_cvref_t<T>>) {
+        return std::forward<T>(v);
+    } else {
+        return static_cast<value_type>(std::forward<T>(v));
+    }
+}
+
+template <typename T, typename U>
+struct is_integral_constant_same : std::false_type {};
+
+template <typename T, T v>
+struct is_integral_constant_same<std::integral_constant<T, v>, T> : std::true_type {};
+
+template <typename T, typename U>
+inline constexpr bool is_integral_constant_same_v =
+    is_integral_constant_same<T, U>::value;
+
 } // namespace wjr
 
 #endif // ! WJR_TYPE_TRAITS_HPP__
@@ -19471,7 +19505,6 @@ extern "C" precompute_chars_convert_t *precompute_chars_convert(precompute_chars
 namespace wjr {
 
 #if WJR_HAS_SIMD(SSE4_1) && WJR_HAS_SIMD(SIMD)
-#define WJR_HAS_BUILTIN_TO_CHARS_UNROLL_4_FAST WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_TO_CHARS_UNROLL_8_FAST WJR_HAS_DEF
 
 #define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_8_FAST WJR_HAS_DEF
@@ -19480,85 +19513,45 @@ namespace wjr {
 
 // use packus for skylake, use unpacklo for others
 
-#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_4_FAST)
+namespace to_chars_details {
 
-template <uint64_t Base>
-uint32_t builtin_to_chars_unroll_4_fast(uint16_t in) {
-    static_assert(Base == 10, "");
+inline __m128i mul10p4 = simd_cast<uint32_t, __m128i_t>(3518437209);
+inline __m128i mul10p4x = simd_cast<uint32_t, __m128i_t>(10000);
+inline __m128i mul10p2 = sse::set1_epi16(5243);
+inline __m128i mul10p2x = sse::set1_epi16(100);
+inline __m128i mul10p1 = sse::set1_epi16((short)52429u);
+inline __m128i mul10p1x = sse::set1_epi16(10);
 
-    __m128i mulp2 = sse::set1_epi16(5243);
-    __m128i mulp2x = sse::set1_epi16(100);
-    __m128i mulp1 = sse::set1_epi16((short)52429u);
-    __m128i mulp1x = sse::set1_epi16(10);
-    __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+inline __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
 
-    __m128i x = simd_cast<uint32_t, __m128i_t>(in);
-    __m128i q, r;
-
-    q = _mm_mulhi_epu16(x, mulp2);
-    q = _mm_srli_epi16(q, 3);
-
-    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, mulp2x));
-    x = _mm_packus_epi16(q, r);
-
-    q = _mm_mulhi_epu16(x, mulp1);
-    q = _mm_srli_epi16(q, 3);
-
-    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, mulp1x));
-    x = _mm_packus_epi16(q, r);
-
-    return simd_cast<__m128i_t, uint32_t>(sse::shuffle_epi8(x, shuf));
-}
-
-template <uint64_t Base>
-void builtin_to_chars_unroll_4_fast(void *ptr, uint32_t in, char_converter_t) {
-    uint32_t x = builtin_to_chars_unroll_4_fast<Base>(in) + 0x30303030ull;
-
-    write_memory<uint32_t>(ptr, x);
-}
-
-template <uint64_t Base>
-void builtin_to_chars_unroll_4_fast(void *ptr, uint32_t in, origin_converter_t) {
-    uint32_t x = builtin_to_chars_unroll_4_fast<Base>(in);
-
-    write_memory<uint32_t>(ptr, x);
-}
-
-#endif
+} // namespace to_chars_details
 
 #if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
 
 inline uint64_t builtin_to_chars_unroll_8_fast_10(uint32_t in) {
-    __m128i mulp4 = simd_cast<uint32_t, __m128i_t>(3518437209);
-    __m128i mulp4x = simd_cast<uint32_t, __m128i_t>(10000);
-    __m128i mulp2 = sse::set1_epi16(5243);
-    __m128i mulp2x = sse::set1_epi16(100);
-    __m128i mulp1 = sse::set1_epi16((short)52429u);
-    __m128i mulp1x = sse::set1_epi16(10);
-    __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
 
     __m128i x = simd_cast<uint32_t, __m128i_t>(in);
     __m128i q, r;
 
-    q = _mm_mul_epu32(x, mulp4);
+    q = _mm_mul_epu32(x, to_chars_details::mul10p4);
     q = _mm_srli_epi64(q, 45);
 
-    r = _mm_sub_epi32(x, _mm_mul_epu32(q, mulp4x));
+    r = _mm_sub_epi32(x, _mm_mul_epu32(q, to_chars_details::mul10p4x));
     x = _mm_packus_epi32(q, r);
 
-    q = _mm_mulhi_epu16(x, mulp2);
+    q = _mm_mulhi_epu16(x, to_chars_details::mul10p2);
     q = _mm_srli_epi16(q, 3);
 
-    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, mulp2x));
+    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, to_chars_details::mul10p2x));
     x = _mm_packus_epi16(q, r);
 
-    q = _mm_mulhi_epu16(x, mulp1);
+    q = _mm_mulhi_epu16(x, to_chars_details::mul10p1);
     q = _mm_srli_epi16(q, 3);
 
-    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, mulp1x));
+    r = _mm_sub_epi16(x, _mm_mullo_epi16(q, to_chars_details::mul10p1x));
     x = _mm_packus_epi16(q, r);
 
-    return simd_cast<__m128i_t, uint64_t>(sse::shuffle_epi8(x, shuf));
+    return simd_cast<__m128i_t, uint64_t>(sse::shuffle_epi8(x, to_chars_details::shuf));
 }
 
 template <uint64_t Base>
@@ -19825,21 +19818,7 @@ class __to_chars_unroll_4_fast_fn_impl<8>
 
 template <>
 class __to_chars_unroll_4_fast_fn_impl<10>
-    : public __to_chars_unroll_4_fast_fn_impl_base<10> {
-    using __to_chars_unroll_4_fast_fn_impl_base<10>::__fast_conv;
-#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_4_FAST)
-public:
-    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
-                                                 char_converter_t conv) {
-        builtin_to_chars_unroll_4_fast<10>(ptr, val, conv);
-    }
-
-    WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
-                                                 origin_converter_t conv) {
-        builtin_to_chars_unroll_4_fast<10>(ptr, val, conv);
-    }
-#endif
-};
+    : public __to_chars_unroll_4_fast_fn_impl_base<10> {};
 
 template <>
 class __to_chars_unroll_4_fast_fn_impl<16>
@@ -20310,15 +20289,18 @@ template <typename Iter, typename UnsignedValue, typename Converter = char_conve
 Iter __unsigned_to_chars_8_backward(Iter ptr, int n, UnsignedValue x,
                                     Converter conv = {}) {
     WJR_ASSERT(x != 0);
-    WJR_ASSUME(1 <= n && n <= std::numeric_limits<UnsignedValue>::digits);
+    constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
+    WJR_ASSUME(1 <= n && n <= nd);
 
-    if (WJR_LIKELY(n >= 4)) {
-        do {
-            __to_chars_unroll_4<8>(ptr - 4, x & 0x0fff, conv);
-            ptr -= 4;
-            x >>= 12;
-            n -= 4;
-        } while (WJR_LIKELY(n >= 4));
+    if constexpr (nd >= 12) {
+        if (WJR_LIKELY(n >= 4)) {
+            do {
+                __to_chars_unroll_4<8>(ptr - 4, x & 0x0fff, conv);
+                ptr -= 4;
+                x >>= 12;
+                n -= 4;
+            } while (WJR_LIKELY(n >= 4));
+        }
     }
 
     switch (n) {
@@ -20353,15 +20335,18 @@ template <typename Iter, typename UnsignedValue, typename Converter = char_conve
 Iter __unsigned_to_chars_16_backward(Iter ptr, int n, UnsignedValue x,
                                      Converter conv = {}) {
     WJR_ASSERT(x != 0);
-    WJR_ASSUME(1 <= n && n <= std::numeric_limits<UnsignedValue>::digits);
+    constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
+    WJR_ASSUME(1 <= n && n <= nd);
 
-    if (WJR_LIKELY(n >= 4)) {
-        do {
-            __to_chars_unroll_4<16>(ptr - 4, x & 0xffff, conv);
-            ptr -= 4;
-            x >>= 16;
-            n -= 4;
-        } while (WJR_LIKELY(n >= 4));
+    if constexpr (nd >= 16) {
+        if (WJR_LIKELY(n >= 4)) {
+            do {
+                __to_chars_unroll_4<16>(ptr - 4, x & 0xffff, conv);
+                ptr -= 4;
+                x >>= 16;
+                n -= 4;
+            } while (WJR_LIKELY(n >= 4));
+        }
     }
 
     switch (n) {
@@ -20412,40 +20397,57 @@ Iter __unsigned_to_chars_power_of_two_backward(Iter ptr, int n, UnsignedValue x,
 template <typename Iter, typename UnsignedValue, typename Converter,
           std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
 Iter __unsigned_to_chars_10_backward(Iter buf, UnsignedValue val, Converter conv) {
+    constexpr auto nd = std::numeric_limits<UnsignedValue>::digits10;
+
     WJR_ASSERT_ASSUME(val != 0);
 
     if (val >= 100) {
 #if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
-        if (WJR_UNLIKELY(val >= 1000'0000)) {
-            do {
+        if constexpr (nd < 8) {
+            // do nothing
+        } else if constexpr (nd <= 9) {
+            if (WJR_UNLIKELY(val >= 1000'0000)) {
                 __to_chars_unroll_8<10>(buf - 8, val % 1'0000'0000, conv);
                 buf -= 8;
-                val /= 1'0000'0000;
-            } while (val >= 1000'0000);
 
-            if (WJR_UNLIKELY(val == 0)) {
+                if (WJR_UNLIKELY(val <= 1'0000'0000)) {
+                    return buf;
+                }
+
+                *--buf = conv.to(val / 1'0000'0000);
                 return buf;
+            }
+        } else {
+            if (WJR_UNLIKELY(val >= 1000'0000)) {
+                do {
+                    __to_chars_unroll_8<10>(buf - 8, val % 1'0000'0000, conv);
+                    buf -= 8;
+                    val /= 1'0000'0000;
+                } while (val >= 1000'0000);
+
+                if (WJR_LIKELY(val < 100)) {
+                    if (WJR_UNLIKELY(val == 0)) {
+                        return buf;
+                    }
+
+                    if (WJR_LIKELY(val >= 10)) {
+                        __to_chars_unroll_2<10>(buf - 2, val, conv);
+                        buf -= 2;
+                        return buf;
+                    }
+
+                    *--buf = conv.to(val);
+                    return buf;
+                }
             }
         }
 #endif
 
-        if (val >= 1'0000) {
-#if !WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
-            do {
-#endif
-                __to_chars_unroll_4<10>(buf - 4, val % 1'0000, conv);
-                buf -= 4;
-                val /= 1'0000;
-#if !WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
-            } while (val >= 1'0000);
-#endif
-        }
-
-        if (val >= 100) {
+        do {
             __to_chars_unroll_2<10>(buf - 2, val % 100, conv);
             buf -= 2;
             val /= 100;
-        }
+        } while (WJR_LIKELY(val >= 100));
     }
 
     if (WJR_LIKELY(val >= 10)) {
@@ -20458,18 +20460,10 @@ Iter __unsigned_to_chars_10_backward(Iter buf, UnsignedValue val, Converter conv
     return buf;
 }
 
-/**
- * @brief Convert an unsigned integer to a string in reverse order without checking
- * buf size.
- *
- * @tparam Iter The iterator type. Must be random access iterator.
- * @tparam Value The value type. If Converter is origin_converter_t, Value must be
- * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
- *
- */
-template <typename Iter, typename Value, typename Converter = char_converter_t,
+template <typename Iter, typename Value, typename IBase,
+          typename Converter = char_converter_t,
           std::enable_if_t<__is_valid_to_chars_v<Value, Converter>, int> = 0>
-Iter to_chars_backward(Iter ptr, Value val, unsigned int base = 10, Converter conv = {}) {
+Iter __to_chars_backward_impl(Iter ptr, Value val, IBase ibase, Converter conv = {}) {
     if (WJR_UNLIKELY(val == 0)) {
         *--ptr = conv.to(0);
         return ptr;
@@ -20484,6 +20478,8 @@ Iter to_chars_backward(Iter ptr, Value val, unsigned int base = 10, Converter co
             uVal = -val;
         }
     }
+
+    unsigned int base = get_integral_constant_v(ibase);
 
     switch (base) {
     case 2: {
@@ -20524,21 +20520,60 @@ Iter to_chars_backward(Iter ptr, Value val, unsigned int base = 10, Converter co
     return ptr;
 }
 
+template <typename Iter, typename Value, typename BaseType = unsigned int,
+          BaseType IBase = 10, typename Converter = char_converter_t,
+          std::enable_if_t<__is_valid_to_chars_v<Value, Converter>, int> = 0>
+Iter to_chars_backward(Iter ptr, Value val,
+                       std::integral_constant<BaseType, IBase> base = {},
+                       Converter conv = {}) {
+    return __to_chars_backward_impl(ptr, val,
+                                    std::integral_constant<unsigned int, IBase>(), conv);
+}
+
 /**
- * @brief Convert an unsigned integer to a string in reverse order with checking buf size.
+ * @brief Convert an unsigned integer to a string in reverse order without checking
+ * buf size.
  *
  * @tparam Iter The iterator type. Must be random access iterator.
  * @tparam Value The value type. If Converter is origin_converter_t, Value must be
  * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
  *
- * @return to_chars_result<Iter> If the conversion is successful, return {ans,
- * std::errc{}}. Otherwise, return {ptr, std::errc::value_too_large}.
- *
  */
 template <typename Iter, typename Value, typename Converter = char_converter_t,
           std::enable_if_t<__is_valid_to_chars_v<Value, Converter>, int> = 0>
-to_chars_result<Iter> to_chars_backward(Iter ptr, Iter first, Value val,
-                                        unsigned int base = 10, Converter conv = {}) {
+Iter to_chars_backward(Iter ptr, Value val, unsigned int base, Converter conv = {}) {
+    if (WJR_BUILTIN_CONSTANT_P(base)) {
+        switch (base) {
+        case 2: {
+            return to_chars_backward(ptr, val, std::integral_constant<unsigned int, 2>{},
+                                     conv);
+        }
+        case 8: {
+            return to_chars_backward(ptr, val, std::integral_constant<unsigned int, 8>{},
+                                     conv);
+        }
+        case 16: {
+            return to_chars_backward(ptr, val, std::integral_constant<unsigned int, 16>{},
+                                     conv);
+        }
+        case 10: {
+            return to_chars_backward(ptr, val, std::integral_constant<unsigned int, 10>{},
+                                     conv);
+        }
+        default: {
+            break;
+        }
+        }
+    }
+
+    return __to_chars_backward_impl(ptr, val, base, conv);
+}
+
+template <typename Iter, typename Value, typename IBase,
+          typename Converter = char_converter_t,
+          std::enable_if_t<__is_valid_to_chars_v<Value, Converter>, int> = 0>
+to_chars_result<Iter> __to_chars_backward_impl(Iter ptr, Iter first, Value val,
+                                               IBase ibase, Converter conv = {}) {
     if (WJR_UNLIKELY(val == 0)) {
         if (WJR_LIKELY(first != ptr)) {
             *--ptr = conv.to(0);
@@ -20564,6 +20599,7 @@ to_chars_result<Iter> to_chars_backward(Iter ptr, Iter first, Value val,
         }
     }
 
+    auto base = get_integral_constant_v(ibase);
     to_chars_result<Iter> ret;
 
     switch (base) {
@@ -20630,17 +20666,62 @@ to_chars_result<Iter> to_chars_backward(Iter ptr, Iter first, Value val,
     return ret;
 }
 
+template <typename Iter, typename Value, typename BaseType = unsigned int,
+          BaseType IBase = 10, typename Converter = char_converter_t,
+          std::enable_if_t<__is_valid_to_chars_v<Value, Converter>, int> = 0>
+to_chars_result<Iter> to_chars_backward(Iter ptr, Iter first, Value val,
+                                        std::integral_constant<BaseType, IBase> base = {},
+                                        Converter conv = {}) {
+    return __to_chars_backward_impl(ptr, first, val,
+                                    std::integral_constant<unsigned int, IBase>(), conv);
+}
+
 /**
- * @brief Convert an unsigned integer to a string without checking buf size.
+ * @brief Convert an unsigned integer to a string in reverse order with checking buf size.
  *
  * @tparam Iter The iterator type. Must be random access iterator.
  * @tparam Value The value type. If Converter is origin_converter_t, Value must be
  * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
  *
+ * @return to_chars_result<Iter> If the conversion is successful, return {ans,
+ * std::errc{}}. Otherwise, return {ptr, std::errc::value_too_large}.
+ *
  */
 template <typename Iter, typename Value, typename Converter = char_converter_t,
           std::enable_if_t<__is_valid_to_chars_v<Value, Converter>, int> = 0>
-Iter to_chars(Iter ptr, Value val, unsigned int base = 10, Converter conv = {}) {
+to_chars_result<Iter> to_chars_backward(Iter ptr, Iter first, Value val,
+                                        unsigned int base, Converter conv = {}) {
+    if (WJR_BUILTIN_CONSTANT_P(base)) {
+        switch (base) {
+        case 2: {
+            return to_chars_backward(ptr, first, val,
+                                     std::integral_constant<unsigned int, 2>{}, conv);
+        }
+        case 8: {
+            return to_chars_backward(ptr, first, val,
+                                     std::integral_constant<unsigned int, 8>{}, conv);
+        }
+        case 16: {
+            return to_chars_backward(ptr, first, val,
+                                     std::integral_constant<unsigned int, 16>{}, conv);
+        }
+        case 10: {
+            return to_chars_backward(ptr, first, val,
+                                     std::integral_constant<unsigned int, 10>{}, conv);
+        }
+        default: {
+            break;
+        }
+        }
+    }
+
+    return __to_chars_backward_impl(ptr, first, val, base, conv);
+}
+
+template <typename Iter, typename Value, typename IBase,
+          typename Converter = char_converter_t,
+          std::enable_if_t<__is_valid_to_chars_v<Value, Converter>, int> = 0>
+Iter __to_chars_impl(Iter ptr, Value val, IBase ibase, Converter conv = {}) {
     if (WJR_UNLIKELY(val == 0)) {
         *ptr++ = conv.to(0);
         return ptr;
@@ -20654,6 +20735,8 @@ Iter to_chars(Iter ptr, Value val, unsigned int base = 10, Converter conv = {}) 
             uVal = -val;
         }
     }
+
+    auto base = get_integral_constant_v(ibase);
 
     switch (base) {
     case 2: {
@@ -20695,21 +20778,53 @@ Iter to_chars(Iter ptr, Value val, unsigned int base = 10, Converter conv = {}) 
     }
 }
 
+template <typename Iter, typename Value, typename BaseType = unsigned int,
+          BaseType IBase = 10, typename Converter = char_converter_t,
+          std::enable_if_t<__is_valid_to_chars_v<Value, Converter>, int> = 0>
+Iter to_chars(Iter ptr, Value val, std::integral_constant<BaseType, IBase> base = {},
+              Converter conv = {}) {
+    return __to_chars_impl(ptr, val, std::integral_constant<unsigned int, IBase>(), conv);
+}
+
 /**
- * @brief Convert an unsigned integer to a string with checking buf size.
+ * @brief Convert an unsigned integer to a string without checking buf size.
  *
  * @tparam Iter The iterator type. Must be random access iterator.
  * @tparam Value The value type. If Converter is origin_converter_t, Value must be
  * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
  *
- * @return to_chars_result<Iter> If the conversion is successful, return {ans,
- * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
- *
  */
 template <typename Iter, typename Value, typename Converter = char_converter_t,
           std::enable_if_t<__is_valid_to_chars_v<Value, Converter>, int> = 0>
-to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, unsigned int base = 10,
-                               Converter conv = {}) {
+Iter to_chars(Iter ptr, Value val, unsigned int base, Converter conv = {}) {
+    if (WJR_BUILTIN_CONSTANT_P(base)) {
+        switch (base) {
+        case 2: {
+            return to_chars(ptr, val, std::integral_constant<unsigned int, 2>{}, conv);
+        }
+        case 8: {
+            return to_chars(ptr, val, std::integral_constant<unsigned int, 8>{}, conv);
+        }
+        case 16: {
+            return to_chars(ptr, val, std::integral_constant<unsigned int, 16>{}, conv);
+        }
+        case 10: {
+            return to_chars(ptr, val, std::integral_constant<unsigned int, 10>{}, conv);
+        }
+        default: {
+            break;
+        }
+        }
+    }
+
+    return __to_chars_impl(ptr, val, base, conv);
+}
+
+template <typename Iter, typename Value, typename IBase,
+          typename Converter = char_converter_t,
+          std::enable_if_t<__is_valid_to_chars_v<Value, Converter>, int> = 0>
+to_chars_result<Iter> __to_chars_impl(Iter ptr, Iter last, Value val, IBase ibase,
+                                      Converter conv = {}) {
     if (WJR_UNLIKELY(val == 0)) {
         if (WJR_UNLIKELY(ptr == last)) {
             return {last, std::errc::value_too_large};
@@ -20732,6 +20847,7 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, unsigned int base
         }
     }
 
+    auto base = get_integral_constant_v(ibase);
     auto size = std::distance(ptr, last);
 
     switch (base) {
@@ -20792,6 +20908,58 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, unsigned int base
         return {last, std::errc::invalid_argument};
     }
     }
+}
+
+template <typename Iter, typename Value, typename BaseType = unsigned int,
+          BaseType IBase = 10, typename Converter = char_converter_t,
+          std::enable_if_t<__is_valid_to_chars_v<Value, Converter>, int> = 0>
+to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val,
+                               std::integral_constant<BaseType, IBase> base = {},
+                               Converter conv = {}) {
+    return __to_chars_impl(ptr, last, val, std::integral_constant<unsigned int, IBase>(),
+                           conv);
+}
+
+/**
+ * @brief Convert an unsigned integer to a string with checking buf size.
+ *
+ * @tparam Iter The iterator type. Must be random access iterator.
+ * @tparam Value The value type. If Converter is origin_converter_t, Value must be
+ * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
+ *
+ * @return to_chars_result<Iter> If the conversion is successful, return {ans,
+ * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
+ *
+ */
+template <typename Iter, typename Value, typename Converter = char_converter_t,
+          std::enable_if_t<__is_valid_to_chars_v<Value, Converter>, int> = 0>
+to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, unsigned int base,
+                               Converter conv = {}) {
+    if (WJR_BUILTIN_CONSTANT_P(base)) {
+        switch (base) {
+        case 2: {
+            return to_chars(ptr, last, val, std::integral_constant<unsigned int, 2>{},
+                            conv);
+        }
+        case 8: {
+            return to_chars(ptr, last, val, std::integral_constant<unsigned int, 8>{},
+                            conv);
+        }
+        case 16: {
+            return to_chars(ptr, last, val, std::integral_constant<unsigned int, 16>{},
+                            conv);
+        }
+        case 10: {
+            return to_chars(ptr, last, val, std::integral_constant<unsigned int, 10>{},
+                            conv);
+        }
+        default: {
+            break;
+        }
+        }
+    }
+
+    return __to_chars_impl(ptr, last, val, base, conv);
 }
 
 template <typename Iter, typename Converter>
