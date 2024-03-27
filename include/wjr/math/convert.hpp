@@ -64,15 +64,38 @@ template <typename Iter, typename Converter>
 inline constexpr bool __is_fast_convert_iterator_v =
     __is_fast_convert_iterator<Iter, Converter>::value;
 
-WJR_REGISTER_HAS_TYPE(__to_chars_fast_fn_fast_conv,
-                      Base::__fast_conv(std::declval<void *>(), std::declval<Value>(),
-                                        std::declval<Converter>()),
-                      Base, Value, Converter);
+namespace convert_details {
 
-WJR_REGISTER_HAS_TYPE(__from_chars_fast_fn_fast_conv,
-                      Base::__fast_conv(std::declval<const void *>(),
-                                        std::declval<Converter>()),
-                      Base, Converter);
+template <typename Enable, typename Base, typename Value, typename Converter,
+          typename... Args>
+struct __has_to_chars_fast_fn_fast_conv : std::false_type {};
+template <typename Base, typename Value, typename Converter, typename... Args>
+struct __has_to_chars_fast_fn_fast_conv<
+    std::void_t<decltype(Base::__fast_conv(std::declval<void *>(), std::declval<Value>(),
+                                           std::declval<Converter>()))>,
+    Base, Value, Converter, Args...> : std::true_type {};
+template <typename Base, typename Value, typename Converter, typename... Args>
+struct has_to_chars_fast_fn_fast_conv
+    : __has_to_chars_fast_fn_fast_conv<void, Base, Value, Converter, Args...> {};
+template <typename Base, typename Value, typename Converter, typename... Args>
+constexpr bool has_to_chars_fast_fn_fast_conv_v =
+    has_to_chars_fast_fn_fast_conv<Base, Value, Converter, Args...>::value;
+
+template <typename Enable, typename Base, typename Converter, typename... Args>
+struct __has_from_chars_fast_fn_fast_conv : std::false_type {};
+template <typename Base, typename Converter, typename... Args>
+struct __has_from_chars_fast_fn_fast_conv<
+    std::void_t<decltype(Base::__fast_conv(std::declval<const void *>(),
+                                           std::declval<Converter>()))>,
+    Base, Converter, Args...> : std::true_type {};
+template <typename Base, typename Converter, typename... Args>
+struct has_from_chars_fast_fn_fast_conv
+    : __has_from_chars_fast_fn_fast_conv<void, Base, Converter, Args...> {};
+template <typename Base, typename Converter, typename... Args>
+constexpr bool has_from_chars_fast_fn_fast_conv_v =
+    has_from_chars_fast_fn_fast_conv<Base, Converter, Args...>::value;
+
+} // namespace convert_details
 
 template <uint64_t Base>
 class __to_chars_unroll_2_fast_fn_impl_base {
@@ -194,7 +217,8 @@ public:
     template <typename Iter, typename Converter>
     WJR_INTRINSIC_INLINE void operator()(Iter ptr, uint32_t val, Converter conv) const {
         if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
-                      has___to_chars_fast_fn_fast_conv_v<Mybase, uint32_t, Converter>) {
+                      convert_details::has_to_chars_fast_fn_fast_conv_v<Mybase, uint32_t,
+                                                                        Converter>) {
             Mybase::__fast_conv(to_address(ptr), val, conv);
         } else {
             ptr[0] = conv.to(val / Base);
@@ -214,7 +238,8 @@ public:
     template <typename Iter, typename Converter>
     WJR_INTRINSIC_INLINE void operator()(Iter ptr, uint32_t val, Converter conv) const {
         if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
-                      has___to_chars_fast_fn_fast_conv_v<Mybase, uint32_t, Converter>) {
+                      convert_details::has_to_chars_fast_fn_fast_conv_v<Mybase, uint32_t,
+                                                                        Converter>) {
             Mybase::__fast_conv(to_address(ptr), val, conv);
         } else {
             constexpr auto Base2 = Base * Base;
@@ -235,7 +260,8 @@ public:
     template <typename Iter, typename Converter>
     WJR_INTRINSIC_INLINE void operator()(Iter ptr, uint64_t val, Converter conv) const {
         if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
-                      has___to_chars_fast_fn_fast_conv_v<Mybase, uint64_t, Converter>) {
+                      convert_details::has_to_chars_fast_fn_fast_conv_v<Mybase, uint64_t,
+                                                                        Converter>) {
             Mybase::__fast_conv(to_address(ptr), val, conv);
         } else {
             constexpr auto Base4 = Base * Base * Base * Base;
@@ -377,7 +403,8 @@ public:
     template <typename Iter, typename Converter>
     WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
         if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
-                      has___from_chars_fast_fn_fast_conv_v<Mybase, Converter>) {
+                      convert_details::has_from_chars_fast_fn_fast_conv_v<Mybase,
+                                                                          Converter>) {
             return Mybase::__fast_conv(to_address(first), conv);
         } else {
             uint64_t value = 0;
@@ -400,7 +427,8 @@ public:
     template <typename Iter, typename Converter>
     WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
         if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
-                      has___from_chars_fast_fn_fast_conv_v<Mybase, Converter>) {
+                      convert_details::has_from_chars_fast_fn_fast_conv_v<Mybase,
+                                                                          Converter>) {
             return Mybase::__fast_conv(to_address(first), conv);
         } else {
             constexpr uint64_t Base4 = Base * Base * Base * Base;
@@ -421,7 +449,8 @@ public:
     template <typename Iter, typename Converter>
     WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
         if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
-                      has___from_chars_fast_fn_fast_conv_v<Mybase, Converter>) {
+                      convert_details::has_from_chars_fast_fn_fast_conv_v<Mybase,
+                                                                          Converter>) {
             return Mybase::__fast_conv(to_address(first), conv);
         } else {
             constexpr uint64_t Base4 = Base * Base * Base * Base;
@@ -773,7 +802,7 @@ Iter __unsigned_to_chars(Iter iter, UnsignedValue val, unsigned int base = 10,
 }
 
 template <typename Iter, typename Value, typename Converter = char_converter_t,
-          std::enable_if_t<std::is_integral_v<Value>, int> = 0>
+          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
 Iter to_chars(Iter iter, Value val, unsigned int base = 10, Converter conv = {}) {
     if (WJR_UNLIKELY(val == 0)) {
         *iter++ = '0';
@@ -814,12 +843,11 @@ Iter to_chars(Iter iter, Value val, unsigned int base = 10, Converter conv = {})
         }
     }
 
-    return __unsigned_to_chars(iter, static_cast<std::make_unsigned_t<Value>>(val), base,
-                               conv);
+    return __unsigned_to_chars(iter, make_unsigned_value(val), base, conv);
 }
 
 template <typename Iter, typename Value, typename Converter = char_converter_t,
-          std::enable_if_t<std::is_integral_v<Value>, int> = 0>
+          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
 Iter backward_to_chars_10(Iter iter, Value val, Converter conv = {}) {
     if (WJR_UNLIKELY(val == 0)) {
         *--iter = '0';
@@ -835,8 +863,7 @@ Iter backward_to_chars_10(Iter iter, Value val, Converter conv = {}) {
         }
     }
 
-    Iter ret = __unsigned_backward_to_chars_10(
-        iter, static_cast<std::make_unsigned_t<Value>>(val), conv);
+    Iter ret = __unsigned_backward_to_chars_10(iter, make_unsigned_value(val), conv);
 
     if (sign) {
         *--iter = '-';

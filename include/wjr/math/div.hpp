@@ -229,7 +229,7 @@ WJR_INTRINSIC_CONSTEXPR20 T div_qr_1_impl(T *dst, T &rem, const T *src, size_t n
 }
 
 // return high quotient limb
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         const div2by1_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -251,7 +251,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
     dst[n - 1] = div_qr_1_impl(dst, rem, src, n, div);
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         type_identity_t<T> div) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -397,7 +397,7 @@ WJR_INTRINSIC_CONSTEXPR20 T div_qr_2_impl(T *dst, T *rem, const T *src, size_t n
     return div_qr_2_shift(dst, rem, src, n, div);
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const div3by2_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 2);
@@ -405,7 +405,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
     dst[n - 2] = div_qr_2_impl(dst, rem, src, n, div);
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const T *div) {
     WJR_ASSERT_ASSUME(n >= 2);
@@ -1033,7 +1033,8 @@ WJR_CONSTEXPR_E void fallback_divexact_1(T *dst, const T *src, size_t n,
     return fallback_divexact_1_shift(dst, src, n, div);
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+template <typename T,
+          std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           const divexact1_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -1047,7 +1048,7 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
     return fallback_divexact_1(dst, src, n, div);
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           type_identity_t<T> div) {
     WJR_ASSERT_ASSUME(n >= 1);

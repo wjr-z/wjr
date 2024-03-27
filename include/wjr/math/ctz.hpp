@@ -88,7 +88,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) {
  *
  * @tparam T Must be an unsigned integral type
  */
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int ctz(T x) {
 #if WJR_HAS_BUILTIN(CTZ)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {

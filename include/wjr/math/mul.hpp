@@ -47,7 +47,7 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t fallback_mul64(uint64_t a, uint64_t b, uint64
     return rl;
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E T mul(T a, T b, T &hi) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
@@ -117,14 +117,14 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T fallback_mulhi(T a, T b) {
     return hi;
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T mulhi(T a, T b) {
     T ret = 0;
     (void)mul(a, b, ret);
     return ret;
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T mullo(T a, T b) {
     return a * b;
 }

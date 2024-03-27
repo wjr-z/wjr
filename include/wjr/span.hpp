@@ -269,7 +269,16 @@ template <typename It, typename End,
           std::enable_if_t<is_contiguous_iterator_v<It>, int> = 0>
 span(It, End) -> span<std::remove_reference_t<iter_reference_t<It>>>;
 
-template <typename Container>
+namespace span_details {
+
+WJR_REGISTER_HAS_TYPE(data, std::data(std::declval<Container &>()), Container);
+WJR_REGISTER_HAS_TYPE(size, std::size(std::declval<Container &>()), Container);
+
+} // namespace span_details
+
+template <typename Container, std::enable_if_t<span_details::has_data_v<Container> &&
+                                                   span_details::has_size_v<Container>,
+                                               int> = 0>
 auto make_span(Container &c) {
     return span(std::data(c), std::size(c));
 }

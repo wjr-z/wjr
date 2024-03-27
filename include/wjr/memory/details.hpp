@@ -7,6 +7,8 @@
 
 namespace wjr {
 
+namespace to_address_details {
+
 template <typename Enable, typename Ptr, typename... Args>
 struct __has_to_address : std::false_type {};
 template <typename Ptr, typename... Args>
@@ -19,6 +21,8 @@ struct has_to_address : __has_to_address<void, Ptr, Args...> {};
 template <typename Ptr, typename... Args>
 constexpr bool has_to_address_v = has_to_address<Ptr, Args...>::value;
 
+} // namespace to_address_details
+
 template <typename T>
 constexpr T *to_address(T *p) noexcept {
     static_assert(!std::is_function_v<T>, "T cannot be a function.");
@@ -27,7 +31,7 @@ constexpr T *to_address(T *p) noexcept {
 
 template <typename Ptr>
 constexpr auto to_address(const Ptr &p) noexcept {
-    if constexpr (has_to_address_v<Ptr>) {
+    if constexpr (to_address_details::has_to_address_v<Ptr>) {
         return std::pointer_traits<Ptr>::to_address(p);
     } else {
         return to_address(p.operator->());
@@ -95,7 +99,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T builtin_byteswap(T x) noexcept {
 
 #endif
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T byteswap(T x, endian to = endian::little) noexcept {
     if (to == endian::native) {
         return x;
@@ -112,7 +116,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T byteswap(T x, endian to = endian::little) 
 #endif
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_PURE WJR_INTRINSIC_INLINE T read_memory(const void *ptr,
                                             endian to = endian::little) noexcept {
     T x;
@@ -125,7 +129,7 @@ WJR_PURE WJR_INTRINSIC_INLINE T read_memory(const void *ptr,
     return x;
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x,
                                        endian to = endian::little) noexcept {
     if (to != endian::native) {
@@ -133,6 +137,40 @@ WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x,
     }
 
     std::memcpy(ptr, &x, sizeof(T));
+}
+
+template <class Pointer, class SizeType = std::size_t>
+struct allocation_result {
+    Pointer ptr;
+    SizeType count;
+};
+
+template <typename Enable, typename Allocator, typename SizeType, typename... Args>
+struct __has_allocate_at_least : std::false_type {};
+template <typename Allocator, typename SizeType, typename... Args>
+struct __has_allocate_at_least<
+    std::void_t<decltype(std::declval<Allocator>().allocate_at_least(
+        std::declval<SizeType>()))>,
+    Allocator, SizeType, Args...> : std::true_type {};
+template <typename Allocator, typename SizeType, typename... Args>
+struct has_allocate_at_least
+    : __has_allocate_at_least<void, Allocator, SizeType, Args...> {};
+template <typename Allocator, typename SizeType, typename... Args>
+constexpr bool has_allocate_at_least_v =
+    has_allocate_at_least<Allocator, SizeType, Args...>::value;
+
+template <typename Allocator, typename SizeType,
+          typename Pointer = typename std::allocator_traits<Allocator>::pointer>
+WJR_NODISCARD allocation_result<Pointer, SizeType> allocate_at_least(Allocator &alloc,
+                                                                     SizeType count) {
+    if constexpr (has_allocate_at_least_v<Allocator, SizeType>) {
+        auto result = alloc.allocate_at_least(count);
+        WJR_ASSUME(result.count >= count);
+        return result;
+    } else {
+        auto ptr = std::allocator_traits<Allocator>::allocate(alloc, count);
+        return {ptr, count};
+    }
 }
 
 } // namespace wjr

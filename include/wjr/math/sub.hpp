@@ -53,8 +53,9 @@ WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) {
 
 #endif // WJR_HAS_BUILTIN(SUBC)
 
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
     WJR_ASSERT_ASSUME_L1(c_in <= 1);
 
@@ -94,7 +95,7 @@ WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
  cannot know that the high register is not cleared, so the performance is worse than the
  normal version when cc flag is not needed immediately.
 */
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
     WJR_ASSERT_ASSUME_L1(c_in <= 1);
 
@@ -129,8 +130,9 @@ require :
 1. n >= 1
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
 */
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U subc_1(T *dst, const T *src0, size_t n,
                                    type_identity_t<T> src1, U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -212,8 +214,9 @@ require :
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
 3. WJR_IS_SAME_OR_INCR_P(dst, n, src1, n)
 */
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U subc_n(T *dst, const T *src0, const T *src1, size_t n,
                                    U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -242,8 +245,9 @@ require :
 3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
 4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
 */
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n, const T *src1,
                                    size_t m, U c_in) {
     WJR_ASSERT_ASSUME(m >= 1);
@@ -265,8 +269,9 @@ require :
 3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
 4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
 */
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U subc_sz(T *dst, const T *src0, size_t n, const T *src1,
                                     size_t m, U c_in) {
     WJR_ASSERT_ASSUME(n >= m);
@@ -294,7 +299,7 @@ Absolute value represents non-zero pos
 == 0 : src0 == src1
 < 0 : src0 < src1
 */
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
                                              size_t n) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -336,7 +341,7 @@ Absolute value represents non-zero pos
 == 0 : src0 == src1
 < 0 : src0 < src1
 */
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
                                              const T *src1, size_t m) {
     WJR_ASSERT_ASSUME(m >= 1);
@@ -375,8 +380,9 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
 }
 
 // just like abs_subc_n.
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
                                              size_t n, U &c_out, type_identity_t<U> cf0,
                                              type_identity_t<U> cf1) {

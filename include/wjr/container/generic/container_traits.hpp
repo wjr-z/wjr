@@ -89,6 +89,8 @@ public:
     }
 };
 
+namespace try_reserve_details {
+
 template <typename Enable, typename Container, typename Size, typename... Args>
 struct __has_container_reserve : std::false_type {};
 template <typename Container, typename Size, typename... Args>
@@ -101,9 +103,11 @@ template <typename Container, typename Size, typename... Args>
 constexpr bool has_container_reserve_v =
     has_container_reserve<Container, Size, Args...>::value;
 
+} // namespace try_reserve_details
+
 template <typename Container, typename Size>
 void try_reserve(Container &c, Size s) {
-    if constexpr (has_container_reserve_v<Container, Size>) {
+    if constexpr (try_reserve_details::has_container_reserve_v<Container, Size>) {
         c.reserve(s);
     }
 }

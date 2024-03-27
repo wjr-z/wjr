@@ -140,9 +140,11 @@ public:
     WJR_CONSTEXPR20 void uninitialized_construct(size_type size, size_type capacity) {
         auto &al = get_allocator();
         auto &m_storage = __get_data();
-        m_storage.m_data = al.allocate(capacity);
+        auto result = allocate_at_least(al, capacity);
+
+        m_storage.m_data = result.ptr;
         m_storage.m_size = size;
-        m_storage.m_capacity = capacity;
+        m_storage.m_capacity = result.count;
     }
 
     WJR_CONSTEXPR20 void take_storage(default_vector_storage &&other) noexcept {
@@ -345,9 +347,11 @@ public:
     WJR_CONSTEXPR20 void uninitialized_construct(size_type size, size_type capacity) {
         auto &al = get_allocator();
         auto &m_storage = __get_data();
-        m_storage.m_data = al.allocate(capacity);
+        auto result = allocate_at_least(al, capacity);
+
+        m_storage.m_data = result.ptr;
         m_storage.m_size = size;
-        m_storage.m_capacity = capacity;
+        m_storage.m_capacity = result.count;
     }
 
     WJR_CONSTEXPR20 void take_storage(fixed_vector_storage &&other) noexcept {
@@ -382,18 +386,22 @@ private:
     compressed_pair<_Alty, data_type> m_pair;
 };
 
+namespace vector_details {
+
 template <typename Enable, typename Storage, typename... Args>
-struct __has___vector_storage_shrink_to_fit : std::false_type {};
+struct __has_vector_storage_shrink_to_fit : std::false_type {};
 template <typename Storage, typename... Args>
-struct __has___vector_storage_shrink_to_fit<
+struct __has_vector_storage_shrink_to_fit<
     std::void_t<decltype(std::declval<Storage>().shrink_to_fit())>, Storage, Args...>
     : std::true_type {};
 template <typename Storage, typename... Args>
-struct has___vector_storage_shrink_to_fit
-    : __has___vector_storage_shrink_to_fit<void, Storage, Args...> {};
+struct has_vector_storage_shrink_to_fit
+    : __has_vector_storage_shrink_to_fit<void, Storage, Args...> {};
 template <typename Storage, typename... Args>
-constexpr bool has___vector_storage_shrink_to_fit_v =
-    has___vector_storage_shrink_to_fit<Storage, Args...>::value;
+constexpr bool has_vector_storage_shrink_to_fit_v =
+    has_vector_storage_shrink_to_fit<Storage, Args...>::value;
+
+} // namespace vector_details
 
 /**
  * @brief Customized vector by storage.
@@ -610,7 +618,7 @@ public:
      * @todo designed shrink_to_fit for storage.
      */
     WJR_CONSTEXPR20 void shrink_to_fit() {
-        if constexpr (has___vector_storage_shrink_to_fit_v<storage_type>) {
+        if constexpr (vector_details::has_vector_storage_shrink_to_fit_v<storage_type>) {
             m_storage.shrink_to_fit();
         } else if constexpr (is_storage_reallocatable::value) {
             if (size() < capacity()) {

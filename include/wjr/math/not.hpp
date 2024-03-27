@@ -16,7 +16,7 @@ WJR_INTRINSIC_CONSTEXPR void fallback_not_n(T *dst, const T *src, size_t n) {
     }
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E void not_n(T *dst, const T *src, size_t n) {
 #if WJR_HAS_BUILTIN(NOT_N)
     if constexpr (sizeof(T) == 8) {

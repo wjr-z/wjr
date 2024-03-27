@@ -2408,6 +2408,13 @@ using usint_t = std::conditional_t<__s, int_t<n>, uint_t<n>>;
 using ssize_t = std::make_signed_t<size_t>;
 
 template <typename T>
+struct is_nonbool_integral
+    : std::conjunction<std::is_integral<T>, std::negation<std::is_same<T, bool>>> {};
+
+template <typename T>
+inline constexpr bool is_nonbool_integral_v = is_nonbool_integral<T>::value;
+
+template <typename T>
 struct is_unsigned_integral : std::conjunction<std::is_integral<T>, std::is_unsigned<T>> {
 };
 
@@ -2419,6 +2426,21 @@ struct is_signed_integral : std::conjunction<std::is_integral<T>, std::is_signed
 
 template <typename T>
 inline constexpr bool is_signed_integral_v = is_signed_integral<T>::value;
+
+template <typename T>
+struct is_nonbool_unsigned_integral
+    : std::conjunction<is_unsigned_integral<T>, std::negation<std::is_same<T, bool>>> {};
+
+template <typename T>
+inline constexpr bool is_nonbool_unsigned_integral_v =
+    is_nonbool_unsigned_integral<T>::value;
+
+template <typename T>
+struct is_nonbool_signed_integral
+    : std::conjunction<is_signed_integral<T>, std::negation<std::is_same<T, bool>>> {};
+
+template <typename T>
+inline constexpr bool is_nonbool_signed_integral_v = is_nonbool_signed_integral<T>::value;
 
 // type identity
 template <typename T>
@@ -2651,6 +2673,20 @@ WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
 // used for SFINAE
 constexpr static void allow_true_type(std::true_type) noexcept {}
 constexpr static void allow_false_type(std::false_type) noexcept {}
+
+template <typename Value,
+          std::enable_if_t<is_nonbool_integral_v<remove_cvref_t<Value>>, int> = 0>
+constexpr decltype(auto) make_signed_value(Value &&value) noexcept {
+    return static_cast<std::make_signed_t<remove_cvref_t<Value>>>(
+        std::forward<Value>(value));
+}
+
+template <typename Value,
+          std::enable_if_t<is_nonbool_integral_v<remove_cvref_t<Value>>, int> = 0>
+constexpr decltype(auto) make_unsigned_value(Value &&value) noexcept {
+    return static_cast<std::make_unsigned_t<remove_cvref_t<Value>>>(
+        std::forward<Value>(value));
+}
 
 } // namespace wjr
 
@@ -3836,7 +3872,7 @@ inline constexpr stack_alloc_object stack_alloc = {};
 
 // preview ...
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool is_zero_or_single_bit(T n) noexcept {
     return (n & (n - 1)) == 0;
 }
@@ -3846,31 +3882,31 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool is_zero_or_single_bit(T n) noexcept {
  *
  * @note `n & -n` is the lowest bit of n.
  */
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T lowbit(T n) noexcept {
     return n & -n;
 }
 
 // preview :
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool __has_high_bit(T n) noexcept {
     return n >> (std::numeric_limits<T>::digits - 1);
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_down(T n, type_identity_t<T> alignment) {
     WJR_ASSERT_ASSUME_L1(is_zero_or_single_bit(alignment));
     return n & (-alignment);
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up(T n, type_identity_t<T> alignment) {
     WJR_ASSERT_ASSUME_L1(is_zero_or_single_bit(alignment));
     return (n + alignment - 1) & (-alignment);
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up_offset(T n, type_identity_t<T> alignment) {
     WJR_ASSERT_ASSUME_L1(is_zero_or_single_bit(alignment));
     return (-n) & (alignment - 1);
@@ -3974,7 +4010,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_popcount(T x) {
 
 #endif // WJR_HAS_BUILTIN(POPCOUNT)
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int popcount(T x) {
     if (WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(x)) && is_zero_or_single_bit(x)) {
         return x != 0;
@@ -4099,7 +4135,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) {
  *
  * @tparam T Must be an unsigned integral type
  */
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz(T x) {
 #if WJR_HAS_BUILTIN(CLZ)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
@@ -4205,7 +4241,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) {
  *
  * @tparam T Must be an unsigned integral type
  */
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int ctz(T x) {
 #if WJR_HAS_BUILTIN(CTZ)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
@@ -4230,6 +4266,8 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int ctz(T x) {
 
 namespace wjr {
 
+namespace to_address_details {
+
 template <typename Enable, typename Ptr, typename... Args>
 struct __has_to_address : std::false_type {};
 template <typename Ptr, typename... Args>
@@ -4242,6 +4280,8 @@ struct has_to_address : __has_to_address<void, Ptr, Args...> {};
 template <typename Ptr, typename... Args>
 constexpr bool has_to_address_v = has_to_address<Ptr, Args...>::value;
 
+} // namespace to_address_details
+
 template <typename T>
 constexpr T *to_address(T *p) noexcept {
     static_assert(!std::is_function_v<T>, "T cannot be a function.");
@@ -4250,7 +4290,7 @@ constexpr T *to_address(T *p) noexcept {
 
 template <typename Ptr>
 constexpr auto to_address(const Ptr &p) noexcept {
-    if constexpr (has_to_address_v<Ptr>) {
+    if constexpr (to_address_details::has_to_address_v<Ptr>) {
         return std::pointer_traits<Ptr>::to_address(p);
     } else {
         return to_address(p.operator->());
@@ -4318,7 +4358,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T builtin_byteswap(T x) noexcept {
 
 #endif
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T byteswap(T x, endian to = endian::little) noexcept {
     if (to == endian::native) {
         return x;
@@ -4335,7 +4375,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T byteswap(T x, endian to = endian::little) 
 #endif
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_PURE WJR_INTRINSIC_INLINE T read_memory(const void *ptr,
                                             endian to = endian::little) noexcept {
     T x;
@@ -4348,7 +4388,7 @@ WJR_PURE WJR_INTRINSIC_INLINE T read_memory(const void *ptr,
     return x;
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x,
                                        endian to = endian::little) noexcept {
     if (to != endian::native) {
@@ -4358,43 +4398,77 @@ WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x,
     std::memcpy(ptr, &x, sizeof(T));
 }
 
+template <class Pointer, class SizeType = std::size_t>
+struct allocation_result {
+    Pointer ptr;
+    SizeType count;
+};
+
+template <typename Enable, typename Allocator, typename SizeType, typename... Args>
+struct __has_allocate_at_least : std::false_type {};
+template <typename Allocator, typename SizeType, typename... Args>
+struct __has_allocate_at_least<
+    std::void_t<decltype(std::declval<Allocator>().allocate_at_least(
+        std::declval<SizeType>()))>,
+    Allocator, SizeType, Args...> : std::true_type {};
+template <typename Allocator, typename SizeType, typename... Args>
+struct has_allocate_at_least
+    : __has_allocate_at_least<void, Allocator, SizeType, Args...> {};
+template <typename Allocator, typename SizeType, typename... Args>
+constexpr bool has_allocate_at_least_v =
+    has_allocate_at_least<Allocator, SizeType, Args...>::value;
+
+template <typename Allocator, typename SizeType,
+          typename Pointer = typename std::allocator_traits<Allocator>::pointer>
+WJR_NODISCARD allocation_result<Pointer, SizeType> allocate_at_least(Allocator &alloc,
+                                                                     SizeType count) {
+    if constexpr (has_allocate_at_least_v<Allocator, SizeType>) {
+        auto result = alloc.allocate_at_least(count);
+        WJR_ASSUME(result.count >= count);
+        return result;
+    } else {
+        auto ptr = std::allocator_traits<Allocator>::allocate(alloc, count);
+        return {ptr, count};
+    }
+}
+
 } // namespace wjr
 
 #endif // WJR_MEMORY_TO_ADDRESS_HPP__
 
 namespace wjr {
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool has_single_bit(T n) noexcept {
     return (n != 0) && is_zero_or_single_bit(n);
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int countl_zero(T x) noexcept {
     return clz(x);
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int countr_zero(T x) noexcept {
     return ctz(x);
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int countl_one(T x) noexcept {
     return countl_zero(static_cast<T>(~x));
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int countr_one(T x) noexcept {
     return countr_zero(static_cast<T>(~x));
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int bit_width(T x) noexcept {
     return std::numeric_limits<T>::digist - countl_zero(x);
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T bit_ceil(T x) noexcept {
     if (x <= 1) {
         return T(1);
@@ -4408,7 +4482,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T bit_ceil(T x) noexcept {
     }
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T bit_floor(T x) noexcept {
     if (x != 0) {
         return T{1} << (bit_width(x) - 1);
@@ -9747,49 +9821,49 @@ WJR_INTRINSIC_CONSTEXPR_E size_t reverse_replace_find_not(T *dst, const T *src, 
 
 namespace wjr {
 
-template <
-    typename T, typename U,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+template <typename T, typename U,
+          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
+                           int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out);
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out);
 
-template <
-    typename T, typename U = T,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+template <typename T, typename U = T,
+          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
+                           int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E U subc_1(T *dst, const T *src0, size_t n,
                                    type_identity_t<T> src1, U c_in = 0);
 
-template <
-    typename T, typename U = T,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+template <typename T, typename U = T,
+          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
+                           int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E U subc_n(T *dst, const T *src0, const T *src1, size_t n,
                                    U c_in = 0);
 
-template <
-    typename T, typename U = T,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+template <typename T, typename U = T,
+          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
+                           int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n, const T *src1,
                                    size_t m, U c_in = 0);
 
-template <
-    typename T, typename U = T,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+template <typename T, typename U = T,
+          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
+                           int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E U subc_sz(T *dst, const T *src0, size_t n, const T *src1,
                                     size_t m, U c_in = 0);
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
                                              size_t n);
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
                                              const T *src1, size_t m);
 
-template <
-    typename T, typename U,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+template <typename T, typename U,
+          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
+                           int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
                                              size_t n, U &c_out, type_identity_t<U> cf0,
                                              type_identity_t<U> cf1);
@@ -10303,8 +10377,9 @@ WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) {
 
 #endif // WJR_HAS_BUILTIN(SUBC)
 
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
     WJR_ASSERT_ASSUME_L1(c_in <= 1);
 
@@ -10344,7 +10419,7 @@ WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
  cannot know that the high register is not cleared, so the performance is worse than the
  normal version when cc flag is not needed immediately.
 */
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
     WJR_ASSERT_ASSUME_L1(c_in <= 1);
 
@@ -10379,8 +10454,9 @@ require :
 1. n >= 1
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
 */
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U subc_1(T *dst, const T *src0, size_t n,
                                    type_identity_t<T> src1, U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -10462,8 +10538,9 @@ require :
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
 3. WJR_IS_SAME_OR_INCR_P(dst, n, src1, n)
 */
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U subc_n(T *dst, const T *src0, const T *src1, size_t n,
                                    U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -10492,8 +10569,9 @@ require :
 3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
 4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
 */
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n, const T *src1,
                                    size_t m, U c_in) {
     WJR_ASSERT_ASSUME(m >= 1);
@@ -10515,8 +10593,9 @@ require :
 3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
 4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
 */
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U subc_sz(T *dst, const T *src0, size_t n, const T *src1,
                                     size_t m, U c_in) {
     WJR_ASSERT_ASSUME(n >= m);
@@ -10544,7 +10623,7 @@ Absolute value represents non-zero pos
 == 0 : src0 == src1
 < 0 : src0 < src1
 */
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
                                              size_t n) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -10586,7 +10665,7 @@ Absolute value represents non-zero pos
 == 0 : src0 == src1
 < 0 : src0 < src1
 */
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
                                              const T *src1, size_t m) {
     WJR_ASSERT_ASSUME(m >= 1);
@@ -10625,8 +10704,9 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
 }
 
 // just like abs_subc_n.
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
                                              size_t n, U &c_out, type_identity_t<U> cf0,
                                              type_identity_t<U> cf1) {
@@ -11591,19 +11671,19 @@ div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
 inline std::pair<uint64_t, uint64_t> div128by64to128(uint64_t &rem, uint64_t lo,
                                                      uint64_t hi, uint64_t div);
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         const div2by1_divider<T> &div);
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         type_identity_t<T> div);
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const div3by2_divider<T> &div);
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const T *div);
 
@@ -11626,11 +11706,11 @@ template <typename T, T c, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 
 WJR_CONSTEXPR_E void divexact_byc(T *dst, const T *src, size_t n,
                                   std::integral_constant<T, c>);
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           const divexact1_divider<T> &div);
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           type_identity_t<T> div);
 
@@ -11721,36 +11801,36 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
 
 namespace wjr {
 
-template <
-    typename T, typename U,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+template <typename T, typename U,
+          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
+                           int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out);
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out);
 
-template <
-    typename T, typename U = T,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+template <typename T, typename U = T,
+          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
+                           int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E U addc_1(T *dst, const T *src0, size_t n,
                                    type_identity_t<T> src1, U c_in = 0);
 
-template <
-    typename T, typename U = T,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+template <typename T, typename U = T,
+          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
+                           int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E U addc_n(T *dst, const T *src0, const T *src1, size_t n,
                                    U c_in = 0);
 
-template <
-    typename T, typename U = T,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+template <typename T, typename U = T,
+          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
+                           int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E U addc_s(T *dst, const T *src0, size_t n, const T *src1,
                                    size_t m, U c_in = 0);
 
 // m can be zero
-template <
-    typename T, typename U = T,
-    std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int> = 0>
+template <typename T, typename U = T,
+          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
+                           int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E U addc_sz(T *dst, const T *src0, size_t n, const T *src1,
                                     size_t m, U c_in = 0);
 
@@ -12399,8 +12479,9 @@ WJR_INTRINSIC_INLINE T builtin_addc(T a, T b, U c_in, U &c_out) {
  * @param[in] c_in The carry-in flag.
  * @param[out] c_out The carry-out flag.
  */
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out) {
     WJR_ASSERT_ASSUME_L1(c_in <= 1);
 
@@ -12448,7 +12529,7 @@ WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out) {
  * @param[in] c_in The carry-in flag.
  * @param[out] c_out The carry-out flag.
  */
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
     WJR_ASSERT_ASSUME_L1(c_in <= 1);
 
@@ -12490,8 +12571,9 @@ WJR_INTRINSIC_CONSTEXPR_E T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
  * @param[in] c_in The carry-in flag.
  * @return The carry-out flag.
  */
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U addc_1(T *dst, const T *src0, size_t n,
                                    type_identity_t<T> src1, U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -12580,8 +12662,9 @@ WJR_INTRINSIC_CONSTEXPR U fallback_addc_n(T *dst, const T *src0, const T *src1, 
  * @param[in] c_in The carry-in flag.
  * @return The carry-out flag.
  */
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U addc_n(T *dst, const T *src0, const T *src1, size_t n,
                                    U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -12610,8 +12693,9 @@ require :
 3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
 4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
 */
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U addc_s(T *dst, const T *src0, size_t n, const T *src1,
                                    size_t m, U c_in) {
     WJR_ASSERT_ASSUME(m >= 1);
@@ -12633,8 +12717,9 @@ require :
 3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
 4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
 */
-template <typename T, typename U,
-          std::enable_if_t<is_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+template <
+    typename T, typename U,
+    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
 WJR_INTRINSIC_CONSTEXPR_E U addc_sz(T *dst, const T *src0, size_t n, const T *src1,
                                     size_t m, U c_in) {
     WJR_ASSERT_ASSUME(n >= m);
@@ -14300,7 +14385,7 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t fallback_mul64(uint64_t a, uint64_t b, uint64
     return rl;
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E T mul(T a, T b, T &hi) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
@@ -14370,14 +14455,14 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T fallback_mulhi(T a, T b) {
     return hi;
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T mulhi(T a, T b) {
     T ret = 0;
     (void)mul(a, b, ret);
     return ret;
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T mullo(T a, T b) {
     return a * b;
 }
@@ -18096,7 +18181,7 @@ WJR_INTRINSIC_CONSTEXPR20 T div_qr_1_impl(T *dst, T &rem, const T *src, size_t n
 }
 
 // return high quotient limb
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         const div2by1_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -18118,7 +18203,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
     dst[n - 1] = div_qr_1_impl(dst, rem, src, n, div);
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         type_identity_t<T> div) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -18264,7 +18349,7 @@ WJR_INTRINSIC_CONSTEXPR20 T div_qr_2_impl(T *dst, T *rem, const T *src, size_t n
     return div_qr_2_shift(dst, rem, src, n, div);
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const div3by2_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 2);
@@ -18272,7 +18357,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
     dst[n - 2] = div_qr_2_impl(dst, rem, src, n, div);
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const T *div) {
     WJR_ASSERT_ASSUME(n >= 2);
@@ -18900,7 +18985,8 @@ WJR_CONSTEXPR_E void fallback_divexact_1(T *dst, const T *src, size_t n,
     return fallback_divexact_1_shift(dst, src, n, div);
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+template <typename T,
+          std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           const divexact1_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -18914,7 +19000,7 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
     return fallback_divexact_1(dst, src, n, div);
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int>>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           type_identity_t<T> div) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -19196,7 +19282,7 @@ WJR_INTRINSIC_CONSTEXPR void fallback_not_n(T *dst, const T *src, size_t n) {
     }
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E void not_n(T *dst, const T *src, size_t n) {
 #if WJR_HAS_BUILTIN(NOT_N)
     if constexpr (sizeof(T) == 8) {
@@ -19614,15 +19700,38 @@ template <typename Iter, typename Converter>
 inline constexpr bool __is_fast_convert_iterator_v =
     __is_fast_convert_iterator<Iter, Converter>::value;
 
-WJR_REGISTER_HAS_TYPE(__to_chars_fast_fn_fast_conv,
-                      Base::__fast_conv(std::declval<void *>(), std::declval<Value>(),
-                                        std::declval<Converter>()),
-                      Base, Value, Converter);
+namespace convert_details {
 
-WJR_REGISTER_HAS_TYPE(__from_chars_fast_fn_fast_conv,
-                      Base::__fast_conv(std::declval<const void *>(),
-                                        std::declval<Converter>()),
-                      Base, Converter);
+template <typename Enable, typename Base, typename Value, typename Converter,
+          typename... Args>
+struct __has_to_chars_fast_fn_fast_conv : std::false_type {};
+template <typename Base, typename Value, typename Converter, typename... Args>
+struct __has_to_chars_fast_fn_fast_conv<
+    std::void_t<decltype(Base::__fast_conv(std::declval<void *>(), std::declval<Value>(),
+                                           std::declval<Converter>()))>,
+    Base, Value, Converter, Args...> : std::true_type {};
+template <typename Base, typename Value, typename Converter, typename... Args>
+struct has_to_chars_fast_fn_fast_conv
+    : __has_to_chars_fast_fn_fast_conv<void, Base, Value, Converter, Args...> {};
+template <typename Base, typename Value, typename Converter, typename... Args>
+constexpr bool has_to_chars_fast_fn_fast_conv_v =
+    has_to_chars_fast_fn_fast_conv<Base, Value, Converter, Args...>::value;
+
+template <typename Enable, typename Base, typename Converter, typename... Args>
+struct __has_from_chars_fast_fn_fast_conv : std::false_type {};
+template <typename Base, typename Converter, typename... Args>
+struct __has_from_chars_fast_fn_fast_conv<
+    std::void_t<decltype(Base::__fast_conv(std::declval<const void *>(),
+                                           std::declval<Converter>()))>,
+    Base, Converter, Args...> : std::true_type {};
+template <typename Base, typename Converter, typename... Args>
+struct has_from_chars_fast_fn_fast_conv
+    : __has_from_chars_fast_fn_fast_conv<void, Base, Converter, Args...> {};
+template <typename Base, typename Converter, typename... Args>
+constexpr bool has_from_chars_fast_fn_fast_conv_v =
+    has_from_chars_fast_fn_fast_conv<Base, Converter, Args...>::value;
+
+} // namespace convert_details
 
 template <uint64_t Base>
 class __to_chars_unroll_2_fast_fn_impl_base {
@@ -19744,7 +19853,8 @@ public:
     template <typename Iter, typename Converter>
     WJR_INTRINSIC_INLINE void operator()(Iter ptr, uint32_t val, Converter conv) const {
         if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
-                      has___to_chars_fast_fn_fast_conv_v<Mybase, uint32_t, Converter>) {
+                      convert_details::has_to_chars_fast_fn_fast_conv_v<Mybase, uint32_t,
+                                                                        Converter>) {
             Mybase::__fast_conv(to_address(ptr), val, conv);
         } else {
             ptr[0] = conv.to(val / Base);
@@ -19764,7 +19874,8 @@ public:
     template <typename Iter, typename Converter>
     WJR_INTRINSIC_INLINE void operator()(Iter ptr, uint32_t val, Converter conv) const {
         if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
-                      has___to_chars_fast_fn_fast_conv_v<Mybase, uint32_t, Converter>) {
+                      convert_details::has_to_chars_fast_fn_fast_conv_v<Mybase, uint32_t,
+                                                                        Converter>) {
             Mybase::__fast_conv(to_address(ptr), val, conv);
         } else {
             constexpr auto Base2 = Base * Base;
@@ -19785,7 +19896,8 @@ public:
     template <typename Iter, typename Converter>
     WJR_INTRINSIC_INLINE void operator()(Iter ptr, uint64_t val, Converter conv) const {
         if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
-                      has___to_chars_fast_fn_fast_conv_v<Mybase, uint64_t, Converter>) {
+                      convert_details::has_to_chars_fast_fn_fast_conv_v<Mybase, uint64_t,
+                                                                        Converter>) {
             Mybase::__fast_conv(to_address(ptr), val, conv);
         } else {
             constexpr auto Base4 = Base * Base * Base * Base;
@@ -19927,7 +20039,8 @@ public:
     template <typename Iter, typename Converter>
     WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
         if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
-                      has___from_chars_fast_fn_fast_conv_v<Mybase, Converter>) {
+                      convert_details::has_from_chars_fast_fn_fast_conv_v<Mybase,
+                                                                          Converter>) {
             return Mybase::__fast_conv(to_address(first), conv);
         } else {
             uint64_t value = 0;
@@ -19950,7 +20063,8 @@ public:
     template <typename Iter, typename Converter>
     WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
         if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
-                      has___from_chars_fast_fn_fast_conv_v<Mybase, Converter>) {
+                      convert_details::has_from_chars_fast_fn_fast_conv_v<Mybase,
+                                                                          Converter>) {
             return Mybase::__fast_conv(to_address(first), conv);
         } else {
             constexpr uint64_t Base4 = Base * Base * Base * Base;
@@ -19971,7 +20085,8 @@ public:
     template <typename Iter, typename Converter>
     WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(Iter first, Converter conv) const {
         if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
-                      has___from_chars_fast_fn_fast_conv_v<Mybase, Converter>) {
+                      convert_details::has_from_chars_fast_fn_fast_conv_v<Mybase,
+                                                                          Converter>) {
             return Mybase::__fast_conv(to_address(first), conv);
         } else {
             constexpr uint64_t Base4 = Base * Base * Base * Base;
@@ -20323,7 +20438,7 @@ Iter __unsigned_to_chars(Iter iter, UnsignedValue val, unsigned int base = 10,
 }
 
 template <typename Iter, typename Value, typename Converter = char_converter_t,
-          std::enable_if_t<std::is_integral_v<Value>, int> = 0>
+          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
 Iter to_chars(Iter iter, Value val, unsigned int base = 10, Converter conv = {}) {
     if (WJR_UNLIKELY(val == 0)) {
         *iter++ = '0';
@@ -20364,12 +20479,11 @@ Iter to_chars(Iter iter, Value val, unsigned int base = 10, Converter conv = {})
         }
     }
 
-    return __unsigned_to_chars(iter, static_cast<std::make_unsigned_t<Value>>(val), base,
-                               conv);
+    return __unsigned_to_chars(iter, make_unsigned_value(val), base, conv);
 }
 
 template <typename Iter, typename Value, typename Converter = char_converter_t,
-          std::enable_if_t<std::is_integral_v<Value>, int> = 0>
+          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
 Iter backward_to_chars_10(Iter iter, Value val, Converter conv = {}) {
     if (WJR_UNLIKELY(val == 0)) {
         *--iter = '0';
@@ -20385,8 +20499,7 @@ Iter backward_to_chars_10(Iter iter, Value val, Converter conv = {}) {
         }
     }
 
-    Iter ret = __unsigned_backward_to_chars_10(
-        iter, static_cast<std::make_unsigned_t<Value>>(val), conv);
+    Iter ret = __unsigned_backward_to_chars_10(iter, make_unsigned_value(val), conv);
 
     if (sign) {
         *--iter = '-';
@@ -21586,6 +21699,8 @@ public:
     }
 };
 
+namespace try_reserve_details {
+
 template <typename Enable, typename Container, typename Size, typename... Args>
 struct __has_container_reserve : std::false_type {};
 template <typename Container, typename Size, typename... Args>
@@ -21598,9 +21713,11 @@ template <typename Container, typename Size, typename... Args>
 constexpr bool has_container_reserve_v =
     has_container_reserve<Container, Size, Args...>::value;
 
+} // namespace try_reserve_details
+
 template <typename Container, typename Size>
 void try_reserve(Container &c, Size s) {
-    if constexpr (has_container_reserve_v<Container, Size>) {
+    if constexpr (try_reserve_details::has_container_reserve_v<Container, Size>) {
         c.reserve(s);
     }
 }
@@ -21943,9 +22060,11 @@ public:
     WJR_CONSTEXPR20 void uninitialized_construct(size_type size, size_type capacity) {
         auto &al = get_allocator();
         auto &m_storage = __get_data();
-        m_storage.m_data = al.allocate(capacity);
+        auto result = allocate_at_least(al, capacity);
+
+        m_storage.m_data = result.ptr;
         m_storage.m_size = size;
-        m_storage.m_capacity = capacity;
+        m_storage.m_capacity = result.count;
     }
 
     WJR_CONSTEXPR20 void take_storage(default_vector_storage &&other) noexcept {
@@ -22148,9 +22267,11 @@ public:
     WJR_CONSTEXPR20 void uninitialized_construct(size_type size, size_type capacity) {
         auto &al = get_allocator();
         auto &m_storage = __get_data();
-        m_storage.m_data = al.allocate(capacity);
+        auto result = allocate_at_least(al, capacity);
+
+        m_storage.m_data = result.ptr;
         m_storage.m_size = size;
-        m_storage.m_capacity = capacity;
+        m_storage.m_capacity = result.count;
     }
 
     WJR_CONSTEXPR20 void take_storage(fixed_vector_storage &&other) noexcept {
@@ -22185,18 +22306,22 @@ private:
     compressed_pair<_Alty, data_type> m_pair;
 };
 
+namespace vector_details {
+
 template <typename Enable, typename Storage, typename... Args>
-struct __has___vector_storage_shrink_to_fit : std::false_type {};
+struct __has_vector_storage_shrink_to_fit : std::false_type {};
 template <typename Storage, typename... Args>
-struct __has___vector_storage_shrink_to_fit<
+struct __has_vector_storage_shrink_to_fit<
     std::void_t<decltype(std::declval<Storage>().shrink_to_fit())>, Storage, Args...>
     : std::true_type {};
 template <typename Storage, typename... Args>
-struct has___vector_storage_shrink_to_fit
-    : __has___vector_storage_shrink_to_fit<void, Storage, Args...> {};
+struct has_vector_storage_shrink_to_fit
+    : __has_vector_storage_shrink_to_fit<void, Storage, Args...> {};
 template <typename Storage, typename... Args>
-constexpr bool has___vector_storage_shrink_to_fit_v =
-    has___vector_storage_shrink_to_fit<Storage, Args...>::value;
+constexpr bool has_vector_storage_shrink_to_fit_v =
+    has_vector_storage_shrink_to_fit<Storage, Args...>::value;
+
+} // namespace vector_details
 
 /**
  * @brief Customized vector by storage.
@@ -22413,7 +22538,7 @@ public:
      * @todo designed shrink_to_fit for storage.
      */
     WJR_CONSTEXPR20 void shrink_to_fit() {
-        if constexpr (has___vector_storage_shrink_to_fit_v<storage_type>) {
+        if constexpr (vector_details::has_vector_storage_shrink_to_fit_v<storage_type>) {
             m_storage.shrink_to_fit();
         } else if constexpr (is_storage_reallocatable::value) {
             if (size() < capacity()) {
@@ -24256,7 +24381,16 @@ template <typename It, typename End,
           std::enable_if_t<is_contiguous_iterator_v<It>, int> = 0>
 span(It, End) -> span<std::remove_reference_t<iter_reference_t<It>>>;
 
-template <typename Container>
+namespace span_details {
+
+WJR_REGISTER_HAS_TYPE(data, std::data(std::declval<Container &>()), Container);
+WJR_REGISTER_HAS_TYPE(size, std::size(std::declval<Container &>()), Container);
+
+} // namespace span_details
+
+template <typename Container, std::enable_if_t<span_details::has_data_v<Container> &&
+                                                   span_details::has_size_v<Container>,
+                                               int> = 0>
 auto make_span(Container &c) {
     return span(std::data(c), std::size(c));
 }

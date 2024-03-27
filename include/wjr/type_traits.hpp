@@ -150,6 +150,13 @@ using usint_t = std::conditional_t<__s, int_t<n>, uint_t<n>>;
 using ssize_t = std::make_signed_t<size_t>;
 
 template <typename T>
+struct is_nonbool_integral
+    : std::conjunction<std::is_integral<T>, std::negation<std::is_same<T, bool>>> {};
+
+template <typename T>
+inline constexpr bool is_nonbool_integral_v = is_nonbool_integral<T>::value;
+
+template <typename T>
 struct is_unsigned_integral : std::conjunction<std::is_integral<T>, std::is_unsigned<T>> {
 };
 
@@ -161,6 +168,21 @@ struct is_signed_integral : std::conjunction<std::is_integral<T>, std::is_signed
 
 template <typename T>
 inline constexpr bool is_signed_integral_v = is_signed_integral<T>::value;
+
+template <typename T>
+struct is_nonbool_unsigned_integral
+    : std::conjunction<is_unsigned_integral<T>, std::negation<std::is_same<T, bool>>> {};
+
+template <typename T>
+inline constexpr bool is_nonbool_unsigned_integral_v =
+    is_nonbool_unsigned_integral<T>::value;
+
+template <typename T>
+struct is_nonbool_signed_integral
+    : std::conjunction<is_signed_integral<T>, std::negation<std::is_same<T, bool>>> {};
+
+template <typename T>
+inline constexpr bool is_nonbool_signed_integral_v = is_nonbool_signed_integral<T>::value;
 
 // type identity
 template <typename T>
@@ -393,6 +415,20 @@ WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
 // used for SFINAE
 constexpr static void allow_true_type(std::true_type) noexcept {}
 constexpr static void allow_false_type(std::false_type) noexcept {}
+
+template <typename Value,
+          std::enable_if_t<is_nonbool_integral_v<remove_cvref_t<Value>>, int> = 0>
+constexpr decltype(auto) make_signed_value(Value &&value) noexcept {
+    return static_cast<std::make_signed_t<remove_cvref_t<Value>>>(
+        std::forward<Value>(value));
+}
+
+template <typename Value,
+          std::enable_if_t<is_nonbool_integral_v<remove_cvref_t<Value>>, int> = 0>
+constexpr decltype(auto) make_unsigned_value(Value &&value) noexcept {
+    return static_cast<std::make_unsigned_t<remove_cvref_t<Value>>>(
+        std::forward<Value>(value));
+}
 
 } // namespace wjr
 

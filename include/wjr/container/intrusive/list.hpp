@@ -4,12 +4,17 @@
 #include <wjr/preprocessor.hpp>
 
 namespace wjr {
-namespace intrusive {
+
+struct slist_node {
+    slist_node *next;
+};
 
 struct list_node {
     list_node *prev;
     list_node *next;
 };
+
+namespace intrusive {
 
 WJR_INTRINSIC_CONSTEXPR void init(list_node *node) {
     node->prev = node;
@@ -41,6 +46,7 @@ WJR_INTRINSIC_CONSTEXPR void remove(list_node *node) {
 WJR_INTRINSIC_CONSTEXPR bool empty(const list_node *node) { return node->next == node; }
 
 } // namespace intrusive
+
 } // namespace wjr
 
 #endif // WJR_CONTAINER_INTRUSIVE_LIST_HPP__
