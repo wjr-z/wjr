@@ -1,5 +1,7 @@
 #include "details.hpp"
 
+#include <charconv>
+
 #if defined(WJR_USE_GMP)
 #include <gmp.h>
 #endif
@@ -1581,9 +1583,61 @@ TEST(math, div_qr_s) {
     }
 }
 
+TEST(math, to_chars) {
+    const int T = 16;
+
+    char b[64], c[64], d[64];
+
+    auto check = [&](int k, int base, auto x) {
+        auto ret0 = wjr::to_chars(b, b + k, x, base);
+        auto ret1 = std::to_chars(c, c + k, x, base);
+        auto ret2 = wjr::to_chars_backward(d + k, d, x, base);
+
+        WJR_ASSERT(ret0.ec == ret1.ec);
+        WJR_ASSERT(ret0.ec == ret2.ec);
+
+        if ((bool)ret0) {
+            WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
+                       std::string_view(c, ret1.ptr - c));
+            WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
+                       std::string_view(ret2.ptr, d + k - ret2.ptr));
+        } else {
+            WJR_ASSERT(ret0.ptr == b + k);
+            WJR_ASSERT(ret1.ptr == c + k);
+            WJR_ASSERT(ret2.ptr == d + k);
+        }
+    };
+
+    for (int t = 0; t < T; ++t) {
+        for (unsigned base : {2, 4, 8, 16, 32, 10}) {
+            for (int i = 1; i <= 64; ++i) {
+                auto mask = (i == 64 ? (uint64_t)wjr::in_place_max : (1ull << i) - 1);
+
+                uint64_t x = mt_rand() & mask;
+
+                for (int k = 0; k <= 64; ++k) {
+                    check(k, base, x);
+                }
+
+                int64_t y = 0;
+                for (int p : {0, 1}) {
+                    y = mt_rand() & mask;
+                    if (p) {
+                        y = -y;
+                    }
+
+                    for (int k = 0; k < 64; ++k) {
+                        check(k, base, y);
+                    }
+                }
+            }
+        }
+    }
+}
+
 #if defined(WJR_USE_GMP)
 
-TEST(math, to_chars) {
+TEST(math, biginteger_to_chars) {
 
     const int T = 4;
     const int N = 1024;
@@ -1605,23 +1659,23 @@ TEST(math, to_chars) {
 
                 d = a;
 
-                size_t len =
-                    wjr::to_chars(b.data(), a.data(), i, base, wjr::origin_converter) -
-                    b.data();
+                size_t len = wjr::biginteger_to_chars(b.data(), a.data(), i, base,
+                                                      wjr::origin_converter) -
+                             b.data();
                 size_t len2 = mpn_get_str((unsigned char *)c.data(), base, a.data(), i);
 
                 WJR_ASSERT(len == len2);
                 WJR_ASSERT(std::string_view(b.data(), len) ==
                            std::string_view(c.data(), len2));
 
-                len = wjr::to_chars(b.data(), d.data(), i, base, wjr::char_converter) -
+                len = wjr::biginteger_to_chars(b.data(), d.data(), i, base,
+                                               wjr::char_converter) -
                       b.data();
 
                 for (auto &ch : c) {
                     ch = ch < 10 ? ch + '0' : ch - 10 + 'a';
                 }
 
-                WJR_ASSERT(len == len2);
                 WJR_ASSERT(std::string_view(b.data(), len) ==
                            std::string_view(c.data(), len2));
             }
@@ -1629,7 +1683,7 @@ TEST(math, to_chars) {
     }
 }
 
-TEST(math, from_chars) {
+TEST(math, biginteger_from_chars) {
     const int T = 4;
     const int N = 8096;
     const int M = N;
@@ -1647,8 +1701,8 @@ TEST(math, from_chars) {
                     c[0] = mt_rand() % base;
                 }
 
-                size_t len = wjr::from_chars(c.data(), c.data() + i, a.data(), base,
-                                             wjr::origin_converter) -
+                size_t len = wjr::biginteger_from_chars(c.data(), c.data() + i, a.data(),
+                                                        base, wjr::origin_converter) -
                              a.data();
 
                 size_t len2 = mpn_set_str(b.data(), (unsigned char *)c.data(), i, base);
@@ -1660,8 +1714,8 @@ TEST(math, from_chars) {
                     ch = ch < 10 ? ch + '0' : ch - 10 + 'a';
                 }
 
-                len = wjr::from_chars(c.data(), c.data() + i, a.data(), base,
-                                      wjr::char_converter) -
+                len = wjr::biginteger_from_chars(c.data(), c.data() + i, a.data(), base,
+                                                 wjr::char_converter) -
                       a.data();
 
                 WJR_ASSERT(len == len2);

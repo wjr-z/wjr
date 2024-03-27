@@ -34,7 +34,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int countr_one(T x) noexcept {
 
 template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int bit_width(T x) noexcept {
-    return std::numeric_limits<T>::digist - countl_zero(x);
+    return std::numeric_limits<T>::digits - countl_zero(x);
 }
 
 template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>

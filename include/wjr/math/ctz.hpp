@@ -77,6 +77,19 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) {
 
 #endif
 
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int ctz_impl(T x) {
+#if WJR_HAS_BUILTIN(CTZ)
+    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
+        return fallback_ctz(x);
+    }
+
+    return builtin_ctz(x);
+#else
+    return fallback_ctz(x);
+#endif
+}
+
 /**
  * @brief Fast count trailing zeros
  *
@@ -90,15 +103,9 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) {
  */
 template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int ctz(T x) {
-#if WJR_HAS_BUILTIN(CTZ)
-    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
-        return fallback_ctz(x);
-    }
-
-    return builtin_ctz(x);
-#else
-    return fallback_ctz(x);
-#endif
+    int ret = ctz_impl(x);
+    WJR_ASSUME(0 <= ret && ret <= std::numeric_limits<T>::digits);
+    return ret;
 }
 
 } // namespace wjr

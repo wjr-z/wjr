@@ -630,7 +630,7 @@ static void wjr_div_qr_s(benchmark::State &state) {
         [&]() { wjr::div_qr_s(q.data(), r.data(), a.data(), n, b.data(), m); });
 }
 
-static void wjr_to_chars(benchmark::State &state) {
+static void wjr_biginteger_to_chars(benchmark::State &state) {
     auto base = state.range(0);
     auto n = state.range(1);
     std::vector<uint64_t> a(n);
@@ -639,11 +639,11 @@ static void wjr_to_chars(benchmark::State &state) {
     std::generate(a.begin(), a.end(), mt_rand);
 
     for (auto _ : state) {
-        wjr::to_chars(s.data(), a.data(), n, base, wjr::origin_converter);
+        wjr::biginteger_to_chars(s.data(), a.data(), n, base, wjr::origin_converter);
     }
 }
 
-static void wjr_from_chars(benchmark::State &state) {
+static void wjr_biginteger_from_chars(benchmark::State &state) {
     auto base = state.range(0);
     auto n = state.range(1);
     std::vector<uint64_t> a(n);
@@ -652,8 +652,8 @@ static void wjr_from_chars(benchmark::State &state) {
     std::generate(s.begin(), s.end(), []() { return '0' + mt_rand() % 10; });
 
     for (auto _ : state) {
-        wjr::from_chars(s.data(), s.data() + s.size(), a.data(), base,
-                        wjr::origin_converter);
+        wjr::biginteger_from_chars(s.data(), s.data() + s.size(), a.data(), base,
+                                   wjr::origin_converter);
     }
 }
 
@@ -1209,7 +1209,7 @@ static void gmp_to_chars(benchmark::State &state) {
     std::generate(a.begin(), a.end(), mt_rand);
 
     for (auto _ : state) {
-        mpn_get_str((unsigned char*)s.data(), base, a.data(), n);
+        mpn_get_str((unsigned char *)s.data(), base, a.data(), n);
     }
 }
 
@@ -1222,7 +1222,7 @@ static void gmp_from_chars(benchmark::State &state) {
     std::generate(s.begin(), s.end(), []() { return '0' + mt_rand() % 10; });
 
     for (auto _ : state) {
-        mpn_set_str(a.data(), (unsigned char*)s.data(), s.size(), base);
+        mpn_set_str(a.data(), (unsigned char *)s.data(), s.size(), base);
     }
 }
 
@@ -1305,8 +1305,8 @@ BENCHMARK(wjr_sqr)->NORMAL_TESTS(2, 1024);
 BENCHMARK(wjr_div_qr_1)->NORMAL_TESTS(2, 256);
 BENCHMARK(wjr_div_qr_2)->DenseRange(2, 4, 1)->RangeMultiplier(2)->Range(8, 256);
 BENCHMARK(wjr_div_qr_s)->Apply(Product2D);
-BENCHMARK(wjr_to_chars)->TO_CHARS_TESTS();
-BENCHMARK(wjr_from_chars)->FROM_CHARS_TESTS();
+BENCHMARK(wjr_biginteger_to_chars)->TO_CHARS_TESTS();
+BENCHMARK(wjr_biginteger_from_chars)->FROM_CHARS_TESTS();
 
 BENCHMARK(fallback_popcount);
 BENCHMARK(fallback_clz);

@@ -1,7 +1,9 @@
 #ifndef WJR_MATH_CONVERT_HPP__
 #define WJR_MATH_CONVERT_HPP__
 
-#include <wjr/math/clz.hpp>
+#include <system_error>
+
+#include <wjr/math/bit.hpp>
 #include <wjr/math/convert-impl.hpp>
 #include <wjr/math/precompute-chars-convert.hpp>
 
@@ -464,8 +466,7 @@ public:
 template <uint64_t Base>
 inline constexpr __from_chars_unroll_16_fn<Base> __from_chars_unroll_16{};
 
-template <typename UnsignedValue,
-          std::enable_if_t<std::is_unsigned_v<UnsignedValue>, int> = 0>
+template <typename UnsignedValue>
 constexpr int fallback_count_digits10(UnsignedValue n) {
     int count = 1;
 
@@ -528,8 +529,8 @@ inline int builtin_count_digits10_u64(uint64_t n) {
 #undef WJR_POWERS_OF_10
 }
 
-template <typename T, std::enable_if_t<std::is_unsigned_v<T>, int> = 0>
-WJR_CONSTEXPR_E int count_digits10(T n) {
+template <typename T>
+WJR_CONSTEXPR_E int count_digits10_impl(T n) {
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(n)) {
         return fallback_count_digits10(n);
     }
@@ -541,41 +542,98 @@ WJR_CONSTEXPR_E int count_digits10(T n) {
     }
 }
 
-template <typename Iter, typename UnsignedValue, typename Converter = char_converter_t,
-          std::enable_if_t<std::is_unsigned_v<UnsignedValue>, int> = 0>
-size_t __unsigned_to_chars_2(Iter first, UnsignedValue x, Converter conv = {}) {
-    WJR_ASSERT_ASSUME(x != 0);
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+WJR_CONSTEXPR_E int count_digits10(T n) {
+    int ret = count_digits10_impl(n);
+    WJR_ASSUME(1 <= ret && ret <= std::numeric_limits<T>::digits10);
+    return ret;
+}
 
-    constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+WJR_CONSTEXPR_E int count_digits_power_of_two(T n, int per_bit) {
+    return (bit_width(n) + per_bit - 1) / per_bit;
+}
 
-    int pc = clz(x);
-    int hbits = nd - pc;
-    WJR_ASSUME(1 <= hbits && hbits <= nd);
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+WJR_CONSTEXPR_E int count_digits2(T n) {
+    return bit_width(n);
+}
 
-    size_t len = hbits;
-    first += len;
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+WJR_CONSTEXPR_E int count_digits8(T n) {
+    return count_digits_power_of_two(n, 3);
+}
 
-    if (WJR_LIKELY(hbits >= 4)) {
-        do {
-            __to_chars_unroll_4<2>(first - 4, x & 0x0f, conv);
-            first -= 4;
-            x >>= 4;
-            hbits -= 4;
-        } while (WJR_LIKELY(hbits >= 4));
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+WJR_CONSTEXPR_E int count_digits16(T n) {
+    return count_digits_power_of_two(n, 4);
+}
+
+template <typename Iter>
+struct to_chars_result {
+    Iter ptr;
+    std::errc ec;
+
+    friend bool operator==(const to_chars_result &lhs, const to_chars_result &rhs) {
+        return lhs.ptr == rhs.ptr && lhs.ec == rhs.ec;
     }
 
-    switch (hbits) {
+    constexpr explicit operator bool() const { return ec == std::errc{}; }
+};
+
+template <typename Iter>
+struct from_chars_result {
+    Iter ptr;
+    std::errc ec;
+
+    friend bool operator==(const from_chars_result &lhs, const from_chars_result &rhs) {
+        return lhs.ptr == rhs.ptr && lhs.ec == rhs.ec;
+    }
+
+    constexpr explicit operator bool() const { return ec == std::errc{}; }
+};
+
+template <typename Value, typename Converter>
+struct __is_valid_to_chars
+    : std::disjunction<
+          std::conjunction<std::is_same<remove_cvref_t<Converter>, char_converter_t>,
+                           is_nonbool_integral<remove_cvref_t<Value>>>,
+          std::conjunction<std::is_same<remove_cvref_t<Converter>, origin_converter_t>,
+                           is_nonbool_unsigned_integral<remove_cvref_t<Value>>>> {};
+
+template <typename Value, typename Converter>
+inline constexpr bool __is_valid_to_chars_v =
+    __is_valid_to_chars<Value, Converter>::value;
+
+template <typename Iter, typename UnsignedValue, typename Converter = char_converter_t,
+          std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+Iter __unsigned_to_chars_2_backward(Iter ptr, int n, UnsignedValue x,
+                                    Converter conv = {}) {
+    WJR_ASSERT_ASSUME(x != 0);
+    WJR_ASSUME(1 <= n && n <= std::numeric_limits<UnsignedValue>::digits);
+
+    if (WJR_LIKELY(n >= 4)) {
+        do {
+            __to_chars_unroll_4<2>(ptr - 4, x & 0x0f, conv);
+            ptr -= 4;
+            x >>= 4;
+            n -= 4;
+        } while (WJR_LIKELY(n >= 4));
+    }
+
+    switch (n) {
     case 3: {
-        *--first = conv.to(x & 1);
+        *--ptr = conv.to(x & 1);
         x >>= 1;
         WJR_FALLTHROUGH;
     }
     case 2: {
-        __to_chars_unroll_2<2>(first - 2, x, conv);
+        __to_chars_unroll_2<2>(ptr - 2, x, conv);
+        ptr -= 2;
         break;
     }
     case 1: {
-        *--first = conv.to(x);
+        *--ptr = conv.to(x);
         WJR_FALLTHROUGH;
     }
     case 0: {
@@ -587,44 +645,38 @@ size_t __unsigned_to_chars_2(Iter first, UnsignedValue x, Converter conv = {}) {
     }
     }
 
-    return len;
+    return ptr;
 }
 
 template <typename Iter, typename UnsignedValue, typename Converter = char_converter_t,
-          std::enable_if_t<std::is_unsigned_v<UnsignedValue>, int> = 0>
-size_t __unsigned_to_chars_8(Iter first, UnsignedValue x, Converter conv = {}) {
+          std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+Iter __unsigned_to_chars_8_backward(Iter ptr, int n, UnsignedValue x,
+                                    Converter conv = {}) {
     WJR_ASSERT(x != 0);
+    WJR_ASSUME(1 <= n && n <= std::numeric_limits<UnsignedValue>::digits);
 
-    constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-
-    int pc = clz(x);
-    int hbits = nd - pc;
-    WJR_ASSUME(1 <= hbits && hbits <= nd);
-
-    size_t len = (hbits + 2) / 3;
-    first += len;
-
-    if (WJR_LIKELY(hbits + 2 >= 12)) {
+    if (WJR_LIKELY(n >= 4)) {
         do {
-            __to_chars_unroll_4<8>(first - 4, x & 0x0fff, conv);
-            first -= 4;
+            __to_chars_unroll_4<8>(ptr - 4, x & 0x0fff, conv);
+            ptr -= 4;
             x >>= 12;
-            hbits -= 12;
-        } while (WJR_LIKELY(hbits + 2 >= 12));
+            n -= 4;
+        } while (WJR_LIKELY(n >= 4));
     }
 
-    switch ((hbits + 2) / 3) {
+    switch (n) {
     case 3: {
-        *--first = conv.to(x & 0x07);
+        *--ptr = conv.to(x & 0x07);
         x >>= 3;
         WJR_FALLTHROUGH;
     }
     case 2: {
-        __to_chars_unroll_2<8>(first - 2, x, conv);
+        __to_chars_unroll_2<8>(ptr - 2, x, conv);
+        ptr -= 2;
         break;
     }
     case 1: {
-        *--first = conv.to(x);
+        *--ptr = conv.to(x);
         WJR_FALLTHROUGH;
     }
     case 0: {
@@ -636,44 +688,38 @@ size_t __unsigned_to_chars_8(Iter first, UnsignedValue x, Converter conv = {}) {
     }
     }
 
-    return len;
+    return ptr;
 }
 
 template <typename Iter, typename UnsignedValue, typename Converter = char_converter_t,
-          std::enable_if_t<std::is_unsigned_v<UnsignedValue>, int> = 0>
-size_t __unsigned_to_chars_16(Iter first, UnsignedValue x, Converter conv = {}) {
+          std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+Iter __unsigned_to_chars_16_backward(Iter ptr, int n, UnsignedValue x,
+                                     Converter conv = {}) {
     WJR_ASSERT(x != 0);
+    WJR_ASSUME(1 <= n && n <= std::numeric_limits<UnsignedValue>::digits);
 
-    constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-
-    int pc = clz(x);
-    int hbits = nd - pc;
-    WJR_ASSUME(1 <= hbits && hbits <= nd);
-
-    size_t len = (hbits + 3) / 4;
-    first += len;
-
-    if (WJR_LIKELY(hbits + 3 >= 16)) {
+    if (WJR_LIKELY(n >= 4)) {
         do {
-            __to_chars_unroll_4<16>(first - 4, x & 0xffff, conv);
-            first -= 4;
+            __to_chars_unroll_4<16>(ptr - 4, x & 0xffff, conv);
+            ptr -= 4;
             x >>= 16;
-            hbits -= 16;
-        } while (WJR_LIKELY(hbits + 3 >= 16));
+            n -= 4;
+        } while (WJR_LIKELY(n >= 4));
     }
 
-    switch ((hbits + 3) / 4) {
+    switch (n) {
     case 3: {
-        *--first = conv.to(x & 0x0f);
+        *--ptr = conv.to(x & 0x0f);
         x >>= 4;
         WJR_FALLTHROUGH;
     }
     case 2: {
-        __to_chars_unroll_2<16>(first - 2, x, conv);
+        __to_chars_unroll_2<16>(ptr - 2, x, conv);
+        ptr -= 2;
         break;
     }
     case 1: {
-        *--first = conv.to(x);
+        *--ptr = conv.to(x);
         WJR_FALLTHROUGH;
     }
     case 0: {
@@ -685,39 +731,30 @@ size_t __unsigned_to_chars_16(Iter first, UnsignedValue x, Converter conv = {}) 
     }
     }
 
-    return len;
+    return ptr;
 }
 
 template <typename Iter, typename UnsignedValue, typename Converter = char_converter_t,
-          std::enable_if_t<std::is_unsigned_v<UnsignedValue>, int> = 0>
-size_t __unsigned_to_chars_power_of_two(Iter first, UnsignedValue x, unsigned int base,
-                                        Converter conv = {}) {
+          std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+Iter __unsigned_to_chars_power_of_two_backward(Iter ptr, int n, UnsignedValue x,
+                                               int per_bit, Converter conv = {}) {
     WJR_ASSERT(x != 0);
+    WJR_ASSUME(1 <= n && n <= std::numeric_limits<UnsignedValue>::digits);
 
-    constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-
-    int per_bit = ctz(base);
     unsigned int mask = (1u << per_bit) - 1;
 
-    int pc = clz(x);
-    int hbits = nd - pc;
-    WJR_ASSUME(1 <= hbits && hbits <= nd);
-
-    size_t len = (hbits + per_bit - 1) / per_bit;
-    first += len;
-
     do {
-        *--first = conv.to(x & mask);
+        *--ptr = conv.to(x & mask);
         x >>= per_bit;
-        hbits -= per_bit;
-    } while (WJR_LIKELY(hbits > 0));
+        --n;
+    } while (WJR_LIKELY(n != 0));
 
-    return len;
+    return ptr;
 }
 
 template <typename Iter, typename UnsignedValue, typename Converter,
-          std::enable_if_t<std::is_unsigned_v<UnsignedValue>, int> = 0>
-Iter __unsigned_backward_to_chars_10(Iter buf, UnsignedValue val, Converter conv) {
+          std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+Iter __unsigned_to_chars_10_backward(Iter buf, UnsignedValue val, Converter conv) {
     WJR_ASSERT_ASSUME(val != 0);
 
     if (val >= 100) {
@@ -764,116 +801,344 @@ Iter __unsigned_backward_to_chars_10(Iter buf, UnsignedValue val, Converter conv
     return buf;
 }
 
-template <typename Iter, typename UnsignedValue, typename Converter,
-          std::enable_if_t<std::is_unsigned_v<UnsignedValue>, int> = 0>
-Iter __unsigned_to_chars_10(Iter iter, UnsignedValue val, Converter conv) {
-    auto count = count_digits10(val);
-    iter += count;
-    __unsigned_backward_to_chars_10(iter, val, conv);
-    return iter;
-}
-
-template <typename Iter, typename UnsignedValue, typename Converter = char_converter_t,
-          std::enable_if_t<std::is_unsigned_v<UnsignedValue>, int> = 0>
-Iter __unsigned_to_chars(Iter iter, UnsignedValue val, unsigned int base = 10,
-                         Converter conv = {}) {
-    switch (base) {
-    case 2: {
-        return iter + __unsigned_to_chars_2(iter, val, conv);
-    }
-    case 8: {
-        return iter + __unsigned_to_chars_8(iter, val, conv);
-    }
-    case 16: {
-        return iter + __unsigned_to_chars_16(iter, val, conv);
-    }
-    case 4:
-    case 32: {
-        return iter + __unsigned_to_chars_power_of_two(iter, val, base, conv);
-    }
-    default: {
-        break;
-    }
-    }
-
-    WJR_ASSERT(base == 10, "Not supported base");
-
-    return __unsigned_to_chars_10(iter, val, conv);
-}
-
+/**
+ * @brief Convert an unsigned integer to a string in reverse order without checking
+ * buf size.
+ *
+ * @tparam Iter The iterator type. Must be random access iterator.
+ * @tparam Value The value type. If Converter is origin_converter_t, Value must be
+ * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
+ *
+ */
 template <typename Iter, typename Value, typename Converter = char_converter_t,
-          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
-Iter to_chars(Iter iter, Value val, unsigned int base = 10, Converter conv = {}) {
+          std::enable_if_t<__is_valid_to_chars_v<Value, Converter>, int> = 0>
+Iter to_chars_backward(Iter ptr, Value val, unsigned int base = 10, Converter conv = {}) {
     if (WJR_UNLIKELY(val == 0)) {
-        *iter++ = '0';
-        return iter;
-    }
-
-    if constexpr (std::is_signed_v<Value>) {
-        if (val < 0) {
-            *iter++ = '-';
-            val = -val;
-        }
-    }
-
-    // GCC/Clang may cause the optimization based on base to fail in some versions,
-    // and the optimization is explicitly performed.
-    if (WJR_BUILTIN_CONSTANT_P(base)) {
-        switch (base) {
-        case 2: {
-            return iter + __unsigned_to_chars_2(iter, val, conv);
-        }
-        case 8: {
-            return iter + __unsigned_to_chars_8(iter, val, conv);
-        }
-        case 16: {
-            return iter + __unsigned_to_chars_16(iter, val, conv);
-        }
-        case 4:
-        case 32: {
-            return iter + __unsigned_to_chars_power_of_two(iter, val, base, conv);
-        }
-        case 10: {
-            return __unsigned_to_chars_10(iter, val, conv);
-        }
-        default: {
-            WJR_UNREACHABLE();
-            break;
-        }
-        }
-    }
-
-    return __unsigned_to_chars(iter, make_unsigned_value(val), base, conv);
-}
-
-template <typename Iter, typename Value, typename Converter = char_converter_t,
-          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
-Iter backward_to_chars_10(Iter iter, Value val, Converter conv = {}) {
-    if (WJR_UNLIKELY(val == 0)) {
-        *--iter = '0';
-        return iter;
+        *--ptr = conv.to(0);
+        return ptr;
     }
 
     bool sign = false;
+    auto uVal = make_unsigned_value(val);
 
     if constexpr (std::is_signed_v<Value>) {
         if (val < 0) {
             sign = true;
-            val = -val;
+            uVal = -val;
         }
     }
 
-    Iter ret = __unsigned_backward_to_chars_10(iter, make_unsigned_value(val), conv);
+    switch (base) {
+    case 2: {
+        ptr = __unsigned_to_chars_2_backward(ptr, count_digits2(uVal), uVal, conv);
+        break;
+    }
+    case 8: {
+        ptr = __unsigned_to_chars_8_backward(ptr, count_digits8(uVal), uVal, conv);
+        break;
+    }
+    case 16: {
+        ptr = __unsigned_to_chars_16_backward(ptr, count_digits16(uVal), uVal, conv);
+        break;
+    }
+    case 4:
+    case 32: {
+        int per_bit = base == 4 ? 2 : 5;
+        ptr = __unsigned_to_chars_power_of_two_backward(
+            ptr, count_digits_power_of_two(uVal, per_bit), uVal, per_bit, conv);
+        break;
+    }
+    case 10: {
+        ptr = __unsigned_to_chars_10_backward(ptr, uVal, conv);
+        break;
+    }
+    default: {
+        WJR_UNREACHABLE();
+        return ptr;
+    }
+    }
 
-    if (sign) {
-        *--iter = '-';
+    if constexpr (std::is_signed_v<Value>) {
+        if (sign) {
+            *--ptr = '-';
+        }
+    }
+
+    return ptr;
+}
+
+/**
+ * @brief Convert an unsigned integer to a string in reverse order with checking buf size.
+ *
+ * @tparam Iter The iterator type. Must be random access iterator.
+ * @tparam Value The value type. If Converter is origin_converter_t, Value must be
+ * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
+ *
+ * @return to_chars_result<Iter> If the conversion is successful, return {ans,
+ * std::errc{}}. Otherwise, return {ptr, std::errc::value_too_large}.
+ *
+ */
+template <typename Iter, typename Value, typename Converter = char_converter_t,
+          std::enable_if_t<__is_valid_to_chars_v<Value, Converter>, int> = 0>
+to_chars_result<Iter> to_chars_backward(Iter ptr, Iter first, Value val,
+                                        unsigned int base = 10, Converter conv = {}) {
+    if (WJR_UNLIKELY(val == 0)) {
+        if (WJR_LIKELY(first != ptr)) {
+            *--ptr = conv.to(0);
+            return {ptr, std::errc{}};
+        }
+
+        return {ptr, std::errc::value_too_large};
+    }
+
+    auto uVal = make_unsigned_value(val);
+    auto size = std::distance(first, ptr);
+    bool sign = false;
+
+    if constexpr (std::is_signed_v<Value>) {
+        if (val < 0) {
+            if (WJR_UNLIKELY(size <= 1)) {
+                return {ptr, std::errc::value_too_large};
+            }
+
+            sign = true;
+            uVal = -val;
+            --size;
+        }
+    }
+
+    to_chars_result<Iter> ret;
+
+    switch (base) {
+    case 2: {
+        int n = count_digits2(uVal);
+        if (WJR_LIKELY(n <= size)) {
+            ret = {__unsigned_to_chars_2_backward(ptr, n, uVal, conv), std::errc{}};
+            break;
+        }
+
+        return {ptr, std::errc::value_too_large};
+    }
+    case 8: {
+        int n = count_digits8(uVal);
+        if (WJR_LIKELY(n <= size)) {
+            ret = {__unsigned_to_chars_8_backward(ptr, n, uVal, conv), std::errc{}};
+            break;
+        }
+
+        return {ptr, std::errc::value_too_large};
+    }
+    case 16: {
+        int n = count_digits16(uVal);
+        if (WJR_LIKELY(n <= size)) {
+            ret = {__unsigned_to_chars_16_backward(ptr, n, uVal, conv), std::errc{}};
+            break;
+        }
+
+        return {ptr, std::errc::value_too_large};
+    }
+    case 4:
+    case 32: {
+        int per_bit = base == 4 ? 2 : 5;
+        int n = count_digits_power_of_two(uVal, per_bit);
+        if (WJR_LIKELY(n <= size)) {
+            ret = {__unsigned_to_chars_power_of_two_backward(ptr, n, uVal, per_bit, conv),
+                   std::errc{}};
+            break;
+        }
+
+        return {ptr, std::errc::value_too_large};
+    }
+    case 10: {
+        int n = count_digits10(uVal);
+        if (WJR_LIKELY(n <= size)) {
+            ret = {__unsigned_to_chars_10_backward(ptr, uVal, conv), std::errc{}};
+            break;
+        }
+
+        return {ptr, std::errc::value_too_large};
+    }
+    default: {
+        WJR_UNREACHABLE();
+        return {ptr, std::errc::invalid_argument};
+    }
+    }
+
+    if constexpr (std::is_signed_v<Value>) {
+        if (sign) {
+            *--ret.ptr = '-';
+        }
     }
 
     return ret;
 }
 
+/**
+ * @brief Convert an unsigned integer to a string without checking buf size.
+ *
+ * @tparam Iter The iterator type. Must be random access iterator.
+ * @tparam Value The value type. If Converter is origin_converter_t, Value must be
+ * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
+ *
+ */
+template <typename Iter, typename Value, typename Converter = char_converter_t,
+          std::enable_if_t<__is_valid_to_chars_v<Value, Converter>, int> = 0>
+Iter to_chars(Iter ptr, Value val, unsigned int base = 10, Converter conv = {}) {
+    if (WJR_UNLIKELY(val == 0)) {
+        *ptr++ = conv.to(0);
+        return ptr;
+    }
+
+    auto uVal = make_unsigned_value(val);
+
+    if constexpr (std::is_signed_v<Value>) {
+        if (val < 0) {
+            *ptr++ = '-';
+            uVal = -val;
+        }
+    }
+
+    switch (base) {
+    case 2: {
+        int n = count_digits2(uVal);
+        ptr += n;
+        (void)__unsigned_to_chars_2_backward(ptr, n, uVal, conv);
+        return ptr;
+    }
+    case 8: {
+        int n = count_digits8(uVal);
+        ptr += n;
+        (void)__unsigned_to_chars_8_backward(ptr, n, uVal, conv);
+        return ptr;
+    }
+    case 16: {
+        int n = count_digits16(uVal);
+        ptr += n;
+        (void)__unsigned_to_chars_16_backward(ptr, n, uVal, conv);
+        return ptr;
+    }
+    case 4:
+    case 32: {
+        int per_bit = base == 4 ? 2 : 5;
+        int n = count_digits_power_of_two(uVal, per_bit);
+        ptr += n;
+        (void)__unsigned_to_chars_power_of_two_backward(ptr, n, uVal, per_bit, conv);
+        return ptr;
+    }
+    case 10: {
+        int n = count_digits10(uVal);
+        ptr += n;
+        (void)__unsigned_to_chars_10_backward(ptr, uVal, conv);
+        return ptr;
+    }
+    default: {
+        WJR_UNREACHABLE();
+        return ptr;
+    }
+    }
+}
+
+/**
+ * @brief Convert an unsigned integer to a string with checking buf size.
+ *
+ * @tparam Iter The iterator type. Must be random access iterator.
+ * @tparam Value The value type. If Converter is origin_converter_t, Value must be
+ * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
+ *
+ * @return to_chars_result<Iter> If the conversion is successful, return {ans,
+ * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
+ *
+ */
+template <typename Iter, typename Value, typename Converter = char_converter_t,
+          std::enable_if_t<__is_valid_to_chars_v<Value, Converter>, int> = 0>
+to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, unsigned int base = 10,
+                               Converter conv = {}) {
+    if (WJR_UNLIKELY(val == 0)) {
+        if (WJR_UNLIKELY(ptr == last)) {
+            return {last, std::errc::value_too_large};
+        }
+
+        *ptr++ = conv.to(0);
+        return {ptr, std::errc{}};
+    }
+
+    auto uVal = make_unsigned_value(val);
+
+    if constexpr (std::is_signed_v<Value>) {
+        if (val < 0) {
+            if (WJR_UNLIKELY(ptr == last)) {
+                return {last, std::errc::value_too_large};
+            }
+
+            *ptr++ = '-';
+            uVal = -val;
+        }
+    }
+
+    auto size = std::distance(ptr, last);
+
+    switch (base) {
+    case 2: {
+        int n = count_digits2(uVal);
+        if (WJR_LIKELY(n <= size)) {
+            ptr += n;
+            (void)__unsigned_to_chars_2_backward(ptr, n, uVal, conv);
+            return {ptr, std::errc{}};
+        }
+
+        return {last, std::errc::value_too_large};
+    }
+    case 8: {
+        int n = count_digits8(uVal);
+        if (WJR_LIKELY(n <= size)) {
+            ptr += n;
+            (void)__unsigned_to_chars_8_backward(ptr, n, uVal, conv);
+            return {ptr, std::errc{}};
+        }
+
+        return {last, std::errc::value_too_large};
+    }
+    case 16: {
+        int n = count_digits16(uVal);
+        if (WJR_LIKELY(n <= size)) {
+            ptr += n;
+            (void)__unsigned_to_chars_16_backward(ptr, n, uVal, conv);
+            return {ptr, std::errc{}};
+        }
+
+        return {last, std::errc::value_too_large};
+    }
+    case 4:
+    case 32: {
+        int per_bit = base == 4 ? 2 : 5;
+        int n = count_digits_power_of_two(uVal, per_bit);
+        if (WJR_LIKELY(n <= size)) {
+            ptr += n;
+            (void)__unsigned_to_chars_power_of_two_backward(ptr, n, uVal, per_bit, conv);
+            return {ptr, std::errc{}};
+        }
+
+        return {last, std::errc::value_too_large};
+    }
+    case 10: {
+        int n = count_digits10(uVal);
+        if (WJR_LIKELY(n <= size)) {
+            ptr += n;
+            (void)__unsigned_to_chars_10_backward(ptr, uVal, conv);
+            return {ptr, std::errc{}};
+        }
+
+        return {last, std::errc::value_too_large};
+    }
+    default: {
+        WJR_UNREACHABLE();
+        return {last, std::errc::invalid_argument};
+    }
+    }
+}
+
 template <typename Iter, typename Converter>
-size_t __large_to_chars_2_impl(Iter first, uint64_t *up, size_t n, Converter conv) {
+size_t __biginteger_to_chars_2_impl(Iter first, uint64_t *up, size_t n, Converter conv) {
     WJR_ASSERT(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
@@ -936,7 +1201,7 @@ size_t __large_to_chars_2_impl(Iter first, uint64_t *up, size_t n, Converter con
 }
 
 template <typename Iter, typename Converter>
-size_t __large_to_chars_8_impl(Iter first, uint64_t *up, size_t n, Converter conv) {
+size_t __biginteger_to_chars_8_impl(Iter first, uint64_t *up, size_t n, Converter conv) {
     WJR_ASSERT(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
@@ -1067,7 +1332,7 @@ DONE:
 }
 
 template <typename Iter, typename Converter>
-size_t __large_to_chars_16_impl(Iter first, uint64_t *up, size_t n, Converter conv) {
+size_t __biginteger_to_chars_16_impl(Iter first, uint64_t *up, size_t n, Converter conv) {
     WJR_ASSERT(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
@@ -1128,8 +1393,8 @@ size_t __large_to_chars_16_impl(Iter first, uint64_t *up, size_t n, Converter co
 }
 
 template <typename Iter, typename Converter>
-size_t __large_to_chars_power_of_two_impl(Iter first, uint64_t *up, size_t n,
-                                          unsigned int base, Converter conv) {
+size_t __biginteger_to_chars_power_of_two_impl(Iter first, uint64_t *up, size_t n,
+                                               unsigned int base, Converter conv) {
     WJR_ASSERT(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
@@ -1203,7 +1468,7 @@ template <typename Converter>
 char *basecase_to_chars_10(char *buf, uint64_t *up, size_t n, Converter conv) {
     do {
         if (WJR_UNLIKELY(n == 1)) {
-            return __unsigned_backward_to_chars_10(buf, up[0], conv);
+            return __unsigned_to_chars_10_backward(buf, up[0], conv);
         }
 
         uint64_t q, rem;
@@ -1318,21 +1583,21 @@ template <typename Iter, typename Converter = char_converter_t,
           std::enable_if_t<is_any_of_v<remove_cvref_t<Converter>, char_converter_t,
                                        origin_converter_t>,
                            int> = 0>
-Iter __large_to_chars_impl(Iter first, uint64_t *up, size_t n, unsigned int base = 10,
-                           Converter conv = {}) {
+Iter __biginteger_to_chars_impl(Iter first, uint64_t *up, size_t n,
+                                unsigned int base = 10, Converter conv = {}) {
     switch (base) {
     case 2: {
-        return first + __large_to_chars_2_impl(first, up, n, conv);
+        return first + __biginteger_to_chars_2_impl(first, up, n, conv);
     }
     case 8: {
-        return first + __large_to_chars_8_impl(first, up, n, conv);
+        return first + __biginteger_to_chars_8_impl(first, up, n, conv);
     }
     case 16: {
-        return first + __large_to_chars_16_impl(first, up, n, conv);
+        return first + __biginteger_to_chars_16_impl(first, up, n, conv);
     }
     case 4:
     case 32: {
-        return first + __large_to_chars_power_of_two_impl(first, up, n, base, conv);
+        return first + __biginteger_to_chars_power_of_two_impl(first, up, n, base, conv);
     }
     default: {
         break;
@@ -1361,40 +1626,16 @@ template <typename Iter, typename Converter = char_converter_t,
           std::enable_if_t<is_any_of_v<remove_cvref_t<Converter>, char_converter_t,
                                        origin_converter_t>,
                            int> = 0>
-Iter to_chars(Iter first, uint64_t *up, size_t n, unsigned int base = 10,
-              Converter conv = {}) {
+Iter biginteger_to_chars(Iter first, uint64_t *up, size_t n, unsigned int base = 10,
+                         Converter conv = {}) {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));
+    WJR_ASSERT_ASSUME(up[n - 1] != 0);
 
     if (n == 1) {
         return to_chars(first, up[0], base, conv);
     }
 
-    // GCC/Clang may cause the optimization based on base to fail in some versions,
-    // and the optimization is explicitly performed.
-    if (WJR_BUILTIN_CONSTANT_P(base)) {
-        switch (base) {
-        case 2: {
-            return first + __large_to_chars_2_impl(first, up, n, conv);
-        }
-        case 8: {
-            return first + __large_to_chars_8_impl(first, up, n, conv);
-        }
-        case 16: {
-            return first + __large_to_chars_16_impl(first, up, n, conv);
-        }
-        case 4:
-        case 32: {
-            return first + __large_to_chars_power_of_two_impl(first, up, n, base, conv);
-        }
-        default: {
-            break;
-        }
-        }
-
-        return __large_basecase_to_chars(first, up, n, base, conv);
-    }
-
-    return __large_to_chars_impl(first, up, n, base, conv);
+    return __biginteger_to_chars_impl(first, up, n, base, conv);
 }
 
 template <typename Iter, typename Converter = char_converter_t>
@@ -1864,8 +2105,8 @@ template <typename Iter, typename Converter = char_converter_t,
           std::enable_if_t<is_any_of_v<remove_cvref_t<Converter>, char_converter_t,
                                        origin_converter_t>,
                            int> = 0>
-uint64_t *from_chars(Iter first, Iter last, uint64_t *up, unsigned int base = 10,
-                     Converter conv = {}) {
+uint64_t *biginteger_from_chars(Iter first, Iter last, uint64_t *up,
+                                unsigned int base = 10, Converter conv = {}) {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));
     size_t n = std::distance(first, last);
 
