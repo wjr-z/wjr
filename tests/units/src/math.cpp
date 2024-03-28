@@ -1589,9 +1589,9 @@ TEST(math, to_chars) {
     char b[64], c[64], d[64];
 
     auto check = [&](int k, int base, auto x) {
-        auto ret0 = wjr::to_chars(b, b + k, x, base);
+        auto ret0 = wjr::to_chars_validate(b, b + k, x, base);
         auto ret1 = std::to_chars(c, c + k, x, base);
-        auto ret2 = wjr::to_chars_backward(d + k, d, x, base);
+        auto ret2 = wjr::to_chars_backward_validate(d + k, d, x, base);
 
         WJR_ASSERT(ret0.ec == ret1.ec);
         WJR_ASSERT(ret0.ec == ret2.ec);

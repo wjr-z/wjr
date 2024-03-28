@@ -1,5 +1,5 @@
-#include <random>
 #include <functional>
+#include <random>
 
 #include <benchmark/benchmark.h>
 
@@ -36,8 +36,8 @@ void random_run(benchmark::State &state, Re re, Func fn, size_t step = 0) {
     (void)(begin != end);
 }
 
-#define NORMAL_TESTS(MULTIPLY, MAXN)                                                     \
-    DenseRange(1, 4, 1)->RangeMultiplier(MULTIPLY)->Range(8, MAXN)
+#define NORMAL_TESTS(SMALL, MULTIPLY, MAXN)                                              \
+    DenseRange(1, SMALL)->RangeMultiplier(MULTIPLY)->Range(SMALL * 2, MAXN)
 
 static void Product2D(benchmark::internal::Benchmark *state) {
     // 生成二维数据，且第一维大于等于第二维

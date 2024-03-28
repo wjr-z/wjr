@@ -30,6 +30,6 @@ static void wjr_stack_allocator_allocate(benchmark::State &state) {
 }
 
 BENCHMARK(wjr_stack_allocator_construct);
-BENCHMARK(wjr_stack_allocator_allocate)->NORMAL_TESTS(2, 1024);
+BENCHMARK(wjr_stack_allocator_allocate)->NORMAL_TESTS(4, 2, 1024);
 
 } // namespace memory_tests

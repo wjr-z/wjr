@@ -17,7 +17,7 @@ namespace wjr {
 #define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_16_FAST WJR_HAS_DEF
 #endif
 
-// use packus for skylake, use unpacklo for others
+#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
 
 namespace to_chars_details {
 
@@ -31,6 +31,8 @@ static __m128i mul10p1x = sse::set1_epi16(10);
 static __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
 
 } // namespace to_chars_details
+
+#endif
 
 #if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
 
@@ -85,22 +87,44 @@ void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in, origin_converter_t) 
 
 #endif
 
+#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST) ||                                         \
+    WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_16_FAST)
+
+namespace from_chars_details {
+
+template <uint64_t Base>
+inline constexpr uint64_t __base2 = Base * Base;
+
+template <uint64_t Base>
+inline constexpr uint64_t __base4 = __base2<Base> * __base2<Base>;
+
+template <uint64_t Base>
+inline constexpr uint64_t __base8 = __base4<Base> * __base4<Base>;
+
+template <uint64_t Base>
+static __m128i mulp1x = sse::setr_epi8(Base, 1, Base, 1, Base, 1, Base, 1, Base, 1, Base,
+                                       1, Base, 1, Base, 1);
+
+template <uint64_t Base>
+static __m128i mulp2x = sse::setr_epi16(__base2<Base>, 1, __base2<Base>, 1, __base2<Base>,
+                                        1, __base2<Base>, 1);
+
+template <uint64_t Base>
+static __m128i mulp4x = sse::setr_epi16(__base4<Base>, 1, __base4<Base>, 1, __base4<Base>,
+                                        1, __base4<Base>, 1);
+
+} // namespace from_chars_details
+
+#endif
+
 #if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST)
 
 template <uint64_t Base>
 uint32_t builtin_from_chars_unroll_8_fast(__m128i in) {
-    uint64_t Base2 = Base * Base;
-    uint64_t Base4 = Base2 * Base2;
-
-    __m128i mul1 = sse::setr_epi8(Base, 1, Base, 1, Base, 1, Base, 1, Base, 1, Base, 1,
-                                  Base, 1, Base, 1);
-    __m128i mul2 = sse::setr_epi16(Base2, 1, Base2, 1, Base2, 1, Base2, 1);
-    __m128i mul3 = sse::setr_epi16(Base4, 1, Base4, 1, Base4, 1, Base4, 1);
-
-    __m128i t1 = _mm_maddubs_epi16(in, mul1);
-    __m128i t2 = _mm_madd_epi16(t1, mul2);
+    __m128i t1 = _mm_maddubs_epi16(in, from_chars_details::mulp1x<Base>);
+    __m128i t2 = _mm_madd_epi16(t1, from_chars_details::mulp2x<Base>);
     __m128i t3 = _mm_packus_epi32(t2, t2);
-    __m128i t4 = _mm_madd_epi16(t3, mul3);
+    __m128i t4 = _mm_madd_epi16(t3, from_chars_details::mulp4x<Base>);
 
     return simd_cast<__m128i_t, uint32_t>(t4);
 }
@@ -125,25 +149,16 @@ uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, origin_converter_t) {
 
 template <uint64_t Base>
 uint64_t builtin_from_chars_unroll_16_fast(__m128i in) {
-    uint64_t Base2 = Base * Base;
-    uint64_t Base4 = Base2 * Base2;
-    uint64_t Base8 = Base4 * Base4;
-
-    __m128i mul1 = sse::setr_epi8(Base, 1, Base, 1, Base, 1, Base, 1, Base, 1, Base, 1,
-                                  Base, 1, Base, 1);
-    __m128i mul2 = sse::setr_epi16(Base2, 1, Base2, 1, Base2, 1, Base2, 1);
-    __m128i mul3 = sse::setr_epi16(Base4, 1, Base4, 1, Base4, 1, Base4, 1);
-
-    __m128i t1 = _mm_maddubs_epi16(in, mul1);
-    __m128i t2 = _mm_madd_epi16(t1, mul2);
+    __m128i t1 = _mm_maddubs_epi16(in, from_chars_details::mulp1x<Base>);
+    __m128i t2 = _mm_madd_epi16(t1, from_chars_details::mulp2x<Base>);
     __m128i t3 = _mm_packus_epi32(t2, t2);
-    __m128i t4 = _mm_madd_epi16(t3, mul3);
+    __m128i t4 = _mm_madd_epi16(t3, from_chars_details::mulp4x<Base>);
 
     uint64_t val = simd_cast<__m128i_t, uint64_t>(t4);
     uint32_t lo = val;
     uint32_t hi = val >> 32;
 
-    return lo * Base8 + hi;
+    return lo * from_chars_details::__base8<Base> + hi;
 }
 
 template <uint64_t Base>
