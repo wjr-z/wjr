@@ -125,13 +125,6 @@ WJR_INTRINSIC_CONSTEXPR_E bool fallback_mul_overflow(T a, T b, T &ret) {
     return hi != 0;
 }
 
-#if WJR_HAS_BUILTIN(MUL_OVERFLOW)
-template <typename T>
-WJR_INTRINSIC_INLINE bool builtin_mul_overflow(T a, T b, T &ret) {
-    return __builtin_mul_overflow(a, b, &ret);
-}
-#endif
-
 template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E bool mul_overflow(type_identity_t<T> a, type_identity_t<T> b,
                                             T &ret) {
@@ -141,7 +134,7 @@ WJR_INTRINSIC_CONSTEXPR_E bool mul_overflow(type_identity_t<T> a, type_identity_
         return fallback_mul_overflow(a, b, ret);
     }
 
-    return builtin_mul_overflow(a, b, ret);
+    return __builtin_mul_overflow(a, b, &ret);
 #else
     return fallback_mul_overflow(a, b, ret);
 #endif

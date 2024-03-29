@@ -135,13 +135,6 @@ WJR_INTRINSIC_CONSTEXPR_E bool fallback_sub_overflow(T a, T b, T &ret) {
     return ret > a;
 }
 
-#if WJR_HAS_BUILTIN(SUB_OVERFLOW)
-template <typename T>
-WJR_INTRINSIC_INLINE bool builtin_sub_overflow(T a, T b, T &ret) {
-    return __builtin_sub_overflow(a, b, &ret);
-}
-#endif
-
 template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
 WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(type_identity_t<T> a, type_identity_t<T> b,
                                             T &ret) {
@@ -151,7 +144,7 @@ WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(type_identity_t<T> a, type_identity_
         return fallback_sub_overflow(a, b, ret);
     }
 
-    return builtin_sub_overflow(a, b, ret);
+    return __builtin_sub_overflow(a, b, &ret);
 #else
     return fallback_sub_overflow(a, b, ret);
 #endif

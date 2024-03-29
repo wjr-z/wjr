@@ -52,7 +52,20 @@ public:
         }
     }
 
-    WJR_CONST constexpr static uint8_t from(uint8_t x) { return from_table[x]; }
+    template <uint64_t Base = 0>
+    WJR_CONST constexpr static uint8_t from(uint8_t x) {
+        if constexpr (Base == 0) {
+            WJR_ASSERT_L2(from_table[x] < 36);
+        } else {
+            WJR_ASSERT_L2(from_table[x] < Base);
+        }
+
+        if constexpr (Base == 0 || Base > 10) {
+            return from_table[x];
+        } else {
+            return x - '0';
+        }
+    }
 };
 
 /**
@@ -68,7 +81,8 @@ struct origin_converter_t {
         return x;
     }
 
-    WJR_CONST constexpr static uint8_t from(char x) { return x; }
+    template <uint64_t Base = 0>
+    WJR_CONST constexpr static uint8_t from(uint8_t x) { return x; }
 };
 
 /**
