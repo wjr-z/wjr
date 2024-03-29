@@ -10616,6 +10616,9 @@ WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out);
 template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out);
 
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(T a, T b, T &ret);
+
 template <typename T, typename U = T,
           std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
                            int> = 0>
@@ -11233,6 +11236,37 @@ WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
     }
 #else
     return subc(a, b, c_in, c_out);
+#endif
+}
+
+#if WJR_HAS_BUILTIN(__builtin_sub_overflow)
+#define WJR_HAS_BUILTIN_SUB_OVERFLOW WJR_HAS_DEF
+#endif
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR_E bool fallback_sub_overflow(T a, T b, T &ret) {
+    ret = a - b;
+    return ret > a;
+}
+
+#if WJR_HAS_BUILTIN(SUB_OVERFLOW)
+template <typename T>
+WJR_INTRINSIC_INLINE bool builtin_sub_overflow(T a, T b, T &ret) {
+    return __builtin_sub_overflow(a, b, &ret);
+}
+#endif
+
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
+WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(T a, T b, T &ret) {
+#if WJR_HAS_BUILTIN(SUB_OVERFLOW)
+    if (is_constant_evaluated() ||
+        (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
+        return fallback_sub_overflow(a, b, ret);
+    }
+
+    return builtin_sub_overflow(a, b, ret);
+#else
+    return fallback_sub_overflow(a, b, ret);
 #endif
 }
 
@@ -12336,7 +12370,7 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
 
 /**
  * @todo optimize temporary memory usage of mul_s, mul_n, sqr
- * 
+ *
  */
 
 #ifndef WJR_MATH_BIGNUM_CONFIG_HPP__
@@ -12419,6 +12453,9 @@ WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out);
 
 template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_INTRINSIC_CONSTEXPR_E T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out);
+
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+WJR_INTRINSIC_CONSTEXPR_E bool add_overflow(T a, T b, T &ret);
 
 template <typename T, typename U = T,
           std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
@@ -13167,6 +13204,37 @@ WJR_INTRINSIC_CONSTEXPR_E T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
     }
 #else
     return addc(a, b, c_in, c_out);
+#endif
+}
+
+#if WJR_HAS_BUILTIN(__builtin_add_overflow)
+#define WJR_HAS_BUILTIN_ADD_OVERFLOW WJR_HAS_DEF
+#endif
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR_E bool fallback_add_overflow(T a, T b, T &ret) {
+    ret = a + b;
+    return ret < a;
+}
+
+#if WJR_HAS_BUILTIN(ADD_OVERFLOW)
+template <typename T>
+WJR_INTRINSIC_INLINE bool builtin_add_overflow(T a, T b, T &ret) {
+    return __builtin_add_overflow(a, b, &ret);
+}
+#endif
+
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
+WJR_INTRINSIC_CONSTEXPR_E bool add_overflow(T a, T b, T &ret) {
+#if WJR_HAS_BUILTIN(ADD_OVERFLOW)
+    if (is_constant_evaluated() ||
+        (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
+        return fallback_add_overflow(a, b, ret);
+    }
+
+    return builtin_add_overflow(a, b, ret);
+#else
+    return fallback_add_overflow(a, b, ret);
 #endif
 }
 
@@ -15076,6 +15144,38 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T mulhi(T a, T b) {
 template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T mullo(T a, T b) {
     return a * b;
+}
+
+#if WJR_HAS_BUILTIN(__builtin_mul_overflow)
+#define WJR_HAS_BUILTIN_MUL_OVERFLOW WJR_HAS_DEF
+#endif
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR_E bool fallback_mul_overflow(T a, T b, T &ret) {
+    T hi;
+    ret = mul(a, b, hi);
+    return hi != 0;
+}
+
+#if WJR_HAS_BUILTIN(MUL_OVERFLOW)
+template <typename T>
+WJR_INTRINSIC_INLINE bool builtin_mul_overflow(T a, T b, T &ret) {
+    return __builtin_mul_overflow(a, b, &ret);
+}
+#endif
+
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool mul_overflow(T a, T b, T &ret) {
+#if WJR_HAS_BUILTIN(MUL_OVERFLOW)
+    if (is_constant_evaluated() ||
+        (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
+        return fallback_mul_overflow(a, b, ret);
+    }
+
+    return builtin_mul_overflow(a, b, ret);
+#else
+    return fallback_mul_overflow(a, b, ret);
+#endif
 }
 
 // TODO : optimize

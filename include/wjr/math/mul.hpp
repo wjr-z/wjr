@@ -3,7 +3,7 @@
 
 /**
  * @todo optimize temporary memory usage of mul_s, mul_n, sqr
- * 
+ *
  */
 
 #include <wjr/math/bignum-config.hpp>
@@ -127,6 +127,38 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T mulhi(T a, T b) {
 template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T mullo(T a, T b) {
     return a * b;
+}
+
+#if WJR_HAS_BUILTIN(__builtin_mul_overflow)
+#define WJR_HAS_BUILTIN_MUL_OVERFLOW WJR_HAS_DEF
+#endif
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR_E bool fallback_mul_overflow(T a, T b, T &ret) {
+    T hi;
+    ret = mul(a, b, hi);
+    return hi != 0;
+}
+
+#if WJR_HAS_BUILTIN(MUL_OVERFLOW)
+template <typename T>
+WJR_INTRINSIC_INLINE bool builtin_mul_overflow(T a, T b, T &ret) {
+    return __builtin_mul_overflow(a, b, &ret);
+}
+#endif
+
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool mul_overflow(T a, T b, T &ret) {
+#if WJR_HAS_BUILTIN(MUL_OVERFLOW)
+    if (is_constant_evaluated() ||
+        (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
+        return fallback_mul_overflow(a, b, ret);
+    }
+
+    return builtin_mul_overflow(a, b, ret);
+#else
+    return fallback_mul_overflow(a, b, ret);
+#endif
 }
 
 // TODO : optimize

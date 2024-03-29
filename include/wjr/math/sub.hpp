@@ -125,6 +125,37 @@ WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
 #endif
 }
 
+#if WJR_HAS_BUILTIN(__builtin_sub_overflow)
+#define WJR_HAS_BUILTIN_SUB_OVERFLOW WJR_HAS_DEF
+#endif
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR_E bool fallback_sub_overflow(T a, T b, T &ret) {
+    ret = a - b;
+    return ret > a;
+}
+
+#if WJR_HAS_BUILTIN(SUB_OVERFLOW)
+template <typename T>
+WJR_INTRINSIC_INLINE bool builtin_sub_overflow(T a, T b, T &ret) {
+    return __builtin_sub_overflow(a, b, &ret);
+}
+#endif
+
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
+WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(T a, T b, T &ret) {
+#if WJR_HAS_BUILTIN(SUB_OVERFLOW)
+    if (is_constant_evaluated() ||
+        (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
+        return fallback_sub_overflow(a, b, ret);
+    }
+
+    return builtin_sub_overflow(a, b, ret);
+#else
+    return fallback_sub_overflow(a, b, ret);
+#endif
+}
+
 /*
 require :
 1. n >= 1

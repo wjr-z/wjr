@@ -142,6 +142,37 @@ WJR_INTRINSIC_CONSTEXPR_E T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
 #endif
 }
 
+#if WJR_HAS_BUILTIN(__builtin_add_overflow)
+#define WJR_HAS_BUILTIN_ADD_OVERFLOW WJR_HAS_DEF
+#endif
+
+template <typename T>
+WJR_INTRINSIC_CONSTEXPR_E bool fallback_add_overflow(T a, T b, T &ret) {
+    ret = a + b;
+    return ret < a;
+}
+
+#if WJR_HAS_BUILTIN(ADD_OVERFLOW)
+template <typename T>
+WJR_INTRINSIC_INLINE bool builtin_add_overflow(T a, T b, T &ret) {
+    return __builtin_add_overflow(a, b, &ret);
+}
+#endif
+
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
+WJR_INTRINSIC_CONSTEXPR_E bool add_overflow(T a, T b, T &ret) {
+#if WJR_HAS_BUILTIN(ADD_OVERFLOW)
+    if (is_constant_evaluated() ||
+        (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
+        return fallback_add_overflow(a, b, ret);
+    }
+
+    return builtin_add_overflow(a, b, ret);
+#else
+    return fallback_add_overflow(a, b, ret);
+#endif
+}
+
 /**
  * @brief Add biginteger(src0) and number with carry-in, and return the result(dst) and
  * carry-out.
