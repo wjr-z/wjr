@@ -46,105 +46,45 @@ WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size_t n) {
         }                                                                                \
     } while (0)
 
-    switch (n & 7) {
-    case 1: { // 8
-        WJR_REGISTER_COMPARE_NOT_N(1);
-        WJR_REGISTER_COMPARE_NOT_N(3);
+    size_t idx = n >> 3;
+    size_t rem = n & 7;
+
+    if (rem > 4) {
 #if !WJR_HAS_SIMD(AVX2)
-        WJR_REGISTER_COMPARE_NOT_N(5);
-        WJR_REGISTER_COMPARE_NOT_N(7);
+        auto x0 = sse::loadu((__m128i *)(src0 + (rem - 4)));
+        auto y0 = sse::loadu((__m128i *)(src1 + (rem - 4)));
+        auto x1 = sse::loadu((__m128i *)(src0 + (rem - 2)));
+        auto y1 = sse::loadu((__m128i *)(src1 + (rem - 2)));
+
+        auto r0 = sse::cmpeq_epi64(x0, y0);
+        auto r1 = sse::cmpeq_epi64(x1, y1);
+
+        if (WJR_LIKELY(!sse::test_all_ones(sse::And(r0, r1)))) {
+            sse::mask_type mask = ~sse::movemask_epi8(r0);
+            if (mask != 0) {
+                if (mask == 0xFF00) {
+                    return src0[(rem - 4) + 1] < src1[(rem - 4) + 1] ? -1 : 1;
+                }
+                return src0[(rem - 4)] < src1[(rem - 4)] ? -1 : 1;
+            }
+
+            mask = ~sse::movemask_epi8(r1);
+            if (mask == 0xFF00) {
+                return src0[(rem - 2) + 1] < src1[(rem - 2) + 1] ? -1 : 1;
+            }
+            return src0[(rem - 2)] < src1[(rem - 2)] ? -1 : 1;
+        }
 #else
-        WJR_REGISTER_COMPARE_NOT_N_AVX(5);
+        WJR_REGISTER_COMPARE_NOT_N_AVX(rem - 4);
 #endif
-
-        src0 += 9;
-        src1 += 9;
-        break;
     }
-    case 2: { // 1
-        if (WJR_LIKELY(src0[1] != src1[1])) {
-            return src0[1] < src1[1] ? -1 : 1;
-        }
-
-        src0 += 2;
-        src1 += 2;
-        break;
-    }
-    case 3: { // 2
-        WJR_REGISTER_COMPARE_NOT_N(1);
-
-        src0 += 3;
-        src1 += 3;
-        break;
-    }
-    case 4: { // 2 + 1
-        if (WJR_LIKELY(src0[1] != src1[1])) {
-            return src0[1] < src1[1] ? -1 : 1;
-        }
-
-        WJR_REGISTER_COMPARE_NOT_N(2);
-
-        src0 += 4;
-        src1 += 4;
-        break;
-    }
-    case 5: { // 2 * 2
-        WJR_REGISTER_COMPARE_NOT_N(1);
-        WJR_REGISTER_COMPARE_NOT_N(3);
-
-        src0 += 5;
-        src1 += 5;
-        break;
-    }
-    case 6: { // 2 * 2 + 1
-        if (WJR_LIKELY(src0[1] != src1[1])) {
-            return src0[1] < src1[1] ? -1 : 1;
-        }
-
-        WJR_REGISTER_COMPARE_NOT_N(2);
-        WJR_REGISTER_COMPARE_NOT_N(4);
-
-        src0 += 6;
-        src1 += 6;
-        break;
-    }
-    case 7: { // 2 * 3
-        WJR_REGISTER_COMPARE_NOT_N(1);
-#if !WJR_HAS_SIMD(AVX2)
-        WJR_REGISTER_COMPARE_NOT_N(3);
-        WJR_REGISTER_COMPARE_NOT_N(5);
-#else
-        WJR_REGISTER_COMPARE_NOT_N_AVX(3);
-#endif
-
-        src0 += 7;
-        src1 += 7;
-        break;
-    }
-    case 0: { // 2 * 3 + 1
-        if (WJR_LIKELY(src0[1] != src1[1])) {
-            return src0[1] < src1[1] ? -1 : 1;
-        }
-
-        WJR_REGISTER_COMPARE_NOT_N(2);
-#if !WJR_HAS_SIMD(AVX2)
-        WJR_REGISTER_COMPARE_NOT_N(4);
-        WJR_REGISTER_COMPARE_NOT_N(6);
-#else
-        WJR_REGISTER_COMPARE_NOT_N_AVX(4);
-#endif
-
-        src0 += 8;
-        src1 += 8;
-        break;
-    }
-    }
-
-    size_t idx = (n - 2) / 8;
 
     if (WJR_UNLIKELY(idx == 0)) {
         return 0;
     }
+
+    src0 += rem;
+    src1 += rem;
 
 #if !WJR_HAS_SIMD(AVX2)
 
@@ -283,33 +223,35 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1, size_t 
         return 0;
     }
 
-    // Quickly check the first one. There is a high probability that the comparison will
-    // end in the first place
     if (WJR_LIKELY(src0[0] != src1[0])) {
         return src0[0] < src1[0] ? -1 : 1;
     }
 
-    if (WJR_UNLIKELY(n < 4)) {
+    if (n == 1) {
+        return 0;
+    }
 
-        do {
-            if (n == 1) {
-                break;
-            }
+    if (WJR_LIKELY(src0[1] != src1[1])) {
+        return src0[1] < src1[1] ? -1 : 1;
+    }
 
-            if (WJR_LIKELY(src0[1] != src1[1])) {
-                return src0[1] < src1[1] ? -1 : 1;
-            }
+    if (n == 2) {
+        return 0;
+    }
 
-            if (n == 2) {
-                break;
-            }
+    if (WJR_LIKELY(src0[2] != src1[2])) {
+        return src0[2] < src1[2] ? -1 : 1;
+    }
 
-            if (WJR_LIKELY(src0[2] != src1[2])) {
-                return src0[2] < src1[2] ? -1 : 1;
-            }
+    if (n == 3) {
+        return 0;
+    }
 
-        } while (0);
+    if (WJR_LIKELY(src0[3] != src1[3])) {
+        return src0[3] < src1[3] ? -1 : 1;
+    }
 
+    if (n == 4) {
         return 0;
     }
 
@@ -352,105 +294,44 @@ WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1, size_
     src0 += n;
     src1 += n;
 
-    switch (n & 7) {
-    case 1: { // 8
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(1);
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(3);
+    size_t idx = n >> 3;
+    size_t rem = n & 7;
+
+    if (rem > 4) {
 #if !WJR_HAS_SIMD(AVX2)
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(5);
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(7);
+        auto x0 = sse::loadu((__m128i *)(src0 - 2 - (rem - 4)));
+        auto y0 = sse::loadu((__m128i *)(src1 - 2 - (rem - 4)));
+        auto x1 = sse::loadu((__m128i *)(src0 - 2 - (rem - 2)));
+        auto y1 = sse::loadu((__m128i *)(src1 - 2 - (rem - 2)));
+
+        auto r0 = sse::cmpeq_epi64(x0, y0);
+        auto r1 = sse::cmpeq_epi64(x1, y1);
+
+        if (WJR_LIKELY(!sse::test_all_ones(sse::And(r0, r1)))) {
+            sse::mask_type mask = ~sse::movemask_epi8(r0);
+            if (mask != 0) {
+                if (mask == 0x00FF) {
+                    return src0[-2 - (rem - 4)] < src1[-2 - (rem - 4)] ? -1 : 1;
+                }
+                return src0[-1 - (rem - 4)] < src1[-1 - (rem - 4)] ? -1 : 1;
+            }
+            mask = ~sse::movemask_epi8(r1);
+            if (mask == 0x00FF) {
+                return src0[-2 - (rem - 2)] < src1[-2 - (rem - 2)] ? -1 : 1;
+            }
+            return src0[-1 - (rem - 2)] < src1[-1 - (rem - 2)] ? -1 : 1;
+        }
 #else
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(5);
+        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(rem - 4);
 #endif
-
-        src0 -= 9;
-        src1 -= 9;
-        break;
     }
-    case 2: { // 1
-        if (WJR_LIKELY(src0[-2] != src1[-2])) {
-            return src0[-2] < src1[-2] ? -1 : 1;
-        }
-
-        src0 -= 2;
-        src1 -= 2;
-        break;
-    }
-    case 3: { // 2
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(1);
-
-        src0 -= 3;
-        src1 -= 3;
-        break;
-    }
-    case 4: { // 2 + 1
-        if (WJR_LIKELY(src0[-2] != src1[-2])) {
-            return src0[-2] < src1[-2] ? -1 : 1;
-        }
-
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(2);
-
-        src0 -= 4;
-        src1 -= 4;
-        break;
-    }
-    case 5: { // 2 * 2
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(1);
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(3);
-
-        src0 -= 5;
-        src1 -= 5;
-        break;
-    }
-    case 6: { // 2 * 2 + 1
-        if (WJR_LIKELY(src0[-2] != src1[-2])) {
-            return src0[-2] < src1[-2] ? -1 : 1;
-        }
-
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(2);
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(4);
-
-        src0 -= 6;
-        src1 -= 6;
-        break;
-    }
-    case 7: { // 2 * 3
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(1);
-#if !WJR_HAS_SIMD(AVX2)
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(3);
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(5);
-#else
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(3);
-#endif
-
-        src0 -= 7;
-        src1 -= 7;
-        break;
-    }
-    case 0: { // 2 * 3 + 1
-        if (WJR_LIKELY(src0[-2] != src1[-2])) {
-            return src0[-2] < src1[-2] ? -1 : 1;
-        }
-
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(2);
-#if !WJR_HAS_SIMD(AVX2)
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(4);
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N(6);
-#else
-        WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(4);
-#endif
-
-        src0 -= 8;
-        src1 -= 8;
-        break;
-    }
-    }
-
-    size_t idx = (n - 2) / 8;
 
     if (WJR_UNLIKELY(idx == 0)) {
         return 0;
     }
+
+    src0 -= rem;
+    src1 -= rem;
 
 #if !WJR_HAS_SIMD(AVX2)
 
@@ -595,26 +476,31 @@ WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
         return src0[n - 1] < src1[n - 1] ? -1 : 1;
     }
 
-    if (WJR_UNLIKELY(n < 4)) {
-        do {
-            if (n == 1) {
-                break;
-            }
+    if (n == 1) {
+        return 0;
+    }
 
-            if (WJR_LIKELY(src0[n - 2] != src1[n - 2])) {
-                return src0[n - 2] < src1[n - 2] ? -1 : 1;
-            }
+    if (WJR_LIKELY(src0[n - 2] != src1[n - 2])) {
+        return src0[n - 2] < src1[n - 2] ? -1 : 1;
+    }
 
-            if (n == 2) {
-                break;
-            }
+    if (n == 2) {
+        return 0;
+    }
 
-            if (WJR_LIKELY(src0[n - 3] != src1[n - 3])) {
-                return src0[n - 3] < src1[n - 3] ? -1 : 1;
-            }
+    if (WJR_LIKELY(src0[n - 3] != src1[n - 3])) {
+        return src0[n - 3] < src1[n - 3] ? -1 : 1;
+    }
 
-        } while (0);
+    if (n == 3) {
+        return 0;
+    }
 
+    if (WJR_LIKELY(src0[n - 4] != src1[n - 4])) {
+        return src0[n - 4] < src1[n - 4] ? -1 : 1;
+    }
+
+    if (n == 4) {
         return 0;
     }
 
