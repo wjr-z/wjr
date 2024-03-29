@@ -20,79 +20,164 @@ namespace wjr {
 
 template <typename T>
 WJR_COLD size_t large_builtin_find_n(const T *src0, const T *src1, size_t n) {
-#define WJR_REGISTER_FIND_N(index)                                                       \
+#define WJR_REGISTER_FIND_N_AVX(index)                                                   \
     do {                                                                                 \
-        auto x = sse::loadu((__m128i *)(src0 + (index)));                                \
-        auto y = sse::loadu((__m128i *)(src1 + (index)));                                \
-        auto r = sse::cmpeq_epi64(x, y);                                                 \
+        auto x = avx::loadu((__m256i *)(src0 + (index)));                                \
+        auto y = avx::loadu((__m256i *)(src1 + (index)));                                \
+        auto r = avx::cmpeq_epi64(x, y);                                                 \
                                                                                          \
-        auto mask = sse::movemask_epi8(r);                                               \
+        avx::mask_type mask = avx::movemask_epi8(r);                                     \
         if (WJR_UNLIKELY(mask != 0)) {                                                   \
-            return (index) + (mask == 0xFF00);                                           \
+            return (index) + ctz(mask) / 8;                                              \
         }                                                                                \
     } while (0)
 
-    size_t idx = 0;
+    size_t rem = n & 7;
 
-    if (WJR_UNLIKELY(n & 1)) {
-        if (WJR_UNLIKELY(src0[0] == src1[0])) {
-            return 0;
+    if (rem > 4) {
+#if !WJR_HAS_SIMD(AVX2)
+        auto x0 = sse::loadu((__m128i *)(src0 + (rem - 4)));
+        auto y0 = sse::loadu((__m128i *)(src1 + (rem - 4)));
+        auto x1 = sse::loadu((__m128i *)(src0 + (rem - 2)));
+        auto y1 = sse::loadu((__m128i *)(src1 + (rem - 2)));
+
+        auto r0 = sse::cmpeq_epi64(x0, y0);
+        auto r1 = sse::cmpeq_epi64(x1, y1);
+
+        if (WJR_LIKELY(!sse::test_all_zeros(sse::Or(r0, r1)))) {
+            sse::mask_type mask = sse::movemask_epi8(r0);
+            if (mask != 0) {
+                return (rem - 4) + (mask == 0xFF00);
+            }
+
+            mask = sse::movemask_epi8(r1);
+            return (rem - 2) + (mask == 0xFF00);
         }
-
-        ++idx;
+#else
+        WJR_REGISTER_FIND_N_AVX(rem - 4);
+#endif
     }
 
-    if (WJR_UNLIKELY(n & 2)) {
-        WJR_REGISTER_FIND_N(idx);
-
-        idx += 2;
-    }
-
-    if (WJR_UNLIKELY(n & 4)) {
-        WJR_REGISTER_FIND_N(idx);
-        WJR_REGISTER_FIND_N(idx + 2);
-
-        idx += 4;
-    }
-
-    if (WJR_UNLIKELY(idx == n)) {
+    if (WJR_UNLIKELY(rem == n)) {
         return n;
     }
 
+#if !WJR_HAS_SIMD(AVX2)
     do {
-        WJR_REGISTER_FIND_N(idx);
-        WJR_REGISTER_FIND_N(idx + 2);
-        WJR_REGISTER_FIND_N(idx + 4);
-        WJR_REGISTER_FIND_N(idx + 6);
+        auto x0 = sse::loadu((__m128i *)(src0 + rem));
+        auto y0 = sse::loadu((__m128i *)(src1 + rem));
+        auto x1 = sse::loadu((__m128i *)(src0 + rem + 2));
+        auto y1 = sse::loadu((__m128i *)(src1 + rem + 2));
+        auto x2 = sse::loadu((__m128i *)(src0 + rem + 4));
+        auto y2 = sse::loadu((__m128i *)(src1 + rem + 4));
+        auto x3 = sse::loadu((__m128i *)(src0 + rem + 6));
+        auto y3 = sse::loadu((__m128i *)(src1 + rem + 6));
 
-        idx += 8;
-    } while (WJR_LIKELY(idx != n));
+        auto r0 = sse::cmpeq_epi64(x0, y0);
+        auto r1 = sse::cmpeq_epi64(x1, y1);
+        auto r2 = sse::cmpeq_epi64(x2, y2);
+        auto r3 = sse::cmpeq_epi64(x3, y3);
+
+        if (WJR_UNLIKELY(
+                !sse::test_all_zeros(sse::Or(sse::Or(r0, r1), sse::Or(r2, r3))))) {
+            sse::mask_type mask = sse::movemask_epi8(r0);
+            if (mask != 0) {
+                return rem + (mask == 0xFF00);
+            }
+
+            mask = sse::movemask_epi8(r1);
+            if (mask != 0) {
+                return rem + 2 + (mask == 0xFF00);
+            }
+
+            mask = sse::movemask_epi8(r2);
+            if (mask != 0) {
+                return rem + 4 + (mask == 0xFF00);
+            }
+
+            mask = sse::movemask_epi8(r3);
+            return rem + 6 + (mask == 0xFF00);
+        }
+
+        rem += 8;
+    } while (WJR_LIKELY(rem != n));
+#else
+    if ((n - rem) & 8) {
+        WJR_REGISTER_FIND_N_AVX(rem);
+        WJR_REGISTER_FIND_N_AVX(rem + 4);
+
+        rem += 8;
+
+        if (WJR_UNLIKELY(rem == n)) {
+            return n;
+        }
+    }
+
+    do {
+        auto x0 = avx::loadu((__m256i *)(src0 + rem));
+        auto y0 = avx::loadu((__m256i *)(src1 + rem));
+        auto x1 = avx::loadu((__m256i *)(src0 + rem + 4));
+        auto y1 = avx::loadu((__m256i *)(src1 + rem + 4));
+        auto x2 = avx::loadu((__m256i *)(src0 + rem + 8));
+        auto y2 = avx::loadu((__m256i *)(src1 + rem + 8));
+        auto x3 = avx::loadu((__m256i *)(src0 + rem + 12));
+        auto y3 = avx::loadu((__m256i *)(src1 + rem + 12));
+
+        auto r0 = avx::cmpeq_epi64(x0, y0);
+        auto r1 = avx::cmpeq_epi64(x1, y1);
+        auto r2 = avx::cmpeq_epi64(x2, y2);
+        auto r3 = avx::cmpeq_epi64(x3, y3);
+
+        if (WJR_UNLIKELY(
+                !avx::test_all_zeros(avx::Or(r0, avx::Or(r1, avx::Or(r2, r3)))))) {
+            avx::mask_type mask = avx::movemask_epi8(r0);
+            if (mask != 0) {
+                return rem + ctz(mask) / 8;
+            }
+
+            mask = avx::movemask_epi8(r1);
+            if (mask != 0) {
+                return rem + 4 + ctz(mask) / 8;
+            }
+
+            mask = avx::movemask_epi8(r2);
+            if (mask != 0) {
+                return rem + 8 + ctz(mask) / 8;
+            }
+
+            mask = avx::movemask_epi8(r3);
+            return rem + 12 + ctz(mask) / 8;
+        }
+
+        rem += 16;
+    } while (WJR_LIKELY(rem != n));
+#endif
 
     return n;
 
-#undef WJR_REGISTER_FIND_N
+#undef WJR_REGISTER_FIND_N_AVX
 }
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src0, const T *src1, size_t n) {
-    if (WJR_UNLIKELY(n == 0)) {
+    if (WJR_UNLIKELY(n == 0 || src0[0] == src1[0])) {
         return 0;
     }
 
-    if (WJR_UNLIKELY(n < 4)) {
-        if (WJR_UNLIKELY(src0[0] == src1[0])) {
-            return 0;
-        }
+    if (n == 1 || WJR_UNLIKELY(src0[1] == src1[1])) {
+        return 1;
+    }
 
-        if (n == 1 || WJR_UNLIKELY(src0[1] == src1[1])) {
-            return 1;
-        }
+    if (n == 2 || WJR_UNLIKELY(src0[2] == src1[2])) {
+        return 2;
+    }
 
-        if (n == 2 || WJR_UNLIKELY(src0[2] == src1[2])) {
-            return 2;
-        }
-
+    if (n == 3 || WJR_UNLIKELY(src0[3] == src1[3])) {
         return 3;
+    }
+
+    if (n == 4) {
+        return 4;
     }
 
     return large_builtin_find_n(src0, src1, n);
@@ -100,80 +185,159 @@ WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src0, const T *src1, size_t 
 
 template <typename T>
 WJR_COLD size_t large_builtin_find_n(const T *src, T val, size_t n) {
-#define WJR_REGISTER_FIND_N(index)                                                       \
+#define WJR_REGISTER_FIND_N_AVX(index)                                                   \
     do {                                                                                 \
-        auto x = sse::loadu((__m128i *)(src + (index)));                                 \
-        auto r = sse::cmpeq_epi64(x, y);                                                 \
+        auto x = avx::loadu((__m256i *)(src + (index)));                                 \
+        auto r = avx::cmpeq_epi64(x, y);                                                 \
                                                                                          \
-        auto mask = sse::movemask_epi8(r);                                               \
+        auto mask = avx::movemask_epi8(r);                                               \
         if (WJR_UNLIKELY(mask != 0)) {                                                   \
-            return (index) + (mask == 0xFF00);                                           \
+            return (index) + ctz(mask) / 8;                                              \
         }                                                                                \
     } while (0)
 
-    size_t idx = 0;
-
-    if (WJR_UNLIKELY(n & 1)) {
-        if (WJR_UNLIKELY(src[0] == val)) {
-            return 0;
-        }
-
-        ++idx;
-    }
-
+#if !WJR_HAS_SIMD(AVX2)
     auto y = sse::set1(val, T());
+#else
+    auto y = avx::set1(val, T());
+#endif
 
-    if (WJR_UNLIKELY(n & 2)) {
-        WJR_REGISTER_FIND_N(idx);
+    size_t rem = n & 7;
 
-        idx += 2;
+    if (rem > 4) {
+#if !WJR_HAS_SIMD(AVX2)
+        auto x0 = sse::loadu((__m128i *)(src + (rem - 4)));
+        auto x1 = sse::loadu((__m128i *)(src + (rem - 2)));
+
+        auto r0 = sse::cmpeq_epi64(x0, y);
+        auto r1 = sse::cmpeq_epi64(x1, y);
+
+        if (WJR_LIKELY(!sse::test_all_zeros(sse::Or(r0, r1)))) {
+            sse::mask_type mask = sse::movemask_epi8(r0);
+            if (mask != 0) {
+                return rem - 4 + (mask == 0xFF00);
+            }
+
+            mask = sse::movemask_epi8(r1);
+            return rem - 2 + (mask == 0xFF00);
+        }
+#else
+        WJR_REGISTER_FIND_N_AVX(rem - 4);
+#endif
     }
 
-    if (WJR_UNLIKELY(n & 4)) {
-        WJR_REGISTER_FIND_N(idx);
-        WJR_REGISTER_FIND_N(idx + 2);
-
-        idx += 4;
-    }
-
-    if (WJR_UNLIKELY(idx == n)) {
+    if (WJR_UNLIKELY(rem == n)) {
         return n;
     }
 
+#if !WJR_HAS_SIMD(AVX2)
     do {
-        WJR_REGISTER_FIND_N(idx);
-        WJR_REGISTER_FIND_N(idx + 2);
-        WJR_REGISTER_FIND_N(idx + 4);
-        WJR_REGISTER_FIND_N(idx + 6);
+        auto x0 = sse::loadu((__m128i *)(src + rem));
+        auto x1 = sse::loadu((__m128i *)(src + rem + 2));
+        auto x2 = sse::loadu((__m128i *)(src + rem + 4));
+        auto x3 = sse::loadu((__m128i *)(src + rem + 6));
 
-        idx += 8;
-    } while (WJR_LIKELY(idx != n));
+        auto r0 = sse::cmpeq_epi64(x0, y);
+        auto r1 = sse::cmpeq_epi64(x1, y);
+        auto r2 = sse::cmpeq_epi64(x2, y);
+        auto r3 = sse::cmpeq_epi64(x3, y);
+
+        if (WJR_UNLIKELY(
+                !sse::test_all_zeros(sse::Or(sse::Or(r0, r1), sse::Or(r2, r3))))) {
+            sse::mask_type mask = sse::movemask_epi8(r0);
+            if (mask != 0) {
+                return rem + (mask == 0xFF00);
+            }
+
+            mask = sse::movemask_epi8(r1);
+            if (mask != 0) {
+                return rem + 2 + (mask == 0xFF00);
+            }
+
+            mask = sse::movemask_epi8(r2);
+            if (mask != 0) {
+                return rem + 4 + (mask == 0xFF00);
+            }
+
+            mask = sse::movemask_epi8(r3);
+            return rem + 6 + (mask == 0xFF00);
+        }
+
+        rem += 8;
+    } while (WJR_LIKELY(rem != n));
+#else
+    if ((n - rem) & 8) {
+        WJR_REGISTER_FIND_N_AVX(rem);
+        WJR_REGISTER_FIND_N_AVX(rem + 4);
+
+        rem += 8;
+
+        if (WJR_UNLIKELY(rem == n)) {
+            return n;
+        }
+    }
+
+    do {
+        auto x0 = avx::loadu((__m256i *)(src + rem));
+        auto x1 = avx::loadu((__m256i *)(src + rem + 4));
+        auto x2 = avx::loadu((__m256i *)(src + rem + 8));
+        auto x3 = avx::loadu((__m256i *)(src + rem + 12));
+
+        auto r0 = avx::cmpeq_epi64(x0, y);
+        auto r1 = avx::cmpeq_epi64(x1, y);
+        auto r2 = avx::cmpeq_epi64(x2, y);
+        auto r3 = avx::cmpeq_epi64(x3, y);
+
+        if (WJR_UNLIKELY(
+                !avx::test_all_zeros(avx::Or(r0, avx::Or(r1, avx::Or(r2, r3)))))) {
+            avx::mask_type mask = avx::movemask_epi8(r0);
+            if (mask != 0) {
+                return rem + ctz(mask) / 8;
+            }
+
+            mask = avx::movemask_epi8(r1);
+            if (mask != 0) {
+                return rem + 4 + ctz(mask) / 8;
+            }
+
+            mask = avx::movemask_epi8(r2);
+            if (mask != 0) {
+                return rem + 8 + ctz(mask) / 8;
+            }
+
+            mask = avx::movemask_epi8(r3);
+            return rem + 12 + ctz(mask) / 8;
+        }
+
+        rem += 16;
+    } while (WJR_LIKELY(rem != n));
+#endif
 
     return n;
 
-#undef WJR_REGISTER_FIND_N
+#undef WJR_REGISTER_FIND_N_AVX
 }
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src, T val, size_t n) {
-    if (WJR_UNLIKELY(n == 0)) {
+    if (WJR_UNLIKELY(n == 0 || src[0] == val)) {
         return 0;
     }
 
-    if (WJR_UNLIKELY(n < 4)) {
-        if (WJR_UNLIKELY(src[0] == val)) {
-            return 0;
-        }
+    if (n == 1 || WJR_UNLIKELY(src[1] == val)) {
+        return 1;
+    }
 
-        if (n == 1 || WJR_UNLIKELY(src[1] == val)) {
-            return 1;
-        }
+    if (n == 2 || WJR_UNLIKELY(src[2] == val)) {
+        return 2;
+    }
 
-        if (n == 2 || WJR_UNLIKELY(src[2] == val)) {
-            return 2;
-        }
-
+    if (n == 3 || WJR_UNLIKELY(src[3] == val)) {
         return 3;
+    }
+
+    if (n == 4) {
+        return 4;
     }
 
     return large_builtin_find_n(src, val, n);
