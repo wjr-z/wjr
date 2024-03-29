@@ -113,6 +113,8 @@ template <uint64_t Base>
 static __m128i mulp4x = sse::setr_epi16(__base4<Base>, 1, __base4<Base>, 1, __base4<Base>,
                                         1, __base4<Base>, 1);
 
+static __m128i ascii = sse::set1_epi8(0x30);
+
 } // namespace from_chars_details
 
 #endif
@@ -133,8 +135,7 @@ template <uint64_t Base>
 uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, char_converter_t) {
     static_assert(Base <= 10, "");
 
-    __m128i assci = sse::set1_epi8(0x30);
-    __m128i in = _mm_sub_epi8(sse::loadu_si64(ptr), assci);
+    __m128i in = _mm_sub_epi8(sse::loadu_si64(ptr), from_chars_details::ascii);
     return builtin_from_chars_unroll_8_fast<Base>(in);
 }
 
@@ -165,8 +166,7 @@ template <uint64_t Base>
 uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, char_converter_t) {
     static_assert(Base <= 10, "");
 
-    __m128i assci = sse::set1_epi8(0x30);
-    __m128i in = _mm_sub_epi8(sse::loadu((__m128i *)(ptr)), assci);
+    __m128i in = _mm_sub_epi8(sse::loadu((__m128i *)(ptr)), from_chars_details::ascii);
     return builtin_from_chars_unroll_16_fast<Base>(in);
 }
 

@@ -10617,7 +10617,8 @@ template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> =
 WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out);
 
 template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(T a, T b, T &ret);
+WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(type_identity_t<T> a, type_identity_t<T> b,
+                                            T &ret);
 
 template <typename T, typename U = T,
           std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
@@ -11257,7 +11258,8 @@ WJR_INTRINSIC_INLINE bool builtin_sub_overflow(T a, T b, T &ret) {
 #endif
 
 template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
-WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(T a, T b, T &ret) {
+WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(type_identity_t<T> a, type_identity_t<T> b,
+                                            T &ret) {
 #if WJR_HAS_BUILTIN(SUB_OVERFLOW)
     if (is_constant_evaluated() ||
         (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
@@ -12455,7 +12457,8 @@ template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> =
 WJR_INTRINSIC_CONSTEXPR_E T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out);
 
 template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E bool add_overflow(T a, T b, T &ret);
+WJR_INTRINSIC_CONSTEXPR_E bool add_overflow(type_identity_t<T> a, type_identity_t<T> b,
+                                            T &ret);
 
 template <typename T, typename U = T,
           std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
@@ -13225,7 +13228,8 @@ WJR_INTRINSIC_INLINE bool builtin_add_overflow(T a, T b, T &ret) {
 #endif
 
 template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
-WJR_INTRINSIC_CONSTEXPR_E bool add_overflow(T a, T b, T &ret) {
+WJR_INTRINSIC_CONSTEXPR_E bool add_overflow(type_identity_t<T> a, type_identity_t<T> b,
+                                            T &ret) {
 #if WJR_HAS_BUILTIN(ADD_OVERFLOW)
     if (is_constant_evaluated() ||
         (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
@@ -15084,31 +15088,16 @@ WJR_INTRINSIC_CONSTEXPR_E T mul(T a, T b, T &hi) {
         return a;
     }
 
-    constexpr T max = in_place_max;
-
-    if (WJR_BUILTIN_CONSTANT_P(a == max) && a == max) {
-        hi = b == 0 ? 0 : b - 1;
-        return static_cast<T>(-b);
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P(b == max) && b == max) {
-        hi = a == 0 ? 0 : a - 1;
-        return static_cast<T>(-a);
-    }
-
     if constexpr (nd < 64) {
         return fallback_mul(a, b, hi);
     } else {
 
 #if WJR_HAS_BUILTIN(MUL64)
-        if (is_constant_evaluated() ||
-            (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b)) ||
-            ((WJR_BUILTIN_CONSTANT_P(a) ||
-              WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(a))) &&
-             is_zero_or_single_bit(a)) ||
-            ((WJR_BUILTIN_CONSTANT_P(b) ||
-              WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(b))) &&
-             is_zero_or_single_bit(b))) {
+        if (is_constant_evaluated()
+#if WJR_HAS_BUILTIN(ASM_MUL64)
+            || (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))
+#endif
+        ) {
             return fallback_mul64(a, b, hi);
         }
 
@@ -15165,7 +15154,8 @@ WJR_INTRINSIC_INLINE bool builtin_mul_overflow(T a, T b, T &ret) {
 #endif
 
 template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool mul_overflow(T a, T b, T &ret) {
+WJR_INTRINSIC_CONSTEXPR_E bool mul_overflow(type_identity_t<T> a, type_identity_t<T> b,
+                                            T &ret) {
 #if WJR_HAS_BUILTIN(MUL_OVERFLOW)
     if (is_constant_evaluated() ||
         (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
@@ -20060,32 +20050,42 @@ private:
         'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
         'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
     static constexpr std::array<uint8_t, 256> from_table = {
-        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-        0,   1,   2,   3,   4,   5,   6,   7,   8,   9,   255, 255, 255, 255, 255, 255,
-        255, 10,  11,  12,  13,  14,  15,  16,  17,  18,  19,  20,  21,  22,  23,  24,
-        25,  26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  255, 255, 255, 255, 255,
-        255, 10,  11,  12,  13,  14,  15,  16,  17,  18,  19,  20,  21,  22,  23,  24,
-        25,  26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  255, 255, 255, 255, 255,
-        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255};
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+        0,   1,   2,   3,   4,   5,   6,   7,   8,   9,   127, 127, 127, 127, 127, 127,
+        127, 10,  11,  12,  13,  14,  15,  16,  17,  18,  19,  20,  21,  22,  23,  24,
+        25,  26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  127, 127, 127, 127, 127,
+        127, 10,  11,  12,  13,  14,  15,  16,  17,  18,  19,  20,  21,  22,  23,  24,
+        25,  26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  127, 127, 127, 127, 127,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127};
 
 public:
+    template <uint64_t Base = 0>
     WJR_CONST constexpr static char to(uint8_t x) {
-        WJR_ASSERT_L2(x < 36);
-
-        if (WJR_BUILTIN_CONSTANT_P(x < 10) && x < 10) {
-            return x + '0';
+        if constexpr (Base == 0) {
+            WJR_ASSERT_L2(x < 36);
+        } else {
+            WJR_ASSERT_L2(x < Base);
         }
 
-        return to_table[x];
+        if constexpr (Base == 0 || Base > 10) {
+
+            if (WJR_BUILTIN_CONSTANT_P(x < 10) && x < 10) {
+                return x + '0';
+            }
+
+            return to_table[x];
+        } else {
+            return x + '0';
+        }
     }
 
     WJR_CONST constexpr static uint8_t from(uint8_t x) { return from_table[x]; }
@@ -20099,7 +20099,11 @@ public:
 inline constexpr char_converter_t char_converter = {};
 
 struct origin_converter_t {
-    WJR_CONST constexpr static char to(uint8_t x) { return x; }
+    template <uint64_t Base = 0>
+    WJR_CONST constexpr static char to(uint8_t x) {
+        return x;
+    }
+
     WJR_CONST constexpr static uint8_t from(char x) { return x; }
 };
 
@@ -20263,6 +20267,8 @@ template <uint64_t Base>
 static __m128i mulp4x = sse::setr_epi16(__base4<Base>, 1, __base4<Base>, 1, __base4<Base>,
                                         1, __base4<Base>, 1);
 
+static __m128i ascii = sse::set1_epi8(0x30);
+
 } // namespace from_chars_details
 
 #endif
@@ -20283,8 +20289,7 @@ template <uint64_t Base>
 uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, char_converter_t) {
     static_assert(Base <= 10, "");
 
-    __m128i assci = sse::set1_epi8(0x30);
-    __m128i in = _mm_sub_epi8(sse::loadu_si64(ptr), assci);
+    __m128i in = _mm_sub_epi8(sse::loadu_si64(ptr), from_chars_details::ascii);
     return builtin_from_chars_unroll_8_fast<Base>(in);
 }
 
@@ -20315,8 +20320,7 @@ template <uint64_t Base>
 uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, char_converter_t) {
     static_assert(Base <= 10, "");
 
-    __m128i assci = sse::set1_epi8(0x30);
-    __m128i in = _mm_sub_epi8(sse::loadu((__m128i *)(ptr)), assci);
+    __m128i in = _mm_sub_epi8(sse::loadu((__m128i *)(ptr)), from_chars_details::ascii);
     return builtin_from_chars_unroll_16_fast<Base>(in);
 }
 
@@ -20417,6 +20421,11 @@ struct has_from_chars_fast_fn_fast_conv
 template <typename Base, typename Converter, typename... Args>
 constexpr bool has_from_chars_fast_fn_fast_conv_v =
     has_from_chars_fast_fn_fast_conv<Base, Converter, Args...>::value;
+
+WJR_REGISTER_HAS_TYPE(from_chars_validate_fast_fn_fast_conv,
+                      Base::__fast_conv(std::declval<const void *&>(),
+                                        std::declval<Args>()...),
+                      Base);
 
 } // namespace convert_details
 
@@ -20530,8 +20539,8 @@ public:
                                                                         Converter>) {
             Mybase::__fast_conv(to_address(ptr), val, conv);
         } else {
-            ptr[0] = conv.to(val / Base);
-            ptr[1] = conv.to(val % Base);
+            ptr[0] = conv.template to<Base>(val / Base);
+            ptr[1] = conv.template to<Base>(val % Base);
         }
     }
 };
@@ -20609,7 +20618,8 @@ public:
 
 template <uint64_t Base>
 class __from_chars_unroll_8_fast_fn_impl_base {
-    WJR_CONST WJR_INTRINSIC_INLINE static uint64_t __fast_conv(uint64_t val) {
+protected:
+    WJR_CONST WJR_INTRINSIC_INLINE static uint32_t __fast_conv(uint64_t val) {
         constexpr uint64_t Base2 = Base * Base;
         constexpr uint64_t Base4 = Base2 * Base2;
         constexpr uint64_t Base6 = Base4 * Base2;
@@ -20620,11 +20630,11 @@ class __from_chars_unroll_8_fast_fn_impl_base {
 
         val = (val * Base) + (val >> 8);
         val = (((val & mask) * mul1) + (((val >> 16) & mask) * mul2)) >> 32;
-        return uint32_t(val);
+        return val;
     }
 
 public:
-    WJR_PURE WJR_INTRINSIC_INLINE static uint64_t __fast_conv(const void *ptr,
+    WJR_PURE WJR_INTRINSIC_INLINE static uint32_t __fast_conv(const void *ptr,
                                                               origin_converter_t) {
 #if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST)
         return builtin_from_chars_unroll_8_fast<Base>(ptr, origin_converter);
@@ -20633,7 +20643,7 @@ public:
 #endif
     }
 
-    WJR_PURE WJR_INTRINSIC_INLINE static uint64_t __fast_conv(const void *ptr,
+    WJR_PURE WJR_INTRINSIC_INLINE static uint32_t __fast_conv(const void *ptr,
                                                               char_converter_t) {
 #if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST)
         return builtin_from_chars_unroll_8_fast<Base>(ptr, char_converter);
@@ -20772,6 +20782,137 @@ public:
 
 template <uint64_t Base>
 inline constexpr __from_chars_unroll_16_fn<Base> __from_chars_unroll_16{};
+
+struct __from_chars_validate_result {
+    bool ok;
+    int offset;
+};
+
+template <uint64_t Base>
+class __from_chars_validate_unroll_8_fast_fn_impl_base
+    : private __from_chars_unroll_8_fast_fn_impl_base<Base> {
+
+    WJR_INTRINSIC_INLINE static __from_chars_validate_result
+    __fast_conv(uint64_t in, const void *&ptr, uint32_t &val) {
+        constexpr uint64_t subt = broadcast<uint8_t, uint64_t>(Base);
+        constexpr uint64_t mask = broadcast<uint8_t, uint64_t>(128);
+
+        uint64_t xval = (in - subt) & mask;
+
+        if (WJR_UNLIKELY(xval != mask)) {
+            const auto offset = ctz(~xval);
+
+            if (WJR_LIKELY(offset != 0)) {
+                ptr = static_cast<const void *>(static_cast<const char *>(ptr) +
+                                                offset / 8);
+                in <<= 64 - offset;
+                val = __from_chars_unroll_8_fast_fn_impl_base<Base>::__fast_conv(in);
+            }
+
+            return {false, offset / 8};
+        }
+
+        ptr = static_cast<const void *>(static_cast<const char *>(ptr) + 8);
+        val = __from_chars_unroll_8_fast_fn_impl_base<Base>::__fast_conv(in);
+
+        return {true, 0};
+    }
+
+public:
+    WJR_INTRINSIC_INLINE static __from_chars_validate_result
+    __fast_conv(const void *&ptr, uint32_t &val, origin_converter_t) {
+        return __fast_conv(read_memory<uint64_t>(ptr), ptr, val);
+    }
+
+    WJR_INTRINSIC_INLINE static __from_chars_validate_result
+    __fast_conv(const void *&ptr, uint32_t &val, char_converter_t) {
+        return __fast_conv(read_memory<uint64_t>(ptr) - 0x3030303030303030ull, ptr, val);
+    }
+};
+
+template <uint64_t Base>
+class __from_chars_validate_unroll_8_fast_fn_impl {};
+
+template <>
+class __from_chars_validate_unroll_8_fast_fn_impl<2>
+    : public __from_chars_validate_unroll_8_fast_fn_impl_base<2> {};
+
+template <>
+class __from_chars_validate_unroll_8_fast_fn_impl<8>
+    : public __from_chars_validate_unroll_8_fast_fn_impl_base<8> {};
+
+template <>
+class __from_chars_validate_unroll_8_fast_fn_impl<10>
+    : public __from_chars_validate_unroll_8_fast_fn_impl_base<10> {};
+
+template <uint64_t Base>
+class __from_chars_validate_unroll_8_fn
+    : public __from_chars_validate_unroll_8_fast_fn_impl<Base> {
+    using Mybase = __from_chars_validate_unroll_8_fast_fn_impl<Base>;
+
+public:
+    /**
+     * @return 0 if sucessed \n
+     * otherwise return offset of error
+     *
+     */
+    template <typename Iter, typename Converter>
+    WJR_INTRINSIC_INLINE __from_chars_validate_result operator()(Iter &first,
+                                                                 uint32_t &val,
+                                                                 Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
+                      convert_details::has_from_chars_validate_fast_fn_fast_conv_v<
+                          Mybase, uint32_t &, Converter>) {
+            const void *ptr = to_address(first);
+            const void *end = ptr;
+            auto ret = Mybase::__fast_conv(end, val, conv);
+            first += static_cast<const char *>(end) - static_cast<const char *>(ptr);
+            return ret;
+        } else {
+            uint8_t ch = conv.from(*first);
+            if (WJR_UNLIKELY(ch >= Base)) {
+                return {false, 0};
+            }
+
+            val = ch;
+
+            for (int i = 1; i < 8; ++i) {
+                ch = conv.from(*++first);
+                if (WJR_UNLIKELY(ch >= Base)) {
+                    return {false, i};
+                }
+
+                val = val * Base + ch;
+            }
+
+            return {true, 0};
+        }
+    }
+
+    template <typename Iter, typename Converter>
+    WJR_INTRINSIC_INLINE void operator()(Iter &first, Converter conv) const {
+        if constexpr (__is_fast_convert_iterator_v<Iter, Converter> &&
+                      convert_details::has_from_chars_validate_fast_fn_fast_conv_v<
+                          Mybase, Converter>) {
+            const void *ptr = to_address(first);
+            const void *end = ptr;
+            Mybase::__fast_conv(end, conv);
+            first += static_cast<const char *>(end) - static_cast<const char *>(ptr);
+        } else {
+            for (int i = 0; i < 8; ++i) {
+                uint8_t ch = conv.from(*first);
+                if (WJR_UNLIKELY(ch >= Base)) {
+                    return;
+                }
+
+                ++first;
+            }
+        }
+    }
+};
+
+template <uint64_t Base>
+inline constexpr __from_chars_validate_unroll_8_fn<Base> __from_chars_validate_unroll_8{};
 
 template <typename UnsignedValue>
 constexpr int fallback_count_digits10(UnsignedValue n) {
@@ -20921,18 +21062,22 @@ Iter __unsigned_to_chars_2_backward(Iter ptr, int n, UnsignedValue x,
     WJR_ASSERT_ASSUME(1 <= n && n <= nd);
     (void)(nd);
 
-    if (n >= 4) {
+    if (WJR_UNLIKELY(n >= 4)) {
         do {
             __to_chars_unroll_4<2>(ptr - 4, x & 0x0f, conv);
             ptr -= 4;
             x >>= 4;
             n -= 4;
         } while (WJR_LIKELY(n >= 4));
+
+        if (n == 0) {
+            return ptr;
+        }
     }
 
     switch (n) {
     case 3: {
-        *--ptr = conv.to(x & 1);
+        *--ptr = conv.template to<2>(x & 1);
         x >>= 1;
         WJR_FALLTHROUGH;
     }
@@ -20942,10 +21087,7 @@ Iter __unsigned_to_chars_2_backward(Iter ptr, int n, UnsignedValue x,
         break;
     }
     case 1: {
-        *--ptr = conv.to(x);
-        WJR_FALLTHROUGH;
-    }
-    case 0: {
+        *--ptr = conv.template to<2>(x);
         break;
     }
     default: {
@@ -20965,24 +21107,24 @@ Iter __unsigned_to_chars_8_backward(Iter ptr, int n, UnsignedValue x,
     WJR_ASSERT(x != 0);
     WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 2) / 3);
 
-    if (n >= 4) {
-        if constexpr (nd > 12) {
+    if constexpr (nd >= 16) {
+        if (WJR_UNLIKELY(n >= 4)) {
             do {
                 __to_chars_unroll_4<8>(ptr - 4, x & 0x0fff, conv);
                 ptr -= 4;
                 x >>= 12;
                 n -= 4;
             } while (WJR_LIKELY(n >= 4));
-        } else {
-            __to_chars_unroll_4<8>(ptr - 4, x & 0x0fff, conv);
-            ptr -= 4;
-            return ptr;
+
+            if (n == 0) {
+                return ptr;
+            }
         }
     }
 
     switch (n) {
     case 3: {
-        *--ptr = conv.to(x & 0x07);
+        *--ptr = conv.template to<8>(x & 0x07);
         x >>= 3;
         WJR_FALLTHROUGH;
     }
@@ -20992,10 +21134,7 @@ Iter __unsigned_to_chars_8_backward(Iter ptr, int n, UnsignedValue x,
         break;
     }
     case 1: {
-        *--ptr = conv.to(x);
-        WJR_FALLTHROUGH;
-    }
-    case 0: {
+        *--ptr = conv.template to<8>(x);
         break;
     }
     default: {
@@ -21015,18 +21154,18 @@ Iter __unsigned_to_chars_16_backward(Iter ptr, int n, UnsignedValue x,
     WJR_ASSERT(x != 0);
     WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 3) / 4);
 
-    if (n >= 4) {
-        if constexpr (nd > 16) {
+    if constexpr (nd >= 16) {
+        if (WJR_UNLIKELY(n >= 4)) {
             do {
                 __to_chars_unroll_4<16>(ptr - 4, x & 0xffff, conv);
                 ptr -= 4;
                 x >>= 16;
                 n -= 4;
             } while (WJR_LIKELY(n >= 4));
-        } else {
-            __to_chars_unroll_4<16>(ptr - 4, x & 0xffff, conv);
-            ptr -= 4;
-            return ptr;
+
+            if (n == 0) {
+                return ptr;
+            }
         }
     }
 
@@ -21043,9 +21182,6 @@ Iter __unsigned_to_chars_16_backward(Iter ptr, int n, UnsignedValue x,
     }
     case 1: {
         *--ptr = conv.to(x);
-        WJR_FALLTHROUGH;
-    }
-    case 0: {
         break;
     }
     default: {
@@ -21095,7 +21231,7 @@ Iter __unsigned_to_chars_10_backward(Iter buf, UnsignedValue val, Converter conv
                     return buf;
                 }
 
-                *--buf = conv.to(val / 1'0000'0000);
+                *--buf = conv.template to<10>(val / 1'0000'0000);
                 return buf;
             }
         } else {
@@ -21117,7 +21253,7 @@ Iter __unsigned_to_chars_10_backward(Iter buf, UnsignedValue val, Converter conv
                         return buf;
                     }
 
-                    *--buf = conv.to(val);
+                    *--buf = conv.template to<10>(val);
                     return buf;
                 }
             }
@@ -21137,7 +21273,7 @@ Iter __unsigned_to_chars_10_backward(Iter buf, UnsignedValue val, Converter conv
         return buf;
     }
 
-    *--buf = conv.to(val);
+    *--buf = conv.template to<10>(val);
     return buf;
 }
 
@@ -21172,7 +21308,7 @@ to_chars_result<Iter> __to_chars_backward_validate_impl(Iter ptr, Iter first, Va
         }
     }
 
-    auto base = get_integral_constant_v(ibase);
+    const auto base = get_integral_constant_v(ibase);
     to_chars_result<Iter> ret;
 
     switch (base) {
@@ -21244,7 +21380,7 @@ template <typename Iter, typename Value, typename BaseType = unsigned int,
           std::enable_if_t<__is_valid_chars_convert_v<Value, Converter>, int> = 0>
 to_chars_result<Iter>
 to_chars_backward_validate(Iter ptr, Iter first, Value val,
-                           std::integral_constant<BaseType, IBase> base = {},
+                           std::integral_constant<BaseType, IBase> = {},
                            Converter conv = {}) {
     return __to_chars_backward_validate_impl(
         ptr, first, val, std::integral_constant<unsigned int, IBase>(), conv);
@@ -21355,8 +21491,7 @@ Iter __to_chars_backward_impl(Iter ptr, Value val, IBase ibase, Converter conv =
 template <typename Iter, typename Value, typename BaseType = unsigned int,
           BaseType IBase = 10, typename Converter = char_converter_t,
           std::enable_if_t<__is_valid_chars_convert_v<Value, Converter>, int> = 0>
-Iter to_chars_backward(Iter ptr, Value val,
-                       std::integral_constant<BaseType, IBase> base = {},
+Iter to_chars_backward(Iter ptr, Value val, std::integral_constant<BaseType, IBase> = {},
                        Converter conv = {}) {
     return __to_chars_backward_impl(ptr, val,
                                     std::integral_constant<unsigned int, IBase>(), conv);
@@ -21428,7 +21563,7 @@ to_chars_result<Iter> __to_chars_validate_impl(Iter ptr, Iter last, Value val,
         }
     }
 
-    auto base = get_integral_constant_v(ibase);
+    const auto base = get_integral_constant_v(ibase);
     auto size = std::distance(ptr, last);
 
     switch (base) {
@@ -21495,7 +21630,7 @@ template <typename Iter, typename Value, typename BaseType = unsigned int,
           BaseType IBase = 10, typename Converter = char_converter_t,
           std::enable_if_t<__is_valid_chars_convert_v<Value, Converter>, int> = 0>
 to_chars_result<Iter> to_chars_validate(Iter ptr, Iter last, Value val,
-                                        std::integral_constant<BaseType, IBase> base = {},
+                                        std::integral_constant<BaseType, IBase> = {},
                                         Converter conv = {}) {
     return __to_chars_validate_impl(ptr, last, val,
                                     std::integral_constant<unsigned int, IBase>(), conv);
@@ -21561,7 +21696,7 @@ Iter __to_chars_impl(Iter ptr, Value val, IBase ibase, Converter conv = {}) {
         }
     }
 
-    auto base = get_integral_constant_v(ibase);
+    const auto base = get_integral_constant_v(ibase);
 
     switch (base) {
     case 2: {
@@ -21606,7 +21741,7 @@ Iter __to_chars_impl(Iter ptr, Value val, IBase ibase, Converter conv = {}) {
 template <typename Iter, typename Value, typename BaseType = unsigned int,
           BaseType IBase = 10, typename Converter = char_converter_t,
           std::enable_if_t<__is_valid_chars_convert_v<Value, Converter>, int> = 0>
-Iter to_chars(Iter ptr, Value val, std::integral_constant<BaseType, IBase> base = {},
+Iter to_chars(Iter ptr, Value val, std::integral_constant<BaseType, IBase> = {},
               Converter conv = {}) {
     return __to_chars_impl(ptr, val, std::integral_constant<unsigned int, IBase>(), conv);
 }
@@ -22088,18 +22223,29 @@ Iter biginteger_to_chars(Iter first, uint64_t *up, size_t n, unsigned int base =
 
 template <typename Iter, typename UnsignedValue, typename Converter = char_converter_t,
           std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
-Iter __unsigned_from_chars_2(Iter first, size_t n, UnsignedValue &val, Converter conv) {
+void __unsigned_from_chars_2(Iter first, Iter last, UnsignedValue &val, Converter conv) {
     constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-    WJR_ASSERT_ASSUME(1 <= n && n <= nd);
-    (void)(nd);
 
-    if constexpr (nd > 8) {
-        if (WJR_LIKELY(n >= 8)) {
+    auto n = std::distance(first, last);
+    WJR_ASSERT_ASSUME(1 <= n && n <= nd);
+
+    if constexpr (nd >= 16) {
+        if (WJR_UNLIKELY(n >= 8)) {
             do {
                 val = (val << 8) + __from_chars_unroll_8<2>(first, conv);
                 first += 8;
                 n -= 8;
             } while (WJR_LIKELY(n >= 8));
+
+            if (n == 0) {
+                return;
+            }
+        }
+    } else if constexpr (nd == 8) {
+        if (WJR_UNLIKELY(n == 8)) {
+            val = __from_chars_unroll_8<2>(first, conv);
+            first += 8;
+            return;
         }
     }
 
@@ -22132,35 +22278,163 @@ Iter __unsigned_from_chars_2(Iter first, size_t n, UnsignedValue &val, Converter
     }
     case 1: {
         val = (val << 1) + conv.from(*first++);
-        WJR_FALLTHROUGH;
+        break;
     }
     default: {
+        WJR_UNREACHABLE();
         break;
     }
     }
+}
 
-    return first;
+template <typename Iter, typename UnsignedValue, typename Converter = char_converter_t,
+          std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+void __unsigned_from_chars_8(Iter first, Iter last, UnsignedValue &val,
+                             Converter conv = {}) {
+    constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
+
+    auto n = std::distance(first, last);
+    WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 2) / 3);
+
+    if constexpr (nd >= 32) {
+        if (WJR_UNLIKELY(n >= 8)) {
+            do {
+                val = (val << 24) + __from_chars_unroll_8<8>(first, conv);
+                first += 8;
+                n -= 8;
+            } while (WJR_LIKELY(n >= 8));
+
+            if (n == 0) {
+                return;
+            }
+        }
+    }
+
+    switch (n) {
+    case 7: {
+        val = (val << 3) + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 6: {
+        val = (val << 3) + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 5: {
+        val = (val << 3) + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 4: {
+        val <<= 12;
+        val += __from_chars_unroll_4<8>(first, conv);
+        first += 4;
+        break;
+    }
+    case 3: {
+        val = (val << 3) + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 2: {
+        val = (val << 3) + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 1: {
+        val = (val << 3) + conv.from(*first++);
+        break;
+    }
+    default: {
+        WJR_UNREACHABLE();
+        break;
+    }
+    }
+}
+
+template <typename Iter, typename UnsignedValue, typename Converter = char_converter_t,
+          std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+void __unsigned_from_chars_16(Iter first, Iter last, UnsignedValue &val,
+                              Converter conv = {}) {
+    constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
+
+    auto n = std::distance(first, last);
+    WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 3) / 4);
+
+    if constexpr (nd >= 64) {
+        if (WJR_UNLIKELY(n >= 8)) {
+            do {
+                val = (val << 32) + __from_chars_unroll_8<16>(first, conv);
+                first += 8;
+                n -= 8;
+            } while (WJR_LIKELY(n >= 8));
+
+            if (n == 0) {
+                return;
+            }
+        }
+    } else if constexpr (nd == 32) {
+        if (WJR_UNLIKELY(n == 8)) {
+            val = __from_chars_unroll_8<16>(first, conv);
+            first += 8;
+            return;
+        }
+    }
+
+    switch (n) {
+    case 7: {
+        val = (val << 4) + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 6: {
+        val = (val << 4) + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 5: {
+        val = (val << 4) + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 4: {
+        val <<= 16;
+        val += __from_chars_unroll_4<16>(first, conv);
+        first += 4;
+        break;
+    }
+    case 3: {
+        val = (val << 4) + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 2: {
+        val = (val << 4) + conv.from(*first++);
+        WJR_FALLTHROUGH;
+    }
+    case 1: {
+        val = (val << 4) + conv.from(*first++);
+        break;
+    }
+    default: {
+        WJR_UNREACHABLE();
+        break;
+    }
+    }
 }
 
 template <typename Iter, typename UnsignedValue, typename Converter,
           std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
-Iter __unsigned_from_chars_10(Iter first, size_t n, UnsignedValue &val, Converter conv) {
+void __unsigned_from_chars_10(Iter first, Iter last, UnsignedValue &val, Converter conv) {
     constexpr auto nd = std::numeric_limits<UnsignedValue>::digits10;
-    static_assert(nd < 24, "The number of digits of UnsignedValue must be less than 24.");
 
+    auto n = std::distance(first, last);
     WJR_ASSUME(1 <= n && n <= nd);
-    (void)(nd);
 
-    if (n >= 8) {
-        if (n >= 16) {
-            val = __from_chars_unroll_16<10>(first, conv);
-            first += 16;
-            n -= 16;
-            WJR_ASSUME(n <= nd - 16);
-        } else {
-            val = (val * 100000000) + __from_chars_unroll_8<10>(first, conv);
-            first += 8;
-            n -= 8;
+    if constexpr (nd >= 8) {
+        if (WJR_UNLIKELY(n >= 8)) {
+            if (WJR_UNLIKELY(n >= 16)) {
+                val = __from_chars_unroll_16<10>(first, conv);
+                first += 16;
+                n -= 16;
+                WJR_ASSUME(n <= nd - 16);
+            } else {
+                val = __from_chars_unroll_8<10>(first, conv);
+                first += 8;
+                n -= 8;
+            }
         }
     }
 
@@ -22203,15 +22477,164 @@ Iter __unsigned_from_chars_10(Iter first, size_t n, UnsignedValue &val, Converte
     }
 }
 
+template <typename Iter, typename UnsignedValue, typename Converter,
+          std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+bool __unsigned_from_chars_10_validate(Iter &first, Iter last, UnsignedValue &val,
+                                       Converter conv) {
+    constexpr auto nd = std::numeric_limits<UnsignedValue>::digits10;
+    static_assert(nd < 24, "The number of digits of UnsignedValue must be less than 24.");
+    constexpr uint32_t table[8] = {1, 10, 1000, 1'0000, 10'0000, 100'0000, 1000'0000};
+
+    if (WJR_UNLIKELY(first + 8 <= last)) {
+        do {
+            uint32_t xval = 0;
+            auto ret = __from_chars_validate_unroll_8<10>(first, xval, conv);
+
+            if (WJR_UNLIKELY(!ret.ok)) {
+                if (WJR_UNLIKELY(mul_overflow(val, table[ret.offset], val) ||
+                                 add_overflow(val, xval, val))) {
+                    return false;
+                }
+
+                return true;
+            }
+
+            if (WJR_UNLIKELY(mul_overflow(val, 1'0000'0000, val) ||
+                             add_overflow(val, xval, val))) {
+                while (first != last && conv.from(*first) < 10) {
+                    ++first;
+                }
+
+                return false;
+            }
+
+        } while (first + 8 <= last);
+    }
+
+    while (first != last) {
+        uint8_t ch = conv.from(*first);
+        if (WJR_UNLIKELY(ch >= 10)) {
+            return true;
+        }
+
+        ++first;
+        if (WJR_UNLIKELY(mul_overflow(val, 10, val) || add_overflow(val, ch, val))) {
+            while (first != last && conv.from(*first) < 10) {
+                ++first;
+            }
+
+            return false;
+        }
+    }
+
+    return true;
+}
+
+template <typename Iter, typename Value, typename IBase,
+          typename Converter = char_converter_t,
+          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+void __from_chars_impl(Iter first, Iter last, Value &val, IBase ibase,
+                       Converter conv = {}) {
+    bool sign = false;
+
+    if constexpr (std::is_signed_v<Value>) {
+        WJR_ASSERT(first != last);
+
+        if (*first == '-') {
+            ++first;
+            sign = true;
+        }
+    }
+
+    std::make_unsigned_t<Value> uVal = 0;
+
+    const auto base = get_integral_constant_v(ibase);
+
+    switch (base) {
+    case 2: {
+        __unsigned_from_chars_2(first, last, uVal, conv);
+        break;
+    }
+    case 8: {
+        __unsigned_from_chars_8(first, last, uVal, conv);
+        break;
+    }
+    case 16: {
+        __unsigned_from_chars_16(first, last, uVal, conv);
+        break;
+    }
+    case 10: {
+        __unsigned_from_chars_10(first, last, uVal, conv);
+        break;
+    }
+    default: {
+        WJR_UNREACHABLE();
+        break;
+    }
+    }
+
+    if (sign) {
+        val = -static_cast<Value>(uVal);
+    } else {
+        val = static_cast<Value>(uVal);
+    }
+}
+
+template <typename Iter, typename Value, typename BaseType = unsigned int,
+          BaseType IBase = 10, typename Converter = char_converter_t,
+          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+void from_chars(Iter first, Iter last, Value &val,
+                std::integral_constant<BaseType, IBase> = {}, Converter conv = {}) {
+    __from_chars_impl(first, last, val, std::integral_constant<unsigned int, IBase>(),
+                      conv);
+}
+
+template <typename Iter, typename Value, typename Converter = char_converter_t,
+          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+void from_chars(Iter first, Iter last, Value &val, unsigned int base,
+                Converter conv = {}) {
+    if (WJR_BUILTIN_CONSTANT_P(base)) {
+        switch (base) {
+        case 2: {
+            __from_chars_impl(first, last, val, std::integral_constant<unsigned int, 2>(),
+                              conv);
+            return;
+        }
+        case 8: {
+            __from_chars_impl(first, last, val, std::integral_constant<unsigned int, 8>(),
+                              conv);
+            return;
+        }
+        case 16: {
+            __from_chars_impl(first, last, val,
+                              std::integral_constant<unsigned int, 16>(), conv);
+            return;
+        }
+        case 10: {
+            __from_chars_impl(first, last, val,
+                              std::integral_constant<unsigned int, 10>(), conv);
+            return;
+        }
+        default: {
+            break;
+        }
+        }
+    }
+
+    __from_chars_impl(first, last, val, base, conv);
+}
+
 template <typename Iter, typename Converter = char_converter_t>
-size_t from_chars_2(Iter first, size_t n, uint64_t *up, Converter conv = {}) {
+size_t __biginteger_from_chars_2_impl(Iter first, size_t n, uint64_t *up,
+                                      Converter conv = {}) {
     size_t hbits = (n - 1) % 64 + 1;
     size_t len = (n - 1) / 64 + 1;
 
     uint64_t x = 0;
     up += len;
 
-    first = __unsigned_from_chars_2(first, hbits, x, conv);
+    __unsigned_from_chars_2(first, first + hbits, x, conv);
+    first += hbits;
 
     *--up = x;
 
@@ -22234,7 +22657,8 @@ size_t from_chars_2(Iter first, size_t n, uint64_t *up, Converter conv = {}) {
 }
 
 template <typename Iter, typename Converter = char_converter_t>
-size_t from_chars_8(Iter first, size_t n, uint64_t *up, Converter conv = {}) {
+size_t __biginteger_from_chars_8_impl(Iter first, size_t n, uint64_t *up,
+                                      Converter conv = {}) {
     size_t len = (n * 3 + 63) / 64;
     size_t lbits = (64 * (len - 1)) / 3;
     size_t rest = (64 * (len - 1)) % 3;
@@ -22254,48 +22678,10 @@ size_t from_chars_8(Iter first, size_t n, uint64_t *up, Converter conv = {}) {
     up += len;
     size_t idx = len - 1;
 
-    if (WJR_LIKELY(hbits >= 8)) {
-        do {
-            x = (x << 24) + __from_chars_unroll_8<8>(first, conv);
-            first += 8;
-            hbits -= 8;
-        } while (WJR_LIKELY(hbits >= 8));
-    }
-
-    switch (hbits) {
-    case 7: {
-        x = (x << 3) + conv.from(*first++);
-        WJR_FALLTHROUGH;
-    }
-    case 6: {
-        x = (x << 3) + conv.from(*first++);
-        WJR_FALLTHROUGH;
-    }
-    case 5: {
-        x = (x << 3) + conv.from(*first++);
-        WJR_FALLTHROUGH;
-    }
-    case 4: {
-        x <<= 12;
-        x += __from_chars_unroll_4<8>(first, conv);
-        first += 4;
-        break;
-    }
-    case 3: {
-        x = (x << 3) + conv.from(*first++);
-        WJR_FALLTHROUGH;
-    }
-    case 2: {
-        x = (x << 3) + conv.from(*first++);
-        WJR_FALLTHROUGH;
-    }
-    case 1: {
-        x = (x << 3) + conv.from(*first++);
-        WJR_FALLTHROUGH;
-    }
-    default: {
-        break;
-    }
+    if (WJR_UNLIKELY(hbits == 0)) {
+    } else {
+        __unsigned_from_chars_8(first, first + hbits, x, conv);
+        first += hbits;
     }
 
     uint64_t nx = conv.from(*first++);
@@ -22374,7 +22760,8 @@ size_t from_chars_8(Iter first, size_t n, uint64_t *up, Converter conv = {}) {
 }
 
 template <typename Iter, typename Converter = char_converter_t>
-size_t from_chars_16(Iter first, size_t n, uint64_t *up, Converter conv = {}) {
+size_t __biginteger_from_chars_16_impl(Iter first, size_t n, uint64_t *up,
+                                       Converter conv = {}) {
     size_t hbits = (n - 1) % 16 + 1;
     size_t len = (n - 1) / 16 + 1;
 
@@ -22391,35 +22778,8 @@ size_t from_chars_16(Iter first, size_t n, uint64_t *up, Converter conv = {}) {
     uint64_t x = 0;
     up += len;
 
-    if (hbits > 4) {
-        do {
-            unroll(x, first);
-            hbits -= 4;
-        } while (WJR_LIKELY(hbits > 4));
-    }
-
-    switch (hbits) {
-    case 4: {
-        unroll(x, first);
-        break;
-    }
-    case 3: {
-        x = x << 4 | conv.from(*first++);
-        WJR_FALLTHROUGH;
-    }
-    case 2: {
-        x = x << 4 | conv.from(*first++);
-        WJR_FALLTHROUGH;
-    }
-    case 1: {
-        x = x << 4 | conv.from(*first++);
-        break;
-    }
-    default: {
-        WJR_UNREACHABLE();
-        break;
-    }
-    }
+    __unsigned_from_chars_16(first, first + hbits, x, conv);
+    first += hbits;
 
     *--up = x;
 
@@ -22441,77 +22801,28 @@ size_t from_chars_16(Iter first, size_t n, uint64_t *up, Converter conv = {}) {
 }
 
 template <typename Iter, typename Converter>
-void __from_chars_10(Iter first, size_t n, uint64_t &x, Converter conv) {
-    x = 0;
-
-    if (n >= 8) {
-        if (n >= 16) {
-            x = __from_chars_unroll_16<10>(first, conv);
-            first += 16;
-            n -= 16;
-        } else {
-            x = (x * 100000000) + __from_chars_unroll_8<10>(first, conv);
-            first += 8;
-            n -= 8;
-        }
-    }
-
-    switch (n) {
-    case 7: {
-        x = x * 10 + conv.from(*first++);
-        WJR_FALLTHROUGH;
-    }
-    case 6: {
-        x = x * 10 + conv.from(*first++);
-        WJR_FALLTHROUGH;
-    }
-    case 5: {
-        x = x * 10 + conv.from(*first++);
-        WJR_FALLTHROUGH;
-    }
-    case 4: {
-        x = (x * 10000) + __from_chars_unroll_4<10>(first, conv);
-        break;
-    }
-    case 3: {
-        x = x * 10 + conv.from(*first++);
-        WJR_FALLTHROUGH;
-    }
-    case 2: {
-        x = x * 10 + conv.from(*first++);
-        WJR_FALLTHROUGH;
-    }
-    case 1: {
-        x = x * 10 + conv.from(*first++);
-        WJR_FALLTHROUGH;
-    }
-    case 0: {
-        break;
-    }
-    default: {
-        WJR_UNREACHABLE();
-        break;
-    }
-    }
-}
-
-template <typename Iter, typename Converter>
 size_t basecase_from_chars_10(Iter first, size_t n, uint64_t *up, Converter conv) {
+    uint64_t x = 0;
+
     if (n <= 19) {
-        __from_chars_10(first, n, up[0], conv);
+        __unsigned_from_chars_10(first, first + n, x, conv);
+        up[0] = x;
+
         return up[0] != 0;
     }
 
     size_t m = (n - 1) % 19 + 1;
 
-    __from_chars_10(first, m, up[0], conv);
+    __unsigned_from_chars_10(first, first + m, x, conv);
+    up[0] = x;
+
     first += m;
     n -= m;
 
     m = up[0] != 0;
 
     do {
-        uint64_t x = 0;
+        x = 0;
 
         x = __from_chars_unroll_16<10>(first, conv);
         first += 16;
@@ -22636,13 +22947,13 @@ uint64_t *biginteger_from_chars(Iter first, Iter last, uint64_t *up,
     if (is_zero_or_single_bit(base)) {
         switch (base) {
         case 2: {
-            return up + from_chars_2(first, n, up, conv);
+            return up + __biginteger_from_chars_2_impl(first, n, up, conv);
         }
         case 8: {
-            return up + from_chars_8(first, n, up, conv);
+            return up + __biginteger_from_chars_8_impl(first, n, up, conv);
         }
         case 16: {
-            return up + from_chars_16(first, n, up, conv);
+            return up + __biginteger_from_chars_16_impl(first, n, up, conv);
         }
         default: {
             WJR_UNREACHABLE();

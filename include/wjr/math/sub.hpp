@@ -143,7 +143,8 @@ WJR_INTRINSIC_INLINE bool builtin_sub_overflow(T a, T b, T &ret) {
 #endif
 
 template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
-WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(T a, T b, T &ret) {
+WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(type_identity_t<T> a, type_identity_t<T> b,
+                                            T &ret) {
 #if WJR_HAS_BUILTIN(SUB_OVERFLOW)
     if (is_constant_evaluated() ||
         (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {

@@ -67,31 +67,16 @@ WJR_INTRINSIC_CONSTEXPR_E T mul(T a, T b, T &hi) {
         return a;
     }
 
-    constexpr T max = in_place_max;
-
-    if (WJR_BUILTIN_CONSTANT_P(a == max) && a == max) {
-        hi = b == 0 ? 0 : b - 1;
-        return static_cast<T>(-b);
-    }
-
-    if (WJR_BUILTIN_CONSTANT_P(b == max) && b == max) {
-        hi = a == 0 ? 0 : a - 1;
-        return static_cast<T>(-a);
-    }
-
     if constexpr (nd < 64) {
         return fallback_mul(a, b, hi);
     } else {
 
 #if WJR_HAS_BUILTIN(MUL64)
-        if (is_constant_evaluated() ||
-            (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b)) ||
-            ((WJR_BUILTIN_CONSTANT_P(a) ||
-              WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(a))) &&
-             is_zero_or_single_bit(a)) ||
-            ((WJR_BUILTIN_CONSTANT_P(b) ||
-              WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(b))) &&
-             is_zero_or_single_bit(b))) {
+        if (is_constant_evaluated()
+#if WJR_HAS_BUILTIN(ASM_MUL64)
+            || (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))
+#endif
+        ) {
             return fallback_mul64(a, b, hi);
         }
 
@@ -148,7 +133,8 @@ WJR_INTRINSIC_INLINE bool builtin_mul_overflow(T a, T b, T &ret) {
 #endif
 
 template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool mul_overflow(T a, T b, T &ret) {
+WJR_INTRINSIC_CONSTEXPR_E bool mul_overflow(type_identity_t<T> a, type_identity_t<T> b,
+                                            T &ret) {
 #if WJR_HAS_BUILTIN(MUL_OVERFLOW)
     if (is_constant_evaluated() ||
         (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {

@@ -14,7 +14,8 @@ template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> =
 WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out);
 
 template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
-WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(T a, T b, T &ret);
+WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(type_identity_t<T> a, type_identity_t<T> b,
+                                            T &ret);
 
 template <typename T, typename U = T,
           std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
