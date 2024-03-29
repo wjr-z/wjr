@@ -29,6 +29,10 @@ void random_run(benchmark::State &state, Re re, Func fn, size_t step = 0) {
         count -= step;
     }
 
+    state.PauseTiming();
+    re();
+    state.ResumeTiming();
+
     while (--count) {
         fn();
     }
