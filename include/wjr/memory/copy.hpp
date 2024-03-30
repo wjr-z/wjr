@@ -30,7 +30,7 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
             if constexpr (container_details::has_container_insert_v<Container, InputIt,
                                                                     InputIt>) {
                 auto &cont = get_inserter_container(d_first);
-                auto pos = get_inserter_iterator(d_first).iterator;
+                auto pos = get_inserter_iterator(d_first);
                 cont.insert(pos, first, last);
                 return d_first;
             } else {
@@ -67,7 +67,7 @@ constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
             if constexpr (container_details::has_container_insert_v<Container, InputIt,
                                                                     InputIt>) {
                 auto &cont = get_inserter_container(d_first);
-                auto pos = get_inserter_iterator(d_first).iterator;
+                auto pos = get_inserter_iterator(d_first);
                 cont.insert(pos, first, std::next(first, count));
                 return d_first;
             } else {

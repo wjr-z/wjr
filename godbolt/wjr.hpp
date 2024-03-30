@@ -27450,7 +27450,7 @@ struct __inserter_container_accessor : Iter {
 template <typename Iter>
 struct __inserter_iterator_accessor : Iter {
     __inserter_iterator_accessor(Iter it) : Iter(it) {}
-    using Iter::iterator;
+    using Iter::iter;
 };
 
 template <typename Container>
@@ -27469,8 +27469,8 @@ Container &get_inserter_container(std::front_insert_iterator<Container> it) {
 }
 
 template <typename Container>
-Container &get_inserter_iterator(std::insert_iterator<Container> it) {
-    return *__inserter_iterator_accessor(it).iterator;
+typename Container::iterator get_inserter_iterator(std::insert_iterator<Container> it) {
+    return __inserter_iterator_accessor(it).iter;
 }
 
 } // namespace wjr
@@ -27503,7 +27503,7 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
             if constexpr (container_details::has_container_insert_v<Container, InputIt,
                                                                     InputIt>) {
                 auto &cont = get_inserter_container(d_first);
-                auto pos = get_inserter_iterator(d_first).iterator;
+                auto pos = get_inserter_iterator(d_first);
                 cont.insert(pos, first, last);
                 return d_first;
             } else {
@@ -27540,7 +27540,7 @@ constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
             if constexpr (container_details::has_container_insert_v<Container, InputIt,
                                                                     InputIt>) {
                 auto &cont = get_inserter_container(d_first);
-                auto pos = get_inserter_iterator(d_first).iterator;
+                auto pos = get_inserter_iterator(d_first);
                 cont.insert(pos, first, std::next(first, count));
                 return d_first;
             } else {

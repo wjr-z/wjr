@@ -50,7 +50,7 @@ struct __inserter_container_accessor : Iter {
 template <typename Iter>
 struct __inserter_iterator_accessor : Iter {
     __inserter_iterator_accessor(Iter it) : Iter(it) {}
-    using Iter::iterator;
+    using Iter::iter;
 };
 
 template <typename Container>
@@ -69,8 +69,8 @@ Container &get_inserter_container(std::front_insert_iterator<Container> it) {
 }
 
 template <typename Container>
-Container &get_inserter_iterator(std::insert_iterator<Container> it) {
-    return *__inserter_iterator_accessor(it).iterator;
+typename Container::iterator get_inserter_iterator(std::insert_iterator<Container> it) {
+    return __inserter_iterator_accessor(it).iter;
 }
 
 } // namespace wjr
