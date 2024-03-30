@@ -4,6 +4,7 @@
 #include <system_error>
 
 #include <wjr/math/bit.hpp>
+#include <wjr/math/broadcast.hpp>
 #include <wjr/math/convert-impl.hpp>
 #include <wjr/math/precompute-chars-convert.hpp>
 
@@ -887,10 +888,10 @@ Iter __unsigned_to_chars_power_of_two_backward(Iter ptr, int n, UnsignedValue x,
     return ptr;
 }
 
-#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
 template <typename Iter, typename UnsignedValue, typename Converter,
           std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
-Iter __large_unsigned_to_chars_10_backward(Iter buf, UnsignedValue val, Converter conv) {
+WJR_COLD Iter __large_unsigned_to_chars_10_backward(Iter buf, UnsignedValue val,
+                                                    Converter conv) {
     constexpr auto nd = std::numeric_limits<UnsignedValue>::digits10 + 1;
     static_assert(nd <= 20, "");
 
@@ -932,12 +933,12 @@ Iter __large_unsigned_to_chars_10_backward(Iter buf, UnsignedValue val, Converte
                 buf -= 2;
 
                 if (val >= 100) {
-                    if (val >= 1000) {
-                        __to_chars_unroll_2<10>(buf - 2, val / 100, conv);
-                        buf -= 2;
+                    if (val < 1000) {
+                        *--buf = conv.template to<10>(val / 100);
                         return buf;
                     } else {
-                        *--buf = conv.template to<10>(val / 100);
+                        __to_chars_unroll_2<10>(buf - 2, val / 100, conv);
+                        buf -= 2;
                         return buf;
                     }
                 }
@@ -953,11 +954,11 @@ Iter __large_unsigned_to_chars_10_backward(Iter buf, UnsignedValue val, Converte
             return buf;
         } while (0);
 
-        if (val == 0) {
+        if (WJR_UNLIKELY(val == 0)) {
             return buf;
         }
 
-        if (val >= 100) {
+        if (WJR_LIKELY(val >= 100)) {
             do {
                 __to_chars_unroll_2<10>(buf - 2, val % 100, conv);
                 buf -= 2;
@@ -965,17 +966,16 @@ Iter __large_unsigned_to_chars_10_backward(Iter buf, UnsignedValue val, Converte
             } while (val >= 100);
         }
 
-        if (val >= 10) {
-            __to_chars_unroll_2<10>(buf - 2, val, conv);
-            buf -= 2;
+        if (val < 10) {
+            *--buf = conv.template to<10>(val);
             return buf;
         }
 
-        *--buf = conv.template to<10>(val);
+        __to_chars_unroll_2<10>(buf - 2, val, conv);
+        buf -= 2;
         return buf;
     }
 }
-#endif
 
 template <typename Iter, typename UnsignedValue, typename Converter,
           std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
@@ -983,8 +983,7 @@ Iter __unsigned_to_chars_10_backward(Iter buf, UnsignedValue val, Converter conv
     constexpr auto nd = std::numeric_limits<UnsignedValue>::digits10 + 1;
     WJR_ASSERT_ASSUME(val != 0);
 
-    if (val >= 100) {
-#if WJR_HAS_BUILTIN(TO_CHARS_UNROLL_8_FAST)
+    if (WJR_LIKELY(val >= 100)) {
         if constexpr (nd < 8) {
             // do nothing
         } else {
@@ -992,7 +991,6 @@ Iter __unsigned_to_chars_10_backward(Iter buf, UnsignedValue val, Converter conv
                 return __large_unsigned_to_chars_10_backward(buf, val, conv);
             }
         }
-#endif
 
         do {
             __to_chars_unroll_2<10>(buf - 2, val % 100, conv);
@@ -1001,13 +999,13 @@ Iter __unsigned_to_chars_10_backward(Iter buf, UnsignedValue val, Converter conv
         } while (WJR_LIKELY(val >= 100));
     }
 
-    if (WJR_LIKELY(val >= 10)) {
-        __to_chars_unroll_2<10>(buf - 2, val, conv);
-        buf -= 2;
+    if (val < 10) {
+        *--buf = conv.template to<10>(val);
         return buf;
     }
 
-    *--buf = conv.template to<10>(val);
+    __to_chars_unroll_2<10>(buf - 2, val, conv);
+    buf -= 2;
     return buf;
 }
 
@@ -1026,7 +1024,7 @@ to_chars_result<Iter> __to_chars_backward_validate_impl(Iter ptr, Iter first, Va
         return {ptr, std::errc::value_too_large};
     }
 
-    auto uVal = make_unsigned_value(val);
+    auto uVal = to_unsigned(val);
     auto size = std::distance(first, ptr);
     bool sign = false;
 
@@ -1171,7 +1169,7 @@ Iter __to_chars_backward_impl(Iter ptr, Value val, IBase ibase, Converter conv =
         return ptr;
     }
 
-    auto uVal = make_unsigned_value(val);
+    auto uVal = to_unsigned(val);
     bool sign = false;
 
     if constexpr (std::is_signed_v<Value>) {
@@ -1284,7 +1282,7 @@ to_chars_result<Iter> __to_chars_validate_impl(Iter ptr, Iter last, Value val,
         return {ptr, std::errc{}};
     }
 
-    auto uVal = make_unsigned_value(val);
+    auto uVal = to_unsigned(val);
 
     if constexpr (std::is_signed_v<Value>) {
         if (val < 0) {
@@ -1421,7 +1419,7 @@ Iter __to_chars_impl(Iter ptr, Value val, IBase ibase, Converter conv = {}) {
         return ptr;
     }
 
-    auto uVal = make_unsigned_value(val);
+    auto uVal = to_unsigned(val);
 
     if constexpr (std::is_signed_v<Value>) {
         if (val < 0) {

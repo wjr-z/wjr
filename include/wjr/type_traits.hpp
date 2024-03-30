@@ -418,14 +418,14 @@ constexpr static void allow_false_type(std::false_type) noexcept {}
 
 template <typename Value,
           std::enable_if_t<is_nonbool_integral_v<remove_cvref_t<Value>>, int> = 0>
-constexpr decltype(auto) make_signed_value(Value &&value) noexcept {
+constexpr decltype(auto) to_signed(Value &&value) noexcept {
     return static_cast<std::make_signed_t<remove_cvref_t<Value>>>(
         std::forward<Value>(value));
 }
 
 template <typename Value,
           std::enable_if_t<is_nonbool_integral_v<remove_cvref_t<Value>>, int> = 0>
-constexpr decltype(auto) make_unsigned_value(Value &&value) noexcept {
+constexpr decltype(auto) to_unsigned(Value &&value) noexcept {
     return static_cast<std::make_unsigned_t<remove_cvref_t<Value>>>(
         std::forward<Value>(value));
 }
