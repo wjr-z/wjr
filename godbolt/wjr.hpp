@@ -27483,7 +27483,7 @@ template <typename InputIt, typename OutputIt>
 constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
     using Out = remove_cvref_t<OutputIt>;
 
-    if constexpr (is_any_insert_iterator_v<Out>) {
+    if constexpr (is_back_insert_iterator_v<Out> || is_insert_iterator_v<Out>) {
         using Container = typename Out::container_type;
 
         if constexpr (is_back_insert_iterator_v<Out>) {
@@ -27493,15 +27493,6 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
                 return d_first;
             } else if constexpr (container_details::has_container_insert_v<
                                      Container, InputIt, InputIt>) {
-                auto &cont = get_inserter_container(d_first);
-                cont.insert(cont.cend(), first, last);
-                return d_first;
-            } else {
-                return std::copy(first, last, d_first);
-            }
-        } else if constexpr (is_forward_iterator_v<Out>) {
-            if constexpr (container_details::has_container_insert_v<Container, InputIt,
-                                                                    InputIt>) {
                 auto &cont = get_inserter_container(d_first);
                 cont.insert(cont.cend(), first, last);
                 return d_first;
@@ -27528,7 +27519,8 @@ template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
     using Out = remove_cvref_t<OutputIt>;
 
-    if constexpr (is_random_access_iterator_v<Out> && is_any_insert_iterator_v<Out>) {
+    if constexpr (is_random_access_iterator_v<Out> &&
+                  (is_back_insert_iterator_v<Out> || is_insert_iterator_v<Out>)) {
         using Container = typename Out::container_type;
 
         if constexpr (is_back_insert_iterator_v<Out>) {
@@ -27538,15 +27530,6 @@ constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
                 return d_first;
             } else if constexpr (container_details::has_container_insert_v<
                                      Container, InputIt, InputIt>) {
-                auto &cont = get_inserter_container(d_first);
-                cont.insert(cont.cend(), first, std::next(first, count));
-                return d_first;
-            } else {
-                return std::copy_n(first, count, d_first);
-            }
-        } else if constexpr (is_forward_iterator_v<Out>) {
-            if constexpr (container_details::has_container_insert_v<Container, InputIt,
-                                                                    InputIt>) {
                 auto &cont = get_inserter_container(d_first);
                 cont.insert(cont.cend(), first, std::next(first, count));
                 return d_first;
