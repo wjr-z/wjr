@@ -37,7 +37,7 @@ WJR_REGISTER_HAS_TYPE(container_append,
 
 template <typename Container, typename Size>
 void try_reserve(Container &c, Size s) {
-    if constexpr (try_reserve_details::has_container_reserve_v<Container, Size>) {
+    if constexpr (container_details::has_container_reserve_v<Container, Size>) {
         c.reserve(s);
     }
 }
