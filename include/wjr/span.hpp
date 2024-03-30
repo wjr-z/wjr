@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include <wjr/assert.hpp>
+#include <wjr/iterator/details.hpp>
 #include <wjr/memory/details.hpp>
 
 namespace wjr {
@@ -38,9 +39,10 @@ struct __span_dynamic_storage {
 
 template <typename Iter, typename Elem>
 struct __is_span_iterator
-    : std::conjunction<is_contiguous_iterator<Iter>,
-                       std::is_convertible<
-                           std::remove_reference_t<iter_reference_t<Iter>> *, Elem *>> {};
+    : std::conjunction<
+          is_contiguous_iterator<Iter>,
+          std::is_convertible<std::remove_reference_t<iterator_reference_t<Iter>> *,
+                              Elem *>> {};
 
 template <typename Array, typename Elem, typename = void>
 struct __is_span_array_helper : std::false_type {};
@@ -267,7 +269,7 @@ span(const std::array<T, Size> &) -> span<const T, Size>;
 
 template <typename It, typename End,
           std::enable_if_t<is_contiguous_iterator_v<It>, int> = 0>
-span(It, End) -> span<std::remove_reference_t<iter_reference_t<It>>>;
+span(It, End) -> span<std::remove_reference_t<iterator_reference_t<It>>>;
 
 namespace span_details {
 

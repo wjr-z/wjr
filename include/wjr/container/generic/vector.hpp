@@ -59,6 +59,7 @@
 #include <wjr/assert.hpp>
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/generic/container_traits.hpp>
+#include <wjr/iterator/details.hpp>
 #include <wjr/memory/temporary_value_allocator.hpp>
 
 namespace wjr {

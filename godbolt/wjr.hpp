@@ -2592,44 +2592,6 @@ struct is_convertible_to : std::conjunction<std::is_convertible<From, To>,
 template <typename From, typename To>
 inline constexpr bool is_convertible_to_v = is_convertible_to<From, To>::value;
 
-template <typename T>
-using iter_reference_t = decltype(*std::declval<T &>());
-
-template <typename iter, typename = void>
-struct is_contiguous_iterator_impl
-    : std::disjunction<std::is_pointer<iter>, std::is_array<iter>> {};
-
-template <typename iter>
-struct is_contiguous_iterator_impl<iter, typename iter::is_contiguous_iterator>
-    : std::true_type {};
-
-#if defined(WJR_CPP_20)
-template <typename iter>
-struct is_contiguous_iterator
-    : std::bool_constant<std::contiguous_iterator<iter> ||
-                         is_contiguous_iterator_impl<iter>::value> {};
-#else
-template <typename iter>
-struct is_contiguous_iterator : is_contiguous_iterator_impl<iter> {};
-#endif
-
-template <typename iter>
-inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<iter>::value;
-
-template <typename T, typename = void>
-struct __is_iterator_helper : std::false_type {};
-
-template <typename T>
-struct __is_iterator_helper<
-    T, std::void_t<typename std::iterator_traits<T>::iterator_category>>
-    : std::true_type {};
-
-template <typename T>
-struct is_iterator : __is_iterator_helper<T> {};
-
-template <typename T>
-inline constexpr bool is_iterator_v = is_iterator<T>::value;
-
 // TODO : move __is_in_i32_range to other header.
 WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
     return value >= (int32_t)in_place_min && value <= (int32_t)in_place_max;
@@ -23193,32 +23155,114 @@ public:
     }
 };
 
-namespace try_reserve_details {
-
-template <typename Enable, typename Container, typename Size, typename... Args>
-struct __has_container_reserve : std::false_type {};
-template <typename Container, typename Size, typename... Args>
-struct __has_container_reserve<
-    std::void_t<decltype(std::declval<Container>().reserve(std::declval<Size>()))>,
-    Container, Size, Args...> : std::true_type {};
-template <typename Container, typename Size, typename... Args>
-struct has_container_reserve : __has_container_reserve<void, Container, Size, Args...> {};
-template <typename Container, typename Size, typename... Args>
-constexpr bool has_container_reserve_v =
-    has_container_reserve<Container, Size, Args...>::value;
-
-} // namespace try_reserve_details
-
-template <typename Container, typename Size>
-void try_reserve(Container &c, Size s) {
-    if constexpr (try_reserve_details::has_container_reserve_v<Container, Size>) {
-        c.reserve(s);
-    }
-}
-
 } // namespace wjr
 
 #endif // WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP__
+#ifndef WJR_ITERATOR_DETAILS_HPP__
+#define WJR_ITERATOR_DETAILS_HPP__
+
+// Already included
+
+namespace wjr {
+
+template <typename Iter>
+using iterator_difference_t = typename std::iterator_traits<Iter>::difference_type;
+
+template <typename Iter>
+using iterator_value_t = typename std::iterator_traits<Iter>::value_type;
+
+template <typename Iter>
+using iterator_reference_t = typename std::iterator_traits<Iter>::reference;
+
+template <typename Iter>
+using iterator_pointer_t = typename std::iterator_traits<Iter>::pointer;
+
+template <typename Iter>
+using iterator_category_t = typename std::iterator_traits<Iter>::iterator_category;
+
+template <typename Iter, typename = void>
+struct __is_contiguous_iterator_impl
+    : std::disjunction<std::is_pointer<Iter>, std::is_array<Iter>> {};
+
+template <typename Iter>
+struct __is_contiguous_iterator_impl<Iter,
+                                     std::void_t<typename Iter::is_contiguous_iterator>>
+    : std::true_type {};
+
+#if defined(WJR_CPP_20)
+template <typename iter>
+struct is_contiguous_iterator
+    : std::bool_constant<std::contiguous_iterator<iter> ||
+                         __is_contiguous_iterator_impl<iter>::value> {};
+#else
+template <typename iter>
+struct is_contiguous_iterator : __is_contiguous_iterator_impl<iter> {};
+#endif
+
+template <typename Iter>
+inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;
+
+template <typename Iter, typename = void>
+struct __is_iterator_impl : std::false_type {};
+
+template <typename Iter>
+struct __is_iterator_impl<
+    Iter, std::void_t<typename std::iterator_traits<Iter>::iterator_category>>
+    : std::true_type {};
+
+template <typename Iter>
+struct is_iterator : __is_iterator_impl<Iter> {};
+
+template <typename Iter>
+inline constexpr bool is_iterator_v = is_iterator<Iter>::value;
+
+template <typename Iter, typename Category, typename = void>
+struct __is_category_iterator_impl : std::false_type {};
+
+template <typename Iter, typename Category>
+struct __is_category_iterator_impl<
+    Iter, Category, std::void_t<typename std::iterator_traits<Iter>::iterator_category>>
+    : std::is_base_of<Category, iterator_category_t<Iter>> {};
+
+template <typename Iter>
+struct is_input_iterator : __is_category_iterator_impl<Iter, std::input_iterator_tag> {};
+
+template <typename Iter>
+inline constexpr bool is_input_iterator_v = is_input_iterator<Iter>::value;
+
+template <typename Iter>
+struct is_output_iterator : __is_category_iterator_impl<Iter, std::output_iterator_tag> {
+};
+
+template <typename Iter>
+inline constexpr bool is_output_iterator_v = is_output_iterator<Iter>::value;
+
+template <typename Iter>
+struct is_forward_iterator
+    : __is_category_iterator_impl<Iter, std::forward_iterator_tag> {};
+
+template <typename Iter>
+inline constexpr bool is_forward_iterator_v = is_forward_iterator<Iter>::value;
+
+template <typename Iter>
+struct is_bidirectional_iterator
+    : __is_category_iterator_impl<Iter, std::bidirectional_iterator_tag> {};
+
+template <typename Iter>
+inline constexpr bool is_bidirectional_iterator_v =
+    is_bidirectional_iterator<Iter>::value;
+
+template <typename Iter>
+struct is_random_access_iterator
+    : __is_category_iterator_impl<Iter, std::random_access_iterator_tag> {};
+
+template <typename Iter>
+inline constexpr bool is_random_access_iterator_v =
+    is_random_access_iterator<Iter>::value;
+
+} // namespace wjr
+
+#endif // WJR_ITERATOR_DETAILS_HPP__
 #ifndef WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
 #define WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
 
@@ -25611,6 +25655,7 @@ void basic_biginteger<Storage>::__mul(basic_biginteger *dst, const basic_biginte
 
 // Already included
 // Already included
+// Already included
 
 namespace wjr {
 
@@ -25644,9 +25689,10 @@ struct __span_dynamic_storage {
 
 template <typename Iter, typename Elem>
 struct __is_span_iterator
-    : std::conjunction<is_contiguous_iterator<Iter>,
-                       std::is_convertible<
-                           std::remove_reference_t<iter_reference_t<Iter>> *, Elem *>> {};
+    : std::conjunction<
+          is_contiguous_iterator<Iter>,
+          std::is_convertible<std::remove_reference_t<iterator_reference_t<Iter>> *,
+                              Elem *>> {};
 
 template <typename Array, typename Elem, typename = void>
 struct __is_span_array_helper : std::false_type {};
@@ -25873,7 +25919,7 @@ span(const std::array<T, Size> &) -> span<const T, Size>;
 
 template <typename It, typename End,
           std::enable_if_t<is_contiguous_iterator_v<It>, int> = 0>
-span(It, End) -> span<std::remove_reference_t<iter_reference_t<It>>>;
+span(It, End) -> span<std::remove_reference_t<iterator_reference_t<It>>>;
 
 namespace span_details {
 
@@ -27302,3 +27348,227 @@ using tp_sort_f = typename tp_sort<C, P::template fn>::type;
 
 #endif // WJR_TP_HPP__
 // Already included
+#ifndef WJR_MEMORY_COPY_HPP__
+#define WJR_MEMORY_COPY_HPP__
+
+#ifndef WJR_CONTAINER_GENERIC_DETAILS_HPP__
+#define WJR_CONTAINER_GENERIC_DETAILS_HPP__
+
+// Already included
+
+namespace wjr {
+namespace container_details {
+
+template <typename Enable, typename Container, typename Size, typename... Args>
+struct __has_container_reserve : std::false_type {};
+template <typename Container, typename Size, typename... Args>
+struct __has_container_reserve<
+    std::void_t<decltype(std::declval<Container>().reserve(std::declval<Size>()))>,
+    Container, Size, Args...> : std::true_type {};
+template <typename Container, typename Size, typename... Args>
+struct has_container_reserve : __has_container_reserve<void, Container, Size, Args...> {};
+template <typename Container, typename Size, typename... Args>
+constexpr bool has_container_reserve_v =
+    has_container_reserve<Container, Size, Args...>::value;
+
+WJR_REGISTER_HAS_TYPE(container_begin, std::declval<Container>().begin(), Container);
+WJR_REGISTER_HAS_TYPE(container_cbegin, std::declval<Container>().cbegin(), Container);
+WJR_REGISTER_HAS_TYPE(container_end, std::declval<Container>().end(), Container);
+WJR_REGISTER_HAS_TYPE(container_cend, std::declval<Container>().cend(), Container);
+WJR_REGISTER_HAS_TYPE(container_size, std::declval<Container>().size(), Container);
+WJR_REGISTER_HAS_TYPE(container_insert,
+                      (std::declval<Container>().insert(
+                           std::declval<Container>().cbegin(), std::declval<Args>()...),
+                       std::declval<Container>().insert(std::declval<Container>().cend(),
+                                                        std::declval<Args>()...)),
+                      Container);
+WJR_REGISTER_HAS_TYPE(container_append,
+                      std::declval<Container>().append(std::declval<Args>()...),
+                      Container);
+
+} // namespace container_details
+
+template <typename Container, typename Size>
+void try_reserve(Container &c, Size s) {
+    if constexpr (try_reserve_details::has_container_reserve_v<Container, Size>) {
+        c.reserve(s);
+    }
+}
+
+} // namespace wjr
+
+#endif // WJR_CONTAINER_GENERIC_DETAILS_HPP__
+#ifndef WJR_ITERATOR_INSERTER_HPP__
+#define WJR_ITERATOR_INSERTER_HPP__
+
+// Already included
+
+namespace wjr {
+
+template <typename T>
+struct is_insert_iterator : std::false_type {};
+
+template <typename Container>
+struct is_insert_iterator<std::insert_iterator<Container>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_insert_iterator_v = is_insert_iterator<T>::value;
+
+template <typename T>
+struct is_back_insert_iterator : std::false_type {};
+
+template <typename Container>
+struct is_back_insert_iterator<std::back_insert_iterator<Container>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_back_insert_iterator_v = is_back_insert_iterator<T>::value;
+
+template <typename T>
+struct is_front_insert_iterator : std::false_type {};
+
+template <typename Container>
+struct is_front_insert_iterator<std::front_insert_iterator<Container>> : std::true_type {
+};
+
+template <typename T>
+inline constexpr bool is_front_insert_iterator_v = is_front_insert_iterator<T>::value;
+
+template <typename T>
+struct is_any_insert_iterator
+    : std::bool_constant<is_insert_iterator_v<T> || is_back_insert_iterator_v<T> ||
+                         is_front_insert_iterator_v<T>> {};
+
+template <typename T>
+inline constexpr bool is_any_insert_iterator_v = is_any_insert_iterator<T>::value;
+
+template <typename Iter>
+struct __inserter_container_accessor : Iter {
+    __inserter_container_accessor(Iter it) : Iter(it) {}
+    using Iter::container;
+};
+
+template <typename Iter>
+struct __inserter_iterator_accessor : Iter {
+    __inserter_iterator_accessor(Iter it) : Iter(it) {}
+    using Iter::iterator;
+};
+
+template <typename Container>
+Container &get_inserter_container(std::insert_iterator<Container> it) {
+    return *__inserter_container_accessor(it).container;
+}
+
+template <typename Container>
+Container &get_inserter_container(std::back_insert_iterator<Container> it) {
+    return *__inserter_container_accessor(it).container;
+}
+
+template <typename Container>
+Container &get_inserter_container(std::front_insert_iterator<Container> it) {
+    return *__inserter_container_accessor(it).container;
+}
+
+template <typename Container>
+Container &get_inserter_iterator(std::insert_iterator<Container> it) {
+    return *__inserter_iterator_accessor(it).iterator;
+}
+
+} // namespace wjr
+
+#endif // WJR_ITERATOR_INSERTER_HPP__
+
+namespace wjr {
+
+template <typename InputIt, typename OutputIt>
+constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
+    using Out = remove_cvref_t<OutputIt>;
+
+    if constexpr (is_any_insert_iterator_v<Out>) {
+        using Container = typename Out::container_type;
+
+        if constexpr (is_back_insert_iterator_v<Out>) {
+            if constexpr (container_details::has_container_append_v<Container, InputIt,
+                                                                    InputIt>) {
+                get_inserter_container(d_first).append(first, last);
+                return d_first;
+            } else if constexpr (container_details::has_container_insert_v<
+                                     Container, InputIt, InputIt>) {
+                auto &cont = get_inserter_container(d_first);
+                cont.insert(cont.cend(), first, last);
+                return d_first;
+            } else {
+                return std::copy(first, last, d_first);
+            }
+        } else if constexpr (is_forward_iterator_v<Out>) {
+            if constexpr (container_details::has_container_insert_v<Container, InputIt,
+                                                                    InputIt>) {
+                auto &cont = get_inserter_container(d_first);
+                cont.insert(cont.cend(), first, last);
+                return d_first;
+            } else {
+                return std::copy(first, last, d_first);
+            }
+        } else {
+            if constexpr (container_details::has_container_insert_v<Container, InputIt,
+                                                                    InputIt>) {
+                auto &cont = get_inserter_container(d_first);
+                auto pos = get_inserter_iterator(d_first).iterator;
+                cont.insert(pos, first, last);
+                return d_first;
+            } else {
+                return std::copy(first, last, d_first);
+            }
+        }
+    } else {
+        return std::copy(first, last, d_first);
+    }
+}
+
+template <typename InputIt, typename Size, typename OutputIt>
+constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
+    using Out = remove_cvref_t<OutputIt>;
+
+    if constexpr (is_random_access_iterator_v<Out> && is_any_insert_iterator_v<Out>) {
+        using Container = typename Out::container_type;
+
+        if constexpr (is_back_insert_iterator_v<Out>) {
+            if constexpr (container_details::has_container_append_v<Container, InputIt,
+                                                                    InputIt>) {
+                get_inserter_container(d_first).append(first, std::next(first, count));
+                return d_first;
+            } else if constexpr (container_details::has_container_insert_v<
+                                     Container, InputIt, InputIt>) {
+                auto &cont = get_inserter_container(d_first);
+                cont.insert(cont.cend(), first, std::next(first, count));
+                return d_first;
+            } else {
+                return std::copy_n(first, count, d_first);
+            }
+        } else if constexpr (is_forward_iterator_v<Out>) {
+            if constexpr (container_details::has_container_insert_v<Container, InputIt,
+                                                                    InputIt>) {
+                auto &cont = get_inserter_container(d_first);
+                cont.insert(cont.cend(), first, std::next(first, count));
+                return d_first;
+            } else {
+                return std::copy_n(first, count, d_first);
+            }
+        } else {
+            if constexpr (container_details::has_container_insert_v<Container, InputIt,
+                                                                    InputIt>) {
+                auto &cont = get_inserter_container(d_first);
+                auto pos = get_inserter_iterator(d_first).iterator;
+                cont.insert(pos, first, std::next(first, count));
+                return d_first;
+            } else {
+                return std::copy_n(first, std::next(first, count), d_first);
+            }
+        }
+    } else {
+        return std::copy_n(first, count, d_first);
+    }
+}
+
+} // namespace wjr
+
+#endif // WJR_MEMORY_COPY_HPP__

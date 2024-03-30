@@ -334,44 +334,6 @@ struct is_convertible_to : std::conjunction<std::is_convertible<From, To>,
 template <typename From, typename To>
 inline constexpr bool is_convertible_to_v = is_convertible_to<From, To>::value;
 
-template <typename T>
-using iter_reference_t = decltype(*std::declval<T &>());
-
-template <typename iter, typename = void>
-struct is_contiguous_iterator_impl
-    : std::disjunction<std::is_pointer<iter>, std::is_array<iter>> {};
-
-template <typename iter>
-struct is_contiguous_iterator_impl<iter, typename iter::is_contiguous_iterator>
-    : std::true_type {};
-
-#if defined(WJR_CPP_20)
-template <typename iter>
-struct is_contiguous_iterator
-    : std::bool_constant<std::contiguous_iterator<iter> ||
-                         is_contiguous_iterator_impl<iter>::value> {};
-#else
-template <typename iter>
-struct is_contiguous_iterator : is_contiguous_iterator_impl<iter> {};
-#endif
-
-template <typename iter>
-inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<iter>::value;
-
-template <typename T, typename = void>
-struct __is_iterator_helper : std::false_type {};
-
-template <typename T>
-struct __is_iterator_helper<
-    T, std::void_t<typename std::iterator_traits<T>::iterator_category>>
-    : std::true_type {};
-
-template <typename T>
-struct is_iterator : __is_iterator_helper<T> {};
-
-template <typename T>
-inline constexpr bool is_iterator_v = is_iterator<T>::value;
-
 // TODO : move __is_in_i32_range to other header.
 WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
     return value >= (int32_t)in_place_min && value <= (int32_t)in_place_max;
