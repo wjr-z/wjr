@@ -21208,8 +21208,8 @@ Iter __unsigned_to_chars_power_of_two_backward(Iter ptr, int n, UnsignedValue x,
 
 template <typename Iter, typename UnsignedValue, typename Converter,
           std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
-WJR_COLD Iter __large_unsigned_to_chars_10_backward(Iter buf, UnsignedValue val,
-                                                    Converter conv) {
+WJR_NOINLINE Iter __large_unsigned_to_chars_10_backward(Iter buf, UnsignedValue val,
+                                                        Converter conv) {
     constexpr auto nd = std::numeric_limits<UnsignedValue>::digits10 + 1;
     static_assert(nd <= 20, "");
 
