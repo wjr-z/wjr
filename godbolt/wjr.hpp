@@ -20074,6 +20074,7 @@ inline constexpr origin_converter_t origin_converter = {};
 
 #endif // WJR_MATH_CONVERT_IMPL_HPP__
 
+// Already included
 #ifndef WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
 #define WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
 
@@ -21021,8 +21022,8 @@ Iter __unsigned_to_chars_2_backward(Iter ptr, int n, UnsignedValue x,
 
     if (WJR_UNLIKELY(n >= 4)) {
         do {
-            __to_chars_unroll_4<2>(ptr - 4, x & 0x0f, conv);
-            ptr -= 4;
+            ptr = std::prev(ptr, 4);
+            __to_chars_unroll_4<2>(ptr, x & 0x0f, conv);
             x >>= 4;
             n -= 4;
         } while (WJR_LIKELY(n >= 4));
@@ -21039,8 +21040,8 @@ Iter __unsigned_to_chars_2_backward(Iter ptr, int n, UnsignedValue x,
         WJR_FALLTHROUGH;
     }
     case 2: {
-        __to_chars_unroll_2<2>(ptr - 2, x, conv);
-        ptr -= 2;
+        ptr = std::prev(ptr, 2);
+        __to_chars_unroll_2<2>(ptr, x, conv);
         break;
     }
     case 1: {
@@ -21067,8 +21068,8 @@ Iter __unsigned_to_chars_8_backward(Iter ptr, int n, UnsignedValue x,
     if constexpr (nd >= 16) {
         if (WJR_UNLIKELY(n >= 4)) {
             do {
-                __to_chars_unroll_4<8>(ptr - 4, x & 0x0fff, conv);
-                ptr -= 4;
+                ptr = std::prev(ptr, 4);
+                __to_chars_unroll_4<8>(ptr, x & 0x0fff, conv);
                 x >>= 12;
                 n -= 4;
             } while (WJR_LIKELY(n >= 4));
@@ -21086,8 +21087,8 @@ Iter __unsigned_to_chars_8_backward(Iter ptr, int n, UnsignedValue x,
         WJR_FALLTHROUGH;
     }
     case 2: {
-        __to_chars_unroll_2<8>(ptr - 2, x, conv);
-        ptr -= 2;
+        ptr = std::prev(ptr, 2);
+        __to_chars_unroll_2<8>(ptr, x, conv);
         break;
     }
     case 1: {
@@ -21114,8 +21115,8 @@ Iter __unsigned_to_chars_16_backward(Iter ptr, int n, UnsignedValue x,
     if constexpr (nd >= 16) {
         if (WJR_UNLIKELY(n >= 4)) {
             do {
-                __to_chars_unroll_4<16>(ptr - 4, x & 0xffff, conv);
-                ptr -= 4;
+                ptr = std::prev(ptr, 4);
+                __to_chars_unroll_4<16>(ptr, x & 0xffff, conv);
                 x >>= 16;
                 n -= 4;
             } while (WJR_LIKELY(n >= 4));
@@ -21133,8 +21134,8 @@ Iter __unsigned_to_chars_16_backward(Iter ptr, int n, UnsignedValue x,
         WJR_FALLTHROUGH;
     }
     case 2: {
-        __to_chars_unroll_2<16>(ptr - 2, x, conv);
-        ptr -= 2;
+        ptr = std::prev(ptr, 2);
+        __to_chars_unroll_2<16>(ptr, x, conv);
         break;
     }
     case 1: {
@@ -21170,131 +21171,30 @@ Iter __unsigned_to_chars_power_of_two_backward(Iter ptr, int n, UnsignedValue x,
 
 template <typename Iter, typename UnsignedValue, typename Converter,
           std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
-WJR_NOINLINE Iter __large_unsigned_to_chars_10_backward(Iter buf, UnsignedValue val,
-                                                        Converter conv) {
-    constexpr auto nd = std::numeric_limits<UnsignedValue>::digits10 + 1;
-    static_assert(nd <= 20, "");
-
-    if constexpr (nd <= 10) {
-        __to_chars_unroll_8<10>(buf - 8, val % 1'0000'0000, conv);
-        buf -= 8;
-
-        if (WJR_UNLIKELY(val <= 1'0000'0000)) {
-            return buf;
-        }
-
-        if (WJR_LIKELY(val >= 10'0000'0000)) {
-            __to_chars_unroll_2<10>(buf - 2, val / 1'0000'0000, conv);
-            buf -= 2;
-            return buf;
-        }
-
-        *--buf = conv.template to<10>(val / 1'0000'0000);
-        return buf;
-    } else {
-        do {
-            __to_chars_unroll_8<10>(buf - 8, val % 1'0000'0000, conv);
-            buf -= 8;
-
-            if (val < 1000'0000'0000'0000) {
-                val /= 1'0000'0000;
-                break;
-            }
-
-            val /= 1'0000'0000;
-
-            __to_chars_unroll_8<10>(buf - 8, val % 1'0000'0000, conv);
-            buf -= 8;
-
-            // 0 <= val <= 1844
-            if (WJR_LIKELY(val >= 10'0000'0000)) {
-                val /= 1'0000'0000;
-                __to_chars_unroll_2<10>(buf - 2, val % 100, conv);
-                buf -= 2;
-
-                if (val >= 100) {
-                    if (val < 1000) {
-                        *--buf = conv.template to<10>(val / 100);
-                        return buf;
-                    } else {
-                        __to_chars_unroll_2<10>(buf - 2, val / 100, conv);
-                        buf -= 2;
-                        return buf;
-                    }
-                }
-
-                return buf;
-            }
-
-            if (WJR_UNLIKELY(val < 1'0000'0000)) {
-                return buf;
-            }
-
-            *--buf = conv.template to<10>(val / 1'0000'0000);
-            return buf;
-        } while (0);
-
-        if (WJR_UNLIKELY(val == 0)) {
-            return buf;
-        }
-
-        if (WJR_LIKELY(val >= 100)) {
-            do {
-                __to_chars_unroll_2<10>(buf - 2, val % 100, conv);
-                buf -= 2;
-                val /= 100;
-            } while (val >= 100);
-        }
-
-        if (val < 10) {
-            *--buf = conv.template to<10>(val);
-            return buf;
-        }
-
-        __to_chars_unroll_2<10>(buf - 2, val, conv);
-        buf -= 2;
-        return buf;
-    }
-}
-
-template <typename Iter, typename UnsignedValue, typename Converter,
-          std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
-Iter __unsigned_to_chars_10_backward(Iter buf, UnsignedValue val, Converter conv) {
-    constexpr auto nd = std::numeric_limits<UnsignedValue>::digits10 + 1;
+Iter __unsigned_to_chars_10_backward(Iter ptr, UnsignedValue val, Converter conv) {
     WJR_ASSERT_ASSUME(val != 0);
 
     if (WJR_LIKELY(val >= 100)) {
-        if constexpr (nd < 8) {
-            // do nothing
-        } else {
-            if (WJR_UNLIKELY(val >= 1000'0000)) {
-                return __large_unsigned_to_chars_10_backward(buf, val, conv);
-            }
-        }
-
         do {
-            __to_chars_unroll_2<10>(buf - 2, val % 100, conv);
-            buf -= 2;
+            ptr = std::prev(ptr, 2);
+            __to_chars_unroll_2<10>(ptr, val % 100, conv);
             val /= 100;
         } while (WJR_LIKELY(val >= 100));
     }
 
     if (val < 10) {
-        *--buf = conv.template to<10>(val);
-        return buf;
+        *--ptr = conv.template to<10>(val);
+        return ptr;
     }
 
-    __to_chars_unroll_2<10>(buf - 2, val, conv);
-    buf -= 2;
-    return buf;
+    ptr = std::prev(ptr, 2);
+    __to_chars_unroll_2<10>(ptr, val, conv);
+    return ptr;
 }
 
-template <typename Iter, typename Value, typename IBase,
-          typename Converter = char_converter_t,
-          std::enable_if_t<__is_valid_chars_convert_v<Value, Converter>, int> = 0>
+template <typename Iter, typename Value, typename IBase, typename Converter>
 to_chars_result<Iter> __to_chars_backward_validate_impl(Iter ptr, Iter first, Value val,
-                                                        IBase ibase,
-                                                        Converter conv = {}) {
+                                                        IBase ibase, Converter conv) {
     if (WJR_UNLIKELY(val == 0)) {
         if (WJR_LIKELY(first != ptr)) {
             *--ptr = conv.template to<1>(0);
@@ -21440,10 +21340,8 @@ to_chars_result<Iter> to_chars_backward_validate(Iter ptr, Iter first, Value val
     return __to_chars_backward_validate_impl(ptr, first, val, base, conv);
 }
 
-template <typename Iter, typename Value, typename IBase,
-          typename Converter = char_converter_t,
-          std::enable_if_t<__is_valid_chars_convert_v<Value, Converter>, int> = 0>
-Iter __to_chars_backward_impl(Iter ptr, Value val, IBase ibase, Converter conv = {}) {
+template <typename Iter, typename Value, typename IBase, typename Converter>
+Iter __to_chars_backward_impl(Iter ptr, Value val, IBase ibase, Converter conv) {
     if (WJR_UNLIKELY(val == 0)) {
         *--ptr = conv.template to<1>(0);
         return ptr;
@@ -21548,11 +21446,9 @@ Iter to_chars_backward(Iter ptr, Value val, unsigned int base, Converter conv = 
     return __to_chars_backward_impl(ptr, val, base, conv);
 }
 
-template <typename Iter, typename Value, typename IBase,
-          typename Converter = char_converter_t,
-          std::enable_if_t<__is_valid_chars_convert_v<Value, Converter>, int> = 0>
+template <typename Iter, typename Value, typename IBase, typename Converter>
 to_chars_result<Iter> __to_chars_validate_impl(Iter ptr, Iter last, Value val,
-                                               IBase ibase, Converter conv = {}) {
+                                               IBase ibase, Converter conv) {
     if (WJR_UNLIKELY(val == 0)) {
         if (WJR_UNLIKELY(ptr == last)) {
             return {last, std::errc::value_too_large};
@@ -21690,10 +21586,8 @@ to_chars_result<Iter> to_chars_validate(Iter ptr, Iter last, Value val, unsigned
     return __to_chars_validate_impl(ptr, last, val, base, conv);
 }
 
-template <typename Iter, typename Value, typename IBase,
-          typename Converter = char_converter_t,
-          std::enable_if_t<__is_valid_chars_convert_v<Value, Converter>, int> = 0>
-Iter __to_chars_impl(Iter ptr, Value val, IBase ibase, Converter conv = {}) {
+template <typename Iter, typename Value, typename IBase, typename Converter>
+Iter __to_chars_impl(Iter ptr, Value val, IBase ibase, Converter conv) {
     if (WJR_UNLIKELY(val == 0)) {
         *ptr++ = conv.template to<1>(0);
         return ptr;
@@ -21810,6 +21704,7 @@ size_t __biginteger_to_chars_2_impl(Iter first, uint64_t *up, size_t n, Converte
         x = *up;
 
         for (int i = 0; i < 8; ++i) {
+            
             __to_chars_unroll_8<2>(first - 8, x & 0xff, conv);
             first -= 8;
             x >>= 8;
