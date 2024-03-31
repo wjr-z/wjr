@@ -34,14 +34,6 @@ WJR_REGISTER_HAS_TYPE(container_append,
                       Container);
 
 } // namespace container_details
-
-template <typename Container, typename Size>
-void try_reserve(Container &c, Size s) {
-    if constexpr (container_details::has_container_reserve_v<Container, Size>) {
-        c.reserve(s);
-    }
-}
-
 } // namespace wjr
 
 #endif // WJR_CONTAINER_GENERIC_DETAILS_HPP__

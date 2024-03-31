@@ -797,6 +797,12 @@ public:
         __construct_n(n, in_place_default_construct);
     }
 
+    WJR_CONSTEXPR20 basic_vector(size_type n, in_place_reserve_t,
+                                 const allocator_type &al = allocator_type())
+        : basic_vector(al) {
+        m_storage.uninitialized_construct(0, n);
+    }
+
     WJR_CONSTEXPR20 void resize(const size_type new_size, in_place_default_construct_t) {
         __resize(new_size, in_place_default_construct);
     }

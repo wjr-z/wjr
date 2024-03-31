@@ -2288,6 +2288,10 @@ struct in_place_reallocate_t {};
 
 inline constexpr in_place_reallocate_t in_place_reallocate = {};
 
+struct in_place_reserve_t {};
+
+inline constexpr in_place_reserve_t in_place_reserve = {};
+
 struct in_place_max_t {
     template <typename T>
     WJR_CONST constexpr operator T() const {
@@ -20047,14 +20051,6 @@ WJR_REGISTER_HAS_TYPE(container_append,
                       Container);
 
 } // namespace container_details
-
-template <typename Container, typename Size>
-void try_reserve(Container &c, Size s) {
-    if constexpr (container_details::has_container_reserve_v<Container, Size>) {
-        c.reserve(s);
-    }
-}
-
 } // namespace wjr
 
 #endif // WJR_CONTAINER_GENERIC_DETAILS_HPP__
@@ -21536,38 +21532,56 @@ to_chars_result<Iter> __fallback_to_chars_validate_impl(Iter first, Iter last, V
 
     const unsigned int base = ibase;
 
-#define WJR_TO_CHARS_VALIDATE_IMPL(BASE, TABLE, DIGITS, CALL)                            \
-    int n = count_digits<BASE> DIGITS;                                                   \
-                                                                                         \
+#define WJR_TO_CHARS_VALIDATE_IMPL(BASE, TABLE, CALL)                                    \
     if constexpr (is_random_access) {                                                    \
-        auto size = std::distance(first, last);                                          \
-                                                                                         \
-        if constexpr (is_signed) {                                                       \
-            if (WJR_UNLIKELY(n + sign > size)) {                                         \
-                return {last, std::errc::value_too_large};                               \
-            }                                                                            \
-        } else {                                                                         \
-            if (WJR_UNLIKELY(n > size)) {                                                \
-                return {last, std::errc::value_too_large};                               \
-            }                                                                            \
-        }                                                                                \
+        const auto size = std::distance(first, last);                                    \
+        WJR_PP_QUEUE_EXPAND(                                                             \
+            WJR_PP_BOOL_IF(WJR_PP_NE(BASE, 10),                                          \
+                           (                                                             \
+                               if constexpr (is_signed) {                                \
+                                   if (WJR_UNLIKELY(n + sign > size)) {                  \
+                                       return {last, std::errc::value_too_large};        \
+                                   }                                                     \
+                               } else {                                                  \
+                                   if (WJR_UNLIKELY(n > size)) {                         \
+                                       return {last, std::errc::value_too_large};        \
+                                   }                                                     \
+                               }),                                                       \
+                           ()))                                                          \
                                                                                          \
         uint8_t buffer[TABLE + is_signed];                                               \
-        auto __ptr = __unsigned_to_chars_backward<BASE>(buffer + TABLE + is_signed,      \
-                                                        WJR_PP_QUEUE_EXPAND(CALL));      \
+        const auto __end = buffer + TABLE + is_signed;                                   \
+        auto __ptr =                                                                     \
+            __unsigned_to_chars_backward<BASE>(__end, WJR_PP_QUEUE_EXPAND(CALL));        \
+                                                                                         \
+        WJR_PP_QUEUE_EXPAND(                                                             \
+            WJR_PP_BOOL_IF(WJR_PP_EQ(BASE, 10),                                          \
+                           (                                                             \
+                               const auto n = __end - __ptr;                             \
+                                                                                         \
+                               if constexpr (is_signed) {                                \
+                                   if (WJR_UNLIKELY(n + sign > size)) {                  \
+                                       return {last, std::errc::value_too_large};        \
+                                   }                                                     \
+                               } else {                                                  \
+                                   if (WJR_UNLIKELY(n > size)) {                         \
+                                       return {last, std::errc::value_too_large};        \
+                                   }                                                     \
+                               }),                                                       \
+                           ()))                                                          \
                                                                                          \
         if constexpr (is_signed) {                                                       \
             if (sign) {                                                                  \
                 *--__ptr = '-';                                                          \
-                ++n;                                                                     \
             }                                                                            \
         }                                                                                \
                                                                                          \
-        return wjr::copy_n(__ptr, n, first);                                             \
+        return wjr::copy(__ptr, __end, first);                                           \
     } else {                                                                             \
         uint8_t buffer[TABLE];                                                           \
-        auto __ptr = __unsigned_to_chars_backward<BASE>(buffer + TABLE,                  \
-                                                        WJR_PP_QUEUE_EXPAND(CALL));      \
+        const auto __end = buffer + TABLE;                                               \
+        auto __ptr =                                                                     \
+            __unsigned_to_chars_backward<BASE>(__end, WJR_PP_QUEUE_EXPAND(CALL));        \
                                                                                          \
         do {                                                                             \
             if (WJR_UNLIKELY(first == last)) {                                           \
@@ -21575,29 +21589,33 @@ to_chars_result<Iter> __fallback_to_chars_validate_impl(Iter first, Iter last, V
             }                                                                            \
                                                                                          \
             *first++ = *__ptr++;                                                         \
-        } while (--n != 0);                                                              \
+        } while (__ptr != __end);                                                        \
                                                                                          \
         return {first, std::errc{}};                                                     \
     }
 
     switch (base) {
     case 2: {
-        WJR_TO_CHARS_VALIDATE_IMPL(2, base_2_table, (uVal), (n, uVal));
+        int n = count_digits<2>(uVal);
+        WJR_TO_CHARS_VALIDATE_IMPL(2, base_2_table, (n, uVal));
     }
     case 8: {
-        WJR_TO_CHARS_VALIDATE_IMPL(8, (base_2_table + 2) / 3, (uVal), (n, uVal));
+        int n = count_digits<8>(uVal);
+        WJR_TO_CHARS_VALIDATE_IMPL(8, (base_2_table + 2) / 3, (n, uVal));
     }
     case 16: {
-        WJR_TO_CHARS_VALIDATE_IMPL(16, (base_2_table + 3) / 4, (uVal), (n, uVal));
+        int n = count_digits<16>(uVal);
+        WJR_TO_CHARS_VALIDATE_IMPL(16, (base_2_table + 3) / 4, (n, uVal));
     }
     case 4:
     case 32: {
         int per_bit = base == 4 ? 2 : 5;
+        int n = count_digits<1>(uVal, per_bit);
         WJR_TO_CHARS_VALIDATE_IMPL(1, (base_2_table + per_bit - 1) / per_bit,
-                                   (uVal, per_bit), (n, uVal, per_bit));
+                                   (n, uVal, per_bit));
     }
     case 10: {
-        WJR_TO_CHARS_VALIDATE_IMPL(10, base_10_table, (uVal), (uVal));
+        WJR_TO_CHARS_VALIDATE_IMPL(10, base_10_table, (uVal));
     }
     default: {
         WJR_UNREACHABLE();
@@ -21702,40 +21720,40 @@ Iter __fallback_to_chars_impl(Iter ptr, Value val, IBase ibase) {
 
     const unsigned int base = ibase;
 
-#define WJR_TO_CHARS_IMPL(BASE, TABLE, DIGITS, CALL)                                     \
-    int n = count_digits<BASE> DIGITS;                                                   \
-                                                                                         \
+#define WJR_TO_CHARS_IMPL(BASE, TABLE, CALL)                                             \
     uint8_t buffer[TABLE + is_signed];                                                   \
-    auto __ptr = __unsigned_to_chars_backward<BASE>(buffer + TABLE + is_signed,          \
-                                                    WJR_PP_QUEUE_EXPAND(CALL));          \
+    const auto __end = buffer + TABLE + is_signed;                                       \
+    auto __ptr = __unsigned_to_chars_backward<BASE>(__end, WJR_PP_QUEUE_EXPAND(CALL));   \
                                                                                          \
     if constexpr (is_signed) {                                                           \
         if (sign) {                                                                      \
             *--__ptr = '-';                                                              \
-            ++n;                                                                         \
         }                                                                                \
     }                                                                                    \
                                                                                          \
-    return wjr::copy_n(__ptr, n, ptr)
+    return wjr::copy(__ptr, __end, ptr)
 
     switch (base) {
     case 2: {
-        WJR_TO_CHARS_IMPL(2, base_2_table, (uVal), (n, uVal));
+        int n = count_digits<2>(uVal);
+        WJR_TO_CHARS_IMPL(2, base_2_table, (n, uVal));
     }
     case 8: {
-        WJR_TO_CHARS_IMPL(8, (base_2_table + 2) / 3, (uVal), (n, uVal));
+        int n = count_digits<8>(uVal);
+        WJR_TO_CHARS_IMPL(8, (base_2_table + 2) / 3, (n, uVal));
     }
     case 16: {
-        WJR_TO_CHARS_IMPL(16, (base_2_table + 3) / 4, (uVal), (n, uVal));
+        int n = count_digits<16>(uVal);
+        WJR_TO_CHARS_IMPL(16, (base_2_table + 3) / 4, (n, uVal));
     }
     case 4:
     case 32: {
         int per_bit = base == 4 ? 2 : 5;
-        WJR_TO_CHARS_IMPL(1, (base_2_table + per_bit - 1) / per_bit, (uVal, per_bit),
-                          (n, uVal, per_bit));
+        int n = count_digits<1>(uVal, per_bit);
+        WJR_TO_CHARS_IMPL(1, (base_2_table + per_bit - 1) / per_bit, (n, uVal, per_bit));
     }
     case 10: {
-        WJR_TO_CHARS_IMPL(10, base_10_table, (uVal), (uVal));
+        WJR_TO_CHARS_IMPL(10, base_10_table, (uVal));
     }
     default: {
         WJR_UNREACHABLE();
@@ -24177,6 +24195,12 @@ public:
                                  const allocator_type &al = allocator_type())
         : basic_vector(al) {
         __construct_n(n, in_place_default_construct);
+    }
+
+    WJR_CONSTEXPR20 basic_vector(size_type n, in_place_reserve_t,
+                                 const allocator_type &al = allocator_type())
+        : basic_vector(al) {
+        m_storage.uninitialized_construct(0, n);
     }
 
     WJR_CONSTEXPR20 void resize(const size_type new_size, in_place_default_construct_t) {
