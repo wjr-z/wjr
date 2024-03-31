@@ -405,17 +405,6 @@ struct get_integral_constant<std::integral_constant<T, v>> {
 template <typename T>
 using get_integral_constant_t = typename get_integral_constant<T>::type;
 
-template <typename T>
-WJR_INTRINSIC_CONSTEXPR auto get_integral_constant_v(T &&v) noexcept {
-    using value_type = get_integral_constant_t<remove_cvref_t<T>>;
-
-    if constexpr (std::is_same_v<value_type, remove_cvref_t<T>>) {
-        return std::forward<T>(v);
-    } else {
-        return static_cast<value_type>(std::forward<T>(v));
-    }
-}
-
 template <typename T, typename U>
 struct is_integral_constant_same : std::false_type {};
 

@@ -1,6 +1,7 @@
 #include "details.hpp"
 
 #include <charconv>
+#include <list>
 
 #if defined(WJR_USE_GMP)
 #include <gmp.h>
@@ -1586,25 +1587,100 @@ TEST(math, div_qr_s) {
 TEST(math, to_chars) {
     const int T = 16;
 
-    char b[64], c[64], d[64];
+    char b[64], c[64];
+    std::vector<char> vec(64);
+    std::list<char> lst;
+    lst.resize(64);
 
     auto check = [&](int k, int base, auto x) {
+        // test __fast_to_chars_validate
         auto ret0 = wjr::to_chars_validate(b, b + k, x, base);
-        auto ret1 = std::to_chars(c, c + k, x, base);
-        auto ret2 = wjr::to_chars_backward_validate(d + k, d, x, base);
 
-        WJR_ASSERT(ret0.ec == ret1.ec);
-        WJR_ASSERT(ret0.ec == ret2.ec);
-
-        if ((bool)ret0) {
-            WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
-                       std::string_view(c, ret1.ptr - c));
-            WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
-                       std::string_view(ret2.ptr, d + k - ret2.ptr));
-        } else {
+        if (!ret0) {
             WJR_ASSERT(ret0.ptr == b + k);
-            WJR_ASSERT(ret1.ptr == c + k);
-            WJR_ASSERT(ret2.ptr == d + k);
+        }
+
+        do {
+            auto ret1 = std::to_chars(c, c + k, x, base);
+
+            WJR_ASSERT(ret0.ec == ret1.ec);
+
+            if ((bool)ret0) {
+                WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
+                           std::string_view(c, ret1.ptr - c));
+            } else {
+                WJR_ASSERT(ret1.ptr == c + k);
+            }
+        } while (0);
+
+        // test random access iterator of __fallback_to_chars_validate
+        do {
+            auto ret1 = wjr::to_chars_validate(vec.data(), vec.data() + k, x, base);
+
+            WJR_ASSERT(ret0.ec == ret1.ec);
+
+            if ((bool)ret0) {
+                WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
+                           std::string_view(vec.data(), ret1.ptr - vec.data()));
+            } else {
+                WJR_ASSERT(ret1.ptr == vec.data() + k);
+            }
+        } while (0);
+
+        // test forward iterator of __fallback_to_chars_validate
+        do {
+            auto ret1 =
+                wjr::to_chars_validate(lst.begin(), std::next(lst.begin(), k), x, base);
+
+            WJR_ASSERT(ret0.ec == ret1.ec);
+
+            if ((bool)ret0) {
+                WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
+                           std::string(lst.begin(), ret1.ptr));
+            } else {
+                WJR_ASSERT(std::distance(lst.begin(), ret1.ptr) == k);
+            }
+        } while (0);
+
+        // test non-validate
+        if (k == 64) {
+            // test __fast_to_chars_backward
+            do {
+                auto ret1 = wjr::to_chars_backward(c + 64, x, base);
+
+                WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
+                           std::string_view(ret1, c + 64 - ret1));
+            } while (0);
+
+            // test __fast_to_chars
+            do {
+                auto ret1 = wjr::to_chars(c, x, base);
+
+                WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
+                           std::string_view(c, ret1 - c));
+            } while (0);
+
+            // test random access iterator of __fallback_to_chars
+            do {
+                vec.clear();
+
+                (void)wjr::to_chars(std::back_inserter(vec), x, base);
+
+                WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
+                           std::string_view((char *)vec.data(), vec.size()));
+            } while (0);
+
+            // test forward iterator of __fallback_to_chars
+            do {
+                lst.clear();
+
+                (void)wjr::to_chars(std::back_inserter(lst), x, base);
+
+                WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
+                           std::string(lst.begin(), lst.end()));
+
+                lst.resize(64);
+            } while (0);
         }
     };
 
@@ -1659,18 +1735,9 @@ TEST(math, biginteger_to_chars) {
 
                 d = a;
 
-                size_t len = wjr::biginteger_to_chars(b.data(), a.data(), i, base,
-                                                      wjr::origin_converter) -
-                             b.data();
+                size_t len =
+                    wjr::biginteger_to_chars(b.data(), d.data(), i, base) - b.data();
                 size_t len2 = mpn_get_str((unsigned char *)c.data(), base, a.data(), i);
-
-                WJR_ASSERT(len == len2);
-                WJR_ASSERT(std::string_view(b.data(), len) ==
-                           std::string_view(c.data(), len2));
-
-                len = wjr::biginteger_to_chars(b.data(), d.data(), i, base,
-                                               wjr::char_converter) -
-                      b.data();
 
                 for (auto &ch : c) {
                     ch = ch < 10 ? ch + '0' : ch - 10 + 'a';
@@ -1701,22 +1768,15 @@ TEST(math, biginteger_from_chars) {
                     c[0] = mt_rand() % base;
                 }
 
-                size_t len = wjr::biginteger_from_chars(c.data(), c.data() + i, a.data(),
-                                                        base, wjr::origin_converter) -
-                             a.data();
-
                 size_t len2 = mpn_set_str(b.data(), (unsigned char *)c.data(), i, base);
-
-                WJR_ASSERT(len == len2);
-                WJR_ASSERT(std::equal(a.begin(), a.begin() + len, b.begin()));
 
                 for (auto &ch : c) {
                     ch = ch < 10 ? ch + '0' : ch - 10 + 'a';
                 }
 
-                len = wjr::biginteger_from_chars(c.data(), c.data() + i, a.data(), base,
-                                                 wjr::char_converter) -
-                      a.data();
+                size_t len =
+                    wjr::biginteger_from_chars(c.data(), c.data() + i, a.data(), base) -
+                    a.data();
 
                 WJR_ASSERT(len == len2);
                 WJR_ASSERT(std::equal(a.begin(), a.begin() + len, b.begin()));

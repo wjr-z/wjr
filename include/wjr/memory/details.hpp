@@ -30,13 +30,21 @@ constexpr T *to_address(T *p) noexcept {
 }
 
 template <typename Ptr>
-constexpr auto to_address(const Ptr &p) noexcept {
+constexpr decltype(auto) to_address(const Ptr &p) noexcept {
     if constexpr (to_address_details::has_to_address_v<Ptr>) {
         return std::pointer_traits<Ptr>::to_address(p);
     } else {
         return to_address(p.operator->());
     }
 }
+
+template <typename Iter>
+struct to_address_result {
+    using type = decltype(to_address(std::declval<Iter>()));
+};
+
+template <typename Iter>
+using to_address_result_t = typename to_address_result<Iter>::type;
 
 class __is_little_endian_helper {
     constexpr static std::uint32_t u4 = 1;

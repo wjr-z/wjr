@@ -1,7 +1,6 @@
 #ifndef WJR_X86_MATH_CONVERT_HPP__
 #define WJR_X86_MATH_CONVERT_HPP__
 
-#include <wjr/math/convert-impl.hpp>
 #include <wjr/simd/simd.hpp>
 
 #ifndef WJR_X86
@@ -72,15 +71,8 @@ uint64_t builtin_to_chars_unroll_8_fast(uint32_t in) {
 }
 
 template <uint64_t Base>
-void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in, char_converter_t) {
+void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in) {
     uint64_t x = builtin_to_chars_unroll_8_fast<Base>(in) + 0x3030303030303030ull;
-
-    write_memory<uint64_t>(ptr, x);
-}
-
-template <uint64_t Base>
-void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in, origin_converter_t) {
-    uint64_t x = builtin_to_chars_unroll_8_fast<Base>(in);
 
     write_memory<uint64_t>(ptr, x);
 }
@@ -132,16 +124,10 @@ uint32_t builtin_from_chars_unroll_8_fast(__m128i in) {
 }
 
 template <uint64_t Base>
-uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, char_converter_t) {
+uint32_t builtin_from_chars_unroll_8_fast(const void *ptr) {
     static_assert(Base <= 10, "");
-
     __m128i in = _mm_sub_epi8(sse::loadu_si64(ptr), from_chars_details::ascii);
     return builtin_from_chars_unroll_8_fast<Base>(in);
-}
-
-template <uint64_t Base>
-uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, origin_converter_t) {
-    return builtin_from_chars_unroll_8_fast<Base>(sse::loadu_si64(ptr));
 }
 
 #endif
@@ -163,16 +149,10 @@ uint64_t builtin_from_chars_unroll_16_fast(__m128i in) {
 }
 
 template <uint64_t Base>
-uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, char_converter_t) {
+uint64_t builtin_from_chars_unroll_16_fast(const void *ptr) {
     static_assert(Base <= 10, "");
-
     __m128i in = _mm_sub_epi8(sse::loadu((__m128i *)(ptr)), from_chars_details::ascii);
     return builtin_from_chars_unroll_16_fast<Base>(in);
-}
-
-template <uint64_t Base>
-uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, origin_converter_t) {
-    return builtin_from_chars_unroll_16_fast<Base>(sse::loadu((__m128i *)(ptr)));
 }
 
 #endif

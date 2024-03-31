@@ -46,7 +46,7 @@ template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
     using Out = remove_cvref_t<OutputIt>;
 
-    if constexpr (is_random_access_iterator_v<Out> &&
+    if constexpr (is_random_access_iterator_v<InputIt> &&
                   (is_back_insert_iterator_v<Out> || is_insert_iterator_v<Out>)) {
         using Container = typename Out::container_type;
 
