@@ -20907,7 +20907,7 @@ class __from_chars_unroll_4_fn : public __from_chars_unroll_4_fast_fn_impl<Base>
     using Mybase = __from_chars_unroll_4_fast_fn_impl<Base>;
 
 public:
-    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(uint8_t *ptr) const {
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(const uint8_t *ptr) const {
         if constexpr (convert_details::has_from_chars_fast_fn_fast_conv_v<Mybase>) {
             return Mybase::__fast_conv(to_address(ptr));
         } else {
@@ -20928,7 +20928,7 @@ class __from_chars_unroll_8_fn : public __from_chars_unroll_8_fast_fn_impl<Base>
     using Mybase = __from_chars_unroll_8_fast_fn_impl<Base>;
 
 public:
-    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(uint8_t *ptr) const {
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(const uint8_t *ptr) const {
         if constexpr (convert_details::has_from_chars_fast_fn_fast_conv_v<Mybase>) {
             return Mybase::__fast_conv(ptr);
         } else {
@@ -20947,7 +20947,7 @@ class __from_chars_unroll_16_fn : public __from_chars_unroll_16_fast_fn_impl<Bas
     using Mybase = __from_chars_unroll_16_fast_fn_impl<Base>;
 
 public:
-    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(uint8_t *ptr) const {
+    WJR_PURE WJR_INTRINSIC_INLINE uint64_t operator()(const uint8_t *ptr) const {
         if constexpr (convert_details::has_from_chars_fast_fn_fast_conv_v<Mybase>) {
             return Mybase::__fast_conv(ptr);
         } else {
@@ -21847,7 +21847,7 @@ Iter to_chars(Iter ptr, Value val, unsigned int base) {
     return __to_chars_impl(ptr, val, base);
 }
 
-inline size_t __biginteger_to_chars_2_impl(uint8_t *first, uint64_t *up, size_t n) {
+inline size_t __biginteger_to_chars_2_impl(uint8_t *first, const uint64_t *up, size_t n) {
     WJR_ASSERT(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
@@ -21878,7 +21878,7 @@ inline size_t __biginteger_to_chars_2_impl(uint8_t *first, uint64_t *up, size_t 
     return len;
 }
 
-inline size_t __biginteger_to_chars_8_impl(uint8_t *first, uint64_t *up, size_t n) {
+inline size_t __biginteger_to_chars_8_impl(uint8_t *first, const uint64_t *up, size_t n) {
     WJR_ASSERT(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
@@ -22008,7 +22008,8 @@ DONE:
     return len;
 }
 
-inline size_t __biginteger_to_chars_16_impl(uint8_t *first, uint64_t *up, size_t n) {
+inline size_t __biginteger_to_chars_16_impl(uint8_t *first, const uint64_t *up,
+                                            size_t n) {
     WJR_ASSERT(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
@@ -22039,7 +22040,7 @@ inline size_t __biginteger_to_chars_16_impl(uint8_t *first, uint64_t *up, size_t
     return len;
 }
 
-inline size_t __biginteger_to_chars_power_of_two_impl(uint8_t *first, uint64_t *up,
+inline size_t __biginteger_to_chars_power_of_two_impl(uint8_t *first, const uint64_t *up,
                                                       size_t n, unsigned int base) {
     WJR_ASSERT(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
@@ -22195,8 +22196,8 @@ inline uint8_t *dc_to_chars(uint8_t *first, size_t len, uint64_t *up, size_t n,
     }
 }
 
-inline uint8_t *__biginteger_basecase_to_chars(uint8_t *first, uint64_t *up, size_t n,
-                                               unsigned int base) {
+inline uint8_t *__biginteger_basecase_to_chars(uint8_t *first, const uint64_t *up,
+                                               size_t n, unsigned int base) {
     if (WJR_LIKELY(n < dc_bignum_to_chars_precompute_threshold)) {
         uint64_t upbuf[dc_bignum_to_chars_precompute_threshold];
         std::copy_n(up, n, upbuf);
@@ -22216,8 +22217,8 @@ inline uint8_t *__biginteger_basecase_to_chars(uint8_t *first, uint64_t *up, siz
     return dc_to_chars(first, 0, __up, n, mpre, stk);
 }
 
-inline uint8_t *__biginteger_large_to_chars_impl(uint8_t *first, uint64_t *up, size_t n,
-                                                 unsigned int base = 10) {
+inline uint8_t *__biginteger_large_to_chars_impl(uint8_t *first, const uint64_t *up,
+                                                 size_t n, unsigned int base = 10) {
     switch (base) {
     case 2: {
         return first + __biginteger_to_chars_2_impl(first, up, n);
@@ -22240,7 +22241,7 @@ inline uint8_t *__biginteger_large_to_chars_impl(uint8_t *first, uint64_t *up, s
     return __biginteger_basecase_to_chars(first, up, n, base);
 }
 
-inline uint8_t *__biginteger_to_chars_impl(uint8_t *first, uint64_t *up, size_t n,
+inline uint8_t *__biginteger_to_chars_impl(uint8_t *first, const uint64_t *up, size_t n,
                                            unsigned int base = 10) {
     if (n == 1) {
         return to_chars(first, up[0], base);
@@ -22261,7 +22262,8 @@ inline uint8_t *__biginteger_to_chars_impl(uint8_t *first, uint64_t *up, size_t 
  * @return Output iterator after the conversion
  */
 template <typename Iter, std::enable_if_t<__is_fast_convert_iterator_v<Iter>, int> = 0>
-Iter biginteger_to_chars(Iter first, uint64_t *up, size_t n, unsigned int base = 10) {
+Iter biginteger_to_chars(Iter first, const uint64_t *up, size_t n,
+                         unsigned int base = 10) {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));
     WJR_ASSERT_ASSUME(up[n - 1] != 0);
 
@@ -22280,7 +22282,7 @@ template <>
 struct __unsigned_from_chars_fn<2> {
     template <typename UnsignedValue,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
-    void operator()(uint8_t *first, uint8_t *last, UnsignedValue &val) const {
+    void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val) const {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
 
         auto n = std::distance(first, last);
@@ -22354,7 +22356,7 @@ template <>
 struct __unsigned_from_chars_fn<8> {
     template <typename UnsignedValue,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
-    void operator()(uint8_t *first, uint8_t *last, UnsignedValue &val) const {
+    void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val) const {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
 
         auto n = std::distance(first, last);
@@ -22422,7 +22424,7 @@ template <>
 struct __unsigned_from_chars_fn<16> {
     template <typename UnsignedValue,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
-    void operator()(uint8_t *first, uint8_t *last, UnsignedValue &val) const {
+    void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val) const {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
 
         auto n = std::distance(first, last);
@@ -22499,7 +22501,7 @@ template <>
 struct __unsigned_from_chars_fn<10> {
     template <typename UnsignedValue,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
-    void operator()(uint8_t *first, uint8_t *last, UnsignedValue &val) const {
+    void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val) const {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits10 + 1;
 
         auto n = std::distance(first, last);
@@ -22570,7 +22572,8 @@ struct __unsigned_from_chars_fn<10> {
 
 template <typename Value, typename IBase,
           std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
-void __fast_from_chars_impl(uint8_t *first, uint8_t *last, Value &val, IBase ibase) {
+void __fast_from_chars_impl(const uint8_t *first, const uint8_t *last, Value &val,
+                            IBase ibase) {
     int sign = 0;
 
     if constexpr (std::is_signed_v<Value>) {
@@ -22619,8 +22622,8 @@ void __fast_from_chars_impl(uint8_t *first, uint8_t *last, Value &val, IBase iba
 template <typename Iter, typename Value, typename IBase,
           std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
 void __from_chars_impl(Iter first, Iter last, Value &val, IBase ibase) {
-    auto __first = reinterpret_cast<uint8_t *>(to_address(first));
-    auto __last = reinterpret_cast<uint8_t *>(to_address(last));
+    auto __first = reinterpret_cast<const uint8_t *>(to_address(first));
+    auto __last = reinterpret_cast<const uint8_t *>(to_address(last));
     __fast_from_chars_impl(__first, __last, val, ibase);
 }
 
@@ -22669,7 +22672,8 @@ void from_chars(Iter first, Iter last, Value &val, unsigned int base) {
     __from_chars_impl(first, last, val, base);
 }
 
-inline size_t __biginteger_from_chars_2_impl(uint8_t *first, size_t n, uint64_t *up) {
+inline size_t __biginteger_from_chars_2_impl(const uint8_t *first, size_t n,
+                                             uint64_t *up) {
     size_t hbits = (n - 1) % 64 + 1;
     size_t len = (n - 1) / 64 + 1;
 
@@ -22699,7 +22703,8 @@ inline size_t __biginteger_from_chars_2_impl(uint8_t *first, size_t n, uint64_t 
     return len;
 }
 
-inline size_t __biginteger_from_chars_8_impl(uint8_t *first, size_t n, uint64_t *up) {
+inline size_t __biginteger_from_chars_8_impl(const uint8_t *first, size_t n,
+                                             uint64_t *up) {
     size_t len = (n * 3 + 63) / 64;
     size_t lbits = (64 * (len - 1)) / 3;
     size_t rest = (64 * (len - 1)) % 3;
@@ -22800,7 +22805,8 @@ inline size_t __biginteger_from_chars_8_impl(uint8_t *first, size_t n, uint64_t 
     return len;
 }
 
-inline size_t __biginteger_from_chars_16_impl(uint8_t *first, size_t n, uint64_t *up) {
+inline size_t __biginteger_from_chars_16_impl(const uint8_t *first, size_t n,
+                                              uint64_t *up) {
     size_t hbits = (n - 1) % 16 + 1;
     size_t len = (n - 1) / 16 + 1;
 
@@ -22839,7 +22845,7 @@ inline size_t __biginteger_from_chars_16_impl(uint8_t *first, size_t n, uint64_t
     return len;
 }
 
-inline size_t basecase_from_chars_10(uint8_t *first, size_t n, uint64_t *up) {
+inline size_t basecase_from_chars_10(const uint8_t *first, size_t n, uint64_t *up) {
     uint64_t x = 0;
 
     if (n <= 19) {
@@ -22888,7 +22894,7 @@ inline size_t basecase_from_chars_10(uint8_t *first, size_t n, uint64_t *up) {
     return m;
 }
 
-inline size_t basecase_from_chars(uint8_t *first, size_t n, uint64_t *up,
+inline size_t basecase_from_chars(const uint8_t *first, size_t n, uint64_t *up,
                                   unsigned int base) {
     if (base == 10) {
         return basecase_from_chars_10(first, n, up);
@@ -22897,7 +22903,7 @@ inline size_t basecase_from_chars(uint8_t *first, size_t n, uint64_t *up,
     }
 }
 
-inline size_t dc_from_chars(uint8_t *first, size_t n, uint64_t *up,
+inline size_t dc_from_chars(const uint8_t *first, size_t n, uint64_t *up,
                             precompute_chars_convert_t *pre, uint64_t *stk) {
     size_t lo = pre->digits_in_base;
     if (n <= lo) {
@@ -22956,8 +22962,8 @@ inline size_t dc_from_chars(uint8_t *first, size_t n, uint64_t *up,
     return ln;
 }
 
-inline uint64_t *__biginteger_from_chars_impl(uint8_t *first, uint8_t *last, uint64_t *up,
-                                              unsigned int base = 10) {
+inline uint64_t *__biginteger_from_chars_impl(const uint8_t *first, const uint8_t *last,
+                                              uint64_t *up, unsigned int base = 10) {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));
 
     size_t n = std::distance(first, last);
@@ -25943,7 +25949,8 @@ public:
     explicit basic_dynamic_bitset(const span<CharT, Extent> &sp)
         : m_vec((sp.size() + block_size - 1) / block_size, in_place_default_construct),
           m_bits(sp.size()) {
-        from_chars_2(sp.begin(), sp.size(), m_vec.data(), char_converter);
+        (void)__biginteger_from_chars_2_impl((const uint8_t *)sp.data(), sp.size(),
+                                             m_vec.data());
     }
 
     template <

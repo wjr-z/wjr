@@ -74,7 +74,8 @@ public:
     explicit basic_dynamic_bitset(const span<CharT, Extent> &sp)
         : m_vec((sp.size() + block_size - 1) / block_size, in_place_default_construct),
           m_bits(sp.size()) {
-        from_chars_2(sp.begin(), sp.size(), m_vec.data(), char_converter);
+        (void)__biginteger_from_chars_2_impl((const uint8_t *)sp.data(), sp.size(),
+                                             m_vec.data());
     }
 
     template <
