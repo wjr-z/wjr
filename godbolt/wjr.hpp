@@ -4299,21 +4299,13 @@ constexpr T *to_address(T *p) noexcept {
 }
 
 template <typename Ptr>
-constexpr decltype(auto) to_address(const Ptr &p) noexcept {
+constexpr auto to_address(const Ptr &p) noexcept {
     if constexpr (to_address_details::has_to_address_v<Ptr>) {
         return std::pointer_traits<Ptr>::to_address(p);
     } else {
         return to_address(p.operator->());
     }
 }
-
-template <typename Iter>
-struct to_address_result {
-    using type = decltype(to_address(std::declval<Iter>()));
-};
-
-template <typename Iter>
-using to_address_result_t = typename to_address_result<Iter>::type;
 
 class __is_little_endian_helper {
     constexpr static std::uint32_t u4 = 1;
@@ -20083,23 +20075,26 @@ template <typename Iter, typename = void>
 struct __is_contiguous_iterator_impl
     : std::disjunction<std::is_pointer<Iter>, std::is_array<Iter>> {};
 
-template <typename Iter>
-struct __is_contiguous_iterator_impl<Iter,
-                                     std::void_t<typename Iter::is_contiguous_iterator>>
-    : std::true_type {};
-
 #if defined(WJR_CPP_20)
-template <typename iter>
-struct is_contiguous_iterator
-    : std::bool_constant<std::contiguous_iterator<iter> ||
-                         __is_contiguous_iterator_impl<iter>::value> {};
+template <typename Iter>
+struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter>::value {};
+
+template <std::contiguous_iterator Iter>
+struct is_contiguous_iterator<Iter> : std::true_type {};
 #else
-template <typename iter>
-struct is_contiguous_iterator : __is_contiguous_iterator_impl<iter> {};
+template <typename Iter>
+struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};
 #endif
 
 template <typename Iter>
 inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;
+
+template <typename Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, int> = 0>
+using iterator_contiguous_value_t = std::remove_reference_t<iterator_reference_t<Iter>>;
+
+template <typename Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, int> = 0>
+using iterator_contiguous_pointer_t =
+    std::add_pointer_t<iterator_contiguous_value_t<Iter>>;
 
 template <typename Iter, typename = void>
 struct __is_iterator_impl : std::false_type {};
@@ -20632,8 +20627,9 @@ struct __is_fast_convert_iterator_helper : std::false_type {};
 template <typename Iter>
 struct __is_fast_convert_iterator_helper<
     Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, void>>
-    : std::conjunction<std::is_trivially_copyable<iterator_value_t<Iter>>,
-                       std::bool_constant<sizeof(iterator_value_t<Iter>) == 1>> {};
+    : std::conjunction<
+          std::is_trivially_copyable<iterator_contiguous_value_t<Iter>>,
+          std::bool_constant<sizeof(iterator_contiguous_value_t<Iter>) == 1>> {};
 
 template <typename Iter>
 struct __is_fast_convert_iterator : __is_fast_convert_iterator_helper<Iter> {};
@@ -24935,7 +24931,7 @@ using static_vector = basic_vector<static_vector_storage<T, Capacity, Alloc>>;
  *
  * @details Only allocate memory on construction and deallocation on destruction.
  * After construction, it cannot be expanded and can only be modified through move
- * assignment.
+ * assignment. For example, vector that using stack allocator.
  */
 template <typename T, typename Alloc = std::allocator<T>>
 using fixed_vector = basic_vector<fixed_vector_storage<T, Alloc>>;
@@ -25638,10 +25634,9 @@ struct __span_dynamic_storage {
 
 template <typename Iter, typename Elem>
 struct __is_span_iterator
-    : std::conjunction<
-          is_contiguous_iterator<Iter>,
-          std::is_convertible<std::remove_reference_t<iterator_reference_t<Iter>> *,
-                              Elem *>> {};
+    : std::conjunction<is_contiguous_iterator<Iter>,
+                       std::is_convertible<iterator_contiguous_pointer_t<Iter>, Elem *>> {
+};
 
 template <typename Array, typename Elem, typename = void>
 struct __is_span_array_helper : std::false_type {};
@@ -25868,7 +25863,7 @@ span(const std::array<T, Size> &) -> span<const T, Size>;
 
 template <typename It, typename End,
           std::enable_if_t<is_contiguous_iterator_v<It>, int> = 0>
-span(It, End) -> span<std::remove_reference_t<iterator_reference_t<It>>>;
+span(It, End) -> span<iterator_contiguous_value_t<It>>;
 
 namespace span_details {
 

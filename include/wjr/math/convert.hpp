@@ -166,8 +166,9 @@ struct __is_fast_convert_iterator_helper : std::false_type {};
 template <typename Iter>
 struct __is_fast_convert_iterator_helper<
     Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, void>>
-    : std::conjunction<std::is_trivially_copyable<iterator_value_t<Iter>>,
-                       std::bool_constant<sizeof(iterator_value_t<Iter>) == 1>> {};
+    : std::conjunction<
+          std::is_trivially_copyable<iterator_contiguous_value_t<Iter>>,
+          std::bool_constant<sizeof(iterator_contiguous_value_t<Iter>) == 1>> {};
 
 template <typename Iter>
 struct __is_fast_convert_iterator : __is_fast_convert_iterator_helper<Iter> {};

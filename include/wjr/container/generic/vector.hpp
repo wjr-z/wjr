@@ -1535,7 +1535,7 @@ using static_vector = basic_vector<static_vector_storage<T, Capacity, Alloc>>;
  *
  * @details Only allocate memory on construction and deallocation on destruction.
  * After construction, it cannot be expanded and can only be modified through move
- * assignment.
+ * assignment. For example, vector that using stack allocator.
  */
 template <typename T, typename Alloc = std::allocator<T>>
 using fixed_vector = basic_vector<fixed_vector_storage<T, Alloc>>;
