@@ -1303,10 +1303,31 @@ private:
     template <typename Ty>
     WJR_CONSTEXPR20 void __resize(const size_type new_size, const Ty &val) {
         const auto old_size = size();
-        if (new_size > old_size) {
-            __append(new_size - old_size, val);
-        } else if (new_size < old_size) {
-            __erase_at_end(data() + new_size);
+
+        if constexpr (is_storage_reallocatable::value) {
+            if (new_size > old_size) {
+                __append(new_size - old_size, val);
+            } else if (new_size < old_size) {
+                __erase_at_end(data() + new_size);
+            }
+        } else {
+            auto &al = __get_allocator();
+
+            const pointer __first = data();
+            const pointer __last = data() + old_size;
+
+            if (WJR_UNLIKELY(new_size > capacity())) {
+                __unreallocatable_unreachable(new_size);
+            }
+
+            if (new_size > old_size) {
+                uninitialized_fill_n_using_allocator(__last, new_size - old_size, al,
+                                                     val);
+            } else if (new_size < old_size) {
+                destroy_using_allocator(__first + new_size, __last, al);
+            }
+
+            __get_size() = new_size;
         }
     }
 

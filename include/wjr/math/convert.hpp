@@ -30,6 +30,19 @@ inline constexpr auto div2by1_divider_noshift_of_big_base_10 =
     div2by1_divider_noshift<uint64_t>(10'000'000'000'000'000'000ull,
                                       15'581'492'618'384'294'730ull);
 
+template <typename Iter, typename = void>
+struct __is_fast_convert_iterator_helper : std::false_type {};
+
+template <typename Iter>
+struct __is_fast_convert_iterator_helper<
+    Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, void>>
+    : std::conjunction<
+          std::is_trivial<iterator_contiguous_value_t<Iter>>,
+          std::bool_constant<sizeof(iterator_contiguous_value_t<Iter>) == 1>> {};
+
+template <typename Iter>
+struct __is_fast_convert_iterator : __is_fast_convert_iterator_helper<Iter> {};
+
 namespace convert_details {
 
 static constexpr std::array<uint8_t, 36> to_table = {
@@ -131,6 +144,53 @@ template <typename Base, typename... Args>
 constexpr bool has_from_chars_validate_fast_fn_fast_conv_v =
     has_from_chars_validate_fast_fn_fast_conv<Base, Args...>::value;
 
+template <typename Container, typename = void>
+struct __has_trivial_resize_container_impl : std::false_type {};
+
+template <typename Container>
+struct __has_trivial_resize_container_impl<
+    Container,
+    std::void_t<decltype(std::declval<Container>().resize(
+                             std::size(std::declval<Container>()) + std::declval<int>(),
+                             std::declval<in_place_default_construct_t>()),
+                         std::data(std::declval<Container>()) +
+                             std::size(std::declval<Container>()))>>
+    : __is_fast_convert_iterator<decltype(std::data(std::declval<Container>()) +
+                                          std::size(std::declval<Container>()))> {};
+
+template <typename Iter, typename = void>
+struct __has_trivial_resize : std::false_type {};
+
+template <typename Iter>
+struct __has_trivial_resize<Iter, std::enable_if_t<is_back_insert_iterator_v<Iter>>>
+    : __has_trivial_resize_container_impl<typename Iter::container_type &> {};
+
+template <typename Iter>
+inline constexpr bool has_trivial_resize_v = __has_trivial_resize<Iter>::value;
+
+template <typename Container, typename = void>
+struct __has_trivial_append_container_impl : std::false_type {};
+
+template <typename Container>
+struct __has_trivial_append_container_impl<
+    Container, std::void_t<decltype(std::declval<Container>().append(
+                                        std::declval<int>(),
+                                        std::declval<in_place_default_construct_t>()),
+                                    std::data(std::declval<Container>()) +
+                                        std::size(std::declval<Container>()))>>
+    : __is_fast_convert_iterator<decltype(std::data(std::declval<Container>()) +
+                                          std::size(std::declval<Container>()))> {};
+
+template <typename Iter, typename = void>
+struct __has_trivial_append : std::false_type {};
+
+template <typename Iter>
+struct __has_trivial_append<Iter, std::enable_if_t<is_back_insert_iterator_v<Iter>>>
+    : __has_trivial_append_container_impl<typename Iter::container_type &> {};
+
+template <typename Iter>
+inline constexpr bool has_trivial_append_v = __has_trivial_append<Iter>::value;
+
 } // namespace convert_details
 
 // require operator() of Converter is constexpr
@@ -159,19 +219,6 @@ private:
 
 template <uint64_t Base, int Unroll>
 inline constexpr __char_converter_table_t<Base, Unroll> __char_converter_table = {};
-
-template <typename Iter, typename = void>
-struct __is_fast_convert_iterator_helper : std::false_type {};
-
-template <typename Iter>
-struct __is_fast_convert_iterator_helper<
-    Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, void>>
-    : std::conjunction<
-          std::is_trivial<iterator_contiguous_value_t<Iter>>,
-          std::bool_constant<sizeof(iterator_contiguous_value_t<Iter>) == 1>> {};
-
-template <typename Iter>
-struct __is_fast_convert_iterator : __is_fast_convert_iterator_helper<Iter> {};
 
 /**
  * @brief Iterator concept that can be used in fast_convert.
@@ -1261,17 +1308,42 @@ Iter __fallback_to_chars_impl(Iter ptr, Value val, IBase ibase) {
     const unsigned int base = ibase;
 
 #define WJR_TO_CHARS_IMPL(BASE, TABLE, CALL)                                             \
-    uint8_t buffer[TABLE + is_signed];                                                   \
-    const auto __end = buffer + TABLE + is_signed;                                       \
-    auto __ptr = __unsigned_to_chars_backward<BASE>(__end, WJR_PP_QUEUE_EXPAND(CALL));   \
-                                                                                         \
-    if constexpr (is_signed) {                                                           \
-        if (sign) {                                                                      \
-            *--__ptr = '-';                                                              \
+    if constexpr (convert_details::has_trivial_resize_v<Iter> ||                         \
+                  convert_details::has_trivial_append_v<Iter>) {                         \
+        auto &cont = get_inserter_container(ptr);                                        \
+        WJR_PP_BOOL_IF(WJR_PP_EQ(BASE, 10), int n = count_digits<10>(uVal), );           \
+        if constexpr (convert_details::has_trivial_append_v<Iter>) {                     \
+            cont.append(n + sign, wjr::in_place_default_construct);                      \
+        } else {                                                                         \
+            cont.resize(std::size(cont) + n + sign);                                     \
         }                                                                                \
-    }                                                                                    \
                                                                                          \
-    return wjr::copy(__ptr, __end, ptr)
+        const auto __end =                                                               \
+            reinterpret_cast<uint8_t *>(std::data(cont) + std::size(cont));              \
+        auto __ptr =                                                                     \
+            __unsigned_to_chars_backward<BASE>(__end, WJR_PP_QUEUE_EXPAND(CALL));        \
+                                                                                         \
+        if constexpr (is_signed) {                                                       \
+            if (sign) {                                                                  \
+                *--__ptr = '-';                                                          \
+            }                                                                            \
+        }                                                                                \
+                                                                                         \
+        return ptr;                                                                      \
+    } else {                                                                             \
+        uint8_t buffer[TABLE + is_signed];                                               \
+        const auto __end = buffer + TABLE + is_signed;                                   \
+        auto __ptr =                                                                     \
+            __unsigned_to_chars_backward<BASE>(__end, WJR_PP_QUEUE_EXPAND(CALL));        \
+                                                                                         \
+        if constexpr (is_signed) {                                                       \
+            if (sign) {                                                                  \
+                *--__ptr = '-';                                                          \
+            }                                                                            \
+        }                                                                                \
+                                                                                         \
+        return wjr::copy(__ptr, __end, ptr);                                             \
+    }
 
     switch (base) {
     case 2: {

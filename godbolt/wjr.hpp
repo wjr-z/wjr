@@ -20503,6 +20503,19 @@ inline constexpr auto div2by1_divider_noshift_of_big_base_10 =
     div2by1_divider_noshift<uint64_t>(10'000'000'000'000'000'000ull,
                                       15'581'492'618'384'294'730ull);
 
+template <typename Iter, typename = void>
+struct __is_fast_convert_iterator_helper : std::false_type {};
+
+template <typename Iter>
+struct __is_fast_convert_iterator_helper<
+    Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, void>>
+    : std::conjunction<
+          std::is_trivial<iterator_contiguous_value_t<Iter>>,
+          std::bool_constant<sizeof(iterator_contiguous_value_t<Iter>) == 1>> {};
+
+template <typename Iter>
+struct __is_fast_convert_iterator : __is_fast_convert_iterator_helper<Iter> {};
+
 namespace convert_details {
 
 static constexpr std::array<uint8_t, 36> to_table = {
@@ -20604,6 +20617,53 @@ template <typename Base, typename... Args>
 constexpr bool has_from_chars_validate_fast_fn_fast_conv_v =
     has_from_chars_validate_fast_fn_fast_conv<Base, Args...>::value;
 
+template <typename Container, typename = void>
+struct __has_trivial_resize_container_impl : std::false_type {};
+
+template <typename Container>
+struct __has_trivial_resize_container_impl<
+    Container,
+    std::void_t<decltype(std::declval<Container>().resize(
+                             std::size(std::declval<Container>()) + std::declval<int>(),
+                             std::declval<in_place_default_construct_t>()),
+                         std::data(std::declval<Container>()) +
+                             std::size(std::declval<Container>()))>>
+    : __is_fast_convert_iterator<decltype(std::data(std::declval<Container>()) +
+                                          std::size(std::declval<Container>()))> {};
+
+template <typename Iter, typename = void>
+struct __has_trivial_resize : std::false_type {};
+
+template <typename Iter>
+struct __has_trivial_resize<Iter, std::enable_if_t<is_back_insert_iterator_v<Iter>>>
+    : __has_trivial_resize_container_impl<typename Iter::container_type &> {};
+
+template <typename Iter>
+inline constexpr bool has_trivial_resize_v = __has_trivial_resize<Iter>::value;
+
+template <typename Container, typename = void>
+struct __has_trivial_append_container_impl : std::false_type {};
+
+template <typename Container>
+struct __has_trivial_append_container_impl<
+    Container, std::void_t<decltype(std::declval<Container>().append(
+                                        std::declval<int>(),
+                                        std::declval<in_place_default_construct_t>()),
+                                    std::data(std::declval<Container>()) +
+                                        std::size(std::declval<Container>()))>>
+    : __is_fast_convert_iterator<decltype(std::data(std::declval<Container>()) +
+                                          std::size(std::declval<Container>()))> {};
+
+template <typename Iter, typename = void>
+struct __has_trivial_append : std::false_type {};
+
+template <typename Iter>
+struct __has_trivial_append<Iter, std::enable_if_t<is_back_insert_iterator_v<Iter>>>
+    : __has_trivial_append_container_impl<typename Iter::container_type &> {};
+
+template <typename Iter>
+inline constexpr bool has_trivial_append_v = __has_trivial_append<Iter>::value;
+
 } // namespace convert_details
 
 // require operator() of Converter is constexpr
@@ -20632,19 +20692,6 @@ private:
 
 template <uint64_t Base, int Unroll>
 inline constexpr __char_converter_table_t<Base, Unroll> __char_converter_table = {};
-
-template <typename Iter, typename = void>
-struct __is_fast_convert_iterator_helper : std::false_type {};
-
-template <typename Iter>
-struct __is_fast_convert_iterator_helper<
-    Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, void>>
-    : std::conjunction<
-          std::is_trivial<iterator_contiguous_value_t<Iter>>,
-          std::bool_constant<sizeof(iterator_contiguous_value_t<Iter>) == 1>> {};
-
-template <typename Iter>
-struct __is_fast_convert_iterator : __is_fast_convert_iterator_helper<Iter> {};
 
 /**
  * @brief Iterator concept that can be used in fast_convert.
@@ -21734,17 +21781,42 @@ Iter __fallback_to_chars_impl(Iter ptr, Value val, IBase ibase) {
     const unsigned int base = ibase;
 
 #define WJR_TO_CHARS_IMPL(BASE, TABLE, CALL)                                             \
-    uint8_t buffer[TABLE + is_signed];                                                   \
-    const auto __end = buffer + TABLE + is_signed;                                       \
-    auto __ptr = __unsigned_to_chars_backward<BASE>(__end, WJR_PP_QUEUE_EXPAND(CALL));   \
-                                                                                         \
-    if constexpr (is_signed) {                                                           \
-        if (sign) {                                                                      \
-            *--__ptr = '-';                                                              \
+    if constexpr (convert_details::has_trivial_resize_v<Iter> ||                         \
+                  convert_details::has_trivial_append_v<Iter>) {                         \
+        auto &cont = get_inserter_container(ptr);                                        \
+        WJR_PP_BOOL_IF(WJR_PP_EQ(BASE, 10), int n = count_digits<10>(uVal), );           \
+        if constexpr (convert_details::has_trivial_append_v<Iter>) {                     \
+            cont.append(n + sign, wjr::in_place_default_construct);                      \
+        } else {                                                                         \
+            cont.resize(std::size(cont) + n + sign);                                     \
         }                                                                                \
-    }                                                                                    \
                                                                                          \
-    return wjr::copy(__ptr, __end, ptr)
+        const auto __end =                                                               \
+            reinterpret_cast<uint8_t *>(std::data(cont) + std::size(cont));              \
+        auto __ptr =                                                                     \
+            __unsigned_to_chars_backward<BASE>(__end, WJR_PP_QUEUE_EXPAND(CALL));        \
+                                                                                         \
+        if constexpr (is_signed) {                                                       \
+            if (sign) {                                                                  \
+                *--__ptr = '-';                                                          \
+            }                                                                            \
+        }                                                                                \
+                                                                                         \
+        return ptr;                                                                      \
+    } else {                                                                             \
+        uint8_t buffer[TABLE + is_signed];                                               \
+        const auto __end = buffer + TABLE + is_signed;                                   \
+        auto __ptr =                                                                     \
+            __unsigned_to_chars_backward<BASE>(__end, WJR_PP_QUEUE_EXPAND(CALL));        \
+                                                                                         \
+        if constexpr (is_signed) {                                                       \
+            if (sign) {                                                                  \
+                *--__ptr = '-';                                                          \
+            }                                                                            \
+        }                                                                                \
+                                                                                         \
+        return wjr::copy(__ptr, __end, ptr);                                             \
+    }
 
     switch (base) {
     case 2: {
@@ -23074,6 +23146,306 @@ uint64_t *biginteger_from_chars(Iter first, Iter last, uint64_t *up,
 #endif // WJR_MATH_CONVERT_HPP__
 
 #endif // WJR_MATH_HPP__
+#ifndef WJR_SPAN_HPP__
+#define WJR_SPAN_HPP__
+
+#include <stdexcept>
+
+// Already included
+// Already included
+// Already included
+
+namespace wjr {
+
+template <typename T, size_t Extent>
+struct __span_static_storage {
+
+    __span_static_storage() = default;
+    __span_static_storage(const __span_static_storage &) = default;
+    __span_static_storage &operator=(const __span_static_storage &) = default;
+
+    __span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) : ptr(p) {
+        WJR_ASSERT(s == size);
+    }
+
+    T *ptr = nullptr;
+    static constexpr size_t size = Extent;
+};
+
+template <typename T>
+struct __span_dynamic_storage {
+
+    __span_dynamic_storage() = default;
+    __span_dynamic_storage(const __span_dynamic_storage &) = default;
+    __span_dynamic_storage &operator=(const __span_dynamic_storage &) = default;
+
+    __span_dynamic_storage(T *p, size_t s) : ptr(p), size(s) {}
+
+    T *ptr = nullptr;
+    size_t size = 0;
+};
+
+template <typename Iter, typename Elem>
+struct __is_span_iterator
+    : std::conjunction<is_contiguous_iterator<Iter>,
+                       std::is_convertible<iterator_contiguous_pointer_t<Iter>, Elem *>> {
+};
+
+template <typename T, size_t Extent = dynamic_extent>
+class span;
+
+namespace span_details {
+
+WJR_REGISTER_HAS_TYPE(data, std::data(std::declval<Container &>()), Container);
+WJR_REGISTER_HAS_TYPE(size, std::size(std::declval<Container &>()), Container);
+
+template <typename T>
+struct __is_std_array : std::false_type {};
+
+template <typename T, size_t N>
+struct __is_std_array<std::array<T, N>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool __is_std_array_v = __is_std_array<T>::value;
+
+template <typename T>
+struct __is_span : std::false_type {};
+
+template <typename T, size_t Extent>
+struct __is_span<span<T, Extent>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool __is_span_v = __is_span<T>::value;
+
+template <typename Container, typename Elem>
+struct __is_span_like
+    : std::conjunction<
+          std::negation<std::is_array<remove_cvref_t<Container>>>,
+          std::negation<__is_std_array<remove_cvref_t<Container>>>,
+          std::negation<__is_span<remove_cvref_t<Container>>>, has_data<Container &>,
+          has_size<Container &>,
+          std::is_convertible<decltype(std::data(std::declval<Container &>())), Elem *>> {
+};
+
+template <typename Container, typename Elem>
+inline constexpr bool __is_span_like_v = __is_span_like<Container, Elem>::value;
+
+} // namespace span_details
+
+/**
+ * @class span
+ * @brief A view over a contiguous sequence of objectsd.
+ * @tparam Extent if Extent is `dynamic_extent`, the span is a runtime-sized view.
+ * Otherwise, the span is a compile-time-sized view.
+ */
+template <typename T, size_t Extent>
+class span {
+    static constexpr bool __is_dynamic = Extent == dynamic_extent;
+    using __storage = std::conditional_t<__is_dynamic, __span_dynamic_storage<T>,
+                                         __span_static_storage<T, Extent>>;
+
+public:
+    using element_type = T;
+    using value_type = std::remove_cv_t<T>;
+    using size_type = size_t;
+    using difference_type = ptrdiff_t;
+    using pointer = T *;
+    using const_pointer = const T *;
+    using reference = T &;
+    using const_reference = const T &;
+    using iterator = pointer;
+    using const_iterator = const_pointer;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    template <size_t Ex = Extent,
+              std::enable_if_t<Ex == dynamic_extent || Ex == 0, int> = 0>
+    constexpr span() noexcept : storage() {}
+
+    template <typename It,
+              std::enable_if_t<
+                  __is_span_iterator<It, element_type>::value && __is_dynamic, int> = 0>
+    constexpr span(It first, size_type count) : storage(to_address(first), count) {}
+
+    template <typename It,
+              std::enable_if_t<
+                  __is_span_iterator<It, element_type>::value && !__is_dynamic, int> = 0>
+    constexpr explicit span(It first, size_type count)
+        : storage(to_address(first), count) {}
+
+    template <typename It,
+              std::enable_if_t<
+                  __is_span_iterator<It, element_type>::value && __is_dynamic, int> = 0>
+    constexpr span(It first, It last)
+        : storage(to_address(first), static_cast<size_type>(last - first)) {}
+
+    template <typename It,
+              std::enable_if_t<
+                  __is_span_iterator<It, element_type>::value && !__is_dynamic, int> = 0>
+    constexpr explicit span(It first, It last)
+        : storage(to_address(first), static_cast<size_type>(last - first)) {}
+
+    template <size_t N, std::enable_if_t<(__is_dynamic || N == Extent), int> = 0>
+    constexpr span(type_identity_t<element_type> (&arr)[N]) noexcept
+        : storage(std::data(arr), N) {}
+
+    template <
+        typename U, size_t N,
+        std::enable_if_t<(__is_dynamic || N == Extent) && std::is_convertible_v<U *, T *>,
+                         int> = 0>
+    constexpr span(std::array<U, N> &arr) noexcept
+        : storage(std::data(arr), std::size(arr)) {}
+
+    template <typename U, size_t N,
+              std::enable_if_t<(__is_dynamic || N == Extent) &&
+                                   std::is_convertible_v<const U *, T *>,
+                               int> = 0>
+    constexpr span(const std::array<U, N> &arr) noexcept
+        : storage(std::data(arr), std::size(arr)) {}
+
+    template <typename U, size_t N,
+              std::enable_if_t<(__is_dynamic || N == dynamic_extent || N == Extent) &&
+                                   std::is_convertible_v<U *, T *> && __is_dynamic,
+                               int> = 0>
+    constexpr span(const span<U, N> &source) noexcept
+        : storage(source.data(), source.size()) {}
+
+    template <typename U, size_t N,
+              std::enable_if_t<(__is_dynamic || N == dynamic_extent || N == Extent) &&
+                                   std::is_convertible_v<U *, T *> && !__is_dynamic,
+                               int> = 0>
+    constexpr explicit span(const span<U, N> &source) noexcept
+        : storage(source.data(), source.size()) {}
+
+    constexpr span(const span &other) noexcept = default;
+
+    constexpr span &operator=(const span &other) noexcept = default;
+
+    ~span() = default;
+
+    constexpr iterator begin() const noexcept { return data(); }
+    constexpr const_iterator cbegin() const noexcept { return begin(); }
+
+    constexpr iterator end() const noexcept { return begin() + size(); }
+    constexpr const_iterator cend() const noexcept { return end(); }
+
+    constexpr reverse_iterator rbegin() const noexcept {
+        return std::make_reverse_iterator(end());
+    }
+    constexpr const_reverse_iterator crbegin() const noexcept {
+        return std::make_reverse_iterator(cend());
+    }
+
+    constexpr reverse_iterator rend() const noexcept {
+        return std::make_reverse_iterator(begin());
+    }
+    constexpr const_reverse_iterator crend() const noexcept {
+        return std::make_reverse_iterator(cbegin());
+    }
+
+    constexpr reference front() const { return *begin(); }
+    constexpr reference back() const { return *(--end()); }
+
+    constexpr reference at(size_type pos) const {
+        if (WJR_UNLIKELY(pos >= size())) {
+            WJR_THROW(std::out_of_range("span at out of range"));
+        }
+
+        return this->operator[](pos);
+    }
+
+    constexpr reference operator[](size_type pos) const { return data()[pos]; }
+
+    constexpr pointer data() const { return storage.ptr; }
+    constexpr size_type size() const { return storage.size; }
+    constexpr size_type size_bytes() const { return size() * sizeof(element_type); }
+    constexpr bool empty() const { return size() == 0; }
+
+    template <size_t Count>
+    constexpr span<element_type, Count> first() const {
+        static_assert(Count <= Extent, "");
+
+        return {begin(), Count};
+    }
+
+    constexpr span<element_type, dynamic_extent> first(size_type Count) const {
+        WJR_ASSERT(Count <= size());
+
+        return {begin(), Count};
+    }
+
+    template <size_t Count>
+    constexpr span<element_type, Count> last() const {
+        static_assert(Count <= Extent, "");
+
+        return {end() - Count, Count};
+    }
+
+    constexpr span<element_type, dynamic_extent> last(size_type Count) const {
+        WJR_ASSERT(Count <= size());
+
+        return {data() - Count, Count};
+    }
+
+    template <size_t Offset, size_t Count = dynamic_extent>
+    constexpr span<element_type, Count != dynamic_extent    ? Count
+                                 : Extent != dynamic_extent ? Extent - Offset
+                                                            : dynamic_extent>
+    subspan() const {
+        if constexpr (Extent != dynamic_extent) {
+            static_assert(Offset <= Extent, "");
+            static_assert(Count == dynamic_extent || Count <= Extent - Offset, "");
+        } else {
+            WJR_ASSERT(Offset <= size());
+            if constexpr (Count != dynamic_extent) {
+                WJR_ASSERT(Count <= size() - Offset);
+            }
+        }
+        return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
+    }
+
+    constexpr span<element_type, dynamic_extent>
+    subspan(size_type Offset, size_type Count = dynamic_extent) const {
+        WJR_ASSERT(Offset <= size());
+
+        return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
+    }
+
+    // extension :
+
+    template <typename Container,
+              std::enable_if_t<span_details::__is_span_like_v<Container, element_type> &&
+                                   __is_dynamic,
+                               int> = 0>
+    constexpr span(Container &&c) noexcept : storage(std::data(c), std::size(c)) {}
+
+    template <typename Container,
+              std::enable_if_t<span_details::__is_span_like_v<Container, element_type> &&
+                                   !__is_dynamic,
+                               int> = 0>
+    constexpr explicit span(Container &&c) noexcept
+        : storage(std::data(c), std::size(c)) {}
+
+private:
+    __storage storage;
+};
+
+template <typename T, size_t Extent>
+span(T (&)[Extent]) -> span<T, Extent>;
+
+template <typename T, size_t Size>
+span(std::array<T, Size> &) -> span<T, Size>;
+
+template <typename T, size_t Size>
+span(const std::array<T, Size> &) -> span<const T, Size>;
+
+template <typename It, typename End,
+          std::enable_if_t<is_contiguous_iterator_v<It>, int> = 0>
+span(It, End) -> span<iterator_contiguous_value_t<It>>;
+
+} // namespace wjr
+
+#endif // WJR_SPAN_HPP__
 #ifndef WJR_VECTOR_HPP__
 #define WJR_VECTOR_HPP__
 
@@ -24729,10 +25101,31 @@ private:
     template <typename Ty>
     WJR_CONSTEXPR20 void __resize(const size_type new_size, const Ty &val) {
         const auto old_size = size();
-        if (new_size > old_size) {
-            __append(new_size - old_size, val);
-        } else if (new_size < old_size) {
-            __erase_at_end(data() + new_size);
+
+        if constexpr (is_storage_reallocatable::value) {
+            if (new_size > old_size) {
+                __append(new_size - old_size, val);
+            } else if (new_size < old_size) {
+                __erase_at_end(data() + new_size);
+            }
+        } else {
+            auto &al = __get_allocator();
+
+            const pointer __first = data();
+            const pointer __last = data() + old_size;
+
+            if (WJR_UNLIKELY(new_size > capacity())) {
+                __unreallocatable_unreachable(new_size);
+            }
+
+            if (new_size > old_size) {
+                uninitialized_fill_n_using_allocator(__last, new_size - old_size, al,
+                                                     val);
+            } else if (new_size < old_size) {
+                destroy_using_allocator(__first + new_size, __last, al);
+            }
+
+            __get_size() = new_size;
         }
     }
 
@@ -25250,6 +25643,12 @@ public:
         m_vec.set_ssize(__fasts_conditional_negate(value < 0, 1));
     }
 
+    template <
+        typename CharT, typename Extent,
+        std::enable_if_t<is_nonbool_integral_v<charT> && sizeof(charT) == 1, int> = 0>
+    explicit basic_biginteger(span<CharT, Extent> sp, unsigned int base = 10,
+                              const allocator_type &al = allocator_type()) {}
+
     basic_biginteger &operator=(std::initializer_list<value_type> il) {
         m_vec = il;
         return *this;
@@ -25634,306 +26033,7 @@ void basic_biginteger<Storage>::__mul(basic_biginteger *dst, const basic_biginte
 #define WJR_CONTAINER_GENERIC_DYNAMIC_BITSET_HPP__
 
 // Already included
-#ifndef WJR_SPAN_HPP__
-#define WJR_SPAN_HPP__
-
-#include <stdexcept>
-
 // Already included
-// Already included
-// Already included
-
-namespace wjr {
-
-template <typename T, size_t Extent>
-struct __span_static_storage {
-
-    __span_static_storage() = default;
-    __span_static_storage(const __span_static_storage &) = default;
-    __span_static_storage &operator=(const __span_static_storage &) = default;
-
-    __span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) : ptr(p) {
-        WJR_ASSERT(s == size);
-    }
-
-    T *ptr = nullptr;
-    static constexpr size_t size = Extent;
-};
-
-template <typename T>
-struct __span_dynamic_storage {
-
-    __span_dynamic_storage() = default;
-    __span_dynamic_storage(const __span_dynamic_storage &) = default;
-    __span_dynamic_storage &operator=(const __span_dynamic_storage &) = default;
-
-    __span_dynamic_storage(T *p, size_t s) : ptr(p), size(s) {}
-
-    T *ptr = nullptr;
-    size_t size = 0;
-};
-
-template <typename Iter, typename Elem>
-struct __is_span_iterator
-    : std::conjunction<is_contiguous_iterator<Iter>,
-                       std::is_convertible<iterator_contiguous_pointer_t<Iter>, Elem *>> {
-};
-
-template <typename T, size_t Extent = dynamic_extent>
-class span;
-
-namespace span_details {
-
-WJR_REGISTER_HAS_TYPE(data, std::data(std::declval<Container &>()), Container);
-WJR_REGISTER_HAS_TYPE(size, std::size(std::declval<Container &>()), Container);
-
-template <typename T>
-struct __is_std_array : std::false_type {};
-
-template <typename T, size_t N>
-struct __is_std_array<std::array<T, N>> : std::true_type {};
-
-template <typename T>
-inline constexpr bool __is_std_array_v = __is_std_array<T>::value;
-
-template <typename T>
-struct __is_span : std::false_type {};
-
-template <typename T, size_t Extent>
-struct __is_span<span<T, Extent>> : std::true_type {};
-
-template <typename T>
-inline constexpr bool __is_span_v = __is_span<T>::value;
-
-template <typename Container, typename Elem>
-struct __is_span_like
-    : std::conjunction<
-          std::negation<std::is_array<remove_cvref_t<Container>>>,
-          std::negation<__is_std_array<remove_cvref_t<Container>>>,
-          std::negation<__is_span<remove_cvref_t<Container>>>, has_data<Container &>,
-          has_size<Container &>,
-          std::is_convertible<decltype(std::data(std::declval<Container &>())), Elem *>> {
-};
-
-template <typename Container, typename Elem>
-inline constexpr bool __is_span_like_v = __is_span_like<Container, Elem>::value;
-
-} // namespace span_details
-
-/**
- * @class span
- * @brief A view over a contiguous sequence of objectsd.
- * @tparam Extent if Extent is `dynamic_extent`, the span is a runtime-sized view.
- * Otherwise, the span is a compile-time-sized view.
- */
-template <typename T, size_t Extent>
-class span {
-    static constexpr bool __is_dynamic = Extent == dynamic_extent;
-    using __storage = std::conditional_t<__is_dynamic, __span_dynamic_storage<T>,
-                                         __span_static_storage<T, Extent>>;
-
-public:
-    using element_type = T;
-    using value_type = std::remove_cv_t<T>;
-    using size_type = size_t;
-    using difference_type = ptrdiff_t;
-    using pointer = T *;
-    using const_pointer = const T *;
-    using reference = T &;
-    using const_reference = const T &;
-    using iterator = pointer;
-    using const_iterator = const_pointer;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-
-    template <size_t Ex = Extent,
-              std::enable_if_t<Ex == dynamic_extent || Ex == 0, int> = 0>
-    constexpr span() noexcept : storage() {}
-
-    template <typename It,
-              std::enable_if_t<
-                  __is_span_iterator<It, element_type>::value && __is_dynamic, int> = 0>
-    constexpr span(It first, size_type count) : storage(to_address(first), count) {}
-
-    template <typename It,
-              std::enable_if_t<
-                  __is_span_iterator<It, element_type>::value && !__is_dynamic, int> = 0>
-    constexpr explicit span(It first, size_type count)
-        : storage(to_address(first), count) {}
-
-    template <typename It,
-              std::enable_if_t<
-                  __is_span_iterator<It, element_type>::value && __is_dynamic, int> = 0>
-    constexpr span(It first, It last)
-        : storage(to_address(first), static_cast<size_type>(last - first)) {}
-
-    template <typename It,
-              std::enable_if_t<
-                  __is_span_iterator<It, element_type>::value && !__is_dynamic, int> = 0>
-    constexpr explicit span(It first, It last)
-        : storage(to_address(first), static_cast<size_type>(last - first)) {}
-
-    template <size_t N, std::enable_if_t<(__is_dynamic || N == Extent), int> = 0>
-    constexpr span(type_identity_t<element_type> (&arr)[N]) noexcept
-        : storage(std::data(arr), N) {}
-
-    template <
-        typename U, size_t N,
-        std::enable_if_t<(__is_dynamic || N == Extent) && std::is_convertible_v<U *, T *>,
-                         int> = 0>
-    constexpr span(std::array<U, N> &arr) noexcept
-        : storage(std::data(arr), std::size(arr)) {}
-
-    template <typename U, size_t N,
-              std::enable_if_t<(__is_dynamic || N == Extent) &&
-                                   std::is_convertible_v<const U *, T *>,
-                               int> = 0>
-    constexpr span(const std::array<U, N> &arr) noexcept
-        : storage(std::data(arr), std::size(arr)) {}
-
-    template <typename U, size_t N,
-              std::enable_if_t<(__is_dynamic || N == dynamic_extent || N == Extent) &&
-                                   std::is_convertible_v<U *, T *> && __is_dynamic,
-                               int> = 0>
-    constexpr span(const span<U, N> &source) noexcept
-        : storage(source.data(), source.size()) {}
-
-    template <typename U, size_t N,
-              std::enable_if_t<(__is_dynamic || N == dynamic_extent || N == Extent) &&
-                                   std::is_convertible_v<U *, T *> && !__is_dynamic,
-                               int> = 0>
-    constexpr explicit span(const span<U, N> &source) noexcept
-        : storage(source.data(), source.size()) {}
-
-    constexpr span(const span &other) noexcept = default;
-
-    constexpr span &operator=(const span &other) noexcept = default;
-
-    ~span() = default;
-
-    constexpr iterator begin() const noexcept { return data(); }
-    constexpr const_iterator cbegin() const noexcept { return begin(); }
-
-    constexpr iterator end() const noexcept { return begin() + size(); }
-    constexpr const_iterator cend() const noexcept { return end(); }
-
-    constexpr reverse_iterator rbegin() const noexcept {
-        return std::make_reverse_iterator(end());
-    }
-    constexpr const_reverse_iterator crbegin() const noexcept {
-        return std::make_reverse_iterator(cend());
-    }
-
-    constexpr reverse_iterator rend() const noexcept {
-        return std::make_reverse_iterator(begin());
-    }
-    constexpr const_reverse_iterator crend() const noexcept {
-        return std::make_reverse_iterator(cbegin());
-    }
-
-    constexpr reference front() const { return *begin(); }
-    constexpr reference back() const { return *(--end()); }
-
-    constexpr reference at(size_type pos) const {
-        if (WJR_UNLIKELY(pos >= size())) {
-            WJR_THROW(std::out_of_range("span at out of range"));
-        }
-
-        return this->operator[](pos);
-    }
-
-    constexpr reference operator[](size_type pos) const { return data()[pos]; }
-
-    constexpr pointer data() const { return storage.ptr; }
-    constexpr size_type size() const { return storage.size; }
-    constexpr size_type size_bytes() const { return size() * sizeof(element_type); }
-    constexpr bool empty() const { return size() == 0; }
-
-    template <size_t Count>
-    constexpr span<element_type, Count> first() const {
-        static_assert(Count <= Extent, "");
-
-        return {begin(), Count};
-    }
-
-    constexpr span<element_type, dynamic_extent> first(size_type Count) const {
-        WJR_ASSERT(Count <= size());
-
-        return {begin(), Count};
-    }
-
-    template <size_t Count>
-    constexpr span<element_type, Count> last() const {
-        static_assert(Count <= Extent, "");
-
-        return {end() - Count, Count};
-    }
-
-    constexpr span<element_type, dynamic_extent> last(size_type Count) const {
-        WJR_ASSERT(Count <= size());
-
-        return {data() - Count, Count};
-    }
-
-    template <size_t Offset, size_t Count = dynamic_extent>
-    constexpr span<element_type, Count != dynamic_extent    ? Count
-                                 : Extent != dynamic_extent ? Extent - Offset
-                                                            : dynamic_extent>
-    subspan() const {
-        if constexpr (Extent != dynamic_extent) {
-            static_assert(Offset <= Extent, "");
-            static_assert(Count == dynamic_extent || Count <= Extent - Offset, "");
-        } else {
-            WJR_ASSERT(Offset <= size());
-            if constexpr (Count != dynamic_extent) {
-                WJR_ASSERT(Count <= size() - Offset);
-            }
-        }
-        return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
-    }
-
-    constexpr span<element_type, dynamic_extent>
-    subspan(size_type Offset, size_type Count = dynamic_extent) const {
-        WJR_ASSERT(Offset <= size());
-
-        return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
-    }
-
-    // extension :
-
-    template <typename Container,
-              std::enable_if_t<span_details::__is_span_like_v<Container, element_type> &&
-                                   __is_dynamic,
-                               int> = 0>
-    constexpr span(Container &&c) noexcept : storage(std::data(c), std::size(c)) {}
-
-    template <typename Container,
-              std::enable_if_t<span_details::__is_span_like_v<Container, element_type> &&
-                                   !__is_dynamic,
-                               int> = 0>
-    constexpr explicit span(Container &&c) noexcept
-        : storage(std::data(c), std::size(c)) {}
-
-private:
-    __storage storage;
-};
-
-template <typename T, size_t Extent>
-span(T (&)[Extent]) -> span<T, Extent>;
-
-template <typename T, size_t Size>
-span(std::array<T, Size> &) -> span<T, Size>;
-
-template <typename T, size_t Size>
-span(const std::array<T, Size> &) -> span<const T, Size>;
-
-template <typename It, typename End,
-          std::enable_if_t<is_contiguous_iterator_v<It>, int> = 0>
-span(It, End) -> span<iterator_contiguous_value_t<It>>;
-
-} // namespace wjr
-
-#endif // WJR_SPAN_HPP__
 // Already included
 
 namespace wjr {
