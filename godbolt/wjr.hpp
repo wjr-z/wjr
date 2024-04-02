@@ -20503,19 +20503,6 @@ inline constexpr auto div2by1_divider_noshift_of_big_base_10 =
     div2by1_divider_noshift<uint64_t>(10'000'000'000'000'000'000ull,
                                       15'581'492'618'384'294'730ull);
 
-template <typename Iter, typename = void>
-struct __is_fast_convert_iterator_helper : std::false_type {};
-
-template <typename Iter>
-struct __is_fast_convert_iterator_helper<
-    Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, void>>
-    : std::conjunction<
-          std::is_trivial<iterator_contiguous_value_t<Iter>>,
-          std::bool_constant<sizeof(iterator_contiguous_value_t<Iter>) == 1>> {};
-
-template <typename Iter>
-struct __is_fast_convert_iterator : __is_fast_convert_iterator_helper<Iter> {};
-
 namespace convert_details {
 
 static constexpr std::array<uint8_t, 36> to_table = {
@@ -20575,6 +20562,36 @@ WJR_CONST constexpr uint8_t from(uint8_t x) {
         return x - '0';
     }
 }
+
+template <typename T>
+struct __is_fast_convert_value
+    : std::conjunction<std::is_trivial<T>, std::bool_constant<sizeof(T) == 1>> {};
+
+template <typename T>
+inline constexpr bool __is_fast_convert_value_v = __is_fast_convert_value<T>::value;
+
+template <typename Iter, typename = void>
+struct __is_fast_convert_iterator_helper : std::false_type {};
+
+template <typename Iter>
+struct __is_fast_convert_iterator_helper<Iter,
+                                         std::enable_if_t<is_contiguous_iterator_v<Iter>>>
+    : __is_fast_convert_value<iterator_contiguous_value_t<Iter>> {};
+
+template <typename Iter>
+struct __is_fast_convert_iterator : __is_fast_convert_iterator_helper<Iter> {};
+
+/**
+ * @brief Iterator concept that can be used in fast_convert.
+ *
+ * @details The iterator must be contiguous iterator and the value_type must be
+ * trivial and sizeof(value_type) == 1. Cast to_address(iter) to uint8_t*(to_chars)/const
+ * uint8_t*(from_chars) in fast_convert.
+ *
+ */
+template <typename Iter>
+inline constexpr bool __is_fast_convert_iterator_v =
+    __is_fast_convert_iterator<Iter>::value;
 
 template <typename Enable, typename Base, typename Value, typename... Args>
 struct __has_to_chars_fast_fn_fast_conv : std::false_type {};
@@ -20664,6 +20681,31 @@ struct __has_trivial_append<Iter, std::enable_if_t<is_back_insert_iterator_v<Ite
 template <typename Iter>
 inline constexpr bool has_trivial_append_v = __has_trivial_append<Iter>::value;
 
+template <typename Iter, typename = void>
+struct fast_buffer {
+private:
+    using value_type = iterator_value_t<Iter>;
+
+public:
+    using type =
+        std::conditional_t<__is_fast_convert_value_v<value_type>, value_type, char>;
+};
+
+// back_inserter or inserter
+template <typename Iter>
+struct fast_buffer<Iter, std::void_t<decltype(std::declval<std::enable_if_t<
+                                                  is_any_insert_iterator_v<Iter>>>())>> {
+private:
+    using value_type = typename Iter::container_type::value_type;
+
+public:
+    using type =
+        std::conditional_t<__is_fast_convert_value_v<value_type>, value_type, char>;
+};
+
+template <typename Iter>
+using fast_buffer_t = typename fast_buffer<Iter>::type;
+
 } // namespace convert_details
 
 // require operator() of Converter is constexpr
@@ -20692,18 +20734,6 @@ private:
 
 template <uint64_t Base, int Unroll>
 inline constexpr __char_converter_table_t<Base, Unroll> __char_converter_table = {};
-
-/**
- * @brief Iterator concept that can be used in fast_convert.
- *
- * @details The iterator must be contiguous iterator and the value_type must be
- * trivial and sizeof(value_type) == 1. Cast to_address(iter) to uint8_t*(to_chars)/const
- * uint8_t*(from_chars) in fast_convert.
- *
- */
-template <typename Iter>
-inline constexpr bool __is_fast_convert_iterator_v =
-    __is_fast_convert_iterator<Iter>::value;
 
 template <uint64_t Base>
 class __to_chars_unroll_2_fast_fn_impl_base {
@@ -21436,10 +21466,11 @@ Iter __to_chars_backward_impl(Iter first, Value val, IBase ibase) {
  * @details Only use fast_convert mode.
  *
  */
-template <
-    typename Iter, typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
-    std::enable_if_t<__is_fast_convert_iterator_v<Iter> && is_nonbool_integral_v<Value>,
-                     int> = 0>
+template <typename Iter, typename Value, typename BaseType = unsigned int,
+          BaseType IBase = 10,
+          std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter> &&
+                               is_nonbool_integral_v<Value>,
+                           int> = 0>
 Iter to_chars_backward(Iter first, Value val,
                        std::integral_constant<BaseType, IBase> = {}) {
     return __to_chars_backward_impl(first, val,
@@ -21452,10 +21483,10 @@ Iter to_chars_backward(Iter first, Value val,
  *
  *
  */
-template <
-    typename Iter, typename Value,
-    std::enable_if_t<__is_fast_convert_iterator_v<Iter> && is_nonbool_integral_v<Value>,
-                     int> = 0>
+template <typename Iter, typename Value,
+          std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter> &&
+                               is_nonbool_integral_v<Value>,
+                           int> = 0>
 Iter to_chars_backward(Iter first, Value val, unsigned int base) {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
@@ -21609,10 +21640,11 @@ to_chars_result<Iter> __fallback_to_chars_validate_impl(Iter first, Iter last, V
                                }),                                                       \
                            ()))                                                          \
                                                                                          \
-        uint8_t buffer[TABLE + is_signed];                                               \
+        convert_details::fast_buffer_t<Iter> buffer[TABLE + is_signed];                  \
         const auto __end = buffer + TABLE + is_signed;                                   \
         auto __ptr =                                                                     \
-            __unsigned_to_chars_backward<BASE>(__end, WJR_PP_QUEUE_EXPAND(CALL));        \
+            (convert_details::fast_buffer_t<Iter> *)__unsigned_to_chars_backward<BASE>(  \
+                (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL));                            \
                                                                                          \
         WJR_PP_QUEUE_EXPAND(                                                             \
             WJR_PP_BOOL_IF(WJR_PP_EQ(BASE, 10),                                          \
@@ -21638,10 +21670,11 @@ to_chars_result<Iter> __fallback_to_chars_validate_impl(Iter first, Iter last, V
                                                                                          \
         return wjr::copy(__ptr, __end, first);                                           \
     } else {                                                                             \
-        uint8_t buffer[TABLE];                                                           \
+        convert_details::fast_buffer_t<Iter> buffer[TABLE];                              \
         const auto __end = buffer + TABLE;                                               \
         auto __ptr =                                                                     \
-            __unsigned_to_chars_backward<BASE>(__end, WJR_PP_QUEUE_EXPAND(CALL));        \
+            (convert_details::fast_buffer_t<Iter> *)__unsigned_to_chars_backward<BASE>(  \
+                (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL));                            \
                                                                                          \
         do {                                                                             \
             if (WJR_UNLIKELY(first == last)) {                                           \
@@ -21689,7 +21722,7 @@ to_chars_result<Iter> __fallback_to_chars_validate_impl(Iter first, Iter last, V
 template <typename Iter, typename Value, typename IBase>
 to_chars_result<Iter> __to_chars_validate_impl(Iter first, Iter last, Value val,
                                                IBase ibase) {
-    if constexpr (__is_fast_convert_iterator_v<Iter>) {
+    if constexpr (convert_details::__is_fast_convert_iterator_v<Iter>) {
         auto __first = reinterpret_cast<uint8_t *>(to_address(first));
         auto __last = reinterpret_cast<uint8_t *>(to_address(last));
         auto __result = __fast_to_chars_validate_impl(__first, __last, val, ibase);
@@ -21781,42 +21814,19 @@ Iter __fallback_to_chars_impl(Iter ptr, Value val, IBase ibase) {
     const unsigned int base = ibase;
 
 #define WJR_TO_CHARS_IMPL(BASE, TABLE, CALL)                                             \
-    if constexpr (convert_details::has_trivial_resize_v<Iter> ||                         \
-                  convert_details::has_trivial_append_v<Iter>) {                         \
-        auto &cont = get_inserter_container(ptr);                                        \
-        WJR_PP_BOOL_IF(WJR_PP_EQ(BASE, 10), int n = count_digits<10>(uVal), );           \
-        if constexpr (convert_details::has_trivial_append_v<Iter>) {                     \
-            cont.append(n + sign, wjr::in_place_default_construct);                      \
-        } else {                                                                         \
-            cont.resize(std::size(cont) + n + sign);                                     \
+    convert_details::fast_buffer_t<Iter> buffer[TABLE + is_signed];                      \
+    const auto __end = buffer + TABLE + is_signed;                                       \
+    auto __ptr =                                                                         \
+        (convert_details::fast_buffer_t<Iter> *)__unsigned_to_chars_backward<BASE>(      \
+            (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL));                                \
+                                                                                         \
+    if constexpr (is_signed) {                                                           \
+        if (sign) {                                                                      \
+            *--__ptr = '-';                                                              \
         }                                                                                \
+    }                                                                                    \
                                                                                          \
-        const auto __end =                                                               \
-            reinterpret_cast<uint8_t *>(std::data(cont) + std::size(cont));              \
-        auto __ptr =                                                                     \
-            __unsigned_to_chars_backward<BASE>(__end, WJR_PP_QUEUE_EXPAND(CALL));        \
-                                                                                         \
-        if constexpr (is_signed) {                                                       \
-            if (sign) {                                                                  \
-                *--__ptr = '-';                                                          \
-            }                                                                            \
-        }                                                                                \
-                                                                                         \
-        return ptr;                                                                      \
-    } else {                                                                             \
-        uint8_t buffer[TABLE + is_signed];                                               \
-        const auto __end = buffer + TABLE + is_signed;                                   \
-        auto __ptr =                                                                     \
-            __unsigned_to_chars_backward<BASE>(__end, WJR_PP_QUEUE_EXPAND(CALL));        \
-                                                                                         \
-        if constexpr (is_signed) {                                                       \
-            if (sign) {                                                                  \
-                *--__ptr = '-';                                                          \
-            }                                                                            \
-        }                                                                                \
-                                                                                         \
-        return wjr::copy(__ptr, __end, ptr);                                             \
-    }
+    return wjr::copy(__ptr, __end, ptr);
 
     switch (base) {
     case 2: {
@@ -21851,7 +21861,7 @@ Iter __fallback_to_chars_impl(Iter ptr, Value val, IBase ibase) {
 
 template <typename Iter, typename Value, typename IBase>
 Iter __to_chars_impl(Iter ptr, Value val, IBase ibase) {
-    if constexpr (__is_fast_convert_iterator_v<Iter>) {
+    if constexpr (convert_details::__is_fast_convert_iterator_v<Iter>) {
         auto __ptr = reinterpret_cast<uint8_t *>(to_address(ptr));
         auto __result = __fast_to_chars_impl(__ptr, val, ibase);
         return ptr + std::distance(__ptr, __result);
@@ -22377,7 +22387,8 @@ inline uint8_t *__biginteger_to_chars_impl(uint8_t *first, const uint64_t *up, s
  * Only support 10 and power of two currently.
  * @return Output iterator after the conversion
  */
-template <typename Iter, std::enable_if_t<__is_fast_convert_iterator_v<Iter>, int> = 0>
+template <typename Iter,
+          std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter>, int> = 0>
 Iter biginteger_to_chars(Iter first, const uint64_t *up, size_t n,
                          unsigned int base = 10) {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));
@@ -22743,19 +22754,20 @@ void __from_chars_impl(Iter first, Iter last, Value &val, IBase ibase) {
     __fast_from_chars_impl(__first, __last, val, ibase);
 }
 
-template <
-    typename Iter, typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
-    std::enable_if_t<__is_fast_convert_iterator_v<Iter> && is_nonbool_integral_v<Value>,
-                     int> = 0>
+template <typename Iter, typename Value, typename BaseType = unsigned int,
+          BaseType IBase = 10,
+          std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter> &&
+                               is_nonbool_integral_v<Value>,
+                           int> = 0>
 void from_chars(Iter first, Iter last, Value &val,
                 std::integral_constant<BaseType, IBase> = {}) {
     __from_chars_impl(first, last, val, std::integral_constant<unsigned int, IBase>());
 }
 
-template <
-    typename Iter, typename Value,
-    std::enable_if_t<__is_fast_convert_iterator_v<Iter> && is_nonbool_integral_v<Value>,
-                     int> = 0>
+template <typename Iter, typename Value,
+          std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter> &&
+                               is_nonbool_integral_v<Value>,
+                           int> = 0>
 void from_chars(Iter first, Iter last, Value &val, unsigned int base) {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
@@ -23130,7 +23142,8 @@ inline uint64_t *__biginteger_from_chars_impl(const uint8_t *first, const uint8_
  * Only support 10 and power of two currently.
  * @return uint64_t* Pointer after the conversion
  */
-template <typename Iter, std::enable_if_t<__is_fast_convert_iterator_v<Iter>, int> = 0>
+template <typename Iter,
+          std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter>, int> = 0>
 uint64_t *biginteger_from_chars(Iter first, Iter last, uint64_t *up,
                                 unsigned int base = 10) {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));
