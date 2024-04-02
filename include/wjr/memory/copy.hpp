@@ -6,6 +6,12 @@
 
 namespace wjr {
 
+/**
+ * @fn copy
+ * 
+ * @details Optimized for back_insert_iterator and insert_iterator.
+ * 
+ */
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
     using Out = remove_cvref_t<OutputIt>;
@@ -42,6 +48,12 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
     }
 }
 
+/**
+ * @fn wjr::copy_n
+ * 
+ * @details Optimized for back_insert_iterator and insert_iterator.
+ * 
+ */
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
     using Out = remove_cvref_t<OutputIt>;

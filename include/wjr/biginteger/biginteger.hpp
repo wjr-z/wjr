@@ -210,41 +210,51 @@ public:
     explicit basic_biginteger(const allocator_type &al) : m_vec(al) {}
 
     template <typename Iter, std::enable_if_t<is_iterator_v<Iter>, int> = 0>
-    basic_biginteger(Iter first, Iter last, const allocator_type &al)
-        : m_vec(first, last, al) {
-        __check_high_bit();
-    }
+    basic_biginteger(Iter first, Iter last, const allocator_type &al = allocator_type())
+        : m_vec(first, last, al) {}
 
-    basic_biginteger(const basic_biginteger &other, const allocator_type &al)
+    basic_biginteger(const basic_biginteger &other,
+                     const allocator_type &al = allocator_type())
         : m_vec(other.m_vec, al) {}
 
-    basic_biginteger(basic_biginteger &&other, const allocator_type &al)
+    basic_biginteger(basic_biginteger &&other,
+                     const allocator_type &al = allocator_type())
         : m_vec(std::move(other.m_vec), al) {}
 
-    basic_biginteger(std::initializer_list<value_type> il, const allocator_type &al)
-        : m_vec(il, al) {
-        __check_high_bit();
-    }
+    basic_biginteger(std::initializer_list<value_type> il,
+                     const allocator_type &al = allocator_type())
+        : m_vec(il, al) {}
 
-    basic_biginteger(size_type n, in_place_default_construct_t, const allocator_type &al)
+    basic_biginteger(size_type n, in_place_default_construct_t,
+                     const allocator_type &al = allocator_type())
         : m_vec(n, in_place_default_construct, al) {}
+
+    template <typename UnsignedValue,
+              std::enable_if_t<is_nonbool_integral_v<UnsignedValue>, int> = 0>
+    explicit basic_biginteger(UnsignedValue value,
+                              const allocator_type &al = allocator_type())
+        : m_vec(1, value, al) {}
+
+    template <typename SignedValue,
+              std::enable_if_t<is_signed_integral_v<SignedValue>, int> = 0>
+    explicit basic_biginteger(SignedValue value,
+                              const allocator_type &al = allocator_type())
+        : m_vec(1, in_place_default_construct, al) {
+        m_vec.front() = __fasts_abs(value);
+        m_vec.set_ssize(__fasts_conditional_negate(value < 0, 1));
+    }
 
     basic_biginteger &operator=(std::initializer_list<value_type> il) {
         m_vec = il;
-        __check_high_bit();
         return *this;
     }
 
     template <typename Iter, std::enable_if_t<is_iterator_v<Iter>, int> = 0>
     void assign(Iter first, Iter last) {
         m_vec.assign(first, last);
-        __check_high_bit();
     }
 
-    void assign(std::initializer_list<value_type> il) {
-        m_vec.assign(il);
-        __check_high_bit();
-    }
+    void assign(std::initializer_list<value_type> il) { m_vec.assign(il); }
 
     allocator_type &get_allocator() noexcept { return m_vec.get_allocator(); }
     const allocator_type &get_allocator() const noexcept { return m_vec.get_allocator(); }
@@ -286,11 +296,6 @@ public:
     WJR_PURE bool empty() const noexcept { return m_vec.empty(); }
     WJR_PURE size_type size() const noexcept { return m_vec.size(); }
     WJR_PURE size_type capacity() const noexcept { return m_vec.capacity(); }
-
-    WJR_CONST static size_type get_growth_capacity(size_type old_capacity,
-                                                   size_type new_size) noexcept {
-        return vector_type::get_growth_capacity(old_capacity, new_size);
-    }
 
     void reserve(size_type new_capacity) { m_vec.reserve(new_capacity); }
 
@@ -366,6 +371,11 @@ public:
 
     WJR_PURE int32_t get_ssize() const { return __get_storage().get_ssize(); }
     void set_ssize(int32_t new_size) { __get_storage().set_ssize(new_size); }
+
+    WJR_CONST static size_type get_growth_capacity(size_type old_capacity,
+                                                   size_type new_size) noexcept {
+        return vector_type::get_growth_capacity(old_capacity, new_size);
+    }
 
 private:
     WJR_PURE storage_type &__get_storage() noexcept { return m_vec.get_storage(); }
@@ -603,6 +613,7 @@ void basic_biginteger<Storage>::__mul(basic_biginteger *dst, const basic_biginte
 
     if (temp.has_value()) {
         *dst = std::move(temp).value();
+        temp.reset();
     }
 
     dst->set_ssize(dssize);

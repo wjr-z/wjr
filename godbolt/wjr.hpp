@@ -20234,6 +20234,12 @@ typename Container::iterator get_inserter_iterator(std::insert_iterator<Containe
 
 namespace wjr {
 
+/**
+ * @fn copy
+ * 
+ * @details Optimized for back_insert_iterator and insert_iterator.
+ * 
+ */
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
     using Out = remove_cvref_t<OutputIt>;
@@ -20270,6 +20276,12 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
     }
 }
 
+/**
+ * @fn wjr::copy_n
+ * 
+ * @details Optimized for back_insert_iterator and insert_iterator.
+ * 
+ */
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
     using Out = remove_cvref_t<OutputIt>;
@@ -20628,17 +20640,18 @@ template <typename Iter>
 struct __is_fast_convert_iterator_helper<
     Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, void>>
     : std::conjunction<
-          std::is_trivially_copyable<iterator_contiguous_value_t<Iter>>,
+          std::is_trivial<iterator_contiguous_value_t<Iter>>,
           std::bool_constant<sizeof(iterator_contiguous_value_t<Iter>) == 1>> {};
 
 template <typename Iter>
 struct __is_fast_convert_iterator : __is_fast_convert_iterator_helper<Iter> {};
 
 /**
- * @brief Iterator concept that can fast convert to uint8_t *.
+ * @brief Iterator concept that can be used in fast_convert.
  *
  * @details The iterator must be contiguous iterator and the value_type must be
- * trivially copyable and sizeof(value_type) == 1.
+ * trivial and sizeof(value_type) == 1. Cast to_address(iter) to uint8_t*(to_chars)/const
+ * uint8_t*(from_chars) in fast_convert.
  *
  */
 template <typename Iter>
@@ -21369,6 +21382,13 @@ Iter __to_chars_backward_impl(Iter first, Value val, IBase ibase) {
     return first + std::distance(__ptr, __end);
 }
 
+/**
+ * @brief Convert an unsigned integer to a string in reverse order without checking
+ * buf size.
+ *
+ * @details Only use fast_convert mode.
+ *
+ */
 template <
     typename Iter, typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
     std::enable_if_t<__is_fast_convert_iterator_v<Iter> && is_nonbool_integral_v<Value>,
@@ -21383,9 +21403,6 @@ Iter to_chars_backward(Iter first, Value val,
  * @brief Convert an unsigned integer to a string in reverse order without checking
  * buf size.
  *
- * @tparam Iter The iterator type. Must be random access iterator.
- * @tparam Value The value type. If Converter is origin_converter_t, Value must be
- * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
  *
  */
 template <
@@ -21770,7 +21787,14 @@ Iter __to_chars_impl(Iter ptr, Value val, IBase ibase) {
         return __fallback_to_chars_impl(ptr, val, ibase);
     }
 }
-
+/**
+ * @brief Convert an unsigned integer to a string with checking buf size.
+ *
+ *
+ * @return to_chars_result<Iter> If the conversion is successful, return {ans,
+ * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
+ *
+ */
 template <typename Iter, typename Value, typename BaseType = unsigned int,
           BaseType IBase = 10, std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
 to_chars_result<Iter> to_chars_validate(Iter ptr, Iter last, Value val,
@@ -21781,10 +21805,6 @@ to_chars_result<Iter> to_chars_validate(Iter ptr, Iter last, Value val,
 
 /**
  * @brief Convert an unsigned integer to a string with checking buf size.
- *
- * @tparam Iter The iterator type. Must be random access iterator.
- * @tparam Value The value type. If Converter is origin_converter_t, Value must be
- * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
  *
  * @return to_chars_result<Iter> If the conversion is successful, return {ans,
  * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
@@ -21821,6 +21841,16 @@ to_chars_result<Iter> to_chars_validate(Iter ptr, Iter last, Value val,
     return __to_chars_validate_impl(ptr, last, val, base);
 }
 
+/**
+ * @brief Convert an unsigned integer to a string without checking buf size.
+ *
+ * @details Iter can be any output iterator. Support fast_convert mode and fallback mode.
+ * \n fast_convert mode : \n fast_convert mode is used when
+ * __is_fast_convert_iterator_v<Iter> is true. \n caclulate the number of digits and
+ * convert the integer to a string in reverse order. \n fallback mode : \n use buffer to
+ * store the result and use @ref wjr::copy to copy the result to the output iterator. \n
+ *
+ */
 template <typename Iter, typename Value, typename BaseType = unsigned int,
           BaseType IBase = 10, std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
 Iter to_chars(Iter ptr, Value val, std::integral_constant<BaseType, IBase> = {}) {
@@ -25186,41 +25216,51 @@ public:
     explicit basic_biginteger(const allocator_type &al) : m_vec(al) {}
 
     template <typename Iter, std::enable_if_t<is_iterator_v<Iter>, int> = 0>
-    basic_biginteger(Iter first, Iter last, const allocator_type &al)
-        : m_vec(first, last, al) {
-        __check_high_bit();
-    }
+    basic_biginteger(Iter first, Iter last, const allocator_type &al = allocator_type())
+        : m_vec(first, last, al) {}
 
-    basic_biginteger(const basic_biginteger &other, const allocator_type &al)
+    basic_biginteger(const basic_biginteger &other,
+                     const allocator_type &al = allocator_type())
         : m_vec(other.m_vec, al) {}
 
-    basic_biginteger(basic_biginteger &&other, const allocator_type &al)
+    basic_biginteger(basic_biginteger &&other,
+                     const allocator_type &al = allocator_type())
         : m_vec(std::move(other.m_vec), al) {}
 
-    basic_biginteger(std::initializer_list<value_type> il, const allocator_type &al)
-        : m_vec(il, al) {
-        __check_high_bit();
-    }
+    basic_biginteger(std::initializer_list<value_type> il,
+                     const allocator_type &al = allocator_type())
+        : m_vec(il, al) {}
 
-    basic_biginteger(size_type n, in_place_default_construct_t, const allocator_type &al)
+    basic_biginteger(size_type n, in_place_default_construct_t,
+                     const allocator_type &al = allocator_type())
         : m_vec(n, in_place_default_construct, al) {}
+
+    template <typename UnsignedValue,
+              std::enable_if_t<is_nonbool_integral_v<UnsignedValue>, int> = 0>
+    explicit basic_biginteger(UnsignedValue value,
+                              const allocator_type &al = allocator_type())
+        : m_vec(1, value, al) {}
+
+    template <typename SignedValue,
+              std::enable_if_t<is_signed_integral_v<SignedValue>, int> = 0>
+    explicit basic_biginteger(SignedValue value,
+                              const allocator_type &al = allocator_type())
+        : m_vec(1, in_place_default_construct, al) {
+        m_vec.front() = __fasts_abs(value);
+        m_vec.set_ssize(__fasts_conditional_negate(value < 0, 1));
+    }
 
     basic_biginteger &operator=(std::initializer_list<value_type> il) {
         m_vec = il;
-        __check_high_bit();
         return *this;
     }
 
     template <typename Iter, std::enable_if_t<is_iterator_v<Iter>, int> = 0>
     void assign(Iter first, Iter last) {
         m_vec.assign(first, last);
-        __check_high_bit();
     }
 
-    void assign(std::initializer_list<value_type> il) {
-        m_vec.assign(il);
-        __check_high_bit();
-    }
+    void assign(std::initializer_list<value_type> il) { m_vec.assign(il); }
 
     allocator_type &get_allocator() noexcept { return m_vec.get_allocator(); }
     const allocator_type &get_allocator() const noexcept { return m_vec.get_allocator(); }
@@ -25262,11 +25302,6 @@ public:
     WJR_PURE bool empty() const noexcept { return m_vec.empty(); }
     WJR_PURE size_type size() const noexcept { return m_vec.size(); }
     WJR_PURE size_type capacity() const noexcept { return m_vec.capacity(); }
-
-    WJR_CONST static size_type get_growth_capacity(size_type old_capacity,
-                                                   size_type new_size) noexcept {
-        return vector_type::get_growth_capacity(old_capacity, new_size);
-    }
 
     void reserve(size_type new_capacity) { m_vec.reserve(new_capacity); }
 
@@ -25342,6 +25377,11 @@ public:
 
     WJR_PURE int32_t get_ssize() const { return __get_storage().get_ssize(); }
     void set_ssize(int32_t new_size) { __get_storage().set_ssize(new_size); }
+
+    WJR_CONST static size_type get_growth_capacity(size_type old_capacity,
+                                                   size_type new_size) noexcept {
+        return vector_type::get_growth_capacity(old_capacity, new_size);
+    }
 
 private:
     WJR_PURE storage_type &__get_storage() noexcept { return m_vec.get_storage(); }
@@ -25579,6 +25619,7 @@ void basic_biginteger<Storage>::__mul(basic_biginteger *dst, const basic_biginte
 
     if (temp.has_value()) {
         *dst = std::move(temp).value();
+        temp.reset();
     }
 
     dst->set_ssize(dssize);
@@ -25651,6 +25692,16 @@ struct __is_span_array_helper<Array, Elem,
 template <typename Array, typename Elem>
 struct __is_span_array : __is_span_array_helper<Array, Elem, void> {};
 
+template <typename Array, typename Elem>
+inline constexpr bool __is_span_array_v = __is_span_array<Array, Elem>::value;
+
+namespace span_details {
+
+WJR_REGISTER_HAS_TYPE(data, std::data(std::declval<Container &>()), Container);
+WJR_REGISTER_HAS_TYPE(size, std::size(std::declval<Container &>()), Container);
+
+} // namespace span_details
+
 /**
  * @class span
  * @brief A view over a contiguous sequence of objectsd.
@@ -25706,25 +25757,24 @@ public:
 
     template <size_t N,
               std::enable_if_t<(__is_dynamic || N == Extent) &&
-                                   __is_span_array<type_identity_t<element_type> (&)[N],
-                                                   element_type>::value,
+                                   __is_span_array_v<type_identity_t<element_type> (&)[N],
+                                                     element_type>,
                                int> = 0>
     constexpr span(std::add_const_t<type_identity_t<element_type>> (&arr)[N]) noexcept
         : storage(std::data(arr), N) {}
 
-    template <
-        typename U, size_t N,
-        std::enable_if_t<(__is_dynamic || N == Extent) &&
-                             __is_span_array<std::array<U, N> &, element_type>::value,
-                         int> = 0>
+    template <typename U, size_t N,
+              std::enable_if_t<(__is_dynamic || N == Extent) &&
+                                   __is_span_array_v<std::array<U, N> &, element_type>,
+                               int> = 0>
     constexpr span(std::array<U, N> &arr) noexcept
         : storage(std::data(arr), std::size(arr)) {}
 
-    template <typename U, size_t N,
-              std::enable_if_t<
-                  (__is_dynamic || N == Extent) &&
-                      __is_span_array<const std::array<U, N> &, element_type>::value,
-                  int> = 0>
+    template <
+        typename U, size_t N,
+        std::enable_if_t<(__is_dynamic || N == Extent) &&
+                             __is_span_array_v<const std::array<U, N> &, element_type>,
+                         int> = 0>
     constexpr span(const std::array<U, N> &arr) noexcept
         : storage(std::data(arr), std::size(arr)) {}
 
@@ -25848,6 +25898,15 @@ public:
         return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
     }
 
+    // extension :
+
+    template <typename Container,
+              std::enable_if_t<span_details::has_data_v<Container> &&
+                                   span_details::has_size_v<Container> &&
+                                   __is_span_array_v<Container, element_type>,
+                               int> = 0>
+    constexpr span(Container &c) noexcept : storage(std::data(c), std::size(c)) {}
+
 private:
     __storage storage;
 };
@@ -25864,35 +25923,6 @@ span(const std::array<T, Size> &) -> span<const T, Size>;
 template <typename It, typename End,
           std::enable_if_t<is_contiguous_iterator_v<It>, int> = 0>
 span(It, End) -> span<iterator_contiguous_value_t<It>>;
-
-namespace span_details {
-
-WJR_REGISTER_HAS_TYPE(data, std::data(std::declval<Container &>()), Container);
-WJR_REGISTER_HAS_TYPE(size, std::size(std::declval<Container &>()), Container);
-
-} // namespace span_details
-
-template <typename Container, std::enable_if_t<span_details::has_data_v<Container> &&
-                                                   span_details::has_size_v<Container>,
-                                               int> = 0>
-auto make_span(Container &c) {
-    return span(std::data(c), std::size(c));
-}
-
-template <typename T, size_t Extent>
-auto make_span(T (&arr)[Extent]) {
-    return span(arr);
-}
-
-template <typename T, size_t Size>
-auto make_span(std::array<T, Size> &arr) {
-    return span(arr);
-}
-
-template <typename T, size_t Size>
-auto make_span(const std::array<T, Size> &arr) {
-    return span(arr);
-}
 
 } // namespace wjr
 

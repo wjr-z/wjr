@@ -56,6 +56,16 @@ struct __is_span_array_helper<Array, Elem,
 template <typename Array, typename Elem>
 struct __is_span_array : __is_span_array_helper<Array, Elem, void> {};
 
+template <typename Array, typename Elem>
+inline constexpr bool __is_span_array_v = __is_span_array<Array, Elem>::value;
+
+namespace span_details {
+
+WJR_REGISTER_HAS_TYPE(data, std::data(std::declval<Container &>()), Container);
+WJR_REGISTER_HAS_TYPE(size, std::size(std::declval<Container &>()), Container);
+
+} // namespace span_details
+
 /**
  * @class span
  * @brief A view over a contiguous sequence of objectsd.
@@ -111,25 +121,24 @@ public:
 
     template <size_t N,
               std::enable_if_t<(__is_dynamic || N == Extent) &&
-                                   __is_span_array<type_identity_t<element_type> (&)[N],
-                                                   element_type>::value,
+                                   __is_span_array_v<type_identity_t<element_type> (&)[N],
+                                                     element_type>,
                                int> = 0>
     constexpr span(std::add_const_t<type_identity_t<element_type>> (&arr)[N]) noexcept
         : storage(std::data(arr), N) {}
 
-    template <
-        typename U, size_t N,
-        std::enable_if_t<(__is_dynamic || N == Extent) &&
-                             __is_span_array<std::array<U, N> &, element_type>::value,
-                         int> = 0>
+    template <typename U, size_t N,
+              std::enable_if_t<(__is_dynamic || N == Extent) &&
+                                   __is_span_array_v<std::array<U, N> &, element_type>,
+                               int> = 0>
     constexpr span(std::array<U, N> &arr) noexcept
         : storage(std::data(arr), std::size(arr)) {}
 
-    template <typename U, size_t N,
-              std::enable_if_t<
-                  (__is_dynamic || N == Extent) &&
-                      __is_span_array<const std::array<U, N> &, element_type>::value,
-                  int> = 0>
+    template <
+        typename U, size_t N,
+        std::enable_if_t<(__is_dynamic || N == Extent) &&
+                             __is_span_array_v<const std::array<U, N> &, element_type>,
+                         int> = 0>
     constexpr span(const std::array<U, N> &arr) noexcept
         : storage(std::data(arr), std::size(arr)) {}
 
@@ -253,6 +262,15 @@ public:
         return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
     }
 
+    // extension :
+
+    template <typename Container,
+              std::enable_if_t<span_details::has_data_v<Container> &&
+                                   span_details::has_size_v<Container> &&
+                                   __is_span_array_v<Container, element_type>,
+                               int> = 0>
+    constexpr span(Container &c) noexcept : storage(std::data(c), std::size(c)) {}
+
 private:
     __storage storage;
 };
@@ -269,35 +287,6 @@ span(const std::array<T, Size> &) -> span<const T, Size>;
 template <typename It, typename End,
           std::enable_if_t<is_contiguous_iterator_v<It>, int> = 0>
 span(It, End) -> span<iterator_contiguous_value_t<It>>;
-
-namespace span_details {
-
-WJR_REGISTER_HAS_TYPE(data, std::data(std::declval<Container &>()), Container);
-WJR_REGISTER_HAS_TYPE(size, std::size(std::declval<Container &>()), Container);
-
-} // namespace span_details
-
-template <typename Container, std::enable_if_t<span_details::has_data_v<Container> &&
-                                                   span_details::has_size_v<Container>,
-                                               int> = 0>
-auto make_span(Container &c) {
-    return span(std::data(c), std::size(c));
-}
-
-template <typename T, size_t Extent>
-auto make_span(T (&arr)[Extent]) {
-    return span(arr);
-}
-
-template <typename T, size_t Size>
-auto make_span(std::array<T, Size> &arr) {
-    return span(arr);
-}
-
-template <typename T, size_t Size>
-auto make_span(const std::array<T, Size> &arr) {
-    return span(arr);
-}
 
 } // namespace wjr
 

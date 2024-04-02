@@ -167,17 +167,18 @@ template <typename Iter>
 struct __is_fast_convert_iterator_helper<
     Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, void>>
     : std::conjunction<
-          std::is_trivially_copyable<iterator_contiguous_value_t<Iter>>,
+          std::is_trivial<iterator_contiguous_value_t<Iter>>,
           std::bool_constant<sizeof(iterator_contiguous_value_t<Iter>) == 1>> {};
 
 template <typename Iter>
 struct __is_fast_convert_iterator : __is_fast_convert_iterator_helper<Iter> {};
 
 /**
- * @brief Iterator concept that can fast convert to uint8_t *.
+ * @brief Iterator concept that can be used in fast_convert.
  *
  * @details The iterator must be contiguous iterator and the value_type must be
- * trivially copyable and sizeof(value_type) == 1.
+ * trivial and sizeof(value_type) == 1. Cast to_address(iter) to uint8_t*(to_chars)/const
+ * uint8_t*(from_chars) in fast_convert.
  *
  */
 template <typename Iter>
@@ -908,6 +909,13 @@ Iter __to_chars_backward_impl(Iter first, Value val, IBase ibase) {
     return first + std::distance(__ptr, __end);
 }
 
+/**
+ * @brief Convert an unsigned integer to a string in reverse order without checking
+ * buf size.
+ *
+ * @details Only use fast_convert mode.
+ *
+ */
 template <
     typename Iter, typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
     std::enable_if_t<__is_fast_convert_iterator_v<Iter> && is_nonbool_integral_v<Value>,
@@ -922,9 +930,6 @@ Iter to_chars_backward(Iter first, Value val,
  * @brief Convert an unsigned integer to a string in reverse order without checking
  * buf size.
  *
- * @tparam Iter The iterator type. Must be random access iterator.
- * @tparam Value The value type. If Converter is origin_converter_t, Value must be
- * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
  *
  */
 template <
@@ -1309,7 +1314,14 @@ Iter __to_chars_impl(Iter ptr, Value val, IBase ibase) {
         return __fallback_to_chars_impl(ptr, val, ibase);
     }
 }
-
+/**
+ * @brief Convert an unsigned integer to a string with checking buf size.
+ *
+ *
+ * @return to_chars_result<Iter> If the conversion is successful, return {ans,
+ * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
+ *
+ */
 template <typename Iter, typename Value, typename BaseType = unsigned int,
           BaseType IBase = 10, std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
 to_chars_result<Iter> to_chars_validate(Iter ptr, Iter last, Value val,
@@ -1320,10 +1332,6 @@ to_chars_result<Iter> to_chars_validate(Iter ptr, Iter last, Value val,
 
 /**
  * @brief Convert an unsigned integer to a string with checking buf size.
- *
- * @tparam Iter The iterator type. Must be random access iterator.
- * @tparam Value The value type. If Converter is origin_converter_t, Value must be
- * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
  *
  * @return to_chars_result<Iter> If the conversion is successful, return {ans,
  * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
@@ -1360,6 +1368,16 @@ to_chars_result<Iter> to_chars_validate(Iter ptr, Iter last, Value val,
     return __to_chars_validate_impl(ptr, last, val, base);
 }
 
+/**
+ * @brief Convert an unsigned integer to a string without checking buf size.
+ *
+ * @details Iter can be any output iterator. Support fast_convert mode and fallback mode.
+ * \n fast_convert mode : \n fast_convert mode is used when
+ * __is_fast_convert_iterator_v<Iter> is true. \n caclulate the number of digits and
+ * convert the integer to a string in reverse order. \n fallback mode : \n use buffer to
+ * store the result and use @ref wjr::copy to copy the result to the output iterator. \n
+ *
+ */
 template <typename Iter, typename Value, typename BaseType = unsigned int,
           BaseType IBase = 10, std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
 Iter to_chars(Iter ptr, Value val, std::integral_constant<BaseType, IBase> = {}) {
