@@ -247,7 +247,7 @@ public:
 
     template <
         typename CharT, typename Extent,
-        std::enable_if_t<is_nonbool_integral_v<charT> && sizeof(charT) == 1, int> = 0>
+        std::enable_if_t<is_nonbool_integral_v<CharT> && sizeof(CharT) == 1, int> = 0>
     explicit basic_biginteger(span<CharT, Extent> sp, unsigned int base = 10,
                               const allocator_type &al = allocator_type()) {}
 
