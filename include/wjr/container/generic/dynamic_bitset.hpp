@@ -8,6 +8,11 @@
 namespace wjr {
 
 /**
+ * @todo Dynamic bitset.
+ *
+ */
+
+/**
  * @brief Dynamic bitset.
  *
  * @note TODO: Add more functions.
