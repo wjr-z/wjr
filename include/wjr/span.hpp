@@ -59,10 +59,31 @@ struct __is_span_array : __is_span_array_helper<Array, Elem, void> {};
 template <typename Array, typename Elem>
 inline constexpr bool __is_span_array_v = __is_span_array<Array, Elem>::value;
 
+template <typename T, size_t Extent = dynamic_extent>
+class span;
+
 namespace span_details {
 
 WJR_REGISTER_HAS_TYPE(data, std::data(std::declval<Container &>()), Container);
 WJR_REGISTER_HAS_TYPE(size, std::size(std::declval<Container &>()), Container);
+
+template <typename T>
+struct __is_std_array : std::false_type {};
+
+template <typename T, size_t N>
+struct __is_std_array<std::array<T, N>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool __is_std_array_v = __is_std_array<T>::value;
+
+template <typename T>
+struct __is_span : std::false_type {};
+
+template <typename T, size_t Extent>
+struct __is_span<span<T, Extent>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool __is_span_v = __is_span<T>::value;
 
 } // namespace span_details
 
@@ -72,7 +93,7 @@ WJR_REGISTER_HAS_TYPE(size, std::size(std::declval<Container &>()), Container);
  * @tparam Extent if Extent is `dynamic_extent`, the span is a runtime-sized view.
  * Otherwise, the span is a compile-time-sized view.
  */
-template <typename T, size_t Extent = dynamic_extent>
+template <typename T, size_t Extent>
 class span {
     static constexpr bool __is_dynamic = Extent == dynamic_extent;
     using __storage = std::conditional_t<__is_dynamic, __span_dynamic_storage<T>,
@@ -97,26 +118,14 @@ public:
     constexpr span() noexcept : storage() {}
 
     template <typename It,
-              std::enable_if_t<
-                  __is_span_iterator<It, element_type>::value && __is_dynamic, int> = 0>
-    constexpr span(It first, size_type count) : storage(to_address(first), count) {}
-
-    template <typename It,
-              std::enable_if_t<
-                  __is_span_iterator<It, element_type>::value && !__is_dynamic, int> = 0>
-    constexpr explicit span(It first, size_type count)
+              std::enable_if_t<__is_span_iterator<It, element_type>::value, int> = 0>
+    constexpr explicit(!__is_dynamic) span(It first, size_type count)
         : storage(to_address(first), count) {}
 
     template <typename It,
               std::enable_if_t<
-                  __is_span_iterator<It, element_type>::value && __is_dynamic, int> = 0>
-    constexpr span(It first, It last)
-        : storage(to_address(first), static_cast<size_type>(last - first)) {}
-
-    template <typename It,
-              std::enable_if_t<
                   __is_span_iterator<It, element_type>::value && !__is_dynamic, int> = 0>
-    constexpr explicit span(It first, It last)
+    constexpr explicit(!__is_dynamic) span(It first, It last)
         : storage(to_address(first), static_cast<size_type>(last - first)) {}
 
     template <size_t N,
@@ -124,7 +133,7 @@ public:
                                    __is_span_array_v<type_identity_t<element_type> (&)[N],
                                                      element_type>,
                                int> = 0>
-    constexpr span(std::add_const_t<type_identity_t<element_type>> (&arr)[N]) noexcept
+    constexpr span(type_identity_t<element_type> (&arr)[N]) noexcept
         : storage(std::data(arr), N) {}
 
     template <typename U, size_t N,
@@ -142,30 +151,11 @@ public:
     constexpr span(const std::array<U, N> &arr) noexcept
         : storage(std::data(arr), std::size(arr)) {}
 
-    template <
-        size_t Ex = Extent,
-        std::enable_if_t<std::is_const_v<element_type> && Ex == dynamic_extent, int> = 0>
-    constexpr span(std::initializer_list<value_type> il) noexcept
-        : storage(std::data(il), std::size(il)) {}
-
-    template <
-        size_t Ex = Extent,
-        std::enable_if_t<std::is_const_v<element_type> && Ex != dynamic_extent, int> = 0>
-    constexpr explicit span(std::initializer_list<value_type> il) noexcept
-        : storage(std::data(il), std::size(il)) {}
-
     template <typename U, size_t N,
               std::enable_if_t<(__is_dynamic || N == dynamic_extent || N == Extent) &&
-                                   std::is_convertible_v<U *, T *> && __is_dynamic,
+                                   std::is_convertible_v<U *, T *>,
                                int> = 0>
-    constexpr span(const span<U, N> &source) noexcept
-        : storage(source.data(), source.size()) {}
-
-    template <typename U, size_t N,
-              std::enable_if_t<(__is_dynamic || N == dynamic_extent || N == Extent) &&
-                                   std::is_convertible_v<U *, T *> && !__is_dynamic,
-                               int> = 0>
-    constexpr explicit span(const span<U, N> &source) noexcept
+    constexpr explicit(!__is_dynamic) span(const span<U, N> &source) noexcept
         : storage(source.data(), source.size()) {}
 
     constexpr span(const span &other) noexcept = default;
@@ -264,12 +254,17 @@ public:
 
     // extension :
 
-    template <typename Container,
-              std::enable_if_t<span_details::has_data_v<Container> &&
-                                   span_details::has_size_v<Container> &&
-                                   __is_span_array_v<Container, element_type>,
-                               int> = 0>
-    constexpr span(Container &c) noexcept : storage(std::data(c), std::size(c)) {}
+    template <
+        typename Container,
+        std::enable_if_t<!std::is_array_v<remove_cvref_t<Container>> &&
+                             !span_details::__is_std_array_v<remove_cvref_t<Container>> &&
+                             !span_details::__is_span_v<remove_cvref_t<Container>> &&
+                             span_details::has_data_v<Container &&> &&
+                             span_details::has_size_v<Container &&> &&
+                             __is_span_array_v<Container &&, element_type>,
+                         int> = 0>
+    constexpr explicit(!__is_dynamic) span(Container &&c) noexcept
+        : storage(std::data(c), std::size(c)) {}
 
 private:
     __storage storage;
