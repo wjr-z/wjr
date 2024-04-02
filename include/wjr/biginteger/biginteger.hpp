@@ -245,12 +245,6 @@ public:
         m_vec.set_ssize(__fasts_conditional_negate(value < 0, 1));
     }
 
-    template <
-        typename CharT, typename Extent,
-        std::enable_if_t<is_nonbool_integral_v<CharT> && sizeof(CharT) == 1, int> = 0>
-    explicit basic_biginteger(span<CharT, Extent> sp, unsigned int base = 10,
-                              const allocator_type &al = allocator_type()) {}
-
     basic_biginteger &operator=(std::initializer_list<value_type> il) {
         m_vec = il;
         return *this;
