@@ -267,11 +267,12 @@ struct __is_fast_container_inserter<
                  __fast_container_inserter_test<typename Iter::container_type>::value)>> {
 private:
     using container_type = typename Iter::container_type;
-    using value_type = typename container_type::value_type;
 
 public:
     static constexpr int value =
-        __is_fast_convert_value_v<value_type>
+        __is_fast_convert_value_v<typename container_type::value_type> &&
+                is_trivially_allocator_constructible_v<
+                    typename container_type::allocator_type>
             ? __fast_container_inserter_test<container_type>::value
             : 0;
 };

@@ -286,7 +286,7 @@ class weak_stack_allocator;
 
 template <typename T, size_t threshold, size_t cache>
 class weak_stack_allocator<T, singleton_stack_allocator_object<threshold, cache>>
-    : trivial_allocator_base {
+    : trivial_allocator_base_t {
     using StackAllocator = singleton_stack_allocator_object<threshold, cache>;
     using UniqueStackAllocator = unique_stack_allocator<StackAllocator>;
 

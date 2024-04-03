@@ -18,7 +18,7 @@ namespace wjr {
 template <typename Iter, typename Alloc, typename... Args>
 WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &alloc,
                                                              Args &&...args) {
-    if constexpr (is_trivially_allocator_v<Alloc>) {
+    if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
         using value_type = typename std::iterator_traits<Iter>::value_type;
         ::new (static_cast<void *>(to_address(iter)))
             value_type(std::forward<Args>(args)...);
@@ -33,7 +33,7 @@ WJR_CONSTEXPR20 OutputIter uninitialized_copy_using_allocator(InputIter first,
                                                               InputIter last,
                                                               OutputIter result,
                                                               Alloc &alloc) {
-    if constexpr (is_trivially_allocator_v<Alloc>) {
+    if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
         return std::uninitialized_copy(first, last, result);
     } else {
         for (; first != last; ++first, ++result) {
@@ -47,7 +47,7 @@ template <typename InputIter, typename Size, typename OutputIter, typename Alloc
 WJR_CONSTEXPR20 OutputIter uninitialized_copy_n_using_allocator(InputIter first, Size n,
                                                                 OutputIter result,
                                                                 Alloc &alloc) {
-    if constexpr (is_trivially_allocator_v<Alloc>) {
+    if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
         return std::uninitialized_copy_n(first, n, result);
     } else {
         for (; n > 0; ++first, ++result, --n) {
@@ -77,7 +77,7 @@ WJR_CONSTEXPR20 OutputIter uninitialized_move_n_using_allocator(InputIter first,
 template <typename Iter, typename Alloc>
 WJR_CONSTEXPR20 void
 uninitialized_default_construct_using_allocator(Iter first, Iter last, Alloc &alloc) {
-    if constexpr (is_trivially_allocator_v<Alloc>) {
+    if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
         std::uninitialized_default_construct(first, last);
     } else {
         using value_type = typename std::iterator_traits<Iter>::value_type;
@@ -93,7 +93,7 @@ uninitialized_default_construct_using_allocator(Iter first, Iter last, Alloc &al
 template <typename Iter, typename Size, typename Alloc>
 WJR_CONSTEXPR20 void uninitialized_default_construct_n_using_allocator(Iter first, Size n,
                                                                        Alloc &alloc) {
-    if constexpr (is_trivially_allocator_v<Alloc>) {
+    if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
         std::uninitialized_default_construct_n(first, n);
     } else {
         using value_type = typename std::iterator_traits<Iter>::value_type;
@@ -109,7 +109,7 @@ WJR_CONSTEXPR20 void uninitialized_default_construct_n_using_allocator(Iter firs
 template <typename Iter, typename Alloc>
 WJR_CONSTEXPR20 void uninitialized_value_construct_using_allocator(Iter first, Iter last,
                                                                    Alloc &alloc) {
-    if constexpr (is_trivially_allocator_v<Alloc>) {
+    if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
         std::uninitialized_value_construct(first, last);
     } else {
         using value_type = typename std::iterator_traits<Iter>::value_type;
@@ -123,7 +123,7 @@ WJR_CONSTEXPR20 void uninitialized_value_construct_using_allocator(Iter first, I
 template <typename Iter, typename Size, typename Alloc>
 WJR_CONSTEXPR20 void uninitialized_value_construct_n_using_allocator(Iter first, Size n,
                                                                      Alloc &alloc) {
-    if constexpr (is_trivially_allocator_v<Alloc>) {
+    if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
         std::uninitialized_value_construct_n(first, n);
     } else {
         using value_type = typename std::iterator_traits<Iter>::value_type;
@@ -148,7 +148,7 @@ WJR_CONSTEXPR20 void uninitialized_fill_using_allocator(Iter first, Iter last,
     } else if constexpr (std::is_same_v<T, in_place_value_construct_t>) {
         uninitialized_value_construct_using_allocator(first, last, alloc);
     } else {
-        if constexpr (is_trivially_allocator_v<Alloc>) {
+        if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
             std::uninitialized_fill(first, last, value);
         } else {
             for (; first != last; ++first) {
@@ -172,7 +172,7 @@ WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n,
     } else if constexpr (std::is_same_v<T, in_place_value_construct_t>) {
         uninitialized_value_construct_n_using_allocator(first, n, alloc);
     } else {
-        if constexpr (is_trivially_allocator_v<Alloc>) {
+        if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
             std::uninitialized_fill_n(first, n, value);
         } else {
             for (; n > 0; ++first, --n) {
@@ -184,7 +184,7 @@ WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n,
 
 template <typename Iter, typename Alloc>
 WJR_CONSTEXPR20 void destroy_at_using_allocator(Iter iter, Alloc &alloc) {
-    if constexpr (is_trivially_allocator_v<Alloc>) {
+    if constexpr (is_trivially_allocator_destructible_v<Alloc>) {
         std::destroy_at(to_address(iter));
     } else {
         std::allocator_traits<Alloc>::destroy(alloc, to_address(iter));
@@ -193,7 +193,7 @@ WJR_CONSTEXPR20 void destroy_at_using_allocator(Iter iter, Alloc &alloc) {
 
 template <typename Iter, typename Alloc>
 WJR_CONSTEXPR20 void destroy_using_allocator(Iter first, Iter last, Alloc &alloc) {
-    if constexpr (is_trivially_allocator_v<Alloc>) {
+    if constexpr (is_trivially_allocator_destructible_v<Alloc>) {
         std::destroy(first, last);
     } else {
         for (; first != last; ++first) {
