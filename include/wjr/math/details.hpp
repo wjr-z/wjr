@@ -117,7 +117,7 @@ WJR_CONST constexpr std::make_signed_t<T> __fasts_from_unsigned(T x) {
 }
 
 template <typename T, std::enable_if_t<is_signed_integral_v<T>, int> = 0>
-WJR_CONST constexpr T __fasts_abs(T x) {
+WJR_CONST constexpr std::make_unsigned_t<T> __fasts_abs(T x) {
     return x & ~__fasts_sign_mask<T>();
 }
 
