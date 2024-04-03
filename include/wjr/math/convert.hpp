@@ -2,7 +2,9 @@
 #define WJR_MATH_CONVERT_HPP__
 
 #include <array>
+#include <string>
 #include <system_error>
+#include <vector>
 
 #include <wjr/assert.hpp>
 #include <wjr/math/bit.hpp>
@@ -10,6 +12,7 @@
 #include <wjr/math/div.hpp>
 #include <wjr/math/precompute-chars-convert.hpp>
 #include <wjr/memory/copy.hpp>
+#include <wjr/vector.hpp>
 
 #if defined(WJR_X86)
 #include <wjr/x86/math/convert.hpp>
@@ -232,6 +235,50 @@ public:
 
 template <typename Iter>
 using fast_buffer_t = typename fast_buffer<Iter>::type;
+
+template <typename Container>
+struct __fast_container_inserter_test {};
+
+template <typename T, typename Alloc>
+struct __fast_container_inserter_test<std::vector<T, Alloc>> {
+    static constexpr int value = 1;
+};
+
+template <typename T, typename Alloc>
+struct __fast_container_inserter_test<std::basic_string<T, std::char_traits<T>, Alloc>> {
+    static constexpr int value = 1;
+};
+
+template <typename Storage>
+struct __fast_container_inserter_test<wjr::basic_vector<Storage>> {
+    static constexpr int value = 2;
+};
+
+template <typename Iter, typename = void>
+struct __is_fast_container_inserter {
+    static constexpr int value = 0;
+};
+
+template <typename Iter>
+struct __is_fast_container_inserter<
+    Iter,
+    std::void_t<
+        decltype(std::declval<std::enable_if_t<is_any_insert_iterator_v<Iter>>>(),
+                 __fast_container_inserter_test<typename Iter::container_type>::value)>> {
+private:
+    using container_type = typename Iter::container_type;
+    using value_type = typename container_type::value_type;
+
+public:
+    static constexpr int value =
+        __is_fast_convert_value_v<value_type>
+            ? __fast_container_inserter_test<container_type>::value
+            : 0;
+};
+
+template <typename Iter>
+inline constexpr int is_fast_container_inserter_v =
+    __is_fast_container_inserter<Iter>::value;
 
 } // namespace convert_details
 
@@ -1341,19 +1388,43 @@ Iter __fallback_to_chars_impl(Iter ptr, Value val, IBase ibase) {
     const unsigned int base = ibase;
 
 #define WJR_TO_CHARS_IMPL(BASE, TABLE, CALL)                                             \
-    convert_details::fast_buffer_t<Iter> buffer[TABLE + is_signed];                      \
-    const auto __end = buffer + TABLE + is_signed;                                       \
-    auto __ptr =                                                                         \
-        (convert_details::fast_buffer_t<Iter> *)__unsigned_to_chars_backward<BASE>(      \
-            (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL));                                \
-                                                                                         \
-    if constexpr (is_signed) {                                                           \
-        if (sign) {                                                                      \
-            *--__ptr = '-';                                                              \
+    constexpr auto __fast_container_inserter_v =                                         \
+        convert_details::is_fast_container_inserter_v<Iter>;                             \
+    if constexpr (__fast_container_inserter_v != 0) {                                    \
+        WJR_PP_BOOL_IF(WJR_PP_EQ(BASE, 10), int n = count_digits<10>(uVal), );           \
+        auto &cont = get_inserter_container(ptr);                                        \
+        if constexpr (__fast_container_inserter_v == 1) {                                \
+            cont.resize(cont.size() + n + sign);                                         \
+        } else {                                                                         \
+            cont.append(n + sign, in_place_default_construct);                           \
         }                                                                                \
-    }                                                                                    \
+        auto __end = to_address(cont.data() + cont.size());                              \
+        auto __ptr =                                                                     \
+            (convert_details::fast_buffer_t<Iter> *)__unsigned_to_chars_backward<BASE>(  \
+                (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL));                            \
                                                                                          \
-    return wjr::copy(__ptr, __end, ptr);
+        if constexpr (is_signed) {                                                       \
+            if (sign) {                                                                  \
+                *--__ptr = '-';                                                          \
+            }                                                                            \
+        }                                                                                \
+                                                                                         \
+        return ptr;                                                                      \
+    } else {                                                                             \
+        convert_details::fast_buffer_t<Iter> buffer[TABLE + is_signed];                  \
+        const auto __end = buffer + TABLE + is_signed;                                   \
+        auto __ptr =                                                                     \
+            (convert_details::fast_buffer_t<Iter> *)__unsigned_to_chars_backward<BASE>(  \
+                (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL));                            \
+                                                                                         \
+        if constexpr (is_signed) {                                                       \
+            if (sign) {                                                                  \
+                *--__ptr = '-';                                                          \
+            }                                                                            \
+        }                                                                                \
+                                                                                         \
+        return wjr::copy(__ptr, __end, ptr);                                             \
+    }
 
     switch (base) {
     case 2: {

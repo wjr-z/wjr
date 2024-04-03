@@ -210,10 +210,6 @@ public:
 
     explicit basic_biginteger(const allocator_type &al) : m_vec(al) {}
 
-    template <typename Iter, std::enable_if_t<is_iterator_v<Iter>, int> = 0>
-    basic_biginteger(Iter first, Iter last, const allocator_type &al = allocator_type())
-        : m_vec(first, last, al) {}
-
     basic_biginteger(const basic_biginteger &other,
                      const allocator_type &al = allocator_type())
         : m_vec(other.m_vec, al) {}
@@ -221,14 +217,6 @@ public:
     basic_biginteger(basic_biginteger &&other,
                      const allocator_type &al = allocator_type())
         : m_vec(std::move(other.m_vec), al) {}
-
-    basic_biginteger(std::initializer_list<value_type> il,
-                     const allocator_type &al = allocator_type())
-        : m_vec(il, al) {}
-
-    basic_biginteger(size_type n, in_place_default_construct_t,
-                     const allocator_type &al = allocator_type())
-        : m_vec(n, in_place_default_construct, al) {}
 
     template <typename UnsignedValue,
               std::enable_if_t<is_nonbool_integral_v<UnsignedValue>, int> = 0>
@@ -244,18 +232,6 @@ public:
         m_vec.front() = __fasts_abs(value);
         m_vec.set_ssize(__fasts_conditional_negate(value < 0, 1));
     }
-
-    basic_biginteger &operator=(std::initializer_list<value_type> il) {
-        m_vec = il;
-        return *this;
-    }
-
-    template <typename Iter, std::enable_if_t<is_iterator_v<Iter>, int> = 0>
-    void assign(Iter first, Iter last) {
-        m_vec.assign(first, last);
-    }
-
-    void assign(std::initializer_list<value_type> il) { m_vec.assign(il); }
 
     allocator_type &get_allocator() noexcept { return m_vec.get_allocator(); }
     const allocator_type &get_allocator() const noexcept { return m_vec.get_allocator(); }
@@ -307,27 +283,56 @@ public:
     void swap(basic_biginteger &other) noexcept { m_vec.swap(other.m_vec); }
 
     friend bool operator==(const basic_biginteger &lhs, const basic_biginteger &rhs) {
-        return lhs.m_vec == rhs.m_vec;
+        const size_type lsize = lhs.size();
+        const size_type rsize = rhs.size();
+
+        if (lsize != rsize) {
+            return false;
+        }
+
+        return reverse_compare_n(lhs.data(), rhs.data(), lsize) == 0;
     }
 
     friend bool operator!=(const basic_biginteger &lhs, const basic_biginteger &rhs) {
-        return lhs.m_vec != rhs.m_vec;
+        return !(lhs == rhs);
     }
 
     friend bool operator<(const basic_biginteger &lhs, const basic_biginteger &rhs) {
-        return lhs.m_vec < rhs.m_vec;
+        const size_type lsize = lhs.size();
+        const size_type rsize = rhs.size();
+
+        if (lsize < rsize) {
+            return true;
+        }
+
+        if (lsize > rsize) {
+            return false;
+        }
+
+        return reverse_compare_n(lhs.data(), rhs.data(), lsize) < 0;
     }
 
     friend bool operator>(const basic_biginteger &lhs, const basic_biginteger &rhs) {
-        return lhs.m_vec > rhs.m_vec;
+        return rhs < lhs;
     }
 
     friend bool operator<=(const basic_biginteger &lhs, const basic_biginteger &rhs) {
-        return lhs.m_vec <= rhs.m_vec;
+        const size_type lsize = lhs.size();
+        const size_type rsize = rhs.size();
+
+        if (lsize < rsize) {
+            return true;
+        }
+
+        if (lsize > rsize) {
+            return false;
+        }
+
+        return reverse_compare_n(lhs.data(), rhs.data(), lsize) <= 0;
     }
 
     friend bool operator>=(const basic_biginteger &lhs, const basic_biginteger &rhs) {
-        return lhs.m_vec >= rhs.m_vec;
+        return rhs <= lhs;
     }
 
     friend void add(basic_biginteger &dst, const basic_biginteger &lhs, uint64_t rhs) {

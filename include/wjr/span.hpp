@@ -69,6 +69,21 @@ struct __is_span<span<T, Extent>> : std::true_type {};
 template <typename T>
 inline constexpr bool __is_span_v = __is_span<T>::value;
 
+template <typename Container, typename = void>
+struct __is_container_like : std::false_type {};
+
+template <typename Container>
+struct __is_container_like<
+    Container, std::enable_if_t<has_data_v<Container &> && has_size_v<Container &>>>
+    : std::conjunction<
+          std::negation<std::is_array<remove_cvref_t<Container>>>,
+          std::negation<__is_std_array<remove_cvref_t<Container>>>,
+          std::negation<__is_span<remove_cvref_t<Container>>>,
+          std::is_pointer<decltype(std::data(std::declval<Container &>()))>> {};
+
+template <typename Container>
+inline constexpr bool __is_container_like_v = __is_container_like<Container>::value;
+
 template <typename Container, typename Elem, typename = void>
 struct __is_span_like : std::false_type {};
 
@@ -76,9 +91,7 @@ template <typename Container, typename Elem>
 struct __is_span_like<
     Container, Elem, std::enable_if_t<has_data_v<Container &> && has_size_v<Container &>>>
     : std::conjunction<
-          std::negation<std::is_array<remove_cvref_t<Container>>>,
-          std::negation<__is_std_array<remove_cvref_t<Container>>>,
-          std::negation<__is_span<remove_cvref_t<Container>>>,
+          __is_container_like<Container>,
           std::is_convertible<decltype(std::data(std::declval<Container &>())), Elem *>> {
 };
 
@@ -297,6 +310,11 @@ span(const std::array<T, Size> &) -> span<const T, Size>;
 template <typename It, typename End,
           std::enable_if_t<is_contiguous_iterator_v<It>, int> = 0>
 span(It, End) -> span<iterator_contiguous_value_t<It>>;
+
+template <typename Container,
+          std::enable_if_t<span_details::__is_container_like_v<Container>, int> = 0>
+span(Container &&) -> span<
+    iterator_contiguous_value_t<decltype(std::data(std::declval<Container &>()))>>;
 
 } // namespace wjr
 
