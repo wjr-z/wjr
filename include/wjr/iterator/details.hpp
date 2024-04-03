@@ -21,31 +21,6 @@ template <typename Iter>
 using iterator_category_t = typename std::iterator_traits<Iter>::iterator_category;
 
 template <typename Iter, typename = void>
-struct __is_contiguous_iterator_impl
-    : std::disjunction<std::is_pointer<Iter>, std::is_array<Iter>> {};
-
-#if defined(WJR_CPP_20)
-template <typename Iter>
-struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter>::value {};
-
-template <std::contiguous_iterator Iter>
-struct is_contiguous_iterator<Iter> : std::true_type {};
-#else
-template <typename Iter>
-struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};
-#endif
-
-template <typename Iter>
-inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;
-
-template <typename Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, int> = 0>
-using iterator_contiguous_value_t = std::remove_reference_t<iterator_reference_t<Iter>>;
-
-template <typename Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, int> = 0>
-using iterator_contiguous_pointer_t =
-    std::add_pointer_t<iterator_contiguous_value_t<Iter>>;
-
-template <typename Iter, typename = void>
 struct __is_iterator_impl : std::false_type {};
 
 template <typename Iter>
@@ -102,6 +77,31 @@ struct is_random_access_iterator
 template <typename Iter>
 inline constexpr bool is_random_access_iterator_v =
     is_random_access_iterator<Iter>::value;
+
+template <typename Iter, typename = void>
+struct __is_contiguous_iterator_impl
+    : std::disjunction<std::is_pointer<Iter>, std::is_array<Iter>> {};
+
+#if defined(WJR_CPP_20)
+template <typename Iter>
+struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter>::value {};
+
+template <std::contiguous_iterator Iter>
+struct is_contiguous_iterator<Iter> : std::true_type {};
+#else
+template <typename Iter>
+struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};
+#endif
+
+template <typename Iter>
+inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;
+
+template <typename Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, int> = 0>
+using iterator_contiguous_value_t = std::remove_reference_t<iterator_reference_t<Iter>>;
+
+template <typename Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, int> = 0>
+using iterator_contiguous_pointer_t =
+    std::add_pointer_t<iterator_contiguous_value_t<Iter>>;
 
 } // namespace wjr
 

@@ -69,13 +69,16 @@ struct __is_span<span<T, Extent>> : std::true_type {};
 template <typename T>
 inline constexpr bool __is_span_v = __is_span<T>::value;
 
+template <typename Container, typename Elem, typename = void>
+struct __is_span_like : std::false_type {};
+
 template <typename Container, typename Elem>
-struct __is_span_like
+struct __is_span_like<
+    Container, Elem, std::enable_if_t<has_data_v<Container &> && has_size_v<Container &>>>
     : std::conjunction<
           std::negation<std::is_array<remove_cvref_t<Container>>>,
           std::negation<__is_std_array<remove_cvref_t<Container>>>,
-          std::negation<__is_span<remove_cvref_t<Container>>>, has_data<Container &>,
-          has_size<Container &>,
+          std::negation<__is_span<remove_cvref_t<Container>>>,
           std::is_convertible<decltype(std::data(std::declval<Container &>())), Elem *>> {
 };
 
