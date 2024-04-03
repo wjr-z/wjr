@@ -84,7 +84,7 @@ struct __is_contiguous_iterator_impl
 
 #if defined(WJR_CPP_20)
 template <typename Iter>
-struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter>::value {};
+struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};
 
 template <std::contiguous_iterator Iter>
 struct is_contiguous_iterator<Iter> : std::true_type {};
