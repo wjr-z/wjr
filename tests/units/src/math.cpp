@@ -1723,33 +1723,7 @@ TEST(math, from_chars) {
             decltype(type) y = 3;
             auto ret1 = std::from_chars(str, str + n, y, base);
 
-            if (!(ret0.ec == ret1.ec)) {
-                for (int i = 0; i < n; ++i) {
-                    std::cout << (int)str[i] << ',';
-                }
-                std::cout << std::endl;
-
-                std::cout << "ec0: " << (int)ret0.ec << std::endl;
-                std::cout << "ec1: " << (int)ret1.ec << std::endl;
-                std::cout << "base = " << base << std::endl;
-                std::cout << "ret0: " << (int)(ret0.ptr - str) << std::endl;
-                std::cout << "ret1: " << (int)(ret1.ptr - str) << std::endl;
-                std::cout << "x: " << x << std::endl;
-                std::cout << "y: " << y << std::endl;
-            }
-
             WJR_ASSERT(ret0.ec == ret1.ec);
-
-            if (!(ret0.ptr - str == ret1.ptr - str)) {
-                for (int i = 0; i < n; ++i) {
-                    std::cout << (int)str[i] << ',';
-                }
-                std::cout << std::endl;
-
-                std::cout << "ret0: " << (int)(ret0.ptr - str) << std::endl;
-                std::cout << "ret1: " << (int)(ret1.ptr - str) << std::endl;
-            }
-
             WJR_ASSERT(ret0.ptr - str == ret1.ptr - str);
             if ((bool)ret0) {
                 WJR_ASSERT(x == y);
