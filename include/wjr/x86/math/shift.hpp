@@ -15,6 +15,13 @@ WJR_INTRINSIC_CONSTEXPR_E T shld(T hi, T lo, unsigned int c);
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR_E T shrd(T lo, T hi, unsigned int c);
 
+#if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(SIMD)
+#define WJR_HAS_BUILTIN_LSHIFT_N WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_RSHIFT_N WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(LSHIFT_N) || WJR_HAS_BUILTIN(RSHIFT_N)
+
 template <bool is_constant>
 WJR_INTRINSIC_INLINE auto __mm_get_shift(unsigned int c) {
     if constexpr (is_constant) {
@@ -40,9 +47,6 @@ WJR_INTRINSIC_INLINE __m128i __mm_srl_epi64(__m128i x, __m128i c) {
     return sse::srl_epi64(x, c);
 }
 
-#if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(SIMD)
-#define WJR_HAS_BUILTIN_LSHIFT_N WJR_HAS_DEF
-#define WJR_HAS_BUILTIN_RSHIFT_N WJR_HAS_DEF
 #endif
 
 #if WJR_HAS_BUILTIN(LSHIFT_N)
