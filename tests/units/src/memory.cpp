@@ -4,8 +4,6 @@
 
 #include <wjr/math.hpp>
 
-namespace memory_tests {
-
 TEST(memory, stack_allocator) {
     using namespace wjr;
 
@@ -34,5 +32,3 @@ TEST(memory, stack_allocator) {
 
     } while (0);
 }
-
-} // namespace memory_tests

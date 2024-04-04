@@ -4,13 +4,10 @@
 #include <string_view>
 #include <vector>
 
-
 #include "details.hpp"
 
 #include <wjr/math.hpp>
 #include <wjr/vector.hpp>
-
-namespace vector_tests {
 
 const static int __int = 5082;
 const static int __int2 = 123;
@@ -331,9 +328,8 @@ TEST(vector, assign) {
             v.assign(n, _Val);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
-            for_each_n(v.data(), n, [&](auto &x) {
-                EXPECT_EQ(x, _Val) << n << ' ' << s << ' ' << c;
-            });
+            for_each_n(v.data(), n,
+                       [&](auto &x) { EXPECT_EQ(x, _Val) << n << ' ' << s << ' ' << c; });
         };
         run_range3([&](int n, int s, int c) {
             test(__int, n, s, c);
@@ -386,8 +382,7 @@ TEST(vector, resize) {
             EXPECT_GE(v.capacity(), n);
             for_each_n(v.data(), s, [](auto &x) { EXPECT_EQ(x, T()); });
             if (n > s) {
-                for_each_n(v.data() + s, n - s,
-                                [&](auto &x) { EXPECT_EQ(x, _Val); });
+                for_each_n(v.data() + s, n - s, [&](auto &x) { EXPECT_EQ(x, _Val); });
             }
         };
         run_range3([&](int n, int s, int c) {
@@ -407,8 +402,7 @@ TEST(vector, resize) {
             for_each_n(v.data(), s, [](auto &x) { EXPECT_EQ(x, T()); });
             if (n > s) {
                 T val = T{};
-                for_each_n(v.data() + s, n - s,
-                                [&val](auto &x) { EXPECT_EQ(x, val); });
+                for_each_n(v.data() + s, n - s, [&val](auto &x) { EXPECT_EQ(x, val); });
             }
         };
         run_range3([&](int n, int s, int c) {
@@ -609,5 +603,3 @@ TEST(vector, erase) {
         });
     }
 }
-
-} // namespace vector_tests

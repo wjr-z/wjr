@@ -2,8 +2,6 @@
 
 using namespace wjr;
 
-namespace preprocessor_tests {
-
 TEST(preprocessor, arithmatic) {
     WJR_ASSERT(WJR_PP_ADD(1, 3) == 4);
     WJR_ASSERT(WJR_PP_ADD(1, 4) == 5);
@@ -192,5 +190,3 @@ TEST(preprocessor_preview, queue) {
 #undef WJR_TEST_F
 #undef WJR_TEST_SELF
 }
-
-} // namespace preprocessor_tests

@@ -9,6 +9,7 @@
 #include <wjr/assert.hpp>
 #include <wjr/math/bit.hpp>
 #include <wjr/math/broadcast.hpp>
+#include <wjr/math/convert-impl.hpp>
 #include <wjr/math/div.hpp>
 #include <wjr/math/precompute-chars-convert.hpp>
 #include <wjr/memory/copy.hpp>
@@ -141,8 +142,9 @@ template <typename Enable, typename Base, typename... Args>
 struct __has_from_chars_fast_fn_fast_conv : std::false_type {};
 template <typename Base, typename... Args>
 struct __has_from_chars_fast_fn_fast_conv<
-    std::void_t<decltype(Base::__fast_conv(std::declval<const void *>()))>, Base, Args...>
-    : std::true_type {};
+    std::void_t<decltype(Base::__fast_conv(std::declval<const void *>(),
+                                           std::declval<Args>()...))>,
+    Base, Args...> : std::true_type {};
 template <typename Base, typename... Args>
 struct has_from_chars_fast_fn_fast_conv
     : __has_from_chars_fast_fn_fast_conv<void, Base, Args...> {};
@@ -618,6 +620,123 @@ public:
 
 template <uint64_t Base>
 inline constexpr __from_chars_unroll_16_fn<Base> __from_chars_unroll_16{};
+
+template <uint64_t Base>
+class __from_chars_validate_unroll_8_fast_fn_impl_base {
+public:
+#if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST)
+    WJR_INTRINSIC_INLINE static from_chars_validate_unroll_result
+    __fast_conv(const void *ptr, uint32_t &val) {
+        return builtin_from_chars_validate_unroll_8_fast<Base>(ptr, val);
+    }
+#endif
+};
+
+template <uint64_t Base>
+class __from_chars_validate_unroll_8_fast_fn_impl {};
+
+template <>
+class __from_chars_validate_unroll_8_fast_fn_impl<2>
+    : public __from_chars_validate_unroll_8_fast_fn_impl_base<2> {};
+
+template <>
+class __from_chars_validate_unroll_8_fast_fn_impl<8>
+    : public __from_chars_validate_unroll_8_fast_fn_impl_base<8> {};
+
+template <>
+class __from_chars_validate_unroll_8_fast_fn_impl<10>
+    : public __from_chars_validate_unroll_8_fast_fn_impl_base<10> {};
+
+template <uint64_t Base>
+class __from_chars_validate_unroll_4_fn
+    : protected __from_chars_unroll_4_fast_fn_impl_base<Base> {
+    using Mybase = __from_chars_unroll_4_fast_fn_impl_base<Base>;
+
+public:
+    WJR_INTRINSIC_INLINE from_chars_validate_unroll_result
+    operator()(const uint8_t *ptr, uint32_t &val) const {
+        if constexpr (is_zero_or_single_bit(Base)) {
+            constexpr auto baseu4 = ~broadcast<uint8_t, uint32_t>(Base - 1);
+            uint32_t memory = read_memory<uint32_t>(ptr) - 0x30303030u;
+            bool invalid = false;
+            int len = 0;
+            uint32_t mask = memory & baseu4;
+
+            if (WJR_UNLIKELY(mask)) {
+                invalid = true;
+                int zero = ctz(mask);
+                len = zero / 8;
+                memory = (memory & ~mask) << (32 - zero);
+            }
+
+            val = Mybase::__fast_conv(memory);
+            return {invalid, len};
+        } else {
+            for (int i = 0; i < 4; ++i) {
+                const uint8_t ch = convert_details::from<Base>(ptr[i]);
+                if (WJR_UNLIKELY(ch >= (uint8_t)Base)) {
+                    return {false, i};
+                }
+                val = val * (uint8_t)Base + ch;
+            }
+            return {true, 0};
+        }
+    }
+};
+
+template <uint64_t Base>
+inline constexpr __from_chars_validate_unroll_4_fn<Base> __from_chars_validate_unroll_4{};
+
+template <uint64_t Base>
+class __from_chars_validate_unroll_8_fn
+    : public __from_chars_validate_unroll_8_fast_fn_impl<Base>,
+      protected __from_chars_unroll_8_fast_fn_impl_base<Base> {
+    using Mybase = __from_chars_validate_unroll_8_fast_fn_impl<Base>;
+    using Mybase2 = __from_chars_unroll_8_fast_fn_impl_base<Base>;
+
+#if !WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_8_FAST)
+    static_assert(is_zero_or_single_bit(Base), "");
+#endif
+
+public:
+    WJR_INTRINSIC_INLINE from_chars_validate_unroll_result
+    operator()(const uint8_t *ptr, uint32_t &val) const {
+        if constexpr (convert_details::has_from_chars_fast_fn_fast_conv_v<Mybase,
+                                                                          uint32_t &>) {
+            return Mybase::__fast_conv(ptr, val);
+        } else {
+            if constexpr (is_zero_or_single_bit(Base)) {
+                constexpr auto baseu8 = ~broadcast<uint8_t, uint64_t>(Base - 1);
+                uint64_t memory = read_memory<uint64_t>(ptr) - 0x3030303030303030ull;
+                bool invalid = false;
+                int len = 0;
+                uint64_t mask = memory & baseu8;
+
+                if (WJR_UNLIKELY(mask)) {
+                    invalid = true;
+                    int zero = ctz(mask);
+                    len = zero / 8;
+                    memory = (memory & ~mask) << (64 - zero);
+                }
+
+                val = Mybase2::__fast_conv(memory);
+                return {invalid, len};
+            } else {
+                for (int i = 0; i < 8; ++i) {
+                    const uint8_t ch = convert_details::from<Base>(ptr[i]);
+                    if (WJR_UNLIKELY(ch >= (uint8_t)Base)) {
+                        return {false, i};
+                    }
+                    val = val * (uint8_t)Base + ch;
+                }
+                return {true, 0};
+            }
+        }
+    }
+};
+
+template <uint64_t Base>
+inline constexpr __from_chars_validate_unroll_8_fn<Base> __from_chars_validate_unroll_8{};
 
 template <typename UnsignedValue>
 constexpr int fallback_count_digits10(UnsignedValue n) {
@@ -2014,18 +2133,15 @@ struct __unsigned_from_chars_fn<2> {
         auto n = std::distance(first, last);
         WJR_ASSERT_ASSUME(1 <= n && n <= nd);
 
-        UnsignedValue xval = 0;
-
         if constexpr (nd >= 16) {
             if (WJR_UNLIKELY(n >= 8)) {
                 do {
-                    xval = (xval << 8) + __from_chars_unroll_8<2>(first);
+                    val = (val << 8) + __from_chars_unroll_8<2>(first);
                     first += 8;
                     n -= 8;
                 } while (WJR_LIKELY(n >= 8));
 
                 if (n == 0) {
-                    val = xval;
                     return;
                 }
             }
@@ -2039,33 +2155,33 @@ struct __unsigned_from_chars_fn<2> {
 
         switch (n) {
         case 7: {
-            xval = (xval << 1) + convert_details::from(*first++);
+            val = (val << 1) + convert_details::from<2>(*first++);
             WJR_FALLTHROUGH;
         }
         case 6: {
-            xval = (xval << 1) + convert_details::from(*first++);
+            val = (val << 1) + convert_details::from<2>(*first++);
             WJR_FALLTHROUGH;
         }
         case 5: {
-            xval = (xval << 1) + convert_details::from(*first++);
+            val = (val << 1) + convert_details::from<2>(*first++);
             WJR_FALLTHROUGH;
         }
         case 4: {
-            xval <<= 4;
-            xval += __from_chars_unroll_4<2>(first);
+            val <<= 4;
+            val += __from_chars_unroll_4<2>(first);
             first += 4;
             break;
         }
         case 3: {
-            xval = (xval << 1) + convert_details::from(*first++);
+            val = (val << 1) + convert_details::from<2>(*first++);
             WJR_FALLTHROUGH;
         }
         case 2: {
-            xval = (xval << 1) + convert_details::from(*first++);
+            val = (val << 1) + convert_details::from<2>(*first++);
             WJR_FALLTHROUGH;
         }
         case 1: {
-            xval = (xval << 1) + convert_details::from(*first++);
+            val = (val << 1) + convert_details::from<2>(*first++);
             break;
         }
         default: {
@@ -2073,8 +2189,6 @@ struct __unsigned_from_chars_fn<2> {
             break;
         }
         }
-
-        val = xval;
     }
 };
 
@@ -2088,18 +2202,15 @@ struct __unsigned_from_chars_fn<8> {
         auto n = std::distance(first, last);
         WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 2) / 3);
 
-        UnsignedValue xval = 0;
-
         if constexpr (nd >= 32) {
             if (WJR_UNLIKELY(n >= 8)) {
                 do {
-                    xval = (xval << 24) + __from_chars_unroll_8<8>(first);
+                    val = (val << 24) + __from_chars_unroll_8<8>(first);
                     first += 8;
                     n -= 8;
                 } while (WJR_LIKELY(n >= 8));
 
                 if (n == 0) {
-                    val = xval;
                     return;
                 }
             }
@@ -2107,33 +2218,33 @@ struct __unsigned_from_chars_fn<8> {
 
         switch (n) {
         case 7: {
-            xval = (xval << 3) + convert_details::from(*first++);
+            val = (val << 3) + convert_details::from<8>(*first++);
             WJR_FALLTHROUGH;
         }
         case 6: {
-            xval = (xval << 3) + convert_details::from(*first++);
+            val = (val << 3) + convert_details::from<8>(*first++);
             WJR_FALLTHROUGH;
         }
         case 5: {
-            xval = (xval << 3) + convert_details::from(*first++);
+            val = (val << 3) + convert_details::from<8>(*first++);
             WJR_FALLTHROUGH;
         }
         case 4: {
-            xval <<= 12;
-            xval += __from_chars_unroll_4<8>(first);
+            val <<= 12;
+            val += __from_chars_unroll_4<8>(first);
             first += 4;
             break;
         }
         case 3: {
-            xval = (xval << 3) + convert_details::from(*first++);
+            val = (val << 3) + convert_details::from<8>(*first++);
             WJR_FALLTHROUGH;
         }
         case 2: {
-            xval = (xval << 3) + convert_details::from(*first++);
+            val = (val << 3) + convert_details::from<8>(*first++);
             WJR_FALLTHROUGH;
         }
         case 1: {
-            xval = (xval << 3) + convert_details::from(*first++);
+            val = (val << 3) + convert_details::from<8>(*first++);
             break;
         }
         default: {
@@ -2141,8 +2252,6 @@ struct __unsigned_from_chars_fn<8> {
             break;
         }
         }
-
-        val = xval;
     }
 };
 
@@ -2156,18 +2265,15 @@ struct __unsigned_from_chars_fn<16> {
         auto n = std::distance(first, last);
         WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 3) / 4);
 
-        UnsignedValue xval = 0;
-
         if constexpr (nd >= 64) {
             if (WJR_UNLIKELY(n >= 8)) {
                 do {
-                    xval = (xval << 32) + __from_chars_unroll_8<16>(first);
+                    val = (val << 32) + __from_chars_unroll_8<16>(first);
                     first += 8;
                     n -= 8;
                 } while (WJR_LIKELY(n >= 8));
 
                 if (n == 0) {
-                    val = xval;
                     return;
                 }
             }
@@ -2181,33 +2287,33 @@ struct __unsigned_from_chars_fn<16> {
 
         switch (n) {
         case 7: {
-            xval = (xval << 4) + convert_details::from(*first++);
+            val = (val << 4) + convert_details::from<16>(*first++);
             WJR_FALLTHROUGH;
         }
         case 6: {
-            xval = (xval << 4) + convert_details::from(*first++);
+            val = (val << 4) + convert_details::from<16>(*first++);
             WJR_FALLTHROUGH;
         }
         case 5: {
-            xval = (xval << 4) + convert_details::from(*first++);
+            val = (val << 4) + convert_details::from<16>(*first++);
             WJR_FALLTHROUGH;
         }
         case 4: {
-            xval <<= 16;
-            xval += __from_chars_unroll_4<16>(first);
+            val <<= 16;
+            val += __from_chars_unroll_4<16>(first);
             first += 4;
             break;
         }
         case 3: {
-            xval = (xval << 4) + convert_details::from(*first++);
+            val = (val << 4) + convert_details::from<16>(*first++);
             WJR_FALLTHROUGH;
         }
         case 2: {
-            xval = (xval << 4) + convert_details::from(*first++);
+            val = (val << 4) + convert_details::from<16>(*first++);
             WJR_FALLTHROUGH;
         }
         case 1: {
-            xval = (xval << 4) + convert_details::from(*first++);
+            val = (val << 4) + convert_details::from<16>(*first++);
             break;
         }
         default: {
@@ -2215,8 +2321,6 @@ struct __unsigned_from_chars_fn<16> {
             break;
         }
         }
-
-        val = xval;
     }
 };
 
@@ -2233,22 +2337,19 @@ struct __unsigned_from_chars_fn<10> {
         auto n = std::distance(first, last);
         WJR_ASSUME(1 <= n && n <= nd);
 
-        UnsignedValue xval = 0;
-
         if constexpr (nd >= 8) {
             if (WJR_UNLIKELY(n >= 8)) {
                 if (WJR_UNLIKELY(n >= 16)) {
-                    xval = __from_chars_unroll_16<10>(first);
+                    val = __from_chars_unroll_16<10>(first);
                     first += 16;
                     n -= 16;
                 } else {
-                    xval = __from_chars_unroll_8<10>(first);
+                    val = __from_chars_unroll_8<10>(first);
                     first += 8;
                     n -= 8;
                 }
 
                 if (WJR_UNLIKELY(n == 0)) {
-                    val = xval;
                     return;
                 }
             }
@@ -2256,31 +2357,31 @@ struct __unsigned_from_chars_fn<10> {
 
         switch (n) {
         case 7: {
-            xval = xval * 10 + convert_details::from(*first++);
+            val = val * 10 + convert_details::from<10>(*first++);
             WJR_FALLTHROUGH;
         }
         case 6: {
-            xval = xval * 10 + convert_details::from(*first++);
+            val = val * 10 + convert_details::from<10>(*first++);
             WJR_FALLTHROUGH;
         }
         case 5: {
-            xval = xval * 10 + convert_details::from(*first++);
+            val = val * 10 + convert_details::from<10>(*first++);
             WJR_FALLTHROUGH;
         }
         case 4: {
-            xval = (xval * 10000) + __from_chars_unroll_4<10>(first);
+            val = (val * 10000) + __from_chars_unroll_4<10>(first);
             break;
         }
         case 3: {
-            xval = xval * 10 + convert_details::from(*first++);
+            val = val * 10 + convert_details::from<10>(*first++);
             WJR_FALLTHROUGH;
         }
         case 2: {
-            xval = xval * 10 + convert_details::from(*first++);
+            val = val * 10 + convert_details::from<10>(*first++);
             WJR_FALLTHROUGH;
         }
         case 1: {
-            xval = xval * 10 + convert_details::from(*first++);
+            val = val * 10 + convert_details::from<10>(*first++);
             WJR_FALLTHROUGH;
         }
         case 0: {
@@ -2291,8 +2392,6 @@ struct __unsigned_from_chars_fn<10> {
             break;
         }
         }
-
-        val = xval;
     }
 };
 
@@ -2399,6 +2498,178 @@ void from_chars(Iter first, Iter last, Value &val, unsigned int base) {
     __from_chars_impl(first, last, val, base);
 }
 
+template <uint64_t Base>
+struct __unsigned_from_chars_validate_fn {};
+
+template <uint64_t Base>
+inline constexpr __unsigned_from_chars_validate_fn<Base> __unsigned_from_chars_validate{};
+
+template <>
+struct __unsigned_from_chars_validate_fn<2> {
+    template <typename UnsignedValue,
+              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+    bool operator()(const uint8_t *&first, const uint8_t *last,
+                    UnsignedValue &value) const {
+        constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
+
+        const size_t n = std::distance(first, last);
+        size_t idx = 0;
+        while (idx < n && first[idx] == '0') {
+            ++idx;
+        }
+        const size_t zeros = idx;
+
+        while (idx < n) {
+            const uint8_t ch = convert_details::from<2>(first[idx]);
+
+            if (ch < 2) {
+                value = (value << 1) | ch;
+                ++idx;
+            } else {
+                break;
+            }
+
+            ++idx;
+        }
+
+        first += idx;
+        return (idx - zeros) <= nd;
+    }
+};
+
+template <>
+struct __unsigned_from_chars_validate_fn<10> {
+    template <typename UnsignedValue,
+              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+    bool operator()(const uint8_t *&first, const uint8_t *last,
+                    UnsignedValue &value) const {
+        constexpr auto __matches = [](uint8_t ch) { return (ch >= '0' && ch <= '9'); };
+
+        while (first != last) {
+            uint8_t ch = *first;
+
+            if (ch <= '9' && !sub_overflow(ch, '0', ch)) {
+                if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
+                                 add_overflow(value, ch, value))) {
+                    while (++first != last && __matches(*first))
+                        ;
+
+                    return false;
+                }
+
+                ++first;
+            } else {
+                return true;
+            }
+        }
+
+        return true;
+    }
+};
+
+template <typename Value, typename IBase,
+          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+from_chars_result<const uint8_t *>
+__fast_from_chars_validate_impl(const uint8_t *first, const uint8_t *last, Value &val,
+                                IBase ibase) {
+    constexpr auto is_signed = std::is_signed_v<Value>;
+
+    int sign = 1;
+
+    if constexpr (is_signed) {
+        if (first != last && *first == '-') {
+            ++first;
+            sign = -1;
+        }
+    }
+
+    std::make_unsigned_t<Value> uVal = 0;
+
+    const unsigned int base = ibase;
+    const auto __first = first;
+    bool valid;
+
+    switch (base) {
+    case 2: {
+        valid = __unsigned_from_chars_validate<2>(first, last, uVal);
+        break;
+    }
+    case 10: {
+        valid = __unsigned_from_chars_validate<10>(first, last, uVal);
+        break;
+    }
+    default: {
+        return {first, std::errc::invalid_argument};
+    }
+    }
+
+    from_chars_result<const uint8_t *> ret{__first, std::errc{}};
+
+    if (WJR_UNLIKELY(first == __first)) {
+        ret.ec = std::errc::invalid_argument;
+    } else {
+        ret.ptr = first;
+        if (!valid) {
+            ret.ec = std::errc::result_out_of_range;
+        } else {
+            if constexpr (is_signed) {
+                Value tmp;
+                if (mul_overflow(uVal, sign, tmp)) {
+                    ret.ec = std::errc::result_out_of_range;
+                } else {
+                    val = tmp;
+                }
+            } else {
+                val = uVal;
+            }
+        }
+    }
+
+    return ret;
+}
+
+template <typename Value, typename IBase,
+          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+from_chars_result<const char *>
+__from_chars_validate_impl(const char *first, const char *last, Value &val, IBase ibase) {
+    auto __first = reinterpret_cast<const uint8_t *>(first);
+    auto __last = reinterpret_cast<const uint8_t *>(last);
+    auto ret = __fast_from_chars_validate_impl(__first, __last, val, ibase);
+    return {reinterpret_cast<const char *>(ret.ptr), ret.ec};
+}
+
+template <typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
+          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+from_chars_result<const char *>
+from_chars_validate(const char *first, const char *last, Value &val,
+                    std::integral_constant<BaseType, IBase> = {}) {
+    return __from_chars_validate_impl(first, last, val,
+                                      std::integral_constant<unsigned int, IBase>());
+}
+
+template <typename Value, typename BaseType = unsigned int,
+          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+from_chars_result<const char *> from_chars_validate(const char *first, const char *last,
+                                                    Value &val, unsigned int base) {
+    if (WJR_BUILTIN_CONSTANT_P(base)) {
+        switch (base) {
+        case 2: {
+            return __from_chars_validate_impl(first, last, val,
+                                              std::integral_constant<unsigned int, 2>());
+        }
+        case 10: {
+            return __from_chars_validate_impl(first, last, val,
+                                              std::integral_constant<unsigned int, 10>());
+        }
+        default: {
+            break;
+        }
+        }
+    }
+
+    return __from_chars_validate_impl(first, last, val, base);
+}
+
 inline size_t __biginteger_from_chars_2_impl(const uint8_t *first, size_t n,
                                              uint64_t *up) {
     size_t hbits = (n - 1) % 64 + 1;
@@ -2438,10 +2709,10 @@ inline size_t __biginteger_from_chars_8_impl(const uint8_t *first, size_t n,
     size_t hbits = n - lbits - 1;
 
     auto unroll = [](uint64_t &x, auto &first) {
-        auto x0 = convert_details::from(first[0]);
-        auto x1 = convert_details::from(first[1]);
-        auto x2 = convert_details::from(first[2]);
-        auto x3 = convert_details::from(first[3]);
+        auto x0 = convert_details::from<8>(first[0]);
+        auto x1 = convert_details::from<8>(first[1]);
+        auto x2 = convert_details::from<8>(first[2]);
+        auto x3 = convert_details::from<8>(first[3]);
 
         x = x << 12 | x0 << 9 | x1 << 6 | x2 << 3 | x3;
         first += 4;
@@ -2457,7 +2728,7 @@ inline size_t __biginteger_from_chars_8_impl(const uint8_t *first, size_t n,
         first += hbits;
     }
 
-    uint64_t nx = convert_details::from(*first++);
+    uint64_t nx = convert_details::from<8>(*first++);
     switch (rest) {
     case 0: {
         *--up = x << 3 | nx;
@@ -2497,8 +2768,8 @@ inline size_t __biginteger_from_chars_8_impl(const uint8_t *first, size_t n,
 
             switch (rest) {
             case 0: {
-                x = x << 3 | convert_details::from(*first++);
-                uint64_t nx = convert_details::from(*first++);
+                x = x << 3 | convert_details::from<8>(*first++);
+                uint64_t nx = convert_details::from<8>(*first++);
                 x = x << 1 | nx >> 2;
                 *--up = x;
                 x = nx & 3;
@@ -2506,14 +2777,14 @@ inline size_t __biginteger_from_chars_8_impl(const uint8_t *first, size_t n,
                 break;
             }
             case 1: {
-                x = x << 3 | convert_details::from(*first++);
+                x = x << 3 | convert_details::from<8>(*first++);
                 *--up = x;
                 x = 0;
                 rest = 0;
                 break;
             }
             case 2: {
-                uint64_t nx = convert_details::from(*first++);
+                uint64_t nx = convert_details::from<8>(*first++);
                 x = x << 2 | nx >> 1;
                 *--up = x;
                 x = nx & 1;
@@ -2538,10 +2809,10 @@ inline size_t __biginteger_from_chars_16_impl(const uint8_t *first, size_t n,
     size_t len = (n - 1) / 16 + 1;
 
     auto unroll = [](uint64_t &x, auto &first) {
-        auto x0 = convert_details::from(first[0]);
-        auto x1 = convert_details::from(first[1]);
-        auto x2 = convert_details::from(first[2]);
-        auto x3 = convert_details::from(first[3]);
+        auto x0 = convert_details::from<16>(first[0]);
+        auto x1 = convert_details::from<16>(first[1]);
+        auto x2 = convert_details::from<16>(first[2]);
+        auto x3 = convert_details::from<16>(first[3]);
 
         x = x << 16 | x0 << 12 | x1 << 8 | x2 << 4 | x3;
         first += 4;
@@ -2598,9 +2869,9 @@ inline size_t basecase_from_chars_10(const uint8_t *first, size_t n, uint64_t *u
         x = __from_chars_unroll_16<10>(first);
         first += 16;
 
-        x = x * 10 + convert_details::from(*first++);
-        x = x * 10 + convert_details::from(*first++);
-        x = x * 10 + convert_details::from(*first++);
+        x = x * 10 + convert_details::from<10>(*first++);
+        x = x * 10 + convert_details::from<10>(*first++);
+        x = x * 10 + convert_details::from<10>(*first++);
 
         uint64_t cf;
 

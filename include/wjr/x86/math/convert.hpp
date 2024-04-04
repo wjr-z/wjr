@@ -1,6 +1,7 @@
 #ifndef WJR_X86_MATH_CONVERT_HPP__
 #define WJR_X86_MATH_CONVERT_HPP__
 
+#include <wjr/math/convert-impl.hpp>
 #include <wjr/simd/simd.hpp>
 
 #ifndef WJR_X86
@@ -105,6 +106,10 @@ template <uint64_t Base>
 static __m128i mulp4x = sse::setr_epi16(__base4<Base>, 1, __base4<Base>, 1, __base4<Base>,
                                         1, __base4<Base>, 1);
 
+template <uint64_t Base>
+static __m128i baseu8 = sse::setr_epi8(Base, Base, Base, Base, Base, Base, Base, 0xff,
+                                       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
+
 static __m128i ascii = sse::set1_epi8(0x30);
 
 } // namespace from_chars_details
@@ -128,6 +133,27 @@ uint32_t builtin_from_chars_unroll_8_fast(const void *ptr) {
     static_assert(Base <= 10, "");
     __m128i in = _mm_sub_epi8(sse::loadu_si64(ptr), from_chars_details::ascii);
     return builtin_from_chars_unroll_8_fast<Base>(in);
+}
+
+template <uint64_t Base>
+WJR_INTRINSIC_INLINE from_chars_validate_unroll_result
+builtin_from_chars_validate_unroll_8_fast(const void *ptr, uint32_t &val) {
+    static_assert(Base <= 10, "");
+    __m128i in = _mm_sub_epi8(sse::loadu_si64(ptr), from_chars_details::ascii);
+    __m128i cmp = sse::cmpge_epu8(in, from_chars_details::baseu8<Base>);
+    bool invalid = false;
+    int len = 0;
+
+    if (WJR_UNLIKELY(!sse::test_all_zeros(cmp))) {
+        invalid = true;
+        sse::mask_type mask = sse::movemask_epi8(cmp);
+        int zero = ctz(mask);
+        len = zero;
+        in = sse::sll_epi64(in, simd_cast<uint32_t, __m128i_t>(64 - zero * 8));
+    }
+
+    val = builtin_from_chars_unroll_8_fast<Base>(in);
+    return {invalid, len};
 }
 
 #endif

@@ -9,8 +9,6 @@
 
 #include <wjr/math.hpp>
 
-namespace math_tests {
-
 TEST(math, popcount_ctz_clz) {
 
 #define WJR_TEST_PTZ(queue) WJR_PP_TRANSFORM_PUT(queue, WJR_TEST_PTZ_I_CALLER)
@@ -1796,5 +1794,3 @@ TEST(math, biginteger_from_chars) {
 }
 
 #endif
-
-} // namespace math_tests
