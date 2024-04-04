@@ -66,19 +66,19 @@ template <typename Iter>
 inline constexpr bool __is_fast_convert_iterator_v =
     __is_fast_convert_iterator<Iter>::value;
 
-template <typename Enable, typename Base, typename Value, typename... Args>
+template <typename Enable, typename Base, typename... Args>
 struct __has_to_chars_fast_fn_fast_conv : std::false_type {};
-template <typename Base, typename Value, typename... Args>
+template <typename Base, typename... Args>
 struct __has_to_chars_fast_fn_fast_conv<
     std::void_t<decltype(Base::__fast_conv(std::declval<void *>(),
-                                           std::declval<Value>()))>,
-    Base, Value, Args...> : std::true_type {};
-template <typename Base, typename Value, typename... Args>
+                                           std::declval<Args>()...))>,
+    Base, Args...> : std::true_type {};
+template <typename Base, typename... Args>
 struct has_to_chars_fast_fn_fast_conv
-    : __has_to_chars_fast_fn_fast_conv<void, Base, Value, Args...> {};
-template <typename Base, typename Value, typename... Args>
+    : __has_to_chars_fast_fn_fast_conv<void, Base, Args...> {};
+template <typename Base, typename... Args>
 constexpr bool has_to_chars_fast_fn_fast_conv_v =
-    has_to_chars_fast_fn_fast_conv<Base, Value, Args...>::value;
+    has_to_chars_fast_fn_fast_conv<Base, Args...>::value;
 
 template <typename Enable, typename Base, typename... Args>
 struct __has_from_chars_fast_fn_fast_conv : std::false_type {};
