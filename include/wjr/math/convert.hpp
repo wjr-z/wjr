@@ -1526,7 +1526,8 @@ to_chars_result<Iter> to_chars_validate(Iter ptr, Iter last, Value val, unsigned
 template <typename Iter, typename Value, typename BaseType = unsigned int,
           BaseType IBase = 10, typename Converter = char_converter_t,
           std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
-Iter to_chars(Iter ptr, Value val, std::integral_constant<BaseType, IBase> = {}) {
+Iter to_chars(Iter ptr, Value val, std::integral_constant<BaseType, IBase> = {},
+              Converter conv = {}) {
     return __to_chars_impl(ptr, val, std::integral_constant<unsigned int, IBase>(), conv);
 }
 
