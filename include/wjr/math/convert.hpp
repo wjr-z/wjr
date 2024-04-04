@@ -66,6 +66,17 @@ template <typename Iter>
 inline constexpr bool __is_fast_convert_iterator_v =
     __is_fast_convert_iterator<Iter>::value;
 
+template <typename Value, typename Converter>
+struct __is_valid_converter
+    : std::disjunction<std::conjunction<std::is_same<Converter, char_converter_t>,
+                                        is_nonbool_integral<Value>>,
+                       std::conjunction<std::is_same<Converter, origin_converter_t>,
+                                        is_nonbool_unsigned_integral<Value>>> {};
+
+template <typename Value, typename Converter>
+inline constexpr bool __is_valid_converter_v =
+    __is_valid_converter<Value, Converter>::value;
+
 template <typename Enable, typename Base, typename... Args>
 struct __has_to_chars_fast_fn_fast_conv : std::false_type {};
 template <typename Base, typename... Args>
@@ -1029,7 +1040,7 @@ Iter __to_chars_backward_impl(Iter first, Value val, IBase ibase, Converter conv
 template <typename Iter, typename Value, typename BaseType = unsigned int,
           BaseType IBase = 10, typename Converter = char_converter_t,
           std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter> &&
-                               is_nonbool_integral_v<Value>,
+                               convert_details::__is_valid_converter_v<Value, Converter>,
                            int> = 0>
 Iter to_chars_backward(Iter first, Value val,
                        std::integral_constant<BaseType, IBase> = {},
@@ -1046,7 +1057,7 @@ Iter to_chars_backward(Iter first, Value val,
  */
 template <typename Iter, typename Value, typename Converter = char_converter_t,
           std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter> &&
-                               is_nonbool_integral_v<Value>,
+                               convert_details::__is_valid_converter_v<Value, Converter>,
                            int> = 0>
 Iter to_chars_backward(Iter first, Value val, unsigned int base, Converter conv = {}) {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
@@ -1465,9 +1476,10 @@ Iter __to_chars_impl(Iter ptr, Value val, IBase ibase, Converter conv) {
  * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
  *
  */
-template <typename Iter, typename Value, typename BaseType = unsigned int,
-          BaseType IBase = 10, typename Converter = char_converter_t,
-          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+template <
+    typename Iter, typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
+    typename Converter = char_converter_t,
+    std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
 to_chars_result<Iter> to_chars_validate(Iter ptr, Iter last, Value val,
                                         std::integral_constant<BaseType, IBase> = {},
                                         Converter conv = {}) {
@@ -1482,8 +1494,9 @@ to_chars_result<Iter> to_chars_validate(Iter ptr, Iter last, Value val,
  * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
  *
  */
-template <typename Iter, typename Value, typename Converter = char_converter_t,
-          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+template <
+    typename Iter, typename Value, typename Converter = char_converter_t,
+    std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
 to_chars_result<Iter> to_chars_validate(Iter ptr, Iter last, Value val, unsigned int base,
                                         Converter conv = {}) {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
@@ -1523,9 +1536,10 @@ to_chars_result<Iter> to_chars_validate(Iter ptr, Iter last, Value val, unsigned
  * store the result and use @ref wjr::copy to copy the result to the output iterator. \n
  *
  */
-template <typename Iter, typename Value, typename BaseType = unsigned int,
-          BaseType IBase = 10, typename Converter = char_converter_t,
-          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+template <
+    typename Iter, typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
+    typename Converter = char_converter_t,
+    std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
 Iter to_chars(Iter ptr, Value val, std::integral_constant<BaseType, IBase> = {},
               Converter conv = {}) {
     return __to_chars_impl(ptr, val, std::integral_constant<unsigned int, IBase>(), conv);
@@ -1539,8 +1553,9 @@ Iter to_chars(Iter ptr, Value val, std::integral_constant<BaseType, IBase> = {},
  * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
  *
  */
-template <typename Iter, typename Value, typename Converter = char_converter_t,
-          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+template <
+    typename Iter, typename Value, typename Converter = char_converter_t,
+    std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
 Iter to_chars(Iter ptr, Value val, unsigned int base, Converter conv = {}) {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
@@ -2346,7 +2361,7 @@ void __from_chars_impl(Iter first, Iter last, Value &val, IBase ibase, Converter
 template <typename Iter, typename Value, typename BaseType = unsigned int,
           BaseType IBase = 10, typename Converter = char_converter_t,
           std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter> &&
-                               is_nonbool_integral_v<Value>,
+                               convert_details::__is_valid_converter_v<Value, Converter>,
                            int> = 0>
 void from_chars(Iter first, Iter last, Value &val,
                 std::integral_constant<BaseType, IBase> = {}, Converter conv = {}) {
@@ -2356,7 +2371,7 @@ void from_chars(Iter first, Iter last, Value &val,
 
 template <typename Iter, typename Value, typename Converter,
           std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter> &&
-                               is_nonbool_integral_v<Value>,
+                               convert_details::__is_valid_converter_v<Value, Converter>,
                            int> = 0>
 void from_chars(Iter first, Iter last, Value &val, unsigned int base,
                 Converter conv = {}) {
@@ -2587,9 +2602,10 @@ from_chars_result<const char *> __from_chars_validate_impl(const char *first,
     return {reinterpret_cast<const char *>(ret.ptr), ret.ec};
 }
 
-template <typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
-          typename Converter = char_converter_t,
-          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+template <
+    typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
+    typename Converter = char_converter_t,
+    std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
 from_chars_result<const char *>
 from_chars_validate(const char *first, const char *last, Value &val,
                     std::integral_constant<BaseType, IBase> = {}, Converter conv = {}) {
@@ -2597,8 +2613,9 @@ from_chars_validate(const char *first, const char *last, Value &val,
         first, last, val, std::integral_constant<unsigned int, IBase>(), conv);
 }
 
-template <typename Value, typename Converter = char_converter_t,
-          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+template <
+    typename Value, typename Converter = char_converter_t,
+    std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
 from_chars_result<const char *> from_chars_validate(const char *first, const char *last,
                                                     Value &val, unsigned int base,
                                                     Converter conv = {}) {
