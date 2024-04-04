@@ -72,8 +72,15 @@ uint64_t builtin_to_chars_unroll_8_fast(uint32_t in) {
 }
 
 template <uint64_t Base>
-void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in) {
+void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in, char_converter_t) {
     uint64_t x = builtin_to_chars_unroll_8_fast<Base>(in) + 0x3030303030303030ull;
+
+    write_memory<uint64_t>(ptr, x);
+}
+
+template <uint64_t Base>
+void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in, origin_converter_t) {
+    uint64_t x = builtin_to_chars_unroll_8_fast<Base>(in);
 
     write_memory<uint64_t>(ptr, x);
 }
@@ -129,9 +136,16 @@ uint32_t builtin_from_chars_unroll_8_fast(__m128i in) {
 }
 
 template <uint64_t Base>
-uint32_t builtin_from_chars_unroll_8_fast(const void *ptr) {
+uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, char_converter_t) {
     static_assert(Base <= 10, "");
     __m128i in = _mm_sub_epi8(sse::loadu_si64(ptr), from_chars_details::ascii);
+    return builtin_from_chars_unroll_8_fast<Base>(in);
+}
+
+template <uint64_t Base>
+uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, origin_converter_t) {
+    static_assert(Base <= 10, "");
+    __m128i in = sse::loadu_si64(ptr);
     return builtin_from_chars_unroll_8_fast<Base>(in);
 }
 
@@ -154,9 +168,16 @@ uint64_t builtin_from_chars_unroll_16_fast(__m128i in) {
 }
 
 template <uint64_t Base>
-uint64_t builtin_from_chars_unroll_16_fast(const void *ptr) {
+uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, char_converter_t) {
     static_assert(Base <= 10, "");
     __m128i in = _mm_sub_epi8(sse::loadu((__m128i *)(ptr)), from_chars_details::ascii);
+    return builtin_from_chars_unroll_16_fast<Base>(in);
+}
+
+template <uint64_t Base>
+uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, origin_converter_t) {
+    static_assert(Base <= 10, "");
+    __m128i in = sse::loadu((__m128i *)(ptr));
     return builtin_from_chars_unroll_16_fast<Base>(in);
 }
 
