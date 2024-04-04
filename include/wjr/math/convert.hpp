@@ -81,12 +81,6 @@ WJR_CONST constexpr uint8_t to(uint8_t x) {
 
 template <uint64_t Base = 0>
 WJR_CONST constexpr uint8_t from(uint8_t x) {
-    if constexpr (Base == 0) {
-        WJR_ASSERT_L2(from_table[x] < 36);
-    } else {
-        WJR_ASSERT_L2(from_table[x] < Base);
-    }
-
     if constexpr (Base == 0 || Base > 10) {
         return from_table[x];
     } else {
@@ -2508,32 +2502,50 @@ template <>
 struct __unsigned_from_chars_validate_fn<2> {
     template <typename UnsignedValue,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
-    bool operator()(const uint8_t *&first, const uint8_t *last,
-                    UnsignedValue &value) const {
+    int operator()(const uint8_t *&first, const uint8_t *last,
+                   UnsignedValue &value) const {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
 
-        const size_t n = std::distance(first, last);
-        size_t idx = 0;
-        while (idx < n && first[idx] == '0') {
-            ++idx;
+        if (first == last) {
+            return 2;
         }
-        const size_t zeros = idx;
 
-        while (idx < n) {
-            const uint8_t ch = convert_details::from<2>(first[idx]);
+        uint8_t ch = first[0];
+        size_t idx = 0;
 
-            if (ch < 2) {
-                value = (value << 1) | ch;
-                ++idx;
-            } else {
+        if (ch == '1') {
+        } else if (ch == '0') {
+            do {
+                ++first;
+                if (first == last) {
+                ALL_ZEROS:
+                    return 1;
+                }
+
+                ch = first[0];
+            } while (ch == '0');
+            if (ch != '1') {
+                goto ALL_ZEROS;
+            }
+        } else {
+            return 2;
+        }
+
+        ch = 1;
+        const size_t n = std::distance(first, last);
+
+        do {
+            value = value << 1 | ch;
+            ++idx;
+            if (idx == n) {
                 break;
             }
 
-            ++idx;
-        }
+            ch = first[idx] - '0';
+        } while (ch < 2);
 
         first += idx;
-        return (idx - zeros) <= nd;
+        return idx <= nd;
     }
 };
 
@@ -2541,29 +2553,42 @@ template <>
 struct __unsigned_from_chars_validate_fn<10> {
     template <typename UnsignedValue,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
-    bool operator()(const uint8_t *&first, const uint8_t *last,
-                    UnsignedValue &value) const {
-        constexpr auto __matches = [](uint8_t ch) { return (ch >= '0' && ch <= '9'); };
+    int operator()(const uint8_t *&first, const uint8_t *last,
+                   UnsignedValue &value) const {
+        constexpr auto __try_matches = [](uint8_t &ch) {
+            return ch <= '9' && !sub_overflow(ch, '0', ch);
+        };
+        constexpr auto __matches = [](uint8_t ch) { return ch >= '0' && ch <= '9'; };
 
-        while (first != last) {
-            uint8_t ch = *first;
-
-            if (ch <= '9' && !sub_overflow(ch, '0', ch)) {
-                if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
-                                 add_overflow(value, ch, value))) {
-                    while (++first != last && __matches(*first))
-                        ;
-
-                    return false;
-                }
-
-                ++first;
-            } else {
-                return true;
-            }
+        if (first == last) {
+            return 2;
         }
 
-        return true;
+        uint8_t ch = *first;
+
+        if (WJR_UNLIKELY(!__try_matches(ch))) {
+            return 2;
+        }
+
+        do {
+            if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
+                             add_overflow(value, ch, value))) {
+                while (++first != last && __matches(*first))
+                    ;
+
+                return 0;
+            }
+
+            ++first;
+
+            if (first == last) {
+                return 1;
+            }
+
+            ch = *first;
+        } while (__try_matches(ch));
+
+        return 1;
     }
 };
 
@@ -2574,20 +2599,22 @@ __fast_from_chars_validate_impl(const uint8_t *first, const uint8_t *last, Value
                                 IBase ibase) {
     constexpr auto is_signed = std::is_signed_v<Value>;
 
-    int sign = 1;
+    int sign = 0;
 
     if constexpr (is_signed) {
         if (first != last && *first == '-') {
             ++first;
-            sign = -1;
+            sign = 1;
         }
     }
 
-    std::make_unsigned_t<Value> uVal = 0;
+    using UnsignedValue = std::make_unsigned_t<Value>;
+
+    UnsignedValue uVal = 0;
 
     const unsigned int base = ibase;
-    const auto __first = first;
-    bool valid;
+    from_chars_result<const uint8_t *> ret{first, std::errc{}};
+    int valid;
 
     switch (base) {
     case 2: {
@@ -2603,9 +2630,7 @@ __fast_from_chars_validate_impl(const uint8_t *first, const uint8_t *last, Value
     }
     }
 
-    from_chars_result<const uint8_t *> ret{__first, std::errc{}};
-
-    if (WJR_UNLIKELY(first == __first)) {
+    if (WJR_UNLIKELY(valid == 2)) {
         ret.ec = std::errc::invalid_argument;
     } else {
         ret.ptr = first;
@@ -2613,11 +2638,20 @@ __fast_from_chars_validate_impl(const uint8_t *first, const uint8_t *last, Value
             ret.ec = std::errc::result_out_of_range;
         } else {
             if constexpr (is_signed) {
-                Value tmp;
-                if (mul_overflow(uVal, sign, tmp)) {
-                    ret.ec = std::errc::result_out_of_range;
+                if (sign) {
+                    if (uVal >
+                        static_cast<UnsignedValue>(std::numeric_limits<Value>::min())) {
+                        ret.ec = std::errc::result_out_of_range;
+                    } else {
+                        val = -static_cast<Value>(uVal);
+                    }
                 } else {
-                    val = tmp;
+                    if (uVal >
+                        static_cast<UnsignedValue>(std::numeric_limits<Value>::max())) {
+                        ret.ec = std::errc::result_out_of_range;
+                    } else {
+                        val = static_cast<Value>(uVal);
+                    }
                 }
             } else {
                 val = uVal;

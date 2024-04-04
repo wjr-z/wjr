@@ -1709,6 +1709,83 @@ TEST(math, to_chars) {
     }
 }
 
+TEST(math, from_chars) {
+    const int T = 16;
+
+    char str[65];
+
+    auto check = [&](int n, int base, auto type) {
+        decltype(type) x = 1;
+        // test __fast_to_chars_validate
+        auto ret0 = wjr::from_chars_validate(str, str + n, x, base);
+
+        do {
+            decltype(type) y = 3;
+            auto ret1 = std::from_chars(str, str + n, y, base);
+
+            if (!(ret0.ec == ret1.ec)) {
+                for (int i = 0; i < n; ++i) {
+                    std::cout << (int)str[i] << ',';
+                }
+                std::cout << std::endl;
+
+                std::cout << "ec0: " << (int)ret0.ec << std::endl;
+                std::cout << "ec1: " << (int)ret1.ec << std::endl;
+                std::cout << "base = " << base << std::endl;
+                std::cout << "ret0: " << (int)(ret0.ptr - str) << std::endl;
+                std::cout << "ret1: " << (int)(ret1.ptr - str) << std::endl;
+                std::cout << "x: " << x << std::endl;
+                std::cout << "y: " << y << std::endl;
+            }
+
+            WJR_ASSERT(ret0.ec == ret1.ec);
+
+            if (!(ret0.ptr - str == ret1.ptr - str)) {
+                for (int i = 0; i < n; ++i) {
+                    std::cout << (int)str[i] << ',';
+                }
+                std::cout << std::endl;
+
+                std::cout << "ret0: " << (int)(ret0.ptr - str) << std::endl;
+                std::cout << "ret1: " << (int)(ret1.ptr - str) << std::endl;
+            }
+
+            WJR_ASSERT(ret0.ptr - str == ret1.ptr - str);
+            if ((bool)ret0) {
+                WJR_ASSERT(x == y);
+            } else {
+                WJR_ASSERT(x == 1);
+                WJR_ASSERT(y == 3);
+            }
+        } while (0);
+    };
+
+    for (int t = 0; t < T; ++t) {
+        for (unsigned base : {2, 10}) {
+            for (int i = 1; i <= 64; ++i) {
+                for (int k = 0; k <= i; ++k) {
+                    for (int p = 0; p < k; ++p) {
+                        str[p] = mt_rand() % base + '0';
+                    }
+
+                    if (k != i) {
+                        str[k] = '\0';
+                    }
+
+                    check(i, base, int8_t());
+                    check(i, base, uint8_t());
+                    check(i, base, int16_t());
+                    check(i, base, uint16_t());
+                    check(i, base, int32_t());
+                    check(i, base, uint32_t());
+                    check(i, base, int64_t());
+                    check(i, base, uint64_t());
+                }
+            }
+        }
+    }
+}
+
 #if defined(WJR_USE_GMP)
 
 TEST(math, biginteger_to_chars) {
