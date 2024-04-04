@@ -2518,14 +2518,13 @@ struct __unsigned_from_chars_validate_fn<2> {
             do {
                 ++first;
                 if (first == last) {
-                ALL_ZEROS:
                     return 1;
                 }
 
                 ch = first[0];
             } while (ch == '0');
             if (ch != '1') {
-                goto ALL_ZEROS;
+                return 1;
             }
         } else {
             return 2;
@@ -2571,18 +2570,18 @@ struct __unsigned_from_chars_validate_fn<10> {
         }
 
         do {
+            ++first;
             if (WJR_UNLIKELY(mul_overflow(value, 10, value) ||
                              add_overflow(value, ch, value))) {
-                while (++first != last && __matches(*first))
-                    ;
+                while (first != last && __matches(*first)) {
+                    ++first;
+                }
 
                 return 0;
             }
 
-            ++first;
-
             if (first == last) {
-                return 1;
+                break;
             }
 
             ch = *first;
