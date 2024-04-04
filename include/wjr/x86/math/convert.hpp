@@ -135,27 +135,6 @@ uint32_t builtin_from_chars_unroll_8_fast(const void *ptr) {
     return builtin_from_chars_unroll_8_fast<Base>(in);
 }
 
-template <uint64_t Base>
-WJR_INTRINSIC_INLINE from_chars_validate_unroll_result
-builtin_from_chars_validate_unroll_8_fast(const void *ptr, uint32_t &val) {
-    static_assert(Base <= 10, "");
-    __m128i in = _mm_sub_epi8(sse::loadu_si64(ptr), from_chars_details::ascii);
-    __m128i cmp = sse::cmpge_epu8(in, from_chars_details::baseu8<Base>);
-    bool invalid = false;
-    int len = 0;
-
-    if (WJR_UNLIKELY(!sse::test_all_zeros(cmp))) {
-        invalid = true;
-        sse::mask_type mask = sse::movemask_epi8(cmp);
-        int zero = ctz(mask);
-        len = zero;
-        in = sse::sll_epi64(in, simd_cast<uint32_t, __m128i_t>(64 - zero * 8));
-    }
-
-    val = builtin_from_chars_unroll_8_fast<Base>(in);
-    return {invalid, len};
-}
-
 #endif
 
 #if WJR_HAS_BUILTIN(FROM_CHARS_UNROLL_16_FAST)
