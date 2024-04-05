@@ -1591,8 +1591,8 @@ TEST(math, to_chars) {
     lst.resize(64);
 
     auto check = [&](int k, int base, auto x) {
-        // test __fast_to_chars_validate
-        auto ret0 = wjr::to_chars_validate(b, b + k, x, base);
+        // test __fast_to_chars
+        auto ret0 = wjr::to_chars(b, b + k, x, base);
 
         if (!ret0) {
             WJR_ASSERT(ret0.ptr == b + k);
@@ -1611,9 +1611,9 @@ TEST(math, to_chars) {
             }
         } while (0);
 
-        // test random access iterator of __fallback_to_chars_validate
+        // test random access iterator of __fallback_to_chars
         do {
-            auto ret1 = wjr::to_chars_validate(vec.data(), vec.data() + k, x, base);
+            auto ret1 = wjr::to_chars(vec.data(), vec.data() + k, x, base);
 
             WJR_ASSERT(ret0.ec == ret1.ec);
 
@@ -1625,10 +1625,9 @@ TEST(math, to_chars) {
             }
         } while (0);
 
-        // test forward iterator of __fallback_to_chars_validate
+        // test forward iterator of __fallback_to_chars
         do {
-            auto ret1 =
-                wjr::to_chars_validate(lst.begin(), std::next(lst.begin(), k), x, base);
+            auto ret1 = wjr::to_chars(lst.begin(), std::next(lst.begin(), k), x, base);
 
             WJR_ASSERT(ret0.ec == ret1.ec);
 
@@ -1642,37 +1641,37 @@ TEST(math, to_chars) {
 
         // test non-validate
         if (k == 64) {
-            // test __fast_to_chars_backward
+            // test __fast_to_chars_backward_unchecked
             do {
-                auto ret1 = wjr::to_chars_backward(c + 64, x, base);
+                auto ret1 = wjr::to_chars_backward_unchecked(c + 64, x, base);
 
                 WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
                            std::string_view(ret1, c + 64 - ret1));
             } while (0);
 
-            // test __fast_to_chars
+            // test __fast_to_chars_unchecked
             do {
-                auto ret1 = wjr::to_chars(c, x, base);
+                auto ret1 = wjr::to_chars_unchecked(c, x, base);
 
                 WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
                            std::string_view(c, ret1 - c));
             } while (0);
 
-            // test random access iterator of __fallback_to_chars
+            // test random access iterator of __fallback_to_chars_unchecked
             do {
                 vec.clear();
 
-                (void)wjr::to_chars(std::back_inserter(vec), x, base);
+                (void)wjr::to_chars_unchecked(std::back_inserter(vec), x, base);
 
                 WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
                            std::string_view((char *)vec.data(), vec.size()));
             } while (0);
 
-            // test forward iterator of __fallback_to_chars
+            // test forward iterator of __fallback_to_chars_unchecked
             do {
                 lst.clear();
 
-                (void)wjr::to_chars(std::back_inserter(lst), x, base);
+                (void)wjr::to_chars_unchecked(std::back_inserter(lst), x, base);
 
                 WJR_ASSERT(std::string_view(b, ret0.ptr - b) ==
                            std::string(lst.begin(), lst.end()));
@@ -1716,8 +1715,8 @@ TEST(math, from_chars) {
 
     auto check = [&](int n, int base, auto type) {
         decltype(type) x = 1;
-        // test __fast_to_chars_validate
-        auto ret0 = wjr::from_chars_validate(str, str + n, x, base);
+        // test __fast_to_chars
+        auto ret0 = wjr::from_chars(str, str + n, x, base);
 
         do {
             decltype(type) y = 3;

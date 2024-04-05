@@ -22667,20 +22667,6 @@ template <typename Base, typename... Args>
 constexpr bool has_from_chars_fast_fn_fast_conv_v =
     has_from_chars_fast_fn_fast_conv<Base, Args...>::value;
 
-template <typename Enable, typename Base, typename... Args>
-struct __has_from_chars_validate_fast_fn_fast_conv : std::false_type {};
-template <typename Base, typename... Args>
-struct __has_from_chars_validate_fast_fn_fast_conv<
-    std::void_t<decltype(Base::__fast_conv(std::declval<const void *&>(),
-                                           std::declval<Args>()...))>,
-    Base, Args...> : std::true_type {};
-template <typename Base, typename... Args>
-struct has_from_chars_validate_fast_fn_fast_conv
-    : __has_from_chars_validate_fast_fn_fast_conv<void, Base, Args...> {};
-template <typename Base, typename... Args>
-constexpr bool has_from_chars_validate_fast_fn_fast_conv_v =
-    has_from_chars_validate_fast_fn_fast_conv<Base, Args...>::value;
-
 template <typename Container, typename = void>
 struct __has_trivial_resize_container_impl : std::false_type {};
 
@@ -23327,13 +23313,14 @@ struct from_chars_result {
 // 0 : dynamic base
 // 1 : base is power of two
 template <uint64_t Base>
-struct __unsigned_to_chars_backward_fn {};
+struct __unsigned_to_chars_backward_unchecked_fn {};
 
 template <uint64_t Base>
-inline constexpr __unsigned_to_chars_backward_fn<Base> __unsigned_to_chars_backward{};
+inline constexpr __unsigned_to_chars_backward_unchecked_fn<Base>
+    __unsigned_to_chars_backward_unchecked{};
 
 template <>
-struct __unsigned_to_chars_backward_fn<2> {
+struct __unsigned_to_chars_backward_unchecked_fn<2> {
     template <typename UnsignedValue, typename Converter,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
     uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x, Converter conv) const {
@@ -23381,7 +23368,7 @@ struct __unsigned_to_chars_backward_fn<2> {
 };
 
 template <>
-struct __unsigned_to_chars_backward_fn<8> {
+struct __unsigned_to_chars_backward_unchecked_fn<8> {
     template <typename UnsignedValue, typename Converter,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
     uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x, Converter conv) const {
@@ -23430,7 +23417,7 @@ struct __unsigned_to_chars_backward_fn<8> {
 };
 
 template <>
-struct __unsigned_to_chars_backward_fn<16> {
+struct __unsigned_to_chars_backward_unchecked_fn<16> {
 
     template <typename UnsignedValue, typename Converter,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
@@ -23480,7 +23467,7 @@ struct __unsigned_to_chars_backward_fn<16> {
 };
 
 template <>
-struct __unsigned_to_chars_backward_fn<1> {
+struct __unsigned_to_chars_backward_unchecked_fn<1> {
     template <typename UnsignedValue, typename Converter,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
     uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x, int per_bit,
@@ -23501,7 +23488,7 @@ struct __unsigned_to_chars_backward_fn<1> {
 };
 
 template <>
-struct __unsigned_to_chars_backward_fn<10> {
+struct __unsigned_to_chars_backward_unchecked_fn<10> {
     template <typename UnsignedValue, typename Converter,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
     uint8_t *operator()(uint8_t *ptr, UnsignedValue val, Converter conv) const {
@@ -23527,8 +23514,8 @@ struct __unsigned_to_chars_backward_fn<10> {
 };
 
 template <typename Value, typename IBase, typename Converter>
-uint8_t *__fast_to_chars_backward_impl(uint8_t *ptr, Value val, IBase ibase,
-                                       Converter conv) {
+uint8_t *__fast_to_chars_backward_unchecked_impl(uint8_t *ptr, Value val, IBase ibase,
+                                                 Converter conv) {
     if (WJR_UNLIKELY(val == 0)) {
         *--ptr = conv.template to<1>(0);
         return ptr;
@@ -23548,26 +23535,29 @@ uint8_t *__fast_to_chars_backward_impl(uint8_t *ptr, Value val, IBase ibase,
 
     switch (base) {
     case 2: {
-        ptr = __unsigned_to_chars_backward<2>(ptr, count_digits<2>(uVal), uVal, conv);
+        ptr = __unsigned_to_chars_backward_unchecked<2>(ptr, count_digits<2>(uVal), uVal,
+                                                        conv);
         break;
     }
     case 8: {
-        ptr = __unsigned_to_chars_backward<8>(ptr, count_digits<8>(uVal), uVal, conv);
+        ptr = __unsigned_to_chars_backward_unchecked<8>(ptr, count_digits<8>(uVal), uVal,
+                                                        conv);
         break;
     }
     case 16: {
-        ptr = __unsigned_to_chars_backward<16>(ptr, count_digits<16>(uVal), uVal, conv);
+        ptr = __unsigned_to_chars_backward_unchecked<16>(ptr, count_digits<16>(uVal),
+                                                         uVal, conv);
         break;
     }
     case 4:
     case 32: {
         const int per_bit = base == 4 ? 2 : 5;
-        ptr = __unsigned_to_chars_backward<1>(ptr, count_digits<1>(uVal, per_bit), uVal,
-                                              per_bit, conv);
+        ptr = __unsigned_to_chars_backward_unchecked<1>(
+            ptr, count_digits<1>(uVal, per_bit), uVal, per_bit, conv);
         break;
     }
     case 10: {
-        ptr = __unsigned_to_chars_backward<10>(ptr, uVal, conv);
+        ptr = __unsigned_to_chars_backward_unchecked<10>(ptr, uVal, conv);
         break;
     }
     default: {
@@ -23586,9 +23576,10 @@ uint8_t *__fast_to_chars_backward_impl(uint8_t *ptr, Value val, IBase ibase,
 }
 
 template <typename Iter, typename Value, typename IBase, typename Converter>
-Iter __to_chars_backward_impl(Iter first, Value val, IBase ibase, Converter conv) {
+Iter __to_chars_backward_unchecked_impl(Iter first, Value val, IBase ibase,
+                                        Converter conv) {
     const auto __ptr = reinterpret_cast<uint8_t *>(to_address(first));
-    const auto __end = __fast_to_chars_backward_impl(__ptr, val, ibase, conv);
+    const auto __end = __fast_to_chars_backward_unchecked_impl(__ptr, val, ibase, conv);
     return first + std::distance(__ptr, __end);
 }
 
@@ -23604,11 +23595,11 @@ template <typename Iter, typename Value, typename BaseType = unsigned int,
           std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter> &&
                                convert_details::__is_valid_converter_v<Value, Converter>,
                            int> = 0>
-Iter to_chars_backward(Iter first, Value val,
-                       std::integral_constant<BaseType, IBase> = {},
-                       Converter conv = {}) {
-    return __to_chars_backward_impl(first, val,
-                                    std::integral_constant<unsigned int, IBase>(), conv);
+Iter to_chars_backward_unchecked(Iter first, Value val,
+                                 std::integral_constant<BaseType, IBase> = {},
+                                 Converter conv = {}) {
+    return __to_chars_backward_unchecked_impl(
+        first, val, std::integral_constant<unsigned int, IBase>(), conv);
 }
 
 /**
@@ -23621,24 +23612,25 @@ template <typename Iter, typename Value, typename Converter = char_converter_t,
           std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter> &&
                                convert_details::__is_valid_converter_v<Value, Converter>,
                            int> = 0>
-Iter to_chars_backward(Iter first, Value val, unsigned int base, Converter conv = {}) {
+Iter to_chars_backward_unchecked(Iter first, Value val, unsigned int base,
+                                 Converter conv = {}) {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
-            return to_chars_backward(first, val,
-                                     std::integral_constant<unsigned int, 2>(), conv);
+            return to_chars_backward_unchecked(
+                first, val, std::integral_constant<unsigned int, 2>(), conv);
         }
         case 8: {
-            return to_chars_backward(first, val,
-                                     std::integral_constant<unsigned int, 8>(), conv);
+            return to_chars_backward_unchecked(
+                first, val, std::integral_constant<unsigned int, 8>(), conv);
         }
         case 16: {
-            return to_chars_backward(first, val,
-                                     std::integral_constant<unsigned int, 16>(), conv);
+            return to_chars_backward_unchecked(
+                first, val, std::integral_constant<unsigned int, 16>(), conv);
         }
         case 10: {
-            return to_chars_backward(first, val,
-                                     std::integral_constant<unsigned int, 10>(), conv);
+            return to_chars_backward_unchecked(
+                first, val, std::integral_constant<unsigned int, 10>(), conv);
         }
         default: {
             break;
@@ -23646,13 +23638,12 @@ Iter to_chars_backward(Iter first, Value val, unsigned int base, Converter conv 
         }
     }
 
-    return __to_chars_backward_impl(first, val, base, conv);
+    return __to_chars_backward_unchecked_impl(first, val, base, conv);
 }
 
 template <typename Value, typename IBase, typename Converter>
-to_chars_result<uint8_t *> __fast_to_chars_validate_impl(uint8_t *first, uint8_t *last,
-                                                         Value val, IBase ibase,
-                                                         Converter conv) {
+to_chars_result<uint8_t *> __fast_to_chars_impl(uint8_t *first, uint8_t *last, Value val,
+                                                IBase ibase, Converter conv) {
     if (WJR_UNLIKELY(val == 0)) {
         if (WJR_UNLIKELY(first == last)) {
             return {last, std::errc::value_too_large};
@@ -23682,8 +23673,8 @@ to_chars_result<uint8_t *> __fast_to_chars_validate_impl(uint8_t *first, uint8_t
     const int n = count_digits<BASE> DIGITS;                                             \
     if (WJR_LIKELY(n <= size)) {                                                         \
         first += n;                                                                      \
-        (void)__unsigned_to_chars_backward<BASE>(first, WJR_PP_QUEUE_EXPAND(CALL),       \
-                                                 conv);                                  \
+        (void)__unsigned_to_chars_backward_unchecked<BASE>(                              \
+            first, WJR_PP_QUEUE_EXPAND(CALL), conv);                                     \
         return {first, std::errc{}};                                                     \
     }                                                                                    \
     return { last, std::errc::value_too_large }
@@ -23716,8 +23707,8 @@ to_chars_result<uint8_t *> __fast_to_chars_validate_impl(uint8_t *first, uint8_t
 }
 
 template <typename Iter, typename Value, typename IBase, typename Converter>
-to_chars_result<Iter> __fallback_to_chars_validate_impl(Iter first, Iter last, Value val,
-                                                        IBase ibase, Converter conv) {
+to_chars_result<Iter> __fallback_to_chars_impl(Iter first, Iter last, Value val,
+                                               IBase ibase, Converter conv) {
     constexpr auto is_signed = std::is_signed_v<Value>;
     constexpr auto base_2_table = std::numeric_limits<Value>::digits;
     constexpr auto base_10_table = std::numeric_limits<Value>::digits10 + 1;
@@ -23778,8 +23769,8 @@ to_chars_result<Iter> __fallback_to_chars_validate_impl(Iter first, Iter last, V
                                                                                          \
         convert_details::fast_buffer_t<Iter> buffer[TABLE + is_signed];                  \
         const auto __end = buffer + TABLE + is_signed;                                   \
-        auto __ptr =                                                                     \
-            (convert_details::fast_buffer_t<Iter> *)__unsigned_to_chars_backward<BASE>(  \
+        auto __ptr = (convert_details::fast_buffer_t<Iter> *)                            \
+            __unsigned_to_chars_backward_unchecked<BASE>(                                \
                 (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \
                                                                                          \
         WJR_PP_QUEUE_EXPAND(                                                             \
@@ -23808,8 +23799,8 @@ to_chars_result<Iter> __fallback_to_chars_validate_impl(Iter first, Iter last, V
     } else {                                                                             \
         convert_details::fast_buffer_t<Iter> buffer[TABLE];                              \
         const auto __end = buffer + TABLE;                                               \
-        auto __ptr =                                                                     \
-            (convert_details::fast_buffer_t<Iter> *)__unsigned_to_chars_backward<BASE>(  \
+        auto __ptr = (convert_details::fast_buffer_t<Iter> *)                            \
+            __unsigned_to_chars_backward_unchecked<BASE>(                                \
                 (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \
                                                                                          \
         do {                                                                             \
@@ -23856,21 +23847,21 @@ to_chars_result<Iter> __fallback_to_chars_validate_impl(Iter first, Iter last, V
 }
 
 template <typename Iter, typename Value, typename IBase, typename Converter>
-to_chars_result<Iter> __to_chars_validate_impl(Iter first, Iter last, Value val,
-                                               IBase ibase, Converter conv) {
+to_chars_result<Iter> __to_chars_impl(Iter first, Iter last, Value val, IBase ibase,
+                                      Converter conv) {
     if constexpr (convert_details::__is_fast_convert_iterator_v<Iter>) {
         const auto __first = reinterpret_cast<uint8_t *>(to_address(first));
         const auto __last = reinterpret_cast<uint8_t *>(to_address(last));
-        const auto __result =
-            __fast_to_chars_validate_impl(__first, __last, val, ibase, conv);
+        const auto __result = __fast_to_chars_impl(__first, __last, val, ibase, conv);
         return {first + std::distance(__first, __result.ptr), __result.ec};
     } else {
-        return __fallback_to_chars_validate_impl(first, last, val, ibase, conv);
+        return __fallback_to_chars_impl(first, last, val, ibase, conv);
     }
 }
 
 template <typename Value, typename IBase, typename Converter>
-uint8_t *__fast_to_chars_impl(uint8_t *ptr, Value val, IBase ibase, Converter conv) {
+uint8_t *__fast_to_chars_unchecked_impl(uint8_t *ptr, Value val, IBase ibase,
+                                        Converter conv) {
     if (WJR_UNLIKELY(val == 0)) {
         *ptr++ = conv.template to<1>(0);
         return ptr;
@@ -23891,19 +23882,19 @@ uint8_t *__fast_to_chars_impl(uint8_t *ptr, Value val, IBase ibase, Converter co
     case 2: {
         const int n = count_digits<2>(uVal);
         ptr += n;
-        (void)__unsigned_to_chars_backward<2>(ptr, n, uVal, conv);
+        (void)__unsigned_to_chars_backward_unchecked<2>(ptr, n, uVal, conv);
         return ptr;
     }
     case 8: {
         const int n = count_digits<8>(uVal);
         ptr += n;
-        (void)__unsigned_to_chars_backward<8>(ptr, n, uVal, conv);
+        (void)__unsigned_to_chars_backward_unchecked<8>(ptr, n, uVal, conv);
         return ptr;
     }
     case 16: {
         const int n = count_digits<16>(uVal);
         ptr += n;
-        (void)__unsigned_to_chars_backward<16>(ptr, n, uVal, conv);
+        (void)__unsigned_to_chars_backward_unchecked<16>(ptr, n, uVal, conv);
         return ptr;
     }
     case 4:
@@ -23911,13 +23902,13 @@ uint8_t *__fast_to_chars_impl(uint8_t *ptr, Value val, IBase ibase, Converter co
         const int per_bit = base == 4 ? 2 : 5;
         const int n = count_digits<1>(uVal, per_bit);
         ptr += n;
-        (void)__unsigned_to_chars_backward<1>(ptr, n, uVal, per_bit, conv);
+        (void)__unsigned_to_chars_backward_unchecked<1>(ptr, n, uVal, per_bit, conv);
         return ptr;
     }
     case 10: {
         const int n = count_digits<10>(uVal);
         ptr += n;
-        (void)__unsigned_to_chars_backward<10>(ptr, uVal, conv);
+        (void)__unsigned_to_chars_backward_unchecked<10>(ptr, uVal, conv);
         return ptr;
     }
     default: {
@@ -23928,7 +23919,8 @@ uint8_t *__fast_to_chars_impl(uint8_t *ptr, Value val, IBase ibase, Converter co
 }
 
 template <typename Iter, typename Value, typename IBase, typename Converter>
-Iter __fallback_to_chars_impl(Iter ptr, Value val, IBase ibase, Converter conv) {
+Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
+                                        Converter conv) {
     constexpr auto is_signed = std::is_signed_v<Value>;
     constexpr auto base_2_table = std::numeric_limits<Value>::digits;
     constexpr auto base_10_table = std::numeric_limits<Value>::digits10 + 1;
@@ -23962,8 +23954,8 @@ Iter __fallback_to_chars_impl(Iter ptr, Value val, IBase ibase, Converter conv) 
             cont.append(n + sign, in_place_default_construct);                           \
         }                                                                                \
         const auto __end = to_address(cont.data() + cont.size());                        \
-        auto __ptr =                                                                     \
-            (convert_details::fast_buffer_t<Iter> *)__unsigned_to_chars_backward<BASE>(  \
+        auto __ptr = (convert_details::fast_buffer_t<Iter> *)                            \
+            __unsigned_to_chars_backward_unchecked<BASE>(                                \
                 (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \
                                                                                          \
         if constexpr (is_signed) {                                                       \
@@ -23976,8 +23968,8 @@ Iter __fallback_to_chars_impl(Iter ptr, Value val, IBase ibase, Converter conv) 
     } else {                                                                             \
         convert_details::fast_buffer_t<Iter> buffer[TABLE + is_signed];                  \
         const auto __end = buffer + TABLE + is_signed;                                   \
-        auto __ptr =                                                                     \
-            (convert_details::fast_buffer_t<Iter> *)__unsigned_to_chars_backward<BASE>(  \
+        auto __ptr = (convert_details::fast_buffer_t<Iter> *)                            \
+            __unsigned_to_chars_backward_unchecked<BASE>(                                \
                 (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \
                                                                                          \
         if constexpr (is_signed) {                                                       \
@@ -24021,13 +24013,13 @@ Iter __fallback_to_chars_impl(Iter ptr, Value val, IBase ibase, Converter conv) 
 }
 
 template <typename Iter, typename Value, typename IBase, typename Converter>
-Iter __to_chars_impl(Iter ptr, Value val, IBase ibase, Converter conv) {
+Iter __to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase, Converter conv) {
     if constexpr (convert_details::__is_fast_convert_iterator_v<Iter>) {
         const auto __ptr = reinterpret_cast<uint8_t *>(to_address(ptr));
-        const auto __result = __fast_to_chars_impl(__ptr, val, ibase, conv);
+        const auto __result = __fast_to_chars_unchecked_impl(__ptr, val, ibase, conv);
         return ptr + std::distance(__ptr, __result);
     } else {
-        return __fallback_to_chars_impl(ptr, val, ibase, conv);
+        return __fallback_to_chars_unchecked_impl(ptr, val, ibase, conv);
     }
 }
 /**
@@ -24042,11 +24034,11 @@ template <
     typename Iter, typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
     typename Converter = char_converter_t,
     std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
-to_chars_result<Iter> to_chars_validate(Iter ptr, Iter last, Value val,
-                                        std::integral_constant<BaseType, IBase> = {},
-                                        Converter conv = {}) {
-    return __to_chars_validate_impl(ptr, last, val,
-                                    std::integral_constant<unsigned int, IBase>(), conv);
+to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val,
+                               std::integral_constant<BaseType, IBase> = {},
+                               Converter conv = {}) {
+    return __to_chars_impl(ptr, last, val, std::integral_constant<unsigned int, IBase>(),
+                           conv);
 }
 
 /**
@@ -24059,25 +24051,25 @@ to_chars_result<Iter> to_chars_validate(Iter ptr, Iter last, Value val,
 template <
     typename Iter, typename Value, typename Converter = char_converter_t,
     std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
-to_chars_result<Iter> to_chars_validate(Iter ptr, Iter last, Value val, unsigned int base,
-                                        Converter conv = {}) {
+to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, unsigned int base,
+                               Converter conv = {}) {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
-            return to_chars_validate(ptr, last, val,
-                                     std::integral_constant<unsigned int, 2>(), conv);
+            return to_chars(ptr, last, val, std::integral_constant<unsigned int, 2>(),
+                            conv);
         }
         case 8: {
-            return to_chars_validate(ptr, last, val,
-                                     std::integral_constant<unsigned int, 8>(), conv);
+            return to_chars(ptr, last, val, std::integral_constant<unsigned int, 8>(),
+                            conv);
         }
         case 16: {
-            return to_chars_validate(ptr, last, val,
-                                     std::integral_constant<unsigned int, 16>(), conv);
+            return to_chars(ptr, last, val, std::integral_constant<unsigned int, 16>(),
+                            conv);
         }
         case 10: {
-            return to_chars_validate(ptr, last, val,
-                                     std::integral_constant<unsigned int, 10>(), conv);
+            return to_chars(ptr, last, val, std::integral_constant<unsigned int, 10>(),
+                            conv);
         }
         default: {
             break;
@@ -24085,7 +24077,7 @@ to_chars_result<Iter> to_chars_validate(Iter ptr, Iter last, Value val, unsigned
         }
     }
 
-    return __to_chars_validate_impl(ptr, last, val, base, conv);
+    return __to_chars_impl(ptr, last, val, base, conv);
 }
 
 /**
@@ -24102,9 +24094,10 @@ template <
     typename Iter, typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
     typename Converter = char_converter_t,
     std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
-Iter to_chars(Iter ptr, Value val, std::integral_constant<BaseType, IBase> = {},
-              Converter conv = {}) {
-    return __to_chars_impl(ptr, val, std::integral_constant<unsigned int, IBase>(), conv);
+Iter to_chars_unchecked(Iter ptr, Value val, std::integral_constant<BaseType, IBase> = {},
+                        Converter conv = {}) {
+    return __to_chars_unchecked_impl(ptr, val,
+                                     std::integral_constant<unsigned int, IBase>(), conv);
 }
 
 /**
@@ -24118,20 +24111,24 @@ Iter to_chars(Iter ptr, Value val, std::integral_constant<BaseType, IBase> = {},
 template <
     typename Iter, typename Value, typename Converter = char_converter_t,
     std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
-Iter to_chars(Iter ptr, Value val, unsigned int base, Converter conv = {}) {
+Iter to_chars_unchecked(Iter ptr, Value val, unsigned int base, Converter conv = {}) {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
-            return to_chars(ptr, val, std::integral_constant<unsigned int, 2>(), conv);
+            return to_chars_unchecked(ptr, val, std::integral_constant<unsigned int, 2>(),
+                                      conv);
         }
         case 8: {
-            return to_chars(ptr, val, std::integral_constant<unsigned int, 8>(), conv);
+            return to_chars_unchecked(ptr, val, std::integral_constant<unsigned int, 8>(),
+                                      conv);
         }
         case 16: {
-            return to_chars(ptr, val, std::integral_constant<unsigned int, 16>(), conv);
+            return to_chars_unchecked(ptr, val,
+                                      std::integral_constant<unsigned int, 16>(), conv);
         }
         case 10: {
-            return to_chars(ptr, val, std::integral_constant<unsigned int, 10>(), conv);
+            return to_chars_unchecked(ptr, val,
+                                      std::integral_constant<unsigned int, 10>(), conv);
         }
         default: {
             break;
@@ -24139,7 +24136,7 @@ Iter to_chars(Iter ptr, Value val, unsigned int base, Converter conv = {}) {
         }
     }
 
-    return __to_chars_impl(ptr, val, base, conv);
+    return __to_chars_unchecked_impl(ptr, val, base, conv);
 }
 
 template <typename Converter>
@@ -24171,7 +24168,7 @@ size_t __biginteger_to_chars_2_impl(uint8_t *first, const uint64_t *up, size_t n
     } while (n);
     x = *up;
 
-    (void)__unsigned_to_chars_backward<2>(first, hbits, x, conv);
+    (void)__unsigned_to_chars_backward_unchecked<2>(first, hbits, x, conv);
     return len;
 }
 
@@ -24335,7 +24332,7 @@ size_t __biginteger_to_chars_16_impl(uint8_t *first, const uint64_t *up, size_t 
     } while (n);
     x = *up;
 
-    (void)__unsigned_to_chars_backward<16>(first, hbits, x, conv);
+    (void)__unsigned_to_chars_backward_unchecked<16>(first, hbits, x, conv);
 
     return len;
 }
@@ -24417,7 +24414,7 @@ template <typename Converter>
 uint8_t *basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n, Converter conv) {
     do {
         if (WJR_UNLIKELY(n == 1)) {
-            return __unsigned_to_chars_backward<10>(buf, up[0], conv);
+            return __unsigned_to_chars_backward_unchecked<10>(buf, up[0], conv);
         }
 
         uint64_t q, rem;
@@ -24552,7 +24549,7 @@ template <typename Converter>
 uint8_t *__biginteger_to_chars_impl(uint8_t *first, const uint64_t *up, size_t n,
                                     unsigned int base, Converter conv) {
     if (n == 1) {
-        return to_chars(first, up[0], base, conv);
+        return to_chars_unchecked(first, up[0], base, conv);
     }
 
     return __biginteger_large_to_chars_impl(first, up, n, base, conv);
@@ -24582,13 +24579,14 @@ Iter biginteger_to_chars(Iter first, const uint64_t *up, size_t n, unsigned int 
 }
 
 template <uint64_t Base>
-struct __unsigned_from_chars_fn {};
+struct __unsigned_from_chars_unchecked_fn {};
 
 template <uint64_t Base>
-inline constexpr __unsigned_from_chars_fn<Base> __unsigned_from_chars{};
+inline constexpr __unsigned_from_chars_unchecked_fn<Base>
+    __unsigned_from_chars_unchecked{};
 
 template <>
-struct __unsigned_from_chars_fn<2> {
+struct __unsigned_from_chars_unchecked_fn<2> {
     template <typename UnsignedValue, typename Converter,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
     void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
@@ -24658,7 +24656,7 @@ struct __unsigned_from_chars_fn<2> {
 };
 
 template <>
-struct __unsigned_from_chars_fn<8> {
+struct __unsigned_from_chars_unchecked_fn<8> {
     template <typename UnsignedValue, typename Converter,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
     void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
@@ -24722,7 +24720,7 @@ struct __unsigned_from_chars_fn<8> {
 };
 
 template <>
-struct __unsigned_from_chars_fn<16> {
+struct __unsigned_from_chars_unchecked_fn<16> {
     template <typename UnsignedValue, typename Converter,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
     void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
@@ -24792,10 +24790,10 @@ struct __unsigned_from_chars_fn<16> {
 };
 
 template <>
-struct __unsigned_from_chars_fn<1> {};
+struct __unsigned_from_chars_unchecked_fn<1> {};
 
 template <>
-struct __unsigned_from_chars_fn<10> {
+struct __unsigned_from_chars_unchecked_fn<10> {
     template <typename UnsignedValue, typename Converter,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
     void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
@@ -24865,8 +24863,8 @@ struct __unsigned_from_chars_fn<10> {
 
 template <typename Value, typename IBase, typename Converter,
           std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
-void __fast_from_chars_impl(const uint8_t *first, const uint8_t *last, Value &val,
-                            IBase ibase, Converter conv) {
+void __fast_from_chars_unchecked_impl(const uint8_t *first, const uint8_t *last,
+                                      Value &val, IBase ibase, Converter conv) {
     int sign = 0;
 
     if constexpr (std::is_signed_v<Value>) {
@@ -24884,19 +24882,19 @@ void __fast_from_chars_impl(const uint8_t *first, const uint8_t *last, Value &va
 
     switch (base) {
     case 2: {
-        __unsigned_from_chars<2>(first, last, uVal, conv);
+        __unsigned_from_chars_unchecked<2>(first, last, uVal, conv);
         break;
     }
     case 8: {
-        __unsigned_from_chars<8>(first, last, uVal, conv);
+        __unsigned_from_chars_unchecked<8>(first, last, uVal, conv);
         break;
     }
     case 16: {
-        __unsigned_from_chars<16>(first, last, uVal, conv);
+        __unsigned_from_chars_unchecked<16>(first, last, uVal, conv);
         break;
     }
     case 10: {
-        __unsigned_from_chars<10>(first, last, uVal, conv);
+        __unsigned_from_chars_unchecked<10>(first, last, uVal, conv);
         break;
     }
     default: {
@@ -24969,13 +24967,13 @@ void from_chars(Iter first, Iter last, Value &val, unsigned int base,
 }
 
 template <uint64_t Base>
-struct __unsigned_from_chars_validate_fn {};
+struct __unsigned_from_chars_fn {};
 
 template <uint64_t Base>
-inline constexpr __unsigned_from_chars_validate_fn<Base> __unsigned_from_chars_validate{};
+inline constexpr __unsigned_from_chars_fn<Base> __unsigned_from_chars{};
 
 template <>
-struct __unsigned_from_chars_validate_fn<2> {
+struct __unsigned_from_chars_fn<2> {
     template <typename UnsignedValue, typename Converter,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
     int operator()(const uint8_t *&first, const uint8_t *last, UnsignedValue &value,
@@ -25027,7 +25025,7 @@ struct __unsigned_from_chars_validate_fn<2> {
 };
 
 template <>
-struct __unsigned_from_chars_validate_fn<10> {
+struct __unsigned_from_chars_fn<10> {
     template <typename UnsignedValue, typename Converter,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
     int operator()(const uint8_t *&first, const uint8_t *last, UnsignedValue &value,
@@ -25085,9 +25083,9 @@ struct __unsigned_from_chars_validate_fn<10> {
 
 template <typename Value, typename IBase, typename Converter,
           std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
-from_chars_result<const uint8_t *>
-__fast_from_chars_validate_impl(const uint8_t *first, const uint8_t *last, Value &val,
-                                IBase ibase, Converter conv) {
+from_chars_result<const uint8_t *> __fast_from_chars_impl(const uint8_t *first,
+                                                          const uint8_t *last, Value &val,
+                                                          IBase ibase, Converter conv) {
     constexpr auto is_signed = std::is_signed_v<Value>;
 
     int sign = 0;
@@ -25109,11 +25107,11 @@ __fast_from_chars_validate_impl(const uint8_t *first, const uint8_t *last, Value
 
     switch (base) {
     case 2: {
-        valid = __unsigned_from_chars_validate<2>(first, last, uVal, conv);
+        valid = __unsigned_from_chars<2>(first, last, uVal, conv);
         break;
     }
     case 10: {
-        valid = __unsigned_from_chars_validate<10>(first, last, uVal, conv);
+        valid = __unsigned_from_chars<10>(first, last, uVal, conv);
         break;
     }
     default: {
@@ -25155,12 +25153,12 @@ __fast_from_chars_validate_impl(const uint8_t *first, const uint8_t *last, Value
 
 template <typename Value, typename IBase, typename Converter,
           std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
-from_chars_result<const char *> __from_chars_validate_impl(const char *first,
-                                                           const char *last, Value &val,
-                                                           IBase ibase, Converter conv) {
+from_chars_result<const char *> __from_chars_impl(const char *first, const char *last,
+                                                  Value &val, IBase ibase,
+                                                  Converter conv) {
     const auto __first = reinterpret_cast<const uint8_t *>(first);
     const auto __last = reinterpret_cast<const uint8_t *>(last);
-    const auto ret = __fast_from_chars_validate_impl(__first, __last, val, ibase, conv);
+    const auto ret = __fast_from_chars_impl(__first, __last, val, ibase, conv);
     return {reinterpret_cast<const char *>(ret.ptr), ret.ec};
 }
 
@@ -25169,27 +25167,27 @@ template <
     typename Converter = char_converter_t,
     std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
 from_chars_result<const char *>
-from_chars_validate(const char *first, const char *last, Value &val,
-                    std::integral_constant<BaseType, IBase> = {}, Converter conv = {}) {
-    return __from_chars_validate_impl(
-        first, last, val, std::integral_constant<unsigned int, IBase>(), conv);
+from_chars(const char *first, const char *last, Value &val,
+           std::integral_constant<BaseType, IBase> = {}, Converter conv = {}) {
+    return __from_chars_impl(first, last, val,
+                             std::integral_constant<unsigned int, IBase>(), conv);
 }
 
 template <
     typename Value, typename Converter = char_converter_t,
     std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
-from_chars_result<const char *> from_chars_validate(const char *first, const char *last,
-                                                    Value &val, unsigned int base,
-                                                    Converter conv = {}) {
+from_chars_result<const char *> from_chars(const char *first, const char *last,
+                                           Value &val, unsigned int base,
+                                           Converter conv = {}) {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
-            return __from_chars_validate_impl(
-                first, last, val, std::integral_constant<unsigned int, 2>(), conv);
+            return __from_chars_impl(first, last, val,
+                                     std::integral_constant<unsigned int, 2>(), conv);
         }
         case 10: {
-            return __from_chars_validate_impl(
-                first, last, val, std::integral_constant<unsigned int, 10>(), conv);
+            return __from_chars_impl(first, last, val,
+                                     std::integral_constant<unsigned int, 10>(), conv);
         }
         default: {
             break;
@@ -25197,7 +25195,7 @@ from_chars_result<const char *> from_chars_validate(const char *first, const cha
         }
     }
 
-    return __from_chars_validate_impl(first, last, val, base, conv);
+    return __from_chars_impl(first, last, val, base, conv);
 }
 
 template <typename Converter>
@@ -25209,7 +25207,7 @@ size_t __biginteger_from_chars_2_impl(const uint8_t *first, size_t n, uint64_t *
     uint64_t x = 0;
     up += len;
 
-    __unsigned_from_chars<2>(first, first + hbits, x, conv);
+    __unsigned_from_chars_unchecked<2>(first, first + hbits, x, conv);
     first += hbits;
 
     *--up = x;
@@ -25256,7 +25254,7 @@ size_t __biginteger_from_chars_8_impl(const uint8_t *first, size_t n, uint64_t *
 
     if (WJR_UNLIKELY(hbits == 0)) {
     } else {
-        __unsigned_from_chars<8>(first, first + hbits, x, conv);
+        __unsigned_from_chars_unchecked<8>(first, first + hbits, x, conv);
         first += hbits;
     }
 
@@ -25354,7 +25352,7 @@ size_t __biginteger_from_chars_16_impl(const uint8_t *first, size_t n, uint64_t 
     uint64_t x = 0;
     up += len;
 
-    __unsigned_from_chars<16>(first, first + hbits, x, conv);
+    __unsigned_from_chars_unchecked<16>(first, first + hbits, x, conv);
     first += hbits;
 
     *--up = x;
@@ -25382,7 +25380,7 @@ size_t basecase_from_chars_10(const uint8_t *first, size_t n, uint64_t *up,
     uint64_t x = 0;
 
     if (n <= 19) {
-        __unsigned_from_chars<10>(first, first + n, x, conv);
+        __unsigned_from_chars_unchecked<10>(first, first + n, x, conv);
         up[0] = x;
 
         return up[0] != 0;
@@ -25390,7 +25388,7 @@ size_t basecase_from_chars_10(const uint8_t *first, size_t n, uint64_t *up,
 
     size_t m = (n - 1) % 19 + 1;
 
-    __unsigned_from_chars<10>(first, first + m, x, conv);
+    __unsigned_from_chars_unchecked<10>(first, first + m, x, conv);
     up[0] = x;
 
     first += m;
