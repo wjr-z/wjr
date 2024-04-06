@@ -245,6 +245,12 @@ public:
         }
     }
 
+    explicit basic_biginteger(span<const char> sp, unsigned int base = 10,
+                              const allocator_type &al = allocator_type())
+        : m_vec(al) {
+        assign(sp, base);
+    }
+
     template <typename UnsignedValue,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
     basic_biginteger &operator=(UnsignedValue value) {
@@ -263,6 +269,17 @@ public:
             m_vec.emplace_back(value < 0 ? -to_unsigned(value) : to_unsigned(value));
             set_ssize(__fasts_conditional_negate(value < 0, 1));
         }
+        return *this;
+    }
+
+    basic_biginteger &operator=(span<const char> sp) { return assign(sp); }
+
+    basic_biginteger &assign(span<const char> sp, unsigned int base = 10) {
+        auto ret = from_chars(sp.data(), sp.data() + sp.size(), *this, base);
+        if (!ret) {
+            WJR_THROW(std::invalid_argument("invalid biginteger string"));
+        }
+
         return *this;
     }
 
@@ -318,17 +335,22 @@ public:
 
     void swap(basic_biginteger &other) noexcept { m_vec.swap(other.m_vec); }
 
+    friend from_chars_result<> from_chars(const char *first, const char *last,
+                                          basic_biginteger &dst, unsigned int base = 10) {
+        return __from_chars_impl(first, last, &dst, base);
+    }
+
 #define WJR_REGISTER_BIGINTEGER_COMPARE(op)                                              \
     friend bool operator op(const basic_biginteger &lhs, const basic_biginteger &rhs) {  \
-        return __compare(&lhs, &rhs) op 0;                                               \
+        return __compare_impl(&lhs, &rhs) op 0;                                          \
     }                                                                                    \
     template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>           \
     friend bool operator op(const basic_biginteger &lhs, T rhs) {                        \
-        return __compare(&lhs, rhs) op 0;                                                \
+        return __compare_impl(&lhs, rhs) op 0;                                           \
     }                                                                                    \
     template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>           \
     friend bool operator op(T lhs, const basic_biginteger &rhs) {                        \
-        return __compare(lhs, &rhs) op 0;                                                \
+        return __compare_impl(lhs, &rhs) op 0;                                           \
     }
 
     WJR_REGISTER_BIGINTEGER_COMPARE(==)
@@ -343,15 +365,15 @@ public:
 #define WJR_REGISTER_BIGINTEGER_ADDSUB(ADDSUB)                                           \
     friend void ADDSUB(basic_biginteger &dst, const basic_biginteger &lhs,               \
                        const basic_biginteger &rhs) {                                    \
-        WJR_PP_CONCAT(__, ADDSUB)(&dst, &lhs, &rhs);                                     \
+        WJR_PP_CONCAT(WJR_PP_CONCAT(__, ADDSUB), _impl)(&dst, &lhs, &rhs);               \
     }                                                                                    \
     template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>           \
     friend void ADDSUB(basic_biginteger &dst, const basic_biginteger &lhs, T rhs) {      \
-        WJR_PP_CONCAT(__, ADDSUB)(&dst, &lhs, rhs);                                      \
+        WJR_PP_CONCAT(WJR_PP_CONCAT(__, ADDSUB), _impl)(&dst, &lhs, rhs);                \
     }                                                                                    \
     template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>           \
     friend void ADDSUB(basic_biginteger &dst, T lhs, const basic_biginteger &rhs) {      \
-        WJR_PP_CONCAT(__, ADDSUB)(&dst, lhs, &rhs);                                      \
+        WJR_PP_CONCAT(WJR_PP_CONCAT(__, ADDSUB), _impl)(&dst, lhs, &rhs);                \
     }
 
     WJR_REGISTER_BIGINTEGER_ADDSUB(add)
@@ -361,7 +383,7 @@ public:
 
     friend void mul(basic_biginteger &dst, const basic_biginteger &lhs,
                     const basic_biginteger &rhs) {
-        __mul(&dst, &lhs, &rhs);
+        __mul_impl(&dst, &lhs, &rhs);
     }
 
     WJR_PURE int32_t get_ssize() const { return __get_storage().get_ssize(); }
@@ -391,88 +413,92 @@ private:
         WJR_ASSERT(size() == 0 || back() != 0, "biginteger should not have leading zero");
     }
 
-    static int __compare(const basic_biginteger *lhs, const basic_biginteger *rhs);
+    static from_chars_result<> __from_chars_impl(const char *first, const char *last,
+                                                 basic_biginteger *dst,
+                                                 unsigned int ibase);
 
-    static int __compare_ui(const basic_biginteger *lhs, uint64_t rhs);
-    static int __compare_si(const basic_biginteger *lhs, int64_t rhs);
+    static int __compare_impl(const basic_biginteger *lhs, const basic_biginteger *rhs);
+
+    static int __compare_ui_impl(const basic_biginteger *lhs, uint64_t rhs);
+    static int __compare_si_impl(const basic_biginteger *lhs, int64_t rhs);
 
     template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
-    static int __compare(const basic_biginteger *lhs, T rhs) {
+    static int __compare_impl(const basic_biginteger *lhs, T rhs) {
         if constexpr (std::is_unsigned_v<T>) {
-            return __compare_ui(lhs, rhs);
+            return __compare_ui_impl(lhs, rhs);
         } else {
-            return __compare_si(lhs, rhs);
+            return __compare_si_impl(lhs, rhs);
         }
     }
 
     template <bool xsign>
-    static void __addsub(basic_biginteger *dst, const basic_biginteger *lhs,
-                         uint64_t rhs);
+    static void __addsub_impl(basic_biginteger *dst, const basic_biginteger *lhs,
+                              uint64_t rhs);
 
-    static void __ui_sub(basic_biginteger *dst, uint64_t lhs,
-                         const basic_biginteger *rhs);
+    static void __ui_sub_impl(basic_biginteger *dst, uint64_t lhs,
+                              const basic_biginteger *rhs);
 
     template <bool xsign>
-    static void __addsub(basic_biginteger *dst, const basic_biginteger *lhs,
-                         const basic_biginteger *rhs);
+    static void __addsub_impl(basic_biginteger *dst, const basic_biginteger *lhs,
+                              const basic_biginteger *rhs);
 
-    static void __add(basic_biginteger *dst, const basic_biginteger *lhs,
-                      const basic_biginteger *rhs) {
-        __addsub<false>(dst, lhs, rhs);
+    static void __add_impl(basic_biginteger *dst, const basic_biginteger *lhs,
+                           const basic_biginteger *rhs) {
+        __addsub_impl<false>(dst, lhs, rhs);
     }
 
     template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
-    static void __add(basic_biginteger *dst, const basic_biginteger *lhs, T rhs) {
+    static void __add_impl(basic_biginteger *dst, const basic_biginteger *lhs, T rhs) {
         if constexpr (std::is_unsigned_v<T>) {
-            __addsub<false>(dst, lhs, rhs);
+            __addsub_impl<false>(dst, lhs, rhs);
         } else {
             if (rhs < 0) {
-                __addsub<true>(dst, lhs, -to_unsigned(rhs));
+                __addsub_impl<true>(dst, lhs, -to_unsigned(rhs));
             } else {
-                __addsub<false>(dst, lhs, to_unsigned(rhs));
+                __addsub_impl<false>(dst, lhs, to_unsigned(rhs));
             }
         }
     }
 
     template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
-    static void __add(basic_biginteger *dst, T lhs, const basic_biginteger *rhs) {
-        __add(dst, rhs, lhs);
+    static void __add_impl(basic_biginteger *dst, T lhs, const basic_biginteger *rhs) {
+        __add_impl(dst, rhs, lhs);
     }
 
-    static void __sub(basic_biginteger *dst, const basic_biginteger *lhs,
-                      const basic_biginteger *rhs) {
-        __addsub<true>(dst, lhs, rhs);
+    static void __sub_impl(basic_biginteger *dst, const basic_biginteger *lhs,
+                           const basic_biginteger *rhs) {
+        __addsub_impl<true>(dst, lhs, rhs);
     }
 
     template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
-    static void __sub(basic_biginteger *dst, const basic_biginteger *lhs, T rhs) {
+    static void __sub_impl(basic_biginteger *dst, const basic_biginteger *lhs, T rhs) {
         if constexpr (std::is_unsigned_v<T>) {
-            __addsub<true>(dst, lhs, rhs);
+            __addsub_impl<true>(dst, lhs, rhs);
         } else {
             if (rhs < 0) {
-                __addsub<false>(dst, lhs, -to_unsigned(rhs));
+                __addsub_impl<false>(dst, lhs, -to_unsigned(rhs));
             } else {
-                __addsub<true>(dst, lhs, to_unsigned(rhs));
+                __addsub_impl<true>(dst, lhs, to_unsigned(rhs));
             }
         }
     }
 
     template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
-    static void __sub(basic_biginteger *dst, T lhs, const basic_biginteger *rhs) {
+    static void __sub_impl(basic_biginteger *dst, T lhs, const basic_biginteger *rhs) {
         if constexpr (std::is_unsigned_v<T>) {
-            __ui_sub(dst, lhs, rhs);
+            __ui_sub_impl(dst, lhs, rhs);
         } else {
             if (lhs < 0) {
-                __addsub<false>(dst, rhs, -to_unsigned(lhs));
+                __addsub_impl<false>(dst, rhs, -to_unsigned(lhs));
                 dst->negate();
             } else {
-                __ui_sub(dst, to_unsigned(lhs), rhs);
+                __ui_sub_impl(dst, to_unsigned(lhs), rhs);
             }
         }
     }
 
-    static void __mul(basic_biginteger *dst, const basic_biginteger *lhs,
-                      const basic_biginteger *rhs);
+    static void __mul_impl(basic_biginteger *dst, const basic_biginteger *lhs,
+                           const basic_biginteger *rhs);
 
     vector_type m_vec;
 };
@@ -486,8 +512,154 @@ void swap(basic_biginteger<Storage> &lhs, basic_biginteger<Storage> &rhs) noexce
 }
 
 template <typename Storage>
-int basic_biginteger<Storage>::__compare(const basic_biginteger *lhs,
-                                         const basic_biginteger *rhs) {
+from_chars_result<>
+basic_biginteger<Storage>::__from_chars_impl(const char *first, const char *last,
+                                             basic_biginteger *dst, unsigned int ibase) {
+
+    uint8_t ch;
+    from_chars_result<> result{first, std::errc{}};
+
+    auto invalid = [&dst, &result]() {
+        dst->clear();
+        result.ec = std::errc::invalid_argument;
+        return result;
+    };
+
+    while (first != last && convert_details::__isspace(ch = *first++))
+        ;
+
+    if (WJR_UNLIKELY(first == last)) {
+        return invalid();
+    }
+
+    int sign = 0;
+    if (ch == '-') {
+        sign = 1;
+
+        if (WJR_UNLIKELY(first == last)) {
+            return invalid();
+        }
+
+        ch = *first++;
+    }
+
+    unsigned int base = ibase;
+
+    if (base == 0) {
+        base = 10;
+        if (ch == '0') {
+            base = 8;
+            if (WJR_UNLIKELY(first == last)) {
+                return invalid();
+            }
+            ch = *first++;
+            if (ch == 'x' || ch == 'X') {
+                base = 16;
+                if (WJR_UNLIKELY(first == last)) {
+                    return invalid();
+                }
+                ch = *first++;
+            } else {
+                if (ch == 'b' || ch == 'B') {
+                    base = 2;
+                    if (WJR_UNLIKELY(first == last)) {
+                        return invalid();
+                    }
+                    ch = *first++;
+                }
+            }
+        }
+    }
+
+    auto __first = first;
+
+    while (first != last && ch == '0') {
+        ch = *first++;
+    }
+
+    if (WJR_UNLIKELY(first == last)) {
+        dst->clear();
+        if (first == __first) {
+            result.ec = std::errc::invalid_argument;
+        } else {
+            result.ptr = first;
+        }
+        return result;
+    }
+
+    const auto start = first;
+    if (base <= 10) {
+        do {
+            if (ch < '0' || ch >= '0' + base) {
+                break;
+            }
+            ch = *first++;
+        } while (first != last);
+    } else {
+        ch = 0;
+        do {
+            if (ch >= base) {
+                break;
+            }
+
+            ch = char_converter.from(*first++);
+        } while (first != last);
+    }
+
+    if (WJR_UNLIKELY(first == __first)) {
+        return invalid();
+    }
+
+    if (first == start) {
+        dst->clear();
+        result.ptr = first;
+        return result;
+    }
+
+    size_t str_size = first - start;
+    size_t capacity;
+
+    switch (base) {
+    case 2: {
+        capacity = (str_size + 63) / 64;
+        break;
+    }
+    case 8: {
+        capacity = (str_size * 3 + 63) / 64;
+        break;
+    }
+    case 16: {
+        capacity = (str_size + 15) / 16;
+        break;
+    }
+    case 4:
+    case 32: {
+        const int bits = base == 4 ? 2 : 5;
+        capacity = (str_size * bits + 63) / 64;
+        break;
+    }
+    case 10: {
+        // capacity = (str_size * log2(10) + 63) / 64;
+        capacity = (str_size * 10 / 3 + 63) / 64;
+        break;
+    }
+    default: {
+        return invalid();
+    }
+    }
+
+    dst->reserve(capacity);
+    auto ptr = dst->data();
+    int32_t dssize = biginteger_from_chars(start - 1, first - 1, ptr, base) - ptr;
+    dssize = __fasts_conditional_negate(sign, dssize);
+    dst->set_ssize(dssize);
+    result.ptr = first;
+    return result;
+}
+
+template <typename Storage>
+int basic_biginteger<Storage>::__compare_impl(const basic_biginteger *lhs,
+                                              const basic_biginteger *rhs) {
     const auto lssize = lhs->get_ssize();
     const auto rssize = rhs->get_ssize();
 
@@ -500,7 +672,8 @@ int basic_biginteger<Storage>::__compare(const basic_biginteger *lhs,
 }
 
 template <typename Storage>
-int basic_biginteger<Storage>::__compare_ui(const basic_biginteger *lhs, uint64_t rhs) {
+int basic_biginteger<Storage>::__compare_ui_impl(const basic_biginteger *lhs,
+                                                 uint64_t rhs) {
     const auto lssize = lhs->get_ssize();
 
     if (lssize == 0) {
@@ -516,7 +689,8 @@ int basic_biginteger<Storage>::__compare_ui(const basic_biginteger *lhs, uint64_
 }
 
 template <typename Storage>
-int basic_biginteger<Storage>::__compare_si(const basic_biginteger *lhs, int64_t rhs) {
+int basic_biginteger<Storage>::__compare_si_impl(const basic_biginteger *lhs,
+                                                 int64_t rhs) {
     const auto lssize = lhs->get_ssize();
     const auto rssize = rhs != 0 ? (rhs < 0 ? -1 : 1) : 0;
 
@@ -537,8 +711,8 @@ int basic_biginteger<Storage>::__compare_si(const basic_biginteger *lhs, int64_t
 
 template <typename Storage>
 template <bool xsign>
-void basic_biginteger<Storage>::__addsub(basic_biginteger *dst,
-                                         const basic_biginteger *lhs, uint64_t rhs) {
+void basic_biginteger<Storage>::__addsub_impl(basic_biginteger *dst,
+                                              const basic_biginteger *lhs, uint64_t rhs) {
     int32_t lssize = lhs->get_ssize();
     if (lssize == 0) {
         dst->reserve(1);
@@ -577,8 +751,8 @@ void basic_biginteger<Storage>::__addsub(basic_biginteger *dst,
 }
 
 template <typename Storage>
-void basic_biginteger<Storage>::__ui_sub(basic_biginteger *dst, uint64_t lhs,
-                                         const basic_biginteger *rhs) {
+void basic_biginteger<Storage>::__ui_sub_impl(basic_biginteger *dst, uint64_t lhs,
+                                              const basic_biginteger *rhs) {
     int32_t rssize = rhs->get_ssize();
     if (rssize == 0) {
         dst->reserve(1);
@@ -618,9 +792,9 @@ void basic_biginteger<Storage>::__ui_sub(basic_biginteger *dst, uint64_t lhs,
 
 template <typename Storage>
 template <bool xsign>
-void basic_biginteger<Storage>::__addsub(basic_biginteger *dst,
-                                         const basic_biginteger *lhs,
-                                         const basic_biginteger *rhs) {
+void basic_biginteger<Storage>::__addsub_impl(basic_biginteger *dst,
+                                              const basic_biginteger *lhs,
+                                              const basic_biginteger *rhs) {
     int32_t lssize = lhs->get_ssize();
     int32_t rssize = __fasts_conditional_negate(xsign, rhs->get_ssize());
     uint32_t lusize = __fasts_abs(lssize);
@@ -666,8 +840,9 @@ void basic_biginteger<Storage>::__addsub(basic_biginteger *dst,
 }
 
 template <typename Storage>
-void basic_biginteger<Storage>::__mul(basic_biginteger *dst, const basic_biginteger *lhs,
-                                      const basic_biginteger *rhs) {
+void basic_biginteger<Storage>::__mul_impl(basic_biginteger *dst,
+                                           const basic_biginteger *lhs,
+                                           const basic_biginteger *rhs) {
     using namespace biginteger_details;
 
     int32_t lssize = lhs->get_ssize();
