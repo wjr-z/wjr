@@ -340,6 +340,21 @@ public:
         return __from_chars_impl(first, last, &dst, base);
     }
 
+    template <typename Iter>
+    friend Iter to_chars_unchecked(Iter ptr, const basic_biginteger &src,
+                                   unsigned int base = 10) {
+        if (src.empty()) {
+            *ptr++ = '0';
+            return ptr;
+        }
+
+        if (src.is_negate()) {
+            *ptr++ = '-';
+        }
+
+        return biginteger_to_chars(ptr, src.data(), src.size(), base);
+    }
+
 #define WJR_REGISTER_BIGINTEGER_COMPARE(op)                                              \
     friend bool operator op(const basic_biginteger &lhs, const basic_biginteger &rhs) {  \
         return __compare_impl(&lhs, &rhs) op 0;                                          \

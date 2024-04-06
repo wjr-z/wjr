@@ -24521,8 +24521,10 @@ uint8_t *__biginteger_basecase_to_chars(uint8_t *first, const uint64_t *up, size
 }
 
 template <typename Converter>
-uint8_t *__biginteger_large_to_chars_impl(uint8_t *first, const uint64_t *up, size_t n,
-                                          unsigned int base, Converter conv) {
+uint8_t *__fast_biginteger_large_to_chars_impl(uint8_t *first, const uint64_t *up,
+                                               size_t n, unsigned int base,
+                                               Converter conv) {
+
     switch (base) {
     case 2: {
         return first + __biginteger_to_chars_2_impl(first, up, n, conv);
@@ -24545,14 +24547,88 @@ uint8_t *__biginteger_large_to_chars_impl(uint8_t *first, const uint64_t *up, si
     return __biginteger_basecase_to_chars(first, up, n, base, conv);
 }
 
-template <typename Converter>
-uint8_t *__biginteger_to_chars_impl(uint8_t *first, const uint64_t *up, size_t n,
-                                    unsigned int base, Converter conv) {
+template <typename Iter, typename Converter>
+Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, size_t n,
+                                               unsigned int base, Converter conv) {
+#define WJR_BIGINTEGER_TO_CHARS_IMPL(BASE, NAME, TAIL, SIZE, CALL)                       \
+    constexpr auto __fast_container_inserter_v =                                         \
+        convert_details::is_fast_container_inserter_v<Iter>;                             \
+    if constexpr (__fast_container_inserter_v != 0) {                                    \
+        auto &cont = get_inserter_container(ptr);                                        \
+        const auto __presize = cont.size();                                              \
+        if constexpr (__fast_container_inserter_v == 1) {                                \
+            cont.resize(__presize + SIZE);                                               \
+        } else {                                                                         \
+            cont.append(SIZE, in_place_default_construct);                               \
+        }                                                                                \
+        const auto __ptr = (uint8_t *)to_address(cont.data()) + __presize;               \
+        const auto __size = NAME(__ptr, WJR_PP_QUEUE_EXPAND(CALL), conv) TAIL;           \
+        WJR_ASSERT((size_t)__size <= SIZE);                                              \
+        if constexpr (__fast_container_inserter_v == 1) {                                \
+            cont.resize(__presize + __size);                                             \
+        } else {                                                                         \
+            cont.resize(__presize + __size, wjr::in_place_default_construct);            \
+        }                                                                                \
+                                                                                         \
+        return ptr;                                                                      \
+    } else {                                                                             \
+        unique_stack_allocator stkal(math_details::stack_alloc);                         \
+        const auto __ptr = (uint8_t *)stkal.allocate(SIZE * sizeof(uint64_t));           \
+        const auto __size = NAME(__ptr, WJR_PP_QUEUE_EXPAND(CALL), conv) TAIL;           \
+                                                                                         \
+        return wjr::copy_n((convert_details::fast_buffer_t<Iter> *)__ptr, __size, ptr);  \
+    }
+
+    switch (base) {
+    case 2: {
+        const size_t capacity = 64 * n;
+        WJR_BIGINTEGER_TO_CHARS_IMPL(2, __biginteger_to_chars_2_impl, , capacity,
+                                     (up, n));
+    }
+    case 8: {
+        const size_t capacity = (64 * n + 2) / 3;
+        WJR_BIGINTEGER_TO_CHARS_IMPL(8, __biginteger_to_chars_8_impl, , capacity,
+                                     (up, n));
+    }
+    case 16: {
+        const size_t capacity = (64 * n + 3) / 4;
+        WJR_BIGINTEGER_TO_CHARS_IMPL(16, __biginteger_to_chars_16_impl, , capacity,
+                                     (up, n));
+    }
+    case 4:
+    case 32: {
+        const int bits = base == 4 ? 2 : 5;
+        const size_t capacity = (64 * n + bits - 1) / bits;
+        WJR_BIGINTEGER_TO_CHARS_IMPL(base, __biginteger_to_chars_power_of_two_impl, ,
+                                     capacity, (up, n, base));
+    }
+    default: {
+        break;
+    }
+    }
+
+    const size_t capacity = ((64 * n) * 4 + 12) / 13;
+    WJR_BIGINTEGER_TO_CHARS_IMPL(base, __biginteger_basecase_to_chars, -__ptr, capacity,
+                                 (up, n, base));
+
+#undef WJR_BIGINTEGER_TO_CHARS_IMPL
+}
+
+template <typename Iter, typename Converter>
+Iter __biginteger_to_chars_impl(Iter first, const uint64_t *up, size_t n,
+                                unsigned int base, Converter conv) {
     if (n == 1) {
         return to_chars_unchecked(first, up[0], base, conv);
     }
 
-    return __biginteger_large_to_chars_impl(first, up, n, base, conv);
+    if constexpr (convert_details::__is_fast_convert_iterator_v<Iter>) {
+        const auto __first = reinterpret_cast<uint8_t *>(to_address(first));
+        const auto __result =
+            __fast_biginteger_large_to_chars_impl(__first, up, n, base, conv);
+        return first + std::distance(__first, __result);
+    } else {
+        return __fallback_biginteger_large_to_chars_impl(first, up, n, base, conv);
+    }
 }
 
 /**
@@ -24566,16 +24642,13 @@ uint8_t *__biginteger_to_chars_impl(uint8_t *first, const uint64_t *up, size_t n
  * Only support 10 and power of two currently.
  * @return Output iterator after the conversion
  */
-template <typename Iter, typename Converter = char_converter_t,
-          std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter>, int> = 0>
+template <typename Iter, typename Converter = char_converter_t>
 Iter biginteger_to_chars(Iter first, const uint64_t *up, size_t n, unsigned int base = 10,
                          Converter conv = {}) {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));
     WJR_ASSERT_ASSUME(up[n - 1] != 0);
 
-    const auto __first = reinterpret_cast<uint8_t *>(to_address(first));
-    const auto ret = __biginteger_to_chars_impl(__first, up, n, base, conv);
-    return first + std::distance(__first, ret);
+    return __biginteger_to_chars_impl(first, up, n, base, conv);
 }
 
 template <uint64_t Base>
@@ -26221,6 +26294,21 @@ public:
     friend from_chars_result<> from_chars(const char *first, const char *last,
                                           basic_biginteger &dst, unsigned int base = 10) {
         return __from_chars_impl(first, last, &dst, base);
+    }
+
+    template <typename Iter>
+    friend Iter to_chars_unchecked(Iter ptr, const basic_biginteger &src,
+                                   unsigned int base = 10) {
+        if (src.empty()) {
+            *ptr++ = '0';
+            return ptr;
+        }
+
+        if (src.is_negate()) {
+            *ptr++ = '-';
+        }
+
+        return biginteger_to_chars(ptr, src.data(), src.size(), base);
     }
 
 #define WJR_REGISTER_BIGINTEGER_COMPARE(op)                                              \

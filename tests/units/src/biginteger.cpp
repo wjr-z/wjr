@@ -80,50 +80,6 @@ TEST(biginteger, construct) {
         WJR_ASSERT(c[0] == 1);
         WJR_ASSERT(c.is_negate());
     }
-
-    {
-        biginteger a;
-
-        auto check = [&a](const auto &str, bool negate, bool thr,
-                          std::initializer_list<uint64_t> list, unsigned int base = 10) {
-            WJR_TRY {
-                a.assign(str, base);
-                WJR_ASSERT(!thr);
-                WJR_ASSERT(a.is_negate() == negate);
-                WJR_ASSERT(std::equal(a.begin(), a.end(), list.begin(), list.end()));
-            }
-            WJR_CATCH(const std::invalid_argument &) { WJR_ASSERT(thr); }
-
-            WJR_TRY {
-                a.assign(std::string_view(str), base);
-                WJR_ASSERT(!thr);
-                WJR_ASSERT(a.is_negate() == negate);
-                WJR_ASSERT(std::equal(a.begin(), a.end(), list.begin(), list.end()));
-            }
-            WJR_CATCH(const std::invalid_argument &) { WJR_ASSERT(thr); }
-        };
-
-        check("0", false, false, {});
-        check("1", false, false, {1});
-        check("-1", true, false, {1});
-        check("123456789012345678901234567890", false, false,
-              {14083847773837265618ul, 6692605942ul});
-        check("-123456789012345678901234567890", true, false,
-              {14083847773837265618ul, 6692605942ul});
-        check("    123456789012345678901234567890    ", false, false,
-              {14083847773837265618ul, 6692605942ul});
-        check("    -123456789012345678901234567890    ", true, false,
-              {14083847773837265618ul, 6692605942ul});
-        check("   0000123456789012345678901234567890   ", false, false,
-              {14083847773837265618ul, 6692605942ul});
-        check("   0000123456789012345678901234567890a   ", false, false,
-              {14083847773837265618ul, 6692605942ul});
-
-        check("", false, true, {});
-        check("a", false, true, {});
-        check("-", false, true, {});
-        check("0", false, true, {}, 0);
-    }
 }
 
 TEST(biginteger, assignment) {
@@ -229,5 +185,60 @@ TEST(biginteger, add) {
         WJR_ASSERT(c.size() == 1);
         WJR_ASSERT(c[0] == 2);
         WJR_ASSERT(c.is_negate());
+    }
+}
+
+TEST(biginteger, convert) {
+
+    {
+        biginteger a;
+
+        auto check = [&a](const auto &str, std::string_view expect,
+                          unsigned int base = 10) {
+            auto get = [&a](unsigned int base) {
+                std::string str;
+                to_chars_unchecked(std::back_inserter(str), a, base);
+                return str;
+            };
+
+            auto sp = wjr::span<const char>(str);
+            auto sv = std::string_view(str);
+
+            const bool thr = expect.empty();
+            WJR_TRY {
+                a.assign(sp, base);
+                WJR_ASSERT(!thr);
+                WJR_ASSERT(get(base) == expect);
+            }
+            WJR_CATCH(const std::invalid_argument &) { WJR_ASSERT(thr); }
+
+            if (sp.size() != sv.size()) {
+                WJR_TRY {
+                    a.assign(sv, base);
+                    WJR_ASSERT(!thr);
+                    WJR_ASSERT(get(base) == expect);
+                }
+                WJR_CATCH(const std::invalid_argument &) { WJR_ASSERT(thr); }
+            }
+        };
+
+        check("0", "0");
+        check("1", "1");
+        check("-1", "-1");
+        check("123456789012345678901234567890", "123456789012345678901234567890");
+        check("-123456789012345678901234567890", "-123456789012345678901234567890");
+        check("    123456789012345678901234567890    ", "123456789012345678901234567890");
+        check("    -123456789012345678901234567890    ",
+              "-123456789012345678901234567890");
+        check("   0000123456789012345678901234567890   ",
+              "123456789012345678901234567890");
+        check("   0000123456789012345678901234567890a   ",
+              "123456789012345678901234567890");
+
+        check("", "");
+        check("a", "");
+        check("-", "");
+        check("0", "", 0);
+        check("2", "", 2);
     }
 }

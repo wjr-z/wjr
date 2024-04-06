@@ -1793,6 +1793,12 @@ TEST(math, biginteger_to_chars) {
 
                 WJR_ASSERT(std::string_view(b.data(), len) ==
                            std::string_view(c.data(), len2));
+
+                b.clear();
+                wjr::biginteger_to_chars(std::back_inserter(b), d.data(), i, base);
+                len = b.size();
+                WJR_ASSERT(std::string_view(b.data(), len) ==
+                           std::string_view(c.data(), len2));
             }
         }
     }
