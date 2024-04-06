@@ -82,74 +82,47 @@ TEST(biginteger, construct) {
     }
 
     {
-        biginteger a("0");
-        WJR_ASSERT(a.size() == 0);
-        WJR_ASSERT(!a.is_negate());
+        biginteger a;
 
-        a.assign("1");
-        WJR_ASSERT(a.size() == 1);
-        WJR_ASSERT(a[0] == 1);
-        WJR_ASSERT(!a.is_negate());
+        auto check = [&a](const auto &str, bool negate, bool thr,
+                          std::initializer_list<uint64_t> list, unsigned int base = 10) {
+            WJR_TRY {
+                a.assign(str, base);
+                WJR_ASSERT(!thr);
+                WJR_ASSERT(a.is_negate() == negate);
+                WJR_ASSERT(std::equal(a.begin(), a.end(), list.begin(), list.end()));
+            }
+            WJR_CATCH(const std::invalid_argument &) { WJR_ASSERT(thr); }
 
-        a.assign("-1");
-        WJR_ASSERT(a.size() == 1);
-        WJR_ASSERT(a[0] == 1);
-        WJR_ASSERT(a.is_negate());
+            WJR_TRY {
+                a.assign(std::string_view(str), base);
+                WJR_ASSERT(!thr);
+                WJR_ASSERT(a.is_negate() == negate);
+                WJR_ASSERT(std::equal(a.begin(), a.end(), list.begin(), list.end()));
+            }
+            WJR_CATCH(const std::invalid_argument &) { WJR_ASSERT(thr); }
+        };
 
-        a.assign("123456789012345678901234567890");
-        WJR_ASSERT(a.size() == 2);
-        // 123456789012345678901234567890 % 2^64, 123456789012345678901234567890 / 2^64
-        WJR_ASSERT(a[0] == 14083847773837265618ul);
-        WJR_ASSERT(a[1] == 6692605942ul);
-        WJR_ASSERT(!a.is_negate());
+        check("0", false, false, {});
+        check("1", false, false, {1});
+        check("-1", true, false, {1});
+        check("123456789012345678901234567890", false, false,
+              {14083847773837265618ul, 6692605942ul});
+        check("-123456789012345678901234567890", true, false,
+              {14083847773837265618ul, 6692605942ul});
+        check("    123456789012345678901234567890    ", false, false,
+              {14083847773837265618ul, 6692605942ul});
+        check("    -123456789012345678901234567890    ", true, false,
+              {14083847773837265618ul, 6692605942ul});
+        check("   0000123456789012345678901234567890   ", false, false,
+              {14083847773837265618ul, 6692605942ul});
+        check("   0000123456789012345678901234567890a   ", false, false,
+              {14083847773837265618ul, 6692605942ul});
 
-        a.assign("-123456789012345678901234567890");
-        WJR_ASSERT(a.size() == 2);
-        WJR_ASSERT(a[0] == 14083847773837265618ul);
-        WJR_ASSERT(a[1] == 6692605942ul);
-        WJR_ASSERT(a.is_negate());
-
-        a.assign("    123456789012345678901234567890    ");
-        WJR_ASSERT(a.size() == 2);
-        WJR_ASSERT(a[0] == 14083847773837265618ul);
-        WJR_ASSERT(a[1] == 6692605942ul);
-        WJR_ASSERT(!a.is_negate());
-
-        a.assign("    -123456789012345678901234567890    ");
-        WJR_ASSERT(a.size() == 2);
-        WJR_ASSERT(a[0] == 14083847773837265618ul);
-        WJR_ASSERT(a[1] == 6692605942ul);
-        WJR_ASSERT(a.is_negate());
-
-        a.assign("    -123456789012345678901234567890    ", 0);
-        WJR_ASSERT(a.size() == 2);
-        WJR_ASSERT(a[0] == 14083847773837265618ul);
-        WJR_ASSERT(a[1] == 6692605942ul);
-        WJR_ASSERT(a.is_negate());
-
-        WJR_TRY {
-            a.assign("");
-            WJR_ASSERT(false, "should throw");
-        }
-        WJR_CATCH(const std::invalid_argument &) {}
-
-        WJR_TRY {
-            a.assign("a");
-            WJR_ASSERT(false, "should throw");
-        }
-        WJR_CATCH(const std::invalid_argument &) {}
-
-        WJR_TRY {
-            a.assign("-");
-            WJR_ASSERT(false, "should throw");
-        }
-        WJR_CATCH(const std::invalid_argument &) {}
-
-        WJR_TRY {
-            a.assign("0", 0);
-            WJR_ASSERT(false, "should throw");
-        }
-        WJR_CATCH(const std::invalid_argument &) {}
+        check("", false, true, {});
+        check("a", false, true, {});
+        check("-", false, true, {});
+        check("0", false, true, {}, 0);
     }
 }
 

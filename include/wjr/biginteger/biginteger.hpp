@@ -415,7 +415,7 @@ private:
 
     static from_chars_result<> __from_chars_impl(const char *first, const char *last,
                                                  basic_biginteger *dst,
-                                                 unsigned int ibase);
+                                                 unsigned int base);
 
     static int __compare_impl(const basic_biginteger *lhs, const basic_biginteger *rhs);
 
@@ -514,7 +514,7 @@ void swap(basic_biginteger<Storage> &lhs, basic_biginteger<Storage> &rhs) noexce
 template <typename Storage>
 from_chars_result<>
 basic_biginteger<Storage>::__from_chars_impl(const char *first, const char *last,
-                                             basic_biginteger *dst, unsigned int ibase) {
+                                             basic_biginteger *dst, unsigned int base) {
 
     uint8_t ch;
     from_chars_result<> result{first, std::errc{}};
@@ -525,12 +525,12 @@ basic_biginteger<Storage>::__from_chars_impl(const char *first, const char *last
         return result;
     };
 
-    while (first != last && convert_details::__isspace(ch = *first++))
-        ;
-
-    if (WJR_UNLIKELY(first == last)) {
+    if (first == last) {
         return invalid();
     }
+
+    while (convert_details::__isspace(ch = *first++) && first != last)
+        ;
 
     int sign = 0;
     if (ch == '-') {
@@ -542,8 +542,6 @@ basic_biginteger<Storage>::__from_chars_impl(const char *first, const char *last
 
         ch = *first++;
     }
-
-    unsigned int base = ibase;
 
     if (base == 0) {
         base = 10;
@@ -573,37 +571,36 @@ basic_biginteger<Storage>::__from_chars_impl(const char *first, const char *last
 
     auto __first = first;
 
-    while (first != last && ch == '0') {
-        ch = *first++;
-    }
-
-    if (WJR_UNLIKELY(first == last)) {
-        dst->clear();
-        if (first == __first) {
-            result.ec = std::errc::invalid_argument;
-        } else {
+    while (ch == '0') {
+        if (WJR_UNLIKELY(first == last)) {
+            dst->clear();
             result.ptr = first;
+            return result;
         }
-        return result;
+
+        ch = *first++;
     }
 
     const auto start = first;
     if (base <= 10) {
-        do {
-            if (ch < '0' || ch >= '0' + base) {
+        while (ch >= '0' && ch < '0' + base) {
+            if (first == last) {
+                ++first;
                 break;
             }
+
             ch = *first++;
-        } while (first != last);
+        }
     } else {
         ch = 0;
-        do {
-            if (ch >= base) {
+        while (ch < base) {
+            if (first == last) {
+                ++first;
                 break;
             }
 
             ch = char_converter.from(*first++);
-        } while (first != last);
+        }
     }
 
     if (WJR_UNLIKELY(first == __first)) {
