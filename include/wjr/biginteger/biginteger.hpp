@@ -326,11 +326,7 @@ public:
     basic_biginteger &operator=(span<const char> sp) { return assign(sp); }
 
     basic_biginteger &assign(span<const char> sp, unsigned int base = 10) {
-        auto ret = from_chars(sp.data(), sp.data() + sp.size(), *this, base);
-        if (!ret) {
-            WJR_THROW(std::invalid_argument("invalid biginteger string"));
-        }
-
+        (void)from_chars(sp.data(), sp.data() + sp.size(), *this, base);
         return *this;
     }
 
@@ -1033,13 +1029,24 @@ void mul(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs,
 }
 
 template <typename S>
+std::istream &operator>>(std::istream &is, basic_biginteger<S> &dst) {
+    std::string str;
+    is >> str;
+    from_chars(str.data(), str.data() + str.size(), dst);
+    return is;
+}
+
+template <typename S>
 std::ostream &operator<<(std::ostream &os, const basic_biginteger<S> &src) {
     std::ios_base::iostate state = std::ios::goodbit;
     const std::ostream::sentry ok(os);
 
     if (ok) {
-        wjr::vector<char> buffer;
-        buffer.reserve(64);
+        unique_stack_allocator stkal(math_details::stack_alloc);
+
+        // Waste up to 16 KB/0.5=32 KB of memory
+        vector<char, math_details::weak_stack_alloc<char>> buffer(stkal);
+        buffer.reserve(512);
 
         const std::ios_base::fmtflags flags = os.flags();
 

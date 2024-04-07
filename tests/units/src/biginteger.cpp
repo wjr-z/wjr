@@ -205,20 +205,24 @@ TEST(biginteger, convert) {
             auto sv = std::string_view(str);
 
             const bool thr = expect.empty();
-            WJR_TRY {
-                a.assign(sp, base);
-                WJR_ASSERT(!thr);
-                WJR_ASSERT(get(base) == expect);
+            {
+                auto ret = wjr::from_chars(sp.begin(), sp.end(), a, base);
+                if (!thr) {
+                    WJR_ASSERT((bool)ret);
+                    WJR_ASSERT(get(base) == expect);
+                } else {
+                    WJR_ASSERT(get(base) == "0");
+                }
             }
-            WJR_CATCH(const std::invalid_argument &) { WJR_ASSERT(thr); }
 
             if (sp.size() != sv.size()) {
-                WJR_TRY {
-                    a.assign(sv, base);
-                    WJR_ASSERT(!thr);
+                auto ret = wjr::from_chars(sv.data(), sv.data() + sv.size(), a, base);
+                if (!thr) {
+                    WJR_ASSERT((bool)ret);
                     WJR_ASSERT(get(base) == expect);
+                } else {
+                    WJR_ASSERT(get(base) == "0");
                 }
-                WJR_CATCH(const std::invalid_argument &) { WJR_ASSERT(thr); }
             }
         };
 

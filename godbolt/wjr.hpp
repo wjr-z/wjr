@@ -5936,9 +5936,15 @@ inline constexpr bool is_sendable_v = is_sendable<T>::value;
 
 namespace wjr {
 
+template <typename StackAllocator>
+class unique_stack_allocator;
+
 template <size_t threshold, size_t cache>
 class stack_allocator_object : noncopyable {
     static_assert(threshold <= cache, "threshold must be less than or equal to cache.");
+
+    template <typename StackAllocator>
+    friend class unique_stack_allocator;
 
     constexpr static uint16_t bufsize = 5;
 
@@ -5961,6 +5967,13 @@ public:
     };
 
 private:
+    WJR_CONSTEXPR20 void *__large_allocate(size_t n, stack_top &top) {
+        auto buffer = (large_stack_top *)malloc(sizeof(large_stack_top) + n);
+        buffer->prev = top.large;
+        top.large = buffer;
+        return buffer->buffer;
+    }
+
     WJR_NOINLINE WJR_CONSTEXPR20 void __small_reallocate(stack_top &top) {
         if (WJR_UNLIKELY(top.end == nullptr)) {
             top.end = m_cache.end;
@@ -6004,20 +6017,6 @@ private:
         WJR_ASSERT(top.end != nullptr);
     }
 
-    WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) {
-        if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
-            __small_reallocate(top);
-            WJR_ASSERT_ASSUME(top.end != nullptr);
-        }
-
-        WJR_ASSERT_ASSUME(m_cache.ptr != nullptr);
-        WJR_ASSERT_ASSUME(top.ptr != nullptr);
-
-        auto ptr = m_cache.ptr;
-        m_cache.ptr += n;
-        return ptr;
-    }
-
     WJR_COLD WJR_CONSTEXPR20 void __small_redeallocate() {
         uint16_t new_size = m_idx + bufsize - 1;
 
@@ -6049,11 +6048,18 @@ private:
         }
     }
 
-    WJR_CONSTEXPR20 void *__large_allocate(size_t n, stack_top &top) {
-        auto buffer = (large_stack_top *)malloc(sizeof(large_stack_top) + n);
-        buffer->prev = top.large;
-        top.large = buffer;
-        return buffer->buffer;
+    WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) {
+        if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
+            __small_reallocate(top);
+            WJR_ASSERT_ASSUME(top.end != nullptr);
+        }
+
+        WJR_ASSERT_ASSUME(m_cache.ptr != nullptr);
+        WJR_ASSERT_ASSUME(top.ptr != nullptr);
+
+        auto ptr = m_cache.ptr;
+        m_cache.ptr += n;
+        return ptr;
     }
 
 public:
@@ -6156,8 +6162,13 @@ template <size_t threshold, size_t cache>
 using singleton_stack_allocator_object =
     singleton_stack_allocator_adapter<stack_allocator_object<threshold, cache>>;
 
-template <typename StackAllocator>
-class unique_stack_allocator;
+/**
+ * @details Used for container. This allocator won't deallocate memory allocated by
+ * __small_allocate until container is destroyed.
+ *
+ */
+template <typename T, typename StackAllocator>
+class weak_stack_allocator;
 
 /**
  * @brief A unique stack allocator for fast simulation of stack memory on the heap.
@@ -6173,6 +6184,9 @@ class unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>
     using StackAllocatorObject = singleton_stack_allocator_object<threshold, cache>;
     using stack_top = typename StackAllocatorObject::stack_top;
     using allocator_type = typename StackAllocatorObject::allocator_type;
+
+    template <typename T, typename StackAllocator>
+    friend class weak_stack_allocator;
 
 public:
     unique_stack_allocator(const StackAllocatorObject &al) : m_obj(&al) {}
@@ -6195,6 +6209,18 @@ public:
     }
 
 private:
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n) {
+        nonsendable::check();
+
+        if (WJR_UNLIKELY(m_top.ptr == nullptr)) {
+            m_instance = &m_obj->get_instance();
+            m_instance->set(m_top);
+            WJR_ASSERT_ASSUME(m_top.ptr != nullptr);
+        }
+
+        return m_instance->__small_allocate(n, m_top);
+    }
+
     union {
         const StackAllocatorObject *m_obj;
         allocator_type *m_instance;
@@ -6205,9 +6231,6 @@ private:
 
 template <typename StackAllocator>
 unique_stack_allocator(const StackAllocator &) -> unique_stack_allocator<StackAllocator>;
-
-template <typename T, typename StackAllocator>
-class weak_stack_allocator;
 
 template <typename T, size_t threshold, size_t cache>
 class weak_stack_allocator<T, singleton_stack_allocator_object<threshold, cache>>
@@ -6231,11 +6254,21 @@ public:
     ~weak_stack_allocator() = default;
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 T *allocate(size_type n) {
-        return static_cast<T *>(m_alloc->allocate(n * sizeof(T)));
+        const size_t size = n * sizeof(T);
+        if (WJR_UNLIKELY(size >= threshold)) {
+            return static_cast<T *>(malloc(size));
+        }
+
+        return static_cast<T *>(m_alloc->__small_allocate(size));
     }
 
     WJR_CONSTEXPR20 void deallocate(WJR_MAYBE_UNUSED T *ptr,
-                                    WJR_MAYBE_UNUSED size_type n) {}
+                                    WJR_MAYBE_UNUSED size_type n) {
+        const size_t size = n * sizeof(T);
+        if (WJR_UNLIKELY(size >= threshold)) {
+            free(ptr);
+        }
+    }
 
 private:
     UniqueStackAllocator *m_alloc = nullptr;
@@ -28652,11 +28685,7 @@ public:
     basic_biginteger &operator=(span<const char> sp) { return assign(sp); }
 
     basic_biginteger &assign(span<const char> sp, unsigned int base = 10) {
-        auto ret = from_chars(sp.data(), sp.data() + sp.size(), *this, base);
-        if (!ret) {
-            WJR_THROW(std::invalid_argument("invalid biginteger string"));
-        }
-
+        (void)from_chars(sp.data(), sp.data() + sp.size(), *this, base);
         return *this;
     }
 
@@ -29359,13 +29388,24 @@ void mul(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs,
 }
 
 template <typename S>
+std::istream &operator>>(std::istream &is, basic_biginteger<S> &dst) {
+    std::string str;
+    is >> str;
+    from_chars(str.data(), str.data() + str.size(), dst);
+    return is;
+}
+
+template <typename S>
 std::ostream &operator<<(std::ostream &os, const basic_biginteger<S> &src) {
     std::ios_base::iostate state = std::ios::goodbit;
     const std::ostream::sentry ok(os);
 
     if (ok) {
-        wjr::vector<char> buffer;
-        buffer.reserve(64);
+        unique_stack_allocator stkal(math_details::stack_alloc);
+
+        // Waste up to 16 KB/0.5=32 KB of memory
+        vector<char, math_details::weak_stack_alloc<char>> buffer(stkal);
+        buffer.reserve(512);
 
         const std::ios_base::fmtflags flags = os.flags();
 

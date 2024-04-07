@@ -1582,6 +1582,41 @@ TEST(math, div_qr_s) {
     }
 }
 
+namespace convert_tests {
+using namespace wjr;
+using namespace wjr::convert_details;
+
+static_assert(std::is_same_v<fast_buffer_t<char *>, char>, "");
+static_assert(std::is_same_v<fast_buffer_t<uint8_t *>, uint8_t>, "");
+static_assert(std::is_same_v<fast_buffer_t<int *>, char>, "");
+static_assert(std::is_same_v<fast_buffer_t<std::back_insert_iterator<std::string>>, char>,
+              "");
+static_assert(
+    std::is_same_v<fast_buffer_t<std::back_insert_iterator<std::vector<uint8_t>>>,
+                   uint8_t>,
+    "");
+
+static_assert(is_fast_container_inserter_v<int *> == 0, "");
+static_assert(
+    is_fast_container_inserter_v<std::back_insert_iterator<std::vector<char>>> == 1, "");
+static_assert(is_fast_container_inserter_v<std::back_insert_iterator<std::string>> == 1,
+              "");
+static_assert(is_fast_container_inserter_v<std::back_insert_iterator<std::wstring>> == 0,
+              "");
+
+struct Traits : public std::char_traits<char> {};
+static_assert(is_fast_container_inserter_v<
+                  std::back_insert_iterator<std::basic_string<char, Traits>>> == 0,
+              "");
+
+static_assert(
+    is_fast_container_inserter_v<std::back_insert_iterator<wjr::vector<char>>> == 2, "");
+static_assert(is_fast_container_inserter_v<std::back_insert_iterator<wjr::vector<int>>> ==
+                  0,
+              "");
+
+} // namespace convert_tests
+
 TEST(math, to_chars) {
     const int T = 16;
 
