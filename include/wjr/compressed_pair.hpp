@@ -269,8 +269,8 @@ public:
         : compressed_pair(tp1, tp2, std::index_sequence_for<Args1...>{},
                           std::index_sequence_for<Args2...>{}) {}
 
-    template <typename Myself = compressed_pair,
-              std::enable_if_t<std::conjunction_v<std::is_copy_assignable<T>,
+    template <typename Myself = compressed_pair, typename _T = T,
+              std::enable_if_t<std::conjunction_v<std::is_copy_assignable<_T>,
                                                   std::is_copy_assignable<U>>,
                                int> = 0>
     constexpr compressed_pair &operator=(type_identity_t<const Myself &> other) noexcept(
@@ -281,8 +281,8 @@ public:
         return *this;
     }
 
-    template <typename Myself = compressed_pair,
-              std::enable_if_t<std::conjunction_v<std::is_copy_assignable<T>,
+    template <typename Myself = compressed_pair, typename _T = T,
+              std::enable_if_t<std::conjunction_v<std::is_copy_assignable<_T>,
                                                   std::is_copy_assignable<U>>,
                                int> = 0>
     constexpr compressed_pair &operator=(type_identity_t<Myself &&> other) noexcept(
@@ -326,8 +326,8 @@ public:
     }
 
     template <
-        typename Myself = compressed_pair,
-        std::enable_if_t<std::conjunction_v<is_swappable<T>, is_swappable<U>>, int> = 0>
+        typename Myself = compressed_pair, typename _T = T,
+        std::enable_if_t<std::conjunction_v<is_swappable<_T>, is_swappable<U>>, int> = 0>
     constexpr void swap(type_identity_t<compressed_pair &> other) noexcept(
         std::conjunction_v<is_nothrow_swappable<T>, is_nothrow_swappable<U>>) {
         using std::swap;
@@ -387,7 +387,7 @@ make_compressed_pair(T &&t, U &&u) noexcept(
     std::conjunction_v<std::is_nothrow_constructible<unref_wrapper_t<T>, T>,
                        std::is_nothrow_constructible<unref_wrapper_t<U>, U>>) {
     return compressed_pair<unref_wrapper_t<T>, unref_wrapper_t<U>>(std::forward<T>(t),
-                                                           std::forward<U>(u));
+                                                                   std::forward<U>(u));
 }
 
 } // namespace wjr
