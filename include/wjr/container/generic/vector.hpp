@@ -458,7 +458,7 @@ public:
     using size_type = typename _Alty_traits::size_type;
     using difference_type = typename _Alty_traits::difference_type;
     using allocator_type = Alloc;
-    using is_reallocatable = std::false_type;
+    using is_reallocatable = std::true_type;
 
 private:
     static constexpr auto max_alignment = std::max<size_type>(
@@ -486,6 +486,11 @@ private:
                                          __max_capacity * sizeof(T) <= 64;
 
     struct Data {
+        Data() : m_capacity() {}
+        Data(const Data &) = delete;
+        Data &operator=(const Data &) = delete;
+        ~Data() {}
+
         pointer m_data = m_storage;
         size_type m_size = 0;
         union {
@@ -503,6 +508,14 @@ public:
     WJR_CONSTEXPR20 sso_vector_storage(_Alloc &&al) noexcept
         : m_pair(std::piecewise_construct, std::make_tuple(std::forward<_Alloc>(al)),
                  std::make_tuple()) {}
+
+    template <typename _Alloc>
+    WJR_CONSTEXPR20 sso_vector_storage(_Alloc &&al, size_type size, size_type capacity,
+                                       in_place_reallocate_t) noexcept
+        : m_pair(std::piecewise_construct, std::make_tuple(std::forward<_Alloc>(al)),
+                 std::make_tuple()) {
+        uninitialized_construct(size, capacity);
+    }
 
     ~sso_vector_storage() noexcept = default;
 
@@ -524,6 +537,7 @@ public:
 
         if (!__is_sso()) {
             get_allocator().deallocate(data(), capacity());
+            __get_data().m_data = __get_data().m_storage;
         }
     }
 
