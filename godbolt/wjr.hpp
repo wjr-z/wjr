@@ -2944,8 +2944,8 @@ public:
         : compressed_pair(tp1, tp2, std::index_sequence_for<Args1...>{},
                           std::index_sequence_for<Args2...>{}) {}
 
-    template <typename Myself = compressed_pair,
-              std::enable_if_t<std::conjunction_v<std::is_copy_assignable<T>,
+    template <typename Myself = compressed_pair, typename _T = T,
+              std::enable_if_t<std::conjunction_v<std::is_copy_assignable<_T>,
                                                   std::is_copy_assignable<U>>,
                                int> = 0>
     constexpr compressed_pair &operator=(type_identity_t<const Myself &> other) noexcept(
@@ -2956,8 +2956,8 @@ public:
         return *this;
     }
 
-    template <typename Myself = compressed_pair,
-              std::enable_if_t<std::conjunction_v<std::is_copy_assignable<T>,
+    template <typename Myself = compressed_pair, typename _T = T,
+              std::enable_if_t<std::conjunction_v<std::is_copy_assignable<_T>,
                                                   std::is_copy_assignable<U>>,
                                int> = 0>
     constexpr compressed_pair &operator=(type_identity_t<Myself &&> other) noexcept(
@@ -3001,8 +3001,8 @@ public:
     }
 
     template <
-        typename Myself = compressed_pair,
-        std::enable_if_t<std::conjunction_v<is_swappable<T>, is_swappable<U>>, int> = 0>
+        typename Myself = compressed_pair, typename _T = T,
+        std::enable_if_t<std::conjunction_v<is_swappable<_T>, is_swappable<U>>, int> = 0>
     constexpr void swap(type_identity_t<compressed_pair &> other) noexcept(
         std::conjunction_v<is_nothrow_swappable<T>, is_nothrow_swappable<U>>) {
         using std::swap;
@@ -3062,7 +3062,7 @@ make_compressed_pair(T &&t, U &&u) noexcept(
     std::conjunction_v<std::is_nothrow_constructible<unref_wrapper_t<T>, T>,
                        std::is_nothrow_constructible<unref_wrapper_t<U>, U>>) {
     return compressed_pair<unref_wrapper_t<T>, unref_wrapper_t<U>>(std::forward<T>(t),
-                                                           std::forward<U>(u));
+                                                                   std::forward<U>(u));
 }
 
 } // namespace wjr
@@ -5188,7 +5188,7 @@ public:
     using size_type = typename _Alty_traits::size_type;
     using difference_type = typename _Alty_traits::difference_type;
     using allocator_type = Alloc;
-    using is_reallocatable = std::false_type;
+    using is_reallocatable = std::true_type;
 
 private:
     static constexpr auto max_alignment = std::max<size_type>(
@@ -5216,6 +5216,11 @@ private:
                                          __max_capacity * sizeof(T) <= 64;
 
     struct Data {
+        Data() : m_capacity() {}
+        Data(const Data &) = delete;
+        Data &operator=(const Data &) = delete;
+        ~Data() {}
+
         pointer m_data = m_storage;
         size_type m_size = 0;
         union {
@@ -5233,6 +5238,14 @@ public:
     WJR_CONSTEXPR20 sso_vector_storage(_Alloc &&al) noexcept
         : m_pair(std::piecewise_construct, std::make_tuple(std::forward<_Alloc>(al)),
                  std::make_tuple()) {}
+
+    template <typename _Alloc>
+    WJR_CONSTEXPR20 sso_vector_storage(_Alloc &&al, size_type size, size_type capacity,
+                                       in_place_reallocate_t) noexcept
+        : m_pair(std::piecewise_construct, std::make_tuple(std::forward<_Alloc>(al)),
+                 std::make_tuple()) {
+        uninitialized_construct(size, capacity);
+    }
 
     ~sso_vector_storage() noexcept = default;
 
@@ -5254,6 +5267,7 @@ public:
 
         if (!__is_sso()) {
             get_allocator().deallocate(data(), capacity());
+            __get_data().m_data = __get_data().m_storage;
         }
     }
 
