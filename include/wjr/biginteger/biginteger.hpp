@@ -4,6 +4,7 @@
 #include <optional>
 
 #include <wjr/compressed_pair.hpp>
+#include <wjr/format/ostream_insert.hpp>
 #include <wjr/math.hpp>
 #include <wjr/span.hpp>
 #include <wjr/vector.hpp>
@@ -181,6 +182,56 @@ struct unref_wrapper<default_biginteger_size_reference> {
 };
 
 template <typename Storage>
+class basic_biginteger;
+
+template <typename S>
+from_chars_result<> from_chars(const char *first, const char *last,
+                               basic_biginteger<S> &dst, unsigned int base = 10);
+
+template <typename S, typename Iter>
+Iter to_chars_unchecked(Iter ptr, const basic_biginteger<S> &src, unsigned int base = 10);
+
+#define WJR_REGISTER_BIGINTEGER_COMPARE(op)                                              \
+    template <typename S>                                                                \
+    WJR_PURE bool operator op(const basic_biginteger<S> &lhs,                            \
+                              const basic_biginteger<S> &rhs);                           \
+    template <typename S, typename T,                                                    \
+              std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>                       \
+    WJR_PURE bool operator op(const basic_biginteger<S> &lhs, T rhs);                    \
+    template <typename S, typename T,                                                    \
+              std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>                       \
+    WJR_PURE bool operator op(T lhs, const basic_biginteger<S> &rhs);
+
+WJR_REGISTER_BIGINTEGER_COMPARE(==)
+WJR_REGISTER_BIGINTEGER_COMPARE(!=)
+WJR_REGISTER_BIGINTEGER_COMPARE(<)
+WJR_REGISTER_BIGINTEGER_COMPARE(>)
+WJR_REGISTER_BIGINTEGER_COMPARE(<=)
+WJR_REGISTER_BIGINTEGER_COMPARE(>=)
+
+#undef WJR_REGISTER_BIGINTEGER_COMPARE
+
+#define WJR_REGISTER_BIGINTEGER_ADDSUB(ADDSUB)                                           \
+    template <typename S>                                                                \
+    void ADDSUB(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs,                \
+                const basic_biginteger<S> &rhs);                                         \
+    template <typename S, typename T,                                                    \
+              std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>                       \
+    void ADDSUB(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs, T rhs);        \
+    template <typename S, typename T,                                                    \
+              std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>                       \
+    void ADDSUB(basic_biginteger<S> &dst, T lhs, const basic_biginteger<S> &rhs);
+
+WJR_REGISTER_BIGINTEGER_ADDSUB(add)
+WJR_REGISTER_BIGINTEGER_ADDSUB(sub)
+
+#undef WJR_REGISTER_BIGINTEGER_ADDSUB
+
+template <typename S>
+void mul(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs,
+         const basic_biginteger<S> &rhs);
+
+template <typename Storage>
 class basic_biginteger {
     using storage_type = Storage;
     using vector_type = basic_vector<storage_type>;
@@ -335,72 +386,6 @@ public:
 
     void swap(basic_biginteger &other) noexcept { m_vec.swap(other.m_vec); }
 
-    friend from_chars_result<> from_chars(const char *first, const char *last,
-                                          basic_biginteger &dst, unsigned int base = 10) {
-        return __from_chars_impl(first, last, &dst, base);
-    }
-
-    template <typename Iter>
-    friend Iter to_chars_unchecked(Iter ptr, const basic_biginteger &src,
-                                   unsigned int base = 10) {
-        if (src.empty()) {
-            *ptr++ = '0';
-            return ptr;
-        }
-
-        if (src.is_negate()) {
-            *ptr++ = '-';
-        }
-
-        return biginteger_to_chars(ptr, src.data(), src.size(), base);
-    }
-
-#define WJR_REGISTER_BIGINTEGER_COMPARE(op)                                              \
-    friend bool operator op(const basic_biginteger &lhs, const basic_biginteger &rhs) {  \
-        return __compare_impl(&lhs, &rhs) op 0;                                          \
-    }                                                                                    \
-    template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>           \
-    friend bool operator op(const basic_biginteger &lhs, T rhs) {                        \
-        return __compare_impl(&lhs, rhs) op 0;                                           \
-    }                                                                                    \
-    template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>           \
-    friend bool operator op(T lhs, const basic_biginteger &rhs) {                        \
-        return __compare_impl(lhs, &rhs) op 0;                                           \
-    }
-
-    WJR_REGISTER_BIGINTEGER_COMPARE(==)
-    WJR_REGISTER_BIGINTEGER_COMPARE(!=)
-    WJR_REGISTER_BIGINTEGER_COMPARE(<)
-    WJR_REGISTER_BIGINTEGER_COMPARE(>)
-    WJR_REGISTER_BIGINTEGER_COMPARE(<=)
-    WJR_REGISTER_BIGINTEGER_COMPARE(>=)
-
-#undef WJR_REGISTER_BIGINTEGER_COMPARE
-
-#define WJR_REGISTER_BIGINTEGER_ADDSUB(ADDSUB)                                           \
-    friend void ADDSUB(basic_biginteger &dst, const basic_biginteger &lhs,               \
-                       const basic_biginteger &rhs) {                                    \
-        WJR_PP_CONCAT(WJR_PP_CONCAT(__, ADDSUB), _impl)(&dst, &lhs, &rhs);               \
-    }                                                                                    \
-    template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>           \
-    friend void ADDSUB(basic_biginteger &dst, const basic_biginteger &lhs, T rhs) {      \
-        WJR_PP_CONCAT(WJR_PP_CONCAT(__, ADDSUB), _impl)(&dst, &lhs, rhs);                \
-    }                                                                                    \
-    template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>           \
-    friend void ADDSUB(basic_biginteger &dst, T lhs, const basic_biginteger &rhs) {      \
-        WJR_PP_CONCAT(WJR_PP_CONCAT(__, ADDSUB), _impl)(&dst, lhs, &rhs);                \
-    }
-
-    WJR_REGISTER_BIGINTEGER_ADDSUB(add)
-    WJR_REGISTER_BIGINTEGER_ADDSUB(sub)
-
-#undef WJR_REGISTER_BIGINTEGER_ADDSUB
-
-    friend void mul(basic_biginteger &dst, const basic_biginteger &lhs,
-                    const basic_biginteger &rhs) {
-        __mul_impl(&dst, &lhs, &rhs);
-    }
-
     WJR_PURE int32_t get_ssize() const { return __get_storage().get_ssize(); }
     void set_ssize(int32_t new_size) { __get_storage().set_ssize(new_size); }
 
@@ -514,6 +499,50 @@ private:
 
     static void __mul_impl(basic_biginteger *dst, const basic_biginteger *lhs,
                            const basic_biginteger *rhs);
+
+    template <typename S>
+    friend from_chars_result<> from_chars(const char *first, const char *last,
+                                          basic_biginteger<S> &dst, unsigned int base);
+
+    template <typename S, typename Iter>
+    friend Iter to_chars_unchecked(Iter ptr, const basic_biginteger<S> &src,
+                                   unsigned int base);
+
+#define WJR_REGISTER_BIGINTEGER_COMPARE(op)                                              \
+    template <typename S>                                                                \
+    WJR_PURE friend bool operator op(const basic_biginteger<S> &lhs,                     \
+                                     const basic_biginteger<S> &rhs);                    \
+    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    WJR_PURE friend bool operator op(const basic_biginteger<S> &lhs, T rhs);             \
+    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    WJR_PURE friend bool operator op(T lhs, const basic_biginteger<S> &rhs);
+
+    WJR_REGISTER_BIGINTEGER_COMPARE(==)
+    WJR_REGISTER_BIGINTEGER_COMPARE(!=)
+    WJR_REGISTER_BIGINTEGER_COMPARE(<)
+    WJR_REGISTER_BIGINTEGER_COMPARE(>)
+    WJR_REGISTER_BIGINTEGER_COMPARE(<=)
+    WJR_REGISTER_BIGINTEGER_COMPARE(>=)
+
+#undef WJR_REGISTER_BIGINTEGER_COMPARE
+
+#define WJR_REGISTER_BIGINTEGER_ADDSUB(ADDSUB)                                           \
+    template <typename S>                                                                \
+    friend void ADDSUB(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs,         \
+                       const basic_biginteger<S> &rhs);                                  \
+    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    friend void ADDSUB(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs, T rhs); \
+    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    friend void ADDSUB(basic_biginteger<S> &dst, T lhs, const basic_biginteger<S> &rhs);
+
+    WJR_REGISTER_BIGINTEGER_ADDSUB(add)
+    WJR_REGISTER_BIGINTEGER_ADDSUB(sub)
+
+#undef WJR_REGISTER_BIGINTEGER_ADDSUB
+
+    template <typename S>
+    friend void mul(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs,
+                    const basic_biginteger<S> &rhs);
 
     vector_type m_vec;
 };
@@ -928,6 +957,122 @@ void basic_biginteger<Storage>::__mul_impl(basic_biginteger *dst,
     }
 
     dst->set_ssize(dssize);
+}
+
+template <typename S>
+from_chars_result<> from_chars(const char *first, const char *last,
+                               basic_biginteger<S> &dst, unsigned int base) {
+    return basic_biginteger<S>::__from_chars_impl(first, last, &dst, base);
+}
+
+template <typename S, typename Iter>
+Iter to_chars_unchecked(Iter ptr, const basic_biginteger<S> &src, unsigned int base) {
+    if (src.empty()) {
+        *ptr++ = '0';
+        return ptr;
+    }
+
+    if (src.is_negate()) {
+        *ptr++ = '-';
+    }
+
+    return biginteger_to_chars(ptr, src.data(), src.size(), base);
+}
+
+#define WJR_REGISTER_BIGINTEGER_COMPARE(op)                                              \
+    template <typename S>                                                                \
+    WJR_PURE bool operator op(const basic_biginteger<S> &lhs,                            \
+                              const basic_biginteger<S> &rhs) {                          \
+        return basic_biginteger<S>::__compare_impl(&lhs, &rhs) op 0;                     \
+    }                                                                                    \
+    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    WJR_PURE bool operator op(const basic_biginteger<S> &lhs, T rhs) {                   \
+        return basic_biginteger<S>::__compare_impl(&lhs, rhs) op 0;                      \
+    }                                                                                    \
+    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    WJR_PURE bool operator op(T lhs, const basic_biginteger<S> &rhs) {                   \
+        return basic_biginteger<S>::__compare_impl(lhs, &rhs) op 0;                      \
+    }
+
+WJR_REGISTER_BIGINTEGER_COMPARE(==)
+WJR_REGISTER_BIGINTEGER_COMPARE(!=)
+WJR_REGISTER_BIGINTEGER_COMPARE(<)
+WJR_REGISTER_BIGINTEGER_COMPARE(>)
+WJR_REGISTER_BIGINTEGER_COMPARE(<=)
+WJR_REGISTER_BIGINTEGER_COMPARE(>=)
+
+#undef WJR_REGISTER_BIGINTEGER_COMPARE
+
+#define WJR_REGISTER_BIGINTEGER_ADDSUB(ADDSUB)                                           \
+    template <typename S>                                                                \
+    void ADDSUB(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs,                \
+                const basic_biginteger<S> &rhs) {                                        \
+        basic_biginteger<S>::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, &lhs, \
+                                                                             &rhs);      \
+    }                                                                                    \
+    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    void ADDSUB(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs, T rhs) {       \
+        basic_biginteger<S>::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, &lhs, \
+                                                                             rhs);       \
+    }                                                                                    \
+    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    void ADDSUB(basic_biginteger<S> &dst, T lhs, const basic_biginteger<S> &rhs) {       \
+        basic_biginteger<S>::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, lhs,  \
+                                                                             &rhs);      \
+    }
+
+WJR_REGISTER_BIGINTEGER_ADDSUB(add)
+WJR_REGISTER_BIGINTEGER_ADDSUB(sub)
+
+#undef WJR_REGISTER_BIGINTEGER_ADDSUB
+
+template <typename S>
+void mul(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs,
+         const basic_biginteger<S> &rhs) {
+    basic_biginteger<S>::__mul_impl(&dst, &lhs, &rhs);
+}
+
+template <typename S>
+std::ostream &operator<<(std::ostream &os, const basic_biginteger<S> &src) {
+    std::ios_base::iostate state = std::ios::goodbit;
+    const std::ostream::sentry ok(os);
+
+    if (ok) {
+        wjr::vector<char> buffer;
+        buffer.reserve(64);
+
+        const std::ios_base::fmtflags flags = os.flags();
+
+        if ((flags & std::ios::showpos) && !src.is_negate()) {
+            buffer.push_back('+');
+        }
+
+        const auto basefield = flags & std::ios::basefield;
+        int base = 10;
+
+        if (basefield) {
+            if (basefield == std::ios::oct) {
+                base = 8;
+                if (flags & std::ios::showbase) {
+                    buffer.append({'0'});
+                }
+            } else if (basefield == std::ios::hex) {
+                base = 16;
+                if (flags & std::ios::showbase) {
+                    buffer.append({'0', 'x'});
+                }
+            }
+        }
+
+        (void)to_chars_unchecked(std::back_inserter(buffer), src, base);
+
+        if (!buffer.empty()) {
+            __ostream_insert_unchecked(os, buffer.data(), buffer.size());
+        }
+    }
+
+    os.setstate(state);
+    return os;
 }
 
 } // namespace wjr

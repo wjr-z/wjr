@@ -58,7 +58,7 @@
 
 #include <wjr/assert.hpp>
 #include <wjr/compressed_pair.hpp>
-#include <wjr/container/generic/container_traits.hpp>
+#include <wjr/container/generic/container_fn.hpp>
 #include <wjr/iterator/details.hpp>
 #include <wjr/memory/temporary_value_allocator.hpp>
 
@@ -389,18 +389,8 @@ private:
 
 namespace vector_details {
 
-template <typename Enable, typename Storage, typename... Args>
-struct __has_vector_storage_shrink_to_fit : std::false_type {};
-template <typename Storage, typename... Args>
-struct __has_vector_storage_shrink_to_fit<
-    std::void_t<decltype(std::declval<Storage>().shrink_to_fit())>, Storage, Args...>
-    : std::true_type {};
-template <typename Storage, typename... Args>
-struct has_vector_storage_shrink_to_fit
-    : __has_vector_storage_shrink_to_fit<void, Storage, Args...> {};
-template <typename Storage, typename... Args>
-constexpr bool has_vector_storage_shrink_to_fit_v =
-    has_vector_storage_shrink_to_fit<Storage, Args...>::value;
+WJR_REGISTER_HAS_TYPE(vector_storage_shrink_to_fit,
+                      std::declval<Storage>().shrink_to_fit(), Storage);
 
 } // namespace vector_details
 
@@ -422,7 +412,7 @@ private:
     using _Alty_traits = std::allocator_traits<_Alty>;
 
     using storage_type = Storage;
-    using storage_traits_type = container_traits<_Alty>;
+    using storage_fn_type = container_fn<_Alty>;
     using is_storage_reallocatable = typename storage_type::is_reallocatable;
     using __get_size_t = decltype(std::declval<storage_type>().size());
 
@@ -431,7 +421,7 @@ private:
                   "storage::size() must be "
                   "reference type");
 
-    friend class container_traits<_Alty>;
+    friend class container_fn<_Alty>;
 
 public:
     static_assert(std::is_same_v<typename _Alty_traits::value_type, value_type>,
@@ -524,7 +514,7 @@ public:
 
     WJR_CONSTEXPR20 basic_vector &operator=(const basic_vector &other) {
         if (WJR_LIKELY(this != std::addressof(other))) {
-            storage_traits_type::copy_assign(*this, other);
+            storage_fn_type::copy_assign(*this, other);
         }
 
         return *this;
@@ -535,7 +525,7 @@ public:
         _Alty_traits::is_always_equal::value) {
 
         if (WJR_LIKELY(this != std::addressof(other))) {
-            storage_traits_type::move_assign(*this, std::move(other));
+            storage_fn_type::move_assign(*this, std::move(other));
         }
 
         return *this;
@@ -774,7 +764,7 @@ public:
     }
 
     WJR_INLINE_CONSTEXPR20 void swap(basic_vector &other) noexcept {
-        storage_traits_type::swap(*this, other);
+        storage_fn_type::swap(*this, other);
     }
 
     WJR_CONSTEXPR20 void clear() {
@@ -891,7 +881,7 @@ public:
     }
 
 private:
-    // member function for container_traits (START)
+    // member function for container_fn (START)
 
     WJR_PURE WJR_CONSTEXPR20 _Alty &__get_allocator() noexcept {
         return m_storage.get_allocator();
@@ -924,7 +914,7 @@ private:
         m_storage.swap_storage(other.m_storage);
     }
 
-    // member function for container_traits (END)
+    // member function for container_fn (END)
 
     WJR_PURE WJR_CONSTEXPR20 __get_size_t __get_size() noexcept {
         return m_storage.size();

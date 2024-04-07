@@ -6,7 +6,7 @@
 namespace wjr {
 
 /**
- * @class container_traits<Alloc>
+ * @class container_fn<Alloc>
  * @brief The same characteristics and behavior of all allocator containers
  *
  * @details container must have the following member functions:
@@ -24,7 +24,7 @@ namespace wjr {
  *
  */
 template <typename Alloc>
-class container_traits {
+class container_fn {
 private:
     using allocator_type = Alloc;
     using allocator_traits = std::allocator_traits<allocator_type>;

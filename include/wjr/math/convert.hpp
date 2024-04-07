@@ -7,8 +7,8 @@
 #include <vector>
 
 #include <wjr/assert.hpp>
+#include <wjr/container/generic/type_traits.hpp>
 #include <wjr/math/bit.hpp>
-#include <wjr/math/broadcast.hpp>
 #include <wjr/math/convert-impl.hpp>
 #include <wjr/math/div.hpp>
 #include <wjr/math/precompute-chars-convert.hpp>
@@ -79,33 +79,14 @@ template <typename Value, typename Converter>
 inline constexpr bool __is_valid_converter_v =
     __is_valid_converter<Value, Converter>::value;
 
-template <typename Enable, typename Base, typename... Args>
-struct __has_to_chars_fast_fn_fast_conv : std::false_type {};
-template <typename Base, typename... Args>
-struct __has_to_chars_fast_fn_fast_conv<
-    std::void_t<decltype(Base::__fast_conv(std::declval<void *>(),
-                                           std::declval<Args>()...))>,
-    Base, Args...> : std::true_type {};
-template <typename Base, typename... Args>
-struct has_to_chars_fast_fn_fast_conv
-    : __has_to_chars_fast_fn_fast_conv<void, Base, Args...> {};
-template <typename Base, typename... Args>
-constexpr bool has_to_chars_fast_fn_fast_conv_v =
-    has_to_chars_fast_fn_fast_conv<Base, Args...>::value;
+WJR_REGISTER_HAS_TYPE(to_chars_fast_fn_fast_conv,
+                      Base::__fast_conv(std::declval<void *>(), std::declval<Args>()...),
+                      Base);
 
-template <typename Enable, typename Base, typename... Args>
-struct __has_from_chars_fast_fn_fast_conv : std::false_type {};
-template <typename Base, typename... Args>
-struct __has_from_chars_fast_fn_fast_conv<
-    std::void_t<decltype(Base::__fast_conv(std::declval<const void *>(),
-                                           std::declval<Args>()...))>,
-    Base, Args...> : std::true_type {};
-template <typename Base, typename... Args>
-struct has_from_chars_fast_fn_fast_conv
-    : __has_from_chars_fast_fn_fast_conv<void, Base, Args...> {};
-template <typename Base, typename... Args>
-constexpr bool has_from_chars_fast_fn_fast_conv_v =
-    has_from_chars_fast_fn_fast_conv<Base, Args...>::value;
+WJR_REGISTER_HAS_TYPE(from_chars_fast_fn_fast_conv,
+                      Base::__fast_conv(std::declval<const void *>(),
+                                        std::declval<Args>()...),
+                      Base);
 
 template <typename Container, typename = void>
 struct __has_trivial_resize_container_impl : std::false_type {};

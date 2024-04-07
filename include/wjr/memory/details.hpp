@@ -9,17 +9,9 @@ namespace wjr {
 
 namespace to_address_details {
 
-template <typename Enable, typename Ptr, typename... Args>
-struct __has_to_address : std::false_type {};
-template <typename Ptr, typename... Args>
-struct __has_to_address<
-    std::void_t<decltype(typename std::pointer_traits<Ptr>::to_address(
-        std::declval<const Ptr &>()))>,
-    Ptr, Args...> : std::true_type {};
-template <typename Ptr, typename... Args>
-struct has_to_address : __has_to_address<void, Ptr, Args...> {};
-template <typename Ptr, typename... Args>
-constexpr bool has_to_address_v = has_to_address<Ptr, Args...>::value;
+WJR_REGISTER_HAS_TYPE(
+    to_address,
+    typename std::pointer_traits<Ptr>::to_address(std::declval<const Ptr &>()), Ptr);
 
 } // namespace to_address_details
 
@@ -145,19 +137,10 @@ struct allocation_result {
     SizeType count;
 };
 
-template <typename Enable, typename Allocator, typename SizeType, typename... Args>
-struct __has_allocate_at_least : std::false_type {};
-template <typename Allocator, typename SizeType, typename... Args>
-struct __has_allocate_at_least<
-    std::void_t<decltype(std::declval<Allocator>().allocate_at_least(
-        std::declval<SizeType>()))>,
-    Allocator, SizeType, Args...> : std::true_type {};
-template <typename Allocator, typename SizeType, typename... Args>
-struct has_allocate_at_least
-    : __has_allocate_at_least<void, Allocator, SizeType, Args...> {};
-template <typename Allocator, typename SizeType, typename... Args>
-constexpr bool has_allocate_at_least_v =
-    has_allocate_at_least<Allocator, SizeType, Args...>::value;
+WJR_REGISTER_HAS_TYPE(
+    allocate_at_least,
+    std::declval<Allocator>().allocate_at_least(std::declval<SizeType>()), Allocator,
+    SizeType);
 
 template <typename Allocator, typename SizeType,
           typename Pointer = typename std::allocator_traits<Allocator>::pointer>
