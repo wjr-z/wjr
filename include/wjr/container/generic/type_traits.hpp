@@ -6,9 +6,8 @@
 #include <vector>
 
 #include <wjr/container/generic/details.hpp>
-#include <wjr/container/generic/string.hpp>
-#include <wjr/container/generic/vector.hpp>
 #include <wjr/iterator/details.hpp>
+#include <wjr/vector.hpp>
 
 namespace wjr {
 

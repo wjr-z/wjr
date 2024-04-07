@@ -14,6 +14,8 @@ const static int __int2 = 123;
 const static std::string __string = std::string("wjr");
 const static std::string __string2 = std::string("abc");
 
+static_assert(sizeof(wjr::sso_vector<char, 16>) <= 32, "");
+
 template <typename T, typename Func>
 void for_each_n(T *first, size_t n, Func fn) {
     for (size_t i = 0; i < n; ++i) {
@@ -602,4 +604,61 @@ TEST(vector, erase) {
             test(__string, n, s, c);
         });
     }
+}
+
+TEST(vector, swap) {
+    using namespace wjr;
+    {
+        vector<int> v1(32, 1);
+        vector<int> v2(64, 2);
+        v1.swap(v2);
+        EXPECT_EQ(v1.size(), 64);
+        EXPECT_EQ(v2.size(), 32);
+        for_each_n(v1.data(), 64, [](auto &x) { EXPECT_EQ(x, 2); });
+        for_each_n(v2.data(), 32, [](auto &x) { EXPECT_EQ(x, 1); });
+    }
+
+    for (int n = 0; n < 16; ++n)
+        for (int m = 0; m < 16; ++m) {
+            static_vector<int, 16> v1(n, 1);
+            static_vector<int, 16> v2(m, 2);
+            v1.swap(v2);
+            EXPECT_EQ(v1.size(), m);
+            EXPECT_EQ(v2.size(), n);
+            for_each_n(v1.data(), m, [](auto &x) { EXPECT_EQ(x, 2); });
+            for_each_n(v2.data(), n, [](auto &x) { EXPECT_EQ(x, 1); });
+        }
+
+    for (int n = 0; n < 32; ++n)
+        for (int m = 0; m < 32; ++m) {
+            static_vector<int, 32> v1(n, 1);
+            static_vector<int, 32> v2(m, 2);
+            v1.swap(v2);
+            EXPECT_EQ(v1.size(), m);
+            EXPECT_EQ(v2.size(), n);
+            for_each_n(v1.data(), m, [](auto &x) { EXPECT_EQ(x, 2); });
+            for_each_n(v2.data(), n, [](auto &x) { EXPECT_EQ(x, 1); });
+        }
+
+    for (int n = 0; n < 32; ++n)
+        for (int m = 0; m < 32; ++m) {
+            sso_vector<int, 16> v1(n, 1);
+            sso_vector<int, 16> v2(m, 2);
+            v1.swap(v2);
+            EXPECT_EQ(v1.size(), m);
+            EXPECT_EQ(v2.size(), n);
+            for_each_n(v1.data(), m, [&](auto &x) { EXPECT_EQ(x, 2); });
+            for_each_n(v2.data(), n, [](auto &x) { EXPECT_EQ(x, 1); });
+        }
+
+    for (int n = 0; n < 48; ++n)
+        for (int m = 0; m < 48; ++m) {
+            sso_vector<int, 32> v1(n, 1);
+            sso_vector<int, 32> v2(m, 2);
+            v1.swap(v2);
+            EXPECT_EQ(v1.size(), m);
+            EXPECT_EQ(v2.size(), n);
+            for_each_n(v1.data(), m, [](auto &x) { EXPECT_EQ(x, 2); });
+            for_each_n(v2.data(), n, [](auto &x) { EXPECT_EQ(x, 1); });
+        }
 }

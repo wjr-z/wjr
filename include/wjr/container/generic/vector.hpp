@@ -60,6 +60,7 @@
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/generic/container_fn.hpp>
 #include <wjr/iterator/details.hpp>
+#include <wjr/math/details.hpp>
 #include <wjr/memory/temporary_value_allocator.hpp>
 
 namespace wjr {
@@ -204,11 +205,13 @@ public:
 private:
     static constexpr auto max_alignment =
         std::max<size_type>(alignof(T), alignof(size_type));
+    static constexpr bool __use_memcpy = is_trivially_allocator_constructible_v<Alloc> &&
+                                         std::is_trivially_copyable_v<T> &&
+                                         Capacity * sizeof(T) <= 64;
 
     struct Data {
         size_type m_size = 0;
-        alignas(
-            max_alignment) std::aligned_storage_t<sizeof(T), alignof(T)> m_data[Capacity];
+        alignas(max_alignment) T m_data[Capacity];
     };
 
     using data_type = Data;
@@ -249,37 +252,93 @@ public:
         auto &al = get_allocator();
         auto &m_storage = __get_data();
         auto &other_storage = other.__get_data();
+        const auto lhs = data();
+        const auto rhs = other.data();
+
         m_storage.m_size = other_storage.m_size;
-        uninitialized_move_n_using_allocator(other_storage.m_data, m_storage.m_size,
-                                             m_storage.m_data, al);
+
+        if constexpr (__use_memcpy) {
+            if (other.size()) {
+                __memcpy(lhs, rhs);
+            }
+        } else {
+            uninitialized_move_n_using_allocator(rhs, other_storage.m_size, lhs, al);
+        }
+
         other_storage.m_size = 0;
     }
 
     WJR_CONSTEXPR20 void swap_storage(static_vector_storage &other) noexcept {
         auto &al = get_allocator();
-        static_vector_storage tmp;
-        tmp.take_storage(std::move(other));
-        other.take_storage(std::move(*this));
-        take_storage(std::move(tmp));
+        auto &m_storage = __get_data();
+        auto &other_storage = other.__get_data();
+        auto lhs = data();
+        auto lsize = size();
+        auto rhs = other.data();
+        auto rsize = other.size();
+
+        if (lsize && rsize) {
+            T tmp[Capacity];
+            if constexpr (__use_memcpy) {
+                __memcpy(tmp, lhs);
+                __memcpy(lhs, rhs);
+                __memcpy(rhs, tmp);
+            } else {
+                if (lsize > rsize) {
+                    std::swap(lhs, rhs);
+                    std::swap(lsize, rsize);
+                }
+
+                uninitialized_move_n_using_allocator(lhs, lsize, tmp, al);
+                uninitialized_move_n_using_allocator(rhs, rsize, lhs, al);
+                uninitialized_move_n_using_allocator(tmp, lsize, rhs, al);
+            }
+        } else if (rsize) {
+            if constexpr (__use_memcpy) {
+                __memcpy(lhs, rhs);
+            } else {
+                uninitialized_move_n_using_allocator(rhs, rsize, lhs, al);
+            }
+            m_storage.m_size = rsize;
+            other_storage.m_size = 0;
+            return;
+        } else if (lsize) {
+            if constexpr (__use_memcpy) {
+                __memcpy(rhs, lhs);
+            } else {
+                uninitialized_move_n_using_allocator(lhs, lsize, rhs, al);
+            }
+            other_storage.m_size = lsize;
+            m_storage.m_size = 0;
+            return;
+        } else {
+            return;
+        }
+
+        const size_type __tmp_size = size();
+        m_storage.m_size = other.size();
+        other_storage.m_size = __tmp_size;
     }
 
     WJR_PURE WJR_CONSTEXPR20 size_type &size() noexcept { return __get_data().m_size; }
     WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept {
         return __get_data().m_size;
     }
-    WJR_CONST WJR_CONSTEXPR20 size_type capacity() const noexcept { return Capacity; }
+    WJR_CONST constexpr size_type capacity() const noexcept { return Capacity; }
 
-    WJR_PURE WJR_CONSTEXPR20 pointer data() noexcept {
-        return reinterpret_cast<pointer>(__get_data().m_data);
-    }
+    WJR_PURE WJR_CONSTEXPR20 pointer data() noexcept { return __get_data().m_data; }
     WJR_PURE WJR_CONSTEXPR20 const_pointer data() const noexcept {
-        return reinterpret_cast<const_pointer>(__get_data().m_data);
+        return __get_data().m_data;
     }
 
 private:
     WJR_PURE WJR_CONSTEXPR20 data_type &__get_data() noexcept { return m_pair.second(); }
     WJR_PURE WJR_CONSTEXPR20 const data_type &__get_data() const noexcept {
         return m_pair.second();
+    }
+
+    static void __memcpy(T *dst, const T *src) {
+        ::memcpy(dst, src, Capacity * sizeof(T));
     }
 
     compressed_pair<_Alty, data_type> m_pair;
@@ -382,6 +441,256 @@ private:
     WJR_PURE WJR_CONSTEXPR20 data_type &__get_data() noexcept { return m_pair.second(); }
     WJR_PURE WJR_CONSTEXPR20 const data_type &__get_data() const noexcept {
         return m_pair.second();
+    }
+
+    compressed_pair<_Alty, data_type> m_pair;
+};
+
+template <typename T, size_t Capacity, typename Alloc>
+class sso_vector_storage : noncopyable {
+    using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
+    using _Alty_traits = std::allocator_traits<_Alty>;
+
+public:
+    using value_type = T;
+    using pointer = typename _Alty_traits::pointer;
+    using const_pointer = typename _Alty_traits::const_pointer;
+    using size_type = typename _Alty_traits::size_type;
+    using difference_type = typename _Alty_traits::difference_type;
+    using allocator_type = Alloc;
+    using is_reallocatable = std::false_type;
+
+private:
+    static constexpr auto max_alignment = std::max<size_type>(
+        alignof(T), std::max<size_type>(alignof(pointer), alignof(size_type)));
+
+    struct __Data_test {
+        pointer m_data;
+        size_type m_size;
+        union {
+            size_type m_capacity;
+            alignas(max_alignment) T m_storage[Capacity];
+        };
+    };
+
+    static constexpr auto __sizeof_data = sizeof(__Data_test);
+    static constexpr auto __offsetof_storage =
+        __align_up(__align_up(sizeof(pointer), alignof(pointer)) +
+                       __align_up(sizeof(size_type), alignof(size_type)),
+                   max_alignment);
+
+    static constexpr auto __max_capacity =
+        (__sizeof_data - __offsetof_storage) / sizeof(T);
+    static constexpr bool __use_memcpy = is_trivially_allocator_constructible_v<Alloc> &&
+                                         std::is_trivially_copyable_v<T> &&
+                                         __max_capacity * sizeof(T) <= 64;
+
+    struct Data {
+        pointer m_data = m_storage;
+        size_type m_size = 0;
+        union {
+            size_type m_capacity;
+            alignas(max_alignment) T m_storage[__max_capacity];
+        };
+    };
+
+    using data_type = Data;
+
+public:
+    sso_vector_storage() noexcept = default;
+
+    template <typename _Alloc>
+    WJR_CONSTEXPR20 sso_vector_storage(_Alloc &&al) noexcept
+        : m_pair(std::piecewise_construct, std::make_tuple(std::forward<_Alloc>(al)),
+                 std::make_tuple()) {}
+
+    ~sso_vector_storage() noexcept = default;
+
+    WJR_PURE WJR_CONSTEXPR20 _Alty &get_allocator() noexcept { return m_pair.first(); }
+    WJR_PURE WJR_CONSTEXPR20 const _Alty &get_allocator() const noexcept {
+        return m_pair.first();
+    }
+
+    WJR_CONSTEXPR20 void destroy() noexcept {
+        if (WJR_BUILTIN_CONSTANT_P(size() == 0) && size() == 0) {
+            return;
+        }
+
+        destroy_n_using_allocator(data(), size(), get_allocator());
+    }
+
+    WJR_CONSTEXPR20 void destroy_and_deallocate() noexcept {
+        destroy();
+
+        if (!__is_sso()) {
+            get_allocator().deallocate(data(), capacity());
+        }
+    }
+
+    WJR_CONSTEXPR20 void uninitialized_construct(size_type size, size_type capacity) {
+        auto &m_storage = __get_data();
+
+        if (capacity <= __max_capacity) {
+            m_storage.m_size = size;
+        } else {
+            auto &al = get_allocator();
+            auto result = allocate_at_least(al, capacity);
+
+            m_storage.m_data = result.ptr;
+            m_storage.m_size = size;
+            m_storage.m_capacity = result.count;
+        }
+    }
+
+    WJR_CONSTEXPR20 void take_storage(sso_vector_storage &&other) noexcept {
+        auto &al = get_allocator();
+        auto &m_storage = __get_data();
+        auto &other_storage = other.__get_data();
+
+        WJR_ASSERT_ASSUME(__is_sso());
+
+        if (other.__is_sso()) {
+            m_storage.m_size = other_storage.m_size;
+
+            if constexpr (__use_memcpy) {
+                if (other.size()) {
+                    __memcpy(m_storage.m_storage, other_storage.m_storage);
+                }
+            } else {
+                uninitialized_move_n_using_allocator(
+                    other_storage.m_storage, other.size(), m_storage.m_storage, al);
+            }
+
+        } else {
+            m_storage.m_data = other_storage.m_data;
+            m_storage.m_size = other_storage.m_size;
+            m_storage.m_capacity = other_storage.m_capacity;
+
+            other_storage.m_data = other_storage.m_storage;
+        }
+
+        other_storage.m_size = 0;
+        WJR_ASSUME(other.__is_sso());
+    }
+
+    WJR_CONSTEXPR20 void swap_storage(sso_vector_storage &other) noexcept {
+        auto &al = get_allocator();
+        auto &storage = __get_data();
+        auto &other_storage = other.__get_data();
+
+        if (__is_sso()) {
+            if (other.__is_sso()) {
+                auto lhs = storage.m_storage;
+                auto lsize = size();
+                auto rhs = other_storage.m_storage;
+                auto rsize = other.size();
+
+                if (lsize && rsize) {
+                    T tmp[__max_capacity];
+                    if constexpr (__use_memcpy) {
+                        __memcpy(tmp, lhs);
+                        __memcpy(lhs, rhs);
+                        __memcpy(rhs, tmp);
+                    } else {
+                        if (lsize > rsize) {
+                            std::swap(lhs, rhs);
+                            std::swap(lsize, rsize);
+                        }
+
+                        uninitialized_move_n_using_allocator(lhs, lsize, tmp, al);
+                        uninitialized_move_n_using_allocator(rhs, rsize, lhs, al);
+                        uninitialized_move_n_using_allocator(tmp, lsize, rhs, al);
+                    }
+                } else if (rsize) {
+                    if constexpr (__use_memcpy) {
+                        __memcpy(lhs, rhs);
+                    } else {
+                        uninitialized_move_n_using_allocator(rhs, rsize, lhs, al);
+                    }
+                    storage.m_size = rsize;
+                    other_storage.m_size = 0;
+                    return;
+                } else if (lsize) {
+                    if constexpr (__use_memcpy) {
+                        __memcpy(rhs, lhs);
+                    } else {
+                        uninitialized_move_n_using_allocator(lhs, lsize, rhs, al);
+                    }
+                    other_storage.m_size = lsize;
+                    storage.m_size = 0;
+                    return;
+                } else {
+                    return;
+                }
+            } else {
+                const size_type __tmp_capacity = other_storage.m_capacity;
+                if constexpr (__use_memcpy) {
+                    if (size()) {
+                        __memcpy(other_storage.m_storage, storage.m_storage);
+                    }
+                } else {
+                    uninitialized_move_n_using_allocator(storage.m_storage, size(),
+                                                         other_storage.m_storage, al);
+                }
+
+                storage.m_data = other_storage.m_data;
+                other_storage.m_data = other_storage.m_storage;
+                storage.m_capacity = __tmp_capacity;
+            }
+        } else {
+            const size_type __tmp_capacity = storage.m_capacity;
+            if (other.__is_sso()) {
+                if constexpr (__use_memcpy) {
+                    if (other.size()) {
+                        __memcpy(storage.m_storage, other_storage.m_storage);
+                    }
+                } else {
+                    uninitialized_move_n_using_allocator(
+                        other_storage.m_storage, other.size(), storage.m_storage, al);
+                }
+
+                other_storage.m_data = storage.m_data;
+                storage.m_data = storage.m_storage;
+            } else {
+                const auto __tmp_data = storage.m_data;
+                storage.m_data = other_storage.m_data;
+                other_storage.m_data = __tmp_data;
+                storage.m_capacity = other_storage.m_capacity;
+            }
+            other_storage.m_capacity = __tmp_capacity;
+        }
+
+        const size_type __tmp_size = size();
+        storage.m_size = other.size();
+        other_storage.m_size = __tmp_size;
+    }
+
+    WJR_PURE WJR_CONSTEXPR20 size_type &size() noexcept { return __get_data().m_size; }
+    WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept {
+        return __get_data().m_size;
+    }
+    WJR_CONST WJR_CONSTEXPR20 size_type capacity() const noexcept {
+        return __is_sso() ? __max_capacity : __get_data().m_capacity;
+    }
+
+    WJR_PURE WJR_CONSTEXPR20 pointer data() noexcept { return __get_data().m_data; }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer data() const noexcept {
+        return __get_data().m_data;
+    }
+
+private:
+    WJR_PURE WJR_CONSTEXPR20 data_type &__get_data() noexcept { return m_pair.second(); }
+    WJR_PURE WJR_CONSTEXPR20 const data_type &__get_data() const noexcept {
+        return m_pair.second();
+    }
+
+    WJR_PURE bool __is_sso() const noexcept {
+        return __get_data().m_data == __get_data().m_storage;
+    }
+
+    // avoid cost of branch and call
+    static void __memcpy(T *dst, const T *src) {
+        ::memcpy(dst, src, __max_capacity * sizeof(T));
     }
 
     compressed_pair<_Alty, data_type> m_pair;
@@ -1002,7 +1311,7 @@ private:
     WJR_CONSTEXPR20 void __range_insert(iterator pos, Iter first, Iter last,
                                         std::input_iterator_tag) {
         if (pos == end()) {
-            __range_append(first, last, std::input_iterator_tag{});
+            __range_append(first, last, std::input_iterator_tag());
         } else if (first != last) {
             basic_vector tmp(first, last, __get_allocator());
             insert(pos, tmp.begin(), tmp.end());
@@ -1122,7 +1431,7 @@ private:
         if (first == last) {
             __erase_at_end(cur);
         } else {
-            __range_append(first, last, std::input_iterator_tag{});
+            __range_append(first, last, std::input_iterator_tag());
         }
     }
 
@@ -1550,6 +1859,9 @@ using static_vector = basic_vector<static_vector_storage<T, Capacity, Alloc>>;
  */
 template <typename T, typename Alloc = std::allocator<T>>
 using fixed_vector = basic_vector<fixed_vector_storage<T, Alloc>>;
+
+template <typename T, size_t Capacity, typename Alloc = std::allocator<T>>
+using sso_vector = basic_vector<sso_vector_storage<T, Capacity, Alloc>>;
 
 template <typename Iter, typename T = typename std::iterator_traits<Iter>::value_type,
           typename Alloc = std::allocator<T>,
