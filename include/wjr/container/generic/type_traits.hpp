@@ -66,6 +66,12 @@ public:
 template <typename Container>
 struct container_traits : __container_traits_base<Container> {};
 
+template <typename T, size_t N>
+struct container_traits<std::array<T, N>> : __container_traits_base<std::array<T, N>> {
+    constexpr static bool is_contiguous_v = true;
+    constexpr static bool is_trivially_contiguous_v = true;
+};
+
 template <typename T, typename Alloc>
 struct container_traits<std::vector<T, Alloc>>
     : __container_traits_base<std::vector<T, Alloc>> {

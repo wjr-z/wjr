@@ -5796,6 +5796,12 @@ public:
 template <typename Container>
 struct container_traits : __container_traits_base<Container> {};
 
+template <typename T, size_t N>
+struct container_traits<std::array<T, N>> : __container_traits_base<std::array<T, N>> {
+    constexpr static bool is_contiguous_v = true;
+    constexpr static bool is_trivially_contiguous_v = true;
+};
+
 template <typename T, typename Alloc>
 struct container_traits<std::vector<T, Alloc>>
     : __container_traits_base<std::vector<T, Alloc>> {
@@ -24770,53 +24776,6 @@ WJR_REGISTER_HAS_TYPE(from_chars_fast_fn_fast_conv,
                                         std::declval<Args>()...),
                       Base);
 
-template <typename Container, typename = void>
-struct __has_trivial_resize_container_impl : std::false_type {};
-
-template <typename Container>
-struct __has_trivial_resize_container_impl<
-    Container,
-    std::void_t<decltype(std::declval<Container>().resize(
-                             std::size(std::declval<Container>()) + std::declval<int>(),
-                             std::declval<in_place_default_construct_t>()),
-                         std::data(std::declval<Container>()) +
-                             std::size(std::declval<Container>()))>>
-    : __is_fast_convert_iterator<decltype(std::data(std::declval<Container>()) +
-                                          std::size(std::declval<Container>()))> {};
-
-template <typename Iter, typename = void>
-struct __has_trivial_resize : std::false_type {};
-
-template <typename Iter>
-struct __has_trivial_resize<Iter, std::enable_if_t<is_back_insert_iterator_v<Iter>>>
-    : __has_trivial_resize_container_impl<typename Iter::container_type &> {};
-
-template <typename Iter>
-inline constexpr bool has_trivial_resize_v = __has_trivial_resize<Iter>::value;
-
-template <typename Container, typename = void>
-struct __has_trivial_append_container_impl : std::false_type {};
-
-template <typename Container>
-struct __has_trivial_append_container_impl<
-    Container, std::void_t<decltype(std::declval<Container>().append(
-                                        std::declval<int>(),
-                                        std::declval<in_place_default_construct_t>()),
-                                    std::data(std::declval<Container>()) +
-                                        std::size(std::declval<Container>()))>>
-    : __is_fast_convert_iterator<decltype(std::data(std::declval<Container>()) +
-                                          std::size(std::declval<Container>()))> {};
-
-template <typename Iter, typename = void>
-struct __has_trivial_append : std::false_type {};
-
-template <typename Iter>
-struct __has_trivial_append<Iter, std::enable_if_t<is_back_insert_iterator_v<Iter>>>
-    : __has_trivial_append_container_impl<typename Iter::container_type &> {};
-
-template <typename Iter>
-inline constexpr bool has_trivial_append_v = __has_trivial_append<Iter>::value;
-
 template <typename Iter, typename = void>
 struct fast_buffer {
 private:
@@ -24843,21 +24802,21 @@ template <typename Iter>
 using fast_buffer_t = typename fast_buffer<Iter>::type;
 
 template <typename Container>
-struct __fast_container_inserter_test {};
+struct __fast_container_inserter_test {
+private:
+    using traits_type = container_traits<Container>;
 
-template <typename T, typename Alloc>
-struct __fast_container_inserter_test<std::vector<T, Alloc>> {
-    static constexpr int value = 1;
-};
+public:
+    static constexpr int value =
+        traits_type::is_trivially_contiguous_v && traits_type::template is_resize_v<>
+            ? (traits_type::template is_resize_v<wjr::in_place_default_construct_t> ? 2
+                                                                                    : 1)
+            : 0;
 
-template <typename T, typename Alloc>
-struct __fast_container_inserter_test<std::basic_string<T, std::char_traits<T>, Alloc>> {
-    static constexpr int value = 1;
-};
-
-template <typename Storage>
-struct __fast_container_inserter_test<wjr::basic_vector<Storage>> {
-    static constexpr int value = 2;
+    static_assert(
+        value != 2 ||
+            traits_type::template is_append_v<size_t, wjr::in_place_default_construct_t>,
+        "");
 };
 
 template <typename Iter, typename = void>
