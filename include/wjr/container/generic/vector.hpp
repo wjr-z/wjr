@@ -61,6 +61,7 @@
 #include <wjr/container/generic/container_fn.hpp>
 #include <wjr/iterator/details.hpp>
 #include <wjr/math/details.hpp>
+#include <wjr/memory/copy.hpp>
 #include <wjr/memory/temporary_value_allocator.hpp>
 
 namespace wjr {
@@ -153,34 +154,36 @@ public:
 
     template <typename InputIt>
     WJR_CONSTEXPR20 static pointer copy_restrict(InputIt first, InputIt last,
-                                                 pointer WJR_RESTRICT result) {
-        return std::copy(first, last, result);
+                                                 pointer result) {
+        return wjr::copy_restrict(first, last, result);
     }
 
     template <typename InputIt>
     WJR_CONSTEXPR20 static void
-    uninitialized_copy_using_allocator_restrict(InputIt first, InputIt last,
-                                                pointer WJR_RESTRICT result, _Alty &al) {
-        wjr::uninitialized_copy_using_allocator(first, last, result, al);
+    uninitialized_copy_restrict_using_allocator(InputIt first, InputIt last,
+                                                pointer result, _Alty &al) {
+        wjr::uninitialized_copy_restrict_using_allocator(first, last, result, al);
     }
 
     template <typename InputIt, typename Size>
-    WJR_CONSTEXPR20 static void uninitialized_copy_n_using_allocator_restrict(
-        InputIt first, Size size, pointer WJR_RESTRICT result, _Alty &al) {
-        wjr::uninitialized_copy_n_using_allocator(first, size, result, al);
+    WJR_CONSTEXPR20 static void
+    uninitialized_copy_n_restrict_using_allocator(InputIt first, Size size,
+                                                  pointer result, _Alty &al) {
+        wjr::uninitialized_copy_n_restrict_using_allocator(first, size, result, al);
     }
 
     template <typename InputIt>
     WJR_CONSTEXPR20 static void
-    uninitialized_move_using_allocator_restrict(InputIt first, InputIt last,
-                                                pointer WJR_RESTRICT result, _Alty &al) {
-        wjr::uninitialized_move_using_allocator(first, last, result, al);
+    uninitialized_move_restrict_using_allocator(InputIt first, InputIt last,
+                                                pointer result, _Alty &al) {
+        wjr::uninitialized_move_restrict_using_allocator(first, last, result, al);
     }
 
     template <typename InputIt, typename Size>
-    WJR_CONSTEXPR20 static void uninitialized_move_n_using_allocator_restrict(
-        InputIt first, Size size, pointer WJR_RESTRICT result, _Alty &al) {
-        wjr::uninitialized_move_n_using_allocator(first, size, result, al);
+    WJR_CONSTEXPR20 static void
+    uninitialized_move_n_restrict_using_allocator(InputIt first, Size size,
+                                                  pointer result, _Alty &al) {
+        wjr::uninitialized_move_n_restrict_using_allocator(first, size, result, al);
     }
 };
 
@@ -380,7 +383,7 @@ public:
                 __memcpy(lhs, rhs, Capacity);
             }
         } else {
-            STraits::uninitialized_move_n_using_allocator_restrict(
+            STraits::uninitialized_move_n_restrict_using_allocator(
                 rhs, other_storage.m_size, lhs, al);
         }
 
@@ -408,18 +411,18 @@ public:
                     std::swap(lsize, rsize);
                 }
 
-                STraits::uninitialized_move_n_using_allocator_restrict(lhs, lsize, tmp,
+                STraits::uninitialized_move_n_restrict_using_allocator(lhs, lsize, tmp,
                                                                        al);
-                STraits::uninitialized_move_n_using_allocator_restrict(rhs, rsize, lhs,
+                STraits::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs,
                                                                        al);
-                STraits::uninitialized_move_n_using_allocator_restrict(tmp, lsize, rhs,
+                STraits::uninitialized_move_n_restrict_using_allocator(tmp, lsize, rhs,
                                                                        al);
             }
         } else if (rsize) {
             if constexpr (__use_memcpy) {
                 __memcpy(lhs, rhs, Capacity);
             } else {
-                STraits::uninitialized_move_n_using_allocator_restrict(rhs, rsize, lhs,
+                STraits::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs,
                                                                        al);
             }
             m_storage.m_size = rsize;
@@ -429,7 +432,7 @@ public:
             if constexpr (__use_memcpy) {
                 __memcpy(rhs, lhs, Capacity);
             } else {
-                STraits::uninitialized_move_n_using_allocator_restrict(lhs, lsize, rhs,
+                STraits::uninitialized_move_n_restrict_using_allocator(lhs, lsize, rhs,
                                                                        al);
             }
             other_storage.m_size = lsize;
@@ -707,7 +710,7 @@ public:
                              __max_capacity);
                 }
             } else {
-                STraits::uninitialized_move_n_using_allocator_restrict(
+                STraits::uninitialized_move_n_restrict_using_allocator(
                     other_storage.m_storage, other.size(), m_storage.m_storage, al);
             }
         } else {
@@ -746,18 +749,18 @@ public:
                             std::swap(lsize, rsize);
                         }
 
-                        STraits::uninitialized_move_n_using_allocator_restrict(lhs, lsize,
+                        STraits::uninitialized_move_n_restrict_using_allocator(lhs, lsize,
                                                                                tmp, al);
-                        STraits::uninitialized_move_n_using_allocator_restrict(rhs, rsize,
+                        STraits::uninitialized_move_n_restrict_using_allocator(rhs, rsize,
                                                                                lhs, al);
-                        STraits::uninitialized_move_n_using_allocator_restrict(tmp, lsize,
+                        STraits::uninitialized_move_n_restrict_using_allocator(tmp, lsize,
                                                                                rhs, al);
                     }
                 } else if (rsize) {
                     if constexpr (__use_memcpy) {
                         __memcpy(lhs, rhs, __max_capacity);
                     } else {
-                        STraits::uninitialized_move_n_using_allocator_restrict(rhs, rsize,
+                        STraits::uninitialized_move_n_restrict_using_allocator(rhs, rsize,
                                                                                lhs, al);
                     }
                     storage.m_size = rsize;
@@ -767,7 +770,7 @@ public:
                     if constexpr (__use_memcpy) {
                         __memcpy(rhs, lhs, __max_capacity);
                     } else {
-                        STraits::uninitialized_move_n_using_allocator_restrict(lhs, lsize,
+                        STraits::uninitialized_move_n_restrict_using_allocator(lhs, lsize,
                                                                                rhs, al);
                     }
                     other_storage.m_size = lsize;
@@ -784,7 +787,7 @@ public:
                                  __max_capacity);
                     }
                 } else {
-                    STraits::uninitialized_move_n_using_allocator_restrict(
+                    STraits::uninitialized_move_n_restrict_using_allocator(
                         storage.m_storage, size(), other_storage.m_storage, al);
                 }
 
@@ -801,7 +804,7 @@ public:
                                  __max_capacity);
                     }
                 } else {
-                    STraits::uninitialized_move_n_using_allocator_restrict(
+                    STraits::uninitialized_move_n_restrict_using_allocator(
                         other_storage.m_storage, other.size(), storage.m_storage, al);
                 }
 
@@ -944,7 +947,7 @@ private:
         : m_storage(std::forward<_Alloc>(al)) {
         auto size = other.size();
         m_storage.uninitialized_construct(size, other.capacity());
-        STraits::uninitialized_copy_n_using_allocator_restrict(other.data(), size, data(),
+        STraits::uninitialized_copy_n_restrict_using_allocator(other.data(), size, data(),
                                                                __get_allocator());
     }
 
@@ -1090,7 +1093,7 @@ public:
             if (size() < capacity()) {
                 auto &al = __get_allocator();
                 storage_type new_storage(al, size(), size(), in_place_reallocate);
-                STraits::uninitialized_move_n_using_allocator_restrict(
+                STraits::uninitialized_move_n_restrict_using_allocator(
                     data(), size(), new_storage.data(), al);
                 __destroy_and_deallocate();
                 __take_storage(std::move(new_storage));
@@ -1118,7 +1121,7 @@ public:
                 const size_type new_capacity = get_growth_capacity(old_capacity, n);
 
                 storage_type new_storage(al, old_size, new_capacity, in_place_reallocate);
-                STraits::uninitialized_move_n_using_allocator_restrict(
+                STraits::uninitialized_move_n_restrict_using_allocator(
                     data(), old_size, new_storage.data(), al);
                 __destroy_and_deallocate();
                 __take_storage(std::move(new_storage));
@@ -1418,7 +1421,7 @@ private:
                 STraits::uninitialized_fill_n_using_allocator(
                     data(), n, al, std::forward<Args>(args)...);
             } else if constexpr (sizeof...(Args) == 2) {
-                STraits::uninitialized_copy_using_allocator_restrict(
+                STraits::uninitialized_copy_restrict_using_allocator(
                     std::forward<Args>(args)..., data(), al);
             }
         }
@@ -1499,7 +1502,7 @@ private:
             if (WJR_LIKELY(__rest >= n)) {
                 const auto __elements_after = static_cast<size_type>(__last - pos);
                 if (__elements_after > n) {
-                    STraits::uninitialized_move_n_using_allocator_restrict(__last - n, n,
+                    STraits::uninitialized_move_n_restrict_using_allocator(__last - n, n,
                                                                            __last, al);
                     STraits::move_backward(pos, __last - n, __last);
                     STraits::copy_restrict(first, last, pos);
@@ -1507,9 +1510,9 @@ private:
                     auto mid = first;
                     std::advance(mid, __elements_after);
 
-                    STraits::uninitialized_copy_using_allocator_restrict(mid, last,
+                    STraits::uninitialized_copy_restrict_using_allocator(mid, last,
                                                                          __last, al);
-                    STraits::uninitialized_move_using_allocator_restrict(pos, __last,
+                    STraits::uninitialized_move_restrict_using_allocator(pos, __last,
                                                                          pos + n, al);
                     STraits::copy_restrict(first, mid, pos);
                 }
@@ -1525,11 +1528,11 @@ private:
                                              in_place_reallocate);
                     const pointer new_first = new_storage.data();
 
-                    STraits::uninitialized_copy_using_allocator_restrict(
+                    STraits::uninitialized_copy_restrict_using_allocator(
                         first, last, new_first + old_pos, al);
-                    STraits::uninitialized_move_using_allocator_restrict(__first, pos,
+                    STraits::uninitialized_move_restrict_using_allocator(__first, pos,
                                                                          new_first, al);
-                    STraits::uninitialized_move_using_allocator_restrict(
+                    STraits::uninitialized_move_restrict_using_allocator(
                         pos, __last, new_first + old_pos + n, al);
 
                     __destroy_and_deallocate();
@@ -1561,7 +1564,7 @@ private:
             const auto __rest = static_cast<size_type>(__end - __last);
 
             if (WJR_LIKELY(__rest >= n)) {
-                STraits::uninitialized_copy_n_using_allocator_restrict(first, n, __last,
+                STraits::uninitialized_copy_n_restrict_using_allocator(first, n, __last,
                                                                        al);
                 __get_size() += n;
             } else {
@@ -1574,9 +1577,9 @@ private:
                                              in_place_reallocate);
                     const pointer new_first = new_storage.data();
 
-                    STraits::uninitialized_copy_using_allocator_restrict(
+                    STraits::uninitialized_copy_restrict_using_allocator(
                         first, last, new_first + old_size, al);
-                    STraits::uninitialized_move_using_allocator_restrict(__first, __last,
+                    STraits::uninitialized_move_restrict_using_allocator(__first, __last,
                                                                          new_first, al);
 
                     __destroy_and_deallocate();
@@ -1621,14 +1624,14 @@ private:
             auto mid = first;
             std::advance(mid, size());
             STraits::copy_restrict(first, mid, begin());
-            STraits::uninitialized_copy_using_allocator_restrict(mid, last, __last, al);
+            STraits::uninitialized_copy_restrict_using_allocator(mid, last, __last, al);
             __get_size() = n;
         } else {
             if constexpr (is_reallocatable::value) {
                 size_type new_capacity = get_growth_capacity(capacity(), n);
                 storage_type new_storage(al, n, new_capacity, in_place_reallocate);
                 const pointer new_first = new_storage.data();
-                STraits::uninitialized_copy_n_using_allocator_restrict(first, n,
+                STraits::uninitialized_copy_n_restrict_using_allocator(first, n,
                                                                        new_first, al);
 
                 __destroy_and_deallocate();
@@ -1684,9 +1687,9 @@ private:
             STraits::uninitialized_construct_using_allocator(new_pos, al,
                                                              std::forward<Args>(args)...);
 
-            STraits::uninitialized_move_n_using_allocator_restrict(__first, old_pos_size,
+            STraits::uninitialized_move_n_restrict_using_allocator(__first, old_pos_size,
                                                                    new_first, al);
-            STraits::uninitialized_move_using_allocator_restrict(pos, __last, new_pos + 1,
+            STraits::uninitialized_move_restrict_using_allocator(pos, __last, new_pos + 1,
                                                                  al);
 
             __destroy_and_deallocate();
@@ -1714,7 +1717,7 @@ private:
             STraits::uninitialized_construct_using_allocator(new_pos, al,
                                                              std::forward<Args>(args)...);
 
-            STraits::uninitialized_move_using_allocator_restrict(__first, __last,
+            STraits::uninitialized_move_restrict_using_allocator(__first, __last,
                                                                  new_first, al);
 
             __destroy_and_deallocate();
@@ -1742,14 +1745,14 @@ private:
 
             const auto __elements_after = static_cast<size_type>(__last - pos);
             if (__elements_after > n) {
-                STraits::uninitialized_move_n_using_allocator_restrict(__last - n, n,
+                STraits::uninitialized_move_n_restrict_using_allocator(__last - n, n,
                                                                        __last, al);
                 STraits::move_backward(pos, __last - n, __last);
                 STraits::fill_n(pos, n, real_val);
             } else {
                 STraits::uninitialized_fill_n_using_allocator(
                     __last, n - __elements_after, al, real_val);
-                STraits::uninitialized_move_using_allocator_restrict(pos, __last, pos + n,
+                STraits::uninitialized_move_restrict_using_allocator(pos, __last, pos + n,
                                                                      al);
                 STraits::fill(pos, __last, real_val);
             }
@@ -1766,9 +1769,9 @@ private:
 
                 STraits::uninitialized_fill_n_using_allocator(new_first + old_pos, n, al,
                                                               val);
-                STraits::uninitialized_move_using_allocator_restrict(__first, pos,
+                STraits::uninitialized_move_restrict_using_allocator(__first, pos,
                                                                      new_first, al);
-                STraits::uninitialized_move_using_allocator_restrict(
+                STraits::uninitialized_move_restrict_using_allocator(
                     pos, __last, new_first + old_pos + n, al);
 
                 __destroy_and_deallocate();
@@ -1834,7 +1837,7 @@ private:
 
                 STraits::uninitialized_fill_n_using_allocator(new_first + old_size, n, al,
                                                               val);
-                STraits::uninitialized_move_using_allocator_restrict(__first, __last,
+                STraits::uninitialized_move_restrict_using_allocator(__first, __last,
                                                                      new_first, al);
 
                 __destroy_and_deallocate();
@@ -1944,11 +1947,11 @@ private:
                                              in_place_reallocate);
                     const pointer __ptr = new_storage.data();
 
-                    STraits::uninitialized_copy_using_allocator_restrict(
+                    STraits::uninitialized_copy_restrict_using_allocator(
                         new_first, new_last, __ptr + old_pos, al);
-                    STraits::uninitialized_move_using_allocator_restrict(
+                    STraits::uninitialized_move_restrict_using_allocator(
                         __first, old_first, __ptr, al);
-                    STraits::uninitialized_move_using_allocator_restrict(
+                    STraits::uninitialized_move_restrict_using_allocator(
                         old_last, __last, __ptr + old_pos + m, al);
 
                     __destroy_and_deallocate();
@@ -2007,9 +2010,9 @@ private:
 
                     STraits::uninitialized_fill_n_using_allocator(__ptr + old_pos, m, al,
                                                                   val);
-                    STraits::uninitialized_move_using_allocator_restrict(
+                    STraits::uninitialized_move_restrict_using_allocator(
                         __first, old_first, __ptr, al);
-                    STraits::uninitialized_move_using_allocator_restrict(
+                    STraits::uninitialized_move_restrict_using_allocator(
                         old_last, __last, __ptr + old_pos + m, al);
 
                     __destroy_and_deallocate();

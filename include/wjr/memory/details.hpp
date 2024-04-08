@@ -3,7 +3,7 @@
 
 #include <cstring>
 
-#include <wjr/type_traits.hpp>
+#include <wjr/iterator/details.hpp>
 
 namespace wjr {
 
@@ -27,6 +27,15 @@ constexpr auto to_address(const Ptr &p) noexcept {
         return std::pointer_traits<Ptr>::to_address(p);
     } else {
         return to_address(p.operator->());
+    }
+}
+
+template <typename T>
+constexpr decltype(auto) try_to_address(T &&t) noexcept {
+    if constexpr (is_contiguous_iterator_v<remove_cvref_t<T>>) {
+        return to_address(std::forward<T>(t));
+    } else {
+        return std::forward<T>(t);
     }
 }
 

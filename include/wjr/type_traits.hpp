@@ -197,6 +197,19 @@ struct type_identity {
 template <typename T>
 using type_identity_t = typename type_identity<T>::type;
 
+template <typename T>
+struct add_restrict {
+    using type = T;
+};
+
+template <typename T>
+struct add_restrict<T *> {
+    using type = T *WJR_RESTRICT;
+};
+
+template <typename T>
+using add_restrict_t = typename add_restrict<T>::type;
+
 /**
  * @brief Return if is constant evaluated.
  *

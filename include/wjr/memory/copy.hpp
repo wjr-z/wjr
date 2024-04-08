@@ -3,6 +3,7 @@
 
 #include <wjr/container/generic/details.hpp>
 #include <wjr/iterator/inserter.hpp>
+#include <wjr/memory/details.hpp>
 
 namespace wjr {
 
@@ -45,6 +46,31 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
         }
     } else {
         return std::copy(first, last, d_first);
+    }
+}
+
+template <typename InputIt, typename OutputIt>
+constexpr OutputIt __copy_restrict_impl_aux(add_restrict_t<InputIt> first,
+                                            add_restrict_t<InputIt> last,
+                                            add_restrict_t<OutputIt> d_first) {
+    return wjr::copy(first, last, d_first);
+}
+
+template <typename InputIt, typename OutputIt>
+constexpr OutputIt __copy_restrict_impl(InputIt first, InputIt last, OutputIt d_first) {
+    return __copy_restrict_impl_aux<InputIt, OutputIt>(first, last, d_first);
+}
+
+template <typename InputIt, typename OutputIt>
+constexpr OutputIt copy_restrict(InputIt first, InputIt last, OutputIt d_first) {
+    const auto __first = try_to_address(first);
+    const auto __last = try_to_address(last);
+    if constexpr (is_contiguous_iterator_v<OutputIt>) {
+        const auto __d_first = to_address(d_first);
+        const auto __d_last = __copy_restrict_impl(__first, __last, __d_first);
+        return std::next(d_first, std::distance(__d_first, __d_last));
+    } else {
+        return __copy_restrict_impl(__first, __last, d_first);
     }
 }
 
@@ -91,10 +117,49 @@ constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
     }
 }
 
+template <typename InputIt, typename Size, typename OutputIt>
+constexpr OutputIt __copy_n_restrict_impl_aux(add_restrict_t<InputIt> first, Size count,
+                                              add_restrict_t<OutputIt> d_first) {
+    return wjr::copy_n(first, count, d_first);
+}
+
+template <typename InputIt, typename Size, typename OutputIt>
+constexpr OutputIt __copy_n_restrict_impl(InputIt first, Size count, OutputIt d_first) {
+    return __copy_n_restrict_impl_aux<InputIt, Size, OutputIt>(first, count, d_first);
+}
+
+template <typename InputIt, typename Size, typename OutputIt>
+constexpr OutputIt copy_n_restrict(InputIt first, Size count, OutputIt d_first) {
+    const auto __first = try_to_address(first);
+    if constexpr (is_contiguous_iterator_v<OutputIt>) {
+        const auto __d_first = to_address(d_first);
+        const auto __d_last = __copy_n_restrict_impl(__first, count, __d_first);
+        return std::next(d_first, std::distance(__d_first, __d_last));
+    } else {
+        return __copy_n_restrict_impl(__first, count, d_first);
+    }
+}
+
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt move(InputIt first, InputIt last, OutputIt d_first) {
     return wjr::copy(std::make_move_iterator(first), std::make_move_iterator(last),
                      d_first);
+}
+
+template <typename InputIt, typename OutputIt>
+constexpr OutputIt move_restrict(InputIt first, InputIt last, OutputIt d_first) {
+    return wjr::copy_restrict(std::make_move_iterator(first),
+                              std::make_move_iterator(last), d_first);
+}
+
+template <typename InputIt, typename Size, typename OutputIt>
+constexpr OutputIt move_n(InputIt first, Size count, OutputIt d_first) {
+    return wjr::copy_n(std::make_move_iterator(first), count, d_first);
+}
+
+template <typename InputIt, typename Size, typename OutputIt>
+constexpr OutputIt move_n_restrict(InputIt first, Size count, OutputIt d_first) {
+    return wjr::copy_n_restrict(std::make_move_iterator(first), count, d_first);
 }
 
 } // namespace wjr

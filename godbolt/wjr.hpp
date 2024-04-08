@@ -2455,6 +2455,19 @@ struct type_identity {
 template <typename T>
 using type_identity_t = typename type_identity<T>::type;
 
+template <typename T>
+struct add_restrict {
+    using type = T;
+};
+
+template <typename T>
+struct add_restrict<T *> {
+    using type = T *WJR_RESTRICT;
+};
+
+template <typename T>
+using add_restrict_t = typename add_restrict<T>::type;
+
 /**
  * @brief Return if is constant evaluated.
  *
@@ -4377,23 +4390,120 @@ WJR_CONST constexpr U __fasts_conditional_negate(bool condition, T x) {
 } // namespace wjr
 
 #endif // WJR_MATH_DETAILS_HPP__
-#ifndef WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
-#define WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
+#ifndef WJR_MEMORY_COPY_HPP__
+#define WJR_MEMORY_COPY_HPP__
+
+#ifndef WJR_CONTAINER_GENERIC_DETAILS_HPP__
+#define WJR_CONTAINER_GENERIC_DETAILS_HPP__
 
 // Already included
-#ifndef WJR_MEMORY_UNINITIALIZED_HPP__
-#define WJR_MEMORY_UNINITIALIZED_HPP__
 
-/**
- * @file uninitialized.hpp
- * @brief The header file for uninitialized memory operations using allocator.
- *
- * @version 0.0.1
- * @date 2024-03-18
- *
- */
+namespace wjr::container_details {
+
+WJR_REGISTER_HAS_TYPE(container_begin, std::declval<Container>().begin(), Container);
+WJR_REGISTER_HAS_TYPE(container_cbegin, std::declval<Container>().cbegin(), Container);
+WJR_REGISTER_HAS_TYPE(container_end, std::declval<Container>().end(), Container);
+WJR_REGISTER_HAS_TYPE(container_cend, std::declval<Container>().cend(), Container);
+WJR_REGISTER_HAS_TYPE(container_size, std::declval<Container>().size(), Container);
+
+WJR_REGISTER_HAS_TYPE(container_resize,
+                      std::declval<Container>().resize(std::declval<Size>(),
+                                                       std::declval<Args>()...),
+                      Container, Size);
+WJR_REGISTER_HAS_TYPE(container_reserve,
+                      std::declval<Container>().reserve(std::declval<Size>()), Container,
+                      Size);
+WJR_REGISTER_HAS_TYPE(container_append,
+                      std::declval<Container>().append(std::declval<Args>()...),
+                      Container);
+WJR_REGISTER_HAS_TYPE(container_insert,
+                      (std::declval<Container>().insert(
+                           std::declval<Container>().cbegin(), std::declval<Args>()...),
+                       std::declval<Container>().insert(std::declval<Container>().cend(),
+                                                        std::declval<Args>()...)),
+                      Container);
+
+} // namespace wjr::container_details
+
+#endif // WJR_CONTAINER_GENERIC_DETAILS_HPP__
+#ifndef WJR_ITERATOR_INSERTER_HPP__
+#define WJR_ITERATOR_INSERTER_HPP__
 
 // Already included
+
+namespace wjr {
+
+template <typename T>
+struct is_insert_iterator : std::false_type {};
+
+template <typename Container>
+struct is_insert_iterator<std::insert_iterator<Container>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_insert_iterator_v = is_insert_iterator<T>::value;
+
+template <typename T>
+struct is_back_insert_iterator : std::false_type {};
+
+template <typename Container>
+struct is_back_insert_iterator<std::back_insert_iterator<Container>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_back_insert_iterator_v = is_back_insert_iterator<T>::value;
+
+template <typename T>
+struct is_front_insert_iterator : std::false_type {};
+
+template <typename Container>
+struct is_front_insert_iterator<std::front_insert_iterator<Container>> : std::true_type {
+};
+
+template <typename T>
+inline constexpr bool is_front_insert_iterator_v = is_front_insert_iterator<T>::value;
+
+template <typename T>
+struct is_any_insert_iterator
+    : std::bool_constant<is_insert_iterator_v<T> || is_back_insert_iterator_v<T> ||
+                         is_front_insert_iterator_v<T>> {};
+
+template <typename T>
+inline constexpr bool is_any_insert_iterator_v = is_any_insert_iterator<T>::value;
+
+template <typename Iter>
+struct __inserter_container_accessor : Iter {
+    __inserter_container_accessor(Iter it) : Iter(it) {}
+    using Iter::container;
+};
+
+template <typename Iter>
+struct __inserter_iterator_accessor : Iter {
+    __inserter_iterator_accessor(Iter it) : Iter(it) {}
+    using Iter::iter;
+};
+
+template <typename Container>
+Container &get_inserter_container(std::insert_iterator<Container> it) {
+    return *__inserter_container_accessor(it).container;
+}
+
+template <typename Container>
+Container &get_inserter_container(std::back_insert_iterator<Container> it) {
+    return *__inserter_container_accessor(it).container;
+}
+
+template <typename Container>
+Container &get_inserter_container(std::front_insert_iterator<Container> it) {
+    return *__inserter_container_accessor(it).container;
+}
+
+template <typename Container>
+typename Container::iterator get_inserter_iterator(std::insert_iterator<Container> it) {
+    return __inserter_iterator_accessor(it).iter;
+}
+
+} // namespace wjr
+
+#endif // WJR_ITERATOR_INSERTER_HPP__
 #ifndef WJR_MEMORY_TO_ADDRESS_HPP__
 #define WJR_MEMORY_TO_ADDRESS_HPP__
 
@@ -4423,6 +4533,15 @@ constexpr auto to_address(const Ptr &p) noexcept {
         return std::pointer_traits<Ptr>::to_address(p);
     } else {
         return to_address(p.operator->());
+    }
+}
+
+template <typename T>
+constexpr decltype(auto) try_to_address(T &&t) noexcept {
+    if constexpr (is_contiguous_iterator_v<remove_cvref_t<T>>) {
+        return to_address(std::forward<T>(t));
+    } else {
+        return std::forward<T>(t);
     }
 }
 
@@ -4558,6 +4677,185 @@ WJR_NODISCARD allocation_result<Pointer, SizeType> allocate_at_least(Allocator &
 
 namespace wjr {
 
+/**
+ * @fn copy
+ *
+ * @details Optimized for back_insert_iterator and insert_iterator.
+ *
+ */
+template <typename InputIt, typename OutputIt>
+constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
+    using Out = remove_cvref_t<OutputIt>;
+
+    if constexpr (is_back_insert_iterator_v<Out> || is_insert_iterator_v<Out>) {
+        using Container = typename Out::container_type;
+
+        if constexpr (is_back_insert_iterator_v<Out>) {
+            if constexpr (container_details::has_container_append_v<Container, InputIt,
+                                                                    InputIt>) {
+                get_inserter_container(d_first).append(first, last);
+                return d_first;
+            } else if constexpr (container_details::has_container_insert_v<
+                                     Container, InputIt, InputIt>) {
+                auto &cont = get_inserter_container(d_first);
+                cont.insert(cont.cend(), first, last);
+                return d_first;
+            } else {
+                return std::copy(first, last, d_first);
+            }
+        } else {
+            if constexpr (container_details::has_container_insert_v<Container, InputIt,
+                                                                    InputIt>) {
+                auto &cont = get_inserter_container(d_first);
+                auto pos = get_inserter_iterator(d_first);
+                cont.insert(pos, first, last);
+                return d_first;
+            } else {
+                return std::copy(first, last, d_first);
+            }
+        }
+    } else {
+        return std::copy(first, last, d_first);
+    }
+}
+
+template <typename InputIt, typename OutputIt>
+constexpr OutputIt __copy_restrict_impl_aux(add_restrict_t<InputIt> first,
+                                            add_restrict_t<InputIt> last,
+                                            add_restrict_t<OutputIt> d_first) {
+    return wjr::copy(first, last, d_first);
+}
+
+template <typename InputIt, typename OutputIt>
+constexpr OutputIt __copy_restrict_impl(InputIt first, InputIt last, OutputIt d_first) {
+    return __copy_restrict_impl_aux<InputIt, OutputIt>(first, last, d_first);
+}
+
+template <typename InputIt, typename OutputIt>
+constexpr OutputIt copy_restrict(InputIt first, InputIt last, OutputIt d_first) {
+    const auto __first = try_to_address(first);
+    const auto __last = try_to_address(last);
+    if constexpr (is_contiguous_iterator_v<OutputIt>) {
+        const auto __d_first = to_address(d_first);
+        const auto __d_last = __copy_restrict_impl(__first, __last, __d_first);
+        return std::next(d_first, std::distance(__d_first, __d_last));
+    } else {
+        return __copy_restrict_impl(__first, __last, d_first);
+    }
+}
+
+/**
+ * @fn wjr::copy_n
+ *
+ * @details Optimized for back_insert_iterator and insert_iterator.
+ *
+ */
+template <typename InputIt, typename Size, typename OutputIt>
+constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
+    using Out = remove_cvref_t<OutputIt>;
+
+    if constexpr (is_random_access_iterator_v<InputIt> &&
+                  (is_back_insert_iterator_v<Out> || is_insert_iterator_v<Out>)) {
+        using Container = typename Out::container_type;
+
+        if constexpr (is_back_insert_iterator_v<Out>) {
+            if constexpr (container_details::has_container_append_v<Container, InputIt,
+                                                                    InputIt>) {
+                get_inserter_container(d_first).append(first, std::next(first, count));
+                return d_first;
+            } else if constexpr (container_details::has_container_insert_v<
+                                     Container, InputIt, InputIt>) {
+                auto &cont = get_inserter_container(d_first);
+                cont.insert(cont.cend(), first, std::next(first, count));
+                return d_first;
+            } else {
+                return std::copy_n(first, count, d_first);
+            }
+        } else {
+            if constexpr (container_details::has_container_insert_v<Container, InputIt,
+                                                                    InputIt>) {
+                auto &cont = get_inserter_container(d_first);
+                auto pos = get_inserter_iterator(d_first);
+                cont.insert(pos, first, std::next(first, count));
+                return d_first;
+            } else {
+                return std::copy_n(first, std::next(first, count), d_first);
+            }
+        }
+    } else {
+        return std::copy_n(first, count, d_first);
+    }
+}
+
+template <typename InputIt, typename Size, typename OutputIt>
+constexpr OutputIt __copy_n_restrict_impl_aux(add_restrict_t<InputIt> first, Size count,
+                                              add_restrict_t<OutputIt> d_first) {
+    return wjr::copy_n(first, count, d_first);
+}
+
+template <typename InputIt, typename Size, typename OutputIt>
+constexpr OutputIt __copy_n_restrict_impl(InputIt first, Size count, OutputIt d_first) {
+    return __copy_n_restrict_impl_aux<InputIt, Size, OutputIt>(first, count, d_first);
+}
+
+template <typename InputIt, typename Size, typename OutputIt>
+constexpr OutputIt copy_n_restrict(InputIt first, Size count, OutputIt d_first) {
+    const auto __first = try_to_address(first);
+    if constexpr (is_contiguous_iterator_v<OutputIt>) {
+        const auto __d_first = to_address(d_first);
+        const auto __d_last = __copy_n_restrict_impl(__first, count, __d_first);
+        return std::next(d_first, std::distance(__d_first, __d_last));
+    } else {
+        return __copy_n_restrict_impl(__first, count, d_first);
+    }
+}
+
+template <typename InputIt, typename OutputIt>
+constexpr OutputIt move(InputIt first, InputIt last, OutputIt d_first) {
+    return wjr::copy(std::make_move_iterator(first), std::make_move_iterator(last),
+                     d_first);
+}
+
+template <typename InputIt, typename OutputIt>
+constexpr OutputIt move_restrict(InputIt first, InputIt last, OutputIt d_first) {
+    return wjr::copy_restrict(std::make_move_iterator(first),
+                              std::make_move_iterator(last), d_first);
+}
+
+template <typename InputIt, typename Size, typename OutputIt>
+constexpr OutputIt move_n(InputIt first, Size count, OutputIt d_first) {
+    return wjr::copy_n(std::make_move_iterator(first), count, d_first);
+}
+
+template <typename InputIt, typename Size, typename OutputIt>
+constexpr OutputIt move_n_restrict(InputIt first, Size count, OutputIt d_first) {
+    return wjr::copy_n_restrict(std::make_move_iterator(first), count, d_first);
+}
+
+} // namespace wjr
+
+#endif // WJR_MEMORY_COPY_HPP__
+#ifndef WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
+#define WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
+
+// Already included
+#ifndef WJR_MEMORY_UNINITIALIZED_HPP__
+#define WJR_MEMORY_UNINITIALIZED_HPP__
+
+/**
+ * @file uninitialized.hpp
+ * @brief The header file for uninitialized memory operations using allocator.
+ *
+ * @version 0.0.1
+ * @date 2024-03-18
+ *
+ */
+
+// Already included
+// Already included
+
+namespace wjr {
+
 template <typename Iter, typename Alloc, typename... Args>
 WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &alloc,
                                                              Args &&...args) {
@@ -4571,50 +4869,131 @@ WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &a
     }
 }
 
-template <typename InputIter, typename OutputIter, typename Alloc>
-WJR_CONSTEXPR20 OutputIter uninitialized_copy_using_allocator(InputIter first,
-                                                              InputIter last,
-                                                              OutputIter result,
-                                                              Alloc &alloc) {
+template <typename InputIt, typename OutputIt, typename Alloc>
+WJR_CONSTEXPR20 OutputIt uninitialized_copy_using_allocator(InputIt first, InputIt last,
+                                                            OutputIt d_first,
+                                                            Alloc &alloc) {
     if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
-        return std::uninitialized_copy(first, last, result);
+        return std::uninitialized_copy(first, last, d_first);
     } else {
-        for (; first != last; ++first, ++result) {
-            std::allocator_traits<Alloc>::construct(alloc, to_address(result), *first);
+        for (; first != last; ++first, ++d_first) {
+            std::allocator_traits<Alloc>::construct(alloc, to_address(d_first), *first);
         }
-        return result;
+        return d_first;
     }
 }
 
-template <typename InputIter, typename Size, typename OutputIter, typename Alloc>
-WJR_CONSTEXPR20 OutputIter uninitialized_copy_n_using_allocator(InputIter first, Size n,
-                                                                OutputIter result,
-                                                                Alloc &alloc) {
-    if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
-        return std::uninitialized_copy_n(first, n, result);
+template <typename InputIt, typename OutputIt, typename Alloc>
+WJR_CONSTEXPR20 OutputIt __uninitialized_copy_restrict_using_allocator_impl_aux(
+    add_restrict_t<InputIt> first, add_restrict_t<InputIt> last,
+    add_restrict_t<OutputIt> d_first, Alloc &alloc) {
+    return uninitialized_copy_using_allocator(first, last, d_first, alloc);
+}
+
+template <typename InputIt, typename OutputIt, typename Alloc>
+WJR_CONSTEXPR20 OutputIt __uninitialized_copy_restrict_using_allocator_impl(
+    InputIt first, InputIt last, OutputIt d_first, Alloc &alloc) {
+    return __uninitialized_copy_restrict_using_allocator_impl_aux<InputIt, OutputIt,
+                                                                  Alloc>(first, last,
+                                                                         d_first, alloc);
+}
+
+template <typename InputIt, typename OutputIt, typename Alloc>
+WJR_CONSTEXPR20 OutputIt uninitialized_copy_restrict_using_allocator(InputIt first,
+                                                                     InputIt last,
+                                                                     OutputIt d_first,
+                                                                     Alloc &alloc) {
+    const auto __first = try_to_address(first);
+    const auto __last = try_to_address(last);
+    if constexpr (is_contiguous_iterator_v<OutputIt>) {
+        const auto __d_first = to_address(d_first);
+        const auto __d_last = __uninitialized_copy_restrict_using_allocator_impl(
+            __first, __last, __d_first, alloc);
+        return std::next(d_first, std::distance(__d_first, __d_last));
     } else {
-        for (; n > 0; ++first, ++result, --n) {
-            std::allocator_traits<Alloc>::construct(alloc, to_address(result), *first);
-        }
-        return result;
+        return __uninitialized_copy_restrict_using_allocator_impl(__first, __last,
+                                                                  d_first, alloc);
     }
 }
 
-template <typename InputIter, typename OutputIter, typename Alloc>
-WJR_CONSTEXPR20 OutputIter uninitialized_move_using_allocator(InputIter first,
-                                                              InputIter last,
-                                                              OutputIter result,
+template <typename InputIt, typename Size, typename OutputIt, typename Alloc>
+WJR_CONSTEXPR20 OutputIt uninitialized_copy_n_using_allocator(InputIt first, Size n,
+                                                              OutputIt d_first,
                                                               Alloc &alloc) {
+    if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
+        return std::uninitialized_copy_n(first, n, d_first);
+    } else {
+        for (; n > 0; ++first, ++d_first, --n) {
+            std::allocator_traits<Alloc>::construct(alloc, to_address(d_first), *first);
+        }
+        return d_first;
+    }
+}
+
+template <typename InputIt, typename Size, typename OutputIt, typename Alloc>
+WJR_CONSTEXPR20 OutputIt __uninitialized_copy_n_restrict_using_allocator_impl_aux(
+    add_restrict_t<InputIt> first, Size n, add_restrict_t<OutputIt> d_first,
+    Alloc &alloc) {
+    return uninitialized_copy_n_using_allocator(first, n, d_first, alloc);
+}
+
+template <typename InputIt, typename Size, typename OutputIt, typename Alloc>
+WJR_CONSTEXPR20 OutputIt __uninitialized_copy_n_restrict_using_allocator_impl(
+    InputIt first, Size n, OutputIt d_first, Alloc &alloc) {
+    return __uninitialized_copy_n_restrict_using_allocator_impl_aux<InputIt, Size,
+                                                                    OutputIt, Alloc>(
+        first, n, d_first, alloc);
+}
+
+template <typename InputIt, typename Size, typename OutputIt, typename Alloc>
+WJR_CONSTEXPR20 OutputIt uninitialized_copy_n_restrict_using_allocator(InputIt first,
+                                                                       Size n,
+                                                                       OutputIt d_first,
+                                                                       Alloc &alloc) {
+    const auto __first = try_to_address(first);
+    if constexpr (is_contiguous_iterator_v<OutputIt>) {
+        const auto __d_first = to_address(d_first);
+        const auto __d_last = __uninitialized_copy_n_restrict_using_allocator_impl(
+            __first, n, __d_first, alloc);
+        return std::next(d_first, std::distance(__d_first, __d_last));
+    } else {
+        return __uninitialized_copy_n_restrict_using_allocator_impl(__first, n, d_first,
+                                                                    alloc);
+    }
+}
+
+template <typename InputIt, typename OutputIt, typename Alloc>
+WJR_CONSTEXPR20 OutputIt uninitialized_move_using_allocator(InputIt first, InputIt last,
+                                                            OutputIt d_first,
+                                                            Alloc &alloc) {
     return uninitialized_copy_using_allocator(
-        std::make_move_iterator(first), std::make_move_iterator(last), result, alloc);
+        std::make_move_iterator(first), std::make_move_iterator(last), d_first, alloc);
 }
 
-template <typename InputIter, typename Size, typename OutputIter, typename Alloc>
-WJR_CONSTEXPR20 OutputIter uninitialized_move_n_using_allocator(InputIter first, Size n,
-                                                                OutputIter result,
-                                                                Alloc &alloc) {
-    return uninitialized_copy_n_using_allocator(std::make_move_iterator(first), n, result,
-                                                alloc);
+template <typename InputIt, typename OutputIt, typename Alloc>
+WJR_CONSTEXPR20 OutputIt uninitialized_move_restrict_using_allocator(InputIt first,
+                                                                     InputIt last,
+                                                                     OutputIt d_first,
+                                                                     Alloc &alloc) {
+    return uninitialized_copy_restrict_using_allocator(
+        std::make_move_iterator(first), std::make_move_iterator(last), d_first, alloc);
+}
+
+template <typename InputIt, typename Size, typename OutputIt, typename Alloc>
+WJR_CONSTEXPR20 OutputIt uninitialized_move_n_using_allocator(InputIt first, Size n,
+                                                              OutputIt d_first,
+                                                              Alloc &alloc) {
+    return uninitialized_copy_n_using_allocator(std::make_move_iterator(first), n,
+                                                d_first, alloc);
+}
+
+template <typename InputIt, typename Size, typename OutputIt, typename Alloc>
+WJR_CONSTEXPR20 OutputIt uninitialized_move_n_restrict_using_allocator(InputIt first,
+                                                                       Size n,
+                                                                       OutputIt d_first,
+                                                                       Alloc &alloc) {
+    return uninitialized_copy_n_restrict_using_allocator(std::make_move_iterator(first),
+                                                         n, d_first, alloc);
 }
 
 template <typename Iter, typename Alloc>
@@ -4883,34 +5262,36 @@ public:
 
     template <typename InputIt>
     WJR_CONSTEXPR20 static pointer copy_restrict(InputIt first, InputIt last,
-                                                 pointer WJR_RESTRICT result) {
-        return std::copy(first, last, result);
+                                                 pointer result) {
+        return wjr::copy_restrict(first, last, result);
     }
 
     template <typename InputIt>
     WJR_CONSTEXPR20 static void
-    uninitialized_copy_using_allocator_restrict(InputIt first, InputIt last,
-                                                pointer WJR_RESTRICT result, _Alty &al) {
-        wjr::uninitialized_copy_using_allocator(first, last, result, al);
+    uninitialized_copy_restrict_using_allocator(InputIt first, InputIt last,
+                                                pointer result, _Alty &al) {
+        wjr::uninitialized_copy_restrict_using_allocator(first, last, result, al);
     }
 
     template <typename InputIt, typename Size>
-    WJR_CONSTEXPR20 static void uninitialized_copy_n_using_allocator_restrict(
-        InputIt first, Size size, pointer WJR_RESTRICT result, _Alty &al) {
-        wjr::uninitialized_copy_n_using_allocator(first, size, result, al);
+    WJR_CONSTEXPR20 static void
+    uninitialized_copy_n_restrict_using_allocator(InputIt first, Size size,
+                                                  pointer result, _Alty &al) {
+        wjr::uninitialized_copy_n_restrict_using_allocator(first, size, result, al);
     }
 
     template <typename InputIt>
     WJR_CONSTEXPR20 static void
-    uninitialized_move_using_allocator_restrict(InputIt first, InputIt last,
-                                                pointer WJR_RESTRICT result, _Alty &al) {
-        wjr::uninitialized_move_using_allocator(first, last, result, al);
+    uninitialized_move_restrict_using_allocator(InputIt first, InputIt last,
+                                                pointer result, _Alty &al) {
+        wjr::uninitialized_move_restrict_using_allocator(first, last, result, al);
     }
 
     template <typename InputIt, typename Size>
-    WJR_CONSTEXPR20 static void uninitialized_move_n_using_allocator_restrict(
-        InputIt first, Size size, pointer WJR_RESTRICT result, _Alty &al) {
-        wjr::uninitialized_move_n_using_allocator(first, size, result, al);
+    WJR_CONSTEXPR20 static void
+    uninitialized_move_n_restrict_using_allocator(InputIt first, Size size,
+                                                  pointer result, _Alty &al) {
+        wjr::uninitialized_move_n_restrict_using_allocator(first, size, result, al);
     }
 };
 
@@ -5110,7 +5491,7 @@ public:
                 __memcpy(lhs, rhs, Capacity);
             }
         } else {
-            STraits::uninitialized_move_n_using_allocator_restrict(
+            STraits::uninitialized_move_n_restrict_using_allocator(
                 rhs, other_storage.m_size, lhs, al);
         }
 
@@ -5138,18 +5519,18 @@ public:
                     std::swap(lsize, rsize);
                 }
 
-                STraits::uninitialized_move_n_using_allocator_restrict(lhs, lsize, tmp,
+                STraits::uninitialized_move_n_restrict_using_allocator(lhs, lsize, tmp,
                                                                        al);
-                STraits::uninitialized_move_n_using_allocator_restrict(rhs, rsize, lhs,
+                STraits::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs,
                                                                        al);
-                STraits::uninitialized_move_n_using_allocator_restrict(tmp, lsize, rhs,
+                STraits::uninitialized_move_n_restrict_using_allocator(tmp, lsize, rhs,
                                                                        al);
             }
         } else if (rsize) {
             if constexpr (__use_memcpy) {
                 __memcpy(lhs, rhs, Capacity);
             } else {
-                STraits::uninitialized_move_n_using_allocator_restrict(rhs, rsize, lhs,
+                STraits::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs,
                                                                        al);
             }
             m_storage.m_size = rsize;
@@ -5159,7 +5540,7 @@ public:
             if constexpr (__use_memcpy) {
                 __memcpy(rhs, lhs, Capacity);
             } else {
-                STraits::uninitialized_move_n_using_allocator_restrict(lhs, lsize, rhs,
+                STraits::uninitialized_move_n_restrict_using_allocator(lhs, lsize, rhs,
                                                                        al);
             }
             other_storage.m_size = lsize;
@@ -5437,7 +5818,7 @@ public:
                              __max_capacity);
                 }
             } else {
-                STraits::uninitialized_move_n_using_allocator_restrict(
+                STraits::uninitialized_move_n_restrict_using_allocator(
                     other_storage.m_storage, other.size(), m_storage.m_storage, al);
             }
         } else {
@@ -5476,18 +5857,18 @@ public:
                             std::swap(lsize, rsize);
                         }
 
-                        STraits::uninitialized_move_n_using_allocator_restrict(lhs, lsize,
+                        STraits::uninitialized_move_n_restrict_using_allocator(lhs, lsize,
                                                                                tmp, al);
-                        STraits::uninitialized_move_n_using_allocator_restrict(rhs, rsize,
+                        STraits::uninitialized_move_n_restrict_using_allocator(rhs, rsize,
                                                                                lhs, al);
-                        STraits::uninitialized_move_n_using_allocator_restrict(tmp, lsize,
+                        STraits::uninitialized_move_n_restrict_using_allocator(tmp, lsize,
                                                                                rhs, al);
                     }
                 } else if (rsize) {
                     if constexpr (__use_memcpy) {
                         __memcpy(lhs, rhs, __max_capacity);
                     } else {
-                        STraits::uninitialized_move_n_using_allocator_restrict(rhs, rsize,
+                        STraits::uninitialized_move_n_restrict_using_allocator(rhs, rsize,
                                                                                lhs, al);
                     }
                     storage.m_size = rsize;
@@ -5497,7 +5878,7 @@ public:
                     if constexpr (__use_memcpy) {
                         __memcpy(rhs, lhs, __max_capacity);
                     } else {
-                        STraits::uninitialized_move_n_using_allocator_restrict(lhs, lsize,
+                        STraits::uninitialized_move_n_restrict_using_allocator(lhs, lsize,
                                                                                rhs, al);
                     }
                     other_storage.m_size = lsize;
@@ -5514,7 +5895,7 @@ public:
                                  __max_capacity);
                     }
                 } else {
-                    STraits::uninitialized_move_n_using_allocator_restrict(
+                    STraits::uninitialized_move_n_restrict_using_allocator(
                         storage.m_storage, size(), other_storage.m_storage, al);
                 }
 
@@ -5531,7 +5912,7 @@ public:
                                  __max_capacity);
                     }
                 } else {
-                    STraits::uninitialized_move_n_using_allocator_restrict(
+                    STraits::uninitialized_move_n_restrict_using_allocator(
                         other_storage.m_storage, other.size(), storage.m_storage, al);
                 }
 
@@ -5674,7 +6055,7 @@ private:
         : m_storage(std::forward<_Alloc>(al)) {
         auto size = other.size();
         m_storage.uninitialized_construct(size, other.capacity());
-        STraits::uninitialized_copy_n_using_allocator_restrict(other.data(), size, data(),
+        STraits::uninitialized_copy_n_restrict_using_allocator(other.data(), size, data(),
                                                                __get_allocator());
     }
 
@@ -5820,7 +6201,7 @@ public:
             if (size() < capacity()) {
                 auto &al = __get_allocator();
                 storage_type new_storage(al, size(), size(), in_place_reallocate);
-                STraits::uninitialized_move_n_using_allocator_restrict(
+                STraits::uninitialized_move_n_restrict_using_allocator(
                     data(), size(), new_storage.data(), al);
                 __destroy_and_deallocate();
                 __take_storage(std::move(new_storage));
@@ -5848,7 +6229,7 @@ public:
                 const size_type new_capacity = get_growth_capacity(old_capacity, n);
 
                 storage_type new_storage(al, old_size, new_capacity, in_place_reallocate);
-                STraits::uninitialized_move_n_using_allocator_restrict(
+                STraits::uninitialized_move_n_restrict_using_allocator(
                     data(), old_size, new_storage.data(), al);
                 __destroy_and_deallocate();
                 __take_storage(std::move(new_storage));
@@ -6148,7 +6529,7 @@ private:
                 STraits::uninitialized_fill_n_using_allocator(
                     data(), n, al, std::forward<Args>(args)...);
             } else if constexpr (sizeof...(Args) == 2) {
-                STraits::uninitialized_copy_using_allocator_restrict(
+                STraits::uninitialized_copy_restrict_using_allocator(
                     std::forward<Args>(args)..., data(), al);
             }
         }
@@ -6229,7 +6610,7 @@ private:
             if (WJR_LIKELY(__rest >= n)) {
                 const auto __elements_after = static_cast<size_type>(__last - pos);
                 if (__elements_after > n) {
-                    STraits::uninitialized_move_n_using_allocator_restrict(__last - n, n,
+                    STraits::uninitialized_move_n_restrict_using_allocator(__last - n, n,
                                                                            __last, al);
                     STraits::move_backward(pos, __last - n, __last);
                     STraits::copy_restrict(first, last, pos);
@@ -6237,9 +6618,9 @@ private:
                     auto mid = first;
                     std::advance(mid, __elements_after);
 
-                    STraits::uninitialized_copy_using_allocator_restrict(mid, last,
+                    STraits::uninitialized_copy_restrict_using_allocator(mid, last,
                                                                          __last, al);
-                    STraits::uninitialized_move_using_allocator_restrict(pos, __last,
+                    STraits::uninitialized_move_restrict_using_allocator(pos, __last,
                                                                          pos + n, al);
                     STraits::copy_restrict(first, mid, pos);
                 }
@@ -6255,11 +6636,11 @@ private:
                                              in_place_reallocate);
                     const pointer new_first = new_storage.data();
 
-                    STraits::uninitialized_copy_using_allocator_restrict(
+                    STraits::uninitialized_copy_restrict_using_allocator(
                         first, last, new_first + old_pos, al);
-                    STraits::uninitialized_move_using_allocator_restrict(__first, pos,
+                    STraits::uninitialized_move_restrict_using_allocator(__first, pos,
                                                                          new_first, al);
-                    STraits::uninitialized_move_using_allocator_restrict(
+                    STraits::uninitialized_move_restrict_using_allocator(
                         pos, __last, new_first + old_pos + n, al);
 
                     __destroy_and_deallocate();
@@ -6291,7 +6672,7 @@ private:
             const auto __rest = static_cast<size_type>(__end - __last);
 
             if (WJR_LIKELY(__rest >= n)) {
-                STraits::uninitialized_copy_n_using_allocator_restrict(first, n, __last,
+                STraits::uninitialized_copy_n_restrict_using_allocator(first, n, __last,
                                                                        al);
                 __get_size() += n;
             } else {
@@ -6304,9 +6685,9 @@ private:
                                              in_place_reallocate);
                     const pointer new_first = new_storage.data();
 
-                    STraits::uninitialized_copy_using_allocator_restrict(
+                    STraits::uninitialized_copy_restrict_using_allocator(
                         first, last, new_first + old_size, al);
-                    STraits::uninitialized_move_using_allocator_restrict(__first, __last,
+                    STraits::uninitialized_move_restrict_using_allocator(__first, __last,
                                                                          new_first, al);
 
                     __destroy_and_deallocate();
@@ -6351,14 +6732,14 @@ private:
             auto mid = first;
             std::advance(mid, size());
             STraits::copy_restrict(first, mid, begin());
-            STraits::uninitialized_copy_using_allocator_restrict(mid, last, __last, al);
+            STraits::uninitialized_copy_restrict_using_allocator(mid, last, __last, al);
             __get_size() = n;
         } else {
             if constexpr (is_reallocatable::value) {
                 size_type new_capacity = get_growth_capacity(capacity(), n);
                 storage_type new_storage(al, n, new_capacity, in_place_reallocate);
                 const pointer new_first = new_storage.data();
-                STraits::uninitialized_copy_n_using_allocator_restrict(first, n,
+                STraits::uninitialized_copy_n_restrict_using_allocator(first, n,
                                                                        new_first, al);
 
                 __destroy_and_deallocate();
@@ -6414,9 +6795,9 @@ private:
             STraits::uninitialized_construct_using_allocator(new_pos, al,
                                                              std::forward<Args>(args)...);
 
-            STraits::uninitialized_move_n_using_allocator_restrict(__first, old_pos_size,
+            STraits::uninitialized_move_n_restrict_using_allocator(__first, old_pos_size,
                                                                    new_first, al);
-            STraits::uninitialized_move_using_allocator_restrict(pos, __last, new_pos + 1,
+            STraits::uninitialized_move_restrict_using_allocator(pos, __last, new_pos + 1,
                                                                  al);
 
             __destroy_and_deallocate();
@@ -6444,7 +6825,7 @@ private:
             STraits::uninitialized_construct_using_allocator(new_pos, al,
                                                              std::forward<Args>(args)...);
 
-            STraits::uninitialized_move_using_allocator_restrict(__first, __last,
+            STraits::uninitialized_move_restrict_using_allocator(__first, __last,
                                                                  new_first, al);
 
             __destroy_and_deallocate();
@@ -6472,14 +6853,14 @@ private:
 
             const auto __elements_after = static_cast<size_type>(__last - pos);
             if (__elements_after > n) {
-                STraits::uninitialized_move_n_using_allocator_restrict(__last - n, n,
+                STraits::uninitialized_move_n_restrict_using_allocator(__last - n, n,
                                                                        __last, al);
                 STraits::move_backward(pos, __last - n, __last);
                 STraits::fill_n(pos, n, real_val);
             } else {
                 STraits::uninitialized_fill_n_using_allocator(
                     __last, n - __elements_after, al, real_val);
-                STraits::uninitialized_move_using_allocator_restrict(pos, __last, pos + n,
+                STraits::uninitialized_move_restrict_using_allocator(pos, __last, pos + n,
                                                                      al);
                 STraits::fill(pos, __last, real_val);
             }
@@ -6496,9 +6877,9 @@ private:
 
                 STraits::uninitialized_fill_n_using_allocator(new_first + old_pos, n, al,
                                                               val);
-                STraits::uninitialized_move_using_allocator_restrict(__first, pos,
+                STraits::uninitialized_move_restrict_using_allocator(__first, pos,
                                                                      new_first, al);
-                STraits::uninitialized_move_using_allocator_restrict(
+                STraits::uninitialized_move_restrict_using_allocator(
                     pos, __last, new_first + old_pos + n, al);
 
                 __destroy_and_deallocate();
@@ -6564,7 +6945,7 @@ private:
 
                 STraits::uninitialized_fill_n_using_allocator(new_first + old_size, n, al,
                                                               val);
-                STraits::uninitialized_move_using_allocator_restrict(__first, __last,
+                STraits::uninitialized_move_restrict_using_allocator(__first, __last,
                                                                      new_first, al);
 
                 __destroy_and_deallocate();
@@ -6674,11 +7055,11 @@ private:
                                              in_place_reallocate);
                     const pointer __ptr = new_storage.data();
 
-                    STraits::uninitialized_copy_using_allocator_restrict(
+                    STraits::uninitialized_copy_restrict_using_allocator(
                         new_first, new_last, __ptr + old_pos, al);
-                    STraits::uninitialized_move_using_allocator_restrict(
+                    STraits::uninitialized_move_restrict_using_allocator(
                         __first, old_first, __ptr, al);
-                    STraits::uninitialized_move_using_allocator_restrict(
+                    STraits::uninitialized_move_restrict_using_allocator(
                         old_last, __last, __ptr + old_pos + m, al);
 
                     __destroy_and_deallocate();
@@ -6737,9 +7118,9 @@ private:
 
                     STraits::uninitialized_fill_n_using_allocator(__ptr + old_pos, m, al,
                                                                   val);
-                    STraits::uninitialized_move_using_allocator_restrict(
+                    STraits::uninitialized_move_restrict_using_allocator(
                         __first, old_first, __ptr, al);
-                    STraits::uninitialized_move_using_allocator_restrict(
+                    STraits::uninitialized_move_restrict_using_allocator(
                         old_last, __last, __ptr + old_pos + m, al);
 
                     __destroy_and_deallocate();
@@ -22567,217 +22948,7 @@ extern "C" precompute_chars_convert_t *precompute_chars_convert(precompute_chars
 } // namespace wjr
 
 #endif // WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
-#ifndef WJR_MEMORY_COPY_HPP__
-#define WJR_MEMORY_COPY_HPP__
-
-#ifndef WJR_CONTAINER_GENERIC_DETAILS_HPP__
-#define WJR_CONTAINER_GENERIC_DETAILS_HPP__
-
 // Already included
-
-namespace wjr::container_details {
-
-WJR_REGISTER_HAS_TYPE(container_begin, std::declval<Container>().begin(), Container);
-WJR_REGISTER_HAS_TYPE(container_cbegin, std::declval<Container>().cbegin(), Container);
-WJR_REGISTER_HAS_TYPE(container_end, std::declval<Container>().end(), Container);
-WJR_REGISTER_HAS_TYPE(container_cend, std::declval<Container>().cend(), Container);
-WJR_REGISTER_HAS_TYPE(container_size, std::declval<Container>().size(), Container);
-
-WJR_REGISTER_HAS_TYPE(container_resize,
-                      std::declval<Container>().resize(std::declval<Size>(),
-                                                       std::declval<Args>()...),
-                      Container, Size);
-WJR_REGISTER_HAS_TYPE(container_reserve,
-                      std::declval<Container>().reserve(std::declval<Size>()), Container,
-                      Size);
-WJR_REGISTER_HAS_TYPE(container_append,
-                      std::declval<Container>().append(std::declval<Args>()...),
-                      Container);
-WJR_REGISTER_HAS_TYPE(container_insert,
-                      (std::declval<Container>().insert(
-                           std::declval<Container>().cbegin(), std::declval<Args>()...),
-                       std::declval<Container>().insert(std::declval<Container>().cend(),
-                                                        std::declval<Args>()...)),
-                      Container);
-
-} // namespace wjr::container_details
-
-#endif // WJR_CONTAINER_GENERIC_DETAILS_HPP__
-#ifndef WJR_ITERATOR_INSERTER_HPP__
-#define WJR_ITERATOR_INSERTER_HPP__
-
-// Already included
-
-namespace wjr {
-
-template <typename T>
-struct is_insert_iterator : std::false_type {};
-
-template <typename Container>
-struct is_insert_iterator<std::insert_iterator<Container>> : std::true_type {};
-
-template <typename T>
-inline constexpr bool is_insert_iterator_v = is_insert_iterator<T>::value;
-
-template <typename T>
-struct is_back_insert_iterator : std::false_type {};
-
-template <typename Container>
-struct is_back_insert_iterator<std::back_insert_iterator<Container>> : std::true_type {};
-
-template <typename T>
-inline constexpr bool is_back_insert_iterator_v = is_back_insert_iterator<T>::value;
-
-template <typename T>
-struct is_front_insert_iterator : std::false_type {};
-
-template <typename Container>
-struct is_front_insert_iterator<std::front_insert_iterator<Container>> : std::true_type {
-};
-
-template <typename T>
-inline constexpr bool is_front_insert_iterator_v = is_front_insert_iterator<T>::value;
-
-template <typename T>
-struct is_any_insert_iterator
-    : std::bool_constant<is_insert_iterator_v<T> || is_back_insert_iterator_v<T> ||
-                         is_front_insert_iterator_v<T>> {};
-
-template <typename T>
-inline constexpr bool is_any_insert_iterator_v = is_any_insert_iterator<T>::value;
-
-template <typename Iter>
-struct __inserter_container_accessor : Iter {
-    __inserter_container_accessor(Iter it) : Iter(it) {}
-    using Iter::container;
-};
-
-template <typename Iter>
-struct __inserter_iterator_accessor : Iter {
-    __inserter_iterator_accessor(Iter it) : Iter(it) {}
-    using Iter::iter;
-};
-
-template <typename Container>
-Container &get_inserter_container(std::insert_iterator<Container> it) {
-    return *__inserter_container_accessor(it).container;
-}
-
-template <typename Container>
-Container &get_inserter_container(std::back_insert_iterator<Container> it) {
-    return *__inserter_container_accessor(it).container;
-}
-
-template <typename Container>
-Container &get_inserter_container(std::front_insert_iterator<Container> it) {
-    return *__inserter_container_accessor(it).container;
-}
-
-template <typename Container>
-typename Container::iterator get_inserter_iterator(std::insert_iterator<Container> it) {
-    return __inserter_iterator_accessor(it).iter;
-}
-
-} // namespace wjr
-
-#endif // WJR_ITERATOR_INSERTER_HPP__
-
-namespace wjr {
-
-/**
- * @fn copy
- *
- * @details Optimized for back_insert_iterator and insert_iterator.
- *
- */
-template <typename InputIt, typename OutputIt>
-constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
-    using Out = remove_cvref_t<OutputIt>;
-
-    if constexpr (is_back_insert_iterator_v<Out> || is_insert_iterator_v<Out>) {
-        using Container = typename Out::container_type;
-
-        if constexpr (is_back_insert_iterator_v<Out>) {
-            if constexpr (container_details::has_container_append_v<Container, InputIt,
-                                                                    InputIt>) {
-                get_inserter_container(d_first).append(first, last);
-                return d_first;
-            } else if constexpr (container_details::has_container_insert_v<
-                                     Container, InputIt, InputIt>) {
-                auto &cont = get_inserter_container(d_first);
-                cont.insert(cont.cend(), first, last);
-                return d_first;
-            } else {
-                return std::copy(first, last, d_first);
-            }
-        } else {
-            if constexpr (container_details::has_container_insert_v<Container, InputIt,
-                                                                    InputIt>) {
-                auto &cont = get_inserter_container(d_first);
-                auto pos = get_inserter_iterator(d_first);
-                cont.insert(pos, first, last);
-                return d_first;
-            } else {
-                return std::copy(first, last, d_first);
-            }
-        }
-    } else {
-        return std::copy(first, last, d_first);
-    }
-}
-
-/**
- * @fn wjr::copy_n
- *
- * @details Optimized for back_insert_iterator and insert_iterator.
- *
- */
-template <typename InputIt, typename Size, typename OutputIt>
-constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
-    using Out = remove_cvref_t<OutputIt>;
-
-    if constexpr (is_random_access_iterator_v<InputIt> &&
-                  (is_back_insert_iterator_v<Out> || is_insert_iterator_v<Out>)) {
-        using Container = typename Out::container_type;
-
-        if constexpr (is_back_insert_iterator_v<Out>) {
-            if constexpr (container_details::has_container_append_v<Container, InputIt,
-                                                                    InputIt>) {
-                get_inserter_container(d_first).append(first, std::next(first, count));
-                return d_first;
-            } else if constexpr (container_details::has_container_insert_v<
-                                     Container, InputIt, InputIt>) {
-                auto &cont = get_inserter_container(d_first);
-                cont.insert(cont.cend(), first, std::next(first, count));
-                return d_first;
-            } else {
-                return std::copy_n(first, count, d_first);
-            }
-        } else {
-            if constexpr (container_details::has_container_insert_v<Container, InputIt,
-                                                                    InputIt>) {
-                auto &cont = get_inserter_container(d_first);
-                auto pos = get_inserter_iterator(d_first);
-                cont.insert(pos, first, std::next(first, count));
-                return d_first;
-            } else {
-                return std::copy_n(first, std::next(first, count), d_first);
-            }
-        }
-    } else {
-        return std::copy_n(first, count, d_first);
-    }
-}
-
-template <typename InputIt, typename OutputIt>
-constexpr OutputIt move(InputIt first, InputIt last, OutputIt d_first) {
-    return wjr::copy(std::make_move_iterator(first), std::make_move_iterator(last),
-                     d_first);
-}
-
-} // namespace wjr
-
-#endif // WJR_MEMORY_COPY_HPP__
 // Already included
 
 #if defined(WJR_X86)
