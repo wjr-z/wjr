@@ -76,6 +76,7 @@ public:
     using size_type = uint32_t;
     using difference_type = int32_t;
     using allocator_type = Alloc;
+    using storage_traits_type = vector_storage_traits<uint64_t, Alloc>;
     using is_reallocatable = std::true_type;
 
 private:

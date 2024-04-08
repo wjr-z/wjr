@@ -8,9 +8,9 @@ namespace wjr {
 
 /**
  * @fn copy
- * 
+ *
  * @details Optimized for back_insert_iterator and insert_iterator.
- * 
+ *
  */
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
@@ -50,9 +50,9 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
 
 /**
  * @fn wjr::copy_n
- * 
+ *
  * @details Optimized for back_insert_iterator and insert_iterator.
- * 
+ *
  */
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
@@ -89,6 +89,12 @@ constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
     } else {
         return std::copy_n(first, count, d_first);
     }
+}
+
+template <typename InputIt, typename OutputIt>
+constexpr OutputIt move(InputIt first, InputIt last, OutputIt d_first) {
+    return wjr::copy(std::make_move_iterator(first), std::make_move_iterator(last),
+                     d_first);
 }
 
 } // namespace wjr

@@ -90,7 +90,8 @@ template <typename Storage>
 struct container_traits<basic_vector<Storage>>
     : __container_traits_base<basic_vector<Storage>> {
     constexpr static bool is_contiguous_v = true;
-    constexpr static bool is_trivially_contiguous_v = true;
+    constexpr static bool is_trivially_contiguous_v =
+        basic_vector<Storage>::is_trivially_contiguous::value;
 };
 
 } // namespace wjr

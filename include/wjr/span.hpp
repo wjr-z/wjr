@@ -17,7 +17,7 @@ struct __span_static_storage {
     __span_static_storage &operator=(const __span_static_storage &) = default;
 
     __span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) : ptr(p) {
-        WJR_ASSERT(s == size);
+        WJR_ASSERT_L1(s == size);
     }
 
     T *ptr = nullptr;
@@ -237,7 +237,7 @@ public:
     }
 
     constexpr span<element_type, dynamic_extent> first(size_type Count) const {
-        WJR_ASSERT(Count <= size());
+        WJR_ASSERT_L1(Count <= size());
 
         return {begin(), Count};
     }
@@ -250,7 +250,7 @@ public:
     }
 
     constexpr span<element_type, dynamic_extent> last(size_type Count) const {
-        WJR_ASSERT(Count <= size());
+        WJR_ASSERT_L1(Count <= size());
 
         return {data() - Count, Count};
     }
@@ -264,9 +264,9 @@ public:
             static_assert(Offset <= Extent, "");
             static_assert(Count == dynamic_extent || Count <= Extent - Offset, "");
         } else {
-            WJR_ASSERT(Offset <= size());
+            WJR_ASSERT_L1(Offset <= size());
             if constexpr (Count != dynamic_extent) {
-                WJR_ASSERT(Count <= size() - Offset);
+                WJR_ASSERT_L1(Count <= size() - Offset);
             }
         }
         return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
@@ -274,7 +274,7 @@ public:
 
     constexpr span<element_type, dynamic_extent>
     subspan(size_type Offset, size_type Count = dynamic_extent) const {
-        WJR_ASSERT(Offset <= size());
+        WJR_ASSERT_L1(Offset <= size());
 
         return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
     }

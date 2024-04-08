@@ -65,14 +65,8 @@
 
 namespace wjr {
 
-/**
- * @brief Default vector storage
- *
- * @details Use one pointer ans two size_type currently.
- *
- */
 template <typename T, typename Alloc>
-class default_vector_storage : noncopyable {
+class vector_storage_traits {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
@@ -83,6 +77,132 @@ public:
     using size_type = typename _Alty_traits::size_type;
     using difference_type = typename _Alty_traits::difference_type;
     using allocator_type = Alloc;
+    using is_trivially_contiguous = std::true_type;
+
+    template <typename... Args>
+    WJR_CONSTEXPR20 static void
+    uninitialized_construct_using_allocator(pointer ptr, _Alty &al, Args &&...args) {
+        wjr::uninitialized_construct_using_allocator(ptr, al,
+                                                     std::forward<Args>(args)...);
+    }
+
+    WJR_CONSTEXPR20 static void fill(pointer first, pointer last, const value_type &val) {
+        std::fill(first, last, val);
+    }
+
+    WJR_CONSTEXPR20 static pointer fill_n(pointer first, size_type n,
+                                          const value_type &val) {
+        return std::fill_n(first, n, val);
+    }
+
+    template <typename Val>
+    WJR_CONSTEXPR20 static void
+    uninitialized_fill_n_using_allocator(pointer first, size_type n, _Alty &al,
+                                         const Val &val) {
+        wjr::uninitialized_fill_n_using_allocator(first, n, al, val);
+    }
+
+    template <typename InputIt>
+    WJR_CONSTEXPR20 static pointer copy(InputIt first, InputIt last, pointer result) {
+        return std::copy(first, last, result);
+    }
+
+    template <typename InputIt, typename Size>
+    WJR_CONSTEXPR20 static void copy_n(InputIt first, Size size, pointer result) {
+        std::copy_n(first, size, result);
+    }
+
+    template <typename InputIt>
+    WJR_CONSTEXPR20 static void
+    uninitialized_copy_using_allocator(InputIt first, InputIt last, pointer result,
+                                       _Alty &al) {
+        wjr::uninitialized_copy_using_allocator(first, last, result, al);
+    }
+
+    template <typename InputIt, typename Size>
+    WJR_CONSTEXPR20 static void
+    uninitialized_copy_n_using_allocator(InputIt first, Size size, pointer result,
+                                         _Alty &al) {
+        wjr::uninitialized_copy_n_using_allocator(first, size, result, al);
+    }
+
+    template <typename InputIt>
+    WJR_CONSTEXPR20 static void move(InputIt first, InputIt last, pointer result) {
+        std::move(first, last, result);
+    }
+
+    template <typename InputIt>
+    WJR_CONSTEXPR20 static void
+    uninitialized_move_using_allocator(InputIt first, InputIt last, pointer result,
+                                       _Alty &al) {
+        wjr::uninitialized_move_using_allocator(first, last, result, al);
+    }
+
+    template <typename InputIt, typename Size>
+    WJR_CONSTEXPR20 static void
+    uninitialized_move_n_using_allocator(InputIt first, Size size, pointer result,
+                                         _Alty &al) {
+        wjr::uninitialized_move_n_using_allocator(first, size, result, al);
+    }
+
+    template <typename InputIt>
+    WJR_CONSTEXPR20 static void move_backward(InputIt first, InputIt last,
+                                              pointer result) {
+        std::move_backward(first, last, result);
+    }
+
+    template <typename InputIt>
+    WJR_CONSTEXPR20 static pointer copy_restrict(InputIt first, InputIt last,
+                                                 pointer WJR_RESTRICT result) {
+        return std::copy(first, last, result);
+    }
+
+    template <typename InputIt>
+    WJR_CONSTEXPR20 static void
+    uninitialized_copy_using_allocator_restrict(InputIt first, InputIt last,
+                                                pointer WJR_RESTRICT result, _Alty &al) {
+        wjr::uninitialized_copy_using_allocator(first, last, result, al);
+    }
+
+    template <typename InputIt, typename Size>
+    WJR_CONSTEXPR20 static void uninitialized_copy_n_using_allocator_restrict(
+        InputIt first, Size size, pointer WJR_RESTRICT result, _Alty &al) {
+        wjr::uninitialized_copy_n_using_allocator(first, size, result, al);
+    }
+
+    template <typename InputIt>
+    WJR_CONSTEXPR20 static void
+    uninitialized_move_using_allocator_restrict(InputIt first, InputIt last,
+                                                pointer WJR_RESTRICT result, _Alty &al) {
+        wjr::uninitialized_move_using_allocator(first, last, result, al);
+    }
+
+    template <typename InputIt, typename Size>
+    WJR_CONSTEXPR20 static void uninitialized_move_n_using_allocator_restrict(
+        InputIt first, Size size, pointer WJR_RESTRICT result, _Alty &al) {
+        wjr::uninitialized_move_n_using_allocator(first, size, result, al);
+    }
+};
+
+/**
+ * @brief Default vector storage
+ *
+ * @details Use one pointer ans two size_type currently.
+ *
+ */
+template <typename T, typename Alloc, typename STraits>
+class __default_vector_storage_impl : noncopyable {
+    using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
+    using _Alty_traits = std::allocator_traits<_Alty>;
+
+public:
+    using storage_traits_type = STraits;
+    using value_type = typename storage_traits_type::value_type;
+    using pointer = typename storage_traits_type::pointer;
+    using const_pointer = typename storage_traits_type::const_pointer;
+    using size_type = typename storage_traits_type::size_type;
+    using difference_type = typename storage_traits_type::difference_type;
+    using allocator_type = typename storage_traits_type::allocator_type;
     using is_reallocatable = std::true_type;
 
 private:
@@ -95,21 +215,21 @@ private:
     using data_type = Data;
 
 public:
-    default_vector_storage() noexcept = default;
+    __default_vector_storage_impl() noexcept = default;
 
     template <typename _Alloc>
-    WJR_CONSTEXPR20 default_vector_storage(_Alloc &&al) noexcept
+    WJR_CONSTEXPR20 __default_vector_storage_impl(_Alloc &&al) noexcept
         : m_pair(std::forward<_Alloc>(al), {}) {}
 
     template <typename _Alloc>
-    WJR_CONSTEXPR20 default_vector_storage(_Alloc &&al, size_type size,
-                                           size_type capacity,
-                                           in_place_reallocate_t) noexcept
+    WJR_CONSTEXPR20 __default_vector_storage_impl(_Alloc &&al, size_type size,
+                                                  size_type capacity,
+                                                  in_place_reallocate_t) noexcept
         : m_pair(std::forward<_Alloc>(al), {}) {
         uninitialized_construct(size, capacity);
     }
 
-    ~default_vector_storage() noexcept = default;
+    ~__default_vector_storage_impl() noexcept = default;
 
     WJR_PURE WJR_CONSTEXPR20 _Alty &get_allocator() noexcept { return m_pair.first(); }
     WJR_PURE WJR_CONSTEXPR20 const _Alty &get_allocator() const noexcept {
@@ -149,13 +269,13 @@ public:
         m_storage.m_capacity = result.count;
     }
 
-    WJR_CONSTEXPR20 void take_storage(default_vector_storage &&other) noexcept {
+    WJR_CONSTEXPR20 void take_storage(__default_vector_storage_impl &&other) noexcept {
         auto &other_storage = other.__get_data();
         __get_data() = std::move(other_storage);
         other_storage = {};
     }
 
-    WJR_CONSTEXPR20 void swap_storage(default_vector_storage &other) noexcept {
+    WJR_CONSTEXPR20 void swap_storage(__default_vector_storage_impl &other) noexcept {
         std::swap(__get_data(), other.__get_data());
     }
 
@@ -181,25 +301,23 @@ private:
     compressed_pair<_Alty, data_type> m_pair;
 };
 
-/**
- * @brief Static vector storage
- *
- * @details Use static storage for small size. \n
- *
- * @tparam Capacity Static capacity
- */
-template <typename T, size_t Capacity, typename Alloc>
-class static_vector_storage : noncopyable {
+template <typename T, typename Alloc>
+using default_vector_storage =
+    __default_vector_storage_impl<T, Alloc, vector_storage_traits<T, Alloc>>;
+
+template <typename T, size_t Capacity, typename Alloc, typename STraits>
+class __static_vector_storage_impl : noncopyable {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
 public:
-    using value_type = T;
-    using pointer = typename _Alty_traits::pointer;
-    using const_pointer = typename _Alty_traits::const_pointer;
-    using size_type = typename _Alty_traits::size_type;
-    using difference_type = typename _Alty_traits::difference_type;
-    using allocator_type = Alloc;
+    using storage_traits_type = STraits;
+    using value_type = typename storage_traits_type::value_type;
+    using pointer = typename storage_traits_type::pointer;
+    using const_pointer = typename storage_traits_type::const_pointer;
+    using size_type = typename storage_traits_type::size_type;
+    using difference_type = typename storage_traits_type::difference_type;
+    using allocator_type = typename storage_traits_type::allocator_type;
     using is_reallocatable = std::false_type;
 
 private:
@@ -217,13 +335,13 @@ private:
     using data_type = Data;
 
 public:
-    static_vector_storage() noexcept = default;
+    __static_vector_storage_impl() noexcept = default;
 
     template <typename _Alloc>
-    WJR_CONSTEXPR20 static_vector_storage(_Alloc &&al) noexcept
+    WJR_CONSTEXPR20 __static_vector_storage_impl(_Alloc &&al) noexcept
         : m_pair(std::forward<_Alloc>(al), {}) {}
 
-    ~static_vector_storage() noexcept = default;
+    ~__static_vector_storage_impl() noexcept = default;
 
     WJR_PURE WJR_CONSTEXPR20 _Alty &get_allocator() noexcept { return m_pair.first(); }
     WJR_PURE WJR_CONSTEXPR20 const _Alty &get_allocator() const noexcept {
@@ -240,15 +358,15 @@ public:
 
     WJR_CONSTEXPR20 void destroy_and_deallocate() noexcept { destroy(); }
 
-    WJR_CONSTEXPR20 void uninitialized_construct(size_type size,
-                                                 WJR_MAYBE_UNUSED size_type capacity) {
+    WJR_CONSTEXPR20
+    void uninitialized_construct(size_type size, WJR_MAYBE_UNUSED size_type capacity) {
         WJR_ASSERT_ASSUME(capacity <= Capacity,
                           "capacity must be less than or equal to Capacity");
         auto &m_storage = __get_data();
         m_storage.m_size = size;
     }
 
-    WJR_CONSTEXPR20 void take_storage(static_vector_storage &&other) noexcept {
+    WJR_CONSTEXPR20 void take_storage(__static_vector_storage_impl &&other) noexcept {
         auto &al = get_allocator();
         auto &m_storage = __get_data();
         auto &other_storage = other.__get_data();
@@ -259,16 +377,17 @@ public:
 
         if constexpr (__use_memcpy) {
             if (other.size()) {
-                __memcpy(lhs, rhs);
+                __memcpy(lhs, rhs, Capacity);
             }
         } else {
-            uninitialized_move_n_using_allocator(rhs, other_storage.m_size, lhs, al);
+            STraits::uninitialized_move_n_using_allocator_restrict(
+                rhs, other_storage.m_size, lhs, al);
         }
 
         other_storage.m_size = 0;
     }
 
-    WJR_CONSTEXPR20 void swap_storage(static_vector_storage &other) noexcept {
+    WJR_CONSTEXPR20 void swap_storage(__static_vector_storage_impl &other) noexcept {
         auto &al = get_allocator();
         auto &m_storage = __get_data();
         auto &other_storage = other.__get_data();
@@ -280,33 +399,38 @@ public:
         if (lsize && rsize) {
             T tmp[Capacity];
             if constexpr (__use_memcpy) {
-                __memcpy(tmp, lhs);
-                __memcpy(lhs, rhs);
-                __memcpy(rhs, tmp);
+                __memcpy(tmp, lhs, Capacity);
+                __memcpy(lhs, rhs, Capacity);
+                __memcpy(rhs, tmp, Capacity);
             } else {
                 if (lsize > rsize) {
                     std::swap(lhs, rhs);
                     std::swap(lsize, rsize);
                 }
 
-                uninitialized_move_n_using_allocator(lhs, lsize, tmp, al);
-                uninitialized_move_n_using_allocator(rhs, rsize, lhs, al);
-                uninitialized_move_n_using_allocator(tmp, lsize, rhs, al);
+                STraits::uninitialized_move_n_using_allocator_restrict(lhs, lsize, tmp,
+                                                                       al);
+                STraits::uninitialized_move_n_using_allocator_restrict(rhs, rsize, lhs,
+                                                                       al);
+                STraits::uninitialized_move_n_using_allocator_restrict(tmp, lsize, rhs,
+                                                                       al);
             }
         } else if (rsize) {
             if constexpr (__use_memcpy) {
-                __memcpy(lhs, rhs);
+                __memcpy(lhs, rhs, Capacity);
             } else {
-                uninitialized_move_n_using_allocator(rhs, rsize, lhs, al);
+                STraits::uninitialized_move_n_using_allocator_restrict(rhs, rsize, lhs,
+                                                                       al);
             }
             m_storage.m_size = rsize;
             other_storage.m_size = 0;
             return;
         } else if (lsize) {
             if constexpr (__use_memcpy) {
-                __memcpy(rhs, lhs);
+                __memcpy(rhs, lhs, Capacity);
             } else {
-                uninitialized_move_n_using_allocator(lhs, lsize, rhs, al);
+                STraits::uninitialized_move_n_using_allocator_restrict(lhs, lsize, rhs,
+                                                                       al);
             }
             other_storage.m_size = lsize;
             m_storage.m_size = 0;
@@ -332,30 +456,35 @@ public:
     }
 
 private:
+    static void __memcpy(pointer dst, const_pointer src, size_type count) {
+        ::memcpy(dst, src, count * sizeof(T));
+    }
+
     WJR_PURE WJR_CONSTEXPR20 data_type &__get_data() noexcept { return m_pair.second(); }
     WJR_PURE WJR_CONSTEXPR20 const data_type &__get_data() const noexcept {
         return m_pair.second();
     }
 
-    static void __memcpy(T *dst, const T *src) {
-        ::memcpy(dst, src, Capacity * sizeof(T));
-    }
-
     compressed_pair<_Alty, data_type> m_pair;
 };
 
-template <typename T, typename Alloc>
-class fixed_vector_storage : noncopyable {
+template <typename T, size_t Capacity, typename Alloc>
+using static_vector_storage =
+    __static_vector_storage_impl<T, Capacity, Alloc, vector_storage_traits<T, Alloc>>;
+
+template <typename T, typename Alloc, typename STraits>
+class __fixed_vector_storage_impl : noncopyable {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
 public:
-    using value_type = T;
-    using pointer = typename _Alty_traits::pointer;
-    using const_pointer = typename _Alty_traits::const_pointer;
-    using size_type = typename _Alty_traits::size_type;
-    using difference_type = typename _Alty_traits::difference_type;
-    using allocator_type = Alloc;
+    using storage_traits_type = STraits;
+    using value_type = typename storage_traits_type::value_type;
+    using pointer = typename storage_traits_type::pointer;
+    using const_pointer = typename storage_traits_type::const_pointer;
+    using size_type = typename storage_traits_type::size_type;
+    using difference_type = typename storage_traits_type::difference_type;
+    using allocator_type = typename storage_traits_type::allocator_type;
     using is_reallocatable = std::false_type;
 
 private:
@@ -368,13 +497,13 @@ private:
     using data_type = Data;
 
 public:
-    fixed_vector_storage() noexcept = default;
+    __fixed_vector_storage_impl() noexcept = default;
 
     template <typename _Alloc>
-    WJR_CONSTEXPR20 fixed_vector_storage(_Alloc &&al) noexcept
+    WJR_CONSTEXPR20 __fixed_vector_storage_impl(_Alloc &&al) noexcept
         : m_pair(std::forward<_Alloc>(al), {}) {}
 
-    ~fixed_vector_storage() noexcept = default;
+    ~__fixed_vector_storage_impl() noexcept = default;
 
     WJR_PURE WJR_CONSTEXPR20 _Alty &get_allocator() noexcept { return m_pair.first(); }
     WJR_PURE WJR_CONSTEXPR20 const _Alty &get_allocator() const noexcept {
@@ -414,13 +543,13 @@ public:
         m_storage.m_capacity = result.count;
     }
 
-    WJR_CONSTEXPR20 void take_storage(fixed_vector_storage &&other) noexcept {
+    WJR_CONSTEXPR20 void take_storage(__fixed_vector_storage_impl &&other) noexcept {
         auto &other_storage = other.__get_data();
         __get_data() = std::move(other_storage);
         other_storage = {};
     }
 
-    WJR_CONSTEXPR20 void swap_storage(fixed_vector_storage &other) noexcept {
+    WJR_CONSTEXPR20 void swap_storage(__fixed_vector_storage_impl &other) noexcept {
         std::swap(__get_data(), other.__get_data());
     }
 
@@ -446,18 +575,23 @@ private:
     compressed_pair<_Alty, data_type> m_pair;
 };
 
-template <typename T, size_t Capacity, typename Alloc>
-class sso_vector_storage : noncopyable {
+template <typename T, typename Alloc>
+using fixed_vector_storage =
+    __fixed_vector_storage_impl<T, Alloc, vector_storage_traits<T, Alloc>>;
+
+template <typename T, size_t Capacity, typename Alloc, typename STraits>
+class __sso_vector_storage_impl : noncopyable {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
 public:
-    using value_type = T;
-    using pointer = typename _Alty_traits::pointer;
-    using const_pointer = typename _Alty_traits::const_pointer;
-    using size_type = typename _Alty_traits::size_type;
-    using difference_type = typename _Alty_traits::difference_type;
-    using allocator_type = Alloc;
+    using storage_traits_type = STraits;
+    using value_type = typename storage_traits_type::value_type;
+    using pointer = typename storage_traits_type::pointer;
+    using const_pointer = typename storage_traits_type::const_pointer;
+    using size_type = typename storage_traits_type::size_type;
+    using difference_type = typename storage_traits_type::difference_type;
+    using allocator_type = typename storage_traits_type::allocator_type;
     using is_reallocatable = std::true_type;
 
 private:
@@ -502,22 +636,23 @@ private:
     using data_type = Data;
 
 public:
-    sso_vector_storage() noexcept = default;
+    __sso_vector_storage_impl() noexcept = default;
 
     template <typename _Alloc>
-    WJR_CONSTEXPR20 sso_vector_storage(_Alloc &&al) noexcept
+    WJR_CONSTEXPR20 __sso_vector_storage_impl(_Alloc &&al) noexcept
         : m_pair(std::piecewise_construct, std::make_tuple(std::forward<_Alloc>(al)),
                  std::make_tuple()) {}
 
     template <typename _Alloc>
-    WJR_CONSTEXPR20 sso_vector_storage(_Alloc &&al, size_type size, size_type capacity,
-                                       in_place_reallocate_t) noexcept
+    WJR_CONSTEXPR20 __sso_vector_storage_impl(_Alloc &&al, size_type size,
+                                              size_type capacity,
+                                              in_place_reallocate_t) noexcept
         : m_pair(std::piecewise_construct, std::make_tuple(std::forward<_Alloc>(al)),
                  std::make_tuple()) {
         uninitialized_construct(size, capacity);
     }
 
-    ~sso_vector_storage() noexcept = default;
+    ~__sso_vector_storage_impl() noexcept = default;
 
     WJR_PURE WJR_CONSTEXPR20 _Alty &get_allocator() noexcept { return m_pair.first(); }
     WJR_PURE WJR_CONSTEXPR20 const _Alty &get_allocator() const noexcept {
@@ -556,7 +691,7 @@ public:
         }
     }
 
-    WJR_CONSTEXPR20 void take_storage(sso_vector_storage &&other) noexcept {
+    WJR_CONSTEXPR20 void take_storage(__sso_vector_storage_impl &&other) noexcept {
         auto &al = get_allocator();
         auto &m_storage = __get_data();
         auto &other_storage = other.__get_data();
@@ -568,13 +703,13 @@ public:
 
             if constexpr (__use_memcpy) {
                 if (other.size()) {
-                    __memcpy(m_storage.m_storage, other_storage.m_storage);
+                    __memcpy(m_storage.m_storage, other_storage.m_storage,
+                             __max_capacity);
                 }
             } else {
-                uninitialized_move_n_using_allocator(
+                STraits::uninitialized_move_n_using_allocator_restrict(
                     other_storage.m_storage, other.size(), m_storage.m_storage, al);
             }
-
         } else {
             m_storage.m_data = other_storage.m_data;
             m_storage.m_size = other_storage.m_size;
@@ -587,7 +722,7 @@ public:
         WJR_ASSUME(other.__is_sso());
     }
 
-    WJR_CONSTEXPR20 void swap_storage(sso_vector_storage &other) noexcept {
+    WJR_CONSTEXPR20 void swap_storage(__sso_vector_storage_impl &other) noexcept {
         auto &al = get_allocator();
         auto &storage = __get_data();
         auto &other_storage = other.__get_data();
@@ -602,33 +737,38 @@ public:
                 if (lsize && rsize) {
                     T tmp[__max_capacity];
                     if constexpr (__use_memcpy) {
-                        __memcpy(tmp, lhs);
-                        __memcpy(lhs, rhs);
-                        __memcpy(rhs, tmp);
+                        __memcpy(tmp, lhs, __max_capacity);
+                        __memcpy(lhs, rhs, __max_capacity);
+                        __memcpy(rhs, tmp, __max_capacity);
                     } else {
                         if (lsize > rsize) {
                             std::swap(lhs, rhs);
                             std::swap(lsize, rsize);
                         }
 
-                        uninitialized_move_n_using_allocator(lhs, lsize, tmp, al);
-                        uninitialized_move_n_using_allocator(rhs, rsize, lhs, al);
-                        uninitialized_move_n_using_allocator(tmp, lsize, rhs, al);
+                        STraits::uninitialized_move_n_using_allocator_restrict(lhs, lsize,
+                                                                               tmp, al);
+                        STraits::uninitialized_move_n_using_allocator_restrict(rhs, rsize,
+                                                                               lhs, al);
+                        STraits::uninitialized_move_n_using_allocator_restrict(tmp, lsize,
+                                                                               rhs, al);
                     }
                 } else if (rsize) {
                     if constexpr (__use_memcpy) {
-                        __memcpy(lhs, rhs);
+                        __memcpy(lhs, rhs, __max_capacity);
                     } else {
-                        uninitialized_move_n_using_allocator(rhs, rsize, lhs, al);
+                        STraits::uninitialized_move_n_using_allocator_restrict(rhs, rsize,
+                                                                               lhs, al);
                     }
                     storage.m_size = rsize;
                     other_storage.m_size = 0;
                     return;
                 } else if (lsize) {
                     if constexpr (__use_memcpy) {
-                        __memcpy(rhs, lhs);
+                        __memcpy(rhs, lhs, __max_capacity);
                     } else {
-                        uninitialized_move_n_using_allocator(lhs, lsize, rhs, al);
+                        STraits::uninitialized_move_n_using_allocator_restrict(lhs, lsize,
+                                                                               rhs, al);
                     }
                     other_storage.m_size = lsize;
                     storage.m_size = 0;
@@ -640,11 +780,12 @@ public:
                 const size_type __tmp_capacity = other_storage.m_capacity;
                 if constexpr (__use_memcpy) {
                     if (size()) {
-                        __memcpy(other_storage.m_storage, storage.m_storage);
+                        __memcpy(other_storage.m_storage, storage.m_storage,
+                                 __max_capacity);
                     }
                 } else {
-                    uninitialized_move_n_using_allocator(storage.m_storage, size(),
-                                                         other_storage.m_storage, al);
+                    STraits::uninitialized_move_n_using_allocator_restrict(
+                        storage.m_storage, size(), other_storage.m_storage, al);
                 }
 
                 storage.m_data = other_storage.m_data;
@@ -656,10 +797,11 @@ public:
             if (other.__is_sso()) {
                 if constexpr (__use_memcpy) {
                     if (other.size()) {
-                        __memcpy(storage.m_storage, other_storage.m_storage);
+                        __memcpy(storage.m_storage, other_storage.m_storage,
+                                 __max_capacity);
                     }
                 } else {
-                    uninitialized_move_n_using_allocator(
+                    STraits::uninitialized_move_n_using_allocator_restrict(
                         other_storage.m_storage, other.size(), storage.m_storage, al);
                 }
 
@@ -693,6 +835,10 @@ public:
     }
 
 private:
+    static void __memcpy(pointer dst, const_pointer src, size_type count) {
+        ::memcpy(dst, src, count * sizeof(T));
+    }
+
     WJR_PURE WJR_CONSTEXPR20 data_type &__get_data() noexcept { return m_pair.second(); }
     WJR_PURE WJR_CONSTEXPR20 const data_type &__get_data() const noexcept {
         return m_pair.second();
@@ -702,13 +848,12 @@ private:
         return __get_data().m_data == __get_data().m_storage;
     }
 
-    // avoid cost of branch and call
-    static void __memcpy(T *dst, const T *src) {
-        ::memcpy(dst, src, __max_capacity * sizeof(T));
-    }
-
     compressed_pair<_Alty, data_type> m_pair;
 };
+
+template <typename T, size_t Capacity, typename Alloc>
+using sso_vector_storage =
+    __sso_vector_storage_impl<T, Capacity, Alloc, vector_storage_traits<T, Alloc>>;
 
 namespace vector_details {
 
@@ -736,7 +881,6 @@ private:
 
     using storage_type = Storage;
     using storage_fn_type = container_fn<_Alty>;
-    using is_storage_reallocatable = typename storage_type::is_reallocatable;
     using __get_size_t = decltype(std::declval<storage_type>().size());
 
     static_assert(std::is_reference_v<unref_wrapper_t<__get_size_t>>,
@@ -761,9 +905,17 @@ public:
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
+    using storage_traits_type = typename storage_type::storage_traits_type;
+    using is_trivially_contiguous = typename storage_traits_type::is_trivially_contiguous;
+    using is_reallocatable = typename storage_type::is_reallocatable;
+
+private:
+    using STraits = storage_traits_type;
+
     static_assert(std::is_pointer_v<pointer>, "");
     static_assert(std::is_pointer_v<const_pointer>, "");
 
+public:
     WJR_CONSTEXPR20
     basic_vector() noexcept(std::is_nothrow_default_constructible_v<storage_type>) =
         default;
@@ -792,8 +944,8 @@ private:
         : m_storage(std::forward<_Alloc>(al)) {
         auto size = other.size();
         m_storage.uninitialized_construct(size, other.capacity());
-        uninitialized_copy_n_using_allocator(other.data(), size, data(),
-                                             __get_allocator());
+        STraits::uninitialized_copy_n_using_allocator_restrict(other.data(), size, data(),
+                                                               __get_allocator());
     }
 
     template <typename _Alloc>
@@ -934,12 +1086,12 @@ public:
     WJR_CONSTEXPR20 void shrink_to_fit() {
         if constexpr (vector_details::has_vector_storage_shrink_to_fit_v<storage_type>) {
             m_storage.shrink_to_fit();
-        } else if constexpr (is_storage_reallocatable::value) {
+        } else if constexpr (is_reallocatable::value) {
             if (size() < capacity()) {
                 auto &al = __get_allocator();
                 storage_type new_storage(al, size(), size(), in_place_reallocate);
-                uninitialized_move_n_using_allocator(data(), size(), new_storage.data(),
-                                                     al);
+                STraits::uninitialized_move_n_using_allocator_restrict(
+                    data(), size(), new_storage.data(), al);
                 __destroy_and_deallocate();
                 __take_storage(std::move(new_storage));
             }
@@ -958,7 +1110,7 @@ public:
     }
 
     WJR_CONSTEXPR20 void reserve(size_type n) {
-        if constexpr (is_storage_reallocatable::value) {
+        if constexpr (is_reallocatable::value) {
             const size_type old_size = size();
             const size_type old_capacity = capacity();
             if (WJR_UNLIKELY(old_capacity < n)) {
@@ -966,8 +1118,8 @@ public:
                 const size_type new_capacity = get_growth_capacity(old_capacity, n);
 
                 storage_type new_storage(al, old_size, new_capacity, in_place_reallocate);
-                uninitialized_move_n_using_allocator(data(), old_size, new_storage.data(),
-                                                     al);
+                STraits::uninitialized_move_n_using_allocator_restrict(
+                    data(), old_size, new_storage.data(), al);
                 __destroy_and_deallocate();
                 __take_storage(std::move(new_storage));
             }
@@ -1022,8 +1174,8 @@ public:
         const pointer __end = data() + capacity();
 
         if (WJR_LIKELY(__last != __end)) {
-            uninitialized_construct_using_allocator(__last, __get_allocator(),
-                                                    std::forward<Args>(args)...);
+            STraits::uninitialized_construct_using_allocator(__last, __get_allocator(),
+                                                             std::forward<Args>(args)...);
             ++__get_size();
         } else {
             __realloc_insert_at_end(std::forward<Args>(args)...);
@@ -1263,11 +1415,11 @@ private:
             auto &al = __get_allocator();
             m_storage.uninitialized_construct(n, n);
             if constexpr (sizeof...(Args) == 1) {
-                uninitialized_fill_n_using_allocator(data(), n, al,
-                                                     std::forward<Args>(args)...);
+                STraits::uninitialized_fill_n_using_allocator(
+                    data(), n, al, std::forward<Args>(args)...);
             } else if constexpr (sizeof...(Args) == 2) {
-                uninitialized_copy_using_allocator(std::forward<Args>(args)..., data(),
-                                                   al);
+                STraits::uninitialized_copy_using_allocator_restrict(
+                    std::forward<Args>(args)..., data(), al);
             }
         }
     }
@@ -1300,7 +1452,7 @@ private:
     WJR_CONSTEXPR20 iterator __erase(iterator pos) noexcept {
         const pointer __last = data() + size();
         if (pos + 1 != __last) {
-            std::move(pos + 1, __last, pos);
+            STraits::move(pos + 1, __last, pos);
         }
 
         destroy_at_using_allocator(__last - 1, __get_allocator());
@@ -1312,7 +1464,7 @@ private:
         const pointer __last = data() + size();
         if (first != last) {
             if (last != __last) {
-                std::move(last, __last, first);
+                STraits::move(last, __last, first);
             }
 
             __erase_at_end(__last - (last - first));
@@ -1347,22 +1499,24 @@ private:
             if (WJR_LIKELY(__rest >= n)) {
                 const auto __elements_after = static_cast<size_type>(__last - pos);
                 if (__elements_after > n) {
-                    uninitialized_move_n_using_allocator(__last - n, n, __last, al);
-                    std::move_backward(pos, __last - n, __last);
-                    std::copy(first, last, pos);
+                    STraits::uninitialized_move_n_using_allocator_restrict(__last - n, n,
+                                                                           __last, al);
+                    STraits::move_backward(pos, __last - n, __last);
+                    STraits::copy_restrict(first, last, pos);
                 } else {
                     auto mid = first;
                     std::advance(mid, __elements_after);
 
-                    uninitialized_copy_using_allocator(mid, last, __last, al);
-                    uninitialized_move_using_allocator(pos, __last,
-                                                       __last + n - __elements_after, al);
-                    std::copy(first, mid, pos);
+                    STraits::uninitialized_copy_using_allocator_restrict(mid, last,
+                                                                         __last, al);
+                    STraits::uninitialized_move_using_allocator_restrict(pos, __last,
+                                                                         pos + n, al);
+                    STraits::copy_restrict(first, mid, pos);
                 }
 
                 __get_size() += n;
             } else {
-                if constexpr (is_storage_reallocatable::value) {
+                if constexpr (is_reallocatable::value) {
                     const auto old_size = static_cast<size_type>(__last - __first);
                     const auto old_pos = static_cast<size_type>(pos - __first);
                     const size_type new_capacity =
@@ -1371,11 +1525,12 @@ private:
                                              in_place_reallocate);
                     const pointer new_first = new_storage.data();
 
-                    uninitialized_copy_using_allocator(first, last, new_first + old_pos,
-                                                       al);
-                    uninitialized_move_using_allocator(__first, pos, new_first, al);
-                    uninitialized_move_using_allocator(pos, __last,
-                                                       new_first + old_pos + n, al);
+                    STraits::uninitialized_copy_using_allocator_restrict(
+                        first, last, new_first + old_pos, al);
+                    STraits::uninitialized_move_using_allocator_restrict(__first, pos,
+                                                                         new_first, al);
+                    STraits::uninitialized_move_using_allocator_restrict(
+                        pos, __last, new_first + old_pos + n, al);
 
                     __destroy_and_deallocate();
                     __take_storage(std::move(new_storage));
@@ -1406,10 +1561,11 @@ private:
             const auto __rest = static_cast<size_type>(__end - __last);
 
             if (WJR_LIKELY(__rest >= n)) {
-                uninitialized_copy_n_using_allocator(first, n, __last, al);
+                STraits::uninitialized_copy_n_using_allocator_restrict(first, n, __last,
+                                                                       al);
                 __get_size() += n;
             } else {
-                if constexpr (is_storage_reallocatable::value) {
+                if constexpr (is_reallocatable::value) {
                     const auto old_size = static_cast<size_type>(__last - __first);
                     const size_type new_capacity =
                         get_growth_capacity(capacity(), old_size + n);
@@ -1418,9 +1574,10 @@ private:
                                              in_place_reallocate);
                     const pointer new_first = new_storage.data();
 
-                    uninitialized_copy_using_allocator(first, last, new_first + old_size,
-                                                       al);
-                    uninitialized_move_using_allocator(__first, __last, new_first, al);
+                    STraits::uninitialized_copy_using_allocator_restrict(
+                        first, last, new_first + old_size, al);
+                    STraits::uninitialized_move_using_allocator_restrict(__first, __last,
+                                                                         new_first, al);
 
                     __destroy_and_deallocate();
                     __take_storage(std::move(new_storage));
@@ -1458,20 +1615,21 @@ private:
         const pointer __last = data() + size();
 
         if (n <= size()) {
-            std::copy(first, last, __first);
+            STraits::copy_restrict(first, last, __first);
             __erase_at_end(__first + n);
         } else if (WJR_LIKELY(n <= capacity())) {
             auto mid = first;
             std::advance(mid, size());
-            std::copy(first, mid, begin());
-            uninitialized_copy_using_allocator(mid, last, __last, al);
+            STraits::copy_restrict(first, mid, begin());
+            STraits::uninitialized_copy_using_allocator_restrict(mid, last, __last, al);
             __get_size() = n;
         } else {
-            if constexpr (is_storage_reallocatable::value) {
+            if constexpr (is_reallocatable::value) {
                 size_type new_capacity = get_growth_capacity(capacity(), n);
                 storage_type new_storage(al, n, new_capacity, in_place_reallocate);
                 const pointer new_first = new_storage.data();
-                uninitialized_copy_n_using_allocator(first, n, new_first, al);
+                STraits::uninitialized_copy_n_using_allocator_restrict(first, n,
+                                                                       new_first, al);
 
                 __destroy_and_deallocate();
                 __take_storage(std::move(new_storage));
@@ -1485,10 +1643,11 @@ private:
         auto &al = __get_allocator();
 
         if (WJR_UNLIKELY(n > capacity())) {
-            if constexpr (is_storage_reallocatable::value) {
+            if constexpr (is_reallocatable::value) {
                 __destroy_and_deallocate();
                 storage_type new_storage(al, n, n, in_place_reallocate);
-                uninitialized_fill_n_using_allocator(new_storage.data(), n, al, val);
+                STraits::uninitialized_fill_n_using_allocator(new_storage.data(), n, al,
+                                                              val);
                 __take_storage(std::move(new_storage));
                 return;
             } else {
@@ -1497,17 +1656,17 @@ private:
         }
 
         if (n > size()) {
-            std::fill(begin(), end(), val);
-            uninitialized_fill_n_using_allocator(end(), n - size(), al, val);
+            STraits::fill(begin(), end(), val);
+            STraits::uninitialized_fill_n_using_allocator(end(), n - size(), al, val);
             __get_size() = n;
         } else {
-            __erase_at_end(std::fill_n(begin(), n, val));
+            __erase_at_end(STraits::fill_n(begin(), n, val));
         }
     }
 
     template <typename... Args>
     WJR_CONSTEXPR20 void __realloc_insert(iterator pos, Args &&...args) {
-        if constexpr (is_storage_reallocatable::value) {
+        if constexpr (is_reallocatable::value) {
             auto &al = __get_allocator();
             const pointer __first = data();
             const pointer __last = data() + size();
@@ -1522,11 +1681,13 @@ private:
             const pointer new_first = new_storage.data();
             const pointer new_pos = new_first + old_pos_size;
 
-            uninitialized_construct_using_allocator(new_pos, al,
-                                                    std::forward<Args>(args)...);
+            STraits::uninitialized_construct_using_allocator(new_pos, al,
+                                                             std::forward<Args>(args)...);
 
-            uninitialized_move_n_using_allocator(__first, old_pos_size, new_first, al);
-            uninitialized_move_using_allocator(pos, __last, new_pos + 1, al);
+            STraits::uninitialized_move_n_using_allocator_restrict(__first, old_pos_size,
+                                                                   new_first, al);
+            STraits::uninitialized_move_using_allocator_restrict(pos, __last, new_pos + 1,
+                                                                 al);
 
             __destroy_and_deallocate();
             __take_storage(std::move(new_storage));
@@ -1537,7 +1698,7 @@ private:
 
     template <typename... Args>
     WJR_CONSTEXPR20 void __realloc_insert_at_end(Args &&...args) {
-        if constexpr (is_storage_reallocatable::value) {
+        if constexpr (is_reallocatable::value) {
             auto &al = __get_allocator();
             const pointer __first = data();
             const pointer __last = data() + size();
@@ -1550,10 +1711,11 @@ private:
             const pointer new_first = new_storage.data();
 
             const pointer new_pos = new_first + old_size;
-            uninitialized_construct_using_allocator(new_pos, al,
-                                                    std::forward<Args>(args)...);
+            STraits::uninitialized_construct_using_allocator(new_pos, al,
+                                                             std::forward<Args>(args)...);
 
-            uninitialized_move_using_allocator(__first, __last, new_first, al);
+            STraits::uninitialized_move_using_allocator_restrict(__first, __last,
+                                                                 new_first, al);
 
             __destroy_and_deallocate();
             __take_storage(std::move(new_storage));
@@ -1580,19 +1742,21 @@ private:
 
             const auto __elements_after = static_cast<size_type>(__last - pos);
             if (__elements_after > n) {
-                uninitialized_move_n_using_allocator(__last - n, n, __last, al);
-                std::move_backward(pos, __last - n, __last);
-                std::fill_n(pos, n, real_val);
+                STraits::uninitialized_move_n_using_allocator_restrict(__last - n, n,
+                                                                       __last, al);
+                STraits::move_backward(pos, __last - n, __last);
+                STraits::fill_n(pos, n, real_val);
             } else {
-                uninitialized_fill_n_using_allocator(__last, n - __elements_after, al,
-                                                     real_val);
-                uninitialized_move_using_allocator(pos, __last, pos + n, al);
-                std::fill(pos, __last, real_val);
+                STraits::uninitialized_fill_n_using_allocator(
+                    __last, n - __elements_after, al, real_val);
+                STraits::uninitialized_move_using_allocator_restrict(pos, __last, pos + n,
+                                                                     al);
+                STraits::fill(pos, __last, real_val);
             }
 
             __get_size() += n;
         } else {
-            if constexpr (is_storage_reallocatable::value) {
+            if constexpr (is_reallocatable::value) {
                 const auto new_capacity = get_growth_capacity(capacity(), size() + n);
                 storage_type new_storage(al, size() + n, new_capacity,
                                          in_place_reallocate);
@@ -1600,10 +1764,12 @@ private:
 
                 const auto old_pos = static_cast<size_type>(pos - __first);
 
-                uninitialized_fill_n_using_allocator(new_first + old_pos, n, al, val);
-                uninitialized_move_using_allocator(__first, pos, new_first, al);
-                uninitialized_move_using_allocator(pos, __last, new_first + old_pos + n,
-                                                   al);
+                STraits::uninitialized_fill_n_using_allocator(new_first + old_pos, n, al,
+                                                              val);
+                STraits::uninitialized_move_using_allocator_restrict(__first, pos,
+                                                                     new_first, al);
+                STraits::uninitialized_move_using_allocator_restrict(
+                    pos, __last, new_first + old_pos + n, al);
 
                 __destroy_and_deallocate();
                 __take_storage(std::move(new_storage));
@@ -1617,7 +1783,7 @@ private:
     WJR_CONSTEXPR20 void __resize(const size_type new_size, const Ty &val) {
         const auto old_size = size();
 
-        if constexpr (is_storage_reallocatable::value) {
+        if constexpr (is_reallocatable::value) {
             if (new_size > old_size) {
                 __append(new_size - old_size, val);
             } else if (new_size < old_size) {
@@ -1634,8 +1800,8 @@ private:
             }
 
             if (new_size > old_size) {
-                uninitialized_fill_n_using_allocator(__last, new_size - old_size, al,
-                                                     val);
+                STraits::uninitialized_fill_n_using_allocator(__last, new_size - old_size,
+                                                              al, val);
             } else if (new_size < old_size) {
                 destroy_using_allocator(__first + new_size, __last, al);
             }
@@ -1658,16 +1824,18 @@ private:
         const auto new_size = old_size + n;
 
         if (WJR_LIKELY(__rest >= n)) {
-            uninitialized_fill_n_using_allocator(__last, n, al, val);
+            STraits::uninitialized_fill_n_using_allocator(__last, n, al, val);
             __get_size() = new_size;
         } else {
-            if constexpr (is_storage_reallocatable::value) {
+            if constexpr (is_reallocatable::value) {
                 auto new_capacity = get_growth_capacity(old_capacity, new_size);
                 storage_type new_storage(al, new_size, new_capacity, in_place_reallocate);
                 const pointer new_first = new_storage.data();
 
-                uninitialized_fill_n_using_allocator(new_first + old_size, n, al, val);
-                uninitialized_move_using_allocator(__first, __last, new_first, al);
+                STraits::uninitialized_fill_n_using_allocator(new_first + old_size, n, al,
+                                                              val);
+                STraits::uninitialized_move_using_allocator_restrict(__first, __last,
+                                                                     new_first, al);
 
                 __destroy_and_deallocate();
                 __take_storage(std::move(new_storage));
@@ -1682,9 +1850,10 @@ private:
         auto &al = __get_allocator();
         const pointer __last = data() + size();
 
-        uninitialized_construct_using_allocator(__last, al, std::move(*(__last - 1)));
+        STraits::uninitialized_construct_using_allocator(__last, al,
+                                                         std::move(*(__last - 1)));
 
-        std::move_backward(pos, __last - 1, __last);
+        STraits::move_backward(pos, __last - 1, __last);
         *pos = std::forward<Args>(args);
 
         ++__get_size();
@@ -1700,8 +1869,8 @@ private:
 
         if (WJR_LIKELY(__last != __end)) {
             if (pos == __last) {
-                uninitialized_construct_using_allocator(__last, al,
-                                                        std::forward<Args>(args)...);
+                STraits::uninitialized_construct_using_allocator(
+                    __last, al, std::forward<Args>(args)...);
                 ++__get_size();
             } else {
                 temporary_value_allocator tmp(al, std::forward<Args>(args)...);
@@ -1737,7 +1906,7 @@ private:
         const auto m = static_cast<size_type>(std::distance(new_first, new_last));
 
         if (m <= n) {
-            erase(std::copy_n(new_first, m, old_first), old_last);
+            erase(STraits::copy_n(new_first, m, old_first), old_last);
         } else {
             const auto __delta = m - n;
 
@@ -1751,22 +1920,22 @@ private:
             if (WJR_LIKLELY(__rest >= __delta)) {
                 const auto __elements_after = static_cast<size_type>(__last - old_first);
                 if (__elements_after > m) {
-                    // uninitialized_move(al, __last - __delta, __last, __last);
-                    uninitialized_move_using_allocator(__last - __delta, __last, __last,
-                                                       al);
-                    std::move_backward(old_last, __last - __delta, __last);
-                    std::copy(new_first, new_last, old_first);
+                    STraits::uninitialized_move_using_allocator(__last - __delta, __last,
+                                                                __last, al);
+                    STraits::move_backward(old_last, __last - __delta, __last);
+                    STraits::copy(new_first, new_last, old_first);
                 } else {
                     auto mid = new_first;
                     std::advance(mid, __elements_after);
-                    uninitialized_copy_using_allocator(mid, new_last, __last, al);
-                    uninitialized_move_using_allocator(old_last, __last, old_first + m,
-                                                       al);
-                    std::copy(new_first, mid, old_first);
+                    STraits::uninitialized_copy_using_allocator(mid, new_last, __last,
+                                                                al);
+                    STraits::uninitialized_move_using_allocator(old_last, __last,
+                                                                old_first + m, al);
+                    STraits::copy(new_first, mid, old_first);
                 }
                 __get_size() += __delta;
             } else {
-                if constexpr (is_storage_reallocatable::value) {
+                if constexpr (is_reallocatable::value) {
                     const auto old_size = static_cast<size_type>(__last - __first);
                     const auto old_pos = static_cast<size_type>(old_first - __first);
                     const auto new_capacity =
@@ -1775,11 +1944,12 @@ private:
                                              in_place_reallocate);
                     const pointer __ptr = new_storage.data();
 
-                    uninitialized_copy_using_allocator(new_first, new_last,
-                                                       __ptr + old_pos, al);
-                    uninitialized_move_using_allocator(__first, old_first, __ptr, al);
-                    uninitialized_move_using_allocator(old_last, __last,
-                                                       __ptr + old_pos + m, al);
+                    STraits::uninitialized_copy_using_allocator_restrict(
+                        new_first, new_last, __ptr + old_pos, al);
+                    STraits::uninitialized_move_using_allocator_restrict(
+                        __first, old_first, __ptr, al);
+                    STraits::uninitialized_move_using_allocator_restrict(
+                        old_last, __last, __ptr + old_pos + m, al);
 
                     __destroy_and_deallocate();
                     __take_storage(std::move(new_storage));
@@ -1796,7 +1966,7 @@ private:
         const auto n = static_cast<size_type>(old_last - old_first);
 
         if (m <= n) {
-            erase(std::fill_n(old_first, m, val), old_last);
+            erase(STraits::fill_n(old_first, m, val), old_last);
         } else {
             const auto __delta = m - n;
 
@@ -1813,21 +1983,20 @@ private:
 
                 const auto __elements_after = static_cast<size_type>(__last - old_first);
                 if (__elements_after > m) {
-                    // uninitialized_move(al, __last - __delta, __last, __last);
-                    uninitialized_move_using_allocator(__last - __delta, __last, __last,
-                                                       al);
-                    std::move_backward(old_last, __last - __delta, __last);
-                    std::fill_n(old_first, m, real_value);
+                    STraits::uninitialized_move_using_allocator(__last - __delta, __last,
+                                                                __last, al);
+                    STraits::move_backward(old_last, __last - __delta, __last);
+                    STraits::fill_n(old_first, m, real_value);
                 } else {
-                    uninitialized_fill_n_using_allocator(__last, m - __elements_after, al,
-                                                         real_value);
-                    uninitialized_move_using_allocator(old_last, __last, old_first + m,
-                                                       al);
-                    std::fill(old_first, __last, real_value);
+                    STraits::uninitialized_fill_n_using_allocator(
+                        __last, m - __elements_after, al, real_value);
+                    STraits::uninitialized_move_using_allocator(old_last, __last,
+                                                                old_first + m, al);
+                    STraits::fill(old_first, __last, real_value);
                 }
                 __get_size() += __delta;
             } else {
-                if constexpr (is_storage_reallocatable::value) {
+                if constexpr (is_reallocatable::value) {
                     const auto old_size = static_cast<size_type>(__last - __first);
                     const auto old_pos = static_cast<size_type>(old_first - __first);
                     const auto new_capacity =
@@ -1836,10 +2005,12 @@ private:
                                              in_place_reallocate);
                     const pointer __ptr = new_storage.data();
 
-                    uninitialized_fill_n_using_allocator(__ptr + old_pos, m, al, val);
-                    uninitialized_move_using_allocator(__first, old_first, __ptr, al);
-                    uninitialized_move_using_allocator(old_last, __last,
-                                                       __ptr + old_pos + m, al);
+                    STraits::uninitialized_fill_n_using_allocator(__ptr + old_pos, m, al,
+                                                                  val);
+                    STraits::uninitialized_move_using_allocator_restrict(
+                        __first, old_first, __ptr, al);
+                    STraits::uninitialized_move_using_allocator_restrict(
+                        old_last, __last, __ptr + old_pos + m, al);
 
                     __destroy_and_deallocate();
                     __take_storage(std::move(new_storage));

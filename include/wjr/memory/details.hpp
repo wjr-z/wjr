@@ -112,7 +112,7 @@ template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> =
 WJR_PURE WJR_INTRINSIC_INLINE T read_memory(const void *ptr,
                                             endian to = endian::little) noexcept {
     T x;
-    std::memcpy(&x, ptr, sizeof(T));
+    ::memcpy(&x, ptr, sizeof(T));
 
     if (to != endian::native) {
         x = byteswap(x);
@@ -128,7 +128,7 @@ WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x,
         x = byteswap(x);
     }
 
-    std::memcpy(ptr, &x, sizeof(T));
+    ::memcpy(ptr, &x, sizeof(T));
 }
 
 template <class Pointer, class SizeType = std::size_t>
