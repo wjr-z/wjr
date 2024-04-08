@@ -55,17 +55,17 @@ struct __inserter_iterator_accessor : Iter {
 
 template <typename Container>
 Container &get_inserter_container(std::insert_iterator<Container> it) {
-    return *__inserter_container_accessor(it).container;
+    return *(__inserter_container_accessor(it).container);
 }
 
 template <typename Container>
 Container &get_inserter_container(std::back_insert_iterator<Container> it) {
-    return *__inserter_container_accessor(it).container;
+    return *(__inserter_container_accessor(it).container);
 }
 
 template <typename Container>
 Container &get_inserter_container(std::front_insert_iterator<Container> it) {
-    return *__inserter_container_accessor(it).container;
+    return *(__inserter_container_accessor(it).container);
 }
 
 template <typename Container>

@@ -829,7 +829,9 @@ public:
         return __get_data().m_size;
     }
     WJR_CONST WJR_CONSTEXPR20 size_type capacity() const noexcept {
-        return __is_sso() ? __max_capacity : __get_data().m_capacity;
+        const size_type ret = __is_sso() ? __max_capacity : __get_data().m_capacity;
+        WJR_ASSERT_ASSUME_L1(ret >= __max_capacity);
+        return ret;
     }
 
     WJR_PURE WJR_CONSTEXPR20 pointer data() noexcept { return __get_data().m_data; }

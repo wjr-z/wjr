@@ -4483,17 +4483,17 @@ struct __inserter_iterator_accessor : Iter {
 
 template <typename Container>
 Container &get_inserter_container(std::insert_iterator<Container> it) {
-    return *__inserter_container_accessor(it).container;
+    return *(__inserter_container_accessor(it).container);
 }
 
 template <typename Container>
 Container &get_inserter_container(std::back_insert_iterator<Container> it) {
-    return *__inserter_container_accessor(it).container;
+    return *(__inserter_container_accessor(it).container);
 }
 
 template <typename Container>
 Container &get_inserter_container(std::front_insert_iterator<Container> it) {
-    return *__inserter_container_accessor(it).container;
+    return *(__inserter_container_accessor(it).container);
 }
 
 template <typename Container>
@@ -4707,7 +4707,7 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
             if constexpr (container_details::has_container_insert_v<Container, InputIt,
                                                                     InputIt>) {
                 auto &cont = get_inserter_container(d_first);
-                auto pos = get_inserter_iterator(d_first);
+                const auto pos = get_inserter_iterator(d_first);
                 cont.insert(pos, first, last);
                 return d_first;
             } else {
@@ -4733,8 +4733,8 @@ constexpr OutputIt __copy_restrict_impl(InputIt first, InputIt last, OutputIt d_
 
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt copy_restrict(InputIt first, InputIt last, OutputIt d_first) {
-    const auto __first = try_to_address(first);
-    const auto __last = try_to_address(last);
+    const auto __first = try_to_address(std::move(first));
+    const auto __last = try_to_address(std::move(last));
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
         const auto __d_first = to_address(d_first);
         const auto __d_last = __copy_restrict_impl(__first, __last, __d_first);
@@ -4800,7 +4800,7 @@ constexpr OutputIt __copy_n_restrict_impl(InputIt first, Size count, OutputIt d_
 
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt copy_n_restrict(InputIt first, Size count, OutputIt d_first) {
-    const auto __first = try_to_address(first);
+    const auto __first = try_to_address(std::move(first));
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
         const auto __d_first = to_address(d_first);
         const auto __d_last = __copy_n_restrict_impl(__first, count, __d_first);
@@ -5937,7 +5937,9 @@ public:
         return __get_data().m_size;
     }
     WJR_CONST WJR_CONSTEXPR20 size_type capacity() const noexcept {
-        return __is_sso() ? __max_capacity : __get_data().m_capacity;
+        const size_type ret = __is_sso() ? __max_capacity : __get_data().m_capacity;
+        WJR_ASSERT_ASSUME_L1(ret >= __max_capacity);
+        return ret;
     }
 
     WJR_PURE WJR_CONSTEXPR20 pointer data() noexcept { return __get_data().m_data; }
