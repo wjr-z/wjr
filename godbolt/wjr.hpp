@@ -3561,6 +3561,15 @@ template <typename Iter, typename = void>
 struct __is_contiguous_iterator_impl
     : std::disjunction<std::is_pointer<Iter>, std::is_array<Iter>> {};
 
+/**
+ * @details If iterator's value_type is trivial, then move_iterator<Iter> is same as Iter.
+ *
+ */
+template <typename Iter>
+struct __is_contiguous_iterator_impl<std::move_iterator<Iter>, void>
+    : std::conjunction<__is_contiguous_iterator_impl<Iter>,
+                       std::is_trivial<iterator_value_t<Iter>>> {};
+
 #if defined(WJR_CPP_20)
 template <typename Iter>
 struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};
@@ -5440,7 +5449,7 @@ private:
 
     struct Data {
         size_type m_size = 0;
-        alignas(max_alignment) T m_data[Capacity];
+        alignas(max_alignment) char m_data[Capacity * sizeof(T)];
     };
 
     using data_type = Data;
@@ -5450,7 +5459,8 @@ public:
 
     template <typename _Alloc>
     WJR_CONSTEXPR20 __static_vector_storage_impl(_Alloc &&al) noexcept
-        : m_pair(std::forward<_Alloc>(al), {}) {}
+        : m_pair(std::piecewise_construct, std::make_tuple(std::forward<_Alloc>(al)),
+                 std::make_tuple()) {}
 
     ~__static_vector_storage_impl() noexcept = default;
 
@@ -5561,9 +5571,11 @@ public:
     }
     WJR_CONST constexpr size_type capacity() const noexcept { return Capacity; }
 
-    WJR_PURE WJR_CONSTEXPR20 pointer data() noexcept { return __get_data().m_data; }
+    WJR_PURE WJR_CONSTEXPR20 pointer data() noexcept {
+        return reinterpret_cast<pointer>(__get_data().m_data);
+    }
     WJR_PURE WJR_CONSTEXPR20 const_pointer data() const noexcept {
-        return __get_data().m_data;
+        return reinterpret_cast<const_pointer>(__get_data().m_data);
     }
 
 private:
@@ -5936,7 +5948,7 @@ public:
     WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept {
         return __get_data().m_size;
     }
-    WJR_CONST WJR_CONSTEXPR20 size_type capacity() const noexcept {
+    WJR_PURE WJR_CONSTEXPR20 size_type capacity() const noexcept {
         const size_type ret = __is_sso() ? __max_capacity : __get_data().m_capacity;
         WJR_ASSERT_ASSUME_L1(ret >= __max_capacity);
         return ret;

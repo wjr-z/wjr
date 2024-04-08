@@ -82,6 +82,15 @@ template <typename Iter, typename = void>
 struct __is_contiguous_iterator_impl
     : std::disjunction<std::is_pointer<Iter>, std::is_array<Iter>> {};
 
+/**
+ * @details If iterator's value_type is trivial, then move_iterator<Iter> is same as Iter.
+ *
+ */
+template <typename Iter>
+struct __is_contiguous_iterator_impl<std::move_iterator<Iter>, void>
+    : std::conjunction<__is_contiguous_iterator_impl<Iter>,
+                       std::is_trivial<iterator_value_t<Iter>>> {};
+
 #if defined(WJR_CPP_20)
 template <typename Iter>
 struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};
