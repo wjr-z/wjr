@@ -622,7 +622,7 @@ inline constexpr count_digits_fn<Base> count_digits{};
 template <>
 struct count_digits_fn<2> {
     template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
-    WJR_CONST WJR_CONSTEXPR_E int operator()(T n) const {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const {
         return bit_width(n);
     }
 };
@@ -630,7 +630,7 @@ struct count_digits_fn<2> {
 template <>
 struct count_digits_fn<8> {
     template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
-    WJR_CONST WJR_CONSTEXPR_E int operator()(T n) const {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const {
         return (bit_width(n) + 2) / 3;
     }
 };
@@ -638,7 +638,7 @@ struct count_digits_fn<8> {
 template <>
 struct count_digits_fn<16> {
     template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
-    WJR_CONST WJR_CONSTEXPR_E int operator()(T n) const {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const {
         return (bit_width(n) + 3) / 4;
     }
 };
@@ -646,7 +646,7 @@ struct count_digits_fn<16> {
 template <>
 struct count_digits_fn<1> {
     template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
-    WJR_CONST WJR_CONSTEXPR_E int operator()(T n, int bits) const {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n, int bits) const {
         return (bit_width(n) + bits - 1) / bits;
     }
 };
@@ -654,7 +654,7 @@ struct count_digits_fn<1> {
 template <>
 struct count_digits_fn<10> {
     template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
-    WJR_CONST WJR_CONSTEXPR_E int operator()(T n) const {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const {
         int ret = count_digits10_impl(n);
         WJR_ASSUME(1 <= ret && ret <= std::numeric_limits<T>::digits10 + 1);
         return ret;
@@ -689,17 +689,16 @@ struct from_chars_result {
 // 0 : dynamic base
 // 1 : base is power of two
 template <uint64_t Base>
-struct __unsigned_to_chars_backward_unchecked_fn {};
+class __unsigned_to_chars_backward_unchecked_fn {};
 
 template <uint64_t Base>
 inline constexpr __unsigned_to_chars_backward_unchecked_fn<Base>
     __unsigned_to_chars_backward_unchecked{};
 
 template <>
-struct __unsigned_to_chars_backward_unchecked_fn<2> {
-    template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
-    uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x, Converter conv) const {
+class __unsigned_to_chars_backward_unchecked_fn<2> {
+    template <typename UnsignedValue, typename Converter>
+    static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, Converter conv) {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
         WJR_ASSERT(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= nd);
@@ -741,13 +740,19 @@ struct __unsigned_to_chars_backward_unchecked_fn<2> {
 
         return ptr;
     }
-};
 
-template <>
-struct __unsigned_to_chars_backward_unchecked_fn<8> {
+public:
     template <typename UnsignedValue, typename Converter,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
     uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x, Converter conv) const {
+        return fn(ptr, n, x, conv);
+    }
+};
+
+template <>
+class __unsigned_to_chars_backward_unchecked_fn<8> {
+    template <typename UnsignedValue, typename Converter>
+    static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, Converter conv) {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
         WJR_ASSERT(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 2) / 3);
@@ -790,14 +795,19 @@ struct __unsigned_to_chars_backward_unchecked_fn<8> {
 
         return ptr;
     }
-};
 
-template <>
-struct __unsigned_to_chars_backward_unchecked_fn<16> {
-
+public:
     template <typename UnsignedValue, typename Converter,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
     uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x, Converter conv) const {
+        return fn(ptr, n, x, conv);
+    }
+};
+
+template <>
+class __unsigned_to_chars_backward_unchecked_fn<16> {
+    template <typename UnsignedValue, typename Converter>
+    static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, Converter conv) {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
         WJR_ASSERT(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 3) / 4);
@@ -840,14 +850,20 @@ struct __unsigned_to_chars_backward_unchecked_fn<16> {
 
         return ptr;
     }
+
+public:
+    template <typename UnsignedValue, typename Converter,
+              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+    uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x, Converter conv) const {
+        return fn(ptr, n, x, conv);
+    }
 };
 
 template <>
-struct __unsigned_to_chars_backward_unchecked_fn<1> {
-    template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
-    uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x, int bits,
-                        Converter conv) const {
+class __unsigned_to_chars_backward_unchecked_fn<1> {
+private:
+    template <typename UnsignedValue, typename Converter>
+    static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, int bits, Converter conv) {
         WJR_ASSERT(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= std::numeric_limits<UnsignedValue>::digits);
 
@@ -861,13 +877,22 @@ struct __unsigned_to_chars_backward_unchecked_fn<1> {
 
         return ptr;
     }
+
+public:
+    template <typename UnsignedValue, typename Converter,
+              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+    uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x, int bits,
+                        Converter conv) const {
+        return fn(ptr, n, x, bits, conv);
+    }
 };
 
 template <>
-struct __unsigned_to_chars_backward_unchecked_fn<10> {
+class __unsigned_to_chars_backward_unchecked_fn<10> {
+private:
     template <typename UnsignedValue, typename Converter,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
-    uint8_t *operator()(uint8_t *ptr, UnsignedValue val, Converter conv) const {
+    static uint8_t *fn(uint8_t *ptr, UnsignedValue val, Converter conv) {
         WJR_ASSERT_ASSUME(val != 0);
 
         if (WJR_LIKELY(val >= 100)) {
@@ -886,6 +911,13 @@ struct __unsigned_to_chars_backward_unchecked_fn<10> {
         __to_chars_unroll_2<10>(ptr - 2, val, conv);
         ptr -= 2;
         return ptr;
+    }
+
+public:
+    template <typename UnsignedValue, typename Converter,
+              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+    uint8_t *operator()(uint8_t *ptr, UnsignedValue val, Converter conv) const {
+        return fn(ptr, val, conv);
     }
 };
 
@@ -2027,18 +2059,17 @@ Iter biginteger_to_chars(Iter first, const uint64_t *up, size_t n, unsigned int 
 }
 
 template <uint64_t Base>
-struct __unsigned_from_chars_unchecked_fn {};
+class __unsigned_from_chars_unchecked_fn {};
 
 template <uint64_t Base>
 inline constexpr __unsigned_from_chars_unchecked_fn<Base>
     __unsigned_from_chars_unchecked{};
 
 template <>
-struct __unsigned_from_chars_unchecked_fn<2> {
-    template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
-    void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
-                    Converter conv) const {
+class __unsigned_from_chars_unchecked_fn<2> {
+    template <typename UnsignedValue, typename Converter>
+    static void fn(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
+                   Converter conv) {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
 
         auto n = std::distance(first, last);
@@ -2101,14 +2132,21 @@ struct __unsigned_from_chars_unchecked_fn<2> {
         }
         }
     }
-};
 
-template <>
-struct __unsigned_from_chars_unchecked_fn<8> {
+public:
     template <typename UnsignedValue, typename Converter,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
     void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
                     Converter conv) const {
+        return fn(first, last, val, conv);
+    }
+};
+
+template <>
+class __unsigned_from_chars_unchecked_fn<8> {
+    template <typename UnsignedValue, typename Converter>
+    static void fn(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
+                   Converter conv) {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
 
         auto n = std::distance(first, last);
@@ -2165,14 +2203,21 @@ struct __unsigned_from_chars_unchecked_fn<8> {
         }
         }
     }
-};
 
-template <>
-struct __unsigned_from_chars_unchecked_fn<16> {
+public:
     template <typename UnsignedValue, typename Converter,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
     void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
                     Converter conv) const {
+        return fn(first, last, val, conv);
+    }
+};
+
+template <>
+class __unsigned_from_chars_unchecked_fn<16> {
+    template <typename UnsignedValue, typename Converter>
+    static void fn(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
+                   Converter conv) {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
 
         auto n = std::distance(first, last);
@@ -2235,17 +2280,24 @@ struct __unsigned_from_chars_unchecked_fn<16> {
         }
         }
     }
-};
 
-template <>
-struct __unsigned_from_chars_unchecked_fn<1> {};
-
-template <>
-struct __unsigned_from_chars_unchecked_fn<10> {
+public:
     template <typename UnsignedValue, typename Converter,
               std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
     void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
                     Converter conv) const {
+        return fn(first, last, val, conv);
+    }
+};
+
+template <>
+class __unsigned_from_chars_unchecked_fn<1> {};
+
+template <>
+class __unsigned_from_chars_unchecked_fn<10> {
+    template <typename UnsignedValue, typename Converter>
+    static void fn(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
+                   Converter conv) {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits10 + 1;
 
         auto n = std::distance(first, last);
@@ -2306,6 +2358,14 @@ struct __unsigned_from_chars_unchecked_fn<10> {
             break;
         }
         }
+    }
+
+public:
+    template <typename UnsignedValue, typename Converter,
+              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+    void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
+                    Converter conv) const {
+        return fn(first, last, val, conv);
     }
 };
 

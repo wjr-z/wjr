@@ -64,7 +64,7 @@ struct __is_assert_format<assert_format<Args...>> : std::true_type {};
 class __assert_handler_t {
 private:
     template <typename... Args>
-    void __handler_format(const assert_format<Args...> &fmt) const {
+    static void __handler_format(const assert_format<Args...> &fmt) {
         const char *const fmt_str = fmt.m_fmt;
         std::apply(
             [fmt_str](auto &&...args) {
@@ -74,7 +74,7 @@ private:
     }
 
     template <typename T>
-    void __handler(T &&t) const {
+    static void __handler(T &&t) {
         if constexpr (__is_assert_format<std::decay_t<T>>::value) {
             __handler_format(std::forward<T>(t));
         } else {
@@ -82,37 +82,43 @@ private:
         }
     }
 
-    void handler() const {}
+    static void handler() {}
 
     template <typename... Args>
-    void handler(Args &&...args) const {
+    static void handler(Args &&...args) {
         (void)fprintf(stderr, "Additional information:\n");
         (void)((__handler(std::forward<Args>(args)), ...));
         (void)fprintf(stderr, "\n");
     }
 
-public:
     template <typename... Args>
-    WJR_ASSERT_NORETURN WJR_NOINLINE void operator()(const char *expr, const char *file,
-                                                     int line, Args &&...args) const {
-        (void)fprintf(stderr, "Assertion failed: %s", expr);
+    WJR_ASSERT_NORETURN WJR_NOINLINE static void
+    fn(const char *expr, const char *file, const char *func, int line, Args &&...args) {
         if ((file != nullptr) && (file[0] != '\0')) {
-            (void)fprintf(stderr, ", file %s", file);
+            (void)fprintf(stderr, "%s:", file);
         }
         if (line != -1) {
-            (void)fprintf(stderr, ", line %d", line);
+            (void)fprintf(stderr, "%d:", line);
         }
-        (void)fprintf(stderr, "\n");
+        fprintf(stderr, "Assertion `%s' failed.", expr);
         handler(std::forward<Args>(args)...);
         WJR_ASSERT_ABORT();
+    }
+
+public:
+    template <typename... Args>
+    void operator()(const char *expr, const char *file, const char *func, int line,
+                    Args &&...args) const {
+        fn(expr, file, func, line, std::forward<Args>(args)...);
     }
 };
 
 inline constexpr __assert_handler_t __assert_handler{};
 
-#define WJR_ASSERT_NOMESSAGE_FAIL(handler, exprstr) handler(exprstr, WJR_FILE, WJR_LINE)
+#define WJR_ASSERT_NOMESSAGE_FAIL(handler, exprstr)                                      \
+    handler(exprstr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE)
 #define WJR_ASSERT_MESSAGE_FAIL(handler, exprstr, ...)                                   \
-    handler(exprstr, WJR_FILE, WJR_LINE, __VA_ARGS__)
+    handler(exprstr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE, __VA_ARGS__)
 
 #define WJR_ASSERT_CHECK_I_NOMESSAGE(handler, expr)                                      \
     do {                                                                                 \

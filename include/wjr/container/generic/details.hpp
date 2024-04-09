@@ -51,7 +51,7 @@ struct resize_fn_impl : resize_fn_impl_base<Container> {};
 
 struct resize_fn {
     template <typename Container, typename... Args>
-    WJR_INTRINSIC_INLINE void operator()(Container &cont, Args &&...args) const {
+    void operator()(Container &cont, Args &&...args) const {
         resize_fn_impl<Container>::resize(cont, std::forward<Args>(args)...);
     }
 };
@@ -74,7 +74,7 @@ struct append_fn_impl : append_fn_impl_base<Container> {};
 
 struct append_fn {
     template <typename Container, typename... Args>
-    WJR_INTRINSIC_INLINE void operator()(Container &cont, Args &&...args) const {
+    void operator()(Container &cont, Args &&...args) const {
         append_fn_impl<Container>::append(cont, std::forward<Args>(args)...);
     }
 };
