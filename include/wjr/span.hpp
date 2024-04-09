@@ -133,25 +133,25 @@ public:
     template <typename It,
               std::enable_if_t<
                   __is_span_iterator<It, element_type>::value && __is_dynamic, int> = 0>
-    constexpr span(It first, size_type count) : storage(to_address(first), count) {}
+    constexpr span(It first, size_type count) : storage((to_address)(first), count) {}
 
     template <typename It,
               std::enable_if_t<
                   __is_span_iterator<It, element_type>::value && !__is_dynamic, int> = 0>
     constexpr explicit span(It first, size_type count)
-        : storage(to_address(first), count) {}
+        : storage((to_address)(first), count) {}
 
     template <typename It,
               std::enable_if_t<
                   __is_span_iterator<It, element_type>::value && __is_dynamic, int> = 0>
     constexpr span(It first, It last)
-        : storage(to_address(first), static_cast<size_type>(last - first)) {}
+        : storage((to_address)(first), static_cast<size_type>(last - first)) {}
 
     template <typename It,
               std::enable_if_t<
                   __is_span_iterator<It, element_type>::value && !__is_dynamic, int> = 0>
     constexpr explicit span(It first, It last)
-        : storage(to_address(first), static_cast<size_type>(last - first)) {}
+        : storage((to_address)(first), static_cast<size_type>(last - first)) {}
 
     template <size_t N, std::enable_if_t<(__is_dynamic || N == Extent), int> = 0>
     constexpr span(type_identity_t<element_type> (&arr)[N]) noexcept

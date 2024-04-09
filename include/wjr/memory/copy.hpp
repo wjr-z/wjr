@@ -23,7 +23,7 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
         if constexpr (is_back_insert_iterator_v<Out>) {
             if constexpr (container_details::has_container_append_v<Container, InputIt,
                                                                     InputIt>) {
-                get_inserter_container(d_first).append(first, last);
+                append(get_inserter_container(d_first), first, last);
                 return d_first;
             } else if constexpr (container_details::has_container_insert_v<
                                      Container, InputIt, InputIt>) {
@@ -66,7 +66,7 @@ constexpr OutputIt copy_restrict(InputIt first, InputIt last, OutputIt d_first) 
     const auto __first = try_to_address(std::move(first));
     const auto __last = try_to_address(std::move(last));
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
-        const auto __d_first = to_address(d_first);
+        const auto __d_first = (to_address)(d_first);
         const auto __d_last = __copy_restrict_impl(__first, __last, __d_first);
         return std::next(d_first, std::distance(__d_first, __d_last));
     } else {
@@ -91,7 +91,7 @@ constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
         if constexpr (is_back_insert_iterator_v<Out>) {
             if constexpr (container_details::has_container_append_v<Container, InputIt,
                                                                     InputIt>) {
-                get_inserter_container(d_first).append(first, std::next(first, count));
+                append(get_inserter_container(d_first), first, std::next(first, count));
                 return d_first;
             } else if constexpr (container_details::has_container_insert_v<
                                      Container, InputIt, InputIt>) {
@@ -132,7 +132,7 @@ template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt copy_n_restrict(InputIt first, Size count, OutputIt d_first) {
     const auto __first = try_to_address(std::move(first));
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
-        const auto __d_first = to_address(d_first);
+        const auto __d_first = (to_address)(d_first);
         const auto __d_last = __copy_n_restrict_impl(__first, count, __d_first);
         return std::next(d_first, std::distance(__d_first, __d_last));
     } else {

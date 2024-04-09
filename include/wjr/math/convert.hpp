@@ -120,15 +120,17 @@ private:
 
 public:
     static constexpr int value =
-        traits_type::is_trivially_contiguous_v && traits_type::template is_resize_v<>
-            ? (traits_type::template is_resize_v<wjr::in_place_default_construct_t> ? 2
-                                                                                    : 1)
+        traits_type::is_trivially_contiguous_v &&
+                container_details::has_container_resize_v<Container, size_t>
+            ? (container_details::has_container_resize_v<Container, size_t,
+                                                         in_place_default_construct_t>
+                   ? 2
+                   : 1)
             : 0;
 
-    static_assert(
-        value != 2 ||
-            traits_type::template is_append_v<size_t, wjr::in_place_default_construct_t>,
-        "");
+    static_assert(value != 2 || container_details::has_container_append_v<
+                                    Container, size_t, in_place_default_construct_t>,
+                  "");
 };
 
 template <typename Iter, typename = void>
@@ -952,7 +954,7 @@ uint8_t *__fast_to_chars_backward_unchecked_impl(uint8_t *ptr, Value val, IBase 
 template <typename Iter, typename Value, typename IBase, typename Converter>
 Iter __to_chars_backward_unchecked_impl(Iter first, Value val, IBase ibase,
                                         Converter conv) {
-    const auto __ptr = reinterpret_cast<uint8_t *>(to_address(first));
+    const auto __ptr = reinterpret_cast<uint8_t *>((to_address)(first));
     const auto __end = __fast_to_chars_backward_unchecked_impl(__ptr, val, ibase, conv);
     return first + std::distance(__ptr, __end);
 }
@@ -1223,8 +1225,8 @@ template <typename Iter, typename Value, typename IBase, typename Converter>
 to_chars_result<Iter> __to_chars_impl(Iter first, Iter last, Value val, IBase ibase,
                                       Converter conv) {
     if constexpr (convert_details::__is_fast_convert_iterator_v<Iter>) {
-        const auto __first = reinterpret_cast<uint8_t *>(to_address(first));
-        const auto __last = reinterpret_cast<uint8_t *>(to_address(last));
+        const auto __first = reinterpret_cast<uint8_t *>((to_address)(first));
+        const auto __last = reinterpret_cast<uint8_t *>((to_address)(last));
         const auto __result = __fast_to_chars_impl(__first, __last, val, ibase, conv);
         return {first + std::distance(__first, __result.ptr), __result.ec};
     } else {
@@ -1322,11 +1324,11 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
         WJR_PP_BOOL_IF(WJR_PP_EQ(BASE, 10), const int n = count_digits<10>(uVal), );     \
         auto &cont = get_inserter_container(ptr);                                        \
         if constexpr (__fast_container_inserter_v == 1) {                                \
-            cont.resize(cont.size() + n + sign);                                         \
+            resize(cont, cont.size() + n + sign);                                        \
         } else {                                                                         \
-            cont.append(n + sign, in_place_default_construct);                           \
+            append(cont, n + sign, in_place_default_construct);                          \
         }                                                                                \
-        const auto __end = to_address(cont.data() + cont.size());                        \
+        const auto __end = (to_address)(cont.data() + cont.size());                      \
         auto __ptr = (convert_details::fast_buffer_t<Iter> *)                            \
             __unsigned_to_chars_backward_unchecked<BASE>(                                \
                 (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \
@@ -1388,7 +1390,7 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
 template <typename Iter, typename Value, typename IBase, typename Converter>
 Iter __to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase, Converter conv) {
     if constexpr (convert_details::__is_fast_convert_iterator_v<Iter>) {
-        const auto __ptr = reinterpret_cast<uint8_t *>(to_address(ptr));
+        const auto __ptr = reinterpret_cast<uint8_t *>((to_address)(ptr));
         const auto __result = __fast_to_chars_unchecked_impl(__ptr, val, ibase, conv);
         return ptr + std::distance(__ptr, __result);
     } else {
@@ -1930,17 +1932,17 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
         auto &cont = get_inserter_container(ptr);                                        \
         const auto __presize = cont.size();                                              \
         if constexpr (__fast_container_inserter_v == 1) {                                \
-            cont.resize(__presize + SIZE);                                               \
+            resize(cont, __presize + SIZE);                                              \
         } else {                                                                         \
-            cont.append(SIZE, in_place_default_construct);                               \
+            append(cont, SIZE, in_place_default_construct);                              \
         }                                                                                \
-        const auto __ptr = (uint8_t *)to_address(cont.data()) + __presize;               \
+        const auto __ptr = (uint8_t *)(to_address)(cont.data()) + __presize;             \
         const auto __size = NAME(__ptr, WJR_PP_QUEUE_EXPAND(CALL), conv) TAIL;           \
         WJR_ASSERT((size_t)__size <= SIZE);                                              \
         if constexpr (__fast_container_inserter_v == 1) {                                \
-            cont.resize(__presize + __size);                                             \
+            resize(cont, __presize + __size);                                            \
         } else {                                                                         \
-            cont.resize(__presize + __size, wjr::in_place_default_construct);            \
+            resize(cont, __presize + __size, wjr::in_place_default_construct);           \
         }                                                                                \
                                                                                          \
         return ptr;                                                                      \
@@ -1995,7 +1997,7 @@ Iter __biginteger_to_chars_impl(Iter first, const uint64_t *up, size_t n,
     }
 
     if constexpr (convert_details::__is_fast_convert_iterator_v<Iter>) {
-        const auto __first = reinterpret_cast<uint8_t *>(to_address(first));
+        const auto __first = reinterpret_cast<uint8_t *>((to_address)(first));
         const auto __result =
             __fast_biginteger_large_to_chars_impl(__first, up, n, base, conv);
         return first + std::distance(__first, __result);
@@ -2360,8 +2362,8 @@ template <typename Iter, typename Value, typename IBase, typename Converter,
           std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
 void __from_chars_unchecked_impl(Iter first, Iter last, Value &val, IBase ibase,
                                  Converter conv) {
-    const auto __first = reinterpret_cast<const uint8_t *>(to_address(first));
-    const auto __last = reinterpret_cast<const uint8_t *>(to_address(last));
+    const auto __first = reinterpret_cast<const uint8_t *>((to_address)(first));
+    const auto __last = reinterpret_cast<const uint8_t *>((to_address)(last));
     __fast_from_chars_unchecked_impl(__first, __last, val, ibase, conv);
 }
 
@@ -3003,8 +3005,8 @@ uint64_t *biginteger_from_chars(Iter first, Iter last, uint64_t *up,
                                 unsigned int base = 10, Converter conv = {}) {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));
 
-    const auto __first = reinterpret_cast<const uint8_t *>(to_address(first));
-    const auto __last = reinterpret_cast<const uint8_t *>(to_address(last));
+    const auto __first = reinterpret_cast<const uint8_t *>((to_address)(first));
+    const auto __last = reinterpret_cast<const uint8_t *>((to_address)(last));
 
     return __biginteger_from_chars_impl(__first, __last, up, base, conv);
 }

@@ -1,25 +1,217 @@
 #ifndef WJR_CONTAINER_GENERIC_DETAILS_HPP__
 #define WJR_CONTAINER_GENERIC_DETAILS_HPP__
 
-#include <wjr/type_traits.hpp>
+#include <string>
 
-namespace wjr::container_details {
+#include <wjr/iterator/details.hpp>
 
-WJR_REGISTER_HAS_TYPE(container_begin, std::declval<Container>().begin(), Container);
-WJR_REGISTER_HAS_TYPE(container_cbegin, std::declval<Container>().cbegin(), Container);
-WJR_REGISTER_HAS_TYPE(container_end, std::declval<Container>().end(), Container);
-WJR_REGISTER_HAS_TYPE(container_cend, std::declval<Container>().cend(), Container);
-WJR_REGISTER_HAS_TYPE(container_size, std::declval<Container>().size(), Container);
+namespace wjr {
+
+namespace container_details {
+
+WJR_REGISTER_HAS_TYPE(container_begin,
+                      std::begin(std::declval<std::add_lvalue_reference_t<Container>>()),
+                      Container);
+WJR_REGISTER_HAS_TYPE(container_cbegin,
+                      std::cbegin(std::declval<std::add_lvalue_reference_t<Container>>()),
+                      Container);
+WJR_REGISTER_HAS_TYPE(container_end,
+                      std::end(std::declval<std::add_lvalue_reference_t<Container>>()),
+                      Container);
+WJR_REGISTER_HAS_TYPE(container_cend,
+                      std::cend(std::declval<std::add_lvalue_reference_t<Container>>()),
+                      Container);
+WJR_REGISTER_HAS_TYPE(container_size,
+                      std::size(std::declval<std::add_lvalue_reference_t<Container>>()),
+                      Container);
+
+WJR_REGISTER_HAS_TYPE(__container_resize,
+                      std::declval<std::add_lvalue_reference_t<Container>>().resize(
+                          std::declval<Size>(), std::declval<Args>()...),
+                      Container, Size);
+WJR_REGISTER_HAS_TYPE(__container_append,
+                      std::declval<Container>().append(std::declval<Args>()...),
+                      Container);
+
+} // namespace container_details
+
+template <typename Container>
+struct resize_fn_impl_base {
+    template <
+        typename... Args,
+        std::enable_if_t<container_details::has___container_resize_v<Container, Args...>,
+                         int> = 0>
+    WJR_INTRINSIC_INLINE static void resize(Container &cont, Args &&...args) {
+        cont.resize(std::forward<Args>(args)...);
+    }
+};
+
+template <typename Container>
+struct resize_fn_impl : resize_fn_impl_base<Container> {};
+
+struct resize_fn {
+    template <typename Container, typename... Args>
+    WJR_INTRINSIC_INLINE void operator()(Container &cont, Args &&...args) const {
+        resize_fn_impl<Container>::resize(cont, std::forward<Args>(args)...);
+    }
+};
+
+inline constexpr resize_fn resize{};
+
+template <typename Container>
+struct append_fn_impl_base {
+    template <
+        typename... Args,
+        std::enable_if_t<container_details::has___container_append_v<Container, Args...>,
+                         int> = 0>
+    WJR_INTRINSIC_INLINE static void append(Container &cont, Args &&...args) {
+        cont.append(std::forward<Args>(args)...);
+    }
+};
+
+template <typename Container>
+struct append_fn_impl : append_fn_impl_base<Container> {};
+
+struct append_fn {
+    template <typename Container, typename... Args>
+    WJR_INTRINSIC_INLINE void operator()(Container &cont, Args &&...args) const {
+        append_fn_impl<Container>::append(cont, std::forward<Args>(args)...);
+    }
+};
+
+inline constexpr append_fn append{};
+
+#define WJR_HAS_FEATURE_STRING_UNINITIALIZED_RESIZE WJR_HAS_DEF
+
+#if __cpp_lib_string_resize_and_overwrite >= 202110L
+template <typename CharT, typename Traits, typename Alloc>
+WJR_INTRINSIC_INLINE void
+__uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
+                       typename std::basic_string<CharT, Traits, Alloc>::size_type sz) {
+    str.resize_and_overwrite(sz, [](char *, Size sz) { return sz; });
+}
+
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(NAME, Container)
+
+#elif (defined(__clang_major__) && __clang_major__ <= 11) ||                             \
+    (defined(_MSC_VER) && _MSC_VER <= 1920)
+#undef WJR_HAS_FEATURE_STRING_UNINITIALIZED_RESIZE
+#elif defined(__GLIBCXX__) || defined(_LIBCPP_VERSION) || defined(_MSVC_STL_VERSION)
+
+template <typename Container>
+void string_set_length_hacker(Container &bank, typename Container::size_type sz);
+
+#if defined(__GLIBCXX__) || defined(_LIBCPP_VERSION)
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container)                \
+    inline void WJR_PP_CONCAT(string_set_length_hacker_of_,                              \
+                              NAME)(Container & bank, typename Container::size_type sz); \
+    template <typename Money_t, Money_t Container::*p>                                   \
+    class WJR_PP_CONCAT(string_thief_of_, NAME) {                                        \
+    public:                                                                              \
+        friend void WJR_PP_CONCAT(string_set_length_hacker_of_,                          \
+                                  NAME)(Container & bank,                                \
+                                        typename Container::size_type sz) {              \
+            (bank.*p)(sz);                                                               \
+        }                                                                                \
+    };                                                                                   \
+    template <>                                                                          \
+    inline void string_set_length_hacker<Container>(Container & bank,                    \
+                                                    typename Container::size_type sz) {  \
+        WJR_PP_CONCAT(string_set_length_hacker_of_, NAME)(bank, sz);                     \
+    }
+#else
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container)                \
+    inline void WJR_PP_CONCAT(string_set_length_hacker_of_,                              \
+                              NAME)(Container & bank, typename Container::size_type sz); \
+    template <typename Money_t, Money_t Container::*p>                                   \
+    class WJR_PP_CONCAT(string_thief_of_, NAME) {                                        \
+    public:                                                                              \
+        friend void WJR_PP_CONCAT(string_set_length_hacker_of_,                          \
+                                  NAME)(Container & bank,                                \
+                                        typename Container::size_type sz) {              \
+            (bank.*p)._Myval2._Mysize = sz;                                              \
+        }                                                                                \
+    };                                                                                   \
+    template <>                                                                          \
+    inline void string_set_length_hacker<Container>(Container & bank,                    \
+                                                    typename Container::size_type sz) {  \
+        WJR_PP_CONCAT(string_set_length_hacker_of_, NAME)(bank, sz);                     \
+    }
+#endif
+
+#if defined(__GLIBCXX__)
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(NAME, Container)             \
+    __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container);                   \
+    template class WJR_PP_CONCAT(                                                        \
+        string_thief_of_, NAME)<void(Container::size_type), &Container::_M_set_length>
+#elif defined(_LIBCPP_VERSION)
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(NAME, Container)             \
+    __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container);                   \
+    template class WJR_PP_CONCAT(                                                        \
+        string_thief_of_, NAME)<void(Container::size_type), &Container::__set_size>
+#else
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(NAME, Container)             \
+    __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container);                   \
+    template class WJR_PP_CONCAT(                                                        \
+        string_thief_of_, NAME)<decltype(Container::_Mypair), &Container::_Mypair>
+#endif
+
+template <typename CharT, typename Traits, typename Alloc>
+WJR_INTRINSIC_INLINE void
+__uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
+                       typename std::basic_string<CharT, Traits, Alloc>::size_type sz) {
+    str.reserve(sz);
+    string_set_length_hacker(str, sz);
+    WJR_ASSERT_L1(str.size() == sz);
+    str[sz] = '\0';
+}
+
+#else
+#undef WJR_HAS_FEATURE_STRING_UNINITIALIZED_RESIZE
+#define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Container)
+#endif
+
+#if WJR_HAS_FEATURE(STRING_UNINITIALIZED_RESIZE)
+
+#define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Name, Container)                        \
+    __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container);                \
+    template <>                                                                          \
+    struct resize_fn_impl<Container> : resize_fn_impl_base<Container> {                  \
+        using resize_fn_impl_base<Container>::resize;                                    \
+        WJR_INTRINSIC_INLINE static void resize(Container &cont,                         \
+                                                typename Container::size_type sz,        \
+                                                in_place_default_construct_t) {          \
+            __uninitialized_resize(cont, sz);                                            \
+        }                                                                                \
+    };                                                                                   \
+    template <>                                                                          \
+    struct append_fn_impl<Container> : append_fn_impl_base<Container> {                  \
+        using append_fn_impl_base<Container>::append;                                    \
+        WJR_INTRINSIC_INLINE static void append(Container &cont,                         \
+                                                typename Container::size_type sz,        \
+                                                in_place_default_construct_t) {          \
+            __uninitialized_resize(cont, cont.size() + sz);                              \
+        }                                                                                \
+    }
+#else
+#define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Container)
+#endif
+
+WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(string, std::string);
+
+namespace container_details {
 
 WJR_REGISTER_HAS_TYPE(container_resize,
-                      std::declval<Container>().resize(std::declval<Size>(),
-                                                       std::declval<Args>()...),
+                      resize_fn_impl<Container>::resize(std::declval<Container &>(),
+                                                        std::declval<Size>(),
+                                                        std::declval<Args>()...),
                       Container, Size);
 WJR_REGISTER_HAS_TYPE(container_reserve,
                       std::declval<Container>().reserve(std::declval<Size>()), Container,
                       Size);
 WJR_REGISTER_HAS_TYPE(container_append,
-                      std::declval<Container>().append(std::declval<Args>()...),
+                      append_fn_impl<Container>::append(std::declval<Container &>(),
+                                                        std::declval<Args>()...),
                       Container);
 WJR_REGISTER_HAS_TYPE(container_insert,
                       (std::declval<Container>().insert(
@@ -28,6 +220,55 @@ WJR_REGISTER_HAS_TYPE(container_insert,
                                                         std::declval<Args>()...)),
                       Container);
 
-} // namespace wjr::container_details
+} // namespace container_details
+
+template <typename T, typename = void>
+struct __container_traits_base_iterator_helper {
+    using iterator = T;
+};
+
+template <typename T>
+struct __container_traits_base_iterator_helper<T, std::void_t<typename T::iterator>> {
+    using iterator = typename T::iterator;
+};
+
+template <typename T, typename = void>
+struct __container_traits_base_size_type_helper {
+    using size_type = size_t;
+};
+
+template <typename T>
+struct __container_traits_base_size_type_helper<T, std::void_t<typename T::size_type>> {
+    using size_type = typename T::size_type;
+};
+
+template <typename Container>
+struct __container_traits_base {
+private:
+    using iterator =
+        typename __container_traits_base_iterator_helper<Container>::iterator;
+    using size_type =
+        typename __container_traits_base_size_type_helper<Container>::size_type;
+
+public:
+    constexpr static bool is_contiguous_v = is_contiguous_iterator_v<iterator>;
+
+    /**
+     * @details Trivially contiguous means that the container can be resized and then
+     * filled, and the result should be consistent with the element by element push_back
+     * result. It does not verify whether the element is trial. Because different
+     * containers may have different ways of constructing elements. The main purpose is
+     * for types like std::basic_string<CharT, Traits, Alloc>, and for unknown
+     * Traits, it should not be assumed that filling after resizing yields the same
+     * result as using Traits::copy.
+     *
+     */
+    constexpr static bool is_trivially_contiguous_v = false;
+};
+
+template <typename Container>
+struct container_traits;
+
+} // namespace wjr
 
 #endif // WJR_CONTAINER_GENERIC_DETAILS_HPP__

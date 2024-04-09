@@ -18,7 +18,7 @@ namespace wjr {
 
 template <typename T>
 WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) {
-    constexpr auto is_avx = WJR_PP_BOOL(WJR_HAS_SIMD(AVX2));
+    constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
 
     using simd = std::conditional_t<is_avx, avx, sse>;
     using simd_int = typename simd::int_type;

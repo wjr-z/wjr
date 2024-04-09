@@ -20,7 +20,7 @@ namespace wjr {
 template <typename T>
 WJR_COLD void large_builtin_set_n(T *dst, T val, size_t n) {
     constexpr auto nd = std::numeric_limits<T>::digits;
-    constexpr auto is_avx = WJR_PP_BOOL(WJR_HAS_SIMD(AVX2));
+    constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
 
     using simd = std::conditional_t<is_avx, avx, sse>;
     using simd_int = typename simd::int_type;
@@ -75,7 +75,7 @@ WJR_COLD void large_builtin_set_n(T *dst, T val, size_t n) {
 template <typename T>
 WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
     constexpr auto nd = std::numeric_limits<T>::digits;
-    constexpr auto is_avx = WJR_PP_BOOL(WJR_HAS_SIMD(AVX2));
+    constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
 
     using simd = std::conditional_t<is_avx, avx, sse>;
     using simd_int = typename simd::int_type;

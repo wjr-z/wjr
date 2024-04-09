@@ -21,19 +21,26 @@ constexpr T *to_address(T *p) noexcept {
     return p;
 }
 
-template <typename Ptr>
+template <typename Ptr,
+          std::enable_if_t<is_contiguous_iterator_v<remove_cvref_t<Ptr>>, int> = 0>
 constexpr auto to_address(const Ptr &p) noexcept {
     if constexpr (to_address_details::has_to_address_v<Ptr>) {
         return std::pointer_traits<Ptr>::to_address(p);
     } else {
-        return to_address(p.operator->());
+        return (to_address)(p.operator->());
     }
+}
+
+template <typename Iter,
+          std::enable_if_t<is_contiguous_iterator_v<std::move_iterator<Iter>>, int> = 0>
+constexpr auto to_address(const std::move_iterator<Iter> &p) noexcept {
+    return (to_address)(p.base());
 }
 
 template <typename T>
 constexpr decltype(auto) try_to_address(T &&t) noexcept {
     if constexpr (is_contiguous_iterator_v<remove_cvref_t<T>>) {
-        return to_address(std::forward<T>(t));
+        return (to_address)(std::forward<T>(t));
     } else {
         return std::forward<T>(t);
     }

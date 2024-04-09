@@ -3444,156 +3444,10 @@ inline constexpr __assert_handler_t __assert_handler{};
 #include <string>
 #include <vector>
 
-#ifndef WJR_CONTAINER_GENERIC_DETAILS_HPP__
-#define WJR_CONTAINER_GENERIC_DETAILS_HPP__
+#ifndef WJR_STRING_HPP__
+#define WJR_STRING_HPP__
 
-// Already included
-
-namespace wjr::container_details {
-
-WJR_REGISTER_HAS_TYPE(container_begin, std::declval<Container>().begin(), Container);
-WJR_REGISTER_HAS_TYPE(container_cbegin, std::declval<Container>().cbegin(), Container);
-WJR_REGISTER_HAS_TYPE(container_end, std::declval<Container>().end(), Container);
-WJR_REGISTER_HAS_TYPE(container_cend, std::declval<Container>().cend(), Container);
-WJR_REGISTER_HAS_TYPE(container_size, std::declval<Container>().size(), Container);
-
-WJR_REGISTER_HAS_TYPE(container_resize,
-                      std::declval<Container>().resize(std::declval<Size>(),
-                                                       std::declval<Args>()...),
-                      Container, Size);
-WJR_REGISTER_HAS_TYPE(container_reserve,
-                      std::declval<Container>().reserve(std::declval<Size>()), Container,
-                      Size);
-WJR_REGISTER_HAS_TYPE(container_append,
-                      std::declval<Container>().append(std::declval<Args>()...),
-                      Container);
-WJR_REGISTER_HAS_TYPE(container_insert,
-                      (std::declval<Container>().insert(
-                           std::declval<Container>().cbegin(), std::declval<Args>()...),
-                       std::declval<Container>().insert(std::declval<Container>().cend(),
-                                                        std::declval<Args>()...)),
-                      Container);
-
-} // namespace wjr::container_details
-
-#endif // WJR_CONTAINER_GENERIC_DETAILS_HPP__
-#ifndef WJR_ITERATOR_DETAILS_HPP__
-#define WJR_ITERATOR_DETAILS_HPP__
-
-// Already included
-
-namespace wjr {
-
-template <typename Iter>
-using iterator_difference_t = typename std::iterator_traits<Iter>::difference_type;
-
-template <typename Iter>
-using iterator_value_t = typename std::iterator_traits<Iter>::value_type;
-
-template <typename Iter>
-using iterator_reference_t = typename std::iterator_traits<Iter>::reference;
-
-template <typename Iter>
-using iterator_pointer_t = typename std::iterator_traits<Iter>::pointer;
-
-template <typename Iter>
-using iterator_category_t = typename std::iterator_traits<Iter>::iterator_category;
-
-template <typename Iter, typename = void>
-struct __is_iterator_impl : std::false_type {};
-
-template <typename Iter>
-struct __is_iterator_impl<
-    Iter, std::void_t<typename std::iterator_traits<Iter>::iterator_category>>
-    : std::true_type {};
-
-template <typename Iter>
-struct is_iterator : __is_iterator_impl<Iter> {};
-
-template <typename Iter>
-inline constexpr bool is_iterator_v = is_iterator<Iter>::value;
-
-template <typename Iter, typename Category, typename = void>
-struct __is_category_iterator_impl : std::false_type {};
-
-template <typename Iter, typename Category>
-struct __is_category_iterator_impl<
-    Iter, Category, std::void_t<typename std::iterator_traits<Iter>::iterator_category>>
-    : std::is_base_of<Category, iterator_category_t<Iter>> {};
-
-template <typename Iter>
-struct is_input_iterator : __is_category_iterator_impl<Iter, std::input_iterator_tag> {};
-
-template <typename Iter>
-inline constexpr bool is_input_iterator_v = is_input_iterator<Iter>::value;
-
-template <typename Iter>
-struct is_output_iterator : __is_category_iterator_impl<Iter, std::output_iterator_tag> {
-};
-
-template <typename Iter>
-inline constexpr bool is_output_iterator_v = is_output_iterator<Iter>::value;
-
-template <typename Iter>
-struct is_forward_iterator
-    : __is_category_iterator_impl<Iter, std::forward_iterator_tag> {};
-
-template <typename Iter>
-inline constexpr bool is_forward_iterator_v = is_forward_iterator<Iter>::value;
-
-template <typename Iter>
-struct is_bidirectional_iterator
-    : __is_category_iterator_impl<Iter, std::bidirectional_iterator_tag> {};
-
-template <typename Iter>
-inline constexpr bool is_bidirectional_iterator_v =
-    is_bidirectional_iterator<Iter>::value;
-
-template <typename Iter>
-struct is_random_access_iterator
-    : __is_category_iterator_impl<Iter, std::random_access_iterator_tag> {};
-
-template <typename Iter>
-inline constexpr bool is_random_access_iterator_v =
-    is_random_access_iterator<Iter>::value;
-
-template <typename Iter, typename = void>
-struct __is_contiguous_iterator_impl
-    : std::disjunction<std::is_pointer<Iter>, std::is_array<Iter>> {};
-
-/**
- * @details If iterator's value_type is trivial, then move_iterator<Iter> is same as Iter.
- *
- */
-template <typename Iter>
-struct __is_contiguous_iterator_impl<std::move_iterator<Iter>, void>
-    : std::conjunction<__is_contiguous_iterator_impl<Iter>,
-                       std::is_trivial<iterator_value_t<Iter>>> {};
-
-#if defined(WJR_CPP_20)
-template <typename Iter>
-struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};
-
-template <std::contiguous_iterator Iter>
-struct is_contiguous_iterator<Iter> : std::true_type {};
-#else
-template <typename Iter>
-struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};
-#endif
-
-template <typename Iter>
-inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;
-
-template <typename Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, int> = 0>
-using iterator_contiguous_value_t = std::remove_reference_t<iterator_reference_t<Iter>>;
-
-template <typename Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, int> = 0>
-using iterator_contiguous_pointer_t =
-    std::add_pointer_t<iterator_contiguous_value_t<Iter>>;
-
-} // namespace wjr
-
-#endif // WJR_ITERATOR_DETAILS_HPP__
+#endif // WJR_STRING_HPP__
 #ifndef WJR_VECTOR_HPP__
 #define WJR_VECTOR_HPP__
 
@@ -3751,7 +3605,123 @@ public:
 } // namespace wjr
 
 #endif // WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP__
+#ifndef WJR_ITERATOR_DETAILS_HPP__
+#define WJR_ITERATOR_DETAILS_HPP__
+
 // Already included
+
+namespace wjr {
+
+template <typename Iter>
+using iterator_difference_t = typename std::iterator_traits<Iter>::difference_type;
+
+template <typename Iter>
+using iterator_value_t = typename std::iterator_traits<Iter>::value_type;
+
+template <typename Iter>
+using iterator_reference_t = typename std::iterator_traits<Iter>::reference;
+
+template <typename Iter>
+using iterator_pointer_t = typename std::iterator_traits<Iter>::pointer;
+
+template <typename Iter>
+using iterator_category_t = typename std::iterator_traits<Iter>::iterator_category;
+
+template <typename Iter, typename = void>
+struct __is_iterator_impl : std::false_type {};
+
+template <typename Iter>
+struct __is_iterator_impl<
+    Iter, std::void_t<typename std::iterator_traits<Iter>::iterator_category>>
+    : std::true_type {};
+
+template <typename Iter>
+struct is_iterator : __is_iterator_impl<Iter> {};
+
+template <typename Iter>
+inline constexpr bool is_iterator_v = is_iterator<Iter>::value;
+
+template <typename Iter, typename Category, typename = void>
+struct __is_category_iterator_impl : std::false_type {};
+
+template <typename Iter, typename Category>
+struct __is_category_iterator_impl<
+    Iter, Category, std::void_t<typename std::iterator_traits<Iter>::iterator_category>>
+    : std::is_base_of<Category, iterator_category_t<Iter>> {};
+
+template <typename Iter>
+struct is_input_iterator : __is_category_iterator_impl<Iter, std::input_iterator_tag> {};
+
+template <typename Iter>
+inline constexpr bool is_input_iterator_v = is_input_iterator<Iter>::value;
+
+template <typename Iter>
+struct is_output_iterator : __is_category_iterator_impl<Iter, std::output_iterator_tag> {
+};
+
+template <typename Iter>
+inline constexpr bool is_output_iterator_v = is_output_iterator<Iter>::value;
+
+template <typename Iter>
+struct is_forward_iterator
+    : __is_category_iterator_impl<Iter, std::forward_iterator_tag> {};
+
+template <typename Iter>
+inline constexpr bool is_forward_iterator_v = is_forward_iterator<Iter>::value;
+
+template <typename Iter>
+struct is_bidirectional_iterator
+    : __is_category_iterator_impl<Iter, std::bidirectional_iterator_tag> {};
+
+template <typename Iter>
+inline constexpr bool is_bidirectional_iterator_v =
+    is_bidirectional_iterator<Iter>::value;
+
+template <typename Iter>
+struct is_random_access_iterator
+    : __is_category_iterator_impl<Iter, std::random_access_iterator_tag> {};
+
+template <typename Iter>
+inline constexpr bool is_random_access_iterator_v =
+    is_random_access_iterator<Iter>::value;
+
+template <typename Iter, typename = void>
+struct __is_contiguous_iterator_impl
+    : std::disjunction<std::is_pointer<Iter>, std::is_array<Iter>> {};
+
+/**
+ * @details If iterator's value_type is trivial, then move_iterator<Iter> is same as Iter.
+ *
+ */
+template <typename Iter>
+struct __is_contiguous_iterator_impl<std::move_iterator<Iter>, void>
+    : std::conjunction<__is_contiguous_iterator_impl<Iter>,
+                       std::is_trivial<iterator_value_t<Iter>>> {};
+
+#if defined(WJR_CPP_20)
+template <typename Iter>
+struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};
+
+template <std::contiguous_iterator Iter>
+struct is_contiguous_iterator<Iter> : std::true_type {};
+#else
+template <typename Iter>
+struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};
+#endif
+
+template <typename Iter>
+inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;
+
+template <typename Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, int> = 0>
+using iterator_contiguous_value_t = std::remove_reference_t<iterator_reference_t<Iter>>;
+
+template <typename Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, int> = 0>
+using iterator_contiguous_pointer_t =
+    std::add_pointer_t<iterator_contiguous_value_t<Iter>>;
+
+} // namespace wjr
+
+#endif // WJR_ITERATOR_DETAILS_HPP__
 #ifndef WJR_MATH_DETAILS_HPP__
 #define WJR_MATH_DETAILS_HPP__
 
@@ -4405,25 +4375,217 @@ WJR_CONST constexpr U __fasts_conditional_negate(bool condition, T x) {
 #ifndef WJR_CONTAINER_GENERIC_DETAILS_HPP__
 #define WJR_CONTAINER_GENERIC_DETAILS_HPP__
 
+#include <string>
+
 // Already included
 
-namespace wjr::container_details {
+namespace wjr {
 
-WJR_REGISTER_HAS_TYPE(container_begin, std::declval<Container>().begin(), Container);
-WJR_REGISTER_HAS_TYPE(container_cbegin, std::declval<Container>().cbegin(), Container);
-WJR_REGISTER_HAS_TYPE(container_end, std::declval<Container>().end(), Container);
-WJR_REGISTER_HAS_TYPE(container_cend, std::declval<Container>().cend(), Container);
-WJR_REGISTER_HAS_TYPE(container_size, std::declval<Container>().size(), Container);
+namespace container_details {
+
+WJR_REGISTER_HAS_TYPE(container_begin,
+                      std::begin(std::declval<std::add_lvalue_reference_t<Container>>()),
+                      Container);
+WJR_REGISTER_HAS_TYPE(container_cbegin,
+                      std::cbegin(std::declval<std::add_lvalue_reference_t<Container>>()),
+                      Container);
+WJR_REGISTER_HAS_TYPE(container_end,
+                      std::end(std::declval<std::add_lvalue_reference_t<Container>>()),
+                      Container);
+WJR_REGISTER_HAS_TYPE(container_cend,
+                      std::cend(std::declval<std::add_lvalue_reference_t<Container>>()),
+                      Container);
+WJR_REGISTER_HAS_TYPE(container_size,
+                      std::size(std::declval<std::add_lvalue_reference_t<Container>>()),
+                      Container);
+
+WJR_REGISTER_HAS_TYPE(__container_resize,
+                      std::declval<std::add_lvalue_reference_t<Container>>().resize(
+                          std::declval<Size>(), std::declval<Args>()...),
+                      Container, Size);
+WJR_REGISTER_HAS_TYPE(__container_append,
+                      std::declval<Container>().append(std::declval<Args>()...),
+                      Container);
+
+} // namespace container_details
+
+template <typename Container>
+struct resize_fn_impl_base {
+    template <
+        typename... Args,
+        std::enable_if_t<container_details::has___container_resize_v<Container, Args...>,
+                         int> = 0>
+    WJR_INTRINSIC_INLINE static void resize(Container &cont, Args &&...args) {
+        cont.resize(std::forward<Args>(args)...);
+    }
+};
+
+template <typename Container>
+struct resize_fn_impl : resize_fn_impl_base<Container> {};
+
+struct resize_fn {
+    template <typename Container, typename... Args>
+    WJR_INTRINSIC_INLINE void operator()(Container &cont, Args &&...args) const {
+        resize_fn_impl<Container>::resize(cont, std::forward<Args>(args)...);
+    }
+};
+
+inline constexpr resize_fn resize{};
+
+template <typename Container>
+struct append_fn_impl_base {
+    template <
+        typename... Args,
+        std::enable_if_t<container_details::has___container_append_v<Container, Args...>,
+                         int> = 0>
+    WJR_INTRINSIC_INLINE static void append(Container &cont, Args &&...args) {
+        cont.append(std::forward<Args>(args)...);
+    }
+};
+
+template <typename Container>
+struct append_fn_impl : append_fn_impl_base<Container> {};
+
+struct append_fn {
+    template <typename Container, typename... Args>
+    WJR_INTRINSIC_INLINE void operator()(Container &cont, Args &&...args) const {
+        append_fn_impl<Container>::append(cont, std::forward<Args>(args)...);
+    }
+};
+
+inline constexpr append_fn append{};
+
+#define WJR_HAS_FEATURE_STRING_UNINITIALIZED_RESIZE WJR_HAS_DEF
+
+#if __cpp_lib_string_resize_and_overwrite >= 202110L
+template <typename CharT, typename Traits, typename Alloc>
+WJR_INTRINSIC_INLINE void
+__uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
+                       typename std::basic_string<CharT, Traits, Alloc>::size_type sz) {
+    str.resize_and_overwrite(sz, [](char *, Size sz) { return sz; });
+}
+
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(NAME, Container)
+
+#elif (defined(__clang_major__) && __clang_major__ <= 11) ||                             \
+    (defined(_MSC_VER) && _MSC_VER <= 1920)
+#undef WJR_HAS_FEATURE_STRING_UNINITIALIZED_RESIZE
+#elif defined(__GLIBCXX__) || defined(_LIBCPP_VERSION) || defined(_MSVC_STL_VERSION)
+
+template <typename Container>
+void string_set_length_hacker(Container &bank, typename Container::size_type sz);
+
+#if defined(__GLIBCXX__) || defined(_LIBCPP_VERSION)
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container)                \
+    inline void WJR_PP_CONCAT(string_set_length_hacker_of_,                              \
+                              NAME)(Container & bank, typename Container::size_type sz); \
+    template <typename Money_t, Money_t Container::*p>                                   \
+    class WJR_PP_CONCAT(string_thief_of_, NAME) {                                        \
+    public:                                                                              \
+        friend void WJR_PP_CONCAT(string_set_length_hacker_of_,                          \
+                                  NAME)(Container & bank,                                \
+                                        typename Container::size_type sz) {              \
+            (bank.*p)(sz);                                                               \
+        }                                                                                \
+    };                                                                                   \
+    template <>                                                                          \
+    inline void string_set_length_hacker<Container>(Container & bank,                    \
+                                                    typename Container::size_type sz) {  \
+        WJR_PP_CONCAT(string_set_length_hacker_of_, NAME)(bank, sz);                     \
+    }
+#else
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container)                \
+    inline void WJR_PP_CONCAT(string_set_length_hacker_of_,                              \
+                              NAME)(Container & bank, typename Container::size_type sz); \
+    template <typename Money_t, Money_t Container::*p>                                   \
+    class WJR_PP_CONCAT(string_thief_of_, NAME) {                                        \
+    public:                                                                              \
+        friend void WJR_PP_CONCAT(string_set_length_hacker_of_,                          \
+                                  NAME)(Container & bank,                                \
+                                        typename Container::size_type sz) {              \
+            (bank.*p)._Myval2._Mysize = sz;                                              \
+        }                                                                                \
+    };                                                                                   \
+    template <>                                                                          \
+    inline void string_set_length_hacker<Container>(Container & bank,                    \
+                                                    typename Container::size_type sz) {  \
+        WJR_PP_CONCAT(string_set_length_hacker_of_, NAME)(bank, sz);                     \
+    }
+#endif
+
+#if defined(__GLIBCXX__)
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(NAME, Container)             \
+    __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container);                   \
+    template class WJR_PP_CONCAT(                                                        \
+        string_thief_of_, NAME)<void(Container::size_type), &Container::_M_set_length>
+#elif defined(_LIBCPP_VERSION)
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(NAME, Container)             \
+    __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container);                   \
+    template class WJR_PP_CONCAT(                                                        \
+        string_thief_of_, NAME)<void(Container::size_type), &Container::__set_size>
+#else
+#define __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(NAME, Container)             \
+    __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_CLASS(NAME, Container);                   \
+    template class WJR_PP_CONCAT(                                                        \
+        string_thief_of_, NAME)<decltype(Container::_Mypair), &Container::_Mypair>
+#endif
+
+template <typename CharT, typename Traits, typename Alloc>
+WJR_INTRINSIC_INLINE void
+__uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
+                       typename std::basic_string<CharT, Traits, Alloc>::size_type sz) {
+    str.reserve(sz);
+    string_set_length_hacker(str, sz);
+    WJR_ASSERT_L1(str.size() == sz);
+    str[sz] = '\0';
+}
+
+#else
+#undef WJR_HAS_FEATURE_STRING_UNINITIALIZED_RESIZE
+#define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Container)
+#endif
+
+#if WJR_HAS_FEATURE(STRING_UNINITIALIZED_RESIZE)
+
+#define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Name, Container)                        \
+    __WJR_REGISTER_STRING_UNINITIALIZED_RESIZE_TEMPLATE(Name, Container);                \
+    template <>                                                                          \
+    struct resize_fn_impl<Container> : resize_fn_impl_base<Container> {                  \
+        using resize_fn_impl_base<Container>::resize;                                    \
+        WJR_INTRINSIC_INLINE static void resize(Container &cont,                         \
+                                                typename Container::size_type sz,        \
+                                                in_place_default_construct_t) {          \
+            __uninitialized_resize(cont, sz);                                            \
+        }                                                                                \
+    };                                                                                   \
+    template <>                                                                          \
+    struct append_fn_impl<Container> : append_fn_impl_base<Container> {                  \
+        using append_fn_impl_base<Container>::append;                                    \
+        WJR_INTRINSIC_INLINE static void append(Container &cont,                         \
+                                                typename Container::size_type sz,        \
+                                                in_place_default_construct_t) {          \
+            __uninitialized_resize(cont, cont.size() + sz);                              \
+        }                                                                                \
+    }
+#else
+#define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Container)
+#endif
+
+WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(string, std::string);
+
+namespace container_details {
 
 WJR_REGISTER_HAS_TYPE(container_resize,
-                      std::declval<Container>().resize(std::declval<Size>(),
-                                                       std::declval<Args>()...),
+                      resize_fn_impl<Container>::resize(std::declval<Container &>(),
+                                                        std::declval<Size>(),
+                                                        std::declval<Args>()...),
                       Container, Size);
 WJR_REGISTER_HAS_TYPE(container_reserve,
                       std::declval<Container>().reserve(std::declval<Size>()), Container,
                       Size);
 WJR_REGISTER_HAS_TYPE(container_append,
-                      std::declval<Container>().append(std::declval<Args>()...),
+                      append_fn_impl<Container>::append(std::declval<Container &>(),
+                                                        std::declval<Args>()...),
                       Container);
 WJR_REGISTER_HAS_TYPE(container_insert,
                       (std::declval<Container>().insert(
@@ -4432,7 +4594,56 @@ WJR_REGISTER_HAS_TYPE(container_insert,
                                                         std::declval<Args>()...)),
                       Container);
 
-} // namespace wjr::container_details
+} // namespace container_details
+
+template <typename T, typename = void>
+struct __container_traits_base_iterator_helper {
+    using iterator = T;
+};
+
+template <typename T>
+struct __container_traits_base_iterator_helper<T, std::void_t<typename T::iterator>> {
+    using iterator = typename T::iterator;
+};
+
+template <typename T, typename = void>
+struct __container_traits_base_size_type_helper {
+    using size_type = size_t;
+};
+
+template <typename T>
+struct __container_traits_base_size_type_helper<T, std::void_t<typename T::size_type>> {
+    using size_type = typename T::size_type;
+};
+
+template <typename Container>
+struct __container_traits_base {
+private:
+    using iterator =
+        typename __container_traits_base_iterator_helper<Container>::iterator;
+    using size_type =
+        typename __container_traits_base_size_type_helper<Container>::size_type;
+
+public:
+    constexpr static bool is_contiguous_v = is_contiguous_iterator_v<iterator>;
+
+    /**
+     * @details Trivially contiguous means that the container can be resized and then
+     * filled, and the result should be consistent with the element by element push_back
+     * result. It does not verify whether the element is trial. Because different
+     * containers may have different ways of constructing elements. The main purpose is
+     * for types like std::basic_string<CharT, Traits, Alloc>, and for unknown
+     * Traits, it should not be assumed that filling after resizing yields the same
+     * result as using Traits::copy.
+     *
+     */
+    constexpr static bool is_trivially_contiguous_v = false;
+};
+
+template <typename Container>
+struct container_traits;
+
+} // namespace wjr
 
 #endif // WJR_CONTAINER_GENERIC_DETAILS_HPP__
 #ifndef WJR_ITERATOR_INSERTER_HPP__
@@ -4536,19 +4747,26 @@ constexpr T *to_address(T *p) noexcept {
     return p;
 }
 
-template <typename Ptr>
+template <typename Ptr,
+          std::enable_if_t<is_contiguous_iterator_v<remove_cvref_t<Ptr>>, int> = 0>
 constexpr auto to_address(const Ptr &p) noexcept {
     if constexpr (to_address_details::has_to_address_v<Ptr>) {
         return std::pointer_traits<Ptr>::to_address(p);
     } else {
-        return to_address(p.operator->());
+        return (to_address)(p.operator->());
     }
+}
+
+template <typename Iter,
+          std::enable_if_t<is_contiguous_iterator_v<std::move_iterator<Iter>>, int> = 0>
+constexpr auto to_address(const std::move_iterator<Iter> &p) noexcept {
+    return (to_address)(p.base());
 }
 
 template <typename T>
 constexpr decltype(auto) try_to_address(T &&t) noexcept {
     if constexpr (is_contiguous_iterator_v<remove_cvref_t<T>>) {
-        return to_address(std::forward<T>(t));
+        return (to_address)(std::forward<T>(t));
     } else {
         return std::forward<T>(t);
     }
@@ -4702,7 +4920,7 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
         if constexpr (is_back_insert_iterator_v<Out>) {
             if constexpr (container_details::has_container_append_v<Container, InputIt,
                                                                     InputIt>) {
-                get_inserter_container(d_first).append(first, last);
+                append(get_inserter_container(d_first), first, last);
                 return d_first;
             } else if constexpr (container_details::has_container_insert_v<
                                      Container, InputIt, InputIt>) {
@@ -4745,7 +4963,7 @@ constexpr OutputIt copy_restrict(InputIt first, InputIt last, OutputIt d_first) 
     const auto __first = try_to_address(std::move(first));
     const auto __last = try_to_address(std::move(last));
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
-        const auto __d_first = to_address(d_first);
+        const auto __d_first = (to_address)(d_first);
         const auto __d_last = __copy_restrict_impl(__first, __last, __d_first);
         return std::next(d_first, std::distance(__d_first, __d_last));
     } else {
@@ -4770,7 +4988,7 @@ constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
         if constexpr (is_back_insert_iterator_v<Out>) {
             if constexpr (container_details::has_container_append_v<Container, InputIt,
                                                                     InputIt>) {
-                get_inserter_container(d_first).append(first, std::next(first, count));
+                append(get_inserter_container(d_first), first, std::next(first, count));
                 return d_first;
             } else if constexpr (container_details::has_container_insert_v<
                                      Container, InputIt, InputIt>) {
@@ -4811,7 +5029,7 @@ template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt copy_n_restrict(InputIt first, Size count, OutputIt d_first) {
     const auto __first = try_to_address(std::move(first));
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
-        const auto __d_first = to_address(d_first);
+        const auto __d_first = (to_address)(d_first);
         const auto __d_last = __copy_n_restrict_impl(__first, count, __d_first);
         return std::next(d_first, std::distance(__d_first, __d_last));
     } else {
@@ -4870,10 +5088,10 @@ WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &a
                                                              Args &&...args) {
     if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
         using value_type = typename std::iterator_traits<Iter>::value_type;
-        ::new (static_cast<void *>(to_address(iter)))
+        ::new (static_cast<void *>((to_address)(iter)))
             value_type(std::forward<Args>(args)...);
     } else {
-        std::allocator_traits<Alloc>::construct(alloc, to_address(iter),
+        std::allocator_traits<Alloc>::construct(alloc, (to_address)(iter),
                                                 std::forward<Args>(args)...);
     }
 }
@@ -4886,7 +5104,7 @@ WJR_CONSTEXPR20 OutputIt uninitialized_copy_using_allocator(InputIt first, Input
         return std::uninitialized_copy(first, last, d_first);
     } else {
         for (; first != last; ++first, ++d_first) {
-            std::allocator_traits<Alloc>::construct(alloc, to_address(d_first), *first);
+            std::allocator_traits<Alloc>::construct(alloc, (to_address)(d_first), *first);
         }
         return d_first;
     }
@@ -4915,7 +5133,7 @@ WJR_CONSTEXPR20 OutputIt uninitialized_copy_restrict_using_allocator(InputIt fir
     const auto __first = try_to_address(first);
     const auto __last = try_to_address(last);
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
-        const auto __d_first = to_address(d_first);
+        const auto __d_first = (to_address)(d_first);
         const auto __d_last = __uninitialized_copy_restrict_using_allocator_impl(
             __first, __last, __d_first, alloc);
         return std::next(d_first, std::distance(__d_first, __d_last));
@@ -4933,7 +5151,7 @@ WJR_CONSTEXPR20 OutputIt uninitialized_copy_n_using_allocator(InputIt first, Siz
         return std::uninitialized_copy_n(first, n, d_first);
     } else {
         for (; n > 0; ++first, ++d_first, --n) {
-            std::allocator_traits<Alloc>::construct(alloc, to_address(d_first), *first);
+            std::allocator_traits<Alloc>::construct(alloc, (to_address)(d_first), *first);
         }
         return d_first;
     }
@@ -4961,7 +5179,7 @@ WJR_CONSTEXPR20 OutputIt uninitialized_copy_n_restrict_using_allocator(InputIt f
                                                                        Alloc &alloc) {
     const auto __first = try_to_address(first);
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
-        const auto __d_first = to_address(d_first);
+        const auto __d_first = (to_address)(d_first);
         const auto __d_last = __uninitialized_copy_n_restrict_using_allocator_impl(
             __first, n, __d_first, alloc);
         return std::next(d_first, std::distance(__d_first, __d_last));
@@ -5014,7 +5232,7 @@ uninitialized_default_construct_using_allocator(Iter first, Iter last, Alloc &al
         using value_type = typename std::iterator_traits<Iter>::value_type;
         if constexpr (!std::is_trivially_default_constructible_v<value_type>) {
             for (; first != last; ++first) {
-                std::allocator_traits<Alloc>::construct(alloc, to_address(first),
+                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first),
                                                         value_type());
             }
         }
@@ -5030,7 +5248,7 @@ WJR_CONSTEXPR20 void uninitialized_default_construct_n_using_allocator(Iter firs
         using value_type = typename std::iterator_traits<Iter>::value_type;
         if constexpr (!std::is_trivially_default_constructible_v<value_type>) {
             for (; n > 0; ++first, --n) {
-                std::allocator_traits<Alloc>::construct(alloc, to_address(first),
+                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first),
                                                         value_type());
             }
         }
@@ -5045,7 +5263,7 @@ WJR_CONSTEXPR20 void uninitialized_value_construct_using_allocator(Iter first, I
     } else {
         using value_type = typename std::iterator_traits<Iter>::value_type;
         for (; first != last; ++first) {
-            std::allocator_traits<Alloc>::construct(alloc, to_address(first),
+            std::allocator_traits<Alloc>::construct(alloc, (to_address)(first),
                                                     value_type());
         }
     }
@@ -5059,7 +5277,7 @@ WJR_CONSTEXPR20 void uninitialized_value_construct_n_using_allocator(Iter first,
     } else {
         using value_type = typename std::iterator_traits<Iter>::value_type;
         for (; n > 0; ++first, --n) {
-            std::allocator_traits<Alloc>::construct(alloc, to_address(first),
+            std::allocator_traits<Alloc>::construct(alloc, (to_address)(first),
                                                     value_type());
         }
     }
@@ -5083,7 +5301,7 @@ WJR_CONSTEXPR20 void uninitialized_fill_using_allocator(Iter first, Iter last,
             std::uninitialized_fill(first, last, value);
         } else {
             for (; first != last; ++first) {
-                std::allocator_traits<Alloc>::construct(alloc, to_address(first), value);
+                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first), value);
             }
         }
     }
@@ -5107,7 +5325,7 @@ WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n,
             std::uninitialized_fill_n(first, n, value);
         } else {
             for (; n > 0; ++first, --n) {
-                std::allocator_traits<Alloc>::construct(alloc, to_address(first), value);
+                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first), value);
             }
         }
     }
@@ -5116,9 +5334,9 @@ WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n,
 template <typename Iter, typename Alloc>
 WJR_CONSTEXPR20 void destroy_at_using_allocator(Iter iter, Alloc &alloc) {
     if constexpr (is_trivially_allocator_destructible_v<Alloc>) {
-        std::destroy_at(to_address(iter));
+        std::destroy_at((to_address)(iter));
     } else {
-        std::allocator_traits<Alloc>::destroy(alloc, to_address(iter));
+        std::allocator_traits<Alloc>::destroy(alloc, (to_address)(iter));
     }
 }
 
@@ -5128,7 +5346,7 @@ WJR_CONSTEXPR20 void destroy_using_allocator(Iter first, Iter last, Alloc &alloc
         std::destroy(first, last);
     } else {
         for (; first != last; ++first) {
-            std::allocator_traits<Alloc>::destroy(alloc, to_address(first));
+            std::allocator_traits<Alloc>::destroy(alloc, (to_address)(first));
         }
     }
 }
@@ -5139,7 +5357,7 @@ WJR_CONSTEXPR20 void destroy_n_using_allocator(Iter first, Size n, Alloc &alloc)
         std::destroy_n(first, n);
     } else {
         for (; n > 0; ++first, --n) {
-            std::allocator_traits<Alloc>::destroy(alloc, to_address(first));
+            std::allocator_traits<Alloc>::destroy(alloc, (to_address)(first));
         }
     }
 }
@@ -7221,57 +7439,6 @@ bool operator>=(const basic_vector<Storage> &lhs, const basic_vector<Storage> &r
 #endif // WJR_VECTOR_HPP__
 
 namespace wjr {
-
-template <typename T, typename = void>
-struct __container_traits_base_iterator_helper {
-    using iterator = T;
-};
-
-template <typename T>
-struct __container_traits_base_iterator_helper<T, std::void_t<typename T::iterator>> {
-    using iterator = typename T::iterator;
-};
-
-template <typename T, typename = void>
-struct __container_traits_base_size_type_helper {
-    using size_type = size_t;
-};
-
-template <typename T>
-struct __container_traits_base_size_type_helper<T, std::void_t<typename T::size_type>> {
-    using size_type = typename T::size_type;
-};
-
-template <typename Container>
-struct __container_traits_base {
-private:
-    using iterator =
-        typename __container_traits_base_iterator_helper<Container>::iterator;
-    using size_type =
-        typename __container_traits_base_size_type_helper<Container>::size_type;
-
-public:
-    constexpr static bool is_contiguous_v = is_contiguous_iterator_v<iterator>;
-
-    /**
-     * @details For std::basic_string<CharT, Tratis, Alloc>, if Traits =
-     * std::char_traits<CharT>, then is trivially contiguous, otherwise can't
-     * copy/construct as trivial.
-     *
-     */
-    constexpr static bool is_trivially_contiguous_v = false;
-
-    template <typename... Args>
-    constexpr static bool is_resize_v =
-        container_details::has_container_resize_v<Container, size_type, Args...>;
-
-    constexpr static bool is_reserve_v =
-        container_details::has_container_reserve_v<Container, size_type>;
-
-    template <typename... Args>
-    constexpr static bool is_append_v =
-        container_details::has_container_append_v<Container, Args...>;
-};
 
 template <typename Container>
 struct container_traits : __container_traits_base<Container> {};
@@ -13594,7 +13761,7 @@ namespace wjr {
 template <typename T>
 WJR_COLD void large_builtin_set_n(T *dst, T val, size_t n) {
     constexpr auto nd = std::numeric_limits<T>::digits;
-    constexpr auto is_avx = WJR_PP_BOOL(WJR_HAS_SIMD(AVX2));
+    constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
 
     using simd = std::conditional_t<is_avx, avx, sse>;
     using simd_int = typename simd::int_type;
@@ -13649,7 +13816,7 @@ WJR_COLD void large_builtin_set_n(T *dst, T val, size_t n) {
 template <typename T>
 WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
     constexpr auto nd = std::numeric_limits<T>::digits;
-    constexpr auto is_avx = WJR_PP_BOOL(WJR_HAS_SIMD(AVX2));
+    constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
 
     using simd = std::conditional_t<is_avx, avx, sse>;
     using simd_int = typename simd::int_type;
@@ -23257,15 +23424,17 @@ private:
 
 public:
     static constexpr int value =
-        traits_type::is_trivially_contiguous_v && traits_type::template is_resize_v<>
-            ? (traits_type::template is_resize_v<wjr::in_place_default_construct_t> ? 2
-                                                                                    : 1)
+        traits_type::is_trivially_contiguous_v &&
+                container_details::has_container_resize_v<Container, size_t>
+            ? (container_details::has_container_resize_v<Container, size_t,
+                                                         in_place_default_construct_t>
+                   ? 2
+                   : 1)
             : 0;
 
-    static_assert(
-        value != 2 ||
-            traits_type::template is_append_v<size_t, wjr::in_place_default_construct_t>,
-        "");
+    static_assert(value != 2 || container_details::has_container_append_v<
+                                    Container, size_t, in_place_default_construct_t>,
+                  "");
 };
 
 template <typename Iter, typename = void>
@@ -24089,7 +24258,7 @@ uint8_t *__fast_to_chars_backward_unchecked_impl(uint8_t *ptr, Value val, IBase 
 template <typename Iter, typename Value, typename IBase, typename Converter>
 Iter __to_chars_backward_unchecked_impl(Iter first, Value val, IBase ibase,
                                         Converter conv) {
-    const auto __ptr = reinterpret_cast<uint8_t *>(to_address(first));
+    const auto __ptr = reinterpret_cast<uint8_t *>((to_address)(first));
     const auto __end = __fast_to_chars_backward_unchecked_impl(__ptr, val, ibase, conv);
     return first + std::distance(__ptr, __end);
 }
@@ -24360,8 +24529,8 @@ template <typename Iter, typename Value, typename IBase, typename Converter>
 to_chars_result<Iter> __to_chars_impl(Iter first, Iter last, Value val, IBase ibase,
                                       Converter conv) {
     if constexpr (convert_details::__is_fast_convert_iterator_v<Iter>) {
-        const auto __first = reinterpret_cast<uint8_t *>(to_address(first));
-        const auto __last = reinterpret_cast<uint8_t *>(to_address(last));
+        const auto __first = reinterpret_cast<uint8_t *>((to_address)(first));
+        const auto __last = reinterpret_cast<uint8_t *>((to_address)(last));
         const auto __result = __fast_to_chars_impl(__first, __last, val, ibase, conv);
         return {first + std::distance(__first, __result.ptr), __result.ec};
     } else {
@@ -24459,11 +24628,11 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
         WJR_PP_BOOL_IF(WJR_PP_EQ(BASE, 10), const int n = count_digits<10>(uVal), );     \
         auto &cont = get_inserter_container(ptr);                                        \
         if constexpr (__fast_container_inserter_v == 1) {                                \
-            cont.resize(cont.size() + n + sign);                                         \
+            resize(cont, cont.size() + n + sign);                                        \
         } else {                                                                         \
-            cont.append(n + sign, in_place_default_construct);                           \
+            append(cont, n + sign, in_place_default_construct);                          \
         }                                                                                \
-        const auto __end = to_address(cont.data() + cont.size());                        \
+        const auto __end = (to_address)(cont.data() + cont.size());                      \
         auto __ptr = (convert_details::fast_buffer_t<Iter> *)                            \
             __unsigned_to_chars_backward_unchecked<BASE>(                                \
                 (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \
@@ -24525,7 +24694,7 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
 template <typename Iter, typename Value, typename IBase, typename Converter>
 Iter __to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase, Converter conv) {
     if constexpr (convert_details::__is_fast_convert_iterator_v<Iter>) {
-        const auto __ptr = reinterpret_cast<uint8_t *>(to_address(ptr));
+        const auto __ptr = reinterpret_cast<uint8_t *>((to_address)(ptr));
         const auto __result = __fast_to_chars_unchecked_impl(__ptr, val, ibase, conv);
         return ptr + std::distance(__ptr, __result);
     } else {
@@ -25067,17 +25236,17 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
         auto &cont = get_inserter_container(ptr);                                        \
         const auto __presize = cont.size();                                              \
         if constexpr (__fast_container_inserter_v == 1) {                                \
-            cont.resize(__presize + SIZE);                                               \
+            resize(cont, __presize + SIZE);                                              \
         } else {                                                                         \
-            cont.append(SIZE, in_place_default_construct);                               \
+            append(cont, SIZE, in_place_default_construct);                              \
         }                                                                                \
-        const auto __ptr = (uint8_t *)to_address(cont.data()) + __presize;               \
+        const auto __ptr = (uint8_t *)(to_address)(cont.data()) + __presize;             \
         const auto __size = NAME(__ptr, WJR_PP_QUEUE_EXPAND(CALL), conv) TAIL;           \
         WJR_ASSERT((size_t)__size <= SIZE);                                              \
         if constexpr (__fast_container_inserter_v == 1) {                                \
-            cont.resize(__presize + __size);                                             \
+            resize(cont, __presize + __size);                                            \
         } else {                                                                         \
-            cont.resize(__presize + __size, wjr::in_place_default_construct);            \
+            resize(cont, __presize + __size, wjr::in_place_default_construct);           \
         }                                                                                \
                                                                                          \
         return ptr;                                                                      \
@@ -25132,7 +25301,7 @@ Iter __biginteger_to_chars_impl(Iter first, const uint64_t *up, size_t n,
     }
 
     if constexpr (convert_details::__is_fast_convert_iterator_v<Iter>) {
-        const auto __first = reinterpret_cast<uint8_t *>(to_address(first));
+        const auto __first = reinterpret_cast<uint8_t *>((to_address)(first));
         const auto __result =
             __fast_biginteger_large_to_chars_impl(__first, up, n, base, conv);
         return first + std::distance(__first, __result);
@@ -25497,8 +25666,8 @@ template <typename Iter, typename Value, typename IBase, typename Converter,
           std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
 void __from_chars_unchecked_impl(Iter first, Iter last, Value &val, IBase ibase,
                                  Converter conv) {
-    const auto __first = reinterpret_cast<const uint8_t *>(to_address(first));
-    const auto __last = reinterpret_cast<const uint8_t *>(to_address(last));
+    const auto __first = reinterpret_cast<const uint8_t *>((to_address)(first));
+    const auto __last = reinterpret_cast<const uint8_t *>((to_address)(last));
     __fast_from_chars_unchecked_impl(__first, __last, val, ibase, conv);
 }
 
@@ -26140,8 +26309,8 @@ uint64_t *biginteger_from_chars(Iter first, Iter last, uint64_t *up,
                                 unsigned int base = 10, Converter conv = {}) {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));
 
-    const auto __first = reinterpret_cast<const uint8_t *>(to_address(first));
-    const auto __last = reinterpret_cast<const uint8_t *>(to_address(last));
+    const auto __first = reinterpret_cast<const uint8_t *>((to_address)(first));
+    const auto __last = reinterpret_cast<const uint8_t *>((to_address)(last));
 
     return __biginteger_from_chars_impl(__first, __last, up, base, conv);
 }
@@ -26178,7 +26347,7 @@ namespace wjr {
 
 template <typename T>
 WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) {
-    constexpr auto is_avx = WJR_PP_BOOL(WJR_HAS_SIMD(AVX2));
+    constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
 
     using simd = std::conditional_t<is_avx, avx, sse>;
     using simd_int = typename simd::int_type;
@@ -26596,25 +26765,25 @@ public:
     template <typename It,
               std::enable_if_t<
                   __is_span_iterator<It, element_type>::value && __is_dynamic, int> = 0>
-    constexpr span(It first, size_type count) : storage(to_address(first), count) {}
+    constexpr span(It first, size_type count) : storage((to_address)(first), count) {}
 
     template <typename It,
               std::enable_if_t<
                   __is_span_iterator<It, element_type>::value && !__is_dynamic, int> = 0>
     constexpr explicit span(It first, size_type count)
-        : storage(to_address(first), count) {}
+        : storage((to_address)(first), count) {}
 
     template <typename It,
               std::enable_if_t<
                   __is_span_iterator<It, element_type>::value && __is_dynamic, int> = 0>
     constexpr span(It first, It last)
-        : storage(to_address(first), static_cast<size_type>(last - first)) {}
+        : storage((to_address)(first), static_cast<size_type>(last - first)) {}
 
     template <typename It,
               std::enable_if_t<
                   __is_span_iterator<It, element_type>::value && !__is_dynamic, int> = 0>
     constexpr explicit span(It first, It last)
-        : storage(to_address(first), static_cast<size_type>(last - first)) {}
+        : storage((to_address)(first), static_cast<size_type>(last - first)) {}
 
     template <size_t N, std::enable_if_t<(__is_dynamic || N == Extent), int> = 0>
     constexpr span(type_identity_t<element_type> (&arr)[N]) noexcept

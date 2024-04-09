@@ -5,62 +5,10 @@
 #include <string>
 #include <vector>
 
-#include <wjr/container/generic/details.hpp>
-#include <wjr/iterator/details.hpp>
+#include <wjr/string.hpp>
 #include <wjr/vector.hpp>
 
 namespace wjr {
-
-template <typename T, typename = void>
-struct __container_traits_base_iterator_helper {
-    using iterator = T;
-};
-
-template <typename T>
-struct __container_traits_base_iterator_helper<T, std::void_t<typename T::iterator>> {
-    using iterator = typename T::iterator;
-};
-
-template <typename T, typename = void>
-struct __container_traits_base_size_type_helper {
-    using size_type = size_t;
-};
-
-template <typename T>
-struct __container_traits_base_size_type_helper<T, std::void_t<typename T::size_type>> {
-    using size_type = typename T::size_type;
-};
-
-template <typename Container>
-struct __container_traits_base {
-private:
-    using iterator =
-        typename __container_traits_base_iterator_helper<Container>::iterator;
-    using size_type =
-        typename __container_traits_base_size_type_helper<Container>::size_type;
-
-public:
-    constexpr static bool is_contiguous_v = is_contiguous_iterator_v<iterator>;
-
-    /**
-     * @details For std::basic_string<CharT, Tratis, Alloc>, if Traits =
-     * std::char_traits<CharT>, then is trivially contiguous, otherwise can't
-     * copy/construct as trivial.
-     *
-     */
-    constexpr static bool is_trivially_contiguous_v = false;
-
-    template <typename... Args>
-    constexpr static bool is_resize_v =
-        container_details::has_container_resize_v<Container, size_type, Args...>;
-
-    constexpr static bool is_reserve_v =
-        container_details::has_container_reserve_v<Container, size_type>;
-
-    template <typename... Args>
-    constexpr static bool is_append_v =
-        container_details::has_container_append_v<Container, Args...>;
-};
 
 template <typename Container>
 struct container_traits : __container_traits_base<Container> {};

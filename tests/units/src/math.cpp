@@ -1599,7 +1599,8 @@ static_assert(
 static_assert(is_fast_container_inserter_v<int *> == 0, "");
 static_assert(
     is_fast_container_inserter_v<std::back_insert_iterator<std::vector<char>>> == 1, "");
-static_assert(is_fast_container_inserter_v<std::back_insert_iterator<std::string>> == 1,
+static_assert(is_fast_container_inserter_v<std::back_insert_iterator<std::string>> ==
+                  WJR_PP_BOOL_IF(WJR_HAS_FEATURE(STRING_UNINITIALIZED_RESIZE), 2, 1),
               "");
 static_assert(is_fast_container_inserter_v<std::back_insert_iterator<std::wstring>> == 0,
               "");
@@ -1818,6 +1819,7 @@ TEST(math, biginteger_to_chars) {
 
                 d = a;
 
+                b.reserve(i * 64);
                 size_t len =
                     wjr::biginteger_to_chars(b.data(), d.data(), i, base) - b.data();
                 size_t len2 = mpn_get_str((unsigned char *)c.data(), base, a.data(), i);
