@@ -4028,11 +4028,11 @@ private:
     WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) {
         if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
             __small_reallocate(top);
-            WJR_ASSERT_ASSUME(top.end != nullptr);
+            WJR_ASSERT_ASSUME_L1(top.end != nullptr);
         }
 
-        WJR_ASSERT_ASSUME(m_cache.ptr != nullptr);
-        WJR_ASSERT_ASSUME(top.ptr != nullptr);
+        WJR_ASSERT_ASSUME_L1(m_cache.ptr != nullptr);
+        WJR_ASSERT_ASSUME_L1(top.ptr != nullptr);
 
         auto ptr = m_cache.ptr;
         m_cache.ptr += n;
@@ -4179,7 +4179,7 @@ public:
         if (WJR_UNLIKELY(m_top.ptr == nullptr)) {
             m_instance = &m_obj->get_instance();
             m_instance->set(m_top);
-            WJR_ASSERT_ASSUME(m_top.ptr != nullptr);
+            WJR_ASSERT_ASSUME_L1(m_top.ptr != nullptr);
         }
 
         return m_instance->allocate(n, m_top);
@@ -4192,7 +4192,7 @@ private:
         if (WJR_UNLIKELY(m_top.ptr == nullptr)) {
             m_instance = &m_obj->get_instance();
             m_instance->set(m_top);
-            WJR_ASSERT_ASSUME(m_top.ptr != nullptr);
+            WJR_ASSERT_ASSUME_L1(m_top.ptr != nullptr);
         }
 
         return m_instance->__small_allocate(n, m_top);
@@ -6066,7 +6066,7 @@ public:
         auto &m_storage = __get_data();
         auto &other_storage = other.__get_data();
 
-        WJR_ASSERT_ASSUME(__is_sso());
+        WJR_ASSERT_ASSUME_L1(__is_sso());
 
         if (other.__is_sso()) {
             m_storage.m_size = other_storage.m_size;
@@ -6814,8 +6814,8 @@ private:
     WJR_CONSTEXPR20 void __erase_at_end(const_pointer pos) noexcept {
         const pointer __first = data();
         const pointer __last = data() + size();
-        WJR_ASSERT(pos >= __first && pos <= __last,
-                   "pos must be in the range of [begin(), end()]");
+        WJR_ASSERT_L1(pos >= __first && pos <= __last,
+                      "pos must be in the range of [begin(), end()]");
         const auto new_size = static_cast<size_type>(pos - __first);
         destroy_using_allocator(__first + new_size, __last, __get_allocator());
         __get_size() = new_size;
@@ -21597,7 +21597,7 @@ public:
     }
 
     WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor, T value, T lo, T &hi) {
-        WJR_ASSERT_ASSUME(__has_high_bit(divisor));
+        WJR_ASSERT_ASSUME_L2(__has_high_bit(divisor));
 
         if (WJR_BUILTIN_CONSTANT_P(lo == 0) && lo == 0) {
             return divide_lo0(divisor, value, lo, hi);
@@ -21674,7 +21674,7 @@ protected:
 
 template <typename T>
 WJR_CONST WJR_CONSTEXPR_E T div2by1_divider_noshift<T>::reciprocal(T d) {
-    WJR_ASSERT_ASSUME(__has_high_bit(d));
+    WJR_ASSERT_ASSUME_L1(__has_high_bit(d));
 
     uint64_t d40 = 0, d63 = 0;
     uint32_t v0 = 0;
@@ -21815,7 +21815,7 @@ template <typename T>
 WJR_INTRINSIC_CONSTEXPR20 T div3by2_divider_noshift<T>::divide(T divisor0, T divisor1,
                                                                T value, T u0, T &u1,
                                                                T &u2) {
-    WJR_ASSERT_ASSUME(__has_high_bit(divisor1));
+    WJR_ASSERT_ASSUME_L2(__has_high_bit(divisor1));
 
     T q1, q0;
     q0 = mul<T>(value, u2, q1);
@@ -21847,7 +21847,7 @@ WJR_INTRINSIC_CONSTEXPR20 T div3by2_divider_noshift<T>::divide(T divisor0, T div
 
 template <typename T>
 WJR_CONST WJR_CONSTEXPR_E T div3by2_divider_noshift<T>::reciprocal(T d0, T d1) {
-    WJR_ASSERT_ASSUME(__has_high_bit(d1));
+    WJR_ASSERT_ASSUME_L1(__has_high_bit(d1));
 
     T v = div2by1_divider<T>::reciprocal(d1);
     T p = mullo<T>(d1, v);
@@ -24033,7 +24033,7 @@ class __unsigned_to_chars_backward_unchecked_fn<2> {
     template <typename UnsignedValue, typename Converter>
     static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, Converter conv) {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-        WJR_ASSERT(x != 0);
+        WJR_ASSERT_L1(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= nd);
         (void)(nd);
 
@@ -24087,7 +24087,7 @@ class __unsigned_to_chars_backward_unchecked_fn<8> {
     template <typename UnsignedValue, typename Converter>
     static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, Converter conv) {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-        WJR_ASSERT(x != 0);
+        WJR_ASSERT_L1(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 2) / 3);
 
         if constexpr (nd >= 16) {
@@ -24142,7 +24142,7 @@ class __unsigned_to_chars_backward_unchecked_fn<16> {
     template <typename UnsignedValue, typename Converter>
     static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, Converter conv) {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-        WJR_ASSERT(x != 0);
+        WJR_ASSERT_L1(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 3) / 4);
 
         if constexpr (nd >= 16) {
@@ -24197,7 +24197,7 @@ class __unsigned_to_chars_backward_unchecked_fn<1> {
 private:
     template <typename UnsignedValue, typename Converter>
     static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, int bits, Converter conv) {
-        WJR_ASSERT(x != 0);
+        WJR_ASSERT_L1(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= std::numeric_limits<UnsignedValue>::digits);
 
         const unsigned int mask = (1u << bits) - 1;
@@ -24882,7 +24882,7 @@ Iter to_chars_unchecked(Iter ptr, Value val, unsigned int base, Converter conv =
 template <typename Converter>
 size_t __biginteger_to_chars_2_impl(uint8_t *first, const uint64_t *up, size_t n,
                                     Converter conv) {
-    WJR_ASSERT(up[n - 1] != 0);
+    WJR_ASSERT_L1(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
     uint64_t x = up[n - 1];
@@ -24915,7 +24915,7 @@ size_t __biginteger_to_chars_2_impl(uint8_t *first, const uint64_t *up, size_t n
 template <typename Converter>
 size_t __biginteger_to_chars_8_impl(uint8_t *first, const uint64_t *up, size_t n,
                                     Converter conv) {
-    WJR_ASSERT(up[n - 1] != 0);
+    WJR_ASSERT_L1(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
     uint64_t x = up[n - 1];
@@ -25047,7 +25047,7 @@ DONE:
 template <typename Converter>
 size_t __biginteger_to_chars_16_impl(uint8_t *first, const uint64_t *up, size_t n,
                                      Converter conv) {
-    WJR_ASSERT(up[n - 1] != 0);
+    WJR_ASSERT_L1(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
     uint64_t x = up[n - 1];
@@ -25081,7 +25081,7 @@ template <typename Converter>
 size_t __biginteger_to_chars_power_of_two_impl(uint8_t *first, const uint64_t *up,
                                                size_t n, unsigned int base,
                                                Converter conv) {
-    WJR_ASSERT(up[n - 1] != 0);
+    WJR_ASSERT_L1(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
     const int bits = ctz(base);

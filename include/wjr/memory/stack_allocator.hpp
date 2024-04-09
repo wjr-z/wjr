@@ -126,11 +126,11 @@ private:
     WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) {
         if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
             __small_reallocate(top);
-            WJR_ASSERT_ASSUME(top.end != nullptr);
+            WJR_ASSERT_ASSUME_L1(top.end != nullptr);
         }
 
-        WJR_ASSERT_ASSUME(m_cache.ptr != nullptr);
-        WJR_ASSERT_ASSUME(top.ptr != nullptr);
+        WJR_ASSERT_ASSUME_L1(m_cache.ptr != nullptr);
+        WJR_ASSERT_ASSUME_L1(top.ptr != nullptr);
 
         auto ptr = m_cache.ptr;
         m_cache.ptr += n;
@@ -277,7 +277,7 @@ public:
         if (WJR_UNLIKELY(m_top.ptr == nullptr)) {
             m_instance = &m_obj->get_instance();
             m_instance->set(m_top);
-            WJR_ASSERT_ASSUME(m_top.ptr != nullptr);
+            WJR_ASSERT_ASSUME_L1(m_top.ptr != nullptr);
         }
 
         return m_instance->allocate(n, m_top);
@@ -290,7 +290,7 @@ private:
         if (WJR_UNLIKELY(m_top.ptr == nullptr)) {
             m_instance = &m_obj->get_instance();
             m_instance->set(m_top);
-            WJR_ASSERT_ASSUME(m_top.ptr != nullptr);
+            WJR_ASSERT_ASSUME_L1(m_top.ptr != nullptr);
         }
 
         return m_instance->__small_allocate(n, m_top);

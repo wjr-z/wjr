@@ -702,7 +702,7 @@ public:
         auto &m_storage = __get_data();
         auto &other_storage = other.__get_data();
 
-        WJR_ASSERT_ASSUME(__is_sso());
+        WJR_ASSERT_ASSUME_L1(__is_sso());
 
         if (other.__is_sso()) {
             m_storage.m_size = other_storage.m_size;
@@ -1450,8 +1450,8 @@ private:
     WJR_CONSTEXPR20 void __erase_at_end(const_pointer pos) noexcept {
         const pointer __first = data();
         const pointer __last = data() + size();
-        WJR_ASSERT(pos >= __first && pos <= __last,
-                   "pos must be in the range of [begin(), end()]");
+        WJR_ASSERT_L1(pos >= __first && pos <= __last,
+                      "pos must be in the range of [begin(), end()]");
         const auto new_size = static_cast<size_type>(pos - __first);
         destroy_using_allocator(__first + new_size, __last, __get_allocator());
         __get_size() = new_size;

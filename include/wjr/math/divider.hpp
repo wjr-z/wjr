@@ -77,7 +77,7 @@ public:
     }
 
     WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor, T value, T lo, T &hi) {
-        WJR_ASSERT_ASSUME(__has_high_bit(divisor));
+        WJR_ASSERT_ASSUME_L2(__has_high_bit(divisor));
 
         if (WJR_BUILTIN_CONSTANT_P(lo == 0) && lo == 0) {
             return divide_lo0(divisor, value, lo, hi);
@@ -154,7 +154,7 @@ protected:
 
 template <typename T>
 WJR_CONST WJR_CONSTEXPR_E T div2by1_divider_noshift<T>::reciprocal(T d) {
-    WJR_ASSERT_ASSUME(__has_high_bit(d));
+    WJR_ASSERT_ASSUME_L1(__has_high_bit(d));
 
     uint64_t d40 = 0, d63 = 0;
     uint32_t v0 = 0;
@@ -295,7 +295,7 @@ template <typename T>
 WJR_INTRINSIC_CONSTEXPR20 T div3by2_divider_noshift<T>::divide(T divisor0, T divisor1,
                                                                T value, T u0, T &u1,
                                                                T &u2) {
-    WJR_ASSERT_ASSUME(__has_high_bit(divisor1));
+    WJR_ASSERT_ASSUME_L2(__has_high_bit(divisor1));
 
     T q1, q0;
     q0 = mul<T>(value, u2, q1);
@@ -327,7 +327,7 @@ WJR_INTRINSIC_CONSTEXPR20 T div3by2_divider_noshift<T>::divide(T divisor0, T div
 
 template <typename T>
 WJR_CONST WJR_CONSTEXPR_E T div3by2_divider_noshift<T>::reciprocal(T d0, T d1) {
-    WJR_ASSERT_ASSUME(__has_high_bit(d1));
+    WJR_ASSERT_ASSUME_L1(__has_high_bit(d1));
 
     T v = div2by1_divider<T>::reciprocal(d1);
     T p = mullo<T>(d1, v);

@@ -10,7 +10,7 @@ endif()
 add_compile_definitions(WJR_USE_GMP)
 add_compile_definitions(WJR_ASSERT_THROW)
 
-set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -O3 -std=c++17 -march=native -Wall -Wextra -DWJR_DEBUG_LEVEL=0 -DNDEBUG -I \"D:\\msys\\home\\19663\\gmp-6.3.0\" -g")
+set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -O3 -std=c++17 -march=native -Wall -Wextra -DWJR_DEBUG_LEVEL=3 -I \"D:\\msys\\home\\19663\\gmp-6.3.0\" -g")
 
 set(WJR_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/../../include)
 set(WJR_LIB_DIR ${PROJECT_SOURCE_DIR}/../../src)
