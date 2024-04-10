@@ -222,6 +222,18 @@ WJR_REGISTER_HAS_TYPE(container_insert,
 
 } // namespace container_details
 
+template <
+    typename Container, typename Size,
+    std::enable_if_t<container_details::has_container_resize_v<Container, Size>, int> = 0>
+WJR_INTRINSIC_INLINE void try_uninitialized_resize(Container &cont, Size sz) {
+    if constexpr (container_details::has_container_resize_v<
+                      Container, Size, in_place_default_construct_t>) {
+        resize(cont, sz, in_place_default_construct);
+    } else {
+        resize(cont, sz);
+    }
+}
+
 template <typename T, typename = void>
 struct __container_traits_base_iterator_helper {
     using iterator = T;

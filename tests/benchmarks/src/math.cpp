@@ -1,11 +1,16 @@
 #include <charconv>
+#include <vector>
 
 #include "details.hpp"
 
+#include <wjr/biginteger.hpp>
 #include <wjr/math.hpp>
+
+#include <fstream>
 
 #ifdef WJR_USE_GMP
 #include <gmp.h>
+#include <gmpxx.h>
 #endif
 
 namespace math_tests {
@@ -630,7 +635,7 @@ static void wjr_div_qr_s(benchmark::State &state) {
         [&]() { wjr::div_qr_s(q.data(), r.data(), a.data(), n, b.data(), m); });
 }
 
-static void wjr_to_chars_backward(benchmark::State &state) {
+static void wjr_to_chars_backward_unchecked(benchmark::State &state) {
     auto base = state.range(0);
     auto n = state.range(1);
     uint64_t mask = n == 64 ? (uint64_t)wjr::in_place_max : (1ull << n) - 1;
@@ -648,38 +653,8 @@ static void wjr_to_chars_backward(benchmark::State &state) {
             x &= mask;
         },
         [&]() {
-            (void)wjr::to_chars_backward(str + 64, x, base);
-            for (int i = 0; i < 8; ++i) {
-                sum += wjr::read_memory<uint64_t>(str + i * 8);
-            }
-        });
-
-    benchmark::DoNotOptimize(sum);
-}
-
-static void wjr_to_chars_backward_validate(benchmark::State &state) {
-    auto base = state.range(0);
-    auto n = state.range(1);
-    uint64_t mask = n == 64 ? (uint64_t)wjr::in_place_max : (1ull << n) - 1;
-
-    char str[64];
-    uint64_t x;
-    uint64_t sum = 0;
-
-    random_run(
-        state,
-        [&]() {
-            do {
-                x = mt_rand();
-            } while (!wjr::__has_high_bit(x));
-            x &= mask;
-        },
-        [&]() {
-            auto ret = wjr::to_chars_backward_validate(str + 64, str, x, base);
-            benchmark::DoNotOptimize(ret.ec);
-            for (int i = 0; i < 8; ++i) {
-                sum += wjr::read_memory<uint64_t>(str + i * 8);
-            }
+            (void)wjr::to_chars_backward_unchecked(str + 64, x, base);
+            benchmark::DoNotOptimize(str);
         });
 
     benchmark::DoNotOptimize(sum);
@@ -703,16 +678,15 @@ static void wjr_to_chars(benchmark::State &state) {
             x &= mask;
         },
         [&]() {
-            (void)wjr::to_chars(str, x, base);
-            for (int i = 0; i < 8; ++i) {
-                sum += wjr::read_memory<uint64_t>(str + i * 8);
-            }
+            auto ret = wjr::to_chars(str, str + 64, x, base);
+            benchmark::DoNotOptimize(ret);
+            benchmark::DoNotOptimize(str);
         });
 
     benchmark::DoNotOptimize(sum);
 }
 
-static void wjr_to_chars_validate(benchmark::State &state) {
+static void wjr_to_chars_unchecked(benchmark::State &state) {
     auto base = state.range(0);
     auto n = state.range(1);
     uint64_t mask = n == 64 ? (uint64_t)wjr::in_place_max : (1ull << n) - 1;
@@ -730,11 +704,8 @@ static void wjr_to_chars_validate(benchmark::State &state) {
             x &= mask;
         },
         [&]() {
-            auto ret = wjr::to_chars_validate(str, str + 64, x, base);
-            benchmark::DoNotOptimize(ret.ec);
-            for (int i = 0; i < 8; ++i) {
-                sum += wjr::read_memory<uint64_t>(str + i * 8);
-            }
+            wjr::to_chars_unchecked(str, x, base);
+            benchmark::DoNotOptimize(str);
         });
 
     benchmark::DoNotOptimize(sum);
@@ -749,7 +720,7 @@ static void wjr_biginteger_to_chars(benchmark::State &state) {
     std::generate(a.begin(), a.end(), mt_rand);
 
     for (auto _ : state) {
-        wjr::biginteger_to_chars(s.data(), a.data(), n, base, wjr::origin_converter);
+        wjr::biginteger_to_chars(s.data(), a.data(), n, base);
     }
 }
 
@@ -762,8 +733,8 @@ static void wjr_biginteger_from_chars(benchmark::State &state) {
     std::generate(s.begin(), s.end(), []() { return '0' + mt_rand() % 10; });
 
     for (auto _ : state) {
-        wjr::biginteger_from_chars(s.data(), s.data() + s.size(), a.data(), base,
-                                   wjr::origin_converter);
+        // wjr::biginteger_from_chars(s.data(), s.data() + s.size(), a.data(), base);
+        wjr::from_chars(s.data(), s.data() + s.size(), a[0], base);
     }
 }
 
@@ -1052,7 +1023,7 @@ static void fallback_rshift_n(benchmark::State &state) {
     }
 }
 
-static void fallback_to_chars_validate(benchmark::State &state) {
+static void fallback_to_chars(benchmark::State &state) {
     auto base = state.range(0);
     auto n = state.range(1);
     uint64_t mask = n == 64 ? (uint64_t)wjr::in_place_max : (1ull << n) - 1;
@@ -1071,10 +1042,8 @@ static void fallback_to_chars_validate(benchmark::State &state) {
         },
         [&]() {
             auto ret = std::to_chars(str, str + 64, x, base);
-            benchmark::DoNotOptimize(ret.ec);
-            for (int i = 0; i < 8; ++i) {
-                sum += wjr::read_memory<uint64_t>(str + i * 8);
-            }
+            benchmark::DoNotOptimize(ret);
+            benchmark::DoNotOptimize(str);
         });
 
     benchmark::DoNotOptimize(sum);
@@ -1455,10 +1424,9 @@ BENCHMARK(wjr_sqr)->NORMAL_TESTS(4, 2, 1024);
 BENCHMARK(wjr_div_qr_1)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(wjr_div_qr_2)->DenseRange(2, 4, 1)->RangeMultiplier(2)->Range(8, 256);
 BENCHMARK(wjr_div_qr_s)->Apply(Product2D);
-BENCHMARK(wjr_to_chars_backward)->Apply(to_chars_tests);
-BENCHMARK(wjr_to_chars_backward_validate)->Apply(to_chars_tests);
+BENCHMARK(wjr_to_chars_backward_unchecked)->Apply(to_chars_tests);
 BENCHMARK(wjr_to_chars)->Apply(to_chars_tests);
-BENCHMARK(wjr_to_chars_validate)->Apply(to_chars_tests);
+BENCHMARK(wjr_to_chars_unchecked)->Apply(to_chars_tests);
 BENCHMARK(wjr_biginteger_to_chars)->Apply(biginteger_to_chars_tests);
 BENCHMARK(wjr_biginteger_from_chars)->BIGINTEGER_FROM_CHARS_TESTS();
 
@@ -1481,7 +1449,7 @@ BENCHMARK(fallback_find_not_n_val)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(fallback_worst_find_not_n_val)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(fallback_lshift_n)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(fallback_rshift_n)->NORMAL_TESTS(4, 2, 256);
-BENCHMARK(fallback_to_chars_validate)->Apply(to_chars_tests);
+BENCHMARK(fallback_to_chars)->Apply(to_chars_tests);
 
 #ifdef WJR_USE_GMP
 

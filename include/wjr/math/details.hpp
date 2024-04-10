@@ -62,6 +62,11 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T lowbit(T n) noexcept {
     return n & -n;
 }
 
+template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T clear_lowbit(T n) noexcept {
+    return n & (n - 1);
+}
+
 // preview :
 
 template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>

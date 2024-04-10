@@ -8,7 +8,7 @@ static auto mt_rand = std::ref(__mt_rand);
 
 template <typename Re, typename Func>
 void random_run(benchmark::State &state, Re re, Func fn, size_t step = 0) {
-    auto count = state.max_iterations;
+    size_t count = state.max_iterations;
     if (step == 0) {
         step = std::max<size_t>(16, count / 32);
     }
@@ -23,7 +23,7 @@ void random_run(benchmark::State &state, Re re, Func fn, size_t step = 0) {
         state.PauseTiming();
         re();
         state.ResumeTiming();
-        for (int i = 0; i < step; ++i) {
+        for (size_t i = 0; i < step; ++i) {
             fn();
         }
         count -= step;
@@ -43,7 +43,7 @@ void random_run(benchmark::State &state, Re re, Func fn, size_t step = 0) {
 #define NORMAL_TESTS(SMALL, MULTIPLY, MAXN)                                              \
     DenseRange(1, SMALL)->RangeMultiplier(MULTIPLY)->Range(SMALL * 2, MAXN)
 
-static void Product2D(benchmark::internal::Benchmark *state) {
+inline void Product2D(benchmark::internal::Benchmark *state) {
     // 生成二维数据，且第一维大于等于第二维
     // 生成[1, 4] * [1, 4]的二维测试数据
     for (int i = 1; i <= 4; ++i) {
