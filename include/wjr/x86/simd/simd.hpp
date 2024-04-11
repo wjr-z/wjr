@@ -5,7 +5,7 @@
 
 #include <wjr/math/broadcast.hpp>
 #include <wjr/memory/details.hpp>
-#include <wjr/simd/simd_cast.hpp>
+#include <wjr/x86/simd/simd_cast.hpp>
 
 namespace wjr {
 
@@ -548,13 +548,16 @@ struct sse {
 
     template <int imm8>
     WJR_INTRINSIC_INLINE static __m128i srli(__m128i v);
+    WJR_INTRINSIC_INLINE static __m128i srli_epi8(__m128i a, int imm8);
     WJR_INTRINSIC_INLINE static __m128i srli_epi16(__m128i a, int imm8);
     WJR_INTRINSIC_INLINE static __m128i srli_epi32(__m128i a, int imm8);
     WJR_INTRINSIC_INLINE static __m128i srli_epi64(__m128i a, int imm8);
 
+    WJR_INTRINSIC_INLINE static __m128i srli(__m128i a, int imm8, int8_t);
     WJR_INTRINSIC_INLINE static __m128i srli(__m128i a, int imm8, int16_t);
     WJR_INTRINSIC_INLINE static __m128i srli(__m128i a, int imm8, int32_t);
     WJR_INTRINSIC_INLINE static __m128i srli(__m128i a, int imm8, int64_t);
+    WJR_INTRINSIC_INLINE static __m128i srli(__m128i a, int imm8, uint8_t);
     WJR_INTRINSIC_INLINE static __m128i srli(__m128i a, int imm8, uint16_t);
     WJR_INTRINSIC_INLINE static __m128i srli(__m128i a, int imm8, uint32_t);
     WJR_INTRINSIC_INLINE static __m128i srli(__m128i a, int imm8, uint64_t);
@@ -1272,13 +1275,16 @@ struct avx {
 
     template <int imm8>
     WJR_INTRINSIC_INLINE static __m256i srli(__m256i a);
+    WJR_INTRINSIC_INLINE static __m256i srli_epi8(__m256i a, int imm8);
     WJR_INTRINSIC_INLINE static __m256i srli_epi16(__m256i a, int imm8);
     WJR_INTRINSIC_INLINE static __m256i srli_epi32(__m256i a, int imm8);
     WJR_INTRINSIC_INLINE static __m256i srli_epi64(__m256i a, int imm8);
 
+    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, int8_t);
     WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, int16_t);
     WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, int32_t);
     WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, int64_t);
+    WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, uint8_t);
     WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, uint16_t);
     WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, uint32_t);
     WJR_INTRINSIC_INLINE static __m256i srli(__m256i a, int imm8, uint64_t);
@@ -1339,6 +1345,30 @@ struct avx {
 
 #endif // AVX2
 };
+
+namespace sse_details {
+#if WJR_HAS_SIMD(SSE2)
+
+const static __m128i srli_epi8_mask[8] = {
+    sse::set1_epi16(0xFFFF), sse::set1_epi16(0x7F7F), sse::set1_epi16(0x3F3F),
+    sse::set1_epi16(0x1F1F), sse::set1_epi16(0xF0F),  sse::set1_epi16(0x707),
+    sse::set1_epi16(0x303),  sse::set1_epi16(0x101),
+};
+
+#endif
+} // namespace sse_details
+
+namespace avx_details {
+#if WJR_HAS_SIMD(AVX2)
+
+const static __m256i srli_epi8_mask[8] = {
+    avx::set1_epi16(0xFFFF), avx::set1_epi16(0x7F7F), avx::set1_epi16(0x3F3F),
+    avx::set1_epi16(0x1F1F), avx::set1_epi16(0xF0F),  avx::set1_epi16(0x707),
+    avx::set1_epi16(0x303),  avx::set1_epi16(0x101),
+};
+
+#endif
+} // namespace avx_details
 
 #if WJR_HAS_SIMD(SSE2)
 
@@ -2498,13 +2528,18 @@ template <int imm8>
 __m128i sse::srli(__m128i v) {
     return _mm_srli_si128(v, imm8);
 }
+__m128i sse::srli_epi8(__m128i a, int imm8) {
+    return And(srli_epi16(a, imm8), sse_details::srli_epi8_mask[imm8]);
+}
 __m128i sse::srli_epi16(__m128i a, int imm8) { return _mm_srli_epi16(a, imm8); }
 __m128i sse::srli_epi32(__m128i a, int imm8) { return _mm_srli_epi32(a, imm8); }
 __m128i sse::srli_epi64(__m128i a, int imm8) { return _mm_srli_epi64(a, imm8); }
 
+__m128i sse::srli(__m128i a, int imm8, int8_t) { return srli_epi8(a, imm8); }
 __m128i sse::srli(__m128i a, int imm8, int16_t) { return srli_epi16(a, imm8); }
 __m128i sse::srli(__m128i a, int imm8, int32_t) { return srli_epi32(a, imm8); }
 __m128i sse::srli(__m128i a, int imm8, int64_t) { return srli_epi64(a, imm8); }
+__m128i sse::srli(__m128i a, int imm8, uint8_t) { return srli_epi8(a, imm8); }
 __m128i sse::srli(__m128i a, int imm8, uint16_t) { return srli_epi16(a, imm8); }
 __m128i sse::srli(__m128i a, int imm8, uint32_t) { return srli_epi32(a, imm8); }
 __m128i sse::srli(__m128i a, int imm8, uint64_t) { return srli_epi64(a, imm8); }
@@ -3570,13 +3605,18 @@ __m256i avx::srli(__m256i a) {
     return _mm256_srli_si256(a, imm8);
 }
 
+__m256i avx::srli_epi8(__m256i a, int imm8) {
+    return And(srli_epi16(a, imm8), avx_details::srli_epi8_mask[imm8]);
+}
 __m256i avx::srli_epi16(__m256i a, int imm8) { return _mm256_srli_epi16(a, imm8); }
 __m256i avx::srli_epi32(__m256i a, int imm8) { return _mm256_srli_epi32(a, imm8); }
 __m256i avx::srli_epi64(__m256i a, int imm8) { return _mm256_srli_epi64(a, imm8); }
 
+__m256i avx::srli(__m256i a, int imm8, int8_t) { return srli_epi8(a, imm8); }
 __m256i avx::srli(__m256i a, int imm8, int16_t) { return srli_epi16(a, imm8); }
 __m256i avx::srli(__m256i a, int imm8, int32_t) { return srli_epi32(a, imm8); }
 __m256i avx::srli(__m256i a, int imm8, int64_t) { return srli_epi64(a, imm8); }
+__m256i avx::srli(__m256i a, int imm8, uint8_t) { return srli_epi8(a, imm8); }
 __m256i avx::srli(__m256i a, int imm8, uint16_t) { return srli_epi16(a, imm8); }
 __m256i avx::srli(__m256i a, int imm8, uint32_t) { return srli_epi32(a, imm8); }
 __m256i avx::srli(__m256i a, int imm8, uint64_t) { return srli_epi64(a, imm8); }

@@ -733,8 +733,7 @@ static void wjr_biginteger_from_chars(benchmark::State &state) {
     std::generate(s.begin(), s.end(), []() { return '0' + mt_rand() % 10; });
 
     for (auto _ : state) {
-        // wjr::biginteger_from_chars(s.data(), s.data() + s.size(), a.data(), base);
-        wjr::from_chars(s.data(), s.data() + s.size(), a[0], base);
+        wjr::biginteger_from_chars(s.data(), s.data() + s.size(), a.data(), base);
     }
 }
 

@@ -94,13 +94,14 @@ private:
     template <typename... Args>
     WJR_ASSERT_NORETURN WJR_NOINLINE static void
     fn(const char *expr, const char *file, const char *func, int line, Args &&...args) {
-        if ((file != nullptr) && (file[0] != '\0')) {
+        if (file[0] != '\0') {
             (void)fprintf(stderr, "%s:", file);
         }
         if (line != -1) {
             (void)fprintf(stderr, "%d:", line);
         }
-        fprintf(stderr, "Assertion `%s' failed.", expr);
+        fprintf(stderr, " %s:", func);
+        fprintf(stderr, " Assertion `%s' failed.", expr);
         handler(std::forward<Args>(args)...);
         WJR_ASSERT_ABORT();
     }

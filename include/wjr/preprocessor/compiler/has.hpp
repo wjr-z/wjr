@@ -196,4 +196,8 @@
 #define WJR_HAS_SIMD_POPCNT WJR_HAS_DEF
 #endif
 
+#if defined(__PCLMUL__)
+#define WJR_HAS_SIMD_PCLMUL WJR_HAS_DEF
+#endif
+
 #endif // WJR_PREPROCESSOR_COMPILER_HAS_HPP__

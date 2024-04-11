@@ -2,7 +2,7 @@
 #define WJR_X86_MATH_CONVERT_HPP__
 
 #include <wjr/math/convert-impl.hpp>
-#include <wjr/simd/simd.hpp>
+#include <wjr/x86/simd/simd.hpp>
 
 #ifndef WJR_X86
 #error "x86 required"
@@ -21,14 +21,15 @@ namespace wjr {
 
 namespace to_chars_details {
 
-static __m128i mul10p4 = simd_cast<uint32_t, __m128i_t>(3518437209);
-static __m128i mul10p4x = simd_cast<uint32_t, __m128i_t>(10000);
-static __m128i mul10p2 = sse::set1_epi16(5243);
-static __m128i mul10p2x = sse::set1_epi16(100);
-static __m128i mul10p1 = sse::set1_epi16((short)52429u);
-static __m128i mul10p1x = sse::set1_epi16(10);
+const static __m128i mul10p4 = simd_cast<uint32_t, __m128i_t>(3518437209);
+const static __m128i mul10p4x = simd_cast<uint32_t, __m128i_t>(10000);
+const static __m128i mul10p2 = sse::set1_epi16(5243);
+const static __m128i mul10p2x = sse::set1_epi16(100);
+const static __m128i mul10p1 = sse::set1_epi16((short)52429u);
+const static __m128i mul10p1x = sse::set1_epi16(10);
 
-static __m128i shuf = sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
+const static __m128i shuf =
+    sse::setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 1, 1, 1, 1, 1, 1, 1);
 
 } // namespace to_chars_details
 
@@ -102,20 +103,21 @@ template <uint64_t Base>
 inline constexpr uint64_t __base8 = __base4<Base> * __base4<Base>;
 
 template <uint64_t Base>
-static __m128i mulp1x = sse::setr_epi8(Base, 1, Base, 1, Base, 1, Base, 1, Base, 1, Base,
-                                       1, Base, 1, Base, 1);
+const static __m128i mulp1x = sse::setr_epi8(Base, 1, Base, 1, Base, 1, Base, 1, Base, 1,
+                                             Base, 1, Base, 1, Base, 1);
 
 template <uint64_t Base>
-static __m128i mulp2x = sse::setr_epi16(__base2<Base>, 1, __base2<Base>, 1, __base2<Base>,
-                                        1, __base2<Base>, 1);
+const static __m128i mulp2x = sse::setr_epi16(__base2<Base>, 1, __base2<Base>, 1,
+                                              __base2<Base>, 1, __base2<Base>, 1);
 
 template <uint64_t Base>
-static __m128i mulp4x = sse::setr_epi16(__base4<Base>, 1, __base4<Base>, 1, __base4<Base>,
-                                        1, __base4<Base>, 1);
+const static __m128i mulp4x = sse::setr_epi16(__base4<Base>, 1, __base4<Base>, 1,
+                                              __base4<Base>, 1, __base4<Base>, 1);
 
 template <uint64_t Base>
-static __m128i baseu8 = sse::setr_epi8(Base, Base, Base, Base, Base, Base, Base, 0xff,
-                                       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
+const static __m128i baseu8 =
+    sse::setr_epi8(Base, Base, Base, Base, Base, Base, Base, 0xff, 0xff, 0xff, 0xff, 0xff,
+                   0xff, 0xff, 0xff, 0xff);
 
 static __m128i ascii = sse::set1_epi8(0x30);
 

@@ -3,7 +3,7 @@
 
 #include <cstring>
 
-#include <wjr/simd/simd.hpp>
+#include <wjr/x86/simd/simd.hpp>
 
 #ifndef WJR_X86
 #error "x86 required"
@@ -25,22 +25,22 @@ WJR_COLD void large_builtin_set_n(T *dst, T val, size_t n) {
     using simd = std::conditional_t<is_avx, avx, sse>;
     using simd_int = typename simd::int_type;
     constexpr auto simd_width = simd::width();
-    constexpr auto simd_loop = simd_width / nd;
-    constexpr auto u8_loop = simd_width / 8;
-    constexpr auto mask = u8_loop * 4;
+    constexpr auto type_width = simd_width / nd;
+    constexpr auto u8_width = simd_width / 8;
+    constexpr auto mask = u8_width * 4;
 
-    WJR_ASSUME(n > simd_loop * 4);
+    WJR_ASSUME(n > type_width * 4);
 
     auto y = simd::set1(val, T());
 
     simd::storeu((simd_int *)(dst), y);
-    simd::storeu((simd_int *)(dst + n - simd_loop), y);
-    simd::storeu((simd_int *)(dst + simd_loop), y);
-    simd::storeu((simd_int *)(dst + n - simd_loop * 2), y);
-    simd::storeu((simd_int *)(dst + simd_loop * 2), y);
-    simd::storeu((simd_int *)(dst + n - simd_loop * 3), y);
-    simd::storeu((simd_int *)(dst + simd_loop * 3), y);
-    simd::storeu((simd_int *)(dst + n - simd_loop * 4), y);
+    simd::storeu((simd_int *)(dst + n - type_width), y);
+    simd::storeu((simd_int *)(dst + type_width), y);
+    simd::storeu((simd_int *)(dst + n - type_width * 2), y);
+    simd::storeu((simd_int *)(dst + type_width * 2), y);
+    simd::storeu((simd_int *)(dst + n - type_width * 3), y);
+    simd::storeu((simd_int *)(dst + type_width * 3), y);
+    simd::storeu((simd_int *)(dst + n - type_width * 4), y);
 
     uintptr_t ps = reinterpret_cast<uintptr_t>(dst);
     uintptr_t pe = reinterpret_cast<uintptr_t>(dst + n);
@@ -63,11 +63,11 @@ WJR_COLD void large_builtin_set_n(T *dst, T val, size_t n) {
 
     do {
         simd::store((simd_int *)(ps), y);
-        simd::store((simd_int *)(ps + u8_loop * 1), y);
-        simd::store((simd_int *)(ps + u8_loop * 2), y);
-        simd::store((simd_int *)(ps + u8_loop * 3), y);
+        simd::store((simd_int *)(ps + u8_width * 1), y);
+        simd::store((simd_int *)(ps + u8_width * 2), y);
+        simd::store((simd_int *)(ps + u8_width * 3), y);
 
-        ps += u8_loop * 4;
+        ps += u8_width * 4;
     } while (WJR_LIKELY(ps != pe));
     return;
 }
@@ -80,7 +80,7 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
     using simd = std::conditional_t<is_avx, avx, sse>;
     using simd_int = typename simd::int_type;
     constexpr auto simd_width = simd::width();
-    constexpr auto simd_loop = simd_width / nd;
+    constexpr auto type_width = simd_width / nd;
 
     using sse_int = typename sse::int_type;
     constexpr auto sse_width = sse::width();
@@ -98,18 +98,18 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
         return;
     }
 
-    if (WJR_UNLIKELY(n > simd_loop * 2)) {
+    if (WJR_UNLIKELY(n > type_width * 2)) {
 
-        if (WJR_UNLIKELY(n > simd_loop * 4)) {
+        if (WJR_UNLIKELY(n > type_width * 4)) {
             return large_builtin_set_n(dst, val, n);
         }
 
         auto y = simd::set1(val, T());
 
         simd::storeu((simd_int *)(dst), y);
-        simd::storeu((simd_int *)(dst + simd_loop), y);
-        simd::storeu((simd_int *)(dst + n - simd_loop), y);
-        simd::storeu((simd_int *)(dst + n - simd_loop * 2), y);
+        simd::storeu((simd_int *)(dst + type_width), y);
+        simd::storeu((simd_int *)(dst + n - type_width), y);
+        simd::storeu((simd_int *)(dst + n - type_width * 2), y);
         return;
     }
 
@@ -168,7 +168,7 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
     if constexpr (is_avx) {
         auto z = broadcast<__m128i_t, __m256i_t>(y);
         avx::storeu((simd_int *)(dst), z);
-        avx::storeu((simd_int *)(dst + n - simd_loop), z);
+        avx::storeu((simd_int *)(dst + n - type_width), z);
         return;
     }
 #endif

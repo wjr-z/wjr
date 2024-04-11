@@ -1,7 +1,7 @@
 #ifndef WJR_X86_MATH_NOT_HPP__
 #define WJR_X86_MATH_NOT_HPP__
 
-#include <wjr/simd/simd.hpp>
+#include <wjr/x86/simd/simd.hpp>
 #include <wjr/math/details.hpp>
 
 #ifndef WJR_X86
@@ -23,7 +23,7 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) {
     using simd = std::conditional_t<is_avx, avx, sse>;
     using simd_int = typename simd::int_type;
     constexpr auto simd_width = simd::width();
-    constexpr auto simd_loop = simd_width / 64;
+    constexpr auto type_width = simd_width / 64;
 
     uintptr_t ptr = reinterpret_cast<uintptr_t>(dst);
     WJR_ASSUME(ptr % sizeof(T) == 0);
@@ -72,22 +72,22 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) {
     auto z = broadcast<__m128i_t, typename simd::int_tag_type>(y);
 
     size_t idx = 0;
-    size_t m = n & (-simd_loop * 4);
+    size_t m = n & (-type_width * 4);
 
     WJR_ASSUME(idx != m);
 
     do {
         auto x0 = simd::loadu((simd_int *)(src + idx));
-        auto x1 = simd::loadu((simd_int *)(src + idx + simd_loop));
-        auto x2 = simd::loadu((simd_int *)(src + idx + simd_loop * 2));
-        auto x3 = simd::loadu((simd_int *)(src + idx + simd_loop * 3));
+        auto x1 = simd::loadu((simd_int *)(src + idx + type_width));
+        auto x2 = simd::loadu((simd_int *)(src + idx + type_width * 2));
+        auto x3 = simd::loadu((simd_int *)(src + idx + type_width * 3));
 
         simd::store((simd_int *)(dst + idx), simd::Xor(x0, z));
-        simd::store((simd_int *)(dst + idx + simd_loop), simd::Xor(x1, z));
-        simd::store((simd_int *)(dst + idx + simd_loop * 2), simd::Xor(x2, z));
-        simd::store((simd_int *)(dst + idx + simd_loop * 3), simd::Xor(x3, z));
+        simd::store((simd_int *)(dst + idx + type_width), simd::Xor(x1, z));
+        simd::store((simd_int *)(dst + idx + type_width * 2), simd::Xor(x2, z));
+        simd::store((simd_int *)(dst + idx + type_width * 3), simd::Xor(x3, z));
 
-        idx += simd_loop * 4;
+        idx += type_width * 4;
     } while (idx != m);
 
     if (WJR_UNLIKELY(n == m)) {
@@ -98,7 +98,7 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) {
     src += m;
     n -= m;
 
-    m = n / simd_loop;
+    m = n / type_width;
     WJR_ASSUME(m < 4);
 
     switch (m) {
@@ -107,13 +107,13 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) {
         WJR_FALLTHROUGH;
     }
     case 2: {
-        simd::store((simd_int *)(dst + simd_loop * (m - 2)),
-                    simd::Xor(simd::loadu((simd_int *)(src + simd_loop * (m - 2))), z));
+        simd::store((simd_int *)(dst + type_width * (m - 2)),
+                    simd::Xor(simd::loadu((simd_int *)(src + type_width * (m - 2))), z));
         WJR_FALLTHROUGH;
     }
     case 1: {
-        simd::store((simd_int *)(dst + simd_loop * (m - 1)),
-                    simd::Xor(simd::loadu((simd_int *)(src + simd_loop * (m - 1))), z));
+        simd::store((simd_int *)(dst + type_width * (m - 1)),
+                    simd::Xor(simd::loadu((simd_int *)(src + type_width * (m - 1))), z));
         WJR_FALLTHROUGH;
     }
     case 0: {
@@ -124,7 +124,7 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) {
     }
     }
 
-    m = n & (-simd_loop);
+    m = n & (-type_width);
 
     if (WJR_UNLIKELY(n == m)) {
         return;

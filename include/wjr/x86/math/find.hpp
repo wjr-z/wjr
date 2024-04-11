@@ -1,7 +1,7 @@
 #ifndef WJR_X86_MATH_FIND_HPP__
 #define WJR_X86_MATH_FIND_HPP__
 
-#include <wjr/simd/simd.hpp>
+#include <wjr/x86/simd/simd.hpp>
 
 #ifndef WJR_X86
 #error "x86 required"

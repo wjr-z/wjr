@@ -132,12 +132,12 @@ def print_result(result, name, file, start_color, end_color):
         file=file,
     )
 
-    if len(result) < 16:
+    if len(result) < 64:
         if len(result) == 0:
             return
         print(result, file=file)
     else:
-        print(result[:16] + ["..."], file=file)
+        print(result[:64] + ["..."], file=file)
 
 
 # only compare wjr_ result
@@ -202,7 +202,6 @@ def compare(old, new, output):
             end="",
         )
 
-        # 保留两位小数，正数加上+，否则加上负号
         str_delta = format(delta, 2)
 
         if abs(delta) >= 5:
