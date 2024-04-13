@@ -4,7 +4,6 @@
 #include <algorithm>
 
 #include <wjr/compressed_pair.hpp>
-#include <wjr/crtp/noncopyable.hpp>
 #include <wjr/crtp/nonsendable.hpp>
 #include <wjr/crtp/trivial_allocator_base.hpp>
 #include <wjr/type_traits.hpp>
@@ -15,7 +14,7 @@ template <typename StackAllocator>
 class unique_stack_allocator;
 
 template <size_t threshold, size_t cache>
-class stack_allocator_object : noncopyable {
+class stack_allocator_object {
     static_assert(threshold <= cache, "threshold must be less than or equal to cache.");
 
     template <typename StackAllocator>
@@ -144,8 +143,10 @@ public:
     using propagate_on_container_move_assignment = std::true_type;
 
     stack_allocator_object() = default;
-    stack_allocator_object(stack_allocator_object &&) = default;
-    stack_allocator_object &operator=(stack_allocator_object &&) = default;
+    stack_allocator_object(stack_allocator_object &) = delete;
+    stack_allocator_object(stack_allocator_object &&) = delete;
+    stack_allocator_object &operator=(stack_allocator_object &) = delete;
+    stack_allocator_object &operator=(stack_allocator_object &&) = delete;
     ~stack_allocator_object() {
         for (uint16_t i = 0; i < m_size; ++i) {
             free(m_ptr[i].ptr);
@@ -255,7 +256,7 @@ class weak_stack_allocator;
  */
 template <size_t threshold, size_t cache>
 class unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>
-    : nonsendable {
+    : nonsendable<> {
     using StackAllocatorObject = singleton_stack_allocator_object<threshold, cache>;
     using stack_top = typename StackAllocatorObject::stack_top;
     using allocator_type = typename StackAllocatorObject::allocator_type;
@@ -272,7 +273,7 @@ public:
     }
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n) {
-        nonsendable::check();
+        nonsendable<>::check();
 
         if (WJR_UNLIKELY(m_top.ptr == nullptr)) {
             m_instance = &m_obj->get_instance();
@@ -285,7 +286,7 @@ public:
 
 private:
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n) {
-        nonsendable::check();
+        nonsendable<>::check();
 
         if (WJR_UNLIKELY(m_top.ptr == nullptr)) {
             m_instance = &m_obj->get_instance();

@@ -19,14 +19,18 @@ inline uint32_t normalize(uint64_t *ptr, uint32_t n) {
 
 } // namespace biginteger_details
 
-class default_biginteger_size_reference : noncopyable {
+class default_biginteger_size_reference {
 public:
     default_biginteger_size_reference() = delete;
-    explicit default_biginteger_size_reference(int32_t &size) noexcept : m_size(&size) {}
-    ~default_biginteger_size_reference() = default;
+    default_biginteger_size_reference(const default_biginteger_size_reference &) = delete;
     default_biginteger_size_reference(default_biginteger_size_reference &&) = default;
     default_biginteger_size_reference &
+    operator=(const default_biginteger_size_reference &) = delete;
+    default_biginteger_size_reference &
     operator=(default_biginteger_size_reference &&) = default;
+
+    explicit default_biginteger_size_reference(int32_t &size) noexcept : m_size(&size) {}
+    ~default_biginteger_size_reference() = default;
 
     default_biginteger_size_reference &operator=(uint32_t size) noexcept {
         *m_size = __fasts_get_sign_mask(*m_size) | size;
@@ -65,7 +69,7 @@ private:
  *
  */
 template <typename Alloc>
-class default_biginteger_vector_storage : noncopyable {
+class default_biginteger_vector_storage {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<uint64_t>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
@@ -90,6 +94,14 @@ private:
 
 public:
     default_biginteger_vector_storage() noexcept = default;
+
+    default_biginteger_vector_storage(const default_biginteger_vector_storage &) = delete;
+    default_biginteger_vector_storage(default_biginteger_vector_storage &&) noexcept =
+        delete;
+    default_biginteger_vector_storage &
+    operator=(const default_biginteger_vector_storage &) = delete;
+    default_biginteger_vector_storage &
+    operator=(default_biginteger_vector_storage &&) noexcept = delete;
 
     template <typename _Alloc>
     default_biginteger_vector_storage(_Alloc &&al) noexcept
@@ -140,7 +152,7 @@ public:
         m_storage.m_capacity = capacity;
     }
 
-    void take_storage(default_biginteger_vector_storage &&other) noexcept {
+    void take_storage(default_biginteger_vector_storage &other) noexcept {
         auto &other_storage = other.__get_data();
         auto &__storage = __get_data();
         __storage.m_data = other_storage.m_data;

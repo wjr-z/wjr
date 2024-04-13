@@ -3503,7 +3503,7 @@ inline constexpr __assert_handler_t __assert_handler{};
  * -# void destroy() noexcept
  * -# void destroy_and_deallocate()
  * -# void uninitialized_construct(size_type size, size_type capacity)
- * -# void take_storage(storage&& other)
+ * -# void take_storage(storage& other)
  * -# void swap_storage(storage& other)
  * -# decltype(auto) size() noexcept
  * -# size_type capacity() const noexcept
@@ -3763,28 +3763,6 @@ using iterator_contiguous_pointer_t =
 #include <algorithm>
 
 // Already included
-#ifndef WJR_CRTP_NONCOPYABLE_HPP__
-#define WJR_CRTP_NONCOPYABLE_HPP__
-
-namespace wjr {
-
-/**
- * @brief A type to disable copying the object.
- *
- */
-class noncopyable {
-protected:
-    noncopyable() = default;
-    noncopyable(const noncopyable &) = delete;
-    noncopyable(noncopyable &&) = default;
-    noncopyable &operator=(const noncopyable &) = delete;
-    noncopyable &operator=(noncopyable &&) = default;
-    ~noncopyable() = default;
-};
-
-} // namespace wjr
-
-#endif // WJR_CRTP_NONCOPYABLE_HPP__
 #ifndef WJR_CRTP_NONSENDABLE_HPP__
 #define WJR_CRTP_NONSENDABLE_HPP__
 
@@ -3853,19 +3831,8 @@ protected:
  * Use nonsendable::check() to manually check.
  *
  */
+template <typename Tag = void>
 using nonsendable = WJR_DEBUG_IF(2, __debug_nonsendable, __release_nonsendable);
-
-template <typename T>
-struct is_nonsendable : std::is_base_of<nonsendable, T> {};
-
-template <typename T>
-inline constexpr bool is_nonsendable_v = is_nonsendable<T>::value;
-
-template <typename T>
-struct is_sendable : std::negation<is_nonsendable<T>> {};
-
-template <typename T>
-inline constexpr bool is_sendable_v = is_sendable<T>::value;
 
 } // namespace wjr
 
@@ -3920,7 +3887,7 @@ template <typename StackAllocator>
 class unique_stack_allocator;
 
 template <size_t threshold, size_t cache>
-class stack_allocator_object : noncopyable {
+class stack_allocator_object {
     static_assert(threshold <= cache, "threshold must be less than or equal to cache.");
 
     template <typename StackAllocator>
@@ -4049,8 +4016,10 @@ public:
     using propagate_on_container_move_assignment = std::true_type;
 
     stack_allocator_object() = default;
-    stack_allocator_object(stack_allocator_object &&) = default;
-    stack_allocator_object &operator=(stack_allocator_object &&) = default;
+    stack_allocator_object(stack_allocator_object &) = delete;
+    stack_allocator_object(stack_allocator_object &&) = delete;
+    stack_allocator_object &operator=(stack_allocator_object &) = delete;
+    stack_allocator_object &operator=(stack_allocator_object &&) = delete;
     ~stack_allocator_object() {
         for (uint16_t i = 0; i < m_size; ++i) {
             free(m_ptr[i].ptr);
@@ -4160,7 +4129,7 @@ class weak_stack_allocator;
  */
 template <size_t threshold, size_t cache>
 class unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>
-    : nonsendable {
+    : nonsendable<> {
     using StackAllocatorObject = singleton_stack_allocator_object<threshold, cache>;
     using stack_top = typename StackAllocatorObject::stack_top;
     using allocator_type = typename StackAllocatorObject::allocator_type;
@@ -4177,7 +4146,7 @@ public:
     }
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n) {
-        nonsendable::check();
+        nonsendable<>::check();
 
         if (WJR_UNLIKELY(m_top.ptr == nullptr)) {
             m_instance = &m_obj->get_instance();
@@ -4190,7 +4159,7 @@ public:
 
 private:
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n) {
-        nonsendable::check();
+        nonsendable<>::check();
 
         if (WJR_UNLIKELY(m_top.ptr == nullptr)) {
             m_instance = &m_obj->get_instance();
@@ -5114,7 +5083,6 @@ constexpr OutputIt move_n_restrict(InputIt first, Size count, OutputIt d_first) 
 #ifndef WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
 #define WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
 
-// Already included
 #ifndef WJR_MEMORY_UNINITIALIZED_HPP__
 #define WJR_MEMORY_UNINITIALIZED_HPP__
 
@@ -5418,7 +5386,7 @@ WJR_CONSTEXPR20 void destroy_n_using_allocator(Iter first, Size n, Alloc &alloc)
 namespace wjr {
 
 template <typename Alloc>
-class temporary_value_allocator : noncopyable {
+class temporary_value_allocator {
 public:
     using value_type = typename std::allocator_traits<Alloc>::value_type;
     using pointer = value_type *;
@@ -5428,6 +5396,11 @@ public:
     temporary_value_allocator(Alloc &al, Args &&...args) : al(al) {
         uninitialized_construct_using_allocator(get(), al, std::forward<Args>(args)...);
     }
+
+    temporary_value_allocator(const temporary_value_allocator &) = delete;
+    temporary_value_allocator(temporary_value_allocator &&) = delete;
+    temporary_value_allocator &operator=(const temporary_value_allocator &) = delete;
+    temporary_value_allocator &operator=(temporary_value_allocator &&) = delete;
 
     ~temporary_value_allocator() { destroy_at_using_allocator(get(), al); }
 
@@ -5571,6 +5544,9 @@ public:
     }
 };
 
+template <typename T, typename Alloc, typename STraits>
+class __default_vector_storage_impl;
+
 /**
  * @brief Default vector storage
  *
@@ -5578,7 +5554,7 @@ public:
  *
  */
 template <typename T, typename Alloc, typename STraits>
-class __default_vector_storage_impl : noncopyable {
+class __default_vector_storage_impl {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
@@ -5603,6 +5579,12 @@ private:
 
 public:
     __default_vector_storage_impl() noexcept = default;
+
+    __default_vector_storage_impl(const __default_vector_storage_impl &) = delete;
+    __default_vector_storage_impl(__default_vector_storage_impl &&) = delete;
+    __default_vector_storage_impl &
+    operator=(const __default_vector_storage_impl &) = delete;
+    __default_vector_storage_impl &operator=(__default_vector_storage_impl &&) = delete;
 
     template <typename _Alloc>
     WJR_CONSTEXPR20 __default_vector_storage_impl(_Alloc &&al) noexcept
@@ -5656,7 +5638,7 @@ public:
         m_storage.m_capacity = result.count;
     }
 
-    WJR_CONSTEXPR20 void take_storage(__default_vector_storage_impl &&other) noexcept {
+    WJR_CONSTEXPR20 void take_storage(__default_vector_storage_impl &other) noexcept {
         auto &other_storage = other.__get_data();
         __get_data() = std::move(other_storage);
         other_storage = {};
@@ -5693,7 +5675,7 @@ using default_vector_storage =
     __default_vector_storage_impl<T, Alloc, vector_storage_traits<T, Alloc>>;
 
 template <typename T, size_t Capacity, typename Alloc, typename STraits>
-class __static_vector_storage_impl : noncopyable {
+class __static_vector_storage_impl {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
@@ -5723,6 +5705,12 @@ private:
 
 public:
     __static_vector_storage_impl() noexcept = default;
+
+    __static_vector_storage_impl(const __static_vector_storage_impl &) = delete;
+    __static_vector_storage_impl(__static_vector_storage_impl &&) = delete;
+    __static_vector_storage_impl &
+    operator=(const __static_vector_storage_impl &) = delete;
+    __static_vector_storage_impl &operator=(__static_vector_storage_impl &&) = delete;
 
     template <typename _Alloc>
     WJR_CONSTEXPR20 __static_vector_storage_impl(_Alloc &&al) noexcept
@@ -5754,7 +5742,7 @@ public:
         m_storage.m_size = size;
     }
 
-    WJR_CONSTEXPR20 void take_storage(__static_vector_storage_impl &&other) noexcept {
+    WJR_CONSTEXPR20 void take_storage(__static_vector_storage_impl &other) noexcept {
         auto &al = get_allocator();
         auto &m_storage = __get_data();
         auto &other_storage = other.__get_data();
@@ -5863,7 +5851,7 @@ using static_vector_storage =
     __static_vector_storage_impl<T, Capacity, Alloc, vector_storage_traits<T, Alloc>>;
 
 template <typename T, typename Alloc, typename STraits>
-class __fixed_vector_storage_impl : noncopyable {
+class __fixed_vector_storage_impl {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
@@ -5888,6 +5876,11 @@ private:
 
 public:
     __fixed_vector_storage_impl() noexcept = default;
+
+    __fixed_vector_storage_impl(const __fixed_vector_storage_impl &) = delete;
+    __fixed_vector_storage_impl(__fixed_vector_storage_impl &&) = delete;
+    __fixed_vector_storage_impl &operator=(const __fixed_vector_storage_impl &) = delete;
+    __fixed_vector_storage_impl &operator=(__fixed_vector_storage_impl &&) = delete;
 
     template <typename _Alloc>
     WJR_CONSTEXPR20 __fixed_vector_storage_impl(_Alloc &&al) noexcept
@@ -5933,7 +5926,7 @@ public:
         m_storage.m_capacity = result.count;
     }
 
-    WJR_CONSTEXPR20 void take_storage(__fixed_vector_storage_impl &&other) noexcept {
+    WJR_CONSTEXPR20 void take_storage(__fixed_vector_storage_impl &other) noexcept {
         auto &other_storage = other.__get_data();
         __get_data() = std::move(other_storage);
         other_storage = {};
@@ -5970,7 +5963,7 @@ using fixed_vector_storage =
     __fixed_vector_storage_impl<T, Alloc, vector_storage_traits<T, Alloc>>;
 
 template <typename T, size_t Capacity, typename Alloc, typename STraits>
-class __sso_vector_storage_impl : noncopyable {
+class __sso_vector_storage_impl {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
@@ -6028,6 +6021,11 @@ private:
 public:
     __sso_vector_storage_impl() noexcept = default;
 
+    __sso_vector_storage_impl(const __sso_vector_storage_impl &) = delete;
+    __sso_vector_storage_impl(__sso_vector_storage_impl &&) = delete;
+    __sso_vector_storage_impl &operator=(const __sso_vector_storage_impl &) = delete;
+    __sso_vector_storage_impl &operator=(__sso_vector_storage_impl &&) = delete;
+
     template <typename _Alloc>
     WJR_CONSTEXPR20 __sso_vector_storage_impl(_Alloc &&al) noexcept
         : m_pair(std::piecewise_construct, std::make_tuple(std::forward<_Alloc>(al)),
@@ -6081,7 +6079,7 @@ public:
         }
     }
 
-    WJR_CONSTEXPR20 void take_storage(__sso_vector_storage_impl &&other) noexcept {
+    WJR_CONSTEXPR20 void take_storage(__sso_vector_storage_impl &other) noexcept {
         auto &al = get_allocator();
         auto &m_storage = __get_data();
         auto &other_storage = other.__get_data();
@@ -6485,7 +6483,7 @@ public:
                 STraits::uninitialized_move_n_restrict_using_allocator(
                     data(), size(), new_storage.data(), al);
                 __destroy_and_deallocate();
-                __take_storage(std::move(new_storage));
+                __take_storage(new_storage);
             }
         }
     }
@@ -6513,7 +6511,7 @@ public:
                 STraits::uninitialized_move_n_restrict_using_allocator(
                     data(), old_size, new_storage.data(), al);
                 __destroy_and_deallocate();
-                __take_storage(std::move(new_storage));
+                __take_storage(new_storage);
             }
         }
     }
@@ -6769,7 +6767,7 @@ private:
     }
 
     WJR_CONSTEXPR20 void __take_storage(basic_vector &&other) {
-        __take_storage(std::move(other.m_storage));
+        __take_storage(other.m_storage);
     }
 
     WJR_CONSTEXPR20 void __move_element(basic_vector &&other) {
@@ -6787,8 +6785,8 @@ private:
         return m_storage.size();
     }
 
-    WJR_CONSTEXPR20 void __take_storage(storage_type &&other) {
-        m_storage.take_storage(std::move(other));
+    WJR_CONSTEXPR20 void __take_storage(storage_type &other) {
+        m_storage.take_storage(other);
     }
 
     WJR_CONSTEXPR20 void
@@ -6925,7 +6923,7 @@ private:
                         pos, __last, new_first + old_pos + n, al);
 
                     __destroy_and_deallocate();
-                    __take_storage(std::move(new_storage));
+                    __take_storage(new_storage);
                 } else {
                     __unreallocatable_unreachable(size() + n);
                 }
@@ -6972,7 +6970,7 @@ private:
                                                                          new_first, al);
 
                     __destroy_and_deallocate();
-                    __take_storage(std::move(new_storage));
+                    __take_storage(new_storage);
                 } else {
                     __unreallocatable_unreachable(size() + n);
                 }
@@ -7024,7 +7022,7 @@ private:
                                                                        new_first, al);
 
                 __destroy_and_deallocate();
-                __take_storage(std::move(new_storage));
+                __take_storage(new_storage);
             } else {
                 __unreallocatable_unreachable(n);
             }
@@ -7040,7 +7038,7 @@ private:
                 storage_type new_storage(al, n, n, in_place_reallocate);
                 STraits::uninitialized_fill_n_using_allocator(new_storage.data(), n, al,
                                                               val);
-                __take_storage(std::move(new_storage));
+                __take_storage(new_storage);
                 return;
             } else {
                 __unreallocatable_unreachable(n);
@@ -7082,7 +7080,7 @@ private:
                                                                  al);
 
             __destroy_and_deallocate();
-            __take_storage(std::move(new_storage));
+            __take_storage(new_storage);
         } else {
             __unreallocatable_unreachable(size() + 1);
         }
@@ -7110,7 +7108,7 @@ private:
                                                                  new_first, al);
 
             __destroy_and_deallocate();
-            __take_storage(std::move(new_storage));
+            __take_storage(new_storage);
         } else {
             __unreallocatable_unreachable(size() + 1);
         }
@@ -7164,7 +7162,7 @@ private:
                     pos, __last, new_first + old_pos + n, al);
 
                 __destroy_and_deallocate();
-                __take_storage(std::move(new_storage));
+                __take_storage(new_storage);
             } else {
                 __unreallocatable_unreachable(size() + n);
             }
@@ -7230,7 +7228,7 @@ private:
                                                                      new_first, al);
 
                 __destroy_and_deallocate();
-                __take_storage(std::move(new_storage));
+                __take_storage(new_storage);
             } else {
                 __unreallocatable_unreachable(new_size);
             }
@@ -7344,7 +7342,7 @@ private:
                         old_last, __last, __ptr + old_pos + m, al);
 
                     __destroy_and_deallocate();
-                    __take_storage(std::move(new_storage));
+                    __take_storage(new_storage);
                 } else {
                     __unreallocatable_unreachable(size() + __delta);
                 }
@@ -7405,7 +7403,7 @@ private:
                         old_last, __last, __ptr + old_pos + m, al);
 
                     __destroy_and_deallocate();
-                    __take_storage(std::move(new_storage));
+                    __take_storage(new_storage);
                 } else {
                     __unreallocatable_unreachable(size() + __delta);
                 }
@@ -27193,14 +27191,18 @@ inline uint32_t normalize(uint64_t *ptr, uint32_t n) {
 
 } // namespace biginteger_details
 
-class default_biginteger_size_reference : noncopyable {
+class default_biginteger_size_reference {
 public:
     default_biginteger_size_reference() = delete;
-    explicit default_biginteger_size_reference(int32_t &size) noexcept : m_size(&size) {}
-    ~default_biginteger_size_reference() = default;
+    default_biginteger_size_reference(const default_biginteger_size_reference &) = delete;
     default_biginteger_size_reference(default_biginteger_size_reference &&) = default;
     default_biginteger_size_reference &
+    operator=(const default_biginteger_size_reference &) = delete;
+    default_biginteger_size_reference &
     operator=(default_biginteger_size_reference &&) = default;
+
+    explicit default_biginteger_size_reference(int32_t &size) noexcept : m_size(&size) {}
+    ~default_biginteger_size_reference() = default;
 
     default_biginteger_size_reference &operator=(uint32_t size) noexcept {
         *m_size = __fasts_get_sign_mask(*m_size) | size;
@@ -27239,7 +27241,7 @@ private:
  *
  */
 template <typename Alloc>
-class default_biginteger_vector_storage : noncopyable {
+class default_biginteger_vector_storage {
     using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<uint64_t>;
     using _Alty_traits = std::allocator_traits<_Alty>;
 
@@ -27264,6 +27266,14 @@ private:
 
 public:
     default_biginteger_vector_storage() noexcept = default;
+
+    default_biginteger_vector_storage(const default_biginteger_vector_storage &) = delete;
+    default_biginteger_vector_storage(default_biginteger_vector_storage &&) noexcept =
+        delete;
+    default_biginteger_vector_storage &
+    operator=(const default_biginteger_vector_storage &) = delete;
+    default_biginteger_vector_storage &
+    operator=(default_biginteger_vector_storage &&) noexcept = delete;
 
     template <typename _Alloc>
     default_biginteger_vector_storage(_Alloc &&al) noexcept
@@ -27314,7 +27324,7 @@ public:
         m_storage.m_capacity = capacity;
     }
 
-    void take_storage(default_biginteger_vector_storage &&other) noexcept {
+    void take_storage(default_biginteger_vector_storage &other) noexcept {
         auto &other_storage = other.__get_data();
         auto &__storage = __get_data();
         __storage.m_data = other_storage.m_data;

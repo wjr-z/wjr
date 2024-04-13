@@ -66,19 +66,8 @@ protected:
  * Use nonsendable::check() to manually check.
  *
  */
+template <typename Tag = void>
 using nonsendable = WJR_DEBUG_IF(2, __debug_nonsendable, __release_nonsendable);
-
-template <typename T>
-struct is_nonsendable : std::is_base_of<nonsendable, T> {};
-
-template <typename T>
-inline constexpr bool is_nonsendable_v = is_nonsendable<T>::value;
-
-template <typename T>
-struct is_sendable : std::negation<is_nonsendable<T>> {};
-
-template <typename T>
-inline constexpr bool is_sendable_v = is_sendable<T>::value;
 
 } // namespace wjr
 

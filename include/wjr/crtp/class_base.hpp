@@ -3,6 +3,8 @@
 
 #include <type_traits>
 
+#include <wjr/preprocessor.hpp>
+
 namespace wjr {
 
 struct enable_default_constructor_t {
@@ -43,6 +45,14 @@ protected:
 
     constexpr explicit enable_default_constructor_base(
         enable_default_constructor_t) noexcept {}
+};
+
+template <bool Enable, typename Tag>
+class enable_destructor_base {};
+
+template <typename Tag>
+class enable_destructor_base<false, Tag> {
+    ~enable_destructor_base() noexcept = delete;
 };
 
 template <bool Copy, bool Move, bool CopyAssign, bool MoveAssign, typename Tag = void>
@@ -94,6 +104,12 @@ WJR_REGISTER_ENABLE_COPY_MOVE_BASE(false, false, false, false);
 
 #undef __WJR_ENABLE_COPY_MOVE_BASE_false
 #undef __WJR_ENABLE_COPY_MOVE_BASE_true
+
+template <typename Tag = void>
+using noncopyable = enable_copy_move_base<false, true, false, true, Tag>;
+
+template <typename Tag = void>
+using nonmoveable = enable_copy_move_base<false, true, false, true, Tag>;
 
 } // namespace wjr
 
