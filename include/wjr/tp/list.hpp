@@ -505,12 +505,12 @@ struct tp_zip;
 template <template <typename...> typename C, typename T>
 struct __tp_zip_helper;
 
-template <template <typename...> typename C, size_t... idx>
-struct __tp_zip_helper<C, std::index_sequence<idx...>> {
+template <template <typename...> typename C, size_t... Indexs>
+struct __tp_zip_helper<C, std::index_sequence<Indexs...>> {
     template <size_t I, typename... Args>
     using __type = C<tp_at_t<Args, I>...>;
     template <typename... Args>
-    using type = tp_list<__type<idx, Args...>...>;
+    using type = tp_list<__type<Indexs, Args...>...>;
 };
 
 template <template <typename...> typename C>
@@ -1046,6 +1046,37 @@ using tp_sort_t = typename tp_sort<C, P>::type;
 
 template <typename C, typename P>
 using tp_sort_f = typename tp_sort<C, P::template fn>::type;
+
+template <typename T, typename S>
+struct __tp_make_integer_sequence_helper;
+
+template <typename T, T... Indexs>
+struct __tp_make_integer_sequence_helper<T, std::integer_sequence<T, Indexs...>> {
+    using type = tp_list<std::integral_constant<T, Indexs>...>;
+};
+
+template <typename T, T N>
+using tp_make_integer_sequence =
+    typename __tp_make_integer_sequence_helper<T, std::make_integer_sequence<T, N>>::type;
+
+template <size_t N>
+using tp_make_index_sequence = tp_make_integer_sequence<size_t, N>;
+
+template <typename... Args>
+using tp_index_sequence_for = tp_make_index_sequence<sizeof...(Args)>;
+
+template <typename T, typename S>
+struct __tp_make_std_integer_sequence_helper;
+
+template <typename T, T... Indexs>
+struct __tp_make_std_integer_sequence_helper<
+    T, tp_list<std::integral_constant<T, Indexs>...>> {
+    using type = std::integer_sequence<T, Indexs...>;
+};
+
+template <typename S>
+using tp_make_std_index_sequence =
+    typename __tp_make_std_integer_sequence_helper<size_t, S>::type;
 
 } // namespace wjr
 

@@ -269,13 +269,18 @@ template <typename T>
 inline constexpr bool is_nothrow_swappable_v = is_nothrow_swappable<T>::value;
 
 template <typename T>
-struct unref_wrapper {
+struct __unref_wrapper_helper {
     using type = T;
 };
 
 template <typename T>
-struct unref_wrapper<std::reference_wrapper<T>> {
+struct __unref_wrapper_helper<std::reference_wrapper<T>> {
     using type = T &;
+};
+
+template <typename T>
+struct unref_wrapper {
+    using type = typename __unref_wrapper_helper<std::decay_t<T>>::type;
 };
 
 template <typename T>

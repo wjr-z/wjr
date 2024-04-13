@@ -357,8 +357,9 @@ public:
 
     template <typename _Alloc>
     WJR_CONSTEXPR20 __static_vector_storage_impl(_Alloc &&al) noexcept
-        : m_pair(std::piecewise_construct, std::make_tuple(std::forward<_Alloc>(al)),
-                 std::make_tuple()) {}
+        : m_pair(std::piecewise_construct,
+                 std::forward_as_tuple(std::forward<_Alloc>(al)),
+                 std::forward_as_tuple()) {}
 
     ~__static_vector_storage_impl() noexcept = default;
 
@@ -671,15 +672,17 @@ public:
 
     template <typename _Alloc>
     WJR_CONSTEXPR20 __sso_vector_storage_impl(_Alloc &&al) noexcept
-        : m_pair(std::piecewise_construct, std::make_tuple(std::forward<_Alloc>(al)),
-                 std::make_tuple()) {}
+        : m_pair(std::piecewise_construct,
+                 std::forward_as_tuple(std::forward<_Alloc>(al)),
+                 std::forward_as_tuple()) {}
 
     template <typename _Alloc>
     WJR_CONSTEXPR20 __sso_vector_storage_impl(_Alloc &&al, size_type size,
                                               size_type capacity,
                                               in_place_reallocate_t) noexcept
-        : m_pair(std::piecewise_construct, std::make_tuple(std::forward<_Alloc>(al)),
-                 std::make_tuple()) {
+        : m_pair(std::piecewise_construct,
+                 std::forward_as_tuple(std::forward<_Alloc>(al)),
+                 std::forward_as_tuple()) {
         uninitialized_construct(size, capacity);
     }
 
@@ -915,11 +918,6 @@ private:
     using storage_type = Storage;
     using storage_fn_type = container_fn<_Alty>;
     using __get_size_t = decltype(std::declval<storage_type>().size());
-
-    static_assert(std::is_reference_v<unref_wrapper_t<__get_size_t>>,
-                  "return type of "
-                  "storage::size() must be "
-                  "reference type");
 
     friend class container_fn<_Alty>;
 

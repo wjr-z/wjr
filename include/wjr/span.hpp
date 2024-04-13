@@ -186,7 +186,6 @@ public:
         : storage(source.data(), source.size()) {}
 
     constexpr span(const span &other) noexcept = default;
-
     constexpr span &operator=(const span &other) noexcept = default;
 
     ~span() = default;

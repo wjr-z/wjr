@@ -161,13 +161,17 @@ template <typename Tag = void>
 using nonmoveable = enable_copy_move_base<false, true, false, true, Tag>;
 
 template <typename Tag = void, typename... Args>
-using enable_special_membser_of_args_base = enable_special_members_base<
+using enable_special_members_of_args_base = enable_special_members_base<
     std::conjunction_v<std::is_default_constructible<Args>...>,
     std::conjunction_v<std::is_destructible<Args>...>,
     std::conjunction_v<std::is_copy_constructible<Args>...>,
     std::conjunction_v<std::is_move_constructible<Args>...>,
     std::conjunction_v<std::is_copy_assignable<Args>...>,
     std::conjunction_v<std::is_move_assignable<Args>...>, Tag>;
+
+// 标识符
+template <size_t I, typename T>
+struct enable_base_identity_t {};
 
 } // namespace wjr
 
