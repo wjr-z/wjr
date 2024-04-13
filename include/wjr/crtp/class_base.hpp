@@ -14,8 +14,7 @@ struct enable_default_constructor_t {
 inline constexpr enable_default_constructor_t enable_default_constructor{};
 
 template <bool Enable, typename = void>
-class enable_default_constructor_base {
-protected:
+struct enable_default_constructor_base {
     constexpr enable_default_constructor_base() noexcept = default;
     constexpr enable_default_constructor_base(
         const enable_default_constructor_base &) noexcept = default;
@@ -26,13 +25,13 @@ protected:
     constexpr enable_default_constructor_base &
     operator=(enable_default_constructor_base &&) noexcept = default;
 
+protected:
     constexpr explicit enable_default_constructor_base(
         enable_default_constructor_t) noexcept {}
 };
 
 template <typename Tag>
-class enable_default_constructor_base<false, Tag> {
-protected:
+struct enable_default_constructor_base<false, Tag> {
     constexpr enable_default_constructor_base() noexcept = delete;
     constexpr enable_default_constructor_base(
         const enable_default_constructor_base &) noexcept = default;
@@ -43,21 +42,21 @@ protected:
     constexpr enable_default_constructor_base &
     operator=(enable_default_constructor_base &&) noexcept = default;
 
+protected:
     constexpr explicit enable_default_constructor_base(
         enable_default_constructor_t) noexcept {}
 };
 
-template <bool Enable, typename Tag>
-class enable_destructor_base {};
+template <bool Enable, typename Tag = void>
+struct enable_destructor_base {};
 
 template <typename Tag>
-class enable_destructor_base<false, Tag> {
+struct enable_destructor_base<false, Tag> {
     ~enable_destructor_base() noexcept = delete;
 };
 
 template <bool Copy, bool Move, bool CopyAssign, bool MoveAssign, typename Tag = void>
-class enable_copy_move_base {
-protected:
+struct enable_copy_move_base {
     constexpr enable_copy_move_base() noexcept = default;
     constexpr enable_copy_move_base(const enable_copy_move_base &) noexcept = default;
     constexpr enable_copy_move_base(enable_copy_move_base &&) noexcept = default;
@@ -67,23 +66,42 @@ protected:
     operator=(enable_copy_move_base &&) noexcept = default;
 };
 
-#define __WJR_ENABLE_COPY_MOVE_BASE_true default
-#define __WJR_ENABLE_COPY_MOVE_BASE_false delete
+template <bool Default, bool Destructor, bool Copy, bool Move, bool CopyAssign,
+          bool MoveAssign, typename Tag = void>
+struct enable_special_members_base
+    : public enable_copy_move_base<Copy, Move, CopyAssign, MoveAssign, Tag> {
+    constexpr enable_special_members_base() noexcept = default;
+    constexpr enable_special_members_base(const enable_special_members_base &) noexcept =
+        default;
+    constexpr enable_special_members_base(enable_special_members_base &&) noexcept =
+        default;
+    constexpr enable_special_members_base &
+    operator=(const enable_special_members_base &) noexcept = default;
+    constexpr enable_special_members_base &
+    operator=(enable_special_members_base &&) noexcept = default;
+    ~enable_special_members_base() noexcept = default;
+
+protected:
+    constexpr explicit enable_special_members_base(
+        enable_default_constructor_t) noexcept {}
+};
+
+#define __WJR_ENABLE_BSAE_true default
+#define __WJR_ENABLE_BSAE_false delete
 
 #define WJR_REGISTER_ENABLE_COPY_MOVE_BASE(Copy, Move, CopyAssign, MoveAssign)           \
     template <typename Tag>                                                              \
-    class enable_copy_move_base<Copy, Move, CopyAssign, MoveAssign, Tag> {               \
-    protected:                                                                           \
+    struct enable_copy_move_base<Copy, Move, CopyAssign, MoveAssign, Tag> {              \
         constexpr enable_copy_move_base() noexcept = default;                            \
         constexpr enable_copy_move_base(const enable_copy_move_base &) noexcept =        \
-            WJR_PP_CONCAT(__WJR_ENABLE_COPY_MOVE_BASE, Copy);                            \
+            WJR_PP_CONCAT(__WJR_ENABLE_BSAE_, Copy);                                     \
         constexpr enable_copy_move_base(enable_copy_move_base &&) noexcept =             \
-            WJR_PP_CONCAT(__WJR_ENABLE_COPY_MOVE_BASE, Move);                            \
-        constexpr enable_copy_move_base &                                                \
-        operator=(const enable_copy_move_base &) noexcept =                              \
-            WJR_PP_CONCAT(__WJR_ENABLE_COPY_MOVE_BASE, CopyAssign);                      \
+            WJR_PP_CONCAT(__WJR_ENABLE_BSAE_, Move);                                     \
+        constexpr enable_copy_move_base &operator=(                                      \
+            const enable_copy_move_base &) noexcept = WJR_PP_CONCAT(__WJR_ENABLE_BSAE_,  \
+                                                                    CopyAssign);         \
         constexpr enable_copy_move_base &operator=(enable_copy_move_base &&) noexcept =  \
-            WJR_PP_CONCAT(__WJR_ENABLE_COPY_MOVE_BASE, MoveAssign);                      \
+            WJR_PP_CONCAT(__WJR_ENABLE_BSAE_, MoveAssign);                               \
     }
 
 WJR_REGISTER_ENABLE_COPY_MOVE_BASE(false, true, true, true);
@@ -102,14 +120,54 @@ WJR_REGISTER_ENABLE_COPY_MOVE_BASE(false, true, false, false);
 WJR_REGISTER_ENABLE_COPY_MOVE_BASE(true, false, false, false);
 WJR_REGISTER_ENABLE_COPY_MOVE_BASE(false, false, false, false);
 
-#undef __WJR_ENABLE_COPY_MOVE_BASE_false
-#undef __WJR_ENABLE_COPY_MOVE_BASE_true
+#undef WJR_REGISTER_ENABLE_COPY_MOVE_BASE
+
+#define WJR_REGISTER_ENABLE_SPECIAL_MEMBERS_BASE(Default, Destructor)                    \
+    template <bool Copy, bool Move, bool CopyAssign, bool MoveAssign, typename Tag>      \
+    struct enable_special_members_base<Default, Destructor, Copy, Move, CopyAssign,      \
+                                       MoveAssign, Tag>                                  \
+        : public enable_copy_move_base<Copy, Move, CopyAssign, MoveAssign, Tag> {        \
+        constexpr enable_special_members_base() noexcept =                               \
+            WJR_PP_CONCAT(__WJR_ENABLE_BSAE_, Default);                                  \
+        constexpr enable_special_members_base(                                           \
+            const enable_special_members_base &) noexcept = default;                     \
+        constexpr enable_special_members_base(enable_special_members_base &&) noexcept = \
+            default;                                                                     \
+        constexpr enable_special_members_base &                                          \
+        operator=(const enable_special_members_base &) noexcept = default;               \
+        constexpr enable_special_members_base &                                          \
+        operator=(enable_special_members_base &&) noexcept = default;                    \
+        ~enable_special_members_base() noexcept = WJR_PP_CONCAT(__WJR_ENABLE_BSAE_,      \
+                                                                Destructor);             \
+                                                                                         \
+    protected:                                                                           \
+        constexpr explicit enable_special_members_base(                                  \
+            enable_default_constructor_t) noexcept {}                                    \
+    }
+
+WJR_REGISTER_ENABLE_SPECIAL_MEMBERS_BASE(false, true);
+WJR_REGISTER_ENABLE_SPECIAL_MEMBERS_BASE(true, false);
+WJR_REGISTER_ENABLE_SPECIAL_MEMBERS_BASE(false, false);
+
+#undef WJR_REGISTER_ENABLE_SPECIAL_MEMBERS_BASE
+
+#undef __WJR_ENABLE_BSAE_false
+#undef __WJR_ENABLE_BSAE_true
 
 template <typename Tag = void>
 using noncopyable = enable_copy_move_base<false, true, false, true, Tag>;
 
 template <typename Tag = void>
 using nonmoveable = enable_copy_move_base<false, true, false, true, Tag>;
+
+template <typename Tag = void, typename... Args>
+using enable_special_membser_of_args_base = enable_special_members_base<
+    std::conjunction_v<std::is_default_constructible<Args>...>,
+    std::conjunction_v<std::is_destructible<Args>...>,
+    std::conjunction_v<std::is_copy_constructible<Args>...>,
+    std::conjunction_v<std::is_move_constructible<Args>...>,
+    std::conjunction_v<std::is_copy_assignable<Args>...>,
+    std::conjunction_v<std::is_move_assignable<Args>...>, Tag>;
 
 } // namespace wjr
 

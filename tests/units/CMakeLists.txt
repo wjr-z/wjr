@@ -35,6 +35,7 @@ add_executable(
    src/math.cpp
    src/memory.cpp
    src/container.cpp
+   src/compressed_pair.cpp
    src/biginteger.cpp
    ${WJR_SRCS}
 )

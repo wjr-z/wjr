@@ -12,17 +12,10 @@
 #include <array>
 #include <tuple>
 
-#ifndef WJR_TYPE_TRAITS_HPP__
-#define WJR_TYPE_TRAITS_HPP__
+#ifndef WJR_CRTP_CLASS_BASE_HPP__
+#define WJR_CRTP_CLASS_BASE_HPP__
 
-#include <cstddef>
-#include <cstdint>
-#include <functional>
-#include <iterator>
-#include <limits>
-#include <memory>
 #include <type_traits>
-#include <utility>
 
 #ifndef WJR_PREPROCESSOR_HPP__
 #define WJR_PREPROCESSOR_HPP__
@@ -2297,6 +2290,187 @@
 
 namespace wjr {
 
+struct enable_default_constructor_t {
+    constexpr explicit enable_default_constructor_t() noexcept = default;
+};
+
+inline constexpr enable_default_constructor_t enable_default_constructor{};
+
+template <bool Enable, typename = void>
+struct enable_default_constructor_base {
+    constexpr enable_default_constructor_base() noexcept = default;
+    constexpr enable_default_constructor_base(
+        const enable_default_constructor_base &) noexcept = default;
+    constexpr enable_default_constructor_base(
+        enable_default_constructor_base &&) noexcept = default;
+    constexpr enable_default_constructor_base &
+    operator=(const enable_default_constructor_base &) noexcept = default;
+    constexpr enable_default_constructor_base &
+    operator=(enable_default_constructor_base &&) noexcept = default;
+
+protected:
+    constexpr explicit enable_default_constructor_base(
+        enable_default_constructor_t) noexcept {}
+};
+
+template <typename Tag>
+struct enable_default_constructor_base<false, Tag> {
+    constexpr enable_default_constructor_base() noexcept = delete;
+    constexpr enable_default_constructor_base(
+        const enable_default_constructor_base &) noexcept = default;
+    constexpr enable_default_constructor_base(
+        enable_default_constructor_base &&) noexcept = default;
+    constexpr enable_default_constructor_base &
+    operator=(const enable_default_constructor_base &) noexcept = default;
+    constexpr enable_default_constructor_base &
+    operator=(enable_default_constructor_base &&) noexcept = default;
+
+protected:
+    constexpr explicit enable_default_constructor_base(
+        enable_default_constructor_t) noexcept {}
+};
+
+template <bool Enable, typename Tag = void>
+struct enable_destructor_base {};
+
+template <typename Tag>
+struct enable_destructor_base<false, Tag> {
+    ~enable_destructor_base() noexcept = delete;
+};
+
+template <bool Copy, bool Move, bool CopyAssign, bool MoveAssign, typename Tag = void>
+struct enable_copy_move_base {
+    constexpr enable_copy_move_base() noexcept = default;
+    constexpr enable_copy_move_base(const enable_copy_move_base &) noexcept = default;
+    constexpr enable_copy_move_base(enable_copy_move_base &&) noexcept = default;
+    constexpr enable_copy_move_base &
+    operator=(const enable_copy_move_base &) noexcept = default;
+    constexpr enable_copy_move_base &
+    operator=(enable_copy_move_base &&) noexcept = default;
+};
+
+template <bool Default, bool Destructor, bool Copy, bool Move, bool CopyAssign,
+          bool MoveAssign, typename Tag = void>
+struct enable_special_members_base
+    : public enable_copy_move_base<Copy, Move, CopyAssign, MoveAssign, Tag> {
+    constexpr enable_special_members_base() noexcept = default;
+    constexpr enable_special_members_base(const enable_special_members_base &) noexcept =
+        default;
+    constexpr enable_special_members_base(enable_special_members_base &&) noexcept =
+        default;
+    constexpr enable_special_members_base &
+    operator=(const enable_special_members_base &) noexcept = default;
+    constexpr enable_special_members_base &
+    operator=(enable_special_members_base &&) noexcept = default;
+    ~enable_special_members_base() noexcept = default;
+
+protected:
+    constexpr explicit enable_special_members_base(
+        enable_default_constructor_t) noexcept {}
+};
+
+#define __WJR_ENABLE_BSAE_true default
+#define __WJR_ENABLE_BSAE_false delete
+
+#define WJR_REGISTER_ENABLE_COPY_MOVE_BASE(Copy, Move, CopyAssign, MoveAssign)           \
+    template <typename Tag>                                                              \
+    struct enable_copy_move_base<Copy, Move, CopyAssign, MoveAssign, Tag> {              \
+        constexpr enable_copy_move_base() noexcept = default;                            \
+        constexpr enable_copy_move_base(const enable_copy_move_base &) noexcept =        \
+            WJR_PP_CONCAT(__WJR_ENABLE_BSAE_, Copy);                                     \
+        constexpr enable_copy_move_base(enable_copy_move_base &&) noexcept =             \
+            WJR_PP_CONCAT(__WJR_ENABLE_BSAE_, Move);                                     \
+        constexpr enable_copy_move_base &operator=(                                      \
+            const enable_copy_move_base &) noexcept = WJR_PP_CONCAT(__WJR_ENABLE_BSAE_,  \
+                                                                    CopyAssign);         \
+        constexpr enable_copy_move_base &operator=(enable_copy_move_base &&) noexcept =  \
+            WJR_PP_CONCAT(__WJR_ENABLE_BSAE_, MoveAssign);                               \
+    }
+
+WJR_REGISTER_ENABLE_COPY_MOVE_BASE(false, true, true, true);
+WJR_REGISTER_ENABLE_COPY_MOVE_BASE(true, false, true, true);
+WJR_REGISTER_ENABLE_COPY_MOVE_BASE(false, false, true, true);
+WJR_REGISTER_ENABLE_COPY_MOVE_BASE(true, true, false, true);
+WJR_REGISTER_ENABLE_COPY_MOVE_BASE(false, true, false, true);
+WJR_REGISTER_ENABLE_COPY_MOVE_BASE(true, false, false, true);
+WJR_REGISTER_ENABLE_COPY_MOVE_BASE(false, false, false, true);
+WJR_REGISTER_ENABLE_COPY_MOVE_BASE(true, true, true, false);
+WJR_REGISTER_ENABLE_COPY_MOVE_BASE(false, true, true, false);
+WJR_REGISTER_ENABLE_COPY_MOVE_BASE(true, false, true, false);
+WJR_REGISTER_ENABLE_COPY_MOVE_BASE(false, false, true, false);
+WJR_REGISTER_ENABLE_COPY_MOVE_BASE(true, true, false, false);
+WJR_REGISTER_ENABLE_COPY_MOVE_BASE(false, true, false, false);
+WJR_REGISTER_ENABLE_COPY_MOVE_BASE(true, false, false, false);
+WJR_REGISTER_ENABLE_COPY_MOVE_BASE(false, false, false, false);
+
+#undef WJR_REGISTER_ENABLE_COPY_MOVE_BASE
+
+#define WJR_REGISTER_ENABLE_SPECIAL_MEMBERS_BASE(Default, Destructor)                    \
+    template <bool Copy, bool Move, bool CopyAssign, bool MoveAssign, typename Tag>      \
+    struct enable_special_members_base<Default, Destructor, Copy, Move, CopyAssign,      \
+                                       MoveAssign, Tag>                                  \
+        : public enable_copy_move_base<Copy, Move, CopyAssign, MoveAssign, Tag> {        \
+        constexpr enable_special_members_base() noexcept =                               \
+            WJR_PP_CONCAT(__WJR_ENABLE_BSAE_, Default);                                  \
+        constexpr enable_special_members_base(                                           \
+            const enable_special_members_base &) noexcept = default;                     \
+        constexpr enable_special_members_base(enable_special_members_base &&) noexcept = \
+            default;                                                                     \
+        constexpr enable_special_members_base &                                          \
+        operator=(const enable_special_members_base &) noexcept = default;               \
+        constexpr enable_special_members_base &                                          \
+        operator=(enable_special_members_base &&) noexcept = default;                    \
+        ~enable_special_members_base() noexcept = WJR_PP_CONCAT(__WJR_ENABLE_BSAE_,      \
+                                                                Destructor);             \
+                                                                                         \
+    protected:                                                                           \
+        constexpr explicit enable_special_members_base(                                  \
+            enable_default_constructor_t) noexcept {}                                    \
+    }
+
+WJR_REGISTER_ENABLE_SPECIAL_MEMBERS_BASE(false, true);
+WJR_REGISTER_ENABLE_SPECIAL_MEMBERS_BASE(true, false);
+WJR_REGISTER_ENABLE_SPECIAL_MEMBERS_BASE(false, false);
+
+#undef WJR_REGISTER_ENABLE_SPECIAL_MEMBERS_BASE
+
+#undef __WJR_ENABLE_BSAE_false
+#undef __WJR_ENABLE_BSAE_true
+
+template <typename Tag = void>
+using noncopyable = enable_copy_move_base<false, true, false, true, Tag>;
+
+template <typename Tag = void>
+using nonmoveable = enable_copy_move_base<false, true, false, true, Tag>;
+
+template <typename Tag = void, typename... Args>
+using enable_special_membser_of_args_base = enable_special_members_base<
+    std::conjunction_v<std::is_default_constructible<Args>...>,
+    std::conjunction_v<std::is_destructible<Args>...>,
+    std::conjunction_v<std::is_copy_constructible<Args>...>,
+    std::conjunction_v<std::is_move_constructible<Args>...>,
+    std::conjunction_v<std::is_copy_assignable<Args>...>,
+    std::conjunction_v<std::is_move_assignable<Args>...>, Tag>;
+
+} // namespace wjr
+
+#endif // WJR_CRTP_CLASS_BASE_HPP__
+#ifndef WJR_TYPE_TRAITS_HPP__
+#define WJR_TYPE_TRAITS_HPP__
+
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <iterator>
+#include <limits>
+#include <memory>
+#include <type_traits>
+#include <utility>
+
+// Already included
+
+namespace wjr {
+
 struct in_place_empty_t {};
 
 inline constexpr in_place_empty_t in_place_empty = {};
@@ -2726,36 +2900,18 @@ namespace wjr {
  *
  * @note T is not an empty class.
  */
-template <size_t index, typename T>
-struct comp_pair_wrapper1 {
+template <size_t index, typename T, typename Tag = void>
+class comp_pair_wrapper1 : private enable_special_membser_of_args_base<Tag, T> {
+    using Mybase = enable_special_membser_of_args_base<Tag, T>;
 
-    template <typename Ty = T,
-              std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
-    constexpr comp_pair_wrapper1() noexcept(std::is_nothrow_default_constructible_v<Ty>)
-        : val() {}
-
-    template <typename Ty = T,
-              std::enable_if_t<std::is_copy_constructible_v<Ty>, int> = 0>
-    constexpr explicit comp_pair_wrapper1(const Ty &other) noexcept(
-        std::is_nothrow_copy_constructible_v<Ty>)
-        : val(other) {}
-
-    template <typename Ty = T,
-              std::enable_if_t<std::is_move_constructible_v<Ty>, int> = 0>
-    constexpr explicit comp_pair_wrapper1(Ty &&other) noexcept(
-        std::is_nothrow_move_constructible_v<Ty>)
-        : val(std::forward<Ty>(other)) {}
+public:
+    using Mybase::Mybase;
 
     template <typename... Args,
               std::enable_if_t<std::is_constructible_v<T, Args...>, int> = 0>
     constexpr comp_pair_wrapper1(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<T, Args...>)
-        : val(std::forward<Args>(args)...) {}
-
-    constexpr comp_pair_wrapper1(const comp_pair_wrapper1 &) = default;
-    constexpr comp_pair_wrapper1(comp_pair_wrapper1 &&) noexcept = default;
-    constexpr comp_pair_wrapper1 &operator=(const comp_pair_wrapper1 &) = default;
-    constexpr comp_pair_wrapper1 &operator=(comp_pair_wrapper1 &&) noexcept = default;
+        : Mybase(enable_default_constructor), val(std::forward<Args>(args)...) {}
 
     constexpr T &value() noexcept { return val; }
     constexpr const T &value() const noexcept { return val; }
@@ -2772,37 +2928,18 @@ private:
  * @tparam index
  * @tparam T
  */
-template <size_t index, typename T>
-struct comp_pair_wrapper2 : private T {
+template <size_t index, typename T, typename Tag = void>
+class comp_pair_wrapper2 : private T {
     using Mybase = T;
 
-    template <typename Ty = T,
-              std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
-    constexpr comp_pair_wrapper2() noexcept(std::is_nothrow_default_constructible_v<Ty>)
-        : Mybase() {}
-
-    template <typename Ty = T,
-              std::enable_if_t<std::is_copy_constructible_v<Ty>, int> = 0>
-    constexpr explicit comp_pair_wrapper2(const Ty &other) noexcept(
-        std::is_nothrow_copy_constructible_v<Ty>)
-        : Mybase(other) {}
-
-    template <typename Ty = T,
-              std::enable_if_t<std::is_move_constructible_v<Ty>, int> = 0>
-    constexpr explicit comp_pair_wrapper2(Ty &&other) noexcept(
-        std::is_nothrow_move_constructible_v<Ty>)
-        : Mybase(std::forward<Ty>(other)) {}
+public:
+    using Mybase::Mybase;
 
     template <typename... Args,
               std::enable_if_t<std::is_constructible_v<T, Args...>, int> = 0>
     constexpr comp_pair_wrapper2(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<T, Args...>)
         : Mybase(std::forward<Args>(args)...) {}
-
-    constexpr comp_pair_wrapper2(const comp_pair_wrapper2 &) = default;
-    constexpr comp_pair_wrapper2(comp_pair_wrapper2 &&) noexcept = default;
-    constexpr comp_pair_wrapper2 &operator=(const comp_pair_wrapper2 &) = default;
-    constexpr comp_pair_wrapper2 &operator=(comp_pair_wrapper2 &&) noexcept = default;
 
     constexpr T &value() noexcept { return *this; }
     constexpr const T &value() const noexcept { return *this; }
@@ -2812,11 +2949,27 @@ template <typename T>
 using comp_pair_wrapper_helper =
     std::conjunction<std::is_class<T>, std::is_empty<T>, std::negation<std::is_final<T>>>;
 
-template <size_t index, typename T, typename U>
+template <size_t index, typename T, typename U, typename Tag = void>
 using comp_pair_wrapper =
     std::conditional_t<comp_pair_wrapper_helper<T>::value &&
                            (index == 0 || !comp_pair_wrapper_helper<U>::value),
-                       comp_pair_wrapper2<index, T>, comp_pair_wrapper1<index, T>>;
+                       comp_pair_wrapper2<index, T, Tag>,
+                       comp_pair_wrapper1<index, T, Tag>>;
+
+template <typename T, typename U>
+struct __compressed_pair1 {};
+
+template <typename T, typename U>
+struct __compressed_pair2 {};
+
+template <typename T, typename U>
+struct __compressed_pair3 {};
+
+template <typename T, typename U>
+using __compressed_pair_base1 = comp_pair_wrapper<0, T, U, __compressed_pair1<T, U>>;
+
+template <typename T, typename U>
+using __compressed_pair_base2 = comp_pair_wrapper<1, U, T, __compressed_pair2<T, U>>;
 
 /**
  * @class compressed_pair
@@ -2827,17 +2980,17 @@ using comp_pair_wrapper =
  * is equivalent to `std::pair`.
  */
 template <typename T, typename U>
-class compressed_pair : private comp_pair_wrapper<0, T, U>,
-                        private comp_pair_wrapper<1, U, T> {
+class WJR_EMPTY_BASES compressed_pair
+    : private __compressed_pair_base1<T, U>,
+      private __compressed_pair_base2<T, U>,
+      private enable_special_membser_of_args_base<__compressed_pair3<T, U>,
+                                                  __compressed_pair_base1<T, U>,
+                                                  __compressed_pair_base2<T, U>> {
 
-    template <typename Ty, typename Uy>
-    using __is_all_default_constructible =
-        std::conjunction<std::is_default_constructible<Ty>,
-                         std::is_default_constructible<Uy>>;
-
-    template <typename Ty, typename Uy>
-    using __is_all_default_convertible =
-        std::conjunction<is_default_convertible<Ty>, is_default_convertible<Uy>>;
+    using Mybase1 = __compressed_pair_base1<T, U>;
+    using Mybase2 = __compressed_pair_base2<T, U>;
+    using Mybase3 =
+        enable_special_membser_of_args_base<__compressed_pair3<T, U>, Mybase1, Mybase2>;
 
     template <typename Ty, typename Uy>
     using __is_all_copy_constructible =
@@ -2852,30 +3005,10 @@ class compressed_pair : private comp_pair_wrapper<0, T, U>,
         std::conjunction<std::is_constructible<Ty, Vty>, std::is_constructible<Uy, Wuy>>;
 
 public:
-    using Mybase1 = comp_pair_wrapper<0, T, U>;
-    using Mybase2 = comp_pair_wrapper<1, U, T>;
-
     using first_type = T;
     using second_type = U;
 
-    template <typename Ty = T, typename Uy = U,
-              std::enable_if_t<std::conjunction_v<__is_all_default_constructible<Ty, Uy>,
-                                                  __is_all_default_convertible<Ty, Uy>>,
-                               bool> = true>
-    constexpr compressed_pair() noexcept(
-        std::conjunction_v<std::is_nothrow_default_constructible<Ty>,
-                           std::is_nothrow_default_constructible<Uy>>)
-        : Mybase1(), Mybase2() {}
-
-    template <typename Ty = T, typename Uy = U,
-              std::enable_if_t<
-                  std::conjunction_v<__is_all_default_constructible<Ty, Uy>,
-                                     std::negation<__is_all_default_convertible<Ty, Uy>>>,
-                  bool> = false>
-    constexpr explicit compressed_pair() noexcept(
-        std::conjunction_v<std::is_nothrow_default_constructible<Ty>,
-                           std::is_nothrow_default_constructible<Uy>>)
-        : Mybase1(), Mybase2() {}
+    using Mybase3::Mybase3;
 
     template <typename Ty = T, typename Uy = U,
               std::enable_if_t<std::conjunction_v<
@@ -2885,7 +3018,7 @@ public:
     constexpr compressed_pair(const T &_First, const U &_Second) noexcept(
         std::conjunction_v<std::is_nothrow_copy_constructible<Ty>,
                            std::is_nothrow_copy_constructible<Uy>>)
-        : Mybase1(_First), Mybase2(_Second) {}
+        : Mybase1(_First), Mybase2(_Second), Mybase3(enable_default_constructor) {}
 
     template <typename Ty = T, typename Uy = U,
               std::enable_if_t<std::conjunction_v<__is_all_copy_constructible<Ty, Uy>,
@@ -2895,7 +3028,7 @@ public:
     constexpr explicit compressed_pair(const T &_First, const U &_Second) noexcept(
         std::conjunction_v<std::is_nothrow_copy_constructible<Ty>,
                            std::is_nothrow_copy_constructible<Uy>>)
-        : Mybase1(_First), Mybase2(_Second) {}
+        : Mybase1(_First), Mybase2(_Second), Mybase3(enable_default_constructor) {}
 
     template <
         typename Other1, typename Other2,
@@ -2905,7 +3038,8 @@ public:
     constexpr compressed_pair(Other1 &&_First, Other2 &&_Second) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<T, Other1>,
                            std::is_nothrow_constructible<U, Other2>>)
-        : Mybase1(std::forward<Other1>(_First)), Mybase2(std::forward<Other2>(_Second)) {}
+        : Mybase1(std::forward<Other1>(_First)), Mybase2(std::forward<Other2>(_Second)),
+          Mybase3(enable_default_constructor) {}
 
     template <
         typename Other1, typename Other2,
@@ -2916,10 +3050,8 @@ public:
     constexpr explicit compressed_pair(Other1 &&_First, Other2 &&_Second) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<T, Other1>,
                            std::is_nothrow_constructible<U, Other2>>)
-        : Mybase1(std::forward<Other1>(_First)), Mybase2(std::forward<Other2>(_Second)) {}
-
-    constexpr compressed_pair(const compressed_pair &) = default;
-    constexpr compressed_pair(compressed_pair &&) noexcept = default;
+        : Mybase1(std::forward<Other1>(_First)), Mybase2(std::forward<Other2>(_Second)),
+          Mybase3(enable_default_constructor) {}
 
     template <
         typename Other1, typename Other2,
@@ -2930,7 +3062,8 @@ public:
     constexpr compressed_pair(const compressed_pair<Other1, Other2> &other) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<T, const Other1 &>,
                            std::is_nothrow_constructible<U, const Other2 &>>)
-        : Mybase1(other.first()), Mybase2(other.second()) {}
+        : Mybase1(other.first()), Mybase2(other.second()),
+          Mybase3(enable_default_constructor) {}
 
     template <
         typename Other1, typename Other2,
@@ -2945,7 +3078,8 @@ public:
                                  conjunction_v<
                                      std::is_nothrow_constructible<T, const Other1 &>,
                                      std::is_nothrow_constructible<U, const Other2 &>>)
-        : Mybase1(other.first()), Mybase2(other.second()) {}
+        : Mybase1(other.first()), Mybase2(other.second()),
+          Mybase3(enable_default_constructor) {}
 
     template <
         typename Other1, typename Other2,
@@ -2956,7 +3090,8 @@ public:
         std::conjunction_v<std::is_nothrow_constructible<T, Other1>,
                            std::is_nothrow_constructible<U, Other2>>)
         : Mybase1(std::forward<Other1>(other.first())),
-          Mybase2(std::forward<Other2>(other.second())) {}
+          Mybase2(std::forward<Other2>(other.second())),
+          Mybase3(enable_default_constructor) {}
 
     template <
         typename Other1, typename Other2,
@@ -2968,43 +3103,20 @@ public:
         std::conjunction_v<std::is_nothrow_constructible<T, Other1>,
                            std::is_nothrow_constructible<U, Other2>>)
         : Mybase1(std::forward<Other1>(other.first())),
-          Mybase2(std::forward<Other2>(other.second())) {}
+          Mybase2(std::forward<Other2>(other.second())),
+          Mybase3(enable_default_constructor) {}
 
     template <typename Tuple1, typename Tuple2, size_t... N1, size_t... N2>
     constexpr compressed_pair(Tuple1 &tp1, Tuple2 &tp2, std::index_sequence<N1...>,
                               std::index_sequence<N2...>)
         : Mybase1(std::get<N1>(std::move(tp1))...),
-          Mybase2(std::get<N2>(std::move(tp2))...) {}
+          Mybase2(std::get<N2>(std::move(tp2))...), Mybase3(enable_default_constructor) {}
 
     template <typename... Args1, typename... Args2>
     constexpr compressed_pair(std::piecewise_construct_t, std::tuple<Args1...> tp1,
                               std::tuple<Args2...> tp2)
         : compressed_pair(tp1, tp2, std::index_sequence_for<Args1...>{},
                           std::index_sequence_for<Args2...>{}) {}
-
-    template <typename Myself = compressed_pair, typename _T = T,
-              std::enable_if_t<std::conjunction_v<std::is_copy_assignable<_T>,
-                                                  std::is_copy_assignable<U>>,
-                               int> = 0>
-    constexpr compressed_pair &operator=(type_identity_t<const Myself &> other) noexcept(
-        std::conjunction_v<std::is_nothrow_copy_assignable<T>,
-                           std::is_nothrow_copy_assignable<U>>) {
-        first() = other.first();
-        second() = other.second();
-        return *this;
-    }
-
-    template <typename Myself = compressed_pair, typename _T = T,
-              std::enable_if_t<std::conjunction_v<std::is_copy_assignable<_T>,
-                                                  std::is_copy_assignable<U>>,
-                               int> = 0>
-    constexpr compressed_pair &operator=(type_identity_t<Myself &&> other) noexcept(
-        std::conjunction_v<std::is_nothrow_move_assignable<T>,
-                           std::is_nothrow_move_assignable<U>>) {
-        first() = std::forward<T>(other.first());
-        second() = std::forward<U>(other.second());
-        return *this;
-    }
 
     template <typename Other1, typename Other2,
               std::enable_if_t<std::conjunction_v<
@@ -28618,286 +28730,7 @@ using bitset = basic_dynamic_bitset<>;
 } // namespace wjr
 
 #endif // WJR_CONTAINER_GENERIC_DYNAMIC_BITSET_HPP__
-#ifndef WJR_JSON_LEXER_HPP__
-#define WJR_JSON_LEXER_HPP__
 
-#ifndef WJR_JSON_LEXER_IMPL_HPP__
-#define WJR_JSON_LEXER_IMPL_HPP__
-
-#include <cstdint>
-
-// Already included
-
-namespace wjr {
-
-struct basic_lexer {
-    basic_lexer(const char *first, const char *last) : first(first), last(last) {}
-
-    basic_lexer() = delete;
-    basic_lexer(const basic_lexer &) = default;
-    basic_lexer &operator=(const basic_lexer &) = default;
-    ~basic_lexer() = default;
-
-    const char *first;
-    const char *last;
-
-    uint64_t prev_in_string = 0;
-    uint64_t prev_is_escape = 0;
-    uint64_t prev_is_ws = 0;
-
-    uint32_t idx = 0;
-    uint32_t *token_first = nullptr;
-    uint32_t *token_last = nullptr;
-    alignas(16) uint32_t token_buf[127 + 7];
-};
-
-class lexer {
-public:
-    static constexpr uint32_t npos = -1;
-
-    lexer(span<const char> sp) : lex(sp.begin(), sp.end()) {}
-
-    lexer() = delete;
-    lexer(const lexer &) = default;
-    lexer &operator=(const lexer &) = default;
-    ~lexer() = default;
-
-    uint32_t next();
-    bool next(uint32_t &);
-
-private:
-    WJR_NOINLINE bool read_token();
-
-    basic_lexer lex;
-};
-
-} // namespace wjr
-
-#endif // WJR_JSON_LEXER_IMPL_HPP__
-// Already included
-
-#if defined(WJR_X86)
-#ifndef WJR_X86_JSON_LEXER_HPP__
-#define WJR_X86_JSON_LEXER_HPP__
-
-#include <bitset>
-
-// Already included
-// Already included
-// Already included
-// Already included
-// Already included
-
-namespace wjr {
-
-#if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(SIMD)
-#define WJR_HAS_BUILTIN_LEXER_READ_TOKEN_MASK WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_BUILTIN(LEXER_READ_TOKEN_MASK)
-
-namespace lexer_details {
-
-#if !WJR_HAS_SIMD(AVX2)
-const static __m128i lh8_mask = sse::set1_epi8(0x0f);
-
-const static __m128i lo8_lookup =
-    sse::set_epi8(0, 0, 12, 1, 4, 10, 8, 0, 0, 0, 0, 0, 0, 0, 0, 16);
-const static __m128i hi8_lookup =
-    sse::set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8);
-#else
-const static __m256i lh8_mask = avx::set1_epi8(0x0f);
-const static __m256i lo8_lookup =
-    avx::set_epi8(0, 0, 12, 1, 4, 10, 8, 0, 0, 0, 0, 0, 0, 0, 0, 16, 0, 0, 12, 1, 4, 10,
-                  8, 0, 0, 0, 0, 0, 0, 0, 0, 16);
-const static __m256i hi8_lookup =
-    avx::set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0,
-                  4, 0, 4, 0, 2, 17, 0, 8);
-#endif
-
-template <typename simd>
-inline typename simd::int_type equal(typename simd::int_type x, uint8_t ch) {
-    return simd::cmpeq_epi8(x, simd::set1_epi8(ch));
-}
-
-template <typename simd>
-void load_simd(const char *first, typename simd::int_type *arr) {
-    constexpr auto simd_width = simd::width();
-    constexpr auto u8_width = simd_width / 8;
-    constexpr auto u8_loop = 64 / u8_width;
-    for (unsigned i = 0; i < u8_loop; ++i) {
-        arr[i] = simd::loadu((typename simd::int_type *)(first + i * u8_width));
-    }
-}
-
-template <typename simd>
-WJR_NOINLINE void load_end_simd(const char *first, unsigned n,
-                                typename simd::int_type *arr) {
-    WJR_ASSUME(n < 64);
-    char buf[64];
-    ::memcpy(buf, first, n);
-    ::memset(buf + n, 0, 64 - n);
-    load_simd<simd>(buf, arr);
-}
-
-inline uint64_t calc_backslash(uint64_t B) {
-    uint64_t maybe_escaped = B << 1;
-
-    uint64_t maybe_escaped_and_odd_bits = maybe_escaped | 0xAAAAAAAAAAAAAAAAULL;
-    uint64_t even_series_codes_and_odd_bits = maybe_escaped_and_odd_bits - B;
-
-    return even_series_codes_and_odd_bits ^ 0xAAAAAAAAAAAAAAAAULL;
-}
-
-inline void builtin_read_token_mask(basic_lexer &lex) {
-    constexpr bool is_avx = WJR_HAS_SIMD(AVX2);
-    using simd = std::conditional_t<is_avx, avx, sse>;
-    using simd_int = typename simd::int_type;
-    constexpr auto simd_width = simd::width();
-    constexpr auto u8_width = simd_width / 8;
-    constexpr auto u8_loop = 64 / u8_width;
-
-    const auto first = lex.first;
-    const auto last = lex.last;
-    const auto idx = lex.idx;
-    const uint32_t diff = std::distance(first, last);
-
-    simd_int x[u8_loop];
-
-    if (WJR_LIKELY(diff >= 64)) {
-        load_simd<simd>(first, x);
-        lex.first += 64;
-        lex.idx += 64;
-    } else {
-        load_end_simd<simd>(first, diff, x);
-        lex.first = last;
-    }
-
-    uint64_t B = 0; // backslash
-    uint64_t Q = 0; // quote
-    uint64_t S = 0; // brackets, comma , colon
-    uint64_t W = 0; // whitespace
-
-    for (unsigned i = 0; i < u8_loop; ++i) {
-        auto backslash = equal<simd>(x[i], '\\');
-        B |= (uint64_t)simd::movemask_epi8(backslash) << (i * u8_width);
-    }
-
-    for (unsigned i = 0; i < u8_loop; ++i) {
-        auto quote = equal<simd>(x[i], '\"');
-        Q |= (uint64_t)simd::movemask_epi8(quote) << (i * u8_width);
-    }
-
-    for (unsigned i = 0; i < u8_loop; ++i) {
-        auto shuf_lo8 = simd::shuffle_epi8(lo8_lookup, x[i]);
-        auto shuf_hi8 = simd::shuffle_epi8(hi8_lookup, simd::And(simd::srli_epi16(x[i], 4), lh8_mask));
-
-        auto result = simd::And(shuf_lo8, shuf_hi8);
-        // comma : 1
-        // colon : 2
-        // brackets : 4
-        // whitespace : 8, 16
-
-        uint32_t stu = ~simd::movemask_epi8(
-            simd::cmpeq_epi8(simd::And(result, simd::set1_epi8(7)), simd::zeros()));
-        uint32_t wsp = ~simd::movemask_epi8(
-            simd::cmpeq_epi8(simd::And(result, simd::set1_epi8(24)), simd::zeros()));
-
-        S |= (uint64_t)(stu) << (i * u8_width);
-        W |= (uint64_t)(wsp) << (i * u8_width);
-    }
-
-    uint64_t codeB = calc_backslash(B & ~lex.prev_is_escape);
-    auto escape = (codeB & B) >> 63;
-    B = codeB ^ (B | lex.prev_is_escape);
-    Q &= ~B;
-    lex.prev_is_escape = escape;
-
-    uint64_t R = prefix_xor(Q) ^ lex.prev_in_string;
-    S &= ~R;
-    lex.prev_in_string = static_cast<uint64_t>(static_cast<int64_t>(R) >> 63);
-
-    S |= Q;
-    auto WS = S | W;
-    auto P = shld(WS, lex.prev_is_ws, 1);
-    lex.prev_is_ws = WS;
-
-    S |= (P ^ W) & ~R;
-    S &= ~(Q & ~R);
-
-    auto token_last = lex.token_last;
-
-    const auto num = popcount(S);
-    const auto next = token_last + num;
-
-    while (S) {
-        for (int i = 0; i < 8; ++i) {
-            token_last[i] = idx + ctz(S);
-            S &= S - 1;
-        }
-
-        token_last += 8;
-    }
-
-    lex.token_last = next;
-}
-
-} // namespace lexer_details
-
-#endif
-
-} // namespace wjr
-
-#endif // WJR_X86_JSON_LEXER_HPP__
-#endif
-
-namespace wjr {
-
-uint32_t lexer::next() {
-    if (WJR_LIKELY(lex.token_first != lex.token_last)) {
-        return *lex.token_first++;
-    }
-
-    if (WJR_UNLIKELY(!read_token())) {
-        return npos;
-    }
-
-    return *lex.token_first++;
-}
-
-bool lexer::next(uint32_t &value) {
-    value = next();
-    return value != npos;
-}
-
-inline void fallback_read_token_mask(basic_lexer &lex) { (void)lex; }
-
-inline void read_token_mask(basic_lexer &lex) {
-#if !WJR_HAS_BUILTIN(LEXER_READ_TOKEN_MASK)
-    fallback_read_token_mask(lex);
-#else
-    lexer_details::builtin_read_token_mask(lex);
-#endif
-}
-
-bool lexer::read_token() {
-    if (WJR_UNLIKELY(lex.first == lex.last)) {
-        return false;
-    }
-
-    lex.token_first = lex.token_last = lex.token_buf;
-
-    do {
-        read_token_mask(lex);
-    } while (WJR_LIKELY(lex.first != lex.last &&
-                        std::distance(lex.token_buf, lex.token_last) < 64));
-
-    return lex.token_first != lex.token_last;
-}
-
-} // namespace wjr
-
-#endif // WJR_JSON_LEXER_HPP__
 // Already included
 // Already included
 // Already included
