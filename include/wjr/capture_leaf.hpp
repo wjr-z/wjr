@@ -16,14 +16,19 @@ public:
 
     template <typename... Args,
               std::enable_if_t<std::is_constructible_v<T, Args...>, int> = 0>
-    capture_leaf(Args &&...args)
+    constexpr capture_leaf(Args &&...args)
         : Mybase(enable_default_constructor), m_value(std::forward<Args>(args)...) {}
+
+    template <typename Ty = T,
+              std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
+    constexpr capture_leaf(in_place_default_construct_t)
+        : Mybase(enable_default_constructor) {}
 
     constexpr T &get() noexcept { return m_value; }
     constexpr const T &get() const noexcept { return m_value; }
 
 private:
-    T m_value;
+    T m_value = {};
 };
 
 template <typename T, typename Tag = void>
@@ -35,7 +40,12 @@ public:
 
     template <typename... Args,
               std::enable_if_t<std::is_constructible_v<T, Args...>, int> = 0>
-    compressed_capture_leaf(Args &&...args) : Mybase(std::forward<Args>(args)...) {}
+    constexpr compressed_capture_leaf(Args &&...args)
+        : Mybase(std::forward<Args>(args)...) {}
+
+    template <typename Ty = T,
+              std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
+    constexpr compressed_capture_leaf(in_place_default_construct_t) {}
 
     constexpr T &get() noexcept { return *this; }
     constexpr const T &get() const noexcept { return *this; }

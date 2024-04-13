@@ -79,8 +79,9 @@ public:
     using Mybase2::Mybase2;
 
     template <size_t... _Indexs, typename... _Args,
-              std::enable_if_t<std::conjunction_v<std::is_constructible<Args, _Args>...>,
-                               int> = 0>
+              std::enable_if_t<
+                  std::conjunction_v<std::is_constructible<Mybase<_Indexs>, _Args>...>,
+                  int> = 0>
     constexpr tuple_impl(std::index_sequence<_Indexs...>, _Args &&...args)
         : Mybase<_Indexs>(std::forward<_Args>(args))...,
           Mybase2(enable_default_constructor) {}

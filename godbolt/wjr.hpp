@@ -4003,14 +4003,19 @@ public:
 
     template <typename... Args,
               std::enable_if_t<std::is_constructible_v<T, Args...>, int> = 0>
-    capture_leaf(Args &&...args)
+    constexpr capture_leaf(Args &&...args)
         : Mybase(enable_default_constructor), m_value(std::forward<Args>(args)...) {}
+
+    template <typename Ty = T,
+              std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
+    constexpr capture_leaf(in_place_default_construct_t)
+        : Mybase(enable_default_constructor) {}
 
     constexpr T &get() noexcept { return m_value; }
     constexpr const T &get() const noexcept { return m_value; }
 
 private:
-    T m_value;
+    T m_value = {};
 };
 
 template <typename T, typename Tag = void>
@@ -4022,7 +4027,12 @@ public:
 
     template <typename... Args,
               std::enable_if_t<std::is_constructible_v<T, Args...>, int> = 0>
-    compressed_capture_leaf(Args &&...args) : Mybase(std::forward<Args>(args)...) {}
+    constexpr compressed_capture_leaf(Args &&...args)
+        : Mybase(std::forward<Args>(args)...) {}
+
+    template <typename Ty = T,
+              std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
+    constexpr compressed_capture_leaf(in_place_default_construct_t) {}
 
     constexpr T &get() noexcept { return *this; }
     constexpr const T &get() const noexcept { return *this; }
@@ -4137,24 +4147,25 @@ public:
 
     template <typename Other1, typename Other2,
               std::enable_if_t<
-                  std::conjunction_v<__is_all_constructible<T, U, Other1 &&, Other2 &&>,
-                                     __is_all_convertible<T, U, Other1 &&, Other2 &&>>,
+                  std::conjunction_v<
+                      __is_all_constructible<Mybase1, Mybase2, Other1 &&, Other2 &&>,
+                      __is_all_convertible<T, U, Other1 &&, Other2 &&>>,
                   bool> = true>
     constexpr compressed_pair(Other1 &&_First, Other2 &&_Second) noexcept(
-        std::conjunction_v<std::is_nothrow_constructible<T, Other1 &&>,
-                           std::is_nothrow_constructible<U, Other2 &&>>)
+        std::conjunction_v<std::is_nothrow_constructible<Mybase1, Other1 &&>,
+                           std::is_nothrow_constructible<Mybase2, Other2 &&>>)
         : Mybase1(std::forward<Other1>(_First)), Mybase2(std::forward<Other2>(_Second)),
           Mybase3(enable_default_constructor) {}
 
     template <typename Other1, typename Other2,
               std::enable_if_t<
                   std::conjunction_v<
-                      __is_all_constructible<T, U, Other1 &&, Other2 &&>,
+                      __is_all_constructible<Mybase1, Mybase2, Other1 &&, Other2 &&>,
                       std::negation<__is_all_convertible<T, U, Other1 &&, Other2 &&>>>,
                   bool> = false>
     constexpr explicit compressed_pair(Other1 &&_First, Other2 &&_Second) noexcept(
-        std::conjunction_v<std::is_nothrow_constructible<T, Other1 &&>,
-                           std::is_nothrow_constructible<U, Other2 &&>>)
+        std::conjunction_v<std::is_nothrow_constructible<Mybase1, Other1 &&>,
+                           std::is_nothrow_constructible<Mybase2, Other2 &&>>)
         : Mybase1(std::forward<Other1>(_First)), Mybase2(std::forward<Other2>(_Second)),
           Mybase3(enable_default_constructor) {}
 
@@ -29937,8 +29948,9 @@ public:
     using Mybase2::Mybase2;
 
     template <size_t... _Indexs, typename... _Args,
-              std::enable_if_t<std::conjunction_v<std::is_constructible<Args, _Args>...>,
-                               int> = 0>
+              std::enable_if_t<
+                  std::conjunction_v<std::is_constructible<Mybase<_Indexs>, _Args>...>,
+                  int> = 0>
     constexpr tuple_impl(std::index_sequence<_Indexs...>, _Args &&...args)
         : Mybase<_Indexs>(std::forward<_Args>(args))...,
           Mybase2(enable_default_constructor) {}

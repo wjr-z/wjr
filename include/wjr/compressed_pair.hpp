@@ -94,24 +94,25 @@ public:
 
     template <typename Other1, typename Other2,
               std::enable_if_t<
-                  std::conjunction_v<__is_all_constructible<T, U, Other1 &&, Other2 &&>,
-                                     __is_all_convertible<T, U, Other1 &&, Other2 &&>>,
+                  std::conjunction_v<
+                      __is_all_constructible<Mybase1, Mybase2, Other1 &&, Other2 &&>,
+                      __is_all_convertible<T, U, Other1 &&, Other2 &&>>,
                   bool> = true>
     constexpr compressed_pair(Other1 &&_First, Other2 &&_Second) noexcept(
-        std::conjunction_v<std::is_nothrow_constructible<T, Other1 &&>,
-                           std::is_nothrow_constructible<U, Other2 &&>>)
+        std::conjunction_v<std::is_nothrow_constructible<Mybase1, Other1 &&>,
+                           std::is_nothrow_constructible<Mybase2, Other2 &&>>)
         : Mybase1(std::forward<Other1>(_First)), Mybase2(std::forward<Other2>(_Second)),
           Mybase3(enable_default_constructor) {}
 
     template <typename Other1, typename Other2,
               std::enable_if_t<
                   std::conjunction_v<
-                      __is_all_constructible<T, U, Other1 &&, Other2 &&>,
+                      __is_all_constructible<Mybase1, Mybase2, Other1 &&, Other2 &&>,
                       std::negation<__is_all_convertible<T, U, Other1 &&, Other2 &&>>>,
                   bool> = false>
     constexpr explicit compressed_pair(Other1 &&_First, Other2 &&_Second) noexcept(
-        std::conjunction_v<std::is_nothrow_constructible<T, Other1 &&>,
-                           std::is_nothrow_constructible<U, Other2 &&>>)
+        std::conjunction_v<std::is_nothrow_constructible<Mybase1, Other1 &&>,
+                           std::is_nothrow_constructible<Mybase2, Other2 &&>>)
         : Mybase1(std::forward<Other1>(_First)), Mybase2(std::forward<Other2>(_Second)),
           Mybase3(enable_default_constructor) {}
 
