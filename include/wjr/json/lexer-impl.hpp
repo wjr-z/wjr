@@ -20,11 +20,12 @@ struct basic_lexer {
 
     uint64_t prev_in_string = 0;
     uint64_t prev_is_escape = 0;
+    uint64_t prev_is_ws = 0;
 
     uint32_t idx = 0;
     uint32_t *token_first = nullptr;
     uint32_t *token_last = nullptr;
-    uint32_t token_buf[127];
+    alignas(16) uint32_t token_buf[127 + 7];
 };
 
 class lexer {
@@ -39,6 +40,7 @@ public:
     ~lexer() = default;
 
     uint32_t next();
+    bool next(uint32_t &);
 
 private:
     WJR_NOINLINE bool read_token();

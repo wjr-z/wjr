@@ -188,14 +188,6 @@
 #define WJR_FORCE_BRANCH_BARRIER()
 #endif
 
-#ifdef WJR_CPP_20
-#define WJR_EXPLICIT(expression) explicit(expression)
-#define WJR_EXPLICIT20(expreesion) explicit(expression)
-#else
-#define WJR_EXPLICIT(expression) explicit
-#define WJR_EXPLICIT20(expression)
-#endif
-
 #if defined(WJR_FORCEINLINE)
 #define WJR_INTRINSIC_INLINE inline WJR_FORCEINLINE
 #else
@@ -247,5 +239,11 @@
 
 #define WJR_ATTRIBUTE(attribute) WJR_ATTRIBUTE_I(attribute)
 #define WJR_ATTRIBUTE_I(attribute) WJR_##attribute
+
+#if defined(_MSC_VER)
+#define WJR_EMPTY_BASES __declspec(empty_bases)
+#else
+#define WJR_EMPTY_BASES
+#endif
 
 #endif // WJR_PREPROCESSOR_COMPILER_ATTRIBUTE_HPP__

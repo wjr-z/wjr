@@ -1495,14 +1495,6 @@
 #define WJR_FORCE_BRANCH_BARRIER()
 #endif
 
-#ifdef WJR_CPP_20
-#define WJR_EXPLICIT(expression) explicit(expression)
-#define WJR_EXPLICIT20(expreesion) explicit(expression)
-#else
-#define WJR_EXPLICIT(expression) explicit
-#define WJR_EXPLICIT20(expression)
-#endif
-
 #if defined(WJR_FORCEINLINE)
 #define WJR_INTRINSIC_INLINE inline WJR_FORCEINLINE
 #else
@@ -1554,6 +1546,12 @@
 
 #define WJR_ATTRIBUTE(attribute) WJR_ATTRIBUTE_I(attribute)
 #define WJR_ATTRIBUTE_I(attribute) WJR_##attribute
+
+#if defined(_MSC_VER)
+#define WJR_EMPTY_BASES __declspec(empty_bases)
+#else
+#define WJR_EMPTY_BASES
+#endif
 
 #endif // WJR_PREPROCESSOR_COMPILER_ATTRIBUTE_HPP__
 
@@ -28635,11 +28633,12 @@ struct basic_lexer {
 
     uint64_t prev_in_string = 0;
     uint64_t prev_is_escape = 0;
+    uint64_t prev_is_ws = 0;
 
     uint32_t idx = 0;
     uint32_t *token_first = nullptr;
     uint32_t *token_last = nullptr;
-    uint32_t token_buf[127];
+    alignas(16) uint32_t token_buf[127 + 7];
 };
 
 class lexer {
@@ -28654,6 +28653,7 @@ public:
     ~lexer() = default;
 
     uint32_t next();
+    bool next(uint32_t &);
 
 private:
     WJR_NOINLINE bool read_token();
@@ -28672,6 +28672,7 @@ private:
 
 #include <bitset>
 
+// Already included
 // Already included
 // Already included
 // Already included
@@ -28730,40 +28731,11 @@ WJR_NOINLINE void load_end_simd(const char *first, unsigned n,
 }
 
 inline uint64_t calc_backslash(uint64_t B) {
-    // constexpr uint64_t E = 0x5555555555555555;
-    // constexpr uint64_t O = ~E;
-
-    // auto S = B & ~(B << 1);
-
-    // auto ES = S & E;
-    // auto EC = B + ES;
-    // auto ECE = EC & ~B;
-    // auto OD1 = ECE & O;
-
-    // auto OS = S & O;
-    // auto OC = B + OS;
-    // auto OCE = OC & ~B;
-    // auto OD2 = OCE & E;
-
-    // return (OD1 | OD2);
-
     uint64_t maybe_escaped = B << 1;
 
-    // To distinguish odd from even escape sequences, therefore, we turn on any *starting*
-    // escapes that are on an odd byte. (We actually bring in all odd bits, for speed.)
-    // - Odd runs of backslashes are 0000, and the code at the end ("n" in \n or \\n)
-    // is 1.
-    // - Odd runs of backslashes are 1111, and the code at the end ("n" in \n or \\n) is
-    // 0.
-    // - All other odd bytes are 1, and even bytes are 0.
     uint64_t maybe_escaped_and_odd_bits = maybe_escaped | 0xAAAAAAAAAAAAAAAAULL;
     uint64_t even_series_codes_and_odd_bits = maybe_escaped_and_odd_bits - B;
 
-    // Now we flip all odd bytes back with xor. This:
-    // - Makes odd runs of backslashes go from 0000 to 1010
-    // - Makes even runs of backslashes go from 1111 to 1010
-    // - Sets actually-escaped codes to 1 (the n in \n and \\n: \n = 11, \\n = 100)
-    // - Resets all other bytes to 0
     return even_series_codes_and_odd_bits ^ 0xAAAAAAAAAAAAAAAAULL;
 }
 
@@ -28775,26 +28747,24 @@ inline void builtin_read_token_mask(basic_lexer &lex) {
     constexpr auto u8_width = simd_width / 8;
     constexpr auto u8_loop = 64 / u8_width;
 
-    auto &first = lex.first;
-    const auto &last = lex.last;
-    auto &idx = lex.idx;
-    unsigned diff = 64;
-    unsigned __tmp_diff = std::distance(first, last);
+    const auto first = lex.first;
+    const auto last = lex.last;
+    const auto idx = lex.idx;
+    const uint32_t diff = std::distance(first, last);
 
     simd_int x[u8_loop];
 
-    if (WJR_LIKELY(__tmp_diff >= 64)) {
+    if (WJR_LIKELY(diff >= 64)) {
         load_simd<simd>(first, x);
-        first += 64;
+        lex.first += 64;
+        lex.idx += 64;
     } else {
-        diff = __tmp_diff;
         load_end_simd<simd>(first, diff, x);
-        first = last;
+        lex.first = last;
     }
 
     uint64_t B = 0; // backslash
     uint64_t Q = 0; // quote
-    uint64_t R;
     uint64_t S = 0; // brackets, comma , colon
     uint64_t W = 0; // whitespace
 
@@ -28809,11 +28779,8 @@ inline void builtin_read_token_mask(basic_lexer &lex) {
     }
 
     for (unsigned i = 0; i < u8_loop; ++i) {
-        auto lo8_mask = simd::And(x[i], lh8_mask);
-        auto hi8_mask = simd::And(simd::srli_epi16(x[i], 4), lh8_mask);
-
-        auto shuf_lo8 = simd::shuffle_epi8(lo8_lookup, lo8_mask);
-        auto shuf_hi8 = simd::shuffle_epi8(hi8_lookup, hi8_mask);
+        auto shuf_lo8 = simd::shuffle_epi8(lo8_lookup, x[i]);
+        auto shuf_hi8 = simd::shuffle_epi8(hi8_lookup, simd::And(simd::srli_epi16(x[i], 4), lh8_mask));
 
         auto result = simd::And(shuf_lo8, shuf_hi8);
         // comma : 1
@@ -28821,41 +28788,48 @@ inline void builtin_read_token_mask(basic_lexer &lex) {
         // brackets : 4
         // whitespace : 8, 16
 
-        auto comma = equal<simd>(result, 1);
-        auto colon = equal<simd>(result, 2);
-        auto brackets = equal<simd>(result, 4);
-        auto whitespace = simd::Or(equal<simd>(result, 8), equal<simd>(result, 16));
+        uint32_t stu = ~simd::movemask_epi8(
+            simd::cmpeq_epi8(simd::And(result, simd::set1_epi8(7)), simd::zeros()));
+        uint32_t wsp = ~simd::movemask_epi8(
+            simd::cmpeq_epi8(simd::And(result, simd::set1_epi8(24)), simd::zeros()));
 
-        S |= (uint64_t)simd::movemask_epi8(simd::Or(comma, simd::Or(colon, brackets)))
-             << (i * u8_width);
-        W |= (uint64_t)simd::movemask_epi8(whitespace) << (i * u8_width);
+        S |= (uint64_t)(stu) << (i * u8_width);
+        W |= (uint64_t)(wsp) << (i * u8_width);
     }
 
     uint64_t codeB = calc_backslash(B & ~lex.prev_is_escape);
-    lex.prev_is_escape = (codeB & B) >> 63;
+    auto escape = (codeB & B) >> 63;
     B = codeB ^ (B | lex.prev_is_escape);
-
     Q &= ~B;
+    lex.prev_is_escape = escape;
 
-    R = prefix_xor(Q) ^ lex.prev_in_string;
-    lex.prev_in_string = (int64_t)R >> 63;
-
+    uint64_t R = prefix_xor(Q) ^ lex.prev_in_string;
     S &= ~R;
+    lex.prev_in_string = static_cast<uint64_t>(static_cast<int64_t>(R) >> 63);
+
     S |= Q;
-    auto P = S | W;
-    P <<= 1;
-    P &= ~W & ~R;
-    S |= P;
+    auto WS = S | W;
+    auto P = shld(WS, lex.prev_is_ws, 1);
+    lex.prev_is_ws = WS;
+
+    S |= (P ^ W) & ~R;
     S &= ~(Q & ~R);
 
-    auto &token_last = lex.token_last;
+    auto token_last = lex.token_last;
+
+    const auto num = popcount(S);
+    const auto next = token_last + num;
 
     while (S) {
-        *token_last++ = idx + ctz(S);
-        S = clear_lowbit(S);
+        for (int i = 0; i < 8; ++i) {
+            token_last[i] = idx + ctz(S);
+            S &= S - 1;
+        }
+
+        token_last += 8;
     }
 
-    idx += diff;
+    lex.token_last = next;
 }
 
 } // namespace lexer_details
@@ -28879,6 +28853,11 @@ uint32_t lexer::next() {
     }
 
     return *lex.token_first++;
+}
+
+bool lexer::next(uint32_t &value) {
+    value = next();
+    return value != npos;
 }
 
 inline void fallback_read_token_mask(basic_lexer &lex) { (void)lex; }

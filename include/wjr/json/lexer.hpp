@@ -22,6 +22,11 @@ uint32_t lexer::next() {
     return *lex.token_first++;
 }
 
+bool lexer::next(uint32_t &value) {
+    value = next();
+    return value != npos;
+}
+
 inline void fallback_read_token_mask(basic_lexer &lex) { (void)lex; }
 
 inline void read_token_mask(basic_lexer &lex) {
