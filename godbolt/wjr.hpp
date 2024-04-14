@@ -2487,13 +2487,13 @@ struct in_place_empty_t {};
 
 inline constexpr in_place_empty_t in_place_empty = {};
 
-struct in_place_default_construct_t {};
+struct dctor_t {};
 
-inline constexpr in_place_default_construct_t in_place_default_construct = {};
+inline constexpr dctor_t dctor = {};
 
-struct in_place_value_construct_t {};
+struct vctor_t {};
 
-inline constexpr in_place_value_construct_t in_place_value_construct = {};
+inline constexpr vctor_t vctor = {};
 
 struct in_place_reallocate_t {};
 
@@ -4008,14 +4008,13 @@ public:
 
     template <typename Ty = T,
               std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
-    constexpr capture_leaf(in_place_default_construct_t)
-        : Mybase(enable_default_constructor) {}
+    constexpr capture_leaf(dctor_t) : Mybase(enable_default_constructor) {}
 
     constexpr T &get() noexcept { return m_value; }
     constexpr const T &get() const noexcept { return m_value; }
 
 private:
-    T m_value = {};
+    T m_value;
 };
 
 template <typename T, typename Tag = void>
@@ -4032,7 +4031,7 @@ public:
 
     template <typename Ty = T,
               std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
-    constexpr compressed_capture_leaf(in_place_default_construct_t) {}
+    constexpr compressed_capture_leaf(dctor_t) {}
 
     constexpr T &get() noexcept { return *this; }
     constexpr const T &get() const noexcept { return *this; }
@@ -4123,13 +4122,20 @@ public:
     using first_type = T;
     using second_type = U;
 
-    using Mybase3::Mybase3;
+    template <typename Ty = T, typename Uy = U,
+              std::enable_if_t<std::conjunction_v<std::is_default_constructible<Ty>,
+                                                  std::is_default_constructible<Uy>>,
+                               int> = 0>
+    constexpr compressed_pair() noexcept(
+        std::conjunction_v<std::is_nothrow_default_constructible<Ty>,
+                           std::is_nothrow_default_constructible<Uy>>)
+        : Mybase1(), Mybase2(), Mybase3(enable_default_constructor) {}
 
     template <typename Ty = T, typename Uy = U,
               std::enable_if_t<std::conjunction_v<
                                    __is_all_copy_constructible<Ty, Uy>,
                                    __is_all_convertible<Ty, Uy, const Ty &, const Uy &>>,
-                               bool> = true>
+                               int> = 0>
     constexpr compressed_pair(const T &_First, const U &_Second) noexcept(
         std::conjunction_v<std::is_nothrow_copy_constructible<Ty>,
                            std::is_nothrow_copy_constructible<Uy>>)
@@ -4150,7 +4156,7 @@ public:
                   std::conjunction_v<
                       __is_all_constructible<Mybase1, Mybase2, Other1 &&, Other2 &&>,
                       __is_all_convertible<T, U, Other1 &&, Other2 &&>>,
-                  bool> = true>
+                  int> = 0>
     constexpr compressed_pair(Other1 &&_First, Other2 &&_Second) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<Mybase1, Other1 &&>,
                            std::is_nothrow_constructible<Mybase2, Other2 &&>>)
@@ -4174,7 +4180,7 @@ public:
         std::enable_if_t<std::conjunction_v<
                              __is_all_constructible<T, U, const Other1 &, const Other2 &>,
                              __is_all_convertible<T, U, const Other1 &, const Other2 &>>,
-                         bool> = true>
+                         int> = 0>
     constexpr compressed_pair(const compressed_pair<Other1, Other2> &other) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<T, const Other1 &>,
                            std::is_nothrow_constructible<U, const Other2 &>>)
@@ -4201,7 +4207,7 @@ public:
               std::enable_if_t<
                   std::conjunction_v<__is_all_constructible<T, U, Other1 &&, Other2 &&>,
                                      __is_all_convertible<T, U, Other1 &&, Other2 &&>>,
-                  bool> = true>
+                  int> = 0>
     constexpr compressed_pair(compressed_pair<Other1, Other2> &&other) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<T, Other1 &&>,
                            std::is_nothrow_constructible<U, Other2 &&>>)
@@ -5807,7 +5813,7 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
         using resize_fn_impl_base<Container>::resize;                                    \
         WJR_INTRINSIC_INLINE static void resize(Container &cont,                         \
                                                 typename Container::size_type sz,        \
-                                                in_place_default_construct_t) {          \
+                                                dctor_t) {          \
             __uninitialized_resize(cont, sz);                                            \
         }                                                                                \
     };                                                                                   \
@@ -5816,7 +5822,7 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
         using append_fn_impl_base<Container>::append;                                    \
         WJR_INTRINSIC_INLINE static void append(Container &cont,                         \
                                                 typename Container::size_type sz,        \
-                                                in_place_default_construct_t) {          \
+                                                dctor_t) {          \
             __uninitialized_resize(cont, cont.size() + sz);                              \
         }                                                                                \
     }
@@ -5854,8 +5860,8 @@ template <
     std::enable_if_t<container_details::has_container_resize_v<Container, Size>, int> = 0>
 WJR_INTRINSIC_INLINE void try_uninitialized_resize(Container &cont, Size sz) {
     if constexpr (container_details::has_container_resize_v<
-                      Container, Size, in_place_default_construct_t>) {
-        resize(cont, sz, in_place_default_construct);
+                      Container, Size, dctor_t>) {
+        resize(cont, sz, dctor);
     } else {
         resize(cont, sz);
     }
@@ -6550,15 +6556,15 @@ WJR_CONSTEXPR20 void uninitialized_value_construct_n_using_allocator(Iter first,
 /**
  * @brief Fill the range [first, last) with value using allocator.
  *
- * @tparam T The value type. Use `in_place_default_construct_t` to default construct the
- * elements. Use `in_place_value_construct_t` to value construct the elements.
+ * @tparam T The value type. Use `dctor_t` to default construct the
+ * elements. Use `vctor_t` to value construct the elements.
  */
 template <typename Iter, typename Alloc, typename T>
 WJR_CONSTEXPR20 void uninitialized_fill_using_allocator(Iter first, Iter last,
                                                         Alloc &alloc, const T &value) {
-    if constexpr (std::is_same_v<T, in_place_default_construct_t>) {
+    if constexpr (std::is_same_v<T, dctor_t>) {
         uninitialized_default_construct_using_allocator(first, last, alloc);
-    } else if constexpr (std::is_same_v<T, in_place_value_construct_t>) {
+    } else if constexpr (std::is_same_v<T, vctor_t>) {
         uninitialized_value_construct_using_allocator(first, last, alloc);
     } else {
         if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
@@ -6574,15 +6580,15 @@ WJR_CONSTEXPR20 void uninitialized_fill_using_allocator(Iter first, Iter last,
 /**
  * @brief Fill the range [first, first + n) with value using allocator.
  *
- * @tparam T The value type. Use `in_place_default_construct_t` to default construct the
- * elements. Use `in_place_value_construct_t` to value construct the elements.
+ * @tparam T The value type. Use `dctor_t` to default construct the
+ * elements. Use `vctor_t` to value construct the elements.
  */
 template <typename Iter, typename Size, typename Alloc, typename T>
 WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n,
                                                           Alloc &alloc, const T &value) {
-    if constexpr (std::is_same_v<T, in_place_default_construct_t>) {
+    if constexpr (std::is_same_v<T, dctor_t>) {
         uninitialized_default_construct_n_using_allocator(first, n, alloc);
-    } else if constexpr (std::is_same_v<T, in_place_value_construct_t>) {
+    } else if constexpr (std::is_same_v<T, vctor_t>) {
         uninitialized_value_construct_n_using_allocator(first, n, alloc);
     } else {
         if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
@@ -7562,7 +7568,7 @@ public:
     WJR_CONSTEXPR20 explicit basic_vector(const size_type n,
                                           const allocator_type &al = allocator_type())
         : basic_vector(al) {
-        __construct_n(n, in_place_value_construct);
+        __construct_n(n, vctor);
     }
 
     WJR_CONSTEXPR20 basic_vector(size_type n, const value_type &val,
@@ -7708,7 +7714,7 @@ public:
     WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept { return m_storage.size(); }
 
     WJR_CONSTEXPR20 void resize(const size_type new_size) {
-        __resize(new_size, in_place_value_construct);
+        __resize(new_size, vctor);
     }
 
     WJR_CONSTEXPR20 void resize(const size_type new_size, const value_type &val) {
@@ -7891,10 +7897,10 @@ public:
 
     // extension
 
-    WJR_CONSTEXPR20 basic_vector(size_type n, in_place_default_construct_t,
+    WJR_CONSTEXPR20 basic_vector(size_type n, dctor_t,
                                  const allocator_type &al = allocator_type())
         : basic_vector(al) {
-        __construct_n(n, in_place_default_construct);
+        __construct_n(n, dctor);
     }
 
     WJR_CONSTEXPR20 basic_vector(size_type n, in_place_reserve_t,
@@ -7903,12 +7909,12 @@ public:
         m_storage.uninitialized_construct(0, n);
     }
 
-    WJR_CONSTEXPR20 void resize(const size_type new_size, in_place_default_construct_t) {
-        __resize(new_size, in_place_default_construct);
+    WJR_CONSTEXPR20 void resize(const size_type new_size, dctor_t) {
+        __resize(new_size, dctor);
     }
 
-    WJR_CONSTEXPR20 void push_back(in_place_default_construct_t) {
-        emplace_back(in_place_default_construct);
+    WJR_CONSTEXPR20 void push_back(dctor_t) {
+        emplace_back(dctor);
     }
 
     WJR_CONSTEXPR20 basic_vector &append(const value_type &val) {
@@ -7921,8 +7927,8 @@ public:
         return *this;
     }
 
-    WJR_CONSTEXPR20 basic_vector &append(in_place_default_construct_t) {
-        emplace_back(in_place_default_construct);
+    WJR_CONSTEXPR20 basic_vector &append(dctor_t) {
+        emplace_back(dctor);
         return *this;
     }
 
@@ -7932,8 +7938,8 @@ public:
     }
 
     WJR_CONSTEXPR20 basic_vector &append(const size_type n,
-                                         in_place_default_construct_t) {
-        __append(n, in_place_default_construct);
+                                         dctor_t) {
+        __append(n, dctor);
         return *this;
     }
 
@@ -24757,13 +24763,13 @@ public:
         traits_type::is_trivially_contiguous_v &&
                 container_details::has_container_resize_v<Container, size_t>
             ? (container_details::has_container_resize_v<Container, size_t,
-                                                         in_place_default_construct_t>
+                                                         dctor_t>
                    ? 2
                    : 1)
             : 0;
 
     static_assert(value != 2 || container_details::has_container_append_v<
-                                    Container, size_t, in_place_default_construct_t>,
+                                    Container, size_t, dctor_t>,
                   "");
 };
 
@@ -25992,7 +25998,7 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
         if constexpr (__fast_container_inserter_v == 1) {                                \
             resize(cont, cont.size() + n + sign);                                        \
         } else {                                                                         \
-            append(cont, n + sign, in_place_default_construct);                          \
+            append(cont, n + sign, dctor);                          \
         }                                                                                \
         const auto __end = (to_address)(cont.data() + cont.size());                      \
         auto __ptr = (convert_details::fast_buffer_t<Iter> *)                            \
@@ -26600,7 +26606,7 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
         if constexpr (__fast_container_inserter_v == 1) {                                \
             resize(cont, __presize + SIZE);                                              \
         } else {                                                                         \
-            append(cont, SIZE, in_place_default_construct);                              \
+            append(cont, SIZE, dctor);                              \
         }                                                                                \
         const auto __ptr = (uint8_t *)(to_address)(cont.data()) + __presize;             \
         const auto __size = NAME(__ptr, WJR_PP_QUEUE_EXPAND(CALL), conv) TAIL;           \
@@ -26608,7 +26614,7 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
         if constexpr (__fast_container_inserter_v == 1) {                                \
             resize(cont, __presize + __size);                                            \
         } else {                                                                         \
-            resize(cont, __presize + __size, wjr::in_place_default_construct);           \
+            resize(cont, __presize + __size, wjr::dctor);           \
         }                                                                                \
                                                                                          \
         return ptr;                                                                      \
@@ -29352,7 +29358,7 @@ void basic_biginteger<Storage>::__mul_impl(basic_biginteger *dst,
 
     if (dst->capacity() < dssize) {
         temp.emplace(dst->get_growth_capacity(dst->capacity(), dssize),
-                     in_place_default_construct, dst->get_allocator());
+                     dctor, dst->get_allocator());
         dp = temp.value().data();
     } else {
         if (dp == lp) {
@@ -29595,7 +29601,7 @@ public:
     template <typename CharT, size_t Extent,
               std::enable_if_t<std::is_same_v<std::remove_const_t<CharT>, char>, int> = 0>
     explicit basic_dynamic_bitset(const span<CharT, Extent> &sp)
-        : m_vec((sp.size() + block_size - 1) / block_size, in_place_default_construct),
+        : m_vec((sp.size() + block_size - 1) / block_size, dctor),
           m_bits(sp.size()) {
         (void)__biginteger_from_chars_2_impl((const uint8_t *)sp.data(), sp.size(),
                                              m_vec.data());
@@ -29616,7 +29622,7 @@ public:
     basic_dynamic_bitset(const span<CharT, Extent> &sp,
                          WJR_MAYBE_UNUSED type_identity_t<CharT> zero,
                          type_identity_t<CharT> one, Equal equal)
-        : m_vec((sp.size() + block_size - 1) / block_size, in_place_default_construct),
+        : m_vec((sp.size() + block_size - 1) / block_size, dctor),
           m_bits(sp.size()) {
         auto ptr = sp.data();
         size_type n = sp.size();
@@ -29945,7 +29951,13 @@ class WJR_EMPTY_BASES tuple_impl<std::index_sequence<Indexs...>, Args...>
     constexpr static size_t Size = sizeof...(Args);
 
 public:
-    using Mybase2::Mybase2;
+    template <
+        typename S = Sequence,
+        std::enable_if_t<std::conjunction_v<std::is_same<S, Sequence>,
+                                            std::is_constructible<Mybase<Indexs>>...>,
+                         int> = 0>
+    constexpr tuple_impl(Sequence)
+        : Mybase<Indexs>()..., Mybase2(enable_default_constructor) {}
 
     template <size_t... _Indexs, typename... _Args,
               std::enable_if_t<
@@ -30001,7 +30013,11 @@ class tuple<This, Args...>
     constexpr static size_t Size = sizeof...(Args) + 1;
 
 public:
-    using Mybase::Mybase;
+    template <typename T = This,
+              std::enable_if_t<std::conjunction_v<std::is_default_constructible<T>,
+                                                  std::is_constructible<Impl, Sequence>>,
+                               int> = 0>
+    constexpr tuple() : Mybase(enable_default_constructor), m_impl(Sequence()) {}
 
     template <typename Other = This,
               std::enable_if_t<
@@ -30051,21 +30067,21 @@ public:
     constexpr tuple(tuple<Other, _Args...> &&other)
         : tuple(Sequence(), std::move(other), in_place_empty) {}
 
-    // template <typename T, typename U,
-    //           std::enable_if_t<Size == 2 && std::is_constructible_v<This, T> &&
-    //                                std::is_constructible_v<tuple_element_t<1, tuple>,
-    //                                U>,
-    //                            int> = 0>
-    // constexpr tuple(const std::pair<T, U> &pair)
-    //     : tuple(Sequence(), pair, in_place_empty) {}
+    template <typename T, typename U,
+              std::enable_if_t<Size == 2 && std::is_constructible_v<This, T> &&
+                                   std::is_constructible_v<
+                                       tp_defer_t<tp_front_t, tp_list<Args...>>, U>,
+                               int> = 0>
+    constexpr tuple(const std::pair<T, U> &pair)
+        : tuple(Sequence(), pair, in_place_empty) {}
 
-    // template <
-    //     typename T, typename U,
-    //     std::enable_if_t<Size == 2 && std::is_constructible_v<This, T &&> &&
-    //                          std::is_constructible_v<tuple_element_t<1, tuple>, U &&>,
-    //                      int> = 0>
-    // constexpr tuple(std::pair<T, U> &&pair)
-    //     : tuple(Sequence(), std::move(pair), in_place_empty) {}
+    template <typename T, typename U,
+              std::enable_if_t<Size == 2 && std::is_constructible_v<This, T &&> &&
+                                   std::is_constructible_v<
+                                       tp_defer_t<tp_front_t, tp_list<Args...>>, U &&>,
+                               int> = 0>
+    constexpr tuple(std::pair<T, U> &&pair)
+        : tuple(Sequence(), std::move(pair), in_place_empty) {}
 
     template <typename Other, typename... _Args,
               std::enable_if_t<sizeof...(_Args) + 1 == Size &&
@@ -30118,29 +30134,31 @@ public:
         return *this;
     }
 
-    // template <
-    //     typename T, typename U,
-    //     std::enable_if_t<
-    //         Size == 2 && std::conjunction_v<
-    //                          std::is_assignable<This, const T &>,
-    //                          std::is_assignable<tuple_element_t<1, tuple>, const U &>>,
-    //         int> = 0>
-    // constexpr tuple &operator=(const std::pair<T, U> &other) {
-    //     __assign(Sequence(), other);
-    //     return *this;
-    // }
+    template <
+        typename T, typename U,
+        std::enable_if_t<
+            Size == 2 && std::conjunction_v<
+                             std::is_assignable<This, const T &>,
+                             std::is_assignable<tp_defer_t<tp_front_t, tp_list<Args...>>,
+                                                const U &>>,
+            int> = 0>
+    constexpr tuple &operator=(const std::pair<T, U> &other) {
+        __assign(Sequence(), other);
+        return *this;
+    }
 
-    // template <typename T, typename U,
-    //           std::enable_if_t<
-    //               Size == 2 && std::conjunction_v<
-    //                                std::is_assignable<This, T &&>,
-    //                                std::is_assignable<tuple_element_t<1, tuple>, U
-    //                                &&>>,
-    //               int> = 0>
-    // constexpr tuple &operator=(std::pair<T, U> &&other) {
-    //     __assign(Sequence(), std::move(other));
-    //     return *this;
-    // }
+    template <
+        typename T, typename U,
+        std::enable_if_t<
+            Size == 2 &&
+                std::conjunction_v<
+                    std::is_assignable<This, T &&>,
+                    std::is_assignable<tp_defer_t<tp_front_t, tp_list<Args...>>, U &&>>,
+            int> = 0>
+    constexpr tuple &operator=(std::pair<T, U> &&other) {
+        __assign(Sequence(), std::move(other));
+        return *this;
+    }
 
     template <
         typename Other, typename... _Args,

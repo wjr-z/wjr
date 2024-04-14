@@ -936,7 +936,7 @@ void basic_biginteger<Storage>::__mul_impl(basic_biginteger *dst,
 
     if (dst->capacity() < dssize) {
         temp.emplace(dst->get_growth_capacity(dst->capacity(), dssize),
-                     in_place_default_construct, dst->get_allocator());
+                     dctor, dst->get_allocator());
         dp = temp.value().data();
     } else {
         if (dp == lp) {

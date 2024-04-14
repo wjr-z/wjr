@@ -70,13 +70,20 @@ public:
     using first_type = T;
     using second_type = U;
 
-    using Mybase3::Mybase3;
+    template <typename Ty = T, typename Uy = U,
+              std::enable_if_t<std::conjunction_v<std::is_default_constructible<Ty>,
+                                                  std::is_default_constructible<Uy>>,
+                               int> = 0>
+    constexpr compressed_pair() noexcept(
+        std::conjunction_v<std::is_nothrow_default_constructible<Ty>,
+                           std::is_nothrow_default_constructible<Uy>>)
+        : Mybase1(), Mybase2(), Mybase3(enable_default_constructor) {}
 
     template <typename Ty = T, typename Uy = U,
               std::enable_if_t<std::conjunction_v<
                                    __is_all_copy_constructible<Ty, Uy>,
                                    __is_all_convertible<Ty, Uy, const Ty &, const Uy &>>,
-                               bool> = true>
+                               int> = 0>
     constexpr compressed_pair(const T &_First, const U &_Second) noexcept(
         std::conjunction_v<std::is_nothrow_copy_constructible<Ty>,
                            std::is_nothrow_copy_constructible<Uy>>)
@@ -97,7 +104,7 @@ public:
                   std::conjunction_v<
                       __is_all_constructible<Mybase1, Mybase2, Other1 &&, Other2 &&>,
                       __is_all_convertible<T, U, Other1 &&, Other2 &&>>,
-                  bool> = true>
+                  int> = 0>
     constexpr compressed_pair(Other1 &&_First, Other2 &&_Second) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<Mybase1, Other1 &&>,
                            std::is_nothrow_constructible<Mybase2, Other2 &&>>)
@@ -121,7 +128,7 @@ public:
         std::enable_if_t<std::conjunction_v<
                              __is_all_constructible<T, U, const Other1 &, const Other2 &>,
                              __is_all_convertible<T, U, const Other1 &, const Other2 &>>,
-                         bool> = true>
+                         int> = 0>
     constexpr compressed_pair(const compressed_pair<Other1, Other2> &other) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<T, const Other1 &>,
                            std::is_nothrow_constructible<U, const Other2 &>>)
@@ -148,7 +155,7 @@ public:
               std::enable_if_t<
                   std::conjunction_v<__is_all_constructible<T, U, Other1 &&, Other2 &&>,
                                      __is_all_convertible<T, U, Other1 &&, Other2 &&>>,
-                  bool> = true>
+                  int> = 0>
     constexpr compressed_pair(compressed_pair<Other1, Other2> &&other) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<T, Other1 &&>,
                            std::is_nothrow_constructible<U, Other2 &&>>)

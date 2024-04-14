@@ -958,7 +958,7 @@ public:
     WJR_CONSTEXPR20 explicit basic_vector(const size_type n,
                                           const allocator_type &al = allocator_type())
         : basic_vector(al) {
-        __construct_n(n, in_place_value_construct);
+        __construct_n(n, vctor);
     }
 
     WJR_CONSTEXPR20 basic_vector(size_type n, const value_type &val,
@@ -1104,7 +1104,7 @@ public:
     WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept { return m_storage.size(); }
 
     WJR_CONSTEXPR20 void resize(const size_type new_size) {
-        __resize(new_size, in_place_value_construct);
+        __resize(new_size, vctor);
     }
 
     WJR_CONSTEXPR20 void resize(const size_type new_size, const value_type &val) {
@@ -1287,10 +1287,10 @@ public:
 
     // extension
 
-    WJR_CONSTEXPR20 basic_vector(size_type n, in_place_default_construct_t,
+    WJR_CONSTEXPR20 basic_vector(size_type n, dctor_t,
                                  const allocator_type &al = allocator_type())
         : basic_vector(al) {
-        __construct_n(n, in_place_default_construct);
+        __construct_n(n, dctor);
     }
 
     WJR_CONSTEXPR20 basic_vector(size_type n, in_place_reserve_t,
@@ -1299,12 +1299,12 @@ public:
         m_storage.uninitialized_construct(0, n);
     }
 
-    WJR_CONSTEXPR20 void resize(const size_type new_size, in_place_default_construct_t) {
-        __resize(new_size, in_place_default_construct);
+    WJR_CONSTEXPR20 void resize(const size_type new_size, dctor_t) {
+        __resize(new_size, dctor);
     }
 
-    WJR_CONSTEXPR20 void push_back(in_place_default_construct_t) {
-        emplace_back(in_place_default_construct);
+    WJR_CONSTEXPR20 void push_back(dctor_t) {
+        emplace_back(dctor);
     }
 
     WJR_CONSTEXPR20 basic_vector &append(const value_type &val) {
@@ -1317,8 +1317,8 @@ public:
         return *this;
     }
 
-    WJR_CONSTEXPR20 basic_vector &append(in_place_default_construct_t) {
-        emplace_back(in_place_default_construct);
+    WJR_CONSTEXPR20 basic_vector &append(dctor_t) {
+        emplace_back(dctor);
         return *this;
     }
 
@@ -1328,8 +1328,8 @@ public:
     }
 
     WJR_CONSTEXPR20 basic_vector &append(const size_type n,
-                                         in_place_default_construct_t) {
-        __append(n, in_place_default_construct);
+                                         dctor_t) {
+        __append(n, dctor);
         return *this;
     }
 

@@ -180,7 +180,7 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
         using resize_fn_impl_base<Container>::resize;                                    \
         WJR_INTRINSIC_INLINE static void resize(Container &cont,                         \
                                                 typename Container::size_type sz,        \
-                                                in_place_default_construct_t) {          \
+                                                dctor_t) {          \
             __uninitialized_resize(cont, sz);                                            \
         }                                                                                \
     };                                                                                   \
@@ -189,7 +189,7 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
         using append_fn_impl_base<Container>::append;                                    \
         WJR_INTRINSIC_INLINE static void append(Container &cont,                         \
                                                 typename Container::size_type sz,        \
-                                                in_place_default_construct_t) {          \
+                                                dctor_t) {          \
             __uninitialized_resize(cont, cont.size() + sz);                              \
         }                                                                                \
     }
@@ -227,8 +227,8 @@ template <
     std::enable_if_t<container_details::has_container_resize_v<Container, Size>, int> = 0>
 WJR_INTRINSIC_INLINE void try_uninitialized_resize(Container &cont, Size sz) {
     if constexpr (container_details::has_container_resize_v<
-                      Container, Size, in_place_default_construct_t>) {
-        resize(cont, sz, in_place_default_construct);
+                      Container, Size, dctor_t>) {
+        resize(cont, sz, dctor);
     } else {
         resize(cont, sz);
     }

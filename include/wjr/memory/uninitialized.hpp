@@ -218,15 +218,15 @@ WJR_CONSTEXPR20 void uninitialized_value_construct_n_using_allocator(Iter first,
 /**
  * @brief Fill the range [first, last) with value using allocator.
  *
- * @tparam T The value type. Use `in_place_default_construct_t` to default construct the
- * elements. Use `in_place_value_construct_t` to value construct the elements.
+ * @tparam T The value type. Use `dctor_t` to default construct the
+ * elements. Use `vctor_t` to value construct the elements.
  */
 template <typename Iter, typename Alloc, typename T>
 WJR_CONSTEXPR20 void uninitialized_fill_using_allocator(Iter first, Iter last,
                                                         Alloc &alloc, const T &value) {
-    if constexpr (std::is_same_v<T, in_place_default_construct_t>) {
+    if constexpr (std::is_same_v<T, dctor_t>) {
         uninitialized_default_construct_using_allocator(first, last, alloc);
-    } else if constexpr (std::is_same_v<T, in_place_value_construct_t>) {
+    } else if constexpr (std::is_same_v<T, vctor_t>) {
         uninitialized_value_construct_using_allocator(first, last, alloc);
     } else {
         if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
@@ -242,15 +242,15 @@ WJR_CONSTEXPR20 void uninitialized_fill_using_allocator(Iter first, Iter last,
 /**
  * @brief Fill the range [first, first + n) with value using allocator.
  *
- * @tparam T The value type. Use `in_place_default_construct_t` to default construct the
- * elements. Use `in_place_value_construct_t` to value construct the elements.
+ * @tparam T The value type. Use `dctor_t` to default construct the
+ * elements. Use `vctor_t` to value construct the elements.
  */
 template <typename Iter, typename Size, typename Alloc, typename T>
 WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n,
                                                           Alloc &alloc, const T &value) {
-    if constexpr (std::is_same_v<T, in_place_default_construct_t>) {
+    if constexpr (std::is_same_v<T, dctor_t>) {
         uninitialized_default_construct_n_using_allocator(first, n, alloc);
-    } else if constexpr (std::is_same_v<T, in_place_value_construct_t>) {
+    } else if constexpr (std::is_same_v<T, vctor_t>) {
         uninitialized_value_construct_n_using_allocator(first, n, alloc);
     } else {
         if constexpr (is_trivially_allocator_constructible_v<Alloc>) {

@@ -18,13 +18,13 @@ struct in_place_empty_t {};
 
 inline constexpr in_place_empty_t in_place_empty = {};
 
-struct in_place_default_construct_t {};
+struct dctor_t {};
 
-inline constexpr in_place_default_construct_t in_place_default_construct = {};
+inline constexpr dctor_t dctor = {};
 
-struct in_place_value_construct_t {};
+struct vctor_t {};
 
-inline constexpr in_place_value_construct_t in_place_value_construct = {};
+inline constexpr vctor_t vctor = {};
 
 struct in_place_reallocate_t {};
 

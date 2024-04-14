@@ -21,14 +21,13 @@ public:
 
     template <typename Ty = T,
               std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
-    constexpr capture_leaf(in_place_default_construct_t)
-        : Mybase(enable_default_constructor) {}
+    constexpr capture_leaf(dctor_t) : Mybase(enable_default_constructor) {}
 
     constexpr T &get() noexcept { return m_value; }
     constexpr const T &get() const noexcept { return m_value; }
 
 private:
-    T m_value = {};
+    T m_value;
 };
 
 template <typename T, typename Tag = void>
@@ -45,7 +44,7 @@ public:
 
     template <typename Ty = T,
               std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
-    constexpr compressed_capture_leaf(in_place_default_construct_t) {}
+    constexpr compressed_capture_leaf(dctor_t) {}
 
     constexpr T &get() noexcept { return *this; }
     constexpr const T &get() const noexcept { return *this; }
