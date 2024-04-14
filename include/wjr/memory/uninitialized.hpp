@@ -28,6 +28,17 @@ WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &a
     }
 }
 
+template <typename Iter, typename Alloc>
+WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &alloc,
+                                                             dctor_t) {
+    if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
+        using value_type = typename std::iterator_traits<Iter>::value_type;
+        ::new (static_cast<void *>((to_address)(iter))) value_type;
+    } else {
+        std::allocator_traits<Alloc>::construct(alloc, (to_address)(iter));
+    }
+}
+
 template <typename InputIt, typename OutputIt, typename Alloc>
 WJR_CONSTEXPR20 OutputIt uninitialized_copy_using_allocator(InputIt first, InputIt last,
                                                             OutputIt d_first,
@@ -233,7 +244,8 @@ WJR_CONSTEXPR20 void uninitialized_fill_using_allocator(Iter first, Iter last,
             std::uninitialized_fill(first, last, value);
         } else {
             for (; first != last; ++first) {
-                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first), value);
+                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first),
+                                                        value);
             }
         }
     }
@@ -257,7 +269,8 @@ WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n,
             std::uninitialized_fill_n(first, n, value);
         } else {
             for (; n > 0; ++first, --n) {
-                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first), value);
+                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first),
+                                                        value);
             }
         }
     }

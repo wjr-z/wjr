@@ -2003,7 +2003,7 @@ private:
 
             const auto __rest = static_cast<size_type>(__end - __last);
 
-            if (WJR_LILKELY(__rest >= __delta)) {
+            if (WJR_LIKELY(__rest >= __delta)) {
                 const temporary_value_allocator tmp(al, val);
                 const auto &real_value = *tmp.get();
 

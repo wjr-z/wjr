@@ -98,8 +98,19 @@ public:
 
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
-                                              std::is_default_constructible<Uy>>)>
+                                              std::is_default_constructible<Uy>>
+                               &&std::conjunction_v<is_default_constructible<Ty>,
+                                                    is_default_constructible<Uy>>)>
     constexpr compressed_pair() noexcept(
+        std::conjunction_v<std::is_nothrow_default_constructible<Ty>,
+                           std::is_nothrow_default_constructible<Uy>>) {}
+
+    template <typename Ty = T, typename Uy = U,
+              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
+                                              std::is_default_constructible<Uy>> &&
+                           !std::conjunction_v<is_default_constructible<Ty>,
+                                               is_default_constructible<Uy>>)>
+    constexpr explicit compressed_pair() noexcept(
         std::conjunction_v<std::is_nothrow_default_constructible<Ty>,
                            std::is_nothrow_default_constructible<Uy>>) {}
 
@@ -156,8 +167,31 @@ public:
 
     template <typename PairLike,
               WJR_REQUIRES(
-                  __is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&>)>
+                  __is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&>
+                      &&__is_all_convertible<T, U,
+                                             decltype(std::get<0>(std::forward<PairLike>(
+                                                 std::declval<PairLike>()))),
+                                             decltype(std::get<1>(std::forward<PairLike>(
+                                                 std::declval<PairLike>())))>::value)>
     constexpr compressed_pair(PairLike &&pr) noexcept(
+        std::conjunction_v<std::is_nothrow_constructible<
+                               T, decltype(std::get<0>(std::forward<PairLike>(pr)))>,
+                           std::is_nothrow_constructible<
+                               U, decltype(std::get<1>(std::forward<PairLike>(pr)))>>)
+        : Mybase1(std::get<0>(std::forward<PairLike>(pr))),
+          Mybase2(std::get<1>(std::forward<PairLike>(pr))),
+          Mybase3(enable_default_constructor) {}
+
+    template <
+        typename PairLike,
+        WJR_REQUIRES(
+            __is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&> &&
+            !__is_all_convertible<
+                T, U,
+                decltype(std::get<0>(std::forward<PairLike>(std::declval<PairLike>()))),
+                decltype(std::get<1>(
+                    std::forward<PairLike>(std::declval<PairLike>())))>::value)>
+    constexpr explicit compressed_pair(PairLike &&pr) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<
                                T, decltype(std::get<0>(std::forward<PairLike>(pr)))>,
                            std::is_nothrow_constructible<

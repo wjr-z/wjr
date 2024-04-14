@@ -4,9 +4,14 @@
 #include <wjr/compressed_pair.hpp>
 
 namespace wjr {
+
 template <typename... Args>
 class tuple;
-}
+
+template <typename... Ts>
+struct tuple_like<tuple<Ts...>> : std::true_type {};
+
+} // namespace wjr
 
 namespace std {
 
@@ -74,9 +79,10 @@ class WJR_EMPTY_BASES tuple_impl<std::index_sequence<Indexs...>, Args...>
 
 public:
     template <typename S = Sequence,
-              WJR_REQUIRES(std::conjunction_v<std::is_same<S, Sequence>,
-                                              std::is_constructible<Mybase<Indexs>>...>)>
-    constexpr tuple_impl(Sequence) : Mybase2(enable_default_constructor) {}
+              WJR_REQUIRES(
+                  std::conjunction_v<std::is_same<S, Sequence>,
+                                     std::is_default_constructible<Mybase<Indexs>>...>)>
+    constexpr tuple_impl() : Mybase2(enable_default_constructor) {}
 
     template <size_t... _Indexs, typename... _Args,
               WJR_REQUIRES(
@@ -141,8 +147,17 @@ class tuple<This, Args...>
 public:
     template <typename T = This,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
-                                              std::is_constructible<Impl, Sequence>>)>
-    constexpr tuple() : Mybase(enable_default_constructor), m_impl(Sequence()) {}
+                                              std::is_default_constructible<Args>...>
+                               &&std::conjunction_v<is_default_convertible<T>,
+                                                    is_default_convertible<Args>...>)>
+    constexpr tuple() : Mybase(enable_default_constructor), m_impl() {}
+
+    template <typename T = This,
+              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
+                                              std::is_default_constructible<Args>...> &&
+                           !std::conjunction_v<is_default_convertible<T>,
+                                               is_default_convertible<Args>...>)>
+    constexpr explicit tuple() : Mybase(enable_default_constructor), m_impl() {}
 
     template <typename Other = This,
               WJR_REQUIRES(std::is_constructible_v<Impl, Sequence, const Other &,
@@ -184,7 +199,7 @@ private:
 
 public:
     template <typename TupleLike,
-              WJR_REQUIRES(__is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>)>
+              WJR_REQUIRES(__is_tuple_test_v<std::is_assignable, tuple, TupleLike &&>)>
     constexpr tuple &operator=(TupleLike &&other) {
         __assign(Sequence(), std::forward<TupleLike>(other));
         return *this;

@@ -1,6 +1,7 @@
 #ifndef WJR_CRTP_CLASS_BASE_HPP__
 #define WJR_CRTP_CLASS_BASE_HPP__
 
+#include <cstddef>
 #include <type_traits>
 
 #include <wjr/preprocessor.hpp>

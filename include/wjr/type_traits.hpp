@@ -361,6 +361,23 @@ WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
     return value >= (int32_t)in_place_min && value <= (int32_t)in_place_max;
 }
 
+template <typename T>
+constexpr void __is_default_convertible_test(const T &) noexcept;
+
+template <typename T, typename = void>
+struct __is_default_convertible_impl : std::false_type {};
+
+template <typename T>
+struct __is_default_convertible_impl<
+    T, std::void_t<decltype(__is_default_convertible_test<T>(std::declval<T>()))>>
+    : std::true_type {};
+
+template <typename T>
+struct is_default_constructible : __is_default_convertible_impl<T> {};
+
+template <typename T>
+inline constexpr bool is_default_constructible_v = is_default_constructible<T>::value;
+
 #define __WJR_REGISTER_TYPENAMES_EXPAND(x) __WJR_REGISTER_TYPENAMES_EXPAND_I x
 #define __WJR_REGISTER_TYPENAMES_EXPAND_I(...) __VA_ARGS__
 

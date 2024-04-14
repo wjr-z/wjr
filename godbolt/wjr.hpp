@@ -20,6 +20,7 @@
 #ifndef WJR_CRTP_CLASS_BASE_HPP__
 #define WJR_CRTP_CLASS_BASE_HPP__
 
+#include <cstddef>
 #include <type_traits>
 
 #ifndef WJR_PREPROCESSOR_HPP__
@@ -2836,6 +2837,23 @@ WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
     return value >= (int32_t)in_place_min && value <= (int32_t)in_place_max;
 }
 
+template <typename T>
+constexpr void __is_default_convertible_test(const T &) noexcept;
+
+template <typename T, typename = void>
+struct __is_default_convertible_impl : std::false_type {};
+
+template <typename T>
+struct __is_default_convertible_impl<
+    T, std::void_t<decltype(__is_default_convertible_test<T>(std::declval<T>()))>>
+    : std::true_type {};
+
+template <typename T>
+struct is_default_constructible : __is_default_convertible_impl<T> {};
+
+template <typename T>
+inline constexpr bool is_default_constructible_v = is_default_constructible<T>::value;
+
 #define __WJR_REGISTER_TYPENAMES_EXPAND(x) __WJR_REGISTER_TYPENAMES_EXPAND_I x
 #define __WJR_REGISTER_TYPENAMES_EXPAND_I(...) __VA_ARGS__
 
@@ -4185,8 +4203,19 @@ public:
 
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
-                                              std::is_default_constructible<Uy>>)>
+                                              std::is_default_constructible<Uy>>
+                               &&std::conjunction_v<is_default_constructible<Ty>,
+                                                    is_default_constructible<Uy>>)>
     constexpr compressed_pair() noexcept(
+        std::conjunction_v<std::is_nothrow_default_constructible<Ty>,
+                           std::is_nothrow_default_constructible<Uy>>) {}
+
+    template <typename Ty = T, typename Uy = U,
+              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
+                                              std::is_default_constructible<Uy>> &&
+                           !std::conjunction_v<is_default_constructible<Ty>,
+                                               is_default_constructible<Uy>>)>
+    constexpr explicit compressed_pair() noexcept(
         std::conjunction_v<std::is_nothrow_default_constructible<Ty>,
                            std::is_nothrow_default_constructible<Uy>>) {}
 
@@ -4243,8 +4272,31 @@ public:
 
     template <typename PairLike,
               WJR_REQUIRES(
-                  __is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&>)>
+                  __is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&>
+                      &&__is_all_convertible<T, U,
+                                             decltype(std::get<0>(std::forward<PairLike>(
+                                                 std::declval<PairLike>()))),
+                                             decltype(std::get<1>(std::forward<PairLike>(
+                                                 std::declval<PairLike>())))>::value)>
     constexpr compressed_pair(PairLike &&pr) noexcept(
+        std::conjunction_v<std::is_nothrow_constructible<
+                               T, decltype(std::get<0>(std::forward<PairLike>(pr)))>,
+                           std::is_nothrow_constructible<
+                               U, decltype(std::get<1>(std::forward<PairLike>(pr)))>>)
+        : Mybase1(std::get<0>(std::forward<PairLike>(pr))),
+          Mybase2(std::get<1>(std::forward<PairLike>(pr))),
+          Mybase3(enable_default_constructor) {}
+
+    template <
+        typename PairLike,
+        WJR_REQUIRES(
+            __is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&> &&
+            !__is_all_convertible<
+                T, U,
+                decltype(std::get<0>(std::forward<PairLike>(std::declval<PairLike>()))),
+                decltype(std::get<1>(
+                    std::forward<PairLike>(std::declval<PairLike>())))>::value)>
+    constexpr explicit compressed_pair(PairLike &&pr) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<
                                T, decltype(std::get<0>(std::forward<PairLike>(pr)))>,
                            std::is_nothrow_constructible<
@@ -6347,6 +6399,17 @@ WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &a
     }
 }
 
+template <typename Iter, typename Alloc>
+WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &alloc,
+                                                             dctor_t) {
+    if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
+        using value_type = typename std::iterator_traits<Iter>::value_type;
+        ::new (static_cast<void *>((to_address)(iter))) value_type;
+    } else {
+        std::allocator_traits<Alloc>::construct(alloc, (to_address)(iter));
+    }
+}
+
 template <typename InputIt, typename OutputIt, typename Alloc>
 WJR_CONSTEXPR20 OutputIt uninitialized_copy_using_allocator(InputIt first, InputIt last,
                                                             OutputIt d_first,
@@ -6552,7 +6615,8 @@ WJR_CONSTEXPR20 void uninitialized_fill_using_allocator(Iter first, Iter last,
             std::uninitialized_fill(first, last, value);
         } else {
             for (; first != last; ++first) {
-                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first), value);
+                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first),
+                                                        value);
             }
         }
     }
@@ -6576,7 +6640,8 @@ WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n,
             std::uninitialized_fill_n(first, n, value);
         } else {
             for (; n > 0; ++first, --n) {
-                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first), value);
+                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first),
+                                                        value);
             }
         }
     }
@@ -8594,7 +8659,7 @@ private:
 
             const auto __rest = static_cast<size_type>(__end - __last);
 
-            if (WJR_LILKELY(__rest >= __delta)) {
+            if (WJR_LIKELY(__rest >= __delta)) {
                 const temporary_value_allocator tmp(al, val);
                 const auto &real_value = *tmp.get();
 
@@ -29805,9 +29870,14 @@ using bitset = basic_dynamic_bitset<>;
 // Already included
 
 namespace wjr {
+
 template <typename... Args>
 class tuple;
-}
+
+template <typename... Ts>
+struct tuple_like<tuple<Ts...>> : std::true_type {};
+
+} // namespace wjr
 
 namespace std {
 
@@ -29875,9 +29945,10 @@ class WJR_EMPTY_BASES tuple_impl<std::index_sequence<Indexs...>, Args...>
 
 public:
     template <typename S = Sequence,
-              WJR_REQUIRES(std::conjunction_v<std::is_same<S, Sequence>,
-                                              std::is_constructible<Mybase<Indexs>>...>)>
-    constexpr tuple_impl(Sequence) : Mybase2(enable_default_constructor) {}
+              WJR_REQUIRES(
+                  std::conjunction_v<std::is_same<S, Sequence>,
+                                     std::is_default_constructible<Mybase<Indexs>>...>)>
+    constexpr tuple_impl() : Mybase2(enable_default_constructor) {}
 
     template <size_t... _Indexs, typename... _Args,
               WJR_REQUIRES(
@@ -29942,8 +30013,17 @@ class tuple<This, Args...>
 public:
     template <typename T = This,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
-                                              std::is_constructible<Impl, Sequence>>)>
-    constexpr tuple() : Mybase(enable_default_constructor), m_impl(Sequence()) {}
+                                              std::is_default_constructible<Args>...>
+                               &&std::conjunction_v<is_default_convertible<T>,
+                                                    is_default_convertible<Args>...>)>
+    constexpr tuple() : Mybase(enable_default_constructor), m_impl() {}
+
+    template <typename T = This,
+              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
+                                              std::is_default_constructible<Args>...> &&
+                           !std::conjunction_v<is_default_convertible<T>,
+                                               is_default_convertible<Args>...>)>
+    constexpr explicit tuple() : Mybase(enable_default_constructor), m_impl() {}
 
     template <typename Other = This,
               WJR_REQUIRES(std::is_constructible_v<Impl, Sequence, const Other &,
@@ -29985,7 +30065,7 @@ private:
 
 public:
     template <typename TupleLike,
-              WJR_REQUIRES(__is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>)>
+              WJR_REQUIRES(__is_tuple_test_v<std::is_assignable, tuple, TupleLike &&>)>
     constexpr tuple &operator=(TupleLike &&other) {
         __assign(Sequence(), std::forward<TupleLike>(other));
         return *this;
