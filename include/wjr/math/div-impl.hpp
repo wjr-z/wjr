@@ -3,6 +3,7 @@
 
 #include <utility>
 
+#include <wjr/tuple.hpp>
 #include <wjr/type_traits.hpp>
 
 namespace wjr {

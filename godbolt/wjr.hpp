@@ -4057,54 +4057,29 @@ public:
     constexpr const T &get() const noexcept { return *this; }
 };
 
-template <typename C>
-struct tuple_size {
-    static constexpr size_t value = tp_size_v<tp_rename_t<C, tp_list>>;
-};
+template <template <typename...> typename Test, typename Seq, typename LP, typename RP,
+          typename = void>
+struct __is_tuple_test_impl : std::false_type {};
 
-template <typename T, size_t N>
-struct tuple_size<std::array<T, N>> {
-    static constexpr size_t value = N;
-};
+template <template <typename...> typename Test, size_t... Idxs, typename LP, typename RP>
+struct __is_tuple_test_impl<
+    Test, std::index_sequence<Idxs...>, LP, RP,
+    std::enable_if_t<!std::is_same_v<LP, remove_cvref_t<RP>> &&
+                     std::tuple_size_v<LP> ==
+                         tp_defer_t<std::tuple_size, remove_cvref_t<RP>>::value>>
+    : std::conjunction<Test<std::tuple_element_t<Idxs, LP>,
+                            decltype(std::get<Idxs>(std::declval<RP>()))>...> {};
 
-template <typename C>
-inline constexpr size_t tuple_size_v = tuple_size<C>::value;
+template <template <typename...> typename Test, typename LP, typename RP>
+struct __is_tuple_test
+    : __is_tuple_test_impl<Test, std::make_index_sequence<std::tuple_size_v<LP>>, LP,
+                           RP> {};
 
-template <size_t I, typename C>
-struct tuple_element {
-    using type = tp_at_t<tp_rename_t<C, tp_list>, I>;
-};
-
-template <size_t I, typename C>
-using tuple_element_t = typename tuple_element<I, C>::type;
-
-template <typename T>
-struct tuple_like : std::false_type {};
-
-template <typename T>
-inline constexpr bool tuple_like_v = tuple_like<T>::value;
-
-template <typename... Ts>
-struct tuple_like<std::tuple<Ts...>> : std::true_type {};
-
-template <typename T, size_t N>
-struct tuple_like<std::array<T, N>> : std::true_type {};
+template <template <typename...> typename Test, typename LP, typename RP>
+inline constexpr bool __is_tuple_test_v = __is_tuple_test<Test, LP, RP>::value;
 
 template <typename T, typename U>
-struct tuple_like<std::pair<T, U>> : std::true_type {};
-
-template <typename T, typename = void>
-struct __pair_like_impl : std::false_type {};
-
-template <typename T>
-struct __pair_like_impl<T, std::enable_if_t<tuple_like_v<T> && tuple_size_v<T> == 2>>
-    : std::true_type {};
-
-template <typename T>
-struct pair_like : __pair_like_impl<T> {};
-
-template <typename T>
-inline constexpr bool pair_like_v = pair_like<T>::value;
+struct __is_tuple_assignable : std::is_assignable<T &, U> {};
 
 } // namespace wjr
 
@@ -4115,28 +4090,21 @@ namespace wjr {
 template <typename T, typename U>
 class compressed_pair;
 
+}
+
+namespace std {
+
 template <typename T, typename U>
-struct tuple_like<compressed_pair<T, U>> : std::true_type {};
+struct tuple_size<wjr::compressed_pair<T, U>> : std::integral_constant<size_t, 2> {};
 
-template <template <typename...> typename Test, typename Seq, typename LP, typename RP,
-          typename = void>
-struct __is_tuple_test_impl : std::false_type {};
+template <size_t I, typename T, typename U>
+struct tuple_element<I, wjr::compressed_pair<T, U>> {
+    using type = wjr::tp_at_t<wjr::compressed_pair<T, U>, I>;
+};
 
-template <template <typename...> typename Test, size_t... Idxs, typename LP, typename RP>
-struct __is_tuple_test_impl<
-    Test, std::index_sequence<Idxs...>, LP, RP,
-    std::enable_if_t<
-        !std::is_same_v<LP, remove_cvref_t<RP>> && tuple_like_v<remove_cvref_t<RP>> &&
-        tuple_size_v<LP> == tp_defer_t<tuple_size, remove_cvref_t<RP>>::value>>
-    : std::conjunction<Test<tuple_element_t<Idxs, LP>,
-                            decltype(std::get<Idxs>(std::declval<RP>()))>...> {};
+} // namespace std
 
-template <template <typename...> typename Test, typename LP, typename RP>
-struct __is_tuple_test
-    : __is_tuple_test_impl<Test, std::make_index_sequence<tuple_size_v<LP>>, LP, RP> {};
-
-template <template <typename...> typename Test, typename LP, typename RP>
-inline constexpr bool __is_tuple_test_v = __is_tuple_test<Test, LP, RP>::value;
+namespace wjr {
 
 template <typename T>
 using compressed_pair_wrapper_helper =
@@ -4305,9 +4273,9 @@ public:
           Mybase2(std::get<1>(std::forward<PairLike>(pr))),
           Mybase3(enable_default_constructor) {}
 
-    template <
-        typename PairLike,
-        WJR_REQUIRES(__is_tuple_test_v<std::is_assignable, compressed_pair, PairLike &&>)>
+    template <typename PairLike,
+              WJR_REQUIRES(
+                  __is_tuple_test_v<__is_tuple_assignable, compressed_pair, PairLike &&>)>
     constexpr compressed_pair &operator=(PairLike &&pr) noexcept(
         std::conjunction_v<std::is_nothrow_assignable<T, decltype(std::get<0>(pr))>,
                            std::is_nothrow_assignable<U, decltype(std::get<1>(pr))>>) {
@@ -4333,7 +4301,7 @@ public:
     // extension
 
     template <size_t I>
-    constexpr tuple_element_t<I, compressed_pair> &get() & noexcept {
+    constexpr std::tuple_element_t<I, compressed_pair> &get() & noexcept {
         if constexpr (I == 0) {
             return first();
         } else {
@@ -4342,7 +4310,7 @@ public:
     }
 
     template <size_t I>
-    constexpr const tuple_element_t<I, compressed_pair> &get() const & noexcept {
+    constexpr const std::tuple_element_t<I, compressed_pair> &get() const & noexcept {
         if constexpr (I == 0) {
             return first();
         } else {
@@ -4351,7 +4319,7 @@ public:
     }
 
     template <size_t I>
-    constexpr tuple_element_t<I, compressed_pair> &&get() && noexcept {
+    constexpr std::tuple_element_t<I, compressed_pair> &&get() && noexcept {
         if constexpr (I == 0) {
             return std::move(first());
         } else {
@@ -4360,7 +4328,7 @@ public:
     }
 
     template <size_t I>
-    constexpr const tuple_element_t<I, compressed_pair> &&get() const && noexcept {
+    constexpr const std::tuple_element_t<I, compressed_pair> &&get() const && noexcept {
         if constexpr (I == 0) {
             return std::move(first());
         } else {
@@ -4430,7 +4398,7 @@ constexpr void swap(wjr::compressed_pair<T, U> &lhs,
 }
 
 template <size_t I, typename T, typename U>
-WJR_NODISCARD constexpr wjr::tuple_element_t<I, wjr::compressed_pair<T, U>> &
+WJR_NODISCARD constexpr tuple_element_t<I, wjr::compressed_pair<T, U>> &
 get(wjr::compressed_pair<T, U> &pr) noexcept {
     if constexpr (I == 0) {
         return pr.first();
@@ -4440,7 +4408,7 @@ get(wjr::compressed_pair<T, U> &pr) noexcept {
 }
 
 template <size_t I, typename T, typename U>
-WJR_NODISCARD constexpr const wjr::tuple_element_t<I, wjr::compressed_pair<T, U>> &
+WJR_NODISCARD constexpr const tuple_element_t<I, wjr::compressed_pair<T, U>> &
 get(const wjr::compressed_pair<T, U> &pr) noexcept {
     if constexpr (I == 0) {
         return pr.first();
@@ -4450,7 +4418,7 @@ get(const wjr::compressed_pair<T, U> &pr) noexcept {
 }
 
 template <size_t I, typename T, typename U>
-WJR_NODISCARD constexpr wjr::tuple_element_t<I, wjr::compressed_pair<T, U>> &&
+WJR_NODISCARD constexpr tuple_element_t<I, wjr::compressed_pair<T, U>> &&
 get(wjr::compressed_pair<T, U> &&pr) noexcept {
     if constexpr (I == 0) {
         return std::forward<T>(pr.first());
@@ -4460,7 +4428,7 @@ get(wjr::compressed_pair<T, U> &&pr) noexcept {
 }
 
 template <size_t I, typename T, typename U>
-WJR_NODISCARD constexpr const wjr::tuple_element_t<I, wjr::compressed_pair<T, U>> &&
+WJR_NODISCARD constexpr const tuple_element_t<I, wjr::compressed_pair<T, U>> &&
 get(const wjr::compressed_pair<T, U> &&pr) noexcept {
     if constexpr (I == 0) {
         return std::forward<T>(pr.first());
@@ -4476,37 +4444,37 @@ WJR_NODISCARD constexpr T &get(wjr::compressed_pair<T, U> &pr) noexcept {
 
 template <typename T, typename U>
 WJR_NODISCARD constexpr const T &get(const wjr::compressed_pair<T, U> &pr) noexcept {
-    return std::get<0>(pr);
+    return get<0>(pr);
 }
 
 template <typename T, typename U>
 WJR_NODISCARD constexpr T &&get(wjr::compressed_pair<T, U> &&pr) noexcept {
-    return std::get<0>(std::move(pr));
+    return get<0>(std::move(pr));
 }
 
 template <typename T, typename U>
 WJR_NODISCARD constexpr const T &&get(const wjr::compressed_pair<T, U> &&pr) noexcept {
-    return std::get<0>(std::move(pr));
+    return get<0>(std::move(pr));
 }
 
 template <typename T, typename U>
 WJR_NODISCARD constexpr T &get(wjr::compressed_pair<U, T> &pr) noexcept {
-    return std::get<1>(pr);
+    return get<1>(pr);
 }
 
 template <typename T, typename U>
 WJR_NODISCARD constexpr const T &get(const wjr::compressed_pair<U, T> &pr) noexcept {
-    return std::get<1>(pr);
+    return get<1>(pr);
 }
 
 template <typename T, typename U>
 WJR_NODISCARD constexpr T &&get(wjr::compressed_pair<U, T> &&pr) noexcept {
-    return std::get<1>(std::move(pr));
+    return get<1>(std::move(pr));
 }
 
 template <typename T, typename U>
 WJR_NODISCARD constexpr const T &&get(const wjr::compressed_pair<U, T> &&pr) noexcept {
-    return std::get<1>(std::move(pr));
+    return get<1>(std::move(pr));
 }
 
 } // namespace std
@@ -17041,6 +17009,435 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool __greater_equal_128(uint64_t lo0, uint6
 
 #include <utility>
 
+#ifndef WJR_TUPLE_HPP__
+#define WJR_TUPLE_HPP__
+
+// Already included
+
+namespace wjr {
+
+template <typename... Args>
+class tuple;
+
+} // namespace wjr
+
+namespace std {
+
+template <typename... Args>
+struct tuple_size<wjr::tuple<Args...>> : std::integral_constant<size_t, sizeof...(Args)> {
+};
+
+template <size_t I, typename... Args>
+struct tuple_element<I, wjr::tuple<Args...>> {
+    using type = wjr::tp_at_t<wjr::tuple<Args...>, I>;
+};
+
+template <typename... Args, WJR_REQUIRES(std::conjunction_v<wjr::is_swappable<Args>...>)>
+constexpr void swap(wjr::tuple<Args...> &lhs,
+                    wjr::tuple<Args...> &rhs) noexcept(noexcept(lhs.swap(rhs)));
+
+template <size_t I, typename... Args>
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &get(wjr::tuple<Args...> &t) noexcept;
+
+template <size_t I, typename... Args>
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &
+get(const wjr::tuple<Args...> &t) noexcept;
+
+template <size_t I, typename... Args>
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &&get(wjr::tuple<Args...> &&t) noexcept;
+
+template <size_t I, typename... Args>
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &&
+get(const wjr::tuple<Args...> &&t) noexcept;
+
+template <typename T, typename... Args>
+constexpr T &get(wjr::tuple<Args...> &t) noexcept;
+
+template <typename T, typename... Args>
+constexpr T &get(const wjr::tuple<Args...> &t) noexcept;
+
+template <typename T, typename... Args>
+constexpr T &&get(wjr::tuple<Args...> &&t) noexcept;
+
+template <typename T, typename... Args>
+constexpr T &&get(const wjr::tuple<Args...> &&t) noexcept;
+
+} // namespace std
+
+namespace wjr {
+
+template <typename Indexs, typename... Args>
+class tuple_impl;
+
+template <size_t... Indexs, typename... Args>
+class WJR_EMPTY_BASES tuple_impl<std::index_sequence<Indexs...>, Args...>
+    : capture_leaf<std::tuple_element_t<Indexs, tuple<Args...>>,
+                   enable_base_identity_t<
+                       Indexs, tuple_impl<std::index_sequence<Indexs...>, Args...>>>...,
+      enable_special_members_of_args_base<
+          void,
+          capture_leaf<
+              std::tuple_element_t<Indexs, tuple<Args...>>,
+              enable_base_identity_t<
+                  Indexs, tuple_impl<std::index_sequence<Indexs...>, Args...>>>...> {
+    using Sequence = std::index_sequence<Indexs...>;
+
+    template <size_t Idx>
+    using Mybase = capture_leaf<std::tuple_element_t<Idx, tuple<Args...>>,
+                                enable_base_identity_t<Idx, tuple_impl>>;
+
+    using Mybase2 = enable_special_members_of_args_base<
+        void, capture_leaf<std::tuple_element_t<Indexs, tuple<Args...>>,
+                           enable_base_identity_t<Indexs, tuple_impl>>...>;
+
+    constexpr static size_t Size = sizeof...(Args);
+
+public:
+    template <typename S = Sequence,
+              WJR_REQUIRES(
+                  std::conjunction_v<std::is_same<S, Sequence>,
+                                     std::is_default_constructible<Mybase<Indexs>>...>)>
+    constexpr tuple_impl() : Mybase2(enable_default_constructor) {}
+
+    template <size_t... _Indexs, typename... _Args,
+              WJR_REQUIRES(
+                  std::conjunction_v<std::is_constructible<Mybase<_Indexs>, _Args>...>)>
+    constexpr tuple_impl(std::index_sequence<_Indexs...>, _Args &&...args)
+        : Mybase<_Indexs>(std::forward<_Args>(args))...,
+          Mybase2(enable_default_constructor) {}
+
+    template <size_t I>
+    constexpr auto &get() & noexcept {
+        return Mybase<I>::get();
+    }
+
+    template <size_t I>
+    constexpr const auto &get() const & noexcept {
+        return Mybase<I>::get();
+    }
+
+    template <size_t I>
+    constexpr auto &&get() && noexcept {
+        return std::move(Mybase<I>::get());
+    }
+
+    template <size_t I>
+    constexpr const auto &&get() const && noexcept {
+        return std::move(Mybase<I>::get());
+    }
+};
+
+template <typename Tuple>
+struct __tuple_like;
+
+template <template <typename...> typename Tuple, typename... Args>
+struct __tuple_like<Tuple<Args...>>
+    : std::disjunction<std::is_same<Tuple<Args...>, std::tuple<Args...>>,
+                       std::is_same<Tuple<Args...>, std::pair<Args...>>> {};
+
+template <>
+class tuple<> {
+public:
+    constexpr tuple() noexcept = default;
+    constexpr tuple(const tuple &) noexcept = default;
+    constexpr tuple(tuple &&) noexcept = default;
+    constexpr tuple &operator=(const tuple &) noexcept = default;
+    constexpr tuple &operator=(tuple &&) noexcept = default;
+    ~tuple() noexcept = default;
+
+    constexpr void swap(tuple &) noexcept {}
+};
+
+template <typename This, typename... Args>
+class tuple<This, Args...>
+    : enable_special_members_of_args_base<
+          tuple<This, Args...>,
+          tuple_impl<std::index_sequence_for<This, Args...>, This, Args...>> {
+    using Sequence = std::index_sequence_for<This, Args...>;
+    using Impl = tuple_impl<Sequence, This, Args...>;
+    using Mybase = enable_special_members_of_args_base<tuple<This, Args...>, Impl>;
+
+    constexpr static size_t Size = sizeof...(Args) + 1;
+
+public:
+    template <typename T = This,
+              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
+                                              std::is_default_constructible<Args>...>
+                               &&std::conjunction_v<is_default_convertible<T>,
+                                                    is_default_convertible<Args>...>)>
+    constexpr tuple() : Mybase(enable_default_constructor), m_impl() {}
+
+    template <typename T = This,
+              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
+                                              std::is_default_constructible<Args>...> &&
+                           !std::conjunction_v<is_default_convertible<T>,
+                                               is_default_convertible<Args>...>)>
+    constexpr explicit tuple() : Mybase(enable_default_constructor), m_impl() {}
+
+    template <typename Other = This,
+              WJR_REQUIRES(std::is_constructible_v<Impl, Sequence, const Other &,
+                                                   const Args &...>)>
+    constexpr tuple(const Other &first, const Args &...rest)
+        : Mybase(enable_default_constructor), m_impl(Sequence(), first, rest...) {}
+
+    template <
+        typename Other, typename... _Args,
+        WJR_REQUIRES(sizeof...(_Args) + 1 == Size &&
+                     std::conjunction_v<
+                         std::negation<std::conjunction<
+                             std::is_same<This, std::remove_reference_t<Other>>,
+                             std::is_same<Args, std::remove_reference_t<_Args>>...>>,
+                         std::is_constructible<Impl, Sequence, Other &&, _Args &&...>>)>
+    constexpr tuple(Other &&other, _Args &&...args)
+        : Mybase(enable_default_constructor),
+          m_impl(Sequence(), std::forward<Other>(other), std::forward<_Args>(args)...) {}
+
+private:
+    template <size_t... _Indexs, typename TupleLike>
+    constexpr tuple(std::index_sequence<_Indexs...>, TupleLike &&other, in_place_empty_t)
+        : Mybase(enable_default_constructor),
+          m_impl(Sequence(), std::get<_Indexs>(std::forward<TupleLike>(other))...) {}
+
+public:
+    template <typename TupleLike,
+              WJR_REQUIRES(__is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>)>
+    constexpr tuple(TupleLike &&other)
+        : tuple(Sequence(), std::forward<TupleLike>(other), in_place_empty) {}
+
+private:
+    template <size_t... _Indexs, typename Container>
+    constexpr void __assign(std::index_sequence<_Indexs...>, Container &&other) {
+        (void)((this->template get<_Indexs>() =
+                    std::get<_Indexs>(std::forward<Container>(other))),
+               ...);
+    }
+
+public:
+    template <typename TupleLike,
+              WJR_REQUIRES(__is_tuple_test_v<__is_tuple_assignable, tuple, TupleLike &&>)>
+    constexpr tuple &operator=(TupleLike &&other) {
+        __assign(Sequence(), std::forward<TupleLike>(other));
+        return *this;
+    }
+
+private:
+    template <size_t... _Indexs>
+    constexpr void __swap(std::index_sequence<_Indexs...>, tuple &other) {
+        (void)((std::swap(this->template get<_Indexs>(), other.template get<_Indexs>()),
+                ...));
+    }
+
+public:
+    constexpr void swap(tuple &other) noexcept { __swap(Sequence(), other); }
+
+    template <size_t I>
+    constexpr std::tuple_element_t<I, tuple> &get() & noexcept {
+        return m_impl.template get<I>();
+    }
+
+    template <size_t I>
+    constexpr const std::tuple_element_t<I, tuple> &get() const & noexcept {
+        return m_impl.template get<I>();
+    }
+
+    template <size_t I>
+    constexpr std::tuple_element_t<I, tuple> &&get() && noexcept {
+        return std::move(m_impl.template get<I>());
+    }
+
+    template <size_t I>
+    constexpr const std::tuple_element_t<I, tuple> &&get() const && noexcept {
+        return std::move(m_impl.template get<I>());
+    }
+
+private:
+    Impl m_impl;
+};
+
+template <typename... Args>
+tuple(Args...) -> tuple<Args...>;
+
+template <typename T1, typename T2>
+tuple(std::pair<T1, T2>) -> tuple<T1, T2>;
+
+template <typename... Args>
+tuple(std::tuple<Args...>) -> tuple<Args...>;
+
+template <typename... Args>
+constexpr tuple<unref_wrapper_t<Args>...> make_tuple(Args &&...args) {
+    return tuple<unref_wrapper_t<Args>...>(std::forward<Args>(args)...);
+}
+
+template <typename... Args>
+constexpr tuple<Args &...> tie(Args &...args) noexcept {
+    return tuple<Args &...>(args...);
+}
+
+template <typename... Args>
+constexpr tuple<Args &&...> forward_as_tuple(Args &&...args) noexcept {
+    return tuple<Args &&...>(std::forward<Args>(args)...);
+}
+
+template <typename Func, typename Tuple, size_t... Indexs>
+constexpr decltype(auto) apply_impl(Func &&fn, Tuple &&tp,
+                                    std::index_sequence<Indexs...>) {
+    return std::invoke(std::forward<Func>(fn),
+                       std::get<Indexs>(std::forward<Tuple>(tp))...);
+}
+
+template <typename Func, typename Tuple>
+constexpr decltype(auto) apply(Func &&fn, Tuple &&tp) {
+    return apply_impl(std::forward<Func>(fn), std::forward<Tuple>(tp),
+                      std::make_index_sequence<std::tuple_size_v<Tuple>>{});
+}
+
+template <size_t I, typename Tuple>
+struct __tuple_cat_single_helper {
+    static constexpr size_t Size = std::tuple_size_v<Tuple>;
+    using type0 = tp_repeat_t<tp_list<std::integral_constant<size_t, I>>, Size>;
+    using type1 = tp_make_index_sequence<Size>;
+};
+
+template <typename S, typename... Tuples>
+struct __tuple_cat_helper_impl;
+
+template <size_t... Indexs, typename... Tuples>
+struct __tuple_cat_helper_impl<std::index_sequence<Indexs...>, Tuples...> {
+    using type0 =
+        tp_concat_t<typename __tuple_cat_single_helper<Indexs, Tuples>::type0...>;
+    using type1 =
+        tp_concat_t<typename __tuple_cat_single_helper<Indexs, Tuples>::type1...>;
+};
+
+template <typename... Tuples>
+struct __tuple_cat_helper {
+    using Sequence = std::index_sequence_for<Tuples...>;
+    using Impl = __tuple_cat_helper_impl<Sequence, Tuples...>;
+    using type0 = tp_make_std_index_sequence<typename Impl::type0>;
+    using type1 = tp_make_std_index_sequence<typename Impl::type1>;
+};
+
+template <size_t... I0, size_t... I1, typename... Tuples>
+constexpr decltype(auto) __tuple_cat_impl(std::index_sequence<I0...>,
+                                          std::index_sequence<I1...>,
+                                          tuple<Tuples...> &&tuples) {
+    return tuple(std::get<I1>(std::get<I0>(std::move(tuples)))...);
+}
+
+template <typename... Tuples>
+constexpr decltype(auto) tuple_cat(Tuples &&...tuples) {
+    using Helper = __tuple_cat_helper<Tuples...>;
+    return __tuple_cat_impl(typename Helper::type0{}, typename Helper::type1{},
+                            forward_as_tuple(std::forward<Tuples>(tuples)...));
+}
+
+template <typename... TArgs, typename... UArgs>
+constexpr bool operator==(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) {
+    return apply(
+        [&rhs](const auto &...lhs_args) {
+            return apply(
+                [&lhs_args...](const auto &...rhs_args) {
+                    return ((lhs_args == rhs_args) && ...);
+                },
+                rhs);
+        },
+        lhs);
+}
+
+template <typename... TArgs, typename... UArgs>
+constexpr bool operator!=(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) {
+    return !(lhs == rhs);
+}
+
+template <typename... TArgs, typename... UArgs>
+constexpr bool operator<(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) {
+    bool ret = false;
+    apply(
+        [&rhs, &ret](const auto &...lhs_args) {
+            return apply(
+                [&lhs_args..., &ret](const auto &...rhs_args) {
+                    (void)((lhs_args < rhs_args ? (ret = true, false)
+                                                : (rhs_args < lhs_args ? false : true)) &&
+                           ...);
+                },
+                rhs);
+        },
+        lhs);
+    return ret;
+}
+
+template <typename... TArgs, typename... UArgs>
+constexpr bool operator<=(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) {
+    return !(rhs < lhs);
+}
+
+template <typename... TArgs, typename... UArgs>
+constexpr bool operator>(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) {
+    return rhs < lhs;
+}
+
+template <typename... TArgs, typename... UArgs>
+constexpr bool operator>=(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) {
+    return !(lhs < rhs);
+}
+
+} // namespace wjr
+
+namespace std {
+
+template <typename... Args,
+          WJR_REQUIRES_I(std::conjunction_v<wjr::is_swappable<Args>...>)>
+constexpr void swap(wjr::tuple<Args...> &lhs,
+                    wjr::tuple<Args...> &rhs) noexcept(noexcept(lhs.swap(rhs))) {
+    lhs.swap(rhs);
+}
+
+template <size_t I, typename... Args>
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &get(wjr::tuple<Args...> &t) noexcept {
+    return t.template get<I>();
+}
+
+template <size_t I, typename... Args>
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &
+get(const wjr::tuple<Args...> &t) noexcept {
+    return t.template get<I>();
+}
+
+template <size_t I, typename... Args>
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &&
+get(wjr::tuple<Args...> &&t) noexcept {
+    return std::move(t).template get<I>();
+}
+
+template <size_t I, typename... Args>
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &&
+get(const wjr::tuple<Args...> &&t) noexcept {
+    return std::move(t).template get<I>();
+}
+
+template <typename T, typename... Args>
+constexpr T &get(wjr::tuple<Args...> &t) noexcept {
+    return get<wjr::tp_find_v<wjr::tuple<Args...>, T>>(t);
+}
+
+template <typename T, typename... Args>
+constexpr T &get(const wjr::tuple<Args...> &t) noexcept {
+    return get<wjr::tp_find_v<wjr::tuple<Args...>, T>>(t);
+}
+
+template <typename T, typename... Args>
+constexpr T &&get(wjr::tuple<Args...> &&t) noexcept {
+    return get<wjr::tp_find_v<wjr::tuple<Args...>, T>>(std::move(t));
+}
+
+template <typename T, typename... Args>
+constexpr T &&get(const wjr::tuple<Args...> &&t) noexcept {
+    return get<wjr::tp_find_v<wjr::tuple<Args...>, T>>(std::move(t));
+}
+
+} // namespace std
+
+#endif // WJR_TUPLE_HPP__
 // Already included
 
 namespace wjr {
@@ -29864,431 +30261,6 @@ using bitset = basic_dynamic_bitset<>;
 // Already included
 // Already included
 // Already included
-#ifndef WJR_TUPLE_HPP__
-#define WJR_TUPLE_HPP__
-
 // Already included
-
-namespace wjr {
-
-template <typename... Args>
-class tuple;
-
-template <typename... Ts>
-struct tuple_like<tuple<Ts...>> : std::true_type {};
-
-} // namespace wjr
-
-namespace std {
-
-template <typename... Args, WJR_REQUIRES(std::conjunction_v<wjr::is_swappable<Args>...>)>
-constexpr void swap(wjr::tuple<Args...> &lhs,
-                    wjr::tuple<Args...> &rhs) noexcept(noexcept(lhs.swap(rhs)));
-
-template <size_t I, typename... Args>
-constexpr wjr::tuple_element_t<I, wjr::tuple<Args...>> &
-get(wjr::tuple<Args...> &t) noexcept;
-
-template <size_t I, typename... Args>
-constexpr wjr::tuple_element_t<I, wjr::tuple<Args...>> &
-get(const wjr::tuple<Args...> &t) noexcept;
-
-template <size_t I, typename... Args>
-constexpr wjr::tuple_element_t<I, wjr::tuple<Args...>> &&
-get(wjr::tuple<Args...> &&t) noexcept;
-
-template <size_t I, typename... Args>
-constexpr wjr::tuple_element_t<I, wjr::tuple<Args...>> &&
-get(const wjr::tuple<Args...> &&t) noexcept;
-
-template <typename T, typename... Args>
-constexpr T &get(wjr::tuple<Args...> &t) noexcept;
-
-template <typename T, typename... Args>
-constexpr T &get(const wjr::tuple<Args...> &t) noexcept;
-
-template <typename T, typename... Args>
-constexpr T &&get(wjr::tuple<Args...> &&t) noexcept;
-
-template <typename T, typename... Args>
-constexpr T &&get(const wjr::tuple<Args...> &&t) noexcept;
-
-} // namespace std
-
-namespace wjr {
-
-template <typename Indexs, typename... Args>
-class tuple_impl;
-
-template <size_t... Indexs, typename... Args>
-class WJR_EMPTY_BASES tuple_impl<std::index_sequence<Indexs...>, Args...>
-    : capture_leaf<tuple_element_t<Indexs, tuple<Args...>>,
-                   enable_base_identity_t<
-                       Indexs, tuple_impl<std::index_sequence<Indexs...>, Args...>>>...,
-      enable_special_members_of_args_base<
-          void,
-          capture_leaf<
-              tuple_element_t<Indexs, tuple<Args...>>,
-              enable_base_identity_t<
-                  Indexs, tuple_impl<std::index_sequence<Indexs...>, Args...>>>...> {
-    using Sequence = std::index_sequence<Indexs...>;
-
-    template <size_t Idx>
-    using Mybase = capture_leaf<tuple_element_t<Idx, tuple<Args...>>,
-                                enable_base_identity_t<Idx, tuple_impl>>;
-
-    using Mybase2 = enable_special_members_of_args_base<
-        void, capture_leaf<tuple_element_t<Indexs, tuple<Args...>>,
-                           enable_base_identity_t<Indexs, tuple_impl>>...>;
-
-    constexpr static size_t Size = sizeof...(Args);
-
-public:
-    template <typename S = Sequence,
-              WJR_REQUIRES(
-                  std::conjunction_v<std::is_same<S, Sequence>,
-                                     std::is_default_constructible<Mybase<Indexs>>...>)>
-    constexpr tuple_impl() : Mybase2(enable_default_constructor) {}
-
-    template <size_t... _Indexs, typename... _Args,
-              WJR_REQUIRES(
-                  std::conjunction_v<std::is_constructible<Mybase<_Indexs>, _Args>...>)>
-    constexpr tuple_impl(std::index_sequence<_Indexs...>, _Args &&...args)
-        : Mybase<_Indexs>(std::forward<_Args>(args))...,
-          Mybase2(enable_default_constructor) {}
-
-    template <size_t I>
-    constexpr auto &get() & noexcept {
-        return Mybase<I>::get();
-    }
-
-    template <size_t I>
-    constexpr const auto &get() const & noexcept {
-        return Mybase<I>::get();
-    }
-
-    template <size_t I>
-    constexpr auto &&get() && noexcept {
-        return std::move(Mybase<I>::get());
-    }
-
-    template <size_t I>
-    constexpr const auto &&get() const && noexcept {
-        return std::move(Mybase<I>::get());
-    }
-};
-
-template <typename Tuple>
-struct __tuple_like;
-
-template <template <typename...> typename Tuple, typename... Args>
-struct __tuple_like<Tuple<Args...>>
-    : std::disjunction<std::is_same<Tuple<Args...>, std::tuple<Args...>>,
-                       std::is_same<Tuple<Args...>, std::pair<Args...>>> {};
-
-template <>
-class tuple<> {
-public:
-    constexpr tuple() noexcept = default;
-    constexpr tuple(const tuple &) noexcept = default;
-    constexpr tuple(tuple &&) noexcept = default;
-    constexpr tuple &operator=(const tuple &) noexcept = default;
-    constexpr tuple &operator=(tuple &&) noexcept = default;
-    ~tuple() noexcept = default;
-
-    constexpr void swap(tuple &) noexcept {}
-};
-
-template <typename This, typename... Args>
-class tuple<This, Args...>
-    : enable_special_members_of_args_base<
-          tuple<This, Args...>,
-          tuple_impl<std::index_sequence_for<This, Args...>, This, Args...>> {
-    using Sequence = std::index_sequence_for<This, Args...>;
-    using Impl = tuple_impl<Sequence, This, Args...>;
-    using Mybase = enable_special_members_of_args_base<tuple<This, Args...>, Impl>;
-
-    constexpr static size_t Size = sizeof...(Args) + 1;
-
-public:
-    template <typename T = This,
-              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
-                                              std::is_default_constructible<Args>...>
-                               &&std::conjunction_v<is_default_convertible<T>,
-                                                    is_default_convertible<Args>...>)>
-    constexpr tuple() : Mybase(enable_default_constructor), m_impl() {}
-
-    template <typename T = This,
-              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
-                                              std::is_default_constructible<Args>...> &&
-                           !std::conjunction_v<is_default_convertible<T>,
-                                               is_default_convertible<Args>...>)>
-    constexpr explicit tuple() : Mybase(enable_default_constructor), m_impl() {}
-
-    template <typename Other = This,
-              WJR_REQUIRES(std::is_constructible_v<Impl, Sequence, const Other &,
-                                                   const Args &...>)>
-    constexpr tuple(const Other &first, const Args &...rest)
-        : Mybase(enable_default_constructor), m_impl(Sequence(), first, rest...) {}
-
-    template <
-        typename Other, typename... _Args,
-        WJR_REQUIRES(sizeof...(_Args) + 1 == Size &&
-                     std::conjunction_v<
-                         std::negation<std::conjunction<
-                             std::is_same<This, std::remove_reference_t<Other>>,
-                             std::is_same<Args, std::remove_reference_t<_Args>>...>>,
-                         std::is_constructible<Impl, Sequence, Other &&, _Args &&...>>)>
-    constexpr tuple(Other &&other, _Args &&...args)
-        : Mybase(enable_default_constructor),
-          m_impl(Sequence(), std::forward<Other>(other), std::forward<_Args>(args)...) {}
-
-private:
-    template <size_t... _Indexs, typename TupleLike>
-    constexpr tuple(std::index_sequence<_Indexs...>, TupleLike &&other, in_place_empty_t)
-        : Mybase(enable_default_constructor),
-          m_impl(Sequence(), std::get<_Indexs>(std::forward<TupleLike>(other))...) {}
-
-public:
-    template <typename TupleLike,
-              WJR_REQUIRES(__is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>)>
-    constexpr tuple(TupleLike &&other)
-        : tuple(Sequence(), std::forward<TupleLike>(other), in_place_empty) {}
-
-private:
-    template <size_t... _Indexs, typename Container>
-    constexpr void __assign(std::index_sequence<_Indexs...>, Container &&other) {
-        (void)((this->template get<_Indexs>() =
-                    std::get<_Indexs>(std::forward<Container>(other))),
-               ...);
-    }
-
-public:
-    template <typename TupleLike,
-              WJR_REQUIRES(__is_tuple_test_v<std::is_assignable, tuple, TupleLike &&>)>
-    constexpr tuple &operator=(TupleLike &&other) {
-        __assign(Sequence(), std::forward<TupleLike>(other));
-        return *this;
-    }
-
-private:
-    template <size_t... _Indexs>
-    constexpr void __swap(std::index_sequence<_Indexs...>, tuple &other) {
-        (void)((std::swap(this->template get<_Indexs>(), other.template get<_Indexs>()),
-                ...));
-    }
-
-public:
-    constexpr void swap(tuple &other) noexcept { __swap(Sequence(), other); }
-
-    template <size_t I>
-    constexpr tuple_element_t<I, tuple> &get() & noexcept {
-        return m_impl.template get<I>();
-    }
-
-    template <size_t I>
-    constexpr const tuple_element_t<I, tuple> &get() const & noexcept {
-        return m_impl.template get<I>();
-    }
-
-    template <size_t I>
-    constexpr tuple_element_t<I, tuple> &&get() && noexcept {
-        return std::move(m_impl.template get<I>());
-    }
-
-    template <size_t I>
-    constexpr const tuple_element_t<I, tuple> &&get() const && noexcept {
-        return std::move(m_impl.template get<I>());
-    }
-
-private:
-    Impl m_impl;
-};
-
-template <typename... Args>
-tuple(Args...) -> tuple<Args...>;
-
-template <typename T1, typename T2>
-tuple(std::pair<T1, T2>) -> tuple<T1, T2>;
-
-template <typename... Args>
-tuple(std::tuple<Args...>) -> tuple<Args...>;
-
-template <typename... Args>
-constexpr tuple<unref_wrapper_t<Args>...> make_tuple(Args &&...args) {
-    return tuple<unref_wrapper_t<Args>...>(std::forward<Args>(args)...);
-}
-
-template <typename... Args>
-constexpr tuple<Args &...> tie(Args &...args) noexcept {
-    return tuple<Args &...>(args...);
-}
-
-template <typename... Args>
-constexpr tuple<Args &&...> forward_as_tuple(Args &&...args) noexcept {
-    return tuple<Args &&...>(std::forward<Args>(args)...);
-}
-
-template <typename Func, typename Tuple, size_t... Indexs>
-constexpr decltype(auto) apply_impl(Func &&fn, Tuple &&tp,
-                                    std::index_sequence<Indexs...>) {
-    return std::invoke(std::forward<Func>(fn),
-                       std::get<Indexs>(std::forward<Tuple>(tp))...);
-}
-
-template <typename Func, typename Tuple>
-constexpr decltype(auto) apply(Func &&fn, Tuple &&tp) {
-    return apply_impl(std::forward<Func>(fn), std::forward<Tuple>(tp),
-                      std::make_index_sequence<tuple_size_v<Tuple>>{});
-}
-
-template <size_t I, typename Tuple>
-struct __tuple_cat_single_helper {
-    static constexpr size_t Size = tuple_size_v<Tuple>;
-    using type0 = tp_repeat_t<tp_list<std::integral_constant<size_t, I>>, Size>;
-    using type1 = tp_make_index_sequence<Size>;
-};
-
-template <typename S, typename... Tuples>
-struct __tuple_cat_helper_impl;
-
-template <size_t... Indexs, typename... Tuples>
-struct __tuple_cat_helper_impl<std::index_sequence<Indexs...>, Tuples...> {
-    using type0 =
-        tp_concat_t<typename __tuple_cat_single_helper<Indexs, Tuples>::type0...>;
-    using type1 =
-        tp_concat_t<typename __tuple_cat_single_helper<Indexs, Tuples>::type1...>;
-};
-
-template <typename... Tuples>
-struct __tuple_cat_helper {
-    using Sequence = std::index_sequence_for<Tuples...>;
-    using Impl = __tuple_cat_helper_impl<Sequence, Tuples...>;
-    using type0 = tp_make_std_index_sequence<typename Impl::type0>;
-    using type1 = tp_make_std_index_sequence<typename Impl::type1>;
-};
-
-template <size_t... I0, size_t... I1, typename... Tuples>
-constexpr decltype(auto) __tuple_cat_impl(std::index_sequence<I0...>,
-                                          std::index_sequence<I1...>,
-                                          tuple<Tuples...> &&tuples) {
-    return tuple(std::get<I1>(std::get<I0>(std::move(tuples)))...);
-}
-
-template <typename... Tuples>
-constexpr decltype(auto) tuple_cat(Tuples &&...tuples) {
-    using Helper = __tuple_cat_helper<Tuples...>;
-    return __tuple_cat_impl(typename Helper::type0{}, typename Helper::type1{},
-                            forward_as_tuple(std::forward<Tuples>(tuples)...));
-}
-
-template <typename... TArgs, typename... UArgs>
-constexpr bool operator==(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) {
-    return apply(
-        [&rhs](const auto &...lhs_args) {
-            return apply(
-                [&lhs_args...](const auto &...rhs_args) {
-                    return ((lhs_args == rhs_args) && ...);
-                },
-                rhs);
-        },
-        lhs);
-}
-
-template <typename... TArgs, typename... UArgs>
-constexpr bool operator!=(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) {
-    return !(lhs == rhs);
-}
-
-template <typename... TArgs, typename... UArgs>
-constexpr bool operator<(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) {
-    bool ret = false;
-    apply(
-        [&rhs, &ret](const auto &...lhs_args) {
-            return apply(
-                [&lhs_args..., &ret](const auto &...rhs_args) {
-                    (void)((lhs_args < rhs_args ? (ret = true, false)
-                                                : (rhs_args < lhs_args ? false : true)) &&
-                           ...);
-                },
-                rhs);
-        },
-        lhs);
-    return ret;
-}
-
-template <typename... TArgs, typename... UArgs>
-constexpr bool operator<=(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) {
-    return !(rhs < lhs);
-}
-
-template <typename... TArgs, typename... UArgs>
-constexpr bool operator>(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) {
-    return rhs < lhs;
-}
-
-template <typename... TArgs, typename... UArgs>
-constexpr bool operator>=(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) {
-    return !(lhs < rhs);
-}
-
-} // namespace wjr
-
-namespace std {
-
-template <typename... Args,
-          WJR_REQUIRES_I(std::conjunction_v<wjr::is_swappable<Args>...>)>
-constexpr void swap(wjr::tuple<Args...> &lhs,
-                    wjr::tuple<Args...> &rhs) noexcept(noexcept(lhs.swap(rhs))) {
-    lhs.swap(rhs);
-}
-
-template <size_t I, typename... Args>
-constexpr wjr::tuple_element_t<I, wjr::tuple<Args...>> &
-get(wjr::tuple<Args...> &t) noexcept {
-    return t.template get<I>();
-}
-
-template <size_t I, typename... Args>
-constexpr wjr::tuple_element_t<I, wjr::tuple<Args...>> &
-get(const wjr::tuple<Args...> &t) noexcept {
-    return t.template get<I>();
-}
-
-template <size_t I, typename... Args>
-constexpr wjr::tuple_element_t<I, wjr::tuple<Args...>> &&
-get(wjr::tuple<Args...> &&t) noexcept {
-    return std::move(t).template get<I>();
-}
-
-template <size_t I, typename... Args>
-constexpr wjr::tuple_element_t<I, wjr::tuple<Args...>> &&
-get(const wjr::tuple<Args...> &&t) noexcept {
-    return std::move(t).template get<I>();
-}
-
-template <typename T, typename... Args>
-constexpr T &get(wjr::tuple<Args...> &t) noexcept {
-    return get<wjr::tp_find_v<wjr::tuple<Args...>, T>>(t);
-}
-
-template <typename T, typename... Args>
-constexpr T &get(const wjr::tuple<Args...> &t) noexcept {
-    return get<wjr::tp_find_v<wjr::tuple<Args...>, T>>(t);
-}
-
-template <typename T, typename... Args>
-constexpr T &&get(wjr::tuple<Args...> &&t) noexcept {
-    return get<wjr::tp_find_v<wjr::tuple<Args...>, T>>(std::move(t));
-}
-
-template <typename T, typename... Args>
-constexpr T &&get(const wjr::tuple<Args...> &&t) noexcept {
-    return get<wjr::tp_find_v<wjr::tuple<Args...>, T>>(std::move(t));
-}
-
-} // namespace std
-
-#endif // WJR_TUPLE_HPP__
 // Already included
 

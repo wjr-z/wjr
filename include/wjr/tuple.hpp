@@ -8,31 +8,35 @@ namespace wjr {
 template <typename... Args>
 class tuple;
 
-template <typename... Ts>
-struct tuple_like<tuple<Ts...>> : std::true_type {};
-
 } // namespace wjr
 
 namespace std {
+
+template <typename... Args>
+struct tuple_size<wjr::tuple<Args...>> : std::integral_constant<size_t, sizeof...(Args)> {
+};
+
+template <size_t I, typename... Args>
+struct tuple_element<I, wjr::tuple<Args...>> {
+    using type = wjr::tp_at_t<wjr::tuple<Args...>, I>;
+};
 
 template <typename... Args, WJR_REQUIRES(std::conjunction_v<wjr::is_swappable<Args>...>)>
 constexpr void swap(wjr::tuple<Args...> &lhs,
                     wjr::tuple<Args...> &rhs) noexcept(noexcept(lhs.swap(rhs)));
 
 template <size_t I, typename... Args>
-constexpr wjr::tuple_element_t<I, wjr::tuple<Args...>> &
-get(wjr::tuple<Args...> &t) noexcept;
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &get(wjr::tuple<Args...> &t) noexcept;
 
 template <size_t I, typename... Args>
-constexpr wjr::tuple_element_t<I, wjr::tuple<Args...>> &
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &
 get(const wjr::tuple<Args...> &t) noexcept;
 
 template <size_t I, typename... Args>
-constexpr wjr::tuple_element_t<I, wjr::tuple<Args...>> &&
-get(wjr::tuple<Args...> &&t) noexcept;
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &&get(wjr::tuple<Args...> &&t) noexcept;
 
 template <size_t I, typename... Args>
-constexpr wjr::tuple_element_t<I, wjr::tuple<Args...>> &&
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &&
 get(const wjr::tuple<Args...> &&t) noexcept;
 
 template <typename T, typename... Args>
@@ -56,23 +60,23 @@ class tuple_impl;
 
 template <size_t... Indexs, typename... Args>
 class WJR_EMPTY_BASES tuple_impl<std::index_sequence<Indexs...>, Args...>
-    : capture_leaf<tuple_element_t<Indexs, tuple<Args...>>,
+    : capture_leaf<std::tuple_element_t<Indexs, tuple<Args...>>,
                    enable_base_identity_t<
                        Indexs, tuple_impl<std::index_sequence<Indexs...>, Args...>>>...,
       enable_special_members_of_args_base<
           void,
           capture_leaf<
-              tuple_element_t<Indexs, tuple<Args...>>,
+              std::tuple_element_t<Indexs, tuple<Args...>>,
               enable_base_identity_t<
                   Indexs, tuple_impl<std::index_sequence<Indexs...>, Args...>>>...> {
     using Sequence = std::index_sequence<Indexs...>;
 
     template <size_t Idx>
-    using Mybase = capture_leaf<tuple_element_t<Idx, tuple<Args...>>,
+    using Mybase = capture_leaf<std::tuple_element_t<Idx, tuple<Args...>>,
                                 enable_base_identity_t<Idx, tuple_impl>>;
 
     using Mybase2 = enable_special_members_of_args_base<
-        void, capture_leaf<tuple_element_t<Indexs, tuple<Args...>>,
+        void, capture_leaf<std::tuple_element_t<Indexs, tuple<Args...>>,
                            enable_base_identity_t<Indexs, tuple_impl>>...>;
 
     constexpr static size_t Size = sizeof...(Args);
@@ -199,7 +203,7 @@ private:
 
 public:
     template <typename TupleLike,
-              WJR_REQUIRES(__is_tuple_test_v<std::is_assignable, tuple, TupleLike &&>)>
+              WJR_REQUIRES(__is_tuple_test_v<__is_tuple_assignable, tuple, TupleLike &&>)>
     constexpr tuple &operator=(TupleLike &&other) {
         __assign(Sequence(), std::forward<TupleLike>(other));
         return *this;
@@ -216,22 +220,22 @@ public:
     constexpr void swap(tuple &other) noexcept { __swap(Sequence(), other); }
 
     template <size_t I>
-    constexpr tuple_element_t<I, tuple> &get() & noexcept {
+    constexpr std::tuple_element_t<I, tuple> &get() & noexcept {
         return m_impl.template get<I>();
     }
 
     template <size_t I>
-    constexpr const tuple_element_t<I, tuple> &get() const & noexcept {
+    constexpr const std::tuple_element_t<I, tuple> &get() const & noexcept {
         return m_impl.template get<I>();
     }
 
     template <size_t I>
-    constexpr tuple_element_t<I, tuple> &&get() && noexcept {
+    constexpr std::tuple_element_t<I, tuple> &&get() && noexcept {
         return std::move(m_impl.template get<I>());
     }
 
     template <size_t I>
-    constexpr const tuple_element_t<I, tuple> &&get() const && noexcept {
+    constexpr const std::tuple_element_t<I, tuple> &&get() const && noexcept {
         return std::move(m_impl.template get<I>());
     }
 
@@ -273,12 +277,12 @@ constexpr decltype(auto) apply_impl(Func &&fn, Tuple &&tp,
 template <typename Func, typename Tuple>
 constexpr decltype(auto) apply(Func &&fn, Tuple &&tp) {
     return apply_impl(std::forward<Func>(fn), std::forward<Tuple>(tp),
-                      std::make_index_sequence<tuple_size_v<Tuple>>{});
+                      std::make_index_sequence<std::tuple_size_v<Tuple>>{});
 }
 
 template <size_t I, typename Tuple>
 struct __tuple_cat_single_helper {
-    static constexpr size_t Size = tuple_size_v<Tuple>;
+    static constexpr size_t Size = std::tuple_size_v<Tuple>;
     using type0 = tp_repeat_t<tp_list<std::integral_constant<size_t, I>>, Size>;
     using type1 = tp_make_index_sequence<Size>;
 };
@@ -378,25 +382,24 @@ constexpr void swap(wjr::tuple<Args...> &lhs,
 }
 
 template <size_t I, typename... Args>
-constexpr wjr::tuple_element_t<I, wjr::tuple<Args...>> &
-get(wjr::tuple<Args...> &t) noexcept {
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &get(wjr::tuple<Args...> &t) noexcept {
     return t.template get<I>();
 }
 
 template <size_t I, typename... Args>
-constexpr wjr::tuple_element_t<I, wjr::tuple<Args...>> &
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &
 get(const wjr::tuple<Args...> &t) noexcept {
     return t.template get<I>();
 }
 
 template <size_t I, typename... Args>
-constexpr wjr::tuple_element_t<I, wjr::tuple<Args...>> &&
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &&
 get(wjr::tuple<Args...> &&t) noexcept {
     return std::move(t).template get<I>();
 }
 
 template <size_t I, typename... Args>
-constexpr wjr::tuple_element_t<I, wjr::tuple<Args...>> &&
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &&
 get(const wjr::tuple<Args...> &&t) noexcept {
     return std::move(t).template get<I>();
 }

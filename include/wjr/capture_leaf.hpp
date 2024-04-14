@@ -51,54 +51,29 @@ public:
     constexpr const T &get() const noexcept { return *this; }
 };
 
-template <typename C>
-struct tuple_size {
-    static constexpr size_t value = tp_size_v<tp_rename_t<C, tp_list>>;
-};
+template <template <typename...> typename Test, typename Seq, typename LP, typename RP,
+          typename = void>
+struct __is_tuple_test_impl : std::false_type {};
 
-template <typename T, size_t N>
-struct tuple_size<std::array<T, N>> {
-    static constexpr size_t value = N;
-};
+template <template <typename...> typename Test, size_t... Idxs, typename LP, typename RP>
+struct __is_tuple_test_impl<
+    Test, std::index_sequence<Idxs...>, LP, RP,
+    std::enable_if_t<!std::is_same_v<LP, remove_cvref_t<RP>> &&
+                     std::tuple_size_v<LP> ==
+                         tp_defer_t<std::tuple_size, remove_cvref_t<RP>>::value>>
+    : std::conjunction<Test<std::tuple_element_t<Idxs, LP>,
+                            decltype(std::get<Idxs>(std::declval<RP>()))>...> {};
 
-template <typename C>
-inline constexpr size_t tuple_size_v = tuple_size<C>::value;
+template <template <typename...> typename Test, typename LP, typename RP>
+struct __is_tuple_test
+    : __is_tuple_test_impl<Test, std::make_index_sequence<std::tuple_size_v<LP>>, LP,
+                           RP> {};
 
-template <size_t I, typename C>
-struct tuple_element {
-    using type = tp_at_t<tp_rename_t<C, tp_list>, I>;
-};
-
-template <size_t I, typename C>
-using tuple_element_t = typename tuple_element<I, C>::type;
-
-template <typename T>
-struct tuple_like : std::false_type {};
-
-template <typename T>
-inline constexpr bool tuple_like_v = tuple_like<T>::value;
-
-template <typename... Ts>
-struct tuple_like<std::tuple<Ts...>> : std::true_type {};
-
-template <typename T, size_t N>
-struct tuple_like<std::array<T, N>> : std::true_type {};
+template <template <typename...> typename Test, typename LP, typename RP>
+inline constexpr bool __is_tuple_test_v = __is_tuple_test<Test, LP, RP>::value;
 
 template <typename T, typename U>
-struct tuple_like<std::pair<T, U>> : std::true_type {};
-
-template <typename T, typename = void>
-struct __pair_like_impl : std::false_type {};
-
-template <typename T>
-struct __pair_like_impl<T, std::enable_if_t<tuple_like_v<T> && tuple_size_v<T> == 2>>
-    : std::true_type {};
-
-template <typename T>
-struct pair_like : __pair_like_impl<T> {};
-
-template <typename T>
-inline constexpr bool pair_like_v = pair_like<T>::value;
+struct __is_tuple_assignable : std::is_assignable<T &, U> {};
 
 } // namespace wjr
 

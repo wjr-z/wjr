@@ -10,28 +10,21 @@ namespace wjr {
 template <typename T, typename U>
 class compressed_pair;
 
+}
+
+namespace std {
+
 template <typename T, typename U>
-struct tuple_like<compressed_pair<T, U>> : std::true_type {};
+struct tuple_size<wjr::compressed_pair<T, U>> : std::integral_constant<size_t, 2> {};
 
-template <template <typename...> typename Test, typename Seq, typename LP, typename RP,
-          typename = void>
-struct __is_tuple_test_impl : std::false_type {};
+template <size_t I, typename T, typename U>
+struct tuple_element<I, wjr::compressed_pair<T, U>> {
+    using type = wjr::tp_at_t<wjr::compressed_pair<T, U>, I>;
+};
 
-template <template <typename...> typename Test, size_t... Idxs, typename LP, typename RP>
-struct __is_tuple_test_impl<
-    Test, std::index_sequence<Idxs...>, LP, RP,
-    std::enable_if_t<
-        !std::is_same_v<LP, remove_cvref_t<RP>> && tuple_like_v<remove_cvref_t<RP>> &&
-        tuple_size_v<LP> == tp_defer_t<tuple_size, remove_cvref_t<RP>>::value>>
-    : std::conjunction<Test<tuple_element_t<Idxs, LP>,
-                            decltype(std::get<Idxs>(std::declval<RP>()))>...> {};
+} // namespace std
 
-template <template <typename...> typename Test, typename LP, typename RP>
-struct __is_tuple_test
-    : __is_tuple_test_impl<Test, std::make_index_sequence<tuple_size_v<LP>>, LP, RP> {};
-
-template <template <typename...> typename Test, typename LP, typename RP>
-inline constexpr bool __is_tuple_test_v = __is_tuple_test<Test, LP, RP>::value;
+namespace wjr {
 
 template <typename T>
 using compressed_pair_wrapper_helper =
@@ -200,9 +193,9 @@ public:
           Mybase2(std::get<1>(std::forward<PairLike>(pr))),
           Mybase3(enable_default_constructor) {}
 
-    template <
-        typename PairLike,
-        WJR_REQUIRES(__is_tuple_test_v<std::is_assignable, compressed_pair, PairLike &&>)>
+    template <typename PairLike,
+              WJR_REQUIRES(
+                  __is_tuple_test_v<__is_tuple_assignable, compressed_pair, PairLike &&>)>
     constexpr compressed_pair &operator=(PairLike &&pr) noexcept(
         std::conjunction_v<std::is_nothrow_assignable<T, decltype(std::get<0>(pr))>,
                            std::is_nothrow_assignable<U, decltype(std::get<1>(pr))>>) {
@@ -228,7 +221,7 @@ public:
     // extension
 
     template <size_t I>
-    constexpr tuple_element_t<I, compressed_pair> &get() & noexcept {
+    constexpr std::tuple_element_t<I, compressed_pair> &get() & noexcept {
         if constexpr (I == 0) {
             return first();
         } else {
@@ -237,7 +230,7 @@ public:
     }
 
     template <size_t I>
-    constexpr const tuple_element_t<I, compressed_pair> &get() const & noexcept {
+    constexpr const std::tuple_element_t<I, compressed_pair> &get() const & noexcept {
         if constexpr (I == 0) {
             return first();
         } else {
@@ -246,7 +239,7 @@ public:
     }
 
     template <size_t I>
-    constexpr tuple_element_t<I, compressed_pair> &&get() && noexcept {
+    constexpr std::tuple_element_t<I, compressed_pair> &&get() && noexcept {
         if constexpr (I == 0) {
             return std::move(first());
         } else {
@@ -255,7 +248,7 @@ public:
     }
 
     template <size_t I>
-    constexpr const tuple_element_t<I, compressed_pair> &&get() const && noexcept {
+    constexpr const std::tuple_element_t<I, compressed_pair> &&get() const && noexcept {
         if constexpr (I == 0) {
             return std::move(first());
         } else {
@@ -325,7 +318,7 @@ constexpr void swap(wjr::compressed_pair<T, U> &lhs,
 }
 
 template <size_t I, typename T, typename U>
-WJR_NODISCARD constexpr wjr::tuple_element_t<I, wjr::compressed_pair<T, U>> &
+WJR_NODISCARD constexpr tuple_element_t<I, wjr::compressed_pair<T, U>> &
 get(wjr::compressed_pair<T, U> &pr) noexcept {
     if constexpr (I == 0) {
         return pr.first();
@@ -335,7 +328,7 @@ get(wjr::compressed_pair<T, U> &pr) noexcept {
 }
 
 template <size_t I, typename T, typename U>
-WJR_NODISCARD constexpr const wjr::tuple_element_t<I, wjr::compressed_pair<T, U>> &
+WJR_NODISCARD constexpr const tuple_element_t<I, wjr::compressed_pair<T, U>> &
 get(const wjr::compressed_pair<T, U> &pr) noexcept {
     if constexpr (I == 0) {
         return pr.first();
@@ -345,7 +338,7 @@ get(const wjr::compressed_pair<T, U> &pr) noexcept {
 }
 
 template <size_t I, typename T, typename U>
-WJR_NODISCARD constexpr wjr::tuple_element_t<I, wjr::compressed_pair<T, U>> &&
+WJR_NODISCARD constexpr tuple_element_t<I, wjr::compressed_pair<T, U>> &&
 get(wjr::compressed_pair<T, U> &&pr) noexcept {
     if constexpr (I == 0) {
         return std::forward<T>(pr.first());
@@ -355,7 +348,7 @@ get(wjr::compressed_pair<T, U> &&pr) noexcept {
 }
 
 template <size_t I, typename T, typename U>
-WJR_NODISCARD constexpr const wjr::tuple_element_t<I, wjr::compressed_pair<T, U>> &&
+WJR_NODISCARD constexpr const tuple_element_t<I, wjr::compressed_pair<T, U>> &&
 get(const wjr::compressed_pair<T, U> &&pr) noexcept {
     if constexpr (I == 0) {
         return std::forward<T>(pr.first());
@@ -371,37 +364,37 @@ WJR_NODISCARD constexpr T &get(wjr::compressed_pair<T, U> &pr) noexcept {
 
 template <typename T, typename U>
 WJR_NODISCARD constexpr const T &get(const wjr::compressed_pair<T, U> &pr) noexcept {
-    return std::get<0>(pr);
+    return get<0>(pr);
 }
 
 template <typename T, typename U>
 WJR_NODISCARD constexpr T &&get(wjr::compressed_pair<T, U> &&pr) noexcept {
-    return std::get<0>(std::move(pr));
+    return get<0>(std::move(pr));
 }
 
 template <typename T, typename U>
 WJR_NODISCARD constexpr const T &&get(const wjr::compressed_pair<T, U> &&pr) noexcept {
-    return std::get<0>(std::move(pr));
+    return get<0>(std::move(pr));
 }
 
 template <typename T, typename U>
 WJR_NODISCARD constexpr T &get(wjr::compressed_pair<U, T> &pr) noexcept {
-    return std::get<1>(pr);
+    return get<1>(pr);
 }
 
 template <typename T, typename U>
 WJR_NODISCARD constexpr const T &get(const wjr::compressed_pair<U, T> &pr) noexcept {
-    return std::get<1>(pr);
+    return get<1>(pr);
 }
 
 template <typename T, typename U>
 WJR_NODISCARD constexpr T &&get(wjr::compressed_pair<U, T> &&pr) noexcept {
-    return std::get<1>(std::move(pr));
+    return get<1>(std::move(pr));
 }
 
 template <typename T, typename U>
 WJR_NODISCARD constexpr const T &&get(const wjr::compressed_pair<U, T> &&pr) noexcept {
-    return std::get<1>(std::move(pr));
+    return get<1>(std::move(pr));
 }
 
 } // namespace std
