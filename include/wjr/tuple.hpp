@@ -81,8 +81,7 @@ public:
         std::enable_if_t<std::conjunction_v<std::is_same<S, Sequence>,
                                             std::is_constructible<Mybase<Indexs>>...>,
                          int> = 0>
-    constexpr tuple_impl(Sequence)
-        : Mybase<Indexs>()..., Mybase2(enable_default_constructor) {}
+    constexpr tuple_impl(Sequence) : Mybase2(enable_default_constructor) {}
 
     template <size_t... _Indexs, typename... _Args,
               std::enable_if_t<

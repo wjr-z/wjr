@@ -76,8 +76,7 @@ public:
                                int> = 0>
     constexpr compressed_pair() noexcept(
         std::conjunction_v<std::is_nothrow_default_constructible<Ty>,
-                           std::is_nothrow_default_constructible<Uy>>)
-        : Mybase1(), Mybase2(), Mybase3(enable_default_constructor) {}
+                           std::is_nothrow_default_constructible<Uy>>) {}
 
     template <typename Ty = T, typename Uy = U,
               std::enable_if_t<std::conjunction_v<

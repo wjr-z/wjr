@@ -3999,7 +3999,9 @@ class capture_leaf : enable_special_members_of_args_base<Tag, T> {
     using Mybase = enable_special_members_of_args_base<Tag, T>;
 
 public:
-    using Mybase::Mybase;
+    template <typename Ty = T,
+              std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
+    constexpr capture_leaf() : Mybase(enable_default_constructor), m_value() {}
 
     template <typename... Args,
               std::enable_if_t<std::is_constructible_v<T, Args...>, int> = 0>
@@ -4022,7 +4024,9 @@ class compressed_capture_leaf : T {
     using Mybase = T;
 
 public:
-    using Mybase::Mybase;
+    template <typename Ty = T,
+              std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
+    constexpr compressed_capture_leaf() : Mybase() {}
 
     template <typename... Args,
               std::enable_if_t<std::is_constructible_v<T, Args...>, int> = 0>
@@ -4128,8 +4132,7 @@ public:
                                int> = 0>
     constexpr compressed_pair() noexcept(
         std::conjunction_v<std::is_nothrow_default_constructible<Ty>,
-                           std::is_nothrow_default_constructible<Uy>>)
-        : Mybase1(), Mybase2(), Mybase3(enable_default_constructor) {}
+                           std::is_nothrow_default_constructible<Uy>>) {}
 
     template <typename Ty = T, typename Uy = U,
               std::enable_if_t<std::conjunction_v<
@@ -4652,7 +4655,7 @@ private:
             (void)fprintf(stderr, "%d:", line);
         }
         fprintf(stderr, " %s:", func);
-        fprintf(stderr, " Assertion `%s' failed.", expr);
+        fprintf(stderr, " Assertion `%s' failed.\n", expr);
         handler(std::forward<Args>(args)...);
         WJR_ASSERT_ABORT();
     }
@@ -29956,8 +29959,7 @@ public:
         std::enable_if_t<std::conjunction_v<std::is_same<S, Sequence>,
                                             std::is_constructible<Mybase<Indexs>>...>,
                          int> = 0>
-    constexpr tuple_impl(Sequence)
-        : Mybase<Indexs>()..., Mybase2(enable_default_constructor) {}
+    constexpr tuple_impl(Sequence) : Mybase2(enable_default_constructor) {}
 
     template <size_t... _Indexs, typename... _Args,
               std::enable_if_t<

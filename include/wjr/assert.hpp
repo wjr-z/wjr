@@ -101,7 +101,7 @@ private:
             (void)fprintf(stderr, "%d:", line);
         }
         fprintf(stderr, " %s:", func);
-        fprintf(stderr, " Assertion `%s' failed.", expr);
+        fprintf(stderr, " Assertion `%s' failed.\n", expr);
         handler(std::forward<Args>(args)...);
         WJR_ASSERT_ABORT();
     }

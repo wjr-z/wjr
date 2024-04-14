@@ -12,7 +12,9 @@ class capture_leaf : enable_special_members_of_args_base<Tag, T> {
     using Mybase = enable_special_members_of_args_base<Tag, T>;
 
 public:
-    using Mybase::Mybase;
+    template <typename Ty = T,
+              std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
+    constexpr capture_leaf() : Mybase(enable_default_constructor), m_value() {}
 
     template <typename... Args,
               std::enable_if_t<std::is_constructible_v<T, Args...>, int> = 0>
@@ -35,7 +37,9 @@ class compressed_capture_leaf : T {
     using Mybase = T;
 
 public:
-    using Mybase::Mybase;
+    template <typename Ty = T,
+              std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
+    constexpr compressed_capture_leaf() : Mybase() {}
 
     template <typename... Args,
               std::enable_if_t<std::is_constructible_v<T, Args...>, int> = 0>
