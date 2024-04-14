@@ -1,9 +1,7 @@
 #ifndef WJR_TUPLE_HPP__
 #define WJR_TUPLE_HPP__
 
-#include <tuple>
-
-#include <wjr/capture_leaf.hpp>
+#include <wjr/compressed_pair.hpp>
 
 namespace wjr {
 template <typename... Args>
@@ -112,6 +110,14 @@ public:
     }
 };
 
+template <typename Tuple>
+struct __tuple_like;
+
+template <template <typename...> typename Tuple, typename... Args>
+struct __tuple_like<Tuple<Args...>>
+    : std::disjunction<std::is_same<Tuple<Args...>, std::tuple<Args...>>,
+                       std::is_same<Tuple<Args...>, std::pair<Args...>>> {};
+
 template <>
 class tuple<> {
 public:
@@ -164,64 +170,17 @@ public:
           m_impl(Sequence(), std::forward<Other>(other), std::forward<_Args>(args)...) {}
 
 private:
-    template <size_t... _Indexs, typename Container>
-    constexpr tuple(std::index_sequence<_Indexs...>, Container &&other, in_place_empty_t)
+    template <size_t... _Indexs, typename TupleLike>
+    constexpr tuple(std::index_sequence<_Indexs...>, TupleLike &&other, in_place_empty_t)
         : Mybase(enable_default_constructor),
-          m_impl(Sequence(), std::get<_Indexs>(std::forward<Container>(other))...) {}
+          m_impl(Sequence(), std::get<_Indexs>(std::forward<TupleLike>(other))...) {}
 
 public:
-    template <typename Other, typename... _Args,
+    template <typename TupleLike,
               std::enable_if_t<
-                  sizeof...(_Args) + 1 == Size &&
-                      std::conjunction_v<
-                          std::negation<std::is_same<tuple<Other, _Args...>, tuple>>,
-                          std::is_constructible<Impl, Sequence, const Other &,
-                                                const _Args &...>>,
-                  int> = 0>
-    constexpr tuple(const tuple<Other, _Args...> &other)
-        : tuple(Sequence(), other, in_place_empty) {}
-
-    template <typename Other, typename... _Args,
-              std::enable_if_t<
-                  sizeof...(_Args) + 1 == Size &&
-                      std::conjunction_v<
-                          std::negation<std::is_same<tuple<Other, _Args...>, tuple>>,
-                          std::is_constructible<Impl, Sequence, Other &&, _Args &&...>>,
-                  int> = 0>
-    constexpr tuple(tuple<Other, _Args...> &&other)
-        : tuple(Sequence(), std::move(other), in_place_empty) {}
-
-    template <typename T, typename U,
-              std::enable_if_t<Size == 2 && std::is_constructible_v<This, T> &&
-                                   std::is_constructible_v<
-                                       tp_defer_t<tp_front_t, tp_list<Args...>>, U>,
-                               int> = 0>
-    constexpr tuple(const std::pair<T, U> &pair)
-        : tuple(Sequence(), pair, in_place_empty) {}
-
-    template <typename T, typename U,
-              std::enable_if_t<Size == 2 && std::is_constructible_v<This, T &&> &&
-                                   std::is_constructible_v<
-                                       tp_defer_t<tp_front_t, tp_list<Args...>>, U &&>,
-                               int> = 0>
-    constexpr tuple(std::pair<T, U> &&pair)
-        : tuple(Sequence(), std::move(pair), in_place_empty) {}
-
-    template <typename Other, typename... _Args,
-              std::enable_if_t<sizeof...(_Args) + 1 == Size &&
-                                   std::is_constructible_v<Impl, Sequence, const Other &,
-                                                           const _Args &...>,
-                               int> = 0>
-    constexpr tuple(const std::tuple<Other, _Args...> &other)
-        : tuple(Sequence(), other, in_place_empty) {}
-
-    template <typename Other, typename... _Args,
-              std::enable_if_t<
-                  sizeof...(_Args) + 1 == Size &&
-                      std::is_constructible_v<Impl, Sequence, Other &&, _Args &&...>,
-                  int> = 0>
-    constexpr tuple(std::tuple<Other, _Args...> &&other)
-        : tuple(Sequence(), std::move(other), in_place_empty) {}
+                  __is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>, int> = 0>
+    constexpr tuple(TupleLike &&other)
+        : tuple(Sequence(), std::forward<TupleLike>(other), in_place_empty) {}
 
 private:
     template <size_t... _Indexs, typename Container>
@@ -232,77 +191,11 @@ private:
     }
 
 public:
-    template <typename Other, typename... _Args,
-              std::enable_if_t<sizeof...(_Args) + 1 == Size &&
-                                   std::conjunction_v<
-                                       std::negation<std::is_same<tuple<Other, _Args...>,
-                                                                  tuple<This, Args...>>>,
-                                       std::is_assignable<This, const Other &>,
-                                       std::is_assignable<Args, const _Args &>...>,
-                               int> = 0>
-    constexpr tuple &operator=(const tuple<_Args...> &other) {
-        __assign(Sequence(), other);
-        return *this;
-    }
-
-    template <typename Other, typename... _Args,
-              std::enable_if_t<sizeof...(_Args) + 1 == Size &&
-                                   std::conjunction_v<
-                                       std::negation<std::is_same<tuple<Other, _Args...>,
-                                                                  tuple<This, Args...>>>,
-                                       std::is_assignable<This, Other &&>,
-                                       std::is_assignable<Args, _Args &&>...>,
-                               int> = 0>
-    constexpr tuple &operator=(tuple<_Args...> &&other) {
-        __assign(Sequence(), std::move(other));
-        return *this;
-    }
-
-    template <
-        typename T, typename U,
-        std::enable_if_t<
-            Size == 2 && std::conjunction_v<
-                             std::is_assignable<This, const T &>,
-                             std::is_assignable<tp_defer_t<tp_front_t, tp_list<Args...>>,
-                                                const U &>>,
-            int> = 0>
-    constexpr tuple &operator=(const std::pair<T, U> &other) {
-        __assign(Sequence(), other);
-        return *this;
-    }
-
-    template <
-        typename T, typename U,
-        std::enable_if_t<
-            Size == 2 &&
-                std::conjunction_v<
-                    std::is_assignable<This, T &&>,
-                    std::is_assignable<tp_defer_t<tp_front_t, tp_list<Args...>>, U &&>>,
-            int> = 0>
-    constexpr tuple &operator=(std::pair<T, U> &&other) {
-        __assign(Sequence(), std::move(other));
-        return *this;
-    }
-
-    template <
-        typename Other, typename... _Args,
-        std::enable_if_t<sizeof...(_Args) + 1 == Size &&
-                             std::conjunction_v<std::is_assignable<This, const Other &>,
-                                                std::is_assignable<Args, const _Args>...>,
-                         int> = 0>
-    constexpr tuple &operator=(const std::tuple<Other, _Args...> &other) {
-        __assign(Sequence(), other);
-        return *this;
-    }
-
-    template <
-        typename Other, typename... _Args,
-        std::enable_if_t<sizeof...(_Args) + 1 == Size &&
-                             std::conjunction_v<std::is_assignable<This, Other &&>,
-                                                std::is_assignable<Args, _Args &&>...>,
-                         int> = 0>
-    constexpr tuple &operator=(std::tuple<Other, _Args...> &&other) {
-        __assign(Sequence(), std::move(other));
+    template <typename TupleLike,
+              std::enable_if_t<
+                  __is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>, int> = 0>
+    constexpr tuple &operator=(TupleLike &&other) {
+        __assign(Sequence(), std::forward<TupleLike>(other));
         return *this;
     }
 

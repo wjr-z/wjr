@@ -1,6 +1,9 @@
 #ifndef WJR_CAPTURE_LEAF_HPP__
 #define WJR_CAPTURE_LEAF_HPP__
 
+#include <array>
+#include <tuple>
+
 #include <wjr/crtp/class_base.hpp>
 #include <wjr/tp.hpp>
 #include <wjr/type_traits.hpp>
@@ -59,6 +62,11 @@ struct tuple_size {
     static constexpr size_t value = tp_size_v<tp_rename_t<C, tp_list>>;
 };
 
+template <typename T, size_t N>
+struct tuple_size<std::array<T, N>> {
+    static constexpr size_t value = N;
+};
+
 template <typename C>
 inline constexpr size_t tuple_size_v = tuple_size<C>::value;
 
@@ -69,6 +77,34 @@ struct tuple_element {
 
 template <size_t I, typename C>
 using tuple_element_t = typename tuple_element<I, C>::type;
+
+template <typename T>
+struct tuple_like : std::false_type {};
+
+template <typename T>
+inline constexpr bool tuple_like_v = tuple_like<T>::value;
+
+template <typename... Ts>
+struct tuple_like<std::tuple<Ts...>> : std::true_type {};
+
+template <typename T, size_t N>
+struct tuple_like<std::array<T, N>> : std::true_type {};
+
+template <typename T, typename U>
+struct tuple_like<std::pair<T, U>> : std::true_type {};
+
+template <typename T, typename = void>
+struct __pair_like_impl : std::false_type {};
+
+template <typename T>
+struct __pair_like_impl<T, std::enable_if_t<tuple_like_v<T> && tuple_size_v<T> == 2>>
+    : std::true_type {};
+
+template <typename T>
+struct pair_like : __pair_like_impl<T> {};
+
+template <typename T>
+inline constexpr bool pair_like_v = pair_like<T>::value;
 
 } // namespace wjr
 

@@ -1103,9 +1103,7 @@ public:
 
     WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept { return m_storage.size(); }
 
-    WJR_CONSTEXPR20 void resize(const size_type new_size) {
-        __resize(new_size, vctor);
-    }
+    WJR_CONSTEXPR20 void resize(const size_type new_size) { __resize(new_size, vctor); }
 
     WJR_CONSTEXPR20 void resize(const size_type new_size, const value_type &val) {
         __resize(new_size, val);
@@ -1303,9 +1301,7 @@ public:
         __resize(new_size, dctor);
     }
 
-    WJR_CONSTEXPR20 void push_back(dctor_t) {
-        emplace_back(dctor);
-    }
+    WJR_CONSTEXPR20 void push_back(dctor_t) { emplace_back(dctor); }
 
     WJR_CONSTEXPR20 basic_vector &append(const value_type &val) {
         emplace_back(val);
@@ -1327,8 +1323,7 @@ public:
         return *this;
     }
 
-    WJR_CONSTEXPR20 basic_vector &append(const size_type n,
-                                         dctor_t) {
+    WJR_CONSTEXPR20 basic_vector &append(const size_type n, dctor_t) {
         __append(n, dctor);
         return *this;
     }

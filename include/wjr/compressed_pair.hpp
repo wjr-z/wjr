@@ -7,6 +7,32 @@
 
 namespace wjr {
 
+template <typename T, typename U>
+class compressed_pair;
+
+template <typename T, typename U>
+struct tuple_like<compressed_pair<T, U>> : std::true_type {};
+
+template <template <typename...> typename Test, typename Seq, typename LP, typename RP,
+          typename = void>
+struct __is_tuple_test_impl : std::false_type {};
+
+template <template <typename...> typename Test, size_t... Idxs, typename LP, typename RP>
+struct __is_tuple_test_impl<
+    Test, std::index_sequence<Idxs...>, LP, RP,
+    std::enable_if_t<
+        !std::is_same_v<LP, remove_cvref_t<RP>> && tuple_like_v<remove_cvref_t<RP>> &&
+        tuple_size_v<LP> == tp_defer_t<tuple_size, remove_cvref_t<RP>>::value>>
+    : std::conjunction<Test<tuple_element_t<Idxs, LP>,
+                            decltype(std::get<Idxs>(std::declval<RP>()))>...> {};
+
+template <template <typename...> typename Test, typename LP, typename RP>
+struct __is_tuple_test
+    : __is_tuple_test_impl<Test, std::make_index_sequence<tuple_size_v<LP>>, LP, RP> {};
+
+template <template <typename...> typename Test, typename LP, typename RP>
+inline constexpr bool __is_tuple_test_v = __is_tuple_test<Test, LP, RP>::value;
+
 template <typename T>
 using compressed_pair_wrapper_helper =
     std::conjunction<std::is_class<T>, std::is_empty<T>, std::negation<std::is_final<T>>>;
@@ -122,59 +148,6 @@ public:
         : Mybase1(std::forward<Other1>(_First)), Mybase2(std::forward<Other2>(_Second)),
           Mybase3(enable_default_constructor) {}
 
-    template <
-        typename Other1, typename Other2,
-        std::enable_if_t<std::conjunction_v<
-                             __is_all_constructible<T, U, const Other1 &, const Other2 &>,
-                             __is_all_convertible<T, U, const Other1 &, const Other2 &>>,
-                         int> = 0>
-    constexpr compressed_pair(const compressed_pair<Other1, Other2> &other) noexcept(
-        std::conjunction_v<std::is_nothrow_constructible<T, const Other1 &>,
-                           std::is_nothrow_constructible<U, const Other2 &>>)
-        : Mybase1(other.first()), Mybase2(other.second()),
-          Mybase3(enable_default_constructor) {}
-
-    template <
-        typename Other1, typename Other2,
-        std::enable_if_t<std::conjunction_v<
-                             __is_all_constructible<T, U, const Other1 &, const Other2 &>,
-                             std::negation<__is_all_convertible<T, U, const Other1 &,
-                                                                const Other2 &>>>,
-                         bool> = false>
-    constexpr explicit compressed_pair(
-        const compressed_pair<Other1, Other2>
-            &other) noexcept(std::
-                                 conjunction_v<
-                                     std::is_nothrow_constructible<T, const Other1 &>,
-                                     std::is_nothrow_constructible<U, const Other2 &>>)
-        : Mybase1(other.first()), Mybase2(other.second()),
-          Mybase3(enable_default_constructor) {}
-
-    template <typename Other1, typename Other2,
-              std::enable_if_t<
-                  std::conjunction_v<__is_all_constructible<T, U, Other1 &&, Other2 &&>,
-                                     __is_all_convertible<T, U, Other1 &&, Other2 &&>>,
-                  int> = 0>
-    constexpr compressed_pair(compressed_pair<Other1, Other2> &&other) noexcept(
-        std::conjunction_v<std::is_nothrow_constructible<T, Other1 &&>,
-                           std::is_nothrow_constructible<U, Other2 &&>>)
-        : Mybase1(std::forward<Other1>(other.first())),
-          Mybase2(std::forward<Other2>(other.second())),
-          Mybase3(enable_default_constructor) {}
-
-    template <typename Other1, typename Other2,
-              std::enable_if_t<
-                  std::conjunction_v<
-                      __is_all_constructible<T, U, Other1 &&, Other2 &&>,
-                      std::negation<__is_all_convertible<T, U, Other1 &&, Other2 &&>>>,
-                  bool> = false>
-    constexpr explicit compressed_pair(compressed_pair<Other1, Other2> &&other) noexcept(
-        std::conjunction_v<std::is_nothrow_constructible<T, Other1 &&>,
-                           std::is_nothrow_constructible<U, Other2 &&>>)
-        : Mybase1(std::forward<Other1>(other.first())),
-          Mybase2(std::forward<Other2>(other.second())),
-          Mybase3(enable_default_constructor) {}
-
     template <typename Tuple1, typename Tuple2, size_t... N1, size_t... N2>
     constexpr compressed_pair(Tuple1 &tp1, Tuple2 &tp2, std::index_sequence<N1...>,
                               std::index_sequence<N2...>)
@@ -187,36 +160,28 @@ public:
         : compressed_pair(tp1, tp2, std::index_sequence_for<Args1...>{},
                           std::index_sequence_for<Args2...>{}) {}
 
-    template <typename Other1, typename Other2,
-              std::enable_if_t<std::conjunction_v<
-                                   std::negation<std::is_same<
-                                       compressed_pair, compressed_pair<Other1, Other2>>>,
-                                   std::is_assignable<T &, const Other1 &>,
-                                   std::is_assignable<U &, const Other2 &>>,
-                               int> = 0>
-    constexpr compressed_pair &
-    operator=(const compressed_pair<Other1, Other2> &other) noexcept(
-        std::conjunction_v<std::is_nothrow_assignable<T &, const Other1 &>,
-                           std::is_nothrow_assignable<U &, const Other2 &>>) {
-        first() = other.first();
-        second() = other.second();
-        return *this;
-    }
+    template <typename PairLike,
+              std::enable_if_t<
+                  __is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&>,
+                  int> = 0>
+    constexpr compressed_pair(PairLike &&pr) noexcept(
+        std::conjunction_v<std::is_nothrow_constructible<
+                               T, decltype(std::get<0>(std::forward<PairLike>(pr)))>,
+                           std::is_nothrow_constructible<
+                               U, decltype(std::get<1>(std::forward<PairLike>(pr)))>>)
+        : Mybase1(std::get<0>(std::forward<PairLike>(pr))),
+          Mybase2(std::get<1>(std::forward<PairLike>(pr))),
+          Mybase3(enable_default_constructor) {}
 
     template <
-        typename Other1, typename Other2,
+        typename PairLike,
         std::enable_if_t<
-            std::conjunction_v<
-                std::negation<
-                    std::is_same<compressed_pair, compressed_pair<Other1 &&, Other2 &&>>>,
-                std::is_assignable<T &, Other1 &&>, std::is_assignable<U &, Other2 &&>>,
-            int> = 0>
-    constexpr compressed_pair &
-    operator=(compressed_pair<Other1, Other2> &&other) noexcept(
-        std::conjunction_v<std::is_nothrow_assignable<T &, Other1 &&>,
-                           std::is_nothrow_assignable<U &, Other2 &&>>) {
-        first() = std::forward<Other1>(other.first());
-        second() = std::forward<Other2>(other.second());
+            __is_tuple_test_v<std::is_assignable, compressed_pair, PairLike &&>, int> = 0>
+    constexpr compressed_pair &operator=(PairLike &&pr) noexcept(
+        std::conjunction_v<std::is_nothrow_assignable<T, decltype(std::get<0>(pr))>,
+                           std::is_nothrow_assignable<U, decltype(std::get<1>(pr))>>) {
+        first() = std::get<0>(std::forward<PairLike>(pr));
+        second() = std::get<1>(std::forward<PairLike>(pr));
         return *this;
     }
 
@@ -234,6 +199,8 @@ public:
     constexpr const T &first() const noexcept { return Mybase1::get(); }
     constexpr U &second() noexcept { return Mybase2::get(); }
     constexpr const U &second() const noexcept { return Mybase2::get(); }
+
+    // extension
 
     template <size_t I>
     constexpr tuple_element_t<I, compressed_pair> &get() & noexcept {

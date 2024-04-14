@@ -122,15 +122,14 @@ public:
     static constexpr int value =
         traits_type::is_trivially_contiguous_v &&
                 container_details::has_container_resize_v<Container, size_t>
-            ? (container_details::has_container_resize_v<Container, size_t,
-                                                         dctor_t>
-                   ? 2
-                   : 1)
+            ? (container_details::has_container_resize_v<Container, size_t, dctor_t> ? 2
+                                                                                     : 1)
             : 0;
 
-    static_assert(value != 2 || container_details::has_container_append_v<
-                                    Container, size_t, dctor_t>,
-                  "");
+    static_assert(
+        value != 2 ||
+            container_details::has_container_append_v<Container, size_t, dctor_t>,
+        "");
 };
 
 template <typename Iter, typename = void>
@@ -188,7 +187,7 @@ private:
 
 template <typename Converter, uint64_t Base, int Unroll>
 inline constexpr __char_converter_table_t<Converter, Base, Unroll>
-    __char_converter_table = {};
+    __char_converter_table{};
 
 template <uint64_t Base>
 class __to_chars_unroll_2_fast_fn_impl_base {
@@ -1358,7 +1357,7 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
         if constexpr (__fast_container_inserter_v == 1) {                                \
             resize(cont, cont.size() + n + sign);                                        \
         } else {                                                                         \
-            append(cont, n + sign, dctor);                          \
+            append(cont, n + sign, dctor);                                               \
         }                                                                                \
         const auto __end = (to_address)(cont.data() + cont.size());                      \
         auto __ptr = (convert_details::fast_buffer_t<Iter> *)                            \
@@ -1966,7 +1965,7 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
         if constexpr (__fast_container_inserter_v == 1) {                                \
             resize(cont, __presize + SIZE);                                              \
         } else {                                                                         \
-            append(cont, SIZE, dctor);                              \
+            append(cont, SIZE, dctor);                                                   \
         }                                                                                \
         const auto __ptr = (uint8_t *)(to_address)(cont.data()) + __presize;             \
         const auto __size = NAME(__ptr, WJR_PP_QUEUE_EXPAND(CALL), conv) TAIL;           \
@@ -1974,7 +1973,7 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
         if constexpr (__fast_container_inserter_v == 1) {                                \
             resize(cont, __presize + __size);                                            \
         } else {                                                                         \
-            resize(cont, __presize + __size, wjr::dctor);           \
+            resize(cont, __presize + __size, wjr::dctor);                                \
         }                                                                                \
                                                                                          \
         return ptr;                                                                      \
