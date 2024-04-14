@@ -101,7 +101,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int ctz_impl(T x) {
  *
  * @tparam T Must be an unsigned integral type
  */
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int ctz(T x) {
     int ret = ctz_impl(x);
     WJR_ASSUME(0 <= ret && ret <= std::numeric_limits<T>::digits);

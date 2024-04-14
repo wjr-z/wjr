@@ -620,7 +620,7 @@ inline constexpr count_digits_fn<Base> count_digits{};
 
 template <>
 struct count_digits_fn<2> {
-    template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const {
         return bit_width(n);
     }
@@ -628,7 +628,7 @@ struct count_digits_fn<2> {
 
 template <>
 struct count_digits_fn<8> {
-    template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const {
         return (bit_width(n) + 2) / 3;
     }
@@ -636,7 +636,7 @@ struct count_digits_fn<8> {
 
 template <>
 struct count_digits_fn<16> {
-    template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const {
         return (bit_width(n) + 3) / 4;
     }
@@ -644,7 +644,7 @@ struct count_digits_fn<16> {
 
 template <>
 struct count_digits_fn<1> {
-    template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n, int bits) const {
         return (bit_width(n) + bits - 1) / bits;
     }
@@ -652,7 +652,7 @@ struct count_digits_fn<1> {
 
 template <>
 struct count_digits_fn<10> {
-    template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const {
         int ret = count_digits10_impl(n);
         WJR_ASSUME(1 <= ret && ret <= std::numeric_limits<T>::digits10 + 1);
@@ -742,7 +742,7 @@ class __unsigned_to_chars_backward_unchecked_fn<2> {
 
 public:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x, Converter conv) const {
         return fn(ptr, n, x, conv);
     }
@@ -797,7 +797,7 @@ class __unsigned_to_chars_backward_unchecked_fn<8> {
 
 public:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x, Converter conv) const {
         return fn(ptr, n, x, conv);
     }
@@ -852,7 +852,7 @@ class __unsigned_to_chars_backward_unchecked_fn<16> {
 
 public:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x, Converter conv) const {
         return fn(ptr, n, x, conv);
     }
@@ -879,7 +879,7 @@ private:
 
 public:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x, int bits,
                         Converter conv) const {
         return fn(ptr, n, x, bits, conv);
@@ -890,7 +890,7 @@ template <>
 class __unsigned_to_chars_backward_unchecked_fn<10> {
 private:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     static uint8_t *fn(uint8_t *ptr, UnsignedValue val, Converter conv) {
         WJR_ASSERT_ASSUME(val != 0);
 
@@ -914,7 +914,7 @@ private:
 
 public:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     uint8_t *operator()(uint8_t *ptr, UnsignedValue val, Converter conv) const {
         return fn(ptr, val, conv);
     }
@@ -999,9 +999,8 @@ Iter __to_chars_backward_unchecked_impl(Iter first, Value val, IBase ibase,
  */
 template <typename Iter, typename Value, typename BaseType = unsigned int,
           BaseType IBase = 10, typename Converter = char_converter_t,
-          std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter> &&
-                               convert_details::__is_valid_converter_v<Value, Converter>,
-                           int> = 0>
+          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
+                           &&convert_details::__is_valid_converter_v<Value, Converter>)>
 Iter to_chars_backward_unchecked(Iter first, Value val,
                                  std::integral_constant<BaseType, IBase> = {},
                                  Converter conv = {}) {
@@ -1016,9 +1015,8 @@ Iter to_chars_backward_unchecked(Iter first, Value val,
  *
  */
 template <typename Iter, typename Value, typename Converter = char_converter_t,
-          std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter> &&
-                               convert_details::__is_valid_converter_v<Value, Converter>,
-                           int> = 0>
+          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
+                           &&convert_details::__is_valid_converter_v<Value, Converter>)>
 Iter to_chars_backward_unchecked(Iter first, Value val, unsigned int base,
                                  Converter conv = {}) {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
@@ -1436,10 +1434,9 @@ Iter __to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase, Converter conv)
  * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
  *
  */
-template <
-    typename Iter, typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
-    typename Converter = char_converter_t,
-    std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
+template <typename Iter, typename Value, typename BaseType = unsigned int,
+          BaseType IBase = 10, typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
 to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val,
                                std::integral_constant<BaseType, IBase> = {},
                                Converter conv = {}) {
@@ -1454,9 +1451,8 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val,
  * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
  *
  */
-template <
-    typename Iter, typename Value, typename Converter = char_converter_t,
-    std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
+template <typename Iter, typename Value, typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
 to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, unsigned int base,
                                Converter conv = {}) {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
@@ -1496,10 +1492,9 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, unsigned int base
  * store the result and use @ref wjr::copy to copy the result to the output iterator. \n
  *
  */
-template <
-    typename Iter, typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
-    typename Converter = char_converter_t,
-    std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
+template <typename Iter, typename Value, typename BaseType = unsigned int,
+          BaseType IBase = 10, typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
 Iter to_chars_unchecked(Iter ptr, Value val, std::integral_constant<BaseType, IBase> = {},
                         Converter conv = {}) {
     return __to_chars_unchecked_impl(ptr, val,
@@ -1514,9 +1509,8 @@ Iter to_chars_unchecked(Iter ptr, Value val, std::integral_constant<BaseType, IB
  * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
  *
  */
-template <
-    typename Iter, typename Value, typename Converter = char_converter_t,
-    std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
+template <typename Iter, typename Value, typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
 Iter to_chars_unchecked(Iter ptr, Value val, unsigned int base, Converter conv = {}) {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
@@ -2134,7 +2128,7 @@ class __unsigned_from_chars_unchecked_fn<2> {
 
 public:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
                     Converter conv) const {
         return fn(first, last, val, conv);
@@ -2205,7 +2199,7 @@ class __unsigned_from_chars_unchecked_fn<8> {
 
 public:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
                     Converter conv) const {
         return fn(first, last, val, conv);
@@ -2282,7 +2276,7 @@ class __unsigned_from_chars_unchecked_fn<16> {
 
 public:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
                     Converter conv) const {
         return fn(first, last, val, conv);
@@ -2361,7 +2355,7 @@ class __unsigned_from_chars_unchecked_fn<10> {
 
 public:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
                     Converter conv) const {
         return fn(first, last, val, conv);
@@ -2369,7 +2363,7 @@ public:
 };
 
 template <typename Value, typename IBase, typename Converter,
-          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+          WJR_REQUIRES(is_nonbool_integral_v<Value>)>
 void __fast_from_chars_unchecked_impl(const uint8_t *first, const uint8_t *last,
                                       Value &val, IBase ibase, Converter conv) {
     int sign = 0;
@@ -2418,7 +2412,7 @@ void __fast_from_chars_unchecked_impl(const uint8_t *first, const uint8_t *last,
 }
 
 template <typename Iter, typename Value, typename IBase, typename Converter,
-          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+          WJR_REQUIRES(is_nonbool_integral_v<Value>)>
 void __from_chars_unchecked_impl(Iter first, Iter last, Value &val, IBase ibase,
                                  Converter conv) {
     const auto __first = reinterpret_cast<const uint8_t *>((to_address)(first));
@@ -2428,9 +2422,8 @@ void __from_chars_unchecked_impl(Iter first, Iter last, Value &val, IBase ibase,
 
 template <typename Iter, typename Value, typename BaseType = unsigned int,
           BaseType IBase = 10, typename Converter = char_converter_t,
-          std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter> &&
-                               convert_details::__is_valid_converter_v<Value, Converter>,
-                           int> = 0>
+          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
+                           &&convert_details::__is_valid_converter_v<Value, Converter>)>
 void from_chars_unchecked(Iter first, Iter last, Value &val,
                           std::integral_constant<BaseType, IBase> = {},
                           Converter conv = {}) {
@@ -2439,9 +2432,8 @@ void from_chars_unchecked(Iter first, Iter last, Value &val,
 }
 
 template <typename Iter, typename Value, typename Converter,
-          std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter> &&
-                               convert_details::__is_valid_converter_v<Value, Converter>,
-                           int> = 0>
+          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
+                           &&convert_details::__is_valid_converter_v<Value, Converter>)>
 void from_chars_unchecked(Iter first, Iter last, Value &val, unsigned int base,
                           Converter conv = {}) {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
@@ -2484,7 +2476,7 @@ inline constexpr __unsigned_from_chars_fn<Base> __unsigned_from_chars{};
 template <>
 struct __unsigned_from_chars_fn<2> {
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     int operator()(const uint8_t *&first, const uint8_t *last, UnsignedValue &value,
                    Converter conv) const {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
@@ -2536,7 +2528,7 @@ struct __unsigned_from_chars_fn<2> {
 template <>
 struct __unsigned_from_chars_fn<10> {
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     int operator()(const uint8_t *&first, const uint8_t *last, UnsignedValue &value,
                    Converter conv) const {
         constexpr auto zero = conv.template to<10>(0);
@@ -2591,7 +2583,7 @@ struct __unsigned_from_chars_fn<10> {
 };
 
 template <typename Value, typename IBase, typename Converter,
-          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+          WJR_REQUIRES(is_nonbool_integral_v<Value>)>
 from_chars_result<const uint8_t *> __fast_from_chars_impl(const uint8_t *first,
                                                           const uint8_t *last, Value &val,
                                                           IBase ibase, Converter conv) {
@@ -2661,7 +2653,7 @@ from_chars_result<const uint8_t *> __fast_from_chars_impl(const uint8_t *first,
 }
 
 template <typename Value, typename IBase, typename Converter,
-          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+          WJR_REQUIRES(is_nonbool_integral_v<Value>)>
 from_chars_result<const char *> __from_chars_impl(const char *first, const char *last,
                                                   Value &val, IBase ibase,
                                                   Converter conv) {
@@ -2671,10 +2663,9 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
     return {reinterpret_cast<const char *>(ret.ptr), ret.ec};
 }
 
-template <
-    typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
-    typename Converter = char_converter_t,
-    std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
+template <typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
+          typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
 from_chars_result<const char *>
 from_chars(const char *first, const char *last, Value &val,
            std::integral_constant<BaseType, IBase> = {}, Converter conv = {}) {
@@ -2682,9 +2673,8 @@ from_chars(const char *first, const char *last, Value &val,
                              std::integral_constant<unsigned int, IBase>(), conv);
 }
 
-template <
-    typename Value, typename Converter = char_converter_t,
-    std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
+template <typename Value, typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
 from_chars_result<const char *> from_chars(const char *first, const char *last,
                                            Value &val, unsigned int base,
                                            Converter conv = {}) {
@@ -3059,7 +3049,7 @@ uint64_t *__biginteger_from_chars_impl(const uint8_t *first, const uint8_t *last
  * @return uint64_t* Pointer after the conversion
  */
 template <typename Iter, typename Converter = char_converter_t,
-          std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter>, int> = 0>
+          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>)>
 uint64_t *biginteger_from_chars(Iter first, Iter last, uint64_t *up,
                                 unsigned int base = 10, Converter conv = {}) {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));

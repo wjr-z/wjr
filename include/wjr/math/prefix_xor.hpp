@@ -30,7 +30,7 @@ constexpr T fallback_prefix_xor(T x) {
     return x;
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E T prefix_xor(T x) {
 #if WJR_HAS_BUILTIN(PREFIX_XOR)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {

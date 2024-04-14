@@ -21,8 +21,7 @@ constexpr T *to_address(T *p) noexcept {
     return p;
 }
 
-template <typename Ptr,
-          std::enable_if_t<is_contiguous_iterator_v<remove_cvref_t<Ptr>>, int> = 0>
+template <typename Ptr, WJR_REQUIRES(is_contiguous_iterator_v<remove_cvref_t<Ptr>>)>
 constexpr auto to_address(const Ptr &p) noexcept {
     if constexpr (to_address_details::has_to_address_v<Ptr>) {
         return std::pointer_traits<Ptr>::to_address(p);
@@ -31,8 +30,7 @@ constexpr auto to_address(const Ptr &p) noexcept {
     }
 }
 
-template <typename Iter,
-          std::enable_if_t<is_contiguous_iterator_v<std::move_iterator<Iter>>, int> = 0>
+template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<std::move_iterator<Iter>>)>
 constexpr auto to_address(const std::move_iterator<Iter> &p) noexcept {
     return (to_address)(p.base());
 }
@@ -107,7 +105,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T builtin_byteswap(T x) noexcept {
 
 #endif
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T byteswap(T x, endian to = endian::little) noexcept {
     if (to == endian::native) {
         return x;
@@ -124,7 +122,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T byteswap(T x, endian to = endian::little) 
 #endif
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_INLINE T read_memory(const void *ptr,
                                             endian to = endian::little) noexcept {
     T x;
@@ -137,7 +135,7 @@ WJR_PURE WJR_INTRINSIC_INLINE T read_memory(const void *ptr,
     return x;
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x,
                                        endian to = endian::little) noexcept {
     if (to != endian::native) {

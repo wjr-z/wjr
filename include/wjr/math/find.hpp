@@ -45,7 +45,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_n_impl(const T *src0, const T *sr
 #endif
 }
 
-template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_n(const T *src0, const T *src1, size_t n) {
     using uT = std::make_unsigned_t<T>;
     return find_n_impl<uT>(reinterpret_cast<const uT *>(src0),
@@ -84,7 +84,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_n_impl(const T *src,
 #endif
 }
 
-template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_n(const T *src, type_identity_t<T> val,
                                                  size_t n) {
     using uT = std::make_unsigned_t<T>;
@@ -128,7 +128,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_not_n_impl(const T *src0, const T
 #endif
 }
 
-template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_not_n(const T *src0, const T *src1,
                                                      size_t n) {
     using uT = std::make_unsigned_t<T>;
@@ -169,7 +169,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_not_n_impl(const T *src,
 #endif
 }
 
-template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_not_n(const T *src, type_identity_t<T> val,
                                                      size_t n) {
     using uT = std::make_unsigned_t<T>;
@@ -215,7 +215,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_n_impl(const T *src0,
 #endif
 }
 
-template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_n(const T *src0, const T *src1,
                                                          size_t n) {
     using uT = std::make_unsigned_t<T>;
@@ -257,7 +257,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_n_impl(const T *src,
 #endif
 }
 
-template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_n(const T *src,
                                                          type_identity_t<T> val,
                                                          size_t n) {
@@ -305,7 +305,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n_impl(const T *src0,
 #endif
 }
 
-template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n(const T *src0, const T *src1,
                                                              size_t n) {
     using uT = std::make_unsigned_t<T>;
@@ -348,7 +348,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n_impl(const T *src,
 #endif
 }
 
-template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n(const T *src,
                                                              type_identity_t<T> val,
                                                              size_t n) {

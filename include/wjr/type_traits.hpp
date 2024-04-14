@@ -400,15 +400,13 @@ WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
 constexpr static void allow_true_type(std::true_type) noexcept {}
 constexpr static void allow_false_type(std::false_type) noexcept {}
 
-template <typename Value,
-          std::enable_if_t<is_nonbool_integral_v<remove_cvref_t<Value>>, int> = 0>
+template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<remove_cvref_t<Value>>)>
 constexpr decltype(auto) to_signed(Value &&value) noexcept {
     return static_cast<std::make_signed_t<remove_cvref_t<Value>>>(
         std::forward<Value>(value));
 }
 
-template <typename Value,
-          std::enable_if_t<is_nonbool_integral_v<remove_cvref_t<Value>>, int> = 0>
+template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<remove_cvref_t<Value>>)>
 constexpr decltype(auto) to_unsigned(Value &&value) noexcept {
     return static_cast<std::make_unsigned_t<remove_cvref_t<Value>>>(
         std::forward<Value>(value));

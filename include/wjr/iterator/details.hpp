@@ -105,10 +105,10 @@ struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};
 template <typename Iter>
 inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;
 
-template <typename Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, int> = 0>
+template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<Iter>)>
 using iterator_contiguous_value_t = std::remove_reference_t<iterator_reference_t<Iter>>;
 
-template <typename Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, int> = 0>
+template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<Iter>)>
 using iterator_contiguous_pointer_t =
     std::add_pointer_t<iterator_contiguous_value_t<Iter>>;
 

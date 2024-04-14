@@ -75,17 +75,15 @@ public:
      * @note Only use from_chars_2 when type of T is uint64_t and CharT is char.
      */
     template <typename CharT, size_t Extent,
-              std::enable_if_t<std::is_same_v<std::remove_const_t<CharT>, char>, int> = 0>
+              WJR_REQUIRES(std::is_same_v<std::remove_const_t<CharT>, char>)>
     explicit basic_dynamic_bitset(const span<CharT, Extent> &sp)
-        : m_vec((sp.size() + block_size - 1) / block_size, dctor),
-          m_bits(sp.size()) {
+        : m_vec((sp.size() + block_size - 1) / block_size, dctor), m_bits(sp.size()) {
         (void)__biginteger_from_chars_2_impl((const uint8_t *)sp.data(), sp.size(),
                                              m_vec.data());
     }
 
-    template <
-        typename CharT, size_t Extent,
-        std::enable_if_t<!std::is_same_v<std::remove_const_t<CharT>, char>, int> = 0>
+    template <typename CharT, size_t Extent,
+              WJR_REQUIRES(!std::is_same_v<std::remove_const_t<CharT>, char>)>
     explicit basic_dynamic_bitset(const span<CharT, Extent> &sp)
         : basic_dynamic_bitset(sp, '0') {}
 
@@ -98,8 +96,7 @@ public:
     basic_dynamic_bitset(const span<CharT, Extent> &sp,
                          WJR_MAYBE_UNUSED type_identity_t<CharT> zero,
                          type_identity_t<CharT> one, Equal equal)
-        : m_vec((sp.size() + block_size - 1) / block_size, dctor),
-          m_bits(sp.size()) {
+        : m_vec((sp.size() + block_size - 1) / block_size, dctor), m_bits(sp.size()) {
         auto ptr = sp.data();
         size_type n = sp.size();
         size_type idx = 0;

@@ -10,8 +10,7 @@ class tuple;
 
 namespace std {
 
-template <typename... Args,
-          std::enable_if_t<std::conjunction_v<wjr::is_swappable<Args>...>, int> = 0>
+template <typename... Args, WJR_REQUIRES(std::conjunction_v<wjr::is_swappable<Args>...>)>
 constexpr void swap(wjr::tuple<Args...> &lhs,
                     wjr::tuple<Args...> &rhs) noexcept(noexcept(lhs.swap(rhs)));
 
@@ -74,17 +73,14 @@ class WJR_EMPTY_BASES tuple_impl<std::index_sequence<Indexs...>, Args...>
     constexpr static size_t Size = sizeof...(Args);
 
 public:
-    template <
-        typename S = Sequence,
-        std::enable_if_t<std::conjunction_v<std::is_same<S, Sequence>,
-                                            std::is_constructible<Mybase<Indexs>>...>,
-                         int> = 0>
+    template <typename S = Sequence,
+              WJR_REQUIRES(std::conjunction_v<std::is_same<S, Sequence>,
+                                              std::is_constructible<Mybase<Indexs>>...>)>
     constexpr tuple_impl(Sequence) : Mybase2(enable_default_constructor) {}
 
     template <size_t... _Indexs, typename... _Args,
-              std::enable_if_t<
-                  std::conjunction_v<std::is_constructible<Mybase<_Indexs>, _Args>...>,
-                  int> = 0>
+              WJR_REQUIRES(
+                  std::conjunction_v<std::is_constructible<Mybase<_Indexs>, _Args>...>)>
     constexpr tuple_impl(std::index_sequence<_Indexs...>, _Args &&...args)
         : Mybase<_Indexs>(std::forward<_Args>(args))...,
           Mybase2(enable_default_constructor) {}
@@ -144,27 +140,24 @@ class tuple<This, Args...>
 
 public:
     template <typename T = This,
-              std::enable_if_t<std::conjunction_v<std::is_default_constructible<T>,
-                                                  std::is_constructible<Impl, Sequence>>,
-                               int> = 0>
+              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
+                                              std::is_constructible<Impl, Sequence>>)>
     constexpr tuple() : Mybase(enable_default_constructor), m_impl(Sequence()) {}
 
     template <typename Other = This,
-              std::enable_if_t<
-                  std::is_constructible_v<Impl, Sequence, const Other &, const Args &...>,
-                  int> = 0>
+              WJR_REQUIRES(std::is_constructible_v<Impl, Sequence, const Other &,
+                                                   const Args &...>)>
     constexpr tuple(const Other &first, const Args &...rest)
         : Mybase(enable_default_constructor), m_impl(Sequence(), first, rest...) {}
 
-    template <typename Other, typename... _Args,
-              std::enable_if_t<
-                  sizeof...(_Args) + 1 == Size &&
-                      std::conjunction_v<
-                          std::negation<std::conjunction<
-                              std::is_same<This, std::remove_reference_t<Other>>,
-                              std::is_same<Args, std::remove_reference_t<_Args>>...>>,
-                          std::is_constructible<Impl, Sequence, Other &&, _Args &&...>>,
-                  int> = 0>
+    template <
+        typename Other, typename... _Args,
+        WJR_REQUIRES(sizeof...(_Args) + 1 == Size &&
+                     std::conjunction_v<
+                         std::negation<std::conjunction<
+                             std::is_same<This, std::remove_reference_t<Other>>,
+                             std::is_same<Args, std::remove_reference_t<_Args>>...>>,
+                         std::is_constructible<Impl, Sequence, Other &&, _Args &&...>>)>
     constexpr tuple(Other &&other, _Args &&...args)
         : Mybase(enable_default_constructor),
           m_impl(Sequence(), std::forward<Other>(other), std::forward<_Args>(args)...) {}
@@ -177,8 +170,7 @@ private:
 
 public:
     template <typename TupleLike,
-              std::enable_if_t<
-                  __is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>, int> = 0>
+              WJR_REQUIRES(__is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>)>
     constexpr tuple(TupleLike &&other)
         : tuple(Sequence(), std::forward<TupleLike>(other), in_place_empty) {}
 
@@ -192,8 +184,7 @@ private:
 
 public:
     template <typename TupleLike,
-              std::enable_if_t<
-                  __is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>, int> = 0>
+              WJR_REQUIRES(__is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>)>
     constexpr tuple &operator=(TupleLike &&other) {
         __assign(Sequence(), std::forward<TupleLike>(other));
         return *this;
@@ -365,7 +356,7 @@ constexpr bool operator>=(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs
 namespace std {
 
 template <typename... Args,
-          std::enable_if_t<std::conjunction_v<wjr::is_swappable<Args>...>, int>>
+          WJR_REQUIRES_I(std::conjunction_v<wjr::is_swappable<Args>...>)>
 constexpr void swap(wjr::tuple<Args...> &lhs,
                     wjr::tuple<Args...> &rhs) noexcept(noexcept(lhs.swap(rhs))) {
     lhs.swap(rhs);

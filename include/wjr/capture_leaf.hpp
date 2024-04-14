@@ -15,18 +15,15 @@ class capture_leaf : enable_special_members_of_args_base<Tag, T> {
     using Mybase = enable_special_members_of_args_base<Tag, T>;
 
 public:
-    template <typename Ty = T,
-              std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
+    template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
     constexpr capture_leaf() : Mybase(enable_default_constructor), m_value() {}
 
-    template <typename... Args,
-              std::enable_if_t<std::is_constructible_v<T, Args...>, int> = 0>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
     constexpr capture_leaf(Args &&...args)
         : Mybase(enable_default_constructor), m_value(std::forward<Args>(args)...) {}
 
-    template <typename Ty = T,
-              std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
-    constexpr capture_leaf(dctor_t) : Mybase(enable_default_constructor) {}
+    template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
+    constexpr explicit capture_leaf(dctor_t) : Mybase(enable_default_constructor) {}
 
     constexpr T &get() noexcept { return m_value; }
     constexpr const T &get() const noexcept { return m_value; }
@@ -40,18 +37,15 @@ class compressed_capture_leaf : T {
     using Mybase = T;
 
 public:
-    template <typename Ty = T,
-              std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
+    template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
     constexpr compressed_capture_leaf() : Mybase() {}
 
-    template <typename... Args,
-              std::enable_if_t<std::is_constructible_v<T, Args...>, int> = 0>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
     constexpr compressed_capture_leaf(Args &&...args)
         : Mybase(std::forward<Args>(args)...) {}
 
-    template <typename Ty = T,
-              std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
-    constexpr compressed_capture_leaf(dctor_t) {}
+    template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
+    constexpr explicit compressed_capture_leaf(dctor_t) {}
 
     constexpr T &get() noexcept { return *this; }
     constexpr const T &get() const noexcept { return *this; }

@@ -2289,6 +2289,9 @@
 #define WJR_CATCH_L3(X) WJR_CATCH_L(3, X)
 #define WJR_THROW_L3(X) WJR_THROW_L(3, X)
 
+#define WJR_REQUIRES(...) std::enable_if_t<(__VA_ARGS__), int> = 0
+#define WJR_REQUIRES_I(...) std::enable_if_t<(__VA_ARGS__), int>
+
 #endif // ! WJR_PREPROCESSOR_PREVIEW_HPP__
 
 #endif // WJR_PREPROCESSOR_HPP__
@@ -2872,15 +2875,13 @@ WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
 constexpr static void allow_true_type(std::true_type) noexcept {}
 constexpr static void allow_false_type(std::false_type) noexcept {}
 
-template <typename Value,
-          std::enable_if_t<is_nonbool_integral_v<remove_cvref_t<Value>>, int> = 0>
+template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<remove_cvref_t<Value>>)>
 constexpr decltype(auto) to_signed(Value &&value) noexcept {
     return static_cast<std::make_signed_t<remove_cvref_t<Value>>>(
         std::forward<Value>(value));
 }
 
-template <typename Value,
-          std::enable_if_t<is_nonbool_integral_v<remove_cvref_t<Value>>, int> = 0>
+template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<remove_cvref_t<Value>>)>
 constexpr decltype(auto) to_unsigned(Value &&value) noexcept {
     return static_cast<std::make_unsigned_t<remove_cvref_t<Value>>>(
         std::forward<Value>(value));
@@ -4002,18 +4003,15 @@ class capture_leaf : enable_special_members_of_args_base<Tag, T> {
     using Mybase = enable_special_members_of_args_base<Tag, T>;
 
 public:
-    template <typename Ty = T,
-              std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
+    template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
     constexpr capture_leaf() : Mybase(enable_default_constructor), m_value() {}
 
-    template <typename... Args,
-              std::enable_if_t<std::is_constructible_v<T, Args...>, int> = 0>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
     constexpr capture_leaf(Args &&...args)
         : Mybase(enable_default_constructor), m_value(std::forward<Args>(args)...) {}
 
-    template <typename Ty = T,
-              std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
-    constexpr capture_leaf(dctor_t) : Mybase(enable_default_constructor) {}
+    template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
+    constexpr explicit capture_leaf(dctor_t) : Mybase(enable_default_constructor) {}
 
     constexpr T &get() noexcept { return m_value; }
     constexpr const T &get() const noexcept { return m_value; }
@@ -4027,18 +4025,15 @@ class compressed_capture_leaf : T {
     using Mybase = T;
 
 public:
-    template <typename Ty = T,
-              std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
+    template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
     constexpr compressed_capture_leaf() : Mybase() {}
 
-    template <typename... Args,
-              std::enable_if_t<std::is_constructible_v<T, Args...>, int> = 0>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
     constexpr compressed_capture_leaf(Args &&...args)
         : Mybase(std::forward<Args>(args)...) {}
 
-    template <typename Ty = T,
-              std::enable_if_t<std::is_default_constructible_v<Ty>, int> = 0>
-    constexpr compressed_capture_leaf(dctor_t) {}
+    template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
+    constexpr explicit compressed_capture_leaf(dctor_t) {}
 
     constexpr T &get() noexcept { return *this; }
     constexpr const T &get() const noexcept { return *this; }
@@ -4189,51 +4184,45 @@ public:
     using second_type = U;
 
     template <typename Ty = T, typename Uy = U,
-              std::enable_if_t<std::conjunction_v<std::is_default_constructible<Ty>,
-                                                  std::is_default_constructible<Uy>>,
-                               int> = 0>
+              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
+                                              std::is_default_constructible<Uy>>)>
     constexpr compressed_pair() noexcept(
         std::conjunction_v<std::is_nothrow_default_constructible<Ty>,
                            std::is_nothrow_default_constructible<Uy>>) {}
 
     template <typename Ty = T, typename Uy = U,
-              std::enable_if_t<std::conjunction_v<
-                                   __is_all_copy_constructible<Ty, Uy>,
-                                   __is_all_convertible<Ty, Uy, const Ty &, const Uy &>>,
-                               int> = 0>
+              WJR_REQUIRES(std::conjunction_v<
+                           __is_all_copy_constructible<Ty, Uy>,
+                           __is_all_convertible<Ty, Uy, const Ty &, const Uy &>>)>
     constexpr compressed_pair(const T &_First, const U &_Second) noexcept(
         std::conjunction_v<std::is_nothrow_copy_constructible<Ty>,
                            std::is_nothrow_copy_constructible<Uy>>)
         : Mybase1(_First), Mybase2(_Second), Mybase3(enable_default_constructor) {}
 
     template <typename Ty = T, typename Uy = U,
-              std::enable_if_t<std::conjunction_v<__is_all_copy_constructible<Ty, Uy>,
-                                                  std::negation<__is_all_convertible<
-                                                      Ty, Uy, const Ty &, const Uy &>>>,
-                               bool> = false>
+              WJR_REQUIRES(std::conjunction_v<__is_all_copy_constructible<Ty, Uy>,
+                                              std::negation<__is_all_convertible<
+                                                  Ty, Uy, const Ty &, const Uy &>>>)>
     constexpr explicit compressed_pair(const T &_First, const U &_Second) noexcept(
         std::conjunction_v<std::is_nothrow_copy_constructible<Ty>,
                            std::is_nothrow_copy_constructible<Uy>>)
         : Mybase1(_First), Mybase2(_Second), Mybase3(enable_default_constructor) {}
 
     template <typename Other1, typename Other2,
-              std::enable_if_t<
-                  std::conjunction_v<
-                      __is_all_constructible<Mybase1, Mybase2, Other1 &&, Other2 &&>,
-                      __is_all_convertible<T, U, Other1 &&, Other2 &&>>,
-                  int> = 0>
+              WJR_REQUIRES(std::conjunction_v<
+                           __is_all_constructible<Mybase1, Mybase2, Other1 &&, Other2 &&>,
+                           __is_all_convertible<T, U, Other1 &&, Other2 &&>>)>
     constexpr compressed_pair(Other1 &&_First, Other2 &&_Second) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<Mybase1, Other1 &&>,
                            std::is_nothrow_constructible<Mybase2, Other2 &&>>)
         : Mybase1(std::forward<Other1>(_First)), Mybase2(std::forward<Other2>(_Second)),
           Mybase3(enable_default_constructor) {}
 
-    template <typename Other1, typename Other2,
-              std::enable_if_t<
-                  std::conjunction_v<
-                      __is_all_constructible<Mybase1, Mybase2, Other1 &&, Other2 &&>,
-                      std::negation<__is_all_convertible<T, U, Other1 &&, Other2 &&>>>,
-                  bool> = false>
+    template <
+        typename Other1, typename Other2,
+        WJR_REQUIRES(std::conjunction_v<
+                     __is_all_constructible<Mybase1, Mybase2, Other1 &&, Other2 &&>,
+                     std::negation<__is_all_convertible<T, U, Other1 &&, Other2 &&>>>)>
     constexpr explicit compressed_pair(Other1 &&_First, Other2 &&_Second) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<Mybase1, Other1 &&>,
                            std::is_nothrow_constructible<Mybase2, Other2 &&>>)
@@ -4253,9 +4242,8 @@ public:
                           std::index_sequence_for<Args2...>{}) {}
 
     template <typename PairLike,
-              std::enable_if_t<
-                  __is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&>,
-                  int> = 0>
+              WJR_REQUIRES(
+                  __is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&>)>
     constexpr compressed_pair(PairLike &&pr) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<
                                T, decltype(std::get<0>(std::forward<PairLike>(pr)))>,
@@ -4267,8 +4255,7 @@ public:
 
     template <
         typename PairLike,
-        std::enable_if_t<
-            __is_tuple_test_v<std::is_assignable, compressed_pair, PairLike &&>, int> = 0>
+        WJR_REQUIRES(__is_tuple_test_v<std::is_assignable, compressed_pair, PairLike &&>)>
     constexpr compressed_pair &operator=(PairLike &&pr) noexcept(
         std::conjunction_v<std::is_nothrow_assignable<T, decltype(std::get<0>(pr))>,
                            std::is_nothrow_assignable<U, decltype(std::get<1>(pr))>>) {
@@ -4277,9 +4264,8 @@ public:
         return *this;
     }
 
-    template <
-        typename Myself = compressed_pair, typename _T = T,
-        std::enable_if_t<std::conjunction_v<is_swappable<_T>, is_swappable<U>>, int> = 0>
+    template <typename Myself = compressed_pair, typename _T = T,
+              WJR_REQUIRES(std::conjunction_v<is_swappable<_T>, is_swappable<U>>)>
     constexpr void swap(type_identity_t<compressed_pair &> other) noexcept(
         std::conjunction_v<is_nothrow_swappable<T>, is_nothrow_swappable<U>>) {
         using std::swap;
@@ -4385,8 +4371,7 @@ make_compressed_pair(T &&t, U &&u) noexcept(
 namespace std {
 
 template <typename T, typename U,
-          std::enable_if_t<std::conjunction_v<wjr::is_swappable<T>, wjr::is_swappable<U>>,
-                           int> = 0>
+          WJR_REQUIRES(std::conjunction_v<wjr::is_swappable<T>, wjr::is_swappable<U>>)>
 constexpr void swap(wjr::compressed_pair<T, U> &lhs,
                     wjr::compressed_pair<T, U> &rhs) noexcept(noexcept(lhs.swap(rhs))) {
     lhs.swap(rhs);
@@ -5003,10 +4988,10 @@ struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};
 template <typename Iter>
 inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;
 
-template <typename Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, int> = 0>
+template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<Iter>)>
 using iterator_contiguous_value_t = std::remove_reference_t<iterator_reference_t<Iter>>;
 
-template <typename Iter, std::enable_if_t<is_contiguous_iterator_v<Iter>, int> = 0>
+template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<Iter>)>
 using iterator_contiguous_pointer_t =
     std::add_pointer_t<iterator_contiguous_value_t<Iter>>;
 
@@ -5541,7 +5526,7 @@ inline constexpr stack_alloc_object stack_alloc = {};
 
 // preview ...
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool is_zero_or_single_bit(T n) noexcept {
     return (n & (n - 1)) == 0;
 }
@@ -5551,63 +5536,63 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool is_zero_or_single_bit(T n) noexcept {
  *
  * @note `n & -n` is the lowest bit of n.
  */
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T lowbit(T n) noexcept {
     return n & -n;
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T clear_lowbit(T n) noexcept {
     return n & (n - 1);
 }
 
 // preview :
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool __has_high_bit(T n) noexcept {
     return n >> (std::numeric_limits<T>::digits - 1);
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_down(T n, type_identity_t<T> alignment) {
     WJR_ASSERT_ASSUME_L1(is_zero_or_single_bit(alignment));
     return n & (-alignment);
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up(T n, type_identity_t<T> alignment) {
     WJR_ASSERT_ASSUME_L1(is_zero_or_single_bit(alignment));
     return (n + alignment - 1) & (-alignment);
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up_offset(T n, type_identity_t<T> alignment) {
     WJR_ASSERT_ASSUME_L1(is_zero_or_single_bit(alignment));
     return (-n) & (alignment - 1);
 }
 
 template <typename T, typename U = std::make_unsigned_t<T>,
-          std::enable_if_t<std::is_integral_v<T>, int> = 0>
+          WJR_REQUIRES(std::is_integral_v<T>)>
 WJR_CONST constexpr U __fasts_sign_mask() {
     return (U)(1) << (std::numeric_limits<U>::digits - 1);
 }
 
-template <typename T, std::enable_if_t<is_signed_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_signed_integral_v<T>)>
 WJR_CONST constexpr T __fasts_get_sign_mask(T x) {
     return x & __fasts_sign_mask<T>();
 }
 
-template <typename T, std::enable_if_t<is_signed_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_signed_integral_v<T>)>
 WJR_CONST constexpr bool __fasts_is_negative(T x) {
     return __fasts_get_sign_mask<T>(x) != 0;
 }
 
-template <typename T, std::enable_if_t<is_signed_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_signed_integral_v<T>)>
 WJR_CONST constexpr bool __fasts_is_positive(T x) {
     return __fasts_get_sign_mask<T>(x) == 0;
 }
 
-template <typename T, std::enable_if_t<is_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_unsigned_integral_v<T>)>
 WJR_CONST constexpr std::make_signed_t<T> __fasts_from_unsigned(T x) {
     WJR_ASSERT_ASSUME_L1(!(x & __fasts_sign_mask<T>()));
     std::make_signed_t<T> ret = x;
@@ -5615,18 +5600,18 @@ WJR_CONST constexpr std::make_signed_t<T> __fasts_from_unsigned(T x) {
     return ret;
 }
 
-template <typename T, std::enable_if_t<is_signed_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_signed_integral_v<T>)>
 WJR_CONST constexpr std::make_unsigned_t<T> __fasts_abs(T x) {
     return x & ~__fasts_sign_mask<T>();
 }
 
-template <typename T, std::enable_if_t<is_signed_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_signed_integral_v<T>)>
 WJR_CONST constexpr T __fasts_negate(T x) {
     return x ^ __fasts_sign_mask<T>();
 }
 
 template <typename T, typename U = std::make_unsigned_t<T>,
-          std::enable_if_t<std::is_integral_v<T>, int> = 0>
+          WJR_REQUIRES(std::is_integral_v<T>)>
 WJR_CONST constexpr U __fasts_conditional_negate(bool condition, T x) {
     return (U)x ^ ((U)(condition) << (std::numeric_limits<U>::digits - 1));
 }
@@ -5676,10 +5661,8 @@ WJR_REGISTER_HAS_TYPE(__container_append,
 
 template <typename Container>
 struct resize_fn_impl_base {
-    template <
-        typename... Args,
-        std::enable_if_t<container_details::has___container_resize_v<Container, Args...>,
-                         int> = 0>
+    template <typename... Args, WJR_REQUIRES(container_details::has___container_resize_v<
+                                             Container, Args...>)>
     WJR_INTRINSIC_INLINE static void resize(Container &cont, Args &&...args) {
         cont.resize(std::forward<Args>(args)...);
     }
@@ -5699,10 +5682,8 @@ inline constexpr resize_fn resize{};
 
 template <typename Container>
 struct append_fn_impl_base {
-    template <
-        typename... Args,
-        std::enable_if_t<container_details::has___container_append_v<Container, Args...>,
-                         int> = 0>
+    template <typename... Args, WJR_REQUIRES(container_details::has___container_append_v<
+                                             Container, Args...>)>
     WJR_INTRINSIC_INLINE static void append(Container &cont, Args &&...args) {
         cont.append(std::forward<Args>(args)...);
     }
@@ -5817,18 +5798,16 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
     template <>                                                                          \
     struct resize_fn_impl<Container> : resize_fn_impl_base<Container> {                  \
         using resize_fn_impl_base<Container>::resize;                                    \
-        WJR_INTRINSIC_INLINE static void resize(Container &cont,                         \
-                                                typename Container::size_type sz,        \
-                                                dctor_t) {          \
+        WJR_INTRINSIC_INLINE static void                                                 \
+        resize(Container &cont, typename Container::size_type sz, dctor_t) {             \
             __uninitialized_resize(cont, sz);                                            \
         }                                                                                \
     };                                                                                   \
     template <>                                                                          \
     struct append_fn_impl<Container> : append_fn_impl_base<Container> {                  \
         using append_fn_impl_base<Container>::append;                                    \
-        WJR_INTRINSIC_INLINE static void append(Container &cont,                         \
-                                                typename Container::size_type sz,        \
-                                                dctor_t) {          \
+        WJR_INTRINSIC_INLINE static void                                                 \
+        append(Container &cont, typename Container::size_type sz, dctor_t) {             \
             __uninitialized_resize(cont, cont.size() + sz);                              \
         }                                                                                \
     }
@@ -5861,12 +5840,10 @@ WJR_REGISTER_HAS_TYPE(container_insert,
 
 } // namespace container_details
 
-template <
-    typename Container, typename Size,
-    std::enable_if_t<container_details::has_container_resize_v<Container, Size>, int> = 0>
+template <typename Container, typename Size,
+          WJR_REQUIRES(container_details::has_container_resize_v<Container, Size>)>
 WJR_INTRINSIC_INLINE void try_uninitialized_resize(Container &cont, Size sz) {
-    if constexpr (container_details::has_container_resize_v<
-                      Container, Size, dctor_t>) {
+    if constexpr (container_details::has_container_resize_v<Container, Size, dctor_t>) {
         resize(cont, sz, dctor);
     } else {
         resize(cont, sz);
@@ -6024,8 +6001,7 @@ constexpr T *to_address(T *p) noexcept {
     return p;
 }
 
-template <typename Ptr,
-          std::enable_if_t<is_contiguous_iterator_v<remove_cvref_t<Ptr>>, int> = 0>
+template <typename Ptr, WJR_REQUIRES(is_contiguous_iterator_v<remove_cvref_t<Ptr>>)>
 constexpr auto to_address(const Ptr &p) noexcept {
     if constexpr (to_address_details::has_to_address_v<Ptr>) {
         return std::pointer_traits<Ptr>::to_address(p);
@@ -6034,8 +6010,7 @@ constexpr auto to_address(const Ptr &p) noexcept {
     }
 }
 
-template <typename Iter,
-          std::enable_if_t<is_contiguous_iterator_v<std::move_iterator<Iter>>, int> = 0>
+template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<std::move_iterator<Iter>>)>
 constexpr auto to_address(const std::move_iterator<Iter> &p) noexcept {
     return (to_address)(p.base());
 }
@@ -6110,7 +6085,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T builtin_byteswap(T x) noexcept {
 
 #endif
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T byteswap(T x, endian to = endian::little) noexcept {
     if (to == endian::native) {
         return x;
@@ -6127,7 +6102,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T byteswap(T x, endian to = endian::little) 
 #endif
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_INLINE T read_memory(const void *ptr,
                                             endian to = endian::little) noexcept {
     T x;
@@ -6140,7 +6115,7 @@ WJR_PURE WJR_INTRINSIC_INLINE T read_memory(const void *ptr,
     return x;
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x,
                                        endian to = endian::little) noexcept {
     if (to != endian::native) {
@@ -7620,7 +7595,7 @@ public:
     WJR_CONSTEXPR20 basic_vector(basic_vector &&other, const allocator_type &al) noexcept
         : basic_vector(std::move(other), al, in_place_empty) {}
 
-    template <typename Iter, std::enable_if_t<is_iterator_v<Iter>, int> = 0>
+    template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector(Iter first, Iter last,
                                  const allocator_type &al = allocator_type())
         : basic_vector(al) {
@@ -7662,7 +7637,7 @@ public:
         return *this;
     }
 
-    template <typename Iter, std::enable_if_t<is_iterator_v<Iter>, int> = 0>
+    template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &assign(Iter first, Iter last) {
         __range_assign(first, last,
                        typename std::iterator_traits<Iter>::iterator_category());
@@ -7865,7 +7840,7 @@ public:
         return begin() + old_pos;
     }
 
-    template <typename Iter, std::enable_if_t<is_iterator_v<Iter>, int> = 0>
+    template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 iterator insert(const_iterator pos, Iter first, Iter last) {
         const auto old_pos = static_cast<size_type>(pos - cbegin());
         __range_insert(begin() + old_pos, first, last,
@@ -7944,7 +7919,7 @@ public:
         return *this;
     }
 
-    template <typename Iter, std::enable_if_t<is_iterator_v<Iter>, int> = 0>
+    template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &append(Iter first, Iter last) {
         __range_append(first, last,
                        typename std::iterator_traits<Iter>::iterator_category());
@@ -7970,7 +7945,7 @@ public:
      */
     WJR_CONSTEXPR20 basic_vector &truncate(const size_type n) { return chop(size() - n); }
 
-    template <typename Iter, std::enable_if_t<is_iterator_v<Iter>, int> = 0>
+    template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &replace(const_iterator from, const_iterator to,
                                           Iter first, Iter last) {
         const pointer __beg = begin();
@@ -8051,7 +8026,7 @@ private:
     }
 
     template <typename... Args,
-              std::enable_if_t<sizeof...(Args) == 1 || sizeof...(Args) == 2, int> = 0>
+              WJR_REQUIRES(sizeof...(Args) == 1 || sizeof...(Args) == 2)>
     WJR_CONSTEXPR20 void __construct_n(const size_type n, Args &&...args) {
         if (n != 0) {
             auto &al = __get_allocator();
@@ -8691,8 +8666,7 @@ template <typename T, size_t Capacity, typename Alloc = std::allocator<T>>
 using sso_vector = basic_vector<sso_vector_storage<T, Capacity, Alloc>>;
 
 template <typename Iter, typename T = typename std::iterator_traits<Iter>::value_type,
-          typename Alloc = std::allocator<T>,
-          std::enable_if_t<is_iterator_v<Iter>, int> = 0>
+          typename Alloc = std::allocator<T>, WJR_REQUIRES(is_iterator_v<Iter>)>
 basic_vector(Iter, Iter, Alloc = Alloc())
     -> basic_vector<default_vector_storage<T, Alloc>>;
 
@@ -8851,7 +8825,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int popcount_impl(T x) {
 #endif
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int popcount(T x) {
     int ret = popcount_impl(x);
     WJR_ASSUME(0 <= ret && ret <= std::numeric_limits<T>::digits);
@@ -8979,7 +8953,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz_impl(T x) {
  *
  * @tparam T Must be an unsigned integral type
  */
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz(T x) {
     int ret = clz_impl(x);
     WJR_ASSUME(0 <= ret && ret <= std::numeric_limits<T>::digits);
@@ -9092,7 +9066,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int ctz_impl(T x) {
  *
  * @tparam T Must be an unsigned integral type
  */
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int ctz(T x) {
     int ret = ctz_impl(x);
     WJR_ASSUME(0 <= ret && ret <= std::numeric_limits<T>::digits);
@@ -9106,37 +9080,37 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int ctz(T x) {
 
 namespace wjr {
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool has_single_bit(T n) noexcept {
     return (n != 0) && is_zero_or_single_bit(n);
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int countl_zero(T x) noexcept {
     return clz(x);
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int countr_zero(T x) noexcept {
     return ctz(x);
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int countl_one(T x) noexcept {
     return countl_zero(static_cast<T>(~x));
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int countr_one(T x) noexcept {
     return countr_zero(static_cast<T>(~x));
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int bit_width(T x) noexcept {
     return std::numeric_limits<T>::digits - countl_zero(x);
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T bit_ceil(T x) noexcept {
     if (x <= 1) {
         return T(1);
@@ -9150,7 +9124,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T bit_ceil(T x) noexcept {
     }
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T bit_floor(T x) noexcept {
     if (x != 0) {
         return T{1} << (bit_width(x) - 1);
@@ -9926,21 +9900,18 @@ struct sse {
     WJR_INTRINSIC_INLINE static __m128i loadu_si64(const void *ptr);
 
     template <typename T,
-              std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                           uint16_t, uint32_t, uint64_t>,
-                               int> = 0>
+              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                       uint16_t, uint32_t, uint64_t>)>
     WJR_INTRINSIC_INLINE static __m128i logical_and(__m128i a, __m128i b, T);
 
     template <typename T,
-              std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                           uint16_t, uint32_t, uint64_t>,
-                               int> = 0>
+              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                       uint16_t, uint32_t, uint64_t>)>
     WJR_INTRINSIC_INLINE static __m128i logical_not(__m128i v, T);
 
     template <typename T,
-              std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                           uint16_t, uint32_t, uint64_t>,
-                               int> = 0>
+              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                       uint16_t, uint32_t, uint64_t>)>
     WJR_INTRINSIC_INLINE static __m128i logical_or(__m128i a, __m128i b, T);
 
     WJR_INTRINSIC_INLINE static __m128i madd_epi16(__m128i a, __m128i b);
@@ -10754,21 +10725,18 @@ struct avx {
     WJR_INTRINSIC_INLINE static __m256i hsubs_epi16(__m256i a, __m256i b);
 
     template <typename T,
-              std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                           uint16_t, uint32_t, uint64_t>,
-                               int> = 0>
+              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                       uint16_t, uint32_t, uint64_t>)>
     WJR_INTRINSIC_INLINE static __m256i logical_and(__m256i a, __m256i b, T);
 
     template <typename T,
-              std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                           uint16_t, uint32_t, uint64_t>,
-                               int> = 0>
+              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                       uint16_t, uint32_t, uint64_t>)>
     WJR_INTRINSIC_INLINE static __m256i logical_not(__m256i v, T);
 
     template <typename T,
-              std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                           uint16_t, uint32_t, uint64_t>,
-                               int> = 0>
+              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                       uint16_t, uint32_t, uint64_t>)>
     WJR_INTRINSIC_INLINE static __m256i logical_or(__m256i a, __m256i b, T);
 
     WJR_INTRINSIC_INLINE static __m256i madd_epi16(__m256i a, __m256i b);
@@ -11627,24 +11595,24 @@ __m128i sse::loadu_si64(const void *ptr) {
     return simd_cast<uint64_t, __m128i_t>(read_memory<uint64_t>(ptr));
 }
 
-template <typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
-                                                   uint8_t, uint16_t, uint32_t, uint64_t>,
-                                       int>>
+template <typename T,
+          WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                        uint16_t, uint32_t, uint64_t>)>
 __m128i sse::logical_and(__m128i a, __m128i b, T) {
     return Not(Or(logical_not(a, T()), logical_not(b, T())));
 }
 
-template <typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
-                                                   uint8_t, uint16_t, uint32_t, uint64_t>,
-                                       int>>
+template <typename T,
+          WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                        uint16_t, uint32_t, uint64_t>)>
 __m128i sse::logical_not(__m128i v, T) {
     auto Zero = zeros();
     return cmpeq(v, Zero, T());
 }
 
-template <typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
-                                                   uint8_t, uint16_t, uint32_t, uint64_t>,
-                                       int>>
+template <typename T,
+          WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                        uint16_t, uint32_t, uint64_t>)>
 __m128i sse::logical_or(__m128i a, __m128i b, T) {
     return Not(logical_not(Or(a, b), T()));
 }
@@ -12985,24 +12953,24 @@ __m256i avx::hsub(__m256i a, __m256i b, int32_t) { return hsub_epi32(a, b); }
 
 __m256i avx::hsubs_epi16(__m256i a, __m256i b) { return _mm256_hsubs_epi16(a, b); }
 
-template <typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
-                                                   uint8_t, uint16_t, uint32_t, uint64_t>,
-                                       int>>
+template <typename T,
+          WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                        uint16_t, uint32_t, uint64_t>)>
 __m256i avx::logical_and(__m256i a, __m256i b, T) {
     return Not(Or(logical_not(a, T()), logical_not(b, T())));
 }
 
-template <typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
-                                                   uint8_t, uint16_t, uint32_t, uint64_t>,
-                                       int>>
+template <typename T,
+          WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                        uint16_t, uint32_t, uint64_t>)>
 __m256i avx::logical_not(__m256i v, T) {
     auto Zero = zeros();
     return cmpeq(v, Zero, T());
 }
 
-template <typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
-                                                   uint8_t, uint16_t, uint32_t, uint64_t>,
-                                       int>>
+template <typename T,
+          WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                        uint16_t, uint32_t, uint64_t>)>
 __m256i avx::logical_or(__m256i a, __m256i b, T) {
     return Not(logical_not(Or(a, b), T()));
 }
@@ -14751,7 +14719,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_n_impl(const T *src0, const T *sr
 #endif
 }
 
-template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_n(const T *src0, const T *src1, size_t n) {
     using uT = std::make_unsigned_t<T>;
     return find_n_impl<uT>(reinterpret_cast<const uT *>(src0),
@@ -14790,7 +14758,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_n_impl(const T *src,
 #endif
 }
 
-template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_n(const T *src, type_identity_t<T> val,
                                                  size_t n) {
     using uT = std::make_unsigned_t<T>;
@@ -14834,7 +14802,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_not_n_impl(const T *src0, const T
 #endif
 }
 
-template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_not_n(const T *src0, const T *src1,
                                                      size_t n) {
     using uT = std::make_unsigned_t<T>;
@@ -14875,7 +14843,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_not_n_impl(const T *src,
 #endif
 }
 
-template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_not_n(const T *src, type_identity_t<T> val,
                                                      size_t n) {
     using uT = std::make_unsigned_t<T>;
@@ -14921,7 +14889,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_n_impl(const T *src0,
 #endif
 }
 
-template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_n(const T *src0, const T *src1,
                                                          size_t n) {
     using uT = std::make_unsigned_t<T>;
@@ -14963,7 +14931,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_n_impl(const T *src,
 #endif
 }
 
-template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_n(const T *src,
                                                          type_identity_t<T> val,
                                                          size_t n) {
@@ -15011,7 +14979,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n_impl(const T *src0,
 #endif
 }
 
-template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n(const T *src0, const T *src1,
                                                              size_t n) {
     using uT = std::make_unsigned_t<T>;
@@ -15054,7 +15022,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n_impl(const T *src,
 #endif
 }
 
-template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n(const T *src,
                                                              type_identity_t<T> val,
                                                              size_t n) {
@@ -15340,52 +15308,46 @@ WJR_INTRINSIC_CONSTEXPR_E size_t reverse_replace_find_not(T *dst, const T *src, 
 namespace wjr {
 
 template <typename T, typename U,
-          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
-                           int> = 0>
+          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out);
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out);
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(type_identity_t<T> a, type_identity_t<T> b,
                                             T &ret);
 
 template <typename T, typename U = T,
-          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
-                           int> = 0>
+          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_1(T *dst, const T *src0, size_t n,
                                    type_identity_t<T> src1, U c_in = 0);
 
 template <typename T, typename U = T,
-          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
-                           int> = 0>
+          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_n(T *dst, const T *src0, const T *src1, size_t n,
                                    U c_in = 0);
 
 template <typename T, typename U = T,
-          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
-                           int> = 0>
+          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n, const T *src1,
                                    size_t m, U c_in = 0);
 
 template <typename T, typename U = T,
-          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
-                           int> = 0>
+          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_sz(T *dst, const T *src0, size_t n, const T *src1,
                                     size_t m, U c_in = 0);
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
                                              size_t n);
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
                                              const T *src1, size_t m);
 
 template <typename T, typename U,
-          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
-                           int> = 0>
+          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
                                              size_t n, U &c_out, type_identity_t<U> cf0,
                                              type_identity_t<U> cf1);
@@ -15901,7 +15863,7 @@ WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) {
 
 template <
     typename T, typename U,
-    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
     WJR_ASSERT_ASSUME_L1(c_in <= 1);
 
@@ -15941,7 +15903,7 @@ WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
  cannot know that the high register is not cleared, so the performance is worse than the
  normal version when cc flag is not needed immediately.
 */
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
+template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
     WJR_ASSERT_ASSUME_L1(c_in <= 1);
 
@@ -15981,7 +15943,7 @@ WJR_INTRINSIC_CONSTEXPR_E bool fallback_sub_overflow(T a, T b, T &ret) {
     return ret > a;
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
+template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(type_identity_t<T> a, type_identity_t<T> b,
                                             T &ret) {
 #if WJR_HAS_BUILTIN(SUB_OVERFLOW)
@@ -16003,7 +15965,7 @@ require :
 */
 template <
     typename T, typename U,
-    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_1(T *dst, const T *src0, size_t n,
                                    type_identity_t<T> src1, U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -16087,7 +16049,7 @@ require :
 */
 template <
     typename T, typename U,
-    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_n(T *dst, const T *src0, const T *src1, size_t n,
                                    U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -16118,7 +16080,7 @@ require :
 */
 template <
     typename T, typename U,
-    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n, const T *src1,
                                    size_t m, U c_in) {
     WJR_ASSERT_ASSUME(m >= 1);
@@ -16142,7 +16104,7 @@ require :
 */
 template <
     typename T, typename U,
-    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_sz(T *dst, const T *src0, size_t n, const T *src1,
                                     size_t m, U c_in) {
     WJR_ASSERT_ASSUME(n >= m);
@@ -16170,7 +16132,7 @@ Absolute value represents non-zero pos
 == 0 : src0 == src1
 < 0 : src0 < src1
 */
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
+template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
                                              size_t n) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -16212,7 +16174,7 @@ Absolute value represents non-zero pos
 == 0 : src0 == src1
 < 0 : src0 < src1
 */
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
+template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
                                              const T *src1, size_t m) {
     WJR_ASSERT_ASSUME(m >= 1);
@@ -16253,7 +16215,7 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
 // just like abs_subc_n.
 template <
     typename T, typename U,
-    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
                                              size_t n, U &c_out, type_identity_t<U> cf0,
                                              type_identity_t<U> cf1) {
@@ -17042,46 +17004,46 @@ div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
 inline std::pair<uint64_t, uint64_t> div128by64to128(uint64_t &rem, uint64_t lo,
                                                      uint64_t hi, uint64_t div);
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         const div2by1_divider<T> &div);
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         type_identity_t<T> div);
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const div3by2_divider<T> &div);
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const T *div);
 
 template <typename T>
 void div_qr_s(T *dst, T *rem, const T *src, size_t n, const T *div, size_t m);
 
-template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_CONSTEXPR_E T divexact_dbm1c(T *dst, const T *src, size_t n, T bd, T h);
 
-template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_CONSTEXPR_E void divexact_by3(T *dst, const T *src, size_t n);
 
-template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_CONSTEXPR_E void divexact_by5(T *dst, const T *src, size_t n);
 
-template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_CONSTEXPR_E void divexact_by15(T *dst, const T *src, size_t n);
 
-template <typename T, T c, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+template <typename T, T c, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_CONSTEXPR_E void divexact_byc(T *dst, const T *src, size_t n,
                                   std::integral_constant<T, c>);
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           const divexact1_divider<T> &div);
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           type_identity_t<T> div);
 
@@ -17173,39 +17135,34 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
 namespace wjr {
 
 template <typename T, typename U,
-          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
-                           int> = 0>
+          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out);
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out);
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E bool add_overflow(type_identity_t<T> a, type_identity_t<T> b,
                                             T &ret);
 
 template <typename T, typename U = T,
-          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
-                           int> = 0>
+          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U addc_1(T *dst, const T *src0, size_t n,
                                    type_identity_t<T> src1, U c_in = 0);
 
 template <typename T, typename U = T,
-          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
-                           int> = 0>
+          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U addc_n(T *dst, const T *src0, const T *src1, size_t n,
                                    U c_in = 0);
 
 template <typename T, typename U = T,
-          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
-                           int> = 0>
+          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U addc_s(T *dst, const T *src0, size_t n, const T *src1,
                                    size_t m, U c_in = 0);
 
 // m can be zero
 template <typename T, typename U = T,
-          std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>,
-                           int> = 0>
+          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U addc_sz(T *dst, const T *src0, size_t n, const T *src1,
                                     size_t m, U c_in = 0);
 
@@ -17856,7 +17813,7 @@ WJR_INTRINSIC_INLINE T builtin_addc(T a, T b, U c_in, U &c_out) {
  */
 template <
     typename T, typename U,
-    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out) {
     WJR_ASSERT_ASSUME_L1(c_in <= 1);
 
@@ -17904,7 +17861,7 @@ WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out) {
  * @param[in] c_in The carry-in flag.
  * @param[out] c_out The carry-out flag.
  */
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
+template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
     WJR_ASSERT_ASSUME_L1(c_in <= 1);
 
@@ -17944,7 +17901,7 @@ WJR_INTRINSIC_CONSTEXPR_E bool fallback_add_overflow(T a, T b, T &ret) {
     return ret < a;
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
+template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E bool add_overflow(type_identity_t<T> a, type_identity_t<T> b,
                                             T &ret) {
 #if WJR_HAS_BUILTIN(ADD_OVERFLOW)
@@ -17973,7 +17930,7 @@ WJR_INTRINSIC_CONSTEXPR_E bool add_overflow(type_identity_t<T> a, type_identity_
  */
 template <
     typename T, typename U,
-    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U addc_1(T *dst, const T *src0, size_t n,
                                    type_identity_t<T> src1, U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -18064,7 +18021,7 @@ WJR_INTRINSIC_CONSTEXPR U fallback_addc_n(T *dst, const T *src0, const T *src1, 
  */
 template <
     typename T, typename U,
-    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U addc_n(T *dst, const T *src0, const T *src1, size_t n,
                                    U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -18095,7 +18052,7 @@ require :
 */
 template <
     typename T, typename U,
-    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U addc_s(T *dst, const T *src0, size_t n, const T *src1,
                                    size_t m, U c_in) {
     WJR_ASSERT_ASSUME(m >= 1);
@@ -18119,7 +18076,7 @@ require :
 */
 template <
     typename T, typename U,
-    std::enable_if_t<is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>, int>>
+    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U addc_sz(T *dst, const T *src0, size_t n, const T *src1,
                                     size_t m, U c_in) {
     WJR_ASSERT_ASSUME(n >= m);
@@ -19789,7 +19746,7 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t fallback_mul64(uint64_t a, uint64_t b, uint64
     return rl;
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E T mul(T a, T b, T &hi) {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
@@ -19844,14 +19801,14 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T fallback_mulhi(T a, T b) {
     return hi;
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T mulhi(T a, T b) {
     T ret = 0;
     (void)mul(a, b, ret);
     return ret;
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T mullo(T a, T b) {
     return a * b;
 }
@@ -19867,7 +19824,7 @@ WJR_INTRINSIC_CONSTEXPR_E bool fallback_mul_overflow(T a, T b, T &ret) {
     return hi != 0;
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E bool mul_overflow(type_identity_t<T> a, type_identity_t<T> b,
                                             T &ret) {
 #if WJR_HAS_BUILTIN(MUL_OVERFLOW)
@@ -22814,7 +22771,7 @@ namespace wjr {
 
 #if WJR_HAS_BUILTIN(ASM_DIV2BY1_ADJUST)
 
-template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int> = 0>
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_INLINE void asm_div2by1_adjust(T rax, T div, T &r8, T &rdx) {
     T r9 = r8 + div;
     asm("cmp{q %[rax], %[r8]| %[r8], %[rax]}\n\t"
@@ -23596,7 +23553,7 @@ WJR_INTRINSIC_CONSTEXPR20 T div_qr_1_impl(T *dst, T &rem, const T *src, size_t n
 }
 
 // return high quotient limb
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
+template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         const div2by1_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -23618,7 +23575,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
     dst[n - 1] = div_qr_1_impl(dst, rem, src, n, div);
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
+template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         type_identity_t<T> div) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -23764,7 +23721,7 @@ WJR_INTRINSIC_CONSTEXPR20 T div_qr_2_impl(T *dst, T *rem, const T *src, size_t n
     return div_qr_2_shift(dst, rem, src, n, div);
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
+template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const div3by2_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 2);
@@ -23772,7 +23729,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
     dst[n - 2] = div_qr_2_impl(dst, rem, src, n, div);
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
+template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const T *div) {
     WJR_ASSERT_ASSUME(n >= 2);
@@ -24231,7 +24188,7 @@ WJR_CONSTEXPR_E T fallback_divexact_dbm1c(T *dst, const T *src, size_t n, T bd, 
     return h;
 }
 
-template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int>>
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
 WJR_CONSTEXPR_E T divexact_dbm1c(T *dst, const T *src, size_t n, T bd, T h) {
 #if WJR_HAS_BUILTIN(ASM_DIVEXACT_DBM1C)
     if (is_constant_evaluated()) {
@@ -24244,25 +24201,25 @@ WJR_CONSTEXPR_E T divexact_dbm1c(T *dst, const T *src, size_t n, T bd, T h) {
 #endif
 }
 
-template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int>>
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
 WJR_CONSTEXPR_E void divexact_by3(T *dst, const T *src, size_t n) {
     constexpr T max = in_place_max;
     (void)divexact_dbm1c<T>(dst, src, n, max / 3, 0);
 }
 
-template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int>>
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
 WJR_CONSTEXPR_E void divexact_by5(T *dst, const T *src, size_t n) {
     constexpr T max = in_place_max;
     (void)divexact_dbm1c<T>(dst, src, n, max / 5, 0);
 }
 
-template <typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, int>>
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
 WJR_CONSTEXPR_E void divexact_by15(T *dst, const T *src, size_t n) {
     constexpr T max = in_place_max;
     (void)divexact_dbm1c<T>(dst, src, n, max / 15, 0);
 }
 
-template <typename T, T c, std::enable_if_t<std::is_same_v<T, uint64_t>, int>>
+template <typename T, T c, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
 WJR_CONSTEXPR_E void divexact_byc(T *dst, const T *src, size_t n,
                                   std::integral_constant<T, c>) {
 
@@ -24400,8 +24357,7 @@ WJR_CONSTEXPR_E void fallback_divexact_1(T *dst, const T *src, size_t n,
     return fallback_divexact_1_shift(dst, src, n, div);
 }
 
-template <typename T,
-          std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
+template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           const divexact1_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -24415,7 +24371,7 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
     return fallback_divexact_1(dst, src, n, div);
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int>>
+template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           type_identity_t<T> div) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -25261,7 +25217,7 @@ inline constexpr count_digits_fn<Base> count_digits{};
 
 template <>
 struct count_digits_fn<2> {
-    template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const {
         return bit_width(n);
     }
@@ -25269,7 +25225,7 @@ struct count_digits_fn<2> {
 
 template <>
 struct count_digits_fn<8> {
-    template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const {
         return (bit_width(n) + 2) / 3;
     }
@@ -25277,7 +25233,7 @@ struct count_digits_fn<8> {
 
 template <>
 struct count_digits_fn<16> {
-    template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const {
         return (bit_width(n) + 3) / 4;
     }
@@ -25285,7 +25241,7 @@ struct count_digits_fn<16> {
 
 template <>
 struct count_digits_fn<1> {
-    template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n, int bits) const {
         return (bit_width(n) + bits - 1) / bits;
     }
@@ -25293,7 +25249,7 @@ struct count_digits_fn<1> {
 
 template <>
 struct count_digits_fn<10> {
-    template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const {
         int ret = count_digits10_impl(n);
         WJR_ASSUME(1 <= ret && ret <= std::numeric_limits<T>::digits10 + 1);
@@ -25383,7 +25339,7 @@ class __unsigned_to_chars_backward_unchecked_fn<2> {
 
 public:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x, Converter conv) const {
         return fn(ptr, n, x, conv);
     }
@@ -25438,7 +25394,7 @@ class __unsigned_to_chars_backward_unchecked_fn<8> {
 
 public:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x, Converter conv) const {
         return fn(ptr, n, x, conv);
     }
@@ -25493,7 +25449,7 @@ class __unsigned_to_chars_backward_unchecked_fn<16> {
 
 public:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x, Converter conv) const {
         return fn(ptr, n, x, conv);
     }
@@ -25520,7 +25476,7 @@ private:
 
 public:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     uint8_t *operator()(uint8_t *ptr, int n, UnsignedValue x, int bits,
                         Converter conv) const {
         return fn(ptr, n, x, bits, conv);
@@ -25531,7 +25487,7 @@ template <>
 class __unsigned_to_chars_backward_unchecked_fn<10> {
 private:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     static uint8_t *fn(uint8_t *ptr, UnsignedValue val, Converter conv) {
         WJR_ASSERT_ASSUME(val != 0);
 
@@ -25555,7 +25511,7 @@ private:
 
 public:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     uint8_t *operator()(uint8_t *ptr, UnsignedValue val, Converter conv) const {
         return fn(ptr, val, conv);
     }
@@ -25640,9 +25596,8 @@ Iter __to_chars_backward_unchecked_impl(Iter first, Value val, IBase ibase,
  */
 template <typename Iter, typename Value, typename BaseType = unsigned int,
           BaseType IBase = 10, typename Converter = char_converter_t,
-          std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter> &&
-                               convert_details::__is_valid_converter_v<Value, Converter>,
-                           int> = 0>
+          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
+                           &&convert_details::__is_valid_converter_v<Value, Converter>)>
 Iter to_chars_backward_unchecked(Iter first, Value val,
                                  std::integral_constant<BaseType, IBase> = {},
                                  Converter conv = {}) {
@@ -25657,9 +25612,8 @@ Iter to_chars_backward_unchecked(Iter first, Value val,
  *
  */
 template <typename Iter, typename Value, typename Converter = char_converter_t,
-          std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter> &&
-                               convert_details::__is_valid_converter_v<Value, Converter>,
-                           int> = 0>
+          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
+                           &&convert_details::__is_valid_converter_v<Value, Converter>)>
 Iter to_chars_backward_unchecked(Iter first, Value val, unsigned int base,
                                  Converter conv = {}) {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
@@ -26077,10 +26031,9 @@ Iter __to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase, Converter conv)
  * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
  *
  */
-template <
-    typename Iter, typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
-    typename Converter = char_converter_t,
-    std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
+template <typename Iter, typename Value, typename BaseType = unsigned int,
+          BaseType IBase = 10, typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
 to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val,
                                std::integral_constant<BaseType, IBase> = {},
                                Converter conv = {}) {
@@ -26095,9 +26048,8 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val,
  * std::errc{}}. Otherwise, return {last, std::errc::value_too_large}.
  *
  */
-template <
-    typename Iter, typename Value, typename Converter = char_converter_t,
-    std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
+template <typename Iter, typename Value, typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
 to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, unsigned int base,
                                Converter conv = {}) {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
@@ -26137,10 +26089,9 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, unsigned int base
  * store the result and use @ref wjr::copy to copy the result to the output iterator. \n
  *
  */
-template <
-    typename Iter, typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
-    typename Converter = char_converter_t,
-    std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
+template <typename Iter, typename Value, typename BaseType = unsigned int,
+          BaseType IBase = 10, typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
 Iter to_chars_unchecked(Iter ptr, Value val, std::integral_constant<BaseType, IBase> = {},
                         Converter conv = {}) {
     return __to_chars_unchecked_impl(ptr, val,
@@ -26155,9 +26106,8 @@ Iter to_chars_unchecked(Iter ptr, Value val, std::integral_constant<BaseType, IB
  * non-bool unsigned integral type. Otherwise, Value must be non-bool integral type.
  *
  */
-template <
-    typename Iter, typename Value, typename Converter = char_converter_t,
-    std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
+template <typename Iter, typename Value, typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
 Iter to_chars_unchecked(Iter ptr, Value val, unsigned int base, Converter conv = {}) {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
@@ -26775,7 +26725,7 @@ class __unsigned_from_chars_unchecked_fn<2> {
 
 public:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
                     Converter conv) const {
         return fn(first, last, val, conv);
@@ -26846,7 +26796,7 @@ class __unsigned_from_chars_unchecked_fn<8> {
 
 public:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
                     Converter conv) const {
         return fn(first, last, val, conv);
@@ -26923,7 +26873,7 @@ class __unsigned_from_chars_unchecked_fn<16> {
 
 public:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
                     Converter conv) const {
         return fn(first, last, val, conv);
@@ -27002,7 +26952,7 @@ class __unsigned_from_chars_unchecked_fn<10> {
 
 public:
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     void operator()(const uint8_t *first, const uint8_t *last, UnsignedValue &val,
                     Converter conv) const {
         return fn(first, last, val, conv);
@@ -27010,7 +26960,7 @@ public:
 };
 
 template <typename Value, typename IBase, typename Converter,
-          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+          WJR_REQUIRES(is_nonbool_integral_v<Value>)>
 void __fast_from_chars_unchecked_impl(const uint8_t *first, const uint8_t *last,
                                       Value &val, IBase ibase, Converter conv) {
     int sign = 0;
@@ -27059,7 +27009,7 @@ void __fast_from_chars_unchecked_impl(const uint8_t *first, const uint8_t *last,
 }
 
 template <typename Iter, typename Value, typename IBase, typename Converter,
-          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+          WJR_REQUIRES(is_nonbool_integral_v<Value>)>
 void __from_chars_unchecked_impl(Iter first, Iter last, Value &val, IBase ibase,
                                  Converter conv) {
     const auto __first = reinterpret_cast<const uint8_t *>((to_address)(first));
@@ -27069,9 +27019,8 @@ void __from_chars_unchecked_impl(Iter first, Iter last, Value &val, IBase ibase,
 
 template <typename Iter, typename Value, typename BaseType = unsigned int,
           BaseType IBase = 10, typename Converter = char_converter_t,
-          std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter> &&
-                               convert_details::__is_valid_converter_v<Value, Converter>,
-                           int> = 0>
+          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
+                           &&convert_details::__is_valid_converter_v<Value, Converter>)>
 void from_chars_unchecked(Iter first, Iter last, Value &val,
                           std::integral_constant<BaseType, IBase> = {},
                           Converter conv = {}) {
@@ -27080,9 +27029,8 @@ void from_chars_unchecked(Iter first, Iter last, Value &val,
 }
 
 template <typename Iter, typename Value, typename Converter,
-          std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter> &&
-                               convert_details::__is_valid_converter_v<Value, Converter>,
-                           int> = 0>
+          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>
+                           &&convert_details::__is_valid_converter_v<Value, Converter>)>
 void from_chars_unchecked(Iter first, Iter last, Value &val, unsigned int base,
                           Converter conv = {}) {
     if (WJR_BUILTIN_CONSTANT_P(base)) {
@@ -27125,7 +27073,7 @@ inline constexpr __unsigned_from_chars_fn<Base> __unsigned_from_chars{};
 template <>
 struct __unsigned_from_chars_fn<2> {
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     int operator()(const uint8_t *&first, const uint8_t *last, UnsignedValue &value,
                    Converter conv) const {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
@@ -27177,7 +27125,7 @@ struct __unsigned_from_chars_fn<2> {
 template <>
 struct __unsigned_from_chars_fn<10> {
     template <typename UnsignedValue, typename Converter,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     int operator()(const uint8_t *&first, const uint8_t *last, UnsignedValue &value,
                    Converter conv) const {
         constexpr auto zero = conv.template to<10>(0);
@@ -27232,7 +27180,7 @@ struct __unsigned_from_chars_fn<10> {
 };
 
 template <typename Value, typename IBase, typename Converter,
-          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+          WJR_REQUIRES(is_nonbool_integral_v<Value>)>
 from_chars_result<const uint8_t *> __fast_from_chars_impl(const uint8_t *first,
                                                           const uint8_t *last, Value &val,
                                                           IBase ibase, Converter conv) {
@@ -27302,7 +27250,7 @@ from_chars_result<const uint8_t *> __fast_from_chars_impl(const uint8_t *first,
 }
 
 template <typename Value, typename IBase, typename Converter,
-          std::enable_if_t<is_nonbool_integral_v<Value>, int> = 0>
+          WJR_REQUIRES(is_nonbool_integral_v<Value>)>
 from_chars_result<const char *> __from_chars_impl(const char *first, const char *last,
                                                   Value &val, IBase ibase,
                                                   Converter conv) {
@@ -27312,10 +27260,9 @@ from_chars_result<const char *> __from_chars_impl(const char *first, const char 
     return {reinterpret_cast<const char *>(ret.ptr), ret.ec};
 }
 
-template <
-    typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
-    typename Converter = char_converter_t,
-    std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
+template <typename Value, typename BaseType = unsigned int, BaseType IBase = 10,
+          typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
 from_chars_result<const char *>
 from_chars(const char *first, const char *last, Value &val,
            std::integral_constant<BaseType, IBase> = {}, Converter conv = {}) {
@@ -27323,9 +27270,8 @@ from_chars(const char *first, const char *last, Value &val,
                              std::integral_constant<unsigned int, IBase>(), conv);
 }
 
-template <
-    typename Value, typename Converter = char_converter_t,
-    std::enable_if_t<convert_details::__is_valid_converter_v<Value, Converter>, int> = 0>
+template <typename Value, typename Converter = char_converter_t,
+          WJR_REQUIRES(convert_details::__is_valid_converter_v<Value, Converter>)>
 from_chars_result<const char *> from_chars(const char *first, const char *last,
                                            Value &val, unsigned int base,
                                            Converter conv = {}) {
@@ -27700,7 +27646,7 @@ uint64_t *__biginteger_from_chars_impl(const uint8_t *first, const uint8_t *last
  * @return uint64_t* Pointer after the conversion
  */
 template <typename Iter, typename Converter = char_converter_t,
-          std::enable_if_t<convert_details::__is_fast_convert_iterator_v<Iter>, int> = 0>
+          WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>)>
 uint64_t *biginteger_from_chars(Iter first, Iter last, uint64_t *up,
                                 unsigned int base = 10, Converter conv = {}) {
     WJR_ASSERT(base <= 36 && (is_zero_or_single_bit(base) || base == 10));
@@ -27979,7 +27925,7 @@ WJR_INTRINSIC_CONSTEXPR void fallback_not_n(T *dst, const T *src, size_t n) {
     }
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E void not_n(T *dst, const T *src, size_t n) {
 #if WJR_HAS_BUILTIN(NOT_N)
     if constexpr (sizeof(T) == 8) {
@@ -28091,7 +28037,7 @@ constexpr T fallback_prefix_xor(T x) {
     return x;
 }
 
-template <typename T, std::enable_if_t<is_nonbool_unsigned_integral_v<T>, int> = 0>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E T prefix_xor(T x) {
 #if WJR_HAS_BUILTIN(PREFIX_XOR)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
@@ -28237,62 +28183,53 @@ public:
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    template <size_t Ex = Extent,
-              std::enable_if_t<Ex == dynamic_extent || Ex == 0, int> = 0>
+    template <size_t Ex = Extent, WJR_REQUIRES(Ex == dynamic_extent || Ex == 0)>
     constexpr span() noexcept : storage() {}
 
     template <typename It,
-              std::enable_if_t<
-                  __is_span_iterator<It, element_type>::value && __is_dynamic, int> = 0>
+              WJR_REQUIRES(__is_span_iterator<It, element_type>::value &&__is_dynamic)>
     constexpr span(It first, size_type count) : storage((to_address)(first), count) {}
 
     template <typename It,
-              std::enable_if_t<
-                  __is_span_iterator<It, element_type>::value && !__is_dynamic, int> = 0>
+              WJR_REQUIRES(__is_span_iterator<It, element_type>::value && !__is_dynamic)>
     constexpr explicit span(It first, size_type count)
         : storage((to_address)(first), count) {}
 
     template <typename It,
-              std::enable_if_t<
-                  __is_span_iterator<It, element_type>::value && __is_dynamic, int> = 0>
+              WJR_REQUIRES(__is_span_iterator<It, element_type>::value &&__is_dynamic)>
     constexpr span(It first, It last)
         : storage((to_address)(first), static_cast<size_type>(last - first)) {}
 
     template <typename It,
-              std::enable_if_t<
-                  __is_span_iterator<It, element_type>::value && !__is_dynamic, int> = 0>
+              WJR_REQUIRES(__is_span_iterator<It, element_type>::value && !__is_dynamic)>
     constexpr explicit span(It first, It last)
         : storage((to_address)(first), static_cast<size_type>(last - first)) {}
 
-    template <size_t N, std::enable_if_t<(__is_dynamic || N == Extent), int> = 0>
+    template <size_t N, WJR_REQUIRES((__is_dynamic || N == Extent))>
     constexpr span(type_identity_t<element_type> (&arr)[N]) noexcept
         : storage(std::data(arr), N) {}
 
-    template <
-        typename U, size_t N,
-        std::enable_if_t<(__is_dynamic || N == Extent) && std::is_convertible_v<U *, T *>,
-                         int> = 0>
+    template <typename U, size_t N,
+              WJR_REQUIRES((__is_dynamic || N == Extent) &&
+                           std::is_convertible_v<U *, T *>)>
     constexpr span(std::array<U, N> &arr) noexcept
         : storage(std::data(arr), std::size(arr)) {}
 
     template <typename U, size_t N,
-              std::enable_if_t<(__is_dynamic || N == Extent) &&
-                                   std::is_convertible_v<const U *, T *>,
-                               int> = 0>
+              WJR_REQUIRES((__is_dynamic || N == Extent) &&
+                           std::is_convertible_v<const U *, T *>)>
     constexpr span(const std::array<U, N> &arr) noexcept
         : storage(std::data(arr), std::size(arr)) {}
 
     template <typename U, size_t N,
-              std::enable_if_t<(__is_dynamic || N == dynamic_extent || N == Extent) &&
-                                   std::is_convertible_v<U *, T *> && __is_dynamic,
-                               int> = 0>
+              WJR_REQUIRES((__is_dynamic || N == dynamic_extent || N == Extent) &&
+                           std::is_convertible_v<U *, T *> && __is_dynamic)>
     constexpr span(const span<U, N> &source) noexcept
         : storage(source.data(), source.size()) {}
 
     template <typename U, size_t N,
-              std::enable_if_t<(__is_dynamic || N == dynamic_extent || N == Extent) &&
-                                   std::is_convertible_v<U *, T *> && !__is_dynamic,
-                               int> = 0>
+              WJR_REQUIRES((__is_dynamic || N == dynamic_extent || N == Extent) &&
+                           std::is_convertible_v<U *, T *> && !__is_dynamic)>
     constexpr explicit span(const span<U, N> &source) noexcept
         : storage(source.data(), source.size()) {}
 
@@ -28391,16 +28328,13 @@ public:
 
     // extension :
 
-    template <typename Container,
-              std::enable_if_t<span_details::__is_span_like_v<Container, element_type> &&
-                                   __is_dynamic,
-                               int> = 0>
+    template <typename Container, WJR_REQUIRES(span_details::__is_span_like_v<
+                                               Container, element_type> &&__is_dynamic)>
     constexpr span(Container &&c) noexcept : storage(std::data(c), std::size(c)) {}
 
     template <typename Container,
-              std::enable_if_t<span_details::__is_span_like_v<Container, element_type> &&
-                                   !__is_dynamic,
-                               int> = 0>
+              WJR_REQUIRES(span_details::__is_span_like_v<Container, element_type> &&
+                           !__is_dynamic)>
     constexpr explicit span(Container &&c) noexcept
         : storage(std::data(c), std::size(c)) {}
 
@@ -28417,12 +28351,11 @@ span(std::array<T, Size> &) -> span<T, Size>;
 template <typename T, size_t Size>
 span(const std::array<T, Size> &) -> span<const T, Size>;
 
-template <typename It, typename End,
-          std::enable_if_t<is_contiguous_iterator_v<It>, int> = 0>
+template <typename It, typename End, WJR_REQUIRES(is_contiguous_iterator_v<It>)>
 span(It, End) -> span<iterator_contiguous_value_t<It>>;
 
 template <typename Container,
-          std::enable_if_t<span_details::__is_container_like_v<Container>, int> = 0>
+          WJR_REQUIRES(span_details::__is_container_like_v<Container>)>
 span(Container &&) -> span<
     iterator_contiguous_value_t<decltype(std::data(std::declval<Container &>()))>>;
 
@@ -28630,11 +28563,9 @@ Iter to_chars_unchecked(Iter ptr, const basic_biginteger<S> &src, unsigned int b
     template <typename S>                                                                \
     WJR_PURE bool operator op(const basic_biginteger<S> &lhs,                            \
                               const basic_biginteger<S> &rhs);                           \
-    template <typename S, typename T,                                                    \
-              std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>                       \
+    template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>            \
     WJR_PURE bool operator op(const basic_biginteger<S> &lhs, T rhs);                    \
-    template <typename S, typename T,                                                    \
-              std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>                       \
+    template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>            \
     WJR_PURE bool operator op(T lhs, const basic_biginteger<S> &rhs);
 
 WJR_REGISTER_BIGINTEGER_COMPARE(==)
@@ -28650,11 +28581,9 @@ WJR_REGISTER_BIGINTEGER_COMPARE(>=)
     template <typename S>                                                                \
     void ADDSUB(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs,                \
                 const basic_biginteger<S> &rhs);                                         \
-    template <typename S, typename T,                                                    \
-              std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>                       \
+    template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>            \
     void ADDSUB(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs, T rhs);        \
-    template <typename S, typename T,                                                    \
-              std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>                       \
+    template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>            \
     void ADDSUB(basic_biginteger<S> &dst, T lhs, const basic_biginteger<S> &rhs);
 
 WJR_REGISTER_BIGINTEGER_ADDSUB(add)
@@ -28715,13 +28644,13 @@ public:
         : m_vec(std::move(other.m_vec), al) {}
 
     template <typename UnsignedValue,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     explicit basic_biginteger(UnsignedValue value,
                               const allocator_type &al = allocator_type())
         : m_vec(value != 0, value, al) {}
 
     template <typename SignedValue,
-              std::enable_if_t<is_nonbool_signed_integral_v<SignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_signed_integral_v<SignedValue>)>
     explicit basic_biginteger(SignedValue value,
                               const allocator_type &al = allocator_type())
         : m_vec(al) {
@@ -28738,7 +28667,7 @@ public:
     }
 
     template <typename UnsignedValue,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     basic_biginteger &operator=(UnsignedValue value) {
         clear();
         if (value != 0) {
@@ -28748,7 +28677,7 @@ public:
     }
 
     template <typename SignedValue,
-              std::enable_if_t<is_nonbool_signed_integral_v<SignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_signed_integral_v<SignedValue>)>
     basic_biginteger &operator=(SignedValue value) {
         clear();
         if (value != 0) {
@@ -28853,7 +28782,7 @@ private:
     static int __compare_ui_impl(const basic_biginteger *lhs, uint64_t rhs);
     static int __compare_si_impl(const basic_biginteger *lhs, int64_t rhs);
 
-    template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     static int __compare_impl(const basic_biginteger *lhs, T rhs) {
         if constexpr (std::is_unsigned_v<T>) {
             return __compare_ui_impl(lhs, rhs);
@@ -28878,7 +28807,7 @@ private:
         __addsub_impl<false>(dst, lhs, rhs);
     }
 
-    template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     static void __add_impl(basic_biginteger *dst, const basic_biginteger *lhs, T rhs) {
         if constexpr (std::is_unsigned_v<T>) {
             __addsub_impl<false>(dst, lhs, rhs);
@@ -28891,7 +28820,7 @@ private:
         }
     }
 
-    template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     static void __add_impl(basic_biginteger *dst, T lhs, const basic_biginteger *rhs) {
         __add_impl(dst, rhs, lhs);
     }
@@ -28901,7 +28830,7 @@ private:
         __addsub_impl<true>(dst, lhs, rhs);
     }
 
-    template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     static void __sub_impl(basic_biginteger *dst, const basic_biginteger *lhs, T rhs) {
         if constexpr (std::is_unsigned_v<T>) {
             __addsub_impl<true>(dst, lhs, rhs);
@@ -28914,7 +28843,7 @@ private:
         }
     }
 
-    template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     static void __sub_impl(basic_biginteger *dst, T lhs, const basic_biginteger *rhs) {
         if constexpr (std::is_unsigned_v<T>) {
             __ui_sub_impl(dst, lhs, rhs);
@@ -28943,9 +28872,9 @@ private:
     template <typename S>                                                                \
     WJR_PURE friend bool operator op(const basic_biginteger<S> &lhs,                     \
                                      const basic_biginteger<S> &rhs);                    \
-    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
     WJR_PURE friend bool operator op(const basic_biginteger<S> &lhs, T rhs);             \
-    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
     WJR_PURE friend bool operator op(T lhs, const basic_biginteger<S> &rhs);
 
     WJR_REGISTER_BIGINTEGER_COMPARE(==)
@@ -28961,9 +28890,9 @@ private:
     template <typename S>                                                                \
     friend void ADDSUB(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs,         \
                        const basic_biginteger<S> &rhs);                                  \
-    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
     friend void ADDSUB(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs, T rhs); \
-    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
     friend void ADDSUB(basic_biginteger<S> &dst, T lhs, const basic_biginteger<S> &rhs);
 
     WJR_REGISTER_BIGINTEGER_ADDSUB(add)
@@ -29416,11 +29345,11 @@ Iter to_chars_unchecked(Iter ptr, const basic_biginteger<S> &src, unsigned int b
                               const basic_biginteger<S> &rhs) {                          \
         return basic_biginteger<S>::__compare_impl(&lhs, &rhs) op 0;                     \
     }                                                                                    \
-    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
     WJR_PURE bool operator op(const basic_biginteger<S> &lhs, T rhs) {                   \
         return basic_biginteger<S>::__compare_impl(&lhs, rhs) op 0;                      \
     }                                                                                    \
-    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
     WJR_PURE bool operator op(T lhs, const basic_biginteger<S> &rhs) {                   \
         return basic_biginteger<S>::__compare_impl(lhs, &rhs) op 0;                      \
     }
@@ -29441,12 +29370,12 @@ WJR_REGISTER_BIGINTEGER_COMPARE(>=)
         basic_biginteger<S>::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, &lhs, \
                                                                              &rhs);      \
     }                                                                                    \
-    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
     void ADDSUB(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs, T rhs) {       \
         basic_biginteger<S>::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, &lhs, \
                                                                              rhs);       \
     }                                                                                    \
-    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
     void ADDSUB(basic_biginteger<S> &dst, T lhs, const basic_biginteger<S> &rhs) {       \
         basic_biginteger<S>::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, lhs,  \
                                                                              &rhs);      \
@@ -29599,17 +29528,15 @@ public:
      * @note Only use from_chars_2 when type of T is uint64_t and CharT is char.
      */
     template <typename CharT, size_t Extent,
-              std::enable_if_t<std::is_same_v<std::remove_const_t<CharT>, char>, int> = 0>
+              WJR_REQUIRES(std::is_same_v<std::remove_const_t<CharT>, char>)>
     explicit basic_dynamic_bitset(const span<CharT, Extent> &sp)
-        : m_vec((sp.size() + block_size - 1) / block_size, dctor),
-          m_bits(sp.size()) {
+        : m_vec((sp.size() + block_size - 1) / block_size, dctor), m_bits(sp.size()) {
         (void)__biginteger_from_chars_2_impl((const uint8_t *)sp.data(), sp.size(),
                                              m_vec.data());
     }
 
-    template <
-        typename CharT, size_t Extent,
-        std::enable_if_t<!std::is_same_v<std::remove_const_t<CharT>, char>, int> = 0>
+    template <typename CharT, size_t Extent,
+              WJR_REQUIRES(!std::is_same_v<std::remove_const_t<CharT>, char>)>
     explicit basic_dynamic_bitset(const span<CharT, Extent> &sp)
         : basic_dynamic_bitset(sp, '0') {}
 
@@ -29622,8 +29549,7 @@ public:
     basic_dynamic_bitset(const span<CharT, Extent> &sp,
                          WJR_MAYBE_UNUSED type_identity_t<CharT> zero,
                          type_identity_t<CharT> one, Equal equal)
-        : m_vec((sp.size() + block_size - 1) / block_size, dctor),
-          m_bits(sp.size()) {
+        : m_vec((sp.size() + block_size - 1) / block_size, dctor), m_bits(sp.size()) {
         auto ptr = sp.data();
         size_type n = sp.size();
         size_type idx = 0;
@@ -29885,8 +29811,7 @@ class tuple;
 
 namespace std {
 
-template <typename... Args,
-          std::enable_if_t<std::conjunction_v<wjr::is_swappable<Args>...>, int> = 0>
+template <typename... Args, WJR_REQUIRES(std::conjunction_v<wjr::is_swappable<Args>...>)>
 constexpr void swap(wjr::tuple<Args...> &lhs,
                     wjr::tuple<Args...> &rhs) noexcept(noexcept(lhs.swap(rhs)));
 
@@ -29949,17 +29874,14 @@ class WJR_EMPTY_BASES tuple_impl<std::index_sequence<Indexs...>, Args...>
     constexpr static size_t Size = sizeof...(Args);
 
 public:
-    template <
-        typename S = Sequence,
-        std::enable_if_t<std::conjunction_v<std::is_same<S, Sequence>,
-                                            std::is_constructible<Mybase<Indexs>>...>,
-                         int> = 0>
+    template <typename S = Sequence,
+              WJR_REQUIRES(std::conjunction_v<std::is_same<S, Sequence>,
+                                              std::is_constructible<Mybase<Indexs>>...>)>
     constexpr tuple_impl(Sequence) : Mybase2(enable_default_constructor) {}
 
     template <size_t... _Indexs, typename... _Args,
-              std::enable_if_t<
-                  std::conjunction_v<std::is_constructible<Mybase<_Indexs>, _Args>...>,
-                  int> = 0>
+              WJR_REQUIRES(
+                  std::conjunction_v<std::is_constructible<Mybase<_Indexs>, _Args>...>)>
     constexpr tuple_impl(std::index_sequence<_Indexs...>, _Args &&...args)
         : Mybase<_Indexs>(std::forward<_Args>(args))...,
           Mybase2(enable_default_constructor) {}
@@ -30019,27 +29941,24 @@ class tuple<This, Args...>
 
 public:
     template <typename T = This,
-              std::enable_if_t<std::conjunction_v<std::is_default_constructible<T>,
-                                                  std::is_constructible<Impl, Sequence>>,
-                               int> = 0>
+              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
+                                              std::is_constructible<Impl, Sequence>>)>
     constexpr tuple() : Mybase(enable_default_constructor), m_impl(Sequence()) {}
 
     template <typename Other = This,
-              std::enable_if_t<
-                  std::is_constructible_v<Impl, Sequence, const Other &, const Args &...>,
-                  int> = 0>
+              WJR_REQUIRES(std::is_constructible_v<Impl, Sequence, const Other &,
+                                                   const Args &...>)>
     constexpr tuple(const Other &first, const Args &...rest)
         : Mybase(enable_default_constructor), m_impl(Sequence(), first, rest...) {}
 
-    template <typename Other, typename... _Args,
-              std::enable_if_t<
-                  sizeof...(_Args) + 1 == Size &&
-                      std::conjunction_v<
-                          std::negation<std::conjunction<
-                              std::is_same<This, std::remove_reference_t<Other>>,
-                              std::is_same<Args, std::remove_reference_t<_Args>>...>>,
-                          std::is_constructible<Impl, Sequence, Other &&, _Args &&...>>,
-                  int> = 0>
+    template <
+        typename Other, typename... _Args,
+        WJR_REQUIRES(sizeof...(_Args) + 1 == Size &&
+                     std::conjunction_v<
+                         std::negation<std::conjunction<
+                             std::is_same<This, std::remove_reference_t<Other>>,
+                             std::is_same<Args, std::remove_reference_t<_Args>>...>>,
+                         std::is_constructible<Impl, Sequence, Other &&, _Args &&...>>)>
     constexpr tuple(Other &&other, _Args &&...args)
         : Mybase(enable_default_constructor),
           m_impl(Sequence(), std::forward<Other>(other), std::forward<_Args>(args)...) {}
@@ -30052,8 +29971,7 @@ private:
 
 public:
     template <typename TupleLike,
-              std::enable_if_t<
-                  __is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>, int> = 0>
+              WJR_REQUIRES(__is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>)>
     constexpr tuple(TupleLike &&other)
         : tuple(Sequence(), std::forward<TupleLike>(other), in_place_empty) {}
 
@@ -30067,8 +29985,7 @@ private:
 
 public:
     template <typename TupleLike,
-              std::enable_if_t<
-                  __is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>, int> = 0>
+              WJR_REQUIRES(__is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>)>
     constexpr tuple &operator=(TupleLike &&other) {
         __assign(Sequence(), std::forward<TupleLike>(other));
         return *this;
@@ -30240,7 +30157,7 @@ constexpr bool operator>=(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs
 namespace std {
 
 template <typename... Args,
-          std::enable_if_t<std::conjunction_v<wjr::is_swappable<Args>...>, int>>
+          WJR_REQUIRES_I(std::conjunction_v<wjr::is_swappable<Args>...>)>
 constexpr void swap(wjr::tuple<Args...> &lhs,
                     wjr::tuple<Args...> &rhs) noexcept(noexcept(lhs.swap(rhs))) {
     lhs.swap(rhs);

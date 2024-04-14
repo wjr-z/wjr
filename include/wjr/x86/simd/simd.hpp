@@ -284,21 +284,18 @@ struct sse {
     WJR_INTRINSIC_INLINE static __m128i loadu_si64(const void *ptr);
 
     template <typename T,
-              std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                           uint16_t, uint32_t, uint64_t>,
-                               int> = 0>
+              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                       uint16_t, uint32_t, uint64_t>)>
     WJR_INTRINSIC_INLINE static __m128i logical_and(__m128i a, __m128i b, T);
 
     template <typename T,
-              std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                           uint16_t, uint32_t, uint64_t>,
-                               int> = 0>
+              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                       uint16_t, uint32_t, uint64_t>)>
     WJR_INTRINSIC_INLINE static __m128i logical_not(__m128i v, T);
 
     template <typename T,
-              std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                           uint16_t, uint32_t, uint64_t>,
-                               int> = 0>
+              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                       uint16_t, uint32_t, uint64_t>)>
     WJR_INTRINSIC_INLINE static __m128i logical_or(__m128i a, __m128i b, T);
 
     WJR_INTRINSIC_INLINE static __m128i madd_epi16(__m128i a, __m128i b);
@@ -1112,21 +1109,18 @@ struct avx {
     WJR_INTRINSIC_INLINE static __m256i hsubs_epi16(__m256i a, __m256i b);
 
     template <typename T,
-              std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                           uint16_t, uint32_t, uint64_t>,
-                               int> = 0>
+              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                       uint16_t, uint32_t, uint64_t>)>
     WJR_INTRINSIC_INLINE static __m256i logical_and(__m256i a, __m256i b, T);
 
     template <typename T,
-              std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                           uint16_t, uint32_t, uint64_t>,
-                               int> = 0>
+              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                       uint16_t, uint32_t, uint64_t>)>
     WJR_INTRINSIC_INLINE static __m256i logical_not(__m256i v, T);
 
     template <typename T,
-              std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
-                                           uint16_t, uint32_t, uint64_t>,
-                               int> = 0>
+              WJR_REQUIRES(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                       uint16_t, uint32_t, uint64_t>)>
     WJR_INTRINSIC_INLINE static __m256i logical_or(__m256i a, __m256i b, T);
 
     WJR_INTRINSIC_INLINE static __m256i madd_epi16(__m256i a, __m256i b);
@@ -1985,24 +1979,24 @@ __m128i sse::loadu_si64(const void *ptr) {
     return simd_cast<uint64_t, __m128i_t>(read_memory<uint64_t>(ptr));
 }
 
-template <typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
-                                                   uint8_t, uint16_t, uint32_t, uint64_t>,
-                                       int>>
+template <typename T,
+          WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                        uint16_t, uint32_t, uint64_t>)>
 __m128i sse::logical_and(__m128i a, __m128i b, T) {
     return Not(Or(logical_not(a, T()), logical_not(b, T())));
 }
 
-template <typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
-                                                   uint8_t, uint16_t, uint32_t, uint64_t>,
-                                       int>>
+template <typename T,
+          WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                        uint16_t, uint32_t, uint64_t>)>
 __m128i sse::logical_not(__m128i v, T) {
     auto Zero = zeros();
     return cmpeq(v, Zero, T());
 }
 
-template <typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
-                                                   uint8_t, uint16_t, uint32_t, uint64_t>,
-                                       int>>
+template <typename T,
+          WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                        uint16_t, uint32_t, uint64_t>)>
 __m128i sse::logical_or(__m128i a, __m128i b, T) {
     return Not(logical_not(Or(a, b), T()));
 }
@@ -3343,24 +3337,24 @@ __m256i avx::hsub(__m256i a, __m256i b, int32_t) { return hsub_epi32(a, b); }
 
 __m256i avx::hsubs_epi16(__m256i a, __m256i b) { return _mm256_hsubs_epi16(a, b); }
 
-template <typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
-                                                   uint8_t, uint16_t, uint32_t, uint64_t>,
-                                       int>>
+template <typename T,
+          WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                        uint16_t, uint32_t, uint64_t>)>
 __m256i avx::logical_and(__m256i a, __m256i b, T) {
     return Not(Or(logical_not(a, T()), logical_not(b, T())));
 }
 
-template <typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
-                                                   uint8_t, uint16_t, uint32_t, uint64_t>,
-                                       int>>
+template <typename T,
+          WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                        uint16_t, uint32_t, uint64_t>)>
 __m256i avx::logical_not(__m256i v, T) {
     auto Zero = zeros();
     return cmpeq(v, Zero, T());
 }
 
-template <typename T, std::enable_if_t<is_any_of_v<T, int8_t, int16_t, int32_t, int64_t,
-                                                   uint8_t, uint16_t, uint32_t, uint64_t>,
-                                       int>>
+template <typename T,
+          WJR_REQUIRES_I(is_any_of_v<T, int8_t, int16_t, int32_t, int64_t, uint8_t,
+                                        uint16_t, uint32_t, uint64_t>)>
 __m256i avx::logical_or(__m256i a, __m256i b, T) {
     return Not(logical_not(Or(a, b), T()));
 }

@@ -208,11 +208,9 @@ Iter to_chars_unchecked(Iter ptr, const basic_biginteger<S> &src, unsigned int b
     template <typename S>                                                                \
     WJR_PURE bool operator op(const basic_biginteger<S> &lhs,                            \
                               const basic_biginteger<S> &rhs);                           \
-    template <typename S, typename T,                                                    \
-              std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>                       \
+    template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>            \
     WJR_PURE bool operator op(const basic_biginteger<S> &lhs, T rhs);                    \
-    template <typename S, typename T,                                                    \
-              std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>                       \
+    template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>            \
     WJR_PURE bool operator op(T lhs, const basic_biginteger<S> &rhs);
 
 WJR_REGISTER_BIGINTEGER_COMPARE(==)
@@ -228,11 +226,9 @@ WJR_REGISTER_BIGINTEGER_COMPARE(>=)
     template <typename S>                                                                \
     void ADDSUB(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs,                \
                 const basic_biginteger<S> &rhs);                                         \
-    template <typename S, typename T,                                                    \
-              std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>                       \
+    template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>            \
     void ADDSUB(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs, T rhs);        \
-    template <typename S, typename T,                                                    \
-              std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>                       \
+    template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>            \
     void ADDSUB(basic_biginteger<S> &dst, T lhs, const basic_biginteger<S> &rhs);
 
 WJR_REGISTER_BIGINTEGER_ADDSUB(add)
@@ -293,13 +289,13 @@ public:
         : m_vec(std::move(other.m_vec), al) {}
 
     template <typename UnsignedValue,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     explicit basic_biginteger(UnsignedValue value,
                               const allocator_type &al = allocator_type())
         : m_vec(value != 0, value, al) {}
 
     template <typename SignedValue,
-              std::enable_if_t<is_nonbool_signed_integral_v<SignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_signed_integral_v<SignedValue>)>
     explicit basic_biginteger(SignedValue value,
                               const allocator_type &al = allocator_type())
         : m_vec(al) {
@@ -316,7 +312,7 @@ public:
     }
 
     template <typename UnsignedValue,
-              std::enable_if_t<is_nonbool_unsigned_integral_v<UnsignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     basic_biginteger &operator=(UnsignedValue value) {
         clear();
         if (value != 0) {
@@ -326,7 +322,7 @@ public:
     }
 
     template <typename SignedValue,
-              std::enable_if_t<is_nonbool_signed_integral_v<SignedValue>, int> = 0>
+              WJR_REQUIRES(is_nonbool_signed_integral_v<SignedValue>)>
     basic_biginteger &operator=(SignedValue value) {
         clear();
         if (value != 0) {
@@ -431,7 +427,7 @@ private:
     static int __compare_ui_impl(const basic_biginteger *lhs, uint64_t rhs);
     static int __compare_si_impl(const basic_biginteger *lhs, int64_t rhs);
 
-    template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     static int __compare_impl(const basic_biginteger *lhs, T rhs) {
         if constexpr (std::is_unsigned_v<T>) {
             return __compare_ui_impl(lhs, rhs);
@@ -456,7 +452,7 @@ private:
         __addsub_impl<false>(dst, lhs, rhs);
     }
 
-    template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     static void __add_impl(basic_biginteger *dst, const basic_biginteger *lhs, T rhs) {
         if constexpr (std::is_unsigned_v<T>) {
             __addsub_impl<false>(dst, lhs, rhs);
@@ -469,7 +465,7 @@ private:
         }
     }
 
-    template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     static void __add_impl(basic_biginteger *dst, T lhs, const basic_biginteger *rhs) {
         __add_impl(dst, rhs, lhs);
     }
@@ -479,7 +475,7 @@ private:
         __addsub_impl<true>(dst, lhs, rhs);
     }
 
-    template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     static void __sub_impl(basic_biginteger *dst, const basic_biginteger *lhs, T rhs) {
         if constexpr (std::is_unsigned_v<T>) {
             __addsub_impl<true>(dst, lhs, rhs);
@@ -492,7 +488,7 @@ private:
         }
     }
 
-    template <typename T, std::enable_if_t<is_nonbool_integral_v<T>, int> = 0>
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     static void __sub_impl(basic_biginteger *dst, T lhs, const basic_biginteger *rhs) {
         if constexpr (std::is_unsigned_v<T>) {
             __ui_sub_impl(dst, lhs, rhs);
@@ -521,9 +517,9 @@ private:
     template <typename S>                                                                \
     WJR_PURE friend bool operator op(const basic_biginteger<S> &lhs,                     \
                                      const basic_biginteger<S> &rhs);                    \
-    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
     WJR_PURE friend bool operator op(const basic_biginteger<S> &lhs, T rhs);             \
-    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
     WJR_PURE friend bool operator op(T lhs, const basic_biginteger<S> &rhs);
 
     WJR_REGISTER_BIGINTEGER_COMPARE(==)
@@ -539,9 +535,9 @@ private:
     template <typename S>                                                                \
     friend void ADDSUB(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs,         \
                        const basic_biginteger<S> &rhs);                                  \
-    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
     friend void ADDSUB(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs, T rhs); \
-    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
     friend void ADDSUB(basic_biginteger<S> &dst, T lhs, const basic_biginteger<S> &rhs);
 
     WJR_REGISTER_BIGINTEGER_ADDSUB(add)
@@ -994,11 +990,11 @@ Iter to_chars_unchecked(Iter ptr, const basic_biginteger<S> &src, unsigned int b
                               const basic_biginteger<S> &rhs) {                          \
         return basic_biginteger<S>::__compare_impl(&lhs, &rhs) op 0;                     \
     }                                                                                    \
-    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
     WJR_PURE bool operator op(const basic_biginteger<S> &lhs, T rhs) {                   \
         return basic_biginteger<S>::__compare_impl(&lhs, rhs) op 0;                      \
     }                                                                                    \
-    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
     WJR_PURE bool operator op(T lhs, const basic_biginteger<S> &rhs) {                   \
         return basic_biginteger<S>::__compare_impl(lhs, &rhs) op 0;                      \
     }
@@ -1019,12 +1015,12 @@ WJR_REGISTER_BIGINTEGER_COMPARE(>=)
         basic_biginteger<S>::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, &lhs, \
                                                                              &rhs);      \
     }                                                                                    \
-    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
     void ADDSUB(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs, T rhs) {       \
         basic_biginteger<S>::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, &lhs, \
                                                                              rhs);       \
     }                                                                                    \
-    template <typename S, typename T, std::enable_if_t<is_nonbool_integral_v<T>, int>>   \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
     void ADDSUB(basic_biginteger<S> &dst, T lhs, const basic_biginteger<S> &rhs) {       \
         basic_biginteger<S>::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, lhs,  \
                                                                              &rhs);      \

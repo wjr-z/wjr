@@ -107,4 +107,7 @@
 #define WJR_CATCH_L3(X) WJR_CATCH_L(3, X)
 #define WJR_THROW_L3(X) WJR_THROW_L(3, X)
 
+#define WJR_REQUIRES(...) std::enable_if_t<(__VA_ARGS__), int> = 0
+#define WJR_REQUIRES_I(...) std::enable_if_t<(__VA_ARGS__), int>
+
 #endif // ! WJR_PREPROCESSOR_PREVIEW_HPP__

@@ -37,10 +37,8 @@ WJR_REGISTER_HAS_TYPE(__container_append,
 
 template <typename Container>
 struct resize_fn_impl_base {
-    template <
-        typename... Args,
-        std::enable_if_t<container_details::has___container_resize_v<Container, Args...>,
-                         int> = 0>
+    template <typename... Args, WJR_REQUIRES(container_details::has___container_resize_v<
+                                             Container, Args...>)>
     WJR_INTRINSIC_INLINE static void resize(Container &cont, Args &&...args) {
         cont.resize(std::forward<Args>(args)...);
     }
@@ -60,10 +58,8 @@ inline constexpr resize_fn resize{};
 
 template <typename Container>
 struct append_fn_impl_base {
-    template <
-        typename... Args,
-        std::enable_if_t<container_details::has___container_append_v<Container, Args...>,
-                         int> = 0>
+    template <typename... Args, WJR_REQUIRES(container_details::has___container_append_v<
+                                             Container, Args...>)>
     WJR_INTRINSIC_INLINE static void append(Container &cont, Args &&...args) {
         cont.append(std::forward<Args>(args)...);
     }
@@ -178,18 +174,16 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
     template <>                                                                          \
     struct resize_fn_impl<Container> : resize_fn_impl_base<Container> {                  \
         using resize_fn_impl_base<Container>::resize;                                    \
-        WJR_INTRINSIC_INLINE static void resize(Container &cont,                         \
-                                                typename Container::size_type sz,        \
-                                                dctor_t) {          \
+        WJR_INTRINSIC_INLINE static void                                                 \
+        resize(Container &cont, typename Container::size_type sz, dctor_t) {             \
             __uninitialized_resize(cont, sz);                                            \
         }                                                                                \
     };                                                                                   \
     template <>                                                                          \
     struct append_fn_impl<Container> : append_fn_impl_base<Container> {                  \
         using append_fn_impl_base<Container>::append;                                    \
-        WJR_INTRINSIC_INLINE static void append(Container &cont,                         \
-                                                typename Container::size_type sz,        \
-                                                dctor_t) {          \
+        WJR_INTRINSIC_INLINE static void                                                 \
+        append(Container &cont, typename Container::size_type sz, dctor_t) {             \
             __uninitialized_resize(cont, cont.size() + sz);                              \
         }                                                                                \
     }
@@ -222,12 +216,10 @@ WJR_REGISTER_HAS_TYPE(container_insert,
 
 } // namespace container_details
 
-template <
-    typename Container, typename Size,
-    std::enable_if_t<container_details::has_container_resize_v<Container, Size>, int> = 0>
+template <typename Container, typename Size,
+          WJR_REQUIRES(container_details::has_container_resize_v<Container, Size>)>
 WJR_INTRINSIC_INLINE void try_uninitialized_resize(Container &cont, Size sz) {
-    if constexpr (container_details::has_container_resize_v<
-                      Container, Size, dctor_t>) {
+    if constexpr (container_details::has_container_resize_v<Container, Size, dctor_t>) {
         resize(cont, sz, dctor);
     } else {
         resize(cont, sz);
