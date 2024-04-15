@@ -4740,10 +4740,6 @@ inline constexpr __assert_handler_t __assert_handler{};
 #include <string>
 #include <vector>
 
-#ifndef WJR_STRING_HPP__
-#define WJR_STRING_HPP__
-
-#endif // WJR_STRING_HPP__
 #ifndef WJR_VECTOR_HPP__
 #define WJR_VECTOR_HPP__
 
@@ -8918,12 +8914,6 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int fallback_clz_impl(T x) {
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int fallback_clz(T x) {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-    if (WJR_UNLIKELY(x == 0)) {
-        return nd;
-    }
-
     return fallback_clz_impl(x);
 }
 
@@ -8957,12 +8947,6 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz_impl(T x) {
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-    if (WJR_UNLIKELY(x == 0)) {
-        return nd;
-    }
-
     return builtin_clz_impl(x);
 }
 
@@ -8988,8 +8972,9 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz_impl(T x) {
  */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz(T x) {
+    WJR_ASSERT_ASSUME_L1(x != 0);
     int ret = clz_impl(x);
-    WJR_ASSUME(0 <= ret && ret <= std::numeric_limits<T>::digits);
+    WJR_ASSUME(0 <= ret && ret < std::numeric_limits<T>::digits);
     return ret;
 }
 
@@ -9028,12 +9013,6 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int fallback_ctz_impl(T x) {
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int fallback_ctz(T x) {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-    if (WJR_UNLIKELY(x == 0)) {
-        return nd;
-    }
-
     return fallback_ctz_impl(x);
 }
 
@@ -9064,12 +9043,6 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz_impl(T x) {
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-    if (WJR_UNLIKELY(x == 0)) {
-        return nd;
-    }
-
     return builtin_ctz_impl(x);
 }
 
@@ -9101,8 +9074,9 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int ctz_impl(T x) {
  */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int ctz(T x) {
+    WJR_ASSERT_ASSUME_L1(x != 0);
     int ret = ctz_impl(x);
-    WJR_ASSUME(0 <= ret && ret <= std::numeric_limits<T>::digits);
+    WJR_ASSUME(0 <= ret && ret < std::numeric_limits<T>::digits);
     return ret;
 }
 
@@ -9120,11 +9094,19 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool has_single_bit(T n) noexcept {
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int countl_zero(T x) noexcept {
+    if (WJR_UNLIKELY(x == 0)) {
+        return std::numeric_limits<T>::digits;
+    }
+
     return clz(x);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int countr_zero(T x) noexcept {
+    if (WJR_UNLIKELY(x == 0)) {
+        return std::numeric_limits<T>::digits;
+    }
+
     return ctz(x);
 }
 
@@ -20341,7 +20323,7 @@ WJR_INTRINSIC_CONSTEXPR_E T mul_1(T *dst, const T *src, size_t n, type_identity_
     }
 
     if (WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(ml)) && is_zero_or_single_bit(ml)) {
-        unsigned int k = ctz(ml);
+        unsigned int k = countr_zero(ml);
         return lshift_n(dst, src, n, k);
     }
 
@@ -20402,7 +20384,7 @@ WJR_INTRINSIC_CONSTEXPR_E T addmul_1(T *dst, const T *src, size_t n,
     }
 
     if (WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(ml)) && is_zero_or_single_bit(ml)) {
-        unsigned int c = ctz(ml);
+        unsigned int c = countr_zero(ml);
         return addlsh_n(dst, dst, src, n, c);
     }
 
@@ -23691,7 +23673,6 @@ public:
 
 private:
     WJR_INTRINSIC_CONSTEXPR_E void initialize() {
-
         if (WJR_UNLIKELY(!(m_divisor & 1))) {
             m_shift = ctz(m_divisor);
             m_divisor >>= m_shift;
@@ -24041,6 +24022,7 @@ template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         type_identity_t<T> div) {
     WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_ASSUME(div != 0);
 
     if (WJR_UNLIKELY(is_zero_or_single_bit(div))) {
         unsigned int c = ctz(div);
@@ -24694,12 +24676,14 @@ WJR_CONSTEXPR_E void divexact_byc(T *dst, const T *src, size_t n,
 
     auto __resolve = [dst, n](auto cr) {
         constexpr T r = get_place_index_v<remove_cvref_t<decltype(cr)>>;
-        constexpr auto p = fallback_ctz(c / r);
-        if constexpr (p != 0) {
-            rshift_n(dst, dst, n, p);
-        } else {
-            (void)(dst);
-            (void)(n);
+        if constexpr (c >= r) {
+            constexpr auto p = fallback_ctz(c / r);
+            if constexpr (p != 0) {
+                rshift_n(dst, dst, n, p);
+            } else {
+                (void)(dst);
+                (void)(n);
+            }
         }
     };
 
@@ -24837,6 +24821,7 @@ template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           type_identity_t<T> div) {
     WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_ASSUME(div != 0);
 
     if (WJR_UNLIKELY(is_zero_or_single_bit(div))) {
         unsigned int c = ctz(div);
@@ -30256,7 +30241,121 @@ using bitset = basic_dynamic_bitset<>;
 } // namespace wjr
 
 #endif // WJR_CONTAINER_GENERIC_DYNAMIC_BITSET_HPP__
+#ifndef WJR_JSON_LEXER_HPP__
+#define WJR_JSON_LEXER_HPP__
 
+#ifndef WJR_JSON_LEXER_IMPL_HPP__
+#define WJR_JSON_LEXER_IMPL_HPP__
+
+#include <cstdint>
+
+// Already included
+
+namespace wjr::json {
+
+struct basic_lexer {
+    basic_lexer(const char *first, const char *last) : first(first), last(last) {}
+
+    basic_lexer() = delete;
+    basic_lexer(const basic_lexer &) = default;
+    basic_lexer &operator=(const basic_lexer &) = default;
+    ~basic_lexer() = default;
+
+    const char *first;
+    const char *last;
+
+    uint64_t prev_in_string = 0;
+    uint64_t prev_is_escape = 0;
+    uint64_t prev_is_ws = 0;
+
+    uint32_t idx = 0;
+    uint32_t *token_first = nullptr;
+    uint32_t *token_last = nullptr;
+    alignas(16) uint32_t token_buf[64 * 2 - 1];
+};
+
+class lexer {
+public:
+    lexer(span<const char> sp) : lex(sp.begin(), sp.end()) {}
+
+    lexer() = delete;
+    lexer(const lexer &) = default;
+    lexer &operator=(const lexer &) = default;
+    ~lexer() = default;
+
+    WJR_NODISCARD bool next(uint32_t &);
+
+private:
+    bool read_token();
+
+    basic_lexer lex;
+};
+
+} // namespace wjr::json
+
+#endif // WJR_JSON_LEXER_IMPL_HPP__
+// Already included
+
+#if defined(WJR_X86)
+#ifndef WJR_X86_JSON_LEXER_HPP__
+#define WJR_X86_JSON_LEXER_HPP__
+
+// Already included
+// Already included
+
+namespace wjr::json {
+
+#if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(SIMD)
+#define WJR_HAS_BUILTIN_JSON_READ_TOKEN_BUFFER WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(JSON_READ_TOKEN_BUFFER)
+extern bool builtin_read_token_buffer(basic_lexer &lex) noexcept;
+#endif
+
+} // namespace wjr::json
+
+#endif // WJR_X86_JSON_LEXER_HPP__
+#endif
+
+namespace wjr::json {
+
+bool lexer::next(uint32_t &value) {
+    if (WJR_LIKELY(lex.token_first != lex.token_last)) {
+        value = *lex.token_first++;
+        return true;
+    }
+
+    if (WJR_UNLIKELY(!read_token())) {
+        return false;
+    }
+
+    value = *lex.token_first++;
+    return true;
+}
+
+inline void fallback_read_token_buffer(basic_lexer &lex) { (void)lex; }
+
+inline bool read_token_buffer(basic_lexer &lex) {
+#if !WJR_HAS_BUILTIN(JSON_READ_TOKEN_BUFFER)
+    fallback_read_token_buffer(lex);
+#else
+    return builtin_read_token_buffer(lex);
+#endif
+}
+
+bool lexer::read_token() {
+    if (WJR_UNLIKELY(lex.first == lex.last)) {
+        return false;
+    }
+
+    lex.token_first = lex.token_last = lex.token_buf;
+    return read_token_buffer(lex);
+}
+
+} // namespace wjr::json
+
+#endif // WJR_JSON_LEXER_HPP__
 // Already included
 // Already included
 // Already included

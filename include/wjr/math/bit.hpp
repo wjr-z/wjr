@@ -14,11 +14,19 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool has_single_bit(T n) noexcept {
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int countl_zero(T x) noexcept {
+    if (WJR_UNLIKELY(x == 0)) {
+        return std::numeric_limits<T>::digits;
+    }
+
     return clz(x);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int countr_zero(T x) noexcept {
+    if (WJR_UNLIKELY(x == 0)) {
+        return std::numeric_limits<T>::digits;
+    }
+
     return ctz(x);
 }
 

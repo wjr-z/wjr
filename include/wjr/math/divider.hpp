@@ -446,7 +446,6 @@ public:
 
 private:
     WJR_INTRINSIC_CONSTEXPR_E void initialize() {
-
         if (WJR_UNLIKELY(!(m_divisor & 1))) {
             m_shift = ctz(m_divisor);
             m_divisor >>= m_shift;

@@ -255,6 +255,7 @@ template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         type_identity_t<T> div) {
     WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_ASSUME(div != 0);
 
     if (WJR_UNLIKELY(is_zero_or_single_bit(div))) {
         unsigned int c = ctz(div);
@@ -908,12 +909,14 @@ WJR_CONSTEXPR_E void divexact_byc(T *dst, const T *src, size_t n,
 
     auto __resolve = [dst, n](auto cr) {
         constexpr T r = get_place_index_v<remove_cvref_t<decltype(cr)>>;
-        constexpr auto p = fallback_ctz(c / r);
-        if constexpr (p != 0) {
-            rshift_n(dst, dst, n, p);
-        } else {
-            (void)(dst);
-            (void)(n);
+        if constexpr (c >= r) {
+            constexpr auto p = fallback_ctz(c / r);
+            if constexpr (p != 0) {
+                rshift_n(dst, dst, n, p);
+            } else {
+                (void)(dst);
+                (void)(n);
+            }
         }
     };
 
@@ -1051,6 +1054,7 @@ template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           type_identity_t<T> div) {
     WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_ASSUME(div != 0);
 
     if (WJR_UNLIKELY(is_zero_or_single_bit(div))) {
         unsigned int c = ctz(div);

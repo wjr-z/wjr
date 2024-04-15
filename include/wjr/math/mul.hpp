@@ -10,7 +10,7 @@
 #include <wjr/math/div-impl.hpp>
 
 #include <wjr/math/add.hpp>
-#include <wjr/math/ctz.hpp>
+#include <wjr/math/bit.hpp>
 #include <wjr/math/shift.hpp>
 #include <wjr/math/sub.hpp>
 
@@ -180,7 +180,7 @@ WJR_INTRINSIC_CONSTEXPR_E T mul_1(T *dst, const T *src, size_t n, type_identity_
     }
 
     if (WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(ml)) && is_zero_or_single_bit(ml)) {
-        unsigned int k = ctz(ml);
+        unsigned int k = countr_zero(ml);
         return lshift_n(dst, src, n, k);
     }
 
@@ -241,7 +241,7 @@ WJR_INTRINSIC_CONSTEXPR_E T addmul_1(T *dst, const T *src, size_t n,
     }
 
     if (WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(ml)) && is_zero_or_single_bit(ml)) {
-        unsigned int c = ctz(ml);
+        unsigned int c = countr_zero(ml);
         return addlsh_n(dst, dst, src, n, c);
     }
 

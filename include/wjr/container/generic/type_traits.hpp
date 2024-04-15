@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-#include <wjr/string.hpp>
 #include <wjr/vector.hpp>
 
 namespace wjr {

@@ -52,12 +52,6 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int fallback_clz_impl(T x) {
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int fallback_clz(T x) {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-    if (WJR_UNLIKELY(x == 0)) {
-        return nd;
-    }
-
     return fallback_clz_impl(x);
 }
 
@@ -91,12 +85,6 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz_impl(T x) {
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-    if (WJR_UNLIKELY(x == 0)) {
-        return nd;
-    }
-
     return builtin_clz_impl(x);
 }
 
@@ -122,8 +110,9 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz_impl(T x) {
  */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz(T x) {
+    WJR_ASSERT_ASSUME_L1(x != 0);
     int ret = clz_impl(x);
-    WJR_ASSUME(0 <= ret && ret <= std::numeric_limits<T>::digits);
+    WJR_ASSUME(0 <= ret && ret < std::numeric_limits<T>::digits);
     return ret;
 }
 
