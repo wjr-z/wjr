@@ -7,6 +7,31 @@
 
 namespace wjr::json {
 
+struct lexer_iterator_struct {
+    uint32_t *token_ptr = nullptr;
+
+    uint64_t prev_in_string = 0;
+    uint64_t prev_is_escape = 0;
+    uint64_t prev_is_ws = 0;
+
+    uint32_t idx = 0;
+};
+
+struct lexer_iterator_end {};
+
+class lexer_iterator {
+    static constexpr unsigned int token_buf_size = 64;
+
+public:
+private:
+    lexer_iterator_struct lex;
+
+    const char *first;
+    const char *last;
+    unsigned int count = 0;
+    uint32_t token_buf[token_buf_size * 2 - 1];
+};
+
 struct basic_lexer {
     basic_lexer(const char *first, const char *last) : first(first), last(last) {}
 

@@ -1,6 +1,7 @@
 #include "details.hpp"
 
 #include <wjr/compressed_pair.hpp>
+#include <wjr/tuple.hpp>
 
 using namespace wjr;
 
@@ -12,29 +13,58 @@ struct disable_construct : enable_default_constructor_base<false, disable_constr
 };
 
 TEST(compressed_pair, constructor) {
+    using cpi2 = compressed_pair<int, int>;
+    using cpis = compressed_pair<int, std::string>;
+    static_assert(std::is_trivially_copyable_v<cpi2>, "trivially copyable error");
+    static_assert(!std::is_trivially_copyable_v<cpis>, "trivially copyable error");
+
     {
-        using type = compressed_pair<int, int>;
-        static_assert(std::is_trivially_copyable_v<type>, "trivially copyable error");
-        type a;
+        cpi2 a;
         WJR_ASSERT(a.first() == 0);
         WJR_ASSERT(a.second() == 0);
-        type b(dctor, dctor);
-        type c(dctor, 3);
+        cpi2 b(dctor, dctor);
+        cpi2 c(dctor, 3);
         (void)(b);
         WJR_ASSERT(c.second() == 3);
-    }
 
-    {
-        compressed_pair<int, int> a(1, 2);
+        a = std::make_pair(1, 2);
         WJR_ASSERT(a.first() == 1);
         WJR_ASSERT(a.second() == 2);
+
+        a = std::make_tuple(3, 4);
+        WJR_ASSERT(a.first() == 3);
+        WJR_ASSERT(a.second() == 4);
+
+        a = make_compressed_pair(5, 6);
+        WJR_ASSERT(a.first() == 5);
+        WJR_ASSERT(a.second() == 6);
+
+        a = std::array<char, 2>{7, 8};
+        WJR_ASSERT(a.first() == 7);
+        WJR_ASSERT(a.second() == 8);
     }
 
     {
-        compressed_pair<int, int> a(1, 2);
-        compressed_pair<int, int> b(a);
-        compressed_pair<int, int> c(std::move(a));
-        compressed_pair<int, int> d = c;
+        tuple<int, int> a(1, 2);
+
+        cpi2 b(std::make_pair(1, 3));
+        WJR_ASSERT(b.first() == 1);
+        WJR_ASSERT(b.second() == 3);
+
+        auto [x, y] = a;
+        WJR_ASSERT(x == 1);
+        WJR_ASSERT(y == 2);
+
+        auto &[z, w] = a;
+        z = 5;
+        w = 6;
+    }
+
+    {
+        cpi2 a(1, 2);
+        cpi2 b(a);
+        cpi2 c(std::move(a));
+        cpi2 d = c;
 
         WJR_ASSERT(b.first() == 1);
         WJR_ASSERT(b.second() == 2);
@@ -45,9 +75,7 @@ TEST(compressed_pair, constructor) {
     }
 
     {
-        using type = compressed_pair<int, std::string>;
-        static_assert(!std::is_trivially_copyable_v<type>, "trivially copyable error");
-        type a(1, "hello");
+        cpis a(1, "hello");
         WJR_ASSERT(a.first() == 1);
         WJR_ASSERT(a.second() == "hello");
     }

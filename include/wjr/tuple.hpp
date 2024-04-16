@@ -196,9 +196,9 @@ public:
 private:
     template <size_t... _Indexs, typename Container>
     constexpr void __assign(std::index_sequence<_Indexs...>, Container &&other) {
-        (void)((this->template get<_Indexs>() =
-                    std::get<_Indexs>(std::forward<Container>(other))),
-               ...);
+        ((this->template get<_Indexs>() =
+              std::get<_Indexs>(std::forward<Container>(other))),
+         ...);
     }
 
 public:

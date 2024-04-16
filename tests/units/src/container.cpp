@@ -14,7 +14,9 @@ const static int __int2 = 123;
 const static std::string __string = std::string("wjr");
 const static std::string __string2 = std::string("abc");
 
-static_assert(sizeof(wjr::sso_vector<char, 16>) <= 32, "");
+using namespace wjr;
+
+static_assert(sizeof(sso_vector<char, 16>) <= 32, "");
 
 template <typename T, typename Func>
 void for_each_n(T *first, size_t n, Func fn) {
@@ -120,7 +122,11 @@ struct random_string_fn {
 inline constexpr random_string_fn random_string = {};
 
 template <typename T>
-using wvector = wjr::vector<T>;
+using wvector = vector<T>;
+
+template class basic_vector<default_vector_storage<int, std::allocator<int>>>;
+template class basic_vector<
+    default_vector_storage<std::string, std::allocator<std::string>>>;
 
 TEST(vector, construct) {
 
@@ -555,7 +561,7 @@ TEST(vector, insert) {
         auto test = [](auto _Val, auto _Val2, size_t n, size_t s, size_t c) {
             using T = decltype(_Val);
             auto __test = [&](size_t pos) {
-                if (wjr::__has_high_bit(pos) || pos > s) {
+                if (__has_high_bit(pos) || pos > s) {
                     return;
                 }
                 wvector<T> v(c, _Val);
@@ -607,7 +613,6 @@ TEST(vector, erase) {
 }
 
 TEST(vector, swap) {
-    using namespace wjr;
     {
         vector<int> v1(32, 1);
         vector<int> v2(64, 2);

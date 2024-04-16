@@ -24,11 +24,14 @@ bool lexer::next(uint32_t &value) {
     return true;
 }
 
-inline void fallback_read_token_buffer(basic_lexer &lex) { (void)lex; }
+inline bool fallback_read_token_buffer(basic_lexer &lex) {
+    (void)lex;
+    return false;
+}
 
 inline bool read_token_buffer(basic_lexer &lex) {
 #if !WJR_HAS_BUILTIN(JSON_READ_TOKEN_BUFFER)
-    fallback_read_token_buffer(lex);
+    return fallback_read_token_buffer(lex);
 #else
     return builtin_read_token_buffer(lex);
 #endif
@@ -39,8 +42,9 @@ bool lexer::read_token() {
         return false;
     }
 
-    lex.token_first = lex.token_last = lex.token_buf;
-    return read_token_buffer(lex);
+    bool ret = read_token_buffer(lex);
+    lex.token_first = lex.token_buf;
+    return ret;
 }
 
 } // namespace wjr::json

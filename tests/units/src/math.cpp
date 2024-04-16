@@ -21,10 +21,11 @@ TEST(math, popcount_ctz_clz) {
 #define WJR_TEST_CTZ_I(type, x, ans)                                                     \
     type n = x;                                                                          \
     auto ctz_ans = wjr::popcount<type>((type)(wjr::lowbit(n) - 1));                      \
-    WJR_ASSERT(wjr::fallback_ctz<type>(x) == ctz_ans)                                    \
+    WJR_ASSERT((x == 0 ? std::numeric_limits<type>::digits                               \
+                       : wjr::fallback_ctz<type>(x)) == ctz_ans)                         \
     WJR_PP_BOOL_IF(                                                                      \
         WJR_HAS_BUILTIN(CTZ), ;                                                          \
-        do { WJR_ASSERT((wjr::builtin_ctz<type>(x) == ctz_ans)); } while (0), );
+        do { WJR_ASSERT((wjr::countr_zero<type>(x) == ctz_ans)); } while (0), );
 #define WJR_TEST_CLZ_I(type, x, ans)                                                     \
     auto clz_ans = []() -> int {                                                         \
         type n = x;                                                                      \
@@ -45,12 +46,13 @@ TEST(math, popcount_ctz_clz) {
             n |= n >> 32;                                                                \
         }                                                                                \
         ++n;                                                                             \
-        return nd - wjr::ctz<type>(n);                                                   \
+        return nd - wjr::countr_zero<type>(n);                                           \
     }();                                                                                 \
-    WJR_ASSERT(wjr::fallback_clz<type>(x) == clz_ans)                                    \
+    WJR_ASSERT((x == 0 ? std::numeric_limits<type>::digits                               \
+                       : wjr::fallback_clz<type>(x)) == clz_ans)                         \
     WJR_PP_BOOL_IF(                                                                      \
         WJR_HAS_BUILTIN(CTZ), ;                                                          \
-        do { WJR_ASSERT((wjr::builtin_clz<type>(x) == clz_ans)); } while (0), );
+        do { WJR_ASSERT((wjr::countl_zero<type>(x) == clz_ans)); } while (0), );
 
 #define WJR_TEST_PTZ_I_CALLER(args)                                                      \
     do {                                                                                 \
