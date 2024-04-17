@@ -21,11 +21,11 @@ struct precompute_chars_convert_t {
     unsigned int base;
 };
 
-extern "C" precompute_chars_convert_16n_t *precompute_chars_convert_16n_ptr[37];
+extern precompute_chars_convert_16n_t *precompute_chars_convert_16n_ptr[37];
 
-extern "C" precompute_chars_convert_t *precompute_chars_convert(precompute_chars_convert_t *pre,
-                                                      size_t n, unsigned int base,
-                                                      uint64_t *table_mem);
+extern precompute_chars_convert_t *
+precompute_chars_convert(precompute_chars_convert_t *pre, size_t n, unsigned int base,
+                         uint64_t *table_mem);
 
 } // namespace wjr
 

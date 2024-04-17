@@ -10,42 +10,21 @@
 
 namespace wjr::json {
 
-bool lexer::next(uint32_t &value) {
-    if (WJR_LIKELY(lex.token_first != lex.token_last)) {
-        value = *lex.token_first++;
-        return true;
+template <uint32_t token_buf_size>
+inline uint32_t basic_lexer_reader<token_buf_size>::read(uint32_t *token_buf) noexcept {
+    if (WJR_UNLIKELY(m_storage.first == m_storage.last)) {
+        return 0;
     }
 
-    if (WJR_UNLIKELY(!read_token())) {
-        return false;
-    }
-
-    value = *lex.token_first++;
-    return true;
+    return read_buf(token_buf);
 }
 
-inline bool fallback_read_token_buffer(basic_lexer &lex) {
-    (void)lex;
-    return false;
+#if !WJR_HAS_BUILTIN(JSON_LEXER_READER_READ)
+template <uint32_t token_buf_size>
+uint32_t basic_lexer_reader<token_buf_size>::read_buf(uint32_t *token_buf) noexcept {
+    return 0;
 }
-
-inline bool read_token_buffer(basic_lexer &lex) {
-#if !WJR_HAS_BUILTIN(JSON_READ_TOKEN_BUFFER)
-    return fallback_read_token_buffer(lex);
-#else
-    return builtin_read_token_buffer(lex);
 #endif
-}
-
-bool lexer::read_token() {
-    if (WJR_UNLIKELY(lex.first == lex.last)) {
-        return false;
-    }
-
-    bool ret = read_token_buffer(lex);
-    lex.token_first = lex.token_buf;
-    return ret;
-}
 
 } // namespace wjr::json
 

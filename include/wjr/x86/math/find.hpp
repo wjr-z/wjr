@@ -19,7 +19,7 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(FIND_N)
 
 template <typename T>
-WJR_COLD size_t large_builtin_find_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src0, const T *src1, size_t n) {
 #define WJR_REGISTER_FIND_N_AVX(index)                                                   \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 + (index)));                                \
@@ -188,7 +188,7 @@ WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src0, const T *src1, size_t 
 }
 
 template <typename T>
-WJR_COLD size_t large_builtin_find_n(const T *src, T val, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src, T val, size_t n) {
 #define WJR_REGISTER_FIND_N_AVX(index)                                                   \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src + (index)));                                 \
@@ -356,7 +356,8 @@ WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src, T val, size_t n) {
 #if WJR_HAS_BUILTIN(FIND_NOT_N)
 
 template <typename T>
-WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1,
+                                                  size_t n) {
 #define WJR_REGISTER_FIND_NOT_N_AVX(index)                                               \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 + (index)));                                \
@@ -497,9 +498,8 @@ WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1, size_t n)
 #undef WJR_REGISTER_FIND_NOT_N_AVX
 }
 
-extern template WJR_COLD size_t large_builtin_find_not_n<uint64_t>(const uint64_t *src0,
-                                                                   const uint64_t *src1,
-                                                                   size_t n);
+extern template WJR_PURE WJR_COLD size_t
+large_builtin_find_not_n<uint64_t>(const uint64_t *src0, const uint64_t *src1, size_t n);
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src0, const T *src1, size_t n) {
@@ -529,7 +529,7 @@ WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src0, const T *src1, siz
 }
 
 template <typename T>
-WJR_COLD size_t large_builtin_find_not_n(const T *src, T val, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src, T val, size_t n) {
 #define WJR_REGISTER_FIND_NOT_N_AVX(index)                                               \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src + (index)));                                 \
@@ -665,9 +665,8 @@ WJR_COLD size_t large_builtin_find_not_n(const T *src, T val, size_t n) {
 #undef WJR_REGISTER_FIND_NOT_N_AVX
 }
 
-extern template WJR_COLD size_t large_builtin_find_not_n<uint64_t>(const uint64_t *src,
-                                                                   uint64_t val,
-                                                                   size_t n);
+extern template WJR_PURE WJR_COLD size_t
+large_builtin_find_not_n<uint64_t>(const uint64_t *src, uint64_t val, size_t n);
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) {
@@ -701,7 +700,8 @@ WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) {
 #if WJR_HAS_BUILTIN(REVERSE_FIND_N)
 
 template <typename T>
-WJR_COLD size_t large_builtin_reverse_find_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_reverse_find_n(const T *src0, const T *src1,
+                                                      size_t n) {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 - 4 + (index)));                            \
@@ -873,7 +873,7 @@ WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src0, const T *src1,
 }
 
 template <typename T>
-WJR_COLD size_t large_builtin_reverse_find_n(const T *src, T val, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_reverse_find_n(const T *src, T val, size_t n) {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src - 4 + (index)));                             \
@@ -1043,7 +1043,8 @@ WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src, T val, size_t n
 #if WJR_HAS_BUILTIN(REVERSE_FIND_NOT_N)
 
 template <typename T>
-WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1,
+                                                          size_t n) {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 - 4 + (index)));                            \
@@ -1185,7 +1186,7 @@ WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1, s
 #undef WJR_REGISTER_REVERSE_FIND_N_AVX
 }
 
-extern template WJR_COLD size_t large_builtin_reverse_find_not_n<uint64_t>(
+extern template WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n<uint64_t>(
     const uint64_t *src0, const uint64_t *src1, size_t n);
 
 template <typename T>
@@ -1218,7 +1219,7 @@ WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src0, const T *s
 }
 
 template <typename T>
-WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src - 4 + (index)));                             \
@@ -1355,7 +1356,7 @@ WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) 
 #undef WJR_REGISTER_REVERSE_FIND_N_AVX
 }
 
-extern template WJR_COLD size_t
+extern template WJR_PURE WJR_COLD size_t
 large_builtin_reverse_find_not_n<uint64_t>(const uint64_t *src, uint64_t val, size_t n);
 
 template <typename T>

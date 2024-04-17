@@ -123,8 +123,13 @@ private:
         div2by1_adjust(rax, divisor, lo, rdx);
 
         if (WJR_UNLIKELY(lo >= divisor)) {
-            WJR_FORCE_BRANCH_BARRIER();
+#if !WJR_HAS_BUILTIN(ASM_DIV2BY1_ADJUST_BRANCH)
             lo -= divisor;
+#else
+            // low version clang may have some performance issue here
+            // so we use asm to avoid use cmov
+            asm_div2by1_adjust_branch(divisor, lo);
+#endif
             ++rdx;
         }
 

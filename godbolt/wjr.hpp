@@ -1487,13 +1487,6 @@
         }                                                                                \
     } while (0)
 
-// Lower versions of clang cannot predict branches well
-#if defined(WJR_COMPILER_CLANG) && !WJR_HAS_CLANG(13, 0, 0)
-#define WJR_FORCE_BRANCH_BARRIER() WJR_CONSTEXPR_COMPILER_BARRIER()
-#else
-#define WJR_FORCE_BRANCH_BARRIER()
-#endif
-
 #if defined(WJR_FORCEINLINE)
 #define WJR_INTRINSIC_INLINE inline WJR_FORCEINLINE
 #else
@@ -13322,7 +13315,7 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(FIND_N)
 
 template <typename T>
-WJR_COLD size_t large_builtin_find_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src0, const T *src1, size_t n) {
 #define WJR_REGISTER_FIND_N_AVX(index)                                                   \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 + (index)));                                \
@@ -13491,7 +13484,7 @@ WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src0, const T *src1, size_t 
 }
 
 template <typename T>
-WJR_COLD size_t large_builtin_find_n(const T *src, T val, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src, T val, size_t n) {
 #define WJR_REGISTER_FIND_N_AVX(index)                                                   \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src + (index)));                                 \
@@ -13659,7 +13652,8 @@ WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src, T val, size_t n) {
 #if WJR_HAS_BUILTIN(FIND_NOT_N)
 
 template <typename T>
-WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1,
+                                                  size_t n) {
 #define WJR_REGISTER_FIND_NOT_N_AVX(index)                                               \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 + (index)));                                \
@@ -13800,9 +13794,8 @@ WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1, size_t n)
 #undef WJR_REGISTER_FIND_NOT_N_AVX
 }
 
-extern template WJR_COLD size_t large_builtin_find_not_n<uint64_t>(const uint64_t *src0,
-                                                                   const uint64_t *src1,
-                                                                   size_t n);
+extern template WJR_PURE WJR_COLD size_t
+large_builtin_find_not_n<uint64_t>(const uint64_t *src0, const uint64_t *src1, size_t n);
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src0, const T *src1, size_t n) {
@@ -13832,7 +13825,7 @@ WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src0, const T *src1, siz
 }
 
 template <typename T>
-WJR_COLD size_t large_builtin_find_not_n(const T *src, T val, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src, T val, size_t n) {
 #define WJR_REGISTER_FIND_NOT_N_AVX(index)                                               \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src + (index)));                                 \
@@ -13968,9 +13961,8 @@ WJR_COLD size_t large_builtin_find_not_n(const T *src, T val, size_t n) {
 #undef WJR_REGISTER_FIND_NOT_N_AVX
 }
 
-extern template WJR_COLD size_t large_builtin_find_not_n<uint64_t>(const uint64_t *src,
-                                                                   uint64_t val,
-                                                                   size_t n);
+extern template WJR_PURE WJR_COLD size_t
+large_builtin_find_not_n<uint64_t>(const uint64_t *src, uint64_t val, size_t n);
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) {
@@ -14004,7 +13996,8 @@ WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) {
 #if WJR_HAS_BUILTIN(REVERSE_FIND_N)
 
 template <typename T>
-WJR_COLD size_t large_builtin_reverse_find_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_reverse_find_n(const T *src0, const T *src1,
+                                                      size_t n) {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 - 4 + (index)));                            \
@@ -14176,7 +14169,7 @@ WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src0, const T *src1,
 }
 
 template <typename T>
-WJR_COLD size_t large_builtin_reverse_find_n(const T *src, T val, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_reverse_find_n(const T *src, T val, size_t n) {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src - 4 + (index)));                             \
@@ -14346,7 +14339,8 @@ WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src, T val, size_t n
 #if WJR_HAS_BUILTIN(REVERSE_FIND_NOT_N)
 
 template <typename T>
-WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1,
+                                                          size_t n) {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 - 4 + (index)));                            \
@@ -14488,7 +14482,7 @@ WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1, s
 #undef WJR_REGISTER_REVERSE_FIND_N_AVX
 }
 
-extern template WJR_COLD size_t large_builtin_reverse_find_not_n<uint64_t>(
+extern template WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n<uint64_t>(
     const uint64_t *src0, const uint64_t *src1, size_t n);
 
 template <typename T>
@@ -14521,7 +14515,7 @@ WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src0, const T *s
 }
 
 template <typename T>
-WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src - 4 + (index)));                             \
@@ -14658,7 +14652,7 @@ WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) 
 #undef WJR_REGISTER_REVERSE_FIND_N_AVX
 }
 
-extern template WJR_COLD size_t
+extern template WJR_PURE WJR_COLD size_t
 large_builtin_reverse_find_not_n<uint64_t>(const uint64_t *src, uint64_t val, size_t n);
 
 template <typename T>
@@ -16360,7 +16354,7 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(COMPARE_N)
 
 template <typename T>
-WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size_t n) {
 #define WJR_REGISTER_COMPARE_NOT_N_AVX(index)                                            \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 + (index)));                                \
@@ -16524,7 +16518,7 @@ WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size_t n) {
 #undef WJR_REGISTER_COMPARE_NOT_N_AVX
 }
 
-extern template WJR_COLD int
+extern template WJR_PURE WJR_COLD int
 large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1, size_t n);
 
 template <typename T>
@@ -16573,7 +16567,8 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1, size_t 
 #if WJR_HAS_BUILTIN(REVERSE_COMPARE_N)
 
 template <typename T>
-WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1,
+                                                      size_t n) {
 #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(index)                                    \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 - 4 + (index)));                            \
@@ -16737,7 +16732,7 @@ WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1, size_
 #undef WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX
 }
 
-extern template WJR_COLD int
+extern template WJR_PURE WJR_COLD int
 large_builtin_reverse_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
                                           size_t n);
 
@@ -16793,8 +16788,8 @@ WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
 
 #if WJR_HAS_BUILTIN(__ASM_LESS_128)
 
-WJR_INTRINSIC_INLINE bool __asm_less_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
-                                         uint64_t hi1) {
+WJR_CONST WJR_INTRINSIC_INLINE bool __asm_less_128(uint64_t lo0, uint64_t hi0,
+                                                   uint64_t lo1, uint64_t hi1) {
     bool ret;
     asm("cmp{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
         "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(b)
@@ -16808,8 +16803,8 @@ WJR_INTRINSIC_INLINE bool __asm_less_128(uint64_t lo0, uint64_t hi0, uint64_t lo
 
 #if WJR_HAS_BUILTIN(__ASM_LESS_EQUAL_128)
 
-WJR_INTRINSIC_INLINE bool __asm_less_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
-                                               uint64_t hi1) {
+WJR_CONST WJR_INTRINSIC_INLINE bool __asm_less_equal_128(uint64_t lo0, uint64_t hi0,
+                                                         uint64_t lo1, uint64_t hi1) {
     bool ret;
     asm("cmp{q %[lo0], %[lo1]| %[lo1], %[lo0]}\n\t"
         "sbb{q %[hi0], %[hi1]| %[hi1], %[hi0]}\n\t" WJR_ASM_CCSET(ae)
@@ -23211,6 +23206,11 @@ namespace wjr {
 
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_HAS_BUILTIN_ASM_DIV2BY1_ADJUST WJR_HAS_DEF
+
+#if defined(WJR_COMPILER_CLANG) && !WJR_HAS_CLANG(13, 0, 0)
+#define WJR_HAS_BUILTIN_ASM_DIV2BY1_ADJUST_BRANCH WJR_HAS_DEF
+#endif
+
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_DIV2BY1_ADJUST)
@@ -23225,6 +23225,15 @@ WJR_INTRINSIC_INLINE void asm_div2by1_adjust(T rax, T div, T &r8, T &rdx) {
         : [rax] "r"(rax)
         : "cc", "memory");
     r8 = r9;
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(ASM_DIV2BY1_ADJUST_BRANCH)
+
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
+WJR_INTRINSIC_INLINE void asm_div2by1_adjust_branch(T div, T & lo) {
+    asm("sub %1, %0" : "+r"(lo) : "r"(div));
 }
 
 #endif
@@ -23350,8 +23359,13 @@ private:
         div2by1_adjust(rax, divisor, lo, rdx);
 
         if (WJR_UNLIKELY(lo >= divisor)) {
-            WJR_FORCE_BRANCH_BARRIER();
+#if !WJR_HAS_BUILTIN(ASM_DIV2BY1_ADJUST_BRANCH)
             lo -= divisor;
+#else
+            // low version clang may have some performance issue here
+            // so we use asm to avoid use cmov
+            asm_div2by1_adjust_branch(divisor, lo);
+#endif
             ++rdx;
         }
 
@@ -24858,11 +24872,11 @@ struct precompute_chars_convert_t {
     unsigned int base;
 };
 
-extern "C" precompute_chars_convert_16n_t *precompute_chars_convert_16n_ptr[37];
+extern precompute_chars_convert_16n_t *precompute_chars_convert_16n_ptr[37];
 
-extern "C" precompute_chars_convert_t *precompute_chars_convert(precompute_chars_convert_t *pre,
-                                                      size_t n, unsigned int base,
-                                                      uint64_t *table_mem);
+extern precompute_chars_convert_t *
+precompute_chars_convert(precompute_chars_convert_t *pre, size_t n, unsigned int base,
+                         uint64_t *table_mem);
 
 } // namespace wjr
 
@@ -30247,44 +30261,13 @@ using bitset = basic_dynamic_bitset<>;
 #ifndef WJR_JSON_LEXER_IMPL_HPP__
 #define WJR_JSON_LEXER_IMPL_HPP__
 
-#include <cstdint>
-
 // Already included
 
 namespace wjr::json {
 
-struct lexer_iterator_struct {
-    uint32_t *token_ptr = nullptr;
-
-    uint64_t prev_in_string = 0;
-    uint64_t prev_is_escape = 0;
-    uint64_t prev_is_ws = 0;
-
-    uint32_t idx = 0;
-};
-
-struct lexer_iterator_end {};
-
-class lexer_iterator {
-    static constexpr unsigned int token_buf_size = 64;
-
-public:
-private:
-    lexer_iterator_struct lex;
-
-    const char *first;
-    const char *last;
-    unsigned int count = 0;
-    uint32_t token_buf[token_buf_size * 2 - 1];
-};
-
-struct basic_lexer {
-    basic_lexer(const char *first, const char *last) : first(first), last(last) {}
-
-    basic_lexer() = delete;
-    basic_lexer(const basic_lexer &) = default;
-    basic_lexer &operator=(const basic_lexer &) = default;
-    ~basic_lexer() = default;
+struct forward_lexer_reader_storage {
+    forward_lexer_reader_storage(span<const char> input) noexcept
+        : first(input.data()), last(input.data() + input.size()) {}
 
     const char *first;
     const char *last;
@@ -30294,27 +30277,59 @@ struct basic_lexer {
     uint64_t prev_is_ws = 0;
 
     uint32_t idx = 0;
-    uint32_t *token_first = nullptr;
-    uint32_t *token_last = nullptr;
-    alignas(16) uint32_t token_buf[64 * 2 - 1];
 };
 
-class lexer {
+struct dynamic_lexer_reader_storage {
+    dynamic_lexer_reader_storage(span<const char> input) noexcept
+        : first(input.data()), last(input.data() + input.size()) {}
+
+    const char *first;
+    const char *last;
+};
+
+template <uint32_t token_buf_size>
+class basic_lexer_reader {
+    static_assert(((token_buf_size & (token_buf_size - 1)) == 0 &&
+                   token_buf_size <= 65536) ||
+                      token_buf_size == (uint32_t)in_place_max,
+                  "token_buf_size must be a power of 2");
+
+    constexpr static bool __is_dynamic = token_buf_size == (uint32_t)in_place_max;
+    using storage_type = std::conditional_t<__is_dynamic, dynamic_lexer_reader_storage,
+                                            forward_lexer_reader_storage>;
+
 public:
-    lexer(span<const char> sp) : lex(sp.begin(), sp.end()) {}
+    constexpr basic_lexer_reader(span<const char> input) noexcept : m_storage(input) {}
 
-    lexer() = delete;
-    lexer(const lexer &) = default;
-    lexer &operator=(const lexer &) = default;
-    ~lexer() = default;
+    basic_lexer_reader() = delete;
+    constexpr basic_lexer_reader(const basic_lexer_reader &) = delete;
+    constexpr basic_lexer_reader(basic_lexer_reader &&) = default;
+    constexpr basic_lexer_reader &operator=(const basic_lexer_reader &) = delete;
+    constexpr basic_lexer_reader &operator=(basic_lexer_reader &&) = default;
+    ~basic_lexer_reader() = default;
 
-    WJR_NODISCARD bool next(uint32_t &);
+    /**
+     * @brief read tokens
+     *
+     * @details Read at least token_buf_size tokens from the input.
+     * token_buf' size must be at least token_buf_size * 2 - 1.
+     *
+     * @return return the number of tokens read.
+     *
+     */
+
+    inline uint32_t read(uint32_t *token_buf) noexcept;
 
 private:
-    bool read_token();
+    WJR_NOINLINE uint32_t read_buf(uint32_t *token_buf) noexcept;
 
-    basic_lexer lex;
+    storage_type m_storage;
 };
+
+using dynamic_lexer_reader = basic_lexer_reader<in_place_max>;
+
+template <uint32_t token_buf_size>
+using forward_lexer_reader = basic_lexer_reader<token_buf_size>;
 
 } // namespace wjr::json
 
@@ -30327,15 +30342,266 @@ private:
 
 // Already included
 // Already included
+// Already included
 
 namespace wjr::json {
 
 #if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(SIMD)
-#define WJR_HAS_BUILTIN_JSON_READ_TOKEN_BUFFER WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_JSON_LEXER_READER_READ WJR_HAS_DEF
 #endif
 
-#if WJR_HAS_BUILTIN(JSON_READ_TOKEN_BUFFER)
-extern bool builtin_read_token_buffer(basic_lexer &lex) noexcept;
+#if WJR_HAS_BUILTIN(JSON_LEXER_READER_READ)
+
+namespace lexer_details {
+
+#if !WJR_HAS_SIMD(AVX2)
+const static __m128i lh8_mask = sse::set1_epi8(0x0f);
+
+const static __m128i lo8_lookup =
+    sse::set_epi8(0, 0, 12, 1, 4, 10, 8, 0, 0, 0, 0, 0, 0, 0, 0, 16);
+const static __m128i hi8_lookup =
+    sse::set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8);
+#else
+const static __m256i lh8_mask = avx::set1_epi8(0x0f);
+const static __m256i lo8_lookup =
+    avx::set_epi8(0, 0, 12, 1, 4, 10, 8, 0, 0, 0, 0, 0, 0, 0, 0, 16, 0, 0, 12, 1, 4, 10,
+                  8, 0, 0, 0, 0, 0, 0, 0, 0, 16);
+const static __m256i hi8_lookup =
+    avx::set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0,
+                  4, 0, 4, 0, 2, 17, 0, 8);
+#endif
+
+template <typename simd>
+inline typename simd::int_type equal(typename simd::int_type x, uint8_t ch) {
+    return simd::cmpeq_epi8(x, simd::set1_epi8(ch));
+}
+
+template <typename simd>
+void load_simd(const char *first, typename simd::int_type *arr) {
+    constexpr auto simd_width = simd::width();
+    constexpr auto u8_width = simd_width / 8;
+    constexpr auto u8_loop = 64 / u8_width;
+    for (unsigned i = 0; i < u8_loop; ++i) {
+        arr[i] = simd::loadu((typename simd::int_type *)(first + i * u8_width));
+    }
+}
+
+template <typename simd>
+void load_end_simd(const char *first, unsigned n, typename simd::int_type *arr) {
+    WJR_ASSUME(n < 64);
+    char buf[64];
+    ::memcpy(buf, first, n);
+    ::memset(buf + n, 0, 64 - n);
+    load_simd<simd>(buf, arr);
+}
+
+inline uint64_t calc_backslash(uint64_t B) {
+    uint64_t maybe_escaped = B << 1;
+
+    uint64_t maybe_escaped_and_odd_bits = maybe_escaped | 0xAAAAAAAAAAAAAAAAULL;
+    uint64_t even_series_codes_and_odd_bits = maybe_escaped_and_odd_bits - B;
+
+    return even_series_codes_and_odd_bits ^ 0xAAAAAAAAAAAAAAAAULL;
+}
+
+} // namespace lexer_details
+
+template <uint32_t token_buf_size>
+uint32_t basic_lexer_reader<token_buf_size>::read_buf(uint32_t *token_buf) noexcept {
+    using namespace lexer_details;
+
+    constexpr bool is_avx = WJR_HAS_SIMD(AVX2);
+    using simd = std::conditional_t<is_avx, avx, sse>;
+    using simd_int = typename simd::int_type;
+    constexpr auto simd_width = simd::width();
+    constexpr auto u8_width = simd_width / 8;
+    constexpr auto u8_loop = 64 / u8_width;
+
+    constexpr uint32_t token_buf_mask = token_buf_size * 2;
+
+    auto first = m_storage.first;
+    const auto last = m_storage.last;
+    uint64_t prev_is_escape;
+    uint64_t prev_in_string;
+    uint64_t prev_is_ws;
+    uint32_t idx;
+
+    if constexpr (__is_dynamic) {
+        prev_is_escape = prev_in_string = prev_is_ws = idx = 0;
+    } else {
+        prev_is_escape = m_storage.prev_is_escape;
+        prev_in_string = m_storage.prev_in_string;
+        prev_is_ws = m_storage.prev_is_ws;
+        idx = m_storage.idx;
+    }
+
+    WJR_ASSERT_ASSUME_L1(first < last);
+
+    uint32_t count = 0;
+    bool loop;
+
+    do {
+        simd_int x[u8_loop];
+
+        const size_t diff = last - first;
+
+        if (WJR_LIKELY(diff > 64)) {
+            load_simd<simd>(first, x);
+            first += 64;
+        } else {
+            if (diff == 64) {
+                load_simd<simd>(first, x);
+            } else {
+                load_end_simd<simd>(first, diff, x);
+            }
+
+            first = last;
+            if constexpr (!__is_dynamic) {
+                count |= token_buf_mask;
+            }
+        }
+
+        uint64_t B = 0; // backslash
+
+        for (unsigned i = 0; i < u8_loop; ++i) {
+            const auto backslash = equal<simd>(x[i], '\\');
+            B |= (uint64_t)simd::movemask_epi8(backslash) << (i * u8_width);
+        }
+
+        uint64_t Q = 0; // quote
+
+        for (unsigned i = 0; i < u8_loop; ++i) {
+            const auto quote = equal<simd>(x[i], '\"');
+            Q |= (uint64_t)simd::movemask_epi8(quote) << (i * u8_width);
+        }
+
+        uint64_t S = 0; // brackets, comma , colon
+        uint64_t W = 0; // whitespace
+
+        for (unsigned i = 0; i < u8_loop; ++i) {
+            const auto shuf_lo8 = simd::shuffle_epi8(lo8_lookup, x[i]);
+            const auto shuf_hi8 = simd::shuffle_epi8(
+                hi8_lookup, simd::And(simd::srli_epi16(x[i], 4), lh8_mask));
+
+            const auto result = simd::And(shuf_lo8, shuf_hi8);
+            // comma : 1
+            // colon : 2
+            // brackets : 4
+            // whitespace : 8, 16
+
+            uint32_t stu = simd::movemask_epi8(
+                simd::cmpeq_epi8(simd::And(result, simd::set1_epi8(7)), simd::zeros()));
+            uint32_t wsp = simd::movemask_epi8(
+                simd::cmpeq_epi8(simd::And(result, simd::set1_epi8(24)), simd::zeros()));
+
+            S |= (uint64_t)(stu) << (i * u8_width);
+            W |= (uint64_t)(wsp) << (i * u8_width);
+        }
+
+        S = ~S;
+        W = ~W;
+
+        {
+            if (!B) {
+                B = prev_is_escape;
+                Q &= ~B;
+                prev_is_escape = 0;
+            } else {
+                const uint64_t codeB = calc_backslash(B & ~prev_is_escape);
+                const auto escape = (codeB & B) >> 63;
+                B = codeB ^ (B | prev_is_escape);
+                Q &= ~B;
+                prev_is_escape = escape;
+            }
+        }
+
+        const uint64_t R = prefix_xor(Q) ^ prev_in_string;
+        S &= ~R;
+        prev_in_string = static_cast<uint64_t>(static_cast<int64_t>(R) >> 63);
+
+        S |= Q;
+        const auto WS = S | W;
+        const auto P = shld(WS, prev_is_ws, 1);
+        prev_is_ws = WS;
+
+        S |= (P ^ W) & ~R;
+        S &= ~(Q & ~R);
+
+        if (S) {
+            const auto num = popcount(S);
+
+            do {
+                for (int i = 0; i < 4; ++i) {
+                    token_buf[i] = idx + ctz(S);
+                    S &= S - 1;
+                }
+
+                if (WJR_UNLIKELY(num <= 4)) {
+                    break;
+                }
+
+                for (int i = 4; i < 8; ++i) {
+                    token_buf[i] = idx + ctz(S);
+                    S &= S - 1;
+                }
+
+                if (WJR_LIKELY(num <= 8)) {
+                    break;
+                }
+
+                for (int i = 8; i < 12; ++i) {
+                    token_buf[i] = idx + ctz(S);
+                    S &= S - 1;
+                }
+
+                if (WJR_LIKELY(num <= 12)) {
+                    break;
+                }
+
+                for (int i = 12; i < 16; ++i) {
+                    token_buf[i] = idx + ctz(S);
+                    S &= S - 1;
+                }
+
+                if (WJR_LIKELY(num <= 16)) {
+                    break;
+                }
+
+                for (int i = 16; i < num; ++i) {
+                    token_buf[i] = idx + ctz(S);
+                    S &= S - 1;
+                }
+            } while (0);
+
+            token_buf += num;
+            count += num;
+        }
+
+        idx += 64;
+
+        if constexpr (!__is_dynamic) {
+            loop = (count <= token_buf_size);
+        } else {
+            loop = first != last;
+        }
+
+    } while (WJR_LIKELY(loop));
+
+    if constexpr (!__is_dynamic) {
+        m_storage.first = first;
+        m_storage.prev_is_escape = prev_is_escape;
+        m_storage.prev_in_string = prev_in_string;
+        m_storage.prev_is_ws = prev_is_ws;
+        m_storage.idx = idx;
+    }
+
+    if constexpr (!__is_dynamic) {
+        return count & (token_buf_mask - 1);
+    } else {
+        return count;
+    }
+}
+
 #endif
 
 } // namespace wjr::json
@@ -30345,42 +30611,21 @@ extern bool builtin_read_token_buffer(basic_lexer &lex) noexcept;
 
 namespace wjr::json {
 
-bool lexer::next(uint32_t &value) {
-    if (WJR_LIKELY(lex.token_first != lex.token_last)) {
-        value = *lex.token_first++;
-        return true;
+template <uint32_t token_buf_size>
+inline uint32_t basic_lexer_reader<token_buf_size>::read(uint32_t *token_buf) noexcept {
+    if (WJR_UNLIKELY(m_storage.first == m_storage.last)) {
+        return 0;
     }
 
-    if (WJR_UNLIKELY(!read_token())) {
-        return false;
-    }
-
-    value = *lex.token_first++;
-    return true;
+    return read_buf(token_buf);
 }
 
-inline bool fallback_read_token_buffer(basic_lexer &lex) {
-    (void)lex;
-    return false;
+#if !WJR_HAS_BUILTIN(JSON_LEXER_READER_READ)
+template <uint32_t token_buf_size>
+uint32_t basic_lexer_reader<token_buf_size>::read_buf(uint32_t *token_buf) noexcept {
+    return 0;
 }
-
-inline bool read_token_buffer(basic_lexer &lex) {
-#if !WJR_HAS_BUILTIN(JSON_READ_TOKEN_BUFFER)
-    return fallback_read_token_buffer(lex);
-#else
-    return builtin_read_token_buffer(lex);
 #endif
-}
-
-bool lexer::read_token() {
-    if (WJR_UNLIKELY(lex.first == lex.last)) {
-        return false;
-    }
-
-    bool ret = read_token_buffer(lex);
-    lex.token_first = lex.token_buf;
-    return ret;
-}
 
 } // namespace wjr::json
 

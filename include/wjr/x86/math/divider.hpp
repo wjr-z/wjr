@@ -7,6 +7,11 @@ namespace wjr {
 
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_HAS_BUILTIN_ASM_DIV2BY1_ADJUST WJR_HAS_DEF
+
+#if defined(WJR_COMPILER_CLANG) && !WJR_HAS_CLANG(13, 0, 0)
+#define WJR_HAS_BUILTIN_ASM_DIV2BY1_ADJUST_BRANCH WJR_HAS_DEF
+#endif
+
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_DIV2BY1_ADJUST)
@@ -21,6 +26,15 @@ WJR_INTRINSIC_INLINE void asm_div2by1_adjust(T rax, T div, T &r8, T &rdx) {
         : [rax] "r"(rax)
         : "cc", "memory");
     r8 = r9;
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(ASM_DIV2BY1_ADJUST_BRANCH)
+
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
+WJR_INTRINSIC_INLINE void asm_div2by1_adjust_branch(T div, T & lo) {
+    asm("sub %1, %0" : "+r"(lo) : "r"(div));
 }
 
 #endif

@@ -181,13 +181,6 @@
         }                                                                                \
     } while (0)
 
-// Lower versions of clang cannot predict branches well
-#if defined(WJR_COMPILER_CLANG) && !WJR_HAS_CLANG(13, 0, 0)
-#define WJR_FORCE_BRANCH_BARRIER() WJR_CONSTEXPR_COMPILER_BARRIER()
-#else
-#define WJR_FORCE_BRANCH_BARRIER()
-#endif
-
 #if defined(WJR_FORCEINLINE)
 #define WJR_INTRINSIC_INLINE inline WJR_FORCEINLINE
 #else

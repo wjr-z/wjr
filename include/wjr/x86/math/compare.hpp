@@ -18,7 +18,7 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(COMPARE_N)
 
 template <typename T>
-WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size_t n) {
 #define WJR_REGISTER_COMPARE_NOT_N_AVX(index)                                            \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 + (index)));                                \
@@ -182,7 +182,7 @@ WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size_t n) {
 #undef WJR_REGISTER_COMPARE_NOT_N_AVX
 }
 
-extern template WJR_COLD int
+extern template WJR_PURE WJR_COLD int
 large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1, size_t n);
 
 template <typename T>
@@ -231,7 +231,8 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1, size_t 
 #if WJR_HAS_BUILTIN(REVERSE_COMPARE_N)
 
 template <typename T>
-WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1,
+                                                      size_t n) {
 #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(index)                                    \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 - 4 + (index)));                            \
@@ -395,7 +396,7 @@ WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1, size_
 #undef WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX
 }
 
-extern template WJR_COLD int
+extern template WJR_PURE WJR_COLD int
 large_builtin_reverse_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
                                           size_t n);
 
@@ -451,8 +452,8 @@ WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
 
 #if WJR_HAS_BUILTIN(__ASM_LESS_128)
 
-WJR_INTRINSIC_INLINE bool __asm_less_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
-                                         uint64_t hi1) {
+WJR_CONST WJR_INTRINSIC_INLINE bool __asm_less_128(uint64_t lo0, uint64_t hi0,
+                                                   uint64_t lo1, uint64_t hi1) {
     bool ret;
     asm("cmp{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
         "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(b)
@@ -466,8 +467,8 @@ WJR_INTRINSIC_INLINE bool __asm_less_128(uint64_t lo0, uint64_t hi0, uint64_t lo
 
 #if WJR_HAS_BUILTIN(__ASM_LESS_EQUAL_128)
 
-WJR_INTRINSIC_INLINE bool __asm_less_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1,
-                                               uint64_t hi1) {
+WJR_CONST WJR_INTRINSIC_INLINE bool __asm_less_equal_128(uint64_t lo0, uint64_t hi0,
+                                                         uint64_t lo1, uint64_t hi1) {
     bool ret;
     asm("cmp{q %[lo0], %[lo1]| %[lo1], %[lo0]}\n\t"
         "sbb{q %[hi0], %[hi1]| %[hi1], %[hi0]}\n\t" WJR_ASM_CCSET(ae)

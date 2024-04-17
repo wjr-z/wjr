@@ -1,44 +1,13 @@
 #ifndef WJR_JSON_LEXER_IMPL_HPP__
 #define WJR_JSON_LEXER_IMPL_HPP__
 
-#include <cstdint>
-
 #include <wjr/span.hpp>
 
 namespace wjr::json {
 
-struct lexer_iterator_struct {
-    uint32_t *token_ptr = nullptr;
-
-    uint64_t prev_in_string = 0;
-    uint64_t prev_is_escape = 0;
-    uint64_t prev_is_ws = 0;
-
-    uint32_t idx = 0;
-};
-
-struct lexer_iterator_end {};
-
-class lexer_iterator {
-    static constexpr unsigned int token_buf_size = 64;
-
-public:
-private:
-    lexer_iterator_struct lex;
-
-    const char *first;
-    const char *last;
-    unsigned int count = 0;
-    uint32_t token_buf[token_buf_size * 2 - 1];
-};
-
-struct basic_lexer {
-    basic_lexer(const char *first, const char *last) : first(first), last(last) {}
-
-    basic_lexer() = delete;
-    basic_lexer(const basic_lexer &) = default;
-    basic_lexer &operator=(const basic_lexer &) = default;
-    ~basic_lexer() = default;
+struct forward_lexer_reader_storage {
+    forward_lexer_reader_storage(span<const char> input) noexcept
+        : first(input.data()), last(input.data() + input.size()) {}
 
     const char *first;
     const char *last;
@@ -48,27 +17,59 @@ struct basic_lexer {
     uint64_t prev_is_ws = 0;
 
     uint32_t idx = 0;
-    uint32_t *token_first = nullptr;
-    uint32_t *token_last = nullptr;
-    alignas(16) uint32_t token_buf[64 * 2 - 1];
 };
 
-class lexer {
+struct dynamic_lexer_reader_storage {
+    dynamic_lexer_reader_storage(span<const char> input) noexcept
+        : first(input.data()), last(input.data() + input.size()) {}
+
+    const char *first;
+    const char *last;
+};
+
+template <uint32_t token_buf_size>
+class basic_lexer_reader {
+    static_assert(((token_buf_size & (token_buf_size - 1)) == 0 &&
+                   token_buf_size <= 65536) ||
+                      token_buf_size == (uint32_t)in_place_max,
+                  "token_buf_size must be a power of 2");
+
+    constexpr static bool __is_dynamic = token_buf_size == (uint32_t)in_place_max;
+    using storage_type = std::conditional_t<__is_dynamic, dynamic_lexer_reader_storage,
+                                            forward_lexer_reader_storage>;
+
 public:
-    lexer(span<const char> sp) : lex(sp.begin(), sp.end()) {}
+    constexpr basic_lexer_reader(span<const char> input) noexcept : m_storage(input) {}
 
-    lexer() = delete;
-    lexer(const lexer &) = default;
-    lexer &operator=(const lexer &) = default;
-    ~lexer() = default;
+    basic_lexer_reader() = delete;
+    constexpr basic_lexer_reader(const basic_lexer_reader &) = delete;
+    constexpr basic_lexer_reader(basic_lexer_reader &&) = default;
+    constexpr basic_lexer_reader &operator=(const basic_lexer_reader &) = delete;
+    constexpr basic_lexer_reader &operator=(basic_lexer_reader &&) = default;
+    ~basic_lexer_reader() = default;
 
-    WJR_NODISCARD bool next(uint32_t &);
+    /**
+     * @brief read tokens
+     *
+     * @details Read at least token_buf_size tokens from the input.
+     * token_buf' size must be at least token_buf_size * 2 - 1.
+     *
+     * @return return the number of tokens read.
+     *
+     */
+
+    inline uint32_t read(uint32_t *token_buf) noexcept;
 
 private:
-    bool read_token();
+    WJR_NOINLINE uint32_t read_buf(uint32_t *token_buf) noexcept;
 
-    basic_lexer lex;
+    storage_type m_storage;
 };
+
+using dynamic_lexer_reader = basic_lexer_reader<in_place_max>;
+
+template <uint32_t token_buf_size>
+using forward_lexer_reader = basic_lexer_reader<token_buf_size>;
 
 } // namespace wjr::json
 
