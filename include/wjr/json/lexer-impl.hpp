@@ -58,13 +58,11 @@ public:
      *
      */
 
-    inline uint32_t read(uint32_t *token_buf) noexcept;
+    uint32_t read(uint32_t *token_buf) noexcept;
 
     WJR_PURE const char *end() const noexcept { return m_storage.last; }
 
 private:
-    WJR_NOINLINE uint32_t read_buf(uint32_t *token_buf) noexcept;
-
     storage_type m_storage;
 };
 

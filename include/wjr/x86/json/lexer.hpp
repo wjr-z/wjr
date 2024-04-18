@@ -50,7 +50,7 @@ void load_simd(const char *first, typename simd::int_type *arr) {
 } // namespace lexer_details
 
 template <uint32_t token_buf_size>
-uint32_t basic_lexer<token_buf_size>::read_buf(uint32_t *token_buf) noexcept {
+uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
     using namespace lexer_details;
 
     constexpr bool is_avx = WJR_HAS_SIMD(AVX2);
@@ -64,6 +64,11 @@ uint32_t basic_lexer<token_buf_size>::read_buf(uint32_t *token_buf) noexcept {
 
     auto first = m_storage.first;
     const auto last = m_storage.last;
+
+    if (WJR_UNLIKELY(first == last)) {
+        return 0;
+    }
+
     uint64_t prev_is_escape;
     uint64_t prev_in_string;
     uint64_t prev_is_ws;

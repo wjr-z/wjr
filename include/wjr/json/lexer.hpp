@@ -10,15 +10,6 @@
 
 namespace wjr::json {
 
-template <uint32_t token_buf_size>
-inline uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
-    if (WJR_UNLIKELY(m_storage.first == m_storage.last)) {
-        return 0;
-    }
-
-    return read_buf(token_buf);
-}
-
 #if !WJR_HAS_BUILTIN(JSON_LEXER_READER_READ_BUF)
 
 namespace lexer_details {
@@ -37,8 +28,11 @@ const static std::array<uint8_t, 256> code_table = {
 }
 
 template <uint32_t token_buf_size>
-uint32_t basic_lexer<token_buf_size>::read_buf(uint32_t *token_buf) noexcept {
+uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
     WJR_UNREACHABLE();
+    if (WJR_UNLIKELY(m_storage.first == m_storage.last)) {
+        return 0;
+    }
 
     using namespace lexer_details;
 

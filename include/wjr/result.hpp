@@ -48,10 +48,77 @@ struct result_abort_error_handler {
 };
 
 template <typename Ret, typename Err>
-struct result_traits {};
+struct result_traits_base {
+    template <typename _Err = Err, WJR_REQUIRES(compare_details::has_equal_v<_Err, _Err>)>
+    static constexpr bool equal(const Err &lhs, const Err &rhs) noexcept {
+        return lhs == rhs;
+    }
+
+    template <typename _Err = Err, WJR_REQUIRES(compare_details::has_not_equal_v<_Err, _Err>)>
+    static constexpr bool non_equal(const Err &lhs, const Err &rhs) noexcept {
+        return lhs != rhs;
+    }
+
+    template <typename _Err = Err, WJR_REQUIRES(compare_details::has_less_v<_Err, _Err>)>
+    static constexpr bool less(const Err &lhs, const Err &rhs) noexcept {
+        return lhs < rhs;
+    }
+
+    template <typename _Err = Err, WJR_REQUIRES(compare_details::has_greater_v<_Err, _Err>)>
+    static constexpr bool greater(const Err &lhs, const Err &rhs) noexcept {
+        return lhs > rhs;
+    }
+
+    template <typename _Err = Err, WJR_REQUIRES(compare_details::has_less_equal_v<_Err, _Err>)>
+    static constexpr bool less_equal(const Err &lhs, const Err &rhs) noexcept {
+        return lhs <= rhs;
+    }
+
+    template <typename _Err = Err,
+              WJR_REQUIRES(compare_details::has_greater_equal_v<_Err, _Err>)>
+    static constexpr bool greater_equal(const Err &lhs, const Err &rhs) noexcept {
+        return lhs >= rhs;
+    }
+};
+
+template <typename Ret, typename Err>
+struct result_traits : result_traits_base<Ret, Err> {};
 
 template <typename Ret>
-struct result_traits<Ret, std::errc> {
+struct result_traits<Ret, result_monostate> {
+    static constexpr bool equal(const result_monostate &,
+                                const result_monostate &) noexcept {
+        return true;
+    }
+
+    static constexpr bool non_equal(const result_monostate &,
+                                    const result_monostate &) noexcept {
+        return false;
+    }
+
+    static constexpr bool less(const result_monostate &,
+                               const result_monostate &) noexcept {
+        return false;
+    }
+
+    static constexpr bool greater(const result_monostate &,
+                                  const result_monostate &) noexcept {
+        return false;
+    }
+
+    static constexpr bool less_equal(const result_monostate &,
+                                     const result_monostate &) noexcept {
+        return true;
+    }
+
+    static constexpr bool greater_equal(const result_monostate &,
+                                        const result_monostate &) noexcept {
+        return true;
+    }
+};
+
+template <typename Ret>
+struct result_traits<Ret, std::errc> : result_traits_base<Ret, std::errc> {
     static constexpr bool is_err_ok(std::errc err) noexcept { return err == std::errc{}; }
     static constexpr void reset_err(std::errc &err) noexcept { err = std::errc{}; }
 };
@@ -60,6 +127,30 @@ template <typename Ret>
 struct result_traits<Ret, const char *> {
     static constexpr bool is_err_ok(const char *err) noexcept { return err == nullptr; }
     static constexpr void reset_err(const char *&err) noexcept { err = nullptr; }
+
+    static constexpr bool equal(const char *lhs, const char *rhs) noexcept {
+        return std::strcmp(lhs, rhs) == 0;
+    }
+
+    static constexpr bool non_equal(const char *lhs, const char *rhs) noexcept {
+        return std::strcmp(lhs, rhs) != 0;
+    }
+
+    static constexpr bool less(const char *lhs, const char *rhs) noexcept {
+        return std::strcmp(lhs, rhs) < 0;
+    }
+
+    static constexpr bool greater(const char *lhs, const char *rhs) noexcept {
+        return std::strcmp(lhs, rhs) > 0;
+    }
+
+    static constexpr bool less_equal(const char *lhs, const char *rhs) noexcept {
+        return std::strcmp(lhs, rhs) <= 0;
+    }
+
+    static constexpr bool greater_equal(const char *lhs, const char *rhs) noexcept {
+        return std::strcmp(lhs, rhs) >= 0;
+    }
 };
 
 namespace result_details {
@@ -70,6 +161,30 @@ WJR_REGISTER_HAS_TYPE(is_ret_ok,
 WJR_REGISTER_HAS_TYPE(is_err_ok,
                       (result_traits<Ret, Err>::is_err_ok(std::declval<Err>())), Ret,
                       Err);
+WJR_REGISTER_HAS_TYPE(err_equal,
+                      (result_traits<Ret, Err>::equal(std::declval<Err>(),
+                                                      std::declval<Err>())),
+                      Ret, Err);
+WJR_REGISTER_HAS_TYPE(err_non_equal,
+                      (result_traits<Ret, Err>::non_equal(std::declval<Err>(),
+                                                          std::declval<Err>())),
+                      Ret, Err);
+WJR_REGISTER_HAS_TYPE(err_less,
+                      (result_traits<Ret, Err>::less(std::declval<Err>(),
+                                                     std::declval<Err>())),
+                      Ret, Err);
+WJR_REGISTER_HAS_TYPE(err_greater,
+                      (result_traits<Ret, Err>::greater(std::declval<Err>(),
+                                                        std::declval<Err>())),
+                      Ret, Err);
+WJR_REGISTER_HAS_TYPE(err_less_equal,
+                      (result_traits<Ret, Err>::less_equal(std::declval<Err>(),
+                                                           std::declval<Err>())),
+                      Ret, Err);
+WJR_REGISTER_HAS_TYPE(err_greater_equal,
+                      (result_traits<Ret, Err>::greater_equal(std::declval<Err>(),
+                                                              std::declval<Err>())),
+                      Ret, Err);
 
 } // namespace result_details
 
@@ -369,6 +484,8 @@ private:
 
 template <typename Ret, typename Err, typename Mybase>
 class basic_result : Mybase {
+    using Traits = result_traits<Ret, Err>;
+
 public:
     using Mybase::Mybase;
 
@@ -466,6 +583,114 @@ public:
     constexpr const Ret &&take_value() const && {
         check();
         return std::move(value_unsafe());
+    }
+
+    template <typename _Ret = Ret, typename _Err = Err,
+              WJR_REQUIRES(compare_details::has_equal_v<_Ret, _Ret>
+                               &&result_details::has_err_equal_v<_Ret, _Err>)>
+    friend bool operator==(const basic_result &lhs, const basic_result &rhs) {
+        const bool lhs_ok = lhs.is_ok();
+        const bool rhs_ok = rhs.is_ok();
+
+        if (lhs_ok != rhs_ok) {
+            return false;
+        }
+
+        if (lhs_ok) {
+            return lhs.value_unsafe() == rhs.value_unsafe();
+        }
+
+        return Traits::equal(lhs.error_unsafe(), rhs.error_unsafe());
+    }
+
+    template <typename _Ret = Ret, typename _Err = Err,
+              WJR_REQUIRES(compare_details::has_not_equal_v<_Ret, _Ret>
+                               &&result_details::has_err_non_equal_v<_Ret, _Err>)>
+    friend bool operator!=(const basic_result &lhs, const basic_result &rhs) {
+        const bool lhs_ok = lhs.is_ok();
+        const bool rhs_ok = rhs.is_ok();
+
+        if (lhs_ok != rhs_ok) {
+            return true;
+        }
+
+        if (lhs_ok) {
+            return lhs.value_unsafe() != rhs.value_unsafe();
+        }
+
+        return Traits::non_equal(lhs.error_unsafe(), rhs.error_unsafe());
+    }
+
+    template <typename _Ret = Ret, typename _Err = Err,
+              WJR_REQUIRES(compare_details::has_less_v<_Ret, _Ret>
+                               &&result_details::has_err_less_v<_Ret, _Err>)>
+    friend bool operator<(const basic_result &lhs, const basic_result &rhs) {
+        const bool lhs_ok = lhs.is_ok();
+        const bool rhs_ok = rhs.is_ok();
+
+        if (lhs_ok != rhs_ok) {
+            return lhs_ok < rhs_ok;
+        }
+
+        if (lhs_ok) {
+            return lhs.value_unsafe() < rhs.value_unsafe();
+        }
+
+        return Traits::less(lhs.error_unsafe(), rhs.error_unsafe());
+    }
+
+    template <typename _Ret = Ret, typename _Err = Err,
+              WJR_REQUIRES(compare_details::has_greater_v<_Ret, _Ret>
+                               &&result_details::has_err_greater_v<_Ret, _Err>)>
+    friend bool operator>(const basic_result &lhs, const basic_result &rhs) {
+        const bool lhs_ok = lhs.is_ok();
+        const bool rhs_ok = rhs.is_ok();
+
+        if (lhs_ok != rhs_ok) {
+            return lhs_ok > rhs_ok;
+        }
+
+        if (lhs_ok) {
+            return lhs.value_unsafe() > rhs.value_unsafe();
+        }
+
+        return Traits::greater(lhs.error_unsafe(), rhs.error_unsafe());
+    }
+
+    template <typename _Ret = Ret, typename _Err = Err,
+              WJR_REQUIRES(compare_details::has_less_equal_v<_Ret, _Ret>
+                               &&result_details::has_err_less_equal_v<_Ret, _Err>)>
+    friend bool operator<=(const basic_result &lhs, const basic_result &rhs) {
+        const bool lhs_ok = lhs.is_ok();
+        const bool rhs_ok = rhs.is_ok();
+
+        if (lhs_ok != rhs_ok) {
+            return lhs_ok <= rhs_ok;
+        }
+
+        if (lhs_ok) {
+            return lhs.value_unsafe() <= rhs.value_unsafe();
+        }
+
+        return Traits::less_equal(lhs.error_unsafe(), rhs.error_unsafe());
+    }
+
+    template <typename _Ret = Ret, typename _Err = Err,
+              WJR_REQUIRES(compare_details::has_greater_equal_v<_Ret, _Ret>
+                               &&result_details::has_err_greater_equal_v<_Ret, _Err>)>
+    friend bool operator>=(const basic_result &lhs, const basic_result &rhs) {
+        const bool lhs_ok = lhs.is_ok();
+        const bool rhs_ok = rhs.is_ok();
+
+        if (lhs_ok != rhs_ok) {
+            return lhs_ok >= rhs_ok;
+        }
+
+        if (lhs_ok) {
+            return lhs.value_unsafe() >= rhs.value_unsafe();
+        }
+
+        return Traits::greater_equal(lhs.error_unsafe(), rhs.error_unsafe());
     }
 };
 

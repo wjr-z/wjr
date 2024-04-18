@@ -417,6 +417,15 @@ inline constexpr bool is_default_constructible_v = is_default_constructible<T>::
 constexpr static void allow_true_type(std::true_type) noexcept {}
 constexpr static void allow_false_type(std::false_type) noexcept {}
 
+namespace compare_details {
+WJR_REGISTER_HAS_TYPE(equal, std::declval<T>() == std::declval<U>(), T, U);
+WJR_REGISTER_HAS_TYPE(less, std::declval<T>() < std::declval<U>(), T, U);
+WJR_REGISTER_HAS_TYPE(greater, std::declval<T>() > std::declval<U>(), T, U);
+WJR_REGISTER_HAS_TYPE(less_equal, std::declval<T>() <= std::declval<U>(), T, U);
+WJR_REGISTER_HAS_TYPE(greater_equal, std::declval<T>() >= std::declval<U>(), T, U);
+WJR_REGISTER_HAS_TYPE(not_equal, std::declval<T>() != std::declval<U>(), T, U);
+} // namespace compare_details
+
 template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<remove_cvref_t<Value>>)>
 constexpr decltype(auto) to_signed(Value &&value) noexcept {
     return static_cast<std::make_signed_t<remove_cvref_t<Value>>>(

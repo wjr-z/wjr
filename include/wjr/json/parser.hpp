@@ -71,12 +71,20 @@ public:
         : token_first(token_buf), token_last(token_buf), token_buf(token_buf),
           first(sp.data()), lexer(sp) {}
 
-    bool operator()(uint32_t &token) {
+    WJR_INTRINSIC_INLINE bool operator()(uint32_t &token) {
         if (WJR_LIKELY(token_first != token_last)) {
             token = *token_first++;
             return true;
         }
 
+        return read_more(token);
+    }
+
+    WJR_PURE const char *begin() const noexcept { return first; }
+    WJR_PURE const char *end() const noexcept { return lexer.end(); }
+
+private:
+    WJR_NOINLINE bool read_more(uint32_t &token) {
         uint32_t count = lexer.read(token_buf);
         if (WJR_UNLIKELY(count == 0)) {
             return false;
@@ -88,10 +96,6 @@ public:
         return true;
     }
 
-    WJR_PURE const char *begin() const noexcept { return first; }
-    WJR_PURE const char *end() const noexcept { return lexer.end(); }
-
-private:
     uint32_t *token_first;
     uint32_t *token_last;
     uint32_t *token_buf;
@@ -148,6 +152,8 @@ struct empty_parser {
 };
 
 struct check_parser : empty_parser {
+    using empty_parser::operator();
+
     bool operator()(in_place_token_null_t, const char *first, const char *last) {
         if (WJR_LIKELY(last - first == 4 && std::memcmp(first, "null", 4) == 0)) {
             return false;
@@ -316,39 +322,10 @@ struct check_parser : empty_parser {
     }
     }
 
-    bool operator()(in_place_token_left_bracket_t) { return false; }
-
-    bool operator()(in_place_token_left_brace_t) { return false; }
-
-    bool operator()(in_place_token_left_brace_string_t, const char *, const char *) {
-        return false;
-    }
-
-    bool operator()(in_place_token_right_bracket_back_bracket_t) { return false; }
-
-    bool operator()(in_place_token_right_bracket_back_brace_t, const char *,
-                    const char *) {
-        return false;
-    }
-
-    bool operator()(in_place_token_right_bracket_back_root_t) { return false; }
-
-    bool operator()(in_place_token_right_brace_back_bracket_t) { return false; }
-
-    bool operator()(in_place_token_right_brace_back_brace_t, const char *, const char *) {
-        return false;
-    }
-
-    bool operator()(in_place_token_right_brace_back_root_t) { return false; }
-
-    void operator()(in_place_token_success_t) {}
-
     template <error_code E>
     void operator()(in_place_token_failure_t<E>) {
         ec = E;
     }
-
-    bool operator()(in_place_token_repeat_t) { return false; }
 
     error_code ec = SUCCESS;
 };
@@ -362,6 +339,7 @@ struct check_parser : empty_parser {
 template <typename TokenReader, typename Parser>
 WJR_NOINLINE void reader_parse(TokenReader &reader, Parser &parser) {
     unique_stack_allocator stkal(math_details::stack_alloc);
+    
     struct stack {
         uint8_t type;
         const char *first;
@@ -432,24 +410,16 @@ REPEAT_TOKEN : {
             next_token = size;
         }
 
-        if (WJR_UNLIKELY(parser(in_place_token_number, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
+        type = 0;
+        goto NUMBER;
     }
     case '"': {
         if (WJR_UNLIKELY(!reader(next_token))) {
             next_token = size;
         }
 
-        if (WJR_UNLIKELY(
-                next_token - token < 2 ||
-                parser(in_place_token_string, ptr + token + 1, ptr + next_token - 1))) {
-            return;
-        }
-
-        break;
+        type = 0;
+        goto STRING;
     }
     case '[': {
         if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
@@ -469,6 +439,8 @@ REPEAT_TOKEN : {
         return parser(in_place_token_failure<FAILURE>);
     }
     }
+
+REPEAT_TOKEN_NEXT:
 
     if (next_token == size) {
         return parser(in_place_token_success);
@@ -552,24 +524,16 @@ ARRAY : {
             return parser(in_place_token_failure<FAILURE>);
         }
 
-        if (WJR_UNLIKELY(parser(in_place_token_number, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
+        type = 1;
+        goto NUMBER;
     }
     case '"': {
         if (WJR_UNLIKELY(!reader(next_token))) {
             return parser(in_place_token_failure<FAILURE>);
         }
 
-        if (WJR_UNLIKELY(
-                next_token - token < 2 ||
-                parser(in_place_token_string, ptr + token + 1, ptr + next_token - 1))) {
-            return;
-        }
-
-        break;
+        type = 1;
+        goto STRING;
     }
     case '[': {
         if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
@@ -712,24 +676,16 @@ ARRAY_ELEMENT : {
             return parser(in_place_token_failure<FAILURE>);
         }
 
-        if (WJR_UNLIKELY(parser(in_place_token_number, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
+        type = 1;
+        goto NUMBER;
     }
     case '"': {
         if (WJR_UNLIKELY(!reader(next_token))) {
             return parser(in_place_token_failure<FAILURE>);
         }
 
-        if (WJR_UNLIKELY(
-                next_token - token < 2 ||
-                parser(in_place_token_string, ptr + token + 1, ptr + next_token - 1))) {
-            return;
-        }
-
-        break;
+        type = 1;
+        goto STRING;
     }
     case '[': {
         if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
@@ -858,24 +814,16 @@ OBJECT : {
             return parser(in_place_token_failure<FAILURE>);
         }
 
-        if (WJR_UNLIKELY(parser(in_place_token_number, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
+        type = 2;
+        goto NUMBER;
     }
     case '"': {
         if (WJR_UNLIKELY(!reader(next_token))) {
             return parser(in_place_token_failure<FAILURE>);
         }
 
-        if (WJR_UNLIKELY(
-                next_token - token < 2 ||
-                parser(in_place_token_string, ptr + token + 1, ptr + next_token - 1))) {
-            return;
-        }
-
-        break;
+        type = 2;
+        goto STRING;
     }
     case '[': {
         if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
@@ -1058,24 +1006,16 @@ OBJECT_ELEMENT : {
             return parser(in_place_token_failure<FAILURE>);
         }
 
-        if (WJR_UNLIKELY(parser(in_place_token_number, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
+        type = 2;
+        goto NUMBER;
     }
     case '"': {
         if (WJR_UNLIKELY(!reader(next_token))) {
             return parser(in_place_token_failure<FAILURE>);
         }
 
-        if (WJR_UNLIKELY(
-                next_token - token < 2 ||
-                parser(in_place_token_string, ptr + token + 1, ptr + next_token - 1))) {
-            return;
-        }
-
-        break;
+        type = 2;
+        goto STRING;
     }
     case '[': {
         if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
@@ -1106,6 +1046,34 @@ OBJECT_ELEMENT : {
 
     goto OBJECT_ELEMENT_SPACE;
 }
+
+NUMBER:
+    if (WJR_UNLIKELY(parser(in_place_token_number, ptr + token, ptr + next_token))) {
+        return;
+    }
+
+    if (type == 1) {
+        goto ARRAY_ELEMENT_SPACE;
+    } else if (type == 2) {
+        goto OBJECT_ELEMENT_SPACE;
+    } else {
+        goto REPEAT_TOKEN_NEXT;
+    }
+
+STRING:
+    if (WJR_UNLIKELY(
+            next_token - token < 2 ||
+            parser(in_place_token_string, ptr + token + 1, ptr + next_token - 1))) {
+        return;
+    }
+
+    if (type == 1) {
+        goto ARRAY_ELEMENT_SPACE;
+    } else if (type == 2) {
+        goto OBJECT_ELEMENT_SPACE;
+    } else {
+        goto REPEAT_TOKEN_NEXT;
+    }
 }
 
 template <typename Parser>

@@ -2886,6 +2886,15 @@ inline constexpr bool is_default_constructible_v = is_default_constructible<T>::
 constexpr static void allow_true_type(std::true_type) noexcept {}
 constexpr static void allow_false_type(std::false_type) noexcept {}
 
+namespace compare_details {
+WJR_REGISTER_HAS_TYPE(equal, std::declval<T>() == std::declval<U>(), T, U);
+WJR_REGISTER_HAS_TYPE(less, std::declval<T>() < std::declval<U>(), T, U);
+WJR_REGISTER_HAS_TYPE(greater, std::declval<T>() > std::declval<U>(), T, U);
+WJR_REGISTER_HAS_TYPE(less_equal, std::declval<T>() <= std::declval<U>(), T, U);
+WJR_REGISTER_HAS_TYPE(greater_equal, std::declval<T>() >= std::declval<U>(), T, U);
+WJR_REGISTER_HAS_TYPE(not_equal, std::declval<T>() != std::declval<U>(), T, U);
+} // namespace compare_details
+
 template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<remove_cvref_t<Value>>)>
 constexpr decltype(auto) to_signed(Value &&value) noexcept {
     return static_cast<std::make_signed_t<remove_cvref_t<Value>>>(
@@ -30318,13 +30327,11 @@ public:
      *
      */
 
-    inline uint32_t read(uint32_t *token_buf) noexcept;
+    uint32_t read(uint32_t *token_buf) noexcept;
 
     WJR_PURE const char *end() const noexcept { return m_storage.last; }
 
 private:
-    WJR_NOINLINE uint32_t read_buf(uint32_t *token_buf) noexcept;
-
     storage_type m_storage;
 };
 
@@ -30402,7 +30409,7 @@ void load_simd(const char *first, typename simd::int_type *arr) {
 } // namespace lexer_details
 
 template <uint32_t token_buf_size>
-uint32_t basic_lexer<token_buf_size>::read_buf(uint32_t *token_buf) noexcept {
+uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
     using namespace lexer_details;
 
     constexpr bool is_avx = WJR_HAS_SIMD(AVX2);
@@ -30416,6 +30423,11 @@ uint32_t basic_lexer<token_buf_size>::read_buf(uint32_t *token_buf) noexcept {
 
     auto first = m_storage.first;
     const auto last = m_storage.last;
+
+    if (WJR_UNLIKELY(first == last)) {
+        return 0;
+    }
+
     uint64_t prev_is_escape;
     uint64_t prev_in_string;
     uint64_t prev_is_ws;
@@ -30632,15 +30644,6 @@ uint32_t basic_lexer<token_buf_size>::read_buf(uint32_t *token_buf) noexcept {
 
 namespace wjr::json {
 
-template <uint32_t token_buf_size>
-inline uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
-    if (WJR_UNLIKELY(m_storage.first == m_storage.last)) {
-        return 0;
-    }
-
-    return read_buf(token_buf);
-}
-
 #if !WJR_HAS_BUILTIN(JSON_LEXER_READER_READ_BUF)
 
 namespace lexer_details {
@@ -30659,8 +30662,11 @@ const static std::array<uint8_t, 256> code_table = {
 }
 
 template <uint32_t token_buf_size>
-uint32_t basic_lexer<token_buf_size>::read_buf(uint32_t *token_buf) noexcept {
+uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
     WJR_UNREACHABLE();
+    if (WJR_UNLIKELY(m_storage.first == m_storage.last)) {
+        return 0;
+    }
 
     using namespace lexer_details;
 
@@ -30896,12 +30902,20 @@ public:
         : token_first(token_buf), token_last(token_buf), token_buf(token_buf),
           first(sp.data()), lexer(sp) {}
 
-    bool operator()(uint32_t &token) {
+    WJR_INTRINSIC_INLINE bool operator()(uint32_t &token) {
         if (WJR_LIKELY(token_first != token_last)) {
             token = *token_first++;
             return true;
         }
 
+        return read_more(token);
+    }
+
+    WJR_PURE const char *begin() const noexcept { return first; }
+    WJR_PURE const char *end() const noexcept { return lexer.end(); }
+
+private:
+    WJR_NOINLINE bool read_more(uint32_t &token) {
         uint32_t count = lexer.read(token_buf);
         if (WJR_UNLIKELY(count == 0)) {
             return false;
@@ -30913,10 +30927,6 @@ public:
         return true;
     }
 
-    WJR_PURE const char *begin() const noexcept { return first; }
-    WJR_PURE const char *end() const noexcept { return lexer.end(); }
-
-private:
     uint32_t *token_first;
     uint32_t *token_last;
     uint32_t *token_buf;
@@ -30973,6 +30983,8 @@ struct empty_parser {
 };
 
 struct check_parser : empty_parser {
+    using empty_parser::operator();
+
     bool operator()(in_place_token_null_t, const char *first, const char *last) {
         if (WJR_LIKELY(last - first == 4 && std::memcmp(first, "null", 4) == 0)) {
             return false;
@@ -31141,39 +31153,10 @@ struct check_parser : empty_parser {
     }
     }
 
-    bool operator()(in_place_token_left_bracket_t) { return false; }
-
-    bool operator()(in_place_token_left_brace_t) { return false; }
-
-    bool operator()(in_place_token_left_brace_string_t, const char *, const char *) {
-        return false;
-    }
-
-    bool operator()(in_place_token_right_bracket_back_bracket_t) { return false; }
-
-    bool operator()(in_place_token_right_bracket_back_brace_t, const char *,
-                    const char *) {
-        return false;
-    }
-
-    bool operator()(in_place_token_right_bracket_back_root_t) { return false; }
-
-    bool operator()(in_place_token_right_brace_back_bracket_t) { return false; }
-
-    bool operator()(in_place_token_right_brace_back_brace_t, const char *, const char *) {
-        return false;
-    }
-
-    bool operator()(in_place_token_right_brace_back_root_t) { return false; }
-
-    void operator()(in_place_token_success_t) {}
-
     template <error_code E>
     void operator()(in_place_token_failure_t<E>) {
         ec = E;
     }
-
-    bool operator()(in_place_token_repeat_t) { return false; }
 
     error_code ec = SUCCESS;
 };
@@ -31187,6 +31170,7 @@ struct check_parser : empty_parser {
 template <typename TokenReader, typename Parser>
 WJR_NOINLINE void reader_parse(TokenReader &reader, Parser &parser) {
     unique_stack_allocator stkal(math_details::stack_alloc);
+    
     struct stack {
         uint8_t type;
         const char *first;
@@ -31257,24 +31241,16 @@ REPEAT_TOKEN : {
             next_token = size;
         }
 
-        if (WJR_UNLIKELY(parser(in_place_token_number, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
+        type = 0;
+        goto NUMBER;
     }
     case '"': {
         if (WJR_UNLIKELY(!reader(next_token))) {
             next_token = size;
         }
 
-        if (WJR_UNLIKELY(
-                next_token - token < 2 ||
-                parser(in_place_token_string, ptr + token + 1, ptr + next_token - 1))) {
-            return;
-        }
-
-        break;
+        type = 0;
+        goto STRING;
     }
     case '[': {
         if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
@@ -31294,6 +31270,8 @@ REPEAT_TOKEN : {
         return parser(in_place_token_failure<FAILURE>);
     }
     }
+
+REPEAT_TOKEN_NEXT:
 
     if (next_token == size) {
         return parser(in_place_token_success);
@@ -31377,24 +31355,16 @@ ARRAY : {
             return parser(in_place_token_failure<FAILURE>);
         }
 
-        if (WJR_UNLIKELY(parser(in_place_token_number, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
+        type = 1;
+        goto NUMBER;
     }
     case '"': {
         if (WJR_UNLIKELY(!reader(next_token))) {
             return parser(in_place_token_failure<FAILURE>);
         }
 
-        if (WJR_UNLIKELY(
-                next_token - token < 2 ||
-                parser(in_place_token_string, ptr + token + 1, ptr + next_token - 1))) {
-            return;
-        }
-
-        break;
+        type = 1;
+        goto STRING;
     }
     case '[': {
         if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
@@ -31537,24 +31507,16 @@ ARRAY_ELEMENT : {
             return parser(in_place_token_failure<FAILURE>);
         }
 
-        if (WJR_UNLIKELY(parser(in_place_token_number, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
+        type = 1;
+        goto NUMBER;
     }
     case '"': {
         if (WJR_UNLIKELY(!reader(next_token))) {
             return parser(in_place_token_failure<FAILURE>);
         }
 
-        if (WJR_UNLIKELY(
-                next_token - token < 2 ||
-                parser(in_place_token_string, ptr + token + 1, ptr + next_token - 1))) {
-            return;
-        }
-
-        break;
+        type = 1;
+        goto STRING;
     }
     case '[': {
         if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
@@ -31683,24 +31645,16 @@ OBJECT : {
             return parser(in_place_token_failure<FAILURE>);
         }
 
-        if (WJR_UNLIKELY(parser(in_place_token_number, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
+        type = 2;
+        goto NUMBER;
     }
     case '"': {
         if (WJR_UNLIKELY(!reader(next_token))) {
             return parser(in_place_token_failure<FAILURE>);
         }
 
-        if (WJR_UNLIKELY(
-                next_token - token < 2 ||
-                parser(in_place_token_string, ptr + token + 1, ptr + next_token - 1))) {
-            return;
-        }
-
-        break;
+        type = 2;
+        goto STRING;
     }
     case '[': {
         if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
@@ -31883,24 +31837,16 @@ OBJECT_ELEMENT : {
             return parser(in_place_token_failure<FAILURE>);
         }
 
-        if (WJR_UNLIKELY(parser(in_place_token_number, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
+        type = 2;
+        goto NUMBER;
     }
     case '"': {
         if (WJR_UNLIKELY(!reader(next_token))) {
             return parser(in_place_token_failure<FAILURE>);
         }
 
-        if (WJR_UNLIKELY(
-                next_token - token < 2 ||
-                parser(in_place_token_string, ptr + token + 1, ptr + next_token - 1))) {
-            return;
-        }
-
-        break;
+        type = 2;
+        goto STRING;
     }
     case '[': {
         if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
@@ -31931,6 +31877,34 @@ OBJECT_ELEMENT : {
 
     goto OBJECT_ELEMENT_SPACE;
 }
+
+NUMBER:
+    if (WJR_UNLIKELY(parser(in_place_token_number, ptr + token, ptr + next_token))) {
+        return;
+    }
+
+    if (type == 1) {
+        goto ARRAY_ELEMENT_SPACE;
+    } else if (type == 2) {
+        goto OBJECT_ELEMENT_SPACE;
+    } else {
+        goto REPEAT_TOKEN_NEXT;
+    }
+
+STRING:
+    if (WJR_UNLIKELY(
+            next_token - token < 2 ||
+            parser(in_place_token_string, ptr + token + 1, ptr + next_token - 1))) {
+        return;
+    }
+
+    if (type == 1) {
+        goto ARRAY_ELEMENT_SPACE;
+    } else if (type == 2) {
+        goto OBJECT_ELEMENT_SPACE;
+    } else {
+        goto REPEAT_TOKEN_NEXT;
+    }
 }
 
 template <typename Parser>
@@ -32034,10 +32008,77 @@ struct result_abort_error_handler {
 };
 
 template <typename Ret, typename Err>
-struct result_traits {};
+struct result_traits_base {
+    template <typename _Err = Err, WJR_REQUIRES(compare_details::has_equal_v<_Err, _Err>)>
+    static constexpr bool equal(const Err &lhs, const Err &rhs) noexcept {
+        return lhs == rhs;
+    }
+
+    template <typename _Err = Err, WJR_REQUIRES(compare_details::has_not_equal_v<_Err, _Err>)>
+    static constexpr bool non_equal(const Err &lhs, const Err &rhs) noexcept {
+        return lhs != rhs;
+    }
+
+    template <typename _Err = Err, WJR_REQUIRES(compare_details::has_less_v<_Err, _Err>)>
+    static constexpr bool less(const Err &lhs, const Err &rhs) noexcept {
+        return lhs < rhs;
+    }
+
+    template <typename _Err = Err, WJR_REQUIRES(compare_details::has_greater_v<_Err, _Err>)>
+    static constexpr bool greater(const Err &lhs, const Err &rhs) noexcept {
+        return lhs > rhs;
+    }
+
+    template <typename _Err = Err, WJR_REQUIRES(compare_details::has_less_equal_v<_Err, _Err>)>
+    static constexpr bool less_equal(const Err &lhs, const Err &rhs) noexcept {
+        return lhs <= rhs;
+    }
+
+    template <typename _Err = Err,
+              WJR_REQUIRES(compare_details::has_greater_equal_v<_Err, _Err>)>
+    static constexpr bool greater_equal(const Err &lhs, const Err &rhs) noexcept {
+        return lhs >= rhs;
+    }
+};
+
+template <typename Ret, typename Err>
+struct result_traits : result_traits_base<Ret, Err> {};
 
 template <typename Ret>
-struct result_traits<Ret, std::errc> {
+struct result_traits<Ret, result_monostate> {
+    static constexpr bool equal(const result_monostate &,
+                                const result_monostate &) noexcept {
+        return true;
+    }
+
+    static constexpr bool non_equal(const result_monostate &,
+                                    const result_monostate &) noexcept {
+        return false;
+    }
+
+    static constexpr bool less(const result_monostate &,
+                               const result_monostate &) noexcept {
+        return false;
+    }
+
+    static constexpr bool greater(const result_monostate &,
+                                  const result_monostate &) noexcept {
+        return false;
+    }
+
+    static constexpr bool less_equal(const result_monostate &,
+                                     const result_monostate &) noexcept {
+        return true;
+    }
+
+    static constexpr bool greater_equal(const result_monostate &,
+                                        const result_monostate &) noexcept {
+        return true;
+    }
+};
+
+template <typename Ret>
+struct result_traits<Ret, std::errc> : result_traits_base<Ret, std::errc> {
     static constexpr bool is_err_ok(std::errc err) noexcept { return err == std::errc{}; }
     static constexpr void reset_err(std::errc &err) noexcept { err = std::errc{}; }
 };
@@ -32046,6 +32087,30 @@ template <typename Ret>
 struct result_traits<Ret, const char *> {
     static constexpr bool is_err_ok(const char *err) noexcept { return err == nullptr; }
     static constexpr void reset_err(const char *&err) noexcept { err = nullptr; }
+
+    static constexpr bool equal(const char *lhs, const char *rhs) noexcept {
+        return std::strcmp(lhs, rhs) == 0;
+    }
+
+    static constexpr bool non_equal(const char *lhs, const char *rhs) noexcept {
+        return std::strcmp(lhs, rhs) != 0;
+    }
+
+    static constexpr bool less(const char *lhs, const char *rhs) noexcept {
+        return std::strcmp(lhs, rhs) < 0;
+    }
+
+    static constexpr bool greater(const char *lhs, const char *rhs) noexcept {
+        return std::strcmp(lhs, rhs) > 0;
+    }
+
+    static constexpr bool less_equal(const char *lhs, const char *rhs) noexcept {
+        return std::strcmp(lhs, rhs) <= 0;
+    }
+
+    static constexpr bool greater_equal(const char *lhs, const char *rhs) noexcept {
+        return std::strcmp(lhs, rhs) >= 0;
+    }
 };
 
 namespace result_details {
@@ -32056,6 +32121,30 @@ WJR_REGISTER_HAS_TYPE(is_ret_ok,
 WJR_REGISTER_HAS_TYPE(is_err_ok,
                       (result_traits<Ret, Err>::is_err_ok(std::declval<Err>())), Ret,
                       Err);
+WJR_REGISTER_HAS_TYPE(err_equal,
+                      (result_traits<Ret, Err>::equal(std::declval<Err>(),
+                                                      std::declval<Err>())),
+                      Ret, Err);
+WJR_REGISTER_HAS_TYPE(err_non_equal,
+                      (result_traits<Ret, Err>::non_equal(std::declval<Err>(),
+                                                          std::declval<Err>())),
+                      Ret, Err);
+WJR_REGISTER_HAS_TYPE(err_less,
+                      (result_traits<Ret, Err>::less(std::declval<Err>(),
+                                                     std::declval<Err>())),
+                      Ret, Err);
+WJR_REGISTER_HAS_TYPE(err_greater,
+                      (result_traits<Ret, Err>::greater(std::declval<Err>(),
+                                                        std::declval<Err>())),
+                      Ret, Err);
+WJR_REGISTER_HAS_TYPE(err_less_equal,
+                      (result_traits<Ret, Err>::less_equal(std::declval<Err>(),
+                                                           std::declval<Err>())),
+                      Ret, Err);
+WJR_REGISTER_HAS_TYPE(err_greater_equal,
+                      (result_traits<Ret, Err>::greater_equal(std::declval<Err>(),
+                                                              std::declval<Err>())),
+                      Ret, Err);
 
 } // namespace result_details
 
@@ -32355,6 +32444,8 @@ private:
 
 template <typename Ret, typename Err, typename Mybase>
 class basic_result : Mybase {
+    using Traits = result_traits<Ret, Err>;
+
 public:
     using Mybase::Mybase;
 
@@ -32452,6 +32543,114 @@ public:
     constexpr const Ret &&take_value() const && {
         check();
         return std::move(value_unsafe());
+    }
+
+    template <typename _Ret = Ret, typename _Err = Err,
+              WJR_REQUIRES(compare_details::has_equal_v<_Ret, _Ret>
+                               &&result_details::has_err_equal_v<_Ret, _Err>)>
+    friend bool operator==(const basic_result &lhs, const basic_result &rhs) {
+        const bool lhs_ok = lhs.is_ok();
+        const bool rhs_ok = rhs.is_ok();
+
+        if (lhs_ok != rhs_ok) {
+            return false;
+        }
+
+        if (lhs_ok) {
+            return lhs.value_unsafe() == rhs.value_unsafe();
+        }
+
+        return Traits::equal(lhs.error_unsafe(), rhs.error_unsafe());
+    }
+
+    template <typename _Ret = Ret, typename _Err = Err,
+              WJR_REQUIRES(compare_details::has_not_equal_v<_Ret, _Ret>
+                               &&result_details::has_err_non_equal_v<_Ret, _Err>)>
+    friend bool operator!=(const basic_result &lhs, const basic_result &rhs) {
+        const bool lhs_ok = lhs.is_ok();
+        const bool rhs_ok = rhs.is_ok();
+
+        if (lhs_ok != rhs_ok) {
+            return true;
+        }
+
+        if (lhs_ok) {
+            return lhs.value_unsafe() != rhs.value_unsafe();
+        }
+
+        return Traits::non_equal(lhs.error_unsafe(), rhs.error_unsafe());
+    }
+
+    template <typename _Ret = Ret, typename _Err = Err,
+              WJR_REQUIRES(compare_details::has_less_v<_Ret, _Ret>
+                               &&result_details::has_err_less_v<_Ret, _Err>)>
+    friend bool operator<(const basic_result &lhs, const basic_result &rhs) {
+        const bool lhs_ok = lhs.is_ok();
+        const bool rhs_ok = rhs.is_ok();
+
+        if (lhs_ok != rhs_ok) {
+            return lhs_ok < rhs_ok;
+        }
+
+        if (lhs_ok) {
+            return lhs.value_unsafe() < rhs.value_unsafe();
+        }
+
+        return Traits::less(lhs.error_unsafe(), rhs.error_unsafe());
+    }
+
+    template <typename _Ret = Ret, typename _Err = Err,
+              WJR_REQUIRES(compare_details::has_greater_v<_Ret, _Ret>
+                               &&result_details::has_err_greater_v<_Ret, _Err>)>
+    friend bool operator>(const basic_result &lhs, const basic_result &rhs) {
+        const bool lhs_ok = lhs.is_ok();
+        const bool rhs_ok = rhs.is_ok();
+
+        if (lhs_ok != rhs_ok) {
+            return lhs_ok > rhs_ok;
+        }
+
+        if (lhs_ok) {
+            return lhs.value_unsafe() > rhs.value_unsafe();
+        }
+
+        return Traits::greater(lhs.error_unsafe(), rhs.error_unsafe());
+    }
+
+    template <typename _Ret = Ret, typename _Err = Err,
+              WJR_REQUIRES(compare_details::has_less_equal_v<_Ret, _Ret>
+                               &&result_details::has_err_less_equal_v<_Ret, _Err>)>
+    friend bool operator<=(const basic_result &lhs, const basic_result &rhs) {
+        const bool lhs_ok = lhs.is_ok();
+        const bool rhs_ok = rhs.is_ok();
+
+        if (lhs_ok != rhs_ok) {
+            return lhs_ok <= rhs_ok;
+        }
+
+        if (lhs_ok) {
+            return lhs.value_unsafe() <= rhs.value_unsafe();
+        }
+
+        return Traits::less_equal(lhs.error_unsafe(), rhs.error_unsafe());
+    }
+
+    template <typename _Ret = Ret, typename _Err = Err,
+              WJR_REQUIRES(compare_details::has_greater_equal_v<_Ret, _Ret>
+                               &&result_details::has_err_greater_equal_v<_Ret, _Err>)>
+    friend bool operator>=(const basic_result &lhs, const basic_result &rhs) {
+        const bool lhs_ok = lhs.is_ok();
+        const bool rhs_ok = rhs.is_ok();
+
+        if (lhs_ok != rhs_ok) {
+            return lhs_ok >= rhs_ok;
+        }
+
+        if (lhs_ok) {
+            return lhs.value_unsafe() >= rhs.value_unsafe();
+        }
+
+        return Traits::greater_equal(lhs.error_unsafe(), rhs.error_unsafe());
     }
 };
 
