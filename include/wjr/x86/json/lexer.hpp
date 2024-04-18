@@ -8,10 +8,10 @@
 namespace wjr::json {
 
 #if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(SIMD)
-#define WJR_HAS_BUILTIN_JSON_LEXER_READER_READ WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_JSON_LEXER_READER_READ_BUF WJR_HAS_DEF
 #endif
 
-#if WJR_HAS_BUILTIN(JSON_LEXER_READER_READ)
+#if WJR_HAS_BUILTIN(JSON_LEXER_READER_READ_BUF)
 
 namespace lexer_details {
 
@@ -47,28 +47,10 @@ void load_simd(const char *first, typename simd::int_type *arr) {
     }
 }
 
-template <typename simd>
-void load_end_simd(const char *first, unsigned n, typename simd::int_type *arr) {
-    WJR_ASSUME(n < 64);
-    char buf[64];
-    ::memcpy(buf, first, n);
-    ::memset(buf + n, 0, 64 - n);
-    load_simd<simd>(buf, arr);
-}
-
-inline uint64_t calc_backslash(uint64_t B) {
-    uint64_t maybe_escaped = B << 1;
-
-    uint64_t maybe_escaped_and_odd_bits = maybe_escaped | 0xAAAAAAAAAAAAAAAAULL;
-    uint64_t even_series_codes_and_odd_bits = maybe_escaped_and_odd_bits - B;
-
-    return even_series_codes_and_odd_bits ^ 0xAAAAAAAAAAAAAAAAULL;
-}
-
 } // namespace lexer_details
 
 template <uint32_t token_buf_size>
-uint32_t basic_lexer_reader<token_buf_size>::read_buf(uint32_t *token_buf) noexcept {
+uint32_t basic_lexer<token_buf_size>::read_buf(uint32_t *token_buf) noexcept {
     using namespace lexer_details;
 
     constexpr bool is_avx = WJR_HAS_SIMD(AVX2);
@@ -88,7 +70,9 @@ uint32_t basic_lexer_reader<token_buf_size>::read_buf(uint32_t *token_buf) noexc
     uint32_t idx;
 
     if constexpr (__is_dynamic) {
-        prev_is_escape = prev_in_string = prev_is_ws = idx = 0;
+        prev_is_escape = prev_in_string = 0;
+        prev_is_ws = ~0ull;
+        idx = 0;
     } else {
         prev_is_escape = m_storage.prev_is_escape;
         prev_in_string = m_storage.prev_in_string;
@@ -113,7 +97,29 @@ uint32_t basic_lexer_reader<token_buf_size>::read_buf(uint32_t *token_buf) noexc
             if (diff == 64) {
                 load_simd<simd>(first, x);
             } else {
-                load_end_simd<simd>(first, diff, x);
+                char buf[64];
+                std::memcpy(buf, first, diff);
+                char ch;
+                switch (last[-1]) {
+                case ' ':
+                case '\n':
+                case '\r':
+                case '\t':
+                case '[':
+                case ']':
+                case '{':
+                case '}': {
+                    ch = ' ';
+                    break;
+                }
+                default: {
+                    ch = '\0';
+                    break;
+                }
+                }
+
+                std::memset(buf + diff, ch, 64 - diff);
+                load_simd<simd>(buf, x);
             }
 
             first = last;
@@ -177,15 +183,17 @@ uint32_t basic_lexer_reader<token_buf_size>::read_buf(uint32_t *token_buf) noexc
         }
 
         const uint64_t R = prefix_xor(Q) ^ prev_in_string;
+
+        const auto WS = S | W;
+        const auto WT = shld(WS, prev_is_ws, 1);
+        const auto TW = shld(~WS, ~prev_is_ws, 1);
+        prev_is_ws = WS;
+
         S &= ~R;
         prev_in_string = static_cast<uint64_t>(static_cast<int64_t>(R) >> 63);
 
         S |= Q;
-        const auto WS = S | W;
-        const auto P = shld(WS, prev_is_ws, 1);
-        prev_is_ws = WS;
-
-        S |= (P ^ W) & ~R;
+        S |= ((TW & W) | (WT & ~W)) & ~R;
         S &= ~(Q & ~R);
 
         if (S) {

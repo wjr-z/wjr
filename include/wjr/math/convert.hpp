@@ -2,9 +2,9 @@
 #define WJR_MATH_CONVERT_HPP__
 
 #include <array>
+#include <charconv>
 #include <string>
 #include <system_error>
-#include <vector>
 
 #include <wjr/assert.hpp>
 #include <wjr/container/generic/type_traits.hpp>
@@ -13,7 +13,6 @@
 #include <wjr/math/div.hpp>
 #include <wjr/math/precompute-chars-convert.hpp>
 #include <wjr/memory/copy.hpp>
-#include <wjr/vector.hpp>
 
 #if defined(WJR_X86)
 #include <wjr/x86/math/convert.hpp>
@@ -197,10 +196,10 @@ public:
         auto str = (char *)ptr;
         if constexpr (Base * Base <= 16) {
             constexpr auto &table = __char_converter_table<Converter, Base, 4>;
-            ::memcpy(str, table.data() + val * 4 + 2, 2);
+            std::memcpy(str, table.data() + val * 4 + 2, 2);
         } else {
             constexpr auto &table = __char_converter_table<Converter, Base, 2>;
-            ::memcpy(str, table.data() + val * 2, 2);
+            std::memcpy(str, table.data() + val * 2, 2);
         }
     }
 };
@@ -232,15 +231,15 @@ public:
         auto str = (char *)ptr;
         if constexpr (Base * Base <= 16) {
             constexpr auto &table = __char_converter_table<Converter, Base, 4>;
-            ::memcpy(str, table.data() + val * 4, 4);
+            std::memcpy(str, table.data() + val * 4, 4);
         } else {
             constexpr auto &table = __char_converter_table<Converter, Base, 2>;
             constexpr auto Base2 = Base * Base;
             const uint32_t hi = val / Base2;
             const uint32_t lo = val % Base2;
 
-            ::memcpy(str, table.data() + hi * 2, 2);
-            ::memcpy(str + 2, table.data() + lo * 2, 2);
+            std::memcpy(str, table.data() + hi * 2, 2);
+            std::memcpy(str + 2, table.data() + lo * 2, 2);
         }
     }
 };

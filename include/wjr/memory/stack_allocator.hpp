@@ -3,7 +3,6 @@
 
 #include <algorithm>
 
-#include <wjr/compressed_pair.hpp>
 #include <wjr/crtp/nonsendable.hpp>
 #include <wjr/crtp/trivial_allocator_base.hpp>
 #include <wjr/type_traits.hpp>

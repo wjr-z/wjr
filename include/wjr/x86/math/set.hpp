@@ -57,7 +57,7 @@ WJR_COLD void large_builtin_set_n(T *dst, T val, size_t n) {
 
     if (WJR_UNLIKELY(mo != 0)) {
         T stk[2] = {val, val};
-        ::memcpy(&val, (char *)(stk) + mo, sizeof(T));
+        std::memcpy(&val, (char *)(stk) + mo, sizeof(T));
         y = simd::set1(val, T());
     }
 
@@ -124,18 +124,18 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
         }
 
         if (WJR_UNLIKELY(n >= sse_loop / 2)) {
-            ::memcpy(dst, &x, 8);
+            std::memcpy(dst, &x, 8);
             if constexpr (sse_loop != 2) {
-                ::memcpy(dst + n - sse_loop / 2, &x, 8);
+                std::memcpy(dst + n - sse_loop / 2, &x, 8);
             }
             return;
         }
 
         if constexpr (sse_loop >= 4) {
             if (WJR_UNLIKELY(n >= sse_loop / 4)) {
-                ::memcpy(dst, &x, 4);
+                std::memcpy(dst, &x, 4);
                 if constexpr (sse_loop != 4) {
-                    ::memcpy(dst + n - sse_loop / 4, &x, 4);
+                    std::memcpy(dst + n - sse_loop / 4, &x, 4);
                 }
                 return;
             }
@@ -143,9 +143,9 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
 
         if constexpr (sse_loop >= 8) {
             if (WJR_UNLIKELY(n >= sse_loop / 8)) {
-                ::memcpy(dst, &x, 2);
+                std::memcpy(dst, &x, 2);
                 if constexpr (sse_loop != 8) {
-                    ::memcpy(dst + n - sse_loop / 8, &x, 2);
+                    std::memcpy(dst + n - sse_loop / 8, &x, 2);
                 }
                 return;
             }
@@ -153,9 +153,9 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
 
         if constexpr (sse_loop >= 16) {
             if (WJR_UNLIKELY(n >= sse_loop / 16)) {
-                ::memcpy(dst, &x, 1);
+                std::memcpy(dst, &x, 1);
                 if constexpr (sse_loop != 16) {
-                    ::memcpy(dst + n - sse_loop / 16, &x, 1);
+                    std::memcpy(dst + n - sse_loop / 16, &x, 1);
                 }
                 return;
             }

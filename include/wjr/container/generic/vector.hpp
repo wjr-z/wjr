@@ -479,7 +479,7 @@ public:
 
 private:
     static void __memcpy(pointer dst, const_pointer src, size_type count) {
-        ::memcpy(dst, src, count * sizeof(T));
+        std::memcpy(dst, src, count * sizeof(T));
     }
 
     WJR_PURE WJR_CONSTEXPR20 data_type &__get_data() noexcept { return m_pair.second(); }
@@ -872,7 +872,7 @@ public:
 
 private:
     static void __memcpy(pointer dst, const_pointer src, size_type count) {
-        ::memcpy(dst, src, count * sizeof(T));
+        std::memcpy(dst, src, count * sizeof(T));
     }
 
     WJR_PURE WJR_CONSTEXPR20 data_type &__get_data() noexcept { return m_pair.second(); }

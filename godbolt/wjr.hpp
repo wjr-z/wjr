@@ -4549,9 +4549,9 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_MATH_CONVERT_HPP__
 
 #include <array>
+#include <charconv>
 #include <string>
 #include <system_error>
-#include <vector>
 
 #ifndef WJR_ASSERT_HPP__
 #define WJR_ASSERT_HPP__
@@ -5015,7 +5015,6 @@ using iterator_contiguous_pointer_t =
 
 #include <algorithm>
 
-// Already included
 #ifndef WJR_CRTP_NONSENDABLE_HPP__
 #define WJR_CRTP_NONSENDABLE_HPP__
 
@@ -6115,7 +6114,7 @@ template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_PURE WJR_INTRINSIC_INLINE T read_memory(const void *ptr,
                                             endian to = endian::little) noexcept {
     T x;
-    ::memcpy(&x, ptr, sizeof(T));
+    std::memcpy(&x, ptr, sizeof(T));
 
     if (to != endian::native) {
         x = byteswap(x);
@@ -6131,7 +6130,7 @@ WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x,
         x = byteswap(x);
     }
 
-    ::memcpy(ptr, &x, sizeof(T));
+    std::memcpy(ptr, &x, sizeof(T));
 }
 
 template <class Pointer, class SizeType = std::size_t>
@@ -7092,7 +7091,7 @@ public:
 
 private:
     static void __memcpy(pointer dst, const_pointer src, size_type count) {
-        ::memcpy(dst, src, count * sizeof(T));
+        std::memcpy(dst, src, count * sizeof(T));
     }
 
     WJR_PURE WJR_CONSTEXPR20 data_type &__get_data() noexcept { return m_pair.second(); }
@@ -7485,7 +7484,7 @@ public:
 
 private:
     static void __memcpy(pointer dst, const_pointer src, size_type count) {
-        ::memcpy(dst, src, count * sizeof(T));
+        std::memcpy(dst, src, count * sizeof(T));
     }
 
     WJR_PURE WJR_CONSTEXPR20 data_type &__get_data() noexcept { return m_pair.second(); }
@@ -15110,7 +15109,7 @@ WJR_COLD void large_builtin_set_n(T *dst, T val, size_t n) {
 
     if (WJR_UNLIKELY(mo != 0)) {
         T stk[2] = {val, val};
-        ::memcpy(&val, (char *)(stk) + mo, sizeof(T));
+        std::memcpy(&val, (char *)(stk) + mo, sizeof(T));
         y = simd::set1(val, T());
     }
 
@@ -15177,18 +15176,18 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
         }
 
         if (WJR_UNLIKELY(n >= sse_loop / 2)) {
-            ::memcpy(dst, &x, 8);
+            std::memcpy(dst, &x, 8);
             if constexpr (sse_loop != 2) {
-                ::memcpy(dst + n - sse_loop / 2, &x, 8);
+                std::memcpy(dst + n - sse_loop / 2, &x, 8);
             }
             return;
         }
 
         if constexpr (sse_loop >= 4) {
             if (WJR_UNLIKELY(n >= sse_loop / 4)) {
-                ::memcpy(dst, &x, 4);
+                std::memcpy(dst, &x, 4);
                 if constexpr (sse_loop != 4) {
-                    ::memcpy(dst + n - sse_loop / 4, &x, 4);
+                    std::memcpy(dst + n - sse_loop / 4, &x, 4);
                 }
                 return;
             }
@@ -15196,9 +15195,9 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
 
         if constexpr (sse_loop >= 8) {
             if (WJR_UNLIKELY(n >= sse_loop / 8)) {
-                ::memcpy(dst, &x, 2);
+                std::memcpy(dst, &x, 2);
                 if constexpr (sse_loop != 8) {
-                    ::memcpy(dst + n - sse_loop / 8, &x, 2);
+                    std::memcpy(dst + n - sse_loop / 8, &x, 2);
                 }
                 return;
             }
@@ -15206,9 +15205,9 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
 
         if constexpr (sse_loop >= 16) {
             if (WJR_UNLIKELY(n >= sse_loop / 16)) {
-                ::memcpy(dst, &x, 1);
+                std::memcpy(dst, &x, 1);
                 if constexpr (sse_loop != 16) {
-                    ::memcpy(dst + n - sse_loop / 16, &x, 1);
+                    std::memcpy(dst + n - sse_loop / 16, &x, 1);
                 }
                 return;
             }
@@ -15255,7 +15254,7 @@ WJR_INTRINSIC_CONSTEXPR_E void set_n(T *dst, type_identity_t<T> val, size_t n) {
 
         if (WJR_BUILTIN_CONSTANT_P(val) && broadcast<uint8_t, T>(val) == val) {
             if (WJR_UNLIKELY(n >= 2048 / sizeof(T))) {
-                ::memset(dst, static_cast<uint8_t>(val), n * sizeof(T));
+                std::memset(dst, static_cast<uint8_t>(val), n * sizeof(T));
                 return;
             }
         }
@@ -16988,6 +16987,8 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool __greater_equal_128(uint64_t lo0, uint6
 
 #ifndef WJR_TUPLE_HPP__
 #define WJR_TUPLE_HPP__
+
+#include <tuple>
 
 // Already included
 
@@ -24882,7 +24883,6 @@ precompute_chars_convert(precompute_chars_convert_t *pre, size_t n, unsigned int
 
 #endif // WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
 // Already included
-// Already included
 
 #if defined(WJR_X86)
 #ifndef WJR_X86_MATH_CONVERT_HPP__
@@ -25255,10 +25255,10 @@ public:
         auto str = (char *)ptr;
         if constexpr (Base * Base <= 16) {
             constexpr auto &table = __char_converter_table<Converter, Base, 4>;
-            ::memcpy(str, table.data() + val * 4 + 2, 2);
+            std::memcpy(str, table.data() + val * 4 + 2, 2);
         } else {
             constexpr auto &table = __char_converter_table<Converter, Base, 2>;
-            ::memcpy(str, table.data() + val * 2, 2);
+            std::memcpy(str, table.data() + val * 2, 2);
         }
     }
 };
@@ -25290,15 +25290,15 @@ public:
         auto str = (char *)ptr;
         if constexpr (Base * Base <= 16) {
             constexpr auto &table = __char_converter_table<Converter, Base, 4>;
-            ::memcpy(str, table.data() + val * 4, 4);
+            std::memcpy(str, table.data() + val * 4, 4);
         } else {
             constexpr auto &table = __char_converter_table<Converter, Base, 2>;
             constexpr auto Base2 = Base * Base;
             const uint32_t hi = val / Base2;
             const uint32_t lo = val % Base2;
 
-            ::memcpy(str, table.data() + hi * 2, 2);
-            ::memcpy(str + 2, table.data() + lo * 2, 2);
+            std::memcpy(str, table.data() + hi * 2, 2);
+            std::memcpy(str + 2, table.data() + lo * 2, 2);
         }
     }
 };
@@ -30265,8 +30265,8 @@ using bitset = basic_dynamic_bitset<>;
 
 namespace wjr::json {
 
-struct forward_lexer_reader_storage {
-    forward_lexer_reader_storage(span<const char> input) noexcept
+struct forward_lexer_storage {
+    forward_lexer_storage(span<const char> input) noexcept
         : first(input.data()), last(input.data() + input.size()) {}
 
     const char *first;
@@ -30274,13 +30274,13 @@ struct forward_lexer_reader_storage {
 
     uint64_t prev_in_string = 0;
     uint64_t prev_is_escape = 0;
-    uint64_t prev_is_ws = 0;
+    uint64_t prev_is_ws = ~0ull;
 
     uint32_t idx = 0;
 };
 
-struct dynamic_lexer_reader_storage {
-    dynamic_lexer_reader_storage(span<const char> input) noexcept
+struct dynamic_lexer_storage {
+    dynamic_lexer_storage(span<const char> input) noexcept
         : first(input.data()), last(input.data() + input.size()) {}
 
     const char *first;
@@ -30288,25 +30288,25 @@ struct dynamic_lexer_reader_storage {
 };
 
 template <uint32_t token_buf_size>
-class basic_lexer_reader {
+class basic_lexer {
     static_assert(((token_buf_size & (token_buf_size - 1)) == 0 &&
                    token_buf_size <= 65536) ||
                       token_buf_size == (uint32_t)in_place_max,
                   "token_buf_size must be a power of 2");
 
     constexpr static bool __is_dynamic = token_buf_size == (uint32_t)in_place_max;
-    using storage_type = std::conditional_t<__is_dynamic, dynamic_lexer_reader_storage,
-                                            forward_lexer_reader_storage>;
+    using storage_type =
+        std::conditional_t<__is_dynamic, dynamic_lexer_storage, forward_lexer_storage>;
 
 public:
-    constexpr basic_lexer_reader(span<const char> input) noexcept : m_storage(input) {}
+    constexpr basic_lexer(span<const char> input) noexcept : m_storage(input) {}
 
-    basic_lexer_reader() = delete;
-    constexpr basic_lexer_reader(const basic_lexer_reader &) = delete;
-    constexpr basic_lexer_reader(basic_lexer_reader &&) = default;
-    constexpr basic_lexer_reader &operator=(const basic_lexer_reader &) = delete;
-    constexpr basic_lexer_reader &operator=(basic_lexer_reader &&) = default;
-    ~basic_lexer_reader() = default;
+    basic_lexer() = delete;
+    constexpr basic_lexer(const basic_lexer &) = delete;
+    constexpr basic_lexer(basic_lexer &&) = default;
+    constexpr basic_lexer &operator=(const basic_lexer &) = delete;
+    constexpr basic_lexer &operator=(basic_lexer &&) = default;
+    ~basic_lexer() = default;
 
     /**
      * @brief read tokens
@@ -30320,16 +30320,29 @@ public:
 
     inline uint32_t read(uint32_t *token_buf) noexcept;
 
+    WJR_PURE const char *end() const noexcept { return m_storage.last; }
+
 private:
     WJR_NOINLINE uint32_t read_buf(uint32_t *token_buf) noexcept;
 
     storage_type m_storage;
 };
 
-using dynamic_lexer_reader = basic_lexer_reader<in_place_max>;
+using dynamic_lexer = basic_lexer<in_place_max>;
 
 template <uint32_t token_buf_size>
-using forward_lexer_reader = basic_lexer_reader<token_buf_size>;
+using forward_lexer = basic_lexer<token_buf_size>;
+
+namespace lexer_details {
+inline uint64_t calc_backslash(uint64_t B) {
+    uint64_t maybe_escaped = B << 1;
+
+    uint64_t maybe_escaped_and_odd_bits = maybe_escaped | 0xAAAAAAAAAAAAAAAAULL;
+    uint64_t even_series_codes_and_odd_bits = maybe_escaped_and_odd_bits - B;
+
+    return even_series_codes_and_odd_bits ^ 0xAAAAAAAAAAAAAAAAULL;
+}
+} // namespace lexer_details
 
 } // namespace wjr::json
 
@@ -30347,10 +30360,10 @@ using forward_lexer_reader = basic_lexer_reader<token_buf_size>;
 namespace wjr::json {
 
 #if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(SIMD)
-#define WJR_HAS_BUILTIN_JSON_LEXER_READER_READ WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_JSON_LEXER_READER_READ_BUF WJR_HAS_DEF
 #endif
 
-#if WJR_HAS_BUILTIN(JSON_LEXER_READER_READ)
+#if WJR_HAS_BUILTIN(JSON_LEXER_READER_READ_BUF)
 
 namespace lexer_details {
 
@@ -30386,28 +30399,10 @@ void load_simd(const char *first, typename simd::int_type *arr) {
     }
 }
 
-template <typename simd>
-void load_end_simd(const char *first, unsigned n, typename simd::int_type *arr) {
-    WJR_ASSUME(n < 64);
-    char buf[64];
-    ::memcpy(buf, first, n);
-    ::memset(buf + n, 0, 64 - n);
-    load_simd<simd>(buf, arr);
-}
-
-inline uint64_t calc_backslash(uint64_t B) {
-    uint64_t maybe_escaped = B << 1;
-
-    uint64_t maybe_escaped_and_odd_bits = maybe_escaped | 0xAAAAAAAAAAAAAAAAULL;
-    uint64_t even_series_codes_and_odd_bits = maybe_escaped_and_odd_bits - B;
-
-    return even_series_codes_and_odd_bits ^ 0xAAAAAAAAAAAAAAAAULL;
-}
-
 } // namespace lexer_details
 
 template <uint32_t token_buf_size>
-uint32_t basic_lexer_reader<token_buf_size>::read_buf(uint32_t *token_buf) noexcept {
+uint32_t basic_lexer<token_buf_size>::read_buf(uint32_t *token_buf) noexcept {
     using namespace lexer_details;
 
     constexpr bool is_avx = WJR_HAS_SIMD(AVX2);
@@ -30427,7 +30422,9 @@ uint32_t basic_lexer_reader<token_buf_size>::read_buf(uint32_t *token_buf) noexc
     uint32_t idx;
 
     if constexpr (__is_dynamic) {
-        prev_is_escape = prev_in_string = prev_is_ws = idx = 0;
+        prev_is_escape = prev_in_string = 0;
+        prev_is_ws = ~0ull;
+        idx = 0;
     } else {
         prev_is_escape = m_storage.prev_is_escape;
         prev_in_string = m_storage.prev_in_string;
@@ -30452,7 +30449,29 @@ uint32_t basic_lexer_reader<token_buf_size>::read_buf(uint32_t *token_buf) noexc
             if (diff == 64) {
                 load_simd<simd>(first, x);
             } else {
-                load_end_simd<simd>(first, diff, x);
+                char buf[64];
+                std::memcpy(buf, first, diff);
+                char ch;
+                switch (last[-1]) {
+                case ' ':
+                case '\n':
+                case '\r':
+                case '\t':
+                case '[':
+                case ']':
+                case '{':
+                case '}': {
+                    ch = ' ';
+                    break;
+                }
+                default: {
+                    ch = '\0';
+                    break;
+                }
+                }
+
+                std::memset(buf + diff, ch, 64 - diff);
+                load_simd<simd>(buf, x);
             }
 
             first = last;
@@ -30500,6 +30519,204 @@ uint32_t basic_lexer_reader<token_buf_size>::read_buf(uint32_t *token_buf) noexc
 
         S = ~S;
         W = ~W;
+
+        {
+            if (!B) {
+                B = prev_is_escape;
+                Q &= ~B;
+                prev_is_escape = 0;
+            } else {
+                const uint64_t codeB = calc_backslash(B & ~prev_is_escape);
+                const auto escape = (codeB & B) >> 63;
+                B = codeB ^ (B | prev_is_escape);
+                Q &= ~B;
+                prev_is_escape = escape;
+            }
+        }
+
+        const uint64_t R = prefix_xor(Q) ^ prev_in_string;
+
+        const auto WS = S | W;
+        const auto WT = shld(WS, prev_is_ws, 1);
+        const auto TW = shld(~WS, ~prev_is_ws, 1);
+        prev_is_ws = WS;
+
+        S &= ~R;
+        prev_in_string = static_cast<uint64_t>(static_cast<int64_t>(R) >> 63);
+
+        S |= Q;
+        S |= ((TW & W) | (WT & ~W)) & ~R;
+        S &= ~(Q & ~R);
+
+        if (S) {
+            const auto num = popcount(S);
+
+            do {
+                for (int i = 0; i < 4; ++i) {
+                    token_buf[i] = idx + ctz(S);
+                    S &= S - 1;
+                }
+
+                if (WJR_UNLIKELY(num <= 4)) {
+                    break;
+                }
+
+                for (int i = 4; i < 8; ++i) {
+                    token_buf[i] = idx + ctz(S);
+                    S &= S - 1;
+                }
+
+                if (WJR_LIKELY(num <= 8)) {
+                    break;
+                }
+
+                for (int i = 8; i < 12; ++i) {
+                    token_buf[i] = idx + ctz(S);
+                    S &= S - 1;
+                }
+
+                if (WJR_LIKELY(num <= 12)) {
+                    break;
+                }
+
+                for (int i = 12; i < 16; ++i) {
+                    token_buf[i] = idx + ctz(S);
+                    S &= S - 1;
+                }
+
+                if (WJR_LIKELY(num <= 16)) {
+                    break;
+                }
+
+                for (int i = 16; i < num; ++i) {
+                    token_buf[i] = idx + ctz(S);
+                    S &= S - 1;
+                }
+            } while (0);
+
+            token_buf += num;
+            count += num;
+        }
+
+        idx += 64;
+
+        if constexpr (!__is_dynamic) {
+            loop = (count <= token_buf_size);
+        } else {
+            loop = first != last;
+        }
+
+    } while (WJR_LIKELY(loop));
+
+    if constexpr (!__is_dynamic) {
+        m_storage.first = first;
+        m_storage.prev_is_escape = prev_is_escape;
+        m_storage.prev_in_string = prev_in_string;
+        m_storage.prev_is_ws = prev_is_ws;
+        m_storage.idx = idx;
+    }
+
+    if constexpr (!__is_dynamic) {
+        return count & (token_buf_mask - 1);
+    } else {
+        return count;
+    }
+}
+
+#endif
+
+} // namespace wjr::json
+
+#endif // WJR_X86_JSON_LEXER_HPP__
+#endif
+
+namespace wjr::json {
+
+template <uint32_t token_buf_size>
+inline uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
+    if (WJR_UNLIKELY(m_storage.first == m_storage.last)) {
+        return 0;
+    }
+
+    return read_buf(token_buf);
+}
+
+#if !WJR_HAS_BUILTIN(JSON_LEXER_READER_READ_BUF)
+
+namespace lexer_details {
+
+const static std::array<uint8_t, 256> code_table = {
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 3, 4, 1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 2, 0, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 2, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
+
+}
+
+template <uint32_t token_buf_size>
+uint32_t basic_lexer<token_buf_size>::read_buf(uint32_t *token_buf) noexcept {
+    WJR_UNREACHABLE();
+
+    using namespace lexer_details;
+
+    constexpr uint32_t token_buf_mask = token_buf_size * 2;
+
+    auto first = m_storage.first;
+    const auto last = m_storage.last;
+    uint64_t prev_is_escape;
+    uint64_t prev_in_string;
+    uint64_t prev_is_ws;
+    uint32_t idx;
+
+    if constexpr (__is_dynamic) {
+        prev_is_escape = prev_in_string = prev_is_ws = idx = 0;
+    } else {
+        prev_is_escape = m_storage.prev_is_escape;
+        prev_in_string = m_storage.prev_in_string;
+        prev_is_ws = m_storage.prev_is_ws;
+        idx = m_storage.idx;
+    }
+
+    WJR_ASSERT_ASSUME_L1(first < last);
+
+    uint32_t count = 0;
+    bool loop;
+
+    do {
+        const char *ptr;
+        char stk[64];
+        const size_t diff = last - first;
+
+        if (WJR_LIKELY(diff > 64)) {
+            ptr = first;
+            first += 64;
+        } else {
+            if (diff == 64) {
+                ptr = first;
+            } else {
+                std::memcpy(stk, first, diff);
+                std::memset(stk + diff, 0, 64 - diff);
+                ptr = stk;
+            }
+
+            first = last;
+            if constexpr (!__is_dynamic) {
+                count |= token_buf_mask;
+            }
+        }
+
+        uint64_t MASK[5] = {0, 0, 0, 0, 0};
+        auto &[B, Q, S, W, UNUSED] = MASK;
+
+        WJR_UNROLL(8)
+        for (int i = 0; i < 64; ++i) {
+            MASK[code_table[(uint8_t)ptr[i]]] |= 1ull << i;
+        }
 
         {
             if (!B) {
@@ -30601,39 +30818,1664 @@ uint32_t basic_lexer_reader<token_buf_size>::read_buf(uint32_t *token_buf) noexc
         return count;
     }
 }
-
-#endif
-
-} // namespace wjr::json
-
-#endif // WJR_X86_JSON_LEXER_HPP__
-#endif
-
-namespace wjr::json {
-
-template <uint32_t token_buf_size>
-inline uint32_t basic_lexer_reader<token_buf_size>::read(uint32_t *token_buf) noexcept {
-    if (WJR_UNLIKELY(m_storage.first == m_storage.last)) {
-        return 0;
-    }
-
-    return read_buf(token_buf);
-}
-
-#if !WJR_HAS_BUILTIN(JSON_LEXER_READER_READ)
-template <uint32_t token_buf_size>
-uint32_t basic_lexer_reader<token_buf_size>::read_buf(uint32_t *token_buf) noexcept {
-    return 0;
-}
 #endif
 
 } // namespace wjr::json
 
 #endif // WJR_JSON_LEXER_HPP__
-// Already included
-// Already included
-// Already included
-// Already included
+#ifndef WJR_JSON_PARSER_HPP__
+#define WJR_JSON_PARSER_HPP__
+
+#include <bitset>
+#include <charconv>
+
 // Already included
 // Already included
 
+namespace wjr::json {
+
+enum error_code : unsigned int {
+    SUCCESS,
+    FAILURE,
+};
+
+struct in_place_token_null_t {};
+struct in_place_token_true_t {};
+struct in_place_token_false_t {};
+struct in_place_token_number_t {};
+struct in_place_token_string_t {};
+struct in_place_token_left_bracket_t {};
+struct in_place_token_left_brace_t {};
+struct in_place_token_left_brace_string_t {};
+struct in_place_token_right_bracket_back_bracket_t {};
+struct in_place_token_right_bracket_back_brace_t {};
+struct in_place_token_right_bracket_back_root_t {};
+struct in_place_token_right_brace_back_bracket_t {};
+struct in_place_token_right_brace_back_brace_t {};
+struct in_place_token_right_brace_back_root_t {};
+
+struct in_place_token_success_t {};
+
+template <error_code ec>
+struct in_place_token_failure_t {};
+
+struct in_place_token_repeat_t {};
+
+inline constexpr in_place_token_null_t in_place_token_null{};
+inline constexpr in_place_token_true_t in_place_token_true{};
+inline constexpr in_place_token_false_t in_place_token_false{};
+inline constexpr in_place_token_number_t in_place_token_number{};
+inline constexpr in_place_token_string_t in_place_token_string{};
+inline constexpr in_place_token_left_bracket_t in_place_token_left_bracket{};
+inline constexpr in_place_token_left_brace_t in_place_token_left_brace{};
+inline constexpr in_place_token_left_brace_string_t in_place_token_left_brace_string{};
+inline constexpr in_place_token_right_bracket_back_bracket_t
+    in_place_token_right_bracket_back_bracket{};
+inline constexpr in_place_token_right_bracket_back_brace_t
+    in_place_token_right_bracket_back_brace{};
+inline constexpr in_place_token_right_bracket_back_root_t
+    in_place_token_right_bracket_back_root{};
+inline constexpr in_place_token_right_brace_back_bracket_t
+    in_place_token_right_brace_back_bracket{};
+inline constexpr in_place_token_right_brace_back_brace_t
+    in_place_token_right_brace_back_brace{};
+inline constexpr in_place_token_right_brace_back_root_t
+    in_place_token_right_brace_back_root{};
+
+inline constexpr in_place_token_success_t in_place_token_success{};
+
+template <error_code ec>
+inline constexpr in_place_token_failure_t<ec> in_place_token_failure{};
+
+inline constexpr in_place_token_repeat_t in_place_token_repeat{};
+
+template <uint32_t token_buf_size>
+class forward_token_reader {
+public:
+    forward_token_reader(span<const char> sp, uint32_t *token_buf)
+        : token_first(token_buf), token_last(token_buf), token_buf(token_buf),
+          first(sp.data()), lexer(sp) {}
+
+    bool operator()(uint32_t &token) {
+        if (WJR_LIKELY(token_first != token_last)) {
+            token = *token_first++;
+            return true;
+        }
+
+        uint32_t count = lexer.read(token_buf);
+        if (WJR_UNLIKELY(count == 0)) {
+            return false;
+        }
+
+        token_first = token_buf;
+        token_last = token_buf + count;
+        token = *token_first++;
+        return true;
+    }
+
+    WJR_PURE const char *begin() const noexcept { return first; }
+    WJR_PURE const char *end() const noexcept { return lexer.end(); }
+
+private:
+    uint32_t *token_first;
+    uint32_t *token_last;
+    uint32_t *token_buf;
+    const char *first;
+    basic_lexer<token_buf_size> lexer;
+};
+
+/**
+ * @details Return true if parsing needs to be terminated.
+ *
+ */
+struct empty_parser {
+    bool operator()(in_place_token_null_t, const char *, const char *) { return false; }
+
+    bool operator()(in_place_token_true_t, const char *, const char *) { return false; }
+
+    bool operator()(in_place_token_false_t, const char *, const char *) { return false; }
+
+    bool operator()(in_place_token_number_t, const char *, const char *) { return false; }
+
+    bool operator()(in_place_token_string_t, const char *, const char *) { return false; }
+
+    bool operator()(in_place_token_left_bracket_t) { return false; }
+
+    bool operator()(in_place_token_left_brace_t) { return false; }
+
+    bool operator()(in_place_token_left_brace_string_t, const char *, const char *) {
+        return false;
+    }
+
+    bool operator()(in_place_token_right_bracket_back_bracket_t) { return false; }
+
+    bool operator()(in_place_token_right_bracket_back_brace_t, const char *,
+                    const char *) {
+        return false;
+    }
+
+    bool operator()(in_place_token_right_bracket_back_root_t) { return false; }
+
+    bool operator()(in_place_token_right_brace_back_bracket_t) { return false; }
+
+    bool operator()(in_place_token_right_brace_back_brace_t, const char *, const char *) {
+        return false;
+    }
+
+    bool operator()(in_place_token_right_brace_back_root_t) { return false; }
+
+    void operator()(in_place_token_success_t) {}
+
+    template <error_code E>
+    void operator()(in_place_token_failure_t<E>) {}
+
+    bool operator()(in_place_token_repeat_t) { return false; }
+};
+
+struct check_parser : empty_parser {
+    bool operator()(in_place_token_null_t, const char *first, const char *last) {
+        if (WJR_LIKELY(last - first == 4 && std::memcmp(first, "null", 4) == 0)) {
+            return false;
+        }
+
+        ec = FAILURE;
+        return true;
+    }
+
+    bool operator()(in_place_token_true_t, const char *first, const char *last) {
+        if (WJR_LIKELY(last - first == 4 && std::memcmp(first, "true", 4) == 0)) {
+            return false;
+        }
+
+        ec = FAILURE;
+        return true;
+    }
+
+    bool operator()(in_place_token_false_t, const char *first, const char *last) {
+        if (WJR_LIKELY(last - first == 5 && std::memcmp(first + 1, "alse", 4) == 0)) {
+            return false;
+        }
+
+        ec = FAILURE;
+        return true;
+    }
+
+    WJR_INTRINSIC_INLINE bool operator()(in_place_token_number_t, const char *first,
+                                         const char *last) {
+        constexpr auto __matches = [](uint8_t ch) { return '0' <= ch && ch <= '9'; };
+
+        WJR_ASSERT_ASSUME_L1(first < last);
+
+        if (*first == '-') {
+            if (++first == last) {
+                goto FAILED;
+            }
+        }
+
+        if (*first++ == '0') {
+            if (first == last) {
+                return false;
+            }
+        } else {
+            if (first == last) {
+                return false;
+            }
+
+            do {
+                if (WJR_UNLIKELY(!__matches(*first))) {
+                    goto NEXT0;
+                }
+            } while (++first != last);
+            return false;
+        NEXT0 : {}
+        }
+
+        if (*first == '.') {
+            if (++first == last) {
+                goto FAILED;
+            }
+
+            if (WJR_UNLIKELY(!__matches(*first))) {
+                goto FAILED;
+            }
+
+            while (++first != last) {
+                if (WJR_UNLIKELY(!__matches(*first))) {
+                    goto NEXT1;
+                }
+            }
+            return false;
+        NEXT1 : {}
+        }
+
+        switch (*first) {
+        case 'e':
+        case 'E': {
+            break;
+        }
+        default: {
+            goto FAILED;
+        }
+        }
+
+        if (++first == last) {
+            goto FAILED;
+        }
+
+        if (*first == '+' || *first == '-') {
+            if (++first == last) {
+                goto FAILED;
+            }
+        }
+
+        if (WJR_UNLIKELY(!__matches(*first))) {
+            goto FAILED;
+        }
+
+        while (++first != last) {
+            if (WJR_UNLIKELY(!__matches(*first))) {
+                goto FAILED;
+            }
+        }
+
+        return false;
+    FAILED : {
+        ec = FAILURE;
+        return true;
+    }
+    }
+
+    WJR_INTRINSIC_INLINE bool operator()(in_place_token_string_t, const char *first,
+                                         const char *last) {
+        while (first != last) {
+            uint8_t ch = *first++;
+            if (WJR_UNLIKELY(ch < 32 || ch == 127)) {
+                goto FAILED;
+            }
+
+            if (WJR_UNLIKELY(ch == '\\')) {
+                if (WJR_UNLIKELY(first == last)) {
+                    goto FAILED;
+                }
+
+                ch = *first++;
+                switch (ch) {
+                case '"':
+                case '\\':
+                case '/':
+                case 'b':
+                case 'f':
+                case 'n':
+                case 'r':
+                case 't': {
+                    break;
+                }
+                case 'u': {
+                    if (WJR_UNLIKELY(first + 4 > last)) {
+                        goto FAILED;
+                    }
+
+                    for (int i = 0; i < 4; ++i) {
+                        ch = *first++;
+                        if (WJR_UNLIKELY(!('0' <= ch && ch <= '9') &&
+                                         !('a' <= ch && ch <= 'f') &&
+                                         !('A' <= ch && ch <= 'F'))) {
+                            goto FAILED;
+                        }
+                    }
+
+                    break;
+                }
+                default: {
+                    goto FAILED;
+                }
+                }
+            }
+        }
+
+        return false;
+
+    FAILED : {
+        ec = FAILURE;
+        return true;
+    }
+    }
+
+    bool operator()(in_place_token_left_bracket_t) { return false; }
+
+    bool operator()(in_place_token_left_brace_t) { return false; }
+
+    bool operator()(in_place_token_left_brace_string_t, const char *, const char *) {
+        return false;
+    }
+
+    bool operator()(in_place_token_right_bracket_back_bracket_t) { return false; }
+
+    bool operator()(in_place_token_right_bracket_back_brace_t, const char *,
+                    const char *) {
+        return false;
+    }
+
+    bool operator()(in_place_token_right_bracket_back_root_t) { return false; }
+
+    bool operator()(in_place_token_right_brace_back_bracket_t) { return false; }
+
+    bool operator()(in_place_token_right_brace_back_brace_t, const char *, const char *) {
+        return false;
+    }
+
+    bool operator()(in_place_token_right_brace_back_root_t) { return false; }
+
+    void operator()(in_place_token_success_t) {}
+
+    template <error_code E>
+    void operator()(in_place_token_failure_t<E>) {
+        ec = E;
+    }
+
+    bool operator()(in_place_token_repeat_t) { return false; }
+
+    error_code ec = SUCCESS;
+};
+
+/**
+ * @param parser Return type of
+ * success_t/failure_t/left_bracket_t/right_bracket_t/left_brace_t/right_brace_t must be
+ * void. Otherwise, return type must be bool.
+ *
+ */
+template <typename TokenReader, typename Parser>
+WJR_NOINLINE void reader_parse(TokenReader &reader, Parser &parser) {
+    unique_stack_allocator stkal(math_details::stack_alloc);
+    struct stack {
+        uint8_t type;
+        const char *first;
+        const char *last;
+    };
+
+    stack *stk = static_cast<stack *>(stkal.allocate(1024 * sizeof(stack)));
+    stack *current = stk;
+    uint8_t type;
+
+    uint32_t token, next_token;
+    const char *const ptr = reader.begin();
+    const char *const last = reader.end();
+    const auto size = last - ptr;
+
+    // empty json
+    if (WJR_UNLIKELY(!reader(token))) {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+
+REPEAT_TOKEN : {
+    switch (ptr[token]) {
+    case 'n': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            next_token = size;
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_null, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case 't': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            next_token = size;
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_true, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case 'f': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            next_token = size;
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_false, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+    case '-': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            next_token = size;
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_number, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case '"': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            next_token = size;
+        }
+
+        if (WJR_UNLIKELY(
+                next_token - token < 2 ||
+                parser(in_place_token_string, ptr + token + 1, ptr + next_token - 1))) {
+            return;
+        }
+
+        break;
+    }
+    case '[': {
+        if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
+            return;
+        }
+
+        goto ARRAY;
+    }
+    case '{': {
+        if (WJR_UNLIKELY(parser(in_place_token_left_brace))) {
+            return;
+        }
+
+        goto OBJECT;
+    }
+    default: {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+    }
+
+    if (next_token == size) {
+        return parser(in_place_token_success);
+    }
+
+    // non-repeated callback
+    if (parser(in_place_token_repeat)) {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+
+    // non-structural token, must be followed by space
+    switch (ptr[next_token]) {
+    case ' ':
+    case '\n':
+    case '\t':
+    case '\r': {
+        if (!reader(token)) {
+            return parser(in_place_token_success);
+        }
+        break;
+    }
+    default: {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+    }
+
+    goto REPEAT_TOKEN;
+}
+
+ARRAY : {
+    if (WJR_UNLIKELY(!reader(token))) {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+
+    switch (ptr[token]) {
+    case 'n': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_null, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case 't': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_true, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case 'f': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_false, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+    case '-': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_number, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case '"': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(
+                next_token - token < 2 ||
+                parser(in_place_token_string, ptr + token + 1, ptr + next_token - 1))) {
+            return;
+        }
+
+        break;
+    }
+    case '[': {
+        if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
+            return;
+        }
+
+        (current++)->type = 0;
+        goto ARRAY;
+    }
+    case '{': {
+        if (WJR_UNLIKELY(parser(in_place_token_left_brace))) {
+            return;
+        }
+
+        (current++)->type = 0;
+        goto OBJECT;
+    }
+    case ']': {
+        goto ARRAY_BACK;
+    }
+    case '}': {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+    default: {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+    }
+}
+
+ARRAY_ELEMENT_SPACE:
+    switch (ptr[next_token]) {
+    case ' ':
+    case '\n':
+    case '\t':
+    case '\r': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        break;
+    }
+    }
+
+ARRAY_ELEMENT : {
+    switch (ptr[next_token]) {
+    case ',': {
+        break;
+    }
+    case ']': {
+    ARRAY_BACK:
+        if (current == stk) {
+            if (parser(in_place_token_right_bracket_back_root) ||
+                parser(in_place_token_repeat)) {
+                return;
+            }
+
+            if (reader(token)) {
+                goto REPEAT_TOKEN;
+            }
+
+            return parser(in_place_token_success);
+        }
+
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        type = (--current)->type;
+
+        if (type == 0) {
+            if (WJR_UNLIKELY(parser(in_place_token_right_bracket_back_bracket))) {
+                return;
+            }
+
+            goto ARRAY_ELEMENT;
+        } else {
+            if (WJR_UNLIKELY(parser(in_place_token_right_bracket_back_brace,
+                                    current->first, current->last))) {
+                return;
+            }
+
+            goto OBJECT_ELEMENT;
+        }
+    }
+    default: {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+    }
+
+    if (WJR_UNLIKELY(!reader(token))) {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+
+    switch (ptr[token]) {
+    case 'n': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_null, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case 't': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_true, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case 'f': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_false, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+    case '-': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_number, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case '"': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(
+                next_token - token < 2 ||
+                parser(in_place_token_string, ptr + token + 1, ptr + next_token - 1))) {
+            return;
+        }
+
+        break;
+    }
+    case '[': {
+        if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
+            return;
+        }
+
+        (current++)->type = 0;
+        goto ARRAY;
+    }
+    case '{': {
+        if (WJR_UNLIKELY(parser(in_place_token_left_brace))) {
+            return;
+        }
+
+        (current++)->type = 0;
+        goto OBJECT;
+    }
+    case ']': {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+    case '}': {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+    default: {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+    }
+
+    goto ARRAY_ELEMENT_SPACE;
+}
+
+OBJECT : {
+    if (WJR_UNLIKELY(!reader(token))) {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+
+    switch (ptr[token]) {
+    case '"': {
+        break;
+    }
+    case '}': {
+        goto OBJECT_BACK;
+    }
+    default: {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+    }
+
+    if (WJR_UNLIKELY(!reader(next_token))) {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+
+    if (WJR_UNLIKELY(next_token - token < 2 ||
+                     parser(in_place_token_left_brace_string, ptr + token + 1,
+                            ptr + next_token - 1))) {
+        return;
+    }
+
+    switch (ptr[next_token]) {
+    case ' ':
+    case '\n':
+    case '\r':
+    case '\t': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        break;
+    }
+    }
+
+    if (WJR_UNLIKELY(ptr[next_token] != ':')) {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+
+    if (WJR_UNLIKELY(!reader(token))) {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+
+    switch (ptr[token]) {
+    case 'n': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_null, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case 't': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_true, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case 'f': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_false, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+    case '-': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_number, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case '"': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(
+                next_token - token < 2 ||
+                parser(in_place_token_string, ptr + token + 1, ptr + next_token - 1))) {
+            return;
+        }
+
+        break;
+    }
+    case '[': {
+        if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
+            return;
+        }
+
+        (current++)->type = 1;
+        goto ARRAY;
+    }
+    case '{': {
+        if (WJR_UNLIKELY(parser(in_place_token_left_brace))) {
+            return;
+        }
+
+        (current++)->type = 1;
+        goto OBJECT;
+    }
+    case ']': {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+    case '}': {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+    default: {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+    }
+}
+
+OBJECT_ELEMENT_SPACE:
+    switch (ptr[next_token]) {
+    case ' ':
+    case '\n':
+    case '\t':
+    case '\r': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        break;
+    }
+    }
+
+OBJECT_ELEMENT : {
+    switch (ptr[next_token]) {
+    case ',': {
+        break;
+    }
+    case '}': {
+    OBJECT_BACK:
+        if (WJR_UNLIKELY(current == stk)) {
+            if (parser(in_place_token_right_brace_back_root) ||
+                parser(in_place_token_repeat)) {
+                return;
+            }
+
+            if (reader(token)) {
+                goto REPEAT_TOKEN;
+            }
+
+            return parser(in_place_token_success);
+        }
+
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        type = (--current)->type;
+
+        if (type == 0) {
+            if (WJR_UNLIKELY(parser(in_place_token_right_brace_back_bracket))) {
+                return;
+            }
+
+            goto ARRAY_ELEMENT;
+        } else {
+            if (WJR_UNLIKELY(parser(in_place_token_right_brace_back_brace, current->first,
+                                    current->last))) {
+                return;
+            }
+
+            goto OBJECT_ELEMENT;
+        }
+    }
+    default: {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+    }
+
+    if (WJR_UNLIKELY(!reader(token))) {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+
+    switch (ptr[token]) {
+    case '"': {
+        break;
+    }
+    default: {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+    }
+
+    if (WJR_UNLIKELY(!reader(next_token))) {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+
+    if (WJR_UNLIKELY(next_token - token < 2 ||
+                     parser(in_place_token_left_brace_string, ptr + token + 1,
+                            ptr + next_token - 1))) {
+        return;
+    }
+
+    switch (ptr[next_token]) {
+    case ' ':
+    case '\n':
+    case '\r':
+    case '\t': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        break;
+    }
+    }
+
+    if (WJR_UNLIKELY(ptr[next_token] != ':')) {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+
+    if (WJR_UNLIKELY(!reader(token))) {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+
+    switch (ptr[token]) {
+    case 'n': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_null, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case 't': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_true, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case 'f': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_false, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+    case '-': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(parser(in_place_token_number, ptr + token, ptr + next_token))) {
+            return;
+        }
+
+        break;
+    }
+    case '"': {
+        if (WJR_UNLIKELY(!reader(next_token))) {
+            return parser(in_place_token_failure<FAILURE>);
+        }
+
+        if (WJR_UNLIKELY(
+                next_token - token < 2 ||
+                parser(in_place_token_string, ptr + token + 1, ptr + next_token - 1))) {
+            return;
+        }
+
+        break;
+    }
+    case '[': {
+        if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
+            return;
+        }
+
+        (current++)->type = 1;
+        goto ARRAY;
+    }
+    case '{': {
+        if (WJR_UNLIKELY(parser(in_place_token_left_brace))) {
+            return;
+        }
+
+        (current++)->type = 1;
+        goto OBJECT;
+    }
+    case ']': {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+    case '}': {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+    default: {
+        return parser(in_place_token_failure<FAILURE>);
+    }
+    }
+
+    goto OBJECT_ELEMENT_SPACE;
+}
+}
+
+template <typename Parser>
+WJR_INTRINSIC_INLINE void parse(span<const char> sp, Parser &parser) {
+    constexpr uint32_t token_buf_size = 1024;
+
+    unique_stack_allocator stkal(math_details::stack_alloc);
+
+    uint32_t *token_buf = static_cast<uint32_t *>(
+        stkal.allocate((token_buf_size * 2 - 1) * sizeof(uint32_t)));
+
+    forward_token_reader<token_buf_size> reader(sp, token_buf);
+    reader_parse(reader, parser);
+}
+
+} // namespace wjr::json
+
+#endif // WJR_JSON_PARSER_HPP__
+// Already included
+// Already included
+#ifndef WJR_RESULT_HPP__
+#define WJR_RESULT_HPP__
+
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <variant>
+
+// Already included
+#ifndef WJR_ERROR_FORMAT_HPP__
+#define WJR_ERROR_FORMAT_HPP__
+
+#include <system_error>
+
+namespace wjr {
+
+template <typename Err>
+struct error_format {
+    template <typename Output>
+    static decltype(auto) format(Output &output, const Err &err) {
+        return output << err;
+    }
+};
+
+template <>
+struct error_format<std::error_code> {
+    template <typename Output>
+    static decltype(auto) format(Output &output, const std::error_code &err) {
+        return output << err.message();
+    }
+};
+
+template <>
+struct error_format<std::errc> {
+    template <typename Output>
+    static decltype(auto) format(Output &output, const std::errc &err) {
+        return output << std::make_error_code(err).message();
+    }
+};
+
+} // namespace wjr
+
+#endif // WJR_ERROR_FORMAT_HPP__
+// Already included
+
+namespace wjr {
+
+struct result_monostate {};
+
+template <typename CharT, typename Traits>
+std::basic_ostream<CharT, Traits> &operator<<(std::basic_ostream<CharT, Traits> &os,
+                                              const result_monostate &) {
+    return os << "unhandled error result";
+}
+
+class result_exception : public std::runtime_error {
+    using Mybase = std::runtime_error;
+
+public:
+    using Mybase::Mybase;
+};
+
+struct result_exception_error_handler {
+    template <typename Err>
+    void operator()(Err &&err) {
+        std::stringstream ss;
+        error_format<remove_cvref_t<Err>>::format(ss, std::forward<Err>(err));
+        throw result_exception(ss.str());
+    }
+
+    void operator()(const char *err) { throw result_exception(err); }
+    void operator()(const std::string &err) { throw result_exception(err); }
+};
+
+struct result_abort_error_handler {
+    template <typename Err>
+    WJR_NORETURN void operator()(Err &&err) {
+        std::cerr << err << std::endl;
+        std::abort();
+    }
+};
+
+template <typename Ret, typename Err>
+struct result_traits {};
+
+template <typename Ret>
+struct result_traits<Ret, std::errc> {
+    static constexpr bool is_err_ok(std::errc err) noexcept { return err == std::errc{}; }
+    static constexpr void reset_err(std::errc &err) noexcept { err = std::errc{}; }
+};
+
+template <typename Ret>
+struct result_traits<Ret, const char *> {
+    static constexpr bool is_err_ok(const char *err) noexcept { return err == nullptr; }
+    static constexpr void reset_err(const char *&err) noexcept { err = nullptr; }
+};
+
+namespace result_details {
+
+WJR_REGISTER_HAS_TYPE(is_ret_ok,
+                      (result_traits<Ret, Err>::is_ret_ok(std::declval<Ret>())), Ret,
+                      Err);
+WJR_REGISTER_HAS_TYPE(is_err_ok,
+                      (result_traits<Ret, Err>::is_err_ok(std::declval<Err>())), Ret,
+                      Err);
+
+} // namespace result_details
+
+template <typename Ret, typename Err, typename ErrorHandler, size_t I>
+class basic_result_base;
+
+template <typename... Args>
+class result_ok {
+public:
+    result_ok(const Args &...args) : m_tp(args...) {}
+
+    template <size_t idx>
+    constexpr decltype(auto) get() && {
+        return std::move(m_tp).template get<idx>();
+    }
+
+private:
+    tuple<Args...> m_tp;
+};
+
+template <typename... Args>
+result_ok(Args...) -> result_ok<Args...>;
+
+template <typename... Args>
+class result_err {
+public:
+    result_err(const Args &...args) : m_tp(args...) {}
+
+    template <size_t idx>
+    constexpr decltype(auto) get() && {
+        return std::move(m_tp).template get<idx>();
+    }
+
+private:
+    tuple<Args...> m_tp;
+};
+
+template <typename... Args>
+result_err(Args...) -> result_err<Args...>;
+
+enum result_id_index {
+    RESULT_OK,
+    RESULT_ERR,
+};
+
+template <typename Ret, typename Err, typename ErrorHandler>
+class basic_result_base<Ret, Err, ErrorHandler, 0>
+    : enable_special_members_of_args_base<basic_result_base<Ret, Err, ErrorHandler, 0>,
+                                          std::variant<Err, Ret>> {
+    using Storage = std::variant<Err, Ret>;
+    using Mybase =
+        enable_special_members_of_args_base<basic_result_base<Ret, Err, ErrorHandler, 0>,
+                                            Storage>;
+
+public:
+    using Mybase::Mybase;
+
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<Storage, Args...>)>
+    constexpr basic_result_base(Args &&...args)
+        : m_storage(std::forward<Args>(args)...) {}
+
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<
+                                             Storage, std::in_place_index_t<1>, Args...>)>
+    constexpr basic_result_base(std::in_place_index_t<RESULT_OK>, Args &&...args)
+        : m_storage(std::in_place_index<1>, std::forward<Args>(args)...) {}
+
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<
+                                             Storage, std::in_place_index_t<0>, Args...>)>
+    constexpr basic_result_base(std::in_place_index_t<RESULT_ERR>, Args &&...args)
+        : m_storage(std::in_place_index<0>, std::forward<Args>(args)...) {}
+
+    constexpr bool is_ok() const noexcept { return m_storage.index() == 1; }
+    constexpr bool is_err() const noexcept { return m_storage.index() == 0; }
+
+    constexpr void check() const & {
+        if (WJR_UNLIKELY(is_err())) {
+            ErrorHandler{}(std::get<0>(m_storage));
+            WJR_UNREACHABLE();
+        }
+    }
+
+    constexpr void check() && {
+        if (WJR_UNLIKELY(is_err())) {
+            ErrorHandler{}(std::move(std::get<0>(m_storage)));
+            WJR_UNREACHABLE();
+        }
+    }
+
+    constexpr Ret &value_unsafe() & { return std::get<1>(m_storage); }
+    constexpr const Ret &value_unsafe() const & { return std::get<1>(m_storage); }
+    constexpr Ret &&value_unsafe() && { return std::get<1>(std::move(m_storage)); }
+    constexpr const Ret &&value_unsafe() const && {
+        return std::move(std::get<1>(m_storage));
+    }
+
+    constexpr Err &error_unsafe() & { return std::get<0>(m_storage); }
+    constexpr const Err &error_unsafe() const & { return std::get<0>(m_storage); }
+    constexpr Err &&error_unsafe() && { return std::get<0>(std::move(m_storage)); }
+    constexpr const Err &&error_unsafe() const && {
+        return std::move(std::get<0>(m_storage));
+    }
+
+    constexpr void
+    swap(basic_result_base &other) noexcept(std::is_nothrow_swappable_v<Storage>) {
+        m_storage.swap(other.m_storage);
+    }
+
+    constexpr void reset() noexcept { m_storage.reset(); }
+
+private:
+    Storage m_storage;
+};
+
+template <typename Ret, typename Err, typename ErrorHandler>
+class basic_result_base<Ret, Err, ErrorHandler, 1>
+    : enable_special_members_of_args_base<basic_result_base<Ret, Err, ErrorHandler, 0>,
+                                          Ret, Err> {
+    using Mybase =
+        enable_special_members_of_args_base<basic_result_base<Ret, Err, ErrorHandler, 0>,
+                                            Ret, Err>;
+    using Traits = result_traits<Ret, Err>;
+
+public:
+    using Mybase::Mybase;
+
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<Ret, Args...>)>
+    constexpr basic_result_base(std::in_place_index_t<RESULT_OK>, Args &&...args)
+        : m_ok(std::forward<Args>(args)...) {}
+
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<Err, Args...>)>
+    constexpr basic_result_base(std::in_place_index_t<RESULT_ERR>, Args &&...args)
+        : m_ok(), m_err(std::forward<Args>(args)...) {}
+
+    constexpr basic_result_base(const basic_result_base &other)
+        : m_ok(other.m_ok), m_err(other.m_err) {}
+
+    constexpr basic_result_base(basic_result_base &&other) noexcept(
+        std::is_nothrow_move_constructible_v<Ret>
+            &&std::is_nothrow_move_constructible_v<Err>)
+        : m_ok(std::move(other.m_ok)), m_err(std::move(other.m_err)) {
+        Traits::reset_ok(other.m_ok);
+    }
+
+    constexpr basic_result_base &operator=(const basic_result_base &other) {
+        if (WJR_UNLIKELY(this == std::addressof(other))) {
+            return *this;
+        }
+
+        m_ok = other.m_ok;
+        m_err = other.m_err;
+        return *this;
+    }
+
+    constexpr basic_result_base &operator=(basic_result_base &&other) noexcept(
+        std::is_nothrow_move_assignable_v<Ret> &&std::is_nothrow_move_assignable_v<Err>) {
+        if (WJR_UNLIKELY(this == std::addressof(other))) {
+            return *this;
+        }
+
+        m_ok = std::move(other.m_ok);
+        m_err = std::move(other.m_err);
+        Traits::reset_ok(other.m_ok);
+        return *this;
+    }
+
+    constexpr bool is_ok() const noexcept { return Traits::is_ret_ok(m_ok); }
+    constexpr bool is_err() const noexcept { return !is_ok(); }
+
+    constexpr void check() const & {
+        if (WJR_UNLIKELY(is_err())) {
+            ErrorHandler{}(m_err);
+            WJR_UNREACHABLE();
+        }
+    }
+
+    constexpr void check() && {
+        if (WJR_UNLIKELY(is_err())) {
+            ErrorHandler{}(std::move(m_err));
+            WJR_UNREACHABLE();
+        }
+    }
+
+    constexpr Ret &value_unsafe() & { return m_ok; }
+    constexpr const Ret &value_unsafe() const & { return m_ok; }
+    constexpr Ret &&value_unsafe() && { return std::move(m_ok); }
+    constexpr const Ret &&value_unsafe() const && { return std::move(m_ok); }
+
+    constexpr Err &error_unsafe() & { return m_err; }
+    constexpr const Err &error_unsafe() const & { return m_err; }
+    constexpr Err &&error_unsafe() && { return std::move(m_err); }
+    constexpr const Err &&error_unsafe() const && { return std::move(m_err); }
+
+    constexpr void swap(basic_result_base &other) {
+        using std::swap;
+        swap(m_ok, other.m_ok);
+        swap(m_err, other.m_err);
+    }
+
+    constexpr void reset() { this->~basic_result_base(); }
+
+private:
+    Ret m_ok;
+    Err m_err;
+};
+
+template <typename Ret, typename Err, typename ErrorHandler>
+class basic_result_base<Ret, Err, ErrorHandler, 2>
+    : enable_special_members_of_args_base<basic_result_base<Ret, Err, ErrorHandler, 0>,
+                                          Ret, Err> {
+    using Mybase =
+        enable_special_members_of_args_base<basic_result_base<Ret, Err, ErrorHandler, 0>,
+                                            Ret, Err>;
+    using Traits = result_traits<Ret, Err>;
+
+public:
+    using Mybase::Mybase;
+
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<Ret, Args...>)>
+    constexpr basic_result_base(std::in_place_index_t<RESULT_OK>, Args &&...args)
+        : m_err(), m_ok(std::forward<Args>(args)...) {}
+
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<Err, Args...>)>
+    constexpr basic_result_base(std::in_place_index_t<RESULT_ERR>, Args &&...args)
+        : m_err(std::forward<Args>(args)...) {}
+
+    constexpr basic_result_base(const basic_result_base &other)
+        : m_err(other.m_err), m_ok(other.m_ok) {}
+
+    constexpr basic_result_base(basic_result_base &&other) noexcept(
+        std::is_nothrow_move_constructible_v<Ret>
+            &&std::is_nothrow_move_constructible_v<Err>)
+        : m_err(std::move(other.m_err)), m_ok(std::move(other.m_ok)) {
+        Traits::reset_err(other.m_err);
+    }
+
+    constexpr basic_result_base &operator=(const basic_result_base &other) {
+        if (WJR_UNLIKELY(this == std::addressof(other))) {
+            return *this;
+        }
+
+        m_err = other.m_err;
+        m_ok = other.m_ok;
+        return *this;
+    }
+
+    constexpr basic_result_base &operator=(basic_result_base &&other) noexcept(
+        std::is_nothrow_move_assignable_v<Ret> &&std::is_nothrow_move_assignable_v<Err>) {
+        if (WJR_UNLIKELY(this == std::addressof(other))) {
+            return *this;
+        }
+
+        m_ok = std::move(other.m_ok);
+        m_err = std::move(other.m_err);
+        Traits::reset_err(other.m_err);
+        return *this;
+    }
+
+    constexpr bool is_ok() const noexcept { return Traits::is_err_ok(m_err); }
+    constexpr bool is_err() const noexcept { return !is_ok(); }
+
+    constexpr void check() const & {
+        if (WJR_UNLIKELY(is_err())) {
+            ErrorHandler{}(m_err);
+            WJR_UNREACHABLE();
+        }
+    }
+
+    constexpr void check() && {
+        if (WJR_UNLIKELY(is_err())) {
+            ErrorHandler{}(std::move(m_err));
+            WJR_UNREACHABLE();
+        }
+    }
+
+    constexpr Ret &value_unsafe() & { return m_ok; }
+    constexpr const Ret &value_unsafe() const & { return m_ok; }
+    constexpr Ret &&value_unsafe() && { return std::move(m_ok); }
+    constexpr const Ret &&value_unsafe() const && { return std::move(m_ok); }
+
+    constexpr Err &error_unsafe() & { return m_err; }
+    constexpr const Err &error_unsafe() const & { return m_err; }
+    constexpr Err &&error_unsafe() && { return std::move(m_err); }
+    constexpr const Err &&error_unsafe() const && { return std::move(m_err); }
+
+    constexpr void swap(basic_result_base &other) {
+        using std::swap;
+        swap(m_ok, other.m_ok);
+        swap(m_err, other.m_err);
+    }
+
+    constexpr void reset() { this->~basic_result_base(); }
+
+private:
+    Err m_err;
+    Ret m_ok;
+};
+
+template <typename Ret, typename Err, typename Mybase>
+class basic_result : Mybase {
+public:
+    using Mybase::Mybase;
+
+    using Mybase::check;
+    using Mybase::error_unsafe;
+    using Mybase::is_err;
+    using Mybase::is_ok;
+    using Mybase::reset;
+    using Mybase::swap;
+    using Mybase::value_unsafe;
+
+private:
+    template <typename Tuple, typename ID, size_t... Indexs>
+    constexpr basic_result(Tuple &&tp, ID id, std::index_sequence<Indexs...>)
+        : Mybase(id, (std::move(tp).template get<Indexs>())...) {}
+
+public:
+    template <typename... Args,
+              WJR_REQUIRES(std::is_constructible_v<
+                           Mybase, std::in_place_index_t<RESULT_OK>, Args...>)>
+    constexpr basic_result(result_ok<Args...> &&id)
+        : basic_result(std::move(id), std::in_place_index<RESULT_OK>,
+                       std::index_sequence_for<Args...>{}) {}
+
+    template <typename... Args,
+              WJR_REQUIRES(std::is_constructible_v<
+                           Mybase, std::in_place_index_t<RESULT_ERR>, Args...>)>
+    constexpr basic_result(result_err<Args...> &&id)
+        : basic_result(std::move(id), std::in_place_index<RESULT_ERR>,
+                       std::index_sequence_for<Args...>{}) {}
+
+    template <typename... Args,
+              WJR_REQUIRES(std::is_constructible_v<
+                           Mybase, std::in_place_index_t<RESULT_OK>, Args...>)>
+    constexpr basic_result &emplace(std::in_place_index_t<RESULT_OK>, Args &&...args) {
+        this->reset();
+        new (this)
+            basic_result(std::in_place_index<RESULT_OK>, std::forward<Args>(args)...);
+        return *this;
+    }
+
+    template <typename... Args,
+              WJR_REQUIRES(std::is_constructible_v<
+                           Mybase, std::in_place_index_t<RESULT_ERR>, Args...>)>
+    constexpr basic_result &emplace(std::in_place_index_t<RESULT_ERR>, Args &&...args) {
+        this->reset();
+        new (this)
+            basic_result(std::in_place_index<RESULT_ERR>, std::forward<Args>(args)...);
+        return *this;
+    }
+
+    template <typename... Args,
+              WJR_REQUIRES(std::is_constructible_v<
+                           Mybase, std::in_place_index_t<RESULT_OK>, Args...>)>
+    constexpr basic_result &emplace(result_ok<Args...> &&tp) {
+        this->reset();
+        new (this) basic_result(std::move(tp));
+        return *this;
+    }
+
+    template <typename... Args,
+              WJR_REQUIRES(std::is_constructible_v<
+                           Mybase, std::in_place_index_t<RESULT_ERR>, Args...>)>
+    constexpr basic_result &emplace(result_err<Args...> &&tp) {
+        this->reset();
+        new (this) basic_result(std::move(tp));
+        return *this;
+    }
+
+    constexpr Ret &value() & {
+        check();
+        return value_unsafe();
+    }
+
+    constexpr const Ret &value() const & {
+        check();
+        return value_unsafe();
+    }
+
+    constexpr Ret &&value() && {
+        check();
+        return std::move(value_unsafe());
+    }
+
+    constexpr const Ret &&value() const && {
+        check();
+        return std::move(value_unsafe());
+    }
+
+    constexpr Ret &&take_value() && {
+        check();
+        return std::move(value_unsafe());
+    }
+
+    constexpr const Ret &&take_value() const && {
+        check();
+        return std::move(value_unsafe());
+    }
+};
+
+template <typename Ret, typename Err>
+inline constexpr int basic_result_base_selector_v =
+    result_details::has_is_ret_ok_v<Ret, Err>
+        ? 1
+        : (result_details::has_is_err_ok_v<Ret, Err> ? 2 : 0);
+
+/**
+ * @details UB if not constructed. The default construction is not guaranteed to be
+ * err or ok.
+ *
+ */
+template <typename Ret, typename Err = result_monostate,
+          typename ErrorHandler = result_exception_error_handler>
+using result = basic_result<
+    Ret, Err,
+    basic_result_base<Ret, Err, ErrorHandler, basic_result_base_selector_v<Ret, Err>>>;
+
+} // namespace wjr
+
+#endif // WJR_RESULT_HPP__
+// Already included
+// Already included
+// Already included
+// Already included

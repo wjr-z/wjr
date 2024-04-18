@@ -1,7 +1,9 @@
 #ifndef WJR_TUPLE_HPP__
 #define WJR_TUPLE_HPP__
 
-#include <wjr/compressed_pair.hpp>
+#include <tuple>
+
+#include <wjr/capture_leaf.hpp>
 
 namespace wjr {
 
