@@ -98,6 +98,8 @@ ERROR : { WJR_ASSERT(false, "uninitialized error"); }
 TEST(memory, uninitialized) {
     do {
         using type = uninitialized<int>;
+        static_assert(std::is_trivially_default_constructible_v<type>,
+                      "trivially default constructible error");
         static_assert(std::is_trivially_copy_constructible_v<type>,
                       "trivially copy constructible error");
         static_assert(std::is_trivially_move_constructible_v<type>,
@@ -112,6 +114,8 @@ TEST(memory, uninitialized) {
 
     do {
         using type = uninitialized<std::string>;
+        static_assert(std::is_default_constructible_v<type>,
+                      "trivially default constructible error");
         static_assert(!std::is_copy_constructible_v<type>,
                       "trivially copy constructible error");
         static_assert(!std::is_move_constructible_v<type>,
