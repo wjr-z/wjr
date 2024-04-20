@@ -1008,8 +1008,7 @@ public:
     WJR_CONSTEXPR20 basic_vector(Iter first, Iter last,
                                  const allocator_type &al = allocator_type())
         : basic_vector(al) {
-        __range_construct(first, last,
-                          typename std::iterator_traits<Iter>::iterator_category());
+        __range_construct(first, last, iterator_category_t<Iter>());
     }
 
     WJR_CONSTEXPR20 basic_vector(std::initializer_list<value_type> il,
@@ -1048,8 +1047,7 @@ public:
 
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &assign(Iter first, Iter last) {
-        __range_assign(first, last,
-                       typename std::iterator_traits<Iter>::iterator_category());
+        __range_assign(first, last, iterator_category_t<Iter>());
         return *this;
     }
 
@@ -1252,8 +1250,7 @@ public:
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 iterator insert(const_iterator pos, Iter first, Iter last) {
         const auto old_pos = static_cast<size_type>(pos - cbegin());
-        __range_insert(begin() + old_pos, first, last,
-                       typename std::iterator_traits<Iter>::iterator_category());
+        __range_insert(begin() + old_pos, first, last, iterator_category_t<Iter>());
         return begin() + old_pos;
     }
 
@@ -1330,8 +1327,7 @@ public:
 
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &append(Iter first, Iter last) {
-        __range_append(first, last,
-                       typename std::iterator_traits<Iter>::iterator_category());
+        __range_append(first, last, iterator_category_t<Iter>());
         return *this;
     }
 
@@ -1362,7 +1358,7 @@ public:
         const auto __offset1 = static_cast<size_type>(from - __cbeg);
         const auto __offset2 = static_cast<size_type>(to - __cbeg);
         __range_replace(__beg + __offset1, __beg + __offset2, first, last,
-                        typename std::iterator_traits<Iter>::iterator_category());
+                        iterator_category_t<Iter>());
         return *this;
     }
 
@@ -2074,7 +2070,7 @@ using fixed_vector = basic_vector<fixed_vector_storage<T, Alloc>>;
 template <typename T, size_t Capacity, typename Alloc = std::allocator<T>>
 using sso_vector = basic_vector<sso_vector_storage<T, Capacity, Alloc>>;
 
-template <typename Iter, typename T = typename std::iterator_traits<Iter>::value_type,
+template <typename Iter, typename T = iterator_value_t<Iter>,
           typename Alloc = std::allocator<T>, WJR_REQUIRES(is_iterator_v<Iter>)>
 basic_vector(Iter, Iter, Alloc = Alloc())
     -> basic_vector<default_vector_storage<T, Alloc>>;

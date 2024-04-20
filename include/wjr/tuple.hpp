@@ -278,8 +278,9 @@ constexpr decltype(auto) apply_impl(Func &&fn, Tuple &&tp,
 
 template <typename Func, typename Tuple>
 constexpr decltype(auto) apply(Func &&fn, Tuple &&tp) {
-    return apply_impl(std::forward<Func>(fn), std::forward<Tuple>(tp),
-                      std::make_index_sequence<std::tuple_size_v<Tuple>>{});
+    return apply_impl(
+        std::forward<Func>(fn), std::forward<Tuple>(tp),
+        std::make_index_sequence<std::tuple_size_v<remove_cvref_t<Tuple>>>{});
 }
 
 template <size_t I, typename Tuple>
@@ -317,7 +318,7 @@ constexpr decltype(auto) __tuple_cat_impl(std::index_sequence<I0...>,
 
 template <typename... Tuples>
 constexpr decltype(auto) tuple_cat(Tuples &&...tuples) {
-    using Helper = __tuple_cat_helper<Tuples...>;
+    using Helper = __tuple_cat_helper<remove_cvref_t<Tuples>...>;
     return __tuple_cat_impl(typename Helper::type0{}, typename Helper::type1{},
                             forward_as_tuple(std::forward<Tuples>(tuples)...));
 }
@@ -370,6 +371,30 @@ constexpr bool operator>(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs)
 template <typename... TArgs, typename... UArgs>
 constexpr bool operator>=(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) {
     return !(lhs < rhs);
+}
+
+template <size_t I, typename... Args>
+struct __in_place_index_tuple_t_tag {};
+
+template <size_t I, typename... Args>
+using in_place_index_tuple_t =
+    capture_leaf<tuple<Args...>, __in_place_index_tuple_t_tag<I, Args...>>;
+
+template <size_t I, typename... Args>
+constexpr in_place_index_tuple_t<I, Args &&...> in_place_index_tuple(Args &&...args) {
+    return in_place_index_tuple_t<I, Args &&...>(std::forward<Args>(args)...);
+}
+
+template <typename T, typename... Args>
+struct __in_place_type_tuple_t_tag {};
+
+template <typename T, typename... Args>
+using in_place_type_tuple_t =
+    capture_leaf<tuple<Args...>, __in_place_type_tuple_t_tag<T, Args...>>;
+
+template <typename T, typename... Args>
+constexpr in_place_type_tuple_t<T, Args &&...> in_place_type_tuple(Args &&...args) {
+    return in_place_type_tuple_t<T, Args &&...>(std::forward<Args>(args)...);
 }
 
 } // namespace wjr

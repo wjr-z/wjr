@@ -15,7 +15,7 @@ WJR_INTRINSIC_CONSTEXPR_E T shld(T hi, T lo, unsigned int c);
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR_E T shrd(T lo, T hi, unsigned int c);
 
-#if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(SIMD)
+#if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(X86_SIMD)
 #define WJR_HAS_BUILTIN_LSHIFT_N WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_RSHIFT_N WJR_HAS_DEF
 #endif

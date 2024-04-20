@@ -49,11 +49,33 @@ protected:
 };
 
 template <bool Enable, typename Tag = void>
-struct enable_destructor_base {};
+struct enable_destructor_base {
+    constexpr enable_destructor_base() noexcept = default;
+    constexpr enable_destructor_base(const enable_destructor_base &) noexcept = default;
+    constexpr enable_destructor_base(enable_destructor_base &&) noexcept = default;
+    constexpr enable_destructor_base &
+    operator=(const enable_destructor_base &) noexcept = default;
+    constexpr enable_destructor_base &
+    operator=(enable_destructor_base &&) noexcept = default;
+    ~enable_destructor_base() noexcept = default;
+
+protected:
+    constexpr explicit enable_destructor_base(enable_default_constructor_t) noexcept {}
+};
 
 template <typename Tag>
 struct enable_destructor_base<false, Tag> {
+    constexpr enable_destructor_base() noexcept = default;
+    constexpr enable_destructor_base(const enable_destructor_base &) noexcept = default;
+    constexpr enable_destructor_base(enable_destructor_base &&) noexcept = default;
+    constexpr enable_destructor_base &
+    operator=(const enable_destructor_base &) noexcept = default;
+    constexpr enable_destructor_base &
+    operator=(enable_destructor_base &&) noexcept = default;
     ~enable_destructor_base() noexcept = delete;
+
+protected:
+    constexpr explicit enable_destructor_base(enable_default_constructor_t) noexcept {}
 };
 
 template <bool Copy, bool Move, bool CopyAssign, bool MoveAssign, typename Tag = void>
@@ -65,6 +87,10 @@ struct enable_copy_move_base {
     operator=(const enable_copy_move_base &) noexcept = default;
     constexpr enable_copy_move_base &
     operator=(enable_copy_move_base &&) noexcept = default;
+    ~enable_copy_move_base() noexcept = default;
+
+protected:
+    constexpr explicit enable_copy_move_base(enable_default_constructor_t) noexcept {}
 };
 
 template <bool Default, bool Destructor, bool Copy, bool Move, bool CopyAssign,
@@ -170,7 +196,15 @@ using enable_special_members_of_args_base = enable_special_members_base<
     std::conjunction_v<std::is_copy_assignable<Args>...>,
     std::conjunction_v<std::is_move_assignable<Args>...>, Tag>;
 
-// 标识符
+template <typename Tag = void, typename... Args>
+using enable_trivially_special_members_of_args_base = enable_special_members_base<
+    std::conjunction_v<std::is_trivially_default_constructible<Args>...>,
+    std::conjunction_v<std::is_destructible<Args>...>,
+    std::conjunction_v<std::is_trivially_copy_constructible<Args>...>,
+    std::conjunction_v<std::is_trivially_move_constructible<Args>...>,
+    std::conjunction_v<std::is_trivially_copy_assignable<Args>...>,
+    std::conjunction_v<std::is_trivially_move_assignable<Args>...>, Tag>;
+
 template <size_t I, typename T>
 struct enable_base_identity_t {};
 

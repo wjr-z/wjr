@@ -1,7 +1,6 @@
 #ifndef WJR_CAPTURE_LEAF_HPP__
 #define WJR_CAPTURE_LEAF_HPP__
 
-#include <array>
 #include <tuple>
 
 #include <wjr/crtp/class_base.hpp>
@@ -10,6 +9,10 @@
 
 namespace wjr {
 
+/**
+ * @brief Capture any type as a new type.
+ *
+ */
 template <typename T, typename Tag = void>
 class capture_leaf : enable_special_members_of_args_base<Tag, T> {
     using Mybase = enable_special_members_of_args_base<Tag, T>;
@@ -32,6 +35,12 @@ private:
     T m_value;
 };
 
+/**
+ * @brief Compressed capture any type as a new type.
+ *
+ * @details Use empty base optimization to compress the size of the object.
+ *
+ */
 template <typename T, typename Tag = void>
 class compressed_capture_leaf : T {
     using Mybase = T;

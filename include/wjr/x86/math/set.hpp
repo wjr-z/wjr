@@ -11,7 +11,7 @@
 
 namespace wjr {
 
-#if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(SIMD)
+#if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(X86_SIMD)
 #define WJR_HAS_BUILTIN_SET_N WJR_HAS_DEF
 #endif
 
