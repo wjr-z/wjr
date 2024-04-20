@@ -3,8 +3,6 @@
 
 #include <ostream>
 
-#include <wjr/type_traits.hpp>
-
 namespace wjr {
 
 template <typename CharT, typename Tratis>

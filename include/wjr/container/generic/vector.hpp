@@ -187,9 +187,6 @@ public:
     }
 };
 
-template <typename T, typename Alloc, typename STraits>
-class __default_vector_storage_impl;
-
 /**
  * @brief Default vector storage
  *

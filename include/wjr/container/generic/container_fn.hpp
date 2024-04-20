@@ -1,7 +1,10 @@
 #ifndef WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP__
 #define WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP__
 
-#include <wjr/type_traits.hpp>
+#include <memory>
+#include <type_traits>
+
+#include <wjr/preprocessor.hpp>
 
 namespace wjr {
 

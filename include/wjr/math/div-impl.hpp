@@ -9,9 +9,6 @@
 namespace wjr {
 
 template <typename T>
-class div1by1_divider;
-
-template <typename T>
 class div2by1_divider;
 
 template <typename T>
@@ -25,12 +22,12 @@ inline uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
 
 inline uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi, uint64_t div);
 
-inline std::pair<uint64_t, uint64_t>
+inline tuple<uint64_t, uint64_t>
 div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
                 const div2by1_divider<uint64_t> &divider);
 
-inline std::pair<uint64_t, uint64_t> div128by64to128(uint64_t &rem, uint64_t lo,
-                                                     uint64_t hi, uint64_t div);
+inline tuple<uint64_t, uint64_t> div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                                 uint64_t div);
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,

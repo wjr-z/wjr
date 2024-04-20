@@ -2,8 +2,6 @@
 #define WJR_CRTP_NONSENDABLE_HPP__
 
 #include <memory>
-#include <thread>
-#include <type_traits>
 
 #include <wjr/assert.hpp>
 
@@ -60,7 +58,7 @@ public:
     static constexpr bool is_nonsendable = true;
 
 protected:
-    void check() const {};
+    constexpr static void check(){};
 
     friend bool operator==(const __nonsendable_checker &, const __nonsendable_checker &) {
         return true;

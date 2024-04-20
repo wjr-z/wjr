@@ -3,7 +3,6 @@
 
 #include <optional>
 
-#include <wjr/compressed_pair.hpp>
 #include <wjr/format/ostream_insert.hpp>
 #include <wjr/math.hpp>
 #include <wjr/span.hpp>
@@ -190,7 +189,7 @@ private:
 };
 
 template <>
-struct unref_wrapper<default_biginteger_size_reference> {
+struct __unref_wrapper_helper<default_biginteger_size_reference> {
     using type = uint32_t &;
 };
 
@@ -312,7 +311,7 @@ public:
     explicit basic_biginteger(span<const char> sp, unsigned int base = 10,
                               const allocator_type &al = allocator_type())
         : m_vec(al) {
-        assign(sp, base);
+        from_string(sp, base);
     }
 
     template <typename UnsignedValue,
@@ -336,9 +335,23 @@ public:
         return *this;
     }
 
-    basic_biginteger &operator=(span<const char> sp) { return assign(sp); }
+    basic_biginteger &operator=(span<const char> sp) { return from_string(sp); }
 
-    basic_biginteger &assign(span<const char> sp, unsigned int base = 10) {
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    explicit operator T() const noexcept {
+        if (empty()) {
+            return static_cast<T>(0);
+        }
+
+        if constexpr (std::is_unsigned_v<T>) {
+            return static_cast<T>(front());
+        } else {
+            const auto ret = front();
+            return is_negate() ? -ret : ret;
+        }
+    }
+
+    basic_biginteger &from_string(span<const char> sp, unsigned int base = 10) {
         (void)from_chars(sp.data(), sp.data() + sp.size(), *this, base);
         return *this;
     }

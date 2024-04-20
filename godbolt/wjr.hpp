@@ -6,21 +6,91 @@
 
 #include <optional>
 
-#ifndef WJR_COMPRESSED_PAIR_HPP__
-#define WJR_COMPRESSED_PAIR_HPP__
+#ifndef WJR_FORMAT_OSTREAM_INSERT_HPP__
+#define WJR_FORMAT_OSTREAM_INSERT_HPP__
 
+#include <ostream>
+
+namespace wjr {
+
+template <typename CharT, typename Tratis>
+void __ostream_write_unchecked(std::basic_ostream<CharT, Tratis> &os, const CharT *str,
+                               std::streamsize n) {
+    const auto __put = os.rdbuf()->sputn(str, n);
+    if (__put != n) {
+        os.setstate(std::ios_base::badbit);
+    }
+}
+
+template <typename CharT, typename Tratis>
+void __ostream_fill_unchecked(std::basic_ostream<CharT, Tratis> &os, std::streamsize n) {
+    const auto ch = os.fill();
+    while (n--) {
+        const auto __put = os.rdbuf()->sputc(ch);
+        if (Tratis::eq_int_type(__put, Tratis::eof())) {
+            os.setstate(std::ios_base::badbit);
+            break;
+        }
+    }
+}
+
+template <typename CharT, typename Tratis>
+void __ostream_insert_unchecked(std::basic_ostream<CharT, Tratis> &os, const CharT *str,
+                                std::streamsize n) {
+    const std::streamsize __w = os.width();
+    if (__w > n) {
+        const std::streamsize __pad = __w - n;
+        const bool __left =
+            ((os.flags() & std::ios_base::adjustfield) == std::ios_base::left);
+
+        if (!__left) {
+            __ostream_fill_unchecked(os, __pad);
+        }
+        if (os.good()) {
+            __ostream_write_unchecked(os, str, n);
+        }
+        if (__left && os.good()) {
+            __ostream_fill_unchecked(os, __pad);
+        }
+    } else {
+        __ostream_write_unchecked(os, str, n);
+    }
+
+    os.width(0);
+}
+
+template <typename CharT, typename Tratis>
+std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tratis> &os,
+                                                    const CharT *str, std::streamsize n) {
+    const std::ostream::sentry ok(os);
+    if (ok) {
+        __ostream_insert_unchecked(os, str, n);
+    }
+
+    return os;
+}
+
+} // namespace wjr
+
+#endif // WJR_FORMAT_OSTREAM_INSERT_HPP__
+#ifndef WJR_MATH_HPP__
+#define WJR_MATH_HPP__
+
+#ifndef WJR_MATH_CONVERT_HPP__
+#define WJR_MATH_CONVERT_HPP__
+
+#include <array>
+#include <system_error>
+
+#ifndef WJR_ASSERT_HPP__
+#define WJR_ASSERT_HPP__
+
+#include <cstdio>
+#include <cstdlib>
+#include <iostream>
 #include <tuple>
-
-#ifndef WJR_CAPTURE_LEAF_HPP__
-#define WJR_CAPTURE_LEAF_HPP__
-
-#include <tuple>
-
-#ifndef WJR_CRTP_CLASS_BASE_HPP__
-#define WJR_CRTP_CLASS_BASE_HPP__
-
-#include <cstddef>
 #include <type_traits>
+#include <utility>
 
 #ifndef WJR_PREPROCESSOR_HPP__
 #define WJR_PREPROCESSOR_HPP__
@@ -2289,6 +2359,232 @@
 
 #endif // WJR_PREPROCESSOR_HPP__
 
+#ifdef WJR_ASSERT_THROW
+#include <sstream>
+#endif
+
+namespace wjr {
+
+// ASSERT_LEVEL : 0 ~ 3
+// 0 : Release (defined(NDEBUG) && ! defined(WJR_DEBUG_LEVEL))
+// 1 : Some simple runtime checks, such as boundary checks (default)
+// 2 : Most runtime checks
+// 3 : Maximize runtime checks
+#ifndef WJR_DEBUG_LEVEL
+#if defined(NDEBUG)
+#define WJR_DEBUG_LEVEL 0
+#else
+#define WJR_DEBUG_LEVEL 1
+#endif
+#endif
+
+// use WJR_THROW instead of std::abort
+#ifdef WJR_ASSERT_THROW
+#define WJR_ASSERT_NORETURN
+#else
+#define WJR_ASSERT_NORETURN WJR_NORETURN
+#endif
+
+#define WJR_DEBUG_IF(level, expr0, expr1)                                                \
+    WJR_PP_BOOL_IF(WJR_PP_GT(WJR_DEBUG_LEVEL, level), expr0, expr1)
+
+#define WJR_DEBUG_EXPR_L(level, expr) WJR_DEBUG_IF(level, expr, )
+#define WJR_DEBUG_EXPR(expr) WJR_DEBUG_EXPR_L(0, expr)
+
+class __assert_handler_t {
+private:
+    template <typename Output>
+    static Output &handler(Output &out) {
+        return out;
+    }
+
+    template <typename Output, typename... Args>
+    static Output &handler(Output &out, Args &&...args) {
+        out << "Additional information:\n";
+        (void)(out << ... << std::forward<Args>(args));
+        out << '\n';
+        return out;
+    }
+
+    template <typename... Args>
+    WJR_ASSERT_NORETURN WJR_NOINLINE static void
+    fn(const char *expr, const char *file, const char *func, int line, Args &&...args) {
+#ifndef WJR_ASSERT_THROW
+        if (file[0] != '\0') {
+            std::cerr << file << ':';
+        }
+        if (line != -1) {
+            std::cerr << line << ':';
+        }
+        std::cerr << func << ": Assertion `" << expr << "' failed.\n";
+        handler(std::cerr, std::forward<Args>(args)...);
+        std::abort();
+#else
+        std::ostringstream os;
+        if (file[0] != '\0') {
+            os << file << ':';
+        }
+        if (line != -1) {
+            os << line << ':';
+        }
+        os << func << ": Assertion `" << expr << "' failed.\n";
+        handler(os, std::forward<Args>(args)...);
+        WJR_THROW(std::runtime_error(os.str()));
+#endif
+    }
+
+public:
+    template <typename... Args>
+    void operator()(const char *expr, const char *file, const char *func, int line,
+                    Args &&...args) const {
+        fn(expr, file, func, line, std::forward<Args>(args)...);
+    }
+};
+
+inline constexpr __assert_handler_t __assert_handler{};
+
+#define WJR_ASSERT_NOMESSAGE_FAIL(handler, exprstr)                                      \
+    handler(exprstr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE)
+#define WJR_ASSERT_MESSAGE_FAIL(handler, exprstr, ...)                                   \
+    handler(exprstr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE, __VA_ARGS__)
+
+#define WJR_ASSERT_CHECK_I_NOMESSAGE(handler, expr)                                      \
+    do {                                                                                 \
+        if (WJR_UNLIKELY(!(expr))) {                                                     \
+            WJR_ASSERT_NOMESSAGE_FAIL(handler, #expr);                                   \
+        }                                                                                \
+    } while (0)
+#define WJR_ASSERT_CHECK_I_MESSAGE(handler, expr, ...)                                   \
+    do {                                                                                 \
+        if (WJR_UNLIKELY(!(expr))) {                                                     \
+            WJR_ASSERT_MESSAGE_FAIL(handler, #expr, __VA_ARGS__);                        \
+        }                                                                                \
+    } while (0)
+
+#define WJR_ASSERT_CHECK_I(...)                                                          \
+    WJR_ASSERT_CHECK_I_N(WJR_PP_ARGS_LEN(__VA_ARGS__), __VA_ARGS__)
+#define WJR_ASSERT_CHECK_I_N(N, ...)                                                     \
+    WJR_PP_BOOL_IF(WJR_PP_EQ(N, 1), WJR_ASSERT_CHECK_I_NOMESSAGE,                        \
+                   WJR_ASSERT_CHECK_I_MESSAGE)                                           \
+    (::wjr::__assert_handler, __VA_ARGS__)
+
+// do nothing
+#define WJR_ASSERT_UNCHECK_I(expr, ...)
+
+// level = [0, 2]
+// The higher the level, the less likely it is to be detected
+// Runtime detect  : 1
+// Maximize detect : 2
+#define WJR_ASSERT_L(level, ...)                                                         \
+    WJR_DEBUG_IF(level, WJR_ASSERT_CHECK_I, WJR_ASSERT_UNCHECK_I)                        \
+    (__VA_ARGS__)
+
+// level of assert is zero at default.
+#define WJR_ASSERT(...) WJR_ASSERT_L(0, __VA_ARGS__)
+#define WJR_ASSERT_L1(...) WJR_ASSERT_L(1, __VA_ARGS__)
+#define WJR_ASSERT_L2(...) WJR_ASSERT_L(2, __VA_ARGS__)
+#define WJR_ASSERT_L3(...) WJR_ASSERT_L(3, __VA_ARGS__)
+
+#define WJR_ASSERT_ASSUME_L(level, ...)                                                  \
+    WJR_ASSERT_L(level, __VA_ARGS__);                                                    \
+    __WJR_ASSERT_ASSUME_L_ASSUME(__VA_ARGS__)
+#define __WJR_ASSERT_ASSUME_L_ASSUME(expr, ...) WJR_ASSUME(expr)
+
+#define WJR_ASSERT_ASSUME(...) WJR_ASSERT_ASSUME_L(0, __VA_ARGS__)
+#define WJR_ASSERT_ASSUME_L1(...) WJR_ASSERT_ASSUME_L(1, __VA_ARGS__)
+#define WJR_ASSERT_ASSUME_L2(...) WJR_ASSERT_ASSUME_L(2, __VA_ARGS__)
+#define WJR_ASSERT_ASSUME_L3(...) WJR_ASSERT_ASSUME_L(3, __VA_ARGS__)
+
+} // namespace wjr
+
+#endif // WJR_ASSERT_HPP__
+#ifndef WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP__
+#define WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP__
+
+#include <array>
+#include <string>
+#include <vector>
+
+#ifndef WJR_VECTOR_HPP__
+#define WJR_VECTOR_HPP__
+
+#ifndef WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__
+#define WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__
+
+/**
+ * @file vector.hpp
+ * @brief Vector container with definable internal structure
+ *
+ * @details
+ * Customized internal structure needs to follow the following function signature: \n
+ * -# storage()
+ * -# template <typename _Alloc>  \n
+ * storage(_Alloc&& al)
+ * -# template <typename _Alloc> \n
+ * storage(_Alloc&& al, size_type size, size_type capacity, in_place_reallocate_t)
+ * -# ~storage() noexcept
+ * -# auto& get_allocator() noexcept
+ * -# const auto& get_allocator() const noexcept
+ * -# void destroy() noexcept
+ * -# void destroy_and_deallocate()
+ * -# void uninitialized_construct(size_type size, size_type capacity)
+ * -# void take_storage(storage& other)
+ * -# void swap_storage(storage& other)
+ * -# decltype(auto) size() noexcept
+ * -# size_type capacity() const noexcept
+ * -# pointer data() noexcept
+ * -# const_pointer data() const noexcept
+ *
+ * 1 : should not allocate memory. \n
+ * 2 : just store the allocator. \n
+ * 3 : allocate memory and set the size and capacity. this function is used for
+ * reallocation. if the storage is not reallocatable, this function won't be
+ * implemented. \n
+ * 4 : don't need to destroy or deallocate. \n
+ * 5-6 : \n
+ * 7 : destroy all elements. don't change ptr, size and capacity. \n
+ * 8 : destroy and deallocate. \n
+ * 9 : uninitialized construct the storage. allocate memory and set the size and
+ * capacity. \n
+ * 10 : take the storage from other. set other to empty. \n
+ * 11 : swap the storage with other. \n
+ * 12 : get the size. the return type must be reference,
+ * such as size_type&, std::reference_wrapper<size_type> and so on. \n
+ * 13 : get the capacity. \n
+ * 14-15 : get the pointer. \n
+ *
+ * the size type of 14 need to implement the following function signature: \n
+ * -# auto& operator=(size_type) noexcept
+ * -# operator size_type() const noexcept
+ * -# size_type operator++() noexcept
+ * -# size_type operator--() noexcept
+ * -# size_type operator+=(size_type) noexcept
+ * -# size_type operator-=(size_type) noexcept
+ *
+ * @version 0.1
+ * @date 2024-03-19
+ *
+ */
+
+// Already included
+#ifndef WJR_COMPRESSED_PAIR_HPP__
+#define WJR_COMPRESSED_PAIR_HPP__
+
+#include <tuple>
+
+#ifndef WJR_CAPTURE_LEAF_HPP__
+#define WJR_CAPTURE_LEAF_HPP__
+
+#include <tuple>
+
+#ifndef WJR_CRTP_CLASS_BASE_HPP__
+#define WJR_CRTP_CLASS_BASE_HPP__
+
+#include <cstddef>
+#include <type_traits>
+
+// Already included
+
 namespace wjr {
 
 struct enable_default_constructor_t {
@@ -2506,9 +2802,7 @@ struct enable_base_identity_t {};
 #include <cstddef>
 #include <cstdint>
 #include <functional>
-#include <iterator>
 #include <limits>
-#include <memory>
 #include <type_traits>
 #include <utility>
 
@@ -4525,309 +4819,11 @@ WJR_NODISCARD constexpr const T &&get(const wjr::compressed_pair<U, T> &&pr) noe
 } // namespace std
 
 #endif // WJR_COMPRESSED_PAIR_HPP__
-#ifndef WJR_FORMAT_OSTREAM_INSERT_HPP__
-#define WJR_FORMAT_OSTREAM_INSERT_HPP__
-
-#include <ostream>
-
-// Already included
-
-namespace wjr {
-
-template <typename CharT, typename Tratis>
-void __ostream_write_unchecked(std::basic_ostream<CharT, Tratis> &os, const CharT *str,
-                               std::streamsize n) {
-    const auto __put = os.rdbuf()->sputn(str, n);
-    if (__put != n) {
-        os.setstate(std::ios_base::badbit);
-    }
-}
-
-template <typename CharT, typename Tratis>
-void __ostream_fill_unchecked(std::basic_ostream<CharT, Tratis> &os, std::streamsize n) {
-    const auto ch = os.fill();
-    while (n--) {
-        const auto __put = os.rdbuf()->sputc(ch);
-        if (Tratis::eq_int_type(__put, Tratis::eof())) {
-            os.setstate(std::ios_base::badbit);
-            break;
-        }
-    }
-}
-
-template <typename CharT, typename Tratis>
-void __ostream_insert_unchecked(std::basic_ostream<CharT, Tratis> &os, const CharT *str,
-                                std::streamsize n) {
-    const std::streamsize __w = os.width();
-    if (__w > n) {
-        const std::streamsize __pad = __w - n;
-        const bool __left =
-            ((os.flags() & std::ios_base::adjustfield) == std::ios_base::left);
-
-        if (!__left) {
-            __ostream_fill_unchecked(os, __pad);
-        }
-        if (os.good()) {
-            __ostream_write_unchecked(os, str, n);
-        }
-        if (__left && os.good()) {
-            __ostream_fill_unchecked(os, __pad);
-        }
-    } else {
-        __ostream_write_unchecked(os, str, n);
-    }
-
-    os.width(0);
-}
-
-template <typename CharT, typename Tratis>
-std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tratis> &os,
-                                                    const CharT *str, std::streamsize n) {
-    const std::ostream::sentry ok(os);
-    if (ok) {
-        __ostream_insert_unchecked(os, str, n);
-    }
-
-    return os;
-}
-
-} // namespace wjr
-
-#endif // WJR_FORMAT_OSTREAM_INSERT_HPP__
-#ifndef WJR_MATH_HPP__
-#define WJR_MATH_HPP__
-
-#ifndef WJR_MATH_CONVERT_HPP__
-#define WJR_MATH_CONVERT_HPP__
-
-#include <array>
-#include <charconv>
-#include <string>
-#include <system_error>
-
-#ifndef WJR_ASSERT_HPP__
-#define WJR_ASSERT_HPP__
-
-#include <cstdio>
-#include <cstdlib>
-#include <iostream>
-#include <tuple>
-#include <type_traits>
-#include <utility>
-
-// Already included
-
-#ifdef WJR_ASSERT_THROW
-#include <sstream>
-#endif
-
-namespace wjr {
-
-// ASSERT_LEVEL : 0 ~ 3
-// 0 : Release (defined(NDEBUG) && ! defined(WJR_DEBUG_LEVEL))
-// 1 : Some simple runtime checks, such as boundary checks (default)
-// 2 : Most runtime checks
-// 3 : Maximize runtime checks
-#ifndef WJR_DEBUG_LEVEL
-#if defined(NDEBUG)
-#define WJR_DEBUG_LEVEL 0
-#else
-#define WJR_DEBUG_LEVEL 1
-#endif
-#endif
-
-// use WJR_THROW instead of std::abort
-#ifdef WJR_ASSERT_THROW
-#define WJR_ASSERT_NORETURN
-#else
-#define WJR_ASSERT_NORETURN WJR_NORETURN
-#endif
-
-#define WJR_DEBUG_IF(level, expr0, expr1)                                                \
-    WJR_PP_BOOL_IF(WJR_PP_GT(WJR_DEBUG_LEVEL, level), expr0, expr1)
-
-#define WJR_DEBUG_EXPR_L(level, expr) WJR_DEBUG_IF(level, expr, )
-#define WJR_DEBUG_EXPR(expr) WJR_DEBUG_EXPR_L(0, expr)
-
-class __assert_handler_t {
-private:
-    template <typename Output>
-    static Output &handler(Output &out) {
-        return out;
-    }
-
-    template <typename Output, typename... Args>
-    static Output &handler(Output &out, Args &&...args) {
-        out << "Additional information:\n";
-        (void)(out << ... << std::forward<Args>(args));
-        out << '\n';
-        return out;
-    }
-
-    template <typename... Args>
-    WJR_ASSERT_NORETURN WJR_NOINLINE static void
-    fn(const char *expr, const char *file, const char *func, int line, Args &&...args) {
-#ifndef WJR_ASSERT_THROW
-        if (file[0] != '\0') {
-            std::cerr << file << ':';
-        }
-        if (line != -1) {
-            std::cerr << line << ':';
-        }
-        std::cerr << func << ": Assertion `" << expr << "' failed.\n";
-        handler(std::cerr, std::forward<Args>(args)...);
-        std::abort();
-#else
-        std::ostringstream os;
-        if (file[0] != '\0') {
-            os << file << ':';
-        }
-        if (line != -1) {
-            os << line << ':';
-        }
-        os << func << ": Assertion `" << expr << "' failed.\n";
-        handler(os, std::forward<Args>(args)...);
-        WJR_THROW(std::runtime_error(os.str()));
-#endif
-    }
-
-public:
-    template <typename... Args>
-    void operator()(const char *expr, const char *file, const char *func, int line,
-                    Args &&...args) const {
-        fn(expr, file, func, line, std::forward<Args>(args)...);
-    }
-};
-
-inline constexpr __assert_handler_t __assert_handler{};
-
-#define WJR_ASSERT_NOMESSAGE_FAIL(handler, exprstr)                                      \
-    handler(exprstr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE)
-#define WJR_ASSERT_MESSAGE_FAIL(handler, exprstr, ...)                                   \
-    handler(exprstr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE, __VA_ARGS__)
-
-#define WJR_ASSERT_CHECK_I_NOMESSAGE(handler, expr)                                      \
-    do {                                                                                 \
-        if (WJR_UNLIKELY(!(expr))) {                                                     \
-            WJR_ASSERT_NOMESSAGE_FAIL(handler, #expr);                                   \
-        }                                                                                \
-    } while (0)
-#define WJR_ASSERT_CHECK_I_MESSAGE(handler, expr, ...)                                   \
-    do {                                                                                 \
-        if (WJR_UNLIKELY(!(expr))) {                                                     \
-            WJR_ASSERT_MESSAGE_FAIL(handler, #expr, __VA_ARGS__);                        \
-        }                                                                                \
-    } while (0)
-
-#define WJR_ASSERT_CHECK_I(...)                                                          \
-    WJR_ASSERT_CHECK_I_N(WJR_PP_ARGS_LEN(__VA_ARGS__), __VA_ARGS__)
-#define WJR_ASSERT_CHECK_I_N(N, ...)                                                     \
-    WJR_PP_BOOL_IF(WJR_PP_EQ(N, 1), WJR_ASSERT_CHECK_I_NOMESSAGE,                        \
-                   WJR_ASSERT_CHECK_I_MESSAGE)                                           \
-    (::wjr::__assert_handler, __VA_ARGS__)
-
-// do nothing
-#define WJR_ASSERT_UNCHECK_I(expr, ...)
-
-// level = [0, 2]
-// The higher the level, the less likely it is to be detected
-// Runtime detect  : 1
-// Maximize detect : 2
-#define WJR_ASSERT_L(level, ...)                                                         \
-    WJR_DEBUG_IF(level, WJR_ASSERT_CHECK_I, WJR_ASSERT_UNCHECK_I)                        \
-    (__VA_ARGS__)
-
-// level of assert is zero at default.
-#define WJR_ASSERT(...) WJR_ASSERT_L(0, __VA_ARGS__)
-#define WJR_ASSERT_L1(...) WJR_ASSERT_L(1, __VA_ARGS__)
-#define WJR_ASSERT_L2(...) WJR_ASSERT_L(2, __VA_ARGS__)
-#define WJR_ASSERT_L3(...) WJR_ASSERT_L(3, __VA_ARGS__)
-
-#define WJR_ASSERT_ASSUME_L(level, ...)                                                  \
-    WJR_ASSERT_L(level, __VA_ARGS__);                                                    \
-    __WJR_ASSERT_ASSUME_L_ASSUME(__VA_ARGS__)
-#define __WJR_ASSERT_ASSUME_L_ASSUME(expr, ...) WJR_ASSUME(expr)
-
-#define WJR_ASSERT_ASSUME(...) WJR_ASSERT_ASSUME_L(0, __VA_ARGS__)
-#define WJR_ASSERT_ASSUME_L1(...) WJR_ASSERT_ASSUME_L(1, __VA_ARGS__)
-#define WJR_ASSERT_ASSUME_L2(...) WJR_ASSERT_ASSUME_L(2, __VA_ARGS__)
-#define WJR_ASSERT_ASSUME_L3(...) WJR_ASSERT_ASSUME_L(3, __VA_ARGS__)
-
-} // namespace wjr
-
-#endif // WJR_ASSERT_HPP__
-#ifndef WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP__
-#define WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP__
-
-#include <array>
-#include <string>
-#include <vector>
-
-#ifndef WJR_VECTOR_HPP__
-#define WJR_VECTOR_HPP__
-
-#ifndef WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__
-#define WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__
-
-/**
- * @file vector.hpp
- * @brief Vector container with definable internal structure
- *
- * @details
- * Customized internal structure needs to follow the following function signature: \n
- * -# storage()
- * -# template <typename _Alloc>  \n
- * storage(_Alloc&& al)
- * -# template <typename _Alloc> \n
- * storage(_Alloc&& al, size_type size, size_type capacity, in_place_reallocate_t)
- * -# ~storage() noexcept
- * -# auto& get_allocator() noexcept
- * -# const auto& get_allocator() const noexcept
- * -# void destroy() noexcept
- * -# void destroy_and_deallocate()
- * -# void uninitialized_construct(size_type size, size_type capacity)
- * -# void take_storage(storage& other)
- * -# void swap_storage(storage& other)
- * -# decltype(auto) size() noexcept
- * -# size_type capacity() const noexcept
- * -# pointer data() noexcept
- * -# const_pointer data() const noexcept
- *
- * 1 : should not allocate memory. \n
- * 2 : just store the allocator. \n
- * 3 : allocate memory and set the size and capacity. this function is used for
- * reallocation. if the storage is not reallocatable, this function won't be
- * implemented. \n
- * 4 : don't need to destroy or deallocate. \n
- * 5-6 : \n
- * 7 : destroy all elements. don't change ptr, size and capacity. \n
- * 8 : destroy and deallocate. \n
- * 9 : uninitialized construct the storage. allocate memory and set the size and
- * capacity. \n
- * 10 : take the storage from other. set other to empty. \n
- * 11 : swap the storage with other. \n
- * 12 : get the size. the return type must be reference,
- * such as size_type&, std::reference_wrapper<size_type> and so on. \n
- * 13 : get the capacity. \n
- * 14-15 : get the pointer. \n
- *
- * the size type of 14 need to implement the following function signature: \n
- * -# auto& operator=(size_type) noexcept
- * -# operator size_type() const noexcept
- * -# size_type operator++() noexcept
- * -# size_type operator--() noexcept
- * -# size_type operator+=(size_type) noexcept
- * -# size_type operator-=(size_type) noexcept
- *
- * @version 0.1
- * @date 2024-03-19
- *
- */
-
-// Already included
-// Already included
 #ifndef WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP__
 #define WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP__
+
+#include <memory>
+#include <type_traits>
 
 // Already included
 
@@ -5049,8 +5045,6 @@ using iterator_contiguous_pointer_t =
 #define WJR_CRTP_NONSENDABLE_HPP__
 
 #include <memory>
-#include <thread>
-#include <type_traits>
 
 // Already included
 
@@ -5107,7 +5101,7 @@ public:
     static constexpr bool is_nonsendable = true;
 
 protected:
-    void check() const {};
+    constexpr static void check(){};
 
     friend bool operator==(const __nonsendable_checker &, const __nonsendable_checker &) {
         return true;
@@ -6691,130 +6685,51 @@ WJR_CONSTEXPR20 void destroy_n_using_allocator(Iter first, Size n, Alloc &alloc)
 }
 
 template <typename T, typename Tag>
-using __uninitilized_checker_base_enabler_select = enable_special_members_base<
-    std::is_trivially_default_constructible_v<T>, true,
-    std::is_trivially_copy_constructible_v<T>, std::is_trivially_move_constructible_v<T>,
-    std::is_trivially_copy_assignable_v<T>, std::is_trivially_move_assignable_v<T>, Tag>;
+using __uninitialized_checker_base_enabler_select =
+    enable_special_members_base<true, true, std::is_trivially_copy_constructible_v<T>,
+                                std::is_trivially_move_constructible_v<T>,
+                                std::is_trivially_copy_assignable_v<T>,
+                                std::is_trivially_move_assignable_v<T>, Tag>;
 
-#if WJR_DEBUG_LEVEL > 2
+template <bool Default, bool Destructor, typename T>
+struct __uninitialized_base;
 
-template <typename T, typename Tag>
-struct __uninitialized_checker : __uninitilized_checker_base_enabler_select<T, Tag> {
-    using Mybase = __uninitilized_checker_base_enabler_select<T, Tag>;
-    using Mybase::Mybase;
-    static constexpr bool __is_noexcept = false;
-
-    __uninitialized_checker(bool value) noexcept
-        : Mybase(enable_default_constructor), m_initialized(value) {}
-
-protected:
-    constexpr void check(bool value) const {
-        WJR_ASSERT_L2(m_initialized == value, "Expected ",
-                      (value ? "initialized" : "uninitialized"),
-                      " value when using an uninitialized object.");
+#define WJR_REGISTER_UNINITIALIZED_BASE(DEF, DES)                                        \
+    template <typename T>                                                                \
+    struct __uninitialized_base<DEF, DES, T>                                             \
+        : __uninitialized_checker_base_enabler_select<                                   \
+              T, __uninitialized_base<DEF, DES, T>> {                                    \
+        using Mybase = __uninitialized_checker_base_enabler_select<                      \
+            T, __uninitialized_base<DEF, DES, T>>;                                       \
+        constexpr static bool __is_noexcept = WJR_DEBUG_IF(2, false, true);              \
+                                                                                         \
+        constexpr __uninitialized_base() noexcept WJR_PP_BOOL_IF(DEF, = default,         \
+                                                                 : m_storage(){});       \
+                                                                                         \
+        template <typename... Args>                                                      \
+        constexpr __uninitialized_base(Args &&...args) noexcept(                         \
+            std::is_nothrow_constructible_v<T, Args...>)                                 \
+            : m_value(std::forward<Args>(args)...) {}                                    \
+                                                                                         \
+        ~__uninitialized_base() noexcept WJR_PP_BOOL_IF(DES, = default, {});             \
+                                                                                         \
+        union {                                                                          \
+            T m_value;                                                                   \
+            std::aligned_storage_t<sizeof(T), alignof(T)> m_storage;                     \
+        };                                                                               \
     }
 
-    constexpr void set(bool value) noexcept { m_initialized = value; }
+WJR_REGISTER_UNINITIALIZED_BASE(1, 1);
+WJR_REGISTER_UNINITIALIZED_BASE(1, 0);
+WJR_REGISTER_UNINITIALIZED_BASE(0, 1);
+WJR_REGISTER_UNINITIALIZED_BASE(0, 0);
 
-    bool m_initialized = false;
-};
-
-#else
-
-template <typename T, typename Tag>
-struct __uninitialized_checker : __uninitilized_checker_base_enabler_select<T, Tag> {
-    using Mybase = __uninitilized_checker_base_enabler_select<T, Tag>;
-    using Mybase::Mybase;
-    static constexpr bool __is_noexcept = true;
-
-    constexpr __uninitialized_checker(bool) noexcept
-        : Mybase(enable_default_constructor) {}
-
-protected:
-    constexpr void check(bool) const noexcept {}
-    constexpr void set(bool) noexcept {}
-};
-
-#endif
-
-template <bool Trivial, typename T>
-struct __uninitilized_dtor_base
-    : __uninitialized_checker<T, __uninitilized_dtor_base<Trivial, T>> {
-    using Mybase = __uninitialized_checker<T, __uninitilized_dtor_base<Trivial, T>>;
-    using Mybase::Mybase;
-
-    template <typename... Args>
-    constexpr __uninitilized_dtor_base(Args &&...args) noexcept(
-        Mybase::__is_noexcept &&std::is_nothrow_constructible_v<T, Args...>)
-        : Mybase(true), m_value(std::forward<Args>(args)...) {}
-
-    constexpr __uninitilized_dtor_base(enable_default_constructor_t) noexcept(
-        Mybase::__is_noexcept)
-        : Mybase(enable_default_constructor), m_storage() {}
-
-    // don't need to check for trivially destructible types
-    ~__uninitilized_dtor_base() noexcept = default;
-
-    union {
-        T m_value;
-        std::aligned_storage_t<sizeof(T), alignof(T)> m_storage;
-    };
-};
+#undef WJR_REGISTER_UNINITIALIZED_BASE
 
 template <typename T>
-struct __uninitilized_dtor_base<false, T>
-    : __uninitialized_checker<T, __uninitilized_dtor_base<false, T>> {
-    using Mybase = __uninitialized_checker<T, __uninitilized_dtor_base<false, T>>;
-    using Mybase::Mybase;
-
-    template <typename... Args>
-    constexpr __uninitilized_dtor_base(Args &&...args) noexcept(
-        Mybase::__is_noexcept &&std::is_nothrow_constructible_v<T, Args...>)
-        : Mybase(true), m_value(std::forward<Args>(args)...) {}
-
-    constexpr __uninitilized_dtor_base(enable_default_constructor_t) noexcept(
-        Mybase::__is_noexcept)
-        : Mybase(enable_default_constructor), m_storage() {}
-
-    ~__uninitilized_dtor_base() noexcept(Mybase::__is_noexcept) { Mybase::check(false); }
-
-    union {
-        T m_value;
-        std::aligned_storage_t<sizeof(T), alignof(T)> m_storage;
-    };
-};
-
-template <typename T>
-using __uninitilized_dtor_base_select =
-    __uninitilized_dtor_base<std::is_trivially_destructible_v<T>, T>;
-
-template <bool Trivial, typename T>
-struct __uninitialized_ctor_base : __uninitilized_dtor_base_select<T> {
-    using Mybase = __uninitilized_dtor_base_select<T>;
-
-    constexpr __uninitialized_ctor_base() noexcept = default;
-
-    template <typename... Args>
-    constexpr __uninitialized_ctor_base(Args &&...args) noexcept(
-        std::is_nothrow_constructible_v<Mybase, Args...>)
-        : Mybase(std::forward<Args>(args)...) {}
-};
-
-template <typename T>
-struct __uninitialized_ctor_base<false, T> : __uninitilized_dtor_base_select<T> {
-    using Mybase = __uninitilized_dtor_base_select<T>;
-
-    constexpr __uninitialized_ctor_base() noexcept : Mybase(enable_default_constructor) {}
-
-    template <typename... Args>
-    constexpr __uninitialized_ctor_base(Args &&...args) noexcept(
-        std::is_nothrow_constructible_v<Mybase, Args...>)
-        : Mybase(std::forward<Args>(args)...) {}
-};
-
-template <typename T>
-using __uninitialized_ctor_base_select =
-    __uninitialized_ctor_base<std::is_trivially_default_constructible_v<T>, T>;
+using __uninitialized_base_select =
+    __uninitialized_base<std::is_trivially_default_constructible_v<T>,
+                         std::is_trivially_destructible_v<T>, T>;
 
 /**
  * @class uninitialized
@@ -6825,82 +6740,108 @@ using __uninitialized_ctor_base_select =
  *
  */
 template <typename T>
-class uninitialized : __uninitialized_ctor_base_select<T> {
-    using Mybase = __uninitialized_ctor_base_select<T>;
+class uninitialized : __uninitialized_base_select<T> {
+    using Mybase = __uninitialized_base_select<T>;
+    static constexpr bool __is_noexcept = WJR_DEBUG_LEVEL <= 2;
 
 public:
     constexpr uninitialized() noexcept = default;
-    ~uninitialized() noexcept(std::is_nothrow_destructible_v<Mybase>) = default;
+    ~uninitialized() noexcept(__is_noexcept &&std::is_nothrow_destructible_v<Mybase>) =
+        default;
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
     constexpr uninitialized(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<Mybase, Args...>)
-        : Mybase(std::forward<Args>(args)...) {}
+        : Mybase(std::forward<Args>(args)...) {
+        checker_set(true);
+    }
 
     constexpr uninitialized(dctor_t) noexcept : Mybase() {}
 
-    constexpr T &get() & noexcept(Mybase::__is_noexcept) {
-        Mybase::check(true);
+    constexpr T &get() & noexcept(__is_noexcept) {
+        check(true);
         return Mybase::m_value;
     }
 
-    constexpr const T &get() const & noexcept(Mybase::__is_noexcept) {
-        Mybase::check(true);
+    constexpr const T &get() const & noexcept(__is_noexcept) {
+        check(true);
         return Mybase::m_value;
     }
 
-    constexpr T &&get() && noexcept(Mybase::__is_noexcept) {
-        Mybase::check(true);
+    constexpr T &&get() && noexcept(__is_noexcept) {
+        check(true);
         return std::move(Mybase::m_value);
     }
 
-    constexpr const T &&get() const && noexcept(Mybase::__is_noexcept) {
-        Mybase::check(true);
+    constexpr const T &&get() const && noexcept(__is_noexcept) {
+        check(true);
         return std::move(Mybase::m_value);
     }
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
     constexpr T &emplace(Args &&...args) noexcept(
-        Mybase::__is_noexcept &&std::is_nothrow_constructible_v<Mybase, Args...>) {
+        __is_noexcept &&std::is_nothrow_constructible_v<Mybase, Args...>) {
         if constexpr (!std::is_trivially_destructible_v<T>) {
-            Mybase::check(false);
+            check(false);
         }
 
         construct_at(this, std::forward<Args>(args)...);
         return get();
     }
 
-    constexpr void
-    reset() noexcept(Mybase::__is_noexcept &&std::is_nothrow_destructible_v<T>) {
+    constexpr void reset() noexcept(__is_noexcept &&std::is_nothrow_destructible_v<T>) {
         if constexpr (!std::is_trivially_destructible_v<T>) {
-            Mybase::check(true);
+            check(true);
             get().~T();
         }
 
-        Mybase::set(false);
+        checker_set(false);
     }
 
-    constexpr T *operator->() noexcept(Mybase::__is_noexcept) {
+    constexpr T *operator->() noexcept(__is_noexcept) { return std::addressof(get()); }
+
+    constexpr const T *operator->() const noexcept(__is_noexcept) {
         return std::addressof(get());
     }
 
-    constexpr const T *operator->() const noexcept(Mybase::__is_noexcept) {
-        return std::addressof(get());
-    }
+    constexpr T &operator*() & noexcept(__is_noexcept) { return get(); }
 
-    constexpr T &operator*() & noexcept(Mybase::__is_noexcept) { return get(); }
+    constexpr const T &operator*() const & noexcept(__is_noexcept) { return get(); }
 
-    constexpr const T &operator*() const & noexcept(Mybase::__is_noexcept) {
-        return get();
-    }
+    constexpr T &&operator*() && noexcept(__is_noexcept) { return std::move(get()); }
 
-    constexpr T &&operator*() && noexcept(Mybase::__is_noexcept) {
+    constexpr const T &&operator*() const && noexcept(__is_noexcept) {
         return std::move(get());
     }
 
-    constexpr const T &&operator*() const && noexcept(Mybase::__is_noexcept) {
-        return std::move(get());
-    }
+private:
+#if WJR_DEBUG_LEVEL > 2
+    struct __checker {
+        constexpr void set(bool value) noexcept { m_initialized = value; }
+        constexpr void check(bool value) const {
+            WJR_ASSERT_L2(m_initialized == value, "Expected ",
+                          (value ? "initialized" : "uninitialized"),
+                          " value when using an uninitialized object.");
+        }
+
+        ~__checker() {
+            if constexpr (!std::is_trivially_destructible_v<T>) {
+                check(false);
+            }
+        }
+
+        bool m_initialized = false;
+    };
+
+    __checker m_checker;
+
+    constexpr void checker_set(bool value) noexcept { m_checker.set(value); }
+    constexpr void check(bool value) const { m_checker.check(value); }
+
+#else
+    constexpr static void checker_set(bool) noexcept {}
+    constexpr static void check(bool) {}
+#endif
 };
 
 } // namespace wjr
@@ -7067,9 +7008,6 @@ public:
         wjr::uninitialized_move_n_restrict_using_allocator(first, size, result, al);
     }
 };
-
-template <typename T, typename Alloc, typename STraits>
-class __default_vector_storage_impl;
 
 /**
  * @brief Default vector storage
@@ -17713,9 +17651,6 @@ constexpr T &&get(const wjr::tuple<Args...> &&t) noexcept {
 namespace wjr {
 
 template <typename T>
-class div1by1_divider;
-
-template <typename T>
 class div2by1_divider;
 
 template <typename T>
@@ -17729,12 +17664,12 @@ inline uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
 
 inline uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi, uint64_t div);
 
-inline std::pair<uint64_t, uint64_t>
+inline tuple<uint64_t, uint64_t>
 div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
                 const div2by1_divider<uint64_t> &divider);
 
-inline std::pair<uint64_t, uint64_t> div128by64to128(uint64_t &rem, uint64_t lo,
-                                                     uint64_t hi, uint64_t div);
+inline tuple<uint64_t, uint64_t> div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                                 uint64_t div);
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
@@ -24138,7 +24073,7 @@ inline uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi, uint64_t
     return div128by64to64_impl(rem, lo, hi, wjr::div2by1_divider<uint64_t>(div));
 }
 
-inline std::pair<uint64_t, uint64_t>
+inline tuple<uint64_t, uint64_t>
 div128by64to128_noshift(uint64_t &rem, uint64_t lo, uint64_t hi,
                         const div2by1_divider_noshift<uint64_t> &divider) {
     auto divisor = divider.get_divisor();
@@ -24154,7 +24089,7 @@ div128by64to128_noshift(uint64_t &rem, uint64_t lo, uint64_t hi,
     return std::make_pair(q0, q1);
 }
 
-inline std::pair<uint64_t, uint64_t>
+inline tuple<uint64_t, uint64_t>
 div128by64to128_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
                       const div2by1_divider<uint64_t> &divider) {
     auto shift = divider.get_shift();
@@ -24173,7 +24108,7 @@ div128by64to128_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
     return std::make_pair(q0, q1);
 }
 
-inline std::pair<uint64_t, uint64_t>
+inline tuple<uint64_t, uint64_t>
 div128by64to128_impl(uint64_t &rem, uint64_t lo, uint64_t hi,
                      const div2by1_divider<uint64_t> &divider) {
     if (divider.get_shift() == 0) {
@@ -24187,7 +24122,7 @@ div128by64to128_impl(uint64_t &rem, uint64_t lo, uint64_t hi,
  not optimize for divider that is power of 2,
  manually consider whether it needs to be optimized
 */
-inline std::pair<uint64_t, uint64_t>
+inline tuple<uint64_t, uint64_t>
 div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
                 const div2by1_divider<uint64_t> &divider) {
     return div128by64to128_impl(rem, lo, hi, divider);
@@ -24197,16 +24132,10 @@ div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
  not optimize for divider that is power of 2,
  manually consider whether it needs to be optimized
 */
-inline std::pair<uint64_t, uint64_t> div128by64to128(uint64_t &rem, uint64_t lo,
-                                                     uint64_t hi, uint64_t div) {
+inline tuple<uint64_t, uint64_t> div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                                 uint64_t div) {
     return div128by64to128_impl(rem, lo, hi, div2by1_divider<uint64_t>(div));
 }
-
-template <>
-class div1by1_divider<uint64_t> {
-public:
-private:
-};
 
 // reference : https://ieeexplore.ieee.org/document/5487506
 template <typename T>
@@ -29298,7 +29227,7 @@ private:
 };
 
 template <>
-struct unref_wrapper<default_biginteger_size_reference> {
+struct __unref_wrapper_helper<default_biginteger_size_reference> {
     using type = uint32_t &;
 };
 
@@ -29420,7 +29349,7 @@ public:
     explicit basic_biginteger(span<const char> sp, unsigned int base = 10,
                               const allocator_type &al = allocator_type())
         : m_vec(al) {
-        assign(sp, base);
+        from_string(sp, base);
     }
 
     template <typename UnsignedValue,
@@ -29444,9 +29373,23 @@ public:
         return *this;
     }
 
-    basic_biginteger &operator=(span<const char> sp) { return assign(sp); }
+    basic_biginteger &operator=(span<const char> sp) { return from_string(sp); }
 
-    basic_biginteger &assign(span<const char> sp, unsigned int base = 10) {
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    explicit operator T() const noexcept {
+        if (empty()) {
+            return static_cast<T>(0);
+        }
+
+        if constexpr (std::is_unsigned_v<T>) {
+            return static_cast<T>(front());
+        } else {
+            const auto ret = front();
+            return is_negate() ? -ret : ret;
+        }
+    }
+
+    basic_biginteger &from_string(span<const char> sp, unsigned int base = 10) {
         (void)from_chars(sp.data(), sp.data() + sp.size(), *this, base);
         return *this;
     }

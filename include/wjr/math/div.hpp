@@ -64,7 +64,7 @@ inline uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi, uint64_t
     return div128by64to64_impl(rem, lo, hi, wjr::div2by1_divider<uint64_t>(div));
 }
 
-inline std::pair<uint64_t, uint64_t>
+inline tuple<uint64_t, uint64_t>
 div128by64to128_noshift(uint64_t &rem, uint64_t lo, uint64_t hi,
                         const div2by1_divider_noshift<uint64_t> &divider) {
     auto divisor = divider.get_divisor();
@@ -80,7 +80,7 @@ div128by64to128_noshift(uint64_t &rem, uint64_t lo, uint64_t hi,
     return std::make_pair(q0, q1);
 }
 
-inline std::pair<uint64_t, uint64_t>
+inline tuple<uint64_t, uint64_t>
 div128by64to128_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
                       const div2by1_divider<uint64_t> &divider) {
     auto shift = divider.get_shift();
@@ -99,7 +99,7 @@ div128by64to128_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
     return std::make_pair(q0, q1);
 }
 
-inline std::pair<uint64_t, uint64_t>
+inline tuple<uint64_t, uint64_t>
 div128by64to128_impl(uint64_t &rem, uint64_t lo, uint64_t hi,
                      const div2by1_divider<uint64_t> &divider) {
     if (divider.get_shift() == 0) {
@@ -113,7 +113,7 @@ div128by64to128_impl(uint64_t &rem, uint64_t lo, uint64_t hi,
  not optimize for divider that is power of 2,
  manually consider whether it needs to be optimized
 */
-inline std::pair<uint64_t, uint64_t>
+inline tuple<uint64_t, uint64_t>
 div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
                 const div2by1_divider<uint64_t> &divider) {
     return div128by64to128_impl(rem, lo, hi, divider);
@@ -123,16 +123,10 @@ div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
  not optimize for divider that is power of 2,
  manually consider whether it needs to be optimized
 */
-inline std::pair<uint64_t, uint64_t> div128by64to128(uint64_t &rem, uint64_t lo,
-                                                     uint64_t hi, uint64_t div) {
+inline tuple<uint64_t, uint64_t> div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                                 uint64_t div) {
     return div128by64to128_impl(rem, lo, hi, div2by1_divider<uint64_t>(div));
 }
-
-template <>
-class div1by1_divider<uint64_t> {
-public:
-private:
-};
 
 // reference : https://ieeexplore.ieee.org/document/5487506
 template <typename T>
