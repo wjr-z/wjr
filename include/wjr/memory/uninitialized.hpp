@@ -10,6 +10,7 @@
  *
  */
 
+#include <wjr/crtp/class_base.hpp>
 #include <wjr/crtp/trivial_allocator_base.hpp>
 #include <wjr/memory/details.hpp>
 
@@ -314,6 +315,196 @@ WJR_CONSTEXPR20 void destroy_n_using_allocator(Iter first, Size n, Alloc &alloc)
         }
     }
 }
+
+template <typename T, typename Tag>
+using __uninitilized_checker_base_enabler_select =
+    enable_default_constructor_base<std::is_trivially_default_constructible_v<T>, Tag>;
+
+#if WJR_DEBUG_LEVEL > 2
+
+template <typename T, typename Tag>
+struct __uninitialized_checker : __uninitilized_checker_base_enabler_select<T, Tag> {
+    using Mybase = __uninitilized_checker_base_enabler_select<T, Tag>;
+    using Mybase::Mybase;
+    static constexpr bool __is_noexcept = false;
+
+    __uninitialized_checker(bool value) noexcept
+        : Mybase(enable_default_constructor), m_initialized(value) {}
+
+protected:
+    constexpr void check(bool value) const {
+        WJR_ASSERT_L2(m_initialized == value, "Expected ",
+                      (value ? "initialized" : "uninitialized"),
+                      " value when using an uninitialized object.");
+    }
+
+    constexpr void set(bool value) noexcept { m_initialized = value; }
+
+    bool m_initialized = false;
+};
+
+#else
+
+template <typename T, typename Tag>
+struct __uninitialized_checker : __uninitilized_checker_base_enabler_select<T, Tag> {
+    using Mybase = __uninitilized_checker_base_enabler_select<T, Tag>;
+    using Mybase::Mybase;
+    static constexpr bool __is_noexcept = true;
+
+    __uninitialized_checker(bool) noexcept : Mybase(enable_default_constructor) {}
+
+protected:
+    constexpr void check(bool) const noexcept {}
+    constexpr void set(bool) noexcept {}
+};
+
+#endif
+
+template <bool Trivial, typename T>
+struct __uninitilized_dtor_base
+    : __uninitialized_checker<T, __uninitilized_dtor_base<Trivial, T>> {
+    using Mybase = __uninitialized_checker<T, __uninitilized_dtor_base<Trivial, T>>;
+    using Mybase::Mybase;
+
+    template <typename... Args>
+    constexpr __uninitilized_dtor_base(Args &&...args) noexcept(
+        Mybase::__is_noexcept &&std::is_nothrow_constructible_v<T, Args...>)
+        : Mybase(true), m_value(std::forward<Args>(args)...) {}
+
+    constexpr __uninitilized_dtor_base(enable_default_constructor_t) noexcept(
+        Mybase::__is_noexcept)
+        : Mybase(enable_default_constructor), m_storage() {}
+
+    // don't need to check for trivially destructible types
+    ~__uninitilized_dtor_base() noexcept = default;
+
+    union {
+        T m_value;
+        std::aligned_storage_t<sizeof(T), alignof(T)> m_storage;
+    };
+};
+
+template <typename T>
+struct __uninitilized_dtor_base<false, T>
+    : __uninitialized_checker<T, __uninitilized_dtor_base<false, T>> {
+    using Mybase = __uninitialized_checker<T, __uninitilized_dtor_base<false, T>>;
+    using Mybase::Mybase;
+
+    template <typename... Args>
+    constexpr __uninitilized_dtor_base(Args &&...args) noexcept(
+        Mybase::__is_noexcept &&std::is_nothrow_constructible_v<T, Args...>)
+        : Mybase(true), m_value(std::forward<Args>(args)...) {}
+
+    constexpr __uninitilized_dtor_base(enable_default_constructor_t) noexcept(
+        Mybase::__is_noexcept)
+        : Mybase(enable_default_constructor), m_storage() {}
+
+    ~__uninitilized_dtor_base() noexcept(Mybase::__is_noexcept) { Mybase::check(false); }
+
+    union {
+        T m_value;
+        std::aligned_storage_t<sizeof(T), alignof(T)> m_storage;
+    };
+};
+
+template <typename T>
+using __uninitilized_dtor_base_select =
+    __uninitilized_dtor_base<std::is_trivially_destructible_v<T>, T>;
+
+template <bool Trivial, typename T>
+struct __uninitialized_ctor_base : __uninitilized_dtor_base_select<T> {
+    using Mybase = __uninitilized_dtor_base_select<T>;
+
+    constexpr __uninitialized_ctor_base() noexcept = default;
+
+    template <typename... Args>
+    constexpr __uninitialized_ctor_base(Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<Mybase, Args...>)
+        : Mybase(std::forward<Args>(args)...) {}
+};
+
+template <typename T>
+struct __uninitialized_ctor_base<false, T> : __uninitilized_dtor_base_select<T> {
+    using Mybase = __uninitilized_dtor_base_select<T>;
+
+    constexpr __uninitialized_ctor_base() noexcept : Mybase(enable_default_constructor) {}
+
+    template <typename... Args>
+    constexpr __uninitialized_ctor_base(Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<Mybase, Args...>)
+        : Mybase(std::forward<Args>(args)...) {}
+};
+
+template <typename T>
+using __uninitialized_ctor_base_select =
+    __uninitialized_ctor_base<std::is_trivially_default_constructible_v<T>, T>;
+
+/**
+ * @class uninitialized
+ *
+ * @details Trivially constructible and destructible uninitialized object. Copy/move
+ * constructor and assignment operator are deleted, copy/move of an uninitialized object
+ * is UB.
+ *
+ */
+template <typename T>
+class uninitialized : __uninitialized_ctor_base_select<T> {
+    using Mybase = __uninitialized_ctor_base_select<T>;
+
+public:
+    constexpr uninitialized() noexcept = default;
+    ~uninitialized() noexcept(std::is_nothrow_destructible_v<Mybase>) = default;
+
+    uninitialized(const uninitialized &) = delete;
+    uninitialized(uninitialized &&) = delete;
+    uninitialized &operator=(const uninitialized &) = delete;
+    uninitialized &operator=(uninitialized &&) = delete;
+
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
+    constexpr uninitialized(Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<Mybase, Args...>)
+        : Mybase(std::forward<Args>(args)...) {}
+
+    constexpr uninitialized(dctor_t) noexcept : Mybase() {}
+
+    constexpr T &get() & noexcept(Mybase::__is_noexcept) {
+        Mybase::check(true);
+        return Mybase::m_value;
+    }
+    constexpr const T &get() const & noexcept(Mybase::__is_noexcept) {
+        Mybase::check(true);
+        return Mybase::m_value;
+    }
+    constexpr T &&get() && noexcept(Mybase::__is_noexcept) {
+        Mybase::check(true);
+        return std::move(Mybase::m_value);
+    }
+    constexpr const T &&get() const && noexcept(Mybase::__is_noexcept) {
+        Mybase::check(true);
+        return std::move(Mybase::m_value);
+    }
+
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
+    constexpr T &emplace(Args &&...args) noexcept(
+        Mybase::__is_noexcept &&std::is_nothrow_constructible_v<Mybase, Args...>) {
+        if constexpr (!std::is_trivially_destructible_v<T>) {
+            Mybase::check(false);
+        }
+
+        construct_at(this, std::forward<Args>(args)...);
+        return get();
+    }
+
+    constexpr void
+    reset() noexcept(Mybase::__is_noexcept &&std::is_nothrow_destructible_v<T>) {
+        if constexpr (!std::is_trivially_destructible_v<T>) {
+            Mybase::check(true);
+            get().~T();
+        }
+
+        Mybase::set(false);
+    }
+};
 
 } // namespace wjr
 

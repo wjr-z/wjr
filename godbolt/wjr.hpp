@@ -4617,6 +4617,10 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 
 // Already included
 
+#ifdef WJR_ASSERT_THROW
+#include <sstream>
+#endif
+
 namespace wjr {
 
 // ASSERT_LEVEL : 0 ~ 3
@@ -4635,10 +4639,8 @@ namespace wjr {
 // use WJR_THROW instead of std::abort
 #ifdef WJR_ASSERT_THROW
 #define WJR_ASSERT_NORETURN
-#define WJR_ASSERT_ABORT() WJR_THROW(std::runtime_error("assertion failed"))
 #else
 #define WJR_ASSERT_NORETURN WJR_NORETURN
-#define WJR_ASSERT_ABORT() std::abort()
 #endif
 
 #define WJR_DEBUG_IF(level, expr0, expr1)                                                \
@@ -4647,70 +4649,46 @@ namespace wjr {
 #define WJR_DEBUG_EXPR_L(level, expr) WJR_DEBUG_IF(level, expr, )
 #define WJR_DEBUG_EXPR(expr) WJR_DEBUG_EXPR_L(0, expr)
 
-template <typename... Args>
-struct assert_format {
-    assert_format(const char *const fmt, std::tuple<Args...> &&args)
-        : m_fmt(fmt), m_args(std::move(args)) {}
-
-    const char *const m_fmt;
-    std::tuple<Args...> m_args;
-};
-
-template <typename... Args>
-assert_format(const char *const, std::tuple<Args...> &&) -> assert_format<Args...>;
-
-#define WJR_ASSERT_FORMAT(fmt, ...)                                                      \
-    ::wjr::assert_format(fmt, std::make_tuple(__VA_ARGS__))
-
-template <typename T>
-struct __is_assert_format : std::false_type {};
-
-template <typename... Args>
-struct __is_assert_format<assert_format<Args...>> : std::true_type {};
-
 class __assert_handler_t {
 private:
-    template <typename... Args>
-    static void __handler_format(const assert_format<Args...> &fmt) {
-        const char *const fmt_str = fmt.m_fmt;
-        std::apply(
-            [fmt_str](auto &&...args) {
-                (void)fprintf(stderr, fmt_str, std::forward<decltype(args)>(args)...);
-            },
-            fmt.m_args);
+    template <typename Output>
+    static Output &handler(Output &out) {
+        return out;
     }
 
-    template <typename T>
-    static void __handler(T &&t) {
-        if constexpr (__is_assert_format<std::decay_t<T>>::value) {
-            __handler_format(std::forward<T>(t));
-        } else {
-            std::cerr << t;
-        }
-    }
-
-    static void handler() {}
-
-    template <typename... Args>
-    static void handler(Args &&...args) {
-        (void)fprintf(stderr, "Additional information:\n");
-        (void)((__handler(std::forward<Args>(args)), ...));
-        (void)fprintf(stderr, "\n");
+    template <typename Output, typename... Args>
+    static Output &handler(Output &out, Args &&...args) {
+        out << "Additional information:\n";
+        (void)(out << ... << std::forward<Args>(args));
+        out << '\n';
+        return out;
     }
 
     template <typename... Args>
     WJR_ASSERT_NORETURN WJR_NOINLINE static void
     fn(const char *expr, const char *file, const char *func, int line, Args &&...args) {
+#ifndef WJR_ASSERT_THROW
         if (file[0] != '\0') {
-            (void)fprintf(stderr, "%s:", file);
+            std::cerr << file << ':';
         }
         if (line != -1) {
-            (void)fprintf(stderr, "%d:", line);
+            std::cerr << line << ':';
         }
-        fprintf(stderr, " %s:", func);
-        fprintf(stderr, " Assertion `%s' failed.\n", expr);
-        handler(std::forward<Args>(args)...);
-        WJR_ASSERT_ABORT();
+        std::cerr << func << ": Assertion `" << expr << "' failed.\n";
+        handler(std::cerr, std::forward<Args>(args)...);
+        std::abort();
+#else
+        std::ostringstream os;
+        if (file[0] != '\0') {
+            os << file << ':';
+        }
+        if (line != -1) {
+            os << line << ':';
+        }
+        os << func << ": Assertion `" << expr << "' failed.\n";
+        handler(os, std::forward<Args>(args)...);
+        WJR_THROW(std::runtime_error(os.str()));
+#endif
     }
 
 public:
@@ -5078,32 +5056,38 @@ using iterator_contiguous_pointer_t =
 
 namespace wjr {
 
+#if WJR_DEBUG_LEVEL > 2
+
 /**
  * @brief Disable sending the object to another thread and check the thread id.
  *
  * @note Only check if WJR_DEBUG_LEVEL > 2.
  */
-class __debug_nonsendable {
+template <typename Tag = void>
+class __nonsendable_checker {
+public:
+    static constexpr bool is_nonsendable = true;
+
 protected:
-    __debug_nonsendable() : m_thread_id(std::this_thread::get_id()) {}
-    __debug_nonsendable(const __debug_nonsendable &) = default;
-    __debug_nonsendable(__debug_nonsendable &&) = default;
-    __debug_nonsendable &operator=(const __debug_nonsendable &) = default;
-    __debug_nonsendable &operator=(__debug_nonsendable &&) = default;
-    ~__debug_nonsendable() { check(); }
+    __nonsendable_checker() : m_thread_id(std::this_thread::get_id()) {}
+    __nonsendable_checker(const __nonsendable_checker &) = default;
+    __nonsendable_checker(__nonsendable_checker &&) = default;
+    __nonsendable_checker &operator=(const __nonsendable_checker &) = default;
+    __nonsendable_checker &operator=(__nonsendable_checker &&) = default;
+    ~__nonsendable_checker() { check(); }
 
     void check() const {
         WJR_ASSERT_L2(m_thread_id == std::this_thread::get_id(),
-                      "Cross-thread access detected.");
+                      "Cross-thread access detected when using a nonsendable object.");
     }
 
-    friend bool operator==(const __debug_nonsendable &lhs,
-                           const __debug_nonsendable &rhs) {
+    friend bool operator==(const __nonsendable_checker &lhs,
+                           const __nonsendable_checker &rhs) {
         return lhs.m_thread_id == rhs.m_thread_id;
     }
 
-    friend bool operator!=(const __debug_nonsendable &lhs,
-                           const __debug_nonsendable &rhs) {
+    friend bool operator!=(const __nonsendable_checker &lhs,
+                           const __nonsendable_checker &rhs) {
         return lhs.m_thread_id != rhs.m_thread_id;
     }
 
@@ -5111,22 +5095,30 @@ private:
     std::thread::id m_thread_id;
 };
 
+#else
+
 /**
  * @brief Disable sending the object to another thread without checking.
  *
  */
-class __release_nonsendable {
+template <typename Tag = void>
+class __nonsendable_checker {
+public:
+    static constexpr bool is_nonsendable = true;
+
 protected:
     void check() const {};
 
-    friend bool operator==(const __release_nonsendable &, const __release_nonsendable &) {
+    friend bool operator==(const __nonsendable_checker &, const __nonsendable_checker &) {
         return true;
     }
 
-    friend bool operator!=(const __release_nonsendable &, const __release_nonsendable &) {
+    friend bool operator!=(const __nonsendable_checker &, const __nonsendable_checker &) {
         return false;
     }
 };
+
+#endif
 
 /**
  * @brief A type to disable sending the object to another thread.
@@ -5136,7 +5128,7 @@ protected:
  *
  */
 template <typename Tag = void>
-using nonsendable = WJR_DEBUG_IF(2, __debug_nonsendable, __release_nonsendable);
+using nonsendable = __nonsendable_checker<Tag>;
 
 } // namespace wjr
 
@@ -5433,7 +5425,10 @@ class weak_stack_allocator;
  */
 template <size_t threshold, size_t cache>
 class unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>
-    : nonsendable<> {
+    : public nonsendable<
+          unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>> {
+    using Mybase = nonsendable<
+        unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>>;
     using StackAllocatorObject = singleton_stack_allocator_object<threshold, cache>;
     using stack_top = typename StackAllocatorObject::stack_top;
     using allocator_type = typename StackAllocatorObject::allocator_type;
@@ -5450,7 +5445,7 @@ public:
     }
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n) {
-        nonsendable<>::check();
+        Mybase::check();
 
         if (WJR_UNLIKELY(m_top.ptr == nullptr)) {
             m_instance = &m_obj->get_instance();
@@ -5463,7 +5458,7 @@ public:
 
 private:
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n) {
-        nonsendable<>::check();
+        Mybase::check();
 
         if (WJR_UNLIKELY(m_top.ptr == nullptr)) {
             m_instance = &m_obj->get_instance();
@@ -6391,6 +6386,7 @@ constexpr OutputIt move_n_restrict(InputIt first, Size count, OutputIt d_first) 
 
 // Already included
 // Already included
+// Already included
 
 namespace wjr {
 
@@ -6693,6 +6689,196 @@ WJR_CONSTEXPR20 void destroy_n_using_allocator(Iter first, Size n, Alloc &alloc)
         }
     }
 }
+
+template <typename T, typename Tag>
+using __uninitilized_checker_base_enabler_select =
+    enable_default_constructor_base<std::is_trivially_default_constructible_v<T>, Tag>;
+
+#if WJR_DEBUG_LEVEL > 2
+
+template <typename T, typename Tag>
+struct __uninitialized_checker : __uninitilized_checker_base_enabler_select<T, Tag> {
+    using Mybase = __uninitilized_checker_base_enabler_select<T, Tag>;
+    using Mybase::Mybase;
+    static constexpr bool __is_noexcept = false;
+
+    __uninitialized_checker(bool value) noexcept
+        : Mybase(enable_default_constructor), m_initialized(value) {}
+
+protected:
+    constexpr void check(bool value) const {
+        WJR_ASSERT_L2(m_initialized == value, "Expected ",
+                      (value ? "initialized" : "uninitialized"),
+                      " value when using an uninitialized object.");
+    }
+
+    constexpr void set(bool value) noexcept { m_initialized = value; }
+
+    bool m_initialized = false;
+};
+
+#else
+
+template <typename T, typename Tag>
+struct __uninitialized_checker : __uninitilized_checker_base_enabler_select<T, Tag> {
+    using Mybase = __uninitilized_checker_base_enabler_select<T, Tag>;
+    using Mybase::Mybase;
+    static constexpr bool __is_noexcept = true;
+
+    __uninitialized_checker(bool) noexcept : Mybase(enable_default_constructor) {}
+
+protected:
+    constexpr void check(bool) const noexcept {}
+    constexpr void set(bool) noexcept {}
+};
+
+#endif
+
+template <bool Trivial, typename T>
+struct __uninitilized_dtor_base
+    : __uninitialized_checker<T, __uninitilized_dtor_base<Trivial, T>> {
+    using Mybase = __uninitialized_checker<T, __uninitilized_dtor_base<Trivial, T>>;
+    using Mybase::Mybase;
+
+    template <typename... Args>
+    constexpr __uninitilized_dtor_base(Args &&...args) noexcept(
+        Mybase::__is_noexcept &&std::is_nothrow_constructible_v<T, Args...>)
+        : Mybase(true), m_value(std::forward<Args>(args)...) {}
+
+    constexpr __uninitilized_dtor_base(enable_default_constructor_t) noexcept(
+        Mybase::__is_noexcept)
+        : Mybase(enable_default_constructor), m_storage() {}
+
+    // don't need to check for trivially destructible types
+    ~__uninitilized_dtor_base() noexcept = default;
+
+    union {
+        T m_value;
+        std::aligned_storage_t<sizeof(T), alignof(T)> m_storage;
+    };
+};
+
+template <typename T>
+struct __uninitilized_dtor_base<false, T>
+    : __uninitialized_checker<T, __uninitilized_dtor_base<false, T>> {
+    using Mybase = __uninitialized_checker<T, __uninitilized_dtor_base<false, T>>;
+    using Mybase::Mybase;
+
+    template <typename... Args>
+    constexpr __uninitilized_dtor_base(Args &&...args) noexcept(
+        Mybase::__is_noexcept &&std::is_nothrow_constructible_v<T, Args...>)
+        : Mybase(true), m_value(std::forward<Args>(args)...) {}
+
+    constexpr __uninitilized_dtor_base(enable_default_constructor_t) noexcept(
+        Mybase::__is_noexcept)
+        : Mybase(enable_default_constructor), m_storage() {}
+
+    ~__uninitilized_dtor_base() noexcept(Mybase::__is_noexcept) { Mybase::check(false); }
+
+    union {
+        T m_value;
+        std::aligned_storage_t<sizeof(T), alignof(T)> m_storage;
+    };
+};
+
+template <typename T>
+using __uninitilized_dtor_base_select =
+    __uninitilized_dtor_base<std::is_trivially_destructible_v<T>, T>;
+
+template <bool Trivial, typename T>
+struct __uninitialized_ctor_base : __uninitilized_dtor_base_select<T> {
+    using Mybase = __uninitilized_dtor_base_select<T>;
+
+    constexpr __uninitialized_ctor_base() noexcept = default;
+
+    template <typename... Args>
+    constexpr __uninitialized_ctor_base(Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<Mybase, Args...>)
+        : Mybase(std::forward<Args>(args)...) {}
+};
+
+template <typename T>
+struct __uninitialized_ctor_base<false, T> : __uninitilized_dtor_base_select<T> {
+    using Mybase = __uninitilized_dtor_base_select<T>;
+
+    constexpr __uninitialized_ctor_base() noexcept : Mybase(enable_default_constructor) {}
+
+    template <typename... Args>
+    constexpr __uninitialized_ctor_base(Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<Mybase, Args...>)
+        : Mybase(std::forward<Args>(args)...) {}
+};
+
+template <typename T>
+using __uninitialized_ctor_base_select =
+    __uninitialized_ctor_base<std::is_trivially_default_constructible_v<T>, T>;
+
+/**
+ * @class uninitialized
+ *
+ * @details Trivially constructible and destructible uninitialized object. Copy/move
+ * constructor and assignment operator are deleted, copy/move of an uninitialized object
+ * is UB.
+ *
+ */
+template <typename T>
+class uninitialized : __uninitialized_ctor_base_select<T> {
+    using Mybase = __uninitialized_ctor_base_select<T>;
+
+public:
+    constexpr uninitialized() noexcept = default;
+    ~uninitialized() noexcept(std::is_nothrow_destructible_v<Mybase>) = default;
+
+    uninitialized(const uninitialized &) = delete;
+    uninitialized(uninitialized &&) = delete;
+    uninitialized &operator=(const uninitialized &) = delete;
+    uninitialized &operator=(uninitialized &&) = delete;
+
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
+    constexpr uninitialized(Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<Mybase, Args...>)
+        : Mybase(std::forward<Args>(args)...) {}
+
+    constexpr uninitialized(dctor_t) noexcept : Mybase() {}
+
+    constexpr T &get() & noexcept(Mybase::__is_noexcept) {
+        Mybase::check(true);
+        return Mybase::m_value;
+    }
+    constexpr const T &get() const & noexcept(Mybase::__is_noexcept) {
+        Mybase::check(true);
+        return Mybase::m_value;
+    }
+    constexpr T &&get() && noexcept(Mybase::__is_noexcept) {
+        Mybase::check(true);
+        return std::move(Mybase::m_value);
+    }
+    constexpr const T &&get() const && noexcept(Mybase::__is_noexcept) {
+        Mybase::check(true);
+        return std::move(Mybase::m_value);
+    }
+
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
+    constexpr T &emplace(Args &&...args) noexcept(
+        Mybase::__is_noexcept &&std::is_nothrow_constructible_v<Mybase, Args...>) {
+        if constexpr (!std::is_trivially_destructible_v<T>) {
+            Mybase::check(false);
+        }
+
+        construct_at(this, std::forward<Args>(args)...);
+        return get();
+    }
+
+    constexpr void
+    reset() noexcept(Mybase::__is_noexcept &&std::is_nothrow_destructible_v<T>) {
+        if constexpr (!std::is_trivially_destructible_v<T>) {
+            Mybase::check(true);
+            get().~T();
+        }
+
+        Mybase::set(false);
+    }
+};
 
 } // namespace wjr
 

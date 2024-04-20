@@ -9,32 +9,38 @@
 
 namespace wjr {
 
+#if WJR_DEBUG_LEVEL > 2
+
 /**
  * @brief Disable sending the object to another thread and check the thread id.
  *
  * @note Only check if WJR_DEBUG_LEVEL > 2.
  */
-class __debug_nonsendable {
+template <typename Tag = void>
+class __nonsendable_checker {
+public:
+    static constexpr bool is_nonsendable = true;
+
 protected:
-    __debug_nonsendable() : m_thread_id(std::this_thread::get_id()) {}
-    __debug_nonsendable(const __debug_nonsendable &) = default;
-    __debug_nonsendable(__debug_nonsendable &&) = default;
-    __debug_nonsendable &operator=(const __debug_nonsendable &) = default;
-    __debug_nonsendable &operator=(__debug_nonsendable &&) = default;
-    ~__debug_nonsendable() { check(); }
+    __nonsendable_checker() : m_thread_id(std::this_thread::get_id()) {}
+    __nonsendable_checker(const __nonsendable_checker &) = default;
+    __nonsendable_checker(__nonsendable_checker &&) = default;
+    __nonsendable_checker &operator=(const __nonsendable_checker &) = default;
+    __nonsendable_checker &operator=(__nonsendable_checker &&) = default;
+    ~__nonsendable_checker() { check(); }
 
     void check() const {
         WJR_ASSERT_L2(m_thread_id == std::this_thread::get_id(),
-                      "Cross-thread access detected.");
+                      "Cross-thread access detected when using a nonsendable object.");
     }
 
-    friend bool operator==(const __debug_nonsendable &lhs,
-                           const __debug_nonsendable &rhs) {
+    friend bool operator==(const __nonsendable_checker &lhs,
+                           const __nonsendable_checker &rhs) {
         return lhs.m_thread_id == rhs.m_thread_id;
     }
 
-    friend bool operator!=(const __debug_nonsendable &lhs,
-                           const __debug_nonsendable &rhs) {
+    friend bool operator!=(const __nonsendable_checker &lhs,
+                           const __nonsendable_checker &rhs) {
         return lhs.m_thread_id != rhs.m_thread_id;
     }
 
@@ -42,22 +48,30 @@ private:
     std::thread::id m_thread_id;
 };
 
+#else
+
 /**
  * @brief Disable sending the object to another thread without checking.
  *
  */
-class __release_nonsendable {
+template <typename Tag = void>
+class __nonsendable_checker {
+public:
+    static constexpr bool is_nonsendable = true;
+
 protected:
     void check() const {};
 
-    friend bool operator==(const __release_nonsendable &, const __release_nonsendable &) {
+    friend bool operator==(const __nonsendable_checker &, const __nonsendable_checker &) {
         return true;
     }
 
-    friend bool operator!=(const __release_nonsendable &, const __release_nonsendable &) {
+    friend bool operator!=(const __nonsendable_checker &, const __nonsendable_checker &) {
         return false;
     }
 };
+
+#endif
 
 /**
  * @brief A type to disable sending the object to another thread.
@@ -67,7 +81,7 @@ protected:
  *
  */
 template <typename Tag = void>
-using nonsendable = WJR_DEBUG_IF(2, __debug_nonsendable, __release_nonsendable);
+using nonsendable = __nonsendable_checker<Tag>;
 
 } // namespace wjr
 

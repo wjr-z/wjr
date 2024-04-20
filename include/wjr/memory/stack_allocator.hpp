@@ -255,7 +255,10 @@ class weak_stack_allocator;
  */
 template <size_t threshold, size_t cache>
 class unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>
-    : nonsendable<> {
+    : public nonsendable<
+          unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>> {
+    using Mybase = nonsendable<
+        unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>>;
     using StackAllocatorObject = singleton_stack_allocator_object<threshold, cache>;
     using stack_top = typename StackAllocatorObject::stack_top;
     using allocator_type = typename StackAllocatorObject::allocator_type;
@@ -272,7 +275,7 @@ public:
     }
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n) {
-        nonsendable<>::check();
+        Mybase::check();
 
         if (WJR_UNLIKELY(m_top.ptr == nullptr)) {
             m_instance = &m_obj->get_instance();
@@ -285,7 +288,7 @@ public:
 
 private:
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n) {
-        nonsendable<>::check();
+        Mybase::check();
 
         if (WJR_UNLIKELY(m_top.ptr == nullptr)) {
             m_instance = &m_obj->get_instance();

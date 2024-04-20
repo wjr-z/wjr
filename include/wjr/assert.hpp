@@ -10,6 +10,10 @@
 
 #include <wjr/preprocessor.hpp>
 
+#ifdef WJR_ASSERT_THROW
+#include <sstream>
+#endif
+
 namespace wjr {
 
 // ASSERT_LEVEL : 0 ~ 3
@@ -28,10 +32,8 @@ namespace wjr {
 // use WJR_THROW instead of std::abort
 #ifdef WJR_ASSERT_THROW
 #define WJR_ASSERT_NORETURN
-#define WJR_ASSERT_ABORT() WJR_THROW(std::runtime_error("assertion failed"))
 #else
 #define WJR_ASSERT_NORETURN WJR_NORETURN
-#define WJR_ASSERT_ABORT() std::abort()
 #endif
 
 #define WJR_DEBUG_IF(level, expr0, expr1)                                                \
@@ -40,70 +42,46 @@ namespace wjr {
 #define WJR_DEBUG_EXPR_L(level, expr) WJR_DEBUG_IF(level, expr, )
 #define WJR_DEBUG_EXPR(expr) WJR_DEBUG_EXPR_L(0, expr)
 
-template <typename... Args>
-struct assert_format {
-    assert_format(const char *const fmt, std::tuple<Args...> &&args)
-        : m_fmt(fmt), m_args(std::move(args)) {}
-
-    const char *const m_fmt;
-    std::tuple<Args...> m_args;
-};
-
-template <typename... Args>
-assert_format(const char *const, std::tuple<Args...> &&) -> assert_format<Args...>;
-
-#define WJR_ASSERT_FORMAT(fmt, ...)                                                      \
-    ::wjr::assert_format(fmt, std::make_tuple(__VA_ARGS__))
-
-template <typename T>
-struct __is_assert_format : std::false_type {};
-
-template <typename... Args>
-struct __is_assert_format<assert_format<Args...>> : std::true_type {};
-
 class __assert_handler_t {
 private:
-    template <typename... Args>
-    static void __handler_format(const assert_format<Args...> &fmt) {
-        const char *const fmt_str = fmt.m_fmt;
-        std::apply(
-            [fmt_str](auto &&...args) {
-                (void)fprintf(stderr, fmt_str, std::forward<decltype(args)>(args)...);
-            },
-            fmt.m_args);
+    template <typename Output>
+    static Output &handler(Output &out) {
+        return out;
     }
 
-    template <typename T>
-    static void __handler(T &&t) {
-        if constexpr (__is_assert_format<std::decay_t<T>>::value) {
-            __handler_format(std::forward<T>(t));
-        } else {
-            std::cerr << t;
-        }
-    }
-
-    static void handler() {}
-
-    template <typename... Args>
-    static void handler(Args &&...args) {
-        (void)fprintf(stderr, "Additional information:\n");
-        (void)((__handler(std::forward<Args>(args)), ...));
-        (void)fprintf(stderr, "\n");
+    template <typename Output, typename... Args>
+    static Output &handler(Output &out, Args &&...args) {
+        out << "Additional information:\n";
+        (void)(out << ... << std::forward<Args>(args));
+        out << '\n';
+        return out;
     }
 
     template <typename... Args>
     WJR_ASSERT_NORETURN WJR_NOINLINE static void
     fn(const char *expr, const char *file, const char *func, int line, Args &&...args) {
+#ifndef WJR_ASSERT_THROW
         if (file[0] != '\0') {
-            (void)fprintf(stderr, "%s:", file);
+            std::cerr << file << ':';
         }
         if (line != -1) {
-            (void)fprintf(stderr, "%d:", line);
+            std::cerr << line << ':';
         }
-        fprintf(stderr, " %s:", func);
-        fprintf(stderr, " Assertion `%s' failed.\n", expr);
-        handler(std::forward<Args>(args)...);
-        WJR_ASSERT_ABORT();
+        std::cerr << func << ": Assertion `" << expr << "' failed.\n";
+        handler(std::cerr, std::forward<Args>(args)...);
+        std::abort();
+#else
+        std::ostringstream os;
+        if (file[0] != '\0') {
+            os << file << ':';
+        }
+        if (line != -1) {
+            os << line << ':';
+        }
+        os << func << ": Assertion `" << expr << "' failed.\n";
+        handler(os, std::forward<Args>(args)...);
+        WJR_THROW(std::runtime_error(os.str()));
+#endif
     }
 
 public:
