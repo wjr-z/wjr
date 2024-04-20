@@ -417,6 +417,9 @@ public:
         auto rsize = other.size();
 
         if (lsize && rsize) {
+            m_storage.m_size = rsize;
+            other_storage.m_size = lsize;
+
             T tmp[Capacity];
             if constexpr (__use_memcpy) {
                 __memcpy(tmp, lhs, Capacity);
@@ -435,6 +438,7 @@ public:
                 STraits::uninitialized_move_n_restrict_using_allocator(tmp, lsize, rhs,
                                                                        al);
             }
+            return;
         } else if (rsize) {
             if constexpr (__use_memcpy) {
                 __memcpy(lhs, rhs, Capacity);
@@ -458,10 +462,6 @@ public:
         } else {
             return;
         }
-
-        const size_type __tmp_size = size();
-        m_storage.m_size = other.size();
-        other_storage.m_size = __tmp_size;
     }
 
     WJR_PURE WJR_CONSTEXPR20 size_type &size() noexcept { return __get_data().m_size; }

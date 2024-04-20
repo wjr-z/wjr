@@ -93,4 +93,35 @@ TEST(memory, uninitialized) {
 ERROR : { WJR_ASSERT(false, "uninitialized error"); }
 }
 
+#else
+
+TEST(memory, uninitialized) {
+    do {
+        using type = uninitialized<int>;
+        static_assert(std::is_trivially_copy_constructible_v<type>,
+                      "trivially copy constructible error");
+        static_assert(std::is_trivially_move_constructible_v<type>,
+                      "trivially move constructible error");
+        static_assert(std::is_trivially_copy_assignable_v<type>,
+                      "trivially copy assignable error");
+        static_assert(std::is_trivially_move_assignable_v<type>,
+                      "trivially move assignable error");
+        static_assert(std::is_trivially_destructible_v<type>,
+                      "trivially destructible error");
+    } while (0);
+
+    do {
+        using type = uninitialized<std::string>;
+        static_assert(!std::is_copy_constructible_v<type>,
+                      "trivially copy constructible error");
+        static_assert(!std::is_move_constructible_v<type>,
+                      "trivially move constructible error");
+        static_assert(!std::is_copy_assignable_v<type>,
+                      "trivially copy assignable error");
+        static_assert(!std::is_move_assignable_v<type>,
+                      "trivially move assignable error");
+        static_assert(std::is_destructible_v<type>, "trivially destructible error");
+    } while (0);
+}
+
 #endif

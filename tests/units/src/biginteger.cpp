@@ -188,6 +188,22 @@ TEST(biginteger, add) {
     }
 }
 
+TEST(biginteger, sub) {}
+
+TEST(biginteger, mul) {
+    {
+        biginteger a(1);
+        biginteger b(1);
+        biginteger c;
+
+        mul(c, a, b);
+
+        WJR_ASSERT(c.size() == 1);
+        WJR_ASSERT(c[0] == 1);
+        WJR_ASSERT(!c.is_negate());
+    }
+}
+
 TEST(biginteger, convert) {
 
     {

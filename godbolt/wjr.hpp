@@ -6691,8 +6691,10 @@ WJR_CONSTEXPR20 void destroy_n_using_allocator(Iter first, Size n, Alloc &alloc)
 }
 
 template <typename T, typename Tag>
-using __uninitilized_checker_base_enabler_select =
-    enable_default_constructor_base<std::is_trivially_default_constructible_v<T>, Tag>;
+using __uninitilized_checker_base_enabler_select = enable_special_members_base<
+    std::is_trivially_default_constructible_v<T>, true,
+    std::is_trivially_copy_constructible_v<T>, std::is_trivially_move_constructible_v<T>,
+    std::is_trivially_copy_assignable_v<T>, std::is_trivially_move_assignable_v<T>, Tag>;
 
 #if WJR_DEBUG_LEVEL > 2
 
@@ -6725,7 +6727,8 @@ struct __uninitialized_checker : __uninitilized_checker_base_enabler_select<T, T
     using Mybase::Mybase;
     static constexpr bool __is_noexcept = true;
 
-    __uninitialized_checker(bool) noexcept : Mybase(enable_default_constructor) {}
+    constexpr __uninitialized_checker(bool) noexcept
+        : Mybase(enable_default_constructor) {}
 
 protected:
     constexpr void check(bool) const noexcept {}
@@ -6817,8 +6820,8 @@ using __uninitialized_ctor_base_select =
  * @class uninitialized
  *
  * @details Trivially constructible and destructible uninitialized object. Copy/move
- * constructor and assignment operator are deleted, copy/move of an uninitialized object
- * is UB.
+ * constructor and assignment operators are deleted if the type is not trivially
+ * copy/move constructible/assignable.
  *
  */
 template <typename T>
@@ -6828,11 +6831,6 @@ class uninitialized : __uninitialized_ctor_base_select<T> {
 public:
     constexpr uninitialized() noexcept = default;
     ~uninitialized() noexcept(std::is_nothrow_destructible_v<Mybase>) = default;
-
-    uninitialized(const uninitialized &) = delete;
-    uninitialized(uninitialized &&) = delete;
-    uninitialized &operator=(const uninitialized &) = delete;
-    uninitialized &operator=(uninitialized &&) = delete;
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
     constexpr uninitialized(Args &&...args) noexcept(
@@ -6845,14 +6843,17 @@ public:
         Mybase::check(true);
         return Mybase::m_value;
     }
+
     constexpr const T &get() const & noexcept(Mybase::__is_noexcept) {
         Mybase::check(true);
         return Mybase::m_value;
     }
+
     constexpr T &&get() && noexcept(Mybase::__is_noexcept) {
         Mybase::check(true);
         return std::move(Mybase::m_value);
     }
+
     constexpr const T &&get() const && noexcept(Mybase::__is_noexcept) {
         Mybase::check(true);
         return std::move(Mybase::m_value);
@@ -6877,6 +6878,28 @@ public:
         }
 
         Mybase::set(false);
+    }
+
+    constexpr T *operator->() noexcept(Mybase::__is_noexcept) {
+        return std::addressof(get());
+    }
+
+    constexpr const T *operator->() const noexcept(Mybase::__is_noexcept) {
+        return std::addressof(get());
+    }
+
+    constexpr T &operator*() & noexcept(Mybase::__is_noexcept) { return get(); }
+
+    constexpr const T &operator*() const & noexcept(Mybase::__is_noexcept) {
+        return get();
+    }
+
+    constexpr T &&operator*() && noexcept(Mybase::__is_noexcept) {
+        return std::move(get());
+    }
+
+    constexpr const T &&operator*() const && noexcept(Mybase::__is_noexcept) {
+        return std::move(get());
     }
 };
 
@@ -7275,6 +7298,9 @@ public:
         auto rsize = other.size();
 
         if (lsize && rsize) {
+            m_storage.m_size = rsize;
+            other_storage.m_size = lsize;
+
             T tmp[Capacity];
             if constexpr (__use_memcpy) {
                 __memcpy(tmp, lhs, Capacity);
@@ -7293,6 +7319,7 @@ public:
                 STraits::uninitialized_move_n_restrict_using_allocator(tmp, lsize, rhs,
                                                                        al);
             }
+            return;
         } else if (rsize) {
             if constexpr (__use_memcpy) {
                 __memcpy(lhs, rhs, Capacity);
@@ -7316,10 +7343,6 @@ public:
         } else {
             return;
         }
-
-        const size_type __tmp_size = size();
-        m_storage.m_size = other.size();
-        other_storage.m_size = __tmp_size;
     }
 
     WJR_PURE WJR_CONSTEXPR20 size_type &size() noexcept { return __get_data().m_size; }
@@ -29354,6 +29377,10 @@ public:
         set_ssize(other.get_ssize());
     }
 
+    basic_biginteger(size_type n, in_place_reserve_t,
+                     const allocator_type &al = allocator_type())
+        : m_vec(n, in_place_reserve, al) {}
+
     basic_biginteger(basic_biginteger &&other) = default;
     basic_biginteger &operator=(const basic_biginteger &other) {
         if (WJR_UNLIKELY(this == std::addressof(other))) {
@@ -29485,8 +29512,7 @@ public:
     }
 
     void negate() noexcept {
-        const auto xssize = get_ssize();
-        if (xssize != 0) {
+        if (const int32_t xssize = get_ssize(); xssize != 0) {
             set_ssize(__fasts_negate(xssize));
         }
     }
@@ -29602,9 +29628,9 @@ private:
     template <typename S>                                                                \
     WJR_PURE friend bool operator op(const basic_biginteger<S> &lhs,                     \
                                      const basic_biginteger<S> &rhs);                    \
-    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>          \
     WJR_PURE friend bool operator op(const basic_biginteger<S> &lhs, T rhs);             \
-    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>          \
     WJR_PURE friend bool operator op(T lhs, const basic_biginteger<S> &rhs);
 
     WJR_REGISTER_BIGINTEGER_COMPARE(==)
@@ -29620,9 +29646,9 @@ private:
     template <typename S>                                                                \
     friend void ADDSUB(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs,         \
                        const basic_biginteger<S> &rhs);                                  \
-    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>          \
     friend void ADDSUB(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs, T rhs); \
-    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>          \
     friend void ADDSUB(basic_biginteger<S> &dst, T lhs, const basic_biginteger<S> &rhs);
 
     WJR_REGISTER_BIGINTEGER_ADDSUB(add)
@@ -30011,14 +30037,14 @@ void basic_biginteger<Storage>::__mul_impl(basic_biginteger *dst,
     auto lp = (pointer)lhs->data();
     auto rp = (pointer)rhs->data();
 
-    std::optional<basic_biginteger> temp;
+    std::optional<uninitialized<basic_biginteger>> tmp;
 
     unique_stack_allocator stkal(math_details::stack_alloc);
 
     if (dst->capacity() < dssize) {
-        temp.emplace(dst->get_growth_capacity(dst->capacity(), dssize), dctor,
-                     dst->get_allocator());
-        dp = temp.value().data();
+        tmp.emplace(dst->get_growth_capacity(dst->capacity(), dssize), in_place_reserve,
+                    dst->get_allocator());
+        dp = (**tmp).data();
     } else {
         if (dp == lp) {
             lp = (pointer)stkal.allocate(lusize * sizeof(uint64_t));
@@ -30041,9 +30067,8 @@ void basic_biginteger<Storage>::__mul_impl(basic_biginteger *dst,
     bool cf = dp[dssize - 1] == 0;
     dssize = mask | (dssize - cf);
 
-    if (temp.has_value()) {
-        *dst = std::move(temp).value();
-        temp.reset();
+    if (tmp.has_value()) {
+        *dst = **std::move(tmp);
     }
 
     dst->set_ssize(dssize);
@@ -30075,11 +30100,11 @@ Iter to_chars_unchecked(Iter ptr, const basic_biginteger<S> &src, unsigned int b
                               const basic_biginteger<S> &rhs) {                          \
         return basic_biginteger<S>::__compare_impl(&lhs, &rhs) op 0;                     \
     }                                                                                    \
-    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>          \
     WJR_PURE bool operator op(const basic_biginteger<S> &lhs, T rhs) {                   \
         return basic_biginteger<S>::__compare_impl(&lhs, rhs) op 0;                      \
     }                                                                                    \
-    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>          \
     WJR_PURE bool operator op(T lhs, const basic_biginteger<S> &rhs) {                   \
         return basic_biginteger<S>::__compare_impl(lhs, &rhs) op 0;                      \
     }
@@ -30100,12 +30125,12 @@ WJR_REGISTER_BIGINTEGER_COMPARE(>=)
         basic_biginteger<S>::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, &lhs, \
                                                                              &rhs);      \
     }                                                                                    \
-    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>          \
     void ADDSUB(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs, T rhs) {       \
         basic_biginteger<S>::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, &lhs, \
                                                                              rhs);       \
     }                                                                                    \
-    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>       \
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>          \
     void ADDSUB(basic_biginteger<S> &dst, T lhs, const basic_biginteger<S> &rhs) {       \
         basic_biginteger<S>::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, lhs,  \
                                                                              &rhs);      \
@@ -30133,9 +30158,8 @@ std::istream &operator>>(std::istream &is, basic_biginteger<S> &dst) {
 template <typename S>
 std::ostream &operator<<(std::ostream &os, const basic_biginteger<S> &src) {
     std::ios_base::iostate state = std::ios::goodbit;
-    const std::ostream::sentry ok(os);
 
-    if (ok) {
+    if (const std::ostream::sentry ok(os); ok) {
         unique_stack_allocator stkal(math_details::stack_alloc);
 
         // Waste up to 16 KB/0.5=32 KB of memory
@@ -30148,10 +30172,9 @@ std::ostream &operator<<(std::ostream &os, const basic_biginteger<S> &src) {
             buffer.push_back('+');
         }
 
-        const auto basefield = flags & std::ios::basefield;
         int base = 10;
 
-        if (basefield) {
+        if (const auto basefield = flags & std::ios::basefield; basefield != 0) {
             if (basefield == std::ios::oct) {
                 base = 8;
                 if (flags & std::ios::showbase) {

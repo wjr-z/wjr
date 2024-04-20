@@ -317,8 +317,10 @@ WJR_CONSTEXPR20 void destroy_n_using_allocator(Iter first, Size n, Alloc &alloc)
 }
 
 template <typename T, typename Tag>
-using __uninitilized_checker_base_enabler_select =
-    enable_default_constructor_base<std::is_trivially_default_constructible_v<T>, Tag>;
+using __uninitilized_checker_base_enabler_select = enable_special_members_base<
+    std::is_trivially_default_constructible_v<T>, true,
+    std::is_trivially_copy_constructible_v<T>, std::is_trivially_move_constructible_v<T>,
+    std::is_trivially_copy_assignable_v<T>, std::is_trivially_move_assignable_v<T>, Tag>;
 
 #if WJR_DEBUG_LEVEL > 2
 
@@ -351,7 +353,8 @@ struct __uninitialized_checker : __uninitilized_checker_base_enabler_select<T, T
     using Mybase::Mybase;
     static constexpr bool __is_noexcept = true;
 
-    __uninitialized_checker(bool) noexcept : Mybase(enable_default_constructor) {}
+    constexpr __uninitialized_checker(bool) noexcept
+        : Mybase(enable_default_constructor) {}
 
 protected:
     constexpr void check(bool) const noexcept {}
@@ -443,8 +446,8 @@ using __uninitialized_ctor_base_select =
  * @class uninitialized
  *
  * @details Trivially constructible and destructible uninitialized object. Copy/move
- * constructor and assignment operator are deleted, copy/move of an uninitialized object
- * is UB.
+ * constructor and assignment operators are deleted if the type is not trivially
+ * copy/move constructible/assignable.
  *
  */
 template <typename T>
@@ -454,11 +457,6 @@ class uninitialized : __uninitialized_ctor_base_select<T> {
 public:
     constexpr uninitialized() noexcept = default;
     ~uninitialized() noexcept(std::is_nothrow_destructible_v<Mybase>) = default;
-
-    uninitialized(const uninitialized &) = delete;
-    uninitialized(uninitialized &&) = delete;
-    uninitialized &operator=(const uninitialized &) = delete;
-    uninitialized &operator=(uninitialized &&) = delete;
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
     constexpr uninitialized(Args &&...args) noexcept(
@@ -471,14 +469,17 @@ public:
         Mybase::check(true);
         return Mybase::m_value;
     }
+
     constexpr const T &get() const & noexcept(Mybase::__is_noexcept) {
         Mybase::check(true);
         return Mybase::m_value;
     }
+
     constexpr T &&get() && noexcept(Mybase::__is_noexcept) {
         Mybase::check(true);
         return std::move(Mybase::m_value);
     }
+
     constexpr const T &&get() const && noexcept(Mybase::__is_noexcept) {
         Mybase::check(true);
         return std::move(Mybase::m_value);
@@ -503,6 +504,28 @@ public:
         }
 
         Mybase::set(false);
+    }
+
+    constexpr T *operator->() noexcept(Mybase::__is_noexcept) {
+        return std::addressof(get());
+    }
+
+    constexpr const T *operator->() const noexcept(Mybase::__is_noexcept) {
+        return std::addressof(get());
+    }
+
+    constexpr T &operator*() & noexcept(Mybase::__is_noexcept) { return get(); }
+
+    constexpr const T &operator*() const & noexcept(Mybase::__is_noexcept) {
+        return get();
+    }
+
+    constexpr T &&operator*() && noexcept(Mybase::__is_noexcept) {
+        return std::move(get());
+    }
+
+    constexpr const T &&operator*() const && noexcept(Mybase::__is_noexcept) {
+        return std::move(get());
     }
 };
 
