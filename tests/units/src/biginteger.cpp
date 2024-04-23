@@ -222,7 +222,7 @@ TEST(biginteger, convert) {
 
             const bool thr = expect.empty();
             {
-                auto ret = wjr::from_chars(sp.begin(), sp.end(), a, base);
+                auto ret = wjr::from_chars(sp.begin_unsafe(), sp.end_unsafe(), a, base);
                 if (!thr) {
                     WJR_ASSERT((bool)ret);
                     WJR_ASSERT(get(base) == expect);

@@ -13,8 +13,6 @@
 #include <gmpxx.h>
 #endif
 
-namespace math_tests {
-
 static void wjr_popcount(benchmark::State &state) {
     const int n = 17;
     std::vector<uint64_t> a(n);
@@ -1473,5 +1471,3 @@ BENCHMARK(gmp_biginteger_to_chars)->Apply(biginteger_to_chars_tests);
 BENCHMARK(gmp_biginteger_from_chars)->BIGINTEGER_FROM_CHARS_TESTS();
 
 #endif // WJR_USE_GMP
-
-} // namespace math_tests

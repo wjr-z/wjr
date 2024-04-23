@@ -4,8 +4,6 @@
 
 #include <wjr/math.hpp>
 
-namespace memory_tests {
-
 static void wjr_stack_allocator_construct(benchmark::State &state) {
     using namespace wjr::math_details;
 
@@ -31,5 +29,3 @@ static void wjr_stack_allocator_allocate(benchmark::State &state) {
 
 BENCHMARK(wjr_stack_allocator_construct);
 BENCHMARK(wjr_stack_allocator_allocate)->NORMAL_TESTS(4, 2, 1024);
-
-} // namespace memory_tests
