@@ -103,7 +103,6 @@ uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
                 load_simd<simd>(first, x);
             } else {
                 char buf[64];
-                std::memcpy(buf, first, diff);
                 char ch;
                 switch (last[-1]) {
                 case ' ':
@@ -123,6 +122,7 @@ uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
                 }
                 }
 
+                std::memcpy(buf, first, diff);
                 std::memset(buf + diff, ch, 64 - diff);
                 load_simd<simd>(buf, x);
             }

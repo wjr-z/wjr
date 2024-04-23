@@ -158,15 +158,14 @@ WJR_REGISTER_HAS_TYPE(
 
 template <typename Allocator, typename SizeType,
           typename Pointer = typename std::allocator_traits<Allocator>::pointer>
-WJR_NODISCARD allocation_result<Pointer, SizeType> allocate_at_least(Allocator &alloc,
-                                                                     SizeType count) {
+WJR_NODISCARD auto allocate_at_least(Allocator &alloc, SizeType count) {
     if constexpr (has_allocate_at_least_v<Allocator, SizeType>) {
         auto result = alloc.allocate_at_least(count);
         WJR_ASSUME(result.count >= count);
         return result;
     } else {
         auto ptr = std::allocator_traits<Allocator>::allocate(alloc, count);
-        return {ptr, count};
+        return allocation_result<decltype(ptr), SizeType>{ptr, count};
     }
 }
 

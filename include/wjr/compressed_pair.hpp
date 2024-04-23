@@ -26,14 +26,9 @@ struct tuple_element<I, wjr::compressed_pair<T, U>> {
 
 namespace wjr {
 
-template <typename T>
-using compressed_pair_wrapper_helper =
-    std::conjunction<std::is_class<T>, std::is_empty<T>, std::negation<std::is_final<T>>>;
-
 template <size_t index, typename T, typename U, typename Tag = void>
 using compressed_pair_wrapper =
-    std::conditional_t<compressed_pair_wrapper_helper<T>::value &&
-                           (index == 0 || !compressed_pair_wrapper_helper<U>::value),
+    std::conditional_t<is_compressed_v<T> && (index == 0 || !is_compressed_v<U>),
                        compressed_capture_leaf<T, enable_base_identity_t<index, Tag>>,
                        capture_leaf<T, enable_base_identity_t<index, Tag>>>;
 

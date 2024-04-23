@@ -5,9 +5,17 @@
 
 #include <wjr/assert.hpp>
 
+#if WJR_DEBUG_LEVEL > 2
+#define WJR_HAS_BULITIN_NONSENDABLE_CHECKER WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(NONSENDABLE_CHECKER)
+#include <thread>
+#endif
+
 namespace wjr {
 
-#if WJR_DEBUG_LEVEL > 2
+#if WJR_HAS_BUILTIN(NONSENDABLE_CHECKER)
 
 /**
  * @brief Disable sending the object to another thread and check the thread id.

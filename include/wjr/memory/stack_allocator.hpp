@@ -4,7 +4,7 @@
 #include <algorithm>
 
 #include <wjr/crtp/nonsendable.hpp>
-#include <wjr/crtp/trivial_allocator_base.hpp>
+#include <wjr/crtp/trivially_allocator_base.hpp>
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
@@ -311,10 +311,12 @@ template <typename StackAllocator>
 unique_stack_allocator(const StackAllocator &) -> unique_stack_allocator<StackAllocator>;
 
 template <typename T, size_t threshold, size_t cache>
-class weak_stack_allocator<T, singleton_stack_allocator_object<threshold, cache>>
-    : trivial_allocator_base_t {
+class weak_stack_allocator<T, singleton_stack_allocator_object<threshold, cache>> {
     using StackAllocator = singleton_stack_allocator_object<threshold, cache>;
     using UniqueStackAllocator = unique_stack_allocator<StackAllocator>;
+
+    template <typename U, typename A>
+    friend class weak_stack_allocator;
 
 public:
     using value_type = T;
@@ -322,6 +324,7 @@ public:
     using difference_type = typename StackAllocator::difference_type;
     using propagate_on_container_move_assignment =
         typename StackAllocator::propagate_on_container_move_assignment;
+    using is_trivially_allocator = std::true_type;
 
     weak_stack_allocator() = default;
     weak_stack_allocator(UniqueStackAllocator &alloc) : m_alloc(&alloc) {}
@@ -330,6 +333,10 @@ public:
     weak_stack_allocator(weak_stack_allocator &&) = default;
     weak_stack_allocator &operator=(weak_stack_allocator &&) = default;
     ~weak_stack_allocator() = default;
+
+    template <typename U>
+    weak_stack_allocator(const weak_stack_allocator<U, StackAllocator> &other)
+        : m_alloc(other.m_alloc) {}
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 T *allocate(size_type n) {
         const size_t size = n * sizeof(T);

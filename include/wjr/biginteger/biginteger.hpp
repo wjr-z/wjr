@@ -683,26 +683,26 @@ basic_biginteger<Storage>::__from_chars_impl(const char *first, const char *last
 
     switch (base) {
     case 2: {
-        capacity = (str_size + 63) / 64;
+        capacity = __ceil_div(str_size, 64);
         break;
     }
     case 8: {
-        capacity = (str_size * 3 + 63) / 64;
+        capacity = __ceil_div(str_size * 3, 64);
         break;
     }
     case 16: {
-        capacity = (str_size + 15) / 16;
+        capacity = __ceil_div(str_size, 16);
         break;
     }
     case 4:
     case 32: {
         const int bits = base == 4 ? 2 : 5;
-        capacity = (str_size * bits + 63) / 64;
+        capacity = __ceil_div(str_size * bits, 64);
         break;
     }
     case 10: {
         // capacity = (str_size * log2(10) + 63) / 64;
-        capacity = (str_size * 10 / 3 + 63) / 64;
+        capacity = __ceil_div(str_size * 10 / 3, 64);
         break;
     }
     default: {

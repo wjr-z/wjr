@@ -339,14 +339,14 @@ struct check_parser : empty_parser {
 template <typename TokenReader, typename Parser>
 WJR_NOINLINE void reader_parse(TokenReader &reader, Parser &parser) {
     unique_stack_allocator stkal(math_details::stack_alloc);
-    
+
     struct stack {
         uint8_t type;
         const char *first;
         const char *last;
     };
 
-    stack *stk = static_cast<stack *>(stkal.allocate(1024 * sizeof(stack)));
+    stack *stk = static_cast<stack *>(stkal.allocate(512 * sizeof(stack)));
     stack *current = stk;
     uint8_t type;
 

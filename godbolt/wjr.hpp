@@ -1467,6 +1467,14 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_COLD
 #endif
 
+#if WJR_HAS_ATTRIBUTE(aligned)
+#define WJR_ALIGNED(size) __attribute__((aligned(size)))
+#elif defined(_MSC_VER)
+#define WJR_ALIGNED(size)
+#else
+#define WJR_ALIGNED(size)
+#endif
+
 #if defined(__cpp_lib_unreachable)
 #define WJR_UNREACHABLE() std::unreachable()
 #elif WJR_HAS_BUILTIN(__builtin_unreachable)
@@ -2400,7 +2408,7 @@ private:
 
     template <typename Output, typename... Args>
     static Output &handler(Output &out, Args &&...args) {
-        out << "Additional information:\n";
+        out << "Additional information: ";
         (void)(out << ... << std::forward<Args>(args));
         out << '\n';
         return out;
@@ -2410,25 +2418,23 @@ private:
     WJR_ASSERT_NORETURN WJR_NOINLINE static void
     fn(const char *expr, const char *file, const char *func, int line, Args &&...args) {
 #ifndef WJR_ASSERT_THROW
-        if (file[0] != '\0') {
-            std::cerr << file << ':';
-        }
-        if (line != -1) {
-            std::cerr << line << ':';
-        }
-        std::cerr << func << ": Assertion `" << expr << "' failed.\n";
-        handler(std::cerr, std::forward<Args>(args)...);
-        std::abort();
+        auto &output = std::cerr;
 #else
         std::ostringstream os;
+        auto &output = os;
+#endif
         if (file[0] != '\0') {
-            os << file << ':';
+            output << file << ':';
         }
         if (line != -1) {
-            os << line << ':';
+            output << line << ':';
         }
-        os << func << ": Assertion `" << expr << "' failed.\n";
-        handler(os, std::forward<Args>(args)...);
+        output << func << ": Assertion `" << expr << "' failed.\n";
+        handler(output, std::forward<Args>(args)...);
+
+#ifndef WJR_ASSERT_THROW
+        std::abort();
+#else
         WJR_THROW(std::runtime_error(os.str()));
 #endif
     }
@@ -4357,7 +4363,7 @@ public:
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
     constexpr capture_leaf() : Mybase(enable_default_constructor), m_value() {}
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
     constexpr capture_leaf(Args &&...args)
         : Mybase(enable_default_constructor), m_value(std::forward<Args>(args)...) {}
 
@@ -4385,7 +4391,7 @@ public:
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
     constexpr compressed_capture_leaf() : Mybase() {}
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
     constexpr compressed_capture_leaf(Args &&...args)
         : Mybase(std::forward<Args>(args)...) {}
 
@@ -4395,6 +4401,13 @@ public:
     constexpr T &get() noexcept { return *this; }
     constexpr const T &get() const noexcept { return *this; }
 };
+
+template <typename T>
+struct is_compressed : std::conjunction<std::is_class<T>, std::is_empty<T>,
+                                        std::negation<std::is_final<T>>> {};
+
+template <typename T>
+inline constexpr bool is_compressed_v = is_compressed<T>::value;
 
 template <template <typename...> typename Test, typename Seq, typename LP, typename RP,
           typename = void>
@@ -4445,14 +4458,9 @@ struct tuple_element<I, wjr::compressed_pair<T, U>> {
 
 namespace wjr {
 
-template <typename T>
-using compressed_pair_wrapper_helper =
-    std::conjunction<std::is_class<T>, std::is_empty<T>, std::negation<std::is_final<T>>>;
-
 template <size_t index, typename T, typename U, typename Tag = void>
 using compressed_pair_wrapper =
-    std::conditional_t<compressed_pair_wrapper_helper<T>::value &&
-                           (index == 0 || !compressed_pair_wrapper_helper<U>::value),
+    std::conditional_t<is_compressed_v<T> && (index == 0 || !is_compressed_v<U>),
                        compressed_capture_leaf<T, enable_base_identity_t<index, Tag>>,
                        capture_leaf<T, enable_base_identity_t<index, Tag>>>;
 
@@ -5036,504 +5044,7 @@ using iterator_contiguous_pointer_t =
 #ifndef WJR_MATH_DETAILS_HPP__
 #define WJR_MATH_DETAILS_HPP__
 
-#ifndef WJR_STACK_ALLOCATOR_HPP__
-#define WJR_STACK_ALLOCATOR_HPP__
-
-#include <algorithm>
-
-#ifndef WJR_CRTP_NONSENDABLE_HPP__
-#define WJR_CRTP_NONSENDABLE_HPP__
-
-#include <memory>
-
 // Already included
-
-namespace wjr {
-
-#if WJR_DEBUG_LEVEL > 2
-
-/**
- * @brief Disable sending the object to another thread and check the thread id.
- *
- * @note Only check if WJR_DEBUG_LEVEL > 2.
- */
-template <typename Tag = void>
-class __nonsendable_checker {
-public:
-    static constexpr bool is_nonsendable = true;
-
-protected:
-    __nonsendable_checker() : m_thread_id(std::this_thread::get_id()) {}
-    __nonsendable_checker(const __nonsendable_checker &) = default;
-    __nonsendable_checker(__nonsendable_checker &&) = default;
-    __nonsendable_checker &operator=(const __nonsendable_checker &) = default;
-    __nonsendable_checker &operator=(__nonsendable_checker &&) = default;
-    ~__nonsendable_checker() { check(); }
-
-    void check() const {
-        WJR_ASSERT_L2(m_thread_id == std::this_thread::get_id(),
-                      "Cross-thread access detected when using a nonsendable object.");
-    }
-
-    friend bool operator==(const __nonsendable_checker &lhs,
-                           const __nonsendable_checker &rhs) {
-        return lhs.m_thread_id == rhs.m_thread_id;
-    }
-
-    friend bool operator!=(const __nonsendable_checker &lhs,
-                           const __nonsendable_checker &rhs) {
-        return lhs.m_thread_id != rhs.m_thread_id;
-    }
-
-private:
-    std::thread::id m_thread_id;
-};
-
-#else
-
-/**
- * @brief Disable sending the object to another thread without checking.
- *
- */
-template <typename Tag = void>
-class __nonsendable_checker {
-public:
-    static constexpr bool is_nonsendable = true;
-
-protected:
-    constexpr static void check(){};
-
-    friend bool operator==(const __nonsendable_checker &, const __nonsendable_checker &) {
-        return true;
-    }
-
-    friend bool operator!=(const __nonsendable_checker &, const __nonsendable_checker &) {
-        return false;
-    }
-};
-
-#endif
-
-/**
- * @brief A type to disable sending the object to another thread.
- *
- * @note By default, only check if object is destroyed and WJR_DEBUG_LEVEL > 2.
- * Use nonsendable::check() to manually check.
- *
- */
-template <typename Tag = void>
-using nonsendable = __nonsendable_checker<Tag>;
-
-} // namespace wjr
-
-#endif // WJR_CRTP_NONSENDABLE_HPP__
-#ifndef WJR_CRTP_TRIVIAL_ALLOCATOR_BASE_HPP__
-#define WJR_CRTP_TRIVIAL_ALLOCATOR_BASE_HPP__
-
-#include <memory>
-#include <type_traits>
-
-namespace wjr {
-
-struct trivial_allocator_base_t {};
-struct trivial_allocator_constructible_t {};
-struct trivial_allocator_destructible_t {};
-
-template <typename T>
-struct is_trivially_allocator : std::is_base_of<trivial_allocator_base_t, T> {};
-
-template <typename T>
-struct is_trivially_allocator<std::allocator<T>> : std::true_type {};
-
-template <typename T>
-inline constexpr bool is_trivially_allocator_v = is_trivially_allocator<T>::value;
-
-template <typename T>
-struct is_trivially_allocator_constructible
-    : std::disjunction<std::is_base_of<trivial_allocator_constructible_t, T>,
-                       is_trivially_allocator<T>> {};
-
-template <typename T>
-inline constexpr bool is_trivially_allocator_constructible_v =
-    is_trivially_allocator_constructible<T>::value;
-
-template <typename T>
-struct is_trivially_allocator_destructible
-    : std::disjunction<std::is_base_of<trivial_allocator_destructible_t, T>,
-                       is_trivially_allocator<T>> {};
-
-template <typename T>
-inline constexpr bool is_trivially_allocator_destructible_v =
-    is_trivially_allocator_destructible<T>::value;
-
-} // namespace wjr
-
-#endif // WJR_CRTP_TRIVIAL_ALLOCATOR_BASE_HPP__
-// Already included
-
-namespace wjr {
-
-template <typename StackAllocator>
-class unique_stack_allocator;
-
-template <size_t threshold, size_t cache>
-class stack_allocator_object {
-    static_assert(threshold <= cache, "threshold must be less than or equal to cache.");
-
-    template <typename StackAllocator>
-    friend class unique_stack_allocator;
-
-    constexpr static uint16_t bufsize = 5;
-
-    struct alloc_node {
-        char *ptr;
-        char *end;
-    };
-
-    struct large_stack_top {
-        large_stack_top *prev;
-        char buffer[];
-    };
-
-public:
-    struct stack_top {
-        char *ptr = nullptr;
-        char *end;
-        large_stack_top *large;
-        uint16_t idx;
-    };
-
-private:
-    WJR_CONSTEXPR20 void *__large_allocate(size_t n, stack_top &top) {
-        auto buffer = (large_stack_top *)malloc(sizeof(large_stack_top) + n);
-        buffer->prev = top.large;
-        top.large = buffer;
-        return buffer->buffer;
-    }
-
-    WJR_NOINLINE WJR_CONSTEXPR20 void __small_reallocate(stack_top &top) {
-        if (WJR_UNLIKELY(top.end == nullptr)) {
-            top.end = m_cache.end;
-            top.idx = m_idx;
-        }
-
-        ++m_idx;
-        if (WJR_UNLIKELY(m_idx == m_size)) {
-
-            if (WJR_UNLIKELY(m_size == m_capacity)) {
-                uint16_t new_capacity = m_idx + 2 * (bufsize - 1);
-                auto new_ptr =
-                    static_cast<alloc_node *>(malloc(new_capacity * sizeof(alloc_node)));
-                if (WJR_LIKELY(m_idx != 0)) {
-                    std::copy_n(m_ptr, m_idx, new_ptr);
-                    free(m_ptr);
-                }
-                m_ptr = new_ptr;
-                m_capacity = new_capacity;
-            }
-
-            ++m_size;
-
-            size_t capacity = cache << ((3 * m_idx + 2) / 5);
-            auto buffer = static_cast<char *>(malloc(capacity));
-            alloc_node node = {buffer, buffer + capacity};
-            m_ptr[m_idx] = node;
-
-            if (WJR_UNLIKELY(m_idx == 0)) {
-                top.ptr = node.ptr;
-                top.end = node.end;
-                top.idx = 0;
-            }
-
-            m_cache = node;
-        } else {
-            m_cache = m_ptr[m_idx];
-        }
-
-        WJR_ASSERT(top.ptr != nullptr);
-        WJR_ASSERT(top.end != nullptr);
-    }
-
-    WJR_COLD WJR_CONSTEXPR20 void __small_redeallocate() {
-        uint16_t new_size = m_idx + bufsize - 1;
-
-        for (uint16_t i = new_size; i < m_size; ++i) {
-            free(m_ptr[i].ptr);
-        }
-
-        m_size = new_size;
-    }
-
-    WJR_CONSTEXPR20 void __small_deallocate_change_idx(const stack_top &top) {
-        uint16_t idx = top.idx;
-        m_cache = {top.ptr, top.end};
-        m_idx = idx;
-        if (WJR_UNLIKELY(m_size - idx >= bufsize)) {
-            __small_redeallocate();
-        }
-    }
-
-    WJR_CONSTEXPR20 void __small_deallocate(const stack_top &top) {
-        if (WJR_UNLIKELY(top.ptr == invalid)) {
-            return;
-        }
-
-        if (WJR_LIKELY(top.end == nullptr)) {
-            m_cache.ptr = top.ptr;
-        } else {
-            __small_deallocate_change_idx(top);
-        }
-    }
-
-    WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) {
-        if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
-            __small_reallocate(top);
-            WJR_ASSERT_ASSUME_L1(top.end != nullptr);
-        }
-
-        WJR_ASSERT_ASSUME_L1(m_cache.ptr != nullptr);
-        WJR_ASSERT_ASSUME_L1(top.ptr != nullptr);
-
-        auto ptr = m_cache.ptr;
-        m_cache.ptr += n;
-        return ptr;
-    }
-
-public:
-    using value_type = void;
-    using size_type = size_t;
-    using difference_type = ptrdiff_t;
-    using propagate_on_container_move_assignment = std::true_type;
-
-    stack_allocator_object() = default;
-    stack_allocator_object(stack_allocator_object &) = delete;
-    stack_allocator_object(stack_allocator_object &&) = delete;
-    stack_allocator_object &operator=(stack_allocator_object &) = delete;
-    stack_allocator_object &operator=(stack_allocator_object &&) = delete;
-    ~stack_allocator_object() {
-        for (uint16_t i = 0; i < m_size; ++i) {
-            free(m_ptr[i].ptr);
-        }
-
-        free(m_ptr);
-    }
-
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top) {
-        if (WJR_UNLIKELY(n >= threshold)) {
-            return __large_allocate(n, top);
-        }
-
-        return __small_allocate(n, top);
-    }
-
-    WJR_CONSTEXPR20 void deallocate(const stack_top &top) {
-        __small_deallocate(top);
-
-        auto buffer = top.large;
-        while (WJR_UNLIKELY(buffer != nullptr)) {
-            auto prev = buffer->prev;
-            free(buffer);
-            buffer = prev;
-        }
-    }
-
-    WJR_CONSTEXPR20 void set(stack_top &top) {
-        top.ptr = m_cache.ptr;
-        top.end = nullptr;
-        top.large = nullptr;
-    }
-
-private:
-    static char *const invalid;
-
-    alloc_node m_cache = {invalid, invalid};
-    uint16_t m_idx = in_place_max;
-    alignas(32) uint16_t m_size = 0;
-    uint16_t m_capacity = 0;
-    alloc_node *m_ptr = nullptr;
-};
-
-template <size_t threshold, size_t cache>
-char *const stack_allocator_object<threshold, cache>::invalid = (char *)(0x0c);
-
-template <typename StackAllocator>
-class singleton_stack_allocator_adapter {
-public:
-    using value_type = typename StackAllocator::value_type;
-    using size_type = typename StackAllocator::size_type;
-    using difference_type = typename StackAllocator::difference_type;
-    using propagate_on_container_move_assignment =
-        typename StackAllocator::propagate_on_container_move_assignment;
-    using allocator_type = StackAllocator;
-    using stack_top = typename StackAllocator::stack_top;
-
-    static StackAllocator &get_instance() {
-        static thread_local StackAllocator instance;
-        return instance;
-    }
-};
-
-template <typename Alloc>
-constexpr bool operator==(const singleton_stack_allocator_adapter<Alloc> &,
-                          const singleton_stack_allocator_adapter<Alloc> &) {
-    return true;
-}
-
-template <typename Alloc>
-constexpr bool operator!=(const singleton_stack_allocator_adapter<Alloc> &,
-                          const singleton_stack_allocator_adapter<Alloc> &) {
-    return false;
-}
-
-/**
- * @brief A stack allocator for fast simulation of stack memory on the heap, singleton
- * mode.
- *
- * @details When allocating memory less than threadshold,
- * use pre-allocated heap memory, otherwise use malloc to allocate heap memory. \n
- * Notice that the pre-allocated heap memory is not released until the program exits. \n
- * This allocator is not thread-safe and can't be used in container.
- *
- * @tparam threshold The threshold for using malloc to allocate heap memory
- * @tparam cache The size of the first heap memory allocation
- */
-template <size_t threshold, size_t cache>
-using singleton_stack_allocator_object =
-    singleton_stack_allocator_adapter<stack_allocator_object<threshold, cache>>;
-
-/**
- * @details Used for container. This allocator won't deallocate memory allocated by
- * __small_allocate until container is destroyed.
- *
- */
-template <typename T, typename StackAllocator>
-class weak_stack_allocator;
-
-/**
- * @brief A unique stack allocator for fast simulation of stack memory on the heap.
- *
- * @details When a unique_stack_allocator object is destroyed, all the memory it allocates
- * is released.\n And a new unique_stack_allocator constructed in the lifetime of a
- * unique_stack_allocator object must be destroyed in the current lifetime.
- *
- */
-template <size_t threshold, size_t cache>
-class unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>
-    : public nonsendable<
-          unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>> {
-    using Mybase = nonsendable<
-        unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>>;
-    using StackAllocatorObject = singleton_stack_allocator_object<threshold, cache>;
-    using stack_top = typename StackAllocatorObject::stack_top;
-    using allocator_type = typename StackAllocatorObject::allocator_type;
-
-    template <typename T, typename StackAllocator>
-    friend class weak_stack_allocator;
-
-public:
-    unique_stack_allocator(const StackAllocatorObject &al) : m_obj(&al) {}
-    ~unique_stack_allocator() {
-        if (m_top.ptr != nullptr) {
-            m_instance->deallocate(m_top);
-        }
-    }
-
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n) {
-        Mybase::check();
-
-        if (WJR_UNLIKELY(m_top.ptr == nullptr)) {
-            m_instance = &m_obj->get_instance();
-            m_instance->set(m_top);
-            WJR_ASSERT_ASSUME_L1(m_top.ptr != nullptr);
-        }
-
-        return m_instance->allocate(n, m_top);
-    }
-
-private:
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n) {
-        Mybase::check();
-
-        if (WJR_UNLIKELY(m_top.ptr == nullptr)) {
-            m_instance = &m_obj->get_instance();
-            m_instance->set(m_top);
-            WJR_ASSERT_ASSUME_L1(m_top.ptr != nullptr);
-        }
-
-        return m_instance->__small_allocate(n, m_top);
-    }
-
-    union {
-        const StackAllocatorObject *m_obj;
-        allocator_type *m_instance;
-    };
-
-    stack_top m_top;
-};
-
-template <typename StackAllocator>
-unique_stack_allocator(const StackAllocator &) -> unique_stack_allocator<StackAllocator>;
-
-template <typename T, size_t threshold, size_t cache>
-class weak_stack_allocator<T, singleton_stack_allocator_object<threshold, cache>>
-    : trivial_allocator_base_t {
-    using StackAllocator = singleton_stack_allocator_object<threshold, cache>;
-    using UniqueStackAllocator = unique_stack_allocator<StackAllocator>;
-
-public:
-    using value_type = T;
-    using size_type = typename StackAllocator::size_type;
-    using difference_type = typename StackAllocator::difference_type;
-    using propagate_on_container_move_assignment =
-        typename StackAllocator::propagate_on_container_move_assignment;
-
-    weak_stack_allocator() = default;
-    weak_stack_allocator(UniqueStackAllocator &alloc) : m_alloc(&alloc) {}
-    weak_stack_allocator(const weak_stack_allocator &) = default;
-    weak_stack_allocator &operator=(const weak_stack_allocator &) = default;
-    weak_stack_allocator(weak_stack_allocator &&) = default;
-    weak_stack_allocator &operator=(weak_stack_allocator &&) = default;
-    ~weak_stack_allocator() = default;
-
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 T *allocate(size_type n) {
-        const size_t size = n * sizeof(T);
-        if (WJR_UNLIKELY(size >= threshold)) {
-            return static_cast<T *>(malloc(size));
-        }
-
-        return static_cast<T *>(m_alloc->__small_allocate(size));
-    }
-
-    WJR_CONSTEXPR20 void deallocate(WJR_MAYBE_UNUSED T *ptr,
-                                    WJR_MAYBE_UNUSED size_type n) {
-        const size_t size = n * sizeof(T);
-        if (WJR_UNLIKELY(size >= threshold)) {
-            free(ptr);
-        }
-    }
-
-private:
-    UniqueStackAllocator *m_alloc = nullptr;
-};
-
-} // namespace wjr
-
-#endif // WJR_STACK_ALLOCATOR_HPP__
-
-#if defined(WJR_X86)
-#ifndef WJR_X86_MATH_DETAILS_HPP__
-#define WJR_X86_MATH_DETAILS_HPP__
-
-#include <cstdint>
-
-// Already included
-
-namespace wjr {
-
-} // namespace wjr
-
-#endif // WJR_X86_MATH_DETAILS_HPP__
-#endif
 
 namespace wjr {
 
@@ -5564,12 +5075,6 @@ private:
 
 inline constexpr de_bruijn<uint32_t, 0x077C'B531> de_bruijn32 = {};
 inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
-
-using stack_alloc_object = singleton_stack_allocator_object<16 * 1024, 36 * 1024>;
-using unique_stack_alloc = unique_stack_allocator<stack_alloc_object>;
-template <typename T>
-using weak_stack_alloc = weak_stack_allocator<T, stack_alloc_object>;
-inline constexpr stack_alloc_object stack_alloc = {};
 
 } // namespace math_details
 
@@ -5603,9 +5108,21 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool __has_high_bit(T n) noexcept {
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T __ceil_div(T n, type_identity_t<T> div) {
+    return (n + div - 1) / div;
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_down(T n, type_identity_t<T> alignment) {
     WJR_ASSERT_ASSUME_L1(is_zero_or_single_bit(alignment));
     return n & (-alignment);
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_down_offset(T n,
+                                                        type_identity_t<T> alignment) {
+    WJR_ASSERT_ASSUME_L1(is_zero_or_single_bit(alignment));
+    return n & (alignment - 1);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
@@ -6187,15 +5704,14 @@ WJR_REGISTER_HAS_TYPE(
 
 template <typename Allocator, typename SizeType,
           typename Pointer = typename std::allocator_traits<Allocator>::pointer>
-WJR_NODISCARD allocation_result<Pointer, SizeType> allocate_at_least(Allocator &alloc,
-                                                                     SizeType count) {
+WJR_NODISCARD auto allocate_at_least(Allocator &alloc, SizeType count) {
     if constexpr (has_allocate_at_least_v<Allocator, SizeType>) {
         auto result = alloc.allocate_at_least(count);
         WJR_ASSUME(result.count >= count);
         return result;
     } else {
         auto ptr = std::allocator_traits<Allocator>::allocate(alloc, count);
-        return {ptr, count};
+        return allocation_result<decltype(ptr), SizeType>{ptr, count};
     }
 }
 
@@ -6379,7 +5895,88 @@ constexpr OutputIt move_n_restrict(InputIt first, Size count, OutputIt d_first) 
  */
 
 // Already included
+#ifndef WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
+#define WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
+
 // Already included
+
+namespace wjr {
+
+namespace trivially_allocator_base_details {
+WJR_REGISTER_HAS_TYPE(is_trivially_allocator,
+                      std::declval<typename Alloc::is_trivially_allocator>(), Alloc);
+WJR_REGISTER_HAS_TYPE(
+    is_trivially_allocator_constructible,
+    std::declval<typename Alloc::is_trivially_allocator_constructible>(), Alloc);
+WJR_REGISTER_HAS_TYPE(is_trivially_allocator_destructible,
+                      std::declval<typename Alloc::is_trivially_allocator_destructible>(),
+                      Alloc);
+} // namespace trivially_allocator_base_details
+
+template <typename Alloc, typename = void>
+struct __is_trivially_allocator_impl : std::false_type {};
+
+template <typename Alloc>
+struct __is_trivially_allocator_impl<
+    Alloc, std::enable_if_t<
+               trivially_allocator_base_details::has_is_trivially_allocator_v<Alloc>>>
+    : Alloc::is_trivially_allocator {};
+
+template <typename Alloc>
+struct is_trivially_allocator : __is_trivially_allocator_impl<Alloc> {};
+
+template <typename T>
+struct is_trivially_allocator<std::allocator<T>> : std::true_type {};
+
+template <typename Alloc>
+inline constexpr bool is_trivially_allocator_v = is_trivially_allocator<Alloc>::value;
+
+template <typename Alloc, typename = void>
+struct __is_trivially_allocator_constructible_impl : std::false_type {};
+
+template <typename Alloc>
+struct __is_trivially_allocator_constructible_impl<
+    Alloc, std::enable_if_t<trivially_allocator_base_details::
+                                has_is_trivially_allocator_constructible_v<Alloc>>>
+    : Alloc::is_trivially_allocator_constructible {};
+
+template <typename Alloc>
+struct is_trivially_allocator_constructible
+    : std::disjunction<__is_trivially_allocator_constructible_impl<Alloc>,
+                       is_trivially_allocator<Alloc>> {};
+
+template <typename Alloc>
+inline constexpr bool is_trivially_allocator_constructible_v =
+    is_trivially_allocator_constructible<Alloc>::value;
+
+template <typename Alloc, typename = void>
+struct __is_trivially_allocator_destructible_impl : std::false_type {};
+
+template <typename Alloc>
+struct __is_trivially_allocator_destructible_impl<
+    Alloc, std::enable_if_t<trivially_allocator_base_details::
+                                has_is_trivially_allocator_destructible_v<Alloc>>>
+    : Alloc::is_trivially_allocator_destructible {};
+
+template <typename Alloc>
+struct is_trivially_allocator_destructible
+    : std::disjunction<__is_trivially_allocator_destructible_impl<Alloc>,
+                       is_trivially_allocator<Alloc>> {};
+
+template <typename Alloc>
+inline constexpr bool is_trivially_allocator_destructible_v =
+    is_trivially_allocator_destructible<Alloc>::value;
+
+template <typename Alloc>
+struct trivially_allocator_traits {
+    using is_trivially = is_trivially_allocator<Alloc>;
+    using is_trivially_constructible = is_trivially_allocator_constructible<Alloc>;
+    using is_trivially_destructible = is_trivially_allocator_destructible<Alloc>;
+};
+
+} // namespace wjr
+
+#endif // WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
 // Already included
 
 namespace wjr {
@@ -6399,7 +5996,7 @@ template <typename Iter, typename Alloc, typename... Args>
 WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &alloc,
                                                              Args &&...args) {
     if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
-        construct_at(iter, std::forward<Args>(args)...);
+        (construct_at)(iter, std::forward<Args>(args)...);
     } else {
         std::allocator_traits<Alloc>::construct(alloc, (to_address)(iter),
                                                 std::forward<Args>(args)...);
@@ -6410,7 +6007,7 @@ template <typename Iter, typename Alloc>
 WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &alloc,
                                                              dctor_t) {
     if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
-        construct_at(iter, dctor_t{});
+        (construct_at)(iter, dctor_t{});
     } else {
         std::allocator_traits<Alloc>::construct(alloc, (to_address)(iter));
     }
@@ -6552,8 +6149,7 @@ uninitialized_default_construct_using_allocator(Iter first, Iter last, Alloc &al
         using value_type = iterator_value_t<Iter>;
         if constexpr (!std::is_trivially_default_constructible_v<value_type>) {
             for (; first != last; ++first) {
-                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first),
-                                                        value_type());
+                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first));
             }
         }
     }
@@ -6583,8 +6179,7 @@ WJR_CONSTEXPR20 void uninitialized_value_construct_using_allocator(Iter first, I
     } else {
         using value_type = iterator_value_t<Iter>;
         for (; first != last; ++first) {
-            std::allocator_traits<Alloc>::construct(alloc, (to_address)(first),
-                                                    value_type());
+            std::allocator_traits<Alloc>::construct(alloc, (to_address)(first));
         }
     }
 }
@@ -6597,8 +6192,7 @@ WJR_CONSTEXPR20 void uninitialized_value_construct_n_using_allocator(Iter first,
     } else {
         using value_type = iterator_value_t<Iter>;
         for (; n > 0; ++first, --n) {
-            std::allocator_traits<Alloc>::construct(alloc, (to_address)(first),
-                                                    value_type());
+            std::allocator_traits<Alloc>::construct(alloc, (to_address)(first));
         }
     }
 }
@@ -6726,6 +6320,10 @@ WJR_REGISTER_UNINITIALIZED_BASE(0, 0);
 
 #undef WJR_REGISTER_UNINITIALIZED_BASE
 
+#if WJR_DEBUG_LEVEL > 2
+#define WJR_HAS_BUILTIN_UNINITIALIZED_CHECKER WJR_HAS_DEF
+#endif
+
 template <typename T>
 using __uninitialized_base_select =
     __uninitialized_base<std::is_trivially_default_constructible_v<T>,
@@ -6733,6 +6331,9 @@ using __uninitialized_base_select =
 
 /**
  * @class uninitialized
+ *
+ * @details Uninitialized object. Make trivially constructible and destructible of
+ * any type.+
  *
  * @details Trivially constructible and destructible uninitialized object. Copy/move
  * constructor and assignment operators are deleted if the type is not trivially
@@ -6742,14 +6343,12 @@ using __uninitialized_base_select =
 template <typename T>
 class uninitialized : __uninitialized_base_select<T> {
     using Mybase = __uninitialized_base_select<T>;
-    static constexpr bool __is_noexcept = WJR_DEBUG_LEVEL <= 2;
+    static constexpr bool __is_noexcept = !WJR_HAS_BUILTIN(UNINITIALIZED_CHECKER);
 
 public:
     constexpr uninitialized() noexcept = default;
-    ~uninitialized() noexcept(__is_noexcept &&std::is_nothrow_destructible_v<Mybase>) =
-        default;
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<Mybase, Args &&...>)>
     constexpr uninitialized(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<Mybase, Args...>)
         : Mybase(std::forward<Args>(args)...) {
@@ -6778,24 +6377,48 @@ public:
         return std::move(Mybase::m_value);
     }
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
-    constexpr T &emplace(Args &&...args) noexcept(
-        __is_noexcept &&std::is_nothrow_constructible_v<Mybase, Args...>) {
+    template <typename Func, typename... Args,
+              WJR_REQUIRES(std::is_invocable_v<Func, T *, Args &&...>)>
+    constexpr T &emplace_by(Func &&fn, Args &&...args) noexcept(
+        __is_noexcept && noexcept(fn(ptr_unsafe(), std::forward<Args>(args)...))) {
         if constexpr (!std::is_trivially_destructible_v<T>) {
             check(false);
         }
 
-        construct_at(this, std::forward<Args>(args)...);
+        fn(ptr_unsafe(), std::forward<Args>(args)...);
+        checker_set(true);
         return get();
     }
 
-    constexpr void reset() noexcept(__is_noexcept &&std::is_nothrow_destructible_v<T>) {
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
+    constexpr T &emplace(Args &&...args) noexcept(
+        __is_noexcept &&std::is_nothrow_constructible_v<Mybase, Args...>) {
+        return emplace_by(
+            [](T *ptr, auto &&...args) noexcept(
+                __is_noexcept && std::is_nothrow_constructible_v<Mybase, Args...>) {
+                (construct_at)(ptr, std::forward<decltype(args)>(args)...);
+            },
+            std::forward<Args>(args)...);
+    }
+
+    template <typename Func, typename... Args,
+              WJR_REQUIRES(std::is_invocable_v<Func, T *, Args &&...>)>
+    constexpr void reset_by(Func &&fn, Args &&...args) noexcept(
+        __is_noexcept && noexcept(fn(ptr_unsafe(), std::forward<Args>(args)...))) {
         if constexpr (!std::is_trivially_destructible_v<T>) {
             check(true);
-            get().~T();
         }
 
+        fn(ptr_unsafe(), std::forward<Args>(args)...);
         checker_set(false);
+    }
+
+    constexpr void reset() noexcept(__is_noexcept &&std::is_nothrow_destructible_v<T>) {
+        reset_by([](T *ptr) noexcept(__is_noexcept && std::is_nothrow_destructible_v<T>) {
+            if constexpr (!std::is_trivially_destructible_v<T>) {
+                std::destroy_at(ptr);
+            }
+        });
     }
 
     constexpr T *operator->() noexcept(__is_noexcept) { return std::addressof(get()); }
@@ -6814,8 +6437,13 @@ public:
         return std::move(get());
     }
 
+    constexpr T *ptr_unsafe() noexcept { return std::addressof(Mybase::m_value); }
+    constexpr const T *ptr_unsafe() const noexcept {
+        return std::addressof(Mybase::m_value);
+    }
+
 private:
-#if WJR_DEBUG_LEVEL > 2
+#if WJR_HAS_BUILTIN(UNINITIALIZED_CHECKER)
     struct __checker {
         constexpr void set(bool value) noexcept { m_initialized = value; }
         constexpr void check(bool value) const {
@@ -19257,6 +18885,478 @@ WJR_INTRINSIC_CONSTEXPR_E T rshift_n(T *dst, const T *src, size_t n, unsigned in
 } // namespace wjr
 
 #endif // WJR_MATH_SHIFT_HPP__
+#ifndef WJR_MATH_STACK_ALLOCATOR_HPP__
+#define WJR_MATH_STACK_ALLOCATOR_HPP__
+
+#ifndef WJR_STACK_ALLOCATOR_HPP__
+#define WJR_STACK_ALLOCATOR_HPP__
+
+#include <algorithm>
+
+#ifndef WJR_CRTP_NONSENDABLE_HPP__
+#define WJR_CRTP_NONSENDABLE_HPP__
+
+#include <memory>
+
+// Already included
+
+#if WJR_DEBUG_LEVEL > 2
+#define WJR_HAS_BULITIN_NONSENDABLE_CHECKER WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(NONSENDABLE_CHECKER)
+#include <thread>
+#endif
+
+namespace wjr {
+
+#if WJR_HAS_BUILTIN(NONSENDABLE_CHECKER)
+
+/**
+ * @brief Disable sending the object to another thread and check the thread id.
+ *
+ * @note Only check if WJR_DEBUG_LEVEL > 2.
+ */
+template <typename Tag = void>
+class __nonsendable_checker {
+public:
+    static constexpr bool is_nonsendable = true;
+
+protected:
+    __nonsendable_checker() : m_thread_id(std::this_thread::get_id()) {}
+    __nonsendable_checker(const __nonsendable_checker &) = default;
+    __nonsendable_checker(__nonsendable_checker &&) = default;
+    __nonsendable_checker &operator=(const __nonsendable_checker &) = default;
+    __nonsendable_checker &operator=(__nonsendable_checker &&) = default;
+    ~__nonsendable_checker() { check(); }
+
+    void check() const {
+        WJR_ASSERT_L2(m_thread_id == std::this_thread::get_id(),
+                      "Cross-thread access detected when using a nonsendable object.");
+    }
+
+    friend bool operator==(const __nonsendable_checker &lhs,
+                           const __nonsendable_checker &rhs) {
+        return lhs.m_thread_id == rhs.m_thread_id;
+    }
+
+    friend bool operator!=(const __nonsendable_checker &lhs,
+                           const __nonsendable_checker &rhs) {
+        return lhs.m_thread_id != rhs.m_thread_id;
+    }
+
+private:
+    std::thread::id m_thread_id;
+};
+
+#else
+
+/**
+ * @brief Disable sending the object to another thread without checking.
+ *
+ */
+template <typename Tag = void>
+class __nonsendable_checker {
+public:
+    static constexpr bool is_nonsendable = true;
+
+protected:
+    constexpr static void check(){};
+
+    friend bool operator==(const __nonsendable_checker &, const __nonsendable_checker &) {
+        return true;
+    }
+
+    friend bool operator!=(const __nonsendable_checker &, const __nonsendable_checker &) {
+        return false;
+    }
+};
+
+#endif
+
+/**
+ * @brief A type to disable sending the object to another thread.
+ *
+ * @note By default, only check if object is destroyed and WJR_DEBUG_LEVEL > 2.
+ * Use nonsendable::check() to manually check.
+ *
+ */
+template <typename Tag = void>
+using nonsendable = __nonsendable_checker<Tag>;
+
+} // namespace wjr
+
+#endif // WJR_CRTP_NONSENDABLE_HPP__
+// Already included
+// Already included
+
+namespace wjr {
+
+template <typename StackAllocator>
+class unique_stack_allocator;
+
+template <size_t threshold, size_t cache>
+class stack_allocator_object {
+    static_assert(threshold <= cache, "threshold must be less than or equal to cache.");
+
+    template <typename StackAllocator>
+    friend class unique_stack_allocator;
+
+    constexpr static uint16_t bufsize = 5;
+
+    struct alloc_node {
+        char *ptr;
+        char *end;
+    };
+
+    struct large_stack_top {
+        large_stack_top *prev;
+        char buffer[];
+    };
+
+public:
+    struct stack_top {
+        char *ptr = nullptr;
+        char *end;
+        large_stack_top *large;
+        uint16_t idx;
+    };
+
+private:
+    WJR_CONSTEXPR20 void *__large_allocate(size_t n, stack_top &top) {
+        auto buffer = (large_stack_top *)malloc(sizeof(large_stack_top) + n);
+        buffer->prev = top.large;
+        top.large = buffer;
+        return buffer->buffer;
+    }
+
+    WJR_NOINLINE WJR_CONSTEXPR20 void __small_reallocate(stack_top &top) {
+        if (WJR_UNLIKELY(top.end == nullptr)) {
+            top.end = m_cache.end;
+            top.idx = m_idx;
+        }
+
+        ++m_idx;
+        if (WJR_UNLIKELY(m_idx == m_size)) {
+
+            if (WJR_UNLIKELY(m_size == m_capacity)) {
+                uint16_t new_capacity = m_idx + 2 * (bufsize - 1);
+                auto new_ptr =
+                    static_cast<alloc_node *>(malloc(new_capacity * sizeof(alloc_node)));
+                if (WJR_LIKELY(m_idx != 0)) {
+                    std::copy_n(m_ptr, m_idx, new_ptr);
+                    free(m_ptr);
+                }
+                m_ptr = new_ptr;
+                m_capacity = new_capacity;
+            }
+
+            ++m_size;
+
+            size_t capacity = cache << ((3 * m_idx + 2) / 5);
+            auto buffer = static_cast<char *>(malloc(capacity));
+            alloc_node node = {buffer, buffer + capacity};
+            m_ptr[m_idx] = node;
+
+            if (WJR_UNLIKELY(m_idx == 0)) {
+                top.ptr = node.ptr;
+                top.end = node.end;
+                top.idx = 0;
+            }
+
+            m_cache = node;
+        } else {
+            m_cache = m_ptr[m_idx];
+        }
+
+        WJR_ASSERT(top.ptr != nullptr);
+        WJR_ASSERT(top.end != nullptr);
+    }
+
+    WJR_COLD WJR_CONSTEXPR20 void __small_redeallocate() {
+        uint16_t new_size = m_idx + bufsize - 1;
+
+        for (uint16_t i = new_size; i < m_size; ++i) {
+            free(m_ptr[i].ptr);
+        }
+
+        m_size = new_size;
+    }
+
+    WJR_CONSTEXPR20 void __small_deallocate_change_idx(const stack_top &top) {
+        uint16_t idx = top.idx;
+        m_cache = {top.ptr, top.end};
+        m_idx = idx;
+        if (WJR_UNLIKELY(m_size - idx >= bufsize)) {
+            __small_redeallocate();
+        }
+    }
+
+    WJR_CONSTEXPR20 void __small_deallocate(const stack_top &top) {
+        if (WJR_UNLIKELY(top.ptr == invalid)) {
+            return;
+        }
+
+        if (WJR_LIKELY(top.end == nullptr)) {
+            m_cache.ptr = top.ptr;
+        } else {
+            __small_deallocate_change_idx(top);
+        }
+    }
+
+    WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) {
+        if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
+            __small_reallocate(top);
+            WJR_ASSERT_ASSUME_L1(top.end != nullptr);
+        }
+
+        WJR_ASSERT_ASSUME_L1(m_cache.ptr != nullptr);
+        WJR_ASSERT_ASSUME_L1(top.ptr != nullptr);
+
+        auto ptr = m_cache.ptr;
+        m_cache.ptr += n;
+        return ptr;
+    }
+
+public:
+    using value_type = void;
+    using size_type = size_t;
+    using difference_type = ptrdiff_t;
+    using propagate_on_container_move_assignment = std::true_type;
+
+    stack_allocator_object() = default;
+    stack_allocator_object(stack_allocator_object &) = delete;
+    stack_allocator_object(stack_allocator_object &&) = delete;
+    stack_allocator_object &operator=(stack_allocator_object &) = delete;
+    stack_allocator_object &operator=(stack_allocator_object &&) = delete;
+    ~stack_allocator_object() {
+        for (uint16_t i = 0; i < m_size; ++i) {
+            free(m_ptr[i].ptr);
+        }
+
+        free(m_ptr);
+    }
+
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top) {
+        if (WJR_UNLIKELY(n >= threshold)) {
+            return __large_allocate(n, top);
+        }
+
+        return __small_allocate(n, top);
+    }
+
+    WJR_CONSTEXPR20 void deallocate(const stack_top &top) {
+        __small_deallocate(top);
+
+        auto buffer = top.large;
+        while (WJR_UNLIKELY(buffer != nullptr)) {
+            auto prev = buffer->prev;
+            free(buffer);
+            buffer = prev;
+        }
+    }
+
+    WJR_CONSTEXPR20 void set(stack_top &top) {
+        top.ptr = m_cache.ptr;
+        top.end = nullptr;
+        top.large = nullptr;
+    }
+
+private:
+    static char *const invalid;
+
+    alloc_node m_cache = {invalid, invalid};
+    uint16_t m_idx = in_place_max;
+    alignas(32) uint16_t m_size = 0;
+    uint16_t m_capacity = 0;
+    alloc_node *m_ptr = nullptr;
+};
+
+template <size_t threshold, size_t cache>
+char *const stack_allocator_object<threshold, cache>::invalid = (char *)(0x0c);
+
+template <typename StackAllocator>
+class singleton_stack_allocator_adapter {
+public:
+    using value_type = typename StackAllocator::value_type;
+    using size_type = typename StackAllocator::size_type;
+    using difference_type = typename StackAllocator::difference_type;
+    using propagate_on_container_move_assignment =
+        typename StackAllocator::propagate_on_container_move_assignment;
+    using allocator_type = StackAllocator;
+    using stack_top = typename StackAllocator::stack_top;
+
+    static StackAllocator &get_instance() {
+        static thread_local StackAllocator instance;
+        return instance;
+    }
+};
+
+template <typename Alloc>
+constexpr bool operator==(const singleton_stack_allocator_adapter<Alloc> &,
+                          const singleton_stack_allocator_adapter<Alloc> &) {
+    return true;
+}
+
+template <typename Alloc>
+constexpr bool operator!=(const singleton_stack_allocator_adapter<Alloc> &,
+                          const singleton_stack_allocator_adapter<Alloc> &) {
+    return false;
+}
+
+/**
+ * @brief A stack allocator for fast simulation of stack memory on the heap, singleton
+ * mode.
+ *
+ * @details When allocating memory less than threadshold,
+ * use pre-allocated heap memory, otherwise use malloc to allocate heap memory. \n
+ * Notice that the pre-allocated heap memory is not released until the program exits. \n
+ * This allocator is not thread-safe and can't be used in container.
+ *
+ * @tparam threshold The threshold for using malloc to allocate heap memory
+ * @tparam cache The size of the first heap memory allocation
+ */
+template <size_t threshold, size_t cache>
+using singleton_stack_allocator_object =
+    singleton_stack_allocator_adapter<stack_allocator_object<threshold, cache>>;
+
+/**
+ * @details Used for container. This allocator won't deallocate memory allocated by
+ * __small_allocate until container is destroyed.
+ *
+ */
+template <typename T, typename StackAllocator>
+class weak_stack_allocator;
+
+/**
+ * @brief A unique stack allocator for fast simulation of stack memory on the heap.
+ *
+ * @details When a unique_stack_allocator object is destroyed, all the memory it allocates
+ * is released.\n And a new unique_stack_allocator constructed in the lifetime of a
+ * unique_stack_allocator object must be destroyed in the current lifetime.
+ *
+ */
+template <size_t threshold, size_t cache>
+class unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>
+    : public nonsendable<
+          unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>> {
+    using Mybase = nonsendable<
+        unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>>;
+    using StackAllocatorObject = singleton_stack_allocator_object<threshold, cache>;
+    using stack_top = typename StackAllocatorObject::stack_top;
+    using allocator_type = typename StackAllocatorObject::allocator_type;
+
+    template <typename T, typename StackAllocator>
+    friend class weak_stack_allocator;
+
+public:
+    unique_stack_allocator(const StackAllocatorObject &al) : m_obj(&al) {}
+    ~unique_stack_allocator() {
+        if (m_top.ptr != nullptr) {
+            m_instance->deallocate(m_top);
+        }
+    }
+
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n) {
+        Mybase::check();
+
+        if (WJR_UNLIKELY(m_top.ptr == nullptr)) {
+            m_instance = &m_obj->get_instance();
+            m_instance->set(m_top);
+            WJR_ASSERT_ASSUME_L1(m_top.ptr != nullptr);
+        }
+
+        return m_instance->allocate(n, m_top);
+    }
+
+private:
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n) {
+        Mybase::check();
+
+        if (WJR_UNLIKELY(m_top.ptr == nullptr)) {
+            m_instance = &m_obj->get_instance();
+            m_instance->set(m_top);
+            WJR_ASSERT_ASSUME_L1(m_top.ptr != nullptr);
+        }
+
+        return m_instance->__small_allocate(n, m_top);
+    }
+
+    union {
+        const StackAllocatorObject *m_obj;
+        allocator_type *m_instance;
+    };
+
+    stack_top m_top;
+};
+
+template <typename StackAllocator>
+unique_stack_allocator(const StackAllocator &) -> unique_stack_allocator<StackAllocator>;
+
+template <typename T, size_t threshold, size_t cache>
+class weak_stack_allocator<T, singleton_stack_allocator_object<threshold, cache>> {
+    using StackAllocator = singleton_stack_allocator_object<threshold, cache>;
+    using UniqueStackAllocator = unique_stack_allocator<StackAllocator>;
+
+    template <typename U, typename A>
+    friend class weak_stack_allocator;
+
+public:
+    using value_type = T;
+    using size_type = typename StackAllocator::size_type;
+    using difference_type = typename StackAllocator::difference_type;
+    using propagate_on_container_move_assignment =
+        typename StackAllocator::propagate_on_container_move_assignment;
+    using is_trivially_allocator = std::true_type;
+
+    weak_stack_allocator() = default;
+    weak_stack_allocator(UniqueStackAllocator &alloc) : m_alloc(&alloc) {}
+    weak_stack_allocator(const weak_stack_allocator &) = default;
+    weak_stack_allocator &operator=(const weak_stack_allocator &) = default;
+    weak_stack_allocator(weak_stack_allocator &&) = default;
+    weak_stack_allocator &operator=(weak_stack_allocator &&) = default;
+    ~weak_stack_allocator() = default;
+
+    template <typename U>
+    weak_stack_allocator(const weak_stack_allocator<U, StackAllocator> &other)
+        : m_alloc(other.m_alloc) {}
+
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 T *allocate(size_type n) {
+        const size_t size = n * sizeof(T);
+        if (WJR_UNLIKELY(size >= threshold)) {
+            return static_cast<T *>(malloc(size));
+        }
+
+        return static_cast<T *>(m_alloc->__small_allocate(size));
+    }
+
+    WJR_CONSTEXPR20 void deallocate(WJR_MAYBE_UNUSED T *ptr,
+                                    WJR_MAYBE_UNUSED size_type n) {
+        const size_t size = n * sizeof(T);
+        if (WJR_UNLIKELY(size >= threshold)) {
+            free(ptr);
+        }
+    }
+
+private:
+    UniqueStackAllocator *m_alloc = nullptr;
+};
+
+} // namespace wjr
+
+#endif // WJR_STACK_ALLOCATOR_HPP__
+
+namespace wjr::math_details {
+
+using stack_alloc_object = singleton_stack_allocator_object<16 * 1024, 36 * 1024>;
+using unique_stack_alloc = unique_stack_allocator<stack_alloc_object>;
+template <typename T>
+using weak_stack_alloc = weak_stack_allocator<T, stack_alloc_object>;
+inline constexpr stack_alloc_object stack_alloc = {};
+
+} // namespace wjr::math_details
+
+#endif // WJR_MATH_STACK_ALLOCATOR_HPP__
 // Already included
 
 #if defined(WJR_X86)
@@ -25909,7 +26009,7 @@ template <>
 struct count_digits_fn<8> {
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const {
-        return (bit_width(n) + 2) / 3;
+        return __ceil_div(to_unsigned(bit_width(n)), 3);
     }
 };
 
@@ -25917,7 +26017,7 @@ template <>
 struct count_digits_fn<16> {
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const {
-        return (bit_width(n) + 3) / 4;
+        return __ceil_div(to_unsigned(bit_width(n)), 4);
     }
 };
 
@@ -29721,26 +29821,26 @@ basic_biginteger<Storage>::__from_chars_impl(const char *first, const char *last
 
     switch (base) {
     case 2: {
-        capacity = (str_size + 63) / 64;
+        capacity = __ceil_div(str_size, 64);
         break;
     }
     case 8: {
-        capacity = (str_size * 3 + 63) / 64;
+        capacity = __ceil_div(str_size * 3, 64);
         break;
     }
     case 16: {
-        capacity = (str_size + 15) / 16;
+        capacity = __ceil_div(str_size, 16);
         break;
     }
     case 4:
     case 32: {
         const int bits = base == 4 ? 2 : 5;
-        capacity = (str_size * bits + 63) / 64;
+        capacity = __ceil_div(str_size * bits, 64);
         break;
     }
     case 10: {
         // capacity = (str_size * log2(10) + 63) / 64;
-        capacity = (str_size * 10 / 3 + 63) / 64;
+        capacity = __ceil_div(str_size * 10 / 3, 64);
         break;
     }
     default: {
@@ -30688,7 +30788,6 @@ uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
                 load_simd<simd>(first, x);
             } else {
                 char buf[64];
-                std::memcpy(buf, first, diff);
                 char ch;
                 switch (last[-1]) {
                 case ' ':
@@ -30708,6 +30807,7 @@ uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
                 }
                 }
 
+                std::memcpy(buf, first, diff);
                 std::memset(buf + diff, ch, 64 - diff);
                 load_simd<simd>(buf, x);
             }
@@ -31396,14 +31496,14 @@ struct check_parser : empty_parser {
 template <typename TokenReader, typename Parser>
 WJR_NOINLINE void reader_parse(TokenReader &reader, Parser &parser) {
     unique_stack_allocator stkal(math_details::stack_alloc);
-    
+
     struct stack {
         uint8_t type;
         const char *first;
         const char *last;
     };
 
-    stack *stk = static_cast<stack *>(stkal.allocate(1024 * sizeof(stack)));
+    stack *stk = static_cast<stack *>(stkal.allocate(512 * sizeof(stack)));
     stack *current = stk;
     uint8_t type;
 

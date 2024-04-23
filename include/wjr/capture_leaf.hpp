@@ -21,7 +21,7 @@ public:
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
     constexpr capture_leaf() : Mybase(enable_default_constructor), m_value() {}
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
     constexpr capture_leaf(Args &&...args)
         : Mybase(enable_default_constructor), m_value(std::forward<Args>(args)...) {}
 
@@ -49,7 +49,7 @@ public:
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
     constexpr compressed_capture_leaf() : Mybase() {}
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
     constexpr compressed_capture_leaf(Args &&...args)
         : Mybase(std::forward<Args>(args)...) {}
 
@@ -59,6 +59,13 @@ public:
     constexpr T &get() noexcept { return *this; }
     constexpr const T &get() const noexcept { return *this; }
 };
+
+template <typename T>
+struct is_compressed : std::conjunction<std::is_class<T>, std::is_empty<T>,
+                                        std::negation<std::is_final<T>>> {};
+
+template <typename T>
+inline constexpr bool is_compressed_v = is_compressed<T>::value;
 
 template <template <typename...> typename Test, typename Seq, typename LP, typename RP,
           typename = void>

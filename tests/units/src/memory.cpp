@@ -3,11 +3,15 @@
 #include "details.hpp"
 
 #include <wjr/math.hpp>
+#include <wjr/memory/aligned_allocator.hpp>
 #include <wjr/memory/uninitialized.hpp>
 
 using namespace wjr;
 
 TEST(memory, stack_allocator) {
+
+    static_assert(is_trivially_allocator_v<math_details::weak_stack_alloc<char>>,
+                  "error");
 
     do {
         math_details::stack_alloc_object obj;
@@ -35,7 +39,42 @@ TEST(memory, stack_allocator) {
     } while (0);
 }
 
-#if WJR_DEBUG_LEVEL > 2
+TEST(memory, algined_allocator) {
+    do {
+        using alloc = aligned_allocator<std::allocator<int>, 64>;
+        static_assert(is_trivially_allocator_v<alloc>, "error");
+
+        alloc al;
+        auto ptr = al.allocate(1);
+        WJR_ASSERT(reinterpret_cast<uintptr_t>(ptr) % 64 == 0, "alignment error");
+        al.deallocate(ptr, 1);
+
+        auto result = allocate_at_least(al, 32);
+        WJR_ASSERT(reinterpret_cast<uintptr_t>(result.ptr) % 64 == 0, "alignment error");
+        WJR_ASSERT(result.count >= 32, "count error");
+        al.deallocate(result.ptr, result.count);
+    } while (0);
+
+    do {
+        using weak_alloc = math_details::weak_stack_alloc<int>;
+        using alloc = aligned_allocator<weak_alloc, 64>;
+        static_assert(is_trivially_allocator_v<alloc>, "error");
+
+        math_details::unique_stack_alloc stkal(math_details::stack_alloc);
+        alloc al(stkal);
+
+        auto ptr = al.allocate(1);
+        WJR_ASSERT(reinterpret_cast<uintptr_t>(ptr) % 64 == 0, "alignment error");
+        al.deallocate(ptr, 1);
+
+        auto result = allocate_at_least(al, 32);
+        WJR_ASSERT(reinterpret_cast<uintptr_t>(result.ptr) % 64 == 0, "alignment error");
+        WJR_ASSERT(result.count >= 32, "count error");
+        al.deallocate(result.ptr, result.count);
+    } while (0);
+}
+
+#if WJR_HAS_BUILTIN(UNINITIALIZED_CHECKER)
 
 TEST(memory, uninitialized) {
     do {
@@ -63,17 +102,6 @@ TEST(memory, uninitialized) {
 
         a.reset();
 
-    } while (0);
-
-    do {
-        try {
-            uninitialized<std::string> a;
-            a.emplace("hello world");
-        } catch (...) {
-            goto NEXT0;
-        }
-        goto ERROR;
-    NEXT0 : {}
     } while (0);
 
     do {

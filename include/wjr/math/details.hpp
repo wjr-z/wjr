@@ -1,11 +1,7 @@
 #ifndef WJR_MATH_DETAILS_HPP__
 #define WJR_MATH_DETAILS_HPP__
 
-#include <wjr/memory/stack_allocator.hpp>
-
-#if defined(WJR_X86)
-#include <wjr/x86/math/details.hpp>
-#endif
+#include <wjr/type_traits.hpp>
 
 namespace wjr {
 
@@ -36,12 +32,6 @@ private:
 
 inline constexpr de_bruijn<uint32_t, 0x077C'B531> de_bruijn32 = {};
 inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
-
-using stack_alloc_object = singleton_stack_allocator_object<16 * 1024, 36 * 1024>;
-using unique_stack_alloc = unique_stack_allocator<stack_alloc_object>;
-template <typename T>
-using weak_stack_alloc = weak_stack_allocator<T, stack_alloc_object>;
-inline constexpr stack_alloc_object stack_alloc = {};
 
 } // namespace math_details
 
@@ -75,9 +65,21 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool __has_high_bit(T n) noexcept {
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T __ceil_div(T n, type_identity_t<T> div) {
+    return (n + div - 1) / div;
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_down(T n, type_identity_t<T> alignment) {
     WJR_ASSERT_ASSUME_L1(is_zero_or_single_bit(alignment));
     return n & (-alignment);
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_down_offset(T n,
+                                                        type_identity_t<T> alignment) {
+    WJR_ASSERT_ASSUME_L1(is_zero_or_single_bit(alignment));
+    return n & (alignment - 1);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>

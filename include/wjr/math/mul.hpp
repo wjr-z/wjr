@@ -12,6 +12,7 @@
 #include <wjr/math/add.hpp>
 #include <wjr/math/bit.hpp>
 #include <wjr/math/shift.hpp>
+#include <wjr/math/stack_allocator.hpp>
 #include <wjr/math/sub.hpp>
 
 #if defined(WJR_X86)

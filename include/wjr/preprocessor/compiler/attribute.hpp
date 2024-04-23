@@ -92,6 +92,14 @@
 #define WJR_COLD
 #endif
 
+#if WJR_HAS_ATTRIBUTE(aligned)
+#define WJR_ALIGNED(size) __attribute__((aligned(size)))
+#elif defined(_MSC_VER)
+#define WJR_ALIGNED(size)
+#else
+#define WJR_ALIGNED(size)
+#endif
+
 #if defined(__cpp_lib_unreachable)
 #define WJR_UNREACHABLE() std::unreachable()
 #elif WJR_HAS_BUILTIN(__builtin_unreachable)

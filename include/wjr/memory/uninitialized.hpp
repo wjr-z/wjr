@@ -11,7 +11,7 @@
  */
 
 #include <wjr/crtp/class_base.hpp>
-#include <wjr/crtp/trivial_allocator_base.hpp>
+#include <wjr/crtp/trivially_allocator_base.hpp>
 #include <wjr/memory/details.hpp>
 
 namespace wjr {
@@ -31,7 +31,7 @@ template <typename Iter, typename Alloc, typename... Args>
 WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &alloc,
                                                              Args &&...args) {
     if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
-        construct_at(iter, std::forward<Args>(args)...);
+        (construct_at)(iter, std::forward<Args>(args)...);
     } else {
         std::allocator_traits<Alloc>::construct(alloc, (to_address)(iter),
                                                 std::forward<Args>(args)...);
@@ -42,7 +42,7 @@ template <typename Iter, typename Alloc>
 WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &alloc,
                                                              dctor_t) {
     if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
-        construct_at(iter, dctor_t{});
+        (construct_at)(iter, dctor_t{});
     } else {
         std::allocator_traits<Alloc>::construct(alloc, (to_address)(iter));
     }
@@ -184,8 +184,7 @@ uninitialized_default_construct_using_allocator(Iter first, Iter last, Alloc &al
         using value_type = iterator_value_t<Iter>;
         if constexpr (!std::is_trivially_default_constructible_v<value_type>) {
             for (; first != last; ++first) {
-                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first),
-                                                        value_type());
+                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first));
             }
         }
     }
@@ -215,8 +214,7 @@ WJR_CONSTEXPR20 void uninitialized_value_construct_using_allocator(Iter first, I
     } else {
         using value_type = iterator_value_t<Iter>;
         for (; first != last; ++first) {
-            std::allocator_traits<Alloc>::construct(alloc, (to_address)(first),
-                                                    value_type());
+            std::allocator_traits<Alloc>::construct(alloc, (to_address)(first));
         }
     }
 }
@@ -229,8 +227,7 @@ WJR_CONSTEXPR20 void uninitialized_value_construct_n_using_allocator(Iter first,
     } else {
         using value_type = iterator_value_t<Iter>;
         for (; n > 0; ++first, --n) {
-            std::allocator_traits<Alloc>::construct(alloc, (to_address)(first),
-                                                    value_type());
+            std::allocator_traits<Alloc>::construct(alloc, (to_address)(first));
         }
     }
 }
@@ -358,6 +355,10 @@ WJR_REGISTER_UNINITIALIZED_BASE(0, 0);
 
 #undef WJR_REGISTER_UNINITIALIZED_BASE
 
+#if WJR_DEBUG_LEVEL > 2
+#define WJR_HAS_BUILTIN_UNINITIALIZED_CHECKER WJR_HAS_DEF
+#endif
+
 template <typename T>
 using __uninitialized_base_select =
     __uninitialized_base<std::is_trivially_default_constructible_v<T>,
@@ -365,6 +366,9 @@ using __uninitialized_base_select =
 
 /**
  * @class uninitialized
+ *
+ * @details Uninitialized object. Make trivially constructible and destructible of
+ * any type.+
  *
  * @details Trivially constructible and destructible uninitialized object. Copy/move
  * constructor and assignment operators are deleted if the type is not trivially
@@ -374,14 +378,12 @@ using __uninitialized_base_select =
 template <typename T>
 class uninitialized : __uninitialized_base_select<T> {
     using Mybase = __uninitialized_base_select<T>;
-    static constexpr bool __is_noexcept = WJR_DEBUG_LEVEL <= 2;
+    static constexpr bool __is_noexcept = !WJR_HAS_BUILTIN(UNINITIALIZED_CHECKER);
 
 public:
     constexpr uninitialized() noexcept = default;
-    ~uninitialized() noexcept(__is_noexcept &&std::is_nothrow_destructible_v<Mybase>) =
-        default;
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<Mybase, Args &&...>)>
     constexpr uninitialized(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<Mybase, Args...>)
         : Mybase(std::forward<Args>(args)...) {
@@ -410,24 +412,48 @@ public:
         return std::move(Mybase::m_value);
     }
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
-    constexpr T &emplace(Args &&...args) noexcept(
-        __is_noexcept &&std::is_nothrow_constructible_v<Mybase, Args...>) {
+    template <typename Func, typename... Args,
+              WJR_REQUIRES(std::is_invocable_v<Func, T *, Args &&...>)>
+    constexpr T &emplace_by(Func &&fn, Args &&...args) noexcept(
+        __is_noexcept && noexcept(fn(ptr_unsafe(), std::forward<Args>(args)...))) {
         if constexpr (!std::is_trivially_destructible_v<T>) {
             check(false);
         }
 
-        construct_at(this, std::forward<Args>(args)...);
+        fn(ptr_unsafe(), std::forward<Args>(args)...);
+        checker_set(true);
         return get();
     }
 
-    constexpr void reset() noexcept(__is_noexcept &&std::is_nothrow_destructible_v<T>) {
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
+    constexpr T &emplace(Args &&...args) noexcept(
+        __is_noexcept &&std::is_nothrow_constructible_v<Mybase, Args...>) {
+        return emplace_by(
+            [](T *ptr, auto &&...args) noexcept(
+                __is_noexcept && std::is_nothrow_constructible_v<Mybase, Args...>) {
+                (construct_at)(ptr, std::forward<decltype(args)>(args)...);
+            },
+            std::forward<Args>(args)...);
+    }
+
+    template <typename Func, typename... Args,
+              WJR_REQUIRES(std::is_invocable_v<Func, T *, Args &&...>)>
+    constexpr void reset_by(Func &&fn, Args &&...args) noexcept(
+        __is_noexcept && noexcept(fn(ptr_unsafe(), std::forward<Args>(args)...))) {
         if constexpr (!std::is_trivially_destructible_v<T>) {
             check(true);
-            get().~T();
         }
 
+        fn(ptr_unsafe(), std::forward<Args>(args)...);
         checker_set(false);
+    }
+
+    constexpr void reset() noexcept(__is_noexcept &&std::is_nothrow_destructible_v<T>) {
+        reset_by([](T *ptr) noexcept(__is_noexcept && std::is_nothrow_destructible_v<T>) {
+            if constexpr (!std::is_trivially_destructible_v<T>) {
+                std::destroy_at(ptr);
+            }
+        });
     }
 
     constexpr T *operator->() noexcept(__is_noexcept) { return std::addressof(get()); }
@@ -446,8 +472,13 @@ public:
         return std::move(get());
     }
 
+    constexpr T *ptr_unsafe() noexcept { return std::addressof(Mybase::m_value); }
+    constexpr const T *ptr_unsafe() const noexcept {
+        return std::addressof(Mybase::m_value);
+    }
+
 private:
-#if WJR_DEBUG_LEVEL > 2
+#if WJR_HAS_BUILTIN(UNINITIALIZED_CHECKER)
     struct __checker {
         constexpr void set(bool value) noexcept { m_initialized = value; }
         constexpr void check(bool value) const {

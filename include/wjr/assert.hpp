@@ -51,7 +51,7 @@ private:
 
     template <typename Output, typename... Args>
     static Output &handler(Output &out, Args &&...args) {
-        out << "Additional information:\n";
+        out << "Additional information: ";
         (void)(out << ... << std::forward<Args>(args));
         out << '\n';
         return out;
@@ -61,25 +61,23 @@ private:
     WJR_ASSERT_NORETURN WJR_NOINLINE static void
     fn(const char *expr, const char *file, const char *func, int line, Args &&...args) {
 #ifndef WJR_ASSERT_THROW
-        if (file[0] != '\0') {
-            std::cerr << file << ':';
-        }
-        if (line != -1) {
-            std::cerr << line << ':';
-        }
-        std::cerr << func << ": Assertion `" << expr << "' failed.\n";
-        handler(std::cerr, std::forward<Args>(args)...);
-        std::abort();
+        auto &output = std::cerr;
 #else
         std::ostringstream os;
+        auto &output = os;
+#endif
         if (file[0] != '\0') {
-            os << file << ':';
+            output << file << ':';
         }
         if (line != -1) {
-            os << line << ':';
+            output << line << ':';
         }
-        os << func << ": Assertion `" << expr << "' failed.\n";
-        handler(os, std::forward<Args>(args)...);
+        output << func << ": Assertion `" << expr << "' failed.\n";
+        handler(output, std::forward<Args>(args)...);
+
+#ifndef WJR_ASSERT_THROW
+        std::abort();
+#else
         WJR_THROW(std::runtime_error(os.str()));
 #endif
     }

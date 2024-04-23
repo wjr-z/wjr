@@ -627,7 +627,7 @@ template <>
 struct count_digits_fn<8> {
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const {
-        return (bit_width(n) + 2) / 3;
+        return __ceil_div(to_unsigned(bit_width(n)), 3);
     }
 };
 
@@ -635,7 +635,7 @@ template <>
 struct count_digits_fn<16> {
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const {
-        return (bit_width(n) + 3) / 4;
+        return __ceil_div(to_unsigned(bit_width(n)), 4);
     }
 };
 
