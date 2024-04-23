@@ -193,6 +193,59 @@ public:
     }
 };
 
+template <typename pointer, typename size_type>
+class default_vector_size_reference {
+public:
+    default_vector_size_reference() = delete;
+    default_vector_size_reference(const default_vector_size_reference &) = delete;
+    default_vector_size_reference(default_vector_size_reference &&) = default;
+    default_vector_size_reference &
+    operator=(const default_vector_size_reference &) = delete;
+    default_vector_size_reference &operator=(default_vector_size_reference &&) = default;
+
+    explicit default_vector_size_reference(pointer ptr, pointer &pos) noexcept
+        : m_ptr(ptr), m_pos(pos) {}
+    ~default_vector_size_reference() = default;
+
+    default_vector_size_reference &operator=(size_type size) noexcept {
+        m_pos = m_ptr + size;
+        return *this;
+    }
+
+    WJR_PURE operator size_type() const noexcept {
+        return static_cast<size_type>(m_pos - m_ptr);
+    }
+
+    default_vector_size_reference &operator++() noexcept {
+        ++m_pos;
+        return *this;
+    }
+
+    default_vector_size_reference &operator--() noexcept {
+        --m_pos;
+        return *this;
+    }
+
+    default_vector_size_reference &operator+=(uint32_t size) noexcept {
+        m_pos += size;
+        return *this;
+    }
+
+    default_vector_size_reference &operator-=(uint32_t size) noexcept {
+        m_pos -= size;
+        return *this;
+    }
+
+private:
+    pointer m_ptr;
+    pointer &m_pos;
+};
+
+template <typename pointer, typename size_type>
+struct __unref_wrapper_helper<default_vector_size_reference<pointer, size_type>> {
+    using type = uint32_t &;
+};
+
 /**
  * @brief Default vector storage
  *
@@ -216,12 +269,13 @@ public:
 
 private:
     struct Data {
-        pointer m_data = {};
-        size_type m_size = 0;
-        size_type m_capacity = 0;
+        pointer m_data = nullptr;
+        pointer m_end = nullptr;
+        pointer m_buffer = nullptr;
     };
 
     using data_type = Data;
+    using SizeRef = default_vector_size_reference<pointer, size_type>;
 
 public:
     __default_vector_storage_impl() noexcept = default;
@@ -260,7 +314,8 @@ public:
             return;
         }
 
-        destroy_n_using_allocator(data(), size(), get_allocator());
+        const auto &m_storage = __get_data();
+        destroy_using_allocator(m_storage.m_data, m_storage.m_end, get_allocator());
     }
 
     WJR_CONSTEXPR20 void destroy_and_deallocate() noexcept {
@@ -268,20 +323,23 @@ public:
             return;
         }
 
-        if (data()) {
-            destroy();
-            get_allocator().deallocate(data(), capacity());
+        const auto &m_storage = __get_data();
+        if (m_storage.m_data != m_storage.m_end) {
+            destroy_using_allocator(m_storage.m_data, m_storage.m_end, get_allocator());
+            get_allocator().deallocate(m_storage.m_data, capacity());
         }
     }
 
     WJR_CONSTEXPR20 void uninitialized_construct(size_type size, size_type capacity) {
         auto &al = get_allocator();
         auto &m_storage = __get_data();
-        auto result = allocate_at_least(al, capacity);
+        const auto result = allocate_at_least(al, capacity);
 
-        m_storage.m_data = result.ptr;
-        m_storage.m_size = size;
-        m_storage.m_capacity = result.count;
+        m_storage = {
+            result.ptr,
+            result.ptr + size,
+            result.ptr + capacity,
+        };
     }
 
     WJR_CONSTEXPR20 void take_storage(__default_vector_storage_impl &other) noexcept {
@@ -294,12 +352,16 @@ public:
         std::swap(__get_data(), other.__get_data());
     }
 
-    WJR_PURE WJR_CONSTEXPR20 size_type &size() noexcept { return __get_data().m_size; }
-    WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept {
-        return __get_data().m_size;
+    WJR_PURE WJR_CONSTEXPR20 SizeRef size() noexcept {
+        return SizeRef(__get_data().m_data, __get_data().m_end);
     }
+
+    WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept {
+        return __get_data().m_end - __get_data().m_data;
+    }
+
     WJR_PURE WJR_CONSTEXPR20 size_type capacity() const noexcept {
-        return __get_data().m_capacity;
+        return __get_data().m_buffer - __get_data().m_data;
     }
 
     WJR_PURE WJR_CONSTEXPR20 pointer data() noexcept { return __get_data().m_data; }
@@ -514,12 +576,13 @@ public:
 
 private:
     struct Data {
-        pointer m_data = {};
-        size_type m_size = 0;
-        size_type m_capacity = 0;
+        pointer m_data = nullptr;
+        pointer m_end = nullptr;
+        pointer m_buffer = nullptr;
     };
 
     using data_type = Data;
+    using SizeRef = default_vector_size_reference<pointer, size_type>;
 
 public:
     __fixed_vector_storage_impl() noexcept = default;
@@ -549,7 +612,8 @@ public:
             return;
         }
 
-        destroy_n_using_allocator(data(), size(), get_allocator());
+        const auto &m_storage = __get_data();
+        destroy_n_using_allocator(m_storage.m_data, m_storage.m_end, get_allocator());
     }
 
     WJR_CONSTEXPR20 void destroy_and_deallocate() noexcept {
@@ -557,20 +621,24 @@ public:
             return;
         }
 
-        if (data()) {
-            destroy();
-            get_allocator().deallocate(data(), capacity());
+        const auto &m_storage = __get_data();
+
+        if (m_storage.m_data != m_storage.m_end) {
+            destroy_n_using_allocator(m_storage.m_data, m_storage.m_end, get_allocator());
+            get_allocator().deallocate(m_storage.m_data, capacity());
         }
     }
 
     WJR_CONSTEXPR20 void uninitialized_construct(size_type size, size_type capacity) {
         auto &al = get_allocator();
         auto &m_storage = __get_data();
-        auto result = allocate_at_least(al, capacity);
+        const auto result = allocate_at_least(al, capacity);
 
-        m_storage.m_data = result.ptr;
-        m_storage.m_size = size;
-        m_storage.m_capacity = result.count;
+        m_storage = {
+            result.ptr,
+            result.ptr + size,
+            result.ptr + capacity,
+        };
     }
 
     WJR_CONSTEXPR20 void take_storage(__fixed_vector_storage_impl &other) noexcept {
@@ -583,12 +651,16 @@ public:
         std::swap(__get_data(), other.__get_data());
     }
 
-    WJR_PURE WJR_CONSTEXPR20 size_type &size() noexcept { return __get_data().m_size; }
-    WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept {
-        return __get_data().m_size;
+    WJR_PURE WJR_CONSTEXPR20 SizeRef size() noexcept {
+        return SizeRef(__get_data().m_data, __get_data().m_end);
     }
+
+    WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept {
+        return __get_data().m_end - __get_data().m_data;
+    }
+
     WJR_PURE WJR_CONSTEXPR20 size_type capacity() const noexcept {
-        return __get_data().m_capacity;
+        return __get_data().m_buffer - __get_data().m_data;
     }
 
     WJR_PURE WJR_CONSTEXPR20 pointer data() noexcept { return __get_data().m_data; }
@@ -988,7 +1060,7 @@ private:
     basic_vector(const basic_vector &other, _Alloc &&al, in_place_empty_t) noexcept(
         std::is_nothrow_constructible_v<storage_type, const storage_type &, _Alloc &&>)
         : m_storage(std::forward<_Alloc>(al)) {
-        auto size = other.size();
+        const auto size = other.size();
         m_storage.uninitialized_construct(size, other.capacity());
         STraits::uninitialized_copy_n_restrict_using_allocator(other.data(), size, data(),
                                                                __get_allocator());
@@ -1099,23 +1171,18 @@ public:
     }
 
 private:
-    WJR_PURE WJR_CONSTEXPR20 iterator __make_iterator(pointer ptr) const noexcept {
-        return iterator(ptr, this);
-    }
-
-    WJR_PURE WJR_CONSTEXPR20 const_iterator
-    __make_iterator(const_pointer ptr) const noexcept {
-        return const_iterator(const_cast<pointer>(ptr), this);
+    WJR_PURE WJR_CONSTEXPR20 iterator __make_iterator(const_pointer ptr) const noexcept {
+        return iterator(const_cast<pointer>(ptr), this);
     }
 
     WJR_PURE WJR_CONSTEXPR20 pointer __get_pointer(iterator ptr) const noexcept {
         ptr.check_same_container(this);
-        return to_address(ptr);
+        return (to_address)(ptr);
     }
 
     WJR_PURE WJR_CONSTEXPR20 pointer __get_pointer(const_iterator ptr) const noexcept {
         ptr.check_same_container(this);
-        return const_cast<pointer>(to_address(ptr));
+        return const_cast<pointer>((to_address)(ptr));
     }
 
 public:
@@ -1202,7 +1269,7 @@ public:
 
     WJR_CONST WJR_CONSTEXPR20 static size_type
     get_growth_capacity(size_type old_capacity, size_type new_size) noexcept {
-        return std::max(old_capacity + old_capacity / 2, new_size);
+        return std::max(old_capacity + (((old_capacity + 6) >> 3) << 2), new_size);
     }
 
     WJR_CONSTEXPR20 void reserve(size_type n) {

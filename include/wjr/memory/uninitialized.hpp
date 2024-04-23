@@ -414,7 +414,7 @@ public:
     template <typename Func, typename... Args,
               WJR_REQUIRES(std::is_invocable_v<Func, T *, Args &&...>)>
     constexpr T &emplace_by(Func &&fn, Args &&...args) noexcept(
-        noexcept(fn(ptr_unsafe(), std::forward<Args>(args)...))) {
+        noexcept(fn(this->ptr_unsafe(), std::forward<Args>(args)...))) {
         if constexpr (!std::is_trivially_destructible_v<T>) {
             check(false);
         }
@@ -438,7 +438,7 @@ public:
     template <typename Func, typename... Args,
               WJR_REQUIRES(std::is_invocable_v<Func, T *, Args &&...>)>
     constexpr void reset_by(Func &&fn, Args &&...args) noexcept(
-        noexcept(fn(ptr_unsafe(), std::forward<Args>(args)...))) {
+        noexcept(fn(this->ptr_unsafe(), std::forward<Args>(args)...))) {
         if constexpr (!std::is_trivially_destructible_v<T>) {
             check(true);
         }

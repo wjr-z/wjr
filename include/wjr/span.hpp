@@ -4,8 +4,7 @@
 #include <stdexcept>
 
 #include <wjr/assert.hpp>
-#include <wjr/iterator/details.hpp>
-#include <wjr/memory/details.hpp>
+#include <wjr/iterator/contiguous_iterator_adpater.hpp>
 
 namespace wjr {
 
@@ -98,6 +97,16 @@ struct __is_span_like<
 template <typename Container, typename Elem>
 inline constexpr bool __is_span_like_v = __is_span_like<Container, Elem>::value;
 
+template <typename T>
+struct basic_span_traits {
+    using value_type = std::remove_cv_t<T>;
+    using difference_type = ptrdiff_t;
+    using pointer = T *;
+    using const_pointer = const T *;
+    using reference = T &;
+    using const_reference = const T &;
+};
+
 } // namespace span_details
 
 /**
@@ -112,6 +121,8 @@ class span {
     using __storage = std::conditional_t<__is_dynamic, __span_dynamic_storage<T>,
                                          __span_static_storage<T, Extent>>;
 
+    using IteratorTraits = span_details::basic_span_traits<T>;
+
 public:
     using element_type = T;
     using value_type = std::remove_cv_t<T>;
@@ -121,8 +132,8 @@ public:
     using const_pointer = const T *;
     using reference = T &;
     using const_reference = const T &;
-    using iterator = pointer;
-    using const_iterator = const_pointer;
+    using iterator = contiguous_iterator_adapter<span, IteratorTraits>;
+    using const_iterator = contiguous_const_iterator_adapter<span, IteratorTraits>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -181,12 +192,57 @@ public:
 
     ~span() = default;
 
-    constexpr iterator begin() const noexcept { return data(); }
-    constexpr const_iterator cbegin() const noexcept { return begin(); }
+    WJR_PURE WJR_CONSTEXPR20 pointer begin_unsafe() noexcept { return data(); }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer begin_unsafe() const noexcept {
+        return data();
+    }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer cbegin_unsafe() const noexcept {
+        return data();
+    }
 
-    constexpr iterator end() const noexcept { return begin() + size(); }
-    constexpr const_iterator cend() const noexcept { return end(); }
+    WJR_PURE WJR_CONSTEXPR20 pointer end_unsafe() noexcept { return data() + size(); }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer end_unsafe() const noexcept {
+        return data() + size();
+    }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer cend_unsafe() const noexcept {
+        return end_unsafe();
+    }
 
+private:
+    WJR_PURE WJR_CONSTEXPR20 iterator __make_iterator(const_pointer ptr) const noexcept {
+        return iterator(const_cast<pointer>(ptr), this);
+    }
+
+    WJR_PURE WJR_CONSTEXPR20 pointer __get_pointer(iterator ptr) const noexcept {
+        ptr.check_same_container(this);
+        return (to_address)(ptr);
+    }
+
+    WJR_PURE WJR_CONSTEXPR20 pointer __get_pointer(const_iterator ptr) const noexcept {
+        ptr.check_same_container(this);
+        return const_cast<pointer>((to_address)(ptr));
+    }
+
+public:
+    constexpr iterator begin() noexcept { return __make_iterator(begin_unsafe()); }
+    constexpr const_iterator begin() const noexcept {
+        return __make_iterator(begin_unsafe());
+    }
+    constexpr const_iterator cbegin() const noexcept {
+        return __make_iterator(begin_unsafe());
+    }
+
+    constexpr iterator end() noexcept { return __make_iterator(end_unsafe()); }
+    constexpr const_iterator end() const noexcept {
+        return __make_iterator(end_unsafe());
+    }
+    constexpr const_iterator cend() const noexcept {
+        return __make_iterator(end_unsafe());
+    }
+
+    constexpr reverse_iterator rbegin() noexcept {
+        return std::make_reverse_iterator(end());
+    }
     constexpr reverse_iterator rbegin() const noexcept {
         return std::make_reverse_iterator(end());
     }
@@ -194,6 +250,9 @@ public:
         return std::make_reverse_iterator(cend());
     }
 
+    constexpr reverse_iterator rend() noexcept {
+        return std::make_reverse_iterator(begin());
+    }
     constexpr reverse_iterator rend() const noexcept {
         return std::make_reverse_iterator(begin());
     }
@@ -201,18 +260,33 @@ public:
         return std::make_reverse_iterator(cbegin());
     }
 
-    constexpr reference front() const { return *begin(); }
-    constexpr reference back() const { return *(--end()); }
+    constexpr reference front() const {
+#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
+        WJR_ASSERT_LX(size() > 0, "basic_vector::front: empty");
+#endif
+        return *data();
+    }
+    constexpr reference back() const {
+#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
+        WJR_ASSERT_LX(size() > 0, "basic_vector::front: empty");
+#endif
+        return *(end_unsafe() - 1);
+    }
 
     constexpr reference at(size_type pos) const {
         if (WJR_UNLIKELY(pos >= size())) {
             WJR_THROW(std::out_of_range("span at out of range"));
         }
 
-        return this->operator[](pos);
+        return data()[pos];
     }
 
-    constexpr reference operator[](size_type pos) const { return data()[pos]; }
+    constexpr reference operator[](size_type pos) const {
+#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
+        WJR_ASSERT_LX(pos < size(), "basic_vector::operator[]: out of range");
+#endif
+        return data()[pos];
+    }
 
     constexpr pointer data() const { return storage.ptr; }
     constexpr size_type size() const { return storage.size; }

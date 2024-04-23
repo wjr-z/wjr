@@ -62,6 +62,11 @@ private:
     int32_t *m_size;
 };
 
+template <>
+struct __unref_wrapper_helper<default_biginteger_size_reference> {
+    using type = uint32_t &;
+};
+
 /**
  * @struct biginteger_data
  * @brief The data structure for biginteger
@@ -186,11 +191,6 @@ private:
     WJR_PURE const data_type &__get_data() const noexcept { return m_pair.second(); }
 
     compressed_pair<_Alty, data_type> m_pair;
-};
-
-template <>
-struct __unref_wrapper_helper<default_biginteger_size_reference> {
-    using type = uint32_t &;
 };
 
 template <typename Storage>
@@ -1067,7 +1067,6 @@ std::ostream &operator<<(std::ostream &os, const basic_biginteger<S> &src) {
     if (const std::ostream::sentry ok(os); ok) {
         unique_stack_allocator stkal(math_details::stack_alloc);
 
-        // Waste up to 16 KB/0.5=32 KB of memory
         vector<char, math_details::weak_stack_alloc<char>> buffer(stkal);
         buffer.reserve(512);
 
