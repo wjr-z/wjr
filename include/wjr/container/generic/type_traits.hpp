@@ -1,10 +1,6 @@
 #ifndef WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP__
 #define WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP__
 
-#include <array>
-#include <string>
-#include <vector>
-
 #include <wjr/vector.hpp>
 
 namespace wjr {

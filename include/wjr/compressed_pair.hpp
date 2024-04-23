@@ -256,39 +256,39 @@ template <typename T, typename U>
 compressed_pair(T, U) -> compressed_pair<T, U>;
 
 template <typename T, typename U>
-constexpr bool operator==(const compressed_pair<T, U> &lhs,
-                          const compressed_pair<T, U> &rhs) {
+WJR_CONST constexpr bool operator==(const compressed_pair<T, U> &lhs,
+                                    const compressed_pair<T, U> &rhs) {
     return lhs.first() == rhs.first() && lhs.second() == rhs.second();
 }
 
 template <typename T, typename U>
-constexpr bool operator!=(const compressed_pair<T, U> &lhs,
-                          const compressed_pair<T, U> &rhs) {
+WJR_CONST constexpr bool operator!=(const compressed_pair<T, U> &lhs,
+                                    const compressed_pair<T, U> &rhs) {
     return !(lhs == rhs);
 }
 
 template <typename T, typename U>
-constexpr bool operator<(const compressed_pair<T, U> &lhs,
-                         const compressed_pair<T, U> &rhs) {
+WJR_CONST constexpr bool operator<(const compressed_pair<T, U> &lhs,
+                                   const compressed_pair<T, U> &rhs) {
     return lhs.first() < rhs.first() ||
            (!(rhs.first() < lhs.first()) && lhs.second() < rhs.second());
 }
 
 template <typename T, typename U>
-constexpr bool operator>(const compressed_pair<T, U> &lhs,
-                         const compressed_pair<T, U> &rhs) {
+WJR_CONST constexpr bool operator>(const compressed_pair<T, U> &lhs,
+                                   const compressed_pair<T, U> &rhs) {
     return rhs < lhs;
 }
 
 template <typename T, typename U>
-constexpr bool operator<=(const compressed_pair<T, U> &lhs,
-                          const compressed_pair<T, U> &rhs) {
+WJR_CONST constexpr bool operator<=(const compressed_pair<T, U> &lhs,
+                                    const compressed_pair<T, U> &rhs) {
     return !(rhs < lhs);
 }
 
 template <typename T, typename U>
-constexpr bool operator>=(const compressed_pair<T, U> &lhs,
-                          const compressed_pair<T, U> &rhs) {
+WJR_CONST constexpr bool operator>=(const compressed_pair<T, U> &lhs,
+                                    const compressed_pair<T, U> &rhs) {
     return !(lhs < rhs);
 }
 

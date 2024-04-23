@@ -92,30 +92,15 @@ public:
 
 inline constexpr __assert_handler_t __assert_handler{};
 
-#define WJR_ASSERT_NOMESSAGE_FAIL(handler, exprstr)                                      \
-    handler(exprstr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE)
-#define WJR_ASSERT_MESSAGE_FAIL(handler, exprstr, ...)                                   \
-    handler(exprstr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE, __VA_ARGS__)
-
-#define WJR_ASSERT_CHECK_I_NOMESSAGE(handler, expr)                                      \
+#define WJR_ASSERT_CHECK_I_HANDLER(handler, expr, ...)                                   \
     do {                                                                                 \
         if (WJR_UNLIKELY(!(expr))) {                                                     \
-            WJR_ASSERT_NOMESSAGE_FAIL(handler, #expr);                                   \
-        }                                                                                \
-    } while (0)
-#define WJR_ASSERT_CHECK_I_MESSAGE(handler, expr, ...)                                   \
-    do {                                                                                 \
-        if (WJR_UNLIKELY(!(expr))) {                                                     \
-            WJR_ASSERT_MESSAGE_FAIL(handler, #expr, __VA_ARGS__);                        \
+            handler(#expr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE, ##__VA_ARGS__);     \
         }                                                                                \
     } while (0)
 
 #define WJR_ASSERT_CHECK_I(...)                                                          \
-    WJR_ASSERT_CHECK_I_N(WJR_PP_ARGS_LEN(__VA_ARGS__), __VA_ARGS__)
-#define WJR_ASSERT_CHECK_I_N(N, ...)                                                     \
-    WJR_PP_BOOL_IF(WJR_PP_EQ(N, 1), WJR_ASSERT_CHECK_I_NOMESSAGE,                        \
-                   WJR_ASSERT_CHECK_I_MESSAGE)                                           \
-    (::wjr::__assert_handler, __VA_ARGS__)
+    WJR_ASSERT_CHECK_I_HANDLER(::wjr::__assert_handler, __VA_ARGS__)
 
 // do nothing
 #define WJR_ASSERT_UNCHECK_I(expr, ...)
@@ -134,6 +119,9 @@ inline constexpr __assert_handler_t __assert_handler{};
 #define WJR_ASSERT_L2(...) WJR_ASSERT_L(2, __VA_ARGS__)
 #define WJR_ASSERT_L3(...) WJR_ASSERT_L(3, __VA_ARGS__)
 
+// always detect
+#define WJR_ASSERT_LX(...) WJR_ASSERT_CHECK_I(__VA_ARGS__)
+
 #define WJR_ASSERT_ASSUME_L(level, ...)                                                  \
     WJR_ASSERT_L(level, __VA_ARGS__);                                                    \
     __WJR_ASSERT_ASSUME_L_ASSUME(__VA_ARGS__)
@@ -143,6 +131,10 @@ inline constexpr __assert_handler_t __assert_handler{};
 #define WJR_ASSERT_ASSUME_L1(...) WJR_ASSERT_ASSUME_L(1, __VA_ARGS__)
 #define WJR_ASSERT_ASSUME_L2(...) WJR_ASSERT_ASSUME_L(2, __VA_ARGS__)
 #define WJR_ASSERT_ASSUME_L3(...) WJR_ASSERT_ASSUME_L(3, __VA_ARGS__)
+
+#define WJR_ASSERT_ASSUME_LX(...)                                                        \
+    WJR_ASSERT_LX(__VA_ARGS__);                                                          \
+    WJR_ASSUME(__VA_ARGS__)
 
 } // namespace wjr
 

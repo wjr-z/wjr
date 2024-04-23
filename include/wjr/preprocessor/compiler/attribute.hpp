@@ -116,6 +116,13 @@
 #define WJR_RESTRICT
 #endif
 
+#define WJR_ASSUME_MAY_NOT_PURE(expr)                                                    \
+    do {                                                                                 \
+        if (!(expr)) {                                                                   \
+            WJR_UNREACHABLE();                                                           \
+        }                                                                                \
+    } while (0)
+
 #if WJR_HAS_BUILTIN(__builtin_assume)
 #define WJR_ASSUME(expr) __builtin_assume(expr)
 #elif defined(WJR_COMPILER_MSVC)
@@ -123,12 +130,7 @@
 #elif WJR_HAS_CPP_ATTRIBUTE(assume)
 #define WJR_ASSUME(expr) [[assume(expr)]]
 #else
-#define WJR_ASSUME(expr)                                                                 \
-    do {                                                                                 \
-        if (!(expr)) {                                                                   \
-            WJR_UNREACHABLE();                                                           \
-        }                                                                                \
-    } while (0)
+#define WJR_ASSUME(expr) WJR_ASSUME_MAY_NOT_PURE(expr)
 #endif
 
 #define WJR_BOOL_EXPR(expr) (!!(expr))
@@ -218,7 +220,7 @@
 #define WJR_INLINE inline
 #define WJR_CONSTEXPR constexpr
 
-#if defined(WJR_CPP_20)
+#if defined(WJR_CXX_20)
 #define WJR_CONSTEXPR20 constexpr
 #else
 #define WJR_CONSTEXPR20

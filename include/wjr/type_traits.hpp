@@ -424,18 +424,6 @@ WJR_REGISTER_HAS_TYPE(greater_equal, std::declval<T>() >= std::declval<U>(), T, 
 WJR_REGISTER_HAS_TYPE(not_equal, std::declval<T>() != std::declval<U>(), T, U);
 } // namespace compare_details
 
-template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<remove_cvref_t<Value>>)>
-constexpr decltype(auto) to_signed(Value &&value) noexcept {
-    return static_cast<std::make_signed_t<remove_cvref_t<Value>>>(
-        std::forward<Value>(value));
-}
-
-template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<remove_cvref_t<Value>>)>
-constexpr decltype(auto) to_unsigned(Value &&value) noexcept {
-    return static_cast<std::make_unsigned_t<remove_cvref_t<Value>>>(
-        std::forward<Value>(value));
-}
-
 template <typename T>
 struct get_integral_constant {
     using type = T;

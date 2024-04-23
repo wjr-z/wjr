@@ -1,6 +1,10 @@
 #ifndef WJR_ITERATOR_DETAILS_HPP__
 #define WJR_ITERATOR_DETAILS_HPP__
 
+#include <array>
+#include <string>
+#include <vector>
+
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
@@ -91,7 +95,7 @@ struct __is_contiguous_iterator_impl<std::move_iterator<Iter>, void>
     : std::conjunction<__is_contiguous_iterator_impl<Iter>,
                        std::is_trivial<iterator_value_t<Iter>>> {};
 
-#if defined(WJR_CPP_20)
+#if defined(WJR_CXX_20)
 template <typename Iter>
 struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};
 
@@ -111,6 +115,10 @@ using iterator_contiguous_value_t = std::remove_reference_t<iterator_reference_t
 template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<Iter>)>
 using iterator_contiguous_pointer_t =
     std::add_pointer_t<iterator_contiguous_value_t<Iter>>;
+
+#if WJR_DEBUG_LEVEL > 1
+#define WJR_HAS_DEBUG_CONTIGUOUS_ITERATOR_CHECK WJR_HAS_DEF
+#endif
 
 } // namespace wjr
 

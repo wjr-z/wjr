@@ -212,7 +212,6 @@ WJR_CONSTEXPR20 void uninitialized_value_construct_using_allocator(Iter first, I
     if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
         std::uninitialized_value_construct(first, last);
     } else {
-        using value_type = iterator_value_t<Iter>;
         for (; first != last; ++first) {
             std::allocator_traits<Alloc>::construct(alloc, (to_address)(first));
         }
@@ -225,7 +224,6 @@ WJR_CONSTEXPR20 void uninitialized_value_construct_n_using_allocator(Iter first,
     if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
         std::uninitialized_value_construct_n(first, n);
     } else {
-        using value_type = iterator_value_t<Iter>;
         for (; n > 0; ++first, --n) {
             std::allocator_traits<Alloc>::construct(alloc, (to_address)(first));
         }
@@ -330,14 +328,14 @@ struct __uninitialized_base;
               T, __uninitialized_base<DEF, DES, T>> {                                    \
         using Mybase = __uninitialized_checker_base_enabler_select<                      \
             T, __uninitialized_base<DEF, DES, T>>;                                       \
-        constexpr static bool __is_noexcept = WJR_DEBUG_IF(2, false, true);              \
                                                                                          \
         constexpr __uninitialized_base() noexcept WJR_PP_BOOL_IF(DEF, = default,         \
                                                                  : m_storage(){});       \
                                                                                          \
-        template <typename... Args>                                                      \
+        template <typename... Args,                                                      \
+                  WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>                  \
         constexpr __uninitialized_base(Args &&...args) noexcept(                         \
-            std::is_nothrow_constructible_v<T, Args...>)                                 \
+            std::is_nothrow_constructible_v<T, Args &&...>)                              \
             : m_value(std::forward<Args>(args)...) {}                                    \
                                                                                          \
         ~__uninitialized_base() noexcept WJR_PP_BOOL_IF(DES, = default, {});             \
@@ -355,8 +353,8 @@ WJR_REGISTER_UNINITIALIZED_BASE(0, 0);
 
 #undef WJR_REGISTER_UNINITIALIZED_BASE
 
-#if WJR_DEBUG_LEVEL > 2
-#define WJR_HAS_BUILTIN_UNINITIALIZED_CHECKER WJR_HAS_DEF
+#if WJR_DEBUG_LEVEL > 1
+#define WJR_HAS_DEBUG_UNINITIALIZED_CHECKER WJR_HAS_DEF
 #endif
 
 template <typename T>
@@ -378,9 +376,10 @@ using __uninitialized_base_select =
 template <typename T>
 class uninitialized : __uninitialized_base_select<T> {
     using Mybase = __uninitialized_base_select<T>;
-    static constexpr bool __is_noexcept = !WJR_HAS_BUILTIN(UNINITIALIZED_CHECKER);
 
 public:
+    using Mybase::Mybase;
+
     constexpr uninitialized() noexcept = default;
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<Mybase, Args &&...>)>
@@ -392,22 +391,22 @@ public:
 
     constexpr uninitialized(dctor_t) noexcept : Mybase() {}
 
-    constexpr T &get() & noexcept(__is_noexcept) {
+    constexpr T &get() & noexcept {
         check(true);
         return Mybase::m_value;
     }
 
-    constexpr const T &get() const & noexcept(__is_noexcept) {
+    constexpr const T &get() const & noexcept {
         check(true);
         return Mybase::m_value;
     }
 
-    constexpr T &&get() && noexcept(__is_noexcept) {
+    constexpr T &&get() && noexcept {
         check(true);
         return std::move(Mybase::m_value);
     }
 
-    constexpr const T &&get() const && noexcept(__is_noexcept) {
+    constexpr const T &&get() const && noexcept {
         check(true);
         return std::move(Mybase::m_value);
     }
@@ -415,7 +414,7 @@ public:
     template <typename Func, typename... Args,
               WJR_REQUIRES(std::is_invocable_v<Func, T *, Args &&...>)>
     constexpr T &emplace_by(Func &&fn, Args &&...args) noexcept(
-        __is_noexcept && noexcept(fn(ptr_unsafe(), std::forward<Args>(args)...))) {
+        noexcept(fn(ptr_unsafe(), std::forward<Args>(args)...))) {
         if constexpr (!std::is_trivially_destructible_v<T>) {
             check(false);
         }
@@ -426,11 +425,11 @@ public:
     }
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
-    constexpr T &emplace(Args &&...args) noexcept(
-        __is_noexcept &&std::is_nothrow_constructible_v<Mybase, Args...>) {
+    constexpr T &
+    emplace(Args &&...args) noexcept(std::is_nothrow_constructible_v<Mybase, Args...>) {
         return emplace_by(
             [](T *ptr, auto &&...args) noexcept(
-                __is_noexcept && std::is_nothrow_constructible_v<Mybase, Args...>) {
+                std::is_nothrow_constructible_v<Mybase, Args...>) {
                 (construct_at)(ptr, std::forward<decltype(args)>(args)...);
             },
             std::forward<Args>(args)...);
@@ -439,7 +438,7 @@ public:
     template <typename Func, typename... Args,
               WJR_REQUIRES(std::is_invocable_v<Func, T *, Args &&...>)>
     constexpr void reset_by(Func &&fn, Args &&...args) noexcept(
-        __is_noexcept && noexcept(fn(ptr_unsafe(), std::forward<Args>(args)...))) {
+        noexcept(fn(ptr_unsafe(), std::forward<Args>(args)...))) {
         if constexpr (!std::is_trivially_destructible_v<T>) {
             check(true);
         }
@@ -448,29 +447,25 @@ public:
         checker_set(false);
     }
 
-    constexpr void reset() noexcept(__is_noexcept &&std::is_nothrow_destructible_v<T>) {
-        reset_by([](T *ptr) noexcept(__is_noexcept && std::is_nothrow_destructible_v<T>) {
+    constexpr void reset() noexcept(std::is_nothrow_destructible_v<T>) {
+        reset_by([](T *ptr) noexcept(std::is_nothrow_destructible_v<T>) {
             if constexpr (!std::is_trivially_destructible_v<T>) {
                 std::destroy_at(ptr);
             }
         });
     }
 
-    constexpr T *operator->() noexcept(__is_noexcept) { return std::addressof(get()); }
+    constexpr T *operator->() noexcept { return std::addressof(get()); }
 
-    constexpr const T *operator->() const noexcept(__is_noexcept) {
-        return std::addressof(get());
-    }
+    constexpr const T *operator->() const noexcept { return std::addressof(get()); }
 
-    constexpr T &operator*() & noexcept(__is_noexcept) { return get(); }
+    constexpr T &operator*() & noexcept { return get(); }
 
-    constexpr const T &operator*() const & noexcept(__is_noexcept) { return get(); }
+    constexpr const T &operator*() const & noexcept { return get(); }
 
-    constexpr T &&operator*() && noexcept(__is_noexcept) { return std::move(get()); }
+    constexpr T &&operator*() && noexcept { return std::move(get()); }
 
-    constexpr const T &&operator*() const && noexcept(__is_noexcept) {
-        return std::move(get());
-    }
+    constexpr const T &&operator*() const && noexcept { return std::move(get()); }
 
     constexpr T *ptr_unsafe() noexcept { return std::addressof(Mybase::m_value); }
     constexpr const T *ptr_unsafe() const noexcept {
@@ -478,11 +473,11 @@ public:
     }
 
 private:
-#if WJR_HAS_BUILTIN(UNINITIALIZED_CHECKER)
+#if WJR_HAS_DEBUG(UNINITIALIZED_CHECKER)
     struct __checker {
         constexpr void set(bool value) noexcept { m_initialized = value; }
         constexpr void check(bool value) const {
-            WJR_ASSERT_L2(m_initialized == value, "Expected ",
+            WJR_ASSERT_LX(m_initialized == value, "Expected ",
                           (value ? "initialized" : "uninitialized"),
                           " value when using an uninitialized object.");
         }
@@ -500,7 +495,6 @@ private:
 
     constexpr void checker_set(bool value) noexcept { m_checker.set(value); }
     constexpr void check(bool value) const { m_checker.check(value); }
-
 #else
     constexpr static void checker_set(bool) noexcept {}
     constexpr static void check(bool) {}

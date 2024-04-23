@@ -57,6 +57,16 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T clear_lowbit(T n) noexcept {
     return n & (n - 1);
 }
 
+template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<Value>)>
+WJR_CONST constexpr decltype(auto) to_signed(Value value) noexcept {
+    return static_cast<std::make_signed_t<Value>>(value);
+}
+
+template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<Value>)>
+WJR_CONST constexpr decltype(auto) to_unsigned(Value value) noexcept {
+    return static_cast<std::make_unsigned_t<Value>>(value);
+}
+
 // preview :
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>

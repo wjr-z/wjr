@@ -1,5 +1,7 @@
 #include "details.hpp"
 
+#include <array>
+
 #include <wjr/compressed_pair.hpp>
 #include <wjr/tuple.hpp>
 

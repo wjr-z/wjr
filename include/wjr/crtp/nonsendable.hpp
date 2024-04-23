@@ -6,16 +6,16 @@
 #include <wjr/assert.hpp>
 
 #if WJR_DEBUG_LEVEL > 2
-#define WJR_HAS_BULITIN_NONSENDABLE_CHECKER WJR_HAS_DEF
+#define WJR_HAS_DEBUG_NONSENDABLE_CHECKER WJR_HAS_DEF
 #endif
 
-#if WJR_HAS_BUILTIN(NONSENDABLE_CHECKER)
+#if WJR_HAS_DEBUG(NONSENDABLE_CHECKER)
 #include <thread>
 #endif
 
 namespace wjr {
 
-#if WJR_HAS_BUILTIN(NONSENDABLE_CHECKER)
+#if WJR_HAS_DEBUG(NONSENDABLE_CHECKER)
 
 /**
  * @brief Disable sending the object to another thread and check the thread id.
@@ -36,7 +36,7 @@ protected:
     ~__nonsendable_checker() { check(); }
 
     void check() const {
-        WJR_ASSERT_L2(m_thread_id == std::this_thread::get_id(),
+        WJR_ASSERT_LX(m_thread_id == std::this_thread::get_id(),
                       "Cross-thread access detected when using a nonsendable object.");
     }
 

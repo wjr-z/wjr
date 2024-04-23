@@ -9,9 +9,9 @@ namespace wjr {
 
 namespace to_address_details {
 
-WJR_REGISTER_HAS_TYPE(
-    to_address,
-    typename std::pointer_traits<Ptr>::to_address(std::declval<const Ptr &>()), Ptr);
+WJR_REGISTER_HAS_TYPE(to_address,
+                      std::pointer_traits<Ptr>::to_address(std::declval<const Ptr &>()),
+                      Ptr);
 
 } // namespace to_address_details
 
@@ -23,8 +23,8 @@ constexpr T *to_address(T *p) noexcept {
 
 template <typename Ptr, WJR_REQUIRES(is_contiguous_iterator_v<remove_cvref_t<Ptr>>)>
 constexpr auto to_address(const Ptr &p) noexcept {
-    if constexpr (to_address_details::has_to_address_v<Ptr>) {
-        return std::pointer_traits<Ptr>::to_address(p);
+    if constexpr (to_address_details::has_to_address_v<remove_cvref_t<Ptr>>) {
+        return std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p);
     } else {
         return (to_address)(p.operator->());
     }
@@ -35,13 +35,22 @@ constexpr auto to_address(const std::move_iterator<Iter> &p) noexcept {
     return (to_address)(p.base());
 }
 
+/**
+ * @brief Return to_address(p) if p is a contiguous iterator and contiguouse iterato check
+ * is disabled, otherwise return p.
+ *
+ */
 template <typename T>
 constexpr decltype(auto) try_to_address(T &&t) noexcept {
+#if !WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
     if constexpr (is_contiguous_iterator_v<remove_cvref_t<T>>) {
         return (to_address)(std::forward<T>(t));
     } else {
+#endif
         return std::forward<T>(t);
+#if !WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
     }
+#endif
 }
 
 class __is_little_endian_helper {
@@ -160,9 +169,7 @@ template <typename Allocator, typename SizeType,
           typename Pointer = typename std::allocator_traits<Allocator>::pointer>
 WJR_NODISCARD auto allocate_at_least(Allocator &alloc, SizeType count) {
     if constexpr (has_allocate_at_least_v<Allocator, SizeType>) {
-        auto result = alloc.allocate_at_least(count);
-        WJR_ASSUME(result.count >= count);
-        return result;
+        return alloc.allocate_at_least(count);
     } else {
         auto ptr = std::allocator_traits<Allocator>::allocate(alloc, count);
         return allocation_result<decltype(ptr), SizeType>{ptr, count};

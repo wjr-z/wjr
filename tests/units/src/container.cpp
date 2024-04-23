@@ -18,6 +18,16 @@ using namespace wjr;
 
 static_assert(sizeof(sso_vector<char, 16>) <= 32, "");
 
+static_assert(to_address_details::has_to_address_v<typename vector<int>::iterator>, "");
+static_assert(to_address_details::has_to_address_v<typename vector<int>::const_iterator>,
+              "");
+
+static_assert(
+    to_address_details::has_to_address_v<typename vector<std::string>::iterator>, "");
+static_assert(
+    to_address_details::has_to_address_v<typename vector<std::string>::const_iterator>,
+    "");
+
 template <typename T, typename Func>
 void for_each_n(T *first, size_t n, Func fn) {
     for (size_t i = 0; i < n; ++i) {
@@ -124,9 +134,11 @@ inline constexpr random_string_fn random_string = {};
 template <typename T>
 using wvector = vector<T>;
 
+namespace wjr {
 template class basic_vector<default_vector_storage<int, std::allocator<int>>>;
 template class basic_vector<
     default_vector_storage<std::string, std::allocator<std::string>>>;
+} // namespace wjr
 
 TEST(vector, construct) {
 
@@ -159,7 +171,7 @@ TEST(vector, construct) {
             wvector<T> v(n, al);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
-            for_each_n(v.data(), n, [](auto &x) { EXPECT_EQ(x, T()); });
+            for_each_n(v.begin(), n, [](auto &x) { EXPECT_EQ(x, T()); });
         };
         run_range([&](int i) {
             test(__int, i);
@@ -176,8 +188,8 @@ TEST(vector, construct) {
             EXPECT_GE(v.capacity(), n);
             EXPECT_EQ(V.size(), n);
             EXPECT_GE(V.capacity(), n);
-            for_each_n(v.data(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
-            for_each_n(V.data(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            for_each_n(v.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            for_each_n(V.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
         };
         run_range([&](int i) {
             test(0, i);
@@ -198,8 +210,8 @@ TEST(vector, construct) {
             EXPECT_GE(v.capacity(), n);
             EXPECT_EQ(V.size(), n);
             EXPECT_GE(V.capacity(), n);
-            for_each_n(v.data(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
-            for_each_n(V.data(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            for_each_n(v.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            for_each_n(V.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
         };
         run_range([&](int i) {
             test(0, i);
@@ -220,7 +232,7 @@ TEST(vector, construct) {
             EXPECT_GE(v.capacity(), n);
             EXPECT_EQ(V.size(), 0);
             EXPECT_GE(V.capacity(), 0);
-            for_each_n(v.data(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            for_each_n(v.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
         };
         run_range([&](int i) {
             test(__int, i);
@@ -237,7 +249,7 @@ TEST(vector, construct) {
             EXPECT_GE(v.capacity(), n);
             EXPECT_EQ(V.size(), 0);
             EXPECT_GE(V.capacity(), 0);
-            for_each_n(v.data(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            for_each_n(v.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
         };
         run_range([&](int i) {
             test(__int, i);
@@ -295,8 +307,8 @@ TEST(vector, assignment) {
             EXPECT_GE(v.capacity(), c);
             EXPECT_EQ(V.size(), n);
             EXPECT_GE(V.capacity(), n);
-            for_each_n(v.data(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
-            for_each_n(V.data(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            for_each_n(v.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            for_each_n(V.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
         };
         run_range3([&](int n, int s, int c) {
             test(__int, n, s, c);
@@ -315,7 +327,7 @@ TEST(vector, assignment) {
             EXPECT_GE(v.capacity(), n);
             EXPECT_EQ(V.size(), 0);
             EXPECT_GE(V.capacity(), 0);
-            for_each_n(v.data(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            for_each_n(v.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
         };
         run_range3([&](int n, int s, int c) {
             test(__int, n, s, c);
@@ -336,7 +348,7 @@ TEST(vector, assign) {
             v.assign(n, _Val);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
-            for_each_n(v.data(), n,
+            for_each_n(v.begin(), n,
                        [&](auto &x) { EXPECT_EQ(x, _Val) << n << ' ' << s << ' ' << c; });
         };
         run_range3([&](int n, int s, int c) {
@@ -388,9 +400,12 @@ TEST(vector, resize) {
             v.resize(n, _Val);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
-            for_each_n(v.data(), s, [](auto &x) { EXPECT_EQ(x, T()); });
+            T val{};
             if (n > s) {
-                for_each_n(v.data() + s, n - s, [&](auto &x) { EXPECT_EQ(x, _Val); });
+                for_each_n(v.begin(), s, [&](auto &x) { EXPECT_EQ(x, val); });
+                for_each_n(v.begin() + s, n - s, [&](auto &x) { EXPECT_EQ(x, _Val); });
+            } else {
+                for_each_n(v.begin(), n, [&](auto &x) { EXPECT_EQ(x, val); });
             }
         };
         run_range3([&](int n, int s, int c) {
@@ -407,10 +422,12 @@ TEST(vector, resize) {
             v.resize(n);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
-            for_each_n(v.data(), s, [](auto &x) { EXPECT_EQ(x, T()); });
+            T val{};
             if (n > s) {
-                T val = T{};
-                for_each_n(v.data() + s, n - s, [&val](auto &x) { EXPECT_EQ(x, val); });
+                for_each_n(v.begin(), s, [&](auto &x) { EXPECT_EQ(x, val); });
+                for_each_n(v.begin() + s, n - s, [&](auto &x) { EXPECT_EQ(x, val); });
+            } else {
+                for_each_n(v.begin(), n, [&](auto &x) { EXPECT_EQ(x, val); });
             }
         };
         run_range3([&](int n, int s, int c) {
@@ -429,7 +446,7 @@ TEST(vector, reserve) {
             v.reserve(n);
             EXPECT_EQ(v.size(), s);
             EXPECT_GE(v.capacity(), n);
-            for_each_n(v.data(), s, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            for_each_n(v.begin(), s, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
         };
         run_range3([&](int n, int s, int c) {
             test(__int, n, s, c);
@@ -447,7 +464,7 @@ TEST(vector, shrink_to_fit) {
             v.shrink_to_fit();
             EXPECT_EQ(v.size(), s);
             EXPECT_GE(v.capacity(), s);
-            for_each_n(v.data(), s, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            for_each_n(v.begin(), s, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
         };
         run_range2([&](int s, int c) {
             test(__int, s, c);
@@ -466,7 +483,7 @@ TEST(vector, emplace_back) {
             }
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
-            for_each_n(v.data(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            for_each_n(v.begin(), n, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
         };
         run_range([&](int i) {
             test(__int, i);
@@ -485,7 +502,7 @@ TEST(vector, pop_back) {
             v.pop_back();
             EXPECT_EQ(v.size(), n - 1);
             EXPECT_GE(v.capacity(), n);
-            for_each_n(v.data(), n - 1, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
+            for_each_n(v.begin(), n - 1, [&_Val](auto &x) { EXPECT_EQ(x, _Val); });
         };
         run_range([&](int i) {
             test(__int, i);
@@ -539,7 +556,7 @@ TEST(vector, emplace) {
             using T = decltype(_Val);
             wvector<T> v(c, _Val);
             v.resize(s, _Val);
-            v.insert(v.data() + n, _Val2);
+            v.insert(v.begin() + n, _Val2);
             EXPECT_EQ(v.size(), s + 1);
             for (size_t i = 0; i < n; ++i) {
                 EXPECT_EQ(v[i], _Val);
@@ -566,7 +583,7 @@ TEST(vector, insert) {
                 }
                 wvector<T> v(c, _Val);
                 v.resize(s, _Val);
-                v.insert(v.data() + pos, n, _Val2);
+                v.insert(v.begin() + pos, n, _Val2);
                 EXPECT_EQ(v.size(), s + n);
                 for (size_t i = 0; i < pos; ++i) {
                     EXPECT_EQ(v[i], _Val);
@@ -599,7 +616,7 @@ TEST(vector, erase) {
             using T = decltype(_Val);
             wvector<T> v(c, _Val);
             v.resize(s, _Val);
-            v.erase(v.data() + n);
+            v.erase(v.begin() + n);
             EXPECT_EQ(v.size(), s - 1);
             for (size_t i = 0; i < s - 1; ++i) {
                 EXPECT_EQ(v[i], _Val);
@@ -619,8 +636,8 @@ TEST(vector, swap) {
         v1.swap(v2);
         EXPECT_EQ(v1.size(), 64);
         EXPECT_EQ(v2.size(), 32);
-        for_each_n(v1.data(), 64, [](auto &x) { EXPECT_EQ(x, 2); });
-        for_each_n(v2.data(), 32, [](auto &x) { EXPECT_EQ(x, 1); });
+        for_each_n(v1.begin(), 64, [](auto &x) { EXPECT_EQ(x, 2); });
+        for_each_n(v2.begin(), 32, [](auto &x) { EXPECT_EQ(x, 1); });
     }
 
     for (int n = 0; n < 16; ++n)
@@ -630,8 +647,8 @@ TEST(vector, swap) {
             v1.swap(v2);
             EXPECT_EQ(v1.size(), m);
             EXPECT_EQ(v2.size(), n);
-            for_each_n(v1.data(), m, [](auto &x) { EXPECT_EQ(x, 2); });
-            for_each_n(v2.data(), n, [](auto &x) { EXPECT_EQ(x, 1); });
+            for_each_n(v1.begin(), m, [](auto &x) { EXPECT_EQ(x, 2); });
+            for_each_n(v2.begin(), n, [](auto &x) { EXPECT_EQ(x, 1); });
         }
 
     for (int n = 0; n < 32; ++n)
@@ -641,8 +658,8 @@ TEST(vector, swap) {
             v1.swap(v2);
             EXPECT_EQ(v1.size(), m);
             EXPECT_EQ(v2.size(), n);
-            for_each_n(v1.data(), m, [](auto &x) { EXPECT_EQ(x, 2); });
-            for_each_n(v2.data(), n, [](auto &x) { EXPECT_EQ(x, 1); });
+            for_each_n(v1.begin(), m, [](auto &x) { EXPECT_EQ(x, 2); });
+            for_each_n(v2.begin(), n, [](auto &x) { EXPECT_EQ(x, 1); });
         }
 
     for (int n = 0; n < 32; ++n)
@@ -652,8 +669,8 @@ TEST(vector, swap) {
             v1.swap(v2);
             EXPECT_EQ(v1.size(), m);
             EXPECT_EQ(v2.size(), n);
-            for_each_n(v1.data(), m, [&](auto &x) { EXPECT_EQ(x, 2); });
-            for_each_n(v2.data(), n, [](auto &x) { EXPECT_EQ(x, 1); });
+            for_each_n(v1.begin(), m, [&](auto &x) { EXPECT_EQ(x, 2); });
+            for_each_n(v2.begin(), n, [](auto &x) { EXPECT_EQ(x, 1); });
         }
 
     for (int n = 0; n < 48; ++n)
@@ -663,7 +680,7 @@ TEST(vector, swap) {
             v1.swap(v2);
             EXPECT_EQ(v1.size(), m);
             EXPECT_EQ(v2.size(), n);
-            for_each_n(v1.data(), m, [](auto &x) { EXPECT_EQ(x, 2); });
-            for_each_n(v2.data(), n, [](auto &x) { EXPECT_EQ(x, 1); });
+            for_each_n(v1.begin(), m, [](auto &x) { EXPECT_EQ(x, 2); });
+            for_each_n(v2.begin(), n, [](auto &x) { EXPECT_EQ(x, 1); });
         }
 }

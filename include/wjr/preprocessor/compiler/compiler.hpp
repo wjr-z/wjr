@@ -44,28 +44,28 @@
 #endif
 
 #if defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC)
-#define WJR_CPP_STANDARD __cplusplus
+#define WJR_CXX_STANDARD __cplusplus
 #elif defined(WJR_COMPILER_MSVC)
-#define WJR_CPP_STANDARD _MSVC_LANG
+#define WJR_CXX_STANDARD _MSVC_LANG
 #endif
 
-#if WJR_CPP_STANDARD >= 199711L
-#define WJR_CPP_03
+#if WJR_CXX_STANDARD >= 199711L
+#define WJR_CXX_03
 #endif
-#if WJR_CPP_STANDARD >= 201103L
-#define WJR_CPP_11
+#if WJR_CXX_STANDARD >= 201103L
+#define WJR_CXX_11
 #endif
-#if WJR_CPP_STANDARD >= 201402L
-#define WJR_CPP_14
+#if WJR_CXX_STANDARD >= 201402L
+#define WJR_CXX_14
 #endif
-#if WJR_CPP_STANDARD >= 201703L
-#define WJR_CPP_17
+#if WJR_CXX_STANDARD >= 201703L
+#define WJR_CXX_17
 #endif
-#if WJR_CPP_STANDARD >= 202002L
-#define WJR_CPP_20
+#if WJR_CXX_STANDARD >= 202002L
+#define WJR_CXX_20
 #endif
 
-#ifndef WJR_CPP_17
+#ifndef WJR_CXX_17
 #error "required C++17 or later"
 #endif // c++17
 

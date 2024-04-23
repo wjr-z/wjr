@@ -74,55 +74,8 @@ TEST(memory, algined_allocator) {
     } while (0);
 }
 
-#if WJR_HAS_BUILTIN(UNINITIALIZED_CHECKER)
-
-TEST(memory, uninitialized) {
-    do {
-        uninitialized<std::string> a;
-
-        try {
-            auto &x = a.get();
-            goto ERROR;
-        } catch (...) {
-        }
-
-        try {
-            a.reset();
-            goto ERROR;
-        } catch (...) {
-        }
-
-        a.emplace("hello world");
-
-        try {
-            auto &x = a.get();
-        } catch (...) {
-            goto ERROR;
-        }
-
-        a.reset();
-
-    } while (0);
-
-    do {
-        uninitialized<uint32_t> a;
-
-        try {
-            auto &x = a.get();
-            goto ERROR;
-        } catch (...) {
-        }
-
-        a.reset();
-
-    } while (0);
-
-    return;
-ERROR : { WJR_ASSERT(false, "uninitialized error"); }
-}
-
+#if WJR_HAS_DEBUG(UNINITIALIZED_CHECKER)
 #else
-
 TEST(memory, uninitialized) {
     do {
         using type = uninitialized<int>;
