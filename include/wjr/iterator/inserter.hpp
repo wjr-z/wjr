@@ -43,33 +43,42 @@ inline constexpr bool is_any_insert_iterator_v = is_any_insert_iterator<T>::valu
 
 template <typename Iter>
 struct __inserter_container_accessor : Iter {
-    __inserter_container_accessor(Iter it) : Iter(it) {}
+    __inserter_container_accessor(Iter it) noexcept(
+        std::is_nothrow_copy_constructible_v<Iter>)
+        : Iter(it) {}
     using Iter::container;
 };
 
 template <typename Iter>
 struct __inserter_iterator_accessor : Iter {
-    __inserter_iterator_accessor(Iter it) : Iter(it) {}
+    __inserter_iterator_accessor(Iter it) noexcept(
+        std::is_nothrow_copy_constructible_v<Iter>)
+        : Iter(it) {}
     using Iter::iter;
 };
 
 template <typename Container>
-Container &get_inserter_container(std::insert_iterator<Container> it) {
+Container &get_inserter_container(std::insert_iterator<Container> it) noexcept(
+    std::is_nothrow_copy_constructible_v<std::insert_iterator<Container>>) {
     return *(__inserter_container_accessor(it).container);
 }
 
 template <typename Container>
-Container &get_inserter_container(std::back_insert_iterator<Container> it) {
+Container &get_inserter_container(std::back_insert_iterator<Container> it) noexcept(
+    std::is_nothrow_copy_constructible_v<std::back_insert_iterator<Container>>) {
     return *(__inserter_container_accessor(it).container);
 }
 
 template <typename Container>
-Container &get_inserter_container(std::front_insert_iterator<Container> it) {
+Container &get_inserter_container(std::front_insert_iterator<Container> it) noexcept(
+    std::is_nothrow_copy_constructible_v<std::front_insert_iterator<Container>>) {
     return *(__inserter_container_accessor(it).container);
 }
 
 template <typename Container>
-typename Container::iterator get_inserter_iterator(std::insert_iterator<Container> it) {
+typename Container::iterator
+get_inserter_iterator(std::insert_iterator<Container> it) noexcept(
+    std::is_nothrow_copy_constructible_v<std::insert_iterator<Container>>) {
     return __inserter_iterator_accessor(it).iter;
 }
 

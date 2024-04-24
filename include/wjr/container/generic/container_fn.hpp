@@ -41,7 +41,15 @@ private:
 
 public:
     template <typename Container>
-    WJR_CONSTEXPR20 static void copy_assign(Container &lhs, const Container &rhs) {
+    WJR_CONSTEXPR20 static void
+    copy_assign(Container &lhs, const Container &rhs) noexcept(
+        noexcept(lhs.__copy_element(rhs)) &&
+                !propagate_on_container_copy_assignment::value
+            ? true
+            : (noexcept(lhs.__get_allocator() = rhs.__get_allocator()) &&
+                       is_always_equal::value
+                   ? true
+                   : noexcept(lhs.__destroy_and_deallocate()))) {
         if constexpr (propagate_on_container_copy_assignment::value) {
             auto &lhs_allocator = lhs.__get_allocator();
             auto &rhs_allocator = rhs.__get_allocator();
@@ -58,7 +66,16 @@ public:
     }
 
     template <typename Container>
-    WJR_CONSTEXPR20 static void move_assign(Container &lhs, Container &&rhs) {
+    WJR_CONSTEXPR20 static void move_assign(Container &lhs, Container &&rhs) noexcept(
+        noexcept(lhs.__destroy_and_deallocate()) && noexcept(
+            lhs.__take_storage(std::move(rhs))) &&
+                std::disjunction_v<propagate_on_container_move_assignment,
+                                   is_always_equal>
+            ? (!propagate_on_container_move_assignment::value
+                   ? true
+                   : noexcept(lhs.__get_allocator() = std::move(rhs.__get_allocator())))
+            : (noexcept(lhs.__destroy()) && noexcept(
+                  lhs.__move_element(std::move(rhs))))) {
         if constexpr (std::disjunction_v<propagate_on_container_move_assignment,
                                          is_always_equal>) {
             lhs.__destroy_and_deallocate();
@@ -78,7 +95,12 @@ public:
     }
 
     template <typename Container>
-    WJR_CONSTEXPR20 static void swap(Container &lhs, Container &rhs) {
+    WJR_CONSTEXPR20 static void swap(Container &lhs, Container &rhs) noexcept(
+        noexcept(lhs.__swap_storage(rhs)) &&
+                !std::conjunction_v<propagate_on_container_swap,
+                                    std::negation<is_always_equal>>
+            ? true
+            : noexcept(std::swap(lhs.__get_allocator(), rhs.__get_allocator()))) {
         if constexpr (std::conjunction_v<propagate_on_container_swap,
                                          std::negation<is_always_equal>>) {
             auto &lhs_allocator = lhs.__get_allocator();

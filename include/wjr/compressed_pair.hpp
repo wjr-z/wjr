@@ -87,20 +87,20 @@ public:
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
                                               std::is_default_constructible<Uy>>
-                               &&std::conjunction_v<is_default_constructible<Ty>,
-                                                    is_default_constructible<Uy>>)>
+                               &&std::conjunction_v<is_default_convertible<Ty>,
+                                                    is_default_convertible<Uy>>)>
     constexpr compressed_pair() noexcept(
-        std::conjunction_v<std::is_nothrow_default_constructible<Ty>,
-                           std::is_nothrow_default_constructible<Uy>>) {}
+        std::conjunction_v<std::is_nothrow_constructible<Ty>,
+                           std::is_nothrow_constructible<Uy>>) {}
 
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
                                               std::is_default_constructible<Uy>> &&
-                           !std::conjunction_v<is_default_constructible<Ty>,
-                                               is_default_constructible<Uy>>)>
+                           !std::conjunction_v<is_default_convertible<Ty>,
+                                               is_default_convertible<Uy>>)>
     constexpr explicit compressed_pair() noexcept(
-        std::conjunction_v<std::is_nothrow_default_constructible<Ty>,
-                           std::is_nothrow_default_constructible<Uy>>) {}
+        std::conjunction_v<std::is_nothrow_constructible<Ty>,
+                           std::is_nothrow_constructible<Uy>>) {}
 
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<
@@ -255,48 +255,59 @@ public:
 template <typename T, typename U>
 compressed_pair(T, U) -> compressed_pair<T, U>;
 
-template <typename T, typename U>
-WJR_CONST constexpr bool operator==(const compressed_pair<T, U> &lhs,
-                                    const compressed_pair<T, U> &rhs) {
+template <typename T1, typename U1, typename T2, typename U2>
+WJR_CONST constexpr bool operator==(
+    const compressed_pair<T1, U1> &lhs,
+    const compressed_pair<T2, U2> &
+        rhs) noexcept(std::conjunction_v<has_noexcept_equal_to<const T1 &, const T2 &>,
+                                         has_noexcept_equal_to<const U1 &, const U2 &>>) {
     return lhs.first() == rhs.first() && lhs.second() == rhs.second();
 }
 
-template <typename T, typename U>
-WJR_CONST constexpr bool operator!=(const compressed_pair<T, U> &lhs,
-                                    const compressed_pair<T, U> &rhs) {
+template <typename T1, typename U1, typename T2, typename U2>
+WJR_CONST constexpr bool
+operator!=(const compressed_pair<T1, U1> &lhs,
+           const compressed_pair<T2, U2> &rhs) noexcept(noexcept(lhs == rhs)) {
     return !(lhs == rhs);
 }
 
-template <typename T, typename U>
-WJR_CONST constexpr bool operator<(const compressed_pair<T, U> &lhs,
-                                   const compressed_pair<T, U> &rhs) {
+template <typename T1, typename U1, typename T2, typename U2>
+WJR_CONST constexpr bool operator<(
+    const compressed_pair<T1, U1> &lhs,
+    const compressed_pair<T2, U2>
+        &rhs) noexcept(std::conjunction_v<has_noexcept_less<const T1 &, const T2 &>,
+                                          has_noexcept_less<const T2 &, const T1 &>,
+                                          has_noexcept_less<const U1 &, const U2 &>>) {
     return lhs.first() < rhs.first() ||
            (!(rhs.first() < lhs.first()) && lhs.second() < rhs.second());
 }
 
-template <typename T, typename U>
-WJR_CONST constexpr bool operator>(const compressed_pair<T, U> &lhs,
-                                   const compressed_pair<T, U> &rhs) {
+template <typename T1, typename U1, typename T2, typename U2>
+WJR_CONST constexpr bool
+operator>(const compressed_pair<T1, U1> &lhs,
+          const compressed_pair<T2, U2> &rhs) noexcept(noexcept(rhs < lhs)) {
     return rhs < lhs;
 }
 
-template <typename T, typename U>
-WJR_CONST constexpr bool operator<=(const compressed_pair<T, U> &lhs,
-                                    const compressed_pair<T, U> &rhs) {
+template <typename T1, typename U1, typename T2, typename U2>
+WJR_CONST constexpr bool
+operator<=(const compressed_pair<T1, U1> &lhs,
+           const compressed_pair<T2, U2> &rhs) noexcept(noexcept(rhs < lhs)) {
     return !(rhs < lhs);
 }
 
-template <typename T, typename U>
-WJR_CONST constexpr bool operator>=(const compressed_pair<T, U> &lhs,
-                                    const compressed_pair<T, U> &rhs) {
+template <typename T1, typename U1, typename T2, typename U2>
+WJR_CONST constexpr bool
+operator>=(const compressed_pair<T1, U1> &lhs,
+           const compressed_pair<T2, U2> &rhs) noexcept(noexcept(lhs < rhs)) {
     return !(lhs < rhs);
 }
 
 template <typename T, typename U>
 constexpr compressed_pair<unref_wrapper_t<T>, unref_wrapper_t<U>>
 make_compressed_pair(T &&t, U &&u) noexcept(
-    std::conjunction_v<std::is_nothrow_constructible<unref_wrapper_t<T>, T>,
-                       std::is_nothrow_constructible<unref_wrapper_t<U>, U>>) {
+    std::conjunction_v<std::is_nothrow_constructible<unref_wrapper_t<T>, T &&>,
+                       std::is_nothrow_constructible<unref_wrapper_t<U>, U &&>>) {
     return compressed_pair<unref_wrapper_t<T>, unref_wrapper_t<U>>(std::forward<T>(t),
                                                                    std::forward<U>(u));
 }

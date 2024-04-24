@@ -5,7 +5,7 @@
 
 namespace wjr {
 
-namespace trivially_allocator_base_details {
+namespace {
 WJR_REGISTER_HAS_TYPE(is_trivially_allocator,
                       std::declval<typename Alloc::is_trivially_allocator>(), Alloc);
 WJR_REGISTER_HAS_TYPE(
@@ -14,15 +14,14 @@ WJR_REGISTER_HAS_TYPE(
 WJR_REGISTER_HAS_TYPE(is_trivially_allocator_destructible,
                       std::declval<typename Alloc::is_trivially_allocator_destructible>(),
                       Alloc);
-} // namespace trivially_allocator_base_details
+} // namespace
 
 template <typename Alloc, typename = void>
 struct __is_trivially_allocator_impl : std::false_type {};
 
 template <typename Alloc>
 struct __is_trivially_allocator_impl<
-    Alloc, std::enable_if_t<
-               trivially_allocator_base_details::has_is_trivially_allocator_v<Alloc>>>
+    Alloc, std::enable_if_t<has_is_trivially_allocator_v<Alloc>>>
     : Alloc::is_trivially_allocator {};
 
 template <typename Alloc>
@@ -39,8 +38,7 @@ struct __is_trivially_allocator_constructible_impl : std::false_type {};
 
 template <typename Alloc>
 struct __is_trivially_allocator_constructible_impl<
-    Alloc, std::enable_if_t<trivially_allocator_base_details::
-                                has_is_trivially_allocator_constructible_v<Alloc>>>
+    Alloc, std::enable_if_t<has_is_trivially_allocator_constructible_v<Alloc>>>
     : Alloc::is_trivially_allocator_constructible {};
 
 template <typename Alloc>
@@ -57,8 +55,7 @@ struct __is_trivially_allocator_destructible_impl : std::false_type {};
 
 template <typename Alloc>
 struct __is_trivially_allocator_destructible_impl<
-    Alloc, std::enable_if_t<trivially_allocator_base_details::
-                                has_is_trivially_allocator_destructible_v<Alloc>>>
+    Alloc, std::enable_if_t<has_is_trivially_allocator_destructible_v<Alloc>>>
     : Alloc::is_trivially_allocator_destructible {};
 
 template <typename Alloc>

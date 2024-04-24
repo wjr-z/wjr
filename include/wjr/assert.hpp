@@ -10,10 +10,6 @@
 
 #include <wjr/preprocessor.hpp>
 
-#ifdef WJR_ASSERT_THROW
-#include <sstream>
-#endif
-
 namespace wjr {
 
 // ASSERT_LEVEL : 0 ~ 3
@@ -29,13 +25,6 @@ namespace wjr {
 #endif
 #endif
 
-// use WJR_THROW instead of std::abort
-#ifdef WJR_ASSERT_THROW
-#define WJR_ASSERT_NORETURN
-#else
-#define WJR_ASSERT_NORETURN WJR_NORETURN
-#endif
-
 #define WJR_DEBUG_IF(level, expr0, expr1)                                                \
     WJR_PP_BOOL_IF(WJR_PP_GT(WJR_DEBUG_LEVEL, level), expr0, expr1)
 
@@ -45,12 +34,12 @@ namespace wjr {
 class __assert_handler_t {
 private:
     template <typename Output>
-    static Output &handler(Output &out) {
+    static Output &handler(Output &out) noexcept {
         return out;
     }
 
     template <typename Output, typename... Args>
-    static Output &handler(Output &out, Args &&...args) {
+    static Output &handler(Output &out, Args &&...args) noexcept {
         out << "Additional information: ";
         (void)(out << ... << std::forward<Args>(args));
         out << '\n';
@@ -58,14 +47,10 @@ private:
     }
 
     template <typename... Args>
-    WJR_ASSERT_NORETURN WJR_NOINLINE static void
-    fn(const char *expr, const char *file, const char *func, int line, Args &&...args) {
-#ifndef WJR_ASSERT_THROW
+    WJR_NORETURN WJR_NOINLINE static void fn(const char *expr, const char *file,
+                                             const char *func, int line,
+                                             Args &&...args) noexcept {
         auto &output = std::cerr;
-#else
-        std::ostringstream os;
-        auto &output = os;
-#endif
         if (file[0] != '\0') {
             output << file << ':';
         }
@@ -75,17 +60,13 @@ private:
         output << func << ": Assertion `" << expr << "' failed.\n";
         handler(output, std::forward<Args>(args)...);
 
-#ifndef WJR_ASSERT_THROW
         std::abort();
-#else
-        WJR_THROW(std::runtime_error(os.str()));
-#endif
     }
 
 public:
     template <typename... Args>
     void operator()(const char *expr, const char *file, const char *func, int line,
-                    Args &&...args) const {
+                    Args &&...args) const noexcept {
         fn(expr, file, func, line, std::forward<Args>(args)...);
     }
 };

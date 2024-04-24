@@ -118,15 +118,11 @@ private:
 public:
     static constexpr int value =
         traits_type::is_trivially_contiguous_v &&
-                container_details::has_container_resize_v<Container, size_t>
-            ? (container_details::has_container_resize_v<Container, size_t, dctor_t> ? 2
-                                                                                     : 1)
+                has_container_resize_v<Container, size_t>
+            ? (has_container_resize_v<Container, size_t, dctor_t> ? 2 : 1)
             : 0;
 
-    static_assert(
-        value != 2 ||
-            container_details::has_container_append_v<Container, size_t, dctor_t>,
-        "");
+    static_assert(value != 2 || has_container_append_v<Container, size_t, dctor_t>, "");
 };
 
 template <typename Iter, typename = void>

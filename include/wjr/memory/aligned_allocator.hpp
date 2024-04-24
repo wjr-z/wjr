@@ -8,7 +8,7 @@
 
 namespace wjr {
 
-namespace aligned_allocator_details {
+namespace {
 WJR_REGISTER_HAS_TYPE(aligned_allocate,
                       std::declval<Alloc>().aligned_alocate(std::declval<Size>(),
                                                             std::declval<size_t>()),
@@ -17,7 +17,7 @@ WJR_REGISTER_HAS_TYPE(aligned_allocate_at_least,
                       std::declval<Alloc>().aligned_alocate_at_least(
                           std::declval<Size>(), std::declval<size_t>()),
                       Alloc, Size);
-} // namespace aligned_allocator_details
+} // namespace
 
 template <typename Alloc, size_t alignment>
 class aligned_allocator;
@@ -64,24 +64,26 @@ public:
     static_assert(sizeof(typename std::allocator_traits<Alty>::value_type) == 1, "");
     static_assert(alignment > 0 && alignment < 256, "alignment must be in [1, 255].");
 
-    WJR_CONSTEXPR20 aligned_allocator() noexcept = default;
-    WJR_CONSTEXPR20 aligned_allocator(const aligned_allocator &) noexcept = default;
+    WJR_CONSTEXPR20 aligned_allocator() noexcept(
+        std::is_nothrow_default_constructible_v<Mybase>) = default;
+    WJR_CONSTEXPR20 aligned_allocator(const aligned_allocator &) noexcept(
+        std::is_nothrow_copy_constructible_v<Mybase>) = default;
     template <typename U, size_t alignment2>
-    WJR_CONSTEXPR20
-    aligned_allocator(const aligned_allocator<U, alignment2> &other) noexcept
+    WJR_CONSTEXPR20 aligned_allocator(
+        const aligned_allocator<U, alignment2> &other) noexcept(noexcept(Mybase(other)))
         : Mybase(other) {}
 
     ~aligned_allocator() = default;
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<Alty, Args &&...>)>
-    WJR_CONSTEXPR20 aligned_allocator(Args &&...args) noexcept
+    WJR_CONSTEXPR20 aligned_allocator(Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<Alty, Args &&...>)
         : Mybase(std::forward<Args>(args)...) {}
 
     WJR_CONSTEXPR20 WJR_ALIGNED(alignment) pointer allocate(size_type n) {
         if constexpr (alignment == 1) {
             return reinterpret_cast<pointer>(base().allocate(n * sizeof(value_type)));
-        } else if constexpr (aligned_allocator_details::has_aligned_allocate_v<
-                                 Alty, size_type>) {
+        } else if constexpr (has_aligned_allocate_v<Alty, size_type>) {
             return reinterpret_cast<pointer>(
                 base().aligned_allocate(n * sizeof(value_type), alignment));
         } else {
@@ -97,8 +99,7 @@ public:
     WJR_CONSTEXPR20 allocation_result<pointer, size_type> allocate_at_least(size_type n) {
         if constexpr (alignment == 1) {
             return wjr::allocate_at_least(base(), n * sizeof(value_type));
-        } else if constexpr (aligned_allocator_details::has_aligned_allocate_at_least_v<
-                                 Alty, size_type>) {
+        } else if constexpr (has_aligned_allocate_at_least_v<Alty, size_type>) {
             return reinterpret_cast<pointer>(
                 base().aligned_allocate_at_least(n, alignment));
         } else {
@@ -116,8 +117,7 @@ public:
     WJR_CONSTEXPR20 void deallocate(pointer ptr, size_type n) {
         if constexpr (alignment == 1) {
             base().deallocate(reinterpret_cast<uint8_t *>(ptr), n * sizeof(value_type));
-        } else if constexpr (aligned_allocator_details::has_aligned_allocate_v<
-                                 Alty, size_type>) {
+        } else if constexpr (has_aligned_allocate_v<Alty, size_type>) {
             base().aligned_deallocate(reinterpret_cast<uint8_t *>(ptr),
                                       n * sizeof(value_type), alignment);
         } else {

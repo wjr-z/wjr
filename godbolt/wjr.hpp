@@ -2372,10 +2372,6 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 
 #endif // WJR_PREPROCESSOR_HPP__
 
-#ifdef WJR_ASSERT_THROW
-#include <sstream>
-#endif
-
 namespace wjr {
 
 // ASSERT_LEVEL : 0 ~ 3
@@ -2391,13 +2387,6 @@ namespace wjr {
 #endif
 #endif
 
-// use WJR_THROW instead of std::abort
-#ifdef WJR_ASSERT_THROW
-#define WJR_ASSERT_NORETURN
-#else
-#define WJR_ASSERT_NORETURN WJR_NORETURN
-#endif
-
 #define WJR_DEBUG_IF(level, expr0, expr1)                                                \
     WJR_PP_BOOL_IF(WJR_PP_GT(WJR_DEBUG_LEVEL, level), expr0, expr1)
 
@@ -2407,12 +2396,12 @@ namespace wjr {
 class __assert_handler_t {
 private:
     template <typename Output>
-    static Output &handler(Output &out) {
+    static Output &handler(Output &out) noexcept {
         return out;
     }
 
     template <typename Output, typename... Args>
-    static Output &handler(Output &out, Args &&...args) {
+    static Output &handler(Output &out, Args &&...args) noexcept {
         out << "Additional information: ";
         (void)(out << ... << std::forward<Args>(args));
         out << '\n';
@@ -2420,14 +2409,10 @@ private:
     }
 
     template <typename... Args>
-    WJR_ASSERT_NORETURN WJR_NOINLINE static void
-    fn(const char *expr, const char *file, const char *func, int line, Args &&...args) {
-#ifndef WJR_ASSERT_THROW
+    WJR_NORETURN WJR_NOINLINE static void fn(const char *expr, const char *file,
+                                             const char *func, int line,
+                                             Args &&...args) noexcept {
         auto &output = std::cerr;
-#else
-        std::ostringstream os;
-        auto &output = os;
-#endif
         if (file[0] != '\0') {
             output << file << ':';
         }
@@ -2437,17 +2422,13 @@ private:
         output << func << ": Assertion `" << expr << "' failed.\n";
         handler(output, std::forward<Args>(args)...);
 
-#ifndef WJR_ASSERT_THROW
         std::abort();
-#else
-        WJR_THROW(std::runtime_error(os.str()));
-#endif
     }
 
 public:
     template <typename... Args>
     void operator()(const char *expr, const char *file, const char *func, int line,
-                    Args &&...args) const {
+                    Args &&...args) const noexcept {
         fn(expr, file, func, line, std::forward<Args>(args)...);
     }
 };
@@ -2516,19 +2497,20 @@ inline constexpr __assert_handler_t __assert_handler{};
  *
  * @details
  * Customized internal structure needs to follow the following function signature: \n
- * -# storage()
+ * -# storage() noexcept(optional)
  * -# template <typename _Alloc>  \n
- * storage(_Alloc&& al)
+ * storage(_Alloc&& al) noexcept(optional)
  * -# template <typename _Alloc> \n
  * storage(_Alloc&& al, size_type size, size_type capacity, in_place_reallocate_t)
- * -# ~storage() noexcept
+ * noexcept(optional)
+ * -# ~storage() noexcept(optional)
  * -# auto& get_allocator() noexcept
  * -# const auto& get_allocator() const noexcept
- * -# void destroy() noexcept
- * -# void destroy_and_deallocate()
- * -# void uninitialized_construct(size_type size, size_type capacity)
- * -# void take_storage(storage& other)
- * -# void swap_storage(storage& other)
+ * -# void destroy() noexcept(optional)
+ * -# void destroy_and_deallocate() noexcept(optional)
+ * -# void uninitialized_construct(size_type size, size_type capacity) noexcept(optional)
+ * -# void take_storage(storage& other) noexcept(optional)
+ * -# void swap_storage(storage& other) noexcept(optional)
  * -# decltype(auto) size() noexcept
  * -# size_type capacity() const noexcept
  * -# pointer data() noexcept
@@ -2831,7 +2813,7 @@ inline constexpr in_place_reserve_t in_place_reserve = {};
 
 struct in_place_max_t {
     template <typename T>
-    WJR_CONST constexpr operator T() const {
+    WJR_CONST constexpr operator T() const noexcept {
         return std::numeric_limits<T>::max();
     }
 };
@@ -2840,7 +2822,7 @@ inline constexpr in_place_max_t in_place_max = {};
 
 struct in_place_min_t {
     template <typename T>
-    WJR_CONST constexpr operator T() const {
+    WJR_CONST constexpr operator T() const noexcept {
         return std::numeric_limits<T>::min();
     }
 };
@@ -3152,26 +3134,9 @@ template <typename From, typename To>
 inline constexpr bool is_convertible_to_v = is_convertible_to<From, To>::value;
 
 // TODO : move __is_in_i32_range to other header.
-WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
     return value >= (int32_t)in_place_min && value <= (int32_t)in_place_max;
 }
-
-template <typename T>
-constexpr void __is_default_convertible_test(const T &) noexcept;
-
-template <typename T, typename = void>
-struct __is_default_convertible_impl : std::false_type {};
-
-template <typename T>
-struct __is_default_convertible_impl<
-    T, std::void_t<decltype(__is_default_convertible_test<T>(std::declval<T>()))>>
-    : std::true_type {};
-
-template <typename T>
-struct is_default_constructible : __is_default_convertible_impl<T> {};
-
-template <typename T>
-inline constexpr bool is_default_constructible_v = is_default_constructible<T>::value;
 
 #define __WJR_REGISTER_TYPENAMES_EXPAND(x) __WJR_REGISTER_TYPENAMES_EXPAND_I x
 #define __WJR_REGISTER_TYPENAMES_EXPAND_I(...) __VA_ARGS__
@@ -3212,14 +3177,34 @@ inline constexpr bool is_default_constructible_v = is_default_constructible<T>::
 constexpr static void allow_true_type(std::true_type) noexcept {}
 constexpr static void allow_false_type(std::false_type) noexcept {}
 
-namespace compare_details {
-WJR_REGISTER_HAS_TYPE(equal, std::declval<T>() == std::declval<U>(), T, U);
-WJR_REGISTER_HAS_TYPE(less, std::declval<T>() < std::declval<U>(), T, U);
-WJR_REGISTER_HAS_TYPE(greater, std::declval<T>() > std::declval<U>(), T, U);
-WJR_REGISTER_HAS_TYPE(less_equal, std::declval<T>() <= std::declval<U>(), T, U);
-WJR_REGISTER_HAS_TYPE(greater_equal, std::declval<T>() >= std::declval<U>(), T, U);
-WJR_REGISTER_HAS_TYPE(not_equal, std::declval<T>() != std::declval<U>(), T, U);
-} // namespace compare_details
+namespace {
+WJR_REGISTER_HAS_TYPE(compare, std::declval<Comp>()(std::declval<T>(), std::declval<U>()),
+                      Comp, T, U);
+WJR_REGISTER_HAS_TYPE(
+    noexcept_compare,
+    allow_true_type(std::declval<std::bool_constant<noexcept(
+                        std::declval<Comp>()(std::declval<T>(), std::declval<U>()))>>()),
+    Comp, T, U);
+
+#define WJR_REGISTER_HAS_COMPARE(NAME, STD)                                              \
+    template <typename T, typename U>                                                    \
+    struct has_##NAME : has_compare<STD, T, U> {};                                       \
+    template <typename T, typename U>                                                    \
+    inline constexpr bool has_##NAME##_v = has_##NAME<T, U>::value;                      \
+    template <typename T, typename U>                                                    \
+    struct has_noexcept_##NAME : has_noexcept_compare<STD, T, U> {};                     \
+    template <typename T, typename U>                                                    \
+    inline constexpr bool has_noexcept_##NAME##_v = has_noexcept_##NAME<T, U>::value;
+
+WJR_REGISTER_HAS_COMPARE(equal_to, std::equal_to<>);
+WJR_REGISTER_HAS_COMPARE(not_equal_to, std::not_equal_to<>);
+WJR_REGISTER_HAS_COMPARE(less, std::less<>);
+WJR_REGISTER_HAS_COMPARE(less_equal, std::less_equal<>);
+WJR_REGISTER_HAS_COMPARE(greater, std::greater<>);
+WJR_REGISTER_HAS_COMPARE(greater_equal, std::greater_equal<>);
+
+#undef WJR_REGISTER_HAS_COMPARE
+} // namespace
 
 template <typename T>
 struct get_integral_constant {
@@ -4342,14 +4327,18 @@ class capture_leaf : enable_special_members_of_args_base<Tag, T> {
 
 public:
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
-    constexpr capture_leaf() : Mybase(enable_default_constructor), m_value() {}
+    constexpr capture_leaf() noexcept(std::is_nothrow_constructible_v<T>)
+        : Mybase(enable_default_constructor), m_value() {}
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
-    constexpr capture_leaf(Args &&...args)
+    constexpr capture_leaf(Args &&...args) noexcept(
+        std::is_constructible_v<T, Args &&...>)
         : Mybase(enable_default_constructor), m_value(std::forward<Args>(args)...) {}
 
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
-    constexpr explicit capture_leaf(dctor_t) : Mybase(enable_default_constructor) {}
+    constexpr explicit capture_leaf(dctor_t) noexcept(
+        std::is_nothrow_default_constructible_v<T>)
+        : Mybase(enable_default_constructor) {}
 
     constexpr T &get() noexcept { return m_value; }
     constexpr const T &get() const noexcept { return m_value; }
@@ -4370,14 +4359,17 @@ class compressed_capture_leaf : T {
 
 public:
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
-    constexpr compressed_capture_leaf() : Mybase() {}
+    constexpr compressed_capture_leaf() noexcept(std::is_nothrow_constructible_v<T>)
+        : Mybase() {}
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
-    constexpr compressed_capture_leaf(Args &&...args)
+    constexpr compressed_capture_leaf(Args &&...args) noexcept(
+        std::is_constructible_v<T, Args &&...>)
         : Mybase(std::forward<Args>(args)...) {}
 
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
-    constexpr explicit compressed_capture_leaf(dctor_t) {}
+    constexpr explicit compressed_capture_leaf(dctor_t) noexcept(
+        std::is_nothrow_default_constructible_v<T>) {}
 
     constexpr T &get() noexcept { return *this; }
     constexpr const T &get() const noexcept { return *this; }
@@ -4500,20 +4492,20 @@ public:
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
                                               std::is_default_constructible<Uy>>
-                               &&std::conjunction_v<is_default_constructible<Ty>,
-                                                    is_default_constructible<Uy>>)>
+                               &&std::conjunction_v<is_default_convertible<Ty>,
+                                                    is_default_convertible<Uy>>)>
     constexpr compressed_pair() noexcept(
-        std::conjunction_v<std::is_nothrow_default_constructible<Ty>,
-                           std::is_nothrow_default_constructible<Uy>>) {}
+        std::conjunction_v<std::is_nothrow_constructible<Ty>,
+                           std::is_nothrow_constructible<Uy>>) {}
 
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
                                               std::is_default_constructible<Uy>> &&
-                           !std::conjunction_v<is_default_constructible<Ty>,
-                                               is_default_constructible<Uy>>)>
+                           !std::conjunction_v<is_default_convertible<Ty>,
+                                               is_default_convertible<Uy>>)>
     constexpr explicit compressed_pair() noexcept(
-        std::conjunction_v<std::is_nothrow_default_constructible<Ty>,
-                           std::is_nothrow_default_constructible<Uy>>) {}
+        std::conjunction_v<std::is_nothrow_constructible<Ty>,
+                           std::is_nothrow_constructible<Uy>>) {}
 
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<
@@ -4668,48 +4660,59 @@ public:
 template <typename T, typename U>
 compressed_pair(T, U) -> compressed_pair<T, U>;
 
-template <typename T, typename U>
-WJR_CONST constexpr bool operator==(const compressed_pair<T, U> &lhs,
-                                    const compressed_pair<T, U> &rhs) {
+template <typename T1, typename U1, typename T2, typename U2>
+WJR_CONST constexpr bool operator==(
+    const compressed_pair<T1, U1> &lhs,
+    const compressed_pair<T2, U2> &
+        rhs) noexcept(std::conjunction_v<has_noexcept_equal_to<const T1 &, const T2 &>,
+                                         has_noexcept_equal_to<const U1 &, const U2 &>>) {
     return lhs.first() == rhs.first() && lhs.second() == rhs.second();
 }
 
-template <typename T, typename U>
-WJR_CONST constexpr bool operator!=(const compressed_pair<T, U> &lhs,
-                                    const compressed_pair<T, U> &rhs) {
+template <typename T1, typename U1, typename T2, typename U2>
+WJR_CONST constexpr bool
+operator!=(const compressed_pair<T1, U1> &lhs,
+           const compressed_pair<T2, U2> &rhs) noexcept(noexcept(lhs == rhs)) {
     return !(lhs == rhs);
 }
 
-template <typename T, typename U>
-WJR_CONST constexpr bool operator<(const compressed_pair<T, U> &lhs,
-                                   const compressed_pair<T, U> &rhs) {
+template <typename T1, typename U1, typename T2, typename U2>
+WJR_CONST constexpr bool operator<(
+    const compressed_pair<T1, U1> &lhs,
+    const compressed_pair<T2, U2>
+        &rhs) noexcept(std::conjunction_v<has_noexcept_less<const T1 &, const T2 &>,
+                                          has_noexcept_less<const T2 &, const T1 &>,
+                                          has_noexcept_less<const U1 &, const U2 &>>) {
     return lhs.first() < rhs.first() ||
            (!(rhs.first() < lhs.first()) && lhs.second() < rhs.second());
 }
 
-template <typename T, typename U>
-WJR_CONST constexpr bool operator>(const compressed_pair<T, U> &lhs,
-                                   const compressed_pair<T, U> &rhs) {
+template <typename T1, typename U1, typename T2, typename U2>
+WJR_CONST constexpr bool
+operator>(const compressed_pair<T1, U1> &lhs,
+          const compressed_pair<T2, U2> &rhs) noexcept(noexcept(rhs < lhs)) {
     return rhs < lhs;
 }
 
-template <typename T, typename U>
-WJR_CONST constexpr bool operator<=(const compressed_pair<T, U> &lhs,
-                                    const compressed_pair<T, U> &rhs) {
+template <typename T1, typename U1, typename T2, typename U2>
+WJR_CONST constexpr bool
+operator<=(const compressed_pair<T1, U1> &lhs,
+           const compressed_pair<T2, U2> &rhs) noexcept(noexcept(rhs < lhs)) {
     return !(rhs < lhs);
 }
 
-template <typename T, typename U>
-WJR_CONST constexpr bool operator>=(const compressed_pair<T, U> &lhs,
-                                    const compressed_pair<T, U> &rhs) {
+template <typename T1, typename U1, typename T2, typename U2>
+WJR_CONST constexpr bool
+operator>=(const compressed_pair<T1, U1> &lhs,
+           const compressed_pair<T2, U2> &rhs) noexcept(noexcept(lhs < rhs)) {
     return !(lhs < rhs);
 }
 
 template <typename T, typename U>
 constexpr compressed_pair<unref_wrapper_t<T>, unref_wrapper_t<U>>
 make_compressed_pair(T &&t, U &&u) noexcept(
-    std::conjunction_v<std::is_nothrow_constructible<unref_wrapper_t<T>, T>,
-                       std::is_nothrow_constructible<unref_wrapper_t<U>, U>>) {
+    std::conjunction_v<std::is_nothrow_constructible<unref_wrapper_t<T>, T &&>,
+                       std::is_nothrow_constructible<unref_wrapper_t<U>, U &&>>) {
     return compressed_pair<unref_wrapper_t<T>, unref_wrapper_t<U>>(std::forward<T>(t),
                                                                    std::forward<U>(u));
 }
@@ -4851,7 +4854,15 @@ private:
 
 public:
     template <typename Container>
-    WJR_CONSTEXPR20 static void copy_assign(Container &lhs, const Container &rhs) {
+    WJR_CONSTEXPR20 static void
+    copy_assign(Container &lhs, const Container &rhs) noexcept(
+        noexcept(lhs.__copy_element(rhs)) &&
+                !propagate_on_container_copy_assignment::value
+            ? true
+            : (noexcept(lhs.__get_allocator() = rhs.__get_allocator()) &&
+                       is_always_equal::value
+                   ? true
+                   : noexcept(lhs.__destroy_and_deallocate()))) {
         if constexpr (propagate_on_container_copy_assignment::value) {
             auto &lhs_allocator = lhs.__get_allocator();
             auto &rhs_allocator = rhs.__get_allocator();
@@ -4868,7 +4879,16 @@ public:
     }
 
     template <typename Container>
-    WJR_CONSTEXPR20 static void move_assign(Container &lhs, Container &&rhs) {
+    WJR_CONSTEXPR20 static void move_assign(Container &lhs, Container &&rhs) noexcept(
+        noexcept(lhs.__destroy_and_deallocate()) && noexcept(
+            lhs.__take_storage(std::move(rhs))) &&
+                std::disjunction_v<propagate_on_container_move_assignment,
+                                   is_always_equal>
+            ? (!propagate_on_container_move_assignment::value
+                   ? true
+                   : noexcept(lhs.__get_allocator() = std::move(rhs.__get_allocator())))
+            : (noexcept(lhs.__destroy()) && noexcept(
+                  lhs.__move_element(std::move(rhs))))) {
         if constexpr (std::disjunction_v<propagate_on_container_move_assignment,
                                          is_always_equal>) {
             lhs.__destroy_and_deallocate();
@@ -4888,7 +4908,12 @@ public:
     }
 
     template <typename Container>
-    WJR_CONSTEXPR20 static void swap(Container &lhs, Container &rhs) {
+    WJR_CONSTEXPR20 static void swap(Container &lhs, Container &rhs) noexcept(
+        noexcept(lhs.__swap_storage(rhs)) &&
+                !std::conjunction_v<propagate_on_container_swap,
+                                    std::negation<is_always_equal>>
+            ? true
+            : noexcept(std::swap(lhs.__get_allocator(), rhs.__get_allocator()))) {
         if constexpr (std::conjunction_v<propagate_on_container_swap,
                                          std::negation<is_always_equal>>) {
             auto &lhs_allocator = lhs.__get_allocator();
@@ -5042,13 +5067,11 @@ using iterator_contiguous_pointer_t =
 
 namespace wjr {
 
-namespace to_address_details {
-
-WJR_REGISTER_HAS_TYPE(to_address,
+namespace {
+WJR_REGISTER_HAS_TYPE(pointer_traits_to_address,
                       std::pointer_traits<Ptr>::to_address(std::declval<const Ptr &>()),
                       Ptr);
-
-} // namespace to_address_details
+} // namespace
 
 template <typename T>
 constexpr T *to_address(T *p) noexcept {
@@ -5058,7 +5081,7 @@ constexpr T *to_address(T *p) noexcept {
 
 template <typename Ptr, WJR_REQUIRES(is_contiguous_iterator_v<remove_cvref_t<Ptr>>)>
 constexpr auto to_address(const Ptr &p) noexcept {
-    if constexpr (to_address_details::has_to_address_v<remove_cvref_t<Ptr>>) {
+    if constexpr (has_pointer_traits_to_address_v<remove_cvref_t<Ptr>>) {
         return std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p);
     } else {
         return (to_address)(p.operator->());
@@ -5195,10 +5218,12 @@ struct allocation_result {
     SizeType count;
 };
 
+namespace {
 WJR_REGISTER_HAS_TYPE(
     allocate_at_least,
     std::declval<Allocator>().allocate_at_least(std::declval<SizeType>()), Allocator,
     SizeType);
+}
 
 template <typename Allocator, typename SizeType,
           typename Pointer = typename std::allocator_traits<Allocator>::pointer>
@@ -5231,22 +5256,28 @@ public:
     using pointer = typename Traits::const_pointer;
     using reference = typename Traits::const_reference;
 
-    WJR_CONSTEXPR20 contiguous_const_iterator_adapter() noexcept = default;
+    WJR_CONSTEXPR20 contiguous_const_iterator_adapter() noexcept(
+        std::is_nothrow_default_constructible_v<__pointer>) = default;
 
-    WJR_CONSTEXPR20 contiguous_const_iterator_adapter(__pointer ptr,
-                                                      const Container *container) noexcept
+    WJR_CONSTEXPR20
+    contiguous_const_iterator_adapter(__pointer ptr, const Container *container) noexcept(
+        std::is_nothrow_copy_constructible_v<__pointer>)
         : m_ptr(ptr) {
         __set_container(container);
     }
 
-    WJR_CONSTEXPR20 contiguous_const_iterator_adapter(
-        const contiguous_const_iterator_adapter &) = default;
     WJR_CONSTEXPR20
-    contiguous_const_iterator_adapter(contiguous_const_iterator_adapter &&) = default;
+    contiguous_const_iterator_adapter(const contiguous_const_iterator_adapter &) noexcept(
+        std::is_nothrow_copy_constructible_v<__pointer>) = default;
+    WJR_CONSTEXPR20
+    contiguous_const_iterator_adapter(contiguous_const_iterator_adapter &&) noexcept(
+        std::is_nothrow_move_constructible_v<__pointer>) = default;
     WJR_CONSTEXPR20 contiguous_const_iterator_adapter &
-    operator=(const contiguous_const_iterator_adapter &) = default;
+    operator=(const contiguous_const_iterator_adapter &) noexcept(
+        std::is_nothrow_copy_assignable_v<__pointer>) = default;
     WJR_CONSTEXPR20 contiguous_const_iterator_adapter &
-    operator=(contiguous_const_iterator_adapter &&) = default;
+    operator=(contiguous_const_iterator_adapter &&) noexcept(
+        std::is_nothrow_move_assignable_v<__pointer>) = default;
 
     WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 pointer operator->() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
@@ -5739,7 +5770,7 @@ WJR_CONST constexpr U __fasts_conditional_negate(bool condition, T x) {
 
 namespace wjr {
 
-namespace container_details {
+namespace {
 
 WJR_REGISTER_HAS_TYPE(container_begin,
                       std::begin(std::declval<std::add_lvalue_reference_t<Container>>()),
@@ -5765,13 +5796,15 @@ WJR_REGISTER_HAS_TYPE(__container_append,
                       std::declval<Container>().append(std::declval<Args>()...),
                       Container);
 
-} // namespace container_details
+} // namespace
 
 template <typename Container>
 struct resize_fn_impl_base {
-    template <typename... Args, WJR_REQUIRES(container_details::has___container_resize_v<
-                                             Container, Args...>)>
-    WJR_INTRINSIC_INLINE static void resize(Container &cont, Args &&...args) {
+    template <typename... Args,
+              WJR_REQUIRES(has___container_resize_v<Container, Args...>)>
+    WJR_INTRINSIC_INLINE static void
+    resize(Container &cont,
+           Args &&...args) noexcept(noexcept(cont.resize(std::forward<Args>(args)...))) {
         cont.resize(std::forward<Args>(args)...);
     }
 };
@@ -5781,7 +5814,8 @@ struct resize_fn_impl : resize_fn_impl_base<Container> {};
 
 struct resize_fn {
     template <typename Container, typename... Args>
-    void operator()(Container &cont, Args &&...args) const {
+    void operator()(Container &cont, Args &&...args) const noexcept(
+        noexcept(resize_fn_impl<Container>::resize(cont, std::forward<Args>(args)...))) {
         resize_fn_impl<Container>::resize(cont, std::forward<Args>(args)...);
     }
 };
@@ -5790,9 +5824,11 @@ inline constexpr resize_fn resize{};
 
 template <typename Container>
 struct append_fn_impl_base {
-    template <typename... Args, WJR_REQUIRES(container_details::has___container_append_v<
-                                             Container, Args...>)>
-    WJR_INTRINSIC_INLINE static void append(Container &cont, Args &&...args) {
+    template <typename... Args,
+              WJR_REQUIRES(has___container_append_v<Container, Args...>)>
+    WJR_INTRINSIC_INLINE static void
+    append(Container &cont,
+           Args &&...args) noexcept(noexcept(cont.append(std::forward<Args>(args)...))) {
         cont.append(std::forward<Args>(args)...);
     }
 };
@@ -5802,7 +5838,8 @@ struct append_fn_impl : append_fn_impl_base<Container> {};
 
 struct append_fn {
     template <typename Container, typename... Args>
-    void operator()(Container &cont, Args &&...args) const {
+    void operator()(Container &cont, Args &&...args) const noexcept(
+        noexcept(append_fn_impl<Container>::append(cont, std::forward<Args>(args)...))) {
         append_fn_impl<Container>::append(cont, std::forward<Args>(args)...);
     }
 };
@@ -5925,7 +5962,7 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
 
 WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(string, std::string);
 
-namespace container_details {
+namespace {
 
 WJR_REGISTER_HAS_TYPE(container_resize,
                       resize_fn_impl<Container>::resize(std::declval<Container &>(),
@@ -5946,12 +5983,12 @@ WJR_REGISTER_HAS_TYPE(container_insert,
                                                         std::declval<Args>()...)),
                       Container);
 
-} // namespace container_details
+} // namespace
 
 template <typename Container, typename Size,
-          WJR_REQUIRES(container_details::has_container_resize_v<Container, Size>)>
+          WJR_REQUIRES(has_container_resize_v<Container, Size>)>
 WJR_INTRINSIC_INLINE void try_uninitialized_resize(Container &cont, Size sz) {
-    if constexpr (container_details::has_container_resize_v<Container, Size, dctor_t>) {
+    if constexpr (has_container_resize_v<Container, Size, dctor_t>) {
         resize(cont, sz, dctor);
     } else {
         resize(cont, sz);
@@ -6053,33 +6090,42 @@ inline constexpr bool is_any_insert_iterator_v = is_any_insert_iterator<T>::valu
 
 template <typename Iter>
 struct __inserter_container_accessor : Iter {
-    __inserter_container_accessor(Iter it) : Iter(it) {}
+    __inserter_container_accessor(Iter it) noexcept(
+        std::is_nothrow_copy_constructible_v<Iter>)
+        : Iter(it) {}
     using Iter::container;
 };
 
 template <typename Iter>
 struct __inserter_iterator_accessor : Iter {
-    __inserter_iterator_accessor(Iter it) : Iter(it) {}
+    __inserter_iterator_accessor(Iter it) noexcept(
+        std::is_nothrow_copy_constructible_v<Iter>)
+        : Iter(it) {}
     using Iter::iter;
 };
 
 template <typename Container>
-Container &get_inserter_container(std::insert_iterator<Container> it) {
+Container &get_inserter_container(std::insert_iterator<Container> it) noexcept(
+    std::is_nothrow_copy_constructible_v<std::insert_iterator<Container>>) {
     return *(__inserter_container_accessor(it).container);
 }
 
 template <typename Container>
-Container &get_inserter_container(std::back_insert_iterator<Container> it) {
+Container &get_inserter_container(std::back_insert_iterator<Container> it) noexcept(
+    std::is_nothrow_copy_constructible_v<std::back_insert_iterator<Container>>) {
     return *(__inserter_container_accessor(it).container);
 }
 
 template <typename Container>
-Container &get_inserter_container(std::front_insert_iterator<Container> it) {
+Container &get_inserter_container(std::front_insert_iterator<Container> it) noexcept(
+    std::is_nothrow_copy_constructible_v<std::front_insert_iterator<Container>>) {
     return *(__inserter_container_accessor(it).container);
 }
 
 template <typename Container>
-typename Container::iterator get_inserter_iterator(std::insert_iterator<Container> it) {
+typename Container::iterator
+get_inserter_iterator(std::insert_iterator<Container> it) noexcept(
+    std::is_nothrow_copy_constructible_v<std::insert_iterator<Container>>) {
     return __inserter_iterator_accessor(it).iter;
 }
 
@@ -6104,12 +6150,10 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
         using Container = typename Out::container_type;
 
         if constexpr (is_back_insert_iterator_v<Out>) {
-            if constexpr (container_details::has_container_append_v<Container, InputIt,
-                                                                    InputIt>) {
+            if constexpr (has_container_append_v<Container, InputIt, InputIt>) {
                 append(get_inserter_container(d_first), first, last);
                 return d_first;
-            } else if constexpr (container_details::has_container_insert_v<
-                                     Container, InputIt, InputIt>) {
+            } else if constexpr (has_container_insert_v<Container, InputIt, InputIt>) {
                 auto &cont = get_inserter_container(d_first);
                 cont.insert(cont.cend(), first, last);
                 return d_first;
@@ -6117,8 +6161,7 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
                 return std::copy(first, last, d_first);
             }
         } else {
-            if constexpr (container_details::has_container_insert_v<Container, InputIt,
-                                                                    InputIt>) {
+            if constexpr (has_container_insert_v<Container, InputIt, InputIt>) {
                 auto &cont = get_inserter_container(d_first);
                 const auto pos = get_inserter_iterator(d_first);
                 cont.insert(pos, first, last);
@@ -6172,12 +6215,10 @@ constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
         using Container = typename Out::container_type;
 
         if constexpr (is_back_insert_iterator_v<Out>) {
-            if constexpr (container_details::has_container_append_v<Container, InputIt,
-                                                                    InputIt>) {
+            if constexpr (has_container_append_v<Container, InputIt, InputIt>) {
                 append(get_inserter_container(d_first), first, std::next(first, count));
                 return d_first;
-            } else if constexpr (container_details::has_container_insert_v<
-                                     Container, InputIt, InputIt>) {
+            } else if constexpr (has_container_insert_v<Container, InputIt, InputIt>) {
                 auto &cont = get_inserter_container(d_first);
                 cont.insert(cont.cend(), first, std::next(first, count));
                 return d_first;
@@ -6185,8 +6226,7 @@ constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
                 return std::copy_n(first, count, d_first);
             }
         } else {
-            if constexpr (container_details::has_container_insert_v<Container, InputIt,
-                                                                    InputIt>) {
+            if constexpr (has_container_insert_v<Container, InputIt, InputIt>) {
                 auto &cont = get_inserter_container(d_first);
                 auto pos = get_inserter_iterator(d_first);
                 cont.insert(pos, first, std::next(first, count));
@@ -6271,7 +6311,7 @@ constexpr OutputIt move_n_restrict(InputIt first, Size count, OutputIt d_first) 
 
 namespace wjr {
 
-namespace trivially_allocator_base_details {
+namespace {
 WJR_REGISTER_HAS_TYPE(is_trivially_allocator,
                       std::declval<typename Alloc::is_trivially_allocator>(), Alloc);
 WJR_REGISTER_HAS_TYPE(
@@ -6280,15 +6320,14 @@ WJR_REGISTER_HAS_TYPE(
 WJR_REGISTER_HAS_TYPE(is_trivially_allocator_destructible,
                       std::declval<typename Alloc::is_trivially_allocator_destructible>(),
                       Alloc);
-} // namespace trivially_allocator_base_details
+} // namespace
 
 template <typename Alloc, typename = void>
 struct __is_trivially_allocator_impl : std::false_type {};
 
 template <typename Alloc>
 struct __is_trivially_allocator_impl<
-    Alloc, std::enable_if_t<
-               trivially_allocator_base_details::has_is_trivially_allocator_v<Alloc>>>
+    Alloc, std::enable_if_t<has_is_trivially_allocator_v<Alloc>>>
     : Alloc::is_trivially_allocator {};
 
 template <typename Alloc>
@@ -6305,8 +6344,7 @@ struct __is_trivially_allocator_constructible_impl : std::false_type {};
 
 template <typename Alloc>
 struct __is_trivially_allocator_constructible_impl<
-    Alloc, std::enable_if_t<trivially_allocator_base_details::
-                                has_is_trivially_allocator_constructible_v<Alloc>>>
+    Alloc, std::enable_if_t<has_is_trivially_allocator_constructible_v<Alloc>>>
     : Alloc::is_trivially_allocator_constructible {};
 
 template <typename Alloc>
@@ -6323,8 +6361,7 @@ struct __is_trivially_allocator_destructible_impl : std::false_type {};
 
 template <typename Alloc>
 struct __is_trivially_allocator_destructible_impl<
-    Alloc, std::enable_if_t<trivially_allocator_base_details::
-                                has_is_trivially_allocator_destructible_v<Alloc>>>
+    Alloc, std::enable_if_t<has_is_trivially_allocator_destructible_v<Alloc>>>
     : Alloc::is_trivially_allocator_destructible {};
 
 template <typename Alloc>
@@ -6831,7 +6868,7 @@ private:
     constexpr void check(bool value) const { m_checker.check(value); }
 #else
     constexpr static void checker_set(bool) noexcept {}
-    constexpr static void check(bool) {}
+    constexpr static void check(bool) noexcept {}
 #endif
 };
 
@@ -6849,7 +6886,9 @@ public:
     using const_pointer = const value_type *;
 
     template <typename... Args>
-    temporary_value_allocator(Alloc &al, Args &&...args) : al(al) {
+    WJR_CONSTEXPR20 temporary_value_allocator(Alloc &al, Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<value_type, Args &&...>)
+        : al(al) {
         uninitialized_construct_using_allocator(get(), al, std::forward<Args>(args)...);
     }
 
@@ -6860,8 +6899,8 @@ public:
 
     ~temporary_value_allocator() { destroy_at_using_allocator(get(), al); }
 
-    pointer get() noexcept { return reinterpret_cast<pointer>(storage); }
-    const_pointer get() const noexcept {
+    WJR_CONSTEXPR20 pointer get() noexcept { return reinterpret_cast<pointer>(storage); }
+    WJR_CONSTEXPR20 const_pointer get() const noexcept {
         return reinterpret_cast<const_pointer>(storage);
     }
 
@@ -7091,7 +7130,8 @@ private:
     using SizeRef = default_vector_size_reference<pointer, size_type>;
 
 public:
-    __default_vector_storage_impl() noexcept = default;
+    __default_vector_storage_impl() noexcept(std::is_nothrow_constructible_v<_Alty>) =
+        default;
 
     __default_vector_storage_impl(const __default_vector_storage_impl &) = delete;
     __default_vector_storage_impl(__default_vector_storage_impl &&) = delete;
@@ -7100,25 +7140,31 @@ public:
     __default_vector_storage_impl &operator=(__default_vector_storage_impl &&) = delete;
 
     template <typename _Alloc>
-    WJR_CONSTEXPR20 __default_vector_storage_impl(_Alloc &&al) noexcept
-        : m_pair(std::forward<_Alloc>(al), {}) {}
+    WJR_CONSTEXPR20 __default_vector_storage_impl(_Alloc &&al) noexcept(
+        std::is_nothrow_constructible_v<_Alty, _Alloc &&>)
+        : m_pair(std::piecewise_construct,
+                 std::forward_as_tuple(std::forward<_Alloc>(al)),
+                 std::forward_as_tuple()) {}
 
     template <typename _Alloc>
-    WJR_CONSTEXPR20 __default_vector_storage_impl(_Alloc &&al, size_type size,
-                                                  size_type capacity,
-                                                  in_place_reallocate_t) noexcept
-        : m_pair(std::forward<_Alloc>(al), {}) {
+    WJR_CONSTEXPR20 __default_vector_storage_impl(
+        _Alloc &&al, size_type size, size_type capacity,
+        in_place_reallocate_t) noexcept(std::is_nothrow_constructible_v<_Alty, _Alloc &&>)
+        : m_pair(std::piecewise_construct,
+                 std::forward_as_tuple(std::forward<_Alloc>(al)),
+                 std::forward_as_tuple()) {
         uninitialized_construct(size, capacity);
     }
 
-    ~__default_vector_storage_impl() noexcept = default;
+    ~__default_vector_storage_impl() noexcept(std::is_nothrow_destructible_v<_Alty>) =
+        default;
 
     WJR_PURE WJR_CONSTEXPR20 _Alty &get_allocator() noexcept { return m_pair.first(); }
     WJR_PURE WJR_CONSTEXPR20 const _Alty &get_allocator() const noexcept {
         return m_pair.first();
     }
 
-    WJR_CONSTEXPR20 void destroy() noexcept {
+    WJR_CONSTEXPR20 void destroy() noexcept(std::is_nothrow_destructible_v<value_type>) {
         if (WJR_BUILTIN_CONSTANT_P(data() == nullptr) && data() == nullptr) {
             return;
         }
@@ -7131,13 +7177,14 @@ public:
         destroy_using_allocator(m_storage.m_data, m_storage.m_end, get_allocator());
     }
 
-    WJR_CONSTEXPR20 void destroy_and_deallocate() noexcept {
+    WJR_CONSTEXPR20 void
+    destroy_and_deallocate() noexcept(std::is_nothrow_destructible_v<value_type>) {
         if (WJR_BUILTIN_CONSTANT_P(capacity() == 0) && capacity() == 0) {
             return;
         }
 
         const auto &m_storage = __get_data();
-        if (m_storage.m_data != m_storage.m_end) {
+        if (m_storage.m_data != nullptr) {
             destroy_using_allocator(m_storage.m_data, m_storage.m_end, get_allocator());
             get_allocator().deallocate(m_storage.m_data, capacity());
         }
@@ -7225,7 +7272,8 @@ private:
     using data_type = Data;
 
 public:
-    __static_vector_storage_impl() noexcept = default;
+    __static_vector_storage_impl() noexcept(std::is_nothrow_constructible_v<_Alty>) =
+        default;
 
     __static_vector_storage_impl(const __static_vector_storage_impl &) = delete;
     __static_vector_storage_impl(__static_vector_storage_impl &&) = delete;
@@ -7234,19 +7282,21 @@ public:
     __static_vector_storage_impl &operator=(__static_vector_storage_impl &&) = delete;
 
     template <typename _Alloc>
-    WJR_CONSTEXPR20 __static_vector_storage_impl(_Alloc &&al) noexcept
+    WJR_CONSTEXPR20 __static_vector_storage_impl(_Alloc &&al) noexcept(
+        std::is_nothrow_constructible_v<_Alty, _Alloc &&>)
         : m_pair(std::piecewise_construct,
                  std::forward_as_tuple(std::forward<_Alloc>(al)),
                  std::forward_as_tuple()) {}
 
-    ~__static_vector_storage_impl() noexcept = default;
+    ~__static_vector_storage_impl() noexcept(std::is_nothrow_destructible_v<_Alty>) =
+        default;
 
     WJR_PURE WJR_CONSTEXPR20 _Alty &get_allocator() noexcept { return m_pair.first(); }
     WJR_PURE WJR_CONSTEXPR20 const _Alty &get_allocator() const noexcept {
         return m_pair.first();
     }
 
-    WJR_CONSTEXPR20 void destroy() noexcept {
+    WJR_CONSTEXPR20 void destroy() noexcept(std::is_nothrow_destructible_v<value_type>) {
         if (WJR_BUILTIN_CONSTANT_P(size() == 0) && size() == 0) {
             return;
         }
@@ -7254,17 +7304,21 @@ public:
         destroy_n_using_allocator(data(), size(), get_allocator());
     }
 
-    WJR_CONSTEXPR20 void destroy_and_deallocate() noexcept { destroy(); }
+    WJR_CONSTEXPR20 void
+    destroy_and_deallocate() noexcept(std::is_nothrow_destructible_v<value_type>) {
+        destroy();
+    }
 
     WJR_CONSTEXPR20
-    void uninitialized_construct(size_type size, WJR_MAYBE_UNUSED size_type capacity) {
+    void uninitialized_construct(size_type size,
+                                 WJR_MAYBE_UNUSED size_type capacity) noexcept {
         WJR_ASSERT_ASSUME(capacity <= Capacity,
                           "capacity must be less than or equal to Capacity");
         auto &m_storage = __get_data();
         m_storage.m_size = size;
     }
 
-    WJR_CONSTEXPR20 void take_storage(__static_vector_storage_impl &other) noexcept {
+    WJR_CONSTEXPR20 void take_storage(__static_vector_storage_impl &other) {
         auto &al = get_allocator();
         auto &m_storage = __get_data();
         auto &other_storage = other.__get_data();
@@ -7285,7 +7339,7 @@ public:
         other_storage.m_size = 0;
     }
 
-    WJR_CONSTEXPR20 void swap_storage(__static_vector_storage_impl &other) noexcept {
+    WJR_CONSTEXPR20 void swap_storage(__static_vector_storage_impl &other) {
         auto &al = get_allocator();
         auto &m_storage = __get_data();
         auto &other_storage = other.__get_data();
@@ -7398,7 +7452,8 @@ private:
     using SizeRef = default_vector_size_reference<pointer, size_type>;
 
 public:
-    __fixed_vector_storage_impl() noexcept = default;
+    __fixed_vector_storage_impl() noexcept(std::is_nothrow_constructible_v<_Alty>) =
+        default;
 
     __fixed_vector_storage_impl(const __fixed_vector_storage_impl &) = delete;
     __fixed_vector_storage_impl(__fixed_vector_storage_impl &&) = delete;
@@ -7406,17 +7461,21 @@ public:
     __fixed_vector_storage_impl &operator=(__fixed_vector_storage_impl &&) = delete;
 
     template <typename _Alloc>
-    WJR_CONSTEXPR20 __fixed_vector_storage_impl(_Alloc &&al) noexcept
-        : m_pair(std::forward<_Alloc>(al), {}) {}
+    WJR_CONSTEXPR20 __fixed_vector_storage_impl(_Alloc &&al) noexcept(
+        std::is_nothrow_constructible_v<_Alty, _Alloc &&>)
+        : m_pair(std::piecewise_construct,
+                 std::forward_as_tuple(std::forward<_Alloc>(al)),
+                 std::forward_as_tuple()) {}
 
-    ~__fixed_vector_storage_impl() noexcept = default;
+    ~__fixed_vector_storage_impl() noexcept(
+        std::is_nothrow_default_constructible_v<_Alty>) = default;
 
     WJR_PURE WJR_CONSTEXPR20 _Alty &get_allocator() noexcept { return m_pair.first(); }
     WJR_PURE WJR_CONSTEXPR20 const _Alty &get_allocator() const noexcept {
         return m_pair.first();
     }
 
-    WJR_CONSTEXPR20 void destroy() noexcept {
+    WJR_CONSTEXPR20 void destroy() noexcept(std::is_nothrow_destructible_v<value_type>) {
         if (WJR_BUILTIN_CONSTANT_P(data() == nullptr) && data() == nullptr) {
             return;
         }
@@ -7426,18 +7485,18 @@ public:
         }
 
         const auto &m_storage = __get_data();
-        destroy_n_using_allocator(m_storage.m_data, m_storage.m_end, get_allocator());
+        destroy_using_allocator(m_storage.m_data, m_storage.m_end, get_allocator());
     }
 
-    WJR_CONSTEXPR20 void destroy_and_deallocate() noexcept {
+    WJR_CONSTEXPR20 void
+    destroy_and_deallocate() noexcept(std::is_nothrow_destructible_v<value_type>) {
         if (WJR_BUILTIN_CONSTANT_P(capacity() == 0) && capacity() == 0) {
             return;
         }
 
         const auto &m_storage = __get_data();
-
-        if (m_storage.m_data != m_storage.m_end) {
-            destroy_n_using_allocator(m_storage.m_data, m_storage.m_end, get_allocator());
+        if (m_storage.m_data != nullptr) {
+            destroy_using_allocator(m_storage.m_data, m_storage.m_end, get_allocator());
             get_allocator().deallocate(m_storage.m_data, capacity());
         }
     }
@@ -7551,7 +7610,8 @@ private:
     using data_type = Data;
 
 public:
-    __sso_vector_storage_impl() noexcept = default;
+    __sso_vector_storage_impl() noexcept(std::is_nothrow_default_constructible_v<_Alty>) =
+        default;
 
     __sso_vector_storage_impl(const __sso_vector_storage_impl &) = delete;
     __sso_vector_storage_impl(__sso_vector_storage_impl &&) = delete;
@@ -7559,29 +7619,31 @@ public:
     __sso_vector_storage_impl &operator=(__sso_vector_storage_impl &&) = delete;
 
     template <typename _Alloc>
-    WJR_CONSTEXPR20 __sso_vector_storage_impl(_Alloc &&al) noexcept
+    WJR_CONSTEXPR20 __sso_vector_storage_impl(_Alloc &&al) noexcept(
+        std::is_nothrow_constructible_v<_Alty, _Alloc &&>)
         : m_pair(std::piecewise_construct,
                  std::forward_as_tuple(std::forward<_Alloc>(al)),
                  std::forward_as_tuple()) {}
 
     template <typename _Alloc>
-    WJR_CONSTEXPR20 __sso_vector_storage_impl(_Alloc &&al, size_type size,
-                                              size_type capacity,
-                                              in_place_reallocate_t) noexcept
+    WJR_CONSTEXPR20 __sso_vector_storage_impl(
+        _Alloc &&al, size_type size, size_type capacity,
+        in_place_reallocate_t) noexcept(std::is_nothrow_constructible_v<_Alty, _Alloc &&>)
         : m_pair(std::piecewise_construct,
                  std::forward_as_tuple(std::forward<_Alloc>(al)),
                  std::forward_as_tuple()) {
         uninitialized_construct(size, capacity);
     }
 
-    ~__sso_vector_storage_impl() noexcept = default;
+    ~__sso_vector_storage_impl() noexcept(std::is_nothrow_destructible_v<_Alty>) =
+        default;
 
     WJR_PURE WJR_CONSTEXPR20 _Alty &get_allocator() noexcept { return m_pair.first(); }
     WJR_PURE WJR_CONSTEXPR20 const _Alty &get_allocator() const noexcept {
         return m_pair.first();
     }
 
-    WJR_CONSTEXPR20 void destroy() noexcept {
+    WJR_CONSTEXPR20 void destroy() noexcept(std::is_nothrow_destructible_v<value_type>) {
         if (WJR_BUILTIN_CONSTANT_P(size() == 0) && size() == 0) {
             return;
         }
@@ -7589,7 +7651,8 @@ public:
         destroy_n_using_allocator(data(), size(), get_allocator());
     }
 
-    WJR_CONSTEXPR20 void destroy_and_deallocate() noexcept {
+    WJR_CONSTEXPR20 void
+    destroy_and_deallocate() noexcept(std::is_nothrow_destructible_v<value_type>) {
         destroy();
 
         if (!__is_sso()) {
@@ -7613,7 +7676,7 @@ public:
         }
     }
 
-    WJR_CONSTEXPR20 void take_storage(__sso_vector_storage_impl &other) noexcept {
+    WJR_CONSTEXPR20 void take_storage(__sso_vector_storage_impl &other) {
         auto &al = get_allocator();
         auto &m_storage = __get_data();
         auto &other_storage = other.__get_data();
@@ -7644,7 +7707,7 @@ public:
         WJR_ASSUME(other.__is_sso());
     }
 
-    WJR_CONSTEXPR20 void swap_storage(__sso_vector_storage_impl &other) noexcept {
+    WJR_CONSTEXPR20 void swap_storage(__sso_vector_storage_impl &other) {
         auto &al = get_allocator();
         auto &storage = __get_data();
         auto &other_storage = other.__get_data();
@@ -7779,7 +7842,7 @@ template <typename T, size_t Capacity, typename Alloc>
 using sso_vector_storage =
     __sso_vector_storage_impl<T, Capacity, Alloc, vector_storage_traits<T, Alloc>>;
 
-namespace vector_details {
+namespace {
 
 WJR_REGISTER_HAS_TYPE(vector_storage_shrink_to_fit,
                       std::declval<Storage>().shrink_to_fit(), Storage);
@@ -7794,7 +7857,7 @@ struct basic_vector_traits {
     using const_reference = const value_type &;
 };
 
-} // namespace vector_details
+} // namespace
 
 /**
  * @brief Customized vector by storage.
@@ -7816,7 +7879,7 @@ private:
     using storage_type = Storage;
     using storage_fn_type = container_fn<_Alty>;
     using __get_size_t = decltype(std::declval<storage_type>().size());
-    using IteratorTraits = vector_details::basic_vector_traits<storage_type>;
+    using IteratorTraits = basic_vector_traits<storage_type>;
 
     friend class container_fn<_Alty>;
 
@@ -7846,13 +7909,26 @@ private:
     static_assert(is_contiguous_iterator_v<iterator>, "");
     static_assert(is_contiguous_iterator_v<const_iterator>, "");
 
+    static constexpr bool __storage_noexcept_default_constructible =
+        std::is_nothrow_default_constructible_v<storage_type>;
+    static constexpr bool __storage_noexcept_destroy =
+        noexcept(std::declval<storage_type>().destroy());
+    static constexpr bool __storage_noexcept_destroy_and_deallocate =
+        noexcept(std::declval<storage_type>().destroy_and_deallocate());
+    static constexpr bool __storage_noexcept_uninitialized_construct =
+        noexcept(std::declval<storage_type>().uninitialized_construct(
+            std::declval<size_type>(), std::declval<size_type>()));
+    static constexpr bool __storage_noexcept_take_storage = noexcept(
+        std::declval<storage_type>().take_storage(std::declval<storage_type &>()));
+    static constexpr bool __storage_noexcept_swap_storage = noexcept(
+        std::declval<storage_type>().swap_storage(std::declval<storage_type &>()));
+
 public:
     WJR_CONSTEXPR20
-    basic_vector() noexcept(std::is_nothrow_default_constructible_v<storage_type>) =
-        default;
+    basic_vector() noexcept(__storage_noexcept_default_constructible) = default;
 
     WJR_CONSTEXPR20 explicit basic_vector(const allocator_type &al) noexcept(
-        std::is_nothrow_default_constructible_v<storage_type>)
+        std::is_nothrow_constructible_v<storage_type, const allocator_type &>)
         : m_storage(al) {}
 
     WJR_CONSTEXPR20 explicit basic_vector(const size_type n,
@@ -7869,9 +7945,7 @@ public:
 
 private:
     template <typename _Alloc>
-    WJR_CONSTEXPR20
-    basic_vector(const basic_vector &other, _Alloc &&al, in_place_empty_t) noexcept(
-        std::is_nothrow_constructible_v<storage_type, const storage_type &, _Alloc &&>)
+    WJR_CONSTEXPR20 basic_vector(const basic_vector &other, _Alloc &&al, in_place_empty_t)
         : m_storage(std::forward<_Alloc>(al)) {
         const auto size = other.size();
         m_storage.uninitialized_construct(size, other.capacity());
@@ -7882,7 +7956,8 @@ private:
     template <typename _Alloc>
     WJR_CONSTEXPR20
     basic_vector(basic_vector &&other, _Alloc &&al, in_place_empty_t) noexcept(
-        std::is_nothrow_constructible_v<storage_type, const storage_type &, _Alloc &&>)
+        std::is_nothrow_constructible_v<storage_type, _Alloc &&>
+            &&__storage_noexcept_take_storage)
         : m_storage(std::forward<_Alloc>(al)) {
         __take_storage(std::move(other));
     }
@@ -7897,11 +7972,13 @@ public:
     WJR_CONSTEXPR20 basic_vector(const basic_vector &other, const allocator_type &al)
         : basic_vector(other, al, in_place_empty) {}
 
-    WJR_CONSTEXPR20 basic_vector(basic_vector &&other)
+    WJR_CONSTEXPR20 basic_vector(basic_vector &&other) noexcept(noexcept(basic_vector(
+        std::move(other), std::move(other.__get_allocator()), in_place_empty)))
         : basic_vector(std::move(other), std::move(other.__get_allocator()),
                        in_place_empty) {}
 
-    WJR_CONSTEXPR20 basic_vector(basic_vector &&other, const allocator_type &al) noexcept
+    WJR_CONSTEXPR20 basic_vector(basic_vector &&other, const allocator_type &al) noexcept(
+        noexcept(basic_vector(std::move(other), al, in_place_empty)))
         : basic_vector(std::move(other), al, in_place_empty) {}
 
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
@@ -7916,9 +7993,12 @@ public:
                                  const allocator_type &al = allocator_type())
         : basic_vector(il.begin(), il.end(), al) {}
 
-    WJR_CONSTEXPR20 ~basic_vector() noexcept { __destroy_and_deallocate(); }
+    WJR_CONSTEXPR20 ~basic_vector() noexcept(__storage_noexcept_destroy_and_deallocate) {
+        __destroy_and_deallocate();
+    }
 
-    WJR_CONSTEXPR20 basic_vector &operator=(const basic_vector &other) {
+    WJR_CONSTEXPR20 basic_vector &operator=(const basic_vector &other) noexcept(
+        noexcept(storage_fn_type::copy_assign(*this, other))) {
         if (WJR_LIKELY(this != std::addressof(other))) {
             storage_fn_type::copy_assign(*this, other);
         }
@@ -7927,9 +8007,7 @@ public:
     }
 
     WJR_CONSTEXPR20 basic_vector &operator=(basic_vector &&other) noexcept(
-        _Alty_traits::propagate_on_container_move_assignment::value ||
-        _Alty_traits::is_always_equal::value) {
-
+        noexcept(storage_fn_type::move_assign(*this, std::move(other)))) {
         if (WJR_LIKELY(this != std::addressof(other))) {
             storage_fn_type::move_assign(*this, std::move(other));
         }
@@ -8059,7 +8137,7 @@ public:
      * @todo designed shrink_to_fit for storage.
      */
     WJR_CONSTEXPR20 void shrink_to_fit() {
-        if constexpr (vector_details::has_vector_storage_shrink_to_fit_v<storage_type>) {
+        if constexpr (has_vector_storage_shrink_to_fit_v<storage_type>) {
             m_storage.shrink_to_fit();
         } else if constexpr (is_reallocatable::value) {
             const size_type __size = size();
@@ -8351,9 +8429,12 @@ private:
         return m_storage.get_allocator();
     }
 
-    WJR_CONSTEXPR20 void __destroy() noexcept { m_storage.destroy(); }
+    WJR_CONSTEXPR20 void __destroy() noexcept(__storage_noexcept_destroy) {
+        m_storage.destroy();
+    }
 
-    WJR_CONSTEXPR20 void __destroy_and_deallocate() noexcept {
+    WJR_CONSTEXPR20 void
+    __destroy_and_deallocate() noexcept(__storage_noexcept_destroy_and_deallocate) {
         m_storage.destroy_and_deallocate();
     }
 
@@ -8361,7 +8442,8 @@ private:
         assign(other.begin_unsafe(), other.end_unsafe());
     }
 
-    WJR_CONSTEXPR20 void __take_storage(basic_vector &&other) {
+    WJR_CONSTEXPR20 void __take_storage(basic_vector &&other) noexcept(
+        noexcept(__take_storage(other.m_storage))) {
         __take_storage(other.m_storage);
     }
 
@@ -8370,7 +8452,8 @@ private:
                std::make_move_iterator(other.end_unsafe()));
     }
 
-    WJR_CONSTEXPR20 void __swap_storage(basic_vector &other) {
+    WJR_CONSTEXPR20 void
+    __swap_storage(basic_vector &other) noexcept(__storage_noexcept_swap_storage) {
         m_storage.swap_storage(other.m_storage);
     }
 
@@ -8380,7 +8463,8 @@ private:
         return m_storage.size();
     }
 
-    WJR_CONSTEXPR20 void __take_storage(storage_type &other) {
+    WJR_CONSTEXPR20 void
+    __take_storage(storage_type &other) noexcept(__storage_noexcept_take_storage) {
         m_storage.take_storage(other);
     }
 
@@ -17427,12 +17511,15 @@ public:
               WJR_REQUIRES(
                   std::conjunction_v<std::is_same<S, Sequence>,
                                      std::is_default_constructible<Mybase<Indexs>>...>)>
-    constexpr tuple_impl() : Mybase2(enable_default_constructor) {}
+    constexpr tuple_impl() noexcept(
+        std::conjunction_v<std::is_nothrow_constructible<Args>...>)
+        : Mybase2(enable_default_constructor) {}
 
     template <size_t... _Indexs, typename... _Args,
               WJR_REQUIRES(
                   std::conjunction_v<std::is_constructible<Mybase<_Indexs>, _Args>...>)>
-    constexpr tuple_impl(std::index_sequence<_Indexs...>, _Args &&...args)
+    constexpr tuple_impl(std::index_sequence<_Indexs...>, _Args &&...args) noexcept(
+        std::conjunction_v<std::is_nothrow_constructible<Args, _Args &&>...>)
         : Mybase<_Indexs>(std::forward<_Args>(args))...,
           Mybase2(enable_default_constructor) {}
 
@@ -17495,19 +17582,22 @@ public:
                                               std::is_default_constructible<Args>...>
                                &&std::conjunction_v<is_default_convertible<T>,
                                                     is_default_convertible<Args>...>)>
-    constexpr tuple() : Mybase(enable_default_constructor), m_impl() {}
+    constexpr tuple() noexcept(std::is_nothrow_constructible_v<Impl>)
+        : Mybase(enable_default_constructor), m_impl() {}
 
     template <typename T = This,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
                                               std::is_default_constructible<Args>...> &&
                            !std::conjunction_v<is_default_convertible<T>,
                                                is_default_convertible<Args>...>)>
-    constexpr explicit tuple() : Mybase(enable_default_constructor), m_impl() {}
+    constexpr explicit tuple() noexcept(std::is_nothrow_constructible_v<Impl>)
+        : Mybase(enable_default_constructor), m_impl() {}
 
     template <typename Other = This,
               WJR_REQUIRES(std::is_constructible_v<Impl, Sequence, const Other &,
                                                    const Args &...>)>
-    constexpr tuple(const Other &first, const Args &...rest)
+    constexpr tuple(const Other &first, const Args &...rest) noexcept(
+        std::is_nothrow_constructible_v<Impl, Sequence, const Other &, const Args &...>)
         : Mybase(enable_default_constructor), m_impl(Sequence(), first, rest...) {}
 
     template <
@@ -17518,25 +17608,36 @@ public:
                              std::is_same<This, std::remove_reference_t<Other>>,
                              std::is_same<Args, std::remove_reference_t<_Args>>...>>,
                          std::is_constructible<Impl, Sequence, Other &&, _Args &&...>>)>
-    constexpr tuple(Other &&other, _Args &&...args)
+    constexpr tuple(Other &&other, _Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<Impl, Sequence, Other &&, _Args &&...>)
         : Mybase(enable_default_constructor),
           m_impl(Sequence(), std::forward<Other>(other), std::forward<_Args>(args)...) {}
 
 private:
     template <size_t... _Indexs, typename TupleLike>
-    constexpr tuple(std::index_sequence<_Indexs...>, TupleLike &&other, in_place_empty_t)
+    constexpr tuple(
+        std::index_sequence<_Indexs...>, TupleLike &&other,
+        in_place_empty_t) noexcept(std::
+                                       is_nothrow_constructible_v<
+                                           Impl, Sequence,
+                                           decltype(std::get<_Indexs>(
+                                               std::forward<TupleLike>(other)))...>)
         : Mybase(enable_default_constructor),
           m_impl(Sequence(), std::get<_Indexs>(std::forward<TupleLike>(other))...) {}
 
 public:
     template <typename TupleLike,
               WJR_REQUIRES(__is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>)>
-    constexpr tuple(TupleLike &&other)
+    constexpr tuple(TupleLike &&other) noexcept(
+        noexcept(tuple(Sequence(), std::forward<TupleLike>(other), in_place_empty)))
         : tuple(Sequence(), std::forward<TupleLike>(other), in_place_empty) {}
 
 private:
     template <size_t... _Indexs, typename Container>
-    constexpr void __assign(std::index_sequence<_Indexs...>, Container &&other) {
+    constexpr void __assign(std::index_sequence<_Indexs...>, Container &&other) noexcept(
+        noexcept(((this->template get<_Indexs>() =
+                       std::get<_Indexs>(std::forward<Container>(other))),
+                  ...))) {
         ((this->template get<_Indexs>() =
               std::get<_Indexs>(std::forward<Container>(other))),
          ...);
@@ -17545,20 +17646,24 @@ private:
 public:
     template <typename TupleLike,
               WJR_REQUIRES(__is_tuple_test_v<__is_tuple_assignable, tuple, TupleLike &&>)>
-    constexpr tuple &operator=(TupleLike &&other) {
+    constexpr tuple &operator=(TupleLike &&other) noexcept(
+        noexcept(__assign(Sequence(), std::forward<TupleLike>(other)))) {
         __assign(Sequence(), std::forward<TupleLike>(other));
         return *this;
     }
 
 private:
     template <size_t... _Indexs>
-    constexpr void __swap(std::index_sequence<_Indexs...>, tuple &other) {
-        (void)((std::swap(this->template get<_Indexs>(), other.template get<_Indexs>()),
-                ...));
+    constexpr void
+    __swap(std::index_sequence<_Indexs...>, tuple &other) noexcept(noexcept(((
+        std::swap(this->template get<_Indexs>(), other.template get<_Indexs>()), ...)))) {
+        ((std::swap(this->template get<_Indexs>(), other.template get<_Indexs>()), ...));
     }
 
 public:
-    constexpr void swap(tuple &other) noexcept { __swap(Sequence(), other); }
+    constexpr void swap(tuple &other) noexcept(noexcept(__swap(Sequence(), other))) {
+        __swap(Sequence(), other);
+    }
 
     template <size_t I>
     constexpr std::tuple_element_t<I, tuple> &get() & noexcept {
@@ -17594,7 +17699,9 @@ template <typename... Args>
 tuple(std::tuple<Args...>) -> tuple<Args...>;
 
 template <typename... Args>
-constexpr tuple<unref_wrapper_t<Args>...> make_tuple(Args &&...args) {
+constexpr tuple<unref_wrapper_t<Args>...> make_tuple(Args &&...args) noexcept(
+    std::conjunction_v<
+        std::is_nothrow_constructible<unref_wrapper_t<Args>, Args &&>...>) {
     return tuple<unref_wrapper_t<Args>...>(std::forward<Args>(args)...);
 }
 
@@ -17604,19 +17711,23 @@ constexpr tuple<Args &...> tie(Args &...args) noexcept {
 }
 
 template <typename... Args>
-constexpr tuple<Args &&...> forward_as_tuple(Args &&...args) noexcept {
+constexpr tuple<Args &&...> forward_as_tuple(Args &&...args) noexcept(
+    std::conjunction_v<std::is_nothrow_constructible<Args &&, Args &&>...>) {
     return tuple<Args &&...>(std::forward<Args>(args)...);
 }
 
 template <typename Func, typename Tuple, size_t... Indexs>
-constexpr decltype(auto) apply_impl(Func &&fn, Tuple &&tp,
-                                    std::index_sequence<Indexs...>) {
+constexpr decltype(auto)
+apply_impl(Func &&fn, Tuple &&tp, std::index_sequence<Indexs...>) noexcept(noexcept(
+    std::invoke(std::forward<Func>(fn), std::get<Indexs>(std::forward<Tuple>(tp))...))) {
     return std::invoke(std::forward<Func>(fn),
                        std::get<Indexs>(std::forward<Tuple>(tp))...);
 }
 
 template <typename Func, typename Tuple>
-constexpr decltype(auto) apply(Func &&fn, Tuple &&tp) {
+constexpr decltype(auto) apply(Func &&fn, Tuple &&tp) noexcept(noexcept(
+    apply_impl(std::forward<Func>(fn), std::forward<Tuple>(tp),
+               std::make_index_sequence<std::tuple_size_v<remove_cvref_t<Tuple>>>{}))) {
     return apply_impl(
         std::forward<Func>(fn), std::forward<Tuple>(tp),
         std::make_index_sequence<std::tuple_size_v<remove_cvref_t<Tuple>>>{});
@@ -17663,7 +17774,9 @@ constexpr decltype(auto) tuple_cat(Tuples &&...tuples) {
 }
 
 template <typename... TArgs, typename... UArgs>
-constexpr bool operator==(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) {
+constexpr bool
+operator==(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) noexcept(
+    std::conjunction_v<has_noexcept_equal_to<const TArgs &, const UArgs &>...>) {
     return apply(
         [&rhs](const auto &...lhs_args) {
             return apply(
@@ -17676,12 +17789,16 @@ constexpr bool operator==(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs
 }
 
 template <typename... TArgs, typename... UArgs>
-constexpr bool operator!=(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) {
+constexpr bool operator!=(const tuple<TArgs...> &lhs,
+                          const tuple<UArgs...> &rhs) noexcept(noexcept(lhs == rhs)) {
     return !(lhs == rhs);
 }
 
 template <typename... TArgs, typename... UArgs>
-constexpr bool operator<(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) {
+constexpr bool operator<(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) noexcept(
+    std::conjunction_v<
+        std::conjunction<has_noexcept_less<const TArgs &, const UArgs &>,
+                         has_noexcept_less<const UArgs &, const TArgs &>>...>) {
     bool ret = false;
     apply(
         [&rhs, &ret](const auto &...lhs_args) {
@@ -17698,17 +17815,20 @@ constexpr bool operator<(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs)
 }
 
 template <typename... TArgs, typename... UArgs>
-constexpr bool operator<=(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) {
+constexpr bool operator<=(const tuple<TArgs...> &lhs,
+                          const tuple<UArgs...> &rhs) noexcept(noexcept(rhs < lhs)) {
     return !(rhs < lhs);
 }
 
 template <typename... TArgs, typename... UArgs>
-constexpr bool operator>(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) {
+constexpr bool operator>(const tuple<TArgs...> &lhs,
+                         const tuple<UArgs...> &rhs) noexcept(noexcept(rhs < lhs)) {
     return rhs < lhs;
 }
 
 template <typename... TArgs, typename... UArgs>
-constexpr bool operator>=(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) {
+constexpr bool operator>=(const tuple<TArgs...> &lhs,
+                          const tuple<UArgs...> &rhs) noexcept(noexcept(lhs < rhs)) {
     return !(lhs < rhs);
 }
 
@@ -17720,7 +17840,9 @@ using in_place_index_tuple_t =
     capture_leaf<tuple<Args...>, __in_place_index_tuple_t_tag<I, Args...>>;
 
 template <size_t I, typename... Args>
-constexpr in_place_index_tuple_t<I, Args &&...> in_place_index_tuple(Args &&...args) {
+constexpr in_place_index_tuple_t<I, Args &&...>
+in_place_index_tuple(Args &&...args) noexcept(
+    std::conjunction_v<std::is_nothrow_constructible<Args &&, Args &&>...>) {
     return in_place_index_tuple_t<I, Args &&...>(std::forward<Args>(args)...);
 }
 
@@ -17732,7 +17854,9 @@ using in_place_type_tuple_t =
     capture_leaf<tuple<Args...>, __in_place_type_tuple_t_tag<T, Args...>>;
 
 template <typename T, typename... Args>
-constexpr in_place_type_tuple_t<T, Args &&...> in_place_type_tuple(Args &&...args) {
+constexpr in_place_type_tuple_t<T, Args &&...>
+in_place_type_tuple(Args &&...args) noexcept(
+    std::conjunction_v<std::is_nothrow_constructible<Args &&, Args &&>...>) {
     return in_place_type_tuple_t<T, Args &&...>(std::forward<Args>(args)...);
 }
 
@@ -19643,7 +19767,7 @@ public:
     using difference_type = ptrdiff_t;
     using propagate_on_container_move_assignment = std::true_type;
 
-    stack_allocator_object() = default;
+    stack_allocator_object() noexcept = default;
     stack_allocator_object(stack_allocator_object &) = delete;
     stack_allocator_object(stack_allocator_object &&) = delete;
     stack_allocator_object &operator=(stack_allocator_object &) = delete;
@@ -19675,7 +19799,7 @@ public:
         }
     }
 
-    WJR_CONSTEXPR20 void set(stack_top &top) {
+    WJR_CONSTEXPR20 void set(stack_top &top) noexcept {
         top.ptr = m_cache.ptr;
         top.end = nullptr;
         top.large = nullptr;
@@ -19705,7 +19829,7 @@ public:
     using allocator_type = StackAllocator;
     using stack_top = typename StackAllocator::stack_top;
 
-    static StackAllocator &get_instance() {
+    static StackAllocator &get_instance() noexcept {
         static thread_local StackAllocator instance;
         return instance;
     }
@@ -19713,13 +19837,13 @@ public:
 
 template <typename Alloc>
 constexpr bool operator==(const singleton_stack_allocator_adapter<Alloc> &,
-                          const singleton_stack_allocator_adapter<Alloc> &) {
+                          const singleton_stack_allocator_adapter<Alloc> &) noexcept {
     return true;
 }
 
 template <typename Alloc>
 constexpr bool operator!=(const singleton_stack_allocator_adapter<Alloc> &,
-                          const singleton_stack_allocator_adapter<Alloc> &) {
+                          const singleton_stack_allocator_adapter<Alloc> &) noexcept {
     return false;
 }
 
@@ -19769,7 +19893,7 @@ class unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>
     friend class weak_stack_allocator;
 
 public:
-    unique_stack_allocator(const StackAllocatorObject &al) : m_obj(&al) {}
+    unique_stack_allocator(const StackAllocatorObject &al) noexcept : m_obj(&al) {}
     ~unique_stack_allocator() {
         if (m_top.ptr != nullptr) {
             m_instance->deallocate(m_top);
@@ -19828,16 +19952,16 @@ public:
         typename StackAllocator::propagate_on_container_move_assignment;
     using is_trivially_allocator = std::true_type;
 
-    weak_stack_allocator() = default;
-    weak_stack_allocator(UniqueStackAllocator &alloc) : m_alloc(&alloc) {}
-    weak_stack_allocator(const weak_stack_allocator &) = default;
-    weak_stack_allocator &operator=(const weak_stack_allocator &) = default;
-    weak_stack_allocator(weak_stack_allocator &&) = default;
-    weak_stack_allocator &operator=(weak_stack_allocator &&) = default;
-    ~weak_stack_allocator() = default;
+    weak_stack_allocator() noexcept = default;
+    weak_stack_allocator(UniqueStackAllocator &alloc) noexcept : m_alloc(&alloc) {}
+    weak_stack_allocator(const weak_stack_allocator &) noexcept = default;
+    weak_stack_allocator &operator=(const weak_stack_allocator &) noexcept = default;
+    weak_stack_allocator(weak_stack_allocator &&) noexcept = default;
+    weak_stack_allocator &operator=(weak_stack_allocator &&) noexcept = default;
+    ~weak_stack_allocator() noexcept = default;
 
     template <typename U>
-    weak_stack_allocator(const weak_stack_allocator<U, StackAllocator> &other)
+    weak_stack_allocator(const weak_stack_allocator<U, StackAllocator> &other) noexcept
         : m_alloc(other.m_alloc) {}
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 T *allocate(size_type n) {
@@ -26019,15 +26143,11 @@ private:
 public:
     static constexpr int value =
         traits_type::is_trivially_contiguous_v &&
-                container_details::has_container_resize_v<Container, size_t>
-            ? (container_details::has_container_resize_v<Container, size_t, dctor_t> ? 2
-                                                                                     : 1)
+                has_container_resize_v<Container, size_t>
+            ? (has_container_resize_v<Container, size_t, dctor_t> ? 2 : 1)
             : 0;
 
-    static_assert(
-        value != 2 ||
-            container_details::has_container_append_v<Container, size_t, dctor_t>,
-        "");
+    static_assert(value != 2 || has_container_append_v<Container, size_t, dctor_t>, "");
 };
 
 template <typename Iter, typename = void>
@@ -29369,11 +29489,11 @@ namespace wjr {
 template <typename T, size_t Extent>
 struct __span_static_storage {
 
-    __span_static_storage() = default;
-    __span_static_storage(const __span_static_storage &) = default;
-    __span_static_storage &operator=(const __span_static_storage &) = default;
+    __span_static_storage() noexcept = default;
+    __span_static_storage(const __span_static_storage &) noexcept = default;
+    __span_static_storage &operator=(const __span_static_storage &) noexcept = default;
 
-    __span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) : ptr(p) {
+    __span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) noexcept : ptr(p) {
         WJR_ASSERT_L1(s == size);
     }
 
@@ -29384,11 +29504,11 @@ struct __span_static_storage {
 template <typename T>
 struct __span_dynamic_storage {
 
-    __span_dynamic_storage() = default;
-    __span_dynamic_storage(const __span_dynamic_storage &) = default;
-    __span_dynamic_storage &operator=(const __span_dynamic_storage &) = default;
+    __span_dynamic_storage() noexcept = default;
+    __span_dynamic_storage(const __span_dynamic_storage &) noexcept = default;
+    __span_dynamic_storage &operator=(const __span_dynamic_storage &) noexcept = default;
 
-    __span_dynamic_storage(T *p, size_t s) : ptr(p), size(s) {}
+    __span_dynamic_storage(T *p, size_t s) noexcept : ptr(p), size(s) {}
 
     T *ptr = nullptr;
     size_t size = 0;
@@ -29500,21 +29620,22 @@ public:
 
     template <typename It,
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value &&__is_dynamic)>
-    constexpr span(It first, size_type count) : storage((to_address)(first), count) {}
+    constexpr span(It first, size_type count) noexcept
+        : storage((to_address)(first), count) {}
 
     template <typename It,
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value && !__is_dynamic)>
-    constexpr explicit span(It first, size_type count)
+    constexpr explicit span(It first, size_type count) noexcept
         : storage((to_address)(first), count) {}
 
     template <typename It,
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value &&__is_dynamic)>
-    constexpr span(It first, It last)
+    constexpr span(It first, It last) noexcept
         : storage((to_address)(first), static_cast<size_type>(last - first)) {}
 
     template <typename It,
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value && !__is_dynamic)>
-    constexpr explicit span(It first, It last)
+    constexpr explicit span(It first, It last) noexcept
         : storage((to_address)(first), static_cast<size_type>(last - first)) {}
 
     template <size_t N, WJR_REQUIRES((__is_dynamic || N == Extent))>

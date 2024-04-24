@@ -11,11 +11,11 @@ namespace wjr {
 template <typename T, size_t Extent>
 struct __span_static_storage {
 
-    __span_static_storage() = default;
-    __span_static_storage(const __span_static_storage &) = default;
-    __span_static_storage &operator=(const __span_static_storage &) = default;
+    __span_static_storage() noexcept = default;
+    __span_static_storage(const __span_static_storage &) noexcept = default;
+    __span_static_storage &operator=(const __span_static_storage &) noexcept = default;
 
-    __span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) : ptr(p) {
+    __span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) noexcept : ptr(p) {
         WJR_ASSERT_L1(s == size);
     }
 
@@ -26,11 +26,11 @@ struct __span_static_storage {
 template <typename T>
 struct __span_dynamic_storage {
 
-    __span_dynamic_storage() = default;
-    __span_dynamic_storage(const __span_dynamic_storage &) = default;
-    __span_dynamic_storage &operator=(const __span_dynamic_storage &) = default;
+    __span_dynamic_storage() noexcept = default;
+    __span_dynamic_storage(const __span_dynamic_storage &) noexcept = default;
+    __span_dynamic_storage &operator=(const __span_dynamic_storage &) noexcept = default;
 
-    __span_dynamic_storage(T *p, size_t s) : ptr(p), size(s) {}
+    __span_dynamic_storage(T *p, size_t s) noexcept : ptr(p), size(s) {}
 
     T *ptr = nullptr;
     size_t size = 0;
@@ -142,21 +142,22 @@ public:
 
     template <typename It,
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value &&__is_dynamic)>
-    constexpr span(It first, size_type count) : storage((to_address)(first), count) {}
+    constexpr span(It first, size_type count) noexcept
+        : storage((to_address)(first), count) {}
 
     template <typename It,
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value && !__is_dynamic)>
-    constexpr explicit span(It first, size_type count)
+    constexpr explicit span(It first, size_type count) noexcept
         : storage((to_address)(first), count) {}
 
     template <typename It,
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value &&__is_dynamic)>
-    constexpr span(It first, It last)
+    constexpr span(It first, It last) noexcept
         : storage((to_address)(first), static_cast<size_type>(last - first)) {}
 
     template <typename It,
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value && !__is_dynamic)>
-    constexpr explicit span(It first, It last)
+    constexpr explicit span(It first, It last) noexcept
         : storage((to_address)(first), static_cast<size_type>(last - first)) {}
 
     template <size_t N, WJR_REQUIRES((__is_dynamic || N == Extent))>

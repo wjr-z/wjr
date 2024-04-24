@@ -19,14 +19,18 @@ class capture_leaf : enable_special_members_of_args_base<Tag, T> {
 
 public:
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
-    constexpr capture_leaf() : Mybase(enable_default_constructor), m_value() {}
+    constexpr capture_leaf() noexcept(std::is_nothrow_constructible_v<T>)
+        : Mybase(enable_default_constructor), m_value() {}
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
-    constexpr capture_leaf(Args &&...args)
+    constexpr capture_leaf(Args &&...args) noexcept(
+        std::is_constructible_v<T, Args &&...>)
         : Mybase(enable_default_constructor), m_value(std::forward<Args>(args)...) {}
 
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
-    constexpr explicit capture_leaf(dctor_t) : Mybase(enable_default_constructor) {}
+    constexpr explicit capture_leaf(dctor_t) noexcept(
+        std::is_nothrow_default_constructible_v<T>)
+        : Mybase(enable_default_constructor) {}
 
     constexpr T &get() noexcept { return m_value; }
     constexpr const T &get() const noexcept { return m_value; }
@@ -47,14 +51,17 @@ class compressed_capture_leaf : T {
 
 public:
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
-    constexpr compressed_capture_leaf() : Mybase() {}
+    constexpr compressed_capture_leaf() noexcept(std::is_nothrow_constructible_v<T>)
+        : Mybase() {}
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
-    constexpr compressed_capture_leaf(Args &&...args)
+    constexpr compressed_capture_leaf(Args &&...args) noexcept(
+        std::is_constructible_v<T, Args &&...>)
         : Mybase(std::forward<Args>(args)...) {}
 
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
-    constexpr explicit compressed_capture_leaf(dctor_t) {}
+    constexpr explicit compressed_capture_leaf(dctor_t) noexcept(
+        std::is_nothrow_default_constructible_v<T>) {}
 
     constexpr T &get() noexcept { return *this; }
     constexpr const T &get() const noexcept { return *this; }

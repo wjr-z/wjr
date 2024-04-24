@@ -497,7 +497,7 @@ private:
     constexpr void check(bool value) const { m_checker.check(value); }
 #else
     constexpr static void checker_set(bool) noexcept {}
-    constexpr static void check(bool) {}
+    constexpr static void check(bool) noexcept {}
 #endif
 };
 

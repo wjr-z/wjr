@@ -34,7 +34,7 @@ inline constexpr in_place_reserve_t in_place_reserve = {};
 
 struct in_place_max_t {
     template <typename T>
-    WJR_CONST constexpr operator T() const {
+    WJR_CONST constexpr operator T() const noexcept {
         return std::numeric_limits<T>::max();
     }
 };
@@ -43,7 +43,7 @@ inline constexpr in_place_max_t in_place_max = {};
 
 struct in_place_min_t {
     template <typename T>
-    WJR_CONST constexpr operator T() const {
+    WJR_CONST constexpr operator T() const noexcept {
         return std::numeric_limits<T>::min();
     }
 };
@@ -355,26 +355,9 @@ template <typename From, typename To>
 inline constexpr bool is_convertible_to_v = is_convertible_to<From, To>::value;
 
 // TODO : move __is_in_i32_range to other header.
-WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
     return value >= (int32_t)in_place_min && value <= (int32_t)in_place_max;
 }
-
-template <typename T>
-constexpr void __is_default_convertible_test(const T &) noexcept;
-
-template <typename T, typename = void>
-struct __is_default_convertible_impl : std::false_type {};
-
-template <typename T>
-struct __is_default_convertible_impl<
-    T, std::void_t<decltype(__is_default_convertible_test<T>(std::declval<T>()))>>
-    : std::true_type {};
-
-template <typename T>
-struct is_default_constructible : __is_default_convertible_impl<T> {};
-
-template <typename T>
-inline constexpr bool is_default_constructible_v = is_default_constructible<T>::value;
 
 #define __WJR_REGISTER_TYPENAMES_EXPAND(x) __WJR_REGISTER_TYPENAMES_EXPAND_I x
 #define __WJR_REGISTER_TYPENAMES_EXPAND_I(...) __VA_ARGS__
@@ -415,14 +398,34 @@ inline constexpr bool is_default_constructible_v = is_default_constructible<T>::
 constexpr static void allow_true_type(std::true_type) noexcept {}
 constexpr static void allow_false_type(std::false_type) noexcept {}
 
-namespace compare_details {
-WJR_REGISTER_HAS_TYPE(equal, std::declval<T>() == std::declval<U>(), T, U);
-WJR_REGISTER_HAS_TYPE(less, std::declval<T>() < std::declval<U>(), T, U);
-WJR_REGISTER_HAS_TYPE(greater, std::declval<T>() > std::declval<U>(), T, U);
-WJR_REGISTER_HAS_TYPE(less_equal, std::declval<T>() <= std::declval<U>(), T, U);
-WJR_REGISTER_HAS_TYPE(greater_equal, std::declval<T>() >= std::declval<U>(), T, U);
-WJR_REGISTER_HAS_TYPE(not_equal, std::declval<T>() != std::declval<U>(), T, U);
-} // namespace compare_details
+namespace {
+WJR_REGISTER_HAS_TYPE(compare, std::declval<Comp>()(std::declval<T>(), std::declval<U>()),
+                      Comp, T, U);
+WJR_REGISTER_HAS_TYPE(
+    noexcept_compare,
+    allow_true_type(std::declval<std::bool_constant<noexcept(
+                        std::declval<Comp>()(std::declval<T>(), std::declval<U>()))>>()),
+    Comp, T, U);
+
+#define WJR_REGISTER_HAS_COMPARE(NAME, STD)                                              \
+    template <typename T, typename U>                                                    \
+    struct has_##NAME : has_compare<STD, T, U> {};                                       \
+    template <typename T, typename U>                                                    \
+    inline constexpr bool has_##NAME##_v = has_##NAME<T, U>::value;                      \
+    template <typename T, typename U>                                                    \
+    struct has_noexcept_##NAME : has_noexcept_compare<STD, T, U> {};                     \
+    template <typename T, typename U>                                                    \
+    inline constexpr bool has_noexcept_##NAME##_v = has_noexcept_##NAME<T, U>::value;
+
+WJR_REGISTER_HAS_COMPARE(equal_to, std::equal_to<>);
+WJR_REGISTER_HAS_COMPARE(not_equal_to, std::not_equal_to<>);
+WJR_REGISTER_HAS_COMPARE(less, std::less<>);
+WJR_REGISTER_HAS_COMPARE(less_equal, std::less_equal<>);
+WJR_REGISTER_HAS_COMPARE(greater, std::greater<>);
+WJR_REGISTER_HAS_COMPARE(greater_equal, std::greater_equal<>);
+
+#undef WJR_REGISTER_HAS_COMPARE
+} // namespace
 
 template <typename T>
 struct get_integral_constant {

@@ -7,13 +7,11 @@
 
 namespace wjr {
 
-namespace to_address_details {
-
-WJR_REGISTER_HAS_TYPE(to_address,
+namespace {
+WJR_REGISTER_HAS_TYPE(pointer_traits_to_address,
                       std::pointer_traits<Ptr>::to_address(std::declval<const Ptr &>()),
                       Ptr);
-
-} // namespace to_address_details
+} // namespace
 
 template <typename T>
 constexpr T *to_address(T *p) noexcept {
@@ -23,7 +21,7 @@ constexpr T *to_address(T *p) noexcept {
 
 template <typename Ptr, WJR_REQUIRES(is_contiguous_iterator_v<remove_cvref_t<Ptr>>)>
 constexpr auto to_address(const Ptr &p) noexcept {
-    if constexpr (to_address_details::has_to_address_v<remove_cvref_t<Ptr>>) {
+    if constexpr (has_pointer_traits_to_address_v<remove_cvref_t<Ptr>>) {
         return std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p);
     } else {
         return (to_address)(p.operator->());
@@ -160,10 +158,12 @@ struct allocation_result {
     SizeType count;
 };
 
+namespace {
 WJR_REGISTER_HAS_TYPE(
     allocate_at_least,
     std::declval<Allocator>().allocate_at_least(std::declval<SizeType>()), Allocator,
     SizeType);
+}
 
 template <typename Allocator, typename SizeType,
           typename Pointer = typename std::allocator_traits<Allocator>::pointer>

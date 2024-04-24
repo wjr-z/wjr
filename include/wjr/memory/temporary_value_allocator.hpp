@@ -13,7 +13,9 @@ public:
     using const_pointer = const value_type *;
 
     template <typename... Args>
-    temporary_value_allocator(Alloc &al, Args &&...args) : al(al) {
+    WJR_CONSTEXPR20 temporary_value_allocator(Alloc &al, Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<value_type, Args &&...>)
+        : al(al) {
         uninitialized_construct_using_allocator(get(), al, std::forward<Args>(args)...);
     }
 
@@ -24,8 +26,8 @@ public:
 
     ~temporary_value_allocator() { destroy_at_using_allocator(get(), al); }
 
-    pointer get() noexcept { return reinterpret_cast<pointer>(storage); }
-    const_pointer get() const noexcept {
+    WJR_CONSTEXPR20 pointer get() noexcept { return reinterpret_cast<pointer>(storage); }
+    WJR_CONSTEXPR20 const_pointer get() const noexcept {
         return reinterpret_cast<const_pointer>(storage);
     }
 

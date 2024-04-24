@@ -21,12 +21,10 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
         using Container = typename Out::container_type;
 
         if constexpr (is_back_insert_iterator_v<Out>) {
-            if constexpr (container_details::has_container_append_v<Container, InputIt,
-                                                                    InputIt>) {
+            if constexpr (has_container_append_v<Container, InputIt, InputIt>) {
                 append(get_inserter_container(d_first), first, last);
                 return d_first;
-            } else if constexpr (container_details::has_container_insert_v<
-                                     Container, InputIt, InputIt>) {
+            } else if constexpr (has_container_insert_v<Container, InputIt, InputIt>) {
                 auto &cont = get_inserter_container(d_first);
                 cont.insert(cont.cend(), first, last);
                 return d_first;
@@ -34,8 +32,7 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
                 return std::copy(first, last, d_first);
             }
         } else {
-            if constexpr (container_details::has_container_insert_v<Container, InputIt,
-                                                                    InputIt>) {
+            if constexpr (has_container_insert_v<Container, InputIt, InputIt>) {
                 auto &cont = get_inserter_container(d_first);
                 const auto pos = get_inserter_iterator(d_first);
                 cont.insert(pos, first, last);
@@ -89,12 +86,10 @@ constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
         using Container = typename Out::container_type;
 
         if constexpr (is_back_insert_iterator_v<Out>) {
-            if constexpr (container_details::has_container_append_v<Container, InputIt,
-                                                                    InputIt>) {
+            if constexpr (has_container_append_v<Container, InputIt, InputIt>) {
                 append(get_inserter_container(d_first), first, std::next(first, count));
                 return d_first;
-            } else if constexpr (container_details::has_container_insert_v<
-                                     Container, InputIt, InputIt>) {
+            } else if constexpr (has_container_insert_v<Container, InputIt, InputIt>) {
                 auto &cont = get_inserter_container(d_first);
                 cont.insert(cont.cend(), first, std::next(first, count));
                 return d_first;
@@ -102,8 +97,7 @@ constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
                 return std::copy_n(first, count, d_first);
             }
         } else {
-            if constexpr (container_details::has_container_insert_v<Container, InputIt,
-                                                                    InputIt>) {
+            if constexpr (has_container_insert_v<Container, InputIt, InputIt>) {
                 auto &cont = get_inserter_container(d_first);
                 auto pos = get_inserter_iterator(d_first);
                 cont.insert(pos, first, std::next(first, count));

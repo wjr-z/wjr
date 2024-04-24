@@ -141,7 +141,7 @@ public:
     using difference_type = ptrdiff_t;
     using propagate_on_container_move_assignment = std::true_type;
 
-    stack_allocator_object() = default;
+    stack_allocator_object() noexcept = default;
     stack_allocator_object(stack_allocator_object &) = delete;
     stack_allocator_object(stack_allocator_object &&) = delete;
     stack_allocator_object &operator=(stack_allocator_object &) = delete;
@@ -173,7 +173,7 @@ public:
         }
     }
 
-    WJR_CONSTEXPR20 void set(stack_top &top) {
+    WJR_CONSTEXPR20 void set(stack_top &top) noexcept {
         top.ptr = m_cache.ptr;
         top.end = nullptr;
         top.large = nullptr;
@@ -203,7 +203,7 @@ public:
     using allocator_type = StackAllocator;
     using stack_top = typename StackAllocator::stack_top;
 
-    static StackAllocator &get_instance() {
+    static StackAllocator &get_instance() noexcept {
         static thread_local StackAllocator instance;
         return instance;
     }
@@ -211,13 +211,13 @@ public:
 
 template <typename Alloc>
 constexpr bool operator==(const singleton_stack_allocator_adapter<Alloc> &,
-                          const singleton_stack_allocator_adapter<Alloc> &) {
+                          const singleton_stack_allocator_adapter<Alloc> &) noexcept {
     return true;
 }
 
 template <typename Alloc>
 constexpr bool operator!=(const singleton_stack_allocator_adapter<Alloc> &,
-                          const singleton_stack_allocator_adapter<Alloc> &) {
+                          const singleton_stack_allocator_adapter<Alloc> &) noexcept {
     return false;
 }
 
@@ -267,7 +267,7 @@ class unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>
     friend class weak_stack_allocator;
 
 public:
-    unique_stack_allocator(const StackAllocatorObject &al) : m_obj(&al) {}
+    unique_stack_allocator(const StackAllocatorObject &al) noexcept : m_obj(&al) {}
     ~unique_stack_allocator() {
         if (m_top.ptr != nullptr) {
             m_instance->deallocate(m_top);
@@ -326,16 +326,16 @@ public:
         typename StackAllocator::propagate_on_container_move_assignment;
     using is_trivially_allocator = std::true_type;
 
-    weak_stack_allocator() = default;
-    weak_stack_allocator(UniqueStackAllocator &alloc) : m_alloc(&alloc) {}
-    weak_stack_allocator(const weak_stack_allocator &) = default;
-    weak_stack_allocator &operator=(const weak_stack_allocator &) = default;
-    weak_stack_allocator(weak_stack_allocator &&) = default;
-    weak_stack_allocator &operator=(weak_stack_allocator &&) = default;
-    ~weak_stack_allocator() = default;
+    weak_stack_allocator() noexcept = default;
+    weak_stack_allocator(UniqueStackAllocator &alloc) noexcept : m_alloc(&alloc) {}
+    weak_stack_allocator(const weak_stack_allocator &) noexcept = default;
+    weak_stack_allocator &operator=(const weak_stack_allocator &) noexcept = default;
+    weak_stack_allocator(weak_stack_allocator &&) noexcept = default;
+    weak_stack_allocator &operator=(weak_stack_allocator &&) noexcept = default;
+    ~weak_stack_allocator() noexcept = default;
 
     template <typename U>
-    weak_stack_allocator(const weak_stack_allocator<U, StackAllocator> &other)
+    weak_stack_allocator(const weak_stack_allocator<U, StackAllocator> &other) noexcept
         : m_alloc(other.m_alloc) {}
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 T *allocate(size_type n) {
