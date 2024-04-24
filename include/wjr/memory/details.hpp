@@ -171,7 +171,7 @@ WJR_NODISCARD auto allocate_at_least(Allocator &alloc, SizeType count) {
     if constexpr (has_allocate_at_least_v<Allocator, SizeType>) {
         return alloc.allocate_at_least(count);
     } else {
-        auto ptr = std::allocator_traits<Allocator>::allocate(alloc, count);
+        const auto ptr = std::allocator_traits<Allocator>::allocate(alloc, count);
         return allocation_result<decltype(ptr), SizeType>{ptr, count};
     }
 }

@@ -328,6 +328,10 @@ public:
 
     WJR_CONSTEXPR20 void
     destroy_and_deallocate() noexcept(std::is_nothrow_destructible_v<value_type>) {
+        if (WJR_BUILTIN_CONSTANT_P(data() == nullptr) && data() == nullptr) {
+            return;
+        }
+
         if (WJR_BUILTIN_CONSTANT_P(capacity() == 0) && capacity() == 0) {
             return;
         }
@@ -624,12 +628,22 @@ public:
         return m_pair.first();
     }
 
-    WJR_CONSTEXPR20 void destroy() noexcept(std::is_nothrow_destructible_v<value_type>) {
-        if (WJR_BUILTIN_CONSTANT_P(data() == nullptr) && data() == nullptr) {
-            return;
-        }
+private:
+    WJR_PURE WJR_INTRINSIC_INLINE bool __is_null_data() const {
+        return WJR_BUILTIN_CONSTANT_P(data() == nullptr) && data() == nullptr;
+    }
 
-        if (WJR_BUILTIN_CONSTANT_P(size() == 0) && size() == 0) {
+    WJR_PURE WJR_INTRINSIC_INLINE bool __is_zero_size() const {
+        return WJR_BUILTIN_CONSTANT_P(size() == 0) && size() == 0;
+    }
+
+    WJR_PURE WJR_INTRINSIC_INLINE bool __is_zero_capacity() const {
+        return WJR_BUILTIN_CONSTANT_P(capacity() == 0) && capacity() == 0;
+    }
+
+public:
+    WJR_CONSTEXPR20 void destroy() noexcept(std::is_nothrow_destructible_v<value_type>) {
+        if (__is_null_data() || __is_zero_size()) {
             return;
         }
 
@@ -639,7 +653,7 @@ public:
 
     WJR_CONSTEXPR20 void
     destroy_and_deallocate() noexcept(std::is_nothrow_destructible_v<value_type>) {
-        if (WJR_BUILTIN_CONSTANT_P(capacity() == 0) && capacity() == 0) {
+        if (__is_null_data() || __is_zero_capacity()) {
             return;
         }
 
@@ -1082,13 +1096,13 @@ public:
 
     WJR_CONSTEXPR20 explicit basic_vector(const size_type n,
                                           const allocator_type &al = allocator_type())
-        : basic_vector(al) {
+        : m_storage(al) {
         __construct_n(n, vctor);
     }
 
     WJR_CONSTEXPR20 basic_vector(size_type n, const value_type &val,
                                  const allocator_type &al = allocator_type())
-        : basic_vector(al) {
+        : m_storage(al) {
         __construct_n(n, val);
     }
 
@@ -1133,7 +1147,7 @@ public:
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector(Iter first, Iter last,
                                  const allocator_type &al = allocator_type())
-        : basic_vector(al) {
+        : m_storage(al) {
         __range_construct(try_to_address(first), try_to_address(last),
                           iterator_category_t<Iter>());
     }
