@@ -30105,6 +30105,12 @@ template <typename S>
 void mul(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs,
          const basic_biginteger<S> &rhs);
 
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+void mul(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs, T rhs);
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+void mul(basic_biginteger<S> &dst, T lhs, const basic_biginteger<S> &rhs);
+
 template <typename Storage>
 class basic_biginteger {
     using storage_type = Storage;
@@ -30282,11 +30288,13 @@ public:
         return vector_type::get_growth_capacity(old_capacity, new_size);
     }
 
-    void negate() noexcept {
+    void conditional_negate(bool condition) noexcept {
         if (const int32_t xssize = get_ssize(); xssize != 0) {
-            set_ssize(__fasts_negate(xssize));
+            set_ssize(__fasts_conditional_negate(condition, xssize));
         }
     }
+
+    void negate() noexcept { conditional_negate(true); }
 
     WJR_PURE bool is_negate() const noexcept { return get_ssize() < 0; }
 
@@ -30311,6 +30319,10 @@ private:
 
     template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     static int __compare_impl(const basic_biginteger *lhs, T rhs) {
+        if (WJR_BUILTIN_CONSTANT_P(rhs == 0) && rhs == 0) {
+            return lhs->empty() ? 0 : lhs->is_negate() ? -1 : 1;
+        }
+
         if constexpr (std::is_unsigned_v<T>) {
             return __compare_ui_impl(lhs, rhs);
         } else {
@@ -30384,8 +30396,38 @@ private:
         }
     }
 
+    static void __mul_ui_impl(basic_biginteger *dst, const basic_biginteger *lhs,
+                              uint64_t rhs);
+
     static void __mul_impl(basic_biginteger *dst, const basic_biginteger *lhs,
                            const basic_biginteger *rhs);
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    static void __mul_impl(basic_biginteger *dst, const basic_biginteger *lhs, T rhs) {
+        if constexpr (std::is_unsigned_v<T>) {
+            __mul_ui_impl(dst, lhs, rhs);
+        } else {
+            auto value = to_unsigned(rhs);
+            bool cond = false;
+            if (rhs < 0) {
+                value = -value;
+                cond = true;
+            }
+
+            __mul_ui_impl(dst, lhs, value);
+            dst->conditional_negate(cond);
+        }
+    }
+
+    static void __addsubmul_ui_impl(basic_biginteger *dst, const basic_biginteger *lhs,
+                                    uint64_t rhs, bool xsign);
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    static void __addmul_impl(basic_biginteger *dst, const basic_biginteger *lhs, T rhs) {
+        if constexpr (std::is_unsigned_v<T>) {
+        } else {
+        }
+    }
 
     template <typename S>
     friend from_chars_result<> from_chars(const char *first, const char *last,
@@ -30431,11 +30473,19 @@ private:
     friend void mul(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs,
                     const basic_biginteger<S> &rhs);
 
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+    friend void mul(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs, T rhs);
+
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+    friend void mul(basic_biginteger<S> &dst, T lhs, const basic_biginteger<S> &rhs);
+
     vector_type m_vec;
 };
 
-using biginteger =
-    basic_biginteger<default_biginteger_vector_storage<std::allocator<uint64_t>>>;
+template <typename Alloc = std::allocator<uint64_t>>
+using default_biginteger = basic_biginteger<default_biginteger_vector_storage<Alloc>>;
+
+using biginteger = default_biginteger<std::allocator<uint64_t>>;
 
 template <typename Storage>
 void swap(basic_biginteger<Storage> &lhs, basic_biginteger<Storage> &rhs) noexcept {
@@ -30768,6 +30818,31 @@ void basic_biginteger<Storage>::__addsub_impl(basic_biginteger *dst,
 }
 
 template <typename Storage>
+void basic_biginteger<Storage>::__mul_ui_impl(basic_biginteger *dst,
+                                              const basic_biginteger *lhs, uint64_t rhs) {
+    int32_t lssize = lhs->get_ssize();
+    uint32_t lusize = __fasts_abs(lssize);
+
+    if (lusize == 0 || rhs == 0) {
+        dst->set_ssize(0);
+        return;
+    }
+
+    dst->reserve(lusize + 1);
+
+    auto dp = dst->data();
+    auto lp = lhs->data();
+
+    auto cf = mul_1(dp, lp, lusize, rhs);
+    int32_t dssize = lssize + (cf != 0);
+    if (cf != 0) {
+        dp[lusize] = cf;
+    }
+
+    dst->set_ssize(dssize);
+}
+
+template <typename Storage>
 void basic_biginteger<Storage>::__mul_impl(basic_biginteger *dst,
                                            const basic_biginteger *lhs,
                                            const basic_biginteger *rhs) {
@@ -30790,6 +30865,7 @@ void basic_biginteger<Storage>::__mul_impl(basic_biginteger *dst,
     }
 
     int32_t dssize;
+    uint32_t dusize;
 
     if (rusize == 1) {
         dst->reserve(lusize + 1);
@@ -30802,7 +30878,7 @@ void basic_biginteger<Storage>::__mul_impl(basic_biginteger *dst,
         return;
     }
 
-    dssize = lusize + rusize;
+    dusize = lusize + rusize;
 
     auto dp = dst->data();
     auto lp = (pointer)lhs->data();
@@ -30812,8 +30888,8 @@ void basic_biginteger<Storage>::__mul_impl(basic_biginteger *dst,
 
     unique_stack_allocator stkal(math_details::stack_alloc);
 
-    if (dst->capacity() < to_unsigned(dssize)) {
-        tmp.emplace(dst->get_growth_capacity(dst->capacity(), dssize), in_place_reserve,
+    if (dst->capacity() < to_unsigned(dusize)) {
+        tmp.emplace(dst->get_growth_capacity(dst->capacity(), dusize), in_place_reserve,
                     dst->get_allocator());
         dp = (**tmp).data();
     } else {
@@ -30835,14 +30911,46 @@ void basic_biginteger<Storage>::__mul_impl(basic_biginteger *dst,
         mul_s(dp, lp, lusize, rp, rusize);
     }
 
-    bool cf = dp[dssize - 1] == 0;
-    dssize = mask | (dssize - cf);
+    bool cf = dp[dusize - 1] == 0;
+    dssize = mask | (dusize - cf);
 
     if (tmp.has_value()) {
         *dst = **std::move(tmp);
     }
 
     dst->set_ssize(dssize);
+}
+
+template <typename Storage>
+void basic_biginteger<Storage>::__addsubmul_ui_impl(basic_biginteger *dst,
+                                                    const basic_biginteger *lhs,
+                                                    uint64_t rhs, bool xsign) {
+    int32_t lssize = lhs->get_ssize();
+
+    if (lssize == 0 || rhs == 0) {
+        return;
+    }
+
+    uint32_t lusize = __fasts_abs(lssize);
+    lssize = __fasts_conditional_negate(xsign, lssize);
+    int32_t dssize = dst->get_ssize();
+
+    auto dp = dst->data();
+    auto lp = lhs->data();
+
+    if (dssize == 0) {
+        dst->reserve(lusize + 1);
+        auto cf = mul_1(dp, lp, lusize, rhs);
+        dssize = lssize + (cf != 0);
+        if (cf != 0) {
+            dp[lusize] = cf;
+        }
+
+        dst->set_ssize(dssize);
+        return;
+    }
+
+    uint32_t dusize = __fasts_abs(dssize);
 }
 
 template <typename S>
@@ -30916,6 +31024,16 @@ template <typename S>
 void mul(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs,
          const basic_biginteger<S> &rhs) {
     basic_biginteger<S>::__mul_impl(&dst, &lhs, &rhs);
+}
+
+template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+void mul(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs, T rhs) {
+    basic_biginteger<S>::__mul_impl(&dst, &lhs, rhs);
+}
+
+template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+void mul(basic_biginteger<S> &dst, T lhs, const basic_biginteger<S> &rhs) {
+    basic_biginteger<S>::__mul_impl(&dst, lhs, &rhs);
 }
 
 template <typename S>
