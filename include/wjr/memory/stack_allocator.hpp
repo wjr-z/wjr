@@ -12,10 +12,8 @@ namespace wjr {
 template <typename StackAllocator>
 class unique_stack_allocator;
 
-template <size_t threshold, size_t cache>
+template <size_t Cache>
 class stack_allocator_object {
-    static_assert(threshold <= cache, "threshold must be less than or equal to cache.");
-
     template <typename StackAllocator>
     friend class unique_stack_allocator;
 
@@ -35,13 +33,13 @@ public:
     struct stack_top {
         char *ptr = nullptr;
         char *end;
-        large_stack_top *large;
         uint16_t idx;
+        large_stack_top *large;
     };
 
 private:
     WJR_CONSTEXPR20 void *__large_allocate(size_t n, stack_top &top) {
-        auto buffer = (large_stack_top *)malloc(sizeof(large_stack_top) + n);
+        const auto buffer = (large_stack_top *)malloc(sizeof(large_stack_top) + n);
         buffer->prev = top.large;
         top.large = buffer;
         return buffer->buffer;
@@ -70,8 +68,8 @@ private:
 
             ++m_size;
 
-            size_t capacity = cache << ((3 * m_idx + 2) / 5);
-            auto buffer = static_cast<char *>(malloc(capacity));
+            const size_t capacity = Cache << ((3 * m_idx + 2) / 5);
+            const auto buffer = static_cast<char *>(malloc(capacity));
             alloc_node node = {buffer, buffer + capacity};
             m_ptr[m_idx] = node;
 
@@ -91,7 +89,7 @@ private:
     }
 
     WJR_COLD WJR_CONSTEXPR20 void __small_redeallocate() {
-        uint16_t new_size = m_idx + bufsize - 1;
+        const uint16_t new_size = m_idx + bufsize - 1;
 
         for (uint16_t i = new_size; i < m_size; ++i) {
             free(m_ptr[i].ptr);
@@ -101,7 +99,7 @@ private:
     }
 
     WJR_CONSTEXPR20 void __small_deallocate_change_idx(const stack_top &top) {
-        uint16_t idx = top.idx;
+        const uint16_t idx = top.idx;
         m_cache = {top.ptr, top.end};
         m_idx = idx;
         if (WJR_UNLIKELY(m_size - idx >= bufsize)) {
@@ -130,7 +128,7 @@ private:
         WJR_ASSERT_ASSUME_L1(m_cache.ptr != nullptr);
         WJR_ASSERT_ASSUME_L1(top.ptr != nullptr);
 
-        auto ptr = m_cache.ptr;
+        const auto ptr = m_cache.ptr;
         m_cache.ptr += n;
         return ptr;
     }
@@ -154,7 +152,8 @@ public:
         free(m_ptr);
     }
 
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top) {
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top,
+                                                            size_t threshold) {
         if (WJR_UNLIKELY(n >= threshold)) {
             return __large_allocate(n, top);
         }
@@ -173,7 +172,7 @@ public:
         }
     }
 
-    WJR_CONSTEXPR20 void set(stack_top &top) noexcept {
+    WJR_CONSTEXPR20 void set(stack_top &top) const noexcept {
         top.ptr = m_cache.ptr;
         top.end = nullptr;
         top.large = nullptr;
@@ -189,53 +188,27 @@ private:
     alloc_node *m_ptr = nullptr;
 };
 
-template <size_t threshold, size_t cache>
-char *const stack_allocator_object<threshold, cache>::invalid = (char *)(0x0c);
-
-template <typename StackAllocator>
-class singleton_stack_allocator_adapter {
-public:
-    using value_type = typename StackAllocator::value_type;
-    using size_type = typename StackAllocator::size_type;
-    using difference_type = typename StackAllocator::difference_type;
-    using propagate_on_container_move_assignment =
-        typename StackAllocator::propagate_on_container_move_assignment;
-    using allocator_type = StackAllocator;
-    using stack_top = typename StackAllocator::stack_top;
-
-    static StackAllocator &get_instance() noexcept {
-        static thread_local StackAllocator instance;
-        return instance;
-    }
-};
-
-template <typename Alloc>
-constexpr bool operator==(const singleton_stack_allocator_adapter<Alloc> &,
-                          const singleton_stack_allocator_adapter<Alloc> &) noexcept {
-    return true;
-}
-
-template <typename Alloc>
-constexpr bool operator!=(const singleton_stack_allocator_adapter<Alloc> &,
-                          const singleton_stack_allocator_adapter<Alloc> &) noexcept {
-    return false;
-}
+template <size_t Cache>
+char *const stack_allocator_object<Cache>::invalid = (char *)(0x0c);
 
 /**
  * @brief A stack allocator for fast simulation of stack memory on the heap, singleton
  * mode.
  *
- * @details When allocating memory less than threadshold,
- * use pre-allocated heap memory, otherwise use malloc to allocate heap memory. \n
- * Notice that the pre-allocated heap memory is not released until the program exits. \n
- * This allocator is not thread-safe and can't be used in container.
- *
- * @tparam threshold The threshold for using malloc to allocate heap memory
- * @tparam cache The size of the first heap memory allocation
+ * @tparam Cache The size of the first heap memory allocation
  */
-template <size_t threshold, size_t cache>
-using singleton_stack_allocator_object =
-    singleton_stack_allocator_adapter<stack_allocator_object<threshold, cache>>;
+template <size_t Cache, size_t DefaultThreshold>
+struct singleton_stack_allocator_object {
+    using Instance = stack_allocator_object<Cache>;
+    constexpr static size_t __default_threshold = DefaultThreshold;
+
+    static_assert(DefaultThreshold < Cache, "DefaultThreshold must be less than Cache.");
+
+    static Instance &get_instance() noexcept {
+        static thread_local Instance instance;
+        return instance;
+    }
+};
 
 /**
  * @details Used for container. This allocator won't deallocate memory allocated by
@@ -253,28 +226,28 @@ class weak_stack_allocator;
  * unique_stack_allocator object must be destroyed in the current lifetime.
  *
  */
-template <size_t threshold, size_t cache>
-class unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>
-    : public nonsendable<
-          unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>> {
-    using Mybase = nonsendable<
-        unique_stack_allocator<singleton_stack_allocator_object<threshold, cache>>>;
-    using StackAllocatorObject = singleton_stack_allocator_object<threshold, cache>;
-    using stack_top = typename StackAllocatorObject::stack_top;
-    using allocator_type = typename StackAllocatorObject::allocator_type;
+template <typename StackAllocator>
+class unique_stack_allocator
+    : public nonsendable<unique_stack_allocator<StackAllocator>> {
+    using Mybase = nonsendable<unique_stack_allocator<StackAllocator>>;
+    using Instance = typename StackAllocator::Instance;
+    using stack_top = typename Instance::stack_top;
 
-    template <typename T, typename StackAllocator>
+    constexpr static size_t __default_threshold = StackAllocator::__default_threshold;
+
+    template <typename T, typename S>
     friend class weak_stack_allocator;
 
 public:
-    unique_stack_allocator(const StackAllocatorObject &al) noexcept : m_obj(&al) {}
+    unique_stack_allocator(const StackAllocator &al) noexcept : m_obj(&al) {}
     ~unique_stack_allocator() {
         if (m_top.ptr != nullptr) {
             m_instance->deallocate(m_top);
         }
     }
 
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n) {
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *
+    allocate(size_t n, size_t threshold = __default_threshold) {
         Mybase::check();
 
         if (WJR_UNLIKELY(m_top.ptr == nullptr)) {
@@ -283,7 +256,7 @@ public:
             WJR_ASSERT_ASSUME_L1(m_top.ptr != nullptr);
         }
 
-        return m_instance->allocate(n, m_top);
+        return m_instance->allocate(n, m_top, threshold);
     }
 
 private:
@@ -300,8 +273,8 @@ private:
     }
 
     union {
-        const StackAllocatorObject *m_obj;
-        allocator_type *m_instance;
+        const StackAllocator *m_obj;
+        Instance *m_instance;
     };
 
     stack_top m_top;
@@ -310,20 +283,21 @@ private:
 template <typename StackAllocator>
 unique_stack_allocator(const StackAllocator &) -> unique_stack_allocator<StackAllocator>;
 
-template <typename T, size_t threshold, size_t cache>
-class weak_stack_allocator<T, singleton_stack_allocator_object<threshold, cache>> {
-    using StackAllocator = singleton_stack_allocator_object<threshold, cache>;
+template <typename T, size_t Cache, size_t DefaultThreshold>
+class weak_stack_allocator<T, singleton_stack_allocator_object<Cache, DefaultThreshold>> {
+    using StackAllocator = singleton_stack_allocator_object<Cache, DefaultThreshold>;
     using UniqueStackAllocator = unique_stack_allocator<StackAllocator>;
+
+    constexpr static size_t __default_threshold = StackAllocator::__default_threshold;
 
     template <typename U, typename A>
     friend class weak_stack_allocator;
 
 public:
     using value_type = T;
-    using size_type = typename StackAllocator::size_type;
-    using difference_type = typename StackAllocator::difference_type;
-    using propagate_on_container_move_assignment =
-        typename StackAllocator::propagate_on_container_move_assignment;
+    using size_type = size_t;
+    using difference_type = ptrdiff_t;
+    using propagate_on_container_move_assignment = std::true_type;
     using is_trivially_allocator = std::true_type;
 
     weak_stack_allocator() noexcept = default;
@@ -340,7 +314,7 @@ public:
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 T *allocate(size_type n) {
         const size_t size = n * sizeof(T);
-        if (WJR_UNLIKELY(size >= threshold)) {
+        if (WJR_UNLIKELY(size >= __default_threshold)) {
             return static_cast<T *>(malloc(size));
         }
 
@@ -350,7 +324,7 @@ public:
     WJR_CONSTEXPR20 void deallocate(WJR_MAYBE_UNUSED T *ptr,
                                     WJR_MAYBE_UNUSED size_type n) {
         const size_t size = n * sizeof(T);
-        if (WJR_UNLIKELY(size >= threshold)) {
+        if (WJR_UNLIKELY(size >= __default_threshold)) {
             free(ptr);
         }
     }

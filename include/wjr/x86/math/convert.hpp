@@ -74,15 +74,13 @@ uint64_t builtin_to_chars_unroll_8_fast(uint32_t in) {
 
 template <uint64_t Base>
 void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in, char_converter_t) {
-    uint64_t x = builtin_to_chars_unroll_8_fast<Base>(in) + 0x3030303030303030ull;
-
+    const uint64_t x = builtin_to_chars_unroll_8_fast<Base>(in) + 0x3030303030303030ull;
     write_memory<uint64_t>(ptr, x);
 }
 
 template <uint64_t Base>
 void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in, origin_converter_t) {
-    uint64_t x = builtin_to_chars_unroll_8_fast<Base>(in);
-
+    const uint64_t x = builtin_to_chars_unroll_8_fast<Base>(in);
     write_memory<uint64_t>(ptr, x);
 }
 
@@ -129,10 +127,10 @@ static __m128i ascii = sse::set1_epi8(0x30);
 
 template <uint64_t Base>
 uint32_t builtin_from_chars_unroll_8_fast(__m128i in) {
-    __m128i t1 = _mm_maddubs_epi16(in, from_chars_details::mulp1x<Base>);
-    __m128i t2 = _mm_madd_epi16(t1, from_chars_details::mulp2x<Base>);
-    __m128i t3 = _mm_packus_epi32(t2, t2);
-    __m128i t4 = _mm_madd_epi16(t3, from_chars_details::mulp4x<Base>);
+    const __m128i t1 = _mm_maddubs_epi16(in, from_chars_details::mulp1x<Base>);
+    const __m128i t2 = _mm_madd_epi16(t1, from_chars_details::mulp2x<Base>);
+    const __m128i t3 = _mm_packus_epi32(t2, t2);
+    const __m128i t4 = _mm_madd_epi16(t3, from_chars_details::mulp4x<Base>);
 
     return simd_cast<__m128i_t, uint32_t>(t4);
 }
@@ -140,14 +138,14 @@ uint32_t builtin_from_chars_unroll_8_fast(__m128i in) {
 template <uint64_t Base>
 uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, char_converter_t) {
     static_assert(Base <= 10, "");
-    __m128i in = _mm_sub_epi8(sse::loadu_si64(ptr), from_chars_details::ascii);
+    const __m128i in = _mm_sub_epi8(sse::loadu_si64(ptr), from_chars_details::ascii);
     return builtin_from_chars_unroll_8_fast<Base>(in);
 }
 
 template <uint64_t Base>
 uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, origin_converter_t) {
     static_assert(Base <= 10, "");
-    __m128i in = sse::loadu_si64(ptr);
+    const __m128i in = sse::loadu_si64(ptr);
     return builtin_from_chars_unroll_8_fast<Base>(in);
 }
 
@@ -157,14 +155,14 @@ uint32_t builtin_from_chars_unroll_8_fast(const void *ptr, origin_converter_t) {
 
 template <uint64_t Base>
 uint64_t builtin_from_chars_unroll_16_fast(__m128i in) {
-    __m128i t1 = _mm_maddubs_epi16(in, from_chars_details::mulp1x<Base>);
-    __m128i t2 = _mm_madd_epi16(t1, from_chars_details::mulp2x<Base>);
-    __m128i t3 = _mm_packus_epi32(t2, t2);
-    __m128i t4 = _mm_madd_epi16(t3, from_chars_details::mulp4x<Base>);
+    const __m128i t1 = _mm_maddubs_epi16(in, from_chars_details::mulp1x<Base>);
+    const __m128i t2 = _mm_madd_epi16(t1, from_chars_details::mulp2x<Base>);
+    const __m128i t3 = _mm_packus_epi32(t2, t2);
+    const __m128i t4 = _mm_madd_epi16(t3, from_chars_details::mulp4x<Base>);
 
-    uint64_t val = simd_cast<__m128i_t, uint64_t>(t4);
-    uint32_t lo = val;
-    uint32_t hi = val >> 32;
+    const uint64_t val = simd_cast<__m128i_t, uint64_t>(t4);
+    const uint32_t lo = val;
+    const uint32_t hi = val >> 32;
 
     return lo * from_chars_details::__base8<Base> + hi;
 }
@@ -172,14 +170,15 @@ uint64_t builtin_from_chars_unroll_16_fast(__m128i in) {
 template <uint64_t Base>
 uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, char_converter_t) {
     static_assert(Base <= 10, "");
-    __m128i in = _mm_sub_epi8(sse::loadu((__m128i *)(ptr)), from_chars_details::ascii);
+    const __m128i in =
+        _mm_sub_epi8(sse::loadu((__m128i *)(ptr)), from_chars_details::ascii);
     return builtin_from_chars_unroll_16_fast<Base>(in);
 }
 
 template <uint64_t Base>
 uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, origin_converter_t) {
     static_assert(Base <= 10, "");
-    __m128i in = sse::loadu((__m128i *)(ptr));
+    const __m128i in = sse::loadu((__m128i *)(ptr));
     return builtin_from_chars_unroll_16_fast<Base>(in);
 }
 

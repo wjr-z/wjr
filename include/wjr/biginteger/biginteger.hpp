@@ -203,14 +203,30 @@ from_chars_result<> from_chars(const char *first, const char *last,
 template <typename S, typename Iter>
 Iter to_chars_unchecked(Iter ptr, const basic_biginteger<S> &src, unsigned int base = 10);
 
+template <typename S>
+WJR_NODISCARD WJR_PURE int32_t compare(const basic_biginteger<S> &lhs,
+                                       const basic_biginteger<S> &rhs);
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+WJR_NODISCARD WJR_PURE int32_t compare(const basic_biginteger<S> &lhs, T rhs);
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+WJR_NODISCARD WJR_PURE int32_t compare(T lhs, const basic_biginteger<S> &rhs);
+
 #define WJR_REGISTER_BIGINTEGER_COMPARE(op)                                              \
     template <typename S>                                                                \
     WJR_PURE bool operator op(const basic_biginteger<S> &lhs,                            \
-                              const basic_biginteger<S> &rhs);                           \
+                              const basic_biginteger<S> &rhs) {                          \
+        return compare(lhs, rhs) op 0;                                                   \
+    }                                                                                    \
     template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>            \
-    WJR_PURE bool operator op(const basic_biginteger<S> &lhs, T rhs);                    \
+    WJR_PURE bool operator op(const basic_biginteger<S> &lhs, T rhs) {                   \
+        return compare(lhs, rhs) op 0;                                                   \
+    }                                                                                    \
     template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>            \
-    WJR_PURE bool operator op(T lhs, const basic_biginteger<S> &rhs);
+    WJR_PURE bool operator op(T lhs, const basic_biginteger<S> &rhs) {                   \
+        return compare(lhs, rhs) op 0;                                                   \
+    }
 
 WJR_REGISTER_BIGINTEGER_COMPARE(==)
 WJR_REGISTER_BIGINTEGER_COMPARE(!=)
@@ -402,6 +418,7 @@ public:
     WJR_PURE bool empty() const noexcept { return m_vec.empty(); }
     WJR_PURE size_type size() const noexcept { return m_vec.size(); }
     WJR_PURE size_type capacity() const noexcept { return m_vec.capacity(); }
+    WJR_PURE bool zero() const noexcept { return empty(); }
 
     void reserve(size_type new_capacity) { m_vec.reserve(new_capacity); }
 
@@ -446,13 +463,14 @@ private:
                                                  basic_biginteger *dst,
                                                  unsigned int base);
 
-    static int __compare_impl(const basic_biginteger *lhs, const basic_biginteger *rhs);
+    static int32_t __compare_impl(const basic_biginteger *lhs,
+                                  const basic_biginteger *rhs);
 
-    static int __compare_ui_impl(const basic_biginteger *lhs, uint64_t rhs);
-    static int __compare_si_impl(const basic_biginteger *lhs, int64_t rhs);
+    static int32_t __compare_ui_impl(const basic_biginteger *lhs, uint64_t rhs);
+    static int32_t __compare_si_impl(const basic_biginteger *lhs, int64_t rhs);
 
     template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-    static int __compare_impl(const basic_biginteger *lhs, T rhs) {
+    static int32_t __compare_impl(const basic_biginteger *lhs, T rhs) {
         if (WJR_BUILTIN_CONSTANT_P(rhs == 0) && rhs == 0) {
             return lhs->empty() ? 0 : lhs->is_negate() ? -1 : 1;
         }
@@ -460,6 +478,10 @@ private:
         if constexpr (std::is_unsigned_v<T>) {
             return __compare_ui_impl(lhs, rhs);
         } else {
+            if (WJR_BUILTIN_CONSTANT_P(rhs >= 0) && rhs >= 0) {
+                return __compare_ui_impl(lhs, to_unsigned(rhs));
+            }
+
             return __compare_si_impl(lhs, rhs);
         }
     }
@@ -553,15 +575,49 @@ private:
         }
     }
 
-    static void __addsubmul_ui_impl(basic_biginteger *dst, const basic_biginteger *lhs,
-                                    uint64_t rhs, bool xsign);
+    static void __addsubmul_impl(basic_biginteger *dst, const basic_biginteger *lhs,
+                                 uint64_t rhs, uint64_t xmask);
 
     template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     static void __addmul_impl(basic_biginteger *dst, const basic_biginteger *lhs, T rhs) {
         if constexpr (std::is_unsigned_v<T>) {
+            __addsubmul_impl(dst, lhs, rhs, 0);
         } else {
+            uint64_t rvalue, xmask;
+
+            if (rhs >= 0) {
+                rvalue = to_unsigned(rhs);
+                xmask = 0;
+            } else {
+                rvalue = -to_unsigned(rhs);
+                xmask = __fasts_sign_mask<uint64_t>();
+            }
+
+            __addsubmul_impl(dst, lhs, rvalue, xmask);
         }
     }
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    static void __submul_impl(basic_biginteger *dst, const basic_biginteger *lhs, T rhs) {
+        if constexpr (std::is_unsigned_v<T>) {
+            __addsubmul_impl(dst, lhs, rhs, __fasts_sign_mask<uint64_t>());
+        } else {
+            uint64_t rvalue, xmask;
+
+            if (rhs >= 0) {
+                rvalue = to_unsigned(rhs);
+                xmask = __fasts_sign_mask<uint64_t>();
+            } else {
+                rvalue = -to_unsigned(rhs);
+                xmask = 0;
+            }
+
+            __addsubmul_impl(dst, lhs, rvalue, xmask);
+        }
+    }
+
+    static void __addsubmul_impl(basic_biginteger *dst, const basic_biginteger *lhs,
+                                 const basic_biginteger *rhs);
 
     template <typename S>
     friend from_chars_result<> from_chars(const char *first, const char *last,
@@ -571,23 +627,15 @@ private:
     friend Iter to_chars_unchecked(Iter ptr, const basic_biginteger<S> &src,
                                    unsigned int base);
 
-#define WJR_REGISTER_BIGINTEGER_COMPARE(op)                                              \
-    template <typename S>                                                                \
-    WJR_PURE friend bool operator op(const basic_biginteger<S> &lhs,                     \
-                                     const basic_biginteger<S> &rhs);                    \
-    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>          \
-    WJR_PURE friend bool operator op(const basic_biginteger<S> &lhs, T rhs);             \
-    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>          \
-    WJR_PURE friend bool operator op(T lhs, const basic_biginteger<S> &rhs);
+    template <typename S>
+    friend int32_t compare(const basic_biginteger<S> &lhs,
+                           const basic_biginteger<S> &rhs);
 
-    WJR_REGISTER_BIGINTEGER_COMPARE(==)
-    WJR_REGISTER_BIGINTEGER_COMPARE(!=)
-    WJR_REGISTER_BIGINTEGER_COMPARE(<)
-    WJR_REGISTER_BIGINTEGER_COMPARE(>)
-    WJR_REGISTER_BIGINTEGER_COMPARE(<=)
-    WJR_REGISTER_BIGINTEGER_COMPARE(>=)
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+    friend int32_t compare(const basic_biginteger<S> &lhs, T rhs);
 
-#undef WJR_REGISTER_BIGINTEGER_COMPARE
+    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+    friend int32_t compare(T lhs, const basic_biginteger<S> &rhs);
 
 #define WJR_REGISTER_BIGINTEGER_ADDSUB(ADDSUB)                                           \
     template <typename S>                                                                \
@@ -728,7 +776,7 @@ basic_biginteger<Storage>::__from_chars_impl(const char *first, const char *last
         return result;
     }
 
-    size_t str_size = first - start;
+    const size_t str_size = first - start;
     size_t capacity;
 
     switch (base) {
@@ -770,8 +818,8 @@ basic_biginteger<Storage>::__from_chars_impl(const char *first, const char *last
 }
 
 template <typename Storage>
-int basic_biginteger<Storage>::__compare_impl(const basic_biginteger *lhs,
-                                              const basic_biginteger *rhs) {
+int32_t basic_biginteger<Storage>::__compare_impl(const basic_biginteger *lhs,
+                                                  const basic_biginteger *rhs) {
     const auto lssize = lhs->get_ssize();
     const auto rssize = rhs->get_ssize();
 
@@ -779,53 +827,60 @@ int basic_biginteger<Storage>::__compare_impl(const basic_biginteger *lhs,
         return lssize < rssize ? -1 : 1;
     }
 
-    const int ans = reverse_compare_n(lhs->data(), rhs->data(), __fasts_abs(lssize));
+    const int32_t ans = reverse_compare_n(lhs->data(), rhs->data(), __fasts_abs(lssize));
     return lssize < 0 ? -ans : ans;
 }
 
 template <typename Storage>
-int basic_biginteger<Storage>::__compare_ui_impl(const basic_biginteger *lhs,
-                                                 uint64_t rhs) {
-    const auto lssize = lhs->get_ssize();
+int32_t basic_biginteger<Storage>::__compare_ui_impl(const basic_biginteger *lhs,
+                                                     uint64_t rhs) {
+    const int32_t lssize = lhs->get_ssize();
 
     if (lssize == 0) {
         return -(rhs != 0);
     }
 
     if (lssize == 1) {
-        const auto lvalue = lhs->front();
+        const uint64_t lvalue = lhs->front();
         return (lvalue != rhs ? (lvalue < rhs ? -1 : 1) : 0);
     }
 
-    return lssize < 0 ? -1 : 1;
+    return lssize;
 }
 
 template <typename Storage>
-int basic_biginteger<Storage>::__compare_si_impl(const basic_biginteger *lhs,
-                                                 int64_t rhs) {
-    const auto lssize = lhs->get_ssize();
-    const auto rssize = rhs != 0 ? (rhs < 0 ? -1 : 1) : 0;
+int32_t basic_biginteger<Storage>::__compare_si_impl(const basic_biginteger *lhs,
+                                                     int64_t rhs) {
+    const int32_t lssize = lhs->get_ssize();
+    const int32_t rssize = rhs == 0 ? 0 : __fasts_conditional_negate(rhs < 0, 1);
 
     if (lssize != rssize) {
-        return lssize < rssize ? -1 : 1;
+        return lssize - rssize;
     }
 
     if (lssize == 0) {
         return 0;
     }
 
-    const auto lvalue = lhs->front();
-    const auto rvalue = to_unsigned(rhs);
+    const uint64_t lvalue = lhs->front();
+    const uint64_t rvalue = rhs >= 0 ? to_unsigned(rhs) : -to_unsigned(rhs);
 
-    const int ans = (lvalue != rvalue ? (lvalue < rvalue ? -1 : 1) : 0);
-    return lssize < 0 ? -ans : ans;
+    if (lvalue == rvalue) {
+        return 0;
+    }
+
+    if (lvalue > rvalue) {
+        return lssize;
+    }
+
+    return -lssize;
 }
 
 template <typename Storage>
 template <bool xsign>
 void basic_biginteger<Storage>::__addsub_impl(basic_biginteger *dst,
                                               const basic_biginteger *lhs, uint64_t rhs) {
-    int32_t lssize = lhs->get_ssize();
+    const int32_t lssize = lhs->get_ssize();
     if (lssize == 0) {
         dst->reserve(1);
         dst->front() = rhs;
@@ -833,18 +888,18 @@ void basic_biginteger<Storage>::__addsub_impl(basic_biginteger *dst,
         return;
     }
 
-    uint32_t lusize = __fasts_abs(lssize);
+    const uint32_t lusize = __fasts_abs(lssize);
     dst->reserve(lusize + 1);
 
-    auto dp = dst->data();
-    auto lp = lhs->data();
+    const auto dp = dst->data();
+    const auto lp = lhs->data();
     int32_t dssize;
 
     using compare =
         std::conditional_t<xsign, std::less<uint64_t>, std::greater<uint64_t>>;
 
     if (compare{}(dssize, 0)) {
-        auto cf = addc_1(dp, lp, lusize, rhs);
+        const auto cf = addc_1(dp, lp, lusize, rhs);
         dssize = __fasts_conditional_negate(xsign, lusize + cf);
         if (cf) {
             dp[lusize] = 1;
@@ -865,7 +920,7 @@ void basic_biginteger<Storage>::__addsub_impl(basic_biginteger *dst,
 template <typename Storage>
 void basic_biginteger<Storage>::__ui_sub_impl(basic_biginteger *dst, uint64_t lhs,
                                               const basic_biginteger *rhs) {
-    int32_t rssize = rhs->get_ssize();
+    const int32_t rssize = rhs->get_ssize();
     if (rssize == 0) {
         dst->reserve(1);
         dst->front() = lhs;
@@ -873,15 +928,15 @@ void basic_biginteger<Storage>::__ui_sub_impl(basic_biginteger *dst, uint64_t lh
         return;
     }
 
-    uint32_t rusize = __fasts_abs(rssize);
+    const uint32_t rusize = __fasts_abs(rssize);
     dst->reserve(rusize);
 
-    auto dp = dst->data();
-    auto rp = rhs->data();
+    const auto dp = dst->data();
+    const auto rp = rhs->data();
     int32_t dssize;
 
     if (rssize < 0) {
-        auto cf = addc_1(dp, rp, rusize, lhs);
+        const auto cf = addc_1(dp, rp, rusize, lhs);
         dssize = rusize + cf;
         if (cf) {
             dp[rusize] = 1;
@@ -920,29 +975,32 @@ void basic_biginteger<Storage>::__addsub_impl(basic_biginteger *dst,
 
     dst->reserve(lusize + 1);
 
-    auto dp = dst->data();
-    auto lp = lhs->data();
-    auto rp = rhs->data();
+    const auto dp = dst->data();
+    const auto lp = lhs->data();
+    const auto rp = rhs->data();
     int32_t dssize;
+
+    if (rusize == 0) {
+        std::copy_n(lp, lusize, dp);
+        dst->set_ssize(lssize);
+        return;
+    }
+
+    dssize = __fasts_get_sign_mask(lssize);
 
     // different sign
     if ((lssize ^ rssize) < 0) {
         if (lusize != rusize) {
-            subc_sz(dp, lp, lusize, rp, rusize);
-            dssize =
-                __fasts_get_sign_mask(lssize) | biginteger_details::normalize(dp, lusize);
+            (void)subc_s(dp, lp, lusize, rp, rusize);
+            dssize = dssize | biginteger_details::normalize(dp, lusize);
         } else {
-            if (WJR_UNLIKELY(lusize == 0)) {
-                dssize = 0;
-            } else {
-                auto ans = abs_subc_n(dp, lp, rp, rusize);
-                dssize = ans == 0 ? 0 : (__fasts_get_sign_mask(lssize) ^ ans);
-            }
+            const auto ans = abs_subc_n(dp, lp, rp, rusize);
+            dssize = ans == 0 ? 0 : (dssize ^ ans);
         }
     } else {
-        auto cf = addc_sz(dp, lp, lusize, rp, rusize);
+        const auto cf = addc_s(dp, lp, lusize, rp, rusize);
         // seems can be optimized
-        dssize = __fasts_get_sign_mask(lssize) | (lusize + cf);
+        dssize = dssize | (lusize + cf);
         if (cf) {
             dp[lusize] = 1;
         }
@@ -954,8 +1012,8 @@ void basic_biginteger<Storage>::__addsub_impl(basic_biginteger *dst,
 template <typename Storage>
 void basic_biginteger<Storage>::__mul_ui_impl(basic_biginteger *dst,
                                               const basic_biginteger *lhs, uint64_t rhs) {
-    int32_t lssize = lhs->get_ssize();
-    uint32_t lusize = __fasts_abs(lssize);
+    const int32_t lssize = lhs->get_ssize();
+    const uint32_t lusize = __fasts_abs(lssize);
 
     if (lusize == 0 || rhs == 0) {
         dst->set_ssize(0);
@@ -964,11 +1022,11 @@ void basic_biginteger<Storage>::__mul_ui_impl(basic_biginteger *dst,
 
     dst->reserve(lusize + 1);
 
-    auto dp = dst->data();
-    auto lp = lhs->data();
+    const auto dp = dst->data();
+    const auto lp = lhs->data();
 
-    auto cf = mul_1(dp, lp, lusize, rhs);
-    int32_t dssize = lssize + (cf != 0);
+    const auto cf = mul_1(dp, lp, lusize, rhs);
+    const int32_t dssize = lssize + (cf != 0);
     if (cf != 0) {
         dp[lusize] = cf;
     }
@@ -984,7 +1042,6 @@ void basic_biginteger<Storage>::__mul_impl(basic_biginteger *dst,
 
     int32_t lssize = lhs->get_ssize();
     int32_t rssize = rhs->get_ssize();
-    int32_t mask = __fasts_get_sign_mask(lssize ^ rssize);
     uint32_t lusize = __fasts_abs(lssize);
     uint32_t rusize = __fasts_abs(rssize);
 
@@ -998,12 +1055,14 @@ void basic_biginteger<Storage>::__mul_impl(basic_biginteger *dst,
         return;
     }
 
+    const int32_t mask = __fasts_get_sign_mask(lssize ^ rssize);
+
     int32_t dssize;
     uint32_t dusize;
 
     if (rusize == 1) {
         dst->reserve(lusize + 1);
-        auto cf = mul_1(dst->data(), lhs->data(), lusize, rhs->front());
+        const auto cf = mul_1(dst->data(), lhs->data(), lusize, rhs->front());
         dssize = mask | (lusize + (cf != 0));
         if (cf != 0) {
             (*dst)[lusize] = cf;
@@ -1022,7 +1081,7 @@ void basic_biginteger<Storage>::__mul_impl(basic_biginteger *dst,
 
     unique_stack_allocator stkal(math_details::stack_alloc);
 
-    if (dst->capacity() < to_unsigned(dusize)) {
+    if (dst->capacity() < dusize) {
         tmp.emplace(dst->get_growth_capacity(dst->capacity(), dusize), in_place_reserve,
                     dst->get_allocator());
         dp = (**tmp).data();
@@ -1045,7 +1104,7 @@ void basic_biginteger<Storage>::__mul_impl(basic_biginteger *dst,
         mul_s(dp, lp, lusize, rp, rusize);
     }
 
-    bool cf = dp[dusize - 1] == 0;
+    const bool cf = dp[dusize - 1] == 0;
     dssize = mask | (dusize - cf);
 
     if (tmp.has_value()) {
@@ -1056,35 +1115,109 @@ void basic_biginteger<Storage>::__mul_impl(basic_biginteger *dst,
 }
 
 template <typename Storage>
-void basic_biginteger<Storage>::__addsubmul_ui_impl(basic_biginteger *dst,
-                                                    const basic_biginteger *lhs,
-                                                    uint64_t rhs, bool xsign) {
-    int32_t lssize = lhs->get_ssize();
+void basic_biginteger<Storage>::__addsubmul_impl(basic_biginteger *dst,
+                                                 const basic_biginteger *lhs,
+                                                 uint64_t rhs, uint64_t xmask) {
+    const int32_t lssize = lhs->get_ssize();
 
     if (lssize == 0 || rhs == 0) {
         return;
     }
 
-    uint32_t lusize = __fasts_abs(lssize);
-    lssize = __fasts_conditional_negate(xsign, lssize);
+    const uint32_t lusize = __fasts_abs(lssize);
     int32_t dssize = dst->get_ssize();
-
-    auto dp = dst->data();
-    auto lp = lhs->data();
 
     if (dssize == 0) {
         dst->reserve(lusize + 1);
-        auto cf = mul_1(dp, lp, lusize, rhs);
+        const auto dp = dst->data();
+        const auto cf = mul_1(dp, lhs->data(), lusize, rhs);
         dssize = lssize + (cf != 0);
         if (cf != 0) {
             dp[lusize] = cf;
         }
 
-        dst->set_ssize(dssize);
+        dst->set_ssize(dssize ^ xmask);
         return;
     }
 
-    uint32_t dusize = __fasts_abs(dssize);
+    xmask ^= lssize;
+    xmask ^= dssize;
+
+    const uint32_t dusize = __fasts_abs(dssize);
+
+    uint32_t new_dusize = std::max(lusize, dusize);
+    const uint32_t min_size = std::min(lusize, dusize);
+    dst->reserve(new_dusize + 1);
+
+    auto dp = dst->data();
+    auto lp = lhs->data();
+
+    uint64_t cf;
+
+    // dst += abs(lhs) * abs(rhs)
+    if (xmask >= 0) {
+        cf = addmul_1(dp, lp, min_size, rhs);
+
+        dp += min_size;
+        lp += min_size;
+
+        int32_t sdelta = lusize - dusize;
+
+        if (sdelta != 0) {
+            uint64_t cf2;
+            if (sdelta > 0) {
+                cf2 = mul_1(dp, lp, sdelta, rhs);
+            } else {
+                sdelta = -sdelta;
+                cf2 = 0;
+            }
+
+            cf = cf2 + addc_1(dp, dp, sdelta, cf);
+        }
+
+        dp[sdelta] = cf;
+        new_dusize += (cf != 0);
+    }
+    // dst -= abs(lhs) * abs(rhs)
+    else {
+        cf = submul_1(dp, lp, min_size, rhs);
+
+        do {
+            if (dusize >= lusize) {
+                if (dusize != lusize) {
+                    cf = subc_1(dp + lusize, dp + lusize, dusize - lusize, cf);
+                }
+
+                if (cf != 0) {
+                    cf += negate_n(dp, dp, new_dusize) - 1;
+                    dp[new_dusize] = cf;
+                    ++new_dusize;
+                    dssize = __fasts_negate(dssize);
+                }
+            } else {
+                cf += negate_n(dp, dp, dusize) - 1;
+
+                const auto cf2 = cf == (uint64_t)in_place_max;
+                cf += cf2;
+
+                const auto cf3 = mul_1(dp + dusize, lp + dusize, lusize - dusize, rhs);
+                cf = cf3 + addc_1(dp + dusize, dp + dusize, lusize - dusize, cf);
+
+                dp[new_dusize] = cf;
+                new_dusize += (cf != 0);
+
+                if (cf2) {
+                    (void)subc_1(dp + dusize, dp + dusize, new_dusize - dusize, 1);
+                }
+
+                dssize = __fasts_negate(dssize);
+            }
+
+            new_dusize = biginteger_details::normalize(dp, new_dusize);
+        } while (0);
+    }
+
+    dst->set_ssize(__fasts_conditional_negate(dssize < 0, new_dusize));
 }
 
 template <typename S>
@@ -1107,29 +1240,20 @@ Iter to_chars_unchecked(Iter ptr, const basic_biginteger<S> &src, unsigned int b
     return biginteger_to_chars(ptr, src.data(), src.size(), base);
 }
 
-#define WJR_REGISTER_BIGINTEGER_COMPARE(op)                                              \
-    template <typename S>                                                                \
-    WJR_PURE bool operator op(const basic_biginteger<S> &lhs,                            \
-                              const basic_biginteger<S> &rhs) {                          \
-        return basic_biginteger<S>::__compare_impl(&lhs, &rhs) op 0;                     \
-    }                                                                                    \
-    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>          \
-    WJR_PURE bool operator op(const basic_biginteger<S> &lhs, T rhs) {                   \
-        return basic_biginteger<S>::__compare_impl(&lhs, rhs) op 0;                      \
-    }                                                                                    \
-    template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>          \
-    WJR_PURE bool operator op(T lhs, const basic_biginteger<S> &rhs) {                   \
-        return basic_biginteger<S>::__compare_impl(lhs, &rhs) op 0;                      \
-    }
+template <typename S>
+int32_t compare(const basic_biginteger<S> &lhs, const basic_biginteger<S> &rhs) {
+    return basic_biginteger<S>::__compare_impl(&lhs, &rhs);
+}
 
-WJR_REGISTER_BIGINTEGER_COMPARE(==)
-WJR_REGISTER_BIGINTEGER_COMPARE(!=)
-WJR_REGISTER_BIGINTEGER_COMPARE(<)
-WJR_REGISTER_BIGINTEGER_COMPARE(>)
-WJR_REGISTER_BIGINTEGER_COMPARE(<=)
-WJR_REGISTER_BIGINTEGER_COMPARE(>=)
+template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+int32_t compare(const basic_biginteger<S> &lhs, T rhs) {
+    return basic_biginteger<S>::__compare_impl(&lhs, rhs);
+}
 
-#undef WJR_REGISTER_BIGINTEGER_COMPARE
+template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+int32_t compare(T lhs, const basic_biginteger<S> &rhs) {
+    return basic_biginteger<S>::__compare_impl(lhs, &rhs);
+}
 
 #define WJR_REGISTER_BIGINTEGER_ADDSUB(ADDSUB)                                           \
     template <typename S>                                                                \
@@ -1167,7 +1291,7 @@ void mul(basic_biginteger<S> &dst, const basic_biginteger<S> &lhs, T rhs) {
 
 template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
 void mul(basic_biginteger<S> &dst, T lhs, const basic_biginteger<S> &rhs) {
-    basic_biginteger<S>::__mul_impl(&dst, lhs, &rhs);
+    basic_biginteger<S>::__mul_impl(&dst, &rhs, lhs);
 }
 
 template <typename S>

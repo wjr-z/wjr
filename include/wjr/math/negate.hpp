@@ -1,7 +1,7 @@
 #ifndef WJR_MATH_NEG_HPP__
 #define WJR_MATH_NEG_HPP__
 
-#include <wjr/math/not.hpp>
+#include <wjr/math/complement.hpp>
 #include <wjr/math/replace.hpp>
 
 namespace wjr {
@@ -11,7 +11,7 @@ namespace wjr {
   calculations : stable n instead of not + inc which maybe n * 2
 */
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E bool neg_n(T *dst, const T *src, size_t n) {
+WJR_INTRINSIC_CONSTEXPR_E bool negate_n(T *dst, const T *src, size_t n) {
     size_t idx = replace_find_not(dst, src, n, 0, 0);
 
     if (idx == n) {
@@ -19,8 +19,7 @@ WJR_INTRINSIC_CONSTEXPR_E bool neg_n(T *dst, const T *src, size_t n) {
     }
 
     dst[idx] = -src[idx];
-
-    not_n(dst + idx + 1, src + idx + 1, n - idx - 1);
+    complement_n(dst + idx + 1, src + idx + 1, n - idx - 1);
     return false;
 }
 

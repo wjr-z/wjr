@@ -91,7 +91,7 @@ public:
 private:
     WJR_INTRINSIC_CONSTEXPR static void fallback_div2by1_adjust(T rax, T div, T &r8,
                                                                 T &rdx) {
-        T r9 = r8 + div;
+        const T r9 = r8 + div;
         bool f = r8 < rax;
         r8 = f ? r8 : r9;
         rdx += -1 + f;
@@ -111,7 +111,7 @@ private:
     }
 
     WJR_INTRINSIC_CONSTEXPR20 static T basic_divide(T divisor, T value, T lo, T &hi) {
-        T hi1 = hi + 1;
+        const T hi1 = hi + 1;
 
         T rax, rdx;
 
@@ -138,7 +138,7 @@ private:
     }
 
     WJR_INTRINSIC_CONSTEXPR20 static T divide_lo0(T divisor, T value, T lo, T &hi) {
-        T hi1 = hi + 1;
+        const T hi1 = hi + 1;
         T rax, rdx;
 
         rax = mul(hi, value, rdx);

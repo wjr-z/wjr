@@ -69,8 +69,8 @@ WJR_INTRINSIC_INLINE __m128i __mm_srl_epi64(__m128i x, __m128i c) {
 
 template <bool is_constant, typename T>
 void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int c) {
-    auto y = __mm_get_shift<is_constant>(c);
-    auto z = __mm_get_shift<is_constant>(64 - c);
+    const auto y = __mm_get_shift<is_constant>(c);
+    const auto z = __mm_get_shift<is_constant>(64 - c);
 
     if (n & 1) {
         dst[-1] = shld(src[-1], src[-2], c);
@@ -157,7 +157,7 @@ WJR_INTRINSIC_INLINE void builtin_lshift_n_impl(T *dst, const T *src, size_t n,
 template <typename T>
 WJR_INTRINSIC_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned int c,
                                         T lo) {
-    T ret = src[n - 1] >> (64 - c);
+    const T ret = src[n - 1] >> (64 - c);
     builtin_lshift_n_impl(dst + 1, src + 1, n - 1, c);
     dst[0] = shld(src[0], lo, c);
     return ret;
@@ -185,8 +185,8 @@ WJR_INTRINSIC_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned
 
 template <bool is_constant, typename T>
 void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n, unsigned int c) {
-    auto y = __mm_get_shift<is_constant>(c);
-    auto z = __mm_get_shift<is_constant>(64 - c);
+    const auto y = __mm_get_shift<is_constant>(c);
+    const auto z = __mm_get_shift<is_constant>(64 - c);
 
     if (n & 1) {
         dst[0] = shrd(src[0], src[1], c);
@@ -273,7 +273,7 @@ WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T *src, size_t n,
 template <typename T>
 WJR_INTRINSIC_INLINE T builtin_rshift_n(T *dst, const T *src, size_t n, unsigned int c,
                                         T hi) {
-    T ret = src[0] << (64 - c);
+    const T ret = src[0] << (64 - c);
     builtin_rshift_n_impl(dst, src, n - 1, c);
     dst[n - 1] = shrd(src[n - 1], hi, c);
     return ret;

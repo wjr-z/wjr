@@ -23,17 +23,17 @@ namespace wjr {
 inline uint64_t
 div128by64to64_noshift(uint64_t &rem, uint64_t lo, uint64_t hi,
                        const wjr::div2by1_divider_noshift<uint64_t> &divider) {
-    uint64_t result = divider.divide(lo, hi);
+    const uint64_t result = divider.divide(lo, hi);
     rem = hi;
     return result;
 }
 
 inline uint64_t div128by64to64_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
                                      const wjr::div2by1_divider<uint64_t> &divider) {
-    auto shift = divider.get_shift();
+    const auto shift = divider.get_shift();
     hi = shld(hi, lo, shift);
     lo <<= shift;
-    uint64_t result = divider.get_base().divide(lo, hi);
+    const uint64_t result = divider.get_base().divide(lo, hi);
     rem = hi >> shift;
     return result;
 }
@@ -67,7 +67,7 @@ inline uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi, uint64_t
 inline tuple<uint64_t, uint64_t>
 div128by64to128_noshift(uint64_t &rem, uint64_t lo, uint64_t hi,
                         const div2by1_divider_noshift<uint64_t> &divider) {
-    auto divisor = divider.get_divisor();
+    const auto divisor = divider.get_divisor();
     uint64_t q0, q1 = 0;
 
     if (hi >= divisor) {
@@ -83,7 +83,7 @@ div128by64to128_noshift(uint64_t &rem, uint64_t lo, uint64_t hi,
 inline tuple<uint64_t, uint64_t>
 div128by64to128_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
                       const div2by1_divider<uint64_t> &divider) {
-    auto shift = divider.get_shift();
+    const auto shift = divider.get_shift();
     uint64_t u0, u1, u2;
     uint64_t q0, q1;
 
@@ -135,8 +135,8 @@ WJR_CONSTEXPR20 T div_qr_1_noshift(T *dst, T &rem, const T *src, size_t n,
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
 
-    T divisor = div.get_divisor();
-    T value = div.get_value();
+    const T divisor = div.get_divisor();
+    const T value = div.get_value();
 
     T qh = 0;
     T lo, hi;
@@ -174,9 +174,9 @@ WJR_CONSTEXPR20 T div_qr_1_shift(T *dst, T &rem, const T *src, size_t n,
     WJR_ASSERT(div.get_shift() != 0);
     WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
 
-    T divisor = div.get_divisor();
-    T value = div.get_value();
-    unsigned int shift = div.get_shift();
+    const T divisor = div.get_divisor();
+    const T value = div.get_value();
+    const auto shift = div.get_shift();
 
     T qh;
     T lo, hi;
@@ -229,14 +229,14 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
     WJR_ASSERT_ASSUME(n >= 1);
 
     if (WJR_UNLIKELY(div.is_zero_or_single_bit())) {
-        unsigned int c = 63 - div.get_shift();
+        const unsigned int c = 63 - div.get_shift();
         rem = src[0] & ((1ull << c) - 1);
         (void)rshift_n(dst, src, n, c);
         return;
     }
 
     if (WJR_BUILTIN_CONSTANT_P(n == 2) && n == 2) {
-        auto [ax, dx] = div128by64to128(rem, src[0], src[1], div);
+        const auto [ax, dx] = div128by64to128(rem, src[0], src[1], div);
         dst[0] = ax;
         dst[1] = dx;
         return;
@@ -252,15 +252,16 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
     WJR_ASSERT_ASSUME(div != 0);
 
     if (WJR_UNLIKELY(is_zero_or_single_bit(div))) {
-        unsigned int c = ctz(div);
+        const unsigned int c = ctz(div);
         rem = src[0] & ((1ull << c) - 1);
         (void)rshift_n(dst, src, n, c);
         return;
     }
 
     if (WJR_UNLIKELY(n == 1)) {
+        const T tmp = src[0];
+
         if (__has_high_bit(div)) {
-            T tmp = src[0];
             if (tmp >= div) {
                 rem = tmp - div;
                 dst[0] = 1;
@@ -271,14 +272,13 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
             return;
         }
 
-        T tmp = src[0];
         dst[0] = tmp / div;
         rem = tmp % div;
         return;
     }
 
     if (WJR_BUILTIN_CONSTANT_P(n == 2) && n == 2) {
-        auto [ax, dx] = div128by64to128(rem, src[0], src[1], div);
+        const auto [ax, dx] = div128by64to128(rem, src[0], src[1], div);
         dst[0] = ax;
         dst[1] = dx;
         return;
@@ -294,9 +294,9 @@ WJR_CONSTEXPR20 T div_qr_2_noshift(T *dst, T *rem, const T *src, size_t n,
     WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
     WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n, rem, n));
 
-    T divisor0 = div.get_divisor0();
-    T divisor1 = div.get_divisor1();
-    T value = div.get_value();
+    const T divisor0 = div.get_divisor0();
+    const T divisor1 = div.get_divisor1();
+    const T value = div.get_value();
 
     T qh = 0;
     T u0, u1, u2;
@@ -337,10 +337,10 @@ WJR_CONSTEXPR20 T div_qr_2_shift(T *dst, T *rem, const T *src, size_t n,
     WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
     WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n, rem, n));
 
-    T divisor0 = div.get_divisor0();
-    T divisor1 = div.get_divisor1();
-    T value = div.get_value();
-    unsigned int shift = div.get_shift();
+    const T divisor0 = div.get_divisor0();
+    const T divisor1 = div.get_divisor1();
+    const T value = div.get_value();
+    const auto shift = div.get_shift();
 
     T qh;
     T u0, u1, u2;
@@ -419,7 +419,6 @@ T sb_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
     WJR_ASSERT_ASSUME(n >= m);
     WJR_ASSERT(__has_high_bit(div[m - 1]));
 
-    T qh;
     T n1, n0;
     T d1, d0;
     T cy;
@@ -427,7 +426,7 @@ T sb_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
 
     src += n;
 
-    qh = reverse_compare_n(src - m, div, m) >= 0;
+    const T qh = reverse_compare_n(src - m, div, m) >= 0;
     if (qh != 0) {
         (void)subc_n(src - m, src - m, div, m);
     }
@@ -516,7 +515,7 @@ T dc_div4by2_qr(T *dst, T *src, const T *div, size_t m, T dinv, T *stk) {
     }
 
     while (cy != 0) {
-        subc_1(dst, dst, lo, 1);
+        (void)subc_1(dst, dst, lo, 1);
         cy -= addc_n(src, src, div, m);
     }
 
@@ -531,10 +530,9 @@ T dc_div_qr_s(T *dst, T *src, size_t n, const T *div, size_t m, T dinv) {
 
     size_t qn;
     T qh, cy;
-    T *tp;
 
     unique_stack_allocator stkal(math_details::stack_alloc);
-    tp = static_cast<T *>(stkal.allocate(sizeof(T) * m));
+    const auto tp = static_cast<T *>(stkal.allocate(sizeof(T) * m));
 
     qn = n - m;
     dst += qn;
@@ -811,8 +809,8 @@ void div_qr_s(T *dst, T *rem, const T *src, size_t n, const T *div, size_t m) {
         cf = subc_n(rem, src, rp, st);
     } else {
         constexpr auto digits = std::numeric_limits<T>::digits;
-        T fix = rshift_n(sp, sp, qn, shift);
-        T mask = (1ull << (digits - shift)) - 1;
+        const T fix = rshift_n(sp, sp, qn, shift);
+        const T mask = (1ull << (digits - shift)) - 1;
 
         if (st != 1) {
             if (qn >= st - 1) {
@@ -832,7 +830,7 @@ void div_qr_s(T *dst, T *rem, const T *src, size_t n, const T *div, size_t m) {
     cf = subc_n(rem + st, sp, rp + st, qn, cf);
 
     while (cf != 0) {
-        subc_1(dst, dst, qn, 1);
+        (void)subc_1(dst, dst, qn, 1);
         cf -= addc_n(rem, rem, div, m);
     }
 
@@ -989,9 +987,9 @@ WJR_CONSTEXPR_E void fallback_divexact_1_noshift(T *dst, const T *src, size_t n,
 template <typename T>
 WJR_CONSTEXPR_E void fallback_divexact_1_shift(T *dst, const T *src, size_t n,
                                                const divexact1_divider<T> &div) {
-    uint64_t divisor = div.get_divisor();
-    uint64_t value = div.get_value();
-    unsigned int shift = div.get_shift();
+    const uint64_t divisor = div.get_divisor();
+    const uint64_t value = div.get_value();
+    const auto shift = div.get_shift();
 
     uint64_t rdx = 0, r10 = 0;
     uint64_t cf = 0;

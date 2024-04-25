@@ -122,7 +122,7 @@ public:
                                       n * sizeof(value_type), alignment);
         } else {
             uint8_t *const u8ptr = reinterpret_cast<uint8_t *>(ptr);
-            uint8_t offset = u8ptr[-1];
+            const uint8_t offset = u8ptr[-1];
             base().deallocate(u8ptr - offset, n * sizeof(value_type) + alignment);
         }
     }

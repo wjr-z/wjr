@@ -10,7 +10,7 @@ namespace wjr {
 
 WJR_INTRINSIC_INLINE uint64_t builtin_mul64(uint64_t a, uint64_t b, uint64_t &hi) {
 #if WJR_HAS_BUILTIN(INT128_MUL64)
-    __uint128_t x = static_cast<__uint128_t>(a) * b;
+    const __uint128_t x = static_cast<__uint128_t>(a) * b;
     hi = x >> 64;
     return static_cast<uint64_t>(x);
 #elif WJR_HAS_BUILTIN(ASM_MUL64)

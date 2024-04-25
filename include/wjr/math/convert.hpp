@@ -570,7 +570,7 @@ inline int builtin_count_digits10_u32(uint32_t n) {
         WJR_INC(1000000000), WJR_INC(1000000000), WJR_INC(1000000000), // 1024M
         WJR_INC(1000000000), WJR_INC(1000000000)                       // 4B
     };
-    auto inc = table[clz(n | 1) ^ 31];
+    const auto inc = table[clz(n | 1) ^ 31];
     return static_cast<int>((n + inc) >> 32);
 #undef WJR_INC
 }
@@ -584,7 +584,7 @@ inline int builtin_count_digits10_u64(uint64_t n) {
         6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  9,  9,  9,  10, 10, 10,
         10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 13, 14, 14, 14, 15, 15,
         15, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 19, 20};
-    auto t = bsr2log10[clz(n | 1) ^ 63];
+    const auto t = bsr2log10[clz(n | 1) ^ 63];
     static constexpr const uint64_t zero_or_powers_of_10[] = {
         0, 0, WJR_POWERS_OF_10(1U), WJR_POWERS_OF_10(1000000000ULL),
         10000000000000000000ULL};
@@ -647,7 +647,7 @@ template <>
 struct count_digits_fn<10> {
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const {
-        int ret = count_digits10_impl(n);
+        const int ret = count_digits10_impl(n);
         WJR_ASSUME(1 <= ret && ret <= std::numeric_limits<T>::digits10 + 1);
         return ret;
     }

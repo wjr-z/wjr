@@ -35,7 +35,7 @@ WJR_INTRINSIC_INLINE T builtin_addc(T a, T b, U c_in, U &c_out) {
 #define WJR_REGISTER_BUILTIN_ADDC(suffix, type)                                          \
     if constexpr (nd <= std::numeric_limits<type>::digits) {                             \
         type __c_out;                                                                    \
-        T ret = __builtin_addc##suffix(a, b, static_cast<type>(c_in), &__c_out);         \
+        const T ret = __builtin_addc##suffix(a, b, static_cast<type>(c_in), &__c_out);   \
         c_out = static_cast<U>(__c_out);                                                 \
         return ret;                                                                      \
     } else
@@ -62,9 +62,8 @@ WJR_INTRINSIC_INLINE T builtin_addc(T a, T b, U c_in, U &c_out) {
  * @param[in] c_in The carry-in flag.
  * @param[out] c_out The carry-out flag.
  */
-template <
-    typename T, typename U,
-    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
+template <typename T, typename U,
+          WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out) {
     WJR_ASSERT_ASSUME_L1(c_in <= 1);
 
@@ -179,9 +178,8 @@ WJR_INTRINSIC_CONSTEXPR_E bool add_overflow(type_identity_t<T> a, type_identity_
  * @param[in] c_in The carry-in flag.
  * @return The carry-out flag.
  */
-template <
-    typename T, typename U,
-    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
+template <typename T, typename U,
+          WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U addc_1(T *dst, const T *src0, size_t n,
                                    type_identity_t<T> src1, U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -270,9 +268,8 @@ WJR_INTRINSIC_CONSTEXPR U fallback_addc_n(T *dst, const T *src0, const T *src1, 
  * @param[in] c_in The carry-in flag.
  * @return The carry-out flag.
  */
-template <
-    typename T, typename U,
-    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
+template <typename T, typename U,
+          WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U addc_n(T *dst, const T *src0, const T *src1, size_t n,
                                    U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -301,9 +298,8 @@ require :
 3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
 4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
 */
-template <
-    typename T, typename U,
-    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
+template <typename T, typename U,
+          WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U addc_s(T *dst, const T *src0, size_t n, const T *src1,
                                    size_t m, U c_in) {
     WJR_ASSERT_ASSUME(m >= 1);
@@ -325,9 +321,8 @@ require :
 3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
 4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
 */
-template <
-    typename T, typename U,
-    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
+template <typename T, typename U,
+          WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U addc_sz(T *dst, const T *src0, size_t n, const T *src1,
                                     size_t m, U c_in) {
     WJR_ASSERT_ASSUME(n >= m);

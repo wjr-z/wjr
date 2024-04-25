@@ -53,7 +53,7 @@ WJR_COLD void large_builtin_set_n(T *dst, T val, size_t n) {
         return;
     }
 
-    uintptr_t mo = reinterpret_cast<uintptr_t>(dst) % sizeof(T);
+    const uintptr_t mo = reinterpret_cast<uintptr_t>(dst) % sizeof(T);
 
     if (WJR_UNLIKELY(mo != 0)) {
         T stk[2] = {val, val};
@@ -113,8 +113,8 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
         return;
     }
 
-    auto x = broadcast<T, uint64_t>(val);
-    auto y = broadcast<uint64_t, __m128i_t>(x);
+    const auto x = broadcast<T, uint64_t>(val);
+    const auto y = broadcast<uint64_t, __m128i_t>(x);
 
     if (WJR_UNLIKELY(n <= sse_loop * 2)) {
         if (WJR_UNLIKELY(n >= sse_loop)) {

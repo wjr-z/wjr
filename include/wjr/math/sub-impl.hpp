@@ -7,48 +7,52 @@ namespace wjr {
 
 template <typename T, typename U,
           WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in,
+                                               U &c_out);
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out);
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(type_identity_t<T> a, type_identity_t<T> b,
-                                            T &ret);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(type_identity_t<T> a,
+                                                          type_identity_t<T> b, T &ret);
 
 template <typename T, typename U = T,
           WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR_E U subc_1(T *dst, const T *src0, size_t n,
-                                   type_identity_t<T> src1, U c_in = 0);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U subc_1(T *dst, const T *src0, size_t n,
+                                                 type_identity_t<T> src1, U c_in = 0);
 
 template <typename T, typename U = T,
           WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR_E U subc_n(T *dst, const T *src0, const T *src1, size_t n,
-                                   U c_in = 0);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U subc_n(T *dst, const T *src0, const T *src1,
+                                                 size_t n, U c_in = 0);
 
 template <typename T, typename U = T,
           WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n, const T *src1,
-                                   size_t m, U c_in = 0);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n,
+                                                 const T *src1, size_t m, U c_in = 0);
 
 template <typename T, typename U = T,
           WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR_E U subc_sz(T *dst, const T *src0, size_t n, const T *src1,
-                                    size_t m, U c_in = 0);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U subc_sz(T *dst, const T *src0, size_t n,
+                                                  const T *src1, size_t m, U c_in = 0);
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
-                                             size_t n);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0,
+                                                           const T *src1, size_t n);
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
-                                             const T *src1, size_t m);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0,
+                                                           size_t n, const T *src1,
+                                                           size_t m);
 
 template <typename T, typename U,
           WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
-                                             size_t n, U &c_out, type_identity_t<U> cf0,
-                                             type_identity_t<U> cf1);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0,
+                                                           const T *src1, size_t n,
+                                                           U &c_out,
+                                                           type_identity_t<U> cf0,
+                                                           type_identity_t<U> cf1);
 
 // preview :
 

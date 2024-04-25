@@ -1,8 +1,8 @@
 #ifndef WJR_X86_MATH_NOT_HPP__
 #define WJR_X86_MATH_NOT_HPP__
 
-#include <wjr/x86/simd/simd.hpp>
 #include <wjr/math/details.hpp>
+#include <wjr/x86/simd/simd.hpp>
 
 #ifndef WJR_X86
 #error "x86 required"
@@ -11,13 +11,13 @@
 namespace wjr {
 
 #if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(X86_SIMD)
-#define WJR_HAS_BUILTIN_NOT_N WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_COMPLEMENT_N WJR_HAS_DEF
 #endif
 
-#if WJR_HAS_BUILTIN(NOT_N)
+#if WJR_HAS_BUILTIN(COMPLEMENT_N)
 
 template <typename T>
-WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) {
+WJR_COLD void large_builtin_complement_n(T *dst, const T *src, size_t n) {
     constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
 
     using simd = std::conditional_t<is_avx, avx, sse>;
@@ -25,13 +25,13 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) {
     constexpr auto simd_width = simd::width();
     constexpr auto type_width = simd_width / 64;
 
-    uintptr_t ptr = reinterpret_cast<uintptr_t>(dst);
+    const uintptr_t ptr = reinterpret_cast<uintptr_t>(dst);
     WJR_ASSUME(ptr % sizeof(T) == 0);
-    size_t offset = __align_up_offset(ptr, 32) / sizeof(T);
+    const size_t offset = __align_up_offset(ptr, 32) / sizeof(T);
 
     WJR_ASSUME(offset < 4);
 
-    auto y = sse::ones();
+    const auto y = sse::ones();
 
     switch (offset) {
     case 0: {
@@ -157,7 +157,7 @@ WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) {
 }
 
 template <typename T>
-WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) {
+WJR_INTRINSIC_INLINE void builtin_complement_n(T *dst, const T *src, size_t n) {
     static_assert(sizeof(T) == 8, "");
 
     if (WJR_UNLIKELY(n < 4)) {
@@ -186,13 +186,13 @@ WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) {
         // Can be aligned
         // TODO : Align those that cannot be aligned with T through uint8_t
         if (WJR_LIKELY(reinterpret_cast<uintptr_t>(dst) % sizeof(T) == 0)) {
-            return large_builtin_not_n(dst, src, n);
+            return large_builtin_complement_n(dst, src, n);
         }
     }
 
     size_t idx = 0;
 
-    auto y = sse::ones();
+    const auto y = sse::ones();
 
     if (n & 4) {
         auto x0 = sse::loadu((__m128i *)(src + idx));

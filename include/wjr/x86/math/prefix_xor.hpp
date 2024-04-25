@@ -14,7 +14,7 @@ namespace wjr {
 
 template <typename T>
 T __builtin_prefix_xor(T x) {
-    __m128i __result =
+    const __m128i __result =
         _mm_clmulepi64_si128((simd_cast<T, __m128i_t>(x)), sse::set1_epi8(0xFF), 0);
     return simd_cast<__m128i_t, T>(__result);
 }
