@@ -105,47 +105,38 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up_offset(T n, type_identity_t<T> al
 }
 
 template <typename T, typename U = std::make_unsigned_t<T>,
-          WJR_REQUIRES(std::is_integral_v<T>)>
+          WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_CONST constexpr U __fasts_sign_mask() {
     return (U)(1) << (std::numeric_limits<U>::digits - 1);
 }
 
-template <typename T, WJR_REQUIRES(is_signed_integral_v<T>)>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_CONST constexpr T __fasts_get_sign_mask(T x) {
     return x & __fasts_sign_mask<T>();
 }
 
-template <typename T, WJR_REQUIRES(is_signed_integral_v<T>)>
-WJR_CONST constexpr bool __fasts_is_negative(T x) {
-    return __fasts_get_sign_mask<T>(x) != 0;
-}
-
-template <typename T, WJR_REQUIRES(is_signed_integral_v<T>)>
-WJR_CONST constexpr bool __fasts_is_positive(T x) {
-    return __fasts_get_sign_mask<T>(x) == 0;
-}
-
-template <typename T, WJR_REQUIRES(is_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_CONST constexpr std::make_signed_t<T> __fasts_from_unsigned(T x) {
     WJR_ASSERT_ASSUME_L1(!(x & __fasts_sign_mask<T>()));
     std::make_signed_t<T> ret = x;
-    WJR_ASSERT_ASSUME_L1(__fasts_is_positive(ret));
+    WJR_ASSERT_ASSUME_L1(ret >= 0, "overflow");
     return ret;
 }
 
-template <typename T, WJR_REQUIRES(is_signed_integral_v<T>)>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_CONST constexpr std::make_unsigned_t<T> __fasts_abs(T x) {
     return x & ~__fasts_sign_mask<T>();
 }
 
-template <typename T, WJR_REQUIRES(is_signed_integral_v<T>)>
+template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 WJR_CONST constexpr T __fasts_negate(T x) {
     return x ^ __fasts_sign_mask<T>();
 }
 
 template <typename T, typename U = std::make_unsigned_t<T>,
-          WJR_REQUIRES(std::is_integral_v<T>)>
-WJR_CONST constexpr U __fasts_conditional_negate(bool condition, T x) {
+          WJR_REQUIRES(is_nonbool_integral_v<T>)>
+WJR_CONST constexpr std::make_signed_t<T> __fasts_conditional_negate(bool condition,
+                                                                     T x) {
     return (U)x ^ ((U)(condition) << (std::numeric_limits<U>::digits - 1));
 }
 

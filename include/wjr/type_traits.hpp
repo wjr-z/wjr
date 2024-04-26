@@ -32,6 +32,10 @@ struct in_place_reserve_t {};
 
 inline constexpr in_place_reserve_t in_place_reserve = {};
 
+struct in_place_move_t {};
+
+inline constexpr in_place_move_t in_place_move = {};
+
 struct in_place_max_t {
     template <typename T>
     WJR_CONST constexpr operator T() const noexcept {

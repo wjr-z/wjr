@@ -1505,6 +1505,12 @@ public:
         m_storage.uninitialized_construct(0, n);
     }
 
+    WJR_CONSTEXPR20 basic_vector(storage_type &&other,
+                                 const allocator_type &al = allocator_type())
+        : m_storage(al) {
+        __take_storage(std::move(other));
+    }
+
     WJR_CONSTEXPR20 void resize(const size_type new_size, dctor_t) {
         __resize(new_size, dctor);
     }

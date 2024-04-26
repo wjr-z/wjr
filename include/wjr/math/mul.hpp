@@ -1263,14 +1263,14 @@ void toom22_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     do {
         ssize_t p;
         p = abs_subc_s(p0, u0, l, u1, rn);
-        if (__fasts_is_negative(p)) {
+        if (p < 0) {
             f ^= 1;
         } else if (WJR_UNLIKELY(p == 0)) {
             goto ZERO;
         }
 
         p = abs_subc_s(p1, v0, l, v1, rm);
-        if (__fasts_is_negative(p)) {
+        if (p < 0) {
             f ^= 1;
         } else if (WJR_UNLIKELY(p == 0)) {
             goto ZERO;
@@ -1404,14 +1404,14 @@ void toom32_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     // W0 = W0 - U1 : u(-1)
     {
         ssize_t p = abs_subc_n(w0p, w0p, u1p, l, cf0, cf0, 0);
-        neg0 = __fasts_is_negative(p);
+        neg0 = p < 0;
     }
     WJR_ASSERT_ASSUME(cf0 <= 1);
 
     // W3 = V0 - V1 : v(-1)
     {
         ssize_t p = abs_subc_s(w3p, v0p, l, v1p, rm);
-        neg3 = __fasts_is_negative(p);
+        neg3 = p < 0;
     }
 
     // W2 = W0 * W3 : f(-1) = r2
@@ -1649,14 +1649,14 @@ void toom42_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     // W3 = W0 - W1 : u(-1)
     {
         ssize_t p = abs_subc_n(w3p, w0p, w1p, l, cf3, cf0, cf1);
-        neg3 = __fasts_is_negative(p);
+        neg3 = p < 0;
     }
     WJR_ASSERT_ASSUME(cf3 <= 1);
 
     // W2 = V0 - V1 : v(-1)
     {
         ssize_t p = abs_subc_s(w2p, v0p, l, v1p, rm);
-        neg2 = __fasts_is_negative(p);
+        neg2 = p < 0;
     }
 
     // W0 = W0 + W1 : (non-negative) u(1)
@@ -1743,14 +1743,14 @@ void toom33_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     // W3 = W0 - U1 : u(-1)
     {
         ssize_t p = abs_subc_n(w3p, w0p, u1p, l, cf3, cf0, 0);
-        neg3 = __fasts_is_negative(p);
+        neg3 = p < 0;
         WJR_ASSERT_ASSUME(cf3 <= 1);
     }
 
     // W2 = W4 - V1 : v(-1)
     {
         ssize_t p = abs_subc_n(w2p, w4p, v1p, l, cf2, cf4, 0);
-        neg2 = __fasts_is_negative(p);
+        neg2 = p < 0;
         WJR_ASSERT_ASSUME(cf2 <= 1);
     }
 
@@ -2109,7 +2109,7 @@ void toom43_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  T0 = W3 - W4; u(-1)
     {
         ssize_t p = abs_subc_n(t0p, w3p, w4p, l, cft0, cf3, cf4);
-        neg0 = __fasts_is_negative(p);
+        neg0 = p < 0;
         WJR_ASSERT_ASSUME(cft0 <= 1);
     }
 
@@ -2123,7 +2123,7 @@ void toom43_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  W4 = W3 - V1; v(-1)
     {
         ssize_t p = abs_subc_n(w4p, w3p, v1p, l, cf4, cf3, 0);
-        neg1 = __fasts_is_negative(p);
+        neg1 = p < 0;
         WJR_ASSERT_ASSUME(cf4 <= 1);
     }
 
@@ -2154,7 +2154,7 @@ void toom43_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
             cf4 += cf4 + lshift_n(w4p, w4p, l, 1);
             {
                 ssize_t p = abs_subc_n(w4p, w4p, v0p, l, cf4, cf4, 0);
-                neg1 = __fasts_is_negative(p);
+                neg1 = p < 0;
             }
         } else {
             WJR_ASSERT_ASSUME(cf4 == 0);
@@ -2183,7 +2183,7 @@ void toom43_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  T2 = T0 - T1; u(-2)
     {
         ssize_t p = abs_subc_n(t2p, t0p, t1p, l, cft2, cft0, cft1);
-        neg2 = __fasts_is_negative(p);
+        neg2 = p < 0;
         WJR_ASSERT_ASSUME(cft2 <= 9);
     }
 
@@ -2379,7 +2379,7 @@ void toom_interpolation_7p_s(T *WJR_RESTRICT dst, T *w1p, size_t l, size_t rn, s
     //  W1 = W5 - W1         May be negative.
     {
         ssize_t p = abs_subc_n(w1p, w5p, w1p, l * 2, cf1, cf5, cf1);
-        neg1 = __fasts_is_negative(p);
+        neg1 = p < 0;
     }
 
     //  W5 =(W5 - W3*8)/9
@@ -2528,7 +2528,7 @@ void toom53_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  T1 = T0 - T2; u(-1)
     {
         ssize_t p = abs_subc_n(t1p, t0p, t2p, l, cft1, cft0, cft2);
-        neg0 = __fasts_is_negative(p);
+        neg0 = p < 0;
         WJR_ASSERT_ASSUME(cft1 <= 2);
     }
 
@@ -2546,7 +2546,7 @@ void toom53_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  W5 = W5 - V1; v(-1)
     {
         ssize_t p = abs_subc_n(w5p, w5p, v1p, l, cf5, cf5, 0);
-        neg1 = __fasts_is_negative(p);
+        neg1 = p < 0;
         WJR_ASSERT_ASSUME(cf5 <= 1);
     }
 
@@ -2570,7 +2570,7 @@ void toom53_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
         cf5 += cf5 + lshift_n(w5p, w5p, l, 1);
         {
             ssize_t p = abs_subc_n(w5p, w5p, v0p, l, cf5, cf5, 0);
-            neg1 = __fasts_is_negative(p);
+            neg1 = p < 0;
         }
     } else {
         WJR_ASSERT_ASSUME(cf5 == 0);
@@ -2604,7 +2604,7 @@ void toom53_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  T1 = T1 - W1; u(-2)
     {
         ssize_t p = abs_subc_n(t1p, t1p, w1p, l, cft1, cft1, cf1);
-        neg2 = __fasts_is_negative(p);
+        neg2 = p < 0;
     }
     WJR_ASSERT_ASSUME(cft1 <= 20);
 
@@ -2769,7 +2769,7 @@ void toom44_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  T1 = T0 - T2; u(-1)
     {
         ssize_t p = abs_subc_n(t1p, t0p, t2p, l, cft1, cft0, cft2);
-        neg0 = __fasts_is_negative(p);
+        neg0 = p < 0;
         WJR_ASSERT_ASSUME(cft1 <= 1);
     }
 
@@ -2790,7 +2790,7 @@ void toom44_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  W1 = W1 - T2; v(-1)
     {
         ssize_t p = abs_subc_n(w1p, w1p, t2p, l, cf1, cf1, cft2);
-        neg1 = __fasts_is_negative(p);
+        neg1 = p < 0;
         WJR_ASSERT_ASSUME(cf1 <= 1);
     }
 
@@ -2816,7 +2816,7 @@ void toom44_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  T1 = T0 - T2; u(-2)
     {
         ssize_t p = abs_subc_n(t1p, t0p, t2p, l, cft1, cft0, cft2);
-        neg1 = __fasts_is_negative(p);
+        neg1 = p < 0;
         WJR_ASSERT_ASSUME(cft1 <= 9);
     }
 
@@ -2843,7 +2843,7 @@ void toom44_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1, s
     //  W5 = W5 - T2; v(-2)
     {
         ssize_t p = abs_subc_n(w5p, w5p, t2p, l, cf5, cf5, cft2);
-        neg2 = __fasts_is_negative(p);
+        neg2 = p < 0;
         WJR_ASSERT_ASSUME(cf5 <= 9);
     }
 
