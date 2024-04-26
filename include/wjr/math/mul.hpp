@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_MUL_HPP__
-#define WJR_MATH_MUL_HPP__
+#ifndef WJR_MATH_MUL_HPP
+#define WJR_MATH_MUL_HPP
 
 /**
  * @todo optimize temporary memory usage of mul_s, mul_n, sqr
@@ -141,7 +141,6 @@ WJR_INTRINSIC_CONSTEXPR_E bool mul_overflow(type_identity_t<T> a, type_identity_
 #endif
 }
 
-// TODO : optimize
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR T fallback_mul_1(T *dst, const T *src, size_t n, T ml) {
     T lo = 0, hi = 0;
@@ -1215,7 +1214,6 @@ void basecase_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1,
 #endif
 }
 
-// TODO : optimize
 template <typename T>
 void basecase_sqr(T *WJR_RESTRICT dst, const T *src, size_t n) {
 #if WJR_HAS_BUILTIN(ASM_BASECASE_SQR)
@@ -3057,4 +3055,4 @@ void toom4_sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *stk) {
 
 } // namespace wjr
 
-#endif // WJR_MATH_MUL_HPP__
+#endif // WJR_MATH_MUL_HPP

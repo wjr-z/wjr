@@ -1,5 +1,5 @@
-#ifndef WJR_TP_LIST_HPP__
-#define WJR_TP_LIST_HPP__
+#ifndef WJR_TP_LIST_HPP
+#define WJR_TP_LIST_HPP
 
 #include <wjr/type_traits.hpp>
 
@@ -1080,4 +1080,4 @@ using tp_make_std_index_sequence =
 
 } // namespace wjr
 
-#endif // WJR_TP_LIST_HPP__
+#endif // WJR_TP_LIST_HPP

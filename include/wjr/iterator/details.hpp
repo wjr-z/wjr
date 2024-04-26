@@ -1,5 +1,5 @@
-#ifndef WJR_ITERATOR_DETAILS_HPP__
-#define WJR_ITERATOR_DETAILS_HPP__
+#ifndef WJR_ITERATOR_DETAILS_HPP
+#define WJR_ITERATOR_DETAILS_HPP
 
 #include <array>
 #include <string>
@@ -122,4 +122,4 @@ using iterator_contiguous_pointer_t =
 
 } // namespace wjr
 
-#endif // WJR_ITERATOR_DETAILS_HPP__
+#endif // WJR_ITERATOR_DETAILS_HPP

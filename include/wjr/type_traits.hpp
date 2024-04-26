@@ -1,5 +1,5 @@
-#ifndef WJR_TYPE_TRAITS_HPP__
-#define WJR_TYPE_TRAITS_HPP__
+#ifndef WJR_TYPE_TRAITS_HPP
+#define WJR_TYPE_TRAITS_HPP
 
 #include <cstddef>
 #include <cstdint>
@@ -456,4 +456,4 @@ inline constexpr bool is_integral_constant_same_v =
 
 } // namespace wjr
 
-#endif // ! WJR_TYPE_TRAITS_HPP__
+#endif // ! WJR_TYPE_TRAITS_HPP

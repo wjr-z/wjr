@@ -1,5 +1,5 @@
-#ifndef WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP__
-#define WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP__
+#ifndef WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP
+#define WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP
 
 #define WJR_PP_ARITHMATIC_FROM_NUMBER(x) WJR_PP_ARITHMATIC_FROM_NUMBER_I(x)
 #define WJR_PP_ARITHMATIC_FROM_NUMBER_I(x) WJR_PP_ARITHMATIC_FROM_NUMBER_##x
@@ -295,4 +295,4 @@
 #define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     63
 
-#endif // ! WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP__
+#endif // ! WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP

@@ -1,5 +1,5 @@
-#ifndef WJR_X86_MATH_ADD_HPP__
-#define WJR_X86_MATH_ADD_HPP__
+#ifndef WJR_X86_MATH_ADD_HPP
+#define WJR_X86_MATH_ADD_HPP
 
 #include <wjr/type_traits.hpp>
 
@@ -367,4 +367,4 @@ WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_128(uint64_t &al, uint64_t &ah, uint6
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_ADD_HPP__
+#endif // WJR_X86_MATH_ADD_HPP

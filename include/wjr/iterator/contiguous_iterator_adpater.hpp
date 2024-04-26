@@ -1,5 +1,5 @@
-#ifndef WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP__
-#define WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP__
+#ifndef WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP
+#define WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP
 
 #include <wjr/assert.hpp>
 #include <wjr/memory/details.hpp>
@@ -367,4 +367,4 @@ struct pointer_traits<wjr::contiguous_iterator_adapter<Container, Traits>> {
 
 } // namespace std
 
-#endif // WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP__
+#endif // WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP

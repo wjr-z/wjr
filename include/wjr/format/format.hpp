@@ -1,6 +1,6 @@
-#ifndef WJR_FORMAT_FORMAT_HPP__
-#define WJR_FORMAT_FORMAT_HPP__
+#ifndef WJR_FORMAT_FORMAT_HPP
+#define WJR_FORMAT_FORMAT_HPP
 
 namespace wjr {}
 
-#endif // WJR_FORMAT_FORMAT_HPP__
+#endif // WJR_FORMAT_FORMAT_HPP

@@ -1,9 +1,6 @@
-#ifndef WJR_PREPROCESSOR_COMPILER_HPP__
-#define WJR_PREPROCESSOR_COMPILER_HPP__
-
-// TODO : 
-// A universal macro for determining the existence of macros
+#ifndef WJR_PREPROCESSOR_COMPILER_HPP
+#define WJR_PREPROCESSOR_COMPILER_HPP
 
 #include <wjr/preprocessor/compiler/attribute.hpp>
 
-#endif // ! WJR_PREPROCESSOR_COMPILER_HPP__
+#endif // ! WJR_PREPROCESSOR_COMPILER_HPP

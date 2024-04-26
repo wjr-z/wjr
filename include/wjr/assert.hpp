@@ -1,5 +1,5 @@
-#ifndef WJR_ASSERT_HPP__
-#define WJR_ASSERT_HPP__
+#ifndef WJR_ASSERT_HPP
+#define WJR_ASSERT_HPP
 
 #include <cstdio>
 #include <cstdlib>
@@ -119,4 +119,4 @@ inline constexpr __assert_handler_t __assert_handler{};
 
 } // namespace wjr
 
-#endif // WJR_ASSERT_HPP__
+#endif // WJR_ASSERT_HPP

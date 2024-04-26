@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_DIVIDER_HPP__
-#define WJR_MATH_DIVIDER_HPP__
+#ifndef WJR_MATH_DIVIDER_HPP
+#define WJR_MATH_DIVIDER_HPP
 
 #include <wjr/math/mul.hpp>
 
@@ -472,4 +472,4 @@ private:
 
 } // namespace wjr
 
-#endif // WJR_MATH_DIVIDER_HPP__
+#endif // WJR_MATH_DIVIDER_HPP

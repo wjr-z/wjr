@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_STACK_ALLOCATOR_HPP__
-#define WJR_MATH_STACK_ALLOCATOR_HPP__
+#ifndef WJR_MATH_STACK_ALLOCATOR_HPP
+#define WJR_MATH_STACK_ALLOCATOR_HPP
 
 #include <wjr/memory/stack_allocator.hpp>
 
@@ -19,4 +19,4 @@ using auto_weak_stack_alloc = auto_weak_stack_allocator<T, stack_alloc_object>;
 
 } // namespace wjr::math_details
 
-#endif // WJR_MATH_STACK_ALLOCATOR_HPP__
+#endif // WJR_MATH_STACK_ALLOCATOR_HPP

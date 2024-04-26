@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_BIT_HPP__
-#define WJR_MATH_BIT_HPP__
+#ifndef WJR_MATH_BIT_HPP
+#define WJR_MATH_BIT_HPP
 
 #include <wjr/math/clz.hpp>
 #include <wjr/math/ctz.hpp>
@@ -69,4 +69,4 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T bit_floor(T x) noexcept {
 
 } // namespace wjr
 
-#endif // WJR_MATH_BIT_HPP__
+#endif // WJR_MATH_BIT_HPP

@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_CLZ_HPP__
-#define WJR_MATH_CLZ_HPP__
+#ifndef WJR_MATH_CLZ_HPP
+#define WJR_MATH_CLZ_HPP
 
 #include <wjr/math/popcount.hpp>
 
@@ -118,4 +118,4 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz(T x) {
 
 } // namespace wjr
 
-#endif // WJR_MATH_CLZ_HPP__
+#endif // WJR_MATH_CLZ_HPP

@@ -1,14 +1,11 @@
-#ifndef WJR_MEMORY_TO_ADDRESS_HPP__
-#define WJR_MEMORY_TO_ADDRESS_HPP__
+#ifndef WJR_MEMORY_TO_ADDRESS_HPP
+#define WJR_MEMORY_TO_ADDRESS_HPP
 
 #include <cstring>
 
 #include <wjr/iterator/details.hpp>
 
 namespace wjr {
-
-WJR_MALLOC inline void *default_malloc(size_t n) noexcept { return malloc(n); }
-inline void default_free(void *ptr) noexcept { free(ptr); }
 
 namespace {
 WJR_REGISTER_HAS_TYPE(pointer_traits_to_address,
@@ -181,4 +178,4 @@ WJR_NODISCARD auto allocate_at_least(Allocator &alloc, SizeType count) {
 
 } // namespace wjr
 
-#endif // WJR_MEMORY_TO_ADDRESS_HPP__
+#endif // WJR_MEMORY_TO_ADDRESS_HPP

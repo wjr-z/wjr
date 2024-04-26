@@ -1,13 +1,13 @@
-#ifndef WJR_BIGINTEGER_HPP__
-#define WJR_BIGINTEGER_HPP__
+#ifndef WJR_BIGINTEGER_HPP
+#define WJR_BIGINTEGER_HPP
 
-#ifndef WJR_BIGINTEGER_BIGINTEGER_HPP__
-#define WJR_BIGINTEGER_BIGINTEGER_HPP__
+#ifndef WJR_BIGINTEGER_BIGINTEGER_HPP
+#define WJR_BIGINTEGER_BIGINTEGER_HPP
 
 #include <optional>
 
-#ifndef WJR_FORMAT_OSTREAM_INSERT_HPP__
-#define WJR_FORMAT_OSTREAM_INSERT_HPP__
+#ifndef WJR_FORMAT_OSTREAM_INSERT_HPP
+#define WJR_FORMAT_OSTREAM_INSERT_HPP
 
 #include <ostream>
 
@@ -72,18 +72,18 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 
 } // namespace wjr
 
-#endif // WJR_FORMAT_OSTREAM_INSERT_HPP__
-#ifndef WJR_MATH_HPP__
-#define WJR_MATH_HPP__
+#endif // WJR_FORMAT_OSTREAM_INSERT_HPP
+#ifndef WJR_MATH_HPP
+#define WJR_MATH_HPP
 
-#ifndef WJR_MATH_CONVERT_HPP__
-#define WJR_MATH_CONVERT_HPP__
+#ifndef WJR_MATH_CONVERT_HPP
+#define WJR_MATH_CONVERT_HPP
 
 #include <array>
 #include <system_error>
 
-#ifndef WJR_ASSERT_HPP__
-#define WJR_ASSERT_HPP__
+#ifndef WJR_ASSERT_HPP
+#define WJR_ASSERT_HPP
 
 #include <cstdio>
 #include <cstdlib>
@@ -92,19 +92,19 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #include <type_traits>
 #include <utility>
 
-#ifndef WJR_PREPROCESSOR_HPP__
-#define WJR_PREPROCESSOR_HPP__
+#ifndef WJR_PREPROCESSOR_HPP
+#define WJR_PREPROCESSOR_HPP
 
-#ifndef WJR_PREPROCESSOR_PREVIEW_HPP__
-#define WJR_PREPROCESSOR_PREVIEW_HPP__
+#ifndef WJR_PREPROCESSOR_PREVIEW_HPP
+#define WJR_PREPROCESSOR_PREVIEW_HPP
 
 // testing ...
 
-#ifndef WJR_PREPROCESSOR_ARITHMATIC_HPP__
-#define WJR_PREPROCESSOR_ARITHMATIC_HPP__
+#ifndef WJR_PREPROCESSOR_ARITHMATIC_HPP
+#define WJR_PREPROCESSOR_ARITHMATIC_HPP
 
-#ifndef WJR_PREPROCESSOR_ARITHMATIC_INC_HPP__
-#define WJR_PREPROCESSOR_ARITHMATIC_INC_HPP__
+#ifndef WJR_PREPROCESSOR_ARITHMATIC_INC_HPP
+#define WJR_PREPROCESSOR_ARITHMATIC_INC_HPP
 
 #define WJR_PP_INC(x) WJR_PP_INC_I(x)
 #define WJR_PP_INC_I(x) WJR_PP_INC_##x
@@ -174,9 +174,9 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_PP_INC_62 63
 #define WJR_PP_INC_63 0
 
-#endif // ! WJR_PREPROCESSOR_ARITHMATIC_INC_HPP__
-#ifndef WJR_PREPROCESSOR_ARITHMATIC_DEC_HPP__
-#define WJR_PREPROCESSOR_ARITHMATIC_DEC_HPP__
+#endif // ! WJR_PREPROCESSOR_ARITHMATIC_INC_HPP
+#ifndef WJR_PREPROCESSOR_ARITHMATIC_DEC_HPP
+#define WJR_PREPROCESSOR_ARITHMATIC_DEC_HPP
 
 #define WJR_PP_DEC(x) WJR_PP_DEC_I(x)
 
@@ -247,12 +247,12 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_PP_DEC_62 61
 #define WJR_PP_DEC_63 62
 
-#endif // WJR_PREPROCESSOR_ARITHMATIC_DEC_HPP__
-#ifndef WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP__
-#define WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP__
+#endif // WJR_PREPROCESSOR_ARITHMATIC_DEC_HPP
+#ifndef WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP
+#define WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP
 
-#ifndef WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP__
-#define WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP__
+#ifndef WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP
+#define WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP
 
 #define WJR_PP_ARITHMATIC_FROM_NUMBER(x) WJR_PP_ARITHMATIC_FROM_NUMBER_I(x)
 #define WJR_PP_ARITHMATIC_FROM_NUMBER_I(x) WJR_PP_ARITHMATIC_FROM_NUMBER_##x
@@ -548,10 +548,10 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     63
 
-#endif // ! WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP__
+#endif // ! WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP
 // Already included
-#ifndef WJR_PREPROCESSOR_ARITHMATIC_NEG_HPP__
-#define WJR_PREPROCESSOR_ARITHMATIC_NEG_HPP__
+#ifndef WJR_PREPROCESSOR_ARITHMATIC_NEG_HPP
+#define WJR_PREPROCESSOR_ARITHMATIC_NEG_HPP
 
 #define WJR_PP_NEG(x) WJR_PP_NEG_I(x)
 #define WJR_PP_NEG_I(x) WJR_PP_NEG_##x
@@ -621,9 +621,9 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_PP_NEG_62 1
 #define WJR_PP_NEG_63 0
 
-#endif // ! WJR_PREPROCESSOR_ARITHMATIC_NEG_HPP__
-#ifndef WJR_PREPROCESSOR_DETAILS_BASIC_HPP__
-#define WJR_PREPROCESSOR_DETAILS_BASIC_HPP__
+#endif // ! WJR_PREPROCESSOR_ARITHMATIC_NEG_HPP
+#ifndef WJR_PREPROCESSOR_DETAILS_BASIC_HPP
+#define WJR_PREPROCESSOR_DETAILS_BASIC_HPP
 
 #define WJR_PP_EMPTY(...)
 
@@ -678,9 +678,9 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_PP_MAP_FIND_II(...) WJR_PP_MAP_FIND_III(__VA_ARGS__)
 #define WJR_PP_MAP_FIND_III(HOLDER, VAL, ...) VAL
 
-#endif // ! WJR_PREPROCESSOR_DETAILS_BASIC_HPP__
-#ifndef WJR_PREPROCESSOR_LOGICAL_BASIC_HPP__
-#define WJR_PREPROCESSOR_LOGICAL_BASIC_HPP__
+#endif // ! WJR_PREPROCESSOR_DETAILS_BASIC_HPP
+#ifndef WJR_PREPROCESSOR_LOGICAL_BASIC_HPP
+#define WJR_PREPROCESSOR_LOGICAL_BASIC_HPP
 
 #define WJR_PP_BOOL_IF(cond, t, f) WJR_PP_BOOL_IF_I(cond, t, f)
 #define WJR_PP_BOOL_IF_I(cond, t, f) WJR_PP_BOOL_IF_I##cond(t, f)
@@ -693,9 +693,9 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_PP_BOOL_OR(x, y) WJR_PP_BOOL_IF(x, 1, WJR_PP_BOOL_IF(y, 1, 0))
 #define WJR_PP_BOOL_XOR(x, y) WJR_PP_BOOL_IF(x, WJR_PP_BOOL_NOT(y), y)
 
-#endif // ! WJR_PREPROCESSOR_LOGICAL_BASIC_HPP__
-#ifndef WJR_PREPROCESSOR_LOGICAL_BOOL_HPP__
-#define WJR_PREPROCESSOR_LOGICAL_BOOL_HPP__
+#endif // ! WJR_PREPROCESSOR_LOGICAL_BASIC_HPP
+#ifndef WJR_PREPROCESSOR_LOGICAL_BOOL_HPP
+#define WJR_PREPROCESSOR_LOGICAL_BOOL_HPP
 
 #define WJR_PP_BOOL(x) WJR_PP_BOOL_I(x)
 
@@ -766,7 +766,7 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_PP_BOOL_62 1
 #define WJR_PP_BOOL_63 1
 
-#endif // WJR_PREPROCESSOR_LOGICAL_BOOL_HPP__
+#endif // WJR_PREPROCESSOR_LOGICAL_BOOL_HPP
 
 #define WJR_PP_LT(x, y) WJR_PP_BOOL_IF(WJR_PP_BOOL(y), WJR_PP_ADD_OVERFLOW(x, y), 0)
 #define WJR_PP_GT(x, y) WJR_PP_LT(y, x)
@@ -988,12 +988,12 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     0
 
-#endif // ! WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP__
-#ifndef WJR_PREPROCESSOR_ARITHMATIC_SUB_HPP__
-#define WJR_PREPROCESSOR_ARITHMATIC_SUB_HPP__
+#endif // ! WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP
+#ifndef WJR_PREPROCESSOR_ARITHMATIC_SUB_HPP
+#define WJR_PREPROCESSOR_ARITHMATIC_SUB_HPP
 
-#ifndef WJR_PREPROCESSOR_ARITHMATIC_ADD_HPP__
-#define WJR_PREPROCESSOR_ARITHMATIC_ADD_HPP__
+#ifndef WJR_PREPROCESSOR_ARITHMATIC_ADD_HPP
+#define WJR_PREPROCESSOR_ARITHMATIC_ADD_HPP
 
 // Already included
 // Already included
@@ -1003,29 +1003,26 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
     WJR_PP_ARITHMATIC_TO_NUMBER(WJR_PP_CONCAT(WJR_PP_ARITHMATIC_FROM_NUMBER(x),          \
                                               WJR_PP_ARITHMATIC_FROM_NUMBER(y)))
 
-#endif // ! WJR_PREPROCESSOR_ARITHMATIC_ADD_HPP__
+#endif // ! WJR_PREPROCESSOR_ARITHMATIC_ADD_HPP
 // Already included
 // Already included
 
 #define WJR_PP_SUB(x, y) WJR_PP_ADD(x, WJR_PP_INC(WJR_PP_NEG(y)))
 
-#endif // ! WJR_PREPROCESSOR_ARITHMATIC_SUB_HPP__
+#endif // ! WJR_PREPROCESSOR_ARITHMATIC_SUB_HPP
 
-#endif // ! WJR_PREPROCESSOR_ARITHMATIC_HPP__
-#ifndef WJR_PREPROCESSOR_COMPILER_HPP__
-#define WJR_PREPROCESSOR_COMPILER_HPP__
+#endif // ! WJR_PREPROCESSOR_ARITHMATIC_HPP
+#ifndef WJR_PREPROCESSOR_COMPILER_HPP
+#define WJR_PREPROCESSOR_COMPILER_HPP
 
-// TODO : 
-// A universal macro for determining the existence of macros
+#ifndef WJR_PREPROCESSOR_COMPILER_ATTRIBUTE_HPP
+#define WJR_PREPROCESSOR_COMPILER_ATTRIBUTE_HPP
 
-#ifndef WJR_PREPROCESSOR_COMPILER_ATTRIBUTE_HPP__
-#define WJR_PREPROCESSOR_COMPILER_ATTRIBUTE_HPP__
+#ifndef WJR_PREPROCESSOR_COMPILER_HAS_HPP
+#define WJR_PREPROCESSOR_COMPILER_HAS_HPP
 
-#ifndef WJR_PREPROCESSOR_COMPILER_HAS_HPP__
-#define WJR_PREPROCESSOR_COMPILER_HAS_HPP__
-
-#ifndef WJR_PREPROCESSOR_COMPILER_ARCH_HPP__
-#define WJR_PREPROCESSOR_COMPILER_ARCH_HPP__
+#ifndef WJR_PREPROCESSOR_COMPILER_ARCH_HPP
+#define WJR_PREPROCESSOR_COMPILER_ARCH_HPP
 
 #if defined(__pnacl__) || defined(__CLR_VER)
 #define WJR_VM
@@ -1065,9 +1062,9 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define CPU_UNKNOWN
 #endif
 
-#endif // !WJR_PREPROCESSOR_COMPILER_ARCH_HPP__
-#ifndef WJR_PREPROCESSOR_COMPILER_COMPILER_HPP__
-#define WJR_PREPROCESSOR_COMPILER_COMPILER_HPP__
+#endif // !WJR_PREPROCESSOR_COMPILER_ARCH_HPP
+#ifndef WJR_PREPROCESSOR_COMPILER_COMPILER_HPP
+#define WJR_PREPROCESSOR_COMPILER_COMPILER_HPP
 
 #if defined(__clang__)
 #define WJR_COMPILER_CLANG
@@ -1178,7 +1175,7 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_CURRENT_FUNCTION "(unknown)"
 #endif
 
-#endif // !WJR_PREPROCESSOR_COMPILER_COMPILER_HPP__
+#endif // !WJR_PREPROCESSOR_COMPILER_COMPILER_HPP
 // Already included
 // Already included
 
@@ -1379,7 +1376,7 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_HAS_SIMD_PCLMUL WJR_HAS_DEF
 #endif
 
-#endif // WJR_PREPROCESSOR_COMPILER_HAS_HPP__
+#endif // WJR_PREPROCESSOR_COMPILER_HAS_HPP
 
 #if WJR_HAS_CPP_ATTRIBUTE(fallthrough)
 #define WJR_FALLTHROUGH [[fallthrough]]
@@ -1627,15 +1624,15 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_EMPTY_BASES
 #endif
 
-#endif // WJR_PREPROCESSOR_COMPILER_ATTRIBUTE_HPP__
+#endif // WJR_PREPROCESSOR_COMPILER_ATTRIBUTE_HPP
 
-#endif // ! WJR_PREPROCESSOR_COMPILER_HPP__
-#ifndef WJR_PREPROCESSOR_DETAILS_HPP__
-#define WJR_PREPROCESSOR_DETAILS_HPP__
+#endif // ! WJR_PREPROCESSOR_COMPILER_HPP
+#ifndef WJR_PREPROCESSOR_DETAILS_HPP
+#define WJR_PREPROCESSOR_DETAILS_HPP
 
 // Already included
-#ifndef WJR_PREPROCESSOR_DETAILS_IOTA_HPP__
-#define WJR_PREPROCESSOR_DETAILS_IOTA_HPP__
+#ifndef WJR_PREPROCESSOR_DETAILS_IOTA_HPP
+#define WJR_PREPROCESSOR_DETAILS_IOTA_HPP
 
 #define WJR_PP_IOTA(n) WJR_PP_IOTA_I(n)
 #define WJR_PP_IOTA_I(n) WJR_PP_IOTA_##n
@@ -1706,9 +1703,9 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_PP_IOTA_63 WJR_PP_IOTA_62, 62
 #define WJR_PP_IOTA_64 WJR_PP_IOTA_63, 63
 
-#endif // ! WJR_PREPROCESSOR_DETAILS_IOTA_HPP__
-#ifndef WJR_PREPROCESSOR_DETAILS_REPEAT_HPP__
-#define WJR_PREPROCESSOR_DETAILS_REPEAT_HPP__
+#endif // ! WJR_PREPROCESSOR_DETAILS_IOTA_HPP
+#ifndef WJR_PREPROCESSOR_DETAILS_REPEAT_HPP
+#define WJR_PREPROCESSOR_DETAILS_REPEAT_HPP
 
 #define WJR_PP_REPEAT(x, n) WJR_PP_REPEAT_I(x, n)
 #define WJR_PP_REPEAT_I(x, n) WJR_PP_REPEAT_##n(x)
@@ -1808,33 +1805,32 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
         WJR_PP_REPEAT_16(x), WJR_PP_REPEAT_32(x)
 #define WJR_PP_REPEAT_64(x) WJR_PP_REPEAT_32(x), WJR_PP_REPEAT_32(x)
 
-#endif // ! WJR_PREPROCESSOR_DETAILS_REPEAT_HPP__
+#endif // ! WJR_PREPROCESSOR_DETAILS_REPEAT_HPP
 
-#endif // ! WJR_PREPROCESSOR_DETAILS_HPP__
-#ifndef WJR_PREPROCESSOR_LOGICAL_HPP__
-#define WJR_PREPROCESSOR_LOGICAL_HPP__
+#endif // ! WJR_PREPROCESSOR_DETAILS_HPP
+#ifndef WJR_PREPROCESSOR_LOGICAL_HPP
+#define WJR_PREPROCESSOR_LOGICAL_HPP
 
 // Already included
 // Already included
 
-#endif // ! WJR_PREPROCESSOR_LOGICAL_HPP__
+#endif // ! WJR_PREPROCESSOR_LOGICAL_HPP
 
-// TODO : Recursive nested queue algorithm
 // Due to the fact that call is not a simple expansion, but takes the previous output as
 // the next input, the difficulty of implementing recursion is also high.
-#ifndef WJR_PREPROCESSOR_QUEUE_ALGORITHM_HPP__
-#define WJR_PREPROCESSOR_QUEUE_ALGORITHM_HPP__
+#ifndef WJR_PREPROCESSOR_QUEUE_ALGORITHM_HPP
+#define WJR_PREPROCESSOR_QUEUE_ALGORITHM_HPP
 
 // Already included
 // Already included
-#ifndef WJR_PREPROCESSOR_QUEUE_CALL_HPP__
-#define WJR_PREPROCESSOR_QUEUE_CALL_HPP__
+#ifndef WJR_PREPROCESSOR_QUEUE_CALL_HPP
+#define WJR_PREPROCESSOR_QUEUE_CALL_HPP
 
 // Already included
 // Already included
 // Already included
-#ifndef WJR_PREPROCCESSOR_QUEUE_BASIC_HPP__
-#define WJR_PREPROCCESSOR_QUEUE_BASIC_HPP__
+#ifndef WJR_PREPROCCESSOR_QUEUE_BASIC_HPP
+#define WJR_PREPROCCESSOR_QUEUE_BASIC_HPP
 
 // Already included
 
@@ -1856,7 +1852,7 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_PP_QUEUE_SIZE(queue) WJR_PP_QUEUE_SIZE_I(queue)
 #define WJR_PP_QUEUE_SIZE_I(queue) WJR_PP_ARGS_LEN queue
 
-#endif // ! WJR_PREPROCCESSOR_QUEUE_BASIC_HPP__
+#endif // ! WJR_PREPROCCESSOR_QUEUE_BASIC_HPP
 
 #define WJR_PP_QUEUE_CALL(args, ops)                                                     \
     WJR_PP_QUEUE_CALL_N_I(args, ops, WJR_PP_QUEUE_SIZE(args))
@@ -2140,7 +2136,7 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_PP_QUEUE_CALL_NEW_ARGS_63(args, ops) WJR_PP_QUEUE_CALL_NEW_ARGS_NE(args, ops)
 #define WJR_PP_QUEUE_CALL_NEW_ARGS_64(args, ops) WJR_PP_QUEUE_CALL_NEW_ARGS_NE(args, ops)
 
-#endif // ! WJR_PREPROCESSOR_QUEUE_CALL_HPP__
+#endif // ! WJR_PREPROCESSOR_QUEUE_CALL_HPP
 
 #define WJR_PP_QUEUE_INIT_N(x, N) WJR_PP_QUEUE_INIT_N_I(x, N)
 #define WJR_PP_QUEUE_INIT_N_I(x, N) (WJR_PP_REPEAT(x, N))
@@ -2269,7 +2265,7 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
         WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_FRONT(x))),                                  \
         WJR_PP_QUEUE_POP_FRONT(y)
 
-#endif // WJR_PREPROCESSOR_QUEUE_ALGORITHM_HPP__
+#endif // WJR_PREPROCESSOR_QUEUE_ALGORITHM_HPP
 
 // (a, b, c) -> f(a) f(b) f(c)
 #define WJR_PP_TRANSFORM_PUT(queue, op)                                                  \
@@ -2368,9 +2364,9 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_REQUIRES(...) std::enable_if_t<(__VA_ARGS__), int> = 0
 #define WJR_REQUIRES_I(...) std::enable_if_t<(__VA_ARGS__), int>
 
-#endif // ! WJR_PREPROCESSOR_PREVIEW_HPP__
+#endif // ! WJR_PREPROCESSOR_PREVIEW_HPP
 
-#endif // WJR_PREPROCESSOR_HPP__
+#endif // WJR_PREPROCESSOR_HPP
 
 namespace wjr {
 
@@ -2481,15 +2477,15 @@ inline constexpr __assert_handler_t __assert_handler{};
 
 } // namespace wjr
 
-#endif // WJR_ASSERT_HPP__
-#ifndef WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP__
-#define WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP__
+#endif // WJR_ASSERT_HPP
+#ifndef WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP
+#define WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP
 
-#ifndef WJR_VECTOR_HPP__
-#define WJR_VECTOR_HPP__
+#ifndef WJR_VECTOR_HPP
+#define WJR_VECTOR_HPP
 
-#ifndef WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__
-#define WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__
+#ifndef WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP
+#define WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP
 
 /**
  * @file vector.hpp
@@ -2542,18 +2538,18 @@ inline constexpr __assert_handler_t __assert_handler{};
  */
 
 // Already included
-#ifndef WJR_COMPRESSED_PAIR_HPP__
-#define WJR_COMPRESSED_PAIR_HPP__
+#ifndef WJR_COMPRESSED_PAIR_HPP
+#define WJR_COMPRESSED_PAIR_HPP
 
 #include <tuple>
 
-#ifndef WJR_CAPTURE_LEAF_HPP__
-#define WJR_CAPTURE_LEAF_HPP__
+#ifndef WJR_CAPTURE_LEAF_HPP
+#define WJR_CAPTURE_LEAF_HPP
 
 #include <tuple>
 
-#ifndef WJR_CRTP_CLASS_BASE_HPP__
-#define WJR_CRTP_CLASS_BASE_HPP__
+#ifndef WJR_CRTP_CLASS_BASE_HPP
+#define WJR_CRTP_CLASS_BASE_HPP
 
 #include <cstddef>
 #include <type_traits>
@@ -2764,15 +2760,15 @@ struct enable_base_identity_t {};
 
 } // namespace wjr
 
-#endif // WJR_CRTP_CLASS_BASE_HPP__
-#ifndef WJR_TP_HPP__
-#define WJR_TP_HPP__
+#endif // WJR_CRTP_CLASS_BASE_HPP
+#ifndef WJR_TP_HPP
+#define WJR_TP_HPP
 
-#ifndef WJR_TP_LIST_HPP__
-#define WJR_TP_LIST_HPP__
+#ifndef WJR_TP_LIST_HPP
+#define WJR_TP_LIST_HPP
 
-#ifndef WJR_TYPE_TRAITS_HPP__
-#define WJR_TYPE_TRAITS_HPP__
+#ifndef WJR_TYPE_TRAITS_HPP
+#define WJR_TYPE_TRAITS_HPP
 
 #include <cstddef>
 #include <cstdint>
@@ -3229,7 +3225,7 @@ inline constexpr bool is_integral_constant_same_v =
 
 } // namespace wjr
 
-#endif // ! WJR_TYPE_TRAITS_HPP__
+#endif // ! WJR_TYPE_TRAITS_HPP
 
 namespace wjr {
 
@@ -4308,9 +4304,9 @@ using tp_make_std_index_sequence =
 
 } // namespace wjr
 
-#endif // WJR_TP_LIST_HPP__
+#endif // WJR_TP_LIST_HPP
 
-#endif // WJR_TP_HPP__
+#endif // WJR_TP_HPP
 // Already included
 
 namespace wjr {
@@ -4406,7 +4402,7 @@ struct __is_tuple_assignable : std::is_assignable<T &, U> {};
 
 } // namespace wjr
 
-#endif // WJR_CAPTURE_LEAF_HPP__
+#endif // WJR_CAPTURE_LEAF_HPP
 
 namespace wjr {
 
@@ -4815,9 +4811,9 @@ WJR_NODISCARD constexpr const T &&get(const wjr::compressed_pair<U, T> &&pr) noe
 
 } // namespace std
 
-#endif // WJR_COMPRESSED_PAIR_HPP__
-#ifndef WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP__
-#define WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP__
+#endif // WJR_COMPRESSED_PAIR_HPP
+#ifndef WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP
+#define WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP
 
 #include <memory>
 #include <type_traits>
@@ -4934,18 +4930,18 @@ public:
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP__
-#ifndef WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP__
-#define WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP__
+#endif // WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP
+#ifndef WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP
+#define WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP
 
 // Already included
-#ifndef WJR_MEMORY_TO_ADDRESS_HPP__
-#define WJR_MEMORY_TO_ADDRESS_HPP__
+#ifndef WJR_MEMORY_TO_ADDRESS_HPP
+#define WJR_MEMORY_TO_ADDRESS_HPP
 
 #include <cstring>
 
-#ifndef WJR_ITERATOR_DETAILS_HPP__
-#define WJR_ITERATOR_DETAILS_HPP__
+#ifndef WJR_ITERATOR_DETAILS_HPP
+#define WJR_ITERATOR_DETAILS_HPP
 
 #include <array>
 #include <string>
@@ -5068,12 +5064,9 @@ using iterator_contiguous_pointer_t =
 
 } // namespace wjr
 
-#endif // WJR_ITERATOR_DETAILS_HPP__
+#endif // WJR_ITERATOR_DETAILS_HPP
 
 namespace wjr {
-
-WJR_MALLOC inline void *default_malloc(size_t n) noexcept { return malloc(n); }
-inline void default_free(void *ptr) noexcept { free(ptr); }
 
 namespace {
 WJR_REGISTER_HAS_TYPE(pointer_traits_to_address,
@@ -5246,7 +5239,7 @@ WJR_NODISCARD auto allocate_at_least(Allocator &alloc, SizeType count) {
 
 } // namespace wjr
 
-#endif // WJR_MEMORY_TO_ADDRESS_HPP__
+#endif // WJR_MEMORY_TO_ADDRESS_HPP
 
 namespace wjr {
 
@@ -5611,9 +5604,9 @@ struct pointer_traits<wjr::contiguous_iterator_adapter<Container, Traits>> {
 
 } // namespace std
 
-#endif // WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP__
-#ifndef WJR_MATH_DETAILS_HPP__
-#define WJR_MATH_DETAILS_HPP__
+#endif // WJR_ITERATOR_CONTIGUOUS_ITERATOR_ADAPTER_HPP
+#ifndef WJR_MATH_DETAILS_HPP
+#define WJR_MATH_DETAILS_HPP
 
 // Already included
 
@@ -5787,12 +5780,12 @@ WJR_CONST constexpr T __fasts_sub(T x, std::make_unsigned_t<T> y) {
 
 } // namespace wjr
 
-#endif // WJR_MATH_DETAILS_HPP__
-#ifndef WJR_MEMORY_COPY_HPP__
-#define WJR_MEMORY_COPY_HPP__
+#endif // WJR_MATH_DETAILS_HPP
+#ifndef WJR_MEMORY_COPY_HPP
+#define WJR_MEMORY_COPY_HPP
 
-#ifndef WJR_CONTAINER_GENERIC_DETAILS_HPP__
-#define WJR_CONTAINER_GENERIC_DETAILS_HPP__
+#ifndef WJR_CONTAINER_GENERIC_DETAILS_HPP
+#define WJR_CONTAINER_GENERIC_DETAILS_HPP
 
 #include <string>
 
@@ -6074,9 +6067,9 @@ struct container_traits;
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_GENERIC_DETAILS_HPP__
-#ifndef WJR_ITERATOR_INSERTER_HPP__
-#define WJR_ITERATOR_INSERTER_HPP__
+#endif // WJR_CONTAINER_GENERIC_DETAILS_HPP
+#ifndef WJR_ITERATOR_INSERTER_HPP
+#define WJR_ITERATOR_INSERTER_HPP
 
 // Already included
 
@@ -6161,7 +6154,7 @@ get_inserter_iterator(std::insert_iterator<Container> it) noexcept(
 
 } // namespace wjr
 
-#endif // WJR_ITERATOR_INSERTER_HPP__
+#endif // WJR_ITERATOR_INSERTER_HPP
 // Already included
 
 namespace wjr {
@@ -6317,12 +6310,12 @@ constexpr OutputIt move_n_restrict(InputIt first, Size count, OutputIt d_first) 
 
 } // namespace wjr
 
-#endif // WJR_MEMORY_COPY_HPP__
-#ifndef WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
-#define WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
+#endif // WJR_MEMORY_COPY_HPP
+#ifndef WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP
+#define WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP
 
-#ifndef WJR_MEMORY_UNINITIALIZED_HPP__
-#define WJR_MEMORY_UNINITIALIZED_HPP__
+#ifndef WJR_MEMORY_UNINITIALIZED_HPP
+#define WJR_MEMORY_UNINITIALIZED_HPP
 
 /**
  * @file uninitialized.hpp
@@ -6334,8 +6327,8 @@ constexpr OutputIt move_n_restrict(InputIt first, Size count, OutputIt d_first) 
  */
 
 // Already included
-#ifndef WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
-#define WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
+#ifndef WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP
+#define WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP
 
 // Already included
 
@@ -6412,7 +6405,7 @@ struct trivially_allocator_traits {
 
 } // namespace wjr
 
-#endif // WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
+#endif // WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP
 // Already included
 
 namespace wjr {
@@ -6904,7 +6897,7 @@ private:
 
 } // namespace wjr
 
-#endif // WJR_MEMORY_UNINITIALIZED_HPP__
+#endif // WJR_MEMORY_UNINITIALIZED_HPP
 
 namespace wjr {
 
@@ -6944,7 +6937,7 @@ temporary_value_allocator(Alloc &, Args &&...) -> temporary_value_allocator<Allo
 
 } // namespace wjr
 
-#endif // WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
+#endif // WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP
 
 namespace wjr {
 
@@ -9168,9 +9161,9 @@ bool operator>=(const basic_vector<Storage> &lhs, const basic_vector<Storage> &r
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__
+#endif // WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP
 
-#endif // WJR_VECTOR_HPP__
+#endif // WJR_VECTOR_HPP
 
 namespace wjr {
 
@@ -9208,15 +9201,15 @@ struct container_traits<basic_vector<Storage>>
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP__
-#ifndef WJR_MATH_BIT_HPP__
-#define WJR_MATH_BIT_HPP__
+#endif // WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP
+#ifndef WJR_MATH_BIT_HPP
+#define WJR_MATH_BIT_HPP
 
-#ifndef WJR_MATH_CLZ_HPP__
-#define WJR_MATH_CLZ_HPP__
+#ifndef WJR_MATH_CLZ_HPP
+#define WJR_MATH_CLZ_HPP
 
-#ifndef WJR_MATH_POPCOUNT_HPP__
-#define WJR_MATH_POPCOUNT_HPP__
+#ifndef WJR_MATH_POPCOUNT_HPP
+#define WJR_MATH_POPCOUNT_HPP
 
 // Already included
 
@@ -9295,7 +9288,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int popcount(T x) {
 
 } // namespace wjr
 
-#endif // WJR_MATH_POPCOUNT_HPP__
+#endif // WJR_MATH_POPCOUNT_HPP
 
 namespace wjr {
 
@@ -9412,9 +9405,9 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz(T x) {
 
 } // namespace wjr
 
-#endif // WJR_MATH_CLZ_HPP__
-#ifndef WJR_MATH_CTZ_HPP__
-#define WJR_MATH_CTZ_HPP__
+#endif // WJR_MATH_CLZ_HPP
+#ifndef WJR_MATH_CTZ_HPP
+#define WJR_MATH_CTZ_HPP
 
 // Already included
 
@@ -9514,7 +9507,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int ctz(T x) {
 
 } // namespace wjr
 
-#endif // WJR_MATH_CTZ_HPP__
+#endif // WJR_MATH_CTZ_HPP
 // Already included
 
 namespace wjr {
@@ -9581,9 +9574,9 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T bit_floor(T x) noexcept {
 
 } // namespace wjr
 
-#endif // WJR_MATH_BIT_HPP__
-#ifndef WJR_MATH_CONVERT_IMPL_HPP__
-#define WJR_MATH_CONVERT_IMPL_HPP__
+#endif // WJR_MATH_BIT_HPP
+#ifndef WJR_MATH_CONVERT_IMPL_HPP
+#define WJR_MATH_CONVERT_IMPL_HPP
 
 namespace wjr {
 
@@ -9663,36 +9656,36 @@ inline constexpr origin_converter_t origin_converter;
 
 } // namespace wjr
 
-#endif // WJR_MATH_CONVERT_IMPL_HPP__
-#ifndef WJR_MATH_DIV_HPP__
-#define WJR_MATH_DIV_HPP__
+#endif // WJR_MATH_CONVERT_IMPL_HPP
+#ifndef WJR_MATH_DIV_HPP
+#define WJR_MATH_DIV_HPP
 
-#ifndef WJR_MATH_CMP_HPP__
-#define WJR_MATH_CMP_HPP__
+#ifndef WJR_MATH_CMP_HPP
+#define WJR_MATH_CMP_HPP
 
-#ifndef WJR_MATH_SUB_HPP__
-#define WJR_MATH_SUB_HPP__
+#ifndef WJR_MATH_SUB_HPP
+#define WJR_MATH_SUB_HPP
 
 // Already included
-#ifndef WJR_MATH_REPLACE_HPP__
-#define WJR_MATH_REPLACE_HPP__
+#ifndef WJR_MATH_REPLACE_HPP
+#define WJR_MATH_REPLACE_HPP
 
-#ifndef WJR_MATH_FIND_HPP__
-#define WJR_MATH_FIND_HPP__
+#ifndef WJR_MATH_FIND_HPP
+#define WJR_MATH_FIND_HPP
 
 // Already included
 
 #if defined(WJR_X86)
-#ifndef WJR_X86_MATH_FIND_HPP__
-#define WJR_X86_MATH_FIND_HPP__
+#ifndef WJR_X86_MATH_FIND_HPP
+#define WJR_X86_MATH_FIND_HPP
 
-#ifndef WJR_SIMD_SIMD_HPP__
-#define WJR_SIMD_SIMD_HPP__
+#ifndef WJR_SIMD_SIMD_HPP
+#define WJR_SIMD_SIMD_HPP
 
 #include <cstring>
 
-#ifndef WJR_MATH_BROADCAST_HPP__
-#define WJR_MATH_BROADCAST_HPP__
+#ifndef WJR_MATH_BROADCAST_HPP
+#define WJR_MATH_BROADCAST_HPP
 
 #include <cstdint>
 
@@ -9771,10 +9764,10 @@ struct broadcast_fn<uint8_t, uint64_t> {
 
 } // namespace wjr
 
-#endif // WJR_MATH_BROADCAST_HPP__
+#endif // WJR_MATH_BROADCAST_HPP
 // Already included
-#ifndef WJR_SIMD_SIMD_CAST_HPP__
-#define WJR_SIMD_SIMD_CAST_HPP__
+#ifndef WJR_SIMD_SIMD_CAST_HPP
+#define WJR_SIMD_SIMD_CAST_HPP
 
 // Already included
 
@@ -10072,7 +10065,7 @@ struct simd_cast_fn<__m256i_t, uint64_t> {
 
 #endif
 
-#endif // WJR_SIMD_SIMD_CAST_HPP__
+#endif // WJR_SIMD_SIMD_CAST_HPP
 
 #if WJR_HAS_SIMD(X86_SIMD)
 
@@ -13738,7 +13731,7 @@ __m256i avx::unpacklo(__m256i a, __m256i b, uint32_t) { return unpacklo_epi32(a,
 
 #endif
 
-#endif // WJR_SIMD_SIMD_HPP__
+#endif // WJR_SIMD_SIMD_HPP
 
 #ifndef WJR_X86
 #error "x86 required"
@@ -15128,7 +15121,7 @@ WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src, T val, size
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_FIND_HPP__
+#endif // WJR_X86_MATH_FIND_HPP
 #endif
 
 namespace wjr {
@@ -15482,9 +15475,9 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n(const T *src,
 
 } // namespace wjr
 
-#endif // WJR_MATH_FIND_HPP__
-#ifndef WJR_MATH_SET_HPP__
-#define WJR_MATH_SET_HPP__
+#endif // WJR_MATH_FIND_HPP
+#ifndef WJR_MATH_SET_HPP
+#define WJR_MATH_SET_HPP
 
 #include <cstring>
 
@@ -15492,8 +15485,8 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n(const T *src,
 // Already included
 
 #if defined(WJR_X86)
-#ifndef WJR_X86_MATH_SET_HPP__
-#define WJR_X86_MATH_SET_HPP__
+#ifndef WJR_X86_MATH_SET_HPP
+#define WJR_X86_MATH_SET_HPP
 
 #include <cstring>
 
@@ -15674,7 +15667,7 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_SET_HPP__
+#endif // WJR_X86_MATH_SET_HPP
 #endif
 
 namespace wjr {
@@ -15712,7 +15705,7 @@ WJR_INTRINSIC_CONSTEXPR_E void set_n(T *dst, type_identity_t<T> val, size_t n) {
 
 } // namespace wjr
 
-#endif // WJR_MATH_SET_HPP__
+#endif // WJR_MATH_SET_HPP
 
 namespace wjr {
 
@@ -15749,9 +15742,9 @@ WJR_INTRINSIC_CONSTEXPR_E size_t reverse_replace_find_not(T *dst, const T *src, 
 
 } // namespace wjr
 
-#endif // WJR_MATH_REPLACE_HPP__
-#ifndef WJR_MATH_SUB_IMPL_HPP__
-#define WJR_MATH_SUB_IMPL_HPP__
+#endif // WJR_MATH_REPLACE_HPP
+#ifndef WJR_MATH_SUB_IMPL_HPP
+#define WJR_MATH_SUB_IMPL_HPP
 
 // Already included
 
@@ -15821,11 +15814,11 @@ WJR_INTRINSIC_CONSTEXPR_E uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint
 
 } // namespace wjr
 
-#endif // WJR_MATH_SUB_IMPL_HPP__
+#endif // WJR_MATH_SUB_IMPL_HPP
 
 #if defined(WJR_X86)
-#ifndef WJR_X86_SUB_HPP__
-#define WJR_X86_SUB_HPP__
+#ifndef WJR_X86_SUB_HPP
+#define WJR_X86_SUB_HPP
 
 // Already included
 
@@ -16268,7 +16261,7 @@ WJR_INTRINSIC_INLINE uint8_t __asm_subc_cc_128(uint64_t &al, uint64_t &ah, uint6
 
 } // namespace wjr
 
-#endif // WJR_X86_SUB_HPP__
+#endif // WJR_X86_SUB_HPP
 #endif
 
 namespace wjr {
@@ -16775,12 +16768,12 @@ WJR_INTRINSIC_CONSTEXPR_E uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint
 
 } // namespace wjr
 
-#endif // WJR_MATH_SUB_HPP__
+#endif // WJR_MATH_SUB_HPP
 // Already included
 
 #if defined(WJR_X86)
-#ifndef WJR_X86_MATH_COMPARE_HPP__
-#define WJR_X86_MATH_COMPARE_HPP__
+#ifndef WJR_X86_MATH_COMPARE_HPP
+#define WJR_X86_MATH_COMPARE_HPP
 
 // Already included
 // Already included
@@ -17263,7 +17256,7 @@ WJR_CONST WJR_INTRINSIC_INLINE bool __asm_less_equal_128(uint64_t lo0, uint64_t 
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_COMPARE_HPP__
+#endif // WJR_X86_MATH_COMPARE_HPP
 #endif
 
 namespace wjr {
@@ -17425,14 +17418,14 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool __greater_equal_128(uint64_t lo0, uint6
 
 } // namespace wjr
 
-#endif // WJR_MATH_CMP_HPP__
-#ifndef WJR_MATH_DIV_IMPL_HPP__
-#define WJR_MATH_DIV_IMPL_HPP__
+#endif // WJR_MATH_CMP_HPP
+#ifndef WJR_MATH_DIV_IMPL_HPP
+#define WJR_MATH_DIV_IMPL_HPP
 
 #include <utility>
 
-#ifndef WJR_TUPLE_HPP__
-#define WJR_TUPLE_HPP__
+#ifndef WJR_TUPLE_HPP
+#define WJR_TUPLE_HPP
 
 #include <tuple>
 
@@ -17926,7 +17919,7 @@ constexpr T &&get(const wjr::tuple<Args...> &&t) noexcept {
 
 } // namespace std
 
-#endif // WJR_TUPLE_HPP__
+#endif // WJR_TUPLE_HPP
 // Already included
 
 namespace wjr {
@@ -17997,20 +17990,20 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
 
 } // namespace wjr
 
-#endif // WJR_MATH_DIV_IMPL_HPP__
-#ifndef WJR_MATH_DIVIDER_HPP__
-#define WJR_MATH_DIVIDER_HPP__
+#endif // WJR_MATH_DIV_IMPL_HPP
+#ifndef WJR_MATH_DIVIDER_HPP
+#define WJR_MATH_DIVIDER_HPP
 
-#ifndef WJR_MATH_MUL_HPP__
-#define WJR_MATH_MUL_HPP__
+#ifndef WJR_MATH_MUL_HPP
+#define WJR_MATH_MUL_HPP
 
 /**
  * @todo optimize temporary memory usage of mul_s, mul_n, sqr
  *
  */
 
-#ifndef WJR_MATH_BIGNUM_CONFIG_HPP__
-#define WJR_MATH_BIGNUM_CONFIG_HPP__
+#ifndef WJR_MATH_BIGNUM_CONFIG_HPP
+#define WJR_MATH_BIGNUM_CONFIG_HPP
 
 #ifndef WJR_TOOM22_MUL_THRESHOLD
 #define WJR_TOOM22_MUL_THRESHOLD 26
@@ -18068,15 +18061,15 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
 #define WJR_DC_BIGNUM_FROM_CHARS_PRECOMPUTE_THRESHOLD 3105
 #endif
 
-#endif // WJR_MATH_BIGNUM_CONFIG_HPP__
+#endif // WJR_MATH_BIGNUM_CONFIG_HPP
 // Already included
 
-#ifndef WJR_MATH_ADD_HPP__
-#define WJR_MATH_ADD_HPP__
+#ifndef WJR_MATH_ADD_HPP
+#define WJR_MATH_ADD_HPP
 
 // Already included
-#ifndef WJR_MATH_ADD_IMPL_HPP__
-#define WJR_MATH_ADD_IMPL_HPP__
+#ifndef WJR_MATH_ADD_IMPL_HPP
+#define WJR_MATH_ADD_IMPL_HPP
 
 // Already included
 
@@ -18129,12 +18122,12 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E uint8_t __addc_cc_128(uint64_t &al, uint
 
 } // namespace wjr
 
-#endif // WJR_MATH_ADD_IMPL_HPP__
+#endif // WJR_MATH_ADD_IMPL_HPP
 // Already included
 
 #if defined(WJR_X86)
-#ifndef WJR_X86_MATH_ADD_HPP__
-#define WJR_X86_MATH_ADD_HPP__
+#ifndef WJR_X86_MATH_ADD_HPP
+#define WJR_X86_MATH_ADD_HPP
 
 // Already included
 
@@ -18705,7 +18698,7 @@ WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_128(uint64_t &al, uint64_t &ah, uint6
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_ADD_HPP__
+#endif // WJR_X86_MATH_ADD_HPP
 #endif
 
 namespace wjr {
@@ -19119,17 +19112,17 @@ WJR_INTRINSIC_CONSTEXPR_E uint8_t __addc_cc_128(uint64_t &al, uint64_t &ah, uint
 
 } // namespace wjr
 
-#endif // WJR_MATH_ADD_HPP__
+#endif // WJR_MATH_ADD_HPP
 // Already included
-#ifndef WJR_MATH_SHIFT_HPP__
-#define WJR_MATH_SHIFT_HPP__
+#ifndef WJR_MATH_SHIFT_HPP
+#define WJR_MATH_SHIFT_HPP
 
 // Already included
 // Already included
 
 #if defined(WJR_X86)
-#ifndef WJR_X86_MATH_SHIFT_HPP__
-#define WJR_X86_MATH_SHIFT_HPP__
+#ifndef WJR_X86_MATH_SHIFT_HPP
+#define WJR_X86_MATH_SHIFT_HPP
 
 // Already included
 
@@ -19413,7 +19406,7 @@ WJR_INTRINSIC_INLINE T builtin_rshift_n(T *dst, const T *src, size_t n, unsigned
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_SHIFT_HPP__
+#endif // WJR_X86_MATH_SHIFT_HPP
 #endif
 
 namespace wjr {
@@ -19534,17 +19527,17 @@ WJR_INTRINSIC_CONSTEXPR_E T rshift_n(T *dst, const T *src, size_t n, unsigned in
 
 } // namespace wjr
 
-#endif // WJR_MATH_SHIFT_HPP__
-#ifndef WJR_MATH_STACK_ALLOCATOR_HPP__
-#define WJR_MATH_STACK_ALLOCATOR_HPP__
+#endif // WJR_MATH_SHIFT_HPP
+#ifndef WJR_MATH_STACK_ALLOCATOR_HPP
+#define WJR_MATH_STACK_ALLOCATOR_HPP
 
-#ifndef WJR_STACK_ALLOCATOR_HPP__
-#define WJR_STACK_ALLOCATOR_HPP__
+#ifndef WJR_STACK_ALLOCATOR_HPP
+#define WJR_STACK_ALLOCATOR_HPP
 
 #include <algorithm>
 
-#ifndef WJR_CRTP_NONSENDABLE_HPP__
-#define WJR_CRTP_NONSENDABLE_HPP__
+#ifndef WJR_CRTP_NONSENDABLE_HPP
+#define WJR_CRTP_NONSENDABLE_HPP
 
 #include <memory>
 
@@ -19636,7 +19629,7 @@ using nonsendable = __nonsendable_checker<Tag>;
 
 } // namespace wjr
 
-#endif // WJR_CRTP_NONSENDABLE_HPP__
+#endif // WJR_CRTP_NONSENDABLE_HPP
 // Already included
 // Already included
 
@@ -20024,7 +20017,7 @@ private:
 
 } // namespace wjr
 
-#endif // WJR_STACK_ALLOCATOR_HPP__
+#endif // WJR_STACK_ALLOCATOR_HPP
 
 namespace wjr::math_details {
 
@@ -20042,16 +20035,16 @@ using auto_weak_stack_alloc = auto_weak_stack_allocator<T, stack_alloc_object>;
 
 } // namespace wjr::math_details
 
-#endif // WJR_MATH_STACK_ALLOCATOR_HPP__
+#endif // WJR_MATH_STACK_ALLOCATOR_HPP
 // Already included
 
 #if defined(WJR_X86)
-#ifndef WJR_X86_MATH_MUL_HPP__
-#define WJR_X86_MATH_MUL_HPP__
+#ifndef WJR_X86_MATH_MUL_HPP
+#define WJR_X86_MATH_MUL_HPP
 
 // Already included
-#ifndef WJR_X86_MATH_MUL_IMPL_HPP__
-#define WJR_X86_MATH_MUL_IMPL_HPP__
+#ifndef WJR_X86_MATH_MUL_IMPL_HPP
+#define WJR_X86_MATH_MUL_IMPL_HPP
 
 // Already included
 
@@ -20099,7 +20092,7 @@ namespace wjr {
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_MUL_IMPL_HPP__
+#endif // WJR_X86_MATH_MUL_IMPL_HPP
 
 namespace wjr {
 
@@ -21173,7 +21166,7 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_MUL_HPP__
+#endif // WJR_X86_MATH_MUL_HPP
 #endif
 
 namespace wjr {
@@ -21298,7 +21291,6 @@ WJR_INTRINSIC_CONSTEXPR_E bool mul_overflow(type_identity_t<T> a, type_identity_
 #endif
 }
 
-// TODO : optimize
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR T fallback_mul_1(T *dst, const T *src, size_t n, T ml) {
     T lo = 0, hi = 0;
@@ -22372,7 +22364,6 @@ void basecase_mul_s(T *WJR_RESTRICT dst, const T *src0, size_t n, const T *src1,
 #endif
 }
 
-// TODO : optimize
 template <typename T>
 void basecase_sqr(T *WJR_RESTRICT dst, const T *src, size_t n) {
 #if WJR_HAS_BUILTIN(ASM_BASECASE_SQR)
@@ -24214,11 +24205,11 @@ void toom4_sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *stk) {
 
 } // namespace wjr
 
-#endif // WJR_MATH_MUL_HPP__
+#endif // WJR_MATH_MUL_HPP
 
 #if defined(WJR_X86)
-#ifndef WJR_X86_MATH_DIVIDER_HPP__
-#define WJR_X86_MATH_DIVIDER_HPP__
+#ifndef WJR_X86_MATH_DIVIDER_HPP
+#define WJR_X86_MATH_DIVIDER_HPP
 
 // Already included
 
@@ -24260,7 +24251,7 @@ WJR_INTRINSIC_INLINE void asm_div2by1_adjust_branch(T div, T & lo) {
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_DIVIDER_HPP__
+#endif // WJR_X86_MATH_DIVIDER_HPP
 #endif
 
 namespace wjr {
@@ -24728,11 +24719,11 @@ private:
 
 } // namespace wjr
 
-#endif // WJR_MATH_DIVIDER_HPP__
+#endif // WJR_MATH_DIVIDER_HPP
 
 #if defined(WJR_X86)
-#ifndef WJR_X86_MATH_DIV_HPP__
-#define WJR_X86_MATH_DIV_HPP__
+#ifndef WJR_X86_MATH_DIV_HPP
+#define WJR_X86_MATH_DIV_HPP
 
 // Already included
 
@@ -24807,7 +24798,7 @@ inline uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_DIV_HPP__
+#endif // WJR_X86_MATH_DIV_HPP
 #endif
 
 namespace wjr {
@@ -25860,9 +25851,9 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
 
 } // namespace wjr
 
-#endif // WJR_MATH_DIV_HPP__
-#ifndef WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
-#define WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
+#endif // WJR_MATH_DIV_HPP
+#ifndef WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP
+#define WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP
 
 // Already included
 
@@ -25884,7 +25875,7 @@ struct precompute_chars_convert_t {
     unsigned int base;
 };
 
-extern precompute_chars_convert_16n_t *precompute_chars_convert_16n_ptr[37];
+extern const precompute_chars_convert_16n_t *precompute_chars_convert_16n_ptr[37];
 
 extern precompute_chars_convert_t *
 precompute_chars_convert(precompute_chars_convert_t *pre, size_t n, unsigned int base,
@@ -25892,12 +25883,12 @@ precompute_chars_convert(precompute_chars_convert_t *pre, size_t n, unsigned int
 
 } // namespace wjr
 
-#endif // WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
+#endif // WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP
 // Already included
 
 #if defined(WJR_X86)
-#ifndef WJR_X86_MATH_CONVERT_HPP__
-#define WJR_X86_MATH_CONVERT_HPP__
+#ifndef WJR_X86_MATH_CONVERT_HPP
+#define WJR_X86_MATH_CONVERT_HPP
 
 // Already included
 // Already included
@@ -26084,7 +26075,7 @@ uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, origin_converter_t) 
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_CONVERT_HPP__
+#endif // WJR_X86_MATH_CONVERT_HPP
 #endif
 
 namespace wjr {
@@ -29126,18 +29117,18 @@ uint64_t *biginteger_from_chars(Iter first, Iter last, uint64_t *up,
 
 } // namespace wjr
 
-#endif // WJR_MATH_CONVERT_HPP__
-#ifndef WJR_MATH_NEG_HPP__
-#define WJR_MATH_NEG_HPP__
+#endif // WJR_MATH_CONVERT_HPP
+#ifndef WJR_MATH_NEG_HPP
+#define WJR_MATH_NEG_HPP
 
-#ifndef WJR_MATH_NOT_HPP__
-#define WJR_MATH_NOT_HPP__
+#ifndef WJR_MATH_NOT_HPP
+#define WJR_MATH_NOT_HPP
 
 // Already included
 
 #if defined(WJR_X86)
-#ifndef WJR_X86_MATH_NOT_HPP__
-#define WJR_X86_MATH_NOT_HPP__
+#ifndef WJR_X86_MATH_NOT_HPP
+#define WJR_X86_MATH_NOT_HPP
 
 // Already included
 // Already included
@@ -29380,7 +29371,7 @@ WJR_INTRINSIC_INLINE void builtin_complement_n(T *dst, const T *src, size_t n) {
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_NOT_HPP__
+#endif // WJR_X86_MATH_NOT_HPP
 #endif
 
 namespace wjr {
@@ -29411,7 +29402,7 @@ WJR_INTRINSIC_CONSTEXPR_E void complement_n(T *dst, const T *src, size_t n) {
 
 } // namespace wjr
 
-#endif // WJR_MATH_NOT_HPP__
+#endif // WJR_MATH_NOT_HPP
 // Already included
 
 namespace wjr {
@@ -29435,15 +29426,15 @@ WJR_INTRINSIC_CONSTEXPR_E bool negate_n(T *dst, const T *src, size_t n) {
 
 } // namespace wjr
 
-#endif // WJR_MATH_NEG_HPP__
-#ifndef WJR_MATH_PREFIX_XOR_HPP__
-#define WJR_MATH_PREFIX_XOR_HPP__
+#endif // WJR_MATH_NEG_HPP
+#ifndef WJR_MATH_PREFIX_XOR_HPP
+#define WJR_MATH_PREFIX_XOR_HPP
 
 // Already included
 
 #if defined(WJR_X86)
-#ifndef WJR_X86_MATH_PREFIX_XOR_HPP__
-#define WJR_X86_MATH_PREFIX_XOR_HPP__
+#ifndef WJR_X86_MATH_PREFIX_XOR_HPP
+#define WJR_X86_MATH_PREFIX_XOR_HPP
 
 // Already included
 // Already included
@@ -29477,7 +29468,7 @@ T builtin_prefix_xor(T x) {
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_PREFIX_XOR_HPP__
+#endif // WJR_X86_MATH_PREFIX_XOR_HPP
 #endif
 
 namespace wjr {
@@ -29518,11 +29509,11 @@ WJR_INTRINSIC_CONSTEXPR_E T prefix_xor(T x) {
 
 } // namespace wjr
 
-#endif // WJR_MATH_PREFIX_XOR_HPP__
+#endif // WJR_MATH_PREFIX_XOR_HPP
 
-#endif // WJR_MATH_HPP__
-#ifndef WJR_SPAN_HPP__
-#define WJR_SPAN_HPP__
+#endif // WJR_MATH_HPP
+#ifndef WJR_SPAN_HPP
+#define WJR_SPAN_HPP
 
 #include <stdexcept>
 
@@ -29902,7 +29893,7 @@ span(Container &&) -> span<
 
 } // namespace wjr
 
-#endif // WJR_SPAN_HPP__
+#endif // WJR_SPAN_HPP
 // Already included
 
 namespace wjr {
@@ -30331,19 +30322,13 @@ WJR_NODISCARD WJR_PURE int32_t compare(T lhs, const biginteger_data &rhs) {
 
 template <typename S0, typename S1>
 WJR_NODISCARD WJR_PURE int32_t compare(const basic_biginteger<S0> &lhs,
-                                       const basic_biginteger<S1> &rhs) {
-    return compare(lhs.__get_ref(), rhs.__get_ref());
-}
+                                       const basic_biginteger<S1> &rhs);
 
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_NODISCARD WJR_PURE int32_t compare(const basic_biginteger<S> &lhs, T rhs) {
-    return compare(lhs.__get_ref(), rhs);
-}
+WJR_NODISCARD WJR_PURE int32_t compare(const basic_biginteger<S> &lhs, T rhs);
 
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_NODISCARD WJR_PURE int32_t compare(T lhs, const basic_biginteger<S> &rhs) {
-    return compare(lhs, rhs.__get_ref());
-}
+WJR_NODISCARD WJR_PURE int32_t compare(T lhs, const basic_biginteger<S> &rhs);
 
 #define WJR_REGISTER_BIGINTEGER_COMPARE(op)                                              \
     WJR_NODISCARD WJR_PURE inline bool operator op(const biginteger_data &lhs,           \
@@ -30400,19 +30385,13 @@ WJR_REGISTER_BIGINTEGER_COMPARE(>=)
     }                                                                                    \
     template <typename S0, typename S1, typename S2>                                     \
     void ADDSUB(basic_biginteger<S0> &dst, const basic_biginteger<S1> &lhs,              \
-                const basic_biginteger<S2> &rhs) {                                       \
-        ADDSUB(dst, lhs.__get_ref(), rhs.__get_ref());                                   \
-    }                                                                                    \
+                const basic_biginteger<S2> &rhs);                                        \
     template <typename S0, typename S1, typename T,                                      \
               WJR_REQUIRES(is_nonbool_integral_v<T>)>                                    \
-    void ADDSUB(basic_biginteger<S0> &dst, const basic_biginteger<S1> &lhs, T rhs) {     \
-        ADDSUB(dst, lhs.__get_ref(), rhs);                                               \
-    }                                                                                    \
+    void ADDSUB(basic_biginteger<S0> &dst, const basic_biginteger<S1> &lhs, T rhs);      \
     template <typename S0, typename S1, typename T,                                      \
               WJR_REQUIRES(is_nonbool_integral_v<T>)>                                    \
-    void ADDSUB(basic_biginteger<S0> &dst, T lhs, const basic_biginteger<S1> &rhs) {     \
-        ADDSUB(dst, lhs, rhs.__get_ref());                                               \
-    }
+    void ADDSUB(basic_biginteger<S0> &dst, T lhs, const basic_biginteger<S1> &rhs);
 
 WJR_REGISTER_BIGINTEGER_ADDSUB(add)
 WJR_REGISTER_BIGINTEGER_ADDSUB(sub)
@@ -30447,19 +30426,13 @@ void mul(basic_biginteger<S> &dst, T lhs, const biginteger_data &rhs) {
 
 template <typename S0, typename S1, typename S2>
 void mul(basic_biginteger<S0> &dst, const basic_biginteger<S1> &lhs,
-         const basic_biginteger<S2> &rhs) {
-    mul(dst, lhs.__get_ref(), rhs.__get_ref());
-}
+         const basic_biginteger<S2> &rhs);
 
 template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-void mul(basic_biginteger<S0> &dst, const basic_biginteger<S1> &lhs, T rhs) {
-    mul(dst, lhs.__get_ref(), rhs);
-}
+void mul(basic_biginteger<S0> &dst, const basic_biginteger<S1> &lhs, T rhs);
 
 template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-void mul(basic_biginteger<S0> &dst, T lhs, const basic_biginteger<S1> &rhs) {
-    mul(dst, lhs, rhs.__get_ref());
-}
+void mul(basic_biginteger<S0> &dst, T lhs, const basic_biginteger<S1> &rhs);
 
 template <typename S0, typename S1>
 void tdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
@@ -30515,61 +30488,41 @@ void cdiv_r(basic_biginteger<S0> &rem, const biginteger_data &num,
     biginteger_details::__cdiv_r_impl(&rem, &num, &div);
 }
 
-//
-
 template <typename S0, typename S1, typename S2, typename S3>
 void tdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
-             const basic_biginteger<S2> &num, const basic_biginteger<S3> &div) {
-    tdiv_qr(quot, rem, num.__get_ref(), div.__get_ref());
-}
+             const basic_biginteger<S2> &num, const basic_biginteger<S3> &div);
 
 template <typename S0, typename S1, typename S2>
 void tdiv_q(basic_biginteger<S0> &quot, const basic_biginteger<S1> &num,
-            const basic_biginteger<S2> &div) {
-    tdiv_q(quot, num.__get_ref(), div.__get_ref());
-}
+            const basic_biginteger<S2> &div);
 
 template <typename S0, typename S1, typename S2>
 void tdiv_r(basic_biginteger<S0> &rem, const basic_biginteger<S1> &num,
-            const basic_biginteger<S2> &div) {
-    tdiv_r(rem, num.__get_ref(), div.__get_ref());
-}
+            const basic_biginteger<S2> &div);
 
 template <typename S0, typename S1, typename S2, typename S3>
 void fdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
-             const basic_biginteger<S2> &num, const basic_biginteger<S3> &div) {
-    fdiv_qr(quot, rem, num.__get_ref(), div.__get_ref());
-}
+             const basic_biginteger<S2> &num, const basic_biginteger<S3> &div);
 
 template <typename S0, typename S1, typename S2>
 void fdiv_q(basic_biginteger<S0> &quot, const basic_biginteger<S1> &num,
-            const basic_biginteger<S2> &div) {
-    fdiv_q(quot, num.__get_ref(), div.__get_ref());
-}
+            const basic_biginteger<S2> &div);
 
 template <typename S0, typename S1, typename S2>
 void fdiv_r(basic_biginteger<S0> &rem, const basic_biginteger<S1> &num,
-            const basic_biginteger<S2> &div) {
-    fdiv_r(rem, num.__get_ref(), div.__get_ref());
-}
+            const basic_biginteger<S2> &div);
 
 template <typename S0, typename S1, typename S2, typename S3>
 void cdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
-             const basic_biginteger<S2> &num, const basic_biginteger<S3> &div) {
-    cdiv_qr(quot, rem, num.__get_ref(), div.__get_ref());
-}
+             const basic_biginteger<S2> &num, const basic_biginteger<S3> &div);
 
 template <typename S0, typename S1, typename S2>
 void cdiv_q(basic_biginteger<S0> &quot, const basic_biginteger<S1> &num,
-            const basic_biginteger<S2> &div) {
-    cdiv_q(quot, num.__get_ref(), div.__get_ref());
-}
+            const basic_biginteger<S2> &div);
 
 template <typename S0, typename S1, typename S2>
 void cdiv_r(basic_biginteger<S0> &rem, const basic_biginteger<S1> &num,
-            const basic_biginteger<S2> &div) {
-    cdiv_r(rem, num.__get_ref(), div.__get_ref());
-}
+            const basic_biginteger<S2> &div);
 
 template <typename Storage>
 class basic_biginteger {
@@ -31740,6 +31693,114 @@ Iter to_chars_unchecked(Iter ptr, const basic_biginteger<S> &src, unsigned int b
     return to_chars_unchecked(ptr, src.__get_ref(), base);
 }
 
+template <typename S0, typename S1>
+WJR_NODISCARD WJR_PURE int32_t compare(const basic_biginteger<S0> &lhs,
+                                       const basic_biginteger<S1> &rhs) {
+    return compare(lhs.__get_ref(), rhs.__get_ref());
+}
+
+template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+WJR_NODISCARD WJR_PURE int32_t compare(const basic_biginteger<S> &lhs, T rhs) {
+    return compare(lhs.__get_ref(), rhs);
+}
+
+template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+WJR_NODISCARD WJR_PURE int32_t compare(T lhs, const basic_biginteger<S> &rhs) {
+    return compare(lhs, rhs.__get_ref());
+}
+
+#define WJR_REGISTER_BIGINTEGER_ADDSUB(ADDSUB)                                           \
+    template <typename S0, typename S1, typename S2>                                     \
+    void ADDSUB(basic_biginteger<S0> &dst, const basic_biginteger<S1> &lhs,              \
+                const basic_biginteger<S2> &rhs) {                                       \
+        ADDSUB(dst, lhs.__get_ref(), rhs.__get_ref());                                   \
+    }                                                                                    \
+    template <typename S0, typename S1, typename T,                                      \
+              WJR_REQUIRES_I(is_nonbool_integral_v<T>)>                                  \
+    void ADDSUB(basic_biginteger<S0> &dst, const basic_biginteger<S1> &lhs, T rhs) {     \
+        ADDSUB(dst, lhs.__get_ref(), rhs);                                               \
+    }                                                                                    \
+    template <typename S0, typename S1, typename T,                                      \
+              WJR_REQUIRES_I(is_nonbool_integral_v<T>)>                                  \
+    void ADDSUB(basic_biginteger<S0> &dst, T lhs, const basic_biginteger<S1> &rhs) {     \
+        ADDSUB(dst, lhs, rhs.__get_ref());                                               \
+    }
+
+WJR_REGISTER_BIGINTEGER_ADDSUB(add)
+WJR_REGISTER_BIGINTEGER_ADDSUB(sub)
+
+#undef WJR_REGISTER_BIGINTEGER_ADDSUB
+
+template <typename S0, typename S1, typename S2>
+void mul(basic_biginteger<S0> &dst, const basic_biginteger<S1> &lhs,
+         const basic_biginteger<S2> &rhs) {
+    mul(dst, lhs.__get_ref(), rhs.__get_ref());
+}
+
+template <typename S0, typename S1, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+void mul(basic_biginteger<S0> &dst, const basic_biginteger<S1> &lhs, T rhs) {
+    mul(dst, lhs.__get_ref(), rhs);
+}
+
+template <typename S0, typename S1, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+void mul(basic_biginteger<S0> &dst, T lhs, const basic_biginteger<S1> &rhs) {
+    mul(dst, lhs, rhs.__get_ref());
+}
+
+template <typename S0, typename S1, typename S2, typename S3>
+void tdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
+             const basic_biginteger<S2> &num, const basic_biginteger<S3> &div) {
+    tdiv_qr(quot, rem, num.__get_ref(), div.__get_ref());
+}
+
+template <typename S0, typename S1, typename S2>
+void tdiv_q(basic_biginteger<S0> &quot, const basic_biginteger<S1> &num,
+            const basic_biginteger<S2> &div) {
+    tdiv_q(quot, num.__get_ref(), div.__get_ref());
+}
+
+template <typename S0, typename S1, typename S2>
+void tdiv_r(basic_biginteger<S0> &rem, const basic_biginteger<S1> &num,
+            const basic_biginteger<S2> &div) {
+    tdiv_r(rem, num.__get_ref(), div.__get_ref());
+}
+
+template <typename S0, typename S1, typename S2, typename S3>
+void fdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
+             const basic_biginteger<S2> &num, const basic_biginteger<S3> &div) {
+    fdiv_qr(quot, rem, num.__get_ref(), div.__get_ref());
+}
+
+template <typename S0, typename S1, typename S2>
+void fdiv_q(basic_biginteger<S0> &quot, const basic_biginteger<S1> &num,
+            const basic_biginteger<S2> &div) {
+    fdiv_q(quot, num.__get_ref(), div.__get_ref());
+}
+
+template <typename S0, typename S1, typename S2>
+void fdiv_r(basic_biginteger<S0> &rem, const basic_biginteger<S1> &num,
+            const basic_biginteger<S2> &div) {
+    fdiv_r(rem, num.__get_ref(), div.__get_ref());
+}
+
+template <typename S0, typename S1, typename S2, typename S3>
+void cdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
+             const basic_biginteger<S2> &num, const basic_biginteger<S3> &div) {
+    cdiv_qr(quot, rem, num.__get_ref(), div.__get_ref());
+}
+
+template <typename S0, typename S1, typename S2>
+void cdiv_q(basic_biginteger<S0> &quot, const basic_biginteger<S1> &num,
+            const basic_biginteger<S2> &div) {
+    cdiv_q(quot, num.__get_ref(), div.__get_ref());
+}
+
+template <typename S0, typename S1, typename S2>
+void cdiv_r(basic_biginteger<S0> &rem, const basic_biginteger<S1> &num,
+            const basic_biginteger<S2> &div) {
+    cdiv_r(rem, num.__get_ref(), div.__get_ref());
+}
+
 template <typename S>
 std::istream &operator>>(std::istream &is, basic_biginteger<S> &dst) {
     std::string str;
@@ -31802,9 +31863,9 @@ std::basic_ostream<Char, Traits> &operator<<(std::basic_ostream<Char, Traits> &o
 
 #endif
 
-#endif // WJR_BIGINTEGER_HPP__
-#ifndef WJR_CONTAINER_GENERIC_DYNAMIC_BITSET_HPP__
-#define WJR_CONTAINER_GENERIC_DYNAMIC_BITSET_HPP__
+#endif // WJR_BIGINTEGER_HPP
+#ifndef WJR_CONTAINER_GENERIC_DYNAMIC_BITSET_HPP
+#define WJR_CONTAINER_GENERIC_DYNAMIC_BITSET_HPP
 
 // Already included
 // Already included
@@ -32145,12 +32206,12 @@ using bitset = basic_dynamic_bitset<>;
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_GENERIC_DYNAMIC_BITSET_HPP__
-#ifndef WJR_JSON_LEXER_HPP__
-#define WJR_JSON_LEXER_HPP__
+#endif // WJR_CONTAINER_GENERIC_DYNAMIC_BITSET_HPP
+#ifndef WJR_JSON_LEXER_HPP
+#define WJR_JSON_LEXER_HPP
 
-#ifndef WJR_JSON_LEXER_IMPL_HPP__
-#define WJR_JSON_LEXER_IMPL_HPP__
+#ifndef WJR_JSON_LEXER_IMPL_HPP
+#define WJR_JSON_LEXER_IMPL_HPP
 
 // Already included
 
@@ -32235,12 +32296,12 @@ inline uint64_t calc_backslash(uint64_t B) {
 
 } // namespace wjr::json
 
-#endif // WJR_JSON_LEXER_IMPL_HPP__
+#endif // WJR_JSON_LEXER_IMPL_HPP
 // Already included
 
 #if defined(WJR_X86)
-#ifndef WJR_X86_JSON_LEXER_HPP__
-#define WJR_X86_JSON_LEXER_HPP__
+#ifndef WJR_X86_JSON_LEXER_HPP
+#define WJR_X86_JSON_LEXER_HPP
 
 // Already included
 // Already included
@@ -32521,7 +32582,7 @@ uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
 
 } // namespace wjr::json
 
-#endif // WJR_X86_JSON_LEXER_HPP__
+#endif // WJR_X86_JSON_LEXER_HPP
 #endif
 
 namespace wjr::json {
@@ -32710,9 +32771,9 @@ uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
 
 } // namespace wjr::json
 
-#endif // WJR_JSON_LEXER_HPP__
-#ifndef WJR_JSON_PARSER_HPP__
-#define WJR_JSON_PARSER_HPP__
+#endif // WJR_JSON_LEXER_HPP
+#ifndef WJR_JSON_PARSER_HPP
+#define WJR_JSON_PARSER_HPP
 
 #include <bitset>
 #include <charconv>
@@ -33804,7 +33865,7 @@ WJR_INTRINSIC_INLINE void parse(span<const char> sp, Parser &parser) {
 
 } // namespace wjr::json
 
-#endif // WJR_JSON_PARSER_HPP__
+#endif // WJR_JSON_PARSER_HPP
 // Already included
 // Already included
 

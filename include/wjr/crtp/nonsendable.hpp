@@ -1,5 +1,5 @@
-#ifndef WJR_CRTP_NONSENDABLE_HPP__
-#define WJR_CRTP_NONSENDABLE_HPP__
+#ifndef WJR_CRTP_NONSENDABLE_HPP
+#define WJR_CRTP_NONSENDABLE_HPP
 
 #include <memory>
 
@@ -91,4 +91,4 @@ using nonsendable = __nonsendable_checker<Tag>;
 
 } // namespace wjr
 
-#endif // WJR_CRTP_NONSENDABLE_HPP__
+#endif // WJR_CRTP_NONSENDABLE_HPP

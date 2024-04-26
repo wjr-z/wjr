@@ -1,6 +1,6 @@
-#ifndef WJR_BIGINTEGER_HPP__
-#define WJR_BIGINTEGER_HPP__
+#ifndef WJR_BIGINTEGER_HPP
+#define WJR_BIGINTEGER_HPP
 
 #include <wjr/biginteger/biginteger.hpp>
 
-#endif // WJR_BIGINTEGER_HPP__
+#endif // WJR_BIGINTEGER_HPP

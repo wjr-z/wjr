@@ -1,5 +1,5 @@
-#ifndef WJR_PREPROCESSOR_QUEUE_CALL_HPP__
-#define WJR_PREPROCESSOR_QUEUE_CALL_HPP__
+#ifndef WJR_PREPROCESSOR_QUEUE_CALL_HPP
+#define WJR_PREPROCESSOR_QUEUE_CALL_HPP
 
 #include <wjr/preprocessor/arithmatic/dec.hpp>
 #include <wjr/preprocessor/arithmatic/inc.hpp>
@@ -288,4 +288,4 @@
 #define WJR_PP_QUEUE_CALL_NEW_ARGS_63(args, ops) WJR_PP_QUEUE_CALL_NEW_ARGS_NE(args, ops)
 #define WJR_PP_QUEUE_CALL_NEW_ARGS_64(args, ops) WJR_PP_QUEUE_CALL_NEW_ARGS_NE(args, ops)
 
-#endif // ! WJR_PREPROCESSOR_QUEUE_CALL_HPP__
+#endif // ! WJR_PREPROCESSOR_QUEUE_CALL_HPP

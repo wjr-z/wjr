@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_CMP_HPP__
-#define WJR_MATH_CMP_HPP__
+#ifndef WJR_MATH_CMP_HPP
+#define WJR_MATH_CMP_HPP
 
 #include <wjr/math/sub.hpp>
 #include <wjr/type_traits.hpp>
@@ -167,4 +167,4 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool __greater_equal_128(uint64_t lo0, uint6
 
 } // namespace wjr
 
-#endif // WJR_MATH_CMP_HPP__
+#endif // WJR_MATH_CMP_HPP

@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_PREFIX_XOR_HPP__
-#define WJR_MATH_PREFIX_XOR_HPP__
+#ifndef WJR_MATH_PREFIX_XOR_HPP
+#define WJR_MATH_PREFIX_XOR_HPP
 
 #include <wjr/type_traits.hpp>
 
@@ -45,4 +45,4 @@ WJR_INTRINSIC_CONSTEXPR_E T prefix_xor(T x) {
 
 } // namespace wjr
 
-#endif // WJR_MATH_PREFIX_XOR_HPP__
+#endif // WJR_MATH_PREFIX_XOR_HPP

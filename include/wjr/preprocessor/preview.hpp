@@ -1,5 +1,5 @@
-#ifndef WJR_PREPROCESSOR_PREVIEW_HPP__
-#define WJR_PREPROCESSOR_PREVIEW_HPP__
+#ifndef WJR_PREPROCESSOR_PREVIEW_HPP
+#define WJR_PREPROCESSOR_PREVIEW_HPP
 
 // testing ...
 
@@ -8,7 +8,6 @@
 #include <wjr/preprocessor/details.hpp>
 #include <wjr/preprocessor/logical.hpp>
 
-// TODO : Recursive nested queue algorithm
 // Due to the fact that call is not a simple expansion, but takes the previous output as
 // the next input, the difficulty of implementing recursion is also high.
 #include <wjr/preprocessor/queue/algorithm.hpp>
@@ -110,4 +109,4 @@
 #define WJR_REQUIRES(...) std::enable_if_t<(__VA_ARGS__), int> = 0
 #define WJR_REQUIRES_I(...) std::enable_if_t<(__VA_ARGS__), int>
 
-#endif // ! WJR_PREPROCESSOR_PREVIEW_HPP__
+#endif // ! WJR_PREPROCESSOR_PREVIEW_HPP

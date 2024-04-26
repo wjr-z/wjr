@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_CONVERT_IMPL_HPP__
-#define WJR_MATH_CONVERT_IMPL_HPP__
+#ifndef WJR_MATH_CONVERT_IMPL_HPP
+#define WJR_MATH_CONVERT_IMPL_HPP
 
 namespace wjr {
 
@@ -79,4 +79,4 @@ inline constexpr origin_converter_t origin_converter;
 
 } // namespace wjr
 
-#endif // WJR_MATH_CONVERT_IMPL_HPP__
+#endif // WJR_MATH_CONVERT_IMPL_HPP

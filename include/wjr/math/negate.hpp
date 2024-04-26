@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_NEG_HPP__
-#define WJR_MATH_NEG_HPP__
+#ifndef WJR_MATH_NEG_HPP
+#define WJR_MATH_NEG_HPP
 
 #include <wjr/math/complement.hpp>
 #include <wjr/math/replace.hpp>
@@ -25,4 +25,4 @@ WJR_INTRINSIC_CONSTEXPR_E bool negate_n(T *dst, const T *src, size_t n) {
 
 } // namespace wjr
 
-#endif // WJR_MATH_NEG_HPP__
+#endif // WJR_MATH_NEG_HPP

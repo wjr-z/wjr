@@ -1,5 +1,5 @@
-#ifndef WJR_X86_FORMAT_UTF_8_HPP__
-#define WJR_X86_FORMAT_UTF_8_HPP__
+#ifndef WJR_X86_FORMAT_UTF_8_HPP
+#define WJR_X86_FORMAT_UTF_8_HPP
 
 #include <wjr/x86/simd/simd.hpp>
 
@@ -34,4 +34,4 @@ WJR_PURE bool builtin_is_ascii_32(uint8_t *ptr) {
 
 } // namespace wjr::utf8
 
-#endif // WJR_X86_FORMAT_UTF_8_HPP__
+#endif // WJR_X86_FORMAT_UTF_8_HPP

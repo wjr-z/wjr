@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
-#define WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
+#ifndef WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP
+#define WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP
 
 #include <wjr/math/mul.hpp>
 
@@ -21,7 +21,7 @@ struct precompute_chars_convert_t {
     unsigned int base;
 };
 
-extern precompute_chars_convert_16n_t *precompute_chars_convert_16n_ptr[37];
+extern const precompute_chars_convert_16n_t *precompute_chars_convert_16n_ptr[37];
 
 extern precompute_chars_convert_t *
 precompute_chars_convert(precompute_chars_convert_t *pre, size_t n, unsigned int base,
@@ -29,4 +29,4 @@ precompute_chars_convert(precompute_chars_convert_t *pre, size_t n, unsigned int
 
 } // namespace wjr
 
-#endif // WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
+#endif // WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP

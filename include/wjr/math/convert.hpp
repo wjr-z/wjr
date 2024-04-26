@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_CONVERT_HPP__
-#define WJR_MATH_CONVERT_HPP__
+#ifndef WJR_MATH_CONVERT_HPP
+#define WJR_MATH_CONVERT_HPP
 
 #include <array>
 #include <system_error>
@@ -3055,4 +3055,4 @@ uint64_t *biginteger_from_chars(Iter first, Iter last, uint64_t *up,
 
 } // namespace wjr
 
-#endif // WJR_MATH_CONVERT_HPP__
+#endif // WJR_MATH_CONVERT_HPP

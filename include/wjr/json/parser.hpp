@@ -1,5 +1,5 @@
-#ifndef WJR_JSON_PARSER_HPP__
-#define WJR_JSON_PARSER_HPP__
+#ifndef WJR_JSON_PARSER_HPP
+#define WJR_JSON_PARSER_HPP
 
 #include <bitset>
 #include <charconv>
@@ -1091,4 +1091,4 @@ WJR_INTRINSIC_INLINE void parse(span<const char> sp, Parser &parser) {
 
 } // namespace wjr::json
 
-#endif // WJR_JSON_PARSER_HPP__
+#endif // WJR_JSON_PARSER_HPP

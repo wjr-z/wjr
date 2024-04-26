@@ -1,5 +1,5 @@
-#ifndef WJR_X86_JSON_LEXER_HPP__
-#define WJR_X86_JSON_LEXER_HPP__
+#ifndef WJR_X86_JSON_LEXER_HPP
+#define WJR_X86_JSON_LEXER_HPP
 
 #include <wjr/json/lexer-impl.hpp>
 #include <wjr/math.hpp>
@@ -280,4 +280,4 @@ uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
 
 } // namespace wjr::json
 
-#endif // WJR_X86_JSON_LEXER_HPP__
+#endif // WJR_X86_JSON_LEXER_HPP

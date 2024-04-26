@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_RANDOM_HPP__
-#define WJR_MATH_RANDOM_HPP__
+#ifndef WJR_MATH_RANDOM_HPP
+#define WJR_MATH_RANDOM_HPP
 
 #include <random>
 
@@ -14,4 +14,4 @@ void random(Iter First, Iter Last, Rand &&rd) {
 
 } // namespace wjr
 
-#endif // WJR_MATH_RANDOM_HPP__
+#endif // WJR_MATH_RANDOM_HPP

@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_POPCOUNT_HPP__
-#define WJR_MATH_POPCOUNT_HPP__
+#ifndef WJR_MATH_POPCOUNT_HPP
+#define WJR_MATH_POPCOUNT_HPP
 
 #include <wjr/math/details.hpp>
 
@@ -78,4 +78,4 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int popcount(T x) {
 
 } // namespace wjr
 
-#endif // WJR_MATH_POPCOUNT_HPP__
+#endif // WJR_MATH_POPCOUNT_HPP

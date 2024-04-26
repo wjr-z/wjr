@@ -1,5 +1,5 @@
-#ifndef WJR_CAPTURE_LEAF_HPP__
-#define WJR_CAPTURE_LEAF_HPP__
+#ifndef WJR_CAPTURE_LEAF_HPP
+#define WJR_CAPTURE_LEAF_HPP
 
 #include <tuple>
 
@@ -100,4 +100,4 @@ struct __is_tuple_assignable : std::is_assignable<T &, U> {};
 
 } // namespace wjr
 
-#endif // WJR_CAPTURE_LEAF_HPP__
+#endif // WJR_CAPTURE_LEAF_HPP

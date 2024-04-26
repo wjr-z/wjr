@@ -1,6 +1,6 @@
-#ifndef WJR_VECTOR_HPP__
-#define WJR_VECTOR_HPP__
+#ifndef WJR_VECTOR_HPP
+#define WJR_VECTOR_HPP
 
 #include <wjr/container/generic/vector.hpp>
 
-#endif // WJR_VECTOR_HPP__
+#endif // WJR_VECTOR_HPP

@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_DIV_HPP__
-#define WJR_MATH_DIV_HPP__
+#ifndef WJR_MATH_DIV_HPP
+#define WJR_MATH_DIV_HPP
 
 #include <wjr/math/compare.hpp>
 #include <wjr/math/div-impl.hpp>
@@ -1059,4 +1059,4 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
 
 } // namespace wjr
 
-#endif // WJR_MATH_DIV_HPP__
+#endif // WJR_MATH_DIV_HPP

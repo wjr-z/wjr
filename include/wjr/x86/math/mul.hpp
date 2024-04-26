@@ -1,5 +1,5 @@
-#ifndef WJR_X86_MATH_MUL_HPP__
-#define WJR_X86_MATH_MUL_HPP__
+#ifndef WJR_X86_MATH_MUL_HPP
+#define WJR_X86_MATH_MUL_HPP
 
 #include <wjr/assert.hpp>
 #include <wjr/x86/math/mul-impl.hpp>
@@ -570,4 +570,4 @@ inline uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n, uint6
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_MUL_HPP__
+#endif // WJR_X86_MATH_MUL_HPP

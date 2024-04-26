@@ -1,5 +1,5 @@
-#ifndef WJR_PREPROCESSOR_ARITHMATIC_ADD_HPP__
-#define WJR_PREPROCESSOR_ARITHMATIC_ADD_HPP__
+#ifndef WJR_PREPROCESSOR_ARITHMATIC_ADD_HPP
+#define WJR_PREPROCESSOR_ARITHMATIC_ADD_HPP
 
 #include <wjr/preprocessor/arithmatic/basic.hpp>
 #include <wjr/preprocessor/details/basic.hpp>
@@ -9,4 +9,4 @@
     WJR_PP_ARITHMATIC_TO_NUMBER(WJR_PP_CONCAT(WJR_PP_ARITHMATIC_FROM_NUMBER(x),          \
                                               WJR_PP_ARITHMATIC_FROM_NUMBER(y)))
 
-#endif // ! WJR_PREPROCESSOR_ARITHMATIC_ADD_HPP__
+#endif // ! WJR_PREPROCESSOR_ARITHMATIC_ADD_HPP

@@ -1,6 +1,6 @@
-#ifndef WJR_PREPROCESSOR_HPP__
-#define WJR_PREPROCESSOR_HPP__
+#ifndef WJR_PREPROCESSOR_HPP
+#define WJR_PREPROCESSOR_HPP
 
 #include <wjr/preprocessor/preview.hpp>
 
-#endif // WJR_PREPROCESSOR_HPP__
+#endif // WJR_PREPROCESSOR_HPP

@@ -1,5 +1,5 @@
-#ifndef WJR_X86_MATH_SHIFT_HPP__
-#define WJR_X86_MATH_SHIFT_HPP__
+#ifndef WJR_X86_MATH_SHIFT_HPP
+#define WJR_X86_MATH_SHIFT_HPP
 
 #include <wjr/x86/simd/simd.hpp>
 
@@ -283,4 +283,4 @@ WJR_INTRINSIC_INLINE T builtin_rshift_n(T *dst, const T *src, size_t n, unsigned
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_SHIFT_HPP__
+#endif // WJR_X86_MATH_SHIFT_HPP
