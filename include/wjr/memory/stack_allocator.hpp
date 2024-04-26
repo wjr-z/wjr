@@ -333,6 +333,62 @@ private:
     UniqueStackAllocator *m_alloc = nullptr;
 };
 
+template <typename T, typename StackAllocator>
+class auto_weak_stack_allocator;
+
+/**
+ * @brief Automatically deallocate memory.
+ *
+ * @details Unlike weak_stack_allocator, weak_stack_allocator need to mannuallly call
+ * deallocate to release memory. auto_weak_stack_allocator won't deallocate memory.
+ * When unique_stack_allocator object is destroyed, all the memory it allocates is
+ * released.
+ *
+ */
+template <typename T, size_t Cache, size_t DefaultThreshold>
+class auto_weak_stack_allocator<
+    T, singleton_stack_allocator_object<Cache, DefaultThreshold>> {
+    using StackAllocator = singleton_stack_allocator_object<Cache, DefaultThreshold>;
+    using UniqueStackAllocator = unique_stack_allocator<StackAllocator>;
+
+    constexpr static size_t __default_threshold = StackAllocator::__default_threshold;
+
+    template <typename U, typename A>
+    friend class auto_weak_stack_allocator;
+
+public:
+    using value_type = T;
+    using size_type = size_t;
+    using difference_type = ptrdiff_t;
+    using propagate_on_container_move_assignment = std::true_type;
+    using is_trivially_allocator = std::true_type;
+
+    auto_weak_stack_allocator() noexcept = default;
+    auto_weak_stack_allocator(UniqueStackAllocator &alloc) noexcept : m_alloc(&alloc) {}
+    auto_weak_stack_allocator(const auto_weak_stack_allocator &) noexcept = default;
+    auto_weak_stack_allocator &
+    operator=(const auto_weak_stack_allocator &) noexcept = default;
+    auto_weak_stack_allocator(auto_weak_stack_allocator &&) noexcept = default;
+    auto_weak_stack_allocator &operator=(auto_weak_stack_allocator &&) noexcept = default;
+    ~auto_weak_stack_allocator() noexcept = default;
+
+    template <typename U>
+    auto_weak_stack_allocator(
+        const auto_weak_stack_allocator<U, StackAllocator> &other) noexcept
+        : m_alloc(other.m_alloc) {}
+
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 T *allocate(size_type n) {
+        const size_t size = n * sizeof(T);
+        return static_cast<T *>(m_alloc->allocate(size));
+    }
+
+    WJR_CONSTEXPR20 void deallocate(WJR_MAYBE_UNUSED T *ptr,
+                                    WJR_MAYBE_UNUSED size_type n) {}
+
+private:
+    UniqueStackAllocator *m_alloc = nullptr;
+};
+
 } // namespace wjr
 
 #endif // WJR_STACK_ALLOCATOR_HPP__

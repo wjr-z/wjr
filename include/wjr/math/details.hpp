@@ -115,29 +115,60 @@ WJR_CONST constexpr T __fasts_get_sign_mask(T x) {
     return x & __fasts_sign_mask<T>();
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST constexpr std::make_signed_t<T> __fasts_from_unsigned(T x) {
-    WJR_ASSERT_ASSUME_L1(!(x & __fasts_sign_mask<T>()));
     std::make_signed_t<T> ret = x;
     WJR_ASSERT_ASSUME_L1(ret >= 0, "overflow");
     return ret;
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_CONST constexpr std::make_unsigned_t<T> __fasts_abs(T x) {
-    return x & ~__fasts_sign_mask<T>();
+template <typename T, typename U = std::make_unsigned_t<T>,
+          WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
+WJR_CONST constexpr U __fasts_abs(T x) {
+    return static_cast<U>(x < 0 ? -x : x);
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
 WJR_CONST constexpr T __fasts_negate(T x) {
-    return x ^ __fasts_sign_mask<T>();
+    return -x;
 }
 
 template <typename T, typename U = std::make_unsigned_t<T>,
-          WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_CONST constexpr std::make_signed_t<T> __fasts_conditional_negate(bool condition,
-                                                                     T x) {
-    return (U)x ^ ((U)(condition) << (std::numeric_limits<U>::digits - 1));
+          WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
+WJR_CONST constexpr T __fasts_conditional_negate(bool condition, T x) {
+    return condition ? -x : x;
+}
+
+template <typename T, typename U = std::make_unsigned_t<T>,
+          WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
+WJR_CONST constexpr T __fasts_negate_with(T condition, T x) {
+    return __fasts_conditional_negate(condition < 0, x);
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
+WJR_CONST constexpr T __fasts_increment(T x) {
+    WJR_ASSERT_ASSUME(x != std::numeric_limits<T>::min() &&
+                          x != std::numeric_limits<T>::max(),
+                      "overflow");
+
+    return x < 0 ? x - 1 : x + 1;
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
+WJR_CONST constexpr T __fasts_decrement(T x) {
+    WJR_ASSERT_ASSUME(x != 0 && x + 1 != T(0), "overflow");
+
+    return x < 0 ? x + 1 : x - 1;
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
+WJR_CONST constexpr T __fasts_add(T x, std::make_unsigned_t<T> y) {
+    return x < 0 ? x - y : x + y;
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
+WJR_CONST constexpr T __fasts_sub(T x, std::make_unsigned_t<T> y) {
+    return x < 0 ? x + y : x - y;
 }
 
 } // namespace wjr

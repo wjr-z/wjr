@@ -11,7 +11,8 @@
  * -# ~storage() noexcept
  * -# void destroy(_Alty& al) noexcept(optional)
  * -# void destroy_and_deallocate(_Alty& al) noexcept(optional)
- * -# void uninitialized_construct(size_type size, size_type capacity, _Alty& al) noexcept
+ * -# void uninitialized_construct(storage_type &other, size_type size, size_type
+ * capacity, _Alty& al) noexcept
  * -# void take_storage(storage& other, _Alty& al) noexcept(optional)
  * -# void swap_storage(storage& other, _Alty& al) noexcept(optional)
  * -# decltype(auto) size() noexcept
@@ -311,11 +312,12 @@ public:
         }
     }
 
-    WJR_CONSTEXPR20 void uninitialized_construct(size_type size, size_type capacity,
-                                                 _Alty &al) {
+    WJR_CONSTEXPR20 static void
+    uninitialized_construct(__default_vector_storage_impl &other, size_type size,
+                            size_type capacity, _Alty &al) {
         const auto result = allocate_at_least(al, capacity);
 
-        m_storage = {
+        other.m_storage = {
             result.ptr,
             result.ptr + size,
             result.ptr + capacity,
@@ -413,12 +415,12 @@ public:
         destroy(al);
     }
 
-    WJR_CONSTEXPR20
-    void uninitialized_construct(size_type size, WJR_MAYBE_UNUSED size_type capacity,
-                                 _Alty &) noexcept {
+    WJR_CONSTEXPR20 static void
+    uninitialized_construct(__static_vector_storage_impl &other, size_type size,
+                            WJR_MAYBE_UNUSED size_type capacity, _Alty &) noexcept {
         WJR_ASSERT_ASSUME(capacity <= Capacity,
                           "capacity must be less than or equal to Capacity");
-        m_storage.m_size = size;
+        other.m_storage.m_size = size;
     }
 
     WJR_CONSTEXPR20 void take_storage(__static_vector_storage_impl &other, _Alty &al) {
@@ -588,11 +590,12 @@ public:
         }
     }
 
-    WJR_CONSTEXPR20 void uninitialized_construct(size_type size, size_type capacity,
-                                                 _Alty &al) {
+    WJR_CONSTEXPR20 static void
+    uninitialized_construct(__fixed_vector_storage_impl &other, size_type size,
+                            size_type capacity, _Alty &al) {
         const auto result = allocate_at_least(al, capacity);
 
-        m_storage = {
+        other.m_storage = {
             result.ptr,
             result.ptr + size,
             result.ptr + capacity,
@@ -721,16 +724,18 @@ public:
         }
     }
 
-    WJR_CONSTEXPR20 void uninitialized_construct(size_type size, size_type capacity,
-                                                 _Alty &al) {
+    WJR_CONSTEXPR20 static void uninitialized_construct(__sso_vector_storage_impl &other,
+                                                        size_type size,
+                                                        size_type capacity, _Alty &al) {
+        auto &storage = other.m_storage;
         if (capacity <= __max_capacity) {
-            m_storage.m_size = size;
+            storage.m_size = size;
         } else {
-            auto result = allocate_at_least(al, capacity);
+            const auto result = allocate_at_least(al, capacity);
 
-            m_storage.m_data = result.ptr;
-            m_storage.m_size = size;
-            m_storage.m_capacity = result.count;
+            storage.m_data = result.ptr;
+            storage.m_size = size;
+            storage.m_capacity = result.count;
         }
     }
 
@@ -895,6 +900,14 @@ namespace {
 WJR_REGISTER_HAS_TYPE(vector_storage_shrink_to_fit,
                       std::declval<Storage>().shrink_to_fit(), Storage);
 
+WJR_REGISTER_HAS_TYPE(vector_storage_empty, std::declval<Storage>().empty(), Storage);
+
+WJR_REGISTER_HAS_TYPE(vector_storage_uninitialized_construct,
+                      std::declval<Storage>().uninitialized_construct(
+                          std::declval<Size>(), std::declval<Size>(),
+                          std::declval<Alloc &>()),
+                      Storage, Size, Alloc);
+
 template <typename Storage>
 struct basic_vector_traits {
     using value_type = typename Storage::value_type;
@@ -997,7 +1010,7 @@ private:
         : m_pair(std::piecewise_construct, std::forward_as_tuple(al),
                  std::forward_as_tuple()) {
         const auto size = other.size();
-        uninitialized_construct(get_storage(), size, other.capacity());
+        uninitialized_construct(size, other.capacity());
         STraits::uninitialized_copy_n_restrict_using_allocator(other.data(), size, data(),
                                                                __get_allocator());
     }
@@ -1212,7 +1225,13 @@ public:
         return get_storage().capacity();
     }
 
-    WJR_PURE WJR_CONSTEXPR20 bool empty() const noexcept { return size() == 0; }
+    WJR_PURE WJR_CONSTEXPR20 bool empty() const noexcept {
+        if constexpr (has_vector_storage_empty_v<storage_type>) {
+            return get_storage().empty();
+        } else {
+            return size() == 0;
+        }
+    }
 
     WJR_CONST WJR_CONSTEXPR20 static size_type
     get_growth_capacity(size_type old_capacity, size_type new_size) noexcept {
@@ -1397,7 +1416,7 @@ public:
     WJR_CONSTEXPR20 basic_vector(size_type n, in_place_reserve_t,
                                  const allocator_type &al = allocator_type())
         : basic_vector(al) {
-        uninitialized_construct(get_storage(), 0, n);
+        uninitialized_construct(0, n);
     }
 
     WJR_CONSTEXPR20 void resize(const size_type new_size, dctor_t) {
@@ -1485,7 +1504,16 @@ public:
 
     WJR_CONSTEXPR20 void uninitialized_construct(storage_type &other, size_type siz,
                                                  size_type cap) noexcept {
-        other.uninitialized_construct(siz, cap, __get_allocator());
+        get_storage().uninitialized_construct(other, siz, cap, __get_allocator());
+    }
+
+    WJR_CONSTEXPR20 void uninitialized_construct(size_type siz, size_type cap) noexcept {
+        if constexpr (has_vector_storage_uninitialized_construct_v<storage_type,
+                                                                   size_type, _Alty>) {
+            get_storage().uninitialized_construct(siz, cap, __get_allocator());
+        } else {
+            uninitialized_construct(get_storage(), siz, cap);
+        }
     }
 
 private:
