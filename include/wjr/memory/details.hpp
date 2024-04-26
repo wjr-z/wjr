@@ -7,6 +7,9 @@
 
 namespace wjr {
 
+WJR_MALLOC inline void *default_malloc(size_t n) noexcept { return malloc(n); }
+inline void default_free(void *ptr) noexcept { free(ptr); }
+
 namespace {
 WJR_REGISTER_HAS_TYPE(pointer_traits_to_address,
                       std::pointer_traits<Ptr>::to_address(std::declval<const Ptr &>()),

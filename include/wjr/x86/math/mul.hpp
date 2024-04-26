@@ -51,6 +51,9 @@ inline uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t
     const auto pdst = dst;
     const auto psrc = src;
 
+    (void)(pdst);
+    (void)(psrc);
+
     asm volatile(
         "and{l $7, %k[r10]| %k[r10], 7}\n\t"
         "lea{q| %[r9], [rip +} .Llookup%={(%%rip), %[r9]|]}\n\t"
@@ -201,6 +204,9 @@ inline uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint6
 
     const auto pdst = dst;
     const auto psrc = src;
+
+    (void)(pdst);
+    (void)(psrc);
 
     asm volatile(
         "and{l $7, %k[r10]| %k[r10], 7}\n\t"
