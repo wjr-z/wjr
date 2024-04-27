@@ -223,7 +223,7 @@ WJR_INTRINSIC_CONSTEXPR20 T div_qr_1_impl(T *dst, T &rem, const T *src, size_t n
 }
 
 // return high quotient limb
-template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         const div2by1_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -245,7 +245,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
     dst[n - 1] = div_qr_1_impl(dst, rem, src, n, div);
 }
 
-template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         type_identity_t<T> div) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -392,7 +392,7 @@ WJR_INTRINSIC_CONSTEXPR20 T div_qr_2_impl(T *dst, T *rem, const T *src, size_t n
     return div_qr_2_shift(dst, rem, src, n, div);
 }
 
-template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const div3by2_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 2);
@@ -400,7 +400,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
     dst[n - 2] = div_qr_2_impl(dst, rem, src, n, div);
 }
 
-template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const T *div) {
     WJR_ASSERT_ASSUME(n >= 2);
@@ -1028,7 +1028,7 @@ WJR_CONSTEXPR_E void fallback_divexact_1(T *dst, const T *src, size_t n,
     return fallback_divexact_1_shift(dst, src, n, div);
 }
 
-template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           const divexact1_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -1042,7 +1042,7 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
     return fallback_divexact_1(dst, src, n, div);
 }
 
-template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           type_identity_t<T> div) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -1055,6 +1055,143 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
     }
 
     return fallback_divexact_1(dst, src, n, divexact1_divider<T>(div));
+}
+
+template <typename T>
+WJR_PURE WJR_CONSTEXPR20 T mod_1_noshift(const T *src, size_t n,
+                                         const div2by1_divider_noshift<T> &div) {
+    WJR_ASSERT_ASSUME(n >= 1);
+
+    const T divisor = div.get_divisor();
+    const T value = div.get_value();
+
+    T lo, hi;
+
+    hi = src[n - 1];
+
+    if (hi >= divisor) {
+        hi -= divisor;
+    }
+
+    do {
+        if (WJR_UNLIKELY(n == 1)) {
+            break;
+        }
+
+        --n;
+
+        do {
+            lo = src[n - 1];
+            (void)div.divide(divisor, value, lo, hi);
+            --n;
+        } while (WJR_LIKELY(n != 0));
+
+    } while (0);
+
+    return hi;
+}
+
+template <typename T>
+WJR_PURE WJR_CONSTEXPR20 T mod_1_shift(const T *src, size_t n,
+                                       const div2by1_divider<T> &div) {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT(div.get_shift() != 0);
+
+    const T divisor = div.get_divisor();
+    const T value = div.get_value();
+    const auto shift = div.get_shift();
+
+    T lo, hi;
+
+    T rbp = src[n - 1];
+    --n;
+    hi = rbp >> (64 - shift);
+
+    do {
+        if (WJR_UNLIKELY(n == 0)) {
+            (void)div.divide(divisor, value, rbp << shift, hi);
+            break;
+        }
+
+        lo = src[n - 1];
+        (void)div.divide(divisor, value, shld(rbp, lo, shift), hi);
+        rbp = lo;
+        --n;
+
+        if (WJR_LIKELY(n != 0)) {
+            do {
+                lo = src[n - 1];
+                (void)div.divide(divisor, value, shld(rbp, lo, shift), hi);
+                rbp = lo;
+                --n;
+            } while (WJR_LIKELY(n != 0));
+        }
+
+        (void)div.divide(divisor, value, rbp << shift, hi);
+    } while (0);
+
+    return hi >> shift;
+}
+
+template <typename T>
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 T mod_1_impl(const T *src, size_t n,
+                                                const div2by1_divider<T> &div) {
+    if (div.get_shift() == 0) {
+        return mod_1_noshift(src, n, div);
+    }
+
+    return mod_1_shift(src, n, div);
+}
+
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
+WJR_CONSTEXPR_E T mod_1(const T *src, size_t n, const div2by1_divider<T> &div) {
+    WJR_ASSERT_ASSUME(n >= 1);
+
+    if (WJR_UNLIKELY(div.is_zero_or_single_bit())) {
+        const unsigned int c = 63 - div.get_shift();
+        return src[0] & ((1ull << c) - 1);
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(n == 2) && n == 2) {
+        uint64_t rem;
+        (void)div128by64to128(rem, src[0], src[1], div);
+        return rem;
+    }
+
+    return mod_1_impl(src, n, div);
+}
+
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
+WJR_CONSTEXPR_E T mod_1(const T *src, size_t n, type_identity_t<T> div) {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_ASSUME(div != 0);
+
+    if (WJR_UNLIKELY(is_zero_or_single_bit(div))) {
+        const unsigned int c = ctz(div);
+        return src[0] & ((1ull << c) - 1);
+    }
+
+    if (WJR_UNLIKELY(n == 1)) {
+        const T tmp = src[0];
+
+        if (__has_high_bit(div)) {
+            if (tmp >= div) {
+                return tmp - div;
+            }
+
+            return tmp;
+        }
+
+        return tmp % div;
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(n == 2) && n == 2) {
+        uint64_t rem;
+        (void)div128by64to128(rem, src[0], src[1], div);
+        return rem;
+    }
+
+    return mod_1_impl(src, n, div2by1_divider<T>(div));
 }
 
 } // namespace wjr

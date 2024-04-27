@@ -5754,16 +5754,16 @@ WJR_CONST constexpr T __fasts_negate_with(T condition, T x) {
 
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
 WJR_CONST constexpr T __fasts_increment(T x) {
-    WJR_ASSERT_ASSUME(x != std::numeric_limits<T>::min() &&
-                          x != std::numeric_limits<T>::max(),
-                      "overflow");
+    WJR_ASSERT_L1(x != std::numeric_limits<T>::min() &&
+                      x != std::numeric_limits<T>::max(),
+                  "overflow");
 
     return x < 0 ? x - 1 : x + 1;
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
 WJR_CONST constexpr T __fasts_decrement(T x) {
-    WJR_ASSERT_ASSUME(x != 0 && x + 1 != T(0), "overflow");
+    WJR_ASSERT_L1(x != 0 && x + 1 != T(0), "overflow");
 
     return x < 0 ? x + 1 : x - 1;
 }
@@ -8386,7 +8386,7 @@ public:
                                                  size_type cap) noexcept {
         get_storage().uninitialized_construct(other, siz, cap, __get_allocator());
     }
-
+    
     WJR_CONSTEXPR20 void uninitialized_construct(size_type siz, size_type cap) noexcept {
         if constexpr (has_vector_storage_uninitialized_construct_v<storage_type,
                                                                    size_type, _Alty>) {
@@ -17945,19 +17945,19 @@ div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
 inline tuple<uint64_t, uint64_t> div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
                                                  uint64_t div);
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         const div2by1_divider<T> &div);
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         type_identity_t<T> div);
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const div3by2_divider<T> &div);
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const T *div);
 
@@ -17980,13 +17980,19 @@ template <typename T, T c, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_CONSTEXPR_E void divexact_byc(T *dst, const T *src, size_t n,
                                   std::integral_constant<T, c>);
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           const divexact1_divider<T> &div);
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           type_identity_t<T> div);
+
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
+WJR_PURE WJR_CONSTEXPR_E T mod_1(const T *src, size_t n, div2by1_divider<T> div);
+
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
+WJR_PURE WJR_CONSTEXPR_E T mod_1(const T *src, size_t n, type_identity_t<T> div);
 
 } // namespace wjr
 
@@ -19665,7 +19671,7 @@ public:
 
 private:
     WJR_CONSTEXPR20 void *__large_allocate(size_t n, stack_top &top) {
-        const auto buffer = (large_stack_top *)malloc(sizeof(large_stack_top) + n);
+        const auto buffer = (large_stack_top *)::operator new(sizeof(large_stack_top) + n);
         buffer->prev = top.large;
         top.large = buffer;
         return buffer->buffer;
@@ -19683,10 +19689,10 @@ private:
             if (WJR_UNLIKELY(m_size == m_capacity)) {
                 uint16_t new_capacity = m_idx + 2 * (bufsize - 1);
                 auto new_ptr =
-                    static_cast<alloc_node *>(malloc(new_capacity * sizeof(alloc_node)));
+                    static_cast<alloc_node *>(::operator new(new_capacity * sizeof(alloc_node)));
                 if (WJR_LIKELY(m_idx != 0)) {
                     std::copy_n(m_ptr, m_idx, new_ptr);
-                    free(m_ptr);
+                    ::operator delete(m_ptr);
                 }
                 m_ptr = new_ptr;
                 m_capacity = new_capacity;
@@ -19695,7 +19701,7 @@ private:
             ++m_size;
 
             const size_t capacity = Cache << ((3 * m_idx + 2) / 5);
-            const auto buffer = static_cast<char *>(malloc(capacity));
+            const auto buffer = static_cast<char *>(::operator new(capacity));
             alloc_node node = {buffer, buffer + capacity};
             m_ptr[m_idx] = node;
 
@@ -19718,7 +19724,7 @@ private:
         const uint16_t new_size = m_idx + bufsize - 1;
 
         for (uint16_t i = new_size; i < m_size; ++i) {
-            free(m_ptr[i].ptr);
+            ::operator delete(m_ptr[i].ptr);
         }
 
         m_size = new_size;
@@ -19772,10 +19778,10 @@ public:
     stack_allocator_object &operator=(stack_allocator_object &&) = delete;
     ~stack_allocator_object() {
         for (uint16_t i = 0; i < m_size; ++i) {
-            free(m_ptr[i].ptr);
+            ::operator delete(m_ptr[i].ptr);
         }
 
-        free(m_ptr);
+        ::operator delete(m_ptr);
     }
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top,
@@ -19793,7 +19799,7 @@ public:
         auto buffer = top.large;
         while (WJR_UNLIKELY(buffer != nullptr)) {
             auto prev = buffer->prev;
-            free(buffer);
+            ::operator delete(buffer);
             buffer = prev;
         }
     }
@@ -19941,7 +19947,7 @@ public:
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 T *allocate(size_type n) {
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= __default_threshold)) {
-            return static_cast<T *>(malloc(size));
+            return static_cast<T *>(::operator new(size));
         }
 
         return static_cast<T *>(m_alloc->__small_allocate(size));
@@ -19951,7 +19957,7 @@ public:
                                     WJR_MAYBE_UNUSED size_type n) {
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= __default_threshold)) {
-            free(ptr);
+            ::operator delete(ptr);
         }
     }
 
@@ -24319,11 +24325,12 @@ public:
 
     constexpr bool is_zero_or_single_bit() const { return m_divisor == (1ull << 63); }
 
-    WJR_INTRINSIC_CONSTEXPR20 T divide(T lo, T &hi) const {
+    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T divide(T lo, T &hi) const {
         return divide(m_divisor, m_value, lo, hi);
     }
 
-    WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor, T value, T lo, T &hi) {
+    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor, T value, T lo,
+                                                            T &hi) {
         WJR_ASSERT_ASSUME_L2(__has_high_bit(divisor));
 
         if (WJR_BUILTIN_CONSTANT_P(lo == 0) && lo == 0) {
@@ -24477,7 +24484,8 @@ public:
 
     // enable static divide function of Mybase
     // This function needs to ensure that lo and hi have been adjusted
-    WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor, T value, T lo, T &hi) {
+    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor, T value, T lo,
+                                                            T &hi) {
         return Mybase::divide(divisor, value, lo, hi);
     }
 
@@ -24528,12 +24536,12 @@ public:
     constexpr T get_divisor1() const { return m_divisor1; }
     constexpr T get_value() const { return m_value; }
 
-    WJR_INTRINSIC_CONSTEXPR20 T divide(T u0, T &u1, T &u2) const {
+    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T divide(T u0, T &u1, T &u2) const {
         return divide(m_divisor0, m_divisor1, m_value, u0, u1, u2);
     }
 
-    WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor0, T divisor1, T value, T u0,
-                                              T &u1, T &u2);
+    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor0, T divisor1,
+                                                            T value, T u0, T &u1, T &u2);
 
     WJR_CONST WJR_CONSTEXPR_E static T reciprocal(T d0, T d1);
 
@@ -24637,8 +24645,8 @@ public:
 
     constexpr const Mybase &get_base() const { return *this; }
 
-    WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor0, T divisor1, T value, T u0,
-                                              T &u1, T &u2) {
+    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor0, T divisor1,
+                                                            T value, T u0, T &u1, T &u2) {
         return Mybase::divide(divisor0, divisor1, value, u0, u1, u2);
     }
 
@@ -25015,7 +25023,7 @@ WJR_INTRINSIC_CONSTEXPR20 T div_qr_1_impl(T *dst, T &rem, const T *src, size_t n
 }
 
 // return high quotient limb
-template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         const div2by1_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -25037,7 +25045,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
     dst[n - 1] = div_qr_1_impl(dst, rem, src, n, div);
 }
 
-template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         type_identity_t<T> div) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -25184,7 +25192,7 @@ WJR_INTRINSIC_CONSTEXPR20 T div_qr_2_impl(T *dst, T *rem, const T *src, size_t n
     return div_qr_2_shift(dst, rem, src, n, div);
 }
 
-template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const div3by2_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 2);
@@ -25192,7 +25200,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
     dst[n - 2] = div_qr_2_impl(dst, rem, src, n, div);
 }
 
-template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const T *div) {
     WJR_ASSERT_ASSUME(n >= 2);
@@ -25820,7 +25828,7 @@ WJR_CONSTEXPR_E void fallback_divexact_1(T *dst, const T *src, size_t n,
     return fallback_divexact_1_shift(dst, src, n, div);
 }
 
-template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           const divexact1_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -25834,7 +25842,7 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
     return fallback_divexact_1(dst, src, n, div);
 }
 
-template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           type_identity_t<T> div) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -25847,6 +25855,143 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
     }
 
     return fallback_divexact_1(dst, src, n, divexact1_divider<T>(div));
+}
+
+template <typename T>
+WJR_PURE WJR_CONSTEXPR20 T mod_1_noshift(const T *src, size_t n,
+                                         const div2by1_divider_noshift<T> &div) {
+    WJR_ASSERT_ASSUME(n >= 1);
+
+    const T divisor = div.get_divisor();
+    const T value = div.get_value();
+
+    T lo, hi;
+
+    hi = src[n - 1];
+
+    if (hi >= divisor) {
+        hi -= divisor;
+    }
+
+    do {
+        if (WJR_UNLIKELY(n == 1)) {
+            break;
+        }
+
+        --n;
+
+        do {
+            lo = src[n - 1];
+            (void)div.divide(divisor, value, lo, hi);
+            --n;
+        } while (WJR_LIKELY(n != 0));
+
+    } while (0);
+
+    return hi;
+}
+
+template <typename T>
+WJR_PURE WJR_CONSTEXPR20 T mod_1_shift(const T *src, size_t n,
+                                       const div2by1_divider<T> &div) {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT(div.get_shift() != 0);
+
+    const T divisor = div.get_divisor();
+    const T value = div.get_value();
+    const auto shift = div.get_shift();
+
+    T lo, hi;
+
+    T rbp = src[n - 1];
+    --n;
+    hi = rbp >> (64 - shift);
+
+    do {
+        if (WJR_UNLIKELY(n == 0)) {
+            (void)div.divide(divisor, value, rbp << shift, hi);
+            break;
+        }
+
+        lo = src[n - 1];
+        (void)div.divide(divisor, value, shld(rbp, lo, shift), hi);
+        rbp = lo;
+        --n;
+
+        if (WJR_LIKELY(n != 0)) {
+            do {
+                lo = src[n - 1];
+                (void)div.divide(divisor, value, shld(rbp, lo, shift), hi);
+                rbp = lo;
+                --n;
+            } while (WJR_LIKELY(n != 0));
+        }
+
+        (void)div.divide(divisor, value, rbp << shift, hi);
+    } while (0);
+
+    return hi >> shift;
+}
+
+template <typename T>
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 T mod_1_impl(const T *src, size_t n,
+                                                const div2by1_divider<T> &div) {
+    if (div.get_shift() == 0) {
+        return mod_1_noshift(src, n, div);
+    }
+
+    return mod_1_shift(src, n, div);
+}
+
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
+WJR_CONSTEXPR_E T mod_1(const T *src, size_t n, const div2by1_divider<T> &div) {
+    WJR_ASSERT_ASSUME(n >= 1);
+
+    if (WJR_UNLIKELY(div.is_zero_or_single_bit())) {
+        const unsigned int c = 63 - div.get_shift();
+        return src[0] & ((1ull << c) - 1);
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(n == 2) && n == 2) {
+        uint64_t rem;
+        (void)div128by64to128(rem, src[0], src[1], div);
+        return rem;
+    }
+
+    return mod_1_impl(src, n, div);
+}
+
+template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
+WJR_CONSTEXPR_E T mod_1(const T *src, size_t n, type_identity_t<T> div) {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_ASSUME(div != 0);
+
+    if (WJR_UNLIKELY(is_zero_or_single_bit(div))) {
+        const unsigned int c = ctz(div);
+        return src[0] & ((1ull << c) - 1);
+    }
+
+    if (WJR_UNLIKELY(n == 1)) {
+        const T tmp = src[0];
+
+        if (__has_high_bit(div)) {
+            if (tmp >= div) {
+                return tmp - div;
+            }
+
+            return tmp;
+        }
+
+        return tmp % div;
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(n == 2) && n == 2) {
+        uint64_t rem;
+        (void)div128by64to128(rem, src[0], src[1], div);
+        return rem;
+    }
+
+    return mod_1_impl(src, n, div2by1_divider<T>(div));
 }
 
 } // namespace wjr
@@ -25875,7 +26020,8 @@ struct precompute_chars_convert_t {
     unsigned int base;
 };
 
-extern const precompute_chars_convert_16n_t *precompute_chars_convert_16n_ptr[37];
+extern const std::array<const precompute_chars_convert_16n_t *, 37>
+    precompute_chars_convert_16n_ptr;
 
 extern precompute_chars_convert_t *
 precompute_chars_convert(precompute_chars_convert_t *pre, size_t n, unsigned int base,
@@ -29961,6 +30107,13 @@ struct __unref_wrapper_helper<default_biginteger_size_reference> {
     using type = uint32_t &;
 };
 
+/**
+ * @brief data_type of biginteger
+ *
+ * @details View the data of biginteger. Used for type erasure. Manage memory allocation
+ * and release on your own.
+ *
+ */
 struct biginteger_data {
     WJR_PURE constexpr const uint64_t *data() const noexcept { return m_data; }
     WJR_PURE constexpr uint32_t size() const noexcept { return __fasts_abs(m_size); }
@@ -30050,7 +30203,7 @@ public:
     void take_storage(default_biginteger_vector_storage &other, _Alty &) noexcept {
         auto &other_storage = other.m_storage;
         m_storage = other_storage;
-        other_storage = {};
+        other_storage = {nullptr, 0, 0};
     }
 
     void swap_storage(default_biginteger_vector_storage &other, _Alty &) noexcept {
@@ -30200,8 +30353,9 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) {
     if constexpr (std::is_unsigned_v<T>) {
         __mul_ui_impl(dst, lhs, rhs);
     } else {
-        auto value = to_unsigned(rhs);
+        uint64_t value = to_unsigned(rhs);
         bool cond = false;
+
         if (rhs < 0) {
             value = -value;
             cond = true;
@@ -30221,14 +30375,11 @@ void __addmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) 
     if constexpr (std::is_unsigned_v<T>) {
         __addsubmul_impl(dst, lhs, rhs, 0);
     } else {
-        uint64_t rvalue;
-        int32_t xsign;
+        uint64_t rvalue = to_unsigned(rhs);
+        int32_t xsign = 0;
 
-        if (rhs >= 0) {
-            rvalue = to_unsigned(rhs);
-            xsign = 0;
-        } else {
-            rvalue = -to_unsigned(rhs);
+        if (rhs < 0) {
+            rvalue = -rvalue;
             xsign = -1;
         }
 
@@ -30241,14 +30392,11 @@ void __submul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) 
     if constexpr (std::is_unsigned_v<T>) {
         __addsubmul_impl(dst, lhs, rhs, -1);
     } else {
-        uint64_t rvalue;
-        int32_t xsign;
+        uint64_t rvalue = to_unsigned(rhs);
+        int32_t xsign = -1;
 
-        if (rhs >= 0) {
-            rvalue = to_unsigned(rhs);
-            xsign = -1;
-        } else {
-            rvalue = -to_unsigned(rhs);
+        if (rhs < 0) {
+            rvalue = -rvalue;
             xsign = 0;
         }
 
@@ -30272,6 +30420,34 @@ template <typename S>
 void __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                    const biginteger_data *div);
 
+/**
+ * @brief [quot, rem] = num / div
+ *
+ * @return uint64_t abs(rem)
+ */
+template <typename S0, typename S1>
+uint64_t __tdiv_qr_ui_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
+                           const biginteger_data *num, uint64_t div);
+
+template <typename S>
+uint64_t __tdiv_q_ui_impl(basic_biginteger<S> *quot, const biginteger_data *num,
+                          uint64_t div);
+
+template <typename S>
+uint64_t __tdiv_r_ui_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                          uint64_t div);
+
+template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
+                        const biginteger_data *num, T div);
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __tdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num, T div);
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                       uint64_t div);
+
 template <typename S0, typename S1>
 void __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
                     const biginteger_data *num, const biginteger_data *div);
@@ -30284,6 +30460,17 @@ template <typename S>
 void __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                    const biginteger_data *div);
 
+template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
+                        const biginteger_data *num, T div);
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num, T div);
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                       uint64_t div);
+
 template <typename S0, typename S1>
 void __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
                     const biginteger_data *num, const biginteger_data *div);
@@ -30295,6 +30482,17 @@ void __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
 template <typename S>
 void __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                    const biginteger_data *div);
+
+template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
+                        const biginteger_data *num, T div);
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num, T div);
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                       uint64_t div);
 
 } // namespace biginteger_details
 
@@ -30452,6 +30650,22 @@ void tdiv_r(basic_biginteger<S0> &rem, const biginteger_data &num,
     biginteger_details::__tdiv_r_impl(&rem, &num, &div);
 }
 
+template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t tdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
+                 const biginteger_data &num, T div) {
+    return biginteger_details::__tdiv_qr_impl(&quot, &rem, &num, div);
+}
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t tdiv_q(basic_biginteger<S> &quot, const biginteger_data &num, T div) {
+    return biginteger_details::__tdiv_q_impl(&quot, &num, div);
+}
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t tdiv_r(basic_biginteger<S> &rem, const biginteger_data &num, T div) {
+    return biginteger_details::__tdiv_r_impl(&rem, &num, div);
+}
+
 template <typename S0, typename S1>
 void fdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
              const biginteger_data &num, const biginteger_data &div) {
@@ -30470,6 +30684,22 @@ void fdiv_r(basic_biginteger<S0> &rem, const biginteger_data &num,
     biginteger_details::__fdiv_r_impl(&rem, &num, &div);
 }
 
+template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t fdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
+                 const biginteger_data &num, T div) {
+    return biginteger_details::__fdiv_qr_impl(&quot, &rem, &num, div);
+}
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t fdiv_q(basic_biginteger<S> &quot, const biginteger_data &num, T div) {
+    return biginteger_details::__fdiv_q_impl(&quot, &num, div);
+}
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t fdiv_r(basic_biginteger<S> &rem, const biginteger_data &num, T div) {
+    return biginteger_details::__fdiv_r_impl(&rem, &num, div);
+}
+
 template <typename S0, typename S1>
 void cdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
              const biginteger_data &num, const biginteger_data &div) {
@@ -30486,6 +30716,22 @@ template <typename S0>
 void cdiv_r(basic_biginteger<S0> &rem, const biginteger_data &num,
             const biginteger_data &div) {
     biginteger_details::__cdiv_r_impl(&rem, &num, &div);
+}
+
+template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t cdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
+                 const biginteger_data &num, T div) {
+    return biginteger_details::__cdiv_qr_impl(&quot, &rem, &num, div);
+}
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t cdiv_q(basic_biginteger<S> &quot, const biginteger_data &num, T div) {
+    return biginteger_details::__cdiv_q_impl(&quot, &num, div);
+}
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t cdiv_r(basic_biginteger<S> &rem, const biginteger_data &num, T div) {
+    return biginteger_details::__cdiv_r_impl(&rem, &num, div);
 }
 
 template <typename S0, typename S1, typename S2, typename S3>
@@ -30708,12 +30954,22 @@ public:
 
     void shrink_to_fit() { m_vec.shrink_to_fit(); }
 
-    void clear() {
-        m_vec.clear();
-        set_ssize(0);
-    }
+    /// equal to set_ssize(0)
+    void clear() { m_vec.clear(); }
 
     void swap(basic_biginteger &other) noexcept { m_vec.swap(other.m_vec); }
+
+    void conditional_negate(bool condition) noexcept {
+        set_ssize(__fasts_conditional_negate<int32_t>(condition, get_ssize()));
+    }
+
+    void negate() noexcept { conditional_negate(true); }
+
+    WJR_PURE bool is_negate() const noexcept { return get_ssize() < 0; }
+
+    void abs() noexcept { set_ssize(__fasts_abs(get_ssize())); }
+
+    // extension
 
     WJR_PURE int32_t get_ssize() const { return get_storage().get_ssize(); }
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> ||
@@ -30732,16 +30988,6 @@ public:
                                                    size_type new_size) noexcept {
         return vector_type::get_growth_capacity(old_capacity, new_size);
     }
-
-    void conditional_negate(bool condition) noexcept {
-        set_ssize(__fasts_conditional_negate<int32_t>(condition, get_ssize()));
-    }
-
-    void negate() noexcept { conditional_negate(true); }
-
-    WJR_PURE bool is_negate() const noexcept { return get_ssize() < 0; }
-
-    void abs() noexcept { set_ssize(__fasts_abs(get_ssize())); }
 
     void take_storage(storage_type &other) noexcept { m_vec.take_storage(other); }
 
@@ -31468,7 +31714,7 @@ void __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
     const auto dssize = div->get_ssize();
     const auto nusize = __fasts_abs(nssize);
     auto dusize = __fasts_abs(dssize);
-    int32_t qssize = nusize - dusize + 1;
+    const int32_t qssize = nusize - dusize + 1;
 
     WJR_ASSERT(dusize != 0, "division by zero");
 
@@ -31512,6 +31758,150 @@ void __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
     dusize = normalize(rp, dusize);
 
     rem->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, dusize));
+}
+
+template <typename S0, typename S1>
+uint64_t __tdiv_qr_ui_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
+                           const biginteger_data *num, uint64_t div) {
+    const auto nssize = num->get_ssize();
+
+    WJR_ASSERT(div != 0, "division by zero");
+
+    if (nssize == 0) {
+        quot->set_ssize(0);
+        rem->set_ssize(0);
+        return 0;
+    }
+
+    const auto nusize = __fasts_abs(nssize);
+    quot->reserve(nusize);
+    const auto qp = quot->data();
+    const auto np = num->data();
+
+    uint64_t remv;
+    div_qr_1(qp, remv, np, nusize, div);
+
+    if (remv == 0) {
+        rem->set_ssize(0);
+    } else {
+        rem->reserve(1);
+        rem->front() = remv;
+        rem->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, 1));
+    }
+
+    const auto qusize = nusize - (qp[nusize - 1] == 0);
+
+    quot->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, qusize));
+    return remv;
+}
+
+template <typename S>
+uint64_t __tdiv_q_ui_impl(basic_biginteger<S> *quot, const biginteger_data *num,
+                          uint64_t div) {
+    const auto nssize = num->get_ssize();
+
+    WJR_ASSERT(div != 0, "division by zero");
+
+    if (nssize == 0) {
+        quot->set_ssize(0);
+        return 0;
+    }
+
+    const auto nusize = __fasts_abs(nssize);
+    quot->reserve(nusize);
+    const auto qp = quot->data();
+    const auto np = num->data();
+
+    uint64_t remv;
+    div_qr_1(qp, remv, np, nusize, div);
+
+    const auto qusize = nusize - (qp[nusize - 1] == 0);
+
+    quot->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, qusize));
+    return remv;
+}
+
+template <typename S>
+uint64_t __tdiv_r_ui_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                          uint64_t div) {
+    const auto nssize = num->get_ssize();
+
+    WJR_ASSERT(div != 0, "division by zero");
+
+    if (nssize == 0) {
+        rem->set_ssize(0);
+        return 0;
+    }
+
+    const auto nusize = __fasts_abs(nssize);
+    const auto np = num->data();
+
+    uint64_t remv;
+    remv = mod_1(np, nusize, div);
+
+    if (remv == 0) {
+        rem->set_ssize(0);
+    } else {
+        rem->reserve(1);
+        rem->front() = remv;
+        rem->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, 1));
+    }
+
+    return remv;
+}
+
+template <typename S0, typename S1, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
+                        const biginteger_data *num, T div) {
+    if constexpr (std::is_unsigned_v<T>) {
+        return __tdiv_qr_ui_impl(quot, rem, num, div);
+    } else {
+        uint64_t udiv = to_unsigned(div);
+        bool xsign = false;
+        if (div < 0) {
+            udiv = -udiv;
+            xsign = true;
+        }
+
+        uint64_t remv = __tdiv_qr_ui_impl(quot, rem, num, udiv);
+
+        quot->conditional_negate(xsign);
+        return remv;
+    }
+}
+
+template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __tdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num, T div) {
+    if constexpr (std::is_unsigned_v<T>) {
+        return __tdiv_q_ui_impl(quot, num, div);
+    } else {
+        uint64_t udiv = to_unsigned(div);
+        bool xsign = false;
+        if (div < 0) {
+            udiv = -udiv;
+            xsign = true;
+        }
+
+        uint64_t remv = __tdiv_q_ui_impl(quot, num, udiv);
+
+        quot->conditional_negate(xsign);
+        return remv;
+    }
+}
+
+template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                       uint64_t div) {
+    if constexpr (std::is_unsigned_v<T>) {
+        return __tdiv_q_ui_impl(rem, num, div);
+    } else {
+        uint64_t udiv = to_unsigned(div);
+        if (div < 0) {
+            udiv = -udiv;
+        }
+
+        return __tdiv_r_ui_impl(rem, num, udiv);
+    }
 }
 
 template <typename S0, typename S1>
@@ -31590,6 +31980,127 @@ void __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
     }
 }
 
+template <typename S0, typename S1, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
+                        const biginteger_data *num, T div) {
+    if constexpr (std::is_unsigned_v<T>) {
+        const auto xssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_qr_ui_impl(quot, rem, num, div);
+
+        if (xssize < 0 && remv != 0) {
+            WJR_ASSERT(rem->is_negate());
+
+            __sub_impl(quot, quot->__get_data(), 1u);
+            rem->set_ssize(1);
+            remv = div - remv;
+            rem->front() = remv;
+        }
+
+        return remv;
+    } else {
+        uint64_t udiv = to_unsigned(div);
+        int32_t xsign = 0;
+
+        if (div < 0) {
+            udiv = -udiv;
+            xsign = -1;
+        }
+
+        const int32_t nssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_qr_ui_impl(quot, rem, num, udiv);
+
+        quot->conditional_negate(xsign);
+
+        if ((nssize ^ xsign) < 0 && remv != 0) {
+            __sub_impl(quot, quot->__get_data(), 1u);
+            rem->set_ssize(__fasts_conditional_negate(xsign < 0, 1));
+            remv = div - remv;
+            rem->front() = remv;
+        }
+
+        return remv;
+    }
+}
+
+template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num, T div) {
+    if constexpr (std::is_unsigned_v<T>) {
+        const auto xssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_q_ui_impl(quot, num, div);
+
+        if (xssize < 0 && remv != 0) {
+            __sub_impl(quot, quot->__get_data(), 1u);
+            remv = div - remv;
+        }
+
+        return remv;
+    } else {
+        uint64_t udiv = to_unsigned(div);
+        int32_t xsign = 0;
+
+        if (div < 0) {
+            udiv = -udiv;
+            xsign = -1;
+        }
+
+        const int32_t nssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_q_ui_impl(quot, num, udiv);
+
+        quot->conditional_negate(xsign);
+
+        if ((nssize ^ xsign) < 0 && remv != 0) {
+            __sub_impl(quot, quot->__get_data(), 1u);
+            remv = div - remv;
+        }
+
+        return remv;
+    }
+}
+
+template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                       uint64_t div) {
+    if constexpr (std::is_unsigned_v<T>) {
+        const auto xssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_r_ui_impl(rem, num, div);
+
+        if (xssize < 0 && remv != 0) {
+            WJR_ASSERT(rem->is_negate());
+
+            rem->set_ssize(1);
+            remv = div - remv;
+            rem->front() = remv;
+        }
+
+        return remv;
+    } else {
+        uint64_t udiv = to_unsigned(div);
+        int32_t xsign = 0;
+
+        if (div < 0) {
+            udiv = -udiv;
+            xsign = -1;
+        }
+
+        const int32_t nssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_r_ui_impl(rem, num, udiv);
+
+        if ((nssize ^ xsign) < 0 && remv != 0) {
+            rem->set_ssize(__fasts_conditional_negate(xsign < 0, 1));
+            remv = div - remv;
+            rem->front() = remv;
+        }
+
+        return remv;
+    }
+}
+
 template <typename S0, typename S1>
 void __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
                     const biginteger_data *num, const biginteger_data *div) {
@@ -31663,6 +32174,127 @@ void __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
 
     if (xsize >= 0 && !rem->empty()) {
         __sub_impl(rem, rem->__get_data(), div);
+    }
+}
+
+template <typename S0, typename S1, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
+                        const biginteger_data *num, T div) {
+    if constexpr (std::is_unsigned_v<T>) {
+        const auto xssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_qr_ui_impl(quot, rem, num, div);
+
+        if (xssize >= 0 && remv != 0) {
+            WJR_ASSERT(rem->is_negate());
+
+            __add_impl(quot, quot->__get_data(), 1u);
+            rem->set_ssize(-1);
+            remv = div - remv;
+            rem->front() = remv;
+        }
+
+        return remv;
+    } else {
+        uint64_t udiv = to_unsigned(div);
+        int32_t xsign = 0;
+
+        if (div < 0) {
+            udiv = -udiv;
+            xsign = -1;
+        }
+
+        const int32_t nssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_qr_ui_impl(quot, rem, num, udiv);
+
+        quot->conditional_negate(xsign);
+
+        if ((nssize ^ xsign) >= 0 && remv != 0) {
+            __add_impl(quot, quot->__get_data(), 1u);
+            rem->set_ssize(__fasts_conditional_negate(xsign >= 0, 1));
+            remv = div - remv;
+            rem->front() = remv;
+        }
+
+        return remv;
+    }
+}
+
+template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num, T div) {
+    if constexpr (std::is_unsigned_v<T>) {
+        const auto xssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_q_ui_impl(quot, num, div);
+
+        if (xssize >= 0 && remv != 0) {
+            __add_impl(quot, quot->__get_data(), 1u);
+            remv = div - remv;
+        }
+
+        return remv;
+    } else {
+        uint64_t udiv = to_unsigned(div);
+        int32_t xsign = 0;
+
+        if (div < 0) {
+            udiv = -udiv;
+            xsign = -1;
+        }
+
+        const int32_t nssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_q_ui_impl(quot, num, udiv);
+
+        quot->conditional_negate(xsign);
+
+        if ((nssize ^ xsign) >= 0 && remv != 0) {
+            __add_impl(quot, quot->__get_data(), 1u);
+            remv = div - remv;
+        }
+
+        return remv;
+    }
+}
+
+template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                       uint64_t div) {
+    if constexpr (std::is_unsigned_v<T>) {
+        const auto xssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_r_ui_impl(rem, num, div);
+
+        if (xssize >= 0 && remv != 0) {
+            WJR_ASSERT(rem->is_negate());
+
+            rem->set_ssize(-1);
+            remv = div - remv;
+            rem->front() = remv;
+        }
+
+        return remv;
+    } else {
+        uint64_t udiv = to_unsigned(div);
+        int32_t xsign = 0;
+
+        if (div < 0) {
+            udiv = -udiv;
+            xsign = -1;
+        }
+
+        const int32_t nssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_r_ui_impl(rem, num, udiv);
+
+        if ((nssize ^ xsign) >= 0 && remv != 0) {
+            rem->set_ssize(__fasts_conditional_negate(xsign >= 0, 1));
+            remv = div - remv;
+            rem->front() = remv;
+        }
+
+        return remv;
     }
 }
 
@@ -31809,8 +32441,8 @@ std::istream &operator>>(std::istream &is, basic_biginteger<S> &dst) {
     return is;
 }
 
-template <typename Char, typename Traits>
-std::basic_ostream<Char, Traits> &operator<<(std::basic_ostream<Char, Traits> &os,
+template <typename Traits>
+std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &os,
                                              const biginteger_data &src) {
     std::ios_base::iostate state = std::ios::goodbit;
 
@@ -31818,7 +32450,7 @@ std::basic_ostream<Char, Traits> &operator<<(std::basic_ostream<Char, Traits> &o
         unique_stack_allocator stkal(math_details::stack_alloc);
 
         vector<char, math_details::weak_stack_alloc<char>> buffer(stkal);
-        buffer.reserve(512);
+        buffer.reserve(128);
 
         const std::ios_base::fmtflags flags = os.flags();
 

@@ -29,19 +29,19 @@ div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
 inline tuple<uint64_t, uint64_t> div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
                                                  uint64_t div);
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         const div2by1_divider<T> &div);
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(T *dst, T &rem, const T *src, size_t n,
                                         type_identity_t<T> div);
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const div3by2_divider<T> &div);
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(T *dst, T *rem, const T *src, size_t n,
                                         const T *div);
 
@@ -64,13 +64,19 @@ template <typename T, T c, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_CONSTEXPR_E void divexact_byc(T *dst, const T *src, size_t n,
                                   std::integral_constant<T, c>);
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           const divexact1_divider<T> &div);
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
 WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           type_identity_t<T> div);
+
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
+WJR_PURE WJR_CONSTEXPR_E T mod_1(const T *src, size_t n, div2by1_divider<T> div);
+
+template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
+WJR_PURE WJR_CONSTEXPR_E T mod_1(const T *src, size_t n, type_identity_t<T> div);
 
 } // namespace wjr
 

@@ -147,16 +147,16 @@ WJR_CONST constexpr T __fasts_negate_with(T condition, T x) {
 
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
 WJR_CONST constexpr T __fasts_increment(T x) {
-    WJR_ASSERT_ASSUME(x != std::numeric_limits<T>::min() &&
-                          x != std::numeric_limits<T>::max(),
-                      "overflow");
+    WJR_ASSERT_L1(x != std::numeric_limits<T>::min() &&
+                      x != std::numeric_limits<T>::max(),
+                  "overflow");
 
     return x < 0 ? x - 1 : x + 1;
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
 WJR_CONST constexpr T __fasts_decrement(T x) {
-    WJR_ASSERT_ASSUME(x != 0 && x + 1 != T(0), "overflow");
+    WJR_ASSERT_L1(x != 0 && x + 1 != T(0), "overflow");
 
     return x < 0 ? x + 1 : x - 1;
 }

@@ -73,6 +73,13 @@ struct __unref_wrapper_helper<default_biginteger_size_reference> {
     using type = uint32_t &;
 };
 
+/**
+ * @brief data_type of biginteger
+ *
+ * @details View the data of biginteger. Used for type erasure. Manage memory allocation
+ * and release on your own.
+ *
+ */
 struct biginteger_data {
     WJR_PURE constexpr const uint64_t *data() const noexcept { return m_data; }
     WJR_PURE constexpr uint32_t size() const noexcept { return __fasts_abs(m_size); }
@@ -162,7 +169,7 @@ public:
     void take_storage(default_biginteger_vector_storage &other, _Alty &) noexcept {
         auto &other_storage = other.m_storage;
         m_storage = other_storage;
-        other_storage = {};
+        other_storage = {nullptr, 0, 0};
     }
 
     void swap_storage(default_biginteger_vector_storage &other, _Alty &) noexcept {
@@ -312,8 +319,9 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) {
     if constexpr (std::is_unsigned_v<T>) {
         __mul_ui_impl(dst, lhs, rhs);
     } else {
-        auto value = to_unsigned(rhs);
+        uint64_t value = to_unsigned(rhs);
         bool cond = false;
+
         if (rhs < 0) {
             value = -value;
             cond = true;
@@ -333,14 +341,11 @@ void __addmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) 
     if constexpr (std::is_unsigned_v<T>) {
         __addsubmul_impl(dst, lhs, rhs, 0);
     } else {
-        uint64_t rvalue;
-        int32_t xsign;
+        uint64_t rvalue = to_unsigned(rhs);
+        int32_t xsign = 0;
 
-        if (rhs >= 0) {
-            rvalue = to_unsigned(rhs);
-            xsign = 0;
-        } else {
-            rvalue = -to_unsigned(rhs);
+        if (rhs < 0) {
+            rvalue = -rvalue;
             xsign = -1;
         }
 
@@ -353,14 +358,11 @@ void __submul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) 
     if constexpr (std::is_unsigned_v<T>) {
         __addsubmul_impl(dst, lhs, rhs, -1);
     } else {
-        uint64_t rvalue;
-        int32_t xsign;
+        uint64_t rvalue = to_unsigned(rhs);
+        int32_t xsign = -1;
 
-        if (rhs >= 0) {
-            rvalue = to_unsigned(rhs);
-            xsign = -1;
-        } else {
-            rvalue = -to_unsigned(rhs);
+        if (rhs < 0) {
+            rvalue = -rvalue;
             xsign = 0;
         }
 
@@ -384,6 +386,34 @@ template <typename S>
 void __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                    const biginteger_data *div);
 
+/**
+ * @brief [quot, rem] = num / div
+ *
+ * @return uint64_t abs(rem)
+ */
+template <typename S0, typename S1>
+uint64_t __tdiv_qr_ui_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
+                           const biginteger_data *num, uint64_t div);
+
+template <typename S>
+uint64_t __tdiv_q_ui_impl(basic_biginteger<S> *quot, const biginteger_data *num,
+                          uint64_t div);
+
+template <typename S>
+uint64_t __tdiv_r_ui_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                          uint64_t div);
+
+template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
+                        const biginteger_data *num, T div);
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __tdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num, T div);
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                       uint64_t div);
+
 template <typename S0, typename S1>
 void __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
                     const biginteger_data *num, const biginteger_data *div);
@@ -396,6 +426,17 @@ template <typename S>
 void __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                    const biginteger_data *div);
 
+template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
+                        const biginteger_data *num, T div);
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num, T div);
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                       uint64_t div);
+
 template <typename S0, typename S1>
 void __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
                     const biginteger_data *num, const biginteger_data *div);
@@ -407,6 +448,17 @@ void __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
 template <typename S>
 void __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                    const biginteger_data *div);
+
+template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
+                        const biginteger_data *num, T div);
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num, T div);
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                       uint64_t div);
 
 } // namespace biginteger_details
 
@@ -564,6 +616,22 @@ void tdiv_r(basic_biginteger<S0> &rem, const biginteger_data &num,
     biginteger_details::__tdiv_r_impl(&rem, &num, &div);
 }
 
+template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t tdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
+                 const biginteger_data &num, T div) {
+    return biginteger_details::__tdiv_qr_impl(&quot, &rem, &num, div);
+}
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t tdiv_q(basic_biginteger<S> &quot, const biginteger_data &num, T div) {
+    return biginteger_details::__tdiv_q_impl(&quot, &num, div);
+}
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t tdiv_r(basic_biginteger<S> &rem, const biginteger_data &num, T div) {
+    return biginteger_details::__tdiv_r_impl(&rem, &num, div);
+}
+
 template <typename S0, typename S1>
 void fdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
              const biginteger_data &num, const biginteger_data &div) {
@@ -582,6 +650,22 @@ void fdiv_r(basic_biginteger<S0> &rem, const biginteger_data &num,
     biginteger_details::__fdiv_r_impl(&rem, &num, &div);
 }
 
+template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t fdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
+                 const biginteger_data &num, T div) {
+    return biginteger_details::__fdiv_qr_impl(&quot, &rem, &num, div);
+}
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t fdiv_q(basic_biginteger<S> &quot, const biginteger_data &num, T div) {
+    return biginteger_details::__fdiv_q_impl(&quot, &num, div);
+}
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t fdiv_r(basic_biginteger<S> &rem, const biginteger_data &num, T div) {
+    return biginteger_details::__fdiv_r_impl(&rem, &num, div);
+}
+
 template <typename S0, typename S1>
 void cdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
              const biginteger_data &num, const biginteger_data &div) {
@@ -598,6 +682,22 @@ template <typename S0>
 void cdiv_r(basic_biginteger<S0> &rem, const biginteger_data &num,
             const biginteger_data &div) {
     biginteger_details::__cdiv_r_impl(&rem, &num, &div);
+}
+
+template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t cdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
+                 const biginteger_data &num, T div) {
+    return biginteger_details::__cdiv_qr_impl(&quot, &rem, &num, div);
+}
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t cdiv_q(basic_biginteger<S> &quot, const biginteger_data &num, T div) {
+    return biginteger_details::__cdiv_q_impl(&quot, &num, div);
+}
+
+template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+uint64_t cdiv_r(basic_biginteger<S> &rem, const biginteger_data &num, T div) {
+    return biginteger_details::__cdiv_r_impl(&rem, &num, div);
 }
 
 template <typename S0, typename S1, typename S2, typename S3>
@@ -820,12 +920,22 @@ public:
 
     void shrink_to_fit() { m_vec.shrink_to_fit(); }
 
-    void clear() {
-        m_vec.clear();
-        set_ssize(0);
-    }
+    /// equal to set_ssize(0)
+    void clear() { m_vec.clear(); }
 
     void swap(basic_biginteger &other) noexcept { m_vec.swap(other.m_vec); }
+
+    void conditional_negate(bool condition) noexcept {
+        set_ssize(__fasts_conditional_negate<int32_t>(condition, get_ssize()));
+    }
+
+    void negate() noexcept { conditional_negate(true); }
+
+    WJR_PURE bool is_negate() const noexcept { return get_ssize() < 0; }
+
+    void abs() noexcept { set_ssize(__fasts_abs(get_ssize())); }
+
+    // extension
 
     WJR_PURE int32_t get_ssize() const { return get_storage().get_ssize(); }
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> ||
@@ -844,16 +954,6 @@ public:
                                                    size_type new_size) noexcept {
         return vector_type::get_growth_capacity(old_capacity, new_size);
     }
-
-    void conditional_negate(bool condition) noexcept {
-        set_ssize(__fasts_conditional_negate<int32_t>(condition, get_ssize()));
-    }
-
-    void negate() noexcept { conditional_negate(true); }
-
-    WJR_PURE bool is_negate() const noexcept { return get_ssize() < 0; }
-
-    void abs() noexcept { set_ssize(__fasts_abs(get_ssize())); }
 
     void take_storage(storage_type &other) noexcept { m_vec.take_storage(other); }
 
@@ -1580,7 +1680,7 @@ void __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
     const auto dssize = div->get_ssize();
     const auto nusize = __fasts_abs(nssize);
     auto dusize = __fasts_abs(dssize);
-    int32_t qssize = nusize - dusize + 1;
+    const int32_t qssize = nusize - dusize + 1;
 
     WJR_ASSERT(dusize != 0, "division by zero");
 
@@ -1624,6 +1724,150 @@ void __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
     dusize = normalize(rp, dusize);
 
     rem->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, dusize));
+}
+
+template <typename S0, typename S1>
+uint64_t __tdiv_qr_ui_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
+                           const biginteger_data *num, uint64_t div) {
+    const auto nssize = num->get_ssize();
+
+    WJR_ASSERT(div != 0, "division by zero");
+
+    if (nssize == 0) {
+        quot->set_ssize(0);
+        rem->set_ssize(0);
+        return 0;
+    }
+
+    const auto nusize = __fasts_abs(nssize);
+    quot->reserve(nusize);
+    const auto qp = quot->data();
+    const auto np = num->data();
+
+    uint64_t remv;
+    div_qr_1(qp, remv, np, nusize, div);
+
+    if (remv == 0) {
+        rem->set_ssize(0);
+    } else {
+        rem->reserve(1);
+        rem->front() = remv;
+        rem->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, 1));
+    }
+
+    const auto qusize = nusize - (qp[nusize - 1] == 0);
+
+    quot->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, qusize));
+    return remv;
+}
+
+template <typename S>
+uint64_t __tdiv_q_ui_impl(basic_biginteger<S> *quot, const biginteger_data *num,
+                          uint64_t div) {
+    const auto nssize = num->get_ssize();
+
+    WJR_ASSERT(div != 0, "division by zero");
+
+    if (nssize == 0) {
+        quot->set_ssize(0);
+        return 0;
+    }
+
+    const auto nusize = __fasts_abs(nssize);
+    quot->reserve(nusize);
+    const auto qp = quot->data();
+    const auto np = num->data();
+
+    uint64_t remv;
+    div_qr_1(qp, remv, np, nusize, div);
+
+    const auto qusize = nusize - (qp[nusize - 1] == 0);
+
+    quot->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, qusize));
+    return remv;
+}
+
+template <typename S>
+uint64_t __tdiv_r_ui_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                          uint64_t div) {
+    const auto nssize = num->get_ssize();
+
+    WJR_ASSERT(div != 0, "division by zero");
+
+    if (nssize == 0) {
+        rem->set_ssize(0);
+        return 0;
+    }
+
+    const auto nusize = __fasts_abs(nssize);
+    const auto np = num->data();
+
+    uint64_t remv;
+    remv = mod_1(np, nusize, div);
+
+    if (remv == 0) {
+        rem->set_ssize(0);
+    } else {
+        rem->reserve(1);
+        rem->front() = remv;
+        rem->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, 1));
+    }
+
+    return remv;
+}
+
+template <typename S0, typename S1, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
+                        const biginteger_data *num, T div) {
+    if constexpr (std::is_unsigned_v<T>) {
+        return __tdiv_qr_ui_impl(quot, rem, num, div);
+    } else {
+        uint64_t udiv = to_unsigned(div);
+        bool xsign = false;
+        if (div < 0) {
+            udiv = -udiv;
+            xsign = true;
+        }
+
+        uint64_t remv = __tdiv_qr_ui_impl(quot, rem, num, udiv);
+
+        quot->conditional_negate(xsign);
+        return remv;
+    }
+}
+
+template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __tdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num, T div) {
+    if constexpr (std::is_unsigned_v<T>) {
+        return __tdiv_q_ui_impl(quot, num, div);
+    } else {
+        uint64_t udiv = to_unsigned(div);
+        bool xsign = false;
+        if (div < 0) {
+            udiv = -udiv;
+            xsign = true;
+        }
+
+        uint64_t remv = __tdiv_q_ui_impl(quot, num, udiv);
+
+        quot->conditional_negate(xsign);
+        return remv;
+    }
+}
+
+template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                       uint64_t div) {
+    if constexpr (std::is_unsigned_v<T>) {
+        return __tdiv_q_ui_impl(rem, num, div);
+    } else {
+        uint64_t udiv = to_unsigned(div);
+        if (div < 0) {
+            udiv = -udiv;
+        }
+
+        return __tdiv_r_ui_impl(rem, num, udiv);
+    }
 }
 
 template <typename S0, typename S1>
@@ -1702,6 +1946,127 @@ void __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
     }
 }
 
+template <typename S0, typename S1, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
+                        const biginteger_data *num, T div) {
+    if constexpr (std::is_unsigned_v<T>) {
+        const auto xssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_qr_ui_impl(quot, rem, num, div);
+
+        if (xssize < 0 && remv != 0) {
+            WJR_ASSERT(rem->is_negate());
+
+            __sub_impl(quot, quot->__get_data(), 1u);
+            rem->set_ssize(1);
+            remv = div - remv;
+            rem->front() = remv;
+        }
+
+        return remv;
+    } else {
+        uint64_t udiv = to_unsigned(div);
+        int32_t xsign = 0;
+
+        if (div < 0) {
+            udiv = -udiv;
+            xsign = -1;
+        }
+
+        const int32_t nssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_qr_ui_impl(quot, rem, num, udiv);
+
+        quot->conditional_negate(xsign);
+
+        if ((nssize ^ xsign) < 0 && remv != 0) {
+            __sub_impl(quot, quot->__get_data(), 1u);
+            rem->set_ssize(__fasts_conditional_negate(xsign < 0, 1));
+            remv = div - remv;
+            rem->front() = remv;
+        }
+
+        return remv;
+    }
+}
+
+template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num, T div) {
+    if constexpr (std::is_unsigned_v<T>) {
+        const auto xssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_q_ui_impl(quot, num, div);
+
+        if (xssize < 0 && remv != 0) {
+            __sub_impl(quot, quot->__get_data(), 1u);
+            remv = div - remv;
+        }
+
+        return remv;
+    } else {
+        uint64_t udiv = to_unsigned(div);
+        int32_t xsign = 0;
+
+        if (div < 0) {
+            udiv = -udiv;
+            xsign = -1;
+        }
+
+        const int32_t nssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_q_ui_impl(quot, num, udiv);
+
+        quot->conditional_negate(xsign);
+
+        if ((nssize ^ xsign) < 0 && remv != 0) {
+            __sub_impl(quot, quot->__get_data(), 1u);
+            remv = div - remv;
+        }
+
+        return remv;
+    }
+}
+
+template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                       uint64_t div) {
+    if constexpr (std::is_unsigned_v<T>) {
+        const auto xssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_r_ui_impl(rem, num, div);
+
+        if (xssize < 0 && remv != 0) {
+            WJR_ASSERT(rem->is_negate());
+
+            rem->set_ssize(1);
+            remv = div - remv;
+            rem->front() = remv;
+        }
+
+        return remv;
+    } else {
+        uint64_t udiv = to_unsigned(div);
+        int32_t xsign = 0;
+
+        if (div < 0) {
+            udiv = -udiv;
+            xsign = -1;
+        }
+
+        const int32_t nssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_r_ui_impl(rem, num, udiv);
+
+        if ((nssize ^ xsign) < 0 && remv != 0) {
+            rem->set_ssize(__fasts_conditional_negate(xsign < 0, 1));
+            remv = div - remv;
+            rem->front() = remv;
+        }
+
+        return remv;
+    }
+}
+
 template <typename S0, typename S1>
 void __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
                     const biginteger_data *num, const biginteger_data *div) {
@@ -1775,6 +2140,127 @@ void __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
 
     if (xsize >= 0 && !rem->empty()) {
         __sub_impl(rem, rem->__get_data(), div);
+    }
+}
+
+template <typename S0, typename S1, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
+                        const biginteger_data *num, T div) {
+    if constexpr (std::is_unsigned_v<T>) {
+        const auto xssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_qr_ui_impl(quot, rem, num, div);
+
+        if (xssize >= 0 && remv != 0) {
+            WJR_ASSERT(rem->is_negate());
+
+            __add_impl(quot, quot->__get_data(), 1u);
+            rem->set_ssize(-1);
+            remv = div - remv;
+            rem->front() = remv;
+        }
+
+        return remv;
+    } else {
+        uint64_t udiv = to_unsigned(div);
+        int32_t xsign = 0;
+
+        if (div < 0) {
+            udiv = -udiv;
+            xsign = -1;
+        }
+
+        const int32_t nssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_qr_ui_impl(quot, rem, num, udiv);
+
+        quot->conditional_negate(xsign);
+
+        if ((nssize ^ xsign) >= 0 && remv != 0) {
+            __add_impl(quot, quot->__get_data(), 1u);
+            rem->set_ssize(__fasts_conditional_negate(xsign >= 0, 1));
+            remv = div - remv;
+            rem->front() = remv;
+        }
+
+        return remv;
+    }
+}
+
+template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num, T div) {
+    if constexpr (std::is_unsigned_v<T>) {
+        const auto xssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_q_ui_impl(quot, num, div);
+
+        if (xssize >= 0 && remv != 0) {
+            __add_impl(quot, quot->__get_data(), 1u);
+            remv = div - remv;
+        }
+
+        return remv;
+    } else {
+        uint64_t udiv = to_unsigned(div);
+        int32_t xsign = 0;
+
+        if (div < 0) {
+            udiv = -udiv;
+            xsign = -1;
+        }
+
+        const int32_t nssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_q_ui_impl(quot, num, udiv);
+
+        quot->conditional_negate(xsign);
+
+        if ((nssize ^ xsign) >= 0 && remv != 0) {
+            __add_impl(quot, quot->__get_data(), 1u);
+            remv = div - remv;
+        }
+
+        return remv;
+    }
+}
+
+template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
+uint64_t __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                       uint64_t div) {
+    if constexpr (std::is_unsigned_v<T>) {
+        const auto xssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_r_ui_impl(rem, num, div);
+
+        if (xssize >= 0 && remv != 0) {
+            WJR_ASSERT(rem->is_negate());
+
+            rem->set_ssize(-1);
+            remv = div - remv;
+            rem->front() = remv;
+        }
+
+        return remv;
+    } else {
+        uint64_t udiv = to_unsigned(div);
+        int32_t xsign = 0;
+
+        if (div < 0) {
+            udiv = -udiv;
+            xsign = -1;
+        }
+
+        const int32_t nssize = num->get_ssize();
+
+        uint64_t remv = __tdiv_r_ui_impl(rem, num, udiv);
+
+        if ((nssize ^ xsign) >= 0 && remv != 0) {
+            rem->set_ssize(__fasts_conditional_negate(xsign >= 0, 1));
+            remv = div - remv;
+            rem->front() = remv;
+        }
+
+        return remv;
     }
 }
 
@@ -1921,8 +2407,8 @@ std::istream &operator>>(std::istream &is, basic_biginteger<S> &dst) {
     return is;
 }
 
-template <typename Char, typename Traits>
-std::basic_ostream<Char, Traits> &operator<<(std::basic_ostream<Char, Traits> &os,
+template <typename Traits>
+std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &os,
                                              const biginteger_data &src) {
     std::ios_base::iostate state = std::ios::goodbit;
 
@@ -1930,7 +2416,7 @@ std::basic_ostream<Char, Traits> &operator<<(std::basic_ostream<Char, Traits> &o
         unique_stack_allocator stkal(math_details::stack_alloc);
 
         vector<char, math_details::weak_stack_alloc<char>> buffer(stkal);
-        buffer.reserve(512);
+        buffer.reserve(128);
 
         const std::ios_base::fmtflags flags = os.flags();
 

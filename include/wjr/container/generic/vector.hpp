@@ -1506,7 +1506,7 @@ public:
                                                  size_type cap) noexcept {
         get_storage().uninitialized_construct(other, siz, cap, __get_allocator());
     }
-
+    
     WJR_CONSTEXPR20 void uninitialized_construct(size_type siz, size_type cap) noexcept {
         if constexpr (has_vector_storage_uninitialized_construct_v<storage_type,
                                                                    size_type, _Alty>) {

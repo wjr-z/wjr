@@ -72,11 +72,12 @@ public:
 
     constexpr bool is_zero_or_single_bit() const { return m_divisor == (1ull << 63); }
 
-    WJR_INTRINSIC_CONSTEXPR20 T divide(T lo, T &hi) const {
+    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T divide(T lo, T &hi) const {
         return divide(m_divisor, m_value, lo, hi);
     }
 
-    WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor, T value, T lo, T &hi) {
+    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor, T value, T lo,
+                                                            T &hi) {
         WJR_ASSERT_ASSUME_L2(__has_high_bit(divisor));
 
         if (WJR_BUILTIN_CONSTANT_P(lo == 0) && lo == 0) {
@@ -230,7 +231,8 @@ public:
 
     // enable static divide function of Mybase
     // This function needs to ensure that lo and hi have been adjusted
-    WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor, T value, T lo, T &hi) {
+    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor, T value, T lo,
+                                                            T &hi) {
         return Mybase::divide(divisor, value, lo, hi);
     }
 
@@ -281,12 +283,12 @@ public:
     constexpr T get_divisor1() const { return m_divisor1; }
     constexpr T get_value() const { return m_value; }
 
-    WJR_INTRINSIC_CONSTEXPR20 T divide(T u0, T &u1, T &u2) const {
+    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T divide(T u0, T &u1, T &u2) const {
         return divide(m_divisor0, m_divisor1, m_value, u0, u1, u2);
     }
 
-    WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor0, T divisor1, T value, T u0,
-                                              T &u1, T &u2);
+    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor0, T divisor1,
+                                                            T value, T u0, T &u1, T &u2);
 
     WJR_CONST WJR_CONSTEXPR_E static T reciprocal(T d0, T d1);
 
@@ -390,8 +392,8 @@ public:
 
     constexpr const Mybase &get_base() const { return *this; }
 
-    WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor0, T divisor1, T value, T u0,
-                                              T &u1, T &u2) {
+    WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor0, T divisor1,
+                                                            T value, T u0, T &u1, T &u2) {
         return Mybase::divide(divisor0, divisor1, value, u0, u1, u2);
     }
 
