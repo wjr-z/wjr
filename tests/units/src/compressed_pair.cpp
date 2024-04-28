@@ -10,7 +10,7 @@ using namespace wjr;
 struct disable_construct : enable_default_constructor_base<false, disable_construct> {
     using Mybase = enable_default_constructor_base<false, disable_construct>;
 
-    disable_construct(enable_default_constructor_t)
+    explicit disable_construct(enable_default_constructor_t)
         : Mybase(enable_default_constructor) {}
 };
 

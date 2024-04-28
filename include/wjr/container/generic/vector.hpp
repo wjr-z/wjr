@@ -1421,10 +1421,6 @@ public:
         uninitialized_construct(0, n);
     }
 
-    WJR_CONSTEXPR20 basic_vector(storage_type &&other, _Alty &&al)
-        : m_pair(std::piecewise_construct, std::forward_as_tuple(std::move(al)),
-                 std::forward_as_tuple(std::move(other))) {}
-
     WJR_CONSTEXPR20 void resize(const size_type new_size, dctor_t) {
         __resize(new_size, dctor);
     }

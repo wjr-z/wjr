@@ -4,5 +4,6 @@
 #include <wjr/math/convert.hpp>
 #include <wjr/math/negate.hpp>
 #include <wjr/math/prefix_xor.hpp>
+#include <wjr/math/random.hpp>
 
 #endif // WJR_MATH_HPP__

@@ -11,15 +11,8 @@
 #define WJR_addcsubc WJR_PP_BOOL_IF(WJR_ADDSUB_I, addc, subc)
 #define WJR_adcsbb WJR_PP_BOOL_IF(WJR_ADDSUB_I, adc, sbb)
 
-inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(
+inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
     uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, uint64_t c_in) {
-    if (WJR_BUILTIN_CONSTANT_P(n)) {
-        if (n == 1) {
-            dst[0] = WJR_PP_CONCAT(asm_, WJR_addcsubc)(src0[0], src1[0], c_in, c_in);
-            return c_in;
-        }
-    }
-
     size_t rcx = n / 8;
     uint64_t r8 = c_in, r9, r10 = n & 7, r11;
 
@@ -196,6 +189,19 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(
     WJR_ASSERT_ASSUME(r9 <= 1);
 
     return r9;
+}
+
+WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(
+    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, uint64_t c_in) {
+    if (WJR_BUILTIN_CONSTANT_P(n)) {
+        if (n == 1) {
+            dst[0] = WJR_PP_CONCAT(asm_, WJR_addcsubc)(src0[0], src1[0], c_in, c_in);
+            return c_in;
+        }
+    }
+
+    return WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(dst, src0, src1, n,
+                                                                     c_in);
 }
 
 #undef WJR_adcsbb

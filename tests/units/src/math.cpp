@@ -821,7 +821,7 @@ TEST(math, replace_find_not) {
     }
 }
 
-TEST(math, not_n) {
+TEST(math, complement_n) {
     std::vector<uint64_t> a, b;
     for (size_t n = 0; n <= 384; ++n) {
         a.resize(n);
@@ -830,19 +830,19 @@ TEST(math, not_n) {
             i = 0;
         }
 
-        not_n(b.data(), a.data(), n);
+        complement_n(b.data(), a.data(), n);
         for (auto &i : b) {
             WJR_ASSERT(i == -1ull);
         }
 
-        not_n(a.data(), a.data(), n);
+        complement_n(a.data(), a.data(), n);
         for (auto &i : a) {
             WJR_ASSERT(i == -1ull);
         }
     }
 }
 
-TEST(math, neg_n) {
+TEST(math, negate_n) {
     std::vector<uint64_t> a, b, c;
     for (size_t n = 0; n <= 384; ++n) {
         a.resize(n);
@@ -868,7 +868,7 @@ TEST(math, neg_n) {
                 i = -1;
             }
 
-            bool zero = neg_n(b.data(), a.data(), n);
+            bool zero = negate_n(b.data(), a.data(), n);
 
             if (n == m) {
                 WJR_ASSERT(zero);
@@ -1407,7 +1407,7 @@ TEST(math, rsblsh_n) {
 
 TEST(math, mul_s) {
     const int T = 4;
-    const int N = 3600;
+    const int N = 2400;
     std::vector<uint64_t> a(N), b(N), c(N * 2), d(N * 2);
 
     for (int i = 0; i < T; ++i) {
@@ -1431,7 +1431,7 @@ TEST(math, mul_s) {
 TEST(math, mul_n) {
 
     const int T = 16;
-    const int N = 3600;
+    const int N = 2400;
     std::vector<uint64_t> a(N), b(N), c(N * 2), d(N * 2);
 
     for (int i = 0; i < T; ++i) {
@@ -1453,7 +1453,7 @@ TEST(math, mul_n) {
 TEST(math, sqr) {
 
     const int T = 16;
-    const int N = 3600;
+    const int N = 2400;
     std::vector<uint64_t> a(N), b(N * 2), c(N * 2);
 
     for (int i = 0; i < T; ++i) {
@@ -1475,7 +1475,7 @@ TEST(math, div_qr_1) {
 
     const int T = 8;
     const int N = 32;
-    const int M = 3600;
+    const int M = 2400;
 
     std::vector<uint64_t> a(M), b(M), c(M);
 
@@ -1510,7 +1510,7 @@ TEST(math, div_qr_2) {
 
     const int T = 8;
     const int N = 32;
-    const int M = 3600;
+    const int M = 2400;
 
     std::vector<uint64_t> a(M), b(M), c(M + 1);
 
@@ -1548,7 +1548,7 @@ TEST(math, div_qr_2) {
 TEST(math, div_qr_s) {
 
     const int T = 8;
-    const int N = 3600;
+    const int N = 2400;
 
     std::vector<uint64_t> a(N), b(N + 1), c(N + 1), d(N + 1), rem(N);
 

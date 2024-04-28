@@ -50,8 +50,8 @@ require :
 2. WJR_IS_SAME_OR_DECR_P(dst, n, src, n)
 */
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E T lshift_n(T *dst, const T *src, size_t n, unsigned int c,
-                                     T lo = 0) {
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E T lshift_n(T *dst, const T *src, size_t n,
+                                                   unsigned int c, T lo = 0) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
 

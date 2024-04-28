@@ -402,25 +402,25 @@ static void wjr_worst_replace_find_not(benchmark::State &state) {
     }
 }
 
-static void wjr_not_n(benchmark::State &state) {
+static void wjr_complement_n(benchmark::State &state) {
     auto n = state.range(0);
     std::vector<uint64_t> a(n), b(n);
 
     std::generate(a.begin(), a.end(), mt_rand);
 
     for (auto _ : state) {
-        wjr::not_n(b.data(), a.data(), n);
+        wjr::complement_n(b.data(), a.data(), n);
     }
 }
 
-static void wjr_neg_n(benchmark::State &state) {
+static void wjr_negate_n(benchmark::State &state) {
     auto n = state.range(0);
     std::vector<uint64_t> a(n), b(n);
 
     std::generate(a.begin(), a.end(), mt_rand);
 
     for (auto _ : state) {
-        wjr::neg_n(b.data(), a.data(), n);
+        wjr::negate_n(b.data(), a.data(), n);
     }
 }
 
@@ -1405,8 +1405,8 @@ BENCHMARK(wjr_find_not_n_val)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(wjr_worst_find_not_n_val)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(wjr_replace_find_not)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(wjr_worst_replace_find_not)->NORMAL_TESTS(4, 2, 256);
-BENCHMARK(wjr_not_n)->NORMAL_TESTS(4, 2, 256);
-BENCHMARK(wjr_neg_n)->NORMAL_TESTS(4, 2, 256);
+BENCHMARK(wjr_complement_n)->NORMAL_TESTS(4, 2, 256);
+BENCHMARK(wjr_negate_n)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(wjr_set_n)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(wjr_lshift_n)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(wjr_rshift_n)->NORMAL_TESTS(4, 2, 256);

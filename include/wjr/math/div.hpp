@@ -707,7 +707,7 @@ void div_qr_s(T *dst, T *rem, const T *src, size_t n, const T *div, size_t m) {
 
         if (shift != 0) {
             dp = stk + (n + 1);
-            lshift_n(dp, div, m, shift);
+            (void)lshift_n(dp, div, m, shift);
             sp[n] = lshift_n(sp, src, n, shift);
         } else {
             dp = const_cast<T *>(div);
@@ -754,12 +754,12 @@ void div_qr_s(T *dst, T *rem, const T *src, size_t n, const T *div, size_t m) {
 
     if (shift != 0) {
         dp = stk + 2 * qn;
-        lshift_n(dp, div + st, qn, shift, div[st - 1]);
+        (void)lshift_n(dp, div + st, qn, shift, div[st - 1]);
         if (adjust) {
             sp[2 * qn - 1] =
                 lshift_n(sp, src + n - 2 * qn + 1, 2 * qn - 1, shift, src[n - 2 * qn]);
         } else {
-            lshift_n(sp, src + n - 2 * qn, 2 * qn, shift, src[n - 2 * qn - 1]);
+            (void)lshift_n(sp, src + n - 2 * qn, 2 * qn, shift, src[n - 2 * qn - 1]);
         }
     } else {
         dp = const_cast<T *>(div + st);

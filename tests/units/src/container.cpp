@@ -18,15 +18,11 @@ using namespace wjr;
 
 static_assert(sizeof(sso_vector<char, 16>) <= 32, "");
 
-static_assert(to_address_details::has_to_address_v<typename vector<int>::iterator>, "");
-static_assert(to_address_details::has_to_address_v<typename vector<int>::const_iterator>,
-              "");
+static_assert(is_contiguous_iterator_v<typename vector<int>::iterator>, "");
+static_assert(is_contiguous_iterator_v<typename vector<int>::const_iterator>, "");
 
-static_assert(
-    to_address_details::has_to_address_v<typename vector<std::string>::iterator>, "");
-static_assert(
-    to_address_details::has_to_address_v<typename vector<std::string>::const_iterator>,
-    "");
+static_assert(is_contiguous_iterator_v<typename vector<std::string>::iterator>, "");
+static_assert(is_contiguous_iterator_v<typename vector<std::string>::const_iterator>, "");
 
 template <typename T, typename Func>
 void for_each_n(T *first, size_t n, Func fn) {
@@ -490,6 +486,21 @@ TEST(vector, emplace_back) {
             test(__string, i);
         });
     }
+
+    {
+        wvector<int> a;
+        a.emplace_back(dctor);
+
+        WJR_ASSERT(a.size() == 1);
+    }
+
+    {
+        wvector<std::string> a;
+        a.emplace_back(dctor);
+
+        WJR_ASSERT(a.size() == 1);
+        WJR_ASSERT(a[0].empty());
+    }
 }
 
 TEST(vector, pop_back) {
@@ -683,4 +694,41 @@ TEST(vector, swap) {
             for_each_n(v1.begin(), m, [](auto &x) { EXPECT_EQ(x, 2); });
             for_each_n(v2.begin(), n, [](auto &x) { EXPECT_EQ(x, 1); });
         }
+}
+
+TEST(vector, ptr_unsafe) {
+    {
+        wvector<int> a(16);
+        WJR_ASSERT(a.begin_unsafe() == (to_address)(a.begin()));
+        WJR_ASSERT(a.end_unsafe() == (to_address)(a.end()));
+        WJR_ASSERT(a.buf_end_unsafe() == a.begin_unsafe() + a.capacity());
+    }
+}
+
+TEST(vector, construct_dctor) {
+    {
+        wvector<std::string> vec(16, dctor);
+        for_each_n(vec.begin(), 16, [](auto &x) { WJR_ASSERT(x.empty()); });
+    }
+}
+
+TEST(vector, clear) {
+    {
+        wvector<std::string> vec(16, dctor);
+        vec.clear();
+
+        WJR_ASSERT(vec.empty());
+    }
+}
+
+TEST(vector, front) {
+    {
+        wvector<std::string> vec(16, dctor);
+
+        WJR_ASSERT(vec.front().empty());
+        WJR_ASSERT(vec.front() == vec[0]);
+        WJR_ASSERT(vec.front() == vec.begin()[0]);
+        WJR_ASSERT(vec.front() == *vec.begin());
+        WJR_ASSERT(vec.front() == *vec.data());
+    }
 }

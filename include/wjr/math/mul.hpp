@@ -166,11 +166,6 @@ WJR_INTRINSIC_CONSTEXPR_E T mul_1(T *dst, const T *src, size_t n, type_identity_
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
-    if (WJR_BUILTIN_CONSTANT_P(ml == 0) && ml == 0) {
-        set_n(dst, 0, n);
-        return 0;
-    }
-
     if (WJR_BUILTIN_CONSTANT_P(ml == 1) && ml == 1) {
         if (src != dst) {
             std::copy(src, src + n, dst);
@@ -180,7 +175,12 @@ WJR_INTRINSIC_CONSTEXPR_E T mul_1(T *dst, const T *src, size_t n, type_identity_
     }
 
     if (WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(ml)) && is_zero_or_single_bit(ml)) {
-        unsigned int k = countr_zero(ml);
+        if (ml == 0) {
+            set_n(dst, 0, n);
+            return 0;
+        }
+
+        unsigned int k = ctz(ml);
         return lshift_n(dst, src, n, k);
     }
 
@@ -232,16 +232,16 @@ WJR_INTRINSIC_CONSTEXPR_E T addmul_1(T *dst, const T *src, size_t n,
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
-    if (WJR_BUILTIN_CONSTANT_P(ml == 0) && ml == 0) {
-        return 0;
-    }
-
     if (WJR_BUILTIN_CONSTANT_P(ml == 1) && ml == 1) {
         return addc_n(dst, dst, src, n);
     }
 
     if (WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(ml)) && is_zero_or_single_bit(ml)) {
-        unsigned int c = countr_zero(ml);
+        if (ml == 0) {
+            return 0;
+        }
+
+        unsigned int c = ctz(ml);
         return addlsh_n(dst, dst, src, n, c);
     }
 

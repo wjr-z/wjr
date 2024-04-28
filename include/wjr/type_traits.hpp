@@ -429,6 +429,9 @@ WJR_REGISTER_HAS_COMPARE(greater, std::greater<>);
 WJR_REGISTER_HAS_COMPARE(greater_equal, std::greater_equal<>);
 
 #undef WJR_REGISTER_HAS_COMPARE
+
+WJR_REGISTER_HAS_TYPE(invocable,
+                      std::invoke(std::declval<Func>(), std::declval<Args>()...), Func);
 } // namespace
 
 template <typename T>
