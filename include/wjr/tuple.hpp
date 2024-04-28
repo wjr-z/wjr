@@ -1,5 +1,5 @@
-#ifndef WJR_TUPLE_HPP
-#define WJR_TUPLE_HPP
+#ifndef WJR_TUPLE_HPP__
+#define WJR_TUPLE_HPP__
 
 #include <tuple>
 
@@ -493,4 +493,4 @@ constexpr T &&get(const wjr::tuple<Args...> &&t) noexcept {
 
 } // namespace std
 
-#endif // WJR_TUPLE_HPP
+#endif // WJR_TUPLE_HPP__

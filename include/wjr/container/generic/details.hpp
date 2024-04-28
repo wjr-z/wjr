@@ -1,5 +1,5 @@
-#ifndef WJR_CONTAINER_GENERIC_DETAILS_HPP
-#define WJR_CONTAINER_GENERIC_DETAILS_HPP
+#ifndef WJR_CONTAINER_GENERIC_DETAILS_HPP__
+#define WJR_CONTAINER_GENERIC_DETAILS_HPP__
 
 #include <string>
 
@@ -281,4 +281,4 @@ struct container_traits;
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_GENERIC_DETAILS_HPP
+#endif // WJR_CONTAINER_GENERIC_DETAILS_HPP__

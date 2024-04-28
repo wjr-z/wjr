@@ -1,5 +1,5 @@
-#ifndef WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP
-#define WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP
+#ifndef WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
+#define WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
 
 #include <wjr/type_traits.hpp>
 
@@ -76,4 +76,4 @@ struct trivially_allocator_traits {
 
 } // namespace wjr
 
-#endif // WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP
+#endif // WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__

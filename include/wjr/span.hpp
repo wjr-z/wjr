@@ -1,5 +1,5 @@
-#ifndef WJR_SPAN_HPP
-#define WJR_SPAN_HPP
+#ifndef WJR_SPAN_HPP__
+#define WJR_SPAN_HPP__
 
 #include <stdexcept>
 
@@ -379,4 +379,4 @@ span(Container &&) -> span<
 
 } // namespace wjr
 
-#endif // WJR_SPAN_HPP
+#endif // WJR_SPAN_HPP__

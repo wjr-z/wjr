@@ -1,5 +1,5 @@
-#ifndef WJR_SIMD_SIMD_CAST_HPP
-#define WJR_SIMD_SIMD_CAST_HPP
+#ifndef WJR_SIMD_SIMD_CAST_HPP__
+#define WJR_SIMD_SIMD_CAST_HPP__
 
 #include <wjr/type_traits.hpp>
 
@@ -297,4 +297,4 @@ struct simd_cast_fn<__m256i_t, uint64_t> {
 
 #endif
 
-#endif // WJR_SIMD_SIMD_CAST_HPP
+#endif // WJR_SIMD_SIMD_CAST_HPP__

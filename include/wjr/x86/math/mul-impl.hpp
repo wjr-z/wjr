@@ -1,5 +1,5 @@
-#ifndef WJR_X86_MATH_MUL_IMPL_HPP
-#define WJR_X86_MATH_MUL_IMPL_HPP
+#ifndef WJR_X86_MATH_MUL_IMPL_HPP__
+#define WJR_X86_MATH_MUL_IMPL_HPP__
 
 #include <wjr/type_traits.hpp>
 
@@ -47,4 +47,4 @@ namespace wjr {
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_MUL_IMPL_HPP
+#endif // WJR_X86_MATH_MUL_IMPL_HPP__

@@ -1,5 +1,5 @@
-#ifndef WJR_CRTP_CLASS_BASE_HPP
-#define WJR_CRTP_CLASS_BASE_HPP
+#ifndef WJR_CRTP_CLASS_BASE_HPP__
+#define WJR_CRTP_CLASS_BASE_HPP__
 
 #include <cstddef>
 #include <type_traits>
@@ -210,4 +210,4 @@ struct enable_base_identity_t {};
 
 } // namespace wjr
 
-#endif // WJR_CRTP_CLASS_BASE_HPP
+#endif // WJR_CRTP_CLASS_BASE_HPP__

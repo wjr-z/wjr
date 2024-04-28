@@ -1,5 +1,5 @@
-#ifndef WJR_PREPROCESSOR_COMPILER_HAS_HPP
-#define WJR_PREPROCESSOR_COMPILER_HAS_HPP
+#ifndef WJR_PREPROCESSOR_COMPILER_HAS_HPP__
+#define WJR_PREPROCESSOR_COMPILER_HAS_HPP__
 
 #include <wjr/preprocessor/compiler/arch.hpp>
 #include <wjr/preprocessor/compiler/compiler.hpp>
@@ -203,4 +203,4 @@
 #define WJR_HAS_SIMD_PCLMUL WJR_HAS_DEF
 #endif
 
-#endif // WJR_PREPROCESSOR_COMPILER_HAS_HPP
+#endif // WJR_PREPROCESSOR_COMPILER_HAS_HPP__

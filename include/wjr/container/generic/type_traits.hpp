@@ -1,5 +1,5 @@
-#ifndef WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP
-#define WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP
+#ifndef WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP__
+#define WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP__
 
 #include <wjr/vector.hpp>
 
@@ -39,4 +39,4 @@ struct container_traits<basic_vector<Storage>>
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP
+#endif // WJR_CONTAINER_GENERIC_TYPE_TRAITS_HPP__

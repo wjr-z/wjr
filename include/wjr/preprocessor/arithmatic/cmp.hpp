@@ -1,5 +1,5 @@
-#ifndef WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP
-#define WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP
+#ifndef WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP__
+#define WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP__
 
 #include <wjr/preprocessor/arithmatic/basic.hpp>
 #include <wjr/preprocessor/arithmatic/inc.hpp>
@@ -228,4 +228,4 @@
 #define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     0
 
-#endif // ! WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP
+#endif // ! WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP__

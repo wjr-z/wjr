@@ -1,5 +1,5 @@
-#ifndef WJR_MEMORY_UNINITIALIZED_HPP
-#define WJR_MEMORY_UNINITIALIZED_HPP
+#ifndef WJR_MEMORY_UNINITIALIZED_HPP__
+#define WJR_MEMORY_UNINITIALIZED_HPP__
 
 /**
  * @file uninitialized.hpp
@@ -503,4 +503,4 @@ private:
 
 } // namespace wjr
 
-#endif // WJR_MEMORY_UNINITIALIZED_HPP
+#endif // WJR_MEMORY_UNINITIALIZED_HPP__

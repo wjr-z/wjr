@@ -1,5 +1,5 @@
-#ifndef WJR_MEMORY_ALIGNED_ALLOCATOR_HPP
-#define WJR_MEMORY_ALIGNED_ALLOCATOR_HPP
+#ifndef WJR_MEMORY_ALIGNED_ALLOCATOR_HPP__
+#define WJR_MEMORY_ALIGNED_ALLOCATOR_HPP__
 
 #include <wjr/capture_leaf.hpp>
 #include <wjr/crtp/trivially_allocator_base.hpp>
@@ -134,4 +134,4 @@ protected:
 
 } // namespace wjr
 
-#endif // WJR_MEMORY_ALIGNED_ALLOCATOR_HPP
+#endif // WJR_MEMORY_ALIGNED_ALLOCATOR_HPP__

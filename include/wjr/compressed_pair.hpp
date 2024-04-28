@@ -1,5 +1,5 @@
-#ifndef WJR_COMPRESSED_PAIR_HPP
-#define WJR_COMPRESSED_PAIR_HPP
+#ifndef WJR_COMPRESSED_PAIR_HPP__
+#define WJR_COMPRESSED_PAIR_HPP__
 
 #include <tuple>
 
@@ -412,4 +412,4 @@ WJR_NODISCARD constexpr const T &&get(const wjr::compressed_pair<U, T> &&pr) noe
 
 } // namespace std
 
-#endif // WJR_COMPRESSED_PAIR_HPP
+#endif // WJR_COMPRESSED_PAIR_HPP__

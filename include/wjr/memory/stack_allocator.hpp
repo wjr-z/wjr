@@ -1,5 +1,5 @@
-#ifndef WJR_STACK_ALLOCATOR_HPP
-#define WJR_STACK_ALLOCATOR_HPP
+#ifndef WJR_STACK_ALLOCATOR_HPP__
+#define WJR_STACK_ALLOCATOR_HPP__
 
 #include <algorithm>
 
@@ -391,4 +391,4 @@ private:
 
 } // namespace wjr
 
-#endif // WJR_STACK_ALLOCATOR_HPP
+#endif // WJR_STACK_ALLOCATOR_HPP__

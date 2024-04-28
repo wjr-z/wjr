@@ -1,10 +1,10 @@
-#ifndef WJR_CAPTURE_LEAF_HPP
-#define WJR_CAPTURE_LEAF_HPP
+#ifndef WJR_CAPTURE_LEAF_HPP__
+#define WJR_CAPTURE_LEAF_HPP__
 
 #include <tuple>
 
 #include <wjr/crtp/class_base.hpp>
-#include <wjr/tp.hpp>
+#include <wjr/tp/list.hpp>
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
@@ -100,4 +100,4 @@ struct __is_tuple_assignable : std::is_assignable<T &, U> {};
 
 } // namespace wjr
 
-#endif // WJR_CAPTURE_LEAF_HPP
+#endif // WJR_CAPTURE_LEAF_HPP__

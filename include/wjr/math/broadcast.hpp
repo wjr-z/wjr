@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_BROADCAST_HPP
-#define WJR_MATH_BROADCAST_HPP
+#ifndef WJR_MATH_BROADCAST_HPP__
+#define WJR_MATH_BROADCAST_HPP__
 
 #include <cstdint>
 
@@ -78,4 +78,4 @@ struct broadcast_fn<uint8_t, uint64_t> {
 
 } // namespace wjr
 
-#endif // WJR_MATH_BROADCAST_HPP
+#endif // WJR_MATH_BROADCAST_HPP__

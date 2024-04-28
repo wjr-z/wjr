@@ -1,5 +1,5 @@
-#ifndef WJR_X86_MATH_COMPARE_HPP
-#define WJR_X86_MATH_COMPARE_HPP
+#ifndef WJR_X86_MATH_COMPARE_HPP__
+#define WJR_X86_MATH_COMPARE_HPP__
 
 #include <wjr/math/ctz.hpp>
 #include <wjr/x86/simd/simd.hpp>
@@ -482,4 +482,4 @@ WJR_CONST WJR_INTRINSIC_INLINE bool __asm_less_equal_128(uint64_t lo0, uint64_t 
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_COMPARE_HPP
+#endif // WJR_X86_MATH_COMPARE_HPP__

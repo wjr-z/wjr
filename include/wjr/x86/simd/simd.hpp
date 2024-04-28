@@ -1,5 +1,5 @@
-#ifndef WJR_SIMD_SIMD_HPP
-#define WJR_SIMD_SIMD_HPP
+#ifndef WJR_SIMD_SIMD_HPP__
+#define WJR_SIMD_SIMD_HPP__
 
 #include <cstring>
 
@@ -3671,4 +3671,4 @@ __m256i avx::unpacklo(__m256i a, __m256i b, uint32_t) { return unpacklo_epi32(a,
 
 #endif
 
-#endif // WJR_SIMD_SIMD_HPP
+#endif // WJR_SIMD_SIMD_HPP__

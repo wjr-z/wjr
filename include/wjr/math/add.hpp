@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_ADD_HPP
-#define WJR_MATH_ADD_HPP
+#ifndef WJR_MATH_ADD_HPP__
+#define WJR_MATH_ADD_HPP__
 
 #include <wjr/assert.hpp>
 #include <wjr/math/add-impl.hpp>
@@ -420,4 +420,4 @@ WJR_INTRINSIC_CONSTEXPR_E uint8_t __addc_cc_128(uint64_t &al, uint64_t &ah, uint
 
 } // namespace wjr
 
-#endif // WJR_MATH_ADD_HPP
+#endif // WJR_MATH_ADD_HPP__

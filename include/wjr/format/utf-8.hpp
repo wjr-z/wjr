@@ -1,5 +1,5 @@
-#ifndef WJR_FORMAT_UTF_8_HPP
-#define WJR_FORMAT_UTF_8_HPP
+#ifndef WJR_FORMAT_UTF_8_HPP__
+#define WJR_FORMAT_UTF_8_HPP__
 
 #include <wjr/memory/details.hpp>
 #include <wjr/type_traits.hpp>
@@ -55,4 +55,4 @@ WJR_PURE WJR_INTRINSIC_INLINE bool is_ascii_32(uint8_t *ptr) {
 
 } // namespace wjr::utf8
 
-#endif // WJR_FORMAT_UTF_8_HPP
+#endif // WJR_FORMAT_UTF_8_HPP__

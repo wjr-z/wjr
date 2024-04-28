@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_MUL_HPP
-#define WJR_MATH_MUL_HPP
+#ifndef WJR_MATH_MUL_HPP__
+#define WJR_MATH_MUL_HPP__
 
 /**
  * @todo optimize temporary memory usage of mul_s, mul_n, sqr
@@ -3055,4 +3055,4 @@ void toom4_sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *stk) {
 
 } // namespace wjr
 
-#endif // WJR_MATH_MUL_HPP
+#endif // WJR_MATH_MUL_HPP__

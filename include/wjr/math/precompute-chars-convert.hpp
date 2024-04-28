@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP
-#define WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP
+#ifndef WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
+#define WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
 
 #include <wjr/math/mul.hpp>
 
@@ -30,4 +30,4 @@ precompute_chars_convert(precompute_chars_convert_t *pre, size_t n, unsigned int
 
 } // namespace wjr
 
-#endif // WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP
+#endif // WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__

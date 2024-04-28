@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_DIV_HPP
-#define WJR_MATH_DIV_HPP
+#ifndef WJR_MATH_DIV_HPP__
+#define WJR_MATH_DIV_HPP__
 
 #include <wjr/math/compare.hpp>
 #include <wjr/math/div-impl.hpp>
@@ -1144,7 +1144,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR20 T mod_1_impl(const T *src, size_t n,
 }
 
 template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
-WJR_CONSTEXPR_E T mod_1(const T *src, size_t n, const div2by1_divider<T> &div) {
+WJR_CONSTEXPR20 T mod_1(const T *src, size_t n, const div2by1_divider<T> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
 
     if (WJR_UNLIKELY(div.is_zero_or_single_bit())) {
@@ -1162,7 +1162,7 @@ WJR_CONSTEXPR_E T mod_1(const T *src, size_t n, const div2by1_divider<T> &div) {
 }
 
 template <typename T, WJR_REQUIRES_I(std::is_same_v<T, uint64_t>)>
-WJR_CONSTEXPR_E T mod_1(const T *src, size_t n, type_identity_t<T> div) {
+WJR_CONSTEXPR20 T mod_1(const T *src, size_t n, type_identity_t<T> div) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_ASSUME(div != 0);
 
@@ -1196,4 +1196,4 @@ WJR_CONSTEXPR_E T mod_1(const T *src, size_t n, type_identity_t<T> div) {
 
 } // namespace wjr
 
-#endif // WJR_MATH_DIV_HPP
+#endif // WJR_MATH_DIV_HPP__

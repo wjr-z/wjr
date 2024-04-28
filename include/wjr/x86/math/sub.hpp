@@ -1,5 +1,5 @@
-#ifndef WJR_X86_SUB_HPP
-#define WJR_X86_SUB_HPP
+#ifndef WJR_X86_SUB_HPP__
+#define WJR_X86_SUB_HPP__
 
 #include <wjr/type_traits.hpp>
 
@@ -239,4 +239,4 @@ WJR_INTRINSIC_INLINE uint8_t __asm_subc_cc_128(uint64_t &al, uint64_t &ah, uint6
 
 } // namespace wjr
 
-#endif // WJR_X86_SUB_HPP
+#endif // WJR_X86_SUB_HPP__

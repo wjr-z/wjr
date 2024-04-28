@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_SET_HPP
-#define WJR_MATH_SET_HPP
+#ifndef WJR_MATH_SET_HPP__
+#define WJR_MATH_SET_HPP__
 
 #include <cstring>
 
@@ -45,4 +45,4 @@ WJR_INTRINSIC_CONSTEXPR_E void set_n(T *dst, type_identity_t<T> val, size_t n) {
 
 } // namespace wjr
 
-#endif // WJR_MATH_SET_HPP
+#endif // WJR_MATH_SET_HPP__

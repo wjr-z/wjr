@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_SHIFT_HPP
-#define WJR_MATH_SHIFT_HPP
+#ifndef WJR_MATH_SHIFT_HPP__
+#define WJR_MATH_SHIFT_HPP__
 
 #include <wjr/assert.hpp>
 #include <wjr/type_traits.hpp>
@@ -126,4 +126,4 @@ WJR_INTRINSIC_CONSTEXPR_E T rshift_n(T *dst, const T *src, size_t n, unsigned in
 
 } // namespace wjr
 
-#endif // WJR_MATH_SHIFT_HPP
+#endif // WJR_MATH_SHIFT_HPP__

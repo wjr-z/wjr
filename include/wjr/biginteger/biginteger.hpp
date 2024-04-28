@@ -1,5 +1,5 @@
-#ifndef WJR_BIGINTEGER_BIGINTEGER_HPP
-#define WJR_BIGINTEGER_BIGINTEGER_HPP
+#ifndef WJR_BIGINTEGER_BIGINTEGER_HPP__
+#define WJR_BIGINTEGER_BIGINTEGER_HPP__
 
 #include <optional>
 
@@ -169,7 +169,8 @@ public:
     void take_storage(default_biginteger_vector_storage &other, _Alty &) noexcept {
         auto &other_storage = other.m_storage;
         m_storage = other_storage;
-        other_storage = {nullptr, 0, 0};
+        other_storage.m_data = nullptr;
+        other_storage.m_size = other_storage.m_capacity = 0;
     }
 
     void swap_storage(default_biginteger_vector_storage &other, _Alty &) noexcept {
@@ -466,8 +467,19 @@ template <typename S>
 from_chars_result<> from_chars(const char *first, const char *last,
                                basic_biginteger<S> &dst, unsigned int base = 10);
 
-template <typename S, typename Iter>
-Iter to_chars_unchecked(Iter ptr, const basic_biginteger<S> &src, unsigned int base = 10);
+template <typename Iter>
+Iter to_chars_unchecked(Iter ptr, const biginteger_data &src, unsigned int base = 10) {
+    if (src.empty()) {
+        *ptr++ = '0';
+        return ptr;
+    }
+
+    if (src.is_negate()) {
+        *ptr++ = '-';
+    }
+
+    return biginteger_to_chars(ptr, src.data(), src.size(), base);
+}
 
 WJR_NODISCARD WJR_PURE inline int32_t compare(const biginteger_data &lhs,
                                               const biginteger_data &rhs) {
@@ -484,16 +496,6 @@ WJR_NODISCARD WJR_PURE int32_t compare(T lhs, const biginteger_data &rhs) {
     return -compare(rhs, lhs);
 }
 
-template <typename S0, typename S1>
-WJR_NODISCARD WJR_PURE int32_t compare(const basic_biginteger<S0> &lhs,
-                                       const basic_biginteger<S1> &rhs);
-
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_NODISCARD WJR_PURE int32_t compare(const basic_biginteger<S> &lhs, T rhs);
-
-template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_NODISCARD WJR_PURE int32_t compare(T lhs, const basic_biginteger<S> &rhs);
-
 #define WJR_REGISTER_BIGINTEGER_COMPARE(op)                                              \
     WJR_NODISCARD WJR_PURE inline bool operator op(const biginteger_data &lhs,           \
                                                    const biginteger_data &rhs) {         \
@@ -505,19 +507,6 @@ WJR_NODISCARD WJR_PURE int32_t compare(T lhs, const basic_biginteger<S> &rhs);
     }                                                                                    \
     template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>                        \
     WJR_NODISCARD WJR_PURE bool operator op(T lhs, const biginteger_data &rhs) {         \
-        return compare(lhs, rhs) op 0;                                                   \
-    }                                                                                    \
-    template <typename S0, typename S1>                                                  \
-    WJR_NODISCARD WJR_PURE bool operator op(const basic_biginteger<S0> &lhs,             \
-                                            const basic_biginteger<S1> &rhs) {           \
-        return compare(lhs, rhs) op 0;                                                   \
-    }                                                                                    \
-    template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>            \
-    WJR_NODISCARD WJR_PURE bool operator op(const basic_biginteger<S> &lhs, T rhs) {     \
-        return compare(lhs, rhs) op 0;                                                   \
-    }                                                                                    \
-    template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>            \
-    WJR_NODISCARD WJR_PURE bool operator op(T lhs, const basic_biginteger<S> &rhs) {     \
         return compare(lhs, rhs) op 0;                                                   \
     }
 
@@ -546,16 +535,7 @@ WJR_REGISTER_BIGINTEGER_COMPARE(>=)
     void ADDSUB(basic_biginteger<S> &dst, T lhs, const biginteger_data &rhs) {           \
         biginteger_details::WJR_PP_CONCAT(__, WJR_PP_CONCAT(ADDSUB, _impl))(&dst, lhs,   \
                                                                             &rhs);       \
-    }                                                                                    \
-    template <typename S0, typename S1, typename S2>                                     \
-    void ADDSUB(basic_biginteger<S0> &dst, const basic_biginteger<S1> &lhs,              \
-                const basic_biginteger<S2> &rhs);                                        \
-    template <typename S0, typename S1, typename T,                                      \
-              WJR_REQUIRES(is_nonbool_integral_v<T>)>                                    \
-    void ADDSUB(basic_biginteger<S0> &dst, const basic_biginteger<S1> &lhs, T rhs);      \
-    template <typename S0, typename S1, typename T,                                      \
-              WJR_REQUIRES(is_nonbool_integral_v<T>)>                                    \
-    void ADDSUB(basic_biginteger<S0> &dst, T lhs, const basic_biginteger<S1> &rhs);
+    }
 
 WJR_REGISTER_BIGINTEGER_ADDSUB(add)
 WJR_REGISTER_BIGINTEGER_ADDSUB(sub)
@@ -587,16 +567,6 @@ template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 void mul(basic_biginteger<S> &dst, T lhs, const biginteger_data &rhs) {
     biginteger_details::__mul_impl(&dst, &rhs, lhs);
 }
-
-template <typename S0, typename S1, typename S2>
-void mul(basic_biginteger<S0> &dst, const basic_biginteger<S1> &lhs,
-         const basic_biginteger<S2> &rhs);
-
-template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-void mul(basic_biginteger<S0> &dst, const basic_biginteger<S1> &lhs, T rhs);
-
-template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-void mul(basic_biginteger<S0> &dst, T lhs, const basic_biginteger<S1> &rhs);
 
 template <typename S0, typename S1>
 void tdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
@@ -699,42 +669,6 @@ template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t cdiv_r(basic_biginteger<S> &rem, const biginteger_data &num, T div) {
     return biginteger_details::__cdiv_r_impl(&rem, &num, div);
 }
-
-template <typename S0, typename S1, typename S2, typename S3>
-void tdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
-             const basic_biginteger<S2> &num, const basic_biginteger<S3> &div);
-
-template <typename S0, typename S1, typename S2>
-void tdiv_q(basic_biginteger<S0> &quot, const basic_biginteger<S1> &num,
-            const basic_biginteger<S2> &div);
-
-template <typename S0, typename S1, typename S2>
-void tdiv_r(basic_biginteger<S0> &rem, const basic_biginteger<S1> &num,
-            const basic_biginteger<S2> &div);
-
-template <typename S0, typename S1, typename S2, typename S3>
-void fdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
-             const basic_biginteger<S2> &num, const basic_biginteger<S3> &div);
-
-template <typename S0, typename S1, typename S2>
-void fdiv_q(basic_biginteger<S0> &quot, const basic_biginteger<S1> &num,
-            const basic_biginteger<S2> &div);
-
-template <typename S0, typename S1, typename S2>
-void fdiv_r(basic_biginteger<S0> &rem, const basic_biginteger<S1> &num,
-            const basic_biginteger<S2> &div);
-
-template <typename S0, typename S1, typename S2, typename S3>
-void cdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
-             const basic_biginteger<S2> &num, const basic_biginteger<S3> &div);
-
-template <typename S0, typename S1, typename S2>
-void cdiv_q(basic_biginteger<S0> &quot, const basic_biginteger<S1> &num,
-            const basic_biginteger<S2> &div);
-
-template <typename S0, typename S1, typename S2>
-void cdiv_r(basic_biginteger<S0> &rem, const basic_biginteger<S1> &num,
-            const basic_biginteger<S2> &div);
 
 template <typename Storage>
 class basic_biginteger {
@@ -935,6 +869,16 @@ public:
 
     void abs() noexcept { set_ssize(__fasts_abs(get_ssize())); }
 
+    basic_biginteger &operator++() {
+        increment(*this);
+        return *this;
+    }
+
+    basic_biginteger &operator--() {
+        decrement(*this);
+        return *this;
+    }
+
     // extension
 
     WJR_PURE int32_t get_ssize() const { return get_storage().get_ssize(); }
@@ -971,9 +915,8 @@ public:
         return get_storage().__get_data();
     }
 
-    WJR_PURE const biginteger_data &__get_ref() const noexcept {
-        return *get_storage().__get_data();
-    }
+    WJR_PURE const biginteger_data &__get_ref() const noexcept { return *__get_data(); }
+    WJR_PURE operator const biginteger_data &() const noexcept { return __get_ref(); }
 
 private:
     void __check_high_bit() const {
@@ -2272,133 +2215,6 @@ from_chars_result<> from_chars(const char *first, const char *last,
     return biginteger_details::__from_chars_impl(first, last, &dst, base);
 }
 
-template <typename Iter>
-Iter to_chars_unchecked(Iter ptr, const biginteger_data &src, unsigned int base) {
-    if (src.empty()) {
-        *ptr++ = '0';
-        return ptr;
-    }
-
-    if (src.is_negate()) {
-        *ptr++ = '-';
-    }
-
-    return biginteger_to_chars(ptr, src.data(), src.size(), base);
-}
-
-template <typename S, typename Iter>
-Iter to_chars_unchecked(Iter ptr, const basic_biginteger<S> &src, unsigned int base) {
-    return to_chars_unchecked(ptr, src.__get_ref(), base);
-}
-
-template <typename S0, typename S1>
-WJR_NODISCARD WJR_PURE int32_t compare(const basic_biginteger<S0> &lhs,
-                                       const basic_biginteger<S1> &rhs) {
-    return compare(lhs.__get_ref(), rhs.__get_ref());
-}
-
-template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
-WJR_NODISCARD WJR_PURE int32_t compare(const basic_biginteger<S> &lhs, T rhs) {
-    return compare(lhs.__get_ref(), rhs);
-}
-
-template <typename S, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
-WJR_NODISCARD WJR_PURE int32_t compare(T lhs, const basic_biginteger<S> &rhs) {
-    return compare(lhs, rhs.__get_ref());
-}
-
-#define WJR_REGISTER_BIGINTEGER_ADDSUB(ADDSUB)                                           \
-    template <typename S0, typename S1, typename S2>                                     \
-    void ADDSUB(basic_biginteger<S0> &dst, const basic_biginteger<S1> &lhs,              \
-                const basic_biginteger<S2> &rhs) {                                       \
-        ADDSUB(dst, lhs.__get_ref(), rhs.__get_ref());                                   \
-    }                                                                                    \
-    template <typename S0, typename S1, typename T,                                      \
-              WJR_REQUIRES_I(is_nonbool_integral_v<T>)>                                  \
-    void ADDSUB(basic_biginteger<S0> &dst, const basic_biginteger<S1> &lhs, T rhs) {     \
-        ADDSUB(dst, lhs.__get_ref(), rhs);                                               \
-    }                                                                                    \
-    template <typename S0, typename S1, typename T,                                      \
-              WJR_REQUIRES_I(is_nonbool_integral_v<T>)>                                  \
-    void ADDSUB(basic_biginteger<S0> &dst, T lhs, const basic_biginteger<S1> &rhs) {     \
-        ADDSUB(dst, lhs, rhs.__get_ref());                                               \
-    }
-
-WJR_REGISTER_BIGINTEGER_ADDSUB(add)
-WJR_REGISTER_BIGINTEGER_ADDSUB(sub)
-
-#undef WJR_REGISTER_BIGINTEGER_ADDSUB
-
-template <typename S0, typename S1, typename S2>
-void mul(basic_biginteger<S0> &dst, const basic_biginteger<S1> &lhs,
-         const basic_biginteger<S2> &rhs) {
-    mul(dst, lhs.__get_ref(), rhs.__get_ref());
-}
-
-template <typename S0, typename S1, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
-void mul(basic_biginteger<S0> &dst, const basic_biginteger<S1> &lhs, T rhs) {
-    mul(dst, lhs.__get_ref(), rhs);
-}
-
-template <typename S0, typename S1, typename T, WJR_REQUIRES_I(is_nonbool_integral_v<T>)>
-void mul(basic_biginteger<S0> &dst, T lhs, const basic_biginteger<S1> &rhs) {
-    mul(dst, lhs, rhs.__get_ref());
-}
-
-template <typename S0, typename S1, typename S2, typename S3>
-void tdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
-             const basic_biginteger<S2> &num, const basic_biginteger<S3> &div) {
-    tdiv_qr(quot, rem, num.__get_ref(), div.__get_ref());
-}
-
-template <typename S0, typename S1, typename S2>
-void tdiv_q(basic_biginteger<S0> &quot, const basic_biginteger<S1> &num,
-            const basic_biginteger<S2> &div) {
-    tdiv_q(quot, num.__get_ref(), div.__get_ref());
-}
-
-template <typename S0, typename S1, typename S2>
-void tdiv_r(basic_biginteger<S0> &rem, const basic_biginteger<S1> &num,
-            const basic_biginteger<S2> &div) {
-    tdiv_r(rem, num.__get_ref(), div.__get_ref());
-}
-
-template <typename S0, typename S1, typename S2, typename S3>
-void fdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
-             const basic_biginteger<S2> &num, const basic_biginteger<S3> &div) {
-    fdiv_qr(quot, rem, num.__get_ref(), div.__get_ref());
-}
-
-template <typename S0, typename S1, typename S2>
-void fdiv_q(basic_biginteger<S0> &quot, const basic_biginteger<S1> &num,
-            const basic_biginteger<S2> &div) {
-    fdiv_q(quot, num.__get_ref(), div.__get_ref());
-}
-
-template <typename S0, typename S1, typename S2>
-void fdiv_r(basic_biginteger<S0> &rem, const basic_biginteger<S1> &num,
-            const basic_biginteger<S2> &div) {
-    fdiv_r(rem, num.__get_ref(), div.__get_ref());
-}
-
-template <typename S0, typename S1, typename S2, typename S3>
-void cdiv_qr(basic_biginteger<S0> &quot, basic_biginteger<S1> &rem,
-             const basic_biginteger<S2> &num, const basic_biginteger<S3> &div) {
-    cdiv_qr(quot, rem, num.__get_ref(), div.__get_ref());
-}
-
-template <typename S0, typename S1, typename S2>
-void cdiv_q(basic_biginteger<S0> &quot, const basic_biginteger<S1> &num,
-            const basic_biginteger<S2> &div) {
-    cdiv_q(quot, num.__get_ref(), div.__get_ref());
-}
-
-template <typename S0, typename S1, typename S2>
-void cdiv_r(basic_biginteger<S0> &rem, const basic_biginteger<S1> &num,
-            const basic_biginteger<S2> &div) {
-    cdiv_r(rem, num.__get_ref(), div.__get_ref());
-}
-
 template <typename S>
 std::istream &operator>>(std::istream &is, basic_biginteger<S> &dst) {
     std::string str;
@@ -2449,12 +2265,6 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
 
     os.setstate(state);
     return os;
-}
-
-template <typename Char, typename Traits, typename S>
-std::basic_ostream<Char, Traits> &operator<<(std::basic_ostream<Char, Traits> &os,
-                                             const basic_biginteger<S> &src) {
-    return os << src.__get_ref();
 }
 
 } // namespace wjr

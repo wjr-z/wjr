@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_DETAILS_HPP
-#define WJR_MATH_DETAILS_HPP
+#ifndef WJR_MATH_DETAILS_HPP__
+#define WJR_MATH_DETAILS_HPP__
 
 #include <wjr/type_traits.hpp>
 
@@ -173,4 +173,4 @@ WJR_CONST constexpr T __fasts_sub(T x, std::make_unsigned_t<T> y) {
 
 } // namespace wjr
 
-#endif // WJR_MATH_DETAILS_HPP
+#endif // WJR_MATH_DETAILS_HPP__

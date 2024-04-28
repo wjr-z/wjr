@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_FIND_HPP
-#define WJR_MATH_FIND_HPP
+#ifndef WJR_MATH_FIND_HPP__
+#define WJR_MATH_FIND_HPP__
 
 #include <wjr/type_traits.hpp>
 
@@ -358,4 +358,4 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n(const T *src,
 
 } // namespace wjr
 
-#endif // WJR_MATH_FIND_HPP
+#endif // WJR_MATH_FIND_HPP__

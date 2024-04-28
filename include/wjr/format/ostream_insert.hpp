@@ -1,5 +1,5 @@
-#ifndef WJR_FORMAT_OSTREAM_INSERT_HPP
-#define WJR_FORMAT_OSTREAM_INSERT_HPP
+#ifndef WJR_FORMAT_OSTREAM_INSERT_HPP__
+#define WJR_FORMAT_OSTREAM_INSERT_HPP__
 
 #include <ostream>
 
@@ -64,4 +64,4 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 
 } // namespace wjr
 
-#endif // WJR_FORMAT_OSTREAM_INSERT_HPP
+#endif // WJR_FORMAT_OSTREAM_INSERT_HPP__

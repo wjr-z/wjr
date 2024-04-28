@@ -1,5 +1,5 @@
-#ifndef WJR_X86_MATH_PREFIX_XOR_HPP
-#define WJR_X86_MATH_PREFIX_XOR_HPP
+#ifndef WJR_X86_MATH_PREFIX_XOR_HPP__
+#define WJR_X86_MATH_PREFIX_XOR_HPP__
 
 #include <wjr/preprocessor.hpp>
 #include <wjr/x86/simd/simd.hpp>
@@ -33,4 +33,4 @@ T builtin_prefix_xor(T x) {
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_PREFIX_XOR_HPP
+#endif // WJR_X86_MATH_PREFIX_XOR_HPP__

@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_DIV_IMPL_HPP
-#define WJR_MATH_DIV_IMPL_HPP
+#ifndef WJR_MATH_DIV_IMPL_HPP__
+#define WJR_MATH_DIV_IMPL_HPP__
 
 #include <utility>
 
@@ -73,11 +73,11 @@ WJR_INTRINSIC_CONSTEXPR_E void divexact_1(T *dst, const T *src, size_t n,
                                           type_identity_t<T> div);
 
 template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
-WJR_PURE WJR_CONSTEXPR_E T mod_1(const T *src, size_t n, div2by1_divider<T> div);
+WJR_PURE WJR_CONSTEXPR20 T mod_1(const T *src, size_t n, div2by1_divider<T> div);
 
 template <typename T, WJR_REQUIRES(std::is_same_v<T, uint64_t>)>
-WJR_PURE WJR_CONSTEXPR_E T mod_1(const T *src, size_t n, type_identity_t<T> div);
+WJR_PURE WJR_CONSTEXPR20 T mod_1(const T *src, size_t n, type_identity_t<T> div);
 
 } // namespace wjr
 
-#endif // WJR_MATH_DIV_IMPL_HPP
+#endif // WJR_MATH_DIV_IMPL_HPP__

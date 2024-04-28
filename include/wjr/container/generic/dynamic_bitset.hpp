@@ -1,5 +1,5 @@
-#ifndef WJR_CONTAINER_GENERIC_DYNAMIC_BITSET_HPP
-#define WJR_CONTAINER_GENERIC_DYNAMIC_BITSET_HPP
+#ifndef WJR_CONTAINER_GENERIC_DYNAMIC_BITSET_HPP__
+#define WJR_CONTAINER_GENERIC_DYNAMIC_BITSET_HPP__
 
 #include <wjr/math.hpp>
 #include <wjr/span.hpp>
@@ -340,4 +340,4 @@ using bitset = basic_dynamic_bitset<>;
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_GENERIC_DYNAMIC_BITSET_HPP
+#endif // WJR_CONTAINER_GENERIC_DYNAMIC_BITSET_HPP__

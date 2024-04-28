@@ -1,5 +1,5 @@
-#ifndef WJR_PREPROCESSOR_QUEUE_ALGORITHM_HPP
-#define WJR_PREPROCESSOR_QUEUE_ALGORITHM_HPP
+#ifndef WJR_PREPROCESSOR_QUEUE_ALGORITHM_HPP__
+#define WJR_PREPROCESSOR_QUEUE_ALGORITHM_HPP__
 
 #include <wjr/preprocessor/arithmatic.hpp>
 #include <wjr/preprocessor/details.hpp>
@@ -132,4 +132,4 @@
         WJR_PP_QUEUE_POP_FRONT(WJR_PP_QUEUE_FRONT(x))),                                  \
         WJR_PP_QUEUE_POP_FRONT(y)
 
-#endif // WJR_PREPROCESSOR_QUEUE_ALGORITHM_HPP
+#endif // WJR_PREPROCESSOR_QUEUE_ALGORITHM_HPP__

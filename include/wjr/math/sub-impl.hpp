@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_SUB_IMPL_HPP
-#define WJR_MATH_SUB_IMPL_HPP
+#ifndef WJR_MATH_SUB_IMPL_HPP__
+#define WJR_MATH_SUB_IMPL_HPP__
 
 #include <wjr/type_traits.hpp>
 
@@ -69,4 +69,4 @@ WJR_INTRINSIC_CONSTEXPR_E uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint
 
 } // namespace wjr
 
-#endif // WJR_MATH_SUB_IMPL_HPP
+#endif // WJR_MATH_SUB_IMPL_HPP__

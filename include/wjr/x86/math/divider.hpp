@@ -1,5 +1,5 @@
-#ifndef WJR_X86_MATH_DIVIDER_HPP
-#define WJR_X86_MATH_DIVIDER_HPP
+#ifndef WJR_X86_MATH_DIVIDER_HPP__
+#define WJR_X86_MATH_DIVIDER_HPP__
 
 #include <wjr/type_traits.hpp>
 
@@ -41,4 +41,4 @@ WJR_INTRINSIC_INLINE void asm_div2by1_adjust_branch(T div, T & lo) {
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_DIVIDER_HPP
+#endif // WJR_X86_MATH_DIVIDER_HPP__

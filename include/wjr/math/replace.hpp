@@ -1,5 +1,5 @@
-#ifndef WJR_MATH_REPLACE_HPP
-#define WJR_MATH_REPLACE_HPP
+#ifndef WJR_MATH_REPLACE_HPP__
+#define WJR_MATH_REPLACE_HPP__
 
 #include <wjr/math/find.hpp>
 #include <wjr/math/set.hpp>
@@ -39,4 +39,4 @@ WJR_INTRINSIC_CONSTEXPR_E size_t reverse_replace_find_not(T *dst, const T *src, 
 
 } // namespace wjr
 
-#endif // WJR_MATH_REPLACE_HPP
+#endif // WJR_MATH_REPLACE_HPP__

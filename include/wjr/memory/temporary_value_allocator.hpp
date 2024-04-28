@@ -1,5 +1,5 @@
-#ifndef WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP
-#define WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP
+#ifndef WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
+#define WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
 
 #include <wjr/memory/uninitialized.hpp>
 
@@ -41,4 +41,4 @@ temporary_value_allocator(Alloc &, Args &&...) -> temporary_value_allocator<Allo
 
 } // namespace wjr
 
-#endif // WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP
+#endif // WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__

@@ -1,5 +1,5 @@
-#ifndef WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP
-#define WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP
+#ifndef WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__
+#define WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__
 
 /**
  * @file vector.hpp
@@ -1409,15 +1409,21 @@ public:
 
     WJR_CONSTEXPR20 basic_vector(size_type n, dctor_t,
                                  const allocator_type &al = allocator_type())
-        : basic_vector(al) {
+        : m_pair(std::piecewise_construct, std::forward_as_tuple(al),
+                 std::forward_as_tuple()) {
         __construct_n(n, dctor);
     }
 
     WJR_CONSTEXPR20 basic_vector(size_type n, in_place_reserve_t,
                                  const allocator_type &al = allocator_type())
-        : basic_vector(al) {
+        : m_pair(std::piecewise_construct, std::forward_as_tuple(al),
+                 std::forward_as_tuple()) {
         uninitialized_construct(0, n);
     }
+
+    WJR_CONSTEXPR20 basic_vector(storage_type &&other, _Alty &&al)
+        : m_pair(std::piecewise_construct, std::forward_as_tuple(std::move(al)),
+                 std::forward_as_tuple(std::move(other))) {}
 
     WJR_CONSTEXPR20 void resize(const size_type new_size, dctor_t) {
         __resize(new_size, dctor);
@@ -1506,7 +1512,7 @@ public:
                                                  size_type cap) noexcept {
         get_storage().uninitialized_construct(other, siz, cap, __get_allocator());
     }
-    
+
     WJR_CONSTEXPR20 void uninitialized_construct(size_type siz, size_type cap) noexcept {
         if constexpr (has_vector_storage_uninitialized_construct_v<storage_type,
                                                                    size_type, _Alty>) {
@@ -2281,4 +2287,4 @@ bool operator>=(const basic_vector<Storage> &lhs, const basic_vector<Storage> &r
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP
+#endif // WJR_CONTAINER_GENERIC_CONTAINER_VECTOR_HPP__

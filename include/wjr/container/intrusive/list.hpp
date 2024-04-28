@@ -1,5 +1,5 @@
-#ifndef WJR_CONTAINER_INTRUSIVE_LIST_HPP
-#define WJR_CONTAINER_INTRUSIVE_LIST_HPP
+#ifndef WJR_CONTAINER_INTRUSIVE_LIST_HPP__
+#define WJR_CONTAINER_INTRUSIVE_LIST_HPP__
 
 #include <wjr/preprocessor.hpp>
 
@@ -45,4 +45,4 @@ WJR_INTRINSIC_CONSTEXPR bool empty(const list_node *node) { return node->next ==
 
 } // namespace wjr::intrusive
 
-#endif // WJR_CONTAINER_INTRUSIVE_LIST_HPP
+#endif // WJR_CONTAINER_INTRUSIVE_LIST_HPP__

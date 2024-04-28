@@ -1,5 +1,5 @@
-#ifndef WJR_X86_MATH_SET_HPP
-#define WJR_X86_MATH_SET_HPP
+#ifndef WJR_X86_MATH_SET_HPP__
+#define WJR_X86_MATH_SET_HPP__
 
 #include <cstring>
 
@@ -180,4 +180,4 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_SET_HPP
+#endif // WJR_X86_MATH_SET_HPP__

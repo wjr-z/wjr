@@ -1,5 +1,5 @@
-#ifndef WJR_X86_MATH_CONVERT_HPP
-#define WJR_X86_MATH_CONVERT_HPP
+#ifndef WJR_X86_MATH_CONVERT_HPP__
+#define WJR_X86_MATH_CONVERT_HPP__
 
 #include <wjr/math/convert-impl.hpp>
 #include <wjr/x86/simd/simd.hpp>
@@ -186,4 +186,4 @@ uint64_t builtin_from_chars_unroll_16_fast(const void *ptr, origin_converter_t) 
 
 } // namespace wjr
 
-#endif // WJR_X86_MATH_CONVERT_HPP
+#endif // WJR_X86_MATH_CONVERT_HPP__

@@ -1,5 +1,5 @@
-#ifndef WJR_JSON_LEXER_IMPL_HPP
-#define WJR_JSON_LEXER_IMPL_HPP
+#ifndef WJR_JSON_LEXER_IMPL_HPP__
+#define WJR_JSON_LEXER_IMPL_HPP__
 
 #include <wjr/span.hpp>
 
@@ -84,4 +84,4 @@ inline uint64_t calc_backslash(uint64_t B) {
 
 } // namespace wjr::json
 
-#endif // WJR_JSON_LEXER_IMPL_HPP
+#endif // WJR_JSON_LEXER_IMPL_HPP__

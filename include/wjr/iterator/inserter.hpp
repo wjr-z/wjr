@@ -1,5 +1,5 @@
-#ifndef WJR_ITERATOR_INSERTER_HPP
-#define WJR_ITERATOR_INSERTER_HPP
+#ifndef WJR_ITERATOR_INSERTER_HPP__
+#define WJR_ITERATOR_INSERTER_HPP__
 
 #include <wjr/iterator/details.hpp>
 
@@ -84,4 +84,4 @@ get_inserter_iterator(std::insert_iterator<Container> it) noexcept(
 
 } // namespace wjr
 
-#endif // WJR_ITERATOR_INSERTER_HPP
+#endif // WJR_ITERATOR_INSERTER_HPP__
