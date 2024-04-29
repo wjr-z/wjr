@@ -37,26 +37,23 @@ inline bool equal(const biginteger &a, const mpz_t b) {
 
 #endif
 
-inline void random(biginteger &a, size_t n) {
-    urandom_exact_bit(a, n * 64, mt_rand.get());
-}
+inline void random(biginteger &a, size_t n) { urandom_exact_bit(a, n * 64, __mt_rand); }
 
 TEST(biginteger, random) {
-    std::mt19937_64 mt_rand(std::random_device{}());
     {
         biginteger a;
 
-        urandom_bit(a, 0, mt_rand);
+        urandom_bit(a, 0, __mt_rand);
         WJR_ASSERT(a == 0);
 
         for (int i = 0; i < 8; ++i) {
-            urandom_bit(a, 1, mt_rand);
+            urandom_bit(a, 1, __mt_rand);
             WJR_ASSERT(a >= 0 && a < 2);
 
-            urandom_bit(a, 2, mt_rand);
+            urandom_bit(a, 2, __mt_rand);
             WJR_ASSERT(a >= 0 && a < 4);
 
-            urandom_bit(a, 7, mt_rand);
+            urandom_bit(a, 7, __mt_rand);
             WJR_ASSERT(a >= 0 && a < (1u << 7));
         }
     }
@@ -64,18 +61,52 @@ TEST(biginteger, random) {
     {
         biginteger a;
 
-        urandom_exact_bit(a, 0, mt_rand);
+        urandom_exact_bit(a, 0, __mt_rand);
         WJR_ASSERT(a == 0);
 
         for (int i = 0; i < 8; ++i) {
-            urandom_exact_bit(a, 1, mt_rand);
+            urandom_exact_bit(a, 1, __mt_rand);
             WJR_ASSERT(a >= 1 && a < 2);
 
-            urandom_exact_bit(a, 2, mt_rand);
+            urandom_exact_bit(a, 2, __mt_rand);
             WJR_ASSERT(a >= 2 && a < 4);
 
-            urandom_exact_bit(a, 7, mt_rand);
+            urandom_exact_bit(a, 7, __mt_rand);
             WJR_ASSERT(a >= (1u << 6) && a < (1u << 7));
+        }
+    }
+
+    {
+        biginteger a;
+        a = 1ull << 32 | 1ull << 31 | 13727;
+        a *= a;
+        biginteger b;
+
+        constexpr float RES = 1.25;
+        constexpr float FLOOR = RES * 0.95;
+        constexpr float CEIL = RES * 1.05;
+        const int N = 1e6;
+        const int TRY = 4;
+
+        int T = 0;
+        while (true) {
+            ++T;
+
+            int num[3] = {0, 0, 0};
+
+            for (int i = 0; i < N; ++i) {
+                urandom(b, a, __mt_rand);
+                ++num[b.size()];
+            }
+
+            const float f = (num[2] * 1.0 / num[1]);
+
+            if (f < FLOOR || f > CEIL) {
+                WJR_ASSERT(T != TRY);
+                continue;
+            }
+
+            break;
         }
     }
 }

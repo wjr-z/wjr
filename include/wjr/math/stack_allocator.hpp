@@ -13,10 +13,6 @@ using unique_stack_alloc = unique_stack_allocator<stack_alloc_object>;
 template <typename T>
 using weak_stack_alloc = weak_stack_allocator<T, stack_alloc_object>;
 
-template <typename T>
-using auto_weak_stack_alloc = auto_weak_stack_allocator<T, stack_alloc_object>;
-
-
 } // namespace wjr::math_details
 
 #endif // WJR_MATH_STACK_ALLOCATOR_HPP__

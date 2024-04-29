@@ -501,6 +501,41 @@ private:
 #endif
 };
 
+template <typename T, bool = true>
+class __lazy_crtp : public uninitialized<T> {
+    using Mybase = uninitialized<T>;
+
+public:
+    using Mybase::Mybase;
+};
+
+template <typename T>
+class __lazy_crtp<T, false> : public uninitialized<T> {
+    using Mybase = uninitialized<T>;
+
+public:
+    using Mybase::Mybase;
+
+    ~__lazy_crtp() noexcept(noexcept(Mybase::reset())) { Mybase::reset(); }
+};
+
+template <typename T>
+using lazy_crtp = __lazy_crtp<T,
+#if WJR_HAS_DEBUG(UNINITIALIZED_CHECKER)
+                              false
+#else
+                              std::is_trivially_destructible_v<T>
+#endif
+                              >;
+
+template <typename T>
+class lazy : lazy_crtp<T> {
+    using Mybase = lazy_crtp<T>;
+
+public:
+    using Mybase::Mybase;
+};
+
 } // namespace wjr
 
 #endif // WJR_MEMORY_UNINITIALIZED_HPP__
