@@ -91,32 +91,40 @@ void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in, origin_converter_t) 
 
 namespace from_chars_details {
 
+/// @private
 template <uint64_t Base>
 inline constexpr uint64_t __base2 = Base * Base;
 
+/// @private
 template <uint64_t Base>
 inline constexpr uint64_t __base4 = __base2<Base> * __base2<Base>;
 
+/// @private
 template <uint64_t Base>
 inline constexpr uint64_t __base8 = __base4<Base> * __base4<Base>;
 
+/// @private
 template <uint64_t Base>
 const static __m128i mulp1x = sse::setr_epi8(Base, 1, Base, 1, Base, 1, Base, 1, Base, 1,
                                              Base, 1, Base, 1, Base, 1);
 
+/// @private
 template <uint64_t Base>
 const static __m128i mulp2x = sse::setr_epi16(__base2<Base>, 1, __base2<Base>, 1,
                                               __base2<Base>, 1, __base2<Base>, 1);
 
+/// @private
 template <uint64_t Base>
 const static __m128i mulp4x = sse::setr_epi16(__base4<Base>, 1, __base4<Base>, 1,
                                               __base4<Base>, 1, __base4<Base>, 1);
 
+/// @private
 template <uint64_t Base>
 const static __m128i baseu8 =
     sse::setr_epi8(Base, Base, Base, Base, Base, Base, Base, 0xff, 0xff, 0xff, 0xff, 0xff,
                    0xff, 0xff, 0xff, 0xff);
 
+/// @private
 static __m128i ascii = sse::set1_epi8(0x30);
 
 } // namespace from_chars_details

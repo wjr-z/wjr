@@ -8,6 +8,11 @@
 
 namespace wjr {
 
+/**
+ * @brief A type representing a static-sized span.
+ *
+ * @tparam Extent The number of elements in the span.
+ */
 template <typename T, size_t Extent>
 struct __span_static_storage {
 
@@ -23,6 +28,9 @@ struct __span_static_storage {
     static constexpr size_t size = Extent;
 };
 
+/**
+ * @brief A type representing a dynamic-sized span.
+ */
 template <typename T>
 struct __span_dynamic_storage {
 
@@ -50,12 +58,15 @@ namespace span_details {
 WJR_REGISTER_HAS_TYPE(data, std::data(std::declval<Container &>()), Container);
 WJR_REGISTER_HAS_TYPE(size, std::size(std::declval<Container &>()), Container);
 
+/// @private
 template <typename T>
 struct __is_std_array : std::false_type {};
 
+/// @private
 template <typename T, size_t N>
 struct __is_std_array<std::array<T, N>> : std::true_type {};
 
+/// @private
 template <typename T>
 inline constexpr bool __is_std_array_v = __is_std_array<T>::value;
 
@@ -68,9 +79,11 @@ struct __is_span<span<T, Extent>> : std::true_type {};
 template <typename T>
 inline constexpr bool __is_span_v = __is_span<T>::value;
 
+/// @private
 template <typename Container, typename = void>
 struct __is_container_like : std::false_type {};
 
+/// @private
 template <typename Container>
 struct __is_container_like<
     Container, std::enable_if_t<has_data_v<Container &> && has_size_v<Container &>>>
@@ -80,6 +93,7 @@ struct __is_container_like<
           std::negation<__is_span<remove_cvref_t<Container>>>,
           std::is_pointer<decltype(std::data(std::declval<Container &>()))>> {};
 
+/// @private
 template <typename Container>
 inline constexpr bool __is_container_like_v = __is_container_like<Container>::value;
 
@@ -97,6 +111,7 @@ struct __is_span_like<
 template <typename Container, typename Elem>
 inline constexpr bool __is_span_like_v = __is_span_like<Container, Elem>::value;
 
+/// @private
 template <typename T>
 struct basic_span_traits {
     using value_type = std::remove_cv_t<T>;
@@ -111,7 +126,9 @@ struct basic_span_traits {
 
 /**
  * @class span
+ *
  * @brief A view over a contiguous sequence of objectsd.
+ *
  * @tparam Extent if Extent is `dynamic_extent`, the span is a runtime-sized view.
  * Otherwise, the span is a compile-time-sized view.
  */
@@ -346,10 +363,25 @@ public:
 
     // extension :
 
+    /**
+     * @brief Construct a span from a container.
+     *
+     * @details The container must have a `data()` member function that returns a @ref
+     * __is_span_iterator. The container must also have a `size()` member function that
+     * can be converted to `size_type`.
+     *
+     */
     template <typename Container, WJR_REQUIRES(span_details::__is_span_like_v<
                                                Container, element_type> &&__is_dynamic)>
     constexpr span(Container &&c) noexcept : storage(std::data(c), std::size(c)) {}
 
+    /**
+     * @brief Construct a span from a container.
+     *
+     * @details Like @ref span(Container &&), but the span is not dynamic-sized, so the
+     * construct must be explicit.
+     *
+     */
     template <typename Container,
               WJR_REQUIRES(span_details::__is_span_like_v<Container, element_type> &&
                            !__is_dynamic)>

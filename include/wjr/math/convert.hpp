@@ -3039,7 +3039,7 @@ uint64_t *__biginteger_from_chars_impl(const uint8_t *first, const uint8_t *last
  * @param[out] up Pointer to the biginteger
  * @param[in] base Base of the input string. Range: `[2, 36]`,
  * Only support 10 and power of two currently.
- * @return uint64_t* Pointer after the conversion
+ * @return Pointer after the conversion
  */
 template <typename Iter, typename Converter = char_converter_t,
           WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>)>

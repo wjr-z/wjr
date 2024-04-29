@@ -10,7 +10,9 @@
 namespace wjr {
 
 /**
- * @brief Capture any type as a new type.
+ * @class capture_leaf
+ *
+ * @brief Capture any type as a new type. Can be used as a class base.
  *
  */
 template <typename T, typename Tag = void>
@@ -40,9 +42,11 @@ private:
 };
 
 /**
+ * @class compressed_capture_leaf
+ *
  * @brief Compressed capture any type as a new type.
  *
- * @details Use empty base optimization to compress the size of the object.
+ * @details Use `EBO`(empty base optimization) to compress the size of the object.
  *
  */
 template <typename T, typename Tag = void>
@@ -67,17 +71,31 @@ public:
     constexpr const T &get() const noexcept { return *this; }
 };
 
+/**
+ * @struct is_compressed
+ *
+ * @brief Check if a class can be compressed.
+ *
+ * @details A class can be compressed if it is a `empty` `class`, and it is not `final`.
+ *
+ */
 template <typename T>
 struct is_compressed : std::conjunction<std::is_class<T>, std::is_empty<T>,
                                         std::negation<std::is_final<T>>> {};
 
+/**
+ * @brief Value of @ref is_compressed.
+ *
+ */
 template <typename T>
 inline constexpr bool is_compressed_v = is_compressed<T>::value;
 
+/// @private
 template <template <typename...> typename Test, typename Seq, typename LP, typename RP,
           typename = void>
 struct __is_tuple_test_impl : std::false_type {};
 
+/// @private
 template <template <typename...> typename Test, size_t... Idxs, typename LP, typename RP>
 struct __is_tuple_test_impl<
     Test, std::index_sequence<Idxs...>, LP, RP,
@@ -87,14 +105,28 @@ struct __is_tuple_test_impl<
     : std::conjunction<Test<std::tuple_element_t<Idxs, LP>,
                             decltype(std::get<Idxs>(std::declval<RP>()))>...> {};
 
+/**
+ * @brief Use template<...>typename Test to test all element of LP and RP.
+ *
+ * @details For example, Test is std::is_assignable, LP is std::tuple<T0, U0>, RP is
+ * std::tuple<T1, U1>. \n
+ * Then __is_tuple_test = std::conjunction<std::is_assignable<T0,
+ * T1>, std::is_assignable<U0, U1>>.
+ *
+ */
 template <template <typename...> typename Test, typename LP, typename RP>
 struct __is_tuple_test
     : __is_tuple_test_impl<Test, std::make_index_sequence<std::tuple_size_v<LP>>, LP,
                            RP> {};
 
+/**
+ * @brief Value of @ref __is_tuple_test.
+ *
+ */
 template <template <typename...> typename Test, typename LP, typename RP>
 inline constexpr bool __is_tuple_test_v = __is_tuple_test<Test, LP, RP>::value;
 
+/// @private
 template <typename T, typename U>
 struct __is_tuple_assignable : std::is_assignable<T &, U> {};
 

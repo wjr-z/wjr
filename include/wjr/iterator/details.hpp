@@ -38,9 +38,11 @@ struct is_iterator : __is_iterator_impl<Iter> {};
 template <typename Iter>
 inline constexpr bool is_iterator_v = is_iterator<Iter>::value;
 
+/// @private
 template <typename Iter, typename Category, typename = void>
 struct __is_category_iterator_impl : std::false_type {};
 
+/// @private
 template <typename Iter, typename Category>
 struct __is_category_iterator_impl<
     Iter, Category, std::void_t<typename std::iterator_traits<Iter>::iterator_category>>
@@ -82,14 +84,12 @@ template <typename Iter>
 inline constexpr bool is_random_access_iterator_v =
     is_random_access_iterator<Iter>::value;
 
+/// @private
 template <typename Iter, typename = void>
 struct __is_contiguous_iterator_impl
     : std::disjunction<std::is_pointer<Iter>, std::is_array<Iter>> {};
 
-/**
- * @details If iterator's value_type is trivial, then move_iterator<Iter> is same as Iter.
- *
- */
+/// @private
 template <typename Iter>
 struct __is_contiguous_iterator_impl<std::move_iterator<Iter>, void>
     : std::conjunction<__is_contiguous_iterator_impl<Iter>,

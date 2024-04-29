@@ -180,10 +180,12 @@ public:
     }
 
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
+    /// @private
     WJR_CONSTEXPR20 void __set_container(const Container *container) noexcept {
         m_container = container;
     }
 
+    /// @private
     WJR_CONSTEXPR20 void __check_offset(difference_type offset) const noexcept {
         if (offset == 0) {
             return;
@@ -200,22 +202,30 @@ public:
         }
     }
 
+    /// @private
     WJR_CONSTEXPR20 void
     __check_same_container(const contiguous_const_iterator_adapter &rhs) const noexcept {
         WJR_ASSERT_LX(m_container == rhs.m_container,
                       "Can't compare iterators from different containers.");
     }
 
+    /// @private
     WJR_PURE WJR_CONSTEXPR20 pointer __begin() const noexcept {
         return m_container->data();
     }
 
+    /// @private
     WJR_PURE WJR_CONSTEXPR20 pointer __end() const noexcept {
         return m_container->data() + m_container->size();
     }
 #else
+    /// @private
     constexpr static void __set_container(const Container *) noexcept {}
+
+    /// @private
     constexpr static void __check_offset(difference_type) noexcept {}
+
+    /// @private
     constexpr static void
     __check_same_container(const contiguous_const_iterator_adapter &) noexcept {}
 #endif

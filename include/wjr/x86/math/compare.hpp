@@ -17,6 +17,10 @@ namespace wjr {
 
 #if WJR_HAS_BUILTIN(COMPARE_N)
 
+/**
+ * @brief Use SIMD to compare two arrays of uint64_t.
+ *
+ */
 template <typename T>
 WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size_t n) {
 #define WJR_REGISTER_COMPARE_NOT_N_AVX(index)                                            \
@@ -185,6 +189,23 @@ WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size
 extern template WJR_PURE WJR_COLD int
 large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1, size_t n);
 
+/**
+ * @brief Compare two arrays of uint64_t.
+ *
+ * @details Expand first 4 elements to compare, then use @ref large_builtin_compare_n to
+ * compare the rest.
+ *
+ * @tparam T Requires uint64_t currently.
+ * @param src0 Pointer to the first array.
+ * @param src1 Pointer to the second array.
+ * @param n Number of elements to compare.
+ * @return
+ * \code
+ * negative : src0 < src1
+ * 0        : src0 == src1
+ * positive : src0 > src1
+ * \endcode
+ */
 template <typename T>
 WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1, size_t n) {
     if (WJR_UNLIKELY(n == 0)) {
@@ -230,6 +251,12 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1, size_t 
 
 #if WJR_HAS_BUILTIN(REVERSE_COMPARE_N)
 
+/**
+ * @brief Use SIMD to compare two arrays of uint64_t in reverse order.
+ *
+ * @details @ref large_builtin_compare_n in reverse order.
+ *
+ */
 template <typename T>
 WJR_PURE WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1,
                                                       size_t n) {
@@ -400,6 +427,11 @@ extern template WJR_PURE WJR_COLD int
 large_builtin_reverse_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
                                           size_t n);
 
+/**
+ * @brief Compare two arrays of uint64_t in reverse order.
+ *
+ * @details @ref builtin_compare_n in reverse order.
+ */
 template <typename T>
 WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
                                                    size_t n) {

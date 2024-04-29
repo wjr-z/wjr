@@ -46,6 +46,7 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
     }
 }
 
+/// @private
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt __copy_restrict_impl_aux(add_restrict_t<InputIt> first,
                                             add_restrict_t<InputIt> last,
@@ -53,11 +54,19 @@ constexpr OutputIt __copy_restrict_impl_aux(add_restrict_t<InputIt> first,
     return wjr::copy(first, last, d_first);
 }
 
+/// @private
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt __copy_restrict_impl(InputIt first, InputIt last, OutputIt d_first) {
     return __copy_restrict_impl_aux<InputIt, OutputIt>(first, last, d_first);
 }
 
+/**
+ * @brief Copy elements from a range to another range with restricted pointers.
+ *
+ * @details Use @ref wjr::copy. \n
+ * If iterator is contiguouse, then get restricted pointer
+ * by iterator to optimize.
+ */
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt copy_restrict(InputIt first, InputIt last, OutputIt d_first) {
     const auto __first = try_to_address(std::move(first));
@@ -111,17 +120,25 @@ constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
     }
 }
 
+/// @private
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt __copy_n_restrict_impl_aux(add_restrict_t<InputIt> first, Size count,
                                               add_restrict_t<OutputIt> d_first) {
     return wjr::copy_n(first, count, d_first);
 }
 
+/// @private
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt __copy_n_restrict_impl(InputIt first, Size count, OutputIt d_first) {
     return __copy_n_restrict_impl_aux<InputIt, Size, OutputIt>(first, count, d_first);
 }
 
+/**
+ * @brief Copy elements from a range to another range with restricted pointers.
+ *
+ * @details @see wjr::copy_restrict. \n
+ *
+ */
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt copy_n_restrict(InputIt first, Size count, OutputIt d_first) {
     const auto __first = try_to_address(std::move(first));

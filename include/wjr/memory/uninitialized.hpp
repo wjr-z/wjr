@@ -62,6 +62,7 @@ WJR_CONSTEXPR20 OutputIt uninitialized_copy_using_allocator(InputIt first, Input
     }
 }
 
+/// @private
 template <typename InputIt, typename OutputIt, typename Alloc>
 WJR_CONSTEXPR20 OutputIt __uninitialized_copy_restrict_using_allocator_impl_aux(
     add_restrict_t<InputIt> first, add_restrict_t<InputIt> last,
@@ -69,6 +70,7 @@ WJR_CONSTEXPR20 OutputIt __uninitialized_copy_restrict_using_allocator_impl_aux(
     return uninitialized_copy_using_allocator(first, last, d_first, alloc);
 }
 
+/// @private
 template <typename InputIt, typename OutputIt, typename Alloc>
 WJR_CONSTEXPR20 OutputIt __uninitialized_copy_restrict_using_allocator_impl(
     InputIt first, InputIt last, OutputIt d_first, Alloc &alloc) {
@@ -109,6 +111,7 @@ WJR_CONSTEXPR20 OutputIt uninitialized_copy_n_using_allocator(InputIt first, Siz
     }
 }
 
+/// @private
 template <typename InputIt, typename Size, typename OutputIt, typename Alloc>
 WJR_CONSTEXPR20 OutputIt __uninitialized_copy_n_restrict_using_allocator_impl_aux(
     add_restrict_t<InputIt> first, Size n, add_restrict_t<OutputIt> d_first,
@@ -116,6 +119,7 @@ WJR_CONSTEXPR20 OutputIt __uninitialized_copy_n_restrict_using_allocator_impl_au
     return uninitialized_copy_n_using_allocator(first, n, d_first, alloc);
 }
 
+/// @private
 template <typename InputIt, typename Size, typename OutputIt, typename Alloc>
 WJR_CONSTEXPR20 OutputIt __uninitialized_copy_n_restrict_using_allocator_impl(
     InputIt first, Size n, OutputIt d_first, Alloc &alloc) {
@@ -311,6 +315,7 @@ WJR_CONSTEXPR20 void destroy_n_using_allocator(Iter first, Size n, Alloc &alloc)
     }
 }
 
+/// @private
 template <typename T, typename Tag>
 using __uninitialized_checker_base_enabler_select =
     enable_special_members_base<true, true, std::is_trivially_copy_constructible_v<T>,
@@ -318,6 +323,7 @@ using __uninitialized_checker_base_enabler_select =
                                 std::is_trivially_copy_assignable_v<T>,
                                 std::is_trivially_move_assignable_v<T>, Tag>;
 
+/// @private
 template <bool Default, bool Destructor, typename T>
 struct __uninitialized_base;
 
@@ -357,6 +363,7 @@ WJR_REGISTER_UNINITIALIZED_BASE(0, 0);
 #define WJR_HAS_DEBUG_UNINITIALIZED_CHECKER WJR_HAS_DEF
 #endif
 
+/// @private
 template <typename T>
 using __uninitialized_base_select =
     __uninitialized_base<std::is_trivially_default_constructible_v<T>,
@@ -501,6 +508,7 @@ private:
 #endif
 };
 
+/// @private
 template <typename T, bool = true>
 class __lazy_crtp : public uninitialized<T> {
     using Mybase = uninitialized<T>;
@@ -509,6 +517,7 @@ public:
     using Mybase::Mybase;
 };
 
+/// @private
 template <typename T>
 class __lazy_crtp<T, false> : public uninitialized<T> {
     using Mybase = uninitialized<T>;
@@ -519,6 +528,7 @@ public:
     ~__lazy_crtp() noexcept(noexcept(Mybase::reset())) { Mybase::reset(); }
 };
 
+/// @private
 template <typename T>
 using lazy_crtp = __lazy_crtp<T,
 #if WJR_HAS_DEBUG(UNINITIALIZED_CHECKER)
@@ -529,7 +539,7 @@ using lazy_crtp = __lazy_crtp<T,
                               >;
 
 template <typename T>
-class lazy : lazy_crtp<T> {
+class lazy : public lazy_crtp<T> {
     using Mybase = lazy_crtp<T>;
 
 public:

@@ -293,6 +293,7 @@ constexpr tuple<Args &&...> forward_as_tuple(Args &&...args) noexcept(
     return tuple<Args &&...>(std::forward<Args>(args)...);
 }
 
+/// @private
 template <typename Func, typename Tuple, size_t... Indexs>
 constexpr decltype(auto)
 apply_impl(Func &&fn, Tuple &&tp, std::index_sequence<Indexs...>) noexcept(noexcept(
@@ -310,6 +311,7 @@ constexpr decltype(auto) apply(Func &&fn, Tuple &&tp) noexcept(noexcept(
         std::make_index_sequence<std::tuple_size_v<remove_cvref_t<Tuple>>>{});
 }
 
+/// @private
 template <size_t I, typename Tuple>
 struct __tuple_cat_single_helper {
     static constexpr size_t Size = std::tuple_size_v<Tuple>;
@@ -317,9 +319,11 @@ struct __tuple_cat_single_helper {
     using type1 = tp_make_index_sequence<Size>;
 };
 
+/// @private
 template <typename S, typename... Tuples>
 struct __tuple_cat_helper_impl;
 
+/// @private
 template <size_t... Indexs, typename... Tuples>
 struct __tuple_cat_helper_impl<std::index_sequence<Indexs...>, Tuples...> {
     using type0 =
@@ -328,6 +332,7 @@ struct __tuple_cat_helper_impl<std::index_sequence<Indexs...>, Tuples...> {
         tp_concat_t<typename __tuple_cat_single_helper<Indexs, Tuples>::type1...>;
 };
 
+/// @private
 template <typename... Tuples>
 struct __tuple_cat_helper {
     using Sequence = std::index_sequence_for<Tuples...>;
@@ -336,6 +341,7 @@ struct __tuple_cat_helper {
     using type1 = tp_make_std_index_sequence<typename Impl::type1>;
 };
 
+/// @private
 template <size_t... I0, size_t... I1, typename... Tuples>
 constexpr decltype(auto) __tuple_cat_impl(std::index_sequence<I0...>,
                                           std::index_sequence<I1...>,

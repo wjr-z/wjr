@@ -26,36 +26,63 @@ struct tuple_element<I, wjr::compressed_pair<T, U>> {
 
 namespace wjr {
 
+/**
+ * @brief Select the base class of compressed_pair.
+ *
+ * @details For compressed_pair<T, U> : \n
+ * If `T` is @ref is_compressed_v "compressed" and `U` is not ref is_compressed_v
+ * "compressed", then the base class is
+ * @ref compressed_capture_leaf \<T> and @ref capture_leaf \<U>. \n
+ * If `T` is not ref is_compressed_v "compressed" and `U` is ref is_compressed_v
+ * "compressed", then the base class is
+ * @ref capture_leaf \<T> and @ref compressed_capture_leaf \<U>. \n
+ * If `T` and `U` are both ref is_compressed_v "compressed", then the base class is
+ * @ref compressed_capture_leaf \<T> and @ref capture_leaf \<U>. \n
+ * Otherwise, the base class is @ref capture_leaf \<T> and @ref capture_leaf \<U>. \n
+ * Notice that both `T` and `U` are ref is_compressed_v "compressed" is not allowed.
+ *
+ */
 template <size_t index, typename T, typename U, typename Tag = void>
 using compressed_pair_wrapper =
     std::conditional_t<is_compressed_v<T> && (index == 0 || !is_compressed_v<U>),
                        compressed_capture_leaf<T, enable_base_identity_t<index, Tag>>,
                        capture_leaf<T, enable_base_identity_t<index, Tag>>>;
 
+/// @private
 template <typename T, typename U>
 struct __compressed_pair1 {};
 
+/// @private
 template <typename T, typename U>
 struct __compressed_pair2 {};
 
+/// @private
 template <typename T, typename U>
 struct __compressed_pair3 {};
 
+/// @private
 template <typename T, typename U>
 using __compressed_pair_base1 =
     compressed_pair_wrapper<0, T, U, __compressed_pair1<T, U>>;
 
+/// @private
 template <typename T, typename U>
 using __compressed_pair_base2 =
     compressed_pair_wrapper<1, U, T, __compressed_pair2<T, U>>;
 
 /**
  * @class compressed_pair
+ *
  * @brief A pair used empty base optimization to reduce the size of the pair.
  *
- * @details When `T` or `U` is an empty class, compressed_pair will use empty base
- * optimization to reduce the size of the pair. Otherwise, compressed_pair
- * is equivalent to `std::pair`.
+ * @details See @ref compressed_pair_wrapper for the base class of compressed_pair. \n
+ * compressed_pair is final, so it can't be derived from. \n
+ * For example : \n
+ * @code
+ * static_assert(sizeof(compressed_pair<int, double>) == sizeof(int) + sizeof(double));
+ * static_assert(sizeof(compressed_pair<std::allocator<int>, int>) == sizeof(int));
+ * static_assert(sizeof(compressed_pair<int, std::allocator<int>>) == sizeof(int));
+ * @endcode
  */
 template <typename T, typename U>
 class WJR_EMPTY_BASES compressed_pair final

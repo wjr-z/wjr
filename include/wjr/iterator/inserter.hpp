@@ -41,6 +41,7 @@ struct is_any_insert_iterator
 template <typename T>
 inline constexpr bool is_any_insert_iterator_v = is_any_insert_iterator<T>::value;
 
+/// @private
 template <typename Iter>
 struct __inserter_container_accessor : Iter {
     __inserter_container_accessor(Iter it) noexcept(
@@ -49,6 +50,7 @@ struct __inserter_container_accessor : Iter {
     using Iter::container;
 };
 
+/// @private
 template <typename Iter>
 struct __inserter_iterator_accessor : Iter {
     __inserter_iterator_accessor(Iter it) noexcept(

@@ -13,6 +13,7 @@
 
 namespace wjr {
 
+/// @private
 template <typename CharT, typename Tratis>
 void __ostream_write_unchecked(std::basic_ostream<CharT, Tratis> &os, const CharT *str,
                                std::streamsize n) {
@@ -22,6 +23,7 @@ void __ostream_write_unchecked(std::basic_ostream<CharT, Tratis> &os, const Char
     }
 }
 
+/// @private
 template <typename CharT, typename Tratis>
 void __ostream_fill_unchecked(std::basic_ostream<CharT, Tratis> &os, std::streamsize n) {
     const auto ch = os.fill();
@@ -34,6 +36,7 @@ void __ostream_fill_unchecked(std::basic_ostream<CharT, Tratis> &os, std::stream
     }
 }
 
+/// @private
 template <typename CharT, typename Tratis>
 void __ostream_insert_unchecked(std::basic_ostream<CharT, Tratis> &os, const CharT *str,
                                 std::streamsize n) {
@@ -59,6 +62,10 @@ void __ostream_insert_unchecked(std::basic_ostream<CharT, Tratis> &os, const Cha
     os.width(0);
 }
 
+/**
+ * @brief Fast output a string to the output stream.
+ *
+ */
 template <typename CharT, typename Tratis>
 std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tratis> &os,
                                                     const CharT *str, std::streamsize n) {
@@ -2782,10 +2789,32 @@ struct in_place_empty_t {};
 
 inline constexpr in_place_empty_t in_place_empty = {};
 
+/**
+ * @brief Tag of default constructor.
+ *
+ * @details Use dctor to indicate default constructor. \n
+ * Used to avoid value initialization.  \n
+ * For example : \n
+ * @code
+ * wjr::vector<int> vec(10, dctor); // default construct with 10 elements.
+ * wjr::vector<int> vec2(10); // value construct with 10 elements.
+ * wjr::vector<int> vec3(10, 0); // value construct with 10 elements.
+ * wjr::vector<int> vec4(10, vctor); // value construct with 10 elements.
+ * @endcode
+ * elements of vec are not initialized. \n
+ * elements of vec2, vec3, vec4 are initialized with 0.
+ */
 struct dctor_t {};
 
+/**
+ * @see dctor_t
+ */
 inline constexpr dctor_t dctor = {};
 
+/**
+ * @brief Tag of value constructor.
+ *
+ */
 struct vctor_t {};
 
 inline constexpr vctor_t vctor = {};
@@ -4310,7 +4339,9 @@ using tp_make_std_index_sequence =
 namespace wjr {
 
 /**
- * @brief Capture any type as a new type.
+ * @class capture_leaf
+ *
+ * @brief Capture any type as a new type. Can be used as a class base.
  *
  */
 template <typename T, typename Tag = void>
@@ -4340,9 +4371,11 @@ private:
 };
 
 /**
+ * @class compressed_capture_leaf
+ *
  * @brief Compressed capture any type as a new type.
  *
- * @details Use empty base optimization to compress the size of the object.
+ * @details Use `EBO`(empty base optimization) to compress the size of the object.
  *
  */
 template <typename T, typename Tag = void>
@@ -4367,17 +4400,31 @@ public:
     constexpr const T &get() const noexcept { return *this; }
 };
 
+/**
+ * @struct is_compressed
+ *
+ * @brief Check if a class can be compressed.
+ *
+ * @details A class can be compressed if it is a `empty` `class`, and it is not `final`.
+ *
+ */
 template <typename T>
 struct is_compressed : std::conjunction<std::is_class<T>, std::is_empty<T>,
                                         std::negation<std::is_final<T>>> {};
 
+/**
+ * @brief Value of @ref is_compressed.
+ *
+ */
 template <typename T>
 inline constexpr bool is_compressed_v = is_compressed<T>::value;
 
+/// @private
 template <template <typename...> typename Test, typename Seq, typename LP, typename RP,
           typename = void>
 struct __is_tuple_test_impl : std::false_type {};
 
+/// @private
 template <template <typename...> typename Test, size_t... Idxs, typename LP, typename RP>
 struct __is_tuple_test_impl<
     Test, std::index_sequence<Idxs...>, LP, RP,
@@ -4387,14 +4434,28 @@ struct __is_tuple_test_impl<
     : std::conjunction<Test<std::tuple_element_t<Idxs, LP>,
                             decltype(std::get<Idxs>(std::declval<RP>()))>...> {};
 
+/**
+ * @brief Use template<...>typename Test to test all element of LP and RP.
+ *
+ * @details For example, Test is std::is_assignable, LP is std::tuple<T0, U0>, RP is
+ * std::tuple<T1, U1>. \n
+ * Then __is_tuple_test = std::conjunction<std::is_assignable<T0,
+ * T1>, std::is_assignable<U0, U1>>.
+ *
+ */
 template <template <typename...> typename Test, typename LP, typename RP>
 struct __is_tuple_test
     : __is_tuple_test_impl<Test, std::make_index_sequence<std::tuple_size_v<LP>>, LP,
                            RP> {};
 
+/**
+ * @brief Value of @ref __is_tuple_test.
+ *
+ */
 template <template <typename...> typename Test, typename LP, typename RP>
 inline constexpr bool __is_tuple_test_v = __is_tuple_test<Test, LP, RP>::value;
 
+/// @private
 template <typename T, typename U>
 struct __is_tuple_assignable : std::is_assignable<T &, U> {};
 
@@ -4423,36 +4484,63 @@ struct tuple_element<I, wjr::compressed_pair<T, U>> {
 
 namespace wjr {
 
+/**
+ * @brief Select the base class of compressed_pair.
+ *
+ * @details For compressed_pair<T, U> : \n
+ * If `T` is @ref is_compressed_v "compressed" and `U` is not ref is_compressed_v
+ * "compressed", then the base class is
+ * @ref compressed_capture_leaf \<T> and @ref capture_leaf \<U>. \n
+ * If `T` is not ref is_compressed_v "compressed" and `U` is ref is_compressed_v
+ * "compressed", then the base class is
+ * @ref capture_leaf \<T> and @ref compressed_capture_leaf \<U>. \n
+ * If `T` and `U` are both ref is_compressed_v "compressed", then the base class is
+ * @ref compressed_capture_leaf \<T> and @ref capture_leaf \<U>. \n
+ * Otherwise, the base class is @ref capture_leaf \<T> and @ref capture_leaf \<U>. \n
+ * Notice that both `T` and `U` are ref is_compressed_v "compressed" is not allowed.
+ *
+ */
 template <size_t index, typename T, typename U, typename Tag = void>
 using compressed_pair_wrapper =
     std::conditional_t<is_compressed_v<T> && (index == 0 || !is_compressed_v<U>),
                        compressed_capture_leaf<T, enable_base_identity_t<index, Tag>>,
                        capture_leaf<T, enable_base_identity_t<index, Tag>>>;
 
+/// @private
 template <typename T, typename U>
 struct __compressed_pair1 {};
 
+/// @private
 template <typename T, typename U>
 struct __compressed_pair2 {};
 
+/// @private
 template <typename T, typename U>
 struct __compressed_pair3 {};
 
+/// @private
 template <typename T, typename U>
 using __compressed_pair_base1 =
     compressed_pair_wrapper<0, T, U, __compressed_pair1<T, U>>;
 
+/// @private
 template <typename T, typename U>
 using __compressed_pair_base2 =
     compressed_pair_wrapper<1, U, T, __compressed_pair2<T, U>>;
 
 /**
  * @class compressed_pair
+ *
  * @brief A pair used empty base optimization to reduce the size of the pair.
  *
- * @details When `T` or `U` is an empty class, compressed_pair will use empty base
- * optimization to reduce the size of the pair. Otherwise, compressed_pair
- * is equivalent to `std::pair`.
+ * @details See @ref compressed_pair_wrapper for the base class of compressed_pair. \n
+ * compressed_pair is final, so it can't be derived from. \n
+ * For example : \n
+ * @code
+ * static_assert(sizeof(compressed_pair<int, double>) == sizeof(int) + sizeof(double));
+ * static_assert(sizeof(compressed_pair<std::allocator<int>, int>) == sizeof(int));
+ * static_assert(sizeof(compressed_pair<int, std::allocator<int>>) == sizeof(int));
+ * @endcode
  */
 template <typename T, typename U>
 class WJR_EMPTY_BASES compressed_pair final
@@ -4978,9 +5066,11 @@ struct is_iterator : __is_iterator_impl<Iter> {};
 template <typename Iter>
 inline constexpr bool is_iterator_v = is_iterator<Iter>::value;
 
+/// @private
 template <typename Iter, typename Category, typename = void>
 struct __is_category_iterator_impl : std::false_type {};
 
+/// @private
 template <typename Iter, typename Category>
 struct __is_category_iterator_impl<
     Iter, Category, std::void_t<typename std::iterator_traits<Iter>::iterator_category>>
@@ -5022,14 +5112,12 @@ template <typename Iter>
 inline constexpr bool is_random_access_iterator_v =
     is_random_access_iterator<Iter>::value;
 
+/// @private
 template <typename Iter, typename = void>
 struct __is_contiguous_iterator_impl
     : std::disjunction<std::is_pointer<Iter>, std::is_array<Iter>> {};
 
-/**
- * @details If iterator's value_type is trivial, then move_iterator<Iter> is same as Iter.
- *
- */
+/// @private
 template <typename Iter>
 struct __is_contiguous_iterator_impl<std::move_iterator<Iter>, void>
     : std::conjunction<__is_contiguous_iterator_impl<Iter>,
@@ -5078,6 +5166,14 @@ constexpr T *to_address(T *p) noexcept {
     return p;
 }
 
+/**
+ * @details If std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p) is valid, return
+ * std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p), otherwise return
+ * to_address(p.operator->()).
+ *
+ * @tparam Ptr remove_cvref_t<Ptr> must be a @ref is_contiguous_iterator_v "continuous
+ * iterator".
+ */
 template <typename Ptr, WJR_REQUIRES(is_contiguous_iterator_v<remove_cvref_t<Ptr>>)>
 constexpr auto to_address(const Ptr &p) noexcept {
     if constexpr (has_pointer_traits_to_address_v<remove_cvref_t<Ptr>>) {
@@ -5087,6 +5183,13 @@ constexpr auto to_address(const Ptr &p) noexcept {
     }
 }
 
+/**
+ * @tparam Iter std::move_iterator<Iter> must be a @ref is_contiguous_iterator_v
+ * "continuous iterator".
+ *
+ * @return to_address(p.base()).
+ *
+ */
 template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<std::move_iterator<Iter>>)>
 constexpr auto to_address(const std::move_iterator<Iter> &p) noexcept {
     return (to_address)(p.base());
@@ -5415,10 +5518,12 @@ public:
     }
 
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
+    /// @private
     WJR_CONSTEXPR20 void __set_container(const Container *container) noexcept {
         m_container = container;
     }
 
+    /// @private
     WJR_CONSTEXPR20 void __check_offset(difference_type offset) const noexcept {
         if (offset == 0) {
             return;
@@ -5435,22 +5540,30 @@ public:
         }
     }
 
+    /// @private
     WJR_CONSTEXPR20 void
     __check_same_container(const contiguous_const_iterator_adapter &rhs) const noexcept {
         WJR_ASSERT_LX(m_container == rhs.m_container,
                       "Can't compare iterators from different containers.");
     }
 
+    /// @private
     WJR_PURE WJR_CONSTEXPR20 pointer __begin() const noexcept {
         return m_container->data();
     }
 
+    /// @private
     WJR_PURE WJR_CONSTEXPR20 pointer __end() const noexcept {
         return m_container->data() + m_container->size();
     }
 #else
+    /// @private
     constexpr static void __set_container(const Container *) noexcept {}
+
+    /// @private
     constexpr static void __check_offset(difference_type) noexcept {}
+
+    /// @private
     constexpr static void
     __check_same_container(const contiguous_const_iterator_adapter &) noexcept {}
 #endif
@@ -6109,6 +6222,7 @@ struct is_any_insert_iterator
 template <typename T>
 inline constexpr bool is_any_insert_iterator_v = is_any_insert_iterator<T>::value;
 
+/// @private
 template <typename Iter>
 struct __inserter_container_accessor : Iter {
     __inserter_container_accessor(Iter it) noexcept(
@@ -6117,6 +6231,7 @@ struct __inserter_container_accessor : Iter {
     using Iter::container;
 };
 
+/// @private
 template <typename Iter>
 struct __inserter_iterator_accessor : Iter {
     __inserter_iterator_accessor(Iter it) noexcept(
@@ -6196,6 +6311,7 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
     }
 }
 
+/// @private
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt __copy_restrict_impl_aux(add_restrict_t<InputIt> first,
                                             add_restrict_t<InputIt> last,
@@ -6203,11 +6319,19 @@ constexpr OutputIt __copy_restrict_impl_aux(add_restrict_t<InputIt> first,
     return wjr::copy(first, last, d_first);
 }
 
+/// @private
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt __copy_restrict_impl(InputIt first, InputIt last, OutputIt d_first) {
     return __copy_restrict_impl_aux<InputIt, OutputIt>(first, last, d_first);
 }
 
+/**
+ * @brief Copy elements from a range to another range with restricted pointers.
+ *
+ * @details Use @ref wjr::copy. \n
+ * If iterator is contiguouse, then get restricted pointer
+ * by iterator to optimize.
+ */
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt copy_restrict(InputIt first, InputIt last, OutputIt d_first) {
     const auto __first = try_to_address(std::move(first));
@@ -6261,17 +6385,25 @@ constexpr OutputIt copy_n(InputIt first, Size count, OutputIt d_first) {
     }
 }
 
+/// @private
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt __copy_n_restrict_impl_aux(add_restrict_t<InputIt> first, Size count,
                                               add_restrict_t<OutputIt> d_first) {
     return wjr::copy_n(first, count, d_first);
 }
 
+/// @private
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt __copy_n_restrict_impl(InputIt first, Size count, OutputIt d_first) {
     return __copy_n_restrict_impl_aux<InputIt, Size, OutputIt>(first, count, d_first);
 }
 
+/**
+ * @brief Copy elements from a range to another range with restricted pointers.
+ *
+ * @details @see wjr::copy_restrict. \n
+ *
+ */
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt copy_n_restrict(InputIt first, Size count, OutputIt d_first) {
     const auto __first = try_to_address(std::move(first));
@@ -6343,14 +6475,25 @@ WJR_REGISTER_HAS_TYPE(is_trivially_allocator_destructible,
                       Alloc);
 } // namespace
 
+/// @private
 template <typename Alloc, typename = void>
 struct __is_trivially_allocator_impl : std::false_type {};
 
+/// @private
 template <typename Alloc>
 struct __is_trivially_allocator_impl<
     Alloc, std::enable_if_t<has_is_trivially_allocator_v<Alloc>>>
     : Alloc::is_trivially_allocator {};
 
+/**
+ * @brief Default construct, destruct allocator.
+ *
+ * @details If `Alloc::is_trivially_allocator` is not defined or
+ * `Alloc::is_trivially_allocator` is `std::false_type`, derive from `std::false_type`. \n
+ * If is_trivially_allocator_v is true, then `construct_at_using_allocator` and
+ * `destroy_at_using_allocator` are same as `construct_at` and `destroy_at`.
+ *
+ */
 template <typename Alloc>
 struct is_trivially_allocator : __is_trivially_allocator_impl<Alloc> {};
 
@@ -6360,9 +6503,11 @@ struct is_trivially_allocator<std::allocator<T>> : std::true_type {};
 template <typename Alloc>
 inline constexpr bool is_trivially_allocator_v = is_trivially_allocator<Alloc>::value;
 
+/// @private
 template <typename Alloc, typename = void>
 struct __is_trivially_allocator_constructible_impl : std::false_type {};
 
+/// @private
 template <typename Alloc>
 struct __is_trivially_allocator_constructible_impl<
     Alloc, std::enable_if_t<has_is_trivially_allocator_constructible_v<Alloc>>>
@@ -6377,9 +6522,11 @@ template <typename Alloc>
 inline constexpr bool is_trivially_allocator_constructible_v =
     is_trivially_allocator_constructible<Alloc>::value;
 
+/// @private
 template <typename Alloc, typename = void>
 struct __is_trivially_allocator_destructible_impl : std::false_type {};
 
+/// @private
 template <typename Alloc>
 struct __is_trivially_allocator_destructible_impl<
     Alloc, std::enable_if_t<has_is_trivially_allocator_destructible_v<Alloc>>>
@@ -6454,6 +6601,7 @@ WJR_CONSTEXPR20 OutputIt uninitialized_copy_using_allocator(InputIt first, Input
     }
 }
 
+/// @private
 template <typename InputIt, typename OutputIt, typename Alloc>
 WJR_CONSTEXPR20 OutputIt __uninitialized_copy_restrict_using_allocator_impl_aux(
     add_restrict_t<InputIt> first, add_restrict_t<InputIt> last,
@@ -6461,6 +6609,7 @@ WJR_CONSTEXPR20 OutputIt __uninitialized_copy_restrict_using_allocator_impl_aux(
     return uninitialized_copy_using_allocator(first, last, d_first, alloc);
 }
 
+/// @private
 template <typename InputIt, typename OutputIt, typename Alloc>
 WJR_CONSTEXPR20 OutputIt __uninitialized_copy_restrict_using_allocator_impl(
     InputIt first, InputIt last, OutputIt d_first, Alloc &alloc) {
@@ -6501,6 +6650,7 @@ WJR_CONSTEXPR20 OutputIt uninitialized_copy_n_using_allocator(InputIt first, Siz
     }
 }
 
+/// @private
 template <typename InputIt, typename Size, typename OutputIt, typename Alloc>
 WJR_CONSTEXPR20 OutputIt __uninitialized_copy_n_restrict_using_allocator_impl_aux(
     add_restrict_t<InputIt> first, Size n, add_restrict_t<OutputIt> d_first,
@@ -6508,6 +6658,7 @@ WJR_CONSTEXPR20 OutputIt __uninitialized_copy_n_restrict_using_allocator_impl_au
     return uninitialized_copy_n_using_allocator(first, n, d_first, alloc);
 }
 
+/// @private
 template <typename InputIt, typename Size, typename OutputIt, typename Alloc>
 WJR_CONSTEXPR20 OutputIt __uninitialized_copy_n_restrict_using_allocator_impl(
     InputIt first, Size n, OutputIt d_first, Alloc &alloc) {
@@ -6703,6 +6854,7 @@ WJR_CONSTEXPR20 void destroy_n_using_allocator(Iter first, Size n, Alloc &alloc)
     }
 }
 
+/// @private
 template <typename T, typename Tag>
 using __uninitialized_checker_base_enabler_select =
     enable_special_members_base<true, true, std::is_trivially_copy_constructible_v<T>,
@@ -6710,6 +6862,7 @@ using __uninitialized_checker_base_enabler_select =
                                 std::is_trivially_copy_assignable_v<T>,
                                 std::is_trivially_move_assignable_v<T>, Tag>;
 
+/// @private
 template <bool Default, bool Destructor, typename T>
 struct __uninitialized_base;
 
@@ -6749,6 +6902,7 @@ WJR_REGISTER_UNINITIALIZED_BASE(0, 0);
 #define WJR_HAS_DEBUG_UNINITIALIZED_CHECKER WJR_HAS_DEF
 #endif
 
+/// @private
 template <typename T>
 using __uninitialized_base_select =
     __uninitialized_base<std::is_trivially_default_constructible_v<T>,
@@ -6893,6 +7047,7 @@ private:
 #endif
 };
 
+/// @private
 template <typename T, bool = true>
 class __lazy_crtp : public uninitialized<T> {
     using Mybase = uninitialized<T>;
@@ -6901,6 +7056,7 @@ public:
     using Mybase::Mybase;
 };
 
+/// @private
 template <typename T>
 class __lazy_crtp<T, false> : public uninitialized<T> {
     using Mybase = uninitialized<T>;
@@ -6911,6 +7067,7 @@ public:
     ~__lazy_crtp() noexcept(noexcept(Mybase::reset())) { Mybase::reset(); }
 };
 
+/// @private
 template <typename T>
 using lazy_crtp = __lazy_crtp<T,
 #if WJR_HAS_DEBUG(UNINITIALIZED_CHECKER)
@@ -6921,7 +7078,7 @@ using lazy_crtp = __lazy_crtp<T,
                               >;
 
 template <typename T>
-class lazy : lazy_crtp<T> {
+class lazy : public lazy_crtp<T> {
     using Mybase = lazy_crtp<T>;
 
 public:
@@ -16832,6 +16989,10 @@ namespace wjr {
 
 #if WJR_HAS_BUILTIN(COMPARE_N)
 
+/**
+ * @brief Use SIMD to compare two arrays of uint64_t.
+ *
+ */
 template <typename T>
 WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size_t n) {
 #define WJR_REGISTER_COMPARE_NOT_N_AVX(index)                                            \
@@ -17000,6 +17161,23 @@ WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size
 extern template WJR_PURE WJR_COLD int
 large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1, size_t n);
 
+/**
+ * @brief Compare two arrays of uint64_t.
+ *
+ * @details Expand first 4 elements to compare, then use @ref large_builtin_compare_n to
+ * compare the rest.
+ *
+ * @tparam T Requires uint64_t currently.
+ * @param src0 Pointer to the first array.
+ * @param src1 Pointer to the second array.
+ * @param n Number of elements to compare.
+ * @return
+ * \code
+ * negative : src0 < src1
+ * 0        : src0 == src1
+ * positive : src0 > src1
+ * \endcode
+ */
 template <typename T>
 WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1, size_t n) {
     if (WJR_UNLIKELY(n == 0)) {
@@ -17045,6 +17223,12 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1, size_t 
 
 #if WJR_HAS_BUILTIN(REVERSE_COMPARE_N)
 
+/**
+ * @brief Use SIMD to compare two arrays of uint64_t in reverse order.
+ *
+ * @details @ref large_builtin_compare_n in reverse order.
+ *
+ */
 template <typename T>
 WJR_PURE WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1,
                                                       size_t n) {
@@ -17215,6 +17399,11 @@ extern template WJR_PURE WJR_COLD int
 large_builtin_reverse_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
                                           size_t n);
 
+/**
+ * @brief Compare two arrays of uint64_t in reverse order.
+ *
+ * @details @ref builtin_compare_n in reverse order.
+ */
 template <typename T>
 WJR_INTRINSIC_INLINE int builtin_reverse_compare_n(const T *src0, const T *src1,
                                                    size_t n) {
@@ -17760,6 +17949,7 @@ constexpr tuple<Args &&...> forward_as_tuple(Args &&...args) noexcept(
     return tuple<Args &&...>(std::forward<Args>(args)...);
 }
 
+/// @private
 template <typename Func, typename Tuple, size_t... Indexs>
 constexpr decltype(auto)
 apply_impl(Func &&fn, Tuple &&tp, std::index_sequence<Indexs...>) noexcept(noexcept(
@@ -17777,6 +17967,7 @@ constexpr decltype(auto) apply(Func &&fn, Tuple &&tp) noexcept(noexcept(
         std::make_index_sequence<std::tuple_size_v<remove_cvref_t<Tuple>>>{});
 }
 
+/// @private
 template <size_t I, typename Tuple>
 struct __tuple_cat_single_helper {
     static constexpr size_t Size = std::tuple_size_v<Tuple>;
@@ -17784,9 +17975,11 @@ struct __tuple_cat_single_helper {
     using type1 = tp_make_index_sequence<Size>;
 };
 
+/// @private
 template <typename S, typename... Tuples>
 struct __tuple_cat_helper_impl;
 
+/// @private
 template <size_t... Indexs, typename... Tuples>
 struct __tuple_cat_helper_impl<std::index_sequence<Indexs...>, Tuples...> {
     using type0 =
@@ -17795,6 +17988,7 @@ struct __tuple_cat_helper_impl<std::index_sequence<Indexs...>, Tuples...> {
         tp_concat_t<typename __tuple_cat_single_helper<Indexs, Tuples>::type1...>;
 };
 
+/// @private
 template <typename... Tuples>
 struct __tuple_cat_helper {
     using Sequence = std::index_sequence_for<Tuples...>;
@@ -17803,6 +17997,7 @@ struct __tuple_cat_helper {
     using type1 = tp_make_std_index_sequence<typename Impl::type1>;
 };
 
+/// @private
 template <size_t... I0, size_t... I1, typename... Tuples>
 constexpr decltype(auto) __tuple_cat_impl(std::index_sequence<I0...>,
                                           std::index_sequence<I1...>,
@@ -19198,6 +19393,7 @@ WJR_INTRINSIC_CONSTEXPR_E T shrd(T lo, T hi, unsigned int c);
 
 #if WJR_HAS_BUILTIN(LSHIFT_N) || WJR_HAS_BUILTIN(RSHIFT_N)
 
+/// @private
 template <bool is_constant>
 WJR_INTRINSIC_INLINE auto __mm_get_shift(unsigned int c) {
     if constexpr (is_constant) {
@@ -19207,18 +19403,22 @@ WJR_INTRINSIC_INLINE auto __mm_get_shift(unsigned int c) {
     }
 }
 
+/// @private
 WJR_INTRINSIC_INLINE __m128i __mm_sll_epi64(__m128i x, unsigned int c) {
     return sse::slli_epi64(x, c);
 }
 
+/// @private
 WJR_INTRINSIC_INLINE __m128i __mm_sll_epi64(__m128i x, __m128i c) {
     return sse::sll_epi64(x, c);
 }
 
+/// @private
 WJR_INTRINSIC_INLINE __m128i __mm_srl_epi64(__m128i x, unsigned int c) {
     return sse::srli_epi64(x, c);
 }
 
+/// @private
 WJR_INTRINSIC_INLINE __m128i __mm_srl_epi64(__m128i x, __m128i c) {
     return sse::srl_epi64(x, c);
 }
@@ -26095,32 +26295,40 @@ void builtin_to_chars_unroll_8_fast(void *ptr, uint32_t in, origin_converter_t) 
 
 namespace from_chars_details {
 
+/// @private
 template <uint64_t Base>
 inline constexpr uint64_t __base2 = Base * Base;
 
+/// @private
 template <uint64_t Base>
 inline constexpr uint64_t __base4 = __base2<Base> * __base2<Base>;
 
+/// @private
 template <uint64_t Base>
 inline constexpr uint64_t __base8 = __base4<Base> * __base4<Base>;
 
+/// @private
 template <uint64_t Base>
 const static __m128i mulp1x = sse::setr_epi8(Base, 1, Base, 1, Base, 1, Base, 1, Base, 1,
                                              Base, 1, Base, 1, Base, 1);
 
+/// @private
 template <uint64_t Base>
 const static __m128i mulp2x = sse::setr_epi16(__base2<Base>, 1, __base2<Base>, 1,
                                               __base2<Base>, 1, __base2<Base>, 1);
 
+/// @private
 template <uint64_t Base>
 const static __m128i mulp4x = sse::setr_epi16(__base4<Base>, 1, __base4<Base>, 1,
                                               __base4<Base>, 1, __base4<Base>, 1);
 
+/// @private
 template <uint64_t Base>
 const static __m128i baseu8 =
     sse::setr_epi8(Base, Base, Base, Base, Base, Base, Base, 0xff, 0xff, 0xff, 0xff, 0xff,
                    0xff, 0xff, 0xff, 0xff);
 
+/// @private
 static __m128i ascii = sse::set1_epi8(0x30);
 
 } // namespace from_chars_details
@@ -29216,7 +29424,7 @@ uint64_t *__biginteger_from_chars_impl(const uint8_t *first, const uint8_t *last
  * @param[out] up Pointer to the biginteger
  * @param[in] base Base of the input string. Range: `[2, 36]`,
  * Only support 10 and power of two currently.
- * @return uint64_t* Pointer after the conversion
+ * @return Pointer after the conversion
  */
 template <typename Iter, typename Converter = char_converter_t,
           WJR_REQUIRES(convert_details::__is_fast_convert_iterator_v<Iter>)>
@@ -29690,6 +29898,11 @@ void random_n(Iter First, size_t Count, Rand &&rd) {
 
 namespace wjr {
 
+/**
+ * @brief A type representing a static-sized span.
+ *
+ * @tparam Extent The number of elements in the span.
+ */
 template <typename T, size_t Extent>
 struct __span_static_storage {
 
@@ -29705,6 +29918,9 @@ struct __span_static_storage {
     static constexpr size_t size = Extent;
 };
 
+/**
+ * @brief A type representing a dynamic-sized span.
+ */
 template <typename T>
 struct __span_dynamic_storage {
 
@@ -29732,12 +29948,15 @@ namespace span_details {
 WJR_REGISTER_HAS_TYPE(data, std::data(std::declval<Container &>()), Container);
 WJR_REGISTER_HAS_TYPE(size, std::size(std::declval<Container &>()), Container);
 
+/// @private
 template <typename T>
 struct __is_std_array : std::false_type {};
 
+/// @private
 template <typename T, size_t N>
 struct __is_std_array<std::array<T, N>> : std::true_type {};
 
+/// @private
 template <typename T>
 inline constexpr bool __is_std_array_v = __is_std_array<T>::value;
 
@@ -29750,9 +29969,11 @@ struct __is_span<span<T, Extent>> : std::true_type {};
 template <typename T>
 inline constexpr bool __is_span_v = __is_span<T>::value;
 
+/// @private
 template <typename Container, typename = void>
 struct __is_container_like : std::false_type {};
 
+/// @private
 template <typename Container>
 struct __is_container_like<
     Container, std::enable_if_t<has_data_v<Container &> && has_size_v<Container &>>>
@@ -29762,6 +29983,7 @@ struct __is_container_like<
           std::negation<__is_span<remove_cvref_t<Container>>>,
           std::is_pointer<decltype(std::data(std::declval<Container &>()))>> {};
 
+/// @private
 template <typename Container>
 inline constexpr bool __is_container_like_v = __is_container_like<Container>::value;
 
@@ -29779,6 +30001,7 @@ struct __is_span_like<
 template <typename Container, typename Elem>
 inline constexpr bool __is_span_like_v = __is_span_like<Container, Elem>::value;
 
+/// @private
 template <typename T>
 struct basic_span_traits {
     using value_type = std::remove_cv_t<T>;
@@ -29793,7 +30016,9 @@ struct basic_span_traits {
 
 /**
  * @class span
+ *
  * @brief A view over a contiguous sequence of objectsd.
+ *
  * @tparam Extent if Extent is `dynamic_extent`, the span is a runtime-sized view.
  * Otherwise, the span is a compile-time-sized view.
  */
@@ -30028,10 +30253,25 @@ public:
 
     // extension :
 
+    /**
+     * @brief Construct a span from a container.
+     *
+     * @details The container must have a `data()` member function that returns a @ref
+     * __is_span_iterator. The container must also have a `size()` member function that
+     * can be converted to `size_type`.
+     *
+     */
     template <typename Container, WJR_REQUIRES(span_details::__is_span_like_v<
                                                Container, element_type> &&__is_dynamic)>
     constexpr span(Container &&c) noexcept : storage(std::data(c), std::size(c)) {}
 
+    /**
+     * @brief Construct a span from a container.
+     *
+     * @details Like @ref span(Container &&), but the span is not dynamic-sized, so the
+     * construct must be explicit.
+     *
+     */
     template <typename Container,
               WJR_REQUIRES(span_details::__is_span_like_v<Container, element_type> &&
                            !__is_dynamic)>
@@ -30074,7 +30314,7 @@ inline constexpr bool is_biginteger_storage_v = is_biginteger_storage<Storage>::
 
 namespace biginteger_details {
 
-inline uint32_t normalize(uint64_t *ptr, uint32_t n) {
+inline uint32_t normalize(const uint64_t *ptr, uint32_t n) {
     return reverse_find_not_n(ptr, 0, n);
 }
 
@@ -30270,16 +30510,21 @@ namespace biginteger_details {
 // const basic_biginteger<Storage>* don't need to get allocator
 // use const Storage* instead of const basic_biginteger<Storage>*
 
+/// @private
 template <typename S>
 from_chars_result<> __from_chars_impl(const char *first, const char *last,
                                       basic_biginteger<S> *dst, unsigned int base);
 
+/// @private
 inline int32_t __compare_impl(const biginteger_data *lhs, const biginteger_data *rhs);
 
+/// @private
 inline int32_t __compare_ui_impl(const biginteger_data *lhs, uint64_t rhs);
 
+/// @private
 inline int32_t __compare_si_impl(const biginteger_data *lhs, int64_t rhs);
 
+/// @private
 template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 int32_t __compare_impl(const biginteger_data *lhs, T rhs) {
     if (WJR_BUILTIN_CONSTANT_P(rhs == 0) && rhs == 0) {
@@ -30298,22 +30543,27 @@ int32_t __compare_impl(const biginteger_data *lhs, T rhs) {
     }
 }
 
+/// @private
 template <bool xsign, typename S>
 void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, uint64_t rhs);
 
+/// @private
 template <typename S>
 void __ui_sub_impl(basic_biginteger<S> *dst, uint64_t lhs, const biginteger_data *rhs);
 
+/// @private
 template <bool xsign, typename S>
 void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
                    const biginteger_data *rhs);
 
+/// @private
 template <typename S>
 void __add_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
                 const biginteger_data *rhs) {
     __addsub_impl<false>(dst, lhs, rhs);
 }
 
+/// @private
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 void __add_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) {
     if constexpr (std::is_unsigned_v<T>) {
@@ -30327,17 +30577,20 @@ void __add_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) {
     }
 }
 
+/// @private
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 void __add_impl(basic_biginteger<S> *dst, T lhs, const biginteger_data *rhs) {
     __add_impl(dst, rhs, lhs);
 }
 
+/// @private
 template <typename S>
 void __sub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
                 const biginteger_data *rhs) {
     __addsub_impl<true>(dst, lhs, rhs);
 }
 
+/// @private
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 void __sub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) {
     if constexpr (std::is_unsigned_v<T>) {
@@ -30351,6 +30604,7 @@ void __sub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) {
     }
 }
 
+/// @private
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 void __sub_impl(basic_biginteger<S> *dst, T lhs, const biginteger_data *rhs) {
     if constexpr (std::is_unsigned_v<T>) {
@@ -30365,13 +30619,16 @@ void __sub_impl(basic_biginteger<S> *dst, T lhs, const biginteger_data *rhs) {
     }
 }
 
+/// @private
 template <typename S>
 void __mul_ui_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, uint64_t rhs);
 
+/// @private
 template <typename S>
 void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
                 const biginteger_data *rhs);
 
+/// @private
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) {
     if constexpr (std::is_unsigned_v<T>) {
@@ -30390,10 +30647,12 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) {
     }
 }
 
+/// @private
 template <typename S>
 void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, uint64_t rhs,
                       int32_t xmask);
 
+/// @private
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 void __addmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) {
     if constexpr (std::is_unsigned_v<T>) {
@@ -30411,6 +30670,7 @@ void __addmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) 
     }
 }
 
+/// @private
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 void __submul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) {
     if constexpr (std::is_unsigned_v<T>) {
@@ -30428,132 +30688,158 @@ void __submul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) 
     }
 }
 
+/// @private
 template <typename S>
 void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
                       const biginteger_data *rhs, int32_t xmask);
 
+/// @private
 template <typename S>
 void __addmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
                    const biginteger_data *rhs) {
     __addsubmul_impl(dst, lhs, rhs, 0);
 }
 
+/// @private
 template <typename S>
 void __submul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
                    const biginteger_data *rhs) {
     __addsubmul_impl(dst, lhs, rhs, -1);
 }
 
+/// @private
 template <typename S>
 void __mul_2exp_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, size_t shift);
 
+/// @private
 template <typename S0, typename S1>
 void __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
                     const biginteger_data *num, const biginteger_data *div);
 
+/// @private
 template <typename S>
 void __tdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
                    const biginteger_data *div);
 
+/// @private
 template <typename S>
 void __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                    const biginteger_data *div);
 
-/**
- * @brief [quot, rem] = num / div
- *
- * @return uint64_t abs(rem)
- */
+/// @private
 template <typename S0, typename S1>
 uint64_t __tdiv_qr_ui_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
                            const biginteger_data *num, uint64_t div);
 
+/// @private
 template <typename S>
 uint64_t __tdiv_q_ui_impl(basic_biginteger<S> *quot, const biginteger_data *num,
                           uint64_t div);
 
+/// @private
 template <typename S>
 uint64_t __tdiv_r_ui_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                           uint64_t div);
 
+/// @private
 template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t __tdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
                         const biginteger_data *num, T div);
 
+/// @private
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t __tdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num, T div);
 
+/// @private
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                        uint64_t div);
 
+/// @private
 template <typename S0, typename S1>
 void __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
                     const biginteger_data *num, const biginteger_data *div);
 
+/// @private
 template <typename S>
 void __fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
                    const biginteger_data *div);
 
+/// @private
 template <typename S>
 void __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                    const biginteger_data *div);
 
+/// @private
 template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t __fdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
                         const biginteger_data *num, T div);
 
+/// @private
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t __fdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num, T div);
 
+/// @private
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t __fdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                        uint64_t div);
 
+/// @private
 template <typename S0, typename S1>
 void __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
                     const biginteger_data *num, const biginteger_data *div);
 
+/// @private
 template <typename S>
 void __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num,
                    const biginteger_data *div);
 
+/// @private
 template <typename S>
 void __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                    const biginteger_data *div);
 
+/// @private
 template <typename S0, typename S1, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t __cdiv_qr_impl(basic_biginteger<S0> *quot, basic_biginteger<S1> *rem,
                         const biginteger_data *num, T div);
 
+/// @private
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t __cdiv_q_impl(basic_biginteger<S> *quot, const biginteger_data *num, T div);
 
+/// @private
 template <typename S, typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 uint64_t __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                        uint64_t div);
 
+/// @private
 template <typename S>
 void __tdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
                         size_t shift);
 
+/// @private
 template <typename S>
 void __tdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                         size_t shift);
 
+/// @private
 template <typename S, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
 void __urandom_bit_impl(basic_biginteger<S> *dst, size_t size, Engine &engine);
 
+/// @private
 template <typename S, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
 void __urandom_exact_bit_impl(basic_biginteger<S> *dst, size_t size, Engine &engine);
 
+/// @private
 template <typename S, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
 void __urandom_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
                     Engine &engine);
 
+/// @private
 template <typename S, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
 void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
@@ -31148,30 +31434,35 @@ void swap(basic_biginteger<Storage> &lhs, basic_biginteger<Storage> &rhs) noexce
 
 namespace biginteger_details {
 
+/// @private
 template <typename S>
 WJR_PURE bool __equal_pointer(const basic_biginteger<S> *lhs,
                               const basic_biginteger<S> *rhs) {
     return lhs == rhs;
 }
 
+/// @private
 template <typename S0, typename S1>
 WJR_PURE bool __equal_pointer(const basic_biginteger<S0> *,
                               const basic_biginteger<S1> *) {
     return false;
 }
 
+/// @private
 template <typename S>
 WJR_PURE bool __equal_pointer(const basic_biginteger<S> *lhs,
                               const biginteger_data *rhs) {
     return lhs->__get_data() == rhs;
 }
 
+/// @private
 template <typename S>
 WJR_PURE bool __equal_pointer(const biginteger_data *lhs,
                               const basic_biginteger<S> *rhs) {
     return lhs == rhs->__get_data();
 }
 
+/// @private
 WJR_PURE inline bool __equal_pointer(const biginteger_data *lhs,
                                      const biginteger_data *rhs) {
     return lhs == rhs;

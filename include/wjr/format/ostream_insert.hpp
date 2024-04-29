@@ -5,6 +5,7 @@
 
 namespace wjr {
 
+/// @private
 template <typename CharT, typename Tratis>
 void __ostream_write_unchecked(std::basic_ostream<CharT, Tratis> &os, const CharT *str,
                                std::streamsize n) {
@@ -14,6 +15,7 @@ void __ostream_write_unchecked(std::basic_ostream<CharT, Tratis> &os, const Char
     }
 }
 
+/// @private
 template <typename CharT, typename Tratis>
 void __ostream_fill_unchecked(std::basic_ostream<CharT, Tratis> &os, std::streamsize n) {
     const auto ch = os.fill();
@@ -26,6 +28,7 @@ void __ostream_fill_unchecked(std::basic_ostream<CharT, Tratis> &os, std::stream
     }
 }
 
+/// @private
 template <typename CharT, typename Tratis>
 void __ostream_insert_unchecked(std::basic_ostream<CharT, Tratis> &os, const CharT *str,
                                 std::streamsize n) {
@@ -51,6 +54,10 @@ void __ostream_insert_unchecked(std::basic_ostream<CharT, Tratis> &os, const Cha
     os.width(0);
 }
 
+/**
+ * @brief Fast output a string to the output stream.
+ *
+ */
 template <typename CharT, typename Tratis>
 std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tratis> &os,
                                                     const CharT *str, std::streamsize n) {
