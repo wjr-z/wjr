@@ -4,7 +4,7 @@
 #include <algorithm>
 
 #include <wjr/crtp/nonsendable.hpp>
-#include <wjr/crtp/trivially_allocator_base.hpp>
+#include <wjr/memory/memory_pool.hpp>
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
@@ -38,8 +38,7 @@ public:
 
 private:
     WJR_CONSTEXPR20 void *__large_allocate(size_t n, stack_top &top) {
-        const auto buffer =
-            (large_stack_top *)::operator new(sizeof(large_stack_top) + n);
+        const auto buffer = (large_stack_top *)malloc(sizeof(large_stack_top) + n);
         buffer->prev = top.large;
         top.large = buffer;
         return buffer->buffer;
@@ -55,11 +54,11 @@ private:
 
             if (WJR_UNLIKELY(m_size == m_capacity)) {
                 uint16_t new_capacity = m_idx + 2 * (bufsize - 1);
-                auto new_ptr = static_cast<alloc_node *>(
-                    ::operator new(new_capacity * sizeof(alloc_node)));
+                memory_pool<alloc_node> pool;
+                auto new_ptr = pool.allocate(new_capacity);
                 if (WJR_LIKELY(m_idx != 0)) {
                     std::copy_n(m_ptr, m_idx, new_ptr);
-                    ::operator delete(m_ptr);
+                    pool.deallocate(m_ptr, m_capacity);
                 }
                 m_ptr = new_ptr;
                 m_capacity = new_capacity;
@@ -68,7 +67,7 @@ private:
             ++m_size;
 
             const size_t capacity = Cache << ((3 * m_idx + 2) / 5);
-            const auto buffer = static_cast<char *>(::operator new(capacity));
+            const auto buffer = static_cast<char *>(malloc(capacity));
             alloc_node node = {buffer, buffer + capacity};
             m_ptr[m_idx] = node;
 
@@ -89,7 +88,7 @@ private:
         const uint16_t new_size = m_idx + bufsize - 1;
 
         for (uint16_t i = new_size; i < m_size; ++i) {
-            ::operator delete(m_ptr[i].ptr);
+            free(m_ptr[i].ptr);
         }
 
         m_size = new_size;
@@ -136,12 +135,13 @@ public:
     stack_allocator_object(stack_allocator_object &&) = delete;
     stack_allocator_object &operator=(stack_allocator_object &) = delete;
     stack_allocator_object &operator=(stack_allocator_object &&) = delete;
-    ~stack_allocator_object() {
+    WJR_NOINLINE ~stack_allocator_object() {
         for (uint16_t i = 0; i < m_size; ++i) {
-            ::operator delete(m_ptr[i].ptr);
+            free(m_ptr[i].ptr);
         }
 
-        ::operator delete(m_ptr);
+        memory_pool<alloc_node> pool;
+        pool.deallocate(m_ptr, m_capacity);
     }
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top,
@@ -159,7 +159,7 @@ public:
         auto buffer = top.large;
         while (WJR_UNLIKELY(buffer != nullptr)) {
             auto prev = buffer->prev;
-            ::operator delete(buffer);
+            free(buffer);
             buffer = prev;
         }
     }
@@ -297,7 +297,7 @@ public:
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 T *allocate(size_type n) {
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= __default_threshold)) {
-            return static_cast<T *>(::operator new(size));
+            return static_cast<T *>(malloc(size));
         }
 
         return static_cast<T *>(m_alloc->__small_allocate(size));
@@ -307,7 +307,7 @@ public:
                                     WJR_MAYBE_UNUSED size_type n) {
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= __default_threshold)) {
-            ::operator delete(ptr);
+            free(ptr);
         }
     }
 

@@ -180,8 +180,10 @@
 
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_COMPILER_BARRIER() asm volatile("" ::: "memory")
+#define WJR_COMPILER_EMPTY_ASM() asm("")
 #else
 #define WJR_COMPILER_BARRIER()
+#define WJR_COMPILER_EMPTY_ASM()
 #endif
 
 #define WJR_CONSTEXPR_COMPILER_BARRIER()                                                 \

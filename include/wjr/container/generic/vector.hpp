@@ -21,24 +21,19 @@
  * -# const_pointer data() const noexcept
  *
  * 1 : should not allocate memory. \n
- * 2 : just store the allocator. \n
- * 3 : allocate memory and set the size and capacity. this function is used for
- * reallocation. if the storage is not reallocatable, this function won't be
- * implemented. \n
- * 4 : don't need to destroy or deallocate. \n
- * 5-6 : \n
- * 7 : destroy all elements. don't change ptr, size and capacity. \n
- * 8 : destroy and deallocate. \n
- * 9 : uninitialized construct the storage. allocate memory and set the size and
+ * 2 : don't need to destroy or deallocate. \n
+ * 3 : destroy all elements. don't change ptr, size and capacity. \n
+ * 4 : destroy and deallocate. \n
+ * 5 : uninitialized construct the storage. allocate memory and set the size and
  * capacity. \n
- * 10 : take the storage from other. set other to empty. \n
- * 11 : swap the storage with other. \n
- * 12 : get the size. the return type must be reference,
+ * 6 : take the storage from other. set other to empty. \n
+ * 7 : swap the storage with other. \n
+ * 8 : get the size. the return type must be reference,
  * such as size_type&, std::reference_wrapper<size_type> and so on. \n
- * 13 : get the capacity. \n
- * 14-15 : get the pointer. \n
+ * 9 : get the capacity. \n
+ * 10-11 : get the pointer. \n
  *
- * the size type of 14 need to implement the following function signature: \n
+ * the size type of 8 need to implement the following function signature: \n
  * -# auto& operator=(size_type) noexcept
  * -# operator size_type() const noexcept
  * -# size_type operator++() noexcept
@@ -46,8 +41,8 @@
  * -# size_type operator+=(size_type) noexcept
  * -# size_type operator-=(size_type) noexcept
  *
- * @version 0.1
- * @date 2024-03-19
+ * @version 0.2
+ * @date 2024-04-29
  *
  */
 
