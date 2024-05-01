@@ -5,51 +5,10 @@
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/generic/container_fn.hpp>
 #include <wjr/container/intrusive/list.hpp>
+#include <wjr/inline_key.hpp>
 #include <wjr/memory/uninitialized.hpp>
 
 namespace wjr {
-
-template <typename Key, bool = true>
-struct bplus_key {
-    bplus_key() noexcept = default;
-    bplus_key(const bplus_key &) noexcept = default;
-    bplus_key(bplus_key &&) noexcept = default;
-    bplus_key &operator=(const bplus_key &) noexcept = default;
-    bplus_key &operator=(bplus_key &&) noexcept = default;
-    ~bplus_key() noexcept = default;
-
-    bplus_key(Key key) noexcept : m_key(key) {}
-
-    bplus_key &operator=(Key key) noexcept {
-        m_key = key;
-        return *this;
-    }
-
-    const Key &operator*() const noexcept { return m_key; }
-
-    Key m_key;
-};
-
-template <typename Key>
-struct bplus_key<Key, false> {
-    bplus_key() noexcept = default;
-    bplus_key(const bplus_key &) noexcept = default;
-    bplus_key(bplus_key &&) noexcept = default;
-    bplus_key &operator=(const bplus_key &) noexcept = default;
-    bplus_key &operator=(bplus_key &&) noexcept = default;
-    ~bplus_key() noexcept = default;
-
-    bplus_key(const Key &key) noexcept : m_key(std::addressof(key)) {}
-
-    bplus_key &operator=(const Key &key) noexcept {
-        m_key = std::addressof(key);
-        return *this;
-    }
-
-    const Key &operator*() const noexcept { return *m_key; }
-
-    const Key *m_key;
-};
 
 template <typename Traits>
 struct bplus_tree_node;
@@ -72,10 +31,9 @@ struct bplus_tree_traits {
                                          : node_size < 7  ? 32
                                          : node_size < 15 ? 24
                                                           : 16;
-    static constexpr bool inline_keys = std::is_trivial_v<key_type> &&
-                                        std::is_standard_layout_v<key_type> &&
-                                        sizeof(key_type) <= 8;
-    using KeyPtr = bplus_key<Key, inline_keys>;
+    static constexpr bool inline_keys =
+        is_possible_inline_key_v<key_type> && sizeof(key_type) <= 8;
+    using KeyPtr = inline_key<Key, inline_keys>;
     using node_type = bplus_tree_node<bplus_tree_traits>;
     using inner_node_type = bplus_tree_inner_node<bplus_tree_traits>;
     using leaf_node_type = bplus_tree_leaf_node<bplus_tree_traits, inline_keys>;
@@ -400,10 +358,92 @@ public:
                      std::piecewise_construct,
                      std::forward_as_tuple(std::move(other.__get_allocator())),
                      std::forward_as_tuple())) {
-        __take_storage(std::move(other));
+        __take_tree(std::move(other));
     }
 
-    ~basic_bplus_tree() {
+    ~basic_bplus_tree() { __destroy_and_deallocate(); }
+
+    template <typename... Args>
+    void emplace(Args &&...args) {
+        auto &al = __get_allocator();
+        value_type *const xval =
+            (value_type *)_Alty_traits::allocate(al, sizeof(value_type));
+        uninitialized_construct_using_allocator(xval, al, std::forward<Args>(args)...);
+
+        __insert_value_ptr(xval);
+    }
+
+    void insert(const value_type &val) { emplace(val); }
+    void insert(value_type &&val) { emplace(std::move(val)); }
+
+    void erase(const key_type &key);
+
+    iterator upper_bound(const key_type &key) {
+        return iterator(__upper_bound(key).__adjust_next());
+    }
+
+    const_iterator upper_bound(const key_type &key) const {
+        return const_iterator(__upper_bound(key).__adjust_next());
+    }
+
+    constexpr key_compare &key_comp() noexcept { return m_pair.first(); }
+    constexpr const key_compare &key_comp() const noexcept { return m_pair.first(); }
+
+    iterator begin() noexcept { return iterator(intrusive::begin(&m_sentry), 0); }
+    const_iterator begin() const noexcept {
+        return const_iterator(intrusive::begin(&m_sentry), 0);
+    }
+    const_iterator cbegin() const noexcept {
+        return const_iterator(intrusive::begin(&m_sentry), 0);
+    }
+
+    iterator end() noexcept { return iterator(&m_sentry, 0); }
+    const_iterator end() const noexcept { return const_iterator(&m_sentry, 0); }
+    const_iterator cend() const noexcept { return const_iterator(&m_sentry, 0); }
+
+    reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+    const_reverse_iterator rbegin() const noexcept {
+        return const_reverse_iterator(end());
+    }
+
+    const_reverse_iterator crbegin() const noexcept {
+        return const_reverse_iterator(cend());
+    }
+
+    reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+    const_reverse_iterator rend() const noexcept {
+        return const_reverse_iterator(begin());
+    }
+
+    const_reverse_iterator crend() const noexcept {
+        return const_reverse_iterator(cbegin());
+    }
+
+private:
+    void __take_tree(basic_bplus_tree &&other) noexcept {
+        auto root = other.__get_root();
+        if (root == nullptr) {
+            init(&m_sentry);
+            return;
+        }
+
+        __get_root() = root;
+        other.__get_root() = nullptr;
+        replace(&other.m_sentry, &m_sentry);
+        init(&other.m_sentry);
+    }
+
+    // member function for container_fn (START)
+
+    WJR_PURE WJR_INTRINSIC_CONSTEXPR _Alty &__get_allocator() noexcept {
+        return m_pair.second().first();
+    }
+
+    WJR_PURE WJR_INTRINSIC_CONSTEXPR const _Alty &__get_allocator() const noexcept {
+        return m_pair.second().first();
+    }
+
+    void __destroy_and_deallocate() noexcept {
         node_type *current = __get_root();
         if (current == nullptr) {
             return;
@@ -463,84 +503,9 @@ public:
         } while (true);
     }
 
-    template <typename... Args>
-    void emplace(Args &&...args) {
-        auto &al = __get_allocator();
-        value_type *const xval =
-            (value_type *)_Alty_traits::allocate(al, sizeof(value_type));
-        uninitialized_construct_using_allocator(xval, al, std::forward<Args>(args)...);
-
-        __insert_value_ptr(xval);
-    }
-
-    void insert(const value_type &val) { emplace(val); }
-    void insert(value_type &&val) { emplace(std::move(val)); }
-
-    void erase(const key_type &key);
-
-    iterator upper_bound(const key_type &key) {
-        return iterator(__upper_bound(key).__adjust_next());
-    }
-
-    const_iterator upper_bound(const key_type &key) const {
-        return const_iterator(__upper_bound(key).__adjust_next());
-    }
-
-    constexpr key_compare &key_comp() noexcept { return m_pair.first(); }
-    constexpr const key_compare &key_comp() const noexcept { return m_pair.first(); }
-
-    iterator begin() noexcept { return iterator(intrusive::begin(&m_sentry), 0); }
-    const_iterator begin() const noexcept {
-        return const_iterator(intrusive::begin(&m_sentry), 0);
-    }
-    const_iterator cbegin() const noexcept {
-        return const_iterator(intrusive::begin(&m_sentry), 0);
-    }
-
-    iterator end() noexcept { return iterator(&m_sentry, 0); }
-    const_iterator end() const noexcept { return const_iterator(&m_sentry, 0); }
-    const_iterator cend() const noexcept { return const_iterator(&m_sentry, 0); }
-
-    reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
-    const_reverse_iterator rbegin() const noexcept {
-        return const_reverse_iterator(end());
-    }
-
-    const_reverse_iterator crbegin() const noexcept {
-        return const_reverse_iterator(cend());
-    }
-
-    reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
-    const_reverse_iterator rend() const noexcept {
-        return const_reverse_iterator(begin());
-    }
-
-    const_reverse_iterator crend() const noexcept {
-        return const_reverse_iterator(cbegin());
-    }
-
-private:
-    // member function for container_fn (START)
-
-    WJR_PURE WJR_INTRINSIC_CONSTEXPR _Alty &__get_allocator() noexcept {
-        return m_pair.second().first();
-    }
-
-    WJR_PURE WJR_INTRINSIC_CONSTEXPR const _Alty &__get_allocator() const noexcept {
-        return m_pair.second().first();
-    }
-
     void __take_storage(basic_bplus_tree &&other) noexcept {
-        auto root = other.__get_root();
-        if (root == nullptr) {
-            init(&m_sentry);
-            return;
-        }
-
-        __get_root() = root;
-        other.__get_root() = nullptr;
-        replace(&other.m_sentry, &m_sentry);
-        init(&other.m_sentry);
+        key_comp() = std::move(other.key_comp());
+        __take_tree(std::move(other));
     }
 
     // member function for container_fn (END)
@@ -575,10 +540,10 @@ private:
             leaf = static_cast<leaf_node_type *>(node);
         } while (0);
 
+        uint8_t pos = iter.get_pos();
+
         KeyPtr *keys;
         node_type *inst;
-
-        uint8_t pos = iter.get_pos();
 
         KeyPtr key = xval->first;
         int32_t cur_size = -leaf->m_size;
@@ -727,7 +692,7 @@ private:
                     sons[i]->m_pos = i;
                 }
             } else {
-                if (pos == floor_half + 1) {
+                if (pos == ceil_half + 1) {
                     next_key = key;
                     Traits::copy(keys + floor_half, keys + node_size - 1, pinst->m_keys);
                     Traits::copy(sons + floor_half + 1, sons + node_size,
@@ -780,7 +745,16 @@ private:
         __insert_iter(__upper_bound(xval->first), xval);
     }
 
-    void __erase_iter(const_iterator iter) {}
+    void __erase_iter(const_iterator iter) {
+        leaf_node_type *leaf = iter.get_leaf();
+        uint8_t pos = iter.get_pos();
+        inner_node_type *parent = leaf->m_parent->as_inner();
+
+        if (parent == nullptr) {
+
+            return;
+        }
+    }
 
     WJR_PURE const_iterator __upper_bound(const key_type &key) const {
         const node_type *current = __get_root();
@@ -845,66 +819,24 @@ private:
     __upper_search(const inner_node_type *current, uint8_t size, const key_type &key,
                    const key_compare &comp) {
         uint8_t pos = 0;
-        // do {
-        //     if (comp(key, *current->m_keys[pos])) {
-        //         break;
-        //     }
-        // } while (++pos != size);
-
-        if (comp(key, *current->m_keys[0])) {
-            return 0;
-        }
-
-        pos = 2 - (size & 1);
-
-        if (size & 1) {
-        } else {
-            if (comp(key, *current->m_keys[1])) {
-                return 1;
+        do {
+            if (comp(key, *current->m_keys[pos])) {
+                break;
             }
-        }
-
-        for (; pos != size; pos += 2) {
-            if (comp(key, *current->m_keys[pos + 1])) {
-                if (comp(key, *current->m_keys[pos])) {
-                    return pos;
-                }
-
-                return pos + 1;
-            }
-        }
-
-        return size;
+        } while (++pos != size);
+        return pos;
     }
 
     WJR_PURE WJR_INTRINSIC_INLINE static uint8_t
     __upper_search(const leaf_node_type *current, uint8_t size, const key_type &key,
                    const key_compare &comp) {
         uint8_t pos = 0;
-        if (comp(key, current->__get_key(0))) {
-            return 0;
-        }
-
-        pos = 2 - (size & 1);
-
-        if (size & 1) {
-        } else {
-            if (comp(key, current->__get_key(1))) {
-                return 1;
+        do {
+            if (comp(key, current->__get_key(pos))) {
+                break;
             }
-        }
-
-        for (; pos != size; pos += 2) {
-            if (comp(key, current->__get_key(pos + 1))) {
-                if (comp(key, current->__get_key(pos))) {
-                    return pos;
-                }
-
-                return pos + 1;
-            }
-        }
-
-        return size;
+        } while (++pos != size);
+        return pos;
     }
 
     WJR_INTRINSIC_CONSTEXPR node_type *&__get_root() noexcept {
