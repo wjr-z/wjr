@@ -88,12 +88,14 @@ template <typename T, typename U>
 class WJR_EMPTY_BASES compressed_pair final
     : __compressed_pair_base1<T, U>,
       __compressed_pair_base2<T, U>,
-      enable_special_members_of_args_base<void, __compressed_pair_base1<T, U>,
+      enable_special_members_of_args_base<compressed_pair<T, U>,
+                                          __compressed_pair_base1<T, U>,
                                           __compressed_pair_base2<T, U>> {
 
     using Mybase1 = __compressed_pair_base1<T, U>;
     using Mybase2 = __compressed_pair_base2<T, U>;
-    using Mybase3 = enable_special_members_of_args_base<void, Mybase1, Mybase2>;
+    using Mybase3 =
+        enable_special_members_of_args_base<compressed_pair<T, U>, Mybase1, Mybase2>;
 
     template <typename Ty, typename Uy>
     using __is_all_copy_constructible =

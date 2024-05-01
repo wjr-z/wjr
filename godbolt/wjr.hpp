@@ -4543,12 +4543,14 @@ template <typename T, typename U>
 class WJR_EMPTY_BASES compressed_pair final
     : __compressed_pair_base1<T, U>,
       __compressed_pair_base2<T, U>,
-      enable_special_members_of_args_base<void, __compressed_pair_base1<T, U>,
+      enable_special_members_of_args_base<compressed_pair<T, U>,
+                                          __compressed_pair_base1<T, U>,
                                           __compressed_pair_base2<T, U>> {
 
     using Mybase1 = __compressed_pair_base1<T, U>;
     using Mybase2 = __compressed_pair_base2<T, U>;
-    using Mybase3 = enable_special_members_of_args_base<void, Mybase1, Mybase2>;
+    using Mybase3 =
+        enable_special_members_of_args_base<compressed_pair<T, U>, Mybase1, Mybase2>;
 
     template <typename Ty, typename Uy>
     using __is_all_copy_constructible =
@@ -17719,7 +17721,7 @@ class WJR_EMPTY_BASES tuple_impl<std::index_sequence<Indexs...>, Args...>
                    enable_base_identity_t<
                        Indexs, tuple_impl<std::index_sequence<Indexs...>, Args...>>>...,
       enable_special_members_of_args_base<
-          void,
+          tuple_impl<std::index_sequence<Indexs...>, Args...>,
           capture_leaf<
               std::tuple_element_t<Indexs, tuple<Args...>>,
               enable_base_identity_t<
@@ -17731,8 +17733,9 @@ class WJR_EMPTY_BASES tuple_impl<std::index_sequence<Indexs...>, Args...>
                                 enable_base_identity_t<Idx, tuple_impl>>;
 
     using Mybase2 = enable_special_members_of_args_base<
-        void, capture_leaf<std::tuple_element_t<Indexs, tuple<Args...>>,
-                           enable_base_identity_t<Indexs, tuple_impl>>...>;
+        tuple_impl<std::index_sequence<Indexs...>, Args...>,
+        capture_leaf<std::tuple_element_t<Indexs, tuple<Args...>>,
+                     enable_base_identity_t<Indexs, tuple_impl>>...>;
 
     constexpr static size_t Size = sizeof...(Args);
 
@@ -20296,15 +20299,17 @@ private:
         }
     }
 
-    WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) {
-        if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
+    WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) {
+        auto ptr = m_cache.ptr;
+
+        if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - ptr) < n)) {
             __small_reallocate(top);
+            ptr = m_cache.ptr;
         }
 
         WJR_ASSERT_ASSUME_L1(m_cache.ptr != nullptr);
         WJR_ASSERT_ASSUME_L1(top.ptr != nullptr);
 
-        const auto ptr = m_cache.ptr;
         m_cache.ptr += n;
         return ptr;
     }
@@ -29747,6 +29752,266 @@ uint64_t *biginteger_from_chars(Iter first, Iter last, uint64_t *up,
 } // namespace wjr
 
 #endif // WJR_MATH_CONVERT_HPP__
+#ifndef WJR_MATH_COPY_HPP__
+#define WJR_MATH_COPY_HPP__
+
+// Already included
+
+#if defined(WJR_X86)
+#ifndef WJR_X86_MATH_COPY_HPP__
+#define WJR_X86_MATH_COPY_HPP__
+
+#include <algorithm>
+
+// Already included
+
+#ifndef WJR_X86
+#error "x86 required"
+#endif
+
+namespace wjr {
+
+#if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(X86_SIMD)
+#define WJR_HAS_BUILTIN_COPY_N WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_COPY_C WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_COPY_BACKWARD_N WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_COPY_BACKWARD_C WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(COPY_C)
+
+template <size_t N>
+void builtin_copy_c_bytes_impl(const uint8_t *src, uint8_t *dst) {
+    if constexpr (N == 2) {
+        const auto x = read_memory<uint16_t>(src, endian::native);
+        write_memory<uint16_t>(dst, x, endian::native);
+        return;
+    }
+
+    if constexpr (N == 4) {
+        const auto x = read_memory<uint32_t>(src, endian::native);
+        write_memory<uint32_t>(dst, x, endian::native);
+        return;
+    }
+
+    if constexpr (N == 8) {
+        const auto x = read_memory<uint64_t>(src, endian::native);
+        write_memory<uint64_t>(dst, x, endian::native);
+        return;
+    }
+
+    if constexpr (N == 16) {
+        const auto x = sse::loadu((__m128i *)(src));
+        sse::storeu((__m128i *)(dst), x);
+        return;
+    }
+
+    if constexpr (N == 32) {
+#if WJR_HAS_SIMD(AVX2)
+        const auto x = avx::loadu((__m256i *)(src));
+        avx::storeu((__m256i *)(dst), x);
+#else
+        builtin_copy_c_bytes<16>(dst, src);
+        builtin_copy_c_bytes<16>(dst + 16, src + 16);
+#endif
+        return;
+    }
+
+    WJR_UNREACHABLE();
+}
+
+template <size_t N, typename T>
+void builtin_copy_c_bytes(const T *src, T *dst) {
+    builtin_copy_c_bytes_impl<N * sizeof(T)>(reinterpret_cast<const uint8_t *>(src),
+                                             reinterpret_cast<uint8_t *>(dst));
+}
+
+template <size_t N, typename T>
+void builtin_copy_c(const T *src, T *dst) {
+    if constexpr (N == 0) {
+        return;
+    }
+
+    if constexpr (N == 1) {
+        dst[0] = src[0];
+        return;
+    }
+
+    if constexpr (N > 8) {
+        std::copy(src, src + N, dst);
+        return;
+    }
+
+    if constexpr (N == 2) {
+        builtin_copy_c_bytes<2>(src, dst);
+    } else if constexpr (N == 3) {
+        builtin_copy_c_bytes<2>(src, dst);
+        builtin_copy_c_bytes<1>(src + 2, dst + 2);
+    } else if constexpr (N == 4) {
+        builtin_copy_c_bytes<4>(src, dst);
+    } else if constexpr (N == 5) {
+        builtin_copy_c_bytes<4>(src, dst);
+        builtin_copy_c_bytes<1>(src + 4, dst + 4);
+    } else if constexpr (N == 6) {
+        builtin_copy_c_bytes<4>(src, dst);
+        builtin_copy_c_bytes<2>(src + 4, dst + 4);
+    } else if constexpr (N == 7) {
+        builtin_copy_c_bytes<4>(src, dst);
+        builtin_copy_c_bytes<4>(src + 3, dst + 3);
+    } else if constexpr (N == 8) {
+        builtin_copy_c_bytes<8>(src, dst);
+    }
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(COPY_BACKWARD_C)
+
+template <size_t N>
+void builtin_copy_backward_c_bytes_impl(const uint8_t *s_last, uint8_t *d_last) {
+    if constexpr (N == 2) {
+        const auto x = read_memory<uint16_t>(s_last - 2, endian::native);
+        write_memory<uint16_t>(d_last - 2, x, endian::native);
+        return;
+    }
+
+    if constexpr (N == 4) {
+        const auto x = read_memory<uint32_t>(s_last - 4, endian::native);
+        write_memory<uint32_t>(d_last - 4, x, endian::native);
+        return;
+    }
+
+    if constexpr (N == 8) {
+        const auto x = read_memory<uint64_t>(s_last - 8, endian::native);
+        write_memory<uint64_t>(d_last - 8, x, endian::native);
+        return;
+    }
+
+    if constexpr (N == 16) {
+        const auto x = sse::loadu((__m128i *)(s_last - 16));
+        sse::storeu((__m128i *)(d_last - 16), x);
+        return;
+    }
+
+    if constexpr (N == 32) {
+#if WJR_HAS_SIMD(AVX2)
+        const auto x = avx::loadu((__m256i *)(s_last - 32));
+        avx::storeu((__m256i *)(d_last - 32), x);
+#else
+        builtin_copy_backward_c_bytes<16>(s_last, d_last);
+        builtin_copy_backward_c_bytes<16>(s_last - 16, d_last - 16);
+#endif
+    }
+
+    WJR_UNREACHABLE();
+}
+
+template <size_t N, typename T>
+void builtin_copy_backward_c_bytes(const T *s_last, T *d_last) {
+    builtin_copy_backward_c_bytes_impl<N * sizeof(T)>(
+        reinterpret_cast<const uint8_t *>(s_last), reinterpret_cast<uint8_t *>(d_last));
+}
+
+template <size_t N, typename T>
+void builtin_copy_backward_c(const T *s_last, T *d_last) {
+    if constexpr (N == 0) {
+        return;
+    }
+
+    if constexpr (N == 1) {
+        d_last[-1] = s_last[-1];
+        return;
+    }
+
+    if constexpr (N > 8) {
+        std::copy_backward(s_last - N, s_last, d_last);
+        return;
+    }
+
+    if constexpr (N == 2) {
+        builtin_copy_backward_c_bytes<2>(s_last, d_last);
+    } else if constexpr (N == 3) {
+        builtin_copy_backward_c_bytes<2>(s_last, d_last);
+        builtin_copy_backward_c_bytes<1>(s_last - 2, d_last - 2);
+    } else if constexpr (N == 4) {
+        builtin_copy_backward_c_bytes<4>(s_last, d_last);
+    } else if constexpr (N == 5) {
+        builtin_copy_backward_c_bytes<4>(s_last, d_last);
+        builtin_copy_backward_c_bytes<1>(s_last - 4, d_last - 4);
+    } else if constexpr (N == 6) {
+        builtin_copy_backward_c_bytes<4>(s_last, d_last);
+        builtin_copy_backward_c_bytes<2>(s_last - 4, d_last - 4);
+    } else if constexpr (N == 7) {
+        builtin_copy_backward_c_bytes<4>(s_last, d_last);
+        builtin_copy_backward_c_bytes<4>(s_last - 3, d_last - 3);
+    } else if constexpr (N == 8) {
+        builtin_copy_backward_c_bytes<8>(s_last, d_last);
+    }
+}
+
+#endif
+
+} // namespace wjr
+
+#endif // WJR_X86_MATH_COPY_HPP__
+#endif
+
+namespace wjr {
+
+/// @private
+template <typename InputIt, typename OutputIt>
+struct __is_builtin_copy
+    : std::conjunction<
+          std::is_trivially_copyable<iterator_value_t<InputIt>>,
+          std::is_same<iterator_value_t<InputIt>, iterator_value_t<OutputIt>>,
+          is_contiguous_iterator<InputIt>, is_contiguous_iterator<OutputIt>> {};
+
+/// @private
+template <typename InputIt, typename OutputIt>
+inline constexpr bool __is_builtin_copy_v = __is_builtin_copy<InputIt, OutputIt>::value;
+
+template <size_t N, typename InputIt, typename OutputIt>
+OutputIt fallback_copy_c(InputIt first, OutputIt dst) {
+    return std::copy(first, first + N, dst);
+}
+
+template <size_t N, typename InputIt, typename OutputIt>
+OutputIt copy_c(InputIt first, OutputIt dst) {
+#if WJR_HAS_BUILTIN(COPY_C)
+    if constexpr (__is_builtin_copy_v<InputIt, OutputIt>) {
+        builtin_copy_c<N>(to_address(first), to_address(dst));
+        return dst + N;
+    } else {
+        return fallback_copy_c<N>(first, dst);
+    }
+
+#else
+    return fallback_copy_c<N>(first, dst);
+#endif
+}
+
+template <size_t N, typename InputIt, typename OutputIt>
+OutputIt fallback_copy_backward_c(InputIt s_last, OutputIt d_last) {
+    return std::copy_backward(s_last - N, s_last, d_last);
+}
+
+template <size_t N, typename InputIt, typename OutputIt>
+OutputIt copy_backward_c(InputIt s_last, OutputIt d_last) {
+#if WJR_HAS_BUILTIN(COPY_BACKWARD_C)
+    if constexpr (__is_builtin_copy_v<InputIt, OutputIt>) {
+        builtin_copy_backward_c<N>(to_address(s_last), to_address(d_last));
+        return d_last - N;
+    } else {
+        return fallback_copy_backward_c<N>(s_last, d_last);
+    }
+#else
+    return fallback_copy_backward_c<N>(s_last, d_last);
+#endif
+}
+
+} // namespace wjr
+
+#endif // WJR_MATH_COPY_HPP__
 #ifndef WJR_MATH_NEG_HPP__
 #define WJR_MATH_NEG_HPP__
 
@@ -31727,10 +31992,10 @@ private:
     vector_type m_vec;
 };
 
-template <typename Alloc = std::allocator<uint64_t>>
+template <typename Alloc>
 using default_biginteger = basic_biginteger<default_biginteger_vector_storage<Alloc>>;
 
-using biginteger = default_biginteger<std::allocator<uint64_t>>;
+using biginteger = default_biginteger<memory_pool<uint64_t>>;
 using stack_biginteger = default_biginteger<math_details::weak_stack_alloc<uint64_t>>;
 
 template <typename Storage>
@@ -33458,349 +33723,1127 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
 #endif
 
 #endif // WJR_BIGINTEGER_HPP__
-#ifndef WJR_CONTAINER_GENERIC_DYNAMIC_BITSET_HPP__
-#define WJR_CONTAINER_GENERIC_DYNAMIC_BITSET_HPP__
+#ifndef WJR_BPLUS_TREE_HPP__
+#define WJR_BPLUS_TREE_HPP__
+
+#ifndef WJR_CONTAINER_GENERIC_BPLUS_TREE_HPP__
+#define WJR_CONTAINER_GENERIC_BPLUS_TREE_HPP__
 
 // Already included
 // Already included
+#ifndef WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP__
+#define WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP__
+
+#include <memory>
+#include <type_traits>
+
 // Already included
 
 namespace wjr {
 
 /**
- * @todo Dynamic bitset.
+ * @class container_fn<Alloc>
+ * @brief The same characteristics and behavior of all allocator containers
+ *
+ * @details container must have the following member functions:
+ * -# auto& __get_allocator() noexcept
+ * -# void __destroy() noexcept
+ * -# void __destroy_and_deallocate() noexcept
+ * -# void __copy_element(const container& other)
+ * -# void __take_storage(container&& other)
+ * -# void __move_element(container&& other)
+ * -# void __swap_storage(container& other)
+ *
+ * 1 : is used to manage the allocator of the container. \n
+ * 2-3 : is used to destroy the container and deallocate the memory. \n
+ * 4-7 : is used to assign the container data. Shouldn't change the allocator.
  *
  */
-
-/**
- * @brief Dynamic bitset.
- *
- * @note TODO: Add more functions.
- */
-template <typename Allocator = std::allocator<uint64_t>>
-class basic_dynamic_bitset {
-public:
-    using block_type = uint64_t;
-    using allocator_type = Allocator;
-    constexpr static size_t block_size = 64;
-
+template <typename Alloc>
+class container_fn {
 private:
-    using vector_type = vector<block_type, allocator_type>;
+    using allocator_type = Alloc;
+    using allocator_traits = std::allocator_traits<allocator_type>;
+    using is_always_equal = typename allocator_traits::is_always_equal;
+    using propagate_on_container_copy_assignment =
+        typename allocator_traits::propagate_on_container_copy_assignment;
+    using propagate_on_container_move_assignment =
+        typename allocator_traits::propagate_on_container_move_assignment;
+    using propagate_on_container_swap =
+        typename allocator_traits::propagate_on_container_swap;
 
 public:
-    using size_type = typename vector_type::size_type;
-
-    class reference {
-        friend class basic_dynamic_bitset;
-
-    public:
-        reference(block_type *val, size_type pos)
-            : m_val(val), m_mask((block_type)1 << pos) {}
-
-        ~reference() = default;
-
-        reference &operator=(bool val) {
-            if (val) {
-                *m_val |= m_mask;
-            } else {
-                *m_val &= ~m_mask;
-            }
-            return *this;
-        }
-
-        bool operator~() const { return (*m_val & m_mask) == 0; }
-        operator bool() const { return (*m_val & m_mask) != 0; }
-
-        reference &operator=(const reference &other) { return *this = bool(other); }
-
-        reference &flip() {
-            *m_val ^= m_mask;
-            return *this;
-        }
-
-    private:
-        block_type *m_val;
-        block_type m_mask;
-    };
-
-    using const_reference = bool;
-
-    basic_dynamic_bitset() = default;
-
-    /**
-     * @brief Use from_chars_2 to optimize the performance.
-     *
-     * @details Very fast conversion from string to uint64_t.
-     *
-     * @note Only use from_chars_2 when type of T is uint64_t and CharT is char.
-     */
-    template <typename CharT, size_t Extent,
-              WJR_REQUIRES(std::is_same_v<std::remove_const_t<CharT>, char>)>
-    explicit basic_dynamic_bitset(const span<CharT, Extent> &sp)
-        : m_vec((sp.size() + block_size - 1) / block_size, dctor), m_bits(sp.size()) {
-        (void)__biginteger_from_chars_2_impl((const uint8_t *)sp.data(), sp.size(),
-                                             m_vec.data());
-    }
-
-    template <typename CharT, size_t Extent,
-              WJR_REQUIRES(!std::is_same_v<std::remove_const_t<CharT>, char>)>
-    explicit basic_dynamic_bitset(const span<CharT, Extent> &sp)
-        : basic_dynamic_bitset(sp, '0') {}
-
-    template <typename CharT, size_t Extent>
-    basic_dynamic_bitset(const span<CharT, Extent> &sp, type_identity_t<CharT> zero,
-                         type_identity_t<CharT> one = '1')
-        : basic_dynamic_bitset(sp, zero, one, std::equal_to<CharT>()) {}
-
-    template <typename CharT, size_t Extent, typename Equal>
-    basic_dynamic_bitset(const span<CharT, Extent> &sp,
-                         WJR_MAYBE_UNUSED type_identity_t<CharT> zero,
-                         type_identity_t<CharT> one, Equal equal)
-        : m_vec((sp.size() + block_size - 1) / block_size, dctor), m_bits(sp.size()) {
-        auto ptr = sp.data();
-        size_type n = sp.size();
-        size_type idx = 0;
-
-        block_type value = 0;
-
-        while (n >= block_size) {
-            value = 0;
-
-            for (size_type i = block_size - 1; ~i; --i) {
-                value <<= 1;
-                if (equal(ptr[i], one)) {
-                    value |= 1;
-                } else {
-                    WJR_ASSERT(equal(ptr[i], zero));
+    template <typename Container>
+    WJR_CONSTEXPR20 static void
+    copy_assign(Container &lhs, const Container &rhs) noexcept(
+        noexcept(lhs.__copy_element(rhs)) &&
+                !propagate_on_container_copy_assignment::value
+            ? true
+            : (noexcept(lhs.__get_allocator() = rhs.__get_allocator()) &&
+                       is_always_equal::value
+                   ? true
+                   : noexcept(lhs.__destroy_and_deallocate()))) {
+        if constexpr (propagate_on_container_copy_assignment::value) {
+            auto &lhs_allocator = lhs.__get_allocator();
+            auto &rhs_allocator = rhs.__get_allocator();
+            if constexpr (!is_always_equal::value) {
+                if (lhs_allocator != rhs_allocator) {
+                    lhs.__destroy_and_deallocate();
                 }
             }
 
-            m_vec[idx] = value;
-            ptr += block_size;
-            n -= block_size;
-            ++idx;
+            lhs_allocator = rhs_allocator;
         }
 
-        if (n) {
-            value = 0;
+        lhs.__copy_element(rhs);
+    }
 
-            for (size_type i = n - 1; ~i; --i) {
-                value <<= 1;
-                if (equal(ptr[i], one)) {
-                    value |= 1;
-                } else {
-                    WJR_ASSERT(equal(ptr[i], zero));
-                }
+    template <typename Container>
+    WJR_CONSTEXPR20 static void move_assign(Container &lhs, Container &&rhs) noexcept(
+        noexcept(lhs.__destroy_and_deallocate()) && noexcept(
+            lhs.__take_storage(std::move(rhs))) &&
+                std::disjunction_v<propagate_on_container_move_assignment,
+                                   is_always_equal>
+            ? (!propagate_on_container_move_assignment::value
+                   ? true
+                   : noexcept(lhs.__get_allocator() = std::move(rhs.__get_allocator())))
+            : (noexcept(lhs.__destroy()) && noexcept(
+                  lhs.__move_element(std::move(rhs))))) {
+        if constexpr (std::disjunction_v<propagate_on_container_move_assignment,
+                                         is_always_equal>) {
+            lhs.__destroy_and_deallocate();
+            if constexpr (propagate_on_container_move_assignment::value) {
+                lhs.__get_allocator() = std::move(rhs.__get_allocator());
             }
-
-            m_vec[idx] = value;
-        }
-    }
-
-    basic_dynamic_bitset(const basic_dynamic_bitset &other) = default;
-    basic_dynamic_bitset(basic_dynamic_bitset &&other)
-        : m_vec(std::move(other.m_vec)), m_bits(std::exchange(other.m_bits, 0)) {}
-    basic_dynamic_bitset &operator=(const basic_dynamic_bitset &other) = default;
-    basic_dynamic_bitset &operator=(basic_dynamic_bitset &&other) {
-        m_vec = std::move(other.m_vec);
-        m_bits = std::exchange(other.m_bits, 0);
-        return *this;
-    }
-    ~basic_dynamic_bitset() = default;
-
-    void swap(basic_dynamic_bitset &other) {
-        m_vec.swap(other.m_vec);
-        std::swap(m_bits, other.m_bits);
-    }
-
-    bool operator==(const basic_dynamic_bitset &other) const {
-        return m_vec == other.m_vec;
-    }
-
-    bool operator!=(const basic_dynamic_bitset &other) const {
-        return m_vec != other.m_vec;
-    }
-
-    reference operator[](size_type pos) {
-        WJR_ASSERT(pos < m_bits, "Index out of range.");
-        return reference(&m_vec[pos / block_size], pos % block_size);
-    }
-
-    const_reference operator[](size_type pos) const {
-        WJR_ASSERT(pos < m_bits, "Index out of range.");
-        return (m_vec[pos / block_size] >> (pos % block_size)) & 1;
-    }
-
-    bool test(size_type pos) const { return (*this)[pos]; }
-
-    bool all() const {
-        size_type n = m_vec.size();
-        if (WJR_UNLIKELY(n == 0)) {
-            return false;
-        }
-
-        if (m_vec.back() != ((block_type)1 << (m_bits % block_size)) - 1) {
-            return false;
-        }
-
-        return find_not_n(m_vec.data(), ~(block_type)0, n - 1) == n - 1;
-    }
-
-    bool any() const {
-        size_type n = m_vec.size();
-        return find_n(m_vec.data(), (block_type)0, n) != n;
-    }
-
-    bool none() const { return !any(); }
-
-    size_type count() const {
-        size_type sum = 0;
-        for (auto item : m_vec) {
-            sum += popcount(item);
-        }
-        return sum;
-    }
-
-    size_type size() const { return m_bits; }
-
-    allocator_type &get_allocator() noexcept { return m_vec.get_allocator(); }
-    const allocator_type &get_allocator() const noexcept { return m_vec.get_allocator(); }
-
-    basic_dynamic_bitset &operator&=(const basic_dynamic_bitset &other) {
-        if (other.m_bits < m_bits) {
-            m_bits = other.m_bits;
-            m_vec.truncate(other.m_vec.size());
-        }
-
-        size_type n = m_vec.size();
-        for (size_type i = 0; i < n; ++i) {
-            m_vec[i] &= other.m_vec[i];
-        }
-
-        return *this;
-    }
-
-    basic_dynamic_bitset &operator|=(const basic_dynamic_bitset &other) {
-        size_type n = m_vec.size();
-
-        if (other.m_bits > m_bits) {
-            m_bits = other.m_bits;
-            m_vec.append(other.begin() + n, other.end());
-        }
-
-        for (size_type i = 0; i < n; ++i) {
-            m_vec[i] |= other.m_vec[i];
-        }
-
-        return *this;
-    }
-
-    basic_dynamic_bitset &operator^=(const basic_dynamic_bitset &other) {
-        size_type n = m_vec.size();
-
-        if (other.m_bits > m_bits) {
-            m_bits = other.m_bits;
-            m_vec.append(other.begin() + n, other.end());
-        }
-
-        for (size_type i = 0; i < n; ++i) {
-            m_vec[i] ^= other.m_vec[i];
-        }
-
-        return *this;
-    }
-
-    basic_dynamic_bitset operator~() const {
-        basic_dynamic_bitset result(*this);
-        result.flip();
-        return result;
-    }
-
-    basic_dynamic_bitset &flip() {
-        size_type n = m_vec.size();
-        if (WJR_UNLIKELY(n == 0)) {
-            return *this;
-        }
-
-        m_vec.back() = ((~m_vec.back()) & ((block_type)1 << (m_bits % block_size))) - 1;
-
-        for (size_type i = 0; i < n - 1; ++i) {
-            m_vec[i] = ~m_vec[i];
-        }
-
-        return *this;
-    }
-
-    basic_dynamic_bitset &flip(size_type pos) {
-        WJR_ASSERT(pos < m_bits, "Index out of range.");
-        m_vec[pos / block_size] ^= (block_type)1 << (pos % block_size);
-        return *this;
-    }
-
-    basic_dynamic_bitset &set() {
-        size_type n = m_vec.size();
-        if (WJR_UNLIKELY(n == 0)) {
-            return *this;
-        }
-
-        m_vec.back() = ((block_type)1 << (m_bits % block_size)) - 1;
-        set_n(m_vec.data(), ~block_type(0), n - 1);
-
-        return *this;
-    }
-
-    basic_dynamic_bitset &set(size_type pos, bool val = true) {
-        WJR_ASSERT(pos < m_bits, "Index out of range.");
-        if (val) {
-            m_vec[pos / block_size] |= (block_type)1 << (pos % block_size);
+            lhs.__take_storage(std::move(rhs));
         } else {
-            m_vec[pos / block_size] &= ~((block_type)1 << (pos % block_size));
+            if (lhs.__get_allocator() != rhs.__get_allocator()) {
+                lhs.__destroy();
+                lhs.__move_element(std::move(rhs));
+            } else {
+                lhs.__destroy_and_deallocate();
+                lhs.__take_storage(std::move(rhs));
+            }
         }
-        return *this;
     }
 
-    basic_dynamic_bitset &reset() {
-        set_n(m_vec.data(), 0, m_vec.size());
-        return *this;
-    }
+    template <typename Container>
+    WJR_CONSTEXPR20 static void swap(Container &lhs, Container &rhs) noexcept(
+        noexcept(lhs.__swap_storage(rhs)) &&
+                !std::conjunction_v<propagate_on_container_swap,
+                                    std::negation<is_always_equal>>
+            ? true
+            : noexcept(std::swap(lhs.__get_allocator(), rhs.__get_allocator()))) {
+        if constexpr (std::conjunction_v<propagate_on_container_swap,
+                                         std::negation<is_always_equal>>) {
+            auto &lhs_allocator = lhs.__get_allocator();
+            auto &rhs_allocator = rhs.__get_allocator();
+            if (lhs_allocator != rhs_allocator) {
+                std::swap(lhs_allocator, rhs_allocator);
+            }
+        }
 
-    basic_dynamic_bitset &reset(size_type pos) {
-        WJR_ASSERT(pos < m_bits, "Index out of range.");
-        m_vec[pos / block_size] &= ~((block_type)1 << (pos % block_size));
-        return *this;
+        lhs.__swap_storage(rhs);
     }
-
-    friend basic_dynamic_bitset operator&(const basic_dynamic_bitset &lhs,
-                                          const basic_dynamic_bitset &rhs) {
-        basic_dynamic_bitset result(lhs);
-        result &= rhs;
-        return result;
-    }
-
-    friend basic_dynamic_bitset operator|(const basic_dynamic_bitset &lhs,
-                                          const basic_dynamic_bitset &rhs) {
-        basic_dynamic_bitset result(lhs);
-        result |= rhs;
-        return result;
-    }
-
-    friend basic_dynamic_bitset operator^(const basic_dynamic_bitset &lhs,
-                                          const basic_dynamic_bitset &rhs) {
-        basic_dynamic_bitset result(lhs);
-        result ^= rhs;
-        return result;
-    }
-
-private:
-    vector<block_type, allocator_type> m_vec;
-    size_type m_bits = 0;
 };
-
-using bitset = basic_dynamic_bitset<>;
 
 } // namespace wjr
 
-#endif // WJR_CONTAINER_GENERIC_DYNAMIC_BITSET_HPP__
+#endif // WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP__
+#ifndef WJR_CONTAINER_INTRUSIVE_LIST_HPP__
+#define WJR_CONTAINER_INTRUSIVE_LIST_HPP__
+
+// Already included
+
+namespace wjr::intrusive {
+
+struct forward_list_node {
+    forward_list_node *next;
+};
+
+struct list_node {
+    list_node *prev;
+    list_node *next;
+};
+
+WJR_INTRINSIC_CONSTEXPR void init(list_node *node) {
+    node->prev = node;
+    node->next = node;
+}
+
+WJR_INTRINSIC_CONSTEXPR void insert(list_node *prev, list_node *next, list_node *node) {
+    prev->next = node;
+    node->prev = prev;
+    next->prev = node;
+    node->next = next;
+}
+
+WJR_INTRINSIC_CONSTEXPR void push_back(list_node *head, list_node *node) {
+    insert(head, head->next, node);
+}
+
+WJR_INTRINSIC_CONSTEXPR void push_front(list_node *head, list_node *node) {
+    insert(head->prev, head, node);
+}
+
+WJR_INTRINSIC_CONSTEXPR void remove(list_node *node) {
+    node->prev->next = node->next;
+    node->next->prev = node->prev;
+    node->prev = node;
+    node->next = node;
+}
+
+WJR_INTRINSIC_CONSTEXPR bool empty(const list_node *node) { return node->next == node; }
+
+WJR_INTRINSIC_CONSTEXPR list_node *next(list_node *node) { return node->next; }
+WJR_INTRINSIC_CONSTEXPR const list_node *next(const list_node *node) {
+    return node->next;
+}
+
+WJR_INTRINSIC_CONSTEXPR list_node *prev(list_node *node) { return node->prev; }
+WJR_INTRINSIC_CONSTEXPR const list_node *prev(const list_node *node) {
+    return node->prev;
+}
+
+WJR_INTRINSIC_CONSTEXPR list_node *begin(list_node *node) { return next(node); }
+WJR_INTRINSIC_CONSTEXPR const list_node *begin(const list_node *node) {
+    return next(node);
+}
+
+WJR_INTRINSIC_CONSTEXPR list_node *end(list_node *node) { return node; }
+WJR_INTRINSIC_CONSTEXPR const list_node *end(const list_node *node) { return node; }
+
+WJR_INTRINSIC_CONSTEXPR void replace(list_node *from, list_node *to) {
+    WJR_ASSERT(!empty(from));
+
+    to->prev = from->prev;
+    to->next = from->next;
+    from->prev->next = to;
+    from->next->prev = to;
+}
+
+} // namespace wjr::intrusive
+
+#endif // WJR_CONTAINER_INTRUSIVE_LIST_HPP__
+// Already included
+
+namespace wjr {
+
+template <typename Key, bool = true>
+struct bplus_key {
+    bplus_key() noexcept = default;
+    bplus_key(const bplus_key &) noexcept = default;
+    bplus_key(bplus_key &&) noexcept = default;
+    bplus_key &operator=(const bplus_key &) noexcept = default;
+    bplus_key &operator=(bplus_key &&) noexcept = default;
+    ~bplus_key() noexcept = default;
+
+    bplus_key(Key key) noexcept : m_key(key) {}
+
+    bplus_key &operator=(Key key) noexcept {
+        m_key = key;
+        return *this;
+    }
+
+    const Key &operator*() const noexcept { return m_key; }
+
+    Key m_key;
+};
+
+template <typename Key>
+struct bplus_key<Key, false> {
+    bplus_key() noexcept = default;
+    bplus_key(const bplus_key &) noexcept = default;
+    bplus_key(bplus_key &&) noexcept = default;
+    bplus_key &operator=(const bplus_key &) noexcept = default;
+    bplus_key &operator=(bplus_key &&) noexcept = default;
+    ~bplus_key() noexcept = default;
+
+    bplus_key(const Key &key) noexcept : m_key(std::addressof(key)) {}
+
+    bplus_key &operator=(const Key &key) noexcept {
+        m_key = std::addressof(key);
+        return *this;
+    }
+
+    const Key &operator*() const noexcept { return *m_key; }
+
+    const Key *m_key;
+};
+
+template <typename Traits>
+struct bplus_tree_node;
+
+template <typename Traits>
+struct bplus_tree_inner_node;
+
+template <typename Traits, bool InlineKeys>
+struct bplus_tree_leaf_node;
+
+template <typename Key, typename T, typename Compare, size_t Size>
+struct bplus_tree_traits {
+    using key_type = Key;
+    using mapped_type = T;
+    using value_type = std::pair<const key_type, mapped_type>;
+    using key_compare = Compare;
+
+    constexpr static size_t node_size = Size;
+    static constexpr size_t stack_size = node_size == 3   ? 48
+                                         : node_size < 7  ? 32
+                                         : node_size < 15 ? 24
+                                                          : 16;
+    static constexpr bool inline_keys = std::is_trivial_v<key_type> &&
+                                        std::is_standard_layout_v<key_type> &&
+                                        sizeof(key_type) <= 8;
+    using KeyPtr = bplus_key<Key, inline_keys>;
+    using node_type = bplus_tree_node<bplus_tree_traits>;
+    using inner_node_type = bplus_tree_inner_node<bplus_tree_traits>;
+    using leaf_node_type = bplus_tree_leaf_node<bplus_tree_traits, inline_keys>;
+
+private:
+    template <typename Other>
+    static void __native_copy(Other *WJR_RESTRICT first, Other *WJR_RESTRICT last,
+                              Other *WJR_RESTRICT dest) noexcept {
+        for (; first != last; ++first, ++dest) {
+            *dest = *first;
+            WJR_COMPILER_EMPTY_ASM();
+        }
+    }
+
+    template <typename Other>
+    static void __native_copy_backward(Other *first, Other *last, Other *dest) noexcept {
+        for (; first != last;) {
+            *--dest = *--last;
+            WJR_COMPILER_EMPTY_ASM();
+        }
+    }
+
+public:
+    template <typename Other>
+    static void copy(Other *WJR_RESTRICT first, Other *WJR_RESTRICT last,
+                     Other *WJR_RESTRICT dest) noexcept {
+        if constexpr (node_size <= 8) {
+            return __native_copy(first, last, dest);
+        } else {
+            (void)std::copy(first, last, dest);
+        }
+    }
+
+    template <typename Other>
+    static void copy_backward(Other *first, Other *last, Other *dest) noexcept {
+        if constexpr (node_size <= 8) {
+            return __native_copy_backward(first, last, dest);
+        } else {
+            (void)std::copy_backward(first, last, dest);
+        }
+    }
+};
+
+template <typename Traits>
+struct bplus_tree_node {
+    using key_type = typename Traits::key_type;
+    using value_type = typename Traits::value_type;
+    constexpr static size_t node_size = Traits::node_size;
+    using KeyPtr = typename Traits::KeyPtr;
+    using inner_node_type = typename Traits::inner_node_type;
+    using leaf_node_type = typename Traits::leaf_node_type;
+
+    WJR_INTRINSIC_CONSTEXPR inner_node_type *as_inner() noexcept {
+        return (inner_node_type *)(this);
+    }
+
+    WJR_INTRINSIC_CONSTEXPR const inner_node_type *as_inner() const noexcept {
+        return (inner_node_type *)(this);
+    }
+
+    WJR_INTRINSIC_CONSTEXPR leaf_node_type *as_leaf() noexcept {
+        return (leaf_node_type *)(this);
+    }
+
+    WJR_INTRINSIC_CONSTEXPR const leaf_node_type *as_leaf() const noexcept {
+        return (leaf_node_type *)(this);
+    }
+
+    int32_t m_size;
+    uint32_t m_pos;
+    bplus_tree_node *m_parent;
+};
+
+template <typename Traits>
+struct bplus_tree_inner_node : bplus_tree_node<Traits> {
+    using key_type = typename Traits::key_type;
+    using value_type = typename Traits::value_type;
+    constexpr static size_t node_size = Traits::node_size;
+    using KeyPtr = typename Traits::KeyPtr;
+
+    alignas(16) KeyPtr m_keys[node_size];
+    alignas(16) bplus_tree_node<Traits> *m_sons[node_size + 1];
+};
+
+template <typename Traits, bool InlineKeys>
+struct bplus_tree_leaf_node : bplus_tree_node<Traits>, intrusive::list_node {
+    using key_type = typename Traits::key_type;
+    using value_type = typename Traits::value_type;
+    constexpr static size_t node_size = Traits::node_size;
+    using KeyPtr = typename Traits::KeyPtr;
+    using ListNode = intrusive::list_node;
+
+    const key_type &__get_key(uint8_t pos) const noexcept { return *m_keys[pos]; }
+
+    WJR_INTRINSIC_CONSTEXPR ListNode *__get_list() noexcept { return this; }
+    WJR_INTRINSIC_CONSTEXPR const ListNode *__get_list() const noexcept { return this; }
+
+    alignas(16) KeyPtr m_keys[node_size];
+    alignas(16) value_type *m_values[node_size];
+};
+
+template <typename Traits>
+struct bplus_tree_leaf_node<Traits, false> : bplus_tree_node<Traits>,
+                                             intrusive::list_node {
+    using key_type = typename Traits::key_type;
+    using value_type = typename Traits::value_type;
+    constexpr static size_t node_size = Traits::node_size;
+    using ListNode = intrusive::list_node;
+
+    const key_type &__get_key(uint8_t pos) const noexcept { return m_values[pos]->first; }
+
+    WJR_INTRINSIC_CONSTEXPR ListNode *__get_list() noexcept { return this; }
+    WJR_INTRINSIC_CONSTEXPR const ListNode *__get_list() const noexcept { return this; }
+
+    alignas(16) value_type *m_values[node_size];
+};
+
+template <typename Traits, typename Alloc>
+class basic_bplus_tree;
+
+template <typename Traits>
+class bplus_tree_const_iterator {
+    using node_type = typename Traits::node_type;
+    using inner_node_type = typename Traits::inner_node_type;
+    using leaf_node_type = typename Traits::leaf_node_type;
+
+    template <typename Other, typename Alloc>
+    friend class basic_bplus_tree;
+
+public:
+    using iterator_category = std::bidirectional_iterator_tag;
+    using value_type = typename Traits::value_type;
+    using difference_type = std::ptrdiff_t;
+    using pointer = const value_type *;
+    using reference = const value_type &;
+
+    bplus_tree_const_iterator() noexcept = default;
+    bplus_tree_const_iterator(const bplus_tree_const_iterator &) noexcept = default;
+    bplus_tree_const_iterator(bplus_tree_const_iterator &&) noexcept = default;
+    bplus_tree_const_iterator &
+    operator=(const bplus_tree_const_iterator &) noexcept = default;
+    bplus_tree_const_iterator &operator=(bplus_tree_const_iterator &&) noexcept = default;
+    ~bplus_tree_const_iterator() noexcept = default;
+
+    bplus_tree_const_iterator(const intrusive::list_node *list_node, uint8_t pos) noexcept
+        : m_node(const_cast<intrusive::list_node *>(list_node)), m_pos(pos) {}
+
+    reference operator*() const noexcept { return *get_leaf()->m_values[m_pos]; }
+
+    pointer operator->() const noexcept { return get_leaf()->m_values[m_pos]; }
+
+    bplus_tree_const_iterator &operator++() noexcept {
+        ++m_pos;
+        return __adjust_next();
+    }
+
+    bplus_tree_const_iterator operator++(int) noexcept {
+        bplus_tree_const_iterator tmp = *this;
+        ++*this;
+        return tmp;
+    }
+
+    bplus_tree_const_iterator &operator--() noexcept {
+        if (m_pos != 0) {
+            --m_pos;
+        } else {
+            m_node = m_node->prev;
+            m_pos = -get_leaf()->m_size - 1;
+        }
+
+        return *this;
+    }
+
+    bplus_tree_const_iterator operator--(int) noexcept {
+        bplus_tree_const_iterator tmp = *this;
+        --*this;
+        return tmp;
+    }
+
+    bool operator==(const bplus_tree_const_iterator &other) const noexcept {
+        return m_node == other.m_node && m_pos == other.m_pos;
+    }
+
+    bool operator!=(const bplus_tree_const_iterator &other) const noexcept {
+        return !(*this == other);
+    }
+
+    leaf_node_type *get_leaf() const noexcept {
+        return static_cast<leaf_node_type *>(m_node);
+    }
+
+    intrusive::list_node *get_node() const noexcept { return m_node; }
+
+    uint8_t get_pos() const noexcept { return m_pos; }
+
+protected:
+    bplus_tree_const_iterator &__adjust_next() noexcept {
+        if (m_pos == (uint8_t)(-get_leaf()->m_size)) {
+            m_node = m_node->next;
+            m_pos = 0;
+        }
+
+        return *this;
+    }
+
+private:
+    intrusive::list_node *m_node = nullptr;
+    uint8_t m_pos = 0;
+};
+
+template <typename Traits>
+class bplus_tree_iterator : public bplus_tree_const_iterator<Traits> {
+    using Mybase = bplus_tree_const_iterator<Traits>;
+
+    template <typename Other, typename Alloc>
+    friend class basic_bplus_tree;
+
+public:
+    using Mybase::Mybase;
+
+    using iterator_category = typename Mybase::iterator_category;
+    using value_type = typename Mybase::value_type;
+    using difference_type = std::ptrdiff_t;
+    using pointer = value_type *;
+    using reference = value_type &;
+
+    bplus_tree_iterator(const Mybase &other) noexcept : Mybase(other) {}
+
+    value_type &operator*() const noexcept {
+        return const_cast<value_type &>(Mybase::operator*());
+    }
+
+    value_type *operator->() const noexcept {
+        return const_cast<value_type *>(Mybase::operator->());
+    }
+
+    bplus_tree_iterator &operator++() noexcept {
+        Mybase::operator++();
+        return *this;
+    }
+
+    bplus_tree_iterator operator++(int) noexcept {
+        bplus_tree_iterator tmp = *this;
+        ++*this;
+        return tmp;
+    }
+
+    bplus_tree_iterator &operator--() noexcept {
+        Mybase::operator--();
+        return *this;
+    }
+
+    bplus_tree_iterator operator--(int) noexcept {
+        bplus_tree_iterator tmp = *this;
+        --*this;
+        return tmp;
+    }
+
+    bool operator==(const bplus_tree_iterator &other) const noexcept {
+        return Mybase::operator==(other);
+    }
+
+    bool operator!=(const bplus_tree_iterator &other) const noexcept {
+        return Mybase::operator!=(other);
+    }
+
+protected:
+    bplus_tree_iterator &__adjust_next() noexcept {
+        Mybase::__adjust_next();
+        return *this;
+    }
+};
+
+template <typename Traits, typename Alloc>
+class basic_bplus_tree {
+    using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<uint8_t>;
+    using _Alty_traits = std::allocator_traits<_Alty>;
+    using storage_fn_type = container_fn<_Alty>;
+
+    friend class container_fn<_Alty>;
+
+    using mapped_type = typename Traits::mapped_type;
+    static constexpr size_t node_size = Traits::node_size;
+    static constexpr size_t stack_size = Traits::stack_size;
+    static constexpr bool inline_keys = Traits::inline_keys;
+    using KeyPtr = typename Traits::KeyPtr;
+    static constexpr size_t floor_half = node_size / 2;
+    static constexpr size_t ceil_half = node_size - floor_half;
+
+    using node_type = typename Traits::node_type;
+    using inner_node_type = typename Traits::inner_node_type;
+    using leaf_node_type = typename Traits::leaf_node_type;
+
+public:
+    using key_type = typename Traits::key_type;
+    using value_type = typename Traits::value_type;
+    using key_compare = typename Traits::key_compare;
+    using allocator_type = Alloc;
+    using size_type = typename _Alty_traits::size_type;
+    using difference_type = typename _Alty_traits::difference_type;
+    using iterator = bplus_tree_iterator<Traits>;
+    using const_iterator = bplus_tree_const_iterator<Traits>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    static_assert(node_size >= 3, "node_size must be greater than or equal to 3.");
+    static_assert(node_size <= 255, "node_size must be less than or equal to 255.");
+
+    basic_bplus_tree() noexcept(std::is_nothrow_default_constructible_v<_Alty>) {
+        init(&m_sentry);
+    }
+
+    // not implemented currently
+    basic_bplus_tree(const basic_bplus_tree &) = delete;
+
+    basic_bplus_tree(basic_bplus_tree &&other) noexcept(
+        std::is_nothrow_move_constructible_v<key_compare>
+            &&std::is_nothrow_move_constructible_v<_Alty>)
+        : m_pair(std::piecewise_construct,
+                 std::forward_as_tuple(std::move(other.key_comp())),
+                 std::forward_as_tuple(
+                     std::piecewise_construct,
+                     std::forward_as_tuple(std::move(other.__get_allocator())),
+                     std::forward_as_tuple())) {
+        __take_storage(std::move(other));
+    }
+
+    ~basic_bplus_tree() {
+        node_type *current = __get_root();
+        if (current == nullptr) {
+            return;
+        }
+
+        auto &al = __get_allocator();
+        int32_t cur_size = current->m_size;
+
+        if (cur_size < 0) {
+            cur_size = -cur_size;
+
+            for (uint8_t i = 0; i < cur_size; ++i) {
+                _Alty_traits::destroy(al, current->as_leaf()->m_values[i]);
+                _Alty_traits::deallocate(al, (uint8_t *)current->as_leaf()->m_values[i],
+                                         sizeof(value_type));
+            }
+
+            _Alty_traits::deallocate(al, (uint8_t *)current, sizeof(leaf_node_type));
+            return;
+        }
+
+        while (cur_size >= 0) {
+            current = current->as_inner()->m_sons[0];
+            cur_size = current->m_size;
+        }
+
+        cur_size = -cur_size;
+
+        do {
+            for (uint8_t i = 0; i < cur_size; ++i) {
+                _Alty_traits::destroy(al, current->as_leaf()->m_values[i]);
+                _Alty_traits::deallocate(al, (uint8_t *)current->as_leaf()->m_values[i],
+                                         sizeof(value_type));
+            }
+
+            intrusive::list_node *next = current->as_leaf()->next;
+
+            node_type *parent = current->m_parent;
+            uint8_t pos = current->m_pos;
+            _Alty_traits::deallocate(al, (uint8_t *)current, sizeof(leaf_node_type));
+
+            while (pos == parent->m_size) {
+                current = parent;
+                parent = current->m_parent;
+                pos = current->m_pos;
+                _Alty_traits::deallocate(al, (uint8_t *)current, sizeof(inner_node_type));
+
+                if (parent == nullptr) {
+                    return;
+                }
+            }
+
+            WJR_ASSERT(next != &m_sentry);
+
+            current = static_cast<leaf_node_type *>(next);
+            cur_size = -current->m_size;
+        } while (true);
+    }
+
+    template <typename... Args>
+    void emplace(Args &&...args) {
+        auto &al = __get_allocator();
+        value_type *const xval =
+            (value_type *)_Alty_traits::allocate(al, sizeof(value_type));
+        uninitialized_construct_using_allocator(xval, al, std::forward<Args>(args)...);
+
+        __insert_value_ptr(xval);
+    }
+
+    void insert(const value_type &val) { emplace(val); }
+    void insert(value_type &&val) { emplace(std::move(val)); }
+
+    void erase(const key_type &key);
+
+    iterator upper_bound(const key_type &key) {
+        return iterator(__upper_bound(key).__adjust_next());
+    }
+
+    const_iterator upper_bound(const key_type &key) const {
+        return const_iterator(__upper_bound(key).__adjust_next());
+    }
+
+    constexpr key_compare &key_comp() noexcept { return m_pair.first(); }
+    constexpr const key_compare &key_comp() const noexcept { return m_pair.first(); }
+
+    iterator begin() noexcept { return iterator(intrusive::begin(&m_sentry), 0); }
+    const_iterator begin() const noexcept {
+        return const_iterator(intrusive::begin(&m_sentry), 0);
+    }
+    const_iterator cbegin() const noexcept {
+        return const_iterator(intrusive::begin(&m_sentry), 0);
+    }
+
+    iterator end() noexcept { return iterator(&m_sentry, 0); }
+    const_iterator end() const noexcept { return const_iterator(&m_sentry, 0); }
+    const_iterator cend() const noexcept { return const_iterator(&m_sentry, 0); }
+
+    reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+    const_reverse_iterator rbegin() const noexcept {
+        return const_reverse_iterator(end());
+    }
+
+    const_reverse_iterator crbegin() const noexcept {
+        return const_reverse_iterator(cend());
+    }
+
+    reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+    const_reverse_iterator rend() const noexcept {
+        return const_reverse_iterator(begin());
+    }
+
+    const_reverse_iterator crend() const noexcept {
+        return const_reverse_iterator(cbegin());
+    }
+
+private:
+    // member function for container_fn (START)
+
+    WJR_PURE WJR_INTRINSIC_CONSTEXPR _Alty &__get_allocator() noexcept {
+        return m_pair.second().first();
+    }
+
+    WJR_PURE WJR_INTRINSIC_CONSTEXPR const _Alty &__get_allocator() const noexcept {
+        return m_pair.second().first();
+    }
+
+    void __take_storage(basic_bplus_tree &&other) noexcept {
+        auto root = other.__get_root();
+        if (root == nullptr) {
+            init(&m_sentry);
+            return;
+        }
+
+        __get_root() = root;
+        other.__get_root() = nullptr;
+        replace(&other.m_sentry, &m_sentry);
+        init(&other.m_sentry);
+    }
+
+    // member function for container_fn (END)
+
+    void __insert_root(value_type *xval) {
+        leaf_node_type *root = (leaf_node_type *)_Alty_traits::allocate(
+            __get_allocator(), sizeof(leaf_node_type));
+
+        __get_root() = root;
+
+        root->m_size = -1;
+        root->m_parent = nullptr;
+        if constexpr (inline_keys) {
+            root->m_keys[0] = xval->first;
+        }
+        root->m_values[0] = xval;
+        push_back(&m_sentry, root);
+        return;
+    }
+
+    WJR_NOINLINE void __insert_iter(const_iterator iter, value_type *xval) {
+        leaf_node_type *leaf;
+
+        do {
+            intrusive::list_node *node = iter.get_node();
+
+            if (node == &m_sentry) {
+                __insert_root(xval);
+                return;
+            }
+
+            leaf = static_cast<leaf_node_type *>(node);
+        } while (0);
+
+        KeyPtr *keys;
+        node_type *inst;
+
+        uint8_t pos = iter.get_pos();
+
+        KeyPtr key = xval->first;
+        int32_t cur_size = -leaf->m_size;
+
+        do {
+            value_type **values;
+
+            if constexpr (inline_keys) {
+                keys = leaf->m_keys;
+            }
+
+            values = leaf->m_values;
+
+            if (WJR_LIKELY(cur_size != node_size)) {
+                WJR_ASSUME(pos <= cur_size);
+
+                if constexpr (inline_keys) {
+                    Traits::copy_backward(keys + pos, keys + cur_size,
+                                          keys + cur_size + 1);
+                }
+
+                Traits::copy_backward(values + pos, values + cur_size,
+                                      values + cur_size + 1);
+
+                leaf->m_size = -(cur_size + 1);
+                if constexpr (inline_keys) {
+                    keys[pos] = xval->first;
+                }
+
+                values[pos] = xval;
+                return;
+            }
+
+            leaf_node_type *leaf_inst = (leaf_node_type *)_Alty_traits::allocate(
+                __get_allocator(), sizeof(leaf_node_type));
+            inst = leaf_inst;
+            push_back(leaf->__get_list(), leaf_inst->__get_list());
+
+            leaf->m_size = -(int32_t)(floor_half + 1);
+            leaf_inst->m_size = -(int32_t)(node_size - floor_half);
+
+            if (pos <= floor_half) {
+                if constexpr (inline_keys) {
+                    Traits::copy(keys + floor_half, keys + node_size, leaf_inst->m_keys);
+                }
+
+                Traits::copy(values + floor_half, values + node_size,
+                             leaf_inst->m_values);
+
+                if constexpr (inline_keys) {
+                    Traits::copy_backward(keys + pos, keys + floor_half,
+                                          keys + floor_half + 1);
+                }
+
+                Traits::copy_backward(values + pos, values + floor_half,
+                                      values + floor_half + 1);
+
+                if constexpr (inline_keys) {
+                    keys[pos] = xval->first;
+                }
+
+                values[pos] = xval;
+            } else {
+                if constexpr (inline_keys) {
+                    Traits::copy(keys + floor_half + 1, keys + pos, leaf_inst->m_keys);
+                }
+
+                Traits::copy(values + floor_half + 1, values + pos, leaf_inst->m_values);
+
+                const uint8_t rpos = pos - floor_half - 1;
+
+                if constexpr (inline_keys) {
+                    Traits::copy(keys + pos, keys + node_size,
+                                 leaf_inst->m_keys + rpos + 1);
+                }
+
+                Traits::copy(values + pos, values + node_size,
+                             leaf_inst->m_values + rpos + 1);
+
+                if constexpr (inline_keys) {
+                    leaf_inst->m_keys[rpos] = xval->first;
+                }
+
+                leaf_inst->m_values[rpos] = xval;
+            }
+
+            key = leaf_inst->__get_key(0);
+        } while (0);
+
+        inner_node_type *parent = leaf->m_parent->as_inner();
+        inner_node_type *current = leaf->as_inner();
+
+        while (parent != nullptr) {
+            inst->m_parent = parent;
+            pos = current->m_pos + 1;
+            current = parent;
+            cur_size = current->m_size + 1;
+            keys = current->m_keys;
+            node_type **sons = current->m_sons;
+
+            if (WJR_LIKELY(cur_size != node_size)) {
+                WJR_ASSERT(pos <= cur_size);
+
+                Traits::copy_backward(keys + pos - 1, keys + cur_size - 1,
+                                      keys + cur_size);
+                Traits::copy_backward(sons + pos, sons + cur_size, sons + cur_size + 1);
+
+                current->m_size = cur_size;
+                keys[pos - 1] = key;
+                sons[pos] = inst;
+
+                inst->m_pos = pos;
+                for (uint8_t i = pos + 1; i <= cur_size; ++i) {
+                    sons[i]->m_pos = i;
+                }
+
+                return;
+            }
+
+            parent = current->m_parent->as_inner();
+
+            inner_node_type *pinst = (inner_node_type *)_Alty_traits::allocate(
+                __get_allocator(), sizeof(inner_node_type));
+
+            current->m_size = (int32_t)(floor_half);
+            const uint32_t rsize = node_size - floor_half - 1;
+            pinst->m_size = (int32_t)(rsize);
+
+            KeyPtr next_key;
+
+            if (pos <= floor_half) {
+                next_key = keys[floor_half - 1];
+
+                Traits::copy(keys + floor_half, keys + node_size - 1, pinst->m_keys);
+                Traits::copy(sons + floor_half, sons + node_size, pinst->m_sons);
+                Traits::copy_backward(keys + pos - 1, keys + floor_half - 1,
+                                      keys + floor_half);
+                Traits::copy_backward(sons + pos, sons + floor_half,
+                                      sons + floor_half + 1);
+
+                keys[pos - 1] = key;
+                sons[pos] = inst;
+
+                inst->m_pos = pos;
+                for (uint8_t i = pos + 1; i <= floor_half; ++i) {
+                    sons[i]->m_pos = i;
+                }
+            } else {
+                if (pos == floor_half + 1) {
+                    next_key = key;
+                    Traits::copy(keys + floor_half, keys + node_size - 1, pinst->m_keys);
+                    Traits::copy(sons + floor_half + 1, sons + node_size,
+                                 pinst->m_sons + 1);
+
+                    pinst->m_sons[0] = inst;
+                } else {
+                    next_key = keys[floor_half];
+                    Traits::copy(keys + floor_half + 1, keys + pos - 1, pinst->m_keys);
+                    Traits::copy(sons + floor_half + 1, sons + pos, pinst->m_sons);
+
+                    const uint8_t rpos = pos - floor_half - 2;
+
+                    Traits::copy(keys + pos - 1, keys + node_size - 1,
+                                 pinst->m_keys + rpos + 1);
+                    Traits::copy(sons + pos, sons + node_size, pinst->m_sons + rpos + 2);
+
+                    pinst->m_keys[rpos] = key;
+                    pinst->m_sons[rpos + 1] = inst;
+                }
+            }
+
+            for (uint8_t i = 0; i <= rsize; ++i) {
+                pinst->m_sons[i]->m_parent = pinst;
+                pinst->m_sons[i]->m_pos = i;
+            }
+
+            key = next_key;
+            inst = pinst;
+        }
+
+        inner_node_type *new_root = (inner_node_type *)_Alty_traits::allocate(
+            __get_allocator(), sizeof(inner_node_type));
+        new_root->m_size = 1;
+        new_root->m_parent = nullptr;
+        new_root->m_keys[0] = key;
+        new_root->m_sons[0] = current;
+        new_root->m_sons[1] = inst;
+        current->m_pos = 0;
+        inst->m_pos = 1;
+
+        current->m_parent = new_root;
+        inst->m_parent = new_root;
+
+        __get_root() = new_root;
+        return;
+    }
+
+    void __insert_value_ptr(value_type *xval) {
+        __insert_iter(__upper_bound(xval->first), xval);
+    }
+
+    void __erase_iter(const_iterator iter) {}
+
+    WJR_PURE const_iterator __upper_bound(const key_type &key) const {
+        const node_type *current = __get_root();
+
+        if (current == nullptr) {
+            return cend();
+        }
+
+        int32_t cur_size = current->m_size;
+        const auto &comp = key_comp();
+
+        uint8_t pos;
+
+        while (cur_size >= 0) {
+            if (!comp(key, *current->as_inner()->m_keys[0])) {
+                goto NOT_LEFT;
+            }
+
+            current = current->as_inner()->m_sons[0];
+            cur_size = current->m_size;
+        }
+
+        cur_size = -cur_size;
+
+        if (comp(key, current->as_leaf()->__get_key(0))) {
+            return const_iterator(current->as_leaf()->__get_list(), 0);
+        }
+
+        if (cur_size == 1) {
+            return const_iterator(current->as_leaf()->__get_list(), 1);
+        }
+
+        goto LEAF;
+
+    NOT_LEFT:
+        if (cur_size == 1) {
+            pos = 1;
+        } else {
+            pos = 1 + __upper_search(current->as_inner(), cur_size - 1, key, comp);
+        }
+
+        current = current->as_inner()->m_sons[pos];
+        cur_size = current->m_size;
+
+        while (cur_size >= 0) {
+            pos = __upper_search(current->as_inner(), cur_size, key, comp);
+
+            current = current->as_inner()->m_sons[pos];
+            cur_size = current->m_size;
+        }
+
+        cur_size = -cur_size;
+
+    LEAF:
+        // not left node, don't need to compare with the first key
+        pos = 1 + __upper_search(current->as_leaf(), cur_size - 1, key, comp);
+
+        return const_iterator(current->as_leaf()->__get_list(), pos);
+    }
+
+    WJR_PURE WJR_INTRINSIC_INLINE static uint8_t
+    __upper_search(const inner_node_type *current, uint8_t size, const key_type &key,
+                   const key_compare &comp) {
+        uint8_t pos = 0;
+        // do {
+        //     if (comp(key, *current->m_keys[pos])) {
+        //         break;
+        //     }
+        // } while (++pos != size);
+
+        if (comp(key, *current->m_keys[0])) {
+            return 0;
+        }
+
+        pos = 2 - (size & 1);
+
+        if (size & 1) {
+        } else {
+            if (comp(key, *current->m_keys[1])) {
+                return 1;
+            }
+        }
+
+        for (; pos != size; pos += 2) {
+            if (comp(key, *current->m_keys[pos + 1])) {
+                if (comp(key, *current->m_keys[pos])) {
+                    return pos;
+                }
+
+                return pos + 1;
+            }
+        }
+
+        return size;
+    }
+
+    WJR_PURE WJR_INTRINSIC_INLINE static uint8_t
+    __upper_search(const leaf_node_type *current, uint8_t size, const key_type &key,
+                   const key_compare &comp) {
+        uint8_t pos = 0;
+        if (comp(key, current->__get_key(0))) {
+            return 0;
+        }
+
+        pos = 2 - (size & 1);
+
+        if (size & 1) {
+        } else {
+            if (comp(key, current->__get_key(1))) {
+                return 1;
+            }
+        }
+
+        for (; pos != size; pos += 2) {
+            if (comp(key, current->__get_key(pos + 1))) {
+                if (comp(key, current->__get_key(pos))) {
+                    return pos;
+                }
+
+                return pos + 1;
+            }
+        }
+
+        return size;
+    }
+
+    WJR_INTRINSIC_CONSTEXPR node_type *&__get_root() noexcept {
+        return m_pair.second().second();
+    }
+
+    WJR_INTRINSIC_CONSTEXPR const node_type *__get_root() const noexcept {
+        return m_pair.second().second();
+    }
+
+    compressed_pair<key_compare, compressed_pair<_Alty, node_type *>> m_pair;
+    intrusive::list_node m_sentry;
+};
+
+} // namespace wjr
+
+#endif // WJR_CONTAINER_GENERIC_BPLUS_TREE_HPP__
+
+#endif // WJR_BPLUS_TREE_HPP__
 #ifndef WJR_JSON_LEXER_HPP__
 #define WJR_JSON_LEXER_HPP__
 
@@ -35461,9 +36504,5 @@ WJR_INTRINSIC_INLINE void parse(span<const char> sp, Parser &parser) {
 
 #endif // WJR_JSON_PARSER_HPP__
 // Already included
-// Already included
-
-// Already included
-
 // Already included
 // Already included

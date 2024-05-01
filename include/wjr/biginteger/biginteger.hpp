@@ -1125,10 +1125,10 @@ private:
     vector_type m_vec;
 };
 
-template <typename Alloc = std::allocator<uint64_t>>
+template <typename Alloc>
 using default_biginteger = basic_biginteger<default_biginteger_vector_storage<Alloc>>;
 
-using biginteger = default_biginteger<std::allocator<uint64_t>>;
+using biginteger = default_biginteger<memory_pool<uint64_t>>;
 using stack_biginteger = default_biginteger<math_details::weak_stack_alloc<uint64_t>>;
 
 template <typename Storage>

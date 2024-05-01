@@ -66,7 +66,7 @@ class WJR_EMPTY_BASES tuple_impl<std::index_sequence<Indexs...>, Args...>
                    enable_base_identity_t<
                        Indexs, tuple_impl<std::index_sequence<Indexs...>, Args...>>>...,
       enable_special_members_of_args_base<
-          void,
+          tuple_impl<std::index_sequence<Indexs...>, Args...>,
           capture_leaf<
               std::tuple_element_t<Indexs, tuple<Args...>>,
               enable_base_identity_t<
@@ -78,8 +78,9 @@ class WJR_EMPTY_BASES tuple_impl<std::index_sequence<Indexs...>, Args...>
                                 enable_base_identity_t<Idx, tuple_impl>>;
 
     using Mybase2 = enable_special_members_of_args_base<
-        void, capture_leaf<std::tuple_element_t<Indexs, tuple<Args...>>,
-                           enable_base_identity_t<Indexs, tuple_impl>>...>;
+        tuple_impl<std::index_sequence<Indexs...>, Args...>,
+        capture_leaf<std::tuple_element_t<Indexs, tuple<Args...>>,
+                     enable_base_identity_t<Indexs, tuple_impl>>...>;
 
     constexpr static size_t Size = sizeof...(Args);
 

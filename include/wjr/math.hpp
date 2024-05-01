@@ -2,6 +2,7 @@
 #define WJR_MATH_HPP__
 
 #include <wjr/math/convert.hpp>
+#include <wjr/math/copy.hpp>
 #include <wjr/math/negate.hpp>
 #include <wjr/math/prefix_xor.hpp>
 #include <wjr/math/random.hpp>

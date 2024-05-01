@@ -111,15 +111,17 @@ private:
         }
     }
 
-    WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) {
-        if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - m_cache.ptr) < n)) {
+    WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) {
+        auto ptr = m_cache.ptr;
+
+        if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - ptr) < n)) {
             __small_reallocate(top);
+            ptr = m_cache.ptr;
         }
 
         WJR_ASSERT_ASSUME_L1(m_cache.ptr != nullptr);
         WJR_ASSERT_ASSUME_L1(top.ptr != nullptr);
 
-        const auto ptr = m_cache.ptr;
         m_cache.ptr += n;
         return ptr;
     }
