@@ -5,10 +5,6 @@
 
 namespace wjr::intrusive {
 
-struct forward_list_node {
-    forward_list_node *next;
-};
-
 struct list_node {
     list_node *prev;
     list_node *next;
@@ -62,8 +58,6 @@ WJR_INTRINSIC_CONSTEXPR list_node *end(list_node *node) { return node; }
 WJR_INTRINSIC_CONSTEXPR const list_node *end(const list_node *node) { return node; }
 
 WJR_INTRINSIC_CONSTEXPR void replace(list_node *from, list_node *to) {
-    WJR_ASSERT(!empty(from));
-
     to->prev = from->prev;
     to->next = from->next;
     from->prev->next = to;
