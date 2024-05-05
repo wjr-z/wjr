@@ -19,6 +19,10 @@ TEST(compressed_pair, constructor) {
     using cpis = compressed_pair<int, std::string>;
     static_assert(std::is_trivially_copyable_v<cpi2>, "trivially copyable error");
     static_assert(!std::is_trivially_copyable_v<cpis>, "trivially copyable error");
+    static_assert(
+        sizeof(compressed_pair<std::less<>, compressed_pair<std::greater<>, int>>) ==
+            sizeof(int),
+        "size error");
 
     {
         cpi2 a;

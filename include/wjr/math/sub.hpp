@@ -53,9 +53,8 @@ WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) {
 
 #endif // WJR_HAS_BUILTIN(SUBC)
 
-template <
-    typename T, typename U,
-    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
+template <typename T, typename U,
+          WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
     WJR_ASSERT_ASSUME_L1(c_in <= 1);
 
@@ -155,9 +154,8 @@ require :
 1. n >= 1
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
 */
-template <
-    typename T, typename U,
-    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
+template <typename T, typename U,
+          WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_1(T *dst, const T *src0, size_t n,
                                    type_identity_t<T> src1, U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -239,9 +237,8 @@ require :
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
 3. WJR_IS_SAME_OR_INCR_P(dst, n, src1, n)
 */
-template <
-    typename T, typename U,
-    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
+template <typename T, typename U,
+          WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_n(T *dst, const T *src0, const T *src1, size_t n,
                                    U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -270,9 +267,8 @@ require :
 3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
 4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
 */
-template <
-    typename T, typename U,
-    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
+template <typename T, typename U,
+          WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n, const T *src1,
                                    size_t m, U c_in) {
     WJR_ASSERT_ASSUME(m >= 1);
@@ -294,9 +290,8 @@ require :
 3. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
 4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
 */
-template <
-    typename T, typename U,
-    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
+template <typename T, typename U,
+          WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_sz(T *dst, const T *src0, size_t n, const T *src1,
                                     size_t m, U c_in) {
     WJR_ASSERT_ASSUME(n >= m);
@@ -312,18 +307,6 @@ WJR_INTRINSIC_CONSTEXPR_E U subc_sz(T *dst, const T *src0, size_t n, const T *sr
     return c_in;
 }
 
-/*
-require :
-1. n >= 1
-2. WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n)
-3. WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n)
-return :
-dst = abs(src0 - src1)
-Absolute value represents non-zero pos
-> 0 : src0 > src1
-== 0 : src0 == src1
-< 0 : src0 < src1
-*/
 template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
                                              size_t n) {
@@ -341,31 +324,82 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src
         }
     }
 
-    ssize_t ret = __fasts_from_unsigned(n);
-    WJR_ASSUME(ret > 0);
+    WJR_ASSUME(idx >= 1);
 
-    if (src0[idx - 1] < src1[idx - 1]) {
+    uint64_t hi = 0;
+    WJR_ASSUME(src0[idx - 1] != src1[idx - 1]);
+    const bool overflow = sub_overflow(src0[idx - 1], src1[idx - 1], hi);
+
+    if (overflow) {
         std::swap(src0, src1);
-        ret = __fasts_negate(ret);
+        hi = -hi;
     }
 
-    (void)subc_n(dst, src0, src1, idx);
-    return ret;
+    do {
+        if (WJR_UNLIKELY(idx == 1)) {
+            dst[0] = hi;
+            break;
+        }
+
+        hi -= subc_n(dst, src0, src1, idx - 1);
+        dst[idx - 1] = hi;
+    } while (0);
+
+    return overflow ? -1 : 1;
 }
 
-/*
-require :
-1. m >= 1
-2. n >= m
-3. WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n)
-4. WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, m)
-return :
-dst = abs(src0 - src1)
-Absolute value represents non-zero pos
-> 0 : src0 > src1
-== 0 : src0 == src1
-< 0 : src0 < src1
-*/
+template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
+WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n_pos(T *dst, const T *src0, const T *src1,
+                                                 size_t n) {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
+
+    size_t idx = reverse_find_not_n(src0, src1, n);
+
+    if (WJR_UNLIKELY(idx != n)) {
+        set_n(dst + idx, 0, n - idx);
+
+        if (WJR_UNLIKELY(idx == 0)) {
+            return 0;
+        }
+    }
+
+    WJR_ASSUME(idx >= 1);
+
+    uint64_t hi = 0;
+    WJR_ASSUME(src0[idx - 1] != src1[idx - 1]);
+    const bool overflow = sub_overflow(src0[idx - 1], src1[idx - 1], hi);
+
+    if (overflow) {
+        std::swap(src0, src1);
+        hi = -hi;
+    }
+
+    ssize_t ret = __fasts_from_unsigned(idx);
+    WJR_ASSUME(ret >= 1);
+
+    do {
+        if (WJR_UNLIKELY(idx == 1)) {
+            dst[0] = hi;
+            break;
+        }
+
+        WJR_ASSUME(ret >= 2);
+
+        hi -= subc_n(dst, src0, src1, idx - 1);
+
+        if (WJR_LIKELY(hi != 0)) {
+            dst[idx - 1] = hi;
+        } else {
+            --ret;
+        }
+    } while (0);
+
+    WJR_ASSUME(ret > 0);
+    return overflow ? -ret : ret;
+}
+
 template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
                                              const T *src1, size_t m) {
@@ -387,8 +421,10 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
                 break;
             }
 
-            (void)subc_s(dst, src0, m + 1, src1, m);
-            return __fasts_from_unsigned(m + 1);
+            uint64_t hi = src0[m];
+            hi -= subc_n(dst, src0, src1, m);
+            dst[m] = hi;
+            return 1;
         } while (0);
 
         return abs_subc_n(dst, src0, src1, m);
@@ -401,13 +437,64 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0, size_t n,
     }
 
     (void)subc_s(dst, src0, m + idx, src1, m);
-    return __fasts_from_unsigned(m + idx);
+    return 1;
+}
+
+template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
+WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s_pos(T *dst, const T *src0, size_t n,
+                                                 const T *src1, size_t m) {
+    WJR_ASSERT_ASSUME(m >= 1);
+    WJR_ASSERT_ASSUME(n >= m);
+
+    if (WJR_BUILTIN_CONSTANT_P(n == m) && n == m) {
+        return abs_subc_n_pos(dst, src0, src1, m);
+    }
+
+    if (WJR_BUILTIN_CONSTANT_P(n - m <= 1) && n - m <= 1) {
+        do {
+            if (n == m) {
+                break;
+            }
+
+            if (WJR_UNLIKELY(src0[m] == 0)) {
+                dst[m] = 0;
+                break;
+            }
+
+            uint64_t hi = src0[m];
+            hi -= subc_n(dst, src0, src1, m);
+            ssize_t ret = __fasts_from_unsigned(m + 1);
+
+            if (WJR_LIKELY(hi != 0)) {
+                dst[m] = hi;
+            } else {
+                --ret;
+            }
+
+            WJR_ASSUME(ret > 0);
+            return ret;
+        } while (0);
+
+        return abs_subc_n_pos(dst, src0, src1, m);
+    }
+
+    size_t idx = reverse_replace_find_not(dst + m, src0 + m, n - m, 0, 0);
+
+    if (WJR_UNLIKELY(idx == 0)) {
+        return abs_subc_n_pos(dst, src0, src1, m);
+    }
+
+    (void)subc_s(dst, src0, m + idx, src1, m);
+    uint64_t ret = __fasts_from_unsigned(m + idx);
+    WJR_ASSUME(ret >= 2);
+    ret -= dst[m + idx - 1] == 0;
+    WJR_ASSUME(ret >= 1);
+    return ret;
 }
 
 // just like abs_subc_n.
-template <
-    typename T, typename U,
-    WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
+template <typename T, typename U,
+          WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0, const T *src1,
                                              size_t n, U &c_out, type_identity_t<U> cf0,
                                              type_identity_t<U> cf1) {

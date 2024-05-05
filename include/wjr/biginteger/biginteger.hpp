@@ -528,6 +528,25 @@ void __tdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                         size_t shift);
 
 /// @private
+template <typename S>
+void __cfdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
+                         size_t shift, int32_t xdir);
+
+/// @private
+template <typename S>
+void __cdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
+                        size_t shift) {
+    __cfdiv_q_2exp_impl(quot, num, shift, 1);
+}
+
+/// @private
+template <typename S>
+void __fdiv_q_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                        size_t shift) {
+    __cfdiv_q_2exp_impl(rem, num, shift, -1);
+}
+
+/// @private
 template <typename S, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
 void __urandom_bit_impl(basic_biginteger<S> *dst, size_t size, Engine &engine);
@@ -816,6 +835,16 @@ void tdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num, size_t s
 template <typename S>
 void tdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num, size_t shift) {
     biginteger_details::__tdiv_r_2exp_impl(&rem, &num, shift);
+}
+
+template <typename S>
+void fdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num, size_t shift) {
+    biginteger_details::__fdiv_q_2exp_impl(&quot, &num, shift);
+}
+
+template <typename S>
+void cdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num, size_t shift) {
+    biginteger_details::__cdiv_q_2exp_impl(&quot, &num, shift);
 }
 
 template <typename S, typename Engine,
@@ -1399,8 +1428,8 @@ void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, uint64_
             dp[lusize] = 1;
         }
     } else {
-        if (lusize == 1 && dp[0] < rhs) {
-            dp[0] = rhs - dp[0];
+        if (lusize == 1 && lp[0] < rhs) {
+            dp[0] = rhs - lp[0];
             dssize = __fasts_conditional_negate<int32_t>(xsign, 1);
         } else {
             (void)subc_1(dp, lp, lusize, rhs);
@@ -1486,16 +1515,11 @@ void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 
     // different sign
     if ((lssize ^ rssize) < 0) {
-        if (lusize != rusize) {
-            (void)subc_s(dp, lp, lusize, rp, rusize);
-            dssize = __fasts_negate_with<int32_t>(lssize, normalize(dp, lusize));
-        } else {
-            const auto ans = abs_subc_n(dp, lp, rp, rusize);
-            dssize = __fasts_negate_with<int32_t>(lssize, ans);
-        }
+        const int32_t ans =
+            static_cast<int32_t>(abs_subc_s_pos(dp, lp, lusize, rp, rusize));
+        dssize = __fasts_negate_with<int32_t>(lssize, ans);
     } else {
         const auto cf = addc_s(dp, lp, lusize, rp, rusize);
-        // seems can be optimized
         dssize = __fasts_negate_with<int32_t>(lssize, lusize + cf);
         if (cf) {
             dp[lusize] = 1;
@@ -2536,7 +2560,8 @@ void __tdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
     const auto qp = quot->data();
     const auto np = num->data();
 
-    (void)rshift_n(qp, np + offset, qssize, shift);
+    (void)rshift_n(qp, np + offset, qssize, shift % 64);
+    qssize -= qp[qssize - 1] == 0;
 
     quot->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, qssize));
 }
@@ -2572,6 +2597,59 @@ void __tdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
     }
 
     rem->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, rusize));
+}
+
+template <typename S>
+void __cfdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
+                         size_t shift, int32_t xdir) {
+    int32_t nssize = num->get_ssize();
+    uint32_t nusize = __fasts_abs(nssize);
+    uint32_t offset = shift / 64;
+
+    int32_t qssize = nusize - offset;
+
+    if (qssize <= 0) {
+        if (nssize == 0) {
+            quot->set_ssize(0);
+            return;
+        }
+
+        quot->reserve(1);
+        quot->front() = 1;
+
+        quot->set_ssize((nssize ^ xdir) < 0 ? 0 : xdir);
+        return;
+    }
+
+    quot->reserve(qssize + 1);
+    const auto qp = quot->data();
+    const auto np = num->data();
+
+    uint64_t xmask = (nssize ^ xdir) < 0 ? 0 : (uint64_t)in_place_max;
+    uint64_t round = 0;
+
+    if (xmask) {
+        // all is zero, then round is zero
+        round = find_not_n(np, 0, offset) == offset ? 0 : 1;
+    }
+
+    round |= xmask & rshift_n(qp, np + offset, qssize, shift % 64);
+    qssize -= qp[qssize - 1] == 0;
+
+    if (WJR_LIKELY(round != 0)) {
+        if (WJR_LIKELY(qssize != 0)) {
+            const auto cf = addc_1(qp, qp, qssize, 1u);
+            if (cf != 0) {
+                qp[qssize] = cf;
+                ++qssize;
+            }
+        } else {
+            qp[0] = 1;
+            qssize = 1;
+        }
+    }
+
+    quot->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, qssize));
 }
 
 template <typename S, typename Engine,

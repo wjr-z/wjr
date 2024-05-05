@@ -37,7 +37,13 @@ inline bool equal(const biginteger &a, const mpz_t b) {
 
 #endif
 
-inline void random(biginteger &a, size_t n) { urandom_exact_bit(a, n * 64, __mt_rand); }
+inline void random(biginteger &a, size_t n) {
+    if (n == 0) {
+        a.clear();
+        return;
+    }
+    urandom_exact_bit(a, (n - 1) * 64 + mt_rand() % 64, __mt_rand);
+}
 
 TEST(biginteger, random) {
     {
@@ -498,8 +504,10 @@ TEST(biginteger, div) {
                 random(a, n);
                 copy(a1, a);
 
-                random(b, m);
-                copy(b1, b);
+                do {
+                    random(b, m);
+                    copy(b1, b);
+                } while (b.zero());
 
                 for (int i = 0; i < 4; ++i) {
                     tdiv_qr(c, d, a, b);
@@ -562,6 +570,63 @@ TEST(biginteger, div) {
         }
 
         mpz_clears(a1, b1, c1, d1, nullptr);
+    }
+}
+
+TEST(biginteger, div_2exp) {
+    {
+        biginteger a, b;
+        mpz_t a1, b1;
+
+        mpz_init(a1);
+        mpz_init(b1);
+
+        const int N = 900;
+
+        for (int n = 1; n < N; n += (n <= 140 ? 1 : n / 5)) {
+            for (int m = 0; m < n; ++m) {
+                random(a, n);
+                copy(a1, a);
+
+                const unsigned int off = m * 64;
+                const unsigned int rd = off + mt_rand() % 64 + 1;
+
+                for (auto shift : {off, off + 1, off + 7, off + rd, off + 63}) {
+                    for (int i = 0; i < 4; ++i) {
+                        tdiv_q_2exp(b, a, shift);
+                        mpz_tdiv_q_2exp(b1, a1, shift);
+
+                        WJR_ASSERT(equal(b, b1));
+
+                        cdiv_q_2exp(b, a, shift);
+                        mpz_cdiv_q_2exp(b1, a1, shift);
+
+                        if (!equal(b, b1)) {
+                            std::cout << "a: " << a << std::endl;
+                            std::cout << shift << std::endl;
+                            exit(-1);
+                        }
+
+                        WJR_ASSERT(equal(b, b1));
+
+                        fdiv_q_2exp(b, a, shift);
+                        mpz_fdiv_q_2exp(b1, a1, shift);
+
+                        WJR_ASSERT(equal(b, b1));
+
+                        a.negate();
+                        mpz_neg(a1, a1);
+
+                        if (i == 1) {
+                            b.negate();
+                            mpz_neg(b1, b1);
+                        }
+                    }
+                }
+            }
+        }
+
+        mpz_clears(a1, b1, nullptr);
     }
 }
 

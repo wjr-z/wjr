@@ -42,9 +42,18 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0
                                                            const T *src1, size_t n);
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n_pos(T *dst, const T *src0,
+                                                               const T *src1, size_t n);
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0,
                                                            size_t n, const T *src1,
                                                            size_t m);
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s_pos(T *dst, const T *src0,
+                                                               size_t n, const T *src1,
+                                                               size_t m);
 
 template <typename T, typename U,
           WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
