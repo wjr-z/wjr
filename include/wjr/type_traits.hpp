@@ -76,6 +76,10 @@ struct in_place_min_t {
 
 inline constexpr in_place_min_t in_place_min = {};
 
+struct self_init_t {};
+
+inline constexpr self_init_t self_init = {};
+
 inline constexpr std::size_t dynamic_extent = in_place_max;
 
 template <typename... Args>

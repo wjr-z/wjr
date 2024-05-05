@@ -1,9 +1,7 @@
 #ifndef WJR_INLINE_KEY_HPP__
 #define WJR_INLINE_KEY_HPP__
 
-#include <memory>
-
-#include <wjr/type_traits.hpp>
+#include <wjr/memory/uninitialized.hpp>
 
 namespace wjr {
 
@@ -24,12 +22,12 @@ public:
     constexpr inline_key(const T &value) noexcept(std::is_nothrow_copy_constructible_v<T>)
         : m_value(value) {}
 
-    constexpr const T &get() const noexcept { return m_value; }
-    constexpr const T &operator*() const noexcept { return m_value; }
-    constexpr const T *operator->() const noexcept { return std::addressof(m_value); }
+    constexpr const T &get() const noexcept { return *m_value; }
+    constexpr const T &operator*() const noexcept { return *m_value; }
+    constexpr const T *operator->() const noexcept { return m_value.operator->(); }
 
 private:
-    T m_value;
+    lazy<T> m_value;
 };
 
 template <typename T>
@@ -58,12 +56,13 @@ private:
 };
 
 template <typename T>
-struct is_possible_inline_key : std::conjunction<std::is_trivially_copyable<T>> {};
+struct is_possible_inline_key : std::conjunction<std::is_trivially_copy_constructible<T>,
+                                                 std::is_trivially_destructible<T>> {};
 
 template <typename T>
 inline constexpr bool is_possible_inline_key_v = is_possible_inline_key<T>::value;
 
-template <typename T, size_t Threshold = 8>
+template <typename T, size_t Threshold = sizeof(char *)>
 using auto_key = inline_key<T, is_possible_inline_key_v<T> && sizeof(T) <= Threshold>;
 
 } // namespace wjr

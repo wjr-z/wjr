@@ -525,7 +525,7 @@ class __lazy_crtp<T, false> : public uninitialized<T> {
 public:
     using Mybase::Mybase;
 
-    ~__lazy_crtp() noexcept(noexcept(Mybase::reset())) { Mybase::reset(); }
+    ~__lazy_crtp() noexcept(noexcept(this->Mybase::reset())) { Mybase::reset(); }
 };
 
 /// @private
