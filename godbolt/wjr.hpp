@@ -34241,7 +34241,7 @@ struct bplus_tree_inner_node;
 template <typename Traits, bool InlineKeys>
 struct bplus_tree_leaf_node;
 
-template <typename Key, typename T, typename Compare, size_t Size>
+template <typename Key, typename T, typename Compare, size_t Size, bool Multi = true>
 struct bplus_tree_traits {
     using key_type = Key;
     using mapped_type = T;
@@ -34259,6 +34259,12 @@ struct bplus_tree_traits {
     using node_type = bplus_tree_node<bplus_tree_traits>;
     using inner_node_type = bplus_tree_inner_node<bplus_tree_traits>;
     using leaf_node_type = bplus_tree_leaf_node<bplus_tree_traits, inline_keys>;
+    static constexpr bool multi = Multi;
+
+    WJR_INTRINSIC_INLINE static const key_type &
+    get_key(const value_type &value) noexcept {
+        return value.first;
+    }
 
 private:
     template <typename Other>
@@ -34678,6 +34684,18 @@ public:
 
     void erase(const_iterator iter) { __erase_iter(iter); }
 
+    void __debug(bool print = true) {
+        auto root = __get_root();
+        if (root != nullptr) {
+            (void)__debug(root, print);
+        } else {
+            if (print)
+                printf("empty");
+        }
+        if (print)
+            printf("\n");
+    }
+
 private:
     void __take_tree(basic_bplus_tree &&other) noexcept {
         const auto root = other.__get_root();
@@ -35060,17 +35078,6 @@ private:
         return const_iterator(current->as_leaf()->__get_list(), pos);
     }
 
-    template <size_t Min, size_t Max, size_t N>
-    WJR_CONST WJR_INTRINSIC_INLINE static bool __less(unsigned int size) {
-        if constexpr (Min >= N) {
-            return false;
-        } else if constexpr (Max < N) {
-            return true;
-        } else {
-            return size < N;
-        }
-    }
-
     template <size_t Min, size_t Max, size_t Offset, typename Compare>
     WJR_PURE WJR_INTRINSIC_INLINE static unsigned int
     __search(const node_type *current, unsigned int size, Compare &&comp) {
@@ -35081,142 +35088,123 @@ private:
         WJR_ASSERT_ASSUME(size <= Max);
 
         if constexpr (Min == 1 && Offset == 1) {
-            if (size == 0) {
-                return 0;
+            if (size == 1) {
+                return 1;
             }
         }
 
         if constexpr (Max <= 16) {
-
             if constexpr (Offset == 0) {
                 if (comp(current, 0)) {
                     return 0;
                 }
             }
 
-            if constexpr (Min == 1) {
-                if (size == 1) {
-                    return 1;
+#define WJR_REGISTER_BLPUS_SEARCH_2(A, B, C)                                             \
+    do {                                                                                 \
+        if constexpr (A == Max) {                                                        \
+            return A;                                                                    \
+        } else if constexpr (B == Max) {                                                 \
+            if (size == A || comp(current, A)) {                                         \
+                return A;                                                                \
+            }                                                                            \
+            return B;                                                                    \
+        } else if constexpr (C <= Max) {                                                 \
+            if constexpr (Min < C) {                                                     \
+                if (size < C) {                                                          \
+                    if constexpr (Min <= A) {                                            \
+                        if (size == A || comp(current, A)) {                             \
+                            return A;                                                    \
+                        }                                                                \
+                    } else {                                                             \
+                        if (comp(current, A)) {                                          \
+                            return A;                                                    \
+                        }                                                                \
+                    }                                                                    \
+                    return B;                                                            \
+                }                                                                        \
+            }                                                                            \
+            if (comp(current, B)) {                                                      \
+                if (comp(current, A)) {                                                  \
+                    return A;                                                            \
+                }                                                                        \
+                return B;                                                                \
+            }                                                                            \
+        }                                                                                \
+    } while (0)
+#define WJR_REGISTER_BLPUS_SEARCH_4(A, B, C, D, E)                                       \
+    do {                                                                                 \
+        if constexpr (E > Max) {                                                         \
+            WJR_REGISTER_BLPUS_SEARCH_2(A, B, C);                                        \
+            WJR_REGISTER_BLPUS_SEARCH_2(C, D, E);                                        \
+        } else {                                                                         \
+            if constexpr (Min < E) {                                                     \
+                if (size < E) {                                                          \
+                    WJR_REGISTER_BLPUS_SEARCH_2(A, B, C);                                \
+                    if constexpr (Min <= C) {                                            \
+                        if (size == C || comp(current, C)) {                             \
+                            return C;                                                    \
+                        }                                                                \
+                    } else {                                                             \
+                        if (comp(current, C)) {                                          \
+                            return C;                                                    \
+                        }                                                                \
+                    }                                                                    \
+                    return D;                                                            \
+                }                                                                        \
+            }                                                                            \
+            if (comp(current, D)) {                                                      \
+                if (comp(current, B)) {                                                  \
+                    if (comp(current, A)) {                                              \
+                        return A;                                                        \
+                    }                                                                    \
+                    return B;                                                            \
+                }                                                                        \
+                if (comp(current, C)) {                                                  \
+                    return C;                                                            \
+                }                                                                        \
+                return D;                                                                \
+            }                                                                            \
+        }                                                                                \
+    } while (0)
+
+            if constexpr (Max <= 8 || Min == 1) {
+                WJR_REGISTER_BLPUS_SEARCH_2(1, 2, 3);
+                WJR_REGISTER_BLPUS_SEARCH_2(3, 4, 5);
+                WJR_REGISTER_BLPUS_SEARCH_2(5, 6, 7);
+                WJR_REGISTER_BLPUS_SEARCH_2(7, 8, 9);
+                WJR_REGISTER_BLPUS_SEARCH_2(9, 10, 11);
+                WJR_REGISTER_BLPUS_SEARCH_2(11, 12, 13);
+                WJR_REGISTER_BLPUS_SEARCH_2(13, 14, 15);
+
+                if constexpr (Max == 15) {
+                    return 15;
+                } else if constexpr (Max == 16) {
+                    if (size == 15 || comp(current, 15)) {
+                        return 15;
+                    }
+
+                    return 16;
+                }
+            } else {
+                WJR_REGISTER_BLPUS_SEARCH_2(1, 2, 3);
+                WJR_REGISTER_BLPUS_SEARCH_4(3, 4, 5, 6, 7);
+                WJR_REGISTER_BLPUS_SEARCH_4(7, 8, 9, 10, 11);
+                WJR_REGISTER_BLPUS_SEARCH_4(11, 12, 13, 14, 15);
+
+                if constexpr (Max == 15) {
+                    return 15;
+                } else if constexpr (Max == 16) {
+                    if (size == 15 || comp(current, 15)) {
+                        return 15;
+                    }
+
+                    return 16;
                 }
             }
 
-            if (comp(current, 1)) {
-                return 1;
-            }
-
-            if (__less<Min, Max, 4>(size)) {
-                if (size == 2 || comp(current, 2)) {
-                    return 2;
-                }
-
-                return 3;
-            }
-
-            if (comp(current, 3)) {
-                if (comp(current, 2)) {
-                    return 2;
-                }
-
-                return 3;
-            }
-
-            if (__less<Min, Max, 6>(size)) {
-                if (size == 4 || comp(current, 4)) {
-                    return 4;
-                }
-
-                return 5;
-            }
-
-            if (comp(current, 5)) {
-                if (comp(current, 4)) {
-                    return 4;
-                }
-
-                return 5;
-            }
-
-            if (__less<Min, Max, 8>(size)) {
-                if (size == 6 || comp(current, 6)) {
-                    return 6;
-                }
-
-                return 7;
-            }
-
-            if (comp(current, 7)) {
-                if (comp(current, 6)) {
-                    return 6;
-                }
-
-                return 7;
-            }
-
-            if (__less<Min, Max, 10>(size)) {
-                if (size == 8 || comp(current, 8)) {
-                    return 8;
-                }
-
-                return 9;
-            }
-
-            if (comp(current, 9)) {
-                if (comp(current, 8)) {
-                    return 8;
-                }
-
-                return 9;
-            }
-
-            if (__less<Min, Max, 12>(size)) {
-                if (size == 10 || comp(current, 10)) {
-                    return 10;
-                }
-
-                return 11;
-            }
-
-            if (comp(current, 11)) {
-                if (comp(current, 10)) {
-                    return 10;
-                }
-
-                return 11;
-            }
-
-            if (__less<Min, Max, 14>(size)) {
-                if (size == 12 || comp(current, 12)) {
-                    return 12;
-                }
-
-                return 13;
-            }
-
-            if (comp(current, 13)) {
-                if (comp(current, 12)) {
-                    return 12;
-                }
-
-                return 13;
-            }
-
-            if (__less<Min, Max, 16>(size)) {
-                if (size == 14 || comp(current, 14)) {
-                    return 14;
-                }
-
-                return 15;
-            }
-
-            if (comp(current, 15)) {
-                if (comp(current, 14)) {
-                    return 14;
-                }
-
-                return 15;
-            }
-
-            return 16;
+#undef WJR_REGISTER_BLPUS_SEARCH_4
+#undef WJR_REGISTER_BLPUS_SEARCH_2
         } else {
             unsigned int pos = Offset;
             do {
@@ -35305,8 +35293,7 @@ private:
         return size;
     }
 
-public:
-    static InlineKey __show(node_type *cur, bool print) {
+    static InlineKey __debug(node_type *cur, bool print) {
         auto n = cur->m_size;
         if (n < 0) {
             n = -n;
@@ -35340,7 +35327,7 @@ public:
                 exit(-1);
             }
 
-            auto key = __show(x, print);
+            auto key = __debug(x, print);
             if (i != 0) {
                 if (*cur->as_inner()->m_keys[i - 1] != *key) {
                     printf("error 2!\n");
@@ -35354,17 +35341,6 @@ public:
             printf("}");
         }
         return ret;
-    }
-    void show(bool print = true) {
-        auto root = __get_root();
-        if (root != nullptr) {
-            (void)__show(root, print);
-        } else {
-            if (print)
-                printf("empty");
-        }
-        if (print)
-            printf("\n");
     }
 
     WJR_NOINLINE void __erase_iter(const_iterator iter) {
@@ -35720,7 +35696,7 @@ public:
 
     compressed_pair<key_compare, compressed_pair<_Alty, node_type *>> m_pair;
     ListNode m_sentry;
-};
+}; // namespace wjr
 
 } // namespace wjr
 
