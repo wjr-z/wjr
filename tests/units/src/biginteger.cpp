@@ -598,19 +598,28 @@ TEST(biginteger, div_2exp) {
 
                         WJR_ASSERT(equal(b, b1));
 
+                        tdiv_r_2exp(b, a, shift);
+                        mpz_tdiv_r_2exp(b1, a1, shift);
+
+                        WJR_ASSERT(equal(b, b1));
+
                         cdiv_q_2exp(b, a, shift);
                         mpz_cdiv_q_2exp(b1, a1, shift);
-
-                        if (!equal(b, b1)) {
-                            std::cout << "a: " << a << std::endl;
-                            std::cout << shift << std::endl;
-                            exit(-1);
-                        }
 
                         WJR_ASSERT(equal(b, b1));
 
                         fdiv_q_2exp(b, a, shift);
                         mpz_fdiv_q_2exp(b1, a1, shift);
+
+                        WJR_ASSERT(equal(b, b1));
+
+                        cdiv_r_2exp(b, a, shift);
+                        mpz_cdiv_r_2exp(b1, a1, shift);
+
+                        WJR_ASSERT(equal(b, b1));
+
+                        fdiv_r_2exp(b, a, shift);
+                        mpz_fdiv_r_2exp(b1, a1, shift);
 
                         WJR_ASSERT(equal(b, b1));
 

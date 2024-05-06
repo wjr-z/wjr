@@ -541,9 +541,28 @@ void __cdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
 
 /// @private
 template <typename S>
-void __fdiv_q_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+void __fdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
                         size_t shift) {
-    __cfdiv_q_2exp_impl(rem, num, shift, -1);
+    __cfdiv_q_2exp_impl(quot, num, shift, -1);
+}
+
+/// @private
+template <typename S>
+void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                         size_t shift, int32_t xdir);
+
+/// @private
+template <typename S>
+void __cdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                        size_t shift) {
+    __cfdiv_r_2exp_impl(rem, num, shift, 1);
+}
+
+/// @private
+template <typename S>
+void __fdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                        size_t shift) {
+    __cfdiv_r_2exp_impl(rem, num, shift, -1);
 }
 
 /// @private
@@ -845,6 +864,16 @@ void fdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num, size_t s
 template <typename S>
 void cdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num, size_t shift) {
     biginteger_details::__cdiv_q_2exp_impl(&quot, &num, shift);
+}
+
+template <typename S>
+void cdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num, size_t shift) {
+    biginteger_details::__cdiv_r_2exp_impl(&rem, &num, shift);
+}
+
+template <typename S>
+void fdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num, size_t shift) {
+    biginteger_details::__fdiv_r_2exp_impl(&rem, &num, shift);
 }
 
 template <typename S, typename Engine,
@@ -1508,8 +1537,10 @@ void __addsub_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
     int32_t dssize;
 
     if (rusize == 0) {
-        std::copy_n(lp, lusize, dp);
-        dst->set_ssize(lssize);
+        if (lp != dp) {
+            std::copy_n(lp, lusize, dp);
+            dst->set_ssize(lssize);
+        }
         return;
     }
 
@@ -1973,7 +2004,7 @@ void __tdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
 
     // num < div
     if (qssize <= 0) {
-        auto np = num->data();
+        const auto np = num->data();
         if (np != rp) {
             std::copy_n(np, nusize, rp);
             rem->set_ssize(nssize);
@@ -2569,7 +2600,7 @@ void __tdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
 template <typename S>
 void __tdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
                         size_t shift) {
-    int32_t nssize = num->get_ssize();
+    const int32_t nssize = num->get_ssize();
     uint32_t nusize = __fasts_abs(nssize);
     uint32_t offset = shift / 64;
 
@@ -2578,22 +2609,22 @@ void __tdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
     if (nusize <= offset) {
         rusize = nusize;
         offset = nusize;
-        rem->reserve(offset);
+        rem->reserve(rusize);
     } else {
-        uint64_t high = num->data()[nusize] & (((uint64_t)(1) << (shift % 64)) - 1);
+        uint64_t high = num->data()[offset] & (((uint64_t)(1) << (shift % 64)) - 1);
         if (high != 0) {
             rusize = offset + 1;
             rem->reserve(rusize);
             rem->data()[offset] = high;
         } else {
-            offset = normalize(num->data(), offset);
-            rusize = offset;
-            rem->reserve(offset);
+            rusize = normalize(num->data(), offset);
+            offset = rusize;
+            rem->reserve(rusize);
         }
     }
 
     if (!__equal_pointer(rem, num)) {
-        std::copy_n(num->data(), rusize, rem->data());
+        std::copy_n(num->data(), offset, rem->data());
     }
 
     rem->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, rusize));
@@ -2650,6 +2681,84 @@ void __cfdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
     }
 
     quot->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, qssize));
+}
+
+template <typename S>
+void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
+                         size_t shift, int32_t xdir) {
+    int32_t nssize = num->get_ssize();
+
+    if (nssize == 0) {
+        rem->set_ssize(0);
+        return;
+    }
+
+    uint32_t nusize = __fasts_abs(nssize);
+    uint32_t offset = shift / 64;
+    shift %= 64;
+
+    uint64_t *rp;
+    auto np = (uint64_t *)(num->data());
+
+    if ((nssize ^ xdir) < 0) {
+        if (__equal_pointer(rem, num)) {
+            if (nusize <= offset) {
+                return;
+            }
+
+            rp = np;
+        } else {
+            const auto size = std::min<uint32_t>(nusize, offset + 1);
+            rem->reserve(size);
+            rp = rem->data();
+            std::copy_n(np, size, rp);
+
+            if (nusize <= offset) {
+                rem->set_ssize(nssize);
+                return;
+            }
+        }
+    } else {
+        do {
+            if (nusize <= offset) {
+                break;
+            }
+
+            if (find_not_n(np, 0, offset) != offset) {
+                break;
+            }
+
+            if ((np[offset] & (((uint64_t)(1) << shift) - 1)) != 0) {
+                break;
+            }
+
+            rem->set_ssize(0);
+            return;
+        } while (0);
+
+        rem->reserve(offset + 1);
+        rp = rem->data();
+        np = (uint64_t *)(num->data());
+
+        const auto size = std::min<uint32_t>(nusize, offset + 1);
+        (void)negate_n(rp, np, size);
+        for (uint32_t i = size; i <= offset; ++i) {
+            rp[i] = in_place_max;
+        }
+
+        nssize = -nssize;
+    }
+
+    uint64_t hi = rp[offset] & (((uint64_t)(1) << shift) - 1);
+    rp[offset] = hi;
+
+    if (hi == 0) {
+        offset = normalize(rp, offset);
+    } else {
+        ++offset;
+    }
+
+    rem->set_ssize(__fasts_conditional_negate<int32_t>(nssize < 0, offset));
 }
 
 template <typename S, typename Engine,
