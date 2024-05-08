@@ -51,8 +51,8 @@ void builtin_copy_c_bytes_impl(const uint8_t *src, uint8_t *dst) {
         const auto x = avx::loadu((__m256i *)(src));
         avx::storeu((__m256i *)(dst), x);
 #else
-        builtin_copy_c_bytes<16>(dst, src);
-        builtin_copy_c_bytes<16>(dst + 16, src + 16);
+        builtin_copy_c_bytes_impl<16>(dst, src);
+        builtin_copy_c_bytes_impl<16>(dst + 16, src + 16);
 #endif
         return;
     }
@@ -138,8 +138,8 @@ void builtin_copy_backward_c_bytes_impl(const uint8_t *s_last, uint8_t *d_last) 
         const auto x = avx::loadu((__m256i *)(s_last - 32));
         avx::storeu((__m256i *)(d_last - 32), x);
 #else
-        builtin_copy_backward_c_bytes<16>(s_last, d_last);
-        builtin_copy_backward_c_bytes<16>(s_last - 16, d_last - 16);
+        builtin_copy_backward_c_bytes_impl<16>(s_last, d_last);
+        builtin_copy_backward_c_bytes_impl<16>(s_last - 16, d_last - 16);
 #endif
     }
 

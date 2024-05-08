@@ -19081,6 +19081,8 @@ WJR_INTRINSIC_INLINE T builtin_addc(T a, T b, U c_in, U &c_out) {
  * the default type is the same as `T`
  * @param[in] c_in The carry-in flag.
  * @param[out] c_out The carry-out flag.
+ * 
+ * @return a + b + c_in
  */
 template <typename T, typename U,
           WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
@@ -19976,7 +19978,7 @@ namespace wjr {
 template <int __inst>
 class __malloc_alloc_template__ {
 private:
-    WJR_NOINLINE static void *_S_oom_malloc(size_t);
+    static void *_S_oom_malloc(size_t);
     static void *_S_oom_realloc(void *, size_t);
 
 #ifndef __STL_STATIC_TEMPLATE_MEMBER_BUG
@@ -19984,7 +19986,7 @@ private:
 #endif
 
 public:
-    WJR_INTRINSIC_INLINE static void *allocate(size_t __n) {
+    WJR_NOINLINE static void *allocate(size_t __n) {
         void *__result = malloc(__n);
         if (WJR_LIKELY(0 != __result))
             return __result;
@@ -20043,18 +20045,29 @@ void *__malloc_alloc_template__<__inst>::_S_oom_realloc(void *__p, size_t __n) {
     }
 }
 
+namespace memory_pool_details {
+
+static constexpr uint8_t __small_index_table[128] = {
+    0,  1,  2,  3,  4,  4,  5,  5,  6,  6,  6,  6,  7,  7,  7,  7,  8,  8,  8,
+    8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  9,  9,  9,  9,  9,  9,
+    9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,
+    9,  9,  9,  9,  9,  9,  9,  10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+};
+
+static constexpr uint16_t __size_table[11 + 8] = {
+    8,    16,   24,   32,   48,   64,    96,    128,   256,   512,
+    1024, 2048, 4096, 6144, 8192, 10240, 12288, 14336, 16384,
+};
+
+} // namespace memory_pool_details
+
 template <int inst>
 class __default_alloc_template__ {
 private:
     using allocator_type = __malloc_alloc_template__<0>;
-
-    enum { ALLOC_ALIGN = 8 };
-    enum { ALLOC_MAX_BYTES = 256 };
-    enum { ALLOC_NFRELISTS = ALLOC_MAX_BYTES / ALLOC_ALIGN };
-
-    enum { __ALIGN = ALLOC_ALIGN };
-    enum { __MAX_BYTES = ALLOC_MAX_BYTES };
-    enum { __NFREELISTS = ALLOC_NFRELISTS };
 
     union obj {
         union obj *free_list_link;
@@ -20062,7 +20075,7 @@ private:
     };
 
     struct object {
-        obj *volatile free_list[__NFREELISTS] = {nullptr};
+        obj *volatile free_list[19] = {nullptr};
         char *start_free = nullptr;
         char *end_free = nullptr;
         size_t heap_size = 0;
@@ -20078,46 +20091,56 @@ private:
     static char *&get_end_free() noexcept { return get_instance().end_free; }
     static size_t &get_heap_size() noexcept { return get_instance().heap_size; }
 
-    static inline size_t ROUND_UP(size_t bytes) {
-        return (((bytes) + __ALIGN - 1) & ~(__ALIGN - 1));
+    static inline size_t __round_up(size_t bytes) {
+        return (((bytes) + 2048 - 1) & ~(2048 - 1));
     }
 
-    static inline size_t FREELIST_INDEX(size_t bytes) {
-        return (((bytes) + __ALIGN - 1) / __ALIGN - 1);
+    static WJR_INTRINSIC_INLINE uint8_t __get_index(size_t bytes) {
+        if (bytes <= 1024) {
+            return memory_pool_details::__small_index_table[(bytes - 1) >> 3];
+        }
+
+        return 11 + (bytes - 1) / 2048;
+    }
+
+    static inline uint16_t __get_size(uint8_t idx) {
+        return memory_pool_details::__size_table[idx];
     }
 
     // Returns an object of size n, and optionally adds to size n free list.
-    WJR_NOINLINE static void *refill(size_t n) noexcept;
+    WJR_NOINLINE static void *refill(uint8_t idx) noexcept;
 
     // Allocates a chunk for nobjs of size "size".  nobjs may be reduced
     // if it is inconvenient to allocate the requested number.
-    static char *chunk_alloc(size_t size, int &nobjs) noexcept;
+    static char *chunk_alloc(uint8_t idx, int &nobjs) noexcept;
 
 public:
-    inline static void *allocate(size_t n) noexcept // n must be > 0
-    {
-        if (n > (size_t)__MAX_BYTES) {
-            return allocator_type::allocate(n);
+    // n must be > 0
+    WJR_INTRINSIC_INLINE static allocation_result<void *> allocate(size_t n) noexcept {
+        if (n > (size_t)16384) {
+            return {allocator_type::allocate(n), n};
         }
-        obj *volatile *my_free_list = get_free_list() + FREELIST_INDEX(n);
+
+        const size_t idx = __get_index(n);
+        const size_t size = __get_size(idx);
+        obj *volatile *my_free_list = get_free_list() + idx;
         obj *result = *my_free_list;
         if (WJR_LIKELY(result != nullptr)) {
             *my_free_list = result->free_list_link;
-            return result;
+            return {result, size};
         }
-        return refill(ROUND_UP(n));
+        return {refill(idx), size};
     }
 
-    inline static void deallocate(void *p, size_t n) noexcept // p may not be 0
-    {
-
-        if (n > (size_t)__MAX_BYTES) {
+    // p must not be 0
+    WJR_INTRINSIC_INLINE static void deallocate(void *p, size_t n) noexcept {
+        if (n > (size_t)16384) {
             allocator_type::deallocate(p, n);
             return;
         }
 
         obj *q = (obj *)p;
-        obj *volatile *my_free_list = get_free_list() + FREELIST_INDEX(n);
+        obj *volatile *my_free_list = get_free_list() + __get_index(n);
         q->free_list_link = *my_free_list;
         *my_free_list = q;
     }
@@ -20130,10 +20153,11 @@ public:
 // We hold the allocation lock.
 //----------------------------------------------
 template <int inst>
-char *__default_alloc_template__<inst>::chunk_alloc(size_t size, int &nobjs) noexcept {
+char *__default_alloc_template__<inst>::chunk_alloc(uint8_t idx, int &nobjs) noexcept {
+    const size_t size = __get_size(idx);
     char *result;
     size_t total_bytes = size * nobjs;
-    const auto bytes_left = static_cast<size_t>(get_end_free() - get_start_free());
+    auto bytes_left = static_cast<size_t>(get_end_free() - get_start_free());
 
     if (bytes_left >= total_bytes) {
         result = get_start_free();
@@ -20149,42 +20173,59 @@ char *__default_alloc_template__<inst>::chunk_alloc(size_t size, int &nobjs) noe
         return (result);
     }
 
-    const size_t bytes_to_get = 2 * total_bytes + ROUND_UP(get_heap_size() >> 4);
     // Try to make use of the left-over piece.
     if (bytes_left > 0) {
-        obj *volatile *my_free_list = get_free_list() + FREELIST_INDEX(bytes_left);
+        WJR_ASSERT(!(bytes_left & 7));
 
-        ((obj *)get_start_free())->free_list_link = *my_free_list;
-        *my_free_list = (obj *)get_start_free();
-    }
-    get_start_free() = (char *)malloc(bytes_to_get);
-    if (WJR_UNLIKELY(0 == get_start_free())) {
-        obj *volatile *my_free_list, *p;
+        char *start_free = get_start_free();
+        uint8_t __idx = __get_index(bytes_left);
+        for (;; --__idx) {
+            const auto __size = __get_size(__idx);
+            if (bytes_left >= __size) {
+                obj *volatile *my_free_list = get_free_list() + __idx;
+                ((obj *)start_free)->free_list_link = *my_free_list;
+                *my_free_list = (obj *)start_free;
 
-        // Try to make do with what we have. That can't
-        // hurt. We do not try smaller requests, since that tends
-        // to result in disaster on multi-process machines.
-        for (int i = static_cast<int>(size); i <= __MAX_BYTES; i += __ALIGN) {
-            my_free_list = get_free_list() + FREELIST_INDEX(i);
-            p = *my_free_list;
-            if (0 != p) {
-                *my_free_list = p->free_list_link;
-                get_start_free() = (char *)p;
-                get_end_free() = get_start_free() + i;
-                return (chunk_alloc(size, nobjs));
-                // Any leftover piece will eventually make it to the
-                // right free list.
+                if (bytes_left == __size) {
+                    break;
+                }
+
+                start_free += __size;
+                bytes_left -= __size;
             }
         }
-        get_end_free() = 0; // In case of exception.
-        get_start_free() = (char *)malloc(bytes_to_get);
-        // This should either throw an exception or
-        // remedy the situation. Thus we assume it
-        // succeeded.
     }
+
+    do {
+        obj *volatile *my_free_list;
+        if (idx < 11) {
+            for (int i = 18; i > 11; --i) {
+                my_free_list = get_free_list() + i;
+                obj *p = *my_free_list;
+                // split the chunk
+                if (p != nullptr) {
+                    *my_free_list = p->free_list_link;
+                    get_start_free() = (char *)(p);
+                    char *__e = (char *)(p) + 2048;
+                    get_end_free() = __e;
+                    obj *e = (obj *)(__e);
+                    --my_free_list;
+                    e->free_list_link = *my_free_list;
+                    *my_free_list = e;
+                    return (chunk_alloc(idx, nobjs));
+                }
+            }
+        }
+    } while (0);
+
+    const size_t bytes_to_get = 2 * total_bytes + __round_up(get_heap_size() >> 4);
+    get_start_free() = (char *)malloc(bytes_to_get);
+
+    WJR_ASSERT(get_start_free() != nullptr);
+
     get_heap_size() += bytes_to_get;
     get_end_free() = get_start_free() + bytes_to_get;
-    return (chunk_alloc(size, nobjs));
+    return (chunk_alloc(idx, nobjs));
 }
 
 //----------------------------------------------
@@ -20193,15 +20234,19 @@ char *__default_alloc_template__<inst>::chunk_alloc(size_t size, int &nobjs) noe
 // We hold the allocation lock.
 //----------------------------------------------
 template <int inst>
-void *__default_alloc_template__<inst>::refill(size_t n) noexcept {
-    int nobjs = 20;
-    char *chunk = chunk_alloc(n, nobjs);
+void *__default_alloc_template__<inst>::refill(uint8_t idx) noexcept {
+    int nobjs = idx < 6 ? 32 : idx < 8 ? 16 : idx < 11 ? 8 : 4;
+    char *chunk = chunk_alloc(idx, nobjs);
     obj *current_obj;
     obj *next_obj;
 
-    if (1 == nobjs)
+    if (1 == nobjs) {
         return (chunk);
-    obj *volatile *my_free_list = get_free_list() + FREELIST_INDEX(n);
+    }
+
+    obj *volatile *my_free_list = get_free_list() + idx;
+
+    const size_t n = __get_size(idx);
 
     // Build free list in chunk
     obj *result = (obj *)chunk;
@@ -20243,15 +20288,21 @@ public:
     ~memory_pool() = default;
     memory_pool &operator=(const memory_pool &) noexcept = default;
 
-    WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *allocate(size_t n) const noexcept {
+    WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
+    allocate_at_least(size_type n) const noexcept {
         if (WJR_UNLIKELY(0 == n)) {
-            return nullptr;
+            return {nullptr, 0};
         }
 
-        return static_cast<Ty *>(allocator_type::allocate(sizeof(Ty) * n));
+        const auto ret = allocator_type::allocate(n * sizeof(Ty));
+        return {static_cast<Ty *>(ret.ptr), ret.count};
     }
 
-    WJR_CONSTEXPR20 void deallocate(Ty *ptr, size_t n) const noexcept {
+    WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *allocate(size_type n) const noexcept {
+        return allocate_at_least(n).ptr;
+    }
+
+    WJR_CONSTEXPR20 void deallocate(Ty *ptr, size_type n) const noexcept {
         if (WJR_UNLIKELY(0 == n)) {
             return;
         }
@@ -29893,8 +29944,8 @@ void builtin_copy_c_bytes_impl(const uint8_t *src, uint8_t *dst) {
         const auto x = avx::loadu((__m256i *)(src));
         avx::storeu((__m256i *)(dst), x);
 #else
-        builtin_copy_c_bytes<16>(dst, src);
-        builtin_copy_c_bytes<16>(dst + 16, src + 16);
+        builtin_copy_c_bytes_impl<16>(dst, src);
+        builtin_copy_c_bytes_impl<16>(dst + 16, src + 16);
 #endif
         return;
     }
@@ -29980,8 +30031,8 @@ void builtin_copy_backward_c_bytes_impl(const uint8_t *s_last, uint8_t *d_last) 
         const auto x = avx::loadu((__m256i *)(s_last - 32));
         avx::storeu((__m256i *)(d_last - 32), x);
 #else
-        builtin_copy_backward_c_bytes<16>(s_last, d_last);
-        builtin_copy_backward_c_bytes<16>(s_last - 16, d_last - 16);
+        builtin_copy_backward_c_bytes_impl<16>(s_last, d_last);
+        builtin_copy_backward_c_bytes_impl<16>(s_last - 16, d_last - 16);
 #endif
     }
 

@@ -61,6 +61,8 @@ WJR_INTRINSIC_INLINE T builtin_addc(T a, T b, U c_in, U &c_out) {
  * the default type is the same as `T`
  * @param[in] c_in The carry-in flag.
  * @param[out] c_out The carry-out flag.
+ * 
+ * @return a + b + c_in
  */
 template <typename T, typename U,
           WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
