@@ -3198,7 +3198,6 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept
 constexpr static void allow_true_type(std::true_type) noexcept {}
 constexpr static void allow_false_type(std::false_type) noexcept {}
 
-namespace {
 WJR_REGISTER_HAS_TYPE(compare, std::declval<Comp>()(std::declval<T>(), std::declval<U>()),
                       Comp, T, U);
 WJR_REGISTER_HAS_TYPE(
@@ -3228,7 +3227,6 @@ WJR_REGISTER_HAS_COMPARE(greater_equal, std::greater_equal<>);
 
 WJR_REGISTER_HAS_TYPE(invocable,
                       std::invoke(std::declval<Func>(), std::declval<Args>()...), Func);
-} // namespace
 
 template <typename T>
 struct get_integral_constant {
@@ -5157,11 +5155,9 @@ using iterator_contiguous_pointer_t =
 
 namespace wjr {
 
-namespace {
 WJR_REGISTER_HAS_TYPE(pointer_traits_to_address,
                       std::pointer_traits<Ptr>::to_address(std::declval<const Ptr &>()),
                       Ptr);
-} // namespace
 
 template <typename T>
 constexpr T *to_address(T *p) noexcept {
@@ -5323,12 +5319,10 @@ struct allocation_result {
     SizeType count;
 };
 
-namespace {
 WJR_REGISTER_HAS_TYPE(
     allocate_at_least,
     std::declval<Allocator>().allocate_at_least(std::declval<SizeType>()), Allocator,
     SizeType);
-}
 
 template <typename Allocator, typename SizeType,
           typename Pointer = typename std::allocator_traits<Allocator>::pointer>
@@ -5907,8 +5901,6 @@ WJR_CONST constexpr T __fasts_sub(T x, std::make_unsigned_t<T> y) {
 
 namespace wjr {
 
-namespace {
-
 WJR_REGISTER_HAS_TYPE(container_begin,
                       std::begin(std::declval<std::add_lvalue_reference_t<Container>>()),
                       Container);
@@ -5932,8 +5924,6 @@ WJR_REGISTER_HAS_TYPE(__container_resize,
 WJR_REGISTER_HAS_TYPE(__container_append,
                       std::declval<Container>().append(std::declval<Args>()...),
                       Container);
-
-} // namespace
 
 template <typename Container>
 struct resize_fn_impl_base {
@@ -6099,8 +6089,6 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
 
 WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(string, std::string);
 
-namespace {
-
 WJR_REGISTER_HAS_TYPE(container_resize,
                       resize_fn_impl<Container>::resize(std::declval<Container &>(),
                                                         std::declval<Size>(),
@@ -6119,8 +6107,6 @@ WJR_REGISTER_HAS_TYPE(container_insert,
                        std::declval<Container>().insert(std::declval<Container>().cend(),
                                                         std::declval<Args>()...)),
                       Container);
-
-} // namespace
 
 template <typename Container, typename Size,
           WJR_REQUIRES(has_container_resize_v<Container, Size>)>
@@ -6467,7 +6453,6 @@ constexpr OutputIt move_n_restrict(InputIt first, Size count, OutputIt d_first) 
 
 namespace wjr {
 
-namespace {
 WJR_REGISTER_HAS_TYPE(is_trivially_allocator,
                       std::declval<typename Alloc::is_trivially_allocator>(), Alloc);
 WJR_REGISTER_HAS_TYPE(
@@ -6476,7 +6461,6 @@ WJR_REGISTER_HAS_TYPE(
 WJR_REGISTER_HAS_TYPE(is_trivially_allocator_destructible,
                       std::declval<typename Alloc::is_trivially_allocator_destructible>(),
                       Alloc);
-} // namespace
 
 /// @private
 template <typename Alloc, typename = void>
@@ -7968,8 +7952,6 @@ template <typename T, size_t Capacity, typename Alloc>
 using sso_vector_storage =
     __sso_vector_storage_impl<T, Capacity, Alloc, vector_storage_traits<T, Alloc>>;
 
-namespace {
-
 WJR_REGISTER_HAS_TYPE(vector_storage_shrink_to_fit,
                       std::declval<Storage>().shrink_to_fit(), Storage);
 
@@ -7990,8 +7972,6 @@ struct basic_vector_traits {
     using reference = value_type &;
     using const_reference = const value_type &;
 };
-
-} // namespace
 
 /**
  * @brief Customized vector by storage.
@@ -30987,6 +30967,10 @@ inline constexpr bool is_biginteger_storage_v = is_biginteger_storage<Storage>::
 
 namespace biginteger_details {
 
+/**
+ * @brief Remove leading zeros.
+ *
+ */
 inline uint32_t normalize(const uint64_t *ptr, uint32_t n) {
     return reverse_find_not_n(ptr, 0, n);
 }
@@ -31322,6 +31306,10 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) {
 
 /// @private
 template <typename S>
+void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src);
+
+/// @private
+template <typename S>
 void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, uint64_t rhs,
                       int32_t xmask);
 
@@ -31382,7 +31370,8 @@ void __submul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 
 /// @private
 template <typename S>
-void __mul_2exp_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, size_t shift);
+void __mul_2exp_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
+                     uint32_t shift);
 
 /// @private
 template <typename S0, typename S1>
@@ -31489,60 +31478,60 @@ uint64_t __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
 /// @private
 template <typename S>
 void __tdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                        size_t shift);
+                        uint32_t shift);
 
 /// @private
 template <typename S>
 void __tdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                        size_t shift);
+                        uint32_t shift);
 
 /// @private
 template <typename S>
 void __cfdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                         size_t shift, int32_t xdir);
+                         uint32_t shift, int32_t xdir);
 
 /// @private
 template <typename S>
 void __cdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                        size_t shift) {
+                        uint32_t shift) {
     __cfdiv_q_2exp_impl(quot, num, shift, 1);
 }
 
 /// @private
 template <typename S>
 void __fdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                        size_t shift) {
+                        uint32_t shift) {
     __cfdiv_q_2exp_impl(quot, num, shift, -1);
 }
 
 /// @private
 template <typename S>
 void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                         size_t shift, int32_t xdir);
+                         uint32_t shift, int32_t xdir);
 
 /// @private
 template <typename S>
 void __cdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                        size_t shift) {
+                        uint32_t shift) {
     __cfdiv_r_2exp_impl(rem, num, shift, 1);
 }
 
 /// @private
 template <typename S>
 void __fdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                        size_t shift) {
+                        uint32_t shift) {
     __cfdiv_r_2exp_impl(rem, num, shift, -1);
 }
 
 /// @private
 template <typename S, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
-void __urandom_bit_impl(basic_biginteger<S> *dst, size_t size, Engine &engine);
+void __urandom_bit_impl(basic_biginteger<S> *dst, uint32_t size, Engine &engine);
 
 /// @private
 template <typename S, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
-void __urandom_exact_bit_impl(basic_biginteger<S> *dst, size_t size, Engine &engine);
+void __urandom_exact_bit_impl(basic_biginteger<S> *dst, uint32_t size, Engine &engine);
 
 /// @private
 template <typename S, typename Engine,
@@ -31661,8 +31650,19 @@ template <typename S>
 void absolute(basic_biginteger<S> &dst);
 
 template <typename S>
+void sqr(basic_biginteger<S> &dst, const biginteger_data &src) {
+    biginteger_details::__sqr_impl(&dst, &src);
+}
+
+template <typename S>
 void mul(basic_biginteger<S> &dst, const biginteger_data &lhs,
          const biginteger_data &rhs) {
+    if (WJR_BUILTIN_CONSTANT_P(std::addressof(lhs) == std::addressof(rhs)) &&
+        std::addressof(lhs) == std::addressof(rhs)) {
+        sqr(dst, lhs);
+        return;
+    }
+
     biginteger_details::__mul_impl(&dst, &lhs, &rhs);
 }
 
@@ -31709,7 +31709,7 @@ void submul(basic_biginteger<S> &dst, T lhs, const biginteger_data &rhs) {
 }
 
 template <typename S>
-void mul_2exp(basic_biginteger<S> &dst, const biginteger_data &lhs, size_t shift) {
+void mul_2exp(basic_biginteger<S> &dst, const biginteger_data &lhs, uint32_t shift) {
     biginteger_details::__mul_2exp_impl(&dst, &lhs, shift);
 }
 
@@ -31816,44 +31816,44 @@ uint64_t cdiv_r(basic_biginteger<S> &rem, const biginteger_data &num, T div) {
 }
 
 template <typename S>
-void tdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num, size_t shift) {
+void tdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num, uint32_t shift) {
     biginteger_details::__tdiv_q_2exp_impl(&quot, &num, shift);
 }
 
 template <typename S>
-void tdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num, size_t shift) {
+void tdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num, uint32_t shift) {
     biginteger_details::__tdiv_r_2exp_impl(&rem, &num, shift);
 }
 
 template <typename S>
-void fdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num, size_t shift) {
+void fdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num, uint32_t shift) {
     biginteger_details::__fdiv_q_2exp_impl(&quot, &num, shift);
 }
 
 template <typename S>
-void cdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num, size_t shift) {
+void cdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num, uint32_t shift) {
     biginteger_details::__cdiv_q_2exp_impl(&quot, &num, shift);
 }
 
 template <typename S>
-void cdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num, size_t shift) {
+void cdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num, uint32_t shift) {
     biginteger_details::__cdiv_r_2exp_impl(&rem, &num, shift);
 }
 
 template <typename S>
-void fdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num, size_t shift) {
+void fdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num, uint32_t shift) {
     biginteger_details::__fdiv_r_2exp_impl(&rem, &num, shift);
 }
 
 template <typename S, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
-void urandom_bit(basic_biginteger<S> &dst, size_t size, Engine &engine) {
+void urandom_bit(basic_biginteger<S> &dst, uint32_t size, Engine &engine) {
     biginteger_details::__urandom_bit_impl(&dst, size, engine);
 }
 
 template <typename S, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
-void urandom_exact_bit(basic_biginteger<S> &dst, size_t size, Engine &engine) {
+void urandom_exact_bit(basic_biginteger<S> &dst, uint32_t size, Engine &engine) {
     biginteger_details::__urandom_exact_bit_impl(&dst, size, engine);
 }
 
@@ -32079,18 +32079,25 @@ public:
         return *this;
     }
 
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    basic_biginteger &operator+=(T rhs) {
+        add(*this, *this, rhs);
+        return *this;
+    }
+
     basic_biginteger &operator+=(const biginteger_data &rhs) {
         add(*this, *this, rhs);
         return *this;
     }
 
-    basic_biginteger &operator-=(const biginteger_data &rhs) {
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    basic_biginteger &operator-=(T rhs) {
         sub(*this, *this, rhs);
         return *this;
     }
 
-    basic_biginteger &operator*=(const biginteger_data &rhs) {
-        mul(*this, *this, rhs);
+    basic_biginteger &operator-=(const biginteger_data &rhs) {
+        sub(*this, *this, rhs);
         return *this;
     }
 
@@ -32100,7 +32107,12 @@ public:
         return *this;
     }
 
-    basic_biginteger &operator<<=(size_t shift) {
+    basic_biginteger &operator*=(const biginteger_data &rhs) {
+        mul(*this, *this, rhs);
+        return *this;
+    }
+
+    basic_biginteger &operator<<=(uint32_t shift) {
         mul_2exp(*this, *this, shift);
         return *this;
     }
@@ -32581,7 +32593,7 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
         const auto cf = mul_1(dst->data(), lhs->data(), lusize, rhs->data()[0]);
         dssize = __fasts_negate_with<int32_t>(mask, lusize + (cf != 0));
         if (cf != 0) {
-            (*dst)[lusize] = cf;
+            dst->data()[lusize] = cf;
         }
         dst->set_ssize(dssize);
         return;
@@ -32624,6 +32636,67 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 
     const bool cf = dp[dusize - 1] == 0;
     dssize = __fasts_negate_with<int32_t>(mask, dusize - cf);
+
+    if (tmp.has_value()) {
+        *dst = **std::move(tmp);
+        tmp->reset();
+    }
+
+    dst->set_ssize(dssize);
+}
+
+template <typename S>
+void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) {
+    int32_t sssize = src->get_ssize();
+    uint32_t susize = __fasts_abs(sssize);
+
+    if (WJR_UNLIKELY(susize == 0)) {
+        dst->set_ssize(0);
+        return;
+    }
+
+    int32_t dssize;
+    uint32_t dusize;
+
+    if (susize == 1) {
+        dst->reserve(susize + 1);
+        uint64_t num = src->data()[0];
+        uint64_t cf;
+        dst->data()[0] = mul(num, num, cf);
+        dssize = 1 + (cf != 0);
+        if (cf != 0) {
+            dst->data()[1] = cf;
+        }
+        dst->set_ssize(dssize);
+        return;
+    }
+
+    dusize = susize * 2;
+
+    using pointer = uint64_t *;
+
+    auto dp = dst->data();
+    auto sp = (pointer)(src->data());
+
+    std::optional<uninitialized<basic_biginteger<S>>> tmp;
+
+    unique_stack_allocator stkal(math_details::stack_alloc);
+
+    if (dst->capacity() < dusize) {
+        tmp.emplace(dst->get_growth_capacity(dst->capacity(), dusize), in_place_reserve,
+                    dst->get_allocator());
+        dp = (**tmp).data();
+    } else {
+        if (dp == sp) {
+            sp = (pointer)stkal.allocate(susize * sizeof(uint64_t));
+            std::copy_n(dp, susize, sp);
+        }
+    }
+
+    sqr(dp, sp, susize);
+
+    const bool cf = dp[dusize - 1] == 0;
+    dssize = dusize - cf;
 
     if (tmp.has_value()) {
         *dst = **std::move(tmp);
@@ -32824,7 +32897,8 @@ void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 }
 
 template <typename S>
-void __mul_2exp_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, size_t shift) {
+void __mul_2exp_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
+                     uint32_t shift) {
     int32_t lssize = lhs->get_ssize();
 
     if (lssize == 0) {
@@ -32833,7 +32907,7 @@ void __mul_2exp_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, size_
     }
 
     uint32_t lusize = __fasts_abs(lssize);
-    size_t offset = shift / 64;
+    uint32_t offset = shift / 64;
     shift %= 64;
     uint32_t dusize = lusize + offset;
 
@@ -33544,7 +33618,7 @@ uint64_t __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
 
 template <typename S>
 void __tdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                        size_t shift) {
+                        uint32_t shift) {
     int32_t nssize = num->get_ssize();
     uint32_t nusize = __fasts_abs(nssize);
     uint32_t offset = shift / 64;
@@ -33568,7 +33642,7 @@ void __tdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
 
 template <typename S>
 void __tdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                        size_t shift) {
+                        uint32_t shift) {
     const int32_t nssize = num->get_ssize();
     uint32_t nusize = __fasts_abs(nssize);
     uint32_t offset = shift / 64;
@@ -33601,7 +33675,7 @@ void __tdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
 
 template <typename S>
 void __cfdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                         size_t shift, int32_t xdir) {
+                         uint32_t shift, int32_t xdir) {
     int32_t nssize = num->get_ssize();
     uint32_t nusize = __fasts_abs(nssize);
     uint32_t offset = shift / 64;
@@ -33654,7 +33728,7 @@ void __cfdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
 
 template <typename S>
 void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                         size_t shift, int32_t xdir) {
+                         uint32_t shift, int32_t xdir) {
     int32_t nssize = num->get_ssize();
 
     if (nssize == 0) {
@@ -33732,7 +33806,7 @@ void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
 
 template <typename S, typename Engine,
           WJR_REQUIRES_I(biginteger_uniform_random_bit_generator_v<Engine>)>
-void __urandom_bit_impl(basic_biginteger<S> *dst, size_t size, Engine &engine) {
+void __urandom_bit_impl(basic_biginteger<S> *dst, uint32_t size, Engine &engine) {
     const uint32_t dusize = size / 64;
     size %= 64;
     uint32_t dssize = dusize + (size != 0);
@@ -33756,7 +33830,7 @@ void __urandom_bit_impl(basic_biginteger<S> *dst, size_t size, Engine &engine) {
 
 template <typename S, typename Engine,
           WJR_REQUIRES_I(biginteger_uniform_random_bit_generator_v<Engine>)>
-void __urandom_exact_bit_impl(basic_biginteger<S> *dst, size_t size, Engine &engine) {
+void __urandom_exact_bit_impl(basic_biginteger<S> *dst, uint32_t size, Engine &engine) {
     if (WJR_UNLIKELY(size == 0)) {
         dst->set_ssize(0);
         return;
@@ -33819,13 +33893,13 @@ void __urandom_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
         lp = tp;
     }
 
-    const size_t lst_pos = size - 1;
+    const uint32_t lst_pos = size - 1;
     const uint64_t lst_val = lp[lst_pos];
     std::uniform_int_distribution<uint64_t> head(0, lst_val);
 
     while (true) {
         uint64_t gen = head(engine);
-        size_t pos = lst_pos;
+        uint32_t pos = lst_pos;
 
         if (WJR_UNLIKELY(gen == lst_val)) {
             uint64_t now;
@@ -33899,13 +33973,13 @@ void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit
         lp = tp;
     }
 
-    const size_t lst_pos = size - 1;
+    const uint32_t lst_pos = size - 1;
     const uint64_t lst_val = lp[lst_pos];
     std::uniform_int_distribution<uint64_t> head(0, lst_val);
 
     while (true) {
         uint64_t gen = head(engine);
-        size_t pos = lst_pos;
+        uint32_t pos = lst_pos;
 
         if (WJR_UNLIKELY(gen == lst_val)) {
             uint64_t now;
@@ -34017,6 +34091,29 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
 
 #ifndef WJR_CONTAINER_GENERIC_BPLUS_TREE_HPP__
 #define WJR_CONTAINER_GENERIC_BPLUS_TREE_HPP__
+
+/**
+ * @file bplus_tree.hpp
+ * @brief B+ tree implementation.
+ *
+ * @details The addition, deletion, query, iterator and other functions have been
+ * implemented. The multiset/multimap/set/map adapter has not been implemented yet. The
+ * node_size should be set to 16 by default, and optimization has been made for queries
+ * less than or equal to
+ * 16. The general B+ tree query is proportional to node_size. For example, when node_size
+ * is 16, the number of queries per bit is [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+ * 14, 15, 16, 16], and the average number of queries is 8.9 times. After improvement, the
+ * number of queries for the i-th query is [1, 3, 3, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7,
+ * 8, 8], and the average number of queries is 5.58 times. In fact, the probability of
+ * querying smaller nodes is slightly greater than that of larger nodes, so the actual
+ * number of queries will be less. If the comparison operation of key_type is more
+ * complex, it is not recommended to use B+ tree, because the number of queries of B+ tree
+ * will be more, thus offsetting the advantages of B+ tree.
+ *
+ * @version 0.1
+ * @date 2024-05-06
+ *
+ */
 
 // Already included
 // Already included
@@ -34969,18 +35066,6 @@ public:
 
     void erase(const_iterator iter) { __erase_iter(iter); }
 
-    void __debug(bool print = true) {
-        auto root = __get_root();
-        if (root != nullptr) {
-            (void)__debug(root, print);
-        } else {
-            if (print)
-                printf("empty");
-        }
-        if (print)
-            printf("\n");
-    }
-
 private:
     void __take_tree(basic_bplus_tree &&other) noexcept {
         const auto root = other.__get_root();
@@ -35576,56 +35661,6 @@ private:
         } while (0);
 
         return size;
-    }
-
-    static InlineKey __debug(node_type *cur, bool print) {
-        auto n = cur->m_size;
-        if (n < 0) {
-            n = -n;
-
-            if (print) {
-                printf("[");
-                for (unsigned int i = 0; i < n; ++i) {
-                    if (i != 0)
-                        printf(",");
-                    printf("%d", cur->as_leaf()->__get_key(i));
-                }
-                printf("]");
-            }
-
-            return cur->as_leaf()->__get_key(0);
-        }
-
-        if (print) {
-            printf("{");
-        }
-        InlineKey ret;
-        for (unsigned int i = 0; i <= n; ++i) {
-            auto x = cur->as_inner()->m_sons[i];
-            if (x->m_pos != i) {
-                printf("error!\n");
-                exit(-1);
-            }
-
-            if (x->m_parent != cur) {
-                printf("error 1!\n");
-                exit(-1);
-            }
-
-            auto key = __debug(x, print);
-            if (i != 0) {
-                if (*cur->as_inner()->m_keys[i - 1] != *key) {
-                    printf("error 2!\n");
-                    exit(-1);
-                }
-            } else {
-                ret = key;
-            }
-        }
-        if (print) {
-            printf("}");
-        }
-        return ret;
     }
 
     WJR_NOINLINE void __erase_iter(const_iterator iter) {

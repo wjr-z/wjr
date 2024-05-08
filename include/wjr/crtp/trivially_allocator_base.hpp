@@ -5,7 +5,6 @@
 
 namespace wjr {
 
-namespace {
 WJR_REGISTER_HAS_TYPE(is_trivially_allocator,
                       std::declval<typename Alloc::is_trivially_allocator>(), Alloc);
 WJR_REGISTER_HAS_TYPE(
@@ -14,7 +13,6 @@ WJR_REGISTER_HAS_TYPE(
 WJR_REGISTER_HAS_TYPE(is_trivially_allocator_destructible,
                       std::declval<typename Alloc::is_trivially_allocator_destructible>(),
                       Alloc);
-} // namespace
 
 /// @private
 template <typename Alloc, typename = void>

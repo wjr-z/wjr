@@ -324,8 +324,8 @@ TEST(biginteger, addsub) {
 
         const int N = 2400;
 
-        for (int n = 1; n < N; n += (n <= 180 ? 1 : n / 7)) {
-            for (int m = 1; m < N; m += (m <= 180 ? 1 : m / 7)) {
+        for (int n = 0; n < N; n += (n <= 180 ? 1 : n / 7)) {
+            for (int m = 0; m < N; m += (m <= 180 ? 1 : m / 7)) {
                 random(a, n);
                 copy(a1, a);
 
@@ -419,8 +419,8 @@ TEST(biginteger, mul) {
 
         const int N = 1200;
 
-        for (int n = 1; n < N; n += (n <= 140 ? 1 : n / 5)) {
-            for (int m = 1; m < N; m += (m <= 140 ? 1 : m / 5)) {
+        for (int n = 0; n < N; n += (n <= 140 ? 1 : n / 5)) {
+            for (int m = 0; m < N; m += (m <= 140 ? 1 : m / 5)) {
                 random(a, n);
                 copy(a1, a);
 
@@ -437,6 +437,16 @@ TEST(biginteger, mul) {
                     mpz_addmul(c1, a1, b1);
 
                     WJR_ASSERT(equal(c, c1));
+
+                    c = a;
+                    mpz_set(c1, a1);
+                    mul(a, a, b);
+                    mpz_mul(a1, a1, b1);
+
+                    WJR_ASSERT(equal(a, a1));
+
+                    a = c;
+                    mpz_set(a1, c1);
 
                     a.negate();
                     mpz_neg(a1, a1);
@@ -499,7 +509,7 @@ TEST(biginteger, div) {
 
         const int N = 900;
 
-        for (int n = 1; n < N; n += (n <= 140 ? 1 : n / 5)) {
+        for (int n = 0; n < N; n += (n <= 140 ? 1 : n / 5)) {
             for (int m = 1; m < N; m += (m <= 140 ? 1 : m / 5)) {
                 random(a, n);
                 copy(a1, a);
@@ -583,7 +593,7 @@ TEST(biginteger, div_2exp) {
 
         const int N = 900;
 
-        for (int n = 1; n < N; n += (n <= 140 ? 1 : n / 5)) {
+        for (int n = 0; n < N; n += (n <= 140 ? 1 : n / 5)) {
             for (int m = 0; m < n; ++m) {
                 random(a, n);
                 copy(a1, a);

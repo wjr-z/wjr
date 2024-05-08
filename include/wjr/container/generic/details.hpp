@@ -7,8 +7,6 @@
 
 namespace wjr {
 
-namespace {
-
 WJR_REGISTER_HAS_TYPE(container_begin,
                       std::begin(std::declval<std::add_lvalue_reference_t<Container>>()),
                       Container);
@@ -32,8 +30,6 @@ WJR_REGISTER_HAS_TYPE(__container_resize,
 WJR_REGISTER_HAS_TYPE(__container_append,
                       std::declval<Container>().append(std::declval<Args>()...),
                       Container);
-
-} // namespace
 
 template <typename Container>
 struct resize_fn_impl_base {
@@ -199,8 +195,6 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
 
 WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(string, std::string);
 
-namespace {
-
 WJR_REGISTER_HAS_TYPE(container_resize,
                       resize_fn_impl<Container>::resize(std::declval<Container &>(),
                                                         std::declval<Size>(),
@@ -219,8 +213,6 @@ WJR_REGISTER_HAS_TYPE(container_insert,
                        std::declval<Container>().insert(std::declval<Container>().cend(),
                                                         std::declval<Args>()...)),
                       Container);
-
-} // namespace
 
 template <typename Container, typename Size,
           WJR_REQUIRES(has_container_resize_v<Container, Size>)>

@@ -1,6 +1,29 @@
 #ifndef WJR_CONTAINER_GENERIC_BPLUS_TREE_HPP__
 #define WJR_CONTAINER_GENERIC_BPLUS_TREE_HPP__
 
+/**
+ * @file bplus_tree.hpp
+ * @brief B+ tree implementation.
+ *
+ * @details The addition, deletion, query, iterator and other functions have been
+ * implemented. The multiset/multimap/set/map adapter has not been implemented yet. The
+ * node_size should be set to 16 by default, and optimization has been made for queries
+ * less than or equal to
+ * 16. The general B+ tree query is proportional to node_size. For example, when node_size
+ * is 16, the number of queries per bit is [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+ * 14, 15, 16, 16], and the average number of queries is 8.9 times. After improvement, the
+ * number of queries for the i-th query is [1, 3, 3, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7,
+ * 8, 8], and the average number of queries is 5.58 times. In fact, the probability of
+ * querying smaller nodes is slightly greater than that of larger nodes, so the actual
+ * number of queries will be less. If the comparison operation of key_type is more
+ * complex, it is not recommended to use B+ tree, because the number of queries of B+ tree
+ * will be more, thus offsetting the advantages of B+ tree.
+ *
+ * @version 0.1
+ * @date 2024-05-06
+ *
+ */
+
 #include <wjr/assert.hpp>
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/generic/container_fn.hpp>
@@ -461,18 +484,6 @@ public:
     }
 
     void erase(const_iterator iter) { __erase_iter(iter); }
-
-    void __debug(bool print = true) {
-        auto root = __get_root();
-        if (root != nullptr) {
-            (void)__debug(root, print);
-        } else {
-            if (print)
-                printf("empty");
-        }
-        if (print)
-            printf("\n");
-    }
 
 private:
     void __take_tree(basic_bplus_tree &&other) noexcept {
@@ -1069,56 +1080,6 @@ private:
         } while (0);
 
         return size;
-    }
-
-    static InlineKey __debug(node_type *cur, bool print) {
-        auto n = cur->m_size;
-        if (n < 0) {
-            n = -n;
-
-            if (print) {
-                printf("[");
-                for (unsigned int i = 0; i < n; ++i) {
-                    if (i != 0)
-                        printf(",");
-                    printf("%d", cur->as_leaf()->__get_key(i));
-                }
-                printf("]");
-            }
-
-            return cur->as_leaf()->__get_key(0);
-        }
-
-        if (print) {
-            printf("{");
-        }
-        InlineKey ret;
-        for (unsigned int i = 0; i <= n; ++i) {
-            auto x = cur->as_inner()->m_sons[i];
-            if (x->m_pos != i) {
-                printf("error!\n");
-                exit(-1);
-            }
-
-            if (x->m_parent != cur) {
-                printf("error 1!\n");
-                exit(-1);
-            }
-
-            auto key = __debug(x, print);
-            if (i != 0) {
-                if (*cur->as_inner()->m_keys[i - 1] != *key) {
-                    printf("error 2!\n");
-                    exit(-1);
-                }
-            } else {
-                ret = key;
-            }
-        }
-        if (print) {
-            printf("}");
-        }
-        return ret;
     }
 
     WJR_NOINLINE void __erase_iter(const_iterator iter) {

@@ -428,7 +428,6 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept
 constexpr static void allow_true_type(std::true_type) noexcept {}
 constexpr static void allow_false_type(std::false_type) noexcept {}
 
-namespace {
 WJR_REGISTER_HAS_TYPE(compare, std::declval<Comp>()(std::declval<T>(), std::declval<U>()),
                       Comp, T, U);
 WJR_REGISTER_HAS_TYPE(
@@ -458,7 +457,6 @@ WJR_REGISTER_HAS_COMPARE(greater_equal, std::greater_equal<>);
 
 WJR_REGISTER_HAS_TYPE(invocable,
                       std::invoke(std::declval<Func>(), std::declval<Args>()...), Func);
-} // namespace
 
 template <typename T>
 struct get_integral_constant {

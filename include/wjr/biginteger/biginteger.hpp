@@ -18,6 +18,10 @@ inline constexpr bool is_biginteger_storage_v = is_biginteger_storage<Storage>::
 
 namespace biginteger_details {
 
+/**
+ * @brief Remove leading zeros.
+ *
+ */
 inline uint32_t normalize(const uint64_t *ptr, uint32_t n) {
     return reverse_find_not_n(ptr, 0, n);
 }
@@ -353,6 +357,10 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, T rhs) {
 
 /// @private
 template <typename S>
+void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src);
+
+/// @private
+template <typename S>
 void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, uint64_t rhs,
                       int32_t xmask);
 
@@ -413,7 +421,8 @@ void __submul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 
 /// @private
 template <typename S>
-void __mul_2exp_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, size_t shift);
+void __mul_2exp_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
+                     uint32_t shift);
 
 /// @private
 template <typename S0, typename S1>
@@ -520,60 +529,60 @@ uint64_t __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
 /// @private
 template <typename S>
 void __tdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                        size_t shift);
+                        uint32_t shift);
 
 /// @private
 template <typename S>
 void __tdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                        size_t shift);
+                        uint32_t shift);
 
 /// @private
 template <typename S>
 void __cfdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                         size_t shift, int32_t xdir);
+                         uint32_t shift, int32_t xdir);
 
 /// @private
 template <typename S>
 void __cdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                        size_t shift) {
+                        uint32_t shift) {
     __cfdiv_q_2exp_impl(quot, num, shift, 1);
 }
 
 /// @private
 template <typename S>
 void __fdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                        size_t shift) {
+                        uint32_t shift) {
     __cfdiv_q_2exp_impl(quot, num, shift, -1);
 }
 
 /// @private
 template <typename S>
 void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                         size_t shift, int32_t xdir);
+                         uint32_t shift, int32_t xdir);
 
 /// @private
 template <typename S>
 void __cdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                        size_t shift) {
+                        uint32_t shift) {
     __cfdiv_r_2exp_impl(rem, num, shift, 1);
 }
 
 /// @private
 template <typename S>
 void __fdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                        size_t shift) {
+                        uint32_t shift) {
     __cfdiv_r_2exp_impl(rem, num, shift, -1);
 }
 
 /// @private
 template <typename S, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
-void __urandom_bit_impl(basic_biginteger<S> *dst, size_t size, Engine &engine);
+void __urandom_bit_impl(basic_biginteger<S> *dst, uint32_t size, Engine &engine);
 
 /// @private
 template <typename S, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
-void __urandom_exact_bit_impl(basic_biginteger<S> *dst, size_t size, Engine &engine);
+void __urandom_exact_bit_impl(basic_biginteger<S> *dst, uint32_t size, Engine &engine);
 
 /// @private
 template <typename S, typename Engine,
@@ -692,8 +701,19 @@ template <typename S>
 void absolute(basic_biginteger<S> &dst);
 
 template <typename S>
+void sqr(basic_biginteger<S> &dst, const biginteger_data &src) {
+    biginteger_details::__sqr_impl(&dst, &src);
+}
+
+template <typename S>
 void mul(basic_biginteger<S> &dst, const biginteger_data &lhs,
          const biginteger_data &rhs) {
+    if (WJR_BUILTIN_CONSTANT_P(std::addressof(lhs) == std::addressof(rhs)) &&
+        std::addressof(lhs) == std::addressof(rhs)) {
+        sqr(dst, lhs);
+        return;
+    }
+
     biginteger_details::__mul_impl(&dst, &lhs, &rhs);
 }
 
@@ -740,7 +760,7 @@ void submul(basic_biginteger<S> &dst, T lhs, const biginteger_data &rhs) {
 }
 
 template <typename S>
-void mul_2exp(basic_biginteger<S> &dst, const biginteger_data &lhs, size_t shift) {
+void mul_2exp(basic_biginteger<S> &dst, const biginteger_data &lhs, uint32_t shift) {
     biginteger_details::__mul_2exp_impl(&dst, &lhs, shift);
 }
 
@@ -847,44 +867,44 @@ uint64_t cdiv_r(basic_biginteger<S> &rem, const biginteger_data &num, T div) {
 }
 
 template <typename S>
-void tdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num, size_t shift) {
+void tdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num, uint32_t shift) {
     biginteger_details::__tdiv_q_2exp_impl(&quot, &num, shift);
 }
 
 template <typename S>
-void tdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num, size_t shift) {
+void tdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num, uint32_t shift) {
     biginteger_details::__tdiv_r_2exp_impl(&rem, &num, shift);
 }
 
 template <typename S>
-void fdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num, size_t shift) {
+void fdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num, uint32_t shift) {
     biginteger_details::__fdiv_q_2exp_impl(&quot, &num, shift);
 }
 
 template <typename S>
-void cdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num, size_t shift) {
+void cdiv_q_2exp(basic_biginteger<S> &quot, const biginteger_data &num, uint32_t shift) {
     biginteger_details::__cdiv_q_2exp_impl(&quot, &num, shift);
 }
 
 template <typename S>
-void cdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num, size_t shift) {
+void cdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num, uint32_t shift) {
     biginteger_details::__cdiv_r_2exp_impl(&rem, &num, shift);
 }
 
 template <typename S>
-void fdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num, size_t shift) {
+void fdiv_r_2exp(basic_biginteger<S> &rem, const biginteger_data &num, uint32_t shift) {
     biginteger_details::__fdiv_r_2exp_impl(&rem, &num, shift);
 }
 
 template <typename S, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
-void urandom_bit(basic_biginteger<S> &dst, size_t size, Engine &engine) {
+void urandom_bit(basic_biginteger<S> &dst, uint32_t size, Engine &engine) {
     biginteger_details::__urandom_bit_impl(&dst, size, engine);
 }
 
 template <typename S, typename Engine,
           WJR_REQUIRES(biginteger_uniform_random_bit_generator_v<Engine>)>
-void urandom_exact_bit(basic_biginteger<S> &dst, size_t size, Engine &engine) {
+void urandom_exact_bit(basic_biginteger<S> &dst, uint32_t size, Engine &engine) {
     biginteger_details::__urandom_exact_bit_impl(&dst, size, engine);
 }
 
@@ -1110,18 +1130,25 @@ public:
         return *this;
     }
 
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    basic_biginteger &operator+=(T rhs) {
+        add(*this, *this, rhs);
+        return *this;
+    }
+
     basic_biginteger &operator+=(const biginteger_data &rhs) {
         add(*this, *this, rhs);
         return *this;
     }
 
-    basic_biginteger &operator-=(const biginteger_data &rhs) {
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    basic_biginteger &operator-=(T rhs) {
         sub(*this, *this, rhs);
         return *this;
     }
 
-    basic_biginteger &operator*=(const biginteger_data &rhs) {
-        mul(*this, *this, rhs);
+    basic_biginteger &operator-=(const biginteger_data &rhs) {
+        sub(*this, *this, rhs);
         return *this;
     }
 
@@ -1131,7 +1158,12 @@ public:
         return *this;
     }
 
-    basic_biginteger &operator<<=(size_t shift) {
+    basic_biginteger &operator*=(const biginteger_data &rhs) {
+        mul(*this, *this, rhs);
+        return *this;
+    }
+
+    basic_biginteger &operator<<=(uint32_t shift) {
         mul_2exp(*this, *this, shift);
         return *this;
     }
@@ -1612,7 +1644,7 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
         const auto cf = mul_1(dst->data(), lhs->data(), lusize, rhs->data()[0]);
         dssize = __fasts_negate_with<int32_t>(mask, lusize + (cf != 0));
         if (cf != 0) {
-            (*dst)[lusize] = cf;
+            dst->data()[lusize] = cf;
         }
         dst->set_ssize(dssize);
         return;
@@ -1655,6 +1687,67 @@ void __mul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 
     const bool cf = dp[dusize - 1] == 0;
     dssize = __fasts_negate_with<int32_t>(mask, dusize - cf);
+
+    if (tmp.has_value()) {
+        *dst = **std::move(tmp);
+        tmp->reset();
+    }
+
+    dst->set_ssize(dssize);
+}
+
+template <typename S>
+void __sqr_impl(basic_biginteger<S> *dst, const biginteger_data *src) {
+    int32_t sssize = src->get_ssize();
+    uint32_t susize = __fasts_abs(sssize);
+
+    if (WJR_UNLIKELY(susize == 0)) {
+        dst->set_ssize(0);
+        return;
+    }
+
+    int32_t dssize;
+    uint32_t dusize;
+
+    if (susize == 1) {
+        dst->reserve(susize + 1);
+        uint64_t num = src->data()[0];
+        uint64_t cf;
+        dst->data()[0] = mul(num, num, cf);
+        dssize = 1 + (cf != 0);
+        if (cf != 0) {
+            dst->data()[1] = cf;
+        }
+        dst->set_ssize(dssize);
+        return;
+    }
+
+    dusize = susize * 2;
+
+    using pointer = uint64_t *;
+
+    auto dp = dst->data();
+    auto sp = (pointer)(src->data());
+
+    std::optional<uninitialized<basic_biginteger<S>>> tmp;
+
+    unique_stack_allocator stkal(math_details::stack_alloc);
+
+    if (dst->capacity() < dusize) {
+        tmp.emplace(dst->get_growth_capacity(dst->capacity(), dusize), in_place_reserve,
+                    dst->get_allocator());
+        dp = (**tmp).data();
+    } else {
+        if (dp == sp) {
+            sp = (pointer)stkal.allocate(susize * sizeof(uint64_t));
+            std::copy_n(dp, susize, sp);
+        }
+    }
+
+    sqr(dp, sp, susize);
+
+    const bool cf = dp[dusize - 1] == 0;
+    dssize = dusize - cf;
 
     if (tmp.has_value()) {
         *dst = **std::move(tmp);
@@ -1855,7 +1948,8 @@ void __addsubmul_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
 }
 
 template <typename S>
-void __mul_2exp_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, size_t shift) {
+void __mul_2exp_impl(basic_biginteger<S> *dst, const biginteger_data *lhs,
+                     uint32_t shift) {
     int32_t lssize = lhs->get_ssize();
 
     if (lssize == 0) {
@@ -1864,7 +1958,7 @@ void __mul_2exp_impl(basic_biginteger<S> *dst, const biginteger_data *lhs, size_
     }
 
     uint32_t lusize = __fasts_abs(lssize);
-    size_t offset = shift / 64;
+    uint32_t offset = shift / 64;
     shift %= 64;
     uint32_t dusize = lusize + offset;
 
@@ -2575,7 +2669,7 @@ uint64_t __cdiv_r_impl(basic_biginteger<S> *rem, const biginteger_data *num,
 
 template <typename S>
 void __tdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                        size_t shift) {
+                        uint32_t shift) {
     int32_t nssize = num->get_ssize();
     uint32_t nusize = __fasts_abs(nssize);
     uint32_t offset = shift / 64;
@@ -2599,7 +2693,7 @@ void __tdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
 
 template <typename S>
 void __tdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                        size_t shift) {
+                        uint32_t shift) {
     const int32_t nssize = num->get_ssize();
     uint32_t nusize = __fasts_abs(nssize);
     uint32_t offset = shift / 64;
@@ -2632,7 +2726,7 @@ void __tdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
 
 template <typename S>
 void __cfdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
-                         size_t shift, int32_t xdir) {
+                         uint32_t shift, int32_t xdir) {
     int32_t nssize = num->get_ssize();
     uint32_t nusize = __fasts_abs(nssize);
     uint32_t offset = shift / 64;
@@ -2685,7 +2779,7 @@ void __cfdiv_q_2exp_impl(basic_biginteger<S> *quot, const biginteger_data *num,
 
 template <typename S>
 void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
-                         size_t shift, int32_t xdir) {
+                         uint32_t shift, int32_t xdir) {
     int32_t nssize = num->get_ssize();
 
     if (nssize == 0) {
@@ -2763,7 +2857,7 @@ void __cfdiv_r_2exp_impl(basic_biginteger<S> *rem, const biginteger_data *num,
 
 template <typename S, typename Engine,
           WJR_REQUIRES_I(biginteger_uniform_random_bit_generator_v<Engine>)>
-void __urandom_bit_impl(basic_biginteger<S> *dst, size_t size, Engine &engine) {
+void __urandom_bit_impl(basic_biginteger<S> *dst, uint32_t size, Engine &engine) {
     const uint32_t dusize = size / 64;
     size %= 64;
     uint32_t dssize = dusize + (size != 0);
@@ -2787,7 +2881,7 @@ void __urandom_bit_impl(basic_biginteger<S> *dst, size_t size, Engine &engine) {
 
 template <typename S, typename Engine,
           WJR_REQUIRES_I(biginteger_uniform_random_bit_generator_v<Engine>)>
-void __urandom_exact_bit_impl(basic_biginteger<S> *dst, size_t size, Engine &engine) {
+void __urandom_exact_bit_impl(basic_biginteger<S> *dst, uint32_t size, Engine &engine) {
     if (WJR_UNLIKELY(size == 0)) {
         dst->set_ssize(0);
         return;
@@ -2850,13 +2944,13 @@ void __urandom_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
         lp = tp;
     }
 
-    const size_t lst_pos = size - 1;
+    const uint32_t lst_pos = size - 1;
     const uint64_t lst_val = lp[lst_pos];
     std::uniform_int_distribution<uint64_t> head(0, lst_val);
 
     while (true) {
         uint64_t gen = head(engine);
-        size_t pos = lst_pos;
+        uint32_t pos = lst_pos;
 
         if (WJR_UNLIKELY(gen == lst_val)) {
             uint64_t now;
@@ -2930,13 +3024,13 @@ void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit
         lp = tp;
     }
 
-    const size_t lst_pos = size - 1;
+    const uint32_t lst_pos = size - 1;
     const uint64_t lst_val = lp[lst_pos];
     std::uniform_int_distribution<uint64_t> head(0, lst_val);
 
     while (true) {
         uint64_t gen = head(engine);
-        size_t pos = lst_pos;
+        uint32_t pos = lst_pos;
 
         if (WJR_UNLIKELY(gen == lst_val)) {
             uint64_t now;

@@ -890,8 +890,6 @@ template <typename T, size_t Capacity, typename Alloc>
 using sso_vector_storage =
     __sso_vector_storage_impl<T, Capacity, Alloc, vector_storage_traits<T, Alloc>>;
 
-namespace {
-
 WJR_REGISTER_HAS_TYPE(vector_storage_shrink_to_fit,
                       std::declval<Storage>().shrink_to_fit(), Storage);
 
@@ -912,8 +910,6 @@ struct basic_vector_traits {
     using reference = value_type &;
     using const_reference = const value_type &;
 };
-
-} // namespace
 
 /**
  * @brief Customized vector by storage.

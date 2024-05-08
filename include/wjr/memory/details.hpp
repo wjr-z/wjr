@@ -7,11 +7,9 @@
 
 namespace wjr {
 
-namespace {
 WJR_REGISTER_HAS_TYPE(pointer_traits_to_address,
                       std::pointer_traits<Ptr>::to_address(std::declval<const Ptr &>()),
                       Ptr);
-} // namespace
 
 template <typename T>
 constexpr T *to_address(T *p) noexcept {
@@ -173,12 +171,10 @@ struct allocation_result {
     SizeType count;
 };
 
-namespace {
 WJR_REGISTER_HAS_TYPE(
     allocate_at_least,
     std::declval<Allocator>().allocate_at_least(std::declval<SizeType>()), Allocator,
     SizeType);
-}
 
 template <typename Allocator, typename SizeType,
           typename Pointer = typename std::allocator_traits<Allocator>::pointer>

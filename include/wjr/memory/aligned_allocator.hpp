@@ -8,7 +8,6 @@
 
 namespace wjr {
 
-namespace {
 WJR_REGISTER_HAS_TYPE(aligned_allocate,
                       std::declval<Alloc>().aligned_alocate(std::declval<Size>(),
                                                             std::declval<size_t>()),
@@ -17,7 +16,6 @@ WJR_REGISTER_HAS_TYPE(aligned_allocate_at_least,
                       std::declval<Alloc>().aligned_alocate_at_least(
                           std::declval<Size>(), std::declval<size_t>()),
                       Alloc, Size);
-} // namespace
 
 template <typename Alloc, size_t alignment>
 class aligned_allocator;
