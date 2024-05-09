@@ -8474,6 +8474,22 @@ public:
         uninitialized_construct(0, n);
     }
 
+    WJR_CONSTEXPR20 basic_vector(storage_type &&other,
+                                 const allocator_type &al = allocator_type())
+        : m_pair(std::piecewise_construct, std::forward_as_tuple(al),
+                 std::forward_as_tuple()) {
+        take_storage(other);
+    }
+
+    WJR_CONSTEXPR20 basic_vector &operator=(storage_type &&other) {
+        if (std::addressof(get_storage()) == std::addressof(other)) {
+            return *this;
+        }
+
+        take_storage(other);
+        return *this;
+    }
+
     WJR_CONSTEXPR20 void resize(const size_type new_size, dctor_t) {
         __resize(new_size, dctor);
     }
@@ -29944,8 +29960,8 @@ void builtin_copy_c_bytes_impl(const uint8_t *src, uint8_t *dst) {
         const auto x = avx::loadu((__m256i *)(src));
         avx::storeu((__m256i *)(dst), x);
 #else
-        builtin_copy_c_bytes_impl<16>(dst, src);
-        builtin_copy_c_bytes_impl<16>(dst + 16, src + 16);
+        builtin_copy_c_bytes_impl<16>(src, dst);
+        builtin_copy_c_bytes_impl<16>(src + 16, dst + 16);
 #endif
         return;
     }
@@ -31596,6 +31612,55 @@ template <typename S, typename Engine,
 void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit,
                           Engine &engine);
 
+/// @private
+inline uint32_t __bit_width_impl(const biginteger_data *num);
+
+/// @private
+inline uint32_t __ctz_impl(const biginteger_data *num);
+
+/// @private
+template <typename S>
+void __pow_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint32_t exp);
+
+/// @private
+struct __powmod_iterator {
+    __powmod_iterator(const uint64_t *ptr, uint32_t size) noexcept
+        : ptr(ptr), cache(ptr[0]), size(size) {}
+
+    constexpr void next() noexcept {
+        if (++offset == 64) {
+            offset = 0;
+            ++pos;
+            WJR_ASSERT(pos != size);
+            cache = ptr[pos];
+        }
+    }
+
+    constexpr uint64_t get() const noexcept { return (cache >> offset); }
+    constexpr bool end() const noexcept { return pos == size - 1 && get() == 1; }
+
+    const uint64_t *ptr;
+    uint64_t cache;
+    uint32_t offset = 0;
+    uint32_t pos = 0;
+    uint32_t size;
+};
+
+/// @private
+template <typename S>
+void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num,
+                   __powmod_iterator *iter, const biginteger_data *mod);
+
+/// @private
+template <typename S>
+void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num,
+                   const biginteger_data *exp, const biginteger_data *mod);
+
+/// @private
+template <typename S>
+void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint64_t exp,
+                   const biginteger_data *mod);
+
 } // namespace biginteger_details
 
 template <typename S>
@@ -31921,6 +31986,37 @@ void urandom_exact(basic_biginteger<S> &dst, const biginteger_data &limit,
     biginteger_details::__urandom_exact_impl(&dst, &limit, engine);
 }
 
+inline uint32_t bit_width(const biginteger_data &num) {
+    return biginteger_details::__bit_width_impl(&num);
+}
+
+inline uint32_t ctz(const biginteger_data &num) {
+    return biginteger_details::__ctz_impl(&num);
+}
+
+template <typename S>
+void pow(basic_biginteger<S> &dst, const biginteger_data &num, uint32_t exp) {
+    biginteger_details::__pow_impl(&dst, &num, exp);
+}
+
+/**
+ * @todo Need to optimize
+ */
+template <typename S>
+void powmod(basic_biginteger<S> &dst, const biginteger_data &num,
+            const biginteger_data &exp, const biginteger_data &mod) {
+    biginteger_details::__powmod_impl(&dst, &num, &exp, &mod);
+}
+
+/**
+ * @todo Need to optimize
+ */
+template <typename S>
+void powmod(basic_biginteger<S> &dst, const biginteger_data &num, uint64_t exp,
+            const biginteger_data &mod) {
+    biginteger_details::__powmod_impl(&dst, &num, exp, &mod);
+}
+
 template <typename Storage>
 class basic_biginteger {
 
@@ -31950,6 +32046,9 @@ public:
                   "difference_type must be int32_t");
 
     basic_biginteger() = default;
+    basic_biginteger(basic_biginteger &&other) = default;
+    basic_biginteger &operator=(basic_biginteger &&other) = default;
+    ~basic_biginteger() = default;
 
     basic_biginteger(const basic_biginteger &other,
                      const allocator_type &al = allocator_type())
@@ -31960,20 +32059,6 @@ public:
     basic_biginteger(size_type n, in_place_reserve_t,
                      const allocator_type &al = allocator_type())
         : m_vec(n, in_place_reserve, al) {}
-
-    basic_biginteger(basic_biginteger &&other) = default;
-    basic_biginteger &operator=(const basic_biginteger &other) {
-        if (WJR_UNLIKELY(this == std::addressof(other))) {
-            return *this;
-        }
-
-        m_vec = other.m_vec;
-        set_ssize(other.get_ssize());
-        return *this;
-    }
-
-    basic_biginteger &operator=(basic_biginteger &&other) = default;
-    ~basic_biginteger() = default;
 
     explicit basic_biginteger(const allocator_type &al) : m_vec(al) {}
 
@@ -32010,6 +32095,22 @@ public:
         set_ssize(other.get_ssize());
     }
 
+    explicit basic_biginteger(const biginteger_data &data,
+                              const allocator_type &al = allocator_type())
+        : m_vec(data.data(), data.data() + data.size(), al) {
+        set_ssize(data.get_ssize());
+    }
+
+    basic_biginteger &operator=(const basic_biginteger &other) {
+        if (WJR_UNLIKELY(this == std::addressof(other))) {
+            return *this;
+        }
+
+        m_vec = other.m_vec;
+        set_ssize(other.get_ssize());
+        return *this;
+    }
+
     template <typename UnsignedValue,
               WJR_REQUIRES(is_nonbool_unsigned_integral_v<UnsignedValue>)>
     basic_biginteger &operator=(UnsignedValue value) {
@@ -32037,6 +32138,16 @@ public:
     basic_biginteger &operator=(const basic_biginteger<OthterStorage> &other) {
         m_vec.assign(other.begin(), other.end());
         set_ssize(other.get_ssize());
+        return *this;
+    }
+
+    basic_biginteger &operator=(const biginteger_data &data) {
+        if (WJR_UNLIKELY(std::addressof(__get_ref()) == std::addressof(data))) {
+            return *this;
+        }
+
+        m_vec.assign(data.data(), data.data() + data.size());
+        set_ssize(data.get_ssize());
         return *this;
     }
 
@@ -34060,6 +34171,146 @@ void __urandom_exact_impl(basic_biginteger<S> *dst, const biginteger_data *limit
     if (stkal.has_value()) {
         stkal->reset();
     }
+}
+
+/// @private
+inline uint32_t __bit_width_impl(const biginteger_data *num) {
+    const uint32_t size = num->size();
+    if (WJR_UNLIKELY(size == 0)) {
+        return 0;
+    }
+
+    return 64 * size - clz(num->data()[size - 1]);
+}
+
+/// @private
+inline uint32_t __ctz_impl(const biginteger_data *num) {
+    auto ptr = num->data();
+    uint32_t idx = 0;
+#if WJR_DEBUG_LEVEL > 0
+    const uint32_t size = num->size();
+    for (; ptr[idx] == 0 && idx < size; ++idx)
+        ;
+    WJR_ASSERT(idx != size);
+#else
+    for (; ptr[idx] == 0; ++idx)
+        ;
+#endif
+    return idx * 64 + ctz(ptr[idx]);
+}
+
+template <typename S>
+void __pow_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint32_t exp) {
+    if (exp == 0) {
+        *dst = 1u;
+        return;
+    }
+
+    const uint32_t nbits = __bit_width_impl(num);
+    const uint32_t dbits = nbits * exp;
+    const uint32_t max_dusize = (dbits + 63) / 64;
+
+    dst->reserve(max_dusize);
+    *dst = *num;
+
+    while (!(exp & 1)) {
+        sqr(*dst, *dst);
+        exp >>= 1;
+    }
+
+    if (exp == 1) {
+        return;
+    }
+
+    basic_biginteger<S> tmp;
+    exp >>= 1;
+    sqr(tmp, *dst);
+
+    if (exp & 1) {
+        mul(*dst, *dst, tmp);
+    }
+
+    if (exp != 1) {
+        do {
+            exp >>= 1;
+            sqr(tmp, tmp);
+
+            if (exp & 1) {
+                mul(*dst, *dst, tmp);
+            }
+        } while (exp != 1);
+    }
+}
+
+/// @private
+template <typename S>
+void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num,
+                   __powmod_iterator *iter, const biginteger_data *mod) {
+    WJR_ASSERT(mod->size() != 0);
+
+    const auto size = iter->size;
+
+    if (size == 0) {
+        uint64_t val;
+        if (WJR_UNLIKELY(mod->size() == 1 && mod->data()[0] == 1)) {
+            val = 0u;
+        } else {
+            val = 1u;
+        }
+
+        *dst = val;
+        return;
+    }
+
+    tdiv_r(*dst, *num, *mod);
+
+    while (!(iter->get() & 1)) {
+        sqr(*dst, *dst);
+        tdiv_r(*dst, *dst, *mod);
+        iter->next();
+    }
+
+    if (iter->end()) {
+        return;
+    }
+
+    basic_biginteger<S> tmp;
+    iter->next();
+    sqr(tmp, *dst);
+    tdiv_r(tmp, tmp, *mod);
+
+    if (iter->get() & 1) {
+        mul(*dst, *dst, tmp);
+        tdiv_r(*dst, *dst, *mod);
+    }
+
+    if (!iter->end()) {
+        do {
+            iter->next();
+            sqr(tmp, tmp);
+            tdiv_r(tmp, tmp, *mod);
+
+            if (iter->get() & 1) {
+                mul(*dst, *dst, tmp);
+                tdiv_r(*dst, *dst, *mod);
+            }
+        } while (!iter->end());
+    }
+}
+
+template <typename S>
+void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num,
+                   const biginteger_data *exp, const biginteger_data *mod) {
+    __powmod_iterator iter(exp->data(), exp->size());
+    __powmod_impl(dst, num, &iter, mod);
+}
+
+template <typename S>
+void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint64_t exp,
+                   const biginteger_data *mod) {
+    uint64_t tmp[] = {exp};
+    __powmod_iterator iter(tmp, exp == 0 ? 0 : 1);
+    __powmod_impl(dst, num, &iter, mod);
 }
 
 } // namespace biginteger_details

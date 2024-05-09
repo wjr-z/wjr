@@ -1412,6 +1412,22 @@ public:
         uninitialized_construct(0, n);
     }
 
+    WJR_CONSTEXPR20 basic_vector(storage_type &&other,
+                                 const allocator_type &al = allocator_type())
+        : m_pair(std::piecewise_construct, std::forward_as_tuple(al),
+                 std::forward_as_tuple()) {
+        take_storage(other);
+    }
+
+    WJR_CONSTEXPR20 basic_vector &operator=(storage_type &&other) {
+        if (std::addressof(get_storage()) == std::addressof(other)) {
+            return *this;
+        }
+
+        take_storage(other);
+        return *this;
+    }
+
     WJR_CONSTEXPR20 void resize(const size_type new_size, dctor_t) {
         __resize(new_size, dctor);
     }
