@@ -1189,8 +1189,12 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_HAS_DEF_VAR(var) WJR_PP_MAP_DEF(var)
 #define WJR_HAS_DEF WJR_HAS_DEF_VAR(1)
 
-#define WJR_HAS_FIND(MAP, KEY) WJR_HAS_FIND_I(WJR_PP_MAP_FIND(MAP, KEY))
-#define WJR_HAS_FIND_I(VAL) WJR_PP_BOOL_IF(WJR_PP_IS_NULLPTR(VAL), 0, VAL)
+#define WJR_HAS_FIND(MAP, KEY)                                                           \
+    WJR_HAS_FIND_I(WJR_PP_MAP_FIND(MAP, WJR_PP_CONCAT(NO_, KEY)),                        \
+                   WJR_PP_MAP_FIND(MAP, KEY))
+#define WJR_HAS_FIND_I(NO_VAL, VAL)                                                      \
+    WJR_PP_BOOL_IF(WJR_PP_IS_NULLPTR(NO_VAL), WJR_HAS_FIND_II(VAL), 0)
+#define WJR_HAS_FIND_II(VAL) WJR_PP_BOOL_IF(WJR_PP_IS_NULLPTR(VAL), 0, VAL)
 
 // Currently only has_builtin, has_attribute, has_feature are supported.
 #define WJR_HAS_BUILTIN_FIND(KEY) WJR_HAS_FIND(WJR_HAS_BUILTIN_, KEY)
@@ -1230,9 +1234,7 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #endif
 
 #define WJR_HAS_FEATURE(x) WJR_HAS_FEATURE_FIND(x)
-
 #define WJR_HAS_SIMD(x) WJR_HAS_SIMD_FIND(x)
-
 #define WJR_HAS_DEBUG(x) WJR_HAS_DEBUG_FIND(x)
 
 // WJR_HAS_BUILTIN
@@ -20024,7 +20026,7 @@ private:
             char buffer[];
         };
 
-        malloc_chunk() = default;
+        malloc_chunk() noexcept = default;
         ~malloc_chunk() noexcept {
             while (head != nullptr) {
                 __list_node *next = head->next;
@@ -20033,7 +20035,7 @@ private:
             }
         }
 
-        void *allocate(size_t n) {
+        void *allocate(size_t n) noexcept {
             __list_node *ptr = (__list_node *)malloc(n + sizeof(__list_node));
             WJR_ASSERT(ptr != nullptr);
             ptr->next = head;
@@ -20061,11 +20063,11 @@ private:
     static char *&get_end_free() noexcept { return get_instance().end_free; }
     static size_t &get_heap_size() noexcept { return get_instance().heap_size; }
 
-    static inline size_t __round_up(size_t bytes) {
+    static inline size_t __round_up(size_t bytes) noexcept {
         return (((bytes) + 2048 - 1) & ~(2048 - 1));
     }
 
-    static WJR_INTRINSIC_INLINE uint8_t __get_index(size_t bytes) {
+    static WJR_INTRINSIC_INLINE uint8_t __get_index(size_t bytes) noexcept {
         if (bytes <= 1024) {
             return memory_pool_details::__small_index_table[(bytes - 1) >> 3];
         }
@@ -20073,7 +20075,7 @@ private:
         return 11 + (bytes - 1) / 2048;
     }
 
-    static inline uint16_t __get_size(uint8_t idx) {
+    static inline uint16_t __get_size(uint8_t idx) noexcept {
         return memory_pool_details::__size_table[idx];
     }
 
@@ -20282,16 +20284,18 @@ public:
         return allocator_type::deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
     }
 
-    constexpr size_t max_size() const { return static_cast<size_t>(-1) / sizeof(Ty); }
+    constexpr size_t max_size() const noexcept {
+        return static_cast<size_t>(-1) / sizeof(Ty);
+    }
 };
 
 template <typename T, typename U>
-constexpr bool operator==(const memory_pool<T> &, const memory_pool<U> &) {
+constexpr bool operator==(const memory_pool<T> &, const memory_pool<U> &) noexcept {
     return true;
 }
 
 template <typename T, typename U>
-constexpr bool operator!=(const memory_pool<T> &, const memory_pool<U> &) {
+constexpr bool operator!=(const memory_pool<T> &, const memory_pool<U> &) noexcept {
     return false;
 }
 
@@ -20330,14 +20334,14 @@ public:
     };
 
 private:
-    WJR_CONSTEXPR20 void *__large_allocate(size_t n, stack_top &top) {
+    WJR_CONSTEXPR20 void *__large_allocate(size_t n, stack_top &top) noexcept {
         const auto buffer = (large_stack_top *)malloc(sizeof(large_stack_top) + n);
         buffer->prev = top.large;
         top.large = buffer;
         return buffer->buffer;
     }
 
-    WJR_NOINLINE WJR_CONSTEXPR20 void __small_reallocate(stack_top &top) {
+    WJR_NOINLINE WJR_CONSTEXPR20 void __small_reallocate(stack_top &top) noexcept {
         if (WJR_UNLIKELY(top.idx == (uint16_t)in_place_max)) {
             top.idx = m_idx;
         }
@@ -20378,7 +20382,7 @@ private:
         WJR_ASSERT(top.ptr != nullptr);
     }
 
-    WJR_COLD WJR_CONSTEXPR20 void __small_redeallocate() {
+    WJR_COLD WJR_CONSTEXPR20 void __small_redeallocate() noexcept {
         const uint16_t new_size = m_idx + bufsize - 1;
         memory_pool<char> pool;
 
@@ -20389,7 +20393,7 @@ private:
         m_size = new_size;
     }
 
-    WJR_CONSTEXPR20 void __small_deallocate(const stack_top &top) {
+    WJR_CONSTEXPR20 void __small_deallocate(const stack_top &top) noexcept {
         if (WJR_UNLIKELY(top.ptr == nullptr)) {
             return;
         }
@@ -20406,7 +20410,7 @@ private:
         }
     }
 
-    WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) {
+    WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) noexcept {
         auto ptr = m_cache.ptr;
 
         if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - ptr) < n)) {
@@ -20432,10 +20436,10 @@ public:
     stack_allocator_object(stack_allocator_object &&) = delete;
     stack_allocator_object &operator=(stack_allocator_object &) = delete;
     stack_allocator_object &operator=(stack_allocator_object &&) = delete;
-    WJR_NOINLINE ~stack_allocator_object() = default;
+    ~stack_allocator_object() noexcept = default;
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top,
-                                                            size_t threshold) {
+                                                            size_t threshold) noexcept {
         if (WJR_UNLIKELY(n >= threshold)) {
             return __large_allocate(n, top);
         }
@@ -20443,7 +20447,7 @@ public:
         return __small_allocate(n, top);
     }
 
-    WJR_CONSTEXPR20 void deallocate(const stack_top &top) {
+    WJR_CONSTEXPR20 void deallocate(const stack_top &top) noexcept {
         __small_deallocate(top);
 
         auto buffer = top.large;
@@ -20526,16 +20530,16 @@ public:
     unique_stack_allocator &operator=(const unique_stack_allocator &) = delete;
     unique_stack_allocator &operator=(unique_stack_allocator &&) = delete;
 
-    ~unique_stack_allocator() { m_instance->deallocate(m_top); }
+    ~unique_stack_allocator() noexcept { m_instance->deallocate(m_top); }
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *
-    allocate(size_t n, size_t threshold = __default_threshold) {
+    allocate(size_t n, size_t threshold = __default_threshold) noexcept {
         Mybase::check();
         return m_instance->allocate(n, m_top, threshold);
     }
 
 private:
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n) {
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n) noexcept {
         Mybase::check();
         return m_instance->__small_allocate(n, m_top);
     }
@@ -20584,7 +20588,7 @@ public:
     weak_stack_allocator(const weak_stack_allocator<U, StackAllocator> &other) noexcept
         : m_alloc(other.m_alloc) {}
 
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 T *allocate(size_type n) {
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 T *allocate(size_type n) noexcept {
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= __default_threshold)) {
             return static_cast<T *>(malloc(size));
@@ -20594,7 +20598,7 @@ public:
     }
 
     WJR_CONSTEXPR20 void deallocate(WJR_MAYBE_UNUSED T *ptr,
-                                    WJR_MAYBE_UNUSED size_type n) {
+                                    WJR_MAYBE_UNUSED size_type n) noexcept {
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= __default_threshold)) {
             free(ptr);

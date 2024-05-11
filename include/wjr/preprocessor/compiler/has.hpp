@@ -9,8 +9,12 @@
 #define WJR_HAS_DEF_VAR(var) WJR_PP_MAP_DEF(var)
 #define WJR_HAS_DEF WJR_HAS_DEF_VAR(1)
 
-#define WJR_HAS_FIND(MAP, KEY) WJR_HAS_FIND_I(WJR_PP_MAP_FIND(MAP, KEY))
-#define WJR_HAS_FIND_I(VAL) WJR_PP_BOOL_IF(WJR_PP_IS_NULLPTR(VAL), 0, VAL)
+#define WJR_HAS_FIND(MAP, KEY)                                                           \
+    WJR_HAS_FIND_I(WJR_PP_MAP_FIND(MAP, WJR_PP_CONCAT(NO_, KEY)),                        \
+                   WJR_PP_MAP_FIND(MAP, KEY))
+#define WJR_HAS_FIND_I(NO_VAL, VAL)                                                      \
+    WJR_PP_BOOL_IF(WJR_PP_IS_NULLPTR(NO_VAL), WJR_HAS_FIND_II(VAL), 0)
+#define WJR_HAS_FIND_II(VAL) WJR_PP_BOOL_IF(WJR_PP_IS_NULLPTR(VAL), 0, VAL)
 
 // Currently only has_builtin, has_attribute, has_feature are supported.
 #define WJR_HAS_BUILTIN_FIND(KEY) WJR_HAS_FIND(WJR_HAS_BUILTIN_, KEY)
@@ -50,9 +54,7 @@
 #endif
 
 #define WJR_HAS_FEATURE(x) WJR_HAS_FEATURE_FIND(x)
-
 #define WJR_HAS_SIMD(x) WJR_HAS_SIMD_FIND(x)
-
 #define WJR_HAS_DEBUG(x) WJR_HAS_DEBUG_FIND(x)
 
 // WJR_HAS_BUILTIN

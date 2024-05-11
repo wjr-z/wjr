@@ -37,14 +37,14 @@ public:
     };
 
 private:
-    WJR_CONSTEXPR20 void *__large_allocate(size_t n, stack_top &top) {
+    WJR_CONSTEXPR20 void *__large_allocate(size_t n, stack_top &top) noexcept {
         const auto buffer = (large_stack_top *)malloc(sizeof(large_stack_top) + n);
         buffer->prev = top.large;
         top.large = buffer;
         return buffer->buffer;
     }
 
-    WJR_NOINLINE WJR_CONSTEXPR20 void __small_reallocate(stack_top &top) {
+    WJR_NOINLINE WJR_CONSTEXPR20 void __small_reallocate(stack_top &top) noexcept {
         if (WJR_UNLIKELY(top.idx == (uint16_t)in_place_max)) {
             top.idx = m_idx;
         }
@@ -85,7 +85,7 @@ private:
         WJR_ASSERT(top.ptr != nullptr);
     }
 
-    WJR_COLD WJR_CONSTEXPR20 void __small_redeallocate() {
+    WJR_COLD WJR_CONSTEXPR20 void __small_redeallocate() noexcept {
         const uint16_t new_size = m_idx + bufsize - 1;
         memory_pool<char> pool;
 
@@ -96,7 +96,7 @@ private:
         m_size = new_size;
     }
 
-    WJR_CONSTEXPR20 void __small_deallocate(const stack_top &top) {
+    WJR_CONSTEXPR20 void __small_deallocate(const stack_top &top) noexcept {
         if (WJR_UNLIKELY(top.ptr == nullptr)) {
             return;
         }
@@ -113,7 +113,7 @@ private:
         }
     }
 
-    WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) {
+    WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) noexcept {
         auto ptr = m_cache.ptr;
 
         if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - ptr) < n)) {
@@ -139,10 +139,10 @@ public:
     stack_allocator_object(stack_allocator_object &&) = delete;
     stack_allocator_object &operator=(stack_allocator_object &) = delete;
     stack_allocator_object &operator=(stack_allocator_object &&) = delete;
-    WJR_NOINLINE ~stack_allocator_object() = default;
+    ~stack_allocator_object() noexcept = default;
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top,
-                                                            size_t threshold) {
+                                                            size_t threshold) noexcept {
         if (WJR_UNLIKELY(n >= threshold)) {
             return __large_allocate(n, top);
         }
@@ -150,7 +150,7 @@ public:
         return __small_allocate(n, top);
     }
 
-    WJR_CONSTEXPR20 void deallocate(const stack_top &top) {
+    WJR_CONSTEXPR20 void deallocate(const stack_top &top) noexcept {
         __small_deallocate(top);
 
         auto buffer = top.large;
@@ -233,16 +233,16 @@ public:
     unique_stack_allocator &operator=(const unique_stack_allocator &) = delete;
     unique_stack_allocator &operator=(unique_stack_allocator &&) = delete;
 
-    ~unique_stack_allocator() { m_instance->deallocate(m_top); }
+    ~unique_stack_allocator() noexcept { m_instance->deallocate(m_top); }
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *
-    allocate(size_t n, size_t threshold = __default_threshold) {
+    allocate(size_t n, size_t threshold = __default_threshold) noexcept {
         Mybase::check();
         return m_instance->allocate(n, m_top, threshold);
     }
 
 private:
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n) {
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n) noexcept {
         Mybase::check();
         return m_instance->__small_allocate(n, m_top);
     }
@@ -291,7 +291,7 @@ public:
     weak_stack_allocator(const weak_stack_allocator<U, StackAllocator> &other) noexcept
         : m_alloc(other.m_alloc) {}
 
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 T *allocate(size_type n) {
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 T *allocate(size_type n) noexcept {
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= __default_threshold)) {
             return static_cast<T *>(malloc(size));
@@ -301,7 +301,7 @@ public:
     }
 
     WJR_CONSTEXPR20 void deallocate(WJR_MAYBE_UNUSED T *ptr,
-                                    WJR_MAYBE_UNUSED size_type n) {
+                                    WJR_MAYBE_UNUSED size_type n) noexcept {
         const size_t size = n * sizeof(T);
         if (WJR_UNLIKELY(size >= __default_threshold)) {
             free(ptr);

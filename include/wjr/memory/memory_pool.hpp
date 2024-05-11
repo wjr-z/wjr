@@ -39,7 +39,7 @@ private:
             char buffer[];
         };
 
-        malloc_chunk() = default;
+        malloc_chunk() noexcept = default;
         ~malloc_chunk() noexcept {
             while (head != nullptr) {
                 __list_node *next = head->next;
@@ -48,7 +48,7 @@ private:
             }
         }
 
-        void *allocate(size_t n) {
+        void *allocate(size_t n) noexcept {
             __list_node *ptr = (__list_node *)malloc(n + sizeof(__list_node));
             WJR_ASSERT(ptr != nullptr);
             ptr->next = head;
@@ -76,11 +76,11 @@ private:
     static char *&get_end_free() noexcept { return get_instance().end_free; }
     static size_t &get_heap_size() noexcept { return get_instance().heap_size; }
 
-    static inline size_t __round_up(size_t bytes) {
+    static inline size_t __round_up(size_t bytes) noexcept {
         return (((bytes) + 2048 - 1) & ~(2048 - 1));
     }
 
-    static WJR_INTRINSIC_INLINE uint8_t __get_index(size_t bytes) {
+    static WJR_INTRINSIC_INLINE uint8_t __get_index(size_t bytes) noexcept {
         if (bytes <= 1024) {
             return memory_pool_details::__small_index_table[(bytes - 1) >> 3];
         }
@@ -88,7 +88,7 @@ private:
         return 11 + (bytes - 1) / 2048;
     }
 
-    static inline uint16_t __get_size(uint8_t idx) {
+    static inline uint16_t __get_size(uint8_t idx) noexcept {
         return memory_pool_details::__size_table[idx];
     }
 
@@ -297,16 +297,18 @@ public:
         return allocator_type::deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
     }
 
-    constexpr size_t max_size() const { return static_cast<size_t>(-1) / sizeof(Ty); }
+    constexpr size_t max_size() const noexcept {
+        return static_cast<size_t>(-1) / sizeof(Ty);
+    }
 };
 
 template <typename T, typename U>
-constexpr bool operator==(const memory_pool<T> &, const memory_pool<U> &) {
+constexpr bool operator==(const memory_pool<T> &, const memory_pool<U> &) noexcept {
     return true;
 }
 
 template <typename T, typename U>
-constexpr bool operator!=(const memory_pool<T> &, const memory_pool<U> &) {
+constexpr bool operator!=(const memory_pool<T> &, const memory_pool<U> &) noexcept {
     return false;
 }
 
