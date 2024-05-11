@@ -30,6 +30,7 @@
 #include <wjr/container/intrusive/list.hpp>
 #include <wjr/inline_key.hpp>
 #include <wjr/memory/uninitialized.hpp>
+#include <wjr/x86/container/generic/bplus_tree.hpp>
 
 namespace wjr {
 
@@ -69,8 +70,7 @@ struct bplus_tree_traits {
 
 private:
     template <typename Other>
-    static void __native_copy(Other *WJR_RESTRICT first, Other *WJR_RESTRICT last,
-                              Other *WJR_RESTRICT dest) noexcept {
+    static void __native_copy(Other *first, Other *last, Other *dest) noexcept {
         for (; first != last; ++first, ++dest) {
             *dest = *first;
             WJR_COMPILER_EMPTY_ASM();
@@ -87,12 +87,19 @@ private:
 
 public:
     template <typename Other>
-    static void copy(Other *WJR_RESTRICT first, Other *WJR_RESTRICT last,
-                     Other *WJR_RESTRICT dest) noexcept {
+    static void copy(Other *first, Other *last, Other *dest) noexcept {
         if constexpr (node_size <= 8) {
             return __native_copy(first, last, dest);
         } else {
-            (void)std::copy(first, last, dest);
+#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
+            if constexpr (std::is_trivially_copyable_v<Other>) {
+                builtin_bplus_tree_copy(first, last, dest);
+            } else {
+#endif
+                (void)std::copy(first, last, dest);
+#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
+            }
+#endif
         }
     }
 
@@ -101,7 +108,15 @@ public:
         if constexpr (node_size <= 8) {
             return __native_copy_backward(first, last, dest);
         } else {
-            (void)std::copy_backward(first, last, dest);
+#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
+            if constexpr (std::is_trivially_copyable_v<Other>) {
+                builtin_bplus_tree_copy_backward(first, last, dest);
+            } else {
+#endif
+                (void)std::copy_backward(first, last, dest);
+#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
+            }
+#endif
         }
     }
 };

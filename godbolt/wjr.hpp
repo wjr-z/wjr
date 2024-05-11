@@ -19991,76 +19991,6 @@ using nonsendable = __nonsendable_checker<Tag>;
 
 namespace wjr {
 
-template <int __inst>
-class __malloc_alloc_template__ {
-private:
-    static void *_S_oom_malloc(size_t);
-    static void *_S_oom_realloc(void *, size_t);
-
-#ifndef __STL_STATIC_TEMPLATE_MEMBER_BUG
-    static void (*__malloc_alloc_oom_handler)();
-#endif
-
-public:
-    WJR_NOINLINE static void *allocate(size_t __n) {
-        void *__result = malloc(__n);
-        if (WJR_LIKELY(0 != __result))
-            return __result;
-        return _S_oom_malloc(__n);
-    }
-
-    static void deallocate(void *__p, size_t /* __n */) { free(__p); }
-
-    static void *reallocate(void *__p, size_t /* old_sz */, size_t __new_sz) {
-        void *__result = realloc(__p, __new_sz);
-        if (WJR_LIKELY(0 != __result))
-            return __result;
-        return _S_oom_realloc(__p, __new_sz);
-    }
-
-    static void (*__set_malloc_handler(void (*__f)()))() {
-        void (*__old)() = __malloc_alloc_oom_handler;
-        __malloc_alloc_oom_handler = __f;
-        return (__old);
-    }
-};
-
-// malloc_alloc out-of-memory handling
-
-#ifndef __STL_STATIC_TEMPLATE_MEMBER_BUG
-template <int __inst>
-void (*__malloc_alloc_template__<__inst>::__malloc_alloc_oom_handler)() = 0;
-#endif
-
-template <int __inst>
-void *__malloc_alloc_template__<__inst>::_S_oom_malloc(size_t __n) {
-    void (*__my_malloc_handler)();
-    void *__result;
-
-    for (;;) {
-        __my_malloc_handler = __malloc_alloc_oom_handler;
-        (*__my_malloc_handler)();
-        __result = malloc(__n);
-        if (__result)
-            return (__result);
-    }
-}
-
-template <int __inst>
-void *__malloc_alloc_template__<__inst>::_S_oom_realloc(void *__p, size_t __n) {
-    void (*__my_malloc_handler)();
-    void *__result;
-
-    for (;;) {
-        __my_malloc_handler = __malloc_alloc_oom_handler;
-
-        (*__my_malloc_handler)();
-        __result = realloc(__p, __n);
-        if (__result)
-            return (__result);
-    }
-}
-
 namespace memory_pool_details {
 
 static constexpr uint8_t __small_index_table[128] = {
@@ -20083,11 +20013,35 @@ static constexpr uint16_t __size_table[11 + 8] = {
 template <int inst>
 class __default_alloc_template__ {
 private:
-    using allocator_type = __malloc_alloc_template__<0>;
-
     union obj {
         union obj *free_list_link;
         char client_data[1];
+    };
+
+    struct malloc_chunk {
+        struct __list_node {
+            __list_node *next = nullptr;
+            char buffer[];
+        };
+
+        malloc_chunk() = default;
+        ~malloc_chunk() noexcept {
+            while (head != nullptr) {
+                __list_node *next = head->next;
+                free(head);
+                head = next;
+            }
+        }
+
+        void *allocate(size_t n) {
+            __list_node *ptr = (__list_node *)malloc(n + sizeof(__list_node));
+            WJR_ASSERT(ptr != nullptr);
+            ptr->next = head;
+            head = ptr;
+            return ptr->buffer;
+        }
+
+        __list_node *head = nullptr;
     };
 
     struct object {
@@ -20132,9 +20086,9 @@ private:
 
 public:
     // n must be > 0
-    WJR_INTRINSIC_INLINE static allocation_result<void *> allocate(size_t n) noexcept {
+    static allocation_result<void *> allocate(size_t n) noexcept {
         if (n > (size_t)16384) {
-            return {allocator_type::allocate(n), n};
+            return {malloc(n), n};
         }
 
         const size_t idx = __get_index(n);
@@ -20151,7 +20105,7 @@ public:
     // p must not be 0
     WJR_INTRINSIC_INLINE static void deallocate(void *p, size_t n) noexcept {
         if (n > (size_t)16384) {
-            allocator_type::deallocate(p, n);
+            free(p);
             return;
         }
 
@@ -20234,8 +20188,10 @@ char *__default_alloc_template__<inst>::chunk_alloc(uint8_t idx, int &nobjs) noe
         }
     } while (0);
 
-    const size_t bytes_to_get = 2 * total_bytes + __round_up(get_heap_size() >> 4);
-    get_start_free() = (char *)malloc(bytes_to_get);
+    const size_t bytes_to_get = 2 * total_bytes + __round_up(get_heap_size() >> 3);
+
+    static thread_local malloc_chunk chunk;
+    get_start_free() = (char *)chunk.allocate(bytes_to_get);
 
     WJR_ASSERT(get_start_free() != nullptr);
 
@@ -20404,7 +20360,8 @@ private:
             ++m_size;
 
             const size_t capacity = Cache << ((3 * m_idx + 2) / 5);
-            const auto buffer = static_cast<char *>(malloc(capacity));
+            memory_pool<char> pool;
+            const auto buffer = pool.allocate(capacity);
             alloc_node node = {buffer, buffer + capacity};
             m_ptr[m_idx] = node;
 
@@ -20423,9 +20380,10 @@ private:
 
     WJR_COLD WJR_CONSTEXPR20 void __small_redeallocate() {
         const uint16_t new_size = m_idx + bufsize - 1;
+        memory_pool<char> pool;
 
         for (uint16_t i = new_size; i < m_size; ++i) {
-            free(m_ptr[i].ptr);
+            pool.deallocate(m_ptr[i].ptr, m_ptr[i].end - m_ptr[i].ptr);
         }
 
         m_size = new_size;
@@ -20474,14 +20432,7 @@ public:
     stack_allocator_object(stack_allocator_object &&) = delete;
     stack_allocator_object &operator=(stack_allocator_object &) = delete;
     stack_allocator_object &operator=(stack_allocator_object &&) = delete;
-    WJR_NOINLINE ~stack_allocator_object() {
-        for (uint16_t i = 0; i < m_size; ++i) {
-            free(m_ptr[i].ptr);
-        }
-
-        memory_pool<alloc_node> pool;
-        pool.deallocate(m_ptr, m_capacity);
-    }
+    WJR_NOINLINE ~stack_allocator_object() = default;
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top,
                                                             size_t threshold) {
@@ -29927,6 +29878,27 @@ namespace wjr {
 #define WJR_HAS_BUILTIN_COPY_BACKWARD_C WJR_HAS_DEF
 #endif
 
+#if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(X86_SIMD)
+WJR_INTRINSIC_INLINE void __builtin_copy_c_16bytes(const uint8_t *src, uint8_t *dst) {
+    const auto x = sse::loadu((__m128i *)(src));
+    sse::storeu((__m128i *)(dst), x);
+}
+#endif
+
+#if WJR_HAS_SIMD(AVX2) && WJR_HAS_SIMD(X86_SIMD)
+WJR_INTRINSIC_INLINE void __builtin_copy_c_32bytes(const uint8_t *src, uint8_t *dst) {
+    const auto x = avx::loadu((__m256i *)(src));
+    avx::storeu((__m256i *)(dst), x);
+}
+#elif WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(X86_SIMD)
+WJR_INTRINSIC_INLINE void __builtin_copy_c_32bytes(const uint8_t *src, uint8_t *dst) {
+    const auto x0 = sse::loadu((__m128i *)(src));
+    const auto x1 = sse::loadu((__m128i *)(src + 16));
+    sse::storeu((__m128i *)(dst), x0);
+    sse::storeu((__m128i *)(dst + 16), x1);
+}
+#endif
+
 #if WJR_HAS_BUILTIN(COPY_C)
 
 template <size_t N>
@@ -29950,19 +29922,18 @@ void builtin_copy_c_bytes_impl(const uint8_t *src, uint8_t *dst) {
     }
 
     if constexpr (N == 16) {
-        const auto x = sse::loadu((__m128i *)(src));
-        sse::storeu((__m128i *)(dst), x);
+        __builtin_copy_c_16bytes(src, dst);
         return;
     }
 
     if constexpr (N == 32) {
-#if WJR_HAS_SIMD(AVX2)
-        const auto x = avx::loadu((__m256i *)(src));
-        avx::storeu((__m256i *)(dst), x);
-#else
-        builtin_copy_c_bytes_impl<16>(src, dst);
-        builtin_copy_c_bytes_impl<16>(src + 16, dst + 16);
-#endif
+        __builtin_copy_c_32bytes(src, dst);
+        return;
+    }
+
+    if constexpr (N == 64) {
+        __builtin_copy_c_32bytes(src, dst);
+        __builtin_copy_c_32bytes(src + 32, dst + 32);
         return;
     }
 
@@ -30037,19 +30008,19 @@ void builtin_copy_backward_c_bytes_impl(const uint8_t *s_last, uint8_t *d_last) 
     }
 
     if constexpr (N == 16) {
-        const auto x = sse::loadu((__m128i *)(s_last - 16));
-        sse::storeu((__m128i *)(d_last - 16), x);
+        __builtin_copy_c_16bytes(s_last - 16, d_last - 16);
         return;
     }
 
     if constexpr (N == 32) {
-#if WJR_HAS_SIMD(AVX2)
-        const auto x = avx::loadu((__m256i *)(s_last - 32));
-        avx::storeu((__m256i *)(d_last - 32), x);
-#else
-        builtin_copy_backward_c_bytes_impl<16>(s_last, d_last);
-        builtin_copy_backward_c_bytes_impl<16>(s_last - 16, d_last - 16);
-#endif
+        __builtin_copy_c_32bytes(s_last - 32, d_last - 32);
+        return;
+    }
+
+    if constexpr (N == 64) {
+        __builtin_copy_c_32bytes(s_last - 32, d_last - 32);
+        __builtin_copy_c_32bytes(s_last - 64, d_last - 64);
+        return;
     }
 
     WJR_UNREACHABLE();
@@ -34913,6 +34884,307 @@ using auto_key = inline_key<T, is_possible_inline_key_v<T> && sizeof(T) <= Thres
 
 #endif // WJR_INLINE_KEY_HPP__
 // Already included
+#ifndef WJR_X86_CONTAINER_GENERIC_BPLUS_TREE_HPP__
+#define WJR_X86_CONTAINER_GENERIC_BPLUS_TREE_HPP__
+
+#include <algorithm>
+
+// Already included
+
+namespace wjr {
+
+#if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(X86_SIMD)
+#define WJR_HAS_BUILTIN_BPLUS_TREE_COPY WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
+
+template <size_t size>
+void __builtin_bplus_tree_copy_impl(const uint8_t *first, const uint8_t *last,
+                                    uint8_t *dest) noexcept {
+    const size_t n = last - first;
+    if (WJR_UNLIKELY(n == 0)) {
+        return;
+    }
+
+    if (n == size) {
+        reinterpret_cast<uint_t<size * 8> *>(dest)[0] =
+            reinterpret_cast<const uint_t<size * 8> *>(first)[0];
+        return;
+    }
+
+    if constexpr (size <= 1) {
+        do {
+            if (n >= 4) {
+                break;
+            }
+
+            const auto x0 = read_memory<uint16_t>(first, endian::native);
+            const auto x1 = read_memory<uint16_t>(last - 2, endian::native);
+            write_memory<uint16_t>(dest, x0, endian::native);
+            write_memory<uint16_t>(dest + n - 2, x1, endian::native);
+            return;
+        } while (0);
+    }
+
+    if constexpr (size <= 2) {
+        do {
+            if (n >= 8) {
+                break;
+            }
+
+            const auto x0 = read_memory<uint32_t>(first, endian::native);
+            const auto x1 = read_memory<uint32_t>(last - 4, endian::native);
+            write_memory<uint32_t>(dest, x0, endian::native);
+            write_memory<uint32_t>(dest + n - 4, x1, endian::native);
+            return;
+        } while (0);
+    }
+
+    if constexpr (size <= 4) {
+        do {
+            if constexpr (size >= 2) {
+                if (n >= 16) {
+                    break;
+                }
+            }
+
+            const auto x0 = read_memory<uint64_t>(first, endian::native);
+            const auto x1 = read_memory<uint64_t>(last - 8, endian::native);
+            write_memory<uint64_t>(dest, x0, endian::native);
+            write_memory<uint64_t>(dest + n - 8, x1, endian::native);
+            return;
+        } while (0);
+    }
+
+    if constexpr (size >= 2) {
+        do {
+            if constexpr (size >= 4) {
+                if (n >= 32) {
+                    break;
+                }
+            }
+
+            const auto x0 = sse::loadu((__m128i *)first);
+            const auto x1 = sse::loadu((__m128i *)(last - 16));
+            sse::storeu((__m128i *)(dest), x0);
+            sse::storeu((__m128i *)(dest + n - 16), x1);
+            return;
+        } while (0);
+    }
+
+    if constexpr (size >= 4) {
+        do {
+            if constexpr (size >= 8) {
+                if (n >= 64) {
+                    break;
+                }
+            }
+
+#if WJR_HAS_SIMD(AVX2)
+            const auto x0 = avx::loadu((__m256i *)first);
+            const auto x1 = avx::loadu((__m256i *)(last - 32));
+            avx::storeu((__m256i *)(dest), x0);
+            avx::storeu((__m256i *)(dest + n - 32), x1);
+#else
+            const auto x0 = sse::loadu((__m128i *)first);
+            const auto x1 = sse::loadu((__m128i *)(first + 16));
+            const auto x2 = sse::loadu((__m128i *)(last - 32));
+            const auto x3 = sse::loadu((__m128i *)(last - 16));
+            sse::storeu((__m128i *)(dest), x0);
+            sse::storeu((__m128i *)(dest + 16), x1);
+            sse::storeu((__m128i *)(dest + n - 32), x2);
+            sse::storeu((__m128i *)(dest + n - 16), x3);
+#endif
+            return;
+        } while (0);
+    }
+
+    if constexpr (size == 8) {
+#if WJR_HAS_SIMD(AVX2)
+        const auto x0 = avx::loadu((__m256i *)first);
+        const auto x1 = avx::loadu((__m256i *)(first + 32));
+        const auto x2 = avx::loadu((__m256i *)(last - 64));
+        const auto x3 = avx::loadu((__m256i *)(last - 32));
+        avx::storeu((__m256i *)(dest), x0);
+        avx::storeu((__m256i *)(dest + 32), x1);
+        avx::storeu((__m256i *)(dest + n - 64), x2);
+        avx::storeu((__m256i *)(dest + n - 32), x3);
+#else
+        const auto x0 = sse::loadu((__m128i *)first);
+        const auto x1 = sse::loadu((__m128i *)(first + 16));
+        const auto x2 = sse::loadu((__m128i *)(first + 32));
+        const auto x3 = sse::loadu((__m128i *)(first + 48));
+        const auto x4 = sse::loadu((__m128i *)(last - 64));
+        const auto x5 = sse::loadu((__m128i *)(last - 48));
+        const auto x6 = sse::loadu((__m128i *)(last - 32));
+        const auto x7 = sse::loadu((__m128i *)(last - 16));
+        sse::storeu((__m128i *)(dest), x0);
+        sse::storeu((__m128i *)(dest + 16), x1);
+        sse::storeu((__m128i *)(dest + 32), x2);
+        sse::storeu((__m128i *)(dest + 48), x3);
+        sse::storeu((__m128i *)(dest + n - 64), x4);
+        sse::storeu((__m128i *)(dest + n - 48), x5);
+        sse::storeu((__m128i *)(dest + n - 32), x6);
+        sse::storeu((__m128i *)(dest + n - 16), x7);
+#endif
+    }
+}
+
+template <typename Other>
+void builtin_bplus_tree_copy(const Other *first, const Other *last,
+                             Other *dest) noexcept {
+    __builtin_bplus_tree_copy_impl<sizeof(Other)>(
+        reinterpret_cast<const uint8_t *>(first), reinterpret_cast<const uint8_t *>(last),
+        reinterpret_cast<uint8_t *>(dest));
+}
+
+template <size_t size>
+void __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *last,
+                                             uint8_t *dest) noexcept {
+    const size_t n = last - first;
+    if (WJR_UNLIKELY(n == 0)) {
+        return;
+    }
+
+    if (n == size) {
+        reinterpret_cast<uint_t<size * 8> *>(dest)[-1] =
+            reinterpret_cast<const uint_t<size * 8> *>(first)[0];
+        return;
+    }
+
+    if constexpr (size <= 1) {
+        do {
+            if (n >= 4) {
+                break;
+            }
+
+            const auto x0 = read_memory<uint16_t>(first, endian::native);
+            const auto x1 = read_memory<uint16_t>(last - 2, endian::native);
+            write_memory<uint16_t>(dest - n, x0, endian::native);
+            write_memory<uint16_t>(dest - 2, x1, endian::native);
+            return;
+        } while (0);
+    }
+
+    if constexpr (size <= 2) {
+        do {
+            if (n >= 8) {
+                break;
+            }
+
+            const auto x0 = read_memory<uint32_t>(first, endian::native);
+            const auto x1 = read_memory<uint32_t>(last - 4, endian::native);
+            write_memory<uint32_t>(dest - n, x0, endian::native);
+            write_memory<uint32_t>(dest - 4, x1, endian::native);
+            return;
+        } while (0);
+    }
+
+    if constexpr (size <= 4) {
+        do {
+            if constexpr (size >= 2) {
+                if (n >= 16) {
+                    break;
+                }
+            }
+
+            const auto x0 = read_memory<uint64_t>(first, endian::native);
+            const auto x1 = read_memory<uint64_t>(last - 8, endian::native);
+            write_memory<uint64_t>(dest - n, x0, endian::native);
+            write_memory<uint64_t>(dest - 8, x1, endian::native);
+            return;
+        } while (0);
+    }
+
+    if constexpr (size >= 2) {
+        do {
+            if constexpr (size >= 4) {
+                if (n >= 32) {
+                    break;
+                }
+            }
+
+            const auto x0 = sse::loadu((__m128i *)first);
+            const auto x1 = sse::loadu((__m128i *)(last - 16));
+            sse::storeu((__m128i *)(dest - n), x0);
+            sse::storeu((__m128i *)(dest - 16), x1);
+            return;
+        } while (0);
+    }
+
+    if constexpr (size >= 4) {
+        do {
+            if constexpr (size >= 8) {
+                if (n >= 64) {
+                    break;
+                }
+            }
+
+#if WJR_HAS_SIMD(AVX2)
+            const auto x0 = avx::loadu((__m256i *)first);
+            const auto x1 = avx::loadu((__m256i *)(last - 32));
+            avx::storeu((__m256i *)(dest - n), x0);
+            avx::storeu((__m256i *)(dest - 32), x1);
+#else
+            const auto x0 = sse::loadu((__m128i *)first);
+            const auto x1 = sse::loadu((__m128i *)(first + 16));
+            const auto x2 = sse::loadu((__m128i *)(last - 32));
+            const auto x3 = sse::loadu((__m128i *)(last - 16));
+            sse::storeu((__m128i *)(dest - n), x0);
+            sse::storeu((__m128i *)(dest - n + 16), x1);
+            sse::storeu((__m128i *)(dest - 32), x2);
+            sse::storeu((__m128i *)(dest - 16), x3);
+#endif
+            return;
+        } while (0);
+    }
+
+    if constexpr (size == 8) {
+#if WJR_HAS_SIMD(AVX2)
+        const auto x0 = avx::loadu((__m256i *)first);
+        const auto x1 = avx::loadu((__m256i *)(first + 32));
+        const auto x2 = avx::loadu((__m256i *)(last - 64));
+        const auto x3 = avx::loadu((__m256i *)(last - 32));
+        avx::storeu((__m256i *)(dest - n), x0);
+        avx::storeu((__m256i *)(dest - n + 32), x1);
+        avx::storeu((__m256i *)(dest - 64), x2);
+        avx::storeu((__m256i *)(dest - 32), x3);
+#else
+        const auto x0 = sse::loadu((__m128i *)first);
+        const auto x1 = sse::loadu((__m128i *)(first + 16));
+        const auto x2 = sse::loadu((__m128i *)(first + 32));
+        const auto x3 = sse::loadu((__m128i *)(first + 48));
+        const auto x4 = sse::loadu((__m128i *)(last - 64));
+        const auto x5 = sse::loadu((__m128i *)(last - 48));
+        const auto x6 = sse::loadu((__m128i *)(last - 32));
+        const auto x7 = sse::loadu((__m128i *)(last - 16));
+        sse::storeu((__m128i *)(dest - n), x0);
+        sse::storeu((__m128i *)(dest - n + 16), x1);
+        sse::storeu((__m128i *)(dest - n + 32), x2);
+        sse::storeu((__m128i *)(dest - n + 48), x3);
+        sse::storeu((__m128i *)(dest - 64), x4);
+        sse::storeu((__m128i *)(dest - 48), x5);
+        sse::storeu((__m128i *)(dest - 32), x6);
+        sse::storeu((__m128i *)(dest - 16), x7);
+#endif
+    }
+}
+
+template <typename Other>
+void builtin_bplus_tree_copy_backward(const Other *first, const Other *last,
+                                      Other *dest) noexcept {
+    __builtin_bplus_tree_copy_backward_impl<sizeof(Other)>(
+        reinterpret_cast<const uint8_t *>(first), reinterpret_cast<const uint8_t *>(last),
+        reinterpret_cast<uint8_t *>(dest));
+}
+
+#endif
+
+} // namespace wjr
+
+#endif // WJR_X86_CONTAINER_GENERIC_BPLUS_TREE_HPP__
+
 
 namespace wjr {
 
@@ -34952,8 +35224,7 @@ struct bplus_tree_traits {
 
 private:
     template <typename Other>
-    static void __native_copy(Other *WJR_RESTRICT first, Other *WJR_RESTRICT last,
-                              Other *WJR_RESTRICT dest) noexcept {
+    static void __native_copy(Other *first, Other *last, Other *dest) noexcept {
         for (; first != last; ++first, ++dest) {
             *dest = *first;
             WJR_COMPILER_EMPTY_ASM();
@@ -34970,12 +35241,19 @@ private:
 
 public:
     template <typename Other>
-    static void copy(Other *WJR_RESTRICT first, Other *WJR_RESTRICT last,
-                     Other *WJR_RESTRICT dest) noexcept {
+    static void copy(Other *first, Other *last, Other *dest) noexcept {
         if constexpr (node_size <= 8) {
             return __native_copy(first, last, dest);
         } else {
-            (void)std::copy(first, last, dest);
+#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
+            if constexpr (std::is_trivially_copyable_v<Other>) {
+                builtin_bplus_tree_copy(first, last, dest);
+            } else {
+#endif
+                (void)std::copy(first, last, dest);
+#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
+            }
+#endif
         }
     }
 
@@ -34984,7 +35262,15 @@ public:
         if constexpr (node_size <= 8) {
             return __native_copy_backward(first, last, dest);
         } else {
-            (void)std::copy_backward(first, last, dest);
+#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
+            if constexpr (std::is_trivially_copyable_v<Other>) {
+                builtin_bplus_tree_copy_backward(first, last, dest);
+            } else {
+#endif
+                (void)std::copy_backward(first, last, dest);
+#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
+            }
+#endif
         }
     }
 };

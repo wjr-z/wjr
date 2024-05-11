@@ -18,6 +18,27 @@ namespace wjr {
 #define WJR_HAS_BUILTIN_COPY_BACKWARD_C WJR_HAS_DEF
 #endif
 
+#if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(X86_SIMD)
+WJR_INTRINSIC_INLINE void __builtin_copy_c_16bytes(const uint8_t *src, uint8_t *dst) {
+    const auto x = sse::loadu((__m128i *)(src));
+    sse::storeu((__m128i *)(dst), x);
+}
+#endif
+
+#if WJR_HAS_SIMD(AVX2) && WJR_HAS_SIMD(X86_SIMD)
+WJR_INTRINSIC_INLINE void __builtin_copy_c_32bytes(const uint8_t *src, uint8_t *dst) {
+    const auto x = avx::loadu((__m256i *)(src));
+    avx::storeu((__m256i *)(dst), x);
+}
+#elif WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(X86_SIMD)
+WJR_INTRINSIC_INLINE void __builtin_copy_c_32bytes(const uint8_t *src, uint8_t *dst) {
+    const auto x0 = sse::loadu((__m128i *)(src));
+    const auto x1 = sse::loadu((__m128i *)(src + 16));
+    sse::storeu((__m128i *)(dst), x0);
+    sse::storeu((__m128i *)(dst + 16), x1);
+}
+#endif
+
 #if WJR_HAS_BUILTIN(COPY_C)
 
 template <size_t N>
@@ -41,19 +62,18 @@ void builtin_copy_c_bytes_impl(const uint8_t *src, uint8_t *dst) {
     }
 
     if constexpr (N == 16) {
-        const auto x = sse::loadu((__m128i *)(src));
-        sse::storeu((__m128i *)(dst), x);
+        __builtin_copy_c_16bytes(src, dst);
         return;
     }
 
     if constexpr (N == 32) {
-#if WJR_HAS_SIMD(AVX2)
-        const auto x = avx::loadu((__m256i *)(src));
-        avx::storeu((__m256i *)(dst), x);
-#else
-        builtin_copy_c_bytes_impl<16>(src, dst);
-        builtin_copy_c_bytes_impl<16>(src + 16, dst + 16);
-#endif
+        __builtin_copy_c_32bytes(src, dst);
+        return;
+    }
+
+    if constexpr (N == 64) {
+        __builtin_copy_c_32bytes(src, dst);
+        __builtin_copy_c_32bytes(src + 32, dst + 32);
         return;
     }
 
@@ -128,19 +148,19 @@ void builtin_copy_backward_c_bytes_impl(const uint8_t *s_last, uint8_t *d_last) 
     }
 
     if constexpr (N == 16) {
-        const auto x = sse::loadu((__m128i *)(s_last - 16));
-        sse::storeu((__m128i *)(d_last - 16), x);
+        __builtin_copy_c_16bytes(s_last - 16, d_last - 16);
         return;
     }
 
     if constexpr (N == 32) {
-#if WJR_HAS_SIMD(AVX2)
-        const auto x = avx::loadu((__m256i *)(s_last - 32));
-        avx::storeu((__m256i *)(d_last - 32), x);
-#else
-        builtin_copy_backward_c_bytes_impl<16>(s_last, d_last);
-        builtin_copy_backward_c_bytes_impl<16>(s_last - 16, d_last - 16);
-#endif
+        __builtin_copy_c_32bytes(s_last - 32, d_last - 32);
+        return;
+    }
+
+    if constexpr (N == 64) {
+        __builtin_copy_c_32bytes(s_last - 32, d_last - 32);
+        __builtin_copy_c_32bytes(s_last - 64, d_last - 64);
+        return;
     }
 
     WJR_UNREACHABLE();

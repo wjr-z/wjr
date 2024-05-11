@@ -67,7 +67,8 @@ private:
             ++m_size;
 
             const size_t capacity = Cache << ((3 * m_idx + 2) / 5);
-            const auto buffer = static_cast<char *>(malloc(capacity));
+            memory_pool<char> pool;
+            const auto buffer = pool.allocate(capacity);
             alloc_node node = {buffer, buffer + capacity};
             m_ptr[m_idx] = node;
 
@@ -86,9 +87,10 @@ private:
 
     WJR_COLD WJR_CONSTEXPR20 void __small_redeallocate() {
         const uint16_t new_size = m_idx + bufsize - 1;
+        memory_pool<char> pool;
 
         for (uint16_t i = new_size; i < m_size; ++i) {
-            free(m_ptr[i].ptr);
+            pool.deallocate(m_ptr[i].ptr, m_ptr[i].end - m_ptr[i].ptr);
         }
 
         m_size = new_size;
@@ -137,14 +139,7 @@ public:
     stack_allocator_object(stack_allocator_object &&) = delete;
     stack_allocator_object &operator=(stack_allocator_object &) = delete;
     stack_allocator_object &operator=(stack_allocator_object &&) = delete;
-    WJR_NOINLINE ~stack_allocator_object() {
-        for (uint16_t i = 0; i < m_size; ++i) {
-            free(m_ptr[i].ptr);
-        }
-
-        memory_pool<alloc_node> pool;
-        pool.deallocate(m_ptr, m_capacity);
-    }
+    WJR_NOINLINE ~stack_allocator_object() = default;
 
     WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top,
                                                             size_t threshold) {

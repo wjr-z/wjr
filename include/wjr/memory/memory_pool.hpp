@@ -6,76 +6,6 @@
 
 namespace wjr {
 
-template <int __inst>
-class __malloc_alloc_template__ {
-private:
-    static void *_S_oom_malloc(size_t);
-    static void *_S_oom_realloc(void *, size_t);
-
-#ifndef __STL_STATIC_TEMPLATE_MEMBER_BUG
-    static void (*__malloc_alloc_oom_handler)();
-#endif
-
-public:
-    WJR_NOINLINE static void *allocate(size_t __n) {
-        void *__result = malloc(__n);
-        if (WJR_LIKELY(0 != __result))
-            return __result;
-        return _S_oom_malloc(__n);
-    }
-
-    static void deallocate(void *__p, size_t /* __n */) { free(__p); }
-
-    static void *reallocate(void *__p, size_t /* old_sz */, size_t __new_sz) {
-        void *__result = realloc(__p, __new_sz);
-        if (WJR_LIKELY(0 != __result))
-            return __result;
-        return _S_oom_realloc(__p, __new_sz);
-    }
-
-    static void (*__set_malloc_handler(void (*__f)()))() {
-        void (*__old)() = __malloc_alloc_oom_handler;
-        __malloc_alloc_oom_handler = __f;
-        return (__old);
-    }
-};
-
-// malloc_alloc out-of-memory handling
-
-#ifndef __STL_STATIC_TEMPLATE_MEMBER_BUG
-template <int __inst>
-void (*__malloc_alloc_template__<__inst>::__malloc_alloc_oom_handler)() = 0;
-#endif
-
-template <int __inst>
-void *__malloc_alloc_template__<__inst>::_S_oom_malloc(size_t __n) {
-    void (*__my_malloc_handler)();
-    void *__result;
-
-    for (;;) {
-        __my_malloc_handler = __malloc_alloc_oom_handler;
-        (*__my_malloc_handler)();
-        __result = malloc(__n);
-        if (__result)
-            return (__result);
-    }
-}
-
-template <int __inst>
-void *__malloc_alloc_template__<__inst>::_S_oom_realloc(void *__p, size_t __n) {
-    void (*__my_malloc_handler)();
-    void *__result;
-
-    for (;;) {
-        __my_malloc_handler = __malloc_alloc_oom_handler;
-
-        (*__my_malloc_handler)();
-        __result = realloc(__p, __n);
-        if (__result)
-            return (__result);
-    }
-}
-
 namespace memory_pool_details {
 
 static constexpr uint8_t __small_index_table[128] = {
@@ -98,11 +28,35 @@ static constexpr uint16_t __size_table[11 + 8] = {
 template <int inst>
 class __default_alloc_template__ {
 private:
-    using allocator_type = __malloc_alloc_template__<0>;
-
     union obj {
         union obj *free_list_link;
         char client_data[1];
+    };
+
+    struct malloc_chunk {
+        struct __list_node {
+            __list_node *next = nullptr;
+            char buffer[];
+        };
+
+        malloc_chunk() = default;
+        ~malloc_chunk() noexcept {
+            while (head != nullptr) {
+                __list_node *next = head->next;
+                free(head);
+                head = next;
+            }
+        }
+
+        void *allocate(size_t n) {
+            __list_node *ptr = (__list_node *)malloc(n + sizeof(__list_node));
+            WJR_ASSERT(ptr != nullptr);
+            ptr->next = head;
+            head = ptr;
+            return ptr->buffer;
+        }
+
+        __list_node *head = nullptr;
     };
 
     struct object {
@@ -147,9 +101,9 @@ private:
 
 public:
     // n must be > 0
-    WJR_INTRINSIC_INLINE static allocation_result<void *> allocate(size_t n) noexcept {
+    static allocation_result<void *> allocate(size_t n) noexcept {
         if (n > (size_t)16384) {
-            return {allocator_type::allocate(n), n};
+            return {malloc(n), n};
         }
 
         const size_t idx = __get_index(n);
@@ -166,7 +120,7 @@ public:
     // p must not be 0
     WJR_INTRINSIC_INLINE static void deallocate(void *p, size_t n) noexcept {
         if (n > (size_t)16384) {
-            allocator_type::deallocate(p, n);
+            free(p);
             return;
         }
 
@@ -249,8 +203,10 @@ char *__default_alloc_template__<inst>::chunk_alloc(uint8_t idx, int &nobjs) noe
         }
     } while (0);
 
-    const size_t bytes_to_get = 2 * total_bytes + __round_up(get_heap_size() >> 4);
-    get_start_free() = (char *)malloc(bytes_to_get);
+    const size_t bytes_to_get = 2 * total_bytes + __round_up(get_heap_size() >> 3);
+
+    static thread_local malloc_chunk chunk;
+    get_start_free() = (char *)chunk.allocate(bytes_to_get);
 
     WJR_ASSERT(get_start_free() != nullptr);
 
