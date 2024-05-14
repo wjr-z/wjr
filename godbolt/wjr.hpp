@@ -22514,6 +22514,13 @@ void toom4_sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *stk);
 extern template void toom4_sqr<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
                                          size_t n, uint64_t *stk);
 
+template <typename T>
+struct toom_interpolation_8p_struct;
+
+template <typename T>
+void toom_interpolation_8p_s(T *WJR_RESTRICT dst, T *w1p, size_t l, size_t rn, size_t rm,
+                             toom_interpolation_8p_struct<T> &&flag);
+
 struct __mul_s_unique_stack_allocator {
     template <typename... Args>
     constexpr __mul_s_unique_stack_allocator(Args &&...) {}
@@ -24868,6 +24875,47 @@ void toom4_sqr(T *WJR_RESTRICT dst, const T *src, size_t n, T *stk) {
     toom_interpolation_7p_s(
         dst, w1p, l, rn, rn,
         toom_interpolation_7p_struct<T>{0, 0, cf1, cf2, cf3, cf4, cf5});
+}
+
+template <typename T>
+struct toom_interpolation_8p_struct {
+    uint8_t neg1 : 1;
+    uint8_t neg3 : 1;
+    uint8_t neg5 : 1;
+    T cf1;
+    T cf2;
+    T cf3;
+    T cf4;
+    T cf5;
+    T cf6;
+};
+
+template <typename T>
+void toom_interpolation_8p_s(T *WJR_RESTRICT dst, T *w1p, size_t l, size_t rn, size_t rm,
+                             toom_interpolation_8p_struct<T> &&flag) {
+    /*
+     W0 = f(0);
+     W1 = f(-1);
+     W2 = f(1);
+     W3 = f(-2);
+     W4 = f(2);
+     W5 = f(-4);
+     W6 = f(4);
+     W7 = f(inf);
+    */
+
+    /*
+    [
+    W0   1,   0,   0,   0,   0,   0,   0,   0
+    W1   1,  -1,   1,  -1,   1,  -1,   1,   1
+    W2   1,   1,   1,   1,   1,   1,   1,   1
+    W3   1,  -2,   4,  -8,  16,  -4,   2,   1
+    W4   1,   2,   4,   8,  16,   4,   2,   1
+    W5   1,  -4,  16, -64, 256,-1024, 4096, 16384
+    W6   1,   4,  16,  64, 256, 1024, 4096, 16384
+    W7   0,   0,   0,   0,   0,   0,   0,   1
+    ]
+    */
 }
 
 } // namespace wjr
@@ -34388,7 +34436,7 @@ template <typename S>
 std::istream &operator>>(std::istream &is, basic_biginteger<S> &dst) {
     std::string str;
     is >> str;
-    from_chars(str.data(), str.data() + str.size(), dst);
+    from_chars(str.data(), str.data() + str.size(), dst, 0);
     return is;
 }
 

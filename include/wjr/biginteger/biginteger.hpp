@@ -3320,7 +3320,7 @@ template <typename S>
 std::istream &operator>>(std::istream &is, basic_biginteger<S> &dst) {
     std::string str;
     is >> str;
-    from_chars(str.data(), str.data() + str.size(), dst);
+    from_chars(str.data(), str.data() + str.size(), dst, 0);
     return is;
 }
 
