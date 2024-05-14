@@ -1,6 +1,7 @@
 #ifndef WJR_X86_MATH_COMPARE_HPP__
 #define WJR_X86_MATH_COMPARE_HPP__
 
+#include <wjr/math/clz.hpp>
 #include <wjr/math/ctz.hpp>
 #include <wjr/x86/simd/simd.hpp>
 

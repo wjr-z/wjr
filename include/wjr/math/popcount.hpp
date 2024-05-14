@@ -71,7 +71,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int popcount_impl(T x) {
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int popcount(T x) {
-    int ret = popcount_impl(x);
+    const int ret = popcount_impl(x);
     WJR_ASSUME(0 <= ret && ret <= std::numeric_limits<T>::digits);
     return ret;
 }

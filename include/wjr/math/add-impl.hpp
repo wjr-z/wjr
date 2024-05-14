@@ -17,26 +17,25 @@ template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E bool add_overflow(type_identity_t<T> a,
                                                           type_identity_t<T> b, T &ret);
 
-template <typename T, typename U = T,
-          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U addc_1(T *dst, const T *src0, size_t n,
-                                                 type_identity_t<T> src1, U c_in = 0);
+template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U addc_1(uint64_t *dst, const uint64_t *src0,
+                                                 size_t n, uint64_t src1, U c_in = 0);
 
-template <typename T, typename U = T,
-          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U addc_n(T *dst, const T *src0, const T *src1,
-                                                 size_t n, U c_in = 0);
+template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U addc_n(uint64_t *dst, const uint64_t *src0,
+                                                 const uint64_t *src1, size_t n,
+                                                 U c_in = 0);
 
-template <typename T, typename U = T,
-          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U addc_s(T *dst, const T *src0, size_t n,
-                                                 const T *src1, size_t m, U c_in = 0);
+template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U addc_s(uint64_t *dst, const uint64_t *src0,
+                                                 size_t n, const uint64_t *src1, size_t m,
+                                                 U c_in = 0);
 
 // m can be zero
-template <typename T, typename U = T,
-          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U addc_sz(T *dst, const T *src0, size_t n,
-                                                  const T *src1, size_t m, U c_in = 0);
+template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U addc_sz(uint64_t *dst, const uint64_t *src0,
+                                                  size_t n, const uint64_t *src1,
+                                                  size_t m, U c_in = 0);
 
 WJR_INTRINSIC_CONSTEXPR_E void __add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                          uint64_t hi0, uint64_t lo1, uint64_t hi1);

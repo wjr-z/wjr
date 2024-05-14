@@ -24,8 +24,8 @@ static_assert(is_contiguous_iterator_v<typename vector<int>::const_iterator>, ""
 static_assert(is_contiguous_iterator_v<typename vector<std::string>::iterator>, "");
 static_assert(is_contiguous_iterator_v<typename vector<std::string>::const_iterator>, "");
 
-template <typename T, typename Func>
-void for_each_n(T *first, size_t n, Func fn) {
+template <typename Iter, typename Func>
+void for_each_n(Iter first, size_t n, Func fn) {
     for (size_t i = 0; i < n; ++i) {
         fn(first[i]);
     }
@@ -128,7 +128,7 @@ struct random_string_fn {
 inline constexpr random_string_fn random_string = {};
 
 template <typename T>
-using wvector = vector<T>;
+using wvector = wjr::vector<T>;
 
 namespace wjr {
 template class basic_vector<default_vector_storage<int, std::allocator<int>>>;

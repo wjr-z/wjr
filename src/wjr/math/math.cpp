@@ -2,122 +2,7 @@
 
 namespace wjr {
 
-// compare.hpp
-
-#if WJR_HAS_BUILTIN(COMPARE_N)
-
-template int large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
-                                               size_t n);
-
-#endif
-
-#if WJR_HAS_BUILTIN(REVERSE_COMPARE_N)
-
-template int large_builtin_reverse_compare_n<uint64_t>(const uint64_t *src0,
-                                                       const uint64_t *src1, size_t n);
-
-#endif
-
-// find.hpp
-
-#if WJR_HAS_BUILTIN(FIND_NOT_N)
-
-template size_t large_builtin_find_not_n<uint64_t>(const uint64_t *src0,
-                                                   const uint64_t *src1, size_t n);
-
-template size_t large_builtin_find_not_n<uint64_t>(const uint64_t *src, uint64_t val,
-                                                   size_t n);
-
-#endif
-
-#if WJR_HAS_BUILTIN(REVERSE_FIND_NOT_N)
-
-template size_t large_builtin_reverse_find_not_n<uint64_t>(const uint64_t *src0,
-                                                           const uint64_t *src1,
-                                                           size_t n);
-
-template size_t large_builtin_reverse_find_not_n<uint64_t>(const uint64_t *src,
-                                                           uint64_t val, size_t n);
-
-#endif
-
-// mul.hpp
-
-template void toom22_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                     size_t n, const uint64_t *src1, size_t m,
-                                     uint64_t *stk);
-
-template void toom2_sqr<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
-                                  size_t n, uint64_t *stk);
-
-template void toom32_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                     size_t n, const uint64_t *src1, size_t m,
-                                     uint64_t *stk);
-
-template void
-toom_interpolation_5p_s<uint64_t>(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
-                                  size_t rn, size_t rm,
-                                  toom_interpolation_5p_struct<uint64_t> &&flag);
-
-template void toom42_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                     size_t n, const uint64_t *src1, size_t m,
-                                     uint64_t *stk);
-
-template void toom33_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                     size_t n, const uint64_t *src1, size_t m,
-                                     uint64_t *stk);
-
-template void toom3_sqr<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
-                                  size_t n, uint64_t *stk);
-
-template void
-toom_interpolation_6p_s<uint64_t>(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
-                                  size_t rn, size_t rm,
-                                  toom_interpolation_6p_struct<uint64_t> &&flag);
-
-template void toom43_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                     size_t n, const uint64_t *src1, size_t m,
-                                     uint64_t *stk);
-
-template void
-toom_interpolation_7p_s<uint64_t>(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
-                                  size_t rn, size_t rm,
-                                  toom_interpolation_7p_struct<uint64_t> &&flag);
-
-template void toom53_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                     size_t n, const uint64_t *src1, size_t m,
-                                     uint64_t *stk);
-
-template void toom44_mul_s<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                     size_t n, const uint64_t *src1, size_t m,
-                                     uint64_t *stk);
-
-template void toom4_sqr<uint64_t>(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
-                                  size_t n, uint64_t *stk);
-
-template void __noinline_mul_s_impl<true, uint64_t>(uint64_t *WJR_RESTRICT dst,
-                                                    const uint64_t *src0, size_t n,
-                                                    const uint64_t *src1, size_t m,
-                                                    uint64_t *mal);
-
-template void __noinline_mul_s_impl<false, uint64_t>(uint64_t *WJR_RESTRICT dst,
-                                                     const uint64_t *src0, size_t n,
-                                                     const uint64_t *src1, size_t m,
-                                                     in_place_empty_t mal);
-
-// div.hpp
-
-template uint64_t sb_div_qr_s<uint64_t>(uint64_t *dst, uint64_t *src, size_t n,
-                                        const uint64_t *div, size_t m, uint64_t dinv);
-
-template uint64_t dc_div_qr_s<uint64_t>(uint64_t *dst, uint64_t *src, size_t n,
-                                        const uint64_t *div, size_t m, uint64_t dinv);
-
-template void div_qr_s<uint64_t>(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                 size_t n, const uint64_t *div, size_t m);
-
-// convert.hpp
-
+namespace {
 const precompute_chars_convert_16n_t precompute_chars_convert_16n[36 - 6] = {
     {12157665459056928801ull,
      16ull,
@@ -392,6 +277,7 @@ const precompute_chars_convert_16n_t precompute_chars_convert_16n[36 - 6] = {
       16340864791353723037ull, 4895750586451757400ull, 4993145721471861013ull,
       10351807525191341928ull, 17983159292351844974ull, 12052984924518600484ull,
       6626501641ull}}};
+}
 
 const std::array<const precompute_chars_convert_16n_t *, 37>
     precompute_chars_convert_16n_ptr = {nullptr,

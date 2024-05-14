@@ -387,38 +387,35 @@ TEST(math, sub) {
 #define WJR_TEST_SUBC_1(queue) WJR_PP_TRANSFORM_PUT(queue, WJR_TEST_SUBC_1_I_CALLER)
 #define WJR_TEST_SUBC_1_EXPAND(args) WJR_TEST_SUBC_1_EXPAND_I args
 #define WJR_TEST_SUBC_1_EXPAND_I(...) __VA_ARGS__
-#define WJR_TEST_SUBC_1_I(type, inputs, c, c_in, outputs, ans)                           \
+#define WJR_TEST_SUBC_1_I(inputs, c, c_in, outputs, ans)                                 \
     {                                                                                    \
         constexpr auto N = WJR_PP_QUEUE_SIZE(inputs);                                    \
-        auto init = [](type *arr, auto... args) {                                        \
+        auto init = [](uint64_t *arr, auto... args) {                                    \
             auto il = {(args)...};                                                       \
             for (size_t i = 0; i < il.size(); ++i) {                                     \
                 arr[i] = il.begin()[i];                                                  \
             }                                                                            \
         };                                                                               \
-        type in[N];                                                                      \
-        type out[N];                                                                     \
-        type expect[N];                                                                  \
+        uint64_t in[N];                                                                  \
+        uint64_t out[N];                                                                 \
+        uint64_t expect[N];                                                              \
         init(in, WJR_PP_QUEUE_EXPAND(inputs));                                           \
         init(expect, WJR_PP_QUEUE_EXPAND(outputs));                                      \
-        WJR_ASSERT((subc_1<type, type>(out, in, N, c, c_in) == ans));                    \
+        WJR_ASSERT((subc_1<uint64_t>(out, in, N, c, c_in) == ans));                      \
         WJR_ASSERT((memcmp(out, expect, sizeof(out)) == 0),                              \
-                   "uncorrect array of subc_1<%s, %s>, different array", #type, #type);  \
-        WJR_ASSERT((subc_1<type, type>(in, in, N, c, c_in) == ans));                     \
+                   "uncorrect array of subc_1<uint64_t>, different array");              \
+        WJR_ASSERT((subc_1<uint64_t>(in, in, N, c, c_in) == ans));                       \
         WJR_ASSERT((memcmp(in, expect, sizeof(out)) == 0),                               \
-                   "uncorrect array of subc_1<%s, %s>, same array", #type, #type);       \
+                   "uncorrect array of subc_1<uint64_t>, same array");                   \
     }
 #define WJR_TEST_SUBC_1_I_CALLER(args) WJR_TEST_SUBC_1_I args
 
-    WJR_TEST_SUBC_1(((uint64_t, (1, 2, 3), 0, 0, (1, 2, 3), 0),
-                     (uint64_t, (1, 2, 3), 1, 0, (0, 2, 3), 0),
-                     (uint64_t, (0, 2, 3), 1, 0, (-1, 1, 3), 0),
-                     (uint64_t, (1, 2, 3), 1, 1, (-1, 1, 3), 0)));
+    WJR_TEST_SUBC_1((((1, 2, 3), 0, 0, (1, 2, 3), 0), ((1, 2, 3), 1, 0, (0, 2, 3), 0),
+                     ((0, 2, 3), 1, 0, (-1, 1, 3), 0), ((1, 2, 3), 1, 1, (-1, 1, 3), 0)));
 
-    WJR_TEST_SUBC_1(((uint64_t, (2, 2, 3), 1, 1, (0, 2, 3), 0),
-                     (uint64_t, (1, 0, 3), 1, 1, (-1, -1, 2), 0),
-                     (uint64_t, (0, 0, 0), 3, 1, (-4, -1, -1), 1),
-                     (uint64_t, (5, 0, 0), 10, 1, (-6, -1, -1), 1)));
+    WJR_TEST_SUBC_1((((2, 2, 3), 1, 1, (0, 2, 3), 0), ((1, 0, 3), 1, 1, (-1, -1, 2), 0),
+                     ((0, 0, 0), 3, 1, (-4, -1, -1), 1),
+                     ((5, 0, 0), 10, 1, (-6, -1, -1), 1)));
 
 #undef WJR_TEST_SUBC_1_I_CALLER
 #undef WJR_TEST_SUBC_1_I

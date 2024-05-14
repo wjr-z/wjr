@@ -1,6 +1,7 @@
 #ifndef WJR_BIGINTEGER_BIGINTEGER_HPP__
 #define WJR_BIGINTEGER_BIGINTEGER_HPP__
 
+#include <istream>
 #include <optional>
 
 #include <wjr/format/ostream_insert.hpp>

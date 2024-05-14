@@ -1,6 +1,8 @@
 #ifndef WJR_X86_MATH_FIND_HPP__
 #define WJR_X86_MATH_FIND_HPP__
 
+#include <wjr/math/clz.hpp>
+#include <wjr/math/ctz.hpp>
 #include <wjr/x86/simd/simd.hpp>
 
 #ifndef WJR_X86

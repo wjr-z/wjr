@@ -1,6 +1,7 @@
 #ifndef WJR_MATH_CTZ_HPP__
 #define WJR_MATH_CTZ_HPP__
 
+#include <wjr/assert.hpp>
 #include <wjr/math/popcount.hpp>
 
 namespace wjr {

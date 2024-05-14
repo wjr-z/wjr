@@ -17,51 +17,47 @@ template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(type_identity_t<T> a,
                                                           type_identity_t<T> b, T &ret);
 
-template <typename T, typename U = T,
-          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U subc_1(T *dst, const T *src0, size_t n,
-                                                 type_identity_t<T> src1, U c_in = 0);
+template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U subc_1(uint64_t *dst, const uint64_t *src0,
+                                                 size_t n, uint64_t src1, U c_in = 0);
 
-template <typename T, typename U = T,
-          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U subc_n(T *dst, const T *src0, const T *src1,
-                                                 size_t n, U c_in = 0);
+template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U subc_n(uint64_t *dst, const uint64_t *src0,
+                                                 const uint64_t *src1, size_t n,
+                                                 U c_in = 0);
 
-template <typename T, typename U = T,
-          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U subc_s(T *dst, const T *src0, size_t n,
-                                                 const T *src1, size_t m, U c_in = 0);
+template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U subc_s(uint64_t *dst, const uint64_t *src0,
+                                                 size_t n, const uint64_t *src1, size_t m,
+                                                 U c_in = 0);
 
-template <typename T, typename U = T,
-          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U subc_sz(T *dst, const T *src0, size_t n,
-                                                  const T *src1, size_t m, U c_in = 0);
+template <typename U = uint64_t, WJR_REQUIRES(is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E U subc_sz(uint64_t *dst, const uint64_t *src0,
+                                                  size_t n, const uint64_t *src1,
+                                                  size_t m, U c_in = 0);
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0,
-                                                           const T *src1, size_t n);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(uint64_t *dst,
+                                                           const uint64_t *src0,
+                                                           const uint64_t *src1,
+                                                           size_t n);
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n_pos(T *dst, const T *src0,
-                                                               const T *src1, size_t n);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n_pos(uint64_t *dst,
+                                                               const uint64_t *src0,
+                                                               const uint64_t *src1,
+                                                               size_t n);
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(T *dst, const T *src0,
-                                                           size_t n, const T *src1,
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(uint64_t *dst,
+                                                           const uint64_t *src0, size_t n,
+                                                           const uint64_t *src1,
                                                            size_t m);
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s_pos(T *dst, const T *src0,
-                                                               size_t n, const T *src1,
-                                                               size_t m);
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s_pos(
+    uint64_t *dst, const uint64_t *src0, size_t n, const uint64_t *src1, size_t m);
 
-template <typename T, typename U,
-          WJR_REQUIRES(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(T *dst, const T *src0,
-                                                           const T *src1, size_t n,
-                                                           U &c_out,
-                                                           type_identity_t<U> cf0,
-                                                           type_identity_t<U> cf1);
+template <typename U, WJR_REQUIRES(is_unsigned_integral_v<U>)>
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t
+abs_subc_n(uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n, U &c_out,
+           type_identity_t<U> cf0, type_identity_t<U> cf1);
 
 // preview :
 

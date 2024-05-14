@@ -51,16 +51,16 @@ private:
     WJR_NORETURN WJR_NOINLINE static void fn(const char *expr, const char *file,
                                              const char *func, int line,
                                              Args &&...args) noexcept {
-        auto &output = std::cerr;
         if (file[0] != '\0') {
-            output << file << ':';
+            std::cerr << file << ':';
         }
-        if (line != -1) {
-            output << line << ':';
-        }
-        output << func << ": Assertion `" << expr << "' failed.\n";
-        handler(output, std::forward<Args>(args)...);
 
+        if (line != -1) {
+            std::cerr << line << ':';
+        }
+
+        std::cerr << func << ": Assertion `" << expr << "' failed.\n";
+        handler(std::cerr, std::forward<Args>(args)...);
         std::abort();
     }
 
