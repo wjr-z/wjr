@@ -31,6 +31,7 @@ namespace wjr {
 #define WJR_DEBUG_EXPR_L(level, expr) WJR_DEBUG_IF(level, expr, )
 #define WJR_DEBUG_EXPR(expr) WJR_DEBUG_EXPR_L(0, expr)
 
+/// @private
 class __assert_handler_t {
 private:
     template <typename Output>

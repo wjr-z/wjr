@@ -52,6 +52,7 @@
 #include <wjr/iterator/contiguous_iterator_adpater.hpp>
 #include <wjr/math/details.hpp>
 #include <wjr/memory/copy.hpp>
+#include <wjr/memory/memory_pool.hpp>
 #include <wjr/memory/temporary_value_allocator.hpp>
 
 namespace wjr {
@@ -231,6 +232,7 @@ private:
     pointer &m_pos;
 };
 
+/// @private
 template <typename pointer, typename size_type>
 struct __unref_wrapper_helper<default_vector_size_reference<pointer, size_type>> {
     using type = uint32_t &;

@@ -72,6 +72,7 @@ private:
     int32_t *m_size;
 };
 
+/// @private
 template <>
 struct __unref_wrapper_helper<default_biginteger_size_reference> {
     using type = uint32_t &;

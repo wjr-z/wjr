@@ -1,6 +1,8 @@
 #ifndef WJR_MEMORY_COPY_HPP__
 #define WJR_MEMORY_COPY_HPP__
 
+#include <algorithm>
+
 #include <wjr/container/generic/details.hpp>
 #include <wjr/iterator/inserter.hpp>
 #include <wjr/memory/details.hpp>

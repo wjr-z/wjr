@@ -64,6 +64,7 @@ constexpr decltype(auto) try_to_address(T &&t) noexcept {
 #endif
 }
 
+/// @private
 class __is_little_endian_helper {
     constexpr static std::uint32_t u4 = 1;
     constexpr static std::uint8_t u1 = static_cast<const std::uint8_t &>(u4);

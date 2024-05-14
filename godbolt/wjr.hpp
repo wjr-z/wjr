@@ -2400,6 +2400,7 @@ namespace wjr {
 #define WJR_DEBUG_EXPR_L(level, expr) WJR_DEBUG_IF(level, expr, )
 #define WJR_DEBUG_EXPR(expr) WJR_DEBUG_EXPR_L(0, expr)
 
+/// @private
 class __assert_handler_t {
 private:
     template <typename Output>
@@ -2894,40 +2895,48 @@ struct remove_cvref {
 template <typename T>
 using remove_cvref_t = typename remove_cvref<T>::type;
 
+/// @private
 template <size_t n>
 struct __uint_selector {};
 
+/// @private
 template <>
 struct __uint_selector<8> {
     using type = std::uint8_t;
 };
 
+/// @private
 template <>
 struct __uint_selector<16> {
     using type = std::uint16_t;
 };
 
+/// @private
 template <>
 struct __uint_selector<32> {
     using type = std::uint32_t;
 };
 
+/// @private
 template <>
 struct __uint_selector<64> {
     using type = std::uint64_t;
 };
 
+/// @private
 template <size_t n>
 struct __int_selector {
     using type = std::make_signed_t<typename __uint_selector<n>::type>;
 };
 
 #if WJR_HAS_FEATURE(INT128)
+/// @private
 template <>
 struct __uint_selector<128> {
     using type = __uint128_t;
 };
 
+/// @private
 template <>
 struct __int_selector<128> {
     using type = __int128_t;
@@ -3068,11 +3077,13 @@ struct is_nothrow_swappable : is_nothrow_swappable_with<std::add_lvalue_referenc
 template <typename T>
 inline constexpr bool is_nothrow_swappable_v = is_nothrow_swappable<T>::value;
 
+/// @private
 template <typename T>
 struct __unref_wrapper_helper {
     using type = T;
 };
 
+/// @private
 template <typename T>
 struct __unref_wrapper_helper<std::reference_wrapper<T>> {
     using type = T &;
@@ -3140,9 +3151,11 @@ struct is_derived_from
 template <typename Derived, typename Base>
 inline constexpr bool is_derived_from_v = is_derived_from<Derived, Base>::Value;
 
+/// @private
 template <typename From, typename To, typename = void>
 struct __is_convertible_to_helper : std::false_type {};
 
+/// @private
 template <typename From, typename To>
 struct __is_convertible_to_helper<
     From, To, std::void_t<decltype(static_cast<To>(std::declval<From>()))>>
@@ -3297,9 +3310,11 @@ struct tp_is_fn : std::false_type {};
 template <typename T>
 inline constexpr bool tp_is_fn_v = tp_is_fn<T>::value;
 
+/// @private
 template <typename _Enable, template <typename...> typename F, typename... Args>
 struct __tp_is_valid_helper : std::false_type {};
 
+/// @private
 template <template <typename...> typename F, typename... Args>
 struct __tp_is_valid_helper<std::void_t<F<Args...>>, F, Args...> : std::true_type {};
 
@@ -3312,6 +3327,7 @@ inline constexpr bool tp_is_valid_v = tp_is_valid<F, Args...>::value;
 template <typename F, typename... Args>
 inline constexpr bool tp_is_valid_f = tp_is_valid_v<F::template fn, Args...>;
 
+/// @private
 template <template <typename...> typename F, typename... Args>
 struct __tp_defer_helper {
     using type = F<Args...>;
@@ -3421,42 +3437,51 @@ struct tp_push_back<C<Args1...>, Args2...> {
 template <typename T, typename... Args>
 using tp_push_back_t = typename tp_push_back<T, Args...>::type;
 
+/// @private
 template <typename _Enable, size_t I, size_t N, typename... Args>
 struct __tp_cut_helper;
 
+/// @private
 template <size_t I, size_t N, typename T, typename... Args>
 struct __tp_cut_helper<std::enable_if_t<N != 0, void>, I, N, T, Args...> {
     using type = typename __tp_cut_helper<void, I - 1, N, Args...>::type;
 };
 
+/// @private
 template <size_t I, size_t N, typename T, typename... Args>
 struct __tp_cut_helper<std::enable_if_t<N == 0, void>, I, N, T, Args...> {
     using type = tp_list<>;
 };
 
+/// @private
 template <size_t N, typename... Args2>
 struct __tp_cut_helper2;
 
+/// @private
 template <size_t N, typename T, typename... Args>
 struct __tp_cut_helper2<N, T, Args...> {
     using type = tp_push_front_t<typename __tp_cut_helper2<N - 1, Args...>::type, T>;
 };
 
+/// @private
 template <typename... Args>
 struct __tp_cut_helper2<0, Args...> {
     using type = tp_list<>;
 };
 
+/// @private
 template <typename T, typename... Args>
 struct __tp_cut_helper2<0, T, Args...> {
     using type = tp_list<>;
 };
 
+/// @private
 template <size_t N, typename... Args>
 struct __tp_cut_helper<std::enable_if_t<N != 0>, 0, N, Args...> {
     using type = typename __tp_cut_helper2<N, Args...>::type;
 };
 
+/// @private
 template <size_t N, typename T, typename... Args>
 struct __tp_cut_helper<std::enable_if_t<N != 0>, 0, N, T, Args...> {
     using type = typename __tp_cut_helper2<N, T, Args...>::type;
@@ -3503,14 +3528,17 @@ struct tp_pop_back : tp_cut<T, 0, tp_size_v<T> - 1> {};
 template <typename T>
 using tp_pop_back_t = typename tp_pop_back<T>::type;
 
+/// @private
 template <size_t index, typename... Args>
 struct __tp_at_helper;
 
+/// @private
 template <size_t index, typename T, typename... Args>
 struct __tp_at_helper<index, T, Args...> {
     using type = typename __tp_at_helper<index - 1, Args...>::type;
 };
 
+/// @private
 template <typename T, typename... Args>
 struct __tp_at_helper<0, T, Args...> {
     using type = T;
@@ -3694,11 +3722,13 @@ using tp_apply_t = typename tp_apply<F, T>::type;
 template <typename F, typename T>
 using tp_apply_f = tp_apply_t<F::template fn, T>;
 
+/// @private
 template <typename _Enable, typename T, typename... Args>
 struct __tp_bind_helper {
     using type = T;
 };
 
+/// @private
 template <typename F, typename... Args>
 struct __tp_bind_helper<std::enable_if_t<tp_is_fn_v<F>, void>, F, Args...> {
     using type = typename F::template fn<Args...>;
@@ -3756,9 +3786,11 @@ using tp_transform_f = typename tp_transform<T, F::template fn>::type;
 template <template <typename...> typename C, typename... Args>
 struct tp_zip;
 
+/// @private
 template <template <typename...> typename C, typename T>
 struct __tp_zip_helper;
 
+/// @private
 template <template <typename...> typename C, size_t... Indexs>
 struct __tp_zip_helper<C, std::index_sequence<Indexs...>> {
     template <size_t I, typename... Args>
@@ -3793,14 +3825,17 @@ struct tp_zip<C, T, Args...> {
 template <template <typename...> typename C, typename... Args>
 using tp_zip_t = typename tp_zip<C, Args...>::type;
 
+/// @private
 template <typename... Args>
 struct __tp_max_size_helper;
 
+/// @private
 template <typename T>
 struct __tp_max_size_helper<T> {
     constexpr static size_t value = tp_size_v<T>;
 };
 
+/// @private
 template <typename T, typename... Args>
 struct __tp_max_size_helper<T, Args...> {
     constexpr static size_t value =
@@ -3954,9 +3989,11 @@ using tp_filter_f = tp_filter_t<T, P::template fn>;
 template <typename T, typename U>
 struct tp_equal;
 
+/// @private
 template <typename _Enable, typename T, typename U>
 struct __tp_equal_helper : std::false_type {};
 
+/// @private
 template <template <typename...> typename C, typename... Args,
           template <typename...> typename D, typename... Args2>
 struct __tp_equal_helper<std::enable_if_t<sizeof...(Args) == sizeof...(Args2), void>,
@@ -3982,11 +4019,13 @@ struct tp_repeat<T, 0> {
 template <typename C, size_t N>
 using tp_repeat_t = typename tp_repeat<C, N>::type;
 
+/// @private
 template <typename _Enable, typename C, size_t N, typename V>
 struct __tp_resize_helper {
     using type = tp_cut_t<C, 0, N>;
 };
 
+/// @private
 template <typename C, size_t N, typename V>
 struct __tp_resize_helper<std::enable_if_t<N >= tp_size_v<C>, void>, C, N, V> {
     using type = tp_concat_t<C, tp_repeat_t<V, N - tp_size_v<C>>>;
@@ -4003,16 +4042,19 @@ using tp_resize_t = typename tp_resize<C, N, V>::type;
 template <template <typename...> typename C, typename... Args>
 struct tp_product;
 
+/// @private
 template <typename _Enable, template <typename...> typename C, typename... Args>
 struct __tp_product_helper {
     using type = tp_list<>;
 };
 
+/// @private
 template <typename _Enable, template <typename...> typename C, typename T>
 struct __tp_product_helper<_Enable, C, T> {
     using type = tp_list<tp_rename_t<T, C>>;
 };
 
+/// @private
 template <template <typename...> typename C, typename T,
           template <typename...> typename C1, typename... Args1, typename... Args>
 struct __tp_product_helper<std::enable_if_t<sizeof...(Args1) != 0, void>, C, T,
@@ -4069,9 +4111,11 @@ struct tp_reverse<C<T, Args...>> {
 template <typename C>
 using tp_reverse_t = typename tp_reverse<C>::type;
 
+/// @private
 template <typename _Enable, size_t idx, typename C, template <typename...> typename P>
 struct __tp_find_if_helper;
 
+/// @private
 template <typename _Enable, size_t idx, template <typename...> typename C, typename T,
           typename... Args, template <typename...> typename P>
 struct __tp_find_if_helper<_Enable, idx, C<T, Args...>, P> {
@@ -4079,12 +4123,14 @@ struct __tp_find_if_helper<_Enable, idx, C<T, Args...>, P> {
         __tp_find_if_helper<void, idx + 1, C<Args...>, P>::value;
 };
 
+/// @private
 template <typename _Enable, size_t idx, template <typename...> typename C,
           template <typename...> typename P>
 struct __tp_find_if_helper<_Enable, idx, C<>, P> {
     constexpr static size_t value = -1;
 };
 
+/// @private
 template <size_t idx, template <typename...> typename C, typename T, typename... Args,
           template <typename...> typename P>
 struct __tp_find_if_helper<std::enable_if_t<P<T>::value, void>, idx, C<T, Args...>, P> {
@@ -4202,10 +4248,12 @@ struct tp_unique {
 template <typename C>
 using tp_unique_t = typename tp_unique<C>::type;
 
+/// @private
 template <typename _Enable, typename C, typename C1, typename C2,
           template <typename...> typename P>
 struct __tp_merge_helper;
 
+/// @private
 template <typename _Enable, template <typename...> typename C, typename... Args,
           template <typename...> typename C1, template <typename...> typename C2,
           typename... Args2, template <typename...> typename P>
@@ -4213,6 +4261,7 @@ struct __tp_merge_helper<_Enable, C<Args...>, C1<>, C2<Args2...>, P> {
     using type = tp_list<Args..., Args2...>;
 };
 
+/// @private
 template <typename _Enable, template <typename...> typename C, typename... Args,
           template <typename...> typename C1, typename... Args1,
           template <typename...> typename C2, template <typename...> typename P>
@@ -4220,6 +4269,7 @@ struct __tp_merge_helper<_Enable, C<Args...>, C1<Args1...>, C2<>, P> {
     using type = tp_list<Args..., Args1...>;
 };
 
+/// @private
 template <typename _Enable, template <typename...> typename C, typename... Args,
           template <typename...> typename C1, template <typename...> typename C2,
           template <typename...> typename P>
@@ -4227,6 +4277,7 @@ struct __tp_merge_helper<_Enable, C<Args...>, C1<>, C2<>, P> {
     using type = tp_list<Args...>;
 };
 
+/// @private
 template <template <typename...> typename C, typename... Args,
           template <typename...> typename C1, typename T1, typename... Args1,
           template <typename...> typename C2, typename T2, typename... Args2,
@@ -4237,6 +4288,7 @@ struct __tp_merge_helper<std::enable_if_t<P<T1, T2>::value, void>, C<Args...>,
                                             C2<T2, Args2...>, P>::type;
 };
 
+/// @private
 template <template <typename...> typename C, typename... Args,
           template <typename...> typename C1, typename T1, typename... Args1,
           template <typename...> typename C2, typename T2, typename... Args2,
@@ -4263,9 +4315,11 @@ using tp_merge_f = typename tp_merge<C1, C2, P::template fn>::type;
 template <typename C, template <typename...> typename P>
 struct tp_sort;
 
+/// @private
 template <typename C, template <typename...> typename P>
 struct __tp_sort_helper;
 
+/// @private
 template <template <typename...> typename C, typename... Args,
           template <typename...> typename P>
 struct __tp_sort_helper<C<Args...>, P> {
@@ -4277,12 +4331,14 @@ struct __tp_sort_helper<C<Args...>, P> {
     using type = tp_merge_t<type1, type2, P>;
 };
 
+/// @private
 template <template <typename...> typename C, typename T,
           template <typename...> typename P>
 struct __tp_sort_helper<C<T>, P> {
     using type = C<T>;
 };
 
+/// @private
 template <template <typename...> typename C, template <typename...> typename P>
 struct __tp_sort_helper<C<>, P> {
     using type = C<>;
@@ -4301,9 +4357,11 @@ using tp_sort_t = typename tp_sort<C, P>::type;
 template <typename C, typename P>
 using tp_sort_f = typename tp_sort<C, P::template fn>::type;
 
+/// @private
 template <typename T, typename S>
 struct __tp_make_integer_sequence_helper;
 
+/// @private
 template <typename T, T... Indexs>
 struct __tp_make_integer_sequence_helper<T, std::integer_sequence<T, Indexs...>> {
     using type = tp_list<std::integral_constant<T, Indexs>...>;
@@ -4319,9 +4377,11 @@ using tp_make_index_sequence = tp_make_integer_sequence<size_t, N>;
 template <typename... Args>
 using tp_index_sequence_for = tp_make_index_sequence<sizeof...(Args)>;
 
+/// @private
 template <typename T, typename S>
 struct __tp_make_std_integer_sequence_helper;
 
+/// @private
 template <typename T, T... Indexs>
 struct __tp_make_std_integer_sequence_helper<
     T, tp_list<std::integral_constant<T, Indexs>...>> {
@@ -5214,6 +5274,7 @@ constexpr decltype(auto) try_to_address(T &&t) noexcept {
 #endif
 }
 
+/// @private
 class __is_little_endian_helper {
     constexpr static std::uint32_t u4 = 1;
     constexpr static std::uint8_t u1 = static_cast<const std::uint8_t &>(u4);
@@ -5894,6 +5955,8 @@ WJR_CONST constexpr T __fasts_sub(T x, std::make_unsigned_t<T> y) {
 #ifndef WJR_MEMORY_COPY_HPP__
 #define WJR_MEMORY_COPY_HPP__
 
+#include <algorithm>
+
 #ifndef WJR_CONTAINER_GENERIC_DETAILS_HPP__
 #define WJR_CONTAINER_GENERIC_DETAILS_HPP__
 
@@ -6120,26 +6183,31 @@ WJR_INTRINSIC_INLINE void try_uninitialized_resize(Container &cont, Size sz) {
     }
 }
 
+/// @private
 template <typename T, typename = void>
 struct __container_traits_base_iterator_helper {
     using iterator = T;
 };
 
+/// @private
 template <typename T>
 struct __container_traits_base_iterator_helper<T, std::void_t<typename T::iterator>> {
     using iterator = typename T::iterator;
 };
 
+/// @private
 template <typename T, typename = void>
 struct __container_traits_base_size_type_helper {
     using size_type = size_t;
 };
 
+/// @private
 template <typename T>
 struct __container_traits_base_size_type_helper<T, std::void_t<typename T::size_type>> {
     using size_type = typename T::size_type;
 };
 
+/// @private
 template <typename Container>
 struct __container_traits_base {
 private:
@@ -6432,22 +6500,9 @@ constexpr OutputIt move_n_restrict(InputIt first, Size count, OutputIt d_first) 
 } // namespace wjr
 
 #endif // WJR_MEMORY_COPY_HPP__
-#ifndef WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
-#define WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
+#ifndef WJR_MEMORY_MEMORY_POOL_HPP__
+#define WJR_MEMORY_MEMORY_POOL_HPP__
 
-#ifndef WJR_MEMORY_UNINITIALIZED_HPP__
-#define WJR_MEMORY_UNINITIALIZED_HPP__
-
-/**
- * @file uninitialized.hpp
- * @brief The header file for uninitialized memory operations using allocator.
- *
- * @version 0.0.1
- * @date 2024-03-18
- *
- */
-
-// Already included
 #ifndef WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
 #define WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
 
@@ -6540,6 +6595,343 @@ struct trivially_allocator_traits {
 } // namespace wjr
 
 #endif // WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
+// Already included
+
+namespace wjr {
+
+namespace memory_pool_details {
+
+static constexpr uint8_t __small_index_table[128] = {
+    0,  1,  2,  3,  4,  4,  5,  5,  6,  6,  6,  6,  7,  7,  7,  7,  8,  8,  8,
+    8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  9,  9,  9,  9,  9,  9,
+    9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,
+    9,  9,  9,  9,  9,  9,  9,  10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+};
+
+static constexpr uint16_t __size_table[11 + 8] = {
+    8,    16,   24,   32,   48,   64,    96,    128,   256,   512,
+    1024, 2048, 4096, 6144, 8192, 10240, 12288, 14336, 16384,
+};
+
+} // namespace memory_pool_details
+
+template <int inst>
+class __default_alloc_template__ {
+private:
+    union obj {
+        union obj *free_list_link;
+        char client_data[1];
+    };
+
+    struct malloc_chunk {
+        struct __list_node {
+            __list_node *next = nullptr;
+            char buffer[];
+        };
+
+        malloc_chunk() noexcept = default;
+        ~malloc_chunk() noexcept {
+            while (head != nullptr) {
+                __list_node *next = head->next;
+                free(head);
+                head = next;
+            }
+        }
+
+        void *allocate(size_t n) noexcept {
+            __list_node *ptr = (__list_node *)malloc(n + sizeof(__list_node));
+            WJR_ASSERT(ptr != nullptr);
+            ptr->next = head;
+            head = ptr;
+            return ptr->buffer;
+        }
+
+        __list_node *head = nullptr;
+    };
+
+    static inline size_t __round_up(size_t bytes) noexcept {
+        return (((bytes) + 2048 - 1) & ~(2048 - 1));
+    }
+
+    static WJR_INTRINSIC_INLINE uint8_t __get_index(size_t bytes) noexcept {
+        if (bytes <= 1024) {
+            return memory_pool_details::__small_index_table[(bytes - 1) >> 3];
+        }
+
+        return 11 + (bytes - 1) / 2048;
+    }
+
+    static inline uint16_t __get_size(uint8_t idx) noexcept {
+        return memory_pool_details::__size_table[idx];
+    }
+
+public:
+    struct object {
+
+        // n must be > 0
+        allocation_result<void *> allocate(size_t n) noexcept {
+            if (n > (size_t)16384) {
+                return {malloc(n), n};
+            }
+
+            const size_t idx = __get_index(n);
+            const size_t size = __get_size(idx);
+            obj *volatile *my_free_list = free_list + idx;
+            obj *result = *my_free_list;
+            if (WJR_LIKELY(result != nullptr)) {
+                *my_free_list = result->free_list_link;
+                return {result, size};
+            }
+            return {refill(idx), size};
+        }
+
+        // p must not be 0
+        WJR_INTRINSIC_INLINE void deallocate(void *p, size_t n) noexcept {
+            if (n > (size_t)16384) {
+                free(p);
+                return;
+            }
+
+            obj *q = (obj *)p;
+            obj *volatile *my_free_list = free_list + __get_index(n);
+            q->free_list_link = *my_free_list;
+            *my_free_list = q;
+        }
+
+        // Returns an object of size n, and optionally adds to size n free list.
+        WJR_NOINLINE void *refill(uint8_t idx) noexcept;
+
+        // Allocates a chunk for nobjs of size "size".  nobjs may be reduced
+        // if it is inconvenient to allocate the requested number.
+        char *chunk_alloc(uint8_t idx, int &nobjs) noexcept;
+
+        obj *volatile free_list[19] = {nullptr};
+        char *start_free = nullptr;
+        char *end_free = nullptr;
+        size_t heap_size = 0;
+    };
+
+    static object &get_instance() noexcept {
+        static thread_local object instance;
+        return instance;
+    }
+
+    // n must be > 0
+    static allocation_result<void *> allocate(size_t n) noexcept {
+        return get_instance().allocate(n);
+    }
+
+    // p must not be 0
+    WJR_INTRINSIC_INLINE static void deallocate(void *p, size_t n) noexcept {
+        get_instance().deallocate(p, n);
+    }
+};
+
+//----------------------------------------------
+// We allocate memory in large chunks in order to
+// avoid fragmentingthe malloc heap too much.
+// We assume that size is properly aligned.
+// We hold the allocation lock.
+//----------------------------------------------
+template <int inst>
+char *__default_alloc_template__<inst>::object::chunk_alloc(uint8_t idx,
+                                                            int &nobjs) noexcept {
+    const size_t size = __get_size(idx);
+    char *result;
+    size_t total_bytes = size * nobjs;
+    auto bytes_left = static_cast<size_t>(end_free - start_free);
+
+    if (bytes_left >= total_bytes) {
+        result = start_free;
+        start_free += total_bytes;
+        return (result);
+    }
+
+    if (bytes_left >= size) {
+        nobjs = static_cast<int>(bytes_left / size);
+        total_bytes = size * nobjs;
+        result = start_free;
+        start_free += total_bytes;
+        return (result);
+    }
+
+    // Try to make use of the left-over piece.
+    if (bytes_left > 0) {
+        WJR_ASSERT(!(bytes_left & 7));
+
+        char *start_free = this->start_free;
+        uint8_t __idx = __get_index(bytes_left);
+        for (;; --__idx) {
+            const auto __size = __get_size(__idx);
+            if (bytes_left >= __size) {
+                obj *volatile *my_free_list = free_list + __idx;
+                ((obj *)start_free)->free_list_link = *my_free_list;
+                *my_free_list = (obj *)start_free;
+
+                if (bytes_left == __size) {
+                    break;
+                }
+
+                start_free += __size;
+                bytes_left -= __size;
+            }
+        }
+    }
+
+    do {
+        obj *volatile *my_free_list;
+        if (idx < 11) {
+            for (int i = 18; i > 11; --i) {
+                my_free_list = free_list + i;
+                obj *p = *my_free_list;
+                // split the chunk
+                if (p != nullptr) {
+                    *my_free_list = p->free_list_link;
+                    start_free = (char *)(p);
+                    char *__e = (char *)(p) + 2048;
+                    end_free = __e;
+                    obj *e = (obj *)(__e);
+                    --my_free_list;
+                    e->free_list_link = *my_free_list;
+                    *my_free_list = e;
+                    return (chunk_alloc(idx, nobjs));
+                }
+            }
+        }
+    } while (0);
+
+    const size_t bytes_to_get = 2 * total_bytes + __round_up(heap_size >> 3);
+
+    static thread_local malloc_chunk chunk;
+    start_free = (char *)chunk.allocate(bytes_to_get);
+
+    WJR_ASSERT(start_free != nullptr);
+
+    heap_size += bytes_to_get;
+    end_free = start_free + bytes_to_get;
+    return (chunk_alloc(idx, nobjs));
+}
+
+//----------------------------------------------
+// Returns an object of size n, and optionally adds
+// to size n free list.We assume that n is properly aligned.
+// We hold the allocation lock.
+//----------------------------------------------
+template <int inst>
+void *__default_alloc_template__<inst>::object::refill(uint8_t idx) noexcept {
+    int nobjs = idx < 6 ? 32 : idx < 8 ? 16 : idx < 11 ? 8 : 4;
+    char *chunk = chunk_alloc(idx, nobjs);
+    obj *current_obj;
+    obj *next_obj;
+
+    if (1 == nobjs) {
+        return (chunk);
+    }
+
+    obj *volatile *my_free_list = free_list + idx;
+
+    const size_t n = __get_size(idx);
+
+    // Build free list in chunk
+    obj *result = (obj *)chunk;
+
+    *my_free_list = current_obj = (obj *)(chunk + n);
+    nobjs -= 2;
+    while (nobjs) {
+        --nobjs;
+        next_obj = (obj *)((char *)current_obj + n);
+        current_obj->free_list_link = next_obj;
+        current_obj = next_obj;
+    }
+    current_obj->free_list_link = 0;
+    return (result);
+}
+
+template <typename Ty>
+class memory_pool {
+private:
+    using allocator_type = __default_alloc_template__<0>;
+
+public:
+    using value_type = Ty;
+    using size_type = size_t;
+    using difference_type = ptrdiff_t;
+    using propagate_on_container_move_assignment = std::true_type;
+    using is_always_equal = std::true_type;
+    using is_trivially_allocator = std::true_type;
+
+    template <typename Other>
+    struct rebind {
+        using other = memory_pool<Other>;
+    };
+
+    constexpr memory_pool() noexcept = default;
+    constexpr memory_pool(const memory_pool &) noexcept = default;
+    template <typename Other>
+    constexpr memory_pool(const memory_pool<Other> &) noexcept {}
+    ~memory_pool() = default;
+    memory_pool &operator=(const memory_pool &) noexcept = default;
+
+    WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
+    allocate_at_least(size_type n) const noexcept {
+        if (WJR_UNLIKELY(0 == n)) {
+            return {nullptr, 0};
+        }
+
+        const auto ret = allocator_type::allocate(n * sizeof(Ty));
+        return {static_cast<Ty *>(ret.ptr), ret.count};
+    }
+
+    WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *allocate(size_type n) const noexcept {
+        return allocate_at_least(n).ptr;
+    }
+
+    WJR_CONSTEXPR20 void deallocate(Ty *ptr, size_type n) const noexcept {
+        if (WJR_UNLIKELY(0 == n)) {
+            return;
+        }
+
+        return allocator_type::deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
+    }
+
+    constexpr size_t max_size() const noexcept {
+        return static_cast<size_t>(-1) / sizeof(Ty);
+    }
+};
+
+template <typename T, typename U>
+constexpr bool operator==(const memory_pool<T> &, const memory_pool<U> &) noexcept {
+    return true;
+}
+
+template <typename T, typename U>
+constexpr bool operator!=(const memory_pool<T> &, const memory_pool<U> &) noexcept {
+    return false;
+}
+
+} // namespace wjr
+
+#endif // WJR_MEMORY_MEMORY_POOL_HPP__
+#ifndef WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
+#define WJR_MEMORY_TEMPORARY_VALUE_ALLOCATOR_HPP__
+
+#ifndef WJR_MEMORY_UNINITIALIZED_HPP__
+#define WJR_MEMORY_UNINITIALIZED_HPP__
+
+/**
+ * @file uninitialized.hpp
+ * @brief The header file for uninitialized memory operations using allocator.
+ *
+ * @version 0.0.1
+ * @date 2024-03-18
+ *
+ */
+
+// Already included
+// Already included
 // Already included
 
 namespace wjr {
@@ -7295,6 +7687,7 @@ private:
     pointer &m_pos;
 };
 
+/// @private
 template <typename pointer, typename size_type>
 struct __unref_wrapper_helper<default_vector_size_reference<pointer, size_type>> {
     using type = uint32_t &;
@@ -19985,323 +20378,7 @@ using nonsendable = __nonsendable_checker<Tag>;
 } // namespace wjr
 
 #endif // WJR_CRTP_NONSENDABLE_HPP__
-#ifndef WJR_MEMORY_MEMORY_POOL_HPP__
-#define WJR_MEMORY_MEMORY_POOL_HPP__
-
 // Already included
-// Already included
-
-namespace wjr {
-
-namespace memory_pool_details {
-
-static constexpr uint8_t __small_index_table[128] = {
-    0,  1,  2,  3,  4,  4,  5,  5,  6,  6,  6,  6,  7,  7,  7,  7,  8,  8,  8,
-    8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  9,  9,  9,  9,  9,  9,
-    9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,
-    9,  9,  9,  9,  9,  9,  9,  10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
-    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
-    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
-    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
-};
-
-static constexpr uint16_t __size_table[11 + 8] = {
-    8,    16,   24,   32,   48,   64,    96,    128,   256,   512,
-    1024, 2048, 4096, 6144, 8192, 10240, 12288, 14336, 16384,
-};
-
-} // namespace memory_pool_details
-
-template <int inst>
-class __default_alloc_template__ {
-private:
-    union obj {
-        union obj *free_list_link;
-        char client_data[1];
-    };
-
-    struct malloc_chunk {
-        struct __list_node {
-            __list_node *next = nullptr;
-            char buffer[];
-        };
-
-        malloc_chunk() noexcept = default;
-        ~malloc_chunk() noexcept {
-            while (head != nullptr) {
-                __list_node *next = head->next;
-                free(head);
-                head = next;
-            }
-        }
-
-        void *allocate(size_t n) noexcept {
-            __list_node *ptr = (__list_node *)malloc(n + sizeof(__list_node));
-            WJR_ASSERT(ptr != nullptr);
-            ptr->next = head;
-            head = ptr;
-            return ptr->buffer;
-        }
-
-        __list_node *head = nullptr;
-    };
-
-    struct object {
-        obj *volatile free_list[19] = {nullptr};
-        char *start_free = nullptr;
-        char *end_free = nullptr;
-        size_t heap_size = 0;
-    };
-
-    static object &get_instance() noexcept {
-        static thread_local object instance;
-        return instance;
-    }
-
-    static obj *volatile *get_free_list() noexcept { return get_instance().free_list; }
-    static char *&get_start_free() noexcept { return get_instance().start_free; }
-    static char *&get_end_free() noexcept { return get_instance().end_free; }
-    static size_t &get_heap_size() noexcept { return get_instance().heap_size; }
-
-    static inline size_t __round_up(size_t bytes) noexcept {
-        return (((bytes) + 2048 - 1) & ~(2048 - 1));
-    }
-
-    static WJR_INTRINSIC_INLINE uint8_t __get_index(size_t bytes) noexcept {
-        if (bytes <= 1024) {
-            return memory_pool_details::__small_index_table[(bytes - 1) >> 3];
-        }
-
-        return 11 + (bytes - 1) / 2048;
-    }
-
-    static inline uint16_t __get_size(uint8_t idx) noexcept {
-        return memory_pool_details::__size_table[idx];
-    }
-
-    // Returns an object of size n, and optionally adds to size n free list.
-    WJR_NOINLINE static void *refill(uint8_t idx) noexcept;
-
-    // Allocates a chunk for nobjs of size "size".  nobjs may be reduced
-    // if it is inconvenient to allocate the requested number.
-    static char *chunk_alloc(uint8_t idx, int &nobjs) noexcept;
-
-public:
-    // n must be > 0
-    static allocation_result<void *> allocate(size_t n) noexcept {
-        if (n > (size_t)16384) {
-            return {malloc(n), n};
-        }
-
-        const size_t idx = __get_index(n);
-        const size_t size = __get_size(idx);
-        obj *volatile *my_free_list = get_free_list() + idx;
-        obj *result = *my_free_list;
-        if (WJR_LIKELY(result != nullptr)) {
-            *my_free_list = result->free_list_link;
-            return {result, size};
-        }
-        return {refill(idx), size};
-    }
-
-    // p must not be 0
-    WJR_INTRINSIC_INLINE static void deallocate(void *p, size_t n) noexcept {
-        if (n > (size_t)16384) {
-            free(p);
-            return;
-        }
-
-        obj *q = (obj *)p;
-        obj *volatile *my_free_list = get_free_list() + __get_index(n);
-        q->free_list_link = *my_free_list;
-        *my_free_list = q;
-    }
-};
-
-//----------------------------------------------
-// We allocate memory in large chunks in order to
-// avoid fragmentingthe malloc heap too much.
-// We assume that size is properly aligned.
-// We hold the allocation lock.
-//----------------------------------------------
-template <int inst>
-char *__default_alloc_template__<inst>::chunk_alloc(uint8_t idx, int &nobjs) noexcept {
-    const size_t size = __get_size(idx);
-    char *result;
-    size_t total_bytes = size * nobjs;
-    auto bytes_left = static_cast<size_t>(get_end_free() - get_start_free());
-
-    if (bytes_left >= total_bytes) {
-        result = get_start_free();
-        get_start_free() += total_bytes;
-        return (result);
-    }
-
-    if (bytes_left >= size) {
-        nobjs = static_cast<int>(bytes_left / size);
-        total_bytes = size * nobjs;
-        result = get_start_free();
-        get_start_free() += total_bytes;
-        return (result);
-    }
-
-    // Try to make use of the left-over piece.
-    if (bytes_left > 0) {
-        WJR_ASSERT(!(bytes_left & 7));
-
-        char *start_free = get_start_free();
-        uint8_t __idx = __get_index(bytes_left);
-        for (;; --__idx) {
-            const auto __size = __get_size(__idx);
-            if (bytes_left >= __size) {
-                obj *volatile *my_free_list = get_free_list() + __idx;
-                ((obj *)start_free)->free_list_link = *my_free_list;
-                *my_free_list = (obj *)start_free;
-
-                if (bytes_left == __size) {
-                    break;
-                }
-
-                start_free += __size;
-                bytes_left -= __size;
-            }
-        }
-    }
-
-    do {
-        obj *volatile *my_free_list;
-        if (idx < 11) {
-            for (int i = 18; i > 11; --i) {
-                my_free_list = get_free_list() + i;
-                obj *p = *my_free_list;
-                // split the chunk
-                if (p != nullptr) {
-                    *my_free_list = p->free_list_link;
-                    get_start_free() = (char *)(p);
-                    char *__e = (char *)(p) + 2048;
-                    get_end_free() = __e;
-                    obj *e = (obj *)(__e);
-                    --my_free_list;
-                    e->free_list_link = *my_free_list;
-                    *my_free_list = e;
-                    return (chunk_alloc(idx, nobjs));
-                }
-            }
-        }
-    } while (0);
-
-    const size_t bytes_to_get = 2 * total_bytes + __round_up(get_heap_size() >> 3);
-
-    static thread_local malloc_chunk chunk;
-    get_start_free() = (char *)chunk.allocate(bytes_to_get);
-
-    WJR_ASSERT(get_start_free() != nullptr);
-
-    get_heap_size() += bytes_to_get;
-    get_end_free() = get_start_free() + bytes_to_get;
-    return (chunk_alloc(idx, nobjs));
-}
-
-//----------------------------------------------
-// Returns an object of size n, and optionally adds
-// to size n free list.We assume that n is properly aligned.
-// We hold the allocation lock.
-//----------------------------------------------
-template <int inst>
-void *__default_alloc_template__<inst>::refill(uint8_t idx) noexcept {
-    int nobjs = idx < 6 ? 32 : idx < 8 ? 16 : idx < 11 ? 8 : 4;
-    char *chunk = chunk_alloc(idx, nobjs);
-    obj *current_obj;
-    obj *next_obj;
-
-    if (1 == nobjs) {
-        return (chunk);
-    }
-
-    obj *volatile *my_free_list = get_free_list() + idx;
-
-    const size_t n = __get_size(idx);
-
-    // Build free list in chunk
-    obj *result = (obj *)chunk;
-
-    *my_free_list = current_obj = (obj *)(chunk + n);
-    nobjs -= 2;
-    while (nobjs) {
-        --nobjs;
-        next_obj = (obj *)((char *)current_obj + n);
-        current_obj->free_list_link = next_obj;
-        current_obj = next_obj;
-    }
-    current_obj->free_list_link = 0;
-    return (result);
-}
-
-template <typename Ty>
-class memory_pool {
-private:
-    using allocator_type = __default_alloc_template__<0>;
-
-public:
-    using value_type = Ty;
-    using size_type = size_t;
-    using difference_type = ptrdiff_t;
-    using propagate_on_container_move_assignment = std::true_type;
-    using is_always_equal = std::true_type;
-    using is_trivially_allocator = std::true_type;
-
-    template <typename Other>
-    struct rebind {
-        using other = memory_pool<Other>;
-    };
-
-    constexpr memory_pool() noexcept = default;
-    constexpr memory_pool(const memory_pool &) noexcept = default;
-    template <typename Other>
-    constexpr memory_pool(const memory_pool<Other> &) noexcept {}
-    ~memory_pool() = default;
-    memory_pool &operator=(const memory_pool &) noexcept = default;
-
-    WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
-    allocate_at_least(size_type n) const noexcept {
-        if (WJR_UNLIKELY(0 == n)) {
-            return {nullptr, 0};
-        }
-
-        const auto ret = allocator_type::allocate(n * sizeof(Ty));
-        return {static_cast<Ty *>(ret.ptr), ret.count};
-    }
-
-    WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *allocate(size_type n) const noexcept {
-        return allocate_at_least(n).ptr;
-    }
-
-    WJR_CONSTEXPR20 void deallocate(Ty *ptr, size_type n) const noexcept {
-        if (WJR_UNLIKELY(0 == n)) {
-            return;
-        }
-
-        return allocator_type::deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
-    }
-
-    constexpr size_t max_size() const noexcept {
-        return static_cast<size_t>(-1) / sizeof(Ty);
-    }
-};
-
-template <typename T, typename U>
-constexpr bool operator==(const memory_pool<T> &, const memory_pool<U> &) noexcept {
-    return true;
-}
-
-template <typename T, typename U>
-constexpr bool operator!=(const memory_pool<T> &, const memory_pool<U> &) noexcept {
-    return false;
-}
-
-} // namespace wjr
-
-#endif // WJR_MEMORY_MEMORY_POOL_HPP__
 // Already included
 
 namespace wjr {
@@ -24873,7 +24950,7 @@ inline constexpr std::array<uint16_t, 0x100> div2by1_u64_lookup = {
     0x406, 0x404, 0x402, 0x400};
 
 // invert of (2 * i + 1) mod 256
-inline constexpr std::array<uint64_t, 0x80> divexact1_lookup = {
+inline constexpr std::array<uint8_t, 0x80> divexact1_lookup = {
     0x01, 0xAB, 0xCD, 0xB7, 0x39, 0xA3, 0xC5, 0xEF, 0xF1, 0x1B, 0x3D, 0xA7, 0x29,
     0x13, 0x35, 0xDF, 0xE1, 0x8B, 0xAD, 0x97, 0x19, 0x83, 0xA5, 0xCF, 0xD1, 0xFB,
     0x1D, 0x87, 0x09, 0xF3, 0x15, 0xBF, 0xC1, 0x6B, 0x8D, 0x77, 0xF9, 0x63, 0x85,
@@ -26341,8 +26418,8 @@ WJR_CONSTEXPR_E void divexact_byc(T *dst, const T *src, size_t n,
 template <typename T>
 WJR_CONSTEXPR_E void fallback_divexact_1_noshift(T *dst, const T *src, size_t n,
                                                  const divexact1_divider<T> &div) {
-    uint64_t divisor = div.get_divisor();
-    uint64_t value = div.get_value();
+    const uint64_t divisor = div.get_divisor();
+    const uint64_t value = div.get_value();
 
     uint64_t rdx = 0, r10 = 0;
     uint64_t cf = 0;
@@ -31063,6 +31140,7 @@ private:
     int32_t *m_size;
 };
 
+/// @private
 template <>
 struct __unref_wrapper_helper<default_biginteger_size_reference> {
     using type = uint32_t &;

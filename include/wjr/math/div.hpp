@@ -957,8 +957,8 @@ WJR_CONSTEXPR_E void divexact_byc(T *dst, const T *src, size_t n,
 template <typename T>
 WJR_CONSTEXPR_E void fallback_divexact_1_noshift(T *dst, const T *src, size_t n,
                                                  const divexact1_divider<T> &div) {
-    uint64_t divisor = div.get_divisor();
-    uint64_t value = div.get_value();
+    const uint64_t divisor = div.get_divisor();
+    const uint64_t value = div.get_value();
 
     uint64_t rdx = 0, r10 = 0;
     uint64_t cf = 0;

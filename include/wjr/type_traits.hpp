@@ -122,40 +122,48 @@ struct remove_cvref {
 template <typename T>
 using remove_cvref_t = typename remove_cvref<T>::type;
 
+/// @private
 template <size_t n>
 struct __uint_selector {};
 
+/// @private
 template <>
 struct __uint_selector<8> {
     using type = std::uint8_t;
 };
 
+/// @private
 template <>
 struct __uint_selector<16> {
     using type = std::uint16_t;
 };
 
+/// @private
 template <>
 struct __uint_selector<32> {
     using type = std::uint32_t;
 };
 
+/// @private
 template <>
 struct __uint_selector<64> {
     using type = std::uint64_t;
 };
 
+/// @private
 template <size_t n>
 struct __int_selector {
     using type = std::make_signed_t<typename __uint_selector<n>::type>;
 };
 
 #if WJR_HAS_FEATURE(INT128)
+/// @private
 template <>
 struct __uint_selector<128> {
     using type = __uint128_t;
 };
 
+/// @private
 template <>
 struct __int_selector<128> {
     using type = __int128_t;
@@ -296,11 +304,13 @@ struct is_nothrow_swappable : is_nothrow_swappable_with<std::add_lvalue_referenc
 template <typename T>
 inline constexpr bool is_nothrow_swappable_v = is_nothrow_swappable<T>::value;
 
+/// @private
 template <typename T>
 struct __unref_wrapper_helper {
     using type = T;
 };
 
+/// @private
 template <typename T>
 struct __unref_wrapper_helper<std::reference_wrapper<T>> {
     using type = T &;
@@ -368,9 +378,11 @@ struct is_derived_from
 template <typename Derived, typename Base>
 inline constexpr bool is_derived_from_v = is_derived_from<Derived, Base>::Value;
 
+/// @private
 template <typename From, typename To, typename = void>
 struct __is_convertible_to_helper : std::false_type {};
 
+/// @private
 template <typename From, typename To>
 struct __is_convertible_to_helper<
     From, To, std::void_t<decltype(static_cast<To>(std::declval<From>()))>>

@@ -43,9 +43,11 @@ struct tp_is_fn : std::false_type {};
 template <typename T>
 inline constexpr bool tp_is_fn_v = tp_is_fn<T>::value;
 
+/// @private
 template <typename _Enable, template <typename...> typename F, typename... Args>
 struct __tp_is_valid_helper : std::false_type {};
 
+/// @private
 template <template <typename...> typename F, typename... Args>
 struct __tp_is_valid_helper<std::void_t<F<Args...>>, F, Args...> : std::true_type {};
 
@@ -58,6 +60,7 @@ inline constexpr bool tp_is_valid_v = tp_is_valid<F, Args...>::value;
 template <typename F, typename... Args>
 inline constexpr bool tp_is_valid_f = tp_is_valid_v<F::template fn, Args...>;
 
+/// @private
 template <template <typename...> typename F, typename... Args>
 struct __tp_defer_helper {
     using type = F<Args...>;
@@ -167,42 +170,51 @@ struct tp_push_back<C<Args1...>, Args2...> {
 template <typename T, typename... Args>
 using tp_push_back_t = typename tp_push_back<T, Args...>::type;
 
+/// @private
 template <typename _Enable, size_t I, size_t N, typename... Args>
 struct __tp_cut_helper;
 
+/// @private
 template <size_t I, size_t N, typename T, typename... Args>
 struct __tp_cut_helper<std::enable_if_t<N != 0, void>, I, N, T, Args...> {
     using type = typename __tp_cut_helper<void, I - 1, N, Args...>::type;
 };
 
+/// @private
 template <size_t I, size_t N, typename T, typename... Args>
 struct __tp_cut_helper<std::enable_if_t<N == 0, void>, I, N, T, Args...> {
     using type = tp_list<>;
 };
 
+/// @private
 template <size_t N, typename... Args2>
 struct __tp_cut_helper2;
 
+/// @private
 template <size_t N, typename T, typename... Args>
 struct __tp_cut_helper2<N, T, Args...> {
     using type = tp_push_front_t<typename __tp_cut_helper2<N - 1, Args...>::type, T>;
 };
 
+/// @private
 template <typename... Args>
 struct __tp_cut_helper2<0, Args...> {
     using type = tp_list<>;
 };
 
+/// @private
 template <typename T, typename... Args>
 struct __tp_cut_helper2<0, T, Args...> {
     using type = tp_list<>;
 };
 
+/// @private
 template <size_t N, typename... Args>
 struct __tp_cut_helper<std::enable_if_t<N != 0>, 0, N, Args...> {
     using type = typename __tp_cut_helper2<N, Args...>::type;
 };
 
+/// @private
 template <size_t N, typename T, typename... Args>
 struct __tp_cut_helper<std::enable_if_t<N != 0>, 0, N, T, Args...> {
     using type = typename __tp_cut_helper2<N, T, Args...>::type;
@@ -249,14 +261,17 @@ struct tp_pop_back : tp_cut<T, 0, tp_size_v<T> - 1> {};
 template <typename T>
 using tp_pop_back_t = typename tp_pop_back<T>::type;
 
+/// @private
 template <size_t index, typename... Args>
 struct __tp_at_helper;
 
+/// @private
 template <size_t index, typename T, typename... Args>
 struct __tp_at_helper<index, T, Args...> {
     using type = typename __tp_at_helper<index - 1, Args...>::type;
 };
 
+/// @private
 template <typename T, typename... Args>
 struct __tp_at_helper<0, T, Args...> {
     using type = T;
@@ -440,11 +455,13 @@ using tp_apply_t = typename tp_apply<F, T>::type;
 template <typename F, typename T>
 using tp_apply_f = tp_apply_t<F::template fn, T>;
 
+/// @private
 template <typename _Enable, typename T, typename... Args>
 struct __tp_bind_helper {
     using type = T;
 };
 
+/// @private
 template <typename F, typename... Args>
 struct __tp_bind_helper<std::enable_if_t<tp_is_fn_v<F>, void>, F, Args...> {
     using type = typename F::template fn<Args...>;
@@ -502,9 +519,11 @@ using tp_transform_f = typename tp_transform<T, F::template fn>::type;
 template <template <typename...> typename C, typename... Args>
 struct tp_zip;
 
+/// @private
 template <template <typename...> typename C, typename T>
 struct __tp_zip_helper;
 
+/// @private
 template <template <typename...> typename C, size_t... Indexs>
 struct __tp_zip_helper<C, std::index_sequence<Indexs...>> {
     template <size_t I, typename... Args>
@@ -539,14 +558,17 @@ struct tp_zip<C, T, Args...> {
 template <template <typename...> typename C, typename... Args>
 using tp_zip_t = typename tp_zip<C, Args...>::type;
 
+/// @private
 template <typename... Args>
 struct __tp_max_size_helper;
 
+/// @private
 template <typename T>
 struct __tp_max_size_helper<T> {
     constexpr static size_t value = tp_size_v<T>;
 };
 
+/// @private
 template <typename T, typename... Args>
 struct __tp_max_size_helper<T, Args...> {
     constexpr static size_t value =
@@ -700,9 +722,11 @@ using tp_filter_f = tp_filter_t<T, P::template fn>;
 template <typename T, typename U>
 struct tp_equal;
 
+/// @private
 template <typename _Enable, typename T, typename U>
 struct __tp_equal_helper : std::false_type {};
 
+/// @private
 template <template <typename...> typename C, typename... Args,
           template <typename...> typename D, typename... Args2>
 struct __tp_equal_helper<std::enable_if_t<sizeof...(Args) == sizeof...(Args2), void>,
@@ -728,11 +752,13 @@ struct tp_repeat<T, 0> {
 template <typename C, size_t N>
 using tp_repeat_t = typename tp_repeat<C, N>::type;
 
+/// @private
 template <typename _Enable, typename C, size_t N, typename V>
 struct __tp_resize_helper {
     using type = tp_cut_t<C, 0, N>;
 };
 
+/// @private
 template <typename C, size_t N, typename V>
 struct __tp_resize_helper<std::enable_if_t<N >= tp_size_v<C>, void>, C, N, V> {
     using type = tp_concat_t<C, tp_repeat_t<V, N - tp_size_v<C>>>;
@@ -749,16 +775,19 @@ using tp_resize_t = typename tp_resize<C, N, V>::type;
 template <template <typename...> typename C, typename... Args>
 struct tp_product;
 
+/// @private
 template <typename _Enable, template <typename...> typename C, typename... Args>
 struct __tp_product_helper {
     using type = tp_list<>;
 };
 
+/// @private
 template <typename _Enable, template <typename...> typename C, typename T>
 struct __tp_product_helper<_Enable, C, T> {
     using type = tp_list<tp_rename_t<T, C>>;
 };
 
+/// @private
 template <template <typename...> typename C, typename T,
           template <typename...> typename C1, typename... Args1, typename... Args>
 struct __tp_product_helper<std::enable_if_t<sizeof...(Args1) != 0, void>, C, T,
@@ -815,9 +844,11 @@ struct tp_reverse<C<T, Args...>> {
 template <typename C>
 using tp_reverse_t = typename tp_reverse<C>::type;
 
+/// @private
 template <typename _Enable, size_t idx, typename C, template <typename...> typename P>
 struct __tp_find_if_helper;
 
+/// @private
 template <typename _Enable, size_t idx, template <typename...> typename C, typename T,
           typename... Args, template <typename...> typename P>
 struct __tp_find_if_helper<_Enable, idx, C<T, Args...>, P> {
@@ -825,12 +856,14 @@ struct __tp_find_if_helper<_Enable, idx, C<T, Args...>, P> {
         __tp_find_if_helper<void, idx + 1, C<Args...>, P>::value;
 };
 
+/// @private
 template <typename _Enable, size_t idx, template <typename...> typename C,
           template <typename...> typename P>
 struct __tp_find_if_helper<_Enable, idx, C<>, P> {
     constexpr static size_t value = -1;
 };
 
+/// @private
 template <size_t idx, template <typename...> typename C, typename T, typename... Args,
           template <typename...> typename P>
 struct __tp_find_if_helper<std::enable_if_t<P<T>::value, void>, idx, C<T, Args...>, P> {
@@ -948,10 +981,12 @@ struct tp_unique {
 template <typename C>
 using tp_unique_t = typename tp_unique<C>::type;
 
+/// @private
 template <typename _Enable, typename C, typename C1, typename C2,
           template <typename...> typename P>
 struct __tp_merge_helper;
 
+/// @private
 template <typename _Enable, template <typename...> typename C, typename... Args,
           template <typename...> typename C1, template <typename...> typename C2,
           typename... Args2, template <typename...> typename P>
@@ -959,6 +994,7 @@ struct __tp_merge_helper<_Enable, C<Args...>, C1<>, C2<Args2...>, P> {
     using type = tp_list<Args..., Args2...>;
 };
 
+/// @private
 template <typename _Enable, template <typename...> typename C, typename... Args,
           template <typename...> typename C1, typename... Args1,
           template <typename...> typename C2, template <typename...> typename P>
@@ -966,6 +1002,7 @@ struct __tp_merge_helper<_Enable, C<Args...>, C1<Args1...>, C2<>, P> {
     using type = tp_list<Args..., Args1...>;
 };
 
+/// @private
 template <typename _Enable, template <typename...> typename C, typename... Args,
           template <typename...> typename C1, template <typename...> typename C2,
           template <typename...> typename P>
@@ -973,6 +1010,7 @@ struct __tp_merge_helper<_Enable, C<Args...>, C1<>, C2<>, P> {
     using type = tp_list<Args...>;
 };
 
+/// @private
 template <template <typename...> typename C, typename... Args,
           template <typename...> typename C1, typename T1, typename... Args1,
           template <typename...> typename C2, typename T2, typename... Args2,
@@ -983,6 +1021,7 @@ struct __tp_merge_helper<std::enable_if_t<P<T1, T2>::value, void>, C<Args...>,
                                             C2<T2, Args2...>, P>::type;
 };
 
+/// @private
 template <template <typename...> typename C, typename... Args,
           template <typename...> typename C1, typename T1, typename... Args1,
           template <typename...> typename C2, typename T2, typename... Args2,
@@ -1009,9 +1048,11 @@ using tp_merge_f = typename tp_merge<C1, C2, P::template fn>::type;
 template <typename C, template <typename...> typename P>
 struct tp_sort;
 
+/// @private
 template <typename C, template <typename...> typename P>
 struct __tp_sort_helper;
 
+/// @private
 template <template <typename...> typename C, typename... Args,
           template <typename...> typename P>
 struct __tp_sort_helper<C<Args...>, P> {
@@ -1023,12 +1064,14 @@ struct __tp_sort_helper<C<Args...>, P> {
     using type = tp_merge_t<type1, type2, P>;
 };
 
+/// @private
 template <template <typename...> typename C, typename T,
           template <typename...> typename P>
 struct __tp_sort_helper<C<T>, P> {
     using type = C<T>;
 };
 
+/// @private
 template <template <typename...> typename C, template <typename...> typename P>
 struct __tp_sort_helper<C<>, P> {
     using type = C<>;
@@ -1047,9 +1090,11 @@ using tp_sort_t = typename tp_sort<C, P>::type;
 template <typename C, typename P>
 using tp_sort_f = typename tp_sort<C, P::template fn>::type;
 
+/// @private
 template <typename T, typename S>
 struct __tp_make_integer_sequence_helper;
 
+/// @private
 template <typename T, T... Indexs>
 struct __tp_make_integer_sequence_helper<T, std::integer_sequence<T, Indexs...>> {
     using type = tp_list<std::integral_constant<T, Indexs>...>;
@@ -1065,9 +1110,11 @@ using tp_make_index_sequence = tp_make_integer_sequence<size_t, N>;
 template <typename... Args>
 using tp_index_sequence_for = tp_make_index_sequence<sizeof...(Args)>;
 
+/// @private
 template <typename T, typename S>
 struct __tp_make_std_integer_sequence_helper;
 
+/// @private
 template <typename T, T... Indexs>
 struct __tp_make_std_integer_sequence_helper<
     T, tp_list<std::integral_constant<T, Indexs>...>> {

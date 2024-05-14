@@ -59,23 +59,6 @@ private:
         __list_node *head = nullptr;
     };
 
-    struct object {
-        obj *volatile free_list[19] = {nullptr};
-        char *start_free = nullptr;
-        char *end_free = nullptr;
-        size_t heap_size = 0;
-    };
-
-    static object &get_instance() noexcept {
-        static thread_local object instance;
-        return instance;
-    }
-
-    static obj *volatile *get_free_list() noexcept { return get_instance().free_list; }
-    static char *&get_start_free() noexcept { return get_instance().start_free; }
-    static char *&get_end_free() noexcept { return get_instance().end_free; }
-    static size_t &get_heap_size() noexcept { return get_instance().heap_size; }
-
     static inline size_t __round_up(size_t bytes) noexcept {
         return (((bytes) + 2048 - 1) & ~(2048 - 1));
     }
@@ -92,42 +75,65 @@ private:
         return memory_pool_details::__size_table[idx];
     }
 
-    // Returns an object of size n, and optionally adds to size n free list.
-    WJR_NOINLINE static void *refill(uint8_t idx) noexcept;
-
-    // Allocates a chunk for nobjs of size "size".  nobjs may be reduced
-    // if it is inconvenient to allocate the requested number.
-    static char *chunk_alloc(uint8_t idx, int &nobjs) noexcept;
-
 public:
+    struct object {
+
+        // n must be > 0
+        allocation_result<void *> allocate(size_t n) noexcept {
+            if (n > (size_t)16384) {
+                return {malloc(n), n};
+            }
+
+            const size_t idx = __get_index(n);
+            const size_t size = __get_size(idx);
+            obj *volatile *my_free_list = free_list + idx;
+            obj *result = *my_free_list;
+            if (WJR_LIKELY(result != nullptr)) {
+                *my_free_list = result->free_list_link;
+                return {result, size};
+            }
+            return {refill(idx), size};
+        }
+
+        // p must not be 0
+        WJR_INTRINSIC_INLINE void deallocate(void *p, size_t n) noexcept {
+            if (n > (size_t)16384) {
+                free(p);
+                return;
+            }
+
+            obj *q = (obj *)p;
+            obj *volatile *my_free_list = free_list + __get_index(n);
+            q->free_list_link = *my_free_list;
+            *my_free_list = q;
+        }
+
+        // Returns an object of size n, and optionally adds to size n free list.
+        WJR_NOINLINE void *refill(uint8_t idx) noexcept;
+
+        // Allocates a chunk for nobjs of size "size".  nobjs may be reduced
+        // if it is inconvenient to allocate the requested number.
+        char *chunk_alloc(uint8_t idx, int &nobjs) noexcept;
+
+        obj *volatile free_list[19] = {nullptr};
+        char *start_free = nullptr;
+        char *end_free = nullptr;
+        size_t heap_size = 0;
+    };
+
+    static object &get_instance() noexcept {
+        static thread_local object instance;
+        return instance;
+    }
+
     // n must be > 0
     static allocation_result<void *> allocate(size_t n) noexcept {
-        if (n > (size_t)16384) {
-            return {malloc(n), n};
-        }
-
-        const size_t idx = __get_index(n);
-        const size_t size = __get_size(idx);
-        obj *volatile *my_free_list = get_free_list() + idx;
-        obj *result = *my_free_list;
-        if (WJR_LIKELY(result != nullptr)) {
-            *my_free_list = result->free_list_link;
-            return {result, size};
-        }
-        return {refill(idx), size};
+        return get_instance().allocate(n);
     }
 
     // p must not be 0
     WJR_INTRINSIC_INLINE static void deallocate(void *p, size_t n) noexcept {
-        if (n > (size_t)16384) {
-            free(p);
-            return;
-        }
-
-        obj *q = (obj *)p;
-        obj *volatile *my_free_list = get_free_list() + __get_index(n);
-        q->free_list_link = *my_free_list;
-        *my_free_list = q;
+        get_instance().deallocate(p, n);
     }
 };
 
@@ -138,23 +144,24 @@ public:
 // We hold the allocation lock.
 //----------------------------------------------
 template <int inst>
-char *__default_alloc_template__<inst>::chunk_alloc(uint8_t idx, int &nobjs) noexcept {
+char *__default_alloc_template__<inst>::object::chunk_alloc(uint8_t idx,
+                                                            int &nobjs) noexcept {
     const size_t size = __get_size(idx);
     char *result;
     size_t total_bytes = size * nobjs;
-    auto bytes_left = static_cast<size_t>(get_end_free() - get_start_free());
+    auto bytes_left = static_cast<size_t>(end_free - start_free);
 
     if (bytes_left >= total_bytes) {
-        result = get_start_free();
-        get_start_free() += total_bytes;
+        result = start_free;
+        start_free += total_bytes;
         return (result);
     }
 
     if (bytes_left >= size) {
         nobjs = static_cast<int>(bytes_left / size);
         total_bytes = size * nobjs;
-        result = get_start_free();
-        get_start_free() += total_bytes;
+        result = start_free;
+        start_free += total_bytes;
         return (result);
     }
 
@@ -162,12 +169,12 @@ char *__default_alloc_template__<inst>::chunk_alloc(uint8_t idx, int &nobjs) noe
     if (bytes_left > 0) {
         WJR_ASSERT(!(bytes_left & 7));
 
-        char *start_free = get_start_free();
+        char *start_free = this->start_free;
         uint8_t __idx = __get_index(bytes_left);
         for (;; --__idx) {
             const auto __size = __get_size(__idx);
             if (bytes_left >= __size) {
-                obj *volatile *my_free_list = get_free_list() + __idx;
+                obj *volatile *my_free_list = free_list + __idx;
                 ((obj *)start_free)->free_list_link = *my_free_list;
                 *my_free_list = (obj *)start_free;
 
@@ -185,14 +192,14 @@ char *__default_alloc_template__<inst>::chunk_alloc(uint8_t idx, int &nobjs) noe
         obj *volatile *my_free_list;
         if (idx < 11) {
             for (int i = 18; i > 11; --i) {
-                my_free_list = get_free_list() + i;
+                my_free_list = free_list + i;
                 obj *p = *my_free_list;
                 // split the chunk
                 if (p != nullptr) {
                     *my_free_list = p->free_list_link;
-                    get_start_free() = (char *)(p);
+                    start_free = (char *)(p);
                     char *__e = (char *)(p) + 2048;
-                    get_end_free() = __e;
+                    end_free = __e;
                     obj *e = (obj *)(__e);
                     --my_free_list;
                     e->free_list_link = *my_free_list;
@@ -203,15 +210,15 @@ char *__default_alloc_template__<inst>::chunk_alloc(uint8_t idx, int &nobjs) noe
         }
     } while (0);
 
-    const size_t bytes_to_get = 2 * total_bytes + __round_up(get_heap_size() >> 3);
+    const size_t bytes_to_get = 2 * total_bytes + __round_up(heap_size >> 3);
 
     static thread_local malloc_chunk chunk;
-    get_start_free() = (char *)chunk.allocate(bytes_to_get);
+    start_free = (char *)chunk.allocate(bytes_to_get);
 
-    WJR_ASSERT(get_start_free() != nullptr);
+    WJR_ASSERT(start_free != nullptr);
 
-    get_heap_size() += bytes_to_get;
-    get_end_free() = get_start_free() + bytes_to_get;
+    heap_size += bytes_to_get;
+    end_free = start_free + bytes_to_get;
     return (chunk_alloc(idx, nobjs));
 }
 
@@ -221,7 +228,7 @@ char *__default_alloc_template__<inst>::chunk_alloc(uint8_t idx, int &nobjs) noe
 // We hold the allocation lock.
 //----------------------------------------------
 template <int inst>
-void *__default_alloc_template__<inst>::refill(uint8_t idx) noexcept {
+void *__default_alloc_template__<inst>::object::refill(uint8_t idx) noexcept {
     int nobjs = idx < 6 ? 32 : idx < 8 ? 16 : idx < 11 ? 8 : 4;
     char *chunk = chunk_alloc(idx, nobjs);
     obj *current_obj;
@@ -231,7 +238,7 @@ void *__default_alloc_template__<inst>::refill(uint8_t idx) noexcept {
         return (chunk);
     }
 
-    obj *volatile *my_free_list = get_free_list() + idx;
+    obj *volatile *my_free_list = free_list + idx;
 
     const size_t n = __get_size(idx);
 
