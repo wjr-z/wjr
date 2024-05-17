@@ -243,24 +243,48 @@ public:
         __swap(Sequence(), other);
     }
 
-    template <size_t I>
+    template <size_t I, WJR_REQUIRES(I < Size)>
     constexpr std::tuple_element_t<I, tuple> &get() & noexcept {
         return m_impl.template get<I>();
     }
 
-    template <size_t I>
+    template <size_t I, WJR_REQUIRES(I < Size)>
     constexpr const std::tuple_element_t<I, tuple> &get() const & noexcept {
         return m_impl.template get<I>();
     }
 
-    template <size_t I>
+    template <size_t I, WJR_REQUIRES(I < Size)>
     constexpr std::tuple_element_t<I, tuple> &&get() && noexcept {
         return std::move(m_impl.template get<I>());
     }
 
-    template <size_t I>
+    template <size_t I, WJR_REQUIRES(I < Size)>
     constexpr const std::tuple_element_t<I, tuple> &&get() const && noexcept {
         return std::move(m_impl.template get<I>());
+    }
+
+    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < Size)>
+    constexpr std::tuple_element_t<I, tuple> &
+    operator[](std::integral_constant<C, I>) & noexcept {
+        return get<I>();
+    }
+
+    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < Size)>
+    constexpr const std::tuple_element_t<I, tuple> &
+    operator[](std::integral_constant<C, I>) const & noexcept {
+        return get<I>();
+    }
+
+    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < Size)>
+    constexpr std::tuple_element_t<I, tuple> &&
+    operator[](std::integral_constant<C, I>) && noexcept {
+        return std::move(get<I>());
+    }
+
+    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < Size)>
+    constexpr const std::tuple_element_t<I, tuple> &&
+    operator[](std::integral_constant<C, I>) const && noexcept {
+        return std::move(get<I>());
     }
 
 private:

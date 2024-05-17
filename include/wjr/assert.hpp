@@ -31,48 +31,40 @@ namespace wjr {
 #define WJR_DEBUG_EXPR_L(level, expr) WJR_DEBUG_IF(level, expr, )
 #define WJR_DEBUG_EXPR(expr) WJR_DEBUG_EXPR_L(0, expr)
 
+WJR_NORETURN extern void __assert_failed(const char *expr, const char *file,
+                                         const char *func, int line) noexcept;
+
+// LCOV_EXCL_START
+
 /// @private
 class __assert_handler_t {
 private:
-    template <typename Output>
-    static Output &handler(Output &out) noexcept {
-        return out;
-    }
-
-    template <typename Output, typename... Args>
-    static Output &handler(Output &out, Args &&...args) noexcept {
-        out << "Additional information: ";
-        (void)(out << ... << std::forward<Args>(args));
-        out << '\n';
-        return out;
+    WJR_NORETURN static void fn(const char *expr, const char *file, const char *func,
+                                int line) noexcept {
+        __assert_failed(expr, file, func, line);
     }
 
     template <typename... Args>
     WJR_NORETURN WJR_NOINLINE static void fn(const char *expr, const char *file,
                                              const char *func, int line,
                                              Args &&...args) noexcept {
-        if (file[0] != '\0') {
-            std::cerr << file << ':';
-        }
-
-        if (line != -1) {
-            std::cerr << line << ':';
-        }
-
-        std::cerr << func << ": Assertion `" << expr << "' failed.\n";
-        handler(std::cerr, std::forward<Args>(args)...);
-        std::abort();
+        std::cerr << "Additional information: ";
+        (void)(std::cerr << ... << std::forward<Args>(args));
+        std::cerr << '\n';
+        __assert_failed(expr, file, func, line);
     }
 
 public:
     template <typename... Args>
-    void operator()(const char *expr, const char *file, const char *func, int line,
-                    Args &&...args) const noexcept {
+    WJR_NORETURN void operator()(const char *expr, const char *file, const char *func,
+                                 int line, Args &&...args) const noexcept {
         fn(expr, file, func, line, std::forward<Args>(args)...);
     }
 };
 
 inline constexpr __assert_handler_t __assert_handler{};
+
+// LCOV_EXCL_STOP
 
 #define WJR_ASSERT_CHECK_I_HANDLER(handler, expr, ...)                                   \
     do {                                                                                 \

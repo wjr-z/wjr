@@ -23,7 +23,8 @@ namespace wjr {
  *
  */
 template <typename T>
-WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1,
+                                              size_t n) noexcept {
 #define WJR_REGISTER_COMPARE_NOT_N_AVX(index)                                            \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 + (index)));                                \
@@ -188,7 +189,8 @@ WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size
 }
 
 extern template WJR_PURE WJR_COLD int
-large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1, size_t n);
+large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
+                                  size_t n) noexcept;
 
 /**
  * @brief Compare two arrays of uint64_t.
@@ -260,7 +262,7 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1, size_t 
  */
 template <typename T>
 WJR_PURE WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1,
-                                                      size_t n) {
+                                                      size_t n) noexcept {
 #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(index)                                    \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 - 4 + (index)));                            \
@@ -426,7 +428,7 @@ WJR_PURE WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *sr
 
 extern template WJR_PURE WJR_COLD int
 large_builtin_reverse_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
-                                          size_t n);
+                                          size_t n) noexcept;
 
 /**
  * @brief Compare two arrays of uint64_t in reverse order.

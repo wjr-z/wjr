@@ -320,7 +320,7 @@ const std::array<const precompute_chars_convert_16n_t *, 37>
 
 precompute_chars_convert_t *precompute_chars_convert(precompute_chars_convert_t *pre,
                                                      size_t n, unsigned int base,
-                                                     uint64_t *table_mem) {
+                                                     uint64_t *table_mem) noexcept {
     const precompute_chars_convert_16n_t *p16n = precompute_chars_convert_16n_ptr[base];
     const uint64_t big_base = p16n->big_base;
     const size_t digits_in_one_base = p16n->digits_in_one_base;

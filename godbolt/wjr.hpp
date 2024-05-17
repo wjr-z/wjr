@@ -2401,48 +2401,40 @@ namespace wjr {
 #define WJR_DEBUG_EXPR_L(level, expr) WJR_DEBUG_IF(level, expr, )
 #define WJR_DEBUG_EXPR(expr) WJR_DEBUG_EXPR_L(0, expr)
 
+WJR_NORETURN extern void __assert_failed(const char *expr, const char *file,
+                                         const char *func, int line) noexcept;
+
+// LCOV_EXCL_START
+
 /// @private
 class __assert_handler_t {
 private:
-    template <typename Output>
-    static Output &handler(Output &out) noexcept {
-        return out;
-    }
-
-    template <typename Output, typename... Args>
-    static Output &handler(Output &out, Args &&...args) noexcept {
-        out << "Additional information: ";
-        (void)(out << ... << std::forward<Args>(args));
-        out << '\n';
-        return out;
+    WJR_NORETURN static void fn(const char *expr, const char *file, const char *func,
+                                int line) noexcept {
+        __assert_failed(expr, file, func, line);
     }
 
     template <typename... Args>
     WJR_NORETURN WJR_NOINLINE static void fn(const char *expr, const char *file,
                                              const char *func, int line,
                                              Args &&...args) noexcept {
-        if (file[0] != '\0') {
-            std::cerr << file << ':';
-        }
-
-        if (line != -1) {
-            std::cerr << line << ':';
-        }
-
-        std::cerr << func << ": Assertion `" << expr << "' failed.\n";
-        handler(std::cerr, std::forward<Args>(args)...);
-        std::abort();
+        std::cerr << "Additional information: ";
+        (void)(std::cerr << ... << std::forward<Args>(args));
+        std::cerr << '\n';
+        __assert_failed(expr, file, func, line);
     }
 
 public:
     template <typename... Args>
-    void operator()(const char *expr, const char *file, const char *func, int line,
-                    Args &&...args) const noexcept {
+    WJR_NORETURN void operator()(const char *expr, const char *file, const char *func,
+                                 int line, Args &&...args) const noexcept {
         fn(expr, file, func, line, std::forward<Args>(args)...);
     }
 };
 
 inline constexpr __assert_handler_t __assert_handler{};
+
+// LCOV_EXCL_STOP
 
 #define WJR_ASSERT_CHECK_I_HANDLER(handler, expr, ...)                                   \
     do {                                                                                 \
@@ -3266,6 +3258,47 @@ struct is_integral_constant_same<std::integral_constant<T, v>, T> : std::true_ty
 template <typename T, typename U>
 inline constexpr bool is_integral_constant_same_v =
     is_integral_constant_same<T, U>::value;
+
+namespace digits_literal_details {
+
+template <typename T, char... Chars>
+constexpr T parse() {
+    T ret = 0;
+    auto func = [&ret](char ch) { ret = ret * 10 + ch - '0'; };
+    (func(Chars), ...);
+    return ret;
+}
+
+} // namespace digits_literal_details
+
+#define WJR_REGISTER_INTEGRAL_LITERAL(NAME, TYPE)                                        \
+    template <char... Chars>                                                             \
+    WJR_INTRINSIC_CONSTEXPR auto operator"" _##NAME() noexcept                           \
+        -> std::integral_constant<TYPE,                                                  \
+                                  digits_literal_details::parse<TYPE, Chars...>()> {     \
+        return {};                                                                       \
+    }
+
+WJR_REGISTER_INTEGRAL_LITERAL(u, unsigned int);
+WJR_REGISTER_INTEGRAL_LITERAL(ul, unsigned long);
+WJR_REGISTER_INTEGRAL_LITERAL(ull, unsigned long long);
+WJR_REGISTER_INTEGRAL_LITERAL(i, int);
+WJR_REGISTER_INTEGRAL_LITERAL(l, long);
+WJR_REGISTER_INTEGRAL_LITERAL(ll, long long);
+
+WJR_REGISTER_INTEGRAL_LITERAL(i8, int8_t);
+WJR_REGISTER_INTEGRAL_LITERAL(i16, int16_t);
+WJR_REGISTER_INTEGRAL_LITERAL(i32, int32_t);
+WJR_REGISTER_INTEGRAL_LITERAL(i64, int64_t);
+WJR_REGISTER_INTEGRAL_LITERAL(u8, uint8_t);
+WJR_REGISTER_INTEGRAL_LITERAL(u16, uint16_t);
+WJR_REGISTER_INTEGRAL_LITERAL(u32, uint32_t);
+WJR_REGISTER_INTEGRAL_LITERAL(u64, uint64_t);
+
+WJR_REGISTER_INTEGRAL_LITERAL(zu, size_t);
+WJR_REGISTER_INTEGRAL_LITERAL(z, ssize_t);
+
+#undef WJR_REGISTER_INTEGRAL_LITERAL
 
 } // namespace wjr
 
@@ -4771,7 +4804,7 @@ public:
 
     // extension
 
-    template <size_t I>
+    template <size_t I, WJR_REQUIRES(I < 2)>
     constexpr std::tuple_element_t<I, compressed_pair> &get() & noexcept {
         if constexpr (I == 0) {
             return first();
@@ -4780,7 +4813,7 @@ public:
         }
     }
 
-    template <size_t I>
+    template <size_t I, WJR_REQUIRES(I < 2)>
     constexpr const std::tuple_element_t<I, compressed_pair> &get() const & noexcept {
         if constexpr (I == 0) {
             return first();
@@ -4789,7 +4822,7 @@ public:
         }
     }
 
-    template <size_t I>
+    template <size_t I, WJR_REQUIRES(I < 2)>
     constexpr std::tuple_element_t<I, compressed_pair> &&get() && noexcept {
         if constexpr (I == 0) {
             return std::move(first());
@@ -4798,13 +4831,37 @@ public:
         }
     }
 
-    template <size_t I>
+    template <size_t I, WJR_REQUIRES(I < 2)>
     constexpr const std::tuple_element_t<I, compressed_pair> &&get() const && noexcept {
         if constexpr (I == 0) {
             return std::move(first());
         } else {
             return std::move(second());
         }
+    }
+
+    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < 2)>
+    constexpr std::tuple_element_t<I, compressed_pair> &
+    operator[](std::integral_constant<C, I>) & noexcept {
+        return get<I>();
+    }
+
+    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < 2)>
+    constexpr const std::tuple_element_t<I, compressed_pair> &
+    operator[](std::integral_constant<C, I>) const & noexcept {
+        return get<I>();
+    }
+
+    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < 2)>
+    constexpr std::tuple_element_t<I, compressed_pair> &&
+    operator[](std::integral_constant<C, I>) && noexcept {
+        return std::move(get<I>());
+    }
+
+    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < 2)>
+    constexpr const std::tuple_element_t<I, compressed_pair> &&
+    operator[](std::integral_constant<C, I>) const && noexcept {
+        return std::move(get<I>());
     }
 };
 
@@ -4879,7 +4936,7 @@ constexpr void swap(wjr::compressed_pair<T, U> &lhs,
     lhs.swap(rhs);
 }
 
-template <size_t I, typename T, typename U>
+template <size_t I, typename T, typename U, WJR_REQUIRES(I < 2)>
 WJR_NODISCARD constexpr tuple_element_t<I, wjr::compressed_pair<T, U>> &
 get(wjr::compressed_pair<T, U> &pr) noexcept {
     if constexpr (I == 0) {
@@ -4889,7 +4946,7 @@ get(wjr::compressed_pair<T, U> &pr) noexcept {
     }
 }
 
-template <size_t I, typename T, typename U>
+template <size_t I, typename T, typename U, WJR_REQUIRES(I < 2)>
 WJR_NODISCARD constexpr const tuple_element_t<I, wjr::compressed_pair<T, U>> &
 get(const wjr::compressed_pair<T, U> &pr) noexcept {
     if constexpr (I == 0) {
@@ -4899,7 +4956,7 @@ get(const wjr::compressed_pair<T, U> &pr) noexcept {
     }
 }
 
-template <size_t I, typename T, typename U>
+template <size_t I, typename T, typename U, WJR_REQUIRES(I < 2)>
 WJR_NODISCARD constexpr tuple_element_t<I, wjr::compressed_pair<T, U>> &&
 get(wjr::compressed_pair<T, U> &&pr) noexcept {
     if constexpr (I == 0) {
@@ -4909,7 +4966,7 @@ get(wjr::compressed_pair<T, U> &&pr) noexcept {
     }
 }
 
-template <size_t I, typename T, typename U>
+template <size_t I, typename T, typename U, WJR_REQUIRES(I < 2)>
 WJR_NODISCARD constexpr const tuple_element_t<I, wjr::compressed_pair<T, U>> &&
 get(const wjr::compressed_pair<T, U> &&pr) noexcept {
     if constexpr (I == 0) {
@@ -14340,7 +14397,8 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(FIND_N)
 
 template <typename T>
-WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src0, const T *src1,
+                                              size_t n) noexcept {
 #define WJR_REGISTER_FIND_N_AVX(index)                                                   \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 + (index)));                                \
@@ -14509,7 +14567,7 @@ WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src0, const T *src1, size_t 
 }
 
 template <typename T>
-WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src, T val, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src, T val, size_t n) noexcept {
 #define WJR_REGISTER_FIND_N_AVX(index)                                                   \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src + (index)));                                 \
@@ -14678,7 +14736,7 @@ WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src, T val, size_t n) {
 
 template <typename T>
 WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1,
-                                                  size_t n) {
+                                                  size_t n) noexcept {
 #define WJR_REGISTER_FIND_NOT_N_AVX(index)                                               \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 + (index)));                                \
@@ -14819,8 +14877,8 @@ WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src0, const T *src1,
 #undef WJR_REGISTER_FIND_NOT_N_AVX
 }
 
-extern template WJR_PURE WJR_COLD size_t
-large_builtin_find_not_n<uint64_t>(const uint64_t *src0, const uint64_t *src1, size_t n);
+extern template WJR_PURE WJR_COLD size_t large_builtin_find_not_n<uint64_t>(
+    const uint64_t *src0, const uint64_t *src1, size_t n) noexcept;
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src0, const T *src1, size_t n) {
@@ -14850,7 +14908,8 @@ WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src0, const T *src1, siz
 }
 
 template <typename T>
-WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src, T val, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src, T val,
+                                                  size_t n) noexcept {
 #define WJR_REGISTER_FIND_NOT_N_AVX(index)                                               \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src + (index)));                                 \
@@ -14987,7 +15046,7 @@ WJR_PURE WJR_COLD size_t large_builtin_find_not_n(const T *src, T val, size_t n)
 }
 
 extern template WJR_PURE WJR_COLD size_t
-large_builtin_find_not_n<uint64_t>(const uint64_t *src, uint64_t val, size_t n);
+large_builtin_find_not_n<uint64_t>(const uint64_t *src, uint64_t val, size_t n) noexcept;
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) {
@@ -15194,7 +15253,8 @@ WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src0, const T *src1,
 }
 
 template <typename T>
-WJR_PURE WJR_COLD size_t large_builtin_reverse_find_n(const T *src, T val, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_reverse_find_n(const T *src, T val,
+                                                      size_t n) noexcept {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src - 4 + (index)));                             \
@@ -15365,7 +15425,7 @@ WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src, T val, size_t n
 
 template <typename T>
 WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T *src1,
-                                                          size_t n) {
+                                                          size_t n) noexcept {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 - 4 + (index)));                            \
@@ -15508,7 +15568,7 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src0, const T
 }
 
 extern template WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n<uint64_t>(
-    const uint64_t *src0, const uint64_t *src1, size_t n);
+    const uint64_t *src0, const uint64_t *src1, size_t n) noexcept;
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src0, const T *src1,
@@ -15540,7 +15600,8 @@ WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src0, const T *s
 }
 
 template <typename T>
-WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val, size_t n) {
+WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val,
+                                                          size_t n) noexcept {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src - 4 + (index)));                             \
@@ -15677,8 +15738,8 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n(const T *src, T val, s
 #undef WJR_REGISTER_REVERSE_FIND_N_AVX
 }
 
-extern template WJR_PURE WJR_COLD size_t
-large_builtin_reverse_find_not_n<uint64_t>(const uint64_t *src, uint64_t val, size_t n);
+extern template WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n<uint64_t>(
+    const uint64_t *src, uint64_t val, size_t n) noexcept;
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src, T val, size_t n) {
@@ -17475,7 +17536,8 @@ namespace wjr {
  *
  */
 template <typename T>
-WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size_t n) {
+WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1,
+                                              size_t n) noexcept {
 #define WJR_REGISTER_COMPARE_NOT_N_AVX(index)                                            \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 + (index)));                                \
@@ -17640,7 +17702,8 @@ WJR_PURE WJR_COLD int large_builtin_compare_n(const T *src0, const T *src1, size
 }
 
 extern template WJR_PURE WJR_COLD int
-large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1, size_t n);
+large_builtin_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
+                                  size_t n) noexcept;
 
 /**
  * @brief Compare two arrays of uint64_t.
@@ -17712,7 +17775,7 @@ WJR_INTRINSIC_INLINE int builtin_compare_n(const T *src0, const T *src1, size_t 
  */
 template <typename T>
 WJR_PURE WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *src1,
-                                                      size_t n) {
+                                                      size_t n) noexcept {
 #define WJR_REGISTER_REVERSE_COMPARE_NOT_N_AVX(index)                                    \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 - 4 + (index)));                            \
@@ -17878,7 +17941,7 @@ WJR_PURE WJR_COLD int large_builtin_reverse_compare_n(const T *src0, const T *sr
 
 extern template WJR_PURE WJR_COLD int
 large_builtin_reverse_compare_n<uint64_t>(const uint64_t *src0, const uint64_t *src1,
-                                          size_t n);
+                                          size_t n) noexcept;
 
 /**
  * @brief Compare two arrays of uint64_t in reverse order.
@@ -18380,24 +18443,48 @@ public:
         __swap(Sequence(), other);
     }
 
-    template <size_t I>
+    template <size_t I, WJR_REQUIRES(I < Size)>
     constexpr std::tuple_element_t<I, tuple> &get() & noexcept {
         return m_impl.template get<I>();
     }
 
-    template <size_t I>
+    template <size_t I, WJR_REQUIRES(I < Size)>
     constexpr const std::tuple_element_t<I, tuple> &get() const & noexcept {
         return m_impl.template get<I>();
     }
 
-    template <size_t I>
+    template <size_t I, WJR_REQUIRES(I < Size)>
     constexpr std::tuple_element_t<I, tuple> &&get() && noexcept {
         return std::move(m_impl.template get<I>());
     }
 
-    template <size_t I>
+    template <size_t I, WJR_REQUIRES(I < Size)>
     constexpr const std::tuple_element_t<I, tuple> &&get() const && noexcept {
         return std::move(m_impl.template get<I>());
+    }
+
+    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < Size)>
+    constexpr std::tuple_element_t<I, tuple> &
+    operator[](std::integral_constant<C, I>) & noexcept {
+        return get<I>();
+    }
+
+    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < Size)>
+    constexpr const std::tuple_element_t<I, tuple> &
+    operator[](std::integral_constant<C, I>) const & noexcept {
+        return get<I>();
+    }
+
+    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < Size)>
+    constexpr std::tuple_element_t<I, tuple> &&
+    operator[](std::integral_constant<C, I>) && noexcept {
+        return std::move(get<I>());
+    }
+
+    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < Size)>
+    constexpr const std::tuple_element_t<I, tuple> &&
+    operator[](std::integral_constant<C, I>) const && noexcept {
+        return std::move(get<I>());
     }
 
 private:
@@ -18677,7 +18764,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(uint64_t *dst, uint64_t *rem, const uint
                                         size_t n, const uint64_t *div);
 
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                     size_t n, const uint64_t *div, size_t m);
+                                        size_t n, const uint64_t *div, size_t m);
 
 WJR_INTRINSIC_CONSTEXPR20 uint64_t divexact_dbm1c(uint64_t *dst, const uint64_t *src,
                                                   size_t n, uint64_t bd, uint64_t h);
@@ -18691,7 +18778,8 @@ WJR_INTRINSIC_CONSTEXPR20 void divexact_by15(uint64_t *dst, const uint64_t *src,
 
 template <uint64_t c>
 WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, size_t n,
-                                            std::integral_constant<uint64_t, c>);
+                                            std::integral_constant<uint64_t, c>,
+                                            uint64_t cf);
 
 WJR_INTRINSIC_CONSTEXPR20 void divexact_1(uint64_t *dst, const uint64_t *src, size_t n,
                                           const divexact1_divider<uint64_t> &div);
@@ -18723,15 +18811,19 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR20 uint64_t mod_1(const uint64_t *src, size_t n,
 #define WJR_MATH_BIGNUM_CONFIG_HPP__
 
 #ifndef WJR_TOOM22_MUL_THRESHOLD
-#define WJR_TOOM22_MUL_THRESHOLD 26
+#define WJR_TOOM22_MUL_THRESHOLD 22
 #endif
 
 #ifndef WJR_TOOM33_MUL_THRESHOLD
-#define WJR_TOOM33_MUL_THRESHOLD 72
+#define WJR_TOOM33_MUL_THRESHOLD 84
 #endif
 
 #ifndef WJR_TOOM44_MUL_THRESHOLD
 #define WJR_TOOM44_MUL_THRESHOLD 208
+#endif
+
+#ifndef WJR_TOOM55_MUL_THRESHOLD
+#define WJR_TOOM55_MUL_THRESHOLD 800
 #endif
 
 #ifndef WJR_TOOM32_TO_TOOM43_MUL_THRESHOLD
@@ -18747,15 +18839,19 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR20 uint64_t mod_1(const uint64_t *src, size_t n,
 #endif
 
 #ifndef WJR_TOOM2_SQR_THRESHOLD
-#define WJR_TOOM2_SQR_THRESHOLD 32
+#define WJR_TOOM2_SQR_THRESHOLD 34
 #endif
 
 #ifndef WJR_TOOM3_SQR_THRESHOLD
-#define WJR_TOOM3_SQR_THRESHOLD 117
+#define WJR_TOOM3_SQR_THRESHOLD 124
 #endif
 
 #ifndef WJR_TOOM4_SQR_THRESHOLD
-#define WJR_TOOM4_SQR_THRESHOLD 336
+#define WJR_TOOM4_SQR_THRESHOLD 288
+#endif
+
+#ifndef WJR_TOOM5_SQR_THRESHOLD
+#define WJR_TOOM5_SQR_THRESHOLD 980
 #endif
 
 #ifndef WJR_DC_DIV_QR_THRESHOLD
@@ -20173,7 +20269,8 @@ require :
 */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E T lshift_n(T *dst, const T *src, size_t n,
-                                                   unsigned int c, T lo = 0) {
+                                                   unsigned int c,
+                                                   type_identity_t<T> lo = 0) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
     WJR_ASSERT_L1(c < std::numeric_limits<T>::digits);
@@ -20220,7 +20317,7 @@ require :
 */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E T rshift_n(T *dst, const T *src, size_t n, unsigned int c,
-                                     T hi = 0) {
+                                     type_identity_t<T> hi = 0) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
     WJR_ASSERT_L1(c < std::numeric_limits<T>::digits);
@@ -21095,7 +21192,7 @@ inline uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint6
 #if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)
 
 extern void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
-                                      const uint64_t *src1, size_t m);
+                                      const uint64_t *src1, size_t m) noexcept;
 
 inline void asm_basecase_mul_s(uint64_t *dst, const uint64_t *src0, size_t n,
                                const uint64_t *src1, size_t m) {
@@ -21109,7 +21206,8 @@ inline void asm_basecase_mul_s(uint64_t *dst, const uint64_t *src0, size_t n,
 
 #if WJR_HAS_BUILTIN(ASM_BASECASE_SQR)
 
-extern void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx);
+extern void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
+                                    size_t rdx) noexcept;
 
 inline void asm_basecase_sqr(uint64_t *dst, const uint64_t *src, size_t n) {
     WJR_ASSERT(n >= 1);
@@ -22229,6 +22327,7 @@ try_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t ml,
 inline constexpr size_t toom22_mul_threshold = WJR_TOOM22_MUL_THRESHOLD;
 inline constexpr size_t toom33_mul_threshold = WJR_TOOM33_MUL_THRESHOLD;
 inline constexpr size_t toom44_mul_threshold = WJR_TOOM44_MUL_THRESHOLD;
+inline constexpr size_t toom55_mul_threshold = WJR_TOOM55_MUL_THRESHOLD;
 inline constexpr size_t toom32_to_toom43_mul_threshold =
     WJR_TOOM32_TO_TOOM43_MUL_THRESHOLD;
 inline constexpr size_t toom32_to_toom53_mul_threshold =
@@ -22238,6 +22337,7 @@ inline constexpr size_t toom42_to_toom53_mul_threshold =
 inline constexpr size_t toom2_sqr_threshold = WJR_TOOM2_SQR_THRESHOLD;
 inline constexpr size_t toom3_sqr_threshold = WJR_TOOM3_SQR_THRESHOLD;
 inline constexpr size_t toom4_sqr_threshold = WJR_TOOM4_SQR_THRESHOLD;
+inline constexpr size_t toom5_sqr_threshold = WJR_TOOM5_SQR_THRESHOLD;
 
 // only toom22 is optimized to inline
 enum class __mul_mode : uint8_t {
@@ -22336,17 +22436,8 @@ struct toom_interpolation_7p_struct {
     uint64_t cf5;
 };
 
-struct toom_interpolation_8p_struct {
-    uint8_t neg1 : 1;
-    uint8_t neg3 : 1;
-    uint8_t neg5 : 1;
-    uint64_t cf1;
-    uint64_t cf2;
-    uint64_t cf3;
-    uint64_t cf4;
-    uint64_t cf5;
-    uint64_t cf6;
-};
+template <size_t P>
+using toom_interpolation_high_p_struct = std::array<uint64_t, P - 2>;
 
 /*
  all toom-cook need to ensure rn + rm >= l to reserve memory
@@ -22370,70 +22461,114 @@ struct toom_interpolation_8p_struct {
  stk usage : l * 2
 */
 extern void toom22_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m, uint64_t *stk);
+                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
 
 extern void toom2_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                      uint64_t *stk);
+                      uint64_t *stk) noexcept;
 
 /*
  l = max(ceil(n/3), ceil(m/2))
  stk usage : l * 4
 */
 extern void toom32_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m, uint64_t *stk);
+                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
 
 extern void toom_interpolation_5p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
                                     size_t rn, size_t rm,
-                                    toom_interpolation_5p_struct &&flag);
+                                    toom_interpolation_5p_struct &&flag) noexcept;
 
 /*
  l = max(ceil(n/4), ceil(m/2))
  stk usage : l * 4
 */
 extern void toom42_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m, uint64_t *stk);
+                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
 
 /*
  l = ceil(n/3)
  stk usage : l * 4
 */
 extern void toom33_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m, uint64_t *stk);
+                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
 
 extern void toom3_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                      uint64_t *stk);
+                      uint64_t *stk) noexcept;
 
 extern void toom_interpolation_6p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
                                     size_t rn, size_t rm,
-                                    toom_interpolation_6p_struct &&flag);
+                                    toom_interpolation_6p_struct &&flag) noexcept;
 
 /*
  l = max(ceil(n/4), ceil(m/3))
  stk usage : l * 6
 */
 extern void toom43_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m, uint64_t *stk);
+                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
 
 extern void toom_interpolation_7p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
                                     size_t rn, size_t rm,
-                                    toom_interpolation_7p_struct &&flag);
+                                    toom_interpolation_7p_struct &&flag) noexcept;
 
 /*
  l = max(ceil(n/5), ceil(m/3))
  stk usage : l * 6
 */
 extern void toom53_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m, uint64_t *stk);
+                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
 
 /*
  l = ceil(n/4)
  stk usage : l * 6
 */
 extern void toom44_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m, uint64_t *stk);
+                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
 
 extern void toom4_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                      uint64_t *stk);
+                      uint64_t *stk) noexcept;
+
+struct toom_eval_opposite_exp_args {
+    using tuple_type = tuple<uint64_t *, uint64_t *, uint64_t *, const uint64_t *, size_t,
+                             size_t, size_t, unsigned int>;
+
+    toom_eval_opposite_exp_args(uint64_t *t0p, uint64_t *t1p, uint64_t *stk,
+                                const uint64_t *wp, size_t length, size_t rest, size_t k,
+                                unsigned int exp) noexcept
+        : input(t0p, t1p, stk, wp, length, rest, k, exp), cf(dctor, dctor) {}
+
+    void reset(unsigned int exp) noexcept { input[7_u] = exp; }
+
+    tuple_type input;
+    tuple<uint64_t, uint64_t> cf;
+};
+
+extern void toom_eval_2_exp(toom_eval_opposite_exp_args &args) noexcept;
+
+WJR_NODISCARD extern bool
+toom_eval_opposite_2_exp(toom_eval_opposite_exp_args &args) noexcept;
+WJR_NODISCARD extern bool
+toom_eval_opposite_half_exp(toom_eval_opposite_exp_args &args) noexcept;
+
+extern void toom_interpolation_9p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
+                                    size_t rn, size_t rm,
+                                    toom_interpolation_high_p_struct<9> &&flag) noexcept;
+
+extern void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
+                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
+
+extern void toom5_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
+                      uint64_t *stk) noexcept;
+
+extern void
+toom_interpolation_10p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l, size_t rn,
+                         size_t rm, toom_interpolation_high_p_struct<10> &&flag) noexcept;
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR bool toom44_ok(size_t n, size_t m) noexcept {
+    return 3 * n + 21 <= 4 * m;
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR bool toom55_ok(size_t n, size_t m) noexcept {
+    return 4 * n + 36 <= 5 * m;
+}
 
 struct __mul_s_unique_stack_allocator {
     template <typename... Args>
@@ -22527,7 +22662,7 @@ void __toom22_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_
 template <bool reserved>
 void __noinline_mul_s_impl(
     uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,
-    size_t m, std::conditional_t<reserved, uint64_t *, in_place_empty_t> mal) {
+    size_t m, std::conditional_t<reserved, uint64_t *, in_place_empty_t> mal) noexcept {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
     WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n + m, src0, n));
@@ -22594,7 +22729,8 @@ void __noinline_mul_s_impl(
         return;
     }
 
-    if (m < toom44_mul_threshold || 3 * n + 21 > 4 * m) {
+    if (m < toom44_mul_threshold || (m < toom55_mul_threshold && !toom44_ok(n, m)) ||
+        !toom55_ok(n, m)) {
         if (n >= 3 * m) {
             uint64_t *tmp = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (4 * m));
             uint64_t *stk =
@@ -22658,20 +22794,26 @@ void __noinline_mul_s_impl(
         return;
     }
 
-    uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-    toom44_mul_s(dst, src0, n, src1, m, stk);
+    if (m < toom55_mul_threshold) {
+        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
+        toom44_mul_s(dst, src0, n, src1, m, stk);
+        return;
+    }
+
+    uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (22 * m + 288));
+    toom55_mul_s(dst, src0, n, src1, m, stk);
     return;
 }
 
 extern template void __noinline_mul_s_impl<true>(uint64_t *WJR_RESTRICT dst,
                                                  const uint64_t *src0, size_t n,
                                                  const uint64_t *src1, size_t m,
-                                                 uint64_t *mal);
+                                                 uint64_t *mal) noexcept;
 
 extern template void __noinline_mul_s_impl<false>(uint64_t *WJR_RESTRICT dst,
                                                   const uint64_t *src0, size_t n,
                                                   const uint64_t *src1, size_t m,
-                                                  in_place_empty_t mal);
+                                                  in_place_empty_t mal) noexcept;
 
 template <__mul_mode mode, bool reserved>
 WJR_INTRINSIC_INLINE void
@@ -22763,8 +22905,13 @@ void __noinline_mul_n_impl(
         return toom33_mul_s(dst, src0, n, src1, n, stk);
     }
 
-    uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * n + 288));
-    return toom44_mul_s(dst, src0, n, src1, n, stk);
+    if (n < toom55_mul_threshold) {
+        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * n + 288));
+        return toom44_mul_s(dst, src0, n, src1, n, stk);
+    }
+
+    uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (18 * n + 288));
+    return toom55_mul_s(dst, src0, n, src1, n, stk);
 }
 
 template <__mul_mode mode, bool reserved>
@@ -22875,8 +23022,13 @@ void __noinline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t
         return toom3_sqr(dst, src, n, stk);
     }
 
-    uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * n + 288));
-    return toom4_sqr(dst, src, n, stk);
+    if (n < toom5_sqr_threshold) {
+        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * n + 288));
+        return toom4_sqr(dst, src, n, stk);
+    }
+
+    uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (13 * n + 288));
+    return toom5_sqr(dst, src, n, stk);
 }
 
 template <__mul_mode mode, bool reserved>
@@ -23966,15 +24118,15 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(uint64_t *dst, uint64_t *rem, const uint
 // reference : GMP
 // return qh;
 extern uint64_t sb_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div,
-                            size_t m, uint64_t dinv);
+                            size_t m, uint64_t dinv) noexcept;
 
 inline constexpr size_t dc_div_qr_threshold = WJR_DC_DIV_QR_THRESHOLD;
 
 extern uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div,
-                            size_t m, uint64_t dinv);
+                            size_t m, uint64_t dinv) noexcept;
 
 extern void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
-                            const uint64_t *div, size_t m);
+                            const uint64_t *div, size_t m) noexcept;
 
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t *src,
                                         size_t n, const uint64_t *div, size_t m) {
@@ -24051,75 +24203,10 @@ WJR_INTRINSIC_CONSTEXPR20 void divexact_by15(uint64_t *dst, const uint64_t *src,
     (void)divexact_dbm1c(dst, src, n, max / 15, 0);
 }
 
-template <uint64_t c>
-WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, size_t n,
-                                            std::integral_constant<uint64_t, c>) {
-
-    // cost : divexact_dbm1c * 2 + shift * 1 <= divexact_1
-
-    constexpr auto __is_fast = [](auto cr) {
-        constexpr uint64_t r = get_place_index_v<remove_cvref_t<decltype(cr)>>;
-        return c % r == 0 && is_zero_or_single_bit(c / r);
-    };
-
-    auto __resolve = [dst, n](auto cr) {
-        constexpr uint64_t r = get_place_index_v<remove_cvref_t<decltype(cr)>>;
-        if constexpr (c >= r) {
-            constexpr auto p = fallback_ctz(c / r);
-            if constexpr (p != 0) {
-                rshift_n(dst, dst, n, p);
-            } else {
-                (void)(dst);
-                (void)(n);
-            }
-        }
-    };
-
-    if constexpr (__is_fast(std::in_place_index<1>)) {
-        __resolve(std::in_place_index<1>);
-    } else if constexpr (__is_fast(std::in_place_index<3>)) {
-        divexact_by3(dst, src, n);
-        __resolve(std::in_place_index<3>);
-    } else if constexpr (__is_fast(std::in_place_index<5>)) {
-        divexact_by5(dst, src, n);
-        __resolve(std::in_place_index<5>);
-    } else if constexpr (__is_fast(std::in_place_index<15>)) {
-        divexact_by15(dst, src, n);
-        __resolve(std::in_place_index<15>);
-    } else if constexpr (__is_fast(std::in_place_index<9>)) {
-        divexact_by3(dst, src, n);
-        divexact_by3(dst, dst, n);
-        __resolve(std::in_place_index<9>);
-    } else if constexpr (__is_fast(std::in_place_index<25>)) {
-        divexact_by5(dst, src, n);
-        divexact_by5(dst, dst, n);
-        __resolve(std::in_place_index<25>);
-    } else if constexpr (__is_fast(std::in_place_index<45>)) {
-        divexact_by3(dst, src, n);
-        divexact_by15(dst, dst, n);
-        __resolve(std::in_place_index<45>);
-    } else if constexpr (__is_fast(std::in_place_index<75>)) {
-        divexact_by5(dst, src, n);
-        divexact_by15(dst, dst, n);
-        __resolve(std::in_place_index<75>);
-    } else if constexpr (__is_fast(std::in_place_index<225>)) {
-        divexact_by15(dst, src, n);
-        divexact_by15(dst, dst, n);
-        __resolve(std::in_place_index<225>);
-    } else {
-        constexpr auto shift = fallback_ctz(c);
-        using divider_t = divexact1_divider<uint64_t>;
-        constexpr auto divisor = c >> shift;
-        constexpr auto value = divider_t::reciprocal(divisor);
-        constexpr auto divider = divider_t(divisor, value, shift);
-        divexact_1(dst, src, n, divider);
-    }
-}
-
 // reference : ftp://ftp.risc.uni-linz.ac.at/pub/techreports/1992/92-35.ps.gz
-WJR_INLINE_CONSTEXPR20 void
-fallback_divexact_1_noshift(uint64_t *dst, const uint64_t *src, size_t n,
-                            const divexact1_divider<uint64_t> &div) {
+WJR_INLINE_CONSTEXPR20
+void fallback_divexact_1_noshift(uint64_t *dst, const uint64_t *src, size_t n,
+                                 const divexact1_divider<uint64_t> &div) {
     const uint64_t divisor = div.get_divisor();
     const uint64_t value = div.get_value();
 
@@ -24149,7 +24236,7 @@ fallback_divexact_1_noshift(uint64_t *dst, const uint64_t *src, size_t n,
 
 WJR_INLINE_CONSTEXPR20 void
 fallback_divexact_1_shift(uint64_t *dst, const uint64_t *src, size_t n,
-                          const divexact1_divider<uint64_t> &div) {
+                          const divexact1_divider<uint64_t> &div, uint64_t hicf = 0) {
     const uint64_t divisor = div.get_divisor();
     const uint64_t value = div.get_value();
     const auto shift = div.get_shift();
@@ -24174,11 +24261,87 @@ fallback_divexact_1_shift(uint64_t *dst, const uint64_t *src, size_t n,
         } while (WJR_LIKELY(idx != n));
     }
 
-    r10 = r10 >> shift;
+    r10 = shrd(r10, hicf, shift);
     r10 -= rdx + cf;
     r10 = mullo(r10, value);
     dst[n] = r10;
     return;
+}
+
+template <uint64_t c>
+WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, size_t n,
+                                            std::integral_constant<uint64_t, c>,
+                                            WJR_MAYBE_UNUSED uint64_t cf) {
+
+    // cost : divexact_dbm1c * 2 + shift * 1 <= divexact_1
+
+    constexpr auto __is_fast = [](auto cr) {
+        constexpr uint64_t r = cr;
+        return c % r == 0 && is_zero_or_single_bit(c / r);
+    };
+
+    const auto __resolve = [dst, n, cf](auto cr) {
+        constexpr uint64_t r = cr;
+        if constexpr (c >= r) {
+            constexpr auto p = fallback_ctz(c / r);
+            if constexpr (p != 0) {
+                (void)rshift_n(dst, dst, n, p, cf);
+            } else {
+                (void)(dst);
+                (void)(n);
+                (void)(cf);
+            }
+        }
+    };
+
+    if constexpr (__is_fast(1_ull)) {
+        __resolve(1_ull);
+    } else if constexpr (__is_fast(3_ull)) {
+        __resolve(3_ull);
+        divexact_by3(dst, src, n);
+    } else if constexpr (__is_fast(5_ull)) {
+        __resolve(5_ull);
+        divexact_by5(dst, src, n);
+    } else if constexpr (__is_fast(15_ull)) {
+        __resolve(15_ull);
+        divexact_by15(dst, src, n);
+    } else if constexpr (__is_fast(9_ull)) {
+        __resolve(9_ull);
+        divexact_by3(dst, src, n);
+        divexact_by3(dst, dst, n);
+    } else if constexpr (__is_fast(25_ull)) {
+        __resolve(25_ull);
+        divexact_by5(dst, src, n);
+        divexact_by5(dst, dst, n);
+    } else if constexpr (__is_fast(45_ull)) {
+        __resolve(45_ull);
+        divexact_by3(dst, src, n);
+        divexact_by15(dst, dst, n);
+    } else if constexpr (__is_fast(75_ull)) {
+        __resolve(75_ull);
+        divexact_by5(dst, src, n);
+        divexact_by15(dst, dst, n);
+    } else if constexpr (__is_fast(225_ull)) {
+        __resolve(225_ull);
+        divexact_by15(dst, src, n);
+        divexact_by15(dst, dst, n);
+    } else {
+        constexpr auto shift = fallback_ctz(c);
+        using divider_t = divexact1_divider<uint64_t>;
+        constexpr auto divisor = c >> shift;
+        constexpr auto value = divider_t::reciprocal(divisor);
+        constexpr auto divider = divider_t(divisor, value, shift);
+
+        if constexpr (divider.is_zero_or_single_bit()) {
+            (void)rshift_n(dst, src, n, shift, cf);
+        } else {
+            if constexpr (shift == 0) {
+                fallback_divexact_1_noshift(dst, src, n, divider);
+            } else {
+                fallback_divexact_1_shift(dst, src, n, divider, cf);
+            }
+        }
+    }
 }
 
 WJR_INTRINSIC_CONSTEXPR20 void
@@ -24383,7 +24546,7 @@ extern const std::array<const precompute_chars_convert_16n_t *, 37>
 
 extern precompute_chars_convert_t *
 precompute_chars_convert(precompute_chars_convert_t *pre, size_t n, unsigned int base,
-                         uint64_t *table_mem);
+                         uint64_t *table_mem) noexcept;
 
 } // namespace wjr
 
@@ -25589,20 +25752,16 @@ Iter to_chars_backward_unchecked(Iter first, Value val, unsigned int base,
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
-            return to_chars_backward_unchecked(
-                first, val, std::integral_constant<unsigned int, 2>(), conv);
+            return to_chars_backward_unchecked(first, val, 2_u, conv);
         }
         case 8: {
-            return to_chars_backward_unchecked(
-                first, val, std::integral_constant<unsigned int, 8>(), conv);
+            return to_chars_backward_unchecked(first, val, 8_u, conv);
         }
         case 16: {
-            return to_chars_backward_unchecked(
-                first, val, std::integral_constant<unsigned int, 16>(), conv);
+            return to_chars_backward_unchecked(first, val, 16_u, conv);
         }
         case 10: {
-            return to_chars_backward_unchecked(
-                first, val, std::integral_constant<unsigned int, 10>(), conv);
+            return to_chars_backward_unchecked(first, val, 10_u, conv);
         }
         default: {
             break;
@@ -26025,20 +26184,16 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, unsigned int base
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
-            return to_chars(ptr, last, val, std::integral_constant<unsigned int, 2>(),
-                            conv);
+            return to_chars(ptr, last, val, 2_u, conv);
         }
         case 8: {
-            return to_chars(ptr, last, val, std::integral_constant<unsigned int, 8>(),
-                            conv);
+            return to_chars(ptr, last, val, 8_u, conv);
         }
         case 16: {
-            return to_chars(ptr, last, val, std::integral_constant<unsigned int, 16>(),
-                            conv);
+            return to_chars(ptr, last, val, 16_u, conv);
         }
         case 10: {
-            return to_chars(ptr, last, val, std::integral_constant<unsigned int, 10>(),
-                            conv);
+            return to_chars(ptr, last, val, 10_u, conv);
         }
         default: {
             break;
@@ -26082,20 +26237,16 @@ Iter to_chars_unchecked(Iter ptr, Value val, unsigned int base, Converter conv =
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
-            return to_chars_unchecked(ptr, val, std::integral_constant<unsigned int, 2>(),
-                                      conv);
+            return to_chars_unchecked(ptr, val, 2_u, conv);
         }
         case 8: {
-            return to_chars_unchecked(ptr, val, std::integral_constant<unsigned int, 8>(),
-                                      conv);
+            return to_chars_unchecked(ptr, val, 8_u, conv);
         }
         case 16: {
-            return to_chars_unchecked(ptr, val,
-                                      std::integral_constant<unsigned int, 16>(), conv);
+            return to_chars_unchecked(ptr, val, 16_u, conv);
         }
         case 10: {
-            return to_chars_unchecked(ptr, val,
-                                      std::integral_constant<unsigned int, 10>(), conv);
+            return to_chars_unchecked(ptr, val, 10_u, conv);
         }
         default: {
             break;
@@ -27006,23 +27157,19 @@ void from_chars_unchecked(Iter first, Iter last, Value &val, unsigned int base,
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
-            __from_chars_unchecked_impl(first, last, val,
-                                        std::integral_constant<unsigned int, 2>(), conv);
+            __from_chars_unchecked_impl(first, last, val, 2_u, conv);
             return;
         }
         case 8: {
-            __from_chars_unchecked_impl(first, last, val,
-                                        std::integral_constant<unsigned int, 8>(), conv);
+            __from_chars_unchecked_impl(first, last, val, 8_u, conv);
             return;
         }
         case 16: {
-            __from_chars_unchecked_impl(first, last, val,
-                                        std::integral_constant<unsigned int, 16>(), conv);
+            __from_chars_unchecked_impl(first, last, val, 16_u, conv);
             return;
         }
         case 10: {
-            __from_chars_unchecked_impl(first, last, val,
-                                        std::integral_constant<unsigned int, 10>(), conv);
+            __from_chars_unchecked_impl(first, last, val, 10_u, conv);
             return;
         }
         default: {
@@ -27248,12 +27395,10 @@ from_chars_result<const char *> from_chars(const char *first, const char *last,
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
-            return __from_chars_impl(first, last, val,
-                                     std::integral_constant<unsigned int, 2>(), conv);
+            return __from_chars_impl(first, last, val, 2_u, conv);
         }
         case 10: {
-            return __from_chars_impl(first, last, val,
-                                     std::integral_constant<unsigned int, 10>(), conv);
+            return __from_chars_impl(first, last, val, 10_u, conv);
         }
         default: {
             break;
@@ -29410,6 +29555,8 @@ void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num,
 template <typename S>
 void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint64_t exp,
                    const biginteger_data *mod);
+
+                   
 
 } // namespace biginteger_details
 

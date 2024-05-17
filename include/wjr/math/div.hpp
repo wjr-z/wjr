@@ -411,15 +411,15 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(uint64_t *dst, uint64_t *rem, const uint
 // reference : GMP
 // return qh;
 extern uint64_t sb_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div,
-                            size_t m, uint64_t dinv);
+                            size_t m, uint64_t dinv) noexcept;
 
 inline constexpr size_t dc_div_qr_threshold = WJR_DC_DIV_QR_THRESHOLD;
 
 extern uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div,
-                            size_t m, uint64_t dinv);
+                            size_t m, uint64_t dinv) noexcept;
 
 extern void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
-                            const uint64_t *div, size_t m);
+                            const uint64_t *div, size_t m) noexcept;
 
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t *src,
                                         size_t n, const uint64_t *div, size_t m) {
@@ -496,75 +496,10 @@ WJR_INTRINSIC_CONSTEXPR20 void divexact_by15(uint64_t *dst, const uint64_t *src,
     (void)divexact_dbm1c(dst, src, n, max / 15, 0);
 }
 
-template <uint64_t c>
-WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, size_t n,
-                                            std::integral_constant<uint64_t, c>) {
-
-    // cost : divexact_dbm1c * 2 + shift * 1 <= divexact_1
-
-    constexpr auto __is_fast = [](auto cr) {
-        constexpr uint64_t r = get_place_index_v<remove_cvref_t<decltype(cr)>>;
-        return c % r == 0 && is_zero_or_single_bit(c / r);
-    };
-
-    auto __resolve = [dst, n](auto cr) {
-        constexpr uint64_t r = get_place_index_v<remove_cvref_t<decltype(cr)>>;
-        if constexpr (c >= r) {
-            constexpr auto p = fallback_ctz(c / r);
-            if constexpr (p != 0) {
-                rshift_n(dst, dst, n, p);
-            } else {
-                (void)(dst);
-                (void)(n);
-            }
-        }
-    };
-
-    if constexpr (__is_fast(std::in_place_index<1>)) {
-        __resolve(std::in_place_index<1>);
-    } else if constexpr (__is_fast(std::in_place_index<3>)) {
-        divexact_by3(dst, src, n);
-        __resolve(std::in_place_index<3>);
-    } else if constexpr (__is_fast(std::in_place_index<5>)) {
-        divexact_by5(dst, src, n);
-        __resolve(std::in_place_index<5>);
-    } else if constexpr (__is_fast(std::in_place_index<15>)) {
-        divexact_by15(dst, src, n);
-        __resolve(std::in_place_index<15>);
-    } else if constexpr (__is_fast(std::in_place_index<9>)) {
-        divexact_by3(dst, src, n);
-        divexact_by3(dst, dst, n);
-        __resolve(std::in_place_index<9>);
-    } else if constexpr (__is_fast(std::in_place_index<25>)) {
-        divexact_by5(dst, src, n);
-        divexact_by5(dst, dst, n);
-        __resolve(std::in_place_index<25>);
-    } else if constexpr (__is_fast(std::in_place_index<45>)) {
-        divexact_by3(dst, src, n);
-        divexact_by15(dst, dst, n);
-        __resolve(std::in_place_index<45>);
-    } else if constexpr (__is_fast(std::in_place_index<75>)) {
-        divexact_by5(dst, src, n);
-        divexact_by15(dst, dst, n);
-        __resolve(std::in_place_index<75>);
-    } else if constexpr (__is_fast(std::in_place_index<225>)) {
-        divexact_by15(dst, src, n);
-        divexact_by15(dst, dst, n);
-        __resolve(std::in_place_index<225>);
-    } else {
-        constexpr auto shift = fallback_ctz(c);
-        using divider_t = divexact1_divider<uint64_t>;
-        constexpr auto divisor = c >> shift;
-        constexpr auto value = divider_t::reciprocal(divisor);
-        constexpr auto divider = divider_t(divisor, value, shift);
-        divexact_1(dst, src, n, divider);
-    }
-}
-
 // reference : ftp://ftp.risc.uni-linz.ac.at/pub/techreports/1992/92-35.ps.gz
-WJR_INLINE_CONSTEXPR20 void
-fallback_divexact_1_noshift(uint64_t *dst, const uint64_t *src, size_t n,
-                            const divexact1_divider<uint64_t> &div) {
+WJR_INLINE_CONSTEXPR20
+void fallback_divexact_1_noshift(uint64_t *dst, const uint64_t *src, size_t n,
+                                 const divexact1_divider<uint64_t> &div) {
     const uint64_t divisor = div.get_divisor();
     const uint64_t value = div.get_value();
 
@@ -594,7 +529,7 @@ fallback_divexact_1_noshift(uint64_t *dst, const uint64_t *src, size_t n,
 
 WJR_INLINE_CONSTEXPR20 void
 fallback_divexact_1_shift(uint64_t *dst, const uint64_t *src, size_t n,
-                          const divexact1_divider<uint64_t> &div) {
+                          const divexact1_divider<uint64_t> &div, uint64_t hicf = 0) {
     const uint64_t divisor = div.get_divisor();
     const uint64_t value = div.get_value();
     const auto shift = div.get_shift();
@@ -619,11 +554,87 @@ fallback_divexact_1_shift(uint64_t *dst, const uint64_t *src, size_t n,
         } while (WJR_LIKELY(idx != n));
     }
 
-    r10 = r10 >> shift;
+    r10 = shrd(r10, hicf, shift);
     r10 -= rdx + cf;
     r10 = mullo(r10, value);
     dst[n] = r10;
     return;
+}
+
+template <uint64_t c>
+WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, size_t n,
+                                            std::integral_constant<uint64_t, c>,
+                                            WJR_MAYBE_UNUSED uint64_t cf) {
+
+    // cost : divexact_dbm1c * 2 + shift * 1 <= divexact_1
+
+    constexpr auto __is_fast = [](auto cr) {
+        constexpr uint64_t r = cr;
+        return c % r == 0 && is_zero_or_single_bit(c / r);
+    };
+
+    const auto __resolve = [dst, n, cf](auto cr) {
+        constexpr uint64_t r = cr;
+        if constexpr (c >= r) {
+            constexpr auto p = fallback_ctz(c / r);
+            if constexpr (p != 0) {
+                (void)rshift_n(dst, dst, n, p, cf);
+            } else {
+                (void)(dst);
+                (void)(n);
+                (void)(cf);
+            }
+        }
+    };
+
+    if constexpr (__is_fast(1_ull)) {
+        __resolve(1_ull);
+    } else if constexpr (__is_fast(3_ull)) {
+        __resolve(3_ull);
+        divexact_by3(dst, src, n);
+    } else if constexpr (__is_fast(5_ull)) {
+        __resolve(5_ull);
+        divexact_by5(dst, src, n);
+    } else if constexpr (__is_fast(15_ull)) {
+        __resolve(15_ull);
+        divexact_by15(dst, src, n);
+    } else if constexpr (__is_fast(9_ull)) {
+        __resolve(9_ull);
+        divexact_by3(dst, src, n);
+        divexact_by3(dst, dst, n);
+    } else if constexpr (__is_fast(25_ull)) {
+        __resolve(25_ull);
+        divexact_by5(dst, src, n);
+        divexact_by5(dst, dst, n);
+    } else if constexpr (__is_fast(45_ull)) {
+        __resolve(45_ull);
+        divexact_by3(dst, src, n);
+        divexact_by15(dst, dst, n);
+    } else if constexpr (__is_fast(75_ull)) {
+        __resolve(75_ull);
+        divexact_by5(dst, src, n);
+        divexact_by15(dst, dst, n);
+    } else if constexpr (__is_fast(225_ull)) {
+        __resolve(225_ull);
+        divexact_by15(dst, src, n);
+        divexact_by15(dst, dst, n);
+    } else {
+        constexpr auto shift = fallback_ctz(c);
+        using divider_t = divexact1_divider<uint64_t>;
+        constexpr auto divisor = c >> shift;
+        constexpr auto value = divider_t::reciprocal(divisor);
+        constexpr auto divider = divider_t(divisor, value, shift);
+
+        if constexpr (divider.is_zero_or_single_bit()) {
+            (void)rshift_n(dst, src, n, shift, cf);
+        } else {
+            if constexpr (shift == 0) {
+                fallback_divexact_1_noshift(dst, src, n, divider);
+            } else {
+                fallback_divexact_1_shift(dst, src, n, divider, cf);
+            }
+        }
+    }
 }
 
 WJR_INTRINSIC_CONSTEXPR20 void

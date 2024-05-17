@@ -493,6 +493,47 @@ template <typename T, typename U>
 inline constexpr bool is_integral_constant_same_v =
     is_integral_constant_same<T, U>::value;
 
+namespace digits_literal_details {
+
+template <typename T, char... Chars>
+constexpr T parse() {
+    T ret = 0;
+    auto func = [&ret](char ch) { ret = ret * 10 + ch - '0'; };
+    (func(Chars), ...);
+    return ret;
+}
+
+} // namespace digits_literal_details
+
+#define WJR_REGISTER_INTEGRAL_LITERAL(NAME, TYPE)                                        \
+    template <char... Chars>                                                             \
+    WJR_INTRINSIC_CONSTEXPR auto operator"" _##NAME() noexcept                           \
+        -> std::integral_constant<TYPE,                                                  \
+                                  digits_literal_details::parse<TYPE, Chars...>()> {     \
+        return {};                                                                       \
+    }
+
+WJR_REGISTER_INTEGRAL_LITERAL(u, unsigned int);
+WJR_REGISTER_INTEGRAL_LITERAL(ul, unsigned long);
+WJR_REGISTER_INTEGRAL_LITERAL(ull, unsigned long long);
+WJR_REGISTER_INTEGRAL_LITERAL(i, int);
+WJR_REGISTER_INTEGRAL_LITERAL(l, long);
+WJR_REGISTER_INTEGRAL_LITERAL(ll, long long);
+
+WJR_REGISTER_INTEGRAL_LITERAL(i8, int8_t);
+WJR_REGISTER_INTEGRAL_LITERAL(i16, int16_t);
+WJR_REGISTER_INTEGRAL_LITERAL(i32, int32_t);
+WJR_REGISTER_INTEGRAL_LITERAL(i64, int64_t);
+WJR_REGISTER_INTEGRAL_LITERAL(u8, uint8_t);
+WJR_REGISTER_INTEGRAL_LITERAL(u16, uint16_t);
+WJR_REGISTER_INTEGRAL_LITERAL(u32, uint32_t);
+WJR_REGISTER_INTEGRAL_LITERAL(u64, uint64_t);
+
+WJR_REGISTER_INTEGRAL_LITERAL(zu, size_t);
+WJR_REGISTER_INTEGRAL_LITERAL(z, ssize_t);
+
+#undef WJR_REGISTER_INTEGRAL_LITERAL
+
 } // namespace wjr
 
 #endif // ! WJR_TYPE_TRAITS_HPP__

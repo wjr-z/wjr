@@ -251,7 +251,7 @@ public:
 
     // extension
 
-    template <size_t I>
+    template <size_t I, WJR_REQUIRES(I < 2)>
     constexpr std::tuple_element_t<I, compressed_pair> &get() & noexcept {
         if constexpr (I == 0) {
             return first();
@@ -260,7 +260,7 @@ public:
         }
     }
 
-    template <size_t I>
+    template <size_t I, WJR_REQUIRES(I < 2)>
     constexpr const std::tuple_element_t<I, compressed_pair> &get() const & noexcept {
         if constexpr (I == 0) {
             return first();
@@ -269,7 +269,7 @@ public:
         }
     }
 
-    template <size_t I>
+    template <size_t I, WJR_REQUIRES(I < 2)>
     constexpr std::tuple_element_t<I, compressed_pair> &&get() && noexcept {
         if constexpr (I == 0) {
             return std::move(first());
@@ -278,13 +278,37 @@ public:
         }
     }
 
-    template <size_t I>
+    template <size_t I, WJR_REQUIRES(I < 2)>
     constexpr const std::tuple_element_t<I, compressed_pair> &&get() const && noexcept {
         if constexpr (I == 0) {
             return std::move(first());
         } else {
             return std::move(second());
         }
+    }
+
+    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < 2)>
+    constexpr std::tuple_element_t<I, compressed_pair> &
+    operator[](std::integral_constant<C, I>) & noexcept {
+        return get<I>();
+    }
+
+    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < 2)>
+    constexpr const std::tuple_element_t<I, compressed_pair> &
+    operator[](std::integral_constant<C, I>) const & noexcept {
+        return get<I>();
+    }
+
+    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < 2)>
+    constexpr std::tuple_element_t<I, compressed_pair> &&
+    operator[](std::integral_constant<C, I>) && noexcept {
+        return std::move(get<I>());
+    }
+
+    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < 2)>
+    constexpr const std::tuple_element_t<I, compressed_pair> &&
+    operator[](std::integral_constant<C, I>) const && noexcept {
+        return std::move(get<I>());
     }
 };
 
@@ -359,7 +383,7 @@ constexpr void swap(wjr::compressed_pair<T, U> &lhs,
     lhs.swap(rhs);
 }
 
-template <size_t I, typename T, typename U>
+template <size_t I, typename T, typename U, WJR_REQUIRES(I < 2)>
 WJR_NODISCARD constexpr tuple_element_t<I, wjr::compressed_pair<T, U>> &
 get(wjr::compressed_pair<T, U> &pr) noexcept {
     if constexpr (I == 0) {
@@ -369,7 +393,7 @@ get(wjr::compressed_pair<T, U> &pr) noexcept {
     }
 }
 
-template <size_t I, typename T, typename U>
+template <size_t I, typename T, typename U, WJR_REQUIRES(I < 2)>
 WJR_NODISCARD constexpr const tuple_element_t<I, wjr::compressed_pair<T, U>> &
 get(const wjr::compressed_pair<T, U> &pr) noexcept {
     if constexpr (I == 0) {
@@ -379,7 +403,7 @@ get(const wjr::compressed_pair<T, U> &pr) noexcept {
     }
 }
 
-template <size_t I, typename T, typename U>
+template <size_t I, typename T, typename U, WJR_REQUIRES(I < 2)>
 WJR_NODISCARD constexpr tuple_element_t<I, wjr::compressed_pair<T, U>> &&
 get(wjr::compressed_pair<T, U> &&pr) noexcept {
     if constexpr (I == 0) {
@@ -389,7 +413,7 @@ get(wjr::compressed_pair<T, U> &&pr) noexcept {
     }
 }
 
-template <size_t I, typename T, typename U>
+template <size_t I, typename T, typename U, WJR_REQUIRES(I < 2)>
 WJR_NODISCARD constexpr const tuple_element_t<I, wjr::compressed_pair<T, U>> &&
 get(const wjr::compressed_pair<T, U> &&pr) noexcept {
     if constexpr (I == 0) {

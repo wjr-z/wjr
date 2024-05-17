@@ -3,7 +3,7 @@
 namespace wjr {
 
 uint64_t sb_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div,
-                     size_t m, uint64_t dinv) {
+                     size_t m, uint64_t dinv) noexcept {
     using divider = div3by2_divider<uint64_t>;
     constexpr uint64_t mask = in_place_max;
 
@@ -62,7 +62,7 @@ uint64_t sb_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div
 }
 
 uint64_t dc_div4by2_qr(uint64_t *dst, uint64_t *src, const uint64_t *div, size_t m,
-                       uint64_t dinv, uint64_t *stk) {
+                       uint64_t dinv, uint64_t *stk) noexcept {
     size_t lo, hi;
     uint64_t cy, qh, ql;
 
@@ -109,7 +109,7 @@ uint64_t dc_div4by2_qr(uint64_t *dst, uint64_t *src, const uint64_t *div, size_t
 }
 
 uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div,
-                     size_t m, uint64_t dinv) {
+                     size_t m, uint64_t dinv) noexcept {
     WJR_ASSERT(m >= 6);
     WJR_ASSERT(n - m >= 3);
     WJR_ASSERT(__has_high_bit(div[m - 1]));
@@ -255,7 +255,7 @@ uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div
 }
 
 void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
-                     const uint64_t *div, size_t m) {
+                     const uint64_t *div, size_t m) noexcept {
     switch (m) {
     case 0: {
         WJR_UNREACHABLE();

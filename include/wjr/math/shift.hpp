@@ -51,7 +51,8 @@ require :
 */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E T lshift_n(T *dst, const T *src, size_t n,
-                                                   unsigned int c, T lo = 0) {
+                                                   unsigned int c,
+                                                   type_identity_t<T> lo = 0) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
     WJR_ASSERT_L1(c < std::numeric_limits<T>::digits);
@@ -98,7 +99,7 @@ require :
 */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E T rshift_n(T *dst, const T *src, size_t n, unsigned int c,
-                                     T hi = 0) {
+                                     type_identity_t<T> hi = 0) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
     WJR_ASSERT_L1(c < std::numeric_limits<T>::digits);

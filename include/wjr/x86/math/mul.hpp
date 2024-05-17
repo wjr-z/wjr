@@ -363,7 +363,7 @@ inline uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint6
 #if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)
 
 extern void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
-                                      const uint64_t *src1, size_t m);
+                                      const uint64_t *src1, size_t m) noexcept;
 
 inline void asm_basecase_mul_s(uint64_t *dst, const uint64_t *src0, size_t n,
                                const uint64_t *src1, size_t m) {
@@ -377,7 +377,8 @@ inline void asm_basecase_mul_s(uint64_t *dst, const uint64_t *src0, size_t n,
 
 #if WJR_HAS_BUILTIN(ASM_BASECASE_SQR)
 
-extern void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx);
+extern void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
+                                    size_t rdx) noexcept;
 
 inline void asm_basecase_sqr(uint64_t *dst, const uint64_t *src, size_t n) {
     WJR_ASSERT(n >= 1);

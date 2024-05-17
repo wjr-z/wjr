@@ -253,13 +253,13 @@ TEST(vector, construct) {
         });
     }
     {
-        auto test = [](auto _Val, int n, auto _First, auto _Last) {
+        auto test = [](auto _Val, int n, auto first, auto last) {
             using T = decltype(_Val);
             std::allocator<T> al;
-            wvector<T> v(_First, _Last, al);
+            wvector<T> v(first, last, al);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
-            EXPECT_TRUE(std::equal(_First, _Last, v.begin()));
+            EXPECT_TRUE(std::equal(first, last, v.begin()));
         };
         run_range([&](int i) {
             {
@@ -284,6 +284,32 @@ TEST(vector, construct) {
                 test(__string, i, vec.begin(), vec.end());
             }
         });
+    }
+    {
+        auto test = [](auto _Val, std::initializer_list<decltype(_Val)> il) {
+            using T = decltype(_Val);
+            auto n = il.size();
+            std::allocator<T> al;
+            wvector<T> v(il, al);
+            EXPECT_EQ(v.size(), n);
+            EXPECT_GE(v.capacity(), n);
+            EXPECT_TRUE(std::equal(il.begin(), il.end(), v.begin()));
+        };
+
+        test(__int, {});
+        test(__int, {1});
+        test(__int, {1, 2});
+        test(__int, {random_int(), random_int(), random_int(), random_int()});
+        test(__int, {random_int(), random_int(), random_int(), random_int(), random_int(),
+                     random_int(), random_int(), random_int()});
+        test(__string, {});
+        test(__string, {random_string()});
+        test(__string, {random_string(), random_string()});
+        test(__string,
+             {random_string(), random_string(), random_string(), random_string()});
+        test(__string,
+             {random_string(), random_string(), random_string(), random_string(),
+              random_string(), random_string(), random_string(), random_string()});
     }
 }
 
@@ -330,8 +356,32 @@ TEST(vector, assignment) {
             test(__string, n, s, c);
         });
     }
-    // vector&operator=(std::initializer_list) nothing to do
-    {}
+    {
+        auto test = [](auto _Val, std::initializer_list<decltype(_Val)> il) {
+            using T = decltype(_Val);
+            auto n = il.size();
+            wvector<T> v;
+            v = il;
+            EXPECT_EQ(v.size(), n);
+            EXPECT_GE(v.capacity(), n);
+            EXPECT_TRUE(std::equal(il.begin(), il.end(), v.begin()));
+        };
+
+        test(__int, {});
+        test(__int, {1});
+        test(__int, {1, 2});
+        test(__int, {random_int(), random_int(), random_int(), random_int()});
+        test(__int, {random_int(), random_int(), random_int(), random_int(), random_int(),
+                     random_int(), random_int(), random_int()});
+        test(__string, {});
+        test(__string, {random_string()});
+        test(__string, {random_string(), random_string()});
+        test(__string,
+             {random_string(), random_string(), random_string(), random_string()});
+        test(__string,
+             {random_string(), random_string(), random_string(), random_string(),
+              random_string(), random_string(), random_string(), random_string()});
+    }
 }
 
 TEST(vector, assign) {
@@ -353,14 +403,15 @@ TEST(vector, assign) {
         });
     }
     {
-        auto test = [](auto _Val, int n, auto _First, auto _Last) {
+        auto test = [](auto _Val, int n, auto first, auto last) {
             using T = decltype(_Val);
             wvector<T> v;
-            v.assign(_First, _Last);
+            v.assign(first, last);
             EXPECT_EQ(v.size(), n);
             EXPECT_GE(v.capacity(), n);
-            EXPECT_TRUE(std::equal(_First, _Last, v.begin()));
+            EXPECT_TRUE(std::equal(first, last, v.begin()));
         };
+
         run_range([&](int i) {
             {
                 std::vector<int> vec(i);
@@ -384,6 +435,32 @@ TEST(vector, assign) {
                 test(__string, i, vec.begin(), vec.end());
             }
         });
+    }
+    {
+        auto test = [](auto _Val, std::initializer_list<decltype(_Val)> il) {
+            using T = decltype(_Val);
+            auto n = il.size();
+            wvector<T> v;
+            v.assign(il);
+            EXPECT_EQ(v.size(), n);
+            EXPECT_GE(v.capacity(), n);
+            EXPECT_TRUE(std::equal(il.begin(), il.end(), v.begin()));
+        };
+
+        test(__int, {});
+        test(__int, {1});
+        test(__int, {1, 2});
+        test(__int, {random_int(), random_int(), random_int(), random_int()});
+        test(__int, {random_int(), random_int(), random_int(), random_int(), random_int(),
+                     random_int(), random_int(), random_int()});
+        test(__string, {});
+        test(__string, {random_string()});
+        test(__string, {random_string(), random_string()});
+        test(__string,
+             {random_string(), random_string(), random_string(), random_string()});
+        test(__string,
+             {random_string(), random_string(), random_string(), random_string(),
+              random_string(), random_string(), random_string(), random_string()});
     }
 }
 

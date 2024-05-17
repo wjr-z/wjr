@@ -9,7 +9,7 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)
 
 void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
-                               const uint64_t *src1, size_t m) {
+                               const uint64_t *src1, size_t m) noexcept {
     WJR_ASSERT_ASSUME(rdx >= 1);
 
     uint64_t r8, r9, r10, r11;
@@ -362,7 +362,7 @@ void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
 #if WJR_HAS_BUILTIN(ASM_BASECASE_SQR)
 
 // Local testing is slower than GMP by 2% to 3%
-void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx) {
+void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx) noexcept {
     WJR_ASSERT_ASSUME(rdx >= 1);
 
     uint64_t r8, r9, r10, r11;

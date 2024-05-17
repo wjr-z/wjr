@@ -400,16 +400,6 @@ TEST(biginteger, addsub) {
 
 TEST(biginteger, mul) {
     {
-        biginteger a(1);
-        biginteger b(1);
-        biginteger c;
-
-        mul(c, a, b);
-
-        WJR_ASSERT(c == 1);
-    }
-
-    {
         biginteger a, b, c;
         mpz_t a1, b1, c1;
 
@@ -494,6 +484,40 @@ TEST(biginteger, mul) {
         }
 
         mpz_clears(a1, b1, c1, nullptr);
+    }
+}
+
+TEST(biginteger, sqr) {
+    {
+        biginteger a, b;
+        mpz_t a1, b1;
+
+        mpz_init(a1);
+        mpz_init(b1);
+
+        const int N = 1200;
+
+        for (int n = 0; n < N; n += (n <= 140 ? 1 : n / 5)) {
+            for (int m = 0; m < N; m += (m <= 140 ? 1 : m / 5)) {
+                random(a, n);
+                copy(a1, a);
+
+                random(b, m);
+                copy(b1, b);
+
+                for (int i = 0; i < 2; ++i) {
+                    sqr(b, a);
+                    mpz_mul(b1, a1, a1);
+
+                    WJR_ASSERT(equal(b, b1));
+
+                    a.negate();
+                    mpz_neg(a1, a1);
+                }
+            }
+        }
+
+        mpz_clears(a1, b1, nullptr);
     }
 }
 

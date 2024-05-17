@@ -1015,20 +1015,16 @@ Iter to_chars_backward_unchecked(Iter first, Value val, unsigned int base,
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
-            return to_chars_backward_unchecked(
-                first, val, std::integral_constant<unsigned int, 2>(), conv);
+            return to_chars_backward_unchecked(first, val, 2_u, conv);
         }
         case 8: {
-            return to_chars_backward_unchecked(
-                first, val, std::integral_constant<unsigned int, 8>(), conv);
+            return to_chars_backward_unchecked(first, val, 8_u, conv);
         }
         case 16: {
-            return to_chars_backward_unchecked(
-                first, val, std::integral_constant<unsigned int, 16>(), conv);
+            return to_chars_backward_unchecked(first, val, 16_u, conv);
         }
         case 10: {
-            return to_chars_backward_unchecked(
-                first, val, std::integral_constant<unsigned int, 10>(), conv);
+            return to_chars_backward_unchecked(first, val, 10_u, conv);
         }
         default: {
             break;
@@ -1451,20 +1447,16 @@ to_chars_result<Iter> to_chars(Iter ptr, Iter last, Value val, unsigned int base
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
-            return to_chars(ptr, last, val, std::integral_constant<unsigned int, 2>(),
-                            conv);
+            return to_chars(ptr, last, val, 2_u, conv);
         }
         case 8: {
-            return to_chars(ptr, last, val, std::integral_constant<unsigned int, 8>(),
-                            conv);
+            return to_chars(ptr, last, val, 8_u, conv);
         }
         case 16: {
-            return to_chars(ptr, last, val, std::integral_constant<unsigned int, 16>(),
-                            conv);
+            return to_chars(ptr, last, val, 16_u, conv);
         }
         case 10: {
-            return to_chars(ptr, last, val, std::integral_constant<unsigned int, 10>(),
-                            conv);
+            return to_chars(ptr, last, val, 10_u, conv);
         }
         default: {
             break;
@@ -1508,20 +1500,16 @@ Iter to_chars_unchecked(Iter ptr, Value val, unsigned int base, Converter conv =
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
-            return to_chars_unchecked(ptr, val, std::integral_constant<unsigned int, 2>(),
-                                      conv);
+            return to_chars_unchecked(ptr, val, 2_u, conv);
         }
         case 8: {
-            return to_chars_unchecked(ptr, val, std::integral_constant<unsigned int, 8>(),
-                                      conv);
+            return to_chars_unchecked(ptr, val, 8_u, conv);
         }
         case 16: {
-            return to_chars_unchecked(ptr, val,
-                                      std::integral_constant<unsigned int, 16>(), conv);
+            return to_chars_unchecked(ptr, val, 16_u, conv);
         }
         case 10: {
-            return to_chars_unchecked(ptr, val,
-                                      std::integral_constant<unsigned int, 10>(), conv);
+            return to_chars_unchecked(ptr, val, 10_u, conv);
         }
         default: {
             break;
@@ -2432,23 +2420,19 @@ void from_chars_unchecked(Iter first, Iter last, Value &val, unsigned int base,
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
-            __from_chars_unchecked_impl(first, last, val,
-                                        std::integral_constant<unsigned int, 2>(), conv);
+            __from_chars_unchecked_impl(first, last, val, 2_u, conv);
             return;
         }
         case 8: {
-            __from_chars_unchecked_impl(first, last, val,
-                                        std::integral_constant<unsigned int, 8>(), conv);
+            __from_chars_unchecked_impl(first, last, val, 8_u, conv);
             return;
         }
         case 16: {
-            __from_chars_unchecked_impl(first, last, val,
-                                        std::integral_constant<unsigned int, 16>(), conv);
+            __from_chars_unchecked_impl(first, last, val, 16_u, conv);
             return;
         }
         case 10: {
-            __from_chars_unchecked_impl(first, last, val,
-                                        std::integral_constant<unsigned int, 10>(), conv);
+            __from_chars_unchecked_impl(first, last, val, 10_u, conv);
             return;
         }
         default: {
@@ -2674,12 +2658,10 @@ from_chars_result<const char *> from_chars(const char *first, const char *last,
     if (WJR_BUILTIN_CONSTANT_P(base)) {
         switch (base) {
         case 2: {
-            return __from_chars_impl(first, last, val,
-                                     std::integral_constant<unsigned int, 2>(), conv);
+            return __from_chars_impl(first, last, val, 2_u, conv);
         }
         case 10: {
-            return __from_chars_impl(first, last, val,
-                                     std::integral_constant<unsigned int, 10>(), conv);
+            return __from_chars_impl(first, last, val, 10_u, conv);
         }
         default: {
             break;
