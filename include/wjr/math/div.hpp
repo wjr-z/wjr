@@ -449,12 +449,13 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(uint64_t *dst, uint64_t *rem, const uint
 
 WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_divexact_dbm1c(uint64_t *dst,
                                                            const uint64_t *src, size_t n,
-                                                           uint64_t bd, uint64_t h) {
-    uint64_t a = 0, p0 = 0, p1 = 0, cf = 0;
+                                                           uint64_t bd) {
+    uint64_t a = 0, h = 0;
 
     // GCC can't optimize well
     WJR_UNROLL(4)
     for (size_t i = 0; i < n; i++) {
+        uint64_t p0, p1, cf;
         a = src[i];
         p0 = mul(a, bd, p1);
         h = subc(h, p0, 0, cf);
@@ -466,34 +467,34 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_divexact_dbm1c(uint64_t *dst,
 }
 
 WJR_INTRINSIC_CONSTEXPR20 uint64_t divexact_dbm1c(uint64_t *dst, const uint64_t *src,
-                                                  size_t n, uint64_t bd, uint64_t h) {
+                                                  size_t n, uint64_t bd) {
 #if WJR_HAS_BUILTIN(ASM_DIVEXACT_DBM1C)
     if (is_constant_evaluated()) {
-        return fallback_divexact_dbm1c(dst, src, n, bd, h);
+        return fallback_divexact_dbm1c(dst, src, n, bd);
     }
 
-    return asm_divexact_dbm1c(dst, src, n, bd, h);
+    return asm_divexact_dbm1c(dst, src, n, bd);
 #else
-    return fallback_divexact_dbm1c(dst, src, n, bd, h);
+    return fallback_divexact_dbm1c(dst, src, n, bd);
 #endif
 }
 
 WJR_INTRINSIC_CONSTEXPR20 void divexact_by3(uint64_t *dst, const uint64_t *src,
                                             size_t n) {
     constexpr uint64_t max = in_place_max;
-    (void)divexact_dbm1c(dst, src, n, max / 3, 0);
+    (void)divexact_dbm1c(dst, src, n, max / 3);
 }
 
 WJR_INTRINSIC_CONSTEXPR20 void divexact_by5(uint64_t *dst, const uint64_t *src,
                                             size_t n) {
     constexpr uint64_t max = in_place_max;
-    (void)divexact_dbm1c(dst, src, n, max / 5, 0);
+    (void)divexact_dbm1c(dst, src, n, max / 5);
 }
 
 WJR_INTRINSIC_CONSTEXPR20 void divexact_by15(uint64_t *dst, const uint64_t *src,
                                              size_t n) {
     constexpr uint64_t max = in_place_max;
-    (void)divexact_dbm1c(dst, src, n, max / 15, 0);
+    (void)divexact_dbm1c(dst, src, n, max / 15);
 }
 
 // reference : ftp://ftp.risc.uni-linz.ac.at/pub/techreports/1992/92-35.ps.gz

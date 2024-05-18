@@ -668,10 +668,6 @@ extern void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_
 extern void toom5_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
                       uint64_t *stk) noexcept;
 
-extern void
-toom_interpolation_10p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l, size_t rn,
-                         size_t rm, toom_interpolation_high_p_struct<10> &&flag) noexcept;
-
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool toom44_ok(size_t n, size_t m) noexcept {
     return 3 * n + 21 <= 4 * m;
 }
@@ -839,80 +835,88 @@ void __noinline_mul_s_impl(
         return;
     }
 
-    if (m < toom44_mul_threshold || (m < toom55_mul_threshold && !toom44_ok(n, m)) ||
-        !toom55_ok(n, m)) {
-        if (n >= 3 * m) {
-            uint64_t *tmp = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (4 * m));
-            uint64_t *stk =
-                __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-
-            toom42_mul_s(dst, src0, 2 * m, src1, m, stk);
-            n -= 2 * m;
-            src0 += 2 * m;
-            dst += 2 * m;
-
-            uint64_t cf = 0;
-
-            while (n >= 3 * m) {
-                toom42_mul_s(tmp, src0, 2 * m, src1, m, stk);
-                n -= 2 * m;
-                src0 += 2 * m;
-
-                cf = addc_n(dst, dst, tmp, m, cf);
-                std::copy(tmp + m, tmp + 3 * m, dst + m);
-                cf = addc_1(dst + m, dst + m, 2 * m, 0, cf);
-
-                dst += 2 * m;
-            }
-
-            __mul_s_impl<__mul_mode::all, true>(tmp, src0, n, src1, m, stk);
-
-            cf = addc_n(dst, dst, tmp, m, cf);
-            std::copy(tmp + m, tmp + m + n, dst + m);
-            cf = addc_1(dst + m, dst + m, n, 0, cf);
-            WJR_ASSERT(cf == 0);
-        } else {
-            uint64_t *stk =
-                __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-            if (6 * n < 7 * m) {
-                toom33_mul_s(dst, src0, n, src1, m, stk);
-            } else if (2 * n < 3 * m) {
-                if (m < toom32_to_toom43_mul_threshold) {
-                    toom32_mul_s(dst, src0, n, src1, m, stk);
-                } else {
-                    toom43_mul_s(dst, src0, n, src1, m, stk);
-                }
-            } else if (6 * n < 11 * m) {
-                if (4 * n < 7 * m) {
-                    if (m < toom32_to_toom53_mul_threshold) {
-                        toom32_mul_s(dst, src0, n, src1, m, stk);
-                    } else {
-                        toom53_mul_s(dst, src0, n, src1, m, stk);
-                    }
-                } else {
-                    if (m < toom42_to_toom53_mul_threshold) {
-                        toom42_mul_s(dst, src0, n, src1, m, stk);
-                    } else {
-                        toom53_mul_s(dst, src0, n, src1, m, stk);
-                    }
-                }
-            } else {
-                toom42_mul_s(dst, src0, n, src1, m, stk);
-            }
+    do {
+        if (m < toom44_mul_threshold) {
+            break;
         }
 
-        return;
-    }
+        if (m < toom55_mul_threshold) {
+            if (!toom44_ok(n, m)) {
+                break;
+            }
 
-    if (m < toom55_mul_threshold) {
+            uint64_t *stk =
+                __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
+            toom44_mul_s(dst, src0, n, src1, m, stk);
+            return;
+        }
+
+        if (!toom55_ok(n, m)) {
+            break;
+        }
+
+        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (22 * m + 288));
+        toom55_mul_s(dst, src0, n, src1, m, stk);
+        return;
+    } while (0);
+
+    if (n >= 3 * m) {
+        uint64_t *tmp = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (4 * m));
         uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-        toom44_mul_s(dst, src0, n, src1, m, stk);
-        return;
-    }
 
-    uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (22 * m + 288));
-    toom55_mul_s(dst, src0, n, src1, m, stk);
-    return;
+        toom42_mul_s(dst, src0, 2 * m, src1, m, stk);
+        n -= 2 * m;
+        src0 += 2 * m;
+        dst += 2 * m;
+
+        uint64_t cf = 0;
+
+        while (n >= 3 * m) {
+            toom42_mul_s(tmp, src0, 2 * m, src1, m, stk);
+            n -= 2 * m;
+            src0 += 2 * m;
+
+            cf = addc_n(dst, dst, tmp, m, cf);
+            std::copy(tmp + m, tmp + 3 * m, dst + m);
+            cf = addc_1(dst + m, dst + m, 2 * m, 0, cf);
+
+            dst += 2 * m;
+        }
+
+        __mul_s_impl<__mul_mode::all, true>(tmp, src0, n, src1, m, stk);
+
+        cf = addc_n(dst, dst, tmp, m, cf);
+        std::copy(tmp + m, tmp + m + n, dst + m);
+        cf = addc_1(dst + m, dst + m, n, 0, cf);
+        WJR_ASSERT(cf == 0);
+    } else {
+        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
+        if (6 * n < 7 * m) {
+            toom33_mul_s(dst, src0, n, src1, m, stk);
+        } else if (2 * n < 3 * m) {
+            if (m < toom32_to_toom43_mul_threshold) {
+                toom32_mul_s(dst, src0, n, src1, m, stk);
+            } else {
+                toom43_mul_s(dst, src0, n, src1, m, stk);
+            }
+        } else if (6 * n < 11 * m) {
+            if (4 * n < 7 * m) {
+                if (m < toom32_to_toom53_mul_threshold) {
+                    toom32_mul_s(dst, src0, n, src1, m, stk);
+                } else {
+                    toom53_mul_s(dst, src0, n, src1, m, stk);
+                }
+            } else {
+                if (m < toom42_to_toom53_mul_threshold) {
+                    toom42_mul_s(dst, src0, n, src1, m, stk);
+                } else {
+                    toom53_mul_s(dst, src0, n, src1, m, stk);
+                }
+            }
+        } else {
+            toom42_mul_s(dst, src0, n, src1, m, stk);
+        }
+    }
 }
 
 extern template void __noinline_mul_s_impl<true>(uint64_t *WJR_RESTRICT dst,

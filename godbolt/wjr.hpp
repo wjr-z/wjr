@@ -22558,10 +22558,6 @@ extern void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_
 extern void toom5_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
                       uint64_t *stk) noexcept;
 
-extern void
-toom_interpolation_10p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l, size_t rn,
-                         size_t rm, toom_interpolation_high_p_struct<10> &&flag) noexcept;
-
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool toom44_ok(size_t n, size_t m) noexcept {
     return 3 * n + 21 <= 4 * m;
 }
@@ -22729,80 +22725,88 @@ void __noinline_mul_s_impl(
         return;
     }
 
-    if (m < toom44_mul_threshold || (m < toom55_mul_threshold && !toom44_ok(n, m)) ||
-        !toom55_ok(n, m)) {
-        if (n >= 3 * m) {
-            uint64_t *tmp = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (4 * m));
-            uint64_t *stk =
-                __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-
-            toom42_mul_s(dst, src0, 2 * m, src1, m, stk);
-            n -= 2 * m;
-            src0 += 2 * m;
-            dst += 2 * m;
-
-            uint64_t cf = 0;
-
-            while (n >= 3 * m) {
-                toom42_mul_s(tmp, src0, 2 * m, src1, m, stk);
-                n -= 2 * m;
-                src0 += 2 * m;
-
-                cf = addc_n(dst, dst, tmp, m, cf);
-                std::copy(tmp + m, tmp + 3 * m, dst + m);
-                cf = addc_1(dst + m, dst + m, 2 * m, 0, cf);
-
-                dst += 2 * m;
-            }
-
-            __mul_s_impl<__mul_mode::all, true>(tmp, src0, n, src1, m, stk);
-
-            cf = addc_n(dst, dst, tmp, m, cf);
-            std::copy(tmp + m, tmp + m + n, dst + m);
-            cf = addc_1(dst + m, dst + m, n, 0, cf);
-            WJR_ASSERT(cf == 0);
-        } else {
-            uint64_t *stk =
-                __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-            if (6 * n < 7 * m) {
-                toom33_mul_s(dst, src0, n, src1, m, stk);
-            } else if (2 * n < 3 * m) {
-                if (m < toom32_to_toom43_mul_threshold) {
-                    toom32_mul_s(dst, src0, n, src1, m, stk);
-                } else {
-                    toom43_mul_s(dst, src0, n, src1, m, stk);
-                }
-            } else if (6 * n < 11 * m) {
-                if (4 * n < 7 * m) {
-                    if (m < toom32_to_toom53_mul_threshold) {
-                        toom32_mul_s(dst, src0, n, src1, m, stk);
-                    } else {
-                        toom53_mul_s(dst, src0, n, src1, m, stk);
-                    }
-                } else {
-                    if (m < toom42_to_toom53_mul_threshold) {
-                        toom42_mul_s(dst, src0, n, src1, m, stk);
-                    } else {
-                        toom53_mul_s(dst, src0, n, src1, m, stk);
-                    }
-                }
-            } else {
-                toom42_mul_s(dst, src0, n, src1, m, stk);
-            }
+    do {
+        if (m < toom44_mul_threshold) {
+            break;
         }
 
-        return;
-    }
+        if (m < toom55_mul_threshold) {
+            if (!toom44_ok(n, m)) {
+                break;
+            }
 
-    if (m < toom55_mul_threshold) {
+            uint64_t *stk =
+                __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
+            toom44_mul_s(dst, src0, n, src1, m, stk);
+            return;
+        }
+
+        if (!toom55_ok(n, m)) {
+            break;
+        }
+
+        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (22 * m + 288));
+        toom55_mul_s(dst, src0, n, src1, m, stk);
+        return;
+    } while (0);
+
+    if (n >= 3 * m) {
+        uint64_t *tmp = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (4 * m));
         uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-        toom44_mul_s(dst, src0, n, src1, m, stk);
-        return;
-    }
 
-    uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (22 * m + 288));
-    toom55_mul_s(dst, src0, n, src1, m, stk);
-    return;
+        toom42_mul_s(dst, src0, 2 * m, src1, m, stk);
+        n -= 2 * m;
+        src0 += 2 * m;
+        dst += 2 * m;
+
+        uint64_t cf = 0;
+
+        while (n >= 3 * m) {
+            toom42_mul_s(tmp, src0, 2 * m, src1, m, stk);
+            n -= 2 * m;
+            src0 += 2 * m;
+
+            cf = addc_n(dst, dst, tmp, m, cf);
+            std::copy(tmp + m, tmp + 3 * m, dst + m);
+            cf = addc_1(dst + m, dst + m, 2 * m, 0, cf);
+
+            dst += 2 * m;
+        }
+
+        __mul_s_impl<__mul_mode::all, true>(tmp, src0, n, src1, m, stk);
+
+        cf = addc_n(dst, dst, tmp, m, cf);
+        std::copy(tmp + m, tmp + m + n, dst + m);
+        cf = addc_1(dst + m, dst + m, n, 0, cf);
+        WJR_ASSERT(cf == 0);
+    } else {
+        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
+        if (6 * n < 7 * m) {
+            toom33_mul_s(dst, src0, n, src1, m, stk);
+        } else if (2 * n < 3 * m) {
+            if (m < toom32_to_toom43_mul_threshold) {
+                toom32_mul_s(dst, src0, n, src1, m, stk);
+            } else {
+                toom43_mul_s(dst, src0, n, src1, m, stk);
+            }
+        } else if (6 * n < 11 * m) {
+            if (4 * n < 7 * m) {
+                if (m < toom32_to_toom53_mul_threshold) {
+                    toom32_mul_s(dst, src0, n, src1, m, stk);
+                } else {
+                    toom53_mul_s(dst, src0, n, src1, m, stk);
+                }
+            } else {
+                if (m < toom42_to_toom53_mul_threshold) {
+                    toom42_mul_s(dst, src0, n, src1, m, stk);
+                } else {
+                    toom53_mul_s(dst, src0, n, src1, m, stk);
+                }
+            }
+        } else {
+            toom42_mul_s(dst, src0, n, src1, m, stk);
+        }
+    }
 }
 
 extern template void __noinline_mul_s_impl<true>(uint64_t *WJR_RESTRICT dst,
@@ -23648,7 +23652,7 @@ private:
 
 namespace wjr {
 
-#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
+#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM) && defined(__BMI2__)
 #define WJR_HAS_BUILTIN_ASM_DIVEXACT_DBM1C WJR_HAS_DEF
 #endif
 
@@ -23656,8 +23660,8 @@ namespace wjr {
 
 // TODO : optimize pipeline
 inline uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
-                                   uint64_t bd, uint64_t h) {
-    uint64_t r8 = h, r9 = n, r10, r11 = static_cast<uint32_t>(n);
+                                   uint64_t bd) {
+    uint64_t r8 = 0, r9 = n, r10, r11 = static_cast<uint32_t>(n);
 
     src += r9;
     dst += r9;
@@ -24156,12 +24160,13 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(uint64_t *dst, uint64_t *rem, const uint
 
 WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_divexact_dbm1c(uint64_t *dst,
                                                            const uint64_t *src, size_t n,
-                                                           uint64_t bd, uint64_t h) {
-    uint64_t a = 0, p0 = 0, p1 = 0, cf = 0;
+                                                           uint64_t bd) {
+    uint64_t a = 0, h = 0;
 
     // GCC can't optimize well
     WJR_UNROLL(4)
     for (size_t i = 0; i < n; i++) {
+        uint64_t p0, p1, cf;
         a = src[i];
         p0 = mul(a, bd, p1);
         h = subc(h, p0, 0, cf);
@@ -24173,34 +24178,34 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_divexact_dbm1c(uint64_t *dst,
 }
 
 WJR_INTRINSIC_CONSTEXPR20 uint64_t divexact_dbm1c(uint64_t *dst, const uint64_t *src,
-                                                  size_t n, uint64_t bd, uint64_t h) {
+                                                  size_t n, uint64_t bd) {
 #if WJR_HAS_BUILTIN(ASM_DIVEXACT_DBM1C)
     if (is_constant_evaluated()) {
-        return fallback_divexact_dbm1c(dst, src, n, bd, h);
+        return fallback_divexact_dbm1c(dst, src, n, bd);
     }
 
-    return asm_divexact_dbm1c(dst, src, n, bd, h);
+    return asm_divexact_dbm1c(dst, src, n, bd);
 #else
-    return fallback_divexact_dbm1c(dst, src, n, bd, h);
+    return fallback_divexact_dbm1c(dst, src, n, bd);
 #endif
 }
 
 WJR_INTRINSIC_CONSTEXPR20 void divexact_by3(uint64_t *dst, const uint64_t *src,
                                             size_t n) {
     constexpr uint64_t max = in_place_max;
-    (void)divexact_dbm1c(dst, src, n, max / 3, 0);
+    (void)divexact_dbm1c(dst, src, n, max / 3);
 }
 
 WJR_INTRINSIC_CONSTEXPR20 void divexact_by5(uint64_t *dst, const uint64_t *src,
                                             size_t n) {
     constexpr uint64_t max = in_place_max;
-    (void)divexact_dbm1c(dst, src, n, max / 5, 0);
+    (void)divexact_dbm1c(dst, src, n, max / 5);
 }
 
 WJR_INTRINSIC_CONSTEXPR20 void divexact_by15(uint64_t *dst, const uint64_t *src,
                                              size_t n) {
     constexpr uint64_t max = in_place_max;
-    (void)divexact_dbm1c(dst, src, n, max / 15, 0);
+    (void)divexact_dbm1c(dst, src, n, max / 15);
 }
 
 // reference : ftp://ftp.risc.uni-linz.ac.at/pub/techreports/1992/92-35.ps.gz
@@ -24767,6 +24772,9 @@ inline constexpr size_t dc_bignum_from_chars_precompute_threshold =
 inline constexpr auto div2by1_divider_noshift_of_big_base_10 =
     div2by1_divider_noshift<uint64_t>(10'000'000'000'000'000'000ull,
                                       15'581'492'618'384'294'730ull);
+
+inline constexpr auto div3by2_divider_shift_of_big_base_10 = div3by2_divider<uint64_t>(
+    1374799102801346560ull, 10842021724855044340ull, 12'938'764'603'223'852'203ull, 1);
 
 namespace convert_details {
 
@@ -26530,6 +26538,44 @@ DONE:
 
 template <typename Converter>
 uint8_t *basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n, Converter conv) {
+
+    if (n > 4) {
+        do {
+            uint64_t q;
+            uint64_t rem[2];
+            q = div_qr_2_shift(up, rem, up, n, div3by2_divider_shift_of_big_base_10);
+            if (q != 0) {
+                up[n - 2] = q;
+                n -= 1;
+            } else {
+                n -= 2;
+            }
+
+            uint64_t lo, hi;
+            hi = div128by64to64_noshift(lo, rem[0], rem[1],
+                                        div2by1_divider_noshift_of_big_base_10);
+
+            __to_chars_unroll_8<10>(buf - 8, lo % 1'0000'0000, conv);
+            lo /= 1'0000'0000;
+            __to_chars_unroll_8<10>(buf - 16, lo % 1'0000'0000, conv);
+            lo /= 1'0000'0000;
+            __to_chars_unroll_2<10>(buf - 18, lo % 100, conv);
+            lo /= 100;
+            buf[-19] = conv.template to<10>(lo);
+            buf -= 19;
+
+            __to_chars_unroll_8<10>(buf - 8, hi % 1'0000'0000, conv);
+            hi /= 1'0000'0000;
+            __to_chars_unroll_8<10>(buf - 16, hi % 1'0000'0000, conv);
+            hi /= 1'0000'0000;
+            __to_chars_unroll_2<10>(buf - 18, hi % 100, conv);
+            hi /= 100;
+            buf[-19] = conv.template to<10>(hi);
+            buf -= 19;
+
+        } while (n > 4);
+    }
+
     do {
         if (WJR_UNLIKELY(n == 1)) {
             return __unsigned_to_chars_backward_unchecked<10>(buf, up[0], conv);
@@ -26553,6 +26599,8 @@ uint8_t *basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n, Converter co
 
         buf -= 19;
     } while (n);
+
+    WJR_UNREACHABLE();
 
     return buf;
 }

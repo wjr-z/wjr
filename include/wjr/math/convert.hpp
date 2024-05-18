@@ -31,6 +31,9 @@ inline constexpr auto div2by1_divider_noshift_of_big_base_10 =
     div2by1_divider_noshift<uint64_t>(10'000'000'000'000'000'000ull,
                                       15'581'492'618'384'294'730ull);
 
+inline constexpr auto div3by2_divider_shift_of_big_base_10 = div3by2_divider<uint64_t>(
+    1374799102801346560ull, 10842021724855044340ull, 12'938'764'603'223'852'203ull, 1);
+
 namespace convert_details {
 
 WJR_CONST constexpr bool __isspace(uint8_t ch) { return char_converter.from(ch) == 64; }
@@ -1793,6 +1796,44 @@ DONE:
 
 template <typename Converter>
 uint8_t *basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n, Converter conv) {
+
+    if (n > 4) {
+        do {
+            uint64_t q;
+            uint64_t rem[2];
+            q = div_qr_2_shift(up, rem, up, n, div3by2_divider_shift_of_big_base_10);
+            if (q != 0) {
+                up[n - 2] = q;
+                n -= 1;
+            } else {
+                n -= 2;
+            }
+
+            uint64_t lo, hi;
+            hi = div128by64to64_noshift(lo, rem[0], rem[1],
+                                        div2by1_divider_noshift_of_big_base_10);
+
+            __to_chars_unroll_8<10>(buf - 8, lo % 1'0000'0000, conv);
+            lo /= 1'0000'0000;
+            __to_chars_unroll_8<10>(buf - 16, lo % 1'0000'0000, conv);
+            lo /= 1'0000'0000;
+            __to_chars_unroll_2<10>(buf - 18, lo % 100, conv);
+            lo /= 100;
+            buf[-19] = conv.template to<10>(lo);
+            buf -= 19;
+
+            __to_chars_unroll_8<10>(buf - 8, hi % 1'0000'0000, conv);
+            hi /= 1'0000'0000;
+            __to_chars_unroll_8<10>(buf - 16, hi % 1'0000'0000, conv);
+            hi /= 1'0000'0000;
+            __to_chars_unroll_2<10>(buf - 18, hi % 100, conv);
+            hi /= 100;
+            buf[-19] = conv.template to<10>(hi);
+            buf -= 19;
+
+        } while (n > 4);
+    }
+
     do {
         if (WJR_UNLIKELY(n == 1)) {
             return __unsigned_to_chars_backward_unchecked<10>(buf, up[0], conv);
@@ -1816,6 +1857,8 @@ uint8_t *basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n, Converter co
 
         buf -= 19;
     } while (n);
+
+    WJR_UNREACHABLE();
 
     return buf;
 }
