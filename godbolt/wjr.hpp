@@ -18769,17 +18769,14 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(uint64_t *dst, uint64_t *rem, const uint
 WJR_INTRINSIC_CONSTEXPR20 uint64_t divexact_dbm1c(uint64_t *dst, const uint64_t *src,
                                                   size_t n, uint64_t bd, uint64_t h);
 
-WJR_INTRINSIC_CONSTEXPR20 void divexact_by3(uint64_t *dst, const uint64_t *src, size_t n);
-
-WJR_INTRINSIC_CONSTEXPR20 void divexact_by5(uint64_t *dst, const uint64_t *src, size_t n);
-
-WJR_INTRINSIC_CONSTEXPR20 void divexact_by15(uint64_t *dst, const uint64_t *src,
-                                             size_t n);
+WJR_INTRINSIC_CONSTEXPR20 void divexact_dbm1c_shift(uint64_t *dst, const uint64_t *src,
+                                                    size_t n, uint64_t bd, uint64_t cl,
+                                                    uint64_t hicf);
 
 template <uint64_t c>
 WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, size_t n,
                                             std::integral_constant<uint64_t, c>,
-                                            uint64_t cf);
+                                            WJR_MAYBE_UNUSED uint64_t cf);
 
 WJR_INTRINSIC_CONSTEXPR20 void divexact_1(uint64_t *dst, const uint64_t *src, size_t n,
                                           const divexact1_divider<uint64_t> &div);
@@ -20501,7 +20498,7 @@ private:
             if (WJR_UNLIKELY(m_size == m_capacity)) {
                 uint16_t new_capacity = m_idx + 2 * (bufsize - 1);
                 memory_pool<alloc_node> pool;
-                auto new_ptr = pool.allocate(new_capacity);
+                const auto new_ptr = pool.allocate(new_capacity);
                 if (WJR_LIKELY(m_idx != 0)) {
                     std::copy_n(m_ptr, m_idx, new_ptr);
                     pool.deallocate(m_ptr, m_capacity);
@@ -23660,8 +23657,8 @@ namespace wjr {
 
 // TODO : optimize pipeline
 inline uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
-                                   uint64_t bd) {
-    uint64_t r8 = 0, r9 = n, r10, r11 = static_cast<uint32_t>(n);
+                                   uint64_t bd, uint64_t h) {
+    uint64_t r8 = h, r9 = n, r10, r11 = static_cast<uint32_t>(n);
 
     src += r9;
     dst += r9;
@@ -23705,9 +23702,8 @@ inline uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
         "add $4, %[r9]\n\t"
         "jne .Lloop%=\n\t"
 
-        : [dst] "+&r"(dst), [src] "+&r"(src), [r8] "+&r"(r8), [r9] "+&r"(r9),
-          [r10] "=&r"(r10), [r11] "+&r"(r11)
-        : "d"(bd)
+        : [r8] "+&r"(r8), [r9] "+&r"(r9), [r10] "=&r"(r10), [r11] "+&r"(r11)
+        : "d"(bd), [dst] "r"(dst), [src] "r"(src)
         : "cc", "memory");
 
     return r8;
@@ -24160,13 +24156,13 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(uint64_t *dst, uint64_t *rem, const uint
 
 WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_divexact_dbm1c(uint64_t *dst,
                                                            const uint64_t *src, size_t n,
-                                                           uint64_t bd) {
-    uint64_t a = 0, h = 0;
+                                                           uint64_t bd, uint64_t h) {
+    uint64_t a = 0;
+    uint64_t p0, p1, cf;
 
     // GCC can't optimize well
     WJR_UNROLL(4)
     for (size_t i = 0; i < n; i++) {
-        uint64_t p0, p1, cf;
         a = src[i];
         p0 = mul(a, bd, p1);
         h = subc(h, p0, 0, cf);
@@ -24178,34 +24174,16 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_divexact_dbm1c(uint64_t *dst,
 }
 
 WJR_INTRINSIC_CONSTEXPR20 uint64_t divexact_dbm1c(uint64_t *dst, const uint64_t *src,
-                                                  size_t n, uint64_t bd) {
+                                                  size_t n, uint64_t bd, uint64_t h) {
 #if WJR_HAS_BUILTIN(ASM_DIVEXACT_DBM1C)
     if (is_constant_evaluated()) {
-        return fallback_divexact_dbm1c(dst, src, n, bd);
+        return fallback_divexact_dbm1c(dst, src, n, bd, h);
     }
 
-    return asm_divexact_dbm1c(dst, src, n, bd);
+    return asm_divexact_dbm1c(dst, src, n, bd, h);
 #else
-    return fallback_divexact_dbm1c(dst, src, n, bd);
+    return fallback_divexact_dbm1c(dst, src, n, bd, h);
 #endif
-}
-
-WJR_INTRINSIC_CONSTEXPR20 void divexact_by3(uint64_t *dst, const uint64_t *src,
-                                            size_t n) {
-    constexpr uint64_t max = in_place_max;
-    (void)divexact_dbm1c(dst, src, n, max / 3);
-}
-
-WJR_INTRINSIC_CONSTEXPR20 void divexact_by5(uint64_t *dst, const uint64_t *src,
-                                            size_t n) {
-    constexpr uint64_t max = in_place_max;
-    (void)divexact_dbm1c(dst, src, n, max / 5);
-}
-
-WJR_INTRINSIC_CONSTEXPR20 void divexact_by15(uint64_t *dst, const uint64_t *src,
-                                             size_t n) {
-    constexpr uint64_t max = in_place_max;
-    (void)divexact_dbm1c(dst, src, n, max / 15);
 }
 
 // reference : ftp://ftp.risc.uni-linz.ac.at/pub/techreports/1992/92-35.ps.gz
@@ -24274,77 +24252,100 @@ fallback_divexact_1_shift(uint64_t *dst, const uint64_t *src, size_t n,
 }
 
 template <uint64_t c>
-WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, size_t n,
-                                            std::integral_constant<uint64_t, c>,
-                                            WJR_MAYBE_UNUSED uint64_t cf) {
+WJR_INTRINSIC_CONSTEXPR uint64_t __divexact_get_impl() noexcept {
+    return 1;
+}
 
-    // cost : divexact_dbm1c * 2 + shift * 1 <= divexact_1
+template <uint64_t c, uint64_t p, uint64_t... ps>
+WJR_INTRINSIC_CONSTEXPR uint64_t __divexact_get_impl() noexcept {
+    constexpr auto ret = __divexact_get_impl<c, ps...>();
+    if constexpr (c % p == 0) {
+        return ret * p;
+    } else {
+        return ret;
+    }
+}
 
-    constexpr auto __is_fast = [](auto cr) {
-        constexpr uint64_t r = cr;
-        return c % r == 0 && is_zero_or_single_bit(c / r);
-    };
+template <uint64_t c>
+WJR_INTRINSIC_CONSTEXPR uint64_t __divexact_get() noexcept {
+    return __divexact_get_impl<c, 3, 5, 17>();
+}
 
-    const auto __resolve = [dst, n, cf](auto cr) {
-        constexpr uint64_t r = cr;
-        if constexpr (c >= r) {
-            constexpr auto p = fallback_ctz(c / r);
-            if constexpr (p != 0) {
-                (void)rshift_n(dst, dst, n, p, cf);
+struct __divexact_get_struct {
+    int mode;
+    int cl;
+    uint64_t p0, p1;
+};
+
+template <uint64_t c>
+constexpr __divexact_get_struct __divexact_init() noexcept {
+    if constexpr (is_zero_or_single_bit(c)) {
+        return {0, fallback_ctz(c), 0, 0};
+    } else {
+        constexpr auto p0 = __divexact_get<c>();
+        if constexpr (p0 == 1) {
+            return {1, 0, 0, 0};
+        } else {
+            constexpr auto c0 = c / p0;
+            if constexpr (is_zero_or_single_bit(c0)) {
+                return {2, fallback_ctz(c), p0, 0};
             } else {
-                (void)(dst);
-                (void)(n);
-                (void)(cf);
+                constexpr auto p1 = __divexact_get<c0>();
+                if constexpr (p1 == 1) {
+                    return {1, 0, 0, 0};
+                } else {
+                    constexpr auto c1 = c0 / p1;
+                    if constexpr (is_zero_or_single_bit(c1)) {
+                        return {3, fallback_ctz(c1), p0, p1};
+                    } else {
+                        return {1, 0, 0, 0};
+                    }
+                }
             }
         }
-    };
+    }
+}
 
-    if constexpr (__is_fast(1_ull)) {
-        __resolve(1_ull);
-    } else if constexpr (__is_fast(3_ull)) {
-        __resolve(3_ull);
-        divexact_by3(dst, src, n);
-    } else if constexpr (__is_fast(5_ull)) {
-        __resolve(5_ull);
-        divexact_by5(dst, src, n);
-    } else if constexpr (__is_fast(15_ull)) {
-        __resolve(15_ull);
-        divexact_by15(dst, src, n);
-    } else if constexpr (__is_fast(9_ull)) {
-        __resolve(9_ull);
-        divexact_by3(dst, src, n);
-        divexact_by3(dst, dst, n);
-    } else if constexpr (__is_fast(25_ull)) {
-        __resolve(25_ull);
-        divexact_by5(dst, src, n);
-        divexact_by5(dst, dst, n);
-    } else if constexpr (__is_fast(45_ull)) {
-        __resolve(45_ull);
-        divexact_by3(dst, src, n);
-        divexact_by15(dst, dst, n);
-    } else if constexpr (__is_fast(75_ull)) {
-        __resolve(75_ull);
-        divexact_by5(dst, src, n);
-        divexact_by15(dst, dst, n);
-    } else if constexpr (__is_fast(225_ull)) {
-        __resolve(225_ull);
-        divexact_by15(dst, src, n);
-        divexact_by15(dst, dst, n);
-    } else {
+template <uint64_t c>
+WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, size_t n,
+                                            std::integral_constant<uint64_t, c>,
+                                            uint64_t cf) {
+    // cost : divexact_dbm1c * 2 + shift * 1 <= divexact_1
+    static_assert(c != 0, "");
+    constexpr auto ss = __divexact_init<c>();
+
+    if constexpr (ss.mode == 0) {
+        (void)rshift_n(dst, src, n, ss.cl, cf);
+    }
+
+    if constexpr (ss.mode == 1) {
         constexpr auto shift = fallback_ctz(c);
         using divider_t = divexact1_divider<uint64_t>;
         constexpr auto divisor = c >> shift;
         constexpr auto value = divider_t::reciprocal(divisor);
         constexpr auto divider = divider_t(divisor, value, shift);
 
-        if constexpr (divider.is_zero_or_single_bit()) {
-            (void)rshift_n(dst, src, n, shift, cf);
+        static_assert(!divider.is_zero_or_single_bit(), "");
+
+        if constexpr (shift == 0) {
+            fallback_divexact_1_noshift(dst, src, n, divider);
         } else {
-            if constexpr (shift == 0) {
-                fallback_divexact_1_noshift(dst, src, n, divider);
-            } else {
-                fallback_divexact_1_shift(dst, src, n, divider, cf);
-            }
+            fallback_divexact_1_shift(dst, src, n, divider, cf);
+        }
+    }
+
+    if constexpr (ss.mode == 2 || ss.mode == 3) {
+        constexpr uint64_t maxn = in_place_max;
+
+        if constexpr (ss.cl == 0) {
+            (void)divexact_dbm1c(dst, src, n, maxn / ss.p0, 0);
+        } else {
+            (void)rshift_n(dst, src, n, ss.cl, cf);
+            (void)divexact_dbm1c(dst, dst, n, maxn / ss.p0, 0);
+        }
+
+        if constexpr (ss.mode == 3) {
+            (void)divexact_dbm1c(dst, dst, n, maxn / ss.p1, 0);
         }
     }
 }

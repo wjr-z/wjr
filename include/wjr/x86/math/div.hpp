@@ -17,8 +17,8 @@ namespace wjr {
 
 // TODO : optimize pipeline
 inline uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
-                                   uint64_t bd) {
-    uint64_t r8 = 0, r9 = n, r10, r11 = static_cast<uint32_t>(n);
+                                   uint64_t bd, uint64_t h) {
+    uint64_t r8 = h, r9 = n, r10, r11 = static_cast<uint32_t>(n);
 
     src += r9;
     dst += r9;
@@ -62,9 +62,8 @@ inline uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
         "add $4, %[r9]\n\t"
         "jne .Lloop%=\n\t"
 
-        : [dst] "+&r"(dst), [src] "+&r"(src), [r8] "+&r"(r8), [r9] "+&r"(r9),
-          [r10] "=&r"(r10), [r11] "+&r"(r11)
-        : "d"(bd)
+        : [r8] "+&r"(r8), [r9] "+&r"(r9), [r10] "=&r"(r10), [r11] "+&r"(r11)
+        : "d"(bd), [dst] "r"(dst), [src] "r"(src)
         : "cc", "memory");
 
     return r8;

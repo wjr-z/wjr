@@ -1402,7 +1402,19 @@ TEST(math, rsblsh_n) {
     }
 }
 
+template <uint64_t c>
+constexpr bool __test_divexact_fast() {
+    constexpr auto ss = __divexact_init<c>();
+    return ss.mode == 2 && ss.cl == 0;
+}
+
+static_assert(__test_divexact_fast<3>(), "");
+static_assert(__test_divexact_fast<5>(), "");
+static_assert(__test_divexact_fast<15>(), "");
+static_assert(__test_divexact_fast<17>(), "");
+
 TEST(math, mul_s) {
+
     const int T = 4;
     const int N = 2400;
     std::vector<uint64_t> a(N), b(N), c(N * 2), d(N * 2);
