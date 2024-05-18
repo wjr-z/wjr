@@ -6,7 +6,7 @@
 namespace wjr::intrusive {
 
 template <typename Tag = void>
-class list_node;
+struct list_node;
 
 template <typename T>
 constexpr void init(list_node<T> *node) noexcept;
@@ -117,6 +117,8 @@ public:
     using pointer = ListNode *;
     using difference_type = typename Mybase::difference_type;
 
+    using Mybase::Mybase;
+
     constexpr list_node_iterator() noexcept = default;
     constexpr list_node_iterator(const list_node_iterator &) noexcept = default;
     constexpr list_node_iterator(list_node_iterator &&) noexcept = default;
@@ -161,8 +163,7 @@ public:
 };
 
 template <typename Tag>
-class list_node {
-public:
+struct list_node {
     using iterator = list_node_iterator<Tag>;
     using const_iterator = list_node_const_iterator<Tag>;
     using reverse_iterator = std::reverse_iterator<iterator>;
@@ -192,12 +193,12 @@ public:
 
     template <typename T>
     friend constexpr void push_back(list_node<T> *head, list_node<T> *node) noexcept {
-        insert(head, head->m_next, node);
+        insert(head->m_prev, head, node);
     }
 
     template <typename T>
     friend constexpr void push_front(list_node<T> *head, list_node<T> *node) noexcept {
-        insert(head->m_prev, head, node);
+        insert(head, head->m_next, node);
     }
 
     template <typename T>
@@ -287,7 +288,6 @@ public:
         return const_reverse_iterator(begin());
     }
 
-private:
     list_node *m_prev;
     list_node *m_next;
 };

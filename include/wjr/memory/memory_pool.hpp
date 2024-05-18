@@ -1,6 +1,7 @@
 #ifndef WJR_MEMORY_MEMORY_POOL_HPP__
 #define WJR_MEMORY_MEMORY_POOL_HPP__
 
+#include <wjr/container/intrusive/list.hpp>
 #include <wjr/crtp/trivially_allocator_base.hpp>
 #include <wjr/memory/details.hpp>
 
@@ -33,30 +34,34 @@ private:
         char client_data[1];
     };
 
-    struct malloc_chunk {
-        struct __list_node {
-            __list_node *next = nullptr;
-            char buffer[];
-        };
+    struct __list_node : intrusive::list_node<> {};
 
-        malloc_chunk() noexcept = default;
+    struct malloc_chunk {
+
+        malloc_chunk() noexcept { init(&head); }
         ~malloc_chunk() noexcept {
-            while (head != nullptr) {
-                __list_node *next = head->next;
-                free(head);
-                head = next;
+            for (auto iter = head.begin(); iter != head.end();) {
+                auto now = iter++;
+                auto node = static_cast<__list_node *>(&*now);
+                free(node);
             }
         }
 
         void *allocate(size_t n) noexcept {
             __list_node *ptr = (__list_node *)malloc(n + sizeof(__list_node));
             WJR_ASSERT(ptr != nullptr);
-            ptr->next = head;
-            head = ptr;
-            return ptr->buffer;
+            push_back(&head, ptr);
+            return (char *)(ptr) + sizeof(__list_node);
         }
 
-        __list_node *head = nullptr;
+        void deallocate(void *ptr) noexcept {
+            WJR_ASSERT(ptr != nullptr);
+            auto node = (__list_node *)((char *)(ptr) - sizeof(__list_node));
+            remove_uninit(node);
+            free(node);
+        }
+
+        __list_node head;
     };
 
     static inline size_t __round_up(size_t bytes) noexcept {
@@ -75,15 +80,16 @@ private:
         return memory_pool_details::__size_table[idx];
     }
 
+    static malloc_chunk &get_chunk() noexcept {
+        static thread_local malloc_chunk chunk;
+        return chunk;
+    }
+
 public:
     struct object {
 
-        // n must be > 0
-        allocation_result<void *> allocate(size_t n) noexcept {
-            if (n > (size_t)16384) {
-                return {malloc(n), n};
-            }
-
+        WJR_INTRINSIC_INLINE allocation_result<void *>
+        __small_allocate(size_t n) noexcept {
             const size_t idx = __get_index(n);
             const size_t size = __get_size(idx);
             obj *volatile *my_free_list = free_list + idx;
@@ -92,7 +98,24 @@ public:
                 *my_free_list = result->free_list_link;
                 return {result, size};
             }
+
             return {refill(idx), size};
+        }
+
+        WJR_INTRINSIC_INLINE void __small_deallocate(void *p, size_t n) noexcept {
+            obj *q = (obj *)p;
+            obj *volatile *my_free_list = free_list + __get_index(n);
+            q->free_list_link = *my_free_list;
+            *my_free_list = q;
+        }
+
+        // n must be > 0
+        allocation_result<void *> allocate(size_t n) noexcept {
+            if (n > (size_t)16384) {
+                return {malloc(n), n};
+            }
+
+            return __small_allocate(n);
         }
 
         // p must not be 0
@@ -102,10 +125,25 @@ public:
                 return;
             }
 
-            obj *q = (obj *)p;
-            obj *volatile *my_free_list = free_list + __get_index(n);
-            q->free_list_link = *my_free_list;
-            *my_free_list = q;
+            __small_deallocate(p, n);
+        }
+
+        allocation_result<void *> chunk_allocate(size_t n) noexcept {
+            if (n > (size_t)16384) {
+                return {get_chunk().allocate(n), n};
+            }
+
+            return __small_allocate(n);
+        }
+
+        // p must not be 0
+        WJR_INTRINSIC_INLINE void chunk_deallocate(void *p, size_t n) noexcept {
+            if (n > (size_t)16384) {
+                get_chunk().deallocate(p);
+                return;
+            }
+
+            __small_deallocate(p, n);
         }
 
         // Returns an object of size n, and optionally adds to size n free list.
@@ -134,6 +172,16 @@ public:
     // p must not be 0
     WJR_INTRINSIC_INLINE static void deallocate(void *p, size_t n) noexcept {
         get_instance().deallocate(p, n);
+    }
+
+    // n must be > 0
+    static allocation_result<void *> chunk_allocate(size_t n) noexcept {
+        return get_instance().chunk_allocate(n);
+    }
+
+    // p must not be 0
+    WJR_INTRINSIC_INLINE static void chunk_deallocate(void *p, size_t n) noexcept {
+        get_instance().chunk_deallocate(p, n);
     }
 };
 
@@ -212,8 +260,7 @@ char *__default_alloc_template__<inst>::object::chunk_alloc(uint8_t idx,
 
     const size_t bytes_to_get = 2 * total_bytes + __round_up(heap_size >> 3);
 
-    static thread_local malloc_chunk chunk;
-    start_free = (char *)chunk.allocate(bytes_to_get);
+    start_free = (char *)get_chunk().allocate(bytes_to_get);
 
     WJR_ASSERT(start_free != nullptr);
 
@@ -292,6 +339,16 @@ public:
         return {static_cast<Ty *>(ret.ptr), ret.count};
     }
 
+    WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
+    chunk_allocate_at_least(size_type n) const noexcept {
+        if (WJR_UNLIKELY(0 == n)) {
+            return {nullptr, 0};
+        }
+
+        const auto ret = allocator_type::chunk_allocate(n * sizeof(Ty));
+        return {static_cast<Ty *>(ret.ptr), ret.count};
+    }
+
     WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *allocate(size_type n) const noexcept {
         return allocate_at_least(n).ptr;
     }
@@ -302,6 +359,26 @@ public:
         }
 
         return allocator_type::deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
+    }
+
+    /**
+     * @details Allocate memory, don't need to deallocate it until the thread exits.   \n
+     * Automatically deallocate memory when the thread exits.                          \n
+     * Used in thread_local memory pool that only needs to allocate memory once and    \n
+     * deallocate it when the thread exits.                                            \n
+     *
+     */
+    WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *
+    chunk_allocate(size_type n) const noexcept {
+        return chunk_allocate_at_least(n).ptr;
+    }
+
+    WJR_CONSTEXPR20 void chunk_deallocate(Ty *ptr, size_type n) const noexcept {
+        if (WJR_UNLIKELY(0 == n)) {
+            return;
+        }
+
+        return allocator_type::chunk_deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
     }
 
     constexpr size_t max_size() const noexcept {

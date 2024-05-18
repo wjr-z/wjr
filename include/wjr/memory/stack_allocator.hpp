@@ -55,10 +55,10 @@ private:
             if (WJR_UNLIKELY(m_size == m_capacity)) {
                 uint16_t new_capacity = m_idx + 2 * (bufsize - 1);
                 memory_pool<alloc_node> pool;
-                const auto new_ptr = pool.allocate(new_capacity);
+                auto new_ptr = pool.chunk_allocate(new_capacity);
                 if (WJR_LIKELY(m_idx != 0)) {
                     std::copy_n(m_ptr, m_idx, new_ptr);
-                    pool.deallocate(m_ptr, m_capacity);
+                    pool.chunk_deallocate(m_ptr, m_capacity);
                 }
                 m_ptr = new_ptr;
                 m_capacity = new_capacity;
@@ -68,7 +68,7 @@ private:
 
             const size_t capacity = Cache << ((3 * m_idx + 2) / 5);
             memory_pool<char> pool;
-            const auto buffer = pool.allocate(capacity);
+            const auto buffer = pool.chunk_allocate(capacity);
             alloc_node node = {buffer, buffer + capacity};
             m_ptr[m_idx] = node;
 
@@ -90,7 +90,7 @@ private:
         memory_pool<char> pool;
 
         for (uint16_t i = new_size; i < m_size; ++i) {
-            pool.deallocate(m_ptr[i].ptr, m_ptr[i].end - m_ptr[i].ptr);
+            pool.chunk_deallocate(m_ptr[i].ptr, m_ptr[i].end - m_ptr[i].ptr);
         }
 
         m_size = new_size;

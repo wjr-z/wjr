@@ -6561,6 +6561,310 @@ constexpr OutputIt move_n_restrict(InputIt first, Size count, OutputIt d_first) 
 #ifndef WJR_MEMORY_MEMORY_POOL_HPP__
 #define WJR_MEMORY_MEMORY_POOL_HPP__
 
+#ifndef WJR_CONTAINER_INTRUSIVE_LIST_HPP__
+#define WJR_CONTAINER_INTRUSIVE_LIST_HPP__
+
+#ifndef WJR_CONTAINER_INTRUSIVE_DETAILS_HPP__
+#define WJR_CONTAINER_INTRUSIVE_DETAILS_HPP__
+
+// Already included
+
+namespace wjr::intrusive {} // namespace wjr::intrusive
+
+#endif                      // WJR_CONTAINER_INTRUSIVE_DETAILS_HPP__
+
+namespace wjr::intrusive {
+
+template <typename Tag = void>
+struct list_node;
+
+template <typename T>
+constexpr void init(list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr void insert(list_node<T> *prev, list_node<T> *next,
+                      list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr void push_back(list_node<T> *head, list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr void push_front(list_node<T> *head, list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr void remove_uninit(list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr bool empty(const list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr list_node<T> *next(list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr const list_node<T> *next(const list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr list_node<T> *prev(list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr const list_node<T> *prev(const list_node<T> *node) noexcept;
+
+template <typename T>
+constexpr void replace_uninit(list_node<T> *from, list_node<T> *to) noexcept;
+
+template <typename T>
+class list_node_const_iterator {
+    using ListNode = list_node<T>;
+
+public:
+    using iterator_category = std::bidirectional_iterator_tag;
+    using value_type = ListNode;
+    using reference = const ListNode &;
+    using pointer = const ListNode *;
+    using difference_type = std::ptrdiff_t;
+
+    constexpr list_node_const_iterator() noexcept = default;
+    constexpr list_node_const_iterator(const list_node_const_iterator &) noexcept =
+        default;
+    constexpr list_node_const_iterator(list_node_const_iterator &&) noexcept = default;
+    constexpr list_node_const_iterator &
+    operator=(const list_node_const_iterator &) noexcept = default;
+    constexpr list_node_const_iterator &
+    operator=(list_node_const_iterator &&) noexcept = default;
+    ~list_node_const_iterator() = default;
+
+    constexpr list_node_const_iterator(const ListNode *node) noexcept
+        : m_node(const_cast<ListNode *>(node)) {}
+
+    constexpr reference operator*() const noexcept { return *m_node; }
+    constexpr pointer operator->() const noexcept { return m_node; }
+
+    constexpr list_node_const_iterator &operator++() noexcept {
+        m_node = next(m_node);
+        return *this;
+    }
+
+    constexpr list_node_const_iterator operator++(int) noexcept {
+        list_node_const_iterator tmp(*this);
+        ++(*this);
+        return tmp;
+    }
+
+    constexpr list_node_const_iterator &operator--() noexcept {
+        m_node = prev(m_node);
+        return *this;
+    }
+
+    constexpr list_node_const_iterator operator--(int) noexcept {
+        list_node_const_iterator tmp(*this);
+        --(*this);
+        return tmp;
+    }
+
+    constexpr bool operator==(const list_node_const_iterator &other) const noexcept {
+        return m_node == other.m_node;
+    }
+
+    constexpr bool operator!=(const list_node_const_iterator &other) const noexcept {
+        return !(*this == other);
+    }
+
+    constexpr operator const ListNode *() const noexcept { return m_node; }
+
+private:
+    ListNode *m_node{};
+};
+
+template <typename T>
+class list_node_iterator : public list_node_const_iterator<T> {
+    using Mybase = list_node_const_iterator<T>;
+    using ListNode = list_node<T>;
+
+public:
+    using iterator_category = typename Mybase::iterator_category;
+    using value_type = typename Mybase::value_type;
+    using reference = ListNode &;
+    using pointer = ListNode *;
+    using difference_type = typename Mybase::difference_type;
+
+    using Mybase::Mybase;
+
+    constexpr list_node_iterator() noexcept = default;
+    constexpr list_node_iterator(const list_node_iterator &) noexcept = default;
+    constexpr list_node_iterator(list_node_iterator &&) noexcept = default;
+    constexpr list_node_iterator &
+    operator=(const list_node_iterator &) noexcept = default;
+    constexpr list_node_iterator &operator=(list_node_iterator &&) noexcept = default;
+    ~list_node_iterator() = default;
+
+    constexpr reference operator*() const noexcept {
+        return const_cast<reference>(Mybase::operator*());
+    }
+
+    constexpr pointer operator->() const noexcept {
+        return const_cast<pointer>(Mybase::operator->());
+    }
+
+    constexpr list_node_iterator &operator++() noexcept {
+        Mybase::operator++();
+        return *this;
+    }
+
+    constexpr list_node_iterator operator++(int) noexcept {
+        list_node_iterator tmp(*this);
+        ++(*this);
+        return tmp;
+    }
+
+    constexpr list_node_iterator &operator--() noexcept {
+        Mybase::operator--();
+        return *this;
+    }
+
+    constexpr list_node_iterator operator--(int) noexcept {
+        list_node_iterator tmp(*this);
+        --(*this);
+        return tmp;
+    }
+
+    constexpr operator ListNode *() const noexcept {
+        return const_cast<ListNode *>(static_cast<const ListNode *>(*this));
+    }
+};
+
+template <typename Tag>
+struct list_node {
+    using iterator = list_node_iterator<Tag>;
+    using const_iterator = list_node_const_iterator<Tag>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    constexpr list_node() noexcept = default;
+    list_node(const list_node &) = delete;
+    list_node(list_node &&) = delete;
+    list_node &operator=(const list_node &) = delete;
+    list_node &operator=(list_node &&) = delete;
+    ~list_node() = default;
+
+    template <typename T>
+    friend constexpr void init(list_node<T> *node) noexcept {
+        node->m_prev = node;
+        node->m_next = node;
+    }
+
+    template <typename T>
+    friend constexpr void insert(list_node<T> *prev, list_node<T> *next,
+                                 list_node<T> *node) noexcept {
+        prev->m_next = node;
+        node->m_prev = prev;
+        next->m_prev = node;
+        node->m_next = next;
+    }
+
+    template <typename T>
+    friend constexpr void push_back(list_node<T> *head, list_node<T> *node) noexcept {
+        insert(head->m_prev, head, node);
+    }
+
+    template <typename T>
+    friend constexpr void push_front(list_node<T> *head, list_node<T> *node) noexcept {
+        insert(head, head->m_next, node);
+    }
+
+    template <typename T>
+    friend constexpr void remove_uninit(list_node<T> *node) noexcept {
+        node->m_prev->m_next = node->m_next;
+        node->m_next->m_prev = node->m_prev;
+    }
+
+    template <typename T>
+    friend constexpr bool empty(const list_node<T> *node) noexcept {
+        return node->m_next == node;
+    }
+
+    template <typename T>
+    friend constexpr list_node<T> *next(list_node<T> *node) noexcept {
+        return node->m_next;
+    }
+
+    template <typename T>
+    friend constexpr const list_node<T> *next(const list_node<T> *node) noexcept {
+        return node->m_next;
+    }
+
+    template <typename T>
+    friend constexpr list_node<T> *prev(list_node<T> *node) noexcept {
+        return node->m_prev;
+    }
+
+    template <typename T>
+    friend constexpr const list_node<T> *prev(const list_node<T> *node) noexcept {
+        return node->m_prev;
+    }
+
+    template <typename T>
+    friend constexpr void replace_uninit(list_node<T> *from, list_node<T> *to) noexcept {
+        to->m_prev = from->m_prev;
+        to->m_next = from->m_next;
+        from->m_prev->m_next = to;
+        from->m_next->m_prev = to;
+    }
+
+    constexpr void init() noexcept { init(this); }
+
+    constexpr void push_back(list_node *node) noexcept {
+        intrusive::push_back(this, node);
+    }
+
+    constexpr void push_front(list_node *node) noexcept {
+        intrusive::push_front(this, node);
+    }
+
+    constexpr void remove_uninit() noexcept { intrusive::remove_uninit(this); }
+
+    constexpr bool empty() const noexcept { return intrusive::empty(this); }
+
+    constexpr list_node *next() noexcept { return intrusive::next(this); }
+    constexpr const list_node *next() const noexcept { return intrusive::next(this); }
+
+    constexpr list_node *prev() noexcept { return intrusive::prev(this); }
+    constexpr const list_node *prev() const noexcept { return intrusive::prev(this); }
+
+    constexpr void replace_uninit(list_node *to) noexcept {
+        intrusive::replace_uninit(this, to);
+    }
+
+    constexpr iterator begin() noexcept { return iterator(next()); }
+    constexpr const_iterator begin() const noexcept { return const_iterator(next()); }
+    constexpr const_iterator cbegin() const noexcept { return const_iterator(next()); }
+
+    constexpr iterator end() noexcept { return iterator(this); }
+    constexpr const_iterator end() const noexcept { return const_iterator(this); }
+    constexpr const_iterator cend() const noexcept { return const_iterator(this); }
+
+    constexpr reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+    constexpr const_reverse_iterator rbegin() const noexcept {
+        return const_reverse_iterator(end());
+    }
+    constexpr const_reverse_iterator crbegin() const noexcept {
+        return const_reverse_iterator(end());
+    }
+
+    constexpr reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+    constexpr const_reverse_iterator rend() const noexcept {
+        return const_reverse_iterator(begin());
+    }
+    constexpr const_reverse_iterator crend() const noexcept {
+        return const_reverse_iterator(begin());
+    }
+
+    list_node *m_prev;
+    list_node *m_next;
+};
+
+} // namespace wjr::intrusive
+
+#endif // WJR_CONTAINER_INTRUSIVE_LIST_HPP__
 #ifndef WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
 #define WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
 
@@ -6684,30 +6988,34 @@ private:
         char client_data[1];
     };
 
-    struct malloc_chunk {
-        struct __list_node {
-            __list_node *next = nullptr;
-            char buffer[];
-        };
+    struct __list_node : intrusive::list_node<> {};
 
-        malloc_chunk() noexcept = default;
+    struct malloc_chunk {
+
+        malloc_chunk() noexcept { init(&head); }
         ~malloc_chunk() noexcept {
-            while (head != nullptr) {
-                __list_node *next = head->next;
-                free(head);
-                head = next;
+            for (auto iter = head.begin(); iter != head.end();) {
+                auto now = iter++;
+                auto node = static_cast<__list_node *>(&*now);
+                free(node);
             }
         }
 
         void *allocate(size_t n) noexcept {
             __list_node *ptr = (__list_node *)malloc(n + sizeof(__list_node));
             WJR_ASSERT(ptr != nullptr);
-            ptr->next = head;
-            head = ptr;
-            return ptr->buffer;
+            push_back(&head, ptr);
+            return (char *)(ptr) + sizeof(__list_node);
         }
 
-        __list_node *head = nullptr;
+        void deallocate(void *ptr) noexcept {
+            WJR_ASSERT(ptr != nullptr);
+            auto node = (__list_node *)((char *)(ptr) - sizeof(__list_node));
+            remove_uninit(node);
+            free(node);
+        }
+
+        __list_node head;
     };
 
     static inline size_t __round_up(size_t bytes) noexcept {
@@ -6726,15 +7034,16 @@ private:
         return memory_pool_details::__size_table[idx];
     }
 
+    static malloc_chunk &get_chunk() noexcept {
+        static thread_local malloc_chunk chunk;
+        return chunk;
+    }
+
 public:
     struct object {
 
-        // n must be > 0
-        allocation_result<void *> allocate(size_t n) noexcept {
-            if (n > (size_t)16384) {
-                return {malloc(n), n};
-            }
-
+        WJR_INTRINSIC_INLINE allocation_result<void *>
+        __small_allocate(size_t n) noexcept {
             const size_t idx = __get_index(n);
             const size_t size = __get_size(idx);
             obj *volatile *my_free_list = free_list + idx;
@@ -6743,7 +7052,24 @@ public:
                 *my_free_list = result->free_list_link;
                 return {result, size};
             }
+
             return {refill(idx), size};
+        }
+
+        WJR_INTRINSIC_INLINE void __small_deallocate(void *p, size_t n) noexcept {
+            obj *q = (obj *)p;
+            obj *volatile *my_free_list = free_list + __get_index(n);
+            q->free_list_link = *my_free_list;
+            *my_free_list = q;
+        }
+
+        // n must be > 0
+        allocation_result<void *> allocate(size_t n) noexcept {
+            if (n > (size_t)16384) {
+                return {malloc(n), n};
+            }
+
+            return __small_allocate(n);
         }
 
         // p must not be 0
@@ -6753,10 +7079,25 @@ public:
                 return;
             }
 
-            obj *q = (obj *)p;
-            obj *volatile *my_free_list = free_list + __get_index(n);
-            q->free_list_link = *my_free_list;
-            *my_free_list = q;
+            __small_deallocate(p, n);
+        }
+
+        allocation_result<void *> chunk_allocate(size_t n) noexcept {
+            if (n > (size_t)16384) {
+                return {get_chunk().allocate(n), n};
+            }
+
+            return __small_allocate(n);
+        }
+
+        // p must not be 0
+        WJR_INTRINSIC_INLINE void chunk_deallocate(void *p, size_t n) noexcept {
+            if (n > (size_t)16384) {
+                get_chunk().deallocate(p);
+                return;
+            }
+
+            __small_deallocate(p, n);
         }
 
         // Returns an object of size n, and optionally adds to size n free list.
@@ -6785,6 +7126,16 @@ public:
     // p must not be 0
     WJR_INTRINSIC_INLINE static void deallocate(void *p, size_t n) noexcept {
         get_instance().deallocate(p, n);
+    }
+
+    // n must be > 0
+    static allocation_result<void *> chunk_allocate(size_t n) noexcept {
+        return get_instance().chunk_allocate(n);
+    }
+
+    // p must not be 0
+    WJR_INTRINSIC_INLINE static void chunk_deallocate(void *p, size_t n) noexcept {
+        get_instance().chunk_deallocate(p, n);
     }
 };
 
@@ -6863,8 +7214,7 @@ char *__default_alloc_template__<inst>::object::chunk_alloc(uint8_t idx,
 
     const size_t bytes_to_get = 2 * total_bytes + __round_up(heap_size >> 3);
 
-    static thread_local malloc_chunk chunk;
-    start_free = (char *)chunk.allocate(bytes_to_get);
+    start_free = (char *)get_chunk().allocate(bytes_to_get);
 
     WJR_ASSERT(start_free != nullptr);
 
@@ -6943,6 +7293,16 @@ public:
         return {static_cast<Ty *>(ret.ptr), ret.count};
     }
 
+    WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
+    chunk_allocate_at_least(size_type n) const noexcept {
+        if (WJR_UNLIKELY(0 == n)) {
+            return {nullptr, 0};
+        }
+
+        const auto ret = allocator_type::chunk_allocate(n * sizeof(Ty));
+        return {static_cast<Ty *>(ret.ptr), ret.count};
+    }
+
     WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *allocate(size_type n) const noexcept {
         return allocate_at_least(n).ptr;
     }
@@ -6953,6 +7313,26 @@ public:
         }
 
         return allocator_type::deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
+    }
+
+    /**
+     * @details Allocate memory, don't need to deallocate it until the thread exits.   \n
+     * Automatically deallocate memory when the thread exits.                          \n
+     * Used in thread_local memory pool that only needs to allocate memory once and    \n
+     * deallocate it when the thread exits.                                            \n
+     *
+     */
+    WJR_NODISCARD WJR_CONSTEXPR20 WJR_MALLOC Ty *
+    chunk_allocate(size_type n) const noexcept {
+        return chunk_allocate_at_least(n).ptr;
+    }
+
+    WJR_CONSTEXPR20 void chunk_deallocate(Ty *ptr, size_type n) const noexcept {
+        if (WJR_UNLIKELY(0 == n)) {
+            return;
+        }
+
+        return allocator_type::chunk_deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
     }
 
     constexpr size_t max_size() const noexcept {
@@ -20498,10 +20878,10 @@ private:
             if (WJR_UNLIKELY(m_size == m_capacity)) {
                 uint16_t new_capacity = m_idx + 2 * (bufsize - 1);
                 memory_pool<alloc_node> pool;
-                const auto new_ptr = pool.allocate(new_capacity);
+                auto new_ptr = pool.chunk_allocate(new_capacity);
                 if (WJR_LIKELY(m_idx != 0)) {
                     std::copy_n(m_ptr, m_idx, new_ptr);
-                    pool.deallocate(m_ptr, m_capacity);
+                    pool.chunk_deallocate(m_ptr, m_capacity);
                 }
                 m_ptr = new_ptr;
                 m_capacity = new_capacity;
@@ -20511,7 +20891,7 @@ private:
 
             const size_t capacity = Cache << ((3 * m_idx + 2) / 5);
             memory_pool<char> pool;
-            const auto buffer = pool.allocate(capacity);
+            const auto buffer = pool.chunk_allocate(capacity);
             alloc_node node = {buffer, buffer + capacity};
             m_ptr[m_idx] = node;
 
@@ -20533,7 +20913,7 @@ private:
         memory_pool<char> pool;
 
         for (uint16_t i = new_size; i < m_size; ++i) {
-            pool.deallocate(m_ptr[i].ptr, m_ptr[i].end - m_ptr[i].ptr);
+            pool.chunk_deallocate(m_ptr[i].ptr, m_ptr[i].end - m_ptr[i].ptr);
         }
 
         m_size = new_size;
@@ -32484,310 +32864,7 @@ public:
 } // namespace wjr
 
 #endif // WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP__
-#ifndef WJR_CONTAINER_INTRUSIVE_LIST_HPP__
-#define WJR_CONTAINER_INTRUSIVE_LIST_HPP__
-
-#ifndef WJR_CONTAINER_INTRUSIVE_DETAILS_HPP__
-#define WJR_CONTAINER_INTRUSIVE_DETAILS_HPP__
-
 // Already included
-
-namespace wjr::intrusive {} // namespace wjr::intrusive
-
-#endif                      // WJR_CONTAINER_INTRUSIVE_DETAILS_HPP__
-
-namespace wjr::intrusive {
-
-template <typename Tag = void>
-class list_node;
-
-template <typename T>
-constexpr void init(list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr void insert(list_node<T> *prev, list_node<T> *next,
-                      list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr void push_back(list_node<T> *head, list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr void push_front(list_node<T> *head, list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr void remove_uninit(list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr bool empty(const list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr list_node<T> *next(list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr const list_node<T> *next(const list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr list_node<T> *prev(list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr const list_node<T> *prev(const list_node<T> *node) noexcept;
-
-template <typename T>
-constexpr void replace_uninit(list_node<T> *from, list_node<T> *to) noexcept;
-
-template <typename T>
-class list_node_const_iterator {
-    using ListNode = list_node<T>;
-
-public:
-    using iterator_category = std::bidirectional_iterator_tag;
-    using value_type = ListNode;
-    using reference = const ListNode &;
-    using pointer = const ListNode *;
-    using difference_type = std::ptrdiff_t;
-
-    constexpr list_node_const_iterator() noexcept = default;
-    constexpr list_node_const_iterator(const list_node_const_iterator &) noexcept =
-        default;
-    constexpr list_node_const_iterator(list_node_const_iterator &&) noexcept = default;
-    constexpr list_node_const_iterator &
-    operator=(const list_node_const_iterator &) noexcept = default;
-    constexpr list_node_const_iterator &
-    operator=(list_node_const_iterator &&) noexcept = default;
-    ~list_node_const_iterator() = default;
-
-    constexpr list_node_const_iterator(const ListNode *node) noexcept
-        : m_node(const_cast<ListNode *>(node)) {}
-
-    constexpr reference operator*() const noexcept { return *m_node; }
-    constexpr pointer operator->() const noexcept { return m_node; }
-
-    constexpr list_node_const_iterator &operator++() noexcept {
-        m_node = next(m_node);
-        return *this;
-    }
-
-    constexpr list_node_const_iterator operator++(int) noexcept {
-        list_node_const_iterator tmp(*this);
-        ++(*this);
-        return tmp;
-    }
-
-    constexpr list_node_const_iterator &operator--() noexcept {
-        m_node = prev(m_node);
-        return *this;
-    }
-
-    constexpr list_node_const_iterator operator--(int) noexcept {
-        list_node_const_iterator tmp(*this);
-        --(*this);
-        return tmp;
-    }
-
-    constexpr bool operator==(const list_node_const_iterator &other) const noexcept {
-        return m_node == other.m_node;
-    }
-
-    constexpr bool operator!=(const list_node_const_iterator &other) const noexcept {
-        return !(*this == other);
-    }
-
-    constexpr operator const ListNode *() const noexcept { return m_node; }
-
-private:
-    ListNode *m_node{};
-};
-
-template <typename T>
-class list_node_iterator : public list_node_const_iterator<T> {
-    using Mybase = list_node_const_iterator<T>;
-    using ListNode = list_node<T>;
-
-public:
-    using iterator_category = typename Mybase::iterator_category;
-    using value_type = typename Mybase::value_type;
-    using reference = ListNode &;
-    using pointer = ListNode *;
-    using difference_type = typename Mybase::difference_type;
-
-    constexpr list_node_iterator() noexcept = default;
-    constexpr list_node_iterator(const list_node_iterator &) noexcept = default;
-    constexpr list_node_iterator(list_node_iterator &&) noexcept = default;
-    constexpr list_node_iterator &
-    operator=(const list_node_iterator &) noexcept = default;
-    constexpr list_node_iterator &operator=(list_node_iterator &&) noexcept = default;
-    ~list_node_iterator() = default;
-
-    constexpr reference operator*() const noexcept {
-        return const_cast<reference>(Mybase::operator*());
-    }
-
-    constexpr pointer operator->() const noexcept {
-        return const_cast<pointer>(Mybase::operator->());
-    }
-
-    constexpr list_node_iterator &operator++() noexcept {
-        Mybase::operator++();
-        return *this;
-    }
-
-    constexpr list_node_iterator operator++(int) noexcept {
-        list_node_iterator tmp(*this);
-        ++(*this);
-        return tmp;
-    }
-
-    constexpr list_node_iterator &operator--() noexcept {
-        Mybase::operator--();
-        return *this;
-    }
-
-    constexpr list_node_iterator operator--(int) noexcept {
-        list_node_iterator tmp(*this);
-        --(*this);
-        return tmp;
-    }
-
-    constexpr operator ListNode *() const noexcept {
-        return const_cast<ListNode *>(static_cast<const ListNode *>(*this));
-    }
-};
-
-template <typename Tag>
-class list_node {
-public:
-    using iterator = list_node_iterator<Tag>;
-    using const_iterator = list_node_const_iterator<Tag>;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-
-    constexpr list_node() noexcept = default;
-    list_node(const list_node &) = delete;
-    list_node(list_node &&) = delete;
-    list_node &operator=(const list_node &) = delete;
-    list_node &operator=(list_node &&) = delete;
-    ~list_node() = default;
-
-    template <typename T>
-    friend constexpr void init(list_node<T> *node) noexcept {
-        node->m_prev = node;
-        node->m_next = node;
-    }
-
-    template <typename T>
-    friend constexpr void insert(list_node<T> *prev, list_node<T> *next,
-                                 list_node<T> *node) noexcept {
-        prev->m_next = node;
-        node->m_prev = prev;
-        next->m_prev = node;
-        node->m_next = next;
-    }
-
-    template <typename T>
-    friend constexpr void push_back(list_node<T> *head, list_node<T> *node) noexcept {
-        insert(head, head->m_next, node);
-    }
-
-    template <typename T>
-    friend constexpr void push_front(list_node<T> *head, list_node<T> *node) noexcept {
-        insert(head->m_prev, head, node);
-    }
-
-    template <typename T>
-    friend constexpr void remove_uninit(list_node<T> *node) noexcept {
-        node->m_prev->m_next = node->m_next;
-        node->m_next->m_prev = node->m_prev;
-    }
-
-    template <typename T>
-    friend constexpr bool empty(const list_node<T> *node) noexcept {
-        return node->m_next == node;
-    }
-
-    template <typename T>
-    friend constexpr list_node<T> *next(list_node<T> *node) noexcept {
-        return node->m_next;
-    }
-
-    template <typename T>
-    friend constexpr const list_node<T> *next(const list_node<T> *node) noexcept {
-        return node->m_next;
-    }
-
-    template <typename T>
-    friend constexpr list_node<T> *prev(list_node<T> *node) noexcept {
-        return node->m_prev;
-    }
-
-    template <typename T>
-    friend constexpr const list_node<T> *prev(const list_node<T> *node) noexcept {
-        return node->m_prev;
-    }
-
-    template <typename T>
-    friend constexpr void replace_uninit(list_node<T> *from, list_node<T> *to) noexcept {
-        to->m_prev = from->m_prev;
-        to->m_next = from->m_next;
-        from->m_prev->m_next = to;
-        from->m_next->m_prev = to;
-    }
-
-    constexpr void init() noexcept { init(this); }
-
-    constexpr void push_back(list_node *node) noexcept {
-        intrusive::push_back(this, node);
-    }
-
-    constexpr void push_front(list_node *node) noexcept {
-        intrusive::push_front(this, node);
-    }
-
-    constexpr void remove_uninit() noexcept { intrusive::remove_uninit(this); }
-
-    constexpr bool empty() const noexcept { return intrusive::empty(this); }
-
-    constexpr list_node *next() noexcept { return intrusive::next(this); }
-    constexpr const list_node *next() const noexcept { return intrusive::next(this); }
-
-    constexpr list_node *prev() noexcept { return intrusive::prev(this); }
-    constexpr const list_node *prev() const noexcept { return intrusive::prev(this); }
-
-    constexpr void replace_uninit(list_node *to) noexcept {
-        intrusive::replace_uninit(this, to);
-    }
-
-    constexpr iterator begin() noexcept { return iterator(next()); }
-    constexpr const_iterator begin() const noexcept { return const_iterator(next()); }
-    constexpr const_iterator cbegin() const noexcept { return const_iterator(next()); }
-
-    constexpr iterator end() noexcept { return iterator(this); }
-    constexpr const_iterator end() const noexcept { return const_iterator(this); }
-    constexpr const_iterator cend() const noexcept { return const_iterator(this); }
-
-    constexpr reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
-    constexpr const_reverse_iterator rbegin() const noexcept {
-        return const_reverse_iterator(end());
-    }
-    constexpr const_reverse_iterator crbegin() const noexcept {
-        return const_reverse_iterator(end());
-    }
-
-    constexpr reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
-    constexpr const_reverse_iterator rend() const noexcept {
-        return const_reverse_iterator(begin());
-    }
-    constexpr const_reverse_iterator crend() const noexcept {
-        return const_reverse_iterator(begin());
-    }
-
-private:
-    list_node *m_prev;
-    list_node *m_next;
-};
-
-} // namespace wjr::intrusive
-
-#endif // WJR_CONTAINER_INTRUSIVE_LIST_HPP__
 #ifndef WJR_INLINE_KEY_HPP__
 #define WJR_INLINE_KEY_HPP__
 
