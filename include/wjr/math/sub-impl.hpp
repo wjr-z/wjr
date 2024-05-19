@@ -46,6 +46,9 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n_pos(uint64_t *dst,
                                                                const uint64_t *src1,
                                                                size_t n);
 
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s1(
+    uint64_t *dst, const uint64_t *src0, size_t n, const uint64_t *src1, size_t m);
+
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(uint64_t *dst,
                                                            const uint64_t *src0, size_t n,
                                                            const uint64_t *src1,

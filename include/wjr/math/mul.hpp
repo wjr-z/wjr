@@ -717,7 +717,7 @@ void __toom22_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_
 
     if (n >= 3 * m) {
         uint64_t *tmp = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (4 * m));
-        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (6 * m + 67));
+        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
 
         toom42_mul_s(dst, src0, 2 * m, src1, m, stk);
         n -= 2 * m;
@@ -751,7 +751,7 @@ void __toom22_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_
         cf = addc_1(dst + m, dst + m, n, 0, cf);
         WJR_ASSERT(cf == 0);
     } else {
-        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (6 * m + 67));
+        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
 
         if (4 * n < 5 * m) {
             toom22_mul_s(dst, src0, n, src1, m, stk);
@@ -787,7 +787,7 @@ void __noinline_mul_s_impl(
     if (m < toom33_mul_threshold) {
         if (n >= 3 * m) {
             uint64_t *tmp = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (4 * m));
-            uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (6 * m + 67));
+            uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
 
             toom42_mul_s(dst, src0, 2 * m, src1, m, stk);
             n -= 2 * m;
@@ -821,7 +821,7 @@ void __noinline_mul_s_impl(
             cf = addc_1(dst + m, dst + m, n, 0, cf);
             WJR_ASSERT(cf == 0);
         } else {
-            uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (6 * m + 67));
+            uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
 
             if (4 * n < 5 * m) {
                 toom22_mul_s(dst, src0, n, src1, m, stk);
