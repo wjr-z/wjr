@@ -13,6 +13,12 @@ template void __noinline_mul_s_impl<false>(uint64_t *WJR_RESTRICT dst,
                                            const uint64_t *src1, size_t m,
                                            in_place_empty_t mal) noexcept;
 
+#define WJR_ASSERT_NOCARRY(expr)                                                         \
+    do {                                                                                 \
+        const auto __cf = (expr);                                                        \
+        WJR_ASSERT(__cf == 0);                                                           \
+    } while (0)
+
 #define WJR_SUBMUL_1_S(A, n, B, m, cfA, cfB, ml, ret)                                    \
     do {                                                                                 \
         WJR_ASSERT_ASSUME(n >= m);                                                       \
@@ -52,10 +58,10 @@ template void __noinline_mul_s_impl<false>(uint64_t *WJR_RESTRICT dst,
 
 void toom22_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
                   const uint64_t *src1, size_t m, uint64_t *stk) noexcept {
-    // [u0(l), u1(rn)] (n)
-    // [v0(l), v1(rm)] (m)
+    // [u0p(l), u1p(rn)] (n)
+    // [v0p(l), v1p(rm)] (m)
 
-    // (u0 - u1) * (v0 - v1)
+    // (u0p - u1p) * (v0p - v1p)
 
     WJR_ASSERT_ASSUME(m <= n && n < 2 * m);
 
@@ -68,11 +74,11 @@ void toom22_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     WJR_ASSERT_ASSUME(rn + rm >= l);
     WJR_ASSERT_ASSUME(l - rn <= 1);
 
-    const auto u0 = src0;
-    const auto u1 = src0 + l;
+    const auto u0p = src0;
+    const auto u1p = src0 + l;
 
-    const auto v0 = src1;
-    const auto v1 = src1 + l;
+    const auto v0p = src1;
+    const auto v1p = src1 + l;
 
     const auto p0 = dst;
     const auto p1 = dst + l;
@@ -86,14 +92,14 @@ void toom22_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
 
     do {
         ssize_t p;
-        p = abs_subc_s(p0, u0, l, u1, rn);
+        p = abs_subc_s(p0, u0p, l, u1p, rn);
         if (p < 0) {
             f ^= 1;
         } else if (WJR_UNLIKELY(p == 0)) {
             goto ZERO;
         }
 
-        p = abs_subc_s(p1, v0, l, v1, rm);
+        p = abs_subc_s(p1, v0p, l, v1p, rm);
         if (p < 0) {
             f ^= 1;
         } else if (WJR_UNLIKELY(p == 0)) {
@@ -107,8 +113,8 @@ void toom22_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
         break;
     } while (0);
 
-    __mul_n<__mul_mode::toom22>(p0, u0, v0, l, stk);
-    __mul_s<__mul_mode::toom22>(p2, u1, rn, v1, rm, stk);
+    __mul_n<__mul_mode::toom22>(p0, u0p, v0p, l, stk);
+    __mul_s<__mul_mode::toom22>(p2, u1p, rn, v1p, rm, stk);
 
     uint64_t cf = 0, cf2 = 0;
 
@@ -137,8 +143,8 @@ void toom2_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
     WJR_ASSERT_ASSUME(0 < rn && rn <= l);
     WJR_ASSERT_ASSUME(rn * 2 >= l);
 
-    const auto u0 = src;
-    const auto u1 = src + l;
+    const auto u0p = src;
+    const auto u1p = src + l;
 
     const auto p0 = dst;
     const auto p1 = dst + l;
@@ -149,7 +155,7 @@ void toom2_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
     stk += l * 2;
 
     do {
-        ssize_t p = abs_subc_s(p0, u0, l, u1, rn);
+        ssize_t p = abs_subc_s(p0, u0p, l, u1p, rn);
         if (WJR_UNLIKELY(p == 0)) {
             goto ZERO;
         }
@@ -161,8 +167,8 @@ void toom2_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
         break;
     } while (0);
 
-    __sqr<__mul_mode::toom22>(p0, u0, l, stk);
-    __sqr<__mul_mode::toom22>(p2, u1, rn, stk);
+    __sqr<__mul_mode::toom22>(p0, u0p, l, stk);
+    __sqr<__mul_mode::toom22>(p2, u1p, rn, stk);
 
     uint64_t cf = 0, cf2 = 0;
 
@@ -201,45 +207,47 @@ void toom32_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
 
     const auto w0p = dst;
     const auto w1p = stk;
-    const auto w2p = stk + l * 2;
+    const auto w2p = stk + l * 2 + 2;
     const auto w3p = dst + l * 3;
 
-    stk += l * 4;
+    stk += l * 4 + 4;
 
-    uint64_t cf = 0;
-    uint64_t cf0 = 0, cf1 = 0, cf2 = 0, cf3 = 0;
     bool neg0 = 0, neg3 = 0;
 
+    uint64_t cf;
+
     // W0 = U0 + U2 : (non-negative)
-    cf0 = addc_s(w0p, u0p, l, u2p, rn);
+    w0p[l] = cf = addc_s(w0p, u0p, l, u2p, rn);
 
     // W3 = V0 + V1 : (non-negative) v(1)
-    cf3 = addc_s(w3p, v0p, l, v1p, rm);
-    WJR_ASSERT_ASSUME(cf3 <= 1);
+    w3p[l] = addc_s(w3p, v0p, l, v1p, rm);
 
     // W2 = W0 + U1 : (non-negative) u(1)
-    cf2 = cf0 + addc_n(w2p, w0p, u1p, l);
-    WJR_ASSERT_ASSUME(cf2 <= 2);
+    w2p[l] = cf + addc_n(w2p, w0p, u1p, l);
+    WJR_ASSERT(w2p[l] <= 2);
 
     // W1 = W2 * W3 : (non-negative) f(1) = r1
-    __mul_n<__mul_mode::toom33, 2, 1>(w1p, w2p, w3p, l, stk, cf1, cf2, cf3);
+    __mul_n<__mul_mode::toom33>(w1p, w2p, w3p, l + 1, stk);
+    WJR_ASSERT(w1p[l * 2 + 1] == 0);
 
     // W0 = W0 - U1 : u(-1)
     {
-        ssize_t p = abs_subc_n(w0p, w0p, u1p, l, cf0, cf0, 0);
+        ssize_t p = abs_subc_s(w0p, w0p, l + 1, u1p, l);
         neg0 = p < 0;
     }
-    WJR_ASSERT_ASSUME(cf0 <= 1);
+    WJR_ASSERT_ASSUME(w0p[l] <= 1);
 
     // W3 = V0 - V1 : v(-1)
     {
         ssize_t p = abs_subc_s(w3p, v0p, l, v1p, rm);
         neg3 = p < 0;
+        w3p[l] = 0;
     }
 
     // W2 = W0 * W3 : f(-1) = r2
     neg0 ^= neg3;
-    __mul_n<__mul_mode::toom33, 1, 0>(w2p, w0p, w3p, l, stk, cf2, cf0, 0);
+    __mul_n<__mul_mode::toom33>(w2p, w0p, w3p, l + 1, stk);
+    WJR_ASSERT(w2p[l * 2 + 1] == 0);
 
     // W0 = U0 * V0 : (non-negative) f(0) = r0
     __mul_n<__mul_mode::toom33>(w0p, u0p, v0p, l, stk);
@@ -254,29 +262,27 @@ void toom32_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     // W1 = (W1 - W2) >> 1 : (non-negative) (f(1) - f(-1)) / 2
     {
         if (!neg0) {
-            cf1 = cf1 - cf2 - subc_n(w1p, w1p, w2p, l * 2);
+            WJR_ASSERT_NOCARRY(subc_n(w1p, w1p, w2p, l * 2 + 1));
         } else {
-            cf1 = cf1 + cf2 + addc_n(w1p, w1p, w2p, l * 2);
+            WJR_ASSERT_NOCARRY(addc_n(w1p, w1p, w2p, l * 2 + 1));
         }
 
-        rshift_n(w1p, w1p, l * 2, 1, cf1);
-        cf1 >>= 1;
+        WJR_ASSERT_NOCARRY(rshift_n(w1p, w1p, l * 2 + 1, 1));
     }
 
     // W2 = (W1 + W2) - W0 : (non-negative) r2
     {
         if (!neg0) {
-            cf2 = cf1 + cf2 + addc_n(w2p, w1p, w2p, l * 2);
+            WJR_ASSERT_NOCARRY(addc_n(w2p, w1p, w2p, l * 2 + 1));
         } else {
-            cf2 = cf1 - cf2 - subc_n(w2p, w1p, w2p, l * 2);
+            WJR_ASSERT_NOCARRY(subc_n(w2p, w1p, w2p, l * 2 + 1));
         }
 
-        cf2 -= subc_n(w2p, w2p, w0p, l * 2);
-        if (l != maxr) {
-            WJR_ASSERT(cf2 == 0);
-            cf2 = w2p[l + maxr];
-        }
+        w2p[l * 2] -= subc_n(w2p, w2p, w0p, l * 2);
     }
+
+    uint64_t cf1 = w1p[l * 2];
+    uint64_t cf2 = w2p[l + maxr];
 
     // W1 = W1 - W3 : (non-negative) r1
     cf1 -= subc_s(w1p, w1p, l * 2, w3p, rn + rm);
@@ -395,7 +401,7 @@ void toom42_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
      W4 = f(inf);
 
      W0 = U0 * V0;
-     W1 = (U0 - U1 + U2 - U3) * (V0 - v1);
+     W1 = (U0 - U1 + U2 - U3) * (V0 - v1p);
      W2 = (U0 + U1 + U2 + U3) * (V0 + V1);
      W3 = (U0 + 2U1 + 4U2 + 8U3) * (V0 + 2V1);
      W4 = U3 * V1;

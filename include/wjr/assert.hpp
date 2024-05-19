@@ -77,7 +77,9 @@ inline constexpr __assert_handler_t __assert_handler{};
     WJR_ASSERT_CHECK_I_HANDLER(::wjr::__assert_handler, __VA_ARGS__)
 
 // do nothing
-#define WJR_ASSERT_UNCHECK_I(expr, ...)
+#define WJR_ASSERT_UNCHECK_I(expr, ...)                                                  \
+    do {                                                                                 \
+    } while (0)
 
 // level = [0, 2]
 // The higher the level, the less likely it is to be detected

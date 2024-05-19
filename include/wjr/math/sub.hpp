@@ -149,17 +149,9 @@ WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(type_identity_t<T> a, type_identity_
 #endif
 }
 
-/*
-require :
-1. n >= 1
-2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
-*/
-template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR_E U subc_1(uint64_t *dst, const uint64_t *src0, size_t n,
-                                   uint64_t src1, U c_in) {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
-
+template <typename U>
+WJR_INTRINSIC_CONSTEXPR_E U __subc_1_impl(uint64_t *dst, const uint64_t *src0, size_t n,
+                                          uint64_t src1, U c_in) {
     uint8_t overflow = 0;
     dst[0] = subc_cc(src0[0], src1, c_in, overflow);
 
@@ -182,6 +174,26 @@ WJR_INTRINSIC_CONSTEXPR_E U subc_1(uint64_t *dst, const uint64_t *src0, size_t n
     }
 
     return static_cast<U>(0);
+}
+
+/*
+require :
+1. n >= 1
+2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+*/
+template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
+WJR_INTRINSIC_CONSTEXPR_E U subc_1(uint64_t *dst, const uint64_t *src0, size_t n,
+                                   uint64_t src1, U c_in) {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+
+    if (WJR_BUILTIN_CONSTANT_P(n == 1) && n == 1) {
+        uint8_t overflow = 0;
+        dst[0] = subc_cc(src0[0], src1, c_in, overflow);
+        return static_cast<U>(overflow);
+    }
+
+    return __subc_1_impl(dst, src0, n, src1, c_in);
 }
 
 template <typename U>

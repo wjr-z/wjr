@@ -168,25 +168,9 @@ WJR_INTRINSIC_CONSTEXPR_E bool add_overflow(type_identity_t<T> a, type_identity_
 #endif
 }
 
-/**
- * @brief Add biginteger(src0) and number with carry-in, and return the result(dst) and
- * carry-out.
- *
- * @tparam U Type of the carry-in and carry-out. It must be an unsigned integral type.
- * @param[out] dst The result of the addition.
- * @param[in] src0 The biginteger to be added.
- * @param[in] n The number of elements in the biginteger.
- * @param[in] src1 The number to be added.
- * @param[in] c_in The carry-in flag.
- * @return The carry-out flag.
- */
-template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR_E U addc_1(uint64_t *dst, const uint64_t *src0, size_t n,
-                                   uint64_t src1, U c_in) {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
-    WJR_ASSERT_ASSUME(c_in <= 1);
-
+template <typename U>
+WJR_INTRINSIC_CONSTEXPR_E U __addc_1_impl(uint64_t *dst, const uint64_t *src0, size_t n,
+                                          uint64_t src1, U c_in) {
     uint8_t overflow = 0;
     dst[0] = addc_cc(src0[0], src1, c_in, overflow);
 
@@ -209,6 +193,34 @@ WJR_INTRINSIC_CONSTEXPR_E U addc_1(uint64_t *dst, const uint64_t *src0, size_t n
     }
 
     return static_cast<U>(0);
+}
+
+/**
+ * @brief Add biginteger(src0) and number with carry-in, and return the result(dst) and
+ * carry-out.
+ *
+ * @tparam U Type of the carry-in and carry-out. It must be an unsigned integral type.
+ * @param[out] dst The result of the addition.
+ * @param[in] src0 The biginteger to be added.
+ * @param[in] n The number of elements in the biginteger.
+ * @param[in] src1 The number to be added.
+ * @param[in] c_in The carry-in flag.
+ * @return The carry-out flag.
+ */
+template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
+WJR_INTRINSIC_CONSTEXPR_E U addc_1(uint64_t *dst, const uint64_t *src0, size_t n,
+                                   uint64_t src1, U c_in) {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT_ASSUME(c_in <= 1);
+
+    if (WJR_BUILTIN_CONSTANT_P(n == 1) && n == 1) {
+        uint8_t overflow = 0;
+        dst[0] = addc_cc(src0[0], src1, c_in, overflow);
+        return static_cast<U>(overflow);
+    }
+
+    return __addc_1_impl(dst, src0, n, src1, c_in);
 }
 
 template <typename U>
