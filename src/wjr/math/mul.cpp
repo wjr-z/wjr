@@ -323,7 +323,7 @@ void toom_interpolation_5p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l
             cf3 += cf1 + addc_n(w3p, w3p, w1p, l * 2);
         }
 
-        divexact_by3(w3p, w3p, l * 2);
+        divexact_byc(w3p, w3p, l * 2, 3_u64, 0);
         cf3 /= 3;
     }
 
@@ -770,7 +770,7 @@ void toom_interpolation_6p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l
     cf4 -= cf2 + subc_n(w4p, w4p, w2p, l * 2);
 
     // W4 = W4 / 3;
-    divexact_by3(w4p, w4p, l * 2);
+    divexact_byc(w4p, w4p, l * 2, 3_u64, 0);
     if (l != maxr) {
         cf4 = w4p[l + maxr];
     } else {
@@ -1140,7 +1140,7 @@ void toom_interpolation_7p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l
 
     //  W4 =(W4 - W2)/3
     cf4 -= cf2 + subc_n(w4p, w4p, w2p, l * 2);
-    divexact_by3(w4p, w4p, l * 2);
+    divexact_byc(w4p, w4p, l * 2, 3_u64, 0);
     cf4 /= 3;
 
     //  W2 = W2 - W4
@@ -1161,7 +1161,7 @@ void toom_interpolation_7p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l
     cf3 -= cf5 + subc_n(w3p, w3p, w5p, l * 2);
 
     //  W1 =(W1/15 + W5)/2   Now >= 0 again.
-    divexact_by15(w1p, w1p, l * 2);
+    divexact_byc(w1p, w1p, l * 2, 15_u64, 0);
     cf1 /= 15;
     if (!neg1) {
         cf1 += cf5 + addc_n(w1p, w1p, w5p, l * 2);
@@ -1962,7 +1962,7 @@ WJR_MAYBE_UNUSED void toom_interpolation_opposite_4_solve(uint64_t *w1p, uint64_
     cf7 /= 2835;
 
     // W3 /= 3;
-    divexact_by3(w3p, w3p, n);
+    divexact_byc(w3p, w3p, n, 3_u64, 0);
     cf3 /= 3;
 
     // W5 /= 36;
@@ -2135,7 +2135,7 @@ void toom_interpolation_9p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l
     cf6 = rsblsh_n(w6p, w6p, w2p, l * 2, 6) + 64 * cf2 - cf6;
 
     // W4 /= 3
-    divexact_by3(w4p, w4p, l * 2);
+    divexact_byc(w4p, w4p, l * 2, 3_u64, 0);
     cf4 /= 3;
 
     // W4 -= W2
@@ -2148,7 +2148,7 @@ void toom_interpolation_9p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l
     // W6 = (W4-W6)/15
     {
         cf6 = cf4 - cf6 - subc_n(w6p, w4p, w6p, l * 2);
-        divexact_by15(w6p, w6p, l * 2);
+        divexact_byc(w6p, w6p, l * 2, 15_u64, 0);
         cf6 /= 15;
     }
 
@@ -2180,7 +2180,7 @@ void toom_interpolation_9p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l
     // W5 = (W5-W1)/5
     {
         cf5 -= cf1 + subc_n(w5p, w5p, w1p, l * 2);
-        divexact_by5(w5p, w5p, l * 2);
+        divexact_byc(w5p, w5p, l * 2, 5_u64, 0);
         cf5 /= 5;
     }
 
@@ -2378,138 +2378,6 @@ void toom5_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
     __sqr<__mul_mode::all>(w8p, u4p, rn, stk);
 
     toom_interpolation_9p_s(dst, w1p, l, rn, rn, std::move(flag));
-}
-
-void toom_interpolation_10p_s(
-    WJR_MAYBE_UNUSED uint64_t *WJR_RESTRICT dst, WJR_MAYBE_UNUSED uint64_t *w1p,
-    WJR_MAYBE_UNUSED size_t l, WJR_MAYBE_UNUSED size_t rn, WJR_MAYBE_UNUSED size_t rm,
-    WJR_MAYBE_UNUSED toom_interpolation_high_p_struct<10> &&flag) noexcept {
-    /*
-     W0 = f(0);
-     W1 = f(1);
-     W2 = f(-1);
-     W3 = f(2);
-     W4 = f(-2);
-     W5 = f(4);
-     W6 = f(-4);
-     W7 = 256 * f(-1/2);
-     W8 = 256 * f(1/2);
-     W9 = f(inf);
-    */
-
-    /*
-
-    [
-        1,      0,      0,      0,      0,      0,      0, 0, 0,
-    0 0,      1,      0,      1,      0,      1,      0,      1,
-    0,      1 1,      0,      1,      0,      1,      0,      1,
-    0,      1,      0 0,      1,      0,      4,      0,      16,
-    0,      64,     0,      256 1,      0,      4,      0, 16, 0,
-    64,     0,      256,    0 0,      1,      0,      16,     0,
-    256,    0,      4096,   0,  65536 1,      0,      16,     0,
-    256,    0,      4096,   0,      65536,  0 0,      256,    0,
-    64,     0,      16,     0,      4,      0,      1 256,    0,
-    64,     0,      16,     0,      4,      0,      1,      0 0,
-    0,      0,      0,      0,      0,      0,      0,      0, 1
-    ]
-
-    seprate to two part :
-
-    part 0 :
-    [
-        1,      1,      1,      1,      1       W1
-        1,      4,      16,     64,     256     W3
-        1,      16,     256,    4096,   65536   W5
-        256,    64,     16,     4,      1       W7
-        0,      0,      0,      0,      1       W9
-    ]
-
-    part 1 :
-    [
-        1,      0,      0,      0,      0       W0
-        1,      1,      1,      1,      1       W2
-        1,      4,      16,     64,     256     W4
-        1,      16,     256,    4096,   65536   W6
-        256,    64,     16,     4,      1       W8
-    ]
-
-    */
-
-    /*
-        part 0 :
-        [
-            1,      1,      1,      1,      1       W1
-            1,      4,      16,     64,     256     W3
-            1,      16,     256,    4096,   65536   W5
-            256,    64,     16,     4,      1       W7
-            0,      0,      0,      0,      1       W9
-        ]
-
-        W1 -= W9;
-        W3 -= 256 * W9;
-        W5 -= 65536 * W9;
-        W7 -= W9;
-
-        [
-            1,      1,      1,      1       W1
-            1,      4,      16,     64      W3
-            1,      16,     256,    4096    W5
-            256,    64,     16,     4       W7
-        ]
-
-        W3 -= W1;
-        W5 = (W5 - W1) / 5;
-        W7 = 64 * W1 - (W7 >> 2);
-
-        [
-            1,      1,      1,      1       W1
-            0,      3,      15,     63      W3
-            0,      3,      51,     819     W5
-            0,      48,     60,     63      W7
-        ]
-
-        goto toom_interpolation_10p_s_solve;
-     */
-
-    /*
-        part 1 :
-        [
-            1,      0,      0,      0,      0       W0
-            1,      1,      1,      1,      1       W2
-            1,      4,      16,     64,     256     W4
-            1,      16,     256,    4096,   65536   W6
-            256,    64,     16,     4,      1       W8
-        ]
-
-        W2 -= W0;
-        W4 = (W4 - W0) >> 2;
-        W6 = (W6 - W0) >> 4;
-        W8 -= 256 * W0;
-
-        [
-            1,      1,      1,      1       W2
-            1,      4,      16,     64      W4
-            1,      16,     256,    4096    W6
-            64,     16,     4,      1       W8
-        ]
-
-        W4 -= W2;
-        W6 = (W6 - W2) / 5;
-        W8 = 64 * W2 - W8;
-
-        [
-            1,      1,      1,      1       W2
-            0,      3,      15,     63      W4
-            0,      3,      51,     819     W6
-            0,      48,     60,     63      W8
-        ]
-
-        goto toom_interpolation_10p_s_solve;
-    */
-
-    WJR_ASSERT_ASSUME(0 < rn && rn <= l);
-    WJR_ASSERT_ASSUME(0 < rm && rm <= l);
-    WJR_ASSERT_ASSUME(rn + rm >= l);
 }
 
 } // namespace wjr
