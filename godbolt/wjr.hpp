@@ -2447,7 +2447,9 @@ inline constexpr __assert_handler_t __assert_handler{};
     WJR_ASSERT_CHECK_I_HANDLER(::wjr::__assert_handler, __VA_ARGS__)
 
 // do nothing
-#define WJR_ASSERT_UNCHECK_I(expr, ...)
+#define WJR_ASSERT_UNCHECK_I(expr, ...)                                                  \
+    do {                                                                                 \
+    } while (0)
 
 // level = [0, 2]
 // The higher the level, the less likely it is to be detected
@@ -3235,29 +3237,6 @@ WJR_REGISTER_HAS_COMPARE(greater_equal, std::greater_equal<>);
 
 WJR_REGISTER_HAS_TYPE(invocable,
                       std::invoke(std::declval<Func>(), std::declval<Args>()...), Func);
-
-template <typename T>
-struct get_integral_constant {
-    using type = T;
-};
-
-template <typename T, T v>
-struct get_integral_constant<std::integral_constant<T, v>> {
-    using type = T;
-};
-
-template <typename T>
-using get_integral_constant_t = typename get_integral_constant<T>::type;
-
-template <typename T, typename U>
-struct is_integral_constant_same : std::false_type {};
-
-template <typename T, T v>
-struct is_integral_constant_same<std::integral_constant<T, v>, T> : std::true_type {};
-
-template <typename T, typename U>
-inline constexpr bool is_integral_constant_same_v =
-    is_integral_constant_same<T, U>::value;
 
 namespace digits_literal_details {
 
@@ -6958,29 +6937,19 @@ struct trivially_allocator_traits {
 
 #endif // WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
 // Already included
+// Already included
 
 namespace wjr {
 
 namespace memory_pool_details {
 
-static constexpr uint8_t __small_index_table[128] = {
-    0,  1,  2,  3,  4,  4,  5,  5,  6,  6,  6,  6,  7,  7,  7,  7,  8,  8,  8,
-    8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  9,  9,  9,  9,  9,  9,
-    9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,
-    9,  9,  9,  9,  9,  9,  9,  10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
-    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
-    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
-    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
-};
-
-static constexpr uint16_t __size_table[11 + 8] = {
-    8,    16,   24,   32,   48,   64,    96,    128,   256,   512,
-    1024, 2048, 4096, 6144, 8192, 10240, 12288, 14336, 16384,
+static constexpr uint8_t __ctz_table[32] = {
+    0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4,
+    5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
 };
 
 } // namespace memory_pool_details
 
-template <int inst>
 class __default_alloc_template__ {
 private:
     union obj {
@@ -7001,15 +6970,13 @@ private:
             }
         }
 
-        void *allocate(size_t n) noexcept {
+        WJR_MALLOC void *allocate(size_t n) noexcept {
             __list_node *ptr = (__list_node *)malloc(n + sizeof(__list_node));
-            WJR_ASSERT(ptr != nullptr);
             push_back(&head, ptr);
             return (char *)(ptr) + sizeof(__list_node);
         }
 
         void deallocate(void *ptr) noexcept {
-            WJR_ASSERT(ptr != nullptr);
             auto node = (__list_node *)((char *)(ptr) - sizeof(__list_node));
             remove_uninit(node);
             free(node);
@@ -7018,20 +6985,20 @@ private:
         __list_node head;
     };
 
-    static inline size_t __round_up(size_t bytes) noexcept {
+    static WJR_INTRINSIC_CONSTEXPR size_t __round_up(size_t bytes) noexcept {
         return (((bytes) + 2048 - 1) & ~(2048 - 1));
     }
 
-    static WJR_INTRINSIC_INLINE uint8_t __get_index(size_t bytes) noexcept {
-        if (bytes <= 1024) {
-            return memory_pool_details::__small_index_table[(bytes - 1) >> 3];
+    static WJR_INTRINSIC_CONSTEXPR uint8_t __get_index(size_t bytes) noexcept {
+        if (bytes <= 256) {
+            return memory_pool_details::__ctz_table[(bytes - 1) >> 3];
         }
 
-        return 11 + (bytes - 1) / 2048;
+        return memory_pool_details::__ctz_table[(bytes - 1) >> 9] + 6;
     }
 
-    static inline uint16_t __get_size(uint8_t idx) noexcept {
-        return memory_pool_details::__size_table[idx];
+    static WJR_INTRINSIC_CONSTEXPR uint16_t __get_size(uint8_t idx) noexcept {
+        return (uint16_t)(1) << (idx + 3);
     }
 
     static malloc_chunk &get_chunk() noexcept {
@@ -7100,14 +7067,15 @@ public:
             __small_deallocate(p, n);
         }
 
-        // Returns an object of size n, and optionally adds to size n free list.
-        WJR_NOINLINE void *refill(uint8_t idx) noexcept;
-
+    private:
         // Allocates a chunk for nobjs of size "size".  nobjs may be reduced
         // if it is inconvenient to allocate the requested number.
-        char *chunk_alloc(uint8_t idx, int &nobjs) noexcept;
+        WJR_MALLOC char *chunk_alloc(uint8_t idx, int &nobjs) noexcept;
 
-        obj *volatile free_list[19] = {nullptr};
+        // Returns an object of size n, and optionally adds to size n free list.
+        WJR_MALLOC void *refill(uint8_t idx) noexcept;
+
+        obj *volatile free_list[12] = {nullptr};
         char *start_free = nullptr;
         char *end_free = nullptr;
         size_t heap_size = 0;
@@ -7139,129 +7107,10 @@ public:
     }
 };
 
-//----------------------------------------------
-// We allocate memory in large chunks in order to
-// avoid fragmentingthe malloc heap too much.
-// We assume that size is properly aligned.
-// We hold the allocation lock.
-//----------------------------------------------
-template <int inst>
-char *__default_alloc_template__<inst>::object::chunk_alloc(uint8_t idx,
-                                                            int &nobjs) noexcept {
-    const size_t size = __get_size(idx);
-    char *result;
-    size_t total_bytes = size * nobjs;
-    auto bytes_left = static_cast<size_t>(end_free - start_free);
-
-    if (bytes_left >= total_bytes) {
-        result = start_free;
-        start_free += total_bytes;
-        return (result);
-    }
-
-    if (bytes_left >= size) {
-        nobjs = static_cast<int>(bytes_left / size);
-        total_bytes = size * nobjs;
-        result = start_free;
-        start_free += total_bytes;
-        return (result);
-    }
-
-    // Try to make use of the left-over piece.
-    if (bytes_left > 0) {
-        WJR_ASSERT(!(bytes_left & 7));
-
-        char *start_free = this->start_free;
-        uint8_t __idx = __get_index(bytes_left);
-        for (;; --__idx) {
-            const auto __size = __get_size(__idx);
-            if (bytes_left >= __size) {
-                obj *volatile *my_free_list = free_list + __idx;
-                ((obj *)start_free)->free_list_link = *my_free_list;
-                *my_free_list = (obj *)start_free;
-
-                if (bytes_left == __size) {
-                    break;
-                }
-
-                start_free += __size;
-                bytes_left -= __size;
-            }
-        }
-    }
-
-    do {
-        obj *volatile *my_free_list;
-        if (idx < 11) {
-            for (int i = 18; i > 11; --i) {
-                my_free_list = free_list + i;
-                obj *p = *my_free_list;
-                // split the chunk
-                if (p != nullptr) {
-                    *my_free_list = p->free_list_link;
-                    start_free = (char *)(p);
-                    char *__e = (char *)(p) + 2048;
-                    end_free = __e;
-                    obj *e = (obj *)(__e);
-                    --my_free_list;
-                    e->free_list_link = *my_free_list;
-                    *my_free_list = e;
-                    return (chunk_alloc(idx, nobjs));
-                }
-            }
-        }
-    } while (0);
-
-    const size_t bytes_to_get = 2 * total_bytes + __round_up(heap_size >> 3);
-
-    start_free = (char *)get_chunk().allocate(bytes_to_get);
-
-    WJR_ASSERT(start_free != nullptr);
-
-    heap_size += bytes_to_get;
-    end_free = start_free + bytes_to_get;
-    return (chunk_alloc(idx, nobjs));
-}
-
-//----------------------------------------------
-// Returns an object of size n, and optionally adds
-// to size n free list.We assume that n is properly aligned.
-// We hold the allocation lock.
-//----------------------------------------------
-template <int inst>
-void *__default_alloc_template__<inst>::object::refill(uint8_t idx) noexcept {
-    int nobjs = idx < 6 ? 32 : idx < 8 ? 16 : idx < 11 ? 8 : 4;
-    char *chunk = chunk_alloc(idx, nobjs);
-    obj *current_obj;
-    obj *next_obj;
-
-    if (1 == nobjs) {
-        return (chunk);
-    }
-
-    obj *volatile *my_free_list = free_list + idx;
-
-    const size_t n = __get_size(idx);
-
-    // Build free list in chunk
-    obj *result = (obj *)chunk;
-
-    *my_free_list = current_obj = (obj *)(chunk + n);
-    nobjs -= 2;
-    while (nobjs) {
-        --nobjs;
-        next_obj = (obj *)((char *)current_obj + n);
-        current_obj->free_list_link = next_obj;
-        current_obj = next_obj;
-    }
-    current_obj->free_list_link = 0;
-    return (result);
-}
-
 template <typename Ty>
 class memory_pool {
 private:
-    using allocator_type = __default_alloc_template__<0>;
+    using allocator_type = __default_alloc_template__;
 
 public:
     using value_type = Ty;
@@ -7868,7 +7717,7 @@ private:
 
 /// @private
 template <typename T, bool = true>
-class __lazy_crtp : public uninitialized<T> {
+class __lazy_base : public uninitialized<T> {
     using Mybase = uninitialized<T>;
 
 public:
@@ -7877,18 +7726,18 @@ public:
 
 /// @private
 template <typename T>
-class __lazy_crtp<T, false> : public uninitialized<T> {
+class __lazy_base<T, false> : public uninitialized<T> {
     using Mybase = uninitialized<T>;
 
 public:
     using Mybase::Mybase;
 
-    ~__lazy_crtp() noexcept(noexcept(this->Mybase::reset())) { Mybase::reset(); }
+    ~__lazy_base() noexcept(noexcept(this->Mybase::reset())) { Mybase::reset(); }
 };
 
 /// @private
 template <typename T>
-using lazy_crtp = __lazy_crtp<T,
+using lazy_base = __lazy_base<T,
 #if WJR_HAS_DEBUG(UNINITIALIZED_CHECKER)
                               false
 #else
@@ -7897,8 +7746,8 @@ using lazy_crtp = __lazy_crtp<T,
                               >;
 
 template <typename T>
-class lazy : public lazy_crtp<T> {
-    using Mybase = lazy_crtp<T>;
+class lazy : public lazy_base<T> {
+    using Mybase = lazy_base<T>;
 
 public:
     using Mybase::Mybase;
@@ -16823,6 +16672,9 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n_pos(uint64_t *dst,
                                                                const uint64_t *src1,
                                                                size_t n);
 
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s1(
+    uint64_t *dst, const uint64_t *src0, size_t n, const uint64_t *src1, size_t m);
+
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(uint64_t *dst,
                                                            const uint64_t *src0, size_t n,
                                                            const uint64_t *src1,
@@ -17447,17 +17299,9 @@ WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(type_identity_t<T> a, type_identity_
 #endif
 }
 
-/*
-require :
-1. n >= 1
-2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
-*/
-template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR_E U subc_1(uint64_t *dst, const uint64_t *src0, size_t n,
-                                   uint64_t src1, U c_in) {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
-
+template <typename U>
+WJR_INTRINSIC_CONSTEXPR_E U __subc_1_impl(uint64_t *dst, const uint64_t *src0, size_t n,
+                                          uint64_t src1, U c_in) {
     uint8_t overflow = 0;
     dst[0] = subc_cc(src0[0], src1, c_in, overflow);
 
@@ -17480,6 +17324,26 @@ WJR_INTRINSIC_CONSTEXPR_E U subc_1(uint64_t *dst, const uint64_t *src0, size_t n
     }
 
     return static_cast<U>(0);
+}
+
+/*
+require :
+1. n >= 1
+2. WJR_IS_SAME_OR_INCR_P(dst, n, src0, n)
+*/
+template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
+WJR_INTRINSIC_CONSTEXPR_E U subc_1(uint64_t *dst, const uint64_t *src0, size_t n,
+                                   uint64_t src1, U c_in) {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+
+    if (WJR_BUILTIN_CONSTANT_P(n == 1) && n == 1) {
+        uint8_t overflow = 0;
+        dst[0] = subc_cc(src0[0], src1, c_in, overflow);
+        return static_cast<U>(overflow);
+    }
+
+    return __subc_1_impl(dst, src0, n, src1, c_in);
 }
 
 template <typename U>
@@ -17688,6 +17552,36 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n_pos(uint64_t *dst, const uint64_t *
     return overflow ? -ret : ret;
 }
 
+WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s1(uint64_t *dst, const uint64_t *src0,
+                                              size_t n, const uint64_t *src1, size_t m) {
+    WJR_ASSERT_ASSUME(m >= 1);
+    WJR_ASSERT_ASSUME(n >= m);
+
+    if (WJR_BUILTIN_CONSTANT_P(n == m) && n == m) {
+        return abs_subc_n(dst, src0, src1, m);
+    }
+
+    WJR_ASSERT(n - m <= 1);
+
+    do {
+        if (n == m) {
+            break;
+        }
+
+        if (WJR_UNLIKELY(src0[m] == 0)) {
+            dst[m] = 0;
+            break;
+        }
+
+        uint64_t hi = src0[m];
+        hi -= subc_n(dst, src0, src1, m);
+        dst[m] = hi;
+        return 1;
+    } while (0);
+
+    return abs_subc_n(dst, src0, src1, m);
+}
+
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(uint64_t *dst, const uint64_t *src0,
                                              size_t n, const uint64_t *src1, size_t m) {
     WJR_ASSERT_ASSUME(m >= 1);
@@ -17698,23 +17592,7 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(uint64_t *dst, const uint64_t *src0
     }
 
     if (WJR_BUILTIN_CONSTANT_P(n - m <= 1) && n - m <= 1) {
-        do {
-            if (n == m) {
-                break;
-            }
-
-            if (WJR_UNLIKELY(src0[m] == 0)) {
-                dst[m] = 0;
-                break;
-            }
-
-            uint64_t hi = src0[m];
-            hi -= subc_n(dst, src0, src1, m);
-            dst[m] = hi;
-            return 1;
-        } while (0);
-
-        return abs_subc_n(dst, src0, src1, m);
+        return abs_subc_s1(dst, src0, n, src1, m);
     }
 
     size_t idx = reverse_replace_find_not(dst + m, src0 + m, n - m, 0, 0);
@@ -20055,25 +19933,9 @@ WJR_INTRINSIC_CONSTEXPR_E bool add_overflow(type_identity_t<T> a, type_identity_
 #endif
 }
 
-/**
- * @brief Add biginteger(src0) and number with carry-in, and return the result(dst) and
- * carry-out.
- *
- * @tparam U Type of the carry-in and carry-out. It must be an unsigned integral type.
- * @param[out] dst The result of the addition.
- * @param[in] src0 The biginteger to be added.
- * @param[in] n The number of elements in the biginteger.
- * @param[in] src1 The number to be added.
- * @param[in] c_in The carry-in flag.
- * @return The carry-out flag.
- */
-template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR_E U addc_1(uint64_t *dst, const uint64_t *src0, size_t n,
-                                   uint64_t src1, U c_in) {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
-    WJR_ASSERT_ASSUME(c_in <= 1);
-
+template <typename U>
+WJR_INTRINSIC_CONSTEXPR_E U __addc_1_impl(uint64_t *dst, const uint64_t *src0, size_t n,
+                                          uint64_t src1, U c_in) {
     uint8_t overflow = 0;
     dst[0] = addc_cc(src0[0], src1, c_in, overflow);
 
@@ -20096,6 +19958,34 @@ WJR_INTRINSIC_CONSTEXPR_E U addc_1(uint64_t *dst, const uint64_t *src0, size_t n
     }
 
     return static_cast<U>(0);
+}
+
+/**
+ * @brief Add biginteger(src0) and number with carry-in, and return the result(dst) and
+ * carry-out.
+ *
+ * @tparam U Type of the carry-in and carry-out. It must be an unsigned integral type.
+ * @param[out] dst The result of the addition.
+ * @param[in] src0 The biginteger to be added.
+ * @param[in] n The number of elements in the biginteger.
+ * @param[in] src1 The number to be added.
+ * @param[in] c_in The carry-in flag.
+ * @return The carry-out flag.
+ */
+template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
+WJR_INTRINSIC_CONSTEXPR_E U addc_1(uint64_t *dst, const uint64_t *src0, size_t n,
+                                   uint64_t src1, U c_in) {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT_ASSUME(c_in <= 1);
+
+    if (WJR_BUILTIN_CONSTANT_P(n == 1) && n == 1) {
+        uint8_t overflow = 0;
+        dst[0] = addc_cc(src0[0], src1, c_in, overflow);
+        return static_cast<U>(overflow);
+    }
+
+    return __addc_1_impl(dst, src0, n, src1, c_in);
 }
 
 template <typename U>
@@ -20736,6 +20626,18 @@ WJR_INTRINSIC_CONSTEXPR_E T rshift_n(T *dst, const T *src, size_t n, unsigned in
 #ifndef WJR_CRTP_NONSENDABLE_HPP__
 #define WJR_CRTP_NONSENDABLE_HPP__
 
+/**
+ * @file nonsendable.hpp
+ * @author wjr
+ * @brief  A type to disable sending the object to another thread.
+ *
+ * @version 0.1
+ * @date 2024-05-26
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #include <memory>
 
 // Already included
@@ -20753,35 +20655,32 @@ namespace wjr {
 #if WJR_HAS_DEBUG(NONSENDABLE_CHECKER)
 
 /**
- * @brief Disable sending the object to another thread and check the thread id.
+ * @brief A type to disable sending the object to another thread.
  *
- * @note Only check if WJR_DEBUG_LEVEL > 2.
  */
 template <typename Tag = void>
-class __nonsendable_checker {
+class nonsendable {
 public:
     static constexpr bool is_nonsendable = true;
 
 protected:
-    __nonsendable_checker() : m_thread_id(std::this_thread::get_id()) {}
-    __nonsendable_checker(const __nonsendable_checker &) = default;
-    __nonsendable_checker(__nonsendable_checker &&) = default;
-    __nonsendable_checker &operator=(const __nonsendable_checker &) = default;
-    __nonsendable_checker &operator=(__nonsendable_checker &&) = default;
-    ~__nonsendable_checker() { check(); }
+    nonsendable() : m_thread_id(std::this_thread::get_id()) {}
+    nonsendable(const nonsendable &) = default;
+    nonsendable(nonsendable &&) = default;
+    nonsendable &operator=(const nonsendable &) = default;
+    nonsendable &operator=(nonsendable &&) = default;
+    ~nonsendable() { check(); }
 
     void check() const {
         WJR_ASSERT_LX(m_thread_id == std::this_thread::get_id(),
                       "Cross-thread access detected when using a nonsendable object.");
     }
 
-    friend bool operator==(const __nonsendable_checker &lhs,
-                           const __nonsendable_checker &rhs) {
+    friend bool operator==(const nonsendable &lhs, const nonsendable &rhs) {
         return lhs.m_thread_id == rhs.m_thread_id;
     }
 
-    friend bool operator!=(const __nonsendable_checker &lhs,
-                           const __nonsendable_checker &rhs) {
+    friend bool operator!=(const nonsendable &lhs, const nonsendable &rhs) {
         return lhs.m_thread_id != rhs.m_thread_id;
     }
 
@@ -20792,37 +20691,23 @@ private:
 #else
 
 /**
- * @brief Disable sending the object to another thread without checking.
+ * @brief A type to disable sending the object to another thread.
  *
  */
 template <typename Tag = void>
-class __nonsendable_checker {
+class nonsendable {
 public:
     static constexpr bool is_nonsendable = true;
 
 protected:
     constexpr static void check(){};
 
-    friend bool operator==(const __nonsendable_checker &, const __nonsendable_checker &) {
-        return true;
-    }
+    friend bool operator==(const nonsendable &, const nonsendable &) { return true; }
 
-    friend bool operator!=(const __nonsendable_checker &, const __nonsendable_checker &) {
-        return false;
-    }
+    friend bool operator!=(const nonsendable &, const nonsendable &) { return false; }
 };
 
 #endif
-
-/**
- * @brief A type to disable sending the object to another thread.
- *
- * @note By default, only check if object is destroyed and WJR_DEBUG_LEVEL > 2.
- * Use nonsendable::check() to manually check.
- *
- */
-template <typename Tag = void>
-using nonsendable = __nonsendable_checker<Tag>;
 
 } // namespace wjr
 
@@ -22984,7 +22869,7 @@ void __toom22_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_
 
     if (n >= 3 * m) {
         uint64_t *tmp = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (4 * m));
-        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (6 * m + 67));
+        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
 
         toom42_mul_s(dst, src0, 2 * m, src1, m, stk);
         n -= 2 * m;
@@ -23018,7 +22903,7 @@ void __toom22_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_
         cf = addc_1(dst + m, dst + m, n, 0, cf);
         WJR_ASSERT(cf == 0);
     } else {
-        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (6 * m + 67));
+        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
 
         if (4 * n < 5 * m) {
             toom22_mul_s(dst, src0, n, src1, m, stk);
@@ -23054,7 +22939,7 @@ void __noinline_mul_s_impl(
     if (m < toom33_mul_threshold) {
         if (n >= 3 * m) {
             uint64_t *tmp = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (4 * m));
-            uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (6 * m + 67));
+            uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
 
             toom42_mul_s(dst, src0, 2 * m, src1, m, stk);
             n -= 2 * m;
@@ -23088,7 +22973,7 @@ void __noinline_mul_s_impl(
             cf = addc_1(dst + m, dst + m, n, 0, cf);
             WJR_ASSERT(cf == 0);
         } else {
-            uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (6 * m + 67));
+            uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
 
             if (4 * n < 5 * m) {
                 toom22_mul_s(dst, src0, n, src1, m, stk);
@@ -24380,7 +24265,7 @@ div_qr_2_noshift(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
                  const div3by2_divider_noshift<uint64_t> &div) {
     WJR_ASSERT_ASSUME(n >= 2);
     WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n - 2, src, n - 2));
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n - 2, rem, n - 2));
+    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n - 2, rem, 2));
 
     const uint64_t divisor0 = div.get_divisor0();
     const uint64_t divisor1 = div.get_divisor1();
@@ -24423,7 +24308,7 @@ WJR_INLINE_CONSTEXPR20 uint64_t div_qr_2_shift(uint64_t *dst, uint64_t *rem,
     WJR_ASSERT_ASSUME(n >= 2);
     WJR_ASSERT(div.get_shift() != 0);
     WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n - 2, src, n - 2));
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n - 2, rem, n - 2));
+    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n - 2, rem, 2));
 
     const uint64_t divisor0 = div.get_divisor0();
     const uint64_t divisor1 = div.get_divisor1();

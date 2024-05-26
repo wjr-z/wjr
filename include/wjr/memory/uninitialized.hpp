@@ -510,7 +510,7 @@ private:
 
 /// @private
 template <typename T, bool = true>
-class __lazy_crtp : public uninitialized<T> {
+class __lazy_base : public uninitialized<T> {
     using Mybase = uninitialized<T>;
 
 public:
@@ -519,18 +519,18 @@ public:
 
 /// @private
 template <typename T>
-class __lazy_crtp<T, false> : public uninitialized<T> {
+class __lazy_base<T, false> : public uninitialized<T> {
     using Mybase = uninitialized<T>;
 
 public:
     using Mybase::Mybase;
 
-    ~__lazy_crtp() noexcept(noexcept(this->Mybase::reset())) { Mybase::reset(); }
+    ~__lazy_base() noexcept(noexcept(this->Mybase::reset())) { Mybase::reset(); }
 };
 
 /// @private
 template <typename T>
-using lazy_crtp = __lazy_crtp<T,
+using lazy_base = __lazy_base<T,
 #if WJR_HAS_DEBUG(UNINITIALIZED_CHECKER)
                               false
 #else
@@ -539,8 +539,8 @@ using lazy_crtp = __lazy_crtp<T,
                               >;
 
 template <typename T>
-class lazy : public lazy_crtp<T> {
-    using Mybase = lazy_crtp<T>;
+class lazy : public lazy_base<T> {
+    using Mybase = lazy_base<T>;
 
 public:
     using Mybase::Mybase;

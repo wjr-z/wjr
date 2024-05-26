@@ -470,29 +470,6 @@ WJR_REGISTER_HAS_COMPARE(greater_equal, std::greater_equal<>);
 WJR_REGISTER_HAS_TYPE(invocable,
                       std::invoke(std::declval<Func>(), std::declval<Args>()...), Func);
 
-template <typename T>
-struct get_integral_constant {
-    using type = T;
-};
-
-template <typename T, T v>
-struct get_integral_constant<std::integral_constant<T, v>> {
-    using type = T;
-};
-
-template <typename T>
-using get_integral_constant_t = typename get_integral_constant<T>::type;
-
-template <typename T, typename U>
-struct is_integral_constant_same : std::false_type {};
-
-template <typename T, T v>
-struct is_integral_constant_same<std::integral_constant<T, v>, T> : std::true_type {};
-
-template <typename T, typename U>
-inline constexpr bool is_integral_constant_same_v =
-    is_integral_constant_same<T, U>::value;
-
 namespace digits_literal_details {
 
 template <typename T, char... Chars>

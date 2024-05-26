@@ -3,30 +3,20 @@
 
 #include <wjr/container/intrusive/list.hpp>
 #include <wjr/crtp/trivially_allocator_base.hpp>
+#include <wjr/math/details.hpp>
 #include <wjr/memory/details.hpp>
 
 namespace wjr {
 
 namespace memory_pool_details {
 
-static constexpr uint8_t __small_index_table[128] = {
-    0,  1,  2,  3,  4,  4,  5,  5,  6,  6,  6,  6,  7,  7,  7,  7,  8,  8,  8,
-    8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  9,  9,  9,  9,  9,  9,
-    9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,
-    9,  9,  9,  9,  9,  9,  9,  10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
-    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
-    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
-    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
-};
-
-static constexpr uint16_t __size_table[11 + 8] = {
-    8,    16,   24,   32,   48,   64,    96,    128,   256,   512,
-    1024, 2048, 4096, 6144, 8192, 10240, 12288, 14336, 16384,
+static constexpr uint8_t __ctz_table[32] = {
+    0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4,
+    5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
 };
 
 } // namespace memory_pool_details
 
-template <int inst>
 class __default_alloc_template__ {
 private:
     union obj {
@@ -47,15 +37,13 @@ private:
             }
         }
 
-        void *allocate(size_t n) noexcept {
+        WJR_MALLOC void *allocate(size_t n) noexcept {
             __list_node *ptr = (__list_node *)malloc(n + sizeof(__list_node));
-            WJR_ASSERT(ptr != nullptr);
             push_back(&head, ptr);
             return (char *)(ptr) + sizeof(__list_node);
         }
 
         void deallocate(void *ptr) noexcept {
-            WJR_ASSERT(ptr != nullptr);
             auto node = (__list_node *)((char *)(ptr) - sizeof(__list_node));
             remove_uninit(node);
             free(node);
@@ -64,20 +52,20 @@ private:
         __list_node head;
     };
 
-    static inline size_t __round_up(size_t bytes) noexcept {
+    static WJR_INTRINSIC_CONSTEXPR size_t __round_up(size_t bytes) noexcept {
         return (((bytes) + 2048 - 1) & ~(2048 - 1));
     }
 
-    static WJR_INTRINSIC_INLINE uint8_t __get_index(size_t bytes) noexcept {
-        if (bytes <= 1024) {
-            return memory_pool_details::__small_index_table[(bytes - 1) >> 3];
+    static WJR_INTRINSIC_CONSTEXPR uint8_t __get_index(size_t bytes) noexcept {
+        if (bytes <= 256) {
+            return memory_pool_details::__ctz_table[(bytes - 1) >> 3];
         }
 
-        return 11 + (bytes - 1) / 2048;
+        return memory_pool_details::__ctz_table[(bytes - 1) >> 9] + 6;
     }
 
-    static inline uint16_t __get_size(uint8_t idx) noexcept {
-        return memory_pool_details::__size_table[idx];
+    static WJR_INTRINSIC_CONSTEXPR uint16_t __get_size(uint8_t idx) noexcept {
+        return (uint16_t)(1) << (idx + 3);
     }
 
     static malloc_chunk &get_chunk() noexcept {
@@ -146,14 +134,15 @@ public:
             __small_deallocate(p, n);
         }
 
-        // Returns an object of size n, and optionally adds to size n free list.
-        WJR_NOINLINE void *refill(uint8_t idx) noexcept;
-
+    private:
         // Allocates a chunk for nobjs of size "size".  nobjs may be reduced
         // if it is inconvenient to allocate the requested number.
-        char *chunk_alloc(uint8_t idx, int &nobjs) noexcept;
+        WJR_MALLOC char *chunk_alloc(uint8_t idx, int &nobjs) noexcept;
 
-        obj *volatile free_list[19] = {nullptr};
+        // Returns an object of size n, and optionally adds to size n free list.
+        WJR_MALLOC void *refill(uint8_t idx) noexcept;
+
+        obj *volatile free_list[12] = {nullptr};
         char *start_free = nullptr;
         char *end_free = nullptr;
         size_t heap_size = 0;
@@ -185,129 +174,10 @@ public:
     }
 };
 
-//----------------------------------------------
-// We allocate memory in large chunks in order to
-// avoid fragmentingthe malloc heap too much.
-// We assume that size is properly aligned.
-// We hold the allocation lock.
-//----------------------------------------------
-template <int inst>
-char *__default_alloc_template__<inst>::object::chunk_alloc(uint8_t idx,
-                                                            int &nobjs) noexcept {
-    const size_t size = __get_size(idx);
-    char *result;
-    size_t total_bytes = size * nobjs;
-    auto bytes_left = static_cast<size_t>(end_free - start_free);
-
-    if (bytes_left >= total_bytes) {
-        result = start_free;
-        start_free += total_bytes;
-        return (result);
-    }
-
-    if (bytes_left >= size) {
-        nobjs = static_cast<int>(bytes_left / size);
-        total_bytes = size * nobjs;
-        result = start_free;
-        start_free += total_bytes;
-        return (result);
-    }
-
-    // Try to make use of the left-over piece.
-    if (bytes_left > 0) {
-        WJR_ASSERT(!(bytes_left & 7));
-
-        char *start_free = this->start_free;
-        uint8_t __idx = __get_index(bytes_left);
-        for (;; --__idx) {
-            const auto __size = __get_size(__idx);
-            if (bytes_left >= __size) {
-                obj *volatile *my_free_list = free_list + __idx;
-                ((obj *)start_free)->free_list_link = *my_free_list;
-                *my_free_list = (obj *)start_free;
-
-                if (bytes_left == __size) {
-                    break;
-                }
-
-                start_free += __size;
-                bytes_left -= __size;
-            }
-        }
-    }
-
-    do {
-        obj *volatile *my_free_list;
-        if (idx < 11) {
-            for (int i = 18; i > 11; --i) {
-                my_free_list = free_list + i;
-                obj *p = *my_free_list;
-                // split the chunk
-                if (p != nullptr) {
-                    *my_free_list = p->free_list_link;
-                    start_free = (char *)(p);
-                    char *__e = (char *)(p) + 2048;
-                    end_free = __e;
-                    obj *e = (obj *)(__e);
-                    --my_free_list;
-                    e->free_list_link = *my_free_list;
-                    *my_free_list = e;
-                    return (chunk_alloc(idx, nobjs));
-                }
-            }
-        }
-    } while (0);
-
-    const size_t bytes_to_get = 2 * total_bytes + __round_up(heap_size >> 3);
-
-    start_free = (char *)get_chunk().allocate(bytes_to_get);
-
-    WJR_ASSERT(start_free != nullptr);
-
-    heap_size += bytes_to_get;
-    end_free = start_free + bytes_to_get;
-    return (chunk_alloc(idx, nobjs));
-}
-
-//----------------------------------------------
-// Returns an object of size n, and optionally adds
-// to size n free list.We assume that n is properly aligned.
-// We hold the allocation lock.
-//----------------------------------------------
-template <int inst>
-void *__default_alloc_template__<inst>::object::refill(uint8_t idx) noexcept {
-    int nobjs = idx < 6 ? 32 : idx < 8 ? 16 : idx < 11 ? 8 : 4;
-    char *chunk = chunk_alloc(idx, nobjs);
-    obj *current_obj;
-    obj *next_obj;
-
-    if (1 == nobjs) {
-        return (chunk);
-    }
-
-    obj *volatile *my_free_list = free_list + idx;
-
-    const size_t n = __get_size(idx);
-
-    // Build free list in chunk
-    obj *result = (obj *)chunk;
-
-    *my_free_list = current_obj = (obj *)(chunk + n);
-    nobjs -= 2;
-    while (nobjs) {
-        --nobjs;
-        next_obj = (obj *)((char *)current_obj + n);
-        current_obj->free_list_link = next_obj;
-        current_obj = next_obj;
-    }
-    current_obj->free_list_link = 0;
-    return (result);
-}
-
 template <typename Ty>
 class memory_pool {
 private:
-    using allocator_type = __default_alloc_template__<0>;
+    using allocator_type = __default_alloc_template__;
 
 public:
     using value_type = Ty;
