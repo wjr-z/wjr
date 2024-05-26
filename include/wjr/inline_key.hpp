@@ -1,58 +1,69 @@
 #ifndef WJR_INLINE_KEY_HPP__
 #define WJR_INLINE_KEY_HPP__
 
+/**
+ * @file inline_key.hpp
+ * @author wjr
+ * @brief Optimize using T * or T for different types of `T'.
+ * @version 0.1
+ * @date 2024-05-26
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #include <wjr/memory/uninitialized.hpp>
 
 namespace wjr {
 
 template <typename T, bool Inlined>
 class inline_key {
-public:
-    constexpr inline_key() noexcept(std::is_nothrow_default_constructible_v<T>) = default;
-    constexpr inline_key(const inline_key &other) noexcept(
-        std::is_nothrow_copy_constructible_v<T>) = default;
-    constexpr inline_key(inline_key &&other) noexcept(
-        std::is_nothrow_move_constructible_v<T>) = default;
-    constexpr inline_key &operator=(const inline_key &other) noexcept(
-        std::is_nothrow_copy_assignable_v<T>) = default;
-    constexpr inline_key &operator=(inline_key &&other) noexcept(
-        std::is_nothrow_move_assignable_v<T>) = default;
-    ~inline_key() noexcept(std::is_nothrow_destructible_v<T>) = default;
+    using non_const_t = std::remove_const_t<T>;
+    using data_type = lazy<non_const_t>;
 
-    constexpr inline_key(const T &value) noexcept(std::is_nothrow_copy_constructible_v<T>)
+public:
+    constexpr inline_key() noexcept(std::is_nothrow_default_constructible_v<data_type>) =
+        default;
+    constexpr inline_key(const inline_key &other) noexcept(
+        std::is_nothrow_copy_constructible_v<data_type>) = default;
+    constexpr inline_key(inline_key &&other) noexcept(
+        std::is_nothrow_move_constructible_v<data_type>) = default;
+    constexpr inline_key &operator=(const inline_key &other) noexcept(
+        std::is_nothrow_copy_assignable_v<data_type>) = default;
+    constexpr inline_key &operator=(inline_key &&other) noexcept(
+        std::is_nothrow_move_assignable_v<data_type>) = default;
+    ~inline_key() noexcept(std::is_nothrow_destructible_v<data_type>) = default;
+
+    constexpr inline_key(const non_const_t &value) noexcept(
+        std::is_nothrow_constructible_v<data_type, const non_const_t &>)
         : m_value(value) {}
 
-    constexpr const T &get() const noexcept { return *m_value; }
-    constexpr const T &operator*() const noexcept { return *m_value; }
-    constexpr const T *operator->() const noexcept { return m_value.operator->(); }
+    constexpr T &get() const noexcept { return *m_value; }
+    constexpr T &operator*() const noexcept { return *m_value; }
+    constexpr T *operator->() const noexcept { return m_value.operator->(); }
 
 private:
-    lazy<T> m_value;
+    data_type m_value;
 };
 
 template <typename T>
 class inline_key<T, false> {
 public:
-    constexpr inline_key() noexcept(std::is_nothrow_default_constructible_v<T>) = default;
-    constexpr inline_key(const inline_key &other) noexcept(
-        std::is_nothrow_copy_constructible_v<T>) = default;
-    constexpr inline_key(inline_key &&other) noexcept(
-        std::is_nothrow_move_constructible_v<T>) = default;
-    constexpr inline_key &operator=(const inline_key &other) noexcept(
-        std::is_nothrow_copy_assignable_v<T>) = default;
-    constexpr inline_key &operator=(inline_key &&other) noexcept(
-        std::is_nothrow_move_assignable_v<T>) = default;
-    ~inline_key() noexcept(std::is_nothrow_destructible_v<T>) = default;
+    constexpr inline_key() noexcept = default;
+    constexpr inline_key(const inline_key &other) noexcept = default;
+    constexpr inline_key(inline_key &&other) noexcept = default;
+    constexpr inline_key &operator=(const inline_key &other) noexcept = default;
+    constexpr inline_key &operator=(inline_key &&other) noexcept = default;
+    ~inline_key() noexcept = default;
 
-    constexpr inline_key(const T &value) noexcept(std::is_nothrow_copy_constructible_v<T>)
-        : m_ptr(std::addressof(value)) {}
+    constexpr inline_key(T &value) noexcept : m_ptr(std::addressof(value)) {}
 
-    constexpr const T &get() const noexcept { return *m_ptr; }
-    constexpr const T &operator*() const noexcept { return *m_ptr; }
-    constexpr const T *operator->() const noexcept { return m_ptr; }
+    constexpr T &get() const noexcept { return *m_ptr; }
+    constexpr T &operator*() const noexcept { return *m_ptr; }
+    constexpr T *operator->() const noexcept { return m_ptr; }
 
 private:
-    const T *m_ptr;
+    T *m_ptr;
 };
 
 template <typename T>

@@ -6,7 +6,7 @@ namespace wjr {
 template void __noinline_mul_s_impl<true>(uint64_t *WJR_RESTRICT dst,
                                           const uint64_t *src0, size_t n,
                                           const uint64_t *src1, size_t m,
-                                          uint64_t *mal) noexcept;
+                                          safe_pointer<uint64_t> mal) noexcept;
 
 template void __noinline_mul_s_impl<false>(uint64_t *WJR_RESTRICT dst,
                                            const uint64_t *src0, size_t n,
@@ -51,7 +51,7 @@ template void __noinline_mul_s_impl<false>(uint64_t *WJR_RESTRICT dst,
     } while (0)
 
 void toom22_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                  const uint64_t *src1, size_t m, uint64_t *stk) noexcept {
+                  const uint64_t *src1, size_t m, safe_pointer<uint64_t> stk) noexcept {
     // [u0(l), u1(rn)] (n)
     // [v0(l), v1(rm)] (m)
 
@@ -79,7 +79,7 @@ void toom22_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     const auto p2 = dst + l * 2;
     const auto p3 = dst + l * 3;
 
-    const auto wp = stk;
+    const auto wp = stk.data();
     stk += l * 2;
 
     bool f = 0;
@@ -130,7 +130,7 @@ void toom22_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
 }
 
 void toom2_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-               uint64_t *stk) noexcept {
+               safe_pointer<uint64_t> stk) noexcept {
     const size_t l = (n + 1) / 2;
     const size_t rn = n - l;
 
@@ -145,7 +145,7 @@ void toom2_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
     const auto p2 = dst + l * 2;
     const auto p3 = dst + l * 3;
 
-    const auto wp = stk;
+    const auto wp = stk.data();
     stk += l * 2;
 
     do {
@@ -180,7 +180,7 @@ void toom2_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
 }
 
 void toom32_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                  const uint64_t *src1, size_t m, uint64_t *stk) noexcept {
+                  const uint64_t *src1, size_t m, safe_pointer<uint64_t> stk) noexcept {
     WJR_ASSERT(m + 2 <= n && n + 8 <= 3 * m);
 
     const size_t l = (2 * n >= 3 * m ? (n + 2) / 3 : (m + 1) / 2);
@@ -200,8 +200,8 @@ void toom32_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     const auto v1p = src1 + l;
 
     const auto w0p = dst;
-    const auto w1p = stk;
-    const auto w2p = stk + l * 2;
+    const auto w1p = stk.data();
+    const auto w2p = w1p + l * 2;
     const auto w3p = dst + l * 3;
 
     stk += l * 4;
@@ -386,7 +386,7 @@ void toom_interpolation_5p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l
 }
 
 void toom42_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                  const uint64_t *src1, size_t m, uint64_t *stk) noexcept {
+                  const uint64_t *src1, size_t m, safe_pointer<uint64_t> stk) noexcept {
     /*
      W0 = f(0);
      W1 = f(-1);
@@ -440,9 +440,9 @@ void toom42_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     const auto v1p = src1 + l;
 
     const auto w0p = dst;
-    const auto w1p = stk;
+    const auto w1p = stk.data();
     const auto w2p = w0p + l * 2;
-    const auto w3p = stk + l * 2;
+    const auto w3p = w1p + l * 2;
     const auto w4p = w0p + l * 4;
 
     stk += l * 4;
@@ -514,7 +514,7 @@ void toom42_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
 }
 
 void toom33_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                  const uint64_t *src1, size_t m, uint64_t *stk) noexcept {
+                  const uint64_t *src1, size_t m, safe_pointer<uint64_t> stk) noexcept {
     WJR_ASSERT(2 * n + 10 <= 3 * m);
 
     const size_t l = (n + 2) / 3;
@@ -534,9 +534,9 @@ void toom33_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     const auto v2p = src1 + l * 2;
 
     const auto w0p = dst;
-    const auto w1p = stk;
+    const auto w1p = stk.data();
     const auto w2p = w0p + l * 2;
-    const auto w3p = stk + l * 2;
+    const auto w3p = w1p + l * 2;
     const auto w4p = w0p + l * 4;
 
     stk += l * 4;
@@ -602,7 +602,7 @@ void toom33_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
 }
 
 void toom3_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-               uint64_t *stk) noexcept {
+               safe_pointer<uint64_t> stk) noexcept {
     WJR_ASSERT(10 <= n);
 
     const size_t l = (n + 2) / 3;
@@ -615,9 +615,9 @@ void toom3_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
     const auto u2p = src + l * 2;
 
     const auto w0p = dst;
-    const auto w1p = stk;
+    const auto w1p = stk.data();
     const auto w2p = w0p + l * 2;
-    const auto w3p = stk + l * 2;
+    const auto w3p = w1p + l * 2;
     const auto w4p = w0p + l * 4;
 
     stk += l * 4;
@@ -799,7 +799,7 @@ void toom_interpolation_6p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l
 }
 
 void toom43_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                  const uint64_t *src1, size_t m, uint64_t *stk) noexcept {
+                  const uint64_t *src1, size_t m, safe_pointer<uint64_t> stk) noexcept {
     /*
      W0 = f(0);
      W1 = f(-1);
@@ -871,10 +871,10 @@ void toom43_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     const auto v2p = v0p + l * 2;
 
     const auto w0p = dst;
-    const auto w1p = stk;
+    const auto w1p = stk.data();
     const auto w2p = w0p + l * 2;
-    const auto w3p = stk + l * 2;
-    const auto w4p = stk + l * 4;
+    const auto w3p = w1p + l * 2;
+    const auto w4p = w1p + l * 4;
     const auto w5p = w0p + l * 5;
 
     const auto t0p = w0p;
@@ -1191,7 +1191,7 @@ void toom_interpolation_7p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l
 }
 
 void toom53_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                  const uint64_t *src1, size_t m, uint64_t *stk) noexcept {
+                  const uint64_t *src1, size_t m, safe_pointer<uint64_t> stk) noexcept {
     /*
      W0 = f(0);
      W1 = f(-2);
@@ -1269,11 +1269,11 @@ void toom53_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     const auto v2p = src1 + l * 2;
 
     const auto w0p = dst;
-    const auto w1p = stk;
+    const auto w1p = stk.data();
     const auto w2p = w0p + l * 2;
-    const auto w3p = stk + l * 2;
+    const auto w3p = w1p + l * 2;
     const auto w4p = w0p + l * 4;
-    const auto w5p = stk + l * 4;
+    const auto w5p = w1p + l * 4;
     const auto w6p = w0p + l * 6;
 
     const auto t0p = w0p;
@@ -1411,7 +1411,7 @@ void toom53_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
 }
 
 void toom44_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                  const uint64_t *src1, size_t m, uint64_t *stk) noexcept {
+                  const uint64_t *src1, size_t m, safe_pointer<uint64_t> stk) noexcept {
     /*
      W0 = f(0);
      W1 = f(-2);
@@ -1492,11 +1492,11 @@ void toom44_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     const auto v3p = src1 + l * 3;
 
     const auto w0p = dst;
-    const auto w1p = stk;
+    const auto w1p = stk.data();
     const auto w2p = w0p + l * 2;
-    const auto w3p = stk + l * 2;
+    const auto w3p = w1p + l * 2;
     const auto w4p = w0p + l * 4;
-    const auto w5p = stk + l * 4;
+    const auto w5p = w1p + l * 4;
     const auto w6p = w0p + l * 6;
 
     const auto t0p = w0p;
@@ -1628,7 +1628,7 @@ void toom44_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
 }
 
 void toom4_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-               uint64_t *stk) noexcept {
+               safe_pointer<uint64_t> stk) noexcept {
     /*
      W0 = f(0);
      W1 = f(-2);
@@ -1693,11 +1693,11 @@ void toom4_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
     const auto u3p = src + l * 3;
 
     const auto w0p = dst;
-    const auto w1p = stk;
+    const auto w1p = stk.data();
     const auto w2p = w0p + l * 2;
-    const auto w3p = stk + l * 2;
+    const auto w3p = w1p + l * 2;
     const auto w4p = w0p + l * 4;
-    const auto w5p = stk + l * 4;
+    const auto w5p = w1p + l * 4;
     const auto w6p = w0p + l * 6;
 
     const auto t0p = w0p;
@@ -2215,7 +2215,7 @@ void toom_interpolation_9p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l
 }
 
 void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                  const uint64_t *src1, size_t m, uint64_t *stk) noexcept {
+                  const uint64_t *src1, size_t m, safe_pointer<uint64_t> stk) noexcept {
     WJR_ASSERT(toom55_ok(n, m));
 
     const size_t l = (n + 4) / 5;
@@ -2233,7 +2233,7 @@ void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     const auto v4p = src1 + l * 4;
 
     const auto w0p = dst;
-    const auto w1p = stk;
+    const auto w1p = stk.data();
     const auto w2p = w0p + l * 2;
     const auto w3p = w1p + l * 2;
     const auto w4p = w0p + l * 4;
@@ -2242,9 +2242,9 @@ void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     const auto w7p = w1p + l * 6;
     const auto w8p = w0p + l * 8;
 
-    const auto t0p = stk + l * 8;
-    const auto t1p = stk + l * 10;
-    const auto t2p = stk + l * 12;
+    const auto t0p = w1p + l * 8;
+    const auto t1p = w1p + l * 10;
+    const auto t2p = w1p + l * 12;
 
     stk += l * 14;
 
@@ -2310,7 +2310,7 @@ void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
 }
 
 void toom5_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-               uint64_t *stk) noexcept {
+               safe_pointer<uint64_t> stk) noexcept {
     const size_t l = (n + 4) / 5;
     const size_t rn = n - l * 4;
 
@@ -2321,7 +2321,7 @@ void toom5_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
     const auto u4p = src + l * 4;
 
     const auto w0p = dst;
-    const auto w1p = stk;
+    const auto w1p = stk.data();
     const auto w2p = w0p + l * 2;
     const auto w3p = w1p + l * 2;
     const auto w4p = w0p + l * 4;
@@ -2330,7 +2330,7 @@ void toom5_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
     const auto w7p = w1p + l * 6;
     const auto w8p = w0p + l * 8;
 
-    const auto t0p = stk + l * 8;
+    const auto t0p = w1p + l * 8;
 
     stk += l * 10;
 

@@ -59,7 +59,7 @@ public:
         return *this;
     }
 
-    constexpr safe_pointer &operator=(nullptr_t) noexcept {
+    constexpr safe_pointer &operator=(std::nullptr_t) noexcept {
         m_ptr = nullptr;
         m_offset = 0;
         m_size = 0;

@@ -57,7 +57,7 @@ struct bplus_tree_traits {
                                                           : 16;
     static constexpr bool inline_keys =
         is_possible_inline_key_v<key_type> && sizeof(key_type) <= 8;
-    using InlineKey = inline_key<Key, inline_keys>;
+    using InlineKey = inline_key<const Key, inline_keys>;
     using node_type = bplus_tree_node<bplus_tree_traits>;
     using inner_node_type = bplus_tree_inner_node<bplus_tree_traits>;
     using leaf_node_type = bplus_tree_leaf_node<bplus_tree_traits, inline_keys>;
