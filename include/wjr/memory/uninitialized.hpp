@@ -463,15 +463,11 @@ public:
     }
 
     constexpr T *operator->() noexcept { return std::addressof(get()); }
-
     constexpr const T *operator->() const noexcept { return std::addressof(get()); }
 
     constexpr T &operator*() & noexcept { return get(); }
-
     constexpr const T &operator*() const & noexcept { return get(); }
-
     constexpr T &&operator*() && noexcept { return std::move(get()); }
-
     constexpr const T &&operator*() const && noexcept { return std::move(get()); }
 
     constexpr T *ptr_unsafe() noexcept { return std::addressof(Mybase::m_value); }

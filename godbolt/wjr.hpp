@@ -7670,15 +7670,11 @@ public:
     }
 
     constexpr T *operator->() noexcept { return std::addressof(get()); }
-
     constexpr const T *operator->() const noexcept { return std::addressof(get()); }
 
     constexpr T &operator*() & noexcept { return get(); }
-
     constexpr const T &operator*() const & noexcept { return get(); }
-
     constexpr T &&operator*() && noexcept { return std::move(get()); }
-
     constexpr const T &&operator*() const && noexcept { return std::move(get()); }
 
     constexpr T *ptr_unsafe() noexcept { return std::addressof(Mybase::m_value); }
@@ -19062,76 +19058,6 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR20 uint64_t mod_1(const uint64_t *src, size_t n,
  *
  */
 
-#ifndef WJR_MATH_BIGNUM_CONFIG_HPP__
-#define WJR_MATH_BIGNUM_CONFIG_HPP__
-
-#ifndef WJR_TOOM22_MUL_THRESHOLD
-#define WJR_TOOM22_MUL_THRESHOLD 22
-#endif
-
-#ifndef WJR_TOOM33_MUL_THRESHOLD
-#define WJR_TOOM33_MUL_THRESHOLD 84
-#endif
-
-#ifndef WJR_TOOM44_MUL_THRESHOLD
-#define WJR_TOOM44_MUL_THRESHOLD 208
-#endif
-
-#ifndef WJR_TOOM55_MUL_THRESHOLD
-#define WJR_TOOM55_MUL_THRESHOLD 800
-#endif
-
-#ifndef WJR_TOOM32_TO_TOOM43_MUL_THRESHOLD
-#define WJR_TOOM32_TO_TOOM43_MUL_THRESHOLD 73
-#endif
-
-#ifndef WJR_TOOM32_TO_TOOM53_MUL_THRESHOLD
-#define WJR_TOOM32_TO_TOOM53_MUL_THRESHOLD 153
-#endif
-
-#ifndef WJR_TOOM42_TO_TOOM53_MUL_THRESHOLD
-#define WJR_TOOM42_TO_TOOM53_MUL_THRESHOLD 137
-#endif
-
-#ifndef WJR_TOOM2_SQR_THRESHOLD
-#define WJR_TOOM2_SQR_THRESHOLD 34
-#endif
-
-#ifndef WJR_TOOM3_SQR_THRESHOLD
-#define WJR_TOOM3_SQR_THRESHOLD 124
-#endif
-
-#ifndef WJR_TOOM4_SQR_THRESHOLD
-#define WJR_TOOM4_SQR_THRESHOLD 288
-#endif
-
-#ifndef WJR_TOOM5_SQR_THRESHOLD
-#define WJR_TOOM5_SQR_THRESHOLD 980
-#endif
-
-#ifndef WJR_DC_DIV_QR_THRESHOLD
-#define WJR_DC_DIV_QR_THRESHOLD (WJR_TOOM22_MUL_THRESHOLD * 2)
-#endif // WJR_DC_DIV_QR_THRESHOLD
-
-#ifndef WJR_DC_BIGNUM_TO_CHARS_THRESHOLD
-#define WJR_DC_BIGNUM_TO_CHARS_THRESHOLD 20
-#endif
-
-#ifndef WJR_DC_BIGNUM_TO_CHARS_PRECOMPUTE_THRESHOLD
-#define WJR_DC_BIGNUM_TO_CHARS_PRECOMPUTE_THRESHOLD 20
-#endif
-
-#ifndef WJR_DC_BIGNUM_FROM_CHARS_THRESHOLD
-#define WJR_DC_BIGNUM_FROM_CHARS_THRESHOLD 1670
-#endif
-
-#ifndef WJR_DC_BIGNUM_FROM_CHARS_PRECOMPUTE_THRESHOLD
-#define WJR_DC_BIGNUM_FROM_CHARS_PRECOMPUTE_THRESHOLD 3105
-#endif
-
-#endif // WJR_MATH_BIGNUM_CONFIG_HPP__
-// Already included
-
 #ifndef WJR_MATH_ADD_HPP__
 #define WJR_MATH_ADD_HPP__
 
@@ -20192,6 +20118,75 @@ WJR_INTRINSIC_CONSTEXPR_E uint8_t __addc_cc_128(uint64_t &al, uint64_t &ah, uint
 } // namespace wjr
 
 #endif // WJR_MATH_ADD_HPP__
+#ifndef WJR_MATH_BIGNUM_CONFIG_HPP__
+#define WJR_MATH_BIGNUM_CONFIG_HPP__
+
+#ifndef WJR_TOOM22_MUL_THRESHOLD
+#define WJR_TOOM22_MUL_THRESHOLD 22
+#endif
+
+#ifndef WJR_TOOM33_MUL_THRESHOLD
+#define WJR_TOOM33_MUL_THRESHOLD 84
+#endif
+
+#ifndef WJR_TOOM44_MUL_THRESHOLD
+#define WJR_TOOM44_MUL_THRESHOLD 208
+#endif
+
+#ifndef WJR_TOOM55_MUL_THRESHOLD
+#define WJR_TOOM55_MUL_THRESHOLD 800
+#endif
+
+#ifndef WJR_TOOM32_TO_TOOM43_MUL_THRESHOLD
+#define WJR_TOOM32_TO_TOOM43_MUL_THRESHOLD 73
+#endif
+
+#ifndef WJR_TOOM32_TO_TOOM53_MUL_THRESHOLD
+#define WJR_TOOM32_TO_TOOM53_MUL_THRESHOLD 153
+#endif
+
+#ifndef WJR_TOOM42_TO_TOOM53_MUL_THRESHOLD
+#define WJR_TOOM42_TO_TOOM53_MUL_THRESHOLD 137
+#endif
+
+#ifndef WJR_TOOM2_SQR_THRESHOLD
+#define WJR_TOOM2_SQR_THRESHOLD 34
+#endif
+
+#ifndef WJR_TOOM3_SQR_THRESHOLD
+#define WJR_TOOM3_SQR_THRESHOLD 124
+#endif
+
+#ifndef WJR_TOOM4_SQR_THRESHOLD
+#define WJR_TOOM4_SQR_THRESHOLD 288
+#endif
+
+#ifndef WJR_TOOM5_SQR_THRESHOLD
+#define WJR_TOOM5_SQR_THRESHOLD 980
+#endif
+
+#ifndef WJR_DC_DIV_QR_THRESHOLD
+#define WJR_DC_DIV_QR_THRESHOLD (WJR_TOOM22_MUL_THRESHOLD * 2)
+#endif // WJR_DC_DIV_QR_THRESHOLD
+
+#ifndef WJR_DC_BIGNUM_TO_CHARS_THRESHOLD
+#define WJR_DC_BIGNUM_TO_CHARS_THRESHOLD 20
+#endif
+
+#ifndef WJR_DC_BIGNUM_TO_CHARS_PRECOMPUTE_THRESHOLD
+#define WJR_DC_BIGNUM_TO_CHARS_PRECOMPUTE_THRESHOLD 20
+#endif
+
+#ifndef WJR_DC_BIGNUM_FROM_CHARS_THRESHOLD
+#define WJR_DC_BIGNUM_FROM_CHARS_THRESHOLD 1670
+#endif
+
+#ifndef WJR_DC_BIGNUM_FROM_CHARS_PRECOMPUTE_THRESHOLD
+#define WJR_DC_BIGNUM_FROM_CHARS_PRECOMPUTE_THRESHOLD 3105
+#endif
+
+#endif // WJR_MATH_BIGNUM_CONFIG_HPP__
+// Already included
 // Already included
 #ifndef WJR_MATH_SHIFT_HPP__
 #define WJR_MATH_SHIFT_HPP__
@@ -21038,6 +21033,613 @@ using weak_stack_alloc = weak_stack_allocator<T, stack_alloc_object>;
 
 #endif // WJR_MATH_STACK_ALLOCATOR_HPP__
 // Already included
+#ifndef WJR_MEMORY_SAFE_POINTER_HPP__
+#define WJR_MEMORY_SAFE_POINTER_HPP__
+
+#ifndef WJR_SPAN_HPP__
+#define WJR_SPAN_HPP__
+
+#include <stdexcept>
+
+// Already included
+// Already included
+
+namespace wjr {
+
+/**
+ * @brief A type representing a static-sized span.
+ *
+ * @tparam Extent The number of elements in the span.
+ */
+template <typename T, size_t Extent>
+struct __span_static_storage {
+
+    __span_static_storage() noexcept = default;
+    __span_static_storage(const __span_static_storage &) noexcept = default;
+    __span_static_storage &operator=(const __span_static_storage &) noexcept = default;
+
+    __span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) noexcept : ptr(p) {
+        WJR_ASSERT_L1(s == size);
+    }
+
+    T *ptr = nullptr;
+    static constexpr size_t size = Extent;
+};
+
+/**
+ * @brief A type representing a dynamic-sized span.
+ */
+template <typename T>
+struct __span_dynamic_storage {
+
+    __span_dynamic_storage() noexcept = default;
+    __span_dynamic_storage(const __span_dynamic_storage &) noexcept = default;
+    __span_dynamic_storage &operator=(const __span_dynamic_storage &) noexcept = default;
+
+    __span_dynamic_storage(T *p, size_t s) noexcept : ptr(p), size(s) {}
+
+    T *ptr = nullptr;
+    size_t size = 0;
+};
+
+template <typename Iter, typename Elem>
+struct __is_span_iterator
+    : std::conjunction<is_contiguous_iterator<Iter>,
+                       std::is_convertible<iterator_contiguous_pointer_t<Iter>, Elem *>> {
+};
+
+template <typename T, size_t Extent = dynamic_extent>
+class span;
+
+namespace span_details {
+
+WJR_REGISTER_HAS_TYPE(data, std::data(std::declval<Container &>()), Container);
+WJR_REGISTER_HAS_TYPE(size, std::size(std::declval<Container &>()), Container);
+
+/// @private
+template <typename T>
+struct __is_std_array : std::false_type {};
+
+/// @private
+template <typename T, size_t N>
+struct __is_std_array<std::array<T, N>> : std::true_type {};
+
+/// @private
+template <typename T>
+inline constexpr bool __is_std_array_v = __is_std_array<T>::value;
+
+template <typename T>
+struct __is_span : std::false_type {};
+
+template <typename T, size_t Extent>
+struct __is_span<span<T, Extent>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool __is_span_v = __is_span<T>::value;
+
+/// @private
+template <typename Container, typename = void>
+struct __is_container_like : std::false_type {};
+
+/// @private
+template <typename Container>
+struct __is_container_like<
+    Container, std::enable_if_t<has_data_v<Container &> && has_size_v<Container &>>>
+    : std::conjunction<
+          std::negation<std::is_array<remove_cvref_t<Container>>>,
+          std::negation<__is_std_array<remove_cvref_t<Container>>>,
+          std::negation<__is_span<remove_cvref_t<Container>>>,
+          std::is_pointer<decltype(std::data(std::declval<Container &>()))>> {};
+
+/// @private
+template <typename Container>
+inline constexpr bool __is_container_like_v = __is_container_like<Container>::value;
+
+template <typename Container, typename Elem, typename = void>
+struct __is_span_like : std::false_type {};
+
+template <typename Container, typename Elem>
+struct __is_span_like<
+    Container, Elem, std::enable_if_t<has_data_v<Container &> && has_size_v<Container &>>>
+    : std::conjunction<
+          __is_container_like<Container>,
+          std::is_convertible<decltype(std::data(std::declval<Container &>())), Elem *>> {
+};
+
+template <typename Container, typename Elem>
+inline constexpr bool __is_span_like_v = __is_span_like<Container, Elem>::value;
+
+/// @private
+template <typename T>
+struct basic_span_traits {
+    using value_type = std::remove_cv_t<T>;
+    using difference_type = ptrdiff_t;
+    using pointer = T *;
+    using const_pointer = const T *;
+    using reference = T &;
+    using const_reference = const T &;
+};
+
+} // namespace span_details
+
+/**
+ * @class span
+ *
+ * @brief A view over a contiguous sequence of objectsd.
+ *
+ * @tparam Extent if Extent is `dynamic_extent`, the span is a runtime-sized view.
+ * Otherwise, the span is a compile-time-sized view.
+ */
+template <typename T, size_t Extent>
+class span {
+    static constexpr bool __is_dynamic = Extent == dynamic_extent;
+    using __storage = std::conditional_t<__is_dynamic, __span_dynamic_storage<T>,
+                                         __span_static_storage<T, Extent>>;
+
+    using IteratorTraits = span_details::basic_span_traits<T>;
+
+public:
+    using element_type = T;
+    using value_type = std::remove_cv_t<T>;
+    using size_type = size_t;
+    using difference_type = ptrdiff_t;
+    using pointer = T *;
+    using const_pointer = const T *;
+    using reference = T &;
+    using const_reference = const T &;
+    using iterator = contiguous_iterator_adapter<span, IteratorTraits>;
+    using const_iterator = contiguous_const_iterator_adapter<span, IteratorTraits>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    template <size_t Ex = Extent, WJR_REQUIRES(Ex == dynamic_extent || Ex == 0)>
+    constexpr span() noexcept : storage() {}
+
+    template <typename It,
+              WJR_REQUIRES(__is_span_iterator<It, element_type>::value &&__is_dynamic)>
+    constexpr span(It first, size_type count) noexcept
+        : storage((to_address)(first), count) {}
+
+    template <typename It,
+              WJR_REQUIRES(__is_span_iterator<It, element_type>::value && !__is_dynamic)>
+    constexpr explicit span(It first, size_type count) noexcept
+        : storage((to_address)(first), count) {}
+
+    template <typename It,
+              WJR_REQUIRES(__is_span_iterator<It, element_type>::value &&__is_dynamic)>
+    constexpr span(It first, It last) noexcept
+        : storage((to_address)(first), static_cast<size_type>(last - first)) {}
+
+    template <typename It,
+              WJR_REQUIRES(__is_span_iterator<It, element_type>::value && !__is_dynamic)>
+    constexpr explicit span(It first, It last) noexcept
+        : storage((to_address)(first), static_cast<size_type>(last - first)) {}
+
+    template <size_t N, WJR_REQUIRES((__is_dynamic || N == Extent))>
+    constexpr span(type_identity_t<element_type> (&arr)[N]) noexcept
+        : storage(std::data(arr), N) {}
+
+    template <typename U, size_t N,
+              WJR_REQUIRES((__is_dynamic || N == Extent) &&
+                           std::is_convertible_v<U *, T *>)>
+    constexpr span(std::array<U, N> &arr) noexcept
+        : storage(std::data(arr), std::size(arr)) {}
+
+    template <typename U, size_t N,
+              WJR_REQUIRES((__is_dynamic || N == Extent) &&
+                           std::is_convertible_v<const U *, T *>)>
+    constexpr span(const std::array<U, N> &arr) noexcept
+        : storage(std::data(arr), std::size(arr)) {}
+
+    template <typename U, size_t N,
+              WJR_REQUIRES((__is_dynamic || N == dynamic_extent || N == Extent) &&
+                           std::is_convertible_v<U *, T *> && __is_dynamic)>
+    constexpr span(const span<U, N> &source) noexcept
+        : storage(source.data(), source.size()) {}
+
+    template <typename U, size_t N,
+              WJR_REQUIRES((__is_dynamic || N == dynamic_extent || N == Extent) &&
+                           std::is_convertible_v<U *, T *> && !__is_dynamic)>
+    constexpr explicit span(const span<U, N> &source) noexcept
+        : storage(source.data(), source.size()) {}
+
+    constexpr span(const span &other) noexcept = default;
+    constexpr span &operator=(const span &other) noexcept = default;
+
+    ~span() = default;
+
+    WJR_PURE WJR_CONSTEXPR20 pointer begin_unsafe() noexcept { return data(); }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer begin_unsafe() const noexcept {
+        return data();
+    }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer cbegin_unsafe() const noexcept {
+        return data();
+    }
+
+    WJR_PURE WJR_CONSTEXPR20 pointer end_unsafe() noexcept { return data() + size(); }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer end_unsafe() const noexcept {
+        return data() + size();
+    }
+    WJR_PURE WJR_CONSTEXPR20 const_pointer cend_unsafe() const noexcept {
+        return end_unsafe();
+    }
+
+private:
+    WJR_PURE WJR_CONSTEXPR20 iterator __make_iterator(const_pointer ptr) const noexcept {
+        return iterator(const_cast<pointer>(ptr), this);
+    }
+
+    WJR_PURE WJR_CONSTEXPR20 pointer __get_pointer(iterator ptr) const noexcept {
+        ptr.check_same_container(this);
+        return (to_address)(ptr);
+    }
+
+    WJR_PURE WJR_CONSTEXPR20 pointer __get_pointer(const_iterator ptr) const noexcept {
+        ptr.check_same_container(this);
+        return const_cast<pointer>((to_address)(ptr));
+    }
+
+public:
+    constexpr iterator begin() noexcept { return __make_iterator(begin_unsafe()); }
+    constexpr const_iterator begin() const noexcept {
+        return __make_iterator(begin_unsafe());
+    }
+    constexpr const_iterator cbegin() const noexcept {
+        return __make_iterator(begin_unsafe());
+    }
+
+    constexpr iterator end() noexcept { return __make_iterator(end_unsafe()); }
+    constexpr const_iterator end() const noexcept {
+        return __make_iterator(end_unsafe());
+    }
+    constexpr const_iterator cend() const noexcept {
+        return __make_iterator(end_unsafe());
+    }
+
+    constexpr reverse_iterator rbegin() noexcept {
+        return std::make_reverse_iterator(end());
+    }
+    constexpr reverse_iterator rbegin() const noexcept {
+        return std::make_reverse_iterator(end());
+    }
+    constexpr const_reverse_iterator crbegin() const noexcept {
+        return std::make_reverse_iterator(cend());
+    }
+
+    constexpr reverse_iterator rend() noexcept {
+        return std::make_reverse_iterator(begin());
+    }
+    constexpr reverse_iterator rend() const noexcept {
+        return std::make_reverse_iterator(begin());
+    }
+    constexpr const_reverse_iterator crend() const noexcept {
+        return std::make_reverse_iterator(cbegin());
+    }
+
+    constexpr reference front() const {
+#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
+        WJR_ASSERT_LX(size() > 0, "basic_vector::front: empty");
+#endif
+        return *data();
+    }
+    constexpr reference back() const {
+#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
+        WJR_ASSERT_LX(size() > 0, "basic_vector::front: empty");
+#endif
+        return *(end_unsafe() - 1);
+    }
+
+    constexpr reference at(size_type pos) const {
+        if (WJR_UNLIKELY(pos >= size())) {
+            WJR_THROW(std::out_of_range("span at out of range"));
+        }
+
+        return data()[pos];
+    }
+
+    constexpr reference operator[](size_type pos) const {
+#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
+        WJR_ASSERT_LX(pos < size(), "basic_vector::operator[]: out of range");
+#endif
+        return data()[pos];
+    }
+
+    constexpr pointer data() const { return storage.ptr; }
+    constexpr size_type size() const { return storage.size; }
+    constexpr size_type size_bytes() const { return size() * sizeof(element_type); }
+    constexpr bool empty() const { return size() == 0; }
+
+    template <size_t Count>
+    constexpr span<element_type, Count> first() const {
+        static_assert(Count <= Extent, "");
+
+        return {begin(), Count};
+    }
+
+    constexpr span<element_type, dynamic_extent> first(size_type Count) const {
+        WJR_ASSERT_L1(Count <= size());
+
+        return {begin(), Count};
+    }
+
+    template <size_t Count>
+    constexpr span<element_type, Count> last() const {
+        static_assert(Count <= Extent, "");
+
+        return {end() - Count, Count};
+    }
+
+    constexpr span<element_type, dynamic_extent> last(size_type Count) const {
+        WJR_ASSERT_L1(Count <= size());
+
+        return {data() - Count, Count};
+    }
+
+    template <size_t Offset, size_t Count = dynamic_extent>
+    constexpr span<element_type, Count != dynamic_extent    ? Count
+                                 : Extent != dynamic_extent ? Extent - Offset
+                                                            : dynamic_extent>
+    subspan() const {
+        if constexpr (Extent != dynamic_extent) {
+            static_assert(Offset <= Extent, "");
+            static_assert(Count == dynamic_extent || Count <= Extent - Offset, "");
+        } else {
+            WJR_ASSERT_L1(Offset <= size());
+            if constexpr (Count != dynamic_extent) {
+                WJR_ASSERT_L1(Count <= size() - Offset);
+            }
+        }
+        return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
+    }
+
+    constexpr span<element_type, dynamic_extent>
+    subspan(size_type Offset, size_type Count = dynamic_extent) const {
+        WJR_ASSERT_L1(Offset <= size());
+
+        return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
+    }
+
+    // extension :
+
+    /**
+     * @brief Construct a span from a container.
+     *
+     * @details The container must have a `data()` member function that returns a @ref
+     * __is_span_iterator. The container must also have a `size()` member function that
+     * can be converted to `size_type`.
+     *
+     */
+    template <typename Container, WJR_REQUIRES(span_details::__is_span_like_v<
+                                               Container, element_type> &&__is_dynamic)>
+    constexpr span(Container &&c) noexcept : storage(std::data(c), std::size(c)) {}
+
+    /**
+     * @brief Construct a span from a container.
+     *
+     * @details Like @ref span(Container &&), but the span is not dynamic-sized, so the
+     * construct must be explicit.
+     *
+     */
+    template <typename Container,
+              WJR_REQUIRES(span_details::__is_span_like_v<Container, element_type> &&
+                           !__is_dynamic)>
+    constexpr explicit span(Container &&c) noexcept
+        : storage(std::data(c), std::size(c)) {}
+
+private:
+    __storage storage;
+};
+
+template <typename T, size_t Extent>
+span(T (&)[Extent]) -> span<T, Extent>;
+
+template <typename T, size_t Size>
+span(std::array<T, Size> &) -> span<T, Size>;
+
+template <typename T, size_t Size>
+span(const std::array<T, Size> &) -> span<const T, Size>;
+
+template <typename It, typename End, WJR_REQUIRES(is_contiguous_iterator_v<It>)>
+span(It, End) -> span<iterator_contiguous_value_t<It>>;
+
+template <typename Container,
+          WJR_REQUIRES(span_details::__is_container_like_v<Container>)>
+span(Container &&) -> span<
+    iterator_contiguous_value_t<decltype(std::data(std::declval<Container &>()))>>;
+
+} // namespace wjr
+
+#endif // WJR_SPAN_HPP__
+
+namespace wjr {
+
+#if WJR_DEBUG_LEVEL > 2
+#define WJR_HAS_DEBUG_SAFE_POINTER WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_DEBUG(SAFE_POINTER)
+
+template <typename T, typename Tag = void>
+class safe_pointer {
+public:
+    using element_type = T;
+    using value_type = std::remove_cv_t<T>;
+    using pointer = T *;
+    using reference = T &;
+    using difference_type = ptrdiff_t;
+    using size_type = size_t;
+
+    constexpr safe_pointer() noexcept = default;
+    constexpr safe_pointer(const safe_pointer &) noexcept = default;
+    constexpr safe_pointer(safe_pointer &&) noexcept = default;
+    constexpr safe_pointer &operator=(const safe_pointer &) noexcept = default;
+    constexpr safe_pointer &operator=(safe_pointer &&) noexcept = default;
+    ~safe_pointer() noexcept = default;
+
+    constexpr safe_pointer &reset_range() noexcept {
+        m_offset = 0;
+        return *this;
+    }
+
+    constexpr pointer get() const noexcept { return m_ptr; }
+    constexpr pointer data() const noexcept { return m_ptr; }
+    constexpr reference operator[](size_type i) const noexcept { return m_ptr[i]; }
+
+    constexpr safe_pointer(span<T> s) noexcept
+        : m_ptr(s.data()), m_offset(0), m_size(s.size()) {}
+
+    constexpr safe_pointer first(size_type count) const noexcept {
+        WJR_ASSERT_L1(m_ptr != nullptr, "safe_pointer: nullptr");
+        WJR_ASSERT_L1(count <= m_size, "safe_pointer: out of range");
+        return {m_ptr, m_offset, count};
+    }
+
+    constexpr safe_pointer subspan(size_type offset, size_type count) const noexcept {
+        WJR_ASSERT_L1(m_ptr != nullptr, "safe_pointer: nullptr");
+        WJR_ASSERT_L1(offset + count <= m_size, "safe_pointer: out of range");
+        return {m_ptr + offset, m_offset + offset, count};
+    }
+
+    constexpr safe_pointer &operator=(span<T> s) noexcept {
+        m_ptr = s.data();
+        m_offset = 0;
+        m_size = s.size();
+        return *this;
+    }
+
+    constexpr safe_pointer &operator=(std::nullptr_t) noexcept {
+        m_ptr = nullptr;
+        m_offset = 0;
+        m_size = 0;
+        return *this;
+    }
+
+    constexpr safe_pointer &operator+=(size_type n) noexcept {
+        WJR_ASSERT_L1(m_ptr != nullptr, "safe_pointer: nullptr");
+        WJR_ASSERT_L1(n <= m_size, "safe_pointer: out of range");
+        m_ptr += n;
+        m_offset += n;
+        m_size -= n;
+        return *this;
+    }
+
+    constexpr friend safe_pointer operator+(safe_pointer lhs, size_type rhs) noexcept {
+        return lhs += rhs;
+    }
+
+    constexpr friend safe_pointer operator+(size_type lhs, safe_pointer rhs) noexcept {
+        return rhs += lhs;
+    }
+
+    constexpr safe_pointer &operator-=(size_type n) noexcept {
+        WJR_ASSERT_L1(m_ptr != nullptr, "safe_pointer: nullptr");
+        WJR_ASSERT_L1(m_offset >= n, "safe_pointer: out of range");
+        m_ptr -= n;
+        m_offset -= n;
+        m_size += n;
+        return *this;
+    }
+
+    constexpr friend safe_pointer operator-(safe_pointer lhs, size_type rhs) noexcept {
+        return lhs -= rhs;
+    }
+
+    constexpr friend ptrdiff_t operator-(const safe_pointer &lhs,
+                                         const safe_pointer &rhs) noexcept {
+        return lhs.m_ptr - rhs.m_ptr;
+    }
+
+private:
+    constexpr safe_pointer(pointer ptr, size_type offset, size_type size) noexcept
+        : m_ptr(ptr), m_offset(offset), m_size(size) {}
+
+    pointer m_ptr = nullptr;
+    size_type m_offset;
+    size_type m_size;
+};
+
+#else
+
+template <typename T, typename Tag = void>
+class safe_pointer {
+public:
+    using element_type = T;
+    using value_type = std::remove_cv_t<T>;
+    using pointer = T *;
+    using reference = T &;
+    using difference_type = ptrdiff_t;
+    using size_type = size_t;
+
+    constexpr safe_pointer() noexcept = default;
+    constexpr safe_pointer(const safe_pointer &) noexcept = default;
+    constexpr safe_pointer(safe_pointer &&) noexcept = default;
+    constexpr safe_pointer &operator=(const safe_pointer &) noexcept = default;
+    constexpr safe_pointer &operator=(safe_pointer &&) noexcept = default;
+    ~safe_pointer() noexcept = default;
+
+    constexpr safe_pointer &reset_range() noexcept { return *this; }
+
+    constexpr pointer get() const noexcept { return m_ptr; }
+    constexpr pointer data() const noexcept { return m_ptr; }
+    constexpr reference operator[](size_type i) const noexcept { return m_ptr[i]; }
+
+    constexpr safe_pointer(span<T> s) noexcept : m_ptr(s.data()) {}
+
+    constexpr safe_pointer first(WJR_MAYBE_UNUSED size_type count) const noexcept {
+        return safe_pointer{m_ptr};
+    }
+
+    constexpr safe_pointer subspan(size_type offset,
+                                   WJR_MAYBE_UNUSED size_type count) const noexcept {
+        return safe_pointer{m_ptr + offset};
+    }
+
+    constexpr safe_pointer &operator=(span<T> s) noexcept {
+        m_ptr = s.data();
+        return *this;
+    }
+
+    constexpr safe_pointer &operator=(std::nullptr_t) noexcept {
+        m_ptr = nullptr;
+        return *this;
+    }
+
+    constexpr safe_pointer &operator+=(size_type n) noexcept {
+        m_ptr += n;
+        return *this;
+    }
+
+    constexpr friend safe_pointer operator+(safe_pointer lhs, size_type rhs) noexcept {
+        return lhs += rhs;
+    }
+
+    constexpr friend safe_pointer operator+(size_type lhs, safe_pointer rhs) noexcept {
+        return rhs += lhs;
+    }
+
+    constexpr safe_pointer &operator-=(size_type n) noexcept {
+        m_ptr -= n;
+        return *this;
+    }
+
+    constexpr friend safe_pointer operator-(safe_pointer lhs, size_type rhs) noexcept {
+        return lhs -= rhs;
+    }
+
+    constexpr friend ptrdiff_t operator-(const safe_pointer &lhs,
+                                         const safe_pointer &rhs) noexcept {
+        return lhs.m_ptr - rhs.m_ptr;
+    }
+
+private:
+    T *m_ptr;
+};
+
+#endif
+
+} // namespace wjr
+
+#endif // WJR_MEMORY_SAFE_POINTER_HPP__
 
 #if defined(WJR_X86)
 #ifndef WJR_X86_MATH_MUL_HPP__
@@ -22601,7 +23203,6 @@ inline constexpr size_t toom3_sqr_threshold = WJR_TOOM3_SQR_THRESHOLD;
 inline constexpr size_t toom4_sqr_threshold = WJR_TOOM4_SQR_THRESHOLD;
 inline constexpr size_t toom5_sqr_threshold = WJR_TOOM5_SQR_THRESHOLD;
 
-// only toom22 is optimized to inline
 enum class __mul_mode : uint8_t {
     toom22 = 0x00,
     toom33 = 0x01,
@@ -22609,44 +23210,11 @@ enum class __mul_mode : uint8_t {
     all = 0x03,
 };
 
-template <__mul_mode mode, bool reserved>
-WJR_INTRINSIC_INLINE void
-__mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-             const uint64_t *src1, size_t m,
-             std::conditional_t<reserved, uint64_t *, in_place_empty_t> mal);
-
-template <__mul_mode mode>
-WJR_INTRINSIC_INLINE void __mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                  size_t n, const uint64_t *src1, size_t m,
-                                  uint64_t *stk);
-
 WJR_INTRINSIC_INLINE void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                 size_t n, const uint64_t *src1, size_t m);
 
-WJR_INTRINSIC_INLINE void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                size_t n, const uint64_t *src1, size_t m, uint64_t *stk);
-
-template <__mul_mode mode, bool reserved>
-WJR_INTRINSIC_INLINE void
-__mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1,
-             size_t n, std::conditional_t<reserved, uint64_t *, in_place_empty_t> mal);
-
-template <__mul_mode mode>
-WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                  const uint64_t *src1, size_t n, uint64_t *stk);
-
-template <__mul_mode mode, uint64_t m0 = in_place_max, uint64_t m1 = in_place_max>
-WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                  const uint64_t *src1, size_t n, uint64_t *stk,
-                                  uint64_t &c_out, uint64_t cf0, uint64_t cf1,
-                                  std::integral_constant<uint64_t, m0> = {},
-                                  std::integral_constant<uint64_t, m1> = {});
-
 WJR_INTRINSIC_INLINE void mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                 const uint64_t *src1, size_t n);
-
-WJR_INTRINSIC_INLINE void mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                const uint64_t *src1, size_t n, uint64_t *stk);
 
 WJR_INTRINSIC_INLINE void basecase_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                          size_t n, const uint64_t *src1, size_t m);
@@ -22654,23 +23222,7 @@ WJR_INTRINSIC_INLINE void basecase_mul_s(uint64_t *WJR_RESTRICT dst, const uint6
 WJR_INTRINSIC_INLINE void basecase_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
                                        size_t n);
 
-template <__mul_mode mode, bool reserved>
-WJR_INTRINSIC_INLINE void
-__sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-           std::conditional_t<reserved, uint64_t *, in_place_empty_t> mal);
-
-WJR_INTRINSIC_INLINE void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                                uint64_t *stk);
-
-template <__mul_mode mode, uint64_t m = in_place_max>
-WJR_INTRINSIC_INLINE void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                                uint64_t *stk, uint64_t &c_out, uint64_t cf,
-                                std::integral_constant<uint64_t, m> x = {});
-
 WJR_INTRINSIC_INLINE void sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n);
-
-WJR_INTRINSIC_INLINE void sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                              uint64_t *stk);
 
 struct toom_interpolation_5p_struct {
     bool neg1;
@@ -22723,17 +23275,19 @@ using toom_interpolation_high_p_struct = std::array<uint64_t, P - 2>;
  stk usage : l * 2
 */
 extern void toom22_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
+                         const uint64_t *src1, size_t m,
+                         safe_pointer<uint64_t> stk) noexcept;
 
 extern void toom2_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                      uint64_t *stk) noexcept;
+                      safe_pointer<uint64_t> stk) noexcept;
 
 /*
  l = max(ceil(n/3), ceil(m/2))
  stk usage : l * 4
 */
 extern void toom32_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
+                         const uint64_t *src1, size_t m,
+                         safe_pointer<uint64_t> stk) noexcept;
 
 extern void toom_interpolation_5p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
                                     size_t rn, size_t rm,
@@ -22744,17 +23298,19 @@ extern void toom_interpolation_5p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, s
  stk usage : l * 4
 */
 extern void toom42_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
+                         const uint64_t *src1, size_t m,
+                         safe_pointer<uint64_t> stk) noexcept;
 
 /*
  l = ceil(n/3)
  stk usage : l * 4
 */
 extern void toom33_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
+                         const uint64_t *src1, size_t m,
+                         safe_pointer<uint64_t> stk) noexcept;
 
 extern void toom3_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                      uint64_t *stk) noexcept;
+                      safe_pointer<uint64_t> stk) noexcept;
 
 extern void toom_interpolation_6p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
                                     size_t rn, size_t rm,
@@ -22765,7 +23321,8 @@ extern void toom_interpolation_6p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, s
  stk usage : l * 6
 */
 extern void toom43_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
+                         const uint64_t *src1, size_t m,
+                         safe_pointer<uint64_t> stk) noexcept;
 
 extern void toom_interpolation_7p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
                                     size_t rn, size_t rm,
@@ -22776,17 +23333,31 @@ extern void toom_interpolation_7p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, s
  stk usage : l * 6
 */
 extern void toom53_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
+                         const uint64_t *src1, size_t m,
+                         safe_pointer<uint64_t> stk) noexcept;
 
 /*
  l = ceil(n/4)
  stk usage : l * 6
 */
 extern void toom44_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
+                         const uint64_t *src1, size_t m,
+                         safe_pointer<uint64_t> stk) noexcept;
 
 extern void toom4_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                      uint64_t *stk) noexcept;
+                      safe_pointer<uint64_t> stk) noexcept;
+
+extern void toom_interpolation_8p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
+                                    size_t rn, size_t rm,
+                                    toom_interpolation_7p_struct &&flag) noexcept;
+
+extern void toom54_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
+                         const uint64_t *src1, size_t m,
+                         safe_pointer<uint64_t> stk) noexcept;
+
+extern void toom63_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
+                         const uint64_t *src1, size_t m,
+                         safe_pointer<uint64_t> stk) noexcept;
 
 struct toom_eval_opposite_exp_args {
     using tuple_type = tuple<uint64_t *, uint64_t *, uint64_t *, const uint64_t *, size_t,
@@ -22814,11 +23385,40 @@ extern void toom_interpolation_9p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, s
                                     size_t rn, size_t rm,
                                     toom_interpolation_high_p_struct<9> &&flag) noexcept;
 
+/*
+ l = ceil(n/5)
+ stk usage : l * 14
+*/
 extern void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m, uint64_t *stk) noexcept;
+                         const uint64_t *src1, size_t m,
+                         safe_pointer<uint64_t> stk) noexcept;
 
 extern void toom5_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                      uint64_t *stk) noexcept;
+                      safe_pointer<uint64_t> stk) noexcept;
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom22_s_itch(size_t m) noexcept {
+    return m * 4 + (m / 2) + 64;
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom22_n_itch(size_t n) noexcept {
+    return n * 2 + bit_width(n);
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom33_s_itch(size_t m) noexcept {
+    return m * 4 + (m / 2) + 64;
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom33_n_itch(size_t m) noexcept {
+    return m * 2 + 64;
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom44_n_itch(size_t m) noexcept {
+    return m * 2 + 64;
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom55_n_itch(size_t m) noexcept {
+    return m * 3 + (m / 2) + 32;
+}
 
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool toom44_ok(size_t n, size_t m) noexcept {
     return 3 * n + 21 <= 4 * m;
@@ -22828,387 +23428,73 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool toom55_ok(size_t n, size_t m) noexcept {
     return 4 * n + 36 <= 5 * m;
 }
 
-struct __mul_s_unique_stack_allocator {
-    template <typename... Args>
-    constexpr __mul_s_unique_stack_allocator(Args &&...) {}
-};
-
-template <typename T, typename U>
-WJR_INTRINSIC_INLINE uint64_t *__mul_s_allocate(WJR_MAYBE_UNUSED T &mal,
-                                                WJR_MAYBE_UNUSED U &alloc, size_t n) {
-    if constexpr (std::is_same_v<remove_cvref_t<U>, __mul_s_unique_stack_allocator>) {
-        static_assert(std::is_pointer_v<T>, "");
-        (void)(alloc);
-        uint64_t *ret = mal;
-        mal += n;
-        return ret;
-    } else {
-        (void)(mal);
-        return static_cast<uint64_t *>(alloc.allocate(n));
-    }
-}
-
-template <bool reserved>
-void __toom22_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m,
-                         std::conditional_t<reserved, uint64_t *, in_place_empty_t> mal) {
-    WJR_ASSERT_ASSUME(m >= 1);
-    WJR_ASSERT_ASSUME(n >= m);
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n + m, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n + m, src1, m));
-
-    using unique_alloc =
-        std::conditional_t<reserved, __mul_s_unique_stack_allocator,
-                           unique_stack_allocator<wjr::math_details::stack_alloc_object>>;
-
-    if (m < toom22_mul_threshold) {
-        return basecase_mul_s(dst, src0, n, src1, m);
-    }
-
-    unique_alloc stkal(math_details::stack_alloc);
-
-    if (n >= 3 * m) {
-        uint64_t *tmp = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (4 * m));
-        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-
-        toom42_mul_s(dst, src0, 2 * m, src1, m, stk);
-        n -= 2 * m;
-        src0 += 2 * m;
-        dst += 2 * m;
-
-        uint64_t cf = 0;
-
-        while (n >= 3 * m) {
-            toom42_mul_s(tmp, src0, 2 * m, src1, m, stk);
-            n -= 2 * m;
-            src0 += 2 * m;
-
-            cf = addc_n(dst, dst, tmp, m, cf);
-            std::copy(tmp + m, tmp + 3 * m, dst + m);
-            cf = addc_1(dst + m, dst + m, 2 * m, 0, cf);
-
-            dst += 2 * m;
-        }
-
-        if (4 * n < 5 * m) {
-            toom22_mul_s(tmp, src0, n, src1, m, stk);
-        } else if (4 * n < 7 * m) {
-            toom32_mul_s(tmp, src0, n, src1, m, stk);
-        } else {
-            toom42_mul_s(tmp, src0, n, src1, m, stk);
-        }
-
-        cf = addc_n(dst, dst, tmp, m, cf);
-        std::copy(tmp + m, tmp + m + n, dst + m);
-        cf = addc_1(dst + m, dst + m, n, 0, cf);
-        WJR_ASSERT(cf == 0);
-    } else {
-        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-
-        if (4 * n < 5 * m) {
-            toom22_mul_s(dst, src0, n, src1, m, stk);
-        } else if (4 * n < 7 * m) {
-            toom32_mul_s(dst, src0, n, src1, m, stk);
-        } else {
-            toom42_mul_s(dst, src0, n, src1, m, stk);
-        }
-    }
-
-    return;
-}
-
-template <bool reserved>
-void __noinline_mul_s_impl(
-    uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,
-    size_t m, std::conditional_t<reserved, uint64_t *, in_place_empty_t> mal) noexcept {
-    WJR_ASSERT_ASSUME(m >= 1);
-    WJR_ASSERT_ASSUME(n >= m);
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n + m, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n + m, src1, m));
-
-    using unique_alloc =
-        std::conditional_t<reserved, __mul_s_unique_stack_allocator,
-                           unique_stack_allocator<wjr::math_details::stack_alloc_object>>;
-
-    if (m < toom22_mul_threshold) {
-        return basecase_mul_s(dst, src0, n, src1, m);
-    }
-
-    unique_alloc stkal(math_details::stack_alloc);
-
-    if (m < toom33_mul_threshold) {
-        if (n >= 3 * m) {
-            uint64_t *tmp = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (4 * m));
-            uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-
-            toom42_mul_s(dst, src0, 2 * m, src1, m, stk);
-            n -= 2 * m;
-            src0 += 2 * m;
-            dst += 2 * m;
-
-            uint64_t cf = 0;
-
-            while (n >= 3 * m) {
-                toom42_mul_s(tmp, src0, 2 * m, src1, m, stk);
-                n -= 2 * m;
-                src0 += 2 * m;
-
-                cf = addc_n(dst, dst, tmp, m, cf);
-                std::copy(tmp + m, tmp + 3 * m, dst + m);
-                cf = addc_1(dst + m, dst + m, 2 * m, 0, cf);
-
-                dst += 2 * m;
-            }
-
-            if (4 * n < 5 * m) {
-                toom22_mul_s(tmp, src0, n, src1, m, stk);
-            } else if (4 * n < 7 * m) {
-                toom32_mul_s(tmp, src0, n, src1, m, stk);
-            } else {
-                toom42_mul_s(tmp, src0, n, src1, m, stk);
-            }
-
-            cf = addc_n(dst, dst, tmp, m, cf);
-            std::copy(tmp + m, tmp + m + n, dst + m);
-            cf = addc_1(dst + m, dst + m, n, 0, cf);
-            WJR_ASSERT(cf == 0);
-        } else {
-            uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-
-            if (4 * n < 5 * m) {
-                toom22_mul_s(dst, src0, n, src1, m, stk);
-            } else if (4 * n < 7 * m) {
-                toom32_mul_s(dst, src0, n, src1, m, stk);
-            } else {
-                toom42_mul_s(dst, src0, n, src1, m, stk);
-            }
-        }
-
-        return;
-    }
-
-    do {
-        if (m < toom44_mul_threshold) {
-            break;
-        }
-
-        if (m < toom55_mul_threshold) {
-            if (!toom44_ok(n, m)) {
-                break;
-            }
-
-            uint64_t *stk =
-                __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-            toom44_mul_s(dst, src0, n, src1, m, stk);
-            return;
-        }
-
-        if (!toom55_ok(n, m)) {
-            break;
-        }
-
-        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (22 * m + 288));
-        toom55_mul_s(dst, src0, n, src1, m, stk);
-        return;
-    } while (0);
-
-    if (n >= 3 * m) {
-        uint64_t *tmp = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (4 * m));
-        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-
-        toom42_mul_s(dst, src0, 2 * m, src1, m, stk);
-        n -= 2 * m;
-        src0 += 2 * m;
-        dst += 2 * m;
-
-        uint64_t cf = 0;
-
-        while (n >= 3 * m) {
-            toom42_mul_s(tmp, src0, 2 * m, src1, m, stk);
-            n -= 2 * m;
-            src0 += 2 * m;
-
-            cf = addc_n(dst, dst, tmp, m, cf);
-            std::copy(tmp + m, tmp + 3 * m, dst + m);
-            cf = addc_1(dst + m, dst + m, 2 * m, 0, cf);
-
-            dst += 2 * m;
-        }
-
-        __mul_s_impl<__mul_mode::all, true>(tmp, src0, n, src1, m, stk);
-
-        cf = addc_n(dst, dst, tmp, m, cf);
-        std::copy(tmp + m, tmp + m + n, dst + m);
-        cf = addc_1(dst + m, dst + m, n, 0, cf);
-        WJR_ASSERT(cf == 0);
-    } else {
-        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-        if (6 * n < 7 * m) {
-            toom33_mul_s(dst, src0, n, src1, m, stk);
-        } else if (2 * n < 3 * m) {
-            if (m < toom32_to_toom43_mul_threshold) {
-                toom32_mul_s(dst, src0, n, src1, m, stk);
-            } else {
-                toom43_mul_s(dst, src0, n, src1, m, stk);
-            }
-        } else if (6 * n < 11 * m) {
-            if (4 * n < 7 * m) {
-                if (m < toom32_to_toom53_mul_threshold) {
-                    toom32_mul_s(dst, src0, n, src1, m, stk);
-                } else {
-                    toom53_mul_s(dst, src0, n, src1, m, stk);
-                }
-            } else {
-                if (m < toom42_to_toom53_mul_threshold) {
-                    toom42_mul_s(dst, src0, n, src1, m, stk);
-                } else {
-                    toom53_mul_s(dst, src0, n, src1, m, stk);
-                }
-            }
-        } else {
-            toom42_mul_s(dst, src0, n, src1, m, stk);
-        }
-    }
-}
-
-extern template void __noinline_mul_s_impl<true>(uint64_t *WJR_RESTRICT dst,
-                                                 const uint64_t *src0, size_t n,
-                                                 const uint64_t *src1, size_t m,
-                                                 uint64_t *mal) noexcept;
-
-extern template void __noinline_mul_s_impl<false>(uint64_t *WJR_RESTRICT dst,
-                                                  const uint64_t *src0, size_t n,
-                                                  const uint64_t *src1, size_t m,
-                                                  in_place_empty_t mal) noexcept;
-
-template <__mul_mode mode, bool reserved>
-WJR_INTRINSIC_INLINE void
-__mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-             const uint64_t *src1, size_t m,
-             std::conditional_t<reserved, uint64_t *, in_place_empty_t> mal) {
-    static_assert((int)__mul_mode::toom22 == 0, "");
-    if (WJR_BUILTIN_CONSTANT_P(n == m) && n == m) {
-        return __mul_n_impl<mode, reserved>(dst, src0, src1, n, mal);
-    }
-
-    if constexpr (mode == __mul_mode::toom22) {
-        return __toom22_mul_s_impl<reserved>(dst, src0, n, src1, m, mal);
-    } else {
-        return __noinline_mul_s_impl<reserved>(dst, src0, n, src1, m, mal);
-    }
-}
-
-template <__mul_mode mode>
-WJR_INTRINSIC_INLINE void __mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                  size_t n, const uint64_t *src1, size_t m,
-                                  uint64_t *stk) {
-    return __mul_s_impl<mode, true>(dst, src0, n, src1, m, stk);
-}
+extern void __noinline_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                                  size_t n, const uint64_t *src1, size_t m) noexcept;
 
 WJR_INTRINSIC_INLINE void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                 size_t n, const uint64_t *src1, size_t m) {
-    return __mul_s_impl<__mul_mode::all, false>(dst, src0, n, src1, m, in_place_empty);
+    if (WJR_BUILTIN_CONSTANT_P(n == m) && n == m) {
+        return mul_n(dst, src0, src1, n);
+    }
+
+    return __noinline_mul_s_impl(dst, src0, n, src1, m);
 }
 
-WJR_INTRINSIC_INLINE void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                size_t n, const uint64_t *src1, size_t m, uint64_t *stk) {
-    return __mul_s_impl<__mul_mode::all, true>(dst, src0, n, src1, m, stk);
-}
-
-template <__mul_mode mode, bool reserved>
-WJR_INTRINSIC_INLINE void
-__inline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                    const uint64_t *src1, size_t n,
-                    std::conditional_t<reserved, uint64_t *, in_place_empty_t> mal) {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src1, n));
-
-    using unique_alloc =
-        std::conditional_t<reserved, __mul_s_unique_stack_allocator,
-                           unique_stack_allocator<wjr::math_details::stack_alloc_object>>;
-
-    if (n < toom22_mul_threshold) {
-        return basecase_mul_s(dst, src0, n, src1, n);
-    }
-
-    unique_alloc stkal(math_details::stack_alloc);
-
-    if (mode <= __mul_mode::toom22 || n < toom33_mul_threshold) {
-        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (6 * n + 67));
-        return toom22_mul_s(dst, src0, n, src1, n, stk);
-    }
-
-    uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * n + 288));
-    return toom33_mul_s(dst, src0, n, src1, n, stk);
-}
-
-template <bool reserved>
-void __noinline_mul_n_impl(
-    uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1, size_t n,
-    std::conditional_t<reserved, uint64_t *, in_place_empty_t> mal) {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src1, n));
-
-    using unique_alloc =
-        std::conditional_t<reserved, __mul_s_unique_stack_allocator,
-                           unique_stack_allocator<wjr::math_details::stack_alloc_object>>;
-
-    if (n < toom22_mul_threshold) {
-        return basecase_mul_s(dst, src0, n, src1, n);
-    }
-
-    unique_alloc stkal(math_details::stack_alloc);
-
-    if (n < toom33_mul_threshold) {
-        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (6 * n + 67));
-        return toom22_mul_s(dst, src0, n, src1, n, stk);
-    }
-
-    if (n < toom44_mul_threshold) {
-        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * n + 288));
-        return toom33_mul_s(dst, src0, n, src1, n, stk);
-    }
-
-    if (n < toom55_mul_threshold) {
-        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * n + 288));
-        return toom44_mul_s(dst, src0, n, src1, n, stk);
-    }
-
-    uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (18 * n + 288));
-    return toom55_mul_s(dst, src0, n, src1, n, stk);
-}
-
-template <__mul_mode mode, bool reserved>
-WJR_INTRINSIC_INLINE void
-__mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1,
-             size_t n, std::conditional_t<reserved, uint64_t *, in_place_empty_t> mal) {
-    if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
-        return __sqr_impl<mode, reserved>(dst, src0, n, mal);
-    }
-
-    if constexpr (mode <= __mul_mode::toom33) {
-        return __inline_mul_n_impl<mode, reserved>(dst, src0, src1, n, mal);
+template <typename T>
+safe_pointer<uint64_t> __mul_s_allocate(T &al, WJR_MAYBE_UNUSED size_t n) noexcept {
+    if constexpr (std::is_same_v<T, safe_pointer<uint64_t>>) {
+        return al;
     } else {
-        return __noinline_mul_n_impl<reserved>(dst, src0, src1, n, mal);
+        return span<uint64_t>(static_cast<uint64_t *>(al.allocate(sizeof(uint64_t) * n)),
+                              n);
     }
 }
 
 template <__mul_mode mode>
-WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                  const uint64_t *src1, size_t n, uint64_t *stk) {
-    return __mul_n_impl<mode, true>(dst, src0, src1, n, stk);
+void __inline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                         const uint64_t *src1, size_t n,
+                         safe_pointer<uint64_t> mal) noexcept {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src0, n));
+    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src1, n));
+
+    if (n < toom22_mul_threshold) {
+        return basecase_mul_s(dst, src0, n, src1, n);
+    }
+
+    if (mode <= __mul_mode::toom22 || n < toom33_mul_threshold) {
+        safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom22_n_itch(n));
+        return toom22_mul_s(dst, src0, n, src1, n, stk);
+    }
+
+    safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom33_n_itch(n));
+    return toom33_mul_s(dst, src0, n, src1, n, stk);
 }
 
-template <__mul_mode mode, uint64_t m0, uint64_t m1>
+extern void __noinline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                                  const uint64_t *src1, size_t n) noexcept;
+
+template <__mul_mode mode>
+WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                                  const uint64_t *src1, size_t n,
+                                  WJR_MAYBE_UNUSED safe_pointer<uint64_t> stk) {
+    if constexpr (mode <= __mul_mode::toom33) {
+        __inline_mul_n_impl<mode>(dst, src0, src1, n, stk);
+    } else {
+        mul_n(dst, src0, src1, n);
+    }
+}
+
+template <__mul_mode mode, uint64_t m0 = in_place_max, uint64_t m1 = in_place_max>
 void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1,
-             size_t n, uint64_t *stk, uint64_t &c_out, uint64_t cf0, uint64_t cf1,
-             std::integral_constant<uint64_t, m0> x0,
-             std::integral_constant<uint64_t, m1> x1) {
+             size_t n, safe_pointer<uint64_t> stk, uint64_t &c_out, uint64_t cf0,
+             uint64_t cf1, std::integral_constant<uint64_t, m0> x0 = {},
+             std::integral_constant<uint64_t, m1> x1 = {}) {
     WJR_ASSERT_ASSUME(cf0 <= m0);
     WJR_ASSERT_ASSUME(cf1 <= m1);
+
     __mul_n<mode>(dst, src0, src1, n, stk);
+
     if constexpr (m0 == 0 || m1 == 0) {
         c_out = 0;
     } else if constexpr (m0 == 1 || m1 == 1) {
@@ -23228,97 +23514,53 @@ void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *s
 
 WJR_INTRINSIC_INLINE void mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                 const uint64_t *src1, size_t n) {
-    return __mul_n_impl<__mul_mode::all, false>(dst, src0, src1, n, in_place_empty);
-}
-
-WJR_INTRINSIC_INLINE void mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                const uint64_t *src1, size_t n, uint64_t *stk) {
-    return __mul_n_impl<__mul_mode::all, true>(dst, src0, src1, n, stk);
-}
-
-template <__mul_mode mode, bool reserved>
-WJR_INTRINSIC_INLINE void
-__inline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                  std::conditional_t<reserved, uint64_t *, in_place_empty_t> mal) {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src, n));
-
-    using unique_alloc =
-        std::conditional_t<reserved, __mul_s_unique_stack_allocator,
-                           unique_stack_allocator<wjr::math_details::stack_alloc_object>>;
-
-    if (n < toom2_sqr_threshold) {
-        return basecase_sqr(dst, src, n);
+    if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
+        return sqr(dst, src0, n);
     }
 
-    unique_alloc stkal(math_details::stack_alloc);
-
-    if (mode <= __mul_mode::toom22 || n < toom3_sqr_threshold) {
-        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (6 * n + 67));
-        return toom2_sqr(dst, src, n, stk);
-    }
-
-    uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * n + 288));
-    return toom3_sqr(dst, src, n, stk);
-}
-
-template <bool reserved>
-void __noinline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                         std::conditional_t<reserved, uint64_t *, in_place_empty_t> mal) {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src, n));
-
-    using unique_alloc =
-        std::conditional_t<reserved, __mul_s_unique_stack_allocator,
-                           unique_stack_allocator<wjr::math_details::stack_alloc_object>>;
-
-    if (n < toom2_sqr_threshold) {
-        return basecase_sqr(dst, src, n);
-    }
-
-    unique_alloc stkal(math_details::stack_alloc);
-
-    if (n < toom3_sqr_threshold) {
-        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (6 * n + 67));
-        return toom2_sqr(dst, src, n, stk);
-    }
-
-    if (n < toom4_sqr_threshold) {
-        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * n + 288));
-        return toom3_sqr(dst, src, n, stk);
-    }
-
-    if (n < toom5_sqr_threshold) {
-        uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * n + 288));
-        return toom4_sqr(dst, src, n, stk);
-    }
-
-    uint64_t *stk = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (13 * n + 288));
-    return toom5_sqr(dst, src, n, stk);
-}
-
-template <__mul_mode mode, bool reserved>
-WJR_INTRINSIC_INLINE void
-__sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-           std::conditional_t<reserved, uint64_t *, in_place_empty_t> mal) {
-    if constexpr (mode <= __mul_mode::toom33) {
-        return __inline_sqr_impl<mode, reserved>(dst, src, n, mal);
-    } else {
-        return __noinline_sqr_impl<reserved>(dst, src, n, mal);
-    }
+    return __noinline_mul_n_impl(dst, src0, src1, n);
 }
 
 template <__mul_mode mode>
-WJR_INTRINSIC_INLINE void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                                uint64_t *stk) {
-    return __sqr_impl<mode, true>(dst, src, n, stk);
+inline void __inline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
+                              safe_pointer<uint64_t> mal) noexcept {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src, n));
+
+    if (n < toom2_sqr_threshold) {
+        return basecase_sqr(dst, src, n);
+    }
+
+    if (mode <= __mul_mode::toom22 || n < toom3_sqr_threshold) {
+        safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom22_n_itch(n));
+        return toom2_sqr(dst, src, n, stk);
+    }
+
+    safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom33_n_itch(n));
+    return toom3_sqr(dst, src, n, stk);
 }
 
-template <__mul_mode mode, uint64_t m>
-void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n, uint64_t *stk,
-           uint64_t &c_out, uint64_t cf, std::integral_constant<uint64_t, m>) {
+extern void __noinline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
+                                size_t n) noexcept;
+
+template <__mul_mode mode>
+void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
+           WJR_MAYBE_UNUSED safe_pointer<uint64_t> stk) noexcept {
+    if constexpr (mode <= __mul_mode ::toom33) {
+        __inline_sqr_impl<mode>(dst, src, n, stk);
+    } else {
+        sqr(dst, src, n);
+    }
+}
+
+template <__mul_mode mode, uint64_t m = in_place_max>
+void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
+           safe_pointer<uint64_t> stk, uint64_t &c_out, uint64_t cf,
+           std::integral_constant<uint64_t, m> = {}) noexcept {
     WJR_ASSERT_ASSUME(cf <= m);
+
     __sqr<mode>(dst, src, n, stk);
+
     if constexpr (m == 0) {
         c_out = 0;
     } else if constexpr (m == 1) {
@@ -23334,12 +23576,7 @@ void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n, uint64_t *
 }
 
 WJR_INTRINSIC_INLINE void sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n) {
-    __sqr_impl<__mul_mode::all, false>(dst, src, n, in_place_empty);
-}
-
-WJR_INTRINSIC_INLINE void sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                              uint64_t *stk) {
-    __sqr_impl<__mul_mode::all, true>(dst, src, n, stk);
+    return __noinline_sqr_impl(dst, src, n);
 }
 
 WJR_INTRINSIC_INLINE void fallback_basecase_mul_s(uint64_t *WJR_RESTRICT dst,
@@ -28816,420 +29053,7 @@ void random_n(Iter First, size_t Count, Rand &&rd) {
 #endif // WJR_MATH_RANDOM_HPP__
 
 #endif // WJR_MATH_HPP__
-#ifndef WJR_SPAN_HPP__
-#define WJR_SPAN_HPP__
-
-#include <stdexcept>
-
 // Already included
-// Already included
-
-namespace wjr {
-
-/**
- * @brief A type representing a static-sized span.
- *
- * @tparam Extent The number of elements in the span.
- */
-template <typename T, size_t Extent>
-struct __span_static_storage {
-
-    __span_static_storage() noexcept = default;
-    __span_static_storage(const __span_static_storage &) noexcept = default;
-    __span_static_storage &operator=(const __span_static_storage &) noexcept = default;
-
-    __span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) noexcept : ptr(p) {
-        WJR_ASSERT_L1(s == size);
-    }
-
-    T *ptr = nullptr;
-    static constexpr size_t size = Extent;
-};
-
-/**
- * @brief A type representing a dynamic-sized span.
- */
-template <typename T>
-struct __span_dynamic_storage {
-
-    __span_dynamic_storage() noexcept = default;
-    __span_dynamic_storage(const __span_dynamic_storage &) noexcept = default;
-    __span_dynamic_storage &operator=(const __span_dynamic_storage &) noexcept = default;
-
-    __span_dynamic_storage(T *p, size_t s) noexcept : ptr(p), size(s) {}
-
-    T *ptr = nullptr;
-    size_t size = 0;
-};
-
-template <typename Iter, typename Elem>
-struct __is_span_iterator
-    : std::conjunction<is_contiguous_iterator<Iter>,
-                       std::is_convertible<iterator_contiguous_pointer_t<Iter>, Elem *>> {
-};
-
-template <typename T, size_t Extent = dynamic_extent>
-class span;
-
-namespace span_details {
-
-WJR_REGISTER_HAS_TYPE(data, std::data(std::declval<Container &>()), Container);
-WJR_REGISTER_HAS_TYPE(size, std::size(std::declval<Container &>()), Container);
-
-/// @private
-template <typename T>
-struct __is_std_array : std::false_type {};
-
-/// @private
-template <typename T, size_t N>
-struct __is_std_array<std::array<T, N>> : std::true_type {};
-
-/// @private
-template <typename T>
-inline constexpr bool __is_std_array_v = __is_std_array<T>::value;
-
-template <typename T>
-struct __is_span : std::false_type {};
-
-template <typename T, size_t Extent>
-struct __is_span<span<T, Extent>> : std::true_type {};
-
-template <typename T>
-inline constexpr bool __is_span_v = __is_span<T>::value;
-
-/// @private
-template <typename Container, typename = void>
-struct __is_container_like : std::false_type {};
-
-/// @private
-template <typename Container>
-struct __is_container_like<
-    Container, std::enable_if_t<has_data_v<Container &> && has_size_v<Container &>>>
-    : std::conjunction<
-          std::negation<std::is_array<remove_cvref_t<Container>>>,
-          std::negation<__is_std_array<remove_cvref_t<Container>>>,
-          std::negation<__is_span<remove_cvref_t<Container>>>,
-          std::is_pointer<decltype(std::data(std::declval<Container &>()))>> {};
-
-/// @private
-template <typename Container>
-inline constexpr bool __is_container_like_v = __is_container_like<Container>::value;
-
-template <typename Container, typename Elem, typename = void>
-struct __is_span_like : std::false_type {};
-
-template <typename Container, typename Elem>
-struct __is_span_like<
-    Container, Elem, std::enable_if_t<has_data_v<Container &> && has_size_v<Container &>>>
-    : std::conjunction<
-          __is_container_like<Container>,
-          std::is_convertible<decltype(std::data(std::declval<Container &>())), Elem *>> {
-};
-
-template <typename Container, typename Elem>
-inline constexpr bool __is_span_like_v = __is_span_like<Container, Elem>::value;
-
-/// @private
-template <typename T>
-struct basic_span_traits {
-    using value_type = std::remove_cv_t<T>;
-    using difference_type = ptrdiff_t;
-    using pointer = T *;
-    using const_pointer = const T *;
-    using reference = T &;
-    using const_reference = const T &;
-};
-
-} // namespace span_details
-
-/**
- * @class span
- *
- * @brief A view over a contiguous sequence of objectsd.
- *
- * @tparam Extent if Extent is `dynamic_extent`, the span is a runtime-sized view.
- * Otherwise, the span is a compile-time-sized view.
- */
-template <typename T, size_t Extent>
-class span {
-    static constexpr bool __is_dynamic = Extent == dynamic_extent;
-    using __storage = std::conditional_t<__is_dynamic, __span_dynamic_storage<T>,
-                                         __span_static_storage<T, Extent>>;
-
-    using IteratorTraits = span_details::basic_span_traits<T>;
-
-public:
-    using element_type = T;
-    using value_type = std::remove_cv_t<T>;
-    using size_type = size_t;
-    using difference_type = ptrdiff_t;
-    using pointer = T *;
-    using const_pointer = const T *;
-    using reference = T &;
-    using const_reference = const T &;
-    using iterator = contiguous_iterator_adapter<span, IteratorTraits>;
-    using const_iterator = contiguous_const_iterator_adapter<span, IteratorTraits>;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-
-    template <size_t Ex = Extent, WJR_REQUIRES(Ex == dynamic_extent || Ex == 0)>
-    constexpr span() noexcept : storage() {}
-
-    template <typename It,
-              WJR_REQUIRES(__is_span_iterator<It, element_type>::value &&__is_dynamic)>
-    constexpr span(It first, size_type count) noexcept
-        : storage((to_address)(first), count) {}
-
-    template <typename It,
-              WJR_REQUIRES(__is_span_iterator<It, element_type>::value && !__is_dynamic)>
-    constexpr explicit span(It first, size_type count) noexcept
-        : storage((to_address)(first), count) {}
-
-    template <typename It,
-              WJR_REQUIRES(__is_span_iterator<It, element_type>::value &&__is_dynamic)>
-    constexpr span(It first, It last) noexcept
-        : storage((to_address)(first), static_cast<size_type>(last - first)) {}
-
-    template <typename It,
-              WJR_REQUIRES(__is_span_iterator<It, element_type>::value && !__is_dynamic)>
-    constexpr explicit span(It first, It last) noexcept
-        : storage((to_address)(first), static_cast<size_type>(last - first)) {}
-
-    template <size_t N, WJR_REQUIRES((__is_dynamic || N == Extent))>
-    constexpr span(type_identity_t<element_type> (&arr)[N]) noexcept
-        : storage(std::data(arr), N) {}
-
-    template <typename U, size_t N,
-              WJR_REQUIRES((__is_dynamic || N == Extent) &&
-                           std::is_convertible_v<U *, T *>)>
-    constexpr span(std::array<U, N> &arr) noexcept
-        : storage(std::data(arr), std::size(arr)) {}
-
-    template <typename U, size_t N,
-              WJR_REQUIRES((__is_dynamic || N == Extent) &&
-                           std::is_convertible_v<const U *, T *>)>
-    constexpr span(const std::array<U, N> &arr) noexcept
-        : storage(std::data(arr), std::size(arr)) {}
-
-    template <typename U, size_t N,
-              WJR_REQUIRES((__is_dynamic || N == dynamic_extent || N == Extent) &&
-                           std::is_convertible_v<U *, T *> && __is_dynamic)>
-    constexpr span(const span<U, N> &source) noexcept
-        : storage(source.data(), source.size()) {}
-
-    template <typename U, size_t N,
-              WJR_REQUIRES((__is_dynamic || N == dynamic_extent || N == Extent) &&
-                           std::is_convertible_v<U *, T *> && !__is_dynamic)>
-    constexpr explicit span(const span<U, N> &source) noexcept
-        : storage(source.data(), source.size()) {}
-
-    constexpr span(const span &other) noexcept = default;
-    constexpr span &operator=(const span &other) noexcept = default;
-
-    ~span() = default;
-
-    WJR_PURE WJR_CONSTEXPR20 pointer begin_unsafe() noexcept { return data(); }
-    WJR_PURE WJR_CONSTEXPR20 const_pointer begin_unsafe() const noexcept {
-        return data();
-    }
-    WJR_PURE WJR_CONSTEXPR20 const_pointer cbegin_unsafe() const noexcept {
-        return data();
-    }
-
-    WJR_PURE WJR_CONSTEXPR20 pointer end_unsafe() noexcept { return data() + size(); }
-    WJR_PURE WJR_CONSTEXPR20 const_pointer end_unsafe() const noexcept {
-        return data() + size();
-    }
-    WJR_PURE WJR_CONSTEXPR20 const_pointer cend_unsafe() const noexcept {
-        return end_unsafe();
-    }
-
-private:
-    WJR_PURE WJR_CONSTEXPR20 iterator __make_iterator(const_pointer ptr) const noexcept {
-        return iterator(const_cast<pointer>(ptr), this);
-    }
-
-    WJR_PURE WJR_CONSTEXPR20 pointer __get_pointer(iterator ptr) const noexcept {
-        ptr.check_same_container(this);
-        return (to_address)(ptr);
-    }
-
-    WJR_PURE WJR_CONSTEXPR20 pointer __get_pointer(const_iterator ptr) const noexcept {
-        ptr.check_same_container(this);
-        return const_cast<pointer>((to_address)(ptr));
-    }
-
-public:
-    constexpr iterator begin() noexcept { return __make_iterator(begin_unsafe()); }
-    constexpr const_iterator begin() const noexcept {
-        return __make_iterator(begin_unsafe());
-    }
-    constexpr const_iterator cbegin() const noexcept {
-        return __make_iterator(begin_unsafe());
-    }
-
-    constexpr iterator end() noexcept { return __make_iterator(end_unsafe()); }
-    constexpr const_iterator end() const noexcept {
-        return __make_iterator(end_unsafe());
-    }
-    constexpr const_iterator cend() const noexcept {
-        return __make_iterator(end_unsafe());
-    }
-
-    constexpr reverse_iterator rbegin() noexcept {
-        return std::make_reverse_iterator(end());
-    }
-    constexpr reverse_iterator rbegin() const noexcept {
-        return std::make_reverse_iterator(end());
-    }
-    constexpr const_reverse_iterator crbegin() const noexcept {
-        return std::make_reverse_iterator(cend());
-    }
-
-    constexpr reverse_iterator rend() noexcept {
-        return std::make_reverse_iterator(begin());
-    }
-    constexpr reverse_iterator rend() const noexcept {
-        return std::make_reverse_iterator(begin());
-    }
-    constexpr const_reverse_iterator crend() const noexcept {
-        return std::make_reverse_iterator(cbegin());
-    }
-
-    constexpr reference front() const {
-#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(size() > 0, "basic_vector::front: empty");
-#endif
-        return *data();
-    }
-    constexpr reference back() const {
-#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(size() > 0, "basic_vector::front: empty");
-#endif
-        return *(end_unsafe() - 1);
-    }
-
-    constexpr reference at(size_type pos) const {
-        if (WJR_UNLIKELY(pos >= size())) {
-            WJR_THROW(std::out_of_range("span at out of range"));
-        }
-
-        return data()[pos];
-    }
-
-    constexpr reference operator[](size_type pos) const {
-#if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(pos < size(), "basic_vector::operator[]: out of range");
-#endif
-        return data()[pos];
-    }
-
-    constexpr pointer data() const { return storage.ptr; }
-    constexpr size_type size() const { return storage.size; }
-    constexpr size_type size_bytes() const { return size() * sizeof(element_type); }
-    constexpr bool empty() const { return size() == 0; }
-
-    template <size_t Count>
-    constexpr span<element_type, Count> first() const {
-        static_assert(Count <= Extent, "");
-
-        return {begin(), Count};
-    }
-
-    constexpr span<element_type, dynamic_extent> first(size_type Count) const {
-        WJR_ASSERT_L1(Count <= size());
-
-        return {begin(), Count};
-    }
-
-    template <size_t Count>
-    constexpr span<element_type, Count> last() const {
-        static_assert(Count <= Extent, "");
-
-        return {end() - Count, Count};
-    }
-
-    constexpr span<element_type, dynamic_extent> last(size_type Count) const {
-        WJR_ASSERT_L1(Count <= size());
-
-        return {data() - Count, Count};
-    }
-
-    template <size_t Offset, size_t Count = dynamic_extent>
-    constexpr span<element_type, Count != dynamic_extent    ? Count
-                                 : Extent != dynamic_extent ? Extent - Offset
-                                                            : dynamic_extent>
-    subspan() const {
-        if constexpr (Extent != dynamic_extent) {
-            static_assert(Offset <= Extent, "");
-            static_assert(Count == dynamic_extent || Count <= Extent - Offset, "");
-        } else {
-            WJR_ASSERT_L1(Offset <= size());
-            if constexpr (Count != dynamic_extent) {
-                WJR_ASSERT_L1(Count <= size() - Offset);
-            }
-        }
-        return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
-    }
-
-    constexpr span<element_type, dynamic_extent>
-    subspan(size_type Offset, size_type Count = dynamic_extent) const {
-        WJR_ASSERT_L1(Offset <= size());
-
-        return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
-    }
-
-    // extension :
-
-    /**
-     * @brief Construct a span from a container.
-     *
-     * @details The container must have a `data()` member function that returns a @ref
-     * __is_span_iterator. The container must also have a `size()` member function that
-     * can be converted to `size_type`.
-     *
-     */
-    template <typename Container, WJR_REQUIRES(span_details::__is_span_like_v<
-                                               Container, element_type> &&__is_dynamic)>
-    constexpr span(Container &&c) noexcept : storage(std::data(c), std::size(c)) {}
-
-    /**
-     * @brief Construct a span from a container.
-     *
-     * @details Like @ref span(Container &&), but the span is not dynamic-sized, so the
-     * construct must be explicit.
-     *
-     */
-    template <typename Container,
-              WJR_REQUIRES(span_details::__is_span_like_v<Container, element_type> &&
-                           !__is_dynamic)>
-    constexpr explicit span(Container &&c) noexcept
-        : storage(std::data(c), std::size(c)) {}
-
-private:
-    __storage storage;
-};
-
-template <typename T, size_t Extent>
-span(T (&)[Extent]) -> span<T, Extent>;
-
-template <typename T, size_t Size>
-span(std::array<T, Size> &) -> span<T, Size>;
-
-template <typename T, size_t Size>
-span(const std::array<T, Size> &) -> span<const T, Size>;
-
-template <typename It, typename End, WJR_REQUIRES(is_contiguous_iterator_v<It>)>
-span(It, End) -> span<iterator_contiguous_value_t<It>>;
-
-template <typename Container,
-          WJR_REQUIRES(span_details::__is_container_like_v<Container>)>
-span(Container &&) -> span<
-    iterator_contiguous_value_t<decltype(std::data(std::declval<Container &>()))>>;
-
-} // namespace wjr
-
-#endif // WJR_SPAN_HPP__
 // Already included
 
 namespace wjr {
@@ -32599,1955 +32423,6 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
 #endif
 
 #endif // WJR_BIGINTEGER_HPP__
-#ifndef WJR_BPLUS_TREE_HPP__
-#define WJR_BPLUS_TREE_HPP__
-
-#ifndef WJR_CONTAINER_GENERIC_BPLUS_TREE_HPP__
-#define WJR_CONTAINER_GENERIC_BPLUS_TREE_HPP__
-
-/**
- * @file bplus_tree.hpp
- * @brief B+ tree implementation.
- *
- * @details The addition, deletion, query, iterator and other functions have been
- * implemented. The multiset/multimap/set/map adapter has not been implemented yet. The
- * node_size should be set to 16 by default, and optimization has been made for queries
- * less than or equal to
- * 16. The general B+ tree query is proportional to node_size. For example, when node_size
- * is 16, the number of queries per bit is [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
- * 14, 15, 16, 16], and the average number of queries is 8.9 times. After improvement, the
- * number of queries for the i-th query is [1, 3, 3, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7,
- * 8, 8], and the average number of queries is 5.58 times. In fact, the probability of
- * querying smaller nodes is slightly greater than that of larger nodes, so the actual
- * number of queries will be less. If the comparison operation of key_type is more
- * complex, it is not recommended to use B+ tree, because the number of queries of B+ tree
- * will be more, thus offsetting the advantages of B+ tree.
- *
- * @version 0.1
- * @date 2024-05-06
- *
- */
-
-// Already included
-// Already included
-#ifndef WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP__
-#define WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP__
-
-#include <memory>
-#include <type_traits>
-
-// Already included
-
-namespace wjr {
-
-/**
- * @class container_fn<Alloc>
- * @brief The same characteristics and behavior of all allocator containers
- *
- * @details container must have the following member functions:
- * -# auto& __get_allocator() noexcept
- * -# void __destroy() noexcept
- * -# void __destroy_and_deallocate() noexcept
- * -# void __copy_element(const container& other)
- * -# void __take_storage(container&& other)
- * -# void __move_element(container&& other)
- * -# void __swap_storage(container& other)
- *
- * 1 : is used to manage the allocator of the container. \n
- * 2-3 : is used to destroy the container and deallocate the memory. \n
- * 4-7 : is used to assign the container data. Shouldn't change the allocator.
- *
- */
-template <typename Alloc>
-class container_fn {
-private:
-    using allocator_type = Alloc;
-    using allocator_traits = std::allocator_traits<allocator_type>;
-    using is_always_equal = typename allocator_traits::is_always_equal;
-    using propagate_on_container_copy_assignment =
-        typename allocator_traits::propagate_on_container_copy_assignment;
-    using propagate_on_container_move_assignment =
-        typename allocator_traits::propagate_on_container_move_assignment;
-    using propagate_on_container_swap =
-        typename allocator_traits::propagate_on_container_swap;
-
-public:
-    template <typename Container>
-    WJR_CONSTEXPR20 static void
-    copy_assign(Container &lhs, const Container &rhs) noexcept(
-        noexcept(lhs.__copy_element(rhs)) &&
-                !propagate_on_container_copy_assignment::value
-            ? true
-            : (noexcept(lhs.__get_allocator() = rhs.__get_allocator()) &&
-                       is_always_equal::value
-                   ? true
-                   : noexcept(lhs.__destroy_and_deallocate()))) {
-        if constexpr (propagate_on_container_copy_assignment::value) {
-            auto &lhs_allocator = lhs.__get_allocator();
-            auto &rhs_allocator = rhs.__get_allocator();
-            if constexpr (!is_always_equal::value) {
-                if (lhs_allocator != rhs_allocator) {
-                    lhs.__destroy_and_deallocate();
-                }
-            }
-
-            lhs_allocator = rhs_allocator;
-        }
-
-        lhs.__copy_element(rhs);
-    }
-
-    template <typename Container>
-    WJR_CONSTEXPR20 static void move_assign(Container &lhs, Container &&rhs) noexcept(
-        noexcept(lhs.__destroy_and_deallocate()) && noexcept(
-            lhs.__take_storage(std::move(rhs))) &&
-                std::disjunction_v<propagate_on_container_move_assignment,
-                                   is_always_equal>
-            ? (!propagate_on_container_move_assignment::value
-                   ? true
-                   : noexcept(lhs.__get_allocator() = std::move(rhs.__get_allocator())))
-            : (noexcept(lhs.__destroy()) && noexcept(
-                  lhs.__move_element(std::move(rhs))))) {
-        if constexpr (std::disjunction_v<propagate_on_container_move_assignment,
-                                         is_always_equal>) {
-            lhs.__destroy_and_deallocate();
-            if constexpr (propagate_on_container_move_assignment::value) {
-                lhs.__get_allocator() = std::move(rhs.__get_allocator());
-            }
-            lhs.__take_storage(std::move(rhs));
-        } else {
-            if (lhs.__get_allocator() != rhs.__get_allocator()) {
-                lhs.__destroy();
-                lhs.__move_element(std::move(rhs));
-            } else {
-                lhs.__destroy_and_deallocate();
-                lhs.__take_storage(std::move(rhs));
-            }
-        }
-    }
-
-    template <typename Container>
-    WJR_CONSTEXPR20 static void swap(Container &lhs, Container &rhs) noexcept(
-        noexcept(lhs.__swap_storage(rhs)) &&
-                !std::conjunction_v<propagate_on_container_swap,
-                                    std::negation<is_always_equal>>
-            ? true
-            : noexcept(std::swap(lhs.__get_allocator(), rhs.__get_allocator()))) {
-        if constexpr (std::conjunction_v<propagate_on_container_swap,
-                                         std::negation<is_always_equal>>) {
-            auto &lhs_allocator = lhs.__get_allocator();
-            auto &rhs_allocator = rhs.__get_allocator();
-            if (lhs_allocator != rhs_allocator) {
-                std::swap(lhs_allocator, rhs_allocator);
-            }
-        }
-
-        lhs.__swap_storage(rhs);
-    }
-};
-
-} // namespace wjr
-
-#endif // WJR_CONTAINER_GENERIC_CONTAINER_TRAITS_HPP__
-// Already included
-#ifndef WJR_INLINE_KEY_HPP__
-#define WJR_INLINE_KEY_HPP__
-
-// Already included
-
-namespace wjr {
-
-template <typename T, bool Inlined>
-class inline_key {
-public:
-    constexpr inline_key() noexcept(std::is_nothrow_default_constructible_v<T>) = default;
-    constexpr inline_key(const inline_key &other) noexcept(
-        std::is_nothrow_copy_constructible_v<T>) = default;
-    constexpr inline_key(inline_key &&other) noexcept(
-        std::is_nothrow_move_constructible_v<T>) = default;
-    constexpr inline_key &operator=(const inline_key &other) noexcept(
-        std::is_nothrow_copy_assignable_v<T>) = default;
-    constexpr inline_key &operator=(inline_key &&other) noexcept(
-        std::is_nothrow_move_assignable_v<T>) = default;
-    ~inline_key() noexcept(std::is_nothrow_destructible_v<T>) = default;
-
-    constexpr inline_key(const T &value) noexcept(std::is_nothrow_copy_constructible_v<T>)
-        : m_value(value) {}
-
-    constexpr const T &get() const noexcept { return *m_value; }
-    constexpr const T &operator*() const noexcept { return *m_value; }
-    constexpr const T *operator->() const noexcept { return m_value.operator->(); }
-
-private:
-    lazy<T> m_value;
-};
-
-template <typename T>
-class inline_key<T, false> {
-public:
-    constexpr inline_key() noexcept(std::is_nothrow_default_constructible_v<T>) = default;
-    constexpr inline_key(const inline_key &other) noexcept(
-        std::is_nothrow_copy_constructible_v<T>) = default;
-    constexpr inline_key(inline_key &&other) noexcept(
-        std::is_nothrow_move_constructible_v<T>) = default;
-    constexpr inline_key &operator=(const inline_key &other) noexcept(
-        std::is_nothrow_copy_assignable_v<T>) = default;
-    constexpr inline_key &operator=(inline_key &&other) noexcept(
-        std::is_nothrow_move_assignable_v<T>) = default;
-    ~inline_key() noexcept(std::is_nothrow_destructible_v<T>) = default;
-
-    constexpr inline_key(const T &value) noexcept(std::is_nothrow_copy_constructible_v<T>)
-        : m_ptr(std::addressof(value)) {}
-
-    constexpr const T &get() const noexcept { return *m_ptr; }
-    constexpr const T &operator*() const noexcept { return *m_ptr; }
-    constexpr const T *operator->() const noexcept { return m_ptr; }
-
-private:
-    const T *m_ptr;
-};
-
-template <typename T>
-struct is_possible_inline_key : std::conjunction<std::is_trivially_copy_constructible<T>,
-                                                 std::is_trivially_destructible<T>> {};
-
-template <typename T>
-inline constexpr bool is_possible_inline_key_v = is_possible_inline_key<T>::value;
-
-template <typename T, size_t Threshold = sizeof(char *)>
-using auto_key = inline_key<T, is_possible_inline_key_v<T> && sizeof(T) <= Threshold>;
-
-} // namespace wjr
-
-#endif // WJR_INLINE_KEY_HPP__
-// Already included
-#ifndef WJR_X86_CONTAINER_GENERIC_BPLUS_TREE_HPP__
-#define WJR_X86_CONTAINER_GENERIC_BPLUS_TREE_HPP__
-
-#include <algorithm>
-
-// Already included
-
-namespace wjr {
-
-#if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(X86_SIMD)
-#define WJR_HAS_BUILTIN_BPLUS_TREE_COPY WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
-
-template <size_t size>
-void __builtin_bplus_tree_copy_impl(const uint8_t *first, const uint8_t *last,
-                                    uint8_t *dest) noexcept {
-    const size_t n = last - first;
-    if (WJR_UNLIKELY(n == 0)) {
-        return;
-    }
-
-    if (n == size) {
-        reinterpret_cast<uint_t<size * 8> *>(dest)[0] =
-            reinterpret_cast<const uint_t<size * 8> *>(first)[0];
-        return;
-    }
-
-    if constexpr (size <= 1) {
-        do {
-            if (n >= 4) {
-                break;
-            }
-
-            const auto x0 = read_memory<uint16_t>(first, endian::native);
-            const auto x1 = read_memory<uint16_t>(last - 2, endian::native);
-            write_memory<uint16_t>(dest, x0, endian::native);
-            write_memory<uint16_t>(dest + n - 2, x1, endian::native);
-            return;
-        } while (0);
-    }
-
-    if constexpr (size <= 2) {
-        do {
-            if (n >= 8) {
-                break;
-            }
-
-            const auto x0 = read_memory<uint32_t>(first, endian::native);
-            const auto x1 = read_memory<uint32_t>(last - 4, endian::native);
-            write_memory<uint32_t>(dest, x0, endian::native);
-            write_memory<uint32_t>(dest + n - 4, x1, endian::native);
-            return;
-        } while (0);
-    }
-
-    if constexpr (size <= 4) {
-        do {
-            if constexpr (size >= 2) {
-                if (n >= 16) {
-                    break;
-                }
-            }
-
-            const auto x0 = read_memory<uint64_t>(first, endian::native);
-            const auto x1 = read_memory<uint64_t>(last - 8, endian::native);
-            write_memory<uint64_t>(dest, x0, endian::native);
-            write_memory<uint64_t>(dest + n - 8, x1, endian::native);
-            return;
-        } while (0);
-    }
-
-    if constexpr (size >= 2) {
-        do {
-            if constexpr (size >= 4) {
-                if (n >= 32) {
-                    break;
-                }
-            }
-
-            const auto x0 = sse::loadu((__m128i *)first);
-            const auto x1 = sse::loadu((__m128i *)(last - 16));
-            sse::storeu((__m128i *)(dest), x0);
-            sse::storeu((__m128i *)(dest + n - 16), x1);
-            return;
-        } while (0);
-    }
-
-    if constexpr (size >= 4) {
-        do {
-            if constexpr (size >= 8) {
-                if (n >= 64) {
-                    break;
-                }
-            }
-
-#if WJR_HAS_SIMD(AVX2)
-            const auto x0 = avx::loadu((__m256i *)first);
-            const auto x1 = avx::loadu((__m256i *)(last - 32));
-            avx::storeu((__m256i *)(dest), x0);
-            avx::storeu((__m256i *)(dest + n - 32), x1);
-#else
-            const auto x0 = sse::loadu((__m128i *)first);
-            const auto x1 = sse::loadu((__m128i *)(first + 16));
-            const auto x2 = sse::loadu((__m128i *)(last - 32));
-            const auto x3 = sse::loadu((__m128i *)(last - 16));
-            sse::storeu((__m128i *)(dest), x0);
-            sse::storeu((__m128i *)(dest + 16), x1);
-            sse::storeu((__m128i *)(dest + n - 32), x2);
-            sse::storeu((__m128i *)(dest + n - 16), x3);
-#endif
-            return;
-        } while (0);
-    }
-
-    if constexpr (size == 8) {
-#if WJR_HAS_SIMD(AVX2)
-        const auto x0 = avx::loadu((__m256i *)first);
-        const auto x1 = avx::loadu((__m256i *)(first + 32));
-        const auto x2 = avx::loadu((__m256i *)(last - 64));
-        const auto x3 = avx::loadu((__m256i *)(last - 32));
-        avx::storeu((__m256i *)(dest), x0);
-        avx::storeu((__m256i *)(dest + 32), x1);
-        avx::storeu((__m256i *)(dest + n - 64), x2);
-        avx::storeu((__m256i *)(dest + n - 32), x3);
-#else
-        const auto x0 = sse::loadu((__m128i *)first);
-        const auto x1 = sse::loadu((__m128i *)(first + 16));
-        const auto x2 = sse::loadu((__m128i *)(first + 32));
-        const auto x3 = sse::loadu((__m128i *)(first + 48));
-        const auto x4 = sse::loadu((__m128i *)(last - 64));
-        const auto x5 = sse::loadu((__m128i *)(last - 48));
-        const auto x6 = sse::loadu((__m128i *)(last - 32));
-        const auto x7 = sse::loadu((__m128i *)(last - 16));
-        sse::storeu((__m128i *)(dest), x0);
-        sse::storeu((__m128i *)(dest + 16), x1);
-        sse::storeu((__m128i *)(dest + 32), x2);
-        sse::storeu((__m128i *)(dest + 48), x3);
-        sse::storeu((__m128i *)(dest + n - 64), x4);
-        sse::storeu((__m128i *)(dest + n - 48), x5);
-        sse::storeu((__m128i *)(dest + n - 32), x6);
-        sse::storeu((__m128i *)(dest + n - 16), x7);
-#endif
-    }
-}
-
-template <typename Other>
-void builtin_bplus_tree_copy(const Other *first, const Other *last,
-                             Other *dest) noexcept {
-    __builtin_bplus_tree_copy_impl<sizeof(Other)>(
-        reinterpret_cast<const uint8_t *>(first), reinterpret_cast<const uint8_t *>(last),
-        reinterpret_cast<uint8_t *>(dest));
-}
-
-template <size_t size>
-void __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *last,
-                                             uint8_t *dest) noexcept {
-    const size_t n = last - first;
-    if (WJR_UNLIKELY(n == 0)) {
-        return;
-    }
-
-    if (n == size) {
-        reinterpret_cast<uint_t<size * 8> *>(dest)[-1] =
-            reinterpret_cast<const uint_t<size * 8> *>(first)[0];
-        return;
-    }
-
-    if constexpr (size <= 1) {
-        do {
-            if (n >= 4) {
-                break;
-            }
-
-            const auto x0 = read_memory<uint16_t>(first, endian::native);
-            const auto x1 = read_memory<uint16_t>(last - 2, endian::native);
-            write_memory<uint16_t>(dest - n, x0, endian::native);
-            write_memory<uint16_t>(dest - 2, x1, endian::native);
-            return;
-        } while (0);
-    }
-
-    if constexpr (size <= 2) {
-        do {
-            if (n >= 8) {
-                break;
-            }
-
-            const auto x0 = read_memory<uint32_t>(first, endian::native);
-            const auto x1 = read_memory<uint32_t>(last - 4, endian::native);
-            write_memory<uint32_t>(dest - n, x0, endian::native);
-            write_memory<uint32_t>(dest - 4, x1, endian::native);
-            return;
-        } while (0);
-    }
-
-    if constexpr (size <= 4) {
-        do {
-            if constexpr (size >= 2) {
-                if (n >= 16) {
-                    break;
-                }
-            }
-
-            const auto x0 = read_memory<uint64_t>(first, endian::native);
-            const auto x1 = read_memory<uint64_t>(last - 8, endian::native);
-            write_memory<uint64_t>(dest - n, x0, endian::native);
-            write_memory<uint64_t>(dest - 8, x1, endian::native);
-            return;
-        } while (0);
-    }
-
-    if constexpr (size >= 2) {
-        do {
-            if constexpr (size >= 4) {
-                if (n >= 32) {
-                    break;
-                }
-            }
-
-            const auto x0 = sse::loadu((__m128i *)first);
-            const auto x1 = sse::loadu((__m128i *)(last - 16));
-            sse::storeu((__m128i *)(dest - n), x0);
-            sse::storeu((__m128i *)(dest - 16), x1);
-            return;
-        } while (0);
-    }
-
-    if constexpr (size >= 4) {
-        do {
-            if constexpr (size >= 8) {
-                if (n >= 64) {
-                    break;
-                }
-            }
-
-#if WJR_HAS_SIMD(AVX2)
-            const auto x0 = avx::loadu((__m256i *)first);
-            const auto x1 = avx::loadu((__m256i *)(last - 32));
-            avx::storeu((__m256i *)(dest - n), x0);
-            avx::storeu((__m256i *)(dest - 32), x1);
-#else
-            const auto x0 = sse::loadu((__m128i *)first);
-            const auto x1 = sse::loadu((__m128i *)(first + 16));
-            const auto x2 = sse::loadu((__m128i *)(last - 32));
-            const auto x3 = sse::loadu((__m128i *)(last - 16));
-            sse::storeu((__m128i *)(dest - n), x0);
-            sse::storeu((__m128i *)(dest - n + 16), x1);
-            sse::storeu((__m128i *)(dest - 32), x2);
-            sse::storeu((__m128i *)(dest - 16), x3);
-#endif
-            return;
-        } while (0);
-    }
-
-    if constexpr (size == 8) {
-#if WJR_HAS_SIMD(AVX2)
-        const auto x0 = avx::loadu((__m256i *)first);
-        const auto x1 = avx::loadu((__m256i *)(first + 32));
-        const auto x2 = avx::loadu((__m256i *)(last - 64));
-        const auto x3 = avx::loadu((__m256i *)(last - 32));
-        avx::storeu((__m256i *)(dest - n), x0);
-        avx::storeu((__m256i *)(dest - n + 32), x1);
-        avx::storeu((__m256i *)(dest - 64), x2);
-        avx::storeu((__m256i *)(dest - 32), x3);
-#else
-        const auto x0 = sse::loadu((__m128i *)first);
-        const auto x1 = sse::loadu((__m128i *)(first + 16));
-        const auto x2 = sse::loadu((__m128i *)(first + 32));
-        const auto x3 = sse::loadu((__m128i *)(first + 48));
-        const auto x4 = sse::loadu((__m128i *)(last - 64));
-        const auto x5 = sse::loadu((__m128i *)(last - 48));
-        const auto x6 = sse::loadu((__m128i *)(last - 32));
-        const auto x7 = sse::loadu((__m128i *)(last - 16));
-        sse::storeu((__m128i *)(dest - n), x0);
-        sse::storeu((__m128i *)(dest - n + 16), x1);
-        sse::storeu((__m128i *)(dest - n + 32), x2);
-        sse::storeu((__m128i *)(dest - n + 48), x3);
-        sse::storeu((__m128i *)(dest - 64), x4);
-        sse::storeu((__m128i *)(dest - 48), x5);
-        sse::storeu((__m128i *)(dest - 32), x6);
-        sse::storeu((__m128i *)(dest - 16), x7);
-#endif
-    }
-}
-
-template <typename Other>
-void builtin_bplus_tree_copy_backward(const Other *first, const Other *last,
-                                      Other *dest) noexcept {
-    __builtin_bplus_tree_copy_backward_impl<sizeof(Other)>(
-        reinterpret_cast<const uint8_t *>(first), reinterpret_cast<const uint8_t *>(last),
-        reinterpret_cast<uint8_t *>(dest));
-}
-
-#endif
-
-} // namespace wjr
-
-#endif // WJR_X86_CONTAINER_GENERIC_BPLUS_TREE_HPP__
-
-
-namespace wjr {
-
-template <typename Traits>
-struct bplus_tree_node;
-
-template <typename Traits>
-struct bplus_tree_inner_node;
-
-template <typename Traits, bool InlineKeys>
-struct bplus_tree_leaf_node;
-
-template <typename Key, typename T, typename Compare, size_t Size, bool Multi = true>
-struct bplus_tree_traits {
-    using key_type = Key;
-    using mapped_type = T;
-    using value_type = std::pair<const key_type, mapped_type>;
-    using key_compare = Compare;
-
-    constexpr static size_t node_size = Size;
-    static constexpr size_t stack_size = node_size == 3   ? 48
-                                         : node_size < 7  ? 32
-                                         : node_size < 15 ? 24
-                                                          : 16;
-    static constexpr bool inline_keys =
-        is_possible_inline_key_v<key_type> && sizeof(key_type) <= 8;
-    using InlineKey = inline_key<Key, inline_keys>;
-    using node_type = bplus_tree_node<bplus_tree_traits>;
-    using inner_node_type = bplus_tree_inner_node<bplus_tree_traits>;
-    using leaf_node_type = bplus_tree_leaf_node<bplus_tree_traits, inline_keys>;
-    static constexpr bool multi = Multi;
-
-    WJR_INTRINSIC_INLINE static const key_type &
-    get_key(const value_type &value) noexcept {
-        return value.first;
-    }
-
-private:
-    template <typename Other>
-    static void __native_copy(Other *first, Other *last, Other *dest) noexcept {
-        for (; first != last; ++first, ++dest) {
-            *dest = *first;
-            WJR_COMPILER_EMPTY_ASM();
-        }
-    }
-
-    template <typename Other>
-    static void __native_copy_backward(Other *first, Other *last, Other *dest) noexcept {
-        for (; first != last;) {
-            *--dest = *--last;
-            WJR_COMPILER_EMPTY_ASM();
-        }
-    }
-
-public:
-    template <typename Other>
-    static void copy(Other *first, Other *last, Other *dest) noexcept {
-        if constexpr (node_size <= 8) {
-            return __native_copy(first, last, dest);
-        } else {
-#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
-            if constexpr (std::is_trivially_copyable_v<Other>) {
-                builtin_bplus_tree_copy(first, last, dest);
-            } else {
-#endif
-                (void)std::copy(first, last, dest);
-#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
-            }
-#endif
-        }
-    }
-
-    template <typename Other>
-    static void copy_backward(Other *first, Other *last, Other *dest) noexcept {
-        if constexpr (node_size <= 8) {
-            return __native_copy_backward(first, last, dest);
-        } else {
-#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
-            if constexpr (std::is_trivially_copyable_v<Other>) {
-                builtin_bplus_tree_copy_backward(first, last, dest);
-            } else {
-#endif
-                (void)std::copy_backward(first, last, dest);
-#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
-            }
-#endif
-        }
-    }
-};
-
-template <typename Traits>
-struct bplus_tree_node {
-    using key_type = typename Traits::key_type;
-    using value_type = typename Traits::value_type;
-    constexpr static size_t node_size = Traits::node_size;
-    using InlineKey = typename Traits::InlineKey;
-    using inner_node_type = typename Traits::inner_node_type;
-    using leaf_node_type = typename Traits::leaf_node_type;
-
-    WJR_INTRINSIC_CONSTEXPR inner_node_type *as_inner() noexcept {
-        return (inner_node_type *)(this);
-    }
-
-    WJR_INTRINSIC_CONSTEXPR const inner_node_type *as_inner() const noexcept {
-        return (inner_node_type *)(this);
-    }
-
-    WJR_INTRINSIC_CONSTEXPR leaf_node_type *as_leaf() noexcept {
-        return (leaf_node_type *)(this);
-    }
-
-    WJR_INTRINSIC_CONSTEXPR const leaf_node_type *as_leaf() const noexcept {
-        return (leaf_node_type *)(this);
-    }
-
-    int m_size;
-    unsigned int m_pos;
-    bplus_tree_node *m_parent;
-};
-
-template <typename Traits>
-struct bplus_tree_inner_node : bplus_tree_node<Traits> {
-    using key_type = typename Traits::key_type;
-    using value_type = typename Traits::value_type;
-    constexpr static size_t node_size = Traits::node_size;
-    using InlineKey = typename Traits::InlineKey;
-
-    alignas(16) InlineKey m_keys[node_size];
-    alignas(16) bplus_tree_node<Traits> *m_sons[node_size + 1];
-};
-
-template <typename Traits, bool InlineKeys>
-struct bplus_tree_leaf_node : bplus_tree_node<Traits>, intrusive::list_node<> {
-    using key_type = typename Traits::key_type;
-    using value_type = typename Traits::value_type;
-    constexpr static size_t node_size = Traits::node_size;
-    using InlineKey = typename Traits::InlineKey;
-    using ListNode = intrusive::list_node<>;
-
-    const key_type &__get_key(unsigned int pos) const noexcept { return *m_keys[pos]; }
-
-    WJR_INTRINSIC_INLINE void __copy(unsigned int start, unsigned int end,
-                                     unsigned int dst_start, bplus_tree_leaf_node *dst) {
-        Traits::copy(m_keys + start, m_keys + end, dst->m_keys + dst_start);
-        Traits::copy(m_values + start, m_values + end, dst->m_values + dst_start);
-    }
-
-    WJR_INTRINSIC_INLINE void __copy_backward(unsigned int start, unsigned int end,
-                                              unsigned int dst_end,
-                                              bplus_tree_leaf_node *dst) {
-        Traits::copy_backward(m_keys + start, m_keys + end, dst->m_keys + dst_end);
-        Traits::copy_backward(m_values + start, m_values + end, dst->m_values + dst_end);
-    }
-
-    WJR_INTRINSIC_INLINE void __assign(unsigned int idx, value_type *const value) {
-        m_keys[idx] = value->first;
-        m_values[idx] = value;
-    }
-
-    WJR_INTRINSIC_CONSTEXPR ListNode *__get_list() noexcept { return this; }
-    WJR_INTRINSIC_CONSTEXPR const ListNode *__get_list() const noexcept { return this; }
-
-    alignas(16) InlineKey m_keys[node_size];
-    alignas(16) value_type *m_values[node_size];
-};
-
-template <typename Traits>
-struct bplus_tree_leaf_node<Traits, false> : bplus_tree_node<Traits>,
-                                             intrusive::list_node<> {
-    using key_type = typename Traits::key_type;
-    using value_type = typename Traits::value_type;
-    constexpr static size_t node_size = Traits::node_size;
-    using ListNode = intrusive::list_node<>;
-
-    const key_type &__get_key(unsigned int pos) const noexcept {
-        return m_values[pos]->first;
-    }
-
-    WJR_INTRINSIC_INLINE void __copy(unsigned int start, unsigned int end,
-                                     unsigned int dst_start, bplus_tree_leaf_node *dst) {
-        Traits::copy(m_values + start, m_values + end, dst->m_values + dst_start);
-    }
-
-    WJR_INTRINSIC_INLINE void __copy_backward(unsigned int start, unsigned int end,
-                                              unsigned int dst_end,
-                                              bplus_tree_leaf_node *dst) {
-        Traits::copy_backward(m_values + start, m_values + end, dst->m_values + dst_end);
-    }
-
-    WJR_INTRINSIC_INLINE void __assign(unsigned int idx, value_type *const value) {
-        m_values[idx] = value;
-    }
-
-    WJR_INTRINSIC_CONSTEXPR ListNode *__get_list() noexcept { return this; }
-    WJR_INTRINSIC_CONSTEXPR const ListNode *__get_list() const noexcept { return this; }
-
-    alignas(16) value_type *m_values[node_size];
-};
-
-template <typename Traits, typename Alloc>
-class basic_bplus_tree;
-
-template <typename Traits>
-class bplus_tree_const_iterator {
-    using node_type = typename Traits::node_type;
-    using inner_node_type = typename Traits::inner_node_type;
-    using leaf_node_type = typename Traits::leaf_node_type;
-
-    template <typename Other, typename Alloc>
-    friend class basic_bplus_tree;
-
-    using ListNode = intrusive::list_node<>;
-
-public:
-    using iterator_category = std::bidirectional_iterator_tag;
-    using value_type = typename Traits::value_type;
-    using difference_type = std::ptrdiff_t;
-    using pointer = const value_type *;
-    using reference = const value_type &;
-
-    bplus_tree_const_iterator() noexcept = default;
-    bplus_tree_const_iterator(const bplus_tree_const_iterator &) noexcept = default;
-    bplus_tree_const_iterator(bplus_tree_const_iterator &&) noexcept = default;
-    bplus_tree_const_iterator &
-    operator=(const bplus_tree_const_iterator &) noexcept = default;
-    bplus_tree_const_iterator &operator=(bplus_tree_const_iterator &&) noexcept = default;
-    ~bplus_tree_const_iterator() noexcept = default;
-
-    bplus_tree_const_iterator(const ListNode *list_node, unsigned int pos) noexcept
-        : m_node(const_cast<ListNode *>(list_node)), m_pos(pos) {}
-
-    reference operator*() const noexcept { return *get_leaf()->m_values[m_pos]; }
-
-    pointer operator->() const noexcept { return get_leaf()->m_values[m_pos]; }
-
-    bplus_tree_const_iterator &operator++() noexcept {
-        ++m_pos;
-        return __adjust_next();
-    }
-
-    bplus_tree_const_iterator operator++(int) noexcept {
-        bplus_tree_const_iterator tmp = *this;
-        ++*this;
-        return tmp;
-    }
-
-    bplus_tree_const_iterator &operator--() noexcept {
-        if (m_pos != 0) {
-            --m_pos;
-        } else {
-            m_node = m_node->prev();
-            m_pos = -get_leaf()->m_size - 1;
-        }
-
-        return *this;
-    }
-
-    bplus_tree_const_iterator operator--(int) noexcept {
-        bplus_tree_const_iterator tmp = *this;
-        --*this;
-        return tmp;
-    }
-
-    bool operator==(const bplus_tree_const_iterator &other) const noexcept {
-        return m_node == other.m_node && m_pos == other.m_pos;
-    }
-
-    bool operator!=(const bplus_tree_const_iterator &other) const noexcept {
-        return !(*this == other);
-    }
-
-    leaf_node_type *get_leaf() const noexcept {
-        return static_cast<leaf_node_type *>(m_node);
-    }
-
-    ListNode *get_node() const noexcept { return m_node; }
-
-    unsigned int get_pos() const noexcept { return m_pos; }
-
-protected:
-    bplus_tree_const_iterator &__adjust_next() noexcept {
-        if (m_pos == (unsigned int)(-get_leaf()->m_size)) {
-            m_node = m_node->next();
-            m_pos = 0;
-        }
-
-        return *this;
-    }
-
-private:
-    ListNode *m_node = nullptr;
-    unsigned int m_pos = 0;
-};
-
-template <typename Traits>
-class bplus_tree_iterator : public bplus_tree_const_iterator<Traits> {
-    using Mybase = bplus_tree_const_iterator<Traits>;
-
-    template <typename Other, typename Alloc>
-    friend class basic_bplus_tree;
-
-public:
-    using Mybase::Mybase;
-
-    using iterator_category = typename Mybase::iterator_category;
-    using value_type = typename Mybase::value_type;
-    using difference_type = std::ptrdiff_t;
-    using pointer = value_type *;
-    using reference = value_type &;
-
-    bplus_tree_iterator(const Mybase &other) noexcept : Mybase(other) {}
-
-    value_type &operator*() const noexcept {
-        return const_cast<value_type &>(Mybase::operator*());
-    }
-
-    value_type *operator->() const noexcept {
-        return const_cast<value_type *>(Mybase::operator->());
-    }
-
-    bplus_tree_iterator &operator++() noexcept {
-        Mybase::operator++();
-        return *this;
-    }
-
-    bplus_tree_iterator operator++(int) noexcept {
-        bplus_tree_iterator tmp = *this;
-        ++*this;
-        return tmp;
-    }
-
-    bplus_tree_iterator &operator--() noexcept {
-        Mybase::operator--();
-        return *this;
-    }
-
-    bplus_tree_iterator operator--(int) noexcept {
-        bplus_tree_iterator tmp = *this;
-        --*this;
-        return tmp;
-    }
-
-    bool operator==(const bplus_tree_iterator &other) const noexcept {
-        return Mybase::operator==(other);
-    }
-
-    bool operator!=(const bplus_tree_iterator &other) const noexcept {
-        return Mybase::operator!=(other);
-    }
-
-protected:
-    bplus_tree_iterator &__adjust_next() noexcept {
-        Mybase::__adjust_next();
-        return *this;
-    }
-};
-
-template <typename Traits, typename Alloc>
-class basic_bplus_tree {
-    using _Alty = typename std::allocator_traits<Alloc>::template rebind_alloc<uint8_t>;
-    using _Alty_traits = std::allocator_traits<_Alty>;
-    using storage_fn_type = container_fn<_Alty>;
-
-    friend class container_fn<_Alty>;
-
-    using mapped_type = typename Traits::mapped_type;
-    static constexpr size_t node_size = Traits::node_size;
-    static constexpr size_t stack_size = Traits::stack_size;
-    static constexpr bool inline_keys = Traits::inline_keys;
-    using InlineKey = typename Traits::InlineKey;
-    static constexpr size_t floor_half = node_size / 2;
-    static constexpr size_t ceil_half = node_size - floor_half;
-
-    using node_type = typename Traits::node_type;
-    using inner_node_type = typename Traits::inner_node_type;
-    using leaf_node_type = typename Traits::leaf_node_type;
-
-    using ListNode = intrusive::list_node<>;
-
-public:
-    using key_type = typename Traits::key_type;
-    using value_type = typename Traits::value_type;
-    using key_compare = typename Traits::key_compare;
-    using allocator_type = Alloc;
-    using size_type = typename _Alty_traits::size_type;
-    using difference_type = typename _Alty_traits::difference_type;
-    using iterator = bplus_tree_iterator<Traits>;
-    using const_iterator = bplus_tree_const_iterator<Traits>;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-
-    static_assert(node_size >= 3, "node_size must be greater than or equal to 3.");
-    static_assert(node_size <= 255, "node_size must be less than or equal to 255.");
-
-    basic_bplus_tree() noexcept(std::is_nothrow_default_constructible_v<_Alty>) {
-        init(&m_sentry);
-    }
-
-    // not implemented currently
-    basic_bplus_tree(const basic_bplus_tree &) = delete;
-
-    basic_bplus_tree(basic_bplus_tree &&other) noexcept(
-        std::is_nothrow_move_constructible_v<key_compare>
-            &&std::is_nothrow_move_constructible_v<_Alty>)
-        : m_pair(std::piecewise_construct,
-                 std::forward_as_tuple(std::move(other.key_comp())),
-                 std::forward_as_tuple(
-                     std::piecewise_construct,
-                     std::forward_as_tuple(std::move(other.__get_allocator())),
-                     std::forward_as_tuple())) {
-        __take_tree(std::move(other));
-    }
-
-    ~basic_bplus_tree() { __destroy_and_deallocate(); }
-
-    template <typename... Args>
-    void emplace(Args &&...args) {
-        auto &al = __get_allocator();
-        value_type *const xval =
-            (value_type *)_Alty_traits::allocate(al, sizeof(value_type));
-        uninitialized_construct_using_allocator(xval, al, std::forward<Args>(args)...);
-
-        __insert_value_ptr(xval);
-    }
-
-    void insert(const value_type &val) { emplace(val); }
-    void insert(value_type &&val) { emplace(std::move(val)); }
-
-    void erase(const key_type &key);
-
-    iterator upper_bound(const key_type &key) {
-        return iterator(__search<true>(key).__adjust_next());
-    }
-
-    const_iterator upper_bound(const key_type &key) const {
-        return const_iterator(__search<true>(key).__adjust_next());
-    }
-
-    constexpr key_compare &key_comp() noexcept { return m_pair.first(); }
-    constexpr const key_compare &key_comp() const noexcept { return m_pair.first(); }
-
-    iterator begin() noexcept { return iterator(m_sentry.next(), 0); }
-    const_iterator begin() const noexcept { return const_iterator(m_sentry.next(), 0); }
-    const_iterator cbegin() const noexcept { return const_iterator(m_sentry.next(), 0); }
-
-    iterator end() noexcept { return iterator(&m_sentry, 0); }
-    const_iterator end() const noexcept { return const_iterator(&m_sentry, 0); }
-    const_iterator cend() const noexcept { return const_iterator(&m_sentry, 0); }
-
-    reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
-    const_reverse_iterator rbegin() const noexcept {
-        return const_reverse_iterator(end());
-    }
-
-    const_reverse_iterator crbegin() const noexcept {
-        return const_reverse_iterator(cend());
-    }
-
-    reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
-    const_reverse_iterator rend() const noexcept {
-        return const_reverse_iterator(begin());
-    }
-
-    const_reverse_iterator crend() const noexcept {
-        return const_reverse_iterator(cbegin());
-    }
-
-    void erase(const_iterator iter) { __erase_iter(iter); }
-
-private:
-    void __take_tree(basic_bplus_tree &&other) noexcept {
-        const auto root = other.__get_root();
-        if (root == nullptr) {
-            init(&m_sentry);
-            return;
-        }
-
-        __get_root() = root;
-        other.__get_root() = nullptr;
-        replace_uninit(&other.m_sentry, &m_sentry);
-        init(&other.m_sentry);
-    }
-
-    // member function for container_fn (START)
-
-    WJR_PURE WJR_INTRINSIC_CONSTEXPR _Alty &__get_allocator() noexcept {
-        return m_pair.second().first();
-    }
-
-    WJR_PURE WJR_INTRINSIC_CONSTEXPR const _Alty &__get_allocator() const noexcept {
-        return m_pair.second().first();
-    }
-
-    WJR_NOINLINE void __destroy_and_deallocate() noexcept {
-        node_type *current = __get_root();
-
-        // empty tree
-        if (current == nullptr) {
-            return;
-        }
-
-        auto &al = __get_allocator();
-        int cur_size = current->m_size;
-
-        // root is leaf
-        if (cur_size < 0) {
-            const auto leaf = current->as_leaf();
-            const unsigned int cur_usize = -cur_size;
-
-            for (unsigned int i = 0; i < cur_usize; ++i) {
-                _Alty_traits::destroy(al, leaf->m_values[i]);
-                _Alty_traits::deallocate(al, (uint8_t *)leaf->m_values[i],
-                                         sizeof(value_type));
-            }
-
-            _Alty_traits::deallocate(al, (uint8_t *)leaf, sizeof(leaf_node_type));
-            return;
-        }
-
-        // skip to the leftmost leaf
-        current = begin().get_leaf();
-        cur_size = -current->m_size;
-
-        // cache of parent and parent's size
-        node_type *parent = current->m_parent;
-        unsigned int par_size = parent->m_size;
-
-        // cache of `current' node's position in parent
-        unsigned int pos = 0;
-
-        do {
-            const auto leaf = current->as_leaf();
-            const unsigned int cur_usize = cur_size;
-
-            for (unsigned int i = 0; i < cur_usize; ++i) {
-                _Alty_traits::destroy(al, leaf->m_values[i]);
-                _Alty_traits::deallocate(al, (uint8_t *)leaf->m_values[i],
-                                         sizeof(value_type));
-            }
-
-            ListNode *next = leaf->next();
-            _Alty_traits::deallocate(al, (uint8_t *)leaf, sizeof(leaf_node_type));
-
-            // if `current' is not the last child of parent
-            if (WJR_UNLIKELY(pos++ == par_size)) {
-                do {
-                    current = parent;
-                    parent = current->m_parent;
-                    pos = current->m_pos;
-                    _Alty_traits::deallocate(al, (uint8_t *)current,
-                                             sizeof(inner_node_type));
-                    // if `current' is the rightmost leaf
-                    if (parent == nullptr) {
-                        return;
-                    }
-                    // if `current' is the last child of parent
-                } while (pos == (unsigned int)parent->m_size);
-
-                parent = static_cast<leaf_node_type *>(next)->m_parent;
-                par_size = parent->m_size;
-                pos = 0;
-            }
-
-            WJR_ASSERT(next != &m_sentry);
-
-            current = static_cast<leaf_node_type *>(next);
-            cur_size = -current->m_size;
-        } while (true);
-    }
-
-    void __take_storage(basic_bplus_tree &&other) noexcept {
-        key_comp() = std::move(other.key_comp());
-        __take_tree(std::move(other));
-    }
-
-    // member function for container_fn (END)
-
-    void __insert_root(value_type *xval) {
-        const auto root = (leaf_node_type *)_Alty_traits::allocate(
-            __get_allocator(), sizeof(leaf_node_type));
-
-        __get_root() = root;
-
-        root->m_size = -1;
-        root->m_parent = nullptr;
-        root->__assign(0, xval);
-        m_sentry.push_back(root);
-        return;
-    }
-
-    WJR_NOINLINE void __insert_iter(const_iterator iter, value_type *xval) {
-        unsigned int pos;
-        unsigned int cur_size;
-        node_type *current;
-        node_type *inst;
-
-        do {
-            leaf_node_type *leaf;
-            do {
-                ListNode *const node = iter.get_node();
-
-                // empty
-                if (node == &m_sentry) {
-                    __insert_root(xval);
-                    return;
-                }
-
-                leaf = static_cast<leaf_node_type *>(node);
-            } while (0);
-
-            pos = iter.get_pos();
-            cur_size = -leaf->m_size;
-
-            // non-full leaf
-            if (WJR_LIKELY(cur_size != node_size)) {
-                WJR_ASSERT_ASSUME(pos <= cur_size);
-
-                leaf->__copy_backward(pos, cur_size, cur_size + 1, leaf);
-
-                leaf->m_size = -(cur_size + 1);
-                leaf->__assign(pos, xval);
-                return;
-            }
-
-            const auto tmp_inst = (leaf_node_type *)_Alty_traits::allocate(
-                __get_allocator(), sizeof(leaf_node_type));
-            inst = tmp_inst;
-            leaf->__get_list()->push_back(tmp_inst->__get_list());
-
-            leaf->m_size = -(int)(floor_half + 1);
-            tmp_inst->m_size = -(int)(node_size - floor_half);
-
-            if (pos <= floor_half) {
-                leaf->__copy(floor_half, node_size, 0, tmp_inst);
-                leaf->__copy_backward(pos, floor_half, floor_half + 1, leaf);
-                leaf->__assign(pos, xval);
-            } else {
-                // pos in tmp_inst
-                const unsigned int rpos = pos - floor_half - 1;
-                leaf->__copy(floor_half + 1, pos, 0, tmp_inst);
-                leaf->__copy(pos, node_size, rpos + 1, tmp_inst);
-                tmp_inst->__assign(rpos, xval);
-            }
-
-            current = leaf;
-        } while (0);
-
-        node_type *parent = current->m_parent;
-        InlineKey key = inst->as_leaf()->__get_key(0);
-
-        while (parent != nullptr) {
-            inst->m_parent = parent;
-            pos = current->m_pos + 1;
-            current = parent;
-            const auto inner = current->as_inner();
-
-            cur_size = inner->m_size + 1;
-            InlineKey *const keys = inner->m_keys;
-            node_type **const sons = inner->m_sons;
-
-            // non-full inner
-            if (WJR_LIKELY(cur_size != node_size + 1)) {
-                Traits::copy_backward(keys + pos - 1, keys + cur_size - 1,
-                                      keys + cur_size);
-                Traits::copy_backward(sons + pos, sons + cur_size, sons + cur_size + 1);
-
-                inner->m_size = cur_size;
-                keys[pos - 1] = key;
-                sons[pos] = inst;
-
-                inst->m_pos = pos;
-                for (unsigned int i = pos + 1; i <= cur_size; ++i) {
-                    sons[i]->m_pos = i;
-                }
-
-                return;
-            }
-
-            parent = inner->m_parent;
-
-            const auto tmp_inst = (inner_node_type *)_Alty_traits::allocate(
-                __get_allocator(), sizeof(inner_node_type));
-
-            inner->m_size = (int)(ceil_half);
-            tmp_inst->m_size = (int)(floor_half);
-
-            InlineKey next_key;
-
-            if (pos <= ceil_half) {
-                next_key = keys[ceil_half - 1];
-
-                Traits::copy(keys + ceil_half, keys + node_size, tmp_inst->m_keys);
-                Traits::copy(sons + ceil_half, sons + node_size + 1, tmp_inst->m_sons);
-                Traits::copy_backward(keys + pos - 1, keys + ceil_half - 1,
-                                      keys + ceil_half);
-                Traits::copy_backward(sons + pos, sons + ceil_half, sons + ceil_half + 1);
-
-                keys[pos - 1] = key;
-                sons[pos] = inst;
-
-                inst->m_pos = pos;
-                for (unsigned int i = pos + 1; i <= ceil_half; ++i) {
-                    sons[i]->m_pos = i;
-                }
-            } else {
-                if (pos == ceil_half + 1) {
-                    next_key = key;
-
-                    Traits::copy(keys + ceil_half, keys + node_size, tmp_inst->m_keys);
-                    Traits::copy(sons + ceil_half + 1, sons + node_size + 1,
-                                 tmp_inst->m_sons + 1);
-
-                    tmp_inst->m_sons[0] = inst;
-                } else {
-                    next_key = keys[ceil_half];
-
-                    Traits::copy(keys + ceil_half + 1, keys + pos - 1, tmp_inst->m_keys);
-                    Traits::copy(sons + ceil_half + 1, sons + pos, tmp_inst->m_sons);
-
-                    const unsigned int rpos = pos - ceil_half - 1;
-
-                    Traits::copy(keys + pos - 1, keys + node_size,
-                                 tmp_inst->m_keys + rpos);
-                    Traits::copy(sons + pos, sons + node_size + 1,
-                                 tmp_inst->m_sons + rpos + 1);
-
-                    tmp_inst->m_keys[rpos - 1] = key;
-                    tmp_inst->m_sons[rpos] = inst;
-                }
-            }
-
-            for (unsigned int i = 0; i <= floor_half; ++i) {
-                tmp_inst->m_sons[i]->m_parent = tmp_inst;
-                tmp_inst->m_sons[i]->m_pos = i;
-            }
-
-            key = next_key;
-            inst = tmp_inst;
-        }
-
-        const auto new_root = (inner_node_type *)_Alty_traits::allocate(
-            __get_allocator(), sizeof(inner_node_type));
-        new_root->m_size = 1;
-        new_root->m_parent = nullptr;
-        new_root->m_keys[0] = key;
-        new_root->m_sons[0] = current;
-        new_root->m_sons[1] = inst;
-        current->m_pos = 0;
-        inst->m_pos = 1;
-
-        current->m_parent = new_root;
-        inst->m_parent = new_root;
-
-        __get_root() = new_root;
-        return;
-    }
-
-    void __insert_value_ptr(value_type *xval) {
-        __insert_iter(__search<false>(xval->first), xval);
-    }
-
-    template <bool Upper>
-    WJR_PURE WJR_INTRINSIC_INLINE static bool
-    __compare(const key_type &a, const key_type &key, const key_compare &comp) {
-        if constexpr (Upper) {
-            return comp(key, a);
-        } else {
-            return !comp(a, key);
-        }
-    }
-
-    template <bool Upper>
-    WJR_PURE WJR_NOINLINE const_iterator __search(const key_type &key) const {
-        const node_type *current = __get_root();
-
-        if (current == nullptr) {
-            return cend();
-        }
-
-        unsigned int pos;
-
-        int cur_size = current->m_size;
-        const auto &comp = key_comp();
-
-        // root search
-        if (WJR_UNLIKELY(cur_size < 0)) {
-            pos = __search<Upper, 1, node_size, 0>(current->as_leaf(), -cur_size, key,
-                                                   comp);
-            return const_iterator(current->as_leaf()->__get_list(), pos);
-        }
-
-        if (!__compare<Upper>(*current->as_inner()->m_keys[0], key, comp)) {
-            goto NOT_LEFTMOST_AT_ROOT;
-        }
-
-        current = current->as_inner()->m_sons[0];
-        cur_size = current->m_size;
-
-        while (cur_size >= 0) {
-            if (!__compare<Upper>(*current->as_inner()->m_keys[0], key, comp)) {
-                goto NOT_LEFTMOST_AT_INNER;
-            }
-
-            current = current->as_inner()->m_sons[0];
-            cur_size = current->m_size;
-        }
-
-        // leftmost leaf need to check first key
-        if (__compare<Upper>(current->as_leaf()->__get_key(0), key, comp)) {
-            return const_iterator(current->as_leaf()->__get_list(), 0);
-        }
-
-        goto LEAF;
-
-    NOT_LEFTMOST_AT_ROOT:
-        pos = __search<Upper, 1, node_size, 1>(current->as_inner(), cur_size, key, comp);
-        current = current->as_inner()->m_sons[pos];
-        cur_size = current->m_size;
-
-        if (cur_size < 0) {
-            goto LEAF;
-        }
-
-        goto INNER_LOOP;
-
-    NOT_LEFTMOST_AT_INNER:
-        pos = __search<Upper, floor_half, node_size, 1>(current->as_inner(), cur_size,
-                                                        key, comp);
-
-        current = current->as_inner()->m_sons[pos];
-        cur_size = current->m_size;
-
-        if (cur_size < 0) {
-            goto LEAF;
-        }
-
-    INNER_LOOP:
-        do {
-            pos = __search<Upper, floor_half, node_size, 0>(current->as_inner(), cur_size,
-                                                            key, comp);
-
-            current = current->as_inner()->m_sons[pos];
-            cur_size = current->m_size;
-        } while (cur_size >= 0);
-
-    LEAF:
-        pos = __search<Upper, floor_half, node_size, 1>(current->as_leaf(), -cur_size,
-                                                        key, comp);
-        return const_iterator(current->as_leaf()->__get_list(), pos);
-    }
-
-    template <size_t Min, size_t Max, size_t Offset, typename Compare>
-    WJR_PURE WJR_INTRINSIC_INLINE static unsigned int
-    __search(const node_type *current, unsigned int size, Compare &&comp) {
-        static_assert(Offset == 0 || Offset == 1, "");
-        static_assert(Min != 0, "");
-
-        WJR_ASSERT_ASSUME(size >= Min);
-        WJR_ASSERT_ASSUME(size <= Max);
-
-        if constexpr (Min == 1 && Offset == 1) {
-            if (size == 1) {
-                return 1;
-            }
-        }
-
-        if constexpr (Max <= 16) {
-            if constexpr (Offset == 0) {
-                if (comp(current, 0)) {
-                    return 0;
-                }
-            }
-
-#define WJR_REGISTER_BLPUS_SEARCH_2(A, B, C)                                             \
-    do {                                                                                 \
-        if constexpr (A == Max) {                                                        \
-            return A;                                                                    \
-        } else if constexpr (B == Max) {                                                 \
-            if (size == A || comp(current, A)) {                                         \
-                return A;                                                                \
-            }                                                                            \
-            return B;                                                                    \
-        } else if constexpr (C <= Max) {                                                 \
-            if constexpr (Min < C) {                                                     \
-                if (size < C) {                                                          \
-                    if constexpr (Min <= A) {                                            \
-                        if (size == A || comp(current, A)) {                             \
-                            return A;                                                    \
-                        }                                                                \
-                    } else {                                                             \
-                        if (comp(current, A)) {                                          \
-                            return A;                                                    \
-                        }                                                                \
-                    }                                                                    \
-                    return B;                                                            \
-                }                                                                        \
-            }                                                                            \
-            if (comp(current, B)) {                                                      \
-                if (comp(current, A)) {                                                  \
-                    return A;                                                            \
-                }                                                                        \
-                return B;                                                                \
-            }                                                                            \
-        }                                                                                \
-    } while (0)
-#define WJR_REGISTER_BLPUS_SEARCH_4(A, B, C, D, E)                                       \
-    do {                                                                                 \
-        if constexpr (E > Max) {                                                         \
-            WJR_REGISTER_BLPUS_SEARCH_2(A, B, C);                                        \
-            WJR_REGISTER_BLPUS_SEARCH_2(C, D, E);                                        \
-        } else {                                                                         \
-            if constexpr (Min < E) {                                                     \
-                if (size < E) {                                                          \
-                    WJR_REGISTER_BLPUS_SEARCH_2(A, B, C);                                \
-                    if constexpr (Min <= C) {                                            \
-                        if (size == C || comp(current, C)) {                             \
-                            return C;                                                    \
-                        }                                                                \
-                    } else {                                                             \
-                        if (comp(current, C)) {                                          \
-                            return C;                                                    \
-                        }                                                                \
-                    }                                                                    \
-                    return D;                                                            \
-                }                                                                        \
-            }                                                                            \
-            if (comp(current, D)) {                                                      \
-                if (comp(current, B)) {                                                  \
-                    if (comp(current, A)) {                                              \
-                        return A;                                                        \
-                    }                                                                    \
-                    return B;                                                            \
-                }                                                                        \
-                if (comp(current, C)) {                                                  \
-                    return C;                                                            \
-                }                                                                        \
-                return D;                                                                \
-            }                                                                            \
-        }                                                                                \
-    } while (0)
-
-            if constexpr (Max <= 8 || Min == 1) {
-                WJR_REGISTER_BLPUS_SEARCH_2(1, 2, 3);
-                WJR_REGISTER_BLPUS_SEARCH_2(3, 4, 5);
-                WJR_REGISTER_BLPUS_SEARCH_2(5, 6, 7);
-                WJR_REGISTER_BLPUS_SEARCH_2(7, 8, 9);
-                WJR_REGISTER_BLPUS_SEARCH_2(9, 10, 11);
-                WJR_REGISTER_BLPUS_SEARCH_2(11, 12, 13);
-                WJR_REGISTER_BLPUS_SEARCH_2(13, 14, 15);
-
-                if constexpr (Max == 15) {
-                    return 15;
-                } else if constexpr (Max == 16) {
-                    if (size == 15 || comp(current, 15)) {
-                        return 15;
-                    }
-
-                    return 16;
-                }
-            } else {
-                WJR_REGISTER_BLPUS_SEARCH_2(1, 2, 3);
-                WJR_REGISTER_BLPUS_SEARCH_4(3, 4, 5, 6, 7);
-                WJR_REGISTER_BLPUS_SEARCH_4(7, 8, 9, 10, 11);
-                WJR_REGISTER_BLPUS_SEARCH_4(11, 12, 13, 14, 15);
-
-                if constexpr (Max == 15) {
-                    return 15;
-                } else if constexpr (Max == 16) {
-                    if (size == 15 || comp(current, 15)) {
-                        return 15;
-                    }
-
-                    return 16;
-                }
-            }
-
-#undef WJR_REGISTER_BLPUS_SEARCH_4
-#undef WJR_REGISTER_BLPUS_SEARCH_2
-        } else {
-            unsigned int pos = Offset;
-            do {
-                if (comp(current, pos)) {
-                    break;
-                }
-            } while (++pos != size);
-            return pos;
-        }
-    }
-
-    template <bool Upper, size_t Min, size_t Max, size_t Offset>
-    WJR_PURE WJR_INTRINSIC_INLINE static unsigned int
-    __search(const inner_node_type *current, unsigned int size, const key_type &key,
-             const key_compare &comp) {
-        return __search<Min, Max, Offset>(
-            current, size, [&key, &comp](const node_type *current, unsigned int pos) {
-                return __compare<Upper>(*current->as_inner()->m_keys[pos], key, comp);
-            });
-    }
-
-    template <bool Upper, size_t Min, size_t Max, size_t Offset>
-    WJR_PURE WJR_INTRINSIC_INLINE static unsigned int
-    __search(const leaf_node_type *current, unsigned int size, const key_type &key,
-             const key_compare &comp) {
-        return __search<Min, Max, Offset>(
-            current, size, [&key, &comp](const node_type *current, unsigned int pos) {
-                return __compare<Upper>(current->as_leaf()->__get_key(pos), key, comp);
-            });
-    }
-
-    template <typename T>
-    WJR_INTRINSIC_INLINE static unsigned int
-    __init_remove_rotate(const inner_node_type *parent, unsigned int pos,
-                         unsigned int par_size, T *&lhs, T *&rhs) {
-        unsigned int size;
-
-        do {
-            if (pos != par_size) {
-                const auto tmp = static_cast<T *>(parent->m_sons[pos + 1]);
-                unsigned int tmp_size;
-
-                if constexpr (std::is_same_v<T, leaf_node_type>) {
-                    tmp_size = -tmp->m_size;
-                } else {
-                    tmp_size = tmp->m_size;
-                }
-
-                WJR_ASSERT_ASSUME(tmp_size >= floor_half);
-
-                rhs = tmp;
-                size = tmp_size;
-            } else {
-                auto tmp = static_cast<T *>(parent->m_sons[pos - 1]);
-                lhs = tmp;
-
-                if constexpr (std::is_same_v<T, leaf_node_type>) {
-                    return -tmp->m_size;
-                } else {
-                    return tmp->m_size;
-                }
-            }
-        } while (0);
-
-        do {
-            if (pos != 0) {
-                const auto tmp = static_cast<T *>(parent->m_sons[pos - 1]);
-                unsigned int tmp_size;
-
-                if constexpr (std::is_same_v<T, leaf_node_type>) {
-                    tmp_size = -tmp->m_size;
-                } else {
-                    tmp_size = tmp->m_size;
-                }
-
-                if (tmp_size >= size) {
-                    lhs = tmp;
-                    size = tmp_size;
-                    break;
-                }
-            }
-
-            lhs = nullptr;
-        } while (0);
-
-        return size;
-    }
-
-    WJR_NOINLINE void __erase_iter(const_iterator iter) {
-        constexpr unsigned int merge_size = floor_half * 2;
-
-        unsigned int pos;
-        unsigned int cur_size;
-        node_type *current;
-        node_type *parent;
-        unsigned int par_pos;
-        unsigned int par_size;
-
-        do {
-            leaf_node_type *leaf = iter.get_leaf();
-            pos = iter.get_pos();
-            cur_size = -leaf->m_size;
-            parent = leaf->m_parent;
-
-            _Alty_traits::destroy(__get_allocator(), leaf->m_values[pos]);
-            _Alty_traits::deallocate(__get_allocator(), (uint8_t *)leaf->m_values[pos],
-                                     sizeof(value_type));
-
-            if (cur_size > floor_half) {
-                leaf->__copy(pos + 1, cur_size, pos, leaf);
-                leaf->m_size = -(cur_size - 1);
-
-                // first key in leaf is changed
-                if (pos == 0 && parent != nullptr) {
-                    current = leaf;
-
-                    do {
-                        pos = current->m_pos;
-                        current = parent;
-                        parent = current->m_parent;
-                    } while (pos == 0 && parent != nullptr);
-
-                    if (pos != 0) {
-                        current->as_inner()->m_keys[pos - 1] = leaf->__get_key(0);
-                    }
-                }
-
-                return;
-            }
-
-            if (parent == nullptr) {
-                if (cur_size == 1) {
-                    _Alty_traits::deallocate(__get_allocator(), (uint8_t *)leaf,
-                                             sizeof(leaf_node_type));
-                    __get_root() = nullptr;
-                    init(&m_sentry);
-                    return;
-                }
-
-                leaf->__copy(pos + 1, cur_size, pos, leaf);
-                leaf->m_size = -(cur_size - 1);
-                return;
-            }
-
-            WJR_ASSERT_ASSUME(cur_size == floor_half);
-
-            const auto inner = parent->as_inner();
-            par_pos = leaf->m_pos;
-            par_size = inner->m_size;
-            leaf_node_type *lhs;
-            leaf_node_type *rhs;
-
-            unsigned int next_size =
-                __init_remove_rotate(inner, par_pos, par_size, lhs, rhs);
-
-            do {
-                if (lhs != nullptr) {
-                    rhs = leaf;
-
-                    if (next_size == floor_half) {
-                        leaf->__copy(0, pos, floor_half, lhs);
-                        leaf->__copy(pos + 1, floor_half, pos + floor_half, lhs);
-                        break;
-                    }
-
-                    const unsigned int moved_elements = (next_size - floor_half + 1) / 2;
-
-                    if (moved_elements != 1) {
-                        leaf->__copy_backward(pos + 1, floor_half,
-                                              floor_half + moved_elements - 1, leaf);
-                    }
-
-                    leaf->__copy_backward(0, pos, pos + moved_elements, leaf);
-                    lhs->__copy(next_size - moved_elements, next_size, 0, leaf);
-
-                    lhs->m_size = -(next_size - moved_elements);
-                    leaf->m_size = -(floor_half + moved_elements - 1);
-                } else {
-                    WJR_ASSERT_ASSUME(rhs != nullptr);
-
-                    lhs = leaf;
-
-                    leaf->__copy(pos + 1, floor_half, pos, leaf);
-
-                    // merge rhs to leaf, and pos of iter is zero, then
-                    // need to update key in parent
-                    if (pos == 0) {
-                        current = leaf;
-
-                        unsigned int tmp_pos;
-                        node_type *tmp_parent = parent;
-
-                        do {
-                            tmp_pos = current->m_pos;
-                            current = tmp_parent;
-                            tmp_parent = current->m_parent;
-                        } while (tmp_pos == 0 && tmp_parent != nullptr);
-
-                        if (tmp_pos != 0) {
-                            current->as_inner()->m_keys[tmp_pos - 1] = leaf->__get_key(0);
-                        }
-                    }
-
-                    if (next_size == floor_half) {
-                        rhs->__copy(0, floor_half, floor_half - 1, leaf);
-
-                        ++par_pos;
-                        break;
-                    }
-
-                    const unsigned int moved_elements = (next_size - floor_half + 1) / 2;
-
-                    rhs->__copy(0, moved_elements, floor_half - 1, leaf);
-                    rhs->__copy(moved_elements, next_size, 0, rhs);
-
-                    rhs->m_size = -(next_size - moved_elements);
-                    leaf->m_size = -(floor_half + moved_elements - 1);
-                    current = rhs;
-                }
-
-                current = rhs;
-
-                pos = current->m_pos;
-                current = parent;
-                parent = current->m_parent;
-
-                current->as_inner()->m_keys[pos - 1] = rhs->__get_key(0);
-
-                return;
-            } while (0);
-
-            lhs->m_size = -(merge_size - 1);
-            rhs->remove_uninit();
-            _Alty_traits::deallocate(__get_allocator(), (uint8_t *)rhs,
-                                     sizeof(leaf_node_type));
-
-        } while (0);
-
-        pos = par_pos;
-        cur_size = par_size;
-        current = parent;
-        parent = current->m_parent;
-
-        while (parent != nullptr) {
-            WJR_ASSERT_ASSUME(pos > 0);
-
-            const auto inner = current->as_inner();
-
-            InlineKey *const keys = inner->m_keys;
-            node_type **const sons = inner->m_sons;
-
-            if (cur_size > floor_half) {
-                Traits::copy(keys + pos, keys + cur_size, keys + pos - 1);
-                Traits::copy(sons + pos + 1, sons + cur_size + 1, sons + pos);
-
-                for (unsigned int i = pos; i < cur_size; ++i) {
-                    sons[i]->m_pos = i;
-                }
-
-                inner->m_size = cur_size - 1;
-                return;
-            }
-
-            WJR_ASSERT_ASSUME(cur_size == floor_half);
-
-            const auto par_inner = parent->as_inner();
-            par_pos = inner->m_pos;
-            par_size = par_inner->m_size;
-            inner_node_type *lhs;
-            inner_node_type *rhs;
-
-            unsigned int next_size =
-                __init_remove_rotate(par_inner, par_pos, par_size, lhs, rhs);
-
-            do {
-                if (lhs != nullptr) {
-                    rhs = inner;
-
-                    if (next_size == floor_half) {
-                        Traits::copy(keys, keys + pos - 1, lhs->m_keys + floor_half + 1);
-                        Traits::copy(sons, sons + pos, lhs->m_sons + floor_half + 1);
-                        Traits::copy(keys + pos, keys + floor_half,
-                                     lhs->m_keys + floor_half + pos);
-                        Traits::copy(sons + pos + 1, sons + floor_half + 1,
-                                     lhs->m_sons + floor_half + pos + 1);
-
-                        for (unsigned int i = floor_half; i <= merge_size; ++i) {
-                            lhs->m_sons[i]->m_parent = lhs;
-                            lhs->m_sons[i]->m_pos = i;
-                        }
-
-                        lhs->m_keys[floor_half] = par_inner->m_keys[par_pos - 1];
-                        break;
-                    }
-
-                    const unsigned int moved_elements = (next_size - floor_half + 1) / 2;
-
-                    InlineKey key = lhs->m_keys[next_size - moved_elements];
-
-                    if (moved_elements != 1) {
-                        Traits::copy_backward(keys + pos, keys + floor_half,
-                                              keys + floor_half + moved_elements - 1);
-                        Traits::copy_backward(sons + pos + 1, sons + floor_half + 1,
-                                              sons + floor_half + moved_elements);
-                        for (unsigned int i = pos + moved_elements;
-                             i < floor_half + moved_elements; ++i) {
-                            sons[i]->m_pos = i;
-                        }
-                    }
-
-                    Traits::copy_backward(keys, keys + pos - 1,
-                                          keys + pos + moved_elements - 1);
-                    Traits::copy_backward(sons, sons + pos, sons + pos + moved_elements);
-                    Traits::copy(lhs->m_keys + next_size - moved_elements + 1,
-                                 lhs->m_keys + next_size, keys);
-                    Traits::copy(lhs->m_sons + next_size - moved_elements + 1,
-                                 lhs->m_sons + next_size + 1, sons);
-
-                    keys[moved_elements - 1] = par_inner->m_keys[par_pos - 1];
-                    par_inner->m_keys[par_pos - 1] = key;
-
-                    for (unsigned int i = 0; i < moved_elements; ++i) {
-                        sons[i]->m_parent = inner;
-                        sons[i]->m_pos = i;
-                    }
-
-                    for (unsigned int i = moved_elements; i < pos + moved_elements; ++i) {
-                        sons[i]->m_pos = i;
-                    }
-
-                    lhs->m_size = next_size - moved_elements;
-                    inner->m_size = floor_half + moved_elements - 1;
-                } else {
-                    WJR_ASSERT_ASSUME(rhs != nullptr);
-
-                    lhs = inner;
-
-                    if (next_size == floor_half) {
-                        Traits::copy(keys + pos, keys + floor_half, keys + pos - 1);
-                        Traits::copy(sons + pos + 1, sons + floor_half + 1, sons + pos);
-                        Traits::copy(rhs->m_keys, rhs->m_keys + floor_half,
-                                     keys + floor_half);
-                        Traits::copy(rhs->m_sons, rhs->m_sons + floor_half + 1,
-                                     sons + floor_half);
-
-                        for (unsigned int i = pos; i < floor_half; ++i) {
-                            inner->m_sons[i]->m_pos = i;
-                        }
-
-                        for (unsigned int i = floor_half; i <= merge_size; ++i) {
-                            inner->m_sons[i]->m_parent = inner;
-                            inner->m_sons[i]->m_pos = i;
-                        }
-
-                        lhs->m_keys[floor_half - 1] = par_inner->m_keys[par_pos];
-                        ++par_pos;
-                        break;
-                    }
-
-                    const unsigned int moved_elements = (next_size - floor_half + 1) / 2;
-
-                    InlineKey key = rhs->m_keys[moved_elements - 1];
-
-                    Traits::copy(keys + pos, keys + floor_half, keys + pos - 1);
-                    Traits::copy(sons + pos + 1, sons + floor_half + 1, sons + pos);
-                    Traits::copy(rhs->m_keys, rhs->m_keys + moved_elements - 1,
-                                 keys + floor_half);
-                    Traits::copy(rhs->m_sons, rhs->m_sons + moved_elements,
-                                 sons + floor_half);
-                    Traits::copy(rhs->m_keys + moved_elements, rhs->m_keys + next_size,
-                                 rhs->m_keys);
-                    Traits::copy(rhs->m_sons + moved_elements,
-                                 rhs->m_sons + next_size + 1, rhs->m_sons);
-
-                    keys[floor_half - 1] = par_inner->m_keys[par_pos];
-                    par_inner->m_keys[par_pos] = key;
-
-                    for (unsigned int i = pos; i < floor_half; ++i) {
-                        sons[i]->m_pos = i;
-                    }
-
-                    for (unsigned int i = floor_half; i < floor_half + moved_elements;
-                         ++i) {
-                        sons[i]->m_parent = inner;
-                        sons[i]->m_pos = i;
-                    }
-
-                    for (unsigned int i = 0; i <= next_size - moved_elements; ++i) {
-                        rhs->m_sons[i]->m_pos = i;
-                    }
-
-                    rhs->m_size = next_size - moved_elements;
-                    inner->m_size = floor_half + moved_elements - 1;
-                }
-
-                return;
-            } while (0);
-
-            lhs->m_size = merge_size;
-            _Alty_traits::deallocate(__get_allocator(), (uint8_t *)rhs,
-                                     sizeof(inner_node_type));
-
-            pos = par_pos;
-            cur_size = par_size;
-            current = parent;
-            parent = current->m_parent;
-        }
-
-        const auto inner = current->as_inner();
-
-        if (cur_size == 1) {
-            _Alty_traits::deallocate(__get_allocator(), (uint8_t *)inner,
-                                     sizeof(inner_node_type));
-            node_type *root = inner->m_sons[0];
-            __get_root() = root;
-            root->m_parent = nullptr;
-            return;
-        }
-
-        Traits::copy(inner->m_keys + pos, inner->m_keys + cur_size,
-                     inner->m_keys + pos - 1);
-        Traits::copy(inner->m_sons + pos + 1, inner->m_sons + cur_size + 1,
-                     inner->m_sons + pos);
-
-        for (unsigned int i = pos; i < cur_size; ++i) {
-            inner->m_sons[i]->m_pos = i;
-        }
-
-        inner->m_size = cur_size - 1;
-    }
-
-    WJR_INTRINSIC_CONSTEXPR node_type *&__get_root() noexcept {
-        return m_pair.second().second();
-    }
-
-    WJR_INTRINSIC_CONSTEXPR const node_type *__get_root() const noexcept {
-        return m_pair.second().second();
-    }
-
-    compressed_pair<key_compare, compressed_pair<_Alty, node_type *>> m_pair;
-    ListNode m_sentry;
-}; // namespace wjr
-
-} // namespace wjr
-
-#endif // WJR_CONTAINER_GENERIC_BPLUS_TREE_HPP__
-
-#endif // WJR_BPLUS_TREE_HPP__
 #ifndef WJR_JSON_LEXER_HPP__
 #define WJR_JSON_LEXER_HPP__
 

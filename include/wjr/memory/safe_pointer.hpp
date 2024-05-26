@@ -5,7 +5,7 @@
 
 namespace wjr {
 
-#if WJR_DEBUG_LEVEL > 1
+#if WJR_DEBUG_LEVEL > 2
 #define WJR_HAS_DEBUG_SAFE_POINTER WJR_HAS_DEF
 #endif
 
@@ -30,7 +30,6 @@ public:
 
     constexpr safe_pointer &reset_range() noexcept {
         m_offset = 0;
-        m_capacity = m_size;
         return *this;
     }
 
@@ -39,23 +38,24 @@ public:
     constexpr reference operator[](size_type i) const noexcept { return m_ptr[i]; }
 
     constexpr safe_pointer(span<T> s) noexcept
-        : m_ptr(s.data()), m_offset(0), m_size(s.size()), m_capacity(s.size()) {}
+        : m_ptr(s.data()), m_offset(0), m_size(s.size()) {}
 
     constexpr safe_pointer first(size_type count) const noexcept {
+        WJR_ASSERT_L1(m_ptr != nullptr, "safe_pointer: nullptr");
         WJR_ASSERT_L1(count <= m_size, "safe_pointer: out of range");
-        return safe_pointer{m_ptr, m_offset, count, m_capacity};
+        return {m_ptr, m_offset, count};
     }
 
     constexpr safe_pointer subspan(size_type offset, size_type count) const noexcept {
+        WJR_ASSERT_L1(m_ptr != nullptr, "safe_pointer: nullptr");
         WJR_ASSERT_L1(offset + count <= m_size, "safe_pointer: out of range");
-        return safe_pointer{m_ptr + offset, m_offset + offset, count, m_capacity};
+        return {m_ptr + offset, m_offset + offset, count};
     }
 
     constexpr safe_pointer &operator=(span<T> s) noexcept {
         m_ptr = s.data();
         m_offset = 0;
         m_size = s.size();
-        m_capacity = s.size();
         return *this;
     }
 
@@ -63,11 +63,11 @@ public:
         m_ptr = nullptr;
         m_offset = 0;
         m_size = 0;
-        m_capacity = 0;
         return *this;
     }
 
     constexpr safe_pointer &operator+=(size_type n) noexcept {
+        WJR_ASSERT_L1(m_ptr != nullptr, "safe_pointer: nullptr");
         WJR_ASSERT_L1(n <= m_size, "safe_pointer: out of range");
         m_ptr += n;
         m_offset += n;
@@ -84,6 +84,7 @@ public:
     }
 
     constexpr safe_pointer &operator-=(size_type n) noexcept {
+        WJR_ASSERT_L1(m_ptr != nullptr, "safe_pointer: nullptr");
         WJR_ASSERT_L1(m_offset >= n, "safe_pointer: out of range");
         m_ptr -= n;
         m_offset -= n;
@@ -101,10 +102,12 @@ public:
     }
 
 private:
+    constexpr safe_pointer(pointer ptr, size_type offset, size_type size) noexcept
+        : m_ptr(ptr), m_offset(offset), m_size(size) {}
+
     pointer m_ptr = nullptr;
     size_type m_offset;
     size_type m_size;
-    size_type m_capacity;
 };
 
 #else
@@ -148,13 +151,12 @@ public:
         return *this;
     }
 
-    constexpr safe_pointer &operator=(nullptr_t) noexcept {
+    constexpr safe_pointer &operator=(std::nullptr_t) noexcept {
         m_ptr = nullptr;
         return *this;
     }
 
     constexpr safe_pointer &operator+=(size_type n) noexcept {
-        WJR_ASSERT_L1(n <= m_size, "safe_pointer: out of range");
         m_ptr += n;
         return *this;
     }

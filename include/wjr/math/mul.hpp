@@ -6,7 +6,6 @@
  *
  */
 
-#include <wjr/inline_key.hpp>
 #include <wjr/math/add.hpp>
 #include <wjr/math/bignum-config.hpp>
 #include <wjr/math/bit.hpp>
@@ -450,7 +449,6 @@ inline constexpr size_t toom3_sqr_threshold = WJR_TOOM3_SQR_THRESHOLD;
 inline constexpr size_t toom4_sqr_threshold = WJR_TOOM4_SQR_THRESHOLD;
 inline constexpr size_t toom5_sqr_threshold = WJR_TOOM5_SQR_THRESHOLD;
 
-// only toom22 is optimized to inline
 enum class __mul_mode : uint8_t {
     toom22 = 0x00,
     toom33 = 0x01,
@@ -458,48 +456,11 @@ enum class __mul_mode : uint8_t {
     all = 0x03,
 };
 
-template <__mul_mode mode, bool reserved>
-WJR_INTRINSIC_INLINE void
-__mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-             const uint64_t *src1, size_t m,
-             std::conditional_t<reserved, safe_pointer<uint64_t>, in_place_empty_t> mal);
-
-template <__mul_mode mode>
-WJR_INTRINSIC_INLINE void __mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                  size_t n, const uint64_t *src1, size_t m,
-                                  safe_pointer<uint64_t> stk);
-
 WJR_INTRINSIC_INLINE void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                 size_t n, const uint64_t *src1, size_t m);
 
-WJR_INTRINSIC_INLINE void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                size_t n, const uint64_t *src1, size_t m,
-                                safe_pointer<uint64_t> stk);
-
-template <__mul_mode mode, bool reserved>
-WJR_INTRINSIC_INLINE void
-__mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1,
-             size_t n,
-             std::conditional_t<reserved, safe_pointer<uint64_t>, in_place_empty_t> mal);
-
-template <__mul_mode mode>
-WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                  const uint64_t *src1, size_t n,
-                                  safe_pointer<uint64_t> stk);
-
-template <__mul_mode mode, uint64_t m0 = in_place_max, uint64_t m1 = in_place_max>
-WJR_INTRINSIC_INLINE void
-__mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1, size_t n,
-        safe_pointer<uint64_t> stk, uint64_t &c_out, uint64_t cf0, uint64_t cf1,
-        std::integral_constant<uint64_t, m0> = {},
-        std::integral_constant<uint64_t, m1> = {});
-
 WJR_INTRINSIC_INLINE void mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                 const uint64_t *src1, size_t n);
-
-WJR_INTRINSIC_INLINE void mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                const uint64_t *src1, size_t n,
-                                safe_pointer<uint64_t> stk);
 
 WJR_INTRINSIC_INLINE void basecase_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                          size_t n, const uint64_t *src1, size_t m);
@@ -507,23 +468,7 @@ WJR_INTRINSIC_INLINE void basecase_mul_s(uint64_t *WJR_RESTRICT dst, const uint6
 WJR_INTRINSIC_INLINE void basecase_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
                                        size_t n);
 
-template <__mul_mode mode, bool reserved>
-WJR_INTRINSIC_INLINE void
-__sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-           std::conditional_t<reserved, safe_pointer<uint64_t>, in_place_empty_t> mal);
-
-WJR_INTRINSIC_INLINE void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                                safe_pointer<uint64_t> stk);
-
-template <__mul_mode mode, uint64_t m = in_place_max>
-WJR_INTRINSIC_INLINE void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                                safe_pointer<uint64_t> stk, uint64_t &c_out, uint64_t cf,
-                                std::integral_constant<uint64_t, m> x = {});
-
 WJR_INTRINSIC_INLINE void sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n);
-
-WJR_INTRINSIC_INLINE void sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                              safe_pointer<uint64_t> stk);
 
 struct toom_interpolation_5p_struct {
     bool neg1;
@@ -648,6 +593,18 @@ extern void toom44_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_
 extern void toom4_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
                       safe_pointer<uint64_t> stk) noexcept;
 
+extern void toom_interpolation_8p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
+                                    size_t rn, size_t rm,
+                                    toom_interpolation_7p_struct &&flag) noexcept;
+
+extern void toom54_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
+                         const uint64_t *src1, size_t m,
+                         safe_pointer<uint64_t> stk) noexcept;
+
+extern void toom63_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
+                         const uint64_t *src1, size_t m,
+                         safe_pointer<uint64_t> stk) noexcept;
+
 struct toom_eval_opposite_exp_args {
     using tuple_type = tuple<uint64_t *, uint64_t *, uint64_t *, const uint64_t *, size_t,
                              size_t, size_t, unsigned int>;
@@ -674,12 +631,40 @@ extern void toom_interpolation_9p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, s
                                     size_t rn, size_t rm,
                                     toom_interpolation_high_p_struct<9> &&flag) noexcept;
 
+/*
+ l = ceil(n/5)
+ stk usage : l * 14
+*/
 extern void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
                          const uint64_t *src1, size_t m,
                          safe_pointer<uint64_t> stk) noexcept;
 
 extern void toom5_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
                       safe_pointer<uint64_t> stk) noexcept;
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom22_s_itch(size_t m) noexcept {
+    return m * 4 + (m / 2) + 64;
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom22_n_itch(size_t n) noexcept {
+    return n * 2 + bit_width(n);
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom33_s_itch(size_t m) noexcept {
+    return m * 4 + (m / 2) + 64;
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom33_n_itch(size_t m) noexcept {
+    return m * 2 + 64;
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom44_n_itch(size_t m) noexcept {
+    return m * 2 + 64;
+}
+
+WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom55_n_itch(size_t m) noexcept {
+    return m * 3 + (m / 2) + 32;
+}
 
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool toom44_ok(size_t n, size_t m) noexcept {
     return 3 * n + 21 <= 4 * m;
@@ -689,404 +674,73 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool toom55_ok(size_t n, size_t m) noexcept {
     return 4 * n + 36 <= 5 * m;
 }
 
-struct __mul_s_unique_stack_allocator {
-    template <typename... Args>
-    constexpr __mul_s_unique_stack_allocator(Args &&...) {}
-};
+extern void __noinline_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                                  size_t n, const uint64_t *src1, size_t m) noexcept;
 
-template <typename T, typename U>
-WJR_INTRINSIC_INLINE safe_pointer<uint64_t>
-__mul_s_allocate(WJR_MAYBE_UNUSED T &mal, WJR_MAYBE_UNUSED U &alloc, size_t n) {
-    if constexpr (std::is_same_v<remove_cvref_t<U>, __mul_s_unique_stack_allocator>) {
-        (void)(alloc);
-        uint64_t *ret = mal.data();
-        mal += n;
-        return span<uint64_t>(ret, n);
-    } else {
-        (void)(mal);
-        return span<uint64_t>(static_cast<uint64_t *>(alloc.allocate(n)), n);
-    }
-}
-
-template <bool reserved>
-void __toom22_mul_s_impl(
-    uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,
-    size_t m,
-    std::conditional_t<reserved, safe_pointer<uint64_t>, in_place_empty_t> mal) {
-    WJR_ASSERT_ASSUME(m >= 1);
-    WJR_ASSERT_ASSUME(n >= m);
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n + m, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n + m, src1, m));
-
-    using unique_alloc =
-        std::conditional_t<reserved, __mul_s_unique_stack_allocator,
-                           unique_stack_allocator<wjr::math_details::stack_alloc_object>>;
-
-    if (m < toom22_mul_threshold) {
-        return basecase_mul_s(dst, src0, n, src1, m);
-    }
-
-    unique_alloc stkal(math_details::stack_alloc);
-
-    if (n >= 3 * m) {
-        uint64_t *tmp = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (4 * m)).data();
-        safe_pointer<uint64_t> stk =
-            __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-
-        toom42_mul_s(dst, src0, 2 * m, src1, m, stk);
-        n -= 2 * m;
-        src0 += 2 * m;
-        dst += 2 * m;
-
-        uint64_t cf = 0;
-
-        while (n >= 3 * m) {
-            toom42_mul_s(tmp, src0, 2 * m, src1, m, stk);
-            n -= 2 * m;
-            src0 += 2 * m;
-
-            cf = addc_n(dst, dst, tmp, m, cf);
-            std::copy(tmp + m, tmp + 3 * m, dst + m);
-            cf = addc_1(dst + m, dst + m, 2 * m, 0, cf);
-
-            dst += 2 * m;
-        }
-
-        if (4 * n < 5 * m) {
-            toom22_mul_s(tmp, src0, n, src1, m, stk);
-        } else if (4 * n < 7 * m) {
-            toom32_mul_s(tmp, src0, n, src1, m, stk);
-        } else {
-            toom42_mul_s(tmp, src0, n, src1, m, stk);
-        }
-
-        cf = addc_n(dst, dst, tmp, m, cf);
-        std::copy(tmp + m, tmp + m + n, dst + m);
-        cf = addc_1(dst + m, dst + m, n, 0, cf);
-        WJR_ASSERT(cf == 0);
-    } else {
-        safe_pointer<uint64_t> stk =
-            __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-
-        if (4 * n < 5 * m) {
-            toom22_mul_s(dst, src0, n, src1, m, stk);
-        } else if (4 * n < 7 * m) {
-            toom32_mul_s(dst, src0, n, src1, m, stk);
-        } else {
-            toom42_mul_s(dst, src0, n, src1, m, stk);
-        }
-    }
-
-    return;
-}
-
-template <bool reserved>
-void __noinline_mul_s_impl(
-    uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n, const uint64_t *src1,
-    size_t m,
-    std::conditional_t<reserved, safe_pointer<uint64_t>, in_place_empty_t> mal) noexcept {
-    WJR_ASSERT_ASSUME(m >= 1);
-    WJR_ASSERT_ASSUME(n >= m);
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n + m, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n + m, src1, m));
-
-    using unique_alloc =
-        std::conditional_t<reserved, __mul_s_unique_stack_allocator,
-                           unique_stack_allocator<wjr::math_details::stack_alloc_object>>;
-
-    if (m < toom22_mul_threshold) {
-        return basecase_mul_s(dst, src0, n, src1, m);
-    }
-
-    unique_alloc stkal(math_details::stack_alloc);
-
-    if (m < toom33_mul_threshold) {
-        if (n >= 3 * m) {
-            uint64_t *tmp =
-                __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (4 * m)).data();
-            safe_pointer<uint64_t> stk =
-                __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-
-            toom42_mul_s(dst, src0, 2 * m, src1, m, stk);
-            n -= 2 * m;
-            src0 += 2 * m;
-            dst += 2 * m;
-
-            uint64_t cf = 0;
-
-            while (n >= 3 * m) {
-                toom42_mul_s(tmp, src0, 2 * m, src1, m, stk);
-                n -= 2 * m;
-                src0 += 2 * m;
-
-                cf = addc_n(dst, dst, tmp, m, cf);
-                std::copy(tmp + m, tmp + 3 * m, dst + m);
-                cf = addc_1(dst + m, dst + m, 2 * m, 0, cf);
-
-                dst += 2 * m;
-            }
-
-            if (4 * n < 5 * m) {
-                toom22_mul_s(tmp, src0, n, src1, m, stk);
-            } else if (4 * n < 7 * m) {
-                toom32_mul_s(tmp, src0, n, src1, m, stk);
-            } else {
-                toom42_mul_s(tmp, src0, n, src1, m, stk);
-            }
-
-            cf = addc_n(dst, dst, tmp, m, cf);
-            std::copy(tmp + m, tmp + m + n, dst + m);
-            cf = addc_1(dst + m, dst + m, n, 0, cf);
-            WJR_ASSERT(cf == 0);
-        } else {
-            safe_pointer<uint64_t> stk =
-                __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-
-            if (4 * n < 5 * m) {
-                toom22_mul_s(dst, src0, n, src1, m, stk);
-            } else if (4 * n < 7 * m) {
-                toom32_mul_s(dst, src0, n, src1, m, stk);
-            } else {
-                toom42_mul_s(dst, src0, n, src1, m, stk);
-            }
-        }
-
-        return;
-    }
-
-    do {
-        if (m < toom44_mul_threshold) {
-            break;
-        }
-
-        if (m < toom55_mul_threshold) {
-            if (!toom44_ok(n, m)) {
-                break;
-            }
-
-            safe_pointer<uint64_t> stk =
-                __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-            toom44_mul_s(dst, src0, n, src1, m, stk);
-            return;
-        }
-
-        if (!toom55_ok(n, m)) {
-            break;
-        }
-
-        safe_pointer<uint64_t> stk =
-            __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (22 * m + 288));
-        toom55_mul_s(dst, src0, n, src1, m, stk);
-        return;
-    } while (0);
-
-    if (n >= 3 * m) {
-        uint64_t *tmp = __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (4 * m)).data();
-        safe_pointer<uint64_t> stk =
-            __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-
-        toom42_mul_s(dst, src0, 2 * m, src1, m, stk);
-        n -= 2 * m;
-        src0 += 2 * m;
-        dst += 2 * m;
-
-        uint64_t cf = 0;
-
-        while (n >= 3 * m) {
-            toom42_mul_s(tmp, src0, 2 * m, src1, m, stk);
-            n -= 2 * m;
-            src0 += 2 * m;
-
-            cf = addc_n(dst, dst, tmp, m, cf);
-            std::copy(tmp + m, tmp + 3 * m, dst + m);
-            cf = addc_1(dst + m, dst + m, 2 * m, 0, cf);
-
-            dst += 2 * m;
-        }
-
-        __mul_s_impl<__mul_mode::all, true>(tmp, src0, n, src1, m, stk);
-
-        cf = addc_n(dst, dst, tmp, m, cf);
-        std::copy(tmp + m, tmp + m + n, dst + m);
-        cf = addc_1(dst + m, dst + m, n, 0, cf);
-        WJR_ASSERT(cf == 0);
-    } else {
-        safe_pointer<uint64_t> stk =
-            __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * m + 288));
-        if (6 * n < 7 * m) {
-            toom33_mul_s(dst, src0, n, src1, m, stk);
-        } else if (2 * n < 3 * m) {
-            if (m < toom32_to_toom43_mul_threshold) {
-                toom32_mul_s(dst, src0, n, src1, m, stk);
-            } else {
-                toom43_mul_s(dst, src0, n, src1, m, stk);
-            }
-        } else if (6 * n < 11 * m) {
-            if (4 * n < 7 * m) {
-                if (m < toom32_to_toom53_mul_threshold) {
-                    toom32_mul_s(dst, src0, n, src1, m, stk);
-                } else {
-                    toom53_mul_s(dst, src0, n, src1, m, stk);
-                }
-            } else {
-                if (m < toom42_to_toom53_mul_threshold) {
-                    toom42_mul_s(dst, src0, n, src1, m, stk);
-                } else {
-                    toom53_mul_s(dst, src0, n, src1, m, stk);
-                }
-            }
-        } else {
-            toom42_mul_s(dst, src0, n, src1, m, stk);
-        }
-    }
-}
-
-extern template void __noinline_mul_s_impl<true>(uint64_t *WJR_RESTRICT dst,
-                                                 const uint64_t *src0, size_t n,
-                                                 const uint64_t *src1, size_t m,
-                                                 safe_pointer<uint64_t> mal) noexcept;
-
-extern template void __noinline_mul_s_impl<false>(uint64_t *WJR_RESTRICT dst,
-                                                  const uint64_t *src0, size_t n,
-                                                  const uint64_t *src1, size_t m,
-                                                  in_place_empty_t mal) noexcept;
-
-template <__mul_mode mode, bool reserved>
-WJR_INTRINSIC_INLINE void
-__mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-             const uint64_t *src1, size_t m,
-             std::conditional_t<reserved, safe_pointer<uint64_t>, in_place_empty_t> mal) {
-    static_assert((int)__mul_mode::toom22 == 0, "");
+WJR_INTRINSIC_INLINE void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                                size_t n, const uint64_t *src1, size_t m) {
     if (WJR_BUILTIN_CONSTANT_P(n == m) && n == m) {
+        return mul_n(dst, src0, src1, n);
     }
-    return __mul_n_impl<mode, reserved>(dst, src0, src1, n, mal);
 
-    if constexpr (mode == __mul_mode::toom22) {
-        return __toom22_mul_s_impl<reserved>(dst, src0, n, src1, m, mal);
+    return __noinline_mul_s_impl(dst, src0, n, src1, m);
+}
+
+template <typename T>
+safe_pointer<uint64_t> __mul_s_allocate(T &al, WJR_MAYBE_UNUSED size_t n) noexcept {
+    if constexpr (std::is_same_v<T, safe_pointer<uint64_t>>) {
+        return al;
     } else {
-        return __noinline_mul_s_impl<reserved>(dst, src0, n, src1, m, mal);
+        return span<uint64_t>(static_cast<uint64_t *>(al.allocate(sizeof(uint64_t) * n)),
+                              n);
     }
 }
 
 template <__mul_mode mode>
-WJR_INTRINSIC_INLINE void __mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                  size_t n, const uint64_t *src1, size_t m,
-                                  safe_pointer<uint64_t> stk) {
-    return __mul_s_impl<mode, true>(dst, src0, n, src1, m, stk);
-}
-
-WJR_INTRINSIC_INLINE void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                size_t n, const uint64_t *src1, size_t m) {
-    return __mul_s_impl<__mul_mode::all, false>(dst, src0, n, src1, m, in_place_empty);
-}
-
-WJR_INTRINSIC_INLINE void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                size_t n, const uint64_t *src1, size_t m,
-                                safe_pointer<uint64_t> stk) {
-    return __mul_s_impl<__mul_mode::all, true>(dst, src0, n, src1, m, stk);
-}
-
-template <__mul_mode mode, bool reserved>
-WJR_INTRINSIC_INLINE void __inline_mul_n_impl(
-    uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1, size_t n,
-    std::conditional_t<reserved, safe_pointer<uint64_t>, in_place_empty_t> mal) {
+void __inline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                         const uint64_t *src1, size_t n,
+                         safe_pointer<uint64_t> mal) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src0, n));
     WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src1, n));
-
-    using unique_alloc =
-        std::conditional_t<reserved, __mul_s_unique_stack_allocator,
-                           unique_stack_allocator<wjr::math_details::stack_alloc_object>>;
 
     if (n < toom22_mul_threshold) {
         return basecase_mul_s(dst, src0, n, src1, n);
     }
 
-    unique_alloc stkal(math_details::stack_alloc);
-
     if (mode <= __mul_mode::toom22 || n < toom33_mul_threshold) {
-        safe_pointer<uint64_t> stk =
-            __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (6 * n + 67));
+        safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom22_n_itch(n));
         return toom22_mul_s(dst, src0, n, src1, n, stk);
     }
 
-    safe_pointer<uint64_t> stk =
-        __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * n + 288));
+    safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom33_n_itch(n));
     return toom33_mul_s(dst, src0, n, src1, n, stk);
 }
 
-template <bool reserved>
-void __noinline_mul_n_impl(
-    uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1, size_t n,
-    std::conditional_t<reserved, safe_pointer<uint64_t>, in_place_empty_t> mal) {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src1, n));
-
-    using unique_alloc =
-        std::conditional_t<reserved, __mul_s_unique_stack_allocator,
-                           unique_stack_allocator<wjr::math_details::stack_alloc_object>>;
-
-    if (n < toom22_mul_threshold) {
-        return basecase_mul_s(dst, src0, n, src1, n);
-    }
-
-    unique_alloc stkal(math_details::stack_alloc);
-
-    if (n < toom33_mul_threshold) {
-        safe_pointer<uint64_t> stk =
-            __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (6 * n + 67));
-        return toom22_mul_s(dst, src0, n, src1, n, stk);
-    }
-
-    if (n < toom44_mul_threshold) {
-        safe_pointer<uint64_t> stk =
-            __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * n + 288));
-        return toom33_mul_s(dst, src0, n, src1, n, stk);
-    }
-
-    if (n < toom55_mul_threshold) {
-        safe_pointer<uint64_t> stk =
-            __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * n + 288));
-        return toom44_mul_s(dst, src0, n, src1, n, stk);
-    }
-
-    safe_pointer<uint64_t> stk =
-        __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (18 * n + 288));
-    return toom55_mul_s(dst, src0, n, src1, n, stk);
-}
-
-template <__mul_mode mode, bool reserved>
-WJR_INTRINSIC_INLINE void
-__mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1,
-             size_t n,
-             std::conditional_t<reserved, safe_pointer<uint64_t>, in_place_empty_t> mal) {
-    if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
-        return __sqr_impl<mode, reserved>(dst, src0, n, mal);
-    }
-
-    if constexpr (mode <= __mul_mode::toom33) {
-        return __inline_mul_n_impl<mode, reserved>(dst, src0, src1, n, mal);
-    } else {
-        return __noinline_mul_n_impl<reserved>(dst, src0, src1, n, mal);
-    }
-}
+extern void __noinline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
+                                  const uint64_t *src1, size_t n) noexcept;
 
 template <__mul_mode mode>
 WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                   const uint64_t *src1, size_t n,
-                                  safe_pointer<uint64_t> stk) {
-    return __mul_n_impl<mode, true>(dst, src0, src1, n, stk);
+                                  WJR_MAYBE_UNUSED safe_pointer<uint64_t> stk) {
+    if constexpr (mode <= __mul_mode::toom33) {
+        __inline_mul_n_impl<mode>(dst, src0, src1, n, stk);
+    } else {
+        mul_n(dst, src0, src1, n);
+    }
 }
 
-template <__mul_mode mode, uint64_t m0, uint64_t m1>
+template <__mul_mode mode, uint64_t m0 = in_place_max, uint64_t m1 = in_place_max>
 void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1,
              size_t n, safe_pointer<uint64_t> stk, uint64_t &c_out, uint64_t cf0,
-             uint64_t cf1, std::integral_constant<uint64_t, m0> x0,
-             std::integral_constant<uint64_t, m1> x1) {
+             uint64_t cf1, std::integral_constant<uint64_t, m0> x0 = {},
+             std::integral_constant<uint64_t, m1> x1 = {}) {
     WJR_ASSERT_ASSUME(cf0 <= m0);
     WJR_ASSERT_ASSUME(cf1 <= m1);
+
     __mul_n<mode>(dst, src0, src1, n, stk);
+
     if constexpr (m0 == 0 || m1 == 0) {
         c_out = 0;
     } else if constexpr (m0 == 1 || m1 == 1) {
@@ -1106,106 +760,53 @@ void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *s
 
 WJR_INTRINSIC_INLINE void mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                 const uint64_t *src1, size_t n) {
-    return __mul_n_impl<__mul_mode::all, false>(dst, src0, src1, n, in_place_empty);
-}
-
-WJR_INTRINSIC_INLINE void mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                const uint64_t *src1, size_t n,
-                                safe_pointer<uint64_t> stk) {
-    return __mul_n_impl<__mul_mode::all, true>(dst, src0, src1, n, stk);
-}
-
-template <__mul_mode mode, bool reserved>
-WJR_INTRINSIC_INLINE void __inline_sqr_impl(
-    uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-    std::conditional_t<reserved, safe_pointer<uint64_t>, in_place_empty_t> mal) {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src, n));
-
-    using unique_alloc =
-        std::conditional_t<reserved, __mul_s_unique_stack_allocator,
-                           unique_stack_allocator<wjr::math_details::stack_alloc_object>>;
-
-    if (n < toom2_sqr_threshold) {
-        return basecase_sqr(dst, src, n);
+    if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
+        return sqr(dst, src0, n);
     }
 
-    unique_alloc stkal(math_details::stack_alloc);
-
-    if (mode <= __mul_mode::toom22 || n < toom3_sqr_threshold) {
-        safe_pointer<uint64_t> stk =
-            __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (6 * n + 67));
-        return toom2_sqr(dst, src, n, stk);
-    }
-
-    safe_pointer<uint64_t> stk =
-        __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * n + 288));
-    return toom3_sqr(dst, src, n, stk);
-}
-
-template <bool reserved>
-void __noinline_sqr_impl(
-    uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-    std::conditional_t<reserved, safe_pointer<uint64_t>, in_place_empty_t> mal) {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src, n));
-
-    using unique_alloc =
-        std::conditional_t<reserved, __mul_s_unique_stack_allocator,
-                           unique_stack_allocator<wjr::math_details::stack_alloc_object>>;
-
-    if (n < toom2_sqr_threshold) {
-        return basecase_sqr(dst, src, n);
-    }
-
-    unique_alloc stkal(math_details::stack_alloc);
-
-    if (n < toom3_sqr_threshold) {
-        safe_pointer<uint64_t> stk =
-            __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (6 * n + 67));
-        return toom2_sqr(dst, src, n, stk);
-    }
-
-    if (n < toom4_sqr_threshold) {
-        safe_pointer<uint64_t> stk =
-            __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * n + 288));
-        return toom3_sqr(dst, src, n, stk);
-    }
-
-    if (n < toom5_sqr_threshold) {
-        safe_pointer<uint64_t> stk =
-            __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (9 * n + 288));
-        return toom4_sqr(dst, src, n, stk);
-    }
-
-    safe_pointer<uint64_t> stk =
-        __mul_s_allocate(mal, stkal, sizeof(uint64_t) * (13 * n + 288));
-    return toom5_sqr(dst, src, n, stk);
-}
-
-template <__mul_mode mode, bool reserved>
-WJR_INTRINSIC_INLINE void
-__sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-           std::conditional_t<reserved, safe_pointer<uint64_t>, in_place_empty_t> mal) {
-    if constexpr (mode <= __mul_mode::toom33) {
-        return __inline_sqr_impl<mode, reserved>(dst, src, n, mal);
-    } else {
-        return __noinline_sqr_impl<reserved>(dst, src, n, mal);
-    }
+    return __noinline_mul_n_impl(dst, src0, src1, n);
 }
 
 template <__mul_mode mode>
-WJR_INTRINSIC_INLINE void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                                safe_pointer<uint64_t> stk) {
-    return __sqr_impl<mode, true>(dst, src, n, stk);
+inline void __inline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
+                              safe_pointer<uint64_t> mal) noexcept {
+    WJR_ASSERT_ASSUME(n >= 1);
+    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src, n));
+
+    if (n < toom2_sqr_threshold) {
+        return basecase_sqr(dst, src, n);
+    }
+
+    if (mode <= __mul_mode::toom22 || n < toom3_sqr_threshold) {
+        safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom22_n_itch(n));
+        return toom2_sqr(dst, src, n, stk);
+    }
+
+    safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom33_n_itch(n));
+    return toom3_sqr(dst, src, n, stk);
 }
 
-template <__mul_mode mode, uint64_t m>
+extern void __noinline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
+                                size_t n) noexcept;
+
+template <__mul_mode mode>
+void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
+           WJR_MAYBE_UNUSED safe_pointer<uint64_t> stk) noexcept {
+    if constexpr (mode <= __mul_mode ::toom33) {
+        __inline_sqr_impl<mode>(dst, src, n, stk);
+    } else {
+        sqr(dst, src, n);
+    }
+}
+
+template <__mul_mode mode, uint64_t m = in_place_max>
 void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
            safe_pointer<uint64_t> stk, uint64_t &c_out, uint64_t cf,
-           std::integral_constant<uint64_t, m>) {
+           std::integral_constant<uint64_t, m> = {}) noexcept {
     WJR_ASSERT_ASSUME(cf <= m);
+
     __sqr<mode>(dst, src, n, stk);
+
     if constexpr (m == 0) {
         c_out = 0;
     } else if constexpr (m == 1) {
@@ -1221,12 +822,7 @@ void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
 }
 
 WJR_INTRINSIC_INLINE void sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n) {
-    __sqr_impl<__mul_mode::all, false>(dst, src, n, in_place_empty);
-}
-
-WJR_INTRINSIC_INLINE void sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                              safe_pointer<uint64_t> stk) {
-    __sqr_impl<__mul_mode::all, true>(dst, src, n, stk);
+    return __noinline_sqr_impl(dst, src, n);
 }
 
 WJR_INTRINSIC_INLINE void fallback_basecase_mul_s(uint64_t *WJR_RESTRICT dst,
