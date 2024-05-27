@@ -20149,6 +20149,10 @@ WJR_INTRINSIC_CONSTEXPR_E uint8_t __addc_cc_128(uint64_t &al, uint64_t &ah, uint
 #define WJR_TOOM42_TO_TOOM53_MUL_THRESHOLD 137
 #endif
 
+#ifndef WJR_TOOM42_TO_TOOM63_MUL_THRESHOLD
+#define WJR_TOOM42_TO_TOOM63_MUL_THRESHOLD 153
+#endif
+
 #ifndef WJR_TOOM2_SQR_THRESHOLD
 #define WJR_TOOM2_SQR_THRESHOLD 34
 #endif
@@ -23198,6 +23202,8 @@ inline constexpr size_t toom32_to_toom53_mul_threshold =
     WJR_TOOM32_TO_TOOM53_MUL_THRESHOLD;
 inline constexpr size_t toom42_to_toom53_mul_threshold =
     WJR_TOOM42_TO_TOOM53_MUL_THRESHOLD;
+inline constexpr size_t toom42_to_toom63_mul_threshold =
+    WJR_TOOM42_TO_TOOM63_MUL_THRESHOLD;
 inline constexpr size_t toom2_sqr_threshold = WJR_TOOM2_SQR_THRESHOLD;
 inline constexpr size_t toom3_sqr_threshold = WJR_TOOM3_SQR_THRESHOLD;
 inline constexpr size_t toom4_sqr_threshold = WJR_TOOM4_SQR_THRESHOLD;
@@ -23347,18 +23353,6 @@ extern void toom44_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_
 extern void toom4_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
                       safe_pointer<uint64_t> stk) noexcept;
 
-extern void toom_interpolation_8p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
-                                    size_t rn, size_t rm,
-                                    toom_interpolation_7p_struct &&flag) noexcept;
-
-extern void toom54_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m,
-                         safe_pointer<uint64_t> stk) noexcept;
-
-extern void toom63_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m,
-                         safe_pointer<uint64_t> stk) noexcept;
-
 struct toom_eval_opposite_exp_args {
     using tuple_type = tuple<uint64_t *, uint64_t *, uint64_t *, const uint64_t *, size_t,
                              size_t, size_t, unsigned int>;
@@ -23381,13 +23375,27 @@ toom_eval_opposite_2_exp(toom_eval_opposite_exp_args &args) noexcept;
 WJR_NODISCARD extern bool
 toom_eval_opposite_half_exp(toom_eval_opposite_exp_args &args) noexcept;
 
+extern void toom_interpolation_8p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
+                                    size_t rn, size_t rm,
+                                    toom_interpolation_high_p_struct<8> &&flag) noexcept;
+
+/**
+ * @details \n
+ * l = max(ceil(n/6), ceil(m/3)) \n
+ * stk usage : l * 10 \n
+ *
+ */
+extern void toom63_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
+                         const uint64_t *src1, size_t m,
+                         safe_pointer<uint64_t> stk) noexcept;
+
 extern void toom_interpolation_9p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
                                     size_t rn, size_t rm,
                                     toom_interpolation_high_p_struct<9> &&flag) noexcept;
 
 /*
  l = ceil(n/5)
- stk usage : l * 14
+ stk usage : l * 10
 */
 extern void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
                          const uint64_t *src1, size_t m,
