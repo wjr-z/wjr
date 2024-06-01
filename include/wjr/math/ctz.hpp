@@ -92,7 +92,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int ctz_impl(T x) {
  */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int ctz(T x) {
-    WJR_ASSERT_ASSUME_L1(x != 0);
+    WJR_ASSERT_ASSUME_L2(x != 0);
     const int ret = ctz_impl(x);
     WJR_ASSUME(0 <= ret && ret < std::numeric_limits<T>::digits);
     return ret;

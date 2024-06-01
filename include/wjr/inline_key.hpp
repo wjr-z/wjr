@@ -16,27 +16,42 @@
 
 namespace wjr {
 
+/**
+ * @brief Inlined key for T.
+ *
+ * @tparam T
+ * @tparam Inlined
+ */
 template <typename T, bool Inlined>
 class inline_key : private lazy<T> {
     using Mybase = lazy<T>;
 
 public:
-    using Mybase::Mybase;
     static_assert(!std::is_const_v<T>, "");
 
-    constexpr inline_key(const T &value) noexcept(
-        std::is_nothrow_constructible_v<Mybase, const T &>)
+    using Mybase::Mybase;
+
+    using value_type = T;
+    using reference = std::add_const_t<T> &;
+    using pointer = std::add_const_t<T> *;
+
+    constexpr inline_key(reference value) noexcept(
+        std::is_nothrow_constructible_v<Mybase, reference>)
         : Mybase(value) {}
 
-    constexpr const T &get() const noexcept { return Mybase::operator*(); }
-    constexpr const T &operator*() const noexcept { return Mybase::operator*(); }
-    constexpr const T *operator->() const noexcept { return Mybase::operator->(); }
+    constexpr reference get() const noexcept { return Mybase::operator*(); }
+    constexpr reference operator*() const noexcept { return Mybase::operator*(); }
+    constexpr pointer operator->() const noexcept { return Mybase::operator->(); }
 };
 
 template <typename T>
 class inline_key<T, false> {
 public:
     static_assert(!std::is_const_v<T>, "");
+
+    using value_type = T;
+    using reference = std::add_const_t<T> &;
+    using pointer = std::add_const_t<T> *;
 
     constexpr inline_key() noexcept = default;
     constexpr inline_key(const inline_key &other) noexcept = default;
@@ -45,14 +60,14 @@ public:
     constexpr inline_key &operator=(inline_key &&other) noexcept = default;
     ~inline_key() noexcept = default;
 
-    constexpr inline_key(const T &value) noexcept : m_ptr(std::addressof(value)) {}
+    constexpr inline_key(reference value) noexcept : m_ptr(std::addressof(value)) {}
 
-    constexpr const T &get() noexcept { return *m_ptr; }
-    constexpr const T &operator*() noexcept { return *m_ptr; }
-    constexpr const T *operator->() noexcept { return m_ptr; }
+    constexpr reference get() noexcept { return *m_ptr; }
+    constexpr reference operator*() noexcept { return *m_ptr; }
+    constexpr pointer operator->() noexcept { return m_ptr; }
 
 private:
-    T *m_ptr;
+    pointer m_ptr;
 };
 
 template <typename T>

@@ -21,7 +21,7 @@ struct __span_static_storage {
     __span_static_storage &operator=(const __span_static_storage &) noexcept = default;
 
     __span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) noexcept : ptr(p) {
-        WJR_ASSERT_L1(s == size);
+        WJR_ASSERT_L2(s == size);
     }
 
     T *ptr = nullptr;
@@ -280,13 +280,13 @@ public:
 
     constexpr reference front() const {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(size() > 0, "basic_vector::front: empty");
+        WJR_ASSERT_L0(size() > 0, "basic_vector::front: empty");
 #endif
         return *data();
     }
     constexpr reference back() const {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(size() > 0, "basic_vector::front: empty");
+        WJR_ASSERT_L0(size() > 0, "basic_vector::front: empty");
 #endif
         return *(end_unsafe() - 1);
     }
@@ -301,7 +301,7 @@ public:
 
     constexpr reference operator[](size_type pos) const {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(pos < size(), "basic_vector::operator[]: out of range");
+        WJR_ASSERT_L0(pos < size(), "basic_vector::operator[]: out of range");
 #endif
         return data()[pos];
     }
@@ -319,7 +319,7 @@ public:
     }
 
     constexpr span<element_type, dynamic_extent> first(size_type Count) const {
-        WJR_ASSERT_L1(Count <= size());
+        WJR_ASSERT_L2(Count <= size());
 
         return {begin(), Count};
     }
@@ -332,7 +332,7 @@ public:
     }
 
     constexpr span<element_type, dynamic_extent> last(size_type Count) const {
-        WJR_ASSERT_L1(Count <= size());
+        WJR_ASSERT_L2(Count <= size());
 
         return {data() - Count, Count};
     }
@@ -346,9 +346,9 @@ public:
             static_assert(Offset <= Extent, "");
             static_assert(Count == dynamic_extent || Count <= Extent - Offset, "");
         } else {
-            WJR_ASSERT_L1(Offset <= size());
+            WJR_ASSERT_L2(Offset <= size());
             if constexpr (Count != dynamic_extent) {
-                WJR_ASSERT_L1(Count <= size() - Offset);
+                WJR_ASSERT_L2(Count <= size() - Offset);
             }
         }
         return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
@@ -356,7 +356,7 @@ public:
 
     constexpr span<element_type, dynamic_extent>
     subspan(size_type Offset, size_type Count = dynamic_extent) const {
-        WJR_ASSERT_L1(Offset <= size());
+        WJR_ASSERT_L2(Offset <= size());
 
         return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
     }

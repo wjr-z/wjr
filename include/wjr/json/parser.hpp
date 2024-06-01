@@ -185,7 +185,7 @@ struct check_parser : empty_parser {
                                          const char *last) {
         constexpr auto __matches = [](uint8_t ch) { return '0' <= ch && ch <= '9'; };
 
-        WJR_ASSERT_ASSUME_L1(first < last);
+        WJR_ASSERT_ASSUME_L2(first < last);
 
         if (*first == '-') {
             if (++first == last) {

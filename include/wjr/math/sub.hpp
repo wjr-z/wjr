@@ -56,7 +56,7 @@ WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) {
 template <typename T, typename U,
           WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
-    WJR_ASSERT_ASSUME_L1(c_in <= 1);
+    WJR_ASSERT_ASSUME_L2(c_in <= 1);
 
 #if !WJR_HAS_BUILTIN(SUBC) && !WJR_HAS_BUILTIN(ASM_SUBC)
     return fallback_subc(a, b, c_in, c_out);
@@ -96,7 +96,7 @@ WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
 */
 template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
-    WJR_ASSERT_ASSUME_L1(c_in <= 1);
+    WJR_ASSERT_ASSUME_L2(c_in <= 1);
 
 #if WJR_HAS_BUILTIN(ASM_SUBC_CC)
     constexpr auto is_constant_or_zero = [](auto x) -> int {
@@ -185,7 +185,7 @@ template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_1(uint64_t *dst, const uint64_t *src0, size_t n,
                                    uint64_t src1, U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
 
     if (WJR_BUILTIN_CONSTANT_P(n == 1) && n == 1) {
         uint8_t overflow = 0;
@@ -252,8 +252,8 @@ template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_n(uint64_t *dst, const uint64_t *src0,
                                    const uint64_t *src1, size_t n, U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
 
 #if WJR_HAS_BUILTIN(ASM_SUBC_N)
     if (is_constant_evaluated()) {
@@ -314,8 +314,8 @@ WJR_INTRINSIC_CONSTEXPR_E U subc_sz(uint64_t *dst, const uint64_t *src0, size_t 
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0,
                                              const uint64_t *src1, size_t n) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
 
     size_t idx = reverse_find_not_n(src0, src1, n);
 
@@ -354,8 +354,8 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n_pos(uint64_t *dst, const uint64_t *src0,
                                                  const uint64_t *src1, size_t n) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
 
     size_t idx = reverse_find_not_n(src0, src1, n);
 

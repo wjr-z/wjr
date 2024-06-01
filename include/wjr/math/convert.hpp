@@ -695,7 +695,7 @@ class __unsigned_to_chars_backward_unchecked_fn<2> {
     template <typename UnsignedValue, typename Converter>
     static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, Converter conv) {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-        WJR_ASSERT_L1(x != 0);
+        WJR_ASSERT_L2(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= nd);
         (void)(nd);
 
@@ -749,7 +749,7 @@ class __unsigned_to_chars_backward_unchecked_fn<8> {
     template <typename UnsignedValue, typename Converter>
     static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, Converter conv) {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-        WJR_ASSERT_L1(x != 0);
+        WJR_ASSERT_L2(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 2) / 3);
 
         if constexpr (nd >= 16) {
@@ -804,7 +804,7 @@ class __unsigned_to_chars_backward_unchecked_fn<16> {
     template <typename UnsignedValue, typename Converter>
     static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, Converter conv) {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-        WJR_ASSERT_L1(x != 0);
+        WJR_ASSERT_L2(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 3) / 4);
 
         if constexpr (nd >= 16) {
@@ -859,7 +859,7 @@ class __unsigned_to_chars_backward_unchecked_fn<1> {
 private:
     template <typename UnsignedValue, typename Converter>
     static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, int bits, Converter conv) {
-        WJR_ASSERT_L1(x != 0);
+        WJR_ASSERT_L2(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= std::numeric_limits<UnsignedValue>::digits);
 
         const unsigned int mask = (1u << bits) - 1;
@@ -1526,7 +1526,7 @@ Iter to_chars_unchecked(Iter ptr, Value val, unsigned int base, Converter conv =
 template <typename Converter>
 size_t __biginteger_to_chars_2_impl(uint8_t *first, const uint64_t *up, size_t n,
                                     Converter conv) {
-    WJR_ASSERT_L1(up[n - 1] != 0);
+    WJR_ASSERT_L2(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
     uint64_t x = up[n - 1];
@@ -1559,7 +1559,7 @@ size_t __biginteger_to_chars_2_impl(uint8_t *first, const uint64_t *up, size_t n
 template <typename Converter>
 size_t __biginteger_to_chars_8_impl(uint8_t *first, const uint64_t *up, size_t n,
                                     Converter conv) {
-    WJR_ASSERT_L1(up[n - 1] != 0);
+    WJR_ASSERT_L2(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
     uint64_t x = up[n - 1];
@@ -1691,7 +1691,7 @@ DONE:
 template <typename Converter>
 size_t __biginteger_to_chars_16_impl(uint8_t *first, const uint64_t *up, size_t n,
                                      Converter conv) {
-    WJR_ASSERT_L1(up[n - 1] != 0);
+    WJR_ASSERT_L2(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
     uint64_t x = up[n - 1];
@@ -1725,7 +1725,7 @@ template <typename Converter>
 size_t __biginteger_to_chars_power_of_two_impl(uint8_t *first, const uint64_t *up,
                                                size_t n, unsigned int base,
                                                Converter conv) {
-    WJR_ASSERT_L1(up[n - 1] != 0);
+    WJR_ASSERT_L2(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
     const int bits = ctz(base);

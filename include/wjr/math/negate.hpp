@@ -1,7 +1,7 @@
 #ifndef WJR_MATH_NEG_HPP__
 #define WJR_MATH_NEG_HPP__
 
-#include <wjr/math/complement.hpp>
+#include <wjr/math/not.hpp>
 #include <wjr/math/replace.hpp>
 
 namespace wjr {
@@ -19,7 +19,7 @@ WJR_INTRINSIC_CONSTEXPR_E bool negate_n(T *dst, const T *src, size_t n) {
     }
 
     dst[idx] = -src[idx];
-    complement_n(dst + idx + 1, src + idx + 1, n - idx - 1);
+    not_n(dst + idx + 1, src + idx + 1, n - idx - 1);
     return false;
 }
 

@@ -739,7 +739,7 @@ public:
     WJR_CONSTEXPR20 void take_storage(__sso_vector_storage_impl &other, _Alty &al) {
         auto &other_storage = other.m_storage;
 
-        WJR_ASSERT_ASSUME_L1(__is_sso());
+        WJR_ASSERT_ASSUME_L2(__is_sso());
 
         if (other.__is_sso()) {
             m_storage.m_size = other_storage.m_size;
@@ -867,7 +867,7 @@ public:
     WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept { return m_storage.m_size; }
     WJR_PURE WJR_CONSTEXPR20 size_type capacity() const noexcept {
         const size_type ret = __is_sso() ? __max_capacity : m_storage.m_capacity;
-        WJR_ASSERT_ASSUME_L1(ret >= __max_capacity);
+        WJR_ASSERT_ASSUME_L2(ret >= __max_capacity);
         return ret;
     }
 
@@ -1252,14 +1252,14 @@ public:
 
     WJR_CONSTEXPR20 reference operator[](size_type pos) noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(pos < size(), "basic_vector::operator[]: out of range");
+        WJR_ASSERT_L0(pos < size(), "basic_vector::operator[]: out of range");
 #endif
         return data()[pos];
     }
 
     WJR_CONSTEXPR20 const_reference operator[](size_type pos) const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(pos < size(), "basic_vector::operator[]: out of range");
+        WJR_ASSERT_L0(pos < size(), "basic_vector::operator[]: out of range");
 #endif
         return data()[pos];
     }
@@ -1282,28 +1282,28 @@ public:
 
     WJR_CONSTEXPR20 reference front() noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(size() > 0, "basic_vector::front: empty");
+        WJR_ASSERT_L0(size() > 0, "basic_vector::front: empty");
 #endif
         return *data();
     }
 
     WJR_CONSTEXPR20 const_reference front() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(size() > 0, "basic_vector::front: empty");
+        WJR_ASSERT_L0(size() > 0, "basic_vector::front: empty");
 #endif
         return *data();
     }
 
     WJR_CONSTEXPR20 reference back() noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(size() > 0, "basic_vector::back: empty");
+        WJR_ASSERT_L0(size() > 0, "basic_vector::back: empty");
 #endif
         return *(end_unsafe() - 1);
     }
 
     WJR_CONSTEXPR20 const_reference back() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(size() > 0, "basic_vector::back: empty");
+        WJR_ASSERT_L0(size() > 0, "basic_vector::back: empty");
 #endif
         return *(end_unsafe() - 1);
     }
@@ -1618,7 +1618,7 @@ private:
     WJR_CONSTEXPR20 void __erase_at_end(pointer pos) noexcept {
         const pointer __begin = data();
         const pointer __end = end_unsafe();
-        WJR_ASSERT_L1(pos >= __begin && pos <= __end,
+        WJR_ASSERT_L2(pos >= __begin && pos <= __end,
                       "pos must be in the range of [begin(), end()]");
         const auto new_size = static_cast<size_type>(pos - __begin);
         destroy_using_allocator(__begin + new_size, __end, __get_allocator());

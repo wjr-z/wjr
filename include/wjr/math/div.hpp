@@ -136,7 +136,7 @@ WJR_INLINE_CONSTEXPR20 uint64_t
 div_qr_1_noshift(uint64_t *dst, uint64_t &rem, const uint64_t *src, size_t n,
                  const div2by1_divider_noshift<uint64_t> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n - 1, src, n - 1));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_DECR_P(dst, n - 1, src, n - 1));
 
     const uint64_t divisor = div.get_divisor();
     const uint64_t value = div.get_value();
@@ -175,7 +175,7 @@ WJR_INLINE_CONSTEXPR20 uint64_t div_qr_1_shift(uint64_t *dst, uint64_t &rem,
                                                const div2by1_divider<uint64_t> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(div.get_shift() != 0);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n - 1, src, n - 1));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_DECR_P(dst, n - 1, src, n - 1));
 
     const uint64_t divisor = div.get_divisor();
     const uint64_t value = div.get_value();
@@ -292,8 +292,8 @@ WJR_INLINE_CONSTEXPR20 uint64_t
 div_qr_2_noshift(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
                  const div3by2_divider_noshift<uint64_t> &div) {
     WJR_ASSERT_ASSUME(n >= 2);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n - 2, src, n - 2));
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n - 2, rem, 2));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_DECR_P(dst, n - 2, src, n - 2));
+    WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n - 2, rem, 2));
 
     const uint64_t divisor0 = div.get_divisor0();
     const uint64_t divisor1 = div.get_divisor1();
@@ -335,8 +335,8 @@ WJR_INLINE_CONSTEXPR20 uint64_t div_qr_2_shift(uint64_t *dst, uint64_t *rem,
                                                const div3by2_divider<uint64_t> &div) {
     WJR_ASSERT_ASSUME(n >= 2);
     WJR_ASSERT(div.get_shift() != 0);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n - 2, src, n - 2));
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n - 2, rem, 2));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_DECR_P(dst, n - 2, src, n - 2));
+    WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n - 2, rem, 2));
 
     const uint64_t divisor0 = div.get_divisor0();
     const uint64_t divisor1 = div.get_divisor1();

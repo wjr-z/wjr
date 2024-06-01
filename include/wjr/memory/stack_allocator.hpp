@@ -121,8 +121,8 @@ private:
             ptr = m_cache.ptr;
         }
 
-        WJR_ASSERT_ASSUME_L1(m_cache.ptr != nullptr);
-        WJR_ASSERT_ASSUME_L1(top.ptr != nullptr);
+        WJR_ASSERT_ASSUME_L2(m_cache.ptr != nullptr);
+        WJR_ASSERT_ASSUME_L2(top.ptr != nullptr);
 
         m_cache.ptr += n;
         return ptr;

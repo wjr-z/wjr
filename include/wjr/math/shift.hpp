@@ -54,8 +54,8 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E T lshift_n(T *dst, const T *src, size_t 
                                                    unsigned int c,
                                                    type_identity_t<T> lo = 0) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
-    WJR_ASSERT_L1(c < std::numeric_limits<T>::digits);
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
+    WJR_ASSERT_L2(c < std::numeric_limits<T>::digits);
 
     if (WJR_UNLIKELY(c == 0)) {
         if (WJR_LIKELY(dst != src)) {
@@ -101,8 +101,8 @@ template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E T rshift_n(T *dst, const T *src, size_t n, unsigned int c,
                                      type_identity_t<T> hi = 0) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
-    WJR_ASSERT_L1(c < std::numeric_limits<T>::digits);
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
+    WJR_ASSERT_L2(c < std::numeric_limits<T>::digits);
 
     if (WJR_UNLIKELY(c == 0)) {
         if (WJR_LIKELY(dst != src)) {

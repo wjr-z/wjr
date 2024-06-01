@@ -45,10 +45,10 @@ public:
 
     WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 pointer operator->() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
-        WJR_ASSERT_LX(m_container != nullptr,
+        WJR_ASSERT_L0(m_container != nullptr,
                       "Can't dereference an value-initialized iterator.");
-        WJR_ASSERT_LX(m_ptr != nullptr, "Can't dereference an invalid iterator.");
-        WJR_ASSERT_LX(m_ptr >= __begin() && m_ptr < __end(),
+        WJR_ASSERT_L0(m_ptr != nullptr, "Can't dereference an invalid iterator.");
+        WJR_ASSERT_L0(m_ptr >= __begin() && m_ptr < __end(),
                       "Can't dereference an out-of-range iterator.");
 #endif
         return const_cast<pointer>(m_ptr);
@@ -60,10 +60,10 @@ public:
 
     WJR_CONSTEXPR20 contiguous_const_iterator_adapter &operator++() noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
-        WJR_ASSERT_LX(m_container != nullptr,
+        WJR_ASSERT_L0(m_container != nullptr,
                       "Can't increment an value-initialized iterator.");
-        WJR_ASSERT_LX(m_ptr != nullptr, "Can't increment an invalid iterator.");
-        WJR_ASSERT_LX(m_ptr < __end(),
+        WJR_ASSERT_L0(m_ptr != nullptr, "Can't increment an invalid iterator.");
+        WJR_ASSERT_L0(m_ptr < __end(),
                       "Can't increment an iterator that is already at/after the end.");
 #endif
         ++m_ptr;
@@ -78,10 +78,10 @@ public:
 
     WJR_CONSTEXPR20 contiguous_const_iterator_adapter &operator--() noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
-        WJR_ASSERT_LX(m_container != nullptr,
+        WJR_ASSERT_L0(m_container != nullptr,
                       "Can't decrement an value-initialized iterator.");
-        WJR_ASSERT_LX(m_ptr != nullptr, "Can't decrement an invalid iterator.");
-        WJR_ASSERT_LX(
+        WJR_ASSERT_L0(m_ptr != nullptr, "Can't decrement an invalid iterator.");
+        WJR_ASSERT_L0(
             m_ptr > __begin(),
             "Can't decrement an iterator that is already at/before the beginning.");
 #endif
@@ -172,7 +172,7 @@ public:
     WJR_CONSTEXPR20 void
     check_same_container(WJR_MAYBE_UNUSED const Container *cont) const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
-        WJR_ASSERT_LX(m_container == cont,
+        WJR_ASSERT_L0(m_container == cont,
                       "Can't compare iterators from different containers.");
 #else
         (void)(cont);
@@ -190,14 +190,14 @@ public:
         if (offset == 0) {
             return;
         }
-        WJR_ASSERT_LX(m_container != nullptr,
+        WJR_ASSERT_L0(m_container != nullptr,
                       "Can't seek an value-initialized iterator.");
-        WJR_ASSERT_LX(m_ptr != nullptr, "Can't seek an invalid iterator.");
+        WJR_ASSERT_L0(m_ptr != nullptr, "Can't seek an invalid iterator.");
         if (offset < 0) {
-            WJR_ASSERT_LX(offset >= __begin() - m_ptr,
+            WJR_ASSERT_L0(offset >= __begin() - m_ptr,
                           "Can't seek an iterator that before the beginning.");
         } else {
-            WJR_ASSERT_LX(offset <= __end() - m_ptr,
+            WJR_ASSERT_L0(offset <= __end() - m_ptr,
                           "Can't seek an iterator that after the end.");
         }
     }
@@ -205,7 +205,7 @@ public:
     /// @private
     WJR_CONSTEXPR20 void
     __check_same_container(const contiguous_const_iterator_adapter &rhs) const noexcept {
-        WJR_ASSERT_LX(m_container == rhs.m_container,
+        WJR_ASSERT_L0(m_container == rhs.m_container,
                       "Can't compare iterators from different containers.");
     }
 
@@ -343,10 +343,10 @@ struct pointer_traits<wjr::contiguous_const_iterator_adapter<Container, Traits>>
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
         auto cont = ptr.m_container;
         if (cont) {
-            WJR_ASSERT_LX(ptr.m_ptr >= ptr.__begin() && ptr.m_ptr <= ptr.__end(),
+            WJR_ASSERT_L0(ptr.m_ptr >= ptr.__begin() && ptr.m_ptr <= ptr.__end(),
                           "can't convert out-of-range vector iterator to pointer");
         } else {
-            WJR_ASSERT_LX(ptr.m_ptr == nullptr,
+            WJR_ASSERT_L0(ptr.m_ptr == nullptr,
                           "can't convert invalid vector iterator to pointer");
         }
 #endif
@@ -364,10 +364,10 @@ struct pointer_traits<wjr::contiguous_iterator_adapter<Container, Traits>> {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
         auto cont = ptr.m_container;
         if (cont) {
-            WJR_ASSERT_LX(ptr.m_ptr >= ptr.__begin() && ptr.m_ptr <= ptr.__end(),
+            WJR_ASSERT_L0(ptr.m_ptr >= ptr.__begin() && ptr.m_ptr <= ptr.__end(),
                           "can't convert out-of-range vector iterator to pointer");
         } else {
-            WJR_ASSERT_LX(ptr.m_ptr == nullptr,
+            WJR_ASSERT_L0(ptr.m_ptr == nullptr,
                           "can't convert invalid vector iterator to pointer");
         }
 #endif

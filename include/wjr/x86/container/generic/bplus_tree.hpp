@@ -13,7 +13,7 @@ namespace wjr {
 
 #if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
 
-template <size_t size>
+template <size_t Min, size_t Max, size_t size>
 void __builtin_bplus_tree_copy_impl(const uint8_t *first, const uint8_t *last,
                                     uint8_t *dest) noexcept {
     const size_t n = last - first;
@@ -145,15 +145,15 @@ void __builtin_bplus_tree_copy_impl(const uint8_t *first, const uint8_t *last,
     }
 }
 
-template <typename Other>
+template <size_t Min, size_t Max, typename Other>
 void builtin_bplus_tree_copy(const Other *first, const Other *last,
                              Other *dest) noexcept {
-    __builtin_bplus_tree_copy_impl<sizeof(Other)>(
+    __builtin_bplus_tree_copy_impl<Min, Max, sizeof(Other)>(
         reinterpret_cast<const uint8_t *>(first), reinterpret_cast<const uint8_t *>(last),
         reinterpret_cast<uint8_t *>(dest));
 }
 
-template <size_t size>
+template <size_t Min, size_t Max, size_t size>
 void __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *last,
                                              uint8_t *dest) noexcept {
     const size_t n = last - first;
@@ -285,10 +285,10 @@ void __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t
     }
 }
 
-template <typename Other>
+template <size_t Min, size_t Max, typename Other>
 void builtin_bplus_tree_copy_backward(const Other *first, const Other *last,
                                       Other *dest) noexcept {
-    __builtin_bplus_tree_copy_backward_impl<sizeof(Other)>(
+    __builtin_bplus_tree_copy_backward_impl<Min, Max, sizeof(Other)>(
         reinterpret_cast<const uint8_t *>(first), reinterpret_cast<const uint8_t *>(last),
         reinterpret_cast<uint8_t *>(dest));
 }

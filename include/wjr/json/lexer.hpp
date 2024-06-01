@@ -54,7 +54,7 @@ uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
         idx = m_storage.idx;
     }
 
-    WJR_ASSERT_ASSUME_L1(first < last);
+    WJR_ASSERT_ASSUME_L2(first < last);
 
     uint32_t count = 0;
     bool loop;

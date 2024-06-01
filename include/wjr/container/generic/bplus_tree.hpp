@@ -43,21 +43,49 @@ struct bplus_tree_inner_node;
 template <typename Traits, bool InlineKeys>
 struct bplus_tree_leaf_node;
 
-template <typename Key, typename T, typename Compare, size_t Size, bool Multi = true>
+namespace bplus_tree_details {
+
+template <size_t Min, size_t Max, typename Other>
+static void copy(Other *first, Other *last, Other *dest) noexcept {
+#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
+    if constexpr (Max <= 16 && std::is_trivially_copyable_v<Other>) {
+        builtin_bplus_tree_copy<Min, Max>(first, last, dest);
+    } else {
+#endif
+        (void)std::copy(first, last, dest);
+#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
+    }
+#endif
+}
+
+template <size_t Min, size_t Max, typename Other>
+static void copy_backward(Other *first, Other *last, Other *dest) noexcept {
+#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
+    if constexpr (Max <= 16 && std::is_trivially_copyable_v<Other>) {
+        builtin_bplus_tree_copy_backward<Min, Max>(first, last, dest);
+    } else {
+#endif
+        (void)std::copy_backward(first, last, dest);
+#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
+    }
+#endif
+}
+
+} // namespace bplus_tree_details
+
+template <typename Key, typename Value, typename Compare, size_t Size, bool Multi>
 struct bplus_tree_traits {
     using key_type = Key;
-    using mapped_type = T;
-    using value_type = std::pair<const key_type, mapped_type>;
+    using mapped_type = Value;
+    static constexpr bool is_map = !std::is_same_v<mapped_type, void>;
+    using value_type =
+        std::conditional_t<is_map, std::pair<const key_type, mapped_type>, key_type>;
     using key_compare = Compare;
 
-    constexpr static size_t node_size = Size;
-    static constexpr size_t stack_size = node_size == 3   ? 48
-                                         : node_size < 7  ? 32
-                                         : node_size < 15 ? 24
-                                                          : 16;
+    static constexpr size_t node_size = Size;
     static constexpr bool inline_keys =
         is_possible_inline_key_v<key_type> && sizeof(key_type) <= 8;
-    using InlineKey = inline_key<const Key, inline_keys>;
+    using InlineKey = inline_key<Key, inline_keys>;
     using node_type = bplus_tree_node<bplus_tree_traits>;
     using inner_node_type = bplus_tree_inner_node<bplus_tree_traits>;
     using leaf_node_type = bplus_tree_leaf_node<bplus_tree_traits, inline_keys>;
@@ -65,59 +93,22 @@ struct bplus_tree_traits {
 
     WJR_INTRINSIC_INLINE static const key_type &
     get_key(const value_type &value) noexcept {
-        return value.first;
-    }
-
-private:
-    template <typename Other>
-    static void __native_copy(Other *first, Other *last, Other *dest) noexcept {
-        for (; first != last; ++first, ++dest) {
-            *dest = *first;
-            WJR_COMPILER_EMPTY_ASM();
-        }
-    }
-
-    template <typename Other>
-    static void __native_copy_backward(Other *first, Other *last, Other *dest) noexcept {
-        for (; first != last;) {
-            *--dest = *--last;
-            WJR_COMPILER_EMPTY_ASM();
+        if constexpr (is_map) {
+            return value.first;
+        } else {
+            return value;
         }
     }
 
 public:
     template <typename Other>
     static void copy(Other *first, Other *last, Other *dest) noexcept {
-        if constexpr (node_size <= 8) {
-            return __native_copy(first, last, dest);
-        } else {
-#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
-            if constexpr (std::is_trivially_copyable_v<Other>) {
-                builtin_bplus_tree_copy(first, last, dest);
-            } else {
-#endif
-                (void)std::copy(first, last, dest);
-#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
-            }
-#endif
-        }
+        return bplus_tree_details::copy<0, 0>(first, last, dest);
     }
 
     template <typename Other>
     static void copy_backward(Other *first, Other *last, Other *dest) noexcept {
-        if constexpr (node_size <= 8) {
-            return __native_copy_backward(first, last, dest);
-        } else {
-#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
-            if constexpr (std::is_trivially_copyable_v<Other>) {
-                builtin_bplus_tree_copy_backward(first, last, dest);
-            } else {
-#endif
-                (void)std::copy_backward(first, last, dest);
-#if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
-            }
-#endif
-        }
+        return bplus_tree_details::copy_backward<0, 0>(first, last, dest);
     }
 };
 
@@ -186,7 +177,7 @@ struct bplus_tree_leaf_node : bplus_tree_node<Traits>, intrusive::list_node<> {
     }
 
     WJR_INTRINSIC_INLINE void __assign(unsigned int idx, value_type *const value) {
-        m_keys[idx] = value->first;
+        m_keys[idx] = Traits::get_key(*value);
         m_values[idx] = value;
     }
 
@@ -206,7 +197,7 @@ struct bplus_tree_leaf_node<Traits, false> : bplus_tree_node<Traits>,
     using ListNode = intrusive::list_node<>;
 
     const key_type &__get_key(unsigned int pos) const noexcept {
-        return m_values[pos]->first;
+        return Traits::get_key(*m_values[pos]);
     }
 
     WJR_INTRINSIC_INLINE void __copy(unsigned int start, unsigned int end,
@@ -398,7 +389,6 @@ class basic_bplus_tree {
 
     using mapped_type = typename Traits::mapped_type;
     static constexpr size_t node_size = Traits::node_size;
-    static constexpr size_t stack_size = Traits::stack_size;
     static constexpr bool inline_keys = Traits::inline_keys;
     using InlineKey = typename Traits::InlineKey;
     static constexpr size_t floor_half = node_size / 2;
@@ -421,6 +411,8 @@ public:
     using const_iterator = bplus_tree_const_iterator<Traits>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    class value_compare {};
 
     static_assert(node_size >= 3, "node_size must be greater than or equal to 3.");
     static_assert(node_size <= 255, "node_size must be less than or equal to 255.");
@@ -789,7 +781,7 @@ private:
     }
 
     void __insert_value_ptr(value_type *xval) {
-        __insert_iter(__search<false>(xval->first), xval);
+        __insert_iter(__search<false>(Traits::get_key(*xval)), xval);
     }
 
     template <bool Upper>

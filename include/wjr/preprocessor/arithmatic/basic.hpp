@@ -2,297 +2,297 @@
 #define WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP__
 
 #define WJR_PP_ARITHMATIC_FROM_NUMBER(x) WJR_PP_ARITHMATIC_FROM_NUMBER_I(x)
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_I(x) WJR_PP_ARITHMATIC_FROM_NUMBER_##x
+#define WJR_PP_ARITHMATIC_FROM_NUMBER_I(x) __wjr_pp_arithmatic_from_number_##x
 
 #define WJR_PP_ARITHMATIC_TO_NUMBER(x) WJR_PP_ARITHMATIC_TO_NUMBER_I(x)
-#define WJR_PP_ARITHMATIC_TO_NUMBER_I(x) __wjr_pp_arithmatic_from_number_##x
+#define WJR_PP_ARITHMATIC_TO_NUMBER_I(x) __wjr_pp_arithmatic_to_number_##x
 
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_0
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_1 x
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_2 xx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_3 xxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_4 xxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_5 xxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_6 xxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_7 xxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_8 xxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_9 xxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_10 xxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_11 xxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_12 xxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_13 xxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_14 xxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_15 xxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_16 xxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_17 xxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_18 xxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_19 xxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_20 xxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_21 xxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_22 xxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_23 xxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_24 xxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_25 xxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_26 xxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_27 xxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_28 xxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_29 xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_30 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_31 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_32 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_33 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_34 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_35 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_36 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_37 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_38 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_39 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_40 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_41 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_42 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_43 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_44 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_45 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_46 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_47 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_48 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_49 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_50                                                 \
+#define __wjr_pp_arithmatic_from_number_0
+#define __wjr_pp_arithmatic_from_number_1 x
+#define __wjr_pp_arithmatic_from_number_2 xx
+#define __wjr_pp_arithmatic_from_number_3 xxx
+#define __wjr_pp_arithmatic_from_number_4 xxxx
+#define __wjr_pp_arithmatic_from_number_5 xxxxx
+#define __wjr_pp_arithmatic_from_number_6 xxxxxx
+#define __wjr_pp_arithmatic_from_number_7 xxxxxxx
+#define __wjr_pp_arithmatic_from_number_8 xxxxxxxx
+#define __wjr_pp_arithmatic_from_number_9 xxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_10 xxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_11 xxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_12 xxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_13 xxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_14 xxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_15 xxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_16 xxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_17 xxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_18 xxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_19 xxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_20 xxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_21 xxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_22 xxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_23 xxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_24 xxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_25 xxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_26 xxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_27 xxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_28 xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_29 xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_30 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_31 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_32 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_33 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_34 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_35 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_36 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_37 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_38 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_39 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_40 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_41 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_42 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_43 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_44 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_45 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_46 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_47 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_48                                               \
+    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_49                                               \
+    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_50                                               \
     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_51                                                 \
+#define __wjr_pp_arithmatic_from_number_51                                               \
     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_52                                                 \
+#define __wjr_pp_arithmatic_from_number_52                                               \
     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_53                                                 \
+#define __wjr_pp_arithmatic_from_number_53                                               \
     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_54                                                 \
+#define __wjr_pp_arithmatic_from_number_54                                               \
     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_55                                                 \
+#define __wjr_pp_arithmatic_from_number_55                                               \
     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_56                                                 \
+#define __wjr_pp_arithmatic_from_number_56                                               \
     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_57                                                 \
+#define __wjr_pp_arithmatic_from_number_57                                               \
     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_58                                                 \
+#define __wjr_pp_arithmatic_from_number_58                                               \
     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_59                                                 \
+#define __wjr_pp_arithmatic_from_number_59                                               \
     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_60                                                 \
+#define __wjr_pp_arithmatic_from_number_60                                               \
     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_61                                                 \
+#define __wjr_pp_arithmatic_from_number_61                                               \
     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_62                                                 \
+#define __wjr_pp_arithmatic_from_number_62                                               \
     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_63                                                 \
+#define __wjr_pp_arithmatic_from_number_63                                               \
     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-#define __wjr_pp_arithmatic_from_number_ 0
-#define __wjr_pp_arithmatic_from_number_x 1
-#define __wjr_pp_arithmatic_from_number_xx 2
-#define __wjr_pp_arithmatic_from_number_xxx 3
-#define __wjr_pp_arithmatic_from_number_xxxx 4
-#define __wjr_pp_arithmatic_from_number_xxxxx 5
-#define __wjr_pp_arithmatic_from_number_xxxxxx 6
-#define __wjr_pp_arithmatic_from_number_xxxxxxx 7
-#define __wjr_pp_arithmatic_from_number_xxxxxxxx 8
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxx 9
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxx 10
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxx 11
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxx 12
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxx 13
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxx 14
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxx 15
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxx 16
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxx 17
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxx 18
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxx 19
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxx 20
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxx 21
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxx 22
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxx 23
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxx 24
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxx 25
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxx 26
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxx 27
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxx 28
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx 29
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 30
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 31
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 32
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 33
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 34
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 35
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 36
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 37
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 38
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 39
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 40
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 41
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 42
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 43
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 44
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 45
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 46
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 47
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    48
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    49
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_ 0
+#define __wjr_pp_arithmatic_to_number_x 1
+#define __wjr_pp_arithmatic_to_number_xx 2
+#define __wjr_pp_arithmatic_to_number_xxx 3
+#define __wjr_pp_arithmatic_to_number_xxxx 4
+#define __wjr_pp_arithmatic_to_number_xxxxx 5
+#define __wjr_pp_arithmatic_to_number_xxxxxx 6
+#define __wjr_pp_arithmatic_to_number_xxxxxxx 7
+#define __wjr_pp_arithmatic_to_number_xxxxxxxx 8
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxx 9
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxx 10
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxx 11
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxx 12
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxx 13
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxx 14
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxx 15
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxx 16
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxx 17
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxx 18
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxx 19
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxx 20
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxx 21
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxx 22
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxx 23
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxx 24
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxx 25
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxx 26
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxx 27
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxx 28
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx 29
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 30
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 31
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 32
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 33
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 34
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 35
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 36
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 37
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 38
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 39
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 40
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 41
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 42
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 43
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 44
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 45
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 46
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 47
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 48
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 49
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     50
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     51
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     52
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     53
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     54
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     55
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     56
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     57
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     58
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     59
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     60
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     61
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     62
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     63
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     0
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     1
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     2
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     3
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     4
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     5
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     6
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     7
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     8
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     9
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     10
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     11
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     12
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     13
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     14
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     15
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     16
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     17
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     18
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     19
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     20
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     21
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     22
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     23
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     24
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     25
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     26
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     27
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     28
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     29
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     30
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     31
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     32
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     33
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     34
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     35
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     36
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     37
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     38
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     39
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     40
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     41
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     42
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     43
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     44
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     45
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     46
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     47
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     48
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     49
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     50
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     51
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     52
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     53
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     54
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     55
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     56
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     57
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     58
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     59
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     60
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     61
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     62
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     63
 
 #endif // ! WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP__

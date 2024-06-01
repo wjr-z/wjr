@@ -93,6 +93,32 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #ifndef WJR_ASSERT_HPP__
 #define WJR_ASSERT_HPP__
 
+/**
+ * @file assert.hpp
+ * @author wjr
+ * @brief Assertion utilities
+ *
+ * @details WJR_DEBUG_LEVEL : 0 ~ 3 \n
+ * 0 : Release \n
+ * 1 : Beta \n
+ * 2 : Runtime detect \n
+ * 3 : Maximize runtime detect, for debug \n
+ * If WJR_DEBUG_LEVEL is not defined, \n
+ * If NDEBUG is defined, WJR_DEBUG_LEVEL is set to 0 by default. \n
+ * Otherwise, WJR_DEBUG_LEVEL is set to 1 by default. \n
+ * WJR_ASSERT_L(level, expr) : Specify the level of assertion, \n
+ * if the WJR_DEBUG_LEVEL is greater than or equal to the level, \n
+ * the assertion is executed. \n
+ * WJR_ASSERT(expr) : Equivalent to WJR_ASSERT_L(1, expr) \n
+ * WJR_ASSERT_0(expr) : Always execute the assertion \n
+ *
+ * @version 0.1
+ * @date 2024-06-01
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -111,6 +137,450 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #ifndef WJR_PREPROCESSOR_ARITHMATIC_HPP__
 #define WJR_PREPROCESSOR_ARITHMATIC_HPP__
 
+#ifndef WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP__
+#define WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP__
+
+#ifndef WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP__
+#define WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP__
+
+#define WJR_PP_ARITHMATIC_FROM_NUMBER(x) WJR_PP_ARITHMATIC_FROM_NUMBER_I(x)
+#define WJR_PP_ARITHMATIC_FROM_NUMBER_I(x) __wjr_pp_arithmatic_from_number_##x
+
+#define WJR_PP_ARITHMATIC_TO_NUMBER(x) WJR_PP_ARITHMATIC_TO_NUMBER_I(x)
+#define WJR_PP_ARITHMATIC_TO_NUMBER_I(x) __wjr_pp_arithmatic_to_number_##x
+
+#define __wjr_pp_arithmatic_from_number_0
+#define __wjr_pp_arithmatic_from_number_1 x
+#define __wjr_pp_arithmatic_from_number_2 xx
+#define __wjr_pp_arithmatic_from_number_3 xxx
+#define __wjr_pp_arithmatic_from_number_4 xxxx
+#define __wjr_pp_arithmatic_from_number_5 xxxxx
+#define __wjr_pp_arithmatic_from_number_6 xxxxxx
+#define __wjr_pp_arithmatic_from_number_7 xxxxxxx
+#define __wjr_pp_arithmatic_from_number_8 xxxxxxxx
+#define __wjr_pp_arithmatic_from_number_9 xxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_10 xxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_11 xxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_12 xxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_13 xxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_14 xxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_15 xxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_16 xxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_17 xxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_18 xxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_19 xxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_20 xxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_21 xxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_22 xxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_23 xxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_24 xxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_25 xxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_26 xxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_27 xxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_28 xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_29 xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_30 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_31 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_32 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_33 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_34 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_35 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_36 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_37 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_38 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_39 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_40 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_41 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_42 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_43 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_44 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_45 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_46 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_47 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_48                                               \
+    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_49                                               \
+    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_50                                               \
+    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_51                                               \
+    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_52                                               \
+    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_53                                               \
+    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_54                                               \
+    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_55                                               \
+    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_56                                               \
+    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_57                                               \
+    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_58                                               \
+    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_59                                               \
+    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_60                                               \
+    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_61                                               \
+    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_62                                               \
+    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#define __wjr_pp_arithmatic_from_number_63                                               \
+    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+#define __wjr_pp_arithmatic_to_number_ 0
+#define __wjr_pp_arithmatic_to_number_x 1
+#define __wjr_pp_arithmatic_to_number_xx 2
+#define __wjr_pp_arithmatic_to_number_xxx 3
+#define __wjr_pp_arithmatic_to_number_xxxx 4
+#define __wjr_pp_arithmatic_to_number_xxxxx 5
+#define __wjr_pp_arithmatic_to_number_xxxxxx 6
+#define __wjr_pp_arithmatic_to_number_xxxxxxx 7
+#define __wjr_pp_arithmatic_to_number_xxxxxxxx 8
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxx 9
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxx 10
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxx 11
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxx 12
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxx 13
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxx 14
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxx 15
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxx 16
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxx 17
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxx 18
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxx 19
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxx 20
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxx 21
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxx 22
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxx 23
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxx 24
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxx 25
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxx 26
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxx 27
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxx 28
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx 29
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 30
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 31
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 32
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 33
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 34
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 35
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 36
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 37
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 38
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 39
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 40
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 41
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 42
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 43
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 44
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 45
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 46
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 47
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 48
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 49
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    50
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    51
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    52
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    53
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    54
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    55
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    56
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    57
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    58
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    59
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    60
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    61
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    62
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    63
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    0
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    2
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    3
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    4
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    5
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    6
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    7
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    8
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    9
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    10
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    11
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    12
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    13
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    14
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    15
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    16
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    17
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    18
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    19
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    20
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    21
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    22
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    23
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    24
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    25
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    26
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    27
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    28
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    29
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    30
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    31
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    32
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    33
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    34
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    35
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    36
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    37
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    38
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    39
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    40
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    41
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    42
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    43
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    44
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    45
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    46
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    47
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    48
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    49
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    50
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    51
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    52
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    53
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    54
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    55
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    56
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    57
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    58
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    59
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    60
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    61
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    62
+#define __wjr_pp_arithmatic_to_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    63
+
+#endif // ! WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP__
+#ifndef WJR_PREPROCESSOR_ARITHMATIC_NEG_HPP__
+#define WJR_PREPROCESSOR_ARITHMATIC_NEG_HPP__
+
+#define WJR_PP_NEG(x) WJR_PP_NEG_I(x)
+#define WJR_PP_NEG_I(x) WJR_PP_NEG_##x
+
+#define WJR_PP_NEG_0 0
+#define WJR_PP_NEG_1 63
+#define WJR_PP_NEG_2 62
+#define WJR_PP_NEG_3 61
+#define WJR_PP_NEG_4 60
+#define WJR_PP_NEG_5 59
+#define WJR_PP_NEG_6 58
+#define WJR_PP_NEG_7 57
+#define WJR_PP_NEG_8 56
+#define WJR_PP_NEG_9 55
+#define WJR_PP_NEG_10 54
+#define WJR_PP_NEG_11 53
+#define WJR_PP_NEG_12 52
+#define WJR_PP_NEG_13 51
+#define WJR_PP_NEG_14 50
+#define WJR_PP_NEG_15 49
+#define WJR_PP_NEG_16 48
+#define WJR_PP_NEG_17 47
+#define WJR_PP_NEG_18 46
+#define WJR_PP_NEG_19 45
+#define WJR_PP_NEG_20 44
+#define WJR_PP_NEG_21 43
+#define WJR_PP_NEG_22 42
+#define WJR_PP_NEG_23 41
+#define WJR_PP_NEG_24 40
+#define WJR_PP_NEG_25 39
+#define WJR_PP_NEG_26 38
+#define WJR_PP_NEG_27 37
+#define WJR_PP_NEG_28 36
+#define WJR_PP_NEG_29 35
+#define WJR_PP_NEG_30 34
+#define WJR_PP_NEG_31 33
+#define WJR_PP_NEG_32 32
+#define WJR_PP_NEG_33 31
+#define WJR_PP_NEG_34 30
+#define WJR_PP_NEG_35 29
+#define WJR_PP_NEG_36 28
+#define WJR_PP_NEG_37 27
+#define WJR_PP_NEG_38 26
+#define WJR_PP_NEG_39 25
+#define WJR_PP_NEG_40 24
+#define WJR_PP_NEG_41 23
+#define WJR_PP_NEG_42 22
+#define WJR_PP_NEG_43 21
+#define WJR_PP_NEG_44 20
+#define WJR_PP_NEG_45 19
+#define WJR_PP_NEG_46 18
+#define WJR_PP_NEG_47 17
+#define WJR_PP_NEG_48 16
+#define WJR_PP_NEG_49 15
+#define WJR_PP_NEG_50 14
+#define WJR_PP_NEG_51 13
+#define WJR_PP_NEG_52 12
+#define WJR_PP_NEG_53 11
+#define WJR_PP_NEG_54 10
+#define WJR_PP_NEG_55 9
+#define WJR_PP_NEG_56 8
+#define WJR_PP_NEG_57 7
+#define WJR_PP_NEG_58 6
+#define WJR_PP_NEG_59 5
+#define WJR_PP_NEG_60 4
+#define WJR_PP_NEG_61 3
+#define WJR_PP_NEG_62 2
+#define WJR_PP_NEG_63 1
+
+#endif // ! WJR_PREPROCESSOR_ARITHMATIC_NEG_HPP__
+#ifndef WJR_PREPROCESSOR_ARITHMATIC_SUB_HPP__
+#define WJR_PREPROCESSOR_ARITHMATIC_SUB_HPP__
+
+#ifndef WJR_PREPROCESSOR_ARITHMATIC_ADD_HPP__
+#define WJR_PREPROCESSOR_ARITHMATIC_ADD_HPP__
+
+// Already included
+#ifndef WJR_PREPROCESSOR_DETAILS_BASIC_HPP__
+#define WJR_PREPROCESSOR_DETAILS_BASIC_HPP__
+
+#define WJR_PP_EMPTY(...)
+
+#define WJR_PP_CONCAT(x, y) WJR_PP_CONCAT_I(x, y)
+#define WJR_PP_CONCAT_I(x, y) x##y
+
+#define WJR_PP_EXPAND(...) WJR_PP_EXPAND_I(__VA_ARGS__)
+#define WJR_PP_EXPAND_I(...) __VA_ARGS__
+
+#define WJR_PP_STR(x) WJR_PP_STR_I(x)
+#define WJR_PP_STR_I(x) #x
+
+#define WJR_PP_STRS(...) WJR_PP_STRS_I(__VA_ARGS__)
+#define WJR_PP_STRS_I(...) # __VA_ARGS__
+
+#define WJR_PP_ESC(x) WJR_PP_ESC_(WJR_PP_ESC_I, x)
+#define WJR_PP_ESC_(M, x) M x
+#define WJR_PP_ESC_I(...) __VA_ARGS__
+
+// don't support 0 agument
+#define WJR_PP_ARGS_LEN(...) WJR_PP_ARGS_LEN_I(__VA_ARGS__)
+
+#define WJR_PP_ARGS_LEN_I(...)                                                           \
+    WJR_PP_EXPAND(WJR_PP_ARGS_LEN_(0, ##__VA_ARGS__, WJR_PP_ARGS_LEN_RSEQ_N()))
+
+#define WJR_PP_ARGS_LEN_RSEQ_N()                                                         \
+    64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44,  \
+        43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24,  \
+        23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2,  \
+        1, 0
+#define WJR_PP_ARGS_LEN_(...) WJR_PP_EXPAND(WJR_PP_ARGS_LEN_N(__VA_ARGS__))
+#define WJR_PP_ARGS_LEN_N(                                                               \
+    _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18,     \
+    _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, \
+    _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, _51, _52, \
+    _53, _54, _55, _56, _57, _58, _59, _60, _61, _62, _63, _64, _65, N, ...)             \
+    N
+
+#define WJR_PP_IS_NULLPTR(VAL)                                                           \
+    WJR_PP_IS_NULLPTR_I(WJR_PP_CONCAT(WJR_PP_IS_NULLPTR_, VAL), 0)
+#define WJR_PP_IS_NULLPTR_I(...) WJR_PP_IS_NULLPTR_II(__VA_ARGS__)
+#define WJR_PP_IS_NULLPTR_II(HOLDER, VAL, ...) VAL
+#define WJR_PP_IS_NULLPTR_WJR_PP_NULLPTR WJR_PP_HOLDER, 1
+
+#define WJR_PP_MAP_DEF(VAL) WJR_PP_HOLDER, VAL
+
+// if MAP ## KEY is defined as WJR_PP_MAP_DEF, then return VAL
+// else return WJR_PP_NULLPTR
+#define WJR_PP_MAP_FIND(MAP, KEY) WJR_PP_MAP_FIND_I(MAP, KEY)
+#define WJR_PP_MAP_FIND_I(MAP, KEY)                                                      \
+    WJR_PP_MAP_FIND_II(WJR_PP_CONCAT(MAP, KEY), WJR_PP_NULLPTR)
+#define WJR_PP_MAP_FIND_II(...) WJR_PP_MAP_FIND_III(__VA_ARGS__)
+#define WJR_PP_MAP_FIND_III(HOLDER, VAL, ...) VAL
+
+#endif // ! WJR_PREPROCESSOR_DETAILS_BASIC_HPP__
+
+#define WJR_PP_ADD(x, y) WJR_PP_ADD_I(x, y)
+#define WJR_PP_ADD_I(x, y)                                                               \
+    WJR_PP_ARITHMATIC_TO_NUMBER(WJR_PP_CONCAT(WJR_PP_ARITHMATIC_FROM_NUMBER(x),          \
+                                              WJR_PP_ARITHMATIC_FROM_NUMBER(y)))
+
+#endif // ! WJR_PREPROCESSOR_ARITHMATIC_ADD_HPP__
 #ifndef WJR_PREPROCESSOR_ARITHMATIC_INC_HPP__
 #define WJR_PREPROCESSOR_ARITHMATIC_INC_HPP__
 
@@ -183,510 +653,12 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_PP_INC_63 0
 
 #endif // ! WJR_PREPROCESSOR_ARITHMATIC_INC_HPP__
-#ifndef WJR_PREPROCESSOR_ARITHMATIC_DEC_HPP__
-#define WJR_PREPROCESSOR_ARITHMATIC_DEC_HPP__
-
-#define WJR_PP_DEC(x) WJR_PP_DEC_I(x)
-
-#define WJR_PP_DEC_I(x) WJR_PP_DEC_##x
-
-#define WJR_PP_DEC_0 63
-#define WJR_PP_DEC_1 0
-#define WJR_PP_DEC_2 1
-#define WJR_PP_DEC_3 2
-#define WJR_PP_DEC_4 3
-#define WJR_PP_DEC_5 4
-#define WJR_PP_DEC_6 5
-#define WJR_PP_DEC_7 6
-#define WJR_PP_DEC_8 7
-#define WJR_PP_DEC_9 8
-#define WJR_PP_DEC_10 9
-#define WJR_PP_DEC_11 10
-#define WJR_PP_DEC_12 11
-#define WJR_PP_DEC_13 12
-#define WJR_PP_DEC_14 13
-#define WJR_PP_DEC_15 14
-#define WJR_PP_DEC_16 15
-#define WJR_PP_DEC_17 16
-#define WJR_PP_DEC_18 17
-#define WJR_PP_DEC_19 18
-#define WJR_PP_DEC_20 19
-#define WJR_PP_DEC_21 20
-#define WJR_PP_DEC_22 21
-#define WJR_PP_DEC_23 22
-#define WJR_PP_DEC_24 23
-#define WJR_PP_DEC_25 24
-#define WJR_PP_DEC_26 25
-#define WJR_PP_DEC_27 26
-#define WJR_PP_DEC_28 27
-#define WJR_PP_DEC_29 28
-#define WJR_PP_DEC_30 29
-#define WJR_PP_DEC_31 30
-#define WJR_PP_DEC_32 31
-#define WJR_PP_DEC_33 32
-#define WJR_PP_DEC_34 33
-#define WJR_PP_DEC_35 34
-#define WJR_PP_DEC_36 35
-#define WJR_PP_DEC_37 36
-#define WJR_PP_DEC_38 37
-#define WJR_PP_DEC_39 38
-#define WJR_PP_DEC_40 39
-#define WJR_PP_DEC_41 40
-#define WJR_PP_DEC_42 41
-#define WJR_PP_DEC_43 42
-#define WJR_PP_DEC_44 43
-#define WJR_PP_DEC_45 44
-#define WJR_PP_DEC_46 45
-#define WJR_PP_DEC_47 46
-#define WJR_PP_DEC_48 47
-#define WJR_PP_DEC_49 48
-#define WJR_PP_DEC_50 49
-#define WJR_PP_DEC_51 50
-#define WJR_PP_DEC_52 51
-#define WJR_PP_DEC_53 52
-#define WJR_PP_DEC_54 53
-#define WJR_PP_DEC_55 54
-#define WJR_PP_DEC_56 55
-#define WJR_PP_DEC_57 56
-#define WJR_PP_DEC_58 57
-#define WJR_PP_DEC_59 58
-#define WJR_PP_DEC_60 59
-#define WJR_PP_DEC_61 60
-#define WJR_PP_DEC_62 61
-#define WJR_PP_DEC_63 62
-
-#endif // WJR_PREPROCESSOR_ARITHMATIC_DEC_HPP__
-#ifndef WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP__
-#define WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP__
-
-#ifndef WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP__
-#define WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP__
-
-#define WJR_PP_ARITHMATIC_FROM_NUMBER(x) WJR_PP_ARITHMATIC_FROM_NUMBER_I(x)
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_I(x) WJR_PP_ARITHMATIC_FROM_NUMBER_##x
-
-#define WJR_PP_ARITHMATIC_TO_NUMBER(x) WJR_PP_ARITHMATIC_TO_NUMBER_I(x)
-#define WJR_PP_ARITHMATIC_TO_NUMBER_I(x) __wjr_pp_arithmatic_from_number_##x
-
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_0
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_1 x
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_2 xx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_3 xxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_4 xxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_5 xxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_6 xxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_7 xxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_8 xxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_9 xxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_10 xxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_11 xxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_12 xxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_13 xxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_14 xxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_15 xxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_16 xxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_17 xxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_18 xxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_19 xxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_20 xxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_21 xxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_22 xxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_23 xxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_24 xxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_25 xxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_26 xxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_27 xxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_28 xxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_29 xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_30 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_31 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_32 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_33 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_34 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_35 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_36 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_37 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_38 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_39 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_40 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_41 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_42 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_43 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_44 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_45 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_46 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_47 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_48 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_49 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_50                                                 \
-    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_51                                                 \
-    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_52                                                 \
-    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_53                                                 \
-    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_54                                                 \
-    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_55                                                 \
-    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_56                                                 \
-    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_57                                                 \
-    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_58                                                 \
-    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_59                                                 \
-    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_60                                                 \
-    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_61                                                 \
-    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_62                                                 \
-    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#define WJR_PP_ARITHMATIC_FROM_NUMBER_63                                                 \
-    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-#define __wjr_pp_arithmatic_from_number_ 0
-#define __wjr_pp_arithmatic_from_number_x 1
-#define __wjr_pp_arithmatic_from_number_xx 2
-#define __wjr_pp_arithmatic_from_number_xxx 3
-#define __wjr_pp_arithmatic_from_number_xxxx 4
-#define __wjr_pp_arithmatic_from_number_xxxxx 5
-#define __wjr_pp_arithmatic_from_number_xxxxxx 6
-#define __wjr_pp_arithmatic_from_number_xxxxxxx 7
-#define __wjr_pp_arithmatic_from_number_xxxxxxxx 8
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxx 9
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxx 10
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxx 11
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxx 12
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxx 13
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxx 14
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxx 15
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxx 16
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxx 17
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxx 18
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxx 19
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxx 20
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxx 21
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxx 22
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxx 23
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxx 24
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxx 25
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxx 26
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxx 27
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxx 28
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx 29
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 30
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 31
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 32
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 33
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 34
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 35
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 36
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 37
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 38
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 39
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 40
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 41
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 42
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 43
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 44
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 45
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 46
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 47
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    48
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    49
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    50
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    51
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    52
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    53
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    54
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    55
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    56
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    57
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    58
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    59
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    60
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    61
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    62
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    63
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    1
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    2
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    3
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    4
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    5
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    6
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    7
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    8
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    9
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    10
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    11
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    12
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    13
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    14
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    15
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    16
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    17
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    18
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    19
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    20
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    21
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    22
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    23
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    24
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    25
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    26
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    27
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    28
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    29
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    30
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    31
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    32
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    33
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    34
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    35
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    36
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    37
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    38
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    39
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    40
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    41
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    42
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    43
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    44
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    45
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    46
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    47
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    48
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    49
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    50
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    51
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    52
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    53
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    54
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    55
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    56
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    57
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    58
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    59
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    60
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    61
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    62
-#define __wjr_pp_arithmatic_from_number_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    63
-
-#endif // ! WJR_PREPROCESSOR_ARITHMATIC_BASIC_HPP__
 // Already included
-#ifndef WJR_PREPROCESSOR_ARITHMATIC_NEG_HPP__
-#define WJR_PREPROCESSOR_ARITHMATIC_NEG_HPP__
 
-#define WJR_PP_NEG(x) WJR_PP_NEG_I(x)
-#define WJR_PP_NEG_I(x) WJR_PP_NEG_##x
+#define WJR_PP_SUB(x, y) WJR_PP_ADD(x, WJR_PP_NEG(y))
 
-#define WJR_PP_NEG_0 63
-#define WJR_PP_NEG_1 62
-#define WJR_PP_NEG_2 61
-#define WJR_PP_NEG_3 60
-#define WJR_PP_NEG_4 59
-#define WJR_PP_NEG_5 58
-#define WJR_PP_NEG_6 57
-#define WJR_PP_NEG_7 56
-#define WJR_PP_NEG_8 55
-#define WJR_PP_NEG_9 54
-#define WJR_PP_NEG_10 53
-#define WJR_PP_NEG_11 52
-#define WJR_PP_NEG_12 51
-#define WJR_PP_NEG_13 50
-#define WJR_PP_NEG_14 49
-#define WJR_PP_NEG_15 48
-#define WJR_PP_NEG_16 47
-#define WJR_PP_NEG_17 46
-#define WJR_PP_NEG_18 45
-#define WJR_PP_NEG_19 44
-#define WJR_PP_NEG_20 43
-#define WJR_PP_NEG_21 42
-#define WJR_PP_NEG_22 41
-#define WJR_PP_NEG_23 40
-#define WJR_PP_NEG_24 39
-#define WJR_PP_NEG_25 38
-#define WJR_PP_NEG_26 37
-#define WJR_PP_NEG_27 36
-#define WJR_PP_NEG_28 35
-#define WJR_PP_NEG_29 34
-#define WJR_PP_NEG_30 33
-#define WJR_PP_NEG_31 32
-#define WJR_PP_NEG_32 31
-#define WJR_PP_NEG_33 30
-#define WJR_PP_NEG_34 29
-#define WJR_PP_NEG_35 28
-#define WJR_PP_NEG_36 27
-#define WJR_PP_NEG_37 26
-#define WJR_PP_NEG_38 25
-#define WJR_PP_NEG_39 24
-#define WJR_PP_NEG_40 23
-#define WJR_PP_NEG_41 22
-#define WJR_PP_NEG_42 21
-#define WJR_PP_NEG_43 20
-#define WJR_PP_NEG_44 19
-#define WJR_PP_NEG_45 18
-#define WJR_PP_NEG_46 17
-#define WJR_PP_NEG_47 16
-#define WJR_PP_NEG_48 15
-#define WJR_PP_NEG_49 14
-#define WJR_PP_NEG_50 13
-#define WJR_PP_NEG_51 12
-#define WJR_PP_NEG_52 11
-#define WJR_PP_NEG_53 10
-#define WJR_PP_NEG_54 9
-#define WJR_PP_NEG_55 8
-#define WJR_PP_NEG_56 7
-#define WJR_PP_NEG_57 6
-#define WJR_PP_NEG_58 5
-#define WJR_PP_NEG_59 4
-#define WJR_PP_NEG_60 3
-#define WJR_PP_NEG_61 2
-#define WJR_PP_NEG_62 1
-#define WJR_PP_NEG_63 0
-
-#endif // ! WJR_PREPROCESSOR_ARITHMATIC_NEG_HPP__
-#ifndef WJR_PREPROCESSOR_DETAILS_BASIC_HPP__
-#define WJR_PREPROCESSOR_DETAILS_BASIC_HPP__
-
-#define WJR_PP_EMPTY(...)
-
-#define WJR_PP_CONCAT(x, y) WJR_PP_CONCAT_I(x, y)
-#define WJR_PP_CONCAT_I(x, y) x##y
-
-#define WJR_PP_EXPAND(...) WJR_PP_EXPAND_I(__VA_ARGS__)
-#define WJR_PP_EXPAND_I(...) __VA_ARGS__
-
-#define WJR_PP_STR(x) WJR_PP_STR_I(x)
-#define WJR_PP_STR_I(x) #x
-
-#define WJR_PP_STRS(...) WJR_PP_STRS_I(__VA_ARGS__)
-#define WJR_PP_STRS_I(...) # __VA_ARGS__
-
-#define WJR_PP_ESC(x) WJR_PP_ESC_(WJR_PP_ESC_I, x)
-#define WJR_PP_ESC_(M, x) M x
-#define WJR_PP_ESC_I(...) __VA_ARGS__
-
-// don't support 0 agument
-#define WJR_PP_ARGS_LEN(...) WJR_PP_ARGS_LEN_I(__VA_ARGS__)
-
-#define WJR_PP_ARGS_LEN_I(...)                                                           \
-    WJR_PP_EXPAND(WJR_PP_ARGS_LEN_(0, ##__VA_ARGS__, WJR_PP_ARGS_LEN_RSEQ_N()))
-
-#define WJR_PP_ARGS_LEN_RSEQ_N()                                                         \
-    64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44,  \
-        43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24,  \
-        23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2,  \
-        1, 0
-#define WJR_PP_ARGS_LEN_(...) WJR_PP_EXPAND(WJR_PP_ARGS_LEN_N(__VA_ARGS__))
-#define WJR_PP_ARGS_LEN_N(                                                               \
-    _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18,     \
-    _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, \
-    _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, _51, _52, \
-    _53, _54, _55, _56, _57, _58, _59, _60, _61, _62, _63, _64, _65, N, ...)             \
-    N
-
-#define WJR_PP_IS_NULLPTR(VAL)                                                           \
-    WJR_PP_IS_NULLPTR_I(WJR_PP_CONCAT(WJR_PP_IS_NULLPTR_, VAL), 0)
-#define WJR_PP_IS_NULLPTR_I(...) WJR_PP_IS_NULLPTR_II(__VA_ARGS__)
-#define WJR_PP_IS_NULLPTR_II(HOLDER, VAL, ...) VAL
-#define WJR_PP_IS_NULLPTR_WJR_PP_NULLPTR WJR_PP_HOLDER, 1
-
-#define WJR_PP_MAP_DEF(VAL) WJR_PP_HOLDER, VAL
-
-// if MAP ## KEY is defined as WJR_PP_MAP_DEF, then return VAL
-// else return WJR_PP_NULLPTR
-#define WJR_PP_MAP_FIND(MAP, KEY) WJR_PP_MAP_FIND_I(MAP, KEY)
-#define WJR_PP_MAP_FIND_I(MAP, KEY)                                                      \
-    WJR_PP_MAP_FIND_II(WJR_PP_CONCAT(MAP, KEY), WJR_PP_NULLPTR)
-#define WJR_PP_MAP_FIND_II(...) WJR_PP_MAP_FIND_III(__VA_ARGS__)
-#define WJR_PP_MAP_FIND_III(HOLDER, VAL, ...) VAL
-
-#endif // ! WJR_PREPROCESSOR_DETAILS_BASIC_HPP__
+#endif // ! WJR_PREPROCESSOR_ARITHMATIC_SUB_HPP__
+// Already included
 #ifndef WJR_PREPROCESSOR_LOGICAL_BASIC_HPP__
 #define WJR_PREPROCESSOR_LOGICAL_BASIC_HPP__
 
@@ -776,248 +748,375 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 
 #endif // WJR_PREPROCESSOR_LOGICAL_BOOL_HPP__
 
-#define WJR_PP_LT(x, y) WJR_PP_BOOL_IF(WJR_PP_BOOL(y), WJR_PP_ADD_OVERFLOW(x, y), 0)
+#define WJR_PP_GE(x, y) WJR_PP_BOOL_IF(WJR_PP_BOOL(y), WJR_PP_SUB_OVERFLOW(x, y), 1)
+#define WJR_PP_LE(x, y) WJR_PP_GE(y, x)
+#define WJR_PP_LT(x, y) WJR_PP_BOOL_NOT(WJR_PP_GE(x, y))
 #define WJR_PP_GT(x, y) WJR_PP_LT(y, x)
-#define WJR_PP_LE(x, y) WJR_PP_BOOL_NOT(WJR_PP_GT(x, y))
-#define WJR_PP_GE(x, y) WJR_PP_LE(y, x)
-#define WJR_PP_NE(x, y) WJR_PP_BOOL_OR(WJR_PP_LT(x, y), WJR_PP_LT(y, x))
+#define WJR_PP_NE(x, y) WJR_PP_BOOL(WJR_PP_SUB(x, y))
 #define WJR_PP_EQ(x, y) WJR_PP_BOOL_NOT(WJR_PP_NE(x, y))
 
 #define WJR_PP_ADD_OVERFLOW(x, y)                                                        \
-    WJR_PP_ADD_OVERFLOW_I(                                                               \
-        WJR_PP_CONCAT(WJR_PP_ARITHMATIC_FROM_NUMBER(x),                                  \
-                      WJR_PP_ARITHMATIC_FROM_NUMBER(WJR_PP_INC(WJR_PP_NEG(y)))))
+    WJR_PP_ADD_OVERFLOW_I(WJR_PP_CONCAT(WJR_PP_ARITHMATIC_FROM_NUMBER(x),                \
+                                        WJR_PP_ARITHMATIC_FROM_NUMBER(y)))
 #define WJR_PP_ADD_OVERFLOW_I(x) WJR_PP_ADD_OVERFLOW_II(x)
-#define WJR_PP_ADD_OVERFLOW_II(x) __wjr_arithmatic_add_overflow_##x
+#define WJR_PP_ADD_OVERFLOW_II(x) __wjr_arithmatic_overflow_##x
 
-#define __wjr_arithmatic_add_overflow_ 1
-#define __wjr_arithmatic_add_overflow_x 1
-#define __wjr_arithmatic_add_overflow_xx 1
-#define __wjr_arithmatic_add_overflow_xxx 1
-#define __wjr_arithmatic_add_overflow_xxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define WJR_PP_SUB_OVERFLOW(x, y)                                                        \
+    WJR_PP_SUB_OVERFLOW_I(WJR_PP_CONCAT(WJR_PP_ARITHMATIC_FROM_NUMBER(x),                \
+                                        WJR_PP_ARITHMATIC_FROM_NUMBER(WJR_PP_NEG(y))))
+#define WJR_PP_SUB_OVERFLOW_I(x) WJR_PP_SUB_OVERFLOW_II(x)
+#define WJR_PP_SUB_OVERFLOW_II(x) __wjr_arithmatic_overflow_##x
+
+#define __wjr_arithmatic_overflow_ 0
+#define __wjr_arithmatic_overflow_x 0
+#define __wjr_arithmatic_overflow_xx 0
+#define __wjr_arithmatic_overflow_xxx 0
+#define __wjr_arithmatic_overflow_xxxx 0
+#define __wjr_arithmatic_overflow_xxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
     1
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
-#define __wjr_arithmatic_add_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    0
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
+#define __wjr_arithmatic_overflow_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    1
 
 #endif // ! WJR_PREPROCESSOR_ARITHMATIC_CMP_HPP__
-#ifndef WJR_PREPROCESSOR_ARITHMATIC_SUB_HPP__
-#define WJR_PREPROCESSOR_ARITHMATIC_SUB_HPP__
+#ifndef WJR_PREPROCESSOR_ARITHMATIC_DEC_HPP__
+#define WJR_PREPROCESSOR_ARITHMATIC_DEC_HPP__
 
-#ifndef WJR_PREPROCESSOR_ARITHMATIC_ADD_HPP__
-#define WJR_PREPROCESSOR_ARITHMATIC_ADD_HPP__
+#define WJR_PP_DEC(x) WJR_PP_DEC_I(x)
 
+#define WJR_PP_DEC_I(x) WJR_PP_DEC_##x
+
+#define WJR_PP_DEC_0 63
+#define WJR_PP_DEC_1 0
+#define WJR_PP_DEC_2 1
+#define WJR_PP_DEC_3 2
+#define WJR_PP_DEC_4 3
+#define WJR_PP_DEC_5 4
+#define WJR_PP_DEC_6 5
+#define WJR_PP_DEC_7 6
+#define WJR_PP_DEC_8 7
+#define WJR_PP_DEC_9 8
+#define WJR_PP_DEC_10 9
+#define WJR_PP_DEC_11 10
+#define WJR_PP_DEC_12 11
+#define WJR_PP_DEC_13 12
+#define WJR_PP_DEC_14 13
+#define WJR_PP_DEC_15 14
+#define WJR_PP_DEC_16 15
+#define WJR_PP_DEC_17 16
+#define WJR_PP_DEC_18 17
+#define WJR_PP_DEC_19 18
+#define WJR_PP_DEC_20 19
+#define WJR_PP_DEC_21 20
+#define WJR_PP_DEC_22 21
+#define WJR_PP_DEC_23 22
+#define WJR_PP_DEC_24 23
+#define WJR_PP_DEC_25 24
+#define WJR_PP_DEC_26 25
+#define WJR_PP_DEC_27 26
+#define WJR_PP_DEC_28 27
+#define WJR_PP_DEC_29 28
+#define WJR_PP_DEC_30 29
+#define WJR_PP_DEC_31 30
+#define WJR_PP_DEC_32 31
+#define WJR_PP_DEC_33 32
+#define WJR_PP_DEC_34 33
+#define WJR_PP_DEC_35 34
+#define WJR_PP_DEC_36 35
+#define WJR_PP_DEC_37 36
+#define WJR_PP_DEC_38 37
+#define WJR_PP_DEC_39 38
+#define WJR_PP_DEC_40 39
+#define WJR_PP_DEC_41 40
+#define WJR_PP_DEC_42 41
+#define WJR_PP_DEC_43 42
+#define WJR_PP_DEC_44 43
+#define WJR_PP_DEC_45 44
+#define WJR_PP_DEC_46 45
+#define WJR_PP_DEC_47 46
+#define WJR_PP_DEC_48 47
+#define WJR_PP_DEC_49 48
+#define WJR_PP_DEC_50 49
+#define WJR_PP_DEC_51 50
+#define WJR_PP_DEC_52 51
+#define WJR_PP_DEC_53 52
+#define WJR_PP_DEC_54 53
+#define WJR_PP_DEC_55 54
+#define WJR_PP_DEC_56 55
+#define WJR_PP_DEC_57 56
+#define WJR_PP_DEC_58 57
+#define WJR_PP_DEC_59 58
+#define WJR_PP_DEC_60 59
+#define WJR_PP_DEC_61 60
+#define WJR_PP_DEC_62 61
+#define WJR_PP_DEC_63 62
+
+#endif // WJR_PREPROCESSOR_ARITHMATIC_DEC_HPP__
 // Already included
+#ifndef WJR_PREPROCESSOR_ARITHMATIC_NOT_HPP__
+#define WJR_PREPROCESSOR_ARITHMATIC_NOT_HPP__
+
+#define WJR_PP_NOT(x) WJR_PP_NOT_I(x)
+#define WJR_PP_NOT_I(x) WJR_PP_NOT_##x
+
+#define WJR_PP_NOT_0 63
+#define WJR_PP_NOT_1 62
+#define WJR_PP_NOT_2 61
+#define WJR_PP_NOT_3 60
+#define WJR_PP_NOT_4 59
+#define WJR_PP_NOT_5 58
+#define WJR_PP_NOT_6 57
+#define WJR_PP_NOT_7 56
+#define WJR_PP_NOT_8 55
+#define WJR_PP_NOT_9 54
+#define WJR_PP_NOT_10 53
+#define WJR_PP_NOT_11 52
+#define WJR_PP_NOT_12 51
+#define WJR_PP_NOT_13 50
+#define WJR_PP_NOT_14 49
+#define WJR_PP_NOT_15 48
+#define WJR_PP_NOT_16 47
+#define WJR_PP_NOT_17 46
+#define WJR_PP_NOT_18 45
+#define WJR_PP_NOT_19 44
+#define WJR_PP_NOT_20 43
+#define WJR_PP_NOT_21 42
+#define WJR_PP_NOT_22 41
+#define WJR_PP_NOT_23 40
+#define WJR_PP_NOT_24 39
+#define WJR_PP_NOT_25 38
+#define WJR_PP_NOT_26 37
+#define WJR_PP_NOT_27 36
+#define WJR_PP_NOT_28 35
+#define WJR_PP_NOT_29 34
+#define WJR_PP_NOT_30 33
+#define WJR_PP_NOT_31 32
+#define WJR_PP_NOT_32 31
+#define WJR_PP_NOT_33 30
+#define WJR_PP_NOT_34 29
+#define WJR_PP_NOT_35 28
+#define WJR_PP_NOT_36 27
+#define WJR_PP_NOT_37 26
+#define WJR_PP_NOT_38 25
+#define WJR_PP_NOT_39 24
+#define WJR_PP_NOT_40 23
+#define WJR_PP_NOT_41 22
+#define WJR_PP_NOT_42 21
+#define WJR_PP_NOT_43 20
+#define WJR_PP_NOT_44 19
+#define WJR_PP_NOT_45 18
+#define WJR_PP_NOT_46 17
+#define WJR_PP_NOT_47 16
+#define WJR_PP_NOT_48 15
+#define WJR_PP_NOT_49 14
+#define WJR_PP_NOT_50 13
+#define WJR_PP_NOT_51 12
+#define WJR_PP_NOT_52 11
+#define WJR_PP_NOT_53 10
+#define WJR_PP_NOT_54 9
+#define WJR_PP_NOT_55 8
+#define WJR_PP_NOT_56 7
+#define WJR_PP_NOT_57 6
+#define WJR_PP_NOT_58 5
+#define WJR_PP_NOT_59 4
+#define WJR_PP_NOT_60 3
+#define WJR_PP_NOT_61 2
+#define WJR_PP_NOT_62 1
+#define WJR_PP_NOT_63 0
+
+#endif // ! WJR_PREPROCESSOR_ARITHMATIC_NOT_HPP__
 // Already included
-
-#define WJR_PP_ADD(x, y) WJR_PP_ADD_I(x, y)
-#define WJR_PP_ADD_I(x, y)                                                               \
-    WJR_PP_ARITHMATIC_TO_NUMBER(WJR_PP_CONCAT(WJR_PP_ARITHMATIC_FROM_NUMBER(x),          \
-                                              WJR_PP_ARITHMATIC_FROM_NUMBER(y)))
-
-#endif // ! WJR_PREPROCESSOR_ARITHMATIC_ADD_HPP__
-// Already included
-// Already included
-
-#define WJR_PP_SUB(x, y) WJR_PP_ADD(x, WJR_PP_INC(WJR_PP_NEG(y)))
-
-#endif // ! WJR_PREPROCESSOR_ARITHMATIC_SUB_HPP__
 
 #endif // ! WJR_PREPROCESSOR_ARITHMATIC_HPP__
 #ifndef WJR_PREPROCESSOR_COMPILER_HPP__
@@ -1161,7 +1260,7 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #endif
 
 // reference: boost BOOST_CURRENT_FUNCTION
-#if defined(BOOST_DISABLE_CURRENT_FUNCTION)
+#if defined(WJR_DISABLE_CURRENT_FUNCTION)
 #define WJR_CURRENT_FUNCTION "(unknown)"
 #elif defined(__GNUC__) || (defined(__MWERKS__) && (__MWERKS__ >= 0x3000)) ||            \
     (defined(__ICC) && (__ICC >= 600)) || defined(__ghs__)
@@ -2382,11 +2481,6 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 
 namespace wjr {
 
-// ASSERT_LEVEL : 0 ~ 3
-// 0 : Release (defined(NDEBUG) && ! defined(WJR_DEBUG_LEVEL))
-// 1 : Some simple runtime checks, such as boundary checks (default)
-// 2 : Most runtime checks
-// 3 : Maximize runtime checks
 #ifndef WJR_DEBUG_LEVEL
 #if defined(NDEBUG)
 #define WJR_DEBUG_LEVEL 0
@@ -2395,11 +2489,12 @@ namespace wjr {
 #endif
 #endif
 
+#if WJR_DEBUG_LEVEL < 0 || WJR_DEBUG_LEVEL > 3
+#error "WJR_DEBUG_LEVEL must be 0 ~ 3"
+#endif
+
 #define WJR_DEBUG_IF(level, expr0, expr1)                                                \
     WJR_PP_BOOL_IF(WJR_PP_GT(WJR_DEBUG_LEVEL, level), expr0, expr1)
-
-#define WJR_DEBUG_EXPR_L(level, expr) WJR_DEBUG_IF(level, expr, )
-#define WJR_DEBUG_EXPR(expr) WJR_DEBUG_EXPR_L(0, expr)
 
 WJR_NORETURN extern void __assert_failed(const char *expr, const char *file,
                                          const char *func, int line) noexcept;
@@ -2460,27 +2555,22 @@ inline constexpr __assert_handler_t __assert_handler{};
     (__VA_ARGS__)
 
 // level of assert is zero at default.
-#define WJR_ASSERT(...) WJR_ASSERT_L(0, __VA_ARGS__)
+#define WJR_ASSERT_L0(...) WJR_ASSERT_CHECK_I(__VA_ARGS__)
 #define WJR_ASSERT_L1(...) WJR_ASSERT_L(1, __VA_ARGS__)
 #define WJR_ASSERT_L2(...) WJR_ASSERT_L(2, __VA_ARGS__)
 #define WJR_ASSERT_L3(...) WJR_ASSERT_L(3, __VA_ARGS__)
-
-// always detect
-#define WJR_ASSERT_LX(...) WJR_ASSERT_CHECK_I(__VA_ARGS__)
+#define WJR_ASSERT(...) WJR_ASSERT_L1(__VA_ARGS__)
 
 #define WJR_ASSERT_ASSUME_L(level, ...)                                                  \
     WJR_ASSERT_L(level, __VA_ARGS__);                                                    \
     __WJR_ASSERT_ASSUME_L_ASSUME(__VA_ARGS__)
 #define __WJR_ASSERT_ASSUME_L_ASSUME(expr, ...) WJR_ASSUME(expr)
 
-#define WJR_ASSERT_ASSUME(...) WJR_ASSERT_ASSUME_L(0, __VA_ARGS__)
+#define WJR_ASSERT_ASSUME_L0(...) WJR_ASSERT_ASSUME_L(0, __VA_ARGS__)
 #define WJR_ASSERT_ASSUME_L1(...) WJR_ASSERT_ASSUME_L(1, __VA_ARGS__)
 #define WJR_ASSERT_ASSUME_L2(...) WJR_ASSERT_ASSUME_L(2, __VA_ARGS__)
 #define WJR_ASSERT_ASSUME_L3(...) WJR_ASSERT_ASSUME_L(3, __VA_ARGS__)
-
-#define WJR_ASSERT_ASSUME_LX(...)                                                        \
-    WJR_ASSERT_LX(__VA_ARGS__);                                                          \
-    WJR_ASSUME(__VA_ARGS__)
+#define WJR_ASSERT_ASSUME(...) WJR_ASSERT_ASSUME_L1(__VA_ARGS__)
 
 } // namespace wjr
 
@@ -5480,10 +5570,10 @@ public:
 
     WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 pointer operator->() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
-        WJR_ASSERT_LX(m_container != nullptr,
+        WJR_ASSERT_L0(m_container != nullptr,
                       "Can't dereference an value-initialized iterator.");
-        WJR_ASSERT_LX(m_ptr != nullptr, "Can't dereference an invalid iterator.");
-        WJR_ASSERT_LX(m_ptr >= __begin() && m_ptr < __end(),
+        WJR_ASSERT_L0(m_ptr != nullptr, "Can't dereference an invalid iterator.");
+        WJR_ASSERT_L0(m_ptr >= __begin() && m_ptr < __end(),
                       "Can't dereference an out-of-range iterator.");
 #endif
         return const_cast<pointer>(m_ptr);
@@ -5495,10 +5585,10 @@ public:
 
     WJR_CONSTEXPR20 contiguous_const_iterator_adapter &operator++() noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
-        WJR_ASSERT_LX(m_container != nullptr,
+        WJR_ASSERT_L0(m_container != nullptr,
                       "Can't increment an value-initialized iterator.");
-        WJR_ASSERT_LX(m_ptr != nullptr, "Can't increment an invalid iterator.");
-        WJR_ASSERT_LX(m_ptr < __end(),
+        WJR_ASSERT_L0(m_ptr != nullptr, "Can't increment an invalid iterator.");
+        WJR_ASSERT_L0(m_ptr < __end(),
                       "Can't increment an iterator that is already at/after the end.");
 #endif
         ++m_ptr;
@@ -5513,10 +5603,10 @@ public:
 
     WJR_CONSTEXPR20 contiguous_const_iterator_adapter &operator--() noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
-        WJR_ASSERT_LX(m_container != nullptr,
+        WJR_ASSERT_L0(m_container != nullptr,
                       "Can't decrement an value-initialized iterator.");
-        WJR_ASSERT_LX(m_ptr != nullptr, "Can't decrement an invalid iterator.");
-        WJR_ASSERT_LX(
+        WJR_ASSERT_L0(m_ptr != nullptr, "Can't decrement an invalid iterator.");
+        WJR_ASSERT_L0(
             m_ptr > __begin(),
             "Can't decrement an iterator that is already at/before the beginning.");
 #endif
@@ -5607,7 +5697,7 @@ public:
     WJR_CONSTEXPR20 void
     check_same_container(WJR_MAYBE_UNUSED const Container *cont) const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
-        WJR_ASSERT_LX(m_container == cont,
+        WJR_ASSERT_L0(m_container == cont,
                       "Can't compare iterators from different containers.");
 #else
         (void)(cont);
@@ -5625,14 +5715,14 @@ public:
         if (offset == 0) {
             return;
         }
-        WJR_ASSERT_LX(m_container != nullptr,
+        WJR_ASSERT_L0(m_container != nullptr,
                       "Can't seek an value-initialized iterator.");
-        WJR_ASSERT_LX(m_ptr != nullptr, "Can't seek an invalid iterator.");
+        WJR_ASSERT_L0(m_ptr != nullptr, "Can't seek an invalid iterator.");
         if (offset < 0) {
-            WJR_ASSERT_LX(offset >= __begin() - m_ptr,
+            WJR_ASSERT_L0(offset >= __begin() - m_ptr,
                           "Can't seek an iterator that before the beginning.");
         } else {
-            WJR_ASSERT_LX(offset <= __end() - m_ptr,
+            WJR_ASSERT_L0(offset <= __end() - m_ptr,
                           "Can't seek an iterator that after the end.");
         }
     }
@@ -5640,7 +5730,7 @@ public:
     /// @private
     WJR_CONSTEXPR20 void
     __check_same_container(const contiguous_const_iterator_adapter &rhs) const noexcept {
-        WJR_ASSERT_LX(m_container == rhs.m_container,
+        WJR_ASSERT_L0(m_container == rhs.m_container,
                       "Can't compare iterators from different containers.");
     }
 
@@ -5778,10 +5868,10 @@ struct pointer_traits<wjr::contiguous_const_iterator_adapter<Container, Traits>>
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
         auto cont = ptr.m_container;
         if (cont) {
-            WJR_ASSERT_LX(ptr.m_ptr >= ptr.__begin() && ptr.m_ptr <= ptr.__end(),
+            WJR_ASSERT_L0(ptr.m_ptr >= ptr.__begin() && ptr.m_ptr <= ptr.__end(),
                           "can't convert out-of-range vector iterator to pointer");
         } else {
-            WJR_ASSERT_LX(ptr.m_ptr == nullptr,
+            WJR_ASSERT_L0(ptr.m_ptr == nullptr,
                           "can't convert invalid vector iterator to pointer");
         }
 #endif
@@ -5799,10 +5889,10 @@ struct pointer_traits<wjr::contiguous_iterator_adapter<Container, Traits>> {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
         auto cont = ptr.m_container;
         if (cont) {
-            WJR_ASSERT_LX(ptr.m_ptr >= ptr.__begin() && ptr.m_ptr <= ptr.__end(),
+            WJR_ASSERT_L0(ptr.m_ptr >= ptr.__begin() && ptr.m_ptr <= ptr.__end(),
                           "can't convert out-of-range vector iterator to pointer");
         } else {
-            WJR_ASSERT_LX(ptr.m_ptr == nullptr,
+            WJR_ASSERT_L0(ptr.m_ptr == nullptr,
                           "can't convert invalid vector iterator to pointer");
         }
 #endif
@@ -5896,26 +5986,26 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T __ceil_div(T n, type_identity_t<T> div) {
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_down(T n, type_identity_t<T> alignment) {
-    WJR_ASSERT_ASSUME_L1(is_zero_or_single_bit(alignment));
+    WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
     return n & (-alignment);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_down_offset(T n,
                                                         type_identity_t<T> alignment) {
-    WJR_ASSERT_ASSUME_L1(is_zero_or_single_bit(alignment));
+    WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
     return n & (alignment - 1);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up(T n, type_identity_t<T> alignment) {
-    WJR_ASSERT_ASSUME_L1(is_zero_or_single_bit(alignment));
+    WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
     return (n + alignment - 1) & (-alignment);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up_offset(T n, type_identity_t<T> alignment) {
-    WJR_ASSERT_ASSUME_L1(is_zero_or_single_bit(alignment));
+    WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
     return (-n) & (alignment - 1);
 }
 
@@ -5933,7 +6023,7 @@ WJR_CONST constexpr T __fasts_get_sign_mask(T x) {
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST constexpr std::make_signed_t<T> __fasts_from_unsigned(T x) {
     std::make_signed_t<T> ret = x;
-    WJR_ASSERT_ASSUME_L1(ret >= 0, "overflow");
+    WJR_ASSERT_ASSUME_L2(ret >= 0, "overflow");
     return ret;
 }
 
@@ -5962,7 +6052,7 @@ WJR_CONST constexpr T __fasts_negate_with(T condition, T x) {
 
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
 WJR_CONST constexpr T __fasts_increment(T x) {
-    WJR_ASSERT_L1(x != std::numeric_limits<T>::min() &&
+    WJR_ASSERT_L2(x != std::numeric_limits<T>::min() &&
                       x != std::numeric_limits<T>::max(),
                   "overflow");
 
@@ -5971,7 +6061,7 @@ WJR_CONST constexpr T __fasts_increment(T x) {
 
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
 WJR_CONST constexpr T __fasts_decrement(T x) {
-    WJR_ASSERT_L1(x != 0 && x + 1 != T(0), "overflow");
+    WJR_ASSERT_L2(x != 0 && x + 1 != T(0), "overflow");
 
     return x < 0 ? x + 1 : x - 1;
 }
@@ -6156,7 +6246,7 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
                        typename std::basic_string<CharT, Traits, Alloc>::size_type sz) {
     str.reserve(sz);
     string_set_length_hacker(str, sz);
-    WJR_ASSERT_L1(str.size() == sz);
+    WJR_ASSERT_L2(str.size() == sz);
     str[sz] = '\0';
 }
 
@@ -7686,13 +7776,13 @@ private:
 #if WJR_HAS_DEBUG(UNINITIALIZED_CHECKER)
     struct __checker {
         constexpr void set(bool value) noexcept { m_initialized = value; }
-        constexpr void check(bool value) const {
-            WJR_ASSERT_LX(m_initialized == value, "Expected ",
+        constexpr void check(bool value) const noexcept {
+            WJR_ASSERT_L0(m_initialized == value, "Expected ",
                           (value ? "initialized" : "uninitialized"),
                           " value when using an uninitialized object.");
         }
 
-        ~__checker() {
+        ~__checker() noexcept {
             if constexpr (!std::is_trivially_destructible_v<T>) {
                 check(false);
             }
@@ -7704,7 +7794,7 @@ private:
     __checker m_checker;
 
     constexpr void checker_set(bool value) noexcept { m_checker.set(value); }
-    constexpr void check(bool value) const { m_checker.check(value); }
+    constexpr void check(bool value) const noexcept { m_checker.check(value); }
 #else
     constexpr static void checker_set(bool) noexcept {}
     constexpr static void check(bool) noexcept {}
@@ -8477,7 +8567,7 @@ public:
     WJR_CONSTEXPR20 void take_storage(__sso_vector_storage_impl &other, _Alty &al) {
         auto &other_storage = other.m_storage;
 
-        WJR_ASSERT_ASSUME_L1(__is_sso());
+        WJR_ASSERT_ASSUME_L2(__is_sso());
 
         if (other.__is_sso()) {
             m_storage.m_size = other_storage.m_size;
@@ -8605,7 +8695,7 @@ public:
     WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept { return m_storage.m_size; }
     WJR_PURE WJR_CONSTEXPR20 size_type capacity() const noexcept {
         const size_type ret = __is_sso() ? __max_capacity : m_storage.m_capacity;
-        WJR_ASSERT_ASSUME_L1(ret >= __max_capacity);
+        WJR_ASSERT_ASSUME_L2(ret >= __max_capacity);
         return ret;
     }
 
@@ -8990,14 +9080,14 @@ public:
 
     WJR_CONSTEXPR20 reference operator[](size_type pos) noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(pos < size(), "basic_vector::operator[]: out of range");
+        WJR_ASSERT_L0(pos < size(), "basic_vector::operator[]: out of range");
 #endif
         return data()[pos];
     }
 
     WJR_CONSTEXPR20 const_reference operator[](size_type pos) const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(pos < size(), "basic_vector::operator[]: out of range");
+        WJR_ASSERT_L0(pos < size(), "basic_vector::operator[]: out of range");
 #endif
         return data()[pos];
     }
@@ -9020,28 +9110,28 @@ public:
 
     WJR_CONSTEXPR20 reference front() noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(size() > 0, "basic_vector::front: empty");
+        WJR_ASSERT_L0(size() > 0, "basic_vector::front: empty");
 #endif
         return *data();
     }
 
     WJR_CONSTEXPR20 const_reference front() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(size() > 0, "basic_vector::front: empty");
+        WJR_ASSERT_L0(size() > 0, "basic_vector::front: empty");
 #endif
         return *data();
     }
 
     WJR_CONSTEXPR20 reference back() noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(size() > 0, "basic_vector::back: empty");
+        WJR_ASSERT_L0(size() > 0, "basic_vector::back: empty");
 #endif
         return *(end_unsafe() - 1);
     }
 
     WJR_CONSTEXPR20 const_reference back() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(size() > 0, "basic_vector::back: empty");
+        WJR_ASSERT_L0(size() > 0, "basic_vector::back: empty");
 #endif
         return *(end_unsafe() - 1);
     }
@@ -9356,7 +9446,7 @@ private:
     WJR_CONSTEXPR20 void __erase_at_end(pointer pos) noexcept {
         const pointer __begin = data();
         const pointer __end = end_unsafe();
-        WJR_ASSERT_L1(pos >= __begin && pos <= __end,
+        WJR_ASSERT_L2(pos >= __begin && pos <= __end,
                       "pos must be in the range of [begin(), end()]");
         const auto new_size = static_cast<size_type>(pos - __begin);
         destroy_using_allocator(__begin + new_size, __end, __get_allocator());
@@ -10267,7 +10357,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz_impl(T x) {
  */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz(T x) {
-    WJR_ASSERT_ASSUME_L1(x != 0);
+    WJR_ASSERT_ASSUME_L2(x != 0);
     const int ret = clz_impl(x);
     WJR_ASSUME(0 <= ret && ret < std::numeric_limits<T>::digits);
     return ret;
@@ -10370,7 +10460,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int ctz_impl(T x) {
  */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int ctz(T x) {
-    WJR_ASSERT_ASSUME_L1(x != 0);
+    WJR_ASSERT_ASSUME_L2(x != 0);
     const int ret = ctz_impl(x);
     WJR_ASSUME(0 <= ret && ret < std::numeric_limits<T>::digits);
     return ret;
@@ -10479,9 +10569,9 @@ public:
     template <uint64_t Base = 0>
     WJR_CONST static constexpr uint8_t to(uint8_t x) {
         if constexpr (Base == 0) {
-            WJR_ASSERT_L2(x < 36);
+            WJR_ASSERT_L3(x < 36);
         } else {
-            WJR_ASSERT_L2(x < Base);
+            WJR_ASSERT_L3(x < Base);
         }
 
         if constexpr (Base == 0 || Base > 10) {
@@ -17202,7 +17292,7 @@ WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) {
 template <typename T, typename U,
           WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
-    WJR_ASSERT_ASSUME_L1(c_in <= 1);
+    WJR_ASSERT_ASSUME_L2(c_in <= 1);
 
 #if !WJR_HAS_BUILTIN(SUBC) && !WJR_HAS_BUILTIN(ASM_SUBC)
     return fallback_subc(a, b, c_in, c_out);
@@ -17242,7 +17332,7 @@ WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
 */
 template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
-    WJR_ASSERT_ASSUME_L1(c_in <= 1);
+    WJR_ASSERT_ASSUME_L2(c_in <= 1);
 
 #if WJR_HAS_BUILTIN(ASM_SUBC_CC)
     constexpr auto is_constant_or_zero = [](auto x) -> int {
@@ -17331,7 +17421,7 @@ template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_1(uint64_t *dst, const uint64_t *src0, size_t n,
                                    uint64_t src1, U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
 
     if (WJR_BUILTIN_CONSTANT_P(n == 1) && n == 1) {
         uint8_t overflow = 0;
@@ -17398,8 +17488,8 @@ template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_n(uint64_t *dst, const uint64_t *src0,
                                    const uint64_t *src1, size_t n, U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
 
 #if WJR_HAS_BUILTIN(ASM_SUBC_N)
     if (is_constant_evaluated()) {
@@ -17460,8 +17550,8 @@ WJR_INTRINSIC_CONSTEXPR_E U subc_sz(uint64_t *dst, const uint64_t *src0, size_t 
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0,
                                              const uint64_t *src1, size_t n) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
 
     size_t idx = reverse_find_not_n(src0, src1, n);
 
@@ -17500,8 +17590,8 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n_pos(uint64_t *dst, const uint64_t *src0,
                                                  const uint64_t *src1, size_t n) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
 
     size_t idx = reverse_find_not_n(src0, src1, n);
 
@@ -19758,7 +19848,7 @@ WJR_INTRINSIC_INLINE T builtin_addc(T a, T b, U c_in, U &c_out) {
 template <typename T, typename U,
           WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out) {
-    WJR_ASSERT_ASSUME_L1(c_in <= 1);
+    WJR_ASSERT_ASSUME_L2(c_in <= 1);
 
 #if !WJR_HAS_BUILTIN(ADDC) && !WJR_HAS_BUILTIN(ASM_ADDC)
     return fallback_addc(a, b, c_in, c_out);
@@ -19806,7 +19896,7 @@ WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out) {
  */
 template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
-    WJR_ASSERT_ASSUME_L1(c_in <= 1);
+    WJR_ASSERT_ASSUME_L2(c_in <= 1);
 
 #if WJR_HAS_BUILTIN(ASM_ADDC_CC)
     constexpr auto is_constant_or_zero = [](auto x) -> int {
@@ -19902,7 +19992,7 @@ template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U addc_1(uint64_t *dst, const uint64_t *src0, size_t n,
                                    uint64_t src1, U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
     WJR_ASSERT_ASSUME(c_in <= 1);
 
     if (WJR_BUILTIN_CONSTANT_P(n == 1) && n == 1) {
@@ -19976,8 +20066,8 @@ template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U addc_n(uint64_t *dst, const uint64_t *src0,
                                    const uint64_t *src1, size_t n, U c_in) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
 
 #if WJR_HAS_BUILTIN(ASM_ADDC_N)
     if (is_constant_evaluated()) {
@@ -20538,8 +20628,8 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E T lshift_n(T *dst, const T *src, size_t 
                                                    unsigned int c,
                                                    type_identity_t<T> lo = 0) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
-    WJR_ASSERT_L1(c < std::numeric_limits<T>::digits);
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
+    WJR_ASSERT_L2(c < std::numeric_limits<T>::digits);
 
     if (WJR_UNLIKELY(c == 0)) {
         if (WJR_LIKELY(dst != src)) {
@@ -20585,8 +20675,8 @@ template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E T rshift_n(T *dst, const T *src, size_t n, unsigned int c,
                                      type_identity_t<T> hi = 0) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
-    WJR_ASSERT_L1(c < std::numeric_limits<T>::digits);
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
+    WJR_ASSERT_L2(c < std::numeric_limits<T>::digits);
 
     if (WJR_UNLIKELY(c == 0)) {
         if (WJR_LIKELY(dst != src)) {
@@ -20671,7 +20761,7 @@ protected:
     ~nonsendable() { check(); }
 
     void check() const {
-        WJR_ASSERT_LX(m_thread_id == std::this_thread::get_id(),
+        WJR_ASSERT_L0(m_thread_id == std::this_thread::get_id(),
                       "Cross-thread access detected when using a nonsendable object.");
     }
 
@@ -20828,8 +20918,8 @@ private:
             ptr = m_cache.ptr;
         }
 
-        WJR_ASSERT_ASSUME_L1(m_cache.ptr != nullptr);
-        WJR_ASSERT_ASSUME_L1(top.ptr != nullptr);
+        WJR_ASSERT_ASSUME_L2(m_cache.ptr != nullptr);
+        WJR_ASSERT_ASSUME_L2(top.ptr != nullptr);
 
         m_cache.ptr += n;
         return ptr;
@@ -21063,7 +21153,7 @@ struct __span_static_storage {
     __span_static_storage &operator=(const __span_static_storage &) noexcept = default;
 
     __span_static_storage(T *p, WJR_MAYBE_UNUSED size_t s) noexcept : ptr(p) {
-        WJR_ASSERT_L1(s == size);
+        WJR_ASSERT_L2(s == size);
     }
 
     T *ptr = nullptr;
@@ -21322,13 +21412,13 @@ public:
 
     constexpr reference front() const {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(size() > 0, "basic_vector::front: empty");
+        WJR_ASSERT_L0(size() > 0, "basic_vector::front: empty");
 #endif
         return *data();
     }
     constexpr reference back() const {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(size() > 0, "basic_vector::front: empty");
+        WJR_ASSERT_L0(size() > 0, "basic_vector::front: empty");
 #endif
         return *(end_unsafe() - 1);
     }
@@ -21343,7 +21433,7 @@ public:
 
     constexpr reference operator[](size_type pos) const {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
-        WJR_ASSERT_LX(pos < size(), "basic_vector::operator[]: out of range");
+        WJR_ASSERT_L0(pos < size(), "basic_vector::operator[]: out of range");
 #endif
         return data()[pos];
     }
@@ -21361,7 +21451,7 @@ public:
     }
 
     constexpr span<element_type, dynamic_extent> first(size_type Count) const {
-        WJR_ASSERT_L1(Count <= size());
+        WJR_ASSERT_L2(Count <= size());
 
         return {begin(), Count};
     }
@@ -21374,7 +21464,7 @@ public:
     }
 
     constexpr span<element_type, dynamic_extent> last(size_type Count) const {
-        WJR_ASSERT_L1(Count <= size());
+        WJR_ASSERT_L2(Count <= size());
 
         return {data() - Count, Count};
     }
@@ -21388,9 +21478,9 @@ public:
             static_assert(Offset <= Extent, "");
             static_assert(Count == dynamic_extent || Count <= Extent - Offset, "");
         } else {
-            WJR_ASSERT_L1(Offset <= size());
+            WJR_ASSERT_L2(Offset <= size());
             if constexpr (Count != dynamic_extent) {
-                WJR_ASSERT_L1(Count <= size() - Offset);
+                WJR_ASSERT_L2(Count <= size() - Offset);
             }
         }
         return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
@@ -21398,7 +21488,7 @@ public:
 
     constexpr span<element_type, dynamic_extent>
     subspan(size_type Offset, size_type Count = dynamic_extent) const {
-        WJR_ASSERT_L1(Offset <= size());
+        WJR_ASSERT_L2(Offset <= size());
 
         return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
     }
@@ -21464,7 +21554,7 @@ namespace wjr {
 #if WJR_HAS_DEBUG(SAFE_POINTER)
 
 template <typename T, typename Tag = void>
-class safe_pointer {
+class safe_array {
 public:
     using element_type = T;
     using value_type = std::remove_cv_t<T>;
@@ -21473,14 +21563,15 @@ public:
     using difference_type = ptrdiff_t;
     using size_type = size_t;
 
-    constexpr safe_pointer() noexcept = default;
-    constexpr safe_pointer(const safe_pointer &) noexcept = default;
-    constexpr safe_pointer(safe_pointer &&) noexcept = default;
-    constexpr safe_pointer &operator=(const safe_pointer &) noexcept = default;
-    constexpr safe_pointer &operator=(safe_pointer &&) noexcept = default;
-    ~safe_pointer() noexcept = default;
+    constexpr safe_array() noexcept = default;
+    constexpr safe_array(const safe_array &) noexcept = default;
+    constexpr safe_array(safe_array &&) noexcept = default;
+    constexpr safe_array &operator=(const safe_array &) noexcept = default;
+    constexpr safe_array &operator=(safe_array &&) noexcept = default;
+    ~safe_array() noexcept = default;
 
-    constexpr safe_pointer &reset_range() noexcept {
+    constexpr safe_array &reset_range() noexcept {
+        m_length -= m_offset;
         m_offset = 0;
         return *this;
     }
@@ -21489,83 +21580,115 @@ public:
     constexpr pointer data() const noexcept { return m_ptr; }
     constexpr reference operator[](size_type i) const noexcept { return m_ptr[i]; }
 
-    constexpr safe_pointer(span<T> s) noexcept
-        : m_ptr(s.data()), m_offset(0), m_size(s.size()) {}
+    constexpr safe_array(span<T> s) noexcept
+        : m_ptr(s.data()), m_offset(0), m_size(s.size()), m_length(s.size()) {}
 
-    constexpr safe_pointer first(size_type count) const noexcept {
-        WJR_ASSERT_L1(m_ptr != nullptr, "safe_pointer: nullptr");
-        WJR_ASSERT_L1(count <= m_size, "safe_pointer: out of range");
-        return {m_ptr, m_offset, count};
+    constexpr safe_array first(size_type count) const noexcept {
+        WJR_ASSERT_L3(m_ptr != nullptr, "safe_array: nullptr");
+        WJR_ASSERT_L3(count <= m_size, "safe_array: out of range");
+        return {m_ptr, m_offset, count, m_length};
     }
 
-    constexpr safe_pointer subspan(size_type offset, size_type count) const noexcept {
-        WJR_ASSERT_L1(m_ptr != nullptr, "safe_pointer: nullptr");
-        WJR_ASSERT_L1(offset + count <= m_size, "safe_pointer: out of range");
-        return {m_ptr + offset, m_offset + offset, count};
+    constexpr safe_array subspan(size_type offset, size_type count) const noexcept {
+        WJR_ASSERT_L3(m_ptr != nullptr, "safe_array: nullptr");
+        WJR_ASSERT_L3(offset + count <= m_size, "safe_array: out of range");
+        return {m_ptr + offset, m_offset + offset, count, m_length};
     }
 
-    constexpr safe_pointer &operator=(span<T> s) noexcept {
+    constexpr safe_array &append(size_type length) noexcept {
+        WJR_ASSERT_L3(m_offset + m_size + length <= m_length);
+        m_size += length;
+        return *this;
+    }
+
+    constexpr safe_array &operator=(span<T> s) noexcept {
         m_ptr = s.data();
         m_offset = 0;
         m_size = s.size();
+        m_length = s.size();
         return *this;
     }
 
-    constexpr safe_pointer &operator=(std::nullptr_t) noexcept {
+    constexpr safe_array &operator=(std::nullptr_t) noexcept {
         m_ptr = nullptr;
         m_offset = 0;
         m_size = 0;
+        m_length = 0;
         return *this;
     }
 
-    constexpr safe_pointer &operator+=(size_type n) noexcept {
-        WJR_ASSERT_L1(m_ptr != nullptr, "safe_pointer: nullptr");
-        WJR_ASSERT_L1(n <= m_size, "safe_pointer: out of range");
+    constexpr safe_array &operator+=(size_type n) noexcept {
+        WJR_ASSERT_L3(m_ptr != nullptr, "safe_array: nullptr");
+        WJR_ASSERT_L3(n <= m_size, "safe_array: out of range");
         m_ptr += n;
         m_offset += n;
         m_size -= n;
         return *this;
     }
 
-    constexpr friend safe_pointer operator+(safe_pointer lhs, size_type rhs) noexcept {
+    constexpr friend safe_array operator+(safe_array lhs, size_type rhs) noexcept {
         return lhs += rhs;
     }
 
-    constexpr friend safe_pointer operator+(size_type lhs, safe_pointer rhs) noexcept {
+    constexpr friend safe_array operator+(size_type lhs, safe_array rhs) noexcept {
         return rhs += lhs;
     }
 
-    constexpr safe_pointer &operator-=(size_type n) noexcept {
-        WJR_ASSERT_L1(m_ptr != nullptr, "safe_pointer: nullptr");
-        WJR_ASSERT_L1(m_offset >= n, "safe_pointer: out of range");
+    constexpr safe_array &operator++() noexcept {
+        (*this) += 1;
+        return *this;
+    }
+
+    constexpr safe_array operator++(int) noexcept {
+        safe_array tmp = *this;
+        ++*this;
+        return tmp;
+    }
+
+    constexpr safe_array &operator-=(size_type n) noexcept {
+        WJR_ASSERT_L3(m_ptr != nullptr, "safe_array: nullptr");
+        WJR_ASSERT_L3(m_offset >= n, "safe_array: out of range");
         m_ptr -= n;
         m_offset -= n;
         m_size += n;
         return *this;
     }
 
-    constexpr friend safe_pointer operator-(safe_pointer lhs, size_type rhs) noexcept {
+    constexpr friend safe_array operator-(safe_array lhs, size_type rhs) noexcept {
         return lhs -= rhs;
     }
 
-    constexpr friend ptrdiff_t operator-(const safe_pointer &lhs,
-                                         const safe_pointer &rhs) noexcept {
+    constexpr friend ptrdiff_t operator-(const safe_array &lhs,
+                                         const safe_array &rhs) noexcept {
         return lhs.m_ptr - rhs.m_ptr;
     }
 
+    constexpr safe_array &operator--() noexcept {
+        (*this) -= 1;
+        return *this;
+    }
+
+    constexpr safe_array operator--(int) noexcept {
+        safe_array tmp = *this;
+        --*this;
+        return tmp;
+    }
+
 private:
-    constexpr safe_pointer(pointer ptr, size_type offset, size_type size) noexcept
-        : m_ptr(ptr), m_offset(offset), m_size(size) {}
+    constexpr safe_array(pointer ptr, size_type offset, size_type size,
+                         size_type length) noexcept
+        : m_ptr(ptr), m_offset(offset), m_size(size), m_length(length) {}
 
     pointer m_ptr = nullptr;
     size_type m_offset;
     size_type m_size;
+    size_type m_length;
 };
 
 #else
 
 template <typename T, typename Tag = void>
-class safe_pointer {
+class safe_array {
 public:
     using element_type = T;
     using value_type = std::remove_cv_t<T>;
@@ -21574,64 +21697,64 @@ public:
     using difference_type = ptrdiff_t;
     using size_type = size_t;
 
-    constexpr safe_pointer() noexcept = default;
-    constexpr safe_pointer(const safe_pointer &) noexcept = default;
-    constexpr safe_pointer(safe_pointer &&) noexcept = default;
-    constexpr safe_pointer &operator=(const safe_pointer &) noexcept = default;
-    constexpr safe_pointer &operator=(safe_pointer &&) noexcept = default;
-    ~safe_pointer() noexcept = default;
+    constexpr safe_array() noexcept = default;
+    constexpr safe_array(const safe_array &) noexcept = default;
+    constexpr safe_array(safe_array &&) noexcept = default;
+    constexpr safe_array &operator=(const safe_array &) noexcept = default;
+    constexpr safe_array &operator=(safe_array &&) noexcept = default;
+    ~safe_array() noexcept = default;
 
-    constexpr safe_pointer &reset_range() noexcept { return *this; }
+    constexpr safe_array &reset_range() noexcept { return *this; }
 
     constexpr pointer get() const noexcept { return m_ptr; }
     constexpr pointer data() const noexcept { return m_ptr; }
     constexpr reference operator[](size_type i) const noexcept { return m_ptr[i]; }
 
-    constexpr safe_pointer(span<T> s) noexcept : m_ptr(s.data()) {}
+    constexpr safe_array(span<T> s) noexcept : m_ptr(s.data()) {}
 
-    constexpr safe_pointer first(WJR_MAYBE_UNUSED size_type count) const noexcept {
-        return safe_pointer{m_ptr};
+    constexpr safe_array first(WJR_MAYBE_UNUSED size_type count) const noexcept {
+        return safe_array{m_ptr};
     }
 
-    constexpr safe_pointer subspan(size_type offset,
-                                   WJR_MAYBE_UNUSED size_type count) const noexcept {
-        return safe_pointer{m_ptr + offset};
+    constexpr safe_array subspan(size_type offset,
+                                 WJR_MAYBE_UNUSED size_type count) const noexcept {
+        return safe_array{m_ptr + offset};
     }
 
-    constexpr safe_pointer &operator=(span<T> s) noexcept {
+    constexpr safe_array &operator=(span<T> s) noexcept {
         m_ptr = s.data();
         return *this;
     }
 
-    constexpr safe_pointer &operator=(std::nullptr_t) noexcept {
+    constexpr safe_array &operator=(std::nullptr_t) noexcept {
         m_ptr = nullptr;
         return *this;
     }
 
-    constexpr safe_pointer &operator+=(size_type n) noexcept {
+    constexpr safe_array &operator+=(size_type n) noexcept {
         m_ptr += n;
         return *this;
     }
 
-    constexpr friend safe_pointer operator+(safe_pointer lhs, size_type rhs) noexcept {
+    constexpr friend safe_array operator+(safe_array lhs, size_type rhs) noexcept {
         return lhs += rhs;
     }
 
-    constexpr friend safe_pointer operator+(size_type lhs, safe_pointer rhs) noexcept {
+    constexpr friend safe_array operator+(size_type lhs, safe_array rhs) noexcept {
         return rhs += lhs;
     }
 
-    constexpr safe_pointer &operator-=(size_type n) noexcept {
+    constexpr safe_array &operator-=(size_type n) noexcept {
         m_ptr -= n;
         return *this;
     }
 
-    constexpr friend safe_pointer operator-(safe_pointer lhs, size_type rhs) noexcept {
+    constexpr friend safe_array operator-(safe_array lhs, size_type rhs) noexcept {
         return lhs -= rhs;
     }
 
-    constexpr friend ptrdiff_t operator-(const safe_pointer &lhs,
-                                         const safe_pointer &rhs) noexcept {
+    constexpr friend ptrdiff_t operator-(const safe_array &lhs,
+                                         const safe_array &rhs) noexcept {
         return lhs.m_ptr - rhs.m_ptr;
     }
 
@@ -22921,7 +23044,7 @@ require :
 WJR_INTRINSIC_CONSTEXPR_E uint64_t mul_1(uint64_t *dst, const uint64_t *src, size_t n,
                                          uint64_t ml) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
     if (WJR_BUILTIN_CONSTANT_P(ml == 1) && ml == 1) {
         if (src != dst) {
@@ -22983,7 +23106,7 @@ require :
 WJR_INTRINSIC_CONSTEXPR_E uint64_t addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
                                             uint64_t ml) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
     if (WJR_BUILTIN_CONSTANT_P(ml == 1) && ml == 1) {
         return addc_n(dst, dst, src, n);
@@ -23032,7 +23155,7 @@ require :
 WJR_INTRINSIC_CONSTEXPR_E uint64_t submul_1(uint64_t *dst, const uint64_t *src, size_t n,
                                             uint64_t ml) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
     if (WJR_BUILTIN_CONSTANT_P(ml == 0) && ml == 0) {
         return 0;
@@ -23084,8 +23207,8 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t addlsh_n(uint64_t *dst, const uint64_t *src0,
                                             const uint64_t *src1, size_t n, uint64_t cl) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_ASSUME(cl < std::numeric_limits<uint64_t>::digits);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
 
     if (WJR_UNLIKELY(cl == 0)) {
         return addc_n(dst, src0, src1, n);
@@ -23133,8 +23256,8 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0,
                                             const uint64_t *src1, size_t n, uint64_t cl) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_ASSUME(cl < std::numeric_limits<uint64_t>::digits);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
 
     if (WJR_UNLIKELY(cl == 0)) {
         return uint64_t{0} - subc_n(dst, src1, src0, n);
@@ -23156,7 +23279,7 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t
 try_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t ml,
              std::integral_constant<uint64_t, maxn> = {}) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
     WJR_ASSERT_ASSUME(ml <= maxn);
 
@@ -23282,10 +23405,10 @@ using toom_interpolation_high_p_struct = std::array<uint64_t, P - 2>;
 */
 extern void toom22_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
                          const uint64_t *src1, size_t m,
-                         safe_pointer<uint64_t> stk) noexcept;
+                         safe_array<uint64_t> stk) noexcept;
 
 extern void toom2_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                      safe_pointer<uint64_t> stk) noexcept;
+                      safe_array<uint64_t> stk) noexcept;
 
 /*
  l = max(ceil(n/3), ceil(m/2))
@@ -23293,7 +23416,7 @@ extern void toom2_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
 */
 extern void toom32_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
                          const uint64_t *src1, size_t m,
-                         safe_pointer<uint64_t> stk) noexcept;
+                         safe_array<uint64_t> stk) noexcept;
 
 extern void toom_interpolation_5p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
                                     size_t rn, size_t rm,
@@ -23305,7 +23428,7 @@ extern void toom_interpolation_5p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, s
 */
 extern void toom42_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
                          const uint64_t *src1, size_t m,
-                         safe_pointer<uint64_t> stk) noexcept;
+                         safe_array<uint64_t> stk) noexcept;
 
 /*
  l = ceil(n/3)
@@ -23313,10 +23436,10 @@ extern void toom42_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_
 */
 extern void toom33_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
                          const uint64_t *src1, size_t m,
-                         safe_pointer<uint64_t> stk) noexcept;
+                         safe_array<uint64_t> stk) noexcept;
 
 extern void toom3_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                      safe_pointer<uint64_t> stk) noexcept;
+                      safe_array<uint64_t> stk) noexcept;
 
 extern void toom_interpolation_6p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
                                     size_t rn, size_t rm,
@@ -23328,7 +23451,7 @@ extern void toom_interpolation_6p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, s
 */
 extern void toom43_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
                          const uint64_t *src1, size_t m,
-                         safe_pointer<uint64_t> stk) noexcept;
+                         safe_array<uint64_t> stk) noexcept;
 
 extern void toom_interpolation_7p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
                                     size_t rn, size_t rm,
@@ -23340,7 +23463,7 @@ extern void toom_interpolation_7p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, s
 */
 extern void toom53_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
                          const uint64_t *src1, size_t m,
-                         safe_pointer<uint64_t> stk) noexcept;
+                         safe_array<uint64_t> stk) noexcept;
 
 /*
  l = ceil(n/4)
@@ -23348,10 +23471,10 @@ extern void toom53_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_
 */
 extern void toom44_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
                          const uint64_t *src1, size_t m,
-                         safe_pointer<uint64_t> stk) noexcept;
+                         safe_array<uint64_t> stk) noexcept;
 
 extern void toom4_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                      safe_pointer<uint64_t> stk) noexcept;
+                      safe_array<uint64_t> stk) noexcept;
 
 struct toom_eval_opposite_exp_args {
     using tuple_type = tuple<uint64_t *, uint64_t *, uint64_t *, const uint64_t *, size_t,
@@ -23362,7 +23485,7 @@ struct toom_eval_opposite_exp_args {
                                 unsigned int exp) noexcept
         : input(t0p, t1p, stk, wp, length, rest, k, exp), cf(dctor, dctor) {}
 
-    void reset(unsigned int exp) noexcept { input[7_u] = exp; }
+    void set_exp(unsigned int exp) noexcept { input[7_u] = exp; }
 
     tuple_type input;
     tuple<uint64_t, uint64_t> cf;
@@ -23387,7 +23510,7 @@ extern void toom_interpolation_8p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, s
  */
 extern void toom63_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
                          const uint64_t *src1, size_t m,
-                         safe_pointer<uint64_t> stk) noexcept;
+                         safe_array<uint64_t> stk) noexcept;
 
 extern void toom_interpolation_9p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
                                     size_t rn, size_t rm,
@@ -23399,10 +23522,14 @@ extern void toom_interpolation_9p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, s
 */
 extern void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
                          const uint64_t *src1, size_t m,
-                         safe_pointer<uint64_t> stk) noexcept;
+                         safe_array<uint64_t> stk) noexcept;
 
+/*
+ l = ceil(n/5)
+ stk usage : l * 10
+*/
 extern void toom5_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                      safe_pointer<uint64_t> stk) noexcept;
+                      safe_array<uint64_t> stk) noexcept;
 
 WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom22_s_itch(size_t m) noexcept {
     return m * 4 + (m / 2) + 64;
@@ -23449,8 +23576,8 @@ WJR_INTRINSIC_INLINE void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0
 }
 
 template <typename T>
-safe_pointer<uint64_t> __mul_s_allocate(T &al, WJR_MAYBE_UNUSED size_t n) noexcept {
-    if constexpr (std::is_same_v<T, safe_pointer<uint64_t>>) {
+safe_array<uint64_t> __mul_s_allocate(T &al, WJR_MAYBE_UNUSED size_t n) noexcept {
+    if constexpr (std::is_same_v<T, safe_array<uint64_t>>) {
         return al;
     } else {
         return span<uint64_t>(static_cast<uint64_t *>(al.allocate(sizeof(uint64_t) * n)),
@@ -23461,21 +23588,21 @@ safe_pointer<uint64_t> __mul_s_allocate(T &al, WJR_MAYBE_UNUSED size_t n) noexce
 template <__mul_mode mode>
 void __inline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                          const uint64_t *src1, size_t n,
-                         safe_pointer<uint64_t> mal) noexcept {
+                         safe_array<uint64_t> mal) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src1, n));
+    WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n * 2, src0, n));
+    WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n * 2, src1, n));
 
     if (n < toom22_mul_threshold) {
         return basecase_mul_s(dst, src0, n, src1, n);
     }
 
     if (mode <= __mul_mode::toom22 || n < toom33_mul_threshold) {
-        safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom22_n_itch(n));
+        safe_array<uint64_t> stk = __mul_s_allocate(mal, toom22_n_itch(n));
         return toom22_mul_s(dst, src0, n, src1, n, stk);
     }
 
-    safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom33_n_itch(n));
+    safe_array<uint64_t> stk = __mul_s_allocate(mal, toom33_n_itch(n));
     return toom33_mul_s(dst, src0, n, src1, n, stk);
 }
 
@@ -23485,7 +23612,7 @@ extern void __noinline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *sr
 template <__mul_mode mode>
 WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                   const uint64_t *src1, size_t n,
-                                  WJR_MAYBE_UNUSED safe_pointer<uint64_t> stk) {
+                                  WJR_MAYBE_UNUSED safe_array<uint64_t> stk) {
     if constexpr (mode <= __mul_mode::toom33) {
         __inline_mul_n_impl<mode>(dst, src0, src1, n, stk);
     } else {
@@ -23495,7 +23622,7 @@ WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *sr
 
 template <__mul_mode mode, uint64_t m0 = in_place_max, uint64_t m1 = in_place_max>
 void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1,
-             size_t n, safe_pointer<uint64_t> stk, uint64_t &c_out, uint64_t cf0,
+             size_t n, safe_array<uint64_t> stk, uint64_t &c_out, uint64_t cf0,
              uint64_t cf1, std::integral_constant<uint64_t, m0> x0 = {},
              std::integral_constant<uint64_t, m1> x1 = {}) {
     WJR_ASSERT_ASSUME(cf0 <= m0);
@@ -23531,20 +23658,20 @@ WJR_INTRINSIC_INLINE void mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0
 
 template <__mul_mode mode>
 inline void __inline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                              safe_pointer<uint64_t> mal) noexcept {
+                              safe_array<uint64_t> mal) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n * 2, src, n));
+    WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n * 2, src, n));
 
     if (n < toom2_sqr_threshold) {
         return basecase_sqr(dst, src, n);
     }
 
     if (mode <= __mul_mode::toom22 || n < toom3_sqr_threshold) {
-        safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom22_n_itch(n));
+        safe_array<uint64_t> stk = __mul_s_allocate(mal, toom22_n_itch(n));
         return toom2_sqr(dst, src, n, stk);
     }
 
-    safe_pointer<uint64_t> stk = __mul_s_allocate(mal, toom33_n_itch(n));
+    safe_array<uint64_t> stk = __mul_s_allocate(mal, toom33_n_itch(n));
     return toom3_sqr(dst, src, n, stk);
 }
 
@@ -23553,7 +23680,7 @@ extern void __noinline_sqr_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
 
 template <__mul_mode mode>
 void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-           WJR_MAYBE_UNUSED safe_pointer<uint64_t> stk) noexcept {
+           WJR_MAYBE_UNUSED safe_array<uint64_t> stk) noexcept {
     if constexpr (mode <= __mul_mode ::toom33) {
         __inline_sqr_impl<mode>(dst, src, n, stk);
     } else {
@@ -23563,7 +23690,7 @@ void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
 
 template <__mul_mode mode, uint64_t m = in_place_max>
 void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-           safe_pointer<uint64_t> stk, uint64_t &c_out, uint64_t cf,
+           safe_array<uint64_t> stk, uint64_t &c_out, uint64_t cf,
            std::integral_constant<uint64_t, m> = {}) noexcept {
     WJR_ASSERT_ASSUME(cf <= m);
 
@@ -23608,8 +23735,8 @@ WJR_INTRINSIC_INLINE void basecase_mul_s(uint64_t *WJR_RESTRICT dst, const uint6
                                          size_t n, const uint64_t *src1, size_t m) {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n + m, src0, n));
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_SEPARATE_P(dst, n + m, src1, m));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n + m, src0, n));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n + m, src1, m));
 
 #if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)
     return asm_basecase_mul_s(dst, src0, n, src1, m);
@@ -23749,7 +23876,7 @@ public:
 
     WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 static T divide(T divisor, T value, T lo,
                                                             T &hi) {
-        WJR_ASSERT_ASSUME_L2(__has_high_bit(divisor));
+        WJR_ASSERT_ASSUME_L3(__has_high_bit(divisor));
 
         if (WJR_BUILTIN_CONSTANT_P(lo == 0) && lo == 0) {
             return divide_lo0(divisor, value, lo, hi);
@@ -23831,7 +23958,7 @@ protected:
 
 template <typename T>
 WJR_CONST WJR_CONSTEXPR_E T div2by1_divider_noshift<T>::reciprocal(T d) {
-    WJR_ASSERT_ASSUME_L1(__has_high_bit(d));
+    WJR_ASSERT_ASSUME_L2(__has_high_bit(d));
 
     uint64_t d40 = 0, d63 = 0;
     uint32_t v0 = 0;
@@ -23973,7 +24100,7 @@ template <typename T>
 WJR_INTRINSIC_CONSTEXPR20 T div3by2_divider_noshift<T>::divide(T divisor0, T divisor1,
                                                                T value, T u0, T &u1,
                                                                T &u2) {
-    WJR_ASSERT_ASSUME_L2(__has_high_bit(divisor1));
+    WJR_ASSERT_ASSUME_L3(__has_high_bit(divisor1));
 
     T q1, q0;
     q0 = mul<T>(value, u2, q1);
@@ -24005,7 +24132,7 @@ WJR_INTRINSIC_CONSTEXPR20 T div3by2_divider_noshift<T>::divide(T divisor0, T div
 
 template <typename T>
 WJR_CONST WJR_CONSTEXPR_E T div3by2_divider_noshift<T>::reciprocal(T d0, T d1) {
-    WJR_ASSERT_ASSUME_L1(__has_high_bit(d1));
+    WJR_ASSERT_ASSUME_L2(__has_high_bit(d1));
 
     T v = div2by1_divider<T>::reciprocal(d1);
     T p = mullo<T>(d1, v);
@@ -24353,7 +24480,7 @@ WJR_INLINE_CONSTEXPR20 uint64_t
 div_qr_1_noshift(uint64_t *dst, uint64_t &rem, const uint64_t *src, size_t n,
                  const div2by1_divider_noshift<uint64_t> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n - 1, src, n - 1));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_DECR_P(dst, n - 1, src, n - 1));
 
     const uint64_t divisor = div.get_divisor();
     const uint64_t value = div.get_value();
@@ -24392,7 +24519,7 @@ WJR_INLINE_CONSTEXPR20 uint64_t div_qr_1_shift(uint64_t *dst, uint64_t &rem,
                                                const div2by1_divider<uint64_t> &div) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT(div.get_shift() != 0);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n - 1, src, n - 1));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_DECR_P(dst, n - 1, src, n - 1));
 
     const uint64_t divisor = div.get_divisor();
     const uint64_t value = div.get_value();
@@ -24509,8 +24636,8 @@ WJR_INLINE_CONSTEXPR20 uint64_t
 div_qr_2_noshift(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
                  const div3by2_divider_noshift<uint64_t> &div) {
     WJR_ASSERT_ASSUME(n >= 2);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n - 2, src, n - 2));
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n - 2, rem, 2));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_DECR_P(dst, n - 2, src, n - 2));
+    WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n - 2, rem, 2));
 
     const uint64_t divisor0 = div.get_divisor0();
     const uint64_t divisor1 = div.get_divisor1();
@@ -24552,8 +24679,8 @@ WJR_INLINE_CONSTEXPR20 uint64_t div_qr_2_shift(uint64_t *dst, uint64_t *rem,
                                                const div3by2_divider<uint64_t> &div) {
     WJR_ASSERT_ASSUME(n >= 2);
     WJR_ASSERT(div.get_shift() != 0);
-    WJR_ASSERT_L1(WJR_IS_SAME_OR_DECR_P(dst, n - 2, src, n - 2));
-    WJR_ASSERT_L1(WJR_IS_SEPARATE_P(dst, n - 2, rem, 2));
+    WJR_ASSERT_L2(WJR_IS_SAME_OR_DECR_P(dst, n - 2, src, n - 2));
+    WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n - 2, rem, 2));
 
     const uint64_t divisor0 = div.get_divisor0();
     const uint64_t divisor1 = div.get_divisor1();
@@ -25948,7 +26075,7 @@ class __unsigned_to_chars_backward_unchecked_fn<2> {
     template <typename UnsignedValue, typename Converter>
     static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, Converter conv) {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-        WJR_ASSERT_L1(x != 0);
+        WJR_ASSERT_L2(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= nd);
         (void)(nd);
 
@@ -26002,7 +26129,7 @@ class __unsigned_to_chars_backward_unchecked_fn<8> {
     template <typename UnsignedValue, typename Converter>
     static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, Converter conv) {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-        WJR_ASSERT_L1(x != 0);
+        WJR_ASSERT_L2(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 2) / 3);
 
         if constexpr (nd >= 16) {
@@ -26057,7 +26184,7 @@ class __unsigned_to_chars_backward_unchecked_fn<16> {
     template <typename UnsignedValue, typename Converter>
     static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, Converter conv) {
         constexpr auto nd = std::numeric_limits<UnsignedValue>::digits;
-        WJR_ASSERT_L1(x != 0);
+        WJR_ASSERT_L2(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= (nd + 3) / 4);
 
         if constexpr (nd >= 16) {
@@ -26112,7 +26239,7 @@ class __unsigned_to_chars_backward_unchecked_fn<1> {
 private:
     template <typename UnsignedValue, typename Converter>
     static uint8_t *fn(uint8_t *ptr, int n, UnsignedValue x, int bits, Converter conv) {
-        WJR_ASSERT_L1(x != 0);
+        WJR_ASSERT_L2(x != 0);
         WJR_ASSERT_ASSUME(1 <= n && n <= std::numeric_limits<UnsignedValue>::digits);
 
         const unsigned int mask = (1u << bits) - 1;
@@ -26779,7 +26906,7 @@ Iter to_chars_unchecked(Iter ptr, Value val, unsigned int base, Converter conv =
 template <typename Converter>
 size_t __biginteger_to_chars_2_impl(uint8_t *first, const uint64_t *up, size_t n,
                                     Converter conv) {
-    WJR_ASSERT_L1(up[n - 1] != 0);
+    WJR_ASSERT_L2(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
     uint64_t x = up[n - 1];
@@ -26812,7 +26939,7 @@ size_t __biginteger_to_chars_2_impl(uint8_t *first, const uint64_t *up, size_t n
 template <typename Converter>
 size_t __biginteger_to_chars_8_impl(uint8_t *first, const uint64_t *up, size_t n,
                                     Converter conv) {
-    WJR_ASSERT_L1(up[n - 1] != 0);
+    WJR_ASSERT_L2(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
     uint64_t x = up[n - 1];
@@ -26944,7 +27071,7 @@ DONE:
 template <typename Converter>
 size_t __biginteger_to_chars_16_impl(uint8_t *first, const uint64_t *up, size_t n,
                                      Converter conv) {
-    WJR_ASSERT_L1(up[n - 1] != 0);
+    WJR_ASSERT_L2(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
     uint64_t x = up[n - 1];
@@ -26978,7 +27105,7 @@ template <typename Converter>
 size_t __biginteger_to_chars_power_of_two_impl(uint8_t *first, const uint64_t *up,
                                                size_t n, unsigned int base,
                                                Converter conv) {
-    WJR_ASSERT_L1(up[n - 1] != 0);
+    WJR_ASSERT_L2(up[n - 1] != 0);
     WJR_ASSERT_ASSUME(n >= 2);
 
     const int bits = ctz(base);
@@ -28642,7 +28769,7 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(COMPLEMENT_N)
 
 template <typename T>
-WJR_COLD void large_builtin_complement_n(T *dst, const T *src, size_t n) {
+WJR_COLD void large_builtin_not_n(T *dst, const T *src, size_t n) {
     constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
 
     using simd = std::conditional_t<is_avx, avx, sse>;
@@ -28782,7 +28909,7 @@ WJR_COLD void large_builtin_complement_n(T *dst, const T *src, size_t n) {
 }
 
 template <typename T>
-WJR_INTRINSIC_INLINE void builtin_complement_n(T *dst, const T *src, size_t n) {
+WJR_INTRINSIC_INLINE void builtin_not_n(T *dst, const T *src, size_t n) {
     static_assert(sizeof(T) == 8, "");
 
     if (WJR_UNLIKELY(n < 4)) {
@@ -28811,7 +28938,7 @@ WJR_INTRINSIC_INLINE void builtin_complement_n(T *dst, const T *src, size_t n) {
         // Can be aligned
         // TODO : Align those that cannot be aligned with T through uint8_t
         if (WJR_LIKELY(reinterpret_cast<uintptr_t>(dst) % sizeof(T) == 0)) {
-            return large_builtin_complement_n(dst, src, n);
+            return large_builtin_not_n(dst, src, n);
         }
     }
 
@@ -28873,26 +29000,26 @@ WJR_INTRINSIC_INLINE void builtin_complement_n(T *dst, const T *src, size_t n) {
 namespace wjr {
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR void fallback_complement_n(T *dst, const T *src, size_t n) {
+WJR_INTRINSIC_CONSTEXPR void fallback_not_n(T *dst, const T *src, size_t n) {
     for (size_t i = 0; i < n; ++i) {
         dst[i] = ~src[i];
     }
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_INTRINSIC_CONSTEXPR_E void complement_n(T *dst, const T *src, size_t n) {
+WJR_INTRINSIC_CONSTEXPR_E void not_n(T *dst, const T *src, size_t n) {
 #if WJR_HAS_BUILTIN(COMPLEMENT_N)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {
-            return fallback_complement_n(dst, src, n);
+            return fallback_not_n(dst, src, n);
         }
 
-        return builtin_complement_n(dst, src, n);
+        return builtin_not_n(dst, src, n);
     } else {
-        return fallback_complement_n(dst, src, n);
+        return fallback_not_n(dst, src, n);
     }
 #else
-    return fallback_complement_n(dst, src, n);
+    return fallback_not_n(dst, src, n);
 #endif
 }
 
@@ -28916,7 +29043,7 @@ WJR_INTRINSIC_CONSTEXPR_E bool negate_n(T *dst, const T *src, size_t n) {
     }
 
     dst[idx] = -src[idx];
-    complement_n(dst + idx + 1, src + idx + 1, n - idx - 1);
+    not_n(dst + idx + 1, src + idx + 1, n - idx - 1);
     return false;
 }
 
@@ -32611,7 +32738,7 @@ uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
         idx = m_storage.idx;
     }
 
-    WJR_ASSERT_ASSUME_L1(first < last);
+    WJR_ASSERT_ASSUME_L2(first < last);
 
     uint32_t count = 0;
     bool loop;
@@ -32855,7 +32982,7 @@ uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
         idx = m_storage.idx;
     }
 
-    WJR_ASSERT_ASSUME_L1(first < last);
+    WJR_ASSERT_ASSUME_L2(first < last);
 
     uint32_t count = 0;
     bool loop;
@@ -33183,7 +33310,7 @@ struct check_parser : empty_parser {
                                          const char *last) {
         constexpr auto __matches = [](uint8_t ch) { return '0' <= ch && ch <= '9'; };
 
-        WJR_ASSERT_ASSUME_L1(first < last);
+        WJR_ASSERT_ASSUME_L2(first < last);
 
         if (*first == '-') {
             if (++first == last) {

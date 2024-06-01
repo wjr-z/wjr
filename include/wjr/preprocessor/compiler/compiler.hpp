@@ -88,7 +88,7 @@
 #endif
 
 // reference: boost BOOST_CURRENT_FUNCTION
-#if defined(BOOST_DISABLE_CURRENT_FUNCTION)
+#if defined(WJR_DISABLE_CURRENT_FUNCTION)
 #define WJR_CURRENT_FUNCTION "(unknown)"
 #elif defined(__GNUC__) || (defined(__MWERKS__) && (__MWERKS__ >= 0x3000)) ||            \
     (defined(__ICC) && (__ICC >= 600)) || defined(__ghs__)

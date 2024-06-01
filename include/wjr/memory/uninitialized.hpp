@@ -479,13 +479,13 @@ private:
 #if WJR_HAS_DEBUG(UNINITIALIZED_CHECKER)
     struct __checker {
         constexpr void set(bool value) noexcept { m_initialized = value; }
-        constexpr void check(bool value) const {
-            WJR_ASSERT_LX(m_initialized == value, "Expected ",
+        constexpr void check(bool value) const noexcept {
+            WJR_ASSERT_L0(m_initialized == value, "Expected ",
                           (value ? "initialized" : "uninitialized"),
                           " value when using an uninitialized object.");
         }
 
-        ~__checker() {
+        ~__checker() noexcept {
             if constexpr (!std::is_trivially_destructible_v<T>) {
                 check(false);
             }
@@ -497,7 +497,7 @@ private:
     __checker m_checker;
 
     constexpr void checker_set(bool value) noexcept { m_checker.set(value); }
-    constexpr void check(bool value) const { m_checker.check(value); }
+    constexpr void check(bool value) const noexcept { m_checker.check(value); }
 #else
     constexpr static void checker_set(bool) noexcept {}
     constexpr static void check(bool) noexcept {}

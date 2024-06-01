@@ -47,7 +47,7 @@ protected:
     ~nonsendable() { check(); }
 
     void check() const {
-        WJR_ASSERT_LX(m_thread_id == std::this_thread::get_id(),
+        WJR_ASSERT_L0(m_thread_id == std::this_thread::get_id(),
                       "Cross-thread access detected when using a nonsendable object.");
     }
 
