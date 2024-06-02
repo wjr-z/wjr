@@ -62,9 +62,9 @@ public:
 
     constexpr inline_key(reference value) noexcept : m_ptr(std::addressof(value)) {}
 
-    constexpr reference get() noexcept { return *m_ptr; }
-    constexpr reference operator*() noexcept { return *m_ptr; }
-    constexpr pointer operator->() noexcept { return m_ptr; }
+    constexpr reference get() const noexcept { return *m_ptr; }
+    constexpr reference operator*() const noexcept { return *m_ptr; }
+    constexpr pointer operator->() const noexcept { return m_ptr; }
 
 private:
     pointer m_ptr;

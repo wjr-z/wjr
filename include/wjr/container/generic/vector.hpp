@@ -304,6 +304,8 @@ public:
         }
 
         if (m_storage.m_data != nullptr) {
+            WJR_ASSERT_ASSUME_L2(capacity() != 0);
+
             destroy_using_allocator(m_storage.m_data, m_storage.m_end, al);
             al.deallocate(m_storage.m_data, capacity());
         }
@@ -312,13 +314,15 @@ public:
     WJR_CONSTEXPR20 static void
     uninitialized_construct(__default_vector_storage_impl &other, size_type size,
                             size_type capacity, _Alty &al) {
-        const auto result = allocate_at_least(al, capacity);
+        if (capacity != 0) {
+            const auto result = allocate_at_least(al, capacity);
 
-        other.m_storage = {
-            result.ptr,
-            result.ptr + size,
-            result.ptr + capacity,
-        };
+            other.m_storage = {
+                result.ptr,
+                result.ptr + size,
+                result.ptr + capacity,
+            };
+        }
     }
 
     WJR_CONSTEXPR20 void take_storage(__default_vector_storage_impl &other,
@@ -582,6 +586,8 @@ public:
         }
 
         if (m_storage.m_data != nullptr) {
+            WJR_ASSERT_ASSUME_L2(capacity() != 0);
+            
             destroy_using_allocator(m_storage.m_data, m_storage.m_end, al);
             al.deallocate(m_storage.m_data, capacity());
         }
@@ -590,13 +596,15 @@ public:
     WJR_CONSTEXPR20 static void
     uninitialized_construct(__fixed_vector_storage_impl &other, size_type size,
                             size_type capacity, _Alty &al) {
-        const auto result = allocate_at_least(al, capacity);
+        if (capacity != 0) {
+            const auto result = allocate_at_least(al, capacity);
 
-        other.m_storage = {
-            result.ptr,
-            result.ptr + size,
-            result.ptr + capacity,
-        };
+            other.m_storage = {
+                result.ptr,
+                result.ptr + size,
+                result.ptr + capacity,
+            };
+        }
     }
 
     WJR_CONSTEXPR20 void take_storage(__fixed_vector_storage_impl &other,
@@ -716,6 +724,8 @@ public:
 
         destroy(al);
         if (!__is_sso()) {
+            WJR_ASSERT_ASSUME_L2(capacity() != 0);
+            
             al.deallocate(data(), capacity());
             m_storage.m_data = m_storage.m_storage;
         }

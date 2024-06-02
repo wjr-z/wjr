@@ -99,39 +99,37 @@ public:
 
         // n must be > 0
         allocation_result<void *> allocate(size_t n) noexcept {
-            if (n > (size_t)16384) {
-                return {malloc(n), n};
+            if (WJR_LIKELY(n <= 16384)) {
+                return __small_allocate(n);
             }
 
-            return __small_allocate(n);
+            return {malloc(n), n};
         }
 
         // p must not be 0
         WJR_INTRINSIC_INLINE void deallocate(void *p, size_t n) noexcept {
-            if (n > (size_t)16384) {
-                free(p);
-                return;
+            if (WJR_LIKELY(n <= 16384)) {
+                return __small_deallocate(p, n);
             }
 
-            __small_deallocate(p, n);
+            free(p);
         }
 
         allocation_result<void *> chunk_allocate(size_t n) noexcept {
-            if (n > (size_t)16384) {
-                return {get_chunk().allocate(n), n};
+            if (WJR_LIKELY(n <= 16384)) {
+                return __small_allocate(n);
             }
 
-            return __small_allocate(n);
+            return {get_chunk().allocate(n), n};
         }
 
         // p must not be 0
         WJR_INTRINSIC_INLINE void chunk_deallocate(void *p, size_t n) noexcept {
-            if (n > (size_t)16384) {
-                get_chunk().deallocate(p);
-                return;
+            if (WJR_LIKELY(n <= 16384)) {
+                return __small_deallocate(p, n);
             }
 
-            __small_deallocate(p, n);
+            get_chunk().deallocate(p);
         }
 
     private:
@@ -201,20 +199,12 @@ public:
 
     WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
     allocate_at_least(size_type n) const noexcept {
-        if (WJR_UNLIKELY(0 == n)) {
-            return {nullptr, 0};
-        }
-
         const auto ret = allocator_type::allocate(n * sizeof(Ty));
         return {static_cast<Ty *>(ret.ptr), ret.count};
     }
 
     WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
     chunk_allocate_at_least(size_type n) const noexcept {
-        if (WJR_UNLIKELY(0 == n)) {
-            return {nullptr, 0};
-        }
-
         const auto ret = allocator_type::chunk_allocate(n * sizeof(Ty));
         return {static_cast<Ty *>(ret.ptr), ret.count};
     }
@@ -224,10 +214,6 @@ public:
     }
 
     WJR_CONSTEXPR20 void deallocate(Ty *ptr, size_type n) const noexcept {
-        if (WJR_UNLIKELY(0 == n)) {
-            return;
-        }
-
         return allocator_type::deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
     }
 
@@ -244,10 +230,6 @@ public:
     }
 
     WJR_CONSTEXPR20 void chunk_deallocate(Ty *ptr, size_type n) const noexcept {
-        if (WJR_UNLIKELY(0 == n)) {
-            return;
-        }
-
         return allocator_type::chunk_deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
     }
 

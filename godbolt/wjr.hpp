@@ -7356,39 +7356,37 @@ public:
 
         // n must be > 0
         allocation_result<void *> allocate(size_t n) noexcept {
-            if (n > (size_t)16384) {
-                return {malloc(n), n};
+            if (WJR_LIKELY(n <= 16384)) {
+                return __small_allocate(n);
             }
 
-            return __small_allocate(n);
+            return {malloc(n), n};
         }
 
         // p must not be 0
         WJR_INTRINSIC_INLINE void deallocate(void *p, size_t n) noexcept {
-            if (n > (size_t)16384) {
-                free(p);
-                return;
+            if (WJR_LIKELY(n <= 16384)) {
+                return __small_deallocate(p, n);
             }
 
-            __small_deallocate(p, n);
+            free(p);
         }
 
         allocation_result<void *> chunk_allocate(size_t n) noexcept {
-            if (n > (size_t)16384) {
-                return {get_chunk().allocate(n), n};
+            if (WJR_LIKELY(n <= 16384)) {
+                return __small_allocate(n);
             }
 
-            return __small_allocate(n);
+            return {get_chunk().allocate(n), n};
         }
 
         // p must not be 0
         WJR_INTRINSIC_INLINE void chunk_deallocate(void *p, size_t n) noexcept {
-            if (n > (size_t)16384) {
-                get_chunk().deallocate(p);
-                return;
+            if (WJR_LIKELY(n <= 16384)) {
+                return __small_deallocate(p, n);
             }
 
-            __small_deallocate(p, n);
+            get_chunk().deallocate(p);
         }
 
     private:
@@ -7458,20 +7456,12 @@ public:
 
     WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
     allocate_at_least(size_type n) const noexcept {
-        if (WJR_UNLIKELY(0 == n)) {
-            return {nullptr, 0};
-        }
-
         const auto ret = allocator_type::allocate(n * sizeof(Ty));
         return {static_cast<Ty *>(ret.ptr), ret.count};
     }
 
     WJR_NODISCARD WJR_CONSTEXPR20 allocation_result<Ty *>
     chunk_allocate_at_least(size_type n) const noexcept {
-        if (WJR_UNLIKELY(0 == n)) {
-            return {nullptr, 0};
-        }
-
         const auto ret = allocator_type::chunk_allocate(n * sizeof(Ty));
         return {static_cast<Ty *>(ret.ptr), ret.count};
     }
@@ -7481,10 +7471,6 @@ public:
     }
 
     WJR_CONSTEXPR20 void deallocate(Ty *ptr, size_type n) const noexcept {
-        if (WJR_UNLIKELY(0 == n)) {
-            return;
-        }
-
         return allocator_type::deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
     }
 
@@ -7501,10 +7487,6 @@ public:
     }
 
     WJR_CONSTEXPR20 void chunk_deallocate(Ty *ptr, size_type n) const noexcept {
-        if (WJR_UNLIKELY(0 == n)) {
-            return;
-        }
-
         return allocator_type::chunk_deallocate(static_cast<void *>(ptr), sizeof(Ty) * n);
     }
 
@@ -8366,6 +8348,8 @@ public:
         }
 
         if (m_storage.m_data != nullptr) {
+            WJR_ASSERT_ASSUME_L2(capacity() != 0);
+
             destroy_using_allocator(m_storage.m_data, m_storage.m_end, al);
             al.deallocate(m_storage.m_data, capacity());
         }
@@ -8374,13 +8358,15 @@ public:
     WJR_CONSTEXPR20 static void
     uninitialized_construct(__default_vector_storage_impl &other, size_type size,
                             size_type capacity, _Alty &al) {
-        const auto result = allocate_at_least(al, capacity);
+        if (capacity != 0) {
+            const auto result = allocate_at_least(al, capacity);
 
-        other.m_storage = {
-            result.ptr,
-            result.ptr + size,
-            result.ptr + capacity,
-        };
+            other.m_storage = {
+                result.ptr,
+                result.ptr + size,
+                result.ptr + capacity,
+            };
+        }
     }
 
     WJR_CONSTEXPR20 void take_storage(__default_vector_storage_impl &other,
@@ -8644,6 +8630,8 @@ public:
         }
 
         if (m_storage.m_data != nullptr) {
+            WJR_ASSERT_ASSUME_L2(capacity() != 0);
+            
             destroy_using_allocator(m_storage.m_data, m_storage.m_end, al);
             al.deallocate(m_storage.m_data, capacity());
         }
@@ -8652,13 +8640,15 @@ public:
     WJR_CONSTEXPR20 static void
     uninitialized_construct(__fixed_vector_storage_impl &other, size_type size,
                             size_type capacity, _Alty &al) {
-        const auto result = allocate_at_least(al, capacity);
+        if (capacity != 0) {
+            const auto result = allocate_at_least(al, capacity);
 
-        other.m_storage = {
-            result.ptr,
-            result.ptr + size,
-            result.ptr + capacity,
-        };
+            other.m_storage = {
+                result.ptr,
+                result.ptr + size,
+                result.ptr + capacity,
+            };
+        }
     }
 
     WJR_CONSTEXPR20 void take_storage(__fixed_vector_storage_impl &other,
@@ -8778,6 +8768,8 @@ public:
 
         destroy(al);
         if (!__is_sso()) {
+            WJR_ASSERT_ASSUME_L2(capacity() != 0);
+            
             al.deallocate(data(), capacity());
             m_storage.m_data = m_storage.m_storage;
         }
@@ -21322,6 +21314,11 @@ public:
     using propagate_on_container_move_assignment = std::true_type;
     using is_trivially_allocator = std::true_type;
 
+    template <typename Other>
+    struct rebind {
+        using other = weak_stack_allocator<Other, StackAllocator>;
+    };
+
     weak_stack_allocator() noexcept = default;
     weak_stack_allocator(UniqueStackAllocator &alloc) noexcept : m_alloc(&alloc) {}
     weak_stack_allocator(const weak_stack_allocator &) noexcept = default;
@@ -29585,6 +29582,8 @@ public:
         }
 
         if (data()) {
+            WJR_ASSERT_ASSUME_L2(capacity() != 0);
+            
             destroy(al);
             al.deallocate(data(), capacity());
         }
@@ -29592,16 +29591,12 @@ public:
 
     void uninitialized_construct(default_biginteger_vector_storage &other, size_type size,
                                  size_type capacity, _Alty &al) {
-        auto &storage = other.m_storage;
-        storage.m_data = al.allocate(capacity);
-        storage.m_size = __fasts_negate_with<int32_t>(m_storage.m_size, size);
-        storage.m_capacity = capacity;
-    }
-
-    void uninitialized_construct(size_type size, size_type capacity, _Alty &al) {
-        m_storage.m_data = al.allocate(capacity);
-        m_storage.m_size = size;
-        m_storage.m_capacity = capacity;
+        if (capacity != 0) {
+            auto &storage = other.m_storage;
+            storage.m_data = al.allocate(capacity);
+            storage.m_size = __fasts_negate_with<int32_t>(m_storage.m_size, size);
+            storage.m_capacity = capacity;
+        }
     }
 
     void take_storage(default_biginteger_vector_storage &other, _Alty &) noexcept {

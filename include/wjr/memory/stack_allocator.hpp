@@ -279,6 +279,11 @@ public:
     using propagate_on_container_move_assignment = std::true_type;
     using is_trivially_allocator = std::true_type;
 
+    template <typename Other>
+    struct rebind {
+        using other = weak_stack_allocator<Other, StackAllocator>;
+    };
+
     weak_stack_allocator() noexcept = default;
     weak_stack_allocator(UniqueStackAllocator &alloc) noexcept : m_alloc(&alloc) {}
     weak_stack_allocator(const weak_stack_allocator &) noexcept = default;

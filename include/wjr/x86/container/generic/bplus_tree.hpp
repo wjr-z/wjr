@@ -14,14 +14,17 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
 
 template <size_t Min, size_t Max, size_t size>
-void __builtin_bplus_tree_copy_impl(const uint8_t *first, const uint8_t *last,
-                                    uint8_t *dest) noexcept {
+WJR_INTRINSIC_INLINE void __builtin_bplus_tree_copy_impl(const uint8_t *first,
+                                                         const uint8_t *last,
+                                                         uint8_t *dest) noexcept {
     const size_t n = last - first;
+    WJR_ASSERT_ASSUME_L2(n >= Min * size && n <= Max * size);
+
     if (WJR_UNLIKELY(n == 0)) {
         return;
     }
 
-    if (n == size) {
+    if (WJR_UNLIKELY(n == size)) {
         reinterpret_cast<uint_t<size * 8> *>(dest)[0] =
             reinterpret_cast<const uint_t<size * 8> *>(first)[0];
         return;
@@ -146,22 +149,25 @@ void __builtin_bplus_tree_copy_impl(const uint8_t *first, const uint8_t *last,
 }
 
 template <size_t Min, size_t Max, typename Other>
-void builtin_bplus_tree_copy(const Other *first, const Other *last,
-                             Other *dest) noexcept {
+WJR_INTRINSIC_INLINE void builtin_bplus_tree_copy(const Other *first, const Other *last,
+                                                  Other *dest) noexcept {
     __builtin_bplus_tree_copy_impl<Min, Max, sizeof(Other)>(
         reinterpret_cast<const uint8_t *>(first), reinterpret_cast<const uint8_t *>(last),
         reinterpret_cast<uint8_t *>(dest));
 }
 
 template <size_t Min, size_t Max, size_t size>
-void __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *last,
-                                             uint8_t *dest) noexcept {
+WJR_INTRINSIC_INLINE void
+__builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t *last,
+                                        uint8_t *dest) noexcept {
     const size_t n = last - first;
+    WJR_ASSERT_ASSUME_L2(n >= Min * size && n <= Max * size);
+
     if (WJR_UNLIKELY(n == 0)) {
         return;
     }
 
-    if (n == size) {
+    if (WJR_UNLIKELY(n == size)) {
         reinterpret_cast<uint_t<size * 8> *>(dest)[-1] =
             reinterpret_cast<const uint_t<size * 8> *>(first)[0];
         return;
@@ -286,8 +292,9 @@ void __builtin_bplus_tree_copy_backward_impl(const uint8_t *first, const uint8_t
 }
 
 template <size_t Min, size_t Max, typename Other>
-void builtin_bplus_tree_copy_backward(const Other *first, const Other *last,
-                                      Other *dest) noexcept {
+WJR_INTRINSIC_INLINE void builtin_bplus_tree_copy_backward(const Other *first,
+                                                           const Other *last,
+                                                           Other *dest) noexcept {
     __builtin_bplus_tree_copy_backward_impl<Min, Max, sizeof(Other)>(
         reinterpret_cast<const uint8_t *>(first), reinterpret_cast<const uint8_t *>(last),
         reinterpret_cast<uint8_t *>(dest));

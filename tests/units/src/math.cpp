@@ -818,7 +818,7 @@ TEST(math, replace_find_not) {
     }
 }
 
-TEST(math, complement_n) {
+TEST(math, not_n) {
     std::vector<uint64_t> a, b;
     for (size_t n = 0; n <= 384; ++n) {
         a.resize(n);
@@ -827,12 +827,12 @@ TEST(math, complement_n) {
             i = 0;
         }
 
-        complement_n(b.data(), a.data(), n);
+        not_n(b.data(), a.data(), n);
         for (auto &i : b) {
             WJR_ASSERT(i == -1ull);
         }
 
-        complement_n(a.data(), a.data(), n);
+        not_n(a.data(), a.data(), n);
         for (auto &i : a) {
             WJR_ASSERT(i == -1ull);
         }

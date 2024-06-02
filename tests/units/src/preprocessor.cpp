@@ -27,9 +27,9 @@ TEST(preprocessor, arithmatic) {
     WJR_ASSERT(WJR_PP_DEC(2) == 1);
     WJR_ASSERT(WJR_PP_DEC(63) == 62);
 
-    WJR_ASSERT(WJR_PP_NEG(0) == 63);
-    WJR_ASSERT(WJR_PP_NEG(63) == 0);
-    WJR_ASSERT(WJR_PP_NEG(3) == 60);
+    WJR_ASSERT(WJR_PP_NOT(0) == 63);
+    WJR_ASSERT(WJR_PP_NOT(63) == 0);
+    WJR_ASSERT(WJR_PP_NOT(3) == 60);
 
     WJR_ASSERT(WJR_PP_EQ(0, 0) == 1);
     WJR_ASSERT(WJR_PP_EQ(0, 1) == 0);
