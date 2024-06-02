@@ -157,6 +157,11 @@ public:
     template <size_t Ex = Extent, WJR_REQUIRES(Ex == dynamic_extent || Ex == 0)>
     constexpr span() noexcept : storage() {}
 
+#if defined(__cpp_conditional_explicit)
+    template <typename It, WJR_REQUIRES(__is_span_iterator<It, element_type>::value)>
+    constexpr explicit(!__is_dynamic) span(It first, size_type count) noexcept
+        : storage((to_address)(first), count) {}
+#else
     template <typename It,
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value &&__is_dynamic)>
     constexpr span(It first, size_type count) noexcept
@@ -166,7 +171,13 @@ public:
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value && !__is_dynamic)>
     constexpr explicit span(It first, size_type count) noexcept
         : storage((to_address)(first), count) {}
+#endif
 
+#if defined(__cpp_conditional_explicit)
+    template <typename It, WJR_REQUIRES(__is_span_iterator<It, element_type>::value)>
+    constexpr explicit(!__is_dynamic) span(It first, It last) noexcept
+        : storage((to_address)(first), static_cast<size_type>(last - first)) {}
+#else
     template <typename It,
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value &&__is_dynamic)>
     constexpr span(It first, It last) noexcept
@@ -176,6 +187,7 @@ public:
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value && !__is_dynamic)>
     constexpr explicit span(It first, It last) noexcept
         : storage((to_address)(first), static_cast<size_type>(last - first)) {}
+#endif
 
     template <size_t N, WJR_REQUIRES((__is_dynamic || N == Extent))>
     constexpr span(type_identity_t<element_type> (&arr)[N]) noexcept
@@ -193,6 +205,13 @@ public:
     constexpr span(const std::array<U, N> &arr) noexcept
         : storage(std::data(arr), std::size(arr)) {}
 
+#if defined(__cpp_conditional_explicit)
+    template <typename U, size_t N,
+              WJR_REQUIRES((__is_dynamic || N == dynamic_extent || N == Extent) &&
+                           std::is_convertible_v<U *, T *>)>
+    constexpr explicit(!__is_dynamic) span(const span<U, N> &source) noexcept
+        : storage(source.data(), source.size()) {}
+#else
     template <typename U, size_t N,
               WJR_REQUIRES((__is_dynamic || N == dynamic_extent || N == Extent) &&
                            std::is_convertible_v<U *, T *> && __is_dynamic)>
@@ -204,6 +223,7 @@ public:
                            std::is_convertible_v<U *, T *> && !__is_dynamic)>
     constexpr explicit span(const span<U, N> &source) noexcept
         : storage(source.data(), source.size()) {}
+#endif
 
     constexpr span(const span &other) noexcept = default;
     constexpr span &operator=(const span &other) noexcept = default;
@@ -278,20 +298,20 @@ public:
         return std::make_reverse_iterator(cbegin());
     }
 
-    constexpr reference front() const {
+    constexpr reference front() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_ASSERT_L0(size() > 0, "basic_vector::front: empty");
 #endif
         return *data();
     }
-    constexpr reference back() const {
+    constexpr reference back() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_ASSERT_L0(size() > 0, "basic_vector::front: empty");
 #endif
         return *(end_unsafe() - 1);
     }
 
-    constexpr reference at(size_type pos) const {
+    constexpr reference at(size_type pos) const noexcept {
         if (WJR_UNLIKELY(pos >= size())) {
             WJR_THROW(std::out_of_range("span at out of range"));
         }
@@ -299,39 +319,41 @@ public:
         return data()[pos];
     }
 
-    constexpr reference operator[](size_type pos) const {
+    constexpr reference operator[](size_type pos) const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_ASSERT_L0(pos < size(), "basic_vector::operator[]: out of range");
 #endif
         return data()[pos];
     }
 
-    constexpr pointer data() const { return storage.ptr; }
-    constexpr size_type size() const { return storage.size; }
-    constexpr size_type size_bytes() const { return size() * sizeof(element_type); }
-    constexpr bool empty() const { return size() == 0; }
+    constexpr pointer data() const noexcept { return storage.ptr; }
+    constexpr size_type size() const noexcept { return storage.size; }
+    constexpr size_type size_bytes() const noexcept {
+        return size() * sizeof(element_type);
+    }
+    constexpr bool empty() const noexcept { return size() == 0; }
 
     template <size_t Count>
-    constexpr span<element_type, Count> first() const {
+    constexpr span<element_type, Count> first() const noexcept {
         static_assert(Count <= Extent, "");
 
         return {begin(), Count};
     }
 
-    constexpr span<element_type, dynamic_extent> first(size_type Count) const {
+    constexpr span<element_type, dynamic_extent> first(size_type Count) const noexcept {
         WJR_ASSERT_L2(Count <= size());
 
         return {begin(), Count};
     }
 
     template <size_t Count>
-    constexpr span<element_type, Count> last() const {
+    constexpr span<element_type, Count> last() const noexcept {
         static_assert(Count <= Extent, "");
 
         return {end() - Count, Count};
     }
 
-    constexpr span<element_type, dynamic_extent> last(size_type Count) const {
+    constexpr span<element_type, dynamic_extent> last(size_type Count) const noexcept {
         WJR_ASSERT_L2(Count <= size());
 
         return {data() - Count, Count};
@@ -341,7 +363,7 @@ public:
     constexpr span<element_type, Count != dynamic_extent    ? Count
                                  : Extent != dynamic_extent ? Extent - Offset
                                                             : dynamic_extent>
-    subspan() const {
+    subspan() const noexcept {
         if constexpr (Extent != dynamic_extent) {
             static_assert(Offset <= Extent, "");
             static_assert(Count == dynamic_extent || Count <= Extent - Offset, "");
@@ -355,7 +377,7 @@ public:
     }
 
     constexpr span<element_type, dynamic_extent>
-    subspan(size_type Offset, size_type Count = dynamic_extent) const {
+    subspan(size_type Offset, size_type Count = dynamic_extent) const noexcept {
         WJR_ASSERT_L2(Offset <= size());
 
         return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};

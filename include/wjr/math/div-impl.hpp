@@ -54,7 +54,7 @@ WJR_INTRINSIC_CONSTEXPR20 void divexact_dbm1c_shift(uint64_t *dst, const uint64_
 
 template <uint64_t c>
 WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, size_t n,
-                                            std::integral_constant<uint64_t, c>,
+                                            integral_constant<uint64_t, c>,
                                             WJR_MAYBE_UNUSED uint64_t cf);
 
 WJR_INTRINSIC_CONSTEXPR20 void divexact_1(uint64_t *dst, const uint64_t *src, size_t n,

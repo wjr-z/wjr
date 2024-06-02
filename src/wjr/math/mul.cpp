@@ -2646,10 +2646,10 @@ void toom63_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     neg = toom_eval_opposite_2_exp(args0);
     neg ^= toom_eval_opposite_2_exp(args1);
 
-    __mul_n<__mul_mode::all>(w1p, w0p, w7p, l, stk, flag[0], args0.cf[0_u],
-                             args1.cf[0_u]);
-    __mul_n<__mul_mode::all>(w2p, t1p, t2p, l, stk, flag[1], args0.cf[1_u],
-                             args1.cf[1_u]);
+    __mul_n<__mul_mode::all>(w1p, w0p, w7p, l, stk, flag[0], args0.cf[0_zu],
+                             args1.cf[0_zu]);
+    __mul_n<__mul_mode::all>(w2p, t1p, t2p, l, stk, flag[1], args0.cf[1_zu],
+                             args1.cf[1_zu]);
 
     WJR_TOOM_EVAL_OPPOSITE_INTERPOLATION_ODD(w1p, w2p, l * 2, neg, flag[0], flag[1], 1);
 
@@ -2660,10 +2660,10 @@ void toom63_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     neg = toom_eval_opposite_2_exp(args0);
     neg ^= toom_eval_opposite_2_exp(args1);
 
-    __mul_n<__mul_mode::all>(w3p, w0p, w7p, l, stk, flag[2], args0.cf[0_u],
-                             args1.cf[0_u]);
-    __mul_n<__mul_mode::all>(w4p, t1p, t2p, l, stk, flag[3], args0.cf[1_u],
-                             args1.cf[1_u]);
+    __mul_n<__mul_mode::all>(w3p, w0p, w7p, l, stk, flag[2], args0.cf[0_zu],
+                             args1.cf[0_zu]);
+    __mul_n<__mul_mode::all>(w4p, t1p, t2p, l, stk, flag[3], args0.cf[1_zu],
+                             args1.cf[1_zu]);
 
     WJR_TOOM_EVAL_OPPOSITE_INTERPOLATION_ODD(w3p, w4p, l * 2, neg, flag[2], flag[3], 2);
 
@@ -2671,10 +2671,10 @@ void toom63_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     neg = toom_eval_opposite_half_exp(args0);
     neg ^= toom_eval_opposite_half_exp(args1);
 
-    __mul_n<__mul_mode::all>(w5p, w0p, w7p, l, stk, flag[4], args0.cf[0_u],
-                             args1.cf[0_u]);
-    __mul_n<__mul_mode::all>(w6p, t1p, t2p, l, stk, flag[5], args0.cf[1_u],
-                             args1.cf[1_u]);
+    __mul_n<__mul_mode::all>(w5p, w0p, w7p, l, stk, flag[4], args0.cf[0_zu],
+                             args1.cf[0_zu]);
+    __mul_n<__mul_mode::all>(w6p, t1p, t2p, l, stk, flag[5], args0.cf[1_zu],
+                             args1.cf[1_zu]);
 
     WJR_TOOM_EVAL_OPPOSITE_INTERPOLATION_EVEN(w5p, w6p, l * 2, neg, flag[4], flag[5], 2);
 
@@ -2927,10 +2927,10 @@ void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     neg = toom_eval_opposite_2_exp(args0);
     neg ^= toom_eval_opposite_2_exp(args1);
 
-    __mul_n<__mul_mode::all>(w1p, w0p, t1p, l, stk, flag[0], args0.cf[0_u],
-                             args1.cf[0_u]);
-    __mul_n<__mul_mode::all>(w2p, w8p, t2p, l, stk, flag[1], args0.cf[1_u],
-                             args1.cf[1_u]);
+    __mul_n<__mul_mode::all>(w1p, w0p, t1p, l, stk, flag[0], args0.cf[0_zu],
+                             args1.cf[0_zu]);
+    __mul_n<__mul_mode::all>(w2p, w8p, t2p, l, stk, flag[1], args0.cf[1_zu],
+                             args1.cf[1_zu]);
 
     WJR_TOOM_EVAL_OPPOSITE_INTERPOLATION_ODD(w1p, w2p, l * 2, neg, flag[0], flag[1], 1);
 
@@ -2941,10 +2941,10 @@ void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     neg = toom_eval_opposite_2_exp(args0);
     neg ^= toom_eval_opposite_2_exp(args1);
 
-    __mul_n<__mul_mode::all>(w3p, w0p, t1p, l, stk, flag[2], args0.cf[0_u],
-                             args1.cf[0_u]);
-    __mul_n<__mul_mode::all>(w4p, w8p, t2p, l, stk, flag[3], args0.cf[1_u],
-                             args1.cf[1_u]);
+    __mul_n<__mul_mode::all>(w3p, w0p, t1p, l, stk, flag[2], args0.cf[0_zu],
+                             args1.cf[0_zu]);
+    __mul_n<__mul_mode::all>(w4p, w8p, t2p, l, stk, flag[3], args0.cf[1_zu],
+                             args1.cf[1_zu]);
 
     WJR_TOOM_EVAL_OPPOSITE_INTERPOLATION_ODD(w3p, w4p, l * 2, neg, flag[2], flag[3], 2);
 
@@ -2952,10 +2952,10 @@ void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     neg = toom_eval_opposite_half_exp(args0);
     neg ^= toom_eval_opposite_half_exp(args1);
 
-    __mul_n<__mul_mode::all>(w7p, w0p, t1p, l, stk, flag[6], args0.cf[0_u],
-                             args1.cf[0_u]);
-    __mul_n<__mul_mode::all>(w6p, w8p, t2p, l, stk, flag[5], args0.cf[1_u],
-                             args1.cf[1_u]);
+    __mul_n<__mul_mode::all>(w7p, w0p, t1p, l, stk, flag[6], args0.cf[0_zu],
+                             args1.cf[0_zu]);
+    __mul_n<__mul_mode::all>(w6p, w8p, t2p, l, stk, flag[5], args0.cf[1_zu],
+                             args1.cf[1_zu]);
 
     WJR_TOOM_EVAL_OPPOSITE_INTERPOLATION_ODD(w7p, w6p, l * 2, neg, flag[6], flag[5], 2);
 
@@ -2966,8 +2966,8 @@ void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     toom_eval_2_exp(args0);
     toom_eval_2_exp(args1);
 
-    __mul_n<__mul_mode::all>(w5p, w0p, t1p, l, stk, flag[4], args0.cf[0_u],
-                             args1.cf[0_u]);
+    __mul_n<__mul_mode::all>(w5p, w0p, t1p, l, stk, flag[4], args0.cf[0_zu],
+                             args1.cf[0_zu]);
 
     // f(0)
     __mul_n<__mul_mode::all>(w0p, u0p, v0p, l, stk);
@@ -3010,8 +3010,8 @@ void toom5_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
 
     (void)toom_eval_opposite_2_exp(args);
 
-    __sqr<__mul_mode::all>(w1p, w0p, l, stk, flag[0], args.cf[0_u]);
-    __sqr<__mul_mode::all>(w2p, w8p, l, stk, flag[1], args.cf[1_u]);
+    __sqr<__mul_mode::all>(w1p, w0p, l, stk, flag[0], args.cf[0_zu]);
+    __sqr<__mul_mode::all>(w2p, w8p, l, stk, flag[1], args.cf[1_zu]);
 
     WJR_TOOM_EVAL_OPPOSITE_INTERPOLATION_ODD(w1p, w2p, l * 2, false, flag[0], flag[1], 1);
 
@@ -3020,16 +3020,16 @@ void toom5_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
 
     (void)toom_eval_opposite_2_exp(args);
 
-    __sqr<__mul_mode::all>(w3p, w0p, l, stk, flag[2], args.cf[0_u]);
-    __sqr<__mul_mode::all>(w4p, w8p, l, stk, flag[3], args.cf[1_u]);
+    __sqr<__mul_mode::all>(w3p, w0p, l, stk, flag[2], args.cf[0_zu]);
+    __sqr<__mul_mode::all>(w4p, w8p, l, stk, flag[3], args.cf[1_zu]);
 
     WJR_TOOM_EVAL_OPPOSITE_INTERPOLATION_ODD(w3p, w4p, l * 2, false, flag[2], flag[3], 2);
 
     // f(1/2),f(-1/2)
     (void)toom_eval_opposite_half_exp(args);
 
-    __sqr<__mul_mode::all>(w7p, w0p, l, stk, flag[6], args.cf[0_u]);
-    __sqr<__mul_mode::all>(w6p, w8p, l, stk, flag[5], args.cf[1_u]);
+    __sqr<__mul_mode::all>(w7p, w0p, l, stk, flag[6], args.cf[0_zu]);
+    __sqr<__mul_mode::all>(w6p, w8p, l, stk, flag[5], args.cf[1_zu]);
 
     WJR_TOOM_EVAL_OPPOSITE_INTERPOLATION_ODD(w7p, w6p, l * 2, false, flag[6], flag[5], 2);
 
@@ -3038,7 +3038,7 @@ void toom5_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
 
     toom_eval_2_exp(args);
 
-    __sqr<__mul_mode::all>(w5p, w0p, l, stk, flag[4], args.cf[0_u]);
+    __sqr<__mul_mode::all>(w5p, w0p, l, stk, flag[4], args.cf[0_zu]);
 
     // f(0)
     __sqr<__mul_mode::all>(w0p, u0p, l, stk);

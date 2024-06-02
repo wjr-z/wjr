@@ -4,6 +4,7 @@
 #include <tuple>
 
 #include <wjr/capture_leaf.hpp>
+#include <wjr/math/integral_constant.hpp>
 
 namespace wjr {
 
@@ -155,6 +156,15 @@ class tuple<This, Args...>
     constexpr static size_t Size = sizeof...(Args) + 1;
 
 public:
+#if defined(__cpp_conditional_explicit)
+    template <typename T = This,
+              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
+                                              std::is_default_constructible<Args>...>)>
+    constexpr explicit(
+        !std::conjunction_v<is_default_convertible<T>, is_default_convertible<Args>...>)
+        tuple() noexcept(std::is_nothrow_constructible_v<Impl>)
+        : Mybase(enable_default_constructor), m_impl() {}
+#else
     template <typename T = This,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
                                               std::is_default_constructible<Args>...>
@@ -170,6 +180,7 @@ public:
                                                is_default_convertible<Args>...>)>
     constexpr explicit tuple() noexcept(std::is_nothrow_constructible_v<Impl>)
         : Mybase(enable_default_constructor), m_impl() {}
+#endif
 
     template <typename Other = This,
               WJR_REQUIRES(std::is_constructible_v<Impl, Sequence, const Other &,
@@ -263,27 +274,27 @@ public:
         return std::move(m_impl.template get<I>());
     }
 
-    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < Size)>
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < Size)>
     constexpr std::tuple_element_t<I, tuple> &
-    operator[](std::integral_constant<C, I>) & noexcept {
+    operator[](integral_constant<size_t, I>) & noexcept {
         return get<I>();
     }
 
-    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < Size)>
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < Size)>
     constexpr const std::tuple_element_t<I, tuple> &
-    operator[](std::integral_constant<C, I>) const & noexcept {
+    operator[](integral_constant<size_t, I>) const & noexcept {
         return get<I>();
     }
 
-    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < Size)>
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < Size)>
     constexpr std::tuple_element_t<I, tuple> &&
-    operator[](std::integral_constant<C, I>) && noexcept {
+    operator[](integral_constant<size_t, I>) && noexcept {
         return std::move(get<I>());
     }
 
-    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < Size)>
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < Size)>
     constexpr const std::tuple_element_t<I, tuple> &&
-    operator[](std::integral_constant<C, I>) const && noexcept {
+    operator[](integral_constant<size_t, I>) const && noexcept {
         return std::move(get<I>());
     }
 

@@ -3,6 +3,10 @@
 
 #include <wjr/preprocessor/compiler/has.hpp>
 
+#if defined(WJR_CXX_20)
+#include <version>
+#endif
+
 #if WJR_HAS_CPP_ATTRIBUTE(fallthrough)
 #define WJR_FALLTHROUGH [[fallthrough]]
 #elif WJR_HAS_ATTRIBUTE(fallthrough)

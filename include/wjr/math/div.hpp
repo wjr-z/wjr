@@ -601,8 +601,7 @@ constexpr __divexact_get_struct __divexact_init() noexcept {
 
 template <uint64_t c>
 WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, size_t n,
-                                            std::integral_constant<uint64_t, c>,
-                                            uint64_t cf) {
+                                            integral_constant<uint64_t, c>, uint64_t cf) {
     // cost : divexact_dbm1c * 2 + shift * 1 <= divexact_1
     static_assert(c != 0, "");
     constexpr auto ss = __divexact_init<c>();

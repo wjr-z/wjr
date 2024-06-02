@@ -647,8 +647,6 @@ template <typename S>
 void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint64_t exp,
                    const biginteger_data *mod);
 
-                   
-
 } // namespace biginteger_details
 
 template <typename S>

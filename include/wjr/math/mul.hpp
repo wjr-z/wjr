@@ -10,6 +10,7 @@
 #include <wjr/math/bignum-config.hpp>
 #include <wjr/math/bit.hpp>
 #include <wjr/math/div-impl.hpp>
+#include <wjr/math/integral_constant.hpp>
 #include <wjr/math/shift.hpp>
 #include <wjr/math/stack_allocator.hpp>
 #include <wjr/math/sub.hpp>
@@ -394,9 +395,9 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0,
 }
 
 template <uint64_t maxn = in_place_max>
-WJR_INTRINSIC_CONSTEXPR_E uint64_t
-try_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t ml,
-             std::integral_constant<uint64_t, maxn> = {}) {
+WJR_INTRINSIC_CONSTEXPR_E uint64_t try_addmul_1(uint64_t *dst, const uint64_t *src,
+                                                size_t n, uint64_t ml,
+                                                integral_constant<uint64_t, maxn> = {}) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
@@ -604,7 +605,7 @@ struct toom_eval_opposite_exp_args {
                                 unsigned int exp) noexcept
         : input(t0p, t1p, stk, wp, length, rest, k, exp), cf(dctor, dctor) {}
 
-    void set_exp(unsigned int exp) noexcept { input[7_u] = exp; }
+    void set_exp(unsigned int exp) noexcept { input[7_zu] = exp; }
 
     tuple_type input;
     tuple<uint64_t, uint64_t> cf;
@@ -742,8 +743,8 @@ WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *sr
 template <__mul_mode mode, uint64_t m0 = in_place_max, uint64_t m1 = in_place_max>
 void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1,
              size_t n, safe_array<uint64_t> stk, uint64_t &c_out, uint64_t cf0,
-             uint64_t cf1, std::integral_constant<uint64_t, m0> x0 = {},
-             std::integral_constant<uint64_t, m1> x1 = {}) {
+             uint64_t cf1, integral_constant<uint64_t, m0> x0 = {},
+             integral_constant<uint64_t, m1> x1 = {}) {
     WJR_ASSERT_ASSUME(cf0 <= m0);
     WJR_ASSERT_ASSUME(cf1 <= m1);
 
@@ -810,7 +811,7 @@ void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
 template <__mul_mode mode, uint64_t m = in_place_max>
 void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
            safe_array<uint64_t> stk, uint64_t &c_out, uint64_t cf,
-           std::integral_constant<uint64_t, m> = {}) noexcept {
+           integral_constant<uint64_t, m> = {}) noexcept {
     WJR_ASSERT_ASSUME(cf <= m);
 
     __sqr<mode>(dst, src, n, stk);
@@ -825,8 +826,7 @@ void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
 
     constexpr auto m2 = m <= ((uint32_t)in_place_max) ? m * 2 : m;
 
-    c_out +=
-        try_addmul_1(dst + n, src, n, 2 * cf, std::integral_constant<uint64_t, m2>{});
+    c_out += try_addmul_1(dst + n, src, n, 2 * cf, integral_constant<uint64_t, m2>{});
 }
 
 WJR_INTRINSIC_INLINE void sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n) {

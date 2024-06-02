@@ -4,6 +4,7 @@
 #include <tuple>
 
 #include <wjr/capture_leaf.hpp>
+#include <wjr/math/integral_constant.hpp>
 
 namespace wjr {
 
@@ -113,6 +114,16 @@ public:
     using first_type = T;
     using second_type = U;
 
+#if defined(__cpp_conditional_explicit)
+    template <typename Ty = T, typename Uy = U,
+              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
+                                              std::is_default_constructible<Uy>>)>
+    constexpr explicit(
+        !std::conjunction_v<is_default_convertible<Ty>, is_default_convertible<Uy>>)
+        compressed_pair() noexcept(
+            std::conjunction_v<std::is_nothrow_constructible<Ty>,
+                               std::is_nothrow_constructible<Uy>>) {}
+#else
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
                                               std::is_default_constructible<Uy>>
@@ -130,7 +141,17 @@ public:
     constexpr explicit compressed_pair() noexcept(
         std::conjunction_v<std::is_nothrow_constructible<Ty>,
                            std::is_nothrow_constructible<Uy>>) {}
+#endif
 
+#if defined(__cpp_conditional_explicit)
+    template <typename Ty = T, typename Uy = U,
+              WJR_REQUIRES(__is_all_copy_constructible<Ty, Uy>::value)>
+    constexpr explicit(!__is_all_convertible<Ty, Uy, const Ty &, const Uy &>::value)
+        compressed_pair(const T &_First, const U &_Second) noexcept(
+            std::conjunction_v<std::is_nothrow_copy_constructible<Ty>,
+                               std::is_nothrow_copy_constructible<Uy>>)
+        : Mybase1(_First), Mybase2(_Second), Mybase3(enable_default_constructor) {}
+#else
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<
                            __is_all_copy_constructible<Ty, Uy>,
@@ -148,7 +169,19 @@ public:
         std::conjunction_v<std::is_nothrow_copy_constructible<Ty>,
                            std::is_nothrow_copy_constructible<Uy>>)
         : Mybase1(_First), Mybase2(_Second), Mybase3(enable_default_constructor) {}
+#endif
 
+#if defined(__cpp_conditional_explicit)
+    template <typename Other1, typename Other2,
+              WJR_REQUIRES(
+                  __is_all_constructible<Mybase1, Mybase2, Other1 &&, Other2 &&>::value)>
+    constexpr explicit(!__is_all_convertible<T, U, Other1 &&, Other2 &&>::value)
+        compressed_pair(Other1 &&_First, Other2 &&_Second) noexcept(
+            std::conjunction_v<std::is_nothrow_constructible<Mybase1, Other1 &&>,
+                               std::is_nothrow_constructible<Mybase2, Other2 &&>>)
+        : Mybase1(std::forward<Other1>(_First)), Mybase2(std::forward<Other2>(_Second)),
+          Mybase3(enable_default_constructor) {}
+#else
     template <typename Other1, typename Other2,
               WJR_REQUIRES(std::conjunction_v<
                            __is_all_constructible<Mybase1, Mybase2, Other1 &&, Other2 &&>,
@@ -169,6 +202,7 @@ public:
                            std::is_nothrow_constructible<Mybase2, Other2 &&>>)
         : Mybase1(std::forward<Other1>(_First)), Mybase2(std::forward<Other2>(_Second)),
           Mybase3(enable_default_constructor) {}
+#endif
 
     template <typename Tuple1, typename Tuple2, size_t... N1, size_t... N2>
     constexpr compressed_pair(
@@ -189,6 +223,24 @@ public:
         : compressed_pair(tp1, tp2, std::index_sequence_for<Args1...>{},
                           std::index_sequence_for<Args2...>{}) {}
 
+#if defined(__cpp_conditional_explicit)
+    template <typename PairLike,
+              WJR_REQUIRES(
+                  __is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&>)>
+    constexpr explicit(
+        !__is_all_convertible<
+            T, U, decltype(std::get<0>(std::forward<PairLike>(std::declval<PairLike>()))),
+            decltype(std::get<1>(
+                std::forward<PairLike>(std::declval<PairLike>())))>::value)
+        compressed_pair(PairLike &&pr) noexcept(
+            std::conjunction_v<std::is_nothrow_constructible<
+                                   T, decltype(std::get<0>(std::forward<PairLike>(pr)))>,
+                               std::is_nothrow_constructible<
+                                   U, decltype(std::get<1>(std::forward<PairLike>(pr)))>>)
+        : Mybase1(std::get<0>(std::forward<PairLike>(pr))),
+          Mybase2(std::get<1>(std::forward<PairLike>(pr))),
+          Mybase3(enable_default_constructor) {}
+#else
     template <typename PairLike,
               WJR_REQUIRES(
                   __is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&>
@@ -223,6 +275,7 @@ public:
         : Mybase1(std::get<0>(std::forward<PairLike>(pr))),
           Mybase2(std::get<1>(std::forward<PairLike>(pr))),
           Mybase3(enable_default_constructor) {}
+#endif
 
     template <typename PairLike,
               WJR_REQUIRES(
@@ -287,27 +340,27 @@ public:
         }
     }
 
-    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < 2)>
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < 2)>
     constexpr std::tuple_element_t<I, compressed_pair> &
-    operator[](std::integral_constant<C, I>) & noexcept {
+    operator[](integral_constant<size_t, I>) & noexcept {
         return get<I>();
     }
 
-    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < 2)>
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < 2)>
     constexpr const std::tuple_element_t<I, compressed_pair> &
-    operator[](std::integral_constant<C, I>) const & noexcept {
+    operator[](integral_constant<size_t, I>) const & noexcept {
         return get<I>();
     }
 
-    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < 2)>
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < 2)>
     constexpr std::tuple_element_t<I, compressed_pair> &&
-    operator[](std::integral_constant<C, I>) && noexcept {
+    operator[](integral_constant<size_t, I>) && noexcept {
         return std::move(get<I>());
     }
 
-    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < 2)>
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < 2)>
     constexpr const std::tuple_element_t<I, compressed_pair> &&
-    operator[](std::integral_constant<C, I>) const && noexcept {
+    operator[](integral_constant<size_t, I>) const && noexcept {
         return std::move(get<I>());
     }
 };

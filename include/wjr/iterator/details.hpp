@@ -97,10 +97,9 @@ struct __is_contiguous_iterator_impl<std::move_iterator<Iter>, void>
 
 #if defined(WJR_CXX_20)
 template <typename Iter>
-struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};
-
-template <std::contiguous_iterator Iter>
-struct is_contiguous_iterator<Iter> : std::true_type {};
+struct is_contiguous_iterator
+    : std::bool_constant<std::contiguous_iterator<Iter> ||
+                         __is_contiguous_iterator_impl<Iter>::value> {};
 #else
 template <typename Iter>
 struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};

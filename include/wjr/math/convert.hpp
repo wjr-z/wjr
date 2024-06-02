@@ -348,13 +348,7 @@ template <uint64_t Base>
 class __from_chars_unroll_4_fast_fn_impl_base {
 protected:
     WJR_CONST WJR_INTRINSIC_INLINE static uint32_t __fast_conv(uint32_t val) {
-        constexpr uint32_t Base2 = Base * Base;
-
-        constexpr uint32_t mask = 0x00FF00FF;
-        constexpr uint32_t mul = 1 + (Base2 << 16);
-        val = (val * Base) + (val >> 8);
-        val = ((val & mask) * mul) >> 16;
-        return uint32_t(val);
+        return digits_literal_details::__fast_conv_4<Base>(val);
     }
 
 public:
@@ -373,17 +367,7 @@ template <uint64_t Base>
 class __from_chars_unroll_8_fast_fn_impl_base {
 protected:
     WJR_CONST WJR_INTRINSIC_INLINE static uint32_t __fast_conv(uint64_t val) {
-        constexpr uint64_t Base2 = Base * Base;
-        constexpr uint64_t Base4 = Base2 * Base2;
-        constexpr uint64_t Base6 = Base4 * Base2;
-
-        constexpr uint64_t mask = 0x000000FF000000FF;
-        constexpr uint64_t mul1 = Base2 + (Base6 << 32);
-        constexpr uint64_t mul2 = 1 + (Base4 << 32);
-
-        val = (val * Base) + (val >> 8);
-        val = (((val & mask) * mul1) + (((val >> 16) & mask) * mul2)) >> 32;
-        return val;
+        return digits_literal_details::__fast_conv_8<Base>(val);
     }
 
 public:

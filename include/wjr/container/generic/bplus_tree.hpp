@@ -121,21 +121,13 @@ struct bplus_tree_node {
     using inner_node_type = typename Traits::inner_node_type;
     using leaf_node_type = typename Traits::leaf_node_type;
 
-    WJR_INTRINSIC_CONSTEXPR inner_node_type *as_inner() noexcept {
-        return (inner_node_type *)(this);
-    }
+    WJR_INTRINSIC_CONSTEXPR inner_node_type *as_inner() noexcept;
 
-    WJR_INTRINSIC_CONSTEXPR const inner_node_type *as_inner() const noexcept {
-        return (inner_node_type *)(this);
-    }
+    WJR_INTRINSIC_CONSTEXPR const inner_node_type *as_inner() const noexcept;
 
-    WJR_INTRINSIC_CONSTEXPR leaf_node_type *as_leaf() noexcept {
-        return (leaf_node_type *)(this);
-    }
+    WJR_INTRINSIC_CONSTEXPR leaf_node_type *as_leaf() noexcept;
 
-    WJR_INTRINSIC_CONSTEXPR const leaf_node_type *as_leaf() const noexcept {
-        return (leaf_node_type *)(this);
-    }
+    WJR_INTRINSIC_CONSTEXPR const leaf_node_type *as_leaf() const noexcept;
 
     int m_size;
     unsigned int m_pos;
@@ -220,6 +212,30 @@ struct bplus_tree_leaf_node<Traits, false> : bplus_tree_node<Traits>,
 
     alignas(16) value_type *m_values[node_size];
 };
+
+template <typename Traits>
+WJR_INTRINSIC_CONSTEXPR typename bplus_tree_node<Traits>::inner_node_type *
+bplus_tree_node<Traits>::as_inner() noexcept {
+    return static_cast<inner_node_type *>(this);
+}
+
+template <typename Traits>
+WJR_INTRINSIC_CONSTEXPR const typename bplus_tree_node<Traits>::inner_node_type *
+bplus_tree_node<Traits>::as_inner() const noexcept {
+    return static_cast<const inner_node_type *>(this);
+}
+
+template <typename Traits>
+WJR_INTRINSIC_CONSTEXPR typename bplus_tree_node<Traits>::leaf_node_type *
+bplus_tree_node<Traits>::as_leaf() noexcept {
+    return static_cast<leaf_node_type *>(this);
+}
+
+template <typename Traits>
+WJR_INTRINSIC_CONSTEXPR const typename bplus_tree_node<Traits>::leaf_node_type *
+bplus_tree_node<Traits>::as_leaf() const noexcept {
+    return static_cast<const leaf_node_type *>(this);
+}
 
 template <typename Traits, typename Alloc>
 class basic_bplus_tree;
@@ -600,19 +616,6 @@ private:
 
     // member function for container_fn (END)
 
-    void __insert_root(value_type *xval) {
-        const auto root = (leaf_node_type *)_Alty_traits::allocate(
-            __get_allocator(), sizeof(leaf_node_type));
-
-        __get_root() = root;
-
-        root->m_size = -1;
-        root->m_parent = nullptr;
-        root->__assign(0, xval);
-        m_sentry.push_back(root);
-        return;
-    }
-
     WJR_NOINLINE void __insert_iter(const_iterator iter, value_type *xval) {
         unsigned int pos;
         unsigned int cur_size;
@@ -626,7 +629,15 @@ private:
 
                 // empty
                 if (node == &m_sentry) {
-                    __insert_root(xval);
+                    const auto root = (leaf_node_type *)_Alty_traits::allocate(
+                        __get_allocator(), sizeof(leaf_node_type));
+
+                    __get_root() = root;
+
+                    root->m_size = -1;
+                    root->m_parent = nullptr;
+                    root->__assign(0, xval);
+                    m_sentry.push_back(root);
                     return;
                 }
 
@@ -798,7 +809,7 @@ private:
     WJR_PURE WJR_NOINLINE const_iterator __search(const key_type &key) const {
         const node_type *current = __get_root();
 
-        if (current == nullptr) {
+        if (WJR_UNLIKELY(current == nullptr)) {
             return cend();
         }
 
@@ -839,19 +850,15 @@ private:
 
     NOT_LEFTMOST_AT_ROOT:
         pos = __search<Upper, 1, node_size, 1>(current->as_inner(), cur_size, key, comp);
-        current = current->as_inner()->m_sons[pos];
-        cur_size = current->m_size;
 
-        if (cur_size < 0) {
-            goto LEAF;
-        }
-
-        goto INNER_LOOP;
+        goto NOT_LEFTMOST_BODY;
 
     NOT_LEFTMOST_AT_INNER:
         pos = __search<Upper, floor_half, node_size, 1>(current->as_inner(), cur_size,
                                                         key, comp);
 
+    NOT_LEFTMOST_BODY:
+
         current = current->as_inner()->m_sons[pos];
         cur_size = current->m_size;
 
@@ -859,7 +866,6 @@ private:
             goto LEAF;
         }
 
-    INNER_LOOP:
         do {
             pos = __search<Upper, floor_half, node_size, 0>(current->as_inner(), cur_size,
                                                             key, comp);

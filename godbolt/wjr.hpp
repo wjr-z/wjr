@@ -1487,6 +1487,10 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 
 #endif // WJR_PREPROCESSOR_COMPILER_HAS_HPP__
 
+#if defined(WJR_CXX_20)
+#include <version>
+#endif
+
 #if WJR_HAS_CPP_ATTRIBUTE(fallthrough)
 #define WJR_FALLTHROUGH [[fallthrough]]
 #elif WJR_HAS_ATTRIBUTE(fallthrough)
@@ -3328,47 +3332,6 @@ WJR_REGISTER_HAS_COMPARE(greater_equal, std::greater_equal<>);
 WJR_REGISTER_HAS_TYPE(invocable,
                       std::invoke(std::declval<Func>(), std::declval<Args>()...), Func);
 
-namespace digits_literal_details {
-
-template <typename T, char... Chars>
-constexpr T parse() {
-    T ret = 0;
-    auto func = [&ret](char ch) { ret = ret * 10 + ch - '0'; };
-    (func(Chars), ...);
-    return ret;
-}
-
-} // namespace digits_literal_details
-
-#define WJR_REGISTER_INTEGRAL_LITERAL(NAME, TYPE)                                        \
-    template <char... Chars>                                                             \
-    WJR_INTRINSIC_CONSTEXPR auto operator"" _##NAME() noexcept                           \
-        -> std::integral_constant<TYPE,                                                  \
-                                  digits_literal_details::parse<TYPE, Chars...>()> {     \
-        return {};                                                                       \
-    }
-
-WJR_REGISTER_INTEGRAL_LITERAL(u, unsigned int);
-WJR_REGISTER_INTEGRAL_LITERAL(ul, unsigned long);
-WJR_REGISTER_INTEGRAL_LITERAL(ull, unsigned long long);
-WJR_REGISTER_INTEGRAL_LITERAL(i, int);
-WJR_REGISTER_INTEGRAL_LITERAL(l, long);
-WJR_REGISTER_INTEGRAL_LITERAL(ll, long long);
-
-WJR_REGISTER_INTEGRAL_LITERAL(i8, int8_t);
-WJR_REGISTER_INTEGRAL_LITERAL(i16, int16_t);
-WJR_REGISTER_INTEGRAL_LITERAL(i32, int32_t);
-WJR_REGISTER_INTEGRAL_LITERAL(i64, int64_t);
-WJR_REGISTER_INTEGRAL_LITERAL(u8, uint8_t);
-WJR_REGISTER_INTEGRAL_LITERAL(u16, uint16_t);
-WJR_REGISTER_INTEGRAL_LITERAL(u32, uint32_t);
-WJR_REGISTER_INTEGRAL_LITERAL(u64, uint64_t);
-
-WJR_REGISTER_INTEGRAL_LITERAL(zu, size_t);
-WJR_REGISTER_INTEGRAL_LITERAL(z, ssize_t);
-
-#undef WJR_REGISTER_INTEGRAL_LITERAL
-
 } // namespace wjr
 
 #endif // ! WJR_TYPE_TRAITS_HPP__
@@ -4626,6 +4589,226 @@ struct __is_tuple_assignable : std::is_assignable<T &, U> {};
 } // namespace wjr
 
 #endif // WJR_CAPTURE_LEAF_HPP__
+#ifndef WJR_MATH_INTEGRAL_CONSTANT_HPP__
+#define WJR_MATH_INTEGRAL_CONSTANT_HPP__
+
+// Already included
+
+namespace wjr {
+
+template <typename T, T val>
+struct integral_constant {
+    static constexpr T value = val;
+
+    using value_type = T;
+    using type = integral_constant;
+
+    constexpr integral_constant() noexcept = default;
+    constexpr integral_constant(const integral_constant &) noexcept = default;
+    constexpr integral_constant(integral_constant &&) noexcept = default;
+    constexpr integral_constant &operator=(const integral_constant &) noexcept = default;
+    constexpr integral_constant &operator=(integral_constant &&) noexcept = default;
+    ~integral_constant() noexcept = default;
+
+    constexpr integral_constant(std::integral_constant<T, val>) noexcept {}
+
+    constexpr operator value_type() const noexcept { return value; }
+    WJR_NODISCARD constexpr value_type operator()() const noexcept { return value; }
+
+    WJR_NODISCARD constexpr operator std::integral_constant<T, val>() const noexcept {
+        return {};
+    }
+
+    friend constexpr auto operator-(integral_constant) noexcept {
+        return integral_constant<T, -value>{};
+    }
+
+    friend constexpr auto operator+(integral_constant) noexcept {
+        return integral_constant<T, value>{};
+    }
+
+    template <typename U, U u>
+    constexpr auto operator+(integral_constant<U, u>) const noexcept {
+        constexpr auto result = value + u;
+        return integral_constant<decltype(result), result>{};
+    }
+
+    template <typename U, U u>
+    constexpr auto operator-(integral_constant<U, u>) const noexcept {
+        constexpr auto result = value - u;
+        return integral_constant<decltype(result), result>{};
+    }
+
+    template <typename U, U u>
+    constexpr auto operator*(integral_constant<U, u>) const noexcept {
+        constexpr auto result = value * u;
+        return integral_constant<decltype(result), result>{};
+    }
+
+    template <typename U, U u>
+    constexpr auto operator/(integral_constant<U, u>) const noexcept {
+        constexpr auto result = value / u;
+        return integral_constant<decltype(result), result>{};
+    }
+
+    template <typename U, U u>
+    constexpr auto operator%(integral_constant<U, u>) const noexcept {
+        constexpr auto result = value % u;
+        return integral_constant<decltype(result), result>{};
+    }
+
+    template <typename U, U u>
+    constexpr auto operator<<(integral_constant<U, u>) const noexcept {
+        constexpr auto result = value << u;
+        return integral_constant<decltype(result), result>{};
+    }
+
+    template <typename U, U u>
+    constexpr auto operator>>(integral_constant<U, u>) const noexcept {
+        constexpr auto result = value >> u;
+        return integral_constant<decltype(result), result>{};
+    }
+
+    template <typename U, U u>
+    constexpr auto operator&(integral_constant<U, u>) const noexcept {
+        constexpr auto result = value & u;
+        return integral_constant<decltype(result), result>{};
+    }
+
+    template <typename U, U u>
+    constexpr auto operator|(integral_constant<U, u>) const noexcept {
+        constexpr auto result = value | u;
+        return integral_constant<decltype(result), result>{};
+    }
+
+    template <typename U, U u>
+    constexpr auto operator^(integral_constant<U, u>) const noexcept {
+        constexpr auto result = value ^ u;
+        return integral_constant<decltype(result), result>{};
+    }
+
+    constexpr auto operator~() const noexcept {
+        constexpr auto result = ~value;
+        return integral_constant<decltype(result), result>{};
+    }
+};
+
+namespace digits_literal_details {
+
+template <uint64_t Base>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR static uint32_t __fast_conv_4(uint32_t val) {
+    constexpr uint32_t Base2 = Base * Base;
+
+    constexpr uint32_t mask = 0x00FF00FF;
+    constexpr uint32_t mul = 1 + (Base2 << 16);
+    val = (val * Base) + (val >> 8);
+    val = ((val & mask) * mul) >> 16;
+    return uint32_t(val);
+}
+
+template <uint64_t Base>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR static uint32_t __fast_conv_8(uint64_t val) {
+    constexpr uint64_t Base2 = Base * Base;
+    constexpr uint64_t Base4 = Base2 * Base2;
+    constexpr uint64_t Base6 = Base4 * Base2;
+
+    constexpr uint64_t mask = 0x000000FF000000FF;
+    constexpr uint64_t mul1 = Base2 + (Base6 << 32);
+    constexpr uint64_t mul2 = 1 + (Base4 << 32);
+
+    val = (val * Base) + (val >> 8);
+    val = (((val & mask) * mul1) + (((val >> 16) & mask) * mul2)) >> 32;
+    return val;
+}
+
+template <typename T>
+struct parse_result {
+    T result;
+    T pow;
+};
+
+template <typename T>
+WJR_CONST constexpr parse_result<T> __parse_impl() noexcept {
+    return {0, 1};
+}
+
+template <typename T, char c0>
+WJR_CONST constexpr parse_result<T> __parse_impl() noexcept {
+    return {c0 - '0', 10};
+}
+
+template <typename T, char c0, char c1>
+WJR_CONST constexpr parse_result<T> __parse_impl() noexcept {
+    constexpr T result = (c0 - '0') * 10 + c1 - '0';
+    return {result, 100};
+}
+
+template <typename T, char c0, char c1, char c2>
+WJR_CONST constexpr parse_result<T> __parse_impl() noexcept {
+    constexpr T result = (c0 - '0') * 100 + (c1 - '0') * 10 + c2 - '0';
+    return {result, 1000};
+}
+
+template <typename T, char c0, char c1, char c2, char c3, char... Chars>
+WJR_CONST constexpr parse_result<T> __parse_impl() noexcept {
+    constexpr uint32_t mem = (c0 | (c1 << 8) | (c2 << 16) | (c3 << 24)) - 0x30303030;
+    constexpr uint32_t val = __fast_conv_4<10>(mem);
+    constexpr auto result = __parse_impl<T, Chars...>();
+    return {static_cast<T>(result.result * result.pow + val),
+            static_cast<T>(result.pow * 10000)};
+}
+
+template <typename T, char c0, char c1, char c2, char c3, char c4, char c5, char c6,
+          char c7, char... Chars>
+WJR_CONST constexpr parse_result<T> __parse_impl() noexcept {
+    constexpr uint64_t mem =
+        (c0 | (c1 << 8) | (c2 << 16) | (c3 << 24) | ((uint64_t)c4 << 32) |
+         ((uint64_t)c5 << 40) | ((uint64_t)c6 << 48) | ((uint64_t)c7 << 56)) -
+        0x3030303030303030;
+    constexpr uint64_t val = __fast_conv_8<10>(mem);
+    constexpr auto result = __parse_impl<T, Chars...>();
+    return {static_cast<T>(result.result * result.pow + val),
+            static_cast<T>(result.pow * 100000000)};
+}
+
+template <typename T, char... Chars>
+WJR_CONST constexpr T parse() noexcept {
+    return __parse_impl<T, Chars...>().result;
+}
+
+} // namespace digits_literal_details
+
+#define WJR_REGISTER_INTEGRAL_LITERAL(NAME, TYPE)                                        \
+    template <char... Chars>                                                             \
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR auto operator"" _##NAME() noexcept                 \
+        -> integral_constant<TYPE, digits_literal_details::parse<TYPE, Chars...>()> {    \
+        return {};                                                                       \
+    }
+
+WJR_REGISTER_INTEGRAL_LITERAL(u, unsigned int);
+WJR_REGISTER_INTEGRAL_LITERAL(ul, unsigned long);
+WJR_REGISTER_INTEGRAL_LITERAL(ull, unsigned long long);
+WJR_REGISTER_INTEGRAL_LITERAL(i, int);
+WJR_REGISTER_INTEGRAL_LITERAL(l, long);
+WJR_REGISTER_INTEGRAL_LITERAL(ll, long long);
+
+WJR_REGISTER_INTEGRAL_LITERAL(i8, int8_t);
+WJR_REGISTER_INTEGRAL_LITERAL(i16, int16_t);
+WJR_REGISTER_INTEGRAL_LITERAL(i32, int32_t);
+WJR_REGISTER_INTEGRAL_LITERAL(i64, int64_t);
+WJR_REGISTER_INTEGRAL_LITERAL(u8, uint8_t);
+WJR_REGISTER_INTEGRAL_LITERAL(u16, uint16_t);
+WJR_REGISTER_INTEGRAL_LITERAL(u32, uint32_t);
+WJR_REGISTER_INTEGRAL_LITERAL(u64, uint64_t);
+
+WJR_REGISTER_INTEGRAL_LITERAL(zu, size_t);
+WJR_REGISTER_INTEGRAL_LITERAL(z, ssize_t);
+
+#undef WJR_REGISTER_INTEGRAL_LITERAL
+
+} // namespace wjr
+
+#endif // WJR_MATH_INTEGRAL_CONSTANT_HPP__
 
 namespace wjr {
 
@@ -4735,6 +4918,16 @@ public:
     using first_type = T;
     using second_type = U;
 
+#if defined(__cpp_conditional_explicit)
+    template <typename Ty = T, typename Uy = U,
+              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
+                                              std::is_default_constructible<Uy>>)>
+    constexpr explicit(
+        !std::conjunction_v<is_default_convertible<Ty>, is_default_convertible<Uy>>)
+        compressed_pair() noexcept(
+            std::conjunction_v<std::is_nothrow_constructible<Ty>,
+                               std::is_nothrow_constructible<Uy>>) {}
+#else
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<Ty>,
                                               std::is_default_constructible<Uy>>
@@ -4752,7 +4945,17 @@ public:
     constexpr explicit compressed_pair() noexcept(
         std::conjunction_v<std::is_nothrow_constructible<Ty>,
                            std::is_nothrow_constructible<Uy>>) {}
+#endif
 
+#if defined(__cpp_conditional_explicit)
+    template <typename Ty = T, typename Uy = U,
+              WJR_REQUIRES(__is_all_copy_constructible<Ty, Uy>::value)>
+    constexpr explicit(!__is_all_convertible<Ty, Uy, const Ty &, const Uy &>::value)
+        compressed_pair(const T &_First, const U &_Second) noexcept(
+            std::conjunction_v<std::is_nothrow_copy_constructible<Ty>,
+                               std::is_nothrow_copy_constructible<Uy>>)
+        : Mybase1(_First), Mybase2(_Second), Mybase3(enable_default_constructor) {}
+#else
     template <typename Ty = T, typename Uy = U,
               WJR_REQUIRES(std::conjunction_v<
                            __is_all_copy_constructible<Ty, Uy>,
@@ -4770,7 +4973,19 @@ public:
         std::conjunction_v<std::is_nothrow_copy_constructible<Ty>,
                            std::is_nothrow_copy_constructible<Uy>>)
         : Mybase1(_First), Mybase2(_Second), Mybase3(enable_default_constructor) {}
+#endif
 
+#if defined(__cpp_conditional_explicit)
+    template <typename Other1, typename Other2,
+              WJR_REQUIRES(
+                  __is_all_constructible<Mybase1, Mybase2, Other1 &&, Other2 &&>::value)>
+    constexpr explicit(!__is_all_convertible<T, U, Other1 &&, Other2 &&>::value)
+        compressed_pair(Other1 &&_First, Other2 &&_Second) noexcept(
+            std::conjunction_v<std::is_nothrow_constructible<Mybase1, Other1 &&>,
+                               std::is_nothrow_constructible<Mybase2, Other2 &&>>)
+        : Mybase1(std::forward<Other1>(_First)), Mybase2(std::forward<Other2>(_Second)),
+          Mybase3(enable_default_constructor) {}
+#else
     template <typename Other1, typename Other2,
               WJR_REQUIRES(std::conjunction_v<
                            __is_all_constructible<Mybase1, Mybase2, Other1 &&, Other2 &&>,
@@ -4791,6 +5006,7 @@ public:
                            std::is_nothrow_constructible<Mybase2, Other2 &&>>)
         : Mybase1(std::forward<Other1>(_First)), Mybase2(std::forward<Other2>(_Second)),
           Mybase3(enable_default_constructor) {}
+#endif
 
     template <typename Tuple1, typename Tuple2, size_t... N1, size_t... N2>
     constexpr compressed_pair(
@@ -4811,6 +5027,24 @@ public:
         : compressed_pair(tp1, tp2, std::index_sequence_for<Args1...>{},
                           std::index_sequence_for<Args2...>{}) {}
 
+#if defined(__cpp_conditional_explicit)
+    template <typename PairLike,
+              WJR_REQUIRES(
+                  __is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&>)>
+    constexpr explicit(
+        !__is_all_convertible<
+            T, U, decltype(std::get<0>(std::forward<PairLike>(std::declval<PairLike>()))),
+            decltype(std::get<1>(
+                std::forward<PairLike>(std::declval<PairLike>())))>::value)
+        compressed_pair(PairLike &&pr) noexcept(
+            std::conjunction_v<std::is_nothrow_constructible<
+                                   T, decltype(std::get<0>(std::forward<PairLike>(pr)))>,
+                               std::is_nothrow_constructible<
+                                   U, decltype(std::get<1>(std::forward<PairLike>(pr)))>>)
+        : Mybase1(std::get<0>(std::forward<PairLike>(pr))),
+          Mybase2(std::get<1>(std::forward<PairLike>(pr))),
+          Mybase3(enable_default_constructor) {}
+#else
     template <typename PairLike,
               WJR_REQUIRES(
                   __is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&>
@@ -4845,6 +5079,7 @@ public:
         : Mybase1(std::get<0>(std::forward<PairLike>(pr))),
           Mybase2(std::get<1>(std::forward<PairLike>(pr))),
           Mybase3(enable_default_constructor) {}
+#endif
 
     template <typename PairLike,
               WJR_REQUIRES(
@@ -4909,27 +5144,27 @@ public:
         }
     }
 
-    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < 2)>
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < 2)>
     constexpr std::tuple_element_t<I, compressed_pair> &
-    operator[](std::integral_constant<C, I>) & noexcept {
+    operator[](integral_constant<size_t, I>) & noexcept {
         return get<I>();
     }
 
-    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < 2)>
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < 2)>
     constexpr const std::tuple_element_t<I, compressed_pair> &
-    operator[](std::integral_constant<C, I>) const & noexcept {
+    operator[](integral_constant<size_t, I>) const & noexcept {
         return get<I>();
     }
 
-    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < 2)>
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < 2)>
     constexpr std::tuple_element_t<I, compressed_pair> &&
-    operator[](std::integral_constant<C, I>) && noexcept {
+    operator[](integral_constant<size_t, I>) && noexcept {
         return std::move(get<I>());
     }
 
-    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < 2)>
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < 2)>
     constexpr const std::tuple_element_t<I, compressed_pair> &&
-    operator[](std::integral_constant<C, I>) const && noexcept {
+    operator[](integral_constant<size_t, I>) const && noexcept {
         return std::move(get<I>());
     }
 };
@@ -5315,10 +5550,9 @@ struct __is_contiguous_iterator_impl<std::move_iterator<Iter>, void>
 
 #if defined(WJR_CXX_20)
 template <typename Iter>
-struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};
-
-template <std::contiguous_iterator Iter>
-struct is_contiguous_iterator<Iter> : std::true_type {};
+struct is_contiguous_iterator
+    : std::bool_constant<std::contiguous_iterator<Iter> ||
+                         __is_contiguous_iterator_impl<Iter>::value> {};
 #else
 template <typename Iter>
 struct is_contiguous_iterator : __is_contiguous_iterator_impl<Iter> {};
@@ -18548,6 +18782,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E bool __greater_equal_128(uint64_t lo0, uint6
 #include <tuple>
 
 // Already included
+// Already included
 
 namespace wjr {
 
@@ -18699,6 +18934,15 @@ class tuple<This, Args...>
     constexpr static size_t Size = sizeof...(Args) + 1;
 
 public:
+#if defined(__cpp_conditional_explicit)
+    template <typename T = This,
+              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
+                                              std::is_default_constructible<Args>...>)>
+    constexpr explicit(
+        !std::conjunction_v<is_default_convertible<T>, is_default_convertible<Args>...>)
+        tuple() noexcept(std::is_nothrow_constructible_v<Impl>)
+        : Mybase(enable_default_constructor), m_impl() {}
+#else
     template <typename T = This,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
                                               std::is_default_constructible<Args>...>
@@ -18714,6 +18958,7 @@ public:
                                                is_default_convertible<Args>...>)>
     constexpr explicit tuple() noexcept(std::is_nothrow_constructible_v<Impl>)
         : Mybase(enable_default_constructor), m_impl() {}
+#endif
 
     template <typename Other = This,
               WJR_REQUIRES(std::is_constructible_v<Impl, Sequence, const Other &,
@@ -18807,27 +19052,27 @@ public:
         return std::move(m_impl.template get<I>());
     }
 
-    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < Size)>
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < Size)>
     constexpr std::tuple_element_t<I, tuple> &
-    operator[](std::integral_constant<C, I>) & noexcept {
+    operator[](integral_constant<size_t, I>) & noexcept {
         return get<I>();
     }
 
-    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < Size)>
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < Size)>
     constexpr const std::tuple_element_t<I, tuple> &
-    operator[](std::integral_constant<C, I>) const & noexcept {
+    operator[](integral_constant<size_t, I>) const & noexcept {
         return get<I>();
     }
 
-    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < Size)>
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < Size)>
     constexpr std::tuple_element_t<I, tuple> &&
-    operator[](std::integral_constant<C, I>) && noexcept {
+    operator[](integral_constant<size_t, I>) && noexcept {
         return std::move(get<I>());
     }
 
-    template <typename C, C I, WJR_REQUIRES(I >= 0 && I < Size)>
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < Size)>
     constexpr const std::tuple_element_t<I, tuple> &&
-    operator[](std::integral_constant<C, I>) const && noexcept {
+    operator[](integral_constant<size_t, I>) const && noexcept {
         return std::move(get<I>());
     }
 
@@ -19119,7 +19364,7 @@ WJR_INTRINSIC_CONSTEXPR20 void divexact_dbm1c_shift(uint64_t *dst, const uint64_
 
 template <uint64_t c>
 WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, size_t n,
-                                            std::integral_constant<uint64_t, c>,
+                                            integral_constant<uint64_t, c>,
                                             WJR_MAYBE_UNUSED uint64_t cf);
 
 WJR_INTRINSIC_CONSTEXPR20 void divexact_1(uint64_t *dst, const uint64_t *src, size_t n,
@@ -20282,6 +20527,7 @@ WJR_INTRINSIC_CONSTEXPR_E uint8_t __addc_cc_128(uint64_t &al, uint64_t &ah, uint
 #endif // WJR_MATH_BIGNUM_CONFIG_HPP__
 // Already included
 // Already included
+// Already included
 #ifndef WJR_MATH_SHIFT_HPP__
 #define WJR_MATH_SHIFT_HPP__
 
@@ -21289,6 +21535,11 @@ public:
     template <size_t Ex = Extent, WJR_REQUIRES(Ex == dynamic_extent || Ex == 0)>
     constexpr span() noexcept : storage() {}
 
+#if defined(__cpp_conditional_explicit)
+    template <typename It, WJR_REQUIRES(__is_span_iterator<It, element_type>::value)>
+    constexpr explicit(!__is_dynamic) span(It first, size_type count) noexcept
+        : storage((to_address)(first), count) {}
+#else
     template <typename It,
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value &&__is_dynamic)>
     constexpr span(It first, size_type count) noexcept
@@ -21298,7 +21549,13 @@ public:
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value && !__is_dynamic)>
     constexpr explicit span(It first, size_type count) noexcept
         : storage((to_address)(first), count) {}
+#endif
 
+#if defined(__cpp_conditional_explicit)
+    template <typename It, WJR_REQUIRES(__is_span_iterator<It, element_type>::value)>
+    constexpr explicit(!__is_dynamic) span(It first, It last) noexcept
+        : storage((to_address)(first), static_cast<size_type>(last - first)) {}
+#else
     template <typename It,
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value &&__is_dynamic)>
     constexpr span(It first, It last) noexcept
@@ -21308,6 +21565,7 @@ public:
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value && !__is_dynamic)>
     constexpr explicit span(It first, It last) noexcept
         : storage((to_address)(first), static_cast<size_type>(last - first)) {}
+#endif
 
     template <size_t N, WJR_REQUIRES((__is_dynamic || N == Extent))>
     constexpr span(type_identity_t<element_type> (&arr)[N]) noexcept
@@ -21325,6 +21583,13 @@ public:
     constexpr span(const std::array<U, N> &arr) noexcept
         : storage(std::data(arr), std::size(arr)) {}
 
+#if defined(__cpp_conditional_explicit)
+    template <typename U, size_t N,
+              WJR_REQUIRES((__is_dynamic || N == dynamic_extent || N == Extent) &&
+                           std::is_convertible_v<U *, T *>)>
+    constexpr explicit(!__is_dynamic) span(const span<U, N> &source) noexcept
+        : storage(source.data(), source.size()) {}
+#else
     template <typename U, size_t N,
               WJR_REQUIRES((__is_dynamic || N == dynamic_extent || N == Extent) &&
                            std::is_convertible_v<U *, T *> && __is_dynamic)>
@@ -21336,6 +21601,7 @@ public:
                            std::is_convertible_v<U *, T *> && !__is_dynamic)>
     constexpr explicit span(const span<U, N> &source) noexcept
         : storage(source.data(), source.size()) {}
+#endif
 
     constexpr span(const span &other) noexcept = default;
     constexpr span &operator=(const span &other) noexcept = default;
@@ -21410,20 +21676,20 @@ public:
         return std::make_reverse_iterator(cbegin());
     }
 
-    constexpr reference front() const {
+    constexpr reference front() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_ASSERT_L0(size() > 0, "basic_vector::front: empty");
 #endif
         return *data();
     }
-    constexpr reference back() const {
+    constexpr reference back() const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_ASSERT_L0(size() > 0, "basic_vector::front: empty");
 #endif
         return *(end_unsafe() - 1);
     }
 
-    constexpr reference at(size_type pos) const {
+    constexpr reference at(size_type pos) const noexcept {
         if (WJR_UNLIKELY(pos >= size())) {
             WJR_THROW(std::out_of_range("span at out of range"));
         }
@@ -21431,39 +21697,41 @@ public:
         return data()[pos];
     }
 
-    constexpr reference operator[](size_type pos) const {
+    constexpr reference operator[](size_type pos) const noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECKER)
         WJR_ASSERT_L0(pos < size(), "basic_vector::operator[]: out of range");
 #endif
         return data()[pos];
     }
 
-    constexpr pointer data() const { return storage.ptr; }
-    constexpr size_type size() const { return storage.size; }
-    constexpr size_type size_bytes() const { return size() * sizeof(element_type); }
-    constexpr bool empty() const { return size() == 0; }
+    constexpr pointer data() const noexcept { return storage.ptr; }
+    constexpr size_type size() const noexcept { return storage.size; }
+    constexpr size_type size_bytes() const noexcept {
+        return size() * sizeof(element_type);
+    }
+    constexpr bool empty() const noexcept { return size() == 0; }
 
     template <size_t Count>
-    constexpr span<element_type, Count> first() const {
+    constexpr span<element_type, Count> first() const noexcept {
         static_assert(Count <= Extent, "");
 
         return {begin(), Count};
     }
 
-    constexpr span<element_type, dynamic_extent> first(size_type Count) const {
+    constexpr span<element_type, dynamic_extent> first(size_type Count) const noexcept {
         WJR_ASSERT_L2(Count <= size());
 
         return {begin(), Count};
     }
 
     template <size_t Count>
-    constexpr span<element_type, Count> last() const {
+    constexpr span<element_type, Count> last() const noexcept {
         static_assert(Count <= Extent, "");
 
         return {end() - Count, Count};
     }
 
-    constexpr span<element_type, dynamic_extent> last(size_type Count) const {
+    constexpr span<element_type, dynamic_extent> last(size_type Count) const noexcept {
         WJR_ASSERT_L2(Count <= size());
 
         return {data() - Count, Count};
@@ -21473,7 +21741,7 @@ public:
     constexpr span<element_type, Count != dynamic_extent    ? Count
                                  : Extent != dynamic_extent ? Extent - Offset
                                                             : dynamic_extent>
-    subspan() const {
+    subspan() const noexcept {
         if constexpr (Extent != dynamic_extent) {
             static_assert(Offset <= Extent, "");
             static_assert(Count == dynamic_extent || Count <= Extent - Offset, "");
@@ -21487,7 +21755,7 @@ public:
     }
 
     constexpr span<element_type, dynamic_extent>
-    subspan(size_type Offset, size_type Count = dynamic_extent) const {
+    subspan(size_type Offset, size_type Count = dynamic_extent) const noexcept {
         WJR_ASSERT_L2(Offset <= size());
 
         return {begin() + Offset, Count == dynamic_extent ? size() - Offset : Count};
@@ -23275,9 +23543,9 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0,
 }
 
 template <uint64_t maxn = in_place_max>
-WJR_INTRINSIC_CONSTEXPR_E uint64_t
-try_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t ml,
-             std::integral_constant<uint64_t, maxn> = {}) {
+WJR_INTRINSIC_CONSTEXPR_E uint64_t try_addmul_1(uint64_t *dst, const uint64_t *src,
+                                                size_t n, uint64_t ml,
+                                                integral_constant<uint64_t, maxn> = {}) {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
@@ -23485,7 +23753,7 @@ struct toom_eval_opposite_exp_args {
                                 unsigned int exp) noexcept
         : input(t0p, t1p, stk, wp, length, rest, k, exp), cf(dctor, dctor) {}
 
-    void set_exp(unsigned int exp) noexcept { input[7_u] = exp; }
+    void set_exp(unsigned int exp) noexcept { input[7_zu] = exp; }
 
     tuple_type input;
     tuple<uint64_t, uint64_t> cf;
@@ -23623,8 +23891,8 @@ WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *sr
 template <__mul_mode mode, uint64_t m0 = in_place_max, uint64_t m1 = in_place_max>
 void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1,
              size_t n, safe_array<uint64_t> stk, uint64_t &c_out, uint64_t cf0,
-             uint64_t cf1, std::integral_constant<uint64_t, m0> x0 = {},
-             std::integral_constant<uint64_t, m1> x1 = {}) {
+             uint64_t cf1, integral_constant<uint64_t, m0> x0 = {},
+             integral_constant<uint64_t, m1> x1 = {}) {
     WJR_ASSERT_ASSUME(cf0 <= m0);
     WJR_ASSERT_ASSUME(cf1 <= m1);
 
@@ -23691,7 +23959,7 @@ void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
 template <__mul_mode mode, uint64_t m = in_place_max>
 void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
            safe_array<uint64_t> stk, uint64_t &c_out, uint64_t cf,
-           std::integral_constant<uint64_t, m> = {}) noexcept {
+           integral_constant<uint64_t, m> = {}) noexcept {
     WJR_ASSERT_ASSUME(cf <= m);
 
     __sqr<mode>(dst, src, n, stk);
@@ -23706,8 +23974,7 @@ void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
 
     constexpr auto m2 = m <= ((uint32_t)in_place_max) ? m * 2 : m;
 
-    c_out +=
-        try_addmul_1(dst + n, src, n, 2 * cf, std::integral_constant<uint64_t, m2>{});
+    c_out += try_addmul_1(dst + n, src, n, 2 * cf, integral_constant<uint64_t, m2>{});
 }
 
 WJR_INTRINSIC_INLINE void sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n) {
@@ -24945,8 +25212,7 @@ constexpr __divexact_get_struct __divexact_init() noexcept {
 
 template <uint64_t c>
 WJR_INTRINSIC_CONSTEXPR20 void divexact_byc(uint64_t *dst, const uint64_t *src, size_t n,
-                                            std::integral_constant<uint64_t, c>,
-                                            uint64_t cf) {
+                                            integral_constant<uint64_t, c>, uint64_t cf) {
     // cost : divexact_dbm1c * 2 + shift * 1 <= divexact_1
     static_assert(c != 0, "");
     constexpr auto ss = __divexact_init<c>();
@@ -25728,13 +25994,7 @@ template <uint64_t Base>
 class __from_chars_unroll_4_fast_fn_impl_base {
 protected:
     WJR_CONST WJR_INTRINSIC_INLINE static uint32_t __fast_conv(uint32_t val) {
-        constexpr uint32_t Base2 = Base * Base;
-
-        constexpr uint32_t mask = 0x00FF00FF;
-        constexpr uint32_t mul = 1 + (Base2 << 16);
-        val = (val * Base) + (val >> 8);
-        val = ((val & mask) * mul) >> 16;
-        return uint32_t(val);
+        return digits_literal_details::__fast_conv_4<Base>(val);
     }
 
 public:
@@ -25753,17 +26013,7 @@ template <uint64_t Base>
 class __from_chars_unroll_8_fast_fn_impl_base {
 protected:
     WJR_CONST WJR_INTRINSIC_INLINE static uint32_t __fast_conv(uint64_t val) {
-        constexpr uint64_t Base2 = Base * Base;
-        constexpr uint64_t Base4 = Base2 * Base2;
-        constexpr uint64_t Base6 = Base4 * Base2;
-
-        constexpr uint64_t mask = 0x000000FF000000FF;
-        constexpr uint64_t mul1 = Base2 + (Base6 << 32);
-        constexpr uint64_t mul2 = 1 + (Base4 << 32);
-
-        val = (val * Base) + (val >> 8);
-        val = (((val & mask) * mul1) + (((val >> 16) & mask) * mul2)) >> 32;
-        return val;
+        return digits_literal_details::__fast_conv_8<Base>(val);
     }
 
 public:
@@ -29828,8 +30078,6 @@ void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num,
 template <typename S>
 void __powmod_impl(basic_biginteger<S> *dst, const biginteger_data *num, uint64_t exp,
                    const biginteger_data *mod);
-
-                   
 
 } // namespace biginteger_details
 
