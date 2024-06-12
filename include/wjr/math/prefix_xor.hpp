@@ -10,7 +10,7 @@
 namespace wjr {
 
 template <typename T>
-constexpr T fallback_prefix_xor(T x) {
+constexpr T fallback_prefix_xor(T x) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
     static_assert(nd <= 64, "Type T has more than 64 bits");
 
@@ -31,7 +31,7 @@ constexpr T fallback_prefix_xor(T x) {
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_INTRINSIC_CONSTEXPR_E T prefix_xor(T x) {
+WJR_INTRINSIC_CONSTEXPR_E T prefix_xor(T x) noexcept {
 #if WJR_HAS_BUILTIN(PREFIX_XOR)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
         return fallback_prefix_xor(x);

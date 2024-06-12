@@ -2227,7 +2227,7 @@ bool toom_eval_opposite_half_exp(toom_eval_opposite_exp_args &args) noexcept {
 namespace {
 
 void toom_interpolation_even_4_solve(uint64_t *w0p, uint64_t *w2p, uint64_t *w4p,
-                                     uint64_t *w6p, size_t n, uint64_t *tp) {
+                                     uint64_t *w6p, size_t n, uint64_t *tp) noexcept {
     /*
         part 0 :
         [
@@ -2307,7 +2307,7 @@ void toom_interpolation_even_4_solve(uint64_t *w0p, uint64_t *w2p, uint64_t *w4p
 
 // need to optimize
 void toom_interpolation_opposite_4_solve(uint64_t *w1p, uint64_t *w3p, uint64_t *w5p,
-                                         uint64_t *w7p, size_t n, uint64_t *tp) {
+                                         uint64_t *w7p, size_t n, uint64_t *tp) noexcept {
     /*
         [
             1,      1,      1,      1       W1

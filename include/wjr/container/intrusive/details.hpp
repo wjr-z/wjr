@@ -3,6 +3,6 @@
 
 #include <wjr/type_traits.hpp>
 
-namespace wjr::intrusive {} // namespace wjr::intrusive
+namespace wjr {} // namespace wjr
 
-#endif                      // WJR_CONTAINER_INTRUSIVE_DETAILS_HPP__
+#endif           // WJR_CONTAINER_INTRUSIVE_DETAILS_HPP__

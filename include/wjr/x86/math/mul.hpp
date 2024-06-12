@@ -8,7 +8,8 @@ namespace wjr {
 
 #if WJR_HAS_BUILTIN(MUL64)
 
-WJR_INTRINSIC_INLINE uint64_t builtin_mul64(uint64_t a, uint64_t b, uint64_t &hi) {
+WJR_INTRINSIC_INLINE uint64_t builtin_mul64(uint64_t a, uint64_t b,
+                                            uint64_t &hi) noexcept {
 #if WJR_HAS_BUILTIN(INT128_MUL64)
     const __uint128_t x = static_cast<__uint128_t>(a) * b;
     hi = x >> 64;
@@ -25,7 +26,7 @@ WJR_INTRINSIC_INLINE uint64_t builtin_mul64(uint64_t a, uint64_t b, uint64_t &hi
 #if WJR_HAS_BUILTIN(MULX_U64)
 
 template <typename T>
-WJR_INTRINSIC_INLINE T mulx(T a, T b, T &hi) {
+WJR_INTRINSIC_INLINE T mulx(T a, T b, T &hi) noexcept {
     static_assert(sizeof(T) == 8, "");
 
 #if defined(WJR_COMPILER_GCC)
@@ -44,7 +45,8 @@ WJR_INTRINSIC_INLINE T mulx(T a, T b, T &hi) {
 
 #if WJR_HAS_BUILTIN(ASM_MUL_1)
 
-inline uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t rdx) {
+inline uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n,
+                          uint64_t rdx) noexcept {
     size_t rcx = n / 8;
     uint64_t r8, r9, r10 = n, r11;
 
@@ -198,7 +200,8 @@ inline uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t
 
 #if WJR_HAS_BUILTIN(ASM_ADDMUL_1)
 
-inline uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t rdx) {
+inline uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
+                             uint64_t rdx) noexcept {
     size_t rcx = n / 8;
     uint64_t r8, r9, r10 = n, r11;
 
@@ -366,7 +369,7 @@ extern void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_
                                       const uint64_t *src1, size_t m) noexcept;
 
 inline void asm_basecase_mul_s(uint64_t *dst, const uint64_t *src0, size_t n,
-                               const uint64_t *src1, size_t m) {
+                               const uint64_t *src1, size_t m) noexcept {
     WJR_ASSERT(n >= m);
     WJR_ASSERT(m >= 1);
 
@@ -380,7 +383,7 @@ inline void asm_basecase_mul_s(uint64_t *dst, const uint64_t *src0, size_t n,
 extern void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
                                     size_t rdx) noexcept;
 
-inline void asm_basecase_sqr(uint64_t *dst, const uint64_t *src, size_t n) {
+inline void asm_basecase_sqr(uint64_t *dst, const uint64_t *src, size_t n) noexcept {
     WJR_ASSERT(n >= 1);
 
     return __asm_basecase_sqr_impl(dst, src, n);
@@ -391,7 +394,8 @@ inline void asm_basecase_sqr(uint64_t *dst, const uint64_t *src, size_t n) {
 #if WJR_HAS_BUILTIN(ASM_SUBMUL_1)
 
 // slower than asm_addmul_1
-inline uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t rdx) {
+inline uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
+                             uint64_t rdx) noexcept {
     WJR_ASSERT(n != 0);
 
     size_t rcx = n / 8;

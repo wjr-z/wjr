@@ -29,7 +29,7 @@ class char_converter_t {
 
 public:
     template <uint64_t Base = 0>
-    WJR_CONST static constexpr uint8_t to(uint8_t x) {
+    WJR_CONST static constexpr uint8_t to(uint8_t x) noexcept {
         if constexpr (Base == 0) {
             WJR_ASSERT_L3(x < 36);
         } else {
@@ -49,7 +49,7 @@ public:
     }
 
     template <uint64_t Base = 0>
-    WJR_CONST static constexpr uint8_t from(uint8_t x) {
+    WJR_CONST static constexpr uint8_t from(uint8_t x) noexcept {
         if constexpr (Base == 0 || Base > 10) {
             return from_table[x];
         } else {
@@ -65,12 +65,12 @@ inline constexpr char_converter_t char_converter;
 class origin_converter_t {
 public:
     template <uint64_t Base = 0>
-    WJR_CONST static constexpr uint64_t to(uint64_t x) {
+    WJR_CONST static constexpr uint64_t to(uint64_t x) noexcept {
         return x;
     }
 
     template <uint64_t Base = 0>
-    WJR_CONST static constexpr uint64_t from(uint64_t x) {
+    WJR_CONST static constexpr uint64_t from(uint64_t x) noexcept {
         return x;
     }
 };

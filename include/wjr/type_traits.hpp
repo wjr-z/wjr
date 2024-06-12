@@ -355,12 +355,13 @@ inline constexpr size_t get_place_index_v = get_place_index<T>::value;
 // ....
 
 template <class P, class M>
-WJR_INTRINSIC_CONSTEXPR20 size_t container_of_offset(const M P::*member) {
+WJR_INTRINSIC_CONSTEXPR20 size_t container_of_offset(const M P::*member) noexcept {
     return reinterpret_cast<size_t>(&(reinterpret_cast<P *>(nullptr)->*member));
 }
 
 template <class P, class M>
-WJR_INTRINSIC_CONSTEXPR20 P *container_of_offset_impl(M *ptr, const M P::*member) {
+WJR_INTRINSIC_CONSTEXPR20 P *container_of_offset_impl(M *ptr,
+                                                      const M P::*member) noexcept {
     return reinterpret_cast<P *>(reinterpret_cast<char *>(ptr) -
                                  container_of_offset(member));
 }

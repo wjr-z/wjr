@@ -1,13 +1,14 @@
 #ifndef WJR_SIMD_SIMD_HPP__
 #define WJR_SIMD_SIMD_HPP__
 
+#include <wjr/x86/simd/simd_cast.hpp>
+
+#if WJR_HAS_SIMD(X86_SIMD)
+
 #include <cstring>
 
 #include <wjr/math/broadcast.hpp>
 #include <wjr/memory/details.hpp>
-#include <wjr/x86/simd/simd_cast.hpp>
-
-#if WJR_HAS_SIMD(X86_SIMD)
 
 namespace wjr {
 
@@ -37,8 +38,8 @@ struct sse {
 #if WJR_HAS_SIMD(SSE)
 
     WJR_INTRINSIC_INLINE static mask_type movemask_ps(__m128 v);
-
     WJR_INTRINSIC_INLINE static void sfence();
+
 
     template <int imm8>
     WJR_INTRINSIC_INLINE static __m128 shuffle_ps(__m128 a, __m128 b);
@@ -3669,6 +3670,6 @@ __m256i avx::unpacklo(__m256i a, __m256i b, uint32_t) { return unpacklo_epi32(a,
 
 } // namespace wjr
 
-#endif
+#endif // WJR_HAS_SIMD(X86_SIMD)
 
 #endif // WJR_SIMD_SIMD_HPP__

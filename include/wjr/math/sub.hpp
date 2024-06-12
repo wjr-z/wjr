@@ -12,7 +12,7 @@
 namespace wjr {
 
 template <typename T, typename U>
-WJR_INTRINSIC_CONSTEXPR T fallback_subc(T a, T b, U c_in, U &c_out) {
+WJR_INTRINSIC_CONSTEXPR T fallback_subc(T a, T b, U c_in, U &c_out) noexcept {
     T ret = a - b;
     U c = ret > a;
     a = ret;
@@ -29,7 +29,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_subc(T a, T b, U c_in, U &c_out) {
 #if WJR_HAS_BUILTIN(SUBC)
 
 template <typename T, typename U>
-WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) {
+WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
 #define WJR_REGISTER_BUILTIN_SUBC(suffix, type)                                          \
@@ -55,7 +55,7 @@ WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) {
 
 template <typename T, typename U,
           WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
+WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) noexcept {
     WJR_ASSERT_ASSUME_L2(c_in <= 1);
 
 #if !WJR_HAS_BUILTIN(SUBC) && !WJR_HAS_BUILTIN(ASM_SUBC)
@@ -95,7 +95,7 @@ WJR_INTRINSIC_CONSTEXPR_E T subc(T a, T b, type_identity_t<U> c_in, U &c_out) {
  normal version when cc flag is not needed immediately.
 */
 template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
-WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
+WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) noexcept {
     WJR_ASSERT_ASSUME_L2(c_in <= 1);
 
 #if WJR_HAS_BUILTIN(ASM_SUBC_CC)
@@ -129,14 +129,14 @@ WJR_INTRINSIC_CONSTEXPR_E T subc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) {
 #endif
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E bool fallback_sub_overflow(T a, T b, T &ret) {
+WJR_INTRINSIC_CONSTEXPR_E bool fallback_sub_overflow(T a, T b, T &ret) noexcept {
     ret = a - b;
     return ret > a;
 }
 
 template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(type_identity_t<T> a, type_identity_t<T> b,
-                                            T &ret) {
+                                            T &ret) noexcept {
 #if WJR_HAS_BUILTIN(SUB_OVERFLOW)
     if (is_constant_evaluated() ||
         (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
@@ -151,7 +151,7 @@ WJR_INTRINSIC_CONSTEXPR_E bool sub_overflow(type_identity_t<T> a, type_identity_
 
 template <typename U>
 WJR_INTRINSIC_CONSTEXPR_E U __subc_1_impl(uint64_t *dst, const uint64_t *src0, size_t n,
-                                          uint64_t src1, U c_in) {
+                                          uint64_t src1, U c_in) noexcept {
     uint8_t overflow = 0;
     dst[0] = subc_cc(src0[0], src1, c_in, overflow);
 
@@ -183,7 +183,7 @@ require :
 */
 template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_1(uint64_t *dst, const uint64_t *src0, size_t n,
-                                   uint64_t src1, U c_in) {
+                                   uint64_t src1, U c_in) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
 
@@ -198,7 +198,8 @@ WJR_INTRINSIC_CONSTEXPR_E U subc_1(uint64_t *dst, const uint64_t *src0, size_t n
 
 template <typename U>
 WJR_INTRINSIC_CONSTEXPR U fallback_subc_n(uint64_t *dst, const uint64_t *src0,
-                                          const uint64_t *src1, size_t n, U c_in) {
+                                          const uint64_t *src1, size_t n,
+                                          U c_in) noexcept {
     size_t m = n / 4;
 
     for (size_t i = 0; i < m; ++i) {
@@ -250,7 +251,7 @@ require :
 */
 template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_n(uint64_t *dst, const uint64_t *src0,
-                                   const uint64_t *src1, size_t n, U c_in) {
+                                   const uint64_t *src1, size_t n, U c_in) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
@@ -275,7 +276,7 @@ require :
 */
 template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_s(uint64_t *dst, const uint64_t *src0, size_t n,
-                                   const uint64_t *src1, size_t m, U c_in) {
+                                   const uint64_t *src1, size_t m, U c_in) noexcept {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
 
@@ -297,7 +298,7 @@ require :
 */
 template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E U subc_sz(uint64_t *dst, const uint64_t *src0, size_t n,
-                                    const uint64_t *src1, size_t m, U c_in) {
+                                    const uint64_t *src1, size_t m, U c_in) noexcept {
     WJR_ASSERT_ASSUME(n >= m);
 
     if (WJR_LIKELY(m != 0)) {
@@ -312,7 +313,7 @@ WJR_INTRINSIC_CONSTEXPR_E U subc_sz(uint64_t *dst, const uint64_t *src0, size_t 
 }
 
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0,
-                                             const uint64_t *src1, size_t n) {
+                                             const uint64_t *src1, size_t n) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
     WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
@@ -352,7 +353,8 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0
 }
 
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n_pos(uint64_t *dst, const uint64_t *src0,
-                                                 const uint64_t *src1, size_t n) {
+                                                 const uint64_t *src1,
+                                                 size_t n) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src0, n));
     WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n, src1, n));
@@ -403,7 +405,8 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n_pos(uint64_t *dst, const uint64_t *
 }
 
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s1(uint64_t *dst, const uint64_t *src0,
-                                              size_t n, const uint64_t *src1, size_t m) {
+                                              size_t n, const uint64_t *src1,
+                                              size_t m) noexcept {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
 
@@ -433,7 +436,8 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s1(uint64_t *dst, const uint64_t *src
 }
 
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(uint64_t *dst, const uint64_t *src0,
-                                             size_t n, const uint64_t *src1, size_t m) {
+                                             size_t n, const uint64_t *src1,
+                                             size_t m) noexcept {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
 
@@ -457,7 +461,7 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(uint64_t *dst, const uint64_t *src0
 
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s_pos(uint64_t *dst, const uint64_t *src0,
                                                  size_t n, const uint64_t *src1,
-                                                 size_t m) {
+                                                 size_t m) noexcept {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
 
@@ -512,7 +516,7 @@ template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
 WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0,
                                              const uint64_t *src1, size_t n, U &c_out,
                                              type_identity_t<U> cf0,
-                                             type_identity_t<U> cf1) {
+                                             type_identity_t<U> cf1) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     if (cf0 != cf1) {
         ssize_t ret = __fasts_from_unsigned(n);
@@ -535,7 +539,7 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_n(uint64_t *dst, const uint64_t *src0
 
 WJR_INTRINSIC_CONSTEXPR void __fallback_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                                 uint64_t hi0, uint64_t lo1,
-                                                uint64_t hi1) {
+                                                uint64_t hi1) noexcept {
     uint64_t __al = lo0 - lo1;
     ah = hi0 - hi1 - (__al > lo0);
     al = __al;
@@ -548,7 +552,8 @@ WJR_INTRINSIC_CONSTEXPR void __fallback_sub_128(uint64_t &al, uint64_t &ah, uint
 #if WJR_HAS_BUILTIN(__BUILTIN_SUBC_128)
 
 WJR_INTRINSIC_INLINE void __builtin_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                            uint64_t hi0, uint64_t lo1, uint64_t hi1) {
+                                            uint64_t hi0, uint64_t lo1,
+                                            uint64_t hi1) noexcept {
     const auto x0 = static_cast<__uint128_t>(hi0) << 64 | lo0;
     const auto x1 = static_cast<__uint128_t>(hi1) << 64 | lo1;
     x0 -= x1;
@@ -561,7 +566,8 @@ WJR_INTRINSIC_INLINE void __builtin_sub_128(uint64_t &al, uint64_t &ah, uint64_t
 
 // <ah, al> = <hi0, lo0> - <hi1, lo1>
 WJR_INTRINSIC_CONSTEXPR_E void __sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                         uint64_t hi0, uint64_t lo1, uint64_t hi1) {
+                                         uint64_t hi0, uint64_t lo1,
+                                         uint64_t hi1) noexcept {
 #if WJR_HAS_BUILTIN(__BUILTIN_SUB_128) || WJR_HAS_BUILTIN(__ASM_SUB_128)
     if (is_constant_evaluated() || (WJR_BUILTIN_CONSTANT_P(lo0 == 0) && lo0 == 0) ||
         (WJR_BUILTIN_CONSTANT_P(lo1 == 0) && lo1 == 0)) {
@@ -578,7 +584,7 @@ WJR_INTRINSIC_CONSTEXPR_E void __sub_128(uint64_t &al, uint64_t &ah, uint64_t lo
 WJR_INTRINSIC_CONSTEXPR_E uint64_t __fallback_subc_128(uint64_t &al, uint64_t &ah,
                                                        uint64_t lo0, uint64_t hi0,
                                                        uint64_t lo1, uint64_t hi1,
-                                                       uint64_t c_in) {
+                                                       uint64_t c_in) noexcept {
     al = subc(lo0, lo1, c_in, c_in);
     ah = subc(hi0, hi1, c_in, c_in);
     return c_in;
@@ -587,7 +593,7 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t __fallback_subc_128(uint64_t &al, uint64_t &a
 // return c_out
 WJR_INTRINSIC_CONSTEXPR_E uint64_t __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                               uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                              uint64_t c_in) {
+                                              uint64_t c_in) noexcept {
 #if WJR_HAS_BUILTIN(__ASM_ADDC_128)
     if (is_constant_evaluated()) {
         return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
@@ -601,7 +607,7 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t __subc_128(uint64_t &al, uint64_t &ah, uint64
 
 WJR_INTRINSIC_CONSTEXPR_E uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                                 uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                                uint8_t c_in) {
+                                                uint8_t c_in) noexcept {
 #if WJR_HAS_BUILTIN(__ASM_ADDC_CC_128)
     if (is_constant_evaluated()) {
         return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);

@@ -58,7 +58,8 @@ constexpr OutputIt __copy_restrict_impl_aux(add_restrict_t<InputIt> first,
 
 /// @private
 template <typename InputIt, typename OutputIt>
-constexpr OutputIt __copy_restrict_impl(InputIt first, InputIt last, OutputIt d_first) {
+constexpr OutputIt __copy_restrict_impl(InputIt first, InputIt last,
+                                        OutputIt d_first) noexcept {
     return __copy_restrict_impl_aux<InputIt, OutputIt>(first, last, d_first);
 }
 

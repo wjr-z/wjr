@@ -105,7 +105,7 @@ struct integral_constant {
 namespace digits_literal_details {
 
 template <uint64_t Base>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR static uint32_t __fast_conv_4(uint32_t val) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR static uint32_t __fast_conv_4(uint32_t val) noexcept {
     constexpr uint32_t Base2 = Base * Base;
 
     constexpr uint32_t mask = 0x00FF00FF;
@@ -116,7 +116,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR static uint32_t __fast_conv_4(uint32_t val) {
 }
 
 template <uint64_t Base>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR static uint32_t __fast_conv_8(uint64_t val) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR static uint32_t __fast_conv_8(uint64_t val) noexcept {
     constexpr uint64_t Base2 = Base * Base;
     constexpr uint64_t Base4 = Base2 * Base2;
     constexpr uint64_t Base6 = Base4 * Base2;

@@ -12,12 +12,13 @@
  * 16. The general B+ tree query is proportional to node_size. For example, when node_size
  * is 16, the number of queries per bit is [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
  * 14, 15, 16, 16], and the average number of queries is 8.9 times. After improvement, the
- * number of queries for the i-th query is [1, 3, 3, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7,
- * 8, 8], and the average number of queries is 5.58 times. In fact, the probability of
+ * number of queries for the i-th query is [1, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9,
+ * 10, 10], and the average number of queries is 6.56 times. In fact, the probability of
  * querying smaller nodes is slightly greater than that of larger nodes, so the actual
  * number of queries will be less. If the comparison operation of key_type is more
  * complex, it is not recommended to use B+ tree, because the number of queries of B+ tree
- * will be more, thus offsetting the advantages of B+ tree.
+ * will be more, thus offsetting the advantages of B+ tree. \n
+ * Currently not needed for use, don't use it.
  *
  * @version 0.1
  * @date 2024-05-06
@@ -88,8 +89,8 @@ struct bplus_tree_traits {
 
     static constexpr size_t node_size = Size;
     static constexpr bool inline_keys =
-        is_possible_inline_key_v<key_type> && sizeof(key_type) <= 8;
-    using InlineKey = inline_key<std::remove_const_t<Key>, inline_keys>;
+        is_possible_inline_key_v<std::remove_const_t<key_type>> && sizeof(key_type) <= 8;
+    using InlineKey = inline_key<std::remove_const_t<key_type>, inline_keys>;
     using node_type = bplus_tree_node<bplus_tree_traits>;
     using inner_node_type = bplus_tree_inner_node<bplus_tree_traits>;
     using leaf_node_type = bplus_tree_leaf_node<bplus_tree_traits, inline_keys>;
@@ -150,12 +151,12 @@ struct bplus_tree_inner_node : bplus_tree_node<Traits> {
 };
 
 template <typename Traits, bool InlineKeys>
-struct bplus_tree_leaf_node : bplus_tree_node<Traits>, intrusive::list_node<> {
+struct bplus_tree_leaf_node : bplus_tree_node<Traits>, list_node<> {
     using key_type = typename Traits::key_type;
     using value_type = typename Traits::value_type;
     constexpr static size_t node_size = Traits::node_size;
     using InlineKey = typename Traits::InlineKey;
-    using ListNode = intrusive::list_node<>;
+    using ListNode = list_node<>;
 
     const key_type &__get_key(unsigned int pos) const noexcept { return *m_keys[pos]; }
 
@@ -193,12 +194,11 @@ struct bplus_tree_leaf_node : bplus_tree_node<Traits>, intrusive::list_node<> {
 };
 
 template <typename Traits>
-struct bplus_tree_leaf_node<Traits, false> : bplus_tree_node<Traits>,
-                                             intrusive::list_node<> {
+struct bplus_tree_leaf_node<Traits, false> : bplus_tree_node<Traits>, list_node<> {
     using key_type = typename Traits::key_type;
     using value_type = typename Traits::value_type;
     constexpr static size_t node_size = Traits::node_size;
-    using ListNode = intrusive::list_node<>;
+    using ListNode = list_node<>;
 
     const key_type &__get_key(unsigned int pos) const noexcept {
         return Traits::get_key(*m_values[pos]);
@@ -267,7 +267,7 @@ class bplus_tree_const_iterator {
     template <typename Other, typename Alloc>
     friend class basic_bplus_tree;
 
-    using ListNode = intrusive::list_node<>;
+    using ListNode = list_node<>;
 
 public:
     using iterator_category = std::bidirectional_iterator_tag;
@@ -311,7 +311,7 @@ public:
         if (m_pos != 0) {
             --m_pos;
         } else {
-            m_node = m_node->prev();
+            m_node = prev(m_node);
             m_pos = -get_leaf()->m_size - 1;
         }
 
@@ -342,7 +342,7 @@ public:
 protected:
     bplus_tree_const_iterator &__adjust_next() noexcept {
         if (m_pos == static_cast<unsigned int>(-get_leaf()->m_size)) {
-            m_node = m_node->next();
+            m_node = next(m_node);
             m_pos = 0;
         }
 
@@ -362,7 +362,7 @@ class bplus_tree_iterator : public bplus_tree_const_iterator<Traits> {
     template <typename Other, typename Alloc>
     friend class basic_bplus_tree;
 
-    using ListNode = intrusive::list_node<>;
+    using ListNode = list_node<>;
 
 public:
     using Mybase::Mybase;
@@ -448,7 +448,7 @@ class basic_bplus_tree {
     using inner_node_type = typename Traits::inner_node_type;
     using leaf_node_type = typename Traits::leaf_node_type;
 
-    using ListNode = intrusive::list_node<>;
+    using ListNode = list_node<>;
 
 public:
     using key_type = typename Traits::key_type;
@@ -594,19 +594,19 @@ public:
     }
 
     iterator lower_bound(const key_type &key) noexcept {
-        return iterator(__search<false>(key).__adjust_next());
+        return __search<false>(key).__adjust_next();
     }
 
     const_iterator lower_bound(const key_type &key) const noexcept {
-        return const_iterator(__search<false>(key).__adjust_next());
+        return __search<false>(key).__adjust_next();
     }
 
     iterator upper_bound(const key_type &key) noexcept {
-        return iterator(__search<true>(key).__adjust_next());
+        return __search<true>(key).__adjust_next();
     }
 
     const_iterator upper_bound(const key_type &key) const noexcept {
-        return const_iterator(__search<true>(key).__adjust_next());
+        return __search<true>(key).__adjust_next();
     }
 
     iterator erase(const_iterator iter) noexcept {
@@ -679,7 +679,7 @@ private:
                 __drop_node(leaf->m_values[i]);
             }
 
-            ListNode *next = leaf->next();
+            ListNode *next = next(leaf);
             _Alty_traits::deallocate(al, (uint8_t *)leaf, sizeof(leaf_node_type));
 
             // if `current' is the last child of parent
@@ -969,7 +969,6 @@ private:
         NOT_LEFTMOST_AT_INNER:
             pos = __search<Upper, floor_half, node_size, 1>(current->as_inner(), cur_size,
                                                             key, comp);
-
         } while (0);
 
         current = current->as_inner()->m_sons[pos];
@@ -1083,39 +1082,22 @@ private:
         }                                                                                \
     } while (0)
 
-            if constexpr (Max <= 8 || Min == 1) {
-                WJR_REGISTER_BLPUS_SEARCH_2(1, 2, 3);
-                WJR_REGISTER_BLPUS_SEARCH_2(3, 4, 5);
-                WJR_REGISTER_BLPUS_SEARCH_2(5, 6, 7);
-                WJR_REGISTER_BLPUS_SEARCH_2(7, 8, 9);
-                WJR_REGISTER_BLPUS_SEARCH_2(9, 10, 11);
-                WJR_REGISTER_BLPUS_SEARCH_2(11, 12, 13);
-                WJR_REGISTER_BLPUS_SEARCH_2(13, 14, 15);
+            WJR_REGISTER_BLPUS_SEARCH_2(1, 2, 3);
+            WJR_REGISTER_BLPUS_SEARCH_2(3, 4, 5);
+            WJR_REGISTER_BLPUS_SEARCH_2(5, 6, 7);
+            WJR_REGISTER_BLPUS_SEARCH_2(7, 8, 9);
+            WJR_REGISTER_BLPUS_SEARCH_2(9, 10, 11);
+            WJR_REGISTER_BLPUS_SEARCH_2(11, 12, 13);
+            WJR_REGISTER_BLPUS_SEARCH_2(13, 14, 15);
 
-                if constexpr (Max == 15) {
+            if constexpr (Max == 15) {
+                return 15;
+            } else if constexpr (Max == 16) {
+                if (size == 15 || comp(current, 15)) {
                     return 15;
-                } else if constexpr (Max == 16) {
-                    if (size == 15 || comp(current, 15)) {
-                        return 15;
-                    }
-
-                    return 16;
                 }
-            } else {
-                WJR_REGISTER_BLPUS_SEARCH_2(1, 2, 3);
-                WJR_REGISTER_BLPUS_SEARCH_4(3, 4, 5, 6, 7);
-                WJR_REGISTER_BLPUS_SEARCH_4(7, 8, 9, 10, 11);
-                WJR_REGISTER_BLPUS_SEARCH_4(11, 12, 13, 14, 15);
 
-                if constexpr (Max == 15) {
-                    return 15;
-                } else if constexpr (Max == 16) {
-                    if (size == 15 || comp(current, 15)) {
-                        return 15;
-                    }
-
-                    return 16;
-                }
+                return 16;
             }
 
 #undef WJR_REGISTER_BLPUS_SEARCH_4

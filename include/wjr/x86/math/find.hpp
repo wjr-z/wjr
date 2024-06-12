@@ -164,7 +164,8 @@ WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src0, const T *src1,
 }
 
 template <typename T>
-WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src0, const T *src1, size_t n) {
+WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src0, const T *src1,
+                                           size_t n) noexcept {
     if (WJR_UNLIKELY(n == 0 || src0[0] == src1[0])) {
         return 0;
     }
@@ -328,7 +329,7 @@ WJR_PURE WJR_COLD size_t large_builtin_find_n(const T *src, T val, size_t n) noe
 }
 
 template <typename T>
-WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src, T val, size_t n) {
+WJR_INTRINSIC_INLINE size_t builtin_find_n(const T *src, T val, size_t n) noexcept {
     if (WJR_UNLIKELY(n == 0 || src[0] == val)) {
         return 0;
     }
@@ -505,7 +506,8 @@ extern template WJR_PURE WJR_COLD size_t large_builtin_find_not_n<uint64_t>(
     const uint64_t *src0, const uint64_t *src1, size_t n) noexcept;
 
 template <typename T>
-WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src0, const T *src1, size_t n) {
+WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src0, const T *src1,
+                                               size_t n) noexcept {
     if (WJR_UNLIKELY(n == 0) || WJR_LIKELY(src0[0] != src1[0])) {
         return 0;
     }
@@ -673,7 +675,7 @@ extern template WJR_PURE WJR_COLD size_t
 large_builtin_find_not_n<uint64_t>(const uint64_t *src, uint64_t val, size_t n) noexcept;
 
 template <typename T>
-WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) {
+WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) noexcept {
     if (WJR_UNLIKELY(n == 0) || WJR_LIKELY(src[0] != val)) {
         return 0;
     }
@@ -705,7 +707,7 @@ WJR_INTRINSIC_INLINE size_t builtin_find_not_n(const T *src, T val, size_t n) {
 
 template <typename T>
 WJR_PURE WJR_COLD size_t large_builtin_reverse_find_n(const T *src0, const T *src1,
-                                                      size_t n) {
+                                                      size_t n) noexcept {
 #define WJR_REGISTER_REVERSE_FIND_N_AVX(index)                                           \
     do {                                                                                 \
         auto x = avx::loadu((__m256i *)(src0 - 4 + (index)));                            \
@@ -849,7 +851,7 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_n(const T *src0, const T *sr
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src0, const T *src1,
-                                                   size_t n) {
+                                                   size_t n) noexcept {
     if (WJR_UNLIKELY(n == 0 || src0[n - 1] == src1[n - 1])) {
         return n;
     }
@@ -1016,7 +1018,8 @@ WJR_PURE WJR_COLD size_t large_builtin_reverse_find_n(const T *src, T val,
 }
 
 template <typename T>
-WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src, T val, size_t n) {
+WJR_INTRINSIC_INLINE size_t builtin_reverse_find_n(const T *src, T val,
+                                                   size_t n) noexcept {
     if (WJR_UNLIKELY(n == 0 || src[n - 1] == val)) {
         return n;
     }
@@ -1196,7 +1199,7 @@ extern template WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n<uint64
 
 template <typename T>
 WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src0, const T *src1,
-                                                       size_t n) {
+                                                       size_t n) noexcept {
     if (WJR_UNLIKELY(n == 0) || WJR_LIKELY(src0[n - 1] != src1[n - 1])) {
         return n;
     }
@@ -1366,7 +1369,8 @@ extern template WJR_PURE WJR_COLD size_t large_builtin_reverse_find_not_n<uint64
     const uint64_t *src, uint64_t val, size_t n) noexcept;
 
 template <typename T>
-WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src, T val, size_t n) {
+WJR_INTRINSIC_INLINE size_t builtin_reverse_find_not_n(const T *src, T val,
+                                                       size_t n) noexcept {
     if (WJR_UNLIKELY(n == 0) || WJR_LIKELY(src[n - 1] != val)) {
         return n;
     }

@@ -8,7 +8,7 @@ namespace wjr {
 /// @private
 template <typename CharT, typename Tratis>
 void __ostream_write_unchecked(std::basic_ostream<CharT, Tratis> &os, const CharT *str,
-                               std::streamsize n) {
+                               std::streamsize n) noexcept {
     const auto __put = os.rdbuf()->sputn(str, n);
     if (__put != n) {
         os.setstate(std::ios_base::badbit);
@@ -17,7 +17,8 @@ void __ostream_write_unchecked(std::basic_ostream<CharT, Tratis> &os, const Char
 
 /// @private
 template <typename CharT, typename Tratis>
-void __ostream_fill_unchecked(std::basic_ostream<CharT, Tratis> &os, std::streamsize n) {
+void __ostream_fill_unchecked(std::basic_ostream<CharT, Tratis> &os,
+                              std::streamsize n) noexcept {
     const auto ch = os.fill();
     while (n--) {
         const auto __put = os.rdbuf()->sputc(ch);
@@ -31,7 +32,7 @@ void __ostream_fill_unchecked(std::basic_ostream<CharT, Tratis> &os, std::stream
 /// @private
 template <typename CharT, typename Tratis>
 void __ostream_insert_unchecked(std::basic_ostream<CharT, Tratis> &os, const CharT *str,
-                                std::streamsize n) {
+                                std::streamsize n) noexcept {
     const std::streamsize __w = os.width();
     if (__w > n) {
         const std::streamsize __pad = __w - n;
@@ -60,7 +61,8 @@ void __ostream_insert_unchecked(std::basic_ostream<CharT, Tratis> &os, const Cha
  */
 template <typename CharT, typename Tratis>
 std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tratis> &os,
-                                                    const CharT *str, std::streamsize n) {
+                                                    const CharT *str,
+                                                    std::streamsize n) noexcept {
     const std::ostream::sentry ok(os);
     if (ok) {
         __ostream_insert_unchecked(os, str, n);

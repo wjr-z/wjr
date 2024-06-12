@@ -10,6 +10,7 @@ WJR_REGISTER_HAS_TYPE(is_trivially_allocator,
 WJR_REGISTER_HAS_TYPE(
     is_trivially_allocator_constructible,
     std::declval<typename Alloc::is_trivially_allocator_constructible>(), Alloc);
+
 WJR_REGISTER_HAS_TYPE(is_trivially_allocator_destructible,
                       std::declval<typename Alloc::is_trivially_allocator_destructible>(),
                       Alloc);

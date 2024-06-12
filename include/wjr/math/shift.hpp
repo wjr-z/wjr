@@ -11,30 +11,30 @@
 namespace wjr {
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR T fallback_shld(T hi, T lo, unsigned int c) {
+WJR_INTRINSIC_CONSTEXPR T fallback_shld(T hi, T lo, unsigned int c) noexcept {
     constexpr auto digits = std::numeric_limits<T>::digits;
     return hi << c | lo >> (digits - c);
 }
 
 template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T shld(T hi, T lo, unsigned int c) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T shld(T hi, T lo, unsigned int c) noexcept {
     return fallback_shld(hi, lo, c);
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR T fallback_shrd(T lo, T hi, unsigned int c) {
+WJR_INTRINSIC_CONSTEXPR T fallback_shrd(T lo, T hi, unsigned int c) noexcept {
     constexpr auto digits = std::numeric_limits<T>::digits;
     return lo >> c | hi << (digits - c);
 }
 
 template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T shrd(T lo, T hi, unsigned int c) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T shrd(T lo, T hi, unsigned int c) noexcept {
     return fallback_shrd(lo, hi, c);
 }
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR T fallback_lshift_n(T *dst, const T *src, size_t n,
-                                            unsigned int c, T lo) {
+                                            unsigned int c, T lo) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
     T ret = src[n - 1] >> (nd - c);
     for (size_t i = 0; i < n - 1; ++i) {
@@ -52,7 +52,7 @@ require :
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E T lshift_n(T *dst, const T *src, size_t n,
                                                    unsigned int c,
-                                                   type_identity_t<T> lo = 0) {
+                                                   type_identity_t<T> lo = 0) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_DECR_P(dst, n, src, n));
     WJR_ASSERT_L2(c < std::numeric_limits<T>::digits);
@@ -82,7 +82,7 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E T lshift_n(T *dst, const T *src, size_t 
 
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR T fallback_rshift_n(T *dst, const T *src, size_t n,
-                                            unsigned int c, T hi) {
+                                            unsigned int c, T hi) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
     T ret = src[0] << (nd - c);
     for (size_t i = 0; i < n - 1; ++i) {
@@ -99,7 +99,7 @@ require :
 */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E T rshift_n(T *dst, const T *src, size_t n, unsigned int c,
-                                     type_identity_t<T> hi = 0) {
+                                     type_identity_t<T> hi = 0) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
     WJR_ASSERT_L2(c < std::numeric_limits<T>::digits);

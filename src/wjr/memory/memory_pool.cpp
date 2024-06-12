@@ -44,21 +44,6 @@ char *__default_alloc_template__::object::chunk_alloc(uint8_t idx, int &nobjs) n
         }
     }
 
-    do {
-        obj *volatile *my_free_list;
-
-        for (int i = idx + 1; i < 12; ++i) {
-            my_free_list = free_list + i;
-            obj *p = *my_free_list;
-            if (p != nullptr) {
-                *my_free_list = p->free_list_link;
-                start_free = (char *)(p);
-                end_free = (char *)(p) + __get_size(i);
-                return (chunk_alloc(idx, nobjs));
-            }
-        }
-    } while (0);
-
     const size_t bytes_to_get = 2 * total_bytes + __round_up(heap_size >> 3);
 
     start_free = (char *)get_chunk().allocate(bytes_to_get);

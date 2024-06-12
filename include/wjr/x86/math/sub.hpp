@@ -25,7 +25,8 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(ASM_SUBC)
 
 template <typename U>
-WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in, U &c_out) {
+WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in,
+                                       U &c_out) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
         if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
             asm("stc\n\t"
@@ -70,7 +71,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in, U &c_out)
 #if WJR_HAS_BUILTIN(ASM_SUBC_CC)
 
 WJR_INTRINSIC_INLINE uint64_t asm_subc_cc(uint64_t a, uint64_t b, uint8_t c_in,
-                                          uint8_t &c_out) {
+                                          uint8_t &c_out) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
         if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
             asm("stc\n\t"
@@ -114,7 +115,8 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc_cc(uint64_t a, uint64_t b, uint8_t c_in,
 #if WJR_HAS_BUILTIN(__ASM_SUB_128)
 
 WJR_INTRINSIC_INLINE void __asm_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                        uint64_t hi0, uint64_t lo1, uint64_t hi1) {
+                                        uint64_t hi0, uint64_t lo1,
+                                        uint64_t hi1) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
         asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
             "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}"
@@ -140,7 +142,7 @@ WJR_INTRINSIC_INLINE void __asm_sub_128(uint64_t &al, uint64_t &ah, uint64_t lo0
 
 WJR_INTRINSIC_INLINE uint8_t __asm_subc_cc_zero_128(uint64_t &al, uint64_t &ah,
                                                     uint64_t lo0, uint64_t hi0,
-                                                    uint64_t lo1, uint64_t hi1) {
+                                                    uint64_t lo1, uint64_t hi1) noexcept {
     uint8_t c_out;
     if (WJR_BUILTIN_CONSTANT_P(hi1) && hi1 <= UINT32_MAX) {
         asm("sub{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
@@ -169,7 +171,7 @@ WJR_INTRINSIC_INLINE uint8_t __asm_subc_cc_zero_128(uint64_t &al, uint64_t &ah,
 
 WJR_INTRINSIC_INLINE uint64_t __asm_subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                             uint64_t c_in) {
+                                             uint64_t c_in) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(c_in == 0) && c_in == 0) {
         return __asm_subc_cc_zero_128(al, ah, lo0, hi0, lo1, hi1);
     }
@@ -205,7 +207,7 @@ WJR_INTRINSIC_INLINE uint64_t __asm_subc_128(uint64_t &al, uint64_t &ah, uint64_
 
 WJR_INTRINSIC_INLINE uint8_t __asm_subc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                                uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                               uint8_t c_in) {
+                                               uint8_t c_in) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(c_in == 0) && c_in == 0) {
         return __asm_subc_cc_zero_128(al, ah, lo0, hi0, lo1, hi1);
     }

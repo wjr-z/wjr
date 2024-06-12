@@ -40,7 +40,8 @@ namespace wjr {
  * @return a + b + c_in
  */
 template <typename U>
-WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in, U &c_out) {
+WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in,
+                                       U &c_out) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
         if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
             asm("stc\n\t"
@@ -115,7 +116,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in, U &c_out)
  * @param[out] c_out
  */
 WJR_INTRINSIC_INLINE uint64_t asm_addc_cc(uint64_t a, uint64_t b, uint8_t c_in,
-                                          uint8_t &c_out) {
+                                          uint8_t &c_out) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(c_in == 1) && c_in == 1) {
         if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
             asm("stc\n\t"
@@ -180,7 +181,8 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc_cc(uint64_t a, uint64_t b, uint8_t c_in,
  *
  */
 WJR_INTRINSIC_INLINE void __asm_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
-                                        uint64_t hi0, uint64_t lo1, uint64_t hi1) {
+                                        uint64_t hi0, uint64_t lo1,
+                                        uint64_t hi1) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(hi0) && hi0 <= UINT32_MAX) {
         asm("add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
             "adc{q %[hi0], %[hi1]| %[hi1], %[hi0]}"
@@ -224,7 +226,7 @@ WJR_INTRINSIC_INLINE void __asm_add_128(uint64_t &al, uint64_t &ah, uint64_t lo0
  */
 WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_zero_128(uint64_t &al, uint64_t &ah,
                                                     uint64_t lo0, uint64_t hi0,
-                                                    uint64_t lo1, uint64_t hi1) {
+                                                    uint64_t lo1, uint64_t hi1) noexcept {
     uint8_t c_out;
     if (WJR_BUILTIN_CONSTANT_P(hi0) && hi0 <= UINT32_MAX) {
         asm("add{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
@@ -267,7 +269,7 @@ WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_zero_128(uint64_t &al, uint64_t &ah,
  */
 WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                              uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                             uint64_t c_in) {
+                                             uint64_t c_in) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(c_in == 0) && c_in == 0) {
         return __asm_addc_cc_zero_128(al, ah, lo0, hi0, lo1, hi1);
     }
@@ -322,7 +324,7 @@ WJR_INTRINSIC_INLINE uint64_t __asm_addc_128(uint64_t &al, uint64_t &ah, uint64_
  */
 WJR_INTRINSIC_INLINE uint8_t __asm_addc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                                uint64_t hi0, uint64_t lo1, uint64_t hi1,
-                                               uint8_t c_in) {
+                                               uint8_t c_in) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(c_in == 0) && c_in == 0) {
         return __asm_addc_cc_zero_128(al, ah, lo0, hi0, lo1, hi1);
     }

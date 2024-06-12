@@ -10,10 +10,10 @@
 namespace wjr {
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E T shld(T hi, T lo, unsigned int c);
+WJR_INTRINSIC_CONSTEXPR_E T shld(T hi, T lo, unsigned int c) noexcept;
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E T shrd(T lo, T hi, unsigned int c);
+WJR_INTRINSIC_CONSTEXPR_E T shrd(T lo, T hi, unsigned int c) noexcept;
 
 #if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(X86_SIMD)
 #define WJR_HAS_BUILTIN_LSHIFT_N WJR_HAS_DEF
@@ -24,7 +24,7 @@ WJR_INTRINSIC_CONSTEXPR_E T shrd(T lo, T hi, unsigned int c);
 
 /// @private
 template <bool is_constant>
-WJR_INTRINSIC_INLINE auto __mm_get_shift(unsigned int c) {
+WJR_INTRINSIC_INLINE auto __mm_get_shift(unsigned int c) noexcept {
     if constexpr (is_constant) {
         return c;
     } else {
@@ -33,22 +33,22 @@ WJR_INTRINSIC_INLINE auto __mm_get_shift(unsigned int c) {
 }
 
 /// @private
-WJR_INTRINSIC_INLINE __m128i __mm_sll_epi64(__m128i x, unsigned int c) {
+WJR_INTRINSIC_INLINE __m128i __mm_sll_epi64(__m128i x, unsigned int c) noexcept {
     return sse::slli_epi64(x, c);
 }
 
 /// @private
-WJR_INTRINSIC_INLINE __m128i __mm_sll_epi64(__m128i x, __m128i c) {
+WJR_INTRINSIC_INLINE __m128i __mm_sll_epi64(__m128i x, __m128i c) noexcept {
     return sse::sll_epi64(x, c);
 }
 
 /// @private
-WJR_INTRINSIC_INLINE __m128i __mm_srl_epi64(__m128i x, unsigned int c) {
+WJR_INTRINSIC_INLINE __m128i __mm_srl_epi64(__m128i x, unsigned int c) noexcept {
     return sse::srli_epi64(x, c);
 }
 
 /// @private
-WJR_INTRINSIC_INLINE __m128i __mm_srl_epi64(__m128i x, __m128i c) {
+WJR_INTRINSIC_INLINE __m128i __mm_srl_epi64(__m128i x, __m128i c) noexcept {
     return sse::srl_epi64(x, c);
 }
 
@@ -73,7 +73,8 @@ WJR_INTRINSIC_INLINE __m128i __mm_srl_epi64(__m128i x, __m128i c) {
     } while (0)
 
 template <bool is_constant, typename T>
-void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int c) {
+void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n,
+                                 unsigned int c) noexcept {
     const auto y = __mm_get_shift<is_constant>(c);
     const auto z = __mm_get_shift<is_constant>(64 - c);
 
@@ -120,7 +121,7 @@ void large_builtin_lshift_n_impl(T *dst, const T *src, size_t n, unsigned int c)
 
 template <typename T>
 WJR_INTRINSIC_INLINE void builtin_lshift_n_impl(T *dst, const T *src, size_t n,
-                                                unsigned int c) {
+                                                unsigned int c) noexcept {
     if (WJR_UNLIKELY(n < 4)) {
         switch (n) {
         case 3: {
@@ -161,7 +162,7 @@ WJR_INTRINSIC_INLINE void builtin_lshift_n_impl(T *dst, const T *src, size_t n,
 
 template <typename T>
 WJR_INTRINSIC_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned int c,
-                                        T lo) {
+                                        T lo) noexcept {
     const T ret = src[n - 1] >> (64 - c);
     builtin_lshift_n_impl(dst + 1, src + 1, n - 1, c);
     dst[0] = shld(src[0], lo, c);
@@ -189,7 +190,8 @@ WJR_INTRINSIC_INLINE T builtin_lshift_n(T *dst, const T *src, size_t n, unsigned
     } while (0)
 
 template <bool is_constant, typename T>
-void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n, unsigned int c) {
+void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n,
+                                 unsigned int c) noexcept {
     const auto y = __mm_get_shift<is_constant>(c);
     const auto z = __mm_get_shift<is_constant>(64 - c);
 
@@ -236,7 +238,7 @@ void large_builtin_rshift_n_impl(T *dst, const T *src, size_t n, unsigned int c)
 
 template <typename T>
 WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T *src, size_t n,
-                                                unsigned int c) {
+                                                unsigned int c) noexcept {
     if (WJR_UNLIKELY(n < 4)) {
         dst += n - 3;
         src += n - 3;
@@ -277,7 +279,7 @@ WJR_INTRINSIC_INLINE void builtin_rshift_n_impl(T *dst, const T *src, size_t n,
 
 template <typename T>
 WJR_INTRINSIC_INLINE T builtin_rshift_n(T *dst, const T *src, size_t n, unsigned int c,
-                                        T hi) {
+                                        T hi) noexcept {
     const T ret = src[0] << (64 - c);
     builtin_rshift_n_impl(dst, src, n - 1, c);
     dst[n - 1] = shrd(src[n - 1], hi, c);

@@ -24,7 +24,10 @@ public:
     temporary_value_allocator &operator=(const temporary_value_allocator &) = delete;
     temporary_value_allocator &operator=(temporary_value_allocator &&) = delete;
 
-    ~temporary_value_allocator() { destroy_at_using_allocator(get(), al); }
+    ~temporary_value_allocator() noexcept(noexcept(destroy_at_using_allocator(get(),
+                                                                              al))) {
+        destroy_at_using_allocator(get(), al);
+    }
 
     WJR_CONSTEXPR20 pointer get() noexcept { return reinterpret_cast<pointer>(storage); }
     WJR_CONSTEXPR20 const_pointer get() const noexcept {

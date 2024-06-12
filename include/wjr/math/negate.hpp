@@ -11,7 +11,7 @@ namespace wjr {
   calculations : stable n instead of not + inc which maybe n * 2
 */
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E bool negate_n(T *dst, const T *src, size_t n) {
+WJR_INTRINSIC_CONSTEXPR_E bool negate_n(T *dst, const T *src, size_t n) noexcept {
     size_t idx = replace_find_not(dst, src, n, 0, 0);
 
     if (idx == n) {

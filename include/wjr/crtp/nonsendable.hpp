@@ -39,23 +39,23 @@ public:
     static constexpr bool is_nonsendable = true;
 
 protected:
-    nonsendable() : m_thread_id(std::this_thread::get_id()) {}
-    nonsendable(const nonsendable &) = default;
-    nonsendable(nonsendable &&) = default;
-    nonsendable &operator=(const nonsendable &) = default;
-    nonsendable &operator=(nonsendable &&) = default;
-    ~nonsendable() { check(); }
+    nonsendable() noexcept : m_thread_id(std::this_thread::get_id()) {}
+    nonsendable(const nonsendable &) noexcept = default;
+    nonsendable(nonsendable &&) noexcept = default;
+    nonsendable &operator=(const nonsendable &) noexcept = default;
+    nonsendable &operator=(nonsendable &&) noexcept = default;
+    ~nonsendable() noexcept { check(); }
 
-    void check() const {
+    void check() const noexcept {
         WJR_ASSERT_L0(m_thread_id == std::this_thread::get_id(),
                       "Cross-thread access detected when using a nonsendable object.");
     }
 
-    friend bool operator==(const nonsendable &lhs, const nonsendable &rhs) {
+    friend bool operator==(const nonsendable &lhs, const nonsendable &rhs) noexcept {
         return lhs.m_thread_id == rhs.m_thread_id;
     }
 
-    friend bool operator!=(const nonsendable &lhs, const nonsendable &rhs) {
+    friend bool operator!=(const nonsendable &lhs, const nonsendable &rhs) noexcept {
         return lhs.m_thread_id != rhs.m_thread_id;
     }
 
@@ -75,11 +75,15 @@ public:
     static constexpr bool is_nonsendable = true;
 
 protected:
-    constexpr static void check(){};
+    constexpr static void check() noexcept {}
 
-    friend bool operator==(const nonsendable &, const nonsendable &) { return true; }
+    friend bool operator==(const nonsendable &, const nonsendable &) noexcept {
+        return true;
+    }
 
-    friend bool operator!=(const nonsendable &, const nonsendable &) { return false; }
+    friend bool operator!=(const nonsendable &, const nonsendable &) noexcept {
+        return false;
+    }
 };
 
 #endif

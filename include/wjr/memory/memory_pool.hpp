@@ -3,7 +3,7 @@
 
 #include <wjr/container/intrusive/list.hpp>
 #include <wjr/crtp/trivially_allocator_base.hpp>
-#include <wjr/math/details.hpp>
+#include <wjr/math/clz.hpp>
 #include <wjr/memory/details.hpp>
 
 namespace wjr {
@@ -24,7 +24,7 @@ private:
         char client_data[1];
     };
 
-    struct __list_node : intrusive::list_node<> {};
+    struct __list_node : list_node<> {};
 
     struct malloc_chunk {
 
@@ -52,11 +52,12 @@ private:
         __list_node head;
     };
 
-    static WJR_INTRINSIC_CONSTEXPR size_t __round_up(size_t bytes) noexcept {
+    static WJR_INTRINSIC_CONSTEXPR WJR_CONST size_t __round_up(size_t bytes) noexcept {
         return (((bytes) + 2048 - 1) & ~(2048 - 1));
     }
 
-    static WJR_INTRINSIC_CONSTEXPR uint8_t __get_index(size_t bytes) noexcept {
+    static WJR_INTRINSIC_CONSTEXPR WJR_CONST uint8_t
+    __get_index(uint16_t bytes) noexcept {
         if (bytes <= 256) {
             return memory_pool_details::__ctz_table[(bytes - 1) >> 3];
         }
@@ -64,7 +65,7 @@ private:
         return memory_pool_details::__ctz_table[(bytes - 1) >> 9] + 6;
     }
 
-    static WJR_INTRINSIC_CONSTEXPR uint16_t __get_size(uint8_t idx) noexcept {
+    static WJR_INTRINSIC_CONSTEXPR WJR_CONST uint16_t __get_size(uint8_t idx) noexcept {
         return (uint16_t)(1) << (idx + 3);
     }
 

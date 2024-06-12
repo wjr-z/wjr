@@ -13,14 +13,14 @@
 namespace wjr {
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR void fallback_set_n(T *dst, T val, size_t n) {
+WJR_INTRINSIC_CONSTEXPR void fallback_set_n(T *dst, T val, size_t n) noexcept {
     for (size_t i = 0; i < n; ++i) {
         dst[i] = val;
     }
 }
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E void set_n(T *dst, type_identity_t<T> val, size_t n) {
+WJR_INTRINSIC_CONSTEXPR_E void set_n(T *dst, type_identity_t<T> val, size_t n) noexcept {
 #if WJR_HAS_BUILTIN(SET_N)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {

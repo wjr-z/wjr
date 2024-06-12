@@ -418,48 +418,25 @@ public:
         return std::move(Mybase::m_value);
     }
 
-    template <typename Func, typename... Args,
-              WJR_REQUIRES(std::is_invocable_v<Func, T *, Args &&...>)>
-    constexpr T &emplace_by(Func &&fn, Args &&...args) noexcept(
-        noexcept(fn(this->ptr_unsafe(), std::forward<Args>(args)...))) {
+    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
+    constexpr T &
+    emplace(Args &&...args) noexcept(std::is_nothrow_constructible_v<Mybase, Args...>) {
         if constexpr (!std::is_trivially_destructible_v<T>) {
             check(false);
         }
 
-        fn(ptr_unsafe(), std::forward<Args>(args)...);
+        (construct_at)(ptr_unsafe(), std::forward<Args>(args)...);
         checker_set(true);
         return get();
     }
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
-    constexpr T &
-    emplace(Args &&...args) noexcept(std::is_nothrow_constructible_v<Mybase, Args...>) {
-        return emplace_by(
-            [](T *ptr, auto &&...args) noexcept(
-                std::is_nothrow_constructible_v<Mybase, Args...>) {
-                (construct_at)(ptr, std::forward<decltype(args)>(args)...);
-            },
-            std::forward<Args>(args)...);
-    }
-
-    template <typename Func, typename... Args,
-              WJR_REQUIRES(std::is_invocable_v<Func, T *, Args &&...>)>
-    constexpr void reset_by(Func &&fn, Args &&...args) noexcept(
-        noexcept(fn(this->ptr_unsafe(), std::forward<Args>(args)...))) {
+    constexpr void reset() noexcept(std::is_nothrow_destructible_v<T>) {
         if constexpr (!std::is_trivially_destructible_v<T>) {
             check(true);
         }
 
-        fn(ptr_unsafe(), std::forward<Args>(args)...);
+        std::destroy_at(ptr_unsafe());
         checker_set(false);
-    }
-
-    constexpr void reset() noexcept(std::is_nothrow_destructible_v<T>) {
-        reset_by([](T *ptr) noexcept(std::is_nothrow_destructible_v<T>) {
-            if constexpr (!std::is_trivially_destructible_v<T>) {
-                std::destroy_at(ptr);
-            }
-        });
     }
 
     constexpr T *operator->() noexcept { return std::addressof(get()); }

@@ -23,7 +23,7 @@
 namespace wjr {
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR T fallback_mul(T a, T b, T &hi) {
+WJR_INTRINSIC_CONSTEXPR T fallback_mul(T a, T b, T &hi) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
     using T2 = uint_t<nd * 2>;
     T2 x = static_cast<T2>(a) * b;
@@ -31,7 +31,8 @@ WJR_INTRINSIC_CONSTEXPR T fallback_mul(T a, T b, T &hi) {
     return static_cast<T>(x);
 }
 
-WJR_INTRINSIC_CONSTEXPR_E uint64_t fallback_mul64(uint64_t a, uint64_t b, uint64_t &hi) {
+WJR_INTRINSIC_CONSTEXPR_E uint64_t fallback_mul64(uint64_t a, uint64_t b,
+                                                  uint64_t &hi) noexcept {
     uint64_t ah = a >> 32;
     uint64_t al = a & 0xFFFFFFFF;
     uint64_t bh = b >> 32;
@@ -50,7 +51,7 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t fallback_mul64(uint64_t a, uint64_t b, uint64
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_INTRINSIC_CONSTEXPR_E T mul(T a, T b, T &hi) {
+WJR_INTRINSIC_CONSTEXPR_E T mul(T a, T b, T &hi) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
     if ((WJR_BUILTIN_CONSTANT_P(a == 0) && a == 0) ||
@@ -72,7 +73,6 @@ WJR_INTRINSIC_CONSTEXPR_E T mul(T a, T b, T &hi) {
     if constexpr (nd < 64) {
         return fallback_mul(a, b, hi);
     } else {
-
 #if WJR_HAS_BUILTIN(MUL64)
         if (is_constant_evaluated()
 #if WJR_HAS_BUILTIN(ASM_MUL64)
@@ -97,22 +97,28 @@ WJR_INTRINSIC_CONSTEXPR_E T mul(T a, T b, T &hi) {
     }
 }
 
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T fallback_mulhi(T a, T b) {
-    T hi = 0;
-    (void)fallback_mul(a, b, hi);
-    return hi;
-}
-
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T mulhi(T a, T b) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T mulhi(T a, T b) noexcept {
     T ret = 0;
     (void)mul(a, b, ret);
     return ret;
 }
 
+#if defined(WJR_MSVC) && defined(WJR_X86_64) && WJR_HAS_SIMD(X86_SIMD)
+#define WJR_HAS_BUILTIN_MSVC_MULHI64 WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(MSVC_MULHI64)
+
+template <>
+WJR_CONST WJR_INTRINSIC_INLINE uint64_t mulhi<uint64_t>(uint64_t a, uint64_t b) noexcept {
+    return __umulh(a, b);
+}
+
+#endif
+
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T mullo(T a, T b) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T mullo(T a, T b) noexcept {
     return a * b;
 }
 
@@ -121,7 +127,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T mullo(T a, T b) {
 #endif
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E bool fallback_mul_overflow(T a, T b, T &ret) {
+WJR_INTRINSIC_CONSTEXPR_E bool fallback_mul_overflow(T a, T b, T &ret) noexcept {
     T hi;
     ret = mul(a, b, hi);
     return hi != 0;
@@ -129,7 +135,7 @@ WJR_INTRINSIC_CONSTEXPR_E bool fallback_mul_overflow(T a, T b, T &ret) {
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E bool mul_overflow(type_identity_t<T> a, type_identity_t<T> b,
-                                            T &ret) {
+                                            T &ret) noexcept {
 #if WJR_HAS_BUILTIN(MUL_OVERFLOW)
     if (is_constant_evaluated() ||
         (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))) {
@@ -143,7 +149,7 @@ WJR_INTRINSIC_CONSTEXPR_E bool mul_overflow(type_identity_t<T> a, type_identity_
 }
 
 WJR_INTRINSIC_CONSTEXPR uint64_t fallback_mul_1(uint64_t *dst, const uint64_t *src,
-                                                size_t n, uint64_t ml) {
+                                                size_t n, uint64_t ml) noexcept {
     uint64_t lo = 0, hi = 0;
     uint64_t c_in = 0;
 
@@ -162,7 +168,7 @@ require :
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
 */
 WJR_INTRINSIC_CONSTEXPR_E uint64_t mul_1(uint64_t *dst, const uint64_t *src, size_t n,
-                                         uint64_t ml) {
+                                         uint64_t ml) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
@@ -197,14 +203,16 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t mul_1(uint64_t *dst, const uint64_t *src, siz
 
 // dst = src0 + (src1 << cl)
 WJR_INTRINSIC_CONSTEXPR_E uint64_t addlsh_n(uint64_t *dst, const uint64_t *src0,
-                                            const uint64_t *src1, size_t n, uint64_t cl);
+                                            const uint64_t *src1, size_t n,
+                                            uint64_t cl) noexcept;
 
 // dst = (src1 << cl) - src0
 WJR_INTRINSIC_CONSTEXPR_E uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0,
-                                            const uint64_t *src1, size_t n, uint64_t cl);
+                                            const uint64_t *src1, size_t n,
+                                            uint64_t cl) noexcept;
 
 WJR_INTRINSIC_CONSTEXPR uint64_t fallback_addmul_1(uint64_t *dst, const uint64_t *src,
-                                                   size_t n, uint64_t ml) {
+                                                   size_t n, uint64_t ml) noexcept {
     uint64_t lo = 0, hi = 0;
     uint64_t o_in = 0, c_in = 0;
 
@@ -224,7 +232,7 @@ require :
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
 */
 WJR_INTRINSIC_CONSTEXPR_E uint64_t addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
-                                            uint64_t ml) {
+                                            uint64_t ml) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
@@ -253,7 +261,7 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t addmul_1(uint64_t *dst, const uint64_t *src, 
 }
 
 WJR_INTRINSIC_CONSTEXPR uint64_t fallback_submul_1(uint64_t *dst, const uint64_t *src,
-                                                   size_t n, uint64_t ml) {
+                                                   size_t n, uint64_t ml) noexcept {
     uint64_t lo = 0, hi = 0;
     uint64_t o_in = 0, c_in = 0;
 
@@ -273,7 +281,7 @@ require :
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
 */
 WJR_INTRINSIC_CONSTEXPR_E uint64_t submul_1(uint64_t *dst, const uint64_t *src, size_t n,
-                                            uint64_t ml) {
+                                            uint64_t ml) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
@@ -298,7 +306,7 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t submul_1(uint64_t *dst, const uint64_t *src, 
 
 WJR_INTRINSIC_CONSTEXPR uint64_t fallback_addlsh_n(uint64_t *dst, const uint64_t *src0,
                                                    const uint64_t *src1, size_t n,
-                                                   uint64_t cl) {
+                                                   uint64_t cl) noexcept {
     uint64_t tcl = std::numeric_limits<uint64_t>::digits - cl;
     uint64_t lo = 0, hi = 0;
     uint64_t c_in = 0, x = 0;
@@ -324,7 +332,8 @@ require :
 3. WJR_IS_SAME_OR_INCR_P(sdt, n, src1, n)
 */
 WJR_INTRINSIC_CONSTEXPR_E uint64_t addlsh_n(uint64_t *dst, const uint64_t *src0,
-                                            const uint64_t *src1, size_t n, uint64_t cl) {
+                                            const uint64_t *src1, size_t n,
+                                            uint64_t cl) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_ASSUME(cl < std::numeric_limits<uint64_t>::digits);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
@@ -347,7 +356,7 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t addlsh_n(uint64_t *dst, const uint64_t *src0,
 
 WJR_INTRINSIC_CONSTEXPR uint64_t fallback_rsblsh_n(uint64_t *dst, const uint64_t *src0,
                                                    const uint64_t *src1, size_t n,
-                                                   uint64_t cl) {
+                                                   uint64_t cl) noexcept {
     uint64_t tcl = std::numeric_limits<uint64_t>::digits - cl;
     uint64_t lo = 0, hi = 0;
     uint64_t c_in = 0, x = 0;
@@ -373,7 +382,8 @@ require :
 3. WJR_IS_SAME_OR_INCR_P(sdt, n, src1, n)
 */
 WJR_INTRINSIC_CONSTEXPR_E uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0,
-                                            const uint64_t *src1, size_t n, uint64_t cl) {
+                                            const uint64_t *src1, size_t n,
+                                            uint64_t cl) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_ASSUME(cl < std::numeric_limits<uint64_t>::digits);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
@@ -395,9 +405,9 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0,
 }
 
 template <uint64_t maxn = in_place_max>
-WJR_INTRINSIC_CONSTEXPR_E uint64_t try_addmul_1(uint64_t *dst, const uint64_t *src,
-                                                size_t n, uint64_t ml,
-                                                integral_constant<uint64_t, maxn> = {}) {
+WJR_INTRINSIC_CONSTEXPR_E uint64_t
+try_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t ml,
+             integral_constant<uint64_t, maxn> = {}) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
@@ -460,18 +470,20 @@ enum class __mul_mode : uint8_t {
 };
 
 WJR_INTRINSIC_INLINE void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                size_t n, const uint64_t *src1, size_t m);
+                                size_t n, const uint64_t *src1, size_t m) noexcept;
 
 WJR_INTRINSIC_INLINE void mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                const uint64_t *src1, size_t n);
+                                const uint64_t *src1, size_t n) noexcept;
 
 WJR_INTRINSIC_INLINE void basecase_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                         size_t n, const uint64_t *src1, size_t m);
+                                         size_t n, const uint64_t *src1,
+                                         size_t m) noexcept;
 
 WJR_INTRINSIC_INLINE void basecase_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
-                                       size_t n);
+                                       size_t n) noexcept;
 
-WJR_INTRINSIC_INLINE void sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n);
+WJR_INTRINSIC_INLINE void sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
+                              size_t n) noexcept;
 
 struct toom_interpolation_5p_struct {
     bool neg1;
@@ -687,7 +699,7 @@ extern void __noinline_mul_s_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *sr
                                   size_t n, const uint64_t *src1, size_t m) noexcept;
 
 WJR_INTRINSIC_INLINE void mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                size_t n, const uint64_t *src1, size_t m) {
+                                size_t n, const uint64_t *src1, size_t m) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(n == m) && n == m) {
         return mul_n(dst, src0, src1, n);
     }
@@ -732,7 +744,7 @@ extern void __noinline_mul_n_impl(uint64_t *WJR_RESTRICT dst, const uint64_t *sr
 template <__mul_mode mode>
 WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
                                   const uint64_t *src1, size_t n,
-                                  WJR_MAYBE_UNUSED safe_array<uint64_t> stk) {
+                                  WJR_MAYBE_UNUSED safe_array<uint64_t> stk) noexcept {
     if constexpr (mode <= __mul_mode::toom33) {
         __inline_mul_n_impl<mode>(dst, src0, src1, n, stk);
     } else {
@@ -744,7 +756,7 @@ template <__mul_mode mode, uint64_t m0 = in_place_max, uint64_t m1 = in_place_ma
 void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1,
              size_t n, safe_array<uint64_t> stk, uint64_t &c_out, uint64_t cf0,
              uint64_t cf1, integral_constant<uint64_t, m0> x0 = {},
-             integral_constant<uint64_t, m1> x1 = {}) {
+             integral_constant<uint64_t, m1> x1 = {}) noexcept {
     WJR_ASSERT_ASSUME(cf0 <= m0);
     WJR_ASSERT_ASSUME(cf1 <= m1);
 
@@ -768,7 +780,7 @@ void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *s
 }
 
 WJR_INTRINSIC_INLINE void mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                const uint64_t *src1, size_t n) {
+                                const uint64_t *src1, size_t n) noexcept {
     if (WJR_BUILTIN_CONSTANT_P(src0 == src1) && src0 == src1) {
         return sqr(dst, src0, n);
     }
@@ -829,13 +841,15 @@ void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
     c_out += try_addmul_1(dst + n, src, n, 2 * cf, integral_constant<uint64_t, m2>{});
 }
 
-WJR_INTRINSIC_INLINE void sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n) {
+WJR_INTRINSIC_INLINE void sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
+                              size_t n) noexcept {
     return __noinline_sqr_impl(dst, src, n);
 }
 
 WJR_INTRINSIC_INLINE void fallback_basecase_mul_s(uint64_t *WJR_RESTRICT dst,
                                                   const uint64_t *src0, size_t n,
-                                                  const uint64_t *src1, size_t m) {
+                                                  const uint64_t *src1,
+                                                  size_t m) noexcept {
     dst[n] = mul_1(dst, src0, n, src1[0]);
     for (size_t i = 1; i < m; ++i) {
         ++dst;
@@ -851,7 +865,8 @@ require :
 4. WJR_IS_SAME_OR_SEPARATE_P(dst, n + m, src1, m)
 */
 WJR_INTRINSIC_INLINE void basecase_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
-                                         size_t n, const uint64_t *src1, size_t m) {
+                                         size_t n, const uint64_t *src1,
+                                         size_t m) noexcept {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_SEPARATE_P(dst, n + m, src0, n));
@@ -865,7 +880,7 @@ WJR_INTRINSIC_INLINE void basecase_mul_s(uint64_t *WJR_RESTRICT dst, const uint6
 }
 
 WJR_INTRINSIC_INLINE void basecase_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
-                                       size_t n) {
+                                       size_t n) noexcept {
 #if WJR_HAS_BUILTIN(ASM_BASECASE_SQR)
     return asm_basecase_sqr(dst, src, n);
 #else

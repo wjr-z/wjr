@@ -12,13 +12,17 @@ class de_bruijn {
 public:
     constexpr static uint8_t digits = std::numeric_limits<T>::digits;
     constexpr static uint8_t mv = digits == 32 ? 27 : 58;
-    constexpr de_bruijn() : lookup(), lookupr() { initialize(); }
+    constexpr de_bruijn() noexcept : lookup(), lookupr() { initialize(); }
 
-    WJR_INTRINSIC_CONSTEXPR int get(T idx) const { return lookup[(idx * seed) >> mv]; }
-    WJR_INTRINSIC_CONSTEXPR int getr(T idx) const { return lookupr[(idx * seed) >> mv]; }
+    WJR_INTRINSIC_CONSTEXPR int get(T idx) const noexcept {
+        return lookup[(idx * seed) >> mv];
+    }
+    WJR_INTRINSIC_CONSTEXPR int getr(T idx) const noexcept {
+        return lookupr[(idx * seed) >> mv];
+    }
 
 private:
-    constexpr void initialize() {
+    constexpr void initialize() noexcept {
         for (uint8_t i = 0; i < digits; ++i) {
             auto idx = (seed << i) >> mv;
             lookup[idx] = i;
@@ -75,48 +79,51 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool __has_high_bit(T n) noexcept {
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T __ceil_div(T n, type_identity_t<T> div) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T __ceil_div(T n, type_identity_t<T> div) noexcept {
     return (n + div - 1) / div;
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_down(T n, type_identity_t<T> alignment) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_down(T n,
+                                                 type_identity_t<T> alignment) noexcept {
     WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
     return n & (-alignment);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_down_offset(T n,
-                                                        type_identity_t<T> alignment) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T
+__align_down_offset(T n, type_identity_t<T> alignment) noexcept {
     WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
     return n & (alignment - 1);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up(T n, type_identity_t<T> alignment) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up(T n,
+                                               type_identity_t<T> alignment) noexcept {
     WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
     return (n + alignment - 1) & (-alignment);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up_offset(T n, type_identity_t<T> alignment) {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T
+__align_up_offset(T n, type_identity_t<T> alignment) noexcept {
     WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
     return (-n) & (alignment - 1);
 }
 
 template <typename T, typename U = std::make_unsigned_t<T>,
           WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_CONST constexpr U __fasts_sign_mask() {
+WJR_CONST constexpr U __fasts_sign_mask() noexcept {
     return (U)(1) << (std::numeric_limits<U>::digits - 1);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_CONST constexpr T __fasts_get_sign_mask(T x) {
+WJR_CONST constexpr T __fasts_get_sign_mask(T x) noexcept {
     return x & __fasts_sign_mask<T>();
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST constexpr std::make_signed_t<T> __fasts_from_unsigned(T x) {
+WJR_CONST constexpr std::make_signed_t<T> __fasts_from_unsigned(T x) noexcept {
     std::make_signed_t<T> ret = x;
     WJR_ASSERT_ASSUME_L2(ret >= 0, "overflow");
     return ret;
@@ -124,29 +131,29 @@ WJR_CONST constexpr std::make_signed_t<T> __fasts_from_unsigned(T x) {
 
 template <typename T, typename U = std::make_unsigned_t<T>,
           WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr U __fasts_abs(T x) {
+WJR_CONST constexpr U __fasts_abs(T x) noexcept {
     return static_cast<U>(x < 0 ? -x : x);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_negate(T x) {
+WJR_CONST constexpr T __fasts_negate(T x) noexcept {
     return -x;
 }
 
 template <typename T, typename U = std::make_unsigned_t<T>,
           WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_conditional_negate(bool condition, T x) {
+WJR_CONST constexpr T __fasts_conditional_negate(bool condition, T x) noexcept {
     return condition ? -x : x;
 }
 
 template <typename T, typename U = std::make_unsigned_t<T>,
           WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_negate_with(T condition, T x) {
+WJR_CONST constexpr T __fasts_negate_with(T condition, T x) noexcept {
     return __fasts_conditional_negate(condition < 0, x);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_increment(T x) {
+WJR_CONST constexpr T __fasts_increment(T x) noexcept {
     WJR_ASSERT_L2(x != std::numeric_limits<T>::min() &&
                       x != std::numeric_limits<T>::max(),
                   "overflow");
@@ -155,19 +162,19 @@ WJR_CONST constexpr T __fasts_increment(T x) {
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_decrement(T x) {
+WJR_CONST constexpr T __fasts_decrement(T x) noexcept {
     WJR_ASSERT_L2(x != 0 && x + 1 != T(0), "overflow");
 
     return x < 0 ? x + 1 : x - 1;
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_add(T x, std::make_unsigned_t<T> y) {
+WJR_CONST constexpr T __fasts_add(T x, std::make_unsigned_t<T> y) noexcept {
     return x < 0 ? x - y : x + y;
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_signed_integral_v<T>)>
-WJR_CONST constexpr T __fasts_sub(T x, std::make_unsigned_t<T> y) {
+WJR_CONST constexpr T __fasts_sub(T x, std::make_unsigned_t<T> y) noexcept {
     return x < 0 ? x + y : x - y;
 }
 

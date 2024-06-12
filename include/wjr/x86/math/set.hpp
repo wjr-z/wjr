@@ -18,7 +18,7 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(SET_N)
 
 template <typename T>
-WJR_COLD void large_builtin_set_n(T *dst, T val, size_t n) {
+WJR_COLD void large_builtin_set_n(T *dst, T val, size_t n) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
     constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
 
@@ -73,7 +73,7 @@ WJR_COLD void large_builtin_set_n(T *dst, T val, size_t n) {
 }
 
 template <typename T>
-WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) {
+WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
     constexpr auto is_avx = WJR_HAS_SIMD(AVX2);
 

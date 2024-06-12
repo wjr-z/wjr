@@ -1,63 +1,63 @@
-require : \
-C++17, 64-bit   \
-Currently, most optimizations do not target 32-bit encoding, so 32-bit is not currently supported
-
-1. container \
-    TODO :  \
-    intrusive list, intrusive rb-tree, B+-tree, B-tree ...
-
-2. math \
-    addc/subc are similar to __builtin_addc/__builtin_subc.    \
-    For GCC/Clang, it has been optimized using inline assembly and __builtin_constant_p.    \
-    addc_1/subc_1 are similar to mpn_add_1/mpn_sub_1 with carry flag. \
-    addc_n/subc_n are similar to mpn_add_nc/mpn_sub_nc. \
-    addc_s/subc_s . \
-    abs_subc_n/abs_subc_s, abs of subc_n/subc_s. Ensure that the number of calculations is n, \
-    even if two numbers are the same, and can obtain the highest non-zero position.  \
-    mulx/mul_1/addmul_1/submul_1 (not optimized yet)/mul_s    \
-    divmod_1/divexact_1/... \
-    clz/ctz/popcount/is_power_of_two/lowbit/... \
-    set_n, unlike memset, which can only assign uint8_t.     \
-    set_n can be used to assign uint16_t/uint32_t/uint64_t.     \
-    When the pointer can be aligned with sizeof (T) and n is large, it will be aligned.     \
-    not_n. Align optimized versions.    \
-    find_n/find_not_n/reverse_find_n/reverse_find_not_n.    \
-    Each function has two overloads: double array comparison and array to value comparison. \
-    compare_n/reverser_compare_n.   \
-    TODO : \
-    AVX-512 optimaztion for addc_n/subc_n.  \
-
-3. preprocessor \
-    WJR_PP_ADD, WJR_PP_SUB, WJR_PP_(LT|LE|GT|GE|EQ|NE), WJR_PP_INC, WJR_PP_DEC, WJR_PP_NEG. \
-    Currently, only 6-bit operations are supported  \
-    WJR_PP_BOOL_IF, WJR_PP_BOOL_NOT, WJR_PP_BOOL_AND, WJR_PP_BOOL_OR, WJR_PP_BOOL_XOR.  \
-    WJR_PP_QUEUE :  \
-    A queue is similar to (a, b, c, d, e).    \
-    WJR_PP_QUEUE_CALL_N(queue, ops, n) : Each time the first two elements of the queue are evaluated   \
-    according to the first element of ops and placed back at the head of the queue.     \
-    For example : 
-    ```
-    #define F(a, b) a + b
-    WJR_PP_QUEUE_CALL_N((1, 2, 3), (F, F), 2) 
-
-    init :
-        queue : (1, 2, 3), ops : (F, F)
-    first time :
-        queue : (1 + 2, 3), ops : (F)
-    second time :
-        queue : (1 + 2 + 3), ops : ()
-    ```
-    In this way, it can be easily extended to various functions.    \
-    But it is difficult to implement a recursive version.   \
-    I will try to support recursion in the future.  \
-    support now :   \
-    WJR_PP_QUEUE_TRANSFORM(queue, op) : (a, b, c), f -> (f(a), f(b), f(c))  \
-    WJR_PP_QUEUE_TRANSFORMS(queue, ops) : (a, b, c), (f, g, h) -> (f(a), g(b), h(c))    \
-    WJR_PP_QUEUE_ACCUMULATE(queue, op) : init, (a, b, c), f -> f(f(f(0, 1), 2), 3)  \
-    WJR_PP_QUEUE_ACCUMULATES(queue, op) : init, (a, b, c), (f, g, h) -> h(g(f(0, 1), 2), 3) \
-    ...
-
-4. compressed_pair  \
-
-5. template processor (tp)  \
-    tp_list
+最低要求：  \
+C++17。  \
+绝大多数优化仅针对GCC/Clang x64。   
+1. 非侵入式容器 
+- 可定制vector类，实现对应接口即可。  \
+  目前默认实现了vector, static_vector, fixed_vector, sso_vector。   \
+  static_vector 编译期确定静态长度，不会动态扩容。当 WJR_DEBUG_LEVEL >= 1 时 \
+  且需要扩容时使用WJR_ASSERT报错。  \
+  fixed_vector 在构造时给定一个长度，且后续操作不进行动态扩容。DEBUG 同static_vector。  \
+  sso_vector 进行小对象优化，类似于std::string的SSO优化，提供一个模板参数用于确定小对象优化的size。
+- dynamic_bitset
+  动态长度bitset。暂未完全完成，优先级较低。
+- B+树
+  高度优化的内存B+树。目前暂时缺少对Value为trivial并且size较小时的inline优化。  \
+  对于trivial且size小于等于8的key使用值而非指针，使用inline_key统一接口实现。   \
+  对copy和search均进行了优化。目前随机情况下（缓存较差）较小点数的平均性能上略慢于红黑树，较大点数快于红黑树。    \
+  缓存友好（例如数据有规律）时平均性能更好。
+2. 侵入式容器
+   处于设计阶段。   \
+   侵入式容器存在较为明显的内存安全问题。生命周期较为独立，且内存分配器与容器解耦，容易遗漏释放。   \
+   考虑结合使用unique_ptr的方案。
+- list
+  双向链表
+- slist
+  单链表
+3. 预处理器
+- 预处理阶段的ADD, SUB, CMP, INC, DEC, NEG, NOT等。
+- 预处理阶段的MAP。\
+  以WJR_HAS_DEBUG为例
+  ```
+  #define WJR_HAS_DEBUG_XXX WJR_HAS_DEF_VAR(3) 
+  static_assert(WJR_HAS_DEBUG(XXX) == 3, "");
+  #define WJR_HAS_DEBUG_NO_XXX WJR_HAS_DEF
+  static_assert(WJR_HAS_DEBUG(XXX) == 0, "");
+  ```
+  目前定义了对应的 BUILTIN, ATTRIBUTE, FEATURE, SIMD, DEBUG。
+- 队列 (a, b, c) 的算法等   \
+  例如WJR_PP_QUEUE_TRANSFORM((a, b, c), f) -> (f(a), f(b), f(c))。  \
+  较为复杂，后续考虑简化实现。
+4. compressed_pair\<T, U\>    
+  压缩对，使用EBO（空基类优化）。   \
+  使用CRTP，一般与struct相比零开销。    \
+  使用 dctor (default constructor标记) 可以使用默认构造代替值初始化。   \
+  可使用成员函数get<0>, get<1>，或者first(), second()，或者operator[]\(std::integral_constant<B, index>\)   \
+  示例：
+  ```
+  compressed_pair<int, int> x;
+  x.first() == x.template get<0>() == x[0_zu]
+  ```
+5. tuple\<Args...\>   
+  与std::tuple规范相同。优化类似compressed_pair。
+6. span
+  span的一个简单C++17实现。
+7. inline_key
+  值和指针的统一接口。例如函数传参根据T的大小，是否trivial等使用T或const T&。   \
+  在B+树中使用inline_key进行优化，例如key为int, long等时显然可以使用值而非指针进行优化。    \
+  规范待调整。
+8. uninitialized
+  一系列使用分配器的uninitialized函数。 \
+  uninitialized类，可延迟构造，不进行析构，确保析构前为空。开启对应DEBUG level后会判断错误使用。
+9. lazy\<T\>
+  使用uninitialized实现，但会进行析构，需确保析构前不为空。
+10. math

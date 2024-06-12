@@ -311,9 +311,9 @@ public:
         }
     }
 
-    WJR_CONSTEXPR20 static void
-    uninitialized_construct(__default_vector_storage_impl &other, size_type size,
-                            size_type capacity, _Alty &al) {
+    WJR_CONSTEXPR20 static void uninitialized_construct(
+        __default_vector_storage_impl &other, size_type size, size_type capacity,
+        _Alty &al) noexcept(noexcept(allocate_at_least(al, capacity))) {
         if (capacity != 0) {
             const auto result = allocate_at_least(al, capacity);
 
@@ -510,7 +510,7 @@ public:
     }
 
 private:
-    static void __memcpy(pointer dst, const_pointer src, size_type count) {
+    static void __memcpy(pointer dst, const_pointer src, size_type count) noexcept {
         std::memcpy(dst, src, count * sizeof(T));
     }
 
@@ -587,15 +587,15 @@ public:
 
         if (m_storage.m_data != nullptr) {
             WJR_ASSERT_ASSUME_L2(capacity() != 0);
-            
+
             destroy_using_allocator(m_storage.m_data, m_storage.m_end, al);
             al.deallocate(m_storage.m_data, capacity());
         }
     }
 
-    WJR_CONSTEXPR20 static void
-    uninitialized_construct(__fixed_vector_storage_impl &other, size_type size,
-                            size_type capacity, _Alty &al) {
+    WJR_CONSTEXPR20 static void uninitialized_construct(
+        __fixed_vector_storage_impl &other, size_type size, size_type capacity,
+        _Alty &al) noexcept(noexcept(allocate_at_least(al, capacity))) {
         if (capacity != 0) {
             const auto result = allocate_at_least(al, capacity);
 
@@ -725,7 +725,7 @@ public:
         destroy(al);
         if (!__is_sso()) {
             WJR_ASSERT_ASSUME_L2(capacity() != 0);
-            
+
             al.deallocate(data(), capacity());
             m_storage.m_data = m_storage.m_storage;
         }
@@ -887,7 +887,7 @@ public:
     }
 
 private:
-    static void __memcpy(pointer dst, const_pointer src, size_type count) {
+    static void __memcpy(pointer dst, const_pointer src, size_type count) noexcept {
         std::memcpy(dst, src, count * sizeof(T));
     }
 

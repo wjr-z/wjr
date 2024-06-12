@@ -17,6 +17,7 @@
 *.exe
 *.out
 *.app
+*.zip
 
 CMakeFiles
 CMakeCache.txt
@@ -28,3 +29,6 @@ build
 *.vcxproj
 *.vcxproj.filters
 .VScodeCounter
+**/simdjson.hpp*
+**/simdjson.cpp*
+codeforces
