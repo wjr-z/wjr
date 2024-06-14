@@ -91,14 +91,58 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
 
 #endif
 
+#if !WJR_HAS_BUILTIN(CLZ)
+
+#if defined(WJR_MSVC)
+#define WJR_HAS_BUILTIN_MSVC_CLZ WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(MSVC_CLZ)
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_INLINE int builtin_msvc_clz_impl(T x) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+    if constexpr (nd < 32) {
+        return builtin_msvc_clz_impl(static_cast<uint32_t>(x)) - (32 - nd);
+    } else {
+        if constexpr (nd == 32) {
+            unsigned long result;
+            if (_BitScanReverse(&result, x)) {
+                return 31 - result;
+            }
+            return 0;
+        } else {
+            unsigned long result;
+            if (_BitScanReverse64(&result, x)) {
+                return 63 - result;
+            }
+            return 0;
+        }
+    }
+}
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_INLINE int builtin_msvc_clz(T x) noexcept {
+    return builtin_msvc_clz_impl(x);
+}
+
+#endif
+
+#endif
+
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz_impl(T x) noexcept {
-#if WJR_HAS_BUILTIN(CLZ)
+#if WJR_HAS_BUILTIN(CLZ) || WJR_HAS_BUILTIN(MSVC_CLZ)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
         return fallback_clz(x);
     }
 
+#if WJR_HAS_BUILTIN(CLZ)
     return builtin_clz(x);
+#else
+    return builtin_msvc_clz(x);
+#endif
 #else
     return fallback_clz(x);
 #endif

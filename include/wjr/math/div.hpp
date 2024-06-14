@@ -4,6 +4,7 @@
 #include <wjr/math/compare.hpp>
 #include <wjr/math/div-impl.hpp>
 #include <wjr/math/divider.hpp>
+#include <wjr/math/libdivide.hpp>
 
 #if defined(WJR_X86)
 #include <wjr/x86/math/div.hpp>

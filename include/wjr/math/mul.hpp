@@ -97,25 +97,25 @@ WJR_INTRINSIC_CONSTEXPR_E T mul(T a, T b, T &hi) noexcept {
     }
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T mulhi(T a, T b) noexcept {
-    T ret = 0;
-    (void)mul(a, b, ret);
-    return ret;
-}
-
 #if defined(WJR_MSVC) && defined(WJR_X86_64) && WJR_HAS_SIMD(X86_SIMD)
 #define WJR_HAS_BUILTIN_MSVC_MULHI64 WJR_HAS_DEF
 #endif
 
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T mulhi(T a, T b) noexcept {
 #if WJR_HAS_BUILTIN(MSVC_MULHI64)
-
-template <>
-WJR_CONST WJR_INTRINSIC_INLINE uint64_t mulhi<uint64_t>(uint64_t a, uint64_t b) noexcept {
-    return __umulh(a, b);
-}
-
+    constexpr auto nd = std::numeric_limits<T>::digits;
+    if constexpr (nd < 64) {
 #endif
+        T ret = 0;
+        (void)mul(a, b, ret);
+        return ret;
+#if WJR_HAS_BUILTIN(MSVC_MULHI64)
+    } else {
+        return __umulh(a, b);
+    }
+#endif
+}
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T mullo(T a, T b) noexcept {
