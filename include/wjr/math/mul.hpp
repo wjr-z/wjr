@@ -9,12 +9,11 @@
 #include <wjr/math/add.hpp>
 #include <wjr/math/bignum-config.hpp>
 #include <wjr/math/bit.hpp>
-#include <wjr/math/div-impl.hpp>
 #include <wjr/math/integral_constant.hpp>
 #include <wjr/math/shift.hpp>
-#include <wjr/math/stack_allocator.hpp>
 #include <wjr/math/sub.hpp>
 #include <wjr/memory/safe_array.hpp>
+#include <wjr/tuple.hpp>
 
 #if defined(WJR_X86)
 #include <wjr/x86/math/mul.hpp>

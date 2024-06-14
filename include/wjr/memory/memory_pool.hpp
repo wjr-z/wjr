@@ -2,8 +2,6 @@
 #define WJR_MEMORY_MEMORY_POOL_HPP__
 
 #include <wjr/container/intrusive/list.hpp>
-#include <wjr/crtp/trivially_allocator_base.hpp>
-#include <wjr/math/clz.hpp>
 #include <wjr/memory/details.hpp>
 
 namespace wjr {
@@ -24,9 +22,8 @@ private:
         char client_data[1];
     };
 
-    struct __list_node : list_node<> {};
-
     struct malloc_chunk {
+        struct __list_node : list_node<> {};
 
         malloc_chunk() noexcept { init(&head); }
         ~malloc_chunk() noexcept {
@@ -52,12 +49,11 @@ private:
         __list_node head;
     };
 
-    static WJR_INTRINSIC_CONSTEXPR WJR_CONST size_t __round_up(size_t bytes) noexcept {
+    WJR_CONST static constexpr size_t __round_up(size_t bytes) noexcept {
         return (((bytes) + 2048 - 1) & ~(2048 - 1));
     }
 
-    static WJR_INTRINSIC_CONSTEXPR WJR_CONST uint8_t
-    __get_index(uint16_t bytes) noexcept {
+    WJR_CONST static constexpr uint8_t __get_index(uint16_t bytes) noexcept {
         if (bytes <= 256) {
             return memory_pool_details::__ctz_table[(bytes - 1) >> 3];
         }
@@ -65,7 +61,7 @@ private:
         return memory_pool_details::__ctz_table[(bytes - 1) >> 9] + 6;
     }
 
-    static WJR_INTRINSIC_CONSTEXPR WJR_CONST uint16_t __get_size(uint8_t idx) noexcept {
+    WJR_CONST static constexpr uint16_t __get_size(uint8_t idx) noexcept {
         return (uint16_t)(1) << (idx + 3);
     }
 
@@ -99,7 +95,7 @@ public:
         }
 
         // n must be > 0
-        allocation_result<void *> allocate(size_t n) noexcept {
+        WJR_INTRINSIC_INLINE allocation_result<void *> allocate(size_t n) noexcept {
             if (WJR_LIKELY(n <= 16384)) {
                 return __small_allocate(n);
             }

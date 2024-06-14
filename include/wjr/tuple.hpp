@@ -63,15 +63,14 @@ class tuple_impl;
 
 template <size_t... Indexs, typename... Args>
 class WJR_EMPTY_BASES tuple_impl<std::index_sequence<Indexs...>, Args...>
-    : capture_leaf<std::tuple_element_t<Indexs, tuple<Args...>>,
+    : capture_leaf<Args,
                    enable_base_identity_t<
                        Indexs, tuple_impl<std::index_sequence<Indexs...>, Args...>>>...,
       enable_special_members_of_args_base<
           tuple_impl<std::index_sequence<Indexs...>, Args...>,
-          capture_leaf<
-              std::tuple_element_t<Indexs, tuple<Args...>>,
-              enable_base_identity_t<
-                  Indexs, tuple_impl<std::index_sequence<Indexs...>, Args...>>>...> {
+          capture_leaf<Args, enable_base_identity_t<
+                                 Indexs, tuple_impl<std::index_sequence<Indexs...>,
+                                                    Args...>>>...> {
     using Sequence = std::index_sequence<Indexs...>;
 
     template <size_t Idx>
@@ -79,9 +78,8 @@ class WJR_EMPTY_BASES tuple_impl<std::index_sequence<Indexs...>, Args...>
                                 enable_base_identity_t<Idx, tuple_impl>>;
 
     using Mybase2 = enable_special_members_of_args_base<
-        tuple_impl<std::index_sequence<Indexs...>, Args...>,
-        capture_leaf<std::tuple_element_t<Indexs, tuple<Args...>>,
-                     enable_base_identity_t<Indexs, tuple_impl>>...>;
+        tuple_impl<Sequence, Args...>,
+        capture_leaf<Args, enable_base_identity_t<Indexs, tuple_impl>>...>;
 
     constexpr static size_t Size = sizeof...(Args);
 

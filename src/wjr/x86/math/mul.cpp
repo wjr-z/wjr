@@ -1,6 +1,3 @@
-#include <cstddef>
-#include <cstdint>
-
 #include <wjr/assert.hpp>
 #include <wjr/x86/math/mul-impl.hpp>
 

@@ -60,12 +60,6 @@ inline constexpr bool is_list_tag_v = is_list_tag<Tag>::value;
 template <typename Tag>
 using list_obj_t = typename Tag::obj_type;
 
-template <typename Tag, WJR_REQUIRES(is_list_tag_v<Tag>)>
-constexpr list_obj_t<Tag> *get(list_node<Tag> *node) noexcept;
-
-template <typename Tag, WJR_REQUIRES(is_list_tag_v<Tag>)>
-constexpr const list_obj_t<Tag> *get(const list_node<Tag> *node) noexcept;
-
 template <typename T>
 class list_node_const_iterator {
     using node_type = list_node<T>;
@@ -230,22 +224,22 @@ struct list_node {
 
     template <typename U = Tag, WJR_REQUIRES(is_list_tag_v<U>)>
     constexpr list_obj_t<U> *operator->() noexcept {
-        return wjr::get(this);
+        return static_cast<list_obj_t<Tag> *>(this);
     }
 
     template <typename U = Tag, WJR_REQUIRES(is_list_tag_v<U>)>
     constexpr const list_obj_t<U> *operator->() const noexcept {
-        return wjr::get(this);
+        return static_cast<const list_obj_t<Tag> *>(this);
     }
 
     template <typename U = Tag, WJR_REQUIRES(is_list_tag_v<U>)>
     constexpr list_obj_t<U> &operator*() noexcept {
-        return *wjr::get(this);
+        return *operator->();
     }
 
     template <typename U = Tag, WJR_REQUIRES(is_list_tag_v<U>)>
     constexpr const list_obj_t<U> &operator*() const noexcept {
-        return *wjr::get(this);
+        return *operator->();
     }
 
     list_node *m_prev;
@@ -314,16 +308,6 @@ constexpr void replace_uninit(list_node<T> *from, list_node<T> *to) noexcept {
     to->m_next = from->m_next;
     from->m_prev->m_next = to;
     from->m_next->m_prev = to;
-}
-
-template <typename Tag, WJR_REQUIRES_I(is_list_tag_v<Tag>)>
-constexpr list_obj_t<Tag> *get(list_node<Tag> *node) noexcept {
-    return static_cast<list_obj_t<Tag> *>(node);
-}
-
-template <typename Tag, WJR_REQUIRES_I(is_list_tag_v<Tag>)>
-constexpr const list_obj_t<Tag> *get(const list_node<Tag> *node) noexcept {
-    return static_cast<const list_obj_t<Tag> *>(node);
 }
 
 } // namespace wjr

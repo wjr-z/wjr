@@ -176,14 +176,6 @@ using uint_t = typename __uint_selector<n>::type;
 template <size_t n>
 using int_t = typename __int_selector<n>::type;
 
-#if WJR_HAS_FEATURE(INT128)
-using int128_t = int_t<128>;
-#endif
-
-#if WJR_HAS_FEATURE(INT128)
-using uint128_t = uint_t<128>;
-#endif
-
 template <size_t n, bool __s>
 using usint_t = std::conditional_t<__s, int_t<n>, uint_t<n>>;
 

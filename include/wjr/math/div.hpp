@@ -69,7 +69,7 @@ WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint6
     return div128by64to64_impl(rem, lo, hi, wjr::div2by1_divider<uint64_t>(div));
 }
 
-WJR_INLINE_CONSTEXPR20 tuple<uint64_t, uint64_t>
+inline uint128_t
 div128by64to128_noshift(uint64_t &rem, uint64_t lo, uint64_t hi,
                         const div2by1_divider_noshift<uint64_t> &divider) noexcept {
     const auto divisor = divider.get_divisor();
@@ -82,10 +82,10 @@ div128by64to128_noshift(uint64_t &rem, uint64_t lo, uint64_t hi,
 
     q0 = divider.divide(lo, hi);
     rem = hi;
-    return std::make_pair(q0, q1);
+    return {q0, q1};
 }
 
-inline tuple<uint64_t, uint64_t>
+inline uint128_t
 div128by64to128_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
                       const div2by1_divider<uint64_t> &divider) noexcept {
     const auto shift = divider.get_shift();
@@ -101,12 +101,11 @@ div128by64to128_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
     q0 = div.divide(u0, u2);
 
     rem = u2 >> shift;
-    return std::make_pair(q0, q1);
+    return {q0, q1};
 }
 
-inline tuple<uint64_t, uint64_t>
-div128by64to128_impl(uint64_t &rem, uint64_t lo, uint64_t hi,
-                     const div2by1_divider<uint64_t> &divider) noexcept {
+inline uint128_t div128by64to128_impl(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                      const div2by1_divider<uint64_t> &divider) noexcept {
     if (divider.get_shift() == 0) {
         return div128by64to128_noshift(rem, lo, hi, divider);
     }
@@ -118,9 +117,8 @@ div128by64to128_impl(uint64_t &rem, uint64_t lo, uint64_t hi,
  not optimize for divider that is power of 2,
  manually consider whether it needs to be optimized
 */
-inline tuple<uint64_t, uint64_t>
-div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
-                const div2by1_divider<uint64_t> &divider) noexcept {
+inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                 const div2by1_divider<uint64_t> &divider) noexcept {
     return div128by64to128_impl(rem, lo, hi, divider);
 }
 
@@ -128,8 +126,8 @@ div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
  not optimize for divider that is power of 2,
  manually consider whether it needs to be optimized
 */
-inline tuple<uint64_t, uint64_t> div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
-                                                 uint64_t div) noexcept {
+inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                 uint64_t div) noexcept {
     return div128by64to128_impl(rem, lo, hi, div2by1_divider<uint64_t>(div));
 }
 

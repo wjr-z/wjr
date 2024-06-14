@@ -11,6 +11,7 @@
 #include <wjr/math/div.hpp>
 #include <wjr/math/precompute-chars-convert.hpp>
 #include <wjr/memory/copy.hpp>
+#include <wjr/math/stack_allocator.hpp>
 
 #if defined(WJR_X86)
 #include <wjr/x86/math/convert.hpp>

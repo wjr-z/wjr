@@ -14,12 +14,8 @@ public:
     constexpr static uint8_t mv = digits == 32 ? 27 : 58;
     constexpr de_bruijn() noexcept : lookup(), lookupr() { initialize(); }
 
-    WJR_INTRINSIC_CONSTEXPR int get(T idx) const noexcept {
-        return lookup[(idx * seed) >> mv];
-    }
-    WJR_INTRINSIC_CONSTEXPR int getr(T idx) const noexcept {
-        return lookupr[(idx * seed) >> mv];
-    }
+    constexpr int get(T idx) const noexcept { return lookup[(idx * seed) >> mv]; }
+    constexpr int getr(T idx) const noexcept { return lookupr[(idx * seed) >> mv]; }
 
 private:
     constexpr void initialize() noexcept {
@@ -42,7 +38,7 @@ inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
 // preview ...
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR bool is_zero_or_single_bit(T n) noexcept {
+WJR_CONST constexpr bool is_zero_or_single_bit(T n) noexcept {
     return (n & (n - 1)) == 0;
 }
 
@@ -52,12 +48,12 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool is_zero_or_single_bit(T n) noexcept {
  * @note `n & -n` is the lowest bit of n.
  */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T lowbit(T n) noexcept {
+WJR_CONST constexpr T lowbit(T n) noexcept {
     return n & -n;
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T clear_lowbit(T n) noexcept {
+WJR_CONST constexpr T clear_lowbit(T n) noexcept {
     return n & (n - 1);
 }
 
@@ -74,39 +70,35 @@ WJR_CONST constexpr decltype(auto) to_unsigned(Value value) noexcept {
 // preview :
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR bool __has_high_bit(T n) noexcept {
+WJR_CONST constexpr bool __has_high_bit(T n) noexcept {
     return n >> (std::numeric_limits<T>::digits - 1);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T __ceil_div(T n, type_identity_t<T> div) noexcept {
+WJR_CONST constexpr T __ceil_div(T n, type_identity_t<T> div) noexcept {
     return (n + div - 1) / div;
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_down(T n,
-                                                 type_identity_t<T> alignment) noexcept {
+WJR_CONST constexpr T __align_down(T n, type_identity_t<T> alignment) noexcept {
     WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
     return n & (-alignment);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T
-__align_down_offset(T n, type_identity_t<T> alignment) noexcept {
+WJR_CONST constexpr T __align_down_offset(T n, type_identity_t<T> alignment) noexcept {
     WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
     return n & (alignment - 1);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up(T n,
-                                               type_identity_t<T> alignment) noexcept {
+WJR_CONST constexpr T __align_up(T n, type_identity_t<T> alignment) noexcept {
     WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
     return (n + alignment - 1) & (-alignment);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T
-__align_up_offset(T n, type_identity_t<T> alignment) noexcept {
+WJR_CONST constexpr T __align_up_offset(T n, type_identity_t<T> alignment) noexcept {
     WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
     return (-n) & (alignment - 1);
 }

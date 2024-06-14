@@ -2508,44 +2508,31 @@ WJR_NORETURN extern void __assert_failed(const char *expr, const char *file,
 // LCOV_EXCL_START
 
 /// @private
-class __assert_handler_t {
-private:
-    WJR_NORETURN static void fn(const char *expr, const char *file, const char *func,
-                                int line) noexcept {
-        __assert_failed(expr, file, func, line);
-    }
+template <typename... Args>
+WJR_NORETURN WJR_NOINLINE void __assert_handler(const char *expr, const char *file,
+                                                const char *func, int line,
+                                                Args &&...args) noexcept {
+    std::cerr << "Additional information: ";
+    (void)(std::cerr << ... << std::forward<Args>(args));
+    std::cerr << '\n';
+    __assert_failed(expr, file, func, line);
+}
 
-    template <typename... Args>
-    WJR_NORETURN WJR_NOINLINE static void fn(const char *expr, const char *file,
-                                             const char *func, int line,
-                                             Args &&...args) noexcept {
-        std::cerr << "Additional information: ";
-        (void)(std::cerr << ... << std::forward<Args>(args));
-        std::cerr << '\n';
-        __assert_failed(expr, file, func, line);
-    }
-
-public:
-    template <typename... Args>
-    WJR_NORETURN void operator()(const char *expr, const char *file, const char *func,
-                                 int line, Args &&...args) const noexcept {
-        fn(expr, file, func, line, std::forward<Args>(args)...);
-    }
-};
-
-inline constexpr __assert_handler_t __assert_handler{};
+/// @private
+WJR_NORETURN inline void __assert_handler(const char *expr, const char *file,
+                                          const char *func, int line) noexcept {
+    __assert_failed(expr, file, func, line);
+}
 
 // LCOV_EXCL_STOP
 
-#define WJR_ASSERT_CHECK_I_HANDLER(handler, expr, ...)                                   \
+#define WJR_ASSERT_CHECK_I(expr, ...)                                                    \
     do {                                                                                 \
         if (WJR_UNLIKELY(!(expr))) {                                                     \
-            handler(#expr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE, ##__VA_ARGS__);     \
+            ::wjr::__assert_handler(#expr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE,     \
+                                    ##__VA_ARGS__);                                      \
         }                                                                                \
     } while (0)
-
-#define WJR_ASSERT_CHECK_I(...)                                                          \
-    WJR_ASSERT_CHECK_I_HANDLER(::wjr::__assert_handler, __VA_ARGS__)
 
 // do nothing
 #define WJR_ASSERT_UNCHECK_I(expr, ...)                                                  \
@@ -3039,14 +3026,6 @@ using uint_t = typename __uint_selector<n>::type;
 
 template <size_t n>
 using int_t = typename __int_selector<n>::type;
-
-#if WJR_HAS_FEATURE(INT128)
-using int128_t = int_t<128>;
-#endif
-
-#if WJR_HAS_FEATURE(INT128)
-using uint128_t = uint_t<128>;
-#endif
 
 template <size_t n, bool __s>
 using usint_t = std::conditional_t<__s, int_t<n>, uint_t<n>>;
@@ -6156,12 +6135,8 @@ public:
     constexpr static uint8_t mv = digits == 32 ? 27 : 58;
     constexpr de_bruijn() noexcept : lookup(), lookupr() { initialize(); }
 
-    WJR_INTRINSIC_CONSTEXPR int get(T idx) const noexcept {
-        return lookup[(idx * seed) >> mv];
-    }
-    WJR_INTRINSIC_CONSTEXPR int getr(T idx) const noexcept {
-        return lookupr[(idx * seed) >> mv];
-    }
+    constexpr int get(T idx) const noexcept { return lookup[(idx * seed) >> mv]; }
+    constexpr int getr(T idx) const noexcept { return lookupr[(idx * seed) >> mv]; }
 
 private:
     constexpr void initialize() noexcept {
@@ -6184,7 +6159,7 @@ inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
 // preview ...
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR bool is_zero_or_single_bit(T n) noexcept {
+WJR_CONST constexpr bool is_zero_or_single_bit(T n) noexcept {
     return (n & (n - 1)) == 0;
 }
 
@@ -6194,12 +6169,12 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool is_zero_or_single_bit(T n) noexcept {
  * @note `n & -n` is the lowest bit of n.
  */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T lowbit(T n) noexcept {
+WJR_CONST constexpr T lowbit(T n) noexcept {
     return n & -n;
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T clear_lowbit(T n) noexcept {
+WJR_CONST constexpr T clear_lowbit(T n) noexcept {
     return n & (n - 1);
 }
 
@@ -6216,39 +6191,35 @@ WJR_CONST constexpr decltype(auto) to_unsigned(Value value) noexcept {
 // preview :
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR bool __has_high_bit(T n) noexcept {
+WJR_CONST constexpr bool __has_high_bit(T n) noexcept {
     return n >> (std::numeric_limits<T>::digits - 1);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T __ceil_div(T n, type_identity_t<T> div) noexcept {
+WJR_CONST constexpr T __ceil_div(T n, type_identity_t<T> div) noexcept {
     return (n + div - 1) / div;
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_down(T n,
-                                                 type_identity_t<T> alignment) noexcept {
+WJR_CONST constexpr T __align_down(T n, type_identity_t<T> alignment) noexcept {
     WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
     return n & (-alignment);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T
-__align_down_offset(T n, type_identity_t<T> alignment) noexcept {
+WJR_CONST constexpr T __align_down_offset(T n, type_identity_t<T> alignment) noexcept {
     WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
     return n & (alignment - 1);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T __align_up(T n,
-                                               type_identity_t<T> alignment) noexcept {
+WJR_CONST constexpr T __align_up(T n, type_identity_t<T> alignment) noexcept {
     WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
     return (n + alignment - 1) & (-alignment);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR T
-__align_up_offset(T n, type_identity_t<T> alignment) noexcept {
+WJR_CONST constexpr T __align_up_offset(T n, type_identity_t<T> alignment) noexcept {
     WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
     return (-n) & (alignment - 1);
 }
@@ -6944,12 +6915,6 @@ inline constexpr bool is_list_tag_v = is_list_tag<Tag>::value;
 template <typename Tag>
 using list_obj_t = typename Tag::obj_type;
 
-template <typename Tag, WJR_REQUIRES(is_list_tag_v<Tag>)>
-constexpr list_obj_t<Tag> *get(list_node<Tag> *node) noexcept;
-
-template <typename Tag, WJR_REQUIRES(is_list_tag_v<Tag>)>
-constexpr const list_obj_t<Tag> *get(const list_node<Tag> *node) noexcept;
-
 template <typename T>
 class list_node_const_iterator {
     using node_type = list_node<T>;
@@ -7114,22 +7079,22 @@ struct list_node {
 
     template <typename U = Tag, WJR_REQUIRES(is_list_tag_v<U>)>
     constexpr list_obj_t<U> *operator->() noexcept {
-        return wjr::get(this);
+        return static_cast<list_obj_t<Tag> *>(this);
     }
 
     template <typename U = Tag, WJR_REQUIRES(is_list_tag_v<U>)>
     constexpr const list_obj_t<U> *operator->() const noexcept {
-        return wjr::get(this);
+        return static_cast<const list_obj_t<Tag> *>(this);
     }
 
     template <typename U = Tag, WJR_REQUIRES(is_list_tag_v<U>)>
     constexpr list_obj_t<U> &operator*() noexcept {
-        return *wjr::get(this);
+        return *operator->();
     }
 
     template <typename U = Tag, WJR_REQUIRES(is_list_tag_v<U>)>
     constexpr const list_obj_t<U> &operator*() const noexcept {
-        return *wjr::get(this);
+        return *operator->();
     }
 
     list_node *m_prev;
@@ -7200,314 +7165,9 @@ constexpr void replace_uninit(list_node<T> *from, list_node<T> *to) noexcept {
     from->m_next->m_prev = to;
 }
 
-template <typename Tag, WJR_REQUIRES_I(is_list_tag_v<Tag>)>
-constexpr list_obj_t<Tag> *get(list_node<Tag> *node) noexcept {
-    return static_cast<list_obj_t<Tag> *>(node);
-}
-
-template <typename Tag, WJR_REQUIRES_I(is_list_tag_v<Tag>)>
-constexpr const list_obj_t<Tag> *get(const list_node<Tag> *node) noexcept {
-    return static_cast<const list_obj_t<Tag> *>(node);
-}
-
 } // namespace wjr
 
 #endif // WJR_CONTAINER_INTRUSIVE_LIST_HPP__
-#ifndef WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
-#define WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
-
-// Already included
-
-namespace wjr {
-
-WJR_REGISTER_HAS_TYPE(is_trivially_allocator,
-                      std::declval<typename Alloc::is_trivially_allocator>(), Alloc);
-WJR_REGISTER_HAS_TYPE(
-    is_trivially_allocator_constructible,
-    std::declval<typename Alloc::is_trivially_allocator_constructible>(), Alloc);
-
-WJR_REGISTER_HAS_TYPE(is_trivially_allocator_destructible,
-                      std::declval<typename Alloc::is_trivially_allocator_destructible>(),
-                      Alloc);
-
-/// @private
-template <typename Alloc, typename = void>
-struct __is_trivially_allocator_impl : std::false_type {};
-
-/// @private
-template <typename Alloc>
-struct __is_trivially_allocator_impl<
-    Alloc, std::enable_if_t<has_is_trivially_allocator_v<Alloc>>>
-    : Alloc::is_trivially_allocator {};
-
-/**
- * @brief Default construct, destruct allocator.
- *
- * @details If `Alloc::is_trivially_allocator` is not defined or
- * `Alloc::is_trivially_allocator` is `std::false_type`, derive from `std::false_type`. \n
- * If is_trivially_allocator_v is true, then `construct_at_using_allocator` and
- * `destroy_at_using_allocator` are same as `construct_at` and `destroy_at`.
- *
- */
-template <typename Alloc>
-struct is_trivially_allocator : __is_trivially_allocator_impl<Alloc> {};
-
-template <typename T>
-struct is_trivially_allocator<std::allocator<T>> : std::true_type {};
-
-template <typename Alloc>
-inline constexpr bool is_trivially_allocator_v = is_trivially_allocator<Alloc>::value;
-
-/// @private
-template <typename Alloc, typename = void>
-struct __is_trivially_allocator_constructible_impl : std::false_type {};
-
-/// @private
-template <typename Alloc>
-struct __is_trivially_allocator_constructible_impl<
-    Alloc, std::enable_if_t<has_is_trivially_allocator_constructible_v<Alloc>>>
-    : Alloc::is_trivially_allocator_constructible {};
-
-template <typename Alloc>
-struct is_trivially_allocator_constructible
-    : std::disjunction<__is_trivially_allocator_constructible_impl<Alloc>,
-                       is_trivially_allocator<Alloc>> {};
-
-template <typename Alloc>
-inline constexpr bool is_trivially_allocator_constructible_v =
-    is_trivially_allocator_constructible<Alloc>::value;
-
-/// @private
-template <typename Alloc, typename = void>
-struct __is_trivially_allocator_destructible_impl : std::false_type {};
-
-/// @private
-template <typename Alloc>
-struct __is_trivially_allocator_destructible_impl<
-    Alloc, std::enable_if_t<has_is_trivially_allocator_destructible_v<Alloc>>>
-    : Alloc::is_trivially_allocator_destructible {};
-
-template <typename Alloc>
-struct is_trivially_allocator_destructible
-    : std::disjunction<__is_trivially_allocator_destructible_impl<Alloc>,
-                       is_trivially_allocator<Alloc>> {};
-
-template <typename Alloc>
-inline constexpr bool is_trivially_allocator_destructible_v =
-    is_trivially_allocator_destructible<Alloc>::value;
-
-template <typename Alloc>
-struct trivially_allocator_traits {
-    using is_trivially = is_trivially_allocator<Alloc>;
-    using is_trivially_constructible = is_trivially_allocator_constructible<Alloc>;
-    using is_trivially_destructible = is_trivially_allocator_destructible<Alloc>;
-};
-
-} // namespace wjr
-
-#endif // WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
-#ifndef WJR_MATH_CLZ_HPP__
-#define WJR_MATH_CLZ_HPP__
-
-// Already included
-#ifndef WJR_MATH_POPCOUNT_HPP__
-#define WJR_MATH_POPCOUNT_HPP__
-
-// Already included
-
-namespace wjr {
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR int fallback_popcount(T x) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-    if constexpr (nd < 32) {
-        return fallback_popcount(static_cast<uint32_t>(x));
-    } else {
-        if constexpr (nd == 32) {
-            x -= (x >> 1) & 0x5555'5555;
-            x = (x & 0x3333'3333) + ((x >> 2) & 0x3333'3333);
-            x = (x + (x >> 4)) & 0x0f0f'0f0f;
-            return (x * 0x0101'0101) >> 24;
-        } else {
-            x -= (x >> 1) & 0x5555'5555'5555'5555;
-            x = (x & 0x3333'3333'3333'3333) + ((x >> 2) & 0x3333'3333'3333'3333);
-            x = (x + (x >> 4)) & 0x0f0f'0f0f'0f0f'0f0f;
-            return (x * 0x0101'0101'0101'0101) >> 56;
-        }
-    }
-}
-
-#if WJR_HAS_BUILTIN(__builtin_popcount)
-#define WJR_HAS_BUILTIN_POPCOUNT WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_BUILTIN(POPCOUNT)
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_INLINE int builtin_popcount(T x) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-    if constexpr (nd < 32) {
-        return builtin_popcount(static_cast<uint32_t>(x));
-    } else {
-        if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
-            return __builtin_popcount(x);
-        } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
-            return __builtin_popcountl(x);
-        }
-        if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
-            return __builtin_popcountll(x);
-        } else {
-            static_assert(nd <= 64, "not support yet");
-        }
-    }
-}
-
-#endif // WJR_HAS_BUILTIN(POPCOUNT)
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int popcount_impl(T x) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(x)) && is_zero_or_single_bit(x)) {
-        return x != 0;
-    }
-
-#if WJR_HAS_BUILTIN(POPCOUNT)
-    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
-        return fallback_popcount(x);
-    }
-
-    return builtin_popcount(x);
-#else
-    return fallback_popcount(x);
-#endif
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int popcount(T x) noexcept {
-    const int ret = popcount_impl(x);
-    WJR_ASSUME(0 <= ret && ret <= std::numeric_limits<T>::digits);
-    return ret;
-}
-
-} // namespace wjr
-
-#endif // WJR_MATH_POPCOUNT_HPP__
-
-namespace wjr {
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int fallback_clz_impl(T x) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
-    if constexpr (nd >= 32) {
-#endif
-        x |= (x >> 1);
-        x |= (x >> 2);
-        x |= (x >> 4);
-
-        if constexpr (nd >= 16) {
-            x |= (x >> 8);
-        }
-
-        if constexpr (nd >= 32) {
-            x |= (x >> 16);
-        }
-
-        if constexpr (nd >= 64) {
-            x |= (x >> 32);
-        }
-#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
-    }
-#endif
-
-#if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
-    return popcount<T>(~x);
-#else
-    if constexpr (nd < 32) {
-        return fallback_clz_impl(static_cast<uint32_t>(x)) - (32 - nd);
-    } else {
-        ++x;
-
-        if constexpr (nd <= 32) {
-            return math_details::de_bruijn32.getr(x);
-        } else if constexpr (nd <= 64) {
-            return math_details::de_bruijn64.getr(x);
-        } else {
-            static_assert(nd <= 64, "not support yet");
-        }
-    }
-#endif
-}
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int fallback_clz(T x) noexcept {
-    return fallback_clz_impl(x);
-}
-
-#if WJR_HAS_BUILTIN(__builtin_clz)
-#define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_BUILTIN(CLZ)
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz_impl(T x) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-    if constexpr (nd < 32) {
-        return builtin_clz_impl(static_cast<uint32_t>(x)) - (32 - nd);
-    } else {
-        if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
-            constexpr auto delta = std::numeric_limits<unsigned int>::digits - nd;
-            return __builtin_clz(static_cast<unsigned int>(x)) - delta;
-        } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
-            constexpr auto delta = std::numeric_limits<unsigned long>::digits - nd;
-            return __builtin_clzl(static_cast<unsigned long>(x)) - delta;
-        } else if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
-            constexpr auto delta = std::numeric_limits<unsigned long long>::digits - nd;
-            return __builtin_clzll(static_cast<unsigned long long>(x)) - delta;
-        } else {
-            static_assert(nd <= 64, "not supported yet");
-        }
-    }
-}
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
-    return builtin_clz_impl(x);
-}
-
-#endif
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz_impl(T x) noexcept {
-#if WJR_HAS_BUILTIN(CLZ)
-    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
-        return fallback_clz(x);
-    }
-
-    return builtin_clz(x);
-#else
-    return fallback_clz(x);
-#endif
-}
-
-/**
- * @brief Fast count leading zeros
- *
- * @tparam T Must be an unsigned integral type
- */
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz(T x) noexcept {
-    WJR_ASSERT_ASSUME_L2(x != 0);
-    const int ret = clz_impl(x);
-    WJR_ASSUME(0 <= ret && ret < std::numeric_limits<T>::digits);
-    return ret;
-}
-
-} // namespace wjr
-
-#endif // WJR_MATH_CLZ_HPP__
 // Already included
 
 namespace wjr {
@@ -7528,9 +7188,8 @@ private:
         char client_data[1];
     };
 
-    struct __list_node : list_node<> {};
-
     struct malloc_chunk {
+        struct __list_node : list_node<> {};
 
         malloc_chunk() noexcept { init(&head); }
         ~malloc_chunk() noexcept {
@@ -7556,12 +7215,11 @@ private:
         __list_node head;
     };
 
-    static WJR_INTRINSIC_CONSTEXPR WJR_CONST size_t __round_up(size_t bytes) noexcept {
+    WJR_CONST static constexpr size_t __round_up(size_t bytes) noexcept {
         return (((bytes) + 2048 - 1) & ~(2048 - 1));
     }
 
-    static WJR_INTRINSIC_CONSTEXPR WJR_CONST uint8_t
-    __get_index(uint16_t bytes) noexcept {
+    WJR_CONST static constexpr uint8_t __get_index(uint16_t bytes) noexcept {
         if (bytes <= 256) {
             return memory_pool_details::__ctz_table[(bytes - 1) >> 3];
         }
@@ -7569,7 +7227,7 @@ private:
         return memory_pool_details::__ctz_table[(bytes - 1) >> 9] + 6;
     }
 
-    static WJR_INTRINSIC_CONSTEXPR WJR_CONST uint16_t __get_size(uint8_t idx) noexcept {
+    WJR_CONST static constexpr uint16_t __get_size(uint8_t idx) noexcept {
         return (uint16_t)(1) << (idx + 3);
     }
 
@@ -7603,7 +7261,7 @@ public:
         }
 
         // n must be > 0
-        allocation_result<void *> allocate(size_t n) noexcept {
+        WJR_INTRINSIC_INLINE allocation_result<void *> allocate(size_t n) noexcept {
             if (WJR_LIKELY(n <= 16384)) {
                 return __small_allocate(n);
             }
@@ -7772,7 +7430,99 @@ constexpr bool operator!=(const memory_pool<T> &, const memory_pool<U> &) noexce
  */
 
 // Already included
+#ifndef WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
+#define WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
+
 // Already included
+
+namespace wjr {
+
+WJR_REGISTER_HAS_TYPE(is_trivially_allocator,
+                      std::declval<typename Alloc::is_trivially_allocator>(), Alloc);
+WJR_REGISTER_HAS_TYPE(
+    is_trivially_allocator_constructible,
+    std::declval<typename Alloc::is_trivially_allocator_constructible>(), Alloc);
+
+WJR_REGISTER_HAS_TYPE(is_trivially_allocator_destructible,
+                      std::declval<typename Alloc::is_trivially_allocator_destructible>(),
+                      Alloc);
+
+/// @private
+template <typename Alloc, typename = void>
+struct __is_trivially_allocator_impl : std::false_type {};
+
+/// @private
+template <typename Alloc>
+struct __is_trivially_allocator_impl<
+    Alloc, std::enable_if_t<has_is_trivially_allocator_v<Alloc>>>
+    : Alloc::is_trivially_allocator {};
+
+/**
+ * @brief Default construct, destruct allocator.
+ *
+ * @details If `Alloc::is_trivially_allocator` is not defined or
+ * `Alloc::is_trivially_allocator` is `std::false_type`, derive from `std::false_type`. \n
+ * If is_trivially_allocator_v is true, then `construct_at_using_allocator` and
+ * `destroy_at_using_allocator` are same as `construct_at` and `destroy_at`.
+ *
+ */
+template <typename Alloc>
+struct is_trivially_allocator : __is_trivially_allocator_impl<Alloc> {};
+
+template <typename T>
+struct is_trivially_allocator<std::allocator<T>> : std::true_type {};
+
+template <typename Alloc>
+inline constexpr bool is_trivially_allocator_v = is_trivially_allocator<Alloc>::value;
+
+/// @private
+template <typename Alloc, typename = void>
+struct __is_trivially_allocator_constructible_impl : std::false_type {};
+
+/// @private
+template <typename Alloc>
+struct __is_trivially_allocator_constructible_impl<
+    Alloc, std::enable_if_t<has_is_trivially_allocator_constructible_v<Alloc>>>
+    : Alloc::is_trivially_allocator_constructible {};
+
+template <typename Alloc>
+struct is_trivially_allocator_constructible
+    : std::disjunction<__is_trivially_allocator_constructible_impl<Alloc>,
+                       is_trivially_allocator<Alloc>> {};
+
+template <typename Alloc>
+inline constexpr bool is_trivially_allocator_constructible_v =
+    is_trivially_allocator_constructible<Alloc>::value;
+
+/// @private
+template <typename Alloc, typename = void>
+struct __is_trivially_allocator_destructible_impl : std::false_type {};
+
+/// @private
+template <typename Alloc>
+struct __is_trivially_allocator_destructible_impl<
+    Alloc, std::enable_if_t<has_is_trivially_allocator_destructible_v<Alloc>>>
+    : Alloc::is_trivially_allocator_destructible {};
+
+template <typename Alloc>
+struct is_trivially_allocator_destructible
+    : std::disjunction<__is_trivially_allocator_destructible_impl<Alloc>,
+                       is_trivially_allocator<Alloc>> {};
+
+template <typename Alloc>
+inline constexpr bool is_trivially_allocator_destructible_v =
+    is_trivially_allocator_destructible<Alloc>::value;
+
+template <typename Alloc>
+struct trivially_allocator_traits {
+    using is_trivially = is_trivially_allocator<Alloc>;
+    using is_trivially_constructible = is_trivially_allocator_constructible<Alloc>;
+    using is_trivially_destructible = is_trivially_allocator_destructible<Alloc>;
+};
+
+} // namespace wjr
+
+#endif // WJR_CRTP_TRIVIALLY_ALLOCATOR_BASE_HPP__
 // Already included
 
 namespace wjr {
@@ -10618,7 +10368,252 @@ struct container_traits<basic_vector<Storage>>
 #ifndef WJR_MATH_BIT_HPP__
 #define WJR_MATH_BIT_HPP__
 
+#ifndef WJR_MATH_CLZ_HPP__
+#define WJR_MATH_CLZ_HPP__
+
 // Already included
+#ifndef WJR_MATH_POPCOUNT_HPP__
+#define WJR_MATH_POPCOUNT_HPP__
+
+// Already included
+
+namespace wjr {
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR int fallback_popcount(T x) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+    if constexpr (nd < 32) {
+        return fallback_popcount(static_cast<uint32_t>(x));
+    } else {
+        if constexpr (nd == 32) {
+            x -= (x >> 1) & 0x5555'5555;
+            x = (x & 0x3333'3333) + ((x >> 2) & 0x3333'3333);
+            x = (x + (x >> 4)) & 0x0f0f'0f0f;
+            return (x * 0x0101'0101) >> 24;
+        } else {
+            x -= (x >> 1) & 0x5555'5555'5555'5555;
+            x = (x & 0x3333'3333'3333'3333) + ((x >> 2) & 0x3333'3333'3333'3333);
+            x = (x + (x >> 4)) & 0x0f0f'0f0f'0f0f'0f0f;
+            return (x * 0x0101'0101'0101'0101) >> 56;
+        }
+    }
+}
+
+#if WJR_HAS_BUILTIN(__builtin_popcount)
+#define WJR_HAS_BUILTIN_POPCOUNT WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(POPCOUNT)
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_INLINE int builtin_popcount(T x) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+    if constexpr (nd < 32) {
+        return builtin_popcount(static_cast<uint32_t>(x));
+    } else {
+        if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
+            return __builtin_popcount(x);
+        } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
+            return __builtin_popcountl(x);
+        }
+        if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
+            return __builtin_popcountll(x);
+        } else {
+            static_assert(nd <= 64, "not support yet");
+        }
+    }
+}
+
+#endif // WJR_HAS_BUILTIN(POPCOUNT)
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int popcount_impl(T x) noexcept {
+    if (WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(x)) && is_zero_or_single_bit(x)) {
+        return x != 0;
+    }
+
+#if WJR_HAS_BUILTIN(POPCOUNT)
+    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
+        return fallback_popcount(x);
+    }
+
+    return builtin_popcount(x);
+#else
+    return fallback_popcount(x);
+#endif
+}
+
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int popcount(T x) noexcept {
+    const int ret = popcount_impl(x);
+    WJR_ASSUME(0 <= ret && ret <= std::numeric_limits<T>::digits);
+    return ret;
+}
+
+} // namespace wjr
+
+#endif // WJR_MATH_POPCOUNT_HPP__
+
+namespace wjr {
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int fallback_clz_impl(T x) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
+    if constexpr (nd >= 32) {
+#endif
+        x |= (x >> 1);
+        x |= (x >> 2);
+        x |= (x >> 4);
+
+        if constexpr (nd >= 16) {
+            x |= (x >> 8);
+        }
+
+        if constexpr (nd >= 32) {
+            x |= (x >> 16);
+        }
+
+        if constexpr (nd >= 64) {
+            x |= (x >> 32);
+        }
+#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
+    }
+#endif
+
+#if WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT)
+    return popcount<T>(~x);
+#else
+    if constexpr (nd < 32) {
+        return fallback_clz_impl(static_cast<uint32_t>(x)) - (32 - nd);
+    } else {
+        ++x;
+
+        if constexpr (nd <= 32) {
+            return math_details::de_bruijn32.getr(x);
+        } else if constexpr (nd <= 64) {
+            return math_details::de_bruijn64.getr(x);
+        } else {
+            static_assert(nd <= 64, "not support yet");
+        }
+    }
+#endif
+}
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int fallback_clz(T x) noexcept {
+    return fallback_clz_impl(x);
+}
+
+#if WJR_HAS_BUILTIN(__builtin_clz)
+#define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(CLZ)
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz_impl(T x) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+    if constexpr (nd < 32) {
+        return builtin_clz_impl(static_cast<uint32_t>(x)) - (32 - nd);
+    } else {
+        if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
+            constexpr auto delta = std::numeric_limits<unsigned int>::digits - nd;
+            return __builtin_clz(static_cast<unsigned int>(x)) - delta;
+        } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
+            constexpr auto delta = std::numeric_limits<unsigned long>::digits - nd;
+            return __builtin_clzl(static_cast<unsigned long>(x)) - delta;
+        } else if constexpr (nd <= std::numeric_limits<unsigned long long>::digits) {
+            constexpr auto delta = std::numeric_limits<unsigned long long>::digits - nd;
+            return __builtin_clzll(static_cast<unsigned long long>(x)) - delta;
+        } else {
+            static_assert(nd <= 64, "not supported yet");
+        }
+    }
+}
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
+    return builtin_clz_impl(x);
+}
+
+#endif
+
+#if !WJR_HAS_BUILTIN(CLZ)
+
+#if defined(WJR_MSVC)
+#define WJR_HAS_BUILTIN_MSVC_CLZ WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(MSVC_CLZ)
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_INLINE int builtin_msvc_clz_impl(T x) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+    if constexpr (nd < 32) {
+        return builtin_msvc_clz_impl(static_cast<uint32_t>(x)) - (32 - nd);
+    } else {
+        if constexpr (nd == 32) {
+            unsigned long result;
+            if (_BitScanReverse(&result, x)) {
+                return 31 - result;
+            }
+            return 0;
+        } else {
+            unsigned long result;
+            if (_BitScanReverse64(&result, x)) {
+                return 63 - result;
+            }
+            return 0;
+        }
+    }
+}
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_INLINE int builtin_msvc_clz(T x) noexcept {
+    return builtin_msvc_clz_impl(x);
+}
+
+#endif
+
+#endif
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz_impl(T x) noexcept {
+#if WJR_HAS_BUILTIN(CLZ) || WJR_HAS_BUILTIN(MSVC_CLZ)
+    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
+        return fallback_clz(x);
+    }
+
+#if WJR_HAS_BUILTIN(CLZ)
+    return builtin_clz(x);
+#else
+    return builtin_msvc_clz(x);
+#endif
+#else
+    return fallback_clz(x);
+#endif
+}
+
+/**
+ * @brief Fast count leading zeros
+ *
+ * @tparam T Must be an unsigned integral type
+ */
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz(T x) noexcept {
+    WJR_ASSERT_ASSUME_L2(x != 0);
+    const int ret = clz_impl(x);
+    WJR_ASSUME(0 <= ret && ret < std::numeric_limits<T>::digits);
+    return ret;
+}
+
+} // namespace wjr
+
+#endif // WJR_MATH_CLZ_HPP__
 #ifndef WJR_MATH_CTZ_HPP__
 #define WJR_MATH_CTZ_HPP__
 
@@ -18835,545 +18830,105 @@ __greater_equal_128(uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1) noex
 
 #include <utility>
 
-#ifndef WJR_TUPLE_HPP__
-#define WJR_TUPLE_HPP__
-
-#include <tuple>
-
 // Already included
+#ifndef WJR_MATH_UINT128_T_HPP__
+#define WJR_MATH_UINT128_T_HPP__
+
 // Already included
 
 namespace wjr {
 
-template <typename... Args>
-class tuple;
+/**
+ * @brief temporary uint128_t for divide 128
+ *
+ * @todo implement more functions
+ *
+ */
+struct uint128_t {
+    WJR_CONSTEXPR20 uint128_t() noexcept = default;
+    constexpr uint128_t(const uint128_t &) noexcept = default;
+    constexpr uint128_t(uint128_t &&) noexcept = default;
+    constexpr uint128_t &operator=(const uint128_t &) noexcept = default;
+    constexpr uint128_t &operator=(uint128_t &&) noexcept = default;
+    ~uint128_t() noexcept = default;
+
+    constexpr uint128_t(uint64_t lo, uint64_t hi) noexcept : lo(lo), hi(hi) {}
+
+    template <size_t I>
+    constexpr uint64_t &get() & noexcept {
+        if constexpr (I == 0) {
+            return lo;
+        } else {
+            return hi;
+        }
+    }
+
+    template <size_t I>
+    constexpr const uint64_t &get() const & noexcept {
+        if constexpr (I == 0) {
+            return lo;
+        } else {
+            return hi;
+        }
+    }
+
+    template <size_t I>
+    constexpr uint64_t &&get() && noexcept {
+        if constexpr (I == 0) {
+            return std::move(lo);
+        } else {
+            return std::move(hi);
+        }
+    }
+
+    template <size_t I>
+    constexpr const uint64_t &&get() const && noexcept {
+        if constexpr (I == 0) {
+            return std::move(lo);
+        } else {
+            return std::move(hi);
+        }
+    }
+
+    uint64_t lo;
+    uint64_t hi;
+};
 
 } // namespace wjr
 
 namespace std {
-
-template <typename... Args>
-struct tuple_size<wjr::tuple<Args...>> : std::integral_constant<size_t, sizeof...(Args)> {
-};
-
-template <size_t I, typename... Args>
-struct tuple_element<I, wjr::tuple<Args...>> {
-    using type = wjr::tp_at_t<wjr::tuple<Args...>, I>;
-};
-
-template <typename... Args, WJR_REQUIRES(std::conjunction_v<wjr::is_swappable<Args>...>)>
-constexpr void swap(wjr::tuple<Args...> &lhs,
-                    wjr::tuple<Args...> &rhs) noexcept(noexcept(lhs.swap(rhs)));
-
-template <size_t I, typename... Args>
-constexpr tuple_element_t<I, wjr::tuple<Args...>> &get(wjr::tuple<Args...> &t) noexcept;
-
-template <size_t I, typename... Args>
-constexpr tuple_element_t<I, wjr::tuple<Args...>> &
-get(const wjr::tuple<Args...> &t) noexcept;
-
-template <size_t I, typename... Args>
-constexpr tuple_element_t<I, wjr::tuple<Args...>> &&get(wjr::tuple<Args...> &&t) noexcept;
-
-template <size_t I, typename... Args>
-constexpr tuple_element_t<I, wjr::tuple<Args...>> &&
-get(const wjr::tuple<Args...> &&t) noexcept;
-
-template <typename T, typename... Args>
-constexpr T &get(wjr::tuple<Args...> &t) noexcept;
-
-template <typename T, typename... Args>
-constexpr T &get(const wjr::tuple<Args...> &t) noexcept;
-
-template <typename T, typename... Args>
-constexpr T &&get(wjr::tuple<Args...> &&t) noexcept;
-
-template <typename T, typename... Args>
-constexpr T &&get(const wjr::tuple<Args...> &&t) noexcept;
-
-} // namespace std
-
-namespace wjr {
-
-template <typename Indexs, typename... Args>
-class tuple_impl;
-
-template <size_t... Indexs, typename... Args>
-class WJR_EMPTY_BASES tuple_impl<std::index_sequence<Indexs...>, Args...>
-    : capture_leaf<std::tuple_element_t<Indexs, tuple<Args...>>,
-                   enable_base_identity_t<
-                       Indexs, tuple_impl<std::index_sequence<Indexs...>, Args...>>>...,
-      enable_special_members_of_args_base<
-          tuple_impl<std::index_sequence<Indexs...>, Args...>,
-          capture_leaf<
-              std::tuple_element_t<Indexs, tuple<Args...>>,
-              enable_base_identity_t<
-                  Indexs, tuple_impl<std::index_sequence<Indexs...>, Args...>>>...> {
-    using Sequence = std::index_sequence<Indexs...>;
-
-    template <size_t Idx>
-    using Mybase = capture_leaf<std::tuple_element_t<Idx, tuple<Args...>>,
-                                enable_base_identity_t<Idx, tuple_impl>>;
-
-    using Mybase2 = enable_special_members_of_args_base<
-        tuple_impl<std::index_sequence<Indexs...>, Args...>,
-        capture_leaf<std::tuple_element_t<Indexs, tuple<Args...>>,
-                     enable_base_identity_t<Indexs, tuple_impl>>...>;
-
-    constexpr static size_t Size = sizeof...(Args);
-
-public:
-    template <typename S = Sequence,
-              WJR_REQUIRES(
-                  std::conjunction_v<std::is_same<S, Sequence>,
-                                     std::is_default_constructible<Mybase<Indexs>>...>)>
-    constexpr tuple_impl() noexcept(
-        std::conjunction_v<std::is_nothrow_constructible<Args>...>)
-        : Mybase2(enable_default_constructor) {}
-
-    template <size_t... _Indexs, typename... _Args,
-              WJR_REQUIRES(
-                  std::conjunction_v<std::is_constructible<Mybase<_Indexs>, _Args>...>)>
-    constexpr tuple_impl(std::index_sequence<_Indexs...>, _Args &&...args) noexcept(
-        std::conjunction_v<std::is_nothrow_constructible<Args, _Args &&>...>)
-        : Mybase<_Indexs>(std::forward<_Args>(args))...,
-          Mybase2(enable_default_constructor) {}
-
-    template <size_t I>
-    constexpr auto &get() & noexcept {
-        return Mybase<I>::get();
-    }
-
-    template <size_t I>
-    constexpr const auto &get() const & noexcept {
-        return Mybase<I>::get();
-    }
-
-    template <size_t I>
-    constexpr auto &&get() && noexcept {
-        return std::move(Mybase<I>::get());
-    }
-
-    template <size_t I>
-    constexpr const auto &&get() const && noexcept {
-        return std::move(Mybase<I>::get());
-    }
-};
-
-template <typename Tuple>
-struct __tuple_like;
-
-template <template <typename...> typename Tuple, typename... Args>
-struct __tuple_like<Tuple<Args...>>
-    : std::disjunction<std::is_same<Tuple<Args...>, std::tuple<Args...>>,
-                       std::is_same<Tuple<Args...>, std::pair<Args...>>> {};
 
 template <>
-class tuple<> {
-public:
-    constexpr tuple() noexcept = default;
-    constexpr tuple(const tuple &) noexcept = default;
-    constexpr tuple(tuple &&) noexcept = default;
-    constexpr tuple &operator=(const tuple &) noexcept = default;
-    constexpr tuple &operator=(tuple &&) noexcept = default;
-    ~tuple() noexcept = default;
+struct tuple_size<wjr::uint128_t> : std::integral_constant<size_t, 2> {};
 
-    constexpr void swap(tuple &) noexcept {}
+template <size_t I>
+struct tuple_element<I, wjr::uint128_t> {
+    using type = uint64_t;
 };
 
-template <typename This, typename... Args>
-class tuple<This, Args...>
-    : enable_special_members_of_args_base<
-          tuple<This, Args...>,
-          tuple_impl<std::index_sequence_for<This, Args...>, This, Args...>> {
-    using Sequence = std::index_sequence_for<This, Args...>;
-    using Impl = tuple_impl<Sequence, This, Args...>;
-    using Mybase = enable_special_members_of_args_base<tuple<This, Args...>, Impl>;
-
-    constexpr static size_t Size = sizeof...(Args) + 1;
-
-public:
-#if defined(__cpp_conditional_explicit)
-    template <typename T = This,
-              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
-                                              std::is_default_constructible<Args>...>)>
-    constexpr explicit(
-        !std::conjunction_v<is_default_convertible<T>, is_default_convertible<Args>...>)
-        tuple() noexcept(std::is_nothrow_constructible_v<Impl>)
-        : Mybase(enable_default_constructor), m_impl() {}
-#else
-    template <typename T = This,
-              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
-                                              std::is_default_constructible<Args>...>
-                               &&std::conjunction_v<is_default_convertible<T>,
-                                                    is_default_convertible<Args>...>)>
-    constexpr tuple() noexcept(std::is_nothrow_constructible_v<Impl>)
-        : Mybase(enable_default_constructor), m_impl() {}
-
-    template <typename T = This,
-              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
-                                              std::is_default_constructible<Args>...> &&
-                           !std::conjunction_v<is_default_convertible<T>,
-                                               is_default_convertible<Args>...>)>
-    constexpr explicit tuple() noexcept(std::is_nothrow_constructible_v<Impl>)
-        : Mybase(enable_default_constructor), m_impl() {}
-#endif
-
-    template <typename Other = This,
-              WJR_REQUIRES(std::is_constructible_v<Impl, Sequence, const Other &,
-                                                   const Args &...>)>
-    constexpr tuple(const Other &first, const Args &...rest) noexcept(
-        std::is_nothrow_constructible_v<Impl, Sequence, const Other &, const Args &...>)
-        : Mybase(enable_default_constructor), m_impl(Sequence(), first, rest...) {}
-
-    template <
-        typename Other, typename... _Args,
-        WJR_REQUIRES(sizeof...(_Args) + 1 == Size &&
-                     std::conjunction_v<
-                         std::negation<std::conjunction<
-                             std::is_same<This, std::remove_reference_t<Other>>,
-                             std::is_same<Args, std::remove_reference_t<_Args>>...>>,
-                         std::is_constructible<Impl, Sequence, Other &&, _Args &&...>>)>
-    constexpr tuple(Other &&other, _Args &&...args) noexcept(
-        std::is_nothrow_constructible_v<Impl, Sequence, Other &&, _Args &&...>)
-        : Mybase(enable_default_constructor),
-          m_impl(Sequence(), std::forward<Other>(other), std::forward<_Args>(args)...) {}
-
-private:
-    template <size_t... _Indexs, typename TupleLike>
-    constexpr tuple(
-        std::index_sequence<_Indexs...>, TupleLike &&other,
-        in_place_empty_t) noexcept(std::
-                                       is_nothrow_constructible_v<
-                                           Impl, Sequence,
-                                           decltype(std::get<_Indexs>(
-                                               std::forward<TupleLike>(other)))...>)
-        : Mybase(enable_default_constructor),
-          m_impl(Sequence(), std::get<_Indexs>(std::forward<TupleLike>(other))...) {}
-
-public:
-    template <typename TupleLike,
-              WJR_REQUIRES(__is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>)>
-    constexpr tuple(TupleLike &&other) noexcept(
-        noexcept(tuple(Sequence(), std::forward<TupleLike>(other), in_place_empty)))
-        : tuple(Sequence(), std::forward<TupleLike>(other), in_place_empty) {}
-
-private:
-    template <size_t... _Indexs, typename Container>
-    constexpr void __assign(std::index_sequence<_Indexs...>, Container &&other) noexcept(
-        noexcept(((this->template get<_Indexs>() =
-                       std::get<_Indexs>(std::forward<Container>(other))),
-                  ...))) {
-        ((this->template get<_Indexs>() =
-              std::get<_Indexs>(std::forward<Container>(other))),
-         ...);
-    }
-
-public:
-    template <typename TupleLike,
-              WJR_REQUIRES(__is_tuple_test_v<__is_tuple_assignable, tuple, TupleLike &&>)>
-    constexpr tuple &operator=(TupleLike &&other) noexcept(
-        noexcept(__assign(Sequence(), std::forward<TupleLike>(other)))) {
-        __assign(Sequence(), std::forward<TupleLike>(other));
-        return *this;
-    }
-
-private:
-    template <size_t... _Indexs>
-    constexpr void
-    __swap(std::index_sequence<_Indexs...>, tuple &other) noexcept(noexcept(((
-        std::swap(this->template get<_Indexs>(), other.template get<_Indexs>()), ...)))) {
-        ((std::swap(this->template get<_Indexs>(), other.template get<_Indexs>()), ...));
-    }
-
-public:
-    constexpr void swap(tuple &other) noexcept(noexcept(__swap(Sequence(), other))) {
-        __swap(Sequence(), other);
-    }
-
-    template <size_t I, WJR_REQUIRES(I < Size)>
-    constexpr std::tuple_element_t<I, tuple> &get() & noexcept {
-        return m_impl.template get<I>();
-    }
-
-    template <size_t I, WJR_REQUIRES(I < Size)>
-    constexpr const std::tuple_element_t<I, tuple> &get() const & noexcept {
-        return m_impl.template get<I>();
-    }
-
-    template <size_t I, WJR_REQUIRES(I < Size)>
-    constexpr std::tuple_element_t<I, tuple> &&get() && noexcept {
-        return std::move(m_impl.template get<I>());
-    }
-
-    template <size_t I, WJR_REQUIRES(I < Size)>
-    constexpr const std::tuple_element_t<I, tuple> &&get() const && noexcept {
-        return std::move(m_impl.template get<I>());
-    }
-
-    template <size_t I, WJR_REQUIRES(I >= 0 && I < Size)>
-    constexpr std::tuple_element_t<I, tuple> &
-    operator[](integral_constant<size_t, I>) & noexcept {
-        return get<I>();
-    }
-
-    template <size_t I, WJR_REQUIRES(I >= 0 && I < Size)>
-    constexpr const std::tuple_element_t<I, tuple> &
-    operator[](integral_constant<size_t, I>) const & noexcept {
-        return get<I>();
-    }
-
-    template <size_t I, WJR_REQUIRES(I >= 0 && I < Size)>
-    constexpr std::tuple_element_t<I, tuple> &&
-    operator[](integral_constant<size_t, I>) && noexcept {
-        return std::move(get<I>());
-    }
-
-    template <size_t I, WJR_REQUIRES(I >= 0 && I < Size)>
-    constexpr const std::tuple_element_t<I, tuple> &&
-    operator[](integral_constant<size_t, I>) const && noexcept {
-        return std::move(get<I>());
-    }
-
-private:
-    Impl m_impl;
-};
-
-template <typename... Args>
-tuple(Args...) -> tuple<Args...>;
-
-template <typename T1, typename T2>
-tuple(std::pair<T1, T2>) -> tuple<T1, T2>;
-
-template <typename... Args>
-tuple(std::tuple<Args...>) -> tuple<Args...>;
-
-template <typename... Args>
-constexpr tuple<unref_wrapper_t<Args>...> make_tuple(Args &&...args) noexcept(
-    std::conjunction_v<
-        std::is_nothrow_constructible<unref_wrapper_t<Args>, Args &&>...>) {
-    return tuple<unref_wrapper_t<Args>...>(std::forward<Args>(args)...);
+template <size_t I>
+WJR_NODISCARD constexpr uint64_t &get(wjr::uint128_t &u) noexcept {
+    return u.get<I>();
 }
 
-template <typename... Args>
-constexpr tuple<Args &...> tie(Args &...args) noexcept {
-    return tuple<Args &...>(args...);
+template <size_t I>
+WJR_NODISCARD constexpr const uint64_t &get(const wjr::uint128_t &u) noexcept {
+    return u.get<I>();
 }
 
-template <typename... Args>
-constexpr tuple<Args &&...> forward_as_tuple(Args &&...args) noexcept(
-    std::conjunction_v<std::is_nothrow_constructible<Args &&, Args &&>...>) {
-    return tuple<Args &&...>(std::forward<Args>(args)...);
+template <size_t I>
+WJR_NODISCARD constexpr uint64_t &&get(wjr::uint128_t &&u) noexcept {
+    return std::move(u).get<I>();
 }
 
-/// @private
-template <typename Func, typename Tuple, size_t... Indexs>
-constexpr decltype(auto)
-apply_impl(Func &&fn, Tuple &&tp, std::index_sequence<Indexs...>) noexcept(noexcept(
-    std::invoke(std::forward<Func>(fn), std::get<Indexs>(std::forward<Tuple>(tp))...))) {
-    return std::invoke(std::forward<Func>(fn),
-                       std::get<Indexs>(std::forward<Tuple>(tp))...);
-}
-
-template <typename Func, typename Tuple>
-constexpr decltype(auto) apply(Func &&fn, Tuple &&tp) noexcept(noexcept(
-    apply_impl(std::forward<Func>(fn), std::forward<Tuple>(tp),
-               std::make_index_sequence<std::tuple_size_v<remove_cvref_t<Tuple>>>{}))) {
-    return apply_impl(
-        std::forward<Func>(fn), std::forward<Tuple>(tp),
-        std::make_index_sequence<std::tuple_size_v<remove_cvref_t<Tuple>>>{});
-}
-
-/// @private
-template <size_t I, typename Tuple>
-struct __tuple_cat_single_helper {
-    static constexpr size_t Size = std::tuple_size_v<Tuple>;
-    using type0 = tp_repeat_t<tp_list<std::integral_constant<size_t, I>>, Size>;
-    using type1 = tp_make_index_sequence<Size>;
-};
-
-/// @private
-template <typename S, typename... Tuples>
-struct __tuple_cat_helper_impl;
-
-/// @private
-template <size_t... Indexs, typename... Tuples>
-struct __tuple_cat_helper_impl<std::index_sequence<Indexs...>, Tuples...> {
-    using type0 =
-        tp_concat_t<typename __tuple_cat_single_helper<Indexs, Tuples>::type0...>;
-    using type1 =
-        tp_concat_t<typename __tuple_cat_single_helper<Indexs, Tuples>::type1...>;
-};
-
-/// @private
-template <typename... Tuples>
-struct __tuple_cat_helper {
-    using Sequence = std::index_sequence_for<Tuples...>;
-    using Impl = __tuple_cat_helper_impl<Sequence, Tuples...>;
-    using type0 = tp_make_std_index_sequence<typename Impl::type0>;
-    using type1 = tp_make_std_index_sequence<typename Impl::type1>;
-};
-
-/// @private
-template <size_t... I0, size_t... I1, typename... Tuples>
-constexpr decltype(auto) __tuple_cat_impl(std::index_sequence<I0...>,
-                                          std::index_sequence<I1...>,
-                                          tuple<Tuples...> &&tuples) {
-    return tuple(std::get<I1>(std::get<I0>(std::move(tuples)))...);
-}
-
-template <typename... Tuples>
-constexpr decltype(auto) tuple_cat(Tuples &&...tuples) {
-    using Helper = __tuple_cat_helper<remove_cvref_t<Tuples>...>;
-    return __tuple_cat_impl(typename Helper::type0{}, typename Helper::type1{},
-                            forward_as_tuple(std::forward<Tuples>(tuples)...));
-}
-
-template <typename... TArgs, typename... UArgs>
-constexpr bool
-operator==(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) noexcept(
-    std::conjunction_v<has_noexcept_equal_to<const TArgs &, const UArgs &>...>) {
-    return apply(
-        [&rhs](const auto &...lhs_args) {
-            return apply(
-                [&lhs_args...](const auto &...rhs_args) {
-                    return ((lhs_args == rhs_args) && ...);
-                },
-                rhs);
-        },
-        lhs);
-}
-
-template <typename... TArgs, typename... UArgs>
-constexpr bool operator!=(const tuple<TArgs...> &lhs,
-                          const tuple<UArgs...> &rhs) noexcept(noexcept(lhs == rhs)) {
-    return !(lhs == rhs);
-}
-
-template <typename... TArgs, typename... UArgs>
-constexpr bool operator<(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) noexcept(
-    std::conjunction_v<
-        std::conjunction<has_noexcept_less<const TArgs &, const UArgs &>,
-                         has_noexcept_less<const UArgs &, const TArgs &>>...>) {
-    bool ret = false;
-    apply(
-        [&rhs, &ret](const auto &...lhs_args) {
-            return apply(
-                [&lhs_args..., &ret](const auto &...rhs_args) {
-                    (void)((lhs_args < rhs_args ? (ret = true, false)
-                                                : (rhs_args < lhs_args ? false : true)) &&
-                           ...);
-                },
-                rhs);
-        },
-        lhs);
-    return ret;
-}
-
-template <typename... TArgs, typename... UArgs>
-constexpr bool operator<=(const tuple<TArgs...> &lhs,
-                          const tuple<UArgs...> &rhs) noexcept(noexcept(rhs < lhs)) {
-    return !(rhs < lhs);
-}
-
-template <typename... TArgs, typename... UArgs>
-constexpr bool operator>(const tuple<TArgs...> &lhs,
-                         const tuple<UArgs...> &rhs) noexcept(noexcept(rhs < lhs)) {
-    return rhs < lhs;
-}
-
-template <typename... TArgs, typename... UArgs>
-constexpr bool operator>=(const tuple<TArgs...> &lhs,
-                          const tuple<UArgs...> &rhs) noexcept(noexcept(lhs < rhs)) {
-    return !(lhs < rhs);
-}
-
-template <size_t I, typename... Args>
-struct __in_place_index_tuple_t_tag {};
-
-template <size_t I, typename... Args>
-using in_place_index_tuple_t =
-    capture_leaf<tuple<Args...>, __in_place_index_tuple_t_tag<I, Args...>>;
-
-template <size_t I, typename... Args>
-constexpr in_place_index_tuple_t<I, Args &&...>
-in_place_index_tuple(Args &&...args) noexcept(
-    std::conjunction_v<std::is_nothrow_constructible<Args &&, Args &&>...>) {
-    return in_place_index_tuple_t<I, Args &&...>(std::forward<Args>(args)...);
-}
-
-template <typename T, typename... Args>
-struct __in_place_type_tuple_t_tag {};
-
-template <typename T, typename... Args>
-using in_place_type_tuple_t =
-    capture_leaf<tuple<Args...>, __in_place_type_tuple_t_tag<T, Args...>>;
-
-template <typename T, typename... Args>
-constexpr in_place_type_tuple_t<T, Args &&...>
-in_place_type_tuple(Args &&...args) noexcept(
-    std::conjunction_v<std::is_nothrow_constructible<Args &&, Args &&>...>) {
-    return in_place_type_tuple_t<T, Args &&...>(std::forward<Args>(args)...);
-}
-
-} // namespace wjr
-
-namespace std {
-
-template <typename... Args,
-          WJR_REQUIRES_I(std::conjunction_v<wjr::is_swappable<Args>...>)>
-constexpr void swap(wjr::tuple<Args...> &lhs,
-                    wjr::tuple<Args...> &rhs) noexcept(noexcept(lhs.swap(rhs))) {
-    lhs.swap(rhs);
-}
-
-template <size_t I, typename... Args>
-constexpr tuple_element_t<I, wjr::tuple<Args...>> &get(wjr::tuple<Args...> &t) noexcept {
-    return t.template get<I>();
-}
-
-template <size_t I, typename... Args>
-constexpr tuple_element_t<I, wjr::tuple<Args...>> &
-get(const wjr::tuple<Args...> &t) noexcept {
-    return t.template get<I>();
-}
-
-template <size_t I, typename... Args>
-constexpr tuple_element_t<I, wjr::tuple<Args...>> &&
-get(wjr::tuple<Args...> &&t) noexcept {
-    return std::move(t).template get<I>();
-}
-
-template <size_t I, typename... Args>
-constexpr tuple_element_t<I, wjr::tuple<Args...>> &&
-get(const wjr::tuple<Args...> &&t) noexcept {
-    return std::move(t).template get<I>();
-}
-
-template <typename T, typename... Args>
-constexpr T &get(wjr::tuple<Args...> &t) noexcept {
-    return get<wjr::tp_find_v<wjr::tuple<Args...>, T>>(t);
-}
-
-template <typename T, typename... Args>
-constexpr T &get(const wjr::tuple<Args...> &t) noexcept {
-    return get<wjr::tp_find_v<wjr::tuple<Args...>, T>>(t);
-}
-
-template <typename T, typename... Args>
-constexpr T &&get(wjr::tuple<Args...> &&t) noexcept {
-    return get<wjr::tp_find_v<wjr::tuple<Args...>, T>>(std::move(t));
-}
-
-template <typename T, typename... Args>
-constexpr T &&get(const wjr::tuple<Args...> &&t) noexcept {
-    return get<wjr::tp_find_v<wjr::tuple<Args...>, T>>(std::move(t));
+template <size_t I>
+WJR_NODISCARD constexpr const uint64_t &&get(const wjr::uint128_t &&u) noexcept {
+    return std::move(u).get<I>();
 }
 
 } // namespace std
 
-#endif // WJR_TUPLE_HPP__
-// Already included
+#endif // WJR_MATH_UINT128_T_HPP__
 
 namespace wjr {
 
@@ -19393,12 +18948,11 @@ div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
 WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,
                                                uint64_t div) noexcept;
 
-inline tuple<uint64_t, uint64_t>
-div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
-                const div2by1_divider<uint64_t> &divider) noexcept;
+inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                 const div2by1_divider<uint64_t> &divider) noexcept;
 
-inline tuple<uint64_t, uint64_t> div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
-                                                 uint64_t div) noexcept;
+inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                 uint64_t div) noexcept;
 
 WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
                                         size_t n,
@@ -20601,7 +20155,6 @@ WJR_INTRINSIC_CONSTEXPR_E uint8_t __addc_cc_128(uint64_t &al, uint64_t &ah, uint
 #endif // WJR_MATH_BIGNUM_CONFIG_HPP__
 // Already included
 // Already included
-// Already included
 #ifndef WJR_MATH_SHIFT_HPP__
 #define WJR_MATH_SHIFT_HPP__
 
@@ -21026,437 +20579,6 @@ WJR_INTRINSIC_CONSTEXPR_E T rshift_n(T *dst, const T *src, size_t n, unsigned in
 } // namespace wjr
 
 #endif // WJR_MATH_SHIFT_HPP__
-#ifndef WJR_MATH_STACK_ALLOCATOR_HPP__
-#define WJR_MATH_STACK_ALLOCATOR_HPP__
-
-#ifndef WJR_STACK_ALLOCATOR_HPP__
-#define WJR_STACK_ALLOCATOR_HPP__
-
-#include <algorithm>
-
-#ifndef WJR_CRTP_NONSENDABLE_HPP__
-#define WJR_CRTP_NONSENDABLE_HPP__
-
-/**
- * @file nonsendable.hpp
- * @author wjr
- * @brief  A type to disable sending the object to another thread.
- *
- * @version 0.1
- * @date 2024-05-26
- *
- * @copyright Copyright (c) 2024
- *
- */
-
-#include <memory>
-
-// Already included
-
-#if WJR_DEBUG_LEVEL > 2
-#define WJR_HAS_DEBUG_NONSENDABLE_CHECKER WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_DEBUG(NONSENDABLE_CHECKER)
-#include <thread>
-#endif
-
-namespace wjr {
-
-#if WJR_HAS_DEBUG(NONSENDABLE_CHECKER)
-
-/**
- * @brief A type to disable sending the object to another thread.
- *
- */
-template <typename Tag = void>
-class nonsendable {
-public:
-    static constexpr bool is_nonsendable = true;
-
-protected:
-    nonsendable() noexcept : m_thread_id(std::this_thread::get_id()) {}
-    nonsendable(const nonsendable &) noexcept = default;
-    nonsendable(nonsendable &&) noexcept = default;
-    nonsendable &operator=(const nonsendable &) noexcept = default;
-    nonsendable &operator=(nonsendable &&) noexcept = default;
-    ~nonsendable() noexcept { check(); }
-
-    void check() const noexcept {
-        WJR_ASSERT_L0(m_thread_id == std::this_thread::get_id(),
-                      "Cross-thread access detected when using a nonsendable object.");
-    }
-
-    friend bool operator==(const nonsendable &lhs, const nonsendable &rhs) noexcept {
-        return lhs.m_thread_id == rhs.m_thread_id;
-    }
-
-    friend bool operator!=(const nonsendable &lhs, const nonsendable &rhs) noexcept {
-        return lhs.m_thread_id != rhs.m_thread_id;
-    }
-
-private:
-    std::thread::id m_thread_id;
-};
-
-#else
-
-/**
- * @brief A type to disable sending the object to another thread.
- *
- */
-template <typename Tag = void>
-class nonsendable {
-public:
-    static constexpr bool is_nonsendable = true;
-
-protected:
-    constexpr static void check() noexcept {}
-
-    friend bool operator==(const nonsendable &, const nonsendable &) noexcept {
-        return true;
-    }
-
-    friend bool operator!=(const nonsendable &, const nonsendable &) noexcept {
-        return false;
-    }
-};
-
-#endif
-
-} // namespace wjr
-
-#endif // WJR_CRTP_NONSENDABLE_HPP__
-// Already included
-// Already included
-
-namespace wjr {
-
-template <typename StackAllocator>
-class unique_stack_allocator;
-
-template <size_t Cache>
-class stack_allocator_object {
-    template <typename StackAllocator>
-    friend class unique_stack_allocator;
-
-    constexpr static uint16_t bufsize = 5;
-
-    struct alloc_node {
-        char *ptr;
-        char *end;
-    };
-
-    struct large_stack_top {
-        large_stack_top *prev;
-        char buffer[];
-    };
-
-public:
-    struct stack_top {
-        char *ptr;
-        uint16_t idx;
-        large_stack_top *large;
-    };
-
-private:
-    WJR_CONSTEXPR20 void *__large_allocate(size_t n, stack_top &top) noexcept {
-        const auto buffer = (large_stack_top *)malloc(sizeof(large_stack_top) + n);
-        buffer->prev = top.large;
-        top.large = buffer;
-        return buffer->buffer;
-    }
-
-    WJR_NOINLINE WJR_CONSTEXPR20 void __small_reallocate(stack_top &top) noexcept {
-        if (WJR_UNLIKELY(top.idx == (uint16_t)in_place_max)) {
-            top.idx = m_idx;
-        }
-
-        ++m_idx;
-        if (WJR_UNLIKELY(m_idx == m_size)) {
-
-            if (WJR_UNLIKELY(m_size == m_capacity)) {
-                uint16_t new_capacity = m_idx + 2 * (bufsize - 1);
-                memory_pool<alloc_node> pool;
-                auto new_ptr = pool.chunk_allocate(new_capacity);
-                if (WJR_LIKELY(m_idx != 0)) {
-                    std::copy_n(m_ptr, m_idx, new_ptr);
-                    pool.chunk_deallocate(m_ptr, m_capacity);
-                }
-                m_ptr = new_ptr;
-                m_capacity = new_capacity;
-            }
-
-            ++m_size;
-
-            const size_t capacity = Cache << ((3 * m_idx + 2) / 5);
-            memory_pool<char> pool;
-            const auto buffer = pool.chunk_allocate(capacity);
-            alloc_node node = {buffer, buffer + capacity};
-            m_ptr[m_idx] = node;
-
-            if (WJR_UNLIKELY(m_idx == 0)) {
-                top.ptr = node.ptr;
-                top.idx = 0;
-            }
-
-            m_cache = node;
-        } else {
-            m_cache = m_ptr[m_idx];
-        }
-
-        WJR_ASSERT(top.ptr != nullptr);
-    }
-
-    WJR_COLD WJR_CONSTEXPR20 void __small_redeallocate() noexcept {
-        const uint16_t new_size = m_idx + bufsize - 1;
-        memory_pool<char> pool;
-
-        for (uint16_t i = new_size; i < m_size; ++i) {
-            pool.chunk_deallocate(m_ptr[i].ptr, m_ptr[i].end - m_ptr[i].ptr);
-        }
-
-        m_size = new_size;
-    }
-
-    WJR_CONSTEXPR20 void __small_deallocate(const stack_top &top) noexcept {
-        if (WJR_UNLIKELY(top.ptr == nullptr)) {
-            return;
-        }
-
-        m_cache.ptr = top.ptr;
-
-        if (WJR_UNLIKELY(top.idx != (uint16_t)in_place_max)) {
-            const uint16_t idx = top.idx;
-            m_cache.end = m_ptr[idx].end;
-            m_idx = idx;
-            if (WJR_UNLIKELY(m_size - idx >= bufsize)) {
-                __small_redeallocate();
-            }
-        }
-    }
-
-    WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) noexcept {
-        auto ptr = m_cache.ptr;
-
-        if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - ptr) < n)) {
-            __small_reallocate(top);
-            ptr = m_cache.ptr;
-        }
-
-        WJR_ASSERT_ASSUME_L2(m_cache.ptr != nullptr);
-        WJR_ASSERT_ASSUME_L2(top.ptr != nullptr);
-
-        m_cache.ptr += n;
-        return ptr;
-    }
-
-public:
-    using value_type = void;
-    using size_type = size_t;
-    using difference_type = ptrdiff_t;
-    using propagate_on_container_move_assignment = std::true_type;
-
-    stack_allocator_object() noexcept = default;
-    stack_allocator_object(stack_allocator_object &) = delete;
-    stack_allocator_object(stack_allocator_object &&) = delete;
-    stack_allocator_object &operator=(stack_allocator_object &) = delete;
-    stack_allocator_object &operator=(stack_allocator_object &&) = delete;
-    ~stack_allocator_object() noexcept = default;
-
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top,
-                                                            size_t threshold) noexcept {
-        if (WJR_UNLIKELY(n >= threshold)) {
-            return __large_allocate(n, top);
-        }
-
-        return __small_allocate(n, top);
-    }
-
-    WJR_CONSTEXPR20 void deallocate(const stack_top &top) noexcept {
-        __small_deallocate(top);
-
-        auto buffer = top.large;
-        while (WJR_UNLIKELY(buffer != nullptr)) {
-            auto prev = buffer->prev;
-            free(buffer);
-            buffer = prev;
-        }
-    }
-
-    WJR_CONSTEXPR20 void set(stack_top &top) const noexcept {
-        top.ptr = m_cache.ptr;
-        top.idx = in_place_max;
-        top.large = nullptr;
-    }
-
-private:
-    alloc_node m_cache = {nullptr, nullptr};
-    uint16_t m_idx = in_place_max;
-    alignas(32) uint16_t m_size = 0;
-    uint16_t m_capacity = 0;
-    alloc_node *m_ptr = nullptr;
-};
-
-/**
- * @brief A stack allocator for fast simulation of stack memory on the heap, singleton
- * mode.
- *
- * @tparam Cache The size of the first heap memory allocation
- */
-template <size_t Cache, size_t DefaultThreshold>
-struct singleton_stack_allocator_object {
-    using Instance = stack_allocator_object<Cache>;
-    constexpr static size_t __default_threshold = DefaultThreshold;
-
-    static_assert(DefaultThreshold < Cache, "DefaultThreshold must be less than Cache.");
-
-    static Instance &get_instance() noexcept {
-        static thread_local Instance instance;
-        return instance;
-    }
-};
-
-/**
- * @details Used for container. This allocator won't deallocate memory allocated by
- * __small_allocate until container is destroyed.
- *
- */
-template <typename T, typename StackAllocator>
-class weak_stack_allocator;
-
-/**
- * @brief A unique stack allocator for fast simulation of stack memory on the heap.
- *
- * @details When a unique_stack_allocator object is destroyed, all the memory it allocates
- * is released.\n And a new unique_stack_allocator constructed in the lifetime of a
- * unique_stack_allocator object must be destroyed in the current lifetime.
- *
- */
-template <typename StackAllocator>
-class unique_stack_allocator
-    : public nonsendable<unique_stack_allocator<StackAllocator>> {
-    using Mybase = nonsendable<unique_stack_allocator<StackAllocator>>;
-    using Instance = typename StackAllocator::Instance;
-    using stack_top = typename Instance::stack_top;
-
-    constexpr static size_t __default_threshold = StackAllocator::__default_threshold;
-
-    template <typename T, typename S>
-    friend class weak_stack_allocator;
-
-public:
-    unique_stack_allocator(const StackAllocator &al) noexcept
-        : m_instance(&(al.get_instance())) {
-        m_instance->set(m_top);
-    }
-
-    unique_stack_allocator(const unique_stack_allocator &) = delete;
-    unique_stack_allocator(unique_stack_allocator &&) = delete;
-    unique_stack_allocator &operator=(const unique_stack_allocator &) = delete;
-    unique_stack_allocator &operator=(unique_stack_allocator &&) = delete;
-
-    ~unique_stack_allocator() noexcept { m_instance->deallocate(m_top); }
-
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *
-    allocate(size_t n, size_t threshold = __default_threshold) noexcept {
-        Mybase::check();
-        return m_instance->allocate(n, m_top, threshold);
-    }
-
-private:
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n) noexcept {
-        Mybase::check();
-        return m_instance->__small_allocate(n, m_top);
-    }
-
-    Instance *m_instance;
-    stack_top m_top;
-};
-
-template <typename StackAllocator>
-unique_stack_allocator(const StackAllocator &) -> unique_stack_allocator<StackAllocator>;
-
-/**
- * @brief Point to unique_stack_allocator.
- *
- * @details Use a pointer to unique_stack_allocator to allocate memory. This class must be
- * used carefully. If recursively using it as a reference and allocating memory,
- * unique_stack_allocator should be avoided from being reused in the current function.
- *
- */
-template <typename T, size_t Cache, size_t DefaultThreshold>
-class weak_stack_allocator<T, singleton_stack_allocator_object<Cache, DefaultThreshold>> {
-    using StackAllocator = singleton_stack_allocator_object<Cache, DefaultThreshold>;
-    using UniqueStackAllocator = unique_stack_allocator<StackAllocator>;
-
-    constexpr static size_t __default_threshold = StackAllocator::__default_threshold;
-
-    template <typename U, typename A>
-    friend class weak_stack_allocator;
-
-public:
-    using value_type = T;
-    using size_type = size_t;
-    using difference_type = ptrdiff_t;
-    using propagate_on_container_move_assignment = std::true_type;
-    using is_trivially_allocator = std::true_type;
-
-    template <typename Other>
-    struct rebind {
-        using other = weak_stack_allocator<Other, StackAllocator>;
-    };
-
-    weak_stack_allocator() noexcept = default;
-    weak_stack_allocator(UniqueStackAllocator &alloc) noexcept : m_alloc(&alloc) {}
-    weak_stack_allocator(const weak_stack_allocator &) noexcept = default;
-    weak_stack_allocator &operator=(const weak_stack_allocator &) noexcept = default;
-    weak_stack_allocator(weak_stack_allocator &&) noexcept = default;
-    weak_stack_allocator &operator=(weak_stack_allocator &&) noexcept = default;
-    ~weak_stack_allocator() noexcept = default;
-
-    template <typename U>
-    weak_stack_allocator(const weak_stack_allocator<U, StackAllocator> &other) noexcept
-        : m_alloc(other.m_alloc) {}
-
-    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 T *allocate(size_type n) noexcept {
-        const size_t size = n * sizeof(T);
-        if (WJR_UNLIKELY(size >= __default_threshold)) {
-            return static_cast<T *>(malloc(size));
-        }
-
-        return static_cast<T *>(m_alloc->__small_allocate(size));
-    }
-
-    WJR_CONSTEXPR20 void deallocate(WJR_MAYBE_UNUSED T *ptr,
-                                    WJR_MAYBE_UNUSED size_type n) noexcept {
-        const size_t size = n * sizeof(T);
-        if (WJR_UNLIKELY(size >= __default_threshold)) {
-            free(ptr);
-        }
-    }
-
-private:
-    UniqueStackAllocator *m_alloc = nullptr;
-};
-
-} // namespace wjr
-
-#endif // WJR_STACK_ALLOCATOR_HPP__
-
-namespace wjr::math_details {
-
-using stack_alloc_object = singleton_stack_allocator_object<36 * 1024, 16 * 1024>;
-inline constexpr stack_alloc_object stack_alloc = {};
-
-using unique_stack_alloc = unique_stack_allocator<stack_alloc_object>;
-
-template <typename T>
-using weak_stack_alloc = weak_stack_allocator<T, stack_alloc_object>;
-
-} // namespace wjr::math_details
-
-#endif // WJR_MATH_STACK_ALLOCATOR_HPP__
 // Already included
 #ifndef WJR_MEMORY_SAFE_POINTER_HPP__
 #define WJR_MEMORY_SAFE_POINTER_HPP__
@@ -22120,6 +21242,542 @@ private:
 } // namespace wjr
 
 #endif // WJR_MEMORY_SAFE_POINTER_HPP__
+#ifndef WJR_TUPLE_HPP__
+#define WJR_TUPLE_HPP__
+
+#include <tuple>
+
+// Already included
+// Already included
+
+namespace wjr {
+
+template <typename... Args>
+class tuple;
+
+} // namespace wjr
+
+namespace std {
+
+template <typename... Args>
+struct tuple_size<wjr::tuple<Args...>> : std::integral_constant<size_t, sizeof...(Args)> {
+};
+
+template <size_t I, typename... Args>
+struct tuple_element<I, wjr::tuple<Args...>> {
+    using type = wjr::tp_at_t<wjr::tuple<Args...>, I>;
+};
+
+template <typename... Args, WJR_REQUIRES(std::conjunction_v<wjr::is_swappable<Args>...>)>
+constexpr void swap(wjr::tuple<Args...> &lhs,
+                    wjr::tuple<Args...> &rhs) noexcept(noexcept(lhs.swap(rhs)));
+
+template <size_t I, typename... Args>
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &get(wjr::tuple<Args...> &t) noexcept;
+
+template <size_t I, typename... Args>
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &
+get(const wjr::tuple<Args...> &t) noexcept;
+
+template <size_t I, typename... Args>
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &&get(wjr::tuple<Args...> &&t) noexcept;
+
+template <size_t I, typename... Args>
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &&
+get(const wjr::tuple<Args...> &&t) noexcept;
+
+template <typename T, typename... Args>
+constexpr T &get(wjr::tuple<Args...> &t) noexcept;
+
+template <typename T, typename... Args>
+constexpr T &get(const wjr::tuple<Args...> &t) noexcept;
+
+template <typename T, typename... Args>
+constexpr T &&get(wjr::tuple<Args...> &&t) noexcept;
+
+template <typename T, typename... Args>
+constexpr T &&get(const wjr::tuple<Args...> &&t) noexcept;
+
+} // namespace std
+
+namespace wjr {
+
+template <typename Indexs, typename... Args>
+class tuple_impl;
+
+template <size_t... Indexs, typename... Args>
+class WJR_EMPTY_BASES tuple_impl<std::index_sequence<Indexs...>, Args...>
+    : capture_leaf<Args,
+                   enable_base_identity_t<
+                       Indexs, tuple_impl<std::index_sequence<Indexs...>, Args...>>>...,
+      enable_special_members_of_args_base<
+          tuple_impl<std::index_sequence<Indexs...>, Args...>,
+          capture_leaf<Args, enable_base_identity_t<
+                                 Indexs, tuple_impl<std::index_sequence<Indexs...>,
+                                                    Args...>>>...> {
+    using Sequence = std::index_sequence<Indexs...>;
+
+    template <size_t Idx>
+    using Mybase = capture_leaf<std::tuple_element_t<Idx, tuple<Args...>>,
+                                enable_base_identity_t<Idx, tuple_impl>>;
+
+    using Mybase2 = enable_special_members_of_args_base<
+        tuple_impl<Sequence, Args...>,
+        capture_leaf<Args, enable_base_identity_t<Indexs, tuple_impl>>...>;
+
+    constexpr static size_t Size = sizeof...(Args);
+
+public:
+    template <typename S = Sequence,
+              WJR_REQUIRES(
+                  std::conjunction_v<std::is_same<S, Sequence>,
+                                     std::is_default_constructible<Mybase<Indexs>>...>)>
+    constexpr tuple_impl() noexcept(
+        std::conjunction_v<std::is_nothrow_constructible<Args>...>)
+        : Mybase2(enable_default_constructor) {}
+
+    template <size_t... _Indexs, typename... _Args,
+              WJR_REQUIRES(
+                  std::conjunction_v<std::is_constructible<Mybase<_Indexs>, _Args>...>)>
+    constexpr tuple_impl(std::index_sequence<_Indexs...>, _Args &&...args) noexcept(
+        std::conjunction_v<std::is_nothrow_constructible<Args, _Args &&>...>)
+        : Mybase<_Indexs>(std::forward<_Args>(args))...,
+          Mybase2(enable_default_constructor) {}
+
+    template <size_t I>
+    constexpr auto &get() & noexcept {
+        return Mybase<I>::get();
+    }
+
+    template <size_t I>
+    constexpr const auto &get() const & noexcept {
+        return Mybase<I>::get();
+    }
+
+    template <size_t I>
+    constexpr auto &&get() && noexcept {
+        return std::move(Mybase<I>::get());
+    }
+
+    template <size_t I>
+    constexpr const auto &&get() const && noexcept {
+        return std::move(Mybase<I>::get());
+    }
+};
+
+template <typename Tuple>
+struct __tuple_like;
+
+template <template <typename...> typename Tuple, typename... Args>
+struct __tuple_like<Tuple<Args...>>
+    : std::disjunction<std::is_same<Tuple<Args...>, std::tuple<Args...>>,
+                       std::is_same<Tuple<Args...>, std::pair<Args...>>> {};
+
+template <>
+class tuple<> {
+public:
+    constexpr tuple() noexcept = default;
+    constexpr tuple(const tuple &) noexcept = default;
+    constexpr tuple(tuple &&) noexcept = default;
+    constexpr tuple &operator=(const tuple &) noexcept = default;
+    constexpr tuple &operator=(tuple &&) noexcept = default;
+    ~tuple() noexcept = default;
+
+    constexpr void swap(tuple &) noexcept {}
+};
+
+template <typename This, typename... Args>
+class tuple<This, Args...>
+    : enable_special_members_of_args_base<
+          tuple<This, Args...>,
+          tuple_impl<std::index_sequence_for<This, Args...>, This, Args...>> {
+    using Sequence = std::index_sequence_for<This, Args...>;
+    using Impl = tuple_impl<Sequence, This, Args...>;
+    using Mybase = enable_special_members_of_args_base<tuple<This, Args...>, Impl>;
+
+    constexpr static size_t Size = sizeof...(Args) + 1;
+
+public:
+#if defined(__cpp_conditional_explicit)
+    template <typename T = This,
+              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
+                                              std::is_default_constructible<Args>...>)>
+    constexpr explicit(
+        !std::conjunction_v<is_default_convertible<T>, is_default_convertible<Args>...>)
+        tuple() noexcept(std::is_nothrow_constructible_v<Impl>)
+        : Mybase(enable_default_constructor), m_impl() {}
+#else
+    template <typename T = This,
+              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
+                                              std::is_default_constructible<Args>...>
+                               &&std::conjunction_v<is_default_convertible<T>,
+                                                    is_default_convertible<Args>...>)>
+    constexpr tuple() noexcept(std::is_nothrow_constructible_v<Impl>)
+        : Mybase(enable_default_constructor), m_impl() {}
+
+    template <typename T = This,
+              WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
+                                              std::is_default_constructible<Args>...> &&
+                           !std::conjunction_v<is_default_convertible<T>,
+                                               is_default_convertible<Args>...>)>
+    constexpr explicit tuple() noexcept(std::is_nothrow_constructible_v<Impl>)
+        : Mybase(enable_default_constructor), m_impl() {}
+#endif
+
+    template <typename Other = This,
+              WJR_REQUIRES(std::is_constructible_v<Impl, Sequence, const Other &,
+                                                   const Args &...>)>
+    constexpr tuple(const Other &first, const Args &...rest) noexcept(
+        std::is_nothrow_constructible_v<Impl, Sequence, const Other &, const Args &...>)
+        : Mybase(enable_default_constructor), m_impl(Sequence(), first, rest...) {}
+
+    template <
+        typename Other, typename... _Args,
+        WJR_REQUIRES(sizeof...(_Args) + 1 == Size &&
+                     std::conjunction_v<
+                         std::negation<std::conjunction<
+                             std::is_same<This, std::remove_reference_t<Other>>,
+                             std::is_same<Args, std::remove_reference_t<_Args>>...>>,
+                         std::is_constructible<Impl, Sequence, Other &&, _Args &&...>>)>
+    constexpr tuple(Other &&other, _Args &&...args) noexcept(
+        std::is_nothrow_constructible_v<Impl, Sequence, Other &&, _Args &&...>)
+        : Mybase(enable_default_constructor),
+          m_impl(Sequence(), std::forward<Other>(other), std::forward<_Args>(args)...) {}
+
+private:
+    template <size_t... _Indexs, typename TupleLike>
+    constexpr tuple(
+        std::index_sequence<_Indexs...>, TupleLike &&other,
+        in_place_empty_t) noexcept(std::
+                                       is_nothrow_constructible_v<
+                                           Impl, Sequence,
+                                           decltype(std::get<_Indexs>(
+                                               std::forward<TupleLike>(other)))...>)
+        : Mybase(enable_default_constructor),
+          m_impl(Sequence(), std::get<_Indexs>(std::forward<TupleLike>(other))...) {}
+
+public:
+    template <typename TupleLike,
+              WJR_REQUIRES(__is_tuple_test_v<std::is_constructible, tuple, TupleLike &&>)>
+    constexpr tuple(TupleLike &&other) noexcept(
+        noexcept(tuple(Sequence(), std::forward<TupleLike>(other), in_place_empty)))
+        : tuple(Sequence(), std::forward<TupleLike>(other), in_place_empty) {}
+
+private:
+    template <size_t... _Indexs, typename Container>
+    constexpr void __assign(std::index_sequence<_Indexs...>, Container &&other) noexcept(
+        noexcept(((this->template get<_Indexs>() =
+                       std::get<_Indexs>(std::forward<Container>(other))),
+                  ...))) {
+        ((this->template get<_Indexs>() =
+              std::get<_Indexs>(std::forward<Container>(other))),
+         ...);
+    }
+
+public:
+    template <typename TupleLike,
+              WJR_REQUIRES(__is_tuple_test_v<__is_tuple_assignable, tuple, TupleLike &&>)>
+    constexpr tuple &operator=(TupleLike &&other) noexcept(
+        noexcept(__assign(Sequence(), std::forward<TupleLike>(other)))) {
+        __assign(Sequence(), std::forward<TupleLike>(other));
+        return *this;
+    }
+
+private:
+    template <size_t... _Indexs>
+    constexpr void
+    __swap(std::index_sequence<_Indexs...>, tuple &other) noexcept(noexcept(((
+        std::swap(this->template get<_Indexs>(), other.template get<_Indexs>()), ...)))) {
+        ((std::swap(this->template get<_Indexs>(), other.template get<_Indexs>()), ...));
+    }
+
+public:
+    constexpr void swap(tuple &other) noexcept(noexcept(__swap(Sequence(), other))) {
+        __swap(Sequence(), other);
+    }
+
+    template <size_t I, WJR_REQUIRES(I < Size)>
+    constexpr std::tuple_element_t<I, tuple> &get() & noexcept {
+        return m_impl.template get<I>();
+    }
+
+    template <size_t I, WJR_REQUIRES(I < Size)>
+    constexpr const std::tuple_element_t<I, tuple> &get() const & noexcept {
+        return m_impl.template get<I>();
+    }
+
+    template <size_t I, WJR_REQUIRES(I < Size)>
+    constexpr std::tuple_element_t<I, tuple> &&get() && noexcept {
+        return std::move(m_impl.template get<I>());
+    }
+
+    template <size_t I, WJR_REQUIRES(I < Size)>
+    constexpr const std::tuple_element_t<I, tuple> &&get() const && noexcept {
+        return std::move(m_impl.template get<I>());
+    }
+
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < Size)>
+    constexpr std::tuple_element_t<I, tuple> &
+    operator[](integral_constant<size_t, I>) & noexcept {
+        return get<I>();
+    }
+
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < Size)>
+    constexpr const std::tuple_element_t<I, tuple> &
+    operator[](integral_constant<size_t, I>) const & noexcept {
+        return get<I>();
+    }
+
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < Size)>
+    constexpr std::tuple_element_t<I, tuple> &&
+    operator[](integral_constant<size_t, I>) && noexcept {
+        return std::move(get<I>());
+    }
+
+    template <size_t I, WJR_REQUIRES(I >= 0 && I < Size)>
+    constexpr const std::tuple_element_t<I, tuple> &&
+    operator[](integral_constant<size_t, I>) const && noexcept {
+        return std::move(get<I>());
+    }
+
+private:
+    Impl m_impl;
+};
+
+template <typename... Args>
+tuple(Args...) -> tuple<Args...>;
+
+template <typename T1, typename T2>
+tuple(std::pair<T1, T2>) -> tuple<T1, T2>;
+
+template <typename... Args>
+tuple(std::tuple<Args...>) -> tuple<Args...>;
+
+template <typename... Args>
+constexpr tuple<unref_wrapper_t<Args>...> make_tuple(Args &&...args) noexcept(
+    std::conjunction_v<
+        std::is_nothrow_constructible<unref_wrapper_t<Args>, Args &&>...>) {
+    return tuple<unref_wrapper_t<Args>...>(std::forward<Args>(args)...);
+}
+
+template <typename... Args>
+constexpr tuple<Args &...> tie(Args &...args) noexcept {
+    return tuple<Args &...>(args...);
+}
+
+template <typename... Args>
+constexpr tuple<Args &&...> forward_as_tuple(Args &&...args) noexcept(
+    std::conjunction_v<std::is_nothrow_constructible<Args &&, Args &&>...>) {
+    return tuple<Args &&...>(std::forward<Args>(args)...);
+}
+
+/// @private
+template <typename Func, typename Tuple, size_t... Indexs>
+constexpr decltype(auto)
+apply_impl(Func &&fn, Tuple &&tp, std::index_sequence<Indexs...>) noexcept(noexcept(
+    std::invoke(std::forward<Func>(fn), std::get<Indexs>(std::forward<Tuple>(tp))...))) {
+    return std::invoke(std::forward<Func>(fn),
+                       std::get<Indexs>(std::forward<Tuple>(tp))...);
+}
+
+template <typename Func, typename Tuple>
+constexpr decltype(auto) apply(Func &&fn, Tuple &&tp) noexcept(noexcept(
+    apply_impl(std::forward<Func>(fn), std::forward<Tuple>(tp),
+               std::make_index_sequence<std::tuple_size_v<remove_cvref_t<Tuple>>>{}))) {
+    return apply_impl(
+        std::forward<Func>(fn), std::forward<Tuple>(tp),
+        std::make_index_sequence<std::tuple_size_v<remove_cvref_t<Tuple>>>{});
+}
+
+/// @private
+template <size_t I, typename Tuple>
+struct __tuple_cat_single_helper {
+    static constexpr size_t Size = std::tuple_size_v<Tuple>;
+    using type0 = tp_repeat_t<tp_list<std::integral_constant<size_t, I>>, Size>;
+    using type1 = tp_make_index_sequence<Size>;
+};
+
+/// @private
+template <typename S, typename... Tuples>
+struct __tuple_cat_helper_impl;
+
+/// @private
+template <size_t... Indexs, typename... Tuples>
+struct __tuple_cat_helper_impl<std::index_sequence<Indexs...>, Tuples...> {
+    using type0 =
+        tp_concat_t<typename __tuple_cat_single_helper<Indexs, Tuples>::type0...>;
+    using type1 =
+        tp_concat_t<typename __tuple_cat_single_helper<Indexs, Tuples>::type1...>;
+};
+
+/// @private
+template <typename... Tuples>
+struct __tuple_cat_helper {
+    using Sequence = std::index_sequence_for<Tuples...>;
+    using Impl = __tuple_cat_helper_impl<Sequence, Tuples...>;
+    using type0 = tp_make_std_index_sequence<typename Impl::type0>;
+    using type1 = tp_make_std_index_sequence<typename Impl::type1>;
+};
+
+/// @private
+template <size_t... I0, size_t... I1, typename... Tuples>
+constexpr decltype(auto) __tuple_cat_impl(std::index_sequence<I0...>,
+                                          std::index_sequence<I1...>,
+                                          tuple<Tuples...> &&tuples) {
+    return tuple(std::get<I1>(std::get<I0>(std::move(tuples)))...);
+}
+
+template <typename... Tuples>
+constexpr decltype(auto) tuple_cat(Tuples &&...tuples) {
+    using Helper = __tuple_cat_helper<remove_cvref_t<Tuples>...>;
+    return __tuple_cat_impl(typename Helper::type0{}, typename Helper::type1{},
+                            forward_as_tuple(std::forward<Tuples>(tuples)...));
+}
+
+template <typename... TArgs, typename... UArgs>
+constexpr bool
+operator==(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) noexcept(
+    std::conjunction_v<has_noexcept_equal_to<const TArgs &, const UArgs &>...>) {
+    return apply(
+        [&rhs](const auto &...lhs_args) {
+            return apply(
+                [&lhs_args...](const auto &...rhs_args) {
+                    return ((lhs_args == rhs_args) && ...);
+                },
+                rhs);
+        },
+        lhs);
+}
+
+template <typename... TArgs, typename... UArgs>
+constexpr bool operator!=(const tuple<TArgs...> &lhs,
+                          const tuple<UArgs...> &rhs) noexcept(noexcept(lhs == rhs)) {
+    return !(lhs == rhs);
+}
+
+template <typename... TArgs, typename... UArgs>
+constexpr bool operator<(const tuple<TArgs...> &lhs, const tuple<UArgs...> &rhs) noexcept(
+    std::conjunction_v<
+        std::conjunction<has_noexcept_less<const TArgs &, const UArgs &>,
+                         has_noexcept_less<const UArgs &, const TArgs &>>...>) {
+    bool ret = false;
+    apply(
+        [&rhs, &ret](const auto &...lhs_args) {
+            return apply(
+                [&lhs_args..., &ret](const auto &...rhs_args) {
+                    (void)((lhs_args < rhs_args ? (ret = true, false)
+                                                : (rhs_args < lhs_args ? false : true)) &&
+                           ...);
+                },
+                rhs);
+        },
+        lhs);
+    return ret;
+}
+
+template <typename... TArgs, typename... UArgs>
+constexpr bool operator<=(const tuple<TArgs...> &lhs,
+                          const tuple<UArgs...> &rhs) noexcept(noexcept(rhs < lhs)) {
+    return !(rhs < lhs);
+}
+
+template <typename... TArgs, typename... UArgs>
+constexpr bool operator>(const tuple<TArgs...> &lhs,
+                         const tuple<UArgs...> &rhs) noexcept(noexcept(rhs < lhs)) {
+    return rhs < lhs;
+}
+
+template <typename... TArgs, typename... UArgs>
+constexpr bool operator>=(const tuple<TArgs...> &lhs,
+                          const tuple<UArgs...> &rhs) noexcept(noexcept(lhs < rhs)) {
+    return !(lhs < rhs);
+}
+
+template <size_t I, typename... Args>
+struct __in_place_index_tuple_t_tag {};
+
+template <size_t I, typename... Args>
+using in_place_index_tuple_t =
+    capture_leaf<tuple<Args...>, __in_place_index_tuple_t_tag<I, Args...>>;
+
+template <size_t I, typename... Args>
+constexpr in_place_index_tuple_t<I, Args &&...>
+in_place_index_tuple(Args &&...args) noexcept(
+    std::conjunction_v<std::is_nothrow_constructible<Args &&, Args &&>...>) {
+    return in_place_index_tuple_t<I, Args &&...>(std::forward<Args>(args)...);
+}
+
+template <typename T, typename... Args>
+struct __in_place_type_tuple_t_tag {};
+
+template <typename T, typename... Args>
+using in_place_type_tuple_t =
+    capture_leaf<tuple<Args...>, __in_place_type_tuple_t_tag<T, Args...>>;
+
+template <typename T, typename... Args>
+constexpr in_place_type_tuple_t<T, Args &&...>
+in_place_type_tuple(Args &&...args) noexcept(
+    std::conjunction_v<std::is_nothrow_constructible<Args &&, Args &&>...>) {
+    return in_place_type_tuple_t<T, Args &&...>(std::forward<Args>(args)...);
+}
+
+} // namespace wjr
+
+namespace std {
+
+template <typename... Args,
+          WJR_REQUIRES_I(std::conjunction_v<wjr::is_swappable<Args>...>)>
+constexpr void swap(wjr::tuple<Args...> &lhs,
+                    wjr::tuple<Args...> &rhs) noexcept(noexcept(lhs.swap(rhs))) {
+    lhs.swap(rhs);
+}
+
+template <size_t I, typename... Args>
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &get(wjr::tuple<Args...> &t) noexcept {
+    return t.template get<I>();
+}
+
+template <size_t I, typename... Args>
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &
+get(const wjr::tuple<Args...> &t) noexcept {
+    return t.template get<I>();
+}
+
+template <size_t I, typename... Args>
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &&
+get(wjr::tuple<Args...> &&t) noexcept {
+    return std::move(t).template get<I>();
+}
+
+template <size_t I, typename... Args>
+constexpr tuple_element_t<I, wjr::tuple<Args...>> &&
+get(const wjr::tuple<Args...> &&t) noexcept {
+    return std::move(t).template get<I>();
+}
+
+template <typename T, typename... Args>
+constexpr T &get(wjr::tuple<Args...> &t) noexcept {
+    return get<wjr::tp_find_v<wjr::tuple<Args...>, T>>(t);
+}
+
+template <typename T, typename... Args>
+constexpr T &get(const wjr::tuple<Args...> &t) noexcept {
+    return get<wjr::tp_find_v<wjr::tuple<Args...>, T>>(t);
+}
+
+template <typename T, typename... Args>
+constexpr T &&get(wjr::tuple<Args...> &&t) noexcept {
+    return get<wjr::tp_find_v<wjr::tuple<Args...>, T>>(std::move(t));
+}
+
+template <typename T, typename... Args>
+constexpr T &&get(const wjr::tuple<Args...> &&t) noexcept {
+    return get<wjr::tp_find_v<wjr::tuple<Args...>, T>>(std::move(t));
+}
+
+} // namespace std
+
+#endif // WJR_TUPLE_HPP__
 
 #if defined(WJR_X86)
 #ifndef WJR_X86_MATH_MUL_HPP__
@@ -23338,25 +22996,25 @@ WJR_INTRINSIC_CONSTEXPR_E T mul(T a, T b, T &hi) noexcept {
     }
 }
 
-template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T mulhi(T a, T b) noexcept {
-    T ret = 0;
-    (void)mul(a, b, ret);
-    return ret;
-}
-
 #if defined(WJR_MSVC) && defined(WJR_X86_64) && WJR_HAS_SIMD(X86_SIMD)
 #define WJR_HAS_BUILTIN_MSVC_MULHI64 WJR_HAS_DEF
 #endif
 
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T mulhi(T a, T b) noexcept {
 #if WJR_HAS_BUILTIN(MSVC_MULHI64)
-
-template <>
-WJR_CONST WJR_INTRINSIC_INLINE uint64_t mulhi<uint64_t>(uint64_t a, uint64_t b) noexcept {
-    return __umulh(a, b);
-}
-
+    constexpr auto nd = std::numeric_limits<T>::digits;
+    if constexpr (nd < 64) {
 #endif
+        T ret = 0;
+        (void)mul(a, b, ret);
+        return ret;
+#if WJR_HAS_BUILTIN(MSVC_MULHI64)
+    } else {
+        return __umulh(a, b);
+    }
+#endif
+}
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T mullo(T a, T b) noexcept {
@@ -24657,6 +24315,307 @@ private:
 } // namespace wjr
 
 #endif // WJR_MATH_DIVIDER_HPP__
+// libdivide.h - Optimized integer division
+// https://libdivide.com
+//
+// Copyright (C) 2010 - 2022 ridiculous_fish, <libdivide@ridiculousfish.com>
+// Copyright (C) 2016 - 2022 Kim Walisch, <kim.walisch@gmail.com>
+//
+// libdivide is dual-licensed under the Boost or zlib licenses.
+// You may use libdivide under the terms of either of these.
+// See LICENSE.txt for more details.
+
+#ifndef WJR_LIBDIVIDE_HPP__
+#define WJR_LIBDIVIDE_HPP__
+
+// Already included
+// Already included
+// Already included
+// Already included
+
+namespace wjr {
+
+// pack divider structs to prevent compilers from padding.
+// This reduces memory usage by up to 43% when using a large
+// array of libdivide dividers and improves performance
+// by up to 10% because of reduced memory bandwidth.
+#pragma pack(push, 1)
+
+template <typename T>
+struct libdivide_uint_t_impl {
+    T magic;
+    uint8_t more;
+};
+
+template <typename T>
+struct libdivide_uint_branchfree_t_impl {
+    T magic;
+    uint8_t more;
+};
+
+template <typename T, bool branchfree>
+using libdivide_uint_t =
+    std::conditional_t<branchfree, libdivide_uint_branchfree_t_impl<T>,
+                       libdivide_uint_t_impl<T>>;
+
+#pragma pack(pop)
+
+// Explanation of the "more" field:
+//
+// * Bits 0-5 is the shift value (for shift path or mult path).
+// * Bit 6 is the add indicator for mult path.
+// * Bit 7 is set if the divisor is negative. We use bit 7 as the negative
+//   divisor indicator so that we can efficiently use sign extension to
+//   create a bitmask with all bits set to 1 (if the divisor is negative)
+//   or 0 (if the divisor is positive).
+//
+// u32: [0-4] shift value
+//      [5] ignored
+//      [6] add indicator
+//      magic number of 0 indicates shift path
+//
+// s32: [0-4] shift value
+//      [5] ignored
+//      [6] add indicator
+//      [7] indicates negative divisor
+//      magic number of 0 indicates shift path
+//
+// u64: [0-5] shift value
+//      [6] add indicator
+//      magic number of 0 indicates shift path
+//
+// s64: [0-5] shift value
+//      [6] add indicator
+//      [7] indicates negative divisor
+//      magic number of 0 indicates shift path
+//
+// In s32 and s64 branchfree modes, the magic number is negated according to
+// whether the divisor is negated. In branchfree strategy, it is not negated.
+
+enum {
+    LIBDIVIDE_16_SHIFT_MASK = 0x1F,
+    LIBDIVIDE_32_SHIFT_MASK = 0x1F,
+    LIBDIVIDE_64_SHIFT_MASK = 0x3F,
+    LIBDIVIDE_ADD_MARKER = 0x40,
+    LIBDIVIDE_NEGATIVE_DIVISOR = 0x80
+};
+
+template <typename T, bool branchfree>
+WJR_CONST WJR_INTRINSIC_INLINE libdivide_uint_t<T, false>
+libdivide_internal_uint_gen(T d) noexcept;
+
+template <typename T, bool branchfree>
+WJR_CONST WJR_INTRINSIC_INLINE libdivide_uint_t<T, branchfree>
+libdivide_uint_gen(T d) noexcept;
+
+template <typename T, bool branchfree>
+WJR_CONST WJR_INTRINSIC_INLINE T
+libdivide_uint_do(T d, const libdivide_uint_t<T, branchfree> &denom) noexcept;
+
+//////// Internal Utility Functions
+
+template <typename T>
+WJR_INTRINSIC_INLINE T libdivide_div_half(T hi, T lo, T den, T &rem) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+    using U = uint_t<nd * 2>;
+    const U n = (static_cast<U>(hi) << nd) | lo;
+    const auto result = static_cast<T>(n / den);
+    rem = n - result * static_cast<U>(den);
+    return result;
+}
+
+template <>
+WJR_INTRINSIC_INLINE uint64_t libdivide_div_half<uint64_t>(uint64_t hi, uint64_t lo,
+                                                           uint64_t den,
+                                                           uint64_t &rem) noexcept {
+    return div128by64to64(rem, lo, hi, den);
+}
+
+////////// UINT16
+
+template <typename T, bool branchfree>
+WJR_CONST WJR_INTRINSIC_INLINE libdivide_uint_t<T, false>
+libdivide_internal_uint_gen(T d) noexcept {
+    constexpr auto nd = std::numeric_limits<T>::digits;
+
+    WJR_ASSERT(d != 0, "divider must be != 0");
+
+    libdivide_uint_t<T, false> result;
+    uint8_t floor_log_2_d = static_cast<uint8_t>(nd - 1 - clz<T>(d));
+
+    // Power of 2
+    if (is_zero_or_single_bit(d)) {
+        // We need to subtract 1 from the shift value in case of an unsigned
+        // branchfree divider because there is a hardcoded right shift by 1
+        // in its division algorithm. Because of this we also need to add back
+        // 1 in its recovery algorithm.
+        result.magic = 0;
+        result.more = (uint8_t)(floor_log_2_d - (branchfree != 0));
+    } else {
+        uint8_t more;
+        T rem, proposed_m;
+        proposed_m = libdivide_div_half<T>(static_cast<T>(1) << floor_log_2_d, 0, d, rem);
+
+        WJR_ASSERT(rem > 0 && rem < d);
+        const T e = d - rem;
+
+        // This power works if e < 2**floor_log_2_d.
+        if (!branchfree && (e < (static_cast<T>(1) << floor_log_2_d))) {
+            // This power works
+            more = floor_log_2_d;
+        } else {
+            // We have to use the general 17-bit algorithm.  We need to compute
+            // (2**power) / d. However, we already have (2**(power-1))/d and
+            // its remainder.  By doubling both, and then correcting the
+            // remainder, we can compute the larger division.
+            // don't care about overflow here - in fact, we expect it
+            proposed_m += proposed_m;
+            const T twice_rem = rem + rem;
+            if (twice_rem >= d || twice_rem < rem)
+                proposed_m += 1;
+            more = floor_log_2_d | LIBDIVIDE_ADD_MARKER;
+        }
+        result.magic = 1 + proposed_m;
+        result.more = more;
+        // result.more's shift should in general be ceil_log_2_d. But if we
+        // used the smaller power, we subtract one from the shift because we're
+        // using the smaller power. If we're using the larger power, we
+        // subtract one from the shift because it's taken care of by the add
+        // indicator. So floor_log_2_d happens to be correct in both cases.
+    }
+
+    return result;
+}
+
+template <typename T>
+struct libdivide_shift_mask {
+    static const uint8_t value = 0;
+};
+
+#define WJR_REGISTER_SHIFT_MASK(nd)                                                      \
+    template <>                                                                          \
+    struct libdivide_shift_mask<uint##nd##_t> {                                          \
+        static const uint8_t value = LIBDIVIDE_##nd##_SHIFT_MASK;                        \
+    }
+
+WJR_REGISTER_SHIFT_MASK(16);
+WJR_REGISTER_SHIFT_MASK(32);
+WJR_REGISTER_SHIFT_MASK(64);
+
+#undef WJR_REGISTER_SHIFT_MASK
+
+template <typename T, bool branchfree>
+WJR_CONST WJR_INTRINSIC_INLINE libdivide_uint_t<T, branchfree>
+libdivide_uint_gen(T d) noexcept {
+    if constexpr (!branchfree) {
+        return libdivide_internal_uint_gen<T, false>(d);
+    } else {
+        WJR_ASSERT(d != 1, "divider must be != 1");
+        const auto tmp = libdivide_internal_uint_gen<T, true>(d);
+        libdivide_uint_t<T, true> ret = {
+            tmp.magic, (uint8_t)(tmp.more & libdivide_shift_mask<T>::value)};
+        return ret;
+    }
+}
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_INLINE T
+libdivide_uint_do_impl(T d, const libdivide_uint_t<T, false> &denom) noexcept {
+    const T magic = denom.magic;
+    const uint8_t more = denom.more;
+    if (!magic) {
+        return d >> more;
+    } else {
+        T q = mulhi<T>(magic, d);
+        if (more & LIBDIVIDE_ADD_MARKER) {
+            T t = ((d - q) >> 1) + q;
+            return t >> (more & libdivide_shift_mask<T>::value);
+        } else {
+            // All upper bits are 0,
+            // don't need to mask them off.
+            return q >> more;
+        }
+    }
+}
+
+template <typename T>
+WJR_CONST WJR_INTRINSIC_INLINE T
+libdivide_uint_branchfree_do_impl(T d, const libdivide_uint_t<T, true> &denom) noexcept {
+    const T q = mulhi<T>(denom.magic, d);
+    const T t = ((d - q) >> 1) + q;
+    return t >> denom.more;
+}
+
+template <typename T, bool branchfree>
+WJR_CONST WJR_INTRINSIC_INLINE T
+libdivide_uint_do(T d, const libdivide_uint_t<T, branchfree> &denom) noexcept {
+    if constexpr (!branchfree) {
+        return libdivide_uint_do_impl(d, denom);
+    } else {
+        return libdivide_uint_branchfree_do_impl(d, denom);
+    }
+}
+
+/////////// C++ stuff
+
+// This is the main divider class for use by the user (C++ API).
+// The actual division algorithm is selected using the dispatcher struct
+// based on the integer width and algorithm template parameters.
+template <typename T, bool branchfree = false>
+class divider {
+private:
+    using dispatcher_t = libdivide_uint_t<T, branchfree>;
+
+public:
+    // We leave the default constructor empty so that creating
+    // an array of dividers and then initializing them
+    // later doesn't slow us down.
+    constexpr divider() = default;
+    constexpr divider(const divider &) = default;
+    constexpr divider(divider &&) = default;
+    constexpr divider &operator=(const divider &) = default;
+    constexpr divider &operator=(divider &&) = default;
+    ~divider() = default;
+
+    // Constructor that takes the divisor as a parameter
+    WJR_INTRINSIC_INLINE divider(T d) { div = libdivide_uint_gen<T, branchfree>(d); }
+
+    // Divides n by the divisor
+    WJR_INTRINSIC_INLINE T divide(T n) const { return libdivide_uint_do(n, div); }
+
+    WJR_CONST bool operator==(const divider<T, branchfree> &other) const {
+        return div.denom.magic == other.denom.magic && div.denom.more == other.denom.more;
+    }
+
+    WJR_CONST bool operator!=(const divider<T, branchfree> &other) const {
+        return !(*this == other);
+    }
+
+private:
+    // Storage for the actual divisor
+    dispatcher_t div;
+};
+
+// Overload of operator / for scalar division
+template <typename T, bool branchfree>
+WJR_INTRINSIC_INLINE T operator/(T n, const divider<T, branchfree> &div) {
+    return div.divide(n);
+}
+
+// Overload of operator /= for scalar division
+template <typename T, bool branchfree>
+WJR_INTRINSIC_INLINE T &operator/=(T &n, const divider<T, branchfree> &div) {
+    n = div.divide(n);
+    return n;
+}
+
+template <typename T>
+using branchfree_divider = divider<T, true>;
+
+} // namespace wjr
+
+#endif // WJR_LIBDIVIDE_HPP__
+
 
 #if defined(WJR_X86)
 #ifndef WJR_X86_MATH_DIV_HPP__
@@ -24796,7 +24755,7 @@ WJR_INLINE_CONSTEXPR20 uint64_t div128by64to64(uint64_t &rem, uint64_t lo, uint6
     return div128by64to64_impl(rem, lo, hi, wjr::div2by1_divider<uint64_t>(div));
 }
 
-WJR_INLINE_CONSTEXPR20 tuple<uint64_t, uint64_t>
+inline uint128_t
 div128by64to128_noshift(uint64_t &rem, uint64_t lo, uint64_t hi,
                         const div2by1_divider_noshift<uint64_t> &divider) noexcept {
     const auto divisor = divider.get_divisor();
@@ -24809,10 +24768,10 @@ div128by64to128_noshift(uint64_t &rem, uint64_t lo, uint64_t hi,
 
     q0 = divider.divide(lo, hi);
     rem = hi;
-    return std::make_pair(q0, q1);
+    return {q0, q1};
 }
 
-inline tuple<uint64_t, uint64_t>
+inline uint128_t
 div128by64to128_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
                       const div2by1_divider<uint64_t> &divider) noexcept {
     const auto shift = divider.get_shift();
@@ -24828,12 +24787,11 @@ div128by64to128_shift(uint64_t &rem, uint64_t lo, uint64_t hi,
     q0 = div.divide(u0, u2);
 
     rem = u2 >> shift;
-    return std::make_pair(q0, q1);
+    return {q0, q1};
 }
 
-inline tuple<uint64_t, uint64_t>
-div128by64to128_impl(uint64_t &rem, uint64_t lo, uint64_t hi,
-                     const div2by1_divider<uint64_t> &divider) noexcept {
+inline uint128_t div128by64to128_impl(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                      const div2by1_divider<uint64_t> &divider) noexcept {
     if (divider.get_shift() == 0) {
         return div128by64to128_noshift(rem, lo, hi, divider);
     }
@@ -24845,9 +24803,8 @@ div128by64to128_impl(uint64_t &rem, uint64_t lo, uint64_t hi,
  not optimize for divider that is power of 2,
  manually consider whether it needs to be optimized
 */
-inline tuple<uint64_t, uint64_t>
-div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
-                const div2by1_divider<uint64_t> &divider) noexcept {
+inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                 const div2by1_divider<uint64_t> &divider) noexcept {
     return div128by64to128_impl(rem, lo, hi, divider);
 }
 
@@ -24855,8 +24812,8 @@ div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
  not optimize for divider that is power of 2,
  manually consider whether it needs to be optimized
 */
-inline tuple<uint64_t, uint64_t> div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
-                                                 uint64_t div) noexcept {
+inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
+                                 uint64_t div) noexcept {
     return div128by64to128_impl(rem, lo, hi, div2by1_divider<uint64_t>(div));
 }
 
@@ -25589,6 +25546,437 @@ precompute_chars_convert(precompute_chars_convert_t *pre, size_t n, unsigned int
 
 #endif // WJR_MATH_PRECOMPUTE_CHARS_CONVERT_HPP__
 // Already included
+#ifndef WJR_MATH_STACK_ALLOCATOR_HPP__
+#define WJR_MATH_STACK_ALLOCATOR_HPP__
+
+#ifndef WJR_STACK_ALLOCATOR_HPP__
+#define WJR_STACK_ALLOCATOR_HPP__
+
+#include <algorithm>
+
+#ifndef WJR_CRTP_NONSENDABLE_HPP__
+#define WJR_CRTP_NONSENDABLE_HPP__
+
+/**
+ * @file nonsendable.hpp
+ * @author wjr
+ * @brief  A type to disable sending the object to another thread.
+ *
+ * @version 0.1
+ * @date 2024-05-26
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
+#include <memory>
+
+// Already included
+
+#if WJR_DEBUG_LEVEL > 2
+#define WJR_HAS_DEBUG_NONSENDABLE_CHECKER WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_DEBUG(NONSENDABLE_CHECKER)
+#include <thread>
+#endif
+
+namespace wjr {
+
+#if WJR_HAS_DEBUG(NONSENDABLE_CHECKER)
+
+/**
+ * @brief A type to disable sending the object to another thread.
+ *
+ */
+template <typename Tag = void>
+class nonsendable {
+public:
+    static constexpr bool is_nonsendable = true;
+
+protected:
+    nonsendable() noexcept : m_thread_id(std::this_thread::get_id()) {}
+    nonsendable(const nonsendable &) noexcept = default;
+    nonsendable(nonsendable &&) noexcept = default;
+    nonsendable &operator=(const nonsendable &) noexcept = default;
+    nonsendable &operator=(nonsendable &&) noexcept = default;
+    ~nonsendable() noexcept { check(); }
+
+    void check() const noexcept {
+        WJR_ASSERT_L0(m_thread_id == std::this_thread::get_id(),
+                      "Cross-thread access detected when using a nonsendable object.");
+    }
+
+    friend bool operator==(const nonsendable &lhs, const nonsendable &rhs) noexcept {
+        return lhs.m_thread_id == rhs.m_thread_id;
+    }
+
+    friend bool operator!=(const nonsendable &lhs, const nonsendable &rhs) noexcept {
+        return lhs.m_thread_id != rhs.m_thread_id;
+    }
+
+private:
+    std::thread::id m_thread_id;
+};
+
+#else
+
+/**
+ * @brief A type to disable sending the object to another thread.
+ *
+ */
+template <typename Tag = void>
+class nonsendable {
+public:
+    static constexpr bool is_nonsendable = true;
+
+protected:
+    constexpr static void check() noexcept {}
+
+    friend bool operator==(const nonsendable &, const nonsendable &) noexcept {
+        return true;
+    }
+
+    friend bool operator!=(const nonsendable &, const nonsendable &) noexcept {
+        return false;
+    }
+};
+
+#endif
+
+} // namespace wjr
+
+#endif // WJR_CRTP_NONSENDABLE_HPP__
+// Already included
+// Already included
+
+namespace wjr {
+
+template <typename StackAllocator>
+class unique_stack_allocator;
+
+template <size_t Cache>
+class stack_allocator_object {
+    template <typename StackAllocator>
+    friend class unique_stack_allocator;
+
+    constexpr static uint16_t bufsize = 5;
+
+    struct alloc_node {
+        char *ptr;
+        char *end;
+    };
+
+    struct large_stack_top {
+        large_stack_top *prev;
+        char buffer[];
+    };
+
+public:
+    struct stack_top {
+        char *ptr;
+        uint16_t idx;
+        large_stack_top *large;
+    };
+
+private:
+    WJR_CONSTEXPR20 void *__large_allocate(size_t n, stack_top &top) noexcept {
+        const auto buffer = (large_stack_top *)malloc(sizeof(large_stack_top) + n);
+        buffer->prev = top.large;
+        top.large = buffer;
+        return buffer->buffer;
+    }
+
+    WJR_NOINLINE WJR_CONSTEXPR20 void __small_reallocate(stack_top &top) noexcept {
+        if (WJR_UNLIKELY(top.idx == (uint16_t)in_place_max)) {
+            top.idx = m_idx;
+        }
+
+        ++m_idx;
+        if (WJR_UNLIKELY(m_idx == m_size)) {
+
+            if (WJR_UNLIKELY(m_size == m_capacity)) {
+                uint16_t new_capacity = m_idx + 2 * (bufsize - 1);
+                memory_pool<alloc_node> pool;
+                auto new_ptr = pool.chunk_allocate(new_capacity);
+                if (WJR_LIKELY(m_idx != 0)) {
+                    std::copy_n(m_ptr, m_idx, new_ptr);
+                    pool.chunk_deallocate(m_ptr, m_capacity);
+                }
+                m_ptr = new_ptr;
+                m_capacity = new_capacity;
+            }
+
+            ++m_size;
+
+            const size_t capacity = Cache << ((3 * m_idx + 2) / 5);
+            memory_pool<char> pool;
+            const auto buffer = pool.chunk_allocate(capacity);
+            alloc_node node = {buffer, buffer + capacity};
+            m_ptr[m_idx] = node;
+
+            if (WJR_UNLIKELY(m_idx == 0)) {
+                top.ptr = node.ptr;
+                top.idx = 0;
+            }
+
+            m_cache = node;
+        } else {
+            m_cache = m_ptr[m_idx];
+        }
+
+        WJR_ASSERT(top.ptr != nullptr);
+    }
+
+    WJR_COLD WJR_CONSTEXPR20 void __small_redeallocate() noexcept {
+        const uint16_t new_size = m_idx + bufsize - 1;
+        memory_pool<char> pool;
+
+        for (uint16_t i = new_size; i < m_size; ++i) {
+            pool.chunk_deallocate(m_ptr[i].ptr, m_ptr[i].end - m_ptr[i].ptr);
+        }
+
+        m_size = new_size;
+    }
+
+    WJR_CONSTEXPR20 void __small_deallocate(const stack_top &top) noexcept {
+        if (WJR_UNLIKELY(top.ptr == nullptr)) {
+            return;
+        }
+
+        m_cache.ptr = top.ptr;
+
+        if (WJR_UNLIKELY(top.idx != (uint16_t)in_place_max)) {
+            const uint16_t idx = top.idx;
+            m_cache.end = m_ptr[idx].end;
+            m_idx = idx;
+            if (WJR_UNLIKELY(m_size - idx >= bufsize)) {
+                __small_redeallocate();
+            }
+        }
+    }
+
+    WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n, stack_top &top) noexcept {
+        auto ptr = m_cache.ptr;
+
+        if (WJR_UNLIKELY(static_cast<size_t>(m_cache.end - ptr) < n)) {
+            __small_reallocate(top);
+            ptr = m_cache.ptr;
+        }
+
+        WJR_ASSERT_ASSUME_L2(m_cache.ptr != nullptr);
+        WJR_ASSERT_ASSUME_L2(top.ptr != nullptr);
+
+        m_cache.ptr += n;
+        return ptr;
+    }
+
+public:
+    using value_type = void;
+    using size_type = size_t;
+    using difference_type = ptrdiff_t;
+    using propagate_on_container_move_assignment = std::true_type;
+
+    stack_allocator_object() noexcept = default;
+    stack_allocator_object(stack_allocator_object &) = delete;
+    stack_allocator_object(stack_allocator_object &&) = delete;
+    stack_allocator_object &operator=(stack_allocator_object &) = delete;
+    stack_allocator_object &operator=(stack_allocator_object &&) = delete;
+    ~stack_allocator_object() noexcept = default;
+
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *allocate(size_t n, stack_top &top,
+                                                            size_t threshold) noexcept {
+        if (WJR_UNLIKELY(n >= threshold)) {
+            return __large_allocate(n, top);
+        }
+
+        return __small_allocate(n, top);
+    }
+
+    WJR_CONSTEXPR20 void deallocate(const stack_top &top) noexcept {
+        __small_deallocate(top);
+
+        auto buffer = top.large;
+        while (WJR_UNLIKELY(buffer != nullptr)) {
+            auto prev = buffer->prev;
+            free(buffer);
+            buffer = prev;
+        }
+    }
+
+    WJR_CONSTEXPR20 void set(stack_top &top) const noexcept {
+        top.ptr = m_cache.ptr;
+        top.idx = in_place_max;
+        top.large = nullptr;
+    }
+
+private:
+    alloc_node m_cache = {nullptr, nullptr};
+    uint16_t m_idx = in_place_max;
+    alignas(32) uint16_t m_size = 0;
+    uint16_t m_capacity = 0;
+    alloc_node *m_ptr = nullptr;
+};
+
+/**
+ * @brief A stack allocator for fast simulation of stack memory on the heap, singleton
+ * mode.
+ *
+ * @tparam Cache The size of the first heap memory allocation
+ */
+template <size_t Cache, size_t DefaultThreshold>
+struct singleton_stack_allocator_object {
+    using Instance = stack_allocator_object<Cache>;
+    constexpr static size_t __default_threshold = DefaultThreshold;
+
+    static_assert(DefaultThreshold < Cache, "DefaultThreshold must be less than Cache.");
+
+    static Instance &get_instance() noexcept {
+        static thread_local Instance instance;
+        return instance;
+    }
+};
+
+/**
+ * @details Used for container. This allocator won't deallocate memory allocated by
+ * __small_allocate until container is destroyed.
+ *
+ */
+template <typename T, typename StackAllocator>
+class weak_stack_allocator;
+
+/**
+ * @brief A unique stack allocator for fast simulation of stack memory on the heap.
+ *
+ * @details When a unique_stack_allocator object is destroyed, all the memory it allocates
+ * is released.\n And a new unique_stack_allocator constructed in the lifetime of a
+ * unique_stack_allocator object must be destroyed in the current lifetime.
+ *
+ */
+template <typename StackAllocator>
+class unique_stack_allocator
+    : public nonsendable<unique_stack_allocator<StackAllocator>> {
+    using Mybase = nonsendable<unique_stack_allocator<StackAllocator>>;
+    using Instance = typename StackAllocator::Instance;
+    using stack_top = typename Instance::stack_top;
+
+    constexpr static size_t __default_threshold = StackAllocator::__default_threshold;
+
+    template <typename T, typename S>
+    friend class weak_stack_allocator;
+
+public:
+    unique_stack_allocator(const StackAllocator &al) noexcept
+        : m_instance(&(al.get_instance())) {
+        m_instance->set(m_top);
+    }
+
+    unique_stack_allocator(const unique_stack_allocator &) = delete;
+    unique_stack_allocator(unique_stack_allocator &&) = delete;
+    unique_stack_allocator &operator=(const unique_stack_allocator &) = delete;
+    unique_stack_allocator &operator=(unique_stack_allocator &&) = delete;
+
+    ~unique_stack_allocator() noexcept { m_instance->deallocate(m_top); }
+
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *
+    allocate(size_t n, size_t threshold = __default_threshold) noexcept {
+        Mybase::check();
+        return m_instance->allocate(n, m_top, threshold);
+    }
+
+private:
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 void *__small_allocate(size_t n) noexcept {
+        Mybase::check();
+        return m_instance->__small_allocate(n, m_top);
+    }
+
+    Instance *m_instance;
+    stack_top m_top;
+};
+
+template <typename StackAllocator>
+unique_stack_allocator(const StackAllocator &) -> unique_stack_allocator<StackAllocator>;
+
+/**
+ * @brief Point to unique_stack_allocator.
+ *
+ * @details Use a pointer to unique_stack_allocator to allocate memory. This class must be
+ * used carefully. If recursively using it as a reference and allocating memory,
+ * unique_stack_allocator should be avoided from being reused in the current function.
+ *
+ */
+template <typename T, size_t Cache, size_t DefaultThreshold>
+class weak_stack_allocator<T, singleton_stack_allocator_object<Cache, DefaultThreshold>> {
+    using StackAllocator = singleton_stack_allocator_object<Cache, DefaultThreshold>;
+    using UniqueStackAllocator = unique_stack_allocator<StackAllocator>;
+
+    constexpr static size_t __default_threshold = StackAllocator::__default_threshold;
+
+    template <typename U, typename A>
+    friend class weak_stack_allocator;
+
+public:
+    using value_type = T;
+    using size_type = size_t;
+    using difference_type = ptrdiff_t;
+    using propagate_on_container_move_assignment = std::true_type;
+    using is_trivially_allocator = std::true_type;
+
+    template <typename Other>
+    struct rebind {
+        using other = weak_stack_allocator<Other, StackAllocator>;
+    };
+
+    weak_stack_allocator() noexcept = default;
+    weak_stack_allocator(UniqueStackAllocator &alloc) noexcept : m_alloc(&alloc) {}
+    weak_stack_allocator(const weak_stack_allocator &) noexcept = default;
+    weak_stack_allocator &operator=(const weak_stack_allocator &) noexcept = default;
+    weak_stack_allocator(weak_stack_allocator &&) noexcept = default;
+    weak_stack_allocator &operator=(weak_stack_allocator &&) noexcept = default;
+    ~weak_stack_allocator() noexcept = default;
+
+    template <typename U>
+    weak_stack_allocator(const weak_stack_allocator<U, StackAllocator> &other) noexcept
+        : m_alloc(other.m_alloc) {}
+
+    WJR_NODISCARD WJR_MALLOC WJR_CONSTEXPR20 T *allocate(size_type n) noexcept {
+        const size_t size = n * sizeof(T);
+        if (WJR_UNLIKELY(size >= __default_threshold)) {
+            return static_cast<T *>(malloc(size));
+        }
+
+        return static_cast<T *>(m_alloc->__small_allocate(size));
+    }
+
+    WJR_CONSTEXPR20 void deallocate(WJR_MAYBE_UNUSED T *ptr,
+                                    WJR_MAYBE_UNUSED size_type n) noexcept {
+        const size_t size = n * sizeof(T);
+        if (WJR_UNLIKELY(size >= __default_threshold)) {
+            free(ptr);
+        }
+    }
+
+private:
+    UniqueStackAllocator *m_alloc = nullptr;
+};
+
+} // namespace wjr
+
+#endif // WJR_STACK_ALLOCATOR_HPP__
+
+namespace wjr::math_details {
+
+using stack_alloc_object = singleton_stack_allocator_object<36 * 1024, 16 * 1024>;
+inline constexpr stack_alloc_object stack_alloc = {};
+
+using unique_stack_alloc = unique_stack_allocator<stack_alloc_object>;
+
+template <typename T>
+using weak_stack_alloc = weak_stack_allocator<T, stack_alloc_object>;
+
+} // namespace wjr::math_details
+
+#endif // WJR_MATH_STACK_ALLOCATOR_HPP__
 
 #if defined(WJR_X86)
 #ifndef WJR_X86_MATH_CONVERT_HPP__
@@ -32724,1665 +33112,6 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
 #endif
 
 #endif // WJR_BIGINTEGER_HPP__
-#ifndef WJR_JSON_LEXER_HPP__
-#define WJR_JSON_LEXER_HPP__
-
-#ifndef WJR_JSON_LEXER_IMPL_HPP__
-#define WJR_JSON_LEXER_IMPL_HPP__
-
-// Already included
-
-namespace wjr::json {
-
-struct forward_lexer_storage {
-    forward_lexer_storage(span<const char> input) noexcept
-        : first(input.data()), last(input.data() + input.size()) {}
-
-    const char *first;
-    const char *last;
-
-    uint64_t prev_in_string = 0;
-    uint64_t prev_is_escape = 0;
-    uint64_t prev_is_ws = ~0ull;
-
-    uint32_t idx = 0;
-};
-
-struct dynamic_lexer_storage {
-    dynamic_lexer_storage(span<const char> input) noexcept
-        : first(input.data()), last(input.data() + input.size()) {}
-
-    const char *first;
-    const char *last;
-};
-
-template <uint32_t token_buf_size>
-class basic_lexer {
-    static_assert(((token_buf_size & (token_buf_size - 1)) == 0 &&
-                   token_buf_size <= 65536) ||
-                      token_buf_size == (uint32_t)in_place_max,
-                  "token_buf_size must be a power of 2");
-
-    constexpr static bool __is_dynamic = token_buf_size == (uint32_t)in_place_max;
-    using storage_type =
-        std::conditional_t<__is_dynamic, dynamic_lexer_storage, forward_lexer_storage>;
-
-public:
-    constexpr basic_lexer(span<const char> input) noexcept : m_storage(input) {}
-
-    basic_lexer() = delete;
-    constexpr basic_lexer(const basic_lexer &) = delete;
-    constexpr basic_lexer(basic_lexer &&) = default;
-    constexpr basic_lexer &operator=(const basic_lexer &) = delete;
-    constexpr basic_lexer &operator=(basic_lexer &&) = default;
-    ~basic_lexer() = default;
-
-    /**
-     * @brief read tokens
-     *
-     * @details Read at least token_buf_size tokens from the input.
-     * token_buf' size must be at least token_buf_size * 2 - 1.
-     *
-     * @return return the number of tokens read.
-     *
-     */
-
-    uint32_t read(uint32_t *token_buf) noexcept;
-
-    WJR_PURE const char *end() const noexcept { return m_storage.last; }
-
-private:
-    storage_type m_storage;
-};
-
-using dynamic_lexer = basic_lexer<in_place_max>;
-
-template <uint32_t token_buf_size>
-using forward_lexer = basic_lexer<token_buf_size>;
-
-namespace lexer_details {
-inline uint64_t calc_backslash(uint64_t B) {
-    uint64_t maybe_escaped = B << 1;
-
-    uint64_t maybe_escaped_and_odd_bits = maybe_escaped | 0xAAAAAAAAAAAAAAAAULL;
-    uint64_t even_series_codes_and_odd_bits = maybe_escaped_and_odd_bits - B;
-
-    return even_series_codes_and_odd_bits ^ 0xAAAAAAAAAAAAAAAAULL;
-}
-} // namespace lexer_details
-
-} // namespace wjr::json
-
-#endif // WJR_JSON_LEXER_IMPL_HPP__
-// Already included
-
-#if defined(WJR_X86)
-#ifndef WJR_X86_JSON_LEXER_HPP__
-#define WJR_X86_JSON_LEXER_HPP__
-
-// Already included
-// Already included
-// Already included
-
-namespace wjr::json {
-
-#if WJR_HAS_SIMD(SSSE3) && WJR_HAS_SIMD(X86_SIMD)
-#define WJR_HAS_BUILTIN_JSON_LEXER_READER_READ_BUF WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_BUILTIN(JSON_LEXER_READER_READ_BUF)
-
-namespace lexer_details {
-
-#if !WJR_HAS_SIMD(AVX2)
-const static __m128i lh8_mask = sse::set1_epi8(0x0f);
-
-const static __m128i lo8_lookup =
-    sse::set_epi8(0, 0, 12, 1, 4, 10, 8, 0, 0, 0, 0, 0, 0, 0, 0, 16);
-const static __m128i hi8_lookup =
-    sse::set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8);
-#else
-const static __m256i lh8_mask = avx::set1_epi8(0x0f);
-const static __m256i lo8_lookup =
-    avx::set_epi8(0, 0, 12, 1, 4, 10, 8, 0, 0, 0, 0, 0, 0, 0, 0, 16, 0, 0, 12, 1, 4, 10,
-                  8, 0, 0, 0, 0, 0, 0, 0, 0, 16);
-const static __m256i hi8_lookup =
-    avx::set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 2, 17, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0,
-                  4, 0, 4, 0, 2, 17, 0, 8);
-#endif
-
-template <typename simd>
-inline typename simd::int_type equal(typename simd::int_type x, uint8_t ch) {
-    return simd::cmpeq_epi8(x, simd::set1_epi8(ch));
-}
-
-template <typename simd>
-void load_simd(const char *first, typename simd::int_type *arr) {
-    constexpr auto simd_width = simd::width();
-    constexpr auto u8_width = simd_width / 8;
-    constexpr auto u8_loop = 64 / u8_width;
-    for (unsigned i = 0; i < u8_loop; ++i) {
-        arr[i] = simd::loadu((typename simd::int_type *)(first + i * u8_width));
-    }
-}
-
-} // namespace lexer_details
-
-template <uint32_t token_buf_size>
-uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
-    using namespace lexer_details;
-
-    constexpr bool is_avx = WJR_HAS_SIMD(AVX2);
-    using simd = std::conditional_t<is_avx, avx, sse>;
-    using simd_int = typename simd::int_type;
-    constexpr auto simd_width = simd::width();
-    constexpr auto u8_width = simd_width / 8;
-    constexpr auto u8_loop = 64 / u8_width;
-
-    constexpr uint32_t token_buf_mask = token_buf_size * 2;
-
-    auto first = m_storage.first;
-    const auto last = m_storage.last;
-
-    if (WJR_UNLIKELY(first == last)) {
-        return 0;
-    }
-
-    uint64_t prev_is_escape;
-    uint64_t prev_in_string;
-    uint64_t prev_is_ws;
-    uint32_t idx;
-
-    if constexpr (__is_dynamic) {
-        prev_is_escape = prev_in_string = 0;
-        prev_is_ws = ~0ull;
-        idx = 0;
-    } else {
-        prev_is_escape = m_storage.prev_is_escape;
-        prev_in_string = m_storage.prev_in_string;
-        prev_is_ws = m_storage.prev_is_ws;
-        idx = m_storage.idx;
-    }
-
-    WJR_ASSERT_ASSUME_L2(first < last);
-
-    uint32_t count = 0;
-    bool loop;
-
-    do {
-        simd_int x[u8_loop];
-
-        const size_t diff = last - first;
-
-        if (WJR_LIKELY(diff > 64)) {
-            load_simd<simd>(first, x);
-            first += 64;
-        } else {
-            if (diff == 64) {
-                load_simd<simd>(first, x);
-            } else {
-                char buf[64];
-                char ch;
-                switch (last[-1]) {
-                case ' ':
-                case '\n':
-                case '\r':
-                case '\t':
-                case '[':
-                case ']':
-                case '{':
-                case '}': {
-                    ch = ' ';
-                    break;
-                }
-                default: {
-                    ch = '\0';
-                    break;
-                }
-                }
-
-                std::memcpy(buf, first, diff);
-                std::memset(buf + diff, ch, 64 - diff);
-                load_simd<simd>(buf, x);
-            }
-
-            first = last;
-            if constexpr (!__is_dynamic) {
-                count |= token_buf_mask;
-            }
-        }
-
-        uint64_t B = 0; // backslash
-
-        for (unsigned i = 0; i < u8_loop; ++i) {
-            const auto backslash = equal<simd>(x[i], '\\');
-            B |= (uint64_t)simd::movemask_epi8(backslash) << (i * u8_width);
-        }
-
-        uint64_t Q = 0; // quote
-
-        for (unsigned i = 0; i < u8_loop; ++i) {
-            const auto quote = equal<simd>(x[i], '\"');
-            Q |= (uint64_t)simd::movemask_epi8(quote) << (i * u8_width);
-        }
-
-        uint64_t S = 0; // brackets, comma , colon
-        uint64_t W = 0; // whitespace
-
-        for (unsigned i = 0; i < u8_loop; ++i) {
-            const auto shuf_lo8 = simd::shuffle_epi8(lo8_lookup, x[i]);
-            const auto shuf_hi8 = simd::shuffle_epi8(
-                hi8_lookup, simd::And(simd::srli_epi16(x[i], 4), lh8_mask));
-
-            const auto result = simd::And(shuf_lo8, shuf_hi8);
-            // comma : 1
-            // colon : 2
-            // brackets : 4
-            // whitespace : 8, 16
-
-            uint32_t stu = simd::movemask_epi8(
-                simd::cmpeq_epi8(simd::And(result, simd::set1_epi8(7)), simd::zeros()));
-            uint32_t wsp = simd::movemask_epi8(
-                simd::cmpeq_epi8(simd::And(result, simd::set1_epi8(24)), simd::zeros()));
-
-            S |= (uint64_t)(stu) << (i * u8_width);
-            W |= (uint64_t)(wsp) << (i * u8_width);
-        }
-
-        S = ~S;
-        W = ~W;
-
-        {
-            if (!B) {
-                B = prev_is_escape;
-                Q &= ~B;
-                prev_is_escape = 0;
-            } else {
-                const uint64_t codeB = calc_backslash(B & ~prev_is_escape);
-                const auto escape = (codeB & B) >> 63;
-                B = codeB ^ (B | prev_is_escape);
-                Q &= ~B;
-                prev_is_escape = escape;
-            }
-        }
-
-        const uint64_t R = prefix_xor(Q) ^ prev_in_string;
-
-        const auto WS = S | W;
-        const auto WT = shld(WS, prev_is_ws, 1);
-        const auto TW = shld(~WS, ~prev_is_ws, 1);
-        prev_is_ws = WS;
-
-        S &= ~R;
-        prev_in_string = static_cast<uint64_t>(static_cast<int64_t>(R) >> 63);
-
-        S |= Q;
-        S |= ((TW & W) | (WT & ~W)) & ~R;
-        S &= ~(Q & ~R);
-
-        if (S) {
-            const auto num = popcount(S);
-
-            do {
-                for (int i = 0; i < 4; ++i) {
-                    token_buf[i] = idx + ctz(S);
-                    S &= S - 1;
-                }
-
-                if (WJR_UNLIKELY(num <= 4)) {
-                    break;
-                }
-
-                for (int i = 4; i < 8; ++i) {
-                    token_buf[i] = idx + ctz(S);
-                    S &= S - 1;
-                }
-
-                if (WJR_LIKELY(num <= 8)) {
-                    break;
-                }
-
-                for (int i = 8; i < 12; ++i) {
-                    token_buf[i] = idx + ctz(S);
-                    S &= S - 1;
-                }
-
-                if (WJR_LIKELY(num <= 12)) {
-                    break;
-                }
-
-                for (int i = 12; i < 16; ++i) {
-                    token_buf[i] = idx + ctz(S);
-                    S &= S - 1;
-                }
-
-                if (WJR_LIKELY(num <= 16)) {
-                    break;
-                }
-
-                for (int i = 16; i < num; ++i) {
-                    token_buf[i] = idx + ctz(S);
-                    S &= S - 1;
-                }
-            } while (0);
-
-            token_buf += num;
-            count += num;
-        }
-
-        idx += 64;
-
-        if constexpr (!__is_dynamic) {
-            loop = (count <= token_buf_size);
-        } else {
-            loop = first != last;
-        }
-
-    } while (WJR_LIKELY(loop));
-
-    if constexpr (!__is_dynamic) {
-        m_storage.first = first;
-        m_storage.prev_is_escape = prev_is_escape;
-        m_storage.prev_in_string = prev_in_string;
-        m_storage.prev_is_ws = prev_is_ws;
-        m_storage.idx = idx;
-    }
-
-    if constexpr (!__is_dynamic) {
-        return count & (token_buf_mask - 1);
-    } else {
-        return count;
-    }
-}
-
-#endif
-
-} // namespace wjr::json
-
-#endif // WJR_X86_JSON_LEXER_HPP__
-#endif
-
-namespace wjr::json {
-
-#if !WJR_HAS_BUILTIN(JSON_LEXER_READER_READ_BUF)
-
-namespace lexer_details {
-
-const static std::array<uint8_t, 256> code_table = {
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 3, 4, 1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 2, 0, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 2, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
-
-}
-
-template <uint32_t token_buf_size>
-uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
-    WJR_UNREACHABLE();
-    if (WJR_UNLIKELY(m_storage.first == m_storage.last)) {
-        return 0;
-    }
-
-    using namespace lexer_details;
-
-    constexpr uint32_t token_buf_mask = token_buf_size * 2;
-
-    auto first = m_storage.first;
-    const auto last = m_storage.last;
-    uint64_t prev_is_escape;
-    uint64_t prev_in_string;
-    uint64_t prev_is_ws;
-    uint32_t idx;
-
-    if constexpr (__is_dynamic) {
-        prev_is_escape = prev_in_string = prev_is_ws = idx = 0;
-    } else {
-        prev_is_escape = m_storage.prev_is_escape;
-        prev_in_string = m_storage.prev_in_string;
-        prev_is_ws = m_storage.prev_is_ws;
-        idx = m_storage.idx;
-    }
-
-    WJR_ASSERT_ASSUME_L2(first < last);
-
-    uint32_t count = 0;
-    bool loop;
-
-    do {
-        const char *ptr;
-        char stk[64];
-        const size_t diff = last - first;
-
-        if (WJR_LIKELY(diff > 64)) {
-            ptr = first;
-            first += 64;
-        } else {
-            if (diff == 64) {
-                ptr = first;
-            } else {
-                std::memcpy(stk, first, diff);
-                std::memset(stk + diff, 0, 64 - diff);
-                ptr = stk;
-            }
-
-            first = last;
-            if constexpr (!__is_dynamic) {
-                count |= token_buf_mask;
-            }
-        }
-
-        uint64_t MASK[5] = {0, 0, 0, 0, 0};
-        auto &[B, Q, S, W, UNUSED] = MASK;
-
-        WJR_UNROLL(8)
-        for (int i = 0; i < 64; ++i) {
-            MASK[code_table[(uint8_t)ptr[i]]] |= 1ull << i;
-        }
-
-        {
-            if (!B) {
-                B = prev_is_escape;
-                Q &= ~B;
-                prev_is_escape = 0;
-            } else {
-                const uint64_t codeB = calc_backslash(B & ~prev_is_escape);
-                const auto escape = (codeB & B) >> 63;
-                B = codeB ^ (B | prev_is_escape);
-                Q &= ~B;
-                prev_is_escape = escape;
-            }
-        }
-
-        const uint64_t R = prefix_xor(Q) ^ prev_in_string;
-        S &= ~R;
-        prev_in_string = static_cast<uint64_t>(static_cast<int64_t>(R) >> 63);
-
-        S |= Q;
-        const auto WS = S | W;
-        const auto P = shld(WS, prev_is_ws, 1);
-        prev_is_ws = WS;
-
-        S |= (P ^ W) & ~R;
-        S &= ~(Q & ~R);
-
-        if (S) {
-            const auto num = popcount(S);
-
-            do {
-                for (int i = 0; i < 4; ++i) {
-                    token_buf[i] = idx + ctz(S);
-                    S &= S - 1;
-                }
-
-                if (WJR_UNLIKELY(num <= 4)) {
-                    break;
-                }
-
-                for (int i = 4; i < 8; ++i) {
-                    token_buf[i] = idx + ctz(S);
-                    S &= S - 1;
-                }
-
-                if (WJR_LIKELY(num <= 8)) {
-                    break;
-                }
-
-                for (int i = 8; i < 12; ++i) {
-                    token_buf[i] = idx + ctz(S);
-                    S &= S - 1;
-                }
-
-                if (WJR_LIKELY(num <= 12)) {
-                    break;
-                }
-
-                for (int i = 12; i < 16; ++i) {
-                    token_buf[i] = idx + ctz(S);
-                    S &= S - 1;
-                }
-
-                if (WJR_LIKELY(num <= 16)) {
-                    break;
-                }
-
-                for (int i = 16; i < num; ++i) {
-                    token_buf[i] = idx + ctz(S);
-                    S &= S - 1;
-                }
-            } while (0);
-
-            token_buf += num;
-            count += num;
-        }
-
-        idx += 64;
-
-        if constexpr (!__is_dynamic) {
-            loop = (count <= token_buf_size);
-        } else {
-            loop = first != last;
-        }
-
-    } while (WJR_LIKELY(loop));
-
-    if constexpr (!__is_dynamic) {
-        m_storage.first = first;
-        m_storage.prev_is_escape = prev_is_escape;
-        m_storage.prev_in_string = prev_in_string;
-        m_storage.prev_is_ws = prev_is_ws;
-        m_storage.idx = idx;
-    }
-
-    if constexpr (!__is_dynamic) {
-        return count & (token_buf_mask - 1);
-    } else {
-        return count;
-    }
-}
-#endif
-
-} // namespace wjr::json
-
-#endif // WJR_JSON_LEXER_HPP__
-#ifndef WJR_JSON_PARSER_HPP__
-#define WJR_JSON_PARSER_HPP__
-
-#include <bitset>
-#include <charconv>
-
-// Already included
-// Already included
-
-namespace wjr::json {
-
-enum error_code : unsigned int {
-    SUCCESS,
-    FAILURE,
-};
-
-struct in_place_token_null_t {};
-struct in_place_token_true_t {};
-struct in_place_token_false_t {};
-struct in_place_token_number_t {};
-struct in_place_token_string_t {};
-struct in_place_token_left_bracket_t {};
-struct in_place_token_left_brace_t {};
-struct in_place_token_left_brace_string_t {};
-struct in_place_token_right_bracket_back_bracket_t {};
-struct in_place_token_right_bracket_back_brace_t {};
-struct in_place_token_right_bracket_back_root_t {};
-struct in_place_token_right_brace_back_bracket_t {};
-struct in_place_token_right_brace_back_brace_t {};
-struct in_place_token_right_brace_back_root_t {};
-
-struct in_place_token_success_t {};
-
-template <error_code ec>
-struct in_place_token_failure_t {};
-
-struct in_place_token_repeat_t {};
-
-inline constexpr in_place_token_null_t in_place_token_null{};
-inline constexpr in_place_token_true_t in_place_token_true{};
-inline constexpr in_place_token_false_t in_place_token_false{};
-inline constexpr in_place_token_number_t in_place_token_number{};
-inline constexpr in_place_token_string_t in_place_token_string{};
-inline constexpr in_place_token_left_bracket_t in_place_token_left_bracket{};
-inline constexpr in_place_token_left_brace_t in_place_token_left_brace{};
-inline constexpr in_place_token_left_brace_string_t in_place_token_left_brace_string{};
-inline constexpr in_place_token_right_bracket_back_bracket_t
-    in_place_token_right_bracket_back_bracket{};
-inline constexpr in_place_token_right_bracket_back_brace_t
-    in_place_token_right_bracket_back_brace{};
-inline constexpr in_place_token_right_bracket_back_root_t
-    in_place_token_right_bracket_back_root{};
-inline constexpr in_place_token_right_brace_back_bracket_t
-    in_place_token_right_brace_back_bracket{};
-inline constexpr in_place_token_right_brace_back_brace_t
-    in_place_token_right_brace_back_brace{};
-inline constexpr in_place_token_right_brace_back_root_t
-    in_place_token_right_brace_back_root{};
-
-inline constexpr in_place_token_success_t in_place_token_success{};
-
-template <error_code ec>
-inline constexpr in_place_token_failure_t<ec> in_place_token_failure{};
-
-inline constexpr in_place_token_repeat_t in_place_token_repeat{};
-
-template <uint32_t token_buf_size>
-class forward_token_reader {
-public:
-    forward_token_reader(span<const char> sp, uint32_t *token_buf)
-        : token_first(token_buf), token_last(token_buf), token_buf(token_buf),
-          first(sp.data()), lexer(sp) {}
-
-    WJR_INTRINSIC_INLINE bool operator()(uint32_t &token) {
-        if (WJR_LIKELY(token_first != token_last)) {
-            token = *token_first++;
-            return true;
-        }
-
-        return read_more(token);
-    }
-
-    WJR_PURE const char *begin() const noexcept { return first; }
-    WJR_PURE const char *end() const noexcept { return lexer.end(); }
-
-private:
-    WJR_NOINLINE bool read_more(uint32_t &token) {
-        uint32_t count = lexer.read(token_buf);
-        if (WJR_UNLIKELY(count == 0)) {
-            return false;
-        }
-
-        token_first = token_buf;
-        token_last = token_buf + count;
-        token = *token_first++;
-        return true;
-    }
-
-    uint32_t *token_first;
-    uint32_t *token_last;
-    uint32_t *token_buf;
-    const char *first;
-    basic_lexer<token_buf_size> lexer;
-};
-
-/**
- * @details Return true if parsing needs to be terminated.
- *
- */
-struct empty_parser {
-    bool operator()(in_place_token_null_t, const char *, const char *) { return false; }
-
-    bool operator()(in_place_token_true_t, const char *, const char *) { return false; }
-
-    bool operator()(in_place_token_false_t, const char *, const char *) { return false; }
-
-    bool operator()(in_place_token_number_t, const char *, const char *) { return false; }
-
-    bool operator()(in_place_token_string_t, const char *, const char *) { return false; }
-
-    bool operator()(in_place_token_left_bracket_t) { return false; }
-
-    bool operator()(in_place_token_left_brace_t) { return false; }
-
-    bool operator()(in_place_token_left_brace_string_t, const char *, const char *) {
-        return false;
-    }
-
-    bool operator()(in_place_token_right_bracket_back_bracket_t) { return false; }
-
-    bool operator()(in_place_token_right_bracket_back_brace_t, const char *,
-                    const char *) {
-        return false;
-    }
-
-    bool operator()(in_place_token_right_bracket_back_root_t) { return false; }
-
-    bool operator()(in_place_token_right_brace_back_bracket_t) { return false; }
-
-    bool operator()(in_place_token_right_brace_back_brace_t, const char *, const char *) {
-        return false;
-    }
-
-    bool operator()(in_place_token_right_brace_back_root_t) { return false; }
-
-    void operator()(in_place_token_success_t) {}
-
-    template <error_code E>
-    void operator()(in_place_token_failure_t<E>) {}
-
-    bool operator()(in_place_token_repeat_t) { return false; }
-};
-
-struct check_parser : empty_parser {
-    using empty_parser::operator();
-
-    bool operator()(in_place_token_null_t, const char *first, const char *last) {
-        if (WJR_LIKELY(last - first == 4 && std::memcmp(first, "null", 4) == 0)) {
-            return false;
-        }
-
-        ec = FAILURE;
-        return true;
-    }
-
-    bool operator()(in_place_token_true_t, const char *first, const char *last) {
-        if (WJR_LIKELY(last - first == 4 && std::memcmp(first, "true", 4) == 0)) {
-            return false;
-        }
-
-        ec = FAILURE;
-        return true;
-    }
-
-    bool operator()(in_place_token_false_t, const char *first, const char *last) {
-        if (WJR_LIKELY(last - first == 5 && std::memcmp(first + 1, "alse", 4) == 0)) {
-            return false;
-        }
-
-        ec = FAILURE;
-        return true;
-    }
-
-    WJR_INTRINSIC_INLINE bool operator()(in_place_token_number_t, const char *first,
-                                         const char *last) {
-        constexpr auto __matches = [](uint8_t ch) { return '0' <= ch && ch <= '9'; };
-
-        WJR_ASSERT_ASSUME_L2(first < last);
-
-        if (*first == '-') {
-            if (++first == last) {
-                goto FAILED;
-            }
-        }
-
-        if (*first++ == '0') {
-            if (first == last) {
-                return false;
-            }
-        } else {
-            if (first == last) {
-                return false;
-            }
-
-            do {
-                if (WJR_UNLIKELY(!__matches(*first))) {
-                    goto NEXT0;
-                }
-            } while (++first != last);
-            return false;
-        NEXT0 : {}
-        }
-
-        if (*first == '.') {
-            if (++first == last) {
-                goto FAILED;
-            }
-
-            if (WJR_UNLIKELY(!__matches(*first))) {
-                goto FAILED;
-            }
-
-            while (++first != last) {
-                if (WJR_UNLIKELY(!__matches(*first))) {
-                    goto NEXT1;
-                }
-            }
-            return false;
-        NEXT1 : {}
-        }
-
-        switch (*first) {
-        case 'e':
-        case 'E': {
-            break;
-        }
-        default: {
-            goto FAILED;
-        }
-        }
-
-        if (++first == last) {
-            goto FAILED;
-        }
-
-        if (*first == '+' || *first == '-') {
-            if (++first == last) {
-                goto FAILED;
-            }
-        }
-
-        if (WJR_UNLIKELY(!__matches(*first))) {
-            goto FAILED;
-        }
-
-        while (++first != last) {
-            if (WJR_UNLIKELY(!__matches(*first))) {
-                goto FAILED;
-            }
-        }
-
-        return false;
-    FAILED : {
-        ec = FAILURE;
-        return true;
-    }
-    }
-
-    WJR_INTRINSIC_INLINE bool operator()(in_place_token_string_t, const char *first,
-                                         const char *last) {
-        while (first != last) {
-            uint8_t ch = *first++;
-            if (WJR_UNLIKELY(ch < 32 || ch == 127)) {
-                goto FAILED;
-            }
-
-            if (WJR_UNLIKELY(ch == '\\')) {
-                if (WJR_UNLIKELY(first == last)) {
-                    goto FAILED;
-                }
-
-                ch = *first++;
-                switch (ch) {
-                case '"':
-                case '\\':
-                case '/':
-                case 'b':
-                case 'f':
-                case 'n':
-                case 'r':
-                case 't': {
-                    break;
-                }
-                case 'u': {
-                    if (WJR_UNLIKELY(first + 4 > last)) {
-                        goto FAILED;
-                    }
-
-                    for (int i = 0; i < 4; ++i) {
-                        ch = *first++;
-                        if (WJR_UNLIKELY(!('0' <= ch && ch <= '9') &&
-                                         !('a' <= ch && ch <= 'f') &&
-                                         !('A' <= ch && ch <= 'F'))) {
-                            goto FAILED;
-                        }
-                    }
-
-                    break;
-                }
-                default: {
-                    goto FAILED;
-                }
-                }
-            }
-        }
-
-        return false;
-
-    FAILED : {
-        ec = FAILURE;
-        return true;
-    }
-    }
-
-    template <error_code E>
-    void operator()(in_place_token_failure_t<E>) {
-        ec = E;
-    }
-
-    error_code ec = SUCCESS;
-};
-
-/**
- * @param parser Return type of
- * success_t/failure_t/left_bracket_t/right_bracket_t/left_brace_t/right_brace_t must be
- * void. Otherwise, return type must be bool.
- *
- */
-template <typename TokenReader, typename Parser>
-WJR_NOINLINE void reader_parse(TokenReader &reader, Parser &parser) {
-    unique_stack_allocator stkal(math_details::stack_alloc);
-
-    struct stack {
-        uint8_t type;
-        const char *first;
-        const char *last;
-    };
-
-    stack *stk = static_cast<stack *>(stkal.allocate(512 * sizeof(stack)));
-    stack *current = stk;
-    uint8_t type;
-
-    uint32_t token, next_token;
-    const char *const ptr = reader.begin();
-    const char *const last = reader.end();
-    const auto size = last - ptr;
-
-    // empty json
-    if (WJR_UNLIKELY(!reader(token))) {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-
-REPEAT_TOKEN : {
-    switch (ptr[token]) {
-    case 'n': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            next_token = size;
-        }
-
-        if (WJR_UNLIKELY(parser(in_place_token_null, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
-    }
-    case 't': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            next_token = size;
-        }
-
-        if (WJR_UNLIKELY(parser(in_place_token_true, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
-    }
-    case 'f': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            next_token = size;
-        }
-
-        if (WJR_UNLIKELY(parser(in_place_token_false, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
-    }
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-    case '-': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            next_token = size;
-        }
-
-        type = 0;
-        goto NUMBER;
-    }
-    case '"': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            next_token = size;
-        }
-
-        type = 0;
-        goto STRING;
-    }
-    case '[': {
-        if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
-            return;
-        }
-
-        goto ARRAY;
-    }
-    case '{': {
-        if (WJR_UNLIKELY(parser(in_place_token_left_brace))) {
-            return;
-        }
-
-        goto OBJECT;
-    }
-    default: {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-    }
-
-REPEAT_TOKEN_NEXT:
-
-    if (next_token == size) {
-        return parser(in_place_token_success);
-    }
-
-    // non-repeated callback
-    if (parser(in_place_token_repeat)) {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-
-    // non-structural token, must be followed by space
-    switch (ptr[next_token]) {
-    case ' ':
-    case '\n':
-    case '\t':
-    case '\r': {
-        if (!reader(token)) {
-            return parser(in_place_token_success);
-        }
-        break;
-    }
-    default: {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-    }
-
-    goto REPEAT_TOKEN;
-}
-
-ARRAY : {
-    if (WJR_UNLIKELY(!reader(token))) {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-
-    switch (ptr[token]) {
-    case 'n': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        if (WJR_UNLIKELY(parser(in_place_token_null, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
-    }
-    case 't': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        if (WJR_UNLIKELY(parser(in_place_token_true, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
-    }
-    case 'f': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        if (WJR_UNLIKELY(parser(in_place_token_false, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
-    }
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-    case '-': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        type = 1;
-        goto NUMBER;
-    }
-    case '"': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        type = 1;
-        goto STRING;
-    }
-    case '[': {
-        if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
-            return;
-        }
-
-        (current++)->type = 0;
-        goto ARRAY;
-    }
-    case '{': {
-        if (WJR_UNLIKELY(parser(in_place_token_left_brace))) {
-            return;
-        }
-
-        (current++)->type = 0;
-        goto OBJECT;
-    }
-    case ']': {
-        goto ARRAY_BACK;
-    }
-    case '}': {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-    default: {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-    }
-}
-
-ARRAY_ELEMENT_SPACE:
-    switch (ptr[next_token]) {
-    case ' ':
-    case '\n':
-    case '\t':
-    case '\r': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        break;
-    }
-    }
-
-ARRAY_ELEMENT : {
-    switch (ptr[next_token]) {
-    case ',': {
-        break;
-    }
-    case ']': {
-    ARRAY_BACK:
-        if (current == stk) {
-            if (parser(in_place_token_right_bracket_back_root) ||
-                parser(in_place_token_repeat)) {
-                return;
-            }
-
-            if (reader(token)) {
-                goto REPEAT_TOKEN;
-            }
-
-            return parser(in_place_token_success);
-        }
-
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        type = (--current)->type;
-
-        if (type == 0) {
-            if (WJR_UNLIKELY(parser(in_place_token_right_bracket_back_bracket))) {
-                return;
-            }
-
-            goto ARRAY_ELEMENT;
-        } else {
-            if (WJR_UNLIKELY(parser(in_place_token_right_bracket_back_brace,
-                                    current->first, current->last))) {
-                return;
-            }
-
-            goto OBJECT_ELEMENT;
-        }
-    }
-    default: {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-    }
-
-    if (WJR_UNLIKELY(!reader(token))) {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-
-    switch (ptr[token]) {
-    case 'n': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        if (WJR_UNLIKELY(parser(in_place_token_null, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
-    }
-    case 't': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        if (WJR_UNLIKELY(parser(in_place_token_true, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
-    }
-    case 'f': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        if (WJR_UNLIKELY(parser(in_place_token_false, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
-    }
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-    case '-': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        type = 1;
-        goto NUMBER;
-    }
-    case '"': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        type = 1;
-        goto STRING;
-    }
-    case '[': {
-        if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
-            return;
-        }
-
-        (current++)->type = 0;
-        goto ARRAY;
-    }
-    case '{': {
-        if (WJR_UNLIKELY(parser(in_place_token_left_brace))) {
-            return;
-        }
-
-        (current++)->type = 0;
-        goto OBJECT;
-    }
-    case ']': {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-    case '}': {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-    default: {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-    }
-
-    goto ARRAY_ELEMENT_SPACE;
-}
-
-OBJECT : {
-    if (WJR_UNLIKELY(!reader(token))) {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-
-    switch (ptr[token]) {
-    case '"': {
-        break;
-    }
-    case '}': {
-        goto OBJECT_BACK;
-    }
-    default: {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-    }
-
-    if (WJR_UNLIKELY(!reader(next_token))) {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-
-    if (WJR_UNLIKELY(next_token - token < 2 ||
-                     parser(in_place_token_left_brace_string, ptr + token + 1,
-                            ptr + next_token - 1))) {
-        return;
-    }
-
-    switch (ptr[next_token]) {
-    case ' ':
-    case '\n':
-    case '\r':
-    case '\t': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        break;
-    }
-    }
-
-    if (WJR_UNLIKELY(ptr[next_token] != ':')) {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-
-    if (WJR_UNLIKELY(!reader(token))) {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-
-    switch (ptr[token]) {
-    case 'n': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        if (WJR_UNLIKELY(parser(in_place_token_null, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
-    }
-    case 't': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        if (WJR_UNLIKELY(parser(in_place_token_true, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
-    }
-    case 'f': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        if (WJR_UNLIKELY(parser(in_place_token_false, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
-    }
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-    case '-': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        type = 2;
-        goto NUMBER;
-    }
-    case '"': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        type = 2;
-        goto STRING;
-    }
-    case '[': {
-        if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
-            return;
-        }
-
-        (current++)->type = 1;
-        goto ARRAY;
-    }
-    case '{': {
-        if (WJR_UNLIKELY(parser(in_place_token_left_brace))) {
-            return;
-        }
-
-        (current++)->type = 1;
-        goto OBJECT;
-    }
-    case ']': {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-    case '}': {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-    default: {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-    }
-}
-
-OBJECT_ELEMENT_SPACE:
-    switch (ptr[next_token]) {
-    case ' ':
-    case '\n':
-    case '\t':
-    case '\r': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        break;
-    }
-    }
-
-OBJECT_ELEMENT : {
-    switch (ptr[next_token]) {
-    case ',': {
-        break;
-    }
-    case '}': {
-    OBJECT_BACK:
-        if (WJR_UNLIKELY(current == stk)) {
-            if (parser(in_place_token_right_brace_back_root) ||
-                parser(in_place_token_repeat)) {
-                return;
-            }
-
-            if (reader(token)) {
-                goto REPEAT_TOKEN;
-            }
-
-            return parser(in_place_token_success);
-        }
-
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        type = (--current)->type;
-
-        if (type == 0) {
-            if (WJR_UNLIKELY(parser(in_place_token_right_brace_back_bracket))) {
-                return;
-            }
-
-            goto ARRAY_ELEMENT;
-        } else {
-            if (WJR_UNLIKELY(parser(in_place_token_right_brace_back_brace, current->first,
-                                    current->last))) {
-                return;
-            }
-
-            goto OBJECT_ELEMENT;
-        }
-    }
-    default: {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-    }
-
-    if (WJR_UNLIKELY(!reader(token))) {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-
-    switch (ptr[token]) {
-    case '"': {
-        break;
-    }
-    default: {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-    }
-
-    if (WJR_UNLIKELY(!reader(next_token))) {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-
-    if (WJR_UNLIKELY(next_token - token < 2 ||
-                     parser(in_place_token_left_brace_string, ptr + token + 1,
-                            ptr + next_token - 1))) {
-        return;
-    }
-
-    switch (ptr[next_token]) {
-    case ' ':
-    case '\n':
-    case '\r':
-    case '\t': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        break;
-    }
-    }
-
-    if (WJR_UNLIKELY(ptr[next_token] != ':')) {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-
-    if (WJR_UNLIKELY(!reader(token))) {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-
-    switch (ptr[token]) {
-    case 'n': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        if (WJR_UNLIKELY(parser(in_place_token_null, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
-    }
-    case 't': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        if (WJR_UNLIKELY(parser(in_place_token_true, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
-    }
-    case 'f': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        if (WJR_UNLIKELY(parser(in_place_token_false, ptr + token, ptr + next_token))) {
-            return;
-        }
-
-        break;
-    }
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-    case '-': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        type = 2;
-        goto NUMBER;
-    }
-    case '"': {
-        if (WJR_UNLIKELY(!reader(next_token))) {
-            return parser(in_place_token_failure<FAILURE>);
-        }
-
-        type = 2;
-        goto STRING;
-    }
-    case '[': {
-        if (WJR_UNLIKELY(parser(in_place_token_left_bracket))) {
-            return;
-        }
-
-        (current++)->type = 1;
-        goto ARRAY;
-    }
-    case '{': {
-        if (WJR_UNLIKELY(parser(in_place_token_left_brace))) {
-            return;
-        }
-
-        (current++)->type = 1;
-        goto OBJECT;
-    }
-    case ']': {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-    case '}': {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-    default: {
-        return parser(in_place_token_failure<FAILURE>);
-    }
-    }
-
-    goto OBJECT_ELEMENT_SPACE;
-}
-
-NUMBER:
-    if (WJR_UNLIKELY(parser(in_place_token_number, ptr + token, ptr + next_token))) {
-        return;
-    }
-
-    if (type == 1) {
-        goto ARRAY_ELEMENT_SPACE;
-    } else if (type == 2) {
-        goto OBJECT_ELEMENT_SPACE;
-    } else {
-        goto REPEAT_TOKEN_NEXT;
-    }
-
-STRING:
-    if (WJR_UNLIKELY(
-            next_token - token < 2 ||
-            parser(in_place_token_string, ptr + token + 1, ptr + next_token - 1))) {
-        return;
-    }
-
-    if (type == 1) {
-        goto ARRAY_ELEMENT_SPACE;
-    } else if (type == 2) {
-        goto OBJECT_ELEMENT_SPACE;
-    } else {
-        goto REPEAT_TOKEN_NEXT;
-    }
-}
-
-template <typename Parser>
-WJR_INTRINSIC_INLINE void parse(span<const char> sp, Parser &parser) {
-    constexpr uint32_t token_buf_size = 1024;
-
-    unique_stack_allocator stkal(math_details::stack_alloc);
-
-    uint32_t *token_buf = static_cast<uint32_t *>(
-        stkal.allocate((token_buf_size * 2 - 1) * sizeof(uint32_t)));
-
-    forward_token_reader<token_buf_size> reader(sp, token_buf);
-    reader_parse(reader, parser);
-}
-
-} // namespace wjr::json
-
-#endif // WJR_JSON_PARSER_HPP__
 // Already included
 // Already included
 // Already included

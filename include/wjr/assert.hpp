@@ -59,44 +59,31 @@ WJR_NORETURN extern void __assert_failed(const char *expr, const char *file,
 // LCOV_EXCL_START
 
 /// @private
-class __assert_handler_t {
-private:
-    WJR_NORETURN static void fn(const char *expr, const char *file, const char *func,
-                                int line) noexcept {
-        __assert_failed(expr, file, func, line);
-    }
+template <typename... Args>
+WJR_NORETURN WJR_NOINLINE void __assert_handler(const char *expr, const char *file,
+                                                const char *func, int line,
+                                                Args &&...args) noexcept {
+    std::cerr << "Additional information: ";
+    (void)(std::cerr << ... << std::forward<Args>(args));
+    std::cerr << '\n';
+    __assert_failed(expr, file, func, line);
+}
 
-    template <typename... Args>
-    WJR_NORETURN WJR_NOINLINE static void fn(const char *expr, const char *file,
-                                             const char *func, int line,
-                                             Args &&...args) noexcept {
-        std::cerr << "Additional information: ";
-        (void)(std::cerr << ... << std::forward<Args>(args));
-        std::cerr << '\n';
-        __assert_failed(expr, file, func, line);
-    }
-
-public:
-    template <typename... Args>
-    WJR_NORETURN void operator()(const char *expr, const char *file, const char *func,
-                                 int line, Args &&...args) const noexcept {
-        fn(expr, file, func, line, std::forward<Args>(args)...);
-    }
-};
-
-inline constexpr __assert_handler_t __assert_handler{};
+/// @private
+WJR_NORETURN inline void __assert_handler(const char *expr, const char *file,
+                                          const char *func, int line) noexcept {
+    __assert_failed(expr, file, func, line);
+}
 
 // LCOV_EXCL_STOP
 
-#define WJR_ASSERT_CHECK_I_HANDLER(handler, expr, ...)                                   \
+#define WJR_ASSERT_CHECK_I(expr, ...)                                                    \
     do {                                                                                 \
         if (WJR_UNLIKELY(!(expr))) {                                                     \
-            handler(#expr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE, ##__VA_ARGS__);     \
+            ::wjr::__assert_handler(#expr, WJR_FILE, WJR_CURRENT_FUNCTION, WJR_LINE,     \
+                                    ##__VA_ARGS__);                                      \
         }                                                                                \
     } while (0)
-
-#define WJR_ASSERT_CHECK_I(...)                                                          \
-    WJR_ASSERT_CHECK_I_HANDLER(::wjr::__assert_handler, __VA_ARGS__)
 
 // do nothing
 #define WJR_ASSERT_UNCHECK_I(expr, ...)                                                  \
