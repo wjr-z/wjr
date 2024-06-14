@@ -65,21 +65,12 @@ template <size_t... Indexs, typename... Args>
 class WJR_EMPTY_BASES tuple_impl<std::index_sequence<Indexs...>, Args...>
     : capture_leaf<Args,
                    enable_base_identity_t<
-                       Indexs, tuple_impl<std::index_sequence<Indexs...>, Args...>>>...,
-      enable_special_members_of_args_base<
-          tuple_impl<std::index_sequence<Indexs...>, Args...>,
-          capture_leaf<Args, enable_base_identity_t<
-                                 Indexs, tuple_impl<std::index_sequence<Indexs...>,
-                                                    Args...>>>...> {
+                       Indexs, tuple_impl<std::index_sequence<Indexs...>, Args...>>>... {
     using Sequence = std::index_sequence<Indexs...>;
 
     template <size_t Idx>
     using Mybase = capture_leaf<std::tuple_element_t<Idx, tuple<Args...>>,
                                 enable_base_identity_t<Idx, tuple_impl>>;
-
-    using Mybase2 = enable_special_members_of_args_base<
-        tuple_impl<Sequence, Args...>,
-        capture_leaf<Args, enable_base_identity_t<Indexs, tuple_impl>>...>;
 
     constexpr static size_t Size = sizeof...(Args);
 
@@ -89,16 +80,14 @@ public:
                   std::conjunction_v<std::is_same<S, Sequence>,
                                      std::is_default_constructible<Mybase<Indexs>>...>)>
     constexpr tuple_impl() noexcept(
-        std::conjunction_v<std::is_nothrow_constructible<Args>...>)
-        : Mybase2(enable_default_constructor) {}
+        std::conjunction_v<std::is_nothrow_constructible<Args>...>) {}
 
     template <size_t... _Indexs, typename... _Args,
               WJR_REQUIRES(
                   std::conjunction_v<std::is_constructible<Mybase<_Indexs>, _Args>...>)>
     constexpr tuple_impl(std::index_sequence<_Indexs...>, _Args &&...args) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<Args, _Args &&>...>)
-        : Mybase<_Indexs>(std::forward<_Args>(args))...,
-          Mybase2(enable_default_constructor) {}
+        : Mybase<_Indexs>(std::forward<_Args>(args))... {}
 
     template <size_t I>
     constexpr auto &get() & noexcept {
@@ -143,13 +132,9 @@ public:
 };
 
 template <typename This, typename... Args>
-class tuple<This, Args...>
-    : enable_special_members_of_args_base<
-          tuple<This, Args...>,
-          tuple_impl<std::index_sequence_for<This, Args...>, This, Args...>> {
+class tuple<This, Args...> {
     using Sequence = std::index_sequence_for<This, Args...>;
     using Impl = tuple_impl<Sequence, This, Args...>;
-    using Mybase = enable_special_members_of_args_base<tuple<This, Args...>, Impl>;
 
     constexpr static size_t Size = sizeof...(Args) + 1;
 
@@ -161,15 +146,14 @@ public:
     constexpr explicit(
         !std::conjunction_v<is_default_convertible<T>, is_default_convertible<Args>...>)
         tuple() noexcept(std::is_nothrow_constructible_v<Impl>)
-        : Mybase(enable_default_constructor), m_impl() {}
+        : m_impl() {}
 #else
     template <typename T = This,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
                                               std::is_default_constructible<Args>...>
                                &&std::conjunction_v<is_default_convertible<T>,
                                                     is_default_convertible<Args>...>)>
-    constexpr tuple() noexcept(std::is_nothrow_constructible_v<Impl>)
-        : Mybase(enable_default_constructor), m_impl() {}
+    constexpr tuple() noexcept(std::is_nothrow_constructible_v<Impl>) : m_impl() {}
 
     template <typename T = This,
               WJR_REQUIRES(std::conjunction_v<std::is_default_constructible<T>,
@@ -177,7 +161,7 @@ public:
                            !std::conjunction_v<is_default_convertible<T>,
                                                is_default_convertible<Args>...>)>
     constexpr explicit tuple() noexcept(std::is_nothrow_constructible_v<Impl>)
-        : Mybase(enable_default_constructor), m_impl() {}
+        : m_impl() {}
 #endif
 
     template <typename Other = This,
@@ -185,7 +169,7 @@ public:
                                                    const Args &...>)>
     constexpr tuple(const Other &first, const Args &...rest) noexcept(
         std::is_nothrow_constructible_v<Impl, Sequence, const Other &, const Args &...>)
-        : Mybase(enable_default_constructor), m_impl(Sequence(), first, rest...) {}
+        : m_impl(Sequence(), first, rest...) {}
 
     template <
         typename Other, typename... _Args,
@@ -197,8 +181,7 @@ public:
                          std::is_constructible<Impl, Sequence, Other &&, _Args &&...>>)>
     constexpr tuple(Other &&other, _Args &&...args) noexcept(
         std::is_nothrow_constructible_v<Impl, Sequence, Other &&, _Args &&...>)
-        : Mybase(enable_default_constructor),
-          m_impl(Sequence(), std::forward<Other>(other), std::forward<_Args>(args)...) {}
+        : m_impl(Sequence(), std::forward<Other>(other), std::forward<_Args>(args)...) {}
 
 private:
     template <size_t... _Indexs, typename TupleLike>
@@ -209,8 +192,7 @@ private:
                                            Impl, Sequence,
                                            decltype(std::get<_Indexs>(
                                                std::forward<TupleLike>(other)))...>)
-        : Mybase(enable_default_constructor),
-          m_impl(Sequence(), std::get<_Indexs>(std::forward<TupleLike>(other))...) {}
+        : m_impl(Sequence(), std::get<_Indexs>(std::forward<TupleLike>(other))...) {}
 
 public:
     template <typename TupleLike,
