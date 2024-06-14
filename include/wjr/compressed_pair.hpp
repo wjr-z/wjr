@@ -1,10 +1,7 @@
 #ifndef WJR_COMPRESSED_PAIR_HPP__
 #define WJR_COMPRESSED_PAIR_HPP__
 
-#include <tuple>
-
-#include <wjr/capture_leaf.hpp>
-#include <wjr/math/integral_constant.hpp>
+#include <wjr/tuple.hpp>
 
 namespace wjr {
 
@@ -206,8 +203,8 @@ public:
 
     template <typename... Args1, typename... Args2>
     constexpr compressed_pair(
-        std::piecewise_construct_t, std::tuple<Args1...> tp1,
-        std::tuple<Args2...>
+        std::piecewise_construct_t, tuple<Args1...> tp1,
+        tuple<Args2...>
             tp2) noexcept(noexcept(compressed_pair(tp1, tp2,
                                                    std::index_sequence_for<Args1...>{},
                                                    std::index_sequence_for<Args2...>{})))
@@ -312,20 +309,12 @@ public:
 
     template <size_t I, WJR_REQUIRES(I < 2)>
     constexpr std::tuple_element_t<I, compressed_pair> &&get() && noexcept {
-        if constexpr (I == 0) {
-            return std::move(first());
-        } else {
-            return std::move(second());
-        }
+        return static_cast<std::tuple_element_t<I, compressed_pair> &&>(get());
     }
 
     template <size_t I, WJR_REQUIRES(I < 2)>
     constexpr const std::tuple_element_t<I, compressed_pair> &&get() const && noexcept {
-        if constexpr (I == 0) {
-            return std::move(first());
-        } else {
-            return std::move(second());
-        }
+        return static_cast<const std::tuple_element_t<I, compressed_pair> &&>(get());
     }
 
     template <size_t I, WJR_REQUIRES(I >= 0 && I < 2)>

@@ -160,33 +160,33 @@ public:
 #if defined(__cpp_conditional_explicit)
     template <typename It, WJR_REQUIRES(__is_span_iterator<It, element_type>::value)>
     constexpr explicit(!__is_dynamic) span(It first, size_type count) noexcept
-        : storage((to_address)(first), count) {}
+        : storage(wjr::to_address(first), count) {}
 #else
     template <typename It,
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value &&__is_dynamic)>
     constexpr span(It first, size_type count) noexcept
-        : storage((to_address)(first), count) {}
+        : storage(wjr::to_address(first), count) {}
 
     template <typename It,
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value && !__is_dynamic)>
     constexpr explicit span(It first, size_type count) noexcept
-        : storage((to_address)(first), count) {}
+        : storage(wjr::to_address(first), count) {}
 #endif
 
 #if defined(__cpp_conditional_explicit)
     template <typename It, WJR_REQUIRES(__is_span_iterator<It, element_type>::value)>
     constexpr explicit(!__is_dynamic) span(It first, It last) noexcept
-        : storage((to_address)(first), static_cast<size_type>(last - first)) {}
+        : storage(wjr::to_address(first), static_cast<size_type>(last - first)) {}
 #else
     template <typename It,
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value &&__is_dynamic)>
     constexpr span(It first, It last) noexcept
-        : storage((to_address)(first), static_cast<size_type>(last - first)) {}
+        : storage(wjr::to_address(first), static_cast<size_type>(last - first)) {}
 
     template <typename It,
               WJR_REQUIRES(__is_span_iterator<It, element_type>::value && !__is_dynamic)>
     constexpr explicit span(It first, It last) noexcept
-        : storage((to_address)(first), static_cast<size_type>(last - first)) {}
+        : storage(wjr::to_address(first), static_cast<size_type>(last - first)) {}
 #endif
 
     template <size_t N, WJR_REQUIRES((__is_dynamic || N == Extent))>
@@ -253,12 +253,12 @@ private:
 
     WJR_PURE WJR_CONSTEXPR20 pointer __get_pointer(iterator ptr) const noexcept {
         ptr.check_same_container(this);
-        return (to_address)(ptr);
+        return wjr::to_address(ptr);
     }
 
     WJR_PURE WJR_CONSTEXPR20 pointer __get_pointer(const_iterator ptr) const noexcept {
         ptr.check_same_container(this);
-        return const_cast<pointer>((to_address)(ptr));
+        return const_cast<pointer>(wjr::to_address(ptr));
     }
 
 public:

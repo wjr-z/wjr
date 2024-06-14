@@ -990,28 +990,28 @@ public:
 
     WJR_CONSTEXPR20 explicit basic_vector(const allocator_type &al) noexcept(
         std::is_nothrow_constructible_v<_Alty, const allocator_type &>)
-        : m_pair(std::piecewise_construct, std::forward_as_tuple(al),
-                 std::forward_as_tuple()) {}
+        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al),
+                 wjr::forward_as_tuple()) {}
 
     WJR_CONSTEXPR20 explicit basic_vector(const size_type n,
                                           const allocator_type &al = allocator_type())
-        : m_pair(std::piecewise_construct, std::forward_as_tuple(al),
-                 std::forward_as_tuple()) {
+        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al),
+                 wjr::forward_as_tuple()) {
         __construct_n(n, vctor);
     }
 
     WJR_CONSTEXPR20 basic_vector(size_type n, const value_type &val,
                                  const allocator_type &al = allocator_type())
-        : m_pair(std::piecewise_construct, std::forward_as_tuple(al),
-                 std::forward_as_tuple()) {
+        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al),
+                 wjr::forward_as_tuple()) {
         __construct_n(n, val);
     }
 
 private:
     template <typename _Alloc>
     WJR_CONSTEXPR20 basic_vector(const basic_vector &other, _Alloc &&al, in_place_empty_t)
-        : m_pair(std::piecewise_construct, std::forward_as_tuple(al),
-                 std::forward_as_tuple()) {
+        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al),
+                 wjr::forward_as_tuple()) {
         const auto size = other.size();
         uninitialized_construct(size, other.capacity());
         STraits::uninitialized_copy_n_restrict_using_allocator(other.data(), size, data(),
@@ -1023,8 +1023,8 @@ private:
     basic_vector(basic_vector &&other, _Alloc &&al, in_place_empty_t) noexcept(
         std::is_nothrow_constructible_v<storage_type, _Alloc &&>
             &&__storage_noexcept_take_storage)
-        : m_pair(std::piecewise_construct, std::forward_as_tuple(al),
-                 std::forward_as_tuple()) {
+        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al),
+                 wjr::forward_as_tuple()) {
         __take_storage(std::move(other));
     }
 
@@ -1050,8 +1050,8 @@ public:
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector(Iter first, Iter last,
                                  const allocator_type &al = allocator_type())
-        : m_pair(std::piecewise_construct, std::forward_as_tuple(al),
-                 std::forward_as_tuple()) {
+        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al),
+                 wjr::forward_as_tuple()) {
         __range_construct(try_to_address(first), try_to_address(last),
                           iterator_category_t<Iter>());
     }
@@ -1135,12 +1135,12 @@ private:
 
     WJR_PURE WJR_CONSTEXPR20 pointer __get_pointer(iterator ptr) const noexcept {
         ptr.check_same_container(this);
-        return (to_address)(ptr);
+        return wjr::to_address(ptr);
     }
 
     WJR_PURE WJR_CONSTEXPR20 pointer __get_pointer(const_iterator ptr) const noexcept {
         ptr.check_same_container(this);
-        return const_cast<pointer>((to_address)(ptr));
+        return const_cast<pointer>(wjr::to_address(ptr));
     }
 
 public:
@@ -1412,22 +1412,22 @@ public:
 
     WJR_CONSTEXPR20 basic_vector(size_type n, dctor_t,
                                  const allocator_type &al = allocator_type())
-        : m_pair(std::piecewise_construct, std::forward_as_tuple(al),
-                 std::forward_as_tuple()) {
+        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al),
+                 wjr::forward_as_tuple()) {
         __construct_n(n, dctor);
     }
 
     WJR_CONSTEXPR20 basic_vector(size_type n, in_place_reserve_t,
                                  const allocator_type &al = allocator_type())
-        : m_pair(std::piecewise_construct, std::forward_as_tuple(al),
-                 std::forward_as_tuple()) {
+        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al),
+                 wjr::forward_as_tuple()) {
         uninitialized_construct(0, n);
     }
 
     WJR_CONSTEXPR20 basic_vector(storage_type &&other,
                                  const allocator_type &al = allocator_type())
-        : m_pair(std::piecewise_construct, std::forward_as_tuple(al),
-                 std::forward_as_tuple()) {
+        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al),
+                 wjr::forward_as_tuple()) {
         take_storage(other);
     }
 

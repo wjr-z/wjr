@@ -18,13 +18,13 @@ namespace wjr {
 
 template <typename Iter, typename... Args>
 WJR_CONSTEXPR20 void construct_at(Iter iter, Args &&...args) {
-    ::new (static_cast<void *>((to_address)(iter)))
+    ::new (static_cast<void *>(wjr::to_address(iter)))
         iterator_value_t<Iter>(std::forward<Args>(args)...);
 }
 
 template <typename Iter>
 WJR_CONSTEXPR20 void construct_at(Iter iter, dctor_t) {
-    ::new (static_cast<void *>((to_address)(iter))) iterator_value_t<Iter>;
+    ::new (static_cast<void *>(wjr::to_address(iter))) iterator_value_t<Iter>;
 }
 
 template <typename Iter, typename Alloc, typename... Args>
@@ -33,7 +33,7 @@ WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &a
     if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
         (construct_at)(iter, std::forward<Args>(args)...);
     } else {
-        std::allocator_traits<Alloc>::construct(alloc, (to_address)(iter),
+        std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(iter),
                                                 std::forward<Args>(args)...);
     }
 }
@@ -44,7 +44,7 @@ WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &a
     if constexpr (is_trivially_allocator_constructible_v<Alloc>) {
         (construct_at)(iter, dctor_t{});
     } else {
-        std::allocator_traits<Alloc>::construct(alloc, (to_address)(iter));
+        std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(iter));
     }
 }
 
@@ -56,7 +56,8 @@ WJR_CONSTEXPR20 OutputIt uninitialized_copy_using_allocator(InputIt first, Input
         return std::uninitialized_copy(first, last, d_first);
     } else {
         for (; first != last; ++first, ++d_first) {
-            std::allocator_traits<Alloc>::construct(alloc, (to_address)(d_first), *first);
+            std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(d_first),
+                                                    *first);
         }
         return d_first;
     }
@@ -87,7 +88,7 @@ WJR_CONSTEXPR20 OutputIt uninitialized_copy_restrict_using_allocator(InputIt fir
     const auto __first = try_to_address(first);
     const auto __last = try_to_address(last);
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
-        const auto __d_first = (to_address)(d_first);
+        const auto __d_first = wjr::to_address(d_first);
         const auto __d_last = __uninitialized_copy_restrict_using_allocator_impl(
             __first, __last, __d_first, alloc);
         return std::next(d_first, std::distance(__d_first, __d_last));
@@ -105,7 +106,8 @@ WJR_CONSTEXPR20 OutputIt uninitialized_copy_n_using_allocator(InputIt first, Siz
         return std::uninitialized_copy_n(first, n, d_first);
     } else {
         for (; n > 0; ++first, ++d_first, --n) {
-            std::allocator_traits<Alloc>::construct(alloc, (to_address)(d_first), *first);
+            std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(d_first),
+                                                    *first);
         }
         return d_first;
     }
@@ -135,7 +137,7 @@ WJR_CONSTEXPR20 OutputIt uninitialized_copy_n_restrict_using_allocator(InputIt f
                                                                        Alloc &alloc) {
     const auto __first = try_to_address(first);
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
-        const auto __d_first = (to_address)(d_first);
+        const auto __d_first = wjr::to_address(d_first);
         const auto __d_last = __uninitialized_copy_n_restrict_using_allocator_impl(
             __first, n, __d_first, alloc);
         return std::next(d_first, std::distance(__d_first, __d_last));
@@ -188,7 +190,7 @@ uninitialized_default_construct_using_allocator(Iter first, Iter last, Alloc &al
         using value_type = iterator_value_t<Iter>;
         if constexpr (!std::is_trivially_default_constructible_v<value_type>) {
             for (; first != last; ++first) {
-                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first));
+                std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(first));
             }
         }
     }
@@ -203,7 +205,7 @@ WJR_CONSTEXPR20 void uninitialized_default_construct_n_using_allocator(Iter firs
         using value_type = iterator_value_t<Iter>;
         if constexpr (!std::is_trivially_default_constructible_v<value_type>) {
             for (; n > 0; ++first, --n) {
-                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first),
+                std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(first),
                                                         value_type());
             }
         }
@@ -217,7 +219,7 @@ WJR_CONSTEXPR20 void uninitialized_value_construct_using_allocator(Iter first, I
         std::uninitialized_value_construct(first, last);
     } else {
         for (; first != last; ++first) {
-            std::allocator_traits<Alloc>::construct(alloc, (to_address)(first));
+            std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(first));
         }
     }
 }
@@ -229,7 +231,7 @@ WJR_CONSTEXPR20 void uninitialized_value_construct_n_using_allocator(Iter first,
         std::uninitialized_value_construct_n(first, n);
     } else {
         for (; n > 0; ++first, --n) {
-            std::allocator_traits<Alloc>::construct(alloc, (to_address)(first));
+            std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(first));
         }
     }
 }
@@ -252,7 +254,7 @@ WJR_CONSTEXPR20 void uninitialized_fill_using_allocator(Iter first, Iter last,
             std::uninitialized_fill(first, last, value);
         } else {
             for (; first != last; ++first) {
-                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first),
+                std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(first),
                                                         value);
             }
         }
@@ -277,7 +279,7 @@ WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n,
             std::uninitialized_fill_n(first, n, value);
         } else {
             for (; n > 0; ++first, --n) {
-                std::allocator_traits<Alloc>::construct(alloc, (to_address)(first),
+                std::allocator_traits<Alloc>::construct(alloc, wjr::to_address(first),
                                                         value);
             }
         }
@@ -287,9 +289,9 @@ WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n,
 template <typename Iter, typename Alloc>
 WJR_CONSTEXPR20 void destroy_at_using_allocator(Iter iter, Alloc &alloc) {
     if constexpr (is_trivially_allocator_destructible_v<Alloc>) {
-        std::destroy_at((to_address)(iter));
+        std::destroy_at(wjr::to_address(iter));
     } else {
-        std::allocator_traits<Alloc>::destroy(alloc, (to_address)(iter));
+        std::allocator_traits<Alloc>::destroy(alloc, wjr::to_address(iter));
     }
 }
 
@@ -299,7 +301,7 @@ WJR_CONSTEXPR20 void destroy_using_allocator(Iter first, Iter last, Alloc &alloc
         std::destroy(first, last);
     } else {
         for (; first != last; ++first) {
-            std::allocator_traits<Alloc>::destroy(alloc, (to_address)(first));
+            std::allocator_traits<Alloc>::destroy(alloc, wjr::to_address(first));
         }
     }
 }
@@ -310,7 +312,7 @@ WJR_CONSTEXPR20 void destroy_n_using_allocator(Iter first, Size n, Alloc &alloc)
         std::destroy_n(first, n);
     } else {
         for (; n > 0; ++first, --n) {
-            std::allocator_traits<Alloc>::destroy(alloc, (to_address)(first));
+            std::allocator_traits<Alloc>::destroy(alloc, wjr::to_address(first));
         }
     }
 }
@@ -408,15 +410,9 @@ public:
         return Mybase::m_value;
     }
 
-    constexpr T &&get() && noexcept {
-        check(true);
-        return std::move(Mybase::m_value);
-    }
+    constexpr T &&get() && noexcept { return static_cast<T &&>(get()); }
 
-    constexpr const T &&get() const && noexcept {
-        check(true);
-        return std::move(Mybase::m_value);
-    }
+    constexpr const T &&get() const && noexcept { return static_cast<const T &&>(get()); }
 
     template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args &&...>)>
     constexpr T &
@@ -444,8 +440,10 @@ public:
 
     constexpr T &operator*() & noexcept { return get(); }
     constexpr const T &operator*() const & noexcept { return get(); }
-    constexpr T &&operator*() && noexcept { return std::move(get()); }
-    constexpr const T &&operator*() const && noexcept { return std::move(get()); }
+    constexpr T &&operator*() && noexcept { return static_cast<T &&>(get()); }
+    constexpr const T &&operator*() const && noexcept {
+        return static_cast<const T &&>(get());
+    }
 
     constexpr T *ptr_unsafe() noexcept { return std::addressof(Mybase::m_value); }
     constexpr const T *ptr_unsafe() const noexcept {

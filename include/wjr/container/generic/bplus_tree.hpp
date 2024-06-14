@@ -475,12 +475,10 @@ public:
     basic_bplus_tree(basic_bplus_tree &&other) noexcept(
         std::is_nothrow_move_constructible_v<key_compare>
             &&std::is_nothrow_move_constructible_v<_Alty>)
-        : m_pair(std::piecewise_construct,
-                 std::forward_as_tuple(std::move(other.key_comp())),
-                 std::forward_as_tuple(
-                     std::piecewise_construct,
-                     std::forward_as_tuple(std::move(other.__get_allocator())),
-                     std::forward_as_tuple())) {
+        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(std::move(other.key_comp())),
+                 wjr::forward_as_tuple(std::piecewise_construct,
+                                  wjr::forward_as_tuple(std::move(other.__get_allocator())),
+                                  wjr::forward_as_tuple())) {
         __take_tree(std::move(other));
     }
 

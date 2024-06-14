@@ -74,6 +74,8 @@ class WJR_EMPTY_BASES tuple_impl<std::index_sequence<Indexs...>, Args...>
 
     constexpr static size_t Size = sizeof...(Args);
 
+    using Tuple = tuple<Args...>;
+
 public:
     template <typename S = Sequence,
               WJR_REQUIRES(
@@ -90,23 +92,23 @@ public:
         : Mybase<_Indexs>(std::forward<_Args>(args))... {}
 
     template <size_t I>
-    constexpr auto &get() & noexcept {
+    constexpr std::tuple_element_t<I, Tuple> &get() & noexcept {
         return Mybase<I>::get();
     }
 
     template <size_t I>
-    constexpr const auto &get() const & noexcept {
+    constexpr const std::tuple_element_t<I, Tuple> &get() const & noexcept {
         return Mybase<I>::get();
     }
 
     template <size_t I>
-    constexpr auto &&get() && noexcept {
-        return std::move(Mybase<I>::get());
+    constexpr std::tuple_element_t<I, Tuple> &&get() && noexcept {
+        return static_cast<std::tuple_element_t<I, Tuple> &&>(get<I>());
     }
 
     template <size_t I>
-    constexpr const auto &&get() const && noexcept {
-        return std::move(Mybase<I>::get());
+    constexpr const std::tuple_element_t<I, Tuple> &&get() const && noexcept {
+        return static_cast<const std::tuple_element_t<I, Tuple> &&>(get<I>());
     }
 };
 
@@ -246,12 +248,12 @@ public:
 
     template <size_t I, WJR_REQUIRES(I < Size)>
     constexpr std::tuple_element_t<I, tuple> &&get() && noexcept {
-        return std::move(m_impl.template get<I>());
+        return std::move(m_impl).template get<I>();
     }
 
     template <size_t I, WJR_REQUIRES(I < Size)>
     constexpr const std::tuple_element_t<I, tuple> &&get() const && noexcept {
-        return std::move(m_impl.template get<I>());
+        return std::move(m_impl).template get<I>();
     }
 
     template <size_t I, WJR_REQUIRES(I >= 0 && I < Size)>
@@ -269,13 +271,13 @@ public:
     template <size_t I, WJR_REQUIRES(I >= 0 && I < Size)>
     constexpr std::tuple_element_t<I, tuple> &&
     operator[](integral_constant<size_t, I>) && noexcept {
-        return std::move(get<I>());
+        return static_cast<std::tuple_element_t<I, tuple> &&>(get<I>());
     }
 
     template <size_t I, WJR_REQUIRES(I >= 0 && I < Size)>
     constexpr const std::tuple_element_t<I, tuple> &&
     operator[](integral_constant<size_t, I>) const && noexcept {
-        return std::move(get<I>());
+        return static_cast<const std::tuple_element_t<I, tuple> &&>(get<I>());
     }
 
 private:
@@ -369,7 +371,7 @@ template <typename... Tuples>
 constexpr decltype(auto) tuple_cat(Tuples &&...tuples) {
     using Helper = __tuple_cat_helper<remove_cvref_t<Tuples>...>;
     return __tuple_cat_impl(typename Helper::type0{}, typename Helper::type1{},
-                            forward_as_tuple(std::forward<Tuples>(tuples)...));
+                            wjr::forward_as_tuple(std::forward<Tuples>(tuples)...));
 }
 
 template <typename... TArgs, typename... UArgs>

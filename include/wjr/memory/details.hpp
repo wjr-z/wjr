@@ -30,7 +30,7 @@ constexpr auto to_address(const Ptr &p) noexcept {
     if constexpr (has_pointer_traits_to_address_v<remove_cvref_t<Ptr>>) {
         return std::pointer_traits<remove_cvref_t<Ptr>>::to_address(p);
     } else {
-        return (to_address)(p.operator->());
+        return wjr::to_address(p.operator->());
     }
 }
 
@@ -43,7 +43,7 @@ constexpr auto to_address(const Ptr &p) noexcept {
  */
 template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<std::move_iterator<Iter>>)>
 constexpr auto to_address(const std::move_iterator<Iter> &p) noexcept {
-    return (to_address)(p.base());
+    return wjr::to_address(p.base());
 }
 
 /**
@@ -55,7 +55,7 @@ template <typename T>
 constexpr decltype(auto) try_to_address(T &&t) noexcept {
 #if !WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
     if constexpr (is_contiguous_iterator_v<remove_cvref_t<T>>) {
-        return (to_address)(std::forward<T>(t));
+        return wjr::to_address(std::forward<T>(t));
     } else {
 #endif
         return std::forward<T>(t);
