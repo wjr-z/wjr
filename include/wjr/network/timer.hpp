@@ -2,7 +2,7 @@
 #define WJR_NETWORK_TIMER_HPP__
 
 /**
- * @file timer.hpp
+ * @file timing_wheels.hpp
  * @author wjr
  *
  * @version 0.1
@@ -21,13 +21,13 @@
 
 namespace wjr {
 
-class timer {
+class timing_wheels {
 public:
     using node_type = list_node<>;
 
 protected:
-    struct timing_wheel {
-        node_type m_buckets[16];
+    struct wheel {
+        node_type m_buckets[256];
     };
 
     struct wheel_offset {
@@ -40,7 +40,7 @@ public:
         node_type *get_node() noexcept { return this; }
 
         template <typename Func>
-        task_type(Func &&func, uint32_t offset)
+        task_type(Func &&func, uint32_t offset) noexcept
             : m_offset(offset), m_func(std::forward<Func>(func)) {
             init(get_node());
         }
@@ -56,7 +56,7 @@ public:
     using iterator = typename node_type::iterator;
     using const_iterator = typename node_type::const_iterator;
 
-    timer(uint32_t current) noexcept : m_current(current) {
+    timing_wheels(uint32_t current) noexcept : m_current(current) {
         for (auto &wheel : m_wheels) {
             for (auto &bucket : wheel.m_buckets) {
                 init(&bucket);
@@ -64,27 +64,23 @@ public:
         }
     }
 
-    timer(const timer &) = delete;
-    timer(timer &&) = delete;
-    timer &operator=(const timer &) = delete;
-    timer &operator=(timer &&) = delete;
+    timing_wheels(const timing_wheels &) = delete;
+    timing_wheels(timing_wheels &&) = delete;
+    timing_wheels &operator=(const timing_wheels &) = delete;
+    timing_wheels &operator=(timing_wheels &&) = delete;
 
-    ~timer() noexcept { clear(); }
-
-    void clear() noexcept {
-        memory_pool<task_type> al;
+    ~timing_wheels() noexcept
+#if WJR_DEBUG_LEVEL > 1
+    {
         for (auto &wheel : m_wheels) {
             for (auto &bucket : wheel.m_buckets) {
-                for (auto &task : bucket) {
-                    const auto ptr = static_cast<task_type *>(&task);
-                    destroy_at_using_allocator(ptr, al);
-                    al.deallocate(ptr, 1);
-                }
-
-                init(&bucket);
+                WJR_ASSERT_L0(bucket.empty(), "undefined behavior");
             }
         }
     }
+#else
+        = default;
+#endif
 
     template <typename Func, WJR_REQUIRES(std::is_invocable_v<Func &&>)>
     iterator add(Func &&func, uint32_t offset) noexcept {
@@ -106,21 +102,22 @@ public:
         node_type *const node = &*it;
         remove_uninit(node);
         const auto ptr = static_cast<task_type *>(node);
+
         memory_pool<task_type> al;
         destroy_at_using_allocator(ptr, al);
         al.deallocate(ptr, 1);
     }
 
-    node_type &get_head() noexcept { return m_wheels[0].m_buckets[m_current & 0xf]; }
+    node_type &get_head() noexcept { return m_wheels[0].m_buckets[m_current & 0xff]; }
     const node_type &get_head() const noexcept {
-        return m_wheels[0].m_buckets[m_current & 0xf];
+        return m_wheels[0].m_buckets[m_current & 0xff];
     }
 
     template <typename Func, WJR_REQUIRES(std::is_invocable_v<Func &&, task_type &>)>
-    void run(Func &&func) noexcept {
+    WJR_DEPRECATED void run(Func &&func) noexcept {
         memory_pool<task_type> al;
 
-        auto &bucket = m_wheels[0].m_buckets[m_current & 0xf];
+        auto &bucket = m_wheels[0].m_buckets[m_current & 0xff];
         for (auto node = bucket.begin(); node != bucket.end();) {
             node_type &task = *node;
             auto next = wjr::next(&task);
@@ -137,7 +134,7 @@ public:
         init(&bucket);
     }
 
-    void run() noexcept {
+    WJR_DEPRECATED void run() noexcept {
         run([](task_type &task) { task(); });
     }
 
@@ -145,43 +142,52 @@ public:
         ++m_current;
         uint32_t tmp = m_current;
 
-        for (int i = 1; i < 8 && (tmp & 0xf) == 0; ++i) {
-            tmp >>= 4;
-            const uint32_t bucket = tmp & 0xf;
+        for (int i = 1; i < 4 && (tmp & 0xff) == 0; ++i) {
+            tmp >>= 8;
+            const uint32_t bucket = tmp & 0xff;
 
             auto &now_bucket = m_wheels[i].m_buckets[bucket];
 
-            for (auto node = now_bucket.begin(); node != now_bucket.end();) {
-                node_type &task = *node;
-                auto next = wjr::next(&task);
+            if (auto node = now_bucket.begin(), end = now_bucket.end(); node != end) {
+                do {
+                    node_type &task = *node;
+                    const auto next = wjr::next(&task);
 
-                const auto ptr = static_cast<task_type *>(&task);
-                const uint32_t offset = ptr->m_offset;
-                const uint32_t real = offset + m_current;
+                    const auto ptr = static_cast<task_type *>(&task);
+                    const uint32_t offset = ptr->m_offset;
+                    const uint32_t real = offset + m_current;
 
-                auto [wheel, new_bucket] = __get_offset(offset, real);
-                push_back(&m_wheels[wheel].m_buckets[new_bucket], ptr);
+                    auto [wheel, new_bucket] = __get_offset(offset, real);
+                    push_back(&m_wheels[wheel].m_buckets[new_bucket], ptr);
 
-                node = next;
+                    node = next;
+                } while (node != end);
+
+                init(&m_wheels[i].m_buckets[bucket]);
             }
-
-            init(&m_wheels[i].m_buckets[bucket]);
         }
     }
 
 protected:
     WJR_INTRINSIC_INLINE WJR_CONST static wheel_offset
     __get_offset(uint32_t offset, uint32_t real) noexcept {
-        if (offset < 0x10) {
-            return {0, real & 0x0f};
+        if (offset < 0x100) {
+            return {0, real & 0xff};
         }
 
-        const unsigned int wheel = (31 - clz<uint32_t>(offset)) / 4;
-        return {wheel, (real >> (wheel * 4)) & 0x0f};
+        if (offset < 0x10'000) {
+            return {1, real & 0xffff};
+        }
+
+        if (offset < 0x1'000'000) {
+            return {2, real & 0xffffff};
+        }
+
+        return {3, real};
     }
 
     uint32_t m_current = 0;
-    timing_wheel m_wheels[8];
+    alignas(16) wheel m_wheels[4];
 };
 
 } // namespace wjr

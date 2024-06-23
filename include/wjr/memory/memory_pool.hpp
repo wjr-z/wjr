@@ -23,13 +23,13 @@ private:
     };
 
     struct malloc_chunk {
-        struct __list_node : list_node<> {};
+        struct __list_node : list_node<intrusive_tag<__list_node>> {};
 
         malloc_chunk() noexcept { init(&head); }
         ~malloc_chunk() noexcept {
             for (auto iter = head.begin(); iter != head.end();) {
                 auto now = iter++;
-                auto node = static_cast<__list_node *>(&*now);
+                __list_node *node = &**now;
                 free(node);
             }
         }

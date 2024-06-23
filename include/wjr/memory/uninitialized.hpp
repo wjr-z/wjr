@@ -85,8 +85,8 @@ WJR_CONSTEXPR20 OutputIt uninitialized_copy_restrict_using_allocator(InputIt fir
                                                                      InputIt last,
                                                                      OutputIt d_first,
                                                                      Alloc &alloc) {
-    const auto __first = try_to_address(first);
-    const auto __last = try_to_address(last);
+    const auto __first = to_contiguous_address(first);
+    const auto __last = to_contiguous_address(last);
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
         const auto __d_first = wjr::to_address(d_first);
         const auto __d_last = __uninitialized_copy_restrict_using_allocator_impl(
@@ -135,7 +135,7 @@ WJR_CONSTEXPR20 OutputIt uninitialized_copy_n_restrict_using_allocator(InputIt f
                                                                        Size n,
                                                                        OutputIt d_first,
                                                                        Alloc &alloc) {
-    const auto __first = try_to_address(first);
+    const auto __first = to_contiguous_address(first);
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
         const auto __d_first = wjr::to_address(d_first);
         const auto __d_last = __uninitialized_copy_n_restrict_using_allocator_impl(

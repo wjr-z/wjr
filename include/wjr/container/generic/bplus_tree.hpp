@@ -17,9 +17,10 @@
  * querying smaller nodes is slightly greater than that of larger nodes, so the actual
  * number of queries will be less. If the comparison operation of key_type is more
  * complex, it is not recommended to use B+ tree, because the number of queries of B+ tree
- * will be more, thus offsetting the advantages of B+ tree. \n
- * Currently not needed for use, don't use it.
- *
+ * will be more, thus offsetting the advantages of B+ tree.
+ * 
+ * @note Currently not needed for use, and some bugs exists, don't use it.
+ * 
  * @version 0.1
  * @date 2024-05-06
  *
@@ -56,6 +57,7 @@ WJR_INTRINSIC_INLINE static void copy(Other *first, Other *last, Other *dest) no
         builtin_bplus_tree_copy<Min, Max>(first, last, dest);
     } else {
 #endif
+        WJR_ASSUME((last - first) >= Min && (last - first) <= Max);
         (void)std::copy(first, last, dest);
 #if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
     }
@@ -70,6 +72,7 @@ WJR_INTRINSIC_INLINE static void copy_backward(Other *first, Other *last,
         builtin_bplus_tree_copy_backward<Min, Max>(first, last, dest);
     } else {
 #endif
+        WJR_ASSUME((last - first) >= Min && (last - first) <= Max);
         (void)std::copy_backward(first, last, dest);
 #if WJR_HAS_BUILTIN(BPLUS_TREE_COPY)
     }
@@ -475,10 +478,12 @@ public:
     basic_bplus_tree(basic_bplus_tree &&other) noexcept(
         std::is_nothrow_move_constructible_v<key_compare>
             &&std::is_nothrow_move_constructible_v<_Alty>)
-        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(std::move(other.key_comp())),
-                 wjr::forward_as_tuple(std::piecewise_construct,
-                                  wjr::forward_as_tuple(std::move(other.__get_allocator())),
-                                  wjr::forward_as_tuple())) {
+        : m_pair(std::piecewise_construct,
+                 wjr::forward_as_tuple(std::move(other.key_comp())),
+                 wjr::forward_as_tuple(
+                     std::piecewise_construct,
+                     wjr::forward_as_tuple(std::move(other.__get_allocator())),
+                     wjr::forward_as_tuple())) {
         __take_tree(std::move(other));
     }
 
@@ -677,7 +682,7 @@ private:
                 __drop_node(leaf->m_values[i]);
             }
 
-            ListNode *next = next(leaf);
+            ListNode *next = wjr::next(leaf);
             _Alty_traits::deallocate(al, (uint8_t *)leaf, sizeof(leaf_node_type));
 
             // if `current' is the last child of parent
@@ -853,7 +858,7 @@ private:
                 leaf->m_size = -1;
                 leaf->m_parent = nullptr;
                 leaf->__assign(0, xval);
-                m_sentry.push_front(leaf);
+                wjr::push_front(&m_sentry, leaf);
                 return iterator(leaf, 0);
             }
 
@@ -876,7 +881,7 @@ private:
 
         const auto inst =
             (leaf_node_type *)_Alty_traits::allocate(al, sizeof(leaf_node_type));
-        leaf->__get_list()->push_front(inst->__get_list());
+        push_front(leaf, inst);
 
         leaf->m_size = -(int)(floor_half + 1);
         inst->m_size = -(int)(node_size - floor_half);
@@ -1540,7 +1545,7 @@ private:
         } while (0);
 
         lhs->m_size = -(merge_size - 1);
-        rhs->remove_uninit();
+        remove_uninit(lhs);
         _Alty_traits::deallocate(__get_allocator(), (uint8_t *)rhs,
                                  sizeof(leaf_node_type));
 

@@ -36,8 +36,6 @@ uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
 
     using namespace lexer_details;
 
-    constexpr uint32_t token_buf_mask = token_buf_size * 2;
-
     auto first = m_storage.first;
     const auto last = m_storage.last;
     uint64_t prev_is_escape;

@@ -7,7 +7,7 @@
 namespace wjr {
 
 template <typename Container, typename Traits>
-struct contiguous_const_iterator_adapter {
+class contiguous_const_iterator_adapter {
     using __pointer = typename Traits::pointer;
 
 public:
@@ -179,6 +179,7 @@ public:
 #endif
     }
 
+private:
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
     /// @private
     WJR_CONSTEXPR20 void __set_container(const Container *container) noexcept {
@@ -209,6 +210,7 @@ public:
                       "Can't compare iterators from different containers.");
     }
 
+public:
     /// @private
     WJR_PURE WJR_CONSTEXPR20 pointer __begin() const noexcept {
         return m_container->data();
@@ -228,6 +230,8 @@ public:
     /// @private
     constexpr static void
     __check_same_container(const contiguous_const_iterator_adapter &) noexcept {}
+
+public:
 #endif
 
     __pointer m_ptr;
@@ -341,7 +345,7 @@ struct pointer_traits<wjr::contiguous_const_iterator_adapter<Container, Traits>>
 
     WJR_NODISCARD constexpr static element_type *to_address(const pointer &ptr) noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
-        auto cont = ptr.m_container;
+        const auto cont = ptr.m_container;
         if (cont) {
             WJR_ASSERT_L0(ptr.m_ptr >= ptr.__begin() && ptr.m_ptr <= ptr.__end(),
                           "can't convert out-of-range vector iterator to pointer");
@@ -362,7 +366,7 @@ struct pointer_traits<wjr::contiguous_iterator_adapter<Container, Traits>> {
 
     WJR_NODISCARD constexpr static element_type *to_address(const pointer &ptr) noexcept {
 #if WJR_HAS_DEBUG(CONTIGUOUS_ITERATOR_CHECK)
-        auto cont = ptr.m_container;
+        const auto cont = ptr.m_container;
         if (cont) {
             WJR_ASSERT_L0(ptr.m_ptr >= ptr.__begin() && ptr.m_ptr <= ptr.__end(),
                           "can't convert out-of-range vector iterator to pointer");

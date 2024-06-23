@@ -53,14 +53,11 @@ template <uint32_t token_buf_size>
 uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
     using namespace lexer_details;
 
-    constexpr bool is_avx = WJR_HAS_SIMD(AVX2);
-    using simd = std::conditional_t<is_avx, avx, sse>;
+    using simd = std::conditional_t<WJR_HAS_SIMD(AVX2), avx, sse>;
     using simd_int = typename simd::int_type;
     constexpr auto simd_width = simd::width();
     constexpr auto u8_width = simd_width / 8;
     constexpr auto u8_loop = 64 / u8_width;
-
-    constexpr uint32_t token_buf_mask = token_buf_size * 2;
 
     auto first = m_storage.first;
     const auto last = m_storage.last;
@@ -161,9 +158,9 @@ uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
             // brackets : 4
             // whitespace : 8, 16
 
-            uint32_t stu = simd::movemask_epi8(
+            const uint32_t stu = simd::movemask_epi8(
                 simd::cmpeq_epi8(simd::And(result, simd::set1_epi8(7)), simd::zeros()));
-            uint32_t wsp = simd::movemask_epi8(
+            const uint32_t wsp = simd::movemask_epi8(
                 simd::cmpeq_epi8(simd::And(result, simd::set1_epi8(24)), simd::zeros()));
 
             S |= (uint64_t)(stu) << (i * u8_width);
@@ -173,8 +170,8 @@ uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
         S = ~S;
         W = ~W;
 
-        {
-            if (!B) {
+        do {
+            if (WJR_LIKELY(!B)) {
                 B = prev_is_escape;
                 Q &= ~B;
                 prev_is_escape = 0;
@@ -185,7 +182,7 @@ uint32_t basic_lexer<token_buf_size>::read(uint32_t *token_buf) noexcept {
                 Q &= ~B;
                 prev_is_escape = escape;
             }
-        }
+        } while (0);
 
         const uint64_t R = prefix_xor(Q) ^ prev_in_string;
 

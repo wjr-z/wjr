@@ -28,14 +28,6 @@ struct integral_constant {
         return {};
     }
 
-    friend constexpr auto operator-(integral_constant) noexcept {
-        return integral_constant<T, -value>{};
-    }
-
-    friend constexpr auto operator+(integral_constant) noexcept {
-        return integral_constant<T, value>{};
-    }
-
     template <typename U, U u>
     constexpr auto operator+(integral_constant<U, u>) const noexcept {
         constexpr auto result = value + u;
@@ -45,59 +37,6 @@ struct integral_constant {
     template <typename U, U u>
     constexpr auto operator-(integral_constant<U, u>) const noexcept {
         constexpr auto result = value - u;
-        return integral_constant<decltype(result), result>{};
-    }
-
-    template <typename U, U u>
-    constexpr auto operator*(integral_constant<U, u>) const noexcept {
-        constexpr auto result = value * u;
-        return integral_constant<decltype(result), result>{};
-    }
-
-    template <typename U, U u>
-    constexpr auto operator/(integral_constant<U, u>) const noexcept {
-        constexpr auto result = value / u;
-        return integral_constant<decltype(result), result>{};
-    }
-
-    template <typename U, U u>
-    constexpr auto operator%(integral_constant<U, u>) const noexcept {
-        constexpr auto result = value % u;
-        return integral_constant<decltype(result), result>{};
-    }
-
-    template <typename U, U u>
-    constexpr auto operator<<(integral_constant<U, u>) const noexcept {
-        constexpr auto result = value << u;
-        return integral_constant<decltype(result), result>{};
-    }
-
-    template <typename U, U u>
-    constexpr auto operator>>(integral_constant<U, u>) const noexcept {
-        constexpr auto result = value >> u;
-        return integral_constant<decltype(result), result>{};
-    }
-
-    template <typename U, U u>
-    constexpr auto operator&(integral_constant<U, u>) const noexcept {
-        constexpr auto result = value & u;
-        return integral_constant<decltype(result), result>{};
-    }
-
-    template <typename U, U u>
-    constexpr auto operator|(integral_constant<U, u>) const noexcept {
-        constexpr auto result = value | u;
-        return integral_constant<decltype(result), result>{};
-    }
-
-    template <typename U, U u>
-    constexpr auto operator^(integral_constant<U, u>) const noexcept {
-        constexpr auto result = value ^ u;
-        return integral_constant<decltype(result), result>{};
-    }
-
-    constexpr auto operator~() const noexcept {
-        constexpr auto result = ~value;
         return integral_constant<decltype(result), result>{};
     }
 };

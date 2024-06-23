@@ -776,8 +776,8 @@ TEST(vector, swap) {
 TEST(vector, ptr_unsafe) {
     {
         wvector<int> a(16);
-        WJR_ASSERT(a.begin_unsafe() == (to_address)(a.begin()));
-        WJR_ASSERT(a.end_unsafe() == (to_address)(a.end()));
+        WJR_ASSERT(a.begin_unsafe() == wjr::to_address(a.begin()));
+        WJR_ASSERT(a.end_unsafe() == wjr::to_address(a.end()));
         WJR_ASSERT(a.buf_end_unsafe() == a.begin_unsafe() + a.capacity());
     }
 }

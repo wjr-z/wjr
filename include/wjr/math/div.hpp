@@ -416,8 +416,6 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(uint64_t *dst, uint64_t *rem, const uint
 extern uint64_t sb_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div,
                             size_t m, uint64_t dinv) noexcept;
 
-inline constexpr size_t dc_div_qr_threshold = WJR_DC_DIV_QR_THRESHOLD;
-
 extern uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div,
                             size_t m, uint64_t dinv) noexcept;
 

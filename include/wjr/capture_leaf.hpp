@@ -20,6 +20,8 @@ class capture_leaf : enable_special_members_of_args_base<Tag, T> {
     using Mybase = enable_special_members_of_args_base<Tag, T>;
 
 public:
+    using value_type = T;
+
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
     constexpr capture_leaf() noexcept(std::is_nothrow_constructible_v<T>)
         : Mybase(enable_default_constructor), m_value() {}
@@ -54,6 +56,8 @@ class compressed_capture_leaf : T {
     using Mybase = T;
 
 public:
+    using value_type = T;
+
     template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
     constexpr compressed_capture_leaf() noexcept(std::is_nothrow_constructible_v<T>)
         : Mybase() {}

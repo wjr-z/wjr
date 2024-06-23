@@ -446,20 +446,9 @@ try_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t ml,
 
 inline constexpr size_t toom22_mul_threshold = WJR_TOOM22_MUL_THRESHOLD;
 inline constexpr size_t toom33_mul_threshold = WJR_TOOM33_MUL_THRESHOLD;
-inline constexpr size_t toom44_mul_threshold = WJR_TOOM44_MUL_THRESHOLD;
-inline constexpr size_t toom55_mul_threshold = WJR_TOOM55_MUL_THRESHOLD;
-inline constexpr size_t toom32_to_toom43_mul_threshold =
-    WJR_TOOM32_TO_TOOM43_MUL_THRESHOLD;
-inline constexpr size_t toom32_to_toom53_mul_threshold =
-    WJR_TOOM32_TO_TOOM53_MUL_THRESHOLD;
-inline constexpr size_t toom42_to_toom53_mul_threshold =
-    WJR_TOOM42_TO_TOOM53_MUL_THRESHOLD;
-inline constexpr size_t toom42_to_toom63_mul_threshold =
-    WJR_TOOM42_TO_TOOM63_MUL_THRESHOLD;
+
 inline constexpr size_t toom2_sqr_threshold = WJR_TOOM2_SQR_THRESHOLD;
 inline constexpr size_t toom3_sqr_threshold = WJR_TOOM3_SQR_THRESHOLD;
-inline constexpr size_t toom4_sqr_threshold = WJR_TOOM4_SQR_THRESHOLD;
-inline constexpr size_t toom5_sqr_threshold = WJR_TOOM5_SQR_THRESHOLD;
 
 enum class __mul_mode : uint8_t {
     toom22 = 0x00,
@@ -607,20 +596,7 @@ extern void toom44_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_
 extern void toom4_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
                       safe_array<uint64_t> stk) noexcept;
 
-struct toom_eval_opposite_exp_args {
-    using tuple_type = tuple<uint64_t *, uint64_t *, uint64_t *, const uint64_t *, size_t,
-                             size_t, size_t, unsigned int>;
-
-    toom_eval_opposite_exp_args(uint64_t *t0p, uint64_t *t1p, uint64_t *stk,
-                                const uint64_t *wp, size_t length, size_t rest, size_t k,
-                                unsigned int exp) noexcept
-        : input(t0p, t1p, stk, wp, length, rest, k, exp), cf(dctor, dctor) {}
-
-    void set_exp(unsigned int exp) noexcept { input[7_zu] = exp; }
-
-    tuple_type input;
-    tuple<uint64_t, uint64_t> cf;
-};
+struct toom_eval_opposite_exp_args;
 
 extern void toom_eval_2_exp(toom_eval_opposite_exp_args &args) noexcept;
 

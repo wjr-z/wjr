@@ -5,7 +5,7 @@
 
 namespace wjr {
 
-template <typename Tag = void>
+template <typename Tag = intrusive_tag<>>
 struct list_node;
 
 template <typename T>
@@ -42,24 +42,6 @@ constexpr const list_node<T> *prev(const list_node<T> *node) noexcept;
 template <typename T>
 constexpr void replace_uninit(list_node<T> *from, list_node<T> *to) noexcept;
 
-template <typename Obj, typename Tag = void>
-struct list_tag {
-    using obj_type = Obj;
-};
-
-template <typename Tag>
-struct is_list_tag : std::false_type {};
-
-template <typename Obj, typename Tag>
-struct is_list_tag<list_tag<Obj, Tag>>
-    : std::is_base_of<list_node<list_tag<Obj, Tag>>, Obj> {};
-
-template <typename Tag>
-inline constexpr bool is_list_tag_v = is_list_tag<Tag>::value;
-
-template <typename Tag>
-using list_obj_t = typename Tag::obj_type;
-
 template <typename T>
 class list_node_const_iterator {
     using node_type = list_node<T>;
@@ -81,7 +63,7 @@ public:
     operator=(list_node_const_iterator &&) noexcept = default;
     ~list_node_const_iterator() = default;
 
-    constexpr list_node_const_iterator(const node_type *node) noexcept
+    constexpr list_node_const_iterator(pointer node) noexcept
         : m_node(const_cast<node_type *>(node)) {}
 
     constexpr reference operator*() const noexcept { return *m_node; }
@@ -116,8 +98,6 @@ public:
     constexpr bool operator!=(const list_node_const_iterator &other) const noexcept {
         return !(*this == other);
     }
-
-    constexpr operator const node_type *() const noexcept { return m_node; }
 
 private:
     node_type *m_node{};
@@ -174,10 +154,6 @@ public:
         --(*this);
         return tmp;
     }
-
-    constexpr operator node_type *() const noexcept {
-        return const_cast<node_type *>(static_cast<const node_type *>(*this));
-    }
 };
 
 template <typename Tag>
@@ -194,10 +170,12 @@ struct list_node {
     list_node &operator=(list_node &&) = delete;
     ~list_node() = default;
 
-    constexpr iterator begin() noexcept { return iterator(next(this)); }
-    constexpr const_iterator begin() const noexcept { return const_iterator(next(this)); }
+    constexpr iterator begin() noexcept { return iterator(wjr::next(this)); }
+    constexpr const_iterator begin() const noexcept {
+        return const_iterator(wjr::next(this));
+    }
     constexpr const_iterator cbegin() const noexcept {
-        return const_iterator(next(this));
+        return const_iterator(wjr::next(this));
     }
 
     constexpr iterator end() noexcept { return iterator(this); }
@@ -220,25 +198,31 @@ struct list_node {
         return const_reverse_iterator(begin());
     }
 
+    constexpr list_node *next() noexcept { return wjr::next(this); }
+    constexpr const list_node *next() const noexcept { return wjr::next(this); }
+
+    constexpr list_node *prev() noexcept { return wjr::prev(this); }
+    constexpr const list_node *prev() const noexcept { return wjr::prev(this); }
+
     constexpr bool empty() const noexcept { return wjr::empty(this); }
 
-    template <typename U = Tag, WJR_REQUIRES(is_list_tag_v<U>)>
-    constexpr list_obj_t<U> *operator->() noexcept {
-        return static_cast<list_obj_t<Tag> *>(this);
+    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
+    constexpr intrusive_hook_t<U> *operator->() noexcept {
+        return static_cast<intrusive_hook_t<U> *>(this);
     }
 
-    template <typename U = Tag, WJR_REQUIRES(is_list_tag_v<U>)>
-    constexpr const list_obj_t<U> *operator->() const noexcept {
-        return static_cast<const list_obj_t<Tag> *>(this);
+    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
+    constexpr const intrusive_hook_t<U> *operator->() const noexcept {
+        return static_cast<const intrusive_hook_t<U> *>(this);
     }
 
-    template <typename U = Tag, WJR_REQUIRES(is_list_tag_v<U>)>
-    constexpr list_obj_t<U> &operator*() noexcept {
+    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
+    constexpr intrusive_hook_t<U> &operator*() noexcept {
         return *operator->();
     }
 
-    template <typename U = Tag, WJR_REQUIRES(is_list_tag_v<U>)>
-    constexpr const list_obj_t<U> &operator*() const noexcept {
+    template <typename U = Tag, WJR_REQUIRES(intrusive_use_hook_v<U>)>
+    constexpr const intrusive_hook_t<U> &operator*() const noexcept {
         return *operator->();
     }
 

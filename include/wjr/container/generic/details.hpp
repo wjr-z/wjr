@@ -166,7 +166,7 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
 
 #else
 #undef WJR_HAS_FEATURE_STRING_UNINITIALIZED_RESIZE
-#define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Container)
+#define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Name, Container)
 #endif
 
 #if WJR_HAS_FEATURE(STRING_UNINITIALIZED_RESIZE)
@@ -190,7 +190,7 @@ __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,
         }                                                                                \
     }
 #else
-#define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Container)
+#define WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(Name, Container)
 #endif
 
 WJR_REGISTER_STRING_UNINITIALIZED_RESIZE(string, std::string);

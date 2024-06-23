@@ -72,8 +72,8 @@ constexpr OutputIt __copy_restrict_impl(InputIt first, InputIt last,
  */
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt copy_restrict(InputIt first, InputIt last, OutputIt d_first) {
-    const auto __first = try_to_address(std::move(first));
-    const auto __last = try_to_address(std::move(last));
+    const auto __first = to_contiguous_address(std::move(first));
+    const auto __last = to_contiguous_address(std::move(last));
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
         const auto __d_first = wjr::to_address(d_first);
         const auto __d_last = __copy_restrict_impl(__first, __last, __d_first);
@@ -144,7 +144,7 @@ constexpr OutputIt __copy_n_restrict_impl(InputIt first, Size count, OutputIt d_
  */
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt copy_n_restrict(InputIt first, Size count, OutputIt d_first) {
-    const auto __first = try_to_address(std::move(first));
+    const auto __first = to_contiguous_address(std::move(first));
     if constexpr (is_contiguous_iterator_v<OutputIt>) {
         const auto __d_first = wjr::to_address(d_first);
         const auto __d_last = __copy_n_restrict_impl(__first, count, __d_first);

@@ -5,26 +5,21 @@
 
 namespace wjr::json {
 
-struct forward_lexer_storage {
-    forward_lexer_storage(span<const char> input) noexcept
-        : first(input.data()), last(input.data() + input.size()) {}
-
-    const char *first;
-    const char *last;
-
-    uint64_t prev_in_string = 0;
-    uint64_t prev_is_escape = 0;
-    uint64_t prev_is_ws = ~0ull;
-
-    uint32_t idx = 0;
-};
-
 struct dynamic_lexer_storage {
     dynamic_lexer_storage(span<const char> input) noexcept
         : first(input.data()), last(input.data() + input.size()) {}
 
     const char *first;
     const char *last;
+};
+
+struct forward_lexer_storage : dynamic_lexer_storage {
+    using dynamic_lexer_storage::dynamic_lexer_storage;
+
+    uint64_t prev_in_string = 0;
+    uint64_t prev_is_escape = 0;
+    uint64_t prev_is_ws = ~0ull;
+    uint32_t idx = 0;
 };
 
 template <uint32_t token_buf_size>
@@ -37,6 +32,8 @@ class basic_lexer {
     constexpr static bool __is_dynamic = token_buf_size == (uint32_t)in_place_max;
     using storage_type =
         std::conditional_t<__is_dynamic, dynamic_lexer_storage, forward_lexer_storage>;
+
+    constexpr static uint32_t token_buf_mask = token_buf_size * 2;
 
 public:
     constexpr basic_lexer(span<const char> input) noexcept : m_storage(input) {}
@@ -66,10 +63,10 @@ private:
     storage_type m_storage;
 };
 
-using dynamic_lexer = basic_lexer<in_place_max>;
-
 template <uint32_t token_buf_size>
 using forward_lexer = basic_lexer<token_buf_size>;
+
+using dynamic_lexer = basic_lexer<in_place_max>;
 
 namespace lexer_details {
 inline uint64_t calc_backslash(uint64_t B) {

@@ -13,7 +13,6 @@
 #include <wjr/math/stack_allocator.hpp>
 #include <wjr/memory/copy.hpp>
 
-
 #if defined(WJR_X86)
 #include <wjr/x86/math/convert.hpp>
 #endif
@@ -197,7 +196,7 @@ public:
     template <typename Converter>
     WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint32_t val,
                                                  Converter) noexcept {
-        auto str = (char *)ptr;
+        const auto str = (char *)ptr;
         if constexpr (Base * Base <= 16) {
             constexpr auto &table = __char_converter_table<Converter, Base, 4>;
             std::memcpy(str, table.data() + val * 4 + 2, 2);
@@ -1347,7 +1346,7 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
         } else {                                                                         \
             append(cont, n + sign, dctor);                                               \
         }                                                                                \
-        const auto __end = wjr::to_address(cont.data() + cont.size());                      \
+        const auto __end = wjr::to_address(cont.data() + cont.size());                   \
         auto __ptr = (convert_details::fast_buffer_t<Iter> *)                            \
             __unsigned_to_chars_backward_unchecked<BASE>(                                \
                 (uint8_t *)__end, WJR_PP_QUEUE_EXPAND(CALL), conv);                      \
@@ -1988,7 +1987,7 @@ Iter __fallback_biginteger_large_to_chars_impl(Iter ptr, const uint64_t *up, siz
         } else {                                                                         \
             append(cont, SIZE, dctor);                                                   \
         }                                                                                \
-        const auto __ptr = (uint8_t *)wjr::to_address(cont.data()) + __presize;             \
+        const auto __ptr = (uint8_t *)wjr::to_address(cont.data()) + __presize;          \
         const auto __size = NAME(__ptr, WJR_PP_QUEUE_EXPAND(CALL), conv) TAIL;           \
         WJR_ASSERT((size_t)__size <= SIZE);                                              \
         if constexpr (__fast_container_inserter_v == 1) {                                \

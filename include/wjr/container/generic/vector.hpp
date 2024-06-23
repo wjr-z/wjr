@@ -267,7 +267,7 @@ private:
     };
 
     using data_type = Data;
-    using SizeRef = default_vector_size_reference<pointer, size_type>;
+    using size_ref = default_vector_size_reference<pointer, size_type>;
 
 public:
     __default_vector_storage_impl() noexcept = default;
@@ -337,8 +337,8 @@ public:
         std::swap(m_storage, other.m_storage);
     }
 
-    WJR_PURE WJR_CONSTEXPR20 SizeRef size() noexcept {
-        return SizeRef(m_storage.m_data, m_storage.m_end);
+    WJR_PURE WJR_CONSTEXPR20 size_ref size() noexcept {
+        return size_ref(m_storage.m_data, m_storage.m_end);
     }
 
     WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept {
@@ -544,7 +544,7 @@ private:
     };
 
     using data_type = Data;
-    using SizeRef = default_vector_size_reference<pointer, size_type>;
+    using size_ref = default_vector_size_reference<pointer, size_type>;
 
 public:
     __fixed_vector_storage_impl() noexcept = default;
@@ -619,8 +619,8 @@ public:
         std::swap(m_storage, other.m_storage);
     }
 
-    WJR_PURE WJR_CONSTEXPR20 SizeRef size() noexcept {
-        return SizeRef(m_storage.m_data, m_storage.m_end);
+    WJR_PURE WJR_CONSTEXPR20 size_ref size() noexcept {
+        return size_ref(m_storage.m_data, m_storage.m_end);
     }
 
     WJR_PURE WJR_CONSTEXPR20 size_type size() const noexcept {
@@ -1052,7 +1052,7 @@ public:
                                  const allocator_type &al = allocator_type())
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al),
                  wjr::forward_as_tuple()) {
-        __range_construct(try_to_address(first), try_to_address(last),
+        __range_construct(to_contiguous_address(first), to_contiguous_address(last),
                           iterator_category_t<Iter>());
     }
 
@@ -1093,7 +1093,7 @@ public:
 
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &assign(Iter first, Iter last) {
-        __range_assign(try_to_address(first), try_to_address(last),
+        __range_assign(to_contiguous_address(first), to_contiguous_address(last),
                        iterator_category_t<Iter>());
         return *this;
     }
@@ -1379,7 +1379,7 @@ public:
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 iterator insert(const_iterator pos, Iter first, Iter last) {
         const auto old_pos = static_cast<size_type>(pos - cbegin());
-        __range_insert(data() + old_pos, try_to_address(first), try_to_address(last),
+        __range_insert(data() + old_pos, to_contiguous_address(first), to_contiguous_address(last),
                        iterator_category_t<Iter>());
         return begin() + old_pos;
     }
@@ -1473,7 +1473,7 @@ public:
 
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &append(Iter first, Iter last) {
-        __range_append(try_to_address(first), try_to_address(last),
+        __range_append(to_contiguous_address(first), to_contiguous_address(last),
                        iterator_category_t<Iter>());
         return *this;
     }
@@ -1500,8 +1500,8 @@ public:
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &replace(const_iterator from, const_iterator to,
                                           Iter first, Iter last) {
-        __range_replace(__get_pointer(from), __get_pointer(to), try_to_address(first),
-                        try_to_address(last), iterator_category_t<Iter>());
+        __range_replace(__get_pointer(from), __get_pointer(to), to_contiguous_address(first),
+                        to_contiguous_address(last), iterator_category_t<Iter>());
         return *this;
     }
 

@@ -277,7 +277,7 @@ const precompute_chars_convert_16n_t precompute_chars_convert_16n[36 - 6] = {
       16340864791353723037ull, 4895750586451757400ull, 4993145721471861013ull,
       10351807525191341928ull, 17983159292351844974ull, 12052984924518600484ull,
       6626501641ull}}};
-}
+} // namespace
 
 const std::array<const precompute_chars_convert_16n_t *, 37>
     precompute_chars_convert_16n_ptr = {nullptr,
