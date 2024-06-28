@@ -182,6 +182,8 @@
 #define WJR_BUILTIN_CONSTANT_P(expr) false
 #endif
 
+#define WJR_BUILTIN_CONSTANT_P_TRUE(expr) (WJR_BUILTIN_CONSTANT_P(expr) && (expr))
+
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_COMPILER_BARRIER() asm volatile("" ::: "memory")
 #define WJR_COMPILER_EMPTY_ASM() asm("")

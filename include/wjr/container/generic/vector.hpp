@@ -282,11 +282,11 @@ public:
 
     WJR_CONSTEXPR20 void
     destroy(_Alty &al) noexcept(std::is_nothrow_destructible_v<value_type>) {
-        if (WJR_BUILTIN_CONSTANT_P(data() == nullptr) && data() == nullptr) {
+        if (WJR_BUILTIN_CONSTANT_P_TRUE(data() == nullptr)) {
             return;
         }
 
-        if (WJR_BUILTIN_CONSTANT_P(size() == 0) && size() == 0) {
+        if (WJR_BUILTIN_CONSTANT_P_TRUE(size() == 0)) {
             return;
         }
 
@@ -295,11 +295,11 @@ public:
 
     WJR_CONSTEXPR20 void destroy_and_deallocate(_Alty &al) noexcept(
         std::is_nothrow_destructible_v<value_type>) {
-        if (WJR_BUILTIN_CONSTANT_P(data() == nullptr) && data() == nullptr) {
+        if (WJR_BUILTIN_CONSTANT_P_TRUE(data() == nullptr)) {
             return;
         }
 
-        if (WJR_BUILTIN_CONSTANT_P(capacity() == 0) && capacity() == 0) {
+        if (WJR_BUILTIN_CONSTANT_P_TRUE(capacity() == 0)) {
             return;
         }
 
@@ -404,7 +404,7 @@ public:
 
     WJR_CONSTEXPR20 void
     destroy(_Alty &al) noexcept(std::is_nothrow_destructible_v<value_type>) {
-        if (WJR_BUILTIN_CONSTANT_P(size() == 0) && size() == 0) {
+        if (WJR_BUILTIN_CONSTANT_P_TRUE(size() == 0)) {
             return;
         }
 
@@ -558,15 +558,15 @@ public:
 
 private:
     WJR_PURE WJR_INTRINSIC_INLINE bool __is_null_data() const {
-        return WJR_BUILTIN_CONSTANT_P(data() == nullptr) && data() == nullptr;
+        return WJR_BUILTIN_CONSTANT_P_TRUE(data() == nullptr);
     }
 
     WJR_PURE WJR_INTRINSIC_INLINE bool __is_zero_size() const {
-        return WJR_BUILTIN_CONSTANT_P(size() == 0) && size() == 0;
+        return WJR_BUILTIN_CONSTANT_P_TRUE(size() == 0);
     }
 
     WJR_PURE WJR_INTRINSIC_INLINE bool __is_zero_capacity() const {
-        return WJR_BUILTIN_CONSTANT_P(capacity() == 0) && capacity() == 0;
+        return WJR_BUILTIN_CONSTANT_P_TRUE(capacity() == 0);
     }
 
 public:
@@ -712,7 +712,7 @@ public:
 
     WJR_CONSTEXPR20 void
     destroy(_Alty &al) noexcept(std::is_nothrow_destructible_v<value_type>) {
-        if (WJR_BUILTIN_CONSTANT_P(size() == 0) && size() == 0) {
+        if (WJR_BUILTIN_CONSTANT_P_TRUE(size() == 0)) {
             return;
         }
 
@@ -1379,8 +1379,8 @@ public:
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 iterator insert(const_iterator pos, Iter first, Iter last) {
         const auto old_pos = static_cast<size_type>(pos - cbegin());
-        __range_insert(data() + old_pos, to_contiguous_address(first), to_contiguous_address(last),
-                       iterator_category_t<Iter>());
+        __range_insert(data() + old_pos, to_contiguous_address(first),
+                       to_contiguous_address(last), iterator_category_t<Iter>());
         return begin() + old_pos;
     }
 
@@ -1500,8 +1500,9 @@ public:
     template <typename Iter, WJR_REQUIRES(is_iterator_v<Iter>)>
     WJR_CONSTEXPR20 basic_vector &replace(const_iterator from, const_iterator to,
                                           Iter first, Iter last) {
-        __range_replace(__get_pointer(from), __get_pointer(to), to_contiguous_address(first),
-                        to_contiguous_address(last), iterator_category_t<Iter>());
+        __range_replace(__get_pointer(from), __get_pointer(to),
+                        to_contiguous_address(first), to_contiguous_address(last),
+                        iterator_category_t<Iter>());
         return *this;
     }
 

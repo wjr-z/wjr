@@ -55,8 +55,12 @@ class span;
 
 namespace span_details {
 
-WJR_REGISTER_HAS_TYPE(data, std::data(std::declval<Container &>()), Container);
-WJR_REGISTER_HAS_TYPE(size, std::size(std::declval<Container &>()), Container);
+WJR_REGISTER_HAS_TYPE(data,
+                      std::data(std::declval<std::add_lvalue_reference_t<Container>>()),
+                      Container);
+WJR_REGISTER_HAS_TYPE(size,
+                      std::size(std::declval<std::add_lvalue_reference_t<Container>>()),
+                      Container);
 
 /// @private
 template <typename T>
@@ -86,7 +90,7 @@ struct __is_container_like : std::false_type {};
 /// @private
 template <typename Container>
 struct __is_container_like<
-    Container, std::enable_if_t<has_data_v<Container &> && has_size_v<Container &>>>
+    Container, std::enable_if_t<has_data_v<Container> && has_size_v<Container>>>
     : std::conjunction<
           std::negation<std::is_array<remove_cvref_t<Container>>>,
           std::negation<__is_std_array<remove_cvref_t<Container>>>,
@@ -101,8 +105,8 @@ template <typename Container, typename Elem, typename = void>
 struct __is_span_like : std::false_type {};
 
 template <typename Container, typename Elem>
-struct __is_span_like<
-    Container, Elem, std::enable_if_t<has_data_v<Container &> && has_size_v<Container &>>>
+struct __is_span_like<Container, Elem,
+                      std::enable_if_t<has_data_v<Container> && has_size_v<Container>>>
     : std::conjunction<
           __is_container_like<Container>,
           std::is_convertible<decltype(std::data(std::declval<Container &>())), Elem *>> {

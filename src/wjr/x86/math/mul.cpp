@@ -1,4 +1,3 @@
-#include <wjr/assert.hpp>
 #include <wjr/x86/math/mul-impl.hpp>
 
 namespace wjr {
@@ -7,8 +6,6 @@ namespace wjr {
 
 void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
                                const uint64_t *src1, size_t m) noexcept {
-    WJR_ASSERT_ASSUME(rdx >= 1);
-
     uint64_t r8, r9, r10, r11;
     uint64_t rax, rcx; // rax = rdx & 7
 
@@ -360,8 +357,6 @@ void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
 
 // Local testing is slower than GMP by 2% to 3%
 void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx) noexcept {
-    WJR_ASSERT_ASSUME(rdx >= 1);
-
     uint64_t r8, r9, r10, r11;
     uint64_t rax, rcx;
 

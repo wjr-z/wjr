@@ -82,7 +82,7 @@ public:
                                                             T &hi) noexcept {
         WJR_ASSERT_ASSUME_L3(__has_high_bit(divisor));
 
-        if (WJR_BUILTIN_CONSTANT_P(lo == 0) && lo == 0) {
+        if (WJR_BUILTIN_CONSTANT_P_TRUE(lo == 0)) {
             return divide_lo0(divisor, value, lo, hi);
         }
 

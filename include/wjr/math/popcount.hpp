@@ -25,10 +25,6 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR int fallback_popcount(T x) noexcept {
     }
 }
 
-#if WJR_HAS_BUILTIN(__builtin_popcount)
-#define WJR_HAS_BUILTIN_POPCOUNT WJR_HAS_DEF
-#endif
-
 #if WJR_HAS_BUILTIN(POPCOUNT)
 
 template <typename T>
@@ -54,7 +50,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_popcount(T x) noexcept {
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int popcount_impl(T x) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P(is_zero_or_single_bit(x)) && is_zero_or_single_bit(x)) {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(is_zero_or_single_bit(x))) {
         return x != 0;
     }
 

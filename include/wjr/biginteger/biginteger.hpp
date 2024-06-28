@@ -134,13 +134,13 @@ public:
     ~default_biginteger_vector_storage() noexcept = default;
 
     void destroy(_Alty &al) noexcept {
-        if (WJR_BUILTIN_CONSTANT_P(data() == nullptr) && data() == nullptr) {
+        if (WJR_BUILTIN_CONSTANT_P_TRUE(data() == nullptr)) {
             return;
         }
 
         const size_type __size = size();
 
-        if (WJR_BUILTIN_CONSTANT_P(__size == 0) && __size == 0) {
+        if (WJR_BUILTIN_CONSTANT_P_TRUE(__size == 0)) {
             return;
         }
 
@@ -148,7 +148,7 @@ public:
     }
 
     void destroy_and_deallocate(_Alty &al) noexcept {
-        if (WJR_BUILTIN_CONSTANT_P(capacity() == 0) && capacity() == 0) {
+        if (WJR_BUILTIN_CONSTANT_P_TRUE(capacity() == 0)) {
             return;
         }
 
@@ -237,7 +237,7 @@ inline int32_t __compare_si_impl(const biginteger_data *lhs, int64_t rhs) noexce
 /// @private
 template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
 int32_t __compare_impl(const biginteger_data *lhs, T rhs) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P(rhs == 0) && rhs == 0) {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(rhs == 0)) {
         const int32_t ssize = lhs->get_ssize();
         return ssize == 0 ? 0 : ssize < 0 ? -1 : 1;
     }
@@ -245,7 +245,7 @@ int32_t __compare_impl(const biginteger_data *lhs, T rhs) noexcept {
     if constexpr (std::is_unsigned_v<T>) {
         return __compare_ui_impl(lhs, rhs);
     } else {
-        if (WJR_BUILTIN_CONSTANT_P(rhs >= 0) && rhs >= 0) {
+        if (WJR_BUILTIN_CONSTANT_P_TRUE(rhs >= 0)) {
             return __compare_ui_impl(lhs, to_unsigned(rhs));
         }
 
@@ -770,8 +770,7 @@ void sqr(basic_biginteger<S> &dst, const biginteger_data &src) noexcept {
 template <typename S>
 void mul(basic_biginteger<S> &dst, const biginteger_data &lhs,
          const biginteger_data &rhs) noexcept {
-    if (WJR_BUILTIN_CONSTANT_P(std::addressof(lhs) == std::addressof(rhs)) &&
-        std::addressof(lhs) == std::addressof(rhs)) {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(std::addressof(lhs) == std::addressof(rhs))) {
         sqr(dst, lhs);
         return;
     }

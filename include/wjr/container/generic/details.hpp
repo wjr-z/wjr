@@ -7,22 +7,6 @@
 
 namespace wjr {
 
-WJR_REGISTER_HAS_TYPE(container_begin,
-                      std::begin(std::declval<std::add_lvalue_reference_t<Container>>()),
-                      Container);
-WJR_REGISTER_HAS_TYPE(container_cbegin,
-                      std::cbegin(std::declval<std::add_lvalue_reference_t<Container>>()),
-                      Container);
-WJR_REGISTER_HAS_TYPE(container_end,
-                      std::end(std::declval<std::add_lvalue_reference_t<Container>>()),
-                      Container);
-WJR_REGISTER_HAS_TYPE(container_cend,
-                      std::cend(std::declval<std::add_lvalue_reference_t<Container>>()),
-                      Container);
-WJR_REGISTER_HAS_TYPE(container_size,
-                      std::size(std::declval<std::add_lvalue_reference_t<Container>>()),
-                      Container);
-
 WJR_REGISTER_HAS_TYPE(__container_resize,
                       std::declval<std::add_lvalue_reference_t<Container>>().resize(
                           std::declval<Size>(), std::declval<Args>()...),

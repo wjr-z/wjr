@@ -2,9 +2,9 @@
 #define WJR_MATH_DIV_HPP__
 
 #include <wjr/math/compare.hpp>
-#include <wjr/math/div-impl.hpp>
 #include <wjr/math/divider.hpp>
 #include <wjr/math/libdivide.hpp>
+#include <wjr/math/uint128_t.hpp>
 
 #if defined(WJR_X86)
 #include <wjr/x86/math/div.hpp>
@@ -238,7 +238,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(uint64_t *dst, uint64_t &rem, const uint
         return;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(n == 2) && n == 2) {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == 2)) {
         const auto [ax, dx] = div128by64to128(rem, src[0], src[1], div);
         dst[0] = ax;
         dst[1] = dx;
@@ -280,7 +280,7 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(uint64_t *dst, uint64_t &rem, const uint
         return;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(n == 2) && n == 2) {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == 2)) {
         const auto [ax, dx] = div128by64to128(rem, src[0], src[1], div);
         dst[0] = ax;
         dst[1] = dx;
@@ -779,7 +779,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t mod_1(const uint64_t *src, size_t n,
         return src[0] & ((1ull << c) - 1);
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(n == 2) && n == 2) {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == 2)) {
         uint64_t rem;
         (void)div128by64to128(rem, src[0], src[1], div);
         return rem;
@@ -812,7 +812,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t mod_1(const uint64_t *src, size_t n,
         return tmp % div;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(n == 2) && n == 2) {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == 2)) {
         uint64_t rem;
         (void)div128by64to128(rem, src[0], src[1], div);
         return rem;

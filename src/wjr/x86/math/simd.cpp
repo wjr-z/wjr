@@ -1,5 +1,5 @@
-#include <wjr/x86/math/compare.hpp>
-#include <wjr/x86/math/find.hpp>
+#include <wjr/x86/math/large-compare-impl.hpp>
+#include <wjr/x86/math/large-find-impl.hpp>
 
 namespace wjr {
 #if WJR_HAS_BUILTIN(COMPARE_N)

@@ -40,7 +40,6 @@ struct sse {
     WJR_INTRINSIC_INLINE static mask_type movemask_ps(__m128 v);
     WJR_INTRINSIC_INLINE static void sfence();
 
-
     template <int imm8>
     WJR_INTRINSIC_INLINE static __m128 shuffle_ps(__m128 a, __m128 b);
 
@@ -2467,21 +2466,21 @@ __m128i sse::slli(__m128i v) {
     return _mm_slli_si128(v, imm8);
 }
 __m128i sse::slli_epi16(__m128i a, int imm8) {
-    if (WJR_BUILTIN_CONSTANT_P(imm8 == 1) && imm8 == 1) {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(imm8 == 1)) {
         return sse::add_epi16(a, a);
     }
 
     return _mm_slli_epi16(a, imm8);
 }
 __m128i sse::slli_epi32(__m128i a, int imm8) {
-    if (WJR_BUILTIN_CONSTANT_P(imm8 == 1) && imm8 == 1) {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(imm8 == 1)) {
         return sse::add_epi32(a, a);
     }
 
     return _mm_slli_epi32(a, imm8);
 }
 __m128i sse::slli_epi64(__m128i a, int imm8) {
-    if (WJR_BUILTIN_CONSTANT_P(imm8 == 1) && imm8 == 1) {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(imm8 == 1)) {
         return sse::add_epi64(a, a);
     }
 

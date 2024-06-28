@@ -11,6 +11,8 @@ WJR_REGISTER_HAS_TYPE(pointer_traits_to_address,
                       std::pointer_traits<Ptr>::to_address(std::declval<const Ptr &>()),
                       Ptr);
 
+WJR_REGISTER_HAS_TYPE(pointer_access, std::declval<const Ptr &>().operator->(), Ptr);
+
 template <typename T>
 constexpr T *to_address(T *p) noexcept {
     static_assert(!std::is_function_v<T>, "T cannot be a function.");

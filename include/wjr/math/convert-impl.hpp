@@ -38,7 +38,7 @@ public:
 
         if constexpr (Base == 0 || Base > 10) {
 
-            if (WJR_BUILTIN_CONSTANT_P(x < 10) && x < 10) {
+            if (WJR_BUILTIN_CONSTANT_P_TRUE(x < 10)) {
                 return x + '0';
             }
 

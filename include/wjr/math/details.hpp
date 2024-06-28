@@ -5,6 +5,8 @@
 
 namespace wjr {
 
+#if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
+
 namespace math_details {
 
 template <typename T, T seed>
@@ -34,6 +36,8 @@ inline constexpr de_bruijn<uint32_t, 0x077C'B531> de_bruijn32 = {};
 inline constexpr de_bruijn<uint64_t, 0x03f7'9d71'b4ca'8b09> de_bruijn64 = {};
 
 } // namespace math_details
+
+#endif
 
 // preview ...
 
@@ -101,17 +105,6 @@ template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST constexpr T __align_up_offset(T n, type_identity_t<T> alignment) noexcept {
     WJR_ASSERT_ASSUME_L2(is_zero_or_single_bit(alignment));
     return (-n) & (alignment - 1);
-}
-
-template <typename T, typename U = std::make_unsigned_t<T>,
-          WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_CONST constexpr U __fasts_sign_mask() noexcept {
-    return (U)(1) << (std::numeric_limits<U>::digits - 1);
-}
-
-template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_CONST constexpr T __fasts_get_sign_mask(T x) noexcept {
-    return x & __fasts_sign_mask<T>();
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>

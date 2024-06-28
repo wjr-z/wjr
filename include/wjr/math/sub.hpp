@@ -2,6 +2,7 @@
 #define WJR_MATH_SUB_HPP__
 
 #include <wjr/assert.hpp>
+#include <wjr/math/details.hpp>
 #include <wjr/math/replace.hpp>
 #include <wjr/math/sub-impl.hpp>
 
@@ -187,7 +188,7 @@ WJR_INTRINSIC_CONSTEXPR_E U subc_1(uint64_t *dst, const uint64_t *src0, size_t n
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
 
-    if (WJR_BUILTIN_CONSTANT_P(n == 1) && n == 1) {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == 1)) {
         uint8_t overflow = 0;
         dst[0] = subc_cc(src0[0], src1, c_in, overflow);
         return static_cast<U>(overflow);
@@ -410,7 +411,7 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s1(uint64_t *dst, const uint64_t *src
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
 
-    if (WJR_BUILTIN_CONSTANT_P(n == m) && n == m) {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == m)) {
         return abs_subc_n(dst, src0, src1, m);
     }
 
@@ -441,11 +442,11 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s(uint64_t *dst, const uint64_t *src0
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
 
-    if (WJR_BUILTIN_CONSTANT_P(n == m) && n == m) {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == m)) {
         return abs_subc_n(dst, src0, src1, m);
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(n - m <= 1) && n - m <= 1) {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(n - m <= 1)) {
         return abs_subc_s1(dst, src0, n, src1, m);
     }
 
@@ -465,11 +466,11 @@ WJR_INTRINSIC_CONSTEXPR_E ssize_t abs_subc_s_pos(uint64_t *dst, const uint64_t *
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
 
-    if (WJR_BUILTIN_CONSTANT_P(n == m) && n == m) {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(n == m)) {
         return abs_subc_n_pos(dst, src0, src1, m);
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(n - m <= 1) && n - m <= 1) {
+    if (WJR_BUILTIN_CONSTANT_P_TRUE(n - m <= 1)) {
         do {
             if (n == m) {
                 break;
@@ -569,8 +570,8 @@ WJR_INTRINSIC_CONSTEXPR_E void __sub_128(uint64_t &al, uint64_t &ah, uint64_t lo
                                          uint64_t hi0, uint64_t lo1,
                                          uint64_t hi1) noexcept {
 #if WJR_HAS_BUILTIN(__BUILTIN_SUB_128) || WJR_HAS_BUILTIN(__ASM_SUB_128)
-    if (is_constant_evaluated() || (WJR_BUILTIN_CONSTANT_P(lo0 == 0) && lo0 == 0) ||
-        (WJR_BUILTIN_CONSTANT_P(lo1 == 0) && lo1 == 0)) {
+    if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P_TRUE(lo0 == 0) ||
+        WJR_BUILTIN_CONSTANT_P_TRUE(lo1 == 0) || WJR_BUILTIN_CONSTANT_P(lo0 + hi0)) {
         return __fallback_sub_128(al, ah, lo0, hi0, lo1, hi1);
     }
 

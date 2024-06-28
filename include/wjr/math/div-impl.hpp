@@ -4,7 +4,6 @@
 #include <utility>
 
 #include <wjr/math/integral_constant.hpp>
-#include <wjr/math/uint128_t.hpp>
 
 namespace wjr {
 
@@ -16,6 +15,8 @@ class div3by2_divider;
 
 template <typename T>
 class divexact1_divider;
+
+class uint128_t;
 
 WJR_INLINE_CONSTEXPR20 uint64_t
 div128by64to64(uint64_t &rem, uint64_t lo, uint64_t hi,

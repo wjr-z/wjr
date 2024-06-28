@@ -27,16 +27,9 @@
  *
  */
 
-#include <cstdio>
-#include <cstdlib>
 #include <iostream>
-#include <tuple>
-#include <type_traits>
-#include <utility>
 
 #include <wjr/preprocessor.hpp>
-
-namespace wjr {
 
 #ifndef WJR_DEBUG_LEVEL
 #if defined(NDEBUG)
@@ -49,6 +42,8 @@ namespace wjr {
 #if WJR_DEBUG_LEVEL < 0 || WJR_DEBUG_LEVEL > 3
 #error "WJR_DEBUG_LEVEL must be 0 ~ 3"
 #endif
+
+namespace wjr {
 
 #define WJR_DEBUG_IF(level, expr0, expr1)                                                \
     WJR_PP_BOOL_IF(WJR_PP_GT(WJR_DEBUG_LEVEL, level), expr0, expr1)
