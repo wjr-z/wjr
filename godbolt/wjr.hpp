@@ -7048,6 +7048,10 @@ struct __inserter_container_accessor : Iter {
 
 /// @private
 template <typename Iter>
+__inserter_container_accessor(Iter) -> __inserter_container_accessor<Iter>;
+
+/// @private
+template <typename Iter>
 struct __inserter_iterator_accessor : Iter {
     __inserter_iterator_accessor(Iter it) noexcept(
         std::is_nothrow_copy_constructible_v<Iter>)
@@ -7055,29 +7059,36 @@ struct __inserter_iterator_accessor : Iter {
     using Iter::iter;
 };
 
+template <typename Iter>
+__inserter_iterator_accessor(Iter) -> __inserter_iterator_accessor<Iter>;
+
 template <typename Container>
 Container &get_inserter_container(std::insert_iterator<Container> it) noexcept(
     std::is_nothrow_copy_constructible_v<std::insert_iterator<Container>>) {
-    return *(__inserter_container_accessor(it).container);
+    __inserter_container_accessor tmp(it);
+    return *(tmp.container);
 }
 
 template <typename Container>
 Container &get_inserter_container(std::back_insert_iterator<Container> it) noexcept(
     std::is_nothrow_copy_constructible_v<std::back_insert_iterator<Container>>) {
-    return *(__inserter_container_accessor(it).container);
+    __inserter_container_accessor tmp(it);
+    return *(tmp.container);
 }
 
 template <typename Container>
 Container &get_inserter_container(std::front_insert_iterator<Container> it) noexcept(
     std::is_nothrow_copy_constructible_v<std::front_insert_iterator<Container>>) {
-    return *(__inserter_container_accessor(it).container);
+    __inserter_container_accessor tmp(it);
+    return *(tmp.container);
 }
 
 template <typename Container>
 typename Container::iterator
 get_inserter_iterator(std::insert_iterator<Container> it) noexcept(
     std::is_nothrow_copy_constructible_v<std::insert_iterator<Container>>) {
-    return __inserter_iterator_accessor(it).iter;
+    __inserter_iterator_accessor tmp(it);
+    return *(tmp.iter);
 }
 
 } // namespace wjr
