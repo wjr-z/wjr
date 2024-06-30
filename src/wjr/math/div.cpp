@@ -172,7 +172,6 @@ uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64_t *div
                 q = wjr::div3by2_divider<uint64_t>::divide(d0, d1, dinv, src[-2], n0, n1);
 
                 if (m > 2) {
-                    uint64_t cy;
                     cy = submul_1(src - m, div - m, m - 2, q);
                     cy = __subc_cc_128(n0, n1, n0, n1, cy, 0, 0);
                     src[-2] = n0;

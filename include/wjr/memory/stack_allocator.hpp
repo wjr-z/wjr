@@ -26,7 +26,6 @@ class stack_allocator_object {
 
     struct large_stack_top {
         large_stack_top *prev;
-        char buffer[];
     };
 
 public:
@@ -41,7 +40,7 @@ private:
         const auto buffer = (large_stack_top *)malloc(sizeof(large_stack_top) + n);
         buffer->prev = top.large;
         top.large = buffer;
-        return buffer->buffer;
+        return buffer + 1;
     }
 
     WJR_NOINLINE WJR_CONSTEXPR20 void __small_reallocate(stack_top &top) noexcept {

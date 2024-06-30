@@ -1225,7 +1225,7 @@ to_chars_result<Iter> __fallback_to_chars_impl(Iter first, Iter last, Value val,
     case 32: {
         const int bits = base == 4 ? 2 : 5;
         const int n = count_digits<1>(uVal, bits);
-        WJR_TO_CHARS_VALIDATE_IMPL(1, (base_2_table + bits - 1) / bits, (n, uVal, bits));
+        WJR_TO_CHARS_VALIDATE_IMPL(1, (base_2_table + 1) / 2, (n, uVal, bits));
     }
     case 10: {
         WJR_TO_CHARS_VALIDATE_IMPL(10, base_10_table, (uVal));
@@ -1391,7 +1391,7 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
     case 32: {
         const int bits = base == 4 ? 2 : 5;
         const int n = count_digits<1>(uVal, bits);
-        WJR_TO_CHARS_IMPL(1, (base_2_table + bits - 1) / bits, (n, uVal, bits));
+        WJR_TO_CHARS_IMPL(1, (base_2_table + 1) / 2, (n, uVal, bits));
     }
     case 10: {
         WJR_TO_CHARS_IMPL(10, base_10_table, (uVal));
@@ -2757,16 +2757,6 @@ size_t __biginteger_from_chars_8_impl(const uint8_t *first, size_t n, uint64_t *
     size_t rest = (64 * (len - 1)) % 3;
     const size_t hbits = n - lbits - 1;
 
-    auto unroll = [conv](uint64_t &x, auto &first) {
-        auto x0 = conv.template from<8>(first[0]);
-        auto x1 = conv.template from<8>(first[1]);
-        auto x2 = conv.template from<8>(first[2]);
-        auto x3 = conv.template from<8>(first[3]);
-
-        x = x << 12 | x0 << 9 | x1 << 6 | x2 << 3 | x3;
-        first += 4;
-    };
-
     uint64_t x = 0;
     up += len;
     size_t idx = len - 1;
@@ -2812,13 +2802,19 @@ size_t __biginteger_from_chars_8_impl(const uint8_t *first, size_t n, uint64_t *
     if (idx) {
         do {
             for (int i = 0; i < 5; ++i) {
-                unroll(x, first);
+                auto x0 = conv.template from<8>(first[0]);
+                auto x1 = conv.template from<8>(first[1]);
+                auto x2 = conv.template from<8>(first[2]);
+                auto x3 = conv.template from<8>(first[3]);
+
+                x = x << 12 | x0 << 9 | x1 << 6 | x2 << 3 | x3;
+                first += 4;
             }
 
             switch (rest) {
             case 0: {
                 x = x << 3 | conv.template from<8>(*first++);
-                uint64_t nx = conv.template from<8>(*first++);
+                nx = conv.template from<8>(*first++);
                 x = x << 1 | nx >> 2;
                 *--up = x;
                 x = nx & 3;
@@ -2833,7 +2829,7 @@ size_t __biginteger_from_chars_8_impl(const uint8_t *first, size_t n, uint64_t *
                 break;
             }
             case 2: {
-                uint64_t nx = conv.template from<8>(*first++);
+                nx = conv.template from<8>(*first++);
                 x = x << 2 | nx >> 1;
                 *--up = x;
                 x = nx & 1;
@@ -2858,16 +2854,6 @@ size_t __biginteger_from_chars_16_impl(const uint8_t *first, size_t n, uint64_t 
     const size_t hbits = (n - 1) % 16 + 1;
     size_t len = (n - 1) / 16 + 1;
 
-    auto unroll = [conv](uint64_t &x, auto &first) {
-        auto x0 = conv.template from<16>(first[0]);
-        auto x1 = conv.template from<16>(first[1]);
-        auto x2 = conv.template from<16>(first[2]);
-        auto x3 = conv.template from<16>(first[3]);
-
-        x = x << 16 | x0 << 12 | x1 << 8 | x2 << 4 | x3;
-        first += 4;
-    };
-
     uint64_t x = 0;
     up += len;
 
@@ -2883,7 +2869,13 @@ size_t __biginteger_from_chars_16_impl(const uint8_t *first, size_t n, uint64_t 
             x = 0;
 
             for (int i = 0; i < 4; ++i) {
-                unroll(x, first);
+                auto x0 = conv.template from<16>(first[0]);
+                auto x1 = conv.template from<16>(first[1]);
+                auto x2 = conv.template from<16>(first[2]);
+                auto x3 = conv.template from<16>(first[3]);
+
+                x = x << 16 | x0 << 12 | x1 << 8 | x2 << 4 | x3;
+                first += 4;
             }
 
             *--up = x;

@@ -3244,7 +3244,7 @@ struct is_convertible_to : std::conjunction<std::is_convertible<From, To>,
 template <typename From, typename To>
 inline constexpr bool is_convertible_to_v = is_convertible_to<From, To>::value;
 
-// TODO : move __is_in_i32_range to other header.
+/** @todo : move __is_in_i32_range to other header. */
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
     return value >= (int32_t)in_place_min && value <= (int32_t)in_place_max;
 }
@@ -8474,9 +8474,9 @@ public:
     using const_pointer = const value_type *;
 
     template <typename... Args>
-    WJR_CONSTEXPR20 temporary_value_allocator(Alloc &al, Args &&...args) noexcept(
+    WJR_CONSTEXPR20 temporary_value_allocator(Alloc &al_, Args &&...args) noexcept(
         std::is_nothrow_constructible_v<value_type, Args &&...>)
-        : al(al) {
+        : al(al_) {
         uninitialized_construct_using_allocator(get(), al, std::forward<Args>(args)...);
     }
 
@@ -17392,7 +17392,7 @@ WJR_INTRINSIC_CONSTEXPR void fallback_set_n(T *dst, T val, size_t n) noexcept {
     }
 }
 
-template <typename T>
+template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_INTRINSIC_CONSTEXPR_E void set_n(T *dst, type_identity_t<T> val, size_t n) noexcept {
 #if WJR_HAS_BUILTIN(SET_N)
     if constexpr (sizeof(T) == 8) {
@@ -17400,7 +17400,8 @@ WJR_INTRINSIC_CONSTEXPR_E void set_n(T *dst, type_identity_t<T> val, size_t n) n
             return fallback_set_n(dst, val, n);
         }
 
-        if (WJR_BUILTIN_CONSTANT_P(val) && broadcast<uint8_t, T>(val) == val) {
+        if (WJR_BUILTIN_CONSTANT_P(val) &&
+            broadcast<uint8_t, T>(static_cast<uint8_t>(val)) == val) {
             if (WJR_UNLIKELY(n >= 2048 / sizeof(T))) {
                 std::memset(dst, static_cast<uint8_t>(val), n * sizeof(T));
                 return;
@@ -20484,7 +20485,6 @@ WJR_INTRINSIC_CONSTEXPR_E uint8_t __addc_cc_128(uint64_t &al, uint64_t &ah, uint
 
 #endif // WJR_MATH_BIGNUM_CONFIG_HPP__
 // Already included
-// Already included
 #ifndef WJR_MATH_SHIFT_HPP__
 #define WJR_MATH_SHIFT_HPP__
 
@@ -21362,7 +21362,7 @@ namespace wjr {
 
 #if WJR_HAS_DEBUG(SAFE_POINTER)
 
-template <typename T, typename Tag = void>
+template <typename T>
 class safe_array {
 public:
     using element_type = T;
@@ -21496,7 +21496,7 @@ private:
 
 #else
 
-template <typename T, typename Tag = void>
+template <typename T>
 class safe_array {
 public:
     using element_type = T;
@@ -23102,9 +23102,8 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0,
 }
 
 template <uint64_t maxn = in_place_max>
-WJR_INTRINSIC_CONSTEXPR_E uint64_t
-try_addmul_1(uint64_t *dst, const uint64_t *src, size_t n, uint64_t ml,
-             integral_constant<uint64_t, maxn> = {}) noexcept {
+WJR_INTRINSIC_CONSTEXPR_E uint64_t try_addmul_1(uint64_t *dst, const uint64_t *src,
+                                                size_t n, uint64_t ml) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 
@@ -23229,26 +23228,6 @@ extern void toom2_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
                       safe_array<uint64_t> stk) noexcept;
 
 /*
- l = max(ceil(n/3), ceil(m/2))
- stk usage : l * 4
-*/
-extern void toom32_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m,
-                         safe_array<uint64_t> stk) noexcept;
-
-extern void toom_interpolation_5p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
-                                    size_t rn, size_t rm,
-                                    toom_interpolation_5p_struct &&flag) noexcept;
-
-/*
- l = max(ceil(n/4), ceil(m/2))
- stk usage : l * 4
-*/
-extern void toom42_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m,
-                         safe_array<uint64_t> stk) noexcept;
-
-/*
  l = ceil(n/3)
  stk usage : l * 4
 */
@@ -23257,83 +23236,6 @@ extern void toom33_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_
                          safe_array<uint64_t> stk) noexcept;
 
 extern void toom3_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                      safe_array<uint64_t> stk) noexcept;
-
-extern void toom_interpolation_6p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
-                                    size_t rn, size_t rm,
-                                    toom_interpolation_6p_struct &&flag) noexcept;
-
-/*
- l = max(ceil(n/4), ceil(m/3))
- stk usage : l * 6
-*/
-extern void toom43_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m,
-                         safe_array<uint64_t> stk) noexcept;
-
-extern void toom_interpolation_7p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
-                                    size_t rn, size_t rm,
-                                    toom_interpolation_7p_struct &&flag) noexcept;
-
-/*
- l = max(ceil(n/5), ceil(m/3))
- stk usage : l * 6
-*/
-extern void toom53_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m,
-                         safe_array<uint64_t> stk) noexcept;
-
-/*
- l = ceil(n/4)
- stk usage : l * 6
-*/
-extern void toom44_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m,
-                         safe_array<uint64_t> stk) noexcept;
-
-extern void toom4_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-                      safe_array<uint64_t> stk) noexcept;
-
-struct toom_eval_opposite_exp_args;
-
-extern void toom_eval_2_exp(toom_eval_opposite_exp_args &args) noexcept;
-
-WJR_NODISCARD extern bool
-toom_eval_opposite_2_exp(toom_eval_opposite_exp_args &args) noexcept;
-WJR_NODISCARD extern bool
-toom_eval_opposite_half_exp(toom_eval_opposite_exp_args &args) noexcept;
-
-extern void toom_interpolation_8p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
-                                    size_t rn, size_t rm,
-                                    toom_interpolation_high_p_struct<8> &&flag) noexcept;
-
-/**
- * @details \n
- * l = max(ceil(n/6), ceil(m/3)) \n
- * stk usage : l * 10 \n
- *
- */
-extern void toom63_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m,
-                         safe_array<uint64_t> stk) noexcept;
-
-extern void toom_interpolation_9p_s(uint64_t *WJR_RESTRICT dst, uint64_t *w1p, size_t l,
-                                    size_t rn, size_t rm,
-                                    toom_interpolation_high_p_struct<9> &&flag) noexcept;
-
-/*
- l = ceil(n/5)
- stk usage : l * 10
-*/
-extern void toom55_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
-                         const uint64_t *src1, size_t m,
-                         safe_array<uint64_t> stk) noexcept;
-
-/*
- l = ceil(n/5)
- stk usage : l * 10
-*/
-extern void toom5_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
                       safe_array<uint64_t> stk) noexcept;
 
 WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom22_s_itch(size_t m) noexcept {
@@ -23428,8 +23330,7 @@ WJR_INTRINSIC_INLINE void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *sr
 template <__mul_mode mode, uint64_t m0 = in_place_max, uint64_t m1 = in_place_max>
 void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *src1,
              size_t n, safe_array<uint64_t> stk, uint64_t &c_out, uint64_t cf0,
-             uint64_t cf1, integral_constant<uint64_t, m0> x0 = {},
-             integral_constant<uint64_t, m1> x1 = {}) noexcept {
+             uint64_t cf1) noexcept {
     WJR_ASSERT_ASSUME(cf0 <= m0);
     WJR_ASSERT_ASSUME(cf1 <= m1);
 
@@ -23448,8 +23349,8 @@ void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *s
     } else {
         c_out = cf0 * cf1;
     }
-    c_out += try_addmul_1(dst + n, src1, n, cf0, x0);
-    c_out += try_addmul_1(dst + n, src0, n, cf1, x1);
+    c_out += try_addmul_1<m0>(dst + n, src1, n, cf0);
+    c_out += try_addmul_1<m1>(dst + n, src0, n, cf1);
 }
 
 WJR_INTRINSIC_INLINE void mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0,
@@ -23495,8 +23396,7 @@ void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
 
 template <__mul_mode mode, uint64_t m = in_place_max>
 void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
-           safe_array<uint64_t> stk, uint64_t &c_out, uint64_t cf,
-           integral_constant<uint64_t, m> = {}) noexcept {
+           safe_array<uint64_t> stk, uint64_t &c_out, uint64_t cf) noexcept {
     WJR_ASSERT_ASSUME(cf <= m);
 
     __sqr<mode>(dst, src, n, stk);
@@ -23511,7 +23411,7 @@ void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
 
     constexpr auto m2 = m <= ((uint32_t)in_place_max) ? m * 2 : m;
 
-    c_out += try_addmul_1(dst + n, src, n, 2 * cf, integral_constant<uint64_t, m2>{});
+    c_out += try_addmul_1<m2>(dst + n, src, n, 2 * cf);
 }
 
 WJR_INTRINSIC_INLINE void sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src,
@@ -24526,7 +24426,7 @@ public:
         }
     }
 
-    constexpr uint128_t(uint64_t lo, uint64_t hi) noexcept : lo(lo), hi(hi) {}
+    constexpr uint128_t(uint64_t lo_, uint64_t hi_) noexcept : lo(lo_), hi(hi_) {}
 
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     constexpr uint128_t(T value) noexcept : lo(value), hi(0) {}
@@ -24557,12 +24457,9 @@ public:
 
     WJR_CONSTEXPR20 uint128_t &operator*=(uint128_t other) noexcept {
         const auto [__lo, __hi] = other;
-
-        uint128_t tmp;
-        tmp.lo = mul(lo, __lo, tmp.hi);
-        tmp.hi += lo * __hi + hi * __lo;
-
-        (*this) = std::move(tmp);
+        const uint64_t tmp = lo * __hi + hi * __lo;
+        lo = mul(lo, __lo, hi);
+        hi += tmp;
         return *this;
     }
 
@@ -24605,6 +24502,41 @@ public:
     template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     friend WJR_CONST WJR_CONSTEXPR20 uint128_t operator*(uint128_t lhs, T rhs) noexcept {
         return lhs *= rhs;
+    }
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    friend WJR_CONST WJR_CONSTEXPR20 uint128_t operator*(T lhs, uint128_t rhs) noexcept {
+        return rhs *= lhs;
+    }
+
+    friend WJR_CONST WJR_CONSTEXPR20 bool operator<(uint128_t lhs,
+                                                    uint128_t rhs) noexcept {
+        return __less_128(lhs.lo, lhs.hi, rhs.lo, rhs.hi);
+    }
+
+    friend WJR_CONST WJR_CONSTEXPR20 bool operator>(uint128_t lhs,
+                                                    uint128_t rhs) noexcept {
+        return rhs < lhs;
+    }
+
+    friend WJR_CONST WJR_CONSTEXPR20 bool operator<=(uint128_t lhs,
+                                                     uint128_t rhs) noexcept {
+        return __less_equal_128(lhs.lo, lhs.hi, rhs.lo, rhs.hi);
+    }
+
+    friend WJR_CONST WJR_CONSTEXPR20 bool operator>=(uint128_t lhs,
+                                                     uint128_t rhs) noexcept {
+        return rhs <= lhs;
+    }
+
+    friend WJR_CONST WJR_CONSTEXPR20 bool operator==(uint128_t lhs,
+                                                     uint128_t rhs) noexcept {
+        return lhs.lo == rhs.lo && lhs.hi == rhs.hi;
+    }
+
+    friend WJR_CONST WJR_CONSTEXPR20 bool operator!=(uint128_t lhs,
+                                                     uint128_t rhs) noexcept {
+        return !(lhs == rhs);
     }
 
     uint64_t lo;
@@ -25696,7 +25628,6 @@ class stack_allocator_object {
 
     struct large_stack_top {
         large_stack_top *prev;
-        char buffer[];
     };
 
 public:
@@ -25711,7 +25642,7 @@ private:
         const auto buffer = (large_stack_top *)malloc(sizeof(large_stack_top) + n);
         buffer->prev = top.large;
         top.large = buffer;
-        return buffer->buffer;
+        return buffer + 1;
     }
 
     WJR_NOINLINE WJR_CONSTEXPR20 void __small_reallocate(stack_top &top) noexcept {
@@ -27414,7 +27345,7 @@ to_chars_result<Iter> __fallback_to_chars_impl(Iter first, Iter last, Value val,
     case 32: {
         const int bits = base == 4 ? 2 : 5;
         const int n = count_digits<1>(uVal, bits);
-        WJR_TO_CHARS_VALIDATE_IMPL(1, (base_2_table + bits - 1) / bits, (n, uVal, bits));
+        WJR_TO_CHARS_VALIDATE_IMPL(1, (base_2_table + 1) / 2, (n, uVal, bits));
     }
     case 10: {
         WJR_TO_CHARS_VALIDATE_IMPL(10, base_10_table, (uVal));
@@ -27580,7 +27511,7 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
     case 32: {
         const int bits = base == 4 ? 2 : 5;
         const int n = count_digits<1>(uVal, bits);
-        WJR_TO_CHARS_IMPL(1, (base_2_table + bits - 1) / bits, (n, uVal, bits));
+        WJR_TO_CHARS_IMPL(1, (base_2_table + 1) / 2, (n, uVal, bits));
     }
     case 10: {
         WJR_TO_CHARS_IMPL(10, base_10_table, (uVal));
@@ -28946,16 +28877,6 @@ size_t __biginteger_from_chars_8_impl(const uint8_t *first, size_t n, uint64_t *
     size_t rest = (64 * (len - 1)) % 3;
     const size_t hbits = n - lbits - 1;
 
-    auto unroll = [conv](uint64_t &x, auto &first) {
-        auto x0 = conv.template from<8>(first[0]);
-        auto x1 = conv.template from<8>(first[1]);
-        auto x2 = conv.template from<8>(first[2]);
-        auto x3 = conv.template from<8>(first[3]);
-
-        x = x << 12 | x0 << 9 | x1 << 6 | x2 << 3 | x3;
-        first += 4;
-    };
-
     uint64_t x = 0;
     up += len;
     size_t idx = len - 1;
@@ -29001,13 +28922,19 @@ size_t __biginteger_from_chars_8_impl(const uint8_t *first, size_t n, uint64_t *
     if (idx) {
         do {
             for (int i = 0; i < 5; ++i) {
-                unroll(x, first);
+                auto x0 = conv.template from<8>(first[0]);
+                auto x1 = conv.template from<8>(first[1]);
+                auto x2 = conv.template from<8>(first[2]);
+                auto x3 = conv.template from<8>(first[3]);
+
+                x = x << 12 | x0 << 9 | x1 << 6 | x2 << 3 | x3;
+                first += 4;
             }
 
             switch (rest) {
             case 0: {
                 x = x << 3 | conv.template from<8>(*first++);
-                uint64_t nx = conv.template from<8>(*first++);
+                nx = conv.template from<8>(*first++);
                 x = x << 1 | nx >> 2;
                 *--up = x;
                 x = nx & 3;
@@ -29022,7 +28949,7 @@ size_t __biginteger_from_chars_8_impl(const uint8_t *first, size_t n, uint64_t *
                 break;
             }
             case 2: {
-                uint64_t nx = conv.template from<8>(*first++);
+                nx = conv.template from<8>(*first++);
                 x = x << 2 | nx >> 1;
                 *--up = x;
                 x = nx & 1;
@@ -29047,16 +28974,6 @@ size_t __biginteger_from_chars_16_impl(const uint8_t *first, size_t n, uint64_t 
     const size_t hbits = (n - 1) % 16 + 1;
     size_t len = (n - 1) / 16 + 1;
 
-    auto unroll = [conv](uint64_t &x, auto &first) {
-        auto x0 = conv.template from<16>(first[0]);
-        auto x1 = conv.template from<16>(first[1]);
-        auto x2 = conv.template from<16>(first[2]);
-        auto x3 = conv.template from<16>(first[3]);
-
-        x = x << 16 | x0 << 12 | x1 << 8 | x2 << 4 | x3;
-        first += 4;
-    };
-
     uint64_t x = 0;
     up += len;
 
@@ -29072,7 +28989,13 @@ size_t __biginteger_from_chars_16_impl(const uint8_t *first, size_t n, uint64_t 
             x = 0;
 
             for (int i = 0; i < 4; ++i) {
-                unroll(x, first);
+                auto x0 = conv.template from<16>(first[0]);
+                auto x1 = conv.template from<16>(first[1]);
+                auto x2 = conv.template from<16>(first[2]);
+                auto x3 = conv.template from<16>(first[3]);
+
+                x = x << 16 | x0 << 12 | x1 << 8 | x2 << 4 | x3;
+                first += 4;
             }
 
             *--up = x;
@@ -30354,8 +30277,8 @@ void __pow_impl(basic_biginteger<S> *dst, const biginteger_data *num,
 
 /// @private
 struct __powmod_iterator {
-    __powmod_iterator(const uint64_t *ptr, uint32_t size) noexcept
-        : ptr(ptr), cache(ptr[0]), size(size) {}
+    __powmod_iterator(const uint64_t *ptr_, uint32_t size_) noexcept
+        : ptr(ptr_), cache(ptr[0]), size(size_) {}
 
     constexpr void next() noexcept {
         if (++offset == 64) {

@@ -2,6 +2,7 @@
 #define WJR_FORMAT_UTF_8_HPP__
 
 #include <wjr/memory/details.hpp>
+#include <wjr/span.hpp>
 #include <wjr/type_traits.hpp>
 
 #if defined(WJR_X86)
@@ -11,12 +12,15 @@
 namespace wjr::utf8 {
 
 WJR_PURE WJR_INTRINSIC_INLINE bool is_ascii_1(uint8_t *ptr) { return *ptr < 0x80; }
+
 WJR_PURE WJR_INTRINSIC_INLINE bool is_ascii_2(uint8_t *ptr) {
     return read_memory<uint16_t>(ptr) < 0x8080;
 }
+
 WJR_PURE WJR_INTRINSIC_INLINE bool is_ascii_4(uint8_t *ptr) {
     return read_memory<uint32_t>(ptr) < 0x80808080;
 }
+
 WJR_PURE WJR_INTRINSIC_INLINE bool is_ascii_8(uint8_t *ptr) {
     return read_memory<uint64_t>(ptr) < 0x8080808080808080;
 }
@@ -51,6 +55,10 @@ WJR_PURE WJR_INTRINSIC_INLINE bool is_ascii_32(uint8_t *ptr) {
 #else
     return fallback_is_ascii_32(ptr);
 #endif
+}
+
+WJR_PURE WJR_INTRINSIC_INLINE bool is_bom(uint8_t *ptr) {
+    return read_memory<uint32_t>(ptr) == 0xEFBBBF;
 }
 
 } // namespace wjr::utf8

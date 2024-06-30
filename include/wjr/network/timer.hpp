@@ -113,31 +113,6 @@ public:
         return m_wheels[0].m_buckets[m_current & 0xff];
     }
 
-    template <typename Func, WJR_REQUIRES(std::is_invocable_v<Func &&, task_type &>)>
-    WJR_DEPRECATED void run(Func &&func) noexcept {
-        memory_pool<task_type> al;
-
-        auto &bucket = m_wheels[0].m_buckets[m_current & 0xff];
-        for (auto node = bucket.begin(); node != bucket.end();) {
-            node_type &task = *node;
-            auto next = wjr::next(&task);
-            const auto ptr = static_cast<task_type *>(&task);
-
-            func(*ptr);
-
-            destroy_at_using_allocator(ptr, al);
-            al.deallocate(ptr, 1);
-
-            node = next;
-        }
-
-        init(&bucket);
-    }
-
-    WJR_DEPRECATED void run() noexcept {
-        run([](task_type &task) { task(); });
-    }
-
     void next() noexcept {
         ++m_current;
         uint32_t tmp = m_current;

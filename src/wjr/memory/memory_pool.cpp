@@ -25,7 +25,6 @@ char *__default_alloc_template__::object::chunk_alloc(uint8_t idx, int &nobjs) n
     if (bytes_left != 0) {
         WJR_ASSERT(!(bytes_left & 7));
 
-        char *start_free = this->start_free;
         uint8_t __idx = __get_index(bytes_left);
         for (;; --__idx) {
             const auto __size = __get_size(__idx);
@@ -47,7 +46,6 @@ char *__default_alloc_template__::object::chunk_alloc(uint8_t idx, int &nobjs) n
     const size_t bytes_to_get = 2 * total_bytes + __round_up(heap_size >> 3);
 
     start_free = (char *)get_chunk().allocate(bytes_to_get);
-
     WJR_ASSERT(start_free != nullptr);
 
     heap_size += bytes_to_get;

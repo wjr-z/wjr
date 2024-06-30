@@ -618,8 +618,8 @@ void __pow_impl(basic_biginteger<S> *dst, const biginteger_data *num,
 
 /// @private
 struct __powmod_iterator {
-    __powmod_iterator(const uint64_t *ptr, uint32_t size) noexcept
-        : ptr(ptr), cache(ptr[0]), size(size) {}
+    __powmod_iterator(const uint64_t *ptr_, uint32_t size_) noexcept
+        : ptr(ptr_), cache(ptr[0]), size(size_) {}
 
     constexpr void next() noexcept {
         if (++offset == 64) {

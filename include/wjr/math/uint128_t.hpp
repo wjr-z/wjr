@@ -56,7 +56,7 @@ public:
         }
     }
 
-    constexpr uint128_t(uint64_t lo, uint64_t hi) noexcept : lo(lo), hi(hi) {}
+    constexpr uint128_t(uint64_t lo_, uint64_t hi_) noexcept : lo(lo_), hi(hi_) {}
 
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
     constexpr uint128_t(T value) noexcept : lo(value), hi(0) {}
@@ -87,12 +87,9 @@ public:
 
     WJR_CONSTEXPR20 uint128_t &operator*=(uint128_t other) noexcept {
         const auto [__lo, __hi] = other;
-
-        uint128_t tmp;
-        tmp.lo = mul(lo, __lo, tmp.hi);
-        tmp.hi += lo * __hi + hi * __lo;
-
-        (*this) = std::move(tmp);
+        const uint64_t tmp = lo * __hi + hi * __lo;
+        lo = mul(lo, __lo, hi);
+        hi += tmp;
         return *this;
     }
 
@@ -135,6 +132,41 @@ public:
     template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
     friend WJR_CONST WJR_CONSTEXPR20 uint128_t operator*(uint128_t lhs, T rhs) noexcept {
         return lhs *= rhs;
+    }
+
+    template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
+    friend WJR_CONST WJR_CONSTEXPR20 uint128_t operator*(T lhs, uint128_t rhs) noexcept {
+        return rhs *= lhs;
+    }
+
+    friend WJR_CONST WJR_CONSTEXPR20 bool operator<(uint128_t lhs,
+                                                    uint128_t rhs) noexcept {
+        return __less_128(lhs.lo, lhs.hi, rhs.lo, rhs.hi);
+    }
+
+    friend WJR_CONST WJR_CONSTEXPR20 bool operator>(uint128_t lhs,
+                                                    uint128_t rhs) noexcept {
+        return rhs < lhs;
+    }
+
+    friend WJR_CONST WJR_CONSTEXPR20 bool operator<=(uint128_t lhs,
+                                                     uint128_t rhs) noexcept {
+        return __less_equal_128(lhs.lo, lhs.hi, rhs.lo, rhs.hi);
+    }
+
+    friend WJR_CONST WJR_CONSTEXPR20 bool operator>=(uint128_t lhs,
+                                                     uint128_t rhs) noexcept {
+        return rhs <= lhs;
+    }
+
+    friend WJR_CONST WJR_CONSTEXPR20 bool operator==(uint128_t lhs,
+                                                     uint128_t rhs) noexcept {
+        return lhs.lo == rhs.lo && lhs.hi == rhs.hi;
+    }
+
+    friend WJR_CONST WJR_CONSTEXPR20 bool operator!=(uint128_t lhs,
+                                                     uint128_t rhs) noexcept {
+        return !(lhs == rhs);
     }
 
     uint64_t lo;

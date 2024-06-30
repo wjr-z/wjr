@@ -389,7 +389,7 @@ struct is_convertible_to : std::conjunction<std::is_convertible<From, To>,
 template <typename From, typename To>
 inline constexpr bool is_convertible_to_v = is_convertible_to<From, To>::value;
 
-// TODO : move __is_in_i32_range to other header.
+/** @todo : move __is_in_i32_range to other header. */
 WJR_CONST WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
     return value >= (int32_t)in_place_min && value <= (int32_t)in_place_max;
 }

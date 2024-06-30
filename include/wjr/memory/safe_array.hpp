@@ -11,7 +11,7 @@ namespace wjr {
 
 #if WJR_HAS_DEBUG(SAFE_POINTER)
 
-template <typename T, typename Tag = void>
+template <typename T>
 class safe_array {
 public:
     using element_type = T;
@@ -145,7 +145,7 @@ private:
 
 #else
 
-template <typename T, typename Tag = void>
+template <typename T>
 class safe_array {
 public:
     using element_type = T;
