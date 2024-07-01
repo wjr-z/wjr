@@ -65,23 +65,23 @@ public:
     constexpr uint128_t(T value) noexcept
         : lo(static_cast<T>(value)), hi(static_cast<T>(value >= 0 ? 0 : -1)) {}
 
-    constexpr uint128_t &operator+=(uint128_t other) noexcept {
+    WJR_CONSTEXPR20 uint128_t &operator+=(uint128_t other) noexcept {
         __add_128(lo, hi, lo, hi, other.lo, other.hi);
         return *this;
     }
 
-    friend WJR_CONST constexpr uint128_t operator+(uint128_t lhs,
-                                                   uint128_t rhs) noexcept {
+    friend WJR_CONST WJR_CONSTEXPR20 uint128_t operator+(uint128_t lhs,
+                                                         uint128_t rhs) noexcept {
         return lhs += rhs;
     }
 
-    constexpr uint128_t &operator-=(uint128_t other) noexcept {
+    WJR_CONSTEXPR20 uint128_t &operator-=(uint128_t other) noexcept {
         __sub_128(lo, hi, lo, hi, other.lo, other.hi);
         return *this;
     }
 
-    friend WJR_CONST constexpr uint128_t operator-(uint128_t lhs,
-                                                   uint128_t rhs) noexcept {
+    friend WJR_CONST WJR_CONSTEXPR20 uint128_t operator-(uint128_t lhs,
+                                                         uint128_t rhs) noexcept {
         return lhs -= rhs;
     }
 

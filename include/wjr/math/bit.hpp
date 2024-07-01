@@ -13,7 +13,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR bool has_single_bit(T n) noexcept {
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int countl_zero(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_zero(T x) noexcept {
     if (WJR_UNLIKELY(x == 0)) {
         return std::numeric_limits<T>::digits;
     }
@@ -22,7 +22,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int countl_zero(T x) noexcept {
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int countr_zero(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_zero(T x) noexcept {
     if (WJR_UNLIKELY(x == 0)) {
         return std::numeric_limits<T>::digits;
     }
@@ -31,22 +31,22 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int countr_zero(T x) noexcept {
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int countl_one(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countl_one(T x) noexcept {
     return countl_zero(static_cast<T>(~x));
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int countr_one(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int countr_one(T x) noexcept {
     return countr_zero(static_cast<T>(~x));
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int bit_width(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int bit_width(T x) noexcept {
     return std::numeric_limits<T>::digits - countl_zero(x);
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T bit_ceil(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_ceil(T x) noexcept {
     if (x <= 1) {
         return T(1);
     }
@@ -60,7 +60,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T bit_ceil(T x) noexcept {
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T bit_floor(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T bit_floor(T x) noexcept {
     if (x != 0) {
         return T{1} << (bit_width(x) - 1);
     }

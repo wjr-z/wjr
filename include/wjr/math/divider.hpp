@@ -89,7 +89,7 @@ public:
         return basic_divide(divisor, value, lo, hi);
     }
 
-    WJR_CONST WJR_CONSTEXPR_E static T reciprocal(T d) noexcept;
+    WJR_CONST WJR_CONSTEXPR20 static T reciprocal(T d) noexcept;
 
 private:
     WJR_INTRINSIC_CONSTEXPR static void fallback_div2by1_adjust(T rax, T div, T &r8,
@@ -164,7 +164,7 @@ protected:
 };
 
 template <typename T>
-WJR_CONST WJR_CONSTEXPR_E T div2by1_divider_noshift<T>::reciprocal(T d) noexcept {
+WJR_CONST WJR_CONSTEXPR20 T div2by1_divider_noshift<T>::reciprocal(T d) noexcept {
     WJR_ASSERT_ASSUME_L2(__has_high_bit(d));
 
     uint64_t d40 = 0, d63 = 0;
@@ -223,7 +223,7 @@ public:
     constexpr explicit div2by1_divider(const Mybase &base) noexcept
         : Mybase(base), m_shift(0) {}
 
-    WJR_INTRINSIC_CONSTEXPR_E explicit div2by1_divider(T divisor) noexcept {
+    WJR_INTRINSIC_CONSTEXPR20 explicit div2by1_divider(T divisor) noexcept {
         m_divisor = divisor;
         initialize();
     }
@@ -244,7 +244,7 @@ public:
 
 private:
     // make sure m_shift/one_single_bit(divisor) can be inlined
-    WJR_INTRINSIC_CONSTEXPR_E void initialize() noexcept {
+    WJR_INTRINSIC_CONSTEXPR20 void initialize() noexcept {
         if (WJR_UNLIKELY(!__has_high_bit(m_divisor))) {
             m_shift = clz(m_divisor);
             m_divisor <<= m_shift;
@@ -277,7 +277,7 @@ public:
     div3by2_divider_noshift &operator=(const div3by2_divider_noshift &) = default;
     ~div3by2_divider_noshift() = default;
 
-    WJR_INTRINSIC_CONSTEXPR_E div3by2_divider_noshift(T d0, T d1) noexcept
+    WJR_INTRINSIC_CONSTEXPR20 div3by2_divider_noshift(T d0, T d1) noexcept
         : m_divisor0(d0), m_divisor1(d1) {
         m_value = reciprocal(d0, d1);
     }
@@ -296,7 +296,7 @@ public:
     WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 static T
     divide(T divisor0, T divisor1, T value, T u0, T &u1, T &u2) noexcept;
 
-    WJR_CONST WJR_CONSTEXPR_E static T reciprocal(T d0, T d1) noexcept;
+    WJR_CONST WJR_CONSTEXPR20 static T reciprocal(T d0, T d1) noexcept;
 
 protected:
     T m_divisor0 = 0;
@@ -339,7 +339,7 @@ WJR_INTRINSIC_CONSTEXPR20 T div3by2_divider_noshift<T>::divide(T divisor0, T div
 }
 
 template <typename T>
-WJR_CONST WJR_CONSTEXPR_E T div3by2_divider_noshift<T>::reciprocal(T d0, T d1) noexcept {
+WJR_CONST WJR_CONSTEXPR20 T div3by2_divider_noshift<T>::reciprocal(T d0, T d1) noexcept {
     WJR_ASSERT_ASSUME_L2(__has_high_bit(d1));
 
     T v = div2by1_divider<T>::reciprocal(d1);
@@ -386,7 +386,7 @@ public:
     constexpr explicit div3by2_divider(const Mybase &base) noexcept
         : Mybase(base), m_shift(0) {}
 
-    WJR_INTRINSIC_CONSTEXPR_E div3by2_divider(T d0, T d1) noexcept {
+    WJR_INTRINSIC_CONSTEXPR20 div3by2_divider(T d0, T d1) noexcept {
         m_divisor0 = d0;
         m_divisor1 = d1;
         initialize();
@@ -406,7 +406,7 @@ public:
     }
 
 private:
-    WJR_INTRINSIC_CONSTEXPR_E void initialize() noexcept {
+    WJR_INTRINSIC_CONSTEXPR20 void initialize() noexcept {
         if (WJR_UNLIKELY(!__has_high_bit(m_divisor1))) {
             m_shift = clz(m_divisor1);
             m_divisor1 = shld(m_divisor1, m_divisor0, m_shift);
@@ -438,7 +438,7 @@ public:
     divexact1_divider &operator=(const divexact1_divider &) = default;
     ~divexact1_divider() = default;
 
-    WJR_INTRINSIC_CONSTEXPR_E explicit divexact1_divider(T divisor) noexcept
+    WJR_INTRINSIC_CONSTEXPR20 explicit divexact1_divider(T divisor) noexcept
         : m_divisor(divisor) {
         initialize();
     }
@@ -461,7 +461,7 @@ public:
     }
 
 private:
-    WJR_INTRINSIC_CONSTEXPR_E void initialize() noexcept {
+    WJR_INTRINSIC_CONSTEXPR20 void initialize() noexcept {
         if (WJR_UNLIKELY(!(m_divisor & 1))) {
             m_shift = ctz(m_divisor);
             m_divisor >>= m_shift;

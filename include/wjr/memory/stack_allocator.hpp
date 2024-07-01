@@ -169,7 +169,7 @@ public:
 private:
     alloc_node m_cache = {nullptr, nullptr};
     uint16_t m_idx = in_place_max;
-    alignas(32) uint16_t m_size = 0;
+    uint16_t m_size = 0;
     uint16_t m_capacity = 0;
     alloc_node *m_ptr = nullptr;
 };

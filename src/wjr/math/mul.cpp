@@ -2197,6 +2197,24 @@ toom_eval_opposite_2_exp(toom_eval_opposite_exp_args_k3 &args) noexcept {
     return abs_subc_n(t1p, t1p, stk, len, cf1, cft1, cfstk) < 0;
 }
 
+WJR_NODISCARD bool
+toom_eval_opposite_half_exp(toom_eval_opposite_exp_args_k3 &args) noexcept {
+    const auto [t0p, t1p, stk, wp, len, rest, exp] = args.input;
+    auto &[cf0, cf1] = args.cf;
+    WJR_ASSERT(exp * 2 <= 60);
+
+    uint64_t cft1;
+
+    // deal with odd position
+    WJR_ADDLSH_NS(t1p, wp + len * 2, rest, wp, len, 0, 0, exp * 2, cft1);
+
+    // deal with even position
+    uint64_t cfstk = lshift_n(stk, wp + len, len, exp);
+
+    cf0 = cft1 + cfstk + addc_n(t0p, t1p, stk, len);
+    return abs_subc_n(t1p, t1p, stk, len, cf1, cft1, cfstk) < 0;
+}
+
 WJR_NODISCARD bool toom_eval_opposite_2_exp(toom_eval_opposite_exp_args &args) noexcept {
     const auto [t0p, t1p, stk, wp, len, rest, k, exp] = args.input;
     auto &[cf0, cf1] = args.cf;
@@ -2224,24 +2242,6 @@ WJR_NODISCARD bool toom_eval_opposite_2_exp(toom_eval_opposite_exp_args &args) n
         WJR_ADDLSH_S(stk, stk, len, wp + len * (k - 1), rest, cfstk, 0, exp * (k - 1),
                      cfstk);
     }
-
-    cf0 = cft1 + cfstk + addc_n(t0p, t1p, stk, len);
-    return abs_subc_n(t1p, t1p, stk, len, cf1, cft1, cfstk) < 0;
-}
-
-WJR_NODISCARD bool
-toom_eval_opposite_half_exp(toom_eval_opposite_exp_args_k3 &args) noexcept {
-    const auto [t0p, t1p, stk, wp, len, rest, exp] = args.input;
-    auto &[cf0, cf1] = args.cf;
-    WJR_ASSERT(exp * 2 <= 60);
-
-    uint64_t cft1;
-
-    // deal with odd position
-    WJR_ADDLSH_NS(t1p, wp + len * 2, rest, wp, len, 0, 0, exp * 2, cft1);
-
-    // deal with even position
-    uint64_t cfstk = lshift_n(stk, wp + len, len, exp);
 
     cf0 = cft1 + cfstk + addc_n(t0p, t1p, stk, len);
     return abs_subc_n(t1p, t1p, stk, len, cf1, cft1, cfstk) < 0;

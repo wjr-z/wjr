@@ -18,7 +18,7 @@
 
 namespace wjr {
 
-// pack divider structs to prevent compilers from padding.
+// pack div1by1_divider structs to prevent compilers from padding.
 // This reduces memory usage by up to 43% when using a large
 // array of libdivide dividers and improves performance
 // by up to 10% because of reduced memory bandwidth.
@@ -121,7 +121,7 @@ WJR_CONST WJR_INTRINSIC_INLINE libdivide_uint_t<T, false>
 libdivide_internal_uint_gen(T d) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
-    WJR_ASSERT(d != 0, "divider must be != 0");
+    WJR_ASSERT(d != 0, "div1by1_divider must be != 0");
 
     libdivide_uint_t<T, false> result;
     uint8_t floor_log_2_d = static_cast<uint8_t>(nd - 1 - clz<T>(d));
@@ -129,7 +129,7 @@ libdivide_internal_uint_gen(T d) noexcept {
     // Power of 2
     if (is_zero_or_single_bit(d)) {
         // We need to subtract 1 from the shift value in case of an unsigned
-        // branchfree divider because there is a hardcoded right shift by 1
+        // branchfree div1by1_divider because there is a hardcoded right shift by 1
         // in its division algorithm. Because of this we also need to add back
         // 1 in its recovery algorithm.
         result.magic = 0;
@@ -193,7 +193,7 @@ libdivide_uint_gen(T d) noexcept {
     if constexpr (!branchfree) {
         return libdivide_internal_uint_gen<T, false>(d);
     } else {
-        WJR_ASSERT(d != 1, "divider must be != 1");
+        WJR_ASSERT(d != 1, "div1by1_divider must be != 1");
         const auto tmp = libdivide_internal_uint_gen<T, true>(d);
         libdivide_uint_t<T, true> ret = {
             tmp.magic, (uint8_t)(tmp.more & libdivide_shift_mask<T>::value)};
@@ -241,11 +241,11 @@ libdivide_uint_do(T d, const libdivide_uint_t<T, branchfree> &denom) noexcept {
 
 /////////// C++ stuff
 
-// This is the main divider class for use by the user (C++ API).
+// This is the main div1by1_divider class for use by the user (C++ API).
 // The actual division algorithm is selected using the dispatcher struct
 // based on the integer width and algorithm template parameters.
 template <typename T, bool branchfree = false>
-class divider {
+class div1by1_divider {
 private:
     using dispatcher_t = libdivide_uint_t<T, branchfree>;
 
@@ -253,24 +253,26 @@ public:
     // We leave the default constructor empty so that creating
     // an array of dividers and then initializing them
     // later doesn't slow us down.
-    constexpr divider() = default;
-    constexpr divider(const divider &) = default;
-    constexpr divider(divider &&) = default;
-    constexpr divider &operator=(const divider &) = default;
-    constexpr divider &operator=(divider &&) = default;
-    ~divider() = default;
+    constexpr div1by1_divider() = default;
+    constexpr div1by1_divider(const div1by1_divider &) = default;
+    constexpr div1by1_divider(div1by1_divider &&) = default;
+    constexpr div1by1_divider &operator=(const div1by1_divider &) = default;
+    constexpr div1by1_divider &operator=(div1by1_divider &&) = default;
+    ~div1by1_divider() = default;
 
     // Constructor that takes the divisor as a parameter
-    WJR_INTRINSIC_INLINE divider(T d) { div = libdivide_uint_gen<T, branchfree>(d); }
+    WJR_INTRINSIC_INLINE div1by1_divider(T d) {
+        div = libdivide_uint_gen<T, branchfree>(d);
+    }
 
     // Divides n by the divisor
     WJR_INTRINSIC_INLINE T divide(T n) const { return libdivide_uint_do(n, div); }
 
-    WJR_CONST bool operator==(const divider<T, branchfree> &other) const {
+    WJR_CONST bool operator==(const div1by1_divider<T, branchfree> &other) const {
         return div.denom.magic == other.denom.magic && div.denom.more == other.denom.more;
     }
 
-    WJR_CONST bool operator!=(const divider<T, branchfree> &other) const {
+    WJR_CONST bool operator!=(const div1by1_divider<T, branchfree> &other) const {
         return !(*this == other);
     }
 
@@ -281,19 +283,19 @@ private:
 
 // Overload of operator / for scalar division
 template <typename T, bool branchfree>
-WJR_INTRINSIC_INLINE T operator/(T n, const divider<T, branchfree> &div) {
+WJR_INTRINSIC_INLINE T operator/(T n, const div1by1_divider<T, branchfree> &div) {
     return div.divide(n);
 }
 
 // Overload of operator /= for scalar division
 template <typename T, bool branchfree>
-WJR_INTRINSIC_INLINE T &operator/=(T &n, const divider<T, branchfree> &div) {
+WJR_INTRINSIC_INLINE T &operator/=(T &n, const div1by1_divider<T, branchfree> &div) {
     n = div.divide(n);
     return n;
 }
 
 template <typename T>
-using branchfree_divider = divider<T, true>;
+using branchfree_divider = div1by1_divider<T, true>;
 
 } // namespace wjr
 

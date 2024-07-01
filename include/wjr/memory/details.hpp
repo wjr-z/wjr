@@ -104,7 +104,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T fallback_byteswap(T x) noexcept {
 #if WJR_HAS_BUILTIN(BYTESWAP)
 
 template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T builtin_byteswap(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T builtin_byteswap(T x) noexcept {
     constexpr auto digits = std::numeric_limits<T>::digits;
     auto val = static_cast<uint_t<digits>>(x);
     if constexpr (digits == 8) {
@@ -123,7 +123,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T builtin_byteswap(T x) noexcept {
 #endif
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T byteswap(T x, endian to = endian::little) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T byteswap(T x, endian to = endian::little) noexcept {
     if (to == endian::native) {
         return x;
     }

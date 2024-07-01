@@ -213,10 +213,8 @@ public:
     template <typename PairLike,
               WJR_REQUIRES(
                   __is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&>)>
-    constexpr explicit(!__is_all_convertible<decltype(std::get<0>(std::forward<PairLike>(
-                                                 std::declval<PairLike>()))),
-                                             decltype(std::get<1>(std::forward<PairLike>(
-                                                 std::declval<PairLike>())))>::value)
+    constexpr explicit(
+        !__is_tuple_test_v<std::is_convertible, compressed_pair, PairLike &&>)
         compressed_pair(PairLike &&pr) noexcept(
             std::conjunction_v<std::is_nothrow_constructible<
                                    T, decltype(std::get<0>(std::forward<PairLike>(pr)))>,
@@ -225,13 +223,11 @@ public:
         : Mybase1(std::get<0>(std::forward<PairLike>(pr))),
           Mybase2(std::get<1>(std::forward<PairLike>(pr))) {}
 #else
-    template <typename PairLike,
-              WJR_REQUIRES(
-                  __is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&>
-                      &&__is_all_convertible<decltype(std::get<0>(std::forward<PairLike>(
-                                                 std::declval<PairLike>()))),
-                                             decltype(std::get<1>(std::forward<PairLike>(
-                                                 std::declval<PairLike>())))>::value)>
+    template <
+        typename PairLike,
+        WJR_REQUIRES(
+            __is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&>
+                &&__is_tuple_test_v<std::is_convertible, compressed_pair, PairLike &&>)>
     constexpr compressed_pair(PairLike &&pr) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<
                                T, decltype(std::get<0>(std::forward<PairLike>(pr)))>,
@@ -244,10 +240,7 @@ public:
         typename PairLike,
         WJR_REQUIRES(
             __is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&> &&
-            !__is_all_convertible<
-                decltype(std::get<0>(std::forward<PairLike>(std::declval<PairLike>()))),
-                decltype(std::get<1>(
-                    std::forward<PairLike>(std::declval<PairLike>())))>::value)>
+            !__is_tuple_test_v<std::is_convertible, compressed_pair, PairLike &&>)>
     constexpr explicit compressed_pair(PairLike &&pr) noexcept(
         std::conjunction_v<std::is_nothrow_constructible<
                                T, decltype(std::get<0>(std::forward<PairLike>(pr)))>,

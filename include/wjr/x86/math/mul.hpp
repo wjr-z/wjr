@@ -23,26 +23,6 @@ WJR_INTRINSIC_INLINE uint64_t builtin_mul64(uint64_t a, uint64_t b,
 
 #endif
 
-#if WJR_HAS_BUILTIN(MULX_U64)
-
-template <typename T>
-WJR_INTRINSIC_INLINE T mulx(T a, T b, T &hi) noexcept {
-    static_assert(sizeof(T) == 8, "");
-
-#if defined(WJR_COMPILER_GCC)
-    T lo;
-    asm("mulx{q %3, %0, %1| %1, %0, %3}" : "=r"(lo), "=r"(hi) : "%d"(a), "r"(b));
-    return lo;
-#else
-    unsigned long long hi_;
-    unsigned long long lo = _mulx_u64(a, b, &hi_);
-    hi = hi_;
-    return lo;
-#endif
-}
-
-#endif
-
 #if WJR_HAS_BUILTIN(ASM_MUL_1)
 
 inline uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n,

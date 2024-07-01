@@ -182,7 +182,11 @@
 #define WJR_BUILTIN_CONSTANT_P(expr) false
 #endif
 
+#if WJR_HAS_BUILTIN(__builtin_constant_p)
 #define WJR_BUILTIN_CONSTANT_P_TRUE(expr) (WJR_BUILTIN_CONSTANT_P(expr) && (expr))
+#else
+#define WJR_BUILTIN_CONSTANT_P_TRUE(expr) false
+#endif
 
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_COMPILER_BARRIER() asm volatile("" ::: "memory")
@@ -234,19 +238,11 @@
 #define WJR_CONSTEXPR20
 #endif
 
-#if WJR_HAS_FEATURE(IS_CONSTANT_EVALUATED)
-#define WJR_CONSTEXPR_E constexpr
-#else
-#define WJR_CONSTEXPR_E
-#endif
-
 #define WJR_INTRINSIC_CONSTEXPR WJR_INTRINSIC_INLINE constexpr
 #define WJR_INTRINSIC_CONSTEXPR20 WJR_INTRINSIC_INLINE WJR_CONSTEXPR20
-#define WJR_INTRINSIC_CONSTEXPR_E WJR_INTRINSIC_INLINE WJR_CONSTEXPR_E
 
 #define WJR_INLINE_CONSTEXPR inline constexpr
 #define WJR_INLINE_CONSTEXPR20 inline WJR_CONSTEXPR20
-#define WJR_INLINE_CONSTEXPR_E inline WJR_CONSTEXPR_E
 
 #define WJR_ATTRIBUTE(attribute) WJR_ATTRIBUTE_I(attribute)
 #define WJR_ATTRIBUTE_I(attribute) WJR_##attribute

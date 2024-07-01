@@ -95,17 +95,45 @@ template <typename T>
 inline constexpr bool is_compressed_v = is_compressed<T>::value;
 
 /// @private
+template <typename LP, typename RP, typename = void>
+struct __is_tuple_like_impl : std::false_type {};
+
+/// @private
+template <typename LP, typename RP>
+struct __is_tuple_like_impl<
+    LP, RP,
+    std::enable_if_t<!std::is_same_v<LP, RP> &&
+                     std::tuple_size_v<LP> == tp_defer_t<std::tuple_size, RP>::value>>
+    : std::true_type {};
+
+/**
+ * @brief Use template<...>typename like to like all element of LP and RP.
+ *
+ * @details For example, like is std::is_assignable, LP is std::tuple<T0, U0>, RP is
+ * std::tuple<T1, U1>. \n
+ * Then __is_tuple_like = std::conjunction<std::is_assignable<T0,
+ * T1>, std::is_assignable<U0, U1>>.
+ *
+ */
+template <typename LP, typename RP>
+struct __is_tuple_like : __is_tuple_like_impl<LP, remove_cvref_t<RP>> {};
+
+/**
+ * @brief Value of @ref __is_tuple_like.
+ *
+ */
+template <typename LP, typename RP>
+inline constexpr bool __is_tuple_like_v = __is_tuple_like<LP, RP>::value;
+
+/// @private
 template <template <typename...> typename Test, typename Seq, typename LP, typename RP,
           typename = void>
 struct __is_tuple_test_impl : std::false_type {};
 
 /// @private
 template <template <typename...> typename Test, size_t... Idxs, typename LP, typename RP>
-struct __is_tuple_test_impl<
-    Test, std::index_sequence<Idxs...>, LP, RP,
-    std::enable_if_t<!std::is_same_v<LP, remove_cvref_t<RP>> &&
-                     std::tuple_size_v<LP> ==
-                         tp_defer_t<std::tuple_size, remove_cvref_t<RP>>::value>>
+struct __is_tuple_test_impl<Test, std::index_sequence<Idxs...>, LP, RP,
+                            std::enable_if_t<__is_tuple_like_v<LP, RP>>>
     : std::conjunction<Test<std::tuple_element_t<Idxs, LP>,
                             decltype(std::get<Idxs>(std::declval<RP>()))>...> {};
 

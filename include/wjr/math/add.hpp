@@ -66,7 +66,7 @@ WJR_INTRINSIC_INLINE T builtin_addc(T a, T b, U c_in, U &c_out) noexcept {
  */
 template <typename T, typename U,
           WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T> &&is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 T addc(T a, T b, type_identity_t<U> c_in, U &c_out) noexcept {
     WJR_ASSERT_ASSUME_L2(c_in <= 1);
 
 #if !WJR_HAS_BUILTIN(ADDC) && !WJR_HAS_BUILTIN(ASM_ADDC)
@@ -114,7 +114,7 @@ WJR_INTRINSIC_CONSTEXPR_E T addc(T a, T b, type_identity_t<U> c_in, U &c_out) no
  * @param[out] c_out The carry-out flag.
  */
 template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
-WJR_INTRINSIC_CONSTEXPR_E T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) noexcept {
     WJR_ASSERT_ASSUME_L2(c_in <= 1);
 
 #if WJR_HAS_BUILTIN(ASM_ADDC_CC)
@@ -148,13 +148,13 @@ WJR_INTRINSIC_CONSTEXPR_E T addc_cc(T a, T b, uint8_t c_in, uint8_t &c_out) noex
 #endif
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E bool fallback_add_overflow(T a, T b, T &ret) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 bool fallback_add_overflow(T a, T b, T &ret) noexcept {
     ret = a + b;
     return ret < a;
 }
 
 template <typename T, WJR_REQUIRES_I(is_nonbool_unsigned_integral_v<T>)>
-WJR_INTRINSIC_CONSTEXPR_E bool add_overflow(type_identity_t<T> a, type_identity_t<T> b,
+WJR_INTRINSIC_CONSTEXPR20 bool add_overflow(type_identity_t<T> a, type_identity_t<T> b,
                                             T &ret) noexcept {
 #if WJR_HAS_BUILTIN(ADD_OVERFLOW)
     if (is_constant_evaluated() ||
@@ -169,7 +169,7 @@ WJR_INTRINSIC_CONSTEXPR_E bool add_overflow(type_identity_t<T> a, type_identity_
 }
 
 template <typename U>
-WJR_INTRINSIC_CONSTEXPR_E U __addc_1_impl(uint64_t *dst, const uint64_t *src0, size_t n,
+WJR_INTRINSIC_CONSTEXPR20 U __addc_1_impl(uint64_t *dst, const uint64_t *src0, size_t n,
                                           uint64_t src1, U c_in) noexcept {
     uint8_t overflow = 0;
     dst[0] = addc_cc(src0[0], src1, c_in, overflow);
@@ -208,7 +208,7 @@ WJR_INTRINSIC_CONSTEXPR_E U __addc_1_impl(uint64_t *dst, const uint64_t *src0, s
  * @return The carry-out flag.
  */
 template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR_E U addc_1(uint64_t *dst, const uint64_t *src0, size_t n,
+WJR_INTRINSIC_CONSTEXPR20 U addc_1(uint64_t *dst, const uint64_t *src0, size_t n,
                                    uint64_t src1, U c_in) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
@@ -283,7 +283,7 @@ WJR_INTRINSIC_CONSTEXPR U fallback_addc_n(uint64_t *dst, const uint64_t *src0,
  * @return The carry-out flag.
  */
 template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR_E U addc_n(uint64_t *dst, const uint64_t *src0,
+WJR_INTRINSIC_CONSTEXPR20 U addc_n(uint64_t *dst, const uint64_t *src0,
                                    const uint64_t *src1, size_t n, U c_in) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
@@ -308,7 +308,7 @@ require :
 4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
 */
 template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR_E U addc_s(uint64_t *dst, const uint64_t *src0, size_t n,
+WJR_INTRINSIC_CONSTEXPR20 U addc_s(uint64_t *dst, const uint64_t *src0, size_t n,
                                    const uint64_t *src1, size_t m, U c_in) noexcept {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
@@ -330,7 +330,7 @@ require :
 4. WJR_IS_SAME_OR_INCR_P(dst, m, src1, m)
 */
 template <typename U, WJR_REQUIRES_I(is_unsigned_integral_v<U>)>
-WJR_INTRINSIC_CONSTEXPR_E U addc_sz(uint64_t *dst, const uint64_t *src0, size_t n,
+WJR_INTRINSIC_CONSTEXPR20 U addc_sz(uint64_t *dst, const uint64_t *src0, size_t n,
                                     const uint64_t *src1, size_t m, U c_in) noexcept {
     WJR_ASSERT_ASSUME(n >= m);
 
@@ -373,7 +373,7 @@ WJR_INTRINSIC_INLINE void __builtin_add_128(uint64_t &al, uint64_t &ah, uint64_t
 #endif
 
 // <ah, al> = <hi0, lo0> + <hi1, lo1>
-WJR_INTRINSIC_CONSTEXPR_E void __add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+WJR_INTRINSIC_CONSTEXPR20 void __add_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                          uint64_t hi0, uint64_t lo1,
                                          uint64_t hi1) noexcept {
 #if WJR_HAS_BUILTIN(__BUILTIN_ADD_128) || WJR_HAS_BUILTIN(__ASM_ADD_128)
@@ -389,7 +389,7 @@ WJR_INTRINSIC_CONSTEXPR_E void __add_128(uint64_t &al, uint64_t &ah, uint64_t lo
 #endif
 }
 
-WJR_INTRINSIC_CONSTEXPR_E uint64_t __fallback_addc_128(uint64_t &al, uint64_t &ah,
+WJR_INTRINSIC_CONSTEXPR20 uint64_t __fallback_addc_128(uint64_t &al, uint64_t &ah,
                                                        uint64_t lo0, uint64_t hi0,
                                                        uint64_t lo1, uint64_t hi1,
                                                        uint64_t c_in) noexcept {
@@ -399,7 +399,7 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t __fallback_addc_128(uint64_t &al, uint64_t &a
 }
 
 // return c_out
-WJR_INTRINSIC_CONSTEXPR_E uint64_t __addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+WJR_INTRINSIC_CONSTEXPR20 uint64_t __addc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                               uint64_t hi0, uint64_t lo1, uint64_t hi1,
                                               uint64_t c_in) noexcept {
 #if WJR_HAS_BUILTIN(__ASM_ADDC_128)
@@ -413,7 +413,7 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t __addc_128(uint64_t &al, uint64_t &ah, uint64
 #endif
 }
 
-WJR_INTRINSIC_CONSTEXPR_E uint8_t __addc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
+WJR_INTRINSIC_CONSTEXPR20 uint8_t __addc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                                 uint64_t hi0, uint64_t lo1, uint64_t hi1,
                                                 uint8_t c_in) noexcept {
 #if WJR_HAS_BUILTIN(__ASM_ADDC_CC_128)

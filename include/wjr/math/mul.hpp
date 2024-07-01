@@ -29,7 +29,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_mul(T a, T b, T &hi) noexcept {
     return static_cast<T>(x);
 }
 
-WJR_INTRINSIC_CONSTEXPR_E uint64_t fallback_mul64(uint64_t a, uint64_t b,
+WJR_INTRINSIC_CONSTEXPR20 uint64_t fallback_mul64(uint64_t a, uint64_t b,
                                                   uint64_t &hi) noexcept {
     uint64_t ah = a >> 32;
     uint64_t al = a & 0xFFFFFFFF;
@@ -49,7 +49,7 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t fallback_mul64(uint64_t a, uint64_t b,
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_INTRINSIC_CONSTEXPR_E T mul(T a, T b, T &hi) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 T mul(T a, T b, T &hi) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
     if (WJR_BUILTIN_CONSTANT_P_TRUE(a == 0) || WJR_BUILTIN_CONSTANT_P_TRUE(b == 0)) {
@@ -99,7 +99,7 @@ WJR_INTRINSIC_CONSTEXPR_E T mul(T a, T b, T &hi) noexcept {
 #endif
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T mulhi(T a, T b) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T mulhi(T a, T b) noexcept {
 #if WJR_HAS_BUILTIN(MSVC_MULHI64)
     constexpr auto nd = std::numeric_limits<T>::digits;
     if constexpr (nd < 64) {
@@ -124,14 +124,14 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T mullo(T a, T b) noexcept {
 #endif
 
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E bool fallback_mul_overflow(T a, T b, T &ret) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 bool fallback_mul_overflow(T a, T b, T &ret) noexcept {
     T hi;
     ret = mul(a, b, hi);
     return hi != 0;
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_INTRINSIC_CONSTEXPR_E bool mul_overflow(type_identity_t<T> a, type_identity_t<T> b,
+WJR_INTRINSIC_CONSTEXPR20 bool mul_overflow(type_identity_t<T> a, type_identity_t<T> b,
                                             T &ret) noexcept {
 #if WJR_HAS_BUILTIN(MUL_OVERFLOW)
     if (is_constant_evaluated() ||
@@ -164,7 +164,7 @@ require :
 1. n >= 1
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
 */
-WJR_INTRINSIC_CONSTEXPR_E uint64_t mul_1(uint64_t *dst, const uint64_t *src, size_t n,
+WJR_INTRINSIC_CONSTEXPR20 uint64_t mul_1(uint64_t *dst, const uint64_t *src, size_t n,
                                          uint64_t ml) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
@@ -199,12 +199,12 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t mul_1(uint64_t *dst, const uint64_t *src, siz
 }
 
 // dst = src0 + (src1 << cl)
-WJR_INTRINSIC_CONSTEXPR_E uint64_t addlsh_n(uint64_t *dst, const uint64_t *src0,
+WJR_INTRINSIC_CONSTEXPR20 uint64_t addlsh_n(uint64_t *dst, const uint64_t *src0,
                                             const uint64_t *src1, size_t n,
                                             uint64_t cl) noexcept;
 
 // dst = (src1 << cl) - src0
-WJR_INTRINSIC_CONSTEXPR_E uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0,
+WJR_INTRINSIC_CONSTEXPR20 uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0,
                                             const uint64_t *src1, size_t n,
                                             uint64_t cl) noexcept;
 
@@ -228,7 +228,7 @@ require :
 1. n >= 1
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
 */
-WJR_INTRINSIC_CONSTEXPR_E uint64_t addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
+WJR_INTRINSIC_CONSTEXPR20 uint64_t addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
                                             uint64_t ml) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
@@ -277,7 +277,7 @@ require :
 1. n >= 1
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
 */
-WJR_INTRINSIC_CONSTEXPR_E uint64_t submul_1(uint64_t *dst, const uint64_t *src, size_t n,
+WJR_INTRINSIC_CONSTEXPR20 uint64_t submul_1(uint64_t *dst, const uint64_t *src, size_t n,
                                             uint64_t ml) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
@@ -328,7 +328,7 @@ require :
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
 3. WJR_IS_SAME_OR_INCR_P(sdt, n, src1, n)
 */
-WJR_INTRINSIC_CONSTEXPR_E uint64_t addlsh_n(uint64_t *dst, const uint64_t *src0,
+WJR_INTRINSIC_CONSTEXPR20 uint64_t addlsh_n(uint64_t *dst, const uint64_t *src0,
                                             const uint64_t *src1, size_t n,
                                             uint64_t cl) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -378,7 +378,7 @@ require :
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
 3. WJR_IS_SAME_OR_INCR_P(sdt, n, src1, n)
 */
-WJR_INTRINSIC_CONSTEXPR_E uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0,
+WJR_INTRINSIC_CONSTEXPR20 uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0,
                                             const uint64_t *src1, size_t n,
                                             uint64_t cl) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -402,7 +402,7 @@ WJR_INTRINSIC_CONSTEXPR_E uint64_t rsblsh_n(uint64_t *dst, const uint64_t *src0,
 }
 
 template <uint64_t maxn = in_place_max>
-WJR_INTRINSIC_CONSTEXPR_E uint64_t try_addmul_1(uint64_t *dst, const uint64_t *src,
+WJR_INTRINSIC_CONSTEXPR20 uint64_t try_addmul_1(uint64_t *dst, const uint64_t *src,
                                                 size_t n, uint64_t ml) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
@@ -542,7 +542,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom22_s_itch(size_t m) noexcept {
     return m * 4 + (m / 2) + 64;
 }
 
-WJR_CONST WJR_INTRINSIC_CONSTEXPR size_t toom22_n_itch(size_t n) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 size_t toom22_n_itch(size_t n) noexcept {
     return n * 2 + bit_width(n);
 }
 

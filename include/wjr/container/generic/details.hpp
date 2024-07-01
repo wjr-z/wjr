@@ -65,7 +65,13 @@ inline constexpr append_fn append{};
 
 #define WJR_HAS_FEATURE_STRING_UNINITIALIZED_RESIZE WJR_HAS_DEF
 
-#if __cpp_lib_string_resize_and_overwrite >= 202110L
+#ifdef __cpp_lib_string_resize_and_overwrite
+#define WJR_STRINF_RESIZE_AND_OVERWRITE __cpp_lib_string_resize_and_overwrite
+#else
+#define WJR_STRINF_RESIZE_AND_OVERWRITE 0
+#endif
+
+#if WJR_STRINF_RESIZE_AND_OVERWRITE >= 202110L
 template <typename CharT, typename Traits, typename Alloc>
 WJR_INTRINSIC_INLINE void
 __uninitialized_resize(std::basic_string<CharT, Traits, Alloc> &str,

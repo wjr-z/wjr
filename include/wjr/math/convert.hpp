@@ -587,7 +587,7 @@ inline int builtin_count_digits10_u64(uint64_t n) noexcept {
 }
 
 template <typename T>
-WJR_CONSTEXPR_E int count_digits10_impl(T n) noexcept {
+WJR_CONSTEXPR20 int count_digits10_impl(T n) noexcept {
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(n)) {
         return fallback_count_digits10(n);
     }
@@ -608,7 +608,7 @@ inline constexpr count_digits_fn<Base> count_digits{};
 template <>
 struct count_digits_fn<2> {
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const noexcept {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n) const noexcept {
         return bit_width(n);
     }
 };
@@ -616,7 +616,7 @@ struct count_digits_fn<2> {
 template <>
 struct count_digits_fn<8> {
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const noexcept {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n) const noexcept {
         return __ceil_div(to_unsigned(bit_width(n)), 3);
     }
 };
@@ -624,7 +624,7 @@ struct count_digits_fn<8> {
 template <>
 struct count_digits_fn<16> {
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const noexcept {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n) const noexcept {
         return __ceil_div(to_unsigned(bit_width(n)), 4);
     }
 };
@@ -632,7 +632,7 @@ struct count_digits_fn<16> {
 template <>
 struct count_digits_fn<1> {
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n, int bits) const noexcept {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n, int bits) const noexcept {
         return (bit_width(n) + bits - 1) / bits;
     }
 };
@@ -640,7 +640,7 @@ struct count_digits_fn<1> {
 template <>
 struct count_digits_fn<10> {
     template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-    WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int operator()(T n) const noexcept {
+    WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int operator()(T n) const noexcept {
         const int ret = count_digits10_impl(n);
         WJR_ASSUME(1 <= ret && ret <= std::numeric_limits<T>::digits10 + 1);
         return ret;
@@ -962,7 +962,6 @@ uint8_t *__fast_to_chars_backward_unchecked_impl(uint8_t *ptr, Value val, IBase 
     }
     default: {
         WJR_UNREACHABLE();
-        return ptr;
     }
     }
 
@@ -1306,7 +1305,6 @@ uint8_t *__fast_to_chars_unchecked_impl(uint8_t *ptr, Value val, IBase ibase,
     }
     default: {
         WJR_UNREACHABLE();
-        return ptr;
     }
     }
 }
@@ -1859,8 +1857,6 @@ uint8_t *basecase_to_chars_10(uint8_t *buf, uint64_t *up, size_t n,
     } while (n);
 
     WJR_UNREACHABLE();
-
-    return buf;
 }
 
 template <typename Converter>

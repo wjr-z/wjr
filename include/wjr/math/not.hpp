@@ -17,7 +17,7 @@ WJR_INTRINSIC_CONSTEXPR void fallback_not_n(T *dst, const T *src, size_t n) noex
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_INTRINSIC_CONSTEXPR_E void not_n(T *dst, const T *src, size_t n) noexcept {
+WJR_INTRINSIC_CONSTEXPR20 void not_n(T *dst, const T *src, size_t n) noexcept {
 #if WJR_HAS_BUILTIN(COMPLEMENT_N)
     if constexpr (sizeof(T) == 8) {
         if (is_constant_evaluated()) {

@@ -134,8 +134,19 @@ class tuple<This, Args...> {
     constexpr static size_t Size = sizeof...(Args) + 1;
 
     template <typename Other, typename... _Args>
-    using __is_all_convertible = std::conjunction<std::is_convertible<Other, This>,
-                                                  std::is_convertible<_Args, Args>...>;
+#if !WJR_HAS_MSVC(19, 37)
+    using __is_all_convertible =
+#else
+    struct __is_all_convertible :
+#endif
+        std::conjunction<std::is_convertible<Other, This>,
+                         std::is_convertible<_Args, Args>...>
+#if !WJR_HAS_MSVC(19, 37)
+        ;
+#else
+    {
+    };
+#endif
 
 public:
 #if defined(__cpp_conditional_explicit)

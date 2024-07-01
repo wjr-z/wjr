@@ -11,7 +11,7 @@ namespace wjr {
 // For example, inc replaces a continuous segment of -1 with 0. And dec replaces a
 // continuous segment of 0 with -1
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E size_t replace_find_not(T *dst, const T *src, size_t n,
+WJR_INTRINSIC_CONSTEXPR20 size_t replace_find_not(T *dst, const T *src, size_t n,
                                                   type_identity_t<T> from,
                                                   type_identity_t<T> to) noexcept {
 
@@ -26,7 +26,7 @@ WJR_INTRINSIC_CONSTEXPR_E size_t replace_find_not(T *dst, const T *src, size_t n
 // find the last position(ret-1) that is not equal to number "from"
 // and replace [ret, n) to number "to"
 template <typename T>
-WJR_INTRINSIC_CONSTEXPR_E size_t
+WJR_INTRINSIC_CONSTEXPR20 size_t
 reverse_replace_find_not(T *dst, const T *src, size_t n, type_identity_t<T> from,
                          type_identity_t<T> to) noexcept {
     size_t ret = reverse_find_not_n(src, from, n);

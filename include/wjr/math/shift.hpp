@@ -17,7 +17,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_shld(T hi, T lo, unsigned int c) noexcept {
 }
 
 template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T shld(T hi, T lo, unsigned int c) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T shld(T hi, T lo, unsigned int c) noexcept {
     return fallback_shld(hi, lo, c);
 }
 
@@ -28,7 +28,7 @@ WJR_INTRINSIC_CONSTEXPR T fallback_shrd(T lo, T hi, unsigned int c) noexcept {
 }
 
 template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E T shrd(T lo, T hi, unsigned int c) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T shrd(T lo, T hi, unsigned int c) noexcept {
     return fallback_shrd(lo, hi, c);
 }
 
@@ -50,7 +50,7 @@ require :
 2. WJR_IS_SAME_OR_DECR_P(dst, n, src, n)
 */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR_E T lshift_n(T *dst, const T *src, size_t n,
+WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T lshift_n(T *dst, const T *src, size_t n,
                                                    unsigned int c,
                                                    type_identity_t<T> lo = 0) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
@@ -98,7 +98,7 @@ require :
 2. WJR_IS_SAME_OR_INCR_P(dst, n, src, n)
 */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_INTRINSIC_CONSTEXPR_E T rshift_n(T *dst, const T *src, size_t n, unsigned int c,
+WJR_INTRINSIC_CONSTEXPR20 T rshift_n(T *dst, const T *src, size_t n, unsigned int c,
                                      type_identity_t<T> hi = 0) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));

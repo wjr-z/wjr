@@ -7,7 +7,7 @@
 namespace wjr {
 
 template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int fallback_clz_impl(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_clz(T x) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
 #if !(WJR_HAS_BUILTIN(POPCOUNT) && WJR_HAS_SIMD(POPCNT))
@@ -36,7 +36,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int fallback_clz_impl(T x) noexcept {
     return popcount<T>(~x);
 #else
     if constexpr (nd < 32) {
-        return fallback_clz_impl(static_cast<uint32_t>(x)) - (32 - nd);
+        return fallback_clz(static_cast<uint32_t>(x)) - (32 - nd);
     } else {
         ++x;
 
@@ -51,11 +51,6 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int fallback_clz_impl(T x) noexcept {
 #endif
 }
 
-template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int fallback_clz(T x) noexcept {
-    return fallback_clz_impl(x);
-}
-
 #if WJR_HAS_BUILTIN(__builtin_clz)
 #define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF
 #endif
@@ -63,11 +58,11 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int fallback_clz(T x) noexcept {
 #if WJR_HAS_BUILTIN(CLZ)
 
 template <typename T>
-WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz_impl(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
     if constexpr (nd < 32) {
-        return builtin_clz_impl(static_cast<uint32_t>(x)) - (32 - nd);
+        return builtin_clz(static_cast<uint32_t>(x)) - (32 - nd);
     } else {
         if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
             constexpr auto delta = std::numeric_limits<unsigned int>::digits - nd;
@@ -84,11 +79,6 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz_impl(T x) noexcept {
     }
 }
 
-template <typename T>
-WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
-    return builtin_clz_impl(x);
-}
-
 #endif
 
 #if !WJR_HAS_BUILTIN(CLZ)
@@ -100,11 +90,11 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
 #if WJR_HAS_BUILTIN(MSVC_CLZ)
 
 template <typename T>
-WJR_CONST WJR_INTRINSIC_INLINE int builtin_msvc_clz_impl(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_INLINE int builtin_msvc_clz(T x) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
 
     if constexpr (nd < 32) {
-        return builtin_msvc_clz_impl(static_cast<uint32_t>(x)) - (32 - nd);
+        return builtin_msvc_clz(static_cast<uint32_t>(x)) - (32 - nd);
     } else {
         if constexpr (nd == 32) {
             unsigned long result;
@@ -122,17 +112,12 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_msvc_clz_impl(T x) noexcept {
     }
 }
 
-template <typename T>
-WJR_CONST WJR_INTRINSIC_INLINE int builtin_msvc_clz(T x) noexcept {
-    return builtin_msvc_clz_impl(x);
-}
-
 #endif
 
 #endif
 
 template <typename T>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz_impl(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int clz_impl(T x) noexcept {
 #if WJR_HAS_BUILTIN(CLZ) || WJR_HAS_BUILTIN(MSVC_CLZ)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
         return fallback_clz(x);
@@ -154,7 +139,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz_impl(T x) noexcept {
  * @tparam T Must be an unsigned integral type
  */
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
-WJR_CONST WJR_INTRINSIC_CONSTEXPR_E int clz(T x) noexcept {
+WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int clz(T x) noexcept {
     WJR_ASSERT_ASSUME_L2(x != 0);
     const int ret = clz_impl(x);
     WJR_ASSUME(0 <= ret && ret < std::numeric_limits<T>::digits);

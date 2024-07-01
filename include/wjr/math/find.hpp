@@ -25,7 +25,7 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_find_n(const T *src0, const T *src1,
 }
 
 template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_n_impl(const T *src0, const T *src1,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t find_n_impl(const T *src0, const T *src1,
                                                       size_t n) noexcept {
     if (WJR_BUILTIN_CONSTANT_P_TRUE(src0 == src1)) {
         return 0;
@@ -47,7 +47,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_n_impl(const T *src0, const T *sr
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_n(const T *src0, const T *src1,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t find_n(const T *src0, const T *src1,
                                                  size_t n) noexcept {
     using uT = std::make_unsigned_t<T>;
     return find_n_impl<uT>(reinterpret_cast<const uT *>(src0),
@@ -69,7 +69,7 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_find_n(const T *src, T val, size_t n) no
 }
 
 template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_n_impl(const T *src,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t find_n_impl(const T *src,
                                                       type_identity_t<T> val,
                                                       size_t n) noexcept {
 #if WJR_HAS_BUILTIN(FIND_N)
@@ -88,7 +88,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_n_impl(const T *src,
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_n(const T *src, type_identity_t<T> val,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t find_n(const T *src, type_identity_t<T> val,
                                                  size_t n) noexcept {
     using uT = std::make_unsigned_t<T>;
     return find_n_impl<uT>(reinterpret_cast<const uT *>(src), val, n);
@@ -110,7 +110,7 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_find_not_n(const T *src0, const T *src1,
 }
 
 template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_not_n_impl(const T *src0, const T *src1,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t find_not_n_impl(const T *src0, const T *src1,
                                                           size_t n) noexcept {
     if (WJR_BUILTIN_CONSTANT_P_TRUE(src0 == src1)) {
         return n;
@@ -132,7 +132,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_not_n_impl(const T *src0, const T
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_not_n(const T *src0, const T *src1,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t find_not_n(const T *src0, const T *src1,
                                                      size_t n) noexcept {
     using uT = std::make_unsigned_t<T>;
     return find_not_n_impl<uT>(reinterpret_cast<const uT *>(src0),
@@ -155,7 +155,7 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_find_not_n(const T *src, T val,
 }
 
 template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_not_n_impl(const T *src,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t find_not_n_impl(const T *src,
                                                           type_identity_t<T> val,
                                                           size_t n) noexcept {
 #if WJR_HAS_BUILTIN(FIND_NOT_N)
@@ -174,7 +174,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_not_n_impl(const T *src,
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t find_not_n(const T *src, type_identity_t<T> val,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t find_not_n(const T *src, type_identity_t<T> val,
                                                      size_t n) noexcept {
     using uT = std::make_unsigned_t<T>;
     return find_not_n_impl<uT>(reinterpret_cast<const uT *>(src), val, n);
@@ -198,7 +198,7 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_reverse_find_n(const T *src0, const T *s
 }
 
 template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_n_impl(const T *src0,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t reverse_find_n_impl(const T *src0,
                                                               const T *src1,
                                                               size_t n) noexcept {
     if (WJR_BUILTIN_CONSTANT_P_TRUE(src0 == src1)) {
@@ -221,7 +221,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_n_impl(const T *src0,
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_n(const T *src0, const T *src1,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t reverse_find_n(const T *src0, const T *src1,
                                                          size_t n) noexcept {
     using uT = std::make_unsigned_t<T>;
     return reverse_find_n_impl<uT>(reinterpret_cast<const uT *>(src0),
@@ -245,7 +245,7 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_reverse_find_n(const T *src, T val,
 }
 
 template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_n_impl(const T *src,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t reverse_find_n_impl(const T *src,
                                                               type_identity_t<T> val,
                                                               size_t n) noexcept {
 #if WJR_HAS_BUILTIN(REVERSE_FIND_N)
@@ -264,7 +264,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_n_impl(const T *src,
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_n(const T *src,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t reverse_find_n(const T *src,
                                                          type_identity_t<T> val,
                                                          size_t n) noexcept {
     using uT = std::make_unsigned_t<T>;
@@ -289,7 +289,7 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_reverse_find_not_n(const T *src0, const 
 }
 
 template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n_impl(const T *src0,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t reverse_find_not_n_impl(const T *src0,
                                                                   const T *src1,
                                                                   size_t n) noexcept {
     if (WJR_BUILTIN_CONSTANT_P_TRUE(src0 == src1)) {
@@ -312,7 +312,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n_impl(const T *src0,
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n(const T *src0, const T *src1,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t reverse_find_not_n(const T *src0, const T *src1,
                                                              size_t n) noexcept {
     using uT = std::make_unsigned_t<T>;
     return reverse_find_not_n_impl<uT>(reinterpret_cast<const uT *>(src0),
@@ -336,7 +336,7 @@ WJR_INTRINSIC_CONSTEXPR size_t fallback_reverse_find_not_n(const T *src, T val,
 }
 
 template <typename T>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n_impl(const T *src,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t reverse_find_not_n_impl(const T *src,
                                                                   type_identity_t<T> val,
                                                                   size_t n) noexcept {
 #if WJR_HAS_BUILTIN(REVERSE_FIND_NOT_N)
@@ -355,7 +355,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n_impl(const T *src,
 }
 
 template <typename T, WJR_REQUIRES(is_nonbool_integral_v<T>)>
-WJR_PURE WJR_INTRINSIC_CONSTEXPR_E size_t reverse_find_not_n(const T *src,
+WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t reverse_find_not_n(const T *src,
                                                              type_identity_t<T> val,
                                                              size_t n) noexcept {
     using uT = std::make_unsigned_t<T>;
