@@ -26,7 +26,7 @@ WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(uint64_t *dst, const uint6
         "%[r9] * 4]}\n\t"
         "lea{q (%[r8], %[r9], 1), %[r9]| %[r9], [%[r9] + %[r8]]}\n\t"
         "jmp{q *%[r9]| %[r9]}\n\t"
-
+      
         ".align 8\n\t"
         ".Llookup%=:\n\t"
         ".long .Ll0%=-.Llookup%=\n\t"

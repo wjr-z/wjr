@@ -18,9 +18,14 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 if(MSVC)
-   set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} /O2 /std:c++17 /arch:AVX2 /Wall /std:c11 /Zc:preprocessor /Zc:lambda /EHsc")
+   set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} /std:c++17 /Wall /std:c11 /Zc:preprocessor /Zc:lambda /EHsc")
+
+   if(WJR_X86)
+      list(APPEND ${CMAKE_CXX_FLAGS} " /arch:AVX2")
+   endif()
+
 else()
-   set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -O3 -std=c++17 -march=native -Wall -Wextra")
+   set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -std=c++17 -march=native -Wall -Wextra")
 endif()
 
 set(WJR_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)

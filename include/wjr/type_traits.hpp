@@ -389,9 +389,79 @@ struct is_convertible_to : std::conjunction<std::is_convertible<From, To>,
 template <typename From, typename To>
 inline constexpr bool is_convertible_to_v = is_convertible_to<From, To>::value;
 
-/** @todo : move __is_in_i32_range to other header. */
-WJR_CONST WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
-    return value >= (int32_t)in_place_min && value <= (int32_t)in_place_max;
+template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<Value>)>
+WJR_CONST constexpr std::make_signed_t<Value> to_signed(Value value) noexcept {
+    return static_cast<std::make_signed_t<Value>>(value);
+}
+
+template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<Value>)>
+WJR_CONST constexpr std::make_unsigned_t<Value> to_unsigned(Value value) noexcept {
+    return static_cast<std::make_unsigned_t<Value>>(value);
+}
+
+template <class T, class U>
+WJR_CONST constexpr bool cmp_equal(T t, U u) noexcept {
+    if constexpr (std::is_signed_v<T> == std::is_signed_v<U>) {
+        return t == u;
+    } else if constexpr (std::is_signed_v<T>) {
+        return t >= 0 && to_unsigned(t) == u;
+    } else {
+        return u >= 0 && to_unsigned(u) == t;
+    }
+}
+
+template <class T, class U>
+WJR_CONST constexpr bool cmp_not_equal(T t, U u) noexcept {
+    return !cmp_equal(t, u);
+}
+
+template <class T, class U>
+WJR_CONST constexpr bool cmp_less(T t, U u) noexcept {
+    if constexpr (std::is_signed_v<T> == std::is_signed_v<U>) {
+        return t < u;
+    } else if constexpr (std::is_signed_v<T>) {
+        return t < 0 || to_unsigned(t) < u;
+    } else {
+        return u >= 0 && t < to_unsigned(u);
+    }
+}
+
+template <class T, class U>
+WJR_CONST constexpr bool cmp_greater(T t, U u) noexcept {
+    return cmp_less(u, t);
+}
+
+template <class T, class U>
+WJR_CONST constexpr bool cmp_less_equal(T t, U u) noexcept {
+    return !cmp_less(u, t);
+}
+
+template <class T, class U>
+WJR_CONST constexpr bool cmp_greater_equal(T t, U u) noexcept {
+    return !cmp_less(t, u);
+}
+
+template <typename T, typename U>
+WJR_CONST constexpr bool in_range(U value) noexcept {
+    if constexpr (std::is_signed_v<T> == std::is_signed_v<U>) {
+        if constexpr (std::is_signed_v<T>) {
+            return value >= std::numeric_limits<T>::min() &&
+                   value <= std::numeric_limits<T>::max();
+        } else {
+            return value <= std::numeric_limits<T>::max();
+        }
+    } else if constexpr (std::is_signed_v<T>) {
+        return value <= to_unsigned(std::numeric_limits<T>::max());
+    } else {
+        return value >= 0 && to_unsigned(value) <= std::numeric_limits<T>::max();
+    }
+}
+
+template <typename T, typename U,
+          WJR_REQUIRES(std::is_integral_v<T> &&std::is_integral_v<U>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T fast_cast(U value) noexcept {
+    WJR_ASSERT_ASSUME_L2(in_range<T>(value));
+    return static_cast<T>(value);
 }
 
 #define __WJR_REGISTER_TYPENAMES_EXPAND(x) __WJR_REGISTER_TYPENAMES_EXPAND_I x

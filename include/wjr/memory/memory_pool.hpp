@@ -28,20 +28,20 @@ private:
         malloc_chunk() noexcept { init(&head); }
         ~malloc_chunk() noexcept {
             for (auto iter = head.begin(); iter != head.end();) {
-                auto now = iter++;
+                const auto now = iter++;
                 __list_node *node = &**now;
                 free(node);
             }
         }
 
         WJR_MALLOC void *allocate(size_t n) noexcept {
-            __list_node *ptr = (__list_node *)malloc(n + sizeof(__list_node));
+            const auto ptr = (__list_node *)malloc(n + sizeof(__list_node));
             push_back(&head, ptr);
             return (char *)(ptr) + sizeof(__list_node);
         }
 
         void deallocate(void *ptr) noexcept {
-            auto node = (__list_node *)((char *)(ptr) - sizeof(__list_node));
+            const auto node = (__list_node *)((char *)(ptr) - sizeof(__list_node));
             remove_uninit(node);
             free(node);
         }
@@ -53,7 +53,7 @@ private:
         return (((bytes) + 2048 - 1) & ~(2048 - 1));
     }
 
-    WJR_CONST static constexpr uint8_t __get_index(uint16_t bytes) noexcept {
+    WJR_CONST static constexpr uint8_t __get_index(uint32_t bytes) noexcept {
         if (bytes <= 256) {
             return memory_pool_details::__ctz_table[(bytes - 1) >> 3];
         }
@@ -61,8 +61,8 @@ private:
         return memory_pool_details::__ctz_table[(bytes - 1) >> 9] + 6;
     }
 
-    WJR_CONST static constexpr uint16_t __get_size(uint8_t idx) noexcept {
-        return (uint16_t)(1) << (idx + 3);
+    WJR_CONST static constexpr uint32_t __get_size(uint8_t idx) noexcept {
+        return static_cast<uint32_t>(1) << (idx + 3);
     }
 
     static malloc_chunk &get_chunk() noexcept {
@@ -74,8 +74,8 @@ public:
     struct object {
 
         WJR_INTRINSIC_INLINE allocation_result<void *>
-        __small_allocate(size_t n) noexcept {
-            const size_t idx = __get_index(n);
+        __small_allocate(uint32_t n) noexcept {
+            const uint8_t idx = __get_index(n);
             const size_t size = __get_size(idx);
             obj *volatile *my_free_list = free_list + idx;
             obj *result = *my_free_list;
@@ -87,8 +87,8 @@ public:
             return {refill(idx), size};
         }
 
-        WJR_INTRINSIC_INLINE void __small_deallocate(void *p, size_t n) noexcept {
-            obj *q = (obj *)p;
+        WJR_INTRINSIC_INLINE void __small_deallocate(void *p, uint32_t n) noexcept {
+            const auto q = static_cast<obj *>(p);
             obj *volatile *my_free_list = free_list + __get_index(n);
             q->free_list_link = *my_free_list;
             *my_free_list = q;
@@ -97,7 +97,7 @@ public:
         // n must be > 0
         WJR_INTRINSIC_INLINE allocation_result<void *> allocate(size_t n) noexcept {
             if (WJR_LIKELY(n <= 16384)) {
-                return __small_allocate(n);
+                return __small_allocate(static_cast<uint32_t>(n));
             }
 
             return {malloc(n), n};
@@ -106,7 +106,7 @@ public:
         // p must not be 0
         WJR_INTRINSIC_INLINE void deallocate(void *p, size_t n) noexcept {
             if (WJR_LIKELY(n <= 16384)) {
-                return __small_deallocate(p, n);
+                return __small_deallocate(p, static_cast<uint32_t>(n));
             }
 
             free(p);
@@ -114,7 +114,7 @@ public:
 
         allocation_result<void *> chunk_allocate(size_t n) noexcept {
             if (WJR_LIKELY(n <= 16384)) {
-                return __small_allocate(n);
+                return __small_allocate(static_cast<uint32_t>(n));
             }
 
             return {get_chunk().allocate(n), n};
@@ -123,7 +123,7 @@ public:
         // p must not be 0
         WJR_INTRINSIC_INLINE void chunk_deallocate(void *p, size_t n) noexcept {
             if (WJR_LIKELY(n <= 16384)) {
-                return __small_deallocate(p, n);
+                return __small_deallocate(p, static_cast<uint32_t>(n));
             }
 
             get_chunk().deallocate(p);

@@ -169,8 +169,8 @@ uint64_t builtin_from_chars_unroll_16_fast(__m128i in) noexcept {
     const __m128i t4 = _mm_madd_epi16(t3, from_chars_details::mulp4x<Base>);
 
     const uint64_t val = simd_cast<__m128i_t, uint64_t>(t4);
-    const uint32_t lo = val;
-    const uint32_t hi = val >> 32;
+    const auto lo = static_cast<uint32_t>(val);
+    const auto hi = static_cast<uint32_t>(val >> 32);
 
     return lo * from_chars_details::__base8<Base> + hi;
 }

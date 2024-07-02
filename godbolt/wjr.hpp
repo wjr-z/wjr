@@ -3239,9 +3239,79 @@ struct is_convertible_to : std::conjunction<std::is_convertible<From, To>,
 template <typename From, typename To>
 inline constexpr bool is_convertible_to_v = is_convertible_to<From, To>::value;
 
-/** @todo : move __is_in_i32_range to other header. */
-WJR_CONST WJR_INTRINSIC_CONSTEXPR bool __is_in_i32_range(int64_t value) noexcept {
-    return value >= (int32_t)in_place_min && value <= (int32_t)in_place_max;
+template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<Value>)>
+WJR_CONST constexpr std::make_signed_t<Value> to_signed(Value value) noexcept {
+    return static_cast<std::make_signed_t<Value>>(value);
+}
+
+template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<Value>)>
+WJR_CONST constexpr std::make_unsigned_t<Value> to_unsigned(Value value) noexcept {
+    return static_cast<std::make_unsigned_t<Value>>(value);
+}
+
+template <class T, class U>
+WJR_CONST constexpr bool cmp_equal(T t, U u) noexcept {
+    if constexpr (std::is_signed_v<T> == std::is_signed_v<U>) {
+        return t == u;
+    } else if constexpr (std::is_signed_v<T>) {
+        return t >= 0 && to_unsigned(t) == u;
+    } else {
+        return u >= 0 && to_unsigned(u) == t;
+    }
+}
+
+template <class T, class U>
+WJR_CONST constexpr bool cmp_not_equal(T t, U u) noexcept {
+    return !cmp_equal(t, u);
+}
+
+template <class T, class U>
+WJR_CONST constexpr bool cmp_less(T t, U u) noexcept {
+    if constexpr (std::is_signed_v<T> == std::is_signed_v<U>) {
+        return t < u;
+    } else if constexpr (std::is_signed_v<T>) {
+        return t < 0 || to_unsigned(t) < u;
+    } else {
+        return u >= 0 && t < to_unsigned(u);
+    }
+}
+
+template <class T, class U>
+WJR_CONST constexpr bool cmp_greater(T t, U u) noexcept {
+    return cmp_less(u, t);
+}
+
+template <class T, class U>
+WJR_CONST constexpr bool cmp_less_equal(T t, U u) noexcept {
+    return !cmp_less(u, t);
+}
+
+template <class T, class U>
+WJR_CONST constexpr bool cmp_greater_equal(T t, U u) noexcept {
+    return !cmp_less(t, u);
+}
+
+template <typename T, typename U>
+WJR_CONST constexpr bool in_range(U value) noexcept {
+    if constexpr (std::is_signed_v<T> == std::is_signed_v<U>) {
+        if constexpr (std::is_signed_v<T>) {
+            return value >= std::numeric_limits<T>::min() &&
+                   value <= std::numeric_limits<T>::max();
+        } else {
+            return value <= std::numeric_limits<T>::max();
+        }
+    } else if constexpr (std::is_signed_v<T>) {
+        return value <= to_unsigned(std::numeric_limits<T>::max());
+    } else {
+        return value >= 0 && to_unsigned(value) <= std::numeric_limits<T>::max();
+    }
+}
+
+template <typename T, typename U,
+          WJR_REQUIRES(std::is_integral_v<T> &&std::is_integral_v<U>)>
+WJR_CONST WJR_INTRINSIC_CONSTEXPR T fast_cast(U value) noexcept {
+    WJR_ASSERT_ASSUME_L2(in_range<T>(value));
+    return static_cast<T>(value);
 }
 
 #define __WJR_REGISTER_TYPENAMES_EXPAND(x) __WJR_REGISTER_TYPENAMES_EXPAND_I x
@@ -6646,16 +6716,6 @@ WJR_CONST constexpr T clear_lowbit(T n) noexcept {
     return n & (n - 1);
 }
 
-template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<Value>)>
-WJR_CONST constexpr decltype(auto) to_signed(Value value) noexcept {
-    return static_cast<std::make_signed_t<Value>>(value);
-}
-
-template <typename Value, WJR_REQUIRES(is_nonbool_integral_v<Value>)>
-WJR_CONST constexpr decltype(auto) to_unsigned(Value value) noexcept {
-    return static_cast<std::make_unsigned_t<Value>>(value);
-}
-
 // preview :
 
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
@@ -7659,20 +7719,20 @@ private:
         malloc_chunk() noexcept { init(&head); }
         ~malloc_chunk() noexcept {
             for (auto iter = head.begin(); iter != head.end();) {
-                auto now = iter++;
+                const auto now = iter++;
                 __list_node *node = &**now;
                 free(node);
             }
         }
 
         WJR_MALLOC void *allocate(size_t n) noexcept {
-            __list_node *ptr = (__list_node *)malloc(n + sizeof(__list_node));
+            const auto ptr = (__list_node *)malloc(n + sizeof(__list_node));
             push_back(&head, ptr);
             return (char *)(ptr) + sizeof(__list_node);
         }
 
         void deallocate(void *ptr) noexcept {
-            auto node = (__list_node *)((char *)(ptr) - sizeof(__list_node));
+            const auto node = (__list_node *)((char *)(ptr) - sizeof(__list_node));
             remove_uninit(node);
             free(node);
         }
@@ -7684,7 +7744,7 @@ private:
         return (((bytes) + 2048 - 1) & ~(2048 - 1));
     }
 
-    WJR_CONST static constexpr uint8_t __get_index(uint16_t bytes) noexcept {
+    WJR_CONST static constexpr uint8_t __get_index(uint32_t bytes) noexcept {
         if (bytes <= 256) {
             return memory_pool_details::__ctz_table[(bytes - 1) >> 3];
         }
@@ -7692,8 +7752,8 @@ private:
         return memory_pool_details::__ctz_table[(bytes - 1) >> 9] + 6;
     }
 
-    WJR_CONST static constexpr uint16_t __get_size(uint8_t idx) noexcept {
-        return (uint16_t)(1) << (idx + 3);
+    WJR_CONST static constexpr uint32_t __get_size(uint8_t idx) noexcept {
+        return static_cast<uint32_t>(1) << (idx + 3);
     }
 
     static malloc_chunk &get_chunk() noexcept {
@@ -7705,8 +7765,8 @@ public:
     struct object {
 
         WJR_INTRINSIC_INLINE allocation_result<void *>
-        __small_allocate(size_t n) noexcept {
-            const size_t idx = __get_index(n);
+        __small_allocate(uint32_t n) noexcept {
+            const uint8_t idx = __get_index(n);
             const size_t size = __get_size(idx);
             obj *volatile *my_free_list = free_list + idx;
             obj *result = *my_free_list;
@@ -7718,8 +7778,8 @@ public:
             return {refill(idx), size};
         }
 
-        WJR_INTRINSIC_INLINE void __small_deallocate(void *p, size_t n) noexcept {
-            obj *q = (obj *)p;
+        WJR_INTRINSIC_INLINE void __small_deallocate(void *p, uint32_t n) noexcept {
+            const auto q = static_cast<obj *>(p);
             obj *volatile *my_free_list = free_list + __get_index(n);
             q->free_list_link = *my_free_list;
             *my_free_list = q;
@@ -7728,7 +7788,7 @@ public:
         // n must be > 0
         WJR_INTRINSIC_INLINE allocation_result<void *> allocate(size_t n) noexcept {
             if (WJR_LIKELY(n <= 16384)) {
-                return __small_allocate(n);
+                return __small_allocate(static_cast<uint32_t>(n));
             }
 
             return {malloc(n), n};
@@ -7737,7 +7797,7 @@ public:
         // p must not be 0
         WJR_INTRINSIC_INLINE void deallocate(void *p, size_t n) noexcept {
             if (WJR_LIKELY(n <= 16384)) {
-                return __small_deallocate(p, n);
+                return __small_deallocate(p, static_cast<uint32_t>(n));
             }
 
             free(p);
@@ -7745,7 +7805,7 @@ public:
 
         allocation_result<void *> chunk_allocate(size_t n) noexcept {
             if (WJR_LIKELY(n <= 16384)) {
-                return __small_allocate(n);
+                return __small_allocate(static_cast<uint32_t>(n));
             }
 
             return {get_chunk().allocate(n), n};
@@ -7754,7 +7814,7 @@ public:
         // p must not be 0
         WJR_INTRINSIC_INLINE void chunk_deallocate(void *p, size_t n) noexcept {
             if (WJR_LIKELY(n <= 16384)) {
-                return __small_deallocate(p, n);
+                return __small_deallocate(p, static_cast<uint32_t>(n));
             }
 
             get_chunk().deallocate(p);
@@ -17587,7 +17647,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in,
                                        U &c_out) noexcept {
 #if !WJR_HAS_BUILTIN(MSVC_ASM_SUBC)
     if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 1)) {
-        if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
+        if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
             asm("stc\n\t"
                 "sbb{q %2, %0| %0, %2}\n\t"
                 "setb %b1"
@@ -17606,7 +17666,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in,
         return a;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
+    if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
         asm("add{b $255, %b1| %b1, 255}\n\t"
             "sbb{q %2, %0| %0, %2}\n\t"
             "setb %b1"
@@ -17625,7 +17685,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in,
     return a;
 #else
     uint64_t ret;
-    c_out = _subborrow_u64(c_in, a, b, &ret);
+    c_out = fast_cast<U>(_subborrow_u64(fast_cast<unsigned char>(c_in), a, b, &ret));
     return ret;
 #endif
 }
@@ -17637,7 +17697,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in,
 WJR_INTRINSIC_INLINE uint64_t asm_subc_cc(uint64_t a, uint64_t b, uint8_t c_in,
                                           uint8_t &c_out) noexcept {
     if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 1)) {
-        if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
+        if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
             asm("stc\n\t"
                 "sbb{q %2, %0| %0, %2}\n\t" WJR_ASM_CCSET(c)
                 : "=r"(a), WJR_ASM_CCOUT(c)(c_out)
@@ -17653,7 +17713,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc_cc(uint64_t a, uint64_t b, uint8_t c_in,
         return a;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
+    if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
         asm("add{b $255, %b1| %b1, 255}\n\t"
             "sbb{q %3, %0| %0, %3}\n\t" WJR_ASM_CCSET(c)
             : "=r"(a), "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
@@ -18166,7 +18226,7 @@ WJR_INTRINSIC_CONSTEXPR20 U __subc_1_impl(uint64_t *dst, const uint64_t *src0, s
     dst[0] = subc_cc(src0[0], src1, c_in, overflow);
 
     if (overflow) {
-        size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, 0, -1);
+        size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, 0, in_place_max);
 
         if (WJR_UNLIKELY(idx == n)) {
             return static_cast<U>(1);
@@ -18604,7 +18664,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t __fallback_subc_128(uint64_t &al, uint64_t &a
 WJR_INTRINSIC_CONSTEXPR20 uint64_t __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                               uint64_t hi0, uint64_t lo1, uint64_t hi1,
                                               uint64_t c_in) noexcept {
-#if WJR_HAS_BUILTIN(__ASM_ADDC_128)
+#if WJR_HAS_BUILTIN(__ASM_SUBC_128)
     if (is_constant_evaluated()) {
         return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
     }
@@ -18618,14 +18678,14 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t __subc_128(uint64_t &al, uint64_t &ah, uint64
 WJR_INTRINSIC_CONSTEXPR20 uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                                 uint64_t hi0, uint64_t lo1, uint64_t hi1,
                                                 uint8_t c_in) noexcept {
-#if WJR_HAS_BUILTIN(__ASM_ADDC_CC_128)
+#if WJR_HAS_BUILTIN(__ASM_SUBC_CC_128)
     if (is_constant_evaluated()) {
         return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
     }
 
     return __asm_subc_cc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
 #else
-    return __subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+    return fast_cast<uint8_t>(__subc_128(al, ah, lo0, hi0, lo1, hi1, c_in));
 #endif
 }
 
@@ -19468,7 +19528,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in,
                                        U &c_out) noexcept {
 #if !WJR_HAS_BUILTIN(MSVC_ASM_ADDC)
     if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 1)) {
-        if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
+        if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
             asm("stc\n\t"
                 "adc{q %2, %0| %0, %2}\n\t"
                 "setb %b1"
@@ -19488,7 +19548,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in,
     }
 
     if (WJR_BUILTIN_CONSTANT_P(a)) {
-        if (__is_in_i32_range(a)) {
+        if (in_range<int32_t>(a)) {
             asm("add{b $255, %b1| %b1, 255}\n\t"
                 "adc{q %2, %0| %0, %2}\n\t"
                 "setb %b1"
@@ -19507,7 +19567,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in,
         return b;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
+    if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
         asm("add{b $255, %b1| %b1, 255}\n\t"
             "adc{q %2, %0| %0, %2}\n\t"
             "setb %b1"
@@ -19526,7 +19586,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in,
     return a;
 #else
     uint64_t ret;
-    c_out = _addcarry_u64(c_in, a, b, &ret);
+    c_out = fast_cast<U>(_addcarry_u64(fast_cast<unsigned char>(c_in), a, b, &ret));
     return ret;
 #endif
 }
@@ -19548,7 +19608,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in,
 WJR_INTRINSIC_INLINE uint64_t asm_addc_cc(uint64_t a, uint64_t b, uint8_t c_in,
                                           uint8_t &c_out) noexcept {
     if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 1)) {
-        if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
+        if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
             asm("stc\n\t"
                 "adc{q %2, %0| %0, %2}\n\t" WJR_ASM_CCSET(c)
                 : "=r"(a), WJR_ASM_CCOUT(c)(c_out)
@@ -19565,7 +19625,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc_cc(uint64_t a, uint64_t b, uint8_t c_in,
     }
 
     if (WJR_BUILTIN_CONSTANT_P(a)) {
-        if (__is_in_i32_range(a)) {
+        if (in_range<int32_t>(a)) {
             asm("add{b $255, %b1| %b1, 255}\n\t"
                 "adc{q %3, %0| %0, %3}\n\t" WJR_ASM_CCSET(c)
                 : "=r"(b), "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
@@ -19581,7 +19641,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc_cc(uint64_t a, uint64_t b, uint8_t c_in,
         return b;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
+    if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
         asm("add{b $255, %b1| %b1, 255}\n\t"
             "adc{q %3, %0| %0, %3}\n\t" WJR_ASM_CCSET(c)
             : "=r"(a), "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)
@@ -20179,7 +20239,7 @@ WJR_INTRINSIC_CONSTEXPR20 U __addc_1_impl(uint64_t *dst, const uint64_t *src0, s
     dst[0] = addc_cc(src0[0], src1, c_in, overflow);
 
     if (overflow) {
-        size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, -1, 0);
+        size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, in_place_max, 0);
 
         if (WJR_UNLIKELY(idx == n)) {
             return static_cast<U>(1);
@@ -20427,7 +20487,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint8_t __addc_cc_128(uint64_t &al, uint64_t &ah, uint
 
     return __asm_addc_cc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
 #else
-    return __addc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+    return fast_cast<uint8_t>(__addc_128(al, ah, lo0, hi0, lo1, hi1, c_in));
 #endif
 }
 
@@ -22242,7 +22302,7 @@ WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(uint64_t *dst, const uint6
         "%[r9] * 4]}\n\t"
         "lea{q (%[r8], %[r9], 1), %[r9]| %[r9], [%[r9] + %[r8]]}\n\t"
         "jmp{q *%[r9]| %[r9]}\n\t"
-
+      
         ".align 8\n\t"
         ".Llookup%=:\n\t"
         ".long .Ll0%=-.Llookup%=\n\t"
@@ -22502,7 +22562,7 @@ WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(uint64_t *dst, const uint6
         "%[r9] * 4]}\n\t"
         "lea{q (%[r8], %[r9], 1), %[r9]| %[r9], [%[r9] + %[r8]]}\n\t"
         "jmp{q *%[r9]| %[r9]}\n\t"
-
+      
         ".align 8\n\t"
         ".Llookup%=:\n\t"
         ".long .Ll0%=-.Llookup%=\n\t"
@@ -23427,8 +23487,7 @@ void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
         c_out = cf * cf;
     }
 
-    constexpr auto m2 = m <= ((uint32_t)in_place_max) ? m * 2 : m;
-
+    constexpr auto m2 = in_range<uint32_t>(m) ? m * 2 : m;
     c_out += try_addmul_1<m2>(dst + n, src, n, 2 * cf);
 }
 
@@ -25826,8 +25885,8 @@ uint64_t builtin_from_chars_unroll_16_fast(__m128i in) noexcept {
     const __m128i t4 = _mm_madd_epi16(t3, from_chars_details::mulp4x<Base>);
 
     const uint64_t val = simd_cast<__m128i_t, uint64_t>(t4);
-    const uint32_t lo = val;
-    const uint32_t hi = val >> 32;
+    const auto lo = static_cast<uint32_t>(val);
+    const auto hi = static_cast<uint32_t>(val >> 32);
 
     return lo * from_chars_details::__base8<Base> + hi;
 }
@@ -26111,7 +26170,7 @@ public:
     template <typename Converter>
     WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint64_t val,
                                                  Converter conv) noexcept {
-        builtin_to_chars_unroll_8_fast<Base>(ptr, val, conv);
+        builtin_to_chars_unroll_8_fast<Base>(ptr, static_cast<uint32_t>(val), conv);
     }
 #endif
 };
@@ -26929,7 +26988,6 @@ to_chars_result<uint8_t *> __fast_to_chars_impl(uint8_t *first, uint8_t *last, V
     }
     default: {
         WJR_UNREACHABLE();
-        return {last, std::errc::invalid_argument};
     }
     }
 
@@ -27068,7 +27126,6 @@ to_chars_result<Iter> __fallback_to_chars_impl(Iter first, Iter last, Value val,
     }
     default: {
         WJR_UNREACHABLE();
-        return {last, std::errc::invalid_argument};
     }
     }
 
@@ -27233,7 +27290,6 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
     }
     default: {
         WJR_UNREACHABLE();
-        return ptr;
     }
     }
 
@@ -28861,7 +28917,6 @@ uint64_t *__biginteger_from_chars_impl(const uint8_t *first, const uint8_t *last
         }
         default: {
             WJR_UNREACHABLE();
-            return up;
         }
         }
     }

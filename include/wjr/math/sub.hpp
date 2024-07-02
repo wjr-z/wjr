@@ -157,7 +157,7 @@ WJR_INTRINSIC_CONSTEXPR20 U __subc_1_impl(uint64_t *dst, const uint64_t *src0, s
     dst[0] = subc_cc(src0[0], src1, c_in, overflow);
 
     if (overflow) {
-        size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, 0, -1);
+        size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, 0, in_place_max);
 
         if (WJR_UNLIKELY(idx == n)) {
             return static_cast<U>(1);
@@ -595,7 +595,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t __fallback_subc_128(uint64_t &al, uint64_t &a
 WJR_INTRINSIC_CONSTEXPR20 uint64_t __subc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                               uint64_t hi0, uint64_t lo1, uint64_t hi1,
                                               uint64_t c_in) noexcept {
-#if WJR_HAS_BUILTIN(__ASM_ADDC_128)
+#if WJR_HAS_BUILTIN(__ASM_SUBC_128)
     if (is_constant_evaluated()) {
         return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
     }
@@ -609,14 +609,14 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t __subc_128(uint64_t &al, uint64_t &ah, uint64
 WJR_INTRINSIC_CONSTEXPR20 uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint64_t lo0,
                                                 uint64_t hi0, uint64_t lo1, uint64_t hi1,
                                                 uint8_t c_in) noexcept {
-#if WJR_HAS_BUILTIN(__ASM_ADDC_CC_128)
+#if WJR_HAS_BUILTIN(__ASM_SUBC_CC_128)
     if (is_constant_evaluated()) {
         return __fallback_subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
     }
 
     return __asm_subc_cc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
 #else
-    return __subc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+    return fast_cast<uint8_t>(__subc_128(al, ah, lo0, hi0, lo1, hi1, c_in));
 #endif
 }
 

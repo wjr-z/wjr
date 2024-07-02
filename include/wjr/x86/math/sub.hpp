@@ -35,7 +35,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in,
                                        U &c_out) noexcept {
 #if !WJR_HAS_BUILTIN(MSVC_ASM_SUBC)
     if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 1)) {
-        if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
+        if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
             asm("stc\n\t"
                 "sbb{q %2, %0| %0, %2}\n\t"
                 "setb %b1"
@@ -54,7 +54,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in,
         return a;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
+    if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
         asm("add{b $255, %b1| %b1, 255}\n\t"
             "sbb{q %2, %0| %0, %2}\n\t"
             "setb %b1"
@@ -73,7 +73,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in,
     return a;
 #else
     uint64_t ret;
-    c_out = _subborrow_u64(c_in, a, b, &ret);
+    c_out = fast_cast<U>(_subborrow_u64(fast_cast<unsigned char>(c_in), a, b, &ret));
     return ret;
 #endif
 }
@@ -85,7 +85,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in,
 WJR_INTRINSIC_INLINE uint64_t asm_subc_cc(uint64_t a, uint64_t b, uint8_t c_in,
                                           uint8_t &c_out) noexcept {
     if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 1)) {
-        if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
+        if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
             asm("stc\n\t"
                 "sbb{q %2, %0| %0, %2}\n\t" WJR_ASM_CCSET(c)
                 : "=r"(a), WJR_ASM_CCOUT(c)(c_out)
@@ -101,7 +101,7 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc_cc(uint64_t a, uint64_t b, uint8_t c_in,
         return a;
     }
 
-    if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
+    if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
         asm("add{b $255, %b1| %b1, 255}\n\t"
             "sbb{q %3, %0| %0, %3}\n\t" WJR_ASM_CCSET(c)
             : "=r"(a), "+&r"(c_in), WJR_ASM_CCOUT(c)(c_out)

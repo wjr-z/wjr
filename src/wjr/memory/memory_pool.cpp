@@ -68,13 +68,13 @@ void *__default_alloc_template__::object::refill(uint8_t idx) noexcept {
     const size_t n = __get_size(idx);
 
     // Build free list in chunk
-    obj *result = (obj *)chunk;
+    const auto result = reinterpret_cast<obj *>(chunk);
 
-    *my_free_list = current_obj = (obj *)(chunk + n);
+    *my_free_list = current_obj = reinterpret_cast<obj *>(chunk + n);
     nobjs -= 2;
     while (nobjs) {
         --nobjs;
-        next_obj = (obj *)((char *)current_obj + n);
+        next_obj = reinterpret_cast<obj *>((char *)current_obj + n);
         current_obj->free_list_link = next_obj;
         current_obj = next_obj;
     }

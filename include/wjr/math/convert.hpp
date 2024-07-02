@@ -274,7 +274,7 @@ public:
     template <typename Converter>
     WJR_INTRINSIC_INLINE static void __fast_conv(void *ptr, uint64_t val,
                                                  Converter conv) noexcept {
-        builtin_to_chars_unroll_8_fast<Base>(ptr, val, conv);
+        builtin_to_chars_unroll_8_fast<Base>(ptr, static_cast<uint32_t>(val), conv);
     }
 #endif
 };
@@ -1092,7 +1092,6 @@ to_chars_result<uint8_t *> __fast_to_chars_impl(uint8_t *first, uint8_t *last, V
     }
     default: {
         WJR_UNREACHABLE();
-        return {last, std::errc::invalid_argument};
     }
     }
 
@@ -1231,7 +1230,6 @@ to_chars_result<Iter> __fallback_to_chars_impl(Iter first, Iter last, Value val,
     }
     default: {
         WJR_UNREACHABLE();
-        return {last, std::errc::invalid_argument};
     }
     }
 
@@ -1396,7 +1394,6 @@ Iter __fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase,
     }
     default: {
         WJR_UNREACHABLE();
-        return ptr;
     }
     }
 
@@ -3024,7 +3021,6 @@ uint64_t *__biginteger_from_chars_impl(const uint8_t *first, const uint8_t *last
         }
         default: {
             WJR_UNREACHABLE();
-            return up;
         }
         }
     }

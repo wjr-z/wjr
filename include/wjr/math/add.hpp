@@ -175,7 +175,7 @@ WJR_INTRINSIC_CONSTEXPR20 U __addc_1_impl(uint64_t *dst, const uint64_t *src0, s
     dst[0] = addc_cc(src0[0], src1, c_in, overflow);
 
     if (overflow) {
-        size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, -1, 0);
+        size_t idx = 1 + replace_find_not(dst + 1, src0 + 1, n - 1, in_place_max, 0);
 
         if (WJR_UNLIKELY(idx == n)) {
             return static_cast<U>(1);
@@ -423,7 +423,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint8_t __addc_cc_128(uint64_t &al, uint64_t &ah, uint
 
     return __asm_addc_cc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
 #else
-    return __addc_128(al, ah, lo0, hi0, lo1, hi1, c_in);
+    return fast_cast<uint8_t>(__addc_128(al, ah, lo0, hi0, lo1, hi1, c_in));
 #endif
 }
 

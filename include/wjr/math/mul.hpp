@@ -712,8 +712,7 @@ void __sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
         c_out = cf * cf;
     }
 
-    constexpr auto m2 = m <= ((uint32_t)in_place_max) ? m * 2 : m;
-
+    constexpr auto m2 = in_range<uint32_t>(m) ? m * 2 : m;
     c_out += try_addmul_1<m2>(dst + n, src, n, 2 * cf);
 }
 
