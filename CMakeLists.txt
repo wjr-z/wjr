@@ -1,13 +1,17 @@
 cmake_minimum_required(VERSION 3.14)
-project(wjr 
-    LANGUAGES CXX
+project(wjr
+   LANGUAGES CXX
 )
 
 if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -std=c++17 -march=native -Wall -Wextra")
+if(MSVC)
+   set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} /O2 /std:c++17 /arch:AVX2 /Wall /std:c11 /Zc:preprocessor /Zc:lambda /EHsc")
+else()
+   set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -O3 -std=c++17 -march=native -Wall -Wextra")
+endif()
 
 set(WJR_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 set(WJR_LIB_DIR ${PROJECT_SOURCE_DIR}/src)
