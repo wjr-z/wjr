@@ -4,6 +4,17 @@
 #include <wjr/assert.hpp>
 #include <wjr/math/popcount.hpp>
 
+#if WJR_HAS_BUILTIN(__builtin_ctz)
+#define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF
+#elif defined(WJR_MSVC) && defined(WJR_X86)
+#define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_MSVC_CTZ WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(MSVC_CTZ)
+#include <wjr/x86/simd/intrin.hpp>
+#endif
+
 namespace wjr {
 
 template <typename T>
@@ -34,10 +45,6 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_ctz(T x) noexcept {
 #endif //
 }
 
-#if WJR_HAS_BUILTIN(__builtin_ctz)
-#define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF
-#endif
-
 #if WJR_HAS_BUILTIN(CTZ)
 
 template <typename T>
@@ -47,6 +54,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) noexcept {
     if constexpr (nd < 32) {
         return builtin_ctz(static_cast<uint32_t>(x));
     } else {
+#if !WJR_HAS_BUILTIN(MSVC_CTZ)
         if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
             return __builtin_ctz(static_cast<unsigned int>(x));
         } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
@@ -56,6 +64,17 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) noexcept {
         } else {
             static_assert(nd <= 64, "not supported yet");
         }
+#else
+        if constexpr (nd == 32) {
+            unsigned long result;
+            (void)_BitScanForward(&result, x);
+            return result;
+        } else {
+            unsigned long result;
+            (void)_BitScanForward64(&result, x);
+            return result;
+        }
+#endif
     }
 }
 

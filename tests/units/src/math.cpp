@@ -180,6 +180,12 @@ TEST(math, addc) {
             }                                                                            \
         } while (0), )
 
+#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
+#define WJR_ASM_VOLATILE_TEST_ADDC_F() asm volatile("" : "+r"(c), "+r"(e)::"memory")
+#else
+#define WJR_ASM_VOLATILE_TEST_ADDC_F()
+#endif
+
 #define WJR_TEST_ADDC_F(type)                                                            \
     do {                                                                                 \
         constexpr auto maxn = std::numeric_limits<type>::max();                          \
@@ -193,12 +199,14 @@ TEST(math, addc) {
         WJR_TEST_ADDC(type, 1, maxn, 1, 1, 1);                                           \
         type c = 1;                                                                      \
         type e = 3;                                                                      \
-        asm volatile("" : "+r"(c), "+r"(e)::"memory");                                   \
+        WJR_ASM_VOLATILE_TEST_ADDC_F();                                                  \
         WJR_TEST_ADDC(type, e, c, c, 5, 0);                                              \
     } while (0);
 
     WJR_PP_TRANSFORM_PUT((unsigned char, unsigned int, unsigned long, unsigned long long),
                          WJR_TEST_ADDC_F);
+
+#undef WJR_ASM_VOLATILE_TEST_ADDC_F
 
 #undef WJR_TEST_ADDC_F
 #undef WJR_TEST_ADDC_I
@@ -359,6 +367,12 @@ TEST(math, sub) {
             }                                                                            \
         } while (0), )
 
+#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
+#define WJR_ASM_VOLATILE_TEST_SUBC_F() asm volatile("" : "+r"(c), "+r"(e)::"memory")
+#else
+#define WJR_ASM_VOLATILE_TEST_SUBC_F()
+#endif
+
 #define WJR_TEST_SUBC_F(type)                                                            \
     do {                                                                                 \
         constexpr auto maxn = std::numeric_limits<type>::max();                          \
@@ -373,12 +387,14 @@ TEST(math, sub) {
         WJR_TEST_SUBC(type, 1, maxn, 1, 1, 1);                                           \
         type c = 1;                                                                      \
         type e = 3;                                                                      \
-        asm volatile("" : "+r"(c), "+r"(e)::"memory");                                   \
+        WJR_ASM_VOLATILE_TEST_SUBC_F();                                                  \
         WJR_TEST_SUBC(type, e, c, c, 1, 0);                                              \
     } while (0);
 
     WJR_PP_TRANSFORM_PUT((unsigned char, unsigned int, unsigned long, unsigned long long),
                          WJR_TEST_SUBC_F);
+
+#undef WJR_ASM_VOLATILE_TEST_SUBC_F
 
 #undef WJR_TEST_SUBC_F
 #undef WJR_TEST_SUBC_I
@@ -1235,10 +1251,6 @@ TEST(math, mul_128) {
 
         uint64_t lo, hi;
         lo = mul(x, y, hi);
-        WJR_ASSERT(lo == anslo);
-        WJR_ASSERT(hi == anshi);
-
-        lo = mulx(x, y, hi);
         WJR_ASSERT(lo == anslo);
         WJR_ASSERT(hi == anshi);
     }

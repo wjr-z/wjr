@@ -14,8 +14,16 @@
 #include <wjr/memory/safe_array.hpp>
 #include <wjr/tuple.hpp>
 
+#if defined(WJR_MSVC) && defined(WJR_X86)
+#define WJR_HAS_BUILTIN_MSVC_MULH64 WJR_HAS_DEF
+#endif
+
 #if defined(WJR_X86)
 #include <wjr/x86/math/mul.hpp>
+#endif
+
+#if WJR_HAS_BUILTIN(MSVC_MULH64)
+#include <wjr/x86/simd/intrin.hpp>
 #endif
 
 namespace wjr {
@@ -70,44 +78,39 @@ WJR_INTRINSIC_CONSTEXPR20 T mul(T a, T b, T &hi) noexcept {
     if constexpr (nd < 64) {
         return fallback_mul(a, b, hi);
     } else {
-#if WJR_HAS_BUILTIN(MUL64)
+#if WJR_HAS_BUILTIN(UMUL128)
         if (is_constant_evaluated()
-#if WJR_HAS_BUILTIN(ASM_MUL64)
+#if WJR_HAS_BUILTIN(ASM_UMUL128)
             || (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))
 #endif
         ) {
             return fallback_mul64(a, b, hi);
         }
 
-#if WJR_HAS_BUILTIN(ASM_MUL64)
+#if WJR_HAS_BUILTIN(ASM_UMUL128)
         // mov b to rax, then mul a
         // instead of mov a to rax, mov b to register, then mul
         if (WJR_BUILTIN_CONSTANT_P(b)) {
-            return builtin_mul64(b, a, hi);
+            return builtin_umul128(b, a, hi);
         }
 #endif
-
-        return builtin_mul64(a, b, hi);
+        return builtin_umul128(a, b, hi);
 #else
         return fallback_mul64(a, b, hi);
 #endif
     }
 }
 
-#if defined(WJR_MSVC) && defined(WJR_X86_64) && WJR_HAS_SIMD(X86_SIMD)
-#define WJR_HAS_BUILTIN_MSVC_MULHI64 WJR_HAS_DEF
-#endif
-
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T mulhi(T a, T b) noexcept {
-#if WJR_HAS_BUILTIN(MSVC_MULHI64)
+#if WJR_HAS_BUILTIN(MSVC_MULH64)
     constexpr auto nd = std::numeric_limits<T>::digits;
     if constexpr (nd < 64) {
 #endif
         T ret = 0;
         (void)mul(a, b, ret);
         return ret;
-#if WJR_HAS_BUILTIN(MSVC_MULHI64)
+#if WJR_HAS_BUILTIN(MSVC_MULH64)
     } else {
         return __umulh(a, b);
     }

@@ -126,6 +126,8 @@ struct random_string_fn {
 };
 
 inline constexpr random_string_fn random_string = {};
+using int_ilist = std::initializer_list<int>;
+using string_ilist = std::initializer_list<std::string>;
 
 template <typename T>
 using wvector = wjr::vector<T>;
@@ -286,7 +288,7 @@ TEST(vector, construct) {
         });
     }
     {
-        auto test = [](auto _Val, std::initializer_list<decltype(_Val)> il) {
+        auto test = [](auto _Val, auto il) {
             using T = decltype(_Val);
             auto n = il.size();
             std::allocator<T> al;
@@ -296,20 +298,20 @@ TEST(vector, construct) {
             EXPECT_TRUE(std::equal(il.begin(), il.end(), v.begin()));
         };
 
-        test(__int, {});
-        test(__int, {1});
-        test(__int, {1, 2});
-        test(__int, {random_int(), random_int(), random_int(), random_int()});
-        test(__int, {random_int(), random_int(), random_int(), random_int(), random_int(),
-                     random_int(), random_int(), random_int()});
-        test(__string, {});
-        test(__string, {random_string()});
-        test(__string, {random_string(), random_string()});
-        test(__string,
-             {random_string(), random_string(), random_string(), random_string()});
-        test(__string,
-             {random_string(), random_string(), random_string(), random_string(),
-              random_string(), random_string(), random_string(), random_string()});
+        test(__int, int_ilist{});
+        test(__int, int_ilist{1});
+        test(__int, int_ilist{1, 2});
+        test(__int, int_ilist{random_int(), random_int(), random_int(), random_int()});
+        test(__int, int_ilist{random_int(), random_int(), random_int(), random_int(),
+                              random_int(), random_int(), random_int(), random_int()});
+        test(__string, string_ilist{});
+        test(__string, string_ilist{random_string()});
+        test(__string, string_ilist{random_string(), random_string()});
+        test(__string, string_ilist{random_string(), random_string(), random_string(),
+                                    random_string()});
+        test(__string, string_ilist{random_string(), random_string(), random_string(),
+                                    random_string(), random_string(), random_string(),
+                                    random_string(), random_string()});
     }
 }
 
@@ -357,7 +359,7 @@ TEST(vector, assignment) {
         });
     }
     {
-        auto test = [](auto _Val, std::initializer_list<decltype(_Val)> il) {
+        auto test = [](auto _Val, auto il) {
             using T = decltype(_Val);
             auto n = il.size();
             wvector<T> v;
@@ -367,20 +369,20 @@ TEST(vector, assignment) {
             EXPECT_TRUE(std::equal(il.begin(), il.end(), v.begin()));
         };
 
-        test(__int, {});
-        test(__int, {1});
-        test(__int, {1, 2});
-        test(__int, {random_int(), random_int(), random_int(), random_int()});
-        test(__int, {random_int(), random_int(), random_int(), random_int(), random_int(),
-                     random_int(), random_int(), random_int()});
-        test(__string, {});
-        test(__string, {random_string()});
-        test(__string, {random_string(), random_string()});
-        test(__string,
-             {random_string(), random_string(), random_string(), random_string()});
-        test(__string,
-             {random_string(), random_string(), random_string(), random_string(),
-              random_string(), random_string(), random_string(), random_string()});
+        test(__int, int_ilist{});
+        test(__int, int_ilist{1});
+        test(__int, int_ilist{1, 2});
+        test(__int, int_ilist{random_int(), random_int(), random_int(), random_int()});
+        test(__int, int_ilist{random_int(), random_int(), random_int(), random_int(),
+                              random_int(), random_int(), random_int(), random_int()});
+        test(__string, string_ilist{});
+        test(__string, string_ilist{random_string()});
+        test(__string, string_ilist{random_string(), random_string()});
+        test(__string, string_ilist{random_string(), random_string(), random_string(),
+                                    random_string()});
+        test(__string, string_ilist{random_string(), random_string(), random_string(),
+                                    random_string(), random_string(), random_string(),
+                                    random_string(), random_string()});
     }
 }
 
@@ -437,7 +439,7 @@ TEST(vector, assign) {
         });
     }
     {
-        auto test = [](auto _Val, std::initializer_list<decltype(_Val)> il) {
+        auto test = [](auto _Val, auto il) {
             using T = decltype(_Val);
             auto n = il.size();
             wvector<T> v;
@@ -447,20 +449,20 @@ TEST(vector, assign) {
             EXPECT_TRUE(std::equal(il.begin(), il.end(), v.begin()));
         };
 
-        test(__int, {});
-        test(__int, {1});
-        test(__int, {1, 2});
-        test(__int, {random_int(), random_int(), random_int(), random_int()});
-        test(__int, {random_int(), random_int(), random_int(), random_int(), random_int(),
-                     random_int(), random_int(), random_int()});
-        test(__string, {});
-        test(__string, {random_string()});
-        test(__string, {random_string(), random_string()});
-        test(__string,
-             {random_string(), random_string(), random_string(), random_string()});
-        test(__string,
-             {random_string(), random_string(), random_string(), random_string(),
-              random_string(), random_string(), random_string(), random_string()});
+        test(__int, int_ilist{});
+        test(__int, int_ilist{1});
+        test(__int, int_ilist{1, 2});
+        test(__int, int_ilist{random_int(), random_int(), random_int(), random_int()});
+        test(__int, int_ilist{random_int(), random_int(), random_int(), random_int(),
+                              random_int(), random_int(), random_int(), random_int()});
+        test(__string, string_ilist{});
+        test(__string, string_ilist{random_string()});
+        test(__string, string_ilist{random_string(), random_string()});
+        test(__string, string_ilist{random_string(), random_string(), random_string(),
+                                    random_string()});
+        test(__string, string_ilist{random_string(), random_string(), random_string(),
+                                    random_string(), random_string(), random_string(),
+                                    random_string(), random_string()});
     }
 }
 

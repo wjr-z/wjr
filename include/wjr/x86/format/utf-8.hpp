@@ -5,7 +5,7 @@
 
 namespace wjr::utf8 {
 
-#if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(X86_SIMD)
+#if WJR_HAS_SIMD(SSE2)
 #define WJR_HAS_BUILTIN_IS_ASCII_16 WJR_HAS_DEF
 
 #if WJR_HAS_SIMD(AVX2)

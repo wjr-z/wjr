@@ -4,6 +4,17 @@
 #include <wjr/assert.hpp>
 #include <wjr/math/popcount.hpp>
 
+#if WJR_HAS_BUILTIN(__builtin_clz)
+#define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF
+#elif defined(WJR_MSVC) && defined(WJR_X86)
+#define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_MSVC_CLZ WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(MSVC_CLZ)
+#include <wjr/x86/simd/intrin.hpp>
+#endif
+
 namespace wjr {
 
 template <typename T>
@@ -51,19 +62,15 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_clz(T x) noexcept {
 #endif
 }
 
-#if WJR_HAS_BUILTIN(__builtin_clz)
-#define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF
-#endif
-
 #if WJR_HAS_BUILTIN(CLZ)
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
-
     if constexpr (nd < 32) {
         return builtin_clz(static_cast<uint32_t>(x)) - (32 - nd);
     } else {
+#if !WJR_HAS_BUILTIN(MSVC_CLZ)
         if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
             constexpr auto delta = std::numeric_limits<unsigned int>::digits - nd;
             return __builtin_clz(static_cast<unsigned int>(x)) - delta;
@@ -76,58 +83,30 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
         } else {
             static_assert(nd <= 64, "not supported yet");
         }
-    }
-}
-
-#endif
-
-#if !WJR_HAS_BUILTIN(CLZ)
-
-#if defined(WJR_MSVC)
-#define WJR_HAS_BUILTIN_MSVC_CLZ WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_BUILTIN(MSVC_CLZ)
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_INLINE int builtin_msvc_clz(T x) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-    if constexpr (nd < 32) {
-        return builtin_msvc_clz(static_cast<uint32_t>(x)) - (32 - nd);
-    } else {
+#else
         if constexpr (nd == 32) {
             unsigned long result;
-            if (_BitScanReverse(&result, x)) {
-                return 31 - result;
-            }
-            return 0;
+            (void)_BitScanReverse(&result, x);
+            return 31 - result;
         } else {
             unsigned long result;
-            if (_BitScanReverse64(&result, x)) {
-                return 63 - result;
-            }
-            return 0;
+            (void)_BitScanReverse64(&result, x);
+            return 63 - result;
         }
+#endif
     }
 }
-
-#endif
 
 #endif
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int clz_impl(T x) noexcept {
-#if WJR_HAS_BUILTIN(CLZ) || WJR_HAS_BUILTIN(MSVC_CLZ)
+#if WJR_HAS_BUILTIN(CLZ)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
         return fallback_clz(x);
     }
 
-#if WJR_HAS_BUILTIN(CLZ)
     return builtin_clz(x);
-#else
-    return builtin_msvc_clz(x);
-#endif
 #else
     return fallback_clz(x);
 #endif

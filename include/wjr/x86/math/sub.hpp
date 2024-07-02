@@ -7,8 +7,6 @@
 #error "x86 required"
 #endif
 
-namespace wjr {
-
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_HAS_BUILTIN_ASM_SUBC WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_ASM_SUBC_N WJR_HAS_DEF
@@ -19,14 +17,23 @@ namespace wjr {
 #define WJR_HAS_BUILTIN_ASM_SUBC_CC WJR_HAS_DEF
 #define WJR_HAS_BUILTIN___ASM_SUBC_CC_128 WJR_HAS_DEF
 #endif
-
+#elif defined(WJR_MSVC)
+#define WJR_HAS_BUILTIN_ASM_SUBC WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_MSVC_ASM_SUBC WJR_HAS_DEF
 #endif
+
+#if WJR_HAS_BUILTIN(MSVC_ASM_SUBC)
+#include <wjr/x86/simd/intrin.hpp>
+#endif
+
+namespace wjr {
 
 #if WJR_HAS_BUILTIN(ASM_SUBC)
 
 template <typename U>
 WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in,
                                        U &c_out) noexcept {
+#if !WJR_HAS_BUILTIN(MSVC_ASM_SUBC)
     if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 1)) {
         if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
             asm("stc\n\t"
@@ -64,6 +71,11 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in,
     }
     c_out = c_in;
     return a;
+#else
+    uint64_t ret;
+    c_out = _subborrow_u64(c_in, a, b, &ret);
+    return ret;
+#endif
 }
 
 #endif

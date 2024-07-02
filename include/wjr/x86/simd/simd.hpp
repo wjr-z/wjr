@@ -3,8 +3,6 @@
 
 #include <wjr/x86/simd/simd_cast.hpp>
 
-#if WJR_HAS_SIMD(X86_SIMD)
-
 #include <cstring>
 
 #include <wjr/math/broadcast.hpp>
@@ -3668,7 +3666,5 @@ __m256i avx::unpacklo(__m256i a, __m256i b, uint32_t) { return unpacklo_epi32(a,
 #endif
 
 } // namespace wjr
-
-#endif // WJR_HAS_SIMD(X86_SIMD)
 
 #endif // WJR_SIMD_SIMD_HPP__

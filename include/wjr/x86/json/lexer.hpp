@@ -7,7 +7,7 @@
 
 namespace wjr::json {
 
-#if WJR_HAS_SIMD(SSSE3) && WJR_HAS_SIMD(X86_SIMD)
+#if WJR_HAS_SIMD(SSSE3)
 #define WJR_HAS_BUILTIN_JSON_LEXER_READER_READ_BUF WJR_HAS_DEF
 #endif
 

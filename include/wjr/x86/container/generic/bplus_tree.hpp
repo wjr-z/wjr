@@ -7,7 +7,7 @@
 
 namespace wjr {
 
-#if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(X86_SIMD)
+#if WJR_HAS_SIMD(SSE2)
 #define WJR_HAS_BUILTIN_BPLUS_TREE_COPY WJR_HAS_DEF
 #endif
 

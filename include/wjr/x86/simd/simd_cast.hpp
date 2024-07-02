@@ -2,24 +2,7 @@
 #define WJR_SIMD_SIMD_CAST_HPP__
 
 #include <wjr/type_traits.hpp>
-
-#define WJR_HAS_SIMD_X86_SIMD WJR_HAS_DEF
-
-#if WJR_HAS_SIMD(X86_SIMD)
-
-#if defined(_MSC_VER)
-/* Microsoft C/C++-compatible compiler */
-#include <intrin.h>
-#elif defined(__GNUC__)
-/* GCC-compatible compiler, targeting x86/x86-64 */
-#include <x86intrin.h>
-#else
-#undef WJR_HAS_SIMD_X86_SIMD
-#endif
-
-#endif // X86_SIMD
-
-#if WJR_HAS_SIMD(X86_SIMD)
+#include <wjr/x86/simd/intrin.hpp>
 
 namespace wjr {
 
@@ -337,7 +320,5 @@ struct simd_cast_fn<__m256i_t, uint64_t> {
 #endif // AVX
 
 } // namespace wjr
-
-#endif // WJR_HAS_SIMD(X86_SIMD)
 
 #endif // WJR_SIMD_SIMD_CAST_HPP__

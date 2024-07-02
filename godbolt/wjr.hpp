@@ -10914,6 +10914,31 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount(T x) noexcept {
 
 #endif // WJR_MATH_POPCOUNT_HPP__
 
+#if WJR_HAS_BUILTIN(__builtin_clz)
+#define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF
+#elif defined(WJR_MSVC) && defined(WJR_X86)
+#define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_MSVC_CLZ WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(MSVC_CLZ)
+#ifndef WJR_X86_SIMD_INTRIN_HPP__
+#define WJR_X86_SIMD_INTRIN_HPP__
+
+// Already included
+
+#if defined(_MSC_VER)
+/* Microsoft C/C++-compatible compiler */
+#include <intrin.h>
+#elif defined(__GNUC__)
+/* GCC-compatible compiler, targeting x86/x86-64 */
+#include <x86intrin.h>
+
+#endif
+
+#endif // WJR_X86_SIMD_INTRIN_HPP__
+#endif
+
 namespace wjr {
 
 template <typename T>
@@ -10961,19 +10986,15 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_clz(T x) noexcept {
 #endif
 }
 
-#if WJR_HAS_BUILTIN(__builtin_clz)
-#define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF
-#endif
-
 #if WJR_HAS_BUILTIN(CLZ)
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
-
     if constexpr (nd < 32) {
         return builtin_clz(static_cast<uint32_t>(x)) - (32 - nd);
     } else {
+#if !WJR_HAS_BUILTIN(MSVC_CLZ)
         if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
             constexpr auto delta = std::numeric_limits<unsigned int>::digits - nd;
             return __builtin_clz(static_cast<unsigned int>(x)) - delta;
@@ -10986,58 +11007,30 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
         } else {
             static_assert(nd <= 64, "not supported yet");
         }
-    }
-}
-
-#endif
-
-#if !WJR_HAS_BUILTIN(CLZ)
-
-#if defined(WJR_MSVC)
-#define WJR_HAS_BUILTIN_MSVC_CLZ WJR_HAS_DEF
-#endif
-
-#if WJR_HAS_BUILTIN(MSVC_CLZ)
-
-template <typename T>
-WJR_CONST WJR_INTRINSIC_INLINE int builtin_msvc_clz(T x) noexcept {
-    constexpr auto nd = std::numeric_limits<T>::digits;
-
-    if constexpr (nd < 32) {
-        return builtin_msvc_clz(static_cast<uint32_t>(x)) - (32 - nd);
-    } else {
+#else
         if constexpr (nd == 32) {
             unsigned long result;
-            if (_BitScanReverse(&result, x)) {
-                return 31 - result;
-            }
-            return 0;
+            (void)_BitScanReverse(&result, x);
+            return 31 - result;
         } else {
             unsigned long result;
-            if (_BitScanReverse64(&result, x)) {
-                return 63 - result;
-            }
-            return 0;
+            (void)_BitScanReverse64(&result, x);
+            return 63 - result;
         }
+#endif
     }
 }
-
-#endif
 
 #endif
 
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int clz_impl(T x) noexcept {
-#if WJR_HAS_BUILTIN(CLZ) || WJR_HAS_BUILTIN(MSVC_CLZ)
+#if WJR_HAS_BUILTIN(CLZ)
     if (is_constant_evaluated() || WJR_BUILTIN_CONSTANT_P(x)) {
         return fallback_clz(x);
     }
 
-#if WJR_HAS_BUILTIN(CLZ)
     return builtin_clz(x);
-#else
-    return builtin_msvc_clz(x);
-#endif
 #else
     return fallback_clz(x);
 #endif
@@ -11064,6 +11057,17 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int clz(T x) noexcept {
 
 // Already included
 // Already included
+
+#if WJR_HAS_BUILTIN(__builtin_ctz)
+#define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF
+#elif defined(WJR_MSVC) && defined(WJR_X86)
+#define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_MSVC_CTZ WJR_HAS_DEF
+#endif
+
+#if WJR_HAS_BUILTIN(MSVC_CTZ)
+// Already included
+#endif
 
 namespace wjr {
 
@@ -11095,10 +11099,6 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int fallback_ctz(T x) noexcept {
 #endif //
 }
 
-#if WJR_HAS_BUILTIN(__builtin_ctz)
-#define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF
-#endif
-
 #if WJR_HAS_BUILTIN(CTZ)
 
 template <typename T>
@@ -11108,6 +11108,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) noexcept {
     if constexpr (nd < 32) {
         return builtin_ctz(static_cast<uint32_t>(x));
     } else {
+#if !WJR_HAS_BUILTIN(MSVC_CTZ)
         if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
             return __builtin_ctz(static_cast<unsigned int>(x));
         } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {
@@ -11117,6 +11118,17 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) noexcept {
         } else {
             static_assert(nd <= 64, "not supported yet");
         }
+#else
+        if constexpr (nd == 32) {
+            unsigned long result;
+            (void)_BitScanForward(&result, x);
+            return result;
+        } else {
+            unsigned long result;
+            (void)_BitScanForward64(&result, x);
+            return result;
+        }
+#endif
     }
 }
 
@@ -11341,24 +11353,7 @@ inline constexpr origin_converter_t origin_converter;
 #define WJR_SIMD_SIMD_CAST_HPP__
 
 // Already included
-
-#define WJR_HAS_SIMD_X86_SIMD WJR_HAS_DEF
-
-#if WJR_HAS_SIMD(X86_SIMD)
-
-#if defined(_MSC_VER)
-/* Microsoft C/C++-compatible compiler */
-#include <intrin.h>
-#elif defined(__GNUC__)
-/* GCC-compatible compiler, targeting x86/x86-64 */
-#include <x86intrin.h>
-#else
-#undef WJR_HAS_SIMD_X86_SIMD
-#endif
-
-#endif // X86_SIMD
-
-#if WJR_HAS_SIMD(X86_SIMD)
+// Already included
 
 namespace wjr {
 
@@ -11677,11 +11672,7 @@ struct simd_cast_fn<__m256i_t, uint64_t> {
 
 } // namespace wjr
 
-#endif // WJR_HAS_SIMD(X86_SIMD)
-
 #endif // WJR_SIMD_SIMD_CAST_HPP__
-
-#if WJR_HAS_SIMD(X86_SIMD)
 
 #include <cstring>
 
@@ -15427,8 +15418,6 @@ __m256i avx::unpacklo(__m256i a, __m256i b, uint32_t) { return unpacklo_epi32(a,
 
 } // namespace wjr
 
-#endif // WJR_HAS_SIMD(X86_SIMD)
-
 #endif // WJR_SIMD_SIMD_HPP__
 
 #ifndef WJR_X86
@@ -15437,7 +15426,7 @@ __m256i avx::unpacklo(__m256i a, __m256i b, uint32_t) { return unpacklo_epi32(a,
 
 namespace wjr {
 
-#if WJR_HAS_SIMD(SSE4_1) && WJR_HAS_SIMD(X86_SIMD)
+#if WJR_HAS_SIMD(SSE4_1)
 #define WJR_HAS_BUILTIN_FIND_N WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_REVERSE_FIND_N WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_FIND_NOT_N WJR_HAS_DEF
@@ -17224,7 +17213,7 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR20 size_t reverse_find_not_n(const T *src,
 
 namespace wjr {
 
-#if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(X86_SIMD)
+#if WJR_HAS_SIMD(SSE2)
 #define WJR_HAS_BUILTIN_SET_N WJR_HAS_DEF
 #endif
 
@@ -17570,8 +17559,6 @@ WJR_INTRINSIC_CONSTEXPR20 uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint
 #error "x86 required"
 #endif
 
-namespace wjr {
-
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_HAS_BUILTIN_ASM_SUBC WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_ASM_SUBC_N WJR_HAS_DEF
@@ -17582,14 +17569,23 @@ namespace wjr {
 #define WJR_HAS_BUILTIN_ASM_SUBC_CC WJR_HAS_DEF
 #define WJR_HAS_BUILTIN___ASM_SUBC_CC_128 WJR_HAS_DEF
 #endif
-
+#elif defined(WJR_MSVC)
+#define WJR_HAS_BUILTIN_ASM_SUBC WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_MSVC_ASM_SUBC WJR_HAS_DEF
 #endif
+
+#if WJR_HAS_BUILTIN(MSVC_ASM_SUBC)
+// Already included
+#endif
+
+namespace wjr {
 
 #if WJR_HAS_BUILTIN(ASM_SUBC)
 
 template <typename U>
 WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in,
                                        U &c_out) noexcept {
+#if !WJR_HAS_BUILTIN(MSVC_ASM_SUBC)
     if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 1)) {
         if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
             asm("stc\n\t"
@@ -17627,6 +17623,11 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc(uint64_t a, uint64_t b, U c_in,
     }
     c_out = c_in;
     return a;
+#else
+    uint64_t ret;
+    c_out = _subborrow_u64(c_in, a, b, &ret);
+    return ret;
+#endif
 }
 
 #endif
@@ -18650,7 +18651,7 @@ WJR_INTRINSIC_CONSTEXPR20 uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint
 
 namespace wjr {
 
-#if WJR_HAS_SIMD(SSE4_1) && WJR_HAS_SIMD(X86_SIMD)
+#if WJR_HAS_SIMD(SSE4_1)
 #define WJR_HAS_BUILTIN_COMPARE_N WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_REVERSE_COMPARE_N WJR_HAS_DEF
 #endif
@@ -19424,8 +19425,6 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 uint8_t __addc_cc_128(uint64_t &al, uint
 #error "x86 required"
 #endif
 
-namespace wjr {
-
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_ASM_ADDC_N WJR_HAS_DEF
@@ -19436,8 +19435,16 @@ namespace wjr {
 #define WJR_HAS_BUILTIN_ASM_ADDC_CC WJR_HAS_DEF
 #define WJR_HAS_BUILTIN___ASM_ADDC_CC_128 WJR_HAS_DEF
 #endif
-
+#elif defined(WJR_MSVC)
+#define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_MSVC_ASM_ADDC WJR_HAS_DEF
 #endif
+
+#if WJR_HAS_BUILTIN(MSVC_ASM_ADDC)
+// Already included
+#endif
+
+namespace wjr {
 
 #if WJR_HAS_BUILTIN(ASM_ADDC)
 
@@ -19459,6 +19466,7 @@ namespace wjr {
 template <typename U>
 WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in,
                                        U &c_out) noexcept {
+#if !WJR_HAS_BUILTIN(MSVC_ASM_ADDC)
     if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 1)) {
         if (WJR_BUILTIN_CONSTANT_P(b) && __is_in_i32_range(b)) {
             asm("stc\n\t"
@@ -19516,6 +19524,11 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in,
     }
     c_out = c_in;
     return a;
+#else
+    uint64_t ret;
+    c_out = _addcarry_u64(c_in, a, b, &ret);
+    return ret;
+#endif
 }
 
 #endif
@@ -20523,7 +20536,7 @@ WJR_INTRINSIC_CONSTEXPR20 T shld(T hi, T lo, unsigned int c) noexcept;
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR20 T shrd(T lo, T hi, unsigned int c) noexcept;
 
-#if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(X86_SIMD)
+#if WJR_HAS_SIMD(SSE2)
 #define WJR_HAS_BUILTIN_LSHIFT_N WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_RSHIFT_N WJR_HAS_DEF
 #endif
@@ -21592,6 +21605,10 @@ private:
 #endif // WJR_MEMORY_SAFE_POINTER_HPP__
 // Already included
 
+#if defined(WJR_MSVC) && defined(WJR_X86)
+#define WJR_HAS_BUILTIN_MSVC_MULH64 WJR_HAS_DEF
+#endif
+
 #if defined(WJR_X86)
 #ifndef WJR_X86_MATH_MUL_HPP__
 #define WJR_X86_MATH_MUL_HPP__
@@ -21608,14 +21625,16 @@ private:
 
 namespace wjr {
 
-#define WJR_HAS_BUILTIN_MUL64 WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_UMUL128 WJR_HAS_DEF
 
 #if WJR_HAS_FEATURE(INT128)
-#define WJR_HAS_BUILTIN_INT128_MUL64 WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_INT128_UMUL128 WJR_HAS_DEF
 #elif WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
-#define WJR_HAS_BUILTIN_ASM_MUL64 WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_ASM_UMUL128 WJR_HAS_DEF
+#elif defined(WJR_MSVC)
+#define WJR_HAS_BUILTIN_MSVC_UMUL128 WJR_HAS_DEF
 #else
-#undef WJR_HAS_BUILTIN_MUL64
+#undef WJR_HAS_BUILTIN_UMUL128
 #endif
 
 #if defined(__BMI2__)
@@ -21648,20 +21667,26 @@ namespace wjr {
 
 #endif // WJR_X86_MATH_MUL_IMPL_HPP__
 
+#if WJR_HAS_BUILTIN(MSVC_UMUL128)
+// Already included
+#endif
+
 namespace wjr {
 
-#if WJR_HAS_BUILTIN(MUL64)
+#if WJR_HAS_BUILTIN(UMUL128)
 
-WJR_INTRINSIC_INLINE uint64_t builtin_mul64(uint64_t a, uint64_t b,
-                                            uint64_t &hi) noexcept {
-#if WJR_HAS_BUILTIN(INT128_MUL64)
+WJR_INTRINSIC_INLINE uint64_t builtin_umul128(uint64_t a, uint64_t b,
+                                              uint64_t &hi) noexcept {
+#if WJR_HAS_BUILTIN(INT128_UMUL128)
     const __uint128_t x = static_cast<__uint128_t>(a) * b;
     hi = x >> 64;
     return static_cast<uint64_t>(x);
-#elif WJR_HAS_BUILTIN(ASM_MUL64)
+#elif WJR_HAS_BUILTIN(ASM_UMUL128)
     uint64_t lo;
     asm("mul{q %3| %3}\n\t" : "=a,a"(lo), "=d,d"(hi) : "%a,r"(a), "r,a"(b) : "cc");
     return lo;
+#else
+    return _umul128(a, b, &hi);
 #endif
 }
 
@@ -22712,6 +22737,10 @@ WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(uint64_t *dst, const uint6
 #endif // WJR_X86_MATH_MUL_HPP__
 #endif
 
+#if WJR_HAS_BUILTIN(MSVC_MULH64)
+// Already included
+#endif
+
 namespace wjr {
 
 template <typename T>
@@ -22764,44 +22793,39 @@ WJR_INTRINSIC_CONSTEXPR20 T mul(T a, T b, T &hi) noexcept {
     if constexpr (nd < 64) {
         return fallback_mul(a, b, hi);
     } else {
-#if WJR_HAS_BUILTIN(MUL64)
+#if WJR_HAS_BUILTIN(UMUL128)
         if (is_constant_evaluated()
-#if WJR_HAS_BUILTIN(ASM_MUL64)
+#if WJR_HAS_BUILTIN(ASM_UMUL128)
             || (WJR_BUILTIN_CONSTANT_P(a) && WJR_BUILTIN_CONSTANT_P(b))
 #endif
         ) {
             return fallback_mul64(a, b, hi);
         }
 
-#if WJR_HAS_BUILTIN(ASM_MUL64)
+#if WJR_HAS_BUILTIN(ASM_UMUL128)
         // mov b to rax, then mul a
         // instead of mov a to rax, mov b to register, then mul
         if (WJR_BUILTIN_CONSTANT_P(b)) {
-            return builtin_mul64(b, a, hi);
+            return builtin_umul128(b, a, hi);
         }
 #endif
-
-        return builtin_mul64(a, b, hi);
+        return builtin_umul128(a, b, hi);
 #else
         return fallback_mul64(a, b, hi);
 #endif
     }
 }
 
-#if defined(WJR_MSVC) && defined(WJR_X86_64) && WJR_HAS_SIMD(X86_SIMD)
-#define WJR_HAS_BUILTIN_MSVC_MULHI64 WJR_HAS_DEF
-#endif
-
 template <typename T, WJR_REQUIRES(is_nonbool_unsigned_integral_v<T>)>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T mulhi(T a, T b) noexcept {
-#if WJR_HAS_BUILTIN(MSVC_MULHI64)
+#if WJR_HAS_BUILTIN(MSVC_MULH64)
     constexpr auto nd = std::numeric_limits<T>::digits;
     if constexpr (nd < 64) {
 #endif
         T ret = 0;
         (void)mul(a, b, ret);
         return ret;
-#if WJR_HAS_BUILTIN(MSVC_MULHI64)
+#if WJR_HAS_BUILTIN(MSVC_MULH64)
     } else {
         return __umulh(a, b);
     }
@@ -25643,7 +25667,7 @@ using weak_stack_alloc = weak_stack_allocator<T, stack_alloc_object>;
 
 namespace wjr {
 
-#if WJR_HAS_SIMD(SSE4_1) && WJR_HAS_SIMD(X86_SIMD)
+#if WJR_HAS_SIMD(SSE4_1)
 #define WJR_HAS_BUILTIN_TO_CHARS_UNROLL_8_FAST WJR_HAS_DEF
 
 #define WJR_HAS_BUILTIN_FROM_CHARS_UNROLL_8_FAST WJR_HAS_DEF
@@ -28928,7 +28952,7 @@ inline constexpr bool __is_builtin_copy_v = __is_builtin_copy<InputIt, OutputIt>
 
 namespace wjr {
 
-#if WJR_HAS_SIMD(SSE2) && WJR_HAS_SIMD(X86_SIMD)
+#if WJR_HAS_SIMD(SSE2)
 #define WJR_HAS_BUILTIN_COMPLEMENT_N WJR_HAS_DEF
 #endif
 
@@ -29230,7 +29254,7 @@ WJR_INTRINSIC_CONSTEXPR20 bool negate_n(T *dst, const T *src, size_t n) noexcept
 
 namespace wjr {
 
-#if WJR_HAS_SIMD(PCLMUL) && WJR_HAS_SIMD(X86_SIMD)
+#if WJR_HAS_SIMD(PCLMUL)
 #define WJR_HAS_BUILTIN_PREFIX_XOR WJR_HAS_DEF
 #endif
 
