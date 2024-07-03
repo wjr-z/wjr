@@ -13,7 +13,7 @@
 #define WJR_PP_STR_I(x) #x
 
 #define WJR_PP_STRS(...) WJR_PP_STRS_I(__VA_ARGS__)
-#define WJR_PP_STRS_I(...) # __VA_ARGS__
+#define WJR_PP_STRS_I(...) #__VA_ARGS__
 
 #define WJR_PP_ESC(x) WJR_PP_ESC_(WJR_PP_ESC_I, x)
 #define WJR_PP_ESC_(M, x) M x
@@ -42,9 +42,9 @@
     WJR_PP_IS_NULLPTR_I(WJR_PP_CONCAT(WJR_PP_IS_NULLPTR_, VAL), 0)
 #define WJR_PP_IS_NULLPTR_I(...) WJR_PP_IS_NULLPTR_II(__VA_ARGS__)
 #define WJR_PP_IS_NULLPTR_II(HOLDER, VAL, ...) VAL
-#define WJR_PP_IS_NULLPTR_WJR_PP_NULLPTR WJR_PP_HOLDER, 1
+#define WJR_PP_IS_NULLPTR_WJR_PP_NULLPTR _, 1
 
-#define WJR_PP_MAP_DEF(VAL) WJR_PP_HOLDER, VAL
+#define WJR_PP_MAP_DEF(VAL) _, VAL
 
 // if MAP ## KEY is defined as WJR_PP_MAP_DEF, then return VAL
 // else return WJR_PP_NULLPTR

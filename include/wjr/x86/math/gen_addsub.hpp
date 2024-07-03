@@ -8,8 +8,17 @@
 #error "abort"
 #endif
 
-#define WJR_addcsubc WJR_PP_BOOL_IF(WJR_ADDSUB_I, addc, subc)
-#define WJR_adcsbb WJR_PP_BOOL_IF(WJR_ADDSUB_I, adc, sbb)
+#if WJR_ADDSUB_I == 1
+#define WJR_addcsubc addc
+#define WJR_adcsbb adc
+#define __WJR_TEST_ASSEMBLY ASSEMBLY_ASM_ADDC_N
+#else
+#define WJR_addcsubc subc
+#define WJR_adcsbb sbb
+#define __WJR_TEST_ASSEMBLY ASSEMBLY_ASM_SUBC_N
+#endif
+
+#if !WJR_HAS_BUILTIN(__WJR_TEST_ASSEMBLY)
 
 inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
     uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
@@ -178,7 +187,7 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
         "mov{q %[r10], -8(%[dst])| [%[dst] - 8], %[r10]}\n\t"
 
         ".Ldone%=:\n\t"
-        "mov %k[rcx], %k[r9]\n\t"
+        "mov{l %k[rcx], %k[r9]| %k[r9], %k[rcx]}\n\t"
         "adc{l %k[rcx], %k[r9]| %k[r9], %k[rcx]}"
 
         : [dst] "+r"(dst), [src0] "+r"(src0), [src1] "+r"(src1), [rcx] "+c"(rcx), 
@@ -191,6 +200,22 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
 
     return r9;
 }
+
+#else
+
+extern "C" WJR_MS_ABI uint64_t WJR_PP_CONCAT(
+    __wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(uint64_t *dst, const uint64_t *src0,
+                                                      const uint64_t *src1, size_t n,
+                                                      uint64_t c_in) noexcept;
+
+WJR_INTRINSIC_INLINE int64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
+    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
+    uint64_t c_in) noexcept {
+    return WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(dst, src0,
+                                                                           src1, n, c_in);
+}
+
+#endif
 
 WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(
     uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
@@ -206,6 +231,7 @@ WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n
                                                                      c_in);
 }
 
+#undef __WJR_TEST_ASSEMBLY
 #undef WJR_adcsbb
 #undef WJR_addcsubc
 

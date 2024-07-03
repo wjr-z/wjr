@@ -6,6 +6,7 @@
 #include <wjr/preprocessor/details/basic.hpp>
 #include <wjr/preprocessor/logical/basic.hpp>
 
+/** @note Only support value 0/1 currently. */
 #define WJR_HAS_DEF_VAR(var) WJR_PP_MAP_DEF(var)
 #define WJR_HAS_DEF WJR_HAS_DEF_VAR(1)
 
@@ -22,8 +23,6 @@
 #define WJR_HAS_FEATURE_FIND(KEY) WJR_HAS_FIND(WJR_HAS_FEATURE_, KEY)
 #define WJR_HAS_SIMD_FIND(KEY) WJR_HAS_FIND(WJR_HAS_SIMD_, KEY)
 #define WJR_HAS_DEBUG_FIND(KEY) WJR_HAS_FIND(WJR_HAS_DEBUG_, KEY)
-
-//
 
 #if (defined(WJR_COMPILER_GCC) && WJR_HAS_GCC(10, 1, 0)) ||                              \
     (defined(WJR_COMPILER_CLANG) && WJR_HAS_CLANG(10, 0, 0)) ||                          \

@@ -120,6 +120,15 @@
 #define WJR_RESTRICT
 #endif
 
+#if defined(WJR_COMPILER_MSVC)
+#define WJR_MS_ABI
+#define WJR_HAS_FEATURE_MS_ABI WJR_HAS_DEF
+#elif defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC)
+#define WJR_MS_ABI __attribute__((__ms_abi__))
+#define WJR_HAS_FEATURE_MS_ABI WJR_HAS_DEF
+#else 
+#endif
+
 #define WJR_ASSUME_MAY_NOT_PURE(expr)                                                    \
     do {                                                                                 \
         if (!(expr)) {                                                                   \

@@ -351,28 +351,49 @@ inline uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
 
 #if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)
 
+#if !WJR_HAS_BUILTIN(ASSEMBLY_ASM_BASECASE_MUL_S)
 extern void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
                                       const uint64_t *src1, size_t m) noexcept;
+#else
+extern "C" WJR_MS_ABI void __wjr_asm_basecase_mul_s_impl(uint64_t *dst,
+                                                         const uint64_t *src0, size_t rdx,
+                                                         const uint64_t *src1,
+                                                         size_t m) noexcept;
+
+WJR_INTRINSIC_INLINE void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0,
+                                                    size_t rdx, const uint64_t *src1,
+                                                    size_t m) noexcept {
+    __wjr_asm_basecase_mul_s_impl(dst, src0, rdx, src1, m);
+}
+#endif
 
 inline void asm_basecase_mul_s(uint64_t *dst, const uint64_t *src0, size_t n,
                                const uint64_t *src1, size_t m) noexcept {
     WJR_ASSERT(n >= m);
     WJR_ASSERT(m >= 1);
-
-    return __asm_basecase_mul_s_impl(dst, src0, n, src1, m);
+    __asm_basecase_mul_s_impl(dst, src0, n, src1, m);
 }
 
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_BASECASE_SQR)
 
+#if !WJR_HAS_BUILTIN(ASSEMBLY_ASM_BASECASE_SQR)
 extern void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
                                     size_t rdx) noexcept;
+#else
+extern "C" WJR_MS_ABI void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
+                                                       size_t rdx) noexcept;
+                                                       
+WJR_INTRINSIC_INLINE void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
+                                                  size_t rdx) noexcept {
+    __wjr_asm_basecase_sqr_impl(dst, src, rdx);
+}
+#endif
 
 inline void asm_basecase_sqr(uint64_t *dst, const uint64_t *src, size_t n) noexcept {
     WJR_ASSERT(n >= 1);
-
-    return __asm_basecase_sqr_impl(dst, src, n);
+    __asm_basecase_sqr_impl(dst, src, n);
 }
 
 #endif

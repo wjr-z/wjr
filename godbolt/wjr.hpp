@@ -1,3 +1,11 @@
+#if defined(_MSC_VER)
+/* Microsoft C/C++-compatible compiler */
+#include <intrin.h>
+#elif defined(__GNUC__)
+/* GCC-compatible compiler, targeting x86/x86-64 */
+#include <x86intrin.h>
+#endif
+
 #ifndef WJR_BIGINTEGER_HPP__
 #define WJR_BIGINTEGER_HPP__
 
@@ -529,7 +537,7 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_PP_STR_I(x) #x
 
 #define WJR_PP_STRS(...) WJR_PP_STRS_I(__VA_ARGS__)
-#define WJR_PP_STRS_I(...) # __VA_ARGS__
+#define WJR_PP_STRS_I(...) #__VA_ARGS__
 
 #define WJR_PP_ESC(x) WJR_PP_ESC_(WJR_PP_ESC_I, x)
 #define WJR_PP_ESC_(M, x) M x
@@ -558,9 +566,9 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
     WJR_PP_IS_NULLPTR_I(WJR_PP_CONCAT(WJR_PP_IS_NULLPTR_, VAL), 0)
 #define WJR_PP_IS_NULLPTR_I(...) WJR_PP_IS_NULLPTR_II(__VA_ARGS__)
 #define WJR_PP_IS_NULLPTR_II(HOLDER, VAL, ...) VAL
-#define WJR_PP_IS_NULLPTR_WJR_PP_NULLPTR WJR_PP_HOLDER, 1
+#define WJR_PP_IS_NULLPTR_WJR_PP_NULLPTR _, 1
 
-#define WJR_PP_MAP_DEF(VAL) WJR_PP_HOLDER, VAL
+#define WJR_PP_MAP_DEF(VAL) _, VAL
 
 // if MAP ## KEY is defined as WJR_PP_MAP_DEF, then return VAL
 // else return WJR_PP_NULLPTR
@@ -1283,6 +1291,7 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 // Already included
 // Already included
 
+/** @note Only support value 0/1 currently. */
 #define WJR_HAS_DEF_VAR(var) WJR_PP_MAP_DEF(var)
 #define WJR_HAS_DEF WJR_HAS_DEF_VAR(1)
 
@@ -1299,8 +1308,6 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_HAS_FEATURE_FIND(KEY) WJR_HAS_FIND(WJR_HAS_FEATURE_, KEY)
 #define WJR_HAS_SIMD_FIND(KEY) WJR_HAS_FIND(WJR_HAS_SIMD_, KEY)
 #define WJR_HAS_DEBUG_FIND(KEY) WJR_HAS_FIND(WJR_HAS_DEBUG_, KEY)
-
-//
 
 #if (defined(WJR_COMPILER_GCC) && WJR_HAS_GCC(10, 1, 0)) ||                              \
     (defined(WJR_COMPILER_CLANG) && WJR_HAS_CLANG(10, 0, 0)) ||                          \
@@ -1603,6 +1610,15 @@ std::basic_ostream<CharT, Tratis> &__ostream_insert(std::basic_ostream<CharT, Tr
 #define WJR_RESTRICT __restrict
 #else
 #define WJR_RESTRICT
+#endif
+
+#if defined(WJR_COMPILER_MSVC)
+#define WJR_MS_ABI
+#define WJR_HAS_FEATURE_MS_ABI WJR_HAS_DEF
+#elif defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC)
+#define WJR_MS_ABI __attribute__((__ms_abi__))
+#define WJR_HAS_FEATURE_MS_ABI WJR_HAS_DEF
+#else 
 #endif
 
 #define WJR_ASSUME_MAY_NOT_PURE(expr)                                                    \
@@ -10993,7 +11009,6 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 int popcount(T x) noexcept {
 #elif defined(__GNUC__)
 /* GCC-compatible compiler, targeting x86/x86-64 */
 #include <x86intrin.h>
-
 #endif
 
 #endif // WJR_X86_SIMD_INTRIN_HPP__
@@ -17629,9 +17644,18 @@ WJR_INTRINSIC_CONSTEXPR20 uint8_t __subc_cc_128(uint64_t &al, uint64_t &ah, uint
 #define WJR_HAS_BUILTIN_ASM_SUBC_CC WJR_HAS_DEF
 #define WJR_HAS_BUILTIN___ASM_SUBC_CC_128 WJR_HAS_DEF
 #endif
-#elif defined(WJR_MSVC)
+#else
+
+#if defined(WJR_MSVC)
 #define WJR_HAS_BUILTIN_ASM_SUBC WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_MSVC_ASM_SUBC WJR_HAS_DEF
+#endif
+
+#if defined(WJR_ENABLE_ASSEMBLY)
+#define WJR_HAS_BUILTIN_ASM_SUBC_N WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_ASSEMBLY_ASM_SUBC_N WJR_HAS_DEF
+#endif
+
 #endif
 
 #if WJR_HAS_BUILTIN(MSVC_ASM_SUBC)
@@ -17743,8 +17767,17 @@ WJR_INTRINSIC_INLINE uint64_t asm_subc_cc(uint64_t a, uint64_t b, uint8_t c_in,
 #error "abort"
 #endif
 
-#define WJR_addcsubc WJR_PP_BOOL_IF(WJR_ADDSUB_I, addc, subc)
-#define WJR_adcsbb WJR_PP_BOOL_IF(WJR_ADDSUB_I, adc, sbb)
+#if WJR_ADDSUB_I == 1
+#define WJR_addcsubc addc
+#define WJR_adcsbb adc
+#define __WJR_TEST_ASSEMBLY ASSEMBLY_ASM_ADDC_N
+#else
+#define WJR_addcsubc subc
+#define WJR_adcsbb sbb
+#define __WJR_TEST_ASSEMBLY ASSEMBLY_ASM_SUBC_N
+#endif
+
+#if !WJR_HAS_BUILTIN(__WJR_TEST_ASSEMBLY)
 
 inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
     uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
@@ -17913,7 +17946,7 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
         "mov{q %[r10], -8(%[dst])| [%[dst] - 8], %[r10]}\n\t"
 
         ".Ldone%=:\n\t"
-        "mov %k[rcx], %k[r9]\n\t"
+        "mov{l %k[rcx], %k[r9]| %k[r9], %k[rcx]}\n\t"
         "adc{l %k[rcx], %k[r9]| %k[r9], %k[rcx]}"
 
         : [dst] "+r"(dst), [src0] "+r"(src0), [src1] "+r"(src1), [rcx] "+c"(rcx), 
@@ -17926,6 +17959,22 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
 
     return r9;
 }
+
+#else
+
+extern "C" WJR_MS_ABI uint64_t WJR_PP_CONCAT(
+    __wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(uint64_t *dst, const uint64_t *src0,
+                                                      const uint64_t *src1, size_t n,
+                                                      uint64_t c_in) noexcept;
+
+WJR_INTRINSIC_INLINE int64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
+    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
+    uint64_t c_in) noexcept {
+    return WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(dst, src0,
+                                                                           src1, n, c_in);
+}
+
+#endif
 
 WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(
     uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
@@ -17941,6 +17990,7 @@ WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n
                                                                      c_in);
 }
 
+#undef __WJR_TEST_ASSEMBLY
 #undef WJR_adcsbb
 #undef WJR_addcsubc
 
@@ -19495,9 +19545,18 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 uint8_t __addc_cc_128(uint64_t &al, uint
 #define WJR_HAS_BUILTIN_ASM_ADDC_CC WJR_HAS_DEF
 #define WJR_HAS_BUILTIN___ASM_ADDC_CC_128 WJR_HAS_DEF
 #endif
-#elif defined(WJR_MSVC)
+#else
+
+#if defined(WJR_MSVC)
 #define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_MSVC_ASM_ADDC WJR_HAS_DEF
+#endif
+
+#if defined(WJR_ENABLE_ASSEMBLY)
+#define WJR_HAS_BUILTIN_ASM_ADDC_N WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_ASSEMBLY_ASM_ADDC_N WJR_HAS_DEF
+#endif
+
 #endif
 
 #if WJR_HAS_BUILTIN(MSVC_ASM_ADDC)
@@ -19671,8 +19730,17 @@ WJR_INTRINSIC_INLINE uint64_t asm_addc_cc(uint64_t a, uint64_t b, uint8_t c_in,
 #error "abort"
 #endif
 
-#define WJR_addcsubc WJR_PP_BOOL_IF(WJR_ADDSUB_I, addc, subc)
-#define WJR_adcsbb WJR_PP_BOOL_IF(WJR_ADDSUB_I, adc, sbb)
+#if WJR_ADDSUB_I == 1
+#define WJR_addcsubc addc
+#define WJR_adcsbb adc
+#define __WJR_TEST_ASSEMBLY ASSEMBLY_ASM_ADDC_N
+#else
+#define WJR_addcsubc subc
+#define WJR_adcsbb sbb
+#define __WJR_TEST_ASSEMBLY ASSEMBLY_ASM_SUBC_N
+#endif
+
+#if !WJR_HAS_BUILTIN(__WJR_TEST_ASSEMBLY)
 
 inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
     uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
@@ -19841,7 +19909,7 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
         "mov{q %[r10], -8(%[dst])| [%[dst] - 8], %[r10]}\n\t"
 
         ".Ldone%=:\n\t"
-        "mov %k[rcx], %k[r9]\n\t"
+        "mov{l %k[rcx], %k[r9]| %k[r9], %k[rcx]}\n\t"
         "adc{l %k[rcx], %k[r9]| %k[r9], %k[rcx]}"
 
         : [dst] "+r"(dst), [src0] "+r"(src0), [src1] "+r"(src1), [rcx] "+c"(rcx), 
@@ -19854,6 +19922,22 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
 
     return r9;
 }
+
+#else
+
+extern "C" WJR_MS_ABI uint64_t WJR_PP_CONCAT(
+    __wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(uint64_t *dst, const uint64_t *src0,
+                                                      const uint64_t *src1, size_t n,
+                                                      uint64_t c_in) noexcept;
+
+WJR_INTRINSIC_INLINE int64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
+    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
+    uint64_t c_in) noexcept {
+    return WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(dst, src0,
+                                                                           src1, n, c_in);
+}
+
+#endif
 
 WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(
     uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
@@ -19869,6 +19953,7 @@ WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n
                                                                      c_in);
 }
 
+#undef __WJR_TEST_ASSEMBLY
 #undef WJR_adcsbb
 #undef WJR_addcsubc
 
@@ -21712,6 +21797,11 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(ASM_MUL_1) && WJR_HAS_BUILTIN(ASM_ADDMUL_1)
 #define WJR_HAS_BUILTIN_ASM_BASECASE_MUL_S WJR_HAS_DEF
 #define WJR_HAS_BUILTIN_ASM_BASECASE_SQR WJR_HAS_DEF
+#elif defined(WJR_ENABLE_ASSEMBLY)
+#define WJR_HAS_BUILTIN_ASM_BASECASE_MUL_S WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_ASSEMBLY_ASM_BASECASE_MUL_S WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_ASM_BASECASE_SQR WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_ASSEMBLY_ASM_BASECASE_SQR WJR_HAS_DEF
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_ADDMUL_1)
@@ -22074,28 +22164,49 @@ inline uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
 
 #if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)
 
+#if !WJR_HAS_BUILTIN(ASSEMBLY_ASM_BASECASE_MUL_S)
 extern void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
                                       const uint64_t *src1, size_t m) noexcept;
+#else
+extern "C" WJR_MS_ABI void __wjr_asm_basecase_mul_s_impl(uint64_t *dst,
+                                                         const uint64_t *src0, size_t rdx,
+                                                         const uint64_t *src1,
+                                                         size_t m) noexcept;
+
+WJR_INTRINSIC_INLINE void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0,
+                                                    size_t rdx, const uint64_t *src1,
+                                                    size_t m) noexcept {
+    __wjr_asm_basecase_mul_s_impl(dst, src0, rdx, src1, m);
+}
+#endif
 
 inline void asm_basecase_mul_s(uint64_t *dst, const uint64_t *src0, size_t n,
                                const uint64_t *src1, size_t m) noexcept {
     WJR_ASSERT(n >= m);
     WJR_ASSERT(m >= 1);
-
-    return __asm_basecase_mul_s_impl(dst, src0, n, src1, m);
+    __asm_basecase_mul_s_impl(dst, src0, n, src1, m);
 }
 
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_BASECASE_SQR)
 
+#if !WJR_HAS_BUILTIN(ASSEMBLY_ASM_BASECASE_SQR)
 extern void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
                                     size_t rdx) noexcept;
+#else
+extern "C" WJR_MS_ABI void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
+                                                       size_t rdx) noexcept;
+                                                       
+WJR_INTRINSIC_INLINE void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
+                                                  size_t rdx) noexcept {
+    __wjr_asm_basecase_sqr_impl(dst, src, rdx);
+}
+#endif
 
 inline void asm_basecase_sqr(uint64_t *dst, const uint64_t *src, size_t n) noexcept {
     WJR_ASSERT(n >= 1);
-
-    return __asm_basecase_sqr_impl(dst, src, n);
+    __asm_basecase_sqr_impl(dst, src, n);
 }
 
 #endif
@@ -24417,7 +24528,7 @@ inline uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
         "mov{q %[r8], 24(%[dst], %[r9], 8)| [%[dst] + %[r9] * 8 + 24], %[r8]}\n\t"
         "sbb{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
 
-        "add $4, %[r9]\n\t"
+        "add{q $4, %[r9]| %[r9], 4}\n\t"
         "jne .Lloop%=\n\t"
 
         : [r8] "+&r"(r8), [r9] "+&r"(r9), [r10] "=&r"(r10), [r11] "+&r"(r11)

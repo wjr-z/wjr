@@ -2,7 +2,7 @@
 
 namespace wjr {
 
-#if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)
+#if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S) && !WJR_HAS_BUILTIN(ASSEMBLY_ASM_BASECASE_MUL_S)
 
 void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
                                const uint64_t *src1, size_t m) noexcept {
@@ -353,7 +353,7 @@ void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
 
 #endif // WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)
 
-#if WJR_HAS_BUILTIN(ASM_BASECASE_SQR)
+#if WJR_HAS_BUILTIN(ASM_BASECASE_SQR) && !WJR_HAS_BUILTIN(ASSEMBLY_ASM_BASECASE_SQR)
 
 // Local testing is slower than GMP by 2% to 3%
 void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx) noexcept {
@@ -1083,7 +1083,7 @@ void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx) noe
         "jmp .Ls1l1%=\n\t"
 
         ".Ls1d1%=:\n\t"
-        "add{q -8(%[dst]), %[r8]| [%[dst] - 8], %[r8]}\n\t"
+        "add{q -8(%[dst]), %[r8]| %[r8], [%[dst] - 8]}\n\t"
         "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
         "adc{q %[rcx], %[r9]| %[r9], %[rcx]}\n\t"
         "mov{q %[r9], (%[dst])| [%[dst]], %[r9]}\n\t"
@@ -1162,7 +1162,7 @@ void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx) noe
         "neg %[rbp]\n\t"
         "mov{l %k[rcx], %k[r10]| %k[r10], %k[rcx]}\n\t"
 
-        "lea{q -8(%[src], %[rbp], 8), %[src]| %[src], [%[src] + %[src] * 8 - 8]}\n\t"
+        "lea{q -8(%[src], %[rbp], 8), %[src]| %[src], [%[src] + %[rbp] * 8 - 8]}\n\t"
         "shl{q $0x4, %[rbp]| %[rbp], 4}\n\t"
         "add{q %[rbp], %[dst]| %[dst], %[rbp]}\n\t"
 
@@ -1204,7 +1204,7 @@ void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx) noe
         "jmp .Llsb2%=\n\t"
 
         ".Llsl3%=:\n\t"
-        "mulx{q %[rdx], %[r10], %[r11]| %[r11], %[r11], %[rdx]}\n\t"
+        "mulx{q %[rdx], %[r10], %[r11]| %[r11], %[r10], %[rdx]}\n\t"
         "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
         "mov{q 8(%[dst]), %[rbp]| %[rbp], [%[dst] + 8]}\n\t"
         "adox{q %[rbp], %[rbp]| %[rbp], %[rbp]}\n\t"
@@ -1222,7 +1222,7 @@ void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx) noe
         "jmp .Llsb4%=\n\t"
 
         ".Llsl5%=:\n\t"
-        "mulx{q %[rdx], %[r10], %[r11]| %[r11], %[r11], %[rdx]}\n\t"
+        "mulx{q %[rdx], %[r10], %[r11]| %[r11], %[r10], %[rdx]}\n\t"
         "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
         "mov{q 8(%[dst]), %[rbp]| %[rbp], [%[dst] + 8]}\n\t"
         "adox{q %[rbp], %[rbp]| %[rbp], %[rbp]}\n\t"
@@ -1240,7 +1240,7 @@ void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx) noe
         "jmp .Llsb6%=\n\t"
 
         ".Llsl7%=:\n\t"
-        "mulx{q %[rdx], %[r10], %[r11]| %[r11], %[r11], %[rdx]}\n\t"
+        "mulx{q %[rdx], %[r10], %[r11]| %[r11], %[r10], %[rdx]}\n\t"
         "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
         "mov{q 8(%[dst]), %[rbp]| %[rbp], [%[dst] + 8]}\n\t"
         "adox{q %[rbp], %[rbp]| %[rbp], %[rbp]}\n\t"
@@ -1249,7 +1249,7 @@ void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx) noe
         "jmp .Llsb7%=\n\t"
 
         ".Llsl1%=:\n\t"
-        "mulx{q %[rdx], %[r10], %[r11]| %[r11], %[r11], %[rdx]}\n\t"
+        "mulx{q %[rdx], %[r10], %[r11]| %[r11], %[r10], %[rdx]}\n\t"
         "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
         "mov{q 8(%[dst]), %[rbp]| %[rbp], [%[dst] + 8]}\n\t"
         "adox{q %[rbp], %[rbp]| %[rbp], %[rbp]}\n\t"
@@ -1356,7 +1356,7 @@ void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx) noe
         "mov{q %[r9], 104(%[dst])| [%[dst] + 104], %[r9]}\n\t"
         "mov{q %[r10], 112(%[dst])| [%[dst] + 112], %[r10]}\n\t"
 
-        "lea{q 128(%[dst]), %[dst]| %[dst], %[dst]}\n\t"
+        "lea{q 128(%[dst]), %[dst]| %[dst], [%[dst] + 128]}\n\t"
         "lea{q 64(%[src]), %[src]| %[src], [%[src] + 64]}\n\t"
 
         "jrcxz .Llsloop_out%=\n\t"

@@ -59,7 +59,7 @@ inline uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
         "mov{q %[r8], 24(%[dst], %[r9], 8)| [%[dst] + %[r9] * 8 + 24], %[r8]}\n\t"
         "sbb{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
 
-        "add $4, %[r9]\n\t"
+        "add{q $4, %[r9]| %[r9], 4}\n\t"
         "jne .Lloop%=\n\t"
 
         : [r8] "+&r"(r8), [r9] "+&r"(r9), [r10] "=&r"(r10), [r11] "+&r"(r11)
