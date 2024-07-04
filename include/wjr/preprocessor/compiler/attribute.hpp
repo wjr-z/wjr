@@ -123,10 +123,11 @@
 #if defined(WJR_COMPILER_MSVC)
 #define WJR_MS_ABI
 #define WJR_HAS_FEATURE_MS_ABI WJR_HAS_DEF
-#elif defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC)
+#elif WJR_HAS_ATTRIBUTE(__ms_abi__)
 #define WJR_MS_ABI __attribute__((__ms_abi__))
 #define WJR_HAS_FEATURE_MS_ABI WJR_HAS_DEF
-#else 
+#elif defined(WJR_ENABLE_ASSEMBLY)
+#undef WJR_ENABLE_ASSEMBLY
 #endif
 
 #define WJR_ASSUME_MAY_NOT_PURE(expr)                                                    \
@@ -236,6 +237,12 @@
 #define WJR_MALLOC __attribute__((malloc))
 #else
 #define WJR_MALLOC
+#endif
+
+#if WJR_HAS_ATTRIBUTE(nonnull)
+#define WJR_NONNULL(...) __attribute__((__VA_ARGS__))
+#else
+#define WJR_NONNULL(...)
 #endif
 
 #define WJR_INLINE inline

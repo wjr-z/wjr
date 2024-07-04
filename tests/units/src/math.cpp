@@ -25,7 +25,7 @@ TEST(math, popcount_ctz_clz) {
     auto ctz_ans = popcount<type>((type)(lowbit(n) - 1));                                \
     WJR_ASSERT((x == 0 ? std::numeric_limits<type>::digits : fallback_ctz<type>(x)) ==   \
                ctz_ans)                                                                  \
-    WJR_PP_BOOL_IF(                                                                      \
+    WJR_PP_BOOL_IF_NE(                                                                   \
         WJR_HAS_BUILTIN(CTZ), ;                                                          \
         do { WJR_ASSERT((countr_zero<type>(x) == ctz_ans)); } while (0), );
 #define WJR_TEST_CLZ_I(type, x, ans)                                                     \
@@ -52,7 +52,7 @@ TEST(math, popcount_ctz_clz) {
     }();                                                                                 \
     WJR_ASSERT((x == 0 ? std::numeric_limits<type>::digits : fallback_clz<type>(x)) ==   \
                clz_ans)                                                                  \
-    WJR_PP_BOOL_IF(                                                                      \
+    WJR_PP_BOOL_IF_NE(                                                                   \
         WJR_HAS_BUILTIN(CTZ), ;                                                          \
         do { WJR_ASSERT((countl_zero<type>(x) == clz_ans)); } while (0), );
 
@@ -170,7 +170,7 @@ TEST(math, addc) {
             WJR_ASSERT((builtin_addc<type, type>(x, y, ci, co) == ans && co == ans_co)); \
         } while (0),                                                                     \
         {});                                                                             \
-    WJR_PP_BOOL_IF(                                                                      \
+    WJR_PP_BOOL_IF_NE(                                                                   \
         WJR_HAS_BUILTIN(ASM_ADDC), do {                                                  \
             if constexpr (std::is_same_v<type, uint64_t>) {                              \
                 WJR_ASSERT((asm_addc<type>(x, y, ci, co) == ans && co == ans_co));       \
@@ -357,7 +357,7 @@ TEST(math, sub) {
         WJR_HAS_BUILTIN(SUBC), ; do {                                                    \
             WJR_ASSERT((builtin_subc<type, type>(x, y, ci, co) == ans && co == ans_co)); \
         } while (0), )                                                                   \
-    WJR_PP_BOOL_IF(                                                                      \
+    WJR_PP_BOOL_IF_NE(                                                                   \
         WJR_HAS_BUILTIN(ASM_SUBC), ; do {                                                \
             if constexpr (std::is_same_v<type, uint64_t>) {                              \
                 WJR_ASSERT((asm_subc<type>(x, y, ci, co) == ans && co == ans_co));       \

@@ -31,22 +31,22 @@ inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
 inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
                                  uint64_t div) noexcept;
 
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
-                                        size_t n,
-                                        const div2by1_divider<uint64_t> &div) noexcept;
+WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
+                                   size_t n,
+                                   const div2by1_divider<uint64_t> &div) noexcept;
 
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
-                                        size_t n, uint64_t div) noexcept;
+WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
+                                   size_t n, uint64_t div) noexcept;
 
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                        size_t n,
-                                        const div3by2_divider<uint64_t> &div) noexcept;
+WJR_INTRINSIC_INLINE void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                   size_t n,
+                                   const div3by2_divider<uint64_t> &div) noexcept;
 
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                        size_t n, const uint64_t *div) noexcept;
+WJR_INTRINSIC_INLINE void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                   size_t n, const uint64_t *div) noexcept;
 
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                        size_t n, const uint64_t *div, size_t m) noexcept;
+WJR_INTRINSIC_INLINE void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                   size_t n, const uint64_t *div, size_t m) noexcept;
 
 WJR_INTRINSIC_CONSTEXPR20 uint64_t divexact_dbm1c(uint64_t *dst, const uint64_t *src,
                                                   size_t n, uint64_t bd,

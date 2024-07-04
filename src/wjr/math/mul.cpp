@@ -1677,11 +1677,11 @@ void toom53_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     }
 
     //  W2 = T0 * T2; f(1)
-    __mul_n<__mul_mode::toom44, 4, 2>(w2p, t0p, t2p, l, stk, cf2, cft0, cft2);
+    __mul_n<__mul_mode::all, in_place_max, 2>(w2p, t0p, t2p, l, stk, cf2, cft0, cft2);
 
     //  W3 = T1 * W5; f(-1)
     neg0 ^= neg1;
-    __mul_n<__mul_mode::toom44, 2, 1>(w3p, t1p, w5p, l, stk, cf3, cft1, cf5);
+    __mul_n<__mul_mode::all, 2, 1>(w3p, t1p, w5p, l, stk, cf3, cft1, cf5);
 
     //  W5 = (W5 + V2) << 1 - V0; v(-2)
     if (!neg1) {
@@ -1733,10 +1733,10 @@ void toom53_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
 
     //  W1 = T1 * W5; f(-2)
     neg1 ^= neg2;
-    __mul_n<__mul_mode::toom44, in_place_max, 4>(w1p, t1p, w5p, l, stk, cf1, cft1, cf5);
+    __mul_n<__mul_mode::all>(w1p, t1p, w5p, l, stk, cf1, cft1, cf5);
 
     //  W4 = T0 * T2; f(2)
-    __mul_n<__mul_mode::toom44, in_place_max, 6>(w4p, t0p, t2p, l, stk, cf4, cft0, cft2);
+    __mul_n<__mul_mode::all>(w4p, t0p, t2p, l, stk, cf4, cft0, cft2);
 
     //  T0 = (((2U0 + U1) << 1 + U2) << 1 + U3) << 1 + U4; 16 * u(1/2)
     cft0 = addlsh_n(t0p, u1p, u0p, l, 1);
@@ -1751,10 +1751,10 @@ void toom53_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     WJR_ASSERT(cft1 <= 6);
 
     //  W5 = T0 * T1; 64 * f(1/2)
-    __mul_n<__mul_mode::toom44>(w5p, t0p, t1p, l, stk, cf5, cft0, cft1);
+    __mul_n<__mul_mode::all>(w5p, t0p, t1p, l, stk, cf5, cft0, cft1);
 
     //  W0 = U0 * V0; f(0)
-    __mul_n<__mul_mode::toom44>(w0p, u0p, v0p, l, stk);
+    __mul_n<__mul_mode::all>(w0p, u0p, v0p, l, stk);
 
     //  W6 = U4 * V2; f(inf)
     if (rn >= rm) {
@@ -1902,11 +1902,11 @@ void toom44_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     }
 
     //  W2 = T0 * W4; f(1)
-    __mul_n<__mul_mode::toom44, 3, 3>(w2p, t0p, w4p, l, stk, cf2, cft0, cf4);
+    __mul_n<__mul_mode::all, 3, 3>(w2p, t0p, w4p, l, stk, cf2, cft0, cf4);
 
     //  W3 = T1 * W1; f(-1)
     neg0 ^= neg1;
-    __mul_n<__mul_mode::toom44, 1, 1>(w3p, t1p, w1p, l, stk, cf3, cft1, cf1);
+    __mul_n<__mul_mode::all, 1, 1>(w3p, t1p, w1p, l, stk, cf3, cft1, cf1);
 
     //  T0 = U0 + 4U2;
     cft0 = addlsh_n(t0p, u0p, u2p, l, 2);
@@ -1949,11 +1949,11 @@ void toom44_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     }
 
     //  W4 = T0 * W1; f(2)
-    __mul_n<__mul_mode::toom44>(w4p, t0p, w1p, l, stk, cf4, cft0, cf1);
+    __mul_n<__mul_mode::all>(w4p, t0p, w1p, l, stk, cf4, cft0, cf1);
 
     //  W1 = T1 * W5; f(-2)
     neg1 ^= neg2;
-    __mul_n<__mul_mode::toom44>(w1p, t1p, w5p, l, stk, cf1, cft1, cf5);
+    __mul_n<__mul_mode::all>(w1p, t1p, w5p, l, stk, cf1, cft1, cf5);
 
     //  T0 = ((2U0 + U1) << 1 + U2) << 1 + U3; 8 * u(1/2)
     cft0 = addlsh_n(t0p, u1p, u0p, l, 1);
@@ -1968,10 +1968,10 @@ void toom44_mul_s(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, size_t n,
     WJR_ASSERT(cft1 <= 14);
 
     //  W5 = T0 * T1; 64 * f(1/2)
-    __mul_n<__mul_mode::toom44>(w5p, t0p, t1p, l, stk, cf5, cft0, cft1);
+    __mul_n<__mul_mode::all>(w5p, t0p, t1p, l, stk, cf5, cft0, cft1);
 
     //  W0 = U0 * V0; f(0)
-    __mul_n<__mul_mode::toom44>(w0p, u0p, v0p, l, stk);
+    __mul_n<__mul_mode::all>(w0p, u0p, v0p, l, stk);
 
     //  W6 = U3 * V3; f(inf)
     if (rn >= rm) {
@@ -2084,10 +2084,10 @@ void toom4_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
     WJR_ASSERT(cft0 <= 3);
 
     //  W2 = T0 ^ 2; f(1)
-    __sqr<__mul_mode::toom44, 3>(w2p, t0p, l, stk, cf2, cft0);
+    __sqr<__mul_mode::all, 3>(w2p, t0p, l, stk, cf2, cft0);
 
     //  W3 = T1 ^ 2; f(-1)
-    __sqr<__mul_mode::toom44, 1>(w3p, t1p, l, stk, cf3, cft1);
+    __sqr<__mul_mode::all, 1>(w3p, t1p, l, stk, cf3, cft1);
 
     //  T0 = U0 + 4U2;
     cft0 = addlsh_n(t0p, u0p, u2p, l, 2);
@@ -2109,10 +2109,10 @@ void toom4_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
     WJR_ASSERT(cft0 <= 14);
 
     //  W4 = T0 ^ 2; f(2)
-    __sqr<__mul_mode::toom44>(w4p, t0p, l, stk, cf4, cft0);
+    __sqr<__mul_mode::all>(w4p, t0p, l, stk, cf4, cft0);
 
     //  W1 = T1 * W5; f(-2)
-    __sqr<__mul_mode::toom44>(w1p, t1p, l, stk, cf1, cft1);
+    __sqr<__mul_mode::all>(w1p, t1p, l, stk, cf1, cft1);
 
     //  T0 = ((2U0 + U1) << 1 + U2) << 1 + U3; 8 * u(1/2)
     cft0 = addlsh_n(t0p, u1p, u0p, l, 1);
@@ -2121,13 +2121,13 @@ void toom4_sqr(uint64_t *WJR_RESTRICT dst, const uint64_t *src, size_t n,
     WJR_ASSERT(cft0 <= 14);
 
     //  W5 = T0 ^ 2; 64 * f(1/2)
-    __sqr<__mul_mode::toom44>(w5p, t0p, l, stk, cf5, cft0);
+    __sqr<__mul_mode::all>(w5p, t0p, l, stk, cf5, cft0);
 
     //  W0 = U0 * V0; f(0)
-    __sqr<__mul_mode::toom44>(w0p, u0p, l, stk);
+    __sqr<__mul_mode::all>(w0p, u0p, l, stk);
 
     //  W6 = U3 * V3; f(inf)
-    __sqr<__mul_mode::toom44>(w6p, u3p, rn, stk);
+    __sqr<__mul_mode::all>(w6p, u3p, rn, stk);
 
     toom_interpolation_7p_s(dst, w1p, l, rn, rn,
                             toom_interpolation_7p_struct{0, 0, cf1, cf2, cf3, cf4, cf5});

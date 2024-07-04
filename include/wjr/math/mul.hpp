@@ -416,8 +416,14 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t try_addmul_1(uint64_t *dst, const uint64_t *s
         return 0;
     }
 
-    if (ml == 0) {
-        return 0;
+    if constexpr (maxn <= 3) {
+        if (ml == 0) {
+            return 0;
+        }
+    } else {
+        if (WJR_UNLIKELY(ml == 0)) {
+            return 0;
+        }
     }
 
     if constexpr (maxn == 1) {
@@ -453,7 +459,6 @@ inline constexpr size_t toom3_sqr_threshold = WJR_TOOM3_SQR_THRESHOLD;
 enum class __mul_mode : uint8_t {
     toom22 = 0x00,
     toom33 = 0x01,
-    toom44 = 0x02,
     all = 0x03,
 };
 
@@ -652,6 +657,7 @@ void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *s
     } else {
         c_out = cf0 * cf1;
     }
+
     c_out += try_addmul_1<m0>(dst + n, src1, n, cf0);
     c_out += try_addmul_1<m1>(dst + n, src0, n, cf1);
 }

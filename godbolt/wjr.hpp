@@ -1506,10 +1506,11 @@
 #if defined(WJR_COMPILER_MSVC)
 #define WJR_MS_ABI
 #define WJR_HAS_FEATURE_MS_ABI WJR_HAS_DEF
-#elif defined(WJR_COMPILER_CLANG) || defined(WJR_COMPILER_GCC)
+#elif WJR_HAS_ATTRIBUTE(__ms_abi__)
 #define WJR_MS_ABI __attribute__((__ms_abi__))
 #define WJR_HAS_FEATURE_MS_ABI WJR_HAS_DEF
-#else 
+#elif defined(WJR_ENABLE_ASSEMBLY)
+#undef WJR_ENABLE_ASSEMBLY
 #endif
 
 #define WJR_ASSUME_MAY_NOT_PURE(expr)                                                    \
@@ -1619,6 +1620,12 @@
 #define WJR_MALLOC __attribute__((malloc))
 #else
 #define WJR_MALLOC
+#endif
+
+#if WJR_HAS_ATTRIBUTE(nonnull)
+#define WJR_NONNULL(...) __attribute__((__VA_ARGS__))
+#else
+#define WJR_NONNULL(...)
 #endif
 
 #define WJR_INLINE inline
@@ -21877,18 +21884,6 @@ namespace wjr {
 #if defined(__BMI2__) && defined(__ADX__)
 
 #if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
-#define WJR_HAS_BUILTIN_ASM_BASECASE_MUL_S WJR_HAS_DEF
-#define WJR_HAS_BUILTIN_ASM_BASECASE_SQR WJR_HAS_DEF
-#elif defined(WJR_ENABLE_ASSEMBLY)
-#define WJR_HAS_BUILTIN_ASM_BASECASE_MUL_S WJR_HAS_DEF_VAR(3)
-#define WJR_HAS_BUILTIN_ASM_BASECASE_SQR WJR_HAS_DEF_VAR(3)
-#endif
-
-#endif
-
-#if defined(__BMI2__) && defined(__ADX__)
-
-#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_HAS_BUILTIN_ASM_SUBMUL_1 WJR_HAS_DEF
 #elif defined(WJR_ENABLE_ASSEMBLY)
 #define WJR_HAS_BUILTIN_ASM_SUBMUL_1 WJR_HAS_DEF_VAR(3)
@@ -21904,6 +21899,18 @@ namespace wjr {
 #elif defined(WJR_ENABLE_ASSEMBLY)
 #define WJR_HAS_BUILTIN_ASM_ADDLSH_N WJR_HAS_DEF_VAR(3)
 #define WJR_HAS_BUILTIN_ASM_RSBLSH_N WJR_HAS_DEF_VAR(3)
+#endif
+
+#endif
+
+#if defined(__BMI2__) && defined(__ADX__)
+
+#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
+#define WJR_HAS_BUILTIN_ASM_BASECASE_MUL_S WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_ASM_BASECASE_SQR WJR_HAS_DEF
+#elif defined(WJR_ENABLE_ASSEMBLY)
+#define WJR_HAS_BUILTIN_ASM_BASECASE_MUL_S WJR_HAS_DEF_VAR(3)
+#define WJR_HAS_BUILTIN_ASM_BASECASE_SQR WJR_HAS_DEF_VAR(3)
 #endif
 
 #endif
@@ -21940,162 +21947,12 @@ WJR_INTRINSIC_INLINE uint64_t builtin_umul128(uint64_t a, uint64_t b,
 #if WJR_HAS_BUILTIN(ASM_MUL_1)
 
 #if WJR_HAS_BUILTIN(ASM_MUL_1) == 1
-
-inline uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n,
-                          uint64_t rdx) noexcept {
-    size_t rcx = n / 8;
-    uint64_t r8, r9, r10 = n, r11;
-
-    const auto pdst = dst;
-    const auto psrc = src;
-
-    (void)(pdst);
-    (void)(psrc);
-
-    asm volatile(
-        "and{l $7, %k[r10]| %k[r10], 7}\n\t"
-        "lea{q| %[r9], [rip +} .Llookup%={(%%rip), %[r9]|]}\n\t"
-        "movs{lq (%[r9], %[r10], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + "
-        "%[r10] * 4]}\n\t"
-        "lea{q (%[r9], %[r10], 1), %[r10]| %[r10], [%[r10] + %[r9]]}\n\t"
-        "jmp{q *%[r10]| %[r10]}\n\t"
-
-        ".align 8\n\t"
-        ".Llookup%=:\n\t"
-        ".long .Ll0%=-.Llookup%=\n\t"
-        ".long .Ll1%=-.Llookup%=\n\t"
-        ".long .Ll2%=-.Llookup%=\n\t"
-        ".long .Ll3%=-.Llookup%=\n\t"
-        ".long .Ll4%=-.Llookup%=\n\t"
-        ".long .Ll5%=-.Llookup%=\n\t"
-        ".long .Ll6%=-.Llookup%=\n\t"
-        ".long .Ll7%=-.Llookup%=\n\t"
-        ".align 16\n\t"
-
-        ".Ll0%=:\n\t"
-        "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "jmp .Lb0%=\n\t"
-
-        ".Ll2%=:\n\t"
-        "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "lea{q -48(%[src]), %[src]| %[src], [%[src] - 48]}\n\t"
-        "lea{q -48(%[dst]), %[dst]| %[dst], [%[dst] - 48]}\n\t"
-        "inc %[rcx]\n\t"
-        "jmp .Lb2%=\n\t"
-
-        ".Ll3%=:\n\t"
-        "mulx{q (%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "lea{q -40(%[src]), %[src]| %[src], [%[src] - 40]}\n\t"
-        "lea{q -40(%[dst]), %[dst]| %[dst], [%[dst] - 40]}\n\t"
-        "inc %[rcx]\n\t"
-        "jmp .Lb3%=\n\t"
-
-        ".Ll4%=:\n\t"
-        "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "lea{q -32(%[src]), %[src]| %[src], [%[src] - 32]}\n\t"
-        "lea{q -32(%[dst]), %[dst]| %[dst], [%[dst] - 32]}\n\t"
-        "inc %[rcx]\n\t"
-        "jmp .Lb4%=\n\t"
-
-        ".Ll5%=:\n\t"
-        "mulx{q (%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "lea{q -24(%[src]), %[src]| %[src], [%[src] - 24]}\n\t"
-        "lea{q -24(%[dst]), %[dst]| %[dst], [%[dst] - 24]}\n\t"
-        "inc %[rcx]\n\t"
-        "jmp .Lb5%=\n\t"
-
-        ".Ll6%=:\n\t"
-        "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "lea{q -16(%[src]), %[src]| %[src], [%[src] - 16]}\n\t"
-        "lea{q -16(%[dst]), %[dst]| %[dst], [%[dst] - 16]}\n\t"
-        "inc %[rcx]\n\t"
-        "jmp .Lb6%=\n\t"
-
-        ".Ll7%=:\n\t"
-        "mulx{q (%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "lea{q -8(%[src]), %[src]| %[src], [%[src] - 8]}\n\t"
-        "lea{q -8(%[dst]), %[dst]| %[dst], [%[dst] - 8]}\n\t"
-        "inc %[rcx]\n\t"
-        "jmp .Lb7%=\n\t"
-
-        ".Ld1%=:\n\t"
-        "jmp .Ldone%=\n\t"
-
-        ".Ll1%=:\n\t"
-        "mulx{q (%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "lea{q 8(%[src]), %[src]| %[src], [%[src] + 8]}\n\t"
-        "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
-        "jrcxz .Ld1%=\n\t"
-
-        ".align 32\n\t"
-        ".Lloop%=:\n\t"
-
-        ".Lb1%=:\n\t"
-        "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
-        "adc{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
-
-        ".Lb0%=:\n\t"
-        "mulx{q 8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 8]}\n\t"
-        "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
-        "adc{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
-
-        ".Lb7%=:\n\t"
-        "mulx{q 16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] + 16]}\n\t"
-        "mov{q %[r8], 8(%[dst])| [%[dst] + 8], %[r8]}\n\t"
-        "adc{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
-
-        ".Lb6%=:\n\t"
-        "mulx{q 24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 24]}\n\t"
-        "mov{q %[r10], 16(%[dst])| [%[dst] + 16], %[r10]}\n\t"
-        "adc{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
-
-        ".Lb5%=:\n\t"
-        "mulx{q 32(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] + 32]}\n\t"
-        "mov{q %[r8], 24(%[dst])| [%[dst] + 24], %[r8]}\n\t"
-        "adc{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
-
-        ".Lb4%=:\n\t"
-        "mulx{q 40(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 40]}\n\t"
-        "mov{q %[r10], 32(%[dst])| [%[dst] + 32], %[r10]}\n\t"
-        "adc{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
-
-        ".Lb3%=:\n\t"
-        "mulx{q 48(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] + 48]}\n\t"
-        "mov{q %[r8], 40(%[dst])| [%[dst] + 40], %[r8]}\n\t"
-        "adc{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
-
-        ".Lb2%=:\n\t"
-        "mulx{q 56(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 56]}\n\t"
-        "mov{q %[r10], 48(%[dst])| [%[dst] + 48], %[r10]}\n\t"
-        "adc{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
-
-        "lea{q 64(%[src]), %[src]| %[src], [%[src] + 64]}\n\t"
-        "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
-
-        "dec %[rcx]\n\t"
-        "jne .Lloop%=\n\t"
-
-        "adc{q %[rcx], %[r9]| %[r9], %[rcx]}\n\t"
-        ".Ldone%=:\n\t"
-        "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
-
-        : [dst] "+&r"(dst), [src] "+&r"(src), [rcx] "+&c"(rcx), [r8] "=&r"(r8),
-          [r9] "=&r"(r9), [r10] "+&r"(r10), [r11] "=&r"(r11)
-        : "d"(rdx)
-        : "cc", "memory");
-
-    WJR_ASSERT_ASSUME(rcx == 0);
-    WJR_ASSERT_ASSUME(dst == pdst + n);
-    WJR_ASSERT_ASSUME(src == psrc + n);
-
-    return r9;
-}
-
+extern uint64_t __wjr_asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n,
+                                uint64_t rdx) noexcept;
 #else
-
 extern "C" WJR_MS_ABI uint64_t __wjr_asm_mul_1(uint64_t *dst, const uint64_t *src,
                                                size_t n, uint64_t rdx) noexcept;
+#endif
 
 WJR_INTRINSIC_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n,
                                         uint64_t rdx) noexcept {
@@ -22104,177 +21961,15 @@ WJR_INTRINSIC_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size
 
 #endif
 
-#endif
-
 #if WJR_HAS_BUILTIN(ASM_ADDMUL_1)
 
 #if WJR_HAS_BUILTIN(ASM_ADDMUL_1) == 1
-
-inline uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
-                             uint64_t rdx) noexcept {
-    size_t rcx = n / 8;
-    uint64_t r8, r9, r10 = n, r11;
-
-    const auto pdst = dst;
-    const auto psrc = src;
-
-    (void)(pdst);
-    (void)(psrc);
-
-    asm volatile(
-        "and{l $7, %k[r10]| %k[r10], 7}\n\t"
-        "lea{q| %[r9], [rip +} .Llookup%={(%%rip), %[r9]|]}\n\t"
-        "movs{lq (%[r9], %[r10], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + "
-        "%[r10] * 4]}\n\t"
-        "lea{q (%[r9], %[r10], 1), %[r10]| %[r10], [%[r10] + %[r9]]}\n\t"
-        "jmp{q *%[r10]| %[r10]}\n\t"
-
-        ".align 8\n\t"
-        ".Llookup%=:\n\t"
-        ".long .Ll0%=-.Llookup%=\n\t"
-        ".long .Ll1%=-.Llookup%=\n\t"
-        ".long .Ll2%=-.Llookup%=\n\t"
-        ".long .Ll3%=-.Llookup%=\n\t"
-        ".long .Ll4%=-.Llookup%=\n\t"
-        ".long .Ll5%=-.Llookup%=\n\t"
-        ".long .Ll6%=-.Llookup%=\n\t"
-        ".long .Ll7%=-.Llookup%=\n\t"
-        ".align 16\n\t"
-
-        ".Ll0%=:\n\t"
-        "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "jmp .Lb0%=\n\t"
-
-        ".Ll2%=:\n\t"
-        "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "lea{q 16(%[src]), %[src]| %[src], [%[src] + 16]}\n\t"
-        "lea{q -48(%[dst]), %[dst]| %[dst], [%[dst] - 48]}\n\t"
-        "jmp .Lb2%=\n\t"
-
-        ".Ll3%=:\n\t"
-        "mulx{q (%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "lea{q 24(%[src]), %[src]| %[src], [%[src] + 24]}\n\t"
-        "lea{q -40(%[dst]), %[dst]| %[dst], [%[dst] - 40]}\n\t"
-        "jmp .Lb3%=\n\t"
-
-        ".Ll4%=:\n\t"
-        "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "lea{q 32(%[src]), %[src]| %[src], [%[src] + 32]}\n\t"
-        "lea{q -32(%[dst]), %[dst]| %[dst], [%[dst] - 32]}\n\t"
-        "jmp .Lb4%=\n\t"
-
-        ".Ll5%=:\n\t"
-        "mulx{q (%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "lea{q 40(%[src]), %[src]| %[src], [%[src] + 40]}\n\t"
-        "lea{q -24(%[dst]), %[dst]| %[dst], [%[dst] - 24]}\n\t"
-        "jmp .Lb5%=\n\t"
-
-        ".Ll6%=:\n\t"
-        "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "lea{q -16(%[src]), %[src]| %[src], [%[src] - 16]}\n\t"
-        "lea{q -16(%[dst]), %[dst]| %[dst], [%[dst] - 16]}\n\t"
-        "jmp .Lb6%=\n\t"
-
-        ".Ll7%=:\n\t"
-        "mulx{q (%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "lea{q -8(%[src]), %[src]| %[src], [%[src] - 8]}\n\t"
-        "lea{q -8(%[dst]), %[dst]| %[dst], [%[dst] - 8]}\n\t"
-        "jmp .Lb7%=\n\t"
-
-        ".Ld1%=:\n\t"
-        "add{q -8(%[dst]), %[r8]| %[r8], [%[dst] - 8]}\n\t"
-        "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
-        "adc{q %[rcx], %[r9]| %[r9], %[rcx]}\n\t"
-        "jmp .Ldone%=\n\t"
-
-        ".Ll1%=:\n\t"
-        "mulx{q (%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "lea{q 8(%[src]), %[src]| %[src], [%[src] + 8]}\n\t"
-        "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
-        "jrcxz .Ld1%=\n\t"
-
-        ".align 32\n\t"
-        ".Lloop%=:\n\t"
-
-        ".Lb1%=:\n\t"
-        "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "adcx{q -8(%[dst]), %[r8]| %[r8], [%[dst] - 8]}\n\t"
-        "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
-        "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
-
-        ".Lb0%=:\n\t"
-        "mulx{q 8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 8]}\n\t"
-        "lea{q -1(%[rcx]), %[rcx]| %[rcx], [%[rcx] - 1]}\n\t"
-        "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
-        "adcx{q (%[dst]), %[r10]| %[r10], [%[dst]]}\n\t"
-        "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
-
-        ".Lb7%=:\n\t"
-        "mulx{q 16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] + 16]}\n\t"
-        "adcx{q 8(%[dst]), %[r8]| %[r8], [%[dst] + 8]}\n\t"
-        "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
-        "mov{q %[r8], 8(%[dst])| [%[dst] + 8], %[r8]}\n\t"
-
-        ".Lb6%=:\n\t"
-        "mulx{q 24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 24]}\n\t"
-        "lea{q 64(%[src]), %[src]| %[src], [%[src] + 64]}\n\t"
-        "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
-        "adcx{q 16(%[dst]), %[r10]| %[r10], [%[dst] + 16]}\n\t"
-        "mov{q %[r10], 16(%[dst])| [%[dst] + 16], %[r10]}\n\t"
-
-        ".Lb5%=:\n\t"
-        "mulx{q -32(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 32]}\n\t"
-        "adcx{q 24(%[dst]), %[r8]| %[r8], [%[dst] + 24]}\n\t"
-        "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
-        "mov{q %[r8], 24(%[dst])| [%[dst] + 24], %[r8]}\n\t"
-
-        ".Lb4%=:\n\t"
-        "mulx{q -24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 24]}\n\t"
-        "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
-        "adcx{q 32(%[dst]), %[r10]| %[r10], [%[dst] + 32]}\n\t"
-        "mov{q %[r10], 32(%[dst])| [%[dst] + 32], %[r10]}\n\t"
-
-        ".Lb3%=:\n\t"
-        "mulx{q -16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 16]}\n\t"
-        "adcx{q 40(%[dst]), %[r8]| %[r8], [%[dst] + 40]}\n\t"
-        "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
-        "mov{q %[r8], 40(%[dst])| [%[dst] + 40], %[r8]}\n\t"
-
-        ".Lb2%=:\n\t"
-        "mulx{q -8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 8]}\n\t"
-        "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
-        "adcx{q 48(%[dst]), %[r10]| %[r10], [%[dst] + 48]}\n\t"
-        "mov{q %[r10], 48(%[dst])| [%[dst] + 48], %[r10]}\n\t"
-
-        "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
-
-        "jrcxz .Lloop_out%=\n\t"
-        "jmp .Lloop%=\n\t"
-        ".Lloop_out%=:\n\t"
-
-        "adcx{q -8(%[dst]), %[r8]| %[r8], [%[dst] - 8]}\n\t"
-        "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
-        "adox{q %[rcx], %[r9]| %[r9], %[rcx]}\n\t"
-        "adc{q %[rcx], %[r9]| %[r9], %[rcx]}\n\t"
-
-        ".Ldone%=:"
-
-        : [dst] "+&r"(dst), [src] "+&r"(src), [rcx] "+&c"(rcx), [r8] "=&r"(r8),
-          [r9] "=&r"(r9), [r10] "+&r"(r10), [r11] "=&r"(r11)
-        : "d"(rdx)
-        : "cc", "memory");
-
-    WJR_ASSERT_ASSUME(rcx == 0);
-    WJR_ASSERT_ASSUME(dst == pdst + n);
-    WJR_ASSERT_ASSUME(src == psrc + n);
-
-    return r9;
-}
-
+extern uint64_t __wjr_asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
+                                   uint64_t rdx) noexcept;
 #else
-
 extern "C" WJR_MS_ABI uint64_t __wjr_asm_addmul_1(uint64_t *dst, const uint64_t *src,
                                                   size_t n, uint64_t rdx) noexcept;
+#endif
 
 WJR_INTRINSIC_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
                                            uint64_t rdx) noexcept {
@@ -22283,229 +21978,21 @@ WJR_INTRINSIC_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, s
 
 #endif
 
-#endif
-
-#if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)
-
-#if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S) == 1
-extern void __wjr_asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
-                                          const uint64_t *src1, size_t m) noexcept;
-#else
-extern "C" WJR_MS_ABI void __wjr_asm_basecase_mul_s_impl(uint64_t *dst,
-                                                         const uint64_t *src0, size_t rdx,
-                                                         const uint64_t *src1,
-                                                         size_t m) noexcept;
-#endif
-
-inline void asm_basecase_mul_s(uint64_t *dst, const uint64_t *src0, size_t n,
-                               const uint64_t *src1, size_t m) noexcept {
-    WJR_ASSERT(n >= m);
-    WJR_ASSERT(m >= 1);
-    __wjr_asm_basecase_mul_s_impl(dst, src0, n, src1, m);
-}
-
-#endif
-
-#if WJR_HAS_BUILTIN(ASM_BASECASE_SQR)
-
-#if WJR_HAS_BUILTIN(ASM_BASECASE_SQR) == 1
-extern void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
-                                        size_t rdx) noexcept;
-#else
-extern "C" WJR_MS_ABI void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
-                                                       size_t rdx) noexcept;
-#endif
-
-inline void asm_basecase_sqr(uint64_t *dst, const uint64_t *src, size_t n) noexcept {
-    WJR_ASSERT(n >= 1);
-    __wjr_asm_basecase_sqr_impl(dst, src, n);
-}
-
-#endif
-
 #if WJR_HAS_BUILTIN(ASM_SUBMUL_1)
 
 #if WJR_HAS_BUILTIN(ASM_SUBMUL_1) == 1
-
 // slower than asm_addmul_1
-inline uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
-                             uint64_t rdx) noexcept {
-    WJR_ASSERT(n != 0);
-
-    size_t rcx = n / 8;
-    uint64_t r8, r9, r10 = static_cast<uint32_t>(n), r11;
-
-    asm volatile(
-        // set CF = 1, OF = 0
-        "and{l $7, %k[r10]| %k[r10], 7}\n\t"
-        "stc\n\t"
-
-        "lea{q| %[r9], [rip +} .Llookup%={(%%rip), %[r9]|]}\n\t"
-        "movs{lq (%[r9], %[r10], 4), %[r10]|xd %[r10], DWORD PTR [%[r9] + %[r10] * "
-        "4]}\n\t"
-        "lea{q (%[r9], %[r10], 1), %[r10]| %[r10], [%[r10] + %[r9]]}\n\t"
-        "jmp{q *%[r10]| %[r10]}\n\t"
-
-        ".align 8\n\t"
-        ".Llookup%=:\n\t"
-        ".long .Ll0%=-.Llookup%=\n\t"
-        ".long .Ll1%=-.Llookup%=\n\t"
-        ".long .Ll2%=-.Llookup%=\n\t"
-        ".long .Ll3%=-.Llookup%=\n\t"
-        ".long .Ll4%=-.Llookup%=\n\t"
-        ".long .Ll5%=-.Llookup%=\n\t"
-        ".long .Ll6%=-.Llookup%=\n\t"
-        ".long .Ll7%=-.Llookup%=\n\t"
-        ".align 16\n\t"
-
-        ".Ll0%=:\n\t"
-        "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "jmp .Lb0%=\n\t"
-
-        ".Ll2%=:\n\t"
-        "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "lea{q 16(%[src]), %[src]| %[src], [%[src] + 16]}\n\t"
-        "lea{q -48(%[dst]), %[dst]| %[dst], [%[dst] - 48]}\n\t"
-        "jmp .Lb2%=\n\t"
-
-        ".Ll3%=:\n\t"
-        "mulx{q (%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "lea{q 24(%[src]), %[src]| %[src], [%[src] + 24]}\n\t"
-        "lea{q -40(%[dst]), %[dst]| %[dst], [%[dst] - 40]}\n\t"
-        "jmp .Lb3%=\n\t"
-
-        ".Ll4%=:\n\t"
-        "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "lea{q 32(%[src]), %[src]| %[src], [%[src] + 32]}\n\t"
-        "lea{q -32(%[dst]), %[dst]| %[dst], [%[dst] - 32]}\n\t"
-        "jmp .Lb4%=\n\t"
-
-        ".Ll5%=:\n\t"
-        "mulx{q (%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "lea{q 40(%[src]), %[src]| %[src], [%[src] + 40]}\n\t"
-        "lea{q -24(%[dst]), %[dst]| %[dst], [%[dst] - 24]}\n\t"
-        "jmp .Lb5%=\n\t"
-
-        ".Ll6%=:\n\t"
-        "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "lea{q -16(%[src]), %[src]| %[src], [%[src] - 16]}\n\t"
-        "lea{q -16(%[dst]), %[dst]| %[dst], [%[dst] - 16]}\n\t"
-        "jmp .Lb6%=\n\t"
-
-        ".Ll7%=:\n\t"
-        "mulx{q (%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "lea{q -8(%[src]), %[src]| %[src], [%[src] - 8]}\n\t"
-        "lea{q -8(%[dst]), %[dst]| %[dst], [%[dst] - 8]}\n\t"
-        "jmp .Lb7%=\n\t"
-
-        ".Ld1%=:\n\t"
-        "adc{q (%[dst]), %[r8]| %[r8], [%[dst]]}\n\t"
-        "sbb{q $-1, %[r9]| %[r9], -1}\n\t"
-        "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
-        "jmp .Ldone%=\n\t"
-
-        ".Ll1%=:\n\t"
-        "mulx{q (%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src]]}\n\t"
-        "not %[r8]\n\t"
-        "jrcxz .Ld1%=\n\t"
-        "lea{q 8(%[src]), %[src]| %[src], [%[src] + 8]}\n\t"
-        "lea{q 8(%[dst]), %[dst]| %[dst], [%[dst] + 8]}\n\t"
-
-        ".align 32\n\t"
-        ".Lloop%=:\n\t"
-
-        ".Lb1%=:\n\t"
-        "mulx{q (%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src]]}\n\t"
-        "adcx{q -8(%[dst]), %[r8]| %[r8], [%[dst] - 8]}\n\t"
-        "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
-        "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
-
-        ".Lb0%=:\n\t"
-        "not %[r10]\n\t"
-        "mulx{q 8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 8]}\n\t"
-        "lea{q -1(%[rcx]), %[rcx]| %[rcx], [%[rcx] - 1]}\n\t"
-        "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
-        "adcx{q (%[dst]), %[r10]| %[r10], [%[dst]]}\n\t"
-        "mov{q %[r10], (%[dst])| [%[dst]], %[r10]}\n\t"
-
-        ".Lb7%=:\n\t"
-        "not %[r8]\n\t"
-        "mulx{q 16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] + 16]}\n\t"
-        "adcx{q 8(%[dst]), %[r8]| %[r8], [%[dst] + 8]}\n\t"
-        "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
-        "mov{q %[r8], 8(%[dst])| [%[dst] + 8], %[r8]}\n\t"
-
-        ".Lb6%=:\n\t"
-        "not %[r10]\n\t"
-        "mulx{q 24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] + 24]}\n\t"
-        "lea{q 64(%[src]), %[src]| %[src], [%[src] + 64]}\n\t"
-        "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
-        "adcx{q 16(%[dst]), %[r10]| %[r10], [%[dst] + 16]}\n\t"
-        "mov{q %[r10], 16(%[dst])| [%[dst] + 16], %[r10]}\n\t"
-
-        ".Lb5%=:\n\t"
-        "not %[r8]\n\t"
-        "mulx{q -32(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 32]}\n\t"
-        "adcx{q 24(%[dst]), %[r8]| %[r8], [%[dst] + 24]}\n\t"
-        "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
-        "mov{q %[r8], 24(%[dst])| [%[dst] + 24], %[r8]}\n\t"
-
-        ".Lb4%=:\n\t"
-        "mulx{q -24(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 24]}\n\t"
-        "not %[r10]\n\t"
-        "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
-        "adcx{q 32(%[dst]), %[r10]| %[r10], [%[dst] + 32]}\n\t"
-        "mov{q %[r10], 32(%[dst])| [%[dst] + 32], %[r10]}\n\t"
-
-        ".Lb3%=:\n\t"
-        "not %[r8]\n\t"
-        "mulx{q -16(%[src]), %[r10], %[r11]| %[r11], %[r10], [%[src] - 16]}\n\t"
-        "adcx{q 40(%[dst]), %[r8]| %[r8], [%[dst] + 40]}\n\t"
-        "adox{q %[r9], %[r10]| %[r10], %[r9]}\n\t"
-        "mov{q %[r8], 40(%[dst])| [%[dst] + 40], %[r8]}\n\t"
-
-        ".Lb2%=:\n\t"
-        "not %[r10]\n\t"
-        "mulx{q -8(%[src]), %[r8], %[r9]| %[r9], %[r8], [%[src] - 8]}\n\t"
-        "adox{q %[r11], %[r8]| %[r8], %[r11]}\n\t"
-        "adcx{q 48(%[dst]), %[r10]| %[r10], [%[dst] + 48]}\n\t"
-        "not %[r8]\n\t"
-        "mov{q %[r10], 48(%[dst])| [%[dst] + 48], %[r10]}\n\t"
-
-        "lea{q 64(%[dst]), %[dst]| %[dst], [%[dst] + 64]}\n\t"
-
-        "jrcxz .Lloop_out%=\n\t"
-        "jmp .Lloop%=\n\t"
-        ".Lloop_out%=:\n\t"
-
-        "adcx{q -8(%[dst]), %[r8]| %[r8], [%[dst] - 8]}\n\t"
-        "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
-        "adox{q %[rcx], %[r9]| %[r9], %[rcx]}\n\t"
-        "sbb{q $-1, %[r9]| %[r9], -1}\n\t"
-
-        ".Ldone%=:"
-
-        : [dst] "+&r"(dst), [src] "+&r"(src), [rcx] "+&c"(rcx), [r8] "=&r"(r8),
-          [r9] "=&r"(r9), [r10] "+&r"(r10), [r11] "=&r"(r11)
-        : "d"(rdx)
-        : "cc", "memory");
-
-    WJR_ASSUME(rcx == 0);
-
-    return r9;
-}
-
+extern uint64_t __wjr_asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
+                                   uint64_t rdx) noexcept;
 #else
-
 extern "C" WJR_MS_ABI uint64_t __wjr_asm_submul_1(uint64_t *dst, const uint64_t *src,
                                                   size_t n, uint64_t rdx) noexcept;
+#endif
 
 WJR_INTRINSIC_INLINE uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
                                            uint64_t rdx) noexcept {
     return __wjr_asm_submul_1(dst, src, n, rdx);
 }
-
-#endif
 
 #endif
 
@@ -23081,6 +22568,44 @@ WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_
 #undef WJR_ADDSUB_I
 #endif
 
+#if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)
+
+#if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S) == 1
+extern void __wjr_asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
+                                          const uint64_t *src1, size_t m) noexcept;
+#else
+extern "C" WJR_MS_ABI void __wjr_asm_basecase_mul_s_impl(uint64_t *dst,
+                                                         const uint64_t *src0, size_t rdx,
+                                                         const uint64_t *src1,
+                                                         size_t m) noexcept;
+#endif
+
+inline void asm_basecase_mul_s(uint64_t *dst, const uint64_t *src0, size_t n,
+                               const uint64_t *src1, size_t m) noexcept {
+    WJR_ASSERT(n >= m);
+    WJR_ASSERT(m >= 1);
+    __wjr_asm_basecase_mul_s_impl(dst, src0, n, src1, m);
+}
+
+#endif
+
+#if WJR_HAS_BUILTIN(ASM_BASECASE_SQR)
+
+#if WJR_HAS_BUILTIN(ASM_BASECASE_SQR) == 1
+extern void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
+                                        size_t rdx) noexcept;
+#else
+extern "C" WJR_MS_ABI void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
+                                                       size_t rdx) noexcept;
+#endif
+
+inline void asm_basecase_sqr(uint64_t *dst, const uint64_t *src, size_t n) noexcept {
+    WJR_ASSERT(n >= 1);
+    __wjr_asm_basecase_sqr_impl(dst, src, n);
+}
+
+#endif
+
 } // namespace wjr
 
 #endif // WJR_X86_MATH_MUL_HPP__
@@ -23480,8 +23005,14 @@ WJR_INTRINSIC_CONSTEXPR20 uint64_t try_addmul_1(uint64_t *dst, const uint64_t *s
         return 0;
     }
 
-    if (ml == 0) {
-        return 0;
+    if constexpr (maxn <= 3) {
+        if (ml == 0) {
+            return 0;
+        }
+    } else {
+        if (WJR_UNLIKELY(ml == 0)) {
+            return 0;
+        }
     }
 
     if constexpr (maxn == 1) {
@@ -23517,7 +23048,6 @@ inline constexpr size_t toom3_sqr_threshold = WJR_TOOM3_SQR_THRESHOLD;
 enum class __mul_mode : uint8_t {
     toom22 = 0x00,
     toom33 = 0x01,
-    toom44 = 0x02,
     all = 0x03,
 };
 
@@ -23716,6 +23246,7 @@ void __mul_n(uint64_t *WJR_RESTRICT dst, const uint64_t *src0, const uint64_t *s
     } else {
         c_out = cf0 * cf1;
     }
+
     c_out += try_addmul_1<m0>(dst + n, src1, n, cf0);
     c_out += try_addmul_1<m1>(dst + n, src0, n, cf1);
 }
@@ -24391,22 +23922,22 @@ inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
 inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
                                  uint64_t div) noexcept;
 
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
-                                        size_t n,
-                                        const div2by1_divider<uint64_t> &div) noexcept;
+WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
+                                   size_t n,
+                                   const div2by1_divider<uint64_t> &div) noexcept;
 
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
-                                        size_t n, uint64_t div) noexcept;
+WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
+                                   size_t n, uint64_t div) noexcept;
 
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                        size_t n,
-                                        const div3by2_divider<uint64_t> &div) noexcept;
+WJR_INTRINSIC_INLINE void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                   size_t n,
+                                   const div3by2_divider<uint64_t> &div) noexcept;
 
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                        size_t n, const uint64_t *div) noexcept;
+WJR_INTRINSIC_INLINE void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                   size_t n, const uint64_t *div) noexcept;
 
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                        size_t n, const uint64_t *div, size_t m) noexcept;
+WJR_INTRINSIC_INLINE void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                   size_t n, const uint64_t *div, size_t m) noexcept;
 
 WJR_INTRINSIC_CONSTEXPR20 uint64_t divexact_dbm1c(uint64_t *dst, const uint64_t *src,
                                                   size_t n, uint64_t bd,
@@ -24867,9 +24398,9 @@ inline uint128_t div128by64to128(uint64_t &rem, uint64_t lo, uint64_t hi,
 }
 
 // reference : https://ieeexplore.ieee.org/document/5487506
-WJR_INLINE_CONSTEXPR20 uint64_t
-div_qr_1_noshift(uint64_t *dst, uint64_t &rem, const uint64_t *src, size_t n,
-                 const div2by1_divider_noshift<uint64_t> &div) noexcept {
+inline uint64_t div_qr_1_noshift(uint64_t *dst, uint64_t &rem, const uint64_t *src,
+                                 size_t n,
+                                 const div2by1_divider_noshift<uint64_t> &div) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
     WJR_ASSERT_L2(WJR_IS_SAME_OR_DECR_P(dst, n - 1, src, n - 1));
 
@@ -24905,52 +24436,10 @@ div_qr_1_noshift(uint64_t *dst, uint64_t &rem, const uint64_t *src, size_t n,
     return qh;
 }
 
-WJR_INLINE_CONSTEXPR20 uint64_t
-div_qr_1_shift(uint64_t *dst, uint64_t &rem, const uint64_t *src, size_t n,
-               const div2by1_divider<uint64_t> &div) noexcept {
-    WJR_ASSERT_ASSUME(n >= 1);
-    WJR_ASSERT(div.get_shift() != 0);
-    WJR_ASSERT_L2(WJR_IS_SAME_OR_DECR_P(dst, n - 1, src, n - 1));
+extern uint64_t div_qr_1_shift(uint64_t *dst, uint64_t &rem, const uint64_t *src,
+                               size_t n, const div2by1_divider<uint64_t> &div) noexcept;
 
-    const uint64_t divisor = div.get_divisor();
-    const uint64_t value = div.get_value();
-    const auto shift = div.get_shift();
-
-    uint64_t qh;
-    uint64_t lo, hi;
-
-    uint64_t rbp = src[n - 1];
-    --n;
-    hi = rbp >> (64 - shift);
-
-    do {
-        if (WJR_UNLIKELY(n == 0)) {
-            qh = div.divide(divisor, value, rbp << shift, hi);
-            break;
-        }
-
-        lo = src[n - 1];
-        qh = div.divide(divisor, value, shld(rbp, lo, shift), hi);
-        rbp = lo;
-        --n;
-
-        if (WJR_LIKELY(n != 0)) {
-            do {
-                lo = src[n - 1];
-                dst[n] = div.divide(divisor, value, shld(rbp, lo, shift), hi);
-                rbp = lo;
-                --n;
-            } while (WJR_LIKELY(n != 0));
-        }
-
-        dst[0] = div.divide(divisor, value, rbp << shift, hi);
-    } while (0);
-
-    rem = hi >> shift;
-    return qh;
-}
-
-WJR_INTRINSIC_CONSTEXPR20 uint64_t
+WJR_INTRINSIC_INLINE uint64_t
 div_qr_1_impl(uint64_t *dst, uint64_t &rem, const uint64_t *src, size_t n,
               const div2by1_divider<uint64_t> &div) noexcept {
     if (div.get_shift() == 0) {
@@ -24961,9 +24450,9 @@ div_qr_1_impl(uint64_t *dst, uint64_t &rem, const uint64_t *src, size_t n,
 }
 
 // return high quotient limb
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
-                                        size_t n,
-                                        const div2by1_divider<uint64_t> &div) noexcept {
+WJR_INTRINSIC_INLINE void div_qr_1(uint64_t *dst, uint64_t &rem, const uint64_t *src,
+                                   size_t n,
+                                   const div2by1_divider<uint64_t> &div) noexcept {
     WJR_ASSERT_ASSUME(n >= 1);
 
     if (WJR_UNLIKELY(div.is_zero_or_single_bit())) {
@@ -25025,102 +24514,14 @@ WJR_INTRINSIC_CONSTEXPR20 void div_qr_1(uint64_t *dst, uint64_t &rem, const uint
     dst[n - 1] = div_qr_1_impl(dst, rem, src, n, div2by1_divider<uint64_t>(div));
 }
 
-WJR_INLINE_CONSTEXPR20 uint64_t
-div_qr_2_noshift(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
-                 const div3by2_divider_noshift<uint64_t> &div) noexcept {
-    WJR_ASSERT_ASSUME(n >= 2);
-    WJR_ASSERT_L2(WJR_IS_SAME_OR_DECR_P(dst, n - 2, src, n - 2));
-    WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n - 2, rem, 2));
+extern uint64_t div_qr_2_noshift(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                 size_t n,
+                                 const div3by2_divider_noshift<uint64_t> &div) noexcept;
 
-    const uint64_t divisor0 = div.get_divisor0();
-    const uint64_t divisor1 = div.get_divisor1();
-    const uint64_t value = div.get_value();
+extern uint64_t div_qr_2_shift(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                               size_t n, const div3by2_divider<uint64_t> &div) noexcept;
 
-    uint64_t qh = 0;
-    uint64_t u0, u1, u2;
-
-    u2 = src[n - 1];
-    u1 = src[n - 2];
-
-    if (__less_equal_128(divisor0, divisor1, u1, u2)) {
-        __sub_128(u1, u2, u1, u2, divisor0, divisor1);
-        qh = 1;
-    }
-
-    do {
-        if (WJR_UNLIKELY(n == 2)) {
-            break;
-        }
-
-        n -= 2;
-
-        do {
-            u0 = src[n - 1];
-            dst[n - 1] = div.divide(divisor0, divisor1, value, u0, u1, u2);
-            --n;
-        } while (WJR_LIKELY(n != 0));
-
-    } while (0);
-
-    rem[0] = u1;
-    rem[1] = u2;
-    return qh;
-}
-
-WJR_INLINE_CONSTEXPR20 uint64_t
-div_qr_2_shift(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
-               const div3by2_divider<uint64_t> &div) noexcept {
-    WJR_ASSERT_ASSUME(n >= 2);
-    WJR_ASSERT(div.get_shift() != 0);
-    WJR_ASSERT_L2(WJR_IS_SAME_OR_DECR_P(dst, n - 2, src, n - 2));
-    WJR_ASSERT_L2(WJR_IS_SEPARATE_P(dst, n - 2, rem, 2));
-
-    const uint64_t divisor0 = div.get_divisor0();
-    const uint64_t divisor1 = div.get_divisor1();
-    const uint64_t value = div.get_value();
-    const auto shift = div.get_shift();
-
-    uint64_t qh;
-    uint64_t u0, u1, u2;
-    uint64_t rbp;
-
-    rbp = src[n - 2];
-    u2 = src[n - 1];
-    u1 = shld(u2, rbp, shift);
-    u2 >>= (64 - shift);
-
-    n -= 2;
-
-    do {
-        if (WJR_UNLIKELY(n == 0)) {
-            qh = div.divide(divisor0, divisor1, value, rbp << shift, u1, u2);
-            break;
-        }
-
-        u0 = src[n - 1];
-        qh = div.divide(divisor0, divisor1, value, shld(rbp, u0, shift), u1, u2);
-        rbp = u0;
-        --n;
-
-        if (WJR_LIKELY(n != 0)) {
-            do {
-                u0 = src[n - 1];
-                dst[n] =
-                    div.divide(divisor0, divisor1, value, shld(rbp, u0, shift), u1, u2);
-                rbp = u0;
-                --n;
-            } while (WJR_LIKELY(n != 0));
-        }
-
-        dst[0] = div.divide(divisor0, divisor1, value, rbp << shift, u1, u2);
-    } while (0);
-
-    rem[0] = shrd(u1, u2, shift);
-    rem[1] = u2 >> shift;
-    return qh;
-}
-
-WJR_INTRINSIC_CONSTEXPR20 uint64_t
+WJR_INTRINSIC_INLINE uint64_t
 div_qr_2_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
               const div3by2_divider<uint64_t> &div) noexcept {
     if (div.get_shift() == 0) {
@@ -25130,16 +24531,16 @@ div_qr_2_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
     return div_qr_2_shift(dst, rem, src, n, div);
 }
 
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                        size_t n,
-                                        const div3by2_divider<uint64_t> &div) noexcept {
+WJR_INTRINSIC_INLINE void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                   size_t n,
+                                   const div3by2_divider<uint64_t> &div) noexcept {
     WJR_ASSERT_ASSUME(n >= 2);
 
     dst[n - 2] = div_qr_2_impl(dst, rem, src, n, div);
 }
 
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                        size_t n, const uint64_t *div) noexcept {
+WJR_INTRINSIC_INLINE void div_qr_2(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                   size_t n, const uint64_t *div) noexcept {
     WJR_ASSERT_ASSUME(n >= 2);
 
     dst[n - 2] =
@@ -25157,9 +24558,8 @@ extern uint64_t dc_div_qr_s(uint64_t *dst, uint64_t *src, size_t n, const uint64
 extern void __div_qr_s_impl(uint64_t *dst, uint64_t *rem, const uint64_t *src, size_t n,
                             const uint64_t *div, size_t m) noexcept;
 
-WJR_INTRINSIC_CONSTEXPR20 void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t *src,
-                                        size_t n, const uint64_t *div,
-                                        size_t m) noexcept {
+WJR_INTRINSIC_INLINE void div_qr_s(uint64_t *dst, uint64_t *rem, const uint64_t *src,
+                                   size_t n, const uint64_t *div, size_t m) noexcept {
     WJR_ASSERT_ASSUME(m >= 1);
     WJR_ASSERT_ASSUME(n >= m);
 
