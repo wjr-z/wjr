@@ -7,11 +7,10 @@
 #if WJR_HAS_BUILTIN(__builtin_clz)
 #define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF
 #elif defined(WJR_MSVC) && defined(WJR_X86)
-#define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF
-#define WJR_HAS_BUILTIN_MSVC_CLZ WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_CLZ WJR_HAS_DEF_VAR(2)
 #endif
 
-#if WJR_HAS_BUILTIN(MSVC_CLZ)
+#if WJR_HAS_BUILTIN(CLZ) == 2
 #include <wjr/x86/simd/intrin.hpp>
 #endif
 
@@ -70,7 +69,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_clz(T x) noexcept {
     if constexpr (nd < 32) {
         return builtin_clz(static_cast<uint32_t>(x)) - (32 - nd);
     } else {
-#if !WJR_HAS_BUILTIN(MSVC_CLZ)
+#if WJR_HAS_BUILTIN(CLZ) == 1
         if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
             constexpr auto delta = std::numeric_limits<unsigned int>::digits - nd;
             return __builtin_clz(static_cast<unsigned int>(x)) - delta;

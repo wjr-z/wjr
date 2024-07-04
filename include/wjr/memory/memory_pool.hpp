@@ -6,6 +6,38 @@
 
 namespace wjr {
 
+struct automatic_free_pool {
+    struct chunk : list_node<intrusive_tag<chunk>> {};
+
+    automatic_free_pool() noexcept { init(&head); }
+    ~automatic_free_pool() noexcept {
+        for (auto iter = head.begin(); iter != head.end();) {
+            const auto now = iter++;
+            chunk *node = &**now;
+            free(node);
+        }
+    }
+
+    WJR_MALLOC void *allocate(size_t n) noexcept {
+        const auto ptr = (chunk *)malloc(n + sizeof(chunk));
+        push_back(&head, ptr);
+        return (char *)(ptr) + sizeof(chunk);
+    }
+
+    void deallocate(void *ptr) noexcept {
+        const auto node = (chunk *)((char *)(ptr) - sizeof(chunk));
+        remove_uninit(node);
+        free(node);
+    }
+
+    static automatic_free_pool &get_instance() noexcept {
+        static thread_local automatic_free_pool instance;
+        return instance;
+    }
+
+    chunk head;
+};
+
 namespace memory_pool_details {
 
 static constexpr uint8_t __ctz_table[32] = {
@@ -20,33 +52,6 @@ private:
     union obj {
         union obj *free_list_link;
         char client_data[1];
-    };
-
-    struct malloc_chunk {
-        struct __list_node : list_node<intrusive_tag<__list_node>> {};
-
-        malloc_chunk() noexcept { init(&head); }
-        ~malloc_chunk() noexcept {
-            for (auto iter = head.begin(); iter != head.end();) {
-                const auto now = iter++;
-                __list_node *node = &**now;
-                free(node);
-            }
-        }
-
-        WJR_MALLOC void *allocate(size_t n) noexcept {
-            const auto ptr = (__list_node *)malloc(n + sizeof(__list_node));
-            push_back(&head, ptr);
-            return (char *)(ptr) + sizeof(__list_node);
-        }
-
-        void deallocate(void *ptr) noexcept {
-            const auto node = (__list_node *)((char *)(ptr) - sizeof(__list_node));
-            remove_uninit(node);
-            free(node);
-        }
-
-        __list_node head;
     };
 
     WJR_CONST static constexpr size_t __round_up(size_t bytes) noexcept {
@@ -65,9 +70,8 @@ private:
         return static_cast<uint32_t>(1) << (idx + 3);
     }
 
-    static malloc_chunk &get_chunk() noexcept {
-        static thread_local malloc_chunk chunk;
-        return chunk;
+    static automatic_free_pool &get_chunk() noexcept {
+        return automatic_free_pool::get_instance();
     }
 
 public:

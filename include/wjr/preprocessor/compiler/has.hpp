@@ -6,7 +6,16 @@
 #include <wjr/preprocessor/details/basic.hpp>
 #include <wjr/preprocessor/logical/basic.hpp>
 
-/** @note Only support value 0/1 currently. */
+/**
+ * @details
+ * 0 : non-defined  \n
+ * 1 : builtin  \n
+ * 2 : intrinsic    \n
+ * 3 : assembly \n
+ * 4~15 : reserved  \n
+ * 16~63 : user-defined
+ *
+ */
 #define WJR_HAS_DEF_VAR(var) WJR_PP_MAP_DEF(var)
 #define WJR_HAS_DEF WJR_HAS_DEF_VAR(1)
 
@@ -28,7 +37,8 @@
     (defined(WJR_COMPILER_CLANG) && WJR_HAS_CLANG(10, 0, 0)) ||                          \
     (!defined(WJR_COMPILER_GCC) && !defined(WJR_COMPILER_CLANG) &&                       \
      defined(__has_builtin))
-#define WJR_HAS_BUILTIN(x) WJR_PP_BOOL_IF(WJR_HAS_BUILTIN_FIND(x), 1, __has_builtin(x))
+#define WJR_HAS_BUILTIN(x) WJR_HAS_BUILTIN_I(x, WJR_HAS_BUILTIN_FIND(x))
+#define WJR_HAS_BUILTIN_I(x, VAR) WJR_PP_BOOL_IF(WJR_PP_BOOL(VAR), VAR, __has_builtin(x))
 #else
 #define WJR_HAS_BUILTIN(x) WJR_HAS_BUILTIN_FIND(x)
 #endif
@@ -37,11 +47,12 @@
 #define WJR_HAS_INCLUDE(x) __has_include(x)
 #else
 #define WJR_HAS_INCLUDE(x) 0
-#endif // __has_includeF
+#endif // __has_include
 
 #if defined(__has_attribute)
-#define WJR_HAS_ATTRIBUTE(x)                                                             \
-    WJR_PP_BOOL_IF(WJR_HAS_ATTRIBUTE_FIND(x), 1, __has_attribute(x))
+#define WJR_HAS_ATTRIBUTE(x) WJR_HAS_ATTRIBUTE_I(x, WJR_HAS_ATTRIBUTE_FIND(x))
+#define WJR_HAS_ATTRIBUTE_I(x, VAR)                                                      \
+    WJR_PP_BOOL_IF(WJR_PP_BOOL(VAR), VAR, __has_attribute(x))
 #else
 #define WJR_HAS_ATTRIBUTE(x) WJR_HAS_ATTRIBUTE_FIND(x)
 #endif

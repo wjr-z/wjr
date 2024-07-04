@@ -9,11 +9,19 @@
 
 namespace wjr {
 
-#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM) && defined(__BMI2__)
+#if defined(__BMI2__)
+
+#if WJR_HAS_FEATURE(GCC_STYLE_INLINE_ASM)
 #define WJR_HAS_BUILTIN_ASM_DIVEXACT_DBM1C WJR_HAS_DEF
+#elif defined(WJR_ENABLE_ASSEMBLY)
+#define WJR_HAS_BUILTIN_ASM_DIVEXACT_DBM1C WJR_HAS_DEF_VAR(3)
+#endif
+
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_DIVEXACT_DBM1C)
+
+#if WJR_HAS_BUILTIN(ASM_DIVEXACT_DBM1C) == 1
 
 // TODO : optimize pipeline
 inline uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
@@ -68,6 +76,20 @@ inline uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src, size_t n,
 
     return r8;
 }
+
+#else
+
+extern "C" WJR_MS_ABI uint64_t __wjr_asm_divexact_dbm1c(uint64_t *dst,
+                                                        const uint64_t *src, size_t n,
+                                                        uint64_t bd, uint64_t h) noexcept;
+
+WJR_INTRINSIC_INLINE uint64_t asm_divexact_dbm1c(uint64_t *dst, const uint64_t *src,
+                                                 size_t n, uint64_t bd,
+                                                 uint64_t h) noexcept {
+    return __wjr_asm_divexact_dbm1c(dst, src, n, bd, h);
+}
+
+#endif
 
 #endif
 

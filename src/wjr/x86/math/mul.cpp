@@ -2,10 +2,10 @@
 
 namespace wjr {
 
-#if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S) && !WJR_HAS_BUILTIN(ASSEMBLY_ASM_BASECASE_MUL_S)
+#if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S) == 1
 
-void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
-                               const uint64_t *src1, size_t m) noexcept {
+void __wjr_asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
+                                   const uint64_t *src1, size_t m) noexcept {
     uint64_t r8, r9, r10, r11;
     uint64_t rax, rcx; // rax = rdx & 7
 
@@ -353,10 +353,11 @@ void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
 
 #endif // WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)
 
-#if WJR_HAS_BUILTIN(ASM_BASECASE_SQR) && !WJR_HAS_BUILTIN(ASSEMBLY_ASM_BASECASE_SQR)
+#if WJR_HAS_BUILTIN(ASM_BASECASE_SQR) == 1
 
 // Local testing is slower than GMP by 2% to 3%
-void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src, size_t rdx) noexcept {
+void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
+                                 size_t rdx) noexcept {
     uint64_t r8, r9, r10, r11;
     uint64_t rax, rcx;
 

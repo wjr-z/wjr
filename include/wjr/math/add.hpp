@@ -88,9 +88,9 @@ WJR_INTRINSIC_CONSTEXPR20 T addc(T a, T b, type_identity_t<U> c_in, U &c_out) no
     }
 
     if constexpr (sizeof(T) == 8) {
-        return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ASM_ADDC), asm_addc,
-                              WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ADDC), builtin_addc,
-                                             fallback_addc))(a, b, c_in, c_out);
+        return WJR_PP_BOOL_IF_NE(WJR_HAS_BUILTIN(ASM_ADDC), asm_addc,
+                                 WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ADDC), builtin_addc,
+                                                fallback_addc))(a, b, c_in, c_out);
     } else {
         return WJR_PP_BOOL_IF(WJR_HAS_BUILTIN(ADDC), builtin_addc,
                               fallback_addc)(a, b, c_in, c_out);

@@ -11,16 +11,16 @@
 #if WJR_ADDSUB_I == 1
 #define WJR_addcsubc addc
 #define WJR_adcsbb adc
-#define __WJR_TEST_ASSEMBLY ASSEMBLY_ASM_ADDC_N
+#define __WJR_TEST_ASSEMBLY ASM_ADDC_N
 #else
 #define WJR_addcsubc subc
 #define WJR_adcsbb sbb
-#define __WJR_TEST_ASSEMBLY ASSEMBLY_ASM_SUBC_N
+#define __WJR_TEST_ASSEMBLY ASM_SUBC_N
 #endif
 
-#if !WJR_HAS_BUILTIN(__WJR_TEST_ASSEMBLY)
+#if WJR_HAS_BUILTIN(__WJR_TEST_ASSEMBLY) == 1
 
-inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
+inline uint64_t WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
     uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
     uint64_t c_in) noexcept {
     size_t rcx = n / 8;
@@ -202,19 +202,10 @@ inline uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
 }
 
 #else
-
 extern "C" WJR_MS_ABI uint64_t WJR_PP_CONCAT(
     __wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(uint64_t *dst, const uint64_t *src0,
                                                       const uint64_t *src1, size_t n,
                                                       uint64_t c_in) noexcept;
-
-WJR_INTRINSIC_INLINE int64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(
-    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
-    uint64_t c_in) noexcept {
-    return WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(dst, src0,
-                                                                           src1, n, c_in);
-}
-
 #endif
 
 WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n))(
@@ -227,8 +218,8 @@ WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n
         }
     }
 
-    return WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(dst, src0, src1, n,
-                                                                     c_in);
+    return WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addcsubc, _n_impl))(dst, src0,
+                                                                           src1, n, c_in);
 }
 
 #undef __WJR_TEST_ASSEMBLY

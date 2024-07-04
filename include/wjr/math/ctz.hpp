@@ -7,11 +7,10 @@
 #if WJR_HAS_BUILTIN(__builtin_ctz)
 #define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF
 #elif defined(WJR_MSVC) && defined(WJR_X86)
-#define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF
-#define WJR_HAS_BUILTIN_MSVC_CTZ WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_CTZ WJR_HAS_DEF_VAR(2)
 #endif
 
-#if WJR_HAS_BUILTIN(MSVC_CTZ)
+#if WJR_HAS_BUILTIN(CTZ) == 2
 #include <wjr/x86/simd/intrin.hpp>
 #endif
 
@@ -54,7 +53,7 @@ WJR_CONST WJR_INTRINSIC_INLINE int builtin_ctz(T x) noexcept {
     if constexpr (nd < 32) {
         return builtin_ctz(static_cast<uint32_t>(x));
     } else {
-#if !WJR_HAS_BUILTIN(MSVC_CTZ)
+#if WJR_HAS_BUILTIN(CTZ) == 1
         if constexpr (nd <= std::numeric_limits<unsigned int>::digits) {
             return __builtin_ctz(static_cast<unsigned int>(x));
         } else if constexpr (nd <= std::numeric_limits<unsigned long>::digits) {

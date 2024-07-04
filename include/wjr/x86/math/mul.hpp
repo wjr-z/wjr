@@ -31,6 +31,8 @@ WJR_INTRINSIC_INLINE uint64_t builtin_umul128(uint64_t a, uint64_t b,
 
 #if WJR_HAS_BUILTIN(ASM_MUL_1)
 
+#if WJR_HAS_BUILTIN(ASM_MUL_1) == 1
+
 inline uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n,
                           uint64_t rdx) noexcept {
     size_t rcx = n / 8;
@@ -182,9 +184,23 @@ inline uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n,
     return r9;
 }
 
+#else
+
+extern "C" WJR_MS_ABI uint64_t __wjr_asm_mul_1(uint64_t *dst, const uint64_t *src,
+                                               size_t n, uint64_t rdx) noexcept;
+
+WJR_INTRINSIC_INLINE uint64_t asm_mul_1(uint64_t *dst, const uint64_t *src, size_t n,
+                                        uint64_t rdx) noexcept {
+    return __wjr_asm_mul_1(dst, src, n, rdx);
+}
+
+#endif
+
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_ADDMUL_1)
+
+#if WJR_HAS_BUILTIN(ASM_ADDMUL_1) == 1
 
 inline uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
                              uint64_t rdx) noexcept {
@@ -258,7 +274,7 @@ inline uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
         "jmp .Lb7%=\n\t"
 
         ".Ld1%=:\n\t"
-        "add{q -8(%[dst]), %[r8]| [%[dst] - 8], %[r8]}\n\t"
+        "add{q -8(%[dst]), %[r8]| %[r8], [%[dst] - 8]}\n\t"
         "mov{q %[r8], -8(%[dst])| [%[dst] - 8], %[r8]}\n\t"
         "adc{q %[rcx], %[r9]| %[r9], %[rcx]}\n\t"
         "jmp .Ldone%=\n\t"
@@ -347,58 +363,61 @@ inline uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
     return r9;
 }
 
+#else
+
+extern "C" WJR_MS_ABI uint64_t __wjr_asm_addmul_1(uint64_t *dst, const uint64_t *src,
+                                                  size_t n, uint64_t rdx) noexcept;
+
+WJR_INTRINSIC_INLINE uint64_t asm_addmul_1(uint64_t *dst, const uint64_t *src, size_t n,
+                                           uint64_t rdx) noexcept {
+    return __wjr_asm_addmul_1(dst, src, n, rdx);
+}
+
+#endif
+
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S)
 
-#if !WJR_HAS_BUILTIN(ASSEMBLY_ASM_BASECASE_MUL_S)
-extern void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
-                                      const uint64_t *src1, size_t m) noexcept;
+#if WJR_HAS_BUILTIN(ASM_BASECASE_MUL_S) == 1
+extern void __wjr_asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0, size_t rdx,
+                                          const uint64_t *src1, size_t m) noexcept;
 #else
 extern "C" WJR_MS_ABI void __wjr_asm_basecase_mul_s_impl(uint64_t *dst,
                                                          const uint64_t *src0, size_t rdx,
                                                          const uint64_t *src1,
                                                          size_t m) noexcept;
-
-WJR_INTRINSIC_INLINE void __asm_basecase_mul_s_impl(uint64_t *dst, const uint64_t *src0,
-                                                    size_t rdx, const uint64_t *src1,
-                                                    size_t m) noexcept {
-    __wjr_asm_basecase_mul_s_impl(dst, src0, rdx, src1, m);
-}
 #endif
 
 inline void asm_basecase_mul_s(uint64_t *dst, const uint64_t *src0, size_t n,
                                const uint64_t *src1, size_t m) noexcept {
     WJR_ASSERT(n >= m);
     WJR_ASSERT(m >= 1);
-    __asm_basecase_mul_s_impl(dst, src0, n, src1, m);
+    __wjr_asm_basecase_mul_s_impl(dst, src0, n, src1, m);
 }
 
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_BASECASE_SQR)
 
-#if !WJR_HAS_BUILTIN(ASSEMBLY_ASM_BASECASE_SQR)
-extern void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
-                                    size_t rdx) noexcept;
+#if WJR_HAS_BUILTIN(ASM_BASECASE_SQR) == 1
+extern void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
+                                        size_t rdx) noexcept;
 #else
 extern "C" WJR_MS_ABI void __wjr_asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
                                                        size_t rdx) noexcept;
-                                                       
-WJR_INTRINSIC_INLINE void __asm_basecase_sqr_impl(uint64_t *dst, const uint64_t *src,
-                                                  size_t rdx) noexcept {
-    __wjr_asm_basecase_sqr_impl(dst, src, rdx);
-}
 #endif
 
 inline void asm_basecase_sqr(uint64_t *dst, const uint64_t *src, size_t n) noexcept {
     WJR_ASSERT(n >= 1);
-    __asm_basecase_sqr_impl(dst, src, n);
+    __wjr_asm_basecase_sqr_impl(dst, src, n);
 }
 
 #endif
 
 #if WJR_HAS_BUILTIN(ASM_SUBMUL_1)
+
+#if WJR_HAS_BUILTIN(ASM_SUBMUL_1) == 1
 
 // slower than asm_addmul_1
 inline uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
@@ -472,7 +491,7 @@ inline uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
         "jmp .Lb7%=\n\t"
 
         ".Ld1%=:\n\t"
-        "adc{q (%[dst]), %[r8]| [%[dst]], %[r8]}\n\t"
+        "adc{q (%[dst]), %[r8]| %[r8], [%[dst]]}\n\t"
         "sbb{q $-1, %[r9]| %[r9], -1}\n\t"
         "mov{q %[r8], (%[dst])| [%[dst]], %[r8]}\n\t"
         "jmp .Ldone%=\n\t"
@@ -567,6 +586,18 @@ inline uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
 
     return r9;
 }
+
+#else
+
+extern "C" WJR_MS_ABI uint64_t __wjr_asm_submul_1(uint64_t *dst, const uint64_t *src,
+                                                  size_t n, uint64_t rdx) noexcept;
+
+WJR_INTRINSIC_INLINE uint64_t asm_submul_1(uint64_t *dst, const uint64_t *src, size_t n,
+                                           uint64_t rdx) noexcept {
+    return __wjr_asm_submul_1(dst, src, n, rdx);
+}
+
+#endif
 
 #endif
 

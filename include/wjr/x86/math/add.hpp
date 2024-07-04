@@ -20,18 +20,16 @@
 #else
 
 #if defined(WJR_MSVC)
-#define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_DEF
-#define WJR_HAS_BUILTIN_MSVC_ASM_ADDC WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_ASM_ADDC WJR_HAS_DEF_VAR(2)
 #endif
 
 #if defined(WJR_ENABLE_ASSEMBLY)
-#define WJR_HAS_BUILTIN_ASM_ADDC_N WJR_HAS_DEF
-#define WJR_HAS_BUILTIN_ASSEMBLY_ASM_ADDC_N WJR_HAS_DEF
+#define WJR_HAS_BUILTIN_ASM_ADDC_N WJR_HAS_DEF_VAR(3)
 #endif
 
 #endif
 
-#if WJR_HAS_BUILTIN(MSVC_ASM_ADDC)
+#if WJR_HAS_BUILTIN(ASM_ADDC) == 2
 #include <wjr/x86/simd/intrin.hpp>
 #endif
 
@@ -57,7 +55,7 @@ namespace wjr {
 template <typename U>
 WJR_INTRINSIC_INLINE uint64_t asm_addc(uint64_t a, uint64_t b, U c_in,
                                        U &c_out) noexcept {
-#if !WJR_HAS_BUILTIN(MSVC_ASM_ADDC)
+#if WJR_HAS_BUILTIN(ASM_ADDC) == 1
     if (WJR_BUILTIN_CONSTANT_P_TRUE(c_in == 1)) {
         if (WJR_BUILTIN_CONSTANT_P(b) && in_range<int32_t>(b)) {
             asm("stc\n\t"

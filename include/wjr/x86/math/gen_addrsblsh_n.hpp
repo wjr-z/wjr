@@ -6,8 +6,17 @@
 #error "abort"
 #endif
 
-#define WJR_addsub WJR_PP_BOOL_IF(WJR_ADDSUB_I, add, rsb)
-#define WJR_adcsbb WJR_PP_BOOL_IF(WJR_ADDSUB_I, adc, sbb)
+#if WJR_ADDSUB_I == 1
+#define WJR_addsub add
+#define WJR_adcsbb adc
+#define __WJR_TEST_ASSEMBLY ASM_ADDLSH_N
+#else
+#define WJR_addsub rsb
+#define WJR_adcsbb sbb
+#define __WJR_TEST_ASSEMBLY ASM_RSBLSH_N
+#endif
+
+#if WJR_HAS_BUILTIN(__WJR_TEST_ASSEMBLY) == 1
 
 inline uint64_t
 WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(uint64_t *dst, const uint64_t *src0,
@@ -250,7 +259,24 @@ WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(uint64_t *dst, const uint6
     return r11;
 }
 
+#else
+
+extern "C" WJR_MS_ABI uint64_t WJR_PP_CONCAT(
+    __wjr_asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(uint64_t *dst, const uint64_t *src0,
+                                                  const uint64_t *src1, size_t n,
+                                                  uint64_t cl) noexcept;
+
+WJR_INTRINSIC_INLINE uint64_t WJR_PP_CONCAT(asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(
+    uint64_t *dst, const uint64_t *src0, const uint64_t *src1, size_t n,
+    uint64_t cl) noexcept {
+    return WJR_PP_CONCAT(__wjr_asm_, WJR_PP_CONCAT(WJR_addsub, lsh_n))(dst, src0, src1, n,
+                                                                       cl);
+}
+
+#endif
+
+#undef __WJR_TEST_ASSEMBLY
 #undef WJR_adcsbb
-#undef WJR_addcsubc
+#undef WJR_addsub
 
 #undef WJR_ADDSUB_I

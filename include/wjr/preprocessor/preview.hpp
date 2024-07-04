@@ -12,6 +12,8 @@
 // the next input, the difficulty of implementing recursion is also high.
 #include <wjr/preprocessor/queue/algorithm.hpp>
 
+#define WJR_PP_BOOL_IF_NE(expr, t, f) WJR_PP_BOOL_IF(WJR_PP_BOOL(expr), t, f)
+
 // (a, b, c) -> f(a) f(b) f(c)
 #define WJR_PP_TRANSFORM_PUT(queue, op)                                                  \
     WJR_PP_QUEUE_PUT(WJR_PP_QUEUE_TRANSFORM(queue, op))
